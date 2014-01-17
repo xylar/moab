@@ -19,7 +19,7 @@ MBInterface *MBI();
 int main(int argc, char *argv[])
 { 
   //  std::string input_filename="../../fng/mcnp_n_impr_fluka.h5m";
-  std::string input_filename=argv[1];
+  std::string input_filename;
   MBEntityHandle loaded_file_set;
   MBErrorCode rval;
   
@@ -28,6 +28,8 @@ int main(int argc, char *argv[])
       std::cout << "please provide filename" << std::endl;
       return 1;
     }
+  else
+    input_filename = argv[1];
   
   // create meshset to load file into
   rval = MBI()->create_meshset( MESHSET_SET, loaded_file_set );
