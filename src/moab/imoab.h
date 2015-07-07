@@ -6,17 +6,20 @@
   Notes:
   pass everything by reference, so we do not have to use %VAL()
   arrays are allocated by the client; 
-  pass the pointer to the start of array, and the allocated length
+  pass the pointer to the start of array, and the allocated length ?
   return the filled array, and the actual length (should be 
   most of the time allocated length)
+  or should we assume that the user allocated everything fine?
 */
+
 
 /**
   this will create the moab instance, if not created already
-  pass pointer to the  number of command line arguments and 
-   pointer to command line arguments
+  \param (in) argc   number of command line arguments 
+  \param (in) argv   command line arguments
 */
-ErrorCode InitializeMoab(int * pargc, char *** pargv);
+
+ErrorCode InitializeMoab(int argc, char **argv);
 
 /**
   deletes the moab instance 
@@ -28,35 +31,43 @@ ErrorCode FinalizeMoab();
   (internally, a mesh set will be associated with this integer; all mesh 
    for this application will reside in this mesh/file set)
   whenever something is required about the mesh, this integer id will need to be passed
-  
-  \param app_name application name (PROTEUS, NEK5000, etc)
+  collective  
+
+  \param (in) app_name application name (PROTEUS, NEK5000, etc)
+  \param (in) comm  MPI communicator
   \param (out) pid  application id pointer 
-  \param (in) length of application name 
+  \param (in) length of application name  
 */
 
-ErrorCode RegisterApplication(char * app_name, int * pid, int len_name);
+ErrorCode RegisterApplication(char * app_name, MPI_Comm * comm, int * pid, int len_name);
 
+/**
+  deregister application: delete mesh associated with it (collective)
+  \param (in) pid  application id 
+*/
 
+ErrorCode DeregisterApplication( int * pid );
 
 /**
   Get global information from the file
   \param (in) pid application id
-  \param filename 
-  \param (out) GlobalVertices
-  \param (out) GlobalElements (highest dimension only?)
+  \param (in) filename  application mesh file 
+  \param (out) GlobalVertices  number of global vertices 
+  \param (out) GlobalElements  number of global elements (highest dimension only?) 
   \param (out) NumDimensions ( 2 or 3 ) 
-  \param (out) NumPartitions 
-  \param (in) file name length
+  \param (out) NumPartitions  num partitions in the file
+  \param (in) len_filename  file name length
 */
+
 ErrorCode  ReadHeaderInfo (int *pid, char * filename, int * GlobalVertices, int * GlobalElements, int * NumDimensions, int * NumPartitions, int len_filename);
 
 /**
-  load mesh and ghost if needed
+  load mesh and ghost if needed (collective)
   \param (in) pid application id 
   \param (in) filename 
-  \param (in) comm   MPI communicator
-  \param (in) ghost_layers  
-  \param (in) len_filename 
+  \param (in) comm   MPI communicator (is this needed if already passed at registration?)
+  \param (in) ghost_layers  number of layers 
+  \param (in) len_filename  filename length
 
   (this will exchange ghosts and exchange all important tags, like 
    global id, material(block) tags, neumann tags and dirichlett tags
@@ -65,12 +76,14 @@ ErrorCode  ReadHeaderInfo (int *pid, char * filename, int * GlobalVertices, int 
 ErrorCode LoadMesh(int * pid, char * filename, MPI_Comm * comm, int * ghost_layers, int len_filename);
 
 /**
-  obtain local mesh size information
+  obtain local mesh size information 
   \param (in) pid  application id
-  \param (out) visibleVertices
-  \param (out) VisibleBlocks
+  \param (out) visibleVertices number of local vertices (including ghosts + shared)
+  \param (out) VisibleBlocks number of visible material sets in local mesh (that includes ghosts)
   \param (out) VisibleSurfaceBC (is this the count of surface elem that have a bc?) 
+                                    is this including ghosts or not?
   \param (out) VisibleVertexBCa (is this the count of vertices that have a BC?)
+                                    is this including ghosts or not?
 */
 
 ErrorCode GetMeshInfo(int *pid, int * visibleVertices, int *VisibleBlocks,
@@ -79,17 +92,18 @@ int * VisibleSurfaceBC, int * VisibleVertexBC);
 /**
   get vertex coordinates
 
-  \param (in) pid 
+  \param (in) pid  application id
   \param (in/out) coords  pointer to memory that will be filled with 
       interleaved coordinates; client allocates this 
-  \param (in/out) len; at input, usable memory (3*numv?); on output, actual  
+  \param (in/out) len; at input, usable memory (numdim*numv?); on output, actual  
+    or is this parameter not needed at all? assume everything is allocated fine?
 */
 ErrorCode GetVisibleVerticesCoordinates(int *pid, double * coords, int * len);
 
 /**
-  get rank that owns each vertex 
+  get mesh rank for each vertex  (local, shared or ghost)
   
-  \param (in) pid
+  \param (in) pid  application id
   \param (in/out) mesh rank for each vertex (array allocated by client, size visibleVertices)
         (should this be long for mesh  > 2B ?)
 */
@@ -98,7 +112,7 @@ ErrorCode GetVertexOwnership(int * pid, int * VisibleGlobalRankID);
 
 /** 
   obtain block information
-  \param (in) pid 
+  \param (in) pid  application id
   \param (in) Block  block ID
   \param (out) VerticesPerElement  number of vertices per element
   \param (out) NumElements          number of elements in block
@@ -111,8 +125,8 @@ ErrorCode  GetBlockInfo(int *pid, int * Block, int * VerticesPerElement,
 
 /** 
   get element connectivity for block
-  \param (in) pid
-  \param (in) block ID
+  \param (in) pid  application id
+  \param (in) block ID (index from 1 to VisibleBlocks? ) 
   \param (in/out) connectivity array (allocated by client, size 
                 VerticesPerElement*NumElements 
 */
@@ -121,8 +135,8 @@ ErrorCode GetElementConnectivity(int *pid, int *Block, int * Connectivity);
 
 /**
    get element ownership information 
-  \param (in) pid
-  \param (in) block ID
+  \param (in) pid  application id
+  \param (in) block ID (num from 1 to VisibleBlocks) : we don't know how many global blocks
   \param (in/out) ownership array (allocated by client, size NumElements) 
                       (this will be global ID in moab terms)
 */
@@ -132,105 +146,24 @@ ErrorCode GetElementOwnership(int * pid, int * Block,int * ElementRankID);
    surface boundary condition information
    (all arrays allocated by client, size VisibleSurfaceBC?)
 
-   \param (in) pid
-   \param (out) element global id (mesh_rank)
-   \param (out) (from 1 to 6 for hex, 1-4 for tetras)  side number 
-   \param (out) boundary condition type ( a number corresponding to NeumannSet ?)
+  \param (in) pid  application id
+   \param (in/out) element global id (mesh_rank)
+   \param (in/out) (from 1 to 6 for hex, 1-4 for tetras)  side number 
+   \param (in/out) boundary condition type ( a number corresponding to NeumannSet ?)
 */
 ErrorCode GetPointerToSurfaceBC(int *pid, int * ElementID,int * ReferenceSurfaceID,
   int* BoundaryConditionType);
 
 /**
    vertex boundary condition info
-   \param (in) pid
    (all arrays allocated by client, size VisibleVertexBC)
+   \param (in) pid  application id
 
-   \param (out) vertex global id (mesh rank?)
-   \param (out) boundary condition type ( a number corresponding to Dirichlet Set ?)
+   \param (in/out) vertex global id (mesh rank?)
+   \param (in/out) boundary condition type ( a number corresponding to Dirichlet Set ?)
 */
 ErrorCode GetPointerToVertexBC(int *pid, int * VertexID, int * BoundaryConditionType);
 
-
-
-
-
-
-
-
-/**
-  vertex ownership for all visible vertices
-
-  \param (in)  pid  application id
-  \param (in/out) vertex_owner  array with mesh rank id  (will correspond to GLOBAL_ID tag in MOAB,
-                      if there are no gaps in GLOBAL_ID tag space )
-  \param (in/out) len; at input: usable memory (numv) ; on output, actual length
-*/
-
-ErrorCode  get_vertices_ownership(int * pid, int * vertex_ID, int * len);
-
-/**
-  \param (in) pid
-  \param (in) block (1 to num visiblt blocks)  
-  \param (out) blockname : integer corresponding to material set
-  \param (out) vert_per_elem
-  \param (out) num_elem 
-
-*/
-ErrorCode get_block_info(int *pid, int * block, int * blockname, int * vert_per_elem, int * num_elem);
-
-/**
-  get connectivity for the whole block
-  (represented by indices in the vertex array, 0 or 1 based?)
-  \param (in) pid
-  \param (in) block 
-  \param (in/out) connectivity  
-  \param (in/out) len  
-
-  Notes: block type (num of vertices known from before)
-  A block corresponds to a material set in moab, and a block in cubit  
-*/
-ErrorCode get_connectivity (int * pid, int *block, int * connectivity, int *len);
-
-/**
-  similar to vertex ownership; is this GLOBAL_ID or processor rank?
-*/
-ErrorCode get_element_ownership(int *pid, int *block, int * elem_ID, int * len);
-
-
-/**
-  \param pid
-  \param bcid boundary condition index
-  \param (out) len  number of quads in the set
-  output will be length for dimensioning the array for next call
-*/
-ErrorCode get_surface_bc_len(int *pid, int *bcid, int *len);
-
-/**
- so it would be a set of faces in a neumann set
- output will be element mesh rank and face index (1 to 6) for each quad in the original set
-  \param (out) elementID  element mesh rank (or element index in local array?)
-  \param (out) referenceSurface face index from 1 to 6 for each 
- these arrays need to be dimensioned by the client
-*/
-
-ErrorCode get_surface_bc(int *pid, int *bcid, int * elementID, int* referenceSurface, int *len);
-
-/**
-  \param pid
-  \param bcid boundary condition index
-  \param (out) len  number of vertices in the set
-  output will be length for dimensioning the array for next call
-*/
-ErrorCode get_vertex_bc_len(int *pid, int *bcid, int *len);
-
-/**
- so it would be a set of faces in a dirichlett set
- output will be vertex rank in the original set
-  \param (out) vertexID  vertex  mesh rank (or vertex index in local array?)
- these arrays need to be dimensioned by the client
-*/
-
-ErrorCode get_vertex_bc(int *pid, int *bcid, int * vertexID, int *len);
  
 
 
