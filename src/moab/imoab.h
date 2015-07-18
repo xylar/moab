@@ -14,9 +14,24 @@
      (for typical cases, should be the allocated length)
 */
 
+/*
+Comments from Mike and Emily:
+
+1) Fortran MPI_Comm won't work. Take an integer argument and use MPI_F2C calls to get the C-Comm object
+2) ReadHeaderInfo - Does it need the pid ? 
+3) Reuse the comm object form the registration for both load and write ops. Do not take comm objects again to avoid confusion.
+4) Decipher the global comm object and the subset partioning for each application based on the comm object
+5) GetMeshInfo - return separately the owned and ghosted vertices/elements -- not together in visible_** but rather owned_** and ghosted_**. Make these arrays of size 2.
+6) Should we sort the vertices after we do ghosting ? So that the locally owned is first and then the ghosted is appended.
+7) RCM only for hte owned part of the mesh -- do not screw with the ghosted layers
+8) GetBlockID - identical to GetVertexID -- return the global numberign for block
+9) GetVertexID -- remember that the order of vertices returned have an implicit numbering embedded in it. DO NOT CHANGE THIS ORDERING...
+10) GetBlockInfo takes global Block ID; Remove blockname unless there is a separate use case for it..
+11) GetElementConnectivity - clarify whether we return global or local vertex numbering. Preferably local numbering else lot of deciphering for global.
+*/
 
 /** 
-  \fn ErrorCode iMOABInitialize(int argc, char **argv)
+  \fn ErrorCode iMOABInitialize( int argc, char **argv )
   \brief Initialize the iMOAB interface implementation and create the MOAB instance, if not created already (reference counted).
 
   <B>Operations:</B> Collective
@@ -24,7 +39,7 @@
   \param[in] argc (int)    Number of command line arguments 
   \param[in] argv (char**) Command line arguments
 */
-ErrorCode iMOABInitialize(int argc, char **argv);
+ErrorCode iMOABInitialize( int argc, char **argv );
 
 /**
   \fn ErrorCode iMOABFinalize()
@@ -35,7 +50,7 @@ ErrorCode iMOABInitialize(int argc, char **argv);
 ErrorCode iMOABFinalize();
 
 /**
-  \fn ErrorCode RegisterApplication( char* app_name, MPI_Comm* comm, int* pid, int app_name_length )
+  \fn ErrorCode RegisterApplication( char* app_name, MPI_Comm* comm, int* pid )
   \brief Register application - Create a unique application ID and bootstrap interfaces for further queries.
   
   \note
@@ -45,11 +60,27 @@ ErrorCode iMOABFinalize();
   <B>Operations:</B> Collective
 
   \param[in]  app_name (char*)      Application name (PROTEUS, NEK5000, etc)
-  \param[in]  comm (MPI_Comm*)      MPI communicator to be used for all mesh-releated functions for this application
+  \param[in]  comm (MPI_Comm*)      MPI communicator to be used for all mesh-releated queries originating from this application
+  \param[out] pid (int*)            The unique pointer to the application ID
+*/
+ErrorCode RegisterApplication( char* app_name, MPI_Comm* comm, int* pid );
+
+/**
+  \fn ErrorCode RegisterFortranApplication( char* app_name, int* comm, int* pid, int app_name_length )
+  \brief Register a Fortran-basedapplication - Create a unique application ID and bootstrap interfaces for further queries.
+  
+  \note
+  Internally, the Comm object will be converted and stored as MPI_Comm. Additionally, a mesh set will be associated with the 
+  application ID and all subsequent queries on the MOAB instance will be directed to this mesh/file set.
+
+  <B>Operations:</B> Collective
+
+  \param[in]  app_name (char*)      Application name (PROTEUS, NEK5000, etc)
+  \param[in]  comm (int*)           MPI communicator to be used for all mesh-releated queries originating from this application
   \param[out] pid (int*)            The unique pointer to the application ID
   \param[in]  app_name_length (int) Length of application name string
 */
-ErrorCode RegisterApplication( char* app_name, MPI_Comm* comm, int* pid, int app_name_length );
+ErrorCode RegisterFortranApplication( char* app_name, int* comm, int* pid, int app_name_length );
 
 /**
   \fn ErrorCode DeregisterApplication( int* pid )
@@ -62,22 +93,22 @@ ErrorCode RegisterApplication( char* app_name, MPI_Comm* comm, int* pid, int app
 ErrorCode DeregisterApplication( int* pid );
 
 /**
-  \fn ErrorCode ReadHeaderInfo (char* filename, int* global_vertices, int* global_elements, int* num_dimension, int* num_parts, int filename_length)
+  \fn ErrorCode ReadHeaderInfo ( char* filename, int* num_global_vertices, int* num_global_elements, int* num_dimension, int* num_parts, int filename_length )
   \brief Get global information from the file
 
   <B>Operations:</B> Not collective
 
-  \param[in]  filename (char*)       The MOAB mesh file (H5M) to probe for header information
-  \param[out] global_vertices (int*) The total number of vertices in the mesh file
-  \param[out] global_elements (int*) The total number of elements (of highest dimension only) 
-  \param[out] num_dimension (int*)   The highest dimension of elements in the mesh (Edge=1, Tri/Quad=2, Tet/Hex/Prism/Pyramid=3)
-  \param[out] num_parts (int*)       The total number of partitions available in the mesh file, typically partitioned with mbpart during pre-processing
-  \param[in]  filename_length (int)  Length of the file name string
+  \param[in]  filename (char*)           The MOAB mesh file (H5M) to probe for header information
+  \param[out] num_global_vertices (int*) The total number of vertices in the mesh file
+  \param[out] num_global_elements (int*) The total number of elements (of highest dimension only) 
+  \param[out] num_dimension (int*)       The highest dimension of elements in the mesh (Edge=1, Tri/Quad=2, Tet/Hex/Prism/Pyramid=3)
+  \param[out] num_parts (int*)           The total number of partitions available in the mesh file, typically partitioned with mbpart during pre-processing
+  \param[in]  filename_length (int)      Length of the file name string
 */
-ErrorCode ReadHeaderInfo (char* filename, int* global_vertices, int* global_elements, int* num_dimension, int* num_parts, int filename_length);
+ErrorCode ReadHeaderInfo ( char* filename, int* num_global_vertices, int* num_global_elements, int* num_dimension, int* num_parts, int filename_length );
 
 /**
-  \fn ErrorCode LoadMesh(int* pid, char* filename, char* read_options, MPI_Comm* comm, int* ghost_layers, int filename_length, int read_options_length)
+  \fn ErrorCode LoadMesh( int* pid, char* filename, char* read_options, int num_ghost_layers, int filename_length, int read_options_length )
   \brief Load a MOAB mesh file in parallel and exchange ghost layers as requested
 
   \note
@@ -90,15 +121,14 @@ ErrorCode ReadHeaderInfo (char* filename, int* global_vertices, int* global_elem
   \param[in] pid (int*)                The unique pointer to the application ID
   \param[in] filename (char*)          The MOAB mesh file (H5M) to load onto the internal application mesh set
   \param[in] read_options (char*)      Additional options for reading the MOAB mesh file in parallel 
-  \param[in] comm (MPI_Comm*)          The MPI communicator to be used to read the mesh file (can we re-use the one available from application registration? Or is this a subset of the previously supplied Comm object ?)
-  \param[in] ghost_layers (int*)       The total number of ghost layers to exchange during mesh loading
+  \param[in] num_ghost_layers (int)    The total number of ghost layers to exchange during mesh loading
   \param[in] filename_length (int)     Length of the filename string
   \param[in] read_options_length (int) Length of the read options string  
 */
-ErrorCode LoadMesh(int* pid, char* filename, char* read_options, MPI_Comm* comm, int* ghost_layers, int filename_length, int read_options_length);
+ErrorCode LoadMesh( int* pid, char* filename, char* read_options, int num_ghost_layers, int filename_length, int read_options_length );
 
 /**
-  \fn ErrorCode WriteMesh(int* pid, char* filename, char* write_options, MPI_Comm* comm, int filename_length, int write_options_length)
+  \fn ErrorCode WriteMesh( int* pid, char* filename, char* write_options, int filename_length, int write_options_length )
   \brief Write a MOAB mesh along with the solution tags to a file
 
   \note
@@ -109,41 +139,41 @@ ErrorCode LoadMesh(int* pid, char* filename, char* read_options, MPI_Comm* comm,
   \param[in] pid (int*)                  The unique pointer to the application ID
   \param[in] filename (char*)            The MOAB mesh file (H5M) to write all the entities contained in the internal application mesh set
   \param[in] write_options (char*)       Additional options for writing the MOAB mesh in parallel
-  \param[in] comm (MPI_Comm*)            MPI communicator (is this needed or do we reuse the one passed at registration?)
   \param[in] filename_length (int*)      Length of the filename string
   \param[in] write_options_length (int*) Length of the write options string
 */
-ErrorCode WriteMesh(int* pid, char* filename, char* write_options, MPI_Comm* comm, int filename_length, int write_options_length);
+ErrorCode WriteMesh( int* pid, char* filename, char* write_options, int filename_length, int write_options_length );
 
 /**
-  \fn ErrorCode GetMeshInfo(int* pid, int* num_visible_vertices, int* num_visible_elements, int *num_visible_blocks, int* num_visible_surfaceBC, int* num_visible_vertexBC)
+  \fn ErrorCode GetMeshInfo( int* pid, int* num_visible_vertices, int* num_visible_elements, int *num_visible_blocks, int* num_visible_surfaceBC, int* num_visible_vertexBC )
   \brief Obtain local mesh size information based on the loaded file
 
   <B>Operations:</B> Collective
 
   \param[in]  pid (int*)                   The unique pointer to the application ID
-  \param[out] num_visible_vertices (int*)  The number of vertices in the current partition/process (including ghosts + shared)
-  \param[out] num_visible_elements (int*)  The number of elements in current partition/process (including ghosts)
-  \param[out] num_visible_blocks (int*)    The number of  material sets in local mesh in current partition/process (includes ghosts ??)
-  \param[out] num_visible_surfaceBC (int*) The number of surfaces that have a NEUMANN_SET B.C defined  (includes ghosts ??)
-  \param[out] num_visible_vertexBC (int*)  The number of vertices that have a DIRICHLET_SET B.C defined (includes ghosts ??)
+  \param[out] num_visible_vertices (int*)  The number of vertices in the current partition/process arranged as: owned only, ghosted/shared, total_visible (array allocated by client, <TT>size := 3</TT>)
+  \param[out] num_visible_elements (int*)  The number of elements in current partition/process arranged as: owned only, ghosted/shared, total_visible (array allocated by client, <TT>size := 3</TT>)
+  \param[out] num_visible_blocks (int*)    The number of material sets in local mesh in current partition/process arranged as: owned only, ghosted/shared, total_visible (array allocated by client, <TT>size := 3</TT>)
+  \param[out] num_visible_surfaceBC (int*) The number of surfaces that have a NEUMANN_SET B.C defined in local mesh in current partition/process arranged as: owned only, ghosted/shared, total_visible (array allocated by client, <TT>size := 3</TT>)
+  \param[out] num_visible_vertexBC (int*)  The number of vertices that have a DIRICHLET_SET B.C defined in local mesh in current partition/process arranged as: owned only, ghosted/shared, total_visible (array allocated by client, <TT>size := 3</TT>)
 */
-ErrorCode GetMeshInfo(int* pid, int* num_visible_vertices, int* num_visible_elements, int *num_visible_blocks, int* num_visible_surfaceBC, int* num_visible_vertexBC);
+ErrorCode GetMeshInfo( int* pid, int* num_visible_vertices, int* num_visible_elements, int *num_visible_blocks, int* num_visible_surfaceBC, int* num_visible_vertexBC );
 
 /**
-  \fn ErrorCode GetVisibleVerticesCoordinates(int* pid, int* coords_length, double* coords)
-  \brief Get vertex coordinates for all local (owned and ghosted) vertices
+  \fn ErrorCode GetVertexID( int* pid, int* vertices_length, int* global_vertex_ID, int* local_vertex_ID )
+  \brief Get the global vertex ID for all locally visible (owned and shared/ghosted) vertices
 
   <B>Operations:</B> Collective
 
-  \param[in]  pid (int*)           The unique pointer to the application ID
-  \param[in]  coords_length (int*) The size of the allocated coordinate array (array allocated by client, size := 3*num_visible_vertices)
-  \param[out] coords (double*)     The pointer to client allocated memory that will be filled with interleaved coordinates (do need an option for blocked coordinates ?)
+  \param[in]  pid (int*)               The unique pointer to the application ID
+  \param[out] vertices_length (int*)   The allocated size of array (typical <TT>size := num_visible_vertices</TT>)
+  \param[out] global_vertex_ID (int*)  The global IDs for all locally visible vertices (array allocated by client)
+  \param[out] local_vertex_ID (int*)   (<I><TT>Optional</TT></I>) The local IDs for all locally visible vertices (array allocated by client)
 */
-ErrorCode GetVisibleVerticesCoordinates(int* pid, int* coords_length, double* coords);
+ErrorCode GetVertexID( int* pid, int* vertices_length, int* global_vertex_ID, int* local_vertex_ID );
 
 /**
-  \fn ErrorCode GetVertexOwnership(int* pid, int* vertices_length, int* visible_global_rank_ID)
+  \fn ErrorCode GetVertexOwnership( int* pid, int* vertices_length, int* visible_global_rank_ID )
   \brief Get vertex ownership information i.e., for each vertex based on the local ID, return the process that owns the vertex (local, shared or ghost)
 
   \note
@@ -153,22 +183,34 @@ ErrorCode GetVisibleVerticesCoordinates(int* pid, int* coords_length, double* co
   <B>Operations:</B> Collective
 
   \param[in]  pid (int*)                    The unique pointer to the application ID
-  \param[out] vertices_length (int *)       The allocated size of array (typically size := num_visible_vertices)
+  \param[out] vertices_length (int *)       The allocated size of array (typically <TT>size := num_visible_vertices</TT>)
   \param[out] visible_global_rank_ID (int*) The processor rank owning each of the local vertices 
 */
-ErrorCode GetVertexOwnership(int* pid, int* vertices_length, int* visible_global_rank_ID);
+ErrorCode GetVertexOwnership( int* pid, int* vertices_length, int* visible_global_rank_ID );
 
 /**
-  \fn ErrorCode GetVertexID(int* pid, int* vertices_length, int* global_vertex_ID)
+  \fn ErrorCode GetVisibleVerticesCoordinates( int* pid, int* coords_length, double* coordinates )
+  \brief Get vertex coordinates for all local (owned and ghosted) vertices
+
+  <B>Operations:</B> Collective
+
+  \param[in]  pid (int*)            The unique pointer to the application ID
+  \param[in]  coords_length (int*)  The size of the allocated coordinate array (array allocated by client, <TT>size := 3*num_visible_vertices</TT>)
+  \param[out] coordinates (double*) The pointer to client allocated memory that will be filled with interleaved coordinates (do need an option for blocked coordinates ?)
+*/
+ErrorCode GetVisibleVerticesCoordinates( int* pid, int* coords_length, double* coordinates );
+
+/**
+  \fn ErrorCode GetVertexID( int* pid, int* vertices_length, int* global_vertex_ID )
   \brief Get the global vertex ID for all locally visible (owned and shared/ghosted) vertices
 
   <B>Operations:</B> Collective
 
-  \param[in]  pid (int*)               The unique pointer to the application ID
-  \param[out] vertices_length (int*)   The allocated size of array (typical size := num_visible_vertices)
-  \param[out] global_vertex_ID (int*)  The global IDs for all locally visible vertices (array allocated by client)
+  \param[in]  pid (int*)              The unique pointer to the application ID
+  \param[out] block_length (int*)     The allocated size of array (typical <TT>size := num_visible_blocks</TT>)
+  \param[out] global_block_ID (int*)  The global IDs for all locally visible blocks (array allocated by client)
 */
-ErrorCode GetVertexID(int* pid, int* vertices_length, int* global_vertex_ID);
+ErrorCode GetBlockID( int* pid, int* block_length, int* global_block_ID );
 
 /**
   \fn ErrorCode  GetBlockInfo(int* pid, int* global_block_ID, int* vertices_per_element, int* num_elements_in_block)
@@ -181,7 +223,7 @@ ErrorCode GetVertexID(int* pid, int* vertices_length, int* global_vertex_ID);
   \param[out] vertices_per_element (int*)  The number of vertices per element
   \param[out] num_elements_in_block (int*) The number of elements in block
 */
-ErrorCode  GetBlockInfo(int* pid, int* global_block_ID, int* vertices_per_element, int* num_elements_in_block);
+ErrorCode GetBlockInfo(int* pid, int* global_block_ID, int* vertices_per_element, int* num_elements_in_block);
 
 /** 
   \fn ErrorCode GetElementConnectivity(int* pid, int* global_block_ID, int* connectivity_length, int* element_connectivity)
@@ -191,8 +233,8 @@ ErrorCode  GetBlockInfo(int* pid, int* global_block_ID, int* vertices_per_elemen
 
   \param[in]  pid (int*)                  The unique pointer to the application ID
   \param[in]  global_block_ID (int*)      The global block ID of the set being queried
-  \param[out] connectivity_length  (int*) The allocated size of array (typical size := vertices_per_element*num_visible_elements)
-  \param[out] element_connectivity (int*) The connectivity array to store element ordering in MOAB canonical numbering scheme (array allocated by client)
+  \param[out] connectivity_length  (int*) The allocated size of array (typical <TT>size := vertices_per_element*num_visible_elements</TT>)
+  \param[out] element_connectivity (int*) The connectivity array to store element ordering in MOAB canonical numbering scheme (array allocated by client); array contains vertex identifiers with global ID numbering
 */
 ErrorCode GetElementConnectivity(int* pid, int* global_block_ID, int* connectivity_length, int* element_connectivity);
 
@@ -204,7 +246,7 @@ ErrorCode GetElementConnectivity(int* pid, int* global_block_ID, int* connectivi
 
   \param[in]  pid (int*)                   The unique pointer to the application ID
   \param[in]  global_block_ID (int*)       The global block ID of the set being queried
-  \param[out] num_elements_in_block (int*) The allocated size of ownership array, same as num_elements_in_block returned from GetBlockInfo()
+  \param[out] num_elements_in_block (int*) The allocated size of ownership array, same as <TT>num_elements_in_block</TT> returned from GetBlockInfo()
   \param[out] element_ownership (int*)     The ownership array to store processor ID for all elements (array allocated by client) 
 */
 ErrorCode GetElementOwnership(int* pid, int* global_block_ID, int* num_elements_in_block, int* element_ownership);
@@ -217,37 +259,40 @@ ErrorCode GetElementOwnership(int* pid, int* global_block_ID, int* num_elements_
 
   \param[in]  pid (int*)                   The unique pointer to the application ID
   \param[in]  global_block_ID (int*)       The global block ID of the set being queried
-  \param[out] num_elements_in_block (int*) The allocated size of global element ID array, same as num_elements_in_block returned from GetBlockInfo()
+  \param[out] num_elements_in_block (int*) The allocated size of global element ID array, same as <TT>num_elements_in_block</TT> returned from GetBlockInfo()
   \param[out] global_element_ID (int*)     The global IDs for all locally visible elements (array allocated by client)
+  \param[out] local_element_ID (int*)      (<I><TT>Optional</TT></I>) The local IDs for all locally visible elements (array allocated by client)
 */
-ErrorCode GetElementID(int* pid, int* global_block_ID, int* num_elements_in_block, int* global_element_ID);
+ErrorCode GetElementID(int* pid, int* global_block_ID, int* num_elements_in_block, int* global_element_ID, int* local_element_ID);
 
 /**
-  \fn ErrorCode GetPointerToSurfaceBC(int* pid, int* global_element_ID, int* reference_surface_ID, int* boundary_condition_type, int* num_surface_BC)
+  \fn ErrorCode GetPointerToSurfaceBC(int* pid, int* surface_BC_length, int* global_element_ID, int* reference_surface_ID, int* boundary_condition_type)
   \brief Get the surface boundary condition information
 
   <B>Operations:</B> Collective
 
   \param[in]  pid (int*)                      The unique pointer to the application ID
-  \param[out] global_element_ID (int*)        The global element ID that contains the side with the surface BC
+  \param[in]  surface_BC_length (int*)        The allocated size of surface boundary condition array, same as <TT>num_visible_surfaceBC</TT> returned by GetMeshInfo()
+  \param[out] global_element_ID (int*)        The global element IDs that contains the side with the surface BC
   \param[out] reference_surface_ID (int*)     The surface number with the BC in the canonical reference element (e.g., 1 to 6 for HEX, 1-4 for TET)
   \param[out] boundary_condition_type (int*)  The boundary condition type as obtained from the mesh description (value of the NeumannSet defined on the element)
-  \param[out] num_surface_BC (int*)           The allocated size of surface boundary condition array, same as num_visible_surfaceBC
 */
-ErrorCode GetPointerToSurfaceBC(int* pid, int* global_element_ID, int* reference_surface_ID, int* boundary_condition_type, int* num_surface_BC);
+ErrorCode GetPointerToSurfaceBC(int* pid, int* surface_BC_length, int* global_element_ID, int* reference_surface_ID, int* boundary_condition_type);
 
 /**
-  \fn ErrorCode GetPointerToVertexBC(int* pid, int* global_vertext_ID, int* num_vertex_BC, int* boundary_condition_type)
+  \fn ErrorCode GetPointerToVertexBC(int* pid, int* vertex_BC_length, int* global_vertext_ID, int* num_vertex_BC, int* boundary_condition_type)
   \brief Get the vertex boundary condition information
 
   <B>Operations:</B> Collective
 
   \param[in]  pid (int*)                     The unique pointer to the application ID
+  \param[in]  vertex_BC_length (int*)        The allocated size of vertex boundary condition array, same as <TT>num_visible_vertexBC</TT> returned by GetMeshInfo()
   \param[out] global_vertext_ID (int*)       The global vertex ID that has Dirichlet BC defined
   \param[out] num_vertex_BC (int*)           The allocated size of vertex boundary condition array, same as num_visible_vertexBC
   \param[out] boundary_condition_type (int*) The boundary condition type as obtained from the mesh description (value of the DirichletSet defined on the vertex)
+
 */
-ErrorCode GetPointerToVertexBC(int* pid, int* global_vertext_ID, int* num_vertex_BC, int* boundary_condition_type);
+ErrorCode GetPointerToVertexBC(int* pid, int* vertex_BC_length, int* global_vertext_ID, int* num_vertex_BC, int* boundary_condition_type);
 
 /**
   \fn ErrorCode DefineTagStorage(int* pid, char* tag_storage_name, int* tag_type, int* components_per_entity, int tag_storage_name_length)
@@ -277,8 +322,7 @@ ErrorCode DefineTagStorage(int* pid, char* tag_storage_name, int* tag_type, int*
    \param[in]  pid (int*)                       The unique pointer to the application ID
    \param[in]  tag_storage_name (char*)         The tag name to store/retreive the data in MOAB
    \param[in]  num_tag_storage_length (int*)    The size of tag storage data (e.g., num_visible_vertices*components_per_entity or num_visible_elements*components_per_entity)
-   \param[out] tag_storage_data (int*)          The array data of type <I>int</I> to replace the internal tag memory
-               <P>The data is assumed to be contiguous over the local set of visible entities (either vertices or elements)</P>
+   \param[out] tag_storage_data (int*)          The array data of type <I>int</I> to replace the internal tag memory; The data is assumed to be contiguous over the local set of visible entities (either vertices or elements)
    \param[in]  tag_storage_name_length (char*)  The length of the tag_storage_name string
 */
 ErrorCode SetIntTagStorage(int* pid, char* tag_storage_name, int* num_tag_storage_length, int* tag_storage_data, int tag_storage_name_length);
@@ -292,8 +336,7 @@ ErrorCode SetIntTagStorage(int* pid, char* tag_storage_name, int* num_tag_storag
    \param[in]  pid (int*)                       The unique pointer to the application ID
    \param[in]  tag_storage_name (char*)         The tag name to store/retreive the data in MOAB
    \param[in]  num_tag_storage_length (int*)    The size of tag storage data (e.g., num_visible_vertices*components_per_entity or num_visible_elements*components_per_entity)
-   \param[out] tag_storage_data (int*)          The array data of type <I>int</I> to be copied from the internal tag memory
-               <P>The data is assumed to be contiguous over the local set of visible entities (either vertices or elements)</P>
+   \param[out] tag_storage_data (int*)          The array data of type <I>int</I> to be copied from the internal tag memory; The data is assumed to be contiguous over the local set of visible entities (either vertices or elements)
    \param[in]  tag_storage_name_length (char*)  The length of the tag_storage_name string
 */
 ErrorCode GetIntTagStorage(int* pid, char* tag_storage_name, int* num_tag_storage_length, int* tag_storage_data, int tag_storage_name_length);
@@ -307,8 +350,7 @@ ErrorCode GetIntTagStorage(int* pid, char* tag_storage_name, int* num_tag_storag
    \param[in]  pid (int*)                       The unique pointer to the application ID
    \param[in]  tag_storage_name (char*)         The tag name to store/retreive the data in MOAB
    \param[in]  num_tag_storage_length (int*)    The size of tag storage data (e.g., num_visible_vertices*components_per_entity or num_visible_elements*components_per_entity)
-   \param[out] tag_storage_data (double*)       The array data of type <I>double</I> to replace the internal tag memory
-               <P>The data is assumed to be contiguous over the local set of visible entities (either vertices or elements)</P>
+   \param[out] tag_storage_data (double*)       The array data of type <I>double</I> to replace the internal tag memory; The data is assumed to be contiguous over the local set of visible entities (either vertices or elements)
    \param[in]  tag_storage_name_length (char*)  The length of the tag_storage_name string
 */
 ErrorCode SetDoubleTagStorage(int* pid, char* tag_storage_name, int* num_tag_storage_length, double* tag_storage_data, int tag_storage_name_length);
@@ -322,8 +364,7 @@ ErrorCode SetDoubleTagStorage(int* pid, char* tag_storage_name, int* num_tag_sto
    \param[in]  pid (int*)                       The unique pointer to the application ID
    \param[in]  tag_storage_name (char*)         The tag name to store/retreive the data in MOAB
    \param[in]  num_tag_storage_length (int*)    The size of tag storage data (e.g., num_visible_vertices*components_per_entity or num_visible_elements*components_per_entity)
-   \param[out] tag_storage_data (double*)       The array data of type <I>double</I> to be copied from the internal tag memory
-               <P>The data is assumed to be contiguous over the local set of visible entities (either vertices or elements)</P>
+   \param[out] tag_storage_data (double*)       The array data of type <I>double</I> to be copied from the internal tag memory; The data is assumed to be contiguous over the local set of visible entities (either vertices or elements)
    \param[in]  tag_storage_name_length (char*)  The length of the tag_storage_name string
 */
 ErrorCode GetDoubleTagStorage(int* pid, char* tag_storage_name, int* num_tag_storage_length, double* tag_storage_data, int tag_storage_name_length);
