@@ -110,7 +110,7 @@ cdef extern from "moab/Core.hpp" namespace "moab":
         # member functions
         float impl_version()
         float impl_version(std_string *version_string)
-
+        
         ErrorCode write_file(const char *file_name)
         ErrorCode write_file(const char *file_name, const char *file_type)
         ErrorCode write_file(const char *file_name, const char *file_type, 
@@ -176,4 +176,3 @@ cdef extern from "moab/Core.hpp" namespace "moab":
 	                            DataType& type)
         ErrorCode tag_get_length(const Tag tag_handle,
                                  int & length)
-
