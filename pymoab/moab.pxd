@@ -59,8 +59,8 @@ cdef extern from "moab/Types.hpp" namespace "moab":
         MB_STRUCTURED_MESH  
         MB_FAILURE 
 
-    ctypedef TagInfo* Tag;
 
+    ctypedef TagInfo* Tag;
 
 cdef extern from "moab/EntityType.hpp" namespace "moab":
 
@@ -85,7 +85,6 @@ cdef extern from "moab/EntityHandle.hpp" namespace "moab":
     ctypedef long EntityID
     ctypedef unsigned long EntityHandle
 
-
 cdef extern from "moab/Range.hpp" namespace "moab":
 
     cdef cppclass Range:
@@ -100,7 +99,6 @@ cdef extern from "moab/Range.hpp" namespace "moab":
 
         EntityHandle operator[](EntityID index)
 
-
 cdef extern from "moab/Core.hpp" namespace "moab":
 
     cdef cppclass Core:
@@ -110,7 +108,7 @@ cdef extern from "moab/Core.hpp" namespace "moab":
         # member functions
         float impl_version()
         float impl_version(std_string *version_string)
-        
+
         ErrorCode write_file(const char *file_name)
         ErrorCode write_file(const char *file_name, const char *file_type)
         ErrorCode write_file(const char *file_name, const char *file_type, 
@@ -120,20 +118,21 @@ cdef extern from "moab/Core.hpp" namespace "moab":
         ErrorCode write_file(const char *file_name, const char *file_type, 
                              const char *options, const EntityHandle *output_sets, 
                              int num_output_sets)
-        #ErrorCode write_file(const char *file_name, const char *file_type, 
-        #                     const char *options, const EntityHandle *output_sets, 
-        #                     int num_output_sets, const Tag *tag_list) 
-        #ErrorCode write_file(const char *file_name, const char *file_type, 
-        #                     const char *options, const EntityHandle *output_sets, 
-        #                     int num_output_sets, const Tag *tag_list, 
-        #                     int num_tags)
-
-        ErrorCode create_meshset(const unsigned int options, EntityHandle &ms_handle)
-        ErrorCode create_meshset(const unsigned int options, EntityHandle &ms_handle, int start_id)
-
+        
         ErrorCode add_entities(EntityHandle meshset, const EntityHandle *entities, int num_entities)
         ErrorCode add_entities(EntityHandle meshset, const Range &entities)
  
+        ErrorCode write_file(const char *file_name, const char *file_type, 
+                             const char *options, const EntityHandle *output_sets, 
+                             int num_output_sets, const Tag *tag_list) 
+        ErrorCode write_file(const char *file_name, const char *file_type, 
+                             const char *options, const EntityHandle *output_sets, 
+                             int num_output_sets, const Tag *tag_list, 
+                             int num_tags)
+
+        ErrorCode create_meshset(const unsigned int options, EntityHandle &ms_handle)
+        ErrorCode create_meshset(const unsigned int options, EntityHandle &ms_handle, int start_id=0)
+
         ErrorCode create_vertices(const double *coordinates, const int nverts,
                                   Range &entity_handles)   
 
