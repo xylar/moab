@@ -131,7 +131,7 @@ cdef extern from "moab/Core.hpp" namespace "moab":
                              int num_tags)
 
         ErrorCode create_meshset(const unsigned int options, EntityHandle &ms_handle)
-        ErrorCode create_meshset(const unsigned int options, EntityHandle &ms_handle, int start_id=0)
+        ErrorCode create_meshset(const unsigned int options, EntityHandle &ms_handle, int start_id)
 
         ErrorCode create_vertices(const double *coordinates, const int nverts,
                                   Range &entity_handles)   
