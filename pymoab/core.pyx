@@ -10,6 +10,7 @@ from .range cimport Range
 from .types import check_error, np_tag_type, validate_type
 from . import types
 from .range cimport Range
+from .types import check_error
 
 cdef class Core(object):
 
