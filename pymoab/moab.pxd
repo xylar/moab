@@ -61,28 +61,6 @@ cdef extern from "moab/Types.hpp" namespace "moab":
 
     ctypedef TagInfo* Tag;
 
-# cdef extern from "moab/SequenceManager.hpp" namespace "moab":
-
-#     cdef cppclass SequenceManager:
-#         SequenceManager()
-
-# cdef extern from "moab/Error.hpp" namespace "moab":
-
-#     cdef cppclass Error:
-#         Error()
-
-# cdef extern from "moab/DenseTag.hpp" namespace "moab": 
-
-#     cdef cppclass DenseTag:
-#         DenseTag()
-#         DataType get_data_type()
-#         @staticmethod
-#         DenseTag* create_tag(SequenceManager* seqman, 
-#                              Error* error,
-#                              const char* name,
-#                              int bytes, 
-#                              DataType type, 
-#                              const void* default_value)
 
     ctypedef TagInfo* Tag;
 
