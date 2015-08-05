@@ -101,7 +101,6 @@ def yt2moab_uniform_gridgen(mb,ds):
                 connectivity = ref_index+offsets
 
                 conn_arr[j+i*ney+k*nex*ney] = [vert_handles[connectivity[elem]] for elem in range(8)]
-                
                 k+=1
             j+=1
         i+=1
