@@ -20,7 +20,10 @@ AM_CPPFLAGS += -DIS_BUILDING_MB \
                -I$(srcdir)/io \
                -I$(srcdir)/io/mhdf/include \
                -I$(srcdir)/parallel \
-               -I$(srcdir)/verdict
+               -I$(srcdir)/LocalDiscretization \
+               -I$(srcdir)/verdict \
+               -I$(srcdir)/RefineMesh \
+               -I$(srcdir)/DiscreteGeometry
 
 # The directory in which to install headers
 libMOAB_la_includedir = $(includedir)
@@ -50,6 +53,8 @@ libMOAB_la_SOURCES = \
   DenseTag.hpp \
   DenseTag.cpp \
   DualTool.cpp \
+  DiscreteGeometry/Solvers.cpp \
+  DiscreteGeometry/HiReconstruction.cpp \
   ElementSequence.hpp \
   EntitySequence.cpp \
   EntitySequence.hpp \
@@ -240,6 +245,11 @@ nobase_libMOAB_la_include_HEADERS = \
 verdictincludedir = $(includedir)/moab/verdict
 verdictinclude_HEADERS = \
   moab/verdict/VerdictWrapper.hpp
+
+discretegeomincludedir = $(includedir)/moab/DiscreteGeometry
+discretegeominclude_HEADERS = \
+	moab/Solvers.hpp \
+	moab/HiReconstruction.hpp
 
 localdiscincludedir = $(includedir)/moab/LocalDiscretization
 localdiscinclude_HEADERS = \
