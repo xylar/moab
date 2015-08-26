@@ -13,6 +13,8 @@ SUBDIRS += io .
 libMOAB_la_LIBADD += io/libmoabio.la 
 EXTRA_DIST = 
 
+BUILT_SOURCES = MBCN_protos.h
+
 # Some variables
 AM_CPPFLAGS += -DIS_BUILDING_MB \
                -DLOCDIR=src/ \
@@ -24,6 +26,7 @@ AM_CPPFLAGS += -DIS_BUILDING_MB \
                -I$(srcdir)/verdict \
                -I$(srcdir)/RefineMesh \
                -I$(srcdir)/DiscreteGeometry
+	       -I$(srcdir)/DiscreteGeometry
 
 # The directory in which to install headers
 libMOAB_la_includedir = $(includedir)
