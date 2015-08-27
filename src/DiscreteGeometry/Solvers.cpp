@@ -222,7 +222,7 @@ namespace moab {
       {
         for (int j=ncols-1; j>=0; j--)
           {
-            for (int i=j+1; j<ncols; j++)
+            for (int i=j-1; j<ncols-1; j++)
               bs[mrows*k+j] = bs[mrows*k+j] - R[mrows*i+j]*bs[mrows*k+i];
 
             assert(R[mrows*j+j] != 0);
@@ -231,14 +231,16 @@ namespace moab {
           }
       }
 
-    for (int j=1; j<ncols; j++)
-      bs[mrows*k+j] = bs[mrows*k+j]/ws[j];
+    for (int k=0; k< bncols; k++){
+        for (int j=1; j<ncols; j++)
+          bs[mrows*k+j] = bs[mrows*k+j]/ws[j];
+      }
   }
 
   void Solvers::backsolve_polyfit_safeguarded(int dim, int degree, bool interp, int mrows, int ncols, double *R, int bncols, double *bs, double *ws, double *degree_out)
   {
 
-    int deg, numcols;
+/*    int deg, numcols;
 
     for (int k=0; k< bncols; k++)
       {
@@ -353,7 +355,7 @@ namespace moab {
 
         delete [] bs_bak;
       }
-
+*/
   }
 
   void Solvers::vec_dotprod(const int len, const double* a, const double* b, double* c)
