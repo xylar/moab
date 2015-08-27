@@ -206,9 +206,9 @@ namespace moab {
         for (int i=0; i<nv; i++)
             V[mrows*k+(i+k)] = v[i];
 
-        if ((abs(D[k])) < tol && (*rank == ncols))
+        if ((fabs(D[k])) < tol && (*rank == ncols))
           {
-            *rank = k-1;
+            *rank = k;
             break;
           }
       }
@@ -222,7 +222,7 @@ namespace moab {
       {
         for (int j=ncols-1; j>=0; j--)
           {
-            for (int i=j-1; j<ncols-1; j++)
+            for (int i=j+1; j<ncols; ++i)
               bs[mrows*k+j] = bs[mrows*k+j] - R[mrows*i+j]*bs[mrows*k+i];
 
             assert(R[mrows*j+j] != 0);
@@ -232,12 +232,12 @@ namespace moab {
       }
 
     for (int k=0; k< bncols; k++){
-        for (int j=1; j<ncols; j++)
+        for (int j=0; j<ncols; ++j)
           bs[mrows*k+j] = bs[mrows*k+j]/ws[j];
       }
   }
 
-  void Solvers::backsolve_polyfit_safeguarded(int dim, int degree, bool interp, int mrows, int ncols, double *R, int bncols, double *bs, double *ws, double *degree_out)
+  void Solvers::backsolve_polyfit_safeguarded(int dim, int degree, bool interp, int mrows, int ncols, double *R, int bncols, double *bs, const double *ws, int *degree_out)
   {
 
 /*    int deg, numcols;
