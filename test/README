@@ -1,0 +1,10 @@
+Steps to test driver.c interface:
+
+1) compile imoab.o 
+   cd ../src
+   make imoab.o
+2) compile driver.o
+   cd ../test
+   make driver.o
+   make driver 
+   // test driver with ./driver p8ex1.h5m
