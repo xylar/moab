@@ -8,3 +8,14 @@ Steps to test driver.c interface:
    make driver.o
    make driver 
    // test driver with ./driver p8ex1.h5m
+
+Notes about this example file:
+does not have overlapping neumann sets! (material sets are of course, non overlapping)
+does not have dirichlett sets at all
+it contains 4 material sets, and 8 parts; after ghosting, more material sets will be visible 
+on each task (the same it is maybe true for neumann sets)
+
+this file is copied from https://svn.mcs.anl.gov/repos/SHARP/trunk, modules/unic/short_term_MOAB
+It was checked in by Vijay, to test changes to moab parallel reader in 2012!!
+
+

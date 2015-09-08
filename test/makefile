@@ -13,7 +13,7 @@ endif
 .SUFFIXES: .o .cpp .F90
 
 
-driver: driver.o ${MOAB_LIBDIR}/libMOAB.la
+driver: driver.o ../src/imoab.o ${MOAB_LIBDIR}/libMOAB.la
 	${MOAB_CXX} -o $@ $< ../src/imoab.o ${MOAB_LIBS_LINK}
 
 clean:

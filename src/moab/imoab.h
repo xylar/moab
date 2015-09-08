@@ -141,7 +141,7 @@ ErrCode ReadHeaderInfo ( iMOAB_String filename, int* num_global_vertices, int* n
   \param[in] filename_length (int)        Length of the filename string
   \param[in] read_options_length (int)    Length of the read options string  
 */
-ErrCode LoadMesh( iMOAB_AppID pid, iMOAB_String filename, iMOAB_String read_options, int num_ghost_layers, int filename_length, int read_options_length );
+ErrCode LoadMesh( iMOAB_AppID pid, iMOAB_String filename, iMOAB_String read_options, int * num_ghost_layers, int filename_length, int read_options_length );
 
 /**
   \fn ErrCode WriteMesh( iMOAB_AppID pid, iMOAB_String filename, iMOAB_String write_options, int filename_length, int write_options_length )
