@@ -328,7 +328,7 @@ AC_ARG_ENABLE( [imesh],
 [disable_imesh=yes] )
 
 if (test "xyes" != "x$disable_imesh" && test "xno" != "x$disable_imesh"); then
-  AC_MSG_ERROR([Unknown argument --enable-imesh=$enableval])
+  AC_MSG_ERROR([Unknown argument --disable-imesh=$enableval])
 else
   if (test "$disable_imesh" != "no"); then
     ENABLE_imesh=yes
@@ -406,6 +406,25 @@ else
   DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --enable-irel=$enable_irel"
 fi
 
+################################################################################
+#                           Mesquite Part 1 of 2
+################################################################################
+AC_ARG_ENABLE( [mesquite],
+[AS_HELP_STRING([--enable-mesquite],[Build support for Mesquite interfaces.])],
+[enable_mesquite=$enableval],
+[enable_mesquite=yes] )
+
+if (test "xyes" != "x$enable_mesquite" && test "xno" != "x$enable_mesquite"); then
+  AC_MSG_ERROR([Unknown argument --enable-mesquite=$enableval])
+else
+  if (test "$enable_mesquite" != "no"); then
+    ENABLE_mesquite=yes
+  else
+    ENABLE_mesquite=no
+  fi
+  DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --enable-mesquite=$ENABLE_mesquite"
+fi
+AM_CONDITIONAL(ENABLE_mesquite, [test "$ENABLE_mesquite"!="0"])
 
 ################################################################################
 #                              Version Stuff
@@ -1386,6 +1405,7 @@ AC_CONFIG_FILES([Makefile
                  src/Makefile
                  src/io/Makefile
                  src/io/mhdf/Makefile
+                 src/mesquite/Makefile
                  test/Makefile
                  test/dagmc/Makefile
                  test/h5file/Makefile
@@ -1395,8 +1415,9 @@ AC_CONFIG_FILES([Makefile
                  test/perf/point_location/Makefile
                  test/io/Makefile
                  test/parallel/Makefile
+                 test/mesquite/Makefile
                  pymoab/Makefile
-		 pymoab/setup.py
+                 pymoab/setup.py
                  itaps/iBase_f.h
                  itaps/Makefile
                  itaps/imesh/Makefile
@@ -1405,6 +1426,7 @@ AC_CONFIG_FILES([Makefile
                  itaps/fbigeom/FBiGeom-Defs.inc
                  itaps/irel/Makefile
                  itaps/irel/iRel-Defs.inc
+                 itaps/mesquite/Makefile
                  tools/Makefile
                  tools/refiner/Makefile
                  tools/mbcoupler/Makefile
@@ -1422,6 +1444,7 @@ AC_CONFIG_FILES([Makefile
                  MeshFiles/unittest/mbcslam/Makefile
                  MeshFiles/unittest/h5file/Makefile
                  MeshFiles/examples/Makefile
+                 MeshFiles/mesquite/Makefile
                  ])
 
 
