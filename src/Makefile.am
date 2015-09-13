@@ -14,7 +14,7 @@ libMOAB_la_LIBADD += io/libmoabio.la
 EXTRA_DIST = 
 
 if ENABLE_mesquite
-	SUBDIRS += mesquite
+  SUBDIRS += mesquite
 endif
 
 # Some variables
