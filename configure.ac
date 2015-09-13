@@ -17,8 +17,8 @@ m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 AC_CHECK_PROG( [SED], [sed], [sed], [true] )
 
 # Infer the source directory as the path to the ./configure script
-#srcdir=`dirname $0`
-#top_srcdir=`dirname $0`
+project_topsrcdir=`dirname $0`
+project_topbuilddir="$PWD"
 USER_CONFIGURE_CMD="$0 $ac_configure_args"
 
 ################################################################################
