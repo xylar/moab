@@ -1,6 +1,8 @@
 
 #include "mpi.h"
 #include  "../src/moab/imoab.h"
+// for malloc, free:
+#include <stdlib.h>
 #include <string.h>
 
 #define CHECKRC(rc, message)  if (0!=rc) { printf ("%s", message); return 1;}
@@ -45,7 +47,7 @@ int main(int argc, char * argv[])
   int nverts, nelem, nblocks, nsbc, ndbc;
   rc = GetMeshInfo(  pid, &nverts, &nelem, &nblocks, &nsbc, &ndbc);
   CHECKRC(rc, "failed to get mesh info");
-  if (0==rank)
+  if (1==rank)
   {
     printf("on rank %d, there are \n"
         "  %d visible vertices\n"
@@ -55,6 +57,54 @@ int main(int argc, char * argv[])
         "  %d visible dirichlet sets\n", rank, nverts, nelem, nblocks, nsbc, ndbc);
   }
 
+  iMOAB_GlobalID * vGlobalID = (iMOAB_GlobalID*)malloc(nverts*sizeof(iMOAB_GlobalID)) ;
+  iMOAB_LocalID * vLocalID = (iMOAB_LocalID*)malloc(nverts*sizeof(iMOAB_GlobalID)) ;
+  rc = GetVertexID(pid, nverts, vGlobalID, vLocalID );
+  CHECKRC(rc, "failed to get vertex id info");
+
+  int * vranks = (int*)malloc(nverts*sizeof(int));
+  rc =GetVertexOwnership(pid, nverts, vranks );
+  CHECKRC(rc, "failed to get vertex ranks");
+
+  double * coords = (double*) malloc(3*nverts*sizeof(double));
+  rc = GetVisibleVerticesCoordinates( pid, 3*nverts, coords);
+  CHECKRC(rc, "failed to get coordinates");
+
+  if (1==rank)
+  {
+    // printf some of the vertex id infos
+    int numToPrint = nverts;
+    printf("on rank %d some vertex info:\n", rank);
+    for (int i=0; i<numToPrint; i++)
+      printf(" vertex local id: %3d, rank ID:%d  global ID: %3d  coords: %g, %g, %g\n",vLocalID[i], vranks[i], vGlobalID[i],
+            coords[3*i], coords[3*i+1], coords[3*i+2]);
+  }
+
+  iMOAB_GlobalID * gbIDs = (iMOAB_GlobalID*) malloc(nblocks*sizeof(iMOAB_GlobalID));
+  iMOAB_LocalID *  lbIDs = (iMOAB_LocalID*)  malloc(nblocks*sizeof(iMOAB_LocalID));
+  rc = GetBlockID(pid, nblocks, gbIDs, lbIDs);
+  CHECKRC(rc, "failed to get block info");
+  if (1==rank)
+  {
+    // printf some of the block info
+    printf("on rank %d some block info:\n", rank);
+    for (int i=0; i<nblocks; i++)
+    {
+      printf(" block index: %3d, block ID: %3d \n", lbIDs[i], gbIDs[i] );
+      int vertices_per_element, num_elements_in_block;
+      rc = GetBlockInfo(pid,  gbIDs[i] , &vertices_per_element, &num_elements_in_block);
+      CHECKRC(rc, "failed to elem block info");
+      printf("    has %4d elements with %d vertices per element\n",  num_elements_in_block, vertices_per_element);
+    }
+
+  }
+
+
+  // free allocated data
+  free(coords);
+  free (vGlobalID);
+  free (vLocalID);
+  free (vranks);
   char outputFile[] = "fnew.h5m";
   char writeOptions[] ="PARALLEL=WRITE_PART";
   rc = WriteMesh(pid, outputFile, writeOptions,
