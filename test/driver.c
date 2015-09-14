@@ -53,8 +53,8 @@ int main(int argc, char * argv[])
         "  %d visible vertices\n"
         "  %d visible elements\n"
         "  %d visible blocks\n"
-        "  %d visible neumann sets\n"
-        "  %d visible dirichlet sets\n", rank, nverts, nelem, nblocks, nsbc, ndbc);
+        "  %d visible neumann BCs\n"
+        "  %d visible dirichlet BCs\n", rank, nverts, nelem, nblocks, nsbc, ndbc);
   }
 
   iMOAB_GlobalID * vGlobalID = (iMOAB_GlobalID*)malloc(nverts*sizeof(iMOAB_GlobalID)) ;
@@ -95,6 +95,30 @@ int main(int argc, char * argv[])
       rc = GetBlockInfo(pid,  gbIDs[i] , &vertices_per_element, &num_elements_in_block);
       CHECKRC(rc, "failed to elem block info");
       printf("    has %4d elements with %d vertices per element\n",  num_elements_in_block, vertices_per_element);
+      int size_conn= num_elements_in_block*vertices_per_element;
+      iMOAB_GlobalID * element_connectivity = (iMOAB_GlobalID*) malloc (sizeof(iMOAB_GlobalID)*size_conn);
+      rc = GetElementConnectivity(pid, gbIDs[i], size_conn, element_connectivity);
+      CHECKRC(rc, "failed to get block elem connectivity");
+      int * element_ownership = (int*) malloc (sizeof(int)*num_elements_in_block);
+
+      GetElementOwnership(pid, gbIDs[i], num_elements_in_block,  element_ownership);
+      CHECKRC(rc, "failed to get block elem ownership");
+      iMOAB_GlobalID* global_element_ID = (iMOAB_GlobalID*)malloc(sizeof(iMOAB_GlobalID)*num_elements_in_block);
+      iMOAB_LocalID* local_element_ID =(iMOAB_LocalID*)malloc(sizeof(iMOAB_LocalID)*num_elements_in_block);
+
+      rc = GetElementID(pid, gbIDs[i], num_elements_in_block, global_element_ID, local_element_ID);
+      CHECKRC(rc, "failed to get block elem IDs");
+      for (int j=0; j< num_elements_in_block; j++)
+      {
+        printf("  elem %3d owned by %d gid: %4d -- ", j, element_ownership[j], global_element_ID[j]);
+        for (int k=0; k<vertices_per_element; k++)
+          printf( " %5d", element_connectivity[j*vertices_per_element+k]);
+        printf("\n");
+      }
+      free(global_element_ID);
+      free(local_element_ID);
+      free (element_connectivity);
+      free (element_ownership);
     }
 
   }
