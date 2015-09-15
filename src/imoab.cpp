@@ -768,17 +768,20 @@ ErrCode GetElementOwnership(iMOAB_AppID pid, iMOAB_GlobalID global_block_ID, int
 */
 ErrCode GetElementID(iMOAB_AppID pid, iMOAB_GlobalID global_block_ID, int num_elements_in_block, iMOAB_GlobalID* global_element_ID, iMOAB_LocalID* local_element_ID)
 {
-  std::map<int, int> & matMap = appDatas[*pid].matIndex;
+  appData & data = appDatas[*pid];
+  std::map<int, int> & matMap = data.matIndex;
 
   std::map<int,int>::iterator it = matMap.find(global_block_ID);
   if (it==matMap.end())
     return 1; // error in finding block with id
   int blockIndex = matMap[global_block_ID];
-  EntityHandle matMeshSet = appDatas[*pid].mat_sets[blockIndex];
+  EntityHandle matMeshSet = data.mat_sets[blockIndex];
   Range elems;
   ErrorCode rval = MBI-> get_entities_by_handle(matMeshSet, elems);
   if (MB_SUCCESS!=rval ||  elems.empty() )
     return 1;
+
+
 
   if (num_elements_in_block!=(int)elems.size())
     return 1; // bad memory allocation
@@ -786,12 +789,18 @@ ErrCode GetElementID(iMOAB_AppID pid, iMOAB_GlobalID global_block_ID, int num_el
   rval = MBI->tag_get_data(gtags[3], elems, global_element_ID);
   if (MB_SUCCESS!=rval )
     return 1;
+
+  // check that elems are among primary_elems in data
   for (int i=0; i<num_elements_in_block; i++)
-    local_element_ID[i]=i;
+  {
+    local_element_ID[i]=data.primary_elems.index(elems[i]);
+    if (-1==local_element_ID[i])
+      return 1;// error, not in local primary elements
+  }
 
   return 0;
 }
-#if 0
+
 /**
   \fn ErrorCode GetPointerToSurfaceBC(iMOAB_AppID pid, int surface_BC_length, iMOAB_GlobalID* global_element_ID, int* reference_surface_ID, int* boundary_condition_value)
   \brief Get the surface boundary condition information
@@ -804,7 +813,60 @@ ErrCode GetElementID(iMOAB_AppID pid, iMOAB_GlobalID global_block_ID, int num_el
   \param[out] reference_surface_ID (int*)         The surface number with the BC in the canonical reference element (e.g., 1 to 6 for HEX, 1-4 for TET)
   \param[out] boundary_condition_value (int*)     The boundary condition type as obtained from the mesh description (value of the NeumannSet defined on the element)
 */
-ErrorCode GetPointerToSurfaceBC(iMOAB_AppID pid, int surface_BC_length, iMOAB_GlobalID* global_element_ID, int* reference_surface_ID, int* boundary_condition_value);
+ErrCode GetPointerToSurfaceBC(iMOAB_AppID pid, int surface_BC_length, iMOAB_GlobalID* global_element_ID, int* reference_surface_ID, int* boundary_condition_value)
+{
+  // we have to fill bc data for neumann sets;/
+
+  // it was counted above, in GetMeshInfo
+  appData & data = appDatas[*pid];
+  int numNeuSets = (int)data.neu_sets.size();
+
+  int index = 0; // index [0, surface_BC_length) for the arrays returned
+  for (int i=0; i<numNeuSets; i++)
+  {
+    Range subents;
+    EntityHandle nset = data.neu_sets[i];
+    ErrorCode rval = MBI->get_entities_by_dimension(nset, data.dimension-1, subents);
+    if (MB_SUCCESS!=rval)
+      return 1;
+    int neuVal ;
+    rval = MBI->tag_get_data(gtags[1], &nset, 1, &neuVal);
+    if (MB_SUCCESS!=rval)
+      return 1;
+    for (Range::iterator it=subents.begin(); it!=subents.end(); ++it)
+    {
+      EntityHandle subent = *it;
+      Range adjPrimaryEnts;
+      rval = MBI->get_adjacencies(&subent, 1, data.dimension, false, adjPrimaryEnts);
+      if (MB_SUCCESS!=rval)
+        return 1;
+      // get global id of the primary ents, and side number of the quad/subentity
+      // this is moab ordering
+      for (Range::iterator pit=adjPrimaryEnts.begin(); pit!=adjPrimaryEnts.end(); pit++)
+      {
+        EntityHandle primaryEnt = *pit;
+        // get global id
+        int globalID;
+        rval = MBI->tag_get_data(gtags[3], &primaryEnt, 1, &globalID);
+        if (MB_SUCCESS!=rval)
+          return 1;
+        global_element_ID[index] = globalID;
+        int side_number, sense, offset;
+        rval = MBI->side_number(primaryEnt, subent,  side_number, sense, offset);
+        if (MB_SUCCESS!=rval)
+           return 1;
+        reference_surface_ID[index] = side_number+1; // moab is from 0 to 5, it needs 1 to 6
+        boundary_condition_value[index] = neuVal;
+        index++;
+      }
+    }
+  }
+  if (index != surface_BC_length)
+    return 1; // error in array allocations
+
+  return 0;
+}
+
 
 /**
   \fn ErrorCode GetPointerToVertexBC(iMOAB_AppID pid, int vertex_BC_length, iMOAB_GlobalID* global_vertext_ID, int* num_vertex_BC, int* boundary_condition_value)
@@ -818,8 +880,44 @@ ErrorCode GetPointerToSurfaceBC(iMOAB_AppID pid, int surface_BC_length, iMOAB_Gl
   \param[out] num_vertex_BC (int*)                The allocated size of vertex boundary condition array, same as num_visible_vertexBC
   \param[out] boundary_condition_value (int*)     The boundary condition type as obtained from the mesh description (value of the DirichletSet defined on the vertex)
 */
-ErrorCode GetPointerToVertexBC(iMOAB_AppID pid, int vertex_BC_length, iMOAB_GlobalID* global_vertext_ID, int* num_vertex_BC, int* boundary_condition_value);
+ErrCode GetPointerToVertexBC(iMOAB_AppID pid, int vertex_BC_length,
+    iMOAB_GlobalID* global_vertext_ID, int* boundary_condition_value)
+{
+  // it was counted above, in GetMeshInfo
+  appData & data = appDatas[*pid];
+  int numDiriSets = (int)data.diri_sets.size();
+  int index = 0; // index [0, vertex_BC_length) for the arrays returned
+  for (int i=0; i<numDiriSets; i++)
+  {
+    Range verts;
+    EntityHandle diset = data.diri_sets[i];
+    ErrorCode rval = MBI->get_entities_by_dimension(diset, 0, verts);
+    if (MB_SUCCESS!=rval)
+      return 1;
+    int diriVal;
+    rval = MBI->tag_get_data(gtags[2], &diset, 1, &diriVal);
+    if (MB_SUCCESS!=rval)
+      return 1;
 
+    for (Range::iterator vit=verts.begin(); vit!=verts.end(); ++vit)
+    {
+      EntityHandle vt =*vit;
+      int vgid;
+      rval = MBI->tag_get_data(gtags[3], &vt, 1, &vgid);
+      if (MB_SUCCESS!=rval)
+        return 1;
+      global_vertext_ID[index] = vgid;
+      boundary_condition_value[index] = diriVal;
+      index++;
+    }
+  }
+  if (vertex_BC_length!=index)
+    return 1; // array allocation issue
+
+  return 0;
+}
+
+#if 0
 /**
   \fn ErrorCode DefineTagStorage(iMOAB_AppID pid, iMOAB_String tag_storage_name, int* tag_type, int* components_per_entity, int tag_storage_name_length)
   \brief Define a MOAB Tag corresponding to the application depending on requested types.
