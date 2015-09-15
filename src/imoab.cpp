@@ -377,18 +377,6 @@ ErrCode LoadMesh( iMOAB_AppID pid, iMOAB_String filename, iMOAB_String read_opti
   int rank = pcomms[*pid]->rank();
   int nprocs=pcomms[*pid]->size();
 
-  // do a global id exchange, for all entities
-  // when I run the driver on 4 procs, some global ids are 0, unless I do this
-  // so there is a bug somewhere; after this change, global ids seem correct
-  // FIXME
-  Range ents;
-  rval = MBI->get_entities_by_handle(appDatas[*pid].file_set, ents, true);
-  if (MB_SUCCESS!=rval)
-    return 1;
-  rval = pcomms[*pid]->exchange_tags(gtags[3], ents);
-  if (MB_SUCCESS!=rval)
-    return 1;
-
 #if 1
   // some debugging stuff
   std::ostringstream outfile;

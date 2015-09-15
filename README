@@ -1,17 +1,17 @@
 Steps to test driver.c interface:
 
 1) compile imoab.o 
-   cd ../src
+   cd src
    make imoab.o
-2) compile driver.o
+2) compile driver
    cd ../test
-   make driver.o
    make driver 
    // test driver with ./driver p8ex1.h5m
+   // test driver with mpiexec -np 4 ./driver p8ex1.h5m
 
 Notes about this example file:
-does not have overlapping neumann sets! (material sets are of course, non overlapping)
-does not have dirichlett sets at all
+ does not have overlapping neumann sets! (material sets are of course, non overlapping)
+I added a dirichlet set, manually, value 3; about 15 vertices are part of it (top)
 it contains 4 material sets, and 8 parts; after ghosting, more material sets will be visible 
 on each task (the same it is maybe true for neumann sets)
 
