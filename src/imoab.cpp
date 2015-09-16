@@ -28,13 +28,19 @@ copy it in this folder (imoab/src/mhdf) temporarily; after imoab is part of moab
 
 Interface * MBI = 0;
 // we should also have the default tags stored, initialized
-Tag gtags[5]; // material, neumann, dirichlet, partition tag, globalID
+Tag gtags[5]; // material, neumann, dirichlet,  globalID, partition tag
 // should this be part of init moab?
+// gtags[4]: partition tag is not yet used/initialized
 
 struct appData {
   EntityHandle file_set;
   Range all_verts;
+  Range local_verts; // it could include shared, but not owned at the interface
+                     // these vertices would be all_verts if no ghosting was required
+  Range ghost_vertices; // locally ghosted from other processors
   Range primary_elems;
+  Range owned_elems;
+  Range ghost_elems;
   int dimension; // 2 or 3, dimension of primary elements (redundant?)
   Range mat_sets;
   std::map<int, int> matIndex; // map from global block id to index in mat_sets
@@ -425,8 +431,8 @@ ErrCode WriteMesh( iMOAB_AppID pid, iMOAB_String filename, iMOAB_String write_op
   <B>Operations:</B> Collective
 
   \param[in]  pid (iMOAB_AppID)            The unique pointer to the application ID
-  \param[out] num_visible_vertices (int*)  The number of vertices in the current partition/process arranged as: owned only, ghosted/shared, total_visible (array allocated by client, <TT>size := 3</TT>)
-  \param[out] num_visible_elements (int*)  The number of elements in current partition/process arranged as: owned only, ghosted/shared, total_visible (array allocated by client, <TT>size := 3</TT>)
+  \param[out] num_visible_vertices (int*)  The number of vertices in the current partition/process arranged as: owned/shared only, ghosted, total_visible (array allocated by client, <TT>size := 3</TT>)
+  \param[out] num_visible_elements (int*)  The number of elements in current partition/process arranged as: owned only, ghosted, total_visible (array allocated by client, <TT>size := 3</TT>)
   \param[out] num_visible_blocks (int*)    The number of material sets in local mesh in current partition/process arranged as: owned only, ghosted/shared, total_visible (array allocated by client, <TT>size := 3</TT>)
   \param[out] num_visible_surfaceBC (int*) The number of surfaces that have a NEUMANN_SET B.C defined in local mesh in current partition/process arranged as: owned only, ghosted/shared, total_visible (array allocated by client, <TT>size := 3</TT>)
   \param[out] num_visible_vertexBC (int*)  The number of vertices that have a DIRICHLET_SET B.C defined in local mesh in current partition/process arranged as: owned only, ghosted/shared, total_visible (array allocated by client, <TT>size := 3</TT>)
@@ -439,10 +445,11 @@ ErrCode GetMeshInfo( iMOAB_AppID pid, int* num_visible_vertices, int* num_visibl
   //
   appData & data = appDatas[*pid];
   EntityHandle fileSet=data.file_set;
-  ErrorCode rval = MBI->get_entities_by_type(fileSet, MBVERTEX, appDatas[*pid].all_verts, true); // recursive
+  ErrorCode rval = MBI->get_entities_by_type(fileSet, MBVERTEX, data.all_verts, true); // recursive
   if (MB_SUCCESS!=rval)
     return 1;
-  *num_visible_vertices = (int) data.all_verts.size();
+  num_visible_vertices[2] = (int) data.all_verts.size();
+  // we need to differentiate pure ghosted vertices from owned/shared
   // is dimension 3?
   rval = MBI->get_entities_by_dimension(fileSet, 3, data.primary_elems, true); // recursive
   if (MB_SUCCESS!=rval)
@@ -455,19 +462,47 @@ ErrCode GetMeshInfo( iMOAB_AppID pid, int* num_visible_vertices, int* num_visibl
     if (MB_SUCCESS!=rval)
       return 1;
     if (data.primary_elems.empty())
-      return 1; // no elements of dimension 2 or 3
-  }
-  *num_visible_elements = (int) data.primary_elems.size();
+    {
+      appDatas[*pid].dimension = 1;
+      rval = MBI->get_entities_by_dimension(fileSet, 1, data.primary_elems, true); // recursive
+      if (MB_SUCCESS!=rval)
+        return 1;
+      if (data.primary_elems.empty())
+        return 1; // no elements of dimension 1 or 2 or 3
+    }
+      return 1;
 
+  }
+  num_visible_elements[2] = (int) data.primary_elems.size();
+  // separate ghost and local/owned primary elements
+  ParallelComm * pco = pcomms[*pid];
+
+  // filter ghost vertices, from local
+  rval = pco -> filter_pstatus(data.all_verts, PSTATUS_GHOST, PSTATUS_NOT, -1, &data.local_verts);
+  if (MB_SUCCESS!=rval)
+    return 1;
+  data.ghost_vertices = subtract(data.all_verts, data.local_verts);
+  num_visible_vertices[0] = (int) data.local_verts.size();
+  num_visible_vertices[1] = (int) data.ghost_vertices.size();
   // get all blocks, BCs, etc
+
+  // filter ghost elements, from local
+  rval = pco -> filter_pstatus(data.primary_elems, PSTATUS_GHOST, PSTATUS_NOT, -1, &data.owned_elems);
+  if (MB_SUCCESS!=rval)
+    return 1;
+  data.ghost_elems = subtract(data.primary_elems, data.owned_elems);
+    // get all blocks, BCs, etc
+  num_visible_elements[0] = (int)data.owned_elems.size();
+  num_visible_elements[1] = (int)data.ghost_elems.size();
+
   rval = MBI->get_entities_by_type_and_tag(fileSet, MBENTITYSET, &(gtags[0]), 0, 1, data.mat_sets , Interface::UNION);
   if (MB_SUCCESS!=rval)
     return 1;
-  *num_visible_blocks = data.mat_sets.size();
+  num_visible_blocks[2] = data.mat_sets.size();
   rval = MBI->get_entities_by_type_and_tag(fileSet, MBENTITYSET, &(gtags[1]), 0, 1, data.neu_sets , Interface::UNION);
   if (MB_SUCCESS!=rval)
     return 1;
-  *num_visible_surfaceBC = 0;
+  num_visible_surfaceBC[2] = 0;
   // count how many faces are in each neu set, and how many regions are
   // adjacent to them;
   int numNeuSets = (int)data.neu_sets.size();
@@ -485,13 +520,13 @@ ErrCode GetMeshInfo( iMOAB_AppID pid, int* num_visible_vertices, int* num_visibl
       rval = MBI->get_adjacencies(&subent, 1, data.dimension, false, adjPrimaryEnts);
       if (MB_SUCCESS!=rval)
         return 1;
-      *num_visible_surfaceBC += (int)adjPrimaryEnts.size();
+      num_visible_surfaceBC[2] += (int)adjPrimaryEnts.size();
     }
   }
   rval = MBI->get_entities_by_type_and_tag(fileSet, MBENTITYSET, &(gtags[2]), 0, 1, data.diri_sets , Interface::UNION);
   if (MB_SUCCESS!=rval)
     return 1;
-  *num_visible_vertexBC= 0;
+  num_visible_vertexBC[2]= 0;
   int numDiriSets = (int)data.diri_sets.size();
   for (int i=0; i<numDiriSets; i++)
   {
@@ -500,7 +535,7 @@ ErrCode GetMeshInfo( iMOAB_AppID pid, int* num_visible_vertices, int* num_visibl
     rval = MBI->get_entities_by_dimension(diset, 0, verts);
     if (MB_SUCCESS!=rval)
       return 1;
-    *num_visible_vertexBC += (int)verts.size();
+    num_visible_vertexBC[2] += (int)verts.size();
   }
 
 
@@ -517,21 +552,18 @@ ErrCode GetMeshInfo( iMOAB_AppID pid, int* num_visible_vertices, int* num_visibl
   \param[in]  pid (iMOAB_AppID)                   The unique pointer to the application ID
   \param[in]  vertices_length (int)               The allocated size of array (typical <TT>size := num_visible_vertices</TT>)
   \param[out] global_vertex_ID (iMOAB_GlobalID*)  The global IDs for all locally visible vertices (array allocated by client)
-  \param[out] local_vertex_ID (iMOAB_LocalID*)    (<I><TT>Optional</TT></I>) The local IDs for all locally visible vertices (array allocated by client)
 */
-ErrCode GetVertexID( iMOAB_AppID pid, int vertices_length, iMOAB_GlobalID* global_vertex_ID, iMOAB_LocalID* local_vertex_ID )
+ErrCode GetVertexID( iMOAB_AppID pid, int * vertices_length, iMOAB_GlobalID* global_vertex_ID)
 {
 //
   Range & verts = appDatas[*pid].all_verts;
+  if ((int)verts.size()!=*vertices_length)
+      return 1; // problem with array length
   // global id tag is gtags[3]
   ErrorCode rval = MBI->tag_get_data(gtags[3], verts, global_vertex_ID);
   if (MB_SUCCESS!=rval)
     return 1;
-  int i=0;
-  for (Range::iterator vit=verts.begin(); vit!=verts.end(); vit++, i++)
-    local_vertex_ID[i]=i;
-  if (i!=vertices_length)
-    return 1; // problem with array length
+
   return 0;
 }
 /**
@@ -548,7 +580,7 @@ ErrCode GetVertexID( iMOAB_AppID pid, int vertices_length, iMOAB_GlobalID* globa
   \param[in]  vertices_length (int)         The allocated size of array (typically <TT>size := num_visible_vertices</TT>)
   \param[out] visible_global_rank_ID (int*) The processor rank owning each of the local vertices 
 */
-ErrCode GetVertexOwnership( iMOAB_AppID pid, int vertices_length, int* visible_global_rank_ID )
+ErrCode GetVertexOwnership( iMOAB_AppID pid, int *vertices_length, int* visible_global_rank_ID )
 {
   Range & verts = appDatas[*pid].all_verts;
   ParallelComm * pco = pcomms[*pid];
@@ -559,7 +591,7 @@ ErrCode GetVertexOwnership( iMOAB_AppID pid, int vertices_length, int* visible_g
     if (MB_SUCCESS!=rval)
       return 1;
   }
-  if (i!=vertices_length)
+  if (i!=*vertices_length)
     return 1; // warning array allocation problem
 
   return 0;
@@ -576,11 +608,11 @@ ErrCode GetVertexOwnership( iMOAB_AppID pid, int vertices_length, int* visible_g
   \param[out] coordinates (double*) The pointer to client allocated memory that will be filled with interleaved coordinates (do need an option for blocked coordinates ?)
 */
 
-ErrCode GetVisibleVerticesCoordinates( iMOAB_AppID pid, int coords_length, double* coordinates )
+ErrCode GetVisibleVerticesCoordinates( iMOAB_AppID pid, int * coords_length, double* coordinates )
 {
   Range & verts = appDatas[*pid].all_verts;
   // interleaved coordinates, so that means deep copy anyway
-  if (coords_length!=3*(int)verts.size())
+  if (*coords_length!=3*(int)verts.size())
     return 1;
   ErrorCode rval = MBI->get_coords(verts, coordinates);
   if (MB_SUCCESS!=rval)
@@ -597,14 +629,13 @@ ErrCode GetVisibleVerticesCoordinates( iMOAB_AppID pid, int coords_length, doubl
   \param[in]  pid (iMOAB_AppID)                  The unique pointer to the application ID
   \param[in]  block_length (int)                 The allocated size of array (typical <TT>size := num_visible_blocks</TT>)
   \param[out] global_block_IDs (iMOAB_GlobalID*) The global IDs for all locally visible blocks (array allocated by client)
-  \param[out] local_block_IDs (iMOAB_LocalID*)   (<I><TT>Optional</TT></I>) The local IDs for all locally visible blocks (array allocated by client)
 */
-ErrCode GetBlockID( iMOAB_AppID pid, int block_length, iMOAB_GlobalID* global_block_IDs, iMOAB_LocalID* local_block_IDs )
+ErrCode GetBlockID( iMOAB_AppID pid, int * block_length, iMOAB_GlobalID* global_block_IDs)
 {
   // local id blocks? they are counted from 0 to number of visible blocks ...
   // will actually return material set tag value for global
   Range & matSets = appDatas[*pid].mat_sets;
-  if (block_length!=(int)matSets.size())
+  if (*block_length!=(int)matSets.size())
     return 1;
   // return material set tag gtags[0 is material set tag
   ErrorCode rval = MBI->tag_get_data(gtags[0], matSets, global_block_IDs);
@@ -615,7 +646,6 @@ ErrCode GetBlockID( iMOAB_AppID pid, int block_length, iMOAB_GlobalID* global_bl
   //
   for (int i=0; i<(int)matSets.size(); i++)
   {
-    local_block_IDs[i]= i; // TODO: do we really need this?
     matIdx[global_block_IDs[i]] = i;
   }
   return 0;
@@ -633,14 +663,14 @@ ErrCode GetBlockID( iMOAB_AppID pid, int block_length, iMOAB_GlobalID* global_bl
   \param[out] vertices_per_element (int*)       The number of vertices per element
   \param[out] num_elements_in_block (int*)      The number of elements in block
 */
-ErrCode GetBlockInfo(iMOAB_AppID pid, iMOAB_GlobalID global_block_ID,
+ErrCode GetBlockInfo(iMOAB_AppID pid, iMOAB_GlobalID * global_block_ID,
     int* vertices_per_element, int* num_elements_in_block)
 {
   std::map<int, int> & matMap = appDatas[*pid].matIndex;
-  std::map<int,int>::iterator it = matMap.find(global_block_ID);
+  std::map<int,int>::iterator it = matMap.find(*global_block_ID);
   if (it==matMap.end())
     return 1; // error in finding block with id
-  int blockIndex = matMap[global_block_ID];
+  int blockIndex = matMap[*global_block_ID];
   EntityHandle matMeshSet = appDatas[*pid].mat_sets[blockIndex];
   Range blo_elems;
   ErrorCode rval = MBI-> get_entities_by_handle(matMeshSet, blo_elems);
@@ -673,14 +703,15 @@ ErrCode GetBlockInfo(iMOAB_AppID pid, iMOAB_GlobalID global_block_ID,
   \param[in]  connectivity_length (int)         The allocated size of array (typical <TT>size := vertices_per_element*num_visible_elements</TT>)
   \param[out] element_connectivity (int*)       The connectivity array to store element ordering in MOAB canonical numbering scheme (array allocated by client); array contains vertex identifiers with global ID numbering
 */
-ErrCode GetElementConnectivity(iMOAB_AppID pid, iMOAB_GlobalID global_block_ID, int connectivity_length, int* element_connectivity)
+ErrCode GetElementConnectivity(iMOAB_AppID pid, iMOAB_GlobalID * global_block_ID, int * connectivity_length, int* element_connectivity)
 {
-  std::map<int, int> & matMap = appDatas[*pid].matIndex;
-  std::map<int,int>::iterator it = matMap.find(global_block_ID);
+  appData & data =  appDatas[*pid];
+  std::map<int, int> & matMap = data.matIndex;
+  std::map<int,int>::iterator it = matMap.find(*global_block_ID);
   if (it==matMap.end())
     return 1; // error in finding block with id
-  int blockIndex = matMap[global_block_ID];
-  EntityHandle matMeshSet = appDatas[*pid].mat_sets[blockIndex];
+  int blockIndex = matMap[*global_block_ID];
+  EntityHandle matMeshSet = data.mat_sets[blockIndex];
   std::vector<EntityHandle> elems;
 
   ErrorCode rval = MBI-> get_entities_by_handle(matMeshSet, elems);
@@ -692,14 +723,22 @@ ErrCode GetElementConnectivity(iMOAB_AppID pid, iMOAB_GlobalID global_block_ID, 
   rval = MBI->get_connectivity(&elems[0], elems.size(), vconnect);
   if (MB_SUCCESS!=rval)
     return 1;
-  if (connectivity_length!=(int)vconnect.size())
+  if (*connectivity_length!=(int)vconnect.size())
     return 1; // mismatched sizes
 
-  //gtags[3] is global id tag
-  rval = MBI->tag_get_data(gtags[3], &vconnect[0], connectivity_length, element_connectivity);
+  //gtags[3] is global id tag;
+  /*rval = MBI->tag_get_data(gtags[3], &vconnect[0], connectivity_length, element_connectivity);
   if (MB_SUCCESS!=rval)
-    return 1;
+    return 1;*/
+  // will return the index in data.all_verts;
 
+  for (int i=0; i<*connectivity_length; i++)
+  {
+    int inx = data.all_verts.index(vconnect[i]);
+    if (-1==inx)
+      return 1; // error, vertex not in local range
+    element_connectivity[i] = inx;
+  }
   return 0;
 }
 
@@ -714,15 +753,15 @@ ErrCode GetElementConnectivity(iMOAB_AppID pid, iMOAB_GlobalID global_block_ID, 
   \param[in]  num_elements_in_block (int)       The allocated size of ownership array, same as <TT>num_elements_in_block</TT> returned from GetBlockInfo()
   \param[out] element_ownership (int*)          The ownership array to store processor ID for all elements (array allocated by client) 
 */
-ErrCode GetElementOwnership(iMOAB_AppID pid, iMOAB_GlobalID global_block_ID, int num_elements_in_block, int* element_ownership)
+ErrCode GetElementOwnership(iMOAB_AppID pid, iMOAB_GlobalID * global_block_ID, int * num_elements_in_block, int* element_ownership)
 {
   std::map<int, int> & matMap = appDatas[*pid].matIndex;
   ParallelComm * pco = pcomms[*pid];
 
-  std::map<int,int>::iterator it = matMap.find(global_block_ID);
+  std::map<int,int>::iterator it = matMap.find(*global_block_ID);
   if (it==matMap.end())
     return 1; // error in finding block with id
-  int blockIndex = matMap[global_block_ID];
+  int blockIndex = matMap[*global_block_ID];
   EntityHandle matMeshSet = appDatas[*pid].mat_sets[blockIndex];
   Range elems;
 
@@ -730,7 +769,7 @@ ErrCode GetElementOwnership(iMOAB_AppID pid, iMOAB_GlobalID global_block_ID, int
   if (MB_SUCCESS!=rval ||  elems.empty() )
     return 1;
 
-  if (num_elements_in_block!=(int)elems.size())
+  if (*num_elements_in_block!=(int)elems.size())
     return 1; // bad memory allocation
   int i=0;
   for (Range::iterator vit=elems.begin(); vit!=elems.end(); vit++, i++)
@@ -754,15 +793,15 @@ ErrCode GetElementOwnership(iMOAB_AppID pid, iMOAB_GlobalID global_block_ID, int
   \param[out] global_element_ID (iMOAB_GlobalID*) The global IDs for all locally visible elements (array allocated by client)
   \param[out] local_element_ID (iMOAB_LocalID*)   (<I><TT>Optional</TT></I>) The local IDs for all locally visible elements (array allocated by client)
 */
-ErrCode GetElementID(iMOAB_AppID pid, iMOAB_GlobalID global_block_ID, int num_elements_in_block, iMOAB_GlobalID* global_element_ID, iMOAB_LocalID* local_element_ID)
+ErrCode GetElementID(iMOAB_AppID pid, iMOAB_GlobalID * global_block_ID, int * num_elements_in_block, iMOAB_GlobalID* global_element_ID, iMOAB_LocalID* local_element_ID)
 {
   appData & data = appDatas[*pid];
   std::map<int, int> & matMap = data.matIndex;
 
-  std::map<int,int>::iterator it = matMap.find(global_block_ID);
+  std::map<int,int>::iterator it = matMap.find(*global_block_ID);
   if (it==matMap.end())
     return 1; // error in finding block with id
-  int blockIndex = matMap[global_block_ID];
+  int blockIndex = matMap[*global_block_ID];
   EntityHandle matMeshSet = data.mat_sets[blockIndex];
   Range elems;
   ErrorCode rval = MBI-> get_entities_by_handle(matMeshSet, elems);
@@ -771,7 +810,7 @@ ErrCode GetElementID(iMOAB_AppID pid, iMOAB_GlobalID global_block_ID, int num_el
 
 
 
-  if (num_elements_in_block!=(int)elems.size())
+  if (*num_elements_in_block!=(int)elems.size())
     return 1; // bad memory allocation
 
   rval = MBI->tag_get_data(gtags[3], elems, global_element_ID);
@@ -779,7 +818,7 @@ ErrCode GetElementID(iMOAB_AppID pid, iMOAB_GlobalID global_block_ID, int num_el
     return 1;
 
   // check that elems are among primary_elems in data
-  for (int i=0; i<num_elements_in_block; i++)
+  for (int i=0; i<*num_elements_in_block; i++)
   {
     local_element_ID[i]=data.primary_elems.index(elems[i]);
     if (-1==local_element_ID[i])
@@ -797,11 +836,11 @@ ErrCode GetElementID(iMOAB_AppID pid, iMOAB_GlobalID global_block_ID, int num_el
 
   \param[in]  pid (iMOAB_AppID)                   The unique pointer to the application ID
   \param[in]  surface_BC_length (int)             The allocated size of surface boundary condition array, same as <TT>num_visible_surfaceBC</TT> returned by GetMeshInfo()
-  \param[out] global_element_ID (iMOAB_GlobalID*) The global element IDs that contains the side with the surface BC
+  \param[out] local_element_ID (iMOAB_LocalID*)   The local element IDs that contains the side with the surface BC
   \param[out] reference_surface_ID (int*)         The surface number with the BC in the canonical reference element (e.g., 1 to 6 for HEX, 1-4 for TET)
   \param[out] boundary_condition_value (int*)     The boundary condition type as obtained from the mesh description (value of the NeumannSet defined on the element)
 */
-ErrCode GetPointerToSurfaceBC(iMOAB_AppID pid, int surface_BC_length, iMOAB_GlobalID* global_element_ID, int* reference_surface_ID, int* boundary_condition_value)
+ErrCode GetPointerToSurfaceBC(iMOAB_AppID pid, int * surface_BC_length, iMOAB_LocalID* local_element_ID, int* reference_surface_ID, int* boundary_condition_value)
 {
   // we have to fill bc data for neumann sets;/
 
@@ -834,11 +873,16 @@ ErrCode GetPointerToSurfaceBC(iMOAB_AppID pid, int surface_BC_length, iMOAB_Glob
       {
         EntityHandle primaryEnt = *pit;
         // get global id
-        int globalID;
+        /*int globalID;
         rval = MBI->tag_get_data(gtags[3], &primaryEnt, 1, &globalID);
         if (MB_SUCCESS!=rval)
           return 1;
-        global_element_ID[index] = globalID;
+        global_element_ID[index] = globalID;*/
+        // get local element id
+        local_element_ID[index] = data.primary_elems.index(primaryEnt);
+        if (-1 == local_element_ID[index] )
+          return 1; // did not find the element locally
+
         int side_number, sense, offset;
         rval = MBI->side_number(primaryEnt, subent,  side_number, sense, offset);
         if (MB_SUCCESS!=rval)
@@ -849,7 +893,7 @@ ErrCode GetPointerToSurfaceBC(iMOAB_AppID pid, int surface_BC_length, iMOAB_Glob
       }
     }
   }
-  if (index != surface_BC_length)
+  if (index != *surface_BC_length)
     return 1; // error in array allocations
 
   return 0;
@@ -864,17 +908,16 @@ ErrCode GetPointerToSurfaceBC(iMOAB_AppID pid, int surface_BC_length, iMOAB_Glob
 
   \param[in]  pid (iMOAB_AppID)                   The unique pointer to the application ID
   \param[in]  vertex_BC_length (int)              The allocated size of vertex boundary condition array, same as <TT>num_visible_vertexBC</TT> returned by GetMeshInfo()
-  \param[out] global_vertext_ID (iMOAB_GlobalID*) The global vertex ID that has Dirichlet BC defined
-  \param[out] num_vertex_BC (int*)                The allocated size of vertex boundary condition array, same as num_visible_vertexBC
+  \param[out] local_vertex_ID (iMOAB_LocalID*)    The local vertex ID that has Dirichlet BC defined
   \param[out] boundary_condition_value (int*)     The boundary condition type as obtained from the mesh description (value of the DirichletSet defined on the vertex)
 */
-ErrCode GetPointerToVertexBC(iMOAB_AppID pid, int vertex_BC_length,
-    iMOAB_GlobalID* global_vertext_ID, int* boundary_condition_value)
+ErrCode GetPointerToVertexBC(iMOAB_AppID pid, int * vertex_BC_length,
+    iMOAB_LocalID* local_vertex_ID, int* boundary_condition_value)
 {
   // it was counted above, in GetMeshInfo
   appData & data = appDatas[*pid];
   int numDiriSets = (int)data.diri_sets.size();
-  int index = 0; // index [0, vertex_BC_length) for the arrays returned
+  int index = 0; // index [0, *vertex_BC_length) for the arrays returned
   for (int i=0; i<numDiriSets; i++)
   {
     Range verts;
@@ -890,16 +933,19 @@ ErrCode GetPointerToVertexBC(iMOAB_AppID pid, int vertex_BC_length,
     for (Range::iterator vit=verts.begin(); vit!=verts.end(); ++vit)
     {
       EntityHandle vt =*vit;
-      int vgid;
+      /*int vgid;
       rval = MBI->tag_get_data(gtags[3], &vt, 1, &vgid);
       if (MB_SUCCESS!=rval)
         return 1;
-      global_vertext_ID[index] = vgid;
+      global_vertext_ID[index] = vgid;*/
+      local_vertex_ID[index] = data.all_verts.index(vt);
+      if (-1==local_vertex_ID[index])
+        return 1; // vertex was not found
       boundary_condition_value[index] = diriVal;
       index++;
     }
   }
-  if (vertex_BC_length!=index)
+  if (*vertex_BC_length!=index)
     return 1; // array allocation issue
 
   return 0;

@@ -184,9 +184,8 @@ ErrCode GetMeshInfo( iMOAB_AppID pid, int* num_visible_vertices, int* num_visibl
   \param[in]  pid (iMOAB_AppID)                   The unique pointer to the application ID
   \param[in]  vertices_length (int)               The allocated size of array (typical <TT>size := num_visible_vertices</TT>)
   \param[out] global_vertex_ID (iMOAB_GlobalID*)  The global IDs for all locally visible vertices (array allocated by client)
-  \param[out] local_vertex_ID (iMOAB_LocalID*)    (<I><TT>Optional</TT></I>) The local IDs for all locally visible vertices (array allocated by client)
 */
-ErrCode GetVertexID( iMOAB_AppID pid, int vertices_length, iMOAB_GlobalID* global_vertex_ID, iMOAB_LocalID* local_vertex_ID );
+ErrCode GetVertexID( iMOAB_AppID pid, int * vertices_length, iMOAB_GlobalID* global_vertex_ID );
 
 /**
   \fn ErrCode GetVertexOwnership( iMOAB_AppID pid, int vertices_length, int* visible_global_rank_ID )
@@ -202,7 +201,7 @@ ErrCode GetVertexID( iMOAB_AppID pid, int vertices_length, iMOAB_GlobalID* globa
   \param[in]  vertices_length (int)         The allocated size of array (typically <TT>size := num_visible_vertices</TT>)
   \param[out] visible_global_rank_ID (int*) The processor rank owning each of the local vertices 
 */
-ErrCode GetVertexOwnership( iMOAB_AppID pid, int vertices_length, int* visible_global_rank_ID );
+ErrCode GetVertexOwnership( iMOAB_AppID pid, int * vertices_length, int* visible_global_rank_ID );
 
 /**
   \fn ErrCode GetVisibleVerticesCoordinates( iMOAB_AppID pid, int coords_length, double* coordinates )
@@ -214,7 +213,7 @@ ErrCode GetVertexOwnership( iMOAB_AppID pid, int vertices_length, int* visible_g
   \param[in]  coords_length (int)   The size of the allocated coordinate array (array allocated by client, <TT>size := 3*num_visible_vertices</TT>)
   \param[out] coordinates (double*) The pointer to client allocated memory that will be filled with interleaved coordinates (do need an option for blocked coordinates ?)
 */
-ErrCode GetVisibleVerticesCoordinates( iMOAB_AppID pid, int coords_length, double* coordinates );
+ErrCode GetVisibleVerticesCoordinates( iMOAB_AppID pid, int * coords_length, double* coordinates );
 
 /**
   \fn ErrCode GetBlockID( iMOAB_AppID pid, int block_length, iMOAB_GlobalID* global_block_IDs, iMOAB_LocalID* local_block_IDs )
@@ -225,9 +224,8 @@ ErrCode GetVisibleVerticesCoordinates( iMOAB_AppID pid, int coords_length, doubl
   \param[in]  pid (iMOAB_AppID)                  The unique pointer to the application ID
   \param[in]  block_length (int)                 The allocated size of array (typical <TT>size := num_visible_blocks</TT>)
   \param[out] global_block_IDs (iMOAB_GlobalID*) The global IDs for all locally visible blocks (array allocated by client)
-  \param[out] local_block_IDs (iMOAB_LocalID*)   (<I><TT>Optional</TT></I>) The local IDs for all locally visible blocks (array allocated by client)
 */
-ErrCode GetBlockID( iMOAB_AppID pid, int block_length, iMOAB_GlobalID* global_block_IDs, iMOAB_LocalID* local_block_IDs );
+ErrCode GetBlockID( iMOAB_AppID pid, int * block_length, iMOAB_GlobalID* global_block_IDs);
 
 /**
   \fn ErrCode  GetBlockInfo(iMOAB_AppID pid, iMOAB_GlobalID global_block_ID, int* vertices_per_element, int* num_elements_in_block)
@@ -240,20 +238,23 @@ ErrCode GetBlockID( iMOAB_AppID pid, int block_length, iMOAB_GlobalID* global_bl
   \param[out] vertices_per_element (int*)       The number of vertices per element
   \param[out] num_elements_in_block (int*)      The number of elements in block
 */
-ErrCode GetBlockInfo(iMOAB_AppID pid, iMOAB_GlobalID global_block_ID, int* vertices_per_element, int* num_elements_in_block);
+ErrCode GetBlockInfo(iMOAB_AppID pid, iMOAB_GlobalID * global_block_ID, int* vertices_per_element, int* num_elements_in_block);
 
 /** 
   \fn ErrCode GetElementConnectivity(iMOAB_AppID pid, iMOAB_GlobalID global_block_ID, int connectivity_length, int* element_connectivity)
-  \brief Get the connectivity for elements within a certain block, ordered based on global element IDs
+  \brief Get the connectivity for elements within a certain block;
+
 
   <B>Operations:</B> Collective
 
   \param[in]  pid (iMOAB_AppID)                 The unique pointer to the application ID
   \param[in]  global_block_ID (iMOAB_GlobalID)  The global block ID of the set being queried
-  \param[in]  connectivity_length (int)         The allocated size of array (typical <TT>size := vertices_per_element*num_visible_elements</TT>)
-  \param[out] element_connectivity (int*)       The connectivity array to store element ordering in MOAB canonical numbering scheme (array allocated by client); array contains vertex identifiers with global ID numbering
+  \param[in]  connectivity_length (int)         The allocated size of array (typical <TT>size := vertices_per_element*num_elements_in_block</TT>)
+  \param[out] element_connectivity (int*)       The connectivity array to store element ordering in MOAB canonical numbering scheme (array allocated by client);
+    array contains vertex indices in the local numbering order for vertices
+    elements are in the same order as provided by GetElementOwnership and GetElementID
 */
-ErrCode GetElementConnectivity(iMOAB_AppID pid, iMOAB_GlobalID global_block_ID, int connectivity_length, int* element_connectivity);
+ErrCode GetElementConnectivity(iMOAB_AppID pid, iMOAB_GlobalID * global_block_ID, int * connectivity_length, int* element_connectivity);
 
 /**
   \fn ErrCode GetElementOwnership(iMOAB_AppID pid, iMOAB_GlobalID global_block_ID, int num_elements_in_block, int* element_ownership)
@@ -266,7 +267,7 @@ ErrCode GetElementConnectivity(iMOAB_AppID pid, iMOAB_GlobalID global_block_ID, 
   \param[in]  num_elements_in_block (int)       The allocated size of ownership array, same as <TT>num_elements_in_block</TT> returned from GetBlockInfo()
   \param[out] element_ownership (int*)          The ownership array to store processor ID for all elements (array allocated by client) 
 */
-ErrCode GetElementOwnership(iMOAB_AppID pid, iMOAB_GlobalID global_block_ID, int num_elements_in_block, int* element_ownership);
+ErrCode GetElementOwnership(iMOAB_AppID pid, iMOAB_GlobalID * global_block_ID, int * num_elements_in_block, int* element_ownership);
 
 /**
   \fn ErrCode GetElementID(iMOAB_AppID pid, iMOAB_GlobalID global_block_ID, int num_elements_in_block, iMOAB_GlobalID* global_element_ID, iMOAB_LocalID* local_element_ID)
@@ -278,9 +279,9 @@ ErrCode GetElementOwnership(iMOAB_AppID pid, iMOAB_GlobalID global_block_ID, int
   \param[in]  global_block_ID (iMOAB_GlobalID)    The global block ID of the set being queried
   \param[in]  num_elements_in_block (int)         The allocated size of global element ID array, same as <TT>num_elements_in_block</TT> returned from GetBlockInfo()
   \param[out] global_element_ID (iMOAB_GlobalID*) The global IDs for all locally visible elements (array allocated by client)
-  \param[out] local_element_ID (iMOAB_LocalID*)   (<I><TT>Optional</TT></I>) The local IDs for all locally visible elements (array allocated by client)
+  \param[out] local_element_ID (iMOAB_LocalID*)   (<I><TT>Optional</TT></I>) The local IDs for all locally visible elements (index in the range of all primary elements in the rank)
 */
-ErrCode GetElementID(iMOAB_AppID pid, iMOAB_GlobalID global_block_ID, int num_elements_in_block, iMOAB_GlobalID* global_element_ID, iMOAB_LocalID* local_element_ID);
+ErrCode GetElementID(iMOAB_AppID pid, iMOAB_GlobalID * global_block_ID, int * num_elements_in_block, iMOAB_GlobalID* global_element_ID, iMOAB_LocalID* local_element_ID);
 
 /**
   \fn ErrCode GetPointerToSurfaceBC(iMOAB_AppID pid, int surface_BC_length, iMOAB_GlobalID* global_element_ID, int* reference_surface_ID, int* boundary_condition_value)
@@ -290,11 +291,11 @@ ErrCode GetElementID(iMOAB_AppID pid, iMOAB_GlobalID global_block_ID, int num_el
 
   \param[in]  pid (iMOAB_AppID)                   The unique pointer to the application ID
   \param[in]  surface_BC_length (int)             The allocated size of surface boundary condition array, same as <TT>num_visible_surfaceBC</TT> returned by GetMeshInfo()
-  \param[out] global_element_ID (iMOAB_GlobalID*) The global element IDs that contains the side with the surface BC
+  \param[out] local_element_ID (iMOAB_LocalID*)   The local element IDs that contains the side with the surface BC
   \param[out] reference_surface_ID (int*)         The surface number with the BC in the canonical reference element (e.g., 1 to 6 for HEX, 1-4 for TET)
   \param[out] boundary_condition_value (int*)     The boundary condition type as obtained from the mesh description (value of the NeumannSet defined on the element)
 */
-ErrCode GetPointerToSurfaceBC(iMOAB_AppID pid, int surface_BC_length, iMOAB_GlobalID* global_element_ID, int* reference_surface_ID, int* boundary_condition_value);
+ErrCode GetPointerToSurfaceBC(iMOAB_AppID pid, int * surface_BC_length, iMOAB_LocalID* local_element_ID, int* reference_surface_ID, int* boundary_condition_value);
 
 /**
   \fn ErrCode GetPointerToVertexBC(iMOAB_AppID pid, int vertex_BC_length, iMOAB_GlobalID* global_vertext_ID, int* num_vertex_BC, int* boundary_condition_value)
@@ -304,10 +305,10 @@ ErrCode GetPointerToSurfaceBC(iMOAB_AppID pid, int surface_BC_length, iMOAB_Glob
 
   \param[in]  pid (iMOAB_AppID)                   The unique pointer to the application ID
   \param[in]  vertex_BC_length (int)              The allocated size of vertex boundary condition array, same as <TT>num_visible_vertexBC</TT> returned by GetMeshInfo()
-  \param[out] global_vertext_ID (iMOAB_GlobalID*) The global vertex ID that has Dirichlet BC defined
+  \param[out] local_vertex_ID (iMOAB_LocalID*)    The local vertex ID that has Dirichlet BC defined
   \param[out] boundary_condition_value (int*)     The boundary condition type as obtained from the mesh description (value of the DirichletSet defined on the vertex)
 */
-ErrCode GetPointerToVertexBC(iMOAB_AppID pid, int vertex_BC_length, iMOAB_GlobalID* global_vertext_ID, int* boundary_condition_value);
+ErrCode GetPointerToVertexBC(iMOAB_AppID pid, int * vertex_BC_length, iMOAB_LocalID* local_vertex_ID, int* boundary_condition_value);
 
 /**
   \fn ErrCode DefineTagStorage(iMOAB_AppID pid, iMOAB_String tag_storage_name, int* tag_type, int* components_per_entity, int tag_storage_name_length)
