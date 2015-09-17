@@ -46,7 +46,9 @@ struct appData {
   std::map<int, int> matIndex; // map from global block id to index in mat_sets
   Range neu_sets;
   Range diri_sets;
-};
+  std::map< std::string, Tag> tagMap;
+  std::vector<Tag>  tagList;
+ };
 
 // are there reasons to have multiple moab inits? Is ref count needed?
 int refCountMB( 0) ;
@@ -692,8 +694,64 @@ ErrCode GetBlockInfo(iMOAB_AppID pid, iMOAB_GlobalID * global_block_ID,
   return 0;
 }
 
+/**
+  \fn ErrCode  GetVisibleElementsInfo(iMOAB_AppID pid, int* num_visible_elements, iMOAB_GlobalID * element_global_IDs, int * ranks, iMOAB_GlobalID * block_IDs)
+  \brief Get the elements information, global ids, ranks they belong to, block ids they belong to
+
+  <B>Operations:</B> Collective
+
+  \param[in]  pid (iMOAB_AppID)                     The unique pointer to the application ID
+  \param[in]  num_visible_elements (int*)           The global block ID of the set to be queried
+  \param[out] element_global_IDs (iMOAB_GlobalID*)  The number of vertices per element
+  \param[out] ranks (int*)                          The owning ranks of elements
+  \param[out] block_IDs (iMOAB_GlobalID*)           The block ids the elements belong
+*/
+ErrCode GetVisibleElementsInfo(iMOAB_AppID pid, int* num_visible_elements,
+    iMOAB_GlobalID * element_global_IDs, int * ranks, iMOAB_GlobalID * block_IDs)
+{
+  appData & data =  appDatas[*pid];
+  ParallelComm * pco = pcomms[*pid];
+  ErrorCode rval = MBI-> tag_get_data(gtags[3], data.primary_elems, element_global_IDs);
+  if (MB_SUCCESS!=rval)
+    return 1;
+
+  int i=0;
+  for (Range::iterator eit=data.primary_elems.begin(); eit!=data.primary_elems.end(); ++eit, ++i)
+  {
+    rval = pco->get_owner(*eit, ranks[i]);
+    if (MB_SUCCESS!=rval)
+      return 1;
+  }
+  for (Range::iterator mit=data.mat_sets.begin(); mit!=data.mat_sets.end(); ++mit)
+  {
+    EntityHandle matMeshSet = *mit;
+    Range elems;
+    rval = MBI-> get_entities_by_handle(matMeshSet, elems);
+    if (MB_SUCCESS!=rval )
+      return 1;
+    int valMatTag;
+    rval = MBI->tag_get_data(gtags[0], &matMeshSet, 1, &valMatTag);
+    if (MB_SUCCESS!=rval )
+      return 1;
+
+    for (Range::iterator eit=elems.begin(); eit!=elems.end(); ++eit)
+    {
+      EntityHandle eh=*eit;
+      int index=data.primary_elems.index(eh);
+      if (-1==index)
+        return 1;
+      if (-1>= *num_visible_elements)
+        return 1;
+      block_IDs[index]=valMatTag;
+    }
+  }
+
+
+  return 0;
+}
+
 /** 
-  \fn ErrorCode GetElementConnectivity(iMOAB_AppID pid, iMOAB_GlobalID global_block_ID, int connectivity_length, int* element_connectivity)
+  \fn ErrorCode GetBlockElementConnectivities(iMOAB_AppID pid, iMOAB_GlobalID global_block_ID, int connectivity_length, int* element_connectivity)
   \brief Get the connectivity for elements within a certain block, ordered based on global element IDs
 
   <B>Operations:</B> Collective
@@ -703,7 +761,7 @@ ErrCode GetBlockInfo(iMOAB_AppID pid, iMOAB_GlobalID * global_block_ID,
   \param[in]  connectivity_length (int)         The allocated size of array (typical <TT>size := vertices_per_element*num_visible_elements</TT>)
   \param[out] element_connectivity (int*)       The connectivity array to store element ordering in MOAB canonical numbering scheme (array allocated by client); array contains vertex identifiers with global ID numbering
 */
-ErrCode GetElementConnectivity(iMOAB_AppID pid, iMOAB_GlobalID * global_block_ID, int * connectivity_length, int* element_connectivity)
+ErrCode GetBlockElementConnectivities(iMOAB_AppID pid, iMOAB_GlobalID * global_block_ID, int * connectivity_length, int* element_connectivity)
 {
   appData & data =  appDatas[*pid];
   std::map<int, int> & matMap = data.matIndex;
@@ -739,6 +797,42 @@ ErrCode GetElementConnectivity(iMOAB_AppID pid, iMOAB_GlobalID * global_block_ID
       return 1; // error, vertex not in local range
     element_connectivity[i] = inx;
   }
+  return 0;
+}
+
+/**
+  \fn ErrCode GetElementConnectivity(iMOAB_AppID pid, iMOAB_LocalID * elem_index, int * connectivity_length, int* element_connectivity)
+  \brief Get the connectivity for one element
+
+  <B>Operations:</B> Collective
+
+  \param[in]  pid (iMOAB_AppID)                 The unique pointer to the application ID
+  \param[in]  elem_index (iMOAB_LocalID *)      Local element index
+  \param[in]  connectivity_length (int)         The allocated size of array (max 27)
+  \param[out] element_connectivity (int*)       The connectivity array to store connectivity in MOAB canonical numbering scheme
+    array contains vertex indices in the local numbering order for vertices
+*/
+ErrCode GetElementConnectivity(iMOAB_AppID pid, iMOAB_LocalID * elem_index, int * connectivity_length, int* element_connectivity)
+{
+  appData & data =  appDatas[*pid];
+  assert((*elem_index >=0)  && (*elem_index< (int)data.primary_elems.size()) );
+  EntityHandle eh = data.primary_elems[*elem_index];
+  int num_nodes;
+  const EntityHandle * conn;
+  ErrorCode rval = MBI->get_connectivity(eh, conn, num_nodes);
+  if (MB_SUCCESS!=rval)
+    return 1;
+  if (* connectivity_length < num_nodes)
+    return 1; // wrong number of vertices
+
+  for (int i=0; i<num_nodes; i++)
+  {
+    int index = data.all_verts.index(conn[i]);
+    if (-1==index)
+      return 1;
+    element_connectivity[i] = index;
+  }
+  * connectivity_length = num_nodes;
   return 0;
 }
 
@@ -951,7 +1045,7 @@ ErrCode GetPointerToVertexBC(iMOAB_AppID pid, int * vertex_BC_length,
   return 0;
 }
 
-#if 0
+
 /**
   \fn ErrorCode DefineTagStorage(iMOAB_AppID pid, iMOAB_String tag_storage_name, int* tag_type, int* components_per_entity, int tag_storage_name_length)
   \brief Define a MOAB Tag corresponding to the application depending on requested types.
@@ -967,54 +1061,231 @@ ErrCode GetPointerToVertexBC(iMOAB_AppID pid, int * vertex_BC_length,
    \param[in] tag_storage_name (iMOAB_String) The tag name to store/retreive the data in MOAB
    \param[in] tag_type (int*)                 The type of MOAB tag (Dense/Sparse on Vertices/Elements, Double/Int/EntityHandle)
    \param[in] components_per_entity (int*)    The total size of vector dimension per entity for the tag (e.g., number of doubles per entity)
+   \param [out] tag_index (int*)              A tag unique identifier, can be used later for tag sync
    \param[in] tag_storage_name_length (int)   The length of the tag_storage_name string
 */
-ErrorCode DefineTagStorage(iMOAB_AppID pid, iMOAB_String tag_storage_name, int* tag_type, int* components_per_entity, int tag_storage_name_length);
+ErrCode DefineTagStorage(iMOAB_AppID pid, iMOAB_String tag_storage_name, int* tag_type, int* components_per_entity, int *tag_index,  int tag_storage_name_length)
+{
+  // see if the tag is already existing, and if yes, check the type, length
+  if (*tag_type <0 || *tag_type>5)
+    return 1; // we have 6 types of tags supported so far
+
+  DataType tagDataType;
+  TagType tagType;
+  void * defaultVal = NULL;
+  int * defInt = new int [*components_per_entity];
+  double * defDouble = new double [*components_per_entity];
+  EntityHandle * defHandle = new EntityHandle[*components_per_entity];
+  for (int i=0; i<*components_per_entity; i++)
+  {
+    defInt[i] = 0;
+    defDouble[i] = 0.;
+    defHandle[i] = (EntityHandle)0;
+  }
+  switch (*tag_type) {
+    case 0: tagDataType = MB_TYPE_INTEGER; tagType = MB_TAG_DENSE; defaultVal=defInt; break;
+    case 1: tagDataType = MB_TYPE_DOUBLE;  tagType = MB_TAG_DENSE; defaultVal=defDouble; break;
+    case 2: tagDataType = MB_TYPE_HANDLE;  tagType = MB_TAG_DENSE; defaultVal=defHandle; break;
+    case 3: tagDataType = MB_TYPE_INTEGER; tagType = MB_TAG_SPARSE; defaultVal=defInt; break;
+    case 4: tagDataType = MB_TYPE_DOUBLE;  tagType = MB_TAG_SPARSE; defaultVal=defDouble; break;
+    case 5: tagDataType = MB_TYPE_HANDLE;  tagType = MB_TAG_SPARSE; defaultVal=defHandle; break;
+    default : return 1; // error
+  }
+  std::string tag_name(tag_storage_name);
+  if (tag_storage_name_length< (int)tag_name.length())
+  {
+    tag_name = tag_name.substr(0, tag_storage_name_length);
+  }
+
+  Tag tagHandle;
+  ErrorCode rval = MBI->tag_get_handle(tag_name.c_str(), *components_per_entity,
+      tagDataType,
+      tagHandle, tagType, defaultVal);
+
+  appData & data = appDatas[*pid];
+  if (MB_ALREADY_ALLOCATED==rval)
+  {
+    std::map<std::string, Tag> & mTags = data.tagMap;
+    std::map<std::string, Tag>::iterator mit = mTags.find(tag_name);
+    if (mit==mTags.end())
+    {
+      // add it to the map
+      mTags[tag_name] = tagHandle;
+      // push it to the list of tags, too
+      *tag_index = (int)data.tagList.size();
+      data.tagList.push_back(tagHandle) ;
+    }
+    return 0; // OK, we found it, and we have it stored in the map tag
+  }
+  else if (MB_SUCCESS == rval)
+  {
+    data.tagMap[tag_name] = tagHandle;
+    *tag_index = (int)data.tagList.size();
+    data.tagList.push_back(tagHandle) ;
+    return 0;
+  }
+  return 1; // some error, maybe the tag was not created
+}
+
+ErrCode SetIntTagStorage(iMOAB_AppID pid, iMOAB_String tag_storage_name,
+    int * num_tag_storage_length, int * ent_type, int* tag_storage_data,
+    int tag_storage_name_length)
+{
+  std::string tag_name(tag_storage_name);
+  if (tag_storage_name_length< (int)tag_name.length())
+  {
+    tag_name = tag_name.substr(0, tag_storage_name_length);
+  }
+  appData & data = appDatas[*pid];
+  if (data.tagMap.find(tag_name)== data.tagMap.end())
+    return 1; // tag not defined
+  Tag tag =  data.tagMap[tag_name];
+
+  int tagLength =0;
+  ErrorCode rval = MBI->tag_get_length(tag, tagLength);
+  if (MB_SUCCESS!=rval)
+    return 1;
+  DataType  dtype;
+  rval = MBI->tag_get_data_type(tag, dtype);
+  if (MB_SUCCESS!=rval || dtype!=MB_TYPE_INTEGER)
+    return 1;
+  // set it on a subset of entities, based on type and length
+  Range * ents_to_set;
+  if (* ent_type == 0)// vertices
+    ents_to_set = &data.all_verts;
+  else if (* ent_type == 1)
+    ents_to_set = &data.primary_elems;
+
+  int nents_to_be_set = *num_tag_storage_length /tagLength;
+
+  if (nents_to_be_set > (int)ents_to_set->size() || nents_to_be_set<1)
+    return 1; // to many entities to be set or too few
+  // restrict the range; everything is contiguous; or not?
+
+  Range contig_range( *(ents_to_set->begin()), *(ents_to_set->begin()+nents_to_be_set-1));
+  rval = MBI->tag_set_data(tag, contig_range, tag_storage_data);
+  if (MB_SUCCESS!=rval)
+    return 1;
+
+  return 0; // no error
+}
 
 /**
-   \fn ErrorCode SetIntTagStorage(iMOAB_AppID pid, iMOAB_String tag_storage_name, int num_tag_storage_length, int* tag_storage_data, int tag_storage_name_length)
+   \fn ErrCode GetIntTagStorage(iMOAB_AppID pid, iMOAB_String tag_storage_name, int num_tag_storage_length, int* tag_storage_data, int tag_storage_name_length)
    \brief Store the specified values in a MOAB Tag corresponding to the application
 
    <B>Operations:</B> Collective
 
    \param[in]  pid (iMOAB_AppID)                       The unique pointer to the application ID
    \param[in]  tag_storage_name (iMOAB_String)         The tag name to store/retreive the data in MOAB
-   \param[in]  num_tag_storage_length (int)            The size of tag storage data (e.g., num_visible_vertices*components_per_entity or num_visible_elements*components_per_entity)
-   \param[out] tag_storage_data (int*)                 The array data of type <I>int</I> to replace the internal tag memory; The data is assumed to be contiguous over the local set of visible entities (either vertices or elements)
-   \param[in]  tag_storage_name_length (iMOAB_String)  The length of the tag_storage_name string
-*/
-ErrorCode SetIntTagStorage(iMOAB_AppID pid, iMOAB_String tag_storage_name, int num_tag_storage_length, int* tag_storage_data, int tag_storage_name_length);
-
-/**
-   \fn ErrorCode GetIntTagStorage(iMOAB_AppID pid, iMOAB_String tag_storage_name, int num_tag_storage_length, int* tag_storage_data, int tag_storage_name_length)
-   \brief Store the specified values in a MOAB Tag corresponding to the application
-
-   <B>Operations:</B> Collective
-
-   \param[in]  pid (iMOAB_AppID)                       The unique pointer to the application ID
-   \param[in]  tag_storage_name (iMOAB_String)         The tag name to store/retreive the data in MOAB
-   \param[in]  num_tag_storage_length (int)            The size of tag storage data (e.g., num_visible_vertices*components_per_entity or num_visible_elements*components_per_entity)
+   \param[in]  num_tag_storage_length (int*)            The size of tag storage data (e.g., num_visible_vertices*components_per_entity or num_visible_elements*components_per_entity)
+   \param[in]  entity_type (int*)                      type 0 for vertices, 1 for primary elements
    \param[out] tag_storage_data (int*)                 The array data of type <I>int</I> to be copied from the internal tag memory; The data is assumed to be contiguous over the local set of visible entities (either vertices or elements)
    \param[in]  tag_storage_name_length (iMOAB_String)  The length of the tag_storage_name string
 */
-ErrorCode GetIntTagStorage(iMOAB_AppID pid, iMOAB_String tag_storage_name, int num_tag_storage_length, int* tag_storage_data, int tag_storage_name_length);
+ErrCode GetIntTagStorage(iMOAB_AppID pid, iMOAB_String tag_storage_name, int *num_tag_storage_length, int * ent_type, int* tag_storage_data, int tag_storage_name_length)
+{
+  std::string tag_name(tag_storage_name);
+  if (tag_storage_name_length< (int)tag_name.length())
+  {
+    tag_name = tag_name.substr(0, tag_storage_name_length);
+  }
+  appData & data = appDatas[*pid];
+  if (data.tagMap.find(tag_name)== data.tagMap.end())
+    return 1; // tag not defined
+  Tag tag =  data.tagMap[tag_name];
+
+  int tagLength =0;
+  ErrorCode rval = MBI->tag_get_length(tag, tagLength);
+  if (MB_SUCCESS!=rval)
+    return 1;
+  DataType  dtype;
+  rval = MBI->tag_get_data_type(tag, dtype);
+  if (MB_SUCCESS!=rval || dtype!=MB_TYPE_INTEGER)
+    return 1;
+
+  // set it on a subset of entities, based on type and length
+  Range * ents_to_get;
+  if (* ent_type == 0)// vertices
+    ents_to_get = &data.all_verts;
+  else if (* ent_type == 1)
+    ents_to_get = &data.primary_elems;
+
+  int nents_to_get = *num_tag_storage_length /tagLength;
+
+  if (nents_to_get > (int)ents_to_get->size() || nents_to_get<1)
+    return 1; // to many entities to get, or too little
+  // restrict the range; everything is contiguous; or not?
+
+  Range contig_range( *(ents_to_get->begin()), *(ents_to_get->begin()+nents_to_get-1));
+
+  rval = MBI->tag_get_data(tag, contig_range, tag_storage_data);
+  if (MB_SUCCESS!=rval)
+    return 1;
+
+  return 0; // no error
+}
 
 /**
-   \fn ErrorCode SetDoubleTagStorage(iMOAB_AppID pid, iMOAB_String tag_storage_name, int num_tag_storage_length, double* tag_storage_data, int tag_storage_name_length)
+   \fn ErrCode SetDoubleTagStorage(iMOAB_AppID pid, iMOAB_String tag_storage_name, int num_tag_storage_length, double* tag_storage_data, int tag_storage_name_length)
    \brief Store the specified values in a MOAB Tag corresponding to the application
 
    <B>Operations:</B> Collective
 
    \param[in]  pid (iMOAB_AppID)                       The unique pointer to the application ID
    \param[in]  tag_storage_name (iMOAB_String)         The tag name to store/retreive the data in MOAB
-   \param[in]  num_tag_storage_length (int)            The size of tag storage data (e.g., num_visible_vertices*components_per_entity or num_visible_elements*components_per_entity)
+   \param[in]  num_tag_storage_length (int*)            The size of tag storage data (e.g., num_visible_vertices*components_per_entity or num_visible_elements*components_per_entity)
+   \param[in]  entity_type (int*)                      type 0 for vertices, 1 for primary elements
    \param[out] tag_storage_data (double*)              The array data of type <I>double</I> to replace the internal tag memory; The data is assumed to be contiguous over the local set of visible entities (either vertices or elements)
    \param[in]  tag_storage_name_length (iMOAB_String)  The length of the tag_storage_name string
 */
-ErrorCode SetDoubleTagStorage(iMOAB_AppID pid, iMOAB_String tag_storage_name, int num_tag_storage_length, double* tag_storage_data, int tag_storage_name_length);
+ErrCode SetDoubleTagStorage(iMOAB_AppID pid, iMOAB_String tag_storage_name, int * num_tag_storage_length, int * ent_type, double* tag_storage_data, int tag_storage_name_length)
+{
+  // exactly the same code as for int tag :) maybe should check the type of tag too
+  std::string tag_name(tag_storage_name);
+  if (tag_storage_name_length< (int)tag_name.length())
+  {
+    tag_name = tag_name.substr(0, tag_storage_name_length);
+  }
+  appData & data = appDatas[*pid];
+  if (data.tagMap.find(tag_name)== data.tagMap.end())
+    return 1; // tag not defined
+  Tag tag =  data.tagMap[tag_name];
+
+  int tagLength =0;
+  ErrorCode rval = MBI->tag_get_length(tag, tagLength);
+  if (MB_SUCCESS!=rval)
+    return 1;
+
+  DataType  dtype;
+  rval = MBI->tag_get_data_type(tag, dtype);
+  if (MB_SUCCESS!=rval || dtype!=MB_TYPE_DOUBLE)
+    return 1;
+
+  // set it on a subset of entities, based on type and length
+  Range * ents_to_set;
+  if (* ent_type == 0)// vertices
+    ents_to_set = &data.all_verts;
+  else if (* ent_type == 1)
+    ents_to_set = &data.primary_elems;
+
+  int nents_to_be_set = *num_tag_storage_length /tagLength;
+
+  if (nents_to_be_set > (int)ents_to_set->size() || nents_to_be_set<1)
+    return 1; // to many entities to be set
+  // restrict the range; everything is contiguous; or not?
+
+  Range contig_range( *(ents_to_set->begin()), *(ents_to_set->begin()+nents_to_be_set-1));
+
+  rval = MBI->tag_set_data(tag, contig_range, tag_storage_data);
+  if (MB_SUCCESS!=rval)
+    return 1;
+
+  return 0; // no error
+}
 
 /**
-   \fn ErrorCode GetDoubleTagStorage(iMOAB_AppID pid, iMOAB_String tag_storage_name, int num_tag_storage_length, double* tag_storage_data, int tag_storage_name_length)
+   \fn ErrCode GetDoubleTagStorage(iMOAB_AppID pid, iMOAB_String tag_storage_name, int num_tag_storage_length, double* tag_storage_data, int tag_storage_name_length)
    \brief Store the specified values in a MOAB Tag corresponding to the application
 
    <B>Operations:</B> Collective
@@ -1022,11 +1293,93 @@ ErrorCode SetDoubleTagStorage(iMOAB_AppID pid, iMOAB_String tag_storage_name, in
    \param[in]  pid (iMOAB_AppID)                The unique pointer to the application ID
    \param[in]  tag_storage_name (iMOAB_String)  The tag name to store/retreive the data in MOAB
    \param[in]  num_tag_storage_length (int)     The size of tag storage data (e.g., num_visible_vertices*components_per_entity or num_visible_elements*components_per_entity)
+   \param[in]  entity_type (int*)                      type 0 for vertices, 1 for primary elements
    \param[out] tag_storage_data (double*)       The array data of type <I>double</I> to be copied from the internal tag memory; The data is assumed to be contiguous over the local set of visible entities (either vertices or elements)
    \param[in]  tag_storage_name_length (int)    The length of the tag_storage_name string
 */
-ErrorCode GetDoubleTagStorage(iMOAB_AppID pid, iMOAB_String tag_storage_name, int num_tag_storage_length, double* tag_storage_data, int tag_storage_name_length);
+ErrCode GetDoubleTagStorage(iMOAB_AppID pid, iMOAB_String tag_storage_name, int * num_tag_storage_length, int * ent_type, double* tag_storage_data, int tag_storage_name_length)
+{
+  // exactly the same code, except tag type check
+  std::string tag_name(tag_storage_name);
+  if (tag_storage_name_length< (int)tag_name.length())
+  {
+    tag_name = tag_name.substr(0, tag_storage_name_length);
+  }
+  appData & data = appDatas[*pid];
+  if (data.tagMap.find(tag_name)== data.tagMap.end())
+    return 1; // tag not defined
+  Tag tag =  data.tagMap[tag_name];
 
+  int tagLength =0;
+  ErrorCode rval = MBI->tag_get_length(tag, tagLength);
+  if (MB_SUCCESS!=rval)
+    return 1;
+
+  DataType  dtype;
+  rval = MBI->tag_get_data_type(tag, dtype);
+  if (MB_SUCCESS!=rval || dtype!=MB_TYPE_DOUBLE)
+    return 1;
+
+  // set it on a subset of entities, based on type and length
+  Range * ents_to_get;
+  if (* ent_type == 0)// vertices
+    ents_to_get = &data.all_verts;
+  else if (* ent_type == 1)
+    ents_to_get = &data.primary_elems;
+
+  int nents_to_get = *num_tag_storage_length /tagLength;
+
+  if (nents_to_get > (int)ents_to_get->size() || nents_to_get<1)
+    return 1; // to many entities to get
+  // restrict the range; everything is contiguous; or not?
+
+  Range contig_range( *(ents_to_get->begin()), *(ents_to_get->begin()+nents_to_get-1));
+  rval = MBI->tag_get_data(tag, contig_range, tag_storage_data);
+  if (MB_SUCCESS!=rval)
+    return 1;
+
+  return 0; // no error
+}
+
+/**
+   \fn ErrCode SynchronizeTags(iMOAB_AppID pid,  int * num_tags, int * tag_indices, int * ent_type )
+   \brief Exchange tag values for given tags
+
+   <B>Operations:</B> Collective
+
+   \param[in]  pid (iMOAB_AppID)                The unique pointer to the application ID
+   \param[in]  num_tags (int*)                  Number of tags to exchange
+   \param[in]  tag_indices (int*)               Array with tag indices of interest (size  = *num_tags)
+   \param[in]  ent_type (int*)                  type of entity for tag exchange
+  */
+ErrCode SynchronizeTags(iMOAB_AppID pid, int * num_tag, int * tag_indices, int * ent_type)
+{
+  appData & data = appDatas[*pid];
+  Range ent_exchange;
+  std::vector<Tag> tags;
+  for (int i = 0; i<* num_tag; i++)
+  {
+    if (tag_indices[i]<0 || tag_indices[i]>= (int)data.tagList.size())
+      return 1 ; // error in tag index
+    tags.push_back( data.tagList[tag_indices[i]]);
+  }
+  if (* ent_type==0)
+    ent_exchange = data.all_verts;
+  else if (*ent_type ==1 )
+    ent_exchange = data.primary_elems;
+  else
+    return 1; // unexpected type
+
+  ParallelComm * pco = pcomms[*pid];
+
+  ErrorCode rval = pco->exchange_tags(tags, tags, ent_exchange);
+  if (rval!=MB_SUCCESS)
+    return 1;
+
+  return 0;
+}
+
+#if 0
 /**
    \fn ErrorCode GetNeighborElements(iMOAB_AppID pid, iMOAB_GlobalID global_element_ID, int* num_adjacent_elements, iMOAB_GlobalID* adjacent_element_IDs)
    \brief Compute the adjacencies for the element entities

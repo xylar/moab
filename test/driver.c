@@ -78,11 +78,28 @@ int main(int argc, char * argv[])
   iMOAB_GlobalID * gbIDs = (iMOAB_GlobalID*) malloc(nblocks[2]*sizeof(iMOAB_GlobalID));
   rc = GetBlockID(pid, &nblocks[2], gbIDs);
   CHECKRC(rc, "failed to get block info");
+
+  /* the 2 tags used in this example exist in the file, already  */
+  int tagIndex[2];
+  int entTypes[2] = {0, 1}; /* first is on vertex, second is on elements; */
+  int tagTypes[2] = { DENSE_INTEGER, DENSE_DOUBLE } ;
+  int num_components = 1;
+  rc = DefineTagStorage(pid, "INTFIELD", &tagTypes[0], &num_components, &tagIndex[0],  strlen("INTFIELD") );
+  CHECKRC(rc, "failed to get tag INTFIELD ");
+
+  rc = DefineTagStorage(pid, "DFIELD", &tagTypes[1], &num_components, &tagIndex[1],  strlen("DFIELD") );
+  CHECKRC(rc, "failed to get tag DFIELD ");
+
+  // synchronize one of the tags only, just to see what happens
+  int num_tags_to_sync=1;
+  rc = SynchronizeTags(pid, &num_tags_to_sync, &tagIndex[0], &tagTypes[0] );
+  CHECKRC(rc, "failed to sync tag INTFIELD ");
+
   for (int irank=0; irank<nprocs; irank++)
   {
     if (irank==rank)
     {
-      // printf some of the block info
+      /* printf some of the block info */
       printf("on rank %d, there are \n"
               "  %3d visible vertices of which  %3d local  %3d ghost \n"
               "  %3d visible elements of which  %3d owned  %3d ghost \n"
@@ -92,12 +109,36 @@ int main(int argc, char * argv[])
               nverts[2], nverts[0], nverts[1],
               nelem[2], nelem[0], nelem[1],
               nblocks[2], nsbc[2], ndbc[2]);
-      // printf some of the vertex id infos
+      /* printf some of the vertex id infos */
       int numToPrint = nverts[2];
       printf("on rank %d vertex info:\n", rank);
       for (int i=0; i<numToPrint; i++)
         printf(" vertex local id: %3d, rank ID:%d  global ID: %3d  coords: %g, %g, %g\n", i, vranks[i], vGlobalID[i],
               coords[3*i], coords[3*i+1], coords[3*i+2]);
+
+      iMOAB_GlobalID * element_global_IDs = (iMOAB_GlobalID*)malloc(nelem[2]*sizeof(iMOAB_GlobalID));
+      iMOAB_GlobalID * block_IDs = (iMOAB_GlobalID*)malloc(nelem[2]*sizeof(iMOAB_GlobalID));
+      int * ranks = (int*)malloc(nelem[2]*sizeof(int));
+      rc = GetVisibleElementsInfo(pid, &nelem[2], element_global_IDs, ranks, block_IDs);
+      CHECKRC(rc, "failed to get all elem info");
+      for (int i=0; i<nelem[2]; i++)
+        printf(" element local id: %3d,  global ID: %3d  rank:%d  block ID: %2d \n", i, element_global_IDs[i],
+            ranks[i], block_IDs[i]);
+      free(element_global_IDs);
+      free(ranks);
+      free(block_IDs);
+
+      // get first element connectivity
+      int conn[27];
+      int nv = 27;
+      int eindex = 0;
+      rc = GetElementConnectivity(pid, &eindex, &nv, conn);
+      CHECKRC(rc, "failed to get first element connectivity");
+      printf(" conn for first element: \n");
+      for (int i=0; i<nv; i++)
+        printf(" %3d", conn[i]);
+      printf("\n");
+
 
       for (int i=0; i<nblocks[2]; i++)
       {
@@ -108,7 +149,7 @@ int main(int argc, char * argv[])
         printf("    has %4d elements with %d vertices per element\n",  num_elements_in_block, vertices_per_element);
         int size_conn= num_elements_in_block*vertices_per_element;
         iMOAB_LocalID * element_connectivity = (iMOAB_LocalID*) malloc (sizeof(iMOAB_LocalID)*size_conn);
-        rc = GetElementConnectivity(pid, &gbIDs[i], &size_conn, element_connectivity);
+        rc = GetBlockElementConnectivities(pid, &gbIDs[i], &size_conn, element_connectivity);
         CHECKRC(rc, "failed to get block elem connectivity");
         int * element_ownership = (int*) malloc (sizeof(int)*num_elements_in_block);
 
@@ -131,7 +172,41 @@ int main(int argc, char * argv[])
         free (element_connectivity);
         free (element_ownership);
       }
-      // query surface BCs
+      /*
+       * query int tag values on vertices
+       */
+      int * int_tag_vals = (int *) malloc (sizeof(int) * nverts[2]); // for all visible vertices on the rank
+      rc = GetIntTagStorage(pid, "INTFIELD", &nverts[2], &entTypes[0],
+          int_tag_vals, strlen("INTFIELD"));
+      CHECKRC(rc, "failed to get INTFIELD tag");
+      printf("INTFIELD tag values:\n");
+      for (int i=0; i<nverts[2]; i++)
+      {
+        printf(" %4d", int_tag_vals[i]);
+        if (i%20==19)
+          printf("\n");
+      }
+      printf("\n");
+      free(int_tag_vals);
+
+      /*
+       * query double tag values on elements
+       */
+      double * double_tag_vals = (double *) malloc (sizeof(double) * nelem[2]); // for all visible elements on the rank
+      rc = GetDoubleTagStorage(pid, "DFIELD", &nelem[2], &entTypes[1],
+          double_tag_vals, strlen("DFIELD"));
+      CHECKRC(rc, "failed to get DFIELD tag");
+      printf("DFIELD tag values: (not exchanged) \n");
+      for (int i=0; i<nelem[2]; i++)
+      {
+        printf(" %f", double_tag_vals[i]);
+        if (i%8==7)
+          printf("\n");
+      }
+      printf("\n");
+      free(double_tag_vals);
+
+      /* query surface BCs */
       iMOAB_LocalID * surfBC_ID = (iMOAB_LocalID*) malloc (sizeof(iMOAB_LocalID)*nsbc[2]);
       int * ref_surf = (int *)  malloc (sizeof(int)*nsbc[2]);
       int * bc_value = (int *)  malloc (sizeof(int)*nsbc[2]);
@@ -145,7 +220,7 @@ int main(int argc, char * argv[])
       free(surfBC_ID);
       free(ref_surf);
       free(bc_value);
-      // query vertex BCs
+      /* query vertex BCs */
       iMOAB_LocalID * vertBC_ID = (iMOAB_LocalID*) malloc (sizeof(iMOAB_LocalID)*ndbc[2]);
       int * vertBC_value = (int *)  malloc (sizeof(int)*ndbc[2]);
       rc = GetPointerToVertexBC(pid, &ndbc[2], vertBC_ID, vertBC_value);
