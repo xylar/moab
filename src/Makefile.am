@@ -16,7 +16,6 @@ EXTRA_DIST =
 if ENABLE_mesquite
 SUBDIRS += mesquite
 endif
-DIST_SUBDIRS = $(SUBDIRS)
 
 # Some variables
 AM_CPPFLAGS += -DIS_BUILDING_MB \
