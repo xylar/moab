@@ -14,8 +14,9 @@ libMOAB_la_LIBADD += io/libmoabio.la
 EXTRA_DIST = 
 
 if ENABLE_mesquite
-  SUBDIRS += mesquite
+SUBDIRS += mesquite
 endif
+DIST_SUBDIRS = $(SUBDIRS)
 
 # Some variables
 AM_CPPFLAGS += -DIS_BUILDING_MB \
