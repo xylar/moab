@@ -1,6 +1,9 @@
 # MOAB_DIR points to top-level install dir, below which MOAB's lib/ and include/ are located
 MOAB_BUILD_DIR := /homes/iulian/source/MOAB14
+#MOAB_BUILD_DIR := /home/iulian/source/MOAB14
 MOAB_DIR := /homes/iulian/lib/moab14
+#MOAB_DIR := /home/iulian/lib/parallel/moab14
+
 
 ifneq ($(wildcard ${MOAB_DIR}/lib/moab.make),)
 include ${MOAB_DIR}/lib/moab.make
@@ -16,6 +19,12 @@ endif
 driver: driver.o ../src/imoab.o ${MOAB_LIBDIR}/libMOAB.la
 	${MOAB_CXX} -o $@ $< ../src/imoab.o ${MOAB_LIBS_LINK}
 
+fex:  fex.o ../src/imoab.o ${MOAB_LIBDIR}/libMOAB.la
+	${IMESH_FC}  -o $@ $< ../src/imoab.o ${MOAB_LIBS_LINK} -lstdc++
+	
+fex.o: fex.F
+	mpif77  ${FCFLAGS} -c $<  
+	
 clean:
 	rm -rf *.o *.mod *.h5m ${ALLEXAMPLES}
 

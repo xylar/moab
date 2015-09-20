@@ -1,128 +1,15 @@
-#ifndef IMOAB_H
-#define IMOAB_H
-/** \file iMOAB.h
-  iMOAB: a language-agnostic, lightweight interface to MOAB
 
-  Supports usage from C/C++, Fortran (77/90/2003), Python
- 
-  \remark 1) All data in the interface are exposed via POD-types.
-  \remark 2) Pass everything by reference, so we do not have to use %VAL()
-  \remark 3) Arrays are allocated by the client code. No concerns about 
-     de-allocation of the data will be taken up by the interface.
-  \remark 4) Always pass the pointer to the start of array along with the
-     total allocated size for the array.
-  \remark 5) Return the filled array requested by client along with 
-     optionally the actual length of the array that was filled.
-     (for typical cases, should be the allocated length)
-*/
+#define iMOABInitializeFortran  imoabinitializefortran_
 
-/*
-Comments from Mike and Emily:
+#define iMOABFinalize imoabfinalize_
 
-1) Fortran MPI_Comm won't work. Take an integer argument and use MPI_F2C calls to get the C-Comm object
-2) ReadHeaderInfo - Does it need the pid ? 
-3) Reuse the comm object form the registration for both load and write ops. Do not take comm objects again to avoid confusion.
-4) Decipher the global comm object and the subset partioning for each application based on the comm object
-5) GetMeshInfo - return separately the owned and ghosted vertices/elements -- not together in visible_** but rather owned_** and ghosted_**. Make these arrays of size 2.
-6) Should we sort the vertices after we do ghosting ? So that the locally owned is first and then the ghosted is appended.
-7) RCM only for hte owned part of the mesh -- do not screw with the ghosted layers
-8) GetBlockID - identical to GetVertexID -- return the global numberign for block
-9) GetVertexID -- remember that the order of vertices returned have an implicit numbering embedded in it. DO NOT CHANGE THIS ORDERING...
-10) GetBlockInfo takes global Block ID; Remove blockname unless there is a separate use case for it..
-11) GetElementConnectivity - clarify whether we return global or local vertex numbering. Preferably local numbering else lot of deciphering for global.
-*/
+#define RegisterApplication registerapplication_
 
-#define iMOAB_AppID    int*
-#define iMOAB_String   char*
-#define iMOAB_GlobalID int
-#define iMOAB_LocalID  int
-#define ErrCode        int
+#define RegisterFortranApplication registerfortranapplication_
 
-#include "imoab_protos.h"
-/*
- * tag types can be: dense/sparse, int/ double/entityhandle , they could be on both elements and vertices
- */
-enum MOAB_TAG_TYPE { DENSE_INTEGER = 0,
-                     DENSE_DOUBLE ,
-                     DENSE_ENTITYHANDLE,
-                     SPARSE_INTEGER ,
-                     SPARSE_DOUBLE ,
-                     SPARSE_ENTITYHANDLE
-};
+#define DeregisterApplication deregisterapplication_
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-/** 
-  \fn ErrCode iMOABInitialize( int argc, iMOAB_String* argv )
-  \brief Initialize the iMOAB interface implementation and create the MOAB instance, if not created already (reference counted).
-
-  <B>Operations:</B> Collective
-
-  \param[in] argc (int)           Number of command line arguments 
-  \param[in] argv (iMOAB_String*) Command line arguments
-*/
-ErrCode iMOABInitialize( int argc, iMOAB_String* argv );
-
-/** 
-  \fn ErrCode iMOABInitializeFortran( )
-  \brief Initialize the iMOAB interface implementation from Fortran driver and create the MOAB instance, if not created already (reference counted).
-
-  <B>Operations:</B> Collective
-*/
-ErrCode iMOABInitializeFortran( );
-
-/**
-  \fn ErrCode iMOABFinalize()
-  \brief Finalize the iMOAB interface implementation and delete the internally reference counted MOAB instance.
-
-  <B>Operations:</B> Collective
-*/
-ErrCode iMOABFinalize();
-
-/**
-  \fn ErrCode RegisterApplication( iMOAB_String app_name, MPI_Comm* comm, iMOAB_AppID pid )
-  \brief Register application - Create a unique application ID and bootstrap interfaces for further queries.
-  
-  \note
-  Internally, a mesh set will be associated with the application ID and all subsequent queries on the MOAB
-  instance will be directed to this mesh/file set.
-
-  <B>Operations:</B> Collective
-
-  \param[in]  app_name (iMOAB_String) Application name (PROTEUS, NEK5000, etc)
-  \param[in]  comm (MPI_Comm*)        MPI communicator to be used for all mesh-releated queries originating from this application
-  \param[out] pid (iMOAB_AppID)       The unique pointer to the application ID
-*/
-ErrCode RegisterApplication( iMOAB_String app_name, MPI_Comm* comm, iMOAB_AppID pid );
-
-/**
-  \fn ErrCode RegisterFortranApplication( iMOAB_String app_name, int* comm, iMOAB_AppID pid, int app_name_length )
-  \brief Register a Fortran-basedapplication - Create a unique application ID and bootstrap interfaces for further queries.
-  
-  \note
-  Internally, the Comm object will be converted and stored as MPI_Comm. Additionally, a mesh set will be associated with the 
-  application ID and all subsequent queries on the MOAB instance will be directed to this mesh/file set.
-
-  <B>Operations:</B> Collective
-
-  \param[in]  app_name (iMOAB_String) Application name (PROTEUS, NEK5000, etc)
-  \param[in]  comm (int*)             MPI communicator to be used for all mesh-releated queries originating from this application
-  \param[out] pid (iMOAB_AppID)       The unique pointer to the application ID
-  \param[in]  app_name_length (int)   Length of application name string
-*/
-ErrCode RegisterFortranApplication( iMOAB_String app_name, int* comm, iMOAB_AppID pid, int app_name_length );
-
-/**
-  \fn ErrCode DeregisterApplication( iMOAB_AppID pid )
-  \brief De-Register application: delete mesh (set) associated with the application ID
-
-  <B>Operations:</B> Collective
-
-  \param[in] pid (iMOAB_AppID) The unique pointer to the application ID
-*/
-ErrCode DeregisterApplication( iMOAB_AppID pid );
+#if 0
 
 /**
   \fn ErrCode ReadHeaderInfo ( iMOAB_String filename, int* num_global_vertices, int* num_global_elements, int* num_dimension, int* num_parts, int filename_length )
@@ -256,52 +143,21 @@ ErrCode GetBlockID( iMOAB_AppID pid, int * block_length, iMOAB_GlobalID* global_
 */
 ErrCode GetBlockInfo(iMOAB_AppID pid, iMOAB_GlobalID * global_block_ID, int* vertices_per_element, int* num_elements_in_block);
 
-/**
-  \fn ErrCode  GetVisibleElementsInfo(iMOAB_AppID pid, int* num_visible_elements, iMOAB_GlobalID * element_global_IDs, int * ranks, iMOAB_GlobalID * block_IDs)
-  \brief Get the elements information, global ids, ranks they belong to, block ids they belong to
-
-  <B>Operations:</B> Collective
-
-  \param[in]  pid (iMOAB_AppID)                     The unique pointer to the application ID
-  \param[in]  num_visible_elements (int*)           The global block ID of the set to be queried
-  \param[out] element_global_IDs (iMOAB_GlobalID*)  The number of vertices per element
-  \param[out] ranks (int*)                          The owning ranks of elements
-  \param[out] block_IDs (iMOAB_GlobalID*)           The block ids the elements belong
-*/
-ErrCode GetVisibleElementsInfo(iMOAB_AppID pid, int* num_visible_elements,
-    iMOAB_GlobalID * element_global_IDs, int * ranks, iMOAB_GlobalID * block_IDs);
-
-
 /** 
-  \fn ErrCode GetBlockElementConnectivities(iMOAB_AppID pid, iMOAB_GlobalID global_block_ID, int connectivity_length, int* element_connectivity)
+  \fn ErrCode GetElementConnectivity(iMOAB_AppID pid, iMOAB_GlobalID global_block_ID, int connectivity_length, int* element_connectivity)
   \brief Get the connectivity for elements within a certain block;
 
 
   <B>Operations:</B> Collective
 
   \param[in]  pid (iMOAB_AppID)                 The unique pointer to the application ID
-  \param[in]  global_block_ID (iMOAB_GlobalID*) The global block ID of the set being queried
-  \param[in]  connectivity_length (int*)        The allocated size of array (typical <TT>size := vertices_per_element*num_elements_in_block</TT>)
+  \param[in]  global_block_ID (iMOAB_GlobalID)  The global block ID of the set being queried
+  \param[in]  connectivity_length (int)         The allocated size of array (typical <TT>size := vertices_per_element*num_elements_in_block</TT>)
   \param[out] element_connectivity (int*)       The connectivity array to store element ordering in MOAB canonical numbering scheme (array allocated by client);
     array contains vertex indices in the local numbering order for vertices
     elements are in the same order as provided by GetElementOwnership and GetElementID
 */
-ErrCode GetBlockElementConnectivities(iMOAB_AppID pid, iMOAB_GlobalID * global_block_ID, int * connectivity_length, int* element_connectivity);
-
-/**
-  \fn ErrCode GetElementConnectivity(iMOAB_AppID pid, iMOAB_LocalID * elem_index, int * connectivity_length, int* element_connectivity)
-  \brief Get the connectivity for one element
-
-  <B>Operations:</B> Collective
-
-  \param[in]  pid (iMOAB_AppID)                 The unique pointer to the application ID
-  \param[in]  elem_index (iMOAB_LocalID *)      Local element index
-  \param[in/out]  connectivity_length (int *)   The allocated size of array (max 27)
-  \param[out] element_connectivity (int*)       The connectivity array to store connectivity in MOAB canonical numbering scheme
-    array contains vertex indices in the local numbering order for vertices
-*/
-ErrCode GetElementConnectivity(iMOAB_AppID pid, iMOAB_LocalID * elem_index, int * connectivity_length, int* element_connectivity);
-
+ErrCode GetElementConnectivity(iMOAB_AppID pid, iMOAB_GlobalID * global_block_ID, int * connectivity_length, int* element_connectivity);
 
 /**
   \fn ErrCode GetElementOwnership(iMOAB_AppID pid, iMOAB_GlobalID global_block_ID, int num_elements_in_block, int* element_ownership)
@@ -451,17 +307,20 @@ ErrCode GetDoubleTagStorage(iMOAB_AppID pid, iMOAB_String tag_storage_name, int 
 ErrCode SynchronizeTags(iMOAB_AppID pid, int * num_tag, int * tag_indices, int * ent_type);
 
 /**
-   \fn ErrCode (iMOAB_AppID pid, iMOAB_LocalID * local_index, int* num_adjacent_elements, iMOAB_LocalID* adjacent_element_IDs)
-   \brief retrieve the adjacencies for the element entities
+   \fn ErrCode GetNeighborElements(iMOAB_AppID pid, iMOAB_GlobalID global_element_ID, int* num_adjacent_elements, iMOAB_GlobalID* adjacent_element_IDs)
+   \brief Compute the adjacencies for the element entities
 
-   <B>Operations:</B> Local
+   <B>Operations:</B> Collective
+
+   \bug 1) How do we decide the elements/vertices to query if we are not passing EntityHandles ?
+   \bug 2) We need a dimension for up/down adjacencies. Or do we care only about 1-ring neighbors ?
 
    \param[in]  pid (iMOAB_AppID)                      The unique pointer to the application ID
-   \param[in]  local_index (iMOAB_LocalID*)           The local element ID for which adjacency information is needed
+   \param[in]  global_element_ID (iMOAB_GlobalID)     The global element ID for which adjacency information is needed
    \param[out] num_adjacent_elements (int*)           The total number of adjacent elements
-   \param[out] adjacent_element_IDs (iMOAB_LocalID*)  The local element IDs of all adjacent elements to the current one (typically, num_total_sides for internal elements or num_total_sides-num_sides_on_boundary for boundary elements)
+   \param[out] adjacent_element_IDs (iMOAB_GlobalID*) The global element IDs of all adjacent elements to the current one (typically, num_total_sides for internal elements or num_total_sides-num_sides_on_boundary for boundary elements)
 */
-ErrCode GetNeighborElements(iMOAB_AppID pid, iMOAB_LocalID * local_index, int* num_adjacent_elements, iMOAB_LocalID* adjacent_element_IDs);
+ErrCode GetNeighborElements(iMOAB_AppID pid, iMOAB_GlobalID global_element_ID, int* num_adjacent_elements, iMOAB_GlobalID* adjacent_element_IDs);
 
 /**
    \fn ErrCode GetNeighborVertices(iMOAB_AppID pid, iMOAB_GlobalID global_vertex_ID, int* num_adjacent_vertices, iMOAB_GlobalID* adjacent_vertex_IDs)
@@ -469,15 +328,14 @@ ErrCode GetNeighborElements(iMOAB_AppID pid, iMOAB_LocalID * local_index, int* n
 
    <B>Operations:</B> Collective
 
-   \param[in]  pid (iMOAB_AppID)                      The unique pointer to the application ID
-   \param[in]  local_vertex_ID (iMOAB_LocalID*)       The local vertex ID for which adjacency information is needed
-   \param[out] num_adjacent_vertices (int*)           The total number of adjacent vertices
-   \param[out] adjacent_vertex_IDs (iMOAB_LocalID*)   The local element IDs of all adjacent vertices to the current one (typically, num_total_sides for internal elements or num_total_sides-num_sides_on_boundary for boundary elements)
-*/
-ErrCode GetNeighborVertices(iMOAB_AppID pid, iMOAB_LocalID* local_vertex_ID, int* num_adjacent_vertices, iMOAB_LocalID* adjacent_vertex_IDs);
+   \bug 1) How do we decide the elements/vertices to query if we are not passing EntityHandles ?
+   \bug 2) We need a dimension for up/down adjacencies. Or do we care only about 1-ring neighbors ?
 
-#ifdef __cplusplus
-}
-#endif
+   \param[in]  pid (iMOAB_AppID)                      The unique pointer to the application ID
+   \param[in]  global_vertex_ID (iMOAB_GlobalID)      The global vertex ID for which adjacency information is needed
+   \param[out] num_adjacent_vertices (int*)           The total number of adjacent vertices
+   \param[out] adjacent_vertex_IDs (iMOAB_GlobalID*)  The global element IDs of all adjacent vertices to the current one (typically, num_total_sides for internal elements or num_total_sides-num_sides_on_boundary for boundary elements)
+*/
+ErrCode GetNeighborVertices(iMOAB_AppID pid, iMOAB_GlobalID global_vertex_ID, int* num_adjacent_vertices, iMOAB_GlobalID* adjacent_vertex_IDs);
 
 #endif

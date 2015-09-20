@@ -27,6 +27,11 @@ copy it in this folder (imoab/src/mhdf) temporarily; after imoab is part of moab
 // global variables ; should they be organized in a structure, for easier references?
 // or how do we keep them global?
 
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 Interface * MBI = 0;
 // we should also have the default tags stored, initialized
 Tag gtags[5]; // material, neumann, dirichlet,  globalID, partition tag
@@ -96,10 +101,10 @@ ErrCode iMOABInitialize( int argc, iMOAB_String* argv )
      }
    }
    refCountMB++;
-   return MB_SUCCESS;
+   return 0;
 }
 
-#if 0
+
 /** 
   \fn ErrorCode iMOABInitializeFortran( )
   \brief Initialize the iMOAB interface implementation from Fortran driver and create the MOAB instance, if not created already (reference counted).
@@ -107,8 +112,26 @@ ErrCode iMOABInitialize( int argc, iMOAB_String* argv )
   <B>Operations:</B> Collective
 */
 
-ErrorCode iMOABInitializeFortran( );
-#endif 
+ErrCode iMOABInitializeFortran()
+{
+  if (0 == refCountMB) {
+    MBI = new Core();
+    // retrieve the default tags
+    const char* const shared_set_tag_names[] = { MATERIAL_SET_TAG_NAME,
+        NEUMANN_SET_TAG_NAME, DIRICHLET_SET_TAG_NAME, GLOBAL_ID_TAG_NAME };
+    // blocks, visible surfaceBC(neumann), vertexBC (Dirichlet), global id, parallel partition
+    for (int i = 0; i < 4; i++) {
+
+      ErrorCode rval = MBI->tag_get_handle(shared_set_tag_names[i], 1,
+          MB_TYPE_INTEGER, gtags[i], MB_TAG_ANY);
+      if (MB_SUCCESS != rval)
+        return 1;
+    }
+  }
+  refCountMB++;
+  return 0;
+}
+
 
 /**
   \fn ErrorCode iMOABFinalize()
@@ -171,7 +194,7 @@ ErrCode RegisterApplication( iMOAB_String app_name, MPI_Comm* comm, iMOAB_AppID 
   appDatas.push_back(app_data); // it will correspond to app_FileSets[*pid] will be the file set of interest
   return 0;
 }
-#if 0
+
 /**
   \fn ErrorCode RegisterFortranApplication( iMOAB_String app_name, int* comm, iMOAB_AppID pid, int app_name_length )
   \brief Register a Fortran-basedapplication - Create a unique application ID and bootstrap interfaces for further queries.
@@ -189,8 +212,40 @@ ErrCode RegisterApplication( iMOAB_String app_name, MPI_Comm* comm, iMOAB_AppID 
 */
 
 
-ErrorCode RegisterFortranApplication( iMOAB_String app_name, int* comm, iMOAB_AppID pid, int app_name_length );
+ErrCode RegisterFortranApplication( iMOAB_String app_name, int* comm, iMOAB_AppID pid, int app_name_length )
+{
+  std::string name(app_name);
+  if (appIdMap.find(name)!=appIdMap.end())
+  {
+    std::cout << " application already registered \n";
+    return 1;
+  }
+  *pid =  unused_pid++;
+  appIdMap[name] = *pid;
+  // now create ParallelComm and a file set for this application
+  // convert from fortran communicator to a c communicator
+  // see transfer of handles
+  // http://www.mpi-forum.org/docs/mpi-2.2/mpi22-report/node361.htm
+  MPI_Comm ccomm = MPI_Comm_f2c( (MPI_Fint) *comm);
+  ParallelComm * pco = new ParallelComm(MBI, ccomm);
+
+#if 1
+  int index = pco->get_id(); // t could be useful to get app id from pcomm instance ...
+  assert(index==*pid);
 #endif
+  pcomms.push_back(pco);
+
+  // create now the file set that will be used for loading the model in
+  EntityHandle file_set;
+  ErrorCode rval = MBI->create_meshset(MESHSET_SET, file_set);
+  if (MB_SUCCESS != rval )
+    return 1;
+  appData app_data;
+  app_data.file_set=file_set;
+  appDatas.push_back(app_data); // it will correspond to app_FileSets[*pid] will be the file set of interest
+  return 0;
+}
+
 /**
   \fn ErrorCode DeregisterApplication( iMOAB_AppID pid )
   \brief De-Register application: delete mesh (set) associated with the application ID
@@ -1425,5 +1480,10 @@ ErrCode GetNeighborElements(iMOAB_AppID pid, iMOAB_LocalID * local_index, int* n
 ErrCode GetNeighborVertices(iMOAB_AppID pid, iMOAB_LocalID* local_vertex_ID, int* num_adjacent_vertices, iMOAB_LocalID* adjacent_vertex_IDs)
 {
   return 0;
+}
+#endif
+
+
+#ifdef __cplusplus
 }
 #endif
