@@ -19,15 +19,16 @@ c     find out MY process ID, and how many processes were started.
 
       end if
 
-      ierr = iMOABInitializeFortran()
+      ierr = iMOAB_InitializeFortran()
 
       appname = 'PROTEUS'
 
-      ierr = RegisterFortranApplication(appname, MPI_COMM_WORLD, pid)
+      ierr = iMOAB_RegisterFortranApplication(appname, MPI_COMM_WORLD,
+     & pid)
 
-      ierr = DeregisterApplication(pid)
+      ierr = iMOAB_DeregisterApplication(pid)
 
-      ierr = iMOABFinalize()
+      ierr = iMOAB_Finalize()
 
 
       call MPI_FINALIZE ( ierr )
