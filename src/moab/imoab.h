@@ -446,20 +446,17 @@ ErrCode GetDoubleTagStorage(iMOAB_AppID pid, iMOAB_String tag_storage_name, int 
 ErrCode SynchronizeTags(iMOAB_AppID pid, int * num_tag, int * tag_indices, int * ent_type);
 
 /**
-   \fn ErrCode GetNeighborElements(iMOAB_AppID pid, iMOAB_GlobalID global_element_ID, int* num_adjacent_elements, iMOAB_GlobalID* adjacent_element_IDs)
-   \brief Compute the adjacencies for the element entities
+   \fn ErrCode (iMOAB_AppID pid, iMOAB_LocalID * local_index, int* num_adjacent_elements, iMOAB_LocalID* adjacent_element_IDs)
+   \brief retrieve the adjacencies for the element entities
 
-   <B>Operations:</B> Collective
-
-   \bug 1) How do we decide the elements/vertices to query if we are not passing EntityHandles ?
-   \bug 2) We need a dimension for up/down adjacencies. Or do we care only about 1-ring neighbors ?
+   <B>Operations:</B> Local
 
    \param[in]  pid (iMOAB_AppID)                      The unique pointer to the application ID
-   \param[in]  global_element_ID (iMOAB_GlobalID)     The global element ID for which adjacency information is needed
+   \param[in]  local_index (iMOAB_LocalID*)           The local element ID for which adjacency information is needed
    \param[out] num_adjacent_elements (int*)           The total number of adjacent elements
-   \param[out] adjacent_element_IDs (iMOAB_GlobalID*) The global element IDs of all adjacent elements to the current one (typically, num_total_sides for internal elements or num_total_sides-num_sides_on_boundary for boundary elements)
+   \param[out] adjacent_element_IDs (iMOAB_LocalID*)  The local element IDs of all adjacent elements to the current one (typically, num_total_sides for internal elements or num_total_sides-num_sides_on_boundary for boundary elements)
 */
-ErrCode GetNeighborElements(iMOAB_AppID pid, iMOAB_GlobalID global_element_ID, int* num_adjacent_elements, iMOAB_GlobalID* adjacent_element_IDs);
+ErrCode GetNeighborElements(iMOAB_AppID pid, iMOAB_LocalID * local_index, int* num_adjacent_elements, iMOAB_LocalID* adjacent_element_IDs);
 
 /**
    \fn ErrCode GetNeighborVertices(iMOAB_AppID pid, iMOAB_GlobalID global_vertex_ID, int* num_adjacent_vertices, iMOAB_GlobalID* adjacent_vertex_IDs)
@@ -467,14 +464,11 @@ ErrCode GetNeighborElements(iMOAB_AppID pid, iMOAB_GlobalID global_element_ID, i
 
    <B>Operations:</B> Collective
 
-   \bug 1) How do we decide the elements/vertices to query if we are not passing EntityHandles ?
-   \bug 2) We need a dimension for up/down adjacencies. Or do we care only about 1-ring neighbors ?
-
    \param[in]  pid (iMOAB_AppID)                      The unique pointer to the application ID
-   \param[in]  global_vertex_ID (iMOAB_GlobalID)      The global vertex ID for which adjacency information is needed
+   \param[in]  local_vertex_ID (iMOAB_LocalID*)       The local vertex ID for which adjacency information is needed
    \param[out] num_adjacent_vertices (int*)           The total number of adjacent vertices
-   \param[out] adjacent_vertex_IDs (iMOAB_GlobalID*)  The global element IDs of all adjacent vertices to the current one (typically, num_total_sides for internal elements or num_total_sides-num_sides_on_boundary for boundary elements)
+   \param[out] adjacent_vertex_IDs (iMOAB_LocalID*)   The local element IDs of all adjacent vertices to the current one (typically, num_total_sides for internal elements or num_total_sides-num_sides_on_boundary for boundary elements)
 */
-ErrCode GetNeighborVertices(iMOAB_AppID pid, iMOAB_GlobalID global_vertex_ID, int* num_adjacent_vertices, iMOAB_GlobalID* adjacent_vertex_IDs);
+ErrCode GetNeighborVertices(iMOAB_AppID pid, iMOAB_LocalID* local_vertex_ID, int* num_adjacent_vertices, iMOAB_LocalID* adjacent_vertex_IDs);
 
 #endif

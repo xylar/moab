@@ -139,6 +139,19 @@ int main(int argc, char * argv[])
         printf(" %3d", conn[i]);
       printf("\n");
 
+      // test neighbors
+      int local_index = 0; // test element with local index 0
+      int num_adjacent_elements = 10; // we can have maximum 6 actually
+      iMOAB_LocalID  adjacent_element_IDs[10];
+      rc =GetNeighborElements(pid, &local_index, &num_adjacent_elements, adjacent_element_IDs);
+      CHECKRC(rc, "failed to get first element neighbors");
+      printf("  neighbors for first element:\n");
+      for (int i=0; i<num_adjacent_elements; i++)
+      {
+        printf("  %4d", adjacent_element_IDs[i]);
+      }
+      printf("\n");
+
 
       for (int i=0; i<nblocks[2]; i++)
       {
