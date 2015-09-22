@@ -11,7 +11,7 @@
 #define iMOAB_GetMeshInfo                    imoab_getmeshinfo_
 #define iMOAB_GetVertexID                    imoab_getvertexid_
 #define iMOAB_GetVertexOwnership             imoab_getvertexownership_
-#define iMOAB_GetVisibleVerticesCoordinates  imoab_getvisibleverticescoordinates
+#define iMOAB_GetVisibleVerticesCoordinates  imoab_getvisibleverticescoordinates_
 #define iMOAB_GetBlockID                     imoab_getblockid_
 #define iMOAB_GetBlockInfo                   imoab_getblockinfo_
 #define iMOAB_GetVisibleElementsInfo         imoab_getvisibleelementsinfo_
