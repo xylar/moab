@@ -8439,12 +8439,12 @@ int main(int argc, char* argv[])
 
     if (string(argv[i]) == "-d" && (i+1) < argc)
       TestDir = argv[++i];
-#ifdef MOAB_HAVE_NETCDF
+    else if (string(argv[i]) == "-h" || string(argv[i]) == "--help")
+      usage( argv[0] );
+#if MOAB_HAVE_NETCDF
     else if (string(argv[i]) == "-nostress")
       stress_test = false;
 #endif
-    else if (string(argv[i]) == "-h" || string(argv[i]) == "--help")
-      usage( argv[0] );
     else {
       cerr << "Invalid argument: " << argv[i] << endl;
       usage( argv[0] );
