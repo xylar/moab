@@ -2,6 +2,7 @@
 LDADD = $(top_builddir)/itaps/mesquite/libmsqimesh.la \
         $(top_builddir)/src/mesquite/libmesquite.la \
         $(top_builddir)/itaps/imesh/libiMesh.la \
+        $(top_builddir)/src/libMOAB.la \
         ${IGEOM_LDFLAGS} \
         ${CGM_LDFLAGS} ${CGM_LIBS}
 check_PROGRAMS = main
