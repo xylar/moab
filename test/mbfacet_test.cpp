@@ -27,12 +27,6 @@
 #include "moab/GeomTopoTool.hpp"
 #include "TestUtil.hpp"
 
-#ifdef MESHDIR
-std::string TestDir( STRINGIFY(MESHDIR) );
-#else
-#error Specify MESHDIR to compile test
-#endif
-
 std::string filename;
 std::string filename_out;
 std::string polygon_file_name;
