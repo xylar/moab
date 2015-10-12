@@ -38,14 +38,15 @@ TESTS = pcomm_unit \
         scdtest \
         pcomm_serial \
 	par_spatial_locator_test \
-	parallel_unit_tests imoab_ptest2\
+	parallel_unit_tests imoab_ptest2 \
+	uber_parallel_test \
         $(NETCDF_TESTS) \
         $(HDF5_TESTS) \
         $(MBCSLAM_TESTS) $(IMESH_TESTS) $(IMOAB_TESTS)
 
 if HAVE_HDF5_PARALLEL
   HDF5_TESTS = parallel_hdf5_test mhdf_parallel parallel_write_test \
-        uber_parallel_test parallel_adj parmerge_test augment_with_ghosts
+         parallel_adj parmerge_test augment_with_ghosts
 else
   HDF5_TESTS = 
 endif
