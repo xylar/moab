@@ -31,7 +31,6 @@ if moab_root is None:
 #check that the moab location is legitimate
 if not os.path.isfile(moab_root+'/include/moab/Core.hpp'):
     raise StandardError('Provided MOAB location is invalid.')
-
     
 moab_include = moab_root + '/include/'
 moab_lib = moab_root + '/lib/'
