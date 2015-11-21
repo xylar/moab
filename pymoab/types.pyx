@@ -45,8 +45,17 @@ cdef dict _ERROR_MSGS = {
 
 def check_error(int err, tuple exceptions, **kwargs):
     """Checks error status code and raises error if needed."""
+<<<<<<< aef7eff13816119630d12c906b35085939108d66
     for exception in exceptions:
         if exception == err:
+=======
+    if 'exceptions' in kwargs:
+        exceptions = kwargs['exceptions']
+        if isinstance (exceptions,(list,tuple)):
+            for exception in exceptions:
+                if err == exception: return
+    if 'exceptions' in kwargs and kwargs['exceptions'] == err:
+>>>>>>> Fixes to get the exceptions working again.
             return
     if err == moab.MB_SUCCESS:
         return
