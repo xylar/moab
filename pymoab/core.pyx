@@ -31,13 +31,13 @@ cdef class Core(object):
         cfname = fname.decode()
         cdef const char * file_name = cfname
         cdef moab.ErrorCode err = self.inst.write_file(fname)
-        check_error(err, exceptions = exceptions)
+        check_error(err, exceptions)
 
     def create_meshset(self, unsigned int options = 0x02, exceptions = ()):
         cdef moab.EntityHandle ms_handle = 0
         cdef moab.EntitySetProperty es_property = <moab.EntitySetProperty> options 
         cdef moab.ErrorCode err = self.inst.create_meshset(es_property, ms_handle)
-        check_error(err, exceptions = exceptions)
+        check_error(err, exceptions)
         return ms_handle
 
     def add_entities(self, moab.EntityHandle ms_handle, entities, exceptions = ()):
@@ -50,14 +50,14 @@ cdef class Core(object):
         else:
            arr = entities
            err = self.inst.add_entities(ms_handle, <unsigned long*> arr.data, len(entities))
-        check_error(err, exceptions = exceptions)
+        check_error(err, exceptions)
 
     def create_vertices(self, np.ndarray[np.float64_t, ndim=1] coordinates, exceptions = ()):
         cdef Range rng = Range()
         cdef moab.ErrorCode err = self.inst.create_vertices(<double *> coordinates.data, 
                                                             len(coordinates)//3,
                                                             deref(rng.inst))
-        check_error(err, exceptions = exceptions)
+        check_error(err, exceptions)
         return rng
 
     def create_element(self, int t, np.ndarray[np.uint64_t, ndim=1] connectivity, exceptions = ()):
@@ -66,7 +66,7 @@ cdef class Core(object):
         cdef int nnodes = len(connectivity)
         cdef moab.ErrorCode err = self.inst.create_element(typ,
             <unsigned long*> connectivity.data, nnodes, handle)
-        check_error(err, exceptions = exceptions)
+        check_error(err, exceptions)
         return handle
 
     def create_elements(self, int t, np.ndarray[np.uint64_t, ndim=2] connectivity, exceptions = ()):
@@ -82,7 +82,7 @@ cdef class Core(object):
             connectivity_i = connectivity[i]
             err = self.inst.create_element(typ, <unsigned long*> connectivity_i.data,
                                            nnodes, deref((<unsigned long*> handles.data)+i))
-            check_error(err, exceptions = exceptions)
+            check_error(err, exceptions)
         return handles
 
     def tag_get_handle(self, const char* name, int size, moab.DataType tag_type, exceptions = ()):
