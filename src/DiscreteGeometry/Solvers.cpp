@@ -240,7 +240,7 @@ namespace moab {
   void Solvers::backsolve_polyfit_safeguarded(int dim, int degree, bool interp, int mrows, int ncols, double *R, int bncols, double *bs, const double *ws, int *degree_out)
   {
 
-/*    int deg, numcols;
+    int deg, numcols;
 
     for (int k=0; k< bncols; k++)
       {
@@ -261,16 +261,16 @@ namespace moab {
 
         while (deg>=1 )
           {
-            int cend = numcols;
+            int cend = numcols-1;
             bool downgrade = false;
 
             for (int d = deg; d> (int)interp; d--)
               {
                 int cstart;
                 if (dim==1)
-                  cstart = d+1 - (int)interp;
+                  cstart = d - (int)interp;
                 else if (dim==2)
-                  cstart = ((d+1)*d)/2 +1 - (int)interp;
+                  cstart = ((d+1)*d)/2  - (int)interp;
 
                 //Solve for  bs
                 for (int j=cend; j>= cstart; j--)
@@ -355,7 +355,7 @@ namespace moab {
 
         delete [] bs_bak;
       }
-*/
+
   }
 
   void Solvers::vec_dotprod(const int len, const double* a, const double* b, double* c)
@@ -500,4 +500,5 @@ namespace moab {
       }
     }
 
-}
+}//namespace
+
