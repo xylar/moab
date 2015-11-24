@@ -73,7 +73,6 @@ _DTYPE_CONV = {
     MB_MAX_DATA_TYPE: 'uint64'
 }
 
-
 _VALID_DTYPES= {
     MB_TYPE_OPAQUE: frozenset(['S']),
     MB_TYPE_INTEGER: frozenset(['int8','int16','int32','int64']),
