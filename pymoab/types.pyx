@@ -43,15 +43,6 @@ cdef dict _ERROR_MSGS = {
     MB_FAILURE: (RuntimeError, '[MOAB] failure'),
     }
 
-cdef dict _DTYPE_CONV = {
-    MB_TYPE_OPAQUE   : 'int8',
-    MB_TYPE_INTEGER  : 'int32',
-    MB_TYPE_DOUBLE   : 'float32',
-    MB_TYPE_BIT      : 'yikes',
-    MB_TYPE_HANDLE   : 'uint64',
-    MB_MAX_DATA_TYPE : 'uint64'
-    }
-
 def check_error(int err, tuple exceptions, **kwargs):
     """Checks error status code and raises error if needed."""
     for exception in exceptions:
@@ -111,7 +102,6 @@ def validate_type(tag_type,tag_length,tag_data):
     tag_data = np.asarray(tag_data, dtype=final_type)
     return tag_data
 
-
 # Entity types
 MBVERTEX = moab.MBVERTEX
 MBEDGE = moab.MBEDGE
@@ -141,10 +131,3 @@ MB_TAG_ANY = moab.MB_TAG_ANY
 MB_TAG_NOOPQ = moab.MB_TAG_NOOPQ 
 MB_TAG_DFTOK = moab.MB_TAG_DFTOK 
 
-# Data Types
-MB_TYPE_OPAQUE  = moab.MB_TYPE_OPAQUE 
-MB_TYPE_INTEGER  = moab.MB_TYPE_INTEGER
-MB_TYPE_DOUBLE   = moab.MB_TYPE_DOUBLE
-MB_TYPE_BIT      = moab.MB_TYPE_BIT   
-MB_TYPE_HANDLE   = moab.MB_TYPE_HANDLE
-MB_MAX_DATA_TYPE = moab.MB_MAX_DATA_TYPE
