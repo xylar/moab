@@ -119,7 +119,6 @@ def test_range():
     assert vert.size() is dum
 
 def test_tag_failures():
-
     mb = core.Core()
     coord = np.array((1,1,1),dtype='float64')
     verts = mb.create_vertices(coord)
