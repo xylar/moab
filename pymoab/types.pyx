@@ -71,7 +71,7 @@ _DTYPE_CONV = {
     MB_TYPE_BIT: 'bool',
     MB_TYPE_HANDLE: 'uint64',
     MB_MAX_DATA_TYPE: 'uint64'
-    }
+}
 
 
 _VALID_DTYPES= {
