@@ -98,6 +98,7 @@ cdef class Core(object):
         cdef moab.DataType tag_type
         err = self.inst.tag_get_data_type(tag.inst, tag_type);
         check_error(err, ())
+        verify_type(type,data.dtype)
         cdef int length
         err = self.inst.tag_get_length(tag.inst,length);
         check_error(err,())

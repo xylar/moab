@@ -101,6 +101,13 @@ def validate_type(tag_type,tag_length,tag_data):
     tag_data = np.asarray(tag_data, dtype=final_type)
     return tag_data
 
+def verify_type(exp_type,act_type):
+    if exp_type == MB_TYPE_OPAQUE:
+       assert 'S' == act_type.char
+    else:
+       exp_type = np.dtype(_DTYPE_CONV[exp_type])
+    assert exp_type == act_type
+    
 # Entity types
 MBVERTEX = moab.MBVERTEX
 MBEDGE = moab.MBEDGE
