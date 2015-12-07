@@ -23,6 +23,7 @@ def test_integer_tag():
 
     assert len(data) == 1
     assert data[0] == test_val
+    
     assert data.dtype == 'int32'
 
 def test_double_tag():
@@ -60,7 +61,7 @@ def test_double_tag():
     else:
         print "Shouldn't be here. Test fails."
         raise AssertionError
-
+    
 def test_opaque_tag():
     mb = core.Core()
     vh = vertex_handle(mb)
@@ -82,7 +83,7 @@ def test_create_meshset():
     vh = vertex_handle(mb)
     mb.add_entities(msh,vh)
     #best we can do for now
-
+    
 def vertex_handle(core):
     """Convenience function for getting an arbitrary vertex element handle."""
     coord = np.array((1,1,1),dtype='float64')
