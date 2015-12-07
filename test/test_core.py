@@ -61,7 +61,7 @@ def test_double_tag():
     else:
         print "Shouldn't be here. Test fails."
         raise AssertionError
-    
+
 def test_opaque_tag():
     mb = core.Core()
     vh = vertex_handle(mb)
