@@ -82,6 +82,15 @@ _VALID_DTYPES= {
     MB_MAX_DATA_TYPE: frozenset(['uint64'])
 }
 
+_VALID_DTYPES= {
+    MB_TYPE_OPAQUE   : ['S'],
+    MB_TYPE_INTEGER  : ['int32','int64'],
+    MB_TYPE_DOUBLE   : ['float64'],
+    MB_TYPE_BIT      : ['S1'],
+    MB_TYPE_HANDLE   : ['uint64'],
+    MB_MAX_DATA_TYPE : ['uint64']
+}
+
 def np_tag_type(type):
     return _DTYPE_CONV[type]
 
@@ -99,17 +108,7 @@ def validate_type(tag_type,tag_length,tag_data):
 
     assert is_valid
     tag_data = np.asarray(tag_data, dtype=final_type)
-    return tag_data
-
-def verify_type(exp_type,act_type):
-    if exp_type == MB_TYPE_OPAQUE:
-        #check is str for now
-        #length adjusted later
-        exp_type = _DTYPE_CONV[exp_type]
-        act_type = act_type.char
-    else:
-       exp_type = np.dtype(_DTYPE_CONV[exp_type])
-    assert exp_type == act_type
+    return tag_data    
     
 # Entity types
 MBVERTEX = moab.MBVERTEX
