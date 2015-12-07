@@ -57,11 +57,11 @@ def check_error(int err, tuple exceptions, **kwargs):
     raise errtype(msg)
 
 # Data Types
-MB_TYPE_OPAQUE = moab.MB_TYPE_OPAQUE
-MB_TYPE_INTEGER = moab.MB_TYPE_INTEGER
-MB_TYPE_DOUBLE = moab.MB_TYPE_DOUBLE
-MB_TYPE_BIT = moab.MB_TYPE_BIT
-MB_TYPE_HANDLE = moab.MB_TYPE_HANDLE
+MB_TYPE_OPAQUE  = moab.MB_TYPE_OPAQUE
+MB_TYPE_INTEGER  = moab.MB_TYPE_INTEGER
+MB_TYPE_DOUBLE   = moab.MB_TYPE_DOUBLE
+MB_TYPE_BIT      = moab.MB_TYPE_BIT
+MB_TYPE_HANDLE   = moab.MB_TYPE_HANDLE
 MB_MAX_DATA_TYPE = moab.MB_MAX_DATA_TYPE
 
 _DTYPE_CONV = {
@@ -108,8 +108,8 @@ def validate_type(tag_type,tag_length,tag_data):
 
     assert is_valid
     tag_data = np.asarray(tag_data, dtype=final_type)
-    return tag_data    
-    
+    return tag_data
+
 # Entity types
 MBVERTEX = moab.MBVERTEX
 MBEDGE = moab.MBEDGE
@@ -138,4 +138,3 @@ MB_TAG_STORE = moab.MB_TAG_STORE
 MB_TAG_ANY = moab.MB_TAG_ANY   
 MB_TAG_NOOPQ = moab.MB_TAG_NOOPQ 
 MB_TAG_DFTOK = moab.MB_TAG_DFTOK 
-
