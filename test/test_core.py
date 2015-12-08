@@ -82,7 +82,6 @@ def test_create_meshset():
     msh = mb.create_meshset()
     vh = vertex_handle(mb)
     mb.add_entities(msh,vh)
-    #best we can do for now
     
 def vertex_handle(core):
     """Convenience function for getting an arbitrary vertex element handle."""
