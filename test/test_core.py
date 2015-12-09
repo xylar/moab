@@ -13,17 +13,14 @@ def test_write_mesh():
 def test_integer_tag():
     mb = core.Core()
     vh = vertex_handle(mb)
-
     test_tag = mb.tag_get_handle("Test",1,types.MB_TYPE_INTEGER)
     test_val = 4
-
     test_tag_data = np.array((test_val,))
     mb.tag_set_data(test_tag, vh, test_tag_data)
     data = mb.tag_get_data(test_tag, vh)
 
     assert len(data) == 1
     assert data[0] == test_val
-    
     assert data.dtype == 'int32'
 
 def test_double_tag():
