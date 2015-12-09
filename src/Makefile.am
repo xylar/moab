@@ -16,8 +16,8 @@ endif
 
 include moab/EigenHeaders
 
-SUBDIRS += io LocalDiscretization verdict RefineMesh .
-libMOAB_la_LIBADD += io/libmoabio.la LocalDiscretization/libLocalDiscretization.la verdict/libmoabverdict.la RefineMesh/libRefineMesh.la
+SUBDIRS += io .
+libMOAB_la_LIBADD += io/libmoabio.la 
 
 # Some variables
 AM_CPPFLAGS += -DIS_BUILDING_MB \
@@ -84,12 +84,19 @@ libMOAB_la_SOURCES = \
   MeshTag.hpp \
   MeshTag.cpp \
   MeshTopoUtil.cpp \
+  RefineMesh/NestedRefine.cpp \
   OrientedBox.cpp \
   OrientedBoxTreeTool.cpp \
   lotte/poly.c \
   lotte/findpt.c \
   lotte/errmem.c \
   lotte/tensor.c \
+  LocalDiscretization/ElemEvaluator.cpp \
+  LocalDiscretization/LinearHex.cpp \
+  LocalDiscretization/LinearQuad.cpp \
+  LocalDiscretization/LinearTet.cpp \
+  LocalDiscretization/LinearTri.cpp \
+  LocalDiscretization/QuadraticHex.cpp \
   PolyElementSeq.cpp \
   PolyElementSeq.hpp \
   ProgOptions.cpp \
@@ -147,6 +154,21 @@ libMOAB_la_SOURCES = \
   VarLenTag.hpp \
   VertexSequence.hpp \
   VertexSequence.cpp \
+  verdict/V_EdgeMetric.cpp \
+  verdict/V_GaussIntegration.cpp \
+  verdict/V_HexMetric.cpp \
+  verdict/V_KnifeMetric.cpp \
+  verdict/V_PyramidMetric.cpp \
+  verdict/V_QuadMetric.cpp \
+  verdict/V_TetMetric.cpp \
+  verdict/V_TriMetric.cpp \
+  verdict/V_WedgeMetric.cpp \
+  verdict/V_GaussIntegration.hpp \
+  verdict/verdict_defines.hpp \
+  verdict/v_vector.h \
+  verdict/VerdictVector.cpp \
+  verdict/VerdictVector.hpp \
+  verdict/VerdictWrapper.cpp \
   WriteUtil.cpp \
   WriteUtil.hpp \
   moab_mpe.h
@@ -194,6 +216,8 @@ nobase_libMOAB_la_include_HEADERS = \
   moab/point_locater/element_maps/quadratic_hex_map.hpp  \
   moab/point_locater/point_locater.hpp \
   moab/point_locater/parametrizer.hpp \
+  RefineMesh/moab/NestedRefine.hpp \
+  RefineMesh/moab/Templates.hpp \
   moab/Matrix3.hpp \
   moab/MergeMesh.hpp \
   moab/MeshTopoUtil.hpp \
@@ -222,6 +246,14 @@ nobase_libMOAB_la_include_HEADERS = \
   moab/WriteUtilIface.hpp \
   moab/WriterIface.hpp \
   $(EIGEN_INST_HDRS) \
+  LocalDiscretization/moab/ElemEvaluator.hpp \
+  LocalDiscretization/moab/LinearHex.hpp \
+  LocalDiscretization/moab/LinearQuad.hpp \
+  LocalDiscretization/moab/LinearTet.hpp \
+  LocalDiscretization/moab/LinearTri.hpp \
+  LocalDiscretization/moab/QuadraticHex.hpp \
+  verdict/moab/verdict.h \
+  verdict/moab/VerdictWrapper.hpp \
   MBEntityType.h \
   MBCN.h \
   MBCN_protos.h \
