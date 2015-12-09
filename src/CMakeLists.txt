@@ -4,7 +4,6 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}
                     io io/mhdf
                     ${MOAB_BINARY_DIR}/src/parallel )
 
-add_subdirectory(verdict)
 if(MOAB_HAVE_MPI AND MPI_FOUND)
   add_subdirectory(parallel)
   set( MOAB_MPI moabpar )
@@ -89,6 +88,8 @@ set(MOAB_LIB_SOURCES
         LocalDiscretization/LinearTet.cpp
         LocalDiscretization/LinearTri.cpp
         LocalDiscretization/QuadraticHex.cpp
+        LocalDiscretization/SpectralQuad.cpp
+        LocalDiscretization/SpectralHex.cpp
         PolyElementSeq.hpp  PolyElementSeq.cpp
         ProgOptions.cpp
         Range.cpp
@@ -96,6 +97,7 @@ set(MOAB_LIB_SOURCES
         ReadUtil.hpp              ReadUtil.cpp
         ReaderWriterSet.cpp
         ReorderTool.cpp
+        RefineMesh/NestedRefine.cpp
         ScdElementData.hpp        ScdElementData.cpp
         ScdInterface.cpp
         ScdVertexData.hpp         ScdVertexData.cpp
@@ -126,6 +128,21 @@ set(MOAB_LIB_SOURCES
         VarLenTag.hpp      
         VertexSequence.hpp        VertexSequence.cpp
         WriteUtil.hpp             WriteUtil.cpp
+        verdict/v_vector.h
+        verdict/V_EdgeMetric.cpp
+        verdict/V_GaussIntegration.cpp
+        verdict/V_HexMetric.cpp
+        verdict/V_KnifeMetric.cpp
+        verdict/V_PyramidMetric.cpp
+        verdict/V_QuadMetric.cpp
+        verdict/V_TetMetric.cpp
+        verdict/V_TriMetric.cpp
+        verdict/V_WedgeMetric.cpp
+        verdict/VerdictVector.cpp
+        verdict/VerdictWrapper.cpp
+        verdict/verdict_defines.hpp
+        verdict/VerdictVector.hpp
+        verdict/V_GaussIntegration.hpp
         moab_mpe.h )
 
 set( MOAB_INSTALL_HEADERS
@@ -171,6 +188,8 @@ set( MOAB_INSTALL_HEADERS
         moab/LocalDiscretization/LinearTet.hpp
         moab/LocalDiscretization/LinearTri.hpp
         moab/LocalDiscretization/QuadraticHex.hpp
+        moab/LocalDiscretization/SpectralQuad.hpp
+        moab/LocalDiscretization/SpectralHex.hpp
         moab/Matrix3.hpp
         moab/MergeMesh.hpp
         moab/MeshTopoUtil.hpp
@@ -183,6 +202,8 @@ set( MOAB_INSTALL_HEADERS
         moab/ReaderIface.hpp
         moab/ReaderWriterSet.hpp
         moab/ReorderTool.hpp
+        moab/NestedRefine.hpp
+        moab/RefineMesh/Templates.hpp
         moab/ScdInterface.hpp
         moab/SetIterator.hpp
         moab/Skinner.hpp
@@ -197,6 +218,8 @@ set( MOAB_INSTALL_HEADERS
         moab/Util.hpp
         moab/WriteUtilIface.hpp
         moab/WriterIface.hpp
+        moab/verdict.h
+        moab/verdict/VerdictWrapper.hpp
         MBEntityType.h
         MBCN.h
         MBCN_protos.h
@@ -271,3 +294,4 @@ foreach (header ${MOAB_GENERATED_INSTALL_HEADERS})
       DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${DIR}
       )
 endforeach()
+
