@@ -145,4 +145,3 @@ def test_tag_failures():
     else:
         print "Shouldn't be here. Test fails."
         raise AssertionError
-    assert os.path.isfile("outfile.h5m")
