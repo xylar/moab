@@ -137,3 +137,4 @@ cdef class Core(object):
             check_error(err,exceptions)
         else:
             check_error(types.MB_FAILURE)
+        return data
