@@ -237,6 +237,7 @@ namespace moab {
       }
   }
 
+
   void Solvers::backsolve_polyfit_safeguarded(int dim, int degree, bool interp, int mrows, int ncols, double *R, int bncols, double *bs, const double *ws, int *degree_out)
   {
 
@@ -367,7 +368,8 @@ namespace moab {
     for(int i=0;i<len;++i){
         c[i] = a[i]*b[i];
       }
-  }
+
+    }
 
   void Solvers::vec_scalarprod(const int len, const double* a, const double c, double *b)
   {
