@@ -120,6 +120,7 @@ namespace moab{
   ErrorCode NestedRefine::generate_mesh_hierarchy(int num_level, int *level_degrees, std::vector<EntityHandle> &level_sets)
   { 
     assert(num_level > 0);
+    nlevels = num_level;
 
     ErrorCode error;
     moab::EntityHandle *hmsets = new moab::EntityHandle[num_level];

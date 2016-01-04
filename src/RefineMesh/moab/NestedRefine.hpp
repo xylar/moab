@@ -137,6 +137,7 @@ namespace moab
 
       ErrorCode update_special_tags(int level, EntityHandle &lset);
 
+
       struct codeperf{
         double tm_total;
         double tm_refine;
@@ -155,8 +156,7 @@ namespace moab
     Range _inverts, _inedges, _infaces, _incells;
 
     EntityType elementype;
-    int meshdim;
-    int nlevels;
+    int meshdim, nlevels;
     int level_dsequence[MAX_LEVELS];
     std::map<int,int> deg_index;
     bool hasghost;
