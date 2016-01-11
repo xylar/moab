@@ -116,7 +116,7 @@ def test_range():
         dum += 1
         if dum > 100: break
     assert vert.size() is dum
-
+    
 def test_tag_failures():
     mb = core.Core()
     coord = np.array((1,1,1),dtype='float64')
