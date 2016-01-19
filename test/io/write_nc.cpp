@@ -1685,7 +1685,7 @@ void get_mpas_read_options(std::string& opts)
 {
 #ifdef MOAB_HAVE_MPI
   // Use parallel options
-#ifdef HAVE_ZOLTAN
+#ifdef MOAB_HAVE_ZOLTAN
   opts = ";;PARALLEL=READ_PART;PARTITION_METHOD=RCBZOLTAN";
 #else
   opts = ";;PARALLEL=READ_PART;PARTITION_METHOD=TRIVIAL";
