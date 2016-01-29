@@ -16,8 +16,10 @@ using namespace moab;
 
 #ifdef MESHDIR
 static const char poly_example[] = STRINGIFY(MESHDIR) "/io/poly8-10.vtk";
+static const char polyhedra_example[] = STRINGIFY(MESHDIR) "/io/polyhedra.vtk";
 #else
 static const char poly_example[] = "poly8-10.vtk";
+static const char polyhedra_example[] = "polyhedra.vtk";
 #endif
 
 #define DECLARE_TEST(A) \
@@ -56,6 +58,7 @@ DECLARE_TEST(quad8)
 DECLARE_TEST(quad9)
 DECLARE_TEST(polygon)
 DECLARE_TEST(polygon_mix)
+DECLARE_TEST(polyhedra)
 DECLARE_TEST(tet4)
 DECLARE_TEST(tet10)
 DECLARE_TEST(hex8)
@@ -417,6 +420,25 @@ bool test_polygon_mix()
   if (MB_SUCCESS!=rval)
     return false;
 
+  return true;
+
+}
+bool test_polyhedra()
+{
+  // just read the polyhedra file
+  Core moab;
+  Interface& mb = moab;
+
+  ErrorCode rval = mb.load_file(polyhedra_example);
+  if (MB_SUCCESS!=rval)
+    return false;
+  Range polyhedras;
+  rval = mb.get_entities_by_type(0, MBPOLYHEDRON, polyhedras);
+  if (MB_SUCCESS!=rval)
+    return false;
+
+  if (10!=polyhedras.size())
+    return false;
   return true;
 
 }
