@@ -1602,13 +1602,17 @@ bool test_write_free_nodes()
     assert(MB_SUCCESS == rval);
   }
 
-  rval = moab.write_mesh(  "tmp_file.vtk");
+  rval = moab.write_file(  "tmp_file.vtk");
+  CHECK(rval);
+
+  rval = moab.write_file(  "tmp_file2.vtk", 0, "CREATE_ONE_NODE_CELLS;");
   CHECK(rval);
 
     // read data back in
   moab.delete_mesh();
-  rval = moab.load_mesh( "tmp_file.vtk" );
+  rval = moab.load_file( "tmp_file.vtk" );
   remove( "tmp_file.vtk" );
+  remove( "tmp_file2.vtk" );
   CHECK(rval);
 
   return true;
