@@ -57,7 +57,6 @@ TESTS = readutil_test \
 	$(CGM_TEST) \
 	$(CGNS_TEST) \
 	readrtt_test \
-        read_obj_test
 
 check_PROGRAMS = $(TESTS)
 

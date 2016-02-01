@@ -4,7 +4,7 @@
 #include "Internals.hpp"
 #include "moab/Core.hpp"
 #include "MBTagConventions.hpp"
-#include "ReadOBJ.hpp"
+//#include "ReadOBJ.hpp"
 #include "moab/Types.hpp"
 #include "moab/GeomTopoTool.hpp"
 
@@ -18,7 +18,7 @@ using namespace moab;
 
 #ifdef MESHDIR
 //static const char input_cube[] = STRINGIFY(MESHDIR) "/io/cube.obj";
-static const char input_cube[] = "cube.obj";
+//static const char input_cube = 'cube.obj';
 #endif
 
 Tag category_tag;
@@ -40,8 +40,11 @@ Errorcode check_vertices()
 
 int main()
 {
-  ReadOBJ *robj = new ReadOBJ(mbi, rval);
-  rval = robj->load_file(input_cube);
+  ErrorCode rval;
+  const char* filename = "cube.obj";
+  ReadOBJ *robj = new ReadOBJ(mbi);
+  rval = robj->load_file(&filename);
+//  rval = robj->load_file(&input_cube);
   CHKERR(rval);
 }
 
