@@ -144,4 +144,68 @@ void test_check_meshsets()
   CHECK_EQUAL(2, num_vols);
 }
 
+  Range::iterator it;
+  Range parents, children; 
+  int dim, num_surfs = 0, num_vols = 0;
+  for (it = ent_sets.begin(); it != ent_sets.end(); ++it)
+    {
+      rval =  mbi->tag_get_data(geom_tag, &(*it), 1, &dim);
+      
+      if (dim == 2)
+        { 
+          num_surfs++;
+          parents.clear();
+          rval =  mbi->get_parent_meshsets(*it, parents);
+          CHECK_ERR(rval);
+          CHECK_EQUAL(1, (int)parents.size());
+
+          int sense;
+          rval = myGeomTool->get_sense(*it, *parents.begin(), sense);
+          CHECK_EQUAL(1, sense);
+        }
+      else if (dim == 3)
+        { 
+          num_vols++;
+          children.clear();
+          rval =  mbi->get_child_meshsets(*it, children);
+          CHECK_ERR(rval);
+          CHECK_EQUAL(1, (int)children.size());
+        }
+    }
+  CHECK_EQUAL(2, num_surfs);
+  CHECK_EQUAL(2, num_vols);
+}
+/*
+void check_relationships()
+{
+  ErrorCode rval;
+  Core moab; 
+  Interface &  mbi->= moab;
+  read_file( moab, test );
+
+  Range ent_sets;
+  rval =  mbi->tag_get_handle(GEOM_SENSE_2, 2, MB_TYPE_HANDLE, sense_tag);
+  CHECK_ERR(rval);
+  rval =  mbi->get_entities_by_type_and_tag(0, MBENTITYSET, &sense_tag, NULL, 1, ent_sets);
+  CHECK_ERR(rval);
+
+}
+
+void check_sense_tag()
+{
+  ErrorCode rval;
+  Core moab; 
+  Interface &  mbi->= moab;
+  read_file( moab, test );
+
+  Range ent_sets;
+  rval =  mbi->tag_get_handle(GEOM_SENSE_2, 2, MB_TYPE_HANDLE, sense_tag);
+  CHECK_ERR(rval);
+  rval =  mbi->get_entities_by_type_and_tag(0, MBENTITYSET, &sense_tag, NULL, 1, ent_sets);
+  CHECK_ERR(rval);
+
+
+  CHECK_EQUAL(2, (int)ent_sets.size());
+}
+*/
 
