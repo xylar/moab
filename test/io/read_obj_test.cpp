@@ -4,7 +4,6 @@
 #include "Internals.hpp"
 #include "moab/Core.hpp"
 #include "MBTagConventions.hpp"
-//#include "ReadOBJ.hpp"
 #include "moab/Types.hpp"
 #include "moab/GeomTopoTool.hpp"
 
@@ -17,36 +16,135 @@ using namespace moab;
   return A; } } while(false)
 
 #ifdef MESHDIR
-//static const char input_cube[] = STRINGIFY(MESHDIR) "/io/cube.obj";
-//static const char input_cube = 'cube.obj';
+static const char test[] = STRINGIFY(MESHDIR) "/io/test.obj";
 #endif
 
-Tag category_tag;
+GeomTopoTool *myGeomTool;
+
 Tag geom_tag;
 Tag name_tag;
-Tag obj_name_tag;
-Tag dim_tag;
-Tag id_tag;
 
-Core core;
-Interface *mbi= &core;
 
-/*
-Errorcode check_vertices()
-{
-  mbi->get_number_entities_by_dimension(object_meshset);
-}
-*/
+void read_file( Interface& moab, const char* input_file);
+void test_check_num_entities();
+void test_check_meshsets();
+
 
 int main()
 {
-  ErrorCode rval;
-  const char* filename = "cube.obj";
-  ReadOBJ *robj = new ReadOBJ(mbi);
-  rval = robj->load_file(&filename);
-//  rval = robj->load_file(&input_cube);
-  CHKERR(rval);
+  int result = 0;
+  
+  result += RUN_TEST(test_check_num_entities);
+  result += RUN_TEST(test_check_meshsets);
+
+  return result;
 }
 
 
+void read_file( Interface& moab, const char* input_file )
+{
+  ErrorCode rval = moab.load_file( input_file );
+  CHECK_ERR(rval);
+}
+
+
+void test_check_num_entities()
+{
+  ErrorCode rval;
+  Core core;
+  Interface *mbi = &core;
+  read_file(core, test);
+ 
+  Range verts;
+  int vert_dim = 0;
+  rval =  mbi->get_entities_by_dimension(0, vert_dim, verts);
+  CHECK_ERR(rval);
+  CHECK_EQUAL(8, (int)verts.size());
+
+  Range tris;
+  int tri_dim = 2;
+  rval =  mbi->get_entities_by_dimension(0, tri_dim, tris);
+  CHECK_ERR(rval);
+  CHECK_EQUAL(5, (int)tris.size());
+
+}
+
+void test_check_meshsets()
+{
+  ErrorCode rval;
+  Core core;
+  Interface *mbi = &core;
+  read_file(core, test);
+ 
+  myGeomTool = new GeomTopoTool(mbi);
+  
+  Range ent_sets, mesh_sets;
+  rval =  mbi->tag_get_handle(GEOM_DIMENSION_TAG_NAME, 1, MB_TYPE_INTEGER, geom_tag);
+  CHECK_ERR(rval);
+  rval =  mbi->get_entities_by_type_and_tag(0, MBENTITYSET, &geom_tag, NULL, 1, ent_sets);
+
+  Range::iterator it;
+  Range parents, children; 
+  int dim, num_surfs = 0, num_vols = 0;
+  for (it = ent_sets.begin(); it != ent_sets.end(); ++it)
+    {
+      rval =  mbi->tag_get_data(geom_tag, &(*it), 1, &dim);
+      
+      if (dim == 2)
+        { 
+          num_surfs++;
+          parents.clear();
+          rval =  mbi->get_parent_meshsets(*it, parents);
+          CHECK_ERR(rval);
+          CHECK_EQUAL(1, (int)parents.size());
+
+          int sense;
+          rval = myGeomTool->get_sense(*it, *parents.begin(), sense);
+          CHECK_EQUAL(1, sense);
+        }
+      else if (dim == 3)
+        { 
+          num_vols++;
+          children.clear();
+          rval =  mbi->get_child_meshsets(*it, children);
+          CHECK_ERR(rval);
+          CHECK_EQUAL(1, (int)children.size());
+        }
+    }
+  CHECK_EQUAL(2, num_surfs);
+  CHECK_EQUAL(2, num_vols);
+}
+/*
+void check_relationships()
+{
+  ErrorCode rval;
+  Core moab; 
+  Interface &  mbi->= moab;
+  read_file( moab, test );
+
+  Range ent_sets;
+  rval =  mbi->tag_get_handle(GEOM_SENSE_2, 2, MB_TYPE_HANDLE, sense_tag);
+  CHECK_ERR(rval);
+  rval =  mbi->get_entities_by_type_and_tag(0, MBENTITYSET, &sense_tag, NULL, 1, ent_sets);
+  CHECK_ERR(rval);
+
+}
+
+void check_sense_tag()
+{
+  ErrorCode rval;
+  Core moab; 
+  Interface &  mbi->= moab;
+  read_file( moab, test );
+
+  Range ent_sets;
+  rval =  mbi->tag_get_handle(GEOM_SENSE_2, 2, MB_TYPE_HANDLE, sense_tag);
+  CHECK_ERR(rval);
+  rval =  mbi->get_entities_by_type_and_tag(0, MBENTITYSET, &sense_tag, NULL, 1, ent_sets);
+  CHECK_ERR(rval);
+
+
+  CHECK_EQUAL(2, (int)ent_sets.size());
+}
+*/
 
