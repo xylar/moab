@@ -45,34 +45,10 @@
 /* floating point type to use for everything */
 #if   defined(USE_FLOAT)
 typedef float realType;
-#  define floorr floorf
-#  define ceilr  ceilf
-#  define sqrtr  sqrtf
-#  define fabsr  fabsf
-#  define cosr   cosf
-#  define sinr   sinf
-#  define EPS   (128*FLT_EPSILON)
-#  define PI 3.1415926535897932384626433832795028841971693993751058209749445923F
 #elif defined(USE_LONG_DOUBLE)
 typedef long double realType;
-#  define floorr floorl
-#  define ceilr  ceill
-#  define sqrtr  sqrtl
-#  define fabsr  fabsl
-#  define cosr   cosl
-#  define sinr   sinl
-#  define EPS   (128*LDBL_EPSILON)
-#  define PI 3.1415926535897932384626433832795028841971693993751058209749445923L
 #else
 typedef double realType;
-#  define floorr floor
-#  define ceilr  ceil
-#  define sqrtr  sqrt
-#  define fabsr  fabs
-#  define cosr   cos
-#  define sinr   sin
-#  define EPS   (128*DBL_EPSILON)
-#  define PI 3.1415926535897932384626433832795028841971693993751058209749445923
 #endif
 
 /* apparently uint and ulong can be defined already in standard headers */
