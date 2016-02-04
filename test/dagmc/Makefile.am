@@ -1,4 +1,4 @@
-LDADD = $(top_builddir)/src/libMOAB.la $(top_builddir)/tools/dagmc/DagMC.lo
+LDADD = $(top_builddir)/src/libMOAB.la $(top_builddir)/tools/dagmc/DagMC.lo $(top_builddir)/tools/dagmc/libdagmc.la
 
 MESHDIR = $(abs_top_srcdir)/MeshFiles/unittest
 
@@ -24,5 +24,7 @@ dagmc_rayfire_test_SOURCES = $(srcdir)/../TestUtil.hpp dagmc_rayfire_test.cpp
 dagmc_rayfire_test_CXXFLAGS = $(CGM_CPPFLAGS) $(CXXFLAGS) $(CGM_LIBS)
 dagmc_pointinvol_test_SOURCES = $(srcdir)/../TestUtil.hpp dagmc_pointinvol_test.cpp
 dagmc_pointinvol_test_CXXFLAGS = $(CGM_CPPFLAGS) $(CXXFLAGS) $(CGM_LIBS)
+genhi_cube_test_SOURCES = $(srcdir)/../TestUtil.hpp genhi_test.cpp
+genhi_cube_test_CXXFLAGS = $(CGM_CPPFLAGS) $(CXXFLAGS) $(CGM_LIBS)
 
 
