@@ -54,13 +54,15 @@ void test_check_num_entities()
   Core core;
   Interface *mbi = &core;
   read_file(core, test);
- 
+
+  // check that number of verts created is 8 
   Range verts;
   int vert_dim = 0;
   rval =  mbi->get_entities_by_dimension(0, vert_dim, verts);
   CHECK_ERR(rval);
   CHECK_EQUAL(8, (int)verts.size());
 
+  // check that number of tris created is 5
   Range tris;
   int tri_dim = 2;
   rval =  mbi->get_entities_by_dimension(0, tri_dim, tris);
@@ -93,11 +95,14 @@ void test_check_meshsets()
       if (dim == 2)
         { 
           num_surfs++;
+          
+          // check that one parent is created for each surface
           parents.clear();
           rval =  mbi->get_parent_meshsets(*it, parents);
           CHECK_ERR(rval);
           CHECK_EQUAL(1, (int)parents.size());
 
+          // check that sense of surface wrt parent is FORWARD = 1
           int sense;
           rval = myGeomTool->get_sense(*it, *parents.begin(), sense);
           CHECK_EQUAL(1, sense);
@@ -105,15 +110,20 @@ void test_check_meshsets()
       else if (dim == 3)
         { 
           num_vols++;
+     
+          // check that one child is created for each volume
           children.clear();
           rval =  mbi->get_child_meshsets(*it, children);
           CHECK_ERR(rval);
           CHECK_EQUAL(1, (int)children.size());
         }
     }
+  
+  // check that two surfaces and two volumes are created 
   CHECK_EQUAL(2, num_surfs);
   CHECK_EQUAL(2, num_vols);
 }
+
 /*
 void check_relationships()
 {
