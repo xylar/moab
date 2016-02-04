@@ -154,11 +154,14 @@ void test_check_meshsets()
       if (dim == 2)
         { 
           num_surfs++;
+          
+          // check that one parent is created for each surface
           parents.clear();
           rval =  mbi->get_parent_meshsets(*it, parents);
           CHECK_ERR(rval);
           CHECK_EQUAL(1, (int)parents.size());
 
+          // check that sense of surface wrt parent is FORWARD = 1
           int sense;
           rval = myGeomTool->get_sense(*it, *parents.begin(), sense);
           CHECK_EQUAL(1, sense);
@@ -166,15 +169,20 @@ void test_check_meshsets()
       else if (dim == 3)
         { 
           num_vols++;
+     
+          // check that one child is created for each volume
           children.clear();
           rval =  mbi->get_child_meshsets(*it, children);
           CHECK_ERR(rval);
           CHECK_EQUAL(1, (int)children.size());
         }
     }
+  
+  // check that two surfaces and two volumes are created 
   CHECK_EQUAL(2, num_surfs);
   CHECK_EQUAL(2, num_vols);
 }
+
 /*
 void check_relationships()
 {
