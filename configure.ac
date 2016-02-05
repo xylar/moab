@@ -591,81 +591,8 @@ AC_ARG_WITH( [zoltan],
                  ;;
                esac],[WITH_ZOLTAN=$ZOLTAN_DEFAULT] )
 
-# If user specified with-parmetis, then assume they are trying
-# to add an additional library search directory in which to check
-# for the parmetis library.  We always check if zoltan requires
-# parmetis, so the only thing the user would really need to tell
-# us is if we need to look in some special place for it. 
-AC_ARG_WITH([parmetis], 
-            [AS_HELP_STRING([--with-parmetis=DIR],[Directory containing ParMetis library for Zoltan])],
-             [case "x$withval" in
-               xyes|xno)
-                 # do nothing
-                 ;;
-               x*)
-                 PARMETIS_DIR="$withval"
-                 test -d "$withval" || AC_MSG_ERROR([Not a directory: with-parmetis=$withval])
-                 if test -d "$withval/lib"; then
-                   PARMETIS_LIB_FLAGS="-L$withval/lib"
-                 else
-                   PARMETIS_LIB_FLAGS="-L$withval"
-                 fi
-                 PARMETIS_LIBS="$PARMETIS_LIB_FLAGS -lparmetis"
-                 if test -d "$withval/include"; then
-                   PARMETIS_INC_FLAGS="-I$withval/include"
-                 else
-                   PARMETIS_INC_FLAGS="-I$withval"
-                 fi
-                 ZOLTAN_INC_FLAGS="$ZOLTAN_INC_FLAGS $PARMETIS_INC_FLAGS"
-                 if (test -f "$withval/include/parmetis.h" || test -f "$withval/parmetis.h"); then
-                   AC_DEFINE(HAVE_PARMETIS, [1], [Define if configured with ParMetis partitioner support])
-                 fi
-                 DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --with-parmetis=\"${withval}\""
-		 ;;
-               esac] )
-AM_CONDITIONAL(ENABLE_parmetis, [test "x" != "x$PARMETIS_DIR"])
-AC_SUBST(PARMETIS_LIBS)
-AC_SUBST(PARMETIS_INC_FLAGS)
-
-# If user specified with-metis, then assume they are trying
-# to add an additional library search directory in which to check
-# for the metis library.  We always check if zoltan requires
-# metis, so the only thing the user would really need to tell
-# us is if we need to look in some special place for it. 
-AC_ARG_WITH([metis], 
-            [AS_HELP_STRING([--with-metis=DIR],[Directory containing Metis library for ParMetis/Zoltan])],
-             [case "x$withval" in
-               xyes|xno)
-                 # do nothing
-                 ;;
-               x*)
-                 METIS_DIR="$withval"
-                 test -d "$withval" || AC_MSG_ERROR([Not a directory: with-metis=$withval])
-                 if test -d "$withval/lib"; then
-                   METIS_LIB_FLAGS="-L$withval/lib"
-                 else
-                   METIS_LIB_FLAGS="-L$withval"
-                 fi
-                 METIS_LIBS="$METIS_LIB_FLAGS -lmetis"
-                 ZOLTAN_LIB_FLAGS="$ZOLTAN_LIB_FLAGS $METIS_LIB_FLAGS"
-                 if test -d "$withval/include"; then
-                   METIS_INC_FLAGS="-I$withval/include"
-                  if (test -f "$withval/include/metis.h"); then
-                    AC_DEFINE(HAVE_METIS, [1], [Define if configured with Metis partitioner support])
-                  fi
-                 else
-                   METIS_INC_FLAGS="-I$withval"
-                   # if (test -f "$withval/metis.h"); then # METIS-3.x might not install a header though
-                   #  AC_DEFINE(HAVE_METIS, [1], [Define if configured with Metis partitioner support])
-                   # fi
-                 fi
-                 ZOLTAN_INC_FLAGS="$ZOLTAN_INC_FLAGS $METIS_INC_FLAGS"
-                 DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --with-metis=\"${withval}\""
-     ;;
-               esac] )
-AM_CONDITIONAL(ENABLE_metis, [test "x" != "x$METIS_DIR"])
-AC_SUBST(METIS_LIBS)
-AC_SUBST(METIS_INC_FLAGS)
+FATHOM_CONFIGURE_PARMETIS
+FATHOM_CONFIGURE_METIS
 
 # If user specified with-scotch, then assume they are trying
 # to add an additional library search directory in which to check

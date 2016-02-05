@@ -642,9 +642,9 @@ if [ $1 ]; then
       configure_command="$configure_command --enable-parallel"
     fi
     
-    hdf5_configlog=`echo "Using configure command :==> cd $hdf5_build_dir ; $configure_command > $hdf5_src_dir/../config_hdf5.log ; cd \"\$OLDPWD\"" > "$hdf5_src_dir/../config_hdf5.log"`
+    hdf5_configlog=`echo "Using configure command :==> cd $hdf5_build_dir && $configure_command > $hdf5_src_dir/../config_hdf5.log > $hdf5_src_dir/../config_hdf5.log"`
     PREFIX_PRINT(Configuring with default options  {debug=$enable_debug production=$enable_cxx_optimize shared=$enable_shared parallel=$enablempi} )
-    hdf5_configlog="`cd $hdf5_build_dir ; $configure_command >> $hdf5_src_dir/../config_hdf5.log 2>&1 ; cd \"\$OLDPWD\"`"
+    hdf5_configlog="`cd $hdf5_build_dir && $configure_command >> $hdf5_src_dir/../config_hdf5.log 2>&1 && cd \"\$OLDPWD\"`"
   fi
 
   # check if configuration - current or previous was successful
@@ -667,7 +667,7 @@ AC_DEFUN([AUSCM_AUTOMATED_BUILD_HDF5],
   if [ $1 ]; then
     if [ $recompile_and_install || $need_build ]; then
       PREFIX_PRINT(Building the sources in parallel )
-      hdf5_makelog="`cd $hdf5_build_dir ; make all -j4 > $hdf5_src_dir/../make_hdf5.log 2>&1 ; cd \"\$OLDPWD\"`"
+      hdf5_makelog="`make --no-print-directory -C $hdf5_build_dir all -j4 > $hdf5_src_dir/../make_hdf5.log 2>&1`"
     fi
   fi
   # check if it worked
@@ -690,10 +690,10 @@ AC_DEFUN([AUSCM_AUTOMATED_INSTALL_HDF5],
   if [ $1 ]; then
     if [ $recompile_and_install ]; then
       if [ $hdf5_installed ]; then
-        hdf5_installlog="`cd $hdf5_build_dir ; make uninstall > $hdf5_src_dir/../uninstall_hdf5.log 2>&1 ; cd \"\$OLDPWD\"`"
+        hdf5_installlog="`make --no-print-directory -C $hdf5_build_dir uninstall > $hdf5_src_dir/../uninstall_hdf5.log 2>&1`"
       fi
       PREFIX_PRINT(Installing the headers and libraries in to directory ($hdf5_install_dir) )
-      hdf5_installlog="`cd $hdf5_build_dir ; make install > $hdf5_src_dir/../install_hdf5.log 2>&1 ; cd \"\$OLDPWD\"`"
+      hdf5_installlog="`make --no-print-directory -C $hdf5_build_dir install > $hdf5_src_dir/../install_hdf5.log 2>&1`"
     fi
   fi
   # check if it worked
@@ -812,10 +812,9 @@ if [ $1 ]; then
     if (test "$enablehdf5" != "no"); then
       configure_command="$compiler_opts LDFLAGS=\"$HDF5_LDFLAGS\" CPPFLAGS=\"$HDF5_CPPFLAGS\" LIBS=\"$HDF5_LIBS -ldl -lm -lz\" $configure_command"
     fi
-    #echo "Trying to use configure command:==> cd $netcdf_build_dir ; $configure_command > $netcdf_src_dir/../config_netcdf.log ; cd \"\$OLDPWD\""
-    eval "echo 'Using configure command :==> cd $netcdf_build_dir ; $configure_command > $netcdf_src_dir/../config_netcdf.log ; cd \"\$OLDPWD\"' > $netcdf_src_dir/../config_netcdf.log"
+    eval "echo 'Using configure command :==> cd $netcdf_build_dir && $configure_command > $netcdf_src_dir/../config_netcdf.log' > $netcdf_src_dir/../config_netcdf.log"
     PREFIX_PRINT([Configuring with default options  (debug=$enable_debug with-HDF5=$enablehdf5 shared=$enable_shared) ])
-    eval "cd $netcdf_build_dir; $configure_command >> $netcdf_src_dir/../config_netcdf.log 2>&1 ; cd \"\$OLDPWD\""
+    eval "cd $netcdf_build_dir && $configure_command >> $netcdf_src_dir/../config_netcdf.log 2>&1 && cd \"\$OLDPWD\""
   fi
 
   if (test ! -f "$netcdf_build_dir/nc-config" ); then
@@ -836,7 +835,7 @@ AC_DEFUN([AUSCM_AUTOMATED_BUILD_NETCDF],
   if [ $1 ]; then
     if [ $recompile_and_install || $need_build ]; then
       PREFIX_PRINT(Building the sources in parallel)
-      netcdf_makelog="`cd $netcdf_build_dir; make all -j4 > $netcdf_src_dir/../make_netcdf.log 2>&1 ; cd \"\$OLDPWD\"`"
+      netcdf_makelog="`make --no-print-directory -C $netcdf_build_dir all -j4 > $netcdf_src_dir/../make_netcdf.log 2>&1`"
     fi
   fi
 
@@ -859,10 +858,10 @@ AC_DEFUN([AUSCM_AUTOMATED_INSTALL_NETCDF],
   if [ $1 ]; then
     if [ $recompile_and_install ]; then
       if [ $netcdf_installed ]; then
-        netcdf_installlog="`cd $netcdf_build_dir ; make uninstall > $netcdf_src_dir/../uninstall_netcdf.log 2>&1 ; cd \"\$OLDPWD\"`"
+        netcdf_installlog="`make --no-print-directory -C $netcdf_build_dir uninstall > $netcdf_src_dir/../uninstall_netcdf.log 2>&1`"
       fi
       PREFIX_PRINT(Installing the headers and libraries in to directory {$netcdf_install_dir} )
-      netcdf_installlog="`cd $netcdf_build_dir; make install > $netcdf_src_dir/../install_netcdf.log 2>&1 ; cd \"\$OLDPWD\"`"
+      netcdf_installlog="`make --no-print-directory -C $netcdf_build_dir install > $netcdf_src_dir/../install_netcdf.log 2>&1`"
     fi
   fi
 
@@ -872,3 +871,529 @@ AC_DEFUN([AUSCM_AUTOMATED_INSTALL_NETCDF],
     AC_MSG_ERROR([NetCDF installation was unsuccessful. Please refer to $netcdf_src_dir/../install_netcdf.log for further details.])
   fi
 ])
+
+
+
+##########################################
+###    Metis AUTOMATED CONFIGURATION
+##########################################
+
+dnl
+dnl Arguments:
+dnl   1) Default Version Number,
+dnl   2) Download by default ?
+dnl
+AC_DEFUN([AUSCM_CONFIGURE_DOWNLOAD_METIS],[
+
+  # Check whether user wants to autodownload Metis
+  # Call package Download/Configure/Installation procedures for Metis, if requested by user
+  PPREFIX=Metis
+
+  # Set the default Metis download version
+  m4_pushdef([METIS_DOWNLOAD_VERSION],[$1])dnl
+
+  metis_manual_install=no
+  if (test "METIS_DOWNLOAD_VERSION" == "4.0.3"); then
+    metis_manual_install=yes
+    parmetis_manual_install=yes
+    m4_pushdef([PARMETIS_DOWNLOAD_VERSION],[3.2.0])dnl
+  else
+    m4_pushdef([PARMETIS_DOWNLOAD_VERSION],[4.0.3])dnl
+    parmetis_manual_install=no
+  fi
+
+  # Invoke the download-metis command
+  m4_case( METIS_DOWNLOAD_VERSION, [4.0.3], [ AUSCM_CONFIGURE_EXTERNAL_PACKAGE([METIS], [http://glaros.dtc.umn.edu/gkhome/fetch/sw/metis/OLD/metis-4.0.3.tar.gz], [$2] ) ],
+                                   [5.1.0], [ AUSCM_CONFIGURE_EXTERNAL_PACKAGE([METIS], [http://glaros.dtc.umn.edu/gkhome/fetch/sw/metis/metis-5.1.0.tar.gz], [$2] ) ],
+                                  [ AUSCM_CONFIGURE_EXTERNAL_PACKAGE([METIS], [http://glaros.dtc.umn.edu/gkhome/fetch/sw/metis/metis-5.1.0.tar.gz], [$2] ) ] )
+
+  if (test "x$downloadmetis" == "xyes") ; then
+    # download the latest METIS sources, configure and install
+    METIS_SRCDIR="$metis_src_dir"
+    AC_SUBST(METIS_SRCDIR)
+    # The default METIS installation is under libraries
+    METIS_DIR="$metis_install_dir"
+    enablemetis=yes
+  fi  # if (test "$downloadmetis" != no)
+
+])
+
+
+dnl ---------------------------------------------------------------------------
+dnl AUTOMATED SETUP PREPROCESS METIS
+dnl   Figure out what needs to be done to get a valid METIS installation.
+dnl   Arguments: [PACKAGE, SRC_DIR, INSTALL_DIR, NEED_CONFIGURATION)
+dnl ---------------------------------------------------------------------------
+AC_DEFUN([AUSCM_AUTOMATED_SETUP_PREPROCESS_METIS],[
+  # uncompress and configure PACKAGE
+  metis_src_dir="$2"
+  metis_build_dir="$2"
+  metis_install_dir="$3"
+  metis_archive_name="$4"
+  PPREFIX=METIS
+
+  if (test ! -d "$metis_src_dir" ); then
+  	AC_MSG_ERROR([Invalid source configuration for Metis. Source directory $metis_src_dir is invalid])
+  fi
+
+  # determine what steps we need to take to install metis
+  metis_configured=false
+  metis_made=false
+  metis_installed=false
+  if (test ! -d "$metis_build_dir" ); then
+    AS_MKDIR_P( $metis_build_dir )
+  else
+    metis_configured=true
+    metis_cputype=`uname -m | sed "s/\\ /_/g"`
+    metis_systype=`uname -s`
+    metis_subbuilddir=$metis_build_dir/build/$metis_systype-$metis_cputype
+    if (test -f "$metis_build_dir/libmetis.a" || test -f "$metis_subbuilddir/libmetis/libmetis.a" || test -f "$metis_subbuilddir/libmetis/libmetis.so" || test -f "$metis_subbuilddir/libmetis/libmetis.dylib"); then
+      metis_made=true
+      if (test -f "$metis_install_dir/include/metis.h"); then
+        metis_installed=true
+      fi
+    fi
+  fi
+  # send the information back
+  AS_IF([ ! $metis_configured || $need_configuration ], [need_configuration=true], [need_configuration=false])
+  AS_IF([ ! $metis_made || $need_configuration ], [need_build=true], [need_build=false])
+  AS_IF([ ! $metis_installed || $need_configuration ], [need_installation=true], [need_installation=false])
+])
+
+
+dnl ---------------------------------------------------------------------------
+dnl AUTOMATED SETUP POSTPROCESS METIS
+dnl   Dummy macro to fit standard call pattern.  Tells SHARP we have METIS.
+dnl   Arguments: [PACKAGE, SRC_DIR, INSTALL_DIR, NEED_CONFIGURATION)
+dnl ---------------------------------------------------------------------------
+AC_DEFUN([AUSCM_AUTOMATED_SETUP_POSTPROCESS_METIS],[
+  # we have already checked configure/build/install logs for errors before getting here..
+  enablemetis=yes
+])
+
+dnl ---------------------------------------------------------------------------
+dnl AUTOMATED CONFIGURE METIS
+dnl   Calls configure with necessary options.
+dnl   Arguments: [SOURCE_DIRECTORY, INSTALL_DIRECTORY)
+dnl ---------------------------------------------------------------------------
+AC_DEFUN([AUSCM_AUTOMATED_CONFIGURE_METIS],
+[
+if [ $1 ]; then
+  # configure METIS
+  if [ $need_configuration ]; then
+    if (test "$metis_manual_install" != "yes"); then
+      # configure PACKAGE with a minimal build: MPI
+      export CFLAGS="$CFLAGS -fPIC -DPIC" CXXFLAGS="$CXXFLAGS -fPIC -DPIC" FCFLAGS="$FCFLAGS -fPIC" FFLAGS="$FFLAGS -fPIC" LDFLAGS="$LDFLAGS"
+      echo "export CC=$CC CXX=$CXX FC=$FC F77=$F77 CFLAGS="$CFLAGS -fPIC -DPIC" CXXFLAGS="$CXXFLAGS -fPIC -DPIC" FCFLAGS="$FCFLAGS -fPIC" FFLAGS="$FFLAGS -fPIC" LDFLAGS=$LDFLAGS" > $metis_src_dir/../config_metis.log
+      configure_command="make config cc=\"$CC\" prefix=$metis_install_dir gklib_path=$metis_build_dir/GKlib"
+      if (test "$enabledebug" != "no"); then
+        configure_command="$configure_command debug=1"
+      fi
+      if (test "$enable_shared" != "no"); then
+        configure_command="$configure_command shared=1"
+      fi
+      eval "echo 'Using configure command :==> cd $metis_build_dir && $configure_command > $metis_src_dir/../config_metis.log' >> $metis_src_dir/../config_metis.log"
+      PREFIX_PRINT(Configuring with default options  {debug=$enabledebug} )
+      eval "cd $metis_build_dir && $configure_command >> $metis_src_dir/../config_metis.log 2>&1 && cd \"\$OLDPWD\""
+    fi
+  fi
+  
+  if (test "$metis_manual_install" != "no"); then
+    touch $metis_src_dir/../config_metis.log
+  fi
+
+  # check if configuration - current or previous was successful
+  if (test "$parmetis_manual_install" != "yes"); then
+    metis_cputype=`uname -m | sed "s/\\ /_/g"`
+    metis_systype=`uname -s`
+    metis_subbuilddir=$metis_build_dir/build/$metis_systype-$metis_cputype
+    if(test ! -f "$metis_subbuilddir/cmake_install.cmake" ); then # only generated when CMake succeeds
+  	  AC_MSG_ERROR([Metis configuration was unsuccessful. Please refer to $metis_src_dir/../config_metis.log for further details.])
+	  fi
+  fi
+
+  metis_configured=true
+fi
+])
+
+
+dnl ---------------------------------------------------------------------------
+dnl AUTOMATED BUILD METIS
+dnl   Builds METIS and sets prefix to the install directory
+dnl   Arguments: [SOURCE_DIRECTORY, INSTALL_DIRECTORY)
+dnl ---------------------------------------------------------------------------
+AC_DEFUN([AUSCM_AUTOMATED_BUILD_METIS],
+[
+  # if we need to build then call make all
+  if [ $1 ]; then
+    if [ $recompile_and_install || $need_build ]; then
+      PREFIX_PRINT(Building the sources in parallel )
+      if (test "$metis_manual_install" != "no"); then
+        eval "make --no-print-directory -C $metis_build_dir CC=\"$CC\" OPTFLAGS=\"$CFLAGS -fPIC -DPIC\" -j4 > $metis_src_dir/../make_metis.log 2>&1"
+      else
+        eval "make --no-print-directory -C $metis_build_dir all -j4 > $metis_src_dir/../make_metis.log 2>&1"
+      fi
+    fi
+  fi
+
+  # check if it worked
+  if (test "$metis_manual_install" != "no"); then
+    if (test -f "$metis_build_dir/libmetis.a" || test -f "$metis_build_dir/libmetis.so" || test -f "$metis_build_dir/libmetis.dylib") ; then
+      metis_made=true
+    else
+      AC_MSG_ERROR([Metis build was unsuccessful. Please refer to $metis_src_dir/../make_metis.log for further details.])
+    fi
+  else
+    metis_cputype=`uname -m | sed "s/\\ /_/g"`
+    metis_systype=`uname -s`
+    metis_subbuilddir=$metis_build_dir/build/$metis_systype-$metis_cputype
+    if (test -f "$metis_subbuilddir/libmetis/libmetis.a" || test -f "$metis_subbuilddir/libmetis/libmetis.so" || test -f "$metis_subbuilddir/libmetis/libmetis.dylib") ; then
+      metis_made=true
+    else
+      AC_MSG_ERROR([Metis build was unsuccessful. Please refer to $metis_src_dir/../make_metis.log for further details.])
+    fi
+  fi
+])
+
+
+dnl ---------------------------------------------------------------------------
+dnl AUTOMATED INSTALL METIS
+dnl   Installs METIS into the install directory and ensures the library exists.
+dnl   Arguments: [SOURCE_DIRECTORY, INSTALL_DIRECTORY)
+dnl ---------------------------------------------------------------------------
+AC_DEFUN([AUSCM_AUTOMATED_INSTALL_METIS],
+[
+  # if we need to install then call make install
+  if [ $1 ]; then
+    if [ $recompile_and_install ]; then
+      if [ $metis_installed ]; then
+        if (test "$metis_manual_install" != "no"); then
+          AUSCM_UNLINK_METIS_403($metis_install_dir, $metis_src_dir/../uninstall_metis.log)
+        else
+          eval "make --no-print-directory -C $metis_build_dir uninstall > $metis_src_dir/../uninstall_metis.log 2>&1"
+        fi
+      fi
+      PREFIX_PRINT(Installing the headers and libraries in to directory )
+      if (test "$metis_manual_install" != "no"); then
+        AUSCM_LINK_METIS_403($metis_build_dir, $metis_install_dir, $metis_src_dir/../install_metis.log)
+      else
+        eval "make --no-print-directory -C $metis_build_dir install > $metis_src_dir/../install_metis.log 2>&1"
+      fi
+    fi
+  fi
+  # check if it worked
+  if (test -f "$metis_install_dir/include/metis.h" && test -f "$metis_install_dir/lib/libmetis.a"); then
+    metis_installed=true
+  else
+	  AC_MSG_ERROR([Metis installation was unsuccessful. Please refer to $metis_src_dir/../install_metis.log for further details.])
+  fi
+])
+
+dnl ---------------------------------------------------------------------------
+dnl LINK METIS 4.0.3
+dnl   A quick way to link the METIS 4.0.3 installation into a more
+dnl     traditional layout for easier management.
+dnl   Arguments: [metis_src_dir, metis_install_dir, log_file]
+dnl ---------------------------------------------------------------------------
+AC_DEFUN([AUSCM_LINK_METIS_403],
+[
+  ECHO_EVAL($3, "mkdir -p $2/bin $2/lib $2/include")
+  ECHO_EVAL($3, "cp $1/libmetis.a $2/lib")
+  ECHO_EVAL($3, "cp $1/Lib/defs.h $2/include")
+  ECHO_EVAL($3, "cp $1/Lib/macros.h $2/include")
+  ECHO_EVAL($3, "cp $1/Lib/metis.h $2/include")
+  ECHO_EVAL($3, "cp $1/Lib/proto.h $2/include")
+  ECHO_EVAL($3, "cp $1/Lib/rename.h $2/include")
+  ECHO_EVAL($3, "cp $1/Lib/struct.h $2/include")
+  ECHO_EVAL($3, "cp $1/kmetis $2/bin")
+  ECHO_EVAL($3, "cp $1/oemetis $2/bin")
+  ECHO_EVAL($3, "cp $1/onmetis $2/bin")
+  ECHO_EVAL($3, "cp $1/pmetis $2/bin")
+  ECHO_EVAL($3, "cp $1/mesh2dual $2/bin")
+  ECHO_EVAL($3, "cp $1/mesh2nodal $2/bin")
+  ECHO_EVAL($3, "cp $1/partdmesh $2/bin")
+  ECHO_EVAL($3, "cp $1/partnmesh $2/bin")
+  ECHO_EVAL($3, "cp $1/graphchk $2/bin")
+])
+
+
+dnl ---------------------------------------------------------------------------
+dnl LINK METIS 4.0.3
+dnl   A quick way to unlink or uninstall the METIS 4.0.3 installation
+dnl   Arguments: [metis_install_dir, log_file]
+dnl ---------------------------------------------------------------------------
+AC_DEFUN([AUSCM_UNLINK_METIS_403],
+[
+  ECHO_EVAL($2, "rm -f $1/lib/libmetis.a $1/include/defs.h $1/include/macros.h $1/include/metis.h $1/include/proto.h $1/include/rename.h $1/include/struct.h")
+  ECHO_EVAL($2, "rm -f $1/bin/kmetis $1/bin/oemetis $1/bin/onmetis $1/bin/pmetis $1/bin/mesh2dual $1/bin/mesh2nodal $1/bin/partdmesh $1/bin/partnmesh $1/bin/graphchk")
+])
+
+
+
+##########################################
+###   ParMetis AUTOMATED CONFIGURATION
+##########################################
+
+dnl
+dnl Arguments:
+dnl   1) Default Version Number,
+dnl   2) Download by default ?
+dnl
+AC_DEFUN([AUSCM_CONFIGURE_DOWNLOAD_PARMETIS],[
+
+  # Check whether user wants to autodownload Metis
+  # Call package Download/Configure/Installation procedures for Metis, if requested by user
+  PPREFIX=ParMetis
+
+  # Set the default Metis download version
+  m4_pushdef([PARMETIS_DOWNLOAD_VERSION],[$1])dnl
+
+  if (test "PARMETIS_DOWNLOAD_VERSION" == ""); then
+    m4_pushdef([PARMETIS_DOWNLOAD_VERSION],[4.0.3])dnl
+    parmetis_manual_install=no
+  elif (test "PARMETIS_DOWNLOAD_VERSION" == "3.2.0"); then
+    parmetis_manual_install=yes
+  else
+    parmetis_manual_install=no
+  fi
+
+  # Invoke the download-parmetis command
+  m4_case( PARMETIS_DOWNLOAD_VERSION, [4.0.3], [ AUSCM_CONFIGURE_EXTERNAL_PACKAGE([PARMETIS], [http://glaros.dtc.umn.edu/gkhome/fetch/sw/parmetis/parmetis-4.0.3.tar.gz], [$2] ) ],
+                                      [3.2.0], [ AUSCM_CONFIGURE_EXTERNAL_PACKAGE([PARMETIS], [http://glaros.dtc.umn.edu/gkhome/fetch/sw/parmetis/OLD/ParMetis-3.2.0.tar.gz], [$2] ) ],
+                                      [ AUSCM_CONFIGURE_EXTERNAL_PACKAGE([PARMETIS], [http://glaros.dtc.umn.edu/gkhome/fetch/sw/parmetis/parmetis-4.0.3.tar.gz], [$2] ) ] )
+
+
+  if (test "x$downloadparmetis" == "xyes") ; then
+    # download the latest PARMETIS sources, configure and install
+    PARMETIS_SRCDIR="$parmetis_src_dir"
+    AC_SUBST(PARMETIS_SRCDIR)
+    # The default PARMETIS installation is under libraries
+    PARMETIS_DIR="$parmetis_install_dir"
+    enableparmetis=yes
+    METIS_DIR="$metis_install_dir"
+    enablemetis=yes
+  fi  # if (test "$downloadmetis" != no)
+])
+
+
+dnl ---------------------------------------------------------------------------
+dnl AUTOMATED SETUP PREPROCESS PARMETIS
+dnl   Figure out what needs to be done to get a valid PARMETIS installation.
+dnl   Arguments: [PACKAGE, SRC_DIR, INSTALL_DIR, NEED_CONFIGURATION)
+dnl ---------------------------------------------------------------------------
+AC_DEFUN([AUSCM_AUTOMATED_SETUP_PREPROCESS_PARMETIS],[
+  # uncompress and configure PACKAGE
+  parmetis_src_dir="$2"
+  parmetis_build_dir="$2"
+  parmetis_install_dir="$3"
+  parmetis_archive_name="$4"
+  PPREFIX=PARMETIS
+
+  if (test ! -d "$parmetis_src_dir" ); then
+  	AC_MSG_ERROR([Invalid source configuration for ParMetis. Source directory $parmetis_src_dir is invalid])
+  fi
+
+  # determine what steps we need to take to install parmetis
+  parmetis_configured=false
+  parmetis_made=false
+  parmetis_installed=false
+  if (test ! -d "$parmetis_build_dir" ); then
+    AS_MKDIR_P( $parmetis_build_dir )
+  else
+    parmetis_configured=true
+    parmetis_cputype=`uname -m | sed "s/\\ /_/g"`
+    parmetis_systype=`uname -s`
+    parmetis_subbuilddir=$parmetis_build_dir/build/$parmetis_systype-$parmetis_cputype
+    if (test -f "$parmetis_build_dir/libparmetis.a" || test -f "$parmetis_subbuilddir/libparmetis/libparmetis.a" || test -f "$parmetis_subbuilddir/libparmetis/libparmetis.so" || test -f "$parmetis_subbuilddir/libparmetis/libparmetis.dylib"); then
+      parmetis_made=true
+      if (test -f "$parmetis_install_dir/include/parmetis.h"); then
+        parmetis_installed=true
+      fi
+    fi
+  fi
+  # send the information back
+  AS_IF([ ! $parmetis_configured || $need_configuration ], [need_configuration=true], [need_configuration=false])
+  AS_IF([ ! $parmetis_made || $need_configuration ], [need_build=true], [need_build=false])
+  AS_IF([ ! $parmetis_installed || $need_configuration ], [need_installation=true], [need_installation=false])
+])
+
+
+dnl ---------------------------------------------------------------------------
+dnl AUTOMATED SETUP POSTPROCESS PARMETIS
+dnl   Dummy macro to fit standard call pattern.  Tells MOAB we have PARMETIS.
+dnl   Arguments: [PACKAGE, SRC_DIR, INSTALL_DIR, NEED_CONFIGURATION)
+dnl ---------------------------------------------------------------------------
+AC_DEFUN([AUSCM_AUTOMATED_SETUP_POSTPROCESS_PARMETIS],[
+  # we have already checked configure/build/install logs for errors before getting here..
+  enableparmetis=yes
+  enablemetis=yes
+])
+
+
+dnl ---------------------------------------------------------------------------
+dnl AUTOMATED CONFIGURE PARMETIS
+dnl   Calls configure with necessary options.
+dnl   Arguments: [SOURCE_DIRECTORY, INSTALL_DIRECTORY)
+dnl ---------------------------------------------------------------------------
+AC_DEFUN([AUSCM_AUTOMATED_CONFIGURE_PARMETIS],
+[
+if [ $1 ]; then
+  # configure ParMetis
+  if [ $need_configuration ]; then
+    if (test "$parmetis_manual_install" != "yes"); then
+      # configure PACKAGE with a minimal build: MPI
+      export CFLAGS="$CFLAGS -fPIC -DPIC" CXXFLAGS="$CXXFLAGS -fPIC -DPIC" FCFLAGS="$FCFLAGS -fPIC" FFLAGS="$FFLAGS -fPIC" LDFLAGS=$LDFLAGS
+      configure_command="make config cc=\"$CC\" cxx=\"$CXX\" prefix=$parmetis_install_dir"
+      if (test "$enabledebug" != "no"); then
+        configure_command="$configure_command debug=1"
+      fi
+      if (test "$enable_shared" != "no"); then
+        configure_command="$configure_command shared=1"
+      fi
+      eval "echo 'Using configure command :==> cd $parmetis_build_dir && $configure_command > $parmetis_src_dir/../config_metis.log' > $parmetis_src_dir/../config_metis.log"
+      PREFIX_PRINT(Configuring Metis with default options  {debug=$enabledebug} )
+      eval "cd $parmetis_build_dir/metis && $configure_command >> $parmetis_src_dir/../config_metis.log 2>&1 && cd \"\$OLDPWD\""
+
+      configure_command="$configure_command metis_path=$parmetis_build_dir/metis gklib_path=$parmetis_build_dir/metis/GKlib"
+      eval "echo 'Using configure command :==> cd $parmetis_build_dir && $configure_command > $parmetis_src_dir/../config_parmetis.log' > $parmetis_src_dir/../config_parmetis.log"
+      PREFIX_PRINT(Configuring ParMetis with default options  {debug=$enabledebug with-metis=yes} )
+      eval "cd $parmetis_build_dir && $configure_command >> $parmetis_src_dir/../config_parmetis.log 2>&1 && cd \"\$OLDPWD\""
+    fi
+  fi
+
+  # check if configuration - current or previous was successful
+  if (test "$parmetis_manual_install" != "yes"); then
+    parmetis_cputype=`uname -m | sed "s/\\ /_/g"`
+    parmetis_systype=`uname -s`
+    parmetis_subbuilddir=$parmetis_build_dir/build/$parmetis_systype-$parmetis_cputype
+    if(test ! -f "$parmetis_subbuilddir/cmake_install.cmake" ); then # only generated when CMake succeeds
+  	  AC_MSG_ERROR([ParMetis configuration was unsuccessful. Please refer to $parmetis_src_dir/../config_parmetis.log for further details.])
+	  fi
+  fi
+  parmetis_configured=true
+fi
+])
+
+
+dnl ---------------------------------------------------------------------------
+dnl AUTOMATED BUILD PARMETIS
+dnl   Builds METIS and sets prefix to the install directory
+dnl   Arguments: [SOURCE_DIRECTORY, INSTALL_DIRECTORY)
+dnl ---------------------------------------------------------------------------
+AC_DEFUN([AUSCM_AUTOMATED_BUILD_PARMETIS],
+[
+  # if we need to build then call make all
+  if [ $1 ]; then
+    if [ $recompile_and_install || $need_build ]; then
+      PREFIX_PRINT(Building the sources in parallel )
+      if (test "$parmetis_manual_install" != "no"); then
+        eval "make --no-print-directory -C $parmetis_build_dir CC=\"$CC\" OPTFLAGS=\"$CFLAGS\" COPTIONS=\"$CPPFLAGS -fPIC -DPIC\" -j4 > $parmetis_src_dir/../make_parmetis.log 2>&1"
+      else
+        PREFIX_PRINT(   *** Building Metis ... )
+        eval "make --no-print-directory -C $parmetis_build_dir/metis all -j4 > $parmetis_src_dir/../make_metis.log 2>&1"
+        PREFIX_PRINT(   *** Building ParMetis ... )
+        eval "make --no-print-directory -C $parmetis_build_dir all -j4 >> $parmetis_src_dir/../make_parmetis.log 2>&1"
+      fi
+    fi
+  fi
+
+  # check if it worked
+  if (test "$parmetis_manual_install" != "no"); then
+    if (test -f "$parmetis_build_dir/libparmetis.a" || test -f "$parmetis_build_dir/libparmetis.so" || test -f "$parmetis_build_dir/libparmetis.dylib") ; then
+      parmetis_made=true
+    else
+      AC_MSG_ERROR([Metis build was unsuccessful. Please refer to $parmetis_src_dir/../make_parmetis.log for further details.])
+    fi
+  else
+    parmetis_cputype=`uname -m | sed "s/\\ /_/g"`
+    parmetis_systype=`uname -s`
+    parmetis_subbuilddir=$parmetis_build_dir/build/$parmetis_systype-$parmetis_cputype
+    if (test -f "$parmetis_subbuilddir/libparmetis/libparmetis.a" || test -f "$parmetis_subbuilddir/libparmetis/libparmetis.so" || test -f "$parmetis_subbuilddir/libparmetis/libparmetis.dylib") ; then
+      parmetis_made=true
+    else
+      AC_MSG_ERROR([ParMetis build was unsuccessful. Please refer to $parmetis_src_dir/../make_parmetis.log for further details.])
+    fi
+  fi
+])
+
+
+
+dnl ---------------------------------------------------------------------------
+dnl AUTOMATED INSTALL PARMETIS
+dnl   Installs PARMETIS into the install directory and ensures the library exists.
+dnl   Arguments: [SOURCE_DIRECTORY, INSTALL_DIRECTORY)
+dnl ---------------------------------------------------------------------------
+AC_DEFUN([AUSCM_AUTOMATED_INSTALL_PARMETIS],
+[
+  # if we need to install then call make install
+  if [ $1 ]; then
+    if [ $recompile_and_install ]; then
+      if [ $parmetis_installed ]; then
+        if (test "$parmetis_manual_install" != "no"); then
+          AUSCM_UNLINK_PARMETIS_302($parmetis_install_dir, $parmetis_src_dir/../uninstall_parmetis.log)
+        else
+          eval "make --no-print-directory -C $parmetis_build_dir/metis uninstall > $parmetis_src_dir/../uninstall_metis.log 2>&1"
+          eval "make --no-print-directory -C $parmetis_build_dir uninstall > $parmetis_src_dir/../uninstall_parmetis.log 2>&1"
+        fi
+      fi
+      PREFIX_PRINT(Installing the headers and libraries in to directory )
+      if (test "$parmetis_manual_install" != "no"); then
+        AUSCM_LINK_PARMETIS_302($parmetis_build_dir, $parmetis_install_dir, $parmetis_src_dir/../install_parmetis.log)
+      else
+        PREFIX_PRINT(   *** Installing Metis ... )
+        eval "make --no-print-directory -C $parmetis_build_dir/metis install > $parmetis_src_dir/../install_metis.log 2>&1"
+        PREFIX_PRINT(   *** Installing ParMetis ... )
+        eval "make --no-print-directory -C $parmetis_build_dir install > $parmetis_src_dir/../install_parmetis.log 2>&1"
+      fi
+    fi
+  fi
+  # check if it worked
+  if (test -f "$parmetis_install_dir/include/parmetis.h" && (test -f "$parmetis_install_dir/lib/libparmetis.a" || test -f "$parmetis_install_dir/lib/libparmetis.so" || test -f "$parmetis_install_dir/lib/libparmetis.dylib")); then
+    parmetis_installed=true
+  else
+	  AC_MSG_ERROR([ParMetis installation was unsuccessful. Please refer to $parmetis_src_dir/../install_parmetis.log for further details.])
+  fi
+])
+
+
+dnl ---------------------------------------------------------------------------
+dnl LINK PARMETIS 3.0.2
+dnl   A quick way to link the PARMETIS 3.0.2 installation into a more
+dnl     traditional layout for easier management.
+dnl   Arguments: [parmetis_src_dir, parmetis_install_dir, log_file]
+dnl ---------------------------------------------------------------------------
+AC_DEFUN([AUSCM_LINK_PARMETIS_302],
+[
+  ECHO_EVAL($3, "mkdir -p $2/bin $2/lib $2/include")
+  # ParMetis files
+  ECHO_EVAL($3, "cp $1/libparmetis.a $2/lib")
+  ECHO_EVAL($3, "cp $1/parmetis.h $2/include")
+  ECHO_EVAL($3, "cp $1/mtest $2/bin")
+  ECHO_EVAL($3, "cp $1/ptest $2/bin")
+  ECHO_EVAL($3, "cp $1/pometis $2/bin")
+  ECHO_EVAL($3, "cp $1/parmetis $2/bin")
+  # Metis files
+  ECHO_EVAL($3, "cp $1/libmetis.a $2/lib")
+  ECHO_EVAL($3, "cp $1/METISLib/defs.h $2/include")
+  ECHO_EVAL($3, "cp $1/METISLib/macros.h $2/include")
+  ECHO_EVAL($3, "cp $1/METISLib/metis.h $2/include")
+  ECHO_EVAL($3, "cp $1/METISLib/proto.h $2/include")
+  ECHO_EVAL($3, "cp $1/METISLib/rename.h $2/include")
+  ECHO_EVAL($3, "cp $1/METISLib/struct.h $2/include")
+])
+
+
+dnl ---------------------------------------------------------------------------
+dnl LINK METIS 4
+dnl   A quick way to unlink or uninstall the METIS 4.0 installation
+dnl   Arguments: [parmetis_install_dir, log_file]
+dnl ---------------------------------------------------------------------------
+AC_DEFUN([AUSCM_UNLINK_PARMETIS_302],
+[
+  dnl remove Metis installs first
+  ECHO_EVAL($2, "rm -f $1/lib/libmetis.a $1/include/defs.h $1/include/macros.h $1/include/metis.h $1/include/proto.h $1/include/rename.h $1/include/struct.h")
+  dnl now remove ParMetis installs
+  ECHO_EVAL($2, "rm -f $1/lib/libparmetis.a $1/include/parmetis.h")
+  ECHO_EVAL($2, "rm -f $1/bin/mtest $1/bin/ptest $1/bin/pometis $1/bin/parmetis")
+])
+

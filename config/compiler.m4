@@ -199,7 +199,7 @@ AC_ARG_ENABLE( optimize, AS_HELP_STRING([--enable-optimize],[Compile optimized (
 # custom CXXFLAGS or CFLAGS
 DEBUG=no
 if (test "x$enable_debug" != "xyes"); then
-  if (test "x$enable_optimize" = "x"); then
+  if (test "x$enable_optimize" == "x"); then
     enable_cxx_optimize=yes
     enable_cc_optimize=yes
     enable_fc_optimize=yes
@@ -217,12 +217,12 @@ if test "xyes" = "x$enable_debug"; then
     FFLAGS="$FFLAGS -g"
   fi
   # Add -fstack-protector-all option for g++ in debug mode
-  if test "x$GXX" = "xyes"; then
+  if (test "x$GXX" = "xno"); then
     CXXFLAGS="$CXXFLAGS -fstack-protector-all"
     LDFLAGS="$LDFLAGS -fstack-protector-all"
   fi
   # Add -fstack-protector-all option for gcc in debug mode
-  if test "x$GXX" = "xyes"; then
+  if (test "x$GXX" != "xno"); then
     CFLAGS="$CFLAGS -fstack-protector-all"
   fi
   if (test "x$CHECK_FC" != "xno"); then
@@ -233,20 +233,20 @@ if test "xyes" = "x$enable_debug"; then
 else
   DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --enable-debug=no"
 fi
-if test "xyes" = "x$enable_cxx_optimize"; then
+if (test "xno" != "x$enable_cxx_optimize"); then
   CXXFLAGS="$CXXFLAGS -O2 -DNDEBUG"
   DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --enable-optimize=yes"
 else
   DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --enable-optimize=no"
 fi
-if test "xyes" = "x$enable_cc_optimize"; then
+if (test "xno" != "x$enable_cc_optimize"); then
   CFLAGS="$CFLAGS -O2 -DNDEBUG"
 fi
 if (test "x$ENABLE_FORTRAN" != "xno"); then
-  if test "xyes" = "x$enable_fc_optimize"; then
+  if (test "xno" != "x$enable_fc_optimize"); then
     FCFLAGS="$FCFLAGS -O2"
   fi
-  if test "xyes" = "x$enable_f77_optimize"; then
+  if (test "xno" != "x$enable_f77_optimize"); then
     FFLAGS="$FFLAGS -O2"
   fi
   AC_FC_PP_DEFINE
