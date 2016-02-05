@@ -93,6 +93,18 @@ case "$HOSTNAME" in
     MBPNETCDF_DIR="/soft/pnetcdf/1.6.1-gnu4.4-mvapich2"
     MBMETIS_DIR="/soft/metis/5.0.3"
     ;;
+  *edison* | *cori*)
+    MBCONFARCH="sandybridge"
+    MBNMPICC="cc"
+    MBNMPICXX="CC"
+    MBNMPIFC="ftn"
+    MBNMPIF77="ftn"
+    MBMPI_DIR="/opt/cray/mpt/7.0.0/gni/mpich2-intel/14.0"
+    MBHDF5_DIR="/opt/cray/hdf5-parallel/1.8.14/INTEL/14.0"
+    MBNETCDF_DIR="/opt/cray/netcdf-hdf5parallel/4.3.3.1/INTEL/14.0"
+    MBPNETCDF_DIR="/opt/cray/parallel-netcdf/default/INTEL/14.0"
+    MBMETIS_DIR="/opt/cray/tpsl/1.5.2/INTEL/14.0/$MBCONFARCH"
+    ;;
   *)  # Nothing to do
     ;;
 esac
