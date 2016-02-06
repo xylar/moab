@@ -682,7 +682,7 @@ fi
 ################################################################################
 
 AC_ARG_WITH([vtk],
-  [AS_HELP_STRING([--with-vtk@<:@=DIR@:>@],[Enable VTK support, and specify VTK location])],
+  [AS_HELP_STRING([--with-vtk=DIR],[Enable VTK support, and specify VTK location])],
   [WITH_VTK=$withval
    DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --with-vtk=\"${withval}\""
   ],[WITH_VTK=])

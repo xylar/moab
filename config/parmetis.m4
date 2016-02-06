@@ -16,6 +16,14 @@ AC_DEFUN([FATHOM_CONFIGURE_METIS],[
   # Arguments: 1) Default Version Number, 2) Download by default ?
   AUSCM_CONFIGURE_DOWNLOAD_METIS([5.1.0],[no])
 
+  AC_ARG_WITH([metis], 
+               [AS_HELP_STRING([--with-metis=DIR],[Directory containing Metis library installation])],
+               [enablemetis=yes
+                DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --with-metis=\"${withval}\""
+                METIS_DIR="$withval"],
+               [enablemetis=no; METIS_DIR=""]
+              )
+
   if (test "x$enablemetis" == "xyes"); then
     dnl Honor METIS_DIR if it is set
     if (test ! -d $METIS_DIR); then
@@ -105,7 +113,15 @@ AC_DEFUN([FATHOM_CONFIGURE_PARMETIS],[
   # Supported ParMetis versions: 4.0.3, 3.2.0
   # Arguments: 1) Default Version Number, 2) Download by default ?
   AUSCM_CONFIGURE_DOWNLOAD_PARMETIS([4.0.3],[no])
- 
+
+  AC_ARG_WITH([parmetis], 
+               [AS_HELP_STRING([--with-parmetis=DIR],[Directory containing ParMetis library installation])],
+               [enableparmetis=yes
+                DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --with-parmetis=\"${withval}\""
+                PARMETIS_DIR="$withval"],
+               [enableparmetis=no; PARMETIS_DIR=""]
+              )
+
   if (test "x$enableparmetis" == "xyes"); then
     dnl Honor PARMETIS_DIR if it is set
     if (test ! -d $PARMETIS_DIR); then
