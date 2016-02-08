@@ -184,7 +184,6 @@ set( MOAB_INSTALL_HEADERS
         MBTagConventions.hpp )
 
 set( MOAB_GENERATED_INSTALL_HEADERS
-     ${CMAKE_CURRENT_BINARY_DIR}/MBCN_protos.h
      ${CMAKE_CURRENT_BINARY_DIR}/moab/EntityHandle.hpp
      ${CMAKE_CURRENT_BINARY_DIR}/moab/MOABConfig.h
   )
