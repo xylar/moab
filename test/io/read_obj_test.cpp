@@ -87,7 +87,10 @@ void test_check_meshsets()
 
   Range::iterator it;
   Range parents, children; 
+  int sense;
   int dim, num_surfs = 0, num_vols = 0;
+  int num_verts, num_tris;
+
   for (it = ent_sets.begin(); it != ent_sets.end(); ++it)
     {
       rval =  mbi->tag_get_data(geom_tag, &(*it), 1, &dim);
@@ -103,9 +106,26 @@ void test_check_meshsets()
           CHECK_EQUAL(1, (int)parents.size());
 
           // check that sense of surface wrt parent is FORWARD = 1
-          int sense;
           rval = myGeomTool->get_sense(*it, *parents.begin(), sense);
+          CHECK_ERR(rval);
           CHECK_EQUAL(1, sense);
+
+          // check that each surface set has correct number of entities
+          rval = mbi->get_number_entities_by_type(*it, MBTRI, num_tris);
+          CHECK_ERR(rval);
+          if (num_tris == 1)
+            {
+              rval = mbi->get_number_entities_by_dimension(*it, 0, num_verts);
+              CHECK_ERR(rval);
+              CHECK_EQUAL(3, num_verts);
+            }
+          else if (num_tris == 4)
+            {
+              rval = mbi->get_number_entities_by_dimension(*it, 0, num_verts);
+              CHECK_ERR(rval);
+              CHECK_EQUAL(5, num_verts);
+            }
+              
         }
       else if (dim == 3)
         { 
