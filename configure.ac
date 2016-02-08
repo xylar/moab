@@ -591,8 +591,8 @@ AC_ARG_WITH( [zoltan],
                  ;;
                esac],[WITH_ZOLTAN=$ZOLTAN_DEFAULT] )
 
-FATHOM_CONFIGURE_PARMETIS
 FATHOM_CONFIGURE_METIS
+FATHOM_CONFIGURE_PARMETIS
 
 # If user specified with-scotch, then assume they are trying
 # to add an additional library search directory in which to check

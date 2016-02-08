@@ -225,7 +225,7 @@ nobase_libMOAB_la_include_HEADERS = \
 if ENABLE_metis
   libMOAB_la_SOURCES += MetisPartitioner.cpp
   nobase_libMOAB_la_include_HEADERS += moab/MetisPartitioner.hpp
-  AM_CPPFLAGS += $(METIS_INC_FLAGS)
+  AM_CPPFLAGS += $(METIS_INCLUDES)
   # not sure yet if this is needed; will see when linking io reader (MPAS so far)
   # the tool mbpart needed it, and it just includes MetisPartitioner.hpp; 
   # so it needs ways to find the libraries zoltan depends on
