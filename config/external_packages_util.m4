@@ -626,11 +626,14 @@ if [ $1 ]; then
   # configure HDF5
   if [ $need_configuration ]; then
     # configure PACKAGE with a minimal build: MPI
-    export CC=$CC CXX=$CXX FC=$FC CFLAGS="$CFLAGS -fPIC -DPIC" CXXFLAGS="$CXXFLAGS -fPIC -DPIC" FCFLAGS="$FCFLAGS -fPIC" LDFLAGS=$LDFLAGS
-    configure_command="$hdf5_src_dir/configure --prefix=$hdf5_install_dir --libdir=$hdf5_install_dir/lib --with-pic=1"
+    configure_command="$hdf5_src_dir/configure --prefix=$hdf5_install_dir --libdir=$hdf5_install_dir/lib --with-pic=1 CC=$CC CXX=$CXX FC=$FC CFLAGS=\"$CFLAGS -fPIC -DPIC\" CXXFLAGS=\"$CXXFLAGS -fPIC -DPIC\" FCFLAGS=\"$FCFLAGS -fPIC\" LDFLAGS=\"$LDFLAGS\" MPIEXEC=$MPIEXEC"
     # configure_command="$configure_command --enable-cxx --enable-unsupported"
-    if (test "$enable_debug" != "no"); then
-      configure_command="$configure_command --enable-debug=all"
+    # VSM: Adding --enable-debug=all is causing problems in h5legacy test. So disabling debug symbols for HDF5.
+    #if (test "$enable_debug" != "no"); then
+    #  configure_command="$configure_command --enable-debug"
+    #fi
+    if (test "$enable_shared" != "no"); then
+      configure_command="$configure_command --enable-shared"
     fi
     if (test "$enablefortran" != "no"); then
       configure_command="$configure_command --enable-fortran"
@@ -808,9 +811,9 @@ if [ $1 ]; then
   if [ $need_configuration ]; then
     # configure PACKAGE with a minimal build: MPI, HDF5, NETCDF
     configure_command="$netcdf_src_dir/configure --prefix=$netcdf_install_dir --libdir=$netcdf_install_dir/lib --with-pic=1 --enable-netcdf-4 --enable-shared=$enable_shared"
-    compiler_opts="CC='$CC' CXX='$CXX' FC='$FC' CXXFLAGS='$CXXFLAGS' CFLAGS='$CFLAGS'"
+    compiler_opts="CC=$CC CXX=$CXX CFLAGS=\"$CFLAGS -fPIC -DPIC\" CXXFLAGS=\"$CXXFLAGS -fPIC -DPIC\""
     if (test "$enablehdf5" != "no"); then
-      configure_command="$compiler_opts LDFLAGS=\"$HDF5_LDFLAGS\" CPPFLAGS=\"$HDF5_CPPFLAGS\" LIBS=\"$HDF5_LIBS -ldl -lm -lz\" $configure_command"
+      configure_command="$compiler_opts LDFLAGS=\"$HDF5_LDFLAGS $LDFLAGS\" CPPFLAGS=\"$HDF5_CPPFLAGS\" LIBS=\"$HDF5_LIBS -ldl -lm -lz\" $configure_command"
     fi
     eval "echo 'Using configure command :==> cd $netcdf_build_dir && $configure_command > $netcdf_src_dir/../config_netcdf.log' > $netcdf_src_dir/../config_netcdf.log"
     PREFIX_PRINT([Configuring with default options  (debug=$enable_debug with-HDF5=$enablehdf5 shared=$enable_shared) ])
