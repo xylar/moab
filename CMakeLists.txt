@@ -337,10 +337,10 @@ CONFIGURE_FILE(
 
 if ( ENABLE_IMESH OR ENABLE_FBIGEOM )
   enable_language(Fortran)
+
+  # Include CMake's Fortran mangling evaluation macros
   include(FortranCInterface)
 
-  FortranCInterface_HEADER(__fcmacro.h MACRO_NAMESPACE "MOAB_FC_")
-  #FortranCInterface_VERIFY([CXX] [QUIET])
   if ("${FortranCInterface_GLOBAL_CASE}" MATCHES "UPPER")
     set(FC_CASE "NAME")
   else ("${FortranCInterface_GLOBAL_CASE}" MATCHES "UPPER")
@@ -350,7 +350,6 @@ if ( ENABLE_IMESH OR ENABLE_FBIGEOM )
   set(MOAB_F77_FUNC_ "${FortranCInterface_GLOBAL__PREFIX} ${FC_CASE} ## ${FortranCInterface_GLOBAL__SUFFIX}")
   set(MOAB_FC_FUNC   "${FortranCInterface_GLOBAL_PREFIX} ${FC_CASE} ## ${FortranCInterface_GLOBAL_SUFFIX}")
   set(MOAB_FC_FUNC_  "${FortranCInterface_GLOBAL__PREFIX} ${FC_CASE} ## ${FortranCInterface_GLOBAL__SUFFIX}")
-  file(REMOVE __fcmacro.h)
 
 endif ( ENABLE_IMESH OR ENABLE_FBIGEOM )
 # Generate the CMake input header file and then pass it through configuration
