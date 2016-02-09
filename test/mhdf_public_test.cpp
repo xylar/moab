@@ -258,5 +258,6 @@ static int print_file_summary( MHDF_FileDesc* data )
   for (i = 0; i < data->num_tag_desc; ++i)
     print_tag_desc( data->tags + i, data );
   
+  printf( "   Number partitions: %d\n", data->num_parts);
   return 0;
 }

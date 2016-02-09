@@ -221,6 +221,7 @@ typedef struct mhdf_FileDesc {
   int num_elem_desc;
   struct mhdf_TagDesc* tags;   /**< Array of tag descriptions */
   int num_tag_desc;
+  int num_parts; /*will look specifically for number of sets with PARALLEL_PARTITION tags*/
   size_t total_size;           /**< Size of memory block containing all struct data */
   unsigned char* offset;       /**< Unused, may be used by application */
 } MHDF_FileDesc;
@@ -239,6 +240,21 @@ MHDF_FileDesc *
 mhdf_getFileSummary( mhdf_FileHandle file_handle,
                      hid_t file_id_type,
                      mhdf_Status* status );
+
+/**\brief Fix nested pointers for copied/moved FileDesc struct
+ *
+ * This is a utility method to facility copying/moving/communicating
+ * struct FileDesc instances.  The structure and all data it references
+ * are allocated in a single contiguous block of memory of size
+ * FileDesc::total_size.  As such, the struct can be copied with a single
+ * memcpy, packed into a single network packet, communicated with a single
+ * MPI call, etc.  However, the pointers contained within the struct will
+ * not be valid in the copied instance (they will still point into the
+ * original instance.)  Given a pointer to the copied struct and the address
+ * of the original struct, this function will updated all contained pointers.
+ */
+void
+mhdf_fixFileDesc( struct mhdf_FileDesc* copy_ptr, const struct mhdf_FileDesc* orig_addr );
 
 /** \brief Close the file
  * \param handle     The file to close.
