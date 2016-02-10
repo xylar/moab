@@ -23,6 +23,10 @@ USER_CONFIGURE_CMD="$0 $ac_configure_args"
 #                           Compilers
 ################################################################################
 INITIALIZE_EXTERNAL_PACKAGES
+
+MB_CPPFLAGS=""
+MB_DEFS=""
+
 ENABLE_FORTRAN=no
 AC_ARG_ENABLE([fortran],
               [AS_HELP_STRING([--disable-fortran], [Disable Fortran support and name mangling in ITAPS/MBCN C headers])])
@@ -32,14 +36,6 @@ if (test "x$enable_fortran" != "xno"); then
 fi
 AC_SUBST(ENABLE_FORTRAN)
 DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --enable-fortran=$ENABLE_FORTRAN"
-EXTRA_GNU_CXX_FLAGS='-Wno-long-long -Wpointer-arith -Wformat -Wformat-security -pedantic -Wextra -Wno-variadic-macros'
-EXTRA_GNU_FLAGS='-Wall -pipe -Wcast-align -Wshadow'
-EXTRA_INTEL_FLAGS='-Wall'
-EXTRA_INTEL_FFLAGS='-check all'
-EXTRA_BG_FLAGS='-qarch=auto -qtune=auto -qpic=large'
-
-MB_CPPFLAGS=""
-MB_DEFS=""
 
 # Find out the appropriate compiler based on user options
 FATHOM_CHECK_COMPILERS([yes],[yes],[$ENABLE_FORTRAN])
@@ -377,6 +373,20 @@ if test "xyes" = "x$enablempi"; then
   test "xyes" != "x$WITH_MPE" || MB_DEFS="$MB_DEFS -DUSE_MPE"
 fi
 
+# Check for curl
+AC_MSG_CHECKING([for curl libraries])
+CURLPATH=`which curl-config`
+if (test "x$CURLPATH" != "x"); then
+  CURL_LIBS=`$CURLPATH --libs`
+  if (test "x$CURL_LIBS" != "x"); then
+    AC_MSG_RESULT($CURL_LIBS)
+    LIBS="$CURL_LIBS $LIBS"
+  else
+    AC_MSG_RESULT(not found)
+  fi
+else
+  AC_MSG_RESULT(not found)
+fi
 ################################################################################
 #                              HDF5 OPTIONS
 ################################################################################

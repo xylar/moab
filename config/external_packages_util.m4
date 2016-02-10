@@ -613,6 +613,7 @@ dnl ---------------------------------------------------------------------------
 AC_DEFUN([AUSCM_AUTOMATED_SETUP_POSTPROCESS_HDF5],[
   # we have already checked configure/build/install logs for errors before getting here..
   enablehdf5=yes
+  DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --with-hdf5=\"${hdf5_install_dir}\""
 ])
 
 
@@ -626,7 +627,8 @@ if [ $1 ]; then
   # configure HDF5
   if [ $need_configuration ]; then
     # configure PACKAGE with a minimal build: MPI
-    configure_command="$hdf5_src_dir/configure --prefix=$hdf5_install_dir --libdir=$hdf5_install_dir/lib --with-pic=1 CC=$CC CXX=$CXX FC=$FC CFLAGS=\"$CFLAGS -fPIC -DPIC\" CXXFLAGS=\"$CXXFLAGS -fPIC -DPIC\" FCFLAGS=\"$FCFLAGS -fPIC\" LDFLAGS=\"$LDFLAGS\" MPIEXEC=$MPIEXEC"
+    compiler_opts="CC=$CC CXX=$CXX FC=$FC F77=$F77 MPIEXEC=$MPIEXEC"
+    configure_command="$hdf5_src_dir/configure --prefix=$hdf5_install_dir --libdir=$hdf5_install_dir/lib --with-pic=1 $compiler_opts"
     # configure_command="$configure_command --enable-cxx --enable-unsupported"
     # VSM: Adding --enable-debug=all is causing problems in h5legacy test. So disabling debug symbols for HDF5.
     #if (test "$enable_debug" != "no"); then
@@ -796,6 +798,7 @@ AC_DEFUN([AUSCM_AUTOMATED_SETUP_POSTPROCESS_NETCDF],
   # we have already checked configure/build/install logs for
   # errors before getting here..
   enablenetcdf=yes
+  DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --with-netcdf=\"${netcdf_install_dir}\""
 ])
 
 
@@ -810,10 +813,10 @@ if [ $1 ]; then
   # configure NETCDF
   if [ $need_configuration ]; then
     # configure PACKAGE with a minimal build: MPI, HDF5, NETCDF
-    configure_command="$netcdf_src_dir/configure --prefix=$netcdf_install_dir --libdir=$netcdf_install_dir/lib --with-pic=1 --enable-netcdf-4 --enable-shared=$enable_shared"
-    compiler_opts="CC=$CC CXX=$CXX CFLAGS=\"$CFLAGS -fPIC -DPIC\" CXXFLAGS=\"$CXXFLAGS -fPIC -DPIC\""
+    compiler_opts="CC=$CC CXX=$CXX"
+    configure_command="$netcdf_src_dir/configure --prefix=$netcdf_install_dir --libdir=$netcdf_install_dir/lib --with-pic=1 --enable-netcdf-4 --enable-shared=$enable_shared $compiler_opts"
     if (test "$enablehdf5" != "no"); then
-      configure_command="$compiler_opts LDFLAGS=\"$HDF5_LDFLAGS $LDFLAGS\" CPPFLAGS=\"$HDF5_CPPFLAGS\" LIBS=\"$HDF5_LIBS -ldl -lm -lz\" $configure_command"
+      configure_command="$configure_command LDFLAGS=\"$HDF5_LDFLAGS $LDFLAGS\" CPPFLAGS=\"$HDF5_CPPFLAGS\" LIBS=\"$HDF5_LIBS -ldl -lm -lz\""
     fi
     eval "echo 'Using configure command :==> cd $netcdf_build_dir && $configure_command > $netcdf_src_dir/../config_netcdf.log' > $netcdf_src_dir/../config_netcdf.log"
     PREFIX_PRINT([Configuring with default options  (debug=$enable_debug with-HDF5=$enablehdf5 shared=$enable_shared) ])
@@ -972,6 +975,7 @@ dnl ---------------------------------------------------------------------------
 AC_DEFUN([AUSCM_AUTOMATED_SETUP_POSTPROCESS_METIS],[
   # we have already checked configure/build/install logs for errors before getting here..
   enablemetis=yes
+  DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --with-metis=\"${metis_install_dir}\""
 ])
 
 dnl ---------------------------------------------------------------------------
@@ -1230,6 +1234,7 @@ AC_DEFUN([AUSCM_AUTOMATED_SETUP_POSTPROCESS_PARMETIS],[
   # we have already checked configure/build/install logs for errors before getting here..
   enableparmetis=yes
   enablemetis=yes
+  DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --with-parmetis=\"${parmetis_install_dir}\""
 ])
 
 
