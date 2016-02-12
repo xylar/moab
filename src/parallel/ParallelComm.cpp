@@ -837,6 +837,137 @@ ErrorCode ParallelComm::send_entities(std::vector<unsigned int>& send_procs,
   return MB_SUCCESS;
 }
 
+/////////////////////////////////////////////////////////////////////////////////
+// Send and Receive routines for a sequence of entities: use case UMR
+/////////////////////////////////////////////////////////////////////////////////
+ErrorCode ParallelComm::send_recv_entities(std::set<unsigned int> &send_procs, std::vector<std::vector<int> > &msgsizes, std::vector<std::vector<EntityHandle> > &senddata, std::vector<std::vector<EntityHandle> > &recvdata)
+{
+#ifdef USE_MPE
+  if (myDebug->get_verbosity() == 2) {
+    MPE_Log_event(OWNED_START, procConfig.proc_rank(), "Starting send_recv_entities.");
+  }
+#endif
+  myDebug->tprintf(1, "Entering send_recv_entities\n");
+  if (myDebug->get_verbosity() == 4) {
+    msgs.clear();
+    msgs.reserve(MAX_SHARING_PROCS);
+  }
+
+  unsigned int i;
+  int ind;
+  ErrorCode result = MB_SUCCESS;
+
+  //===========================================
+  // Pack and send ents from this proc to others
+  //===========================================
+
+  reset_all_buffers();
+  sendReqs.resize(3*buffProcs.size(), MPI_REQUEST_NULL);
+  int incoming = 0;
+  int dum_ack_buff;
+  std::vector<MPI_Request> recv_tag_reqs(3*buffProcs.size(), MPI_REQUEST_NULL);
+  std::vector<unsigned int>::iterator sit;
+
+  for (ind = 0, sit = buffProcs.begin(); sit != buffProcs.end(); ++sit, ind++) {
+    incoming++;
+    PRINT_DEBUG_IRECV(*sit, procConfig.proc_rank(), remoteOwnedBuffs[ind]->mem_ptr,
+                      INITIAL_BUFF_SIZE, MB_MESG_ENTS_SIZE, incoming);
+
+    success = MPI_Irecv(remoteOwnedBuffs[ind]->mem_ptr, INITIAL_BUFF_SIZE,
+                        MPI_UNSIGNED_CHAR, *sit,
+                        MB_MESG_ENTS_SIZE, procConfig.proc_comm(),
+                        &recv_tag_reqs[3*ind]);
+    if (success != MPI_SUCCESS) {
+      MB_SET_ERR(MB_FAILURE, "Failed to post irecv in ghost exchange");
+    }
+  }
+
+  unsigned  int nproc = send_procs.size();
+
+  for (i=0; i< nproc; i++){
+
+  ind = get_buffers(send_procs[i]);
+  localOwnedBuffs[ind]->reset_buffer(sizeof(int));
+
+  int buff_size = msgsizes[i].size()*sizeof(int) + senddata[i].size()*sizeof(EntityHandle);
+  localOwnedBuffs[ind]->check_space(buff_size);
+
+  //Pack entities
+ // PACK_INT(localOwnedBuffs[ind]->buff_ptr, buff_size);
+  PACK_INTS(localOwnedBuffs[ind]->buff_ptr, msgsizes[i].begin(), msgsizes[i].size());
+  PACK_EH(localOwnedBuffs[ind]->buff_ptr, senddata[i].begin(), senddata[i].size());
+
+  if (myDebug->get_verbosity() == 4) {
+      msgs.resize(msgs.size() + 1);
+      msgs.back() = new Buffer(*localOwnedBuffs[ind]);
+    }
+
+  // Send the buffer (size stored in front in send_buffer)
+  result = send_buffer(send_procs[i], localOwnedBuffs[ind],
+                       MB_MESG_ENTS_SIZE, sendReqs[3*ind],
+      recv_tag_reqs[3*ind+2],
+      &dum_ack_buff,
+      incoming);MB_CHK_SET_ERR(result, "Failed to Isend in send_recv_entities");
+    }
+
+
+  //Receive and unpack received data
+  while (incoming) {
+    MPI_Status status;
+    int index_in_recv_requests;
+    PRINT_DEBUG_WAITANY(recv_tag_reqs, MB_MESG_ENTS_SIZE, procConfig.proc_rank());
+    success = MPI_Waitany(3*buffProcs.size(), &recv_tag_reqs[0], &index_in_recv_requests, &status);
+    if (MPI_SUCCESS != success) {
+      MB_SET_ERR(MB_FAILURE, "Failed in waitany in send_recv_entities");
+    }
+    // Processor index in the list is divided by 3
+    ind = index_in_recv_requests / 3;
+
+    PRINT_DEBUG_RECD(status);
+
+    // OK, received something; decrement incoming counter
+    incoming--;
+
+    bool done = false;
+
+    result = recv_buffer(MB_MESG_ENTS_SIZE,
+                         status,
+                         remoteOwnedBuffs[ind],
+                         recv_tag_reqs[3*ind + 1], // This is for receiving the second message
+                         recv_tag_reqs[3*ind + 2], // This would be for ack, but it is not used; consider removing it
+                         incoming,
+                         localOwnedBuffs[ind],
+                         sendReqs[3*ind + 1], // Send request for sending the second message
+                         sendReqs[3*ind + 2], // This is for sending the ack
+                         done);MB_CHK_SET_ERR(result, "Failed to resize recv buffer");
+
+    if (done) {
+      remoteOwnedBuffs[ind]->reset_ptr(sizeof(int));
+
+      int from_proc = mpi_status.MPI_SOURCE;
+      int idx = send_procs.find(from_proc) - send_procs.begin();
+
+      std::vector<int> recvmsg;
+      std::vector<EntityHandle> dum_vec;
+      UNPACK_INTS(remoteOwnedBuffs[ind]->buff_ptr, &recvmsg[0], msgsizes[idx].size());
+      UNPACK_EH(remoteOwnedBuffs[ind]->buff_ptr, &dum_vec[0], senddata[idx].size());
+
+      recvdata[idx].insert(recvdata[idx].end(), dum_vec.begin(), dum_vec.end());
+    }
+  }
+
+#ifdef USE_MPE
+  if (myDebug->get_verbosity() == 2) {
+      MPE_Log_event(ENTITIES_END, procConfig.proc_rank(), "Ending send_recv_entities.");
+    }
+#endif
+
+
+  return MB_SUCCESS;
+}
+
+//////////////////////////////////////////////////////////////////
+
   ErrorCode ParallelComm::recv_entities(const int from_proc,
                                         const bool store_remote_handles,
                                         const bool is_iface,

@@ -9,7 +9,7 @@
 #include "moab/HalfFacetRep.hpp"
 #include "RefineMesh/moab/NestedRefine.hpp"
 #include "../TestUtil.hpp"
-#include <sys/time.h>
+#include "moab/CpuTimer.hpp"
 
 #ifdef MOAB_HAVE_MPI
 #include "moab/ParallelComm.hpp"
@@ -53,9 +53,9 @@ struct mesh_mem
   unsigned long long total_storage;
   unsigned long long total_amortized_storage;
 
-  //Tag storage
-  unsigned long long tag_storage;
-  unsigned long long amortized_tag_storage;
+  //Adjacency storage
+  unsigned long long adj_storage;
+  unsigned long long amortized_adj_storage;
 
   //Vertex storage
    unsigned long long vertex_storage;
@@ -91,20 +91,14 @@ void handle_error_code(ErrorCode rv, int &number_failed, int &number_successful)
   }
 }
 
-double wtime() {
-  double y = -1;
-  struct timeval cur_time;
-  gettimeofday(&cur_time, NULL);
-  y = (double)(cur_time.tv_sec) + (double)(cur_time.tv_usec)*1.e-6;
-  return (y);
-}
-
 ErrorCode umr_perf_test(Core *mb, int *level_degrees, int num_levels, OUTTYPE output)
 {
   ErrorCode error;
   Interface* mbImpl = mb;
 
   mesh_mem *umem = new mesh_mem[num_levels+2];
+
+  CpuTimer *mt = new CpuTimer;
   double time_start, time_avg, time_total;
 
   //Create ranges of entities in the initial mesh
@@ -190,11 +184,11 @@ ErrorCode umr_perf_test(Core *mb, int *level_degrees, int num_levels, OUTTYPE ou
   std::vector<EntityHandle> set;
 
   std::cout<<"Starting hierarchy generation"<<std::endl;
-  time_start = wtime();
+  time_start = mt->time_elapsed();
   error = uref.generate_mesh_hierarchy(num_levels, level_degrees, set);
   CHECK_ERR(error);
 
-  time_total = wtime() - time_start;
+  time_total = mt->time_elapsed() - time_start;
   std::cout<<"Finished hierarchy generation"<<std::endl;
 
   if (output == TIME || output == BOTH){
@@ -259,7 +253,7 @@ ErrorCode umr_perf_test(Core *mb, int *level_degrees, int num_levels, OUTTYPE ou
 
       if (output == BOTH){
           //Loop over all vertices and get their coordinates
-          time_start = wtime();
+          time_start = mt->time_elapsed();
           for (Range::iterator i = verts.begin(); i != verts.end(); ++i)
             {
               double coords[3];
@@ -267,12 +261,12 @@ ErrorCode umr_perf_test(Core *mb, int *level_degrees, int num_levels, OUTTYPE ou
               error = uref.get_coordinates(&vid, 1, (int)l, &coords[0]);
               CHECK_ERR(error);
             }
-          time_total = wtime() - time_start;
+          time_total = mt->time_elapsed() - time_start;
           time_avg = time_total/(double)verts.size();
 
           std::cout<<"Class NR :: OPERATION:: get_coordinates"<<" :: Time_total = "<<time_total<<" :: Time_avg = "<<time_avg<<std::endl;
 
-          time_start = wtime();
+          time_start = mt->time_elapsed();
           for (Range::iterator i = verts.begin(); i != verts.end(); ++i)
             {
               double coords[3];
@@ -280,33 +274,33 @@ ErrorCode umr_perf_test(Core *mb, int *level_degrees, int num_levels, OUTTYPE ou
               error = mbImpl->get_coords(&vid, 1, &coords[0]);
               CHECK_ERR(error);
             }
-          time_total = wtime() - time_start;
+          time_total = mt->time_elapsed() - time_start;
           time_avg = time_total/(double)verts.size();
 
           std::cout<<"Class Core :: OPERATION:: get_coordinates"<<" :: Time_total = "<<time_total<<" :: Time_avg = "<<time_avg<<std::endl;
 
 
           //Loop over all entities and get their connectivity
-          time_start = wtime();
+          time_start = mt->time_elapsed();
           for (Range::iterator i = ents.begin(); i != ents.end(); ++i)
             {
               std::vector<EntityHandle> conn;
               error = uref.get_connectivity(*i, l, conn);
               CHECK_ERR(error);
             }
-          time_total = wtime() - time_start;
+          time_total = mt->time_elapsed() - time_start;
           time_avg = time_total/(double)ents.size();
           std::cout<<std::endl;
           std::cout<<"Class NR :: OPERATION:: get_connectivity"<<" :: Time_total = "<<time_total<<" :: Time_avg = "<<time_avg<<std::endl;
 
-          time_start = wtime();
+          time_start = mt->time_elapsed();
           for (Range::iterator i = ents.begin(); i != ents.end(); ++i)
             {
               std::vector<EntityHandle> conn;
               error = mbImpl->get_connectivity(&*i, 1, conn);
               CHECK_ERR(error);
             }
-          time_total = wtime() - time_start;
+          time_total = mt->time_elapsed() - time_start;
           time_avg = time_total/(double)ents.size();
 
           std::cout<<"Class Core :: OPERATION:: get_connectivity"<<" :: Time_total = "<<time_total<<" :: Time_avg = "<<time_avg<<std::endl;

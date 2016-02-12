@@ -395,6 +395,11 @@ namespace moab {
 			       std::vector<Range> &entities,
 			       const bool adjacencies = false,
 			       const bool tags = true);
+
+
+    /** \brief Send and receives data from a set of processors
+      */
+    ErrorCode send_recv_entities(std::set<unsigned int> &send_procs, std::vector<std::vector<int> > &msgsizes, std::vector<std::vector<EntityHandle> > &senddata, std::vector<std::vector<EntityHandle> > &recvdata);
   
     // ==================================
     // \section INITIALIZATION OF PARALLEL DATA (resolve_shared_ents, etc.)

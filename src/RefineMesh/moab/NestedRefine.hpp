@@ -22,6 +22,7 @@ namespace moab
 #define MAX_CONN 8
 #define MAX_VHF 20
 #define MAX_LEVELS 20
+#define MAX_PROCS 64
 
 
   class Core;
@@ -126,6 +127,8 @@ namespace moab
      */
 
       ErrorCode vertex_to_entities_down(EntityHandle vertex, int vert_level, int child_level, std::vector<EntityHandle> &incident_entities);
+
+    ErrorCode get_vertex_duplicates(EntityHandle vertex, std::vector<EntityHandle> &dup_vertices);
 
     /** Given an entity at a certain level, it returns a boolean value true if it lies on the domain boundary.
         * \param entity
@@ -256,6 +259,8 @@ namespace moab
     ErrorCode update_tracking_verts(EntityHandle cid, int cur_level, int deg, std::vector<EntityHandle> &trackvertsC_edg, std::vector<EntityHandle> &trackvertsC_face, EntityHandle *vbuffer);
     ErrorCode reorder_indices(int cur_level, int deg, EntityHandle cell, int lfid, EntityHandle sib_cell, int sib_lfid, int index, int *id_sib);
     ErrorCode reorder_indices(int deg, EntityHandle *face1_conn, EntityHandle *face2_conn, int nvF, std::vector<int> &lemap, std::vector<int> &vidx, int *leorient=NULL);
+    ErrorCode reorder_indices(int deg, int nvF, int comb, int *childfid_map);
+    ErrorCode reorder_indices(EntityHandle *face1_conn, EntityHandle *face2_conn, int nvF, int *conn_map, int &comb, int *orient=NULL);
     ErrorCode get_lid_inci_child(EntityType type, int deg, int lfid, int leid, std::vector<int> &child_ids, std::vector<int> &child_lvids);
 
     //Permutation matrices
@@ -327,15 +332,44 @@ namespace moab
            *  information appropriately.
          */
 
-       ErrorCode resolve_shared_ents_parmerge(int level);
-       ErrorCode resolve_shared_ents_opt();
-       ErrorCode resolve_shared_new_ents(std::set<unsigned int> &shared_procs, Range all_shared, std::vector<int> &msgsizes, std::vector<EntityHandle> &locVerts, std::vector<EntityHandle> &locEdges, std::vector<EntityHandle> &locFaces, std::vector<EntityHandle> &remVerts, std::vector<EntityHandle> &remEdges, std::vector<EntityHandle> &remFaces );
+    //Send/Recv Buffer storage
+ /*   struct pbuffer{
+      int rank;
+      std::vector<int> msgsize;
+      std::vector<EntityHandle> localBuff;
+      std::vector<EntityHandle> remoteBuff;
+    };
 
-       ErrorCode get_shared_new_entities(int pindex, Range shared_ents, std::vector<int> &msgsizes, std::vector<EntityHandle> &locVerts, std::vector<EntityHandle> &locEdges, std::vector<EntityHandle> &locFaces);
+    pbuffer commBuffers[MAX_PROCS];
 
-       ErrorCode find_remote_duplicate_verts(EntityHandle v, int level, std::vector<EntityHandle> &locVerts, EntityHandle *remoteh, int *remotep, std::vector<EntityHandle> & remVerts, EntityHandle duplvert, EntityHandle *remotehv, int sz);
+    //Parallel tag values
+    struct parinfo{
+      std::multimap<EntityHandle, int> remoteps;
+      std::multimap<EntityHandle, EntityHandle> remotehs;
+    };
 
-       ErrorCode update_pstatus_tag();
+    parinfo parallelInfo[MAX_LEVELS];*/
+
+
+    ErrorCode resolve_shared_ents_parmerge(int level, EntityHandle levelset);
+    ErrorCode resolve_shared_ents_opt(EntityHandle *hm_set);
+
+    ErrorCode collect_FList(Range faces, std::vector<EntityHandle> &FList);
+    ErrorCode collect_EList(Range edges, std::vector<EntityHandle> &EList);
+    ErrorCode collect_VList(Range verts, std::vector<EntityHandle> &VList);
+
+    ErrorCode decipher_remote_handles(std::set<unsigned int> &sharedprocs, std::vector<std::vector<EntityHandle> > &msgsz, std::vector<std::vector<EntityHandle> > &localbuffers, std::vector<std::vector<EntityHandle> > &remotebuffers, std::multimap<EntityHandle, int> &remProcs, std::multimap<EntityHandle, EntityHandle> & remHandles);
+
+    ErrorCode decipher_remote_handles_face(int cur_proc, int numfaces, std::vector<EntityHandle> &localFaceList, std::vector<EntityHandle> &remFaceList, std::multimap<EntityHandle, int> &remProcs, std::multimap<EntityHandle, EntityHandle> & remHandles);
+
+     ErrorCode decipher_remote_handles_edge(int numedges, std::vector<EntityHandle> &localEdgeList, std::vector<EntityHandle> &remEdgeList, std::multimap<EntityHandle, int> &remProcs, std::multimap<EntityHandle, EntityHandle> & remHandles);
+
+      ErrorCode decipher_remote_handles_vertex(int numverts, std::vector<EntityHandle> &localVertexList, std::vector<EntityHandle> &remVertexList, std::multimap<EntityHandle, int> &remProcs, std::multimap<EntityHandle, EntityHandle> & remHandles);
+
+     ErrorCode update_pstatus_tag(std::multimap<EntityHandle, int> &remProcs, std::multimap<EntityHandle, EntityHandle> & remHandles);
+
+
+     ErrorCode get_data_from_buff(int dim, int type, int level, int entityidx, std::vector<EntityHandle> &buffer, std::vector<EntityHandle> &data);
 
 
   };
