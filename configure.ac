@@ -373,20 +373,6 @@ if test "xyes" = "x$enablempi"; then
   test "xyes" != "x$WITH_MPE" || MB_DEFS="$MB_DEFS -DUSE_MPE"
 fi
 
-# Check for curl
-AC_MSG_CHECKING([for curl libraries])
-CURLPATH=`which curl-config`
-if (test "x$CURLPATH" != "x"); then
-  CURL_LIBS=`$CURLPATH --libs`
-  if (test "x$CURL_LIBS" != "x"); then
-    AC_MSG_RESULT($CURL_LIBS)
-    LIBS="$CURL_LIBS $LIBS"
-  else
-    AC_MSG_RESULT(not found)
-  fi
-else
-  AC_MSG_RESULT(not found)
-fi
 ################################################################################
 #                              HDF5 OPTIONS
 ################################################################################
