@@ -110,7 +110,7 @@ void test_check_meshsets()
           CHECK_ERR(rval);
           CHECK_EQUAL(1, sense);
 
-          // check that each surface set has correct number of entities
+          // check that each surface set has correct number of vertices
           rval = mbi->get_number_entities_by_type(*it, MBTRI, num_tris);
           CHECK_ERR(rval);
           if (num_tris == 1)
@@ -144,37 +144,4 @@ void test_check_meshsets()
   CHECK_EQUAL(2, num_vols);
 }
 
-/*
-void check_relationships()
-{
-  ErrorCode rval;
-  Core moab; 
-  Interface &  mbi->= moab;
-  read_file( moab, test );
-
-  Range ent_sets;
-  rval =  mbi->tag_get_handle(GEOM_SENSE_2, 2, MB_TYPE_HANDLE, sense_tag);
-  CHECK_ERR(rval);
-  rval =  mbi->get_entities_by_type_and_tag(0, MBENTITYSET, &sense_tag, NULL, 1, ent_sets);
-  CHECK_ERR(rval);
-
-}
-
-void check_sense_tag()
-{
-  ErrorCode rval;
-  Core moab; 
-  Interface &  mbi->= moab;
-  read_file( moab, test );
-
-  Range ent_sets;
-  rval =  mbi->tag_get_handle(GEOM_SENSE_2, 2, MB_TYPE_HANDLE, sense_tag);
-  CHECK_ERR(rval);
-  rval =  mbi->get_entities_by_type_and_tag(0, MBENTITYSET, &sense_tag, NULL, 1, ent_sets);
-  CHECK_ERR(rval);
-
-
-  CHECK_EQUAL(2, (int)ent_sets.size());
-}
-*/
 
