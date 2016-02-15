@@ -135,7 +135,9 @@ ErrorCode ahf_test(const char* filename)
     // 2D Queries
     // IQ21: For every vertex, obtain incident faces
     if (faces.size()){
-        for (Range::iterator i = verts.begin(); i != verts.end(); ++i) {
+        Range fverts;
+        error = mbImpl->get_connectivity(faces, fverts, true);CHECK_ERR(error);
+        for (Range::iterator i = fverts.begin(); i != fverts.end(); ++i) {
             adjents.clear();
             error = ahf.get_up_adjacencies( *i, 2, adjents);CHECK_ERR(error);
             mbents.clear();
@@ -211,7 +213,9 @@ ErrorCode ahf_test(const char* filename)
     // 3D Queries
     //IQ 31: For every vertex, obtain incident cells
     if (cells.size()){
-        for (Range::iterator i = verts.begin(); i != verts.end(); ++i) {
+        Range cverts;
+        error = mbImpl->get_connectivity(cells, cverts, true);CHECK_ERR(error);
+        for (Range::iterator i = cverts.begin(); i != cverts.end(); ++i) {
             adjents.clear();
             error = ahf.get_up_adjacencies( *i, 3, adjents);CHECK_ERR(error);
             mbents.clear();
