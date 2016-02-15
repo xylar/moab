@@ -191,10 +191,6 @@ if (test "x$enable_cxx_optimize" != "xno"); then  # optimization flags
 #GNU
 EXTRA_GNU_CXXFLAGS="$EXTRA_GNU_CXXFLAGS -finline-functions -finline-functions -march=native"
 EXTRA_GNU_FCFLAGS="$EXTRA_GNU_FCFLAGS -ffree-line-length-0 -finline-functions -march=native"
-if (test "x$GXX" = "xyes"); then
-EXTRA_GNU_CXXFLAGS="$EXTRA_GNU_CXXFLAGS -ftree-vectorize"
-EXTRA_GNU_FCFLAGS="$EXTRA_GNU_FCFLAGS -ftree-vectorize"
-fi
 # Intel
 EXTRA_INTEL_CXXFLAGS="$EXTRA_INTEL_CXXFLAGS -xHost -ip -no-prec-div" # -fast
 EXTRA_INTEL_FCFLAGS="$EXTRA_INTEL_FCFLAGS -xHost -ip -no-prec-div" # -fast
@@ -204,6 +200,16 @@ EXTRA_PGI_FCFLAGS="$EXTRA_PGI_FCFLAGS -Munroll=5 -Mnoframe -freeform -extend-sou
 # XLC
 EXTRA_BG_CXXFLAGS="$EXTRA_BG_CXXFLAGS -qarch=auto -qtune=auto -qpic=large -qipa=1 -qenablevmx -qrtti=dyna"
 EXTRA_BG_FCFLAGS="$EXTRA_BG_FCFLAGS -qarch=auto -qtune=auto -qpic=large -qipa=1 -qenablevmx"
+fi
+
+if (test "x$GXX" = "xyes"); then # G++ specific flags
+  if (test "x$enable_debug" != "xno"); then
+    EXTRA_GNU_ONLY_CXXFLAGS="$EXTRA_GNU_CXXFLAGS"
+    EXTRA_GNU_ONLY_FCFLAGS="$EXTRA_GNU_FCFLAGS"
+  else
+    EXTRA_GNU_ONLY_CXXFLAGS="$EXTRA_GNU_CXXFLAGS -ftree-vectorize"
+    EXTRA_GNU_ONLY_FCFLAGS="$EXTRA_GNU_FCFLAGS -ftree-vectorize"
+  fi
 fi
 
 # this is just a test comment
@@ -655,25 +661,25 @@ case "$cxx_compiler:$host_cpu" in
   GNU:sparc*)
     FATHOM_CXX_32BIT=-m32
     FATHOM_CXX_64BIT=-m64
-    FATHOM_CXX_SPECIAL="$EXTRA_GNU_CXXFLAGS"
+    FATHOM_CXX_SPECIAL="$EXTRA_GNU_ONLY_CXXFLAGS"
     ;;
   GNU:powerpc*)
     FATHOM_CXX_32BIT=-m32
     FATHOM_CXX_64BIT=-m64
-    FATHOM_CXX_SPECIAL="$EXTRA_GNU_CXXFLAGS"
+    FATHOM_CXX_SPECIAL="$EXTRA_GNU_ONLY_CXXFLAGS"
     ;;
   GNU:i?86|GNU:x86_64)
     FATHOM_CXX_32BIT=-m32
     FATHOM_CXX_64BIT=-m64
-    FATHOM_CXX_SPECIAL="$EXTRA_GNU_CXXFLAGS"
+    FATHOM_CXX_SPECIAL="$EXTRA_GNU_ONLY_CXXFLAGS"
     ;;
   GNU:mips*)
     FATHOM_CXX_32BIT="-mips32 -mabi=32"
     FATHOM_CXX_64BIT="-mips64 -mabi=64"
-    FATHOM_CXX_SPECIAL="$EXTRA_GNU_CXXFLAGS"
+    FATHOM_CXX_SPECIAL="$EXTRA_GNU_ONLY_CXXFLAGS"
     ;;
   GNU:*)
-    FATHOM_CXX_SPECIAL="$EXTRA_GNU_CXXFLAGS"
+    FATHOM_CXX_SPECIAL="$EXTRA_GNU_ONLY_CXXFLAGS"
     ;;
   Intel:*)
     FATHOM_CXX_32BIT=-m32
@@ -801,36 +807,36 @@ case "$cc_compiler:$host_cpu" in
   GNU:sparc*)
     FATHOM_CC_32BIT=-m32
     FATHOM_CC_64BIT=-m64
-    FATHOM_CC_SPECIAL="$EXTRA_GNU_CXXFLAGS"
-    FATHOM_FC_SPECIAL="$EXTRA_GNU_FCFLAGS"
+    FATHOM_CC_SPECIAL="$EXTRA_GNU_ONLY_CXXFLAGS"
+    FATHOM_FC_SPECIAL="$EXTRA_GNU_ONLY_FCFLAGS"
     ;;
   GNU:powerpc*)
     FATHOM_CC_32BIT=-m32
     FATHOM_CC_64BIT=-m64
-    FATHOM_CC_SPECIAL="$EXTRA_GNU_CXXFLAGS"
-    FATHOM_FC_SPECIAL="$EXTRA_GNU_FCFLAGS"
+    FATHOM_CC_SPECIAL="$EXTRA_GNU_ONLY_CXXFLAGS"
+    FATHOM_FC_SPECIAL="$EXTRA_GNU_ONLY_FCFLAGS"
     ;;
   GNU:i?86|GNU:x86_64)
     FATHOM_CC_32BIT=-m32
     FATHOM_CC_64BIT=-m64
-    FATHOM_CC_SPECIAL="$EXTRA_GNU_CXXFLAGS"
-    FATHOM_FC_SPECIAL="$EXTRA_GNU_FCFLAGS"
+    FATHOM_CC_SPECIAL="$EXTRA_GNU_ONLY_CXXFLAGS"
+    FATHOM_FC_SPECIAL="$EXTRA_GNU_ONLY_FCFLAGS"
+    ;;
+  GNU:mips*)
+    FATHOM_CC_32BIT="-mips32 -mabi=32"
+    FATHOM_CC_64BIT="-mips64 -mabi=64"
+    FATHOM_CC_SPECIAL="$EXTRA_GNU_ONLY_CXXFLAGS"
+    FATHOM_FC_SPECIAL="$EXTRA_GNU_ONLY_FCFLAGS"
+    ;;
+  GNU:*)
+    FATHOM_CC_SPECIAL="$EXTRA_GNU_ONLY_CXXFLAGS"
+    FATHOM_FC_SPECIAL="$EXTRA_GNU_ONLY_FCFLAGS"
     ;;
   Intel:*)
     FATHOM_CC_32BIT=-m32
     FATHOM_CC_64BIT=-m64
     FATHOM_CC_SPECIAL="$EXTRA_INTEL_CXXFLAGS -wd981 -wd279 -wd1418 -wd383 -wd1572"
     FATHOM_FC_SPECIAL="$EXTRA_INTEL_FCFLAGS"
-    ;;
-  GNU:mips*)
-    FATHOM_CC_32BIT="-mips32 -mabi=32"
-    FATHOM_CC_64BIT="-mips64 -mabi=64"
-    FATHOM_CC_SPECIAL="$EXTRA_GNU_CXXFLAGS"
-    FATHOM_FC_SPECIAL="$EXTRA_GNU_FCFLAGS"
-    ;;
-  GNU:*)
-    FATHOM_CC_SPECIAL="$EXTRA_GNU_CXXFLAGS"
-    FATHOM_FC_SPECIAL="$EXTRA_GNU_FCFLAGS"
     ;;
   VisualAge:*)
     case "$target_vendor" in

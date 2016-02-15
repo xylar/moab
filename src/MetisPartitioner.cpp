@@ -20,6 +20,7 @@
 #include <assert.h>
 #include <sstream>
 #include <map>
+#include <ctime>
 
 #include "moab/MetisPartitioner.hpp"
 #include "moab/Interface.hpp"

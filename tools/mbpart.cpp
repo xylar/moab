@@ -2,6 +2,10 @@
 #include "moab/ProgOptions.hpp"
 #include "moab/ReorderTool.hpp"
 
+#ifdef MOAB_HAVE_MPI
+#include "moab/ParallelComm.hpp"
+#endif
+
 #ifdef MOAB_HAVE_ZOLTAN
 #include "moab/ZoltanPartitioner.hpp"
 
