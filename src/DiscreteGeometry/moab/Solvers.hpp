@@ -76,6 +76,8 @@ public:
 
     static void vec_linear_operation(const int len, const double mu, const double* a, const double psi, const double* b, double* c);
 
+    static void get_tri_natural_coords(const int dim, const double* cornercoords, const int npts, const double* currcoords, double* naturalcoords);
+
   };
 
 }

@@ -582,5 +582,35 @@ namespace moab {
       }
     }
 
+    void Solvers::get_tri_natural_coords(const int dim, const double* cornercoords, const int npts, const double* currcoords, double* naturalcoords){
+      assert(dim==2||dim==3);
+      double a=0,b=0,d=0,tol=1e-12;
+      for(int i=0;i<dim;++i){
+        a += (cornercoords[dim+i]-cornercoords[i])*(cornercoords[dim+i]-cornercoords[i]);
+        b += (cornercoords[dim+i]-cornercoords[i])*(cornercoords[2*dim+i]-cornercoords[i]);
+        d += (cornercoords[2*dim+i]-cornercoords[i])*(cornercoords[2*dim+i]-cornercoords[i]);
+      }
+      double det = a*d-b*b; assert(det>0);
+      for(int ipt=0;ipt<npts;++ipt){
+        double e=0,f=0;
+        for(int i=0;i<dim;++i){
+          e += (cornercoords[dim+i]-cornercoords[i])*(currcoords[ipt*dim+i]-cornercoords[i]);
+          f += (cornercoords[2*dim+i]-cornercoords[i])*(currcoords[ipt*dim+i]-cornercoords[i]);
+        }
+        naturalcoords[ipt*3+1] = (e*d-b*f)/det; naturalcoords[ipt*3+2] = (a*f-b*e)/det; naturalcoords[ipt*3] = 1-naturalcoords[ipt*3+1]-naturalcoords[ipt*3+2];
+        if(naturalcoords[ipt*3]<-tol||naturalcoords[ipt*3+1]<-tol||naturalcoords[ipt*3+2]<-tol){
+          std::cout << "Corners: \n";
+          std::cout << cornercoords[0] << "\t" << cornercoords[1] << "\t" << cornercoords[3] << std::endl; 
+          std::cout << cornercoords[3] << "\t" << cornercoords[4] << "\t" << cornercoords[5] << std::endl; 
+          std::cout << cornercoords[6] << "\t" << cornercoords[7] << "\t" << cornercoords[8] << std::endl;
+          std::cout << "Candidate: \n";
+          std::cout << currcoords[ipt*dim] << "\t" << currcoords[ipt*dim+1] << "\t" << currcoords[ipt*dim+2] << std::endl;
+          exit(0);
+        }
+        assert(fabs(naturalcoords[ipt*3]+naturalcoords[ipt*3+1]+naturalcoords[ipt*3+2]-1)<tol);
+        for(int i=0;i<dim;++i){
+          assert(fabs(naturalcoords[ipt*3]*cornercoords[i]+naturalcoords[ipt*3+1]*cornercoords[dim+i]+naturalcoords[ipt*3+2]*cornercoords[2*dim+i]-currcoords[ipt*dim+i])<tol);
+        }
+      }
+    }
 }//namespace
-

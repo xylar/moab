@@ -1154,7 +1154,7 @@ namespace moab
 	 bool HiReconstruction::check_barycentric_coords(const int nws, const double* naturalcoords){
 		double sum=0;
 		for(int i=0;i<nws;++i){
-			if(naturalcoords[i]<0){
+			if(naturalcoords[i]<-_MINEPS){
 				return false;
 			}
 			sum += naturalcoords[i];
