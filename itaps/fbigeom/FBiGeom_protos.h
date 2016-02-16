@@ -3,13 +3,12 @@
 
 #include "moab/MOABConfig.h"
 
-#if defined(MOAB_FC_FUNC)
-#define ITAPS_FC_WRAPPER MOAB_FC_FUNC
-#elif defined(MOAB_FC_FUNC_)
+#if defined(MOAB_FC_FUNC_)
 #define ITAPS_FC_WRAPPER MOAB_FC_FUNC_
+#elif defined(MOAB_FC_FUNC)
+#define ITAPS_FC_WRAPPER MOAB_FC_FUNC
 #else
-#warning "Unknown name mangling. Using lowercase name with underscore as default"
-#define ITAPS_FC_WRAPPER(name,NAME) name ## _
+#define ITAPS_FC_WRAPPER(name,NAME) name
 #endif
 
 #define FBiGeom_getDescription ITAPS_FC_WRAPPER( fbigeom_getdescription, FBIGEOM_GETDESCRIPTION )

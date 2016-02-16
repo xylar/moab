@@ -3,13 +3,12 @@
 
 #include "moab/MOABConfig.h"
 
-#if defined(MOAB_FC_FUNC)
-#define MBCN_FC_WRAPPER MOAB_FC_FUNC
-#elif defined(MOAB_FC_FUNC_)
+#if defined(MOAB_FC_FUNC_)
 #define MBCN_FC_WRAPPER MOAB_FC_FUNC_
+#elif defined(MOAB_FC_FUNC)
+#define MBCN_FC_WRAPPER MOAB_FC_FUNC
 #else
-#warning "Unknown name mangling. Using lowercase name with underscore as default"
-#define MBCN_FC_WRAPPER(name,NAME) name ## _
+#define MBCN_FC_WRAPPER(name,NAME) name
 #endif
 
 #define MBCN_GetBasis MBCN_FC_WRAPPER( mbcn_getbasis, MBCN_GETBASIS )
