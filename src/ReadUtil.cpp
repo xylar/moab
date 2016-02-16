@@ -33,8 +33,8 @@ namespace moab {
 
 #define RR if (MB_SUCCESS != result) return result
 
-ReadUtil::ReadUtil(Core* mdb, Error* error_handler)
-  : ReadUtilIface(), mMB(mdb), mError(error_handler)
+ReadUtil::ReadUtil(Core* mdb, Error* /*error_handler*/)
+  : ReadUtilIface(), mMB(mdb)
 {
 }
 

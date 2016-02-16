@@ -29,7 +29,7 @@ static inline bool all_root_set(std::string name, const EntityHandle* array, siz
   return true;
 }
 
-static ErrorCode not_found(const std::string& name)
+static ErrorCode not_found(const std::string& /*name*/)
 {
   // MB_TAG_NOT_FOUND could be a non-error condition, do not call MB_SET_ERR on it
 #if 0

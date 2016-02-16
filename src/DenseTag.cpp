@@ -16,7 +16,8 @@
 
 namespace moab {
 
-static ErrorCode not_found(const std::string& name, EntityHandle h)
+inline
+static ErrorCode not_found(const std::string& /*name*/, EntityHandle /*h*/)
 {
   // MB_TAG_NOT_FOUND could be a non-error condition, do not call MB_SET_ERR on
   // it
@@ -33,7 +34,8 @@ static ErrorCode not_found(const std::string& name, EntityHandle h)
   return MB_TAG_NOT_FOUND;
 }
 
-static ErrorCode ent_not_found(const std::string& name, EntityHandle h)
+inline
+static ErrorCode ent_not_found(const std::string& /*name*/, EntityHandle /*h*/)
 {
   // MB_ENTITY_NOT_FOUND could be a non-error condition, do not call MB_SET_ERR
   // on it
