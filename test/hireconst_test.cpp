@@ -45,6 +45,7 @@ ErrorCode test_unitsphere();
 ErrorCode test_unitcircle();
 
 ErrorCode exact_error_torus(const double R, const double r, const double center[3],  int npnts, double *pnt,  double &error_l1, double &error_l2, double &error_li );
+ErrorCode project_exact_torus(Interface *mbImpl,EntityHandle meshset, int dim,  const double R, const double r, const double center[3]);
 
 int main(int argc, char *argv[]){
 #ifdef MOAB_HAVE_MPI
@@ -145,18 +146,26 @@ ErrorCode test_mesh(const char* infile,const int degree, const bool interp, cons
 	ParallelComm *pc=NULL;
 	EntityHandle meshset;
 
+	//load mesh file
 	ErrorCode error;
 	error = load_meshset_hirec(infile,mbimpl,meshset,pc,degree,dim); MB_CHK_ERR(error);
+
+	//project to exact surface: torus
+	double center[3]={0,0,0};
+	double R=1, r=0.3;
+	error = project_exact_torus(mbimpl, meshset, dim, R, r, center);CHECK_ERR(error);
+
 	//initialize
 	HiReconstruction hirec(dynamic_cast<Core*>(mbimpl),pc,meshset);
 	Range elems;
 	error = mbimpl->get_entities_by_dimension(meshset,dim,elems); MB_CHK_ERR(error);
 	int nelems = elems.size();
 	//std::cout << "Mesh has " << nelems << " elements" << std::endl;
+
 	//reconstruction
 	if(dim==2){
 		//error = hirec.reconstruct3D_surf_geom(degree, interp, false); MB_CHK_ERR(error);
-		error = hirec.reconstruct3D_surf_geom(degree, interp, true); MB_CHK_ERR(error);
+		error = hirec.reconstruct3D_surf_geom(degree, interp, false); MB_CHK_ERR(error);
 	}else if(dim==1){
 		error = hirec.reconstruct3D_curve_geom(degree, interp, false); MB_CHK_ERR(error);
 	}	
@@ -187,13 +196,13 @@ ErrorCode test_mesh(const char* infile,const int degree, const bool interp, cons
 		mxdist = std::max(mxdist,Solvers::vec_distance(3,newcoords,linearcoords));	
 	}
 
-	double center[3]={0,0,0};
-	double R=1, r=0.3;
 
+	// compute error
 	error = exact_error_torus(R, r, center, (int)elems.size(), pnts_proj, errl1, errl2, errli);MB_CHK_ERR(error);
 
 	//std::cout << "Maximum projection lift is " << mxdist << std::endl;
-	std::cout<<"Errors using exact torus for degree "<<degree<<" fit : L1 = "<<errl1<<", L2 = "<<errl2<<", Linf = "<<errli<<std::endl;
+	//std::cout<<"Errors using exact torus for degree "<<degree<<" fit : L1 = "<<errl1<<", L2 = "<<errl2<<", Linf = "<<errli<<std::endl;
+	std::cout<<errl2<<std::endl;
 
 	return error;
 }
@@ -490,6 +499,39 @@ ErrorCode test_unitcircle(){
 	}
 	return error;
 }
+
+ErrorCode project_exact_torus(Interface *mbImpl, EntityHandle meshset, int dim, const double R, const double r, const double center[])
+{
+  ErrorCode error;
+
+  Range elems, verts;
+  error = mbImpl->get_entities_by_dimension(meshset,dim,elems);CHECK_ERR(error);
+  error = mbImpl->get_connectivity(elems, verts);CHECK_ERR(error);
+
+  double pnts[3]={0,0,0}, cnt[3]={0,0,0}, nrms[3]={0,0,0};
+  double x=0, y=0, z=0, d1=0, d2=0;
+  for (int i=0; i<(int)verts.size(); i++)
+    {
+      EntityHandle v = verts[i];
+      error = mbImpl->get_coords(&v, 1, &pnts[0]);CHECK_ERR(error);
+      x = pnts[0]; y = pnts[1]; z = pnts[2];
+      d1 = sqrt(x*x+y*y);
+      cnt[0]= R*x/d1; cnt[1] = R*y/d1; cnt[2] = 0;
+
+      d2 = sqrt((x-cnt[0])*(x-cnt[0])+(y-cnt[1])*(y-cnt[1]) +z*z);
+      nrms[0] = (x-cnt[0])/d2; nrms[1] = (y-cnt[1])/d2; nrms[2] = z/d2;
+
+      pnts[0] = cnt[0]+r*nrms[0];
+      pnts[1] = cnt[1]+r*nrms[1];
+      pnts[2] = cnt[2]+r*nrms[2];
+
+      error = mbImpl->set_coords(&v,1,&pnts[0]);CHECK_ERR(error);
+    }
+
+
+  return MB_SUCCESS;
+}
+
 
 ErrorCode exact_error_torus(const double R, const double r, const double center[], int npnts, double *pnts, double &error_l1, double &error_l2, double &error_li)
 {

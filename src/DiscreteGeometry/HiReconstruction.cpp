@@ -125,7 +125,7 @@ namespace moab
 		}
 
 		//DBG
-		std::cout<<"Total #points ="<<_verts2rec.size()<<", #degraded points = "<<dcount<<std::endl;
+		//std::cout<<"Total #points ="<<_verts2rec.size()<<", #degraded points = "<<dcount<<std::endl;
 
 		_geom = HISURFACE;
 		_hasfittings = true;
