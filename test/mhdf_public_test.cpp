@@ -259,5 +259,8 @@ static int print_file_summary( MHDF_FileDesc* data )
     print_tag_desc( data->tags + i, data );
   
   printf( "   Number partitions: %d\n", data->num_parts);
+  printf( "   Number material sets: %d\n", data->num_mats);
+  printf( "   Number neumann sets: %d\n", data->num_neumann);
+  printf( "   Number dirichlet sets: %d\n", data->num_diri);
   return 0;
 }
