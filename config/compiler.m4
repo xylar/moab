@@ -354,7 +354,7 @@ if (test "x$ENABLE_FORTRAN" != "xno" && test "x$CHECK_FC" != "xno"); then
   # check how to link against C++ runtime for fortran programs correctly
   AC_F77_MAIN
   AC_FC_MAIN
-  AC_FC_WRAPPERS
+  FAC_FC_WRAPPERS
   fcxxlinkage=no
 
   # Check if we are on IBM ANL BG/Q system
