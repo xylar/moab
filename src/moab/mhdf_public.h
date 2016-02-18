@@ -221,13 +221,13 @@ typedef struct mhdf_FileDesc {
   int num_elem_desc;
   struct mhdf_TagDesc* tags;   /**< Array of tag descriptions */
   int num_tag_desc;
-  int numEntSets[4] ;
+  int * numEntSets ; /* used to be [4] */
   /*int num_parts; will look specifically for number of sets with PARALLEL_PARTITION tags*/
   /* int num_mats; will look specifically for number of sets with MATERIAL_SET tags*/
   /*int num_neumann; will look specifically for number of sets with NEUMANN_SET tags*/
   /*int num_diri; will look specifically for number of sets with DIRICHLET_SET tags*/
-  int *defTagsEntSets[4] ; /* we may need to add geometry_dimension tags */
-  int *defTagsVals[4] ;
+  int **defTagsEntSets; /* we may need to add geometry_dimension tags */
+  int **defTagsVals ;
   size_t total_size;           /**< Size of memory block containing all struct data */
   unsigned char* offset;       /**< Unused, may be used by application */
 } MHDF_FileDesc;
