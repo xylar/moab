@@ -258,9 +258,17 @@ static int print_file_summary( MHDF_FileDesc* data )
   for (i = 0; i < data->num_tag_desc; ++i)
     print_tag_desc( data->tags + i, data );
   
-  printf( "   Number partitions: %d\n", data->num_parts);
-  printf( "   Number material sets: %d\n", data->num_mats);
-  printf( "   Number neumann sets: %d\n", data->num_neumann);
-  printf( "   Number dirichlet sets: %d\n", data->num_diri);
+  printf( "   Number partitions: %d\n", data->numEntSets[0]);
+  for (i=0; i<data->numEntSets[0]; i++)
+    printf( " set id %d value %d \n", data->defTagsEntSets[0][i],data->defTagsVals[0][i]);
+  printf( "\n   Number material sets: %d\n", data->numEntSets[1]);
+  for (i=0; i<data->numEntSets[1]; i++)
+    printf( " set id %d value %d \n", data->defTagsEntSets[1][i],data->defTagsVals[1][i]);
+  printf( "\n   Number neumann sets: %d\n", data->numEntSets[2]);
+  for (i=0; i<data->numEntSets[2]; i++)
+    printf( " set id %d value %d \n", data->defTagsEntSets[2][i],data->defTagsVals[2][i]);
+  printf( "\n   Number dirichlet sets: %d\n", data->numEntSets[3]);
+  for (i=0; i<data->numEntSets[3]; i++)
+    printf( " set id %d value %d \n", data->defTagsEntSets[3][i],data->defTagsVals[3][i]);
   return 0;
 }
