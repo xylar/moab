@@ -50,15 +50,6 @@ void handle_error_code(ErrorCode rv, int &number_failed, int &number_successful)
   }
 }
 
-double wtime() {
-  double y = -1;
-  struct timeval cur_time;
-  gettimeofday(&cur_time, NULL);
-  y = (double)(cur_time.tv_sec) + (double)(cur_time.tv_usec)*1.e-6;
-  return (y);
-}
-
-
 ErrorCode test_adjacencies(Interface *mbImpl, NestedRefine *nr, Range all_ents)
 {
   MeshTopoUtil mtu(mbImpl);
@@ -344,12 +335,16 @@ ErrorCode refine_entities(Interface *mb,  ParallelComm* pc, EntityHandle fset, i
   std::vector<EntityHandle> set;
 
   std::cout<<"Starting hierarchy generation"<<std::endl;
-  double time_start = wtime();
-  error = uref.generate_mesh_hierarchy( num_levels,level_degrees, set); CHECK_ERR(error);
-  double time_total = wtime() - time_start;
-  std::cout<<"Finished hierarchy generation in "<<time_total<<"  secs"<<std::endl;
+  error = uref.generate_mesh_hierarchy( num_levels,level_degrees, set, false); CHECK_ERR(error);
+  std::cout<<"Finished hierarchy generation in "<<uref.timeall.tm_total<<"  secs"<<std::endl;
+  #ifdef MOAB_HAVE_MPI
+  if (pc)
+    {
+      std::cout<<"Time taken for refinement "<<uref.timeall.tm_refine<<"  secs"<<std::endl;
+      std::cout<<"Time taken for resolving shared interface "<<uref.timeall.tm_resolve<<"  secs"<<std::endl;
+    }
+#endif
 
-  error = uref.update_special_tags(num_levels,set[num_levels]);CHECK_ERR(error);
   // error = uref.exchange_ghosts(set, 1); CHECK_ERR(error);
 
   std::cout<<std::endl;

@@ -51,7 +51,7 @@ namespace moab
        * \param hm_set EntityHandle STL vector that returns the handles of the sets created for each mesh level.
       */
 
-    ErrorCode generate_mesh_hierarchy( int num_level, int *level_degrees,  std::vector<EntityHandle>& level_sets);
+    ErrorCode generate_mesh_hierarchy( int num_level, int *level_degrees,  std::vector<EntityHandle>& level_sets, bool optimize);
 
     //! Given an entity and its level, return its connectivity.
     /** Given an entity at a certain level, it finds the connectivity via direct access to a stored internal pointer to the memory to connectivity sequence for the given level.
@@ -128,7 +128,7 @@ namespace moab
 
       ErrorCode vertex_to_entities_down(EntityHandle vertex, int vert_level, int child_level, std::vector<EntityHandle> &incident_entities);
 
-    ErrorCode get_vertex_duplicates(EntityHandle vertex, std::vector<EntityHandle> &dup_vertices);
+    ErrorCode get_vertex_duplicates(EntityHandle vertex, int level, EntityHandle &dupvertex);
 
     /** Given an entity at a certain level, it returns a boolean value true if it lies on the domain boundary.
         * \param entity
@@ -354,23 +354,25 @@ namespace moab
     ErrorCode resolve_shared_ents_parmerge(int level, EntityHandle levelset);
     ErrorCode resolve_shared_ents_opt(EntityHandle *hm_set);
 
+    ErrorCode collect_shared_entities_by_dimension(int dim, Range sharedEnts, Range allEnts);
     ErrorCode collect_FList(Range faces, std::vector<EntityHandle> &FList);
     ErrorCode collect_EList(Range edges, std::vector<EntityHandle> &EList);
     ErrorCode collect_VList(Range verts, std::vector<EntityHandle> &VList);
 
-    ErrorCode decipher_remote_handles(std::set<unsigned int> &sharedprocs, std::vector<std::vector<EntityHandle> > &msgsz, std::vector<std::vector<EntityHandle> > &localbuffers, std::vector<std::vector<EntityHandle> > &remotebuffers, std::multimap<EntityHandle, int> &remProcs, std::multimap<EntityHandle, EntityHandle> & remHandles);
+    ErrorCode decipher_remote_handles(int dim, std::set<unsigned int> &sharedprocs, std::vector<std::vector<EntityHandle> > &msgsz, std::vector<std::vector<EntityHandle> > &localbuffers, std::vector<std::vector<EntityHandle> > &remotebuffers, std::multimap<EntityHandle, int> &remProcs, std::multimap<EntityHandle, EntityHandle> & remHandles);
 
-    ErrorCode decipher_remote_handles_face(int cur_proc, int numfaces, std::vector<EntityHandle> &localFaceList, std::vector<EntityHandle> &remFaceList, std::multimap<EntityHandle, int> &remProcs, std::multimap<EntityHandle, EntityHandle> & remHandles);
+    ErrorCode decipher_remote_handles_face(int shared_proc, int numfaces, std::vector<EntityHandle> &localFaceList, std::vector<EntityHandle> &remFaceList, std::multimap<EntityHandle, int> &remProcs, std::multimap<EntityHandle, EntityHandle> & remHandles);
 
-     ErrorCode decipher_remote_handles_edge(int numedges, std::vector<EntityHandle> &localEdgeList, std::vector<EntityHandle> &remEdgeList, std::multimap<EntityHandle, int> &remProcs, std::multimap<EntityHandle, EntityHandle> & remHandles);
+     ErrorCode decipher_remote_handles_edge(int shared_proc, int numedges, std::vector<EntityHandle> &localEdgeList, std::vector<EntityHandle> &remEdgeList, std::multimap<EntityHandle, int> &remProcs, std::multimap<EntityHandle, EntityHandle> & remHandles);
 
-      ErrorCode decipher_remote_handles_vertex(int numverts, std::vector<EntityHandle> &localVertexList, std::vector<EntityHandle> &remVertexList, std::multimap<EntityHandle, int> &remProcs, std::multimap<EntityHandle, EntityHandle> & remHandles);
+      ErrorCode decipher_remote_handles_vertex(int shared_proc, int numverts, std::vector<EntityHandle> &localVertexList, std::vector<EntityHandle> &remVertexList, std::multimap<EntityHandle, int> &remProcs, std::multimap<EntityHandle, EntityHandle> & remHandles);
 
-     ErrorCode update_pstatus_tag(std::multimap<EntityHandle, int> &remProcs, std::multimap<EntityHandle, EntityHandle> & remHandles);
+     ErrorCode update_parallel_tags(std::multimap<EntityHandle, int> &remProcs, std::multimap<EntityHandle, EntityHandle> & remHandles);
 
 
-     ErrorCode get_data_from_buff(int dim, int type, int level, int entityidx, std::vector<EntityHandle> &buffer, std::vector<EntityHandle> &data);
+     ErrorCode get_data_from_buff(int dim, int type, int level, int entityidx, int nentities, std::vector<EntityHandle> &buffer, std::vector<EntityHandle> &data);
 
+     bool check_for_parallelinfo(EntityHandle entity, int proc, std::multimap<EntityHandle, int> &remProcs);
 
   };
 } //name space moab

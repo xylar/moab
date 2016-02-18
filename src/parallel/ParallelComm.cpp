@@ -886,28 +886,44 @@ ErrorCode ParallelComm::send_recv_entities(std::set<unsigned int> &send_procs, s
 
   for (i=0; i< nproc; i++){
 
-  ind = get_buffers(send_procs[i]);
-  localOwnedBuffs[ind]->reset_buffer(sizeof(int));
+      //need to replace the entityhandles of the coarsest level entities with the remote handles
+   /*   if ((msgsizes[i][0] != 0) && (msgsizes[i][2] != 0)) //both edges and vertices have to be sent
+        {
 
-  int buff_size = msgsizes[i].size()*sizeof(int) + senddata[i].size()*sizeof(EntityHandle);
-  localOwnedBuffs[ind]->check_space(buff_size);
+        }
+        else if ((msgsizes[i][0] != 0)) //only edges are being sent
+        {
 
-  //Pack entities
- // PACK_INT(localOwnedBuffs[ind]->buff_ptr, buff_size);
-  PACK_INTS(localOwnedBuffs[ind]->buff_ptr, msgsizes[i].begin(), msgsizes[i].size());
-  PACK_EH(localOwnedBuffs[ind]->buff_ptr, senddata[i].begin(), senddata[i].size());
+        }
+        else if (msgsizes[i][0] != 0)//only vertices are being sent
+        {
 
-  if (myDebug->get_verbosity() == 4) {
-      msgs.resize(msgs.size() + 1);
-      msgs.back() = new Buffer(*localOwnedBuffs[ind]);
-    }
+        }
+      else
+        MB_SET_ERR(MB_FAILURE, "Requesting replacement of local handles with remote handles for invalid case");*/
 
-  // Send the buffer (size stored in front in send_buffer)
-  result = send_buffer(send_procs[i], localOwnedBuffs[ind],
-                       MB_MESG_ENTS_SIZE, sendReqs[3*ind],
-      recv_tag_reqs[3*ind+2],
-      &dum_ack_buff,
-      incoming);MB_CHK_SET_ERR(result, "Failed to Isend in send_recv_entities");
+      ind = get_buffers(send_procs[i]);
+      localOwnedBuffs[ind]->reset_buffer(sizeof(int));
+
+      int buff_size = msgsizes[i].size()*sizeof(int) + senddata[i].size()*sizeof(EntityHandle);
+      localOwnedBuffs[ind]->check_space(buff_size);
+
+      //Pack entities
+      // PACK_INT(localOwnedBuffs[ind]->buff_ptr, buff_size);
+      PACK_INTS(localOwnedBuffs[ind]->buff_ptr, msgsizes[i].begin(), msgsizes[i].size());
+      PACK_EH(localOwnedBuffs[ind]->buff_ptr, senddata[i].begin(), senddata[i].size());
+
+      if (myDebug->get_verbosity() == 4) {
+          msgs.resize(msgs.size() + 1);
+          msgs.back() = new Buffer(*localOwnedBuffs[ind]);
+        }
+
+      // Send the buffer (size stored in front in send_buffer)
+      result = send_buffer(send_procs[i], localOwnedBuffs[ind],
+                           MB_MESG_ENTS_SIZE, sendReqs[3*ind],
+          recv_tag_reqs[3*ind+2],
+          &dum_ack_buff,
+          incoming);MB_CHK_SET_ERR(result, "Failed to Isend in send_recv_entities");
     }
 
 
@@ -965,6 +981,32 @@ ErrorCode ParallelComm::send_recv_entities(std::set<unsigned int> &send_procs, s
 
   return MB_SUCCESS;
 }
+
+ErrorCode ParallelComm::update_remote_data(EntityHandle entity, std::vector<int> &procs, std::vector<EntityHandle> &handles)
+{
+  ErrorCode error;
+  unsigned char pstatus = PSTATUS_INTERFACE;
+
+  int procmin = *std::min_element(procs.begin(), procs.end());
+
+  if (rank() > procmin)
+    pstatus |= PSTATUS_NOT_OWNED;
+
+  error = update_remote_data(entity, procs, handles, pstatus);MB_CHK_ERR(error);
+
+  return MB_SUCCESS;
+}
+
+ErrorCode ParallelComm::get_remote_handles(EntityHandle *local_vec, EntityHandle *rem_vec, int num_ents, int to_proc)
+{
+  ErrorCode error;
+
+  error = get_remote_handles(true, local_vec, rem_vec, num_ents, to_proc);MB_CHK_ERR(error);
+
+  return MB_SUCCESS;
+}
+
+
 
 //////////////////////////////////////////////////////////////////
 

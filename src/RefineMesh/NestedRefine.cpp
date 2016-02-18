@@ -117,7 +117,7 @@ namespace moab{
    *     Interface Functions                                  *
    ************************************************************/
 
-  ErrorCode NestedRefine::generate_mesh_hierarchy(int num_level, int *level_degrees, std::vector<EntityHandle> &level_sets)
+  ErrorCode NestedRefine::generate_mesh_hierarchy(int num_level, int *level_degrees, std::vector<EntityHandle> &level_sets, bool optimize)
   {
     assert(num_level > 0);
     nlevels = num_level;
@@ -142,7 +142,7 @@ namespace moab{
           }
       }
 
-    error = generate_hm(level_degrees, num_level, hmsets); MB_CHK_ERR(error);
+    error = generate_hm(level_degrees, num_level, hmsets, optimize); MB_CHK_ERR(error);
 
     // copy the entity handles
     level_sets.resize(num_level + 1);
@@ -387,6 +387,7 @@ namespace moab{
     return MB_SUCCESS;
   }
 
+
    ErrorCode NestedRefine::vertex_to_entities_down(EntityHandle vertex, int vert_level, int child_level, std::vector<EntityHandle> &incident_entities)
    {
      assert(vert_level < child_level);
@@ -421,18 +422,13 @@ namespace moab{
      return MB_SUCCESS;
    }
 
-  ErrorCode NestedRefine::get_vertex_duplicates(EntityHandle vertex, std::vector<EntityHandle> &dup_vertices)
+
+  ErrorCode NestedRefine::get_vertex_duplicates(EntityHandle vertex, int level, EntityHandle &dupvertex)
   {
     if (((vertex-*_inverts.begin())<0 )|| ( (vertex-*_inverts.begin()) >_inverts.size()))
       MB_SET_ERR(MB_FAILURE, "Requesting duplicates for non-coarse vertices");
 
-    dup_vertices.clear();
-    EntityHandle v;
-    for (int l=0; l<nlevels; l++)
-      {
-        v = level_mesh[l].start_vertex+(vertex-*_inverts.begin());
-        dup_vertices.push_back(v);
-      }
+    dupvertex = level_mesh[level-1].start_vertex+(vertex-*_inverts.begin());
 
     return MB_SUCCESS;
   }
@@ -790,7 +786,7 @@ namespace moab{
     if (pcomm & optimized)
       {
         double tpstart = tm->wtime();
-        error = resolve_shared_ents_opt();MB_CHK_ERR(error);
+        error = resolve_shared_ents_opt(hm_set);MB_CHK_ERR(error);
         timeall.tm_presolve = tm->wtime() - tpstart;
       }
 #endif
@@ -1986,8 +1982,8 @@ namespace moab{
    ErrorCode NestedRefine::resolve_shared_ents_opt(EntityHandle *hm_set)
    {
      assert(pcomm->size() > 1);
-     if (meshdim != 3)
-       MB_SET_ERR(  MB_NOT_IMPLEMENTED, "Optimized resolution of shared interface is not implemented for 1D and 2D meshes");
+     if (meshdim != 2)
+       MB_SET_ERR(  MB_NOT_IMPLEMENTED, "Optimized resolution of shared interface is not implemented for 1D and 3D meshes");
      else
        {
          ErrorCode error;
@@ -2003,10 +1999,12 @@ namespace moab{
            }
 
          //Step 1B: Pre-processing: gather all shared entities and list entities shared with each sharing processor
-         Range all_shared; //All shared entities
+         //All shared entities
+         Range all_shared;
          error = pcomm->get_shared_entities(-1, all_shared, -1, true);MB_CHK_ERR(error);
 
-         std::set<unsigned int> sharedprocs; int num_sharedprocs; //All shared processors
+         //All shared processors
+         std::set<unsigned int> sharedprocs; int num_sharedprocs;
          error = pcomm->get_comm_procs(sharedprocs);MB_CHK_ERR(error);
          num_sharedprocs = sharedprocs.size();
 
@@ -2014,6 +2012,7 @@ namespace moab{
 
          //Create buffer variables for sending and receiving
          std::vector<std::vector<int> > nsharedEntsperproc;
+         std::vector<std::vector<int> > indx_to_replace;
          std::vector<std::vector<EntityHandle> > localBuffs;
          std::vector<std::vector<EntityHandle> > remoteBuffs;
 
@@ -2023,39 +2022,24 @@ namespace moab{
              sharedEnts.clear();
              error = pcomm->get_shared_entities(sharedprocs[i], sharedEnts, -1, true);MB_CHK_ERR(error);
 
-             Range F0, E0, V0;
+             //Get the list shared edges and vertices that are not part of the shared edges
+             Range allEnts;
+             error = collect_shared_entities_by_dimension(meshdim, sharedEnts, allEnts);MB_CHK_ERR(error);
 
-             F0 = sharedEnts.subset_by_dimension(2);
-             Range E0all = sharedEnts.subset_by_dimension(1);
-             Range V0all = sharedEnts.subset_by_dimension(0);
-
-             std::vector<EntityHandle> ents;
-             Range edges,verts;
-             for (Range::iterator it = F0.begin(); it != F0.end(); it++)
-               {
-                 ents.clear();
-                 error = ahf->get_adjacencies(*it, 1, ents);MB_CHK_ERR(error);
-                 std::copy(ents.begin(), ents.end(), range_inserter(edges));
-                 ents.clear();
-                 error = get_connectivity(*it, 0, ents);MB_CHK_ERR(error);
-                 std::copy(ents.begin(), ents.end(), range_inserter(verts));
-               }
-
-             E0 = subtract(E0all, edges);
-             for (Range::iterator it = E0.begin(); it != E0.end(); it++)
-               {
-                 ents.clear();
-                 error = get_connectivity(*it, 0, ents);MB_CHK_ERR(error);
-                 std::copy(ents.begin(), ents.end(), range_inserter(verts));
-               }
-
-             V0 = subtract(V0all, verts);
+             Range E0, V0;
+             E0 = allEnts.subset_by_dimension(1);
+             V0 = allEnts.subset_by_dimension(0);
 
              // Step 2A: Prepare msg to be sent: Collect all child faces
-             std::vector<EntityHandle> FList, EList, VList;
-             if (!F0.empty()){
-                 error = collect_FList(F0, FList);MB_CHK_ERR(error);
-               }
+             // EList = <E, EC> where E and EC are vectors containing the edges and their connectivities.
+             // E = <E_0, E_1, ..., E_L> where
+             //     E_0 is the list of shared edges at the coarsest level and
+             //     E_i are the list of children edges at subsequent levels.
+             // The EC vector contains the connectivities of E_i's.
+             // VList = <V> = <V_0, V_1, ...., V_L> where V_0 are shared vertices at the coarsest level
+             //        and V_i are the duplicates in the subsequent levels.
+
+             std::vector<EntityHandle>  EList, VList;
              if (!E0.empty())
                {
                  error = collect_EList(E0, EList);MB_CHK_ERR(error);
@@ -2067,17 +2051,18 @@ namespace moab{
 
              // Step 2B: Add data to NR local buffer to be sent
              std::vector<int> msgsz;
-             msgsz.push_back(F0.size()); msgsz.push_back(FList.size());
              msgsz.push_back(E0.size()); msgsz.push_back(EList.size());
              msgsz.push_back(V0.size()); msgsz.push_back(VList.size());
              nsharedEntsperproc[i].insert(nsharedEntsperproc[i].end(),msgsz.begin(), msgsz.end());
 
-             if (!F0.empty())
-               localBuffs[i].insert(localBuffs[i].end(), FList.begin(), FList.end());
              if (!E0.empty())
                localBuffs[i].insert(localBuffs[i].end(), EList.begin(), EList.end());
              if (!V0.empty())
                localBuffs[i].insert(localBuffs[i].end(), VList.begin(), VList.end());
+
+
+
+
            }
 
          // Step 3: Send and receive the remote collection of child ents
@@ -2088,12 +2073,70 @@ namespace moab{
          std::multimap<EntityHandle, int> rprocs;
          std::multimap<EntityHandle, EntityHandle> rhandles;
 
-         error = decipher_remote_handles(sharedprocs, nsharedEntsperproc, localBuffs, remoteBuffs, rprocs, rhandles);MB_CHK_ERR(error);
+         error = decipher_remote_handles(meshdim, sharedprocs, nsharedEntsperproc, localBuffs, remoteBuffs, rprocs, rhandles);MB_CHK_ERR(error);
 
 
          // Step 6: Update pcomm tags
-         error = update_pstatus_tag(rprocs, rhandles);MB_CHK_ERR(error);
+         error = update_parallel_tags(rprocs, rhandles);MB_CHK_ERR(error);
        }
+
+     return MB_SUCCESS;
+   }
+
+   ErrorCode NestedRefine::collect_shared_entities_by_dimension(int dim, Range sharedEnts, Range allEnts)
+   {
+     ErrorCode error;
+     if (dim != 2)
+       MB_SET_ERR(MB_NOT_IMPLEMENTED, "Optimized resolution of shared interface is not implemented for 1D and 3D meshes");
+     else
+       {
+         Range E0, V0, V0all, ents, verts;
+         E0 = sharedEnts.subset_by_dimension(1);
+         V0all = sharedEnts.subset_by_dimension(0);
+
+         for (Range::iterator it = E0.begin(); it != E0.end(); it++)
+           {
+             ents.clear();
+             error = get_connectivity(*it, 0, ents);MB_CHK_ERR(error);
+             std::copy(ents.begin(), ents.end(), range_inserter(verts));
+           }
+
+         V0 = subtract(V0all, verts);
+         std::copy(E0.begin(), E0.end(), range_inserter(allEnts));
+         std::copy(V0.begin(), V0.end(), range_inserter(allEnts));
+
+       }
+     /*  {
+
+         Range F0, E0, V0;
+
+         F0 = sharedEnts.subset_by_dimension(2);
+         Range E0all = sharedEnts.subset_by_dimension(1);
+         Range V0all = sharedEnts.subset_by_dimension(0);
+
+         std::vector<EntityHandle> ents;
+         Range edges,verts;
+
+         for (Range::iterator it = F0.begin(); it != F0.end(); it++)
+           {
+             ents.clear();
+             error = ahf->get_adjacencies(*it, 1, ents);MB_CHK_ERR(error);
+             std::copy(ents.begin(), ents.end(), range_inserter(edges));
+             ents.clear();
+             error = get_connectivity(*it, 0, ents);MB_CHK_ERR(error);
+             std::copy(ents.begin(), ents.end(), range_inserter(verts));
+           }
+
+         E0 = subtract(E0all, edges);
+         for (Range::iterator it = E0.begin(); it != E0.end(); it++)
+           {
+             ents.clear();
+             error = get_connectivity(*it, 0, ents);MB_CHK_ERR(error);
+             std::copy(ents.begin(), ents.end(), range_inserter(verts));
+           }
+
+         V0 = subtract(V0all, verts);
+       }*/
 
      return MB_SUCCESS;
    }
@@ -2154,6 +2197,7 @@ namespace moab{
      std::vector<EntityHandle> E, EC;
      std::vector<EntityHandle> childEnts, conn;
 
+     //Add the edges and their connectivities at the coarsest level first.
      for (Range::iterator it = edges.begin(); it != edges.end(); it++)
        {
          conn.clear();
@@ -2162,9 +2206,9 @@ namespace moab{
          EC.push_back(EC.end(), conn.begin(), conn.end());
        }
 
-     for (Range::iterator it = edges.begin(); it != edges.end(); it++)
-       {
-         for (int l=0; l<nlevels; l++)
+     //Add the edges and their connectivities at subsequent levels.
+     for (int l=0; l<nlevels; l++){
+         for (Range::iterator it = edges.begin(); it != edges.end(); it++)
            {
              childEnts.clear();
              error = parent_to_child(*it, 0, l+1, childEnts);MB_CHK_ERR(error);
@@ -2191,65 +2235,77 @@ namespace moab{
      ErrorCode error;
      VList.clear();
      std::vector<EntityHandle> V;
+
+     //Add the vertices at the coarsest level first.
      for (Range::iterator it = verts.begin(); it != verts.end(); it++)
        {
-         error = get_vertex_duplicates(*it, V);MB_CHK_ERR(error);
-         VList.insert(VList.end(), V.begin(), V.end());
+         V.push_back(*it);
        }
 
-     return MB_SUCCESS;
-   }
-
-
-   ErrorCode NestedRefine::decipher_remote_handles(std::set<unsigned int> &sharedprocs, std::vector<std::vector<EntityHandle> > &msgsz, std::vector<std::vector<EntityHandle> > &localbuffers, std::vector<std::vector<EntityHandle> > &remotebuffers, std::multimap<EntityHandle, int> &remProcs, std::multimap<EntityHandle, EntityHandle> &remHandles)
-   {
-     ErrorCode error;
-
-     int nprocs = sharedprocs.size();
-
-     //Main loop over shared processors
-     for (int i=0; i< nprocs; i++)
+     //Add the vertices at the subsequent levels .
+     for (int l=0; l<nlevels; l++)
        {
-         //Faces
-         if (msgsz[0] != 0)
+         for (Range::iterator it = verts.begin(); it != verts.end(); it++)
            {
-             //Get the local and remote face handles from the buffers
-             std::vector<EntityHandle> LFList, RFList;
-             LFList.insert(LFList.end(), localbuffers[i].begin(), localbuffers[i].begin()+msgsz[1]-1);
-             RFList.insert(RFList.end(), remotebuffers[i].begin(), remotebuffers[i].begin()+msgsz[1]-1);
-
-             error = decipher_remote_handles_face(LFList, RFList, remProcs, remHandles);MB_CHK_ERR(error);
-           }
-
-         //Edges
-         if (msgsz[2] != 0)
-           {
-             //Get the local and remote face handles from the buffers
-             std::vector<EntityHandle> LEList, REList;
-             LEList.insert(LEList.end(), localbuffers[i].begin()+msgsz[1], localbuffers[i].begin()+msgsz[1]+msgsz[3]-1);
-             REList.insert(REList.end(), remotebuffers[i].begin()+msgsz[1], remotebuffers[i].begin()+msgsz[1]+msgsz[3]-1);
-
-             error = decipher_remote_handles_edge(LEList, REList, remProcs, remHandles);MB_CHK_ERR(error);
-           }
-
-         //Vertices
-         if (msgsz[4] != 0)
-           {
-             //Get the local and remote face handles from the buffers
-             std::vector<EntityHandle> LVList, RVList;
-             LVList.insert(LVList.end(), localbuffers[i].begin()+msgsz[1]+msgsz[3], localbuffers[i].begin()+msgsz[1]+msgsz[3]+msgsz[5]-1);
-             RVList.insert(RVList.end(), remotebuffers[i].begin()+msgsz[1]+msgsz[3], remotebuffers[i].begin()+msgsz[1]+msgsz[3]+msgsz[5]-1);
-
-             error = decipher_remote_handles_vertex(LVList, RVList, remProcs, remHandles);MB_CHK_ERR(error);
+             EntityHandle dupvert=0;
+             error = get_vertex_duplicates(*it, l+1, &dupvert);MB_CHK_ERR(error);
+             VList.insert(dupvert);
            }
        }
 
      return MB_SUCCESS;
    }
 
-   ErrorCode NestedRefine::decipher_remote_handles_face(int cur_proc, int numfaces, std::vector<EntityHandle> &localFaceList, std::vector<EntityHandle> &remFaceList, std::multimap<EntityHandle, int> &remProcs, std::multimap<EntityHandle, EntityHandle> &remHandles)
+
+   ErrorCode NestedRefine::decipher_remote_handles(int dim, std::set<unsigned int> &sharedprocs, std::vector<std::vector<EntityHandle> > &msgsz, std::vector<std::vector<EntityHandle> > &localbuffers, std::vector<std::vector<EntityHandle> > &remotebuffers, std::multimap<EntityHandle, int> &remProcs, std::multimap<EntityHandle, EntityHandle> &remHandles)
    {
      ErrorCode error;
+     if (dim != 2)
+        MB_SET_ERR(  MB_NOT_IMPLEMENTED, "Optimized resolution of shared interface is not implemented for 1D and 3D meshes");
+     else
+       {
+         int nprocs = sharedprocs.size();
+         for (int i=0; i< nprocs; i++)
+           {
+             //Edges and Vertices
+             if (msgsz[0] != 0) // Edges
+               {
+                 //Get the local and remote face handles from the buffers
+                 std::vector<EntityHandle> LEList, REList;
+                 LEList.insert(LEList.end(), localbuffers[i].begin(), localbuffers[i].begin()+msgsz[1]-1);
+                 REList.insert(REList.end(), remotebuffers[i].begin(), remotebuffers[i].begin()+msgsz[1]-1);
+
+                 error = decipher_remote_handles_edge(sharedprocs[i],msgsz[0], LEList, REList, remProcs, remHandles);MB_CHK_ERR(error);
+
+                 if (msgsz[2] != 0) //Vertices
+                   {
+                     //Get the local and remote face handles from the buffers
+                     std::vector<EntityHandle> LVList, RVList;
+                     LVList.insert(LVList.end(), localbuffers[i].begin()+msgsz[1], localbuffers[i].begin()+msgsz[1]+msgsz[3]-1);
+                     RVList.insert(RVList.end(), remotebuffers[i].begin()+msgsz[1], remotebuffers[i].begin()+msgsz[1]+msgsz[3]-1);
+
+                     error = decipher_remote_handles_vertex(sharedprocs[i], msgsz[2], LVList, RVList, remProcs, remHandles);MB_CHK_ERR(error);
+                   }
+               }
+
+             else if (msgsz[2] != 0) // Only vertices
+               {
+                 //Get the local and remote face handles from the buffers
+                 std::vector<EntityHandle> LVList, RVList;
+                 LVList.insert(LVList.end(), localbuffers[i].begin(), localbuffers[i].end());
+                 RVList.insert(RVList.end(), remotebuffers[i].begin(), remotebuffers[i].end());
+
+                 error = decipher_remote_handles_vertex(sharedprocs[i], msgsz[2], LVList, RVList, remProcs, remHandles);MB_CHK_ERR(error);
+           }
+         }
+       }
+
+     return MB_SUCCESS;
+   }
+
+   ErrorCode NestedRefine::decipher_remote_handles_face(int shared_proc, int numfaces, std::vector<EntityHandle> &localFaceList, std::vector<EntityHandle> &remFaceList, std::multimap<EntityHandle, int> &remProcs, std::multimap<EntityHandle, EntityHandle> &remHandles)
+   {
+ /*    ErrorCode error;
 
      for (int i=0; i<numfaces; i++)
        {
@@ -2292,43 +2348,254 @@ namespace moab{
            }
 
        }
-
+*/
 
      return MB_SUCCESS;
    }
 
-   ErrorCode NestedRefine::decipher_remote_handles_edge(int numedges, std::vector<EntityHandle> &localEdgeList, std::vector<EntityHandle> &remEdgeList, std::multimap<EntityHandle, int> &remProcs, std::multimap<EntityHandle, EntityHandle> &remHandles)
+   ErrorCode NestedRefine::decipher_remote_handles_edge(int shared_proc, int numedges, std::vector<EntityHandle> &localEdgeList, std::vector<EntityHandle> &remEdgeList, std::multimap<EntityHandle, int> &remProcs, std::multimap<EntityHandle, EntityHandle> &remHandles)
    {
      ErrorCode error;
 
+     for (int i=0; i<numedges; i++)
+       {
+         EntityHandle Ledge = localEdgeList[i];
+         int Redge_idx = (std::find(remEdgeList.begin(), remEdgeList.begin()+numedges-1, Ledge)) - remEdgeList.begin();
+
+         std::vector<EntityHandle> Ledge_conn, Redge_conn;
+         error = get_data_from_buff(1, 1, 0, i, localEdgeList, Ledge_conn);MB_CHK_ERR(error);
+         error = get_data_from_buff(1, 1, 0, Redge_idx, remEdgeList, Redge_conn);MB_CHK_ERR(error);
+
+         bool orient = true;
+         if ((Ledge_conn[0] == Redge_conn[1]) && (Ledge_conn[1] == Redge_conn[0]))
+           orient = false;
+
+         if (orient)
+           assert ((Ledge_conn[0] == Redge_conn[0]) && (Ledge_conn[1] == Redge_conn[1]));
+
+         std::vector<EntityHandle> lchildEdgs, rchildEdgs, lconn, rconn;
+         for (int l=0; l<nlevels; l++)
+           {
+             lchildEdgs.clear();
+             rchildEdgs.clear();
+             error = get_data_from_buff(1, 0, l+1, i, localEdgeList, lchildEdgs);MB_CHK_ERR(error);
+             error = get_data_from_buff(1, 0, l+1, Redge_idx, remEdgeList, rchildEdgs);MB_CHK_ERR(error);
+
+             int nchd = lchildEdgs.size();
+
+             if (orient)
+               {
+                 for (int j=0; j<nchd; j++)
+                   {
+                     //match entityhandles of child edges
+                     bool found = check_for_parallelinfo(lchildEdgs[j], shared_proc,remProcs);
+                     if (!found){
+                         remProcs.insert(std::pair<EntityHandle,int>(lchildEdgs[j],shared_proc));
+                         remHandles.insert(std::pair<EntityHandle, EntityHandle>(lchildEdgs[j], rchildEdgs[j]));
+                       }
+
+                     //match entityhandles of child vertices
+                     lconn.clear();rconn.clear();
+                     error = get_data_from_buff(1, 1, l+1, lchildEdgs[j]-*localEdgeList.begin(), lconn);MB_CHK_ERR(error);
+                     error = get_data_from_buff(1, 1, l+1, rchildEdgs[j]-*remEdgeList.begin(), rconn);MB_CHK_ERR(error);
+
+                     found = check_for_parallelinfo(lconn[0], shared_proc, remProcs);
+                     if (!found)
+                       {
+                         remProcs.insert(std::pair<EntityHandle,int>(lconn[0],shared_proc));
+                         remHandles.insert(std::pair<EntityHandle, EntityHandle>(lconn[0], rconn[0]));
+                       }
+                     found = check_for_parallelinfo(lconn[1], shared_proc, remProcs);
+                     if (!found)
+                       {
+                         remProcs.insert(std::pair<EntityHandle,int>(lconn[1],shared_proc));
+                         remHandles.insert(std::pair<EntityHandle, EntityHandle>(lconn[1], rconn[1]));
+                       }
+                   }
+               }
+
+             else
+               {
+                 for (int j=0; j<nchd; j++)
+                   {
+                     //match entityhandles of child edges
+                     bool found = check_for_parallelinfo(lchildEdgs[j], shared_proc, remProcs);
+                     if (!found){
+                         remProcs.insert(std::pair<EntityHandle,int>(lchildEdgs[j],cur_proc));
+                         remHandles.insert(std::pair<EntityHandle, EntityHandle>(lchildEdgs[j], rchildEdgs[nchd-j]));
+                       }
+
+                     //match entityhandles of child vertices
+                     lconn.clear();rconn.clear();
+                     error = get_data_from_buff(1, 1, l+1, lchildEdgs[j]-*localEdgeList.begin(), lconn);MB_CHK_ERR(error);
+                     error = get_data_from_buff(1, 1, l+1, rchildEdgs[nchd-j]-*remEdgeList.begin(), rconn);MB_CHK_ERR(error);
+
+                     found = check_for_parallelinfo(lconn[0], shared_proc, remProcs);
+                     if (!found)
+                       {
+                         remProcs.insert(std::pair<EntityHandle,int>(lconn[0],shared_proc));
+                         remHandles.insert(std::pair<EntityHandle, EntityHandle>(lconn[0], rconn[0]));
+                       }
+                     found = check_for_parallelinfo(lconn[1], shared_proc, remProcs);
+                     if (!found)
+                       {
+                         remProcs.insert(std::pair<EntityHandle,int>(lconn[1],shared_proc));
+                         remHandles.insert(std::pair<EntityHandle, EntityHandle>(lconn[1], rconn[1]));
+                       }
+                   }
+               }
+           }
+       }
+
      return MB_SUCCESS;
    }
 
-   ErrorCode NestedRefine::decipher_remote_handles_vertex(int numverts, std::vector<EntityHandle> &localVertexList, std::vector<EntityHandle> &remVertexList, std::multimap<EntityHandle, int> &remProcs, std::multimap<EntityHandle, EntityHandle> &remHandles)
+   ErrorCode NestedRefine::decipher_remote_handles_vertex(int shared_proc, int numverts, std::vector<EntityHandle> &localVertexList, std::vector<EntityHandle> &remVertexList, std::multimap<EntityHandle, int> &remProcs, std::multimap<EntityHandle, EntityHandle> &remHandles)
    {
      ErrorCode error;
 
+     for (int i=0; i<numverts; i++)
+       {
+         EntityHandle v = localVertexList[i];
+         int Rvert_idx = (std::find(remVertexList.begin(), remVertexList.begin()+numverts-1, v)) - remVertexList.begin();
+
+         std::vector<EntityHandle> lverts, rverts;
+         for (int l=0; l< nlevels; l++)
+           {
+             error = get_data_from_buff(0, 0, l+1, i, localVertexList, lverts);MB_CHK_ERR(error);
+             error = get_data_from_buff(0, 0, l+1, Rvert_idx, remVertexList, rverts);MB_CHK_ERR(error);
+
+             bool found = check_for_parallelinfo(lverts[0], shared_proc, remProcs);
+             if (!found)
+               {
+                 remProcs.insert(std::pair<EntityHandle,int>(lverts[0], shared_proc));
+                 remHandles.insert(std::pair<EntityHandle, EntityHandle>(lverts[0], rverts[0]));
+               }
+           }
+       }
+
      return MB_SUCCESS;
    }
 
 
-   ErrorCode NestedRefine::update_pstatus_tag()
+   ErrorCode NestedRefine::update_parallel_tags(std::multimap<EntityHandle, int> &remProcs, std::multimap<EntityHandle, EntityHandle> & remHandles)
    {
+     ErrorCode error;
+     std::vector<int> rprocs;
+     std::vector<EntityHandle> rhandles;
+
+     for (std::multimap<EntityHandle, int>::iterator it = remProcs.begin(); it != remProcs.end(); it++)
+       {
+         rprocs.clear(); rhandles.clear();
+
+         std::pair <std::multimap<EntityHandle, int>::iterator, std::multimap<EntityHandle, int>::iterator> it_procs;
+         it_procs = remProcs.equal_range(*it);
+
+         rprocs.insert(rprocs.end(), it_procs.first, it_procs.second);
+
+         std::pair <std::multimap<EntityHandle, EntityHandle>::iterator, std::multimap<EntityHandle, EntityHandle>::iterator> it_handles;
+         it_handles = remHandles.equal_range(*it);
+
+         rhandles.insert(rhandles.end(), it_handles.first, it_handles.second);
+
+         error = pcomm->update_remote_data(*it, rprocs, rhandles);MB_CHK_ERR(error);
+
+     }
      return MB_SUCCESS;
    }
 
 
-   ErrorCode NestedRefine::get_data_from_buff(int dim, int type, int level, int entityidx, std::vector<EntityHandle> &buffer, std::vector<EntityHandle> &data)
+   ErrorCode NestedRefine::get_data_from_buff(int listtype, int datatype, int level, int entity_index, int nentities, std::vector<EntityHandle> &buffer, std::vector<EntityHandle> &data)
    {
      /**
-       * dim = 2, 1, 0 for face, edge and vertices, respectively
-       *  type = 0(children entities, for dim = 2,1,0), 1(connectivity, for dim = 2,1), 2(edges, for dim =2)
-       * entityidx = integer index of the entity in the buffer
+       * listtype = 2, 1, 0 for FList (faces), EList (edge) and VList (vertices), respectively
+       *  datatype  =  0(entityhandles of entities at level 0 and their children upto nlevels, in the case of vertices its the duplicate vertices at subsequent levels),
+       *                =  1(connectivity for the above),
+       *                =  2(subentities, only case is edges from FList)
+       * entity_index = integer index of the entity in the buffer
        **/
      data.clear();
 
+     if (listtype == 2)
+       MB_SET_ERR(  MB_NOT_IMPLEMENTED, "Optimized resolution of shared interface is not implemented for 1D and 3D meshes");
+     else {
+         if (listtype == 1)
+           {
+             // EList = <E, EC> where E = <E0, E1, ..,EL> and EC = <EC0, EC1, .., ECL>
+             if (datatype == 0)
+               {
+                 //Requesting children entities at level 'level'. The entity index would be that of the root edge in the coarsest level.
+                 int start, end, toadd;
+                 start = end = entity_index;
+                 toadd = nentities;
+                 for (int i=0; i< level; i++)
+                   {
+                     int d = get_index_from_degree(level_dsequence[i]);
+                     int nch = refTemplates[MBEDGE-1][d].total_new_ents;
+                     start = start*nch + toadd;
+                     end = end*nch + nch-1 + toadd;
+                     toadd = toadd*nch;
+                   }
+
+                 int num_child = end-start;
+                 children.reserve(num_child);
+
+                 for (int i=start; i<=end; i++)
+                   {
+                     EntityHandle child = buffer[i];
+                     data.push_back(child);
+                   }
+               }
+             else if (datatype == 1)
+               {
+                  //Requesting connectivity of children entities at level 'level'. The entity index would be the index in E.
+                 int toadd=0;
+                 for (int i=0; i< nlevels; i++)
+                   {
+                     int d = get_index_from_degree(level_dsequence[i]);
+                     int nch = refTemplates[MBEDGE-1][d].total_new_ents;
+                     toadd = toadd*nch;
+                   }
+                 data.push_back(buffer[toadd+2*i]);
+                 data.push_back(buffer[toadd+2*i+1]);
+               }
+           }
+         else if (listtype == 0)
+           {
+             // VList = <V> where V = <V0, V1, ..,VL>
+             if (datatype ==0)
+               {
+                 int idx = level*nentities+entity_index;
+                 data.push_back(buffer[idx]);
+               }
+             else
+                 MB_SET_ERR(  MB_FAILURE, "Requesting invalid info from buffer for vertices");
+           }
+
+       }
 
      return MB_SUCCESS;
+   }
+
+
+   bool NestedRefine::check_for_parallelinfo(EntityHandle entity, int proc, std::multimap<EntityHandle, int> &remProcs)
+   {
+     bool found = false;
+
+     std::pair <std::multimap<EntityHandle, int>::iterator, std::multimap<EntityHandle, int>::iterator> it_hes;
+     it_hes = remProcs.equal_range(entity);
+
+     for (std::multimap<EntityHandle, int>::iterator it = it_hes.first; it != it_hes.second; ++it)
+       {
+         if (it->second == proc)
+           {
+             found = true;
+             break;
+           }
+       }
+
+
+     return found;
    }
 
   /**********************************
