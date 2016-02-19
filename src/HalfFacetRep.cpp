@@ -1560,7 +1560,7 @@ namespace moab {
     return total_edges;
   }
 
-  ErrorCode HalfFacetRep::get_face_edges(EntityHandle fid, std::vector<EntityHandle> &edges)
+/*  ErrorCode HalfFacetRep::get_face_edges(EntityHandle fid, std::vector<EntityHandle> &edges)
   {
     ErrorCode error;
     edges.clear();
@@ -1588,7 +1588,7 @@ namespace moab {
       }
 
     return MB_SUCCESS;
-  }
+  }*/
 
 
   /*******************************************************

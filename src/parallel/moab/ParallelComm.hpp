@@ -403,7 +403,7 @@ namespace moab {
 
     /** \brief Send and receives data from a set of processors
       */
-    ErrorCode send_recv_entities(std::set<unsigned int> &send_procs, std::vector<std::vector<int> > &msgsizes, std::vector<std::vector<EntityHandle> > &senddata, std::vector<std::vector<EntityHandle> > &recvdata);
+    ErrorCode send_recv_entities(std::vector<int> &send_procs, std::vector<std::vector<int> > &msgsizes, std::vector<std::vector<EntityHandle> > &senddata, std::vector<std::vector<EntityHandle> > &recvdata);
 
     ErrorCode update_remote_data(EntityHandle entity, std::vector<int> &procs, std::vector<EntityHandle> &handles);
 
