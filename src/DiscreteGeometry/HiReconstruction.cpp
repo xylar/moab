@@ -45,7 +45,7 @@ namespace moab
 	ErrorCode HiReconstruction::initialize(bool recwhole){
 		ErrorCode error;
 
-		ahf = new HalfFacetRep(mbImpl,pcomm,_mesh2rec);
+		ahf = new HalfFacetRep(mbImpl,pcomm,_mesh2rec, false);
 		if(!ahf){
 			return MB_MEMORY_ALLOCATION_FAILED;
 		}

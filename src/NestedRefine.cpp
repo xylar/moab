@@ -63,7 +63,7 @@ namespace moab{
 #ifdef MOAB_HAVE_AHF
     ahf = mbImpl->a_half_facet_rep();
 #else
-    ahf = new HalfFacetRep(mbImpl, pcomm, _rset);
+    ahf = new HalfFacetRep(mbImpl, pcomm, _rset, true);
     if (!ahf)
       return MB_MEMORY_ALLOCATION_FAILED;
 #endif

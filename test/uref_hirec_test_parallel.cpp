@@ -314,10 +314,13 @@ int main(int argc, char *argv[]){
 		std::ostringstream convert; convert << i;
 		std::string infile = prefix+convert.str()+suffix;
 		int ntestverts; std::vector<double> geoml1errs,geoml2errs,geomlinferrs;
+
+#ifdef MOAB_HAVE_MPI
 		std::cout << "Processor " << rank << " is working on file " << infile << std::endl;
+#endif
 		error = closedsurface_uref_hirec_convergence_study(infile.c_str(),degs2fit,interp,dim,obj,ntestverts,geoml1errs,geoml2errs,geomlinferrs); MB_CHK_ERR(error);
 		assert(geoml1errs.size()==1+degs2fit.size()&&geoml2errs.size()==1+degs2fit.size()&&geomlinferrs.size()==1+degs2fit.size());
-	#ifdef MOAB_HAVE_MPI
+#ifdef MOAB_HAVE_MPI
 		if(nprocs>1){
 			int ntestverts_global = 0;
 			MPI_Reduce(&ntestverts,&ntestverts_global,1,MPI_INT,MPI_SUM,0,MPI_COMM_WORLD);
@@ -341,13 +344,13 @@ int main(int argc, char *argv[]){
 				geomlinferrs_global[d][i-begin] = geomlinferrs[d];
 			}
 		}
-	#else
+#else
 		for(int d=0;d<degs2fit.size()+1;++d){
 			geoml1errs_global[d][i-begin] = geoml1errs[d];
 			geoml2errs_global[d][i-begin] = geoml2errs[d];
 			geomlinferrs_global[d][i-begin] = geomlinferrs[d];
 		}
-	#endif
+#endif
 	}
 #ifdef MOAB_HAVE_MPI
 	if(rank==0){
