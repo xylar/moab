@@ -10,6 +10,7 @@
 #include "moab/Range.hpp"
 #include "moab/CN.hpp"
 #include <map>
+#include <set>
 
 namespace moab
 {
@@ -359,7 +360,7 @@ namespace moab
     ErrorCode collect_EList(Range edges, std::vector<EntityHandle> &EList);
     ErrorCode collect_VList(Range verts, std::vector<EntityHandle> &VList);
 
-    ErrorCode decipher_remote_handles(int dim, std::set<unsigned int> &sharedprocs, std::vector<std::vector<EntityHandle> > &msgsz, std::vector<std::vector<EntityHandle> > &localbuffers, std::vector<std::vector<EntityHandle> > &remotebuffers, std::multimap<EntityHandle, int> &remProcs, std::multimap<EntityHandle, EntityHandle> & remHandles);
+    ErrorCode decipher_remote_handles(int dim, std::set<unsigned int> &sharedprocs, std::vector<std::vector<int> > &auxinfo, std::vector<std::vector<EntityHandle> > &localbuffers, std::vector<std::vector<EntityHandle> > &remotebuffers, std::multimap<EntityHandle, int> &remProcs, std::multimap<EntityHandle, EntityHandle> & remHandles);
 
     ErrorCode decipher_remote_handles_face(int shared_proc, int numfaces, std::vector<EntityHandle> &localFaceList, std::vector<EntityHandle> &remFaceList, std::multimap<EntityHandle, int> &remProcs, std::multimap<EntityHandle, EntityHandle> & remHandles);
 

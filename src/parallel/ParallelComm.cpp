@@ -854,8 +854,8 @@ ErrorCode ParallelComm::send_recv_entities(std::set<unsigned int> &send_procs, s
   }
 
   unsigned int i;
-  int ind;
-  ErrorCode result = MB_SUCCESS;
+  int ind, success;
+  ErrorCode error = MB_SUCCESS;
 
   //===========================================
   // Pack and send ents from this proc to others
@@ -865,7 +865,7 @@ ErrorCode ParallelComm::send_recv_entities(std::set<unsigned int> &send_procs, s
   sendReqs.resize(3*buffProcs.size(), MPI_REQUEST_NULL);
   int incoming = 0;
   int dum_ack_buff;
-  std::vector<MPI_Request> recv_tag_reqs(3*buffProcs.size(), MPI_REQUEST_NULL);
+  std::vector<MPI_Request> recv_ent_reqs(3*buffProcs.size(), MPI_REQUEST_NULL);
   std::vector<unsigned int>::iterator sit;
 
   for (ind = 0, sit = buffProcs.begin(); sit != buffProcs.end(); ++sit, ind++) {
@@ -876,7 +876,7 @@ ErrorCode ParallelComm::send_recv_entities(std::set<unsigned int> &send_procs, s
     success = MPI_Irecv(remoteOwnedBuffs[ind]->mem_ptr, INITIAL_BUFF_SIZE,
                         MPI_UNSIGNED_CHAR, *sit,
                         MB_MESG_ENTS_SIZE, procConfig.proc_comm(),
-                        &recv_tag_reqs[3*ind]);
+                        &recv_ent_reqs[3*ind]);
     if (success != MPI_SUCCESS) {
       MB_SET_ERR(MB_FAILURE, "Failed to post irecv in ghost exchange");
     }
@@ -884,7 +884,7 @@ ErrorCode ParallelComm::send_recv_entities(std::set<unsigned int> &send_procs, s
 
   unsigned  int nproc = send_procs.size();
 
-  for (i=0; i< nproc; i++){
+  for (std::set<unsigned int>::iterator it = send_procs.begin(); it != send_procs.end(); it++){
 
       //need to replace the entityhandles of the coarsest level entities with the remote handles
    /*   if ((msgsizes[i][0] != 0) && (msgsizes[i][2] != 0)) //both edges and vertices have to be sent
@@ -902,7 +902,7 @@ ErrorCode ParallelComm::send_recv_entities(std::set<unsigned int> &send_procs, s
       else
         MB_SET_ERR(MB_FAILURE, "Requesting replacement of local handles with remote handles for invalid case");*/
 
-      ind = get_buffers(send_procs[i]);
+      ind = get_buffers(*it);
       localOwnedBuffs[ind]->reset_buffer(sizeof(int));
 
       int buff_size = msgsizes[i].size()*sizeof(int) + senddata[i].size()*sizeof(EntityHandle);
@@ -910,8 +910,13 @@ ErrorCode ParallelComm::send_recv_entities(std::set<unsigned int> &send_procs, s
 
       //Pack entities
       // PACK_INT(localOwnedBuffs[ind]->buff_ptr, buff_size);
-      PACK_INTS(localOwnedBuffs[ind]->buff_ptr, msgsizes[i].begin(), msgsizes[i].size());
-      PACK_EH(localOwnedBuffs[ind]->buff_ptr, senddata[i].begin(), senddata[i].size());
+      std::vector<int> msgsize;
+      msgsize.insert(msgsize.end(), msgsizes[i].begin(), msgsizes[i].begin());
+      PACK_INTS(localOwnedBuffs[ind]->buff_ptr, &msgsize[0], msgsizes[i].size());
+
+      std::vector<EntityHandle> entities;
+      entities.insert(entities.end(), senddata[i].begin(), senddata[i].end());
+      PACK_EH(localOwnedBuffs[ind]->buff_ptr, &entities[0], senddata[i].size());
 
       if (myDebug->get_verbosity() == 4) {
           msgs.resize(msgs.size() + 1);
@@ -919,11 +924,11 @@ ErrorCode ParallelComm::send_recv_entities(std::set<unsigned int> &send_procs, s
         }
 
       // Send the buffer (size stored in front in send_buffer)
-      result = send_buffer(send_procs[i], localOwnedBuffs[ind],
+      error = send_buffer(*it, localOwnedBuffs[ind],
                            MB_MESG_ENTS_SIZE, sendReqs[3*ind],
-          recv_tag_reqs[3*ind+2],
+          recv_ent_reqs[3*ind+2],
           &dum_ack_buff,
-          incoming);MB_CHK_SET_ERR(result, "Failed to Isend in send_recv_entities");
+          incoming);MB_CHK_SET_ERR(error, "Failed to Isend in send_recv_entities");
     }
 
 
@@ -931,8 +936,8 @@ ErrorCode ParallelComm::send_recv_entities(std::set<unsigned int> &send_procs, s
   while (incoming) {
     MPI_Status status;
     int index_in_recv_requests;
-    PRINT_DEBUG_WAITANY(recv_tag_reqs, MB_MESG_ENTS_SIZE, procConfig.proc_rank());
-    success = MPI_Waitany(3*buffProcs.size(), &recv_tag_reqs[0], &index_in_recv_requests, &status);
+    PRINT_DEBUG_WAITANY(recv_ent_reqs, MB_MESG_ENTS_SIZE, procConfig.proc_rank());
+    success = MPI_Waitany(3*buffProcs.size(), &recv_ent_reqs[0], &index_in_recv_requests, &status);
     if (MPI_SUCCESS != success) {
       MB_SET_ERR(MB_FAILURE, "Failed in waitany in send_recv_entities");
     }
@@ -946,22 +951,22 @@ ErrorCode ParallelComm::send_recv_entities(std::set<unsigned int> &send_procs, s
 
     bool done = false;
 
-    result = recv_buffer(MB_MESG_ENTS_SIZE,
+    error = recv_buffer(MB_MESG_ENTS_SIZE,
                          status,
                          remoteOwnedBuffs[ind],
-                         recv_tag_reqs[3*ind + 1], // This is for receiving the second message
-                         recv_tag_reqs[3*ind + 2], // This would be for ack, but it is not used; consider removing it
+                         recv_ent_reqs[3*ind + 1], // This is for receiving the second message
+                         recv_ent_reqs[3*ind + 2], // This would be for ack, but it is not used; consider removing it
                          incoming,
                          localOwnedBuffs[ind],
                          sendReqs[3*ind + 1], // Send request for sending the second message
                          sendReqs[3*ind + 2], // This is for sending the ack
-                         done);MB_CHK_SET_ERR(result, "Failed to resize recv buffer");
+                         done);MB_CHK_SET_ERR(error, "Failed to resize recv buffer");
 
     if (done) {
       remoteOwnedBuffs[ind]->reset_ptr(sizeof(int));
 
-      int from_proc = mpi_status.MPI_SOURCE;
-      int idx = send_procs.find(from_proc) - send_procs.begin();
+      int from_proc = status.MPI_SOURCE;
+      int idx = *send_procs.find(from_proc) - *send_procs.begin();
 
       std::vector<int> recvmsg;
       std::vector<EntityHandle> dum_vec;
@@ -992,7 +997,7 @@ ErrorCode ParallelComm::update_remote_data(EntityHandle entity, std::vector<int>
   if (rank() > procmin)
     pstatus |= PSTATUS_NOT_OWNED;
 
-  error = update_remote_data(entity, procs, handles, pstatus);MB_CHK_ERR(error);
+  error = update_remote_data(entity, &procs[0], &handles[0], procs.size(), pstatus);MB_CHK_ERR(error);
 
   return MB_SUCCESS;
 }
@@ -1000,8 +1005,8 @@ ErrorCode ParallelComm::update_remote_data(EntityHandle entity, std::vector<int>
 ErrorCode ParallelComm::get_remote_handles(EntityHandle *local_vec, EntityHandle *rem_vec, int num_ents, int to_proc)
 {
   ErrorCode error;
-
-  error = get_remote_handles(true, local_vec, rem_vec, num_ents, to_proc);MB_CHK_ERR(error);
+  std::vector<EntityHandle> newents;
+  error = get_remote_handles(true, local_vec, rem_vec, num_ents, to_proc, newents);MB_CHK_ERR(error);
 
   return MB_SUCCESS;
 }
