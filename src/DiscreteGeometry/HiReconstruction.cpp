@@ -7,6 +7,7 @@
 #endif
 #include "MBTagConventions.hpp"
 
+
 #include <math.h>
 #include <deque>
 #include <iostream>
@@ -45,21 +46,30 @@ namespace moab
 	ErrorCode HiReconstruction::initialize(bool recwhole){
 		ErrorCode error;
 
-		ahf = new HalfFacetRep(mbImpl,pcomm,_mesh2rec, false);
+	#ifdef HIREC_USE_AHF
+		std::cout << "HIREC_USE_AHF: Initializing" << std::endl;
+		ahf = new HalfFacetRep(mbImpl,pcomm,_mesh2rec);
 		if(!ahf){
 			return MB_MEMORY_ALLOCATION_FAILED;
 		}
-
 		error = ahf->initialize(); MB_CHK_ERR(error);
-		if(CURVE==ahf->thismeshtype){
+	#else
+		ahf = NULL;
+	#endif
+
+		//error = ahf->get_entity_ranges(_inverts,_inedges,_infaces,_incells); MB_CHK_ERR(error);
+		error = mbImpl->get_entities_by_dimension(_mesh2rec,0,_inverts); MB_CHK_ERR(error);
+		error = mbImpl->get_entities_by_dimension(_mesh2rec,1,_inedges); MB_CHK_ERR(error);
+		error = mbImpl->get_entities_by_dimension(_mesh2rec,2,_infaces); MB_CHK_ERR(error);
+		error = mbImpl->get_entities_by_dimension(_mesh2rec,3,_incells); MB_CHK_ERR(error);
+		if(_inedges.size()&&_infaces.empty()&&_incells.empty()){
 			_dim = 1; _MAXPNTS = 13;
-		}else if(SURFACE==ahf->thismeshtype||SURFACE_MIXED==ahf->thismeshtype){
+		}else if(_infaces.size()&&_incells.empty()){
 			_dim = 2; _MAXPNTS = 128;
 		}else{
 			MB_SET_ERR(MB_FAILURE,"Encountered a non-manifold mesh or a mesh with volume elements");
 		}
 
-		error = ahf->get_entity_ranges(_inverts,_inedges,_infaces,_incells); MB_CHK_ERR(error);
 
 		//get locally hosted vertices by filtering pstatus
 	#ifdef MOAB_HAVE_MPI
@@ -462,6 +472,16 @@ namespace moab
 
 	 }
 
+	 ErrorCode HiReconstruction::vertex_get_incident_elements(const EntityHandle& vid, const int elemdim, std::vector<EntityHandle>& adjents){
+	 	ErrorCode error;
+	 	assert(elemdim==_dim);
+	 #ifdef HIREC_USE_AHF
+	 	error = mbImpl->get_up_adjacencies(vid,elemdim,adjents);
+	 #else
+	 	error = mbImpl->get_adjacencies(&vid,1,elemdim,false,adjents); MB_CHK_ERR(error);
+	 #endif
+	 }
+
 	 ErrorCode HiReconstruction::obtain_nring_ngbvs(const EntityHandle vid, int ring, const int minpnts, Range& ngbvs){
 	 	ErrorCode error;
 	 	std::deque<EntityHandle> todo;
@@ -473,7 +493,7 @@ namespace moab
 	 			EntityHandle center = todo.front();
 	 			todo.pop_front(); --count;
 	 			std::vector<EntityHandle> adjents;
-	 			error = ahf->get_up_adjacencies(center,_dim,adjents); MB_CHK_ERR(error);
+	 			error = vertex_get_incident_elements(center,_dim,adjents); MB_CHK_ERR(error);
 	 			for(size_t j=0;j<adjents.size();++j){
 	 				std::vector<EntityHandle> elemconn;
 	 				error = mbImpl->get_connectivity(&adjents[j],1,elemconn); MB_CHK_ERR(error);
@@ -603,7 +623,7 @@ namespace moab
 	 ErrorCode HiReconstruction::average_vertex_normal(const EntityHandle vid, double* nrm){
 	 	ErrorCode error;
 	 	std::vector<EntityHandle> adjfaces;
-	 	error = ahf->get_up_adjacencies(vid,2,adjfaces); MB_CHK_ERR(error);
+	 	error = vertex_get_incident_elements(vid,2,adjfaces); MB_CHK_ERR(error);
 	 	int npolys = adjfaces.size();
 	 	if(!npolys){
 	 		MB_SET_ERR(MB_FAILURE,"Vertex has no incident 2D entities");
@@ -684,7 +704,7 @@ namespace moab
 	 ErrorCode HiReconstruction::average_vertex_tangent(const EntityHandle vid, double* tang){
 	 	ErrorCode error;
 	 	std::vector<EntityHandle> adjedges;
-	 	error = ahf->get_up_adjacencies_1d(vid,adjedges); MB_CHK_ERR(error);
+	 	error = vertex_get_incident_elements(vid,1,adjedges); MB_CHK_ERR(error);
 	 	int nedges = adjedges.size();
 	 	if(!nedges){
 	 		MB_SET_ERR(MB_FAILURE,"Vertex has no incident edges");

@@ -242,6 +242,14 @@ namespace moab
 			//Estimate stencil size
 			int estimate_num_rings(int degree,bool interp);
 
+			//! \brief Given a vertex, return the incident elements with dimension elemdim
+			/** Wrapper of MOAB Core->get_adjacencies and HalfRep->get_up_adjacencies, depends on if USE_AHF is defined
+				* \param vid EntityHandle of vertex
+				* \param elemdim Integer, dimension of elements incidented in vid
+				* \param adjents vector<EntityHandle>, container which push incident elements in
+			*/
+			ErrorCode vertex_get_incident_elements(const EntityHandle& vid, const int elemdim, std::vector<EntityHandle>& adjents);
+
 			//! \brief Get n-ring neighbor vertices, assuming curve/surface mesh, not volume mesh
 			/** Given a vertex, find its n-ring neighbor vertices including itself in _mesrh2rec. 
 				* 1-ring neighbor vertices of a vertex are the vertices connected with this vertex with an edge

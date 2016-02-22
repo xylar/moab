@@ -108,12 +108,12 @@ ErrorCode closedsurface_uref_hirec_convergence_study(const char* infile, std::ve
 
 	ErrorCode error;
 	//mesh will be loaded and communicator pc will be updated
-	int mxdeg = 1; for(int i=0;i<degs2fit.size();++i) mxdeg = std::max(degs2fit[i],mxdeg);
+	int mxdeg = 1; for(size_t i=0;i<degs2fit.size();++i) mxdeg = std::max(degs2fit[i],mxdeg);
 	error = load_meshset_hirec(infile,mbImpl,meshset,pc,mxdeg,dim); MB_CHK_ERR(error);
 
 	Range elems,elems_owned;
 	error = mbImpl->get_entities_by_dimension(meshset,dim,elems); MB_CHK_ERR(error);
-	int nelems = elems.size();
+	size_t nelems = elems.size();
 
 #ifdef MOAB_HAVE_MPI
 	if(pc){
@@ -124,10 +124,10 @@ ErrorCode closedsurface_uref_hirec_convergence_study(const char* infile, std::ve
 #endif
 
 #ifdef MOAB_HAVE_MPI
-	std::cout << "Mesh has " << nelems << " elements on Processor " << rank << " in total;";
-	std::cout << elems_owned.size() << " of which are locally owned elements" << std::endl;
+	//std::cout << "Mesh has " << nelems << " elements on Processor " << rank << " in total;";
+	//std::cout << elems_owned.size() << " of which are locally owned elements" << std::endl;
 #else
-	std::cout << "Mesh has " << nelems << " elements" << std::endl;
+	//std::cout << "Mesh has " << nelems << " elements" << std::endl;
 #endif
 
 	/************************
@@ -147,6 +147,84 @@ ErrorCode closedsurface_uref_hirec_convergence_study(const char* infile, std::ve
 		error = mbImpl->get_coords(&currvert,1,currcoords); MB_CHK_ERR(error);
 		assert(currcoords[0]==exactcoords[0]&&currcoords[1]==exactcoords[1]&&currcoords[2]==exactcoords[2]);
 	}
+
+	//test ahf on mesh with ghost layers
+	/*Range verts_owned;
+	#ifdef MOAB_HAVE_MPI
+		if(pc){
+			error = pc->filter_pstatus(verts,PSTATUS_GHOST,PSTATUS_NOT,-1,&verts_owned); MB_CHK_ERR(error);
+		}else{
+			verts_owned = verts;
+		}
+
+		HalfFacetRep *ahf = new HalfFacetRep(&moab,pc,meshset);
+		error = ahf->initialize(); MB_CHK_ERR(error);
+
+		for(int i=0;i<nprocs;++i){
+			if(rank==i){
+				std::cout << "Processor " << rank << " Local elements: \n";
+				for(Range::iterator ielem=elems.begin();ielem!=elems.end();++ielem){
+					EntityHandle currelem = *ielem;
+					std::vector<EntityHandle> conn;
+					error = mbImpl->get_connectivity(&currelem,1,conn); MB_CHK_ERR(error);
+					std::cout << *ielem << ": ";
+					for(size_t k=0;k<conn.size();++k) std::cout << conn[k] << " ";
+					std::cout << std::endl;
+				}
+				
+				std::cout << "Processor " << rank << " Local owned elements: \n";
+				for(Range::iterator ielem=elems_owned.begin();ielem!=elems_owned.end();++ielem){
+					EntityHandle currelem = *ielem;
+					std::vector<EntityHandle> conn;
+					error = mbImpl->get_connectivity(&currelem,1,conn); MB_CHK_ERR(error);
+					std::cout << *ielem << ": ";
+					for(size_t k=0;k<conn.size();++k) std::cout << conn[k] << " ";
+					std::cout << std::endl;
+				}
+				
+
+				std::cout << "Processor " << rank << " Local vertices: ";
+				for(Range::iterator ivert=verts.begin();ivert!=verts.end();++ivert){
+					std::cout << *ivert << " ";
+				}
+				std::cout << std::endl;
+				std::cout << "Processor " << rank << " Local owned vertices: ";
+				for(Range::iterator ivert=verts_owned.begin();ivert!=verts_owned.end();++ivert){
+					std::cout << *ivert << " ";
+				}
+				std::cout << std::endl;
+
+				for(Range::iterator ivert=verts_owned.begin();ivert!=verts_owned.end();++ivert){
+					EntityHandle currvid = *ivert;
+					std::cout << "Processor " << rank << " local verts: " << *ivert << " has adjfaces: ";
+					std::vector<EntityHandle> adjfaces;
+			 		//error = ahf->get_up_adjacencies(currvid,2,adjfaces); MB_CHK_ERR(error);
+					error = mbImpl->get_adjacencies(&currvid,1,2,false,adjfaces); MB_CHK_ERR(error);
+					for(size_t k=0;k<adjfaces.size();++k){
+						std::cout << adjfaces[k] << " ";
+					}
+					std::cout << std::endl;
+				}
+
+				for(Range::iterator ivert=verts.begin();ivert!=verts.end();++ivert){
+					EntityHandle currvid = *ivert;
+					std::cout << "Processor " << rank << " all verts: " << *ivert << " has adjfaces: ";
+					std::vector<EntityHandle> adjfaces;
+			 		//error = ahf->get_up_adjacencies(*ivert,2,adjfaces); MB_CHK_ERR(error);
+					error = mbImpl->get_adjacencies(&currvid,1,2,false,adjfaces); MB_CHK_ERR(error);
+					for(size_t k=0;k<adjfaces.size();++k){
+						std::cout << adjfaces[k] << " ";
+					}
+					std::cout << std::endl;
+				}
+
+			}else{
+				MPI_Barrier(MPI_COMM_WORLD);
+			}
+		}
+		exit(0);
+	#endif*/
+
 	//generate random points on each elements, assument 3D coordinates
 	int nvpe = TYPE_FROM_HANDLE(*elems.begin())==MBTRI?3:4;
 	std::vector<double> testpnts,testnaturalcoords; ntestverts = elems_owned.size()*nsamples;
@@ -192,7 +270,7 @@ ErrorCode closedsurface_uref_hirec_convergence_study(const char* infile, std::ve
 	geoml1errs.push_back(l1err); geoml2errs.push_back(l2err); geomlinferrs.push_back(linferr);
 	/*Perform high order projection and compute error*/
 	//initialize
-	for(int ideg=0;ideg<degs2fit.size();++ideg){
+	for(size_t ideg=0;ideg<degs2fit.size();++ideg){
 		//High order reconstruction
 		HiReconstruction hirec(&moab,pc,meshset);
 		error = hirec.reconstruct3D_surf_geom(degs2fit[ideg],interp,false,true); MB_CHK_ERR(error);
@@ -324,7 +402,7 @@ int main(int argc, char *argv[]){
 		if(nprocs>1){
 			int ntestverts_global = 0;
 			MPI_Reduce(&ntestverts,&ntestverts_global,1,MPI_INT,MPI_SUM,0,MPI_COMM_WORLD);
-			for(int d=0;d<degs2fit.size()+1;++d){
+			for(size_t d=0;d<degs2fit.size()+1;++d){
 				double local_l1err = ntestverts*geoml1errs[d], local_l2err = geoml2errs[d]*(geoml2errs[d]*ntestverts), local_linferr = geomlinferrs[d];
 				std::cout << "On Processor " << rank << " with mesh " << i << " Degree = " << (d==0?0:degs2fit[d-1]) << " L1:" << geoml1errs[d] << " L2:" << geoml2errs[d] << " Li:" << geomlinferrs[d] << std::endl;
 				double global_l1err=0,global_l2err=0,global_linferr=0;
@@ -338,14 +416,15 @@ int main(int argc, char *argv[]){
 				}
 			}
 		}else{
-			for(int d=0;d<degs2fit.size()+1;++d){
+			for(size_t d=0;d<degs2fit.size()+1;++d){
 				geoml1errs_global[d][i-begin] = geoml1errs[d];
 				geoml2errs_global[d][i-begin] = geoml2errs[d];
 				geomlinferrs_global[d][i-begin] = geomlinferrs[d];
 			}
 		}
+
 #else
-		for(int d=0;d<degs2fit.size()+1;++d){
+		for(size_t d=0;d<degs2fit.size()+1;++d){
 			geoml1errs_global[d][i-begin] = geoml1errs[d];
 			geoml2errs_global[d][i-begin] = geoml2errs[d];
 			geomlinferrs_global[d][i-begin] = geomlinferrs[d];
@@ -355,25 +434,25 @@ int main(int argc, char *argv[]){
 #ifdef MOAB_HAVE_MPI
 	if(rank==0){
 		std::cout << "Degrees: 0 ";
-		for(int ideg=0;ideg<degs2fit.size();++ideg) std::cout << degs2fit[ideg] << " ";
+		for(size_t ideg=0;ideg<degs2fit.size();++ideg) std::cout << degs2fit[ideg] << " ";
 		std::cout << std::endl;
 		std::cout << "L1-norm error: \n";
-		for(int i=0;i<geoml1errs_global.size();++i){
-			for(int j=0;j<geoml1errs_global[i].size();++j){
+		for(size_t i=0;i<geoml1errs_global.size();++i){
+			for(size_t j=0;j<geoml1errs_global[i].size();++j){
 				std::cout << geoml1errs_global[i][j] << " ";
 			}
 			std::cout << std::endl;
 		}
 		std::cout << "L2-norm error: \n";
-		for(int i=0;i<geoml2errs_global.size();++i){
-			for(int j=0;j<geoml2errs_global[i].size();++j){
+		for(size_t i=0;i<geoml2errs_global.size();++i){
+			for(size_t j=0;j<geoml2errs_global[i].size();++j){
 				std::cout << geoml2errs_global[i][j] << " ";
 			}
 			std::cout << std::endl;
 		}
 		std::cout << "Linf-norm error: \n";
-		for(int i=0;i<geomlinferrs_global.size();++i){
-			for(int j=0;j<geomlinferrs_global[i].size();++j){
+		for(size_t i=0;i<geomlinferrs_global.size();++i){
+			for(size_t j=0;j<geomlinferrs_global[i].size();++j){
 				std::cout << geomlinferrs_global[i][j] << " ";
 			}
 			std::cout << std::endl;
@@ -381,25 +460,25 @@ int main(int argc, char *argv[]){
 	}
 #else
 	std::cout << "Degrees: 0 ";
-	for(int ideg=0;ideg<degs2fit.size();++ideg) std::cout << degs2fit[ideg] << " ";
+	for(size_t ideg=0;ideg<degs2fit.size();++ideg) std::cout << degs2fit[ideg] << " ";
 	std::cout << std::endl;
 	std::cout << "L1-norm error: \n";
-	for(int i=0;i<geoml1errs_global.size();++i){
-		for(int j=0;j<geoml1errs_global[i].size();++j){
+	for(size_t i=0;i<geoml1errs_global.size();++i){
+		for(size_t j=0;j<geoml1errs_global[i].size();++j){
 			std::cout << geoml1errs_global[i][j] << " ";
 		}
 		std::cout << std::endl;
 	}
 	std::cout << "L2-norm error: \n";
-	for(int i=0;i<geoml2errs_global.size();++i){
-		for(int j=0;j<geoml2errs_global[i].size();++j){
+	for(size_t i=0;i<geoml2errs_global.size();++i){
+		for(size_t j=0;j<geoml2errs_global[i].size();++j){
 			std::cout << geoml2errs_global[i][j] << " ";
 		}
 		std::cout << std::endl;
 	}
 	std::cout << "Linf-norm error: \n";
-	for(int i=0;i<geomlinferrs_global.size();++i){
-		for(int j=0;j<geomlinferrs_global[i].size();++j){
+	for(size_t i=0;i<geomlinferrs_global.size();++i){
+		for(size_t j=0;j<geomlinferrs_global[i].size();++j){
 			std::cout << geomlinferrs_global[i][j] << " ";
 		}
 		std::cout << std::endl;
