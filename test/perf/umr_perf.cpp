@@ -156,14 +156,14 @@ ErrorCode umr_perf_test(Core *mb, int *level_degrees, int num_levels, OUTTYPE ou
       umem[0].total_storage = vTotS+eTotS;
       umem[0].vertex_storage = vES;
       umem[0].entity_storage = eES;
-      umem[0].tag_storage = vTS+eTS;
+    //  umem[0].tag_storage = vTS+eTS;
 
       std::cout<<"MEMORY STORAGE:: Initial Mesh"<<std::endl;
       std::cout<<std::endl;
       std::cout<<"Total storage = "<<umem[0].total_storage<<std::endl;
       std::cout<<"Vertex storage = "<<umem[0].vertex_storage<<std::endl;
       std::cout<<"Entity storage = "<<umem[0].entity_storage<<std::endl;
-      std::cout<<"Tag storage = "<< umem[0].tag_storage<<std::endl;
+    //  std::cout<<"Tag storage = "<< umem[0].tag_storage<<std::endl;
 
 
   /*    std::cout<<"Total storage = "<<umem[0].total_storage<<std::endl;
@@ -222,7 +222,7 @@ ErrorCode umr_perf_test(Core *mb, int *level_degrees, int num_levels, OUTTYPE ou
           umem[l+1].total_storage = vTotS+eTotS;
           umem[l+1].vertex_storage = vES;
           umem[l+1].entity_storage = eES;
-          umem[l+1].tag_storage = vTS+eTS;
+       //   umem[l+1].tag_storage = vTS+eTS;
 
          /* umem[l+1].total_storage = vTotS+eTotS;
           umem[l+1].amortized_total_storage = vTAS+eTAS;
@@ -238,7 +238,7 @@ ErrorCode umr_perf_test(Core *mb, int *level_degrees, int num_levels, OUTTYPE ou
           std::cout<<"Total storage = "<<umem[l+1].total_storage<<std::endl;
           std::cout<<"Vertex storage = "<<umem[l+1].vertex_storage<<std::endl;
           std::cout<<"Entity storage = "<<umem[l+1].entity_storage<<std::endl;
-          std::cout<<"Tag storage = "<< umem[l+1].tag_storage<<std::endl;
+       //   std::cout<<"Tag storage = "<< umem[l+1].tag_storage<<std::endl;
 
         /*  std::cout<<"Total storage = "<<umem[l+1].total_storage<<std::endl;
           std::cout<<"Total amortized storage = "<< umem[l+1].amortized_total_storage<<std::endl;

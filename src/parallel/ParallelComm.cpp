@@ -861,12 +861,15 @@ ErrorCode ParallelComm::send_recv_entities(std::vector<int> &send_procs, std::ve
   // Pack and send ents from this proc to others
   //===========================================
 
+  std::cout<<"resetting all buffers"<<std::endl;
+
   reset_all_buffers();
   sendReqs.resize(3*buffProcs.size(), MPI_REQUEST_NULL);
   std::vector<MPI_Request> recv_ent_reqs(3*buffProcs.size(), MPI_REQUEST_NULL);
   int ack_buff;
   int incoming = 0;
 
+  std::cout<<"posting irecvs"<<std::endl;
   std::vector<unsigned int>::iterator sit;
 
   for (ind = 0, sit = buffProcs.begin(); sit != buffProcs.end(); ++sit, ind++) {
@@ -884,6 +887,7 @@ ErrorCode ParallelComm::send_recv_entities(std::vector<int> &send_procs, std::ve
   }
 
 
+
 //  std::set<unsigned int>::iterator it;
   for ( i=0; i< (int) send_procs.size(); i++)
     {
@@ -892,22 +896,26 @@ ErrorCode ParallelComm::send_recv_entities(std::vector<int> &send_procs, std::ve
       localOwnedBuffs[ind]->reset_buffer(sizeof(int));
 
       int buff_size = msgsizes[i].size()*sizeof(int) + senddata[i].size()*sizeof(EntityHandle);
+      std::cout<<"buff_size = "<<buff_size<<std::endl;
       localOwnedBuffs[ind]->check_space(buff_size);
 
+      std::cout<<"pack entities"<<std::endl;
       //Pack entities
-      std::vector<int> msgsize;
-      msgsize.insert(msgsize.end(), msgsizes[i].begin(), msgsizes[i].begin());
-      PACK_INTS(localOwnedBuffs[ind]->buff_ptr, &msgsize[0], msgsizes[i].size());
+      std::vector<int> msg;
+      msg.insert(msg.end(), msgsizes[i].begin(), msgsizes[i].begin());
+      PACK_INTS(localOwnedBuffs[ind]->buff_ptr, &msg[0], msg.size());
 
+      std::cout<<"packed the aux info"<<std::endl;
       std::vector<EntityHandle> entities;
       entities.insert(entities.end(), senddata[i].begin(), senddata[i].end());
-      PACK_EH(localOwnedBuffs[ind]->buff_ptr, &entities[0], senddata[i].size());
+      PACK_EH(localOwnedBuffs[ind]->buff_ptr, &entities[0], entities.size());
 
       if (myDebug->get_verbosity() == 4) {
           msgs.resize(msgs.size() + 1);
           msgs.back() = new Buffer(*localOwnedBuffs[ind]);
         }
 
+      std::cout<<"send entities"<<std::endl;
       // Send the buffer (size stored in front in send_buffer)
       error = send_buffer(send_procs[i], localOwnedBuffs[ind],
                            MB_MESG_ENTS_SIZE, sendReqs[3*ind],
@@ -916,6 +924,7 @@ ErrorCode ParallelComm::send_recv_entities(std::vector<int> &send_procs, std::ve
           incoming);MB_CHK_SET_ERR(error, "Failed to Isend in send_recv_entities");
     }
 
+  std::cout<<"completed sending::incoming = "<<incoming<<std::endl;
 
   //===========================================
   // Receive and unpack ents from received data
@@ -932,8 +941,12 @@ ErrorCode ParallelComm::send_recv_entities(std::vector<int> &send_procs, std::ve
       MB_SET_ERR(MB_FAILURE, "Failed in waitany in send_recv_entities");
     }
 
+    std::cout<<"Posted waitany"<<std::endl;
+
     // Processor index in the list is divided by 3
     ind = index_in_recv_requests / 3;
+
+    std::cout<<"ind = "<<ind<<std::endl;
 
     PRINT_DEBUG_RECD(status);
 
@@ -953,18 +966,30 @@ ErrorCode ParallelComm::send_recv_entities(std::vector<int> &send_procs, std::ve
                          sendReqs[3*ind + 2], // This is for sending the ack
                          done);MB_CHK_SET_ERR(error, "Failed to resize recv buffer");
 
+    std::cout<<"received entities"<<std::endl;
+
     if (done) {
       remoteOwnedBuffs[ind]->reset_ptr(sizeof(int));
 
       int from_proc = status.MPI_SOURCE;
       int idx = std::find(send_procs.begin(), send_procs.end(), from_proc) - send_procs.begin();
+      std::cout<<"from_proc = "<<from_proc<<", idx = "<<idx<<std::endl;
 
-      std::vector<int> recvmsg;
-      std::vector<EntityHandle> dum_vec;
-      UNPACK_INTS(remoteOwnedBuffs[ind]->buff_ptr, &recvmsg[0], msgsizes[idx].size());
-      UNPACK_EH(remoteOwnedBuffs[ind]->buff_ptr, &dum_vec[0], senddata[idx].size());
+      std::cout<<"unpacking data"<<std::endl;
 
+      int msg = msgsizes[idx].size(); std::vector<int> recvmsg(msg);
+      int ndata = senddata[idx].size(); std::vector<EntityHandle> dum_vec(ndata);
+
+      std::cout<<"msg = "<<msg<<", ndata = "<<ndata<<std::endl;
+
+      UNPACK_INTS(remoteOwnedBuffs[ind]->buff_ptr, &recvmsg[0], msg);
+      UNPACK_EH(remoteOwnedBuffs[ind]->buff_ptr, &dum_vec[0], ndata);
+
+      std::cout<<"finished unpacking data"<<std::endl;
       recvdata[idx].insert(recvdata[idx].end(), dum_vec.begin(), dum_vec.end());
+
+     // for (int j=0; j<recvdata[idx].size(); j++)
+        //std::cout<<recvdata[idx][j]<<std::endl;
     }
   }
 

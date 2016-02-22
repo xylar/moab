@@ -52,7 +52,7 @@ namespace moab
        * \param hm_set EntityHandle STL vector that returns the handles of the sets created for each mesh level.
       */
 
-    ErrorCode generate_mesh_hierarchy( int num_level, int *level_degrees,  std::vector<EntityHandle>& level_sets, bool optimize);
+    ErrorCode generate_mesh_hierarchy( int num_level, int *level_degrees,  std::vector<EntityHandle>& level_sets, bool optimize=false);
 
     //! Given an entity and its level, return its connectivity.
     /** Given an entity at a certain level, it finds the connectivity via direct access to a stored internal pointer to the memory to connectivity sequence for the given level.
@@ -355,7 +355,7 @@ namespace moab
     ErrorCode resolve_shared_ents_parmerge(int level, EntityHandle levelset);
     ErrorCode resolve_shared_ents_opt(EntityHandle *hm_set, int num_levels);
 
-    ErrorCode collect_shared_entities_by_dimension(int dim, Range sharedEnts, Range allEnts);
+    ErrorCode collect_shared_entities_by_dimension(int dim, Range sharedEnts, Range &allEnts);
     //ErrorCode collect_FList(Range faces, std::vector<EntityHandle> &FList);
     ErrorCode collect_EList(int to_proc, Range edges, std::vector<EntityHandle> &EList, std::vector<EntityHandle> &RList);
     ErrorCode collect_VList(int to_proc, Range verts, std::vector<EntityHandle> &VList, std::vector<EntityHandle> &RList);
