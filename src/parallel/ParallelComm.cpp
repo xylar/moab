@@ -840,6 +840,12 @@ ErrorCode ParallelComm::send_entities(std::vector<unsigned int>& send_procs,
 /////////////////////////////////////////////////////////////////////////////////
 // Send and Receive routines for a sequence of entities: use case UMR
 /////////////////////////////////////////////////////////////////////////////////
+void print_buff(unsigned char * ch, int size)
+{
+  for (int i=0; i<size; i++)
+    std::cout<<ch[i];
+  std::cout<<"\n";
+}
 ErrorCode ParallelComm::send_recv_entities(std::vector<int> &send_procs, std::vector<std::vector<int> > &msgsizes, std::vector<std::vector<EntityHandle> > &senddata, std::vector<std::vector<EntityHandle> > &recvdata)
 {
 #ifdef USE_MPE
@@ -902,14 +908,22 @@ ErrorCode ParallelComm::send_recv_entities(std::vector<int> &send_procs, std::ve
       std::cout<<"pack entities"<<std::endl;
       //Pack entities
       std::vector<int> msg;
-      msg.insert(msg.end(), msgsizes[i].begin(), msgsizes[i].begin());
+      msg.insert(msg.end(), msgsizes[i].begin(), msgsizes[i].end());
+      for (std::vector<int>::iterator it= msg.begin(); it!=msg.end(); it++)
+        std::cout<<*it<<std::endl;
       PACK_INTS(localOwnedBuffs[ind]->buff_ptr, &msg[0], msg.size());
 
       std::cout<<"packed the aux info"<<std::endl;
       std::vector<EntityHandle> entities;
       entities.insert(entities.end(), senddata[i].begin(), senddata[i].end());
+      for (std::vector<EntityHandle>::iterator it= entities.begin(); it!=entities.end(); it++)
+              std::cout<<*it<<std::endl;
       PACK_EH(localOwnedBuffs[ind]->buff_ptr, &entities[0], entities.size());
 
+      localOwnedBuffs[ind]->set_stored_size();
+
+      //print_buffer(localOwnedBuffs[ind]->mem_ptr, MB_MESG_ENTS_SIZE, send_procs[i], false);
+      print_buff(localOwnedBuffs[ind]->mem_ptr, localOwnedBuffs[ind]->get_stored_size() );
       if (myDebug->get_verbosity() == 4) {
           msgs.resize(msgs.size() + 1);
           msgs.back() = new Buffer(*localOwnedBuffs[ind]);
@@ -969,6 +983,7 @@ ErrorCode ParallelComm::send_recv_entities(std::vector<int> &send_procs, std::ve
     std::cout<<"received entities"<<std::endl;
 
     if (done) {
+      print_buff(remoteOwnedBuffs[ind]->mem_ptr, remoteOwnedBuffs[ind]->get_stored_size() );
       remoteOwnedBuffs[ind]->reset_ptr(sizeof(int));
 
       int from_proc = status.MPI_SOURCE;
@@ -988,8 +1003,8 @@ ErrorCode ParallelComm::send_recv_entities(std::vector<int> &send_procs, std::ve
       std::cout<<"finished unpacking data"<<std::endl;
       recvdata[idx].insert(recvdata[idx].end(), dum_vec.begin(), dum_vec.end());
 
-     // for (int j=0; j<recvdata[idx].size(); j++)
-        //std::cout<<recvdata[idx][j]<<std::endl;
+      for (int j=0; j<recvdata[idx].size(); j++)
+        std::cout<<recvdata[idx][j]<<std::endl;
     }
   }
 
