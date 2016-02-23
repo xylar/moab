@@ -73,7 +73,10 @@ ErrorCode test_adjacencies(Interface *mbImpl, NestedRefine *nr, Range all_ents)
           adjents.clear(); mbents.clear(); ahfents.clear();
           error = nr->get_adjacencies( *i, 1, adjents);  CHECK_ERR(error);
           error = mbImpl->get_adjacencies( &*i, 1, 1, false, mbents ); CHECK_ERR(error);
+<<<<<<< 7de221388b2c44652c50412f342f2b2b05b8a1d4
 
+=======
+>>>>>>> Fixing matching remote handles.
           std::sort(adjents.begin(), adjents.end());
           std::copy(adjents.begin(), adjents.end(), range_inserter(ahfents));
 
@@ -87,6 +90,12 @@ ErrorCode test_adjacencies(Interface *mbImpl, NestedRefine *nr, Range all_ents)
 
           CHECK_EQUAL(adjents.size(),mbents.size());
           mbents = subtract(mbents, ahfents);
+          if (ahfents.size() != mbents.size())
+            {
+              ahfents.print();
+              mbents.print();
+            }
+          //CHECK_EQUAL(adjents.size(),mbents.size());
           CHECK(!mbents.size());
       }
 
@@ -1210,7 +1219,7 @@ ErrorCode test_mesh(const char* filename, int *level_degrees, int num_levels)
     MPI_Comm_size(MPI_COMM_WORLD, &procs);
 
     if (procs > 1){
-    read_options = "PARALLEL=READ_PART;PARTITION=PARALLEL_PARTITION;PARALLEL_RESOLVE_SHARED_ENTS;";
+    read_options = "PARALLEL=READ_PART;PARTITION=PARALLEL_PARTITION;PARALLEL_RESOLVE_SHARED_ENTS";
 
     error = mbImpl->load_file(filename,  &fileset, read_options.c_str()); CHECK_ERR(error);
     }
@@ -1254,10 +1263,6 @@ int main(int argc, char *argv[])
     else if (argc == 2)
       {
         const char* filename = argv[1];
-<<<<<<< 6d079cac52f3ec9163b447fa9e3e9c42af12dd04
-=======
-   //     int deg[4] = {2,3,2,3};
->>>>>>> Fixed compiler errors.
         int deg[1] = {2};
         int len = sizeof(deg) / sizeof(int);
         result = test_mesh(filename, deg, len);
