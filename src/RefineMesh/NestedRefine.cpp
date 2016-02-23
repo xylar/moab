@@ -2550,7 +2550,7 @@ namespace moab{
                      if (!found)
                        {
                          remProcs.insert(std::pair<EntityHandle,int>(lconn[1],shared_proc));
-                         remHandles.insert(std::pair<EntityHandle, EntityHandle>(lconn[1], rconn[1]));
+                         remHandles.insert(std::pair<EntityHandle, EntityHandle>(lconn[1], rconn[0]));
                        }
                    }
                }
@@ -2592,7 +2592,7 @@ namespace moab{
                      if (!found)
                        {
                          remProcs.insert(std::pair<EntityHandle,int>(lconn[0],shared_proc));
-                         remHandles.insert(std::pair<EntityHandle, EntityHandle>(lconn[0], rconn[0]));
+                         remHandles.insert(std::pair<EntityHandle, EntityHandle>(lconn[0], rconn[1]));
                        }
 
                      found = check_for_parallelinfo(lconn[1], shared_proc, remProcs);
@@ -2663,7 +2663,9 @@ namespace moab{
          for (std::multimap<EntityHandle, int>::iterator pit = it_procs.first; pit != it_procs.second; pit++)
            rprocs.push_back(pit->second);
          for (std::multimap<EntityHandle, EntityHandle>::iterator pit = it_handles.first; pit != it_handles.second; pit++)
-         rhandles.push_back(pit->second);
+           rhandles.push_back(pit->second);
+
+         std::cout<<" entity = " << entity << " rprocs[0]=" <<  rprocs[0]<< " rhandles[0]=" << rhandles[0] << "\n";
 
          error = pcomm->update_remote_data(entity, rprocs, rhandles);MB_CHK_ERR(error);
 
