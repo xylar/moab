@@ -92,10 +92,10 @@ ErrorCode test_adjacencies(Interface *mbImpl, NestedRefine *nr, Range all_ents)
           mbents = subtract(mbents, ahfents);
           if (ahfents.size() != mbents.size())
             {
-              std::cout<<"ahf results = "<<std::endl;
-              ahfents.print();
-              std::cout<<"native results = "<<std::endl;
-              mbents.print();
+           //   std::cout<<"ahf results = "<<std::endl;
+            //  ahfents.print();
+           //   std::cout<<"native results = "<<std::endl;
+           //   mbents.print();
             }
         //  CHECK_EQUAL(adjents.size(),mbents.size());
           CHECK(!mbents.size());
@@ -347,6 +347,7 @@ ErrorCode refine_entities(Interface *mb,  ParallelComm* pc, EntityHandle fset, i
 
   std::cout<<"Starting hierarchy generation"<<std::endl;
   bool opt = true;
+  //bool opt = false;
   error = uref.generate_mesh_hierarchy( num_levels,level_degrees, set, opt); CHECK_ERR(error);
   std::cout<<"Finished hierarchy generation in "<<uref.timeall.tm_total<<"  secs"<<std::endl;
   #ifdef MOAB_HAVE_MPI
@@ -400,7 +401,7 @@ ErrorCode refine_entities(Interface *mb,  ParallelComm* pc, EntityHandle fset, i
         }
 
       //Check adjacencies
-      error = test_adjacencies(mb, &uref, all_ents); CHECK_ERR(error);
+     // error = test_adjacencies(mb, &uref, all_ents); CHECK_ERR(error);
 
       //Check interlevel child-parent query between previous and current level
       for (int type = 1; type < 3; type++)

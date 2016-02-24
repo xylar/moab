@@ -243,6 +243,9 @@ int main(int argc, char* argv[])
     }
 
   std::cout<<"Starting hierarchy generation"<<std::endl;
+
+  std::cout<<"opt = "<<optimize<<std::endl;
+
   error = uref.generate_mesh_hierarchy( num_levels, ldeg, lsets, optimize);MB_CHK_ERR(error);
 
   if (print_times)

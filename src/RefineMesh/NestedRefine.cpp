@@ -6,7 +6,7 @@
 #include "moab/ReadUtilIface.hpp"
 #include "Internals.hpp"
 #include "MBTagConventions.hpp"
-#include "DebugOutput.hpp"
+//#include "DebugOutput.hpp"
 
 #ifdef MOAB_HAVE_MPI
 #include "moab/ParallelComm.hpp"
@@ -24,7 +24,7 @@
 namespace moab{
 
   NestedRefine::NestedRefine(Core *impl, ParallelComm *comm, EntityHandle rset)
-    : mbImpl(impl), pcomm(comm), _rset(rset), myDebug(NULL)
+    : mbImpl(impl), pcomm(comm), _rset(rset)
   {
     ErrorCode error;
     assert(NULL != impl);
@@ -51,7 +51,7 @@ namespace moab{
     delete ahf;
 #endif
     delete tm;
-    delete myDebug;
+//    delete myDebug;
 
   }
 
@@ -112,13 +112,13 @@ namespace moab{
     //Set ghost flag to false
       hasghost = false;
 
-      if (!myDebug)
+    /*  if (!myDebug)
       {
         myDebug = new DebugOutput("NestedRefine", std::cerr);
         myDebug->set_rank( pcomm->rank());
         myDebug->set_verbosity(1);
         //std::cout<<"rank = "<<pcomm->rank()<<std::endl;
-      }
+      }*/
 
     return MB_SUCCESS;
   }
@@ -2012,10 +2012,12 @@ namespace moab{
              int partid = pcomm->rank(), dum_id = -1;
              error = mbImpl->tag_get_handle("PARALLEL_PARTITION", 1, moab::MB_TYPE_INTEGER, part_tag, moab::MB_TAG_CREAT | moab::MB_TAG_SPARSE, &dum_id);MB_CHK_ERR(error);
              error = mbImpl->tag_set_data(part_tag, &hm_set[i], 1, &partid);MB_CHK_ERR(error);
+           }
 
-
-             //for debug purposes
-
+///////////////////////////////
+         //for debug purposes
+       /*  for (int i=0; i<num_levels; i++)
+           {
              ReadUtilIface *read_iface;
              error = mbImpl->query_interface(read_iface);MB_CHK_ERR(error);
              if (level_mesh[i].num_edges != 0)
@@ -2034,16 +2036,12 @@ namespace moab{
                  int nvpc = ahf->lConnMap3D[index].num_verts_in_cell;
                  error = read_iface->update_adjacencies(level_mesh[i].start_cell, level_mesh[i].num_cells, nvpc, level_mesh[i].cell_conn);MB_CHK_ERR(error);
                }
-           }
+           }*/
+//////////////////////////////
 
          //
 
          //Step 1B: Pre-processing: gather all shared entities and list entities shared with each sharing processor
-         //All shared entities
-         //  Range all_shared;
-         // error = pcomm->get_shared_entities(-1, all_shared, -1, true);MB_CHK_ERR(error);
-
-      //   std::cout<<"Getting all shared processors"<<std::endl;
 
          //All shared processors
          std::set<unsigned int> shprocs;
@@ -2052,15 +2050,8 @@ namespace moab{
          for (std::set<unsigned int>::iterator it = shprocs.begin(); it != shprocs.end(); it++)
            sharedprocs.push_back(*it);
          int nprocs = sharedprocs.size();
+         std::cout<<"nprocs = "<<nprocs;
 
-        // myDebug->tprint(1,"printing shared procs\n");
-         if (myDebug->get_verbosity() ==1){
-           //  int success = MPI_Barrier(pcomm->rank());
-             std::cout<<"shared procs = [ "<<std::endl;
-             for (int i=0; i<(int)sharedprocs.size(); i++)
-               std::cout<<sharedprocs[i];
-             std::cout<<"]"<<std::endl;
-           }
          //Create buffer variables storing the entities to be sent and received
          std::vector<std::vector<int> > nsharedEntsperproc(nprocs);
          std::vector<std::vector<EntityHandle> > localBuffs(nprocs);
@@ -2070,26 +2061,24 @@ namespace moab{
          int i;
          Range sharedentities;
 
-         std::cout<<"Collecting data to be send"<<std::endl;
-
          for (i=0; i < nprocs; i++)
            {
              // List of shared entities at the coarsest level
              sharedentities.clear();
              error = pcomm->get_shared_entities(sharedprocs[i], sharedentities, -1, true);MB_CHK_ERR(error);
 
-             std::cout<<"Get shared entities"<<std::endl;
-             sharedentities.print();
-
              //Get the list shared edges and vertices that are not part of the shared edges
              Range allEnts;
              error = collect_shared_entities_by_dimension(meshdim, sharedentities, allEnts);MB_CHK_ERR(error);
 
-             std::cout<<"collect_shared_entities_by_dimension"<<std::endl;
+         std::cout<<"collect_shared_entities_by_dimension"<<std::endl;
 
              Range E0, V0;
-             E0 = allEnts.subset_by_dimension(1);E0.print();
-             V0 = allEnts.subset_by_dimension(0);V0.print();
+             E0 = allEnts.subset_by_dimension(1);
+             V0 = allEnts.subset_by_dimension(0);
+
+             std::cout<<"#sharedEdges with proc = "<<sharedprocs[i]<<" :: "<<E0.size()<<std::endl;
+             std::cout<<"#sharedNonManifoldVertices with proc = "<<sharedprocs[i]<<" :: "<<V0.size()<<std::endl;
 
              // Step 2A: Prepare msg to be sent:
              // EList = <E, EC> where E and EC are vectors containing the edges and their connectivities.
@@ -2106,12 +2095,6 @@ namespace moab{
              if (!E0.empty())
                {
                  error = collect_EList(sharedprocs[i], E0, locEList, remEList);MB_CHK_ERR(error);
-
-                 for (int j=0; j<(int)locEList.size(); j++)
-                   std::cout<<"locEList["<<j<<"] = "<<locEList[j]<<std::endl;
-                 for (int j=0; j<(int)remEList.size(); j++)
-                   std::cout<<"remEList["<<j<<"] = "<<remEList[j]<<std::endl;
-
                }
 
              //collect vertices
@@ -2126,9 +2109,6 @@ namespace moab{
              msgsz.push_back(V0.size()); msgsz.push_back(locVList.size());
              nsharedEntsperproc[i].insert(nsharedEntsperproc[i].end(),msgsz.begin(), msgsz.end());
 
-          //   for (int j=0; j<nsharedEntsperproc[i].size(); j++)
-            //   std::cout<<"nsharedEntsperproc[i]["<<j<<"] = "<<nsharedEntsperproc[i][j]<<std::endl;
-
              if (!E0.empty())
                {
                  localBuffs[i].insert(localBuffs[i].end(), locEList.begin(), locEList.end());
@@ -2141,29 +2121,17 @@ namespace moab{
                }
            }
 
-         std::cout<<"Before call to send_recv_entities"<<std::endl;
-
          // Step 3: Send and receive the remote collection of child ents
          error = pcomm->send_recv_entities(sharedprocs, nsharedEntsperproc, remlocalBuffs, remoteBuffs);MB_CHK_ERR(error);
-
-         std::cout<<"After call to send_recv_entities"<<std::endl;
 
          // Step 5: Resolve shared child entities and update parallel tags
          std::multimap<EntityHandle, int> rprocs;
          std::multimap<EntityHandle, EntityHandle> rhandles;
 
-         std::cout<<"Before call to decipher_remote_handles"<<std::endl;
-
          error = decipher_remote_handles(meshdim, sharedprocs, nsharedEntsperproc, localBuffs, remoteBuffs, rprocs, rhandles);MB_CHK_ERR(error);
 
-         std::cout<<"After  call to decipher_remote_handles"<<std::endl;
-
-         std::cout<<"Before call to update_parallel_tags"<<std::endl;
          // Step 6: Update pcomm tags
          error = update_parallel_tags(rprocs, rhandles);MB_CHK_ERR(error);
-
-         std::cout<<"After call to update_parallel_tags"<<std::endl;
-
        }
 
      return MB_SUCCESS;
@@ -2391,7 +2359,6 @@ namespace moab{
              for (int j=0; j< (int)auxinfo[i].size(); j++)
                {
                  msgsz.push_back(auxinfo[i][j]);
-               //  std::cout<<"msgsz["<<j<<"] = "<<msgsz[j]<<std::endl;
                }
 
 
@@ -2403,12 +2370,6 @@ namespace moab{
                  std::vector<EntityHandle> LEList, REList;
                  LEList.insert(LEList.end(), localbuffers[i].begin(), localbuffers[i].begin()+msgsz[1]);
                  REList.insert(REList.end(), remotebuffers[i].begin(), remotebuffers[i].begin()+msgsz[1]);
-
-             //    for (int j=0; j<LEList.size(); j++)
-            //       std::cout<<"LEList["<<j<<"] = "<<LEList[j]<<std::endl;
-            //     for (int j=0; j<REList.size(); j++)
-          //         std::cout<<"REList["<<j<<"] = "<<REList[j]<<std::endl;
-
 
                  error = decipher_remote_handles_edge(sharedprocs[i], msgsz[0], LEList, REList, remProcs, remHandles);MB_CHK_ERR(error);
 
@@ -2492,29 +2453,14 @@ namespace moab{
    {
      ErrorCode error;
 
-     std::cout<<"Input local and rem edge list\n";
-     for (int j=0; j<(int)localEdgeList.size(); j++)
-       std::cout<<"localEdgeList["<<j<<"] = "<<localEdgeList[j]<<std::endl;
-     for (int j=0; j<(int)remEdgeList.size(); j++)
-       std::cout<<"remEdgeList["<<j<<"] = "<<remEdgeList[j]<<std::endl;
-
-
      for (int i=0; i<numedges; i++)
        {
          EntityHandle Ledge = localEdgeList[i];
-
-         std::cout<<"Ledge = "<<Ledge<<std::endl;
-
          int Redge_idx = (std::find(remEdgeList.begin(), remEdgeList.begin()+numedges-1, Ledge)) - remEdgeList.begin();
 
-         std::cout<<"Redge_idx = "<<Redge_idx<<std::endl;
-         std::cout<<"numedges = "<<numedges<<std::endl;
          std::vector<EntityHandle> Ledge_conn, Redge_conn;
          error = get_data_from_buff(1, 1, 0, i, numedges, localEdgeList, Ledge_conn);MB_CHK_ERR(error);
          error = get_data_from_buff(1, 1, 0, Redge_idx, numedges, remEdgeList, Redge_conn);MB_CHK_ERR(error);
-
-         std::cout<<"Ledge_conn[0] = "<<Ledge_conn[0]<<", Ledge_conn[1] = "<<Ledge_conn[1]<<std::endl;
-         std::cout<<"Redge_conn[0] = "<<Redge_conn[0]<<", Redge_conn[1] = "<<Redge_conn[1]<<std::endl;
 
          bool orient = true;
          if ((Ledge_conn[0] == Redge_conn[1]) && (Ledge_conn[1] == Redge_conn[0]))
@@ -2522,8 +2468,6 @@ namespace moab{
 
          if (orient)
            assert ((Ledge_conn[0] == Redge_conn[0]) && (Ledge_conn[1] == Redge_conn[1]));
-
-         std::cout<<"orient = "<<orient<<std::endl;
 
          std::vector<EntityHandle> lchildEdgs, rchildEdgs, lconn, rconn;
          for (int l=0; l<nlevels; l++)
@@ -2534,21 +2478,12 @@ namespace moab{
              error = get_data_from_buff(1, 0, l+1, Redge_idx, numedges, remEdgeList, rchildEdgs);MB_CHK_ERR(error);
 
              int nchd = lchildEdgs.size();
-
-             for (int j=0; j<nchd; j++)
-               std::cout<<"lchildEdgs["<<j<<"] = "<<lchildEdgs[j]<<std::endl;
-             for (int j=0; j<nchd; j++)
-               std::cout<<"rchildEdgs["<<j<<"] = "<<rchildEdgs[j]<<std::endl;
-
              if (orient)
                {
                  for (int j=0; j<nchd; j++)
                    {
                      //match entityhandles of child edges
                      bool found = check_for_parallelinfo(lchildEdgs[j], shared_proc,remProcs);
-
-                     std::cout<<"found = "<<found<<std::endl;
-
                      if (!found){
                          remProcs.insert(std::pair<EntityHandle,int>(lchildEdgs[j],shared_proc));
                          remHandles.insert(std::pair<EntityHandle, EntityHandle>(lchildEdgs[j], rchildEdgs[j]));
@@ -2583,10 +2518,7 @@ namespace moab{
                  for (int j=0; j<nchd; j++)
                    {
                      //match entityhandles of child edges
-                     std::cout<<"lchildEdgs = "<<lchildEdgs[j]<<std::endl;
                      bool found = check_for_parallelinfo(lchildEdgs[j], shared_proc, remProcs);
-
-                     std::cout<<"pinfo set of child EH = "<<found<<std::endl;
 
                      if (!found){
                          remProcs.insert(std::pair<EntityHandle,int>(lchildEdgs[j],shared_proc));
@@ -2599,18 +2531,9 @@ namespace moab{
                      int lidx = std::find(localEdgeList.begin(), localEdgeList.end(), lchildEdgs[j]) - localEdgeList.begin();
                      int ridx = std::find(remEdgeList.begin(), remEdgeList.end(), rchildEdgs[nchd-j-1])-remEdgeList.begin();
 
-                     std::cout<<"lidx = "<<lidx<<", ridx = "<<ridx<<std::endl;
-
                      error = get_data_from_buff(1, 1, l+1, lidx, numedges, localEdgeList, lconn);MB_CHK_ERR(error);
                      error = get_data_from_buff(1, 1, l+1, ridx, numedges, remEdgeList, rconn);MB_CHK_ERR(error);
-
-                     std::cout<<"lconn[0] = "<<lconn[0]<<", lconn[1] = "<<lconn[1]<<std::endl;
-                     std::cout<<"rconn[0] = "<<rconn[0]<<", rconn[1] = "<<rconn[1]<<std::endl;
-
-
                      found = check_for_parallelinfo(lconn[0], shared_proc, remProcs);
-
-                     std::cout<<"pinfo set for vertex = "<<found<<std::endl;
 
                      if (!found)
                        {
@@ -2619,9 +2542,6 @@ namespace moab{
                        }
 
                      found = check_for_parallelinfo(lconn[1], shared_proc, remProcs);
-
-                     std::cout<<"pinfo set for vertex = "<<found<<std::endl;
-
                      if (!found)
                        {
                          remProcs.insert(std::pair<EntityHandle,int>(lconn[1],shared_proc));
@@ -2688,8 +2608,6 @@ namespace moab{
          for (std::multimap<EntityHandle, EntityHandle>::iterator pit = it_handles.first; pit != it_handles.second; pit++)
            rhandles.push_back(pit->second);
 
-         std::cout<<" entity = " << entity << " rprocs[0]=" <<  rprocs[0]<< " rhandles[0]=" << rhandles[0] << "\n";
-
          error = pcomm->update_remote_data(entity, rprocs, rhandles);MB_CHK_ERR(error);
 
      }
@@ -2749,7 +2667,7 @@ namespace moab{
                      int nch = refTemplates[MBEDGE-1][d].total_new_ents;
                      toadd += toadd*nch;
                    }
-                 std::cout<<"entity_idx = "<<entity_index<<std::endl;
+
                  data.push_back(buffer[toadd+2*entity_index]);
                  data.push_back(buffer[toadd+2*entity_index+1]);
                }
