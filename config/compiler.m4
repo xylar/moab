@@ -550,7 +550,9 @@ AC_CACHE_CHECK([for Fortran name-mangling scheme],
 # underscores, respectively, so that they match the name mangling
 # scheme used by the Fortran compiler.
 AC_DEFUN([FAC_FC_WRAPPERS],
-[_AC_FORTRAN_ASSERT()dnl
+[
+AC_LANG_PUSH([Fortran])
+_AC_FORTRAN_ASSERT()dnl
 FAC_FC_NAME_MANGLING
 AH_TEMPLATE(_AC_FC[_FUNC],
     [Define to a macro mangling the given C identifier (in lower and upper
@@ -586,6 +588,7 @@ case $ac_cv_[]_AC_LANG_ABBREV[]_mangling in
           AC_MSG_WARN([unknown Fortran name-mangling scheme])
           ;;
 esac
+AC_LANG_POP([Fortran])
 ])# FAC_FC_WRAPPERS
 
 #######################################################################################
