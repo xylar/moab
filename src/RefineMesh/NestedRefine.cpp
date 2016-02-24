@@ -783,7 +783,7 @@ namespace moab{
 
         // Go into parallel communication
 #ifdef MOAB_HAVE_MPI
-        if (pcomm && !optimize)
+        if (pcomm && (pcomm->size()> 1) && !optimize)
           {
             double tpstart = tm->time_elapsed();
             error = resolve_shared_ents_parmerge(l, hm_set[l]);MB_CHK_ERR(error);
@@ -1985,7 +1985,7 @@ namespace moab{
            // Assign new global IDs for all the entities we just generated to maintain contiguity
            // Range pents[4] = {vtxs, edgs, facs, elms};
            // error = pcomm->assign_global_ids(pents, 3, 1, true, false);MB_CHK_ERR(error);
-           error = pcomm->assign_global_ids(levelset, 0, 1, false, true, false);MB_CHK_ERR(error);
+         //  error = pcomm->assign_global_ids(levelset, 0, 1, false, true, false);MB_CHK_ERR(error);
          }
 
        }
@@ -2010,10 +2010,33 @@ namespace moab{
            {
              Tag part_tag;
              int partid = pcomm->rank(), dum_id = -1;
-             error = mbImpl->tag_get_handle("PARALLEL_PARTITION", 1, moab::MB_TYPE_INTEGER,
-                                            part_tag, moab::MB_TAG_CREAT | moab::MB_TAG_SPARSE, &dum_id);MB_CHK_ERR(error);
+             error = mbImpl->tag_get_handle("PARALLEL_PARTITION", 1, moab::MB_TYPE_INTEGER, part_tag, moab::MB_TAG_CREAT | moab::MB_TAG_SPARSE, &dum_id);MB_CHK_ERR(error);
              error = mbImpl->tag_set_data(part_tag, &hm_set[i], 1, &partid);MB_CHK_ERR(error);
+
+
+             //for debug purposes
+
+             ReadUtilIface *read_iface;
+             error = mbImpl->query_interface(read_iface);MB_CHK_ERR(error);
+             if (level_mesh[i].num_edges != 0)
+               {
+                 error = read_iface->update_adjacencies(level_mesh[i].start_edge, level_mesh[i].num_edges, 2, level_mesh[i].edge_conn);MB_CHK_ERR(error);
+               }
+             if (level_mesh[i].num_faces != 0)
+               {
+                 EntityType type = mbImpl->type_from_handle(*(_infaces.begin()));
+                 int nvpf = ahf->lConnMap2D[type - 2].num_verts_in_face;
+                 error = read_iface->update_adjacencies(level_mesh[i].start_face, level_mesh[i].num_faces, nvpf, level_mesh[i].face_conn);MB_CHK_ERR(error);
+               }
+             if (level_mesh[i].num_cells != 0)
+               {
+                 int index = ahf->get_index_in_lmap(*_incells.begin());
+                 int nvpc = ahf->lConnMap3D[index].num_verts_in_cell;
+                 error = read_iface->update_adjacencies(level_mesh[i].start_cell, level_mesh[i].num_cells, nvpc, level_mesh[i].cell_conn);MB_CHK_ERR(error);
+               }
            }
+
+         //
 
          //Step 1B: Pre-processing: gather all shared entities and list entities shared with each sharing processor
          //All shared entities
@@ -2270,7 +2293,7 @@ namespace moab{
 
          //add local handles
          lE.push_back(edg);
-         lEC.insert(EC.end(), conn.begin(), conn.end());
+         lEC.insert(lEC.end(), conn.begin(), conn.end());
 
          //replace local handles with remote handle on to_proc
          EntityHandle rval = 0;
