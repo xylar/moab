@@ -245,7 +245,7 @@ typedef struct mhdf_FileDesc {
 MHDF_FileDesc *
 mhdf_getFileSummary( mhdf_FileHandle file_handle,
                      hid_t file_id_type,
-                     mhdf_Status* status );
+                     mhdf_Status* status, int extraSetInfo);
 
 /**\brief Fix nested pointers for copied/moved FileDesc struct
  *
