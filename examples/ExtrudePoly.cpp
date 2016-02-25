@@ -166,7 +166,7 @@ int main(int argc, char **argv)
       // second layer of quads has EntityHandle from start_elem + nedges to start_elem+2*nedges-1 ,etc
       for (int i=0; i<num_nodes; i++)
       {
-        polyhedronConn[2+i] = start_elem + ii*layers + indexEdges[i];
+        polyhedronConn[2+i] = start_elem + ii + layers * indexEdges[i];
       }
       // Create polyhedron
       EntityHandle polyhedron;
