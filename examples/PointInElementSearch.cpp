@@ -14,7 +14,6 @@
 #include "moab/Range.hpp"
 #include "moab/AdaptiveKDTree.hpp"
 #include "moab/ElemEvaluator.hpp"
-#include "moab/LinearHex.hpp"
 #include "moab/CN.hpp"
 #include "moab/SpatialLocator.hpp"
 
