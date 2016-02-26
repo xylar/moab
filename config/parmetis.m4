@@ -12,11 +12,11 @@ dnl   Untar the package, then run the necessary installation steps
 dnl-----------------------------------------------------------------------------------
 AC_DEFUN([FATHOM_CONFIGURE_METIS],[
 
-  # Supported Metis versions: 4.0.3, 5.1.0
+  # Supported Metis versions: 4.0.3, 5.1.0, 5.1.0p2
   # Arguments: 1) Default Version Number, 2) Download by default ?
-  AUSCM_CONFIGURE_DOWNLOAD_METIS([5.1.0],[no])
+  AUSCM_CONFIGURE_DOWNLOAD_METIS([5.1.0p2],[no])
 
-  AC_ARG_WITH([metis], 
+  AC_ARG_WITH([metis],
                [AS_HELP_STRING([--with-metis=DIR],[Directory containing Metis library installation])],
                [enablemetis=yes
                 DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --with-metis=\"${withval}\""
