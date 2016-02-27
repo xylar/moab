@@ -270,5 +270,9 @@ static int print_file_summary( MHDF_FileDesc* data )
   printf( "\n   Number dirichlet sets: %d\n", data->numEntSets[3]);
   for (i=0; i<data->numEntSets[3]; i++)
     printf( " set id %d value %d \n", data->defTagsEntSets[3][i],data->defTagsVals[3][i]);
+  printf( "\n   Number geometry sets: %d\n", data->numEntSets[4]);
+  for (i=0; i<data->numEntSets[4]; i++)
+    printf( " set id %d value %d \n", data->defTagsEntSets[4][i],data->defTagsVals[4][i]);
+
   return 0;
 }
