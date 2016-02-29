@@ -37,7 +37,7 @@ MOAB is LGPL code, and we encourage users to submit bug reports (and, if desired
 [SIGMA-MOAB]: http://sigma.mcs.anl.gov/moab-library
 
 # Current overall build status
-- ### Buildbot: [ ![Buildbot Status](http://gnep.mcs.anl.gov:8010/builderbadge.html?build=moab-all)](https://gnep.mcs.anl.gov:8010)
+- ### Buildbot: [ ![Buildbot Status](http://gnep.mcs.anl.gov:8010/builderbadge.php?build=moab-all)](https://gnep.mcs.anl.gov:8010)
 - ### CodeShip.io: [ ![Codeship Build Status](https://codeship.com/projects/286b0e80-5715-0132-1105-0e0cfcc5dfb4/status?branch=master)](https://codeship.com/projects/49743)
 - ### Drone.io: [ ![Drone.io Build Status](https://drone.io/bitbucket.org/fathomteam/moab/status.png)](https://drone.io/bitbucket.org/fathomteam/moab/latest)
 
