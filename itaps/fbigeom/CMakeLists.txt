@@ -1,18 +1,8 @@
-ADD_CUSTOM_COMMAND(
-  OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/FBiGeom_protos.h
-  COMMAND ${CMAKE_COMMAND}
-          -DDEF:STRING=MOAB
-          -Dinput_file:STRING=${CMAKE_CURRENT_SOURCE_DIR}/FBiGeom.h
-          -Doutput_file:STRING=${CMAKE_CURRENT_BINARY_DIR}/FBiGeom_protos.h
-          -Dprefix:STRING=FBiGeom
-          -P ${CMAKE_SOURCE_DIR}/config/ITAPSFortranMangling.cmake
-  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/../imesh/iMesh.h )
-
 set( FBiGEOM_SOURCE FBiGeom_MOAB.hpp FBiGeom_MOAB.cpp )
 set(
   FBiGEOM_INCLUDE_HEADERS
   FBiGeom.h
-  ${CMAKE_CURRENT_BINARY_DIR}/FBiGeom_protos.h
+  FBiGeom_protos.h
   FBiGeom_f.h
   )
 
