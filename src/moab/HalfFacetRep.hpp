@@ -49,7 +49,7 @@ namespace moab
 
  typedef EntityHandle HFacet;
 
-const int MAXSIZE = 100;
+const int MAXSIZE = 200;
 
 //! ENUM for the type of input mesh.
 enum MESHTYPE{
