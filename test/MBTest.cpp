@@ -68,28 +68,11 @@
 using namespace std;
 using namespace moab;
 
-#define STRINGIFY_(A) #A
-#define STRINGIFY(A) STRINGIFY_(A)
-#ifdef MESHDIR
-string TestDir( STRINGIFY(MESHDIR) );
-#else
-#error Specify MESHDIR to compile test
-#endif
-
 #define CHKERR(A) do { if (MB_SUCCESS != (A)) { \
   std::cerr << "Failure (error code " << (A) << ") at " __FILE__ ":" \
             << __LINE__ << std::endl; \
   return A; } } while(false)
 
-
-#define CHECK_EQUAL( A, B ) do { if ((A) != (B)) { \
-            std::cerr << "Equality Test failed at " __FILE__ ":" << __LINE__ << std::endl; \
-            std::cerr << "  Expected: " << (A) << std::endl; \
-            std::cerr << "  Actual:   " << (B) << std::endl; \
-            return MB_FAILURE; } } while(false)
-#define CHECK( A ) do { if (!(A)) { \
-            std::cerr << "Test failed at " __FILE__ ":" << __LINE__ << std::endl; \
-            return MB_FAILURE; } } while(false)
 
 #ifdef MOAB_HAVE_NETCDF
 ErrorCode load_file_one( Interface* iface )
@@ -8440,9 +8423,7 @@ int main(int argc, char* argv[])
     
   for (int i = 1; i < argc; ++i) {
 
-    if (string(argv[i]) == "-d" && (i+1) < argc)
-      TestDir = argv[++i];
-    else if (string(argv[i]) == "-h" || string(argv[i]) == "--help")
+    if (string(argv[i]) == "-h" || string(argv[i]) == "--help")
       usage( argv[0] );
 #if MOAB_HAVE_NETCDF
     else if (string(argv[i]) == "-nostress")

@@ -19,6 +19,7 @@ AM_CPPFLAGS =  -DSRCDIR=$(srcdir) \
                $(IGEOM_DEFINES) $(IGEOM_INCLUDES) $(MSQ_INCLUDES) \
                -I$(top_srcdir)/itaps/imesh \
                -I$(top_srcdir)/src \
+               -I$(top_builddir)/src \
                -I$(top_srcdir)/test \
                -I$(top_builddir)/itaps/imesh \
                -I$(top_srcdir)/itaps/mesquite \

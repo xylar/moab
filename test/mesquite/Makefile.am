@@ -36,6 +36,7 @@ AM_CPPFLAGS  = -DSRCDIR=$(srcdir) \
                -DMESHDIR=$(MESHDIR) \
                $(MSQ_INCLUDES) \
                -I$(top_srcdir)/src \
+               -I$(top_builddir)/src \
                -I$(top_srcdir)/test
 
 LDADD = $(top_builddir)/src/mesquite/libmesquite.la
