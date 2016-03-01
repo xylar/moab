@@ -101,7 +101,9 @@ ErrorCode ahf_test(const char* filename)
     //1D Queries //
     //IQ1: For every vertex, obtain incident edges
     if (edges.size()){
-        for (Range::iterator i = verts.begin(); i != verts.end(); ++i) {
+        Range everts;
+        error = mbImpl->get_connectivity(edges, everts, true);CHECK_ERR(error);
+        for (Range::iterator i = everts.begin(); i != everts.end(); ++i) {
             adjents.clear();
             error = ahf.get_up_adjacencies( *i, 1, adjents);CHECK_ERR(error);
             mbents.clear();
@@ -376,9 +378,13 @@ int main(int argc, char *argv[])
 
     const char* filename = 0;
 #ifdef MESHDIR
- #ifdef MOAB_HAVE_HDF5
+#ifdef MOAB_HAVE_HDF5
+#ifdef MOAB_HAVE_AHF
+    filename = STRINGIFY(MESHDIR) "/spectral_p4.h5m";
+#else
     filename = STRINGIFY(MESHDIR) "/32hex_ef.h5m";
- #else
+#endif
+#else
     filename = STRINGIFY(MESHDIR) "/hexes_mixed.vtk";
  #endif
 #else
