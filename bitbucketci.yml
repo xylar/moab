@@ -2,17 +2,18 @@
 # Do not use tabs to indent your configuration.
 # You can specify a custom docker image from Dockerhub
 # for your build environment.
-image: vijaysm/sigma:latest
+image: vijaysm/scientific:latest
 pipeline:
     - job:
         script: # Modify the commands below to build your repository.
-            - g++ --version
+            - echo $SHELL
             - gfortran --version
-            - which mpicc
+            - mpicxx -show
+            - export CC=mpicc CXX=mpicxx FC=mpif90 F77=mpif77 F90=mpif90
             - if (test "x`git diff-tree --no-commit-id --name-only -r HEAD | grep -i cmake`" != "x" || test "x$UCMAKE" != "xno"); then echo "Running the CMake Build System"; else echo "Running the Autotools Build System"; autoreconf -fi; fi
             - rm -rf build && mkdir -p build && cd build
             # These test commands will be executed after the setup commands
-            - if (test "x`git diff-tree --no-commit-id --name-only -r HEAD | grep -i cmake`" != "x" || test "x$UCMAKE" != "xno"); then cmake .. -DCMAKE_C_FLAGS="-fPIC -DPIC" -DCMAKE_CXX_FLAGS="-fPIC -DPIC" -DBUILD_SHARED_LIBS=OFF -DCMAKE_SHARED_LINKER_FLAGS="-Wl,--no-undefined" -DENABLE_MPI=ON -DMPI_DIR=/usr -DENABLE_HDF5=ON -DHDF5_ROOT=/usr -DENABLE_NETCDF=OFF; make all test; else ../configure --with-mpi --enable-optimize --enable-tools --with-hdf5=/usr --disable-fortran; make check TESTS=""; fi
+            - if (test "x`git diff-tree --no-commit-id --name-only -r HEAD | grep -i cmake`" != "x" || test "x$UCMAKE" != "xno"); then cmake .. -DCMAKE_C_FLAGS="-fPIC -DPIC" -DCMAKE_CXX_FLAGS="-fPIC -DPIC" -DBUILD_SHARED_LIBS=OFF -DCMAKE_SHARED_LINKER_FLAGS="-Wl,--no-undefined" -DENABLE_MPI=ON -DMPI_DIR=/usr -DENABLE_HDF5=ON -DHDF5_ROOT=/usr -DENABLE_NETCDF=OFF -DENABLE_METIS=ON -DMETIS_DIR=/usr; make all test; else ../configure --with-mpi --enable-optimize --enable-tools --with-hdf5=/usr --with-netcdf=/usr --with-metis=/usr; make check TESTS=""; fi
             # make the tarball
             # make dist
             # rename the tarball
