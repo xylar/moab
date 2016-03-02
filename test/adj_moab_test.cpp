@@ -380,7 +380,7 @@ int main(int argc, char *argv[])
 #ifdef MESHDIR
 #ifdef MOAB_HAVE_HDF5
 #ifdef MOAB_HAVE_AHF
-    filename = STRINGIFY(MESHDIR) "/spectral_p4.h5m";
+    filename = STRINGIFY(MESHDIR) "/spectral.h5m";
 #else
     filename = STRINGIFY(MESHDIR) "/32hex_ef.h5m";
 #endif
