@@ -1,0 +1,12 @@
+# This is a sample build configuration for Javascript.
+# Do not use tabs to indent your configuration.
+# You can specify a custom docker image from Dockerhub
+# for your build environment.
+image: vijaysm/sigma
+pipeline:
+    - job:
+        script: # Modify the commands below to build your repository.
+            - g++ --version
+            - gfortran --version
+            - which mpicc
+            - if (test "x`git diff-tree --no-commit-id --name-only -r HEAD | grep -i cmake`" != "x" || test "x$UCMAKE" != "xno"); then echo "Running the CMake Build System"; else echo "Running the Autotools Build System"; autoreconf -fi; fi
