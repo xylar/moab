@@ -46,9 +46,7 @@ AC_SUBST(enablempi)
 # Invoke and find all necessary flags for C, C++, FC
 FATHOM_COMPILER_FLAGS([yes],[yes],[$ENABLE_FORTRAN])
 
-m4_ifdef([AM_SILENT_RULES],[
-  [AM_SILENT_RULES(yes)]
-])
+m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
 AC_DISABLE_SHARED

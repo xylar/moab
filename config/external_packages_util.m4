@@ -138,9 +138,17 @@ AC_DEFUN([INITIALIZE_EXTERNAL_PACKAGES],
   GREEN=$(tput setaf 2)
   RED=$(tput setaf 1)
 
+  # AC_PREFIX_DEFAULT($PACKAGE_NAME)
   MOAB_ARCH="$host"
   MOAB_SANDBOX="$PWD/sandbox"
-  MOAB_ARCH_DIR="$MOAB_SANDBOX/$MOAB_ARCH"
+  if (test "x$prefix" != "x$ac_default_prefix" && test "x$prefix" != "xNONE"); then
+    # install dependencies in the same custom folder
+    # specified by user
+    MOAB_ARCH_DIR="$prefix"
+  else
+    # install it in a local sandbox folder
+    MOAB_ARCH_DIR="$MOAB_SANDBOX/$MOAB_ARCH"
+  fi
   MOAB_PACKAGES_DIR="$MOAB_SANDBOX/archives"
 ])
 
