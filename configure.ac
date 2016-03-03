@@ -9,8 +9,10 @@ AC_CONFIG_MACRO_DIR([config])
 AC_CONFIG_AUX_DIR([config])
 AC_CANONICAL_TARGET
 m4_ifdef([AM_SILENT_RULES],
- [AM_INIT_AUTOMAKE([color-tests subdir-objects parallel-tests])],
- [AM_INIT_AUTOMAKE])
+          [m4_define([mb_am_oldtests], [[color-tests] [parallel-tests]])],
+          [m4_define([mb_am_oldtests], [])])
+AM_INIT_AUTOMAKE([subdir-objects] mb_am_oldtests)
+m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
 AC_CHECK_PROG( [SED], [sed], [sed], [true] )
 
@@ -46,7 +48,6 @@ AC_SUBST(enablempi)
 # Invoke and find all necessary flags for C, C++, FC
 FATHOM_COMPILER_FLAGS([yes],[yes],[$ENABLE_FORTRAN])
 
-m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
 AC_DISABLE_SHARED
