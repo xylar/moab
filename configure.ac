@@ -47,11 +47,7 @@ AC_SUBST(enablempi)
 FATHOM_COMPILER_FLAGS([yes],[yes],[$ENABLE_FORTRAN])
 
 m4_ifdef([AM_SILENT_RULES],[
-if test "x$DEBUG" = "xyes"; then
-  AM_SILENT_RULES(yes)
-else
-  AM_SILENT_RULES(no)
-fi
+  [AM_SILENT_RULES(yes)]
 ])
 AC_PROG_LN_S
 AC_PROG_MAKE_SET

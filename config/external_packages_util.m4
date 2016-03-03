@@ -627,7 +627,7 @@ if [ $1 ]; then
   # configure HDF5
   if [ $need_configuration ]; then
     # configure PACKAGE with a minimal build: MPI
-    compiler_opts="CC=$CC CXX=$CXX FC=$FC F77=$F77 MPIEXEC=$MPIEXEC"
+    compiler_opts="CC=$CC CXX=$CXX FC=$FC F90=$FC F77=$F77 MPIEXEC=$MPIEXEC"
     configure_command="$hdf5_src_dir/configure --prefix=$hdf5_install_dir --libdir=$hdf5_install_dir/lib --with-pic=1 $compiler_opts"
     # configure_command="$configure_command --enable-cxx --enable-unsupported"
     # VSM: Adding --enable-debug=all is causing problems in h5legacy test. So disabling debug symbols for HDF5.
@@ -813,7 +813,7 @@ if [ $1 ]; then
   # configure NETCDF
   if [ $need_configuration ]; then
     # configure PACKAGE with a minimal build: MPI, HDF5, NETCDF
-    compiler_opts="CC=$CC CXX=$CXX"
+    compiler_opts="CC=$CC CXX=$CXX FC=$FC F90=$FC F77=$F77"
     configure_command="$netcdf_src_dir/configure --prefix=$netcdf_install_dir --libdir=$netcdf_install_dir/lib --with-pic=1 --enable-netcdf-4 --enable-shared=$enable_shared $compiler_opts"
     if (test "$enablehdf5" != "no"); then
       configure_command="$configure_command LDFLAGS=\"$HDF5_LDFLAGS $LDFLAGS\" CPPFLAGS=\"$HDF5_CPPFLAGS\" LIBS=\"$HDF5_LIBS -ldl -lm -lz\""
@@ -999,7 +999,7 @@ if [ $1 ]; then
       else
         configure_command="cmake $metis_src_dir -DCMAKE_INSTALL_PREFIX=$metis_install_dir -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX -DGKLIB_PATH=$metis_build_dir/GKlib"
       fi
-      if (test "$enabledebug" != "no"); then
+      if (test "$enable_debug" != "no"); then
         if (test "$metis_use_cmake" != "yes"); then
           configure_command="$configure_command debug=1"
       	else
@@ -1014,7 +1014,7 @@ if [ $1 ]; then
         fi
       fi
       eval "echo 'Using configure command :==> cd $metis_build_dir && $configure_command > $metis_src_dir/../config_metis.log' >> $metis_src_dir/../config_metis.log"
-      PREFIX_PRINT(Configuring with default options  {debug=$enabledebug} )
+      PREFIX_PRINT(Configuring with default options  {debug=$enable_debug} )
       eval "cd $metis_build_dir && $configure_command >> $metis_src_dir/../config_metis.log 2>&1 && cd \"\$OLDPWD\""
     fi
   fi
@@ -1266,19 +1266,19 @@ if [ $1 ]; then
       # configure PACKAGE with a minimal build: MPI
       export CFLAGS="$CFLAGS -fPIC -DPIC" CXXFLAGS="$CXXFLAGS -fPIC -DPIC" FCFLAGS="$FCFLAGS -fPIC" FFLAGS="$FFLAGS -fPIC" LDFLAGS="$LDFLAGS"
       configure_command="make config cc=$CC cxx=$CXX prefix=$parmetis_install_dir"
-      if (test "$enabledebug" != "no"); then
+      if (test "$enable_debug" != "no"); then
         configure_command="$configure_command debug=1"
       fi
       if (test "$enable_shared" != "no"); then
         configure_command="$configure_command shared=1"
       fi
       eval "echo 'Using configure command :==> cd $parmetis_build_dir && $configure_command > $parmetis_src_dir/../config_metis.log' > $parmetis_src_dir/../config_metis.log"
-      PREFIX_PRINT(Configuring Metis with default options  {debug=$enabledebug} )
+      PREFIX_PRINT(Configuring Metis with default options  {debug=$enable_debug} )
       eval "cd $parmetis_build_dir/metis && $configure_command >> $parmetis_src_dir/../config_metis.log 2>&1 && cd \"\$OLDPWD\""
 
       configure_command="$configure_command metis_path=$parmetis_build_dir/metis gklib_path=$parmetis_build_dir/metis/GKlib"
       eval "echo 'Using configure command :==> cd $parmetis_build_dir && $configure_command > $parmetis_src_dir/../config_parmetis.log' > $parmetis_src_dir/../config_parmetis.log"
-      PREFIX_PRINT(Configuring ParMetis with default options  {debug=$enabledebug with-metis=yes} )
+      PREFIX_PRINT(Configuring ParMetis with default options  {debug=$enable_debug with-metis=yes} )
       eval "cd $parmetis_build_dir && $configure_command >> $parmetis_src_dir/../config_parmetis.log 2>&1 && cd \"\$OLDPWD\""
     fi
   fi

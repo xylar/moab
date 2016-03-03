@@ -12,10 +12,6 @@ dnl   Untar the package, then run the necessary installation steps
 dnl-----------------------------------------------------------------------------------
 AC_DEFUN([FATHOM_CONFIGURE_METIS],[
 
-  # Supported Metis versions: 4.0.3, 5.1.0, 5.1.0p2
-  # Arguments: 1) Default Version Number, 2) Download by default ?
-  AUSCM_CONFIGURE_DOWNLOAD_METIS([5.1.0p2],[no])
-
   AC_ARG_WITH([metis],
                [AS_HELP_STRING([--with-metis=DIR],[Directory containing Metis library installation])],
                [enablemetis=yes
@@ -23,6 +19,10 @@ AC_DEFUN([FATHOM_CONFIGURE_METIS],[
                 METIS_DIR="$withval"],
                [enablemetis=no; METIS_DIR=""]
               )
+
+  # Supported Metis versions: 4.0.3, 5.1.0, 5.1.0p2
+  # Arguments: 1) Default Version Number, 2) Download by default ?
+  AUSCM_CONFIGURE_DOWNLOAD_METIS([5.1.0p2],[no])
 
   if (test "x$enablemetis" == "xyes"); then
     dnl Honor METIS_DIR if it is set
@@ -110,10 +110,6 @@ dnl   Untar the package, then run the necessary installation steps
 dnl-----------------------------------------------------------------------------------
 AC_DEFUN([FATHOM_CONFIGURE_PARMETIS],[
  
-  # Supported ParMetis versions: 4.0.3, 3.2.0
-  # Arguments: 1) Default Version Number, 2) Download by default ?
-  AUSCM_CONFIGURE_DOWNLOAD_PARMETIS([4.0.3],[no])
-
   AC_ARG_WITH([parmetis], 
                [AS_HELP_STRING([--with-parmetis=DIR],[Directory containing ParMetis library installation])],
                [enableparmetis=yes
@@ -121,6 +117,10 @@ AC_DEFUN([FATHOM_CONFIGURE_PARMETIS],[
                 PARMETIS_DIR="$withval"],
                [enableparmetis=no; PARMETIS_DIR=""]
               )
+
+  # Supported ParMetis versions: 4.0.3, 3.2.0
+  # Arguments: 1) Default Version Number, 2) Download by default ?
+  AUSCM_CONFIGURE_DOWNLOAD_PARMETIS([4.0.3],[no])
 
   if (test "x$enableparmetis" == "xyes"); then
     dnl Honor PARMETIS_DIR if it is set
