@@ -116,8 +116,8 @@ void compute_face(double *a, const int nelem,  const double xint,
 
 void build_coords(const int nelem, double *&coords) 
 {
-  double ttime0, ttime1, utime1, stime1;
-  long imem, rmem;
+  double ttime0 = 0.0, ttime1 = 0.0, utime1 = 0.0, stime1 = 0.0;
+  long imem = 0, rmem = 0;
   print_time(false, ttime0, utime1, stime1, imem, rmem);
     // allocate the memory
   int numv = nelem+1;
@@ -542,8 +542,8 @@ void print_time(const bool print_em, double &tot_time, double &utime, double &st
 
 void testA(const int nelem, const double *coords) 
 {
-  double ttime0, ttime1, ttime2, ttime3, ttime4, utime, stime;
-  long imem0, rmem0, imem1, rmem1, imem2, rmem2, imem3, rmem3, imem4, rmem4;
+  double ttime0 = 0.0, ttime1 = 0.0, ttime2 = 0.0, ttime3 = 0.0, ttime4 = 0.0, utime = 0.0, stime = 0.0;
+  long imem0 = 0, rmem0 = 0, imem1 = 0, rmem1 = 0, imem2 = 0, rmem2 = 0, imem3 = 0, rmem3 = 0, imem4 = 0, rmem4 = 0;
   
   print_time(false, ttime0, utime, stime, imem0, rmem0);
 
@@ -617,8 +617,8 @@ void testA(const int nelem, const double *coords)
 
 void testB(const int nelem, const double *coords, int *connect) 
 {
-  double ttime0, ttime1, ttime2, ttime3, ttime4, utime, stime;
-  long imem0, rmem0, imem1, rmem1, imem2, rmem2, imem3, rmem3, imem4, rmem4;
+  double ttime0 = 0.0, ttime1 = 0.0, ttime2 = 0.0, ttime3 = 0.0, ttime4 = 0.0, utime = 0.0, stime = 0.0;
+  long imem0 = 0, rmem0 = 0, imem1 = 0, rmem1 = 0, imem2 = 0, rmem2 = 0, imem3 = 0, rmem3 = 0, imem4 = 0, rmem4 = 0;
   
   print_time(false, ttime0, utime, stime, imem0, rmem0);
 
@@ -686,8 +686,8 @@ void testB(const int nelem, const double *coords, int *connect)
 
 void testC(const int nelem, const double *coords) 
 {
-  double ttime0, ttime1, ttime2, ttime3, ttime4, utime, stime;
-  long imem0, rmem0, imem1, rmem1, imem2, rmem2, imem3, rmem3, imem4, rmem4;
+  double ttime0 = 0.0, ttime1 = 0.0, ttime2 = 0.0, ttime3 = 0.0, ttime4 = 0.0, utime = 0.0, stime = 0.0;
+  long imem0 = 0, rmem0 = 0, imem1 = 0, rmem1 = 0, imem2 = 0, rmem2 = 0, imem3 = 0, rmem3 = 0, imem4 = 0, rmem4 = 0;
   
   print_time(false, ttime0, utime, stime, imem0, rmem0);
 
@@ -765,10 +765,10 @@ void testC(const int nelem, const double *coords)
 
 void testD(const int nelem, const double *coords, int ver) 
 {
-  double ttime0, ttime1, ttime2, ttime3, ttime4, ttime5, ttime6, ttime7, ttime8, ttime9, ttime10, 
-      utime, stime;
-  long imem0, rmem0, imem1, rmem1, imem2, rmem2, imem3, rmem3, imem4, rmem4, imem5, rmem5, imem6, rmem6,
-      imem7, rmem7, imem8, rmem8, imem9, rmem9, imem10, rmem10;
+  double ttime0 = 0.0, ttime1 = 0.0, ttime2 = 0.0, ttime3 = 0.0, ttime4 = 0.0, ttime5 = 0.0, ttime6 = 0.0, ttime7 = 0.0, ttime8 = 0.0, ttime9 = 0.0, ttime10 = 0.0,
+      utime = 0.0, stime = 0.0;
+  long imem0 = 0, rmem0 = 0, imem1 = 0, rmem1 = 0, imem2 = 0, rmem2 = 0, imem3 = 0, rmem3 = 0, imem4 = 0, rmem4 = 0, imem5 = 0, rmem5 = 0, imem6 = 0, rmem6 = 0,
+      imem7 = 0, rmem7 = 0, imem8 = 0, rmem8 = 0, imem9 = 0, rmem9 = 0, imem10 = 0, rmem10 = 0;
   
   print_time(false, ttime0, utime, stime, imem0, rmem0);
 
@@ -958,8 +958,8 @@ void testD(const int nelem, const double *coords, int ver)
 
 void testE(const int nelem, const double *coords, int *connect) 
 {
-  double ttime0, ttime1, ttime2, ttime3, ttime4, ttime5, ttime6, utime, stime;
-  long imem0, rmem0, imem1, rmem1, imem2, rmem2, imem3, rmem3, imem4, rmem4, imem5, rmem5, imem6, rmem6;
+  double ttime0 = 0.0, ttime1 = 0.0, ttime2 = 0.0, ttime3 = 0.0, ttime4 = 0.0, ttime5 = 0.0, ttime6 = 0.0, utime = 0.0, stime = 0.0;
+  long imem0 = 0, rmem0 = 0, imem1 = 0, rmem1 = 0, imem2 = 0, rmem2 = 0, imem3 = 0, rmem3 = 0, imem4 = 0, rmem4 = 0, imem5 = 0, rmem5 = 0, imem6 = 0, rmem6 = 0;
   
   print_time(false, ttime0, utime, stime, imem0, rmem0);
 

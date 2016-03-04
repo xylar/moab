@@ -76,6 +76,8 @@ ErrorCode obbvis_create( DagMC& dag, std::vector<int> &volumes, int grid, std::s
   double* pgrid = new double[ numpoints * 3 ];
   int idx = 0;
 
+  for (int i = 0; i < numpoints * 3; ++i)
+    pgrid[i] = 0.0;
 
   for( int i = 0; i <= grid; ++i ){
     CartVect x = -v1 + ((v1*2.0) * (i/(double)grid));
