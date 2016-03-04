@@ -183,8 +183,8 @@ EXTRA_INTEL_FCFLAGS="-C"
 EXTRA_PGI_CXXFLAGS="-traceback -Mfree -C"
 EXTRA_PGI_FCFLAGS="-traceback -Mfree -C -freeform -extend-source"
 # XLC
-EXTRA_BG_CXXFLAGS="-qarch=auto -qtune=auto -qpic=large -qdebug=except -qrtti=dyna"
-EXTRA_BG_FCFLAGS="-qarch=auto -qtune=auto -qpic=large -qdebug=except"
+EXTRA_BG_CXXFLAGS="-qarch=qp -qpic=large -qdebug=except"
+EXTRA_BG_FCFLAGS="-qarch=qp -qpic=large -qdebug=except"
 fi
 
 if (test "x$enable_cxx_optimize" != "xno"); then  # optimization flags
@@ -198,8 +198,8 @@ EXTRA_INTEL_FCFLAGS="$EXTRA_INTEL_FCFLAGS -xHost -ip -no-prec-div" # -fast
 EXTRA_PGI_CXXFLAGS="$EXTRA_PGI_CXXFLAGS -Munroll=5 -Mnoframe"
 EXTRA_PGI_FCFLAGS="$EXTRA_PGI_FCFLAGS -Munroll=5 -Mnoframe -freeform -extend-source"
 # XLC
-EXTRA_BG_CXXFLAGS="$EXTRA_BG_CXXFLAGS -qarch=auto -qtune=auto -qpic=large -qipa=1 -qenablevmx -qrtti=dyna"
-EXTRA_BG_FCFLAGS="$EXTRA_BG_FCFLAGS -qarch=auto -qtune=auto -qpic=large -qipa=1 -qenablevmx"
+EXTRA_BG_CXXFLAGS="$EXTRA_BG_CXXFLAGS -qarch=qp -qtune=auto -qpic=large -qenablevmx"
+EXTRA_BG_FCFLAGS="$EXTRA_BG_FCFLAGS -qarch=qp -qtune=auto -qpic=large -qenablevmx"
 fi
 
 if (test "x$GXX" = "xyes"); then # G++ specific flags
@@ -344,8 +344,7 @@ AC_MSG_RESULT([$MB_BLUEGENE_CONF])
 
 # Special overrides flags for BG/Q
 if (test "x$enable_static" != "xno" && test "x$MB_BLUEGENE_CONF" != "xno"); then
-  LDFLAGS="$LDFLAGS -qnostaticlink -qnostaticlink=libgcc"
-  AC_MSG_ERROR([I am not supposed to be in BG/Q check])
+  LDFLAGS="$LDFLAGS -qnostaticlink=libgcc"
 fi
 
 # Check if we are using new Darwin kernels with Clang -- needs libc++ instead of libstdc++
@@ -692,14 +691,14 @@ case "$cxx_compiler:$host_cpu" in
   VisualAge:*)
     FATHOM_CXX_32BIT=-q32
     FATHOM_CXX_64BIT=-q64
-    FATHOM_CXX_SPECIAL="$EXTRA_BG_CXXFLAGS -qminimaltoc -qpic=large -qmaxmem=-1 -qlanglvl=variadictemplates"
+    FATHOM_CXX_SPECIAL="$EXTRA_BG_CXXFLAGS -qminimaltoc -qmaxmem=-1 -qlanglvl=variadictemplates"
     AR="ar"
     NM="nm -B -X 32_64"
     ;;
   VisualAge8:*)
     FATHOM_CXX_32BIT=-q32
     FATHOM_CXX_64BIT=-q64
-    FATHOM_CXX_SPECIAL="$EXTRA_BG_CXXFLAGS -qminimaltoc -qpic=large -qmaxmem=-1 -qlanglvl=variadictemplates"
+    FATHOM_CXX_SPECIAL="$EXTRA_BG_CXXFLAGS -qminimaltoc -qmaxmem=-1 -qlanglvl=variadictemplates"
     NM="nm -B -X 32_64"
     ;;
   MIPSpro:mips)
