@@ -164,6 +164,54 @@ test "xno" = "x$CHECK_CC" || CHECK_CC=yes
 test "xno" = "x$CHECK_CXX" || CHECK_CXX=yes 
 test "xno" = "x$CHECK_FC" || CHECK_FC=yes 
 
+# Check for debug flags
+AC_ARG_ENABLE( debug, AS_HELP_STRING([--enable-debug],[Debug symbols (-g)]),
+               [enable_debug=$enableval], [enable_debug="no"] )
+AC_ARG_ENABLE( optimize, AS_HELP_STRING([--enable-optimize],[Compile optimized (-O2)]),
+               [enable_optimize=$enableval; enable_cxx_optimize=$enableval; enable_cc_optimize=$enableval; enable_fc_optimize=$enableval;],
+               [enable_optimize=""; enable_cxx_optimize="no"; enable_cc_optimize="no"; enable_fc_optimize="no";	]
+             )
+
+if (test "x$enable_debug" != "xno"); then # debug flags
+# GNU
+EXTRA_GNU_CXXFLAGS="-Wall -Wno-long-long -pipe -pedantic -Wshadow -Wunused-parameter -Wpointer-arith -Wformat -Wformat-security -Wextra -Wno-variadic-macros -Wno-unknown-pragmas"
+EXTRA_GNU_FCFLAGS="-fcheck=all -pipe -pedantic -ffree-line-length-0"
+# Intel
+EXTRA_INTEL_CXXFLAGS="-pipe -C"
+EXTRA_INTEL_FCFLAGS="-C"
+# PGI
+EXTRA_PGI_CXXFLAGS="-traceback -Mfree -C"
+EXTRA_PGI_FCFLAGS="-traceback -Mfree -C -freeform -extend-source"
+# XLC
+EXTRA_BG_CXXFLAGS="-qarch=qp -qpic=large -qdebug=except"
+EXTRA_BG_FCFLAGS="-qarch=qp -qpic=large -qdebug=except"
+fi
+
+if (test "x$enable_cxx_optimize" != "xno"); then  # optimization flags
+#GNU
+EXTRA_GNU_CXXFLAGS="$EXTRA_GNU_CXXFLAGS -finline-functions -finline-functions -march=native"
+EXTRA_GNU_FCFLAGS="$EXTRA_GNU_FCFLAGS -ffree-line-length-0 -finline-functions -march=native"
+# Intel
+EXTRA_INTEL_CXXFLAGS="$EXTRA_INTEL_CXXFLAGS -xHost -ip -no-prec-div" # -fast
+EXTRA_INTEL_FCFLAGS="$EXTRA_INTEL_FCFLAGS -xHost -ip -no-prec-div" # -fast
+# PGI
+EXTRA_PGI_CXXFLAGS="$EXTRA_PGI_CXXFLAGS -Munroll=5 -Mnoframe"
+EXTRA_PGI_FCFLAGS="$EXTRA_PGI_FCFLAGS -Munroll=5 -Mnoframe -freeform -extend-source"
+# XLC
+EXTRA_BG_CXXFLAGS="$EXTRA_BG_CXXFLAGS -qarch=qp -qtune=auto -qpic=large -qenablevmx"
+EXTRA_BG_FCFLAGS="$EXTRA_BG_FCFLAGS -qarch=qp -qtune=auto -qpic=large -qenablevmx"
+fi
+
+if (test "x$GXX" = "xyes"); then # G++ specific flags
+  if (test "x$enable_debug" != "xno"); then
+    EXTRA_GNU_ONLY_CXXFLAGS="$EXTRA_GNU_CXXFLAGS"
+    EXTRA_GNU_ONLY_FCFLAGS="$EXTRA_GNU_FCFLAGS"
+  else
+    EXTRA_GNU_ONLY_CXXFLAGS="$EXTRA_GNU_CXXFLAGS -ftree-vectorize"
+    EXTRA_GNU_ONLY_FCFLAGS="$EXTRA_GNU_FCFLAGS -ftree-vectorize"
+  fi
+fi
+
 # this is just a test comment
 if test "xno" != "x$CHECK_CC"; then
   FATHOM_CC_FLAGS
@@ -181,25 +229,11 @@ FCFLAGS="$USER_FCFLAGS $FATHOM_FC_SPECIAL"
 FLIBS=""
 FCLIBS=""
 
-# On IBM/AIX, the check for OBJEXT fails for the mpcc compiler.
-# (Comment out this hack, it should be fixed correctly now)
-#if test "x$OBJEXT" = "x"; then
-#  OBJEXT=o
-#fi
-
-  # Check for debug flags
-AC_ARG_ENABLE( debug, AS_HELP_STRING([--enable-debug],[Debug symbols (-g)]),
-               [enable_debug=$enableval], [enable_debug=] )
-AC_ARG_ENABLE( optimize, AS_HELP_STRING([--enable-optimize],[Compile optimized (-O2)]),
-               [enable_cxx_optimize=$enableval; enable_cc_optimize=$enableval; enable_fc_optimize=$enableval;],
-               [enable_cxx_optimize=""; enable_cc_optimize=""; enable_fc_optimize="";	]
-             )
-
 # Do enable_optimize by default, unless user has specified
 # custom CXXFLAGS or CFLAGS
 DEBUG=no
-if test "x$enable_debug" = "x"; then
-  if test "x$enable_cxx_optimize" = "x"; then
+if (test "x$enable_debug" != "xyes"); then
+  if (test "x$enable_optimize" == "x"); then
     enable_cxx_optimize=yes
     enable_cc_optimize=yes
     enable_fc_optimize=yes
@@ -217,36 +251,33 @@ if test "xyes" = "x$enable_debug"; then
     FFLAGS="$FFLAGS -g"
   fi
   # Add -fstack-protector-all option for g++ in debug mode
-  if test "x$GXX" = "xyes"; then
+  if (test "x$GXX" = "xyes"); then
     CXXFLAGS="$CXXFLAGS -fstack-protector-all"
-    LDFLAGS="$LDFLAGS -fstack-protector-all"
-  fi
-  # Add -fstack-protector-all option for gcc in debug mode
-  if test "x$GXX" = "xyes"; then
     CFLAGS="$CFLAGS -fstack-protector-all"
-  fi
-  if (test "x$CHECK_FC" != "xno"); then
-    FCFLAGS="$FCFLAGS -fstack-protector-all"
-    FFLAGS="$FFLAGS -fstack-protector-all"
+    LDFLAGS="$LDFLAGS -fstack-protector-all"
+    if (test "x$CHECK_FC" != "xno"); then
+      FCFLAGS="$FCFLAGS -fstack-protector-all"
+      FFLAGS="$FFLAGS -fstack-protector-all"
+    fi
   fi
   DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --enable-debug=yes"
 else
   DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --enable-debug=no"
 fi
-if test "xyes" = "x$enable_cxx_optimize"; then
+if (test "xno" != "x$enable_cxx_optimize"); then
   CXXFLAGS="$CXXFLAGS -O2 -DNDEBUG"
   DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --enable-optimize=yes"
 else
   DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --enable-optimize=no"
 fi
-if test "xyes" = "x$enable_cc_optimize"; then
+if (test "xno" != "x$enable_cc_optimize"); then
   CFLAGS="$CFLAGS -O2 -DNDEBUG"
 fi
 if (test "x$ENABLE_FORTRAN" != "xno"); then
-  if test "xyes" = "x$enable_fc_optimize"; then
+  if (test "xno" != "x$enable_fc_optimize"); then
     FCFLAGS="$FCFLAGS -O2"
   fi
-  if test "xyes" = "x$enable_f77_optimize"; then
+  if (test "xno" != "x$enable_f77_optimize"); then
     FFLAGS="$FFLAGS -O2"
   fi
   AC_FC_PP_DEFINE
@@ -311,23 +342,18 @@ FATHOM_TRY_COMPILER_DEFINE([__bg__],
   [MB_BLUEGENE_CONF=no])
 AC_MSG_RESULT([$MB_BLUEGENE_CONF])
 
-# Special overrides for flags
+# Special overrides flags for BG/Q
 if (test "x$enable_static" != "xno" && test "x$MB_BLUEGENE_CONF" != "xno"); then
-  LDFLAGS="$LDFLAGS -qnostaticlink -qnostaticlink=libgcc"
+  LDFLAGS="$LDFLAGS -qnostaticlink=libgcc"
 fi
 
 # Check if we are using new Darwin kernels with Clang -- needs libc++ instead of libstdc++
 if (test "x$ENABLE_FORTRAN" != "xno" && test "x$CHECK_FC" != "xno"); then
 
-  AC_LANG_PUSH([Fortran 77])
-  FAC_FC_WRAPPERS
-  AC_F77_MAIN
-  AC_LANG_POP([Fortran 77])
-
   # check how to link against C++ runtime for fortran programs correctly
-  AC_LANG_PUSH([Fortran])
-  FAC_FC_WRAPPERS
+  AC_F77_MAIN
   AC_FC_MAIN
+  FAC_FC_WRAPPERS
   fcxxlinkage=no
 
   # Check if we are on IBM ANL BG/Q system
@@ -382,8 +408,6 @@ if (test "x$ENABLE_FORTRAN" != "xno" && test "x$CHECK_FC" != "xno"); then
     fi
 
   fi
-
-  AC_LANG_POP([Fortran])
 
 fi
 
@@ -459,7 +483,7 @@ AC_CACHE_CHECK([for Fortran name-mangling scheme],
 [mv conftest.$ac_objext cfortran_test.$ac_objext
 
   ac_save_LIBS=$LIBS
-  LIBS="cfortran_test.$ac_objext $LIBS $[]_AC_LANG_PREFIX[]LIBS"
+  LIBS="cfortran_test.$ac_objext $LIBS $[]_AC_LANG_PREFIX[]LIBS $ac_cv_fc_libs"
 
   AC_LANG_PUSH(C)dnl
   ac_success=no
@@ -525,7 +549,9 @@ AC_CACHE_CHECK([for Fortran name-mangling scheme],
 # underscores, respectively, so that they match the name mangling
 # scheme used by the Fortran compiler.
 AC_DEFUN([FAC_FC_WRAPPERS],
-[_AC_FORTRAN_ASSERT()dnl
+[
+AC_LANG_PUSH([Fortran])
+_AC_FORTRAN_ASSERT()dnl
 FAC_FC_NAME_MANGLING
 AH_TEMPLATE(_AC_FC[_FUNC],
     [Define to a macro mangling the given C identifier (in lower and upper
@@ -561,6 +587,7 @@ case $ac_cv_[]_AC_LANG_ABBREV[]_mangling in
           AC_MSG_WARN([unknown Fortran name-mangling scheme])
           ;;
 esac
+AC_LANG_POP([Fortran])
 ])# FAC_FC_WRAPPERS
 
 #######################################################################################
@@ -636,42 +663,42 @@ case "$cxx_compiler:$host_cpu" in
   GNU:sparc*)
     FATHOM_CXX_32BIT=-m32
     FATHOM_CXX_64BIT=-m64
-    FATHOM_CXX_SPECIAL="$EXTRA_GNU_FLAGS $EXTRA_GNU_CXX_FLAGS"
+    FATHOM_CXX_SPECIAL="$EXTRA_GNU_ONLY_CXXFLAGS"
     ;;
   GNU:powerpc*)
     FATHOM_CXX_32BIT=-m32
     FATHOM_CXX_64BIT=-m64
-    FATHOM_CXX_SPECIAL="$EXTRA_GNU_FLAGS $EXTRA_GNU_CXX_FLAGS"
+    FATHOM_CXX_SPECIAL="$EXTRA_GNU_ONLY_CXXFLAGS"
     ;;
   GNU:i?86|GNU:x86_64)
     FATHOM_CXX_32BIT=-m32
     FATHOM_CXX_64BIT=-m64
-    FATHOM_CXX_SPECIAL="$EXTRA_GNU_FLAGS $EXTRA_GNU_CXX_FLAGS"
+    FATHOM_CXX_SPECIAL="$EXTRA_GNU_ONLY_CXXFLAGS"
     ;;
   GNU:mips*)
     FATHOM_CXX_32BIT="-mips32 -mabi=32"
     FATHOM_CXX_64BIT="-mips64 -mabi=64"
-    FATHOM_CXX_SPECIAL="$EXTRA_GNU_FLAGS $EXTRA_GNU_CXX_FLAGS"
+    FATHOM_CXX_SPECIAL="$EXTRA_GNU_ONLY_CXXFLAGS"
     ;;
   GNU:*)
-    FATHOM_CXX_SPECIAL="$EXTRA_GNU_FLAGS $EXTRA_GNU_CXX_FLAGS"
+    FATHOM_CXX_SPECIAL="$EXTRA_GNU_ONLY_CXXFLAGS"
     ;;
   Intel:*)
     FATHOM_CXX_32BIT=-m32
     FATHOM_CXX_64BIT=-m64
-    FATHOM_CXX_SPECIAL="$EXTRA_INTEL_FLAGS -wd981 -wd279 -wd1418 -wd383 -wd1572 -wd2259"
+    FATHOM_CXX_SPECIAL="$EXTRA_INTEL_CXXFLAGS -wd981 -wd279 -wd1418 -wd383 -wd1572 -wd2259"
     ;;
   VisualAge:*)
     FATHOM_CXX_32BIT=-q32
     FATHOM_CXX_64BIT=-q64
-    FATHOM_CXX_SPECIAL="$EXTRA_BG_FLAGS -qminimaltoc -qpic=large -qmaxmem=-1 -qlanglvl=variadictemplates"
+    FATHOM_CXX_SPECIAL="$EXTRA_BG_CXXFLAGS -qminimaltoc -qmaxmem=-1 -qlanglvl=variadictemplates"
     AR="ar"
     NM="nm -B -X 32_64"
     ;;
   VisualAge8:*)
     FATHOM_CXX_32BIT=-q32
     FATHOM_CXX_64BIT=-q64
-    FATHOM_CXX_SPECIAL="$EXTRA_BG_FLAGS -qminimaltoc -qpic=large -qmaxmem=-1 -qlanglvl=variadictemplates"
+    FATHOM_CXX_SPECIAL="$EXTRA_BG_CXXFLAGS -qminimaltoc -qmaxmem=-1 -qlanglvl=variadictemplates"
     NM="nm -B -X 32_64"
     ;;
   MIPSpro:mips)
@@ -687,7 +714,7 @@ case "$cxx_compiler:$host_cpu" in
     FATHOM_CXX_64BIT=-xarch=generic64
     ;;
   Clang:*)
-    FATHOM_CXX_SPECIAL="$EXTRA_GNU_FLAGS $EXTRA_GNU_CXX_FLAGS"
+    FATHOM_CXX_SPECIAL="$EXTRA_GNU_CXXFLAGS"
     FATHOM_CXX_32BIT=-m32
     FATHOM_CXX_64BIT=-m64
     ;;
@@ -782,36 +809,36 @@ case "$cc_compiler:$host_cpu" in
   GNU:sparc*)
     FATHOM_CC_32BIT=-m32
     FATHOM_CC_64BIT=-m64
-    FATHOM_CC_SPECIAL="$EXTRA_GNU_FLAGS $EXTRA_GNU_CXX_FLAGS"
-    FATHOM_FC_SPECIAL="$EXTRA_GNU_FLAGS -Wno-unused-parameter"
+    FATHOM_CC_SPECIAL="$EXTRA_GNU_ONLY_CXXFLAGS"
+    FATHOM_FC_SPECIAL="$EXTRA_GNU_ONLY_FCFLAGS"
     ;;
   GNU:powerpc*)
     FATHOM_CC_32BIT=-m32
     FATHOM_CC_64BIT=-m64
-    FATHOM_CC_SPECIAL="$EXTRA_GNU_FLAGS $EXTRA_GNU_CXX_FLAGS"
-    FATHOM_FC_SPECIAL="$EXTRA_GNU_FLAGS -Wno-unused-parameter"
+    FATHOM_CC_SPECIAL="$EXTRA_GNU_ONLY_CXXFLAGS"
+    FATHOM_FC_SPECIAL="$EXTRA_GNU_ONLY_FCFLAGS"
     ;;
   GNU:i?86|GNU:x86_64)
     FATHOM_CC_32BIT=-m32
     FATHOM_CC_64BIT=-m64
-    FATHOM_CC_SPECIAL="$EXTRA_GNU_FLAGS $EXTRA_GNU_CXX_FLAGS"
-    FATHOM_FC_SPECIAL="$EXTRA_GNU_FLAGS -Wno-unused-parameter"
-    ;;
-  Intel:*)
-    FATHOM_CC_32BIT=-m32
-    FATHOM_CC_64BIT=-m64
-    FATHOM_CC_SPECIAL="$EXTRA_INTEL_FLAGS -wd981 -wd279 -wd1418 -wd383 -wd1572"
-    FATHOM_FC_SPECIAL="$EXTRA_INTEL_FLAGS -wd981 -wd279 -wd1418 -wd383 -wd1572 $EXTRA_INTEL_FFLAGS"
+    FATHOM_CC_SPECIAL="$EXTRA_GNU_ONLY_CXXFLAGS"
+    FATHOM_FC_SPECIAL="$EXTRA_GNU_ONLY_FCFLAGS"
     ;;
   GNU:mips*)
     FATHOM_CC_32BIT="-mips32 -mabi=32"
     FATHOM_CC_64BIT="-mips64 -mabi=64"
-    FATHOM_CC_SPECIAL="$EXTRA_GNU_FLAGS $EXTRA_GNU_CXX_FLAGS"
-    FATHOM_FC_SPECIAL="$EXTRA_GNU_FLAGS -Wno-unused-parameter"
+    FATHOM_CC_SPECIAL="$EXTRA_GNU_ONLY_CXXFLAGS"
+    FATHOM_FC_SPECIAL="$EXTRA_GNU_ONLY_FCFLAGS"
     ;;
   GNU:*)
-    FATHOM_CC_SPECIAL="$EXTRA_GNU_FLAGS $EXTRA_GNU_CXX_FLAGS"
-    FATHOM_FC_SPECIAL="$EXTRA_GNU_FLAGS -Wno-unused-parameter"
+    FATHOM_CC_SPECIAL="$EXTRA_GNU_ONLY_CXXFLAGS"
+    FATHOM_FC_SPECIAL="$EXTRA_GNU_ONLY_FCFLAGS"
+    ;;
+  Intel:*)
+    FATHOM_CC_32BIT=-m32
+    FATHOM_CC_64BIT=-m64
+    FATHOM_CC_SPECIAL="$EXTRA_INTEL_CXXFLAGS -wd981 -wd279 -wd1418 -wd383 -wd1572"
+    FATHOM_FC_SPECIAL="$EXTRA_INTEL_FCFLAGS"
     ;;
   VisualAge:*)
     case "$target_vendor" in
@@ -824,16 +851,16 @@ case "$cc_compiler:$host_cpu" in
       bgq)
         FATHOM_CC_32BIT=-q32
         FATHOM_CC_64BIT=-q64
-        FATHOM_CC_SPECIAL="$EXTRA_BG_FLAGS -qmaxmem=-1 -qminimaltoc"
-        FATHOM_FC_SPECIAL="$EXTRA_BG_FLAGS -qnoescape -WF,-C! -qddim -qalias=intptr"
+        FATHOM_CC_SPECIAL="$EXTRA_BG_CXXFLAGS -qmaxmem=-1 -qminimaltoc"
+        FATHOM_FC_SPECIAL="$EXTRA_BG_FCFLAGS -qnoescape -WF,-C! -qddim -qalias=intptr"
         AR="ar"
         NM="nm -B"
         ;;
       *)
         FATHOM_CC_32BIT=-q32
         FATHOM_CC_64BIT=-q64
-        FATHOM_CC_SPECIAL="$EXTRA_BG_FLAGS -qmaxmem=-1 -qminimaltoc"
-        FATHOM_FC_SPECIAL="$EXTRA_BG_FLAGS -qnoescape -WF,-C! -qddim -qalias=intptr"
+        FATHOM_CC_SPECIAL="$EXTRA_BG_CXXFLAGS -qmaxmem=-1 -qminimaltoc"
+        FATHOM_FC_SPECIAL="$EXTRA_BG_FCFLAGS -qnoescape -WF,-C! -qddim -qalias=intptr"
         AR="ar"
         NM="nm -B -X 32_64"
         ;;
@@ -850,8 +877,8 @@ case "$cc_compiler:$host_cpu" in
     FATHOM_FC_SPECIAL=-LANG:std
     ;;
   Clang:*)
-    FATHOM_CC_SPECIAL="$EXTRA_GNU_FLAGS $EXTRA_GNU_CXX_FLAGS"
-    FATHOM_FC_SPECIAL="$EXTRA_GNU_FLAGS -Wno-unused-parameter"
+    FATHOM_CC_SPECIAL="$EXTRA_GNU_CXXFLAGS"
+    FATHOM_FC_SPECIAL="$EXTRA_GNU_FCFLAGS"
     FATHOM_CC_32BIT=-m32
     FATHOM_CC_64BIT=-m64
     ;;

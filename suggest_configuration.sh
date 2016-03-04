@@ -49,10 +49,24 @@ CONFIGURE_CMD="$PWD/configure"
 
 # Variables to set
 MBHOSTSYS=""
-MBCC="mpicc"
-MBCXX="mpicxx"
-MBFC="mpif90"
-MBF77="mpif77"
+MBCC=""
+MBCXX=""
+MBFC=""
+MBF77=""
+test "`which mpicc`" != "" && MBCC=`which mpicc`
+test "$MBCC" != "" || MBCC=`which gcc`
+test "$MBCC" != "" || MBCC=`which icc`
+test "$MBCC" != "" || MBCC=`which clang`
+test "`which mpicxx`" != "" && MBCXX=`which mpicxx`
+test "$MBCXX" != "" || MBCXX=`which g++`
+test "$MBCXX" != "" || MBCXX=`which icpc`
+test "$MBCXX" != "" || MBCXX=`which clang++`
+test "`which mpif90`" != "" && MBFC=`which mpif90`
+test "$MBFC" != "" || MBFC=`which gfortran`
+test "$MBFC" != "" || MBFC=`which ifort`
+test "`which mpif77`" != "" && MBF77=`which mpif77`
+test "$MBF77" != "" || MBF77=`which gfortran`
+test "$MBF77" != "" || MBF77=`which ifort`
 MBMPI_DIR=""
 MBHDF5_DIR=""
 MBSZIP_DIR=""
@@ -67,6 +81,7 @@ MBPTSCOTCH_DIR=""
 MBVTK_DIR=""
 MBCGM_DIR=""
 
+MBDWLD_OPTIONS=""
 case "$HOSTNAME" in
   *vesta* | *mira*)
     MBNMPICC="xlc_r"
@@ -80,6 +95,7 @@ case "$HOSTNAME" in
     MBNETCDF_DIR="/soft/libraries/netcdf/4.3.0-f4.2/cnk-xl/V1R2M0-20131211"
     MBPARMETIS_DIR="/soft/libraries/alcf/current/xl/PARMETIS"
     MBMETIS_DIR="/soft/libraries/alcf/current/xl/METIS"
+    MBDWLD_OPTIONS="--with-zlib=/soft/libraries/alcf/current/xl/ZLIB"
     ;;
   *blogin*)
     MBNMPICC="icc"
@@ -129,60 +145,60 @@ fi
 
 INTERNAL_OPTIONS="$INTERNAL_OPTIONS CC=$MBCC CXX=$MBCXX"
 
-# test "x$ENABLE_MPI" != "xyes" || INTERNAL_OPTIONS="$INTERNAL_OPTIONS --with-mpi"
-
-if (test "x$ENABLE_FORTRAN" != "xno"); then
+if (test "x$ENABLE_FORTRAN" != "xno" && test "x$MBFC" != "x"); then
 	INTERNAL_OPTIONS="$INTERNAL_OPTIONS FC=$MBFC F77=$MBF77"
 else
 	INTERNAL_OPTIONS="$INTERNAL_OPTIONS --disable-fortran"
 fi
 
+DEPENDENCY_OPTIONS=""
 if (test "x$MBHDF5_DIR" != "x"); then
-  INTERNAL_OPTIONS="$INTERNAL_OPTIONS --with-hdf5=$MBHDF5_DIR"
+  DEPENDENCY_OPTIONS="$DEPENDENCY_OPTIONS --with-hdf5=$MBHDF5_DIR"
 fi
 
 if (test "x$MBZLIB_DIR" != "x"); then
-  INTERNAL_OPTIONS="$INTERNAL_OPTIONS --with-zlib=$MBZLIB_DIR"
+  DEPENDENCY_OPTIONS="$DEPENDENCY_OPTIONS --with-zlib=$MBZLIB_DIR"
 fi
 
 if (test "x$MBSZIP_DIR" != "x"); then
-  INTERNAL_OPTIONS="$INTERNAL_OPTIONS --with-szip=$MBSZIP_DIR"
+  DEPENDENCY_OPTIONS="$DEPENDENCY_OPTIONS --with-szip=$MBSZIP_DIR"
 fi
 
 if (test "x$MBNETCDF_DIR" != "x"); then
-  INTERNAL_OPTIONS="$INTERNAL_OPTIONS --with-netcdf=$MBNETCDF_DIR"
+  DEPENDENCY_OPTIONS="$DEPENDENCY_OPTIONS --with-netcdf=$MBNETCDF_DIR"
 fi
 
 if (test "x$MBPNETCDF_DIR" != "x"); then
-  INTERNAL_OPTIONS="$INTERNAL_OPTIONS --with-pnetcdf=$MBPNETCDF_DIR"
+  DEPENDENCY_OPTIONS="$DEPENDENCY_OPTIONS --with-pnetcdf=$MBPNETCDF_DIR"
 fi
 
 if (test "x$MBMETIS_DIR" != "x"); then
-  INTERNAL_OPTIONS="$INTERNAL_OPTIONS --with-metis=$MBMETIS_DIR"
+  DEPENDENCY_OPTIONS="$DEPENDENCY_OPTIONS --with-metis=$MBMETIS_DIR"
 fi
 
 if (test "x$MBPARMETIS_DIR" != "x"); then
-  INTERNAL_OPTIONS="$INTERNAL_OPTIONS --with-parmetis=$MBPARMETIS_DIR"
+  DEPENDENCY_OPTIONS="$DEPENDENCY_OPTIONS --with-parmetis=$MBPARMETIS_DIR"
 fi
 
 if (test "x$MBZOLTAN_DIR" != "x"); then
-  INTERNAL_OPTIONS="$INTERNAL_OPTIONS --with-zoltan=$MBZOLTAN_DIR"
+  DEPENDENCY_OPTIONS="$DEPENDENCY_OPTIONS --with-zoltan=$MBZOLTAN_DIR"
 fi
 
 if (test "x$MBSCOTCH_DIR" != "x"); then
-  INTERNAL_OPTIONS="$INTERNAL_OPTIONS --with-scotch=$MBSCOTCH_DIR"
+  DEPENDENCY_OPTIONS="$DEPENDENCY_OPTIONS --with-scotch=$MBSCOTCH_DIR"
 fi
 
 if (test "x$MBPTSCOTCH_DIR" != "x"); then
-  INTERNAL_OPTIONS="$INTERNAL_OPTIONS --with-ptscotch=$MBPTSCOTCH_DIR"
+  DEPENDENCY_OPTIONS="$DEPENDENCY_OPTIONS --with-ptscotch=$MBPTSCOTCH_DIR"
 fi
 
 if (test "x$MBVTK_DIR" != "x"); then
-  INTERNAL_OPTIONS="$INTERNAL_OPTIONS --with-vtk=$MBVTK_DIR"
+  DEPENDENCY_OPTIONS="$DEPENDENCY_OPTIONS --with-vtk=$MBVTK_DIR"
 fi
 
 # Put them all together
-CONFIGURE_CMD="$CONFIGURE_CMD $INTERNAL_OPTIONS"
+DWLD_CONFIGURE_CMD="$CONFIGURE_CMD $INTERNAL_OPTIONS $MBDWLD_OPTIONS --with-pic=1 --enable-tools --download-hdf5 --download-netcdf --download-metis"
+CONFIGURE_CMD="$CONFIGURE_CMD $INTERNAL_OPTIONS $DEPENDENCY_OPTIONS"
 
 # PRINT OUT INFORMATION
 echo "###########################################"
@@ -196,10 +212,19 @@ echo "Enable shared build    = $ENABLE_SHARED"
 echo "Enable static build    = $ENABLE_STATIC"
 echo "Enable MPI parallelism = $ENABLE_MPI"
 echo "Enable Fortran support = $ENABLE_FORTRAN"
-echo "Compilers: CC=$MBCC, CXX=$MBCXX, FC=$MBFC, F77=$MBF77"
+echo -n "Compilers: CC=$MBCC, CXX=$MBCXX"
+if (test "x$ENABLE_FORTRAN" != "xno" && test "x$MBFC" != "x"); then
+  echo ", FC=$MBFC, F77=$MBF77"
+else
+  echo ""
+fi
 echo ""
 echo "Configure command to use:"
 echo "-------------------------"
 echo "$CONFIGURE_CMD"
+echo ""
+echo "         OR"
+echo ""
+echo "$DWLD_CONFIGURE_CMD"
 
 # Done.

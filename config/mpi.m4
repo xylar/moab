@@ -18,7 +18,7 @@ AC_DEFUN([FATHOM_CONFIG_MPI_EXEC],[
   AC_ARG_VAR(NP,[Number of processors to on which to run parallel tests (default: 2)])
   if test "x$MPIEXEC" = "x"; then
     if test "x$enablempi" != "xyes"; then
-      AC_CHECK_PROGS([MPIEXEC],[mpiexec mpirun],[NOTFOUND],[${WITH_MPI}:${WITH_MPI}/bin])
+      AC_CHECK_PROGS([MPIEXEC],[mpiexec mpirun],[NOTFOUND],[$COMPILERPATHS])
     else
       AC_CHECK_PROGS([MPIEXEC],[mpiexec mpirun],[NOTFOUND])
     fi

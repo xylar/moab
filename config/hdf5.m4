@@ -35,7 +35,7 @@ fi
 #  HDF5_LIBS
 #######################################################################################
 AC_DEFUN([FATHOM_CHECK_HDF5],[
-
+  
   # CLI option for linking zlib
 AC_ARG_WITH(zlib,
   [AS_HELP_STRING([--with-zlib=DIR],[HDF5 requires zlib, and zlib can be found at...])],
@@ -110,38 +110,42 @@ AC_MSG_CHECKING([if HDF5 support is enabled])
 AC_ARG_WITH(hdf5, 
 [AS_HELP_STRING([--with-hdf5@<:@=DIR@:>@], [Specify HDF5 library to use for native file format])
 AS_HELP_STRING([--without-hdf5], [Disable support for native HDF5 file format])],
-[HDF5_ARG=$withval
+[HDF5_DIR=$withval
  DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --with-hdf5=\"${withval}\""
-], [HDF5_ARG=])
-if test "xno" = "x$HDF5_ARG"; then
+], [HDF5_DIR=$HDF5_DIR])
+if test "x" = "x$HDF5_DIR"; then
   AC_MSG_RESULT([no])
 else
   AC_MSG_RESULT([yes])
 fi
 
+# Supported HDF5 versions: 1.8.10, 1.8.12, 1.8.14, 1.8.15
+# Arguments: 1) Default Version Number, 2) Download by default ?
+AUSCM_CONFIGURE_DOWNLOAD_HDF5([1.8.12],[no])
+
 HAVE_HDF5=no
-if test "xno" != "x$HDF5_ARG"; then
+if (test "x" != "x$HDF5_DIR" || test "xno" != "x$HDF5_DIR"); then
   HAVE_HDF5=yes
 
     # if a path is specified, update LIBS and INCLUDES accordingly
-  if test "xyes" != "x$HDF5_ARG" && test "x" != "x$HDF5_ARG"; then
-    if test -d "${HDF5_ARG}/dll"; then
-      HDF5_LDFLAGS="$HDF5_LDFLAGS -L${HDF5_ARG}/dll"
+  if test "xyes" != "x$HDF5_DIR" && test "x" != "x$HDF5_DIR"; then
+    if test -d "${HDF5_DIR}/dll"; then
+      HDF5_LDFLAGS="$HDF5_LDFLAGS -L${HDF5_DIR}/dll"
       HDF5_LIBNAME=hdf5dll
-    elif test -d "${HDF5_ARG}/lib"; then
-      HDF5_LDFLAGS="$HDF5_LDFLAGS -L${HDF5_ARG}/lib"
-    elif test -d "${HDF5_ARG}"; then
-      HDF5_LDFLAGS="$HDF5_LDFLAGS -L${HDF5_ARG}"
+    elif test -d "${HDF5_DIR}/lib"; then
+      HDF5_LDFLAGS="$HDF5_LDFLAGS -L${HDF5_DIR}/lib"
+    elif test -d "${HDF5_DIR}"; then
+      HDF5_LDFLAGS="$HDF5_LDFLAGS -L${HDF5_DIR}"
     else
-      AC_MSG_ERROR("$HDF5_ARG is not a directory.")
+      AC_MSG_ERROR("$HDF5_DIR is not a directory.")
     fi
-    if test -d "${HDF5_ARG}/include"; then
-      HDF5_CPPFLAGS="$HDF5_CPPFLAGS -I${HDF5_ARG}/include"
+    if test -d "${HDF5_DIR}/include"; then
+      HDF5_CPPFLAGS="$HDF5_CPPFLAGS -I${HDF5_DIR}/include"
       if test "x$GXX" = "xyes" && test "x$GCC" = "xyes"; then
-        HDF5_CPPFLAGS="$HDF5_CPPFLAGS -isystem ${HDF5_ARG}/include"
+        HDF5_CPPFLAGS="$HDF5_CPPFLAGS -isystem ${HDF5_DIR}/include"
       fi
     else
-      HDF5_CPPFLAGS="$HDF5_CPPFLAGS -I${HDF5_ARG}"
+      HDF5_CPPFLAGS="$HDF5_CPPFLAGS -I${HDF5_DIR}"
     fi
   fi
  
@@ -169,7 +173,7 @@ if test "xno" != "x$HDF5_ARG"; then
   fi
   
   if test "x$HAVE_HDF5" = "xno"; then
-    if test "x" = "x$HDF5_ARG"; then
+    if test "x" = "x$HDF5_DIR"; then
       AC_MSG_WARN([HDF5 library not found or not usable.])
     else
       AC_MSG_ERROR([HDF5 library not found or not usable.])

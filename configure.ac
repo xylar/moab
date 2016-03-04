@@ -9,8 +9,10 @@ AC_CONFIG_MACRO_DIR([config])
 AC_CONFIG_AUX_DIR([config])
 AC_CANONICAL_TARGET
 m4_ifdef([AM_SILENT_RULES],
- [AM_INIT_AUTOMAKE([color-tests subdir-objects parallel-tests])],
- [AM_INIT_AUTOMAKE])
+          [m4_define([mb_am_oldtests], [[color-tests] [parallel-tests]])],
+          [m4_define([mb_am_oldtests], [])])
+AM_INIT_AUTOMAKE([subdir-objects] mb_am_oldtests)
+m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
 AC_CHECK_PROG( [SED], [sed], [sed], [true] )
 
@@ -22,6 +24,10 @@ USER_CONFIGURE_CMD="$0 $ac_configure_args"
 ################################################################################
 #                           Compilers
 ################################################################################
+INITIALIZE_EXTERNAL_PACKAGES
+
+MB_CPPFLAGS=""
+MB_DEFS=""
 
 ENABLE_FORTRAN=no
 AC_ARG_ENABLE([fortran],
@@ -32,14 +38,6 @@ if (test "x$enable_fortran" != "xno"); then
 fi
 AC_SUBST(ENABLE_FORTRAN)
 DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --enable-fortran=$ENABLE_FORTRAN"
-EXTRA_GNU_CXX_FLAGS='-Wno-long-long -Wpointer-arith -Wformat -Wformat-security -pedantic -Wextra -Wno-variadic-macros'
-EXTRA_GNU_FLAGS='-Wall -pipe -Wcast-align -Wshadow'
-EXTRA_INTEL_FLAGS='-Wall'
-EXTRA_INTEL_FFLAGS='-check all'
-EXTRA_BG_FLAGS='-qarch=auto -qtune=auto -qpic=large'
-
-MB_CPPFLAGS=""
-MB_DEFS=""
 
 # Find out the appropriate compiler based on user options
 FATHOM_CHECK_COMPILERS([yes],[yes],[$ENABLE_FORTRAN])
@@ -50,13 +48,6 @@ AC_SUBST(enablempi)
 # Invoke and find all necessary flags for C, C++, FC
 FATHOM_COMPILER_FLAGS([yes],[yes],[$ENABLE_FORTRAN])
 
-m4_ifdef([AM_SILENT_RULES],[
-if test "x$DEBUG" = "xyes"; then
-  AM_SILENT_RULES(yes)
-else
-  AM_SILENT_RULES(no)
-fi
-])
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
 AC_DISABLE_SHARED
@@ -591,81 +582,8 @@ AC_ARG_WITH( [zoltan],
                  ;;
                esac],[WITH_ZOLTAN=$ZOLTAN_DEFAULT] )
 
-# If user specified with-parmetis, then assume they are trying
-# to add an additional library search directory in which to check
-# for the parmetis library.  We always check if zoltan requires
-# parmetis, so the only thing the user would really need to tell
-# us is if we need to look in some special place for it. 
-AC_ARG_WITH([parmetis], 
-            [AS_HELP_STRING([--with-parmetis=DIR],[Directory containing ParMetis library for Zoltan])],
-             [case "x$withval" in
-               xyes|xno)
-                 # do nothing
-                 ;;
-               x*)
-                 PARMETIS_DIR="$withval"
-                 test -d "$withval" || AC_MSG_ERROR([Not a directory: with-parmetis=$withval])
-                 if test -d "$withval/lib"; then
-                   PARMETIS_LIB_FLAGS="-L$withval/lib"
-                 else
-                   PARMETIS_LIB_FLAGS="-L$withval"
-                 fi
-                 PARMETIS_LIBS="$PARMETIS_LIB_FLAGS -lparmetis"
-                 if test -d "$withval/include"; then
-                   PARMETIS_INC_FLAGS="-I$withval/include"
-                 else
-                   PARMETIS_INC_FLAGS="-I$withval"
-                 fi
-                 ZOLTAN_INC_FLAGS="$ZOLTAN_INC_FLAGS $PARMETIS_INC_FLAGS"
-                 if (test -f "$withval/include/parmetis.h" || test -f "$withval/parmetis.h"); then
-                   AC_DEFINE(HAVE_PARMETIS, [1], [Define if configured with ParMetis partitioner support])
-                 fi
-                 DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --with-parmetis=\"${withval}\""
-		 ;;
-               esac] )
-AM_CONDITIONAL(ENABLE_parmetis, [test "x" != "x$PARMETIS_DIR"])
-AC_SUBST(PARMETIS_LIBS)
-AC_SUBST(PARMETIS_INC_FLAGS)
-
-# If user specified with-metis, then assume they are trying
-# to add an additional library search directory in which to check
-# for the metis library.  We always check if zoltan requires
-# metis, so the only thing the user would really need to tell
-# us is if we need to look in some special place for it. 
-AC_ARG_WITH([metis], 
-            [AS_HELP_STRING([--with-metis=DIR],[Directory containing Metis library for ParMetis/Zoltan])],
-             [case "x$withval" in
-               xyes|xno)
-                 # do nothing
-                 ;;
-               x*)
-                 METIS_DIR="$withval"
-                 test -d "$withval" || AC_MSG_ERROR([Not a directory: with-metis=$withval])
-                 if test -d "$withval/lib"; then
-                   METIS_LIB_FLAGS="-L$withval/lib"
-                 else
-                   METIS_LIB_FLAGS="-L$withval"
-                 fi
-                 METIS_LIBS="$METIS_LIB_FLAGS -lmetis"
-                 ZOLTAN_LIB_FLAGS="$ZOLTAN_LIB_FLAGS $METIS_LIB_FLAGS"
-                 if test -d "$withval/include"; then
-                   METIS_INC_FLAGS="-I$withval/include"
-                  if (test -f "$withval/include/metis.h"); then
-                    AC_DEFINE(HAVE_METIS, [1], [Define if configured with Metis partitioner support])
-                  fi
-                 else
-                   METIS_INC_FLAGS="-I$withval"
-                   # if (test -f "$withval/metis.h"); then # METIS-3.x might not install a header though
-                   #  AC_DEFINE(HAVE_METIS, [1], [Define if configured with Metis partitioner support])
-                   # fi
-                 fi
-                 ZOLTAN_INC_FLAGS="$ZOLTAN_INC_FLAGS $METIS_INC_FLAGS"
-                 DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --with-metis=\"${withval}\""
-     ;;
-               esac] )
-AM_CONDITIONAL(ENABLE_metis, [test "x" != "x$METIS_DIR"])
-AC_SUBST(METIS_LIBS)
-AC_SUBST(METIS_INC_FLAGS)
+FATHOM_CONFIGURE_METIS
+FATHOM_CONFIGURE_PARMETIS
 
 # If user specified with-scotch, then assume they are trying
 # to add an additional library search directory in which to check
@@ -755,7 +673,7 @@ fi
 ################################################################################
 
 AC_ARG_WITH([vtk],
-  [AS_HELP_STRING([--with-vtk@<:@=DIR@:>@],[Enable VTK support, and specify VTK location])],
+  [AS_HELP_STRING([--with-vtk=DIR],[Enable VTK support, and specify VTK location])],
   [WITH_VTK=$withval
    DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --with-vtk=\"${withval}\""
   ],[WITH_VTK=])
@@ -1448,4 +1366,6 @@ if test "x$WARN_PARALLEL_HDF5_NO_COMPLEX" = "xyes"; then
 *************************************************************************])
 fi
 
+# define([ConfigurationSuggestion], [`esyscmd(config/suggest_configure_command)'])
+# m4_echo(echo "m4_expand([ConfigurationSuggestion])")
 

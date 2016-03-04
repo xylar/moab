@@ -102,7 +102,7 @@ endif
 else
 if ENABLE_metis
   bin_PROGRAMS += mbpart
-  AM_CPPFLAGS += $(METIS_IN_FLAGS)
+  AM_CPPFLAGS += $(METIS_INCLUDES)
   AM_LDFLAGS += $(METIS_LIB_FLAGS)
   mbpart_SOURCES = mbpart.cpp
   mbpart_LDADD = $(top_builddir)/src/libMOAB.la $(METIS_LIBS)
