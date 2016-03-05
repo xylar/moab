@@ -373,45 +373,6 @@ fi
 ################################################################################
 
 FATHOM_CHECK_HDF5
-if test "xno" = "x$HAVE_HDF5"; then
-  AC_MSG_WARN([Support for native HDF5 file format disabled])
-else
-  AC_DEFINE([HAVE_HDF5],[1],[Define if configured with HDF5 support.])
-fi
-AM_CONDITIONAL(HAVE_HDF5, [test "xno" != "x$HAVE_HDF5"])
-AC_SUBST(HAVE_HDF5)
-MB_CPPFLAGS="$HDF5_CPPFLAGS $MB_CPPFLAGS"
-EXPORT_LDFLAGS="$EXPORT_LDFLAGS $HDF5_LDFLAGS"
-AC_SUBST(HDF5_LIBS)
-
-WARN_PARALLEL_HDF5=no
-WARN_PARALLEL_HDF5_NO_COMPLEX=no
-HAVE_HDF5_PARALLEL=no
-if test "xno" != "x$HAVE_HDF5"; then
-  if test "xno" != "x$enablempi"; then
-    old_LDFLAGS="$LDFLAGS"
-    LDFLAGS="$LDFLAGS $HDF5_LDFLAGS"
-    AC_CHECK_LIB( [hdf5], [H5Pset_fapl_mpio], [HAVE_HDF5_PARALLEL=yes],
-      [WARN_PARALLEL_HDF5=yes; AC_MSG_WARN("libhdf5 library does not include parallel support.  Parallel HDF5 I/O disabled")],
-      [$HDF5_LIBS $LIBS]
-      )
-    LDFLAGS="$old_LDFLAGS"
-  fi
-fi
-AM_CONDITIONAL(HAVE_HDF5_PARALLEL, [test "xno" != "x$HAVE_HDF5_PARALLEL"])
-if test "xno" != "x$HAVE_HDF5_PARALLEL"; then
-  AC_DEFINE([HAVE_HDF5_PARALLEL],[1],[Define if configured with Parallel HDF5 support.])
-  
-  AC_MSG_CHECKING([for H5_MPI_COMPLEX_DERIVED_DATATYPE_WORKS])
-  old_CPPFLAGS="$CPPFLAGS"
-  CPPFLAGS="$CPPFLAGS $HDF5_CPPFLAGS"
-  AC_PREPROC_IFELSE([AC_LANG_PROGRAM([#include <H5pubconf.h>],[
-#ifndef H5_MPI_COMPLEX_DERIVED_DATATYPE_WORKS
-  choke me
-#endif])],[AC_MSG_RESULT(yes)],[AC_MSG_RESULT(no); WARN_PARALLEL_HDF5_NO_COMPLEX=yes])
-  CPPFLAGS="$old_CPPFLAGS"
-fi
-AC_SUBST(HAVE_HDF5_PARALLEL)
 
 ################################################################################
 #                             CCMIO OPTIONS
@@ -989,7 +950,7 @@ else
   MB_OPTIONAL_TOOL([mcnpmit],      [no], [no])
   MB_OPTIONAL_TOOL([refiner],      [no], [no])
 fi
-MB_OPTIONAL_TOOL([h5mtools],     [${HAVE_HDF5}], [${HAVE_HDF5}])
+MB_OPTIONAL_TOOL([h5mtools],     [${enablehdf5}], [${enablehdf5}])
 MB_OPTIONAL_TOOL([mbcslam],      [no], [yes])
 MB_OPTIONAL_TOOL([mbquality],    [yes], [yes])
 
@@ -1320,7 +1281,7 @@ if (test "xno" != "x$ENABLE_FORTRAN"); then
 fi
 AC_MSG_RESULT([Linker: $LD $EXPORT_LDFLAGS $CXX_LDFLAGS $LDFLAGS -L${PWD}/src/.libs -lMOAB $PNETCDF_LIBS $NETCDF_LIBS $CGNS_LIBS $HDF5_LIBS $CCMIO_LIBS $CGM_LIBS $ZOLTAN_LIBS $PARMETIS_LIBS $METIS_LIBS $LIBS])
 
-if test "x$HAVE_HDF5" = "xno"; then
+if test "x$enablehdf5" = "xno"; then
   AC_MSG_WARN([
 *************************************************************************
 *            MOAB has been configured w/out the HDF5 library.
