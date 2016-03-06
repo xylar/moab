@@ -369,18 +369,22 @@ public:
   inline Matrix3& operator*=( double s ){
     _mat *= s;
     return *this;
- }
-  
+  }
+
   inline Matrix3& operator/=( double s ){
     _mat /= s;
     return *this;
   }
- 
+
   inline Matrix3& operator*=( const Matrix3& m ){
 	  _mat *= m._mat;
 	  return *this;
   }
-  
+
+  friend Matrix3 operator+( const Matrix3& a, const Matrix3& b );
+  friend Matrix3 operator-( const Matrix3& a, const Matrix3& b );
+  friend Matrix3 operator*( const Matrix3& a, const Matrix3& b );
+
   inline double determinant() const{
   	return _mat.determinant();
   }
@@ -426,16 +430,7 @@ public:
   }
 }; //class Matrix3
 
-inline Matrix3 operator+( const Matrix3& a, const Matrix3& b ){ 
-	return a + b; 
-}
-inline Matrix3 operator-( const Matrix3& a, const Matrix3& b ){ 
-	return a - b; 
-}
 
-inline Matrix3 operator*( const Matrix3& a, const Matrix3& b ) {
-	return a * b;
-}
 
 template< typename Vector>
 inline Matrix3 outer_product( const Vector & u,
@@ -443,6 +438,18 @@ inline Matrix3 outer_product( const Vector & u,
   return Matrix3( u[0] * v[0], u[0] * v[1], u[0] * v[2],
                   u[1] * v[0], u[1] * v[1], u[1] * v[2],
                   u[2] * v[0], u[2] * v[1], u[2] * v[2] );
+}
+
+inline Matrix3 operator+( const Matrix3& a, const Matrix3& b ) {
+  return Matrix3(a._mat + b._mat);
+}
+
+inline Matrix3 operator-( const Matrix3& a, const Matrix3& b ){ 
+  return Matrix3(a._mat - b._mat);
+}
+
+inline Matrix3 operator*( const Matrix3& a, const Matrix3& b ) {
+  return Matrix3(a._mat * b._mat);
 }
 
 template< typename T>
