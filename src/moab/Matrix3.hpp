@@ -33,7 +33,9 @@
 #include "moab/Types.hpp"
 #include "moab/CartVect.hpp"
 
-#define EIGEN_NO_STATIC_ASSERT
+#define EIGEN_DEFAULT_TO_ROW_MAJOR
+#define EIGEN_INITIALIZE_MATRICES_BY_ZERO
+// #define EIGEN_NO_STATIC_ASSERT
 #include "moab/Eigen/Dense"
 
 namespace moab {
@@ -274,7 +276,8 @@ class Matrix3  {
 
 public:
   //Default Constructor
-  inline Matrix3() : _mat(0.0) {
+  inline Matrix3() {
+    _mat.fill(0.0);
   }
   inline Matrix3(Eigen::Matrix3d mat) : _mat(mat) {
   }
@@ -387,7 +390,8 @@ public:
   }
  
   inline Matrix3 inverse(double scale) const {
-    return Matrix3(_mat.inverse()/scale);
+    // return Matrix3(_mat.inverse()/scale);
+    return Matrix3(_mat.inverse());
   }
   
   inline bool positive_definite() const{
