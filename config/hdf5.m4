@@ -113,7 +113,7 @@ AS_HELP_STRING([--without-hdf5], [Disable support for native HDF5 file format])]
 [HDF5_DIR=$withval
  DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --with-hdf5=\"${withval}\""
 ], [HDF5_DIR=$HDF5_DIR])
-if test "x" = "x$HDF5_DIR"; then
+if (test "x" == "x$HDF5_DIR" || test "xno" == "x$HDF5_DIR"); then
   AC_MSG_RESULT([no])
 else
   AC_MSG_RESULT([yes])

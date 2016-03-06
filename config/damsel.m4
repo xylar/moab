@@ -24,10 +24,10 @@ fi
 
  # if DAMSEL support is enabled
 AC_MSG_CHECKING([if DAMSEL support available])
-AC_MSG_RESULT([])
 HAVE_DAMSEL=no
-if test "x" != "x$DAMSEL_ARG" && test "xno" != "x$DAMSEL_ARG"; then
+if (test "x" != "x$DAMSEL_ARG" && test "xno" != "x$DAMSEL_ARG"); then
   HAVE_DAMSEL=yes
+  AC_MSG_RESULT([yes])
 
     # if a path is specified, update LIBS and INCLUDES accordingly
   if test "xyes" != "x$DAMSEL_ARG" && test "x" != "x$DAMSEL_ARG"; then
@@ -69,7 +69,7 @@ if test "x" != "x$DAMSEL_ARG" && test "xno" != "x$DAMSEL_ARG"; then
   fi
 
     # DAMSEL requires HDF5 too
-  if test "xno" == "x$HAVE_HDF5"; then
+  if test "xno" == "x$enablehdf5"; then
     if test "x" == "x$DAMSEL_ARG"; then
       DAMSEL_ARG=no
     elif test "xno" != "xDAMSEL_ARG"; then
@@ -78,6 +78,8 @@ if test "x" != "x$DAMSEL_ARG" && test "xno" != "x$DAMSEL_ARG"; then
     HAVE_DAMSEL=no
   fi
 
+else
+  AC_MSG_RESULT([no])
 fi
 
 ]) # FATHOM_HAVE_DAMSEL

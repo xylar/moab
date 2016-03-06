@@ -399,10 +399,10 @@ old_LDFLAGS="$LDFLAGS"
 LDFLAGS="$LDFLAGS $HDF5_LDFLAGS"
 FATHOM_CHECK_DAMSEL
 LDFLAGS="$old_LDFLAGS"
-if test "xno" != "x$HAVE_DAMSEL"; then
+if (test "xno" != "x$HAVE_DAMSEL" && test "x" != "x$HAVE_DAMSEL"); then
   AC_DEFINE([HAVE_DAMSEL],[1],["Define if configured with Damsel I/O format support."])
 fi
-AM_CONDITIONAL(HAVE_DAMSEL, [test "xno" != "x$HAVE_DAMSEL"])
+AM_CONDITIONAL(HAVE_DAMSEL, [test "xno" != "x$HAVE_DAMSEL" && test "x" != "x$HAVE_DAMSEL"])
 MB_CPPFLAGS="$DAMSEL_CPPFLAGS $MB_CPPFLAGS"
 EXPORT_LDFLAGS="$DAMSEL_LDFLAGS $EXPORT_LDFLAGS"
 AC_SUBST(DAMSEL_LIBS)
