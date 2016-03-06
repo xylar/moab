@@ -414,26 +414,27 @@ AC_SUBST(DAMSEL_LIBS)
 
   # now pnetcdf
 FATHOM_CHECK_PNETCDF([65536],[524288])
-if test "xyes" = "x$HAVE_PNETCDF"; then
+if test "xyes" = "x$enablepnetcdf"; then
   AC_DEFINE([HAVE_PNETCDF],[1],["Define if configured with PNetCDF support."])
 fi
-AM_CONDITIONAL(HAVE_PNETCDF, [test "xyes" = "x$HAVE_PNETCDF"])
+AM_CONDITIONAL(HAVE_PNETCDF, [test "xyes" = "x$enablepnetcdf"])
 MB_CPPFLAGS="$PNETCDF_CPPFLAGS $MB_CPPFLAGS"
 EXPORT_LDFLAGS="$PNETCDF_LDFLAGS $EXPORT_LDFLAGS"
 AC_SUBST(PNETCDF_LIBS)
+AC_SUBST(enablepnetcdf)
 
 old_LDFLAGS="$LDFLAGS"
 LDFLAGS="$LDFLAGS $PNETCDF_LDFLAGS $HDF5_LDFLAGS"
 FATHOM_CHECK_NETCDF([65536],[524288])
 LDFLAGS="$old_LDFLAGS"
-if test "xyes" = "x$HAVE_NETCDF"; then
+if test "xyes" = "x$enablenetcdf"; then
   AC_DEFINE([HAVE_NETCDF],[1],["Define if configured with NetCDF support."])
 fi
-AM_CONDITIONAL(HAVE_NETCDF, [test "xno" != "x$HAVE_NETCDF"])
+AM_CONDITIONAL(HAVE_NETCDF, [test "xno" != "x$enablenetcdf"])
 MB_CPPFLAGS="$NETCDF_CPPFLAGS $MB_CPPFLAGS"
 EXPORT_LDFLAGS="$NETCDF_LDFLAGS $EXPORT_LDFLAGS"
 AC_SUBST(NETCDF_LIBS)
-AC_SUBST(HAVE_NETCDF)
+AC_SUBST(enablenetcdf)
 
 
 ################################################################################
@@ -1289,7 +1290,7 @@ if test "x$enablehdf5" = "xno"; then
 *************************************************************************])
 fi
 
-if test "x$HAVE_NETCDF" = "xno"; then
+if test "x$enablenetcdf" = "xno"; then
   AC_MSG_WARN([
 *************************************************************************
 *           MOAB has been configured w/out the NetCDF library.

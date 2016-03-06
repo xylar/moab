@@ -173,7 +173,7 @@ if (test "x" != "x$HDF5_DIR" || test "xno" != "x$HDF5_DIR"); then
     enablehdf5=no
   fi
   
-  if test "x$enablehdf5" = "xno"; then
+  if (test "x$enablehdf5" != "xyes"); then
     if test "x" = "x$HDF5_DIR"; then
       AC_MSG_WARN([HDF5 library not found or not usable.])
     else
@@ -191,7 +191,7 @@ if (test "x" != "x$HDF5_DIR" || test "xno" != "x$HDF5_DIR"); then
   LIBS="$old_LIBS"
 fi
 
-if test "xno" = "x$enablehdf5"; then
+if (test "xyes" != "x$enablehdf5"); then
   AC_MSG_WARN([Support for native HDF5 file format disabled])
 else
   AC_DEFINE([HAVE_HDF5],[1],[Define if configured with HDF5 support.])
@@ -204,9 +204,9 @@ AC_SUBST(HDF5_LIBS)
 
 WARN_PARALLEL_HDF5=no
 WARN_PARALLEL_HDF5_NO_COMPLEX=no
-HAVE_HDF5_PARALLEL=no
-if test "xno" != "x$enablehdf5"; then
-  if test "xno" != "x$enablempi"; then
+enablehdf5parallel=no
+if (test "xno" != "x$enablehdf5"); then
+  if (test "xno" != "x$enablempi"); then
     old_LDFLAGS="$LDFLAGS"
     old_LIBS="$LIBS"
     LDFLAGS="$LDFLAGS $HDF5_LDFLAGS"
@@ -217,7 +217,7 @@ if test "xno" != "x$enablehdf5"; then
       IS_HDF5_PARALLEL="`$H5PCC -showconfig | grep 'Parallel HDF5: yes'`"
       if (test "x$IS_HDF5_PARALLEL" != "x"); then
         AC_MSG_RESULT(yes)
-        HAVE_HDF5_PARALLEL=yes
+        enablehdf5parallel=yes
       else
         AC_MSG_RESULT(no)
         WARN_PARALLEL_HDF5=yes
@@ -232,8 +232,8 @@ if test "xno" != "x$enablehdf5"; then
     LIBS="$old_LIBS"
   fi
 fi
-AM_CONDITIONAL(HAVE_HDF5_PARALLEL, [test "xno" != "x$HAVE_HDF5_PARALLEL"])
-if test "xno" != "x$HAVE_HDF5_PARALLEL"; then
+AM_CONDITIONAL(HAVE_HDF5_PARALLEL, [test "xno" != "x$enablehdf5parallel"])
+if test "xno" != "x$enablehdf5parallel"; then
   AC_DEFINE([HAVE_HDF5_PARALLEL],[1],[Define if configured with Parallel HDF5 support.])
   
   AC_MSG_CHECKING([for H5_MPI_COMPLEX_DERIVED_DATATYPE_WORKS])
@@ -245,7 +245,7 @@ if test "xno" != "x$HAVE_HDF5_PARALLEL"; then
 #endif])],[AC_MSG_RESULT(yes)],[AC_MSG_RESULT(no); WARN_PARALLEL_HDF5_NO_COMPLEX=yes])
   CPPFLAGS="$old_CPPFLAGS"
 fi
-AC_SUBST(HAVE_HDF5_PARALLEL)
+AC_SUBST(enablehdf5parallel)
 
 
 ]) # FATHOM_CHECK_HDF5

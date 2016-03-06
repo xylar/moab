@@ -33,8 +33,8 @@ AC_DEFUN([FATHOM_CHECK_NETCDF_LIMITS],[
 
 #######################################################################################
 # Check for NetCDF library
-# Sets HAVE_NETCDF to 'yes' or 'no'
-# If HAVE_NETCDF == yes, then exports:
+# Sets enablenetcdf to 'yes' or 'no'
+# If enablenetcdf == yes, then exports:
 #   NETCDF_CPPFLAGS
 #   NETCDF_LDFLAGS
 #   NETCDF_LIBS
@@ -68,7 +68,7 @@ else
 fi
 
 # if NetCDF support is not disabled
-HAVE_NETCDF=no
+enablenetcdf=no
 if (test "x" != "x$NETCDF_DIR" && test "xno" != "x$NETCDF_DIR"); then
 
     # if a path is specified, update LIBS and INCLUDES accordingly
@@ -97,7 +97,7 @@ if (test "x" != "x$NETCDF_DIR" && test "xno" != "x$NETCDF_DIR"); then
     AC_SUBST([NETCDF_CPPFLAGS])
     AC_SUBST([NETCDF_LDFLAGS])
     AC_SUBST([NETCDF_VERSION])
-    HAVE_NETCDF=yes
+    enablenetcdf=yes
   else
     AC_MSG_WARN("NetCDF configuration utility not found")
   fi
@@ -110,12 +110,12 @@ if (test "x" != "x$NETCDF_DIR" && test "xno" != "x$NETCDF_DIR"); then
    # Check for C library
   AC_LANG_PUSH([C])
   AC_CHECK_HEADERS( [netcdf.h], 
-                    [FATHOM_CHECK_NETCDF_LIMITS([$1],[$2],[netcdf.h],[HAVE_NETCDF=yes; NETCDF_SUFFICIENT_DIM_VARS])], 
-                    [AC_MSG_WARN([[NetCDF header not found. Disabling NetCDF configuration.]]); HAVE_NETCDF=no; NETCDF_DIR="";] )
+                    [FATHOM_CHECK_NETCDF_LIMITS([$1],[$2],[netcdf.h],[enablenetcdf=yes; NETCDF_SUFFICIENT_DIM_VARS])], 
+                    [AC_MSG_WARN([[NetCDF header not found. Disabling NetCDF configuration.]]); enablenetcdf=no; NETCDF_DIR="";] )
 
   # Check if netcdf is usable by itself
-  if test "x$HAVE_NETCDF" != "xno"; then
-    AC_CHECK_LIB( [netcdf], [nc_create], [NETCDF_LIBS="-lnetcdf $PNETCDF_LIBS"; HAVE_NETCDF=yes;], [
+  if test "x$enablenetcdf" != "xno"; then
+    AC_CHECK_LIB( [netcdf], [nc_create], [NETCDF_LIBS="-lnetcdf $PNETCDF_LIBS"; enablenetcdf=yes;], [
       # Check if netcdf is usable with HDF5
       unset ac_cv_lib_netcdf
       unset ac_cv_lib_netcdf_nc_create
@@ -123,12 +123,12 @@ if (test "x" != "x$NETCDF_DIR" && test "xno" != "x$NETCDF_DIR"); then
       # they're in the NetCDF lib directory.
       FATHOM_DETECT_HDF5_LIBS
       LDFLAGS="$LDFLAGS $HDF5_LDFLAGS"
-      AC_CHECK_LIB( [netcdf], [nc_create], [NETCDF_LIBS="-lnetcdf $PNETCDF_LIBS -lhdf5_hl $HDF5_LIBS"; HAVE_NETCDF=yes;], [
+      AC_CHECK_LIB( [netcdf], [nc_create], [NETCDF_LIBS="-lnetcdf $PNETCDF_LIBS -lhdf5_hl $HDF5_LIBS"; enablenetcdf=yes;], [
         # Try one more time with HDF5 and libcurl
         unset ac_cv_lib_netcdf
         unset ac_cv_lib_netcdf_nc_create
-        AC_CHECK_LIB( [netcdf], [nc_create], [NETCDF_LIBS="-lnetcdf $PNETCDF_LIBS -lhdf5_hl $HDF5_LIBS -lcurl"; HAVE_NETCDF=yes;],
-          [HAVE_NETCDF=no], [$PNETCDF_LIBS -lhdf5_hl $HDF5_LIBS -lcurl ] )],
+        AC_CHECK_LIB( [netcdf], [nc_create], [NETCDF_LIBS="-lnetcdf $PNETCDF_LIBS -lhdf5_hl $HDF5_LIBS -lcurl"; enablenetcdf=yes;],
+          [enablenetcdf=no], [$PNETCDF_LIBS -lhdf5_hl $HDF5_LIBS -lcurl ] )],
         [$PNETCDF_LIBS -lhdf5_hl $HDF5_LIBS] )],
       )
   fi
@@ -137,7 +137,7 @@ if (test "x" != "x$NETCDF_DIR" && test "xno" != "x$NETCDF_DIR"); then
   LDFLAGS="$old_LDFLAGS"
   AC_LANG_POP([C])
 
-  if test "x$HAVE_NETCDF" = "xno"; then
+  if test "x$enablenetcdf" = "xno"; then
     if test "x$NETCDF_DIR" != "x"; then 
       AC_MSG_ERROR("NetCDF not found or not working")
     else
@@ -148,7 +148,7 @@ if (test "x" != "x$NETCDF_DIR" && test "xno" != "x$NETCDF_DIR"); then
   fi
 fi
 
-]) # FATHOM_HAVE_NETCDF
+]) # FATHOM_enablenetcdf
 
 AC_DEFUN([FATHOM_CHECK_PNETCDF],[
 
@@ -167,7 +167,7 @@ if test "xyes" != "x$enablempi"; then
   elif test "xno" != "xPNETCDF_DIR"; then
     AC_MSG_ERROR([PNetCDF requires --with-mpi])
   fi
-  HAVE_PNETCDF=no
+  enablepnetcdf=no
 fi
 
 AC_MSG_CHECKING([if PNetCDF support is enabled])
@@ -178,9 +178,9 @@ else
 fi
 
  # if Pnetcdf support is not disabled
-HAVE_PNETCDF=no
+enablepnetcdf=no
 if (test "xno" != "x$PNETCDF_DIR" && test "x$PNETCDF_DIR" != "x"); then
-  HAVE_PNETCDF=yes
+  enablepnetcdf=yes
   
     # if a path is specified, update LIBS and INCLUDES accordingly
   if test "xyes" != "x$PNETCDF_DIR" && test "x" != "x$PNETCDF_DIR"; then
@@ -209,16 +209,16 @@ if (test "xno" != "x$PNETCDF_DIR" && test "x$PNETCDF_DIR" != "x"); then
   AC_LANG_PUSH([C])
   AC_CHECK_HEADERS( [pnetcdf.h], 
                     [FATHOM_CHECK_NETCDF_LIMITS([$1],[$2],[pnetcdf.h],[PNETCDF_SUFFICIENT_DIM_VARS])], 
-                    [HAVE_PNETCDF=no] )
+                    [enablepnetcdf=no] )
 
-  AC_CHECK_LIB( [pnetcdf], [ncmpi_create], [PNETCDF_LIBS="-lpnetcdf"], [HAVE_PNETCDF=no] )
+  AC_CHECK_LIB( [pnetcdf], [ncmpi_create], [PNETCDF_LIBS="-lpnetcdf"], [enablepnetcdf=no] )
 
   
   AC_LANG_POP([C])
   CPPFLAGS="$old_CPPFLAGS"
   LDFLAGS="$old_LDFLAGS"
 
-  if test "x$HAVE_PNETCDF" = "xno"; then
+  if test "x$enablepnetcdf" = "xno"; then
     if test "x$PNETCDF_DIR" != "x"; then 
       AC_MSG_ERROR("PNetCDF not found or not working")
     fi
@@ -227,4 +227,4 @@ if (test "xno" != "x$PNETCDF_DIR" && test "x$PNETCDF_DIR" != "x"); then
   fi
 fi
 
-]) # FATHOM_HAVE_PNETCDF
+]) # FATHOM_enablepnetcdf
