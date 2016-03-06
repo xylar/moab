@@ -217,6 +217,7 @@ if test "xno" != "x$enablehdf5"; then
       IS_HDF5_PARALLEL="`$H5PCC -showconfig | grep 'Parallel HDF5: yes'`"
       if (test "x$IS_HDF5_PARALLEL" != "x"); then
         AC_MSG_RESULT(yes)
+        HAVE_HDF5_PARALLEL=yes
       else
         AC_MSG_RESULT(no)
         WARN_PARALLEL_HDF5=yes
