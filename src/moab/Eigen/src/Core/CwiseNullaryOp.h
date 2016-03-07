@@ -791,9 +791,9 @@ EIGEN_STRONG_INLINE Derived& MatrixBase<Derived>::setIdentity()
   * \sa MatrixBase::setIdentity(), class CwiseNullaryOp, MatrixBase::Identity()
   */
 template<typename Derived>
-EIGEN_STRONG_INLINE Derived& MatrixBase<Derived>::setIdentity(Index rows, Index cols)
+EIGEN_STRONG_INLINE Derived& MatrixBase<Derived>::setIdentity(Index p_rows, Index p_cols)
 {
-  derived().resize(rows, cols);
+  derived().resize(p_rows, p_cols);
   return setIdentity();
 }
 

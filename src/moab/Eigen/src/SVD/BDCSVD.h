@@ -101,10 +101,10 @@ public:
    * according to the specified problem size.
    * \sa BDCSVD()
    */
-  BDCSVD(Index rows, Index cols, unsigned int computationOptions = 0)
+  BDCSVD(Index p_rows, Index p_cols, unsigned int computationOptions = 0)
     : m_algoswap(16), m_numIters(0)
   {
-    allocate(rows, cols, computationOptions);
+    allocate(p_rows, p_cols, computationOptions);
   }
 
   /** \brief Constructor performing the decomposition of given matrix.
@@ -198,11 +198,11 @@ public:
 
 // Method to allocate and initialize matrix and attributes
 template<typename MatrixType>
-void BDCSVD<MatrixType>::allocate(Index rows, Index cols, unsigned int computationOptions)
+void BDCSVD<MatrixType>::allocate(Index p_rows, Index p_cols, unsigned int computationOptions)
 {
-  m_isTranspose = (cols > rows);
+  m_isTranspose = (p_cols > p_rows);
 
-  if (Base::allocate(rows, cols, computationOptions))
+  if (Base::allocate(p_rows, p_cols, computationOptions))
     return;
   
   m_computed = MatrixXr::Zero(m_diagSize + 1, m_diagSize );

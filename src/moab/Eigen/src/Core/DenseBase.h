@@ -253,11 +253,11 @@ template<typename Derived> class DenseBase
       * nothing else.
       */
     EIGEN_DEVICE_FUNC
-    void resize(Index rows, Index cols)
+    void resize(Index p_rows, Index p_cols)
     {
-      EIGEN_ONLY_USED_FOR_DEBUG(rows);
-      EIGEN_ONLY_USED_FOR_DEBUG(cols);
-      eigen_assert(rows == this->rows() && cols == this->cols()
+      EIGEN_ONLY_USED_FOR_DEBUG(p_rows);
+      EIGEN_ONLY_USED_FOR_DEBUG(p_cols);
+      eigen_assert(p_rows == this->rows() && p_cols == this->cols()
                 && "DenseBase::resize() does not actually allow to resize.");
     }
 

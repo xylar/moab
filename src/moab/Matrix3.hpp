@@ -393,7 +393,7 @@ public:
     return Matrix3(_mat.inverse());
   }
  
-  inline Matrix3 inverse(double scale) const {
+  inline Matrix3 inverse(double /*scale*/) const {
     // return Matrix3(_mat.inverse()/scale);
     return Matrix3(_mat.inverse());
   }
