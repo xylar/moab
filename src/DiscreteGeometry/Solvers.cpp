@@ -122,7 +122,7 @@ namespace moab {
         //Compute norm of the column vector
         double w = vec_2norm(mrows,v);
 
-        if (abs(w)==0)
+        if (fabs(w)==0)
           ts[i] = 1;
         else
           {
@@ -263,7 +263,7 @@ namespace moab {
 
   void Solvers::backsolve_polyfit_safeguarded(int dim, int degree, int mrows, int ncols, double *R, int bncols, double *bs, const double *ws, int *degree_out)
   {
-    std::cout.precision(12);
+    /*std::cout.precision(12);
     std::cout<<"Before backsolve  "<<std::endl;
     std::cout<<" V = "<<std::endl;
     for (int k=0; k< ncols; k++){
@@ -280,9 +280,9 @@ namespace moab {
     for (int k=0; k< bncols; k++){
         for (int j=0; j<mrows; ++j){
             std::cout<<"  "<<bs[mrows*k+j]<<std::endl;
-          }
-      }
-    std::cout<<std::endl;
+        }
+    }
+    std::cout<<std::endl;*/
     //std::cout<<" ] "<<std::endl;
 
    /* std::cout<<"Input ws = [ ";
@@ -322,10 +322,12 @@ namespace moab {
             for (int d = deg; d>=0 ; d--)
               {
                 int cstart;
-                if (dim==1)
+                if (dim==1){
                   cstart = d ;
-                else if (dim==2)
+                }else if (dim==2){
                   cstart = ((d+1)*d)/2 ;
+                  //cstart = ((d*(d+1))>>1)-interp;
+                }
 
                // std::cout<<"cstart = "<<cstart<<", cend = "<<cend<<std::endl;
 

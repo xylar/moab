@@ -121,6 +121,13 @@ namespace moab
 
 		for(Range::iterator ivert=_verts2rec.begin();ivert!=_verts2rec.end();++ivert){
 			int index = _verts2rec.index(*ivert);
+			//for debug
+			/*if(index==70){
+				EntityHandle vid = *ivert;
+				double vertcoords[3];
+				error = mbImpl->get_coords(&vid,1,vertcoords);
+			}*/
+
 			size_t istr = _vertID2coeffID[index];
 			coords = &(_local_coords[9*index]);
 			coeffs = &(_local_fit_coeffs[istr]);
@@ -238,6 +245,12 @@ namespace moab
 		//get n-ring neighbors
 		Range ngbvs;
 		error = obtain_nring_ngbvs(vid,ring,minpnts,ngbvs); MB_CHK_ERR(error);
+		//for debug
+		/*if(_verts2rec.index(vid)==70){
+			for(Range::iterator ingb=ngbvs.begin();ingb!=ngbvs.end();++ingb) std::cerr << _verts2rec.index(*ingb) << " ";
+			std::cout << std::endl;
+		}*/
+
 		//get coordinates;
 		size_t nverts = ngbvs.size(); assert(nverts);
 		double *ngbcoords = new double[nverts*3];
@@ -467,19 +480,18 @@ namespace moab
 	 ****************************************************************/
 
 	 int HiReconstruction::estimate_num_rings(int degree, bool interp){
-		//return interp?((degree+1)>>1)+((degree+1)&1):((degree+2)>>1)+((degree+2)&1);
-	   return interp?((degree+1)>>1):((degree+2)>>1);
-
+		return interp?((degree+1)>>1)+((degree+1)&1):((degree+2)>>1)+((degree+2)&1);
 	 }
 
 	 ErrorCode HiReconstruction::vertex_get_incident_elements(const EntityHandle& vid, const int elemdim, std::vector<EntityHandle>& adjents){
 	 	ErrorCode error;
 	 	assert(elemdim==_dim);
 	 #ifdef HIREC_USE_AHF
-	 	error = mbImpl->get_up_adjacencies(vid,elemdim,adjents);
+	 	error = ahf->get_up_adjacencies(vid,elemdim,adjents); MB_CHK_ERR(error);
 	 #else
 	 	error = mbImpl->get_adjacencies(&vid,1,elemdim,false,adjents); MB_CHK_ERR(error);
 	 #endif
+	 	return error;
 	 }
 
 	 ErrorCode HiReconstruction::obtain_nring_ngbvs(const EntityHandle vid, int ring, const int minpnts, Range& ngbvs){

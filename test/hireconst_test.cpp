@@ -59,10 +59,10 @@ int main(int argc, char *argv[]){
 	bool interp = false;
 	ErrorCode error;
 	if(argc==1){
-		error = test_unitcircle(); MB_CHK_ERR(error);
 		error = test_unitsq_tris(); MB_CHK_ERR(error);
 		error = test_unitsq_quads(); MB_CHK_ERR(error);
 		error = test_unitsphere(); MB_CHK_ERR(error);
+		error = test_unitcircle(); MB_CHK_ERR(error);
 		return 0;
 	}else{
 		infile = argv[1]; bool hasdim=false;
@@ -165,9 +165,9 @@ ErrorCode test_mesh(const char* infile,const int degree, const bool interp, cons
 	//reconstruction
 	if(dim==2){
 		//error = hirec.reconstruct3D_surf_geom(degree, interp, false); MB_CHK_ERR(error);
-		error = hirec.reconstruct3D_surf_geom(degree, interp, false); MB_CHK_ERR(error);
+		error = hirec.reconstruct3D_surf_geom(degree, interp, true); MB_CHK_ERR(error);
 	}else if(dim==1){
-		error = hirec.reconstruct3D_curve_geom(degree, interp, false); MB_CHK_ERR(error);
+		error = hirec.reconstruct3D_curve_geom(degree, interp, true); MB_CHK_ERR(error);
 	}	
 
 
@@ -197,12 +197,13 @@ ErrorCode test_mesh(const char* infile,const int degree, const bool interp, cons
 	}
 
 
-	// compute error
-	error = exact_error_torus(R, r, center, (int)elems.size(), pnts_proj, errl1, errl2, errli);MB_CHK_ERR(error);
+	// compute error for torus
+	/*error = exact_error_torus(R, r, center, (int)elems.size(), pnts_proj, errl1, errl2, errli);MB_CHK_ERR(error);
+	std::cout<<"Errors using exact torus for degree "<<degree<<" fit : L1 = "<<errl1<<", L2 = "<<errl2<<", Linf = "<<errli<<std::endl;*/
 
-	//std::cout << "Maximum projection lift is " << mxdist << std::endl;
-	//std::cout<<"Errors using exact torus for degree "<<degree<<" fit : L1 = "<<errl1<<", L2 = "<<errl2<<", Linf = "<<errli<<std::endl;
-	std::cout<<errl2<<std::endl;
+	std::cout << "Maximum projection lift is " << mxdist << std::endl;
+	
+	//std::cout<<errl2<<std::endl;
 
 	return error;
 }
@@ -274,7 +275,7 @@ ErrorCode test_unitsq_tris(){
 		HiReconstruction hirec(dynamic_cast<Core*>(mbImpl),0,meshIn);
 		for(int degree=1;degree<=6;++degree){
 			//reconstruct geometry, interpolation
-			hirec.reconstruct3D_surf_geom(degree, true, false, true);
+			hirec.reconstruct3D_surf_geom(degree, true, true, true);
 			//test fitting result
 			double mxdist=0;
 			for(size_t itri=0;itri<tris.size();++itri){

@@ -79,7 +79,7 @@ ErrorCode load_meshset_hirec(const char* infile, Interface* mbimpl, EntityHandle
 		error = mbimpl->write_file(localfile.c_str(),0,0,&local,1);*/
 
 		error = mbimpl->load_file(infile,&meshset,read_options.c_str()); MB_CHK_ERR(error);
-		/*
+		/*for debug
 		//write local mesh with ghost layers
 		localfile = outfile.substr(0,dotpos)+convert.str()+"_ghost.vtk";
 		error = mbimpl->write_file(localfile.c_str(),0,0,&meshset,1);*/
@@ -141,11 +141,11 @@ ErrorCode closedsurface_uref_hirec_convergence_study(const char* infile, std::ve
 		double currcoords[3],exactcoords[3];
 		error = mbImpl->get_coords(&currvert,1,currcoords); MB_CHK_ERR(error);
 		obj->project_points2geom(3,currcoords,exactcoords,NULL);
-		assert(fabs(obj->Twonorm(3,exactcoords)-1)<1e-12);
+		
 		error = mbImpl->set_coords(&currvert,1,exactcoords); MB_CHK_ERR(error);
 		//for debug
-		error = mbImpl->get_coords(&currvert,1,currcoords); MB_CHK_ERR(error);
-		assert(currcoords[0]==exactcoords[0]&&currcoords[1]==exactcoords[1]&&currcoords[2]==exactcoords[2]);
+		/*error = mbImpl->get_coords(&currvert,1,currcoords); MB_CHK_ERR(error);
+		assert(currcoords[0]==exactcoords[0]&&currcoords[1]==exactcoords[1]&&currcoords[2]==exactcoords[2]);*/
 	}
 
 	//test ahf on mesh with ghost layers
@@ -274,15 +274,52 @@ ErrorCode closedsurface_uref_hirec_convergence_study(const char* infile, std::ve
 		//High order reconstruction
 		HiReconstruction hirec(&moab,pc,meshset);
 		error = hirec.reconstruct3D_surf_geom(degs2fit[ideg],interp,false,true); MB_CHK_ERR(error);
+
 		int index=0;
+		//for debug
+		/*double maxlinferr=0,elemlinferr=0,eleml1err=0,eleml2err;
+		EntityHandle elem_maxerr;*/
+
 		for(Range::iterator ielem=elems_owned.begin();ielem!=elems_owned.end();++ielem,++index){
 			//Projection
 			error = hirec.hiproj_walf_in_element(*ielem,nvpe,nsamples,&(testnaturalcoords[nvpe*nsamples*index]),&(testpnts[3*nsamples*index])); MB_CHK_ERR(error);
+			//for debug
+			/*obj->compute_projecterror(3,nsamples,&(testpnts[3*nsamples*index]),eleml1err,eleml2err,elemlinferr);
+			if(elemlinferr>maxlinferr){
+				maxlinferr = elemlinferr; elem_maxerr = *ielem;
+			}*/
 		}
 		assert(index==elems_owned.size());
 		//Estimate error
 		obj->compute_projecterror(3,elems_owned.size()*nsamples,&(testpnts[0]),l1err,l2err,linferr);
 		geoml1errs.push_back(l1err); geoml2errs.push_back(l2err); geomlinferrs.push_back(linferr);
+		
+		//for debug
+		/*std::cout << "Degree " << degs2fit[ideg] << " has L-inf error " << maxlinferr << " at element " << elems_owned.index(elem_maxerr) << ":";
+		std::vector<EntityHandle> conn;
+		error = mbImpl->get_connectivity(&elem_maxerr,1,conn); MB_CHK_ERR(error);
+		for(size_t ii=0;ii<conn.size();++ii) std::cout << verts.index(conn[ii]) << " "; std::cout << std::endl;
+		
+		for(size_t ii=0;ii<conn.size();++ii){
+			//assume triangle
+			std::vector<double> vertexcoords(3,0);
+			error = mbImpl->get_coords(&(conn[ii]),1,&(vertexcoords[0])); MB_CHK_ERR(error);
+			std::cout << verts.index(conn[ii]) << ":" << vertexcoords[0] << " "<< vertexcoords[1] << " "<< vertexcoords[2] << "\n";
+			GEOMTYPE geomtype;
+			std::vector<double> local_coords_system, local_coeffs;
+			int deg_out; bool local_interp;
+			bool hasfit = hirec.get_fittings_data(conn[ii],geomtype,local_coords_system,deg_out,local_coeffs,local_interp); assert(hasfit);
+			std::cout << "Local fitting result: " << std::endl;
+			std::cout << "Geom Type: " << geomtype << std::endl;
+			std::cout << "Local coordinates system: " << std::endl;
+			std::cout << local_coords_system[0] << "\t" << local_coords_system[1] << "\t" << local_coords_system[2] << std::endl;
+			std::cout << local_coords_system[3] << "\t" << local_coords_system[4] << "\t" << local_coords_system[5] << std::endl;
+			std::cout << local_coords_system[6] << "\t" << local_coords_system[7] << "\t" << local_coords_system[8] << std::endl;
+			std::cout << "Fitting degree is " << deg_out << " interp is " << local_interp << std::endl;
+			std::cout << "Fitting coefficients are :" << std::endl;
+			for(size_t kk=0;kk<local_coeffs.size();++kk) std::cout << local_coeffs[kk] << "\t";
+			std::cout << std::endl;
+		}*/
 	}
 	return error;
 }
@@ -375,6 +412,7 @@ int main(int argc, char *argv[]){
 	}
 
 	std::vector<int> degs2fit; for(int d=1;d<=6;++d) degs2fit.push_back(d);
+
 	int begin = atoi(istr.c_str()), end = atoi(iend.c_str())+1;
 #ifdef MOAB_HAVE_MPI
 	std::vector< std::vector<double> > geoml1errs_global,geoml2errs_global,geomlinferrs_global;
