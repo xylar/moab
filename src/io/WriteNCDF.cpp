@@ -423,7 +423,21 @@ ErrorCode WriteNCDF::gather_mesh_information(ExodusMeshInfo &mesh_info,
       MB_SET_ERR(MB_FAILURE, "Element type in block " << id << " didn't get set correctly");
     }
 
-    block_data.number_nodes_per_element = ExoIIUtil::VerticesPerElement[block_data.element_type];
+    if (block_data.element_type == EXOII_POLYGON) {
+      // get all poly connectivity
+      int numconn=0;
+      for (Range::iterator eit=block_data.elements.begin(); eit!=block_data.elements.end(); eit++)
+      {
+        EntityHandle polg= *eit;
+        int nnodes=0;
+        const EntityHandle * conn = NULL;
+        rval = mdbImpl->get_connectivity(polg, conn, nnodes); MB_CHK_ERR(rval);
+        numconn+=nnodes;
+      }
+      block_data.number_nodes_per_element = numconn;
+    }
+    else
+      block_data.number_nodes_per_element = ExoIIUtil::VerticesPerElement[block_data.element_type];
 
     // Number of nodes for this block
     block_data.number_elements = block_data.elements.size();
@@ -898,7 +912,11 @@ ErrorCode WriteNCDF::write_elementblocks(std::vector<MaterialSetData> &block_dat
 
     // Map the connectivity to the new nodes
     const unsigned int num_elem = block.number_elements;
-    const unsigned int num_nodes = num_nodes_per_elem * num_elem;
+    unsigned int num_nodes = num_nodes_per_elem * num_elem;
+    if (EXOII_POLYGON==block.element_type)
+    {
+      num_nodes = num_nodes_per_elem;
+    }
     int* connectivity = new int[num_nodes];
 
     ErrorCode result = mWriteIface->get_element_connect(num_elem, num_nodes_per_elem,
@@ -929,13 +947,44 @@ ErrorCode WriteNCDF::write_elementblocks(std::vector<MaterialSetData> &block_dat
       MB_SET_ERR(MB_FAILURE, "Couldn't get connectivity variable");
     }
 
-    size_t start[2] = {0, 0}, count[2] = {num_elem, num_nodes_per_elem};
-    int fail = nc_put_vara_int(ncFile, nc_var, start, count, connectivity);
-    if (NC_NOERR != fail) {
-      delete [] connectivity;
-      MB_SET_ERR(MB_FAILURE, "Couldn't write connectivity variable");
+    if (EXOII_POLYGON==block.element_type)
+    {
+      size_t start[1] = {0}, count[1] = {num_nodes_per_elem};
+      int fail = nc_put_vara_int(ncFile, nc_var, start, count, connectivity);
+      if (NC_NOERR != fail) {
+        delete [] connectivity;
+        MB_SET_ERR(MB_FAILURE, "Couldn't write connectivity variable");
+      }
+      // now put also number ebepecnt1
+      INS_ID(wname, "ebepecnt%u", i + 1);
+      GET_VAR(wname, nc_var, dims);
+      count[0] = block.number_elements;
+      start[0]=0;
+      // reuse connectivity array, to not allocate another one
+      int j=0;
+      for (Range::iterator eit=block.elements.begin(); eit!=block.elements.end(); j++, eit++)
+      {
+        EntityHandle polg= *eit;
+        int nnodes=0;
+        const EntityHandle * conn = NULL;
+        ErrorCode rval = mdbImpl->get_connectivity(polg, conn, nnodes); MB_CHK_ERR(rval);
+        connectivity[j]= nnodes;
+      }
+      fail = nc_put_vara_int(ncFile, nc_var, start, count, connectivity);
+      if (NC_NOERR != fail) {
+        delete [] connectivity;
+        MB_SET_ERR(MB_FAILURE, "Couldn't write ebepecnt variable");
+      }
     }
-
+    else
+    {
+      size_t start[2] = {0, 0}, count[2] = {num_elem, num_nodes_per_elem};
+      int fail = nc_put_vara_int(ncFile, nc_var, start, count, connectivity);
+      if (NC_NOERR != fail) {
+        delete [] connectivity;
+        MB_SET_ERR(MB_FAILURE, "Couldn't write connectivity variable");
+      }
+    }
     block_index++;
     delete [] connectivity;
   }
@@ -1355,11 +1404,11 @@ ErrorCode WriteNCDF::initialize_exodus_file(ExodusMeshInfo &mesh_info,
   }
 
   // Add other attributes while we're at it
-  float dum_vers = 3.04F;
+  float dum_vers = 5.22F;
   if (NC_NOERR != nc_put_att_float(ncFile, NC_GLOBAL, "api_version", NC_FLOAT, 1, &dum_vers)) {
     MB_SET_ERR(MB_FAILURE, "WriteNCDF: failed to define api_version attribute");
   }
-  dum_vers = 2.05F;
+  dum_vers = 5.22F;
   if (NC_NOERR != nc_put_att_float(ncFile, NC_GLOBAL, "version", NC_FLOAT, 1, &dum_vers)) {
     MB_SET_ERR(MB_FAILURE, "WriteNCDF: failed to define version attribute");
   }
@@ -1449,18 +1498,55 @@ ErrorCode WriteNCDF::initialize_exodus_file(ExodusMeshInfo &mesh_info,
 
     /* Define element connectivity array for this block */
 
-    INS_ID(wname, "connect%d", element_block_index);
-    dims[0] = num_el_in_blk;
-    dims[1] = num_nod_per_el;
-    if (NC_NOERR != nc_def_var(ncFile, wname, NC_LONG, 2, dims, &connect)) {
-      MB_SET_ERR(MB_FAILURE, "WriteNCDF: failed to create connectivity array for block " << i + 1);
+    if (EXOII_POLYGON != block.element_type && EXOII_POLYHEDRON!=block.element_type)
+    {
+      INS_ID(wname, "connect%d", element_block_index);
+      dims[0] = num_el_in_blk;
+      dims[1] = num_nod_per_el;
+      if (NC_NOERR != nc_def_var(ncFile, wname, NC_LONG, 2, dims, &connect)) {
+        MB_SET_ERR(MB_FAILURE, "WriteNCDF: failed to create connectivity array for block " << i + 1);
+      }
+
+      /* Store element type as attribute of connectivity variable */
+
+      std::string element_type_string(ExoIIUtil::ElementTypeNames[block.element_type]);
+      if (NC_NOERR != nc_put_att_text(ncFile, connect, "elem_type", element_type_string.length(), element_type_string.c_str())) {
+        MB_SET_ERR(MB_FAILURE, "WriteNCDF: failed to store element type name " << (int)block.element_type);
+      }
     }
-
-    /* Store element type as attribute of connectivity variable */
-
-    std::string element_type_string(ExoIIUtil::ElementTypeNames[block.element_type]);
-    if (NC_NOERR != nc_put_att_text(ncFile, connect, "elem_type", element_type_string.length(), element_type_string.c_str())) {
-      MB_SET_ERR(MB_FAILURE, "WriteNCDF: failed to store element type name " << (int)block.element_type);
+    else if (EXOII_POLYGON == block.element_type )
+    {
+      INS_ID(wname, "connect%d", element_block_index);
+      // need to define num_nod_per_el as total number of nodes
+      // ebepecnt1 as number of nodes per polygon
+      /*
+       * int connect1(num_nod_per_el1) ;
+            connect1:elem_type = "nsided" ;
+         int ebepecnt1(num_el_in_blk1) ;
+            ebepecnt1:entity_type1 = "NODE" ;
+            ebepecnt1:entity_type2 = "ELEM" ;*/
+      dims[0] = num_nod_per_el;
+      if (NC_NOERR != nc_def_var(ncFile, wname, NC_LONG, 1, dims, &connect)) {
+        MB_SET_ERR(MB_FAILURE, "WriteNCDF: failed to create connectivity array for block " << i + 1);
+      }
+      std::string element_type_string("nsided");
+      if (NC_NOERR != nc_put_att_text(ncFile, connect, "elem_type", element_type_string.length(), element_type_string.c_str())) {
+        MB_SET_ERR(MB_FAILURE, "WriteNCDF: failed to store element type name " << (int)block.element_type);
+      }
+      INS_ID(wname, "ebepecnt%d", element_block_index);
+      int ebepecnt;
+      dims[0] = num_el_in_blk;
+      if (NC_NOERR != nc_def_var(ncFile, wname, NC_LONG, 1, dims, &ebepecnt)) {
+        MB_SET_ERR(MB_FAILURE, "WriteNCDF: failed to create ebepecnt array for block " << i + 1);
+      }
+      std::string etype1("NODE");
+      if (NC_NOERR != nc_put_att_text(ncFile, ebepecnt, "entity_type1", etype1.length(), etype1.c_str())) {
+        MB_SET_ERR(MB_FAILURE, "WriteNCDF: failed to store entity type1 " << (int)block.element_type);
+      }
+      std::string etype2("ELEM");
+      if (NC_NOERR != nc_put_att_text(ncFile, ebepecnt, "entity_type2", etype2.length(), etype2.c_str())) {
+        MB_SET_ERR(MB_FAILURE, "WriteNCDF: failed to store entity type2 " << (int)block.element_type);
+      }
     }
   }
 
