@@ -1716,7 +1716,7 @@ ErrorCode Core::connect_iterate(Range::const_iterator iter,
 
   connect += eseq->nodes_per_element() * (*iter - eseq->start_handle());
 
-  EntityHandle real_end = *(iter.end_of_block());
+  EntityHandle real_end = std::min(eseq->end_handle(), *(iter.end_of_block()));
   if (*end) real_end = std::min(real_end, *end);
   count = real_end - *iter + 1;
 
