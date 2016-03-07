@@ -92,8 +92,8 @@ mark_as_advanced(
 )
 
 IF (MOAB_HAVE_MPI AND ENABLE_PNETCDF)
-  set (PNETCDF_DIR "" CACHE PATH "Path to search for parallel NetCDF header and library files" )
-  set (PNETCDF_FOUND NO CACHE INTERNAL "Found parallel NetCDF components successfully." )
+  set (PNETCDF_DIR "" CACHE PATH "Path to search for PNetCDF header and library files" )
+  set (PNETCDF_FOUND NO CACHE INTERNAL "Found PNetCDF components successfully." )
 
   find_path( PNETCDF_INCLUDES pnetcdf.h
     ${PNETCDF_DIR}
