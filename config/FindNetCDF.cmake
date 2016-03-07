@@ -91,9 +91,9 @@ mark_as_advanced(
   NETCDF_LIBRARIES
 )
 
-IF (MOAB_HAVE_MPI)
-  set (PNETCDF_DIR "" CACHE PATH "Path to search for parallel NetCDF header and library files" )
-  set (PNETCDF_FOUND NO CACHE INTERNAL "Found parallel NetCDF components successfully." )
+IF (MOAB_HAVE_MPI AND ENABLE_PNETCDF)
+  set (PNETCDF_DIR "" CACHE PATH "Path to search for PNetCDF header and library files" )
+  set (PNETCDF_FOUND NO CACHE INTERNAL "Found PNetCDF components successfully." )
 
   find_path( PNETCDF_INCLUDES pnetcdf.h
     ${PNETCDF_DIR}
@@ -128,9 +128,9 @@ find_library( PNETCDF_LIBRARIES
     PNETCDF_INCLUDES
     PNETCDF_LIBRARIES
   )
-ELSE (MOAB_HAVE_MPI)
-  message (STATUS "Not configuring with PNetCDF since MPI installation not specified")
-ENDIF()
+ELSE (MOAB_HAVE_MPI AND ENABLE_PNETCDF)
+  message (STATUS "Not configuring with PNetCDF since MPI installation not specified or explicitly disabled by user")
+ENDIF (MOAB_HAVE_MPI AND ENABLE_PNETCDF)
 
 include (FindPackageHandleStandardArgs)
 find_package_handle_standard_args (NetCDF "NetCDF not found, check environment variables NETCDF_DIR"

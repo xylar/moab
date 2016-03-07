@@ -454,7 +454,7 @@ AC_SUBST(DAMSEL_LIBS)
   # now pnetcdf
 FATHOM_CHECK_PNETCDF([65536],[524288])
 if test "xyes" = "x$HAVE_PNETCDF"; then
-  AC_DEFINE([HAVE_PNETCDF],[1],["Define if configured with Parallel NetCDF support."])
+  AC_DEFINE([HAVE_PNETCDF],[1],["Define if configured with PNetCDF support."])
 fi
 AM_CONDITIONAL(HAVE_PNETCDF, [test "xyes" = "x$HAVE_PNETCDF"])
 MB_CPPFLAGS="$PNETCDF_CPPFLAGS $MB_CPPFLAGS"
