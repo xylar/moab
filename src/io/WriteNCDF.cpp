@@ -1008,7 +1008,87 @@ ErrorCode WriteNCDF::write_elementblocks(std::vector<MaterialSetData> &block_dat
               ebepecnt1:entity_type1 = "FACE" ;
               ebepecnt1:entity_type2 = "ELEM" ;
 
-            */
+       */
+      Range block_faces;
+      ErrorCode rval = mdbImpl->get_connectivity(block.elements, block_faces); MB_CHK_ERR(rval);
+      int num_faces_in_block = (int) block_faces.size();
+      INS_ID(wname, "fbconn%u", i + 1);
+      GET_VAR(wname, nc_var, dims); // fbconn# variable, 1 dimensional
+      int ixcon=0, j=0;
+      std::vector<int> fbepe(num_faces_in_block); // fbepecnt1
+      for (Range::iterator eit=block_faces.begin(); eit!=block_faces.end(); eit++)
+      {
+        EntityHandle polyg= *eit;
+        int nnodes=0;
+        const EntityHandle * conn = NULL;
+        rval  = mdbImpl->get_connectivity(polyg, conn, nnodes); MB_CHK_ERR(rval);
+        for (int k=0; k<nnodes; k++)
+          connectivity[ixcon++] = conn[k];
+        fbepe[j++]= nnodes;
+      }
+      size_t start[1] = { 0}, count[1] = {0};
+      count[0]= ixcon;
+      int fail = nc_put_vara_int(ncFile, nc_var, start, count, connectivity);
+      if (NC_NOERR != fail) {
+        delete [] connectivity;
+        MB_SET_ERR(MB_FAILURE, "Couldn't write fbconn variable");
+      }
+
+
+      INS_ID(wname, "fbepecnt%u", i + 1);
+      GET_VAR(wname, nc_var, dims); // fbconn# variable, 1 dimensional
+      count[0]= num_faces_in_block;
+
+      fail = nc_put_vara_int(ncFile, nc_var, start, count, &fbepe[0]);
+      if (NC_NOERR != fail) {
+        delete [] connectivity;
+        MB_SET_ERR(MB_FAILURE, "Couldn't write fbepecnt variable");
+      }
+
+      // reuse now connectivity for facconn1
+      INS_ID(wname, "facconn%u", i + 1);
+      GET_VAR(wname, nc_var, dims); // fbconn# variable, 1 dimensional
+
+      std::vector<int> ebepe(block.elements.size()); // ebepecnt1
+      ixcon=0;
+      j = 0;
+      for (Range::iterator eit=block.elements.begin(); eit!=block.elements.end(); eit++)
+      {
+        EntityHandle polyh= *eit;
+        int nfaces=0;
+        const EntityHandle * conn = NULL;
+        rval = mdbImpl->get_connectivity(polyh, conn, nfaces); MB_CHK_ERR(rval);
+        for (int k=0; k<nfaces; k++)
+        {
+          int index = block_faces.index(conn[k]);
+          if (index==-1)
+            MB_SET_ERR(MB_FAILURE, "Couldn't find face in polyhedron");
+          connectivity[ixcon++] = index+1;
+        }
+        ebepe[j++] = nfaces;
+        //num_faces+=nfaces;
+      }
+      count[0]= ixcon; // facconn1
+      fail = nc_put_vara_int(ncFile, nc_var, start, count, connectivity);
+      if (NC_NOERR != fail) {
+        delete [] connectivity;
+        MB_SET_ERR(MB_FAILURE, "Couldn't write fbconn variable");
+      }
+
+
+      INS_ID(wname, "ebepecnt%u", i + 1);
+      GET_VAR(wname, nc_var, dims); // ebepecnt# variable, 1 dimensional
+      count[0]= block.elements.size();
+
+      fail = nc_put_vara_int(ncFile, nc_var, start, count, &ebepe[0]);
+      if (NC_NOERR != fail) {
+        delete [] connectivity;
+        MB_SET_ERR(MB_FAILURE, "Couldn't write fbepecnt variable");
+      }
+
+
+
+
     }
     block_index++;
     delete [] connectivity;
@@ -1501,9 +1581,10 @@ ErrorCode WriteNCDF::initialize_exodus_file(ExodusMeshInfo &mesh_info,
     /* Define number of nodes per element for this block */
     INS_ID(wname, "num_nod_per_el%d", element_block_index);
     int num_nod_per_el = -1;
-    if (nc_def_dim(ncFile, wname, (size_t)block.number_nodes_per_element, &num_nod_per_el) != NC_NOERR) {
-      MB_SET_ERR(MB_FAILURE, "WriteNCDF: failed to define number of nodes/element for block " << block.id);
-    }
+    if (EXOII_POLYHEDRON!=block.element_type)
+      if (nc_def_dim(ncFile, wname, (size_t)block.number_nodes_per_element, &num_nod_per_el) != NC_NOERR) {
+        MB_SET_ERR(MB_FAILURE, "WriteNCDF: failed to define number of nodes/element for block " << block.id);
+      }
 
     /* Define element attribute array for this block */
     int dims[3];
@@ -1694,7 +1775,7 @@ ErrorCode WriteNCDF::initialize_exodus_file(ExodusMeshInfo &mesh_info,
         MB_SET_ERR(MB_FAILURE, "WriteNCDF: failed to store entity type2 " << (int)block.element_type);
       }
 
-      block.number_nodes_per_element = num_faces;// nodes in connectivity for all faces in block
+      block.number_nodes_per_element = num_nodes_per_face;// nodes in connectivity for all faces in block
     }
 
   }
