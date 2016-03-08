@@ -489,9 +489,14 @@ ErrorCode MeshTopoUtil::get_bridge_adjacencies(const EntityHandle from_entity,
 
           // get the vertices making up this sub-entity
         int num_bridge_verts = CN::VerticesPerEntity( CN::SubEntityType( from_type, bridge_dim, i ) );
+        assert(num_bridge_verts >= 0 && num_bridge_verts <= MAX_SUB_ENTITIES);
         CN::SubEntityVertexIndices( from_type, bridge_dim, i, bridge_indices );
-        for (int j = 0; j < num_bridge_verts; ++j)
-          bridge_verts[j]= connect[bridge_indices[j]];
+        for (int j = 0; j < num_bridge_verts; ++j) {
+          if (bridge_indices[j] >= 0 && bridge_indices[j] < num_connect)
+            bridge_verts[j] = connect[bridge_indices[j]];
+          else
+            bridge_verts[j] = 0;
+        }
         //CN::SubEntityConn(connect, from_type, bridge_dim, i, &bridge_verts[0], num_bridge_verts);
 
           // get the to_dim entities adjacent
