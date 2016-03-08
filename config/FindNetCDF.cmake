@@ -8,28 +8,6 @@
 set (NETCDF_DIR "" CACHE PATH "Path to search for NetCDF header and library files" )
 set (NETCDF_FOUND NO CACHE INTERNAL "Found NetCDF components successfully." )
 
-if (EXISTS "${NETCDF_DIR}/lib/pkgconfig/netcdf.pc")
-  execute_process(COMMAND pkg-config --cflags-only-I "${NETCDF_DIR}/lib/pkgconfig/netcdf.pc" OUTPUT_VARIABLE NETCDF_INCLUDES)
-  execute_process(COMMAND pkg-config --libs-only-L "${NETCDF_DIR}/lib/pkgconfig/netcdf.pc" OUTPUT_VARIABLE NETCDF_LDLAGS)
-  execute_process(COMMAND pkg-config --libs-only-l "${NETCDF_DIR}/lib/pkgconfig/netcdf.pc" OUTPUT_VARIABLE NETCDF_LIBRARY)
-  execute_process(COMMAND pkg-config --libs "${NETCDF_DIR}/lib/pkgconfig/netcdf.pc" OUTPUT_VARIABLE NETCDF_LIBS)
-
-  IF (NOT NETCDF_FOUND)
-    if ( NETCDF_INCLUDES AND NETCDF_LIBS )
-      string(STRIP "${NETCDF_INCLUDES}" NETCDF_INCLUDES)
-      string(STRIP "${NETCDF_LIBS}" NETCDF_LIBS)
-      include (ResolveCompilerPaths)
-      RESOLVE_INCLUDES(NETCDF_INCLUDES "${NETCDF_INCLUDES}")
-      #RESOLVE_LIBRARIES(NETCDF_LIBRARIES "${NETCDF_LIBS}")
-      SET(NETCDF_LIBRARIES ${NETCDF_LIBS})
-      SET(NETCDF_FOUND YES )
-    else ( NETCDF_INCLUDES AND NETCDF_LIBS )
-      set( NETCDF_FOUND NO )
-    endif ( NETCDF_INCLUDES AND NETCDF_LIBS )
-  ENDIF (NOT NETCDF_FOUND)
-
-else (EXISTS "${NETCDF_DIR}/lib/pkgconfig/netcdf.pc")
-
   find_path( NETCDF_INCLUDE_DIR netcdf.h
     HINTS ${NETCDF_DIR}
     ${NETCDF_DIR}/include
@@ -77,8 +55,6 @@ find_library( NETCDF_FORTRAN_LIBRARY
       message("finding NetCDF failed, please try to set the var NETCDF_DIR")
     endif ( NETCDF_INCLUDE_DIR AND NETCDF_C_LIBRARY )
   ENDIF (NOT NETCDF_FOUND)
-
-endif (EXISTS "${NETCDF_DIR}/lib/pkgconfig/netcdf.pc")
 
 message (STATUS "---   NetCDF Configuration ::")
 message (STATUS "        Found  : ${NETCDF_FOUND}")
@@ -137,4 +113,3 @@ find_package_handle_standard_args (NetCDF "NetCDF not found, check environment v
   NETCDF_DIR NETCDF_INCLUDES NETCDF_LIBRARIES)
 find_package_handle_standard_args (PNetCDF "PNetCDF not found, check environment variables PNETCDF_DIR"
   PNETCDF_DIR PNETCDF_INCLUDES PNETCDF_LIBRARIES)
-
