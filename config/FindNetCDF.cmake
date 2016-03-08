@@ -109,7 +109,7 @@ ELSE (MOAB_HAVE_MPI AND ENABLE_PNETCDF)
 ENDIF (MOAB_HAVE_MPI AND ENABLE_PNETCDF)
 
 include (FindPackageHandleStandardArgs)
-find_package_handle_standard_args (NetCDF "NetCDF not found, check environment variables NETCDF_DIR"
+find_package_handle_standard_args (NetCDF "NetCDF not found, check the CMake NETCDF_ROOT variable"
   NETCDF_ROOT NETCDF_INCLUDES NETCDF_LIBRARIES)
-find_package_handle_standard_args (PNetCDF "PNetCDF not found, check environment variables PNETCDF_ROOT"
+find_package_handle_standard_args (PNetCDF "PNetCDF not found, check the CMake PNETCDF_ROOT variable"
   PNETCDF_ROOT PNETCDF_INCLUDES PNETCDF_LIBRARIES)
