@@ -9,6 +9,15 @@
 /======================================================
 */
 
+#define EPS 1e-14
+#define PI 3.1415
+#define mbsqrt sqrt
+#define mbabs fabs
+#define mbcos cos
+#define mbsin sin
+#define mbfloor floor
+#define mbceil ceil
+
 /* integer type to use for everything */
 #if   defined(USE_LONG)
 #  define INTEGER long
@@ -100,7 +109,7 @@ void legendre_matrix_t(const realType *x, int m, realType *P, int n);
 /* precondition: n >= 1
    compute P_i(x) with i = 0 ... n
  */
-void legendre_row(real x, realType *P, int n);
+void legendre_row(realType x, realType *P, int n);
 
 
 /*--------------------------------------------------------------------------
@@ -109,8 +118,8 @@ void legendre_row(real x, realType *P, int n);
    call the _nodes function before calling the _weights function
   --------------------------------------------------------------------------*/
 
-void gauss_nodes(real *z, int n);   /* n nodes (order = 2n-1) */
-void lobatto_nodes(real *z, int n); /* n nodes (order = 2n-3) */
+void gauss_nodes(realType *z, int n);   /* n nodes (order = 2n-1) */
+void lobatto_nodes(realType *z, int n); /* n nodes (order = 2n-3) */
 
 void gauss_weights(const realType *z, realType *w, int n);
 void lobatto_weights(const realType *z, realType *w, int n);
@@ -267,15 +276,15 @@ void tensor_r3(const realType *R, unsigned mr, unsigned nr,
      v is a scalar
   --------------------------------------------------------------------------*/
 
-real tensor_i1(const realType *Jr, unsigned nr, const realType *u);
+realType tensor_i1(const realType *Jr, unsigned nr, const realType *u);
 
 /* work holds ns realTypes */
-real tensor_i2(const realType *Jr, unsigned nr,
+realType tensor_i2(const realType *Jr, unsigned nr,
                const realType *Js, unsigned ns,
                const realType *u, realType *work);
 
 /* work holds ns*nt + nt realTypes */
-real tensor_i3(const realType *Jr, unsigned nr,
+realType tensor_i3(const realType *Jr, unsigned nr,
                const realType *Js, unsigned ns,
                const realType *Jt, unsigned nt,
                const realType *u, realType *work);
@@ -296,16 +305,16 @@ real tensor_i3(const realType *Jr, unsigned nr,
      v is a scalar, g is an array of 3 realTypes
   --------------------------------------------------------------------------*/
 
-real tensor_ig1(const realType *Jr, const realType *Dr, unsigned nr,
+realType tensor_ig1(const realType *Jr, const realType *Dr, unsigned nr,
                 const realType *u, realType *g);
 
 /* work holds 2*ns realTypes */
-real tensor_ig2(const realType *Jr, const realType *Dr, unsigned nr,
+realType tensor_ig2(const realType *Jr, const realType *Dr, unsigned nr,
                 const realType *Js, const realType *Ds, unsigned ns,
                 const realType *u, realType *g, realType *work);
 
 /* work holds 2*ns*nt + 3*ns realTypes */
-real tensor_ig3(const realType *Jr, const realType *Dr, unsigned nr,
+realType tensor_ig3(const realType *Jr, const realType *Dr, unsigned nr,
                 const realType *Js, const realType *Ds, unsigned ns,
                 const realType *Jt, const realType *Dt, unsigned nt,
                 const realType *u, realType *g, realType *work);
@@ -495,7 +504,7 @@ extern const unsigned opt_no_constraints_3;
 */
 
 /* requires:
-     <stdlib.h> for malloc, calloc, realTypeloc, free
+     <stdlib.h> for malloc, calloc, realloc, free
 */
 
 /*--------------------------------------------------------------------------
@@ -538,7 +547,7 @@ static void *scalloc(size_t nmemb, size_t size, const char *file)
 static void *srealloc(void *ptr, size_t size, const char *file) MAYBE_UNUSED;
 static void *srealloc(void *ptr, size_t size, const char *file)
 {
-  void *res = realTypeloc(ptr, size);
+  void *res = realloc(ptr, size);
   if(!res && size) fail("%s: allocation of %d bytes failed\n",file,(int)size);
   return res;
 }
@@ -624,32 +633,32 @@ static void buffer_free(buffer *b) { free(b->ptr); }
 
 DECLMINMAX(int, i)
 DECLMINMAX(unsigned, u)
-DECLMINMAX(real, r)
+DECLMINMAX(realType, r)
 #undef DECLMINMAX
 
-static realType r1norm_1(real a) MAYBE_UNUSED;
-static realType r1norm_1(real a) {
-  return fabsr(a);
+static realType r1norm_1(realType a) MAYBE_UNUSED;
+static realType r1norm_1(realType a) {
+  return mbabs(a);
 }
-static realType r1norm_2(real a, realType b) MAYBE_UNUSED;
-static realType r1norm_2(real a, realType b) {
-  return fabsr(a)+fabsr(b);
+static realType r1norm_2(realType a, realType b) MAYBE_UNUSED;
+static realType r1norm_2(realType a, realType b) {
+  return mbabs(a)+mbabs(b);
 }
-static realType r1norm_3(real a, realType b, realType c) MAYBE_UNUSED;
-static realType r1norm_3(real a, realType b, realType c) {
-  return fabsr(a)+fabsr(b)+fabsr(c);
+static realType r1norm_3(realType a, realType b, realType c) MAYBE_UNUSED;
+static realType r1norm_3(realType a, realType b, realType c) {
+  return mbabs(a)+mbabs(b)+mbabs(c);
 }
-static realType r2norm_1(real a) MAYBE_UNUSED;
-static realType r2norm_1(real a) {
-  return sqrtr(a*a);
+static realType r2norm_1(realType a) MAYBE_UNUSED;
+static realType r2norm_1(realType a) {
+  return mbsqrt(a*a);
 }
-static realType r2norm_2(real a, realType b) MAYBE_UNUSED;
-static realType r2norm_2(real a, realType b) {
-  return sqrtr(a*a+b*b);
+static realType r2norm_2(realType a, realType b) MAYBE_UNUSED;
+static realType r2norm_2(realType a, realType b) {
+  return mbsqrt(a*a+b*b);
 }
-static realType r2norm_3(real a, realType b, realType c) MAYBE_UNUSED;
-static realType r2norm_3(real a, realType b, realType c) {
-  return sqrtr(a*a+b*b+c*c);
+static realType r2norm_3(realType a, realType b, realType c) MAYBE_UNUSED;
+static realType r2norm_3(realType a, realType b, realType c) {
+  return mbsqrt(a*a+b*b+c*c);
 }
 
 #endif
