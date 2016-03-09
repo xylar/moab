@@ -4505,9 +4505,9 @@ ErrorCode ParallelComm::send_entities(std::vector<unsigned int>& send_procs,
     if (my_rank == 1 && 1 == get_debug_verbosity())
       remoteEnts.print(" on rank 1, before augment routing");
     MPI_Barrier(procConfig.proc_comm());
-  #endif
     int sentEnts = remoteEnts.get_n();
     assert((sentEnts == jr) && (3 * sentEnts == ir));
+  #endif
     // exchange the info now, and send to
     gs_data::crystal_data *cd = this->procConfig.crystal_router();
     // All communication happens here; no other mpi calls

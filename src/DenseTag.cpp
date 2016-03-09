@@ -19,8 +19,7 @@ namespace moab {
 inline
 static ErrorCode not_found(const std::string& /*name*/, EntityHandle /*h*/)
 {
-  // MB_TAG_NOT_FOUND could be a non-error condition, do not call MB_SET_ERR on
-  // it
+  // MB_TAG_NOT_FOUND could be a non-error condition, do not call MB_SET_ERR on it
 #if 0
   if (h)
     fprintf(stderr, "[Warning]: No dense tag %s value for %s %ld\n",
@@ -37,8 +36,7 @@ static ErrorCode not_found(const std::string& /*name*/, EntityHandle /*h*/)
 inline
 static ErrorCode ent_not_found(const std::string& /*name*/, EntityHandle /*h*/)
 {
-  // MB_ENTITY_NOT_FOUND could be a non-error condition, do not call MB_SET_ERR
-  // on it
+  // MB_ENTITY_NOT_FOUND could be a non-error condition, do not call MB_SET_ERR on it
 #if 0
   fprintf(
       stderr,
