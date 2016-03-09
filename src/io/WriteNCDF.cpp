@@ -931,7 +931,9 @@ ErrorCode WriteNCDF::write_elementblocks(std::vector<MaterialSetData> &block_dat
     // If necessary, convert from EXODUS to CN node order
     const EntityType elem_type = ExoIIUtil::ExoIIElementMBEntity[block.element_type];
     assert(block.elements.all_of_type(elem_type));
-    const int* reorder = exodus_elem_order_map[elem_type][block.number_nodes_per_element];
+    const int* reorder = 0;
+    if (block.element_type != EXOII_POLYHEDRON && block.element_type != EXOII_POLYGON)
+      reorder = exodus_elem_order_map[elem_type][block.number_nodes_per_element];
     if (reorder)
       WriteUtilIface::reorder(reorder, connectivity,
                               block.number_elements,
