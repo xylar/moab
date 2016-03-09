@@ -51,7 +51,7 @@ MOAB is LGPL code, and we encourage users to submit bug reports (and, if desired
 [SIGMA-MOAB]: http://sigma.mcs.anl.gov/moab-library
 
 ------------------------
-# ->Detailed documentation<-
+# Detailed documentation
 
 ## Where's the configure script?
 
@@ -85,17 +85,6 @@ to configure MOAB?
         - `autoreconf -fi`
         - `./configure`
     + To create a distributable tarball from a working source directory, do `make dist`
-  
-    To create a distributable tarball from a clean check-out of the MOAB source, do:
-`
-    $ cd MOAB
-    $ aclocal
-    $ libtoolize
-    $ automake -a
-    $ autoconf
-    $ ./configure --without-netcdf --without-hdf5
-    $ make dist
-`
 
 ------------------------------------------------
 MOAB iMesh Interface Implementation, iMesh v1.2
