@@ -162,7 +162,6 @@ if (test "x" != "x$HDF5_DIR" || test "xno" != "x$HDF5_DIR"); then
   LDFLAGS="$HDF5_LDFLAGS $LDFLAGS"
   LIBS="$HDF5_LIBS $LIBS"
   
-  AC_PATH_PROG([H5CC], [h5cc], [$HDF5_DIR/bin/h5cc], [], [$HDF5_DIR/bin])
   # check for libraries and headers
   AC_CHECK_HEADERS( [hdf5.h], [], [enablehdf5=no] )
 
@@ -211,23 +210,22 @@ if (test "xno" != "x$enablehdf5"); then
     old_LIBS="$LIBS"
     LDFLAGS="$LDFLAGS $HDF5_LDFLAGS"
     LIBS="$HDF5_LIBS $LIBS -lhdf5"
-    AC_PATH_PROG([H5PCC], [h5pcc], [$HDF5_DIR/bin/h5pcc], [], [$HDF5_DIR/bin])
-    if (test "x$H5PCC" != "x"); then dnl parallel HDF5 compiler is enabled
-      AC_MSG_CHECKING([for parallel HDF5 support])
-      IS_HDF5_PARALLEL="`$H5PCC -showconfig | grep 'Parallel HDF5: yes'`"
-      if (test "x$IS_HDF5_PARALLEL" != "x"); then
-        AC_MSG_RESULT(yes)
-        enablehdf5parallel=yes
-      else
-        AC_MSG_RESULT(no)
-        WARN_PARALLEL_HDF5=yes
-      fi
-    else
-        WARN_PARALLEL_HDF5=yes
+    IS_HDF5_PARALLEL=""
+    AC_PATH_PROGS([H5CC], [h5cc h5pcc], [], [$HDF5_DIR/bin])
+    AC_MSG_CHECKING([for parallel HDF5 support])
+    if (test "x$H5CC" != "x"); then dnl check if HDF5 was configured with parallel support
+      IS_HDF5_PARALLEL="`$H5CC -showconfig | grep 'Parallel HDF5: yes'`"
     fi
-    if (test "x$WARN_PARALLEL_HDF5" != "xno"); then
+
+    if (test "x$IS_HDF5_PARALLEL" != "x"); then
+      AC_MSG_RESULT(yes)
+      enablehdf5parallel=yes
+    else
+      AC_MSG_RESULT(no)
+      WARN_PARALLEL_HDF5=yes
       AC_MSG_WARN("libhdf5 library does not include parallel support.  Parallel HDF5 I/O disabled")
     fi
+
     LDFLAGS="$old_LDFLAGS"
     LIBS="$old_LIBS"
   fi
