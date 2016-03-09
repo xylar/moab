@@ -1674,7 +1674,7 @@ ErrorCode Coupler::apply_group_norm_factor(std::vector<std::vector<EntityHandle>
 }
 
 #define UINT_PER_X(X) ((sizeof(X) + sizeof(uint) - 1) / sizeof(uint))
-#define UINT_PER_REAL UINT_PER_X(real)
+#define UINT_PER_REAL UINT_PER_X(realType)
 #define UINT_PER_LONG UINT_PER_X(slong)
 #define UINT_PER_UNSIGNED UINT_PER_X(unsigned)
 
@@ -1712,7 +1712,7 @@ int pack_tuples(TupleList* tl, void** ptr)
   // Copy vul_wr
   memcpy(buf, tl->vul_rd, tl->get_n()*mul*sizeof(ulong)), buf += tl->get_n()*mul*UINT_PER_LONG;
   // Copy vr_wr
-  memcpy(buf, tl->vr_rd,  tl->get_n()*mr*sizeof(real)),   buf += tl->get_n()*mr*UINT_PER_REAL;
+  memcpy(buf, tl->vr_rd,  tl->get_n()*mr*sizeof(realType)),   buf += tl->get_n()*mr*UINT_PER_REAL;
 
   return sz_buf;
 }
@@ -1753,7 +1753,7 @@ void unpack_tuples(void* ptr, TupleList** tlp)
   // Get vul_rd
   memcpy(tl->vul_wr, buf, tl->get_n()*mul*sizeof(ulong)), buf += tl->get_n()*mul*UINT_PER_LONG;
   // Get vr_rd
-  memcpy(tl->vr_wr,  buf, tl->get_n()*mr*sizeof(real)),   buf += tl->get_n()*mr*UINT_PER_REAL;
+  memcpy(tl->vr_wr,  buf, tl->get_n()*mr*sizeof(realType)),   buf += tl->get_n()*mr*UINT_PER_REAL;
 
   tl->disableWriteAccess();
   return;

@@ -877,7 +877,7 @@ double physField(double x, double y, double z)
 }
 
 #define UINT_PER_X(X) ((sizeof(X)+sizeof(uint)-1)/sizeof(uint))
-#define UINT_PER_REAL UINT_PER_X(real)
+#define UINT_PER_REAL UINT_PER_X(realType)
 #define UINT_PER_LONG UINT_PER_X(slong)
 #define UINT_PER_ULONG UINT_PER_X(Ulong)
 #define UINT_PER_UNSIGNED UINT_PER_X(unsigned)
@@ -916,7 +916,7 @@ int pack_tuples(TupleList* tl, void **ptr)
   // copy vul_rd
   memcpy(buf, tl->vul_rd,    tl->get_n()*mul*sizeof(Ulong)), buf+=tl->get_n()*mul*UINT_PER_ULONG;
   // copy vr_rd
-  memcpy(buf, tl->vr_rd,     tl->get_n()*mr*sizeof(real)),   buf+=tl->get_n()*mr*UINT_PER_REAL;
+  memcpy(buf, tl->vr_rd,     tl->get_n()*mr*sizeof(realType)),   buf+=tl->get_n()*mr*UINT_PER_REAL;
 
   return sz_buf;
 }
@@ -957,7 +957,7 @@ void unpack_tuples(void *ptr, TupleList** tlp)
   // get vul_wr
   memcpy(tl->vul_wr,    buf, tl->get_n()*mul*sizeof(Ulong)), buf+=tl->get_n()*mul*UINT_PER_ULONG;
   // get vr_wr
-  memcpy(tl->vr_wr,     buf, tl->get_n()*mr*sizeof(real)),   buf+=tl->get_n()*mr*UINT_PER_REAL;
+  memcpy(tl->vr_wr,     buf, tl->get_n()*mr*sizeof(realType)),   buf+=tl->get_n()*mr*UINT_PER_REAL;
 
   tl->disableWriteAccess();
 
