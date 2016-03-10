@@ -207,7 +207,7 @@ to processors for which `rank == part id`.
 
 `MPI_IO_RANK=<RANK>`: For IO modes in which a single processor handles all disk access, the MPI rank of the processor to use.  Default is **0**.
 
-`PARALLEM_COMM=<id>`: Specify `moab::ParallelComm::id() == <id>` to use as communicator.
+`PARALLEL_COMM=<id>`: Specify `moab::ParallelComm::id() == <id>` to use as communicator.
 
 -----------------------
 Format-specific options
