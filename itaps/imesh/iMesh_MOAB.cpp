@@ -738,6 +738,8 @@ extern "C" {
     *adjacentEntityHandles_size = prev_off;
 
     if (*adjacentEntityHandles_size > array_alloc) {
+      if (allocated_array)
+        free(array);
       RETURN(iBase_BAD_ARRAY_SIZE);
     }
     else if (allocated_array) {
