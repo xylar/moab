@@ -52,6 +52,7 @@ MOAB is LGPL code, and we encourage users to submit bug reports (and, if desired
 
 ------------------------
 # Detailed documentation
+------------------------
 
 ## Where's the configure script?
 
@@ -140,7 +141,7 @@ Any of the values from the `Name` column may be passed as an option to the file 
 File IO Options
 ---------------
 
-An options list as passed to MOAB file IO routines is a single C-style string containing the concatenation of a list of string options, were individual options are separated by a designated separator character. The default separator character is a semicolon (;).  To specify an alternate separator character, begin the options string with a semicolon followed by the desired separator.  Options are not case sensitive.
+An options list as passed to MOAB file IO routines is a single C-style string containing the concatenation of a list of string options, where individual options are separated by a designated separator character. The default separator character is a semicolon (;).  To specify an alternate separator character, begin the options string with a semicolon followed by the desired separator.  Options are not case sensitive.
 
 ---------------
 Common Options
@@ -186,7 +187,7 @@ Options are:
                  creating a single file utilizing format-specific parallel 
                  I/O if available (this option is not supported for all 
                  file formats.)
-  - **FORMAT** - depricated (use WRITE_PART)
+  - **FORMAT** - deprecated (use WRITE_PART)
 
 `PARALLEL_RESOLVE_SHARED_ENTS`: Resolve which entities are shared between which processes, such that propogation of data across processes can be done.  This should
 probably be the default behavior, as you almost certainly want this unless, perhaps, PARALLEL=BCAST.
@@ -196,12 +197,12 @@ probably be the default behavior, as you almost certainly want this unless, perh
 
 
 `PARTITION_VAL=<int_list>`: If a tag name is specified to the '`PARTITION`' option, then treat as partitions only those sets for which the tag *value* is a single integer
-for which the value is one of integers in thie specified list.
+for which the value is one of the integers in the specified list.
 
 
 `PARTITION_DISTRIBUTE`: Deprecated.  Implied by "`PARTITION`" option.
 
-`PARTITION_BY_RANK`: Assume 1-1 mapping between MPI rank and part ID.  Assing parts
+`PARTITION_BY_RANK`: Assume 1-1 mapping between MPI rank and part ID.  Assigning parts
 to processors for which `rank == part id`.
 
 `MPI_IO_RANK=<RANK>`: For IO modes in which a single processor handles all disk access, the MPI rank of the processor to use.  Default is **0**.
