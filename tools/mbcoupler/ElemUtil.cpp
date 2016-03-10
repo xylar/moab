@@ -156,7 +156,7 @@ void nat_coords_trilinear_hex2(const CartVect hex[8],
 
   double dist = 0.0;
   ElemUtil::hex_findpt(xm, n, xyz, ncoords, dist);
-  if (3*EPS < dist) {
+  if (3*MOAB_POLY_EPS < dist) {
       // outside element, set extremal values to something outside range
     for (int j = 0; j < 3; j++) {
       if (ncoords[j] < (-1.0-etol) || ncoords[j] > (1.0+etol))

@@ -117,7 +117,7 @@ static void lob_bnd_base_setup(lob_bnd_base *p, const realType *z, const realTyp
   p->z = z;
   for(i=0;i<n;++i) p->Q0[i]=w[i]/2, p->Q1[i] = 3*p->Q0[i]*z[i];
   p->h[0] = -1, p->h[m-1] = 1;
-  for(j=1;j<m-1;++j) p->h[j] = mbcos((m-j-1)*PI/(m-1));
+  for(j=1;j<m-1;++j) p->h[j] = mbcos((m-j-1)*MOAB_POLY_PI/(m-1));
   for(j=0;j<m-1;++j) q[2*j] = p->h[j], q[2*j+1] = (p->h[j]+p->h[j+1])/2;
   q[mm-1] = p->h[m-1];
   lagrange_weights_deriv(z,n,q,mm,J,D,work);
@@ -1553,7 +1553,7 @@ double opt_findpt_3(opt_data_3 *p, const realType *const elx[3],
         dr[d] -= r[d]-1, r[d] = 1, cc[d]=2;
     }
     c = opt_constr_pack_3(cc);
-  } while(r1norm_3(dr[0],dr[1],dr[2]) > 3*EPS);
+  } while(r1norm_3(dr[0],dr[1],dr[2]) > 3*MOAB_POLY_EPS);
   *constr = c;
 # if 0
   printf("opt_findpt_3 converged in %u iterations\n", step);
@@ -1810,7 +1810,7 @@ double opt_findpt_2(opt_data_2 *p, const realType *const elx[2],
         dr[d] -= r[d]-1, r[d] = 1, cc[d]=2;
     }
     c = opt_constr_pack_2(cc);
-  } while(r1norm_2(dr[0],dr[1]) > 2*EPS);
+  } while(r1norm_2(dr[0],dr[1]) > 2*MOAB_POLY_EPS);
   *constr = c;
   return r2norm_2(resid[0],resid[1]);
 }

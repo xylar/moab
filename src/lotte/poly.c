@@ -137,11 +137,11 @@ void gauss_nodes(realType *z, int n)
 {
   int i,j;
   for(i=0; i<=n/2-1; ++i) {
-    realType ox, x = mbcos( (2*n-2*i-1)*(PI/2)/n );
+    realType ox, x = mbcos( (2*n-2*i-1)*(MOAB_POLY_PI/2)/n );
     do {
       ox = x;
       x -= legendre(n,x)/legendre_d1(n,x);
-    } while(mbabs(x-ox)>-x*EPS);
+    } while(mbabs(x-ox)>-x*MOAB_POLY_EPS);
     z[i] = x - legendre(n,x)/legendre_d1(n,x);
   }
   if(n&1) z[n/2]=0;
@@ -153,11 +153,11 @@ static void lobatto_nodes_aux(realType *z, int n)
 {
   int i,j,np=n+1;
   for(i=0; i<=n/2-1; ++i) {
-    realType ox, x = mbcos( (n-i)*PI/np );
+    realType ox, x = mbcos( (n-i)*MOAB_POLY_PI/np );
     do {
       ox = x;
       x -= legendre_d1(np,x)/legendre_d2(np,x);
-    } while(mbabs(x-ox)>-x*EPS);
+    } while(mbabs(x-ox)>-x*MOAB_POLY_EPS);
     z[i] = x - legendre_d1(np,x)/legendre_d2(np,x);
   }
   if(n&1) z[n/2]=0;

@@ -9,8 +9,9 @@
 /======================================================
 */
 
-#define EPS 1e-14
-#define PI 3.1415
+#define MOAB_POLY_EPS (128*DBL_EPSILON)
+#define MOAB_POLY_PI  3.1415926535897932384626433832795028841971693993751058209749445923
+
 #define mbsqrt sqrt
 #define mbabs fabs
 #define mbcos cos
