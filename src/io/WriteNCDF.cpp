@@ -910,6 +910,25 @@ ErrorCode WriteNCDF::write_elementblocks(std::vector<MaterialSetData> &block_dat
       MB_SET_ERR(MB_FAILURE, "Problem writing element block status");
     }
 
+    // if polyhedron, write index
+    //
+    if (EXOII_POLYHEDRON==block.element_type)
+    {
+        if (write_exodus_integer_variable("fa_prop1", &id, block_index, num_values) != MB_SUCCESS) {
+          MB_SET_ERR_CONT("Problem writing element block id " << id);
+        }
+
+        // Write out the face block status
+
+        if (0 == block.number_elements) {
+          MB_SET_ERR(MB_FAILURE, "No elements in block " << id);
+        }
+
+        if (write_exodus_integer_variable("fa_status", &status, block_index, num_values) != MB_SUCCESS) {
+          MB_SET_ERR(MB_FAILURE, "Problem writing face block status");
+        }
+    }
+    //
     // Map the connectivity to the new nodes
     const unsigned int num_elem = block.number_elements;
     unsigned int num_nodes = num_nodes_per_elem * num_elem;
@@ -1526,7 +1545,7 @@ ErrorCode WriteNCDF::initialize_exodus_file(ExodusMeshInfo &mesh_info,
 
   // Set up number of dimensions
 
-  int num_el_blk, num_elem, num_nodes, num_dim;
+  int num_el_blk, num_elem, num_nodes, num_dim, num_fa_blk;
   if (nc_def_dim(ncFile, "num_dim", (size_t)mesh_info.num_dim, &num_dim) != NC_NOERR) {
     MB_SET_ERR(MB_FAILURE, "WriteNCDF: failed to define number of dimensions");
   }
@@ -1563,8 +1582,39 @@ ErrorCode WriteNCDF::initialize_exodus_file(ExodusMeshInfo &mesh_info,
     MB_SET_ERR(MB_FAILURE, "WriteNCDF: failed to store element block property name ID");
   }
 
-  // Define element blocks
+  // count how many are polyhedron blocks
+  int num_fa_blocks=0;
+  for (unsigned int i = 0; i < block_data.size(); i++) {
+      MaterialSetData & block = block_data[i];
+      if (EXOII_POLYHEDRON==block.element_type)
+        num_fa_blocks++;
+  }
+  if (num_fa_blocks>0)
+  {
+    /* face block id status array */
+    if (nc_def_dim(ncFile, "num_fa_blk", num_fa_blocks, &num_fa_blk) != NC_NOERR) {
+      MB_SET_ERR(MB_FAILURE, "WriteNCDF: failed to define number of face blocks");
+    }
 
+    int idstatf = -1;
+    if (NC_NOERR != nc_def_var(ncFile, "fa_status", NC_LONG, 1, &num_fa_blk, &idstatf)) {
+      MB_SET_ERR(MB_FAILURE, "WriteNCDF: failed to define face block status array");
+    }
+
+    /* Element block id array */
+
+    int idarrf = -1;
+    if (NC_NOERR != nc_def_var(ncFile, "fa_prop1", NC_LONG, 1, &num_fa_blk, &idarrf)) {
+      MB_SET_ERR(MB_FAILURE, "WriteNCDF: failed to define face block id array");
+    }
+
+    /*   store property name as attribute of property array variable */
+    if (NC_NOERR != nc_put_att_text(ncFile, idarrf, "name", strlen("ID"), "ID")) {
+      MB_SET_ERR(MB_FAILURE, "WriteNCDF: failed to store face block property name ID");
+    }
+  }
+
+  // Define element blocks
   char wname[80];
   for (unsigned int i = 0; i < block_data.size(); i++) {
     MaterialSetData & block = block_data[i];
