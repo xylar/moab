@@ -278,6 +278,20 @@ ErrorCode WriteNCDF::write_file(const char *exodus_file_name,
     return MB_FAILURE;
   }
 
+  {
+    // write dummy time_whole
+    double timev = 0.0; // dummy, to make paraview happy
+    unsigned long start =0, count =1;
+    int nc_var;
+    std::vector<int> dims;
+    GET_VAR("time_whole", nc_var, dims);
+    fail = nc_put_vara_double(ncFile, nc_var, &start, &count, &timev);
+    if (NC_NOERR != fail) {
+      MB_SET_ERR(MB_FAILURE, "Failed writing dist factor array");
+    }
+  }
+
+
   if (write_nodes(mesh_info.num_nodes, mesh_info.nodes, mesh_info.num_dim) != MB_SUCCESS) {
     reset_block(block_info);
     return MB_FAILURE;
@@ -1505,6 +1519,11 @@ ErrorCode WriteNCDF::initialize_exodus_file(ExodusMeshInfo &mesh_info,
 
   if (nc_def_dim(ncFile, "time_step", 1, &dim_time) != NC_NOERR) {
     MB_SET_ERR(MB_FAILURE, "WriteNCDF: failed to locate time step in file");
+  }
+  // some whole_time dummy :(
+  int dtime;
+  if (NC_NOERR != nc_def_var(ncFile, "time_whole", NC_DOUBLE, 1, &dim_time, &dtime)) {
+    MB_SET_ERR(MB_FAILURE, "WriteNCDF: failed to define time whole array");
   }
 
   /* Put file into define mode */
