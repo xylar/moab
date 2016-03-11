@@ -31,7 +31,6 @@
 #include "ReadTetGen.hpp"
 #include "ReadSmf.hpp"
 #include "ReadTemplate.hpp"
-#include "ReadTxt.hpp"
 #ifdef MOAB_HAVE_CGM
 #  include "ReadCGM.hpp"
 #endif
@@ -163,9 +162,6 @@ ReaderWriterSet::ReaderWriterSet(Core* mdb)
 
   const char* tetgen_sufxs[] = { "node", "ele", "face", "edge", NULL };
   register_factory( ReadTetGen::factory, 0, "TetGen output files", tetgen_sufxs, "TETGEN" );
-
-  const char* txt_sufxs[] = { "txt", NULL };
-  register_factory( ReadTxt::factory, 0, "Txt input files", txt_sufxs, "TXT" );
 
   const char* template_sufxs[] = { NULL };
   register_factory( ReadTemplate::factory, WriteTemplate::factory, "Template input files", template_sufxs, "TEMPLATE" );
