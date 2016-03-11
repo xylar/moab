@@ -202,6 +202,8 @@ void test_iterates()
     rval = mb.create_vertices( &coords[0], NUM_VTX/2, v2 );
     CHECK_ERR(rval);
     Range ver = unite(verts, v2);
+    // range of vertices is contiguous, but its memory for vertices is not!!
+    CHECK_EQUAL((int)ver.psize(), 1);
       // create a bunch of hexes from those
     ReadUtilIface *rui;
     EntityHandle start_hex;
@@ -220,6 +222,8 @@ void test_iterates()
       vertIter+=(NUM_HEX/2*8);
     }
 
+    // make sure hexes range is contiguous
+    CHECK_EQUAL((int)hexes.psize(), 1);
     start_hex = hexes.front();
     Tag idtag=moab.globalId_tag();
 
