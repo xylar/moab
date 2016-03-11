@@ -373,11 +373,11 @@ namespace moab
 
      ErrorCode update_parallel_tags(std::multimap<EntityHandle, int> &remProcs, std::multimap<EntityHandle, EntityHandle> & remHandles);
 
-
      ErrorCode get_data_from_buff(int dim, int type, int level, int entityidx, int nentities, std::vector<EntityHandle> &buffer, std::vector<EntityHandle> &data);
 
      bool check_for_parallelinfo(EntityHandle entity, int proc, std::multimap<EntityHandle, int> &remProcs);
 
+     ErrorCode check_for_parallelinfo(EntityHandle entity, int proc, std::multimap<EntityHandle, int> &remProcs, std::multimap<EntityHandle, EntityHandle> &remHandles, EntityHandle &rhandle);
   };
 } //name space moab
 #endif

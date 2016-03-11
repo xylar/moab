@@ -2479,44 +2479,105 @@ namespace moab{
 
      for (int i=0; i<numfaces; i++)
        {
+         //find local and remote handles of the coarsest face
          EntityHandle Lface = localFaceList[i];
          int Rface_idx = (std::find(remFaceList.begin(), remFaceList.begin()+numfaces-1, Lface)) - remFaceList.begin();
 
+         //get connectivities of the local and remote coarsest faces
          std::vector<EntityHandle> Lface_conn, Rface_conn;
          error = get_data_from_buff(2, 1, 0, i, localFaceList, Lface_conn);MB_CHK_ERR(error);
          error = get_data_from_buff(2, 1, 0, Rface_idx, remFaceList, Rface_conn);MB_CHK_ERR(error);
 
+         //find the combination difference between local and remote coarsest face
          std::vector<int> cmap; int comb=0;
          error = reorder_indices(&Lface_conn[0], &Rface_conn[0], Lface_conn.size(), &cmap[0], comb);MB_CHK_ERR(error);
 
-         std::vector<EntityHandle> lparents;
-         lparents.push_back(Lface);
+         //go into loop over all levels
+         std::vector<EntityHandle> lchildents, lparents;
+         std::vector<EntityHandle> lcents, rcents;
+         int lidx, ridx;
+
          for (int l=0; l< nlevels; l++)
            {
-             for (int p=0; p< (int)lparents.size(); p++)
+             lchildents.clear(); lparents.clear();
+             lcents.clear(); rcents.clear();
+
+             //obtain children at the current level
+             error = get_data_from_buff(2, 0, l+1, i, numfaces, localFaceList, lchildents);MB_CHK_ERR(error);
+
+             //obtain parents at the previous level
+             if (l==0)
                {
-                 int rparent;
-                 if (l==0)
-                   rparent = Rface_idx;
-                 else
+                 lparents.push_back(Lface);
+               }
+             else
+               {
+                 error = get_data_from_buff(2, 0, l, i, numfaces, localFaceList, lparents);MB_CHK_ERR(error);
+               }
+
+             //#children at the previous level and the current level
+             EntityType ftype = mbImpl->type_from_handle(Lface);
+             int d = get_index_from_degree(level_dsequence[l]);
+             int nch = refTemplates[ftype-1][d].total_new_ents;
+             std::vector<int> fmap;
+             error = reorder_indices(level_dsequence[l], comb, &fmap[0]);MB_CHK_ERR(error);
+
+             //loop over all the lparents
+             for (int j=0; j<(int)lparents.size(); j++)
+               {
+                 //list local childrent at the current level
+                 lidx = std::find(localFaceList.begin(), localFaceList.end(), lparent[j]) - localFaceList.begin();
+                 error = get_data_from_buff(2, 0, l+1, lidx, localFaceList, lcents);MB_CHK_ERR(error);
+
+                 //find the corresponding remote of lparent and its children
+                 error = check_for_parallelinfo(lparent[j], shared_proc, remProcs, remHandles, &rparent);MB_CHK_ERR(error);
+                 ridx = std::find(remFaceList.begin(), remFaceList.end(), rparent) - remFaceList.begin();
+                 error = get_data_from_buff(2, 0, l+1, ridx, remFaceList, rcents);MB_CHK_ERR(error);
+
+                 //match up local face with remote handles according to cmap
+                 std::vector<EntityHandle> lconn, rconn, ledg, redg;
+                 for (int k=0; k<nch; k++)
                    {
-                     error = find_remote_handle(lparents[p], cur_proc, remProcs, remHandles, &rparent);MB_CHK_ERR(error);
+                     lconn.clear(); rconn.clear();
+                     ledg.clear(); redg.clear();
+
+                     //matching the local children face handles with their remotes
+                     bool found = check_for_parallelinfo(lcents[k], shared_proc, remProcs);
+                     if (!found){
+                         remProcs.insert(std::pair<EntityHandle,int>(lcents[k], shared_proc));
+                         remHandles.insert(std::pair<EntityHandle, EntityHandle>(lcents[k], rcents[fmap[k]]));
+                       }
+
+                     // find indices of the matched child face
+                     lidx = std::find(localFaceList.begin(), localFaceList.end(), lcents[k])-localFaceList.begin();
+                     ridx = std::find(remFaceList.begin(), remFaceList.end(), rcents[fmap[k]])-remFaceList.begin();
+
+                     //find bounding edges and connectivity of the matched child face
+                     error = get_data_from_buff(2, 2, l+1, lidx, numfaces, localFaceList, ledg);MB_CHK_ERR(error);
+                     error = get_data_from_buff(2, 1, l+1, lidx, numfaces, localFaceList, lconn);MB_CHK_ERR(error);
+                     error = get_data_from_buff(2, 2, l+1, ridx, numfaces, remFaceList, redg);MB_CHK_ERR(error);
+                     error = get_data_from_buff(2, 1, l+1, ridx, numfaces, remFaceList, rconn);MB_CHK_ERR(error);
+
+                     //now match the handles of the bounding edges and the vertices using combination difference
+                     for (int m=0; m<(int)ledg.size(); m++)
+                       {
+                         found = check_for_parallelinfo(ledg[m], shared_proc, remProcs);
+
+                         if (!found){
+                             remProcs.insert(std::pair<EntityHandle,int>(ledg[m], shared_proc));
+                             remHandles.insert(std::pair<EntityHandle, EntityHandle>(ledg[m], redg[cmap[m]]));
+                           }
+
+                         found = check_for_parallelinfo(lconn[m], shared_proc, remProcs);
+
+                         if (!found){
+                             remProcs.insert(std::pair<EntityHandle,int>(lconn[m], shared_proc));
+                             remHandles.insert(std::pair<EntityHandle, EntityHandle>(lconn[m], rconn[cmap[m]]));
+                           }
+                       }
                    }
-
-                 //match child entities
-                 std::vector<EntityHandle> lchild, rchild;
-                 error = get_data_from_buff(2, 0, l+1, lparents[p]-localFaceList.begin(), &lchild[0]);MB_CHK_ERR(error);
-
-                 error = get_data_from_buff(2, 0, l+1, rparent, &rchild[0]);MB_CHK_ERR(error);
-
-
-                 //match vertices
-
-                 //match edges
-
                }
            }
-
        }
 
 
@@ -2700,8 +2761,8 @@ namespace moab{
        * nentities = number of entities at the coarsest level i.e., |F0| or |E0| or |V0|
        *
        * Two types of queries:
-       * 1) Given an entity at the coarsest level, find its children at a particular level. Here entity_index is the index of the entity at the coarsest level.
-       * 2) Given any entity at any level (entity_index is the index of the entity in the F/E/V arrays, find its connectivity (or bounding edges)
+       * 1) Given an entity, find its children at a particular level.
+       * 2) Given any entity at any level , find its connectivity (or bounding edges)
        *
        **/
 
@@ -2853,6 +2914,37 @@ namespace moab{
 
      return found;
    }
+
+   ErrorCode NestedRefine::check_for_parallelinfo(EntityHandle entity, int proc, std::multimap<EntityHandle, int> &remProcs, std::multimap<EntityHandle, EntityHandle> &remHandles, EntityHandle &rhandle)
+   {
+   //  bool found = false;
+
+     //shared procs for given entity
+     std::pair <std::multimap<EntityHandle, int>::iterator, std::multimap<EntityHandle, int>::iterator> it_ps;
+     it_ps = remProcs.equal_range(entity);
+
+      //shared remote handles for given entity
+     std::pair <std::multimap<EntityHandle, EntityHandle>::iterator, std::multimap<EntityHandle, EntityHandle>::iterator> it_hs;
+     it_hs = remHandles.equal_range(entity);
+
+     std::multimap<EntityHandle, int>::iterator itp;
+     std::multimap<EntityHandle, EntityHandle>::iterator ith;
+
+     for (itp = it_ps.first, ith = it_hs.first; itp != it_ps.second; ++itp, ++ith)
+       {
+         if (itp->second == proc)
+           {
+          //   found = true;
+             rhandle = ith->second;
+             break;
+           }
+       }
+
+
+    // return found;
+     return MB_SUCCESS;
+   }
+
 
   /**********************************
    *          Update AHF maps           *
