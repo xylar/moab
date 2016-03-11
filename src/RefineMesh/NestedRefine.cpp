@@ -2011,33 +2011,6 @@ namespace moab{
          error = mbImpl->tag_set_data(part_tag, &hm_set[i], 1, &partid);MB_CHK_ERR(error);
        }
 
-     ///////////////////////////////
-     //for debug purposes
-     /*  for (int i=0; i<num_levels; i++)
-           {
-             ReadUtilIface *read_iface;
-             error = mbImpl->query_interface(read_iface);MB_CHK_ERR(error);
-             if (level_mesh[i].num_edges != 0)
-               {
-                 error = read_iface->update_adjacencies(level_mesh[i].start_edge, level_mesh[i].num_edges, 2, level_mesh[i].edge_conn);MB_CHK_ERR(error);
-               }
-             if (level_mesh[i].num_faces != 0)
-               {
-                 EntityType type = mbImpl->type_from_handle(*(_infaces.begin()));
-                 int nvpf = ahf->lConnMap2D[type - 2].num_verts_in_face;
-                 error = read_iface->update_adjacencies(level_mesh[i].start_face, level_mesh[i].num_faces, nvpf, level_mesh[i].face_conn);MB_CHK_ERR(error);
-               }
-             if (level_mesh[i].num_cells != 0)
-               {
-                 int index = ahf->get_index_in_lmap(*_incells.begin());
-                 int nvpc = ahf->lConnMap3D[index].num_verts_in_cell;
-                 error = read_iface->update_adjacencies(level_mesh[i].start_cell, level_mesh[i].num_cells, nvpc, level_mesh[i].cell_conn);MB_CHK_ERR(error);
-               }
-           }*/
-     //////////////////////////////
-
-     //
-
      //Step 1B: Pre-processing: gather all shared entities and list entities shared with each sharing processor
 
      //All shared processors
@@ -2096,12 +2069,14 @@ namespace moab{
          // VList = <V> = <V_0, V_1, ...., V_L> where V_0 are shared vertices at the coarsest level
          //        and V_i are the duplicates in the subsequent levels.
 
-         std::vector<EntityHandle>  locFlist, remFList, locEList, remEList, locVList, remVList;
+         std::vector<EntityHandle> locFList, remFList;
+         std::vector<EntityHandle> locEList, remEList;
+         std::vector<EntityHandle> locVList, remVList;
 
          //collect faces
          if (!F0.empty())
            {
-             error = collect_FList(sharedprocs[i], F0, locFlist, remFList);MB_CHK_ERR(error);
+             error = collect_FList(sharedprocs[i], F0, locFList, remFList);MB_CHK_ERR(error);
            }
 
          //collect edges
@@ -2485,12 +2460,13 @@ namespace moab{
 
          //get connectivities of the local and remote coarsest faces
          std::vector<EntityHandle> Lface_conn, Rface_conn;
-         error = get_data_from_buff(2, 1, 0, i, localFaceList, Lface_conn);MB_CHK_ERR(error);
-         error = get_data_from_buff(2, 1, 0, Rface_idx, remFaceList, Rface_conn);MB_CHK_ERR(error);
+         error = get_data_from_buff(2, 1, 0, i, numfaces, localFaceList, Lface_conn);MB_CHK_ERR(error);
+         error = get_data_from_buff(2, 1, 0, Rface_idx, numfaces, remFaceList, Rface_conn);MB_CHK_ERR(error);
 
          //find the combination difference between local and remote coarsest face
          std::vector<int> cmap; int comb=0;
-         error = reorder_indices(&Lface_conn[0], &Rface_conn[0], Lface_conn.size(), &cmap[0], comb);MB_CHK_ERR(error);
+         int nvF = (int)Lface_conn.size();
+         error = reorder_indices(&Lface_conn[0], &Rface_conn[0], nvF, &cmap[0],  comb);MB_CHK_ERR(error);
 
          //go into loop over all levels
          std::vector<EntityHandle> lchildents, lparents;
@@ -2520,19 +2496,20 @@ namespace moab{
              int d = get_index_from_degree(level_dsequence[l]);
              int nch = refTemplates[ftype-1][d].total_new_ents;
              std::vector<int> fmap;
-             error = reorder_indices(level_dsequence[l], comb, &fmap[0]);MB_CHK_ERR(error);
+             error = reorder_indices(level_dsequence[l], nvF, comb, &fmap[0]);MB_CHK_ERR(error);
 
              //loop over all the lparents
              for (int j=0; j<(int)lparents.size(); j++)
                {
                  //list local childrent at the current level
-                 lidx = std::find(localFaceList.begin(), localFaceList.end(), lparent[j]) - localFaceList.begin();
-                 error = get_data_from_buff(2, 0, l+1, lidx, localFaceList, lcents);MB_CHK_ERR(error);
+                 lidx = std::find(localFaceList.begin(), localFaceList.end(), lparents[j]) - localFaceList.begin();
+                 error = get_data_from_buff(2, 0, l+1, lidx, numfaces, localFaceList, lcents);MB_CHK_ERR(error);
 
                  //find the corresponding remote of lparent and its children
-                 error = check_for_parallelinfo(lparent[j], shared_proc, remProcs, remHandles, &rparent);MB_CHK_ERR(error);
+                 EntityHandle rparent = 0;
+                 error = check_for_parallelinfo(lparents[j], shared_proc, remHandles, remProcs,  rparent);MB_CHK_ERR(error);
                  ridx = std::find(remFaceList.begin(), remFaceList.end(), rparent) - remFaceList.begin();
-                 error = get_data_from_buff(2, 0, l+1, ridx, remFaceList, rcents);MB_CHK_ERR(error);
+                 error = get_data_from_buff(2, 0, l+1, ridx, numfaces, remFaceList, rcents);MB_CHK_ERR(error);
 
                  //match up local face with remote handles according to cmap
                  std::vector<EntityHandle> lconn, rconn, ledg, redg;
@@ -2915,7 +2892,7 @@ namespace moab{
      return found;
    }
 
-   ErrorCode NestedRefine::check_for_parallelinfo(EntityHandle entity, int proc, std::multimap<EntityHandle, int> &remProcs, std::multimap<EntityHandle, EntityHandle> &remHandles, EntityHandle &rhandle)
+   ErrorCode NestedRefine::check_for_parallelinfo(EntityHandle entity, int proc, std::multimap<EntityHandle, EntityHandle> &remHandles, std::multimap<EntityHandle, int> &remProcs, EntityHandle &rhandle)
    {
    //  bool found = false;
 

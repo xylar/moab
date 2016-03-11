@@ -277,7 +277,7 @@ public:
 
   int find_total_edges_2d(Range &faces);
 
-  //ErrorCode get_face_edges(EntityHandle fid, std::vector<EntityHandle> &edges);
+  ErrorCode get_face_edges(EntityHandle fid, std::vector<EntityHandle> &edges);
 
   // 3D Maps and queries
 

@@ -1560,12 +1560,12 @@ namespace moab {
     return total_edges;
   }
 
-/*  ErrorCode HalfFacetRep::get_face_edges(EntityHandle fid, std::vector<EntityHandle> &edges)
+  ErrorCode HalfFacetRep::get_face_edges(EntityHandle fid, std::vector<EntityHandle> &edges)
   {
     ErrorCode error;
     edges.clear();
 
-    EntityType ftype = mb->type_from_handle(*faces.begin());
+    EntityType ftype = mb->type_from_handle(fid);
     int nepf = lConnMap2D[ftype-2].num_verts_in_face;
 
     std::vector<EntityHandle> conn;
@@ -1575,20 +1575,22 @@ namespace moab {
       {
         EntityHandle v0 = conn[i];
         EntityHandle v1 = conn[lConnMap2D[ftype-2].next[i]];
+
         std::vector<EntityHandle> e0,e1, ecom;
         error = get_up_adjacencies_1d(v0, e0);MB_CHK_ERR(error);
         error = get_up_adjacencies_1d(v1, e1);MB_CHK_ERR(error);
+
         std::sort(e0.begin(), e0.end());
         std::sort(e1.begin(), e1.end());
-        std::set_intersection(e0.begin(), e0.end(), e1.begin(), e1.end(), ecom);assert(ecom.size() == 1 || ecom.size() == 0);
+        std::set_intersection(e0.begin(), e0.end(), e1.begin(), e1.end(),std::back_inserter(ecom));assert(ecom.size() == 1 || ecom.size() == 0);
         if (ecom.size() == 0)
           edges.push_back(0);
         else
-          edges.push_back(ecom);
+          edges.push_back(ecom[0]);
       }
 
     return MB_SUCCESS;
-  }*/
+  }
 
 
   /*******************************************************

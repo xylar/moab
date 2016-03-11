@@ -87,12 +87,13 @@ ErrorCode ahf_test(const char* filename)
     if (!pc)
       pc = new moab::ParallelComm(&moab, MPI_COMM_WORLD);
 #endif
+
     HalfFacetRep ahf(&moab, pc, fileset);
 
     // Call the initialize function which creates the maps for each dimension
     error = ahf.initialize();CHECK_ERR(error);
 
-     std::cout<<"Finished AHF initialization"<<std::endl;
+    std::cout<<"Finished AHF initialization"<<std::endl;
 
     //Perform queries
     std::vector<EntityHandle> adjents;
@@ -134,6 +135,7 @@ ErrorCode ahf_test(const char* filename)
       }
 
     std::cout<<"Finished 1D queries"<<std::endl;
+
     // 2D Queries
     // IQ21: For every vertex, obtain incident faces
     if (faces.size()){
@@ -153,22 +155,13 @@ ErrorCode ahf_test(const char* filename)
           }
       }
 
-    std::cout<<"Finished 2D queries: v2f"<<std::endl;
-
     //IQ22: For every edge, obtain incident faces
     if (edges.size() && faces.size()){
         for (Range::iterator i = edges.begin(); i != edges.end(); ++i) {
             adjents.clear();
-
-            if ((*i-*edges.begin())==159)
-              std::cout<<"Here now"<<std::endl;
-
             error = ahf.get_up_adjacencies( *i, 2, adjents);CHECK_ERR(error);
             mbents.clear();
             error = mbImpl->get_adjacencies( &*i, 1, 2, false, mbents);CHECK_ERR(error);
-
-            if (adjents.size() != mbents.size())
-              std::cout<<"EID = "<<(*i-*edges.begin())<<std::endl;
 
             CHECK_EQUAL(mbents.size(), adjents.size());
             std::sort(adjents.begin(), adjents.end());
@@ -235,30 +228,16 @@ ErrorCode ahf_test(const char* filename)
     if (edges.size()&&cells.size()){
         for (Range::iterator i = edges.begin(); i != edges.end(); ++i) {
             adjents.clear();
-
-            if ((*i-*edges.begin())==12)
-              std::cout<<"Here now"<<std::endl;
-
             error = ahf.get_up_adjacencies( *i, 3, adjents);CHECK_ERR(error);
             mbents.clear();
             error = mbImpl->get_adjacencies(&*i, 1, 3, false, mbents);CHECK_ERR(error);
 
-
-
-
             if (adjents.size() != mbents.size())
               {
-                std::cout<<"EID = "<<(*i-*edges.begin())<<std::endl;
-                for ( int j=0; j<(int)adjents.size(); j++)
-                  std::cout<<"adjents["<<j<<"] = "<<(adjents[j]-*cells.begin())<<std::endl;
-                for ( int j=0; j<(int)mbents.size(); j++)
-                  {
-                    const EntityHandle* conn;
-                    int nv;
-                    error = mbImpl->get_connectivity(mbents[j], conn, nv);MB_CHK_ERR(error);
-
-                    std::cout<<"mbents["<<j<<"] = "<<(mbents[j]-*cells.begin())<<":: conn = [ "<<conn[0]<<", "<<conn[1]<<", "<<conn[2]<<", "<<conn[3]<<conn[4]<<", "<<conn[5]<<", "<<conn[6]<<", "<<conn[7]<<" ]"<<std::endl;
-                  }
+                //   std::cout<<"ahf results = "<<std::endl;
+                 //  ahfents.print();
+                //   std::cout<<"native results = "<<std::endl;
+                //   mbents.print();
               }
 
             CHECK_EQUAL(mbents.size(), adjents.size());
@@ -279,27 +258,11 @@ ErrorCode ahf_test(const char* filename)
 
             if (adjents.size() != mbents.size())
               {
-                const EntityHandle* fconn;
-                int nvf;
-                error = mbImpl->get_connectivity(*i, fconn, nvf);MB_CHK_ERR(error);
-
-                std::cout<<"FID = "<<(*i-*faces.begin())<<" :: conn = [ "<<fconn[0]<<", "<<fconn[1]<<", "<<fconn[2]<<", "<<fconn[3]<<" ]"<<std::endl;
-
-               // if ((*i-*faces.begin())==8989)
-               //   std::cout<<"Stop here"<<std::endl;
-
-                for ( int j=0; j<(int)adjents.size(); j++)
-                  std::cout<<"adjents["<<j<<"] = "<<(adjents[j]-*cells.begin())<<std::endl;
-                for ( int j=0; j<(int)mbents.size(); j++)
-                  {
-                    const EntityHandle* conn;
-                    int nv;
-                    error = mbImpl->get_connectivity(mbents[j], conn, nv);MB_CHK_ERR(error);
-
-                    std::cout<<"mbents["<<j<<"] = "<<(mbents[j]-*cells.begin())<<":: conn = [ "<<conn[0]<<", "<<conn[1]<<", "<<conn[2]<<", "<<conn[3]<<", "<<conn[4]<<", "<<conn[5]<<", "<<conn[6]<<", "<<conn[7]<<" ]"<<std::endl;
-                  }
+                //   std::cout<<"ahf results = "<<std::endl;
+                 //  ahfents.print();
+                //   std::cout<<"native results = "<<std::endl;
+                //   mbents.print();
               }
-
 
             CHECK_EQUAL(mbents.size(), adjents.size());
             std::sort(adjents.begin(), adjents.end());
@@ -359,7 +322,8 @@ ErrorCode ahf_test(const char* filename)
       }
 
     std::cout<<"Finished 3D queries"<<std::endl;
-   error = ahf.deinitialize();CHECK_ERR(error);
+
+    error = ahf.deinitialize();CHECK_ERR(error);
 
     return MB_SUCCESS;
 

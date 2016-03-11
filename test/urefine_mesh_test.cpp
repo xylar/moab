@@ -8,7 +8,8 @@
 #include "moab/Core.hpp"
 #include "moab/Range.hpp"
 #include "moab/MeshTopoUtil.hpp"
-#include "../RefineMesh/moab/NestedRefine.hpp"
+#include "moab/ReadUtilIface.hpp"
+#include "moab/NestedRefine.hpp"
 #include "TestUtil.hpp"
 
 #ifdef MOAB_HAVE_MPI
@@ -63,7 +64,38 @@ ErrorCode test_adjacencies(Interface *mbImpl, NestedRefine *nr, Range all_ents)
   std::vector<EntityHandle> adjents;
   Range mbents, ahfents;
 
-  //error = mbImpl->get_adjacencies( &*verts.begin(), 1, 1, false, mbents );
+  //Update the moab native data structures
+  ReadUtilIface *read_face;
+  error = mbImpl->query_interface(read_face);CHECK_ERR(error);
+  std::vector<EntityHandle> ents, conn;
+
+  if (!edges.empty())
+    {
+      conn.clear(); ents.clear();
+      std::copy(edges.begin(), edges.end(), ents.begin());
+      error = mbImpl->get_connectivity(&ents[0], (int)ents.size(), conn);CHECK_ERR(error);
+      error = read_face->update_adjacencies(*ents.begin(),(int)ents.size(), 2, &conn[0]);CHECK_ERR(error);
+    }
+
+  if (!faces.empty())
+    {
+      conn.clear(); ents.clear();
+      std::copy(faces.begin(), faces.end(), ents.begin());
+      error = mbImpl->get_connectivity(&ents[0], 1, conn);CHECK_ERR(error);
+      int nvF = conn.size(); conn.clear();
+      error = mbImpl->get_connectivity(&ents[0], (int)ents.size(), conn);CHECK_ERR(error);
+      error = read_face->update_adjacencies(*ents.begin(),(int)ents.size(), nvF, &conn[0]);CHECK_ERR(error);
+    }
+
+  if (!cells.empty())
+    {
+      conn.clear(); ents.clear();
+      std::copy(cells.begin(), cells.end(), ents.begin());
+      error = mbImpl->get_connectivity(&ents[0], 1, conn);CHECK_ERR(error);
+      int nvF = conn.size(); conn.clear();
+      error = mbImpl->get_connectivity(&ents[0], (int)ents.size(), conn);CHECK_ERR(error);
+      error = read_face->update_adjacencies(*ents.begin(),(int)ents.size(), nvF, &conn[0]);CHECK_ERR(error);
+    }
 
   if (!edges.empty())
     {
@@ -182,17 +214,11 @@ ErrorCode test_adjacencies(Interface *mbImpl, NestedRefine *nr, Range all_ents)
 
           if (adjents.size() != mbents.size())
             {
-              std::cout<<"VID = "<<*i<<std::endl;
-
-              std::cout<<"HF"<<std::endl;
-              for (int j = 0 ; j<(int)adjents.size(); j++)
-                std::cout<<"hfents["<<j<<"] = "<<adjents[j]<<std::endl;
-
-              std::cout<<"Native"<<std::endl;
-              for (int j = 0 ; j<(int)mbents.size(); j++)
-                std::cout<<"mbents["<<j<<"] = "<<mbents[j]<<std::endl;
+              //   std::cout<<"ahf results = "<<std::endl;
+               //  ahfents.print();
+              //   std::cout<<"native results = "<<std::endl;
+              //   mbents.print();
             }
-
 
           CHECK_EQUAL(adjents.size(), mbents.size());
           std::sort(adjents.begin(), adjents.end());
