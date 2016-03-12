@@ -12,18 +12,26 @@ MOAB is a component for representing and evaluating mesh data. MOAB can store st
 MOAB was developed originally as part of the CUBIT project at Sandia National Laboratories, and has been partially funded by the DOE SciDAC program (TSTT, ITAPS, FASTMath) and DOE-NE (NEAMS program).
 
 # Dependencies
-MOAB depends on the NetCDF libraries (C and C++) to compile the ExodusII reader/writer. Support for C++ was added to netcdf in version 3.5.1, and took a bit of time to get compiling ironed out, so make sure you have version 3.6 or later. To get netcdf, search the web or try [NetCDF].
-The only MOAB file format that can represent the entire MOAB data model is MOAB's native HDF5-based file format. Support for this file format requires version 5 of the HDF library. It may be obtained at [HDF5].
 
-# Compiling
+- **MPI**: MOAB supports usage of MPICH and OpenMPI libraries configured externally in order to enable scalable mesh manipulation algorithms.
+- **HDF5**: In order to manage the data dependencies and to natively support parallel I/O, MOAB uses a custom file format that can represent the entire MOAB data model in a native HDF5-based file format. Support for this file format requires version 5 of the HDF library, which can be obtained at [HDF5].
+- **NetCDF**: MOAB library optionally depends on the NetCDF libraries (C and C++) to compile the ExodusII reader/writer. To get netcdf, go to [NetCDF].
+- **Metis**: MOAB can use the Metis library for partitioning mesh files in serial
+- **Zoltan**: Support for online partitioning through Zoltan (and its dependencies on Scotch, Parmetis etc) can be utilized through the partitioner tool
+
+# Configuration and Build
 
   - Unpack the source code in a local directory.
   - Run `autoreconf -fi` to generate the configure script
   - Run the `configure --help` script in the top source directory to see a list of available configure options.
       - Use `--prefix=INSTALL_DIR` to specify installation directory
       - Override default compilers with environment or user options: `CC, CXX, FC, F77`
-      - If you have MPI installed, use `--with-mpi=$MPI_DIR`
-      - If you have HDF5 and NetCDF installed, use `--with-netcdf=$NETCDF_DIR` and `--with-hdf5=$HDF5_DIR` to specify dependencies.
+      - If you have **MPI** installed, use `--with-mpi=$MPI_DIR`
+      - If you have **HDF5** and **NetCDF** installed, use `--with-hdf5=$HDF5_DIR`  and `--with-netcdf=$NETCDF_DIR` to specify external dependencies.
+      - **Auto-Download options**: MOAB now supports automatic dependency download and configuration that has been tested on various platforms and architectures.
+	      - *HDF5*: Use `--download-hdf5` OR `--download-hdf5=TARBALL_PATH`
+	      - *NetCDF*: Use `--download-netcdf` OR `--download-netcdf=TARBALL_PATH`
+	      - *Metis*: Use `--download-metis` OR `--download-metis=TARBALL_PATH`
   - Now run the `configure` script with desired configuration options either in-source or out-of-source (build) directory.
   - In the build directory, run the following:
       - Compile MOAB library and supported tools: `make -j4`.
@@ -37,11 +45,11 @@ There are several hooks to online continuous integration systems, nightly and co
 
 ## Current overall build status
 
-- ### Buildbot: [ ![Buildbot Status](http://gnep.mcs.anl.gov:8010/png?builder=moab-all)](https://gnep.mcs.anl.gov:8010)
-- ### Bitbucket Builds (beta): [ ![Bitbucket Build Status](https://drone.io/bitbucket.org/fathomteam/moab/status.png)](https://drone.io/bitbucket.org/fathomteam/moab/latest)
-- ### CodeShip: [ ![Codeship Build Status](https://codeship.com/projects/286b0e80-5715-0132-1105-0e0cfcc5dfb4/status?branch=master)](https://codeship.com/projects/49743)
-- ### Drone: [ ![Drone.io Build Status](https://drone.io/bitbucket.org/fathomteam/moab/status.png)](https://drone.io/bitbucket.org/fathomteam/moab/latest)
-- ### Coverity Code Coverage: [ ![Coverity Scan Build Status](https://scan.coverity.com/projects/6201/badge.svg)](https://scan.coverity.com/projects/moab)
+- ### **Buildbot**: [ ![Buildbot Status](http://gnep.mcs.anl.gov:8010/png?builder=moab-all)](https://gnep.mcs.anl.gov:8010)
+- ### **Bitbucket Builds (beta)**: [ ![Bitbucket Build Status](https://drone.io/bitbucket.org/fathomteam/moab/status.png)](https://drone.io/bitbucket.org/fathomteam/moab/latest)
+- ### **CodeShip**: [ ![Codeship Build Status](https://codeship.com/projects/286b0e80-5715-0132-1105-0e0cfcc5dfb4/status?branch=master)](https://codeship.com/projects/49743)
+- ### **Drone**: [ ![Drone.io Build Status](https://drone.io/bitbucket.org/fathomteam/moab/status.png)](https://drone.io/bitbucket.org/fathomteam/moab/latest)
+- ### **Coverity Code Coverage**: [ ![Coverity Scan Build Status](https://scan.coverity.com/projects/6201/badge.svg)](https://scan.coverity.com/projects/moab)
 
 # Bugs, Correspondence, Contributing
 MOAB is LGPL code, and we encourage users to submit bug reports (and, if desired, fixes) to moab-dev@mcs.anl.gov. Users are encouraged to check [SIGMA-MOAB] documentation pages often for news and updates. Please submit pull requests (PR) with a Bitbucket fork or send us patches that you would like merged upstream.
@@ -59,17 +67,18 @@ MOAB is LGPL code, and we encourage users to submit bug reports (and, if desired
   After installing the GNU autotools suite, execute the following
   command to generate the configure script (and other necessary
   generated files):
-  
+```  
     autoreconf -fi
-    
+```    
   If for some reason, the autoreconf command is not available,
   the following sequence of commands should have the same result:
-    
+```
     autoheader
     aclocal -I m4
     libtoolize -f
     autoconf 
     automake -a
+```
 
 1. Why aren't the configure script and other generated files in the CVS repository?
   
@@ -81,11 +90,11 @@ to configure MOAB?
     > No.  Developers (or anyone else using source directly from the Git repository) must have the autotools installed.  When creating a tarball for distribution of MOAB, the commands below should be run. The resulting tarball will contain all necessary generated files, including the configure script.
 
 3. What needs to be done to prepare MOAB for distribution as a tarball?
-    + Check out a clean copy of MOAB.
-    + Execute the following commands in the top-most directory:
+    - Check out a clean copy of MOAB.
+    - Execute the following commands in the top-most directory:
         - `autoreconf -fi`
         - `./configure`
-    + To create a distributable tarball from a working source directory, do `make dist`
+    - To create a distributable tarball from a working source directory, do `make dist`
 
 ------------------------------------------------
 MOAB iMesh Interface Implementation, iMesh v1.2
@@ -123,17 +132,26 @@ Supported File Formats
 Some of the file formats listed below may not be supported by a particular build of MOAB depending on the availability of external libraries.  An  up-to-date list of file formats supported in a particular build of MOAB can be obtained programatically using the MBReaderWriterSet API or as a simple list using the '`-l`' option of the mbconvert utility.
 
 ```
-Format              Name    Read         Write   File name suffixes
-------------------  ------  ------------ ------  --------------------
-MOAB native         MOAB    yes          yes     h5m mhdf
-Exodus II           EXODUS  yes          yes     exo exoII exo2 g gen
-Kitware VTK         VTK     up to v3.0   v3.0    vtk
-Cubit               CUBIT   yes          no      cub
-SLAC                SLAC    no           yes     slac
-GMV                 GMV     no           yes     gmv
-Ansys               ANSYS   no           yes     ans
-Gmsh                GMSH    v1.0, v2.0   v2.0    msh gmsh
-Stereo Lithography  STL     yes          yes     stl
+Format               Name     Read    Write   File name description
+------------------  ------  -------- -------  ----------------
+MOAB native (HDF5)  MOAB      yes      yes     h5m mhdf
+Exodus II           EXODUS    yes      yes     exo exoII exo2 g gen
+Climate NC          NC        yes      yes     nc
+IDEAS Format        UNV       yes      no      unv
+MCNP5 Format        MESHTAL   yes      no      meshtal
+NASTRAN format      NAS       yes      no      nas bdf
+Abaqus mesh format  ABAQUS    yes      no      abq
+Kitware VTK         VTK       yes      yes     vtk
+RPI SMS             SMS       yes      no      sms
+Cubit               CUBIT     yes      no      cub
+QSlim format        SMF       yes      yes     smf
+SLAC                SLAC      no       yes     slac
+GMV                 GMV       no       yes     gmv
+Ansys               ANSYS     no       yes     ans
+Gmsh                GMSH      yes      yes     msh gmsh
+Stereo Lithography  STL       yes      yes     stl
+TetGen mesh files   TETGEN    yes      no      node ele face edge
+Template input      TEMPLATE  yes      yes     
 ```
 Any of the values from the `Name` column may be passed as an option to the file I/O methods to request a particular file.  If no file  format is specified, the default is to choose the write format using the file extension and to try all file readers until one succeeds.
 
@@ -141,7 +159,7 @@ Any of the values from the `Name` column may be passed as an option to the file 
 File IO Options
 ---------------
 
-An options list as passed to MOAB file IO routines is a single C-style string containing the concatenation of a list of string options, where individual options are separated by a designated separator character. The default separator character is a semicolon (;).  To specify an alternate separator character, begin the options string with a semicolon followed by the desired separator.  Options are not case sensitive.
+An options list as passed to MOAB file IO routines is a single C-style string containing the concatenation of a list of string options, where individual options are separated by a designated separator character. The default separator character is a semicolon (**`;`**).  To specify an alternate separator character, begin the options string with a semicolon followed by the desired separator.  Options are not case sensitive.
 
 ---------------
 Common Options
@@ -159,8 +177,7 @@ Common Options
 
 `CGM_ATTRIBS={yes|no}`: Actuation of all CGM attributes, default:no.
 
-`DEBUG_IO=n`: Set threashold for debug messages from low-level (format-specific) 
-reader/writer.  Default is `0` (none).
+`DEBUG_IO=n`: Set threashold for debug messages from low-level (format-specific) reader/writer.  Default is `0` (none).
 
 -------------------
 Parallel IO Options
@@ -225,9 +242,9 @@ MOAB Native (HDF5-based MHDF) format
 ------------------------------------
 
 `ELEMENTS={EXPLICIT|NODES|SIDES}`: If reading only part of a file, specify which elements to read in addition to those contained in the specified set.  The options are:
-   + **EXPLICIT**    - read only explicitly designated elements
-   + **NODES**       - read any element for which all the nodes are being read.
-   + **SIDES**       - read explicilty specified elements and any elements that are sides of those elements.
+>   - **EXPLICIT**    - read only explicitly designated elements
+>   - **NODES**       - read any element for which all the nodes are being read.
+>   - **SIDES**       - read explicilty specified elements and any elements that are sides of those elements.
 
 Default is **SIDES** unless only nodes are explicitly specified, in which
 case NODES will be used.
@@ -237,9 +254,9 @@ case NODES will be used.
    SETS     = { NONE | SETS | CONTENTS }
 ```
 If reading only part of a file, specify whether or not child or contained sets (CHILDREN and SETS, respectively) of input sets are to be read. The options are:
-   + NONE     - Do not read sets because they are children of designated sets.
-   + SETS     - Read all child sets of designated input sets.
-   + CONTENTS - (Default).  Read all child sets and any entities contained in those sets.
+>   + **NONE**     - Do not read sets because they are children of designated sets.
+>   + **SETS**     - Read all child sets of designated input sets.
+>   + **CONTENTS** - (Default).  Read all child sets and any entities contained in those sets.
 
 `BUFFER_SIZE=<BYTES>`: Reduce buffer size for debugging purposes.
 
