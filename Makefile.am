@@ -23,7 +23,7 @@ endif
 build-check:
 	$(MAKE) 'TESTS_ENVIRONMENT=: ' check
 
-doc_DATA = ANNOUNCE KNOWN_ISSUES LICENSE README README.IO README.IMESH RELEASE_NOTES
+doc_DATA = ANNOUNCE KNOWN_ISSUES LICENSE README.md RELEASE_NOTES
 
 examples_DATA = examples/CrystalRouterExample.cpp \
                 examples/DirectAccessNoHoles.cpp \
