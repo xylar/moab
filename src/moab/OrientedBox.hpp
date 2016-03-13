@@ -41,7 +41,7 @@ class OrientedBox
 {
 public:
   CartVect center;  //!< Box center
-  CartVect axis[3]; //!< Box axes, unit vectors sorted by extent of box along axis
+  Matrix3 axis; //!< Box axes, unit vectors sorted by extent of box along axis
 #if MB_ORIENTED_BOX_UNIT_VECTORS
   CartVect length;  //!< distance from center to plane along each axis
 #endif
@@ -51,7 +51,7 @@ public:
 
   inline OrientedBox() : radius(0.0) {}
 
-  OrientedBox( const CartVect axis[3], const CartVect& center );
+  OrientedBox( const Matrix3 axis, const CartVect& center );
 
   inline double inner_radius() const; //!< radius of inscribed sphere
   inline double outer_radius() const; //!< radius of circumscribed sphere
@@ -237,9 +237,9 @@ double OrientedBox::area() const
 CartVect OrientedBox::scaled_axis( int index ) const
 {
 #if MB_ORIENTED_BOX_UNIT_VECTORS
-  return length[index] * axis[index];
+  return length[index] * axis.col(index);
 #else
-  return axis[index];
+  return axis.col(index);
 #endif
 }
   

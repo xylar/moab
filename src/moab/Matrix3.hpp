@@ -142,7 +142,7 @@ namespace Matrix{
 	//automatically inlines them.
 
 	template< typename Matrix, typename Vector>
-	ErrorCode EigenDecomp( const Matrix & _a,
+	ErrorCode EigenDecomp2( const Matrix & _a,
 	                       double w[3],
 	                       Vector o[3] ) {
 	  Vector v[3];
@@ -319,10 +319,18 @@ public:
   template< typename Vector> 
   inline Matrix3(   const Vector & row0,
                     const Vector & row1,
-                    const Vector & row2 ) {
-    _mat << row0[0], row0[1], row0[2],
-            row1[0], row1[1], row1[2],
-            row2[0], row2[1], row2[2];
+                    const Vector & row2,
+                    const bool isRow=false) {
+    if (isRow) {
+      _mat << row0[0], row0[1], row0[2],
+              row1[0], row1[1], row1[2],
+              row2[0], row2[1], row2[2];
+    }
+    else {
+      _mat << row0[0], row1[0], row2[0],
+              row0[1], row1[1], row2[1],
+              row0[2], row1[2], row2[2];
+    }
   }
   
   inline Matrix3( const double v[9] ){ 
@@ -381,6 +389,55 @@ public:
 	  return *this;
   }
 
+  inline ErrorCode eigen_decomposition(Eigen::Vector3d& evals, Matrix3& evecs)
+  {
+    Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> eigensolver(this->_mat);
+    if (eigensolver.info() != Eigen::Success)
+      return MB_FAILURE;
+    evals = eigensolver.eigenvalues();
+    evecs._mat = eigensolver.eigenvectors(); //.col(1)
+    return MB_SUCCESS;
+  }
+
+  inline ErrorCode eigen_decomposition(CartVect& evals, Matrix3& evecs)
+  {
+    Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> eigensolver(this->_mat);
+    if (eigensolver.info() != Eigen::Success)
+      return MB_FAILURE;
+    Eigen::Vector3d _evals = eigensolver.eigenvalues();
+    evals[0] = _evals[0];
+    evals[1] = _evals[1];
+    evals[2] = _evals[2];
+    evecs._mat = eigensolver.eigenvectors(); //.col(1)
+    return MB_SUCCESS;
+  }
+
+
+  inline void swapcol(int index, Eigen::Vector3d& vol) {
+  	_mat.col(index).swap(vol);
+  }
+
+  inline void swapcol(int srcindex, Matrix3& vol, int destindex) {
+  	_mat.col(srcindex).swap(vol._mat.col(destindex));
+  }
+
+  inline void swapcol(int srcindex, int destindex) {
+  	_mat.col(srcindex).swap(_mat.col(destindex));
+  }
+
+ inline Eigen::Vector3d vcol(int index) const{
+  	return _mat.col(index);
+  }
+
+  inline CartVect col(int index) const{
+  	CartVect colvec;
+    Eigen::Vector3d mvec = _mat.col(index);
+  	colvec[0] = mvec[0];
+  	colvec[1] = mvec[1];
+  	colvec[2] = mvec[2];
+  	return colvec;
+  }
+
   friend Matrix3 operator+( const Matrix3& a, const Matrix3& b );
   friend Matrix3 operator-( const Matrix3& a, const Matrix3& b );
   friend Matrix3 operator*( const Matrix3& a, const Matrix3& b );
@@ -393,22 +450,6 @@ public:
     return Matrix3(_mat.inverse());
   }
  
-  inline Matrix3 inverse(double /*scale*/) const {
-    // return Matrix3(_mat.inverse()/scale);
-    return Matrix3(_mat.inverse());
-  }
-  
-  inline bool positive_definite() const{
-  	double tmp;
-  	return positive_definite( tmp);
-  }
-  
-  inline bool positive_definite( double& det ) const{
-	  return moab::Matrix::positive_definite( *this, det);
-  }
-  
-//  inline Matrix3 transpose() const{ return Matrix3(_mat.transpose()); }
-  
   inline bool invert() {
     Eigen::Matrix3d invMat;
     bool invertible;

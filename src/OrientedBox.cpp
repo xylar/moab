@@ -47,17 +47,17 @@ std::ostream& operator<<( std::ostream& s, const OrientedBox& b )
 {
   return s << b.center 
            << " + " 
-           << b.axis[0] 
+           << b.axis.col(0) 
 #if MB_ORIENTED_BOX_UNIT_VECTORS
            << ":" << b.length[0] 
 #endif
            << " x " 
-           << b.axis[1] 
+           << b.axis.col(1) 
 #if MB_ORIENTED_BOX_UNIT_VECTORS
            << ":" << b.length[1] 
 #endif
            << " x " 
-           << b.axis[2]
+           << b.axis.col(2)
 #if MB_ORIENTED_BOX_UNIT_VECTORS
            << ":" << b.length[2] 
 #endif
@@ -87,39 +87,37 @@ static double point_perp( const CartVect& p,   // closest to this point
   return Util::is_finite(t) ? t : 0.0;
 }
 
-OrientedBox::OrientedBox( const CartVect axes[3], const CartVect& mid )
+OrientedBox::OrientedBox( const Matrix3 axes, const CartVect& mid )
   : center(mid)
 {
     // re-order axes by length
-  CartVect len( axes[0].length(), axes[1].length(), axes[2].length() );
-  axis[0] = axes[0];
-  axis[1] = axes[1];
-  axis[2] = axes[2];
+  CartVect len( axes.col(0).length(), axes.col(1).length(), axes.col(2).length() );
+  axis = axes;
   
   if (len[2] < len[1])
   {
     if (len[2] < len[0]) {
       std::swap( len[0], len[2] );
-      std::swap( axis[0], axis[2] );
+      axis.swapcol( 0, 2 );
     }
   }
   else if (len[1] < len[0]) {
     std::swap( len[0], len[1] );
-    std::swap( axis[0], axis[1] );
+    axis.swapcol( 0, 1 );
   }
   if (len[1] > len[2]) {
     std::swap( len[1], len[2] );
-    std::swap( axis[1], axis[2] );
+    axis.swapcol( 1, 2 );
   }
   
 #if MB_ORIENTED_BOX_UNIT_VECTORS
   this->length = len;
   if (len[0] > 0.0)
-    axis[0] /= len[0];
+    axis.col(0) /= len[0];
   if (len[1] > 0.0)
-    axis[1] /= len[1];
+    axis.col(1) /= len[1];
   if (len[2] > 0.0)
-    axis[2] /= len[2];
+    axis.col(2) /= len[2];
 #endif
 
 #if MB_ORIENTED_BOX_OUTER_RADIUS
@@ -180,7 +178,7 @@ static ErrorCode box_from_axes( OrientedBox& result,
     
     for (int d = 0; d < 3; ++d)
     {
-      double t = point_perp( coords, result.center, result.axis[d] );
+      double t = point_perp( coords, result.center, result.axis.col(d) );
       if (t < min[d])
         min[d] = t;
       if (t > max[d])
@@ -195,9 +193,9 @@ static ErrorCode box_from_axes( OrientedBox& result,
   
     // Calculate new center
   CartVect mid = 0.5 * (min + max);
-  result.center += mid[0] * result.axis[0] +
-                   mid[1] * result.axis[1] +
-                   mid[2] * result.axis[2];
+  result.center += mid[0] * result.axis.col(0) +
+                   mid[1] * result.axis.col(1) +
+                   mid[2] * result.axis.col(2);
   
     // reorder axes by length
   CartVect range = 0.5 * (max - min);
@@ -205,25 +203,25 @@ static ErrorCode box_from_axes( OrientedBox& result,
   {
     if (range[2] < range[0]) {
       std::swap( range[0], range[2] );
-      std::swap( result.axis[0], result.axis[2] );
+      result.axis.swapcol( 0, 2 );
     }
   }
   else if (range[1] < range[0]) {
     std::swap( range[0], range[1] );
-    std::swap( result.axis[0], result.axis[1] );
+    result.axis.swapcol( 0, 1 );
   }
   if (range[1] > range[2]) {
     std::swap( range[1], range[2] );
-    std::swap( result.axis[1], result.axis[2] );
+    result.axis.swapcol( 1, 2 );
   }
 
     // scale axis to encompass all points, divide in half
 #if MB_ORIENTED_BOX_UNIT_VECTORS
   result.length = range;
 #else
-  result.axis[0] *= range[0];
-  result.axis[1] *= range[1];
-  result.axis[2] *= range[2];
+  result.axis.col(0) *= range[0];
+  result.axis.col(1) *= range[1];
+  result.axis.col(2) *= range[2];
 #endif
 
 #if MB_ORIENTED_BOX_OUTER_RADIUS
@@ -269,8 +267,10 @@ ErrorCode OrientedBox::compute_from_vertices( OrientedBox& result,
   a /= count;
 
     // Get axes (Eigenvectors) from covariance matrix
-  double lambda[3];
-  moab::Matrix::EigenDecomp( a, lambda, result.axis );
+  Eigen::Vector3d lambda;
+  a.eigen_decomposition(lambda, result.axis);
+
+  // moab::Matrix::EigenDecomp( a, lambda, result.axis );
   
     // Calculate center and extents of box given orientation defined by axes
   return box_from_axes( result, instance, vertices );
@@ -351,7 +351,7 @@ ErrorCode OrientedBox::compute_from_covariance_data(
                                                 const Range& vertices )
 {
   if (data.area <= 0.0) {
-    CartVect axis[3] = { CartVect(0.), CartVect(0.), CartVect(0.) };
+    Matrix3 axis (0.0);
     result = OrientedBox( axis, CartVect(0.) );
     return MB_SUCCESS;
   }
@@ -364,8 +364,8 @@ ErrorCode OrientedBox::compute_from_covariance_data(
   data.matrix -= outer_product( result.center, result.center );
 
     // get axes (Eigenvectors) from covariance matrix
-  double lamda[3];
-  moab::Matrix::EigenDecomp( data.matrix, lamda, result.axis );
+  Eigen::Vector3d lambda;
+  data.matrix.eigen_decomposition(lambda, result.axis);
 
     // We now have only the axes.  Calculate proper center
     // and extents for enclosed points.
@@ -376,13 +376,13 @@ bool OrientedBox::contained( const CartVect& point, double tol ) const
 {
   CartVect from_center = point - center;
 #if MB_ORIENTED_BOX_UNIT_VECTORS
-  return fabs(from_center % axis[0]) - length[0] <= tol &&
-         fabs(from_center % axis[1]) - length[1] <= tol &&
-         fabs(from_center % axis[2]) - length[2] <= tol ;
+  return fabs(from_center % axis.col(0)) - length[0] <= tol &&
+         fabs(from_center % axis.col(1)) - length[1] <= tol &&
+         fabs(from_center % axis.col(2)) - length[2] <= tol ;
 #else
   for (int i = 0; i < 3; ++i) {
-    double length = axis[i].length();
-    if (fabs(from_center % axis[i]) - length*length > length*tol)
+    double length = axis(i).length();
+    if (fabs(from_center % axis.col(i)) - length*length > length*tol)
       return false;
   }
   return true;
@@ -418,13 +418,13 @@ ErrorCode OrientedBox::compute_from_covariance_data( OrientedBox& result,
 //      {
 //        CartVect corner( center );
 //#ifdef MB_ORIENTED_BOX_UNIT_VECTORS
-//        corner += i * box.length[0] * box.axis[0];
-//        corner += j * box.length[1] * box.axis[1];
-//        corner += k * box.length[2] * box.axis[2];
+//        corner += i * box.length[0] * box.axis.col(0);
+//        corner += j * box.length[1] * box.axis.col(1);
+//        corner += k * box.length[2] * box.axis.col(2);
 //#else
-//        corner += i * box.axis[0];
-//        corner += j * box.axis[1];
-//        corner += k * box.axis[2];
+//        corner += i * box.axis.col(0);
+//        corner += j * box.axis.col(1);
+//        corner += k * box.axis.col(2);
 //#endif
 //        if (!contained( corner, tol ))
 //          return false;
@@ -556,12 +556,12 @@ bool OrientedBox::intersect_ray( const CartVect& ray_origin,
     // Note: if axes were stored as a matrix, could skip
     // transpose and just switch order of operands in
     // matrix-vector multiplies below. - J.K.
-  //Matrix3 B( axis[0][0], axis[1][0], axis[2][0],
-  //             axis[0][1], axis[1][1], axis[2][1],
-  //             axis[0][2], axis[1][2], axis[2][2] );
-  Matrix3 B( axis[0][0], axis[0][1], axis[0][2],
-               axis[1][0], axis[1][1], axis[1][2],
-               axis[2][0], axis[2][1], axis[2][2] );
+  //Matrix3 B( axis.col(0)[0], axis.col(1)[0], axis.col(2)[0],
+  //             axis.col(0)[1], axis.col(1)[1], axis.col(2)[1],
+  //             axis.col(0)[2], axis.col(1)[2], axis.col(2)[2] );
+  Matrix3 B( axis.col(0)[0], axis.col(0)[1], axis.col(0)[2],
+               axis.col(1)[0], axis.col(1)[1], axis.col(1)[2],
+               axis.col(2)[0], axis.col(2)[1], axis.col(2)[2] );
   //CartVect T = B * -center;
   
     // transform ray to box coordintae system
@@ -571,7 +571,7 @@ bool OrientedBox::intersect_ray( const CartVect& ray_origin,
 
   // Fast Rejection Test: Ray will not intersect if it is going away from the box.
   // This will not work for rays with neg_ray_len. length[0] is half of box width 
-  // along axis[0].
+  // along axis.col(0).
   const double half_x = length[0] + reps;
   const double half_y = length[1] + reps;
   const double half_z = length[2] + reps;
@@ -658,9 +658,9 @@ ErrorCode OrientedBox::make_hex( EntityHandle& hex, Interface* instance )
     CartVect coords(center);
     for (int j = 0; j < 3; ++j){
 #if MB_ORIENTED_BOX_UNIT_VECTORS
-      coords += signs[i][j] * (axis[j]*length[j]);
+      coords += signs[i][j] * (axis.col(j)*length[j]);
 #else
-      coords += signs[i][j] * axis[j];
+      coords += signs[i][j] * axis.col(j);
 #endif
     }
     EntityHandle handle;
@@ -689,9 +689,9 @@ void OrientedBox::closest_location_in_box(
   const CartVect from_center = input_position - center;
 
 #if MB_ORIENTED_BOX_UNIT_VECTORS
-  CartVect local( from_center % axis[0],
-                    from_center % axis[1],
-                    from_center % axis[2] );
+  CartVect local( from_center % axis.col(0),
+                    from_center % axis.col(1),
+                    from_center % axis.col(2) );
 
   for (int i = 0; i < 3; ++i) {
     if (local[i] < -length[i])
@@ -700,9 +700,9 @@ void OrientedBox::closest_location_in_box(
       local[i] =  length[i];
   }
 #else
-  CartVect local( (from_center % axis[0]) / (axis[0] % axis[0]),
-                    (from_center % axis[1]) / (axis[1] % axis[1]),
-                    (from_center % axis[2]) / (axis[2] % axis[2]) );
+  CartVect local( (from_center % axis.col(0)) / (axis.col(0) % axis.col(0)),
+                    (from_center % axis.col(1)) / (axis.col(1) % axis.col(1)),
+                    (from_center % axis.col(2)) / (axis.col(2) % axis.col(2)) );
 
   for (int i = 0; i < 3; ++i) {
     if (local[i] < -1.0)
@@ -713,9 +713,9 @@ void OrientedBox::closest_location_in_box(
 #endif
 
   output_position = center
-                  + local[0] * axis[0] 
-                  + local[1] * axis[1]
-                  + local[2] * axis[2];
+                  + local[0] * axis.col(0) 
+                  + local[1] * axis.col(1)
+                  + local[2] * axis.col(2);
 }
   
 } // namespace moab

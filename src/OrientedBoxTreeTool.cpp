@@ -361,7 +361,7 @@ static ErrorCode split_box( Interface* instance,
       centroid += coords[j];
     centroid /= conn_len;
     
-    if ((box.axis[axis] % (centroid - box.center)) < 0.0)
+    if ((box.axis.col(axis) % (centroid - box.center)) < 0.0)
       left_list.insert( *i );
     else
       right_list.insert( *i );
@@ -380,7 +380,7 @@ ErrorCode OrientedBoxTreeTool::build_tree( const Range& entities,
   ErrorCode rval;
   
   if (entities.empty()) {
-    CartVect axis[3] = { CartVect(0.), CartVect(0.), CartVect(0.) };
+    Matrix3 axis;
     tmp_box = OrientedBox( axis, CartVect(0.) );
   }
   else {
@@ -472,7 +472,7 @@ static ErrorCode split_sets( Interface* ,
   std::list<OrientedBoxTreeTool::SetData>::const_iterator i;
   for (i = sets.begin(); i != sets.end(); ++i) {
     CartVect centroid(i->box_data.center / i->box_data.area);
-    if ((box.axis[axis] % (centroid - box.center)) < 0.0)
+    if ((box.axis.col(axis) % (centroid - box.center)) < 0.0)
       left.push_back( *i );
     else
       right.push_back( *i );

@@ -61,7 +61,7 @@ namespace moab {
         }
 
           // new params tries to eliminate residual
-        *cvparams -= J.inverse(1.0/det) * res;
+        *cvparams -= J.inverse() * res;
 
           // get the new forward-evaluated position, and its difference from the target pt
         rval = (*eval)(params, verts, ndim, 
