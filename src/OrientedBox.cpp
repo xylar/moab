@@ -87,7 +87,7 @@ static double point_perp( const CartVect& p,   // closest to this point
   return Util::is_finite(t) ? t : 0.0;
 }
 
-OrientedBox::OrientedBox( const Matrix3 axes, const CartVect& mid )
+OrientedBox::OrientedBox( const Matrix3& axes, const CartVect& mid )
   : center(mid)
 {
     // re-order axes by length
@@ -109,15 +109,15 @@ OrientedBox::OrientedBox( const Matrix3 axes, const CartVect& mid )
     std::swap( len[1], len[2] );
     axis.swapcol( 1, 2 );
   }
-  
+ 
 #if MB_ORIENTED_BOX_UNIT_VECTORS
   this->length = len;
   if (len[0] > 0.0)
-    axis.col(0) /= len[0];
+    axis.colscale(0, 1.0/len[0]);
   if (len[1] > 0.0)
-    axis.col(1) /= len[1];
+    axis.colscale(1, 1.0/len[1]);
   if (len[2] > 0.0)
-    axis.col(2) /= len[2];
+    axis.colscale(2 ,1.0/len[2]);
 #endif
 
 #if MB_ORIENTED_BOX_OUTER_RADIUS
@@ -219,9 +219,9 @@ static ErrorCode box_from_axes( OrientedBox& result,
 #if MB_ORIENTED_BOX_UNIT_VECTORS
   result.length = range;
 #else
-  result.axis.col(0) *= range[0];
-  result.axis.col(1) *= range[1];
-  result.axis.col(2) *= range[2];
+  result.axis.colscale(0, range[0]);
+  result.axis.colscale(1, range[1]);
+  result.axis.colscale(2, range[2]);
 #endif
 
 #if MB_ORIENTED_BOX_OUTER_RADIUS
@@ -267,7 +267,7 @@ ErrorCode OrientedBox::compute_from_vertices( OrientedBox& result,
   a /= count;
 
     // Get axes (Eigenvectors) from covariance matrix
-  Eigen::Vector3d lambda;
+  CartVect lambda;
   a.eigen_decomposition(lambda, result.axis);
 
   // moab::Matrix::EigenDecomp( a, lambda, result.axis );
@@ -364,7 +364,7 @@ ErrorCode OrientedBox::compute_from_covariance_data(
   data.matrix -= outer_product( result.center, result.center );
 
     // get axes (Eigenvectors) from covariance matrix
-  Eigen::Vector3d lambda;
+  CartVect lambda;
   data.matrix.eigen_decomposition(lambda, result.axis);
 
     // We now have only the axes.  Calculate proper center
@@ -381,7 +381,7 @@ bool OrientedBox::contained( const CartVect& point, double tol ) const
          fabs(from_center % axis.col(2)) - length[2] <= tol ;
 #else
   for (int i = 0; i < 3; ++i) {
-    double length = axis(i).length();
+    double length = axis.col(i).length();
     if (fabs(from_center % axis.col(i)) - length*length > length*tol)
       return false;
   }

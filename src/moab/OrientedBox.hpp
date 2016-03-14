@@ -51,7 +51,7 @@ public:
 
   inline OrientedBox() : radius(0.0) {}
 
-  OrientedBox( const Matrix3 axis, const CartVect& center );
+  OrientedBox( const Matrix3& axis, const CartVect& center );
 
   inline double inner_radius() const; //!< radius of inscribed sphere
   inline double outer_radius() const; //!< radius of circumscribed sphere
@@ -165,7 +165,7 @@ double OrientedBox::inner_radius() const
 #if MB_ORIENTED_BOX_UNIT_VECTORS
   return length[0];
 #else
-  return axis[0].length();
+  return axis.col(0).length();
 #endif
 }
 
@@ -176,7 +176,7 @@ double OrientedBox::outer_radius() const
 #elif MB_ORIENTED_BOX_UNIT_VECTORS
   return length.length();
 #else
-  return (axis[0] + axis[1] + axis[2]).length();
+  return (axis.col(0) + axis.col(1) + axis.col(2)).length();
 #endif
 }
 
@@ -189,7 +189,7 @@ double OrientedBox::outer_radius_squared(const double reps) const
   CartVect tmp(length[0]+reps,length[1]+reps,length[2]+reps);
   return tmp % tmp;
 #else
-  CartVect half_diag = axis[0] + axis[1] + axis[2];
+  CartVect half_diag = axis.col(0) + axis.col(1) + axis.col(2);
   half_diag += CartVect(reps,reps,reps);
   return half_diag % half_diag;
 #endif
@@ -201,7 +201,7 @@ double OrientedBox::inner_radius_squared(const double reps) const
 #if MB_ORIENTED_BOX_UNIT_VECTORS
   return (length[0]-reps) * (length[0]-reps);
 #else
-  CartVect tmp = axis[0];
+  CartVect tmp = axis.col(0);
   tmp -= CartVect(reps,reps,reps);
   return (tmp % tmp);
 #endif
@@ -212,7 +212,7 @@ double OrientedBox::volume() const
 #if MB_ORIENTED_BOX_UNIT_VECTORS
   return 8 * length[0] * length[1] * length[2];
 #else
-  return fabs(8 * axis[0] % (axis[1] * axis[2]));
+  return fabs(8 * axis.col(0) % (axis.col(1) * axis.col(2)));
 #endif
 }
 
@@ -221,7 +221,7 @@ CartVect OrientedBox::dimensions() const
 #if MB_ORIENTED_BOX_UNIT_VECTORS
   return 2.0 * length;
 #else
-  return 2.0 * CartVect( axis[0].length(), axis[1].length(), axis[2].length() );
+  return 2.0 * CartVect( axis.col(0).length(), axis.col(1).length(), axis.col(2).length() );
 #endif
 }
 
@@ -230,7 +230,7 @@ double OrientedBox::area() const
 #if MB_ORIENTED_BOX_UNIT_VECTORS
   return 4 * length[1] * length[2];
 #else
-  return 4 * (axis[1] * axis[2]).length();
+  return 4 * (axis.col(1) * axis.col(2)).length();
 #endif
 }
 

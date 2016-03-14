@@ -425,17 +425,26 @@ public:
   	_mat.col(srcindex).swap(_mat.col(destindex));
   }
 
- inline Eigen::Vector3d vcol(int index) const{
+ inline Eigen::Vector3d vcol(int index) const {
   	return _mat.col(index);
   }
 
+ inline void colscale(int index, double scale) {
+  	_mat.col(index) *= scale;
+  }
+
+ inline void rowscale(int index, double scale) {
+  	_mat.row(index) *= scale;
+  }
+
   inline CartVect col(int index) const{
-  	CartVect colvec;
     Eigen::Vector3d mvec = _mat.col(index);
-  	colvec[0] = mvec[0];
-  	colvec[1] = mvec[1];
-  	colvec[2] = mvec[2];
-  	return colvec;
+  	return CartVect(mvec[0], mvec[1], mvec[2]);
+  }
+
+  inline CartVect row(int index) const{
+    Eigen::Vector3d mvec = _mat.row(index);
+  	return CartVect(mvec[0], mvec[1], mvec[2]);
   }
 
   friend Matrix3 operator+( const Matrix3& a, const Matrix3& b );

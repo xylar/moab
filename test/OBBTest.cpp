@@ -38,7 +38,6 @@ int main()
   test_build_from_tri();
   test_build_from_pts();
   test_save();
-  
   return error_count;
 }
 
@@ -58,7 +57,7 @@ const OrientedBox offsetbox( unitaxes, unitcenter );
   // define non-unit centered at origin
 const Matrix3 origaxes ( 5*unitaxes.col(0),
                          10*unitaxes.col(1),
-                         0.1*unitaxes.col(2), true );
+                         0.1*unitaxes.col(2) );
 const OrientedBox oblongbox( origaxes, origin );
 
   // define non-axis-aligned unit box at origin
@@ -112,7 +111,7 @@ static void axis_dims( const Matrix3 axis, CartVect& dims )
 static void test_basic()
 {
   CartVect dims;
-  
+ 
   axis_dims( unitaxes, dims );
   ASSERT_VECTORS_EQUAL( unitbox.center, origin );
   ASSERT_VECTOR_ELEMENT( unitbox.scaled_axis(0), unitaxes );
@@ -142,9 +141,10 @@ static void test_basic()
   ASSERT_DOUBLES_EQUAL( oblongbox.outer_radius(), dims.length() );
   ASSERT_DOUBLES_EQUAL( oblongbox.volume(), 8.0*dims[0]*dims[1]*dims[2] );
   ASSERT_VECTORS_EQUAL( oblongbox.dimensions(), 2*dims );
-  
+ 
   axis_dims( rotaxes, dims );
   ASSERT_VECTORS_EQUAL( rotbox.center, origin );
+  std::cout << ">> OrientedBox: " << rotbox << std::endl;
   ASSERT_VECTOR_ELEMENT( rotbox.scaled_axis(0), rotaxes );
   ASSERT_VECTOR_ELEMENT( rotbox.scaled_axis(1), rotaxes );
   ASSERT_VECTOR_ELEMENT( rotbox.scaled_axis(2), rotaxes );
@@ -153,7 +153,6 @@ static void test_basic()
   ASSERT_DOUBLES_EQUAL( rotbox.volume(), 8.0*dims[0]*dims[1]*dims[2] );
   ASSERT_VECTORS_EQUAL( rotbox.dimensions(), 2*dims );
 }
-  
 
 static void test_contained() 
 {
@@ -1390,17 +1389,19 @@ static void assert_vector_element( const CartVect& a,
                                    int lineno )
 {
   int i;
-  for (i = 0; i < 3; ++i) 
-    if (fabs(a[0] - b(i, 0)) <= TOL
-     && fabs(a[1] - b(i, 1)) <= TOL
-     && fabs(a[2] - b(i, 2)) <= TOL)
-      return;
-      
-  ++error_count;
-  std::cerr << "Assertion failed at line " << lineno << std::endl
-            << "\t" << sa << " in " << sb << std::endl
-            << "\t" << sa << " = " << a << std::endl
-            << "\t" << sb << " = " << b << std::endl;
+  for (i = 0; i < 3; ++i) {
+    if (fabs(a[0] - b(i, 0)) > TOL
+     && fabs(a[1] - b(i, 1)) > TOL
+     && fabs(a[2] - b(i, 2)) > TOL) {
+      ++error_count;
+      std::cerr << "Assertion failed at line " << lineno << std::endl
+                << "\t" << sa << " in " << sb << std::endl
+                << "\t" << sa << " = " << a << std::endl
+                << "\t" << sb << " = " << b << std::endl;
+      break;
+    }
+  }
+  return;
 }
 
 
