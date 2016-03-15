@@ -2367,7 +2367,7 @@ ErrorCode mb_mesh_set_flag_test()
   CHKERR(rval);
   rval = mb->get_meshset_options( set, flags );
   CHKERR(rval);
-  if(MESHSET_SET&flags || !MESHSET_TRACK_OWNER&flags || MESHSET_ORDERED&flags){
+  if( (MESHSET_SET&flags) || !(MESHSET_TRACK_OWNER&flags) || (MESHSET_ORDERED&flags) ){
     std::cerr << "set should be MESHSET_TRACK_OWNER only, flags=" << flags 
               << std::endl;
     return MB_FAILURE;
@@ -2388,7 +2388,7 @@ ErrorCode mb_mesh_set_flag_test()
   CHKERR(rval);
   rval = mb->get_meshset_options( set, flags );
   CHKERR(rval);
-  if(!MESHSET_SET&flags || MESHSET_TRACK_OWNER&flags || MESHSET_ORDERED&flags){
+  if(!(MESHSET_SET&flags) || (MESHSET_TRACK_OWNER&flags) || (MESHSET_ORDERED&flags) ){
     std::cerr << "set should be MESHSET_SET only, flags=" << flags 
               << std::endl;
     return MB_FAILURE;
@@ -2418,7 +2418,7 @@ ErrorCode mb_mesh_set_flag_test()
   CHKERR(rval);
   rval = mb->get_meshset_options( set, flags );
   CHKERR(rval);
-  if(MESHSET_SET&flags || MESHSET_TRACK_OWNER&flags || !MESHSET_ORDERED&flags){
+  if( (MESHSET_SET&flags) || (MESHSET_TRACK_OWNER&flags) || !(MESHSET_ORDERED&flags) ){
     std::cerr << "set should be MESHSET_ORDERED only, flags=" << flags 
               << std::endl;
     return MB_FAILURE;
@@ -2446,7 +2446,7 @@ ErrorCode mb_mesh_set_flag_test()
   CHKERR(rval);
   rval = mb->get_meshset_options( set, flags );
   CHKERR(rval);
-  if(!MESHSET_SET&flags || MESHSET_TRACK_OWNER&flags || MESHSET_ORDERED&flags){
+  if(!(MESHSET_SET&flags) || (MESHSET_TRACK_OWNER&flags) || MESHSET_ORDERED&flags){
     std::cerr << "set should be MESHSET_SET only, flags=" << flags 
               << std::endl;
     return MB_FAILURE;
@@ -8563,8 +8563,9 @@ int main(int argc, char* argv[])
   RUN_TEST( mb_merge_update_test );
   RUN_TEST( mb_type_is_maxtype_test );
   RUN_TEST( mb_root_set_test );
-  RUN_TEST( mb_merge_test );
+
 #ifdef MOAB_HAVE_NETCDF
+  RUN_TEST( mb_merge_test );
   if (stress_test) RUN_TEST( mb_stress_test );
 #endif
 
