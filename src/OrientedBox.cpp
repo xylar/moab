@@ -88,11 +88,10 @@ static double point_perp( const CartVect& p,   // closest to this point
 }
 
 OrientedBox::OrientedBox( const Matrix3& axes_mat, const CartVect& mid )
-  : center(mid)
+  : center(mid), axes(axes_mat)
 {
     // re-order axes by length
-  CartVect len( axes.col(0).length(), axes.col(1).length(), axes.col(2).length() );
-  axes = axes_mat;
+  CartVect len = CartVect( axes_mat.col(0).length(), axes_mat.col(1).length(), axes_mat.col(2).length() );
   
   if (len[2] < len[1])
   {
@@ -111,7 +110,7 @@ OrientedBox::OrientedBox( const Matrix3& axes_mat, const CartVect& mid )
   }
  
 #if MB_ORIENTED_BOX_UNIT_VECTORS
-  this->length = len;
+  length = len;
   if (len[0] > 0.0)
     axes.colscale(0, 1.0/len[0]);
   if (len[1] > 0.0)
