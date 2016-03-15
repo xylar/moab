@@ -361,7 +361,7 @@ static ErrorCode split_box( Interface* instance,
       centroid += coords[j];
     centroid /= conn_len;
     
-    if ((box.axis.col(axis) % (centroid - box.center)) < 0.0)
+    if ((box.axis(axis) % (centroid - box.center)) < 0.0)
       left_list.insert( *i );
     else
       right_list.insert( *i );
@@ -472,7 +472,7 @@ static ErrorCode split_sets( Interface* ,
   std::list<OrientedBoxTreeTool::SetData>::const_iterator i;
   for (i = sets.begin(); i != sets.end(); ++i) {
     CartVect centroid(i->box_data.center / i->box_data.area);
-    if ((box.axis.col(axis) % (centroid - box.center)) < 0.0)
+    if ((box.axis(axis) % (centroid - box.center)) < 0.0)
       left.push_back( *i );
     else
       right.push_back( *i );
@@ -1879,9 +1879,9 @@ ErrorCode TreeNodePrinter::print_geometry( EntityHandle node )
   
   outputStream << box.center << "  Radius: " 
                << box.inner_radius() << " - " << box.outer_radius() << std::endl
-               << '+' << box.axis[0] << " : " << length[0] << std::endl
-               << 'x' << box.axis[1] << " : " << length[1] << std::endl
-               << 'x' << box.axis[2] << " : " << length[2] << std::endl;
+               << '+' << box.axis(0) << " : " << length[0] << std::endl
+               << 'x' << box.axis(1) << " : " << length[1] << std::endl
+               << 'x' << box.axis(2) << " : " << length[2] << std::endl;
   return MB_SUCCESS;
 }
 
