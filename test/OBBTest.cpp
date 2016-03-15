@@ -1389,17 +1389,21 @@ static void assert_vector_element( const CartVect& a,
                                    int lineno )
 {
   int i;
+  bool ismatch=false;
   for (i = 0; i < 3; ++i) {
-    if (fabs(a[0] - b(i, 0)) > TOL
-     && fabs(a[1] - b(i, 1)) > TOL
-     && fabs(a[2] - b(i, 2)) > TOL) {
-      ++error_count;
-      std::cerr << "Assertion failed at line " << lineno << std::endl
-                << "\t" << sa << " in " << sb << std::endl
-                << "\t" << sa << " = " << a << std::endl
-                << "\t" << sb << " = " << b << std::endl;
+    if (fabs(a[0] - b(0, i)) <= TOL
+     && fabs(a[1] - b(1, i)) <= TOL
+     && fabs(a[2] - b(2, i)) <= TOL) {
+      ismatch = true;
       break;
     }
+  }
+  if (!ismatch) {
+    ++error_count;
+    std::cerr << "Assertion failed at line " << lineno << std::endl
+              << "\t" << sa << " in " << sb << std::endl
+              << "\t" << sa << " = " << a << std::endl
+              << "\t" << sb << " = " << b << std::endl;
   }
   return;
 }

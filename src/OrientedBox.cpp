@@ -172,13 +172,11 @@ static ErrorCode box_from_axes( OrientedBox& result,
   for (Range::iterator i = points.begin(); i != points.end(); ++i)
   {
     CartVect coords;
-    rval = instance->get_coords( &*i, 1, coords.array() );
-    if (MB_SUCCESS != rval)
-      return rval;
-    
+    rval = instance->get_coords( &*i, 1, coords.array() );MB_CHK_ERR(rval);
+
     for (int d = 0; d < 3; ++d)
     {
-      double t = point_perp( coords, result.center, result.axis.col(d) );
+      const double t = point_perp( coords, result.center, result.axis.col(d) );
       if (t < min[d])
         min[d] = t;
       if (t > max[d])
@@ -192,7 +190,7 @@ static ErrorCode box_from_axes( OrientedBox& result,
     // range of t is [min[i], max[i]].
   
     // Calculate new center
-  CartVect mid = 0.5 * (min + max);
+  const CartVect mid = 0.5 * (min + max);
   result.center += mid[0] * result.axis.col(0) +
                    mid[1] * result.axis.col(1) +
                    mid[2] * result.axis.col(2);
