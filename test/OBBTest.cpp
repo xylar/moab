@@ -24,6 +24,7 @@ static void test_save();
 #define ASSERT_DOUBLES_EQUAL(A, B) assert_doubles_equal( (A), (B), #A, #B, __LINE__ )
 #define ASSERT(B) assert_bool( (B), #B, __LINE__ )
 
+static void assert_vector_element( const CartVect& a, const CartVect b[3], const char* sa, const char* sb, int lineno );
 static void assert_vector_element( const CartVect& a, const Matrix3& b, const char* sa, const char* sb, int lineno );
 static void assert_vectors_equal( const CartVect& a, const CartVect& b, const char* sa, const char* sb, int lineno );
 static void assert_doubles_equal( double a, double b, const char* sa, const char* sb, int lineno );
@@ -61,10 +62,14 @@ const Matrix3 origaxes ( 5*unitaxes.col(0),
 const OrientedBox oblongbox( origaxes, origin );
 
   // define non-axis-aligned unit box at origin
-const Matrix3 rotaxes ( unit( CartVect( 1.0, 1.0, 0.0 ) ),
-                        unit( CartVect( 1.0,-1.0, 1.0 ) ),
-                        unit( CartVect( 1.0, 1.0, 0.0 ) * CartVect( 1.0,-1.0, 1.0 ) ) );
+const CartVect rotaxes_cv[3] = { unit( CartVect( 1.0, 1.0, 0.0 ) ),
+				 unit( CartVect( 1.0,-1.0, 1.0 ) ),
+				 unit( CartVect( 1.0, 1.0, 0.0 ) * CartVect( 1.0,-1.0, 1.0 ) ) };
+const OrientedBox rotbox_cv( rotaxes_cv, origin );
+
+const Matrix3 rotaxes(rotaxes_cv[0],rotaxes_cv[1],rotaxes_cv[2], true);
 const OrientedBox rotbox( rotaxes, origin );
+
 
 /********************* Utility methods for tests ***************************/
 
@@ -1394,6 +1399,31 @@ static void assert_vector_element( const CartVect& a,
     if (fabs(a[0] - b(0, i)) <= TOL
      && fabs(a[1] - b(1, i)) <= TOL
      && fabs(a[2] - b(2, i)) <= TOL) {
+      ismatch = true;
+      break;
+    }
+  }
+  if (!ismatch) {
+    ++error_count;
+    std::cerr << "Assertion failed at line " << lineno << std::endl
+              << "\t" << sa << " in " << sb << std::endl
+              << "\t" << sa << " = " << a << std::endl
+              << "\t" << sb << " = " << b << std::endl;
+  }
+  return;
+}
+static void assert_vector_element( const CartVect& a, 
+                                   const CartVect b[3], 
+                                   const char* sa, 
+                                   const char* sb, 
+                                   int lineno )
+{
+  int i;
+  bool ismatch=false;
+  for (i = 0; i < 3; ++i) {
+    if (fabs(a[0] - b[0][i]) <= TOL
+     && fabs(a[1] - b[1][i]) <= TOL
+     && fabs(a[2] - b[2][i]) <= TOL) {
       ismatch = true;
       break;
     }
