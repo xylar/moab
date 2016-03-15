@@ -86,20 +86,19 @@ static double point_perp( const CartVect& p,   // closest to this point
 #endif
   return Util::is_finite(t) ? t : 0.0;
 }
-
-OrientedBox::OrientedBox( const Matrix3& axes_mat, const CartVect& mid )
-  : center(mid), axes(axes_mat)
-{
-    // re-order axes by length
-  CartVect len = CartVect( axes_mat.col(0).length(), axes_mat.col(1).length(), axes_mat.col(2).length() );
   
+void OrientedBox::order_axes_by_length(double ax1_len, double ax2_len, double ax3_len)
+{
+
+  CartVect len( ax1_len, ax2_len, ax3_len );
+ 
   if (len[2] < len[1])
-  {
-    if (len[2] < len[0]) {
-      std::swap( len[0], len[2] );
-      axes.swapcol( 0, 2 );
+    {
+      if (len[2] < len[0]) {
+	std::swap( len[0], len[2] );
+	axes.swapcol( 0, 2 );
+      }
     }
-  }
   else if (len[1] < len[0]) {
     std::swap( len[0], len[1] );
     axes.swapcol( 0, 1 );
@@ -108,20 +107,36 @@ OrientedBox::OrientedBox( const Matrix3& axes_mat, const CartVect& mid )
     std::swap( len[1], len[2] );
     axes.swapcol( 1, 2 );
   }
- 
+  
 #if MB_ORIENTED_BOX_UNIT_VECTORS
-  length = len;
-  if (len[0] > 0.0)
-    axes.colscale(0, 1.0/len[0]);
-  if (len[1] > 0.0)
-    axes.colscale(1, 1.0/len[1]);
-  if (len[2] > 0.0)
-    axes.colscale(2 ,1.0/len[2]);
+    length = len;
+    if (len[0] > 0.0)
+      axes.colscale(0, 1.0/len[0]);
+    if (len[1] > 0.0)
+      axes.colscale(1, 1.0/len[1]);
+    if (len[2] > 0.0)
+      axes.colscale(2 ,1.0/len[2]);
 #endif
 
 #if MB_ORIENTED_BOX_OUTER_RADIUS
-  radius = len.length();
+    radius = len.length();
 #endif
+}
+
+OrientedBox::OrientedBox( const CartVect axes_in[3], const CartVect& mid )
+  : center(mid)
+{
+
+  axes = Matrix3( axes_in[0], axes_in[1], axes_in[2] );
+
+  order_axes_by_length( axes_in[0].length(),axes_in[1].length(),axes_in[2].length() );
+  
+}
+
+OrientedBox::OrientedBox( const Matrix3& axes_mat, const CartVect& mid )
+  : center(mid), axes(axes_mat)
+{
+  order_axes_by_length( axes.col(0).length(), axes.col(1).length(), axes.col(2).length() );
 }
 
 ErrorCode OrientedBox::tag_handle( Tag& handle_out,

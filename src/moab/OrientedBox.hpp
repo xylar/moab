@@ -39,6 +39,9 @@ class Range;
  */
 class OrientedBox
 {
+private:
+  void order_axes_by_length( double ax1_len, double ax2_len, double ax3_len ); //!< orders the box axes by the given lengths for each axis
+  
 public:
   CartVect center;  //!< Box center
   Matrix3 axes; //!< Box axes, unit vectors sorted by extent of box along axis
@@ -52,6 +55,7 @@ public:
   inline OrientedBox() : radius(0.0) {}
 
   OrientedBox( const Matrix3& axes_mat, const CartVect& center );
+  OrientedBox( const CartVect axes_in[3], const CartVect& center );
 
   inline double inner_radius() const; //!< radius of inscribed sphere
   inline double outer_radius() const; //!< radius of circumscribed sphere
