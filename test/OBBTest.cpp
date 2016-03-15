@@ -1288,8 +1288,8 @@ void test_build_from_tri()
   ASSERT( box.dimensions()[0] <= TOL );
     // verify that other two axes are in XY plane
   const CartVect z_axis(0.0,0.0,1.0);
-  ASSERT( fabs(box.axis.col(1) % z_axis) <= TOL );
-  ASSERT( fabs(box.axis.col(2) % z_axis) <= TOL );
+  ASSERT( fabs(box.axis(1) % z_axis) <= TOL );
+  ASSERT( fabs(box.axis(2) % z_axis) <= TOL );
 }
                          
     

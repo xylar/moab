@@ -392,10 +392,10 @@ ErrorCode TreeValidator::visit( EntityHandle node,
     print( node, "Reached leaf node w/out encountering any surface set.");
   }
   
-  double dot_epsilon = epsilon*(box.axis.col(0)+box.axis.col(1)+box.axis.col(2)).length();
-  if (box.axis.col(0) % box.axis.col(1) > dot_epsilon ||
-      box.axis.col(0) % box.axis.col(2) > dot_epsilon ||
-      box.axis.col(1) % box.axis.col(2) > dot_epsilon ) {
+  double dot_epsilon = epsilon*(box.axis(0)+box.axis(1)+box.axis(2)).length();
+  if (box.axis(0) % box.axis(1) > dot_epsilon ||
+      box.axis(0) % box.axis(2) > dot_epsilon ||
+      box.axis(1) % box.axis(2) > dot_epsilon ) {
     ++non_ortho_count;
     print (node, "Box axes are not orthogonal");
   }
@@ -461,13 +461,13 @@ ErrorCode TreeValidator::visit( EntityHandle node,
         outside = true;
       else for (int d = 0; d < 3; ++d) {
 #if MB_ORIENTED_BOX_UNIT_VECTORS
-        double n = box.axis.col(d) % (*j - box.center);
+        double n = box.axis(d) % (*j - box.center);
         if (fabs(n - box.length[d]) <= epsilon)
           boundary[2*d] = true;
         if (fabs(n + box.length[d]) <= epsilon)
           boundary[2*d+1] = true;
 #else
-        double ln = box.axis.col(d).length();
+        double ln = box.axis(d).length();
         CartVect v1 = *j - box.center - box.axis[d];
         CartVect v2 = *j - box.center + box.axis[d];
         if (fabs(v1 % box.axis[d]) <= ln * epsilon)
@@ -486,7 +486,7 @@ ErrorCode TreeValidator::visit( EntityHandle node,
     }
   }
   
-  CartVect alength( box.axis.col(0).length(), box.axis.col(1).length(), box.axis.col(2).length() );
+  CartVect alength( box.axis(0).length(), box.axis(1).length(), box.axis(2).length() );
 #if MB_ORIENTED_BOX_UNIT_VECTORS
   CartVect length = box.length;
 #else
@@ -589,13 +589,13 @@ ErrorCode CubitWriter::visit( EntityHandle node,
     for (int j = 0; j < 2; ++j)
       for (int k = 0; k < 2; ++k) {
 #if MB_ORIENTED_BOX_UNIT_VECTORS
-        CartVect corner = box.center + box.length[0] * sign[i] * box.axis.col(0) +
-                                         box.length[1] * sign[j] * box.axis.col(1) +
-                                         box.length[2] * sign[k] * box.axis.col(2);
+        CartVect corner = box.center + box.length[0] * sign[i] * box.axis(0) +
+                                         box.length[1] * sign[j] * box.axis(1) +
+                                         box.length[2] * sign[k] * box.axis(2);
 #else
-        CartVect corner = box.center + sign[i] * box.axis.col(0) +
-                                         sign[j] * box.axis.col(1) +
-                                         sign[k] * box.axis.col(2);
+        CartVect corner = box.center + sign[i] * box.axis(0) +
+                                         sign[j] * box.axis(1) +
+                                         sign[k] * box.axis(2);
 #endif
         fprintf( file, "create vertex %f %f %f\n", corner[0],corner[1],corner[2] );
       }
@@ -932,10 +932,10 @@ static bool do_ray_fire_test( OrientedBoxTreeTool& tool,
   
   RayTest tests[] = { 
    { "half-diagonal from center", 1, box.center,                            1.5 * box.dimensions() },
-   { "large axis through box",    2, box.center - 1.2 * box.scaled_axis(2), box.axis.col(2) },
-   { "small axis through box",    2, box.center - 1.2 * box.scaled_axis(0), box.axis.col(0) },
-   { "parallel miss",             0, box.center + 2.0 * box.scaled_axis(1), box.axis.col(2) },
-   { "skew miss",                 0, box.center + box.dimensions(),          box.dimensions() * box.axis.col(2) }
+   { "large axis through box",    2, box.center - 1.2 * box.scaled_axis(2), box.axis(2) },
+   { "small axis through box",    2, box.center - 1.2 * box.scaled_axis(0), box.axis(0) },
+   { "parallel miss",             0, box.center + 2.0 * box.scaled_axis(1), box.axis(2) },
+   { "skew miss",                 0, box.center + box.dimensions(),          box.dimensions() * box.axis(2) }
    };
   
   OrientedBoxTreeTool::TrvStats stats;
