@@ -78,6 +78,9 @@ namespace moab{
     error = ahf->initialize(); MB_CHK_ERR(error);
     error = ahf->get_entity_ranges(_inverts, _inedges, _infaces, _incells);  MB_CHK_ERR(error);
 
+    //DBG
+    std::cout<<"#inverts = "<<_inverts.size()<<", #inedges = "<<_inedges.size()<<", #infaces = "<<_infaces.size()<<", #incells = "<<_incells.size()<<std::endl;
+
     //Check for supported entity type
     if (!_incells.empty())
       {
@@ -2016,11 +2019,13 @@ namespace moab{
      //All shared processors
      std::set<unsigned int> shprocs;
      error = pcomm->get_comm_procs(shprocs);MB_CHK_ERR(error);
+     std::cout<<"#shprocs = "<<shprocs.size()<<std::endl;
+
      std::vector<int> sharedprocs;
      for (std::set<unsigned int>::iterator it = shprocs.begin(); it != shprocs.end(); it++)
        sharedprocs.push_back(*it);
      int nprocs = sharedprocs.size();
-     std::cout<<"nprocs = "<<nprocs;
+     std::cout<<"nprocs = "<<nprocs<<std::endl;
 
      //Create buffer variables storing the entities to be sent and received
      std::vector<std::vector<int> > nsharedEntsperproc(nprocs);
@@ -2050,7 +2055,7 @@ namespace moab{
 
          std::cout<<"#sharedFaces with proc = "<<sharedprocs[i]<<" :: "<<F0.size()<<std::endl;
          std::cout<<"#sharedEdges with proc = "<<sharedprocs[i]<<" :: "<<E0.size()<<std::endl;
-         std::cout<<"#sharedNonManifoldVertices with proc = "<<sharedprocs[i]<<" :: "<<V0.size()<<std::endl;
+         std::cout<<"#sharedVerts with proc = "<<sharedprocs[i]<<" :: "<<V0.size()<<std::endl;
 
          // Step 2A: Prepare msg to be sent:
          //
@@ -2097,6 +2102,9 @@ namespace moab{
          msgsz.push_back(E0.size()); msgsz.push_back(locEList.size());
          msgsz.push_back(V0.size()); msgsz.push_back(locVList.size());
          nsharedEntsperproc[i].insert(nsharedEntsperproc[i].end(),msgsz.begin(), msgsz.end());
+
+     //    for (int j=0; j<msgsz.size(); j++)
+      //     std::cout<<"msg_sizes["<<j<<"] = "<<msgsz[j]<<std::endl;
 
          if (!F0.empty())
            {
@@ -2335,13 +2343,19 @@ namespace moab{
      std::vector<EntityHandle> V, lV, rV;
      VList.clear();
 
+   //  std::cout<<"shared_proc = "<<to_proc<<std::endl;
+
      //Add the vertices at the coarsest level first.
      for (Range::iterator it = verts.begin(); it != verts.end(); it++)
        {
          EntityHandle v = *it;
+        // std::cout<<"v = "<<v<<std::endl;
+
          lV.push_back(v);
          EntityHandle rval = 0;
          error = pcomm->get_remote_handles(&v, &rval, 1, to_proc);MB_CHK_ERR(error);
+       //  std::cout<<"rv = "<<rval<<std::endl;
+
          rV.push_back(rval);
        }
 
@@ -2363,6 +2377,15 @@ namespace moab{
      //remote vertex handles at the coarsest level
      RList.insert(RList.end(), rV.begin(), rV.end());
      RList.insert(RList.end(), V.begin(), V.end());
+
+     //DBG
+    // std::cout<<"shared_proc = "<<to_proc<<std::endl;
+     //std::cout<<"|VList| = "<<VList.size()<<std::endl;
+    // std::cout<<"|RList| = "<<RList.size()<<std::endl;
+
+    // for (int i=0; i<VList.size(); i++)
+     //  std::cout<<"VList["<<i<<"] = "<<VList[i]<<", RList["<<i<<"] = "<<RList[i]<<std::endl;
+     //DBG
 
      return MB_SUCCESS;
    }
@@ -2440,8 +2463,21 @@ namespace moab{
              LVList.insert(LVList.end(), localbuffers[i].begin(), localbuffers[i].end());
              RVList.insert(RVList.end(), remotebuffers[i].begin(), remotebuffers[i].end());
 
+             //DBG
+             //std::cout<<"|LVList| = "<<LVList.size()<<", |RVList| = "<<RVList.size()<<std::endl;
+
+         //    std::cout<<"from_proc = "<<sharedprocs[i]<<std::endl;
+         //    for (int j=0; j<LVList.size(); j++)
+        //       std::cout<<"LVList["<<j<<"] = "<<LVList[j]<<std::endl;
+        //     for (int j=0; j<RVList.size(); j++)
+        //       std::cout<<"RVList["<<j<<"] = "<<RVList[j]<<std::endl;
+
+             //DBG
+
              error = decipher_remote_handles_vertex(sharedprocs[i], msgsz[4], LVList, RVList, remProcs, remHandles);MB_CHK_ERR(error);
            }
+         else
+           MB_SET_ERR(  MB_FAILURE, "Trying to decipher entities other than verts, edges, faces");
        }
 
 
@@ -2669,6 +2705,9 @@ namespace moab{
 
    ErrorCode NestedRefine::decipher_remote_handles_vertex(int shared_proc, int numverts, std::vector<EntityHandle> &localVertexList, std::vector<EntityHandle> &remVertexList, std::multimap<EntityHandle, int> &remProcs, std::multimap<EntityHandle, EntityHandle> &remHandles)
    {
+     // LVList = <V> where V = <LV0, LV1, ..,LVL>
+     // RVList = <V> where V = <LV0', RV1, ..,RVL>, LV0' is the local handles of coarsest vertices but in the order in which they appear on the remote/shared proc
+
      ErrorCode error;
 
      for (int i=0; i<numverts; i++)
@@ -2707,7 +2746,9 @@ namespace moab{
      std::pair <std::multimap<EntityHandle, int>::iterator, std::multimap<EntityHandle, int>::iterator> it_procs;
      std::pair <std::multimap<EntityHandle, EntityHandle>::iterator, std::multimap<EntityHandle, EntityHandle>::iterator> it_handles;
 
-     for ( it = remProcs.begin(); it != remProcs.end(); it++)
+     //for ( it = remProcs.begin(); it != remProcs.end(); it++)
+     it = remProcs.begin();
+     while ( it != remProcs.end())
        {
          rprocs.clear(); rhandles.clear();
 
@@ -2720,8 +2761,15 @@ namespace moab{
          for (std::multimap<EntityHandle, EntityHandle>::iterator pit = it_handles.first; pit != it_handles.second; pit++)
            rhandles.push_back(pit->second);
 
+         //DBG
+         std::cout<<"entity = "<<entity<<std::endl;
+         for (int j=0; j<rprocs.size(); j++)
+          std::cout<<"rprocs["<<j<<"] = "<<rprocs[j]<<", rhandles["<<j<<"] = "<<rhandles[j]<<std::endl;
+         //DBG
+
          error = pcomm->update_remote_data(entity, rprocs, rhandles);MB_CHK_ERR(error);
 
+         it = remProcs.upper_bound(it->first);
      }
      return MB_SUCCESS;
    }

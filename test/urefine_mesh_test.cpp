@@ -1251,6 +1251,13 @@ ErrorCode test_mesh(const char* filename, int *level_degrees, int num_levels)
     read_options = "PARALLEL=READ_PART;PARTITION=PARALLEL_PARTITION;PARALLEL_RESOLVE_SHARED_ENTS";
 
     error = mbImpl->load_file(filename,  &fileset, read_options.c_str()); CHECK_ERR(error);
+
+    //DBG
+    std::set<unsigned int> shprocs;
+    error = pc->get_comm_procs(shprocs);CHECK_ERR(error);
+    std::cout<<"#sprocs = "<<shprocs.size()<<std::endl;
+    //DBG
+
     }
     else if (procs == 1) {
 #endif

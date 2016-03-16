@@ -6183,6 +6183,17 @@ ErrorCode ParallelComm::get_remote_handles(EntityHandle *local_vec, EntityHandle
      }
 
     // Check for consistency in input data
+     //DBG
+     bool con1 = ((new_nump == 2 && pstatus&PSTATUS_SHARED && !(pstatus&PSTATUS_MULTISHARED)) || (new_nump > 2 && pstatus&PSTATUS_SHARED && pstatus&PSTATUS_MULTISHARED));
+     bool con2 = (!(pstatus&PSTATUS_GHOST) || pstatus&PSTATUS_SHARED);
+     bool con3 = (new_nump < 3 || (pstatus&PSTATUS_NOT_OWNED && ps[0] != (int)rank()) || (!(pstatus&PSTATUS_NOT_OWNED) && ps[0] == (int)rank()));
+     std::cout<<"current rank = "<<rank()<<std::endl;
+     std::cout<<"condition 1::"<<con1<<std::endl;
+     std::cout<<"condition 2::"<<con2<<std::endl;
+     std::cout<<"condition 3::"<<con3<<std::endl;
+
+     //DBG
+
     assert(new_nump > 1 &&
            ((new_nump == 2 && pstatus&PSTATUS_SHARED && !(pstatus&PSTATUS_MULTISHARED)) || // If <= 2 must not be multishared
             (new_nump > 2 && pstatus&PSTATUS_SHARED && pstatus&PSTATUS_MULTISHARED)) && // If > 2 procs, must be multishared
