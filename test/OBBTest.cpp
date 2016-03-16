@@ -24,7 +24,6 @@ static void test_save();
 #define ASSERT_DOUBLES_EQUAL(A, B) assert_doubles_equal( (A), (B), #A, #B, __LINE__ )
 #define ASSERT(B) assert_bool( (B), #B, __LINE__ )
 
-static void assert_vector_element( const CartVect& a, const CartVect b[3], const char* sa, const char* sb, int lineno );
 static void assert_vector_element( const CartVect& a, const Matrix3& b, const char* sa, const char* sb, int lineno );
 static void assert_vectors_equal( const CartVect& a, const CartVect& b, const char* sa, const char* sb, int lineno );
 static void assert_doubles_equal( double a, double b, const char* sa, const char* sb, int lineno );
@@ -62,12 +61,12 @@ const Matrix3 origaxes ( 5*unitaxes.col(0),
 const OrientedBox oblongbox( origaxes, origin );
 
   // define non-axis-aligned unit box at origin
-const CartVect rotaxes_cv[3] = { unit( CartVect( 1.0, 1.0, 0.0 ) ),
-				 unit( CartVect( 1.0,-1.0, 1.0 ) ),
-				 unit( CartVect( 1.0, 1.0, 0.0 ) * CartVect( 1.0,-1.0, 1.0 ) ) };
-const OrientedBox rotbox_cv( rotaxes_cv, origin );
+const CartVect rotax0 = unit( CartVect( 1.0, 1.0, 0.0 ) );
+const CartVect rotax1 = unit( CartVect( 1.0,-1.0, 1.0 ) );
+const CartVect rotax2 = unit( CartVect( 1.0, 1.0, 0.0 ) * CartVect( 1.0,-1.0, 1.0 ) );
+const OrientedBox rotbox_cv( {rotax0, rotax1, rotax2}, origin );
 
-const Matrix3 rotaxes(rotaxes_cv[0],rotaxes_cv[1],rotaxes_cv[2], true);
+const Matrix3 rotaxes(rotax0, rotax1, rotax2, true);
 const OrientedBox rotbox( rotaxes, origin );
 
 
@@ -146,10 +145,10 @@ static void test_basic()
   ASSERT_DOUBLES_EQUAL( oblongbox.outer_radius(), dims.length() );
   ASSERT_DOUBLES_EQUAL( oblongbox.volume(), 8.0*dims[0]*dims[1]*dims[2] );
   ASSERT_VECTORS_EQUAL( oblongbox.dimensions(), 2*dims );
- 
+
+  //test matrix constructor
   axis_dims( rotaxes, dims );
   ASSERT_VECTORS_EQUAL( rotbox.center, origin );
-  std::cout << ">> OrientedBox: " << rotbox << std::endl;
   ASSERT_VECTOR_ELEMENT( rotbox.scaled_axis(0), rotaxes );
   ASSERT_VECTOR_ELEMENT( rotbox.scaled_axis(1), rotaxes );
   ASSERT_VECTOR_ELEMENT( rotbox.scaled_axis(2), rotaxes );
@@ -157,6 +156,18 @@ static void test_basic()
   ASSERT_DOUBLES_EQUAL( rotbox.outer_radius(), dims.length() );
   ASSERT_DOUBLES_EQUAL( rotbox.volume(), 8.0*dims[0]*dims[1]*dims[2] );
   ASSERT_VECTORS_EQUAL( rotbox.dimensions(), 2*dims );
+
+  //test cartvect constructor
+  axis_dims( rotaxes, dims );
+  ASSERT_VECTORS_EQUAL( rotbox_cv.center, origin );
+  ASSERT_VECTORS_EQUAL( rotbox_cv.scaled_axis(0), rotax0 );
+  ASSERT_VECTORS_EQUAL( rotbox_cv.scaled_axis(1), rotax1 );
+  ASSERT_VECTORS_EQUAL( rotbox_cv.scaled_axis(2), rotax2 );
+  ASSERT_DOUBLES_EQUAL( rotbox_cv.inner_radius(), dims[0] );
+  ASSERT_DOUBLES_EQUAL( rotbox_cv.outer_radius(), dims.length() );
+  ASSERT_DOUBLES_EQUAL( rotbox_cv.volume(), 8.0*dims[0]*dims[1]*dims[2] );
+  ASSERT_VECTORS_EQUAL( rotbox_cv.dimensions(), 2*dims );
+  
 }
 
 static void test_contained() 
@@ -1412,32 +1423,6 @@ static void assert_vector_element( const CartVect& a,
   }
   return;
 }
-static void assert_vector_element( const CartVect& a, 
-                                   const CartVect b[3], 
-                                   const char* sa, 
-                                   const char* sb, 
-                                   int lineno )
-{
-  int i;
-  bool ismatch=false;
-  for (i = 0; i < 3; ++i) {
-    if (fabs(a[0] - b[0][i]) <= TOL
-     && fabs(a[1] - b[1][i]) <= TOL
-     && fabs(a[2] - b[2][i]) <= TOL) {
-      ismatch = true;
-      break;
-    }
-  }
-  if (!ismatch) {
-    ++error_count;
-    std::cerr << "Assertion failed at line " << lineno << std::endl
-              << "\t" << sa << " in " << sb << std::endl
-              << "\t" << sa << " = " << a << std::endl
-              << "\t" << sb << " = " << b << std::endl;
-  }
-  return;
-}
-
 
 void assert_vectors_equal( const CartVect& a, const CartVect& b, 
                            const char* sa, const char* sb,
