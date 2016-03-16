@@ -363,8 +363,8 @@ ErrorCode OrientedBox::compute_from_covariance_data(
                                                 const Range& vertices )
 {
   if (data.area <= 0.0) {
-    Matrix3 axes (0.0);
-    result = OrientedBox( axes, CartVect(0.) );
+    Matrix3 empty_axes (0.0);
+    result = OrientedBox( empty_axes, CartVect(0.) );
     return MB_SUCCESS;
   }
 
