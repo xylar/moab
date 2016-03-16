@@ -565,12 +565,6 @@ bool OrientedBox::intersect_ray( const CartVect& ray_origin,
   }
   
     // get transpose of axes
-    // Note: if axes were stored as a matrix, could skip
-    // transpose and just switch order of operands in
-    // matrix-vector multiplies below. - J.K.
-  //Matrix3 B( axis.col(0)[0], axis.col(1)[0], axis.col(2)[0],
-  //             axis.col(0)[1], axis.col(1)[1], axis.col(2)[1],
-  //             axis.col(0)[2], axis.col(1)[2], axis.col(2)[2] );
   Matrix3 B( axes.col(0)[0], axes.col(0)[1], axes.col(0)[2],
                axes.col(1)[0], axes.col(1)[1], axes.col(1)[2],
                axes.col(2)[0], axes.col(2)[1], axes.col(2)[2] );
