@@ -893,7 +893,7 @@ ErrorCode Core::coords_iterate(Range::const_iterator iter,
   ycoords_ptr = reinterpret_cast<double*>(vseq->data()->get_sequence_data(1)) + offset;
   zcoords_ptr = reinterpret_cast<double*>(vseq->data()->get_sequence_data(2)) + offset;
 
-  EntityHandle real_end = *(iter.end_of_block());
+  EntityHandle real_end = std::min(seq->end_handle(), *(iter.end_of_block()));
   if (*end) real_end = std::min(real_end, *end);
   count = real_end - *iter + 1;
 

@@ -9,6 +9,7 @@
 
 void test_coords_connect_iterate();
 void test_scd_invalid();
+void test_iterates();
 
 using namespace moab;
 
@@ -18,6 +19,7 @@ int main()
   
   failures += RUN_TEST(test_coords_connect_iterate);
   failures += RUN_TEST(test_scd_invalid);
+  failures += RUN_TEST(test_iterates);
   
   if (failures) 
     std::cerr << "<<<< " << failures << " TESTS FAILED >>>>" << std::endl;
@@ -168,6 +170,118 @@ void test_scd_invalid()
     // should NOT be able to get connect iterator
   EntityHandle *connect;
   int count, num_connect;
+  // expected failure
   rval = mb.connect_iterate(hexes.begin(), hexes.end(), connect, num_connect, count);
   CHECK_EQUAL(rval, MB_FAILURE);
+}
+
+// these tests are for sequences that result in contiguous entity ranges
+// sequences are still broken in memory
+void test_iterates()
+{
+  // create 400 vertices, in 2 separate sequences
+  // also, create 50 hexes, in 2 separate sequences
+    const int NUM_VTX = 400;
+    const int NUM_HEX = 50;
+    Core moab;
+    Interface& mb = moab;
+    std::vector<double> coords(3*NUM_VTX/2);
+    for (unsigned int i = 0; i < NUM_VTX/2; i++)
+    {
+      coords[3*i] =  i;
+      coords[3*i+1] = 10*i;
+      coords[3*i+2] = 100*i;
+    }
+
+    Range verts, hexes;
+    ErrorCode rval = mb.create_vertices( &coords[0], NUM_VTX/2, verts );
+    CHECK_ERR(rval);
+
+    // create more vertices, with same coordinates
+    Range v2;
+    rval = mb.create_vertices( &coords[0], NUM_VTX/2, v2 );
+    CHECK_ERR(rval);
+    Range ver = unite(verts, v2);
+    // range of vertices is contiguous, but its memory for vertices is not!!
+    CHECK_EQUAL((int)ver.psize(), 1);
+      // create a bunch of hexes from those
+    ReadUtilIface *rui;
+    EntityHandle start_hex;
+    rval = mb.query_interface(rui);
+    CHECK_ERR(rval);
+
+    Range::iterator vertIter = ver.begin();
+    for(int i=0; i < NUM_HEX; i+=NUM_HEX/2)
+    {
+      EntityHandle *orig_connect, current_hex;
+      Range::iterator vertIterEnd = vertIter + (25*8);
+      rval = rui->get_element_connect(25, 8, MBHEX, 1, current_hex, orig_connect);
+      CHECK_ERR(rval);
+      std::copy(vertIter, vertIterEnd, orig_connect);
+      hexes.insert(current_hex, current_hex + 24);
+      vertIter+=(NUM_HEX/2*8);
+    }
+
+    // make sure hexes range is contiguous
+    CHECK_EQUAL((int)hexes.psize(), 1);
+    start_hex = hexes.front();
+    Tag idtag=moab.globalId_tag();
+
+    for(int i=0; i < NUM_HEX; i++, start_hex++)
+    {
+      rval = mb.tag_set_data(idtag, &start_hex, 1, &i); CHECK_ERR(rval);
+    }
+    int count= 0;
+    int total = 0;
+
+    // now check connectivity
+    start_hex = hexes.front();
+    Range::iterator hit = hexes.begin();
+    EntityHandle *connect = NULL;
+    EntityHandle dum_connect[8];
+    int num_connect;
+    while (hit != hexes.end()) {
+      rval = mb.connect_iterate(hit, hexes.end(), connect, num_connect, count);
+      if (MB_SUCCESS && !connect) rval = MB_FAILURE;
+
+      CHECK_ERR(rval);
+      CHECK_EQUAL(num_connect, 8);
+      CHECK_EQUAL(count, NUM_HEX/2);
+        // should be equal to initial connectivity
+      for (int i = 0; i < count; i++) {
+        EntityHandle first = 8*(*hit - start_hex + i) + 1;
+        for (unsigned int j = 0; j < 8; j++)
+          dum_connect[j] = first + j;
+        CHECK_ARRAYS_EQUAL(connect, 8, &dum_connect[0], 8);
+        connect += 8;
+      }
+
+      hit += count;
+      total += count;
+    }
+
+    hit = hexes.begin();
+    void* ptr;
+    while (hit != hexes.end())
+    {
+      // get contiguous block of tag data, of size of the sequence allocated
+      rval = mb.tag_iterate( idtag, hit, hexes.end(), count, ptr );CHECK_ERR(rval);
+      CHECK_EQUAL(count, NUM_HEX/2);
+      hit += count;
+    }
+
+
+    hit = ver.begin();
+    //coords_iterate
+    double* xc;
+    double* yc;
+    double* zc;
+    while (hit != ver.end())
+    {
+      // get contiguous block of coords
+
+      rval = mb.coords_iterate( hit, ver.end(), xc, yc, zc, count );CHECK_ERR(rval);
+      CHECK_EQUAL(count, NUM_VTX/2);
+      hit += count;
+    }
 }
