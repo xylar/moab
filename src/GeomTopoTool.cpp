@@ -476,9 +476,6 @@ ErrorCode GeomTopoTool::construct_vertex_ranges(const Range &geom_sets,
   Range *temp_verts, temp_elems;
   ErrorCode result = MB_SUCCESS;
   for (Range::const_iterator it = geom_sets.begin(); it != geom_sets.end(); ++it) {
-    // make the new range
-    temp_verts = new Range();
-    assert(NULL != temp_verts);
     temp_elems.clear();
 
     // get all the elements in the set, recursively
@@ -486,16 +483,27 @@ ErrorCode GeomTopoTool::construct_vertex_ranges(const Range &geom_sets,
     if (MB_SUCCESS != result)
       return result;
 
+    // make the new range
+    temp_verts = new (std::nothrow) Range();
+    assert(NULL != temp_verts);
+
     // get all the verts of those elements; use get_adjacencies 'cuz it handles ranges better
     result = mdbImpl->get_adjacencies(temp_elems, 0, false, *temp_verts,
         Interface::UNION);
-    if (MB_SUCCESS != result)
+    if (MB_SUCCESS != result) {
+      delete temp_verts;
       return result;
+    }
 
     // store this range as a tag on the entity
     result = mdbImpl->tag_set_data(verts_tag, &(*it), 1, &temp_verts);
-    if (MB_SUCCESS != result)
+    if (MB_SUCCESS != result) {
+      delete temp_verts;
       return result;
+    }
+
+    delete temp_verts;
+    temp_verts = NULL;
 
   }
 
