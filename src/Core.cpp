@@ -3899,10 +3899,10 @@ ErrorCode Core::create_set_iterator(EntityHandle meshset,
     rval = get_meshset_options(meshset, options);MB_CHK_ERR(rval);
   }
 
-  if (!meshset || options & MESHSET_SET)
-    set_iter = new RangeSetIterator(this, meshset, chunk_size, ent_type, ent_dim, check_valid);
+  if (!meshset || (options & MESHSET_SET))
+    set_iter = new (std::nothrow) RangeSetIterator(this, meshset, chunk_size, ent_type, ent_dim, check_valid);
   else
-    set_iter = new VectorSetIterator(this, meshset, chunk_size, ent_type, ent_dim, check_valid);
+    set_iter = new (std::nothrow) VectorSetIterator(this, meshset, chunk_size, ent_type, ent_dim, check_valid);
 
   setIterators.push_back(set_iter);
   return MB_SUCCESS;
