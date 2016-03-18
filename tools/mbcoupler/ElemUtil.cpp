@@ -138,15 +138,15 @@ void nat_coords_trilinear_hex2(const CartVect hex[8],
   const int vertMap[nverts] = {0,1,3,2, 4,5,7,6}; //Map from nat to lex ordering
 
   const int n = 2; //linear
-  real coords[ndim*nverts]; //buffer
+  realType coords[ndim*nverts]; //buffer
 
-  real *xm[ndim];
+  realType *xm[ndim];
   for(int i=0; i<ndim; i++)
     xm[i] = coords + i*nverts;
 
   //stuff hex into coords
   for(int i=0; i<nverts; i++){
-    real vcoord[ndim];
+    realType vcoord[ndim];
     hex[i].get(vcoord);
 
     for(int d=0; d<ndim; d++)
@@ -156,7 +156,7 @@ void nat_coords_trilinear_hex2(const CartVect hex[8],
 
   double dist = 0.0;
   ElemUtil::hex_findpt(xm, n, xyz, ncoords, dist);
-  if (3*EPS < dist) {
+  if (3*MOAB_POLY_EPS < dist) {
       // outside element, set extremal values to something outside range
     for (int j = 0; j < 3; j++) {
       if (ncoords[j] < (-1.0-etol) || ncoords[j] > (1.0+etol))
@@ -212,7 +212,7 @@ bool point_in_trilinear_hex(const CartVect *hex,
 #include "errmem.h"
 }*/
 
-void hex_findpt(real *xm[3],
+void hex_findpt(realType *xm[3],
                 int n,
                 CartVect xyz,
                 CartVect &rst,
@@ -220,13 +220,13 @@ void hex_findpt(real *xm[3],
 {
 
   //compute stuff that only depends on the order -- could be cached
-  real *z[3];
+  realType *z[3];
   lagrange_data ld[3];
   opt_data_3 data;
 
   //triplicates
   for(int d=0; d<3; d++){
-    z[d] = tmalloc(real, n);
+    z[d] = tmalloc(realType, n);
     lobatto_nodes(z[d], n);
     lagrange_setup(&ld[d], z[d], n);
   }
@@ -234,12 +234,12 @@ void hex_findpt(real *xm[3],
   opt_alloc_3(&data, ld);
 
   //find nearest point
-  real x_star[3];
+  realType x_star[3];
   xyz.get(x_star);
 
-  real r[3] = {0, 0, 0 }; // initial guess for parametric coords
+  realType r[3] = {0, 0, 0 }; // initial guess for parametric coords
   unsigned c = opt_no_constraints_3;
-  dist = opt_findpt_3(&data, (const real **)xm, x_star, r, &c);
+  dist = opt_findpt_3(&data, (const realType **)xm, x_star, r, &c);
   //c tells us if we landed inside the element or exactly on a face, edge, or node
 
   //copy parametric coords back
@@ -263,20 +263,20 @@ void hex_findpt(real *xm[3],
 // rst: input: parametric coords of the point where we want to evaluate the field
 // value: output: value of field at rst
 
-void hex_eval(real *field,
+void hex_eval(realType *field,
 	      int n,
 	      CartVect rstCartVec,
 	      double &value)
 {
   int d;
-  real rst[3];
+  realType rst[3];
   rstCartVec.get(rst);
 
   //can cache stuff below
   lagrange_data ld[3];
-  real *z[3];
+  realType *z[3];
   for(d=0;d<3;++d){
-    z[d] = tmalloc(real, n);
+    z[d] = tmalloc(realType, n);
     lobatto_nodes(z[d], n);
     lagrange_setup(&ld[d], z[d], n);
   }
@@ -286,7 +286,7 @@ void hex_eval(real *field,
     nf = n*n,
     ne = n,
     nw = 2*n*n + 3*n;
-  real *od_work = tmalloc(real, 6*nf + 9*ne + nw);
+  realType *od_work = tmalloc(realType, 6*nf + 9*ne + nw);
 
   //piece that we shouldn't want to cache
   for(d=0; d<3; d++){
@@ -393,7 +393,7 @@ bool integrate_trilinear_hex(const CartVect* hex_corners,
         double w_k    = g_pts[k][0];
         double zeta_k = g_pts[k][1];
 
-        // Calculate the "real" space point given the "normal" point
+        // Calculate the "realType" space point given the "normal" point
         CartVect normal_pt(xi_i, eta_j, zeta_k);
 
         // Calculate the value of F(x(xi,eta,zeta),y(xi,eta,zeta),z(xi,eta,zeta)
@@ -815,10 +815,10 @@ namespace Element {
 
   // filescope for static member data that is cached
   int SpectralHex::_n;
-  real *SpectralHex::_z[3];
+  realType *SpectralHex::_z[3];
   lagrange_data SpectralHex::_ld[3];
   opt_data_3 SpectralHex::_data;
-  real * SpectralHex::_odwork;
+  realType * SpectralHex::_odwork;
 
   bool SpectralHex::_init = false;
 
@@ -857,14 +857,14 @@ namespace Element {
     _n = order;
     //triplicates! n is the same in all directions !!!
     for(int d=0; d<3; d++){
-      _z[d] = tmalloc(real, _n);
+      _z[d] = tmalloc(realType, _n);
       lobatto_nodes(_z[d], _n);
       lagrange_setup(&_ld[d], _z[d], _n);
     }
     opt_alloc_3(&_data, _ld);
 
     unsigned int nf = _n*_n, ne = _n, nw = 2*_n*_n + 3*_n;
-    _odwork = tmalloc(real, 6*nf + 9*ne + nw);
+    _odwork = tmalloc(realType, 6*nf + 9*ne + nw);
   }
   void SpectralHex::freedata()
   {
@@ -904,12 +904,12 @@ namespace Element {
   CartVect SpectralHex::ievaluate(CartVect const & xyz) const
   {
     //find nearest point
-    real x_star[3];
+    realType x_star[3];
     xyz.get(x_star);
 
-    real r[3] = {0, 0, 0 }; // initial guess for parametric coords
+    realType r[3] = {0, 0, 0 }; // initial guess for parametric coords
     unsigned c = opt_no_constraints_3;
-    real dist = opt_findpt_3(&_data, (const real **)_xyz, x_star, r, &c);
+    realType dist = opt_findpt_3(&_data, (const realType **)_xyz, x_star, r, &c);
     // if it did not converge, get out with throw...
     if (dist > 0.9e+30)
     {
@@ -923,7 +923,7 @@ namespace Element {
   }
   Matrix3  SpectralHex::jacobian(const CartVect& xi) const
   {
-    real x_i[3];
+    realType x_i[3];
     xi.get(x_i);
     // set the positions of GL nodes, before evaluations
     _data.elx[0]=_xyz[0];
@@ -1101,11 +1101,11 @@ namespace Element {
 
   // filescope for static member data that is cached
   int SpectralQuad::_n;
-  real *SpectralQuad::_z[2];
+  realType *SpectralQuad::_z[2];
   lagrange_data SpectralQuad::_ld[2];
   opt_data_2 SpectralQuad::_data;
-  real * SpectralQuad::_odwork;
-  real * SpectralQuad::_glpoints;
+  realType * SpectralQuad::_odwork;
+  realType * SpectralQuad::_glpoints;
   bool SpectralQuad::_init = false;
 
   SpectralQuad::SpectralQuad() : Map(0)
@@ -1143,15 +1143,15 @@ namespace Element {
     _n = order;
     //duplicates! n is the same in all directions !!!
     for(int d=0; d<2; d++){
-      _z[d] = tmalloc(real, _n);
+      _z[d] = tmalloc(realType, _n);
       lobatto_nodes(_z[d], _n);
       lagrange_setup(&_ld[d], _z[d], _n);
     }
     opt_alloc_2(&_data, _ld);
 
     unsigned int nf = _n*_n, ne = _n, nw = 2*_n*_n + 3*_n;
-    _odwork = tmalloc(real, 6*nf + 9*ne + nw);
-    _glpoints = tmalloc (real, 3*nf);
+    _odwork = tmalloc(realType, 6*nf + 9*ne + nw);
+    _glpoints = tmalloc (realType, 3*nf);
   }
 
   void SpectralQuad::freedata()
@@ -1192,12 +1192,12 @@ namespace Element {
   CartVect SpectralQuad::ievaluate(CartVect const & xyz) const
   {
     //find nearest point
-    real x_star[3];
+    realType x_star[3];
     xyz.get(x_star);
 
-    real r[2] = {0, 0 }; // initial guess for parametric coords
+    realType r[2] = {0, 0 }; // initial guess for parametric coords
     unsigned c = opt_no_constraints_3;
-    real dist = opt_findpt_2(&_data, (const real **)_xyz, x_star, r, &c);
+    realType dist = opt_findpt_2(&_data, (const realType **)_xyz, x_star, r, &c);
     // if it did not converge, get out with throw...
     if (dist > 0.9e+30)
     {

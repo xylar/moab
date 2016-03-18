@@ -227,15 +227,15 @@ namespace ElemUtil {
       /* values that depend only on the order of the element , cached */
       /*  the order in 3 directions */
       static int _n;
-      static real *_z[3];
+      static realType *_z[3];
       static lagrange_data _ld[3];
       static opt_data_3 _data;
-      static real * _odwork;// work area
+      static realType * _odwork;// work area
 
       // flag for initialization of data
       static bool _init;
 
-      real * _xyz[3];
+      realType * _xyz[3];
 
     };// class SpectralHex
 
@@ -310,19 +310,19 @@ namespace ElemUtil {
         /* values that depend only on the order of the element , cached */
         /*  the order in all 3 directions ; it is also np in HOMME lingo*/
         static int _n;
-        static real *_z[2];
+        static realType *_z[2];
         static lagrange_data _ld[2];
         static opt_data_2 _data; // we should use only 2nd component
-        static real * _odwork;// work area
+        static realType * _odwork;// work area
 
         // flag for initialization of data
         static bool _init;
-        static real * _glpoints; // it is a space we can use to store gl positions for elements
+        static realType * _glpoints; // it is a space we can use to store gl positions for elements
         // on the fly; we do not have a tag yet for them, as in Nek5000 application
         // also, these positions might need to be moved on the sphere, for HOMME grids
         // do we project them or how do we move them on the sphere?
 
-        real * _xyz[3]; // these are gl points; position?
+        realType * _xyz[3]; // these are gl points; position?
 
 
       };// class SpectralQuad

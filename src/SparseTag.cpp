@@ -27,7 +27,8 @@
 
 namespace moab {
 
-static ErrorCode not_found(const std::string& name, EntityHandle h)
+inline
+static ErrorCode not_found(const std::string& /*name*/, EntityHandle /*h*/)
 {
   // MB_TAG_NOT_FOUND could be a non-error condition, do not call MB_SET_ERR on it
   // Print warning messages for debugging only

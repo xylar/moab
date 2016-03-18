@@ -13,11 +13,16 @@ namespace moab
     
 class CpuTimer {
 private:
+#ifdef MOAB_HAVE_MPI
   int mpi_initialized;
+#endif
   double tAtBirth, tAtLast;
   double runtime();
 public:
-  CpuTimer() : mpi_initialized(0)
+  CpuTimer() 
+#ifdef MOAB_HAVE_MPI
+    : mpi_initialized(0)
+#endif
   {
 #ifdef MOAB_HAVE_MPI
   	int flag=0;

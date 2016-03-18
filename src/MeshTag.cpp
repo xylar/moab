@@ -12,12 +12,14 @@
 
 namespace moab {
 
+inline
 static ErrorCode not_root_set(const std::string& name, EntityHandle h)
 {
   MB_SET_ERR(MB_VARIABLE_DATA_LENGTH, "Cannot get/set mesh/global tag " << name << " on non-root-set " << CN::EntityTypeName(TYPE_FROM_HANDLE(h)) << " " << (unsigned long)ID_FROM_HANDLE(h));
 }
 
-static inline bool all_root_set(std::string name, const EntityHandle* array, size_t len)
+inline
+static bool all_root_set(std::string name, const EntityHandle* array, size_t len)
 {
   for (size_t i = 0; i < len; ++i) {
     if (array[i]) {
@@ -29,7 +31,8 @@ static inline bool all_root_set(std::string name, const EntityHandle* array, siz
   return true;
 }
 
-static ErrorCode not_found(const std::string& name)
+inline
+static ErrorCode not_found(const std::string& /*name*/)
 {
   // MB_TAG_NOT_FOUND could be a non-error condition, do not call MB_SET_ERR on it
 #if 0
