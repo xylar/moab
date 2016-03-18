@@ -151,7 +151,10 @@ ErrorCode test_locator(SpatialLocator &sl, int npoints, double &cpu_time, double
   
     // call spatial locator to locate points
   ErrorCode rval = sl.locate_points(test_pts[0].array(), npoints, &ents[0], test_res[0].array(), &is_in[0]);
-  if (MB_SUCCESS != rval) return rval;
+  if (MB_SUCCESS != rval) {
+    delete [] is_in;
+    return rval;
+  }
 
   cpu_time = ct.time_elapsed();
 
