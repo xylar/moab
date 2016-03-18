@@ -36,6 +36,7 @@
 #include "moab/Interface.hpp"
 #include "moab/Range.hpp"
 #include "moab/CN.hpp"
+#include "moab/FileOptions.hpp"
 #include "MBTagConventions.hpp"
 #include "Internals.hpp"
 #include "ExoIIUtil.hpp"
@@ -93,7 +94,7 @@ WriterIface* WriteNCDF::factory(Interface* iface)
 }
 
 WriteNCDF::WriteNCDF(Interface *impl)
-  : mdbImpl(impl), ncFile(0), mCurrentMeshHandle(0), mGeomDimensionTag(0)
+  : mdbImpl(impl), ncFile(0), mCurrentMeshHandle(0), mGeomDimensionTag(0), repeat_face_blocks(0)
 {
   assert(impl != NULL);
 
@@ -166,7 +167,7 @@ void WriteNCDF::time_and_date(char* time_string, char* date_string)
 
 ErrorCode WriteNCDF::write_file(const char *exodus_file_name,
                                 const bool overwrite,
-                                const FileOptions&,
+                                const FileOptions& opts,
                                 const EntityHandle *ent_handles,
                                 const int num_sets,
                                 const std::vector<std::string> &qa_records,
@@ -180,6 +181,9 @@ ErrorCode WriteNCDF::write_file(const char *exodus_file_name,
 
   if (user_dimension == 0)
    mdbImpl->get_dimension(user_dimension);
+
+  if (opts.get_null_option( "REPEAT_FACE_BLOCKS" ) == MB_SUCCESS)
+    repeat_face_blocks=1;
 
   std::vector<EntityHandle> blocks, nodesets, sidesets, entities;
 
@@ -297,7 +301,16 @@ ErrorCode WriteNCDF::write_file(const char *exodus_file_name,
     return MB_FAILURE;
   }
 
-  if (write_elementblocks(block_info)) {
+  if (!mesh_info.polyhedronFaces.empty())
+  {
+    if (write_poly_faces(mesh_info) != MB_SUCCESS)
+    {
+      reset_block(block_info);
+      return MB_FAILURE;
+    }
+  }
+
+  if (write_elementblocks(mesh_info, block_info)) {
     reset_block(block_info);
     return MB_FAILURE;
   }
@@ -464,6 +477,13 @@ ErrorCode WriteNCDF::gather_mesh_information(ExodusMeshInfo &mesh_info,
     if (MB_SUCCESS != rval)
       return rval;
 
+    // if polyhedra block
+    if(EXOII_POLYHEDRON==block_data.element_type)
+    {
+      rval = mdbImpl->get_connectivity(block_data.elements,
+          mesh_info.polyhedronFaces); MB_CHK_ERR(rval);
+    }
+
     if (!sidesets.empty()) {
       // If there are sidesets, keep track of which elements are being written out
       for (Range::iterator iter = block_data.elements.begin();
@@ -501,6 +521,15 @@ ErrorCode WriteNCDF::gather_mesh_information(ExodusMeshInfo &mesh_info,
   }
 
   mesh_info.num_elementblocks = block_info.size();
+
+  for (std::vector<MaterialSetData>::iterator blit=block_info.begin(); blit!=block_info.end(); blit++)
+  {
+    MaterialSetData & block = *blit;
+    if (block.element_type!=EXOII_POLYHEDRON)
+    {
+      mesh_info.polyhedronFaces = subtract(mesh_info.polyhedronFaces, block.elements);
+    }
+  }
 
   // If user hasn't entered dimension, we figure it out
   if (mesh_info.num_dim == 0) {
@@ -859,6 +888,80 @@ ErrorCode WriteNCDF::write_nodes(int num_nodes, Range& nodes, int dimension)
   return MB_SUCCESS;
 }
 
+ErrorCode WriteNCDF::write_poly_faces(ExodusMeshInfo& mesh_info)
+{
+  // write all polygons that are not in another element block;
+  // usually they are nowhere else, but be sure, write in this block only ones that are not in the other blocks
+  Range pfaces=mesh_info.polyhedronFaces;
+
+  /*
+   * int fbconn1(num_nod_per_fa1) ;
+              fbconn1:elem_type = "nsided" ;
+      int fbepecnt1(num_fa_in_blk1) ;
+              fbepecnt1:entity_type1 = "NODE" ;
+              fbepecnt1:entity_type2 = "FACE" ;
+   */
+  if (pfaces.empty())
+    return MB_SUCCESS;
+  char wname[80];
+  int nc_var = -1;
+  std::vector<int> dims;
+
+  // write one for each element block, to make paraview and visit happy
+  int num_faces_in_block = (int) pfaces.size();
+  INS_ID(wname, "fbconn%u",  1); // it is the first block
+  GET_VAR(wname, nc_var, dims); // fbconn# variable, 1 dimensional
+
+  INS_ID(wname, "num_nod_per_fa%u", 1);
+  int ncdim, num_nod_per_face;
+  GET_DIM(ncdim, wname, num_nod_per_face);
+  int * connectivity = new int [num_nod_per_face];
+  int ixcon=0, j=0;
+  std::vector<int> fbepe(num_faces_in_block); // fbepecnt1
+  for (Range::iterator eit=pfaces.begin(); eit!=pfaces.end(); eit++)
+  {
+    EntityHandle polyg= *eit;
+    int nnodes=0;
+    const EntityHandle * conn = NULL;
+    ErrorCode rval  = mdbImpl->get_connectivity(polyg, conn, nnodes); MB_CHK_ERR(rval);
+    for (int k=0; k<nnodes; k++)
+      connectivity[ixcon++] = conn[k];
+    fbepe[j++]= nnodes;
+  }
+  size_t start[1] = { 0}, count[1] = {0};
+  count[0]= ixcon;
+  int fail = nc_put_vara_int(ncFile, nc_var, start, count, connectivity);
+  if (NC_NOERR != fail) {
+    delete [] connectivity;
+    MB_SET_ERR(MB_FAILURE, "Couldn't write fbconn variable");
+  }
+
+
+  INS_ID(wname, "fbepecnt%u", 1);
+  GET_VAR(wname, nc_var, dims); // fbconn# variable, 1 dimensional
+  count[0]= num_faces_in_block;
+
+  fail = nc_put_vara_int(ncFile, nc_var, start, count, &fbepe[0]);
+  if (NC_NOERR != fail) {
+    delete [] connectivity;
+    MB_SET_ERR(MB_FAILURE, "Couldn't write fbepecnt variable");
+  }
+
+  int id = 1;
+  if (write_exodus_integer_variable("fa_prop1", &id, 0, 1) != MB_SUCCESS) {
+    MB_SET_ERR_CONT("Problem writing element block id " << id);
+  }
+
+  int status = 1;
+  if (write_exodus_integer_variable("fa_status", &status, 0, 1) != MB_SUCCESS) {
+    MB_SET_ERR(MB_FAILURE, "Problem writing face block status");
+  }
+
+  delete [] connectivity;
+
+
+  return MB_SUCCESS;
+}
 ErrorCode WriteNCDF::write_header(ExodusMeshInfo& mesh_info,
                                   std::vector<MaterialSetData> &block_info,
                                   std::vector<NeumannSetData> &sideset_info,
@@ -893,7 +996,7 @@ ErrorCode WriteNCDF::write_header(ExodusMeshInfo& mesh_info,
   return MB_SUCCESS;
 }
 
-ErrorCode WriteNCDF::write_elementblocks(std::vector<MaterialSetData> &block_data)
+ErrorCode WriteNCDF::write_elementblocks(ExodusMeshInfo& mesh_info, std::vector<MaterialSetData> &block_data)
 {
   unsigned int i;
   int block_index = 0; // Index into block list, may != 1 if there are inactive blocks
@@ -924,24 +1027,6 @@ ErrorCode WriteNCDF::write_elementblocks(std::vector<MaterialSetData> &block_dat
       MB_SET_ERR(MB_FAILURE, "Problem writing element block status");
     }
 
-    // if polyhedron, write index
-    //
-    if (EXOII_POLYHEDRON==block.element_type)
-    {
-        if (write_exodus_integer_variable("fa_prop1", &id, block_index, num_values) != MB_SUCCESS) {
-          MB_SET_ERR_CONT("Problem writing element block id " << id);
-        }
-
-        // Write out the face block status
-
-        if (0 == block.number_elements) {
-          MB_SET_ERR(MB_FAILURE, "No elements in block " << id);
-        }
-
-        if (write_exodus_integer_variable("fa_status", &status, block_index, num_values) != MB_SUCCESS) {
-          MB_SET_ERR(MB_FAILURE, "Problem writing face block status");
-        }
-    }
     //
     // Map the connectivity to the new nodes
     const unsigned int num_elem = block.number_elements;
@@ -1044,55 +1129,23 @@ ErrorCode WriteNCDF::write_elementblocks(std::vector<MaterialSetData> &block_dat
               ebepecnt1:entity_type2 = "ELEM" ;
 
        */
-      Range block_faces;
-      ErrorCode rval = mdbImpl->get_connectivity(block.elements, block_faces); MB_CHK_ERR(rval);
-      int num_faces_in_block = (int) block_faces.size();
-      INS_ID(wname, "fbconn%u", i + 1);
-      GET_VAR(wname, nc_var, dims); // fbconn# variable, 1 dimensional
-      int ixcon=0, j=0;
-      std::vector<int> fbepe(num_faces_in_block); // fbepecnt1
-      for (Range::iterator eit=block_faces.begin(); eit!=block_faces.end(); eit++)
-      {
-        EntityHandle polyg= *eit;
-        int nnodes=0;
-        const EntityHandle * conn = NULL;
-        rval  = mdbImpl->get_connectivity(polyg, conn, nnodes); MB_CHK_ERR(rval);
-        for (int k=0; k<nnodes; k++)
-          connectivity[ixcon++] = conn[k];
-        fbepe[j++]= nnodes;
-      }
-      size_t start[1] = { 0}, count[1] = {0};
-      count[0]= ixcon;
-      int fail = nc_put_vara_int(ncFile, nc_var, start, count, connectivity);
-      if (NC_NOERR != fail) {
-        delete [] connectivity;
-        MB_SET_ERR(MB_FAILURE, "Couldn't write fbconn variable");
-      }
-
-
-      INS_ID(wname, "fbepecnt%u", i + 1);
-      GET_VAR(wname, nc_var, dims); // fbconn# variable, 1 dimensional
-      count[0]= num_faces_in_block;
-
-      fail = nc_put_vara_int(ncFile, nc_var, start, count, &fbepe[0]);
-      if (NC_NOERR != fail) {
-        delete [] connectivity;
-        MB_SET_ERR(MB_FAILURE, "Couldn't write fbepecnt variable");
-      }
+      Range & block_faces = mesh_info.polyhedronFaces;
+      //ErrorCode rval = mdbImpl->get_connectivity(block.elements, block_faces); MB_CHK_ERR(rval);
 
       // reuse now connectivity for facconn1
       INS_ID(wname, "facconn%u", i + 1);
       GET_VAR(wname, nc_var, dims); // fbconn# variable, 1 dimensional
 
       std::vector<int> ebepe(block.elements.size()); // ebepecnt1
-      ixcon=0;
-      j = 0;
+      int ixcon=0, j=0;
+      size_t start[1] = {0}, count[1] = {0};
+
       for (Range::iterator eit=block.elements.begin(); eit!=block.elements.end(); eit++)
       {
         EntityHandle polyh= *eit;
         int nfaces=0;
         const EntityHandle * conn = NULL;
-        rval = mdbImpl->get_connectivity(polyh, conn, nfaces); MB_CHK_ERR(rval);
+        ErrorCode rval = mdbImpl->get_connectivity(polyh, conn, nfaces); MB_CHK_ERR(rval);
         for (int k=0; k<nfaces; k++)
         {
           int index = block_faces.index(conn[k]);
@@ -1104,7 +1157,7 @@ ErrorCode WriteNCDF::write_elementblocks(std::vector<MaterialSetData> &block_dat
         //num_faces+=nfaces;
       }
       count[0]= ixcon; // facconn1
-      fail = nc_put_vara_int(ncFile, nc_var, start, count, connectivity);
+      int fail = nc_put_vara_int(ncFile, nc_var, start, count, connectivity);
       if (NC_NOERR != fail) {
         delete [] connectivity;
         MB_SET_ERR(MB_FAILURE, "Couldn't write fbconn variable");
@@ -1120,9 +1173,6 @@ ErrorCode WriteNCDF::write_elementblocks(std::vector<MaterialSetData> &block_dat
         delete [] connectivity;
         MB_SET_ERR(MB_FAILURE, "Couldn't write fbepecnt variable");
       }
-
-
-
 
     }
     block_index++;
@@ -1549,11 +1599,11 @@ ErrorCode WriteNCDF::initialize_exodus_file(ExodusMeshInfo &mesh_info,
   }
 
   // Add other attributes while we're at it
-  float dum_vers = 5.22F;
+  float dum_vers = 6.28F;
   if (NC_NOERR != nc_put_att_float(ncFile, NC_GLOBAL, "api_version", NC_FLOAT, 1, &dum_vers)) {
     MB_SET_ERR(MB_FAILURE, "WriteNCDF: failed to define api_version attribute");
   }
-  dum_vers = 5.22F;
+  dum_vers = 6.28F;
   if (NC_NOERR != nc_put_att_float(ncFile, NC_GLOBAL, "version", NC_FLOAT, 1, &dum_vers)) {
     MB_SET_ERR(MB_FAILURE, "WriteNCDF: failed to define version attribute");
   }
@@ -1564,7 +1614,7 @@ ErrorCode WriteNCDF::initialize_exodus_file(ExodusMeshInfo &mesh_info,
 
   // Set up number of dimensions
 
-  int num_el_blk, num_elem, num_nodes, num_dim, num_fa_blk;
+  int num_el_blk, num_elem, num_nodes, num_dim, num_fa_blk, num_faces;
   if (nc_def_dim(ncFile, "num_dim", (size_t)mesh_info.num_dim, &num_dim) != NC_NOERR) {
     MB_SET_ERR(MB_FAILURE, "WriteNCDF: failed to define number of dimensions");
   }
@@ -1572,6 +1622,12 @@ ErrorCode WriteNCDF::initialize_exodus_file(ExodusMeshInfo &mesh_info,
   if (nc_def_dim(ncFile, "num_nodes", mesh_info.num_nodes, &num_nodes) != NC_NOERR) {
     MB_SET_ERR(MB_FAILURE, "WriteNCDF: failed to define number of nodes");
   }
+
+  int num_nod_per_fa; // it is needed for polyhedron only; need to compute it (connectivity of faces of polyhedra)
+  if (mesh_info.polyhedronFaces.size()>0)
+    if (nc_def_dim(ncFile, "num_faces", (int)mesh_info.polyhedronFaces.size(), &num_faces) != NC_NOERR) {
+      MB_SET_ERR(MB_FAILURE, "WriteNCDF: failed to define number of nodes");
+    }
 
   if (nc_def_dim(ncFile, "num_elem", mesh_info.num_elements, &num_elem) != NC_NOERR) {
     MB_SET_ERR(MB_FAILURE, "WriteNCDF: failed to define number of elements");
@@ -1602,12 +1658,19 @@ ErrorCode WriteNCDF::initialize_exodus_file(ExodusMeshInfo &mesh_info,
   }
 
   // count how many are polyhedron blocks
-  int num_fa_blocks=0;
+  int num_fa_blocks=0, num_polyh_blocks = 0;
   for (unsigned int i = 0; i < block_data.size(); i++) {
-      MaterialSetData & block = block_data[i];
-      if (EXOII_POLYHEDRON==block.element_type)
-        num_fa_blocks++;
+    MaterialSetData & block = block_data[i];
+    if (EXOII_POLYHEDRON==block.element_type)
+    {
+      num_fa_blocks++;
+      num_polyh_blocks++;
+    }
   }
+  if (0==this->repeat_face_blocks && num_fa_blocks>1)
+    num_fa_blocks=1;
+  char wname[80];
+
   if (num_fa_blocks>0)
   {
     /* face block id status array */
@@ -1631,10 +1694,76 @@ ErrorCode WriteNCDF::initialize_exodus_file(ExodusMeshInfo &mesh_info,
     if (NC_NOERR != nc_put_att_text(ncFile, idarrf, "name", strlen("ID"), "ID")) {
       MB_SET_ERR(MB_FAILURE, "WriteNCDF: failed to store face block property name ID");
     }
+    // determine the number of num_nod_per_face
+    /*
+      num_fa_in_blk1 = 15 ;
+      num_nod_per_fa1 = 58 ;
+
+      int fbconn1(num_nod_per_fa1) ;
+              fbconn1:elem_type = "nsided" ;
+      int fbepecnt1(num_fa_in_blk1) ;
+              fbepecnt1:entity_type1 = "NODE" ;
+              fbepecnt1:entity_type2 = "FACE" ;
+       */
+
+
+
+    int num_nodes_per_face=0;
+
+    int dims[1]; // maybe 1 is enough here
+    for (Range::iterator eit = mesh_info.polyhedronFaces.begin();
+        eit != mesh_info.polyhedronFaces.end(); eit++)
+    {
+      EntityHandle polyg = *eit;
+      int nnodes = 0;
+      const EntityHandle * conn = NULL;
+      ErrorCode rval = mdbImpl->get_connectivity(polyg, conn, nnodes);
+      MB_CHK_ERR(rval);
+      num_nodes_per_face += nnodes;
+    }
+
+    INS_ID(wname, "num_nod_per_fa%d", 1);
+    if (nc_def_dim(ncFile, wname, (size_t)num_nodes_per_face, &num_nod_per_fa) != NC_NOERR) {
+      MB_SET_ERR(MB_FAILURE, "WriteNCDF: failed to define number of nodes for face block ");
+    }
+    //
+    dims[0] = num_nod_per_fa;
+    INS_ID(wname, "fbconn%d", 1); // first one
+    int fbconn;
+    if (NC_NOERR != nc_def_var(ncFile, wname, NC_LONG, 1, dims, &fbconn)) {
+      MB_SET_ERR(MB_FAILURE, "WriteNCDF: failed to create connectivity array for face block " << 1);
+    }
+    std::string element_type_string("nsided");
+    if (NC_NOERR != nc_put_att_text(ncFile, fbconn, "elem_type", element_type_string.length(), element_type_string.c_str())) {
+      MB_SET_ERR(MB_FAILURE, "WriteNCDF: failed to store element type nsided ");
+    }
+
+    INS_ID(wname, "num_fa_in_blk%d", 1); // first one
+    int num_fa_in_blk;
+    if (nc_def_dim(ncFile, wname, (size_t)mesh_info.polyhedronFaces.size(), &num_fa_in_blk) != NC_NOERR) {
+      MB_SET_ERR(MB_FAILURE, "WriteNCDF: failed to define number of nodes for face block ");
+    }
+
+    // fbepecnt
+    INS_ID(wname, "fbepecnt%d", 1); // first one
+    int fbepecnt;
+    dims[0] = num_fa_in_blk;
+    if (NC_NOERR != nc_def_var(ncFile, wname, NC_LONG, 1, dims, &fbepecnt)) {
+      MB_SET_ERR(MB_FAILURE, "WriteNCDF: failed to create fbepecnt array for block " <<  1);
+    }
+    std::string enttype1("NODE");
+    if (NC_NOERR != nc_put_att_text(ncFile, fbepecnt, "entity_type1", enttype1.length(), enttype1.c_str())) {
+      MB_SET_ERR(MB_FAILURE, "WriteNCDF: failed to store entity type 1  ");
+    }
+    std::string enttype2("FACE");
+    if (NC_NOERR != nc_put_att_text(ncFile, fbepecnt, "entity_type2", enttype2.length(), enttype2.c_str())) {
+      MB_SET_ERR(MB_FAILURE, "WriteNCDF: failed to store entity type 2  ");
+    }
+
   }
 
   // Define element blocks
-  char wname[80];
+
   for (unsigned int i = 0; i < block_data.size(); i++) {
     MaterialSetData & block = block_data[i];
 
@@ -1733,9 +1862,7 @@ ErrorCode WriteNCDF::initialize_exodus_file(ExodusMeshInfo &mesh_info,
       num_elem = 3 ;
       num_face = 15 ; // not needed?
       num_el_blk = 1 ;
-      num_fa_blk = 1 ;
-      num_fa_in_blk1 = 15 ;
-      num_nod_per_fa1 = 58 ;
+
       num_el_in_blk1 = 3 ;
       num_fac_per_el1 = 17 ;
 
@@ -1743,7 +1870,7 @@ ErrorCode WriteNCDF::initialize_exodus_file(ExodusMeshInfo &mesh_info,
        * num_faces_in_block will be number of faces (non repeated)
        * num_nodes_per_face will have total face connectivity
        */
-      int num_faces=0, num_faces_in_block, num_nodes_per_face=0;
+      int num_faces2=0;
 
       for (Range::iterator eit=block.elements.begin(); eit!=block.elements.end(); eit++)
       {
@@ -1751,72 +1878,24 @@ ErrorCode WriteNCDF::initialize_exodus_file(ExodusMeshInfo &mesh_info,
         int nfaces=0;
         const EntityHandle * conn = NULL;
         ErrorCode rval = mdbImpl->get_connectivity(polyh, conn, nfaces); MB_CHK_ERR(rval);
-        num_faces+=nfaces;
-      }
-      Range block_faces;
-      ErrorCode rval = mdbImpl->get_connectivity(block.elements, block_faces); MB_CHK_ERR(rval);
-      num_faces_in_block = (int) block_faces.size();
-      for (Range::iterator eit=block_faces.begin(); eit!=block_faces.end(); eit++)
-      {
-        EntityHandle polyg= *eit;
-        int nnodes=0;
-        const EntityHandle * conn = NULL;
-        rval  = mdbImpl->get_connectivity(polyg, conn, nnodes); MB_CHK_ERR(rval);
-        num_nodes_per_face+=nnodes;
+        num_faces2+=nfaces;
       }
 
-      int num_fa_in_blk, num_nod_per_fa, num_fac_per_el;
-      INS_ID(wname, "num_fa_in_blk%d", element_block_index);
-      if (nc_def_dim(ncFile, wname, (size_t)num_faces_in_block, &num_fa_in_blk) != NC_NOERR) {
-        MB_SET_ERR(MB_FAILURE, "WriteNCDF: failed to define number of faces for block " << block.id);
-      }
-      INS_ID(wname, "num_nod_per_fa%d", element_block_index);
-      if (nc_def_dim(ncFile, wname, (size_t)num_nodes_per_face, &num_nod_per_fa) != NC_NOERR) {
-        MB_SET_ERR(MB_FAILURE, "WriteNCDF: failed to define number of nodes for face block " << block.id);
-      }
+      int num_fac_per_el;
+
       INS_ID(wname, "num_fac_per_el%d", element_block_index);
-      if (nc_def_dim(ncFile, wname, (size_t)num_faces, &num_fac_per_el) != NC_NOERR) {
+      if (nc_def_dim(ncFile, wname, (size_t)num_faces2, &num_fac_per_el) != NC_NOERR) {
         MB_SET_ERR(MB_FAILURE, "WriteNCDF: failed to define number of faces per block " << block.id);
       }
 
       /*
-      int fbconn1(num_nod_per_fa1) ;
-              fbconn1:elem_type = "nsided" ;
-      int fbepecnt1(num_fa_in_blk1) ;
-              fbepecnt1:entity_type1 = "NODE" ;
-              fbepecnt1:entity_type2 = "FACE" ;
       int facconn1(num_fac_per_el1) ;
               facconn1:elem_type = "NFACED" ;
       int ebepecnt1(num_el_in_blk1) ;
               ebepecnt1:entity_type1 = "FACE" ;
               ebepecnt1:entity_type2 = "ELEM" ;
        */
-      dims[0] = num_nod_per_fa;
-      INS_ID(wname, "fbconn%d", element_block_index);
-      int fbconn;
-      if (NC_NOERR != nc_def_var(ncFile, wname, NC_LONG, 1, dims, &fbconn)) {
-        MB_SET_ERR(MB_FAILURE, "WriteNCDF: failed to create connectivity array for face block " << i + 1);
-      }
-      std::string element_type_string("nsided");
-      if (NC_NOERR != nc_put_att_text(ncFile, fbconn, "elem_type", element_type_string.length(), element_type_string.c_str())) {
-        MB_SET_ERR(MB_FAILURE, "WriteNCDF: failed to store element type name " << (int)block.element_type);
-      }
 
-      // fbepecnt
-      INS_ID(wname, "fbepecnt%d", element_block_index);
-      int fbepecnt;
-      dims[0] = num_fa_in_blk;
-      if (NC_NOERR != nc_def_var(ncFile, wname, NC_LONG, 1, dims, &fbepecnt)) {
-        MB_SET_ERR(MB_FAILURE, "WriteNCDF: failed to create fbepecnt array for block " << i + 1);
-      }
-      std::string enttype1("NODE");
-      if (NC_NOERR != nc_put_att_text(ncFile, fbepecnt, "entity_type1", enttype1.length(), enttype1.c_str())) {
-        MB_SET_ERR(MB_FAILURE, "WriteNCDF: failed to store entity type 1  " << (int)block.element_type);
-      }
-      std::string enttype2("FACE");
-      if (NC_NOERR != nc_put_att_text(ncFile, fbepecnt, "entity_type2", enttype2.length(), enttype2.c_str())) {
-        MB_SET_ERR(MB_FAILURE, "WriteNCDF: failed to store entity type 2  " << (int)block.element_type);
-      }
 
       // facconn
       INS_ID(wname, "facconn%d", element_block_index);
@@ -1846,7 +1925,7 @@ ErrorCode WriteNCDF::initialize_exodus_file(ExodusMeshInfo &mesh_info,
         MB_SET_ERR(MB_FAILURE, "WriteNCDF: failed to store entity type2 " << (int)block.element_type);
       }
 
-      block.number_nodes_per_element = num_nodes_per_face;// nodes in connectivity for all faces in block
+      block.number_nodes_per_element = num_faces2;// connectivity for all polyhedra in block
     }
 
   }
