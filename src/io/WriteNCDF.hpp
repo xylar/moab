@@ -122,6 +122,7 @@ protected:
     unsigned int num_nodes;
     unsigned int num_elements;
     unsigned int num_elementblocks;
+    unsigned int num_polyhedra_blocks;
     std::vector<std::string> qaRecords;
     Range nodes;
     Range polyhedronFaces; // they will accumulate, like nodes
