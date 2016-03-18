@@ -998,6 +998,36 @@ ErrorCode ParallelComm::update_remote_data(EntityHandle entity, std::vector<int>
 
   if ((int)rank() > procmin)
     pstatus |= PSTATUS_NOT_OWNED;
+  else
+    procmin = rank();
+
+
+  //DBG
+  std::cout<<"entity = "<<entity<<std::endl;
+  for (int j=0; j<procs.size(); j++)
+   std::cout<<"procs["<<j<<"] = "<<procs[j]<<", handles["<<j<<"] = "<<handles[j]<<std::endl;
+  //DBG
+
+
+  if ((int)procs.size() > 1)
+    {
+      procs.push_back(rank());
+      handles.push_back(entity);
+
+      int idx = std::find(procs.begin(), procs.end(), procmin) - procs.begin();
+
+      std::iter_swap(procs.begin(), procs.begin()+idx);
+      std::iter_swap(handles.begin(), handles.begin()+idx);
+
+
+      //DBG
+      std::cout<<"entity = "<<entity<<std::endl;
+      for (int j=0; j<procs.size(); j++)
+       std::cout<<"procs["<<j<<"] = "<<procs[j]<<", handles["<<j<<"] = "<<handles[j]<<std::endl;
+      //DBG
+
+
+    }
 
   error = update_remote_data(entity, &procs[0], &handles[0], procs.size(), pstatus);MB_CHK_ERR(error);
 
@@ -6184,13 +6214,13 @@ ErrorCode ParallelComm::get_remote_handles(EntityHandle *local_vec, EntityHandle
 
     // Check for consistency in input data
      //DBG
-     bool con1 = ((new_nump == 2 && pstatus&PSTATUS_SHARED && !(pstatus&PSTATUS_MULTISHARED)) || (new_nump > 2 && pstatus&PSTATUS_SHARED && pstatus&PSTATUS_MULTISHARED));
+   /*  bool con1 = ((new_nump == 2 && pstatus&PSTATUS_SHARED && !(pstatus&PSTATUS_MULTISHARED)) || (new_nump > 2 && pstatus&PSTATUS_SHARED && pstatus&PSTATUS_MULTISHARED));
      bool con2 = (!(pstatus&PSTATUS_GHOST) || pstatus&PSTATUS_SHARED);
      bool con3 = (new_nump < 3 || (pstatus&PSTATUS_NOT_OWNED && ps[0] != (int)rank()) || (!(pstatus&PSTATUS_NOT_OWNED) && ps[0] == (int)rank()));
      std::cout<<"current rank = "<<rank()<<std::endl;
      std::cout<<"condition 1::"<<con1<<std::endl;
      std::cout<<"condition 2::"<<con2<<std::endl;
-     std::cout<<"condition 3::"<<con3<<std::endl;
+     std::cout<<"condition 3::"<<con3<<std::endl;*/
 
      //DBG
 
