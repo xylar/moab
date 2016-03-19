@@ -323,7 +323,8 @@ void print_memory_stats( moab::Interface& mb,
       }
   #endif
     }
-    fclose(filp);
+    if (filp)
+      fclose(filp);
   } // end sysstats
 }
 
