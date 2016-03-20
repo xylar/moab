@@ -32,14 +32,16 @@ AC_DEFUN([FATHOM_CHECK_CXX_WORKS], [
 
 
 AC_DEFUN([FATHOM_CHECK_MPI_ENABLED], [
-  AC_LANG_PUSH([C++])
-  AC_MSG_CHECKING([if $CXX works with MPI])
+  AC_AFTER([$0], [AC_PROG_CC])dnl
+  AC_REQUIRE([AC_PROG_CC])dnl
+  AC_LANG_PUSH([C])
+  AC_MSG_CHECKING([if $CC works with MPI])
   AC_COMPILE_IFELSE(
    [AC_LANG_PROGRAM( [#include <mpi.h>]
    [int i=MPI_SUCCESS;] )],
-   [AC_MSG_RESULT([yes]); enablempi=yes],
-    [AC_MSG_RESULT([no]); enablempi=no])
-  AC_LANG_POP([C++])
+   [AC_MSG_RESULT([yes]); $1=yes],
+    [AC_MSG_RESULT([no]); $1=no])
+  AC_LANG_POP([C])
 ])
 
 ########## Helper function for FATHOM_CHECK_COMPILERS #############
@@ -134,15 +136,17 @@ if test "xno" != "x$enablempi"; then
   COMPILERPATHS="${WITH_MPI}/bin"
 fi
 
-FATHOM_CHECK_MPI_ENABLED
+FATHOM_SET_MPI_COMPILER([CC],  [$CC_LIST], [$COMPILERPATHS])
+FATHOM_SET_MPI_COMPILER([CXX],[$CXX_LIST],[$COMPILERPATHS])
+
+# FATHOM_CHECK_MPI_ENABLED([compiler_supports_mpi])
+# AC_SUBST(compiler_supports_mpi)
 
 # C support
-FATHOM_SET_MPI_COMPILER([CC],  [$CC_LIST], [$COMPILERPATHS])
 AC_PROG_CC
 AC_PROG_CPP
 
 # C++ support
-FATHOM_SET_MPI_COMPILER([CXX],[$CXX_LIST],[$COMPILERPATHS])
 AC_PROG_CXX
 AC_PROG_CXXCPP
 
