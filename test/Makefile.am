@@ -145,6 +145,7 @@ mbfacet_test_SOURCES = mbfacet_test.cpp
 mbground_test_SOURCES = mbground_test.cpp
 gttool_test_SOURCES = gttool_test.cpp
 cropvol_test_SOURCES = crop_vol_test.cpp
+mhdf_public_test_SOURCES = mhdf_public_test.cpp
 
 test_prog_opt_SOURCES = test_prog_opt.cpp
 test_prog_opt_CPPFLAGS = $(AM_CPPFLAGS) $(CPPFLAGS)
