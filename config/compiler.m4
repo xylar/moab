@@ -31,6 +31,19 @@ AC_DEFUN([FATHOM_CHECK_CXX_WORKS], [
 ])
 
 
+AC_DEFUN([FATHOM_CHECK_MPI_ENABLED], [
+  AC_AFTER([$0], [AC_PROG_CC])dnl
+  AC_REQUIRE([AC_PROG_CC])dnl
+  AC_LANG_PUSH([C])
+  AC_MSG_CHECKING([if $CC works with MPI])
+  AC_COMPILE_IFELSE(
+   [AC_LANG_PROGRAM( [#include <mpi.h>]
+   [int i=MPI_SUCCESS;] )],
+   [AC_MSG_RESULT([yes]); $1=yes],
+    [AC_MSG_RESULT([no]); $1=no])
+  AC_LANG_POP([C])
+])
+
 ########## Helper function for FATHOM_CHECK_COMPILERS #############
 # args: compiler variable, compiler list, path
 AC_DEFUN([FATHOM_SET_MPI_COMPILER], [
@@ -123,23 +136,27 @@ if test "xno" != "x$enablempi"; then
   COMPILERPATHS="${WITH_MPI}/bin"
 fi
 
-  # C support
-  FATHOM_SET_MPI_COMPILER([CC],  [$CC_LIST], [$COMPILERPATHS])
-  AC_PROG_CC
-  AC_PROG_CPP
+FATHOM_SET_MPI_COMPILER([CC],  [$CC_LIST], [$COMPILERPATHS])
+FATHOM_SET_MPI_COMPILER([CXX],[$CXX_LIST],[$COMPILERPATHS])
 
-  # C++ support
-  FATHOM_SET_MPI_COMPILER([CXX],[$CXX_LIST],[$COMPILERPATHS])
-  AC_PROG_CXX
-  AC_PROG_CXXCPP
+# FATHOM_CHECK_MPI_ENABLED([compiler_supports_mpi])
+# AC_SUBST(compiler_supports_mpi)
 
-  # Fortran support
-  if (test "x$CHECK_FC" != "xno"); then
-    FATHOM_SET_MPI_COMPILER([FC],  [$FC_LIST],[$COMPILERPATHS])
-    FATHOM_SET_MPI_COMPILER([F77],[$F77_LIST],[$COMPILERPATHS])
-    AC_PROG_FC
-    AC_PROG_F77
-  fi
+# C support
+AC_PROG_CC
+AC_PROG_CPP
+
+# C++ support
+AC_PROG_CXX
+AC_PROG_CXXCPP
+
+# Fortran support
+if (test "x$CHECK_FC" != "xno"); then
+  FATHOM_SET_MPI_COMPILER([FC],  [$FC_LIST],[$COMPILERPATHS])
+  FATHOM_SET_MPI_COMPILER([F77],[$F77_LIST],[$COMPILERPATHS])
+  AC_PROG_FC
+  AC_PROG_F77
+fi
 
 ]) # FATHOM_CHECK_COMPILERS
 

@@ -822,9 +822,11 @@ if [ $1 ]; then
   if [ $need_configuration ]; then
     # configure PACKAGE with a minimal build: MPI, HDF5, NETCDF
     compiler_opts="CC=$CC CXX=$CXX FC=$FC F90=$FC F77=$F77"
-    configure_command="$netcdf_src_dir/configure --prefix=$netcdf_install_dir --libdir=$netcdf_install_dir/lib --with-pic=1 --enable-netcdf-4 --enable-shared=$enable_shared $compiler_opts"
+    configure_command="$netcdf_src_dir/configure --prefix=$netcdf_install_dir --libdir=$netcdf_install_dir/lib --with-pic=1 --enable-shared=$enable_shared $compiler_opts"
     if (test "$enablehdf5" != "no"); then
-      configure_command="$configure_command LDFLAGS=\"$HDF5_LDFLAGS $LDFLAGS\" CPPFLAGS=\"$HDF5_CPPFLAGS\" LIBS=\"$HDF5_LIBS -ldl -lm -lz\""
+      configure_command="$configure_command --enable-netcdf-4 LDFLAGS=\"$HDF5_LDFLAGS $LDFLAGS\" CPPFLAGS=\"$HDF5_CPPFLAGS\" LIBS=\"$HDF5_LIBS -ldl -lm -lz\""
+    else
+      configure_command="$configure_command --disable-netcdf-4 LDFLAGS=\"$LDFLAGS\" CPPFLAGS=\"$CPPFLAGS\" LIBS=\"$LIBS\""
     fi
     eval "echo 'Using configure command :==> cd $netcdf_build_dir && $configure_command > $netcdf_src_dir/../config_netcdf.log' > $netcdf_src_dir/../config_netcdf.log"
     PREFIX_PRINT([Configuring with default options  (debug=$enable_debug with-HDF5=$enablehdf5 shared=$enable_shared) ])
