@@ -210,14 +210,13 @@ if (test "xno" != "x$enablehdf5"); then
     old_LIBS="$LIBS"
     LDFLAGS="$LDFLAGS $HDF5_LDFLAGS"
     LIBS="$HDF5_LIBS $LIBS -lhdf5"
-    IS_HDF5_PARALLEL=""
+    IS_HDF5_NOT_PARALLEL=""
     AC_PATH_PROGS([H5CC], [h5cc h5pcc], [], [$HDF5_DIR/bin])
     AC_MSG_CHECKING([for parallel HDF5 support])
     if (test "x$H5CC" != "x"); then dnl check if HDF5 was configured with parallel support
-      IS_HDF5_PARALLEL="`$H5CC -showconfig | grep 'Parallel HDF5: yes'`"
+      IS_HDF5_NOT_PARALLEL="`$H5CC -showconfig | grep 'Parallel HDF5: no'`"
     fi
-
-    if (test "x$IS_HDF5_PARALLEL" != "x"); then
+    if (test "x$IS_HDF5_NOT_PARALLEL" == "x"); then
       AC_MSG_RESULT(yes)
       enablehdf5parallel=yes
     else
