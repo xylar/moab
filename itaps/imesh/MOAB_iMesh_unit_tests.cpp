@@ -14,6 +14,7 @@ void test_getEntArrAdj_invalid_size();
 void test_getEntArrAdj_none();
 void test_existinterface();
 void test_tags_retrieval();
+void test_invalid_parallel_option();
 
 int main( int argc, char* argv[] )
 {
@@ -26,6 +27,9 @@ int main( int argc, char* argv[] )
   REGISTER_TEST( test_existinterface );
 #ifdef  MOAB_HAVE_HDF5
   REGISTER_TEST( test_tags_retrieval );
+#endif
+#ifndef MOAB_HAVE_MPI
+  REGISTER_TEST( test_invalid_parallel_option );
 #endif
   int result = RUN_TESTS( argc, argv );
 
@@ -481,3 +485,13 @@ void test_tags_retrieval()
   return;
 }
 
+void test_invalid_parallel_option()
+{
+  iMesh_Instance mesh;
+  int err;
+  iMesh_newMesh("moab:PARALLEL", &mesh, &err, 13);
+  CHECK_EQUAL(iBase_NOT_SUPPORTED, err);
+
+  iMesh_dtor(mesh, &err);
+  CHECK_EQUAL(iBase_SUCCESS, err);
+}

@@ -291,17 +291,18 @@ extern "C" {
         retval = MPI_Init(&argc, &argv);
         assert(MPI_SUCCESS == retval);
       }
-      *mbi = new MBiMesh(NULL);
+      *mbi = new (std::nothrow) MBiMesh(NULL);
 #else
         //mError->set_last_error( "PARALLEL option not valid, this instance"
         //                        " compiled for serial execution.\n" );
+      *mbi = new (std::nothrow) MBiMesh(NULL);
       *err = (*mbi)->set_last_error(MB_NOT_IMPLEMENTED,
                                     "Not configured with parallel support");
       return;
 #endif
     }
     else {
-      *mbi = new MBiMesh(NULL);
+      *mbi = new (std::nothrow) MBiMesh(NULL);
     }
     if (NULL == *mbi) {
       *err = iBase_FAILURE;
