@@ -202,11 +202,13 @@ void BSPTreePoly::VertexUse::set_vertex( BSPTreePoly::Vertex*& vtx )
     }
   }
   
-  vtxPtr = vtx;
-  nextPtr = vtxPtr->usePtr->nextPtr;
-  prevPtr = vtxPtr->usePtr;
-  nextPtr->prevPtr = this;
-  vtxPtr->usePtr->nextPtr = this;
+  if (vtx) {
+   vtxPtr = vtx;
+   nextPtr = vtxPtr->usePtr->nextPtr;
+   prevPtr = vtxPtr->usePtr;
+   nextPtr->prevPtr = this;
+   vtxPtr->usePtr->nextPtr = this;
+  }
 }
   
 
@@ -235,7 +237,7 @@ BSPTreePoly::EdgeUse::EdgeUse( BSPTreePoly::Edge* edge,
 
 void BSPTreePoly::EdgeUse::insert_after( BSPTreePoly::EdgeUse* prev )
 {
-    // shouldn't aready be in a face
+    // shouldn't already be in a face
   assert(!facePtr);
     // adjacent edges should share vertices
   assert( start() == prev->end() );
@@ -249,7 +251,7 @@ void BSPTreePoly::EdgeUse::insert_after( BSPTreePoly::EdgeUse* prev )
 
 void BSPTreePoly::EdgeUse::insert_before( BSPTreePoly::EdgeUse* next )
 {
-    // shouldn't aready be in a face
+    // shouldn't already be in a face
   assert(!facePtr);
     // adjacent edges should share vertices
   assert( end() == next->start() );
