@@ -39,8 +39,10 @@ AC_DEFUN([FATHOM_CHECK_HDF5],[
   # CLI option for linking zlib
 AC_ARG_WITH(zlib,
   [AS_HELP_STRING([--with-zlib=DIR],[HDF5 requires zlib, and zlib can be found at...])],
-  [WITH_ZLIB=$withval
-  DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --with-zlib=\"${withval}\""
+  [if (test "x$withval" != "x" && test "x$withval" != "xno"); then 
+    WITH_ZLIB=$withval
+    DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --with-zlib=\"${withval}\""
+  fi
   ],[WITH_ZLIB=])
 case "x$WITH_ZLIB" in
   xyes|xno|x)
@@ -64,9 +66,10 @@ fi
   # CLI option for linking szip
 AC_ARG_WITH(szip,
   [AS_HELP_STRING([--with-szip=DIR],[HDF5 requires szip, and szip an be found at...])],
-  [WITH_SZIP=$withval
-  DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --with-szip=\"${withval}\""
-  ],[WITH_SZIP=])
+  [if (test "x$withval" != "x" && test "x$withval" != "xno"); then
+    WITH_SZIP=$withval
+    DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --with-szip=\"${withval}\""
+  fi],[WITH_SZIP=])
 case "x$WITH_SZIP" in
   xyes|xno|x)
     ;;
@@ -110,13 +113,17 @@ AC_MSG_CHECKING([if HDF5 support is enabled])
 AC_ARG_WITH(hdf5, 
 [AS_HELP_STRING([--with-hdf5@<:@=DIR@:>@], [Specify HDF5 library to use for native file format])
 AS_HELP_STRING([--without-hdf5], [Disable support for native HDF5 file format])],
-[HDF5_DIR=$withval
- DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --with-hdf5=\"${withval}\""
+[if (test "x$withval" != "x" && test "x$withval" != "xno"); then
+  HDF5_DIR=$withval
+  DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --with-hdf5=\"${withval}\""
+ fi
 ], [HDF5_DIR=$HDF5_DIR])
-if (test "x" == "x$HDF5_DIR" || test "xno" == "x$HDF5_DIR"); then
-  AC_MSG_RESULT([no])
-else
+if (test "x" != "x$HDF5_DIR" && test "xno" != "x$HDF5_DIR"); then
   AC_MSG_RESULT([yes])
+else
+  AC_MSG_RESULT([no])
+  # Reset the directory since we do not want to configure HDF5
+  HDF5_DIR=""
 fi
 
 # Supported HDF5 versions: 1.8.10, 1.8.12, 1.8.14, 1.8.15

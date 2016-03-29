@@ -57,14 +57,16 @@ AC_MSG_CHECKING([if NetCDF support is enabled])
 AC_ARG_WITH(netcdf, 
 [AS_HELP_STRING([--with-netcdf@<:@=DIR@:>@], [Specify NetCDF library to use for ExodusII file format])
 AS_HELP_STRING([--without-netcdf], [Disable support for ExodusII file format])],
-[NETCDF_DIR=$withval
-DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --with-netcdf=\"${withval}\""
-]
-, [NETCDF_DIR=$NETCDF_DIR])
+[if (test "x$withval" != "x" && test "x$withval" != "xno"); then
+  NETCDF_DIR=$withval
+  DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --with-netcdf=\"${withval}\""
+fi], [NETCDF_DIR=$NETCDF_DIR])
 if (test "x" != "x$NETCDF_DIR" && test "xno" != "x$NETCDF_DIR"); then
   AC_MSG_RESULT([yes])
 else
   AC_MSG_RESULT([no])
+  # Reset the directory since we do not want to configure HDF5
+  NETCDF_DIR=""
 fi
 
 # if NetCDF support is not disabled
@@ -164,10 +166,10 @@ AC_DEFUN([FATHOM_CHECK_PNETCDF],[
 AC_ARG_WITH(pnetcdf, 
 [AS_HELP_STRING([--with-pnetcdf@<:@=DIR@:>@], [Specify PNetCDF library to use])
 AS_HELP_STRING([--without-pnetcdf], [Disable support for PNetCDF-based file formats])],
-[PNETCDF_DIR=$withval
+[if (test "x$withval" != "x" && test "x$withval" != "xno"); then
+PNETCDF_DIR=$withval
 DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --with-pnetcdf=\"${withval}\""
-]
-, [PNETCDF_DIR=])
+fi], [PNETCDF_DIR=])
 
   # PNETCDF requires MPI too
 if test "xyes" != "x$enablempi"; then

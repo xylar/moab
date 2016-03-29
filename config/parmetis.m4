@@ -14,9 +14,11 @@ AC_DEFUN([FATHOM_CONFIGURE_METIS],[
 
   AC_ARG_WITH([metis],
                [AS_HELP_STRING([--with-metis=DIR],[Directory containing Metis library installation])],
-               [enablemetis=yes
-                DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --with-metis=\"${withval}\""
-                METIS_DIR="$withval"],
+               [if (test "x$withval" != "x" && test "x$withval" != "xno"); then 
+                  enablemetis=yes
+                  DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --with-metis=\"${withval}\""
+                  METIS_DIR="$withval"
+                fi],
                [enablemetis=no; METIS_DIR=""]
               )
 
@@ -24,7 +26,7 @@ AC_DEFUN([FATHOM_CONFIGURE_METIS],[
   # Arguments: 1) Default Version Number, 2) Download by default ?
   AUSCM_CONFIGURE_DOWNLOAD_METIS([5.1.0p2],[no])
 
-  if (test "x$enablemetis" == "xyes"); then
+  if (test "x$enablemetis" == "xyes" && test "x$METIS_DIR" != "x"); then
     dnl Honor METIS_DIR if it is set
     if (test ! -d $METIS_DIR); then
        AC_MSG_ERROR([Invalid METIS_DIR ($METIS_DIR) specified.])
@@ -112,9 +114,11 @@ AC_DEFUN([FATHOM_CONFIGURE_PARMETIS],[
  
   AC_ARG_WITH([parmetis], 
                [AS_HELP_STRING([--with-parmetis=DIR],[Directory containing ParMetis library installation])],
-               [enableparmetis=yes
-                DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --with-parmetis=\"${withval}\""
-                PARMETIS_DIR="$withval"],
+               [if (test "x$withval" != "x" && test "x$withval" != "xno"); then
+                 enableparmetis=yes
+                 DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --with-parmetis=\"${withval}\""
+                 PARMETIS_DIR="$withval"
+                fi],
                [enableparmetis=no; PARMETIS_DIR=""]
               )
 
@@ -122,7 +126,7 @@ AC_DEFUN([FATHOM_CONFIGURE_PARMETIS],[
   # Arguments: 1) Default Version Number, 2) Download by default ?
   AUSCM_CONFIGURE_DOWNLOAD_PARMETIS([4.0.3],[no])
 
-  if (test "x$enableparmetis" == "xyes"); then
+  if (test "x$enableparmetis" == "xyes" && test "x$PARMETIS_DIR" != "x"); then
     dnl Honor PARMETIS_DIR if it is set
     if (test ! -d $PARMETIS_DIR); then
        AC_MSG_ERROR([Invalid PARMETIS_DIR ($PARMETIS_DIR) specified.])
