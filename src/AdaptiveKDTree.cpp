@@ -1045,9 +1045,6 @@ namespace moab {
       double metric_val = std::numeric_limits<unsigned>::max();
   
       ErrorCode r;
-      const CartVect box_min(iter.box_min());
-      const CartVect box_max(iter.box_max());
-      const CartVect diff(box_max - box_min);
         //const CartVect tol(eps*diff);
   
       Range entities, vertices;
@@ -1065,6 +1062,30 @@ namespace moab {
       if (MB_SUCCESS != r)
         return r;
   
+      // calculate bounding box of vertices
+      // decide based on the actual box the splitting plane
+      // do not decide based on iterator box.
+      // it could be too big
+      //BoundBox box;
+      //r = box.update(*moab(), vertices);
+      CartVect box_min;
+      CartVect box_max;
+      for (int dir = 0; dir < 3; dir++)
+      {
+        double amin=tmp_data[dir*nverts];
+        double amax = amin;
+        double * p=&tmp_data[dir*nverts+1];
+        for (unsigned int i=1; i<nverts; i++)
+        {
+          if (*p <amin) amin=*p;
+          if (*p >amax) amax=*p;
+          p++;
+        }
+        box_min[dir]=amin;
+        box_max[dir]=amax;
+      }
+      CartVect diff(box_max - box_min);
+
       for (int axis = 0; axis < 3; ++axis) {
         int plane_count = num_planes;
 
