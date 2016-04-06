@@ -62,7 +62,7 @@ void print_usage()
 
 #ifdef MOAB_HAVE_HDF5
 
-ErrorCode get_file_options(int argc, char **argv, int rank,
+ErrorCode get_file_options(int argc, char **argv, int nprocs, int rank,
                            std::vector<std::string> &meshFiles,
                            Coupler::Method &method,
                            std::string &interpTag,
@@ -127,7 +127,7 @@ int main(int argc, char **argv)
   ierr = MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   assert(MPI_SUCCESS == ierr);
 
-  result = get_file_options(argc, argv, rank, meshFiles, method, interpTag,
+  result = get_file_options(argc, argv, nprocs, rank, meshFiles, method, interpTag,
                             gNormTag, ssNormTag, ssTagNames, ssTagValues,
                             readOpts, outFile, writeOpts, dbgFile, help, toler);
 
@@ -198,7 +198,7 @@ int main(int argc, char **argv)
     partSets.insert((EntityHandle)roots[1]);
     std::string newwriteOpts;
     std::ostringstream extraOpt;
-    extraOpt << ";PARALLEL_COMM=" << 1;
+    if(nprocs > 1) extraOpt << ";PARALLEL_COMM=" << 1;
     newwriteOpts = writeOpts + extraOpt.str();
     result = mbImpl->write_file(outFile.c_str(), NULL, newwriteOpts.c_str(), partSets);MB_CHK_ERR(result);
     if(0==rank)
@@ -277,7 +277,7 @@ bool check_for_flag(const char *str) {
 }
 
 // get_file_options() function with added possibilities for mbcoupler_test.
-ErrorCode get_file_options(int argc, char **argv, int rank,
+ErrorCode get_file_options(int argc, char **argv, int nprocs, int rank,
                            std::vector<std::string> &meshFiles,
                            Coupler::Method &method,
                            std::string &interpTag,
@@ -296,9 +296,9 @@ ErrorCode get_file_options(int argc, char **argv, int rank,
   // in the argument list.
   gNormTag = "";
   ssNormTag = "";
-  readOpts = "PARALLEL=READ_PART;PARTITION=PARALLEL_PARTITION;PARTITION_DISTRIBUTE;PARALLEL_RESOLVE_SHARED_ENTS;PARALLEL_GHOSTS=3.0.1;CPUTIME";
+  readOpts = (nprocs > 1 ? "PARALLEL=READ_PART;PARTITION=PARALLEL_PARTITION;PARTITION_DISTRIBUTE;PARALLEL_RESOLVE_SHARED_ENTS;PARALLEL_GHOSTS=3.0.1;CPUTIME" : "PARALLEL=READ_PART;PARTITION=PARALLEL_PARTITION;PARTITION_DISTRIBUTE;PARALLEL_RESOLVE_SHARED_ENTS;CPUTIME");
   outFile = "";
-  writeOpts = "PARALLEL=WRITE_PART;CPUTIME";
+  writeOpts = (nprocs > 1 ? "PARALLEL=WRITE_PART;CPUTIME" : "");
   dbgFile = "";
   std::string defaultDbgFile = argv[0]; // The executable name will be the default debug output file.
 
@@ -533,7 +533,7 @@ ErrorCode test_interpolation(Interface *mbImpl,
 
   // Initialize spectral elements, if they exist
   bool specSou=false, specTar = false;
-  //result =  mbc.initialize_spectral_elements(roots[0], roots[1], specSou, specTar);
+  result =  mbc.initialize_spectral_elements(roots[0], roots[1], specSou, specTar);
 
   instant_time = MPI_Wtime();
 
@@ -560,17 +560,17 @@ ErrorCode test_interpolation(Interface *mbImpl,
     numPointsOfInterest = (int)targ_verts.size();
     vpos.resize(3*targ_verts.size());
     result = mbImpl->get_coords(targ_verts, &vpos[0]);MB_CHK_ERR(result);
+    // Locate those points in the source mesh
+    std::cout<<"rank "<< pcs[0]->proc_config().proc_rank() << " points of interest: " << numPointsOfInterest << "\n";
+    result = mbc.locate_points(&vpos[0], numPointsOfInterest, 0, toler);MB_CHK_ERR(result);
   }
   else {
     // In this case, the target mesh is spectral, we want values
     // interpolated on the GL positions; for each element, get the GL points, and construct CartVect!!!
     result = pcs[1]->get_part_entities(targ_elems, 3);MB_CHK_ERR(result);
     result = mbc.get_gl_points_on_elements(targ_elems, vpos, numPointsOfInterest);MB_CHK_ERR(result);
+    std::cout<<"rank "<< pcs[0]->proc_config().proc_rank() << " points of interest: " << numPointsOfInterest << "\n";
   }
-
-  // Locate those points in the source mesh
-  std::cout<<"rank "<< pcs[0]->proc_config().proc_rank() << " points of interest: " << numPointsOfInterest << "\n";
-  result = mbc.locate_points(&vpos[0], numPointsOfInterest, 0, toler);MB_CHK_ERR(result);
 
   pointloc_time = MPI_Wtime();
 
