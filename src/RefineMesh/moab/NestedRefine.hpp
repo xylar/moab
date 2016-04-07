@@ -107,14 +107,25 @@ namespace moab
 
     ErrorCode parent_to_child(EntityHandle parent, int parent_level, int child_level,  std::vector<EntityHandle> &children);
 
-    /** Given a vertex from a certain level, it returns a std::vector of all entities from the previous level that contains it.
+    /** Given a vertex from a certain level, it returns a std::vector of all entities from any previous levels that contains it.
       *
       * \param vertex EntityHandle of the vertex
-      * \param level Mesh level of the vertex
-      * \param incident_entities Vector containing entities from the previous level incident on the vertex
+      * \param vert_level Mesh level of the vertex
+      * \param parent_level Mesh level from which entities containing vertex is requested
+      * \param incident_entities Vector containing entities from the parent level incident on the vertex
     */
 
-    ErrorCode vertex_to_entities(EntityHandle vertex, int level, std::vector<EntityHandle> &incident_entities);
+     ErrorCode vertex_to_entities_up(EntityHandle vertex, int vert_level, int parent_level, std::vector<EntityHandle> &incident_entities);
+
+     /** Given a vertex from a certain level, it returns a std::vector of all children entities of incident entities to vertex from any subsequent levels
+       *
+       * \param vertex EntityHandle of the vertex
+       * \param vert_level Mesh level of the vertex
+       * \param child_level Mesh level from which child entities are requested
+       * \param incident_entities Vector containing entities from the child level
+     */
+
+      ErrorCode vertex_to_entities_down(EntityHandle vertex, int vert_level, int child_level, std::vector<EntityHandle> &incident_entities);
 
     /** Given an entity at a certain level, it returns a boolean value true if it lies on the domain boundary.
         * \param entity
@@ -123,6 +134,8 @@ namespace moab
       bool is_entity_on_boundary(const EntityHandle &entity);
 
       ErrorCode exchange_ghosts(std::vector<EntityHandle> &lsets, int num_glayers);
+
+      ErrorCode update_specialtags();
 
       struct codeperf{
         double tm_total;

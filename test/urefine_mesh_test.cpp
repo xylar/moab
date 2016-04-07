@@ -324,6 +324,7 @@ ErrorCode refine_entities(Interface *mb,  ParallelComm* pc, EntityHandle fset, i
   double time_total = wtime() - time_start;
   std::cout<<"Finished hierarchy generation in "<<time_total<<"  secs"<<std::endl;
 
+  error = uref.update_specialtags();CHECK_ERR(error);
   // error = uref.exchange_ghosts(set, 1); CHECK_ERR(error);
 
   std::cout<<std::endl;

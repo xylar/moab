@@ -350,7 +350,7 @@ namespace moab{
 
   }
 
-  ErrorCode NestedRefine::vertex_to_entities(EntityHandle vertex, int level, std::vector<EntityHandle> &incident_entities)
+  ErrorCode NestedRefine::vertex_to_entities_up(EntityHandle vertex, int vert_level, int parent_level, std::vector<EntityHandle> &incident_entities)
   {
     assert(level>=0);
     ErrorCode error;
@@ -375,7 +375,7 @@ namespace moab{
       {
         EntityHandle ent = inents[i];
         EntityHandle parent;
-        error = child_to_parent(ent, level, level-1, &parent); MB_CHK_ERR(error);
+        error = child_to_parent(ent, vert_level, parent_level, &parent); MB_CHK_ERR(error);
         incident_entities.push_back(parent);
       }
 
@@ -385,6 +385,40 @@ namespace moab{
 
     return MB_SUCCESS;
   }
+
+   ErrorCode NestedRefine::vertex_to_entities_down(EntityHandle vertex, int vert_level, int child_level, std::vector<EntityHandle> &incident_entities)
+   {
+     assert(level>=0);
+     ErrorCode error;
+
+     //Step 1: Get the incident entities at the current level
+     std::vector<EntityHandle> inents;
+     if (meshdim == 1)
+       {
+         error = ahf->get_up_adjacencies_1d(vertex, inents); MB_CHK_ERR(error);
+       }
+     else if (meshdim == 2)
+       {
+         error = ahf->get_up_adjacencies_vert_2d(vertex, inents); MB_CHK_ERR(error);
+       }
+     else if (meshdim == 3)
+       {
+         error = ahf->get_up_adjacencies_vert_3d(vertex, inents); MB_CHK_ERR(error);
+       }
+
+     //Step 2: Loop over all the incident entities at the current level and gather their parents
+     std::vector<EntityHandle> childs;
+     for (int i=0; i< (int)inents.size(); i++ )
+       {
+         childs.clear();
+         EntityHandle ent = inents[i];
+         error = parent_to_child(ent, vert_level, child_level, childs); MB_CHK_ERR(error);
+         for (int j=0; j<(int)childs.size(); j++)
+           incident_entities.push_back(childs[j]);
+       }
+
+     return MB_SUCCESS;
+   }
 
   bool NestedRefine::is_entity_on_boundary(const EntityHandle &entity)
   {
@@ -448,7 +482,67 @@ namespace moab{
     return MB_SUCCESS;
   }
 
+  ErrorCode NestedRefine::update_specialtags()
+  {
+    ErrorCode error;
+    std::vector<Tag> mtags(3);
 
+    error = mbImpl->tag_get_handle(MATERIAL_SET_TAG_NAME, 1, MB_TYPE_INTEGER, mtags[0]);MB_CHK_ERR(error);
+    error = mbImpl->tag_get_handle(DIRICHLET_SET_TAG_NAME, 1, MB_TYPE_INTEGER, mtags[1]);MB_CHK_ERR(error);
+    error = mbImpl->tag_get_handle(NEUMANN_SET_TAG_NAME, 1, MB_TYPE_INTEGER, mtags[2]);MB_CHK_ERR(error);
+
+    for (int i=0; i<3; i++){
+        //Gather sets of a particular tag
+        Range sets, set_ents;
+        error = mbImpl->get_entities_by_type_and_tag(_rset, MBENTITYSET, &mtags[i], NULL, 1, sets);MB_CHK_ERR(error);
+
+        if (sets.empty())
+          {
+            if (i==0)
+              MB_SET_ERR(MB_FAILURE, "No entities with material tag");
+            else if (i==1)
+              MB_SET_ERR(MB_FAILURE, "No entities with dirichlet tag");
+            else if (i==2)
+              MB_SET_ERR(MB_FAILURE, "No entities with neumann tag");
+          }
+
+        //Loop over all sets, gather entities in each set and add their children at all levels to the set
+        Range::iterator set_it;
+        std::vector<EntityHandle> childs;
+
+        for (set_it = sets.begin(); set_it != sets.end(); ++set_it) {
+            // Get the entities in the set, recursively
+            error = mbImpl->get_entities_by_handle(*set_it, set_ents, true);MB_CHK_ERR(error);
+
+            for (int l=0; l<nlevels; l++)
+              {
+                //Gather child entities
+                for (Range::iterator sit = set_ents.begin(); sit != set_ents.end(); sit++)
+                  {
+                    EntityType type = mbImpl->type_from_handle(*sit);
+                    if (type == MBVERTEX)
+                      {
+                        Range conn;
+                        std::vector<EntityHandle> cents;
+                        error = vertex_to_entities_down(*sit, 0, l+1, cents);MB_CHK_ERR(error);
+                        error = mbImpl->get_connectivity(&cents[0], (int)cents.size(), conn, true);MB_CHK_ERR(error);
+                        childs.insert(childs.end(), cents.back(), cents.end());
+                      }
+                    else {
+                        error = parent_to_child(*sit, 0, l+1, childs);MB_CHK_ERR(error);
+                      }
+                  }
+
+                std::sort(childs.begin(), childs.end());
+                childs.erase(std::unique(childs.begin(), childs.end()), childs.end());
+
+               //Add child entities to tagged sets
+                error = mbImpl->add_entities(*set_it, &childs[0], childs.size());MB_CHK_ERR(error);
+              }
+          }
+      }
+    return MB_SUCCESS;
+  }
 
   /***********************************************
    *  Basic functionalities: generate HM         *
