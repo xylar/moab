@@ -135,7 +135,7 @@ namespace moab
 
       ErrorCode exchange_ghosts(std::vector<EntityHandle> &lsets, int num_glayers);
 
-      ErrorCode update_specialtags();
+      ErrorCode update_special_tags();
 
       struct codeperf{
         double tm_total;
@@ -156,6 +156,7 @@ namespace moab
 
     EntityType elementype;
     int meshdim;
+    int nlevels;
     int level_dsequence[MAX_LEVELS];
     std::map<int,int> deg_index;
     bool hasghost;

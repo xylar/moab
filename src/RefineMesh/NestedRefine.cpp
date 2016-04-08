@@ -352,7 +352,7 @@ namespace moab{
 
   ErrorCode NestedRefine::vertex_to_entities_up(EntityHandle vertex, int vert_level, int parent_level, std::vector<EntityHandle> &incident_entities)
   {
-    assert(level>=0);
+    assert(vert_level > parent_level);
     ErrorCode error;
 
     //Step 1: Get the incident entities at the current level
@@ -388,7 +388,7 @@ namespace moab{
 
    ErrorCode NestedRefine::vertex_to_entities_down(EntityHandle vertex, int vert_level, int child_level, std::vector<EntityHandle> &incident_entities)
    {
-     assert(level>=0);
+     assert(vert_level < child_level);
      ErrorCode error;
 
      //Step 1: Get the incident entities at the current level
@@ -482,7 +482,7 @@ namespace moab{
     return MB_SUCCESS;
   }
 
-  ErrorCode NestedRefine::update_specialtags()
+  ErrorCode NestedRefine::update_special_tags()
   {
     ErrorCode error;
     std::vector<Tag> mtags(3);
@@ -499,11 +499,21 @@ namespace moab{
         if (sets.empty())
           {
             if (i==0)
-              MB_SET_ERR(MB_FAILURE, "No entities with material tag");
+              {
+                std::cout<<"No entities with material tag"<<std::endl;
+                return MB_SUCCESS;
+              }
             else if (i==1)
-              MB_SET_ERR(MB_FAILURE, "No entities with dirichlet tag");
+              {
+                std::cout<<"No entities with dirichlet tag"<<std::endl;
+                return MB_SUCCESS;
+              }
+
             else if (i==2)
-              MB_SET_ERR(MB_FAILURE, "No entities with neumann tag");
+                {
+                  std::cout<<"No entities with neumann tag"<<std::endl;
+                  return MB_SUCCESS;
+                }
           }
 
         //Loop over all sets, gather entities in each set and add their children at all levels to the set
@@ -526,7 +536,7 @@ namespace moab{
                         std::vector<EntityHandle> cents;
                         error = vertex_to_entities_down(*sit, 0, l+1, cents);MB_CHK_ERR(error);
                         error = mbImpl->get_connectivity(&cents[0], (int)cents.size(), conn, true);MB_CHK_ERR(error);
-                        childs.insert(childs.end(), cents.back(), cents.end());
+                        childs.insert(childs.end(), cents.begin(), cents.end());
                       }
                     else {
                         error = parent_to_child(*sit, 0, l+1, childs);MB_CHK_ERR(error);
@@ -702,6 +712,8 @@ namespace moab{
 
     Tag gidtag;
     error = mbImpl->tag_get_handle(GLOBAL_ID_TAG_NAME, gidtag);MB_CHK_ERR(error);
+
+    nlevels = num_level;
 
     timeall.tm_total = 0;
     timeall.tm_refine = 0;

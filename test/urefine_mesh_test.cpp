@@ -82,9 +82,19 @@ ErrorCode test_adjacencies(Interface *mbImpl, NestedRefine *nr, Range all_ents)
           adjents.clear(); mbents.clear(); ahfents.clear();
           error = nr->get_adjacencies( *i, 1, adjents);  CHECK_ERR(error);
           error = mbImpl->get_adjacencies( &*i, 1, 1, false, mbents ); CHECK_ERR(error);
-          CHECK_EQUAL(adjents.size(),mbents.size());
+
           std::sort(adjents.begin(), adjents.end());
           std::copy(adjents.begin(), adjents.end(), range_inserter(ahfents));
+
+          if (ahfents.size() != mbents.size())
+            {
+                 std::cout<<"ahf results = "<<std::endl;
+                ahfents.print();
+                 std::cout<<"native results = "<<std::endl;
+                 mbents.print();
+            }
+
+          CHECK_EQUAL(adjents.size(),mbents.size());
           mbents = subtract(mbents, ahfents);
           CHECK(!mbents.size());
       }
@@ -324,7 +334,7 @@ ErrorCode refine_entities(Interface *mb,  ParallelComm* pc, EntityHandle fset, i
   double time_total = wtime() - time_start;
   std::cout<<"Finished hierarchy generation in "<<time_total<<"  secs"<<std::endl;
 
-  error = uref.update_specialtags();CHECK_ERR(error);
+  error = uref.update_special_tags();CHECK_ERR(error);
   // error = uref.exchange_ghosts(set, 1); CHECK_ERR(error);
 
   std::cout<<std::endl;
@@ -431,7 +441,7 @@ ErrorCode refine_entities(Interface *mb,  ParallelComm* pc, EntityHandle fset, i
 #ifdef MOAB_HAVE_MPI
           file <<  "MESH_LEVEL_" <<l+1<<".h5m";
 #else
-          file <<  "MESH_LEVEL_" <<l+1<<".vtk";
+          file <<  "MESH_LEVEL_" <<l+1<<".h5m";
 #endif
           std::string str = file.str();
           const char* output_file = str.c_str();
@@ -1233,7 +1243,7 @@ int main(int argc, char *argv[])
     else if (argc == 2)
       {
         const char* filename = argv[1];
-        int deg[2] = {2,2};
+        int deg[1] = {2};
         int len = sizeof(deg) / sizeof(int);
         result = test_mesh(filename, deg, len);
         handle_error_code(result, number_tests_failed, number_tests_successful);
