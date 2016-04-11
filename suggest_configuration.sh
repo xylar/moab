@@ -53,20 +53,24 @@ MBCC=""
 MBCXX=""
 MBFC=""
 MBF77=""
-test "`which mpicc`" != "" && MBCC=`which mpicc`
-test "$MBCC" != "" || MBCC=`which gcc`
-test "$MBCC" != "" || MBCC=`which icc`
-test "$MBCC" != "" || MBCC=`which clang`
-test "`which mpicxx`" != "" && MBCXX=`which mpicxx`
-test "$MBCXX" != "" || MBCXX=`which g++`
-test "$MBCXX" != "" || MBCXX=`which icpc`
-test "$MBCXX" != "" || MBCXX=`which clang++`
-test "`which mpif90`" != "" && MBFC=`which mpif90`
-test "$MBFC" != "" || MBFC=`which gfortran`
-test "$MBFC" != "" || MBFC=`which ifort`
-test "`which mpif77`" != "" && MBF77=`which mpif77`
-test "$MBF77" != "" || MBF77=`which gfortran`
-test "$MBF77" != "" || MBF77=`which ifort`
+test "x`which mpicc 2>&-`" != "x" && MBCC=`which mpicc 2>&-`
+test "x$MBCC" != "x" || MBCC=`which cc 2>&-`
+test "x$MBCC" != "x" || MBCC=`which gcc 2>&-`
+test "x$MBCC" != "x" || MBCC=`which icc 2>&-`
+test "x$MBCC" != "x" || MBCC=`which clang 2>&-`
+test "x`which mpicxx 2>&-`" != "x" && MBCXX=`which mpicxx 2>&-`
+test "x$MBCXX" != "x" || MBCXX=`which CC 2>&-`
+test "x$MBCXX" != "x" || MBCXX=`which g++ 2>&-`
+test "x$MBCXX" != "x" || MBCXX=`which icpc 2>&-`
+test "x$MBCXX" != "x" || MBCXX=`which clang++ 2>&-`
+test "`which mpif90 2>&-`" != "x" && MBFC=`which mpif90 2>&-`
+test "x$MBFC" != "x" || MBFC=`which ftn 2>&-`
+test "x$MBFC" != "x" || MBFC=`which gfortran 2>&-`
+test "x$MBFC" != "x" || MBFC=`which ifort 2>&-`
+test "x`which mpif77 2>&-`" != "x" && MBF77=`which mpif77 2>&-`
+test "x$MBF77" != "x" || MBF77=`which ftn 2>&-`
+test "x$MBF77" != "x" || MBF77=`which gfortran 2>&-`
+test "x$MBF77" != "x" || MBF77=`which ifort 2>&-`
 MBMPI_DIR=""
 MBHDF5_DIR=""
 MBSZIP_DIR=""
