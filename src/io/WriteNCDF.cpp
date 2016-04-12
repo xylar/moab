@@ -714,6 +714,8 @@ ErrorCode WriteNCDF::get_valid_sides(Range &elems, ExodusMeshInfo& /*mesh_info*/
     if (sideset_data.elements.size() != 0) {
       // Distribution factors
       int num_nodes = CN::VerticesPerEntity(TYPE_FROM_HANDLE(*iter));
+      // put some dummy dist factors for polygons; why do we need them?
+      if (TYPE_FROM_HANDLE(*iter)==MBPOLYGON) num_nodes = 1; //dummy
       if (has_dist_factors) {
         std::copy(dist_fac_iter, dist_fac_iter + num_nodes, 
                   std::back_inserter(sideset_data.ss_dist_factors));
