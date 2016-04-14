@@ -732,13 +732,22 @@ ErrorCode Coupler::nat_param(double xyz[3],
       Element::SpectralHex* spcHex = (Element::SpectralHex*)_spectralSource;
 
       spcHex->set_gl_points((double*)xval, (double*)yval, (double*)zval);
-      tmp_nat_coords = spcHex->ievaluate(CartVect(xyz));
-      bool inside = spcHex->inside_nat_space(CartVect(tmp_nat_coords), epsilon);
-      if (!inside) {
-        std::cout << "point " << xyz[0] << " " << xyz[1] << " " << xyz[2] <<
-            " is not converging inside hex " << mbImpl->id_from_handle(eh) << "\n";
-        continue; // It is possible that the point is outside, so it will not converge
+      try {
+        tmp_nat_coords = spcHex->ievaluate(CartVect(xyz));
+        bool inside = spcHex->inside_nat_space(CartVect(tmp_nat_coords), epsilon);
+        if (!inside) {
+#ifndef NDEBUG
+          std::cout << "point " << xyz[0] << " " << xyz[1] << " " << xyz[2] <<
+              " is not converging inside hex " << mbImpl->id_from_handle(eh) << "\n";
+#endif
+          continue; // It is possible that the point is outside, so it will not converge
+        }
       }
+      catch (Element::Map::EvaluationError&) {
+        continue;
+      }
+
+
     }
     else {
       const EntityHandle *connect;
