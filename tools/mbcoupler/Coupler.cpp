@@ -733,7 +733,7 @@ ErrorCode Coupler::nat_param(double xyz[3],
 
       spcHex->set_gl_points((double*)xval, (double*)yval, (double*)zval);
       tmp_nat_coords = spcHex->ievaluate(CartVect(xyz));
-      bool inside = spcHex->inside_nat_space(CartVect(xyz), epsilon);
+      bool inside = spcHex->inside_nat_space(CartVect(tmp_nat_coords), epsilon);
       if (!inside) {
         std::cout << "point " << xyz[0] << " " << xyz[1] << " " << xyz[2] <<
             " is not converging inside hex " << mbImpl->id_from_handle(eh) << "\n";
