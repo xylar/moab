@@ -901,7 +901,7 @@ namespace Element {
     return result;
   }
   // replicate the functionality of hex_findpt
-  CartVect SpectralHex::ievaluate(CartVect const & xyz) const
+  CartVect SpectralHex::ievaluate(double abs_eps, CartVect const & xyz) const
   {
     //find nearest point
     realType x_star[3];
@@ -911,7 +911,7 @@ namespace Element {
     unsigned c = opt_no_constraints_3;
     realType dist = opt_findpt_3(&_data, (const realType **)_xyz, x_star, r, &c);
     // if it did not converge, get out with throw...
-    if (dist > 0.9e+30)
+    if (dist > 10*abs_eps) // outside the element
     {
       std::vector<CartVect> dummy;
       throw Map::EvaluationError(xyz, dummy);

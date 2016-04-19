@@ -214,7 +214,7 @@ namespace ElemUtil {
       void set_gl_points( double * x, double * y, double *z) ;
       virtual CartVect evaluate( const CartVect& xi ) const;
       using Map::ievaluate;
-      virtual CartVect ievaluate(const CartVect& x) const;
+      virtual CartVect ievaluate( double abs_eps, const CartVect& x) const;
       virtual Matrix3  jacobian(const CartVect& xi) const;
       double   evaluate_scalar_field(const CartVect& xi, const double *field_vertex_values) const;
       double   integrate_scalar_field(const double *field_vertex_values) const;
