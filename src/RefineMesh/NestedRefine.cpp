@@ -2165,20 +2165,21 @@ namespace moab{
            }
 
          E0 = subtract(E0all, edges);
-
-         for (Range::iterator it = E0.begin(); it != E0.end(); it++)
-           {
-             ents.clear();
-             error = mbImpl->get_connectivity(&(*it), 0, ents);MB_CHK_ERR(error);
-             std::copy(ents.begin(), ents.end(), range_inserter(verts));
-           }
-
+         if (!E0.empty())
+          {
+            for (Range::iterator it = E0.begin(); it != E0.end(); it++)
+             {
+                ents.clear();
+                error = mbImpl->get_connectivity(&(*it), 0, ents);MB_CHK_ERR(error);
+                std::copy(ents.begin(), ents.end(), range_inserter(verts));
+              }
+          }
          V0 = subtract(V0all, verts);
        }
      else if (!E0all.empty())
        {
          Range verts;
-         for (Range::iterator it = E0.begin(); it != E0.end(); it++)
+         for (Range::iterator it = E0all.begin(); it != E0all.end(); it++)
            {
              ents.clear();
              error = mbImpl->get_connectivity(&(*it), 1, ents);MB_CHK_ERR(error);
@@ -2422,14 +2423,23 @@ namespace moab{
                  REList.insert(REList.end(), remotebuffers[i].begin()+msgsz[1]+1, remotebuffers[i].begin()+msgsz[1]+msgsz[3]);
 
                  error = decipher_remote_handles_edge(sharedprocs[i], msgsz[2], LEList, REList, remProcs, remHandles);MB_CHK_ERR(error);
-               }
 
-             if (msgsz[4] != 0) //Vertices
+                 if (msgsz[4] != 0) //Vertices
+                   {
+                     //Get the local and remote face handles from the buffers
+                     std::vector<EntityHandle> LVList, RVList;
+                     LVList.insert(LVList.end(), localbuffers[i].begin()+msgsz[1]+msgsz[3]+1, localbuffers[i].begin()+msgsz[1]+msgsz[3]+msgsz[5]);
+                     RVList.insert(RVList.end(), remotebuffers[i].begin()+msgsz[1]+msgsz[3]+1, remotebuffers[i].begin()+msgsz[1]+msgsz[3]+msgsz[5]);
+
+                     error = decipher_remote_handles_vertex(sharedprocs[i], msgsz[4], LVList, RVList, remProcs, remHandles);MB_CHK_ERR(error);
+                   }
+               }
+             else if (msgsz[4] != 0) //Vertices
                {
                  //Get the local and remote face handles from the buffers
                  std::vector<EntityHandle> LVList, RVList;
-                 LVList.insert(LVList.end(), localbuffers[i].begin()+msgsz[1]+msgsz[3]+1, localbuffers[i].begin()+msgsz[1]+msgsz[3]+msgsz[5]);
-                 RVList.insert(RVList.end(), remotebuffers[i].begin()+msgsz[1]+msgsz[3]+1, remotebuffers[i].begin()+msgsz[1]+msgsz[3]+msgsz[5]);
+                 LVList.insert(LVList.end(), localbuffers[i].begin()+msgsz[1]+1, localbuffers[i].begin()+msgsz[1]+msgsz[5]);
+                 RVList.insert(RVList.end(), remotebuffers[i].begin()+msgsz[1]+1, remotebuffers[i].begin()+msgsz[1]+msgsz[5]);
 
                  error = decipher_remote_handles_vertex(sharedprocs[i], msgsz[4], LVList, RVList, remProcs, remHandles);MB_CHK_ERR(error);
                }
@@ -2763,7 +2773,7 @@ namespace moab{
 
          //DBG
          std::cout<<"entity = "<<entity<<std::endl;
-         for (int j=0; j<rprocs.size(); j++)
+         for (int j=0; j<(int)rprocs.size(); j++)
           std::cout<<"rprocs["<<j<<"] = "<<rprocs[j]<<", rhandles["<<j<<"] = "<<rhandles[j]<<std::endl;
          //DBG
 
@@ -2863,17 +2873,25 @@ namespace moab{
          // EList = <E, EC> where E = <E0, E1, ..,EL> and EC = <EC0, EC1, .., ECL>
          if (datatype == 0) //requesting child entities
            {
-             int start, end, toadd;
+             int start, end, toadd, prev;
              start = end = entity_index;
-             toadd = nentities;
+             toadd = prev = nentities;
              for (int i=0; i< level; i++)
                {
                  int d = get_index_from_degree(level_dsequence[i]);
                  int nch = refTemplates[MBEDGE-1][d].total_new_ents;
-                 start = start*nch + toadd;
-                 end = end*nch + nch-1 + toadd;
-                 toadd += toadd*nch;
+                 start = start*nch;
+                 end = end*nch + nch-1;
+
+                 if (i < level-1)
+                   {
+                     prev = prev*nch;
+                     toadd += prev;
+                   }
                }
+
+             start += toadd;
+             end += toadd;
 
              int num_child = end-start+1;
              data.reserve(num_child);
@@ -2886,12 +2904,13 @@ namespace moab{
            }
          else if (datatype == 1)//requesting connectivities of child entities
            {
-             int toadd=nentities;
+             int toadd = nentities, prev = nentities;
              for (int i=0; i< nlevels; i++)
                {
                  int d = get_index_from_degree(level_dsequence[i]);
                  int nch = refTemplates[MBEDGE-1][d].total_new_ents;
-                 toadd += toadd*nch;
+                 prev = prev*nch;
+                 toadd += prev;
                }
 
              data.push_back(buffer[toadd+2*entity_index]);
