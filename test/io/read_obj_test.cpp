@@ -17,17 +17,20 @@ using namespace moab;
 
 #ifdef MESHDIR
 static const char test[] = STRINGIFY(MESHDIR) "/io/test.obj";
+static const char shuttle[] = STRINGIFY(MESHDIR) "/io/shuttle.obj";
 #endif
 
 GeomTopoTool *myGeomTool;
 
 Tag geom_tag;
 Tag name_tag;
+Tag id_tag;
 
 
 void read_file( Interface& moab, const char* input_file);
 void test_check_num_entities();
 void test_check_meshsets();
+void test_check_groups();
 
 
 int main()
@@ -36,6 +39,7 @@ int main()
   
   result += RUN_TEST(test_check_num_entities);
   result += RUN_TEST(test_check_meshsets);
+  result += RUN_TEST(test_check_groups);
 
   return result;
 }
@@ -55,19 +59,19 @@ void test_check_num_entities()
   Interface *mbi = &core;
   read_file(core, test);
 
-  // check that number of verts created is 8 
+  // check that number of verts created is 7 
   Range verts;
   int vert_dim = 0;
   rval =  mbi->get_entities_by_dimension(0, vert_dim, verts);
   CHECK_ERR(rval);
-  CHECK_EQUAL(8, (int)verts.size());
+  CHECK_EQUAL(7, (int)verts.size());
 
-  // check that number of tris created is 5
+  // check that number of tris created is 3
   Range tris;
   int tri_dim = 2;
   rval =  mbi->get_entities_by_dimension(0, tri_dim, tris);
   CHECK_ERR(rval);
-  CHECK_EQUAL(5, (int)tris.size());
+  CHECK_EQUAL(3, (int)tris.size());
 
 }
 
@@ -110,22 +114,6 @@ void test_check_meshsets()
           CHECK_ERR(rval);
           CHECK_EQUAL(1, sense);
 
-          // check that each surface set has correct number of vertices
-          rval = mbi->get_number_entities_by_type(*it, MBTRI, num_tris);
-          CHECK_ERR(rval);
-          if (num_tris == 1)
-            {
-              rval = mbi->get_number_entities_by_dimension(*it, 0, num_verts);
-              CHECK_ERR(rval);
-              CHECK_EQUAL(3, num_verts);
-            }
-          else if (num_tris == 4)
-            {
-              rval = mbi->get_number_entities_by_dimension(*it, 0, num_verts);
-              CHECK_ERR(rval);
-              CHECK_EQUAL(5, num_verts);
-            }
-              
         }
       else if (dim == 3)
         { 
@@ -204,3 +192,27 @@ void test_check_meshsets()
 }
 
 
+void test_check_groups()
+{
+  ErrorCode rval;
+  Core core;
+  Interface *mbi = &core;
+  read_file(core, shuttle);
+
+  // check that number of tris created is 616
+  //  170 tris + 223 quads split into 2 tris = 616 
+  Range tris;
+  int tri_dim = 2;
+  rval =  mbi->get_entities_by_dimension(0, tri_dim, tris);
+  CHECK_ERR(rval);
+  CHECK_EQUAL(616, (int)tris.size());
+  
+  // check that 11 mesh sets are created
+  // 1 for global vert set + 1 for each of 10 groups
+  Range ent_sets, mesh_sets;
+  rval =  mbi->tag_get_handle(GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, id_tag);
+  CHECK_ERR(rval);
+  rval =  mbi->get_entities_by_type_and_tag(0, MBENTITYSET, &id_tag, NULL, 1, ent_sets);
+  
+  CHECK_EQUAL(11, (int)ent_sets.size());
+}

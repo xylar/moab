@@ -95,7 +95,7 @@ readutil_test_SOURCES = $(srcdir)/../TestUtil.hpp readutil_test.cpp
 cgns_test_SOURCES=$(srcdir)/../TestUtil.hpp cgns_test.cpp
 readrtt_test_SOURCES = $(srcdir)/../TestUtil.hpp readrtt_test.cpp
 read_obj_test_SOURCES = $(srcdir)/../TestUtil.hpp read_obj_test.cpp
-read_obj_test_CXXFLAGS = $(CGM_CPPFLAGS) $(CGM_LIBS)  $(CXXFLAGS)
+read_obj_test_CXXFLAGS = $(CXXFLAGS)
 
 MOSTLYCLEANFILES = dumped_acis.sat \
                    gcrm.h5m \

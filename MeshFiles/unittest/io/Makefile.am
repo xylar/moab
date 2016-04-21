@@ -36,4 +36,6 @@ EXTRA_DIST = HommeMapping.nc \
              p8ex1.h5m \
              oneside.h5m \
              rtttest.rtt 
+             test.obj \
+             shuttle.obj
 
