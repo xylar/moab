@@ -437,14 +437,14 @@ void test_get_set( const char* name,
       // try again with NULL size pointer
     list[0] = 0;
     rval = mb.tag_get_by_ptr( tag, &one_handle, 1, &list[0] );
+    CHECK_ERR( rval );
+    CHECK( !memcmp( some_values, list[0], bytes ) );
   }
   else {
     rval = mb.tag_get_data( tag, &one_handle, 1, &data[0] );
-    list[0] = &data[0];
+    CHECK_ERR( rval );
+    CHECK( !memcmp( some_values, &data[0], bytes ) );
   }
-  CHECK_ERR( rval );
-  CHECK( !memcmp( some_values, list[0], bytes ) );
-  list[0] = 0;
 
   
     // try getting/setting for arrays of handles
