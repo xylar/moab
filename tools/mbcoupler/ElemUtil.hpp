@@ -262,6 +262,18 @@ namespace ElemUtil {
 
     };// class LinearQuad
 
+    /**\brief Shape function space for bilinear quadrilateral on sphere, obtained from the canonical linear (affine) functions. */
+    class SphericalQuad : public LinearQuad {
+    public:
+      SphericalQuad(const std::vector<CartVect>& vertices);
+      virtual ~SphericalQuad() {};
+      virtual bool inside_box(const CartVect & pos, double & tol) const;
+      virtual CartVect ievaluate(const CartVect& x, double tol) const ;
+    protected:
+      //double tangent_plane; // at first vertex; normal to the plane is first vertex
+
+    };// class LinearQuad
+
     /**\brief Shape function space for bilinear quadrilateral, obtained from the canonical linear (affine) functions. */
     class LinearEdge : public Map {
     public:

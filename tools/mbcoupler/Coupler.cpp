@@ -73,7 +73,8 @@ ErrorCode Coupler::initialize_tree()
     result = myPc->get_part_entities(local_ents, max_dim);
     if (local_ents.empty())
     {
-      result = myPc->get_part_entities(local_ents, max_dim-1);// go one dimension lower
+      max_dim--;
+      result = myPc->get_part_entities(local_ents, max_dim);// go one dimension lower
       // it is probably spherical, then
       // fishy argument, fix this:
       spherical = true;
@@ -814,6 +815,22 @@ ErrorCode Coupler::nat_param(double xyz[3],
         tmp_nat_coords = tetmap.ievaluate(pos);
         bool inside = tetmap.inside_nat_space(tmp_nat_coords, epsilon);
         if (!inside)
+          continue;
+      }
+      else if (MBQUAD == etype && spherical) {
+        Element::SphericalQuad sphermap(coords_vert);
+        if (!sphermap.inside_box(pos, epsilon))
+          continue;
+        try {
+          tmp_nat_coords = sphermap.ievaluate(pos, epsilon);
+          bool inside = sphermap.inside_nat_space(tmp_nat_coords, epsilon);
+          if (!inside)
+            continue;
+        }
+        catch (Element::Map::EvaluationError&) {
+          continue;
+        }
+        if (!sphermap.inside_nat_space(tmp_nat_coords, epsilon))
           continue;
       }
       else if (MBQUAD == etype) {

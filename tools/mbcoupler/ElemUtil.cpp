@@ -470,6 +470,36 @@ namespace Element {
     return xi;
   }// Map::ievaluate()
 
+  SphericalQuad::SphericalQuad(const std::vector<CartVect>& vertices): LinearQuad(vertices)
+  {
+    // project the vertices to the plane tangent at first vertex
+    CartVect v1=vertex[0];
+    double v1v1= v1%v1;
+    for (int j=1; j<4; j++)
+    {
+      CartVect vnew =v1v1/(vertex[j]%v1)*vertex[j]; // so that (vnew-v1)%v1 is 0
+      vertex[j]=vnew;
+    }
+  }
+
+   CartVect SphericalQuad::ievaluate(const CartVect& x, double tol) const
+   {
+     // project to the plane tangent at first vertex
+     CartVect v1=vertex[0];
+     double v1v1= v1%v1;
+     CartVect vnew =v1v1/(x%v1)*x; // so that (x-v1)%v1 is 0
+     return Map::ievaluate(vnew, tol);
+   }
+
+   bool SphericalQuad::inside_box(const CartVect & pos, double & tol) const
+   {
+     // project to the plane tangent at first vertex
+      CartVect v1=vertex[0];
+      double v1v1= v1%v1;
+      CartVect vnew =v1v1/(pos%v1)*pos; // so that (x-v1)%v1 is 0
+      return Map::inside_box(vnew, tol);
+   }
+
 // filescope for static member data that is cached
   const double LinearEdge::corner[2][3] = {  { -1, 0, 0 },
                                          {  1, 0, 0 } };
