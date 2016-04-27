@@ -473,30 +473,63 @@ namespace Element {
   SphericalQuad::SphericalQuad(const std::vector<CartVect>& vertices): LinearQuad(vertices)
   {
     // project the vertices to the plane tangent at first vertex
-    CartVect v1=vertex[0];
+    v1=vertex[0]; // member data
     double v1v1= v1%v1;
     for (int j=1; j<4; j++)
     {
       CartVect vnew =v1v1/(vertex[j]%v1)*vertex[j]; // so that (vnew-v1)%v1 is 0
       vertex[j]=vnew;
     }
+    // will compute a transf matrix, such that a new point will be transformed with
+    // newpos =  transf * (pos-v1);
+    CartVect vx = vertex[1]-v1; // this will become Ox axis
+    vx = vx/vx.length();
+    CartVect vz = v1/v1.length();
+    CartVect vy = vz*vx;
+    transf = Matrix3(vx[0], vx[1], vx[2], vy[0], vy[1], vy[2], vz[0], vz[1], vz[2]);
+    vertex[0]= CartVect(0.);
+    for (int j=1; j<4; j++)
+      vertex[j] = transf*(vertex[j]-v1);
   }
 
    CartVect SphericalQuad::ievaluate(const CartVect& x, double tol) const
    {
      // project to the plane tangent at first vertex
-     CartVect v1=vertex[0];
+     //CartVect v1=vertex[0];
      double v1v1= v1%v1;
      CartVect vnew =v1v1/(x%v1)*x; // so that (x-v1)%v1 is 0
-     return Map::ievaluate(vnew, tol);
+     vnew =  transf*(vnew-v1);
+
+     tol = 1.0e-10;
+     const double error_tol_sqr = tol*tol;
+     double det;
+     CartVect xi(0.);
+     CartVect delta = evaluate(xi) - vnew;
+     Matrix3 J;
+
+     int iters=0;
+     while (delta % delta > error_tol_sqr) {
+       if(++iters>10)
+         throw Map::EvaluationError(x, vertex);
+
+       J = jacobian(xi);
+       det = J.determinant();
+       if (fabs(det) < std::numeric_limits<double>::epsilon())
+         throw Map::EvaluationError(x, vertex);
+       xi -= J.inverse(1.0/det) * delta;
+       delta = evaluate( xi ) - vnew;
+     }
+     return xi;
+     //return Map::ievaluate(vnew, tol);
    }
 
    bool SphericalQuad::inside_box(const CartVect & pos, double & tol) const
    {
      // project to the plane tangent at first vertex
-      CartVect v1=vertex[0];
+      //CartVect v1=vertex[0];
       double v1v1= v1%v1;
       CartVect vnew =v1v1/(pos%v1)*pos; // so that (x-v1)%v1 is 0
+      vnew =  transf*(vnew-v1);
       return Map::inside_box(vnew, tol);
    }
 
@@ -1089,6 +1122,23 @@ namespace Element {
       J(1,0) += dNi_dxi   * vertex[i][1];
       J(0,1) += dNi_deta  * vertex[i][0];
       J(1,1) += dNi_deta  * vertex[i][1];
+#if 0
+      const double   xi_p = 1 + xi[0]*corner[i][0];
+      const double  eta_p = 1 + xi[1]*corner[i][1];
+      const double zeta_p = 1 ;// + xi[2]*corner[i][2]; // this is 1 , because corner[i][2] is 0
+      const double dNi_dxi   = corner[i][0] * eta_p * zeta_p;
+      const double dNi_deta  = corner[i][1] *  xi_p * zeta_p;
+      //const double dNi_dzeta = corner[i][2] *  xi_p *  eta_p;
+      J(0,0) += dNi_dxi   * vertex[i][0];
+      J(1,0) += dNi_dxi   * vertex[i][1];
+      J(2,0) += dNi_dxi   * vertex[i][2];
+      J(0,1) += dNi_deta  * vertex[i][0];
+      J(1,1) += dNi_deta  * vertex[i][1];
+      J(2,1) += dNi_deta  * vertex[i][2];
+     /* J(0,2) += dNi_dzeta * vertex[i][0];
+      J(1,2) += dNi_dzeta * vertex[i][1];
+      J(2,2) += dNi_dzeta * vertex[i][2];*/
+#endif
     }
     J(2,2) = 1.0; /* to make sure the Jacobian determinant is non-zero */
     J /= LinearQuad::corner_count;

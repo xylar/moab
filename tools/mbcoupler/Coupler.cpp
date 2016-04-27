@@ -631,7 +631,7 @@ ErrorCode Coupler::interpolate(Coupler::Method *methods,
       Tag tag = tags[tinterp.vi_rd[5*i + 4]];
 
       result = MB_FAILURE;
-      if (LINEAR_FE == method || QUADRATIC_FE == method) {
+      if (LINEAR_FE == method || QUADRATIC_FE == method || SPHERICAL==method) {
         result = interp_field(mappedPts->vul_rd[mindex],
                               CartVect(mappedPts->vr_wr + 3*mindex),
                               tag, tinterp.vr_wr[i]);
