@@ -520,6 +520,9 @@ private:
   void * _spectralTarget;
   moab::Tag _xm1Tag, _ym1Tag, _zm1Tag;
   int _ntot;
+
+  // spherical coupling
+  bool spherical;
 };
 
 inline ErrorCode Coupler::interpolate(Coupler::Method method,

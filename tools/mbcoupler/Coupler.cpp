@@ -32,7 +32,7 @@ Coupler::Coupler(Interface *impl,
                  int coupler_id,
                  bool init_tree,
                  int max_ent_dim)
-  : mbImpl(impl), myPc(pc), myId(coupler_id), numIts(3), max_dim(max_ent_dim), _ntot(0)
+  : mbImpl(impl), myPc(pc), myId(coupler_id), numIts(3), max_dim(max_ent_dim), _ntot(0), spherical(false)
 {
   assert(NULL != impl && (pc || !local_elems.empty()));
 
@@ -72,7 +72,12 @@ ErrorCode Coupler::initialize_tree()
   {
     result = myPc->get_part_entities(local_ents, max_dim);
     if (local_ents.empty())
+    {
       result = myPc->get_part_entities(local_ents, max_dim-1);// go one dimension lower
+      // it is probably spherical, then
+      // fishy argument, fix this:
+      spherical = true;
+    }
   }
   else local_ents = myRange;
   if (MB_SUCCESS != result || local_ents.empty()) {
