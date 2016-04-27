@@ -43,7 +43,7 @@ class Coupler
 {
 public:
 
-  enum Method {CONSTANT, LINEAR_FE, QUADRATIC_FE, SPECTRAL};
+  enum Method {CONSTANT, LINEAR_FE, QUADRATIC_FE, SPECTRAL, SPHERICAL};
 
   enum IntegType {VOLUME};
 

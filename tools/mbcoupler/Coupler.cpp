@@ -68,7 +68,12 @@ ErrorCode Coupler::initialize_tree()
 
   // Get entities on the local part
   ErrorCode result = MB_SUCCESS;
-  if (myPc) result = myPc->get_part_entities(local_ents, max_dim);
+  if (myPc)
+  {
+    result = myPc->get_part_entities(local_ents, max_dim);
+    if (local_ents.empty())
+      result = myPc->get_part_entities(local_ents, max_dim-1);// go one dimension lower
+  }
   else local_ents = myRange;
   if (MB_SUCCESS != result || local_ents.empty()) {
     std::cout << "Problems getting source entities" << std::endl;

@@ -57,7 +57,7 @@ void print_usage()
   std::cerr << "        Write stdout and stderr streams to the file \'<dbg_file>.txt\'." << std::endl;
   std::cerr << "    -eps" << std::endl;
   std::cerr << "        epsilon" << std::endl;
-  std::cerr << "    -meth <method> (0=CONSTANT, 1=LINEAR_FE, 2=QUADRATIC_FE, 3=SPECTRAL)" << std::endl;
+  std::cerr << "    -meth <method> (0=CONSTANT, 1=LINEAR_FE, 2=QUADRATIC_FE, 3=SPECTRAL, 4=SPHERICAL)" << std::endl;
 }
 
 #ifdef MOAB_HAVE_HDF5
@@ -354,6 +354,8 @@ ErrorCode get_file_options(int argc, char **argv, int nprocs, int rank,
         method = Coupler::QUADRATIC_FE;
       else if (argv[npos][0] == '3')
         method = Coupler::SPECTRAL;
+      else if (argv[npos][0] == '4')
+        method = Coupler::SPHERICAL;
       else {
         std::cerr << "    ERROR - unrecognized method number " << method << std::endl;
         return MB_FAILURE;
@@ -520,7 +522,7 @@ ErrorCode test_interpolation(Interface *mbImpl,
                              double &ssnorm_time,
                              double &toler)
 {
-  assert(method >= Coupler::CONSTANT && method <= Coupler::SPECTRAL);
+  assert(method >= Coupler::CONSTANT && method <= Coupler::SPHERICAL);
 
   // Source is 1st mesh, target is 2nd
   Range src_elems, targ_elems, targ_verts;
@@ -547,6 +549,8 @@ ErrorCode test_interpolation(Interface *mbImpl,
 
     // First get all vertices adj to partition entities in target mesh
     result = pcs[1]->get_part_entities(targ_elems, 3);MB_CHK_ERR(result);
+    if (Coupler::SPHERICAL == method)
+      result = pcs[1]->get_part_entities(targ_elems, 2);MB_CHK_ERR(result); // get the polygons/quads on a sphere.
     if (Coupler::CONSTANT == method)
       targ_verts = targ_elems;
     else
