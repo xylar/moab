@@ -484,7 +484,10 @@ namespace Element {
     // newpos =  transf * (pos-v1);
     CartVect vx = vertex[1]-v1; // this will become Ox axis
     vx = vx/vx.length();
-    CartVect vz = v1/v1.length();
+    CartVect vz = -v1/v1.length();// z will point down; with this, if the second vertex is along x,
+                                   // the det will be positive for typical HOMME meshes
+                                   // this allows to simplify the ievaluate,
+                                   // so we can just reuse Map::ievaluate
     CartVect vy = vz*vx;
     transf = Matrix3(vx[0], vx[1], vx[2], vy[0], vy[1], vy[2], vz[0], vz[1], vz[2]);
     vertex[0]= CartVect(0.);
@@ -499,28 +502,8 @@ namespace Element {
      double v1v1= v1%v1;
      CartVect vnew =v1v1/(x%v1)*x; // so that (x-v1)%v1 is 0
      vnew =  transf*(vnew-v1);
-
-     tol = 1.0e-10;
-     const double error_tol_sqr = tol*tol;
-     double det;
-     CartVect xi(0.);
-     CartVect delta = evaluate(xi) - vnew;
-     Matrix3 J;
-
-     int iters=0;
-     while (delta % delta > error_tol_sqr) {
-       if(++iters>10)
-         throw Map::EvaluationError(x, vertex);
-
-       J = jacobian(xi);
-       det = J.determinant();
-       if (fabs(det) < std::numeric_limits<double>::epsilon())
-         throw Map::EvaluationError(x, vertex);
-       xi -= J.inverse(1.0/det) * delta;
-       delta = evaluate( xi ) - vnew;
-     }
-     return xi;
-     //return Map::ievaluate(vnew, tol);
+     // det will be positive now
+     return Map::ievaluate(vnew, tol);
    }
 
    bool SphericalQuad::inside_box(const CartVect & pos, double & tol) const
