@@ -1112,6 +1112,7 @@ namespace Element {
   }// LinearQuad::evaluate
 
   Matrix3 LinearQuad::jacobian( const CartVect& xi ) const {
+    // this basically ignores the z component: xi[2] or vertex[][2]
     Matrix3 J(0.0);
     for (unsigned i = 0; i < LinearQuad::corner_count; ++i) {
       const double   xi_p = 1 + xi[0]*corner[i][0];
@@ -1122,23 +1123,6 @@ namespace Element {
       J(1,0) += dNi_dxi   * vertex[i][1];
       J(0,1) += dNi_deta  * vertex[i][0];
       J(1,1) += dNi_deta  * vertex[i][1];
-#if 0
-      const double   xi_p = 1 + xi[0]*corner[i][0];
-      const double  eta_p = 1 + xi[1]*corner[i][1];
-      const double zeta_p = 1 ;// + xi[2]*corner[i][2]; // this is 1 , because corner[i][2] is 0
-      const double dNi_dxi   = corner[i][0] * eta_p * zeta_p;
-      const double dNi_deta  = corner[i][1] *  xi_p * zeta_p;
-      //const double dNi_dzeta = corner[i][2] *  xi_p *  eta_p;
-      J(0,0) += dNi_dxi   * vertex[i][0];
-      J(1,0) += dNi_dxi   * vertex[i][1];
-      J(2,0) += dNi_dxi   * vertex[i][2];
-      J(0,1) += dNi_deta  * vertex[i][0];
-      J(1,1) += dNi_deta  * vertex[i][1];
-      J(2,1) += dNi_deta  * vertex[i][2];
-     /* J(0,2) += dNi_dzeta * vertex[i][0];
-      J(1,2) += dNi_dzeta * vertex[i][1];
-      J(2,2) += dNi_dzeta * vertex[i][2];*/
-#endif
     }
     J(2,2) = 1.0; /* to make sure the Jacobian determinant is non-zero */
     J /= LinearQuad::corner_count;
