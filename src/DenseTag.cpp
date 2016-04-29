@@ -600,7 +600,7 @@ ErrorCode DenseTag::find_entities_with_value(const SequenceManager* seqman,
   if (!intersect_entities) {
     std::pair<EntityType,EntityType> range = type_range(type);
     TypeSequenceManager::const_iterator i;
-    for (EntityType t = range.first; t != range.second; ++i) {
+    for (EntityType t = range.first; t != range.second; ++t) {
       const TypeSequenceManager& map = seqman->entity_map(t);
       for (i = map.begin(); i != map.end(); ++i) {
         const void* data = (*i)->data()->get_tag_data(mySequenceArray);
