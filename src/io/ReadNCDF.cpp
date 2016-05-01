@@ -182,6 +182,7 @@ void ReadNCDF::reset()
   numberNodes_loading = 0;
   numberElements_loading = 0;
   numberElementBlocks_loading = 0;
+  numberFaceBlocks_loading = 0;
   numberNodeSets_loading = 0;
   numberSideSets_loading = 0;
   numberDimensions_loading = 0;
@@ -191,6 +192,9 @@ void ReadNCDF::reset()
 
   if (!nodesInLoadedBlocks.empty())
     nodesInLoadedBlocks.clear();
+
+  if (!faceBlocksLoading.empty())
+    faceBlocksLoading.clear();
 }
 
 ReadNCDF::~ReadNCDF()
@@ -318,6 +322,11 @@ ErrorCode ReadNCDF::load_file(const char *exodus_file_name,
     return status;
 
   // 3.
+  // extra for polyhedra blocks
+  status = read_face_blocks_headers();
+  if (MB_FAILURE == status)
+    return status;
+
   status = read_block_headers(blocks_to_load, num_blocks);
   if (MB_FAILURE == status)
     return status;
@@ -413,6 +422,7 @@ ErrorCode ReadNCDF::read_exodus_header()
   GET_DIM(temp_dim, "num_nodes", numberNodes_loading);
   GET_DIM(temp_dim, "num_elem", numberElements_loading);
   GET_DIM(temp_dim, "num_el_blk", numberElementBlocks_loading);
+  GET_DIM(temp_dim, "num_fa_blk", numberFaceBlocks_loading); // for polyhedra blocks
   GET_DIM(temp_dim, "num_elem", numberElements_loading);
   GET_DIM(temp_dim, "num_node_sets", numberNodeSets_loading);
   GET_DIM(temp_dim, "num_side_sets", numberSideSets_loading);
@@ -566,6 +576,12 @@ ErrorCode ReadNCDF::read_block_headers(const int *blocks_to_load,
   return MB_SUCCESS;
 }
 
+ErrorCode ReadNCDF::read_face_blocks_headers()
+{
+  //
+  return MB_SUCCESS;
+}
+
 ErrorCode ReadNCDF::read_elements(const Tag* file_id_tag)
 {
   // Read in elements
@@ -579,8 +595,10 @@ ErrorCode ReadNCDF::read_elements(const Tag* file_id_tag)
   std::vector<ReadBlockData>::iterator this_it;
     this_it = blocksLoading.begin();
 
+  int temp_dim;
   std::vector<char> temp_string_storage(max_str_length + 1);
   char *temp_string = &temp_string_storage[0];
+
   int nc_var;
   int block_seq_id = 1;
   std::vector<int> dims;
@@ -620,86 +638,150 @@ ErrorCode ReadNCDF::read_elements(const Tag* file_id_tag)
     int number_nodes = (*this_it).numElements*verts_per_element;
     const EntityType mb_type = ExoIIUtil::ExoIIElementMBEntity[(*this_it).elemType];
 
-    // Allocate an array to read in connectivity data
-    readMeshIface->get_element_connect(
-        this_it->numElements,
-        verts_per_element,
-        mb_type,
-        this_it->startExoId,
-        this_it->startMBId,
-        conn);
+    if (mb_type==MBPOLYGON)
+    {
+      // need to read another variable, num_nod_per_el, and
+      int num_nodes_poly_conn;
+      GET_DIMB(temp_dim, temp_string, "num_nod_per_el%d", block_seq_id, num_nodes_poly_conn);
+      // read the connec1 array, which is of dimensions num_nodes_poly_conn (only one )
+      std::vector<int> connec;
+      connec.resize(num_nodes_poly_conn);
+      count[0] = num_nodes_poly_conn;
 
-    // Create a range for this sequence of elements
-    EntityHandle start_range, end_range;
-    start_range = (*this_it).startMBId;
-    end_range = start_range + (*this_it).numElements - 1;
-
-    Range new_range(start_range, end_range);
-    //Range<EntityHandle> new_range((*this_it).startMBId,
-    //                              (*this_it).startMBId + (*this_it).numElements - 1);
-
-    // Create a MBSet for this block and set the material tag
-
-    EntityHandle ms_handle;
-    if (mdbImpl->create_meshset(MESHSET_SET | MESHSET_TRACK_OWNER, ms_handle) != MB_SUCCESS)
-      return MB_FAILURE;
-
-    if (mdbImpl->add_entities(ms_handle, new_range) != MB_SUCCESS)
-      return MB_FAILURE;
-
-    int mid_nodes[4];
-    CN::HasMidNodes(mb_type, verts_per_element, mid_nodes);
-    if (mdbImpl->tag_set_data(mHasMidNodesTag, &ms_handle, 1, mid_nodes) != MB_SUCCESS)
-      return MB_FAILURE;
-
-    // Just a check because the following code won't work if this case fails
-    assert(sizeof(EntityHandle) >= sizeof(int));
-
-    // tmp_ptr is of type int* and points at the same place as conn
-    int* tmp_ptr = reinterpret_cast<int*>(conn);
-
-    // Read the connectivity into that memory,  this will take only part of the array
-    // 1/2 if sizeof(EntityHandle) == 64 bits.
-    count[0] = this_it->numElements;
-    count[1] = verts_per_element;
-    fail = nc_get_vara_int(ncFile, nc_var, start, count, tmp_ptr);
-    if (NC_NOERR != fail) {
-      MB_SET_ERR(MB_FAILURE, "ReadNCDF:: Problem getting connectivity");
-    }
-
-    // Convert from exodus indices to vertex handles.
-    // Iterate backwards in case handles are larger than ints.
-    for (int i = number_nodes - 1; i >= 0; --i) {
-      if ((unsigned)tmp_ptr[i] >= nodesInLoadedBlocks.size()) {
-        MB_SET_ERR(MB_FAILURE, "Invalid node ID in block connectivity");
+      fail = nc_get_vara_int(ncFile, nc_var, start, count, &connec[0]);
+      if (NC_NOERR != fail) {
+        MB_SET_ERR(MB_FAILURE, "ReadNCDF:: Problem getting polygon connectivity ");
       }
-      nodesInLoadedBlocks[tmp_ptr[i]] = 1;
-      conn[i] = static_cast<EntityHandle>(tmp_ptr[i]) + vertexOffset;
+      // ebepecnt1
+      std::vector <int> ebec;
+      ebec.resize(this_it->numElements);
+      // Get the ncdf connect variable and the element type
+      INS_ID(temp_string, "ebepecnt%d", block_seq_id);
+      GET_VAR(temp_string, nc_var, dims);
+      count[0] = this_it->numElements;
+      fail = nc_get_vara_int(ncFile, nc_var, start, count, &ebec[0]);
+      if (NC_NOERR != fail) {
+        MB_SET_ERR(MB_FAILURE, "ReadNCDF:: Problem getting polygon nodes per elem ");
+      }
+      EntityHandle ms_handle;
+      if (mdbImpl->create_meshset(MESHSET_SET | MESHSET_TRACK_OWNER, ms_handle) != MB_SUCCESS)
+        return MB_FAILURE;
+      // create polygons one by one, and put them in the list
+      // also need to read the number of nodes for each polygon, then create
+      std::vector<EntityHandle> polyConn;
+      int ix=0;
+      for (int i=0; i<this_it->numElements; i++)
+      {
+        polyConn.resize(ebec[i]);
+        for (int j=0; j<ebec[i]; j++)
+        {
+          nodesInLoadedBlocks[connec[ix]] = 1;
+          polyConn[j]=vertexOffset + connec[ix++];
+        }
+        EntityHandle newp;
+        /*
+         *  ErrorCode create_element(const EntityType type,
+                                     const EntityHandle *connectivity,
+                                     const int num_vertices,
+                                     EntityHandle &element_handle)
+         */
+        if(mdbImpl->create_element(MBPOLYGON, &polyConn[0], ebec[i], newp) != MB_SUCCESS )
+          return MB_FAILURE;
+
+        if (mdbImpl->add_entities(ms_handle, &newp, 1) != MB_SUCCESS)
+          return MB_FAILURE;
+      }
+      // Set the block id with an offset
+      if (mdbImpl->tag_set_data(mMaterialSetTag, &ms_handle, 1, &block_id) != MB_SUCCESS)
+        return MB_FAILURE;
+      if (mdbImpl->tag_set_data(mGlobalIdTag, &ms_handle, 1, &block_id) != MB_SUCCESS)
+        return MB_FAILURE;
+
     }
+    else
+    {
+      // Allocate an array to read in connectivity data
+      readMeshIface->get_element_connect(
+          this_it->numElements,
+          verts_per_element,
+          mb_type,
+          this_it->startExoId,
+          this_it->startMBId,
+          conn);
 
-    // Adjust connectivity order if necessary
-    const int* reorder = exodus_elem_order_map[mb_type][verts_per_element];
-    if (reorder)
-      ReadUtilIface::reorder(reorder, conn, this_it->numElements, verts_per_element);
+      // Create a range for this sequence of elements
+      EntityHandle start_range, end_range;
+      start_range = (*this_it).startMBId;
+      end_range = start_range + (*this_it).numElements - 1;
 
-    readMeshIface->update_adjacencies((*this_it).startMBId, (*this_it).numElements,
-                                      ExoIIUtil::VerticesPerElement[(*this_it).elemType], conn);
+      Range new_range(start_range, end_range);
+      //Range<EntityHandle> new_range((*this_it).startMBId,
+      //                              (*this_it).startMBId + (*this_it).numElements - 1);
 
-    if (result == -1) {
-      MB_SET_ERR(MB_FAILURE, "ReadNCDF:: error getting element connectivity for block " << block_id);
-    }
+      // Create a MBSet for this block and set the material tag
 
-    // Set the block id with an offset
-    if (mdbImpl->tag_set_data(mMaterialSetTag, &ms_handle, 1, &block_id) != MB_SUCCESS)
-      return MB_FAILURE;
-    if (mdbImpl->tag_set_data(mGlobalIdTag, &ms_handle, 1, &block_id) != MB_SUCCESS)
-      return MB_FAILURE;
+      EntityHandle ms_handle;
+      if (mdbImpl->create_meshset(MESHSET_SET | MESHSET_TRACK_OWNER, ms_handle) != MB_SUCCESS)
+        return MB_FAILURE;
 
-    if (file_id_tag) {
-      Range range;
-      range.insert(this_it->startMBId, this_it->startMBId + this_it->numElements - 1);
-      readMeshIface->assign_ids(*file_id_tag, range, this_it->startExoId);
-    }
+      if (mdbImpl->add_entities(ms_handle, new_range) != MB_SUCCESS)
+        return MB_FAILURE;
+
+      int mid_nodes[4];
+      CN::HasMidNodes(mb_type, verts_per_element, mid_nodes);
+      if (mdbImpl->tag_set_data(mHasMidNodesTag, &ms_handle, 1, mid_nodes) != MB_SUCCESS)
+        return MB_FAILURE;
+
+      // Just a check because the following code won't work if this case fails
+      assert(sizeof(EntityHandle) >= sizeof(int));
+
+      // tmp_ptr is of type int* and points at the same place as conn
+      int* tmp_ptr = reinterpret_cast<int*>(conn);
+
+      // Read the connectivity into that memory,  this will take only part of the array
+      // 1/2 if sizeof(EntityHandle) == 64 bits.
+      count[0] = this_it->numElements;
+      count[1] = verts_per_element;
+      fail = nc_get_vara_int(ncFile, nc_var, start, count, tmp_ptr);
+      if (NC_NOERR != fail) {
+        MB_SET_ERR(MB_FAILURE, "ReadNCDF:: Problem getting connectivity");
+      }
+
+      // Convert from exodus indices to vertex handles.
+      // Iterate backwards in case handles are larger than ints.
+      for (int i = number_nodes - 1; i >= 0; --i) {
+        if ((unsigned)tmp_ptr[i] >= nodesInLoadedBlocks.size()) {
+          MB_SET_ERR(MB_FAILURE, "Invalid node ID in block connectivity");
+        }
+        nodesInLoadedBlocks[tmp_ptr[i]] = 1;
+        conn[i] = static_cast<EntityHandle>(tmp_ptr[i]) + vertexOffset;
+      }
+
+
+      // Adjust connectivity order if necessary
+      const int* reorder = exodus_elem_order_map[mb_type][verts_per_element];
+      if (reorder)
+        ReadUtilIface::reorder(reorder, conn, this_it->numElements, verts_per_element);
+
+      readMeshIface->update_adjacencies((*this_it).startMBId, (*this_it).numElements,
+                                        ExoIIUtil::VerticesPerElement[(*this_it).elemType], conn);
+
+      if (result == -1) {
+        MB_SET_ERR(MB_FAILURE, "ReadNCDF:: error getting element connectivity for block " << block_id);
+      }
+
+      // Set the block id with an offset
+      if (mdbImpl->tag_set_data(mMaterialSetTag, &ms_handle, 1, &block_id) != MB_SUCCESS)
+        return MB_FAILURE;
+      if (mdbImpl->tag_set_data(mGlobalIdTag, &ms_handle, 1, &block_id) != MB_SUCCESS)
+        return MB_FAILURE;
+
+      if (file_id_tag) {
+        Range range;
+        range.insert(this_it->startMBId, this_it->startMBId + this_it->numElements - 1);
+        readMeshIface->assign_ids(*file_id_tag, range, this_it->startExoId);
+      }
+    } // end regular block (not polygon)
   }
 
   return MB_SUCCESS;

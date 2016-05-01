@@ -25,12 +25,16 @@ static const char file_one[] = STRINGIFY(MESHDIR) "/mbtest1.g";
 static const char alt_file[] = STRINGIFY(MESHDIR) "/io/hex_2x2x2_ss.exo";
 static const char polyg[] = STRINGIFY(MESHDIR) "/io/poly8-10.vtk";
 static const char polyh[] = STRINGIFY(MESHDIR) "/io/polyhedra.vtk";
+static const char rpolyg[] = STRINGIFY(MESHDIR)"/io/polyg.exo";
+static const char rpolyh[] = STRINGIFY(MESHDIR) "/io/polyh.exo";
 #else
 static const char ho_file[] = "ho_test.g";
 static const char file_one[] = "mbtest1.g";
 static const char alt_file[] = "hex_2x2x2_ss.exo";
 static const char polyg[] = "poly8-10.vtk";
 static const char polyh[] = "polyhedra.vtk";
+static const char rpolyg[] = "polyg.exo";
+static const char rpolyh[] = "polyh.exo";
 #endif
 
 void read_file( Interface& moab, 
@@ -90,6 +94,8 @@ void test_read_sideset_ids();
 void test_read_nodeset_ids();
 void test_write_polygons();
 void test_write_polyhedra();
+void test_read_polygons();
+void test_read_polyhedra();
 
 void test_read_alternate_coord_format();
 
@@ -98,40 +104,42 @@ int main()
   int result = 0;
 
   result += RUN_TEST(mb_vertex_coordinate_test);
-  result += RUN_TEST(mb_bar_connectivity_test);
-  result += RUN_TEST(mb_tri_connectivity_test);
-  result += RUN_TEST(mb_quad_connectivity_test);
-  result += RUN_TEST(mb_hex_connectivity_test);
-  result += RUN_TEST(mb_tet_connectivity_test);
-  result += RUN_TEST(mb_write_mesh_test);
-  
-  result += RUN_TEST(test_types);
-  
-  result += RUN_TEST(test_tri6 );
-  result += RUN_TEST(test_tri7 );
-  result += RUN_TEST(test_quad5);
-  result += RUN_TEST(test_quad8);
-  result += RUN_TEST(test_quad9);
-  result += RUN_TEST(test_tet8 );
-  result += RUN_TEST(test_tet10);
-  result += RUN_TEST(test_tet14);
-  result += RUN_TEST(test_hex9 );
-  result += RUN_TEST(test_hex20);
-  result += RUN_TEST(test_hex27);
-  
-  result += RUN_TEST(test_read_tri6_side );
-  result += RUN_TEST(test_read_shell_side);
-  result += RUN_TEST(test_read_shell_edge);
-  result += RUN_TEST(test_read_hex20_side);
-  
-  result += RUN_TEST(test_read_block_ids );
-  result += RUN_TEST(test_read_sideset_ids);
-  result += RUN_TEST(test_read_nodeset_ids);
-
-  result += RUN_TEST(test_read_alternate_coord_format);
-  
-  result += RUN_TEST(test_write_polygons);
-  result += RUN_TEST(test_write_polyhedra);
+//  result += RUN_TEST(mb_bar_connectivity_test);
+//  result += RUN_TEST(mb_tri_connectivity_test);
+//  result += RUN_TEST(mb_quad_connectivity_test);
+//  result += RUN_TEST(mb_hex_connectivity_test);
+//  result += RUN_TEST(mb_tet_connectivity_test);
+//  result += RUN_TEST(mb_write_mesh_test);
+//
+//  result += RUN_TEST(test_types);
+//
+//  result += RUN_TEST(test_tri6 );
+//  result += RUN_TEST(test_tri7 );
+//  result += RUN_TEST(test_quad5);
+//  result += RUN_TEST(test_quad8);
+//  result += RUN_TEST(test_quad9);
+//  result += RUN_TEST(test_tet8 );
+//  result += RUN_TEST(test_tet10);
+//  result += RUN_TEST(test_tet14);
+//  result += RUN_TEST(test_hex9 );
+//  result += RUN_TEST(test_hex20);
+//  result += RUN_TEST(test_hex27);
+//
+//  result += RUN_TEST(test_read_tri6_side );
+//  result += RUN_TEST(test_read_shell_side);
+//  result += RUN_TEST(test_read_shell_edge);
+//  result += RUN_TEST(test_read_hex20_side);
+//
+//  result += RUN_TEST(test_read_block_ids );
+//  result += RUN_TEST(test_read_sideset_ids);
+//  result += RUN_TEST(test_read_nodeset_ids);
+//
+//  result += RUN_TEST(test_read_alternate_coord_format);
+//
+//  result += RUN_TEST(test_write_polygons);
+//  result += RUN_TEST(test_write_polyhedra);
+  result += RUN_TEST(test_read_polygons);
+  //result += RUN_TEST(test_read_polyhedra);
 
   return result;
 }
@@ -1070,5 +1078,19 @@ void test_write_polyhedra()
   ErrorCode rval = mb.load_file( polyh );
   CHECK_ERR(rval);
   rval = mb.write_file("polyh.exo");
+  CHECK_ERR(rval);
+}
+void test_read_polygons()
+{
+  Core moab;
+  Interface& mb = moab;
+  ErrorCode rval = mb.load_file( rpolyg );
+  CHECK_ERR(rval);
+}
+void test_read_polyhedra()
+{
+  Core moab;
+  Interface& mb = moab;
+  ErrorCode rval = mb.load_file( rpolyh );
   CHECK_ERR(rval);
 }
