@@ -126,6 +126,9 @@ private:
   ErrorCode read_block_headers(const int *blocks_to_load,
                                   const int num_blocks);
   
+  // these are needed only when polyhedra are present
+  ErrorCode read_polyhedra_faces();
+
     //! read the element blocks
   ErrorCode read_elements(const Tag* file_id_tag);
   

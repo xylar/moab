@@ -323,15 +323,24 @@ ErrorCode ReadNCDF::load_file(const char *exodus_file_name,
 
   // 3.
   // extra for polyhedra blocks
-  status = read_face_blocks_headers();
-  if (MB_FAILURE == status)
-    return status;
+  if (numberFaceBlocks_loading>0)
+  {
+    status = read_face_blocks_headers();
+    if (MB_FAILURE == status)
+      return status;
+  }
 
   status = read_block_headers(blocks_to_load, num_blocks);
   if (MB_FAILURE == status)
     return status;
 
   // 4. Read elements (might not read them, depending on active blocks)
+  if (numberFaceBlocks_loading>0)
+  {
+    status = read_polyhedra_faces();
+    if (MB_FAILURE == status)
+      return status;
+  }
   status = read_elements(file_id_tag);
   if (MB_FAILURE == status)
     return status;
@@ -578,7 +587,107 @@ ErrorCode ReadNCDF::read_block_headers(const int *blocks_to_load,
 
 ErrorCode ReadNCDF::read_face_blocks_headers()
 {
-  //
+  // Get the ids of all the blocks of this file we're reading in
+  std::vector<int> fblock_ids(numberFaceBlocks_loading);
+  int nc_fblock_ids = -1;
+  GET_1D_INT_VAR("fa_prop1", nc_fblock_ids, fblock_ids);
+  if (-1 == nc_fblock_ids) {
+    MB_SET_ERR(MB_FAILURE, "ReadNCDF:: Problem getting fa_prop1 variable");
+  }
+
+  int temp_dim;
+  std::vector<char> temp_string_storage(max_str_length + 1);
+  char *temp_string = &temp_string_storage[0];
+  //int block_seq_id = 1;
+  int exodus_id = 1;
+
+  for (int i = 1; i <= numberFaceBlocks_loading; i++) {
+    int num_elements;
+
+    GET_DIMB(temp_dim, temp_string, "num_fa_in_blk%d", i, num_elements);
+
+    // Don't read element type string for now, since it's an attrib
+    // on the connectivity
+    // Get the entity type corresponding to this ExoII element type
+    //ExoIIElementType elem_type =
+    //ExoIIUtil::static_element_name_to_type(element_type_string);
+
+    // Tag each element block(mesh set) with enum for ElementType (SHELL, QUAD4, ....etc)
+    ReadFaceBlockData fblock_data;
+    fblock_data.faceBlockId = i;
+    fblock_data.startExoId = exodus_id;
+    fblock_data.numElements = num_elements;
+
+    faceBlocksLoading.push_back(fblock_data);
+    exodus_id += num_elements;
+  }
+  return MB_SUCCESS;
+}
+ErrorCode ReadNCDF::read_polyhedra_faces()
+{
+  int temp_dim;
+  std::vector<char> temp_string_storage(max_str_length + 1);
+  char *temp_string = &temp_string_storage[0];
+  nodesInLoadedBlocks.resize(numberNodes_loading + 1);
+  size_t start[1] = {0}, count[1]; // one dim arrays only here!
+  std::vector<ReadFaceBlockData>::iterator this_it;
+  this_it = faceBlocksLoading.begin();
+
+  int fblock_seq_id = 1;
+  std::vector<int> dims;
+  int nc_var, fail;
+
+  for ( ; this_it != faceBlocksLoading.end(); ++this_it, fblock_seq_id++) {
+    int num_fa_in_blk;
+    GET_DIMB(temp_dim, temp_string, "num_fa_in_blk%d", fblock_seq_id, num_fa_in_blk);
+    int num_nod_per_fa;
+    GET_DIMB(temp_dim, temp_string, "num_nod_per_fa%d", fblock_seq_id, num_nod_per_fa);
+    // Get the ncdf connect variable and the element type
+    INS_ID(temp_string, "fbconn%d", fblock_seq_id);
+    GET_VAR(temp_string, nc_var, dims);
+    std::vector<int> fbconn;
+    fbconn.resize(num_nod_per_fa);
+    count[0] = num_nod_per_fa;
+
+    fail = nc_get_vara_int(ncFile, nc_var, start, count, &fbconn[0]);
+    if (NC_NOERR != fail) {
+      MB_SET_ERR(MB_FAILURE, "ReadNCDF:: Problem getting face polyhedra connectivity ");
+    }
+    std::vector<int> fbepecnt;
+    fbepecnt.resize(num_fa_in_blk);
+    INS_ID(temp_string, "fbepecnt%d", fblock_seq_id);
+    GET_VAR(temp_string, nc_var, dims);
+    count[0] = num_fa_in_blk;
+    fail = nc_get_vara_int(ncFile, nc_var, start, count, &fbepecnt[0]);
+    if (NC_NOERR != fail) {
+      MB_SET_ERR(MB_FAILURE, "ReadNCDF:: Problem getting face polyhedra connectivity ");
+    }
+    // now we can create some polygons
+    std::vector<EntityHandle> polyConn;
+    int ix=0;
+    for (int i=0; i<num_fa_in_blk; i++)
+    {
+      polyConn.resize(fbepecnt[i]);
+      for (int j=0; j<fbepecnt[i]; j++)
+      {
+        nodesInLoadedBlocks[fbconn[ix]] = 1;
+        polyConn[j]=vertexOffset + fbconn[ix++];
+      }
+      EntityHandle newp;
+      /*
+       *  ErrorCode create_element(const EntityType type,
+                                   const EntityHandle *connectivity,
+                                   const int num_vertices,
+                                   EntityHandle &element_handle)
+       */
+      if(mdbImpl->create_element(MBPOLYGON, &polyConn[0], fbepecnt[i], newp) != MB_SUCCESS )
+        return MB_FAILURE;
+
+      // add the element in order
+      polyfaces.push_back(newp);
+
+    }
+  }
   return MB_SUCCESS;
 }
 
@@ -589,7 +698,8 @@ ErrorCode ReadNCDF::read_elements(const Tag* file_id_tag)
   int result = 0;
 
   // Initialize the nodeInLoadedBlocks vector
-  nodesInLoadedBlocks.resize(numberNodes_loading + 1);
+  if (nodesInLoadedBlocks.size() < (size_t) (numberNodes_loading + 1) )
+    nodesInLoadedBlocks.resize(numberNodes_loading + 1); // this could be repeated?
   memset(&nodesInLoadedBlocks[0], 0, (numberNodes_loading + 1)*sizeof(char));
 
   std::vector<ReadBlockData>::iterator this_it;
@@ -616,8 +726,14 @@ ErrorCode ReadNCDF::read_elements(const Tag* file_id_tag)
     // Get the ncdf connect variable and the element type
     INS_ID(temp_string, "connect%d", block_seq_id);
     GET_VAR(temp_string, nc_var, dims);
-    if (!nc_var) {
-      MB_SET_ERR(MB_FAILURE, "ReadNCDF:: Problem getting connect variable");
+    if (-1 == nc_var || 0==nc_var) { // try other var, for polyhedra blocks
+      // it could be polyhedra block, defined by fbconn and NFACED attribute
+      INS_ID(temp_string, "facconn%d", block_seq_id);
+      GET_VAR(temp_string, nc_var, dims);
+
+      if (-1 == nc_var || 0 == nc_var) {
+        MB_SET_ERR(MB_FAILURE, "ReadNCDF:: Problem getting connec or faccon variable");
+      }
     }
     nc_type att_type;
     size_t att_len;
@@ -700,7 +816,68 @@ ErrorCode ReadNCDF::read_elements(const Tag* file_id_tag)
         return MB_FAILURE;
 
     }
-    else
+    else if (mb_type==MBPOLYHEDRON)
+    {
+      // need to read another variable, num_fac_per_el
+      int num_fac_per_el;
+      GET_DIMB(temp_dim, temp_string, "num_fac_per_el%d", block_seq_id, num_fac_per_el);
+      // read the fbconn array, which is of dimensions num_nod_per_fa (only one dimension)
+      std::vector<int> facconn;
+      facconn.resize(num_fac_per_el);
+      count[0] = num_fac_per_el;
+
+      fail = nc_get_vara_int(ncFile, nc_var, start, count, &facconn[0]);
+      if (NC_NOERR != fail) {
+        MB_SET_ERR(MB_FAILURE, "ReadNCDF:: Problem getting polygon connectivity ");
+      }
+      // ebepecnt1
+      std::vector <int> ebepecnt;
+      ebepecnt.resize(this_it->numElements);
+      // Get the ncdf connect variable and the element type
+      INS_ID(temp_string, "ebepecnt%d", block_seq_id);
+      GET_VAR(temp_string, nc_var, dims);
+      count[0] = this_it->numElements;
+      fail = nc_get_vara_int(ncFile, nc_var, start, count, &ebepecnt[0]);
+      if (NC_NOERR != fail) {
+        MB_SET_ERR(MB_FAILURE, "ReadNCDF:: Problem getting polygon nodes per elem ");
+      }
+      EntityHandle ms_handle;
+      if (mdbImpl->create_meshset(MESHSET_SET | MESHSET_TRACK_OWNER, ms_handle) != MB_SUCCESS)
+        return MB_FAILURE;
+      // create polygons one by one, and put them in the list
+      // also need to read the number of nodes for each polygon, then create
+      std::vector<EntityHandle> polyConn;
+      int ix=0;
+      for (int i=0; i<this_it->numElements; i++)
+      {
+        polyConn.resize(ebepecnt[i]);
+        for (int j=0; j<ebepecnt[i]; j++)
+        {
+          polyConn[j]= polyfaces [ facconn[ix++]-1 ] ;
+        }
+        EntityHandle newp;
+        /*
+         *  ErrorCode create_element(const EntityType type,
+                                     const EntityHandle *connectivity,
+                                     const int num_vertices,
+                                     EntityHandle &element_handle)
+         */
+        if(mdbImpl->create_element(MBPOLYHEDRON, &polyConn[0], ebepecnt[i], newp) != MB_SUCCESS )
+          return MB_FAILURE;
+
+        // add the element in order
+        this_it->polys.push_back(newp);
+        if (mdbImpl->add_entities(ms_handle, &newp, 1) != MB_SUCCESS)
+          return MB_FAILURE;
+      }
+      // Set the block id with an offset
+      if (mdbImpl->tag_set_data(mMaterialSetTag, &ms_handle, 1, &block_id) != MB_SUCCESS)
+        return MB_FAILURE;
+      if (mdbImpl->tag_set_data(mGlobalIdTag, &ms_handle, 1, &block_id) != MB_SUCCESS)
+        return MB_FAILURE;
+
+    }
+    else // this is regular
     {
       // Allocate an array to read in connectivity data
       readMeshIface->get_element_connect(

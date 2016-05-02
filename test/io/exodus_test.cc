@@ -104,42 +104,42 @@ int main()
   int result = 0;
 
   result += RUN_TEST(mb_vertex_coordinate_test);
-//  result += RUN_TEST(mb_bar_connectivity_test);
-//  result += RUN_TEST(mb_tri_connectivity_test);
-//  result += RUN_TEST(mb_quad_connectivity_test);
-//  result += RUN_TEST(mb_hex_connectivity_test);
-//  result += RUN_TEST(mb_tet_connectivity_test);
-//  result += RUN_TEST(mb_write_mesh_test);
-//
-//  result += RUN_TEST(test_types);
-//
-//  result += RUN_TEST(test_tri6 );
-//  result += RUN_TEST(test_tri7 );
-//  result += RUN_TEST(test_quad5);
-//  result += RUN_TEST(test_quad8);
-//  result += RUN_TEST(test_quad9);
-//  result += RUN_TEST(test_tet8 );
-//  result += RUN_TEST(test_tet10);
-//  result += RUN_TEST(test_tet14);
-//  result += RUN_TEST(test_hex9 );
-//  result += RUN_TEST(test_hex20);
-//  result += RUN_TEST(test_hex27);
-//
-//  result += RUN_TEST(test_read_tri6_side );
-//  result += RUN_TEST(test_read_shell_side);
-//  result += RUN_TEST(test_read_shell_edge);
-//  result += RUN_TEST(test_read_hex20_side);
-//
-//  result += RUN_TEST(test_read_block_ids );
-//  result += RUN_TEST(test_read_sideset_ids);
-//  result += RUN_TEST(test_read_nodeset_ids);
-//
-//  result += RUN_TEST(test_read_alternate_coord_format);
-//
-//  result += RUN_TEST(test_write_polygons);
-//  result += RUN_TEST(test_write_polyhedra);
+  result += RUN_TEST(mb_bar_connectivity_test);
+  result += RUN_TEST(mb_tri_connectivity_test);
+  result += RUN_TEST(mb_quad_connectivity_test);
+  result += RUN_TEST(mb_hex_connectivity_test);
+  result += RUN_TEST(mb_tet_connectivity_test);
+  result += RUN_TEST(mb_write_mesh_test);
+
+  result += RUN_TEST(test_types);
+
+  result += RUN_TEST(test_tri6 );
+  result += RUN_TEST(test_tri7 );
+  result += RUN_TEST(test_quad5);
+  result += RUN_TEST(test_quad8);
+  result += RUN_TEST(test_quad9);
+  result += RUN_TEST(test_tet8 );
+  result += RUN_TEST(test_tet10);
+  result += RUN_TEST(test_tet14);
+  result += RUN_TEST(test_hex9 );
+  result += RUN_TEST(test_hex20);
+  result += RUN_TEST(test_hex27);
+
+  result += RUN_TEST(test_read_tri6_side );
+  result += RUN_TEST(test_read_shell_side);
+  result += RUN_TEST(test_read_shell_edge);
+  result += RUN_TEST(test_read_hex20_side);
+
+  result += RUN_TEST(test_read_block_ids );
+  result += RUN_TEST(test_read_sideset_ids);
+  result += RUN_TEST(test_read_nodeset_ids);
+
+  result += RUN_TEST(test_read_alternate_coord_format);
+
+  result += RUN_TEST(test_write_polygons);
+  result += RUN_TEST(test_write_polyhedra);
   result += RUN_TEST(test_read_polygons);
-  //result += RUN_TEST(test_read_polyhedra);
+  result += RUN_TEST(test_read_polyhedra);
 
   return result;
 }
