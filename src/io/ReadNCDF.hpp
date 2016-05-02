@@ -63,7 +63,6 @@ struct ReadFaceBlockData
 {
   int faceBlockId;
   int startExoId;
-  std::vector<EntityHandle> faces; // the order is maintained with this
   int numElements;
   bool reading_in;
   // ExoIIElementType elemType; should be polygons
@@ -231,6 +230,8 @@ private:
 
   //vector of blocks that are loading 
   std::vector< ReadBlockData > blocksLoading;
+
+  std::vector<EntityHandle> polyfaces; // the order is maintained with this for polyhedra
 
   //vector of face blocks that are loading : these are for polyhedra blocks
   std::vector< ReadFaceBlockData > faceBlocksLoading;

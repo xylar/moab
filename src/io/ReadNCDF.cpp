@@ -688,6 +688,8 @@ ErrorCode ReadNCDF::read_elements(const Tag* file_id_tag)
         if(mdbImpl->create_element(MBPOLYGON, &polyConn[0], ebec[i], newp) != MB_SUCCESS )
           return MB_FAILURE;
 
+        // add the element in order
+        this_it->polys.push_back(newp);
         if (mdbImpl->add_entities(ms_handle, &newp, 1) != MB_SUCCESS)
           return MB_FAILURE;
       }
@@ -799,16 +801,30 @@ ErrorCode ReadNCDF::read_global_ids()
     int id_pos = 0;
     for (iter = blocksLoading.begin(); iter != blocksLoading.end(); ++iter) {
       if (iter->reading_in) {
-        if (iter->startMBId != 0) {
-          Range range(iter->startMBId, iter->startMBId + iter->numElements - 1);
-          ErrorCode error = mdbImpl->tag_set_data(mGlobalIdTag,
-                                                  range, &ids[id_pos]);
-          if (error != MB_SUCCESS)
-            return error;
-          id_pos += iter->numElements;
+        if (iter->elemType != EXOII_POLYGON &&
+            iter->elemType != EXOII_POLYHEDRON )
+        {
+          if (iter->startMBId != 0) {
+            Range range(iter->startMBId, iter->startMBId + iter->numElements - 1);
+            ErrorCode error = mdbImpl->tag_set_data(mGlobalIdTag,
+                                                    range, &ids[id_pos]);
+            if (error != MB_SUCCESS)
+              return error;
+            id_pos += iter->numElements;
+          }
+          else
+            return MB_FAILURE;
         }
-        else
-          return MB_FAILURE;
+        else // polygons or polyhedrons; use id from elements
+        {
+          for ( std::vector<EntityHandle>::iterator eit = iter->polys.begin();
+              eit!=iter->polys.end(); eit++, id_pos++)
+          {
+            EntityHandle peh= *eit;
+            if(mdbImpl->tag_set_data(mGlobalIdTag, &peh, 1, &ids[id_pos]) != MB_SUCCESS)
+              return MB_FAILURE;
+          }
+        }
       }
     }
   }
