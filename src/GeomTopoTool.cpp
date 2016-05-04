@@ -40,7 +40,7 @@ const char GEOM_SENSE_N_SENSES_TAG_NAME[] = "GEOM_SENSE_N_SENSES";
 GeomTopoTool::GeomTopoTool(Interface *impl, bool find_geoments, EntityHandle modelRootSet) :
   mdbImpl(impl), sense2Tag(0), senseNEntsTag(0), senseNSensesTag(0),
   geomTag(0), gidTag(0), modelSet(modelRootSet), updated(false), obbTree(impl, NULL, true),
-  contiguous(true), oneVolRootSet(0)
+  setOffset(0), contiguous(true), oneVolRootSet(0)
 {
 
   ErrorCode result = mdbImpl->tag_get_handle(GEOM_DIMENSION_TAG_NAME, 1,

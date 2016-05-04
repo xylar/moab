@@ -49,7 +49,7 @@ public:
   double radius;      //!< outer radius (1/2 diagonal length) of box
 #endif
 
-  inline OrientedBox() {}
+  inline OrientedBox() : radius(0.0) {}
 
   OrientedBox( const CartVect axis[3], const CartVect& center );
 
@@ -93,12 +93,12 @@ public:
                                             const Range& elements );
 
     /** Structure to hold temporary accumulated triangle data for
-     *  caculating box orietation.  See box_from_covariance_data
+     *  calculating box orientation.  See box_from_covariance_data
      *  to see how this is used to calculate the final covariance matrix
      *  and resulting box orientation.
      */
   struct CovarienceData {
-    CovarienceData() {}
+    CovarienceData() : area(0.0) {}
     CovarienceData( const Matrix3& m, const CartVect& c, double a)
       : matrix(m), center(c), area(a) {}
     Matrix3 matrix;    //!< Running sum for covariance matrix
@@ -111,7 +111,7 @@ public:
                                                 Interface* moab_instance,
                                                 const Range& elements );
   
-    /** Calculate an OrientedBox given an arrray of CovarienceData and 
+    /** Calculate an OrientedBox given an array of CovarienceData and
      *  the list  of vertices the box is to bound.
      */
   static ErrorCode compute_from_covariance_data( OrientedBox& result,

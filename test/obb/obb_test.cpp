@@ -312,7 +312,8 @@ class TreeValidator : public OrientedBoxTreeTool::Op
         bad_outer_radius_count(0),
         missing_surface_count(0),
         multiple_surface_count(0),
-        surface_depth(-1)
+        surface_depth(-1),
+        surface_handle(0)
       {}
     
     bool is_valid() const 
@@ -1002,7 +1003,7 @@ static bool do_ray_fire_test( OrientedBoxTreeTool& tool,
     if (non_tol_count2 > NUM_NON_TOL_INT) {
       if (verbosity)
         std::cout << "  Requested " << NUM_NON_TOL_INT << "intersections "
-                  << "  beyond tolernace.  Got " << non_tol_count2 << std::endl;
+                  << "  beyond tolerance.  Got " << non_tol_count2 << std::endl;
       result = false;
     }
 
