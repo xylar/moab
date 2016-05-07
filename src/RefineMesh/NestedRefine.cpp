@@ -2019,13 +2019,13 @@ namespace moab{
      //All shared processors
      std::set<unsigned int> shprocs;
      error = pcomm->get_comm_procs(shprocs);MB_CHK_ERR(error);
-     std::cout<<"#shprocs = "<<shprocs.size()<<std::endl;
+   //  std::cout<<"#shprocs = "<<shprocs.size()<<std::endl;
 
      std::vector<int> sharedprocs;
      for (std::set<unsigned int>::iterator it = shprocs.begin(); it != shprocs.end(); it++)
        sharedprocs.push_back(*it);
      int nprocs = sharedprocs.size();
-     std::cout<<"nprocs = "<<nprocs<<std::endl;
+   //  std::cout<<"nprocs = "<<nprocs<<std::endl;
 
      //Create buffer variables storing the entities to be sent and received
      std::vector<std::vector<int> > nsharedEntsperproc(nprocs);
@@ -2046,16 +2046,16 @@ namespace moab{
          Range allEnts;
          error = collect_shared_entities_by_dimension(sharedentities, allEnts);MB_CHK_ERR(error);
 
-         std::cout<<"collect_shared_entities_by_dimension"<<std::endl;
+        // std::cout<<"collect_shared_entities_by_dimension"<<std::endl;
 
          Range V0, E0, F0;
          V0 = allEnts.subset_by_dimension(0);
          E0 = allEnts.subset_by_dimension(1);
          F0 = allEnts.subset_by_dimension(2);
 
-         std::cout<<"#sharedFaces with proc = "<<sharedprocs[i]<<" :: "<<F0.size()<<std::endl;
-         std::cout<<"#sharedEdges with proc = "<<sharedprocs[i]<<" :: "<<E0.size()<<std::endl;
-         std::cout<<"#sharedVerts with proc = "<<sharedprocs[i]<<" :: "<<V0.size()<<std::endl;
+      //   std::cout<<"#sharedFaces with proc = "<<sharedprocs[i]<<" :: "<<F0.size()<<std::endl;
+    //     std::cout<<"#sharedEdges with proc = "<<sharedprocs[i]<<" :: "<<E0.size()<<std::endl;
+   //      std::cout<<"#sharedVerts with proc = "<<sharedprocs[i]<<" :: "<<V0.size()<<std::endl;
 
          // Step 2A: Prepare msg to be sent:
          //
@@ -2772,9 +2772,11 @@ namespace moab{
            rhandles.push_back(pit->second);
 
          //DBG
-         std::cout<<"entity = "<<entity<<std::endl;
-         for (int j=0; j<(int)rprocs.size(); j++)
-          std::cout<<"rprocs["<<j<<"] = "<<rprocs[j]<<", rhandles["<<j<<"] = "<<rhandles[j]<<std::endl;
+       //  if (entity == 10388)
+      //     std::cout<<"Reached Here"<<std::endl;
+       //  std::cout<<"entity = "<<entity<<std::endl;
+       //  for (int j=0; j<(int)rprocs.size(); j++)
+         // std::cout<<"rprocs["<<j<<"] = "<<rprocs[j]<<", rhandles["<<j<<"] = "<<rhandles[j]<<std::endl;
          //DBG
 
          error = pcomm->update_remote_data(entity, rprocs, rhandles);MB_CHK_ERR(error);
@@ -2810,17 +2812,24 @@ namespace moab{
            {
              EntityType ftype = mbImpl->type_from_handle(buffer[0]);
 
-             int start, end, toadd;
+             int start, end, toadd, prev;
              start = end = entity_index;
-             toadd = nentities;
+             toadd = prev = nentities;
              for (int i=0; i< level; i++)
                {
                  int d = get_index_from_degree(level_dsequence[i]);
                  int nch = refTemplates[ftype-1][d].total_new_ents;
-                 start = start*nch + toadd;
-                 end = end*nch + nch-1 + toadd;
-                 toadd += toadd*nch;
+                 start = start*nch;
+                 end = end*nch + nch-1;
+                 if (i < level-1)
+                   {
+                     prev = prev*nch;
+                     toadd += prev;
+                   }
                }
+
+             start += toadd;
+             end += toadd;
 
              int num_child = end-start+1;
              data.reserve(num_child);
@@ -2836,12 +2845,13 @@ namespace moab{
              EntityType ftype = mbImpl->type_from_handle(buffer[0]);
              int nepf = ahf->lConnMap2D[ftype-2].num_verts_in_face;
 
-             int toadd=nentities;
+             int toadd=nentities, prev = nentities;
              for (int i=0; i< nlevels; i++)
                {
                  int d = get_index_from_degree(level_dsequence[i]);
                  int nch = refTemplates[ftype-1][d].total_new_ents;
-                 toadd += toadd*nch;
+                 prev = prev*nch;
+                 toadd += prev;
                }
 
              for (int i=0; i<nepf; i++)
@@ -2852,12 +2862,13 @@ namespace moab{
              EntityType ftype = mbImpl->type_from_handle(buffer[0]);
              int nepf = ahf->lConnMap2D[ftype-2].num_verts_in_face;
 
-             int toadd=nentities;
+             int toadd=nentities, prev = nentities;
              for (int i=0; i< nlevels; i++)
                {
                  int d = get_index_from_degree(level_dsequence[i]);
                  int nch = refTemplates[ftype-1][d].total_new_ents;
-                 toadd += toadd*nch;
+                 prev = prev*nch;
+                 toadd += prev;
                }
              toadd += toadd*nepf;
 

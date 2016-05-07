@@ -72,7 +72,10 @@ ErrorCode test_adjacencies(Interface *mbImpl, NestedRefine *nr, Range all_ents)
   if (!edges.empty())
     {
       conn.clear(); ents.clear();
-      std::copy(edges.begin(), edges.end(), ents.begin());
+
+      for (Range::iterator it = edges.begin(); it != edges.end(); it++)
+        ents.push_back(*it);
+    //  std::copy(edges.begin(), edges.end(), ents.begin());
       error = mbImpl->get_connectivity(&ents[0], (int)ents.size(), conn);CHECK_ERR(error);
       error = read_face->update_adjacencies(*ents.begin(),(int)ents.size(), 2, &conn[0]);CHECK_ERR(error);
     }
@@ -80,7 +83,11 @@ ErrorCode test_adjacencies(Interface *mbImpl, NestedRefine *nr, Range all_ents)
   if (!faces.empty())
     {
       conn.clear(); ents.clear();
-      std::copy(faces.begin(), faces.end(), ents.begin());
+
+      for (Range::iterator it = faces.begin(); it != faces.end(); it++)
+        ents.push_back(*it);
+
+    //  std::copy(faces.begin(), faces.end(), ents.begin());
       error = mbImpl->get_connectivity(&ents[0], 1, conn);CHECK_ERR(error);
       int nvF = conn.size(); conn.clear();
       error = mbImpl->get_connectivity(&ents[0], (int)ents.size(), conn);CHECK_ERR(error);
@@ -90,7 +97,10 @@ ErrorCode test_adjacencies(Interface *mbImpl, NestedRefine *nr, Range all_ents)
   if (!cells.empty())
     {
       conn.clear(); ents.clear();
-      std::copy(cells.begin(), cells.end(), ents.begin());
+
+      for (Range::iterator it = cells.begin(); it != cells.end(); it++)
+        ents.push_back(*it);
+     // std::copy(cells.begin(), cells.end(), ents.begin());
       error = mbImpl->get_connectivity(&ents[0], 1, conn);CHECK_ERR(error);
       int nvF = conn.size(); conn.clear();
       error = mbImpl->get_connectivity(&ents[0], (int)ents.size(), conn);CHECK_ERR(error);
@@ -427,7 +437,7 @@ ErrorCode refine_entities(Interface *mb,  ParallelComm* pc, EntityHandle fset, i
         }
 
       //Check adjacencies
-     // error = test_adjacencies(mb, &uref, all_ents); CHECK_ERR(error);
+      error = test_adjacencies(mb, &uref, all_ents); CHECK_ERR(error);
 
       //Check interlevel child-parent query between previous and current level
       for (int type = 1; type < 3; type++)
@@ -1267,7 +1277,7 @@ ErrorCode test_mesh(const char* filename, int *level_degrees, int num_levels)
 #endif
 
     //Generate hierarchy
-    error = refine_entities(&moab, pc, fileset, level_degrees, num_levels, true);  CHECK_ERR(error);
+    error = refine_entities(&moab, pc, fileset, level_degrees, num_levels, false);  CHECK_ERR(error);
 
     return MB_SUCCESS;
 }

@@ -1003,9 +1003,9 @@ ErrorCode ParallelComm::update_remote_data(EntityHandle entity, std::vector<int>
 
 
   //DBG
-  std::cout<<"entity = "<<entity<<std::endl;
-  for (int j=0; j<procs.size(); j++)
-   std::cout<<"procs["<<j<<"] = "<<procs[j]<<", handles["<<j<<"] = "<<handles[j]<<std::endl;
+ // std::cout<<"entity = "<<entity<<std::endl;
+ // for (int j=0; j<procs.size(); j++)
+  // std::cout<<"procs["<<j<<"] = "<<procs[j]<<", handles["<<j<<"] = "<<handles[j]<<std::endl;
   //DBG
 
 
@@ -1021,13 +1021,16 @@ ErrorCode ParallelComm::update_remote_data(EntityHandle entity, std::vector<int>
 
 
       //DBG
-      std::cout<<"entity = "<<entity<<std::endl;
-      for (int j=0; j<procs.size(); j++)
-       std::cout<<"procs["<<j<<"] = "<<procs[j]<<", handles["<<j<<"] = "<<handles[j]<<std::endl;
+    //  std::cout<<"entity = "<<entity<<std::endl;
+     // for (int j=0; j<procs.size(); j++)
+      // std::cout<<"procs["<<j<<"] = "<<procs[j]<<", handles["<<j<<"] = "<<handles[j]<<std::endl;
       //DBG
 
 
     }
+
+ // if ((entity == 10388) && (rank()==1))
+//    std::cout<<"Here"<<std::endl;
 
   error = update_remote_data(entity, &procs[0], &handles[0], procs.size(), pstatus);MB_CHK_ERR(error);
 
