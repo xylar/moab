@@ -1,26 +1,48 @@
+#include "moab/MOABConfig.h"
 
-#include "mpi.h"
+#ifdef MOAB_HAVE_MPI
+#  include "moab_mpi.h"
+#endif
+
 #include "moab/iMOAB.h"
 // for malloc, free:
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 
+char* filen = 0;
+
 #define CHECKRC(rc, message)  if (0!=rc) { printf ("%s", message); return 1;}
+#define STRINGIFY_(X) #X
+#define STRINGIFY(X) STRINGIFY_(X)
+
+
 int main(int argc, char * argv[])
 {
-
+  int nprocs=1, rank=0;
+#ifdef MOAB_HAVE_MPI
   MPI_Init(&argc, &argv);
-  int nprocs, rank;
+
 
   MPI_Comm comm=MPI_COMM_WORLD;
 
   MPI_Comm_size(comm, &nprocs);
   MPI_Comm_rank(comm, &rank);
+#endif
 
-  char * filen = "p8ex1.h5m";
+#ifdef MESHDIR
+#ifdef MOAB_HAVE_HDF5
+  filen = STRINGIFY(MESHDIR) "/io/p8ex1.h5m";
+#endif
+#else
+#error Specify MESHDIR to compile test
+#endif
+
   if (argc>1)
     filen = argv[1];
 
+  if (!filen)
+    return 1;
   /*
    * MOAB needs to be initialized; A MOAB instance will be created, and will be used by each application
    * in this framework. There is no parallel context yet.
@@ -52,9 +74,17 @@ int main(int argc, char * argv[])
    * with each application. A unique application id will be returned, and will be used for all future
    * mesh operations/queries.
    */
-  rc = iMOAB_RegisterApplication( "PROTEUS", &comm,  pid);
+  rc = iMOAB_RegisterApplication( "PROTEUS",
+#ifdef MOAB_HAVE_MPI
+      &comm,
+#endif
+      pid);
   CHECKRC(rc, "failed to register application");
+#ifdef MOAB_HAVE_MPI
   char *read_opts="PARALLEL=READ_PART;PARTITION=PARALLEL_PARTITION;PARALLEL_RESOLVE_SHARED_ENTS";
+#else
+  char *read_opts="";
+#endif
   int num_ghost_layers=1;
 
   /*
@@ -334,7 +364,10 @@ int main(int argc, char * argv[])
       free(vertBC_ID);
       free(vertBC_value);
     }
+#ifdef MOAB_HAVE_MPI
     MPI_Barrier(comm); // to avoid printing problems, as we write all procs data
+#endif
+
   }
 
   // free allocated data
@@ -362,8 +395,9 @@ int main(int argc, char * argv[])
    */
   rc = iMOAB_Finalize();
   CHECKRC(rc, "failed to finalize MOAB");
-
+#ifdef MOAB_HAVE_MPI
   MPI_Finalize();
+#endif
 
   return 0;
 }

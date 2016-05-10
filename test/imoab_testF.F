@@ -12,7 +12,9 @@
 
       program fdriver
 C      include '/home/iulian/3rdparty/mpich-3.1/install/include/mpif.h'
+#ifdef MOAB_HAVE_MPI
       include 'mpif.h'
+#endif
       integer ierr, num_procs, my_id
       integer pid
       character*10 appname
@@ -53,7 +55,7 @@ C       indices for surface BC element, reference surf BC, value
 
 
       character*100 outfile, wopts
-
+#ifdef MOAB_HAVE_MPI
       call MPI_INIT ( ierr )
       call errorout(ierr, 'fail to initialize MPI')
 
@@ -70,14 +72,18 @@ c     find out MY process ID, and how many processes were started.
      &      num_procs, " processes."
 
       end if
-
+#endif
       ierr = iMOAB_InitializeFortran()
       call errorout(ierr, 'fail to initialize iMOAB')
 
       appname = 'PROTEUS'//CHAR(0)
-
+#ifdef MOAB_HAVE_MPI
       ierr = iMOAB_RegisterFortranApplication(appname, MPI_COMM_WORLD,
      & pid)
+#else
+      ierr = iMOAB_RegisterFortranApplication(appname, my_id,
+     & pid)
+#endif
       call errorout(ierr, 'fail to register application')
 C
       filename ='p8ex1.h5m'//CHAR(0)
@@ -89,9 +95,12 @@ C
        print *, filename, ' has ', nparts, ' parts in partition',
      &    ngv, ' vertices ', nge, ' elements of dimension ', ndim
       endif
-
+#ifdef MOAB_HAVE_MPI
       readopts='PARALLEL=READ_PART;PARTITION=PARALLEL_PARTITION;'//
      & 'PARALLEL_RESOLVE_SHARED_ENTS'//CHAR(0)
+#else
+      readopts=CHAR(0)
+#endif
 
 C  number of ghost layers needed by application
       nghlay = 1
@@ -276,7 +285,9 @@ C       query vertex BCs
 106     FORMAT (' vertex: ', I3, ' BC:', I6 )
 
        endif
+#ifdef MOAB_HAVE_MPI
        call MPI_Barrier(MPI_COMM_WORLD, ierr)
+#endif
        call errorout(ierr, 'fail at barrier')
 
       enddo
@@ -294,8 +305,9 @@ C       query vertex BCs
       ierr = iMOAB_Finalize()
       call errorout(ierr, 'fail to finalize iMOAB')
 
-
+#ifdef MOAB_HAVE_MPI
       call MPI_FINALIZE ( ierr )
+#endif
       call errorout(ierr, 'fail to finalize MPI')
 
       stop

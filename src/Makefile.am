@@ -71,6 +71,7 @@ libMOAB_la_SOURCES = \
   HalfFacetRep.cpp \
   HigherOrderFactory.cpp \
   HomXform.cpp \
+  iMOAB.cpp \
   Internals.hpp \
   LloydSmoother.cpp \
   MBCNArrays.hpp \
@@ -179,6 +180,8 @@ nobase_libMOAB_la_include_HEADERS = \
   moab/Forward.hpp \
   moab/GeomUtil.hpp \
   moab/Interface.hpp \
+  moab/iMOAB.h \
+  moab/imoab_protos.h \
   moab/LloydSmoother.hpp \
   moab/point_locater/tree/common_tree.hpp \
   moab/point_locater/tree/element_tree.hpp \

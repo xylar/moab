@@ -97,7 +97,11 @@ ErrCode iMOAB_Finalize();
   \param[in]  comm (MPI_Comm*)        MPI communicator to be used for all mesh-related queries originating from this application
   \param[out] pid (iMOAB_AppID)       The unique pointer to the application ID
 */
-ErrCode iMOAB_RegisterApplication( iMOAB_String app_name, MPI_Comm* comm, iMOAB_AppID pid );
+ErrCode iMOAB_RegisterApplication( iMOAB_String app_name,
+#ifdef MOAB_HAVE_MPI
+    MPI_Comm* comm,
+#endif
+    iMOAB_AppID pid );
 
 /**
    \brief Register a Fortran-based application - Create a unique application ID and bootstrap interfaces for further queries.
