@@ -11,7 +11,7 @@
 #include "moab/GeomTopoTool.hpp"
 #include "InitCGMA.hpp"
 #include "GeometryQueryTool.hpp"
-#include "cgm_version.h"
+#include "CGMConfig.h"
 
 #define SENSE_FORWARD 1
 #define SENSE_REVERSE -1 
