@@ -3,8 +3,10 @@
 # You can specify a custom docker image from Dockerhub
 # for your build environment.
 image: vijaysm/scientific:latest
-pipeline: # Can we have multiple jobs ? In which case the autotools and cmake configuration can be separated
-    - job:
+
+pipelines: # Can we have multiple jobs ? In which case the autotools and cmake configuration can be separated
+    default:
+      - step:
         script: # Modify the commands below to build your repository.
             - export CC=mpicc CXX=mpicxx FC=mpif90 F77=mpif77 F90=mpif90
             # First, configure and run the Autotools build system
@@ -19,3 +21,4 @@ pipeline: # Can we have multiple jobs ? In which case the autotools and cmake co
             # make dist
             # rename the tarball
             # mv moab-*.tar.gz `echo "MOAB-$(git rev-parse --abbrev-ref HEAD).tar.gz" | sed -e "s/\//-/g"`
+
