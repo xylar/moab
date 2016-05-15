@@ -834,6 +834,7 @@ AC_SUBST(CGM_LIBS)
 AC_SUBST(CGM_DIR)
 
 AM_CONDITIONAL( HAVE_CGM, [test "x$CGM_MISSING" = "xno"] )
+AM_CONDITIONAL( HAVE_OCC, [test "x$HAVE_OCC" = "xyes"] )
 
 if (test "x$CGM_MISSING" == "xno"); then
   AC_DEFINE([HAVE_CGM],[1],["Define if configured with CGM support."])

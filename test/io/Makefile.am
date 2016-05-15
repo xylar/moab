@@ -28,8 +28,10 @@ else
 endif
 
 if HAVE_CGM
+if HAVE_OCC
   CGM_TEST = read_cgm_load_test read_cgm_basic_test read_cgm_senses_test read_cgm_connectivity_test \
              read_cgm_group_test read_cgm_facet_test
+endif 
 else
   CGM_TEST = 
 endif
