@@ -865,6 +865,7 @@ void TypeSequenceManager::append_memory_use(EntityHandle first,
                       allocated_count * bytes_per_ent;
 
   // Watch for overflow
+  assert(entity_count > 0 && occupied_count > 0 && allocated_count > 0);
   if (std::numeric_limits<unsigned long>::max() / entity_count <= sum) {
     total_storage  += sum * (entity_count /  occupied_count) + other_ent_mem;
     entity_storage += sum * (entity_count / allocated_count) + other_ent_mem; 
