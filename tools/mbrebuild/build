@@ -1,9 +1,0 @@
-#!/bin/bash
-
-MOAB_DIR=/filespace/groups/cnerg/opt/MOAB/shared-cubit-c12
-MOAB_INCLUDE=$MOAB_DIR/include
-MOAB_LIBS=$MOAB_DIR/lib
-
-echo $MOAB_INCLUDE $MOAB_LIBS
-
-g++ generate_hierarchy.cpp -I$MOAB_INCLUDE -L$MOAB_LIBS -lMOAB -o mbgen_hier
