@@ -1708,6 +1708,7 @@ ErrorCode Core::connect_iterate(Range::const_iterator iter,
     return MB_ENTITY_NOT_FOUND;
 
   ElementSequence *eseq = dynamic_cast<ElementSequence*>(seq);
+  assert(eseq != NULL);
 
   connect = eseq->get_connectivity_array();
   if (!connect) {

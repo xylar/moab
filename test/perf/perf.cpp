@@ -552,7 +552,9 @@ void testA(const int nelem, const double *coords)
   ScdVertexData *vseq = NULL;
   StructuredElementSeq *eseq = NULL;
   init();
-  SequenceManager *seq_mgr = dynamic_cast<Core*>(gMB)->sequence_manager();
+  Core *mbcore = dynamic_cast<Core*>(gMB);
+  assert(mbcore != NULL);
+  SequenceManager *seq_mgr = mbcore->sequence_manager();
   HomCoord vseq_minmax[2] = {HomCoord(0,0,0), 
                              HomCoord(nelem, nelem, nelem)};
   EntityHandle vstart, estart;
