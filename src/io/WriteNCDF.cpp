@@ -285,7 +285,7 @@ ErrorCode WriteNCDF::write_file(const char *exodus_file_name,
   {
     // write dummy time_whole
     double timev = 0.0; // dummy, to make paraview happy
-    unsigned long start =0, count =1;
+    size_t start =0, count =1;
     int nc_var;
     std::vector<int> dims;
     GET_VAR("time_whole", nc_var, dims);
