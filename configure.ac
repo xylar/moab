@@ -787,11 +787,11 @@ if test "x$CGM_MISSING" = "xno"; then
   AC_LANG_PUSH([C++])
   old_CPPFLAGS="$CPPFLAGS"
   CPPFLAGS="$CGM_CPPFLAGS $CPPFLAGS"
-  HAVE_CUBIT=no
   HAVE_OCC=no
+  HAVE_FACET=no
   AC_CHECK_HEADER([OCCPoint.hpp], 
                    [HAVE_OCC=yes; AC_DEFINE(HAVE_CGM_OCC, [1], [MOAB uses CGM configured with OpenCascade]) ],
-                   [HAVE_CUBIT=yes; AC_DEFINE(HAVE_CGM_CUBIT,  [1], [MOAB uses CGM configured with CUBIT]) ]
+                   [HAVE_FACET=yes; AC_DEFINE(HAVE_CGM_FACET, [1], [MOAB uses CGM configured with Facet Engine only]) ]
                    )
   CPPFLAGS="$old_CPPFLAGS"
   AC_LANG_POP([C++])
