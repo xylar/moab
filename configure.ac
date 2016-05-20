@@ -275,7 +275,7 @@ AC_DEFINE_UNQUOTED(VERSION_STRING,"${VERSION_STRING}",[MOAB Version String])
 #                Create libtool script
 ################################################################################
 # We need the libtool script both for the calls to the ITAPS_LIBTOOL_VAR
-# macro and for us in testing for ACIS libraries.  If we're using a newer
+# macro and for us in testing for libraries.  If we're using a newer
 # version of libtool, the script normally isn't generated until AC_OUTPUT
 # at the end of the configure script.  Ask that it be created now instead.
 m4_ifdef([LT_OUTPUT],[LT_OUTPUT])
