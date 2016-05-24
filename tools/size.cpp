@@ -309,7 +309,7 @@ static void print_stats( set_stats& stats )
   
   for (EntityType i = MBEDGE; i < MBMAXTYPE; ++i)
   {
-    stat_set& s = (i == MBMAXTYPE) ? stats.edge_uses : stats.stats[i];
+    stat_set& s = stats.stats[i];
 
     if (s.count == 0)
       continue;

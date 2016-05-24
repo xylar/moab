@@ -81,11 +81,7 @@ int main(int argc, char **argv)
           // iteration: tree type
         for (int tree_tp = 1; tree_tp < 2; tree_tp++) {
             // create tree
-          Tree *tree;
-          if (0 == tree_tp)
-            tree = new BVHTree(&mb);
-          else
-            tree = new AdaptiveKDTree(&mb);
+          Tree *tree = new AdaptiveKDTree(&mb);
 
           std::ostringstream opts;
           opts << "MAX_DEPTH=" << *dep_it << ";MAX_PER_LEAF=" << *leafs_it;
@@ -104,11 +100,11 @@ int main(int argc, char **argv)
           rval = test_locator(sl, npoints, cpu_time, perc_outside);
           if (MB_SUCCESS != rval) return rval;
 
-          std::cout << (tree_tp == 0 ? "BVH" : "KD") << " "
+          std::cout << "KD" << " "
                     << *leafs_it << " "
                     << *dep_it << " "
                     << *int_it << " "
-                    << (*int_it)*(*int_it)*(dim == 3 ? *int_it : 1) << " "
+                    << (*int_it)*(*int_it)*(*int_it) << " "
                     << cpu_time << " "
                     << perc_outside << " ";
 

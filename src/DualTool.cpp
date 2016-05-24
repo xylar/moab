@@ -721,29 +721,26 @@ ErrorCode DualTool::construct_hex_dual(EntityHandle *entities,
     std::cerr << "Error constructing dual entities for primal entities." << std::endl;
     return result;
   }
-  
+
     // now traverse to build 1d and 2d hyperplanes
   result = construct_dual_hyperplanes(1, entities, num_entities);
   if (MB_SUCCESS != result) {
     std::cerr << "Problem traversing 1d hyperplanes." << std::endl;
     return result;
   }
-  if (MB_SUCCESS != result) return result;
 
   result = construct_dual_hyperplanes(2, entities, num_entities);
   if (MB_SUCCESS != result) {
     std::cerr << "Problem traversing 2d hyperplanes." << std::endl;
     return result;
   }
-  if (MB_SUCCESS != result) return result;
-  
+
   result = construct_hp_parent_child();
   if (MB_SUCCESS != result) {
     std::cerr << "Problem constructing parent/child relations between hyperplanes." 
               << std::endl;
     return result;
   }
-  if (MB_SUCCESS != result) return result;
 
     // see?  simple, just like I said
   return MB_SUCCESS;
@@ -2274,8 +2271,7 @@ ErrorCode DualTool::foc_delete_dual(EntityHandle *split_quads,
     // a sheet too since it'll get merged into another
 
     // figure out whether we'll need to delete a sheet
-  EntityHandle sheet1, sheet2 = 0;
-  sheet1 = get_dual_hyperplane(get_dual_entity(split_edges[0]));
+  EntityHandle sheet1 = get_dual_hyperplane(get_dual_entity(split_edges[0]));
   if (split_edges[1]) sheet1 = get_dual_hyperplane(get_dual_entity(split_edges[1]));
   EntityHandle chordl = get_dual_hyperplane(get_dual_entity(split_quads[0]));
   EntityHandle chordr = get_dual_hyperplane(get_dual_entity(split_quads[1]));
@@ -2287,7 +2283,6 @@ ErrorCode DualTool::foc_delete_dual(EntityHandle *split_quads,
   if (MB_SUCCESS != result) return result;
   parentsl.erase(sheet1);
   parentsr.erase(sheet1);
-  if (sheet2) parentsl.erase(sheet1), parentsr.erase(sheet1);
 
     // before deciding which one to delete, collect the other cells which must
     // be deleted, and all the chords/sheets they're on

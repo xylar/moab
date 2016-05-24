@@ -309,6 +309,8 @@ void test_getEntArrAdj_down()
   CHECK_ARRAYS_EQUAL( exp2, 3, act, 3 );
   
     // all middle hexes should have two adjacent faces
+  // FixME: This loop is never executed (INTERVALS is 2)
+  /*
   for (int i = 1; i < INTERVALS-1; ++i) {
     iBase_EntityHandle e1, e2, a1, a2;
     e1 = FACES[0][0][i];
@@ -323,6 +325,7 @@ void test_getEntArrAdj_down()
     CHECK_EQUAL( e1, a1 );
     CHECK_EQUAL( e2, a2 );
   }
+  */
   
   free(adj);
   free(off);

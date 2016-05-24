@@ -464,8 +464,6 @@ ErrorCode MeshTopoUtil::get_bridge_adjacencies(const EntityHandle from_entity,
   
   Range to_ents;
 
-  if (MB_SUCCESS != result) return result;
-
   if (bridge_dim < from_dim) {
       // looping over each sub-entity of dimension bridge_dim...
     if (MBPOLYGON == from_type)

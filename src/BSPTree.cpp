@@ -606,7 +606,7 @@ ErrorCode BSPTreeBoxIter::initialize( BSPTree* tool_ptr,
   if (MB_SUCCESS != rval)
     return rval;
   
-  tool()->get_tree_box( root, leafCoords );
+  rval = tool()->get_tree_box( root, leafCoords );
   if (MB_SUCCESS != rval)
     return rval;
 

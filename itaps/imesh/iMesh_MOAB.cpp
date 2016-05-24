@@ -2769,10 +2769,6 @@ extern "C" {
         *num_topo -= num_sets;
       }
     }
-    else if (iMesh_SEPTAHEDRON == entity_topology) {
-      result = MB_SUCCESS;
-      *num_topo = 0;
-    }
     else {
       result = MOABI->get_number_entities_by_type(ENTITY_HANDLE(entity_set_handle),
                                          mb_topology_table[entity_topology],

@@ -115,7 +115,7 @@ int main(int argc, char **argv)
                     << *leafs_it << " "
                     << *dep_it << " "
                     << *int_it << " "
-                    << (*int_it)*(*int_it)*(dim == 3 ? *int_it : 1) << " "
+                    << (*int_it)*(*int_it)*(*int_it) << " "
                     << cpu_time << " "
                     << perc_outside << " ";
 
