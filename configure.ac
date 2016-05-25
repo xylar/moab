@@ -275,7 +275,7 @@ AC_DEFINE_UNQUOTED(VERSION_STRING,"${VERSION_STRING}",[MOAB Version String])
 #                Create libtool script
 ################################################################################
 # We need the libtool script both for the calls to the ITAPS_LIBTOOL_VAR
-# macro and for us in testing for ACIS libraries.  If we're using a newer
+# macro and for us in testing for libraries.  If we're using a newer
 # version of libtool, the script normally isn't generated until AC_OUTPUT
 # at the end of the configure script.  Ask that it be created now instead.
 m4_ifdef([LT_OUTPUT],[LT_OUTPUT])
@@ -787,11 +787,11 @@ if test "x$CGM_MISSING" = "xno"; then
   AC_LANG_PUSH([C++])
   old_CPPFLAGS="$CPPFLAGS"
   CPPFLAGS="$CGM_CPPFLAGS $CPPFLAGS"
-  HAVE_CUBIT=no
   HAVE_OCC=no
+  HAVE_FACET=no
   AC_CHECK_HEADER([OCCPoint.hpp], 
                    [HAVE_OCC=yes; AC_DEFINE(HAVE_CGM_OCC, [1], [MOAB uses CGM configured with OpenCascade]) ],
-                   [HAVE_CUBIT=yes; AC_DEFINE(HAVE_CGM_CUBIT,  [1], [MOAB uses CGM configured with CUBIT]) ]
+                   [HAVE_FACET=yes; AC_DEFINE(HAVE_CGM_FACET, [1], [MOAB uses CGM configured with Facet Engine only]) ]
                    )
   CPPFLAGS="$old_CPPFLAGS"
   AC_LANG_POP([C++])
@@ -834,6 +834,7 @@ AC_SUBST(CGM_LIBS)
 AC_SUBST(CGM_DIR)
 
 AM_CONDITIONAL( HAVE_CGM, [test "x$CGM_MISSING" = "xno"] )
+AM_CONDITIONAL( HAVE_OCC, [test "x$HAVE_OCC" = "xyes"] )
 
 if (test "x$CGM_MISSING" == "xno"); then
   AC_DEFINE([HAVE_CGM],[1],["Define if configured with CGM support."])

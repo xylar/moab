@@ -35,7 +35,7 @@
 #include "moab/CN.hpp"
 
 #ifdef MOAB_HAVE_CGM
-#include "cgm_version.h"
+#include "CGMConfig.h"
 #include <limits>
 #include "RefEntity.hpp"
 #include "RefFace.hpp"
