@@ -26,6 +26,7 @@
 
 #include "Mesquite.hpp"
 #include "MsqIGeom.hpp"
+#include "FacetModifyEngine.hpp"
 #include "MeshImpl.hpp"
 #include "MsqError.hpp"
 #include "ShapeImprovementWrapper.hpp"
@@ -217,7 +218,11 @@ MeshDomain* get_itaps_domain()
   int ierr;
   iGeom_Instance igeom;
   iGeom_newGeom( "", &igeom, &ierr, 0 ); CHKIGEOM;
-  
+
+#ifdef MOAB_HAVE_CGM_FACET
+  FacetModifyEngine::set_modify_enabled(CUBIT_TRUE);
+#endif
+
   iBase_EntityHandle sphere_vol;
   iGeom_createSphere( igeom, SPHERE_RADIUS, &sphere_vol, &ierr ); CHKIGEOM;
   iGeom_moveEnt( igeom, sphere_vol, 
