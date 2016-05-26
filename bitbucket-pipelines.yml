@@ -1,24 +1,25 @@
-# This is a sample build configuration for Javascript.
-# Do not use tabs to indent your configuration.
-# You can specify a custom docker image from Dockerhub
-# for your build environment.
+# Use our custom Docker image with all scientific tools pre-loaded
 image: vijaysm/scientific:latest
 
-pipelines: # Can we have multiple jobs ? In which case the autotools and cmake configuration can be separated
+pipelines:
     default:
-      - step:
-        script: # Modify the commands below to build your repository.
-            - export CC=mpicc CXX=mpicxx FC=mpif90 F77=mpif77 F90=mpif90
-            # First, configure and run the Autotools build system
-            - echo "Running the Autotools Build System" && autoreconf -fi && rm -rf build_atools && mkdir -p build_atools && cd build_atools
-            # These test commands will be executed after the setup commands
-            - ../configure --with-mpi --enable-optimize --enable-tools --with-hdf5=/usr --with-netcdf=/usr --with-metis=/usr
-            - make distcheck
-            - echo "Running the CMake Build System" && cd .. && rm -rf build_cmake && mkdir -p build_cmake && cd build_cmake
-            - cmake .. -DCMAKE_C_FLAGS="-fPIC -DPIC" -DCMAKE_CXX_FLAGS="-fPIC -DPIC" -DBUILD_SHARED_LIBS=OFF -DCMAKE_SHARED_LINKER_FLAGS="-Wl,--no-undefined" -DENABLE_MPI=ON -DMPI_DIR=/usr -DENABLE_HDF5=ON -DHDF5_ROOT=/usr -DENABLE_NETCDF=OFF -DENABLE_METIS=ON -DMETIS_DIR=/usr
-            - make all test
-            # make the tarball
-            # make dist
-            # rename the tarball
-            # mv moab-*.tar.gz `echo "MOAB-$(git rev-parse --abbrev-ref HEAD).tar.gz" | sed -e "s/\//-/g"`
-
+        - step:
+            script:
+                # Setup the build pipeline
+                - export CC=mpicc CXX=mpicxx FC=mpif90 F77=mpif77 F90=mpif90
+                - rm -rf build_atools build_cmake
+                - mkdir -p build_atools build_cmake
+                # Configure and build with Autotools
+                - echo "Running the Autotools Build System"
+                - autoreconf -fi
+                - cd build_atools
+                - ../configure --with-mpi --enable-optimize --enable-tools --with-hdf5=/usr --with-netcdf=/usr --with-metis=/usr
+                - make distcheck
+                # Now configure with CMake build system
+                - echo "Running the CMake Build System"
+                - cd ../build_cmake
+                - cmake .. -DCMAKE_C_FLAGS="-fPIC -DPIC" -DCMAKE_CXX_FLAGS="-fPIC -DPIC" -DBUILD_SHARED_LIBS=OFF -DCMAKE_SHARED_LINKER_FLAGS="-Wl,--no-undefined" -DENABLE_MPI=ON -DMPIHOME=/usr -DENABLE_HDF5=ON -DHDF5_ROOT=/usr -DENABLE_NETCDF=OFF -DENABLE_METIS=ON -DMETIS_DIR=/usr
+                - make all test
+                - make dist
+                  # Successfully finished both Autotools and CMake checks
+                - echo "All done!"
