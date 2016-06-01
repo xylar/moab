@@ -1,7 +1,7 @@
 
 #include "RelaxationSmoother.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 RelaxationSmoother::~RelaxationSmoother() 
 {}

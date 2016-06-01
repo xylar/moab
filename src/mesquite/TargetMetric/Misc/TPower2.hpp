@@ -36,7 +36,7 @@
 #include "Mesquite.hpp"
 #include "TMetric.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 /** \f$ \mu\prime = \mu^2 \f$ */
 class TPower2 : public TMetric
@@ -100,6 +100,6 @@ private:
 };
 
 
-} // namespace MESQUITE_NS
+} // namespace MBMesquite
 
 #endif

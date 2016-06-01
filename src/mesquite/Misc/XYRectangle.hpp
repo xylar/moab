@@ -38,7 +38,7 @@
 
 #include <map>
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 /**\brief Simple 2D Domain for free-smooth testing
  *
@@ -48,7 +48,7 @@ namespace MESQUITE_NS {
  *  - 1 DoF : On an edge of the rectangle
  *  - 2 DoF : In the interior of the rectangle
  */
-class XYRectangle : public Mesquite::MeshDomain
+class XYRectangle : public MBMesquite::MeshDomain
 {
   public:
     
@@ -77,38 +77,38 @@ class XYRectangle : public Mesquite::MeshDomain
        * of the rectangle.
        */
     MESQUITE_EXPORT
-    void setup( Mesquite::Mesh* mesh, Mesquite::MsqError& err );
+    void setup( MBMesquite::Mesh* mesh, MBMesquite::MsqError& err );
 
     MESQUITE_EXPORT
-    void snap_to( Mesquite::Mesh::VertexHandle entity_handle,
-                  Mesquite::Vector3D &coordinate) const;
+    void snap_to( MBMesquite::Mesh::VertexHandle entity_handle,
+                  MBMesquite::Vector3D &coordinate) const;
   
     MESQUITE_EXPORT
-    void vertex_normal_at( Mesquite::Mesh::VertexHandle entity_handle,
-                           Mesquite::Vector3D &coordinate) const;
+    void vertex_normal_at( MBMesquite::Mesh::VertexHandle entity_handle,
+                           MBMesquite::Vector3D &coordinate) const;
 
     MESQUITE_EXPORT
-    void element_normal_at( Mesquite::Mesh::ElementHandle entity_handle,
-                            Mesquite::Vector3D &coordinate) const;
+    void element_normal_at( MBMesquite::Mesh::ElementHandle entity_handle,
+                            MBMesquite::Vector3D &coordinate) const;
 
     MESQUITE_EXPORT
-    void vertex_normal_at( const Mesquite::Mesh::VertexHandle* handles,
-                           Mesquite::Vector3D coordinates[],
+    void vertex_normal_at( const MBMesquite::Mesh::VertexHandle* handles,
+                           MBMesquite::Vector3D coordinates[],
                            unsigned count,
-                           Mesquite::MsqError& err ) const;
+                           MBMesquite::MsqError& err ) const;
     
     MESQUITE_EXPORT
-    void closest_point( Mesquite:: Mesh::VertexHandle handle,
-                        const Mesquite::Vector3D& position,
-                        Mesquite::Vector3D& closest,
-                        Mesquite::Vector3D& normal,
-                        Mesquite::MsqError& err ) const;
+    void closest_point( MBMesquite:: Mesh::VertexHandle handle,
+                        const MBMesquite::Vector3D& position,
+                        MBMesquite::Vector3D& closest,
+                        MBMesquite::Vector3D& normal,
+                        MBMesquite::MsqError& err ) const;
     
     MESQUITE_EXPORT
-    void domain_DoF( const Mesquite::Mesh::VertexHandle* handle_array,
+    void domain_DoF( const MBMesquite::Mesh::VertexHandle* handle_array,
                      unsigned short* dof_array,
                      size_t num_handles,
-                     Mesquite::MsqError& err ) const;
+                     MBMesquite::MsqError& err ) const;
  
   private:
     double minCoords[3], maxCoords[3]; //!< corner coords

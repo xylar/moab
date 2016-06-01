@@ -63,7 +63,7 @@ using std::endl;
 
 #include "MeshImpl.hpp"
 #include "TestUtil.hpp"
-using namespace Mesquite;
+using namespace MBMesquite;
 
 int main()
 {     
@@ -76,7 +76,7 @@ int main()
      "/3D/vtk/tets/untangled/tire.vtk";
   printf("Loading mesh set 1\n");
   MsqPrintError err( cout );
-  Mesquite::MeshImpl mesh;
+  MBMesquite::MeshImpl mesh;
   mesh.read_vtk(file_name.c_str(), err);
   if (err) return 1;
   

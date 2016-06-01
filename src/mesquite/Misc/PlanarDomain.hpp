@@ -41,13 +41,13 @@
 #include "MeshInterface.hpp"
 #include "Vector3D.hpp"
 
-namespace MESQUITE_NS
+namespace MBMesquite
 {
   /*! \class PlanarDomain
        This is a template for a planar domain.
        It will provide the normal information necessary for surface mesh optimization.
     */
-  class MESQUITE_EXPORT PlanarDomain : public Mesquite::MeshDomain
+  class MESQUITE_EXPORT PlanarDomain : public MBMesquite::MeshDomain
   {
   public:
     enum Plane{ XY = 2, XZ = 1, YZ = 0 };

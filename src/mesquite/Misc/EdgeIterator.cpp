@@ -35,7 +35,7 @@
 
 #include <algorithm>
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 
 EdgeIterator::EdgeIterator( PatchData* p, MsqError& err )
@@ -116,4 +116,4 @@ void EdgeIterator::get_adjacent_vertices( MsqError& err )
 
 
 
-} // namespace MESQUITE_NS
+} // namespace MBMesquite

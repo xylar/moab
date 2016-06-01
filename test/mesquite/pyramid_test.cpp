@@ -52,7 +52,7 @@ using std::endl;
 #include "ConditionNumberQualityMetric.hpp"
 #include "TestUtil.hpp"
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 // Use CPPUNIT_ASSERT in code so it's easy to convert to a unit test later.
 #define CPPUNIT_ASSERT(A) \
@@ -88,7 +88,7 @@ int main( int argc, char* argv[] )
   }
   
   
-  Mesquite::MsqPrintError err(cout);
+  MBMesquite::MsqPrintError err(cout);
   IdealWeightMeanRatio m1;
   IdealWeightInverseMeanRatio m2(err);
   ConditionNumberQualityMetric m3;
@@ -97,10 +97,10 @@ int main( int argc, char* argv[] )
     // Read Mesh
   std::string mesh_file = TestDir + "/3D/vtk/pyramids/untangled/12-pyramid-unit-sphere.vtk";
   std::string imesh_file = TestDir + "/3D/vtk/pyramids/untangled/12-pyramid-unit-sphere.vtk";
-  Mesquite::MeshImpl mesh;
+  MBMesquite::MeshImpl mesh;
   mesh.read_vtk(mesh_file.c_str(), err);
   CPPUNIT_ASSERT(!err);
-  Mesquite::MeshImpl ideal_mesh;
+  MBMesquite::MeshImpl ideal_mesh;
   ideal_mesh.read_vtk(imesh_file.c_str(), err);
   CPPUNIT_ASSERT(!err);
 
@@ -186,7 +186,7 @@ bool smooth_mesh( Mesh* mesh, Mesh* ,
                   Vector3D initial_free_vertex_position,
                   QualityMetric* metric )
 {
-  Mesquite::MsqPrintError err(cout);
+  MBMesquite::MsqPrintError err(cout);
   const Vector3D origin( 0, 0, 0 );
   
   // print a little output so we know when we died
@@ -267,7 +267,7 @@ bool smooth_mesh( Mesh* mesh, Mesh* ,
   
 bool smooth_mixed_mesh( const char* filename )
 {
-  Mesquite::MsqPrintError err(cout);
+  MBMesquite::MsqPrintError err(cout);
   
   // print a little output so we know when we died
   std::cout << 
@@ -289,7 +289,7 @@ bool smooth_mixed_mesh( const char* filename )
   CPPUNIT_ASSERT(!err);
   
     // Create Mesh object
-  Mesquite::MeshImpl mesh;
+  MBMesquite::MeshImpl mesh;
   mesh.read_vtk(filename, err);
   CPPUNIT_ASSERT(!err);
 
@@ -327,7 +327,7 @@ bool smooth_mixed_mesh( const char* filename )
   solver.set_outer_termination_criterion(&tc_outer);
 
   // Create a QualityAssessor
-  Mesquite::QualityAssessor qa;
+  MBMesquite::QualityAssessor qa;
   qa.add_quality_assessment( &mr_metric );
   qa.add_quality_assessment( &un_metric );
   Q.add_quality_assessor( &qa, err ); 

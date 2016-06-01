@@ -36,7 +36,7 @@
 #include "TMPDerivs.hpp"
 #include "TMPCommon.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 std::string AWUntangleBeta::get_name() const
   { return "AWUntangleBeta"; }

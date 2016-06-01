@@ -44,7 +44,7 @@ evaluations.
 #include "Matrix3D.hpp"
 #include "Exponent.hpp"
 
-namespace MESQUITE_NS 
+namespace MBMesquite 
 {
   /***************************************************************************/
   /* Gradient calculation courtesy of Paul Hovland.  The code was modified   */

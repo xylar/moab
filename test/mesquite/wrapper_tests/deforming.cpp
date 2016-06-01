@@ -44,7 +44,7 @@
 #include <cstdlib>
 #include <algorithm>
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 std::string INPUT_FILE = std::string(STRINGIFY(SRCDIR)) + "/sph-10-zsquare.vtk";
 //const char INPUT_FILE[] = "test.vtk";

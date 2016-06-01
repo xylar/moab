@@ -35,7 +35,7 @@
 #include "UnitUtil.hpp"
 #include "MsqError.hpp"
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 class TMetricTest : public CppUnit::TestFixture
 {

@@ -35,7 +35,7 @@
 #include "SphericalDomain.hpp"
 #include "ArrayMesh.hpp"
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 class SphericalDomainTest : public CppUnit::TestFixture
 {

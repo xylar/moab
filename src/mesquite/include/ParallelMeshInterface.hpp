@@ -37,14 +37,14 @@
 
 #include "MeshInterface.hpp"
 
-namespace MESQUITE_NS
+namespace MBMesquite
 {
   class ParallelHelper;
     
-  /*! \class ParallelMesh \brief Mesquite::ParallelMesh is an abstract class
+  /*! \class ParallelMesh \brief MBMesquite::ParallelMesh is an abstract class
    *  which defines required methods required for using Mesquite in parallel.
-   *  It derives from the Mesquite::Mesh interface so the user must provide
-   *  implementations of the pure virtual methods in both Mesquite::Mesh as
+   *  It derives from the MBMesquite::Mesh interface so the user must provide
+   *  implementations of the pure virtual methods in both MBMesquite::Mesh as
    *  well as those defined here.
    */
   class MESQUITE_EXPORT ParallelMesh : virtual public Mesh

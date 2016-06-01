@@ -36,7 +36,7 @@
 #include "Mesquite.hpp"
 #include "TMetric.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 /**\brief Untangle metric
  *
@@ -107,6 +107,6 @@ private:
 
 
 
-} // namespace MESQUITE_NS
+} // namespace MBMesquite
 
 #endif

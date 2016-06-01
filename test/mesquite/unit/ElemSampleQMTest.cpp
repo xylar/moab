@@ -34,7 +34,7 @@
 #include "ElemSampleQM.hpp"
 #include <cppunit/extensions/HelperMacros.h>
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 class ElemSampleQMTest : public CppUnit::TestFixture
 {

@@ -33,7 +33,7 @@
 #include "Mesquite.hpp"
 #include "ConicDomain.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 ConicDomain::~ConicDomain() {}
 

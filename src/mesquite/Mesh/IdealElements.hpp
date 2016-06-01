@@ -35,7 +35,7 @@
 
 #include "Mesquite.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 class Vector3D;
 

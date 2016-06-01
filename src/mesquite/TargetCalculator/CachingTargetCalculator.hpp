@@ -40,7 +40,7 @@
 
 #include <vector>
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 struct CachedTargetData {
   std::vector<size_t> elementOffsets;

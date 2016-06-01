@@ -33,7 +33,7 @@
 #include "UnitUtil.hpp"
 #include "MeshDomain1D.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 class CircleDomainTest: public CppUnit::TestFixture
 {
@@ -182,4 +182,4 @@ void CircleDomainTest::test_position_from_length()
   CPPUNIT_ASSERT_VECTORS_EQUAL( v, result, 1e-6 );
 }
 
-} // namespace MESQUITE_NS
+} // namespace MBMesquite

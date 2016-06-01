@@ -35,7 +35,7 @@
 #include "PowerQualityMetric.hpp"
 #include "MsqError.hpp"
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 PowerQualityMetric::PowerQualityMetric(QualityMetric* qm,
                                        double pow_factor )

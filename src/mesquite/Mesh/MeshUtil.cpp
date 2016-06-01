@@ -45,8 +45,7 @@
 #include <limits>
 #include <sstream>
 
-namespace MESQUITE_NS {
-
+namespace MBMesquite {
 
 MeshUtil::~MeshUtil() { delete globalPatch; }
 
@@ -211,4 +210,4 @@ bool MeshUtil::meshes_are_different(Mesh& mesh1, Mesh& mesh2, MsqError& err, dou
   return false;
 }
 
-} // namespace MESQUITE_NS
+} // namespace MBMesquite

@@ -52,11 +52,11 @@ using std::endl;
 #include "MeshImpl.hpp"
 #include "MsqError.hpp"
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 int main(int argc, char* argv[])
 {
-  Mesquite::MsqPrintError err(cout);
+  MBMesquite::MsqPrintError err(cout);
   char in_file_name[256];
   char out_file_name[256];
   
@@ -72,7 +72,7 @@ int main(int argc, char* argv[])
     strcpy(out_file_name, argv[2]);
   }
 
-  Mesquite::MeshImpl *mesh = new Mesquite::MeshImpl;
+  MBMesquite::MeshImpl *mesh = new MBMesquite::MeshImpl;
   cout<<"\nReading Exodus file.\n";
   mesh->read_exodus(in_file_name, err);
   if (err) return 1;

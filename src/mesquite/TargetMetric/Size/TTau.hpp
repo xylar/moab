@@ -36,7 +36,7 @@
 #include "Mesquite.hpp"
 #include "TMetric.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 /**\brief det(T) 
  *
@@ -63,6 +63,6 @@ public:
 };
 
 
-} // namespace MESQUITE_NS
+} // namespace MBMesquite
 
 #endif

@@ -31,7 +31,7 @@
 #include <iomanip>
 
 // Create the global collection of stop watches
-Mesquite::StopWatchCollection Mesquite::GlobalStopWatches;
+MBMesquite::StopWatchCollection MBMesquite::GlobalStopWatches;
 
 #ifdef MOAB_HAVE_TIMES
 #  include <sys/times.h>
@@ -69,19 +69,19 @@ Mesquite::StopWatchCollection Mesquite::GlobalStopWatches;
 
 
 
-Mesquite::Timer::Timer() 
+MBMesquite::Timer::Timer() 
     : atBirth(now())
 {
   atLastCheck = atBirth;
 }
 
-void Mesquite::Timer::reset()
+void MBMesquite::Timer::reset()
 {
   atBirth=now();
   atLastCheck = atBirth;
 }
 
-double Mesquite::Timer::since_last_check()
+double MBMesquite::Timer::since_last_check()
 {
   double right_now = now();
   double rv = right_now - atLastCheck;
@@ -89,12 +89,12 @@ double Mesquite::Timer::since_last_check()
   return rv;
 }
 
-double Mesquite::Timer::since_birth() const
+double MBMesquite::Timer::since_birth() const
 {
   return now() - atBirth;
 }
 
-void Mesquite::StopWatch::start()
+void MBMesquite::StopWatch::start()
 {
   if (!isRunning)
   {
@@ -104,7 +104,7 @@ void Mesquite::StopWatch::start()
   }
 }
 
-void Mesquite::StopWatch::stop()
+void MBMesquite::StopWatch::stop()
 {
   if (isRunning)
   {
@@ -113,14 +113,14 @@ void Mesquite::StopWatch::stop()
   }
 }
 
-void Mesquite::StopWatch::reset()
+void MBMesquite::StopWatch::reset()
 {
   isRunning=false;
   totalTime=0;
   numStarts=0;
 }
 
-double Mesquite::StopWatch::total_time() const
+double MBMesquite::StopWatch::total_time() const
 {
   double rv = totalTime;
   if (isRunning)
@@ -128,7 +128,7 @@ double Mesquite::StopWatch::total_time() const
   return rv;
 }
 
-Mesquite::StopWatchCollection::Key Mesquite::StopWatchCollection::add(
+MBMesquite::StopWatchCollection::Key MBMesquite::StopWatchCollection::add(
   const std::string &name,
   bool fail_if_exists)
 {
@@ -167,7 +167,7 @@ Mesquite::StopWatchCollection::Key Mesquite::StopWatchCollection::add(
 }
 
 
-Mesquite::StopWatchCollection::Key Mesquite::StopWatchCollection::get_key(
+MBMesquite::StopWatchCollection::Key MBMesquite::StopWatchCollection::get_key(
   const std::string &name) const
 {
   Key key = 0;
@@ -184,8 +184,8 @@ Mesquite::StopWatchCollection::Key Mesquite::StopWatchCollection::get_key(
   return key;
 }
 
-void Mesquite::StopWatchCollection::remove(
-  const Mesquite::StopWatchCollection::Key key)
+void MBMesquite::StopWatchCollection::remove(
+  const MBMesquite::StopWatchCollection::Key key)
 {
     // Get rid of anything at the end of the list
   if (key == mEntries.size())
@@ -205,8 +205,8 @@ void Mesquite::StopWatchCollection::remove(
 }
 
 
-void Mesquite::StopWatchCollection::start(
-  const Mesquite::StopWatchCollection::Key key)
+void MBMesquite::StopWatchCollection::start(
+  const MBMesquite::StopWatchCollection::Key key)
 {
   if (key > 0 &&
       key <= mEntries.size() &&
@@ -214,8 +214,8 @@ void Mesquite::StopWatchCollection::start(
     mEntries[key-1].second.start();
 }
 
-void Mesquite::StopWatchCollection::stop(
-  const Mesquite::StopWatchCollection::Key key)
+void MBMesquite::StopWatchCollection::stop(
+  const MBMesquite::StopWatchCollection::Key key)
 {
   if (key > 0 &&
       key <= mEntries.size() &&
@@ -223,8 +223,8 @@ void Mesquite::StopWatchCollection::stop(
     mEntries[key-1].second.stop();
 }
 
-void Mesquite::StopWatchCollection::reset(
-  const Mesquite::StopWatchCollection::Key key)
+void MBMesquite::StopWatchCollection::reset(
+  const MBMesquite::StopWatchCollection::Key key)
 {
   if (key > 0 &&
       key <= mEntries.size())
@@ -232,8 +232,8 @@ void Mesquite::StopWatchCollection::reset(
 }
 
 
-double Mesquite::StopWatchCollection::total_time(
-  const Mesquite::StopWatchCollection::Key key) const
+double MBMesquite::StopWatchCollection::total_time(
+  const MBMesquite::StopWatchCollection::Key key) const
 {
   if (key > 0 &&
       key <= mEntries.size() &&
@@ -243,8 +243,8 @@ double Mesquite::StopWatchCollection::total_time(
     return 0.0;
 }
 
-int Mesquite::StopWatchCollection::number_of_starts(
-  const Mesquite::StopWatchCollection::Key key) const
+int MBMesquite::StopWatchCollection::number_of_starts(
+  const MBMesquite::StopWatchCollection::Key key) const
 {
   if (key > 0 &&
       key <= mEntries.size() &&
@@ -258,7 +258,7 @@ int Mesquite::StopWatchCollection::number_of_starts(
   largest total_time StopWatch is in the first position of the vector.  The
   key associated with the smallest total_time StopWatch is in the last
   position of the vector.*/
-void Mesquite::StopWatchCollection::get_keys_sorted_by_time(
+void MBMesquite::StopWatchCollection::get_keys_sorted_by_time(
   std::vector<Key> &sorted_keys)
 {
   int num_watches=mEntries.size();
@@ -300,23 +300,23 @@ void Mesquite::StopWatchCollection::get_keys_sorted_by_time(
 // Originally in MsqMessage.cpp
 // Moved here and converted to an ostream operator 
 // by J.Kraftcheck, 2004-10-18
-std::ostream& Mesquite::operator<<( std::ostream& str,
-                                          Mesquite::StopWatchCollection&  )
+std::ostream& MBMesquite::operator<<( std::ostream& str,
+                                          MBMesquite::StopWatchCollection&  )
 {
-  std::vector<Mesquite::StopWatchCollection::Key> sorted_keys;
-  Mesquite::GlobalStopWatches.get_keys_sorted_by_time(sorted_keys);
+  std::vector<MBMesquite::StopWatchCollection::Key> sorted_keys;
+  MBMesquite::GlobalStopWatches.get_keys_sorted_by_time(sorted_keys);
   int number_of_keys=sorted_keys.size();
   int i =0;
   str<<"\nTIME        | NUM. STARTS | TIMER NAME ("<<number_of_keys<<" timers)\n";
   for(i=0;i<number_of_keys;++i){
 	  str<<std::setiosflags(std::ios::left)
              <<std::setw(13)
-             <<Mesquite::GlobalStopWatches.total_time(sorted_keys[i])
+             <<MBMesquite::GlobalStopWatches.total_time(sorted_keys[i])
              <<" "
              <<std::setw(13)
-             <<Mesquite::GlobalStopWatches.number_of_starts(sorted_keys[i])
+             <<MBMesquite::GlobalStopWatches.number_of_starts(sorted_keys[i])
              <<" "
-             <<Mesquite::GlobalStopWatches.get_string(sorted_keys[i])
+             <<MBMesquite::GlobalStopWatches.get_string(sorted_keys[i])
              <<std::endl;
   }
   return str;

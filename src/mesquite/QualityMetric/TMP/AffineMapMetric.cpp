@@ -46,7 +46,7 @@
 #include <functional>
 #include <algorithm>
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 const double TRI_XFORM_VALS[] = { 1.0, -1.0/sqrt(3.0), 0.0, 2.0/sqrt(3.0) };
 MsqMatrix<2,2> TRI_XFORM( TRI_XFORM_VALS );

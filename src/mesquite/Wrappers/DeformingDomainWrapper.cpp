@@ -55,7 +55,7 @@
 #include <numeric> // for std::accumulate
 
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 const DeformingDomainWrapper::MeshCharacteristic DEFAULT_METRIC_TYPE = 
   DeformingDomainWrapper::SHAPE;
@@ -293,4 +293,4 @@ TagHandle DeformingCurveSmoother::get_tag( Mesh* mesh, MsqError& err )
   return h;
 }
 
-} // namespace MESQUITE_NS
+} // namespace MBMesquite

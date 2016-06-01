@@ -38,7 +38,7 @@
 #include <vector>
 #include <stdlib.h> // size_t
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 class MsqVertex;
 class Vector3D;
@@ -76,6 +76,6 @@ bool non_coplanar_vertices( const MsqVertex* vertex_array,
 
 } // namespace DomainUtil
 
-} // namespace MESQUITE_NS
+} // namespace MBMesquite
 
 #endif

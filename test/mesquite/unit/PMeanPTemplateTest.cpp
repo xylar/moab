@@ -41,7 +41,7 @@
 #include "ObjectiveFunctionTests.hpp"
 
 
-using namespace Mesquite;
+using namespace MBMesquite;
 using namespace std;
 
 const double EPSILON = 1e-4;

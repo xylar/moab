@@ -43,13 +43,13 @@
 #include "MeshInterface.hpp"
 #include "Vector3D.hpp"
 
-namespace MESQUITE_NS
+namespace MBMesquite
 {
   /*! \class XYPlanarDomain
        This is a template for a planar domain that exists in the xy-plane (z=0).
        It will provide the normal information necessary for surface mesh optimization.
     */
-  class MESQUITE_EXPORT XYPlanarDomain : public Mesquite::MeshDomain
+  class MESQUITE_EXPORT XYPlanarDomain : public MBMesquite::MeshDomain
   {
   public:
    

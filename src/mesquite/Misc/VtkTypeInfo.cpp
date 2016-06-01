@@ -28,7 +28,7 @@
 #include "MsqError.hpp"
 #include <assert.h>
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 const unsigned vtk_pixel_order[] = { 0, 1, 3, 2 };
 

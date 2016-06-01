@@ -43,7 +43,7 @@
 #include "SymMatrix3D.hpp"
 #include <memory>  // auto_ptr
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 ObjectiveFunction::~ObjectiveFunction() {}
 

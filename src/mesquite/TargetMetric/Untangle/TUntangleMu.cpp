@@ -37,7 +37,7 @@
 #include "TMPCommon.hpp"
 #include "MsqError.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 
 TUntangleMu::~TUntangleMu()
@@ -114,4 +114,4 @@ bool TUntangleMu::hess( const MsqMatrix<DIM,DIM>& T,
 
 TMP_T_TEMPL_IMPL_COMMON_ERR(TUntangleMu)
 
-} // namespace MESQUITE_NS
+} // namespace MBMesquite

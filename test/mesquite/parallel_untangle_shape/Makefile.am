@@ -9,7 +9,7 @@ AM_CPPFLAGS  = -DSRCDIR=$(srcdir) \
                -I$(top_builddir)/src \
                -I$(top_srcdir)/test 
 
-LDADD = $(top_builddir)/src/mesquite/libmesquite.la
+LDADD = $(top_builddir)/src/mesquite/libmbmesquite.la
 check_PROGRAMS = par_hex_untangle_shape
 par_hex_untangle_shape_SOURCES = par_hex_untangle_shape.cpp
 par_hex_untangle_shape_DEPENDENCIES = $(LDADD)

@@ -63,7 +63,7 @@
 
 #include "UnitUtil.hpp"
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 #include <iostream>
 using std::vector;

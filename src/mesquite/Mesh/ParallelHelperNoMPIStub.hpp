@@ -39,7 +39,7 @@
 
 #include "Mesquite.hpp"
 
-namespace MESQUITE_NS
+namespace MBMesquite
 {
 
   int get_parallel_rank();

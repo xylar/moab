@@ -34,7 +34,7 @@
 #include "UnitUtil.hpp"
 #include "ConicDomain.hpp"
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 class ConicDomainTest : public CppUnit::TestFixture
 {

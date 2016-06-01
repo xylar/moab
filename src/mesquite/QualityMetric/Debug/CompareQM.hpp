@@ -37,7 +37,7 @@
 #include "QualityMetric.hpp"
 #include "SimpleStats.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 /**\brief Compare values for two supposedly equivalent quality metrics
  *
@@ -199,6 +199,6 @@ private:
 
 };
 
-} // namespace MESQUITE_NS
+} // namespace MBMesquite
 
 #endif

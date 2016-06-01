@@ -34,7 +34,7 @@
 #include "IdealElements.hpp"
 #include "Vector3D.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 static Vector3D unit_quad[4] = { Vector3D( -0.5, -0.5, 0.0 ),
                                  Vector3D(  0.5, -0.5, 0.0 ),
@@ -112,10 +112,10 @@ static const Vector3D* const* init_unit_elem( Vector3D** ptr )
     ptr[i] = 0;
   
   init_tri( unit_tri, 2.0 * pow( 3.0, -0.25 ) );
-  init_tet( unit_tet, Mesquite::cbrt( 3.0 ) * sqrt(2.0) );
+  init_tet( unit_tet, MBMesquite::cbrt( 3.0 ) * sqrt(2.0) );
   init_pyr( unit_pyr, pow( 18.0, 1.0/6.0 ) );
-  init_wdg( unit_wdg, Mesquite::cbrt( 4.0 ) * pow( 3.0, -1.0/6.0 ) );
-  init_hex_pyr( unit_hex_pyr, Mesquite::cbrt( 3.0 ) );
+  init_wdg( unit_wdg, MBMesquite::cbrt( 4.0 ) * pow( 3.0, -1.0/6.0 ) );
+  init_hex_pyr( unit_hex_pyr, MBMesquite::cbrt( 3.0 ) );
   
   ptr[TRIANGLE] = unit_tri;
   ptr[QUADRILATERAL] = unit_quad;

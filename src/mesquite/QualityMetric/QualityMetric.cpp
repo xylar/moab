@@ -40,7 +40,7 @@
 #include "MsqVertex.hpp"
 #include "PatchData.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 void QualityMetric::initialize_queue( MeshDomainAssoc* ,
                                       const Settings* ,

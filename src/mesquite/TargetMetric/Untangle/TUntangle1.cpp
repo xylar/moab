@@ -37,7 +37,7 @@
 
 #include <iostream>
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 
 TUntangle1::~TUntangle1()
@@ -105,4 +105,4 @@ bool TUntangle1::hess( const MsqMatrix<DIM,DIM>& T,
 TMP_T_TEMPL_IMPL_COMMON(TUntangle1)
 
 
-} // namespace MESQUITE_NS
+} // namespace MBMesquite

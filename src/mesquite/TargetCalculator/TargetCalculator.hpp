@@ -39,7 +39,7 @@
 #include "MeshInterface.hpp"
 #include <stddef.h>
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 class PatchData;
 class MsqError;

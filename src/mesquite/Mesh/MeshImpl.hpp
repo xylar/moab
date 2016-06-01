@@ -43,7 +43,7 @@
 #include <map>
 #include <iosfwd>
 
-namespace MESQUITE_NS
+namespace MBMesquite
 {
   class FileTokenizer;
   class MeshImplData;
@@ -57,7 +57,7 @@ namespace MESQUITE_NS
     
   MeshImpl can read in mesh files in VTK format and ExodusII format. 
   */
-  class MESQUITE_EXPORT MeshImpl : public Mesquite::Mesh
+  class MESQUITE_EXPORT MeshImpl : public MBMesquite::Mesh
   {
   public:
 //********* Functions that are NOT inherited ************
@@ -95,16 +95,16 @@ namespace MESQUITE_NS
 	     const bool *fixed, const double *coords, const int *conn);
     
     /**\brief Read mesh from VTK file format version 3.0 or earlier */
-    void read_vtk(const char* in_filename, Mesquite::MsqError &err);
+    void read_vtk(const char* in_filename, MBMesquite::MsqError &err);
     
     /**\brief Write mesh to VTK file format version 3.0 */
-    void write_vtk(const char* out_filename, Mesquite::MsqError &err);
+    void write_vtk(const char* out_filename, MBMesquite::MsqError &err);
     
     /**\brief Read mesh from ExodusII file */
-    void read_exodus(const char* in_filename, Mesquite::MsqError &err);
+    void read_exodus(const char* in_filename, MBMesquite::MsqError &err);
     
     /**\brief Write mesh to ExodusII file */
-    void write_exodus(const char* out_filename, Mesquite::MsqError &err);
+    void write_exodus(const char* out_filename, MBMesquite::MsqError &err);
     
     /**\brief Set the value returned by vertices_get_fixed_flag for all vertices */
     void set_all_fixed_flags(bool value, MsqError& err);
@@ -190,7 +190,7 @@ namespace MESQUITE_NS
       //! is allowed to be repositioned.  True indicates that the vertex
       //! is fixed and cannot be moved.  Note that this is a read-only
       //! property; this flag can't be modified by users of the
-      //! Mesquite::Mesh interface.
+      //! MBMesquite::Mesh interface.
     virtual void vertices_get_fixed_flag( const VertexHandle vert_array[], 
                                           std::vector<bool>& fixed_flag_array,
                                           size_t num_vtx, 
@@ -208,7 +208,7 @@ namespace MESQUITE_NS
     
       // Get/set location of a vertex
     virtual void vertices_get_coordinates(const Mesh::VertexHandle vert_array[],
-                                          Mesquite::MsqVertex* coordinates,
+                                          MBMesquite::MsqVertex* coordinates,
                                           size_t num_vtx,
                                           MsqError &err);
     virtual void vertex_set_coordinates(VertexHandle vertex,

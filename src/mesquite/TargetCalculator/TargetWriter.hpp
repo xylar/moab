@@ -37,7 +37,7 @@
 #include "Instruction.hpp"
 #include "MeshInterface.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 class TargetCalculator;
 class WeightCalculator;

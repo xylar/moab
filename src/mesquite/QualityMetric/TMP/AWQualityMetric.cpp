@@ -54,7 +54,7 @@
 
 #define NUMERICAL_2D_HESSIAN
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 std::string AWQualityMetric::get_name() const
 {

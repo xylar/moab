@@ -28,7 +28,7 @@
 
 /*! \file IdealWeightInverseMeanRatio.hpp
 
-Header file for the Mesquite::IdealWeightInverseMeanRatio class
+Header file for the MBMesquite::IdealWeightInverseMeanRatio class
 
 \author Michael Brewer
 \author Thomas Leurent
@@ -46,7 +46,7 @@ Header file for the Mesquite::IdealWeightInverseMeanRatio class
 #include "Matrix3D.hpp"
 #include "Exponent.hpp"
 
-namespace MESQUITE_NS
+namespace MBMesquite
 {
     class MsqMeshEntity;
     class PatchData;

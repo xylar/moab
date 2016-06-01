@@ -36,7 +36,7 @@
 #include "Mesquite.hpp"
 #include "TMetricBarrier.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 /** 2D: |T|^2 - 2 * ln(tau) - 2
  *  3D: |T|^3 - 3 sqrt(3) ln(tau) - 3 sqrt(3) */

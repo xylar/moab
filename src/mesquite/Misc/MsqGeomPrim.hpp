@@ -36,7 +36,7 @@
 #include "Mesquite.hpp"
 #include "Vector3D.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 
 /**\brief Line in R^3 */

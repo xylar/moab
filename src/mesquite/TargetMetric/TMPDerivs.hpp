@@ -41,7 +41,7 @@
   */
 #define MSQ_ROW_BASED_OUTER_PRODUCT
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 /**\brief \f$ R *= s \f$ */
 template <unsigned D> inline
@@ -992,6 +992,6 @@ void hess_scale_t( MsqMatrix<D,D> R[D*(D+1)/2], double alpha )
     R[i] *= alpha;
 }
 
-} // namespace MESQUITE_NS
+} // namespace MBMesquite
 
 #endif

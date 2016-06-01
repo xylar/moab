@@ -30,7 +30,7 @@
 
 /*! \file QualityAssessor.hpp
 
-Header file for the Mesquite::QualityAssessor class
+Header file for the MBMesquite::QualityAssessor class
 
   \author Thomas Leurent
   \date   2002-05-01
@@ -51,7 +51,7 @@ Header file for the Mesquite::QualityAssessor class
 #include <vector>
 #include <iosfwd>
 
-namespace MESQUITE_NS 
+namespace MBMesquite 
 {
 
    class QualityMetric;

@@ -55,7 +55,7 @@
 #include "MeshUtil.hpp"
 #include "SimpleStats.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 void PaverMinEdgeLengthWrapper::run_wrapper( MeshDomainAssoc* mesh_and_domain,
                                              ParallelMesh* pmesh,
@@ -103,4 +103,4 @@ void PaverMinEdgeLengthWrapper::run_wrapper( MeshDomainAssoc* mesh_and_domain,
   q.run_common( mesh_and_domain, pmesh, settings, err ); MSQ_CHKERR(err);  
 }
 
-} // namespace MESQUITE_NS
+} // namespace MBMesquite

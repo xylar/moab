@@ -36,7 +36,7 @@
 #include "MsqError.hpp"
 #include "TMPDerivs.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 std::string TShapeSizeOrientB2::get_name() const
   { return "TShapeSizeOrientB2"; }

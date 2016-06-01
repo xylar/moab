@@ -5,7 +5,7 @@
 
 #include <iostream>
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 const char ROTATE_FLAG = 'r';
 const char SCALE_FLAG = 's';

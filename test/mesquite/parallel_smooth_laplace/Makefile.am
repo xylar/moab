@@ -9,7 +9,7 @@ AM_CPPFLAGS  = -DSRCDIR=$(srcdir) \
                -I$(top_builddir)/src \
                -I$(top_srcdir)/test 
 
-LDADD = $(top_builddir)/src/mesquite/libmesquite.la
+LDADD = $(top_builddir)/src/mesquite/libmbmesquite.la
 check_PROGRAMS = par_hex_smooth_laplace
 par_hex_smooth_laplace_SOURCES = par_hex_smooth_laplace.cpp
 par_hex_smooth_laplace_DEPENDENCIES = $(LDADD)

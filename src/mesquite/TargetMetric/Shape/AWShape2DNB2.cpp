@@ -35,7 +35,7 @@
 #include "MsqMatrix.hpp"
 #include "TMPDerivs.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 std::string AWShape2DNB2::get_name() const
   { return "AWShape2DNB2"; }

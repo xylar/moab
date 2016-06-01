@@ -43,7 +43,7 @@
 #include "ElemSampleQM.hpp"
 #include <sstream>
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 TargetWriter::TargetWriter(  TargetCalculator* tc,
                              WeightCalculator* wc,

@@ -26,7 +26,7 @@
   ***************************************************************** */
 /*!
   \file   QualityAssessor.cpp
-  \brief  Member function of the Mesquite::QualityAssessor class
+  \brief  Member function of the MBMesquite::QualityAssessor class
 
   \author Thomas Leurent
   \date   2002-05-23
@@ -65,7 +65,7 @@
 # include <termios.h>
 #endif
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 const char* default_name( bool free_only )
 {

@@ -28,7 +28,7 @@
 
 /*! \file ShapeImprovementWrapper.cpp
 
-Member functions of the Mesquite::ShapeImprovementWrapper class
+Member functions of the MBMesquite::ShapeImprovementWrapper class
 
   \author Michael Brewer
   \date   June 6, 2003
@@ -47,7 +47,7 @@ Member functions of the Mesquite::ShapeImprovementWrapper class
 #include "InstructionQueue.hpp"
 #include "QualityAssessor.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 const double DEF_UNT_BETA = 1e-8;
 const double DEF_SUC_EPS = 1e-4;

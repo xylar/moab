@@ -35,7 +35,7 @@
 #include "Mesquite.hpp"
 #include "MeshInterface.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 /**\brief Assign subsets of a mesh do different domains.
  *
@@ -59,7 +59,7 @@ class DomainClassifier : public MeshDomain
      * on each mesh entity to the list of MeshDomain IDs.
      *
      *\param result   DomainClassifier to popupate
-     *\param mesh     The Mesquite::Mesh instance
+     *\param mesh     The MBMesquite::Mesh instance
      *\param tag_name Tag containing integer domain ID for each mesh entity.
      *\param domain_array Array of MeshDomain instances.
      *\param id_array Array of integer MeshDomain IDs.
@@ -90,7 +90,7 @@ class DomainClassifier : public MeshDomain
      * not just the skin.  Use classify_geometrically instead.
      *
      *\param result   DomainClassifier to popupate
-     *\param mesh     The Mesquite::Mesh instance
+     *\param mesh     The MBMesquite::Mesh instance
      *\param tolerance Maximum distance a vertex may deviate from its domain.
      *\param domain_array Array of MeshDomain instances.
      *\param dimension_array Topological dimensiono of each MeshDomain
@@ -120,7 +120,7 @@ class DomainClassifier : public MeshDomain
      *        volume meshes.
      *
      *\param result   DomainClassifier to popupate
-     *\param mesh     The Mesquite::Mesh instance
+     *\param mesh     The MBMesquite::Mesh instance
      *\param tolerance Maximum distance a vertex may deviate from its domain.
      *\param domain_array Array of MeshDomain instances.
      *\param dimension_array Topological dimensiono of each MeshDomain
@@ -157,7 +157,7 @@ class DomainClassifier : public MeshDomain
      * a domain, specify that classification explicitly.
      *
      *\param result           DomainClassifier to popupate
-     *\param mesh             The Mesquite::Mesh instance
+     *\param mesh             The MBMesquite::Mesh instance
      *\param domain_set_array Array of DomainClassifier::DomainSet structs
      *                        specifying for each MeshDomain: the
      *                        domain instance and the elements and

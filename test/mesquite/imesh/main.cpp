@@ -69,7 +69,7 @@ using std::endl;
 
 #include "iBase.h"
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 std::string default_file_name = TestDir + "/3D/vtk/large_box_hex_1000.vtk";
 
@@ -96,9 +96,8 @@ int run_local_smoother( Mesh* mesh, MsqError& err );
 
 int main(int argc, char* argv[])
 {
-  Mesquite::MsqPrintError err(cout);
-  
-  return 0;
+  MBMesquite::MsqPrintError err(cout);
+
     // command line arguments
   const char* file_name = 0;
   bool use_native = false, opts_done = false;
@@ -295,7 +294,7 @@ Mesh* get_imesh_mesh( const char* file_name )
   }
 
   MsqError err;
-  Mesh* result = new Mesquite::MsqIMesh( imesh_mesh, root_set, iBase_REGION, err, &fixed_tag );
+  Mesh* result = new MBMesquite::MsqIMesh( imesh_mesh, root_set, iBase_REGION, err, &fixed_tag );
   if (MSQ_CHKERR(err)) {
     delete result;
     cerr << err << endl;

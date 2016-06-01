@@ -28,7 +28,7 @@
 
 /*! \file CompositeOFMultiply.hpp
 
-Header file for the Mesquite:: CompositeOFMultiply class
+Header file for the MBMesquite:: CompositeOFMultiply class
 
   \author Michael Brewer
   \date   2002-05-23
@@ -42,7 +42,7 @@ Header file for the Mesquite:: CompositeOFMultiply class
 #include "ObjectiveFunction.hpp"
 #include "MsqHessian.hpp"
 
-namespace MESQUITE_NS
+namespace MBMesquite
 {
    /*!\class CompositeOFMultiply
        \brief Multiplies two ObjectiveFunction values together.

@@ -36,7 +36,7 @@
 #include "Mesquite.hpp"
 #include "TMetricNonBarrier.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 /** 2D: \f$ |T - adj T^t|^2 + \gamma (\tau - 1)^2 = 2 |T|^2 - 4 \tau + \gamma (\tau - 1)^2 \f$
  *  3D: \f$ 2 |T|^3 - 3 \sqrt{3} \tau + \gamma (\tau - 1)^2 \f$

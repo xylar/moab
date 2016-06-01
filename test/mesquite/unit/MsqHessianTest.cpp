@@ -54,14 +54,14 @@ Unit testing of the MsqHessian class.
 
 #include "cppunit/extensions/HelperMacros.h"
 
-using namespace Mesquite;
+using namespace MBMesquite;
 using std::cout;
 using std::cerr;
 using std::endl;
 
 class MsqHessianTest
   : public CppUnit::TestFixture,
-    public Mesquite::MsqHessian
+    public MBMesquite::MsqHessian
 {
 
 private:

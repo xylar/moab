@@ -37,7 +37,7 @@
 #include "MsqError.hpp"
 #include "TMPCommon.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 std::string TSum::get_name() const
   { return mu1->get_name() + '+' + mu2->get_name(); }
@@ -99,4 +99,4 @@ bool TSum::hess( const MsqMatrix<DIM,DIM>& T,
 
 TMP_T_TEMPL_IMPL_COMMON_ERR(TSum)
 
-} // namespace MESQUITE_NS
+} // namespace MBMesquite

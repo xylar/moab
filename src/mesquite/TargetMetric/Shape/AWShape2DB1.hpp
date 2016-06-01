@@ -36,7 +36,7 @@
 #include "Mesquite.hpp"
 #include "AWMetricBarrier.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 
 /** \f$ \frac{1}{4 \alpha \omega}|A(adj\,W)-[W(adj\,A)]^t|^2 \f$ */

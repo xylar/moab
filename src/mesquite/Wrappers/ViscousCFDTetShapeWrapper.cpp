@@ -54,7 +54,7 @@
 #include "TetDihedralWeight.hpp"
 #include "RemainingWeight.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 void ViscousCFDTetShapeWrapper::run_wrapper( MeshDomainAssoc* mesh_and_domain,
                                              ParallelMesh* pmesh,
@@ -130,4 +130,4 @@ void ViscousCFDTetShapeWrapper::run_wrapper( MeshDomainAssoc* mesh_and_domain,
   q.run_common( mesh_and_domain, pmesh, settings, err ); MSQ_CHKERR(err);  
 }
 
-} // namespace MESQUITE_NS
+} // namespace MBMesquite

@@ -50,7 +50,7 @@ Implements a couple of default virtual functions of the virtual class
 #include "QualityImprover.hpp"
 #include "MsqError.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
     /*! The default constructor initialises a few member variables
         to default values.
@@ -78,5 +78,5 @@ void QualityImprover::initialize_queue( MeshDomainAssoc* mesh_and_domain,
   outerTerminationCriterion->initialize_queue( mesh_and_domain, settings, err ); MSQ_ERRRTN(err);
 }
 
-} // namespace MESQUITE_NS
+} // namespace MBMesquite
 

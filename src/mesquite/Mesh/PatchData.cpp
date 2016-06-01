@@ -63,7 +63,7 @@
    using std::left;
    using std::internal;
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 const Settings PatchData::defaultSettings;
 

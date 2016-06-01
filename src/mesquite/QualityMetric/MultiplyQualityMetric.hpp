@@ -28,7 +28,7 @@
 
 /*! \file MultiplyQualityMetric.hpp
 \brief
-Header file for the Mesquite::MultiplyQualityMetric class
+Header file for the MBMesquite::MultiplyQualityMetric class
 
   \author Michael Brewer
   \date   2002-09-05
@@ -41,7 +41,7 @@ Header file for the Mesquite::MultiplyQualityMetric class
 #include "Mesquite.hpp"
 #include "QualityMetric.hpp"
 
-namespace MESQUITE_NS
+namespace MBMesquite
 {
    class Vector3D;
    class MsqError;

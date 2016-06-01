@@ -78,7 +78,7 @@
   Government retains certain rights in this software.
 
 */
-namespace MESQUITE_NS
+namespace MBMesquite
 {
   // Windows has issues
 #ifndef M_PI
@@ -129,7 +129,7 @@ namespace MESQUITE_NS
     BETA,
     ALPHA
   };
-   MESQUITE_EXPORT Mesquite::ReleaseType release_type();
+   MESQUITE_EXPORT MBMesquite::ReleaseType release_type();
   
   const bool OF_FREE_EVALS_ONLY=true;
   

@@ -35,7 +35,7 @@
 #include "MsqMatrix.hpp"
 #include "MsqError.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 LambdaTarget::LambdaTarget( TargetCalculator* lambda_source,
                             TargetCalculator* composite_source )
@@ -64,7 +64,7 @@ bool LambdaTarget::get_3D_target( PatchData& pd,
   if (det2 < 1e-15) 
     return false;
   
-  W_out *= Mesquite::cbrt( fabs( det1/det2 ) );
+  W_out *= MBMesquite::cbrt( fabs( det1/det2 ) );
   return true;
 }
 
@@ -119,5 +119,5 @@ bool LambdaTarget::get_surface_target( PatchData& pd,
 
 
 
-} // namespace MESQUITE_NS
+} // namespace MBMesquite
 

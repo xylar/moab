@@ -56,7 +56,7 @@
 #include "../../ObjectiveFunction/ObjectiveFunction.hpp"
 #include <float.h>
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 std::string NonGradient::get_name() const
   { return "NonGradient"; }

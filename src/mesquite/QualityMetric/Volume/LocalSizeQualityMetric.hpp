@@ -28,7 +28,7 @@
 
 /*! \file LocalSizeQualityMetric.hpp
 
-Header file for the Mesquite::LocalSizeQualityMetric class
+Header file for the MBMesquite::LocalSizeQualityMetric class
 
   \author Michael Brewer
   \date   April 9, 2003
@@ -43,7 +43,7 @@ Header file for the Mesquite::LocalSizeQualityMetric class
 #include "VertexQM.hpp"
 #include "AveragingQM.hpp"
 
-namespace MESQUITE_NS
+namespace MBMesquite
 {
      /*! \class LocalSizeQualityMetric
        \brief Computes the local size metric for a given vertex.

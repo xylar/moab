@@ -52,7 +52,7 @@
 #include <cstdlib>
 #include <cstdio>
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 //! Struct in which to store mesh description
 struct MeshParams { double x, y, w, h; };

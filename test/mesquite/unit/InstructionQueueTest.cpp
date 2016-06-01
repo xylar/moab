@@ -65,7 +65,7 @@ Unit testing of various functions in the InstructionQueue class.
 using std::cout;
 using std::endl;
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 class InstructionQueueTest : public CppUnit::TestFixture
 {

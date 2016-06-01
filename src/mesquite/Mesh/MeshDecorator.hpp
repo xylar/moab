@@ -26,7 +26,7 @@
 
 
 /** \file MeshDecorator.hpp
- *  \brief Definition of Mesquite::MeshDecorator class
+ *  \brief Definition of MBMesquite::MeshDecorator class
  *  \author Jason Kraftcheck 
  */
 
@@ -36,12 +36,12 @@
 #include "Mesquite.hpp"
 #include "MeshInterface.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
-/**\brief Utility class for implementing decorators for the Mesquite::Mesh interface
+/**\brief Utility class for implementing decorators for the MBMesquite::Mesh interface
  *
  * This is a utility class that to assist with implementing decorators
- * for the Mesquite::Mesh interface.  This class implements a "dumb"
+ * for the MBMesquite::Mesh interface.  This class implements a "dumb"
  * decorator that passes all operations to its underlying (decorated)
  * Mesh instance unchanged.  The intention is that useful decorators 
  * subclass this class, overriding only those functions for which they

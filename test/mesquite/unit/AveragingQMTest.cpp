@@ -37,7 +37,7 @@ Unit testing for the AveragingQM class
 #include "PatchData.hpp"
 #include "cppunit/extensions/HelperMacros.h"
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 class AveragingQMTest : public CppUnit::TestFixture
 {

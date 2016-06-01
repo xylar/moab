@@ -51,7 +51,7 @@
 #include <functional>
 #include <algorithm>
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 int TMPQualityMetric::get_negate_flag( ) const { return 1; }
 

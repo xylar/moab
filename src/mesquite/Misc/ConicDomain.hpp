@@ -37,12 +37,12 @@
 #include "MeshInterface.hpp"
 #include "Vector3D.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 /*! \class ConicDomain
      Define the geometry of an unbounded cone with circular cross-section.
   */
-class MESQUITE_EXPORT ConicDomain : public Mesquite::MeshDomain
+class MESQUITE_EXPORT ConicDomain : public MBMesquite::MeshDomain
 {
 public:
     /**

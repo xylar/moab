@@ -38,7 +38,7 @@
 #include "MsqGeomPrim.hpp"
 #include "CurveDomain.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 
 

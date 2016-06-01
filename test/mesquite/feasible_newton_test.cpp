@@ -63,7 +63,7 @@ using std::endl;
 #include "ConjugateGradient.hpp"
 #include "TestUtil.hpp"
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 void usage()
 {
@@ -73,7 +73,7 @@ void usage()
 
 int main(int argc, char* argv[])
 {
-  Mesquite::MsqPrintError err(cout);
+  MBMesquite::MsqPrintError err(cout);
 
   std::string file_name = TestDir + "/3D/vtk/hexes/untangled/large_box_hex_1000.vtk";
   double OF_value = 0.;
@@ -99,7 +99,7 @@ int main(int argc, char* argv[])
     usage();
   }
   
-  Mesquite::MeshImpl mesh;
+  MBMesquite::MeshImpl mesh;
   mesh.read_vtk(file_name.c_str(), err);
   if (err) return 1;
   

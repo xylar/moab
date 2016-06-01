@@ -35,7 +35,7 @@
 #include "MsqError.hpp"
 #include <limits>
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 AWMetricBarrier::~AWMetricBarrier() {}
      

@@ -41,7 +41,7 @@
 
 #include "ParallelMeshInterface.hpp"
 
-namespace MESQUITE_NS
+namespace MBMesquite
 {
   /*!  \class ParallelMeshImpl
   \brief ParallelMeshImpl is a Mesquite implementation of the ParallelMesh
@@ -109,7 +109,7 @@ namespace MESQUITE_NS
       //! is allowed to be repositioned.  True indicates that the vertex
       //! is fixed and cannot be moved.  Note that this is a read-only
       //! property; this flag can't be modified by users of the
-      //! Mesquite::Mesh interface.
+      //! MBMesquite::Mesh interface.
     virtual void vertices_get_fixed_flag( const VertexHandle vert_array[], 
                                           std::vector<bool>& fixed_flag_array,
                                           size_t num_vtx, 
@@ -127,7 +127,7 @@ namespace MESQUITE_NS
     
       // Get/set location of a vertex
     virtual void vertices_get_coordinates(const Mesh::VertexHandle vert_array[],
-                                          Mesquite::MsqVertex* coordinates,
+                                          MBMesquite::MsqVertex* coordinates,
                                           size_t num_vtx,
                                           MsqError &err);
     virtual void vertex_set_coordinates(VertexHandle vertex,

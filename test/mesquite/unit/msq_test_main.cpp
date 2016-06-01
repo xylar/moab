@@ -60,7 +60,7 @@ int main(int argc, char **argv)
   CppUnit::TextUi::TestRunner runner;
   int firsttest = 1;
   bool list = false;
-  Mesquite::MsqFPE trap_fpe(true);
+  MBMesquite::MsqFPE trap_fpe(true);
 
     // Check for command line arguments
   if (argc > 2 && !strcmp(argv[1],"-s"))

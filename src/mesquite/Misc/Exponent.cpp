@@ -35,7 +35,7 @@
 
 #include "Exponent.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 
 
@@ -86,10 +86,10 @@ double Exponent::pow0( double   ) const          { return 1.0;   }
 double Exponent::pow1( double x ) const          { return x;     }
 double Exponent::pow2( double x ) const          { return x * x; }
 double Exponent::squareRoot( double x ) const    { return std::sqrt( x ); }
-double Exponent::cubeRoot( double x ) const      { return Mesquite::cbrt( x ); }
-double Exponent::invCubeRoot( double x ) const   { return 1.0/Mesquite::cbrt( x ); }
-double Exponent::powTwoThirds( double x ) const  { return Mesquite::cbrt_sqr(x); }
-double Exponent::invTwoThirds( double x ) const  { return 1.0 / Mesquite::cbrt_sqr(x); }
+double Exponent::cubeRoot( double x ) const      { return MBMesquite::cbrt( x ); }
+double Exponent::invCubeRoot( double x ) const   { return 1.0/MBMesquite::cbrt( x ); }
+double Exponent::powTwoThirds( double x ) const  { return MBMesquite::cbrt_sqr(x); }
+double Exponent::invTwoThirds( double x ) const  { return 1.0 / MBMesquite::cbrt_sqr(x); }
 double Exponent::std_pow( double x ) const       { return std::pow( x, mExponent ); }
 double Exponent::inverse( double x ) const       { return 1.0 / x; }
 double Exponent::invSquareRoot( double x ) const { return 1.0 / std::sqrt(x); }

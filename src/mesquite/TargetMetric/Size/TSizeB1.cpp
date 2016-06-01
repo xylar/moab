@@ -37,7 +37,7 @@
 #include "TMPDerivs.hpp"
 #include "TMPCommon.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 std::string TSizeB1::get_name() const
   { return "TSizeB1"; }

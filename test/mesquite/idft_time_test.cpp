@@ -56,7 +56,7 @@ using std::endl;
 #include "MsqTimer.hpp"
 #include "TestUtil.hpp"
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 std::string DEFAULT_INPUT = TestDir + "/2D/vtk/tris/untangled/equil_tri2.vtk";
 

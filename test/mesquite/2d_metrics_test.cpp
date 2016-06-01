@@ -66,7 +66,7 @@
 #include <stdlib.h>
 #include <assert.h>
 using namespace std;
-using namespace Mesquite;
+using namespace MBMesquite;
 
 #define CHKERR( A ) if (MSQ_CHKERR((A))) { cerr << (A) << std::endl; exit(3); }
 

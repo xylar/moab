@@ -36,7 +36,7 @@
 #include "MsqMatrix.hpp"
 #include "MsqError.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 std::string TScale::get_name() const
   { return "scale(" + mMetric->get_name() + ')'; }
@@ -123,4 +123,4 @@ bool TScale::evaluate_with_hess( const MsqMatrix<3,3>& T,
 }
 
 
-} // namespace MESQUITE_NS
+} // namespace MBMesquite

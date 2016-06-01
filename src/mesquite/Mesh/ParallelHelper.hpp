@@ -42,7 +42,7 @@
 #include <vector>
 #include <map>
 
-namespace MESQUITE_NS
+namespace MBMesquite
 {
   typedef struct VertexIdMapKey {
     size_t glob_id;
@@ -89,7 +89,7 @@ namespace MESQUITE_NS
     void compute_first_independent_set(std::vector<Mesh::VertexHandle>& fixed_vertices);
     void communicate_first_independent_set(MsqError& err);
     bool compute_next_independent_set();
-    bool get_next_partition_boundary_vertex(Mesquite::Mesh::VertexHandle& vertex_handle);
+    bool get_next_partition_boundary_vertex(MBMesquite::Mesh::VertexHandle& vertex_handle);
     void communicate_next_independent_set(MsqError& err);
     void smoothing_close(MsqError& err);
 
@@ -119,13 +119,13 @@ namespace MESQUITE_NS
 
     // variables for VertexMover::loop_over_mesh()
     int generate_random_numbers;
-    std::vector<Mesquite::Mesh::VertexHandle> vertices;
+    std::vector<MBMesquite::Mesh::VertexHandle> vertices;
     int num_vertex;
     std::vector<char> vtx_in_partition_boundary;
     int num_vtx_partition_boundary;
     int num_vtx_partition_boundary_local;
     int num_vtx_partition_boundary_remote;
-    std::vector<Mesquite::Mesh::VertexHandle> part_vertices;
+    std::vector<MBMesquite::Mesh::VertexHandle> part_vertices;
     std::vector<int> part_proc_owner;
     std::vector<size_t> part_gid;
     std::vector<int> part_smoothed_flag;
@@ -151,7 +151,7 @@ namespace MESQUITE_NS
     int next_vtx_partition_boundary;
     /* for exchanging unused ghost node information */
     int unghost_num_vtx;
-    std::vector<Mesquite::Mesh::VertexHandle> unghost_vertices;
+    std::vector<MBMesquite::Mesh::VertexHandle> unghost_vertices;
     int unghost_num_procs;
     std::vector<int> unghost_procs;
     std::vector<int> unghost_procs_num_vtx;

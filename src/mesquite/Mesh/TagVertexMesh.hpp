@@ -26,7 +26,7 @@
 
 
 /** \file TagVertexMesh.hpp
- *  \brief Definition of Mesquite::TagVertexMesh class
+ *  \brief Definition of MBMesquite::TagVertexMesh class
  *  \author Jason Kraftcheck 
  */
 
@@ -37,11 +37,11 @@
 #include "MeshDecorator.hpp"
 #include "Instruction.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 /**\brief Store alternate vertex coordinates in tags. 
  *
- * This class implements a decorator pattern for the Mesquite::Mesh
+ * This class implements a decorator pattern for the MBMesquite::Mesh
  * interface where alternate vertex coordinates are stored in a tag
  * on the original mesh.  The vertex coordinates are the same as that
  * of the decorated Mesh interface until they are set.  Once the coorindates

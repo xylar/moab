@@ -36,7 +36,7 @@
 #include "Mesquite.hpp"
 #include "TMetricNonBarrier.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 /**\brief \f$ |T|^3 - 3 \sqrt{3} \tau + \gamma (\tau - 1)^2 \f$
  *

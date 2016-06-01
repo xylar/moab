@@ -35,7 +35,7 @@
 #include "MsqMatrix.hpp"
 #include "MsqError.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 std::string InvTransBarrier::get_name() const
   { return "InvTransBarrier"; }

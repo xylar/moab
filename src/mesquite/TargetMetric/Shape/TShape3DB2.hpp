@@ -36,7 +36,7 @@
 #include "Mesquite.hpp"
 #include "TMetricBarrier.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 /**\brief 3.3.8: 1/9 \Kappa^2(T) - 1,
  *                Kappa(T) = |T||T|^-1 = |T||adj(T)/\tau

@@ -40,7 +40,7 @@
 
 #include <vector>
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 class MappingFunction2D;
 class MappingFunction3D;

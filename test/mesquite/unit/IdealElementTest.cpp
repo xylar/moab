@@ -37,7 +37,7 @@
 #include "Vector3D.hpp"
 #include "cppunit/extensions/HelperMacros.h"
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 class IdealElementTest : public CppUnit::TestFixture
 {

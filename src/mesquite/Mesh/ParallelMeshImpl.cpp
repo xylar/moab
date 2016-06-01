@@ -48,7 +48,7 @@ to run mesquite by default.
 #include "MsqError.hpp"
 #include "MsqDebug.hpp"
 
-namespace MESQUITE_NS
+namespace MBMesquite
 {
 
 ParallelMeshImpl::ParallelMeshImpl(Mesh* p_myMesh, const char * gid_name, const char * pid_name)

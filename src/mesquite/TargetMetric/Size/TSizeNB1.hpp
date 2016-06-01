@@ -36,7 +36,7 @@
 #include "Mesquite.hpp"
 #include "TMetricNonBarrier.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 
 /** (det(T)-1)^2 */

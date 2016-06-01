@@ -39,9 +39,9 @@
 
 #include <algorithm>
 
-Mesquite::SphericalDomain::~SphericalDomain() {}
+MBMesquite::SphericalDomain::~SphericalDomain() {}
 
-void Mesquite::SphericalDomain::snap_to(Mesh::VertexHandle /*entity_handle*/,
+void MBMesquite::SphericalDomain::snap_to(Mesh::VertexHandle /*entity_handle*/,
                                         Vector3D &coordinate) const
 {
     // Get vector center to coordinate, store in coordinate.
@@ -58,7 +58,7 @@ void Mesquite::SphericalDomain::snap_to(Mesh::VertexHandle /*entity_handle*/,
   coordinate += mCenter;
 }
 
-void Mesquite::SphericalDomain::vertex_normal_at(Mesh::VertexHandle /*entity_handle*/,
+void MBMesquite::SphericalDomain::vertex_normal_at(Mesh::VertexHandle /*entity_handle*/,
                                                  Vector3D &coordinate) const
 {
     // normal is vector from center to input position
@@ -71,27 +71,27 @@ void Mesquite::SphericalDomain::vertex_normal_at(Mesh::VertexHandle /*entity_han
   if (!finite(coordinate.x()))
     coordinate.set( 1.0, 0.0, 0.0 );
 }
-void Mesquite::SphericalDomain::element_normal_at(Mesh::ElementHandle h,
+void MBMesquite::SphericalDomain::element_normal_at(Mesh::ElementHandle h,
                                                  Vector3D &coordinate) const
 {
   SphericalDomain::vertex_normal_at( h, coordinate );
 }
 
-void Mesquite::SphericalDomain::vertex_normal_at( 
-                                const Mesquite::Mesh::VertexHandle* handle,
-                                Mesquite::Vector3D coords[],
+void MBMesquite::SphericalDomain::vertex_normal_at( 
+                                const MBMesquite::Mesh::VertexHandle* handle,
+                                MBMesquite::Vector3D coords[],
                                 unsigned count,
-                                Mesquite::MsqError& ) const
+                                MBMesquite::MsqError& ) const
 {
   for (unsigned i = 0; i < count; ++i)
     vertex_normal_at( handle[i], coords[i] );
 }
 
-void Mesquite::SphericalDomain::closest_point( Mesquite::Mesh::VertexHandle ,
-                                               const Mesquite::Vector3D& position,
-                                               Mesquite::Vector3D& closest,
-                                               Mesquite::Vector3D& normal,
-                                               Mesquite::MsqError& ) const
+void MBMesquite::SphericalDomain::closest_point( MBMesquite::Mesh::VertexHandle ,
+                                               const MBMesquite::Vector3D& position,
+                                               MBMesquite::Vector3D& closest,
+                                               MBMesquite::Vector3D& normal,
+                                               MBMesquite::MsqError& ) const
 {
   normal = position - mCenter;
   normal.normalize();
@@ -101,7 +101,7 @@ void Mesquite::SphericalDomain::closest_point( Mesquite::Mesh::VertexHandle ,
 }
 
 
-void Mesquite::SphericalDomain::domain_DoF( const Mesh::VertexHandle* ,
+void MBMesquite::SphericalDomain::domain_DoF( const Mesh::VertexHandle* ,
                                             unsigned short* dof_array,
                                             size_t num_vertices,
                                             MsqError&  ) const
@@ -110,7 +110,7 @@ void Mesquite::SphericalDomain::domain_DoF( const Mesh::VertexHandle* ,
 }
 
       
-void Mesquite::SphericalDomain::fit_vertices( Mesh* mesh, MsqError& err, double epsilon )
+void MBMesquite::SphericalDomain::fit_vertices( Mesh* mesh, MsqError& err, double epsilon )
 {
   std::vector<Mesh::VertexHandle> verts;
   mesh->get_all_vertices( verts, err );
@@ -118,7 +118,7 @@ void Mesquite::SphericalDomain::fit_vertices( Mesh* mesh, MsqError& err, double 
     fit_vertices( mesh, arrptr(verts), verts.size(), err, epsilon );
 }
 
-void Mesquite::SphericalDomain::fit_vertices( Mesh* mesh, 
+void MBMesquite::SphericalDomain::fit_vertices( Mesh* mesh, 
                                               const Mesh::VertexHandle* verts,
                                               size_t num_verts,
                                               MsqError& err, 

@@ -52,7 +52,7 @@
 #include <numeric>
 #include <iomanip>
 
-using namespace Mesquite;
+using namespace MBMesquite;
 using namespace std;
 
 

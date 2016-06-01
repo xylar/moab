@@ -38,7 +38,7 @@
 #include <cppunit/extensions/HelperMacros.h>
 #include <algorithm>
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 class CachedTargetCalculator;
 

@@ -37,7 +37,7 @@
 #include "MeshInterface.hpp"
 #include <string>
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 class CurveDomain;
 
@@ -352,6 +352,6 @@ private:
 };
 
 
-} // namespace MESQUITE_NS
+} // namespace MBMesquite
 
 #endif

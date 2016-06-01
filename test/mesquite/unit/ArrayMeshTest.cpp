@@ -36,7 +36,7 @@
 #include "MsqError.hpp"
 #include "UnitUtil.hpp"
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 class ArrayMeshTest : public CppUnit::TestFixture
 {

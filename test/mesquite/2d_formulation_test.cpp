@@ -55,7 +55,7 @@
 #include <iostream>
 #include <stdlib.h>
 
-using namespace Mesquite;
+using namespace MBMesquite;
 using namespace std;
 
 const double epsilon = 2e-2;

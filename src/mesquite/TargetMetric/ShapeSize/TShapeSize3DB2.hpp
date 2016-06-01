@@ -36,7 +36,7 @@
 #include "Mesquite.hpp"
 #include "TMetricBarrier.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 /** 3.3.12: (|T|^2 + |adj(T)|^2)/6\tau - 1 */
 class TShapeSize3DB2 : public TMetricBarrier3D

@@ -28,7 +28,7 @@
 
 /*! \file UntangleBetaQualityMetric.hpp
 
-Header file for the Mesquite::UntangleBetaQualityMetric class
+Header file for the MBMesquite::UntangleBetaQualityMetric class
 
   \author Michael Brewer
   \date   2002-09-10
@@ -40,7 +40,7 @@ Header file for the Mesquite::UntangleBetaQualityMetric class
 #include "Mesquite.hpp"
 #include "ElementQM.hpp"
 #include "AveragingQM.hpp"
-namespace MESQUITE_NS
+namespace MBMesquite
 {
      /*! \class UntangleBetaQualityMetric
        \brief The untangle beta quality metric.

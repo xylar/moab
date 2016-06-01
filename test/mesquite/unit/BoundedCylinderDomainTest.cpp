@@ -13,7 +13,7 @@ const double EPSILON = 1e-6;
 #define ASSERT_VECTORS_EQUAL( A, B ) \
   CPPUNIT_ASSERT( ((A)-(B)).length() < EPSILON )
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 class BoundedCylinderDomainTest : public CppUnit::TestFixture
 {

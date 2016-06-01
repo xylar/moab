@@ -36,7 +36,7 @@
 #include "MsqVertex.hpp"
 #include "MsqError.hpp"
 
-namespace MESQUITE_NS { 
+namespace MBMesquite { 
 namespace DomainUtil { 
 
 void bounding_box( const MsqVertex* coords,
@@ -185,4 +185,4 @@ bool non_coplanar_vertices( const MsqVertex* verts,
 }
 
 } // namespace DomainUtil  
-} // namespace MESQUITE_NS
+} // namespace MBMesquite

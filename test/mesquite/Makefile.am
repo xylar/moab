@@ -39,7 +39,7 @@ AM_CPPFLAGS  = -DSRCDIR=$(srcdir) \
                -I$(top_builddir)/src \
                -I$(top_srcdir)/test
 
-LDADD = $(top_builddir)/src/mesquite/libmesquite.la
+LDADD = $(top_builddir)/src/mesquite/libmbmesquite.la
 check_PROGRAMS = algorithm_test activeset analytical_grad3D paraboloid_domain high_aspect_ratio idft_time jacobi
 check_PROGRAMS += laplacian laplacian_polygon nongradient pyramid wedge simple_hybrid synchronous transform untangle
 check_PROGRAMS += headers_basic_test benchmark_tests feasible_newton 2d_target 2d_metrics 2d_formulation 

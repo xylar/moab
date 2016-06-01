@@ -36,7 +36,7 @@
 #include "TMPDerivs.hpp"
 #include "TMPCommon.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 std::string AWSizeNB1::get_name() const
   { return "AWSizeNB1"; }

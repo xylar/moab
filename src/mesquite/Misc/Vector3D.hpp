@@ -42,7 +42,7 @@
   \author Darryl Melander
   \author Thomas Leurent
 */
-namespace MESQUITE_NS
+namespace MBMesquite
 {
    class Matrix3D;
    class MsqError;
@@ -381,7 +381,7 @@ namespace MESQUITE_NS
   }
   
   // output operator
-  MESQUITE_EXPORT std::ostream& operator<<(std::ostream &s, const Mesquite::Vector3D &v);
+  MESQUITE_EXPORT std::ostream& operator<<(std::ostream &s, const MBMesquite::Vector3D &v);
   
   inline double Vector3D::distance_between(const Vector3D &p1,
                                            const Vector3D &p2)

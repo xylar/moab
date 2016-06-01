@@ -38,7 +38,7 @@
 #include "PatchData.hpp"
 #include "PatchIterator.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 ObjectiveFunction* PatchPowerMeanP::clone() const
   { return new PatchPowerMeanP(*this); }

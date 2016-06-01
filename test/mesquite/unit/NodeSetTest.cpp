@@ -34,7 +34,7 @@
 #include "NodeSet.hpp"
 #include "UnitUtil.hpp"
 
-using namespace Mesquite;
+using namespace MBMesquite;
 using namespace std;
 
 class NodeSetTest : public CppUnit::TestFixture

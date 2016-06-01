@@ -1,7 +1,7 @@
 MSQ_ITAPS_LIB = libmsqitaps.la
 MSQ_ITAPS_HDRS =
 MSQ_ITAPS_SRCS =
-MSQ_LIBDEPS = $(top_builddir)/src/mesquite/libmesquite.la
+MSQ_LIBDEPS = $(top_builddir)/src/mesquite/libmbmesquite.la
 
 if ENABLE_irel
   MSQ_ITAPS_SRCS += MsqIRel.cpp

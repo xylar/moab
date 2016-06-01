@@ -39,7 +39,7 @@
 #include <vector>
 #include <assert.h>
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 template <unsigned R, unsigned C> class MsqMatrix;
 template <unsigned C> class MsqVector;

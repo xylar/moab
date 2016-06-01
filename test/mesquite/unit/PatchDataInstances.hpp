@@ -61,7 +61,7 @@ Patches must be allocated and dealocated by the caller.
 
 #include "cppunit/extensions/HelperMacros.h"
 
-namespace MESQUITE_NS
+namespace MBMesquite
 {
   //! must be called in sync with create_...._patch_with_domain
   inline void destroy_patch_with_domain(PatchData &pd)

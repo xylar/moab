@@ -37,11 +37,11 @@
 // ============
 /*! \file par_hex.cpp
 
-A test of Mesquite's parallel capabilities.  Reads a split vtk file, smooths in parallel using Laplace
+A test of MBMesquite's parallel capabilities.  Reads a split vtk file, smooths in parallel using Laplace
 smoothing, writes out the result (which can be compared with the "gold" copy of the same name in the
 meshFiles VTK directory).
 
-See the Mesquite User's Guide, section "Using Mesquite in Parallel" - this code is very similar to the
+See the MBMesquite User's Guide, section "Using MBMesquite in Parallel" - this code is very similar to the
 example code shown therein.
 
  */
@@ -62,7 +62,7 @@ example code shown therein.
 #include "TerminationCriterion.hpp"
 #include "QualityAssessor.hpp"
 
-/* Mesquite includes */
+/* MBMesquite includes */
 #include "ParallelMeshImpl.hpp"
 #include "ParallelHelper.hpp"
 
@@ -84,7 +84,7 @@ using std::endl;
 #include <mpi.h>
 #include <sstream>
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 std::string VTK_3D_DIR = TestDir + "/3D/vtk/hexes/tangled/";
 
@@ -118,15 +118,15 @@ int main( int argc, char* argv[] )
   out_name << "par_smoothed_hex_mesh." << nprocs << "." << rank << ".vtk";
 
   /* load different mesh files on each processor */
-  Mesquite::MsqError err;
-  Mesquite::MeshImpl mesh;
+  MBMesquite::MsqError err;
+  MBMesquite::MeshImpl mesh;
   mesh.read_vtk(in_name.str().c_str(), err);
   if (err) {cerr << err << endl; return 1;}
 
   /* create parallel mesh instance, specifying tags 
    * containing parallel data */
-  Mesquite::ParallelMeshImpl parallel_mesh(&mesh, "GLOBAL_ID", "PROCESSOR_ID");
-  Mesquite::ParallelHelperImpl helper;
+  MBMesquite::ParallelMeshImpl parallel_mesh(&mesh, "GLOBAL_ID", "PROCESSOR_ID");
+  MBMesquite::ParallelHelperImpl helper;
   helper.set_communicator(MPI_COMM_WORLD);
   helper.set_parallel_mesh(&parallel_mesh);
   parallel_mesh.set_parallel_helper(&helper);

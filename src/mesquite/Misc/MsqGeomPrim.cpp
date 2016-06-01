@@ -33,7 +33,7 @@
 #include "Mesquite.hpp"
 #include "MsqGeomPrim.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 bool MsqLine::intersect( const MsqLine& other, double& param, double epsilon ) const
 {

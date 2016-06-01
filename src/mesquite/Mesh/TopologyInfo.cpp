@@ -30,7 +30,7 @@
 #include <string.h>
 #include <assert.h>
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 TopologyInfo TopologyInfo::instance;
 

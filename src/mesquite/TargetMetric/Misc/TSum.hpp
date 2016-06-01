@@ -36,7 +36,7 @@
 #include "Mesquite.hpp"
 #include "TMetric.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 /** \f$ \mu\prime = \mu_1 + \mu_2 \f$ */
 class TSum : public TMetric
@@ -100,6 +100,6 @@ private:
 };
 
 
-} // namespace MESQUITE_NS
+} // namespace MBMesquite
 
 #endif

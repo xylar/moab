@@ -35,7 +35,7 @@ describe MsqVertex.cpp here
 
 #include "MsqVertex.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
  
 } // namespace Mesquite

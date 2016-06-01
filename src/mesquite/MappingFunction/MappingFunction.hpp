@@ -39,7 +39,7 @@
 #include "TopologyInfo.hpp"
 #include "NodeSet.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 class MsqError;
 class PatchData;
@@ -83,7 +83,7 @@ public:
   virtual
   ~MappingFunction() {}
 
-  /**\brief Get Mesquite::EntityTopology handled by this mapping function */
+  /**\brief Get MBMesquite::EntityTopology handled by this mapping function */
   virtual 
   EntityTopology element_topology() const = 0;
   

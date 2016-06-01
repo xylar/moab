@@ -34,7 +34,7 @@
 #include "TTau.hpp"
 #include "MsqMatrix.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 
 TTau::~TTau() {}
@@ -58,4 +58,4 @@ bool TTau::evaluate( const MsqMatrix<3,3>& T,
 }
 
 
-} // namespace MESQUITE_NS
+} // namespace MBMesquite

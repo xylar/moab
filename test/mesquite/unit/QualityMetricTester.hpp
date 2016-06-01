@@ -32,9 +32,9 @@
 #include "Settings.hpp"
 #include <algorithm>
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 class PatchData;
 class QualityMetric;
 class ElemSampleQM;

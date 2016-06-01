@@ -37,7 +37,7 @@
 #include "PatchData.hpp"
 #include "MsqError.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 /**\brief Iterate over all edges in a patch*/
 class EdgeIterator
@@ -101,6 +101,6 @@ void EdgeIterator::step( MsqError& err )
 }
 
 
-} // namespace MESQUITE_NS
+} // namespace MBMesquite
 
 #endif

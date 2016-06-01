@@ -36,7 +36,7 @@
 #include "Mesquite.hpp"
 #include "TMetricBarrier.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 
 /** (|T|^2 - 1/n trace(T) abs(trace(T)))/(2tau)

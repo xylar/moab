@@ -38,7 +38,7 @@
 #include "ElemSampleQM.hpp"
 #include <sstream>
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 static TagHandle get_tag( Mesh* mesh,
                           unsigned num_matrices,

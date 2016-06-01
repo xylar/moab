@@ -36,7 +36,7 @@
 #include "MsqError.hpp"
 #include <limits>
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 template <unsigned Dim>
 static inline double

@@ -27,7 +27,7 @@
 
 #include "MsqError.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 /** \brief Class to watch for user-interrupt (SIGINT, ctrl-C)
  *

@@ -33,7 +33,7 @@
 #include "Mesquite.hpp"
 #include "RemainingWeight.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 RemainingWeight::~RemainingWeight() {}
 
@@ -45,4 +45,4 @@ double RemainingWeight::get_weight( PatchData& pd,
   return 1.0 - primaryWeight->get_weight( pd, element, sample, err );
 }
 
-} // namespace MESQUITE_NS
+} // namespace MBMesquite

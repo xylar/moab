@@ -38,7 +38,7 @@
 #include "MsqError.hpp"
 
 
-using namespace Mesquite;
+using namespace MBMesquite;
 using namespace std;
 
 

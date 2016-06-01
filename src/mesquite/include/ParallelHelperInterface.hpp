@@ -37,9 +37,9 @@
 
 #include "ParallelMeshInterface.hpp"
 
-namespace MESQUITE_NS
+namespace MBMesquite
 {
-  /*! \class ParallelHelper \brief Mesquite::ParallelHelper is an abstract class
+  /*! \class ParallelHelper \brief MBMesquite::ParallelHelper is an abstract class
    *  which defines methods used by VertexMover and QualityAssessor to parallelize
    *  operations so the details and includes for MPI communication do not need to
    *  be exposed when running Mesquite in serial mode.
@@ -62,7 +62,7 @@ namespace MESQUITE_NS
     virtual void compute_first_independent_set(std::vector<Mesh::VertexHandle>& fixed_vertices) = 0;
     virtual void communicate_first_independent_set(MsqError&) = 0;
     virtual bool compute_next_independent_set() = 0;
-    virtual bool get_next_partition_boundary_vertex(Mesquite::Mesh::VertexHandle& vertex_handle) = 0;
+    virtual bool get_next_partition_boundary_vertex(MBMesquite::Mesh::VertexHandle& vertex_handle) = 0;
     virtual void communicate_next_independent_set(MsqError&) = 0;
     virtual void smoothing_close(MsqError&) = 0;
 

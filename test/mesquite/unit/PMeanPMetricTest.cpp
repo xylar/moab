@@ -33,7 +33,7 @@
 #include "UnitUtil.hpp"
 #include "ElemSampleQM.hpp"
 
-using namespace Mesquite;
+using namespace MBMesquite;
 using std::cout;
 using std::cerr;
 using std::endl;

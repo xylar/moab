@@ -28,7 +28,7 @@
 
 /*! \file LInfTemplate.hpp
 
-Header file for the Mesquite::LInfTemplate class
+Header file for the MBMesquite::LInfTemplate class
 
   \author Michael Brewer
   \date   2002-07-3
@@ -41,7 +41,7 @@ Header file for the Mesquite::LInfTemplate class
 #include "Mesquite.hpp"
 #include "ObjectiveFunctionTemplate.hpp"
 
-namespace MESQUITE_NS
+namespace MBMesquite
 {
   /*! \class LInfTemplate
     \brief Computes the L_infinity objective function for a given patch,

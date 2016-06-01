@@ -37,11 +37,11 @@
 // ============
 /*! \file par_hex.cpp
 
-A test of Mesquite's parallel capabilities.  Reads a split vtk file, smooths in parallel using Laplace
+A test of MBMesquite's parallel capabilities.  Reads a split vtk file, smooths in parallel using Laplace
 smoothing, writes out the result (which can be compared with the "gold" copy of the same name in the
 meshFiles VTK directory).
 
-See the Mesquite User's Guide, section "Using Mesquite in Parallel" - this code is very similar to the
+See the MBMesquite User's Guide, section "Using MBMesquite in Parallel" - this code is very similar to the
 example code shown therein.
 
 */
@@ -62,7 +62,7 @@ example code shown therein.
 #include "TerminationCriterion.hpp"
 #include "QualityAssessor.hpp"
 
-/* Mesquite includes */
+/* MBMesquite includes */
 #include "ParallelMeshImpl.hpp"
 #include "ParallelHelper.hpp"
 #include "MsqDebug.hpp"
@@ -97,7 +97,7 @@ using std::endl;
 #include <mpi.h>
 #include <sstream>
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 #define VTK_3D_DIR TestDir + "/3D/vtk/hexes/tangled/"
 #define VTK_2D_DIR TestDir + "/2D/vtk/quads/tangled/"
@@ -273,7 +273,7 @@ public:
               MeshDomain* domain = mesh_and_domain->get_domain();
 	      int num_invalid = count_invalid_elements(*mesh, domain);
 	      std::cout << "\nP[" << rank << "] " << " ParShapeImprover num_invalid after untangler= " << num_invalid << " " 
-			<< (num_invalid ? " ERROR still have invalid elements after Mesquite untangle" : 
+			<< (num_invalid ? " ERROR still have invalid elements after MBMesquite untangle" : 
 			    " SUCCESS: untangled invalid elements ")
 			<< std::endl;
 
@@ -359,7 +359,7 @@ public:
 	    {
 	      num_invalid = count_invalid_elements(mesh, domain);
 	      std::cout << "\nP[" << rank << "] " << " ParShapeImprover num_invalid before= " << num_invalid 
-			<< (num_invalid ? " WARNING: invalid elements exist before Mesquite smoothing" : 
+			<< (num_invalid ? " WARNING: invalid elements exist before MBMesquite smoothing" : 
 			    (!always_smooth ? "WARNING: no smoothing requested since always_smooth=false" : " "))
 			<< std::endl;
 	    }
@@ -402,7 +402,7 @@ public:
 		{
 		  num_invalid = count_invalid_elements(mesh, domain);
 		  std::cout << "\nP[" << rank << "] " << " ParShapeImprover num_invalid after= " << num_invalid << " " 
-			    << (num_invalid ? " ERROR still have invalid elements after Mesquite smoothing" : 
+			    << (num_invalid ? " ERROR still have invalid elements after MBMesquite smoothing" : 
 				" SUCCESS: smoothed and removed invalid elements ")
 			    << std::endl;
 		}

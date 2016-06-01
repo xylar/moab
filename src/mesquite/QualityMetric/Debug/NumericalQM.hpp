@@ -36,7 +36,7 @@
 #include "Mesquite.hpp"
 #include "QualityMetric.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 /**\brief Use finite difference rather than analytical derivative calculations.
  *
@@ -110,6 +110,6 @@ class NumericalQM : public QualityMetric
 };
 
 
-} // namespace MESQUITE_NS
+} // namespace MBMesquite
 
 #endif

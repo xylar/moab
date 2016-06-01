@@ -35,7 +35,7 @@
 #include "MsqMatrix.hpp"
 #include "MsqError.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 LambdaConstant::LambdaConstant( double lambda, TargetCalculator* W )
   : mLambda(lambda), mTarget(W)
@@ -95,5 +95,5 @@ bool LambdaConstant::get_2D_target( PatchData& pd,
 
 
 
-} // namespace MESQUITE_NS
+} // namespace MBMesquite
 

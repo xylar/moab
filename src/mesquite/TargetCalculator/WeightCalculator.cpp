@@ -33,7 +33,7 @@
 #include "Mesquite.hpp"
 #include "WeightCalculator.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 
 WeightCalculator::~WeightCalculator()
@@ -44,4 +44,4 @@ void WeightCalculator::initialize_queue( MeshDomainAssoc* ,
                                          MsqError&  )
 {}
 
-} // namespace MESQUITE_NS
+} // namespace MBMesquite

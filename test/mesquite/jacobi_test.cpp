@@ -22,7 +22,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 /* Mesh:
  

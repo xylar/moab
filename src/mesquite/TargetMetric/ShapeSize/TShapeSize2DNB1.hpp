@@ -36,7 +36,7 @@
 #include "Mesquite.hpp"
 #include "TMetricNonBarrier.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 /** |T|^2 - 2*sqrt(|T|^2 + 2*det(T))+2 */
 class TShapeSize2DNB1 : public TMetricNonBarrier2D

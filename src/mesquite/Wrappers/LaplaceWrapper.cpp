@@ -38,7 +38,7 @@
 #include "TerminationCriterion.hpp"
 #include "MsqError.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 const double DEFAULT_MOVEMENT_FACTOR = 0.001;
 const bool CULLING_DEFAULT = true;
@@ -92,4 +92,4 @@ void LaplaceWrapper::run_wrapper( MeshDomainAssoc* mesh_and_domain,
   q.run_common( mesh_and_domain, pmesh, settings, err ); MSQ_ERRRTN(err);
 }
 
-} // namespace MESQUITE_NS
+} // namespace MBMesquite

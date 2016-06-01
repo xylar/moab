@@ -37,7 +37,7 @@
 #include "MsqIMesh.hpp"
 #include "ParallelMeshInterface.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 /**\class MsqIMeshP
  *\brief Mesquite iMesh Adapter

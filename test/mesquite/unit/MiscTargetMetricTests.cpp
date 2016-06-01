@@ -1,7 +1,7 @@
 #define TARGET_TEST_GROUP "MiscTargetMetricTests"
 #include "TargetMetricTest.hpp"
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 #include "TSizeNB1.hpp"
 #include "TSizeB1.hpp"

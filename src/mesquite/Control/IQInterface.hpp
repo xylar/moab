@@ -37,7 +37,7 @@
 #include "Settings.hpp"
 #include "MeshInterface.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 class MsqError;
 class ParallelMesh;
@@ -81,6 +81,6 @@ class MESQUITE_EXPORT IQInterface : public Settings
                              MsqError& err ) = 0;
 };
 
-} // namespace MESQUITE_NS
+} // namespace MBMesquite
 
 #endif

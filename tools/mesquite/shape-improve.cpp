@@ -7,7 +7,7 @@
 
 #include <iostream>
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 int main( int argc, char* argv[] )
 {

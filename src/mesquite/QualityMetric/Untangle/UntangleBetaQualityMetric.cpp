@@ -37,7 +37,7 @@
 #include "PatchData.hpp"
 #include "MsqError.hpp"
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 static inline void untangle_function_2d( double beta,
                                          const Vector3D temp_vec[],

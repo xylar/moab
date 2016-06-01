@@ -35,10 +35,10 @@
 #include "MsqError.hpp"
 #include "QualityAssessor.hpp"
 
-MESQUITE_NS::Wrapper::Wrapper() : qualAssessor( new QualityAssessor ) {}
-MESQUITE_NS::Wrapper::~Wrapper() { delete qualAssessor; }
+MBMesquite::Wrapper::Wrapper() : qualAssessor( new QualityAssessor ) {}
+MBMesquite::Wrapper::~Wrapper() { delete qualAssessor; }
 
-void MESQUITE_NS::Wrapper::run_common(  MeshDomainAssoc* mesh_and_domain, ParallelMesh* pmesh, 
+void MBMesquite::Wrapper::run_common(  MeshDomainAssoc* mesh_and_domain, ParallelMesh* pmesh, 
                                         Settings* opt, MsqError& err )
 {
   QualityAssessor qa(*qualAssessor); // use copy so that subclass changes aren't persistent.

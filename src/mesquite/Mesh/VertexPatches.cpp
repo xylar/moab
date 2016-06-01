@@ -39,7 +39,7 @@
 
 #include <algorithm>
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 VertexPatches::~VertexPatches()
 {}

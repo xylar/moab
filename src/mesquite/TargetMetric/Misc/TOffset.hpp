@@ -36,7 +36,7 @@
 #include "Mesquite.hpp"
 #include "TMetric.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 /** \f$ \mu\prime = \mu + \alpha\f$ */
 class TOffset : public TMetric
@@ -93,6 +93,6 @@ public:
 };
 
 
-} // namespace MESQUITE_NS
+} // namespace MBMesquite
 
 #endif

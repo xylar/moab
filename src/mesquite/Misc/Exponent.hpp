@@ -38,7 +38,7 @@
 
 #include "Mesquite.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 class Exponent
 {

@@ -35,7 +35,7 @@
 #include "MsqError.hpp"
 #include "PatchData.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 IdealShapeTarget::~IdealShapeTarget() {}
 
@@ -84,4 +84,4 @@ bool IdealShapeTarget::have_surface_orient() const
   { return false; }
 
 
-} // namespace MESQUITE_NS
+} // namespace MBMesquite

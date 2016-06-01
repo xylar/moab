@@ -35,7 +35,7 @@
 #include "cppunit/extensions/HelperMacros.h"
 #include "QualityMetricTester.hpp"
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 class IdealWeightMeanRatioTest : public CppUnit::TestFixture
 {

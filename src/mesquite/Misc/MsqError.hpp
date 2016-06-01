@@ -31,7 +31,7 @@
 #include <list>
 #include <string>
 
-namespace MESQUITE_NS
+namespace MBMesquite
 {
 
 /**\defgroup error Mesquite internal error handling
@@ -75,7 +75,7 @@ namespace MESQUITE_NS
  *  - MSQ_SETERR( err )( MsqError::INVALID_ARG, "foo = %d", foo );
 */
 #define MSQ_SETERR(err) \
-Mesquite::MsqError::setter(err, MSQ_FUNCTION,__FILE__,__LINE__).set
+MBMesquite::MsqError::setter(err, MSQ_FUNCTION,__FILE__,__LINE__).set
 
 /**
  *\class MsqError

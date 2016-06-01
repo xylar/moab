@@ -37,7 +37,7 @@
 #include "AWMetric.hpp"
 #include <string>
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 class MsqError;
 template <unsigned R, unsigned C> class MsqMatrix;

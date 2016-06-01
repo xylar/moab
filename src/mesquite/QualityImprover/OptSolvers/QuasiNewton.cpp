@@ -36,7 +36,7 @@
 #include "MsqError.hpp"
 #include "PatchData.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 // Force std::vector to release allocated memory
 template <typename T>

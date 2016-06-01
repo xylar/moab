@@ -50,7 +50,7 @@ Unit testing of various functions in the Matrix3D class.
 
 #include "cppunit/extensions/HelperMacros.h"
 
-using namespace Mesquite;
+using namespace MBMesquite;
 using std::cout;
 using std::cerr;
 using std::endl;

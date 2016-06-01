@@ -33,7 +33,7 @@ using std::cout;
 #include "MsqError.hpp"
 #include "TopologyInfo.hpp"
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 class TopologyInfoTest : public CppUnit::TestFixture
 {
@@ -186,15 +186,15 @@ public:
   void hex_adj_vert();
   void pyr_adj_vert();
   void wdg_adj_vert();
-  void test_adj( Mesquite::EntityTopology, const unsigned expected[][5] );
+  void test_adj( MBMesquite::EntityTopology, const unsigned expected[][5] );
   
-  void tri_rev_adj_vert()  { test_rev_adj( Mesquite::TRIANGLE      ); }
-  void quad_rev_adj_vert() { test_rev_adj( Mesquite::QUADRILATERAL ); }
-  void tet_rev_adj_vert()  { test_rev_adj( Mesquite::TETRAHEDRON   ); }
-  void hex_rev_adj_vert()  { test_rev_adj( Mesquite::HEXAHEDRON    ); }
-  void pyr_rev_adj_vert()  { test_rev_adj( Mesquite::PYRAMID       ); }
-  void wdg_rev_adj_vert()  { test_rev_adj( Mesquite::PRISM         ); }
-  void test_rev_adj( Mesquite::EntityTopology type );
+  void tri_rev_adj_vert()  { test_rev_adj( MBMesquite::TRIANGLE      ); }
+  void quad_rev_adj_vert() { test_rev_adj( MBMesquite::QUADRILATERAL ); }
+  void tet_rev_adj_vert()  { test_rev_adj( MBMesquite::TETRAHEDRON   ); }
+  void hex_rev_adj_vert()  { test_rev_adj( MBMesquite::HEXAHEDRON    ); }
+  void pyr_rev_adj_vert()  { test_rev_adj( MBMesquite::PYRAMID       ); }
+  void wdg_rev_adj_vert()  { test_rev_adj( MBMesquite::PRISM         ); }
+  void test_rev_adj( MBMesquite::EntityTopology type );
    
   void higher_order_from_side();
   void side_from_higher_order();
@@ -1133,7 +1133,7 @@ void TopologyInfoTest::polyhedron()
 
 void TopologyInfoTest::bad_type()
 {
-  Mesquite::MsqError err;
+  MBMesquite::MsqError err;
   EntityTopology bad_types[] = { (EntityTopology)0,
                                  (EntityTopology)1,
                                  MIXED,
@@ -1182,7 +1182,7 @@ void TopologyInfoTest::tri_adj_vert()
   unsigned data[][5] = { { 2, 1, 2, 0, 0 },
                          { 2, 2, 0, 0, 0 },
                          { 2, 0, 1, 0, 0 } };
-  test_adj( Mesquite::TRIANGLE, data );
+  test_adj( MBMesquite::TRIANGLE, data );
 }
 
 void TopologyInfoTest::quad_adj_vert()
@@ -1191,7 +1191,7 @@ void TopologyInfoTest::quad_adj_vert()
                          { 2, 2, 0, 0, 0 },
                          { 2, 3, 1, 0, 0 },
                          { 2, 0, 2, 0, 0 } };
-  test_adj( Mesquite::QUADRILATERAL, data );
+  test_adj( MBMesquite::QUADRILATERAL, data );
 }
 
 void TopologyInfoTest::tet_adj_vert()
@@ -1200,7 +1200,7 @@ void TopologyInfoTest::tet_adj_vert()
                          { 3, 2, 0, 3, 0 },
                          { 3, 0, 1, 3, 0 },
                          { 3, 2, 1, 0, 0 } };
-  test_adj( Mesquite::TETRAHEDRON, data );
+  test_adj( MBMesquite::TETRAHEDRON, data );
 }
 
 void TopologyInfoTest::hex_adj_vert()
@@ -1213,7 +1213,7 @@ void TopologyInfoTest::hex_adj_vert()
                          { 3, 4, 6, 1, 0 },
                          { 3, 5, 7, 2, 0 },
                          { 3, 6, 4, 3, 0 } };
-  test_adj( Mesquite::HEXAHEDRON, data );
+  test_adj( MBMesquite::HEXAHEDRON, data );
 }
 
 void TopologyInfoTest::pyr_adj_vert()
@@ -1223,7 +1223,7 @@ void TopologyInfoTest::pyr_adj_vert()
                          { 3, 3, 1, 4, 0 },
                          { 3, 0, 2, 4, 0 },
                          { 4, 3, 2, 1, 0 } };
-  test_adj( Mesquite::PYRAMID, data );
+  test_adj( MBMesquite::PYRAMID, data );
 }
 
 void TopologyInfoTest::wdg_adj_vert()
@@ -1234,10 +1234,10 @@ void TopologyInfoTest::wdg_adj_vert()
                          { 3, 5, 4, 0, 0 },
                          { 3, 3, 5, 1, 0 },
                          { 3, 4, 3, 2, 0 } };
-  test_adj( Mesquite::PRISM, data );
+  test_adj( MBMesquite::PRISM, data );
 }
 
-void TopologyInfoTest::test_adj( Mesquite::EntityTopology type,
+void TopologyInfoTest::test_adj( MBMesquite::EntityTopology type,
                                  const unsigned data[][5] )
 {
     // Get num vertices from type
@@ -1283,7 +1283,7 @@ void TopologyInfoTest::test_adj( Mesquite::EntityTopology type,
   }
 }
 
-void TopologyInfoTest::test_rev_adj( Mesquite::EntityTopology type )
+void TopologyInfoTest::test_rev_adj( MBMesquite::EntityTopology type )
 {
     // Get num vertices from type
   unsigned n = TopologyInfo::corners( type );

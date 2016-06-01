@@ -44,7 +44,7 @@
 #include <iostream>
 #include <sstream>
 
-using namespace Mesquite;
+using namespace MBMesquite;
 using namespace std;
 const double epsilon = 1e-6;
 #define ASSERT_VALUES_EQUAL( v1, v2, location, bits ) \

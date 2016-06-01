@@ -36,7 +36,7 @@
 #include "PatchData.hpp"
 #include "TopologyInfo.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 EdgeQM::~EdgeQM()
 {}
@@ -152,4 +152,4 @@ bool EdgeQM::evaluate_with_indices( PatchData& pd,
   return evaluate( pd, p_handle, value, err );
 }
 
-} // namespace MESQUITE_NS
+} // namespace MBMesquite

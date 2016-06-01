@@ -31,7 +31,7 @@
 #include "MeshInterface.hpp"
 #include "MsqError.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 ElementPatches::~ElementPatches() {}
 

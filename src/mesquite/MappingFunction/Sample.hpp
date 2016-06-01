@@ -37,7 +37,7 @@
 #include <iosfwd>
 #include <stddef.h> // for size_t
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 //! Define a logical location within an element at which the
 //! element will be "sampled" for the purpose of evaluating a

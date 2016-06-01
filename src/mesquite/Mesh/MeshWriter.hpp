@@ -30,7 +30,7 @@
 #include "Matrix3D.hpp"
 #include "MeshInterface.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 class PlanarDomain;
 class Vector3D;

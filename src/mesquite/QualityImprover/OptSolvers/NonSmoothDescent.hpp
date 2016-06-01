@@ -49,7 +49,7 @@
 #include <vector>
 #include "Vector3D.hpp"
 
-namespace MESQUITE_NS
+namespace MBMesquite
 {
 
   class NonSmoothDescent : public VertexMover 

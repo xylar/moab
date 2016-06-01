@@ -36,7 +36,7 @@
 #include "Mesquite.hpp"
 #include "Wrapper.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 /**\brief Wrapper that implements several TMP-based untanglers */
 class UntangleWrapper : public Wrapper {
@@ -122,6 +122,6 @@ private:
 };
 
 
-} // namespace MESQUITE_NS
+} // namespace MBMesquite
 
 #endif

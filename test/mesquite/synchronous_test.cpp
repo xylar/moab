@@ -45,7 +45,7 @@
 #include <fstream>
 #include <cstdlib>
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 // constants
 const double min_x = 0.0, max_x = 2.0;
@@ -55,7 +55,7 @@ const double z = 0.0;
 const char default_out_file[] = "synchronous.vtk";
 double default_x = 0.25;
 
-void create_input_mesh( double mid_x, Mesquite::MeshImpl& mesh, Mesquite::MsqError&  );
+void create_input_mesh( double mid_x, MBMesquite::MeshImpl& mesh, MBMesquite::MsqError&  );
 
 void usage( const char* argv0, bool brief = true )
 {

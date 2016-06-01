@@ -52,7 +52,7 @@
 #include "MsqDebug.hpp"
 #include "XYPlanarDomain.hpp"
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 std::string FeasibleNewton::get_name() const { return "FeasibleNewton"; }
   

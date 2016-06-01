@@ -35,7 +35,7 @@
 #include "MsqMatrix.hpp"
 #include "MsqError.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 std::string TInverseMeanRatio::get_name() const
   { return "TInverseMeanRatio"; }
@@ -139,7 +139,7 @@ bool TInverseMeanRatio::evaluate( const MsqMatrix<3,3>& T,
     return false;
   }
   else {
-    const double det_cbrt = Mesquite::cbrt(d);
+    const double det_cbrt = MBMesquite::cbrt(d);
     result = sqr_Frobenius(T) / (3 * det_cbrt * det_cbrt) - 1;
     return true;
   }
@@ -159,7 +159,7 @@ bool TInverseMeanRatio::evaluate_with_grad( const MsqMatrix<3,3>& T,
   }
 
   const double inv_det = 1.0/d;
-  const double inv_det_cbrt = Mesquite::cbrt(inv_det);
+  const double inv_det_cbrt = MBMesquite::cbrt(inv_det);
   const double inv_3_det_twothirds = inv_det_cbrt * inv_det_cbrt / 3.0;
   const double fnorm = sqr_Frobenius(T);
   result = fnorm * inv_3_det_twothirds - 1;
@@ -185,7 +185,7 @@ bool TInverseMeanRatio::evaluate_with_hess( const MsqMatrix<3,3>& T,
   }
 
   const double f0 = 1.0/d;
-  const double c = Mesquite::cbrt(f0);
+  const double c = MBMesquite::cbrt(f0);
   const double f1 = 1.0/3.0 * c * c;
   const double f2 = sqr_Frobenius(T);
   result = f1 * f2;

@@ -11,7 +11,7 @@
 
 const double PERTURB_FRACT = 0.4;
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 void usage( const char* argv0 )
 {

@@ -35,7 +35,7 @@
 
 #include "WeightCalculator.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 /**\brief c2_k = 1 - c1_k */
 class RemainingWeight : public WeightCalculator
@@ -55,6 +55,6 @@ public:
                              MsqError& err );
 };
 
-} // namespace MESQUITE_NS
+} // namespace MBMesquite
 
 #endif

@@ -35,7 +35,7 @@
 #include "TMPDerivs.hpp"
 #include "MsqError.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 std::string TShapeSizeB1::get_name() const
   { return "TShapeSizeB1"; }

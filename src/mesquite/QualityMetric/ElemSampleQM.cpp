@@ -32,8 +32,8 @@
 
 #include "ElemSampleQM.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 ElemSampleQM::~ElemSampleQM() {}
 
-} // namespace MESQUITE_NS
+} // namespace MBMesquite

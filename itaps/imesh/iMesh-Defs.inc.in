@@ -10,9 +10,47 @@ IMESH_CPPFLAGS = @CPPFLAGS@ -I$(IMESH_INCLUDEDIR) $(IMESH_INCLUDEDIR2)
 
 # This definition is deprecated; use IMESH_CPPFLAGS instead
 IMESH_INCLUDES = $(IMESH_CPPFLAGS)
+HAVE_MESQUITE = @HAVE_MESQUITE@
+
+ifeq ($(HAVE_MESQUITE),yes)
+MSQ_LIBS = -L@abs_top_builddir@/src/mesquite/.libs -lmbmesquite
+MSQ_INCLUDES = -I@abs_top_srcdir@/src/mesquite/include \
+	-I@abs_top_builddir@/src/mesquite/include \
+	-I@abs_top_srcdir@/src/mesquite/Mesh \
+	-I@abs_top_srcdir@/src/mesquite/Control \
+	-I@abs_top_srcdir@/src/mesquite/Wrappers \
+	-I@abs_top_srcdir@/src/mesquite/MappingFunction \
+	-I@abs_top_srcdir@/src/mesquite/MappingFunction/Lagrange \
+	-I@abs_top_srcdir@/src/mesquite/MappingFunction/Linear \
+	-I@abs_top_srcdir@/src/mesquite/Misc \
+	-I@abs_top_srcdir@/src/mesquite/ObjectiveFunction \
+	-I@abs_top_srcdir@/src/mesquite/QualityAssessor \
+	-I@abs_top_srcdir@/src/mesquite/QualityImprover \
+	-I@abs_top_srcdir@/src/mesquite/QualityImprover/OptSolvers \
+	-I@abs_top_srcdir@/src/mesquite/QualityImprover/Relaxation \
+	-I@abs_top_srcdir@/src/mesquite/QualityMetric \
+	-I@abs_top_srcdir@/src/mesquite/QualityMetric/Debug \
+	-I@abs_top_srcdir@/src/mesquite/QualityMetric/Shape \
+	-I@abs_top_srcdir@/src/mesquite/QualityMetric/Smoothness \
+	-I@abs_top_srcdir@/src/mesquite/QualityMetric/TMP \
+	-I@abs_top_srcdir@/src/mesquite/QualityMetric/Untangle \
+	-I@abs_top_srcdir@/src/mesquite/QualityMetric/Volume \
+	-I@abs_top_srcdir@/src/mesquite/TargetCalculator \
+	-I@abs_top_srcdir@/src/mesquite/TargetMetric \
+	-I@abs_top_srcdir@/src/mesquite/TargetMetric/Misc \
+	-I@abs_top_srcdir@/src/mesquite/TargetMetric/Shape \
+	-I@abs_top_srcdir@/src/mesquite/TargetMetric/ShapeOrient \
+	-I@abs_top_srcdir@/src/mesquite/TargetMetric/ShapeSize \
+	-I@abs_top_srcdir@/src/mesquite/TargetMetric/ShapeSizeOrient \
+	-I@abs_top_srcdir@/src/mesquite/TargetMetric/Size \
+	-I@abs_top_srcdir@/src/mesquite/TargetMetric/Untangle
+
+IMESH_INCLUDES += -I@abs_top_srcdir@/itaps/mesquite ${MSQ_INCLUDES}
+IMSQ_LIBS = -L@abs_top_builddir@/itaps/mesquite/.libs -lmsqitaps
+endif
 
 IMESH_LIBS = $(IMESH_LDFLAGS) -L$(MOAB_LIBDIR) \
-             -L$(IMESH_LIBDIR) -liMesh -lMOAB \
+             -L$(IMESH_LIBDIR) -liMesh ${IMSQ_LIBS} -lMOAB ${MSQ_LIBS} \
              @PNETCDF_LIBS@ @NETCDF_LIBS@ @CGNS_LIBS@ @HDF5_LIBS@ \
              @DAMSEL_LIBS@ @CCMIO_LIBS@ \
              @CGM_LDFLAGS@ @CGM_LIBS@ \

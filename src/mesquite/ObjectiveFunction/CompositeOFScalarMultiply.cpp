@@ -39,7 +39,7 @@
 #include "MsqDebug.hpp"
 #include "MsqHessian.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 
 /*!

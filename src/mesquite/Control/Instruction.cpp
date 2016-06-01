@@ -41,7 +41,7 @@ parallel function.
 #include "MsqVertex.hpp"
 #include "Settings.hpp"
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 Instruction::~Instruction()
 {}

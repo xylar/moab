@@ -39,7 +39,7 @@
 #include <string>
 #include <iosfwd>
 
-namespace MESQUITE_NS
+namespace MBMesquite
 {
   class MESQUITE_EXPORT Timer
   {
@@ -173,7 +173,7 @@ namespace MESQUITE_NS
   MESQUITE_EXPORT std::ostream& operator<<( std::ostream&, StopWatchCollection& coll );
   
     // A stopWatchCollection available anywhere
-  extern Mesquite::StopWatchCollection GlobalStopWatches;
+  extern MBMesquite::StopWatchCollection GlobalStopWatches;
 
   MESQUITE_EXPORT inline void print_timing_diagnostics( int debugflag )
     { MSQ_DBGOUT(debugflag) << GlobalStopWatches; }
@@ -198,8 +198,8 @@ class FunctionTimer
 
 #ifdef MSQ_USE_FUNCTION_TIMERS
   #define MSQ_FUNCTION_TIMER( NAME ) \
-    static Mesquite::StopWatchCollection::Key _mesquite_timer_key = \
-      Mesquite::GlobalStopWatches.add( NAME, false );               \
+    static MBMesquite::StopWatchCollection::Key _mesquite_timer_key = \
+      MBMesquite::GlobalStopWatches.add( NAME, false );               \
     FunctionTimer _mesquite_timer( _mesquite_timer_key );           \
     _mesquite_timer.start()
 #else

@@ -79,7 +79,7 @@ SimplifiedGeometryEngine.
 #include <iostream>
 using std::cout;
 using std::endl;
-using namespace Mesquite;
+using namespace MBMesquite;
 
 class SphericalGeometryTest : public CppUnit::TestFixture
 {
@@ -116,8 +116,8 @@ public:
   
    void test_cg_mesh_cond_sphere()
    {
-     Mesquite::MeshImpl mesh;
-     Mesquite::MsqPrintError err(cout);
+     MBMesquite::MeshImpl mesh;
+     MBMesquite::MsqPrintError err(cout);
      mesh.read_vtk(MESH_FILES_DIR "2D/vtk/quads/untangled/quads_on_sphere_529.vtk", err);
      CPPUNIT_ASSERT(!err);
      
@@ -173,8 +173,8 @@ public:
    }
    void test_smart_lapl_sphere()
      {
-       Mesquite::MeshImpl mesh;
-       Mesquite::MsqPrintError err(cout); 
+       MBMesquite::MeshImpl mesh;
+       MBMesquite::MsqPrintError err(cout); 
        mesh.read_vtk(MESH_FILES_DIR "2D/vtk/quads/untangled/quads_on_sphere_529.vtk", err);
        
          //create geometry sphere:  ratius 1, centered at (0,0,0)
@@ -222,14 +222,14 @@ public:
   
   void test_lapl_geo_sphere()
      {
-       Mesquite::MeshImpl mesh;
-       Mesquite::MsqPrintError err(cout);
+       MBMesquite::MeshImpl mesh;
+       MBMesquite::MsqPrintError err(cout);
        
        mesh.read_vtk(MESH_FILES_DIR "2D/vtk/tris/untangled/Mesquite_geo_10242.vtk", err);
        
          //create geometry sphere:  ratius 1, centered at (0,0,0)
        Vector3D center(0,0,0);
-       Mesquite::SphericalDomain msq_geom(center, 1.0);
+       MBMesquite::SphericalDomain msq_geom(center, 1.0);
   
          // creates an intruction queue
        InstructionQueue queue1;

@@ -20,7 +20,7 @@
 #include <ctype.h>
 #include <stdlib.h>
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 
 const char INVALID_FLAG = 'i';

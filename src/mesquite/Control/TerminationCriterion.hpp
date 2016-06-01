@@ -47,7 +47,7 @@ Header file for the TerminationCriterion classes.
 #include <vector>
 #include <fstream>
 
-namespace MESQUITE_NS
+namespace MBMesquite
 {
    class MsqError;
    class OFEvaluator;

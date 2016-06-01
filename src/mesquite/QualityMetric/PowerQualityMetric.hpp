@@ -28,7 +28,7 @@
 
 /*! \file PowerQualityMetric.hpp
 \brief
-Header file for the Mesquite::PowerQualityMetric class
+Header file for the MBMesquite::PowerQualityMetric class
 
   \author Michael Brewer
   \date   2002-09-05
@@ -42,7 +42,7 @@ Header file for the Mesquite::PowerQualityMetric class
 #include "QualityMetric.hpp"
 #include "Exponent.hpp"
 
-namespace MESQUITE_NS
+namespace MBMesquite
 {
   class MsqError;
   class Vector3D;
@@ -116,7 +116,7 @@ namespace MESQUITE_NS
   private:
   
     QualityMetric& mMetric;
-    Mesquite::Exponent mPower;
+    MBMesquite::Exponent mPower;
    };
    
 

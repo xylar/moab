@@ -1,12 +1,6 @@
 dnl Process this file with autoconf 2.60 to produce a configure script
 AC_DEFUN([CONFIGURE_MESQUITE],[
 
-mesquite_ns="MOAB_Mesquite299"
-AC_DEFINE(MESQUITE_NS,[mesquite_ns],"Mesquite namespace")
-#AC_SUBST(MESQUITE_NS)
-# AC_DEFINE_UNQUOTED(MESQUITE_NS,[$namespace],"Mesquite namespace")
-AC_DEFINE(MESQUITE_NS_ALIAS,[1],"Mesquite namespace alias")
-
 AC_DEFINE_UNQUOTED(MSQ_VERSION_MAJOR,[2],"Mesquite Major Version")
 AC_DEFINE_UNQUOTED(MSQ_VERSION_MINOR,[99],"Mesquite Minor Version")
 AC_DEFINE(MSQ_VERSION_STRING,["MOAB :: Mesquite 2.99"],"Mesquite Version String")
@@ -29,8 +23,6 @@ MSQ_DO_64BIT="$enable_64bit"
 # otherwise cannot tell if user has CXXFLAGS defined already or if config
 # set to a default value.
 #------------------------------------------------------------------------------
-
-
 
 # If neather debug or release is specified, enable release
 if test -z "$MSQ_DO_RELEASE" -a -z "$MSQ_DO_DEBUG"; then

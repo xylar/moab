@@ -38,7 +38,7 @@
 
 #include <iostream>
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 class IndexIterator : public EntityIterator
 {

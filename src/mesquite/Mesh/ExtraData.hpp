@@ -36,7 +36,7 @@
 #include "Mesquite.hpp"
 #include <stdlib.h>
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 class PatchData;
 class MsqError;
@@ -59,7 +59,7 @@ class ExtraData {
        *
        * ExtraData instances will also be notified via this method
        * and removed and removed from the PatchData if the attached
-       * Mesquite::Mesh or Mesquite::MeshDomain instance is changed.
+       * MBMesquite::Mesh or MBMesquite::MeshDomain instance is changed.
        */
     virtual void notify_patch_destroyed( ) = 0;
 

@@ -47,7 +47,7 @@ using std::string;
 #include "MsqIMesh.hpp"
 #include "UnitUtil.hpp"
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 /* This is the mesh defined in the two arrays below.  This test
  * should work with any mesh composed entirely of triangle
@@ -263,7 +263,7 @@ void iMeshTest::matchVertexCoordinates()
     // match vertex coordiantes
   for (size_t i = 0; i < num_pts; ++i)
   {
-    Mesquite::Vector3D coord( vertexCoords[3*i], vertexCoords[3*i+1], vertexCoords[3*i+2] );
+    MBMesquite::Vector3D coord( vertexCoords[3*i], vertexCoords[3*i+1], vertexCoords[3*i+2] );
     size_t j;
     for (j = 0; j < vertices.size(); ++j)
     {
@@ -613,7 +613,7 @@ void iMeshTest::testElementTopology()
   myMesh->elements_get_topologies( triIndexToHandle, topo, num_tri, err );
   CPPUNIT_ASSERT(!err);
   for (size_t i = 0; i < num_tri; ++i)
-    CPPUNIT_ASSERT_EQUAL( topo[i] , Mesquite::TRIANGLE );
+    CPPUNIT_ASSERT_EQUAL( topo[i] , MBMesquite::TRIANGLE );
 }
 
 

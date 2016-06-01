@@ -32,9 +32,9 @@
 
 #include "IQInterface.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 IQInterface::~IQInterface() {}
 
 
-} // namespace MESQUITE_NS
+} // namespace MBMesquite

@@ -28,7 +28,7 @@
 
 /*! \file IdealWeightMeanRatio.hpp
 
-Header file for the Mesquite::IdealWeightMeanRatio class
+Header file for the MBMesquite::IdealWeightMeanRatio class
 
 \author Michael Brewer
 \author Todd Munson
@@ -47,7 +47,7 @@ Header file for the Mesquite::IdealWeightMeanRatio class
 #include "Matrix3D.hpp"
 #include "Exponent.hpp"
 
-namespace MESQUITE_NS
+namespace MBMesquite
 {
    /*! \class IdealWeightMeanRatio
      \brief Computes the mean ratio quality metric

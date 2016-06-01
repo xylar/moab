@@ -46,7 +46,7 @@ using std::endl;
 #include "SphericalDomain.hpp"
 #include "MsqVertex.hpp"
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 std::string DEFAULT_INPUT = TestDir + "/2D/vtk/quads/untangled/bias-sphere-quads.vtk";
 
@@ -89,7 +89,7 @@ int main(int argc, char* argv[])
 
     /* Read a VTK Mesh file */
   MsqPrintError err(cout);
-  Mesquite::MeshImpl mesh;
+  MBMesquite::MeshImpl mesh;
   mesh.read_vtk( input_file, err);
   if (err) {
     std::cerr << input_file << ": file read failed" << endl;

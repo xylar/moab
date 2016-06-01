@@ -43,7 +43,7 @@ using std::cout;
 using std::endl;
 #include <cstdlib>
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 std::string VTK_2D_DIR = TestDir + "/2D/vtk/";
 

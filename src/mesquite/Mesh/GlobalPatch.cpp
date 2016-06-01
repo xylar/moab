@@ -37,7 +37,7 @@
 #include "MsqError.hpp"
 #include <assert.h>
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 const PatchSet::PatchHandle GLOBAL_PATCH_HANDLE = 0;
 

@@ -41,7 +41,7 @@
 #include "MsqDebug.hpp"
 #include <math.h>
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 Randomize::~Randomize() {}
 

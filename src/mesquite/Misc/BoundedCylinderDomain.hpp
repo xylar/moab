@@ -32,7 +32,7 @@
 
 #include <list>
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 class BoundedCylinderDomain : public CylinderDomain
 {

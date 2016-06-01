@@ -43,7 +43,7 @@
 #include <iostream>
 #include <algorithm>
 
-using namespace Mesquite;
+using namespace MBMesquite;
 using namespace std;
 
 

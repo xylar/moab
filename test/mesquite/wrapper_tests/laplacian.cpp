@@ -58,12 +58,12 @@ using std::cout;
 using std::endl;
 #include <cstdlib>
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 
 int main()
 {
-  Mesquite::MeshImpl mesh;
+  MBMesquite::MeshImpl mesh;
   MsqPrintError err(cout);
   std::string file_name = TestDir + "/2D/vtk/quads/untangled/square_quad_2.vtk";
   mesh.read_vtk(file_name.c_str(), err);
@@ -72,7 +72,7 @@ int main()
      //create geometry: plane z=0, normal (0,0,1)
   Vector3D pnt(0,0,5);
   Vector3D s_norm(0,0,1);
-  Mesquite::PlanarDomain msq_geom(s_norm, pnt);
+  MBMesquite::PlanarDomain msq_geom(s_norm, pnt);
   
     // creates an intruction queue
   LaplaceWrapper laplacian_smoother;

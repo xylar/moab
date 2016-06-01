@@ -51,7 +51,7 @@
 using std::cout;
 using std::cerr;
 using std::endl;
-using Mesquite::arrptr;
+using MBMesquite::arrptr;
 
 class MeshInterfaceTest : public CppUnit::TestFixture
 {
@@ -72,12 +72,12 @@ private:
   CPPUNIT_TEST_SUITE_END();
 
 private:
-  Mesquite::MeshImpl *mMesh; 
+  MBMesquite::MeshImpl *mMesh; 
   std::vector<Mesquite::Mesh::VertexHandle> mConnectivity;
   std::vector<Mesquite::Mesh::VertexHandle> mVertices;
   std::vector<Mesquite::Mesh::ElementHandle> mElements;
   std::vector<size_t> mOffsets;
-  Mesquite::MsqError mErr;
+  MBMesquite::MsqError mErr;
   
 public:
 
@@ -89,7 +89,7 @@ public:
   void setUp()
   {
       // Read a VTK file -- 1 triangle flanked by 1 quad on each side (1 tri + 3 quads)
-    mMesh = new Mesquite::MeshImpl;
+    mMesh = new MBMesquite::MeshImpl;
     mMesh->read_vtk(MESH_FILES_DIR "2D/vtk/mixed/untangled/hybrid_3quad_1tri.vtk", mErr);
     CPPUNIT_ASSERT(!mErr);
 
@@ -135,7 +135,7 @@ public:
     size_t nbVert = mVertices.size();
     CPPUNIT_ASSERT_EQUAL(9,(int)nbVert);
 
-    Mesquite::MsqVertex correct_coords[9], coords[9];
+    MBMesquite::MsqVertex correct_coords[9], coords[9];
     correct_coords[0].set(1,0,0);
     correct_coords[1].set(0,1.732,0);
     correct_coords[2].set(-1,0,0);
@@ -156,7 +156,7 @@ public:
     coords[3].set(2.,3.,4.);
     mMesh->vertex_set_coordinates(mVertices[3], coords[3], mErr);
     CPPUNIT_ASSERT(!mErr);
-    Mesquite::MsqVertex coords_2;
+    MBMesquite::MsqVertex coords_2;
     mMesh->vertices_get_coordinates(&mVertices[3], &coords_2, 1, mErr);
     CPPUNIT_ASSERT(!mErr);
     for (int j=0; j<3; ++j)
@@ -332,15 +332,15 @@ public:
     const size_t nbElem = mElements.size();
     int nb_quads=0;
     int nb_tri=0;
-    Mesquite::EntityTopology* topos = new Mesquite::EntityTopology[nbElem];
+    MBMesquite::EntityTopology* topos = new MBMesquite::EntityTopology[nbElem];
     mMesh->elements_get_topologies(arrptr(mElements), topos, nbElem, mErr);
     CPPUNIT_ASSERT(!mErr);
     for (size_t i=0; i<nbElem; ++i) {
       switch (topos[i]) {
-      case Mesquite::TRIANGLE:
+      case MBMesquite::TRIANGLE:
         ++nb_tri;
         break;
-      case Mesquite::QUADRILATERAL:
+      case MBMesquite::QUADRILATERAL:
         ++nb_quads;
         break;
       default:
@@ -357,12 +357,12 @@ public:
   void test_element_get_attached_vertex_indices()
   {
     // Find the index of the triangle
-    Mesquite::EntityTopology topo=Mesquite::MIXED;
+    MBMesquite::EntityTopology topo=Mesquite::MIXED;
     int tri_index = -1;
-    while (topo != Mesquite::TRIANGLE) {
+    while (topo != MBMesquite::TRIANGLE) {
       ++tri_index;
       CPPUNIT_ASSERT((unsigned)tri_index < mElements.size());
-      Mesquite::Mesh::ElementHandle handle = mElements[tri_index];
+      MBMesquite::Mesh::ElementHandle handle = mElements[tri_index];
       mMesh->elements_get_topologies(&handle, &topo, 1, mErr);
       CPPUNIT_ASSERT(!mErr);
     }

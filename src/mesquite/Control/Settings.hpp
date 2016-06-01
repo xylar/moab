@@ -36,7 +36,7 @@
 #include "Mesquite.hpp"
 #include <stdlib.h> // for size_t
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 class MappingFunction;
 class MappingFunction2D;

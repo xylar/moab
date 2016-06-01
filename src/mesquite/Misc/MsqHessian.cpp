@@ -48,7 +48,7 @@
 #include <cmath>
 #include <iostream>
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 MsqHessian::MsqHessian() :
   mEntries(0), mRowStart(0), mColIndex(0), 

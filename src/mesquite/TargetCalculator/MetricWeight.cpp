@@ -35,7 +35,7 @@
 #include "ElemSampleQM.hpp"
 #include "MsqError.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 MetricWeight::~MetricWeight() {}
 

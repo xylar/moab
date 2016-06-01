@@ -35,7 +35,7 @@
 #include <iostream>
 #include "Mesquite.hpp"
 
-namespace MESQUITE_NS
+namespace MBMesquite
 {
   class Timer;
 
@@ -47,7 +47,7 @@ namespace MESQUITE_NS
  * Here is an example of use:
  *
  * \code
- * Mesquite::TestRunner runner;
+ * MBMesquite::TestRunner runner;
  * runner.addTest( ExampleTestCase::suite() );
  * runner.run( "Darryl's Test Run" );    // Run all tests and wait
  * \endcode
@@ -76,7 +76,7 @@ namespace MESQUITE_NS
 
       // Timer functions
     inline void push_timer(Mesquite::Timer* timer);
-    inline Mesquite::Timer* pop_timer();
+    inline MBMesquite::Timer* pop_timer();
     
   private:
     std::vector<CppUnit::Test*> mTests;
@@ -91,6 +91,6 @@ namespace MESQUITE_NS
     unsigned int numExceptions;
     static const unsigned char INDENT_SIZE;
   };
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

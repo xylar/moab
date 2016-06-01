@@ -50,7 +50,7 @@
 #include <string>
 #include <iostream>
 
-namespace MESQUITE_NS
+namespace MBMesquite
 {
   class EntityIterator;
   class MsqError;
@@ -66,7 +66,7 @@ namespace MESQUITE_NS
   inline size_t vertices_in_topology(EntityTopology);
 
   /*! \class Mesh
-     \brief  A Mesquite::Mesh is a collection of mesh elements which are
+     \brief  A MBMesquite::Mesh is a collection of mesh elements which are
      composed of mesh vertices.  Intermediate objects are not accessible
      through this interface (where intermediate objects include things
      like the faces of a hex, or an element's edges).
@@ -123,7 +123,7 @@ namespace MESQUITE_NS
       //! is allowed to be repositioned.  True indicates that the vertex
       //! is fixed and cannot be moved.  Note that this is a read-only
       //! property; this flag can't be modified by users of the
-      //! Mesquite::Mesh interface.
+      //! MBMesquite::Mesh interface.
     virtual void vertices_get_fixed_flag( const VertexHandle vert_array[], 
                                           std::vector<bool>& fixed_flag_array,
                                           size_t num_vtx, 
@@ -511,8 +511,8 @@ namespace MESQUITE_NS
        * param skip_compatibility_checki  when true, does not perform the compatibility check. 
        *                                  When false, the check is performed.
        */
-    MeshDomainAssoc(Mesquite::Mesh* mesh, 
-                    Mesquite::MeshDomain* domain, 
+    MeshDomainAssoc(MBMesquite::Mesh* mesh, 
+                    MBMesquite::MeshDomain* domain, 
                     bool full_compatibility_check=false,
                     bool proceed=false,
                     bool skip_compatibility_check=false)
@@ -575,7 +575,7 @@ namespace MESQUITE_NS
        *
        * Return the mesh associated with this instance.
        */
-    Mesquite::Mesh* get_mesh()
+    MBMesquite::Mesh* get_mesh()
     {
       return mMesh;
     };
@@ -585,15 +585,15 @@ namespace MESQUITE_NS
        *
        * Return the domain associated with this instance.
        */
-    Mesquite::MeshDomain* get_domain()
+    MBMesquite::MeshDomain* get_domain()
     {
       return mMeshDomain;
     };
 
 
   private:
-    Mesquite::Mesh* mMesh;
-    Mesquite::MeshDomain* mMeshDomain;
+    MBMesquite::Mesh* mMesh;
+    MBMesquite::MeshDomain* mMeshDomain;
     bool mesh_and_domain_are_compatible;
 
   public:
@@ -606,7 +606,7 @@ namespace MESQUITE_NS
   };
 }
 
-inline size_t Mesquite::vertices_in_topology(Mesquite::EntityTopology topo)
+inline size_t MBMesquite::vertices_in_topology(MBMesquite::EntityTopology topo)
 {
   return TopologyInfo::corners( topo );
 }

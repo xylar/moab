@@ -37,7 +37,7 @@
 #include "ElemSampleQM.hpp"
 #include "MsqMatrix.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 class TargetCalculator;
 class WeightCalculator;

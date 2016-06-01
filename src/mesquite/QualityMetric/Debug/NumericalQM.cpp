@@ -33,7 +33,7 @@ You NumericalQM::should have received a copy of the GNU Lesser General Public Li
 #include "Mesquite.hpp"
 #include "NumericalQM.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 
 NumericalQM::NumericalQM( QualityMetric* real_metric,
@@ -149,4 +149,4 @@ bool NumericalQM::evaluate_with_Hessian( PatchData& pd,
                                               err );
 }
 
-} // namespace MESQUITE_NS
+} // namespace MBMesquite

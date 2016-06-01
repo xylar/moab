@@ -37,7 +37,7 @@
 #include "Vector3D.hpp"
 #include "ConditionNumberFunctions.hpp"
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 ConditionNumberQualityMetric::ConditionNumberQualityMetric()
   : AveragingQM(QualityMetric::LINEAR)

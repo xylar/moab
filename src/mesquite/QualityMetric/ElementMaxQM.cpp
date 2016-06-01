@@ -37,7 +37,7 @@
 #include "PatchData.hpp"
 #include <limits>
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 ElementMaxQM::ElementMaxQM( ElemSampleQM* metric )
     : mMetric(metric)

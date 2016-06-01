@@ -36,7 +36,7 @@
 #include "TShapeNB1.hpp"
 #include "AWMetric.hpp"
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 class FauxAbsShapeMetric : public AWMetric {
   TShapeNB1 mMetric;

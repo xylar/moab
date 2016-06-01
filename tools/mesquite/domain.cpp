@@ -14,7 +14,7 @@
 #include <algorithm>
 #include <stdlib.h>
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 class SphereDomainArg : public CLArgs::DoubleListArgI
 {

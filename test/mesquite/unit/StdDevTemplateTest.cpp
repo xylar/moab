@@ -38,7 +38,7 @@
 #include "ObjectiveFunctionTests.hpp"
 #include "MsqHessian.hpp"
 
-using namespace Mesquite;
+using namespace MBMesquite;
 using namespace std;
 
 const double EPSILON = 1e-4;

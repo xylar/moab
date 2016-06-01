@@ -37,7 +37,7 @@
 #include "AWMetric.hpp"
 #include "AWMetricBarrier.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 
 /** \f$ \frac{\alpha}{\omega} - \frac{\omega}{\alpha} - 2 \f$ */

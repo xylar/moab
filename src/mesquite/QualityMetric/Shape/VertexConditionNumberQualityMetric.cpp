@@ -39,7 +39,7 @@
 #include <vector>
 using std::vector;
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 VertexConditionNumberQualityMetric::VertexConditionNumberQualityMetric()
   : AveragingQM(QualityMetric::LINEAR)

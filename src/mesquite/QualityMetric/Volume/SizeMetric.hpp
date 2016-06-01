@@ -36,7 +36,7 @@
 #include "Mesquite.hpp"
 #include "ElementQM.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 /**\brief Element size (area or volume)
  *
@@ -59,6 +59,6 @@ public:
                     MsqError& err );
 };
 
-} // namespace MESQUITE_NS
+} // namespace MBMesquite
 
 #endif

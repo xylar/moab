@@ -37,7 +37,7 @@
 #include <algorithm>
 #include <assert.h>
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 int LVQDTargetCalculator::add_source( TargetCalculator* source )
 {

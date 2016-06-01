@@ -36,7 +36,7 @@
 #include "CompositeOFScalarAdd.hpp"
 #include "PatchData.hpp"
 #include "MsqTimer.hpp"
-using namespace Mesquite;
+using namespace MBMesquite;
 
 
 /*!

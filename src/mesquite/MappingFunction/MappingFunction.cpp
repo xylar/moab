@@ -37,7 +37,7 @@
 #include "PatchData.hpp"
 #include "IdealElements.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 NodeSet
 MappingFunction::sample_points( NodeSet higher_order ) const
@@ -250,7 +250,7 @@ void MappingFunction3D::ideal( Sample location,
     J += c * transpose(d_coeff_d_xi[r]);
   }
   
-  double size = Mesquite::cbrt(fabs(det(J)));
+  double size = MBMesquite::cbrt(fabs(det(J)));
   assert(size > -1e-15); // no negative jacobians for ideal elements!
   divide( 1.0, size, size );
   J *= size;

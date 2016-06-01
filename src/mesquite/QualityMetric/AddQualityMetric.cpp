@@ -36,7 +36,7 @@
 #include "Matrix3D.hpp"
 #include "MsqError.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 AddQualityMetric::AddQualityMetric( QualityMetric* qm1, 
                                     QualityMetric* qm2,

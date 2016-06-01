@@ -39,7 +39,7 @@
 #include <cstring>
 using std::strncpy;
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 const char* MsqError::error_message() const
 {

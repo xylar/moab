@@ -37,7 +37,7 @@
 #include "MsqHessian.hpp"
 #include "ObjectiveFunctionTemplate.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 /**\brief (variance)^2 template
  *

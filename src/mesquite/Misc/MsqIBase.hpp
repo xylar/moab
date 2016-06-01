@@ -40,7 +40,7 @@
 #include "Mesquite.hpp"
 #include <string>
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 std::string process_itaps_error( int itaps_err );
 

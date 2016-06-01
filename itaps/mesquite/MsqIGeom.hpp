@@ -26,7 +26,7 @@
   ***************************************************************** */
 /*!
   \file   MsqIGeom.hpp
-  \brief  Mesquite::MeshDomain implemented on ITAPS iGeom API
+  \brief  MBMesquite::MeshDomain implemented on ITAPS iGeom API
   \author Jason Kraftcheck
   \date   2007-08-14
 */
@@ -39,7 +39,7 @@
 #include "iGeom.h"
 #include <vector>
 
-namespace MESQUITE_NS
+namespace MBMesquite
 {
 
 /**\brief Common code for specific implementations of MeshDomain on ITAPS interfaces.
@@ -105,7 +105,7 @@ private:
 };
 
 
-/**\brief A Mesquite::MeshDomain implemented on top of the ITAPS iGeom API.
+/**\brief A MBMesquite::MeshDomain implemented on top of the ITAPS iGeom API.
  *
  * Simple MeshDomain class implementatation that queries a single iGeom
  * entity for all geometric queries.  Suitable for use when the entire

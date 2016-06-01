@@ -97,7 +97,7 @@ ENDIF()
 SET( unit_srcs
      msq_test_main.cpp 
      QualityMetricTester.cpp 
-     MesquiteTestRunner.hpp 
+     MBMesquiteTestRunner.hpp 
      ObjectiveFunctionTests.hpp 
      ObjectiveFunctionTests.cpp 
      PatchDataInstances.hpp 

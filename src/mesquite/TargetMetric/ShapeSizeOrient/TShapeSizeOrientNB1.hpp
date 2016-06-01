@@ -36,7 +36,7 @@
 #include "Mesquite.hpp"
 #include "TMetricNonBarrier.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 /** |T-I|^2 */
 class TShapeSizeOrientNB1 : public TMetricNonBarrier

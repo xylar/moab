@@ -54,7 +54,7 @@
 #include "ParallelHelperInterface.hpp"
 #include <algorithm>
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 extern int get_parallel_rank();
 extern int get_parallel_size();

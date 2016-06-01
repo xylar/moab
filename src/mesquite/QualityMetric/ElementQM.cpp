@@ -34,7 +34,7 @@
 #include "ElementQM.hpp"
 #include "PatchData.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 ElementQM::~ElementQM() {}
 

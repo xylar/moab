@@ -63,12 +63,12 @@ describe main.cpp here
 #include "SteepestDescent.hpp"
 #include "TestUtil.hpp"
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 int main()
 {
   MsqPrintError err(std::cout);
-  Mesquite::MeshImpl mesh;
+  MBMesquite::MeshImpl mesh;
 
   std::string file_name = TestDir + "/3D/vtk/hexes/untangled/hexes_4by2by2.vtk";
   mesh.read_vtk(file_name.c_str(), err);

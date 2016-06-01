@@ -1,7 +1,7 @@
 #define TARGET_TEST_GROUP "ShapeOrientTargetMetricTests"
 #include "TargetMetricTest.hpp"
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 #include "AWShapeOrientNB1.hpp"
 #include "TShapeOrientB1.hpp"

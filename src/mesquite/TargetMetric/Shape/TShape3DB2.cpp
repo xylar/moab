@@ -36,7 +36,7 @@
 #include "MsqError.hpp"
 #include "TMPDerivs.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 TShape3DB2::~TShape3DB2() {}
 

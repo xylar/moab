@@ -36,7 +36,7 @@
 #include "Mesquite.hpp"
 #include "AWMetric.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 
 /** \f$ \left\{ |\alpha - \gamma \, \omega| - ( \alpha - \gamma \, \omega ) \right\}^p \f$ */

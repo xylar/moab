@@ -40,7 +40,7 @@
 
 #include "MsqIBase.hpp"
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 // characteristics of geometry
 const double SPHERE_RADIUS = 3.0;

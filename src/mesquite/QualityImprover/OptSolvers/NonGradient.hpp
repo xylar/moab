@@ -39,7 +39,7 @@
 #include "VertexMover.hpp"
 #include "PatchSetUser.hpp"
 
-namespace MESQUITE_NS
+namespace MBMesquite
 {
   class ObjectiveFunction;
 

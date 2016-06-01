@@ -30,7 +30,7 @@
 // ============
 /*! \file TerminationCriterion.cpp
   
-    \brief  Member functions of the Mesquite::TerminationCriterion class
+    \brief  Member functions of the MBMesquite::TerminationCriterion class
 
     \author Michael Brewer
     \author Thomas Leurent
@@ -51,7 +51,7 @@
 #include <sstream>
 #include <set>
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 extern int get_parallel_rank();
 extern int get_parallel_size();

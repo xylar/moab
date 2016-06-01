@@ -35,7 +35,7 @@
 
 #include "Wrapper.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 class LaplaceWrapper : public Wrapper
 {
@@ -100,6 +100,6 @@ private:
 };
 
 
-} // namespace MESQUITE_NS
+} // namespace MBMesquite
 
 #endif

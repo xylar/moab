@@ -35,7 +35,7 @@
 // ============
 /*! \file main.cpp
 
-  Benchmark timing tests for various Mesquite wrappers.
+  Benchmark timing tests for various MBMesquite wrappers.
 
  */
 // DESCRIP-END.
@@ -72,7 +72,7 @@ using std::endl;
 #include "MeshDomain1D.hpp"
 #include "TestUtil.hpp"
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 std::string shape_improv_file_name_1 = TestDir + "/3D/vtk/hexes/untangled/1000hex-block-internal-bias.vtk";
 std::string shape_improv_file_name_2 = TestDir + "/3D/vtk/tets/untangled/tire.vtk";
@@ -118,8 +118,8 @@ int main(int , char* [])
             << std::endl << "Version "  << version_string(true) 
             << std::endl << std::endl;
 
-  Mesquite::MsqPrintError err(cout);
-  Mesquite::MeshImpl mesh;
+  MBMesquite::MsqPrintError err(cout);
+  MBMesquite::MeshImpl mesh;
 
 // #################### Begin ShapeImprover tests ###################
 
@@ -147,7 +147,7 @@ int main(int , char* [])
   
   Vector3D pnt1(0,0,5);
   Vector3D s_norm(0,0,1);
-  Mesquite::PlanarDomain msq_geom(s_norm, pnt1);
+  MBMesquite::PlanarDomain msq_geom(s_norm, pnt1);
   
   LaplaceWrapper lp_wrapper;
 
@@ -164,7 +164,7 @@ int main(int , char* [])
             << lp_s_secs << " seconds" << std::endl;
 
   Vector3D pnt2(0,0,0);
-  Mesquite::PlanarDomain msq_geom2(s_norm, pnt2);
+  MBMesquite::PlanarDomain msq_geom2(s_norm, pnt2);
 
   mesh.clear();
   mesh.read_vtk(laplacian_file_name_2.c_str(), err);

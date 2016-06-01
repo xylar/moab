@@ -44,7 +44,7 @@
 #include "OFEvaluator.hpp"
 #include "MeshInterface.hpp"
 
-namespace MESQUITE_NS
+namespace MBMesquite
 {
   class ObjectiveFunction;
   class PatchData;

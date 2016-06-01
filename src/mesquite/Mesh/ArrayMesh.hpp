@@ -36,13 +36,13 @@
 #include "Mesquite.hpp"
 #include "MeshInterface.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 class ArrayMesh : public Mesh
 {
   public:
   
-      /** Create a Mesquite::Mesh instance that wraps application-provided
+      /** Create a MBMesquite::Mesh instance that wraps application-provided
        *  arrays.  
        *
        * Note:  An instance of this class will reference the passed in 
@@ -81,7 +81,7 @@ class ArrayMesh : public Mesh
                unsigned nodes_per_element = 0,
                const int* vertex_slaved_flags = 0 );
                
-      /** Create a Mesquite::Mesh instance that wraps application-provided
+      /** Create a MBMesquite::Mesh instance that wraps application-provided
        *  arrays.  
        *
        * Note:  An instance of this class will reference the passed in 

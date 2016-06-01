@@ -38,7 +38,7 @@
 #include <algorithm>
 #include <iterator>
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
   /**\brief Helper function for 'find_skin'
    *
@@ -95,7 +95,7 @@ static void dimension_sort_domains( MeshDomain** domains,
    * A vertex is assigned to a domain if it lies within the domain.
    * If a vertex lies in multiple domains, it is assigned to the
    * domain with the lowest topological dimension.
-   *\param mesh  The Mesquite::Mesh instance
+   *\param mesh  The MBMesquite::Mesh instance
    *\param dim_sorted_domains  The list of MeshDomains, sorted from lowest 
    *             to highest dimension.
    *\param num_domain  Length of 'dim_sorted_domains' array.
@@ -119,7 +119,7 @@ static void geom_classify_vertices( Mesh* mesh,
    *  Case 3a: all have same dimension-2 domain -> element assigned to same domain
    *  Case 3b: different dimension-2 domains -> element has no classification
    *
-   *\param mesh  The Mesquite::Mesh instance
+   *\param mesh  The MBMesquite::Mesh instance
    *\param dim_sorted_domains  The list of MeshDomains, sorted from lowest 
    *             to highest dimension.
    *\param num_domain  Length of 'dim_sorted_domains' array.

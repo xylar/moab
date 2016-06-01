@@ -32,9 +32,9 @@
 
 #include "PatchSetUser.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 PatchSetUser::~PatchSetUser() {}
 
 
-} // namespace MESQUITE_NS
+} // namespace MBMesquite

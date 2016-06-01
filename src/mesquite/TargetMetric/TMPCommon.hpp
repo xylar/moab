@@ -35,7 +35,7 @@
 
 #include "Mesquite.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 /**\def TMP_T_TEMPL_IMPL_COMMON(N)
  * \brief A macro that declares virtual evaluation functions for a \c TMetric subclass \c N
@@ -140,6 +140,6 @@ template <> struct DimConst<3> {
 
 
 
-} // namespace MESQUITE_NS
+} // namespace MBMesquite
 
 #endif

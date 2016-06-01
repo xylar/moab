@@ -55,7 +55,7 @@ Tests for the TerminationCriterion class..
 #include <vector>
 #include <set>
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 
 class DummyOF : public ObjectiveFunction
@@ -424,9 +424,9 @@ void TerminationCriterionTest::test_absolute_vertex_movement_edge_length()
 }
 
 static double lenfunc( const Vector3D* vect, int len )
-  { return Mesquite::length( vect, len ); }
+  { return MBMesquite::length( vect, len ); }
 static double maxfunc( const Vector3D* vect, int len )
-  { return Mesquite::Linf( vect, len ); }
+  { return MBMesquite::Linf( vect, len ); }
 
 void TerminationCriterionTest::test_gradient_common( bool absolute, bool L2 )
 {

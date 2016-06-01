@@ -32,12 +32,12 @@
 #include "MeshInterface.hpp"
 #include "Vector3D.hpp"
 
-namespace MESQUITE_NS
+namespace MBMesquite
 {
   /*! \class CylinderDomain
        Define the geometry of an unbounded cylinder.
     */
-  class MESQUITE_EXPORT CylinderDomain : public Mesquite::MeshDomain
+  class MESQUITE_EXPORT CylinderDomain : public MBMesquite::MeshDomain
   {
   public:
       /**

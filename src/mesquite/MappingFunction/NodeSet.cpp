@@ -34,7 +34,7 @@
 #include "NodeSet.hpp"
 #include <iostream>
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 std::ostream& operator<<( std::ostream& s, NodeSet set )
 {

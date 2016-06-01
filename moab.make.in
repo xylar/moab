@@ -11,7 +11,39 @@ MOAB_INCLUDES = -I@abs_srcdir@/src \
                 -I@abs_srcdir@/src/LocalDiscretization \
                 -I@abs_srcdir@/src/RefineMesh
 
-MOAB_INCLUDES += @ZOLTAN_INC_FLAGS@
+MSQ_LIBS = -L@abs_builddir@/src/mesquite/.libs -lmbmesquite
+MSQ_INCLUDES = -I@abs_srcdir@/src/mesquite/include \
+	-I@abs_builddir@/src/mesquite/include \
+	-I@abs_srcdir@/src/mesquite/Mesh \
+	-I@abs_srcdir@/src/mesquite/Control \
+	-I@abs_srcdir@/src/mesquite/Wrappers \
+	-I@abs_srcdir@/src/mesquite/MappingFunction \
+	-I@abs_srcdir@/src/mesquite/MappingFunction/Lagrange \
+	-I@abs_srcdir@/src/mesquite/MappingFunction/Linear \
+	-I@abs_srcdir@/src/mesquite/Misc \
+	-I@abs_srcdir@/src/mesquite/ObjectiveFunction \
+	-I@abs_srcdir@/src/mesquite/QualityAssessor \
+	-I@abs_srcdir@/src/mesquite/QualityImprover \
+	-I@abs_srcdir@/src/mesquite/QualityImprover/OptSolvers \
+	-I@abs_srcdir@/src/mesquite/QualityImprover/Relaxation \
+	-I@abs_srcdir@/src/mesquite/QualityMetric \
+	-I@abs_srcdir@/src/mesquite/QualityMetric/Debug \
+	-I@abs_srcdir@/src/mesquite/QualityMetric/Shape \
+	-I@abs_srcdir@/src/mesquite/QualityMetric/Smoothness \
+	-I@abs_srcdir@/src/mesquite/QualityMetric/TMP \
+	-I@abs_srcdir@/src/mesquite/QualityMetric/Untangle \
+	-I@abs_srcdir@/src/mesquite/QualityMetric/Volume \
+	-I@abs_srcdir@/src/mesquite/TargetCalculator \
+	-I@abs_srcdir@/src/mesquite/TargetMetric \
+	-I@abs_srcdir@/src/mesquite/TargetMetric/Misc \
+	-I@abs_srcdir@/src/mesquite/TargetMetric/Shape \
+	-I@abs_srcdir@/src/mesquite/TargetMetric/ShapeOrient \
+	-I@abs_srcdir@/src/mesquite/TargetMetric/ShapeSize \
+	-I@abs_srcdir@/src/mesquite/TargetMetric/ShapeSizeOrient \
+	-I@abs_srcdir@/src/mesquite/TargetMetric/Size \
+	-I@abs_srcdir@/src/mesquite/TargetMetric/Untangle
+
+MOAB_INCLUDES += @ZOLTAN_INC_FLAGS@ ${MSQ_INCLUDES}
 
 MOAB_CPPFLAGS = @CPPFLAGS@ 
 MOAB_CXXFLAGS = @CXXFLAGS@ 
@@ -20,8 +52,8 @@ MOAB_FFLAGS = @FFLAGS@
 MOAB_FCFLAGS = @FCFLAGS@
 MOAB_LDFLAGS = @EXPORT_LDFLAGS@ @CXX_LDFLAGS@ @LDFLAGS@
 
-MOAB_LIBS_LINK = ${MOAB_LDFLAGS} -L${MOAB_LIBDIR} -lMOAB @NETCDF_LIBS@ @PNETCDF_LIBS@ @CGNS_LIBS@ @HDF5_LIBS@ @DAMSEL_LIBS@ @CCMIO_LIBS@ @CGM_LIBS@ @ZOLTAN_LIBS@ @PARMETIS_LIBS@ @METIS_LIBS@ @LIBS@
-DAGMC_LIBS_LINK = ${MOAB_LDFLAGS} -L${MOAB_LIBDIR} @DAGMC_LIBS@ -lMOAB @NETCDF_LIBS@ @PNETCDF_LIBS@ @CGNS_LIBS@ @HDF5_LIBS@ @DAMSEL_LIBS@ @CCMIO_LIBS@ @CGM_LIBS@ @ZOLTAN_LIBS@ @PARMETIS_LIBS@ @METIS_LIBS@ @LIBS@
+MOAB_LIBS_LINK = ${MOAB_LDFLAGS} -L${MOAB_LIBDIR} -lMOAB @MSQ_LIBS@ @NETCDF_LIBS@ @PNETCDF_LIBS@ @CGNS_LIBS@ @HDF5_LIBS@ @DAMSEL_LIBS@ @CCMIO_LIBS@ @CGM_LIBS@ @ZOLTAN_LIBS@ @PARMETIS_LIBS@ @METIS_LIBS@ @LIBS@
+DAGMC_LIBS_LINK = ${MOAB_LDFLAGS} -L${MOAB_LIBDIR} @DAGMC_LIBS@ -lMOAB @MSQ_LIBS@ @NETCDF_LIBS@ @PNETCDF_LIBS@ @CGNS_LIBS@ @HDF5_LIBS@ @DAMSEL_LIBS@ @CCMIO_LIBS@ @CGM_LIBS@ @ZOLTAN_LIBS@ @PARMETIS_LIBS@ @METIS_LIBS@ @LIBS@
 
 MOAB_CXX = @CXX@
 MOAB_CC  = @CC@
@@ -37,6 +69,7 @@ MOAB_PNETCDF_ENABLED = @enablepnetcdf@
 MOAB_IGEOM_ENABLED = @HAVE_IGEOM@
 MOAB_IMESH_ENABLED = @HAVE_IMESH@
 MOAB_IREL_ENABLED = @HAVE_IREL@
+MOAB_MESQUITE_ENABLED = @HAVE_MESQUITE@
 
 # Override MOAB_LIBDIR and MOAB_INCLUDES from above with the correct
 # values for the installed MOAB.

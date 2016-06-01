@@ -37,7 +37,7 @@
 #include "ExtraData.hpp"
 #include "ElemSampleQM.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 CachingTargetCalculator::~CachingTargetCalculator() 
 { }

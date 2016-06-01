@@ -38,7 +38,7 @@
 #include "PatchSetUser.hpp"
 #include "MsqHessian.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 class PatchDataVerticesMemento;
 

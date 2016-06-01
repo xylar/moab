@@ -28,7 +28,7 @@
 
 /*! \file InstructionQueue.hpp
 
-Header file for the Mesquite::InstructionQueue class
+Header file for the MBMesquite::InstructionQueue class
 
   \author Thomas Leurent
   \date   2002-05-01
@@ -43,7 +43,7 @@ Header file for the Mesquite::InstructionQueue class
 
 #include <list>
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
   class MsqError;
   class QualityImprover;

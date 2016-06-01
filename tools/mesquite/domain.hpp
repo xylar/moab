@@ -3,7 +3,7 @@
 
 void add_domain_args( CLArgs& args );
 
-Mesquite::MeshDomain* process_domain_args( Mesquite::MeshImpl* mesh );
+MBMesquite::MeshDomain* process_domain_args( MBMesquite::MeshImpl* mesh );
 
 const char SPHERE_FLAG = 'S';
 const char PLANE_FLAG = 'P';

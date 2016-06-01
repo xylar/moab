@@ -70,7 +70,7 @@ using std::endl;
 #include "ConjugateGradient.hpp"
 
 #include "PlanarDomain.hpp"
-using namespace Mesquite;
+using namespace MBMesquite;
 
 /* This is the input mesh topology
      (0)------(16)-----(1)------(17)-----(2)------(18)-----(3)

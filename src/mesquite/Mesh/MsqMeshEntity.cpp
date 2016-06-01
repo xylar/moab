@@ -50,7 +50,7 @@ using std::vector;
 using std::ostream;
 using std::endl;
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 //! Gets the indices of the vertices of this element.
 //! The indices are only valid in the PatchData from which

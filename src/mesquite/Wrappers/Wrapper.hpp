@@ -36,7 +36,7 @@
 #include "Mesquite.hpp"
 #include "IQInterface.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 class QualityAssessor;
 
@@ -85,6 +85,6 @@ class MESQUITE_EXPORT Wrapper : public IQInterface
     QualityAssessor* qualAssessor;
 };
 
-} // namespace MESQUITE_NS
+} // namespace MBMesquite
 
 #endif

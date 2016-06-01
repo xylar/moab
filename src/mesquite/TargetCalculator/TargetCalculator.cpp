@@ -38,11 +38,11 @@
 #include "MappingFunction.hpp"
 #include <assert.h>
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 double TargetCalculator::size( const MsqMatrix<3,3>& W )
 {
-  return Mesquite::cbrt( fabs(det(W)) );
+  return MBMesquite::cbrt( fabs(det(W)) );
 }
 
 double TargetCalculator::size( const MsqMatrix<3,2>& W )
@@ -64,7 +64,7 @@ MsqMatrix<3,3> TargetCalculator::skew( const MsqMatrix<3,3>& W )
   
   double lenx  = length(a1xa2);
   double alpha = fabs(a1xa2 % a3);
-  double coeff = Mesquite::cbrt(1/alpha);
+  double coeff = MBMesquite::cbrt(1/alpha);
   double dot   = a1xa2 % (a1 * a3);
   
   MsqMatrix<3,3> q;
@@ -111,7 +111,7 @@ MsqMatrix<3,3> TargetCalculator::aspect( const MsqMatrix<3,3>& W )
   double a1 = length(W.column(0));
   double a2 = length(W.column(1));
   double a3 = length(W.column(2));
-  double coeff = 1.0/Mesquite::cbrt(a1*a2*a3);
+  double coeff = 1.0/MBMesquite::cbrt(a1*a2*a3);
   
   MsqMatrix<3,3> result(coeff);
   result(0,0) *= a1;
@@ -156,7 +156,7 @@ MsqMatrix<3,3> TargetCalculator::shape( const MsqMatrix<3,3>& W )
   double len1  = length(a1);
   double lenx  = length(a1xa2);
   double alpha = fabs(a1xa2 % a3);
-  double coeff = Mesquite::cbrt(1/alpha);
+  double coeff = MBMesquite::cbrt(1/alpha);
   double inv1  = 1.0/len1;
   double invx  = 1.0/lenx;
   
@@ -204,7 +204,7 @@ bool TargetCalculator::factor_3D( const MsqMatrix<3,3>& A,
 {
   MsqVector<3> a1xa2 = A.column(0) * A.column(1);
   double alpha = a1xa2 % A.column(2);
-  Lambda = Mesquite::cbrt( fabs(alpha) );
+  Lambda = MBMesquite::cbrt( fabs(alpha) );
   if (Lambda < DBL_EPSILON)
     return false;
   
@@ -223,7 +223,7 @@ bool TargetCalculator::factor_3D( const MsqMatrix<3,3>& A,
   
   double inv_la2 = 1.0/la2;
   double inv_la3 = 1.0/la3;
-  double len_prod_rt3 = Mesquite::cbrt( la1 * la2 * la3 );
+  double len_prod_rt3 = MBMesquite::cbrt( la1 * la2 * la3 );
   Q(0,0) = 1.0;
   Q(1,0) = Q(2,0) = 0.0;
   Q(0,1) = a1dota2 * inv_la1 * inv_la2;
@@ -480,9 +480,9 @@ void TargetCalculator::ideal_shape_2D( EntityTopology element_type,
 MsqMatrix<3,3> TargetCalculator::new_aspect_3D( const MsqVector<3>& r )
 {
   MsqMatrix<3,3> W(0.0);
-  W(0,0) = Mesquite::cbrt( r[0]*r[0]/(r[1]*r[2]) );
-  W(1,1) = Mesquite::cbrt( r[1]*r[1]/(r[0]*r[2]) );
-  W(2,2) = Mesquite::cbrt( r[2]*r[2]/(r[1]*r[0]) );
+  W(0,0) = MBMesquite::cbrt( r[0]*r[0]/(r[1]*r[2]) );
+  W(1,1) = MBMesquite::cbrt( r[1]*r[1]/(r[0]*r[2]) );
+  W(2,2) = MBMesquite::cbrt( r[2]*r[2]/(r[1]*r[0]) );
   return W;
 }
 
@@ -656,4 +656,4 @@ void TargetCalculator::initialize_queue( MeshDomainAssoc* ,
 {}
 
 
-} // namespace MESQUITE_NS
+} // namespace MBMesquite

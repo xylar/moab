@@ -37,7 +37,7 @@
 #include "TMetricBarrier.hpp"
 #include <limits>
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 /** \f$ \frac{|T|^2}{2 det(T)} - 1 \f$ */
 class TInverseMeanRatio : public TMetricBarrier {

@@ -34,7 +34,7 @@
 #include "MsqGeomPrim.hpp"
 #include "UnitUtil.hpp"
 
-using namespace Mesquite;
+using namespace MBMesquite;
 using namespace std;
 
 

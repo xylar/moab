@@ -41,7 +41,7 @@
 
 #include <memory>
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 std::string SteepestDescent::get_name() const
   { return "SteepestDescent"; }

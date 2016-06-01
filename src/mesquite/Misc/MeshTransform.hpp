@@ -43,7 +43,7 @@
 #include "Matrix3D.hpp"
 #include "Instruction.hpp"
 
-namespace MESQUITE_NS
+namespace MBMesquite
 {
 
   /*! \class MeshTransform

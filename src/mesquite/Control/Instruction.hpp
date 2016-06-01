@@ -31,7 +31,7 @@
 
 #include <string>
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 class Mesh;
 class ParallelMesh;

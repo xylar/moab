@@ -50,7 +50,7 @@
 #include <string>
 #include <cstdlib>
 
-using namespace MESQUITE_NS;
+using namespace MBMesquite;
 
 std::string get_homogenious_example( DomainClassifier& geom, MeshImpl& mesh, MsqError& err );
 

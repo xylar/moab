@@ -42,7 +42,7 @@
 
 #include <memory>
 
-using namespace Mesquite;
+using namespace MBMesquite;
 using namespace std;
 
 class ObjectiveFunctionTests {

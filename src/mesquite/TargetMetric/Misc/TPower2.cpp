@@ -38,7 +38,7 @@
 #include "MsqError.hpp"
 #include "TMPCommon.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 std::string TPower2::get_name() const
   { return "sqr(" + mMetric->get_name() + ')'; }
@@ -89,4 +89,4 @@ bool TPower2::hess( const MsqMatrix<DIM,DIM>& T,
 TMP_T_TEMPL_IMPL_COMMON_ERR(TPower2)
 
 
-} // namespace MESQUITE_NS
+} // namespace MBMesquite

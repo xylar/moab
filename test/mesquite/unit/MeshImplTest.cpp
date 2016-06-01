@@ -48,7 +48,7 @@
 #include <iostream>
 #include <stdio.h>
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 const bool DUMP_MESH = false;
 

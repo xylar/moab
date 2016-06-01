@@ -36,7 +36,7 @@
 #include "Mesquite.hpp"
 #include "AWMetricNonBarrier.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 
 /** \f$ |A(adj \, W) - [W ( adj\, A )]^t|^2 \f$ */

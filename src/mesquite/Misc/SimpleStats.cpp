@@ -33,7 +33,7 @@
 #include "SimpleStats.hpp"
 #include <limits>
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 SimpleStats::SimpleStats() 
   : valueSum(0),
@@ -51,4 +51,4 @@ void SimpleStats::clear()
   valueCount = 0;
 }
 
-} // namespace MESQUITE_NS
+} // namespace MBMesquite

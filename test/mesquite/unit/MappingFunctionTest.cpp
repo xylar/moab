@@ -38,7 +38,7 @@
 #include "IdealElements.hpp"
 #include <algorithm>
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 class MappingFunctionTest : public CppUnit::TestFixture
 {
@@ -222,7 +222,7 @@ void MappingFunctionTest::test_ideal_3d()
   MsqMatrix<3,3> J_exp(0.0); // zero
   for (size_t j = 0; j < num; ++j) 
     J_exp += MsqVector<3>( verts[j].to_array() ) * transpose( coeff[j] );
-  J_exp /= Mesquite::cbrt(det(J_exp));
+  J_exp /= MBMesquite::cbrt(det(J_exp));
   
     // Matrices should be a rotation of each other.
     // First, calculate tentative rotation matrix

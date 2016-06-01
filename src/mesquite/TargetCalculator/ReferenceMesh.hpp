@@ -37,7 +37,7 @@
 #include "MsqVertex.hpp"
 #include "MeshInterface.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 class Mesh;
 

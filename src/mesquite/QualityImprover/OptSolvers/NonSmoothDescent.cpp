@@ -40,7 +40,7 @@
 
 #undef NUMERICAL_GRADIENT
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 const double EPSILON = 1e-16;
 const int MSQ_MAX_OPT_ITER = 20;
@@ -1198,7 +1198,7 @@ double NonSmoothDescent::SymmetricMatrix::condition3x3() const
     operator()(1,0), operator()(1,1), operator()(1,2),
     operator()(2,0), operator()(2,1), operator()(2,2)
   };
-  return Mesquite::condition3x3( values );
+  return MBMesquite::condition3x3( values );
 }
 
 void NonSmoothDescent::singular_test(int n, const Matrix3D&  A, bool& singular, MsqError &err) 

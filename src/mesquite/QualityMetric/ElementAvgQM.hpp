@@ -34,7 +34,7 @@
 #include "Mesquite.hpp"
 #include "ElementQM.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 class ElemSampleQM;
 

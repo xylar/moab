@@ -36,7 +36,7 @@
 #include "Mesquite.hpp"
 #include "TargetCalculator.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 class MESQUITE_EXPORT IdealShapeTarget : public TargetCalculator
 {
@@ -89,6 +89,6 @@ public:
 };
 
 
-} // namespace MESQUITE_NS
+} // namespace MBMesquite
 
 #endif

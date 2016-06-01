@@ -41,15 +41,15 @@ using std::cout;
 #  include "PatchIterator.hpp"
 #  include "UnitUtil.hpp"
 #  include "Instruction.hpp"
-   using Mesquite::Mesh;
-   using Mesquite::MeshImpl;
-   using Mesquite::Vector3D;
-   using Mesquite::MsqVertex;
-   using Mesquite::MsqPrintError;
-   using Mesquite::EntityTopology;
-   using Mesquite::VertexPatches;
-   using Mesquite::PatchIterator;
-   using Mesquite::arrptr;
+   using MBMesquite::Mesh;
+   using MBMesquite::MeshImpl;
+   using MBMesquite::Vector3D;
+   using MBMesquite::MsqVertex;
+   using MBMesquite::MsqPrintError;
+   using MBMesquite::EntityTopology;
+   using MBMesquite::VertexPatches;
+   using MBMesquite::PatchIterator;
+   using MBMesquite::arrptr;
 #else
 #  include <stdio.h>
 #endif
@@ -427,14 +427,14 @@ public:
   
   void test_elements();
   
-  int tri_check_validity(const Mesquite::MsqMeshEntity* element_array,
+  int tri_check_validity(const MBMesquite::MsqMeshEntity* element_array,
                          size_t num_elements,
-                         const Mesquite::MsqVertex* vtx_array,
+                         const MBMesquite::MsqVertex* vtx_array,
                          size_t num_vertices);
   
-  int tet_validity_check(const Mesquite::MsqMeshEntity* element_array,
+  int tet_validity_check(const MBMesquite::MsqMeshEntity* element_array,
                          size_t num_elements,
-                         const Mesquite::MsqVertex *vtx_array);
+                         const MBMesquite::MsqVertex *vtx_array);
 };
     // Check if the 2x2x2 brick of structured mesh
     // read from file is as expected.
@@ -570,13 +570,13 @@ public:
     unsigned i;
     struct meshdata { EntityTopology type; size_t nodes; size_t count; };
     meshdata list[] = {
-      { Mesquite::HEXAHEDRON,    8,  8 },
-      { Mesquite::QUADRILATERAL, 4,  4 },
-      { Mesquite::PYRAMID,       5,  4 },
-      { Mesquite::TETRAHEDRON,   4,  6 },
-      { Mesquite::TRIANGLE,      3, 14 },
-      { Mesquite::PRISM,         6,  2 }, 
-      { Mesquite::MIXED,         0,  0 } };
+      { MBMesquite::HEXAHEDRON,    8,  8 },
+      { MBMesquite::QUADRILATERAL, 4,  4 },
+      { MBMesquite::PYRAMID,       5,  4 },
+      { MBMesquite::TETRAHEDRON,   4,  6 },
+      { MBMesquite::TRIANGLE,      3, 14 },
+      { MBMesquite::PRISM,         6,  2 }, 
+      { MBMesquite::MIXED,         0,  0 } };
       
       // Count expected lenght of connectivity list
     size_t conn_len = 0;
@@ -1035,14 +1035,14 @@ public:
       const unsigned* edges;
       const unsigned* faces;
     } expected_elems[NUM_ELEM] = {
-      { Mesquite::HEXAHEDRON,    8, 12, 0, 0, hex_corners, hex_edges, hex_faces },
-      { Mesquite::HEXAHEDRON,    8, 12, 6, 1, hex_corners, hex_edges, hex_faces },
-      { Mesquite::TETRAHEDRON,   4,  6, 0, 0, tet_corners, tet_edges, 0 },
-      { Mesquite::QUADRILATERAL, 4,  4, 0, 0, hex_corners, hex_edges, 0 },
-      { Mesquite::QUADRILATERAL, 4,  4, 0, 1, hex_corners, hex_edges, 0 },
-      { Mesquite::TRIANGLE,      3,  3, 0, 0, tet_corners, tet_edges, 0 },
-      { Mesquite::PRISM,         6,  9, 0, 0, pri_corners, pri_edges, 0 },
-      { Mesquite::PYRAMID,       5,  8, 0, 0, pyr_corners, pyr_edges, 0 } };
+      { MBMesquite::HEXAHEDRON,    8, 12, 0, 0, hex_corners, hex_edges, hex_faces },
+      { MBMesquite::HEXAHEDRON,    8, 12, 6, 1, hex_corners, hex_edges, hex_faces },
+      { MBMesquite::TETRAHEDRON,   4,  6, 0, 0, tet_corners, tet_edges, 0 },
+      { MBMesquite::QUADRILATERAL, 4,  4, 0, 0, hex_corners, hex_edges, 0 },
+      { MBMesquite::QUADRILATERAL, 4,  4, 0, 1, hex_corners, hex_edges, 0 },
+      { MBMesquite::TRIANGLE,      3,  3, 0, 0, tet_corners, tet_edges, 0 },
+      { MBMesquite::PRISM,         6,  9, 0, 0, pri_corners, pri_edges, 0 },
+      { MBMesquite::PYRAMID,       5,  8, 0, 0, pyr_corners, pyr_edges, 0 } };
     
     MsqVertex have;
     std::vector<Mesh::VertexHandle>::iterator v_it = conn.begin();
@@ -1149,16 +1149,16 @@ public:
 
   void VtkTest::test_elements()
   {
-    Mesquite::MsqPrintError err(cout);
+    MBMesquite::MsqPrintError err(cout);
     MeshImpl mMesh;
     mMesh.read_vtk(MESH_FILES_DIR "2D/vtk/tris/untangled/equil_tri2.vtk", err);
     ASSERT_NO_ERROR(err);
-    Mesquite::MeshDomainAssoc mesh_and_domain = Mesquite::MeshDomainAssoc(&mMesh, 0);
-    Mesquite::Instruction::initialize_vertex_byte( &mesh_and_domain, 0, err );
+    MBMesquite::MeshDomainAssoc mesh_and_domain = MBMesquite::MeshDomainAssoc(&mMesh, 0);
+    MBMesquite::Instruction::initialize_vertex_byte( &mesh_and_domain, 0, err );
     ASSERT_NO_ERROR(err);
     
       // Retrieve a patch
-    Mesquite::PatchData pd;
+    MBMesquite::PatchData pd;
     pd.set_mesh( &mMesh );
     VertexPatches patch_set;
     patch_set.set_mesh( &mMesh );
@@ -1170,11 +1170,11 @@ public:
 //    std::cout << "nb of free vertices: " << free_vtx << std::endl;
     CPPUNIT_ASSERT( free_vtx == 1 );
     
-    Mesquite::MsqMeshEntity* element_array =  pd.get_element_array(err); ASSERT_NO_ERROR(err);
+    MBMesquite::MsqMeshEntity* element_array =  pd.get_element_array(err); ASSERT_NO_ERROR(err);
     size_t num_elements = pd.num_elements();
     CPPUNIT_ASSERT( num_elements == 6 );
     
-    const Mesquite::MsqVertex* vtx_array = pd.get_vertex_array(err); ASSERT_NO_ERROR(err);
+    const MBMesquite::MsqVertex* vtx_array = pd.get_vertex_array(err); ASSERT_NO_ERROR(err);
     size_t num_vertices = pd.num_nodes();
     CPPUNIT_ASSERT( num_vertices == 7 );
     
@@ -1193,9 +1193,9 @@ public:
     CPPUNIT_ASSERT( tri_check_validity(element_array, num_elements, vtx_array, num_vertices) == 1 );
   }
   
-  int VtkTest::tri_check_validity(const Mesquite::MsqMeshEntity* element_array,
+  int VtkTest::tri_check_validity(const MBMesquite::MsqMeshEntity* element_array,
                          size_t num_elements,
-                         const Mesquite::MsqVertex* vtx_array,
+                         const MBMesquite::MsqVertex* vtx_array,
                          size_t num_vertices)
   {
        
@@ -1235,9 +1235,9 @@ public:
     return(valid);
   }
   
-  int VtkTest::tet_validity_check(const Mesquite::MsqMeshEntity* element_array,
+  int VtkTest::tet_validity_check(const MBMesquite::MsqMeshEntity* element_array,
                          size_t num_elements,
-                         const Mesquite::MsqVertex *vtx_array)
+                         const MBMesquite::MsqVertex *vtx_array)
   {
     int valid = 1;
     double dEps = 1.e-13;

@@ -42,7 +42,7 @@ static bool create_exodus_file( const char* filename );
 #include "MsqVertex.hpp"
 #include "MsqError.hpp"
 
-using Mesquite::arrptr;
+using MBMesquite::arrptr;
 
 #include "cppunit/extensions/HelperMacros.h"
 
@@ -95,8 +95,8 @@ public:
   
   void ExodusTest::test_write()
   {
-    Mesquite::MeshImpl *mMesh;
-    Mesquite::MsqPrintError err(std::cout);
+    MBMesquite::MeshImpl *mMesh;
+    MBMesquite::MsqPrintError err(std::cout);
 
       // Create a mesh file
     char filename[] = "MsqExoTestTemp.g";
@@ -104,7 +104,7 @@ public:
     CPPUNIT_ASSERT(havefile);
     
       // Read in test file
-    mMesh = new Mesquite::MeshImpl;
+    mMesh = new MBMesquite::MeshImpl;
     mMesh->read_exodus(filename, err);
     remove( filename );
     CPPUNIT_ASSERT(!err);
@@ -121,15 +121,15 @@ public:
   
   void ExodusTest::check_mesh( const char* filename )
   {
-    Mesquite::MeshImpl *mMesh;
-    Mesquite::MsqPrintError err(std::cout);
+    MBMesquite::MeshImpl *mMesh;
+    MBMesquite::MsqPrintError err(std::cout);
     int i;
     const unsigned NUM_HEXES = 115;
     const unsigned NUM_QUADS = 0;
     const unsigned NUM_NODES = 216;
 
       // Read a Exodus Mesh file
-    mMesh = new Mesquite::MeshImpl;
+    mMesh = new MBMesquite::MeshImpl;
     mMesh->read_exodus(filename, err);
     remove( filename );
     CPPUNIT_ASSERT(!err);
@@ -166,12 +166,12 @@ public:
       // Count elements by type
     unsigned counts[Mesquite::MIXED];
     memset( counts, 0, sizeof(counts) );
-    Mesquite::ElementIterator* iter = mMesh->element_iterator(err);
+    MBMesquite::ElementIterator* iter = mMesh->element_iterator(err);
     CPPUNIT_ASSERT(!err);
     while (!iter->is_at_end())
     {
-      Mesquite::EntityTopology type;
-      Mesquite::Mesh::ElementHandle handle = iter->operator*();
+      MBMesquite::EntityTopology type;
+      MBMesquite::Mesh::ElementHandle handle = iter->operator*();
       mMesh->elements_get_topologies( &handle, &type, 1, err );
       CPPUNIT_ASSERT(!err);
       CPPUNIT_ASSERT(type <Mesquite:: MIXED && names[type] != NULL);
@@ -181,7 +181,7 @@ public:
     
       // Print counts
     printf( "TYPE   COUNT\n-----  -----\n");
-    for (i = 0; i < Mesquite::MIXED; ++i)
+    for (i = 0; i < MBMesquite::MIXED; ++i)
       if (counts[i])
         printf("%5s  %5d\n", names[i], counts[i]);
         
@@ -211,7 +211,7 @@ public:
       sprintf(buffer, "bad hex: %d\n", j);
       vert_handle_vect.clear();
       offset_vect.clear();
-      Mesquite::Mesh::ElementHandle handle = (Mesquite::Mesh::ElementHandle)j;
+      MBMesquite::Mesh::ElementHandle handle = (Mesquite::Mesh::ElementHandle)j;
       mMesh->elements_get_attached_vertices( &handle, 1, vert_handle_vect, offset_vect, err );
       CPPUNIT_ASSERT( !err );
       CPPUNIT_ASSERT( vert_handle_vect.size() == 8 );
@@ -231,11 +231,11 @@ public:
       { -2.000000,    -0.000000,     5.000000 },
       { -1.000000,     1.732051,     5.000000 },
       {  1.000000,     1.732051,     5.000000 } };
-    Mesquite::MsqVertex vert;
+    MBMesquite::MsqVertex vert;
     for (j = 0; j < num_to_check; ++j)
     {
       sprintf(buffer, "bad node: %d\n", j);
-      Mesquite::Mesh::VertexHandle handle = (Mesquite::Mesh::VertexHandle)j;
+      MBMesquite::Mesh::VertexHandle handle = (Mesquite::Mesh::VertexHandle)j;
       mMesh->vertices_get_coordinates( &handle, &vert, 1, err );
       CPPUNIT_ASSERT( !err );
       for (i = 0; i < 3; ++i)

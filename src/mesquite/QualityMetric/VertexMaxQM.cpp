@@ -39,7 +39,7 @@
 #include <algorithm>
 #include <limits>
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 VertexMaxQM::VertexMaxQM( ElemSampleQM* metric )
     : mMetric(metric)

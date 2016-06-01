@@ -28,7 +28,7 @@
 
 /*! \file AspectRatioGammaQualityMetric.hpp
   \brief
-  Header file for the Mesquite::AspectRatioGammaQualityMetric class
+  Header file for the MBMesquite::AspectRatioGammaQualityMetric class
 
   \author Michael Brewer
   \date   2002-05-16
@@ -41,7 +41,7 @@
 #include "Mesquite.hpp"
 #include "MsqError.hpp"
 #include "ElementQM.hpp"
-namespace MESQUITE_NS
+namespace MBMesquite
 {
      /*! \class AspectRatioGammaQualityMetric
        \brief Object for computing the aspect ratio gamma of

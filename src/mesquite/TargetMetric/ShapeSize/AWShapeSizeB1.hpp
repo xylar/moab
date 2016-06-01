@@ -37,7 +37,7 @@
 #include "AWMetric.hpp"
 #include "AWMetricBarrier.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 
 /** \f$ | A - A^{-t} W^t W |^2  \f$ */

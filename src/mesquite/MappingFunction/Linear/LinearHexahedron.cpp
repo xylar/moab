@@ -34,7 +34,7 @@
 #include "MsqError.hpp"
 #include "LinearHexahedron.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 static const char* nonlinear_error 
  = "Attempt to use LinearHexahedron mapping function for a nonlinear element\n";

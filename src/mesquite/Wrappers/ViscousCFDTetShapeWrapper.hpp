@@ -36,7 +36,7 @@
 #include "Mesquite.hpp"
 #include "Wrapper.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 class MeshDomainAssoc;
 
@@ -80,6 +80,6 @@ class MESQUITE_EXPORT ViscousCFDTetShapeWrapper : public Wrapper
 };
 
 
-} // namespace MESQUITE_NS
+} // namespace MBMesquite
 
 #endif

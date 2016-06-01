@@ -37,7 +37,7 @@
 #include "MsqError.hpp"
 #include <sstream>
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 std::string ScalarAddQualityMetric::get_name() const
 {

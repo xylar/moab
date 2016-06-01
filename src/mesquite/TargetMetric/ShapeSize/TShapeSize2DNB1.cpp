@@ -37,7 +37,7 @@
 
 #include <iostream>
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 std::string TShapeSize2DNB1::get_name() const
   { return "TShapeSize2DNB1"; }

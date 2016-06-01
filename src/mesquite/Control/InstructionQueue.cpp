@@ -28,7 +28,7 @@
 
 /*! \file InstructionQueue.cpp
 
-Member functions of the Mesquite::InstructionQueue class
+Member functions of the MBMesquite::InstructionQueue class
 
   \author Thomas Leurent
   \date   2002-05-01
@@ -50,7 +50,7 @@ Member functions of the Mesquite::InstructionQueue class
 #include "MsqFPE.hpp"
 #include "ParallelMeshInterface.hpp"
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 
 InstructionQueue::InstructionQueue() :

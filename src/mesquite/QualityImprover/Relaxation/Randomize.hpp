@@ -43,7 +43,7 @@
 #include "VertexPatches.hpp"
 #include <vector>
 
-namespace MESQUITE_NS
+namespace MBMesquite
 {
 
   /*! \class Randomize

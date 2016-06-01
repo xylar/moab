@@ -7,7 +7,7 @@
 
 #include <vector>
 
-namespace MESQUITE_NS
+namespace MBMesquite
 {
   /*\brief Do laplacian smooth, but don't invert elements.
    */  

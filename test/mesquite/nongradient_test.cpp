@@ -56,7 +56,7 @@
 #include "NonGradient.hpp"
 #include "TestUtil.hpp"
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 int main()
 {
@@ -70,7 +70,7 @@ int main()
 
     // Barrier / Max Objective Function Test
 
-  Mesquite::MeshImpl mesh_max;
+  MBMesquite::MeshImpl mesh_max;
   mesh_max.read_vtk(file_name1.c_str(), err);
   if (err)
   {
@@ -114,7 +114,7 @@ int main()
 
   // test for barrier violation
   PlanarDomain xyPlane2 (PlanarDomain::XY, 5);
-  Mesquite::MeshImpl mesh_bv;
+  MBMesquite::MeshImpl mesh_bv;
   mesh_bv.read_vtk(file_name2.c_str(), err);
   if (err)
   {
@@ -132,13 +132,13 @@ int main()
   queue1.add_quality_assessor(&maxObj_max_optimal_qa,err);
   if (err) return 1;
 
-  Mesquite::MeshDomainAssoc mesh_and_domain = MeshDomainAssoc(&mesh_max, &xyPlane);
+  MBMesquite::MeshDomainAssoc mesh_and_domain = MeshDomainAssoc(&mesh_max, &xyPlane);
   queue1.run_instructions(&mesh_and_domain, err);
   if (err) return 1;
 
     // Non-Barrier / Ave Objective Function Test
 
-  Mesquite::MeshImpl mesh_mean;
+  MBMesquite::MeshImpl mesh_mean;
   mesh_mean.read_vtk(file_name1.c_str(), err);
   if (err)
   {
@@ -192,7 +192,7 @@ int main()
   if (err) return 1;
   queue3.set_master_quality_improver(&max_opt, err); 
   if (err) return 1;
-  Mesquite::MeshDomainAssoc mesh_and_domain2 = MeshDomainAssoc(&mesh_bv, &xyPlane2);
+  MBMesquite::MeshDomainAssoc mesh_and_domain2 = MeshDomainAssoc(&mesh_bv, &xyPlane2);
   queue3.run_instructions(&mesh_and_domain2, err);
   if (err.error_code() == err.BARRIER_VIOLATED)
   {

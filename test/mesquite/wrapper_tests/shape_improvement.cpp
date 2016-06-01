@@ -37,7 +37,7 @@
 // ============
 /*! \file main.cpp
 
-Calls the Mesquite wrappers. First command line argument is the mesh file.
+Calls the MBMesquite wrappers. First command line argument is the mesh file.
 
  */
 // DESCRIP-END.
@@ -57,11 +57,11 @@ using std::endl;
 #include "ShapeImprovementWrapper.hpp"
 #include "MsqTimer.hpp"
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 int main(int argc, char* argv[])
 {
-  Mesquite::MsqPrintError err(cout);
+  MBMesquite::MsqPrintError err(cout);
 
   std::string file_name = TestDir + "/3D/vtk/tets/untangled/tire.vtk";
   
@@ -78,7 +78,7 @@ int main(int argc, char* argv[])
     file_name = argv[1];
   }
   
-  Mesquite::MeshImpl mesh;
+  MBMesquite::MeshImpl mesh;
   mesh.read_vtk(file_name.c_str(), err);
   
   // creates a wrapper

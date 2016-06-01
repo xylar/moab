@@ -48,7 +48,7 @@
 #include <vector>
 #include <algorithm>
 
-using namespace Mesquite;
+using namespace MBMesquite;
 using namespace std;
 
 class LinearMappingFunctionTest : public CppUnit::TestFixture
@@ -1163,7 +1163,7 @@ void LinearMappingFunctionTest::do_ideal_test( MappingFunction3D& mf )
   MsqMatrix<3,3> W_exp;
   jc.get_Jacobian_3D( &mf, NodeSet(), Sample(3,0), verts, TopologyInfo::corners(mf.element_topology()), W_exp, err );
   ASSERT_NO_ERROR(err);
-  W_exp /= Mesquite::cbrt(det(W_exp));
+  W_exp /= MBMesquite::cbrt(det(W_exp));
   
     // Matrices should be a rotation of each other.
     // First, calculate tentative rotation matrix

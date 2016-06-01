@@ -36,16 +36,16 @@
 
 #include <ieeefp.h>
 
-bool MESQUITE_NS::MsqFPE::fpe_trap_supported()
+bool MBMesquite::MsqFPE::fpe_trap_supported()
   { return true; }
 
-int MESQUITE_NS::MsqFPE::get_current_fpe_state()
+int MBMesquite::MsqFPE::get_current_fpe_state()
   { return fpgetmask(); }
 
-void MESQUITE_NS::MsqFPE::set_current_fpe_state(int state)
+void MBMesquite::MsqFPE::set_current_fpe_state(int state)
   { fpsetmask( state ); }
 
-void MESQUITE_NS::MsqFPE::enable_trap_fpe()
+void MBMesquite::MsqFPE::enable_trap_fpe()
   { fpsetmask( fpgetmask()|FP_X_INV|FP_X_OFL|FP_X_DZ ); }
 
 
@@ -67,16 +67,16 @@ void MESQUITE_NS::MsqFPE::enable_trap_fpe()
 #endif
 
 
-bool MESQUITE_NS::MsqFPE::fpe_trap_supported() 
+bool MBMesquite::MsqFPE::fpe_trap_supported() 
   { return true; }
 
-int MESQUITE_NS::MsqFPE::get_current_fpe_state()
+int MBMesquite::MsqFPE::get_current_fpe_state()
   { return fegetexcept(); }
 
-void MESQUITE_NS::MsqFPE::set_current_fpe_state(int state)
+void MBMesquite::MsqFPE::set_current_fpe_state(int state)
   { feenableexcept( state ); }
 
-void MESQUITE_NS::MsqFPE::enable_trap_fpe()
+void MBMesquite::MsqFPE::enable_trap_fpe()
 { 
   const int flags = FE_DIVBYZERO|FE_INVALID|FE_OVERFLOW;
   feclearexcept( flags );
@@ -93,16 +93,16 @@ void MESQUITE_NS::MsqFPE::enable_trap_fpe()
 
 #include <float.h>
 
-bool MESQUITE_NS::MsqFPE::fpe_trap_supported() 
+bool MBMesquite::MsqFPE::fpe_trap_supported() 
   { return true; }
 
-int MESQUITE_NS::MsqFPE::get_current_fpe_state()
+int MBMesquite::MsqFPE::get_current_fpe_state()
   { return _controlfp(0,0); }
 
-void MESQUITE_NS::MsqFPE::set_current_fpe_state(int state)
+void MBMesquite::MsqFPE::set_current_fpe_state(int state)
   { _controlfp( state, _MCW_EM ); }
 
-void MESQUITE_NS::MsqFPE::enable_trap_fpe()
+void MBMesquite::MsqFPE::enable_trap_fpe()
 { 
   const int flags = _EM_ZERODIVIDE|_EM_INVALID|_EM_OVERFLOW;
   _controlfp( ~flags, _MCW_EM );
@@ -113,16 +113,16 @@ void MESQUITE_NS::MsqFPE::enable_trap_fpe()
 /* Unsupported platform */
 #else
 
-bool MESQUITE_NS::MsqFPE::fpe_trap_supported() 
+bool MBMesquite::MsqFPE::fpe_trap_supported() 
   { return false; }
 
-int MESQUITE_NS::MsqFPE::get_current_fpe_state()
+int MBMesquite::MsqFPE::get_current_fpe_state()
   { return 0; }
 
-void MESQUITE_NS::MsqFPE::set_current_fpe_state(int )
+void MBMesquite::MsqFPE::set_current_fpe_state(int )
   { }
 
-void MESQUITE_NS::MsqFPE::enable_trap_fpe()
+void MBMesquite::MsqFPE::enable_trap_fpe()
   { }
 
 #endif
@@ -130,7 +130,7 @@ void MESQUITE_NS::MsqFPE::enable_trap_fpe()
 
 
 
-MESQUITE_NS::MsqFPE::MsqFPE( bool enabled ) : isEnabled( enabled )
+MBMesquite::MsqFPE::MsqFPE( bool enabled ) : isEnabled( enabled )
 {
   if (isEnabled) 
   {
@@ -139,7 +139,7 @@ MESQUITE_NS::MsqFPE::MsqFPE( bool enabled ) : isEnabled( enabled )
   }
 }
 
-MESQUITE_NS::MsqFPE::~MsqFPE( )
+MBMesquite::MsqFPE::~MsqFPE( )
 {
   if (isEnabled)
   {

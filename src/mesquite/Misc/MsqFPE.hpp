@@ -30,7 +30,7 @@
 #include <sys/types.h>
 #include "Mesquite.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 /**\brief Utility class used by InstructionQueue SIGFPE option
  *

@@ -28,7 +28,7 @@
 #include "MsqError.hpp"
 #include "LinearTetrahedron.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 static const char* nonlinear_error 
  = "Attempt to use LinearTetrahedron mapping function for a nonlinear element\n";

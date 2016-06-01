@@ -1,7 +1,7 @@
 #define TARGET_TEST_GROUP "ShapeTargetMetricTests"
 #include "TargetMetricTest.hpp"
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 #include "AWShape2DNB1.hpp"
 #include "AWShape2DNB2.hpp"

@@ -35,7 +35,7 @@
 #include "PatchData.hpp"
 #include <assert.h>
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 ExtraData::ExtraData( PatchData& patch ) 
   : patchNext(0), patchPtr(&patch)

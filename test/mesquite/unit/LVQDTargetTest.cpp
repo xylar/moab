@@ -39,7 +39,7 @@
 
 #include <iostream>
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 class LVQDTargetTest : public CppUnit::TestFixture
 {
@@ -193,7 +193,7 @@ void LVQDTargetTest::setUp()
                                  
   const double aspect_2D_2x[4] = { MSQ_SQRT_TWO, 0,
                                    0,            MSQ_SQRT_TWO/2 };
-  const double r6 = Mesquite::cbrt(1.0/6.0);
+  const double r6 = MBMesquite::cbrt(1.0/6.0);
   const double aspect_3D_123[9] = { r6,    0,    0,
                                      0, 2*r6,    0,
                                      0,    0, 3*r6 };

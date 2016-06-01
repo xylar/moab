@@ -34,7 +34,7 @@
 #include "LinearPyramid.hpp"
 #include "MsqError.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 static const char* nonlinear_error 
  = "Attempt to use LinearTriangle mapping function for a nonlinear element\n";

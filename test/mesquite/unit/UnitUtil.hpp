@@ -47,7 +47,7 @@
 #define ASSERT_MESSAGE( MSG, COND ) \
   CPPUNIT_NS::Asserter::failIf( !(COND), (MSG), CPPUNIT_SOURCELINE() )
 
-/** Assert that Mesquite API has not flagged an error */
+/** Assert that MBMesquite API has not flagged an error */
 #define ASSERT_NO_ERROR( A ) \
   ASSERT_MESSAGE( (A).error_message(), ! MSQ_CHKERR( (A) ) )
 
@@ -91,7 +91,7 @@
 
 
 /** make string representation of cartesian vector */
-inline std::string utest_vect_str( const Mesquite::Vector3D& v )
+inline std::string utest_vect_str( const MBMesquite::Vector3D& v )
 {
   char buffer[128];
   sprintf(buffer, "[%f, %f, %f]", v[0], v[1], v[2]);
@@ -99,7 +99,7 @@ inline std::string utest_vect_str( const Mesquite::Vector3D& v )
 }
 
 /** make string representation of 3x3 matrix */
-inline std::string utest_mat_str( const Mesquite::Matrix3D& m )
+inline std::string utest_mat_str( const MBMesquite::Matrix3D& m )
 {
   char buffer[256];
   sprintf(buffer, "[%f, %f, %f] [%f, %f, %f] [%f, %f, %f]", 
@@ -110,7 +110,7 @@ inline std::string utest_mat_str( const Mesquite::Matrix3D& m )
 }
 
 /** make string representation of 3x3 symetric matrix */
-inline std::string utest_mat_str( const Mesquite::SymMatrix3D& m )
+inline std::string utest_mat_str( const MBMesquite::SymMatrix3D& m )
 {
   char buffer[256];
   sprintf(buffer, "[%f, %f, %f] [%f, %f, %f] [%f, %f, %f]", 
@@ -121,8 +121,8 @@ inline std::string utest_mat_str( const Mesquite::SymMatrix3D& m )
 }
 
 /** make error message for failed vector copmarison */
-inline CppUnit::Message utest_vect_message( const Mesquite::Vector3D& v1,
-                                      const Mesquite::Vector3D& v2 )
+inline CppUnit::Message utest_vect_message( const MBMesquite::Vector3D& v1,
+                                      const MBMesquite::Vector3D& v2 )
 {
   CppUnit::Message m( "equality assertion failed" );
   m.addDetail( std::string("Expected: ") + utest_vect_str(v1) );
@@ -131,8 +131,8 @@ inline CppUnit::Message utest_vect_message( const Mesquite::Vector3D& v1,
 }
 
 /** make error message for failed matrix copmarison */
-inline CppUnit::Message utest_mat_message( const Mesquite::Matrix3D& m1,
-                                     const Mesquite::Matrix3D& m2 )
+inline CppUnit::Message utest_mat_message( const MBMesquite::Matrix3D& m1,
+                                     const MBMesquite::Matrix3D& m2 )
 {
   CppUnit::Message m( "equality assertion failed" );
   m.addDetail( std::string("Expected: ") + utest_mat_str(m1) );
@@ -141,8 +141,8 @@ inline CppUnit::Message utest_mat_message( const Mesquite::Matrix3D& m1,
 }
 
 /** make error message for failed symmetric matrix copmarison */
-inline CppUnit::Message utest_mat_message( const Mesquite::SymMatrix3D& m1,
-                                     const Mesquite::SymMatrix3D& m2 )
+inline CppUnit::Message utest_mat_message( const MBMesquite::SymMatrix3D& m1,
+                                     const MBMesquite::SymMatrix3D& m2 )
 {
   CppUnit::Message m( "equality assertion failed" );
   m.addDetail( std::string("Expected: ") + utest_mat_str(m1) );
@@ -151,7 +151,7 @@ inline CppUnit::Message utest_mat_message( const Mesquite::SymMatrix3D& m1,
 }
 
 /** compare vectors */
-inline bool utest_vect_equal( const Mesquite::Vector3D& v1, const Mesquite::Vector3D& v2, double eps )
+inline bool utest_vect_equal( const MBMesquite::Vector3D& v1, const MBMesquite::Vector3D& v2, double eps )
 {
   return (fabs(v1[0] - v2[0]) < eps) &&
          (fabs(v1[1] - v2[1]) < eps) &&
@@ -159,7 +159,7 @@ inline bool utest_vect_equal( const Mesquite::Vector3D& v1, const Mesquite::Vect
 }
 
 /** compare matrices */
-inline bool utest_mat_equal( const Mesquite::Matrix3D& m1, const Mesquite::Matrix3D& m2, double eps )
+inline bool utest_mat_equal( const MBMesquite::Matrix3D& m1, const MBMesquite::Matrix3D& m2, double eps )
 {
   return (fabs(m1[0][0] - m2[0][0]) < eps) &&
          (fabs(m1[0][1] - m2[0][1]) < eps) &&
@@ -173,7 +173,7 @@ inline bool utest_mat_equal( const Mesquite::Matrix3D& m1, const Mesquite::Matri
 }
 
 /** compare matrices */
-inline bool utest_mat_equal( const Mesquite::SymMatrix3D& m1, const Mesquite::SymMatrix3D& m2, double eps )
+inline bool utest_mat_equal( const MBMesquite::SymMatrix3D& m1, const MBMesquite::SymMatrix3D& m2, double eps )
 {
   return (fabs(m1(0,0) - m2(0,0)) < eps) &&
          (fabs(m1(0,1) - m2(0,1)) < eps) &&
@@ -184,7 +184,7 @@ inline bool utest_mat_equal( const Mesquite::SymMatrix3D& m1, const Mesquite::Sy
 }
 
 template <unsigned R, unsigned C>
-inline std::string msq_mat_str( const Mesquite::MsqMatrix<R,C>& m )
+inline std::string msq_mat_str( const MBMesquite::MsqMatrix<R,C>& m )
 {
   std::ostringstream os;
   for (unsigned i = 0; i < R; ++i) {
@@ -197,7 +197,7 @@ inline std::string msq_mat_str( const Mesquite::MsqMatrix<R,C>& m )
 }
 
 template <unsigned R, unsigned C>
-inline CppUnit::Message ident_check_msg( const Mesquite::MsqMatrix<R,C>& m )
+inline CppUnit::Message ident_check_msg( const MBMesquite::MsqMatrix<R,C>& m )
 {
   CppUnit::Message mes( "Identity Assertion Failed" );
   mes.addDetail( std::string("Actual: ") + msq_mat_str(m) );
@@ -205,7 +205,7 @@ inline CppUnit::Message ident_check_msg( const Mesquite::MsqMatrix<R,C>& m )
 }
 
 template <unsigned R, unsigned C>
-inline bool ident_check( const Mesquite::MsqMatrix<R,C>& m )
+inline bool ident_check( const MBMesquite::MsqMatrix<R,C>& m )
 {
   for (unsigned i = 0; i < R; ++i)
     for (unsigned j = 0; j < C; ++j)
@@ -217,8 +217,8 @@ inline bool ident_check( const Mesquite::MsqMatrix<R,C>& m )
 }
 
 template <unsigned R, unsigned C>
-inline CppUnit::Message mat_equal_check_msg( const Mesquite::MsqMatrix<R,C>& A,
-                                             const Mesquite::MsqMatrix<R,C>& B )
+inline CppUnit::Message mat_equal_check_msg( const MBMesquite::MsqMatrix<R,C>& A,
+                                             const MBMesquite::MsqMatrix<R,C>& B )
 {
   CppUnit::Message mes( "Matrix Equality Assertion Failed" );
   mes.addDetail( std::string( "Expected: ") + msq_mat_str(A) );
@@ -227,8 +227,8 @@ inline CppUnit::Message mat_equal_check_msg( const Mesquite::MsqMatrix<R,C>& A,
 }
 
 template <unsigned R, unsigned C>
-inline CppUnit::Message mat_not_equal_check_msg( const Mesquite::MsqMatrix<R,C>& A,
-                                             const Mesquite::MsqMatrix<R,C>& B )
+inline CppUnit::Message mat_not_equal_check_msg( const MBMesquite::MsqMatrix<R,C>& A,
+                                             const MBMesquite::MsqMatrix<R,C>& B )
 {
   CppUnit::Message mes( "Matrix Inequality Assertion Failed" );
   mes.addDetail( std::string( "Expected: ") + msq_mat_str(A) );
@@ -237,8 +237,8 @@ inline CppUnit::Message mat_not_equal_check_msg( const Mesquite::MsqMatrix<R,C>&
 }
 
 template <unsigned R, unsigned C>
-inline bool mat_equal_check( const Mesquite::MsqMatrix<R,C>& A, 
-                             const Mesquite::MsqMatrix<R,C>& B, 
+inline bool mat_equal_check( const MBMesquite::MsqMatrix<R,C>& A, 
+                             const MBMesquite::MsqMatrix<R,C>& B, 
                              double eps  )
 {
   for (unsigned i = 0; i < R; ++i)

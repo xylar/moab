@@ -43,7 +43,7 @@
 #include <vector>
 using std::vector;
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 EdgeLengthRangeQualityMetric::EdgeLengthRangeQualityMetric( double low_a, double high_a )
   : AveragingQM(SUM),

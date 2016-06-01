@@ -42,7 +42,7 @@
 #include <vector>
 using std::vector;
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 const double fourDivRootThree = 4.0/sqrt(3.0);
 const double twelveDivRootTwo = 12.0/sqrt(2.0);

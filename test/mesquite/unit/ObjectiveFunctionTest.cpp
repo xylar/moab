@@ -61,7 +61,7 @@ Unit testing of various functions in the ObjectiveFunction class.
 #include <iterator>
 #include <algorithm>
 
-using namespace Mesquite;
+using namespace MBMesquite;
 using std::cout;
 using std::endl;
 using std::cerr;

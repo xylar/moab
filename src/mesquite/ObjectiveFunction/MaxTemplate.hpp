@@ -28,7 +28,7 @@
 
 /*! \file MaxTemplate.hpp
 
-Header file for the Mesquite::MaxTemplate class
+Header file for the MBMesquite::MaxTemplate class
 
   \author Lori Freitag
   \date   2002-07-18
@@ -41,7 +41,7 @@ Header file for the Mesquite::MaxTemplate class
 #include "Mesquite.hpp"
 #include "ObjectiveFunctionTemplate.hpp"
 
-namespace MESQUITE_NS
+namespace MBMesquite
 {
    /*! \class MaxTemplate
     \brief Computes the maximum quality metric value.

@@ -34,7 +34,7 @@
 
 #include "Mesquite.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 class Mesh;
 class MsqError;
@@ -86,6 +86,6 @@ class MeshUtil
 };
 
 
-} // namespace MESQUITE_NS
+} // namespace MBMesquite
 
 #endif

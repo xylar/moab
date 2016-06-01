@@ -43,7 +43,7 @@
 #include "cppunit/extensions/HelperMacros.h"
 #include "UnitUtil.hpp"
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 class IdealTargetTest : public CppUnit::TestFixture
 {

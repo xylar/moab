@@ -27,7 +27,7 @@
 // -*- Mode : c++; tab-width: 3; c-tab-always-indent: t; indent-tabs-mode: nil; c-basic-offset: 3 -*-
 
 /*! \file LPtoPTemplate.hpp
-  \brief Header file for the Mesquite::LPtoPTemplate class
+  \brief Header file for the MBMesquite::LPtoPTemplate class
  \author Michael Brewer
  \author Thomas Leurent
   \date   2002-05-23
@@ -40,7 +40,7 @@
 #include "Mesquite.hpp"
 #include "ObjectiveFunctionTemplate.hpp"
 
-namespace MESQUITE_NS
+namespace MBMesquite
 {
   class Matrix3D;
 

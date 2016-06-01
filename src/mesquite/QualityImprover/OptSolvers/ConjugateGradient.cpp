@@ -41,7 +41,7 @@
 #include "MsqTimer.hpp"
 //#include "MsqFreeVertexIndexIterator.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 extern int get_parallel_rank();
 extern int get_parallel_size();

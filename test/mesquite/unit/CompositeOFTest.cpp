@@ -48,7 +48,7 @@
 #include "Matrix3D.hpp"
 #include <iterator>
 
-using namespace Mesquite;
+using namespace MBMesquite;
 using std::cout;
 using std::endl;
 using std::cerr;

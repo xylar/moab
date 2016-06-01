@@ -59,7 +59,7 @@ Unit testing of various functions in the MsqMeshEntity class.
 #include <sstream>
 #include "UnitUtil.hpp"
 
-using namespace Mesquite;
+using namespace MBMesquite;
 using std::cout;
 using std::endl;
 

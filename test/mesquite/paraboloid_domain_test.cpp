@@ -54,7 +54,7 @@ using std::endl;
 #include "MeshInterface.hpp"
 #include "TestUtil.hpp"
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 
 class ParaboloidDomain : public MeshDomain
@@ -92,7 +92,7 @@ class ParaboloidDomain : public MeshDomain
 int main()
 {     
   MsqPrintError err(cout);
-  Mesquite::MeshImpl mesh;
+  MBMesquite::MeshImpl mesh;
   std::string file_name = TestDir + "/2D/vtk/quads/untangled/paraboloid.vtk";
   mesh.read_vtk(file_name.c_str(), err); 
   if (err) return 1;

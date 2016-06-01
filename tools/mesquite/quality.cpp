@@ -14,7 +14,7 @@
 #include "ElementMaxQM.hpp"
 #include "domain.hpp"
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 #include <vector>
 #include <algorithm>

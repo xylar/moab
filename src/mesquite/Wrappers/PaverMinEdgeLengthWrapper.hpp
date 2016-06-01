@@ -36,7 +36,7 @@
 #include "Mesquite.hpp"
 #include "Wrapper.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 class MESQUITE_EXPORT PaverMinEdgeLengthWrapper : public Wrapper
 {
@@ -71,6 +71,6 @@ class MESQUITE_EXPORT PaverMinEdgeLengthWrapper : public Wrapper
 };
 
 
-} // namespace MESQUITE_NS
+} // namespace MBMesquite
 
 #endif

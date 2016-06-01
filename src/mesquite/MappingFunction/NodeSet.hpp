@@ -45,7 +45,7 @@
 # pragma warning( 4 : 4715 )
 #endif
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 /** Utility class for storing one boolean mark/flag for each node in an element */
 class MESQUITE_EXPORT NodeSet {

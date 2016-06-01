@@ -37,7 +37,7 @@
 #include "AWMetric.hpp"
 #include <string>
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 static const std::string& barrier_violated_msg_aw = " Barrier of barrier metric has been violated due to negative volume.\n \
   Hint: If your initial mesh is tangled, you must use a non-Barrier metric.\n \

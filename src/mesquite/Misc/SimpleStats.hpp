@@ -35,7 +35,7 @@
 
 #include "Mesquite.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 /**\brief Accumulate various statistics for a list of discrete values */
 class SimpleStats 
@@ -89,6 +89,6 @@ public:
 };
 
 
-} // namespace MESQUITE_NS
+} // namespace MBMesquite
 
 #endif

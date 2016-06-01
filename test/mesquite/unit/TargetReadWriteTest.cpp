@@ -44,7 +44,7 @@
 
 #include <iostream>
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 class TargetReadWriteTest : public CppUnit::TestFixture
 {

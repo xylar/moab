@@ -37,7 +37,7 @@
 #include "MsqHessian.hpp"
 #include "PatchData.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 ObjectiveFunction* PMeanPTemplate::clone() const
   { return new PMeanPTemplate(*this); }

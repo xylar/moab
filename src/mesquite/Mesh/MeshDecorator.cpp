@@ -26,14 +26,14 @@
 
 
 /** \file MeshDecorator.cpp
- *  \brief Implementation of Mesquite::MeshDecorator class
+ *  \brief Implementation of MBMesquite::MeshDecorator class
  *  \author Jason Kraftcheck 
  */
 
 #include "Mesquite.hpp"
 #include "MeshDecorator.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 MeshDecorator::MeshDecorator() : myMesh(0) {}
 MeshDecorator::MeshDecorator( Mesh* mesh ) : myMesh(mesh) {}

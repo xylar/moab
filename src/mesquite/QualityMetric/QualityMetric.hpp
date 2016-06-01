@@ -29,7 +29,7 @@
 
 /*! \file QualityMetric.hpp
     \brief
-Header file for the Mesquite::QualityMetric class
+Header file for the MBMesquite::QualityMetric class
 
   \author Thomas Leurent
   \author Michael Brewer
@@ -55,7 +55,7 @@ Header file for the Mesquite::QualityMetric class
 #  include <inttypes.h>
 #endif
 
-namespace MESQUITE_NS
+namespace MBMesquite
 {
    
      /*! \class QualityMetric

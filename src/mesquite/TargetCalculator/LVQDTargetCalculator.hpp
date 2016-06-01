@@ -36,7 +36,7 @@
 #include "Mesquite.hpp"
 #include "TargetCalculator.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 /** \brief Construct target matrices from factors of guide matrices
  *

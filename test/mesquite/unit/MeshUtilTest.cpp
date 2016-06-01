@@ -35,7 +35,7 @@
 #include "UnitUtil.hpp"
 #include "SimpleStats.hpp"
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 class MeshUtilTest : public CppUnit::TestFixture
 {

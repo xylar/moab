@@ -36,7 +36,7 @@
 #include "MsqMatrix.hpp"
 #include "MsqError.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 std::string TOffset::get_name() const
   { return "offset(" + mMetric->get_name() + ')'; }
@@ -110,4 +110,4 @@ bool TOffset::evaluate_with_hess( const MsqMatrix<3,3>& T,
 }
 
 
-} // namespace MESQUITE_NS
+} // namespace MBMesquite

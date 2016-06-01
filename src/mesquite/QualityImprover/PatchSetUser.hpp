@@ -32,7 +32,7 @@
 #include "VertexPatches.hpp"
 #include "GlobalPatch.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 /**\brief Utility class for handling variable patch types
  *

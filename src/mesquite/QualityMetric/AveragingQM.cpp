@@ -44,7 +44,7 @@
 #include "PatchData.hpp"
 
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
         
 double AveragingQM::average_corner_gradients( EntityTopology type,
                                   uint32_t fixed_vertices,

@@ -47,7 +47,7 @@ using namespace std;
 
 #include <stdio.h>
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 namespace MeshWriter {
 

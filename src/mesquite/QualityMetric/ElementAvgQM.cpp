@@ -35,7 +35,7 @@
 #include "PatchData.hpp"
 #include <limits>
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 ElementAvgQM::ElementAvgQM( ElemSampleQM* metric )
     : mMetric(metric)

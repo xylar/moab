@@ -41,7 +41,7 @@
 #include "ReferenceMesh.hpp"
 #include <iostream>
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 double EPS = 0.05;
 double EPSBIG = 0.5;
@@ -202,7 +202,7 @@ TargetCalculatorTest::TargetCalculatorTest()
                                  
   const double aspect_2D_2x[4] = { MSQ_SQRT_TWO, 0,
                                    0,            MSQ_SQRT_TWO/2 };
-  const double r6 = Mesquite::cbrt(1.0/6.0);
+  const double r6 = MBMesquite::cbrt(1.0/6.0);
   const double aspect_3D_123[9] = { r6,    0,    0,
                                      0, 2*r6,    0,
                                      0,    0, 3*r6 };
@@ -488,7 +488,7 @@ void TargetCalculatorTest::test_factor_3D()
   A(1,1) = 1.5;
   valid = TargetCalculator::factor_3D( A, lambda, V, Q, delta, err );
   CPPUNIT_ASSERT( valid && !err );
-  CPPUNIT_ASSERT_DOUBLES_EQUAL( Mesquite::cbrt(det(A)), lambda, EPS );
+  CPPUNIT_ASSERT_DOUBLES_EQUAL( MBMesquite::cbrt(det(A)), lambda, EPS );
   check_valid_V( V );
   check_valid_Q( Q );
   check_valid_delta( delta );
@@ -502,7 +502,7 @@ void TargetCalculatorTest::test_factor_3D()
   MsqMatrix<3,3> W2(vals);
   valid = TargetCalculator::factor_3D( W2, lambda, V, Q, delta, err );
   CPPUNIT_ASSERT( valid && !err );
-  CPPUNIT_ASSERT_DOUBLES_EQUAL( Mesquite::cbrt(det(W2)), lambda, EPS );
+  CPPUNIT_ASSERT_DOUBLES_EQUAL( MBMesquite::cbrt(det(W2)), lambda, EPS );
   check_valid_V( V );
   check_valid_Q( Q );
   check_valid_delta( delta );

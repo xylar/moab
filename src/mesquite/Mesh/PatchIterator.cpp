@@ -31,7 +31,7 @@
 #include "MsqError.hpp"
 #include "PatchData.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 bool PatchIterator::get_next_patch( PatchData& pd, MsqError& err )
 {

@@ -46,22 +46,22 @@ public:
   
   void test_default_constructor()
     {
-      Mesquite::Vector3D v;
+      MBMesquite::Vector3D v;
       CPPUNIT_ASSERT(v.x() == 0);
       CPPUNIT_ASSERT(v.y() == 0);
       CPPUNIT_ASSERT(v.z() == 0);
     }
   void test_double_constructor()
     {
-      Mesquite::Vector3D v(3, 2, 1);
+      MBMesquite::Vector3D v(3, 2, 1);
       CPPUNIT_ASSERT(v.x() == 3);
       CPPUNIT_ASSERT(v.y() == 2);
       CPPUNIT_ASSERT(v.z() == 1);
     }
   void test_copy_constructor()
     {
-      Mesquite::Vector3D v2(3, 2, 1);
-      Mesquite::Vector3D v(v2);
+      MBMesquite::Vector3D v2(3, 2, 1);
+      MBMesquite::Vector3D v(v2);
       
       CPPUNIT_ASSERT(v.x() == 3);
       CPPUNIT_ASSERT(v.y() == 2);
@@ -69,7 +69,7 @@ public:
     }
   void throw_exception()
     {
-      Mesquite::Vector3D* v = NULL;
+      MBMesquite::Vector3D* v = NULL;
       double d = v->x();
       std::cout << d << std::endl;
     }

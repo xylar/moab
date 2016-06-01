@@ -30,7 +30,7 @@
 
 /*! \file ObjectiveFunction.hpp
 
-Header file for the Mesquite::ObjectiveFunction class
+Header file for the MBMesquite::ObjectiveFunction class
 
   \author Michael Brewer
   \author Thomas Leurent
@@ -49,7 +49,7 @@ Header file for the Mesquite::ObjectiveFunction class
 #include <vector>
 #include <cstddef>
 
-namespace MESQUITE_NS
+namespace MBMesquite
 {
    class PatchData;
    class MsqHessian;

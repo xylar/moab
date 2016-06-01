@@ -56,7 +56,7 @@
 #include <vector>
 #include <iosfwd>
 
-namespace MESQUITE_NS
+namespace MBMesquite
 {
   class ExtraData;
   class PatchDataVerticesMemento;
@@ -463,7 +463,7 @@ namespace MESQUITE_NS
     double get_max_vertex_movement_squared(PatchDataVerticesMemento* memento,
                                            MsqError &err);
     
-      //! Updates the underlying mesh (the Mesquite::Mesh implementation) with
+      //! Updates the underlying mesh (the MBMesquite::Mesh implementation) with
       //! new node coordinates and flag values.
       //!\param tag If non-null, store vertex coords in tag rather than
       //!           updating the coords in the mesh database.  Used for
@@ -604,7 +604,7 @@ namespace MESQUITE_NS
    private:
    
     /* allow access to the following to functions */
-    friend class Mesquite::ExtraData;    
+    friend class MBMesquite::ExtraData;    
     /**\brief Attach an ExtraData object to this PatchData */
     bool attach_extra_data( ExtraData* data );
     /**\brief Remove an ExtraData object from this PatchData */

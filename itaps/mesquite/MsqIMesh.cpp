@@ -47,7 +47,7 @@
 # define IMESH_VERSION_ATLEAST(MAJOR,MINOR) 0
 #endif
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 
 /*************************************************************************
@@ -162,7 +162,7 @@ void MsqIMesh::init_active_mesh( iMesh_Instance /*mesh*/,
 
   // Initialize topology map 
   
-  const size_t mapsize = sizeof(topologyMap) / sizeof(Mesquite::EntityTopology);
+  const size_t mapsize = sizeof(topologyMap) / sizeof(MBMesquite::EntityTopology);
   if (mapsize < iMesh_ALL_TOPOLOGIES)
   {
     MSQ_SETERR(err)("MsqIMesh needs to be updated for new iMesh element topologies.",
@@ -170,14 +170,14 @@ void MsqIMesh::init_active_mesh( iMesh_Instance /*mesh*/,
   }
   
   for (size_t i = 0; i <= iMesh_ALL_TOPOLOGIES; ++i)
-    topologyMap[i] = Mesquite::MIXED;
+    topologyMap[i] = MBMesquite::MIXED;
   
-  topologyMap[iMesh_TRIANGLE     ] = Mesquite::TRIANGLE;
-  topologyMap[iMesh_QUADRILATERAL] = Mesquite::QUADRILATERAL;
-  topologyMap[iMesh_TETRAHEDRON  ] = Mesquite::TETRAHEDRON;
-  topologyMap[iMesh_HEXAHEDRON   ] = Mesquite::HEXAHEDRON;
-  topologyMap[iMesh_PRISM        ] = Mesquite::PRISM;
-  topologyMap[iMesh_PYRAMID      ] = Mesquite::PYRAMID;
+  topologyMap[iMesh_TRIANGLE     ] = MBMesquite::TRIANGLE;
+  topologyMap[iMesh_QUADRILATERAL] = MBMesquite::QUADRILATERAL;
+  topologyMap[iMesh_TETRAHEDRON  ] = MBMesquite::TETRAHEDRON;
+  topologyMap[iMesh_HEXAHEDRON   ] = MBMesquite::HEXAHEDRON;
+  topologyMap[iMesh_PRISM        ] = MBMesquite::PRISM;
+  topologyMap[iMesh_PYRAMID      ] = MBMesquite::PYRAMID;
   
       // Check that fixed tag is valid
   haveFixedTag = false;
@@ -301,7 +301,7 @@ void MsqIMesh::set_active_set( iBase_EntitySetHandle elem_set,
   
 
 // Returns whether this mesh lies in a 2D or 3D coordinate system.
-int MsqIMesh::get_geometric_dimension(Mesquite::MsqError &/*err*/)
+int MsqIMesh::get_geometric_dimension(MBMesquite::MsqError &/*err*/)
 {
   return geometricDimension;
 }
@@ -367,7 +367,7 @@ void MsqIMesh::get_flag_data( iBase_TagHandle tag,
 // is allowed to be repositioned.  True indicates that the vertex
 // is fixed and cannot be moved.  Note that this is a read-only
 // property; this flag can't be modified by users of the
-// Mesquite::Mesh interface.
+// MBMesquite::Mesh interface.
 void MsqIMesh::vertices_get_fixed_flag(
   const VertexHandle vert_array[], 
   std::vector<bool>& bool_array,
@@ -387,7 +387,7 @@ void MsqIMesh::vertices_get_slaved_flag(
 
 // Get vertex coordinates 
 void MsqIMesh::vertices_get_coordinates(
-  const Mesquite::Mesh::VertexHandle vert_array[],
+  const MBMesquite::Mesh::VertexHandle vert_array[],
   MsqVertex* coordinates, 
   size_t num_vtx, 
   MsqError &err)
@@ -429,7 +429,7 @@ void MsqIMesh::vertices_get_coordinates(
 }
 
 void MsqIMesh::vertex_set_coordinates(
-  Mesquite::Mesh::VertexHandle vertex,
+  MBMesquite::Mesh::VertexHandle vertex,
   const Vector3D &coords, MsqError &err)
 {
   int ierr;
@@ -444,7 +444,7 @@ void MsqIMesh::vertex_set_coordinates(
 // implementation.  It is intended to be used by Mesquite algorithms.
 // Until a vertex's byte has been explicitly set, its value is 0.
 void MsqIMesh::vertex_set_byte (
-  Mesquite::Mesh::VertexHandle vertex,
+  MBMesquite::Mesh::VertexHandle vertex,
   unsigned char byte, MsqError &err)
 {
   int ierr, value = byte;
@@ -476,7 +476,7 @@ void MsqIMesh::vertices_set_byte (
 // The byte value is 0 if it has not yet been set via one of the
 // *_set_byte() functions.
 void MsqIMesh::vertex_get_byte(
-  Mesquite::Mesh::VertexHandle vertex,
+  MBMesquite::Mesh::VertexHandle vertex,
   unsigned char *byte, MsqError &err)
 {
   int ierr, value;
@@ -664,7 +664,7 @@ void MsqIMesh::elements_get_attached_vertices(
   size_t num_elems,
   std::vector<VertexHandle>& vertices,
   std::vector<size_t>& offsets,
-  Mesquite::MsqError &err)
+  MBMesquite::MsqError &err)
 {
   assert( sizeof(iBase_EntityHandle) == sizeof(EntityHandle) );
   const iBase_EntityHandle* elems = reinterpret_cast<const iBase_EntityHandle*>(elements);
@@ -800,7 +800,7 @@ void MsqIMesh::elements_get_topologies(
 // Tells the mesh that the client is finished with a given
 // entity handle.  
 void MsqIMesh::release_entity_handles(
-  const Mesquite::Mesh::EntityHandle */*handle_array*/,
+  const MBMesquite::Mesh::EntityHandle */*handle_array*/,
   size_t /*num_handles*/, MsqError &/*err*/)
 {
     // Do nothing
@@ -823,10 +823,10 @@ TagHandle MsqIMesh::tag_create( const std::string& name,
 {
   int itaps_type;
   switch (type) {
-    case Mesquite::Mesh::BYTE:   itaps_type = iBase_BYTES;         break;
-    case Mesquite::Mesh::INT:    itaps_type = iBase_INTEGER;       break;
-    case Mesquite::Mesh::DOUBLE: itaps_type = iBase_DOUBLE;        break;
-    case Mesquite::Mesh::HANDLE: itaps_type = iBase_ENTITY_HANDLE; break;
+    case MBMesquite::Mesh::BYTE:   itaps_type = iBase_BYTES;         break;
+    case MBMesquite::Mesh::INT:    itaps_type = iBase_INTEGER;       break;
+    case MBMesquite::Mesh::DOUBLE: itaps_type = iBase_DOUBLE;        break;
+    case MBMesquite::Mesh::HANDLE: itaps_type = iBase_ENTITY_HANDLE; break;
     default:
       MSQ_SETERR(err)("Invalid tag type", MsqError::INVALID_ARG );
       return 0;
@@ -903,10 +903,10 @@ void MsqIMesh::tag_properties( TagHandle handle,
   buffer[255] = '\0';
   name_out = buffer;
   switch (itype) {
-    case iBase_BYTES        : type_out = Mesquite::Mesh::BYTE  ; break;
-    case iBase_INTEGER      : type_out = Mesquite::Mesh::INT   ; break;
-    case iBase_DOUBLE       : type_out = Mesquite::Mesh::DOUBLE; break;
-    case iBase_ENTITY_HANDLE: type_out = Mesquite::Mesh::HANDLE; break;
+    case iBase_BYTES        : type_out = MBMesquite::Mesh::BYTE  ; break;
+    case iBase_INTEGER      : type_out = MBMesquite::Mesh::INT   ; break;
+    case iBase_DOUBLE       : type_out = MBMesquite::Mesh::DOUBLE; break;
+    case iBase_ENTITY_HANDLE: type_out = MBMesquite::Mesh::HANDLE; break;
     default:
       MSQ_SETERR(err)("Unsupported iMesh tag type", MsqError::NOT_IMPLEMENTED );
       return;

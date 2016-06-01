@@ -28,7 +28,7 @@
 
 /*! \file ConditionNumberQualityMetric.hpp
 
-Header file for the Mesquite::ConditionNumberQualityMetric class
+Header file for the MBMesquite::ConditionNumberQualityMetric class
 
   \author Michael Brewer
   \date   2002-06-19
@@ -44,7 +44,7 @@ Header file for the Mesquite::ConditionNumberQualityMetric class
 #include "AveragingQM.hpp"
 
 
-namespace MESQUITE_NS
+namespace MBMesquite
 {
      /*! \class ConditionNumberQualityMetric
        \brief Computes the condition number of given element.

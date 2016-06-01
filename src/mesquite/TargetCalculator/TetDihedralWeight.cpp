@@ -36,7 +36,7 @@
 #include "ReferenceMesh.hpp"
 #include <algorithm>
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 static inline double
 da( double dot )
@@ -109,4 +109,4 @@ double TetDihedralWeight::get_weight( PatchData& pd,
 }
 
 
-} // namespace MESQUITE_NS
+} // namespace MBMesquite

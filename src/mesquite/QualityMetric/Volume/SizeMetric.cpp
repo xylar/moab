@@ -34,7 +34,7 @@
 #include "SizeMetric.hpp"
 #include "PatchData.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 SizeMetric::~SizeMetric() {}
 
@@ -51,4 +51,4 @@ bool SizeMetric::evaluate( PatchData& pd,
   return true;
 }
 
-} // namespace MESQUITE_NS
+} // namespace MBMesquite

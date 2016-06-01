@@ -28,7 +28,7 @@
 
 /*! \file ConditionNumberFunctions.hpp
 
-Header file for the Mesquite::ShapeQualityMetric class
+Header file for the MBMesquite::ShapeQualityMetric class
 
   \author Thomas Leurent
   \date   2002-09-01
@@ -43,7 +43,7 @@ Header file for the Mesquite::ShapeQualityMetric class
 #include "QualityMetric.hpp"
 #include "PatchData.hpp"
 
-namespace MESQUITE_NS
+namespace MBMesquite
 {
    static inline bool condition_number_2d( const Vector3D temp_vec[],
                                            size_t e_ind,

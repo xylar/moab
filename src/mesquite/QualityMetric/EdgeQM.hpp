@@ -36,7 +36,7 @@
 #include "Mesquite.hpp"
 #include "QualityMetric.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 /**\brief Base type for quality metrics evaluated for each edge */
 class EdgeQM : public QualityMetric
@@ -117,6 +117,6 @@ public:
 
 
 
-} // namespace MESQUITE_NS
+} // namespace MBMesquite
 
 #endif

@@ -36,7 +36,7 @@
 #include "LocalSizeQualityMetric.hpp"
 #include "PatchData.hpp"
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
    //!Calculate the area of the triangle formed by the three vertices.
 static inline double compute_corner_area( PatchData &pd,

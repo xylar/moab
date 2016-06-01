@@ -36,7 +36,7 @@
 #include "cppunit/extensions/HelperMacros.h"
 #include "UnitUtil.hpp"
 
-using namespace Mesquite;
+using namespace MBMesquite;
 using namespace std;
 
 class MsqMatrixTest : public CppUnit::TestFixture

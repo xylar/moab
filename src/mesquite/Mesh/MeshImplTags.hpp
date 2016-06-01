@@ -32,7 +32,7 @@
 
 #include <vector>
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
   struct TagDescription {
       // The VTK attribute type the data was read from, or NONE if not VTK data.

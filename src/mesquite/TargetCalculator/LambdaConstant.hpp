@@ -36,7 +36,7 @@
 #include "Mesquite.hpp"
 #include "TargetCalculator.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 /**\brief Scale a target matrix 
  *
@@ -83,6 +83,6 @@ private:
 };
 
 
-} // namespace MESQUITE_NS
+} // namespace MBMesquite
 
 #endif

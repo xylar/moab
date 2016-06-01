@@ -26,7 +26,7 @@
 
 
 /** \file TagVertexMesh.cpp
- *  \brief Implementation of Mesquite::TagVertexMesh class
+ *  \brief Implementation of MBMesquite::TagVertexMesh class
  *  \author Jason Kraftcheck 
  */
 
@@ -35,7 +35,7 @@
 #include "MsqError.hpp"
 #include "MsqVertex.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 
 std::string TagVertexMesh::get_name() const
@@ -85,7 +85,7 @@ double TagVertexMesh::loop_over_mesh( MeshDomainAssoc* mesh_and_domain,
   Mesh* mesh = mesh_and_domain->get_mesh();
   if (mesh != get_mesh()) {
     MSQ_SETERR(err)("InstructionQueue and TagVertexMesh have different "
-                    "Mesquite::Mesh instances.  Cannot initialize TagVertexMesh",
+                    "MBMesquite::Mesh instances.  Cannot initialize TagVertexMesh",
                     MsqError::INVALID_MESH);
     return 0.0;
   }

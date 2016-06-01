@@ -64,12 +64,12 @@ using std::endl;
 #include "FeasibleNewton.hpp"
 #include "ConjugateGradient.hpp"
 #include "TestUtil.hpp"
-using namespace Mesquite;
+using namespace MBMesquite;
 
 int main()
 {
   MsqPrintError err(cout);
-  Mesquite::MeshImpl mesh;
+  MBMesquite::MeshImpl mesh;
 
   std::string file_name = TestDir + "/3D/vtk/tets/untangled/tire.vtk";
   mesh.read_vtk(file_name.c_str(), err);

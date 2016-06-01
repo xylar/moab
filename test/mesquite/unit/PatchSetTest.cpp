@@ -41,16 +41,16 @@
 using namespace std;
 
 
-// Define a fake implementation of Mesquite::Mesh to pass
+// Define a fake implementation of MBMesquite::Mesh to pass
 // to the PatchSet implementations.  This implementation 
 // provides only the four methods required by the PatchSet
 // implementations. 
 
 #define NI(A) MSQ_SETERR(A)(MsqError::NOT_IMPLEMENTED)
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
-class FakeMesh : public Mesquite::Mesh
+class FakeMesh : public MBMesquite::Mesh
 {
 public:
   FakeMesh( size_t num_verts );

@@ -37,7 +37,7 @@
 
 #include <iostream>
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 std::string TShapeSize3DB4::get_name() const
   { return "TShapeSize3DB4"; }

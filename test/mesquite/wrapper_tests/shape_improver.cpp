@@ -46,7 +46,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 std::string DEFAULT_INPUT = TestDir + "/2D/vtk/quads/tangled/inverted-hole-1.vtk";
 

@@ -31,7 +31,7 @@
 #include "CylinderDomain.hpp"
 #include <limits>
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 CylinderDomain::~CylinderDomain() {}
 

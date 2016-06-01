@@ -35,7 +35,7 @@
 #include "UnitUtil.hpp"
 #include "MsqError.hpp"
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 // Test functions implemented in class AWMetric
 class AWMetricTest : public CppUnit::TestFixture

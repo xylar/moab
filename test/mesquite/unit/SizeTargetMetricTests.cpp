@@ -1,7 +1,7 @@
 #define TARGET_TEST_GROUP "SizeTargetMetricTests"
 #include "TargetMetricTest.hpp"
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 #include "AWSizeNB1.hpp"
 #include "AWSizeB1.hpp"

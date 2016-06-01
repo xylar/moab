@@ -48,7 +48,7 @@
 #include <vector>
 #include <string>
 
-using namespace Mesquite;
+using namespace MBMesquite;
 using namespace std;
 
 const char HEX_MESH[] = MESH_FILES_DIR "3D/vtk/hexes/untangled/1000hex-block-internal-bias.vtk";

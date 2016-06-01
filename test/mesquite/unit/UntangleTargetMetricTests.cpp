@@ -1,7 +1,7 @@
 #define TARGET_TEST_GROUP "UntangleTargetMetricTests"
 #include "TargetMetricTest.hpp"
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 #include "AWUntangleBeta.hpp"
 #include "TSizeNB1.hpp"

@@ -32,7 +32,7 @@
 #include <iostream>
 #include <cstdio>
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 /**
  *\defgroup debug Mesquite debug output
@@ -129,7 +129,7 @@ class MsqDebug
 /** \brief Check if a debug flag is activated - evaluates to a bool.
  */
 #ifdef MSQ_ENABLE_DEBUG
-#  define MSQ_DBG(flag) Mesquite::MsqDebug::get(flag)
+#  define MSQ_DBG(flag) MBMesquite::MsqDebug::get(flag)
 #else
 #  define MSQ_DBG(flag) false
 #endif
@@ -141,7 +141,7 @@ class MsqDebug
  * debug flag.  Example:
  *   MSQ_DBGOUT(f) << "Debug flag " << f << " is activated" << endl;
  */
-#define MSQ_DBGOUT(flag) if (MSQ_DBG(flag)) Mesquite::MsqDebug::get_stream(flag)
+#define MSQ_DBGOUT(flag) if (MSQ_DBG(flag)) MBMesquite::MsqDebug::get_stream(flag)
 
 /**
  *\brief Check debug flag and print printf-style formatted output.
@@ -150,7 +150,7 @@ class MsqDebug
  * Example:
  *  MSQ_PRINT(f)("Debug flag %d is activated", f);
  */
-#define MSQ_PRINT(flag)  if (MSQ_DBG(flag)) Mesquite::MsqDebug::FormatPrinter(flag).print
+#define MSQ_PRINT(flag)  if (MSQ_DBG(flag)) MBMesquite::MsqDebug::FormatPrinter(flag).print
 
 /*@}*/
 

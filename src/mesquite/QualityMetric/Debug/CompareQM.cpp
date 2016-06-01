@@ -36,7 +36,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 CompareQM::CompareQM( QualityMetric* primary, QualityMetric* other, 
                       const char* primary_name, const char* other_name )
@@ -545,4 +545,4 @@ void CompareQM::print_stats() const
   print( "Hessian ZZ", name1.c_str(), name2.c_str(), hessPrimary.zz, hessOther.zz, hessDiff.zz );
 }
 
-} // namespace MESQUITE_NS
+} // namespace MBMesquite

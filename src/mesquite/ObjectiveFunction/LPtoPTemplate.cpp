@@ -42,7 +42,7 @@
 #include "MsqDebug.hpp"
 #include "QualityMetric.hpp"
 
-using  namespace Mesquite;  
+using  namespace MBMesquite;  
 
 LPtoPTemplate::LPtoPTemplate(QualityMetric *qualitymetric, short Pinput, MsqError &err)
   : ObjectiveFunctionTemplate(qualitymetric)

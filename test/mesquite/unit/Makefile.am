@@ -8,11 +8,11 @@ AM_CPPFLAGS  = -DSRCDIR=$(srcdir) \
                -I$(top_srcdir)/src \
                -I$(top_srcdir)/test 
 
-LDADD = $(top_builddir)/src/mesquite/libmesquite.la
+LDADD = $(top_builddir)/src/mesquite/libmbmesquite.la
 
 if HAVE_CPPUNIT
   check_PROGRAMS = msq_test
-  msq_test_DEPENDENCIES = $(top_builddir)/src/mesquite/libmesquite.la
+  msq_test_DEPENDENCIES = $(top_builddir)/src/mesquite/libmbmesquite.la
   TESTS = $(check_PROGRAMS)
   CPPUNIT_CPPFLAGS_SET = @CPPUNIT_CPPFLAGS@
   CPPUNIT_LDFLAGS_SET = @CPPUNIT_LDFLAGS@
@@ -27,7 +27,7 @@ AM_LDFLAGS += $(CPPUNIT_LDFLAGS_SET)
 
 no_cpp_unit:
 	@echo "echo '###################################################'"  > $@
-	@echo "echo '#### Mesquite configured w/out CppUnit support ####'" >> $@
+	@echo "echo '#### MBMesquite configured w/out CppUnit support ####'" >> $@
 	@echo "echo '####          Cannot build unit tests          ####'" >> $@
 	@echo "echo '###################################################'" >> $@
 	@echo "exit 0" >> $@

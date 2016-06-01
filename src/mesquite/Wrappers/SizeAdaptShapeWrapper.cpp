@@ -51,7 +51,7 @@
 #include "LambdaTarget.hpp"
 #include "EdgeLengthMetric.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 void SizeAdaptShapeWrapper::run_wrapper( MeshDomainAssoc* mesh_and_domain,
                                          ParallelMesh* pmesh,
@@ -97,4 +97,4 @@ void SizeAdaptShapeWrapper::run_wrapper( MeshDomainAssoc* mesh_and_domain,
   q.run_common( mesh_and_domain, pmesh, settings, err ); MSQ_CHKERR(err);  
 }
 
-} // namespace MESQUITE_NS
+} // namespace MBMesquite

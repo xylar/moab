@@ -14,8 +14,8 @@ using std::cout;
 #include <direct.h>
 #endif
 
-using Mesquite::FileTokenizer;
-using Mesquite::MsqPrintError;
+using MBMesquite::FileTokenizer;
+using MBMesquite::MsqPrintError;
   
 extern const char* const tokens[] = 
   { "foo", "bar", "0", "123abc", "123", "0x5", "1e200", "jason", "abc123", "1.0", 0 };

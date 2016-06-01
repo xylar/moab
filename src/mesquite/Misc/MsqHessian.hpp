@@ -56,7 +56,7 @@
 
 #include <iosfwd>
  
-namespace MESQUITE_NS
+namespace MBMesquite
 {
   class ObjectiveFunction;
   

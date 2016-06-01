@@ -37,7 +37,7 @@
 #include "MsqError.hpp"
 #include <sstream>
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 std::string TMixed::get_name() const
 {
@@ -110,4 +110,4 @@ bool TMixed::evaluate_with_hess( const MsqMatrix<3,3>& T,
 }
 
 
-} // namespace MESQUITE_NS
+} // namespace MBMesquite

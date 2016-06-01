@@ -39,7 +39,7 @@
 #include "PatchData.hpp"
 #include "MsqVertex.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 std::string LaplacianSmoother::get_name() const { return "LaplacianSmoother"; }
 

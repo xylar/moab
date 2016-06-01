@@ -66,7 +66,7 @@ using std::endl;
 #include "SteepestDescent.hpp"
 #include "LaplacianSmoother.hpp"
 #include "EdgeLengthQualityMetric.hpp"
-using namespace Mesquite;
+using namespace MBMesquite;
 
 std::string DEFAULT_INPUT = TestDir + "/2D/vtk/quads/untangled/square_quad_2.vtk";
 
@@ -100,7 +100,7 @@ int main(int argc, char* argv[])
 
     /* Read a VTK Mesh file */
   MsqPrintError err(cout);
-  Mesquite::MeshImpl mesh;
+  MBMesquite::MeshImpl mesh;
   mesh.read_vtk( input_file, err);
   if (err) return 1;
   

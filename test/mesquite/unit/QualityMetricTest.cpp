@@ -41,7 +41,7 @@ Unit testing for the QualityMetric class
 
 #include <string>
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 class QualityMetricTest : public CppUnit::TestFixture
 {

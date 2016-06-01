@@ -45,7 +45,7 @@
 #include <iostream>
 #include <sstream>
 
-using namespace Mesquite;
+using namespace MBMesquite;
 using namespace std;
 
 const double epsilon = 1e-6;
@@ -710,7 +710,7 @@ void TetLagrangeShapeTest::test_ideal_jacobian()
   JacobianCalculator jc;
   jc.get_Jacobian_3D( &sf, NodeSet(), Sample(2,0), verts, 4, J_exp, err );
   ASSERT_NO_ERROR(err);
-  J_exp /= Mesquite::cbrt(det(J_exp));
+  J_exp /= MBMesquite::cbrt(det(J_exp));
   
     // Matrices should be a rotation of each other.
     // First, calculate tentative rotation matrix

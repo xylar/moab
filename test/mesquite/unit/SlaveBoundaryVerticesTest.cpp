@@ -49,7 +49,7 @@
 #include <fstream>
 #include <iostream>
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 class SlaveBoundaryVerticesTest : public CppUnit::TestFixture
 {

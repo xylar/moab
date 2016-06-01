@@ -1,6 +1,6 @@
 include $(top_srcdir)/src/mesquite/make.inc
 
-LDADD = libmsqutil.la $(top_builddir)/src/mesquite/libmesquite.la
+LDADD = libmsqutil.la $(top_builddir)/src/mesquite/libmbmesquite.la
 bin_PROGRAMS = vtkrandom vtkxform msqshape msqquality
 noinst_LTLIBRARIES = libmsqutil.la
 
@@ -21,4 +21,5 @@ vtkxform_SOURCES = transform.cpp
 msqquality_SOURCES = quality.cpp domain.hpp domain.cpp
 
 MOSTLYCLEANFILES = $(dist_man1_MANS) 
-EXTRA_DIST = CMakeLists.txt 
+EXTRA_DIST = CMakeLists.txt
+

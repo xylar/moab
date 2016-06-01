@@ -36,7 +36,7 @@
 #include "MeshInterface.hpp"
 #include "iMesh.h"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 /** The name of the tag (integer) that Mesquite will use
  *  to store internal data
@@ -49,7 +49,7 @@ const char* const VERTEX_BYTE_TAG_NAME  = "MesquiteVertexByte";
  * Adpater for interfacing Mesquite with an application that provides
  * the ITAPS iMesh interface for interacting with mesh data.
  */
-class MsqIMesh : virtual public Mesquite::Mesh
+class MsqIMesh : virtual public MBMesquite::Mesh
 {
 public:
 //********* Functions that are NOT inherited ************
@@ -168,7 +168,7 @@ public:
 //********* Functions that ARE inherited ************
 
       /**\brief Get dimension of vertex coordinates (2D vs. 3D). */
-    virtual int get_geometric_dimension(Mesquite::MsqError &/*err*/);
+    virtual int get_geometric_dimension(MBMesquite::MsqError &/*err*/);
     
     /** \brief Get handles for all elemnents */
     virtual void get_all_elements( std::vector<ElementHandle>& elements, 
@@ -465,7 +465,7 @@ public:
     iBase_TagValueType slavedTagType;
     /** Dimension is queried once during create and cached */
     int geometricDimension;
-    /** Map iMesh_EntityTopology to Mesquite::EntityTopology */
+    /** Map iMesh_EntityTopology to MBMesquite::EntityTopology */
     EntityTopology topologyMap[iMesh_ALL_TOPOLOGIES+1];
 };
 

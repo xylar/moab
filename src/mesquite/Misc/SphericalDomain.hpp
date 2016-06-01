@@ -39,13 +39,13 @@
 #include "MeshInterface.hpp"
 #include "Vector3D.hpp"
 
-namespace MESQUITE_NS
+namespace MBMesquite
 {
   /*! \class SphericalDomain
        This is a template for a spherical domain.
        It will provide the normal information necessary for surface mesh optimization.
     */
-  class MESQUITE_EXPORT SphericalDomain : public Mesquite::MeshDomain
+  class MESQUITE_EXPORT SphericalDomain : public MBMesquite::MeshDomain
   {
   public:
     SphericalDomain(const Vector3D& p_center, double p_radius )

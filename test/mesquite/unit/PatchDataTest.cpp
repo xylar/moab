@@ -65,7 +65,7 @@ Unit testing of various functions in the PatchData class.
 #include <set>
 #include <map>
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 using std::cout;
 using std::cerr;

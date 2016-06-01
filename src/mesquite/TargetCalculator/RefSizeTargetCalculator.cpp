@@ -36,7 +36,7 @@
 #include "PatchData.hpp"
 #include "MsqError.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 /* We now scale W_ideal such that det(W_ideal) == 1, so don't scale here 
 static void init_scale_factors( double factors[MIXED] )
@@ -147,4 +147,4 @@ bool RefSizeTargetCalculator::get_2D_target( PatchData& pd,
 
 
 
-} // namespace MESQUITE_NS
+} // namespace MBMesquite

@@ -5,7 +5,7 @@
 #include "VertexPatches.hpp"
 #include "VertexMover.hpp"
 
-namespace MESQUITE_NS
+namespace MBMesquite
 {
   /**\brief Base class for LaPlacian and other relaxation smoothers */
   class RelaxationSmoother : public VertexMover

@@ -49,7 +49,7 @@
 #include "TQualityMetric.hpp"
 #include "IdealShapeTarget.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 const double DEFAULT_BETA = 0.0;
 const int DEFUALT_PARALLEL_ITERATIONS = 10;
@@ -178,4 +178,4 @@ void ShapeImprover::run_wrapper( MeshDomainAssoc* mesh_and_domain,
   }
 }
 
-} // namespace MESQUITE_NS
+} // namespace MBMesquite

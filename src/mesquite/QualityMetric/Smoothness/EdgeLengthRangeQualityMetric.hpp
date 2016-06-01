@@ -28,7 +28,7 @@
 
 /*! \file EdgeLengthRangeQualityMetric.hpp
 
-Header file for the Mesquite::EdgeLengthRangeQualityMetric class
+Header file for the MBMesquite::EdgeLengthRangeQualityMetric class
 
   \author Michael Brewer
   \date   2002-06-13
@@ -42,7 +42,7 @@ Header file for the Mesquite::EdgeLengthRangeQualityMetric class
 #include "AveragingQM.hpp"
 #include "VertexQM.hpp"
 
-namespace MESQUITE_NS
+namespace MBMesquite
 {
      /*! \class EdgeLengthRangeQualityMetric
        \brief Computes the edge length range metric for a given vertex.

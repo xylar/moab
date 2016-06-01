@@ -35,7 +35,7 @@
 #include "MsqError.hpp"
 #include "Matrix3D.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 
 EdgeLengthMetric::EdgeLengthMetric( double gamma )
@@ -105,4 +105,4 @@ bool EdgeLengthMetric::evaluate_with_gradient( PatchData& pd,
   return true;
 }
 
-} // namespace MESQUITE_NS
+} // namespace MBMesquite

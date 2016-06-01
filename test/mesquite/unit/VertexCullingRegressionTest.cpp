@@ -71,7 +71,7 @@ Regression testing using the vertex culling algorithms.
 #include <iostream>
 using std::cout;
 using std::endl;
-using namespace Mesquite;
+using namespace MBMesquite;
 
 class VertexCullingRegressionTest : public CppUnit::TestFixture
 {
@@ -101,13 +101,13 @@ public:
     {
         /* Read a VTK Mesh file */
       MsqPrintError err(cout);
-      Mesquite::MeshImpl mesh;
+      MBMesquite::MeshImpl mesh;
       mesh.read_vtk(MESH_FILES_DIR "2D/vtk/quads/untangled/square_quad_10_rand.vtk", err);
       CPPUNIT_ASSERT(!err);
       
       Vector3D pnt(0,0,5);
       Vector3D s_norm(0,0,1);
-      Mesquite::PlanarDomain msq_geom(s_norm, pnt);
+      MBMesquite::PlanarDomain msq_geom(s_norm, pnt);
      
         // create an objective function for use in termination criteria
       IdealWeightInverseMeanRatio metric;

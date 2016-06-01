@@ -34,7 +34,7 @@
 #include "MeshDomain1D.hpp"
 #include "MsqError.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
     
 void PointDomain::snap_to( Mesh::VertexHandle,

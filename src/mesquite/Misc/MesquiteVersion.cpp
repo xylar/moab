@@ -29,22 +29,22 @@
 #include "Mesquite.hpp"
 #include "mesquite_version.h"
 
-const char* Mesquite::version_string(bool)
+const char* MBMesquite::version_string(bool)
 {
   return MSQ_VERSION_STRING;
 }
 
-unsigned int Mesquite::major_version_number()
+unsigned int MBMesquite::major_version_number()
 {
   return MSQ_VERSION_MAJOR;
 }
 
-unsigned int Mesquite::minor_version_number()
+unsigned int MBMesquite::minor_version_number()
 {
   return MSQ_VERSION_MINOR;
 }
 
-unsigned int Mesquite::patch_version_number()
+unsigned int MBMesquite::patch_version_number()
 {
 #ifdef MSQ_VERSION_PATCH
   return MSQ_VERSION_PATCH;
@@ -53,14 +53,14 @@ unsigned int Mesquite::patch_version_number()
 #endif
 }
 
-Mesquite::ReleaseType Mesquite::release_type()
+MBMesquite::ReleaseType MBMesquite::release_type()
 {  
 #if MSQ_VERSION_MINOR == 99
-  return Mesquite::ALPHA;
+  return MBMesquite::ALPHA;
 #elif defined(MSQ_VERSION_PATCH)
-  return Mesquite::RELEASE;
+  return MBMesquite::RELEASE;
 #else
-  return Mesquite::BETA;
+  return MBMesquite::BETA;
 #endif
 }
 

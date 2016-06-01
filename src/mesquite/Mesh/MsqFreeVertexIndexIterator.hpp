@@ -43,7 +43,7 @@
 #include "PatchData.hpp"
 #include "MsqVertex.hpp"
 
-namespace MESQUITE_NS
+namespace MBMesquite
 {
   class MsqError;
 

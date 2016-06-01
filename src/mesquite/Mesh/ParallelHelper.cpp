@@ -22,7 +22,7 @@
 
 #define ARRPTR(x) arrptr(x,true)
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 void parallel_barrier()
 {
@@ -118,13 +118,13 @@ static const char* mpi_err_string( int error_code )
         }
     }
 
-static void my_quicksort(int* a, size_t* b, Mesquite::Mesh::VertexHandle* c, int i, int j)
+static void my_quicksort(int* a, size_t* b, MBMesquite::Mesh::VertexHandle* c, int i, int j)
 {
   int in_i = i;
   int in_j = j;
   int wa;
   size_t wb;
-  Mesquite::Mesh::VertexHandle w1;
+  MBMesquite::Mesh::VertexHandle w1;
   int key = a[(i+j)/2];
   do
     {
@@ -389,7 +389,7 @@ void ParallelHelperImpl::smoothing_init(MsqError& err)
   if (0) printf("[%d] set local tags on %d vertices\n",rank,num_vertex);
 
   /* get the elements */
-  std::vector<Mesquite::Mesh::ElementHandle> elements;
+  std::vector<MBMesquite::Mesh::ElementHandle> elements;
   mesh->get_all_elements(elements, err);  MSQ_ERRRTN(err);
   int num_elems = elements.size();
 
@@ -403,7 +403,7 @@ void ParallelHelperImpl::smoothing_init(MsqError& err)
   int incident_vtx, vtx_off_proc, vtx_on_proc;
 
   /* get the array that contains the adjacent vertices for each mesh element */
-  std::vector<Mesquite::Mesh::VertexHandle> adj_vertices;
+  std::vector<MBMesquite::Mesh::VertexHandle> adj_vertices;
   std::vector<size_t> vtx_offsets;
   mesh->elements_get_attached_vertices(ARRPTR(elements),num_elems,adj_vertices,vtx_offsets,err);
   std::vector<int> adj_vertices_lid(adj_vertices.size());
@@ -788,8 +788,8 @@ void ParallelHelperImpl::smoothing_init(MsqError& err)
   vtx_off_proc_list.resize( num_vtx_partition_boundary_local );
 
   /* get the adjacency arrays that we need */
-  std::vector<Mesquite::Mesh::ElementHandle> adj_elements;
-  std::vector<Mesquite::Mesh::VertexHandle> adj_adj_vertices;
+  std::vector<MBMesquite::Mesh::ElementHandle> adj_elements;
+  std::vector<MBMesquite::Mesh::VertexHandle> adj_adj_vertices;
   std::vector<size_t> elem_offsets;
   std::vector<size_t> adj_vtx_offsets;
   mesh->vertices_get_attached_elements(ARRPTR(part_vertices),num_vtx_partition_boundary_local,
@@ -1003,7 +1003,7 @@ bool ParallelHelperImpl::compute_next_independent_set()
   }
 }
 
-bool ParallelHelperImpl::get_next_partition_boundary_vertex(Mesquite::Mesh::VertexHandle& vertex_handle)
+bool ParallelHelperImpl::get_next_partition_boundary_vertex(MBMesquite::Mesh::VertexHandle& vertex_handle)
 {
   while (next_vtx_partition_boundary < num_vtx_partition_boundary_local)
   {
@@ -1120,7 +1120,7 @@ void ParallelHelperImpl::smoothing_close(MsqError& err)
     //delete [] proc_owner; proc_owner = 0;
     
     /* find the requested updates and collect them into an array */
-    Mesquite::MsqVertex coordinates;
+    MBMesquite::MsqVertex coordinates;
     update_updates.resize(update_num_vtx*3);
     for (i = 0; i < update_num_vtx; i++)
     {
@@ -1187,7 +1187,7 @@ void ParallelHelperImpl::smoothing_close(MsqError& err)
     /* apply the received updates for the unused ghost vertices */
     for (i = 0; i < unghost_num_vtx; i++)
     {
-      Mesquite::Vector3D coordinates;
+      MBMesquite::Vector3D coordinates;
       coordinates[0] = unghost_updates[3*i+0];
       coordinates[1] = unghost_updates[3*i+1];
       coordinates[2] = unghost_updates[3*i+2];
@@ -1321,7 +1321,7 @@ int ParallelHelperImpl::comm_smoothed_vtx_tnb(MsqError& err)
       if (exportProc[i] == neighbourProc[j]) {
 	VertexPack* packing_vertex = packed_vertices_export[j] + numVtxPerProcSendPACKED[j];
 	numVtxPerProcSendPACKED[j]++;
-	Mesquite::MsqVertex coordinates;
+	MBMesquite::MsqVertex coordinates;
 	mesh->vertices_get_coordinates(&part_vertices[exportVtxLIDs[i]],&coordinates,1,err);
         MSQ_ERRZERO(err);
 	packing_vertex->x = coordinates[0];
@@ -1405,7 +1405,7 @@ int ParallelHelperImpl::comm_smoothed_vtx_tnb(MsqError& err)
     for (i = 0; i < numVtxPerProcRecv[k]; i++) {
       local_id = vertex_map_find(vid_map,packed_vertices_import[k][i].glob_id, neighbourProc[k]);
       if (local_id) {
-	Mesquite::Vector3D coordinates;
+	MBMesquite::Vector3D coordinates;
 	coordinates.set(packed_vertices_import[k][i].x, packed_vertices_import[k][i].y, packed_vertices_import[k][i].z);
 	mesh->vertex_set_coordinates(part_vertices[local_id],coordinates,err);MSQ_ERRZERO(err);
 	assert(part_smoothed_flag[local_id] == 0);
@@ -1517,7 +1517,7 @@ int ParallelHelperImpl::comm_smoothed_vtx_tnb_no_all( MsqError& err )
       if (exportProc[i] == neighbourProc[j]) {
 	VertexPack* packing_vertex = packed_vertices_export[j] + numVtxPerProcSendPACKED[j];
 	numVtxPerProcSendPACKED[j]++;
-	Mesquite::MsqVertex coordinates;
+	MBMesquite::MsqVertex coordinates;
 	mesh->vertices_get_coordinates(&part_vertices[exportVtxLIDs[i]],&coordinates,1,err); 
 	MSQ_ERRZERO(err);
         packing_vertex->x = coordinates[0];
@@ -1604,7 +1604,7 @@ int ParallelHelperImpl::comm_smoothed_vtx_tnb_no_all( MsqError& err )
     for (i = 0; i < numVtxPerProcRecv[k]; i++) {
       local_id = vertex_map_find(vid_map,packed_vertices_import[k][i].glob_id, neighbourProc[k]);
       if (local_id) {
-        Mesquite::Vector3D coordinates;
+        MBMesquite::Vector3D coordinates;
         coordinates.set(packed_vertices_import[k][i].x, packed_vertices_import[k][i].y, packed_vertices_import[k][i].z);
 	if (0) printf("[%d]i%d vertex %d becomes %g %g %g\n", rank,iteration,local_id,packed_vertices_import[k][i].x, packed_vertices_import[k][i].y, packed_vertices_import[k][i].z);
         mesh->vertex_set_coordinates(part_vertices[local_id],coordinates,err); MSQ_ERRZERO(err);
@@ -1687,7 +1687,7 @@ int ParallelHelperImpl::comm_smoothed_vtx_nb(MsqError& err)
       if (exportProc[i] == neighbourProc[j]) {
 	VertexPack* packing_vertex = packed_vertices_export[j] + numVtxPerProcSendPACKED[j];
 	numVtxPerProcSendPACKED[j]++;
-	Mesquite::MsqVertex coordinates;
+	MBMesquite::MsqVertex coordinates;
 	mesh->vertices_get_coordinates(&part_vertices[exportVtxLIDs[i]],&coordinates,1,err);
         MSQ_ERRZERO(err);
 	packing_vertex->x = coordinates[0];
@@ -1813,7 +1813,7 @@ int ParallelHelperImpl::comm_smoothed_vtx_nb(MsqError& err)
     for (i = 0; i < numVtxPerProcRecvRecv[k]; i++) {
       local_id = vertex_map_find(vid_map, packed_vertices_import[k][i].glob_id, neighbourProcRecv[k]);
       if (local_id) {
-	Mesquite::Vector3D coordinates;
+	MBMesquite::Vector3D coordinates;
 	coordinates.set(packed_vertices_import[k][i].x, packed_vertices_import[k][i].y, packed_vertices_import[k][i].z);
 	mesh->vertex_set_coordinates(part_vertices[local_id],coordinates,err);
         MSQ_ERRZERO(err);
@@ -1896,7 +1896,7 @@ int ParallelHelperImpl::comm_smoothed_vtx_nb_no_all(MsqError& err)
       if (exportProc[i] == neighbourProc[j]) {
 	VertexPack* packing_vertex = packed_vertices_export[j] + numVtxPerProcSendPACKED[j];
 	numVtxPerProcSendPACKED[j]++;
-	Mesquite::MsqVertex coordinates;
+	MBMesquite::MsqVertex coordinates;
 	mesh->vertices_get_coordinates(&part_vertices[exportVtxLIDs[i]],&coordinates,1,err);
 	MSQ_ERRZERO(err);
         packing_vertex->x = coordinates[0];
@@ -2027,7 +2027,7 @@ int ParallelHelperImpl::comm_smoothed_vtx_nb_no_all(MsqError& err)
     for (i = 0; i < numVtxPerProcRecvRecv[k]; i++) {
       local_id = vertex_map_find(vid_map,packed_vertices_import[k][i].glob_id, neighbourProcRecv[k]);
       if (local_id) {
-	Mesquite::Vector3D coordinates;
+	MBMesquite::Vector3D coordinates;
 	coordinates.set(packed_vertices_import[k][i].x, packed_vertices_import[k][i].y, packed_vertices_import[k][i].z);
 	mesh->vertex_set_coordinates(part_vertices[local_id],coordinates,err);
         MSQ_ERRZERO(err);
@@ -2092,7 +2092,7 @@ int ParallelHelperImpl::comm_smoothed_vtx_b(MsqError& err)
       if (exportProc[i] == neighbourProc[j]) {
 	packing_vertex = packed_vertices[j] + numVtxPackedPerProc[j];
 	numVtxPackedPerProc[j]++;
-	Mesquite::MsqVertex coordinates;
+	MBMesquite::MsqVertex coordinates;
 	mesh->vertices_get_coordinates(&part_vertices[exportVtxLIDs[i]],&coordinates,1,err);
 	MSQ_ERRZERO(err);
         packing_vertex->x = coordinates[0];
@@ -2199,7 +2199,7 @@ int ParallelHelperImpl::comm_smoothed_vtx_b(MsqError& err)
 	local_id = vertex_map_find(vid_map,(int)(vertex_pack[i].glob_id), proc);
 	if (local_id)
 	{
-	  Mesquite::Vector3D coordinates;
+	  MBMesquite::Vector3D coordinates;
 	  coordinates.set(vertex_pack[i].x, vertex_pack[i].y, vertex_pack[i].z);
 	  mesh->vertex_set_coordinates(part_vertices[local_id],coordinates,err);
           MSQ_ERRZERO(err);
@@ -2257,7 +2257,7 @@ int ParallelHelperImpl::comm_smoothed_vtx_b_no_all(MsqError& err)
       if (exportProc[i] == neighbourProc[j]) {
 	packing_vertex = packed_vertices[j] + numVtxPackedPerProc[j];
 	numVtxPackedPerProc[j]++;
-	Mesquite::MsqVertex coordinates;
+	MBMesquite::MsqVertex coordinates;
 	mesh->vertices_get_coordinates(&part_vertices[exportVtxLIDs[i]],&coordinates,1,err);
 	MSQ_ERRZERO(err);
         packing_vertex->x = coordinates[0];
@@ -2382,7 +2382,7 @@ int ParallelHelperImpl::comm_smoothed_vtx_b_no_all(MsqError& err)
 	local_id = vertex_map_find(vid_map,(int)(vertex_pack[i].glob_id), proc);
 	if (local_id)
 	{
-	  Mesquite::Vector3D coordinates;
+	  MBMesquite::Vector3D coordinates;
 	  coordinates.set(vertex_pack[i].x, vertex_pack[i].y, vertex_pack[i].z);
 	  mesh->vertex_set_coordinates(part_vertices[local_id],coordinates,err);
 	  MSQ_ERRZERO(err);
@@ -2513,7 +2513,7 @@ int ParallelHelperImpl::get_nprocs() const {
   return nprocs;
 }
 
-bool ParallelHelperImpl::is_our_element(Mesquite::Mesh::ElementHandle element_handle,
+bool ParallelHelperImpl::is_our_element(MBMesquite::Mesh::ElementHandle element_handle,
                                         MsqError& err) const {
   int i;
   std::vector<Mesh::VertexHandle> pvertices;
@@ -2530,7 +2530,7 @@ bool ParallelHelperImpl::is_our_element(Mesquite::Mesh::ElementHandle element_ha
   return (max_proc_id == rank);
 }
 
-bool ParallelHelperImpl::is_our_vertex(Mesquite::Mesh::VertexHandle vertex_handle,
+bool ParallelHelperImpl::is_our_vertex(MBMesquite::Mesh::VertexHandle vertex_handle,
                                        MsqError& err) const {
   int proc_id;
   mesh->vertices_get_processor_id(&vertex_handle, &proc_id, 1, err);

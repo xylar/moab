@@ -45,7 +45,7 @@ Unit testing for the TMPQualityMetric class
 
 #include <iostream>
 
-using namespace Mesquite;
+using namespace MBMesquite;
 using std::cout;
 using std::cerr;
 using std::endl;

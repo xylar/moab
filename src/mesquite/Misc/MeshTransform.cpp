@@ -40,7 +40,7 @@
 #include "MsqVertex.hpp"
 #include "MsqError.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
   
   MeshTransform::~MeshTransform() {}
   

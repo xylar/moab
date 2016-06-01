@@ -43,7 +43,7 @@
 #include <vector>
 using std::vector;
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 std::string IdealWeightMeanRatio::get_name() const
   { return "Mean Ratio"; }

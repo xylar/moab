@@ -36,7 +36,7 @@
 #include "Mesquite.hpp"
 #include "IdealShapeTarget.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 class ReferenceMesh;
 
@@ -84,6 +84,6 @@ private:
 
 
 
-} // namespace MESQUITE_NS
+} // namespace MBMesquite
 
 #endif

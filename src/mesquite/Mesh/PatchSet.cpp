@@ -33,9 +33,9 @@
 #include "Mesquite.hpp"
 #include "PatchSet.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 PatchSet::~PatchSet() {}
 
 
-} // namespace MESQUITE_NS
+} // namespace MBMesquite

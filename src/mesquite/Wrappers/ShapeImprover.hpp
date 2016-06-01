@@ -36,7 +36,7 @@
 #include "Mesquite.hpp"
 #include "Wrapper.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
   /**\brief Wrapper that implements TMP-based shape improvement
      */
@@ -89,6 +89,6 @@ namespace MESQUITE_NS {
   };
   
   
-} // namespace MESQUITE_NS
+} // namespace MBMesquite
 
 #endif

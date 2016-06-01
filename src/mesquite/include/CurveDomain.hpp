@@ -35,7 +35,7 @@
 
 #include "Mesquite.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 
 
@@ -72,6 +72,6 @@ public:
 
 
 
-} // namespace MESQUITE_NS
+} // namespace MBMesquite
 
 #endif

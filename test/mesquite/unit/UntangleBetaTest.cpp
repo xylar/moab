@@ -37,7 +37,7 @@
 #include "PatchData.hpp"
 #include "UnitUtil.hpp"
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 class UntangleBetaTest : public CppUnit::TestFixture
 {

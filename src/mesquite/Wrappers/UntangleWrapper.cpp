@@ -62,7 +62,7 @@ const double DEFAULT_MOVEMENT_FACTOR = 0.001;
 const bool CULLING_DEFAULT = true;
 const bool JACOBI_DEFAULT = false;
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 UntangleWrapper::UntangleWrapper() 
   : qualityMetric( SIZE ),
@@ -187,4 +187,4 @@ void UntangleWrapper::run_wrapper( MeshDomainAssoc* mesh_and_domain,
 }
 
 
-} // namespace MESQUITE_NS
+} // namespace MBMesquite

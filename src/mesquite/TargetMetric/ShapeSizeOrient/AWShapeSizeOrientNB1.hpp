@@ -36,7 +36,7 @@
 #include "Mesquite.hpp"
 #include "AWMetricNonBarrier.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 
 /** |A-W|^2 */

@@ -41,7 +41,7 @@
 
 #include <math.h>
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 std::string EdgeLengthQualityMetric::get_name() const
   { return "Edge Length"; }

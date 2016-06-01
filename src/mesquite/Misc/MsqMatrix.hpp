@@ -40,7 +40,7 @@
 #include <ostream>
 #include <sstream>
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 /**\brief Fixed-size matrix class
  *

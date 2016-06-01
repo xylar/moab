@@ -35,7 +35,7 @@
 #include "PatchDataInstances.hpp"
 #include "ExtraData.hpp"
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 #include <iostream>
 
@@ -65,7 +65,7 @@ public:
 CPPUNIT_TEST_SUITE_NAMED_REGISTRATION(ExtraDataTest, "ExtraDataTest");
 CPPUNIT_TEST_SUITE_NAMED_REGISTRATION(ExtraDataTest, "Unit");
 
-class TestExtraData : public Mesquite::ExtraData
+class TestExtraData : public MBMesquite::ExtraData
 {
   public:
     enum EventType {

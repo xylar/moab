@@ -72,7 +72,7 @@ using std::endl;
 #endif
 
 #include "MsqDebug.hpp"
-namespace MESQUITE_NS
+namespace MBMesquite
 {
 
 const char* MESQUITE_FIELD_TAG = "MesquiteTags";

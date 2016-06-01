@@ -45,7 +45,7 @@
 using std::vector;
 #include <math.h>
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 IdealWeightInverseMeanRatio::IdealWeightInverseMeanRatio(MsqError& err, double pow_dbl)
   : AveragingQM(QualityMetric::LINEAR)

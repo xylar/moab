@@ -35,7 +35,7 @@
 
 #include "Mesquite.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 /**\brief Count number of 1-bits in an unsigned integer
  *

@@ -38,7 +38,7 @@
 
 #include "cppunit/extensions/HelperMacros.h"
 
-using namespace Mesquite;
+using namespace MBMesquite;
 using namespace std;
 
 const double EPSILON = 1e-6;

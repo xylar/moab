@@ -80,7 +80,7 @@ SimplifiedGeometryEngine.
 using std::cout;
 using std::endl;
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 class PlanarGeometryTest : public CppUnit::TestFixture
 {
@@ -118,8 +118,8 @@ public:
   
    void test_plane_tri_tangled()
    {
-     Mesquite::MsqPrintError err(cout); 
-     Mesquite::MeshImpl mesh;
+     MBMesquite::MsqPrintError err(cout); 
+     MBMesquite::MeshImpl mesh;
      
       // This test doesn't use InstructionQueue, so 
       // we need to set up trapping of floating-point
@@ -132,7 +132,7 @@ public:
        //create geometry: plane z=5, normal (0,0,1)
      Vector3D pnt(0,0,5);
      Vector3D s_norm(0,0,1);
-     Mesquite::PlanarDomain msq_geom(s_norm, pnt);
+     MBMesquite::PlanarDomain msq_geom(s_norm, pnt);
      
        // creates an intruction queue
      InstructionQueue queue1, queue2;
@@ -221,7 +221,7 @@ public:
   
   void test_plane_quad_tangled()
      {
-       Mesquite::MeshImpl mesh;
+       MBMesquite::MeshImpl mesh;
        MsqPrintError err(cout); 
        mesh.read_vtk(MESH_FILES_DIR "2D/vtk/quads/tangled/tangled_quad.vtk", err);
        CPPUNIT_ASSERT(!err);
@@ -229,7 +229,7 @@ public:
          //create geometry: plane z=5, normal (0,0,1)
        Vector3D pnt(0,0,5);
        Vector3D s_norm(0,0,1);
-       Mesquite::PlanarDomain msq_geom(s_norm, pnt);
+       MBMesquite::PlanarDomain msq_geom(s_norm, pnt);
        
          // creates an intruction queue
        InstructionQueue queue1, queue2;
@@ -316,14 +316,14 @@ public:
   void test_plane_tri_xz()
      {
        MsqPrintError err(cout); 
-       Mesquite::MeshImpl mesh;
+       MBMesquite::MeshImpl mesh;
        mesh.read_vtk(MESH_FILES_DIR "2D/vtk/tris/untangled/tri_5_xz.vtk", err);
        CPPUNIT_ASSERT(!err);
 
          //create geometry: plane y=5, normal (0,1,0)
        Vector3D pnt(0,-5,0);
        Vector3D s_norm(0,-1,0);
-       Mesquite::PlanarDomain msq_geom(s_norm, pnt);
+       MBMesquite::PlanarDomain msq_geom(s_norm, pnt);
        
          // creates an intruction queue
        InstructionQueue queue1;

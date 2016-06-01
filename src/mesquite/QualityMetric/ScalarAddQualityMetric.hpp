@@ -36,7 +36,7 @@
 #include "Mesquite.hpp"
 #include "QualityMetric.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 /**\brief Offset a quality metric by a scalar value */
 class ScalarAddQualityMetric : public QualityMetric

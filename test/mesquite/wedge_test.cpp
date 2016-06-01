@@ -51,7 +51,7 @@ using std::endl;
 #include "UntangleBetaQualityMetric.hpp"
 #include "FeasibleNewton.hpp"
 #include "ConditionNumberQualityMetric.hpp"
-using namespace Mesquite;
+using namespace MBMesquite;
 
 // Use CPPUNIT_ASSERT in code so it's easy to convert to a unit test later.
 #define CPPUNIT_ASSERT(A) \
@@ -115,17 +115,17 @@ int main( int argc, char* [] )
   std::string meshfile = TestDir + "/3D/vtk/prisms/untangled/6-wedge-prism.vtk";
   unsigned i;
 
-  Mesquite::MsqPrintError err(cout);
+  MBMesquite::MsqPrintError err(cout);
   IdealWeightMeanRatio m1;
   IdealWeightInverseMeanRatio m2(err);
   ConditionNumberQualityMetric m3;
   QualityMetric* metrics[] = { &m1, &m2, &m3, 0 };
 
     // Read Mesh
-  Mesquite::MeshImpl mesh;
+  MBMesquite::MeshImpl mesh;
   mesh.read_vtk( meshfile.c_str(), err);
   CPPUNIT_ASSERT(!err);
-  Mesquite::MeshImpl ideal_mesh;
+  MBMesquite::MeshImpl ideal_mesh;
   ideal_mesh.read_vtk( meshfile.c_str(), err);
   CPPUNIT_ASSERT(!err);
 
@@ -220,7 +220,7 @@ bool smooth_mesh( MeshImpl* mesh, Mesh* ,
                   Vector3D delta,
                   QualityMetric* metric )
 {
-  Mesquite::MsqPrintError err(cout);
+  MBMesquite::MsqPrintError err(cout);
   const Vector3D origin( 0, 0, 0 );
   
   // print a little output so we know when we died

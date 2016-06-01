@@ -28,7 +28,7 @@
 
 /*! \file CompositeOFScalarMultiply.hpp
 
-Header file for the Mesquite:: CompositeOFScalarMultiply class
+Header file for the MBMesquite:: CompositeOFScalarMultiply class
 
   \author Michael Brewer
   \date   2002-06-24
@@ -41,7 +41,7 @@ Header file for the Mesquite:: CompositeOFScalarMultiply class
 #include "Mesquite.hpp"
 #include "ObjectiveFunction.hpp"
 
-namespace MESQUITE_NS
+namespace MBMesquite
 {
      /*! \class CompositeOFScalarMultiply
        \brief Scales a given an ObjectiveFunction.

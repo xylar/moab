@@ -67,7 +67,7 @@ using std::auto_ptr;
 #include "TShapeSizeOrientB1.hpp"
 #include "TShapeSizeOrientB2.hpp"
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 static const struct { TMetric* u; const char* n; }
 metrics[] = { { new TSquared,           "TSquared"               },

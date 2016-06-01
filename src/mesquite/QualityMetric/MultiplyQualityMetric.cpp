@@ -37,7 +37,7 @@
 #include "Matrix3D.hpp"
 #include "MsqError.hpp"
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 MultiplyQualityMetric::MultiplyQualityMetric(QualityMetric* qm1, QualityMetric* qm2, MsqError &err)
   : metric1(*qm1), metric2(*qm2)

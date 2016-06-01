@@ -43,7 +43,7 @@
 #include "Instruction.hpp"
 #include "TerminationCriterion.hpp"
 
-namespace MESQUITE_NS
+namespace MBMesquite
 {
   class PatchSet;
   class MsqError;

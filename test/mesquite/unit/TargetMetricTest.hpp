@@ -164,7 +164,7 @@ CPPUNIT_NS::AutoRegisterSuite< METRIC ## _ ## DIM ## DTest > METRIC ## _ ## DIM 
   TEST_NON_QUALITY_METRIC_WITH_HESS_2D( METRIC ); \
   TEST_NON_QUALITY_METRIC_WITH_HESS_3D( METRIC ); 
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 const double Avals[][9] = { {0},
                             {2},

@@ -35,7 +35,7 @@
 #include "PatchData.hpp"
 #include "ElemSampleQM.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 VertexQM::~VertexQM() {}
 

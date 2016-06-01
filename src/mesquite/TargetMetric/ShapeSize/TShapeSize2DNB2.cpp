@@ -35,7 +35,7 @@
 #include "MsqMatrix.hpp"
 #include "TMPDerivs.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 std::string TShapeSize2DNB2::get_name() const
   { return "TShapeSize2DNB2"; }
@@ -54,7 +54,7 @@ bool TShapeSize2DNB2::evaluate( const MsqMatrix<2,2>& T,
   double psi = sqrt( frob_sqr + 2.0*det(T) );
 
   double a = 1e-12;
-  while (!Mesquite::divide(frob_sqr+2,2*psi,result)) {
+  while (!MBMesquite::divide(frob_sqr+2,2*psi,result)) {
     MsqMatrix<2,2> Tdelta(T);
     Tdelta(0,0) += a;
     Tdelta(1,1) += a;
@@ -79,7 +79,7 @@ bool TShapeSize2DNB2::evaluate_with_grad( const MsqMatrix<2,2>& T,
   double psi = sqrt( frob_sqr + 2.0*det(T) );
 
   double a = 1e-12;
-  while (!Mesquite::divide(frob_sqr+2,2*psi,result)) {
+  while (!MBMesquite::divide(frob_sqr+2,2*psi,result)) {
     MsqMatrix<2,2> Tdelta(T);
     Tdelta(0,0) += a;
     Tdelta(1,1) += a;
@@ -116,7 +116,7 @@ bool TShapeSize2DNB2::evaluate_with_hess( const MsqMatrix<2,2>& T,
   double psi = sqrt( frob_sqr + 2.0*det(T) );
 
   double a = 1e-12;
-  while (!Mesquite::divide(frob_sqr+2,2*psi,result)) {
+  while (!MBMesquite::divide(frob_sqr+2,2*psi,result)) {
     MsqMatrix<2,2> Tdelta(T);
     Tdelta(0,0) += a;
     Tdelta(1,1) += a;

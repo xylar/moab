@@ -36,7 +36,7 @@
 #include "Mesquite.hpp"
 #include "WeightCalculator.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 class ReferenceMesh;
 
@@ -72,6 +72,6 @@ public:
     double mCutoff, mA;
 };
 
-} // namespace MESQUITE_NS
+} // namespace MBMesquite
 
 #endif

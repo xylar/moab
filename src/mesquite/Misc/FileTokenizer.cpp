@@ -30,7 +30,7 @@
 #include <cctype>
 #include <cstdlib>
 
-namespace MESQUITE_NS
+namespace MBMesquite
 {
 
 FileTokenizer::FileTokenizer( std::FILE* file_ptr )

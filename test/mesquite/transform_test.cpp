@@ -60,14 +60,14 @@ using std::endl;
 #include "Vector3D.hpp"
 #include "MsqVertex.hpp"
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 const double EPSILON = 1e-6;
 
 int main(int , char* [])
 {
-  Mesquite::MsqPrintError err(cout);
-  Mesquite::MeshImpl mesh;
+  MBMesquite::MsqPrintError err(cout);
+  MBMesquite::MeshImpl mesh;
 
   std::string default_file_name = TestDir + "/2D/vtk/quads/untangled/tfi_horse10x4-12.vtk";
     //mesh->read_exodus("transformed_mesh.exo", err);
@@ -115,7 +115,7 @@ int main(int , char* [])
   iter2 = coords2.begin();
   for ( ; iter != coords.end(); ++iter, ++iter2 )
   {
-    Mesquite::Vector3D xform = my_mat * *iter + my_vec;
+    MBMesquite::Vector3D xform = my_mat * *iter + my_vec;
     double d = (xform - *iter2).length();
     if (d > EPSILON)
       ++invalid;

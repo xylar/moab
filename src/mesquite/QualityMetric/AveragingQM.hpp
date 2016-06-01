@@ -27,7 +27,7 @@
 
 /*! \file AveragingQM.hpp
     \brief
-Header file for the Mesquite::AveragingQM class
+Header file for the MBMesquite::AveragingQM class
 
   \author Thomas Leurent
   \author Michael Brewer
@@ -40,7 +40,7 @@ Header file for the Mesquite::AveragingQM class
 #include "Mesquite.hpp"
 #include "QualityMetric.hpp"
 
-namespace MESQUITE_NS
+namespace MBMesquite
 {
    
      /*! \class AveragingQM

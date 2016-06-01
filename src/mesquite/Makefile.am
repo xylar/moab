@@ -9,24 +9,24 @@ EXTRA_DIST = 	$(OLD_AM_GENERATED_HDRS:=.in) \
 							include/mesquite_config.win.h
 
 BUILT_SOURCES = include/Mesquite_all_headers.hpp
-lib_LTLIBRARIES = libmesquite.la
-libmesquite_la_DEPENDENCIES=
+lib_LTLIBRARIES = libmbmesquite.la
+libmbmesquite_la_DEPENDENCIES=
 # Tell libtool that there are no undefined symbols when linking 
 # the library.  This means that either the symbol is defined in
 # the library or we include a -lname argument to specify which 
 # other library provides the symbol.  Libtool requires this 
 # guarantee to generate libraries on platforms for which shared
 # libs cannot have any unmet depenendencies (windows, and maybe AIX)
-libmesquite_la_LDFLAGS = $(AM_LDFLAGS) -no-undefined
+libmbmesquite_la_LDFLAGS = $(AM_LDFLAGS) -no-undefined
 
 include make.inc
 
-libmesquite_la_includedir = $(includedir)
-libmesquite_la_nodist_includedir = $(includedir)
+libmbmesquite_la_includedir = $(includedir)
+libmbmesquite_la_nodist_includedir = $(includedir)
 
-libmesquite_la_SOURCES = $(MSQ_SRCS) 
+libmbmesquite_la_SOURCES = $(MSQ_SRCS) 
 
-libmesquite_la_include_HEADERS = include/Mesquite.hpp \
+libmbmesquite_la_include_HEADERS = include/Mesquite.hpp \
                                  include/MeshInterface.hpp \
                                  include/ParallelMeshInterface.hpp \
                                  include/ParallelHelperInterface.hpp \
@@ -34,11 +34,11 @@ libmesquite_la_include_HEADERS = include/Mesquite.hpp \
                                  $(MSQ_HDRS)
 
 # don't put these generated headers into the distribution
-nodist_libmesquite_la_include_HEADERS = include/Mesquite_all_headers.hpp \
+nodist_libmbmesquite_la_include_HEADERS = include/Mesquite_all_headers.hpp \
                                         include/mesquite_config.h \
                                         include/mesquite_version.h 
 
-libmesquite_la_LIBADD = $(MESQUITE_LIBS)
+libmbmesquite_la_LIBADD = $(MESQUITE_LIBS)
 AM_CPPFLAGS  = $(MSQ_INCLUDES) \
                -I$(top_builddir)/src \
                -I$(top_srcdir)/itaps \

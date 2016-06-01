@@ -41,7 +41,7 @@
 
 #include <vector>
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 class PatchData;
 class MsqError;

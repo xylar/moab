@@ -52,7 +52,7 @@
 #include <algorithm>
 #include <assert.h>
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 std::string DEFAULT_INPUT_FILE = std::string ( STRINGIFY(SRCDIR) ) + "/input.vtk";
 

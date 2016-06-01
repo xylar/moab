@@ -34,9 +34,9 @@
 #  include <ieeefp.h>
 #endif
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
-std::ostream& operator<<(std::ostream &s, const Mesquite::Vector3D &v)
+std::ostream& operator<<(std::ostream &s, const MBMesquite::Vector3D &v)
 {
     return s << v[0] << ' ' << v[1] << ' ' << v[2];
 }

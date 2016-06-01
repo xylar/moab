@@ -36,7 +36,7 @@
 #include "Mesquite.hpp"
 #include "TMetricBarrier.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 /** |T - T^-t|^2 */
 class TShapeSizeB1 : public TMetricBarrier

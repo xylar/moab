@@ -35,7 +35,7 @@
 #include "MsqMatrix.hpp"
 #include "TMPDerivs.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 std::string TShapeSizeNB3::get_name() const
   { return "TShapeSizeNB3"; }

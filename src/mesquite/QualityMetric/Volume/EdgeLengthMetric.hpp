@@ -35,7 +35,7 @@
 
 #include "EdgeQM.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 class EdgeLengthMetric : public EdgeQM
 {
@@ -65,6 +65,6 @@ private:
 };
 
 
-} // namespace MESQUITE_NS
+} // namespace MBMesquite
 
 #endif

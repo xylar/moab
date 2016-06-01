@@ -69,7 +69,7 @@ using std::cout;
 using std::endl;
 #include <cstdlib>
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 std::string DEFAULT_MESH = TestDir + "/2D/vtk/quads/tangled/tangled_quad.vtk";
 
@@ -78,7 +78,7 @@ const bool write_output = false;
 
 int main( )
 {
-  Mesquite::MeshImpl mesh;
+  MBMesquite::MeshImpl mesh;
   MsqPrintError err(cout);
   mesh.read_vtk(DEFAULT_MESH.c_str(), err);
   if (err) return 1;

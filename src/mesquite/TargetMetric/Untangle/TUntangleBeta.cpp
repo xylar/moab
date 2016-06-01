@@ -35,7 +35,7 @@
 #include "TMPDerivs.hpp"
 #include "TMPCommon.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 
 TUntangleBeta::~TUntangleBeta()
@@ -99,4 +99,4 @@ bool TUntangleBeta::hess( const MsqMatrix<DIM,DIM>& T,
 
 TMP_T_TEMPL_IMPL_COMMON(TUntangleBeta)
 
-} // namespace MESQUITE_NS
+} // namespace MBMesquite

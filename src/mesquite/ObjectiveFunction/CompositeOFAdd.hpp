@@ -28,7 +28,7 @@
 
 /*! \file CompositeOFAdd.hpp
 
-Header file for the Mesquite:: CompositeOFAdd class
+Header file for the MBMesquite:: CompositeOFAdd class
 
   \author Michael Brewer
   \date   2002-06-24
@@ -42,7 +42,7 @@ Header file for the Mesquite:: CompositeOFAdd class
 #include "ObjectiveFunction.hpp"
 #include "MsqHessian.hpp"
 
-namespace MESQUITE_NS
+namespace MBMesquite
 {
      /*!\class CompositeOFAdd
        \brief Adds two ObjectiveFunction values together.

@@ -33,9 +33,9 @@
 #include "Sample.hpp"
 #include <ostream>
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 std::ostream& operator <<( std::ostream& str, Sample s )
   { return str << s.dimension << '-' << s.number; }
 
-} // namespace MESQUITE_NS
+} // namespace MBMesquite

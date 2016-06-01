@@ -40,7 +40,7 @@
 #include <cppunit/extensions/HelperMacros.h>
 #include <stdio.h>
 
-using namespace Mesquite;
+using namespace MBMesquite;
 
 const char TEMP_FILE_NAME[] = "TagVertexMesh.vtk";
 

@@ -36,7 +36,7 @@
 #include "Mesquite.hpp"
 #include "Vector3D.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 class MESQUITE_EXPORT SymMatrix3D {
 private:

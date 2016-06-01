@@ -1096,18 +1096,21 @@ AM_CONDITIONAL([USING_DEV_CGM],[test "xyes" = "x$USING_DEV_CGM"])
 
 AC_MSG_CHECKING([if Mesquite support is to be built])
 AC_MSG_RESULT([$enable_mesquite])
+HAVE_MESQUITE="no"
 if (test "xno" != "x$enable_mesquite"); then
-  if (test "x$ENABLE_imesh" != "xyes" || test "x$CGM_MISSING" != "xno"); then
+  if (test "x$ENABLE_imesh" != "xyes"); then
     enable_mesquite=no
     AC_MSG_WARN([** Disabling Mesquite since iGeom or iMesh is not configured correctly.])
   fi
   if (test "xno" != "x$enable_mesquite"); then
     CONFIGURE_MESQUITE
     AC_DEFINE(HAVE_MESQUITE,[1],"MOAB configured with Mesquite support")
+    HAVE_MESQUITE="yes"
   fi
 fi
 AM_CONDITIONAL([ENABLE_mesquite],[test "yes" = "$enable_mesquite"])
 AM_CONDITIONAL([HAVE_CPPUNIT],[test "$HAVE_CPPUNIT" = "yes"])
+AC_SUBST(HAVE_MESQUITE)
 
 ###############################################################################
 #                           Optional Tools

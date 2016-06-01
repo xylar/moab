@@ -37,7 +37,7 @@
 #include "TMPDerivs.hpp"
 #include "TMPCommon.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 std::string TShapeOrientB2::get_name() const
   { return "TShapeOrientB2"; }

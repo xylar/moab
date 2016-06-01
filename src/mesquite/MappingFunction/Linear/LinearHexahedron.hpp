@@ -30,7 +30,7 @@
 #include "Mesquite.hpp"
 #include "MappingFunction.hpp"
 
-namespace MESQUITE_NS {
+namespace MBMesquite {
 
 /**\brief Linear mapping function for a hexahedral element
  *
