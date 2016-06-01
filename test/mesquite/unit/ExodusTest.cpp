@@ -135,11 +135,11 @@ public:
     CPPUNIT_ASSERT(!err);
     
       // Check overall counts
-    std::vector<Mesquite::Mesh::ElementHandle> elem_handle_vect;
+    std::vector<MBMesquite::Mesh::ElementHandle> elem_handle_vect;
     mMesh->get_all_elements( elem_handle_vect, err );
     CPPUNIT_ASSERT( !err );
     CPPUNIT_ASSERT( elem_handle_vect.size() == NUM_QUADS + NUM_HEXES );
-    std::vector<Mesquite::Mesh::VertexHandle> vert_handle_vect;
+    std::vector<MBMesquite::Mesh::VertexHandle> vert_handle_vect;
     std::vector<size_t> offset_vect;
     mMesh->elements_get_attached_vertices( arrptr(elem_handle_vect),
                                            elem_handle_vect.size(),
@@ -148,7 +148,7 @@ public:
     CPPUNIT_ASSERT(!err);
     CPPUNIT_ASSERT(vert_handle_vect.size() == 8 * NUM_HEXES + 4 * NUM_QUADS );
     std::sort( vert_handle_vect.begin(), vert_handle_vect.end() );
-    std::vector<Mesquite::Mesh::VertexHandle>::iterator new_end = 
+    std::vector<MBMesquite::Mesh::VertexHandle>::iterator new_end = 
       std::unique( vert_handle_vect.begin(), vert_handle_vect.end() );
     vert_handle_vect.resize( new_end - vert_handle_vect.begin() );
     CPPUNIT_ASSERT(vert_handle_vect.size() == NUM_NODES);
@@ -211,7 +211,7 @@ public:
       sprintf(buffer, "bad hex: %d\n", j);
       vert_handle_vect.clear();
       offset_vect.clear();
-      MBMesquite::Mesh::ElementHandle handle = (Mesquite::Mesh::ElementHandle)j;
+      MBMesquite::Mesh::ElementHandle handle = (MBMesquite::Mesh::ElementHandle)j;
       mMesh->elements_get_attached_vertices( &handle, 1, vert_handle_vect, offset_vect, err );
       CPPUNIT_ASSERT( !err );
       CPPUNIT_ASSERT( vert_handle_vect.size() == 8 );
@@ -235,7 +235,7 @@ public:
     for (j = 0; j < num_to_check; ++j)
     {
       sprintf(buffer, "bad node: %d\n", j);
-      MBMesquite::Mesh::VertexHandle handle = (Mesquite::Mesh::VertexHandle)j;
+      MBMesquite::Mesh::VertexHandle handle = (MBMesquite::Mesh::VertexHandle)j;
       mMesh->vertices_get_coordinates( &handle, &vert, 1, err );
       CPPUNIT_ASSERT( !err );
       for (i = 0; i < 3; ++i)

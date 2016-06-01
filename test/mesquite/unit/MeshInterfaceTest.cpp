@@ -73,9 +73,9 @@ private:
 
 private:
   MBMesquite::MeshImpl *mMesh; 
-  std::vector<Mesquite::Mesh::VertexHandle> mConnectivity;
-  std::vector<Mesquite::Mesh::VertexHandle> mVertices;
-  std::vector<Mesquite::Mesh::ElementHandle> mElements;
+  std::vector<MBMesquite::Mesh::VertexHandle> mConnectivity;
+  std::vector<MBMesquite::Mesh::VertexHandle> mVertices;
+  std::vector<MBMesquite::Mesh::ElementHandle> mElements;
   std::vector<size_t> mOffsets;
   MBMesquite::MsqError mErr;
   
@@ -105,7 +105,7 @@ public:
     
       // Construct list of vertices w/out duplicates from
       // connectivity list.
-    std::vector<Mesquite::Mesh::VertexHandle>::iterator new_end;
+    std::vector<MBMesquite::Mesh::VertexHandle>::iterator new_end;
     mVertices = mConnectivity;
     std::sort( mVertices.begin(), mVertices.end() );
     new_end = std::unique( mVertices.begin(), mVertices.end() );
@@ -229,7 +229,7 @@ public:
 	  size_t i;
     const size_t nbVert = mVertices.size();
 
-    std::vector<Mesquite::Mesh::ElementHandle> elements;
+    std::vector<MBMesquite::Mesh::ElementHandle> elements;
     std::vector<size_t> offsets;
     mMesh->vertices_get_attached_elements( arrptr(mVertices),
                                            mVertices.size(),
@@ -271,7 +271,7 @@ public:
     // This is a poor test.  We allow an element handle of zero,
     // and just testing that the function returned something isn't
     // that useful. - J.K.
-    //Mesquite::Mesh::ElementHandle elem=0;
+    //MBMesquite::Mesh::ElementHandle elem=0;
     //mMesh->vertex_get_attached_elements(mVertices[one_corner_vertex_index], &elem, 1, mErr);
     //CPPUNIT_ASSERT(!mErr);
     //CPPUNIT_ASSERT(elem!=0);
@@ -309,7 +309,7 @@ public:
 
     
     // Make sure CSR data is valid
-    std::map<Mesquite::Mesh::VertexHandle,int> vtx_repeated_occurence;
+    std::map<MBMesquite::Mesh::VertexHandle,int> vtx_repeated_occurence;
     for (i = 0; i < mVertices.size(); ++i)
       vtx_repeated_occurence[mVertices[i]] = 0;
     for (i = 0; i < mConnectivity.size(); ++i)
@@ -374,14 +374,14 @@ public:
     correct_coords.push_back(Mesquite::Vector3D(-1.,0.,0.));
 
     // Creates same list from the mesh implementation
-    std::vector<Mesquite::MsqVertex> tri_coords(3);
+    std::vector<MBMesquite::MsqVertex> tri_coords(3);
     mMesh->vertices_get_coordinates(&mConnectivity[mOffsets[tri_index]],
                                     arrptr(tri_coords), 3, mErr );
     CPPUNIT_ASSERT(!mErr);
 
     // Makes sure both list contain the same elements (not necessarily in the same order).
     std::vector<Mesquite::Vector3D>::iterator correct_iter;
-    std::vector<Mesquite::MsqVertex>::iterator tri_iter;
+    std::vector<MBMesquite::MsqVertex>::iterator tri_iter;
     for (tri_iter = tri_coords.begin(); tri_iter != tri_coords.end(); ++tri_iter)
     {
       for (correct_iter = correct_coords.begin(); 

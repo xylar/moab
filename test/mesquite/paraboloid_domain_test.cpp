@@ -61,32 +61,32 @@ class ParaboloidDomain : public MeshDomain
 {
   public:
 
-    virtual void closest_point( Mesh::VertexHandle handle,
+    virtual void closest_point( Mesh::VertexHandle /*handle*/,
                                 const Vector3D& position,
                                 Vector3D& closest,
-                                Vector3D& normal,
-                                MsqError& err ) const 
+                                Vector3D& /*normal*/,
+                                MsqError& /*err*/ ) const 
     {
       closest = Vector3D(position[0], position[1], position[0]*position[0] + position[1]*position[1]);
     };
 
-    virtual void snap_to(Mesh::VertexHandle entity_handle,
-                         Vector3D &coordinate) const {};
+    virtual void snap_to(Mesh::VertexHandle /*entity_handle*/,
+                         Vector3D& /*coordinate*/) const {};
     
-    virtual void vertex_normal_at(Mesh::VertexHandle entity_handle,
-                                  Vector3D &coordinate) const {};
-    virtual void element_normal_at(Mesh::ElementHandle entity_handle,
-                                   Vector3D &coordinate) const {};
+    virtual void vertex_normal_at(Mesh::VertexHandle /*entity_handle*/,
+                                  Vector3D& /*coordinate*/) const {};
+    virtual void element_normal_at(Mesh::ElementHandle /*entity_handle*/,
+                                   Vector3D& /*coordinate*/) const {};
                           
-    virtual void vertex_normal_at( const Mesh::VertexHandle* handles,
-                                   Vector3D coordinates[],
-                                   unsigned count,
-                                   MsqError& err ) const {};
+    virtual void vertex_normal_at( const Mesh::VertexHandle* /*handles*/,
+                                   Vector3D /*coordinates*/[],
+                                   unsigned /*count*/,
+                                   MsqError& /*err*/ ) const {};
                                 
-     virtual void domain_DoF( const Mesh::EntityHandle* handle_array,
-                             unsigned short* dof_array,
-                             size_t num_handles,
-                             MsqError& err ) const {};
+     virtual void domain_DoF( const Mesh::EntityHandle* /*handle_array*/,
+                             unsigned short* /*dof_array*/,
+                             size_t /*num_handles*/,
+                             MsqError& /*err*/ ) const {};
 };
 
 int main()

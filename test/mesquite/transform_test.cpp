@@ -75,14 +75,14 @@ int main(int , char* [])
   if (err) return 1;
   
     // Get all vertex coordinates from mesh
-  std::vector<Mesquite::Mesh::VertexHandle> handles;
+  std::vector<MBMesquite::Mesh::VertexHandle> handles;
   mesh.get_all_vertices( handles, err ); 
   if (err) return 1;
   if (handles.empty()) {
     std::cerr << "No verticies in mesh" << endl;
     return 1;
   }
-  std::vector<Mesquite::MsqVertex> coords( handles.size() );
+  std::vector<MBMesquite::MsqVertex> coords( handles.size() );
   mesh.vertices_get_coordinates( arrptr(handles), arrptr(coords), handles.size(), err );
   if (err) return 1;
   
@@ -104,13 +104,13 @@ int main(int , char* [])
   if (err) return 1;
   
     // Get transformed coordinates
-  std::vector<Mesquite::MsqVertex> coords2( handles.size() );
+  std::vector<MBMesquite::MsqVertex> coords2( handles.size() );
   mesh.vertices_get_coordinates( arrptr(handles), arrptr(coords2), handles.size(), err );
   if (err) return 1;
  
     // Compare vertex coordinates
   size_t invalid = 0;
-  std::vector<Mesquite::MsqVertex>::iterator iter, iter2;
+  std::vector<MBMesquite::MsqVertex>::iterator iter, iter2;
   iter = coords.begin();
   iter2 = coords2.begin();
   for ( ; iter != coords.end(); ++iter, ++iter2 )
