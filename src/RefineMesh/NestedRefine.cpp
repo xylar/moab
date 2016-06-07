@@ -482,8 +482,10 @@ namespace moab{
     return MB_SUCCESS;
   }
 
-  ErrorCode NestedRefine::update_special_tags()
+  ErrorCode NestedRefine::update_special_tags(int level, EntityHandle &lset)
   {
+    assert (level > 0 && level < nlevels+1);
+
     ErrorCode error;
     std::vector<Tag> mtags(3);
 
@@ -493,8 +495,9 @@ namespace moab{
 
     for (int i=0; i<3; i++){
         //Gather sets of a particular tag
-        Range sets, set_ents;
+        Range sets;
         error = mbImpl->get_entities_by_type_and_tag(_rset, MBENTITYSET, &mtags[i], NULL, 1, sets);MB_CHK_ERR(error);
+        sets.print();
 
         if (sets.empty())
           {
@@ -517,30 +520,33 @@ namespace moab{
           }
 
         //Loop over all sets, gather entities in each set and add their children at all levels to the set
+        Range set_ents;
         Range::iterator set_it;
         std::vector<EntityHandle> childs;
 
         for (set_it = sets.begin(); set_it != sets.end(); ++set_it) {
             // Get the entities in the set, recursively
+            set_ents.clear();
+            childs.clear();
             error = mbImpl->get_entities_by_handle(*set_it, set_ents, true);MB_CHK_ERR(error);
+            std::cout<<"Entities in meshset before"<<std::endl;
+            set_ents.print();
 
-            for (int l=0; l<nlevels; l++)
+            //Gather child entities at the input level
+            for (Range::iterator sit = set_ents.begin(); sit != set_ents.end(); sit++)
               {
-                //Gather child entities
-                for (Range::iterator sit = set_ents.begin(); sit != set_ents.end(); sit++)
+                EntityType type = mbImpl->type_from_handle(*sit);
+                if (type == MBVERTEX)
                   {
-                    EntityType type = mbImpl->type_from_handle(*sit);
-                    if (type == MBVERTEX)
-                      {
-                        Range conn;
-                        std::vector<EntityHandle> cents;
-                        error = vertex_to_entities_down(*sit, 0, l+1, cents);MB_CHK_ERR(error);
-                        error = mbImpl->get_connectivity(&cents[0], (int)cents.size(), conn, true);MB_CHK_ERR(error);
-                        childs.insert(childs.end(), cents.begin(), cents.end());
-                      }
-                    else {
-                        error = parent_to_child(*sit, 0, l+1, childs);MB_CHK_ERR(error);
-                      }
+                    Range conn;
+                    std::vector<EntityHandle> cents;
+                    error = vertex_to_entities_down(*sit, 0, level, cents);MB_CHK_ERR(error);
+                    error = mbImpl->get_connectivity(&cents[0], (int)cents.size(), conn, true);MB_CHK_ERR(error);
+                    childs.insert(childs.end(), cents.begin(), cents.end());
+                  }
+                else {
+                    error = parent_to_child(*sit, 0, level, childs);MB_CHK_ERR(error);
+                //    std::cout<<"childs.sz = "<<childs.size()<<std::endl;
                   }
 
                 std::sort(childs.begin(), childs.end());
@@ -549,6 +555,18 @@ namespace moab{
                //Add child entities to tagged sets
                 error = mbImpl->add_entities(*set_it, &childs[0], childs.size());MB_CHK_ERR(error);
               }
+
+            //Remove the coarse entities
+            error = mbImpl->remove_entities(*set_it, set_ents);MB_CHK_ERR(error);
+
+            //Add
+            error = mbImpl->add_entities(lset, &(*set_it), 1);MB_CHK_ERR(error);
+
+            //DBG
+            Range rements;
+            error = mbImpl->get_entities_by_handle(*set_it, rements, true);MB_CHK_ERR(error);
+            std::cout<<"Entities in meshset after"<<std::endl;
+            rements.print();
           }
       }
     return MB_SUCCESS;

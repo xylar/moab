@@ -135,7 +135,7 @@ namespace moab
 
       ErrorCode exchange_ghosts(std::vector<EntityHandle> &lsets, int num_glayers);
 
-      ErrorCode update_special_tags();
+      ErrorCode update_special_tags(int level, EntityHandle &lset);
 
       struct codeperf{
         double tm_total;
