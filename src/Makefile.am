@@ -193,6 +193,7 @@ nobase_libMOAB_la_include_HEADERS = \
   moab/Matrix3.hpp \
   moab/MergeMesh.hpp \
   moab/MeshTopoUtil.hpp \
+  moab/OrientedBox.hpp \
   moab/OrientedBoxTreeTool.hpp \
   moab/PartitionerBase.hpp \
   moab/ProgOptions.hpp \

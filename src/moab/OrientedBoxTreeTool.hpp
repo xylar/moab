@@ -22,7 +22,7 @@
 #define MOAB_ORIENTED_BOX_TREE_TOOL_HPP
 
 #include "moab/Forward.hpp"
-
+#include "moab/OrientedBox.hpp"
 #include <iosfwd>
 #include <list>
 #include <vector>
