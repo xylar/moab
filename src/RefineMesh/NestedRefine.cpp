@@ -497,25 +497,22 @@ namespace moab{
         //Gather sets of a particular tag
         Range sets;
         error = mbImpl->get_entities_by_type_and_tag(_rset, MBENTITYSET, &mtags[i], NULL, 1, sets);MB_CHK_ERR(error);
-        sets.print();
+        //sets.print();
 
         if (sets.empty())
           {
             if (i==0)
               {
                 std::cout<<"No entities with material tag"<<std::endl;
-                return MB_SUCCESS;
               }
             else if (i==1)
               {
                 std::cout<<"No entities with dirichlet tag"<<std::endl;
-                return MB_SUCCESS;
               }
 
             else if (i==2)
                 {
                   std::cout<<"No entities with neumann tag"<<std::endl;
-                  return MB_SUCCESS;
                 }
           }
 
@@ -529,8 +526,8 @@ namespace moab{
             set_ents.clear();
             childs.clear();
             error = mbImpl->get_entities_by_handle(*set_it, set_ents, true);MB_CHK_ERR(error);
-            std::cout<<"Entities in meshset before"<<std::endl;
-            set_ents.print();
+            //std::cout<<"Entities in meshset before"<<std::endl;
+            //set_ents.print();
 
             //Gather child entities at the input level
             for (Range::iterator sit = set_ents.begin(); sit != set_ents.end(); sit++)
@@ -563,10 +560,10 @@ namespace moab{
             error = mbImpl->add_entities(lset, &(*set_it), 1);MB_CHK_ERR(error);
 
             //DBG
-            Range rements;
+            /*Range rements;
             error = mbImpl->get_entities_by_handle(*set_it, rements, true);MB_CHK_ERR(error);
             std::cout<<"Entities in meshset after"<<std::endl;
-            rements.print();
+            rements.print();*/
           }
       }
     return MB_SUCCESS;
