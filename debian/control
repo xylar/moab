@@ -19,7 +19,7 @@ Homepage: http://sigma.mcs.anl.gov/moab-library/
 Package: libmoab-dev
 Section: libdevel
 Architecture: any
-Depends: libmoab0 (= ${binary:Version}), ${misc:Depends}
+Depends: libmoab0 (= ${binary:Version}), ${misc:Depends}, libmetis-dev
 Description: Mesh-Oriented datABase development files
   MOAB is a component for representing and evaluating mesh data. 
   MOAB can store structured and unstructured mesh, consisting of 
