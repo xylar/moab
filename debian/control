@@ -12,7 +12,7 @@ Build-Depends: debhelper (>= 9),
   libopenmpi-dev,
   libparmetis-dev,
   openmpi-bin
-Standards-Version: 3.9.6
+Standards-Version: 3.9.8
 Section: libs
 Homepage: http://sigma.mcs.anl.gov/moab-library/
 
