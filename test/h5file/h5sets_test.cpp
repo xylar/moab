@@ -174,6 +174,58 @@ void test_file_set()
   CHECK_EQUAL( 1, count );
 }
 
+void test_sets_fileids()
+{
+  ErrorCode rval;
+  Core moab;
+  double vtxcoords[] = { 0.0, 0.0, 0.0,
+                         1.0, 0.0, 0.0,
+                         0.0, 1.0, 0.0 };
+  Range verts;
+  rval = moab.create_vertices( vtxcoords, 3, verts );
+  CHECK_ERR(rval);
+  CHECK_EQUAL( 3, (int)verts.size() );
+
+  EntityHandle tri;
+  EntityHandle conn[3];
+  std::copy( verts.begin(), verts.end(), conn );
+  rval = moab.create_element( MBTRI, conn, 3, tri );
+  CHECK_ERR(rval);
+
+  EntityHandle set;
+  rval = moab.create_meshset( MESHSET_ORDERED, set );
+  CHECK_ERR(rval);
+  rval = moab.add_entities( set, &tri, 1 );
+  CHECK_ERR(rval);
+
+  rval = moab.write_file( filename);
+  CHECK_ERR(rval);
+
+  moab.delete_mesh();
+
+  rval = moab.load_file(filename, 0, "STORE_SETS_FILEIDS;" );
+  CHECK_ERR(rval);
+
+  Tag setFileIdTag;
+
+  rval = moab.tag_get_handle("__FILE_ID_FOR_SETS", setFileIdTag);
+  CHECK_ERR(rval);
+  CHECK( setFileIdTag )  ;
+
+  Range sets;
+  rval = moab.get_entities_by_type(0, MBENTITYSET, sets);
+  CHECK_ERR(rval);
+
+  std::vector<long> vals(sets.size());
+  rval = moab.tag_get_data(setFileIdTag, sets, &vals[0]);
+  CHECK_ERR(rval);
+
+  CHECK_EQUAL( 5, (int)vals[0] );
+  if (!keep_file)
+    remove(filename);
+
+  return;
+}
 
 int coords_by_idx( int idx, double coords[][3] )
 {
@@ -386,6 +438,7 @@ int main(int argc, char* argv[])
   exitval += RUN_TEST( test_small_tree );
   exitval += RUN_TEST( test_set_flags );
   exitval += RUN_TEST( regression_mmiller_8_2010 );
+  exitval += RUN_TEST( test_sets_fileids );
   if (do_big_tree_test) {
     exitval += RUN_TEST( test_big_tree );
   }
