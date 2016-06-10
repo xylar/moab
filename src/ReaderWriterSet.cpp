@@ -25,6 +25,7 @@
 #include "ReadIDEAS.hpp"
 #include "ReadMCNP5.hpp"
 #include "ReadNASTRAN.hpp"
+#include "ReadRTT.hpp"
 #include "ReadABAQUS.hpp"
 #include "ReadSms.hpp"
 #include "Tqdcfr.hpp"
@@ -117,6 +118,8 @@ ReaderWriterSet::ReaderWriterSet(Core* mdb)
   register_factory( ReadNASTRAN::factory, NULL, "NASTRAN format", nastran_sufxs, "NAS" );
 
   register_factory( ReadABAQUS::factory, NULL, "ABAQUS INP mesh format", "abq", "Abaqus mesh" );
+
+  register_factory( ReadRTT::factory, NULL, "RTT Mesh Format", "rtt", "Atilla RTT Mesh" );
 
   register_factory( ReadVtk::factory, WriteVtk::factory, "Kitware VTK", "vtk", "VTK" );
 
