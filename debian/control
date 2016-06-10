@@ -12,7 +12,7 @@ Build-Depends: debhelper (>= 9),
   libopenmpi-dev,
   libparmetis-dev,
   openmpi-bin
-Standards-Version: 3.9.6
+Standards-Version: 3.9.8
 Section: libs
 Homepage: http://sigma.mcs.anl.gov/moab-library/
 
@@ -34,7 +34,7 @@ Description: Mesh-Oriented datABase development files
 Package: libmoab0
 Section: libs
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends}, libmetis-dev, libhdf5-mpi-dev
 Description: Mesh-Oriented datABase libraries
   MOAB is a component for representing and evaluating mesh data.
   MOAB can store structured and unstructured mesh, consisting of
