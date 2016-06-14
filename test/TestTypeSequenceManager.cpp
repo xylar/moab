@@ -582,8 +582,10 @@ void test_replace_subsequence()
   SequenceData* data1 = new SequenceData( 0, 51, 950 );
   rval = insert_seq(seqman, 101, 100, data1, true);
   CHECK_ERR(rval);
-  if (MB_SUCCESS != rval)
-    data1 = NULL; // data1 has been deleted
+  if (MB_SUCCESS != rval) {
+    // data1 has been deleted by insert_seq call above
+    return;
+  }
   rval = insert_seq(seqman, 301, 300, data1);
   CHECK_ERR(rval);
   rval = insert_seq(seqman, 701, 100, data1);
@@ -857,15 +859,18 @@ void test_is_free_handle()
   SequenceData* data2 = new SequenceData(0,2001,3000);
   rval = insert_seq(seqman, 1, 500, data1, true);
   CHECK_ERR(rval);
-  if (MB_SUCCESS != rval)
-    data1 = NULL; // data1 has been deleted
+  if (MB_SUCCESS != rval) {
+    // data1 has been deleted by insert_seq call above
+    return;
+  }
   rval = insert_seq(seqman, 601, 400, data1, false);
   CHECK_ERR(rval);
   rval = insert_seq(seqman, 2500, 100, data2, true);
   CHECK_ERR(rval);
-  if (MB_SUCCESS != rval)
-    data2 = NULL; // data2 has been deleted
-  CHECK_ERR(rval);
+  if (MB_SUCCESS != rval) {
+    // data2 has been deleted by insert_seq call above
+    return;
+  }
   rval = insert_seq(seqman, 2800, 200, data2, false);
   CHECK_ERR(rval);
   
