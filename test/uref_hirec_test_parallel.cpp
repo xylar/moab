@@ -270,10 +270,10 @@ ErrorCode closedsurface_uref_hirec_convergence_study(const char* infile, std::ve
 	geoml1errs.push_back(l1err); geoml2errs.push_back(l2err); geomlinferrs.push_back(linferr);
 	/*Perform high order projection and compute error*/
 	//initialize
+	HiReconstruction hirec(&moab,pc,meshset);
 	for(size_t ideg=0;ideg<degs2fit.size();++ideg){
 		//High order reconstruction
-		HiReconstruction hirec(&moab,pc,meshset);
-		error = hirec.reconstruct3D_surf_geom(degs2fit[ideg],interp,false,true); MB_CHK_ERR(error);
+		error = hirec.reconstruct3D_surf_geom(degs2fit[ideg],interp,true,true); MB_CHK_ERR(error);
 
 		int index=0;
 		//for debug

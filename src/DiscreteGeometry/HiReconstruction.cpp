@@ -7,6 +7,7 @@
 #endif
 #include "MBTagConventions.hpp"
 
+#define HIREC_USE_AHF
 
 #include <math.h>
 #include <deque>
@@ -48,7 +49,7 @@ namespace moab
 
 	#ifdef HIREC_USE_AHF
 		std::cout << "HIREC_USE_AHF: Initializing" << std::endl;
-		ahf = new HalfFacetRep(mbImpl,pcomm,_mesh2rec);
+		ahf = new HalfFacetRep(mbImpl,pcomm,_mesh2rec, false);
 		if(!ahf){
 			return MB_MEMORY_ALLOCATION_FAILED;
 		}
