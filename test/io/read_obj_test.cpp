@@ -93,7 +93,6 @@ void test_check_meshsets()
   Range parents, children; 
   int sense;
   int dim, num_surfs = 0, num_vols = 0;
-  int num_verts, num_tris;
 
   for (it = ent_sets.begin(); it != ent_sets.end(); ++it)
     {
