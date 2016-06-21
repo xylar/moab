@@ -441,7 +441,7 @@ ErrorCode refine_entities(Interface *mb,  ParallelComm* pc, EntityHandle fset, i
 #ifdef MOAB_HAVE_MPI
           file <<  "MESH_LEVEL_" <<l+1<<".h5m";
 #else
-          file <<  "MESH_LEVEL_" <<l+1<<".h5m";
+          file <<  "MESH_LEVEL_" <<l+1<<".vtk";
 #endif
           std::string str = file.str();
           const char* output_file = str.c_str();
