@@ -40,7 +40,7 @@
 namespace moab {
 
 static bool debug = false;
-//const int ACIS_DIMS[] = {-1, 3, -1, 2, -1, -1, 1, 0, -1, -1};
+
 const char Tqdcfr::geom_categories[][CATEGORY_TAG_SIZE] =
 {"Vertex\0", "Curve\0", "Surface\0", "Volume\0"};
 
@@ -216,7 +216,7 @@ ReaderIface* Tqdcfr::factory(Interface* iface)
 }
 
 Tqdcfr::Tqdcfr(Interface *impl)
-  : ACIS_DIMS(NULL), cubFile(NULL), globalIdTag(0), cubIdTag(0), geomTag(0), uniqueIdTag(0),
+  :  cubFile(NULL), globalIdTag(0), cubIdTag(0), geomTag(0), uniqueIdTag(0),
     blockTag(0), nsTag(0), ssTag(0), attribVectorTag(0), entityNameTag(0), categoryTag(0),
     hasMidNodesTag(0), swapForEndianness(false), int_buf(NULL), mFileSet(0),
     printedSeqWarning(false), printedElemWarning(false), acisDumpFile(NULL)
@@ -2510,11 +2510,14 @@ ErrorCode Tqdcfr::read_acis_records(const char* sat_filename)
     do {
       // Get next occurrence of '#' (record terminator)
       ret = strchr(&(char_buf[buf_pos]), '#');
-      while (ret && (unsigned int)(ret + 1 - &char_buf[0]) < bytes_left && *(ret + 1) != '\n' && *(ret + 1) != 0)
+      while (ret && (unsigned int)(ret + 1 - &char_buf[0]) < bytes_left
+          && *(ret + 1) != '\n'  && *(ret + 1) != '\r'  && *(ret + 1) != 0) // CR added for windows
         ret = strchr(ret + 1, '#');
       if (NULL != ret) {
         // Grab the string (inclusive of the record terminator and the line feed) and complete the record
         int num_chars = ret - &(char_buf[buf_pos]) + 2;
+        if (*(ret + 1) == '\r')
+          num_chars++; // add more one character for Windows CR
         this_record.att_string.append(&(char_buf[buf_pos]), num_chars);
         buf_pos += num_chars;
         process_record(this_record);

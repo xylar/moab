@@ -126,6 +126,8 @@ libmoabio_la_SOURCES = \
   ReadMCNP5.hpp \
   ReadNASTRAN.cpp \
   ReadNASTRAN.hpp \
+  ReadRTT.cpp \
+  ReadRTT.hpp \
   ReadSmf.hpp \
   ReadSmf.cpp \
   ReadSms.hpp \
@@ -143,7 +145,6 @@ libmoabio_la_SOURCES = \
   Tqdcfr.cpp \
   Tqdcfr.hpp \
   VtkUtil.cpp \
-  VtkUtil.hpp \
   WriteAns.cpp \
   WriteAns.hpp \
   WriteGMV.cpp \
@@ -166,4 +167,4 @@ libmoabio_la_SOURCES = \
   $(MOAB_CGM_SRCS)
 
 libmoabio_la_includedir = $(includedir)
-nobase_libmoabio_la_include_HEADERS = moab/ExoIIInterface.hpp
+nobase_libmoabio_la_include_HEADERS = moab/ExoIIInterface.hpp moab/VtkUtil.hpp

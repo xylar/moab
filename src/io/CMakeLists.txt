@@ -6,7 +6,7 @@ include_directories( ${MOAB_BINARY_DIR}/src
                     )
 set( MOABIO_LIBS )
 set( MOABIO_DEFINES "-DIS_BUILDING_MB" )
-set( MOABIO_INSTALL_HEADERS moab/ExoIIInterface.hpp )
+set( MOABIO_INSTALL_HEADERS moab/ExoIIInterface.hpp  moab/VtkUtil.hpp)
 set( MOABIO_LIB_SRCS
         exodus_order.h
         patran_order.h
@@ -19,6 +19,7 @@ set( MOABIO_LIB_SRCS
         ReadIDEAS.hpp     ReadIDEAS.cpp
         ReadMCNP5.hpp     ReadMCNP5.cpp
         ReadNASTRAN.hpp   ReadNASTRAN.cpp
+        ReadRTT.hpp       ReadRTT.cpp
         ReadSmf.hpp       ReadSmf.cpp
         ReadSms.hpp       ReadSms.cpp
         ReadSTL.hpp       ReadSTL.cpp
@@ -27,7 +28,7 @@ set( MOABIO_LIB_SRCS
         ReadVtk.hpp       ReadVtk.cpp
         SMF_State.hpp     SMF_State.cpp
         Tqdcfr.hpp        Tqdcfr.cpp
-        VtkUtil.hpp       VtkUtil.cpp
+                          VtkUtil.cpp
         WriteAns.hpp      WriteAns.cpp
         WriteGMV.hpp      WriteGMV.cpp
         WriteGmsh.hpp     WriteGmsh.cpp

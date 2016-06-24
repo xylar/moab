@@ -13,8 +13,8 @@
 #define DEFAULT_GEOM STRINGIFY(MESHDIR/brick.stp)
 #define DEFAULT_MESH STRINGIFY(MESHDIR/brick.h5m)
 #else
-#define DEFAULT_GEOM STRINGIFY(MESHDIR/brick.cub)
-#define DEFAULT_MESH STRINGIFY(MESHDIR/brick.cub)
+#define DEFAULT_GEOM STRINGIFY(MESHDIR/brick.facet)
+#define DEFAULT_MESH STRINGIFY(MESHDIR/brick.h5m)
 #endif
 #else
 #error Specify MESHDIR to compile test

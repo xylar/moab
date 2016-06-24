@@ -1,23 +1,22 @@
-#include "mhdf.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
-#include <H5Tpublic.h>
+#include "moab/mhdf_public.h"
 
-static int print_file_summary( struct mhdf_FileDesc* data );
+static int print_file_summary( MHDF_FileDesc* data );
 
 int main( int argc, char* argv[] )
 {
   int result;
-  mhdf_FileHandle file;
-  mhdf_Status status;
+  MHDF_FileHandle file;
+  MHDF_Status status;
   unsigned long max_id;
-  struct mhdf_FileDesc* data;
+  MHDF_FileDesc* data;
   
   if (argc != 2) {
     fprintf( stderr,"Usage: %s <filename>\n", argv[0] );
-    return 1;
+    return 0;
   }
   
   file = mhdf_openFile( argv[1], 0, &max_id, -1, &status );
@@ -26,7 +25,7 @@ int main( int argc, char* argv[] )
     return 1;
   }
   
-  data = mhdf_getFileSummary( file, H5T_NATIVE_ULONG, &status, 0 ); /* no extra set info here*/
+  data = mhdf_getFileSummary( file, H5T_NATIVE_ULONG, &status, 1 );
   if (mhdf_isError( &status )) {
     fprintf( stderr,"%s: %s\n", argv[1], mhdf_message( &status ) );
     return 1;
@@ -42,10 +41,10 @@ int main( int argc, char* argv[] )
 
 static void print_ent_desc( const char* name,
                             const char* subname,
-                            struct mhdf_EntDesc* data,
+                            MHDF_EntDesc* data,
                             const char* vals_label,
                             const char* extra_label,
-                            struct mhdf_FileDesc* all )
+                            MHDF_FileDesc* all )
 {
   int i, len = 10;
   
@@ -76,13 +75,13 @@ static void print_ent_desc( const char* name,
   printf ("\n");  
 }
 
-static void print_elem_desc( struct mhdf_ElemDesc* data, struct mhdf_FileDesc* all )
+static void print_elem_desc( MHDF_ElemDesc* data, MHDF_FileDesc* all )
 {
   const char* adj = data->have_adj ? "adjacencies" : "no adjencies";
   print_ent_desc( data->handle, data->type, &data->desc, "nodes per element", adj, all );
 }
 
-static const char* tag_type_name( enum mhdf_TagDataType type )
+static const char* tag_type_name( MHDF_TagDataType type )
 {
   static const char opaque[] = "opaque";
   static const char integer[] = "integer";
@@ -103,16 +102,16 @@ static const char* tag_type_name( enum mhdf_TagDataType type )
 }
 
 static const char* string_tag_value( const void* value, 
-                                     enum mhdf_TagDataType type,
+                                     MHDF_TagDataType type,
                                      int size )
 {
   static char buffer[1024];
-  const char* data = value;
+  const char* data = (const char*) value;
   char* offset = buffer;
   int print, i;
-  const int* intptr = value;
-  const double* dblptr = value;
-  const unsigned long* idptr = value;
+  const int* intptr = (const int *) value;
+  const double* dblptr = (const double*) value;
+  const unsigned long* idptr = (const unsigned long *) value;
   
 
   if (size <= 0) {
@@ -201,7 +200,7 @@ static const char* string_tag_value( const void* value,
   return buffer;
 }
 
-static const char* ent_desc_name( struct mhdf_FileDesc* all, int idx )
+static const char* ent_desc_name( MHDF_FileDesc* all, int idx )
 {
   static const char nodes[] = "Nodes";
   static const char sets[] = "Sets";
@@ -212,7 +211,7 @@ static const char* ent_desc_name( struct mhdf_FileDesc* all, int idx )
   return all->elems[idx].handle;
 }
 
-static void print_tag_desc( struct mhdf_TagDesc* data, struct mhdf_FileDesc* all )
+static void print_tag_desc( MHDF_TagDesc* data, MHDF_FileDesc* all )
 {
   int i, width = 8;
 
@@ -245,7 +244,7 @@ static void print_tag_desc( struct mhdf_TagDesc* data, struct mhdf_FileDesc* all
   printf( "\n" );
 }
 
-static int print_file_summary( struct mhdf_FileDesc* data )
+static int print_file_summary( MHDF_FileDesc* data )
 {
   int i;
   
@@ -259,5 +258,21 @@ static int print_file_summary( struct mhdf_FileDesc* data )
   for (i = 0; i < data->num_tag_desc; ++i)
     print_tag_desc( data->tags + i, data );
   
+  printf( "   Number partitions: %d\n", data->numEntSets[0]);
+  for (i=0; i<data->numEntSets[0]; i++)
+    printf( " set id %d value %d \n", data->defTagsEntSets[0][i],data->defTagsVals[0][i]);
+  printf( "\n   Number material sets: %d\n", data->numEntSets[1]);
+  for (i=0; i<data->numEntSets[1]; i++)
+    printf( " set id %d value %d \n", data->defTagsEntSets[1][i],data->defTagsVals[1][i]);
+  printf( "\n   Number neumann sets: %d\n", data->numEntSets[2]);
+  for (i=0; i<data->numEntSets[2]; i++)
+    printf( " set id %d value %d \n", data->defTagsEntSets[2][i],data->defTagsVals[2][i]);
+  printf( "\n   Number dirichlet sets: %d\n", data->numEntSets[3]);
+  for (i=0; i<data->numEntSets[3]; i++)
+    printf( " set id %d value %d \n", data->defTagsEntSets[3][i],data->defTagsVals[3][i]);
+  printf( "\n   Number geometry sets: %d\n", data->numEntSets[4]);
+  for (i=0; i<data->numEntSets[4]; i++)
+    printf( " set id %d value %d \n", data->defTagsEntSets[4][i],data->defTagsVals[4][i]);
+
   return 0;
 }

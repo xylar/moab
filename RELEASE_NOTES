@@ -1,11 +1,32 @@
+# Version 4.9.1:
+## Features
+  * *PR #200*: MOAB now supports auto-download and configuration/installation of several dependencies (HDF5, NetCDF and Metis/ParMetis) out of the box; Use configuration options:
+    * ```--download-hdf5 --download-netcdf --download-metis``` etc
+    * We plan to add more dependency support in future releases.
+  * *PR #187*: Removal ##`qvdual`## tool from MOAB
+  * *PR #218*: Remove ##`txt`## Reader/Writer support (this was an empty shell class)                                                                                                               
+  * A configuration suggestion script (suggest_configuration.sh) that is part of MOAB repository.
+    This script simplifies options to be used for new users.
+## Enhancements
+  * Better support for OSX, Linux and LCF systems
+  * *PR #191*: Improve augmenting ghost entities with set information (remove parallel and memory bottlenecks)
+  * *PR #194*: Generate Fortran prototypes during configuration directly (no auto-generation during build)
+  * *PR #199*: Enhanced support for dealing with polygons and polyhedra with added functionality for VTK and Exodus formats
+  * *PR #202*: AHF support for high-order elements
+  * *PR #208*: The debian support now includes Fortran and Metis dependencies
+## Fixes
+  * Several key fixes found through cppcheck and Coverity (static analysis tools)
+  * Improvements in both autotools and CMake configuration systems
+  * *PR #214, #217*: Core::connect_iterate works with non congruently allocated cells of same type.
+
 # Version 4.9.0:
-** Features
+## Features
   * PR #109: Optimized AHF data structure and scalability of parallel uniform mesh refinement now available (Major)
   * PR #140: Merge Lasso sources to MOAB completely (Major)
   * PR #137: Debian builds are available for MOAB out-of-the-box now; Check the link for updates:
              https://launchpad.net/~nschloe/+archive/ubuntu/moab-nightly/+packages (Major)
   * PR #172: Updated support to load geometry representations (CGM 15.0 + Cubit 14.9/15.0)
-** Configuration
+## Configuration
   @ CMake
     * PR #166: Missing file in CMakeLists.txt and remove exe flag from sources
     * PR #154: Don't require METIS_DIR, PARMETIS_DIR to be set
@@ -23,7 +44,7 @@
     * PR #121: Fixes for examples and upgrade makefile with options to run targets
     * PR #114: Fix compiler warnings related to HAVE_UNORDERED_MAP
     * PR #122: Enable MOAB_HAVE_VSNPRINTF for ErrorOutput.cpp
-** Fixes
+## Fixes
   @ General
     * PR #165: GenLargeExample tetra option fix       
     * PR #157: Fix metis partitioner for serial builds
@@ -57,34 +78,34 @@
     * PR #116: Major changes for large mesh example
 
 # Version 4.8.2:
-** Fixes
+## Fixes
   * PR #106: Ghosting polyhedra elements
   * PR #107: AHF polyhedra fix (triggered when configured with --enable-ahf)
   * PR #110: To fix attribute warning when loading an h5m file
   * PR #108: Addresses issues raised by faceting on models that have point curves
   * PR #113: Fix a ParallelComm issue in PGI optimization build
   * PR #117: Side number should return failure when side is -1
-** Enhancement
+## Enhancement
   * PR #89: Writing Dense tags in parallel (minor)
   * PR #104: Install configuration header to decipher dependencies (major)
   * PR #115: Partitioning with Metis (major)
 
 # Version 4.8.1:
-** Fixes
+## Fixes
   * PR #97: Support read and write of point clouds and free nodes in vtk format
   * PR #103: Add explicitly created skin entities to the passed non-null meshset. Previously, this was only available from root set
   * GMSH and VTK reader fixes
   * Several minor compiler warnings removed
-** Enhancement
+## Enhancement
   * PR #101: Support computation of surface normals for different entity types
 
 # Version 4.8.0:
-** Features
+## Features
   * UMR: Implemented the uniform mesh refinement capabilities for different entity types for degrees (2,3,5). Tools to load a MOAB mesh and uniformly refine it based on user inputs is now available
   * Coupler: Improvements in scalability of the spatial coupler and improved capabilities to perform global and subset based conservation/normalization
   * Verdict: A new set of API functions to measure quality metrics for MOAB entities (based on Verdict library)
   * Enhanced error handling support with clean stack traces in both serial and parallel are now provided natively (examples included)
-** Build
+## Build
   * Considerably improved CMake-based build support for linux/OSX/Windows
   * Updated autoconf based build system to address all warnings in different architectures and more robust configuration
       @ Improved support for OSX Mavericks
@@ -99,8 +120,7 @@
 * Several updates to the User and Developer guide in documentation to detail aspects of the new features (UMR, Verdict, Error handling)
 * Overall enhanced Windows support (VS2008) (contributions by Kitware)
 
-Lasso
------
+# Lasso
 * Several code restructuring to conform library better to SIGMA stack of tools
 * Updates to the autoconf build system to make it more robust
 * Warning fixes for Clang/PGI/GNU/Intel
@@ -143,8 +163,7 @@ Lasso
 * New method in MergeMesh that allows stitching a mesh based on an integer tag defined on vertices (GLOBAL_ID)
 * Introduced interface to delete entities in ParallelComm
 
-Lasso
------
+# Lasso
 * Miscellaneous warning fixes exposed through Buildbot
 * Fix some stack smashing bugs
 * Added [Doxygen support][http://ftp.mcs.anl.gov/pub/fathom/lasso-docs] with nightly API built from repository
