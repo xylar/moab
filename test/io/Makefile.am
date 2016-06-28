@@ -56,7 +56,8 @@ TESTS = readutil_test \
 	$(CCMIO_TEST) \
 	$(CGM_TEST) \
 	$(CGNS_TEST) \
-	readrtt_test
+	readrtt_test \
+	read_obj_test
 
 check_PROGRAMS = $(TESTS)
 
@@ -93,6 +94,7 @@ read_cgm_facet_test_CXXFLAGS = $(CGM_CPPFLAGS) $(CGM_LIBS) $(CXXFLAGS)
 readutil_test_SOURCES = $(srcdir)/../TestUtil.hpp readutil_test.cpp
 cgns_test_SOURCES=$(srcdir)/../TestUtil.hpp cgns_test.cpp
 readrtt_test_SOURCES = $(srcdir)/../TestUtil.hpp readrtt_test.cpp
+read_obj_test_SOURCES = $(srcdir)/../TestUtil.hpp read_obj_test.cpp
 
 MOSTLYCLEANFILES = dumped_acis.sat \
                    gcrm.h5m \
