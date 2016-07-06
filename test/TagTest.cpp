@@ -437,13 +437,14 @@ void test_get_set( const char* name,
       // try again with NULL size pointer
     list[0] = 0;
     rval = mb.tag_get_by_ptr( tag, &one_handle, 1, &list[0] );
+    CHECK_ERR( rval );
+    CHECK( !memcmp( some_values, list[0], bytes ) );
   }
   else {
     rval = mb.tag_get_data( tag, &one_handle, 1, &data[0] );
-    list[0] = &data[0];
+    CHECK_ERR( rval );
+    CHECK( !memcmp( some_values, &data[0], bytes ) );
   }
-  CHECK_ERR( rval );
-  CHECK( !memcmp( some_values, list[0], bytes ) );
 
   
     // try getting/setting for arrays of handles
@@ -573,9 +574,9 @@ void test_get_set( const char* name,
     // Check that handles for other entities didn't change.
     
     // Ignore get_by_pointer/set_by_pointer flags from here on.
-    // We've estabilished (hopefully) that both methods work in
+    // We've established (hopefully) that both methods work in
     // the above code.  Now we just want to verify correct values,
-    // regarless of the API used to get them.
+    // regardless of the API used to get them.
   
     // one handle
   data.resize( bytes );

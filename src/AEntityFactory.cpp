@@ -804,11 +804,6 @@ ErrorCode AEntityFactory::get_down_adjacency_elements_poly(EntityHandle source_e
   ErrorCode result = get_adjacencies(source_entity, 0, false, vertex_array);
   if (MB_SUCCESS != result) return result;
 
-  if (target_dimension == 0) {
-    target_entities.insert( target_entities.end(), vertex_array.begin(), vertex_array.end() );
-    return MB_SUCCESS;
-  }
-
   ErrorCode tmp_result;
   if (source_type == MBPOLYGON) {
     result = MB_SUCCESS;

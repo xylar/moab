@@ -28,7 +28,8 @@ EntityID SweptElementData::calc_num_entities(EntityHandle start_handle,
 {
   size_t result = 1;
   switch (CN::Dimension(TYPE_FROM_HANDLE(start_handle))) {
-    default: result = 0; assert( false ); 
+    default: result = 0; assert( false );
+      break;
     case 3: result *= krange;
     case 2: result *= jrange;
     case 1: result *= irange;

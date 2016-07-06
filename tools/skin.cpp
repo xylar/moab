@@ -426,14 +426,14 @@ void get_time_mem(double &tot_time, double &tot_mem)
     char file_str[4096], dum_str[4096];
     int file_ptr = open("/proc/self/stat", O_RDONLY);
     int file_len = read(file_ptr, file_str, sizeof(file_str) - 1);
-    if (file_len == 0) {
+    if (file_len <= 0) {
       close(file_ptr);
       return;
     }
 
     close(file_ptr);
     file_str[file_len] = '\0';
-      // read the preceeding fields and the ones we really want...
+      // read the preceding fields and the ones we really want...
     int dum_int;
     unsigned int dum_uint, vm_size, rss;
     int num_fields = sscanf(file_str, 

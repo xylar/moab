@@ -383,7 +383,12 @@ void verdict_unit_tests()
 
           cout << "\t #" << j+1 << " TESTING :: " << QualityType_ToString(testcases[i].function[j]) << endl;
           merr = vw->quality_measure(dummy, testcases[i].function[j], answer_from_lib,
-                                      testcases[i].num_nodes, testcases[i].etype, testcases[i].coords);MB_CHK_ERR_RET(merr);
+                                      testcases[i].num_nodes, testcases[i].etype, testcases[i].coords);
+          if (MB_SUCCESS != merr) {
+            delete vw;
+            delete iface;
+            MB_SET_ERR_RET("Failed to compute the quality for an element");
+          }
 
           sprintf(exponent, "%e", testcases[i].answer[j]);
           base_ptr = strstr( exponent, "e" );

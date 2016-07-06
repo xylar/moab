@@ -29,7 +29,8 @@ EntityID ScdElementData::calc_num_entities(EntityHandle start_handle,
 {
   size_t result = 1;
   switch (CN::Dimension(TYPE_FROM_HANDLE(start_handle))) {
-    default: result = 0; assert( false ); 
+    default: result = 0; assert( false );
+      break;
     case 3: result *= krange;
     case 2: result *= (is_periodic && is_periodic[1] ? (jrange+1) : jrange);
     case 1: result *= (is_periodic && is_periodic[0] ? (irange+1) : irange);

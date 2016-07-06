@@ -69,7 +69,7 @@ public:
 };
 
 ProgOptions::ProgOptions( const std::string& helpstring, const std::string& briefhelp ) :
-    expect_optional_args(false)
+    expect_optional_args(false), optional_args_position(0), max_optional_args(0)
 {
   brief_help = briefhelp;
   if (!helpstring.empty())

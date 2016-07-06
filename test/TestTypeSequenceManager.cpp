@@ -458,29 +458,33 @@ void test_insert_sequence_nomerge()
   SequenceData *data1 = new SequenceData( 0, 3, 7 );
   DumSeq* seq = new DumSeq( data1 );
   ErrorCode rval = seqman.insert_sequence( seq );
+  CHECK_ERR(rval);
   if (MB_SUCCESS != rval) {
     delete seq;
     delete data1;
+    return;
   }
-  CHECK_ERR( rval );
   
     // Insert an EntitySequence with additional room on both ends of
     // the SequenceData
   SequenceData *data2 = new SequenceData( 0, 100, 999 );
   seq = new DumSeq( 200, 100, data2 );
   rval = seqman.insert_sequence( seq );
+  CHECK_ERR(rval);
   if (MB_SUCCESS != rval) {
     delete seq;
     delete data2;
+    return;
   }
-  CHECK_ERR( rval );
   
     // Insert another EntitySequence sharing the previous SequenceData
   seq = new DumSeq( 400, 100, data2 );
   rval = seqman.insert_sequence( seq );
-  if (MB_SUCCESS != rval)
+  CHECK_ERR(rval);
+  if (MB_SUCCESS != rval) {
     delete seq;
-  CHECK_ERR( rval );
+    return;
+  }
   
     
       // Setup complete, begin tests
@@ -511,7 +515,7 @@ void test_insert_sequence_nomerge()
   delete seq;
   delete data;
   
-    // Make sure we're starting out with what we exoect
+    // Make sure we're starting out with what we expect
   EntityHandle exp1[][2] = { { 3, 7}, {200, 299}, {400, 499} };
   CHECK( seqman_equal( exp1, 3, seqman ) );
   
@@ -525,12 +529,12 @@ void test_insert_sequence_nomerge()
   EntityHandle exp3[][2] = { { 3, 7}, {200, 299}, {400, 499}, {600, 699}, {2000, 2001} };
   CHECK( seqman_equal( exp3, 5, seqman ) );
   
-    // Test abutts end of exising data
+    // Test abutts end of existing data
   CHECK_ERR( insert_seq( seqman, 1000, 6, new SequenceData( 0, 1000, 1005 ), true ) );
   EntityHandle exp4[][2] = { { 3, 7}, {200, 299}, {400, 499}, {600, 699}, {1000,1005}, {2000, 2001} };
   CHECK( seqman_equal( exp4, 6, seqman ) );
  
-    // Test abutts beginning of exising data
+    // Test abutts beginning of existing data
   CHECK_ERR( insert_seq( seqman, 50, 50, new SequenceData( 0, 50, 99 ), true ) );
   EntityHandle exp5[][2] = { { 3, 7}, {50, 99}, {200, 299}, {400, 499}, {600, 699}, {1000,1005}, {2000, 2001} };
   CHECK( seqman_equal( exp5, 7, seqman ) );
@@ -574,11 +578,18 @@ void test_replace_subsequence()
   ErrorCode rval;
   TypeSequenceManager seqman;
 
-    // create an intial set
+    // create an initial set
   SequenceData* data1 = new SequenceData( 0, 51, 950 );
-  CHECK_ERR( insert_seq( seqman, 101, 100, data1, true ) );
-  CHECK_ERR( insert_seq( seqman, 301, 300, data1 ) );
-  CHECK_ERR( insert_seq( seqman, 701, 100, data1 ) );
+  rval = insert_seq(seqman, 101, 100, data1, true);
+  CHECK_ERR(rval);
+  if (MB_SUCCESS != rval) {
+    // data1 has been deleted by insert_seq call above
+    return;
+  }
+  rval = insert_seq(seqman, 301, 300, data1);
+  CHECK_ERR(rval);
+  rval = insert_seq(seqman, 701, 100, data1);
+  CHECK_ERR(rval);
   
     // try a sequence that is outside all existing data
   SequenceData* data = new SequenceData( 0, 10, 20 );
@@ -629,11 +640,12 @@ void test_replace_subsequence()
   data = new SequenceData( 0, 101, 105 );
   seq = new DumSeq( data );
   rval = seqman.replace_subsequence( seq, 0, 0 );
+  CHECK_ERR(rval);
   if (MB_SUCCESS != rval) {
     delete seq;
     delete data;
+    return;
   }
-  CHECK_ERR( rval );
   EntityHandle exp2[][2] = { {101, 105}, {106, 200}, {301, 600}, {701, 800} };
   CHECK( seqman_equal( exp2, 4, seqman ) );
   
@@ -641,11 +653,12 @@ void test_replace_subsequence()
   data = new SequenceData( 0, 750, 800 );
   seq = new DumSeq( data );
   rval = seqman.replace_subsequence( seq, 0, 0 );
+  CHECK_ERR(rval);
   if (MB_SUCCESS != rval) {
     delete seq;
     delete data;
+    return;
   }
-  CHECK_ERR( rval );
   EntityHandle exp3[][2] = { {101, 105}, {106, 200}, {301, 600}, {701, 749}, {750,800} };
   CHECK( seqman_equal( exp3, 5, seqman ) );
   
@@ -653,11 +666,12 @@ void test_replace_subsequence()
   data = new SequenceData( 0, 400, 499 );
   seq = new DumSeq( data );
   rval = seqman.replace_subsequence( seq, 0, 0 );
+  CHECK_ERR(rval);
   if (MB_SUCCESS != rval) {
     delete seq;
     delete data;
+    return;
   }
-  CHECK_ERR( rval );
   EntityHandle exp4[][2] = { {101, 105}, {106, 200}, {301, 399}, {400,499}, {500,600}, {701, 749}, {750,800} };
   CHECK( seqman_equal( exp4, 7, seqman ) );
 }
@@ -839,13 +853,26 @@ void test_is_free_handle()
   // Construct a TypeSequenceManager with the following data:
   // EntitySequence: |[1,500]|   |[601,1000]|       |[2500,2599]|    |[2800,2999]|
   // SequenceData:   |       [1,1000]       |    |         [2001,3000]            |
+  ErrorCode rval;
   TypeSequenceManager seqman;
   SequenceData* data1 = new SequenceData(0,   1,1000);
   SequenceData* data2 = new SequenceData(0,2001,3000);
-  CHECK_ERR( insert_seq( seqman,    1, 500, data1, true  ) );
-  CHECK_ERR( insert_seq( seqman,  601, 400, data1, false ) );
-  CHECK_ERR( insert_seq( seqman, 2500, 100, data2, true  ) );
-  CHECK_ERR( insert_seq( seqman, 2800, 200, data2, false ) );
+  rval = insert_seq(seqman, 1, 500, data1, true);
+  CHECK_ERR(rval);
+  if (MB_SUCCESS != rval) {
+    // data1 has been deleted by insert_seq call above
+    return;
+  }
+  rval = insert_seq(seqman, 601, 400, data1, false);
+  CHECK_ERR(rval);
+  rval = insert_seq(seqman, 2500, 100, data2, true);
+  CHECK_ERR(rval);
+  if (MB_SUCCESS != rval) {
+    // data2 has been deleted by insert_seq call above
+    return;
+  }
+  rval = insert_seq(seqman, 2800, 200, data2, false);
+  CHECK_ERR(rval);
   
   // Begin tests
   TypeSequenceManager::iterator seq;

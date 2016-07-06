@@ -73,7 +73,7 @@ public:
    * norm={A,B,C} and coeff=-D.
    */
   struct Plane {
-    Plane() {}
+    Plane() : coeff(0.0) {}
     Plane( const double n[3], double d ) : coeff(d)
       { norm[0] = n[0]; norm[1] = n[1]; norm[2] = n[2]; }
       /** a x + b y + c z + d = 0 */

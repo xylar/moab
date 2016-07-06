@@ -538,7 +538,7 @@ namespace moab
                *tree_node < startSetHandle || *tree_node - startSetHandle > myTree.size()) 
         return MB_FAILURE;
 
-      box = myTree[tree_node ? *tree_node-startSetHandle : 0].box;
+      box = myTree[*tree_node - startSetHandle].box;
       return MB_SUCCESS;
     }
 

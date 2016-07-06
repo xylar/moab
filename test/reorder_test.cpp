@@ -309,7 +309,7 @@ void check_order_by_sets_and_adj()
   }
   
   // Get ordering assigned by set containment
-  Tag neworder;
+  Tag neworder = 0;
   ReorderTool tool(mbcore);
   rval = tool.handle_order_from_sets_and_adj( sets, neworder );
   CHECK_ERR(rval);

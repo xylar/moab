@@ -115,7 +115,7 @@ int main(int argc, char **argv)
                     << *leafs_it << " "
                     << *dep_it << " "
                     << *int_it << " "
-                    << (*int_it)*(*int_it)*(dim == 3 ? *int_it : 1) << " "
+                    << (*int_it)*(*int_it)*(*int_it) << " "
                     << cpu_time << " "
                     << perc_outside << " ";
 
@@ -160,7 +160,10 @@ ErrorCode test_locator(SpatialLocator &sl, int npoints, double rtol, double &cpu
   
     // call spatial locator to locate points
   ErrorCode rval = sl.locate_points(test_pts[0].array(), npoints, &ents[0], test_res[0].array(), &is_in[0], rtol, 0.0);
-  if (MB_SUCCESS != rval) return rval;
+  if (MB_SUCCESS != rval) {
+    delete [] is_in;
+    return rval;
+  }
 
   cpu_time = ct.time_elapsed();
 

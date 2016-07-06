@@ -35,7 +35,7 @@ struct CartVect3D {
 
     double x, y, z;
     
-    CartVect3D() {}
+    CartVect3D() : x(0.0), y(0.0), z(0.0) {}
     
     CartVect3D( double x_, double y_, double z_ )
       : x(x_), y(y_), z(z_) {}
@@ -312,7 +312,7 @@ int main(int argc, char* argv[])
   }
   
     // Rotate points such that the projection into the view plane
-    // can be accomplished by disgarding the 'z' coordinate of each
+    // can be accomplished by discarding the 'z' coordinate of each
     // point.
   
   std::cerr << "Plane normal: [" << normal.x << ' ' << normal.y << ' ' << normal.z << ']' << std::endl;
@@ -396,7 +396,7 @@ void write_eps( std::ostream& s, const std::vector<CartVect3D>& coords, int id )
     box_min( min, *iter );
   }
   
-    // Calcuate translation to page coordiantes
+    // Calculate translation to page coordinates
   CartVect3D offset = CartVect3D(0,0,0) - min;
   CartVect3D scale  = max - min;
   scale.x = X_MAX / scale.x;

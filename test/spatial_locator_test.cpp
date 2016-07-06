@@ -125,7 +125,7 @@ void test_locator(SpatialLocator *sl)
 
   double denom = 1.0 / (double)RAND_MAX;
   int is_in;
-  EntityHandle ent;
+  EntityHandle ent = 0;
   ErrorCode rval;
   for (int i = 0; i < npoints; i++) {    
       // generate a small number of random point to test

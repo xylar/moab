@@ -295,7 +295,7 @@ void test_valid_tree( AdaptiveKDTree* tool, EntityHandle root,
   do {
     double dep;
     rval = options.get_real_option("MAX_DEPTH", dep);
-    CHECK(MB_ENTITY_NOT_FOUND || iter.depth() <= tool->get_max_depth());
+    CHECK(MB_ENTITY_NOT_FOUND == rval || iter.depth() <= tool->get_max_depth());
     
     Range tris;
     CHECK( tool->moab()->get_entities_by_type( iter.handle(), MBTRI, tris ) == MB_SUCCESS );

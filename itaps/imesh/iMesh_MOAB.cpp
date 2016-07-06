@@ -291,17 +291,18 @@ extern "C" {
         retval = MPI_Init(&argc, &argv);
         assert(MPI_SUCCESS == retval);
       }
-      *mbi = new MBiMesh(NULL);
+      *mbi = new (std::nothrow) MBiMesh(NULL);
 #else
         //mError->set_last_error( "PARALLEL option not valid, this instance"
         //                        " compiled for serial execution.\n" );
+      *mbi = new (std::nothrow) MBiMesh(NULL);
       *err = (*mbi)->set_last_error(MB_NOT_IMPLEMENTED,
                                     "Not configured with parallel support");
       return;
 #endif
     }
     else {
-      *mbi = new MBiMesh(NULL);
+      *mbi = new (std::nothrow) MBiMesh(NULL);
     }
     if (NULL == *mbi) {
       *err = iBase_FAILURE;
@@ -738,6 +739,8 @@ extern "C" {
     *adjacentEntityHandles_size = prev_off;
 
     if (*adjacentEntityHandles_size > array_alloc) {
+      if (allocated_array)
+        free(array);
       RETURN(iBase_BAD_ARRAY_SIZE);
     }
     else if (allocated_array) {
@@ -2765,10 +2768,6 @@ extern "C" {
           (ENTITY_HANDLE(entity_set_handle), MBENTITYSET, num_sets, recursive);
         *num_topo -= num_sets;
       }
-    }
-    else if (iMesh_SEPTAHEDRON == entity_topology) {
-      result = MB_SUCCESS;
-      *num_topo = 0;
     }
     else {
       result = MOABI->get_number_entities_by_type(ENTITY_HANDLE(entity_set_handle),

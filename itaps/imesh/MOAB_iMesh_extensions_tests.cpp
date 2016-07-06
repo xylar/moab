@@ -65,6 +65,7 @@ void test_tag_iterate()
   }
   iMesh_endEntArrIter(mesh, iter, &err);
   CHECK_EQUAL( iBase_SUCCESS, err );
+  iter = 0; // iMesh_endEntArrIter frees iter
   
     /* get an iterator over the set with two subranges, and check tag iterator for that */
   iMesh_initEntArrIter( mesh, entset, iBase_ALL_TYPES, iMesh_ALL_TOPOLOGIES, 6,

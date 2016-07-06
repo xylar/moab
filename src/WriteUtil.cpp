@@ -922,10 +922,8 @@ ErrorCode WriteUtil::get_entity_list_pointers(EntityHandle const* entities,
       return MB_TYPE_OUT_OF_RANGE;
     }
   }
-  if (MB_FAILURE == rval)
-    return MB_SUCCESS; // At end of list
-  else
-    return rval;
+
+  return MB_SUCCESS;
 }
 
 } // namespace moab

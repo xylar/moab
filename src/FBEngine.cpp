@@ -546,8 +546,7 @@ ErrorCode FBEngine::getEntBoundBox(EntityHandle gent, double* min_x,
     max_y = min_y;
     max_z = min_z;
   } else if (type == 1) {
-    rval = MB_FAILURE;
-    MBERRORR(rval, "iGeom_getEntBoundBox is not supported for Edge entity type.");
+    MBERRORR(MB_FAILURE, "iGeom_getEntBoundBox is not supported for Edge entity type.");
   } else if (type == 2 || type == 3) {
 
     EntityHandle root;
@@ -630,8 +629,7 @@ ErrorCode FBEngine::getVtxCoord(EntityHandle vertex_handle, double * x0,
   MBERRORR(rval, "Failed to get entity type in getVtxCoord.");
 
   if (type != 0) {
-    rval = MB_FAILURE;
-    MBERRORR(rval, "Entity is not a vertex type.");
+    MBERRORR(MB_FAILURE, "Entity is not a vertex type.");
   }
 
   Range entities;

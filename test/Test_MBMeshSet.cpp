@@ -1225,26 +1225,38 @@ void test_iterators(unsigned int flags, bool test_type, bool test_dim)
   CHECK_ERR(rval);
 
     // Test iteration over empty set
-  SetIterator *iter;
+  SetIterator *iter = NULL;
   rval = mb.create_set_iterator(set, MBMAXTYPE, -1, 1, false, iter);
   CHECK_ERR(rval);
-  test_iterator(mb, iter, set, MBMAXTYPE, -1);
-  delete iter;
+  if (NULL != iter) {
+    test_iterator(mb, iter, set, MBMAXTYPE, -1);
+    delete iter;
+    iter = NULL;
+  }
   
   rval = mb.create_set_iterator(set, MBMAXTYPE, -1, 100, false, iter);
   CHECK_ERR(rval);
-  test_iterator(mb, iter, set, MBMAXTYPE, -1);
-  delete iter;
+  if (NULL != iter) {
+    test_iterator(mb, iter, set, MBMAXTYPE, -1);
+    delete iter;
+    iter = NULL;
+  }
   
   rval = mb.create_set_iterator(set, MBMAXTYPE, 0, 1, false, iter);
   CHECK_ERR(rval);
-  test_iterator(mb, iter, set, MBMAXTYPE, 0);
-  delete iter;
+  if (NULL != iter) {
+    test_iterator(mb, iter, set, MBMAXTYPE, 0);
+    delete iter;
+    iter = NULL;
+  }
   
   rval = mb.create_set_iterator(set, MBMAXTYPE, 3, 1, false, iter);
   CHECK_ERR(rval);
-  test_iterator(mb, iter, set, MBMAXTYPE, 3);
-  delete iter;
+  if (NULL != iter) {
+    test_iterator(mb, iter, set, MBMAXTYPE, 3);
+    delete iter;
+    iter = NULL;
+  }
   
     // Add stuff to set
   Range range;
@@ -1266,79 +1278,114 @@ void test_iterators(unsigned int flags, bool test_type, bool test_dim)
     // chunk size 1
   rval = mb.create_set_iterator(set, etype, edim, 1, false, iter);
   CHECK_ERR(rval);
-  test_iterator(mb, iter, set, etype, edim);
-  delete iter;
+  if (NULL != iter) {
+    test_iterator(mb, iter, set, etype, edim);
+    delete iter;
+    iter = NULL;
+  }
 
     // chunk size 3
   rval = mb.create_set_iterator(set, etype, edim, 3, false, iter);
   CHECK_ERR(rval);
-  test_iterator(mb, iter, set, etype, edim);
-  delete iter;
+  if (NULL != iter) {
+    test_iterator(mb, iter, set, etype, edim);
+    delete iter;
+    iter = NULL;
+  }
 
     // chunk size 11
   rval = mb.create_set_iterator(set, etype, edim, 11, false, iter);
   CHECK_ERR(rval);
-  test_iterator(mb, iter, set, etype, edim);
-  delete iter;
+  if (NULL != iter) {
+    test_iterator(mb, iter, set, etype, edim);
+    delete iter;
+    iter = NULL;
+  }
 
     // chunk size 100
   rval = mb.create_set_iterator(set, etype, edim, 100, false, iter);
   CHECK_ERR(rval);
-  test_iterator(mb, iter, set, etype, edim);
-  delete iter;
+  if (NULL != iter) {
+    test_iterator(mb, iter, set, etype, edim);
+    delete iter;
+    iter = NULL;
+  }
 
   if (test_type) {
       // chunk size 1, all ents
     rval = mb.create_set_iterator(set, MBMAXTYPE, -1, 1, false, iter);
     CHECK_ERR(rval);
-    test_iterator(mb, iter, set, MBMAXTYPE, -1);
-    delete iter;
+    if (NULL != iter) {
+      test_iterator(mb, iter, set, MBMAXTYPE, -1);
+      delete iter;
+      iter = NULL;
+    }
 
       // chunk size 3, all ents
     rval = mb.create_set_iterator(set, MBMAXTYPE, -1, 3, false, iter);
     CHECK_ERR(rval);
-    test_iterator(mb, iter, set, MBMAXTYPE, -1);
-    delete iter;
+    if (NULL != iter) {
+      test_iterator(mb, iter, set, MBMAXTYPE, -1);
+      delete iter;
+      iter = NULL;
+    }
 
       // chunk size large, all ents
     rval = mb.create_set_iterator(set, MBMAXTYPE, -1, 100000, false, iter);
     CHECK_ERR(rval);
-    test_iterator(mb, iter, set, MBMAXTYPE, -1);
-    delete iter;
+    if (NULL != iter) {
+      test_iterator(mb, iter, set, MBMAXTYPE, -1);
+      delete iter;
+      iter = NULL;
+    }
 
     etype = MBEDGE;
       // edges, chunk size 1
     rval = mb.create_set_iterator(set, etype, edim, 1, false, iter);
     CHECK_ERR(rval);
-    test_iterator(mb, iter, set, etype, edim);
-    delete iter;
+    if (NULL != iter) {
+      test_iterator(mb, iter, set, etype, edim);
+      delete iter;
+      iter = NULL;
+    }
 
       // edges, chunk size 100
     rval = mb.create_set_iterator(set, etype, edim, 100, false, iter);
     CHECK_ERR(rval);
-    test_iterator(mb, iter, set, etype, edim);
-    delete iter;
+    if (NULL != iter) {
+      test_iterator(mb, iter, set, etype, edim);
+      delete iter;
+      iter = NULL;
+    }
 
     etype = MBHEX;
     
       // hexes, chunk size 1
     rval = mb.create_set_iterator(set, etype, edim, 1, false, iter);
     CHECK_ERR(rval);
-    test_iterator(mb, iter, set, etype, edim);
-    delete iter;
+    if (NULL != iter) {
+      test_iterator(mb, iter, set, etype, edim);
+      delete iter;
+      iter = NULL;
+    }
 
       // hexes, chunk size 3
     rval = mb.create_set_iterator(set, etype, edim, 3, false, iter);
     CHECK_ERR(rval);
-    test_iterator(mb, iter, set, etype, edim);
-    delete iter;
-
+    if (NULL != iter) {
+      test_iterator(mb, iter, set, etype, edim);
+      delete iter;
+      iter = NULL;
+    }
 
       // hexes, chunk size 1000
     rval = mb.create_set_iterator(set, etype, edim, 1000, false, iter);
     CHECK_ERR(rval);
-    test_iterator(mb, iter, set, etype, edim);
-    delete iter;
+    if (NULL != iter) {
+      test_iterator(mb, iter, set, etype, edim);
+      delete iter;
+      iter = NULL;
+    }
   }
 }
 

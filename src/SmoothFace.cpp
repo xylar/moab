@@ -44,7 +44,9 @@ bool debug_surf_eval1 = false;
 
 SmoothFace::SmoothFace(Interface * mb, EntityHandle surface_set,
     GeomTopoTool * gTool) :
-  _mb(mb), _set(surface_set), _my_geomTopoTool(gTool), _evaluationsCounter(0)
+  _markTag(0), _gradientTag(0), _tangentsTag(0), _edgeCtrlTag(0),
+  _facetCtrlTag(0), _facetEdgeCtrlTag(0), _planeTag(0),
+  _mb(mb), _set(surface_set), _my_geomTopoTool(gTool), _obb_root(0), _evaluationsCounter(0)
 {
   //_smooth_face = NULL;
   //_mbOut->create_meshset(MESHSET_SET, _oSet); //will contain the
