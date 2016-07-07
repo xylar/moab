@@ -1547,7 +1547,9 @@ ErrorCode AEntityFactory::notify_delete_entity(EntityHandle entity)
   if (TYPE_FROM_HANDLE(entity) == MBVERTEX) {
     std::vector<EntityHandle> adj_entities;
     for (int dim = 1; dim < 4; ++dim) {
-      get_adjacencies(entity, dim, false, adj_entities);
+      ErrorCode rval = get_adjacencies(entity, dim, false, adj_entities);
+      if (rval != MB_SUCCESS)
+        return rval;
       if (!adj_entities.empty())
         return MB_FAILURE;
     }

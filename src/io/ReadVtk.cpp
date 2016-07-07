@@ -95,9 +95,13 @@ public:
     this->mesh = iface;
     std::vector<unsigned char> default_val;
     default_val.resize(sz * per_elem);
-    this->mesh->tag_get_handle(tag_name.c_str(), per_elem, mb_type, this->tag,
-                               MB_TAG_SPARSE | MB_TAG_BYTES | MB_TAG_CREAT,
-                               &default_val[0]);
+    ErrorCode rval;
+    rval = this->mesh->tag_get_handle(
+        tag_name.c_str(), per_elem, mb_type, this->tag,
+        MB_TAG_SPARSE | MB_TAG_BYTES | MB_TAG_CREAT,
+        &default_val[0]
+        );
+    MBERRORR(rval, "can't tag_get_handle");
   }
 
   void add_entity(EntityHandle ent, const unsigned char* bytes, size_t len)

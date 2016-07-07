@@ -230,14 +230,19 @@ Tqdcfr::Tqdcfr(Interface *impl)
   for (EntityType this_type = MBVERTEX; this_type < MBMAXTYPE; this_type++)
     currElementIdOffset[this_type] = -1;
 
-  mdbImpl->tag_get_handle(MATERIAL_SET_TAG_NAME, 1, MB_TYPE_INTEGER, blockTag);
-  mdbImpl->tag_get_handle(DIRICHLET_SET_TAG_NAME, 1, MB_TYPE_INTEGER, nsTag);
-  mdbImpl->tag_get_handle(NEUMANN_SET_TAG_NAME, 1, MB_TYPE_INTEGER, ssTag);
+  ErrorCode rval;
+  rval = mdbImpl->tag_get_handle(MATERIAL_SET_TAG_NAME, 1, MB_TYPE_INTEGER, blockTag);
+  MBERRORR(rval, "Failed to tag_get_handle.");
+  rval = mdbImpl->tag_get_handle(DIRICHLET_SET_TAG_NAME, 1, MB_TYPE_INTEGER, nsTag);
+  MBERRORR(rval, "Failed to tag_get_handle.");
+  rval = mdbImpl->tag_get_handle(NEUMANN_SET_TAG_NAME, 1, MB_TYPE_INTEGER, ssTag);
+  MBERRORR(rval, "Failed to tag_get_handle.");
 
   if (0 == entityNameTag) {
-    mdbImpl->tag_get_handle(NAME_TAG_NAME, NAME_TAG_SIZE,
-                            MB_TYPE_OPAQUE, entityNameTag,
-                            MB_TAG_SPARSE | MB_TAG_CREAT);
+    rval = mdbImpl->tag_get_handle(NAME_TAG_NAME, NAME_TAG_SIZE,
+                                   MB_TYPE_OPAQUE, entityNameTag,
+                                   MB_TAG_SPARSE | MB_TAG_CREAT);
+    MBERRORR(rval, "Failed to tag_get_handle.");
   }
 
   cubMOABVertexMap = NULL;
@@ -254,13 +259,17 @@ Tqdcfr::~Tqdcfr()
     // get all sets, and release the string vectors
     Range allSets; // although only geom sets should have these attributes
     // can't error in a destructor
-    mdbImpl->get_entities_by_type(0, MBENTITYSET, allSets);
+    ErrorCode rval = mdbImpl->get_entities_by_type(0, MBENTITYSET, allSets);
+    if (rval != MB_SUCCESS)
+      std::cerr << "WARNING: Could not get_entities_by_type" << std::endl;
     for (Range::iterator sit=allSets.begin(); sit!=allSets.end(); ++sit)
     {
       EntityHandle gset=*sit;
       std::vector<std::string> *dum_vec;
       // can't error in a destructor
-      mdbImpl->tag_get_data(attribVectorTag, &gset, 1, &dum_vec);
+      rval = mdbImpl->tag_get_data(attribVectorTag, &gset, 1, &dum_vec);
+      if (rval != MB_SUCCESS)
+        std::cerr << "WARNING: Could not tag_get_data" << std::endl;
       if(NULL!=dum_vec)
         delete dum_vec; //
     }
