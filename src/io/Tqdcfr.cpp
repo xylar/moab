@@ -232,17 +232,17 @@ Tqdcfr::Tqdcfr(Interface *impl)
 
   ErrorCode rval;
   rval = mdbImpl->tag_get_handle(MATERIAL_SET_TAG_NAME, 1, MB_TYPE_INTEGER, blockTag);
-  MBERRORR(rval, "Failed to tag_get_handle.");
+  MB_CHK_SET_ERR_RET(rval, "Failed to tag_get_handle.");
   rval = mdbImpl->tag_get_handle(DIRICHLET_SET_TAG_NAME, 1, MB_TYPE_INTEGER, nsTag);
-  MBERRORR(rval, "Failed to tag_get_handle.");
+  MB_CHK_SET_ERR_RET(rval, "Failed to tag_get_handle.");
   rval = mdbImpl->tag_get_handle(NEUMANN_SET_TAG_NAME, 1, MB_TYPE_INTEGER, ssTag);
-  MBERRORR(rval, "Failed to tag_get_handle.");
+  MB_CHK_SET_ERR_RET(rval, "Failed to tag_get_handle.");
 
   if (0 == entityNameTag) {
     rval = mdbImpl->tag_get_handle(NAME_TAG_NAME, NAME_TAG_SIZE,
                                    MB_TYPE_OPAQUE, entityNameTag,
                                    MB_TAG_SPARSE | MB_TAG_CREAT);
-    MBERRORR(rval, "Failed to tag_get_handle.");
+    MB_CHK_SET_ERR_RET(rval, "Failed to tag_get_handle.");
   }
 
   cubMOABVertexMap = NULL;

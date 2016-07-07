@@ -101,7 +101,7 @@ public:
         MB_TAG_SPARSE | MB_TAG_BYTES | MB_TAG_CREAT,
         &default_val[0]
         );
-    MBERRORR(rval, "can't tag_get_handle");
+    MB_CHK_SET_ERR_RET(rval, "can't tag_get_handle");
   }
 
   void add_entity(EntityHandle ent, const unsigned char* bytes, size_t len)
