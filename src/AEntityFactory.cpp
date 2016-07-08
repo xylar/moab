@@ -1548,7 +1548,7 @@ ErrorCode AEntityFactory::notify_delete_entity(EntityHandle entity)
     std::vector<EntityHandle> adj_entities;
     for (int dim = 1; dim < 4; ++dim) {
       ErrorCode rval = get_adjacencies(entity, dim, false, adj_entities);
-      if (rval != MB_SUCCESS)
+      if (rval != MB_SUCCESS && rval != MB_ENTITY_NOT_FOUND)
         return rval;
       if (!adj_entities.empty())
         return MB_FAILURE;
