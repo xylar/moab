@@ -1,5 +1,5 @@
 AC_DEFUN([FATHOM_HDF5_LIBS_HELPER],[
-if (test $HAVE_LIB_HDF5 == no); then
+if (test "x$HAVE_LIB_HDF5" != "xyes"); then
    unset "ac_cv_lib_${HDF5_LIBNAME}_H5Fopen"
    unset "ac_cv_lib_${HDF5_LIBNAME}___H5Fopen"
    AC_CHECK_LIB( [${HDF5_LIBNAME}], [H5Fopen], [HAVE_LIB_HDF5=yes; HDF5_LIBS="$HDF5_LIBS $1"], [], [$1] )
@@ -18,7 +18,7 @@ fi
 AC_DEFUN([FATHOM_DETECT_HDF5_LIBS],[
 
  # if we've already done this check, then don't do it again
-if test "xyes" != "x$HAVE_LIB_HDF5"; then
+if (test "xyes" != "x$HAVE_LIB_HDF5"); then
   test "x" != "x$HDF5_LIBNAME" || HDF5_LIBNAME=hdf5
   
   HAVE_LIB_HDF5=no
@@ -223,13 +223,13 @@ if (test "xno" != "x$enablehdf5"); then
     if (test "x$H5CC" != "x"); then dnl check if HDF5 was configured with parallel support
       IS_HDF5_NOT_PARALLEL="`$H5CC -showconfig | grep 'Parallel HDF5: no'`"
     fi
-    if (test "x$IS_HDF5_NOT_PARALLEL" == "x"); then
-      AC_MSG_RESULT(yes)
-      enablehdf5parallel=yes
-    else
+    if (test "x$IS_HDF5_NOT_PARALLEL" != "x"); then
       AC_MSG_RESULT(no)
       WARN_PARALLEL_HDF5=yes
       AC_MSG_WARN("libhdf5 library does not include parallel support.  Parallel HDF5 I/O disabled")
+    else
+      AC_MSG_RESULT(yes)
+      enablehdf5parallel=yes
     fi
 
     LDFLAGS="$old_LDFLAGS"
