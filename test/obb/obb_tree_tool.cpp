@@ -366,7 +366,12 @@ void print_stats( Interface* interface )
 {
   EntityHandle root;
   Range range;
-  get_root( interface, root );
+  ErrorCode rval;
+  rval = get_root( interface, root );
+  if (MB_SUCCESS != rval) {
+    std::cerr << "Internal error: Failed to retrieve root." << std::endl;
+    exit(5);
+  }
   OrientedBoxTreeTool tool(interface);
 
   Range tree_sets, triangles, verts;
@@ -442,7 +447,7 @@ void tag_triangles( Interface* moab )
   EntityHandle root;
   ErrorCode rval = get_root( moab, root );
   if (MB_SUCCESS != rval) {
-    std::cerr << "Internal error: Failed to retreive tree." << std::endl;
+    std::cerr << "Internal error: Failed to retrieve tree." << std::endl;
     exit(5);
   }
 
@@ -493,7 +498,7 @@ void tag_vertices( Interface* moab )
   EntityHandle root;
   ErrorCode rval = get_root( moab, root );
   if (MB_SUCCESS != rval) {
-    std::cerr << "Internal error: Failed to retreive tree." << std::endl;
+    std::cerr << "Internal error: Failed to retrieve tree." << std::endl;
     exit(5);
   }
 
@@ -544,7 +549,7 @@ void write_tree_blocks( Interface* interface, const char* file )
   EntityHandle root;
   ErrorCode rval = get_root( interface, root );
   if (MB_SUCCESS != rval) {
-    std::cerr << "Internal error: Failed to retreive tree." << std::endl;
+    std::cerr << "Internal error: Failed to retrieve tree." << std::endl;
     exit(5);
   }
   

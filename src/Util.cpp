@@ -43,8 +43,9 @@ void Util::normal(Interface* MB, EntityHandle handle, double& x, double& y, doub
    // get connectivity
    const EntityHandle *connectivity = NULL;
    int number_nodes = 0;
-   // TODO error handling; make the return value nonvoid
-   MB->get_connectivity(handle, connectivity, number_nodes, true);
+   // TODO make the return value nonvoid
+   ErrorCode rval = MB->get_connectivity(handle, connectivity, number_nodes, true);
+   MB_CHK_SET_ERR_RET(rval, "can't get_connectivity");
    assert(number_nodes >= 3);
 
    // get_coordinates
@@ -78,9 +79,10 @@ void Util::centroid(Interface *MB, EntityHandle handle, CartVect &coord)
 {
    const EntityHandle *connectivity = NULL;
    int number_nodes = 0;
-   // TODO error handling; make the return value nonvoid
-   MB->get_connectivity(handle, connectivity, number_nodes,true);
-   
+   // TODO make the return value nonvoid
+   ErrorCode rval = MB->get_connectivity(handle, connectivity, number_nodes, true);
+   MB_CHK_SET_ERR_RET(rval, "can't get_connectivity");
+
    coord[0]=coord[1]=coord[2]=0.0;
 
    for(int i = 0; i< number_nodes; i++)
