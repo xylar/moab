@@ -373,7 +373,6 @@ std::string ReadOBJ::match(const std::string &token,
                               std::map<std::string, T> &tokenList)
 {
   // Initialize with no match and obj_undefined as return string
-  bool found_match = false;
   std::string best_match = OBJ_UNDEFINED;
 
   // Search the map
