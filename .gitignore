@@ -250,6 +250,7 @@ test/spatial_locator_test
 test/test_boundbox
 test/tag_test
 test/test_adj
+test/test_determinism
 test/test_prog_opt
 test/TestRunner.hpp
 test/uref_mesh_test

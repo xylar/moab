@@ -38,6 +38,7 @@ TESTS = range_test \
         scdseq_test \
         scd_test_partn \
         test_adj \
+        test_determinism \
         seq_man_test \
         geom_util_test \
         xform_test \
@@ -115,6 +116,7 @@ scd_test_partn_SOURCES = scd_test_partn.cpp
 #test_tag_server_SOURCES = $(top_srcdir)/src/TagServer.cpp
 #test_tag_server_CPPFLAGS = -DTEST $(CPPFLAGS)
 test_adj_SOURCES = test_adj.cpp
+test_determinism_SOURCES = test_determinism.cpp
 seq_man_test_SOURCES = TestUtil.hpp TestTypeSequenceManager.cpp 
 mesh_set_test_SOURCES = Test_MBMeshSet.cpp TestUtil.hpp
 geom_util_test_SOURCES = TestUtil.hpp GeomUtilTests.cpp 
