@@ -48,25 +48,23 @@ int main()
   const char* filename = 0;
 
 #ifdef MESHDIR
-#ifdef MOAB_HAVE_HDF5
-  filename = STRINGIFY(MESHDIR) "/testquad-cyl.h5m";
-#else
-  filename = STRINGIFY(MESHDIR) "/hexes_mixed.vtk";
-#endif
+  filename = STRINGIFY(MESHDIR) "/tet_brick.vtk";
 #else
 #error Specify MESHDIR to compile test
 #endif
 
   ErrorCode err;
-  err =  iface0->load_mesh( filename);CHECK_ERR(err);
-  err =  iface1->load_mesh( filename);CHECK_ERR(err);
+  err =  iface0->load_file( filename);CHECK_ERR(err);
+  err =  iface1->load_file( filename);CHECK_ERR(err);
 
-  Range quads0, verts0, edges0, edges1;
-  err = iface0->get_entities_by_dimension(0,0,verts0);CHECK_ERR(err);
-  err = iface0->get_entities_by_dimension(0,2,quads0);CHECK_ERR(err);
-  err = iface0->get_adjacencies(quads0,1,true,edges0,Interface::UNION);CHECK_ERR(err);
-  err = iface1->get_adjacencies(quads0,1,true,edges1,Interface::UNION);CHECK_ERR(err);
+  Range tets0, verts0, edges0, edges1, tris0, tris1;
+  err = iface0->get_entities_by_dimension(0,3,tets0);CHECK_ERR(err);
+  err = iface0->get_adjacencies(tets0,1,true,edges0,Interface::UNION);CHECK_ERR(err);
+  err = iface1->get_adjacencies(tets0,1,true,edges1,Interface::UNION);CHECK_ERR(err);
   CHECK_EQUAL(edges0,edges1);
+  err = iface0->get_adjacencies(tets0,2,true,tris0,Interface::UNION);CHECK_ERR(err);
+  err = iface1->get_adjacencies(tets0,2,true,tris1,Interface::UNION);CHECK_ERR(err);
+  CHECK_EQUAL(tris0,tris1);
 
 
   std::vector<EntityHandle> conn_squence;
@@ -74,16 +72,18 @@ int main()
   // At that point iface0 and iface1 should have the same entity handler
   // associated with entities, so we can use one or another, no difference.
 
-  std::vector<EntityHandle> conn_seq;
 
   int repeat = 0;
   for(;repeat!=3;repeat++) {
 
+    std::vector<EntityHandle> conn_seq;
+
+
     Range to_delete;
     // Build range of quad to delete form iface0
     int ii = 0;
-    for(Range::iterator qit=quads0.begin();qit!=quads0.end();qit++,ii++) {
-      if(ii<11) {
+    for(Range::iterator qit=tets0.begin();qit!=tets0.end();qit++,ii++) {
+      if(ii%3) {
         to_delete.insert(*qit);
         const EntityHandle* conn;
         int number_nodes = 0;
@@ -94,7 +94,12 @@ int main()
     // Buidl tange of edges to delete from iface1
     // Create gaps in sequence, to be filled later on.
     for(Range::iterator eit=edges1.begin();eit!=edges1.end();eit++,ii++) {
-      if(ii%3!=0) {
+      if(ii%3) {
+        to_delete.insert(*eit);
+      }
+    }
+    for(Range::iterator eit=tris1.begin();eit!=tris1.end();eit++,ii++) {
+      if(ii%3) {
         to_delete.insert(*eit);
       }
     }
@@ -104,26 +109,28 @@ int main()
 
     for(int qq = 0;qq!=conn_seq.size()/4;qq++) {
       EntityHandle q0,q1;
-      err = iface1->create_element(MBQUAD,&conn_seq[4*qq],4,q1);CHECK_ERR(err);
-      err = iface0->create_element(MBQUAD,&conn_seq[4*qq],4,q0);CHECK_ERR(err);
+      err = iface1->create_element(MBTET,&conn_seq[4*qq],4,q1);CHECK_ERR(err);
+      err = iface0->create_element(MBTET,&conn_seq[4*qq],4,q0);CHECK_ERR(err);
       CHECK(q0==q1);
     }
 
-    err = iface0->get_entities_by_dimension(0,2,quads0);CHECK_ERR(err);
-    Range quads1;
-    err = iface1->get_entities_by_dimension(0,2,quads1);CHECK_ERR(err);
-    CHECK_EQUAL(quads0,quads1);
-
-    // Create edges once again
-    err = iface0->get_adjacencies(quads1,1,true,edges0,Interface::UNION);CHECK_ERR(err);
-    err = iface1->get_adjacencies(quads1,1,true,edges1,Interface::UNION);CHECK_ERR(err);
-    CHECK_EQUAL(edges0,edges1);
+    tets0.clear();
+    err = iface0->get_entities_by_dimension(0,3,tets0);CHECK_ERR(err);
+    Range tets1;
+    err = iface1->get_entities_by_dimension(0,3,tets1);CHECK_ERR(err);
+    CHECK_EQUAL(tets0,tets1);
 
     // Finally check adjacency, this finally check if code is deterministic
-    for(Range::iterator qit = quads1.begin();qit!=quads1.end();qit++) {
+    for(Range::iterator tit = tets1.begin();tit!=tets1.end();tit++) {
       std::vector<EntityHandle> adj0,adj1;
-      err = iface0->get_adjacencies(&*qit,1,1,true,adj0);CHECK_ERR(err);
-      err = iface1->get_adjacencies(&*qit,1,1,true,adj1);CHECK_ERR(err);
+      err = iface0->get_adjacencies(&*tit,1,1,true,adj0);CHECK_ERR(err);
+      err = iface1->get_adjacencies(&*tit,1,1,true,adj1);CHECK_ERR(err);
+      CHECK_EQUAL(adj0,adj1);
+    }
+    for(Range::iterator tit = tets1.begin();tit!=tets1.end();tit++) {
+      std::vector<EntityHandle> adj0,adj1;
+      err = iface0->get_adjacencies(&*tit,1,2,true,adj0);CHECK_ERR(err);
+      err = iface1->get_adjacencies(&*tit,1,2,true,adj1);CHECK_ERR(err);
       CHECK_EQUAL(adj0,adj1);
     }
 
