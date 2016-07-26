@@ -50,5 +50,6 @@ EXTRA_DIST = 125hex.g \
              hex_2048.vtk \
              quad_1000.h5m \
              quad_1000.vtk \
-             spectral.h5m
+             spectral.h5m \
+             tet_brick.vtk
 
