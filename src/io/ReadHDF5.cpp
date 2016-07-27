@@ -53,12 +53,6 @@
 #include <functional>
 #include <iostream>
 
-#ifdef BLUEGENE
-#include <sys/vfs.h>
-  // Magic number for GPFS file system (ASCII for 'G' 'P' 'F' 'S')
-# define BG_LOCKLESS_GPFS 0x47504653
-#endif
-
 #include "IODebugTrack.hpp"
 #include "ReadHDF5Dataset.hpp"
 #include "ReadHDF5VarLen.hpp"
@@ -305,7 +299,6 @@ ErrorCode ReadHDF5::set_up_read(const char* filename,
   opts.get_toggle_option("BLOCKED_COORDINATE_IO", DEFAULT_BLOCKED_COORDINATE_IO, blockedCoordinateIO);
   opts.get_toggle_option("BCAST_SUMMARY",         DEFAULT_BCAST_SUMMARY,         bcastSummary);
   opts.get_toggle_option("BCAST_DUPLICATE_READS", DEFAULT_BCAST_DUPLICATE_READS, bcastDuplicateReads);
-  bool bglockless = (MB_SUCCESS == opts.get_null_option("BGLOCKLESS"));
 
   // Handle parallel options
   bool use_mpio = (MB_SUCCESS == opts.get_null_option("USE_MPIO"));
@@ -333,21 +326,6 @@ ErrorCode ReadHDF5::set_up_read(const char* filename,
     MB_CHK_ERR(MB_MEMORY_ALLOCATION_FAILED);
 
   if (use_mpio || nativeParallel) {
-    // Lockless file IO on IBM BlueGene
-    std::string pfilename(filename);
-#ifdef BLUEGENE
-    if (!bglockless && 0 != pfilename.find("bglockless:")) {
-      // Check for GPFS file system
-      struct statfs fsdata;
-      statfs(filename, &fsdata);
-      if (fsdata.f_type == BG_LOCKLESS_GPFS) {
-        bglockless = true;
-      }
-    }
-#endif
-    if (bglockless) {
-      pfilename = std::string("bglockless:") + pfilename;
-    }
 
 #ifndef MOAB_HAVE_HDF5_PARALLEL
     free(dataBuffer);
@@ -375,9 +353,6 @@ ErrorCode ReadHDF5::set_up_read(const char* filename,
     dbgOut.set_rank(rank);
     dbgOut.limit_output_to_first_N_procs(32);
     mpiComm = new MPI_Comm(myPcomm->proc_config().proc_comm());
-    if (bglockless) {
-      dbgOut.printf(1, "Enabling lockless IO for BlueGene (filename: \"%s\")\n", pfilename.c_str());
-    }
 
 #ifndef H5_MPI_COMPLEX_DERIVED_DATATYPE_WORKS 
     dbgOut.print(1, "H5_MPI_COMPLEX_DERIVED_DATATYPE_WORKS is not defined\n");
@@ -395,7 +370,7 @@ ErrorCode ReadHDF5::set_up_read(const char* filename,
         err = H5Pset_fapl_mpio(file_prop, MPI_COMM_SELF, MPI_INFO_NULL);
         assert(file_prop >= 0);
         assert(err >= 0);
-        filePtr = mhdf_openFileWithOpt(pfilename.c_str(), 0, NULL, handleType, file_prop, &status);
+        filePtr = mhdf_openFileWithOpt(filename, 0, NULL, handleType, file_prop, &status);
         H5Pclose(file_prop);
 
         if (filePtr) {
@@ -438,8 +413,8 @@ ErrorCode ReadHDF5::set_up_read(const char* filename,
     indepIO = nativeParallel ? H5P_DEFAULT : collIO;
 
     // Re-open file in parallel
-    dbgOut.tprintf(1, "Opening \"%s\" for parallel IO\n", pfilename.c_str());
-    filePtr = mhdf_openFileWithOpt(pfilename.c_str(), 0, NULL, handleType, file_prop, &status);
+    dbgOut.tprintf(1, "Opening \"%s\" for parallel IO\n", filename);
+    filePtr = mhdf_openFileWithOpt(filename, 0, NULL, handleType, file_prop, &status);
 
     H5Pclose(file_prop);
     if (!filePtr) {
