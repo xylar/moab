@@ -15,10 +15,12 @@ using namespace moab;
 static const char example[] = STRINGIFY(MESHDIR) "/io/gmsh2.msh";
 static const char example2[] = STRINGIFY(MESHDIR) "/io/airfoil_exterior.msh";
 static const char example3[] = STRINGIFY(MESHDIR) "/io/t1.msh";
+static const char example4[] = STRINGIFY(MESHDIR) "/io/ghosts.msh";
 #else
 static const char example[] = "gmsh2.msh";
 static const char example2[] = "airfoil_exterior.msh";
 static const char example3[] = "t1.msh";
+static const char example4[] = "ghosts.msh";
 #endif
 
 void test_read_nodes();
@@ -27,6 +29,7 @@ void test_read_material_set();
 void test_read_geom_set();
 void test_read_airfoil();
 void test_read_t1();
+void test_read_fgh(); // file with ghosts id for partition
 
 void read_file( Interface& moab, const char* input_file );
 
@@ -41,6 +44,7 @@ int main()
   
   result += RUN_TEST(test_read_airfoil);
   result += RUN_TEST(test_read_t1);
+  result += RUN_TEST(test_read_fgh);
   return result;
 }
 
@@ -258,4 +262,18 @@ void test_read_t1()
   read_file( moab, example3 );
 }
 
+void test_read_fgh()
+{
+  Core moab;
+  read_file( moab, example4 ); // it should find 3 partitions
+  // read partition sets
+  Tag  ptag;
+  ErrorCode  rval = moab.tag_get_handle("PARALLEL_PARTITION", ptag ); CHECK_ERR(rval);
+  Range psets;
+  rval = moab.get_entities_by_type_and_tag(0, MBENTITYSET, &ptag, 0, 1, psets); CHECK_ERR(rval);
+  CHECK_EQUAL( 3, (int)psets.size() );
+  Range ents_first_set;
+  rval = moab.get_entities_by_handle(psets[0], ents_first_set); CHECK_ERR(rval);
+  CHECK_EQUAL( (int)ents_first_set.size(), 98 );
+}
 

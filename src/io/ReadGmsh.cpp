@@ -291,7 +291,13 @@ ErrorCode ReadGmsh::load_file(const char* filename,
 
     // Store data from element description
     id_list.push_back(int_data[0]);
-    part_set_list.push_back(tag_data.size() > 2 ? tag_data[2] : 0);
+    if (tag_data.size() > 3)
+      part_set_list.push_back(tag_data[3]); // it must be new format for gmsh, >= 2.5
+                                            // it could have negative partition ids, for ghost elements
+    else if (tag_data.size() > 2)
+      part_set_list.push_back(tag_data[2]); // old format, partition id saved in 3rd tag field
+    else
+      part_set_list.push_back(0);
     geom_set_list.push_back(tag_data.size() > 1 ? tag_data[1] : 0);
      mat_set_list.push_back(tag_data.size() > 0 ? tag_data[0] : 0);
 
