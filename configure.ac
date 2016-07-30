@@ -57,6 +57,18 @@ AC_DISABLE_SHARED
 # AC_PROG_LIBTOOL is deprecated
 LT_INIT([dlopen])
 
+dnl Before configuring libtool check for --enable-all-static option
+AC_ARG_ENABLE(all-static,
+  AS_HELP_STRING([--enable-all-static],
+                 [Build completely static (standalone) binaries.]),
+  [
+    if test "$enableval" = "yes" ; then
+      LT_LDFLAGS="-all-static $LT_LDFLAGS"
+    fi
+])
+
+AC_SUBST(LT_LDFLAGS)
+
 AC_C_BIGENDIAN
 
 AC_CHECK_PROG([ZCAT],[gunzip],[gunzip -c],[])
