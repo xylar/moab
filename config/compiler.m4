@@ -192,7 +192,7 @@ AC_ARG_ENABLE( optimize, AS_HELP_STRING([--enable-optimize],[Compile optimized (
 if (test "x$enable_debug" != "xno"); then # debug flags
 # GNU
 EXTRA_GNU_CXXFLAGS="-Wall -Wno-long-long -pipe -pedantic -Wshadow -Wunused-parameter -Wpointer-arith -Wformat -Wformat-security -Wextra -Wno-variadic-macros -Wno-unknown-pragmas"
-EXTRA_GNU_FCFLAGS="-fcheck=all -pipe -pedantic -ffree-line-length-0"
+EXTRA_GNU_FCFLAGS="-pipe -pedantic -ffree-line-length-0"
 # Intel
 EXTRA_INTEL_CXXFLAGS="-pipe -C"
 EXTRA_INTEL_FCFLAGS="-C"
@@ -206,8 +206,8 @@ fi
 
 if (test "x$enable_cxx_optimize" != "xno"); then  # optimization flags
 #GNU
-EXTRA_GNU_CXXFLAGS="$EXTRA_GNU_CXXFLAGS -finline-functions -finline-functions -march=native"
-EXTRA_GNU_FCFLAGS="$EXTRA_GNU_FCFLAGS -ffree-line-length-0 -finline-functions -march=native"
+EXTRA_GNU_CXXFLAGS="$EXTRA_GNU_CXXFLAGS -fprefetch-loop-arrays -finline-functions"
+EXTRA_GNU_FCFLAGS="$EXTRA_GNU_FCFLAGS -ffree-line-length-0 -finline-functions"
 # Intel
 EXTRA_INTEL_CXXFLAGS="$EXTRA_INTEL_CXXFLAGS -xHost -ip -no-prec-div" # -fast
 EXTRA_INTEL_FCFLAGS="$EXTRA_INTEL_FCFLAGS -xHost -ip -no-prec-div" # -fast
