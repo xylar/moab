@@ -139,7 +139,7 @@ void VALGRIND_MAKE_VEC_UNDEFINED(std::vector<T>& v) {
     (void)VALGRIND_MAKE_MEM_UNDEFINED(&v[0], v.size() * sizeof(T));
 }
 
-#ifdef DEBUG
+#ifndef NDEBUG
   #define START_SERIAL \
      for (unsigned _x = 0; _x < myPcomm->proc_config().proc_size(); ++_x) { \
        MPI_Barrier(myPcomm->proc_config().proc_comm()); \
