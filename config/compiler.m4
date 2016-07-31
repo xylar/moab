@@ -360,7 +360,7 @@ FATHOM_TRY_COMPILER_DEFINE([__bg__],
 AC_MSG_RESULT([$MB_BLUEGENE_CONF])
 
 # Special overrides flags for BG/Q
-if (test "x$enable_static" != "xno" && test "x$MB_BLUEGENE_CONF" != "xno"); then
+if (test "x$enable_static" != "xno" && test "x$MB_BLUEGENE_CONF" != "xno" && test "x$GXX" != "xyes"); then
   LDFLAGS="$LDFLAGS -qnostaticlink=libgcc"
 fi
 
