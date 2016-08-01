@@ -100,6 +100,8 @@ MOSTLYCLEANFILES = dumped_acis.sat \
                    gcrm.h5m \
                    mb_write.g \
                    mb_write2.g \
+                   polyg.exo \
+                   polyh.exo \
                    singlecyl_tmp.ccmg \
                    test_eul_across_files.nc \
                    test_eul_append.nc \

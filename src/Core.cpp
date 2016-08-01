@@ -3050,6 +3050,19 @@ ErrorCode Core::side_number(const EntityHandle parent,
     }
   }
 
+  if (TYPE_FROM_HANDLE(parent) == MBPOLYHEDRON ) {
+    // find the child in the parent_conn connectivity list, and call it a day ..
+    // it should work only for faces within a conn list
+    for (int i=0; i< num_parent_vertices; i++)
+      if (child == parent_conn[i])
+      {
+        sd_number = i;
+        sense =1 ; // always
+        offset =0;
+        return MB_SUCCESS;
+      }
+    return MB_FAILURE;
+  }
   result = get_connectivity(child, child_conn, num_child_vertices, true);MB_CHK_ERR(result);
 
     // call handle vector-based function
