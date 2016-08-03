@@ -18,6 +18,7 @@
  *\date 2012-08-2 Updated by rhl to be more generic. less code that does more!
  * TODO: Remove all 'inline' keywords as it is only a suggestion to the compiler
  * anyways, and it will ignore it or add it when it thinks its necessary.
+ *\date 2016-08-03 Updated to use Eigen3 support underneath to improve performance
  */
 
 #ifndef MOAB_MATRIX3_HPP
@@ -33,10 +34,19 @@
 #include "moab/Types.hpp"
 #include "moab/CartVect.hpp"
 
+// save diagnostic state
+#pragma GCC diagnostic push
+
+// turn off the specific warning. Can also use "-Wshadow"
+#pragma GCC diagnostic ignored "-Wshadow"
+
 #define EIGEN_DEFAULT_TO_ROW_MAJOR
 #define EIGEN_INITIALIZE_MATRICES_BY_ZERO
 // #define EIGEN_NO_STATIC_ASSERT
 #include "moab/Eigen/Dense"
+
+// turn the warnings back on
+#pragma GCC diagnostic pop
 
 namespace moab {
 
@@ -412,6 +422,15 @@ public:
     return MB_SUCCESS;
   }
 
+  inline void transpose_inplace()
+  {
+    return _mat.transposeInPlace();
+  }
+
+  inline Matrix3 transpose() const
+  {
+    return Matrix3( _mat.transpose() );
+  }
 
   inline void swapcol(int index, Eigen::Vector3d& vol) {
   	_mat.col(index).swap(vol);
@@ -462,9 +481,9 @@ public:
   inline bool invert() {
     Eigen::Matrix3d invMat;
     bool invertible;
-    double determinant;
-    _mat.computeInverseAndDetWithCheck(invMat, determinant, invertible);
-    if (!Util::is_finite(determinant))
+    double d_determinant;
+    _mat.computeInverseAndDetWithCheck(invMat, d_determinant, invertible);
+    if (!Util::is_finite(d_determinant))
       return false;
     _mat = invMat;
     return invertible;
