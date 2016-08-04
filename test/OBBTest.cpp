@@ -64,7 +64,8 @@ const OrientedBox oblongbox( origaxes, origin );
 const CartVect rotax0 = unit( CartVect( 1.0, 1.0, 0.0 ) );
 const CartVect rotax1 = unit( CartVect( 1.0,-1.0, 1.0 ) );
 const CartVect rotax2 = unit( CartVect( 1.0, 1.0, 0.0 ) * CartVect( 1.0,-1.0, 1.0 ) );
-const OrientedBox rotbox_cv( {rotax0, rotax1, rotax2}, origin );
+const CartVect rotax[3] = {rotax0, rotax1, rotax2};
+const OrientedBox rotbox_cv( rotax, origin );
 
 const Matrix3 rotaxes(rotax0, rotax1, rotax2, true);
 const OrientedBox rotbox( rotaxes, origin );
