@@ -2000,7 +2000,7 @@ namespace moab{
 
    ErrorCode NestedRefine::resolve_shared_ents_opt(EntityHandle *hm_set, int num_levels)
    {
-
+#ifdef MOAB_HAVE_MPI
      assert(pcomm->size() > 1);
 
      ErrorCode error;
@@ -2134,7 +2134,9 @@ namespace moab{
 
      // Step 6: Update pcomm tags
      error = update_parallel_tags(rprocs, rhandles);MB_CHK_ERR(error);
-
+#else
+     MB_SET_ERR(MB_FAILURE, "Resolving shared interface for serial mesh");
+#endif
 
    return MB_SUCCESS;
 }
@@ -2207,6 +2209,7 @@ namespace moab{
 
    ErrorCode NestedRefine::collect_FList(int to_proc, Range faces, std::vector<EntityHandle> &FList, std::vector<EntityHandle> &RList)
    {
+#ifdef MOAB_HAVE_MPI
      ErrorCode error;
 
      FList.clear();
@@ -2274,6 +2277,9 @@ namespace moab{
      RList.insert(RList.end(), FC.begin(), FC.end());
      RList.insert(RList.end(), rFE.begin(), rFE.end());
      RList.insert(RList.end(), FE.begin(), FE.end());
+#else
+     MB_SET_ERR(MB_FAILURE, "Requesting collection of faces on shared interface for serial mesh");
+#endif
 
      return MB_SUCCESS;
    }
@@ -2281,6 +2287,7 @@ namespace moab{
 
    ErrorCode NestedRefine::collect_EList(int to_proc, Range edges, std::vector<EntityHandle> &EList, std::vector<EntityHandle> &RList)
    {
+#ifdef MOAB_HAVE_MPI
      ErrorCode error;
      EList.clear();
      std::vector<EntityHandle> E, EC, lE, lEC, rE, rEC;
@@ -2333,6 +2340,9 @@ namespace moab{
      RList.insert(RList.end(), E.begin(), E.end());
      RList.insert(RList.end(), rEC.begin(), rEC.end());
      RList.insert(RList.end(), EC.begin(), EC.end());
+#else
+     MB_SET_ERR(MB_FAILURE, "Requesting collection of edges on shared interface for serial mesh");
+#endif
 
      return MB_SUCCESS;
    }
@@ -2340,6 +2350,7 @@ namespace moab{
 
    ErrorCode NestedRefine::collect_VList(int to_proc, Range verts, std::vector<EntityHandle> &VList, std::vector<EntityHandle> &RList)
    {
+#ifdef MOAB_HAVE_MPI
      ErrorCode error;
      std::vector<EntityHandle> V, lV, rV;
      VList.clear();
@@ -2387,6 +2398,10 @@ namespace moab{
     // for (int i=0; i<VList.size(); i++)
      //  std::cout<<"VList["<<i<<"] = "<<VList[i]<<", RList["<<i<<"] = "<<RList[i]<<std::endl;
      //DBG
+
+#else
+     MB_SET_ERR(MB_FAILURE, "Requesting collection of vertices on shared interface for serial mesh");
+#endif
 
      return MB_SUCCESS;
    }
@@ -2746,7 +2761,7 @@ namespace moab{
 
    ErrorCode NestedRefine::update_parallel_tags(std::multimap<EntityHandle, int> &remProcs, std::multimap<EntityHandle, EntityHandle> & remHandles)
    {
-
+#ifdef MOAB_HAVE_MPI
      ErrorCode error;
 
      std::vector<int> rprocs;
@@ -2783,6 +2798,9 @@ namespace moab{
 
          it = remProcs.upper_bound(it->first);
      }
+#else
+     MB_SET_ERR(MB_FAILURE, "Requesting updation of parallel tags for serial mesh");
+#endif
      return MB_SUCCESS;
    }
 

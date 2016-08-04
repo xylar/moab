@@ -115,10 +115,6 @@ ErrorCode test_adjacencies(Interface *mbImpl, NestedRefine *nr, Range all_ents)
           adjents.clear(); mbents.clear(); ahfents.clear();
           error = nr->get_adjacencies( *i, 1, adjents);  CHECK_ERR(error);
           error = mbImpl->get_adjacencies( &*i, 1, 1, false, mbents ); CHECK_ERR(error);
-<<<<<<< 7de221388b2c44652c50412f342f2b2b05b8a1d4
-
-=======
->>>>>>> Fixing matching remote handles.
           std::sort(adjents.begin(), adjents.end());
           std::copy(adjents.begin(), adjents.end(), range_inserter(ahfents));
 
