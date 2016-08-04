@@ -197,8 +197,8 @@ EXTRA_GNU_FCFLAGS="-pipe -pedantic -ffree-line-length-0"
 EXTRA_INTEL_CXXFLAGS="-pipe -C"
 EXTRA_INTEL_FCFLAGS="-C"
 # PGI
-EXTRA_PGI_CXXFLAGS="-traceback -Mfree -C"
-EXTRA_PGI_FCFLAGS="-traceback -Mfree -C -freeform -extend-source"
+EXTRA_PGI_CXXFLAGS="-traceback --diag_suppress 236 --diag_suppress=unrecognized_gcc_pragma -C"
+EXTRA_PGI_FCFLAGS="-traceback -C -freeform -extend-source"
 # XLC
 EXTRA_BG_CXXFLAGS="-qarch=qp -qpic=large -qdebug=except"
 EXTRA_BG_FCFLAGS="-qarch=qp -qpic=large -qdebug=except"
@@ -212,8 +212,8 @@ EXTRA_GNU_FCFLAGS="$EXTRA_GNU_FCFLAGS -ffree-line-length-0 -finline-functions"
 EXTRA_INTEL_CXXFLAGS="$EXTRA_INTEL_CXXFLAGS -xHost -ip -no-prec-div" # -fast
 EXTRA_INTEL_FCFLAGS="$EXTRA_INTEL_FCFLAGS -xHost -ip -no-prec-div" # -fast
 # PGI
-EXTRA_PGI_CXXFLAGS="$EXTRA_PGI_CXXFLAGS -Munroll=5 -Mnoframe"
-EXTRA_PGI_FCFLAGS="$EXTRA_PGI_FCFLAGS -Munroll=5 -Mnoframe -freeform -extend-source"
+EXTRA_PGI_CXXFLAGS="$EXTRA_PGI_CXXFLAGS -fast -Mvect=fuse"
+EXTRA_PGI_FCFLAGS="$EXTRA_PGI_FCFLAGS -fast -Mvect=fuse -freeform -extend-source"
 # XLC
 EXTRA_BG_CXXFLAGS="$EXTRA_BG_CXXFLAGS -qarch=qp -qtune=auto -qpic=large -qenablevmx"
 EXTRA_BG_FCFLAGS="$EXTRA_BG_FCFLAGS -qarch=qp -qtune=auto -qpic=large -qenablevmx"
@@ -730,6 +730,9 @@ case "$cxx_compiler:$host_cpu" in
     FATHOM_CXX_32BIT=-xarch=generic
     FATHOM_CXX_64BIT=-xarch=generic64
     ;;
+  PortlandGroup:*)
+    FATHOM_CXX_SPECIAL="$EXTRA_PGI_CXXFLAGS"
+    ;;
   Clang:*)
     FATHOM_CXX_SPECIAL="$EXTRA_GNU_CXXFLAGS"
     FATHOM_CXX_32BIT=-m32
@@ -892,6 +895,10 @@ case "$cc_compiler:$host_cpu" in
   MIPSpro:*)
     FATHOM_CC_SPECIAL=-LANG:std
     FATHOM_FC_SPECIAL=-LANG:std
+    ;;
+  PortlandGroup:*)
+    FATHOM_CC_SPECIAL="-traceback -C"
+    FATHOM_FC_SPECIAL="$EXTRA_PGI_FCFLAGS"
     ;;
   Clang:*)
     FATHOM_CC_SPECIAL="$EXTRA_GNU_CXXFLAGS"
