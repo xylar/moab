@@ -100,6 +100,7 @@ case "$HOSTNAME" in
     MBPARMETIS_DIR="/soft/libraries/alcf/current/xl/PARMETIS"
     MBMETIS_DIR="/soft/libraries/alcf/current/xl/METIS"
     MBDWLD_OPTIONS="--with-zlib=/soft/libraries/alcf/current/xl/ZLIB"
+	  INTERNAL_OPTIONS="$INTERNAL_OPTIONS --enable-static --enable-all-static"
     ;;
   *blogin*)
     MBNMPICC="icc"
