@@ -14,6 +14,7 @@ EXTRA_DIST = HommeMapping.nc \
 	     gmsh2.msh \
              airfoil_exterior.msh \
              t1.msh \
+             ghosts.msh \
 	     hex_2x2x2_ss.exo \
              ho_test.g \
              ho_test.cub \
