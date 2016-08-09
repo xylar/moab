@@ -609,7 +609,7 @@ ErrorCode MetisPartitioner::write_partition(const idx_t nparts,
   
       // write a tag to those sets denoting they're partition sets, with a value of the
       // proc number
-    idx_t *dum_ids = new idx_t[nparts];
+    int *dum_ids = new int[nparts]; // this remains integer
     for (i = 0; i < nparts; i++) dum_ids[i] = i;
   
     result = mbImpl->tag_set_data(part_set_tag, partSets, dum_ids); 
@@ -639,8 +639,18 @@ ErrorCode MetisPartitioner::write_partition(const idx_t nparts,
   }
   
   if (write_as_tags) {
-      // allocate idx_teger-size partitions
-    result = mbImpl->tag_set_data(part_set_tag, elems, assignment); 
+    if (sizeof(int) != sizeof(idx_t))
+    {
+        // allocate idx_teger-size partitions
+      // first we have to copy to int, then assign
+      int * assg_int = new int [elems.size()];
+      for (int k=0; k<(int)elems.size(); k++)
+        assg_int [k] = assignment[k];
+      result = mbImpl->tag_set_data(part_set_tag, elems, assg_int); MB_CHK_ERR(result);
+      delete [] assg_int;
+    }
+    else
+      result = mbImpl->tag_set_data(part_set_tag, elems, assignment);MB_CHK_ERR(result);
   }
   
   return MB_SUCCESS;
