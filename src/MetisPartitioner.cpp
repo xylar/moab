@@ -394,9 +394,10 @@ ErrorCode MetisPartitioner::assemble_graph(const int dimension,
   Range adjs;
     // can use a fixed-size array 'cuz the number of lower-dimensional neighbors is limited
     // by MBCN
-  idx_t neighbors[5*MAX_SUB_ENTITIES];
+  int neighbors[5*MAX_SUB_ENTITIES]; // these are global ids, they will be int
+
   double avg_position[3];
-  idx_t moab_id;
+  int moab_id;
   
     // get the global id tag hanlde
   Tag gid;
@@ -418,6 +419,7 @@ ErrorCode MetisPartitioner::assemble_graph(const int dimension,
 
       // copy those idx_to adjacencies vector
     length.push_back(length.back()+(idx_t)adjs.size());
+    // conversion made to idx_t
     std::copy(neighbors, neighbors+adjs.size(), std::back_inserter(adjacencies));
 
       // get average position of vertices
@@ -427,7 +429,7 @@ ErrorCode MetisPartitioner::assemble_graph(const int dimension,
     result = mbImpl->tag_get_data(gid, &(*rit), 1, &moab_id);MB_CHK_ERR(result);
 
       // copy those idx_to coords vector
-    moab_ids.push_back(moab_id);
+    moab_ids.push_back(moab_id); // conversion made to idx_t
     std::copy(avg_position, avg_position+3, std::back_inserter(coords));
   }
 
