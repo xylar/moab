@@ -34,19 +34,22 @@
 #include "moab/Types.hpp"
 #include "moab/CartVect.hpp"
 
+#ifdef __GNUC__
 // save diagnostic state
 #pragma GCC diagnostic push
-
 // turn off the specific warning. Can also use "-Wshadow"
 #pragma GCC diagnostic ignored "-Wshadow"
+#endif
 
 #define EIGEN_DEFAULT_TO_ROW_MAJOR
 #define EIGEN_INITIALIZE_MATRICES_BY_ZERO
 // #define EIGEN_NO_STATIC_ASSERT
 #include "moab/Eigen/Dense"
 
+#ifdef __GNUC__
 // turn the warnings back on
 #pragma GCC diagnostic pop
+#endif
 
 namespace moab {
 
