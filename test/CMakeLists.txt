@@ -4,6 +4,7 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/src/io
     ${CMAKE_SOURCE_DIR}/src/LocalDiscretization
+    ${CMAKE_SOURCE_DIR}/src/RefineMesh
     ${CMAKE_SOURCE_DIR}/src/verdict
     ${CMAKE_SOURCE_DIR}/itaps
     ${CMAKE_BINARY_DIR}/itaps
@@ -34,7 +35,6 @@ set( TESTS range_test.cpp
            bsp_tree_test.cpp
            reorder_test.cpp
            elem_eval_test.cpp
-           mhdf_public_test.cpp
            VarLenTagTest.cpp
            TagTest.cpp
            spatial_locator_test.cpp
@@ -48,6 +48,7 @@ set( TESTS range_test.cpp
            
 if(MOAB_HAVE_HDF5)
   set( TESTS ${TESTS}
+             mhdf_public_test.cpp
              mergemesh_test.cpp
              mbfacet_test.cpp
              mbground_test.cpp
