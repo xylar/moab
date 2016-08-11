@@ -41,7 +41,6 @@
 #include "moab/WriteUtilIface.hpp"
 #include "Internals.hpp"
 #include "moab/FileOptions.hpp"
-#include "moab/Version.h"
 
 #define INS_ID(stringvar, prefix, id) \
   sprintf(stringvar, prefix, id)

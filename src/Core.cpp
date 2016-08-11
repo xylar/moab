@@ -26,7 +26,6 @@
 #include <vector>
 #include <string>
 #include <algorithm>
-#include "moab/Version.h"
 #include "moab/Core.hpp"
 #include "MeshSetSequence.hpp"
 #include "ElementSequence.hpp"

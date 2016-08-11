@@ -39,7 +39,6 @@
 #include "moab/WriteUtilIface.hpp"
 #include "Internals.hpp"
 #include "moab/FileOptions.hpp"
-#include "moab/Version.h"
 
 namespace moab {
 
