@@ -125,7 +125,6 @@ mark_as_advanced(
 if ( ENABLE_IMESH OR ENABLE_FBIGEOM )
   include (${CMAKE_ROOT}/Modules/CMakeDetermineFortranCompiler.cmake)
 endif ()
-include (config/CheckCompilerFlags.cmake)
 
 ################################################################################
 # Check for system include files
@@ -206,6 +205,7 @@ if ( ENABLE_MPI )
     set( MOAB_HAVE_MPI 1 )
   endif ( MPI_FOUND )
 endif ( ENABLE_MPI )
+include (config/CheckCompilerFlags.cmake)
 
 #set (MOAB_HAVE_ZLIB 0 CACHE INTERNAL "Found necessary Zlib components. Configure MOAB with it." )
 if ( ENABLE_ZLIB )
