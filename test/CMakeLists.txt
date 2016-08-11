@@ -41,13 +41,13 @@ set( TESTS range_test.cpp
            bsp_tree_poly_test.cpp
            test_prog_opt.cpp
            coords_connect_iterate.cpp
-           lloyd_smoother_test.cpp
            urefine_mesh_test.cpp
            adj_moab_test.cpp
            test_boundbox.cpp )
            
 if(MOAB_HAVE_HDF5)
   set( TESTS ${TESTS}
+             lloyd_smoother_test.cpp
              mhdf_public_test.cpp
              mergemesh_test.cpp
              mbfacet_test.cpp
