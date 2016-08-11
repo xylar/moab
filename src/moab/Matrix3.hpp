@@ -333,7 +333,7 @@ public:
   inline Matrix3(   const Vector & row0,
                     const Vector & row1,
                     const Vector & row2,
-                    const bool isRow=false) {
+                    const bool isRow=true) {
     if (isRow) {
       _mat << row0[0], row0[1], row0[2],
               row1[0], row1[1], row1[2],

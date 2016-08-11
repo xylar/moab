@@ -127,7 +127,7 @@ OrientedBox::OrientedBox( const CartVect axes_in[3], const CartVect& mid )
   : center(mid)
 {
 
-  axes = Matrix3( axes_in[0], axes_in[1], axes_in[2] );
+  axes = Matrix3( axes_in[0], axes_in[1], axes_in[2], false );
 
   order_axes_by_length( axes_in[0].length(),axes_in[1].length(),axes_in[2].length() );
   

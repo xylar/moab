@@ -67,7 +67,7 @@ const CartVect rotax2 = unit( CartVect( 1.0, 1.0, 0.0 ) * CartVect( 1.0,-1.0, 1.
 const CartVect rotax[3] = {rotax0, rotax1, rotax2};
 const OrientedBox rotbox_cv( rotax, origin );
 
-const Matrix3 rotaxes(rotax0, rotax1, rotax2, true);
+const Matrix3 rotaxes(rotax0, rotax1, rotax2);
 const OrientedBox rotbox( rotaxes, origin );
 
 
@@ -1274,7 +1274,7 @@ void test_build_from_tri()
     // compute range along each box axis for input vertices
   const Matrix3 axis ( box.scaled_axis(0),
                        box.scaled_axis(1),
-                       box.scaled_axis(2) );
+                       box.scaled_axis(2), false );
   double min[3], max[3];
   CartVect v = CartVect(coords) - box.center;
   min[0] = max[0] = box.scaled_axis(0) % v;
