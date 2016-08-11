@@ -1199,8 +1199,7 @@ AC_ARG_VAR([FC], [FORTRAN compiler command])
 # Prefixes everything in the temporary file with MOAB_, e.g. MOAB_HAVE_MPI
 #AX_PREFIX_CONFIG_H([src/moab/MOABConfig.h],[MOAB],[.MOABConfig.h])
 
-AC_CONFIG_HEADERS([src/moab/Version.h
-                   src/moab/EntityHandle.hpp
+AC_CONFIG_HEADERS([src/moab/EntityHandle.hpp
                    src/parallel/moab_mpi_config.h
                    src/moab/MOABConfig.h:config/MOABConfig.h.in])
 AX_PREFIX_CONFIG_H([src/moab/MOABConfig.h],[MOAB],[src/moab/MOABConfig.h])
