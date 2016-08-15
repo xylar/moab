@@ -58,7 +58,7 @@ ErrorCode MetisPartitioner::partition_mesh(const idx_t nparts,
                                             const bool partition_tagged_sets,
                                             const bool partition_tagged_ents,
                                             const char *aggregating_tag,
-                                            const bool pridx_t_time)
+                                            const bool print_time)
 {
 #ifdef MOAB_HAVE_MPI
     // should only be called in serial
@@ -103,7 +103,7 @@ ErrorCode MetisPartitioner::partition_mesh(const idx_t nparts,
     MB_SET_ERR(MB_FAILURE, "Either partition tags or sets for Metis partitoner");
   }
 
-  if (pridx_t_time)
+  if (print_time)
   {
     std::cout << " time to assemble graph: " << (clock() - t) / (double) CLOCKS_PER_SEC  << "s. \n";
     t = clock();
@@ -144,7 +144,7 @@ ErrorCode MetisPartitioner::partition_mesh(const idx_t nparts,
   else
     MB_SET_ERR(MB_FAILURE, "Either ML_KWAY or ML_RB needs to be specified for Metis partitioner");
 
-  if (pridx_t_time)
+  if (print_time)
   {
     std::cout << " time to partition: " << (clock() - t) / (double) CLOCKS_PER_SEC  << "s. \n";
     t = clock();
@@ -171,7 +171,7 @@ ErrorCode MetisPartitioner::partition_mesh(const idx_t nparts,
     }
   }
 
-  if (pridx_t_time)
+  if (print_time)
   {
     std::cout << " time to write partition in memory " <<(clock() - t) / (double) CLOCKS_PER_SEC  << "s. \n";
     t = clock();
