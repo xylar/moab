@@ -11,13 +11,12 @@ set( SZIP_ROOT "" CACHE PATH "Path to search for SZIP header and library files" 
 
 # Try to find HDF5 with the CMake finder
 set(ENV{HDF5_ROOT} ${HDF5_ROOT})
-find_package(HDF5)
+find_package(HDF5 COMPONENTS C HL)
 
 if (HDF5_FOUND)
   # Translate to MOAB variables
   SET(HDF5_INCLUDES ${HDF5_INCLUDE_DIRS})
-  SET(HDF5_LIBRARIES ${HDF5_C_LIBRARIES})
-
+  SET(HDF5_LIBRARIES ${HDF5_HL_LIBRARIES} ${HDF5_C_LIBRARIES})
 else (HDF5_FOUND)
   # Try to find HDF5 ourselves
   if(EXISTS "${HDF5_ROOT}/share/cmake/hdf5/hdf5-config.cmake")

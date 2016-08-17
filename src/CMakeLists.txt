@@ -24,6 +24,7 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/moab/Version.h.cmake.in "${CMAKE_CURR
 
 set(moab_link_lib)
 add_subdirectory(io)
+add_subdirectory(RefineMesh)
 add_subdirectory(LocalDiscretization)
 # add_subdirectory(oldinc)
 
@@ -66,9 +67,11 @@ set(MOAB_LIB_SOURCES
         FileOptions.cpp
         GeomUtil.cpp
         GeomTopoTool.cpp
+        HalfFacetRep.cpp
         HigherOrderFactory.cpp
         HomXform.cpp
         Internals.hpp
+        LloydSmoother.cpp
         MBCNArrays.hpp
         MergeMesh.cpp
         MeshSet.hpp         MeshSet.cpp
@@ -134,6 +137,7 @@ set( MOAB_INSTALL_HEADERS
         moab/DualTool.hpp
         moab/Error.hpp
         moab/GeomTopoTool.hpp
+        moab/HalfFacetRep.hpp
         moab/HigherOrderFactory.hpp
         moab/HomXform.hpp
         moab/EntityType.hpp
@@ -144,6 +148,7 @@ set( MOAB_INSTALL_HEADERS
         moab/Forward.hpp
         moab/GeomUtil.hpp
         moab/Interface.hpp
+        moab/LloydSmoother.hpp
         moab/point_locater/tree/common_tree.hpp
         moab/point_locater/tree/element_tree.hpp
         moab/point_locater/tree/bvh_tree.hpp
@@ -217,6 +222,7 @@ add_library(
   ${MOAB_LIB_SOURCES} ${MOAB_INSTALL_HEADERS} ${MOAB_GENERATED_INSTALL_HEADERS}
   $<TARGET_OBJECTS:moabio>
   $<TARGET_OBJECTS:moab_loc_discr>
+  $<TARGET_OBJECTS:moab_refine_mesh>
   $<TARGET_OBJECTS:moabverdict>
   ${MOABPAR_OBJECTS}
   ${MDHF_OBJ}

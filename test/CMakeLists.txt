@@ -4,6 +4,7 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/src/io
     ${CMAKE_SOURCE_DIR}/src/LocalDiscretization
+    ${CMAKE_SOURCE_DIR}/src/RefineMesh
     ${CMAKE_SOURCE_DIR}/src/verdict
     ${CMAKE_SOURCE_DIR}/itaps
     ${CMAKE_BINARY_DIR}/itaps
@@ -40,10 +41,14 @@ set( TESTS range_test.cpp
            bsp_tree_poly_test.cpp
            test_prog_opt.cpp
            coords_connect_iterate.cpp
+           urefine_mesh_test.cpp
+           adj_moab_test.cpp
            test_boundbox.cpp )
            
 if(MOAB_HAVE_HDF5)
   set( TESTS ${TESTS}
+             lloyd_smoother_test.cpp
+             mhdf_public_test.cpp
              mergemesh_test.cpp
              mbfacet_test.cpp
              mbground_test.cpp
