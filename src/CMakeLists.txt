@@ -19,9 +19,6 @@ configure_file(${CMAKE_CURRENT_BINARY_DIR}/moab/EntityHandle.hpp.in ${CMAKE_CURR
 
 set(moab_link_lib)
 add_subdirectory(io)
-add_subdirectory(RefineMesh)
-add_subdirectory(LocalDiscretization)
-# add_subdirectory(oldinc)
 
 if( MOAB_HAVE_HDF5 )
   include_directories(${HDF5_INCLUDES})
@@ -35,7 +32,6 @@ if( MOAB_HAVE_NETCDF )
     set( MOAB_NETCDF_LIBS ${NETCDF_LIBRARIES} )
   endif ( MOAB_HAVE_MPI )
 endif()
-
 
 
 set(MOAB_LIB_SOURCES
@@ -88,8 +84,6 @@ set(MOAB_LIB_SOURCES
         LocalDiscretization/LinearTet.cpp
         LocalDiscretization/LinearTri.cpp
         LocalDiscretization/QuadraticHex.cpp
-        LocalDiscretization/SpectralQuad.cpp
-        LocalDiscretization/SpectralHex.cpp
         PolyElementSeq.hpp  PolyElementSeq.cpp
         ProgOptions.cpp
         Range.cpp
@@ -188,8 +182,6 @@ set( MOAB_INSTALL_HEADERS
         moab/LocalDiscretization/LinearTet.hpp
         moab/LocalDiscretization/LinearTri.hpp
         moab/LocalDiscretization/QuadraticHex.hpp
-        moab/LocalDiscretization/SpectralQuad.hpp
-        moab/LocalDiscretization/SpectralHex.hpp
         moab/Matrix3.hpp
         moab/MergeMesh.hpp
         moab/MeshTopoUtil.hpp
@@ -257,9 +249,6 @@ add_library(
   MOAB
   ${MOAB_LIB_SOURCES} ${MOAB_INSTALL_HEADERS} ${MOAB_GENERATED_INSTALL_HEADERS}
   $<TARGET_OBJECTS:moabio>
-  $<TARGET_OBJECTS:moab_loc_discr>
-  $<TARGET_OBJECTS:moab_refine_mesh>
-  $<TARGET_OBJECTS:moabverdict>
   ${MOABPAR_OBJECTS}
   ${MDHF_OBJ}
   )

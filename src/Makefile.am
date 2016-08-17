@@ -239,14 +239,6 @@ nobase_libMOAB_la_include_HEADERS = \
   moab/WriteUtilIface.hpp \
   moab/WriterIface.hpp \
   $(EIGEN_INST_HDRS) \
-  LocalDiscretization/moab/ElemEvaluator.hpp \
-  LocalDiscretization/moab/LinearHex.hpp \
-  LocalDiscretization/moab/LinearQuad.hpp \
-  LocalDiscretization/moab/LinearTet.hpp \
-  LocalDiscretization/moab/LinearTri.hpp \
-  LocalDiscretization/moab/QuadraticHex.hpp \
-  verdict/moab/verdict.h \
-  verdict/moab/VerdictWrapper.hpp \
   moab/ElemEvaluator.hpp \
   moab/LocalDiscretization/LinearHex.hpp \
   moab/LocalDiscretization/LinearQuad.hpp \
