@@ -50,9 +50,11 @@ const EntityType ExoIIUtil::ExoIIElementMBEntity[] =
   MBQUAD, // QUAD9,
   MBQUAD, // SHELL,
   MBQUAD, // SHELL4,
-  MBQUAD, // SHELL5,
-  MBQUAD, // SHELL8,
-  MBQUAD, // SHELL9,
+  MBPOLYGON, // SHELL5 is  for tempest a 5 node polygon MBPOLYGON , not MBQUAD,
+  MBPOLYGON, // SHELL6 is  for tempest a 6 node polygon MBPOLYGON // 2 extra shell6 and shell7
+  MBPOLYGON, // SHELL7 is  for tempest a 7 node polygon MBPOLYGON
+  MBPOLYGON, // SHELL8, SHELL8 is  for tempest an 8 node polygon MBPOLYGON , not MBQUAD, with mid edge nodes
+  MBPOLYGON, // SHELL9, SHELL9 is  for tempest a 9 node polygon MBPOLYGON , not a bi-quadratic MBQUAD
   MBTET, // TETRA,
   MBTET, // TETRA4,
   MBTET, // TET4
@@ -104,6 +106,8 @@ const char* ExoIIUtil::ElementTypeNames[] =
   "SHELL", 
   "SHELL4", 
   "SHELL5", 
+  "SHELL6",
+  "SHELL7",
   "SHELL8", 
   "SHELL9",
   "TETRA", 
@@ -125,7 +129,7 @@ const char* ExoIIUtil::ElementTypeNames[] =
   "HEX20", 
   "HEX27",
   "HEXSHELL",
-  "nsided", // polygons, described differently
+  "nsided", // polygons, described differently/ fixed node polygons for tempest have a different description (see shell?, etc)
   "NFACED", // polyhedra, described in faconn%d attributes
   "UNKNOWN"
 };
@@ -156,6 +160,8 @@ const int ExoIIUtil::VerticesPerElement[] =
   4, 
   4, 
   5, 
+  6,  // these 2 are extra for tempest, SHELL6 and SHELL7; also change SHELL5, 8, 9 to polygons
+  7,
   8,  
   9,  // SHELL
   4, 
@@ -207,9 +213,11 @@ const int ExoIIUtil::HasMidNodes[][4] =
   {0, 1, 1, 0}, // QUAD9 - mid nodes on edges and faces
   {0, 0, 0, 0}, // SHELL - no mid nodes
   {0, 0, 0, 0}, // SHELL4 - no mid nodes
-  {0, 0, 1, 0}, // SHELL5 - mid node on faces
-  {0, 1, 0, 0}, // SHELL8 - mid nodes on edges
-  {0, 1, 1, 0}, // SHELL9 - mid nodes on edges and faces
+  {0, 0, 0, 0}, // SHELL5 - no mid node on faces  changed for tempest to polygons, no midnodes
+  {0, 0, 0, 0}, // SHELL6 - no mid nodes
+  {0, 0, 0, 0}, // SHELL7 - no mid nodes
+  {0, 0, 0, 0}, // SHELL8 - no mid nodes on edges  // changed for tempest to polygons, no midnodes
+  {0, 0, 0, 0}, // SHELL9 - no mid nodes on edges and faces // changed for tempest to polygons, no midnodes
   {0, 0, 0, 0}, // TETRA - no mid nodes
   {0, 0, 0, 0}, // TETRA4 - no mid nodes
   {0, 0, 0, 0}, // TET4 - no mid nodes
@@ -261,10 +269,12 @@ const int ExoIIUtil::ElementGeometricDimension[] =
   3, 
   3, 
   3,
-  3, // SHELL
+  3, // SHELL 2 extra shells, 6, 7 for tempest
   3, 
   3, 
   3, 
+  3,
+  3,
   3, 
   3, // TETRA
   3,

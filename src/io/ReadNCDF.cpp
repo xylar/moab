@@ -754,7 +754,7 @@ ErrorCode ReadNCDF::read_elements(const Tag* file_id_tag)
     int number_nodes = (*this_it).numElements*verts_per_element;
     const EntityType mb_type = ExoIIUtil::ExoIIElementMBEntity[(*this_it).elemType];
 
-    if (mb_type==MBPOLYGON)
+    if (mb_type==MBPOLYGON && verts_per_element==0) // for tempest, polygons are almost like regular blocks, they have this non zero
     {
       // need to read another variable, num_nod_per_el, and
       int num_nodes_poly_conn;
