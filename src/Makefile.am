@@ -83,7 +83,6 @@ libMOAB_la_SOURCES = \
   MeshTag.cpp \
   MeshTopoUtil.cpp \
   OrientedBox.cpp \
-  OrientedBox.hpp \
   OrientedBoxTreeTool.cpp \
   lotte/poly.c \
   lotte/findpt.c \
