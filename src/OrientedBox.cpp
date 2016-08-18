@@ -35,8 +35,6 @@
 #include "moab/CN.hpp"
 #include "moab/OrientedBox.hpp"
 #include "moab/Range.hpp"
-#include "moab/Matrix3.hpp"
-#include "moab/Util.hpp"
 #include <ostream>
 #include <assert.h>
 #include <limits>
