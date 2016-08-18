@@ -75,7 +75,7 @@ set(MOAB_LIB_SOURCES
         MeshSetSequence.hpp MeshSetSequence.cpp
         MeshTag.hpp         MeshTag.cpp
         MeshTopoUtil.cpp
-        OrientedBox.hpp     OrientedBox.cpp
+        OrientedBox.cpp
         OrientedBoxTreeTool.cpp
         lotte/poly.c
         lotte/findpt.c
@@ -159,6 +159,7 @@ set( MOAB_INSTALL_HEADERS
         moab/Matrix3.hpp
         moab/MergeMesh.hpp
         moab/MeshTopoUtil.hpp
+        moab/OrientedBox.hpp
         moab/OrientedBoxTreeTool.hpp
         moab/ProgOptions.hpp
         moab/Range.hpp
