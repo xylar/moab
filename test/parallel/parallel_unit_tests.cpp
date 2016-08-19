@@ -1763,7 +1763,7 @@ ErrorCode test_sequences_after_ghosting( const char* filename )
     std::cout << " elems.psize() = " << elems.psize() << "\n";
     return MB_FAILURE;
   }
-  // we want only one sequence quads.begin(), quads.end(), conn_ptr, vpere, count)
+  // we want only one sequence
   int count, vpere;
   EntityHandle *conn_ptr;
   rval = moab.connect_iterate(elems.begin(), elems.end(), conn_ptr, vpere, count ); CHKERR(rval);
@@ -1784,6 +1784,32 @@ ErrorCode test_sequences_after_ghosting( const char* filename )
     return MB_FAILURE;
   }
 
+  // repeat the tests for vertex sequences
+  // get all elements of dimension 3, and check they are on one sequence, with coords_iterate
+  Range verts;
+  rval = moab.get_entities_by_dimension(0, 0, verts);CHKERR(rval);
+  if (verts.psize()!=1)
+  {
+    std::cout << " verts.psize() = " << verts.psize() << "\n";
+    return MB_FAILURE;
+  }
+  //
+  double *x_ptr, *y_ptr, *z_ptr;
+  rval = moab.coords_iterate(verts.begin(), verts.end(), x_ptr, y_ptr, z_ptr, count); CHKERR(rval);
+
+
+  if (count != (int) verts.size() )
+  {
+    std::cout << " more than one sequence:  verts.size() = " << verts.size() << "  count:" << count << "\n";
+    return MB_FAILURE;
+  }
+
+  rval = moab.tag_iterate( id_tag, verts.begin(), verts.end(), count, globalid_data); CHKERR(rval);
+  if (count != (int) verts.size() )
+  {
+    std::cout << " more than one tag sequence:  verts.size() = " << verts.size() << "  count:" << count << "\n";
+    return MB_FAILURE;
+  }
   return MB_SUCCESS;
 }
 
