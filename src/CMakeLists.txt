@@ -19,9 +19,6 @@ string( REGEX REPLACE "#undef" "#cmakedefine" outstring2 "${infile2}" )
 file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/moab/EntityHandle.hpp.in" "${outstring2}")
 configure_file(${CMAKE_CURRENT_BINARY_DIR}/moab/EntityHandle.hpp.in ${CMAKE_CURRENT_BINARY_DIR}/moab/EntityHandle.hpp)
 
-#generate the Version.h file
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/moab/Version.h.cmake.in "${CMAKE_CURRENT_BINARY_DIR}/moab/Version.h" @ONLY)
-
 set(moab_link_lib)
 add_subdirectory(io)
 add_subdirectory(RefineMesh)

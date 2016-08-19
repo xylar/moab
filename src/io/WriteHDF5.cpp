@@ -47,7 +47,6 @@
 #include "MBTagConventions.hpp"
 #include "moab/CN.hpp"
 #include "moab/FileOptions.hpp"
-#include "moab/Version.h"
 #include "moab/CpuTimer.hpp"
 #include "IODebugTrack.hpp"
 #include "mhdf.h"
