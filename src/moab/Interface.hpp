@@ -1985,6 +1985,37 @@ public:
                                         SetIterator *&set_iter) = 0;
     /**@}*/
 
+
+  // ************************  Interface options controllable by user  *************** 
+
+  /** \name Sequence Option controllers */
+
+    /**@{*/
+
+    /** \brief Interface to control memory allocation for sequences
+     * Provide a factor that controls the size of the sequence that gets allocated.
+     * This is typically useful in the parallel setting when a-priori, the number of ghost entities
+     * and the memory required for them within the same sequence as the owned entities are unknown.
+     * The default factor is 1.0 but this can be appropriately updated at runtime so that we do not
+     * have broken sequences.
+     */
+    virtual double get_sequence_multiplier() const = 0;
+
+    /** \brief Interface to control memory allocation for sequences
+     * Provide a factor that controls the size of the sequence that gets allocated.
+     * This is typically useful in the parallel setting when a-priori, the number of ghost entities
+     * and the memory required for them within the same sequence as the owned entities are unknown.
+     * The default factor is 1.0 but this can be appropriately updated at runtime so that we do not
+     * have broken sequences.
+     *
+     * \param meshset User specified multiplier (should be greater than 1.0)
+     */
+    virtual void set_sequence_multiplier(double factor) = 0;
+
+
+  /**@}*/
+
+
 };
 
 //! predicate for STL algorithms.  Returns true if the entity handle is

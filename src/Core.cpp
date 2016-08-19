@@ -91,7 +91,6 @@
 #include "ExoIIUtil.hpp"
 #include "EntitySequence.hpp"
 #include "moab/FileOptions.hpp"
-#include "CoreOptions.hpp"
 #ifdef LINUX
 # include <dlfcn.h>
 # include <dirent.h>
@@ -152,8 +151,6 @@ static void warn_null_array_mesh_tag()
 #endif
 
 namespace moab {
-
-CoreOptions coreopts(1.0);
 
 using namespace std;
 
@@ -475,12 +472,12 @@ ErrorCode  Core::load_mesh( const char *file_name,
 
 ErrorCode Core::load_file( const char* file_name,
                                const EntityHandle* file_set,
-                               const char* options,
+                               const char* setoptions,
                                const char* set_tag_name,
                                const int* set_tag_vals,
                                int num_set_tag_vals )
 {
-  FileOptions opts(options);
+  FileOptions opts(setoptions);
   ErrorCode rval;
   ReaderIface::IDTag t = { set_tag_name, set_tag_vals, num_set_tag_vals };
   ReaderIface::SubsetList sl = { &t, 1, 0, 0 };
@@ -703,7 +700,7 @@ ErrorCode  Core::write_mesh(const char *file_name,
 
 ErrorCode Core::write_file( const char* file_name,
                                 const char* file_type,
-                                const char* options,
+                                const char* options_string,
                                 const EntityHandle* output_sets,
                                 int num_output_sets,
                                 const Tag* tag_list,
@@ -711,7 +708,7 @@ ErrorCode Core::write_file( const char* file_name,
 {
   Range range;
   std::copy( output_sets, output_sets+num_output_sets, range_inserter(range) );
-  return write_file( file_name, file_type, options, range, tag_list, num_tags );
+  return write_file( file_name, file_type, options_string, range, tag_list, num_tags );
 }
 
 ErrorCode Core::write_file( const char* file_name,
@@ -1135,6 +1132,17 @@ ErrorCode  Core::set_coords(Range entity_handles, const double *coords)
 
   return status;
 
+}
+
+double Core::get_sequence_multiplier() const
+{
+  return sequenceManager->get_sequence_multiplier();
+}
+
+void Core::set_sequence_multiplier(double factor)
+{
+  assert(factor >= 1.0);
+  sequenceManager->set_sequence_multiplier(factor);
 }
 
   //! get global connectivity array for specified entity type
@@ -3255,18 +3263,18 @@ ErrorCode Core::side_element(const EntityHandle source_entity,
 
 //-------------------------Set Functions---------------------//
 
-ErrorCode Core::create_meshset(const unsigned int options,
+ErrorCode Core::create_meshset(const unsigned int setoptions,
                                    EntityHandle &ms_handle,
                                    int )
 {
-  return sequence_manager()->create_mesh_set( options, ms_handle );
+  return sequence_manager()->create_mesh_set( setoptions, ms_handle );
 }
 
 ErrorCode Core::get_meshset_options( const EntityHandle ms_handle,
-                                          unsigned int& options) const
+                                          unsigned int& setoptions) const
 {
   if (!ms_handle) { // root set
-    options = MESHSET_SET|MESHSET_TRACK_OWNER;
+    setoptions = MESHSET_SET|MESHSET_TRACK_OWNER;
     return MB_SUCCESS;
   }
 
@@ -3274,18 +3282,18 @@ ErrorCode Core::get_meshset_options( const EntityHandle ms_handle,
   if (!set)
     return MB_ENTITY_NOT_FOUND;
 
-  options = set->flags();
+  setoptions = set->flags();
   return MB_SUCCESS;
 }
 
 ErrorCode Core::set_meshset_options( const EntityHandle ms_handle,
-                                         const unsigned int options)
+                                         const unsigned int setoptions)
 {
   MeshSet* set = get_mesh_set( sequence_manager(), ms_handle );
   if (!set)
     return MB_ENTITY_NOT_FOUND;
 
-  return set->set_flags(options, ms_handle, a_entity_factory());
+  return set->set_flags(setoptions, ms_handle, a_entity_factory());
 }
 
 
@@ -3906,13 +3914,13 @@ ErrorCode Core::create_set_iterator(EntityHandle meshset,
                                     SetIterator *&set_iter)
 {
     // check the type of set
-  unsigned int options;
+  unsigned int setoptions;
   ErrorCode rval = MB_SUCCESS;
   if (meshset) {
-    rval = get_meshset_options(meshset, options);MB_CHK_ERR(rval);
+    rval = get_meshset_options(meshset, setoptions);MB_CHK_ERR(rval);
   }
 
-  if (!meshset || (options & MESHSET_SET))
+  if (!meshset || (setoptions & MESHSET_SET))
     set_iter = new (std::nothrow) RangeSetIterator(this, meshset, chunk_size, ent_type, ent_dim, check_valid);
   else
     set_iter = new (std::nothrow) VectorSetIterator(this, meshset, chunk_size, ent_type, ent_dim, check_valid);
