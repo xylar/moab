@@ -395,7 +395,22 @@ namespace moab {
 			       std::vector<Range> &entities,
 			       const bool adjacencies = false,
 			       const bool tags = true);
-  
+
+
+    /////////////////////////////////////////////////////////////////////////////////
+    // Send and Receive routines for a sequence of entities: use case UMR
+    /////////////////////////////////////////////////////////////////////////////////
+
+    /** \brief Send and receives data from a set of processors
+      */
+    ErrorCode send_recv_entities(std::vector<int> &send_procs, std::vector<std::vector<int> > &msgsizes, std::vector<std::vector<EntityHandle> > &senddata, std::vector<std::vector<EntityHandle> > &recvdata);
+
+    ErrorCode update_remote_data(EntityHandle entity, std::vector<int> &procs, std::vector<EntityHandle> &handles);
+
+    ErrorCode get_remote_handles(EntityHandle *local_vec, EntityHandle *rem_vec, int num_ents, int to_proc);
+
+    /////////////////////////////////////////////////////////////////////////////////
+
     // ==================================
     // \section INITIALIZATION OF PARALLEL DATA (resolve_shared_ents, etc.)
     // ==================================

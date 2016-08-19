@@ -10,6 +10,7 @@
 #include "moab/Range.hpp"
 #include "moab/CN.hpp"
 #include <map>
+#include <set>
 
 namespace moab
 {
@@ -22,12 +23,14 @@ namespace moab
 #define MAX_CONN 8
 #define MAX_VHF 20
 #define MAX_LEVELS 20
+#define MAX_PROCS 64
 
 
   class Core;
   class HalfFacetRep;
   class ParallelComm;
   class CpuTimer;
+//  class DebugOutput;
 
   class NestedRefine
   {
@@ -50,7 +53,7 @@ namespace moab
        * \param hm_set EntityHandle STL vector that returns the handles of the sets created for each mesh level.
       */
 
-    ErrorCode generate_mesh_hierarchy( int num_level, int *level_degrees,  std::vector<EntityHandle>& level_sets);
+    ErrorCode generate_mesh_hierarchy( int num_level, int *level_degrees,  std::vector<EntityHandle>& level_sets, bool optimize=false);
 
     //! Given an entity and its level, return its connectivity.
     /** Given an entity at a certain level, it finds the connectivity via direct access to a stored internal pointer to the memory to connectivity sequence for the given level.
@@ -127,6 +130,8 @@ namespace moab
 
       ErrorCode vertex_to_entities_down(EntityHandle vertex, int vert_level, int child_level, std::vector<EntityHandle> &incident_entities);
 
+    ErrorCode get_vertex_duplicates(EntityHandle vertex, int level, EntityHandle &dupvertex);
+
     /** Given an entity at a certain level, it returns a boolean value true if it lies on the domain boundary.
         * \param entity
       */
@@ -136,6 +141,7 @@ namespace moab
       ErrorCode exchange_ghosts(std::vector<EntityHandle> &lsets, int num_glayers);
 
       ErrorCode update_special_tags(int level, EntityHandle &lset);
+
 
       struct codeperf{
         double tm_total;
@@ -150,13 +156,14 @@ namespace moab
     ParallelComm *pcomm;
     HalfFacetRep *ahf;
     CpuTimer *tm;
-
     EntityHandle _rset;
+ //   DebugOutput *myDebug;
+
+
     Range _inverts, _inedges, _infaces, _incells;
 
     EntityType elementype;
-    int meshdim;
-    int nlevels;
+    int meshdim, nlevels;
     int level_dsequence[MAX_LEVELS];
     std::map<int,int> deg_index;
     bool hasghost;
@@ -194,6 +201,12 @@ namespace moab
       int vert_on_faces[MAX_HF][MAX_VHF];
       //! Helper: stores child half-facets incident on parent half-facet. First column contain the number of such children
       int ents_on_pent[MAX_HF][MAX_CHILDRENS];
+      //! Helper: stores child ents incident on new verts on edge.
+      // Each triad in the column consists of :
+      // 1) a local child incident on the vertex on the edge
+      // 2) the local face id from the child
+      // 3) the local vertex id wrt the child connectivity
+      int ents_on_vedge[MAX_HE][MAX_VHF*3];
     };
     //! refPatterns
 
@@ -228,7 +241,7 @@ namespace moab
     ErrorCode create_hm_storage_single_level(EntityHandle *set, int cur_level, int estL[4]);
 
     //Generate HM : Construct the hierarchical mesh: 1D, 2D, 3D
-    ErrorCode generate_hm(int *level_degrees, int num_level, EntityHandle *hm_set);
+    ErrorCode generate_hm(int *level_degrees, int num_level, EntityHandle *hm_set, bool optimize);
     ErrorCode construct_hm_entities(int cur_level, int deg);
     ErrorCode construct_hm_1D(int cur_level, int deg);
     ErrorCode construct_hm_1D(int cur_level, int deg, EntityType type, std::vector<EntityHandle> &trackverts);
@@ -250,6 +263,8 @@ namespace moab
     ErrorCode update_tracking_verts(EntityHandle cid, int cur_level, int deg, std::vector<EntityHandle> &trackvertsC_edg, std::vector<EntityHandle> &trackvertsC_face, EntityHandle *vbuffer);
     ErrorCode reorder_indices(int cur_level, int deg, EntityHandle cell, int lfid, EntityHandle sib_cell, int sib_lfid, int index, int *id_sib);
     ErrorCode reorder_indices(int deg, EntityHandle *face1_conn, EntityHandle *face2_conn, int nvF, std::vector<int> &lemap, std::vector<int> &vidx, int *leorient=NULL);
+    ErrorCode reorder_indices(int deg, int nvF, int comb, int *childfid_map);
+    ErrorCode reorder_indices(EntityHandle *face1_conn, EntityHandle *face2_conn, int nvF, int *conn_map, int &comb, int *orient=NULL);
     ErrorCode get_lid_inci_child(EntityType type, int deg, int lfid, int leid, std::vector<int> &child_ids, std::vector<int> &child_lvids);
 
     //Permutation matrices
@@ -278,9 +293,11 @@ namespace moab
 
     ErrorCode update_local_ahf(int deg, EntityType type, int pat_id, EntityHandle *vbuffer, EntityHandle *ent_buffer, int etotal);
 
-    ErrorCode update_global_ahf(EntityType type, int cur_level, int deg);
+  //  ErrorCode update_global_ahf(EntityType type, int cur_level, int deg);
 
-    ErrorCode update_global_ahf(int cur_level, int deg, std::vector<int> &pattern_ids);
+  //  ErrorCode update_global_ahf(int cur_level, int deg, std::vector<int> &pattern_ids);
+
+    ErrorCode update_global_ahf(EntityType type, int cur_level, int deg, std::vector<int> *pattern_ids=NULL);
 
     ErrorCode update_global_ahf_1D(int cur_level, int deg);
 
@@ -292,9 +309,11 @@ namespace moab
 
     ErrorCode update_global_ahf_2D_sub(int cur_level, int deg);
 
-    ErrorCode update_global_ahf_3D(int cur_level, int deg);
+    ErrorCode update_global_ahf_3D(int cur_level, int deg, std::vector<int> *pattern_ids=NULL);
 
-    ErrorCode update_global_ahf_3D(int cur_level, int deg, std::vector<int> &pattern_ids);
+//    ErrorCode update_global_ahf_3D(int cur_level, int deg);
+
+//    ErrorCode update_global_ahf_3D(int cur_level, int deg, std::vector<int> &pattern_ids);
 
     /** Boundary extraction functions
         * Given a vertex at a certain level, it returns a boolean value true if it lies on the domain boundary.
@@ -308,6 +327,57 @@ namespace moab
 
     //ErrorCode find_skin_faces(EntityHandle set, int level, int nskinF);
 
+    /** Parallel communication routines
+           * We implement two strategies to resolve the shared entities of the newly created entities.
+           * The first strategy is to use the existing parallel merge capability which essentially uses
+           * a coordinate-based matching of vertices and subsequently the entity handles through
+           * their connectivities. The second strategy is an optimized and a new algorithm. It uses
+           * the existing shared information from the coarse entities and propagates the parallel
+           *  information appropriately.
+         */
+
+    //Send/Recv Buffer storage
+ /*   struct pbuffer{
+      int rank;
+      std::vector<int> msgsize;
+      std::vector<EntityHandle> localBuff;
+      std::vector<EntityHandle> remoteBuff;
+    };
+
+    pbuffer commBuffers[MAX_PROCS];
+
+    //Parallel tag values
+    struct parinfo{
+      std::multimap<EntityHandle, int> remoteps;
+      std::multimap<EntityHandle, EntityHandle> remotehs;
+    };
+
+    parinfo parallelInfo[MAX_LEVELS];*/
+
+
+    ErrorCode resolve_shared_ents_parmerge(int level, EntityHandle levelset);
+    ErrorCode resolve_shared_ents_opt(EntityHandle *hm_set, int num_levels);
+
+    ErrorCode collect_shared_entities_by_dimension(Range sharedEnts, Range &allEnts);
+    ErrorCode collect_FList(int to_proc, Range faces, std::vector<EntityHandle> &FList, std::vector<EntityHandle> &RList);
+    ErrorCode collect_EList(int to_proc, Range edges, std::vector<EntityHandle> &EList, std::vector<EntityHandle> &RList);
+    ErrorCode collect_VList(int to_proc, Range verts, std::vector<EntityHandle> &VList, std::vector<EntityHandle> &RList);
+
+    ErrorCode decipher_remote_handles(std::vector<int> &sharedprocs, std::vector<std::vector<int> > &auxinfo, std::vector<std::vector<EntityHandle> > &localbuffers, std::vector<std::vector<EntityHandle> > &remotebuffers, std::multimap<EntityHandle, int> &remProcs, std::multimap<EntityHandle, EntityHandle> & remHandles);
+
+    ErrorCode decipher_remote_handles_face(int shared_proc, int numfaces, std::vector<EntityHandle> &localFaceList, std::vector<EntityHandle> &remFaceList, std::multimap<EntityHandle, int> &remProcs, std::multimap<EntityHandle, EntityHandle> & remHandles);
+
+     ErrorCode decipher_remote_handles_edge(int shared_proc, int numedges, std::vector<EntityHandle> &localEdgeList, std::vector<EntityHandle> &remEdgeList, std::multimap<EntityHandle, int> &remProcs, std::multimap<EntityHandle, EntityHandle> & remHandles);
+
+      ErrorCode decipher_remote_handles_vertex(int shared_proc, int numverts, std::vector<EntityHandle> &localVertexList, std::vector<EntityHandle> &remVertexList, std::multimap<EntityHandle, int> &remProcs, std::multimap<EntityHandle, EntityHandle> & remHandles);
+
+     ErrorCode update_parallel_tags(std::multimap<EntityHandle, int> &remProcs, std::multimap<EntityHandle, EntityHandle> & remHandles);
+
+     ErrorCode get_data_from_buff(int dim, int type, int level, int entityidx, int nentities, std::vector<EntityHandle> &buffer, std::vector<EntityHandle> &data);
+
+     bool check_for_parallelinfo(EntityHandle entity, int proc, std::multimap<EntityHandle, int> &remProcs);
+
+     ErrorCode check_for_parallelinfo(EntityHandle entity, int proc, std::multimap<EntityHandle, EntityHandle> &remHandles, std::multimap<EntityHandle, int> &remProcs, EntityHandle &rhandle);
   };
 } //name space moab
 #endif

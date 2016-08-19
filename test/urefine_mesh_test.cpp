@@ -8,7 +8,8 @@
 #include "moab/Core.hpp"
 #include "moab/Range.hpp"
 #include "moab/MeshTopoUtil.hpp"
-#include "../RefineMesh/moab/NestedRefine.hpp"
+#include "moab/ReadUtilIface.hpp"
+#include "moab/NestedRefine.hpp"
 #include "TestUtil.hpp"
 
 #ifdef MOAB_HAVE_MPI
@@ -50,15 +51,6 @@ void handle_error_code(ErrorCode rv, int &number_failed, int &number_successful)
   }
 }
 
-double wtime() {
-  double y = -1;
-  struct timeval cur_time;
-  gettimeofday(&cur_time, NULL);
-  y = (double)(cur_time.tv_sec) + (double)(cur_time.tv_usec)*1.e-6;
-  return (y);
-}
-
-
 ErrorCode test_adjacencies(Interface *mbImpl, NestedRefine *nr, Range all_ents)
 {
   MeshTopoUtil mtu(mbImpl);
@@ -72,7 +64,48 @@ ErrorCode test_adjacencies(Interface *mbImpl, NestedRefine *nr, Range all_ents)
   std::vector<EntityHandle> adjents;
   Range mbents, ahfents;
 
-  error = mbImpl->get_adjacencies( &*verts.begin(), 1, 1, false, mbents );
+  //Update the moab native data structures
+  ReadUtilIface *read_face;
+  error = mbImpl->query_interface(read_face);CHECK_ERR(error);
+  std::vector<EntityHandle> ents, conn;
+
+  if (!edges.empty())
+    {
+      conn.clear(); ents.clear();
+
+      for (Range::iterator it = edges.begin(); it != edges.end(); it++)
+        ents.push_back(*it);
+    //  std::copy(edges.begin(), edges.end(), ents.begin());
+      error = mbImpl->get_connectivity(&ents[0], (int)ents.size(), conn);CHECK_ERR(error);
+      error = read_face->update_adjacencies(*ents.begin(),(int)ents.size(), 2, &conn[0]);CHECK_ERR(error);
+    }
+
+  if (!faces.empty())
+    {
+      conn.clear(); ents.clear();
+
+      for (Range::iterator it = faces.begin(); it != faces.end(); it++)
+        ents.push_back(*it);
+
+    //  std::copy(faces.begin(), faces.end(), ents.begin());
+      error = mbImpl->get_connectivity(&ents[0], 1, conn);CHECK_ERR(error);
+      int nvF = conn.size(); conn.clear();
+      error = mbImpl->get_connectivity(&ents[0], (int)ents.size(), conn);CHECK_ERR(error);
+      error = read_face->update_adjacencies(*ents.begin(),(int)ents.size(), nvF, &conn[0]);CHECK_ERR(error);
+    }
+
+  if (!cells.empty())
+    {
+      conn.clear(); ents.clear();
+
+      for (Range::iterator it = cells.begin(); it != cells.end(); it++)
+        ents.push_back(*it);
+     // std::copy(cells.begin(), cells.end(), ents.begin());
+      error = mbImpl->get_connectivity(&ents[0], 1, conn);CHECK_ERR(error);
+      int nvF = conn.size(); conn.clear();
+      error = mbImpl->get_connectivity(&ents[0], (int)ents.size(), conn);CHECK_ERR(error);
+      error = read_face->update_adjacencies(*ents.begin(),(int)ents.size(), nvF, &conn[0]);CHECK_ERR(error);
+    }
 
   if (!edges.empty())
     {
@@ -82,7 +115,6 @@ ErrorCode test_adjacencies(Interface *mbImpl, NestedRefine *nr, Range all_ents)
           adjents.clear(); mbents.clear(); ahfents.clear();
           error = nr->get_adjacencies( *i, 1, adjents);  CHECK_ERR(error);
           error = mbImpl->get_adjacencies( &*i, 1, 1, false, mbents ); CHECK_ERR(error);
-
           std::sort(adjents.begin(), adjents.end());
           std::copy(adjents.begin(), adjents.end(), range_inserter(ahfents));
 
@@ -96,6 +128,14 @@ ErrorCode test_adjacencies(Interface *mbImpl, NestedRefine *nr, Range all_ents)
 
           CHECK_EQUAL(adjents.size(),mbents.size());
           mbents = subtract(mbents, ahfents);
+          if (ahfents.size() != mbents.size())
+            {
+           //   std::cout<<"ahf results = "<<std::endl;
+            //  ahfents.print();
+           //   std::cout<<"native results = "<<std::endl;
+           //   mbents.print();
+            }
+        //  CHECK_EQUAL(adjents.size(),mbents.size());
           CHECK(!mbents.size());
       }
 
@@ -177,6 +217,15 @@ ErrorCode test_adjacencies(Interface *mbImpl, NestedRefine *nr, Range all_ents)
           adjents.clear(); mbents.clear(); ahfents.clear();
           error = nr->get_adjacencies( *i, 3, adjents); CHECK_ERR(error);
           error = mbImpl->get_adjacencies(&*i, 1, 3, false, mbents); CHECK_ERR(error);
+
+          if (adjents.size() != mbents.size())
+            {
+              //   std::cout<<"ahf results = "<<std::endl;
+               //  ahfents.print();
+              //   std::cout<<"native results = "<<std::endl;
+              //   mbents.print();
+            }
+
           CHECK_EQUAL(adjents.size(), mbents.size());
           std::sort(adjents.begin(), adjents.end());
           std::copy(adjents.begin(), adjents.end(), range_inserter(ahfents));
@@ -329,12 +378,18 @@ ErrorCode refine_entities(Interface *mb,  ParallelComm* pc, EntityHandle fset, i
   std::vector<EntityHandle> set;
 
   std::cout<<"Starting hierarchy generation"<<std::endl;
-  double time_start = wtime();
-  error = uref.generate_mesh_hierarchy( num_levels,level_degrees, set); CHECK_ERR(error);
-  double time_total = wtime() - time_start;
-  std::cout<<"Finished hierarchy generation in "<<time_total<<"  secs"<<std::endl;
+  bool opt = true;
+  //bool opt = false;
+  error = uref.generate_mesh_hierarchy( num_levels,level_degrees, set, opt); CHECK_ERR(error);
+  std::cout<<"Finished hierarchy generation in "<<uref.timeall.tm_total<<"  secs"<<std::endl;
+  #ifdef MOAB_HAVE_MPI
+  if (pc)
+    {
+      std::cout<<"Time taken for refinement "<<uref.timeall.tm_refine<<"  secs"<<std::endl;
+      std::cout<<"Time taken for resolving shared interface "<<uref.timeall.tm_resolve<<"  secs"<<std::endl;
+    }
+#endif
 
-  error = uref.update_special_tags(num_levels,set[num_levels]);CHECK_ERR(error);
   // error = uref.exchange_ghosts(set, 1); CHECK_ERR(error);
 
   std::cout<<std::endl;
@@ -1199,9 +1254,16 @@ ErrorCode test_mesh(const char* filename, int *level_degrees, int num_levels)
     MPI_Comm_size(MPI_COMM_WORLD, &procs);
 
     if (procs > 1){
-    read_options = "PARALLEL=READ_PART;PARTITION=PARALLEL_PARTITION;PARALLEL_RESOLVE_SHARED_ENTS;";
+    read_options = "PARALLEL=READ_PART;PARTITION=PARALLEL_PARTITION;PARALLEL_RESOLVE_SHARED_ENTS";
 
     error = mbImpl->load_file(filename,  &fileset, read_options.c_str()); CHECK_ERR(error);
+
+    //DBG
+    std::set<unsigned int> shprocs;
+    error = pc->get_comm_procs(shprocs);CHECK_ERR(error);
+    std::cout<<"#sprocs = "<<shprocs.size()<<std::endl;
+    //DBG
+
     }
     else if (procs == 1) {
 #endif
@@ -1211,7 +1273,7 @@ ErrorCode test_mesh(const char* filename, int *level_degrees, int num_levels)
 #endif
 
     //Generate hierarchy
-    error = refine_entities(&moab, pc, fileset, level_degrees, num_levels, true);  CHECK_ERR(error);
+    error = refine_entities(&moab, pc, fileset, level_degrees, num_levels, false);  CHECK_ERR(error);
 
     return MB_SUCCESS;
 }

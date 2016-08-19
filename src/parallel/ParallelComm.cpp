@@ -837,6 +837,219 @@ ErrorCode ParallelComm::send_entities(std::vector<unsigned int>& send_procs,
   return MB_SUCCESS;
 }
 
+/////////////////////////////////////////////////////////////////////////////////
+// Send and Receive routines for a sequence of entities: use case UMR
+/////////////////////////////////////////////////////////////////////////////////
+void print_buff(unsigned char * ch, int size)
+{
+  for (int i=0; i<size; i++)
+    std::cout<<ch[i];
+  std::cout<<"\n";
+}
+ErrorCode ParallelComm::send_recv_entities(std::vector<int> &send_procs, std::vector<std::vector<int> > &msgsizes, std::vector<std::vector<EntityHandle> > &senddata, std::vector<std::vector<EntityHandle> > &recvdata)
+{
+#ifdef USE_MPE
+  if (myDebug->get_verbosity() == 2) {
+    MPE_Log_event(OWNED_START, procConfig.proc_rank(), "Starting send_recv_entities.");
+  }
+#endif
+  myDebug->tprintf(1, "Entering send_recv_entities\n");
+  if (myDebug->get_verbosity() == 4) {
+    msgs.clear();
+    msgs.reserve(MAX_SHARING_PROCS);
+  }
+
+  //unsigned int i;
+  int i, ind, success;
+  ErrorCode error = MB_SUCCESS;
+
+  //===========================================
+  // Pack and send ents from this proc to others
+  //===========================================
+
+ // std::cout<<"resetting all buffers"<<std::endl;
+
+  reset_all_buffers();
+  sendReqs.resize(3*buffProcs.size(), MPI_REQUEST_NULL);
+  std::vector<MPI_Request> recv_ent_reqs(3*buffProcs.size(), MPI_REQUEST_NULL);
+  int ack_buff;
+  int incoming = 0;
+
+  std::vector<unsigned int>::iterator sit;
+
+  for (ind = 0, sit = buffProcs.begin(); sit != buffProcs.end(); ++sit, ind++) {
+    incoming++;
+    PRINT_DEBUG_IRECV(*sit, procConfig.proc_rank(), remoteOwnedBuffs[ind]->mem_ptr,
+                      INITIAL_BUFF_SIZE, MB_MESG_ENTS_SIZE, incoming);
+
+    success = MPI_Irecv(remoteOwnedBuffs[ind]->mem_ptr, INITIAL_BUFF_SIZE,
+                        MPI_UNSIGNED_CHAR, *sit,
+                        MB_MESG_ENTS_SIZE, procConfig.proc_comm(),
+                        &recv_ent_reqs[3*ind]);
+    if (success != MPI_SUCCESS) {
+      MB_SET_ERR(MB_FAILURE, "Failed to post irecv in send_recv_entities");
+    }
+  }
+
+
+
+//  std::set<unsigned int>::iterator it;
+  for ( i=0; i< (int) send_procs.size(); i++)
+    {
+      //Get index of the shared processor in the local buffer
+      ind = get_buffers(send_procs[i]);
+      localOwnedBuffs[ind]->reset_buffer(sizeof(int));
+
+      int buff_size = msgsizes[i].size()*sizeof(int) + senddata[i].size()*sizeof(EntityHandle);
+      localOwnedBuffs[ind]->check_space(buff_size);
+
+      //Pack entities
+      std::vector<int> msg;
+      msg.insert(msg.end(), msgsizes[i].begin(), msgsizes[i].end());
+      PACK_INTS(localOwnedBuffs[ind]->buff_ptr, &msg[0], msg.size());
+
+      std::vector<EntityHandle> entities;
+      entities.insert(entities.end(), senddata[i].begin(), senddata[i].end());
+      PACK_EH(localOwnedBuffs[ind]->buff_ptr, &entities[0], entities.size());
+      localOwnedBuffs[ind]->set_stored_size();
+
+      if (myDebug->get_verbosity() == 4) {
+          msgs.resize(msgs.size() + 1);
+          msgs.back() = new Buffer(*localOwnedBuffs[ind]);
+        }
+
+      // Send the buffer (size stored in front in send_buffer)
+      error = send_buffer(send_procs[i], localOwnedBuffs[ind],
+                           MB_MESG_ENTS_SIZE, sendReqs[3*ind],
+          recv_ent_reqs[3*ind+2],
+          &ack_buff,
+          incoming);MB_CHK_SET_ERR(error, "Failed to Isend in send_recv_entities");
+    }
+
+
+  //===========================================
+  // Receive and unpack ents from received data
+  //===========================================
+
+  while (incoming) {
+
+    MPI_Status status;
+    int index_in_recv_requests;
+
+    PRINT_DEBUG_WAITANY(recv_ent_reqs, MB_MESG_ENTS_SIZE, procConfig.proc_rank());
+    success = MPI_Waitany(3*buffProcs.size(), &recv_ent_reqs[0], &index_in_recv_requests, &status);
+    if (MPI_SUCCESS != success) {
+      MB_SET_ERR(MB_FAILURE, "Failed in waitany in send_recv_entities");
+    }
+
+    // Processor index in the list is divided by 3
+    ind = index_in_recv_requests / 3;
+
+    PRINT_DEBUG_RECD(status);
+
+    // OK, received something; decrement incoming counter
+    incoming--;
+
+    bool done = false;
+
+    error = recv_buffer(MB_MESG_ENTS_SIZE,
+                         status,
+                         remoteOwnedBuffs[ind],
+                         recv_ent_reqs[3*ind + 1], // This is for receiving the second message
+                         recv_ent_reqs[3*ind + 2], // This would be for ack, but it is not used; consider removing it
+                         incoming,
+                         localOwnedBuffs[ind],
+                         sendReqs[3*ind + 1], // Send request for sending the second message
+                         sendReqs[3*ind + 2], // This is for sending the ack
+                         done);MB_CHK_SET_ERR(error, "Failed to resize recv buffer");
+
+    if (done) {
+      remoteOwnedBuffs[ind]->reset_ptr(sizeof(int));
+
+      int from_proc = status.MPI_SOURCE;
+      int idx = std::find(send_procs.begin(), send_procs.end(), from_proc) - send_procs.begin();
+
+      int msg = msgsizes[idx].size(); std::vector<int> recvmsg(msg);
+      int ndata = senddata[idx].size(); std::vector<EntityHandle> dum_vec(ndata);
+
+      UNPACK_INTS(remoteOwnedBuffs[ind]->buff_ptr, &recvmsg[0], msg);
+      UNPACK_EH(remoteOwnedBuffs[ind]->buff_ptr, &dum_vec[0], ndata);
+
+      recvdata[idx].insert(recvdata[idx].end(), dum_vec.begin(), dum_vec.end());
+    }
+  }
+
+#ifdef USE_MPE
+  if (myDebug->get_verbosity() == 2) {
+      MPE_Log_event(ENTITIES_END, procConfig.proc_rank(), "Ending send_recv_entities.");
+    }
+#endif
+
+
+  return MB_SUCCESS;
+}
+
+ErrorCode ParallelComm::update_remote_data(EntityHandle entity, std::vector<int> &procs, std::vector<EntityHandle> &handles)
+{
+  ErrorCode error;
+  unsigned char pstatus = PSTATUS_INTERFACE;
+
+  int procmin = *std::min_element(procs.begin(), procs.end());
+
+  if ((int)rank() > procmin)
+    pstatus |= PSTATUS_NOT_OWNED;
+  else
+    procmin = rank();
+
+
+  //DBG
+ // std::cout<<"entity = "<<entity<<std::endl;
+ // for (int j=0; j<procs.size(); j++)
+  // std::cout<<"procs["<<j<<"] = "<<procs[j]<<", handles["<<j<<"] = "<<handles[j]<<std::endl;
+  //DBG
+
+
+  if ((int)procs.size() > 1)
+    {
+      procs.push_back(rank());
+      handles.push_back(entity);
+
+      int idx = std::find(procs.begin(), procs.end(), procmin) - procs.begin();
+
+      std::iter_swap(procs.begin(), procs.begin()+idx);
+      std::iter_swap(handles.begin(), handles.begin()+idx);
+
+
+      //DBG
+    //  std::cout<<"entity = "<<entity<<std::endl;
+     // for (int j=0; j<procs.size(); j++)
+      // std::cout<<"procs["<<j<<"] = "<<procs[j]<<", handles["<<j<<"] = "<<handles[j]<<std::endl;
+      //DBG
+
+
+    }
+
+ // if ((entity == 10388) && (rank()==1))
+//    std::cout<<"Here"<<std::endl;
+
+  error = update_remote_data(entity, &procs[0], &handles[0], procs.size(), pstatus);MB_CHK_ERR(error);
+
+  return MB_SUCCESS;
+}
+
+ErrorCode ParallelComm::get_remote_handles(EntityHandle *local_vec, EntityHandle *rem_vec, int num_ents, int to_proc)
+{
+  ErrorCode error;
+ std::vector<EntityHandle> newents;
+  error = get_remote_handles(true, local_vec, rem_vec, num_ents, to_proc, newents);MB_CHK_ERR(error);
+
+  return MB_SUCCESS;
+}
+
+
+
+//////////////////////////////////////////////////////////////////
+
   ErrorCode ParallelComm::recv_entities(const int from_proc,
                                         const bool store_remote_handles,
                                         const bool is_iface,
@@ -6003,6 +6216,17 @@ ErrorCode ParallelComm::send_entities(std::vector<unsigned int>& send_procs,
      }
 
     // Check for consistency in input data
+     //DBG
+   /*  bool con1 = ((new_nump == 2 && pstatus&PSTATUS_SHARED && !(pstatus&PSTATUS_MULTISHARED)) || (new_nump > 2 && pstatus&PSTATUS_SHARED && pstatus&PSTATUS_MULTISHARED));
+     bool con2 = (!(pstatus&PSTATUS_GHOST) || pstatus&PSTATUS_SHARED);
+     bool con3 = (new_nump < 3 || (pstatus&PSTATUS_NOT_OWNED && ps[0] != (int)rank()) || (!(pstatus&PSTATUS_NOT_OWNED) && ps[0] == (int)rank()));
+     std::cout<<"current rank = "<<rank()<<std::endl;
+     std::cout<<"condition 1::"<<con1<<std::endl;
+     std::cout<<"condition 2::"<<con2<<std::endl;
+     std::cout<<"condition 3::"<<con3<<std::endl;*/
+
+     //DBG
+
     assert(new_nump > 1 &&
            ((new_nump == 2 && pstatus&PSTATUS_SHARED && !(pstatus&PSTATUS_MULTISHARED)) || // If <= 2 must not be multishared
             (new_nump > 2 && pstatus&PSTATUS_SHARED && pstatus&PSTATUS_MULTISHARED)) && // If > 2 procs, must be multishared

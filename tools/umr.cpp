@@ -79,6 +79,7 @@ int main(int argc, char* argv[])
 
   int num_levels = 0, dim=0;
   std::vector<int> level_degrees;
+  bool optimize = false;
   bool do_flag = true;
   bool print_times = false, print_size=false, output = false;
   bool parallel = false, resolve_shared = false, exchange_ghosts = false;
@@ -117,6 +118,7 @@ int main(int argc, char* argv[])
         case 'V': qc_vol = true; cvol = strtod(argv[i+1], NULL); ++i; break;
         case 'q': only_quality = true; break;
         case 'o': output = true; break;
+        case 'O': optimize = true; break;
 #ifdef MOAB_HAVE_MPI
         case 'p':
             parallel = true;
@@ -241,7 +243,10 @@ int main(int argc, char* argv[])
     }
 
   std::cout<<"Starting hierarchy generation"<<std::endl;
-  error = uref.generate_mesh_hierarchy( num_levels, ldeg, lsets);MB_CHK_ERR(error);
+
+  std::cout<<"opt = "<<optimize<<std::endl;
+
+  error = uref.generate_mesh_hierarchy( num_levels, ldeg, lsets, optimize);MB_CHK_ERR(error);
 
   if (print_times)
     {
