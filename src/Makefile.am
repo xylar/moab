@@ -150,6 +150,8 @@ libMOAB_la_SOURCES = \
   WriteUtil.hpp \
   moab_mpe.h
 
+nodist_include_HEADERS = moab/MOABConfig.h
+
 # The list of header files which are to be installed
 nobase_libMOAB_la_include_HEADERS = \
   moab/AdaptiveKDTree.hpp \
