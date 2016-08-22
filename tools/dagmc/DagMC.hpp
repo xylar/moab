@@ -24,8 +24,8 @@ namespace moab {
 
 class CartVect;
 
-#define DAGMC_VERSION 1.0
-#define DAGMC_VERSION_STRING "1.0"
+#define DAGMC_VERSION 2.0
+#define DAGMC_VERSION_STRING "2.0"
 #define DAGMC_INTERFACE_REVISION "$Rev$"
 
 /**\brief
@@ -55,17 +55,15 @@ class CartVect;
 class DagMC
 {
 public:
-  static DagMC *instance(Interface *mb_impl = NULL);
-  static void destroy();
-
-
-  ~DagMC() {}
+  // Constructor
+  DagMC(Interface *mb_impl = NULL, double overlap_tolerance = 0., double numerical_precision = .001);
+  // Destructor
+  ~DagMC();
 
   /** Return the version of this library */
   static float version(std::string *version_string = NULL);
   /** Get subversion revision of this file (DagMC.hpp) */
   static unsigned int interface_revision();
-
 
   /* SECTION I: Geometry Initialization */
 
@@ -78,9 +76,16 @@ public:
    *\param facet_tolerance the faceting tolerance guidance for the faceting engine
    *\return - MB_SUCCESS if file loads correctly
    *        - other MB ErrorCodes returned from MOAB
+   * 
+   * Note: When loading a prexisting file with an OBB_TREE tag, a number of unspoken
+   * things happen that one should be aware of.
+   *
+   * 1) The file is loaded and when we query the meshset, we find entities with the OBB_TREE tag
+   * 2) The OBBTreeTool assumes that any children of the entity being queried in a ray intersect sets
+   *     operation are fair game, the surface meshesets have triangles as members, but OBB's as children
+   *     but no querying is done, just assumtions that the tags exist.
    */
-  ErrorCode load_file(const char* cfile,
-                      const double facet_tolerance = 0);
+  ErrorCode load_file(const char* cfile);
 
   /*\brief Use pre-loaded geometry set
    *
@@ -342,18 +347,6 @@ public:
                       EntityHandle& new_volume );
 
 private:
-  /**\brief pass the ray_intersection test to the solid modeling engine
-   *
-   * The user has the options to specify that ray tracing should ultimately occur on the
-   * true CAD model rather than just on the faceted representation.  This is called from
-   * within ray_fire if the user has selected that option
-   */
-  ErrorCode CAD_ray_intersect(const double *point,
-                                const double *dir,
-                                const double huge_val,
-                                std::vector<double> &distances,
-                                std::vector<EntityHandle> &surfaces,
-                                double &len);
 
   /**\brief determine the point membership when the point is effectively on the boundary
    *
@@ -413,8 +406,6 @@ public:
   double numerical_precision() {return numericalPrecision;}
   /** retrieve faceting tolerance */
   double faceting_tolerance() {return facetingTolerance;}
-  /** retrieve use CAD toggle */
-  bool use_CAD() {return useCAD;}
 
   /** Attempt to set a new overlap thickness tolerance, first checking for sanity */
   void set_overlap_thickness( double new_overlap_thickness );
@@ -424,8 +415,6 @@ public:
    */
   void set_numerical_precision( double new_precision );
 
-  /** attempt to set useCAD, first checking for availability */
-  void set_use_CAD( bool use_cad );
 
   /* SECTION V: Metadata handling */
   /** Detect all the property keywords that appear in the loaded geometry
@@ -546,7 +535,7 @@ private:
 
   /* SECTION VI: Other */
 public:
-  OrientedBoxTreeTool *obb_tree() {return &obbTree;}
+  OrientedBoxTreeTool *obb_tree() {return obbTree;}
 
   ErrorCode write_mesh(const char* ffile,
                        const int flen);
@@ -561,26 +550,22 @@ public:
     // get the root of the obbtree for a given entity
   ErrorCode get_root(EntityHandle vol_or_surf, EntityHandle &root);
 
-    // Get the instance of MOAB used by functions in this file.
-  Interface* moab_instance() {return mbImpl;}
+  // Get the instance of MOAB used by functions in this file.
+  Interface* moab_instance() {return MBI;}
 
 
 private:
 
-  DagMC(Interface *mb_impl);
-
-  static void create_instance(Interface *mb_impl = NULL);
-
   /* PRIVATE MEMBER DATA */
 
-  static DagMC *instance_;
-  static Interface *moab_instance_created;
-  Interface *mbImpl;
+  Interface *MBI;
+  bool moab_instance_created;
+  OrientedBoxTreeTool *obbTree;
 
-  OrientedBoxTreeTool obbTree;
   EntityHandle impl_compl_handle;
+public:
   Tag obbTag, geomTag, idTag, nameTag, senseTag, facetingTolTag;
-
+private:
   std::vector<EntityHandle> entHandles[5];
     // store some lists indexed by handle
     // this is the lowest-valued handle among entity sets representing
@@ -606,8 +591,6 @@ private:
   double overlapThickness;
   double numericalPrecision;
   double facetingTolerance, defaultFacetingTolerance;
-  bool useCAD;         /// true if user requested CAD-based ray firing
-  bool have_cgm_geom;  /// true if CGM contains problem geometry; required for CAD-based ray firing.
 
   // temporary storage so functions don't have to reallocate vectors
   // for ray_fire:
@@ -623,25 +606,6 @@ private:
 
 };
 
-inline DagMC *DagMC::instance(Interface *mb_impl)
-{
-  if (NULL == instance_) create_instance(mb_impl);
-
-  return instance_;
-}
-
-inline void DagMC::destroy()
-{
-  if (NULL != instance_) {
-    delete instance_;
-    instance_ = NULL;
-  }
-
-  if (NULL != moab_instance_created) {
-    delete moab_instance_created;
-    moab_instance_created = NULL;
-  }
-}
 
 inline EntityHandle DagMC::entity_by_index( int dimension, int index )
 {

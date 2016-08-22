@@ -134,10 +134,10 @@ ErrorCode summarize_cell_volume_change(Interface* MBI,
 
     // for each volume, sum predeformed and deformed volume
     double orig_grp_volume = 0, defo_grp_volume = 0;
+    moab::DagMC dagmc = moab::DagMC(MBI);
     for (Range::const_iterator j = vols.begin(); j != vols.end(); ++j)
     {
       double defo_size = 0, orig_size = 0;
-      moab::DagMC &dagmc = *moab::DagMC::instance(MBI);
       rval = dagmc.measure_volume(*j, defo_size);
       if (MB_SUCCESS != rval)
         return rval;
@@ -1460,10 +1460,11 @@ int main(int argc, char* argv[])
       three_val, 1, vol_sets);
   if (MB_SUCCESS != result)
     return result;
+  
+  moab::DagMC dagmc = moab::DagMC(MBI);
   for (Range::const_iterator i = vol_sets.begin(); i != vol_sets.end(); ++i)
   {
     double size;
-    moab::DagMC &dagmc = *moab::DagMC::instance(MBI);
     result = dagmc.measure_volume(*i, size);
     if (MB_SUCCESS != result)
       return result;

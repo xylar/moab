@@ -452,7 +452,7 @@ int main( int argc, char* argv[] ){
   if( obb_task ){
 
    if( verbose ){ std::cout << "Loading data into DagMC" << std::endl; } 
-   DagMC* dag = DagMC::instance(&mbi);
+   DagMC* dag = new DagMC(&mbi);
    ret = dag->load_existing_contents();
    CHECKERR( *dag, ret );
    ret = dag->init_OBBTree();
