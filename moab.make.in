@@ -1,6 +1,19 @@
-# The values below are for an un-installed copy of MOAB used directly
-# from its build build directory.  These values will be overridden below
+# The values below are for a copy of MOAB used directly
+# from its build directory. These values will be overridden below
 # for installed copies of MOAB.
+
+# Feature list
+MOAB_MPI_ENABLED = @enablempi@
+MOAB_FORTRAN_ENABLED = @ENABLE_FORTRAN@
+MOAB_HDF5_ENABLED = @enablehdf5@
+MOAB_NETCDF_ENABLED = @enablenetcdf@
+MOAB_PNETCDF_ENABLED = @enablepnetcdf@
+MOAB_IGEOM_ENABLED = @HAVE_IGEOM@
+MOAB_IMESH_ENABLED = @HAVE_IMESH@
+MOAB_IREL_ENABLED = @HAVE_IREL@
+MOAB_MESQUITE_ENABLED = @HAVE_MESQUITE@
+
+# Library and Include paths
 MOAB_LIBDIR = @abs_builddir@/src/.libs
 MOAB_INCLUDES = -I@abs_srcdir@/src \
                 -I@abs_builddir@/src \
@@ -11,6 +24,7 @@ MOAB_INCLUDES = -I@abs_srcdir@/src \
                 -I@abs_srcdir@/src/LocalDiscretization \
                 -I@abs_srcdir@/src/RefineMesh
 
+ifeq ($(MOAB_MESQUITE_ENABLED),yes)
 MSQ_LIBS = -L@abs_builddir@/src/mesquite/.libs -lmbmesquite
 MSQ_INCLUDES = -I@abs_srcdir@/src/mesquite/include \
 	-I@abs_builddir@/src/mesquite/include \
@@ -43,7 +57,10 @@ MSQ_INCLUDES = -I@abs_srcdir@/src/mesquite/include \
 	-I@abs_srcdir@/src/mesquite/TargetMetric/Size \
 	-I@abs_srcdir@/src/mesquite/TargetMetric/Untangle
 
-MOAB_INCLUDES += @ZOLTAN_INC_FLAGS@ ${MSQ_INCLUDES}
+MOAB_INCLUDES += ${MSQ_INCLUDES}
+endif
+
+MOAB_INCLUDES += @ZOLTAN_INC_FLAGS@
 
 MOAB_CPPFLAGS = @CPPFLAGS@ 
 MOAB_CXXFLAGS = @CXXFLAGS@ 
@@ -59,17 +76,6 @@ MOAB_CXX = @CXX@
 MOAB_CC  = @CC@
 MOAB_FC  = @FC@
 MOAB_F77  = @F77@
-
-# Feature list
-MOAB_MPI_ENABLED = @enablempi@
-MOAB_FORTRAN_ENABLED = @ENABLE_FORTRAN@
-MOAB_HDF5_ENABLED = @enablehdf5@
-MOAB_NETCDF_ENABLED = @enablenetcdf@
-MOAB_PNETCDF_ENABLED = @enablepnetcdf@
-MOAB_IGEOM_ENABLED = @HAVE_IGEOM@
-MOAB_IMESH_ENABLED = @HAVE_IMESH@
-MOAB_IREL_ENABLED = @HAVE_IREL@
-MOAB_MESQUITE_ENABLED = @HAVE_MESQUITE@
 
 # Override MOAB_LIBDIR and MOAB_INCLUDES from above with the correct
 # values for the installed MOAB.
