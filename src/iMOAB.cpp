@@ -273,7 +273,7 @@ ErrCode iMOAB_ReadHeaderInfo ( iMOAB_String filename, int* num_global_vertices, 
     return 1;
   }
 
-  data = mhdf_getFileSummary( file, H5T_NATIVE_ULONG, &status );
+  data = mhdf_getFileSummary( file, H5T_NATIVE_ULONG, &status, 0); // no extra set info; (for VisIt plugin only)
   if (mhdf_isError( &status )) {
     fprintf( stderr,"%s: %s\n", filename, mhdf_message( &status ) );
     return 1;
