@@ -240,6 +240,7 @@ int main( int argc, char* argv[] )
   num_errors += RUN_TEST( test_ghost_tag_exchange, filename );
   num_errors += RUN_TEST( regression_ghost_tag_exchange_no_default, filename );
   num_errors += RUN_TEST( test_delete_entities, filename2);
+  num_errors += RUN_TEST (test_sequences_after_ghosting, filename2) ;
   if (2>=size) // run this one only on one or 2 processors; the file has only 2 parts in partition
    num_errors += RUN_TEST( test_ghost_polyhedra, filename3);
   if (2==size)
@@ -253,7 +254,6 @@ int main( int argc, char* argv[] )
   num_errors += RUN_TEST( test_interface_owners, 0 );
   num_errors += RUN_TEST( test_ghosted_entity_shared_data, 0 );
   num_errors += RUN_TEST( regression_owners_with_ghosting, 0 );
-  num_errors += RUN_TEST (test_sequences_after_ghosting, filename2) ;
 
   if (rank == 0) {
     if (!num_errors) 
