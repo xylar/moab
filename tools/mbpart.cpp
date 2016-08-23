@@ -18,6 +18,9 @@
 
 #ifdef MOAB_HAVE_METIS
 #include "moab/MetisPartitioner.hpp"
+typedef idx_t PartType;
+#else
+typedef int PartType;
 #endif
 
 #include <iostream>
@@ -175,9 +178,8 @@ int main(int argc, char* argv[])
 #endif
   MB_SET_ERR(MB_FAILURE, "Specify either Zoltan or Metis partitioner type");
 
-  PartitionerBase *tool = NULL;
-
 #ifdef MOAB_HAVE_ZOLTAN
+  ZoltanPartitioner *zoltan_tool = NULL;
   // check if partition geometry, if it is, should get mesh size for the geometry
   if (part_geom_mesh_size != -1.0 && part_geom_mesh_size <= 0.0)
   {
@@ -191,7 +193,7 @@ int main(int argc, char* argv[])
     if (part_geom_mesh_size < 0.)
     {
       // partition mesh
-      tool = new ZoltanPartitioner(&mb, false, argc, argv);
+      zoltan_tool = new ZoltanPartitioner(&mb, false, argc, argv);
     }
     else
     {
@@ -205,7 +207,7 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
       }
       GeometryQueryTool *gti = GeometryQueryTool::instance();
-      tool = new ZoltanPartitioner (&mb, false, argc, argv, gti);
+      zoltan_tool = new ZoltanPartitioner (&mb, false, argc, argv, gti);
 #else
       std::cerr << "CGM should be configured to partition geometry." << std::endl << std::endl;
       opts.printHelp();
@@ -223,8 +225,9 @@ int main(int argc, char* argv[])
 #endif // MOAB_HAVE_ZOLTAN
 
 #ifdef MOAB_HAVE_METIS
-  if (moab_use_metis && !tool) {
-    tool = new MetisPartitioner (&mb, false, argc, argv);
+  MetisPartitioner *metis_tool = NULL;
+  if (moab_use_metis && !metis_tool) {
+    metis_tool = new MetisPartitioner (&mb, false, argc, argv);
   }
 
   if ((aggregating_tag.empty() && partition_tagged_sets) || (aggregating_tag.empty() && partition_tagged_ents))
@@ -370,7 +373,7 @@ int main(int argc, char* argv[])
     t = clock();
 #ifdef MOAB_HAVE_ZOLTAN
     if (moab_use_zoltan) {
-      rval = tool->partition_mesh_and_geometry(part_geom_mesh_size, num_parts,
+      rval = zoltan_tool->partition_mesh_and_geometry(part_geom_mesh_size, num_parts,
              zoltan_method.c_str(),
              (!parm_method.empty() ? parm_method.c_str() : oct_method.c_str()),
              imbal_tol, part_dim, write_sets, write_tags, obj_weight,
@@ -379,7 +382,7 @@ int main(int argc, char* argv[])
 #endif
 #ifdef MOAB_HAVE_METIS
     if (moab_use_metis) {
-      rval = tool->partition_mesh( num_parts, metis_method.c_str(), part_dim,
+      rval = metis_tool->partition_mesh( num_parts, metis_method.c_str(), part_dim,
                                    write_sets, write_tags,
                                    partition_tagged_sets, partition_tagged_ents,
                                    aggregating_tag.c_str(), print_time);
@@ -446,7 +449,7 @@ int main(int argc, char* argv[])
 #ifdef MOAB_HAVE_ZOLTAN
     if (incl_closure)
     {
-      rval = tool->include_closure();
+      rval = zoltan_tool->include_closure();
       if (MB_SUCCESS != rval)
       {
         std::cerr << "Closure inclusion failed." << std::endl;
@@ -537,7 +540,12 @@ int main(int argc, char* argv[])
     num_parts *= 2;
   }
 
-  delete tool;
+#ifdef MOAB_HAVE_ZOLTAN
+  delete zoltan_tool;
+#endif
+#ifdef MOAB_HAVE_METIS
+  delete metis_tool;
+#endif
 
 #ifdef MOAB_HAVE_MPI
   err = MPI_Finalize();
