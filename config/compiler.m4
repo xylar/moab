@@ -192,6 +192,9 @@ if (test "x$enable_debug" != "xno"); then # debug flags
 # GNU
 EXTRA_GNU_CXXFLAGS="-Wall -Wno-long-long -pipe -pedantic -Wshadow -Wunused-parameter -Wpointer-arith -Wformat -Wformat-security -Wextra -Wno-variadic-macros -Wno-unknown-pragmas"
 EXTRA_GNU_FCFLAGS="-pipe -pedantic -ffree-line-length-0"
+# CLANG
+EXTRA_CLANG_CXXFLAGS="$EXTRA_GNU_CXXFLAGS"
+EXTRA_CLANG_FCFLAGS="$EXTRA_GNU_FCFLAGS"
 # Intel
 EXTRA_INTEL_CXXFLAGS="-pipe -C"
 EXTRA_INTEL_FCFLAGS="-C"
@@ -207,6 +210,9 @@ if (test "x$enable_cxx_optimize" != "xno"); then  # optimization flags
 #GNU
 EXTRA_GNU_CXXFLAGS="$EXTRA_GNU_CXXFLAGS -finline-functions"
 EXTRA_GNU_FCFLAGS="$EXTRA_GNU_FCFLAGS -ffree-line-length-0 -finline-functions"
+#CLANG
+EXTRA_CLANG_CXXFLAGS="$EXTRA_CLANG_CXXFLAGS -finline-functions"
+EXTRA_CLANG_FCFLAGS="$EXTRA_CLANG_FCFLAGS -ffree-line-length-0 -finline-functions"
 # Intel
 EXTRA_INTEL_CXXFLAGS="$EXTRA_INTEL_CXXFLAGS -xHost -ip -no-prec-div" # -fast
 EXTRA_INTEL_FCFLAGS="$EXTRA_INTEL_FCFLAGS -xHost -ip -no-prec-div" # -fast
@@ -755,7 +761,7 @@ case "$cxx_compiler:$host_cpu" in
     FATHOM_CXX_SPECIAL="$EXTRA_PGI_CXXFLAGS"
     ;;
   Clang:*)
-    FATHOM_CXX_SPECIAL="$EXTRA_GNU_CXXFLAGS"
+    FATHOM_CXX_SPECIAL="$EXTRA_CLANG_CXXFLAGS"
     FATHOM_CXX_32BIT=-m32
     FATHOM_CXX_64BIT=-m64
     ;;
@@ -934,8 +940,8 @@ case "$cc_compiler:$host_cpu" in
     FATHOM_F77_SPECIAL="$EXTRA_PGI_FCFLAGS"
     ;;
   Clang:*)
-    FATHOM_CC_SPECIAL="$EXTRA_GNU_CXXFLAGS"
-    FATHOM_FC_SPECIAL="$EXTRA_GNU_FCFLAGS"
+    FATHOM_CC_SPECIAL="$EXTRA_CLANG_CXXFLAGS"
+    FATHOM_FC_SPECIAL="$EXTRA_CLANG_FCFLAGS"
     FATHOM_F77_SPECIAL="$FATHOM_FC_SPECIAL"
     FATHOM_CC_32BIT=-m32
     FATHOM_CC_64BIT=-m64
