@@ -785,24 +785,26 @@ namespace moab{
         timeall.tm_refine += tm->time_elapsed() - tstart;
 
         // Go into parallel communication
+        if (!optimize) {
 #ifdef MOAB_HAVE_MPI
-        if (pcomm && (pcomm->size()> 1) && !optimize)
-          {
+          if (pcomm && (pcomm->size()> 1)) {
             double tpstart = tm->time_elapsed();
             error = resolve_shared_ents_parmerge(l, hm_set[l]);MB_CHK_ERR(error);
             timeall.tm_resolve += tm->time_elapsed() - tpstart;
           }
 #endif
+        }
       }
 
+      if (optimize) {
 #ifdef MOAB_HAVE_MPI
-    if (pcomm && (pcomm->size()> 1)&& optimize)
-      {
-        double tpstart = tm->time_elapsed();
-        error = resolve_shared_ents_opt(hm_set, nlevels);MB_CHK_ERR(error);
-        timeall.tm_resolve = tm->time_elapsed() - tpstart;
-      }
+        if (pcomm && (pcomm->size()> 1)) {
+          double tpstart = tm->time_elapsed();
+          error = resolve_shared_ents_opt(hm_set, nlevels);MB_CHK_ERR(error);
+          timeall.tm_resolve = tm->time_elapsed() - tpstart;
+        }
 #endif
+      }
     timeall.tm_total = timeall.tm_refine + timeall.tm_resolve;
 
     return MB_SUCCESS;
@@ -1922,14 +1924,13 @@ namespace moab{
     *      Parallel Communication       *
     * ********************************/
 
+ #ifdef MOAB_HAVE_MPI
    ErrorCode NestedRefine::resolve_shared_ents_parmerge(int level, EntityHandle levelset)
    {
      // TEMP: Add the adjacencies for MOAB-native DS
      // NOTE (VSM): This is expensive since it creates a doubly
      // redundant copy of the adjacency data in both MOAB-native
      // and AHF. Need to fix this with AHF optimized branch.
-
- #ifdef MOAB_HAVE_MPI
      ErrorCode error;
      ReadUtilIface *read_iface;
      error = mbImpl->query_interface(read_iface);MB_CHK_ERR(error);
@@ -1992,15 +1993,11 @@ namespace moab{
          }
 
        }
-#else
-     MB_SET_ERR(MB_FAILURE, "Resolving shared interface for serial mesh");
-#endif
      return MB_SUCCESS;
    }
 
    ErrorCode NestedRefine::resolve_shared_ents_opt(EntityHandle *hm_set, int num_levels)
    {
-#ifdef MOAB_HAVE_MPI
      assert(pcomm->size() > 1);
 
      ErrorCode error;
@@ -2019,13 +2016,11 @@ namespace moab{
      //All shared processors
      std::set<unsigned int> shprocs;
      error = pcomm->get_comm_procs(shprocs);MB_CHK_ERR(error);
-   //  std::cout<<"#shprocs = "<<shprocs.size()<<std::endl;
 
      std::vector<int> sharedprocs;
      for (std::set<unsigned int>::iterator it = shprocs.begin(); it != shprocs.end(); it++)
        sharedprocs.push_back(*it);
      int nprocs = sharedprocs.size();
-   //  std::cout<<"nprocs = "<<nprocs<<std::endl;
 
      //Create buffer variables storing the entities to be sent and received
      std::vector<std::vector<int> > nsharedEntsperproc(nprocs);
@@ -2046,16 +2041,10 @@ namespace moab{
          Range allEnts;
          error = collect_shared_entities_by_dimension(sharedentities, allEnts);MB_CHK_ERR(error);
 
-        // std::cout<<"collect_shared_entities_by_dimension"<<std::endl;
-
          Range V0, E0, F0;
          V0 = allEnts.subset_by_dimension(0);
          E0 = allEnts.subset_by_dimension(1);
          F0 = allEnts.subset_by_dimension(2);
-
-      //   std::cout<<"#sharedFaces with proc = "<<sharedprocs[i]<<" :: "<<F0.size()<<std::endl;
-    //     std::cout<<"#sharedEdges with proc = "<<sharedprocs[i]<<" :: "<<E0.size()<<std::endl;
-   //      std::cout<<"#sharedVerts with proc = "<<sharedprocs[i]<<" :: "<<V0.size()<<std::endl;
 
          // Step 2A: Prepare msg to be sent:
          //
@@ -2103,9 +2092,6 @@ namespace moab{
          msgsz.push_back(V0.size()); msgsz.push_back(locVList.size());
          nsharedEntsperproc[i].insert(nsharedEntsperproc[i].end(),msgsz.begin(), msgsz.end());
 
-     //    for (int j=0; j<msgsz.size(); j++)
-      //     std::cout<<"msg_sizes["<<j<<"] = "<<msgsz[j]<<std::endl;
-
          if (!F0.empty())
            {
              localBuffs[i].insert(localBuffs[i].end(), locFList.begin(), locFList.end());
@@ -2134,12 +2120,10 @@ namespace moab{
 
      // Step 6: Update pcomm tags
      error = update_parallel_tags(rprocs, rhandles);MB_CHK_ERR(error);
-#else
-     MB_SET_ERR(MB_FAILURE, "Resolving shared interface for serial mesh");
-#endif
 
    return MB_SUCCESS;
 }
+
 
    ErrorCode NestedRefine::collect_shared_entities_by_dimension(Range sharedEnts, Range &allEnts)
    {
@@ -2209,7 +2193,6 @@ namespace moab{
 
    ErrorCode NestedRefine::collect_FList(int to_proc, Range faces, std::vector<EntityHandle> &FList, std::vector<EntityHandle> &RList)
    {
-#ifdef MOAB_HAVE_MPI
      ErrorCode error;
 
      FList.clear();
@@ -2277,9 +2260,6 @@ namespace moab{
      RList.insert(RList.end(), FC.begin(), FC.end());
      RList.insert(RList.end(), rFE.begin(), rFE.end());
      RList.insert(RList.end(), FE.begin(), FE.end());
-#else
-     MB_SET_ERR(MB_FAILURE, "Requesting collection of faces on shared interface for serial mesh");
-#endif
 
      return MB_SUCCESS;
    }
@@ -2287,7 +2267,6 @@ namespace moab{
 
    ErrorCode NestedRefine::collect_EList(int to_proc, Range edges, std::vector<EntityHandle> &EList, std::vector<EntityHandle> &RList)
    {
-#ifdef MOAB_HAVE_MPI
      ErrorCode error;
      EList.clear();
      std::vector<EntityHandle> E, EC, lE, lEC, rE, rEC;
@@ -2340,9 +2319,6 @@ namespace moab{
      RList.insert(RList.end(), E.begin(), E.end());
      RList.insert(RList.end(), rEC.begin(), rEC.end());
      RList.insert(RList.end(), EC.begin(), EC.end());
-#else
-     MB_SET_ERR(MB_FAILURE, "Requesting collection of edges on shared interface for serial mesh");
-#endif
 
      return MB_SUCCESS;
    }
@@ -2350,23 +2326,18 @@ namespace moab{
 
    ErrorCode NestedRefine::collect_VList(int to_proc, Range verts, std::vector<EntityHandle> &VList, std::vector<EntityHandle> &RList)
    {
-#ifdef MOAB_HAVE_MPI
      ErrorCode error;
      std::vector<EntityHandle> V, lV, rV;
      VList.clear();
-
-   //  std::cout<<"shared_proc = "<<to_proc<<std::endl;
 
      //Add the vertices at the coarsest level first.
      for (Range::iterator it = verts.begin(); it != verts.end(); it++)
        {
          EntityHandle v = *it;
-        // std::cout<<"v = "<<v<<std::endl;
 
          lV.push_back(v);
          EntityHandle rval = 0;
          error = pcomm->get_remote_handles(&v, &rval, 1, to_proc);MB_CHK_ERR(error);
-       //  std::cout<<"rv = "<<rval<<std::endl;
 
          rV.push_back(rval);
        }
@@ -2390,22 +2361,8 @@ namespace moab{
      RList.insert(RList.end(), rV.begin(), rV.end());
      RList.insert(RList.end(), V.begin(), V.end());
 
-     //DBG
-    // std::cout<<"shared_proc = "<<to_proc<<std::endl;
-     //std::cout<<"|VList| = "<<VList.size()<<std::endl;
-    // std::cout<<"|RList| = "<<RList.size()<<std::endl;
-
-    // for (int i=0; i<VList.size(); i++)
-     //  std::cout<<"VList["<<i<<"] = "<<VList[i]<<", RList["<<i<<"] = "<<RList[i]<<std::endl;
-     //DBG
-
-#else
-     MB_SET_ERR(MB_FAILURE, "Requesting collection of vertices on shared interface for serial mesh");
-#endif
-
      return MB_SUCCESS;
    }
-
 
    ErrorCode NestedRefine::decipher_remote_handles(std::vector<int> &sharedprocs, std::vector<std::vector<int> > &auxinfo, std::vector<std::vector<EntityHandle> > &localbuffers, std::vector<std::vector<EntityHandle> > &remotebuffers, std::multimap<EntityHandle, int> &remProcs, std::multimap<EntityHandle, EntityHandle> &remHandles)
    {
@@ -2487,17 +2444,6 @@ namespace moab{
              std::vector<EntityHandle> LVList, RVList;
              LVList.insert(LVList.end(), localbuffers[i].begin(), localbuffers[i].end());
              RVList.insert(RVList.end(), remotebuffers[i].begin(), remotebuffers[i].end());
-
-             //DBG
-             //std::cout<<"|LVList| = "<<LVList.size()<<", |RVList| = "<<RVList.size()<<std::endl;
-
-         //    std::cout<<"from_proc = "<<sharedprocs[i]<<std::endl;
-         //    for (int j=0; j<LVList.size(); j++)
-        //       std::cout<<"LVList["<<j<<"] = "<<LVList[j]<<std::endl;
-        //     for (int j=0; j<RVList.size(); j++)
-        //       std::cout<<"RVList["<<j<<"] = "<<RVList[j]<<std::endl;
-
-             //DBG
 
              error = decipher_remote_handles_vertex(sharedprocs[i], msgsz[4], LVList, RVList, remProcs, remHandles);MB_CHK_ERR(error);
            }
@@ -2617,7 +2563,6 @@ namespace moab{
                }
            }
        }
-
 
      return MB_SUCCESS;
    }
@@ -2761,7 +2706,6 @@ namespace moab{
 
    ErrorCode NestedRefine::update_parallel_tags(std::multimap<EntityHandle, int> &remProcs, std::multimap<EntityHandle, EntityHandle> & remHandles)
    {
-#ifdef MOAB_HAVE_MPI
      ErrorCode error;
 
      std::vector<int> rprocs;
@@ -2798,9 +2742,7 @@ namespace moab{
 
          it = remProcs.upper_bound(it->first);
      }
-#else
-     MB_SET_ERR(MB_FAILURE, "Requesting updation of parallel tags for serial mesh");
-#endif
+
      return MB_SUCCESS;
    }
 
@@ -3017,6 +2959,8 @@ namespace moab{
     // return found;
      return MB_SUCCESS;
    }
+
+#endif
 
 
   /**********************************
