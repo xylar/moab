@@ -151,8 +151,15 @@ if (test "x" != "x$HDF5_DIR" || test "xno" != "x$HDF5_DIR"); then
       if test "x$GXX" = "xyes" && test "x$GCC" = "xyes"; then
         HDF5_CPPFLAGS="$HDF5_CPPFLAGS -isystem ${HDF5_DIR}/include"
       fi
+    fi
+    if test -d "${HDF5_DIR}/include/hdf5/include"; then
+      HDF5_CPPFLAGS="$HDF5_CPPFLAGS -I${HDF5_DIR}/include/hdf5/include"
     else
-      HDF5_CPPFLAGS="$HDF5_CPPFLAGS -I${HDF5_DIR}"
+      if test -d "${HDF5_DIR}/include/hdf5"; then
+        HDF5_CPPFLAGS="$HDF5_CPPFLAGS -I${HDF5_DIR}/include/hdf5"
+      else
+        HDF5_CPPFLAGS="$HDF5_CPPFLAGS -I${HDF5_DIR}"
+      fi
     fi
   fi
  
