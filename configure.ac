@@ -873,7 +873,7 @@ if (test "x$WITH_TEMPEST" != "xno" && test "x$WITH_TEMPEST" != "x"); then
   # Test for TempestRemap library, possibly requiring NetCDF
   old_LDFLAGS="$LDFLAGS"
   LDFLAGS="$LDFLAGS -L$WITH_TEMPEST/lib"
-  AC_CHECK_LIB([TempestRemap],[GenerateOfflineMap],[TEMPESTREMAP_LIBS='-L$WITH_TEMPEST/lib -lTempestRemap'],
+  AC_CHECK_LIB([TempestRemap],[GenerateOfflineMap],[TEMPESTREMAP_LIBS="-L$WITH_TEMPEST/lib -lTempestRemap"],
     [unset ac_cv_lib_TempestRemap_GenerateOfflineMap
     AC_CHECK_LIB([TempestRemap],[GenerateOfflineMap],
                   [TEMPESTREMAP_LIBS="-L$WITH_TEMPEST/lib -lTempestRemap $NETCDF_LIBS"],
@@ -881,6 +881,7 @@ if (test "x$WITH_TEMPEST" != "xno" && test "x$WITH_TEMPEST" != "x"); then
                   [$NETCDF_LIBS])])
   LDFLAGS="$old_LDFLAGS"
   AC_LANG_POP([C++])
+  AC_SUBST(TEMPESTREMAP_LIBS)
 
     # Define macro HAVE_TEMPESTREMAP
   AC_DEFINE([HAVE_TEMPESTREMAP],[1],[Enable use of TempestRemap library API for computing intersection and remapping for Climate problems])
