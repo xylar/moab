@@ -18,7 +18,7 @@ C      include '/home/iulian/3rdparty/mpich-3.1/install/include/mpif.h'
       integer ierr, num_procs, my_id
       integer pid
       character*10 appname
-      character*132 filename
+      character*132 filename, tmpfile
       character*150 readopts
       integer ngv, nge, ndim, nparts
       integer nghlay
@@ -55,6 +55,7 @@ C       indices for surface BC element, reference surf BC, value
 
 
       character*100 outfile, wopts
+      my_id = 0
 #ifdef MOAB_HAVE_MPI
       call MPI_INIT ( ierr )
       call errorout(ierr, 'fail to initialize MPI')
@@ -81,12 +82,13 @@ c     find out MY process ID, and how many processes were started.
       ierr = iMOAB_RegisterFortranApplication(appname, MPI_COMM_WORLD,
      & pid)
 #else
-      ierr = iMOAB_RegisterFortranApplication(appname, my_id,
+      ierr = iMOAB_RegisterFortranApplication(appname,
      & pid)
 #endif
       call errorout(ierr, 'fail to register application')
 C
-      filename ='p8ex1.h5m'//CHAR(0)
+      tmpfile =FMDIR
+      filename = trim(tmpfile) // '/io/p8ex1.h5m' //CHAR(0)
       ierr = iMOAB_ReadHeaderInfo ( filename, ngv, nge, ndim, nparts)
       call errorout(ierr, 'fail to read header info')
 
@@ -194,42 +196,41 @@ C printf some of the block info */
      &       I3, ' block ID: ' I4)
         enddo
 
-	    do  i=1,nblocks(3)
+        do  i=1,nblocks(3)
 
-	      print *,' block index:', i, ' block ID ', IWORK(bID+i-1)
-	      blockID = IWORK(bID+i-1)
-	      ierr = iMOAB_GetBlockInfo(pid, blockID , vpere, nebl)
-	      call errorout(ierr, 'failed to elem block info')
-	      print *, '  has' , nebl, ' elements with ', vpere, 'verts'
+          print *,' block index:', i, ' block ID ', IWORK(bID+i-1)
+          blockID = IWORK(bID+i-1)
+          ierr = iMOAB_GetBlockInfo(pid, blockID , vpere, nebl)
+          call errorout(ierr, 'failed to elem block info')
+          print *, '  has' , nebl, ' elements with ', vpere, 'verts'
 
-	 	  sizeconn = nebl * vpere
-	 	  eCO = ifree
-	      ierr = iMOAB_GetBlockElementConnectivities(pid, blockID,
+          sizeconn = nebl * vpere
+          eCO = ifree
+          ierr = iMOAB_GetBlockElementConnectivities(pid, blockID,
      &       sizeconn, IWORK(eCO) )
-	      call errorout(ierr, 'failed to get block elem connectivity')
+          call errorout(ierr, 'failed to get block elem connectivity')
 
-	      ifree = ifree + sizeconn
-	      eOWN = ifree
-	      ierr = iMOAB_GetElementOwnership(pid, blockID, nebl,
+          ifree = ifree + sizeconn
+          eOWN = ifree
+          ierr = iMOAB_GetElementOwnership(pid, blockID, nebl,
      &           IWORK(eOWN))
-	      call errorout(ierr, 'failed to get block elem ownership')
-	      ifree = ifree+nebl
+          call errorout(ierr, 'failed to get block elem ownership')
+          ifree = ifree+nebl
 
-	      egID = ifree
-	      elID = ifree + nebl
-	      ierr = iMOAB_GetElementID(pid, blockID, nebl,
+          egID = ifree
+          elID = ifree + nebl
+          ierr = iMOAB_GetElementID(pid, blockID, nebl,
      &          IWORK(egID), IWORK(elID)  )
-	      call errorout(ierr, 'failed to get block elem IDs')
-	      ifree = elID + nebl
+          call errorout(ierr, 'failed to get block elem IDs')
+          ifree = elID + nebl
 
-	      do j=1, nebl
+          do j=1, nebl
             write (*, 102) j,  IWORK(eOWN+j-1),IWORK(egID+j-1),
      &        IWORK(elID+j-1), (IWORK(eCO-1+(j-1)*vpere+k), k=1,vpere)
 102         FORMAT(' elem ', I3, ' owned by', I3, ' gid:', I3, ' lid:',
      &       I3, ' : ', 10I5)
-	      enddo
-
-	    enddo
+          enddo
+       enddo
 
 
 C      query int tag values on vertices

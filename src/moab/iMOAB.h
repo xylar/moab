@@ -97,7 +97,7 @@ ErrCode iMOAB_Finalize();
   \param[in]  comm (MPI_Comm*)        MPI communicator to be used for all mesh-related queries originating from this application
   \param[out] pid (iMOAB_AppID)       The unique pointer to the application ID
 */
-ErrCode iMOAB_RegisterApplication( iMOAB_String app_name,
+ErrCode iMOAB_RegisterApplication( const iMOAB_String app_name,
 #ifdef MOAB_HAVE_MPI
     MPI_Comm* comm,
 #endif
@@ -117,7 +117,11 @@ ErrCode iMOAB_RegisterApplication( iMOAB_String app_name,
   \param[out] pid (iMOAB_AppID)       The unique pointer to the application ID
   \param[in]  app_name_length (int)   Length of application name string.
 */
-ErrCode iMOAB_RegisterFortranApplication( iMOAB_String app_name, int* comm, iMOAB_AppID pid, int app_name_length );
+ErrCode iMOAB_RegisterFortranApplication( const iMOAB_String app_name,
+#ifdef MOAB_HAVE_MPI
+    int* comm,
+#endif
+    iMOAB_AppID pid, int app_name_length );
 
 /**
   \brief De-Register application: delete mesh (set) associated with the application ID.
@@ -146,7 +150,7 @@ ErrCode iMOAB_DeregisterApplication( iMOAB_AppID pid );
   \param[out] num_parts (int*)           The total number of partitions available in the mesh file, typically partitioned with mbpart during pre-processing
   \param[in]  filename_length (int)      Length of the file name string
 */
-ErrCode iMOAB_ReadHeaderInfo ( iMOAB_String filename, int* num_global_vertices, int* num_global_elements, int* num_dimension, int* num_parts, int filename_length );
+ErrCode iMOAB_ReadHeaderInfo ( const iMOAB_String filename, int* num_global_vertices, int* num_global_elements, int* num_dimension, int* num_parts, int filename_length );
 
 /**
    \brief Load a MOAB mesh file in parallel and exchange ghost layers as requested.
@@ -171,7 +175,7 @@ ErrCode iMOAB_ReadHeaderInfo ( iMOAB_String filename, int* num_global_vertices, 
   \param[in] filename_length (int)        Length of the filename string
   \param[in] read_options_length (int)    Length of the read options string  
 */
-ErrCode iMOAB_LoadMesh( iMOAB_AppID pid, iMOAB_String filename, iMOAB_String read_options, int * num_ghost_layers, int filename_length, int read_options_length );
+ErrCode iMOAB_LoadMesh( iMOAB_AppID pid, const iMOAB_String filename, const iMOAB_String read_options, int * num_ghost_layers, int filename_length, int read_options_length );
 
 /**
   \brief Write a MOAB mesh along with the solution tags to a file.
@@ -410,7 +414,7 @@ ErrCode iMOAB_GetPointerToVertexBC(iMOAB_AppID pid, int * vertex_BC_length, iMOA
    \param[out] tag_index (int*)               The tag index which can be used as identifier in synchronize methods
    \param[in] tag_storage_name_length (int)   The length of the tag_storage_name string
 */
-ErrCode iMOAB_DefineTagStorage(iMOAB_AppID pid, iMOAB_String tag_storage_name, int* tag_type, int* components_per_entity, int * tag_index, int tag_storage_name_length);
+ErrCode iMOAB_DefineTagStorage(iMOAB_AppID pid, const iMOAB_String tag_storage_name, int* tag_type, int* components_per_entity, int * tag_index, int tag_storage_name_length);
 
 /**
     \brief Store the specified values in a MOAB integer Tag.
@@ -428,7 +432,7 @@ ErrCode iMOAB_DefineTagStorage(iMOAB_AppID pid, iMOAB_String tag_storage_name, i
    \param[out] tag_storage_data (int*)                 The array data of type <I>int</I> to replace the internal tag memory; The data is assumed to be contiguous over the local set of visible entities (either vertices or elements)
    \param[in]  tag_storage_name_length (iMOAB_String)  The length of the tag_storage_name string
 */
-ErrCode iMOAB_SetIntTagStorage(iMOAB_AppID pid, iMOAB_String tag_storage_name, int * num_tag_storage_length, int * entity_type, int* tag_storage_data, int tag_storage_name_length);
+ErrCode iMOAB_SetIntTagStorage(iMOAB_AppID pid, const iMOAB_String tag_storage_name, int * num_tag_storage_length, int * entity_type, int* tag_storage_data, int tag_storage_name_length);
 
 /**
    \brief Get the specified values in a MOAB integer Tag.
@@ -442,7 +446,7 @@ ErrCode iMOAB_SetIntTagStorage(iMOAB_AppID pid, iMOAB_String tag_storage_name, i
    \param[out] tag_storage_data (int*)                 The array data of type <I>int</I> to be copied from the internal tag memory; The data is assumed to be contiguous over the local set of visible entities (either vertices or elements)
    \param[in]  tag_storage_name_length (iMOAB_String)  The length of the tag_storage_name string
 */
-ErrCode iMOAB_GetIntTagStorage(iMOAB_AppID pid, iMOAB_String tag_storage_name, int *num_tag_storage_length, int * entity_type, int* tag_storage_data, int tag_storage_name_length);
+ErrCode iMOAB_GetIntTagStorage(iMOAB_AppID pid, const iMOAB_String tag_storage_name, int *num_tag_storage_length, int * entity_type, int* tag_storage_data, int tag_storage_name_length);
 
 /**
    \brief Store the specified values in a MOAB double Tag.
@@ -456,7 +460,7 @@ ErrCode iMOAB_GetIntTagStorage(iMOAB_AppID pid, iMOAB_String tag_storage_name, i
    \param[out] tag_storage_data (double*)              The array data of type <I>double</I> to replace the internal tag memory; The data is assumed to be contiguous over the local set of visible entities (either vertices or elements)
    \param[in]  tag_storage_name_length (iMOAB_String)  The length of the tag_storage_name string
 */
-ErrCode iMOAB_SetDoubleTagStorage(iMOAB_AppID pid, iMOAB_String tag_storage_name, int * num_tag_storage_length, int * entity_type, double* tag_storage_data, int tag_storage_name_length);
+ErrCode iMOAB_SetDoubleTagStorage(iMOAB_AppID pid, const iMOAB_String tag_storage_name, int * num_tag_storage_length, int * entity_type, double* tag_storage_data, int tag_storage_name_length);
 
 /**
    \brief Retrieve the specified values in a MOAB double Tag.
@@ -470,7 +474,7 @@ ErrCode iMOAB_SetDoubleTagStorage(iMOAB_AppID pid, iMOAB_String tag_storage_name
    \param[out] tag_storage_data (double*)       The array data of type <I>double</I> to be copied from the internal tag memory; The data is assumed to be contiguous over the local set of visible entities (either vertices or elements)
    \param[in]  tag_storage_name_length (int)    The length of the tag_storage_name string
 */
-ErrCode iMOAB_GetDoubleTagStorage(iMOAB_AppID pid, iMOAB_String tag_storage_name, int * num_tag_storage_length, int * entity_type, double* tag_storage_data, int tag_storage_name_length);
+ErrCode iMOAB_GetDoubleTagStorage(iMOAB_AppID pid, const iMOAB_String tag_storage_name, int * num_tag_storage_length, int * entity_type, double* tag_storage_data, int tag_storage_name_length);
 
 /**
    \fn ErrCode iMOAB_SynchronizeTags(iMOAB_AppID pid,  int * num_tags, int * tag_indices, int * ent_type )

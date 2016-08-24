@@ -10,7 +10,7 @@
 #include <stdio.h>
 #include <string.h>
 
-char* filen = 0;
+const char* filen = 0;
 
 #define CHECKRC(rc, message)  if (0!=rc) { printf ("%s", message); return 1;}
 #define STRINGIFY_(X) #X
@@ -81,9 +81,9 @@ int main(int argc, char * argv[])
       pid);
   CHECKRC(rc, "failed to register application");
 #ifdef MOAB_HAVE_MPI
-  char *read_opts="PARALLEL=READ_PART;PARTITION=PARALLEL_PARTITION;PARALLEL_RESOLVE_SHARED_ENTS";
+  const char *read_opts="PARALLEL=READ_PART;PARTITION=PARALLEL_PARTITION;PARALLEL_RESOLVE_SHARED_ENTS";
 #else
-  char *read_opts="";
+  const char *read_opts="";
 #endif
   int num_ghost_layers=1;
 

@@ -133,7 +133,7 @@ ErrCode iMOAB_Finalize()
    return MB_SUCCESS;
 }
 
-ErrCode iMOAB_RegisterApplication( iMOAB_String app_name,
+ErrCode iMOAB_RegisterApplication( const iMOAB_String app_name,
 #ifdef MOAB_HAVE_MPI
     MPI_Comm* comm,
 #endif
@@ -171,9 +171,18 @@ ErrCode iMOAB_RegisterApplication( iMOAB_String app_name,
   return 0;
 }
 
-ErrCode iMOAB_RegisterFortranApplication( iMOAB_String app_name, int* comm, iMOAB_AppID pid, int app_name_length )
+ErrCode iMOAB_RegisterFortranApplication( const iMOAB_String app_name,
+#ifdef MOAB_HAVE_MPI
+    int* comm,
+#endif
+    iMOAB_AppID pid, int app_name_length )
 {
   std::string name(app_name);
+  if ( (int)name.length() >app_name_length )
+  {
+    std::cout << " length of string issue \n";
+    return 1;
+  }
   if (appIdMap.find(name)!=appIdMap.end())
   {
     std::cout << " application already registered \n";
@@ -240,7 +249,7 @@ ErrCode iMOAB_DeregisterApplication( iMOAB_AppID pid )
   return 0;
 }
 
-ErrCode iMOAB_ReadHeaderInfo ( iMOAB_String filename, int* num_global_vertices, int* num_global_elements, int* num_dimension, int* num_parts, int filename_length )
+ErrCode iMOAB_ReadHeaderInfo ( const iMOAB_String filename, int* num_global_vertices, int* num_global_elements, int* num_dimension, int* num_parts, int filename_length )
 {
 #ifdef MOAB_HAVE_HDF5
   std::string filen(filename);
@@ -348,13 +357,22 @@ ErrCode iMOAB_ReadHeaderInfo ( iMOAB_String filename, int* num_global_vertices, 
   return 0;
 }
 
-ErrCode iMOAB_LoadMesh( iMOAB_AppID pid, iMOAB_String filename, iMOAB_String read_options, int * num_ghost_layers, int filename_length, int read_options_length )
+ErrCode iMOAB_LoadMesh( iMOAB_AppID pid, const iMOAB_String filename, const iMOAB_String read_options, int * num_ghost_layers, int filename_length, int read_options_length )
 {
-
+  if ( (int)strlen(filename) > filename_length)
+  {
+    std::cout<<" filename length issue\n";
+    return 1;
+  }
+  if ( (int)strlen(read_options) > read_options_length)
+  {
+    std::cout<<" read options length issue\n";
+    return 1;
+  }
   // make sure we use the file set and pcomm associated with the *pid
   std::ostringstream newopts;
-#ifdef MOAB_HAVE_MPI
   newopts  << read_options;
+#ifdef MOAB_HAVE_MPI
   newopts << ";PARALLEL_COMM="<<*pid;
   if (*num_ghost_layers>=1)
   {
@@ -390,6 +408,16 @@ ErrCode iMOAB_LoadMesh( iMOAB_AppID pid, iMOAB_String filename, iMOAB_String rea
 ErrCode iMOAB_WriteMesh( iMOAB_AppID pid, iMOAB_String filename, iMOAB_String write_options, int filename_length, int write_options_length )
 {
   // maybe do some processing of strings and lengths
+  if ( (int) strlen(filename) > filename_length)
+  {
+    std::cout << " file name length issue\n";
+    return 1;
+  }
+  if ( (int) strlen(write_options) > write_options_length)
+  {
+    std::cout << " write options issue\n";
+    return 1;
+  }
   // maybe do some options processing?
   ErrorCode rval = MBI->write_file(filename,0, write_options,  &appDatas[*pid].file_set, 1);
   if (MB_SUCCESS!=rval)
@@ -894,7 +922,7 @@ ErrCode iMOAB_GetPointerToVertexBC(iMOAB_AppID pid, int * vertex_BC_length,
   return 0;
 }
 
-ErrCode iMOAB_DefineTagStorage(iMOAB_AppID pid, iMOAB_String tag_storage_name, int* tag_type, int* components_per_entity, int *tag_index,  int tag_storage_name_length)
+ErrCode iMOAB_DefineTagStorage(iMOAB_AppID pid, const iMOAB_String tag_storage_name, int* tag_type, int* components_per_entity, int *tag_index,  int tag_storage_name_length)
 {
   // see if the tag is already existing, and if yes, check the type, length
   if (*tag_type <0 || *tag_type>5)
@@ -957,7 +985,7 @@ ErrCode iMOAB_DefineTagStorage(iMOAB_AppID pid, iMOAB_String tag_storage_name, i
   return 1; // some error, maybe the tag was not created
 }
 
-ErrCode iMOAB_SetIntTagStorage(iMOAB_AppID pid, iMOAB_String tag_storage_name,
+ErrCode iMOAB_SetIntTagStorage(iMOAB_AppID pid, const iMOAB_String tag_storage_name,
     int * num_tag_storage_length, int * ent_type, int* tag_storage_data,
     int tag_storage_name_length)
 {
@@ -1000,7 +1028,7 @@ ErrCode iMOAB_SetIntTagStorage(iMOAB_AppID pid, iMOAB_String tag_storage_name,
   return 0; // no error
 }
 
-ErrCode iMOAB_GetIntTagStorage(iMOAB_AppID pid, iMOAB_String tag_storage_name, int *num_tag_storage_length, int * ent_type, int* tag_storage_data, int tag_storage_name_length)
+ErrCode iMOAB_GetIntTagStorage(iMOAB_AppID pid, const iMOAB_String tag_storage_name, int *num_tag_storage_length, int * ent_type, int* tag_storage_data, int tag_storage_name_length)
 {
   std::string tag_name(tag_storage_name);
   if (tag_storage_name_length< (int)tag_name.length())
@@ -1043,7 +1071,7 @@ ErrCode iMOAB_GetIntTagStorage(iMOAB_AppID pid, iMOAB_String tag_storage_name, i
   return 0; // no error
 }
 
-ErrCode iMOAB_SetDoubleTagStorage(iMOAB_AppID pid, iMOAB_String tag_storage_name, int * num_tag_storage_length, int * ent_type, double* tag_storage_data, int tag_storage_name_length)
+ErrCode iMOAB_SetDoubleTagStorage(iMOAB_AppID pid, const iMOAB_String tag_storage_name, int * num_tag_storage_length, int * ent_type, double* tag_storage_data, int tag_storage_name_length)
 {
   // exactly the same code as for int tag :) maybe should check the type of tag too
   std::string tag_name(tag_storage_name);
@@ -1088,7 +1116,7 @@ ErrCode iMOAB_SetDoubleTagStorage(iMOAB_AppID pid, iMOAB_String tag_storage_name
   return 0; // no error
 }
 
-ErrCode iMOAB_GetDoubleTagStorage(iMOAB_AppID pid, iMOAB_String tag_storage_name, int * num_tag_storage_length, int * ent_type, double* tag_storage_data, int tag_storage_name_length)
+ErrCode iMOAB_GetDoubleTagStorage(iMOAB_AppID pid, const iMOAB_String tag_storage_name, int * num_tag_storage_length, int * ent_type, double* tag_storage_data, int tag_storage_name_length)
 {
   // exactly the same code, except tag type check
   std::string tag_name(tag_storage_name);
