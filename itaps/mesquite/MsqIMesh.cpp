@@ -529,10 +529,16 @@ void MsqIMesh::get_adjacent_entities( const iBase_EntityHandle* source,
   
   assert( sizeof(size_t) >= sizeof(int) );
   offsets.resize( num_source + 1 );
-  int* ptr2 = (int*)arrptr(offsets);
+  int* ptr2;
   bool expand = false;
-  if (sizeof(size_t) > sizeof(int))
+  if (sizeof(size_t) > sizeof(int)) {
+    ptr2 = (int*)malloc(sizeof(int)*(num_source+1));
     expand = true;
+  }
+  else {
+    // sizeof(int) == sizeof(size_t)
+    ptr2 = (int*)arrptr(offsets);
+  }
   
   assert( sizeof(iBase_EntityHandle) == sizeof(EntityHandle) );
   bool have_adj = false;
@@ -590,7 +596,8 @@ void MsqIMesh::get_adjacent_entities( const iBase_EntityHandle* source,
   
   if (expand) {
     for (size_t i = num_offset; i > 0; --i)
-      offsets[i-1] = ptr2[i-1];
+      offsets[i-1] = static_cast<size_t>(ptr2[i-1]);
+    free(ptr2);
   }
   
   // iMesh implementations seem to be inconsistent with regard to 
