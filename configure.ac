@@ -849,6 +849,45 @@ AC_ARG_WITH( [vtk-lib-suffix],
                  ;;
                esac],[VTK_LIB_SUFFIX=] )
 
+
+# Configuration for TempestRemap library
+AC_ARG_WITH([tempestremap],
+  [AS_HELP_STRING([--with-tempestremap=DIR],[Enable intersection/remapping support through interface to TempestRemap])],
+  [WITH_TEMPEST=$withval
+   DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --with-tempestremap=\"${withval}\""
+  ],[WITH_TEMPEST=])
+
+HAVE_TEMPEST=no
+if (test "x$WITH_TEMPEST" != "xno" && test "x$WITH_TEMPEST" != "x"); then
+  # Test for Tempest headers
+  AC_LANG_PUSH([C++])
+  old_CPPFLAGS="$CPPFLAGS"
+  CPPFLAGS="$CPPFLAGS -I$WITH_TEMPEST/include"
+  AC_CHECK_HEADER([TempestConfig.h],[TEMPESTREMAP_INCLUDE="-I$WITH_TEMPEST/include"],
+                  [WITH_TEMPEST=no
+                  AC_MSG_WARN([TempestConfig.h: header not found in $WITH_TEMPEST/include.])],
+                  [#include <stdlib.h>])
+  CPPFLAGS="$old_CPPFLAGS"
+  AC_SUBST(TEMPESTREMAP_INCLUDE)
+
+  # Test for TempestRemap library, possibly requiring NetCDF
+  old_LDFLAGS="$LDFLAGS"
+  LDFLAGS="$LDFLAGS -L$WITH_TEMPEST/lib"
+  AC_CHECK_LIB([TempestRemap],[GenerateOfflineMap],[TEMPESTREMAP_LIBS='-L$WITH_TEMPEST/lib -lTempestRemap'],
+    [unset ac_cv_lib_TempestRemap_GenerateOfflineMap
+    AC_CHECK_LIB([TempestRemap],[GenerateOfflineMap],
+                  [TEMPESTREMAP_LIBS="-L$WITH_TEMPEST/lib -lTempestRemap $NETCDF_LIBS"],
+                  [AC_MSG_ERROR([TempestRemap library not found or not usable.])]
+                  [$NETCDF_LIBS])])
+  LDFLAGS="$old_LDFLAGS"
+  AC_LANG_POP([C++])
+
+    # Define macro HAVE_TEMPESTREMAP
+  AC_DEFINE([HAVE_TEMPESTREMAP],[1],[Enable use of TempestRemap library API for computing intersection and remapping for Climate problems])
+  HAVE_TEMPEST=yes
+fi
+AM_CONDITIONAL( HAVE_TEMPESTREMAP, [test "x$WITH_TEMPEST" = "xyes"] )
+
 ################################################################################
 #                           Zoltan - Part 2 of 2
 ################################################################################
@@ -1187,6 +1226,10 @@ fi
 MB_OPTIONAL_TOOL([refiner],      [no], [no])
 MB_OPTIONAL_TOOL([h5mtools],     [${enablehdf5}], [${enablehdf5}])
 MB_OPTIONAL_TOOL([mbquality],    [yes], [yes])
+MB_OPTIONAL_TOOL([mbtempest],    [$HAVE_TEMPEST], [$HAVE_TEMPEST])
+if (test "xno" != "x$ENABLE_tempestremap" && test "xyes" != "x$HAVE_TEMPEST"); then
+  AC_MSG_ERROR([mbtempest requires TempestRemap library. Configure using --with-tempestremap])
+fi
 
 MB_OPTIONAL_TOOL([ahf],          [no], [no])
 MB_OPTIONAL_TOOL([mbumr],        [yes], [yes])
