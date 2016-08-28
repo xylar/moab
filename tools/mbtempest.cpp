@@ -96,28 +96,31 @@ int main(int argc, char* argv[])
   std::vector<char*> progargs;
   switch(meshType) {
     case ICO:
-      progargs.push_back(create_char_array("-res"));
+      progargs.push_back(create_char_array("ICOGenerator"));
+      progargs.push_back(create_char_array("--res"));
       progargs.push_back(create_carray(blockSize));
       if (computeDual)
         progargs.push_back(create_char_array("-dual"));
-      progargs.push_back(create_char_array("-file"));
+      progargs.push_back(create_char_array("--file"));
       progargs.push_back(create_char_array(outFilename.c_str()));
       GenerateICOMesh(progargs.size(), &progargs[0]);
       break;
     case RLL:
-      progargs.push_back(create_char_array("-lon"));
+      progargs.push_back(create_char_array("RLLGenerator"));
+      progargs.push_back(create_char_array("--lon"));
       progargs.push_back(create_carray(blockSize*2));
-      progargs.push_back(create_char_array("-lat"));
+      progargs.push_back(create_char_array("--lat"));
       progargs.push_back(create_carray(blockSize));
-      progargs.push_back(create_char_array("-file"));
+      progargs.push_back(create_char_array("--file"));
       progargs.push_back(create_char_array(outFilename.c_str()));
       GenerateRLLMesh(progargs.size(), &progargs[0]);
       break;
     case CS:
     default:
-      progargs.push_back(create_char_array("-res"));
+      progargs.push_back(create_char_array("CSGenerator"));
+      progargs.push_back(create_char_array("--res"));
       progargs.push_back(create_carray(blockSize));
-      progargs.push_back(create_char_array("-file"));
+      progargs.push_back(create_char_array("--file"));
       progargs.push_back(create_char_array(outFilename.c_str()));
       GenerateCSMesh(progargs.size(), &progargs[0]);
       break;
