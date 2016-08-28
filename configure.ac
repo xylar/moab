@@ -1227,21 +1227,24 @@ fi
 MB_OPTIONAL_TOOL([refiner],      [no], [no])
 MB_OPTIONAL_TOOL([h5mtools],     [${enablehdf5}], [${enablehdf5}])
 MB_OPTIONAL_TOOL([mbquality],    [yes], [yes])
-MB_OPTIONAL_TOOL([mbtempest],    [$HAVE_TEMPEST], [$HAVE_TEMPEST])
-if (test "xno" != "x$ENABLE_tempestremap" && test "xyes" != "x$HAVE_TEMPEST"); then
-  AC_MSG_ERROR([mbtempest requires TempestRemap library. Configure using --with-tempestremap])
+MB_OPTIONAL_TOOL([mbtempest],    [${HAVE_TEMPEST}], [${HAVE_TEMPEST}])
+echo "ENABLE_tempestremap = $ENABLE_tempestremap and HAVE_TEMPEST = $HAVE_TEMPEST"
+if (test "xyes" = "x$ENABLE_tempestremap"); then
+  if (test "xyes" != "x$HAVE_TEMPEST"); then
+    AC_MSG_ERROR([mbtempest requires TempestRemap library. Configure using --with-tempestremap])
+  fi
 fi
 
 MB_OPTIONAL_TOOL([ahf],          [no], [no])
 MB_OPTIONAL_TOOL([mbumr],        [yes], [yes])
-if test "xyes" = "x$ENABLE_ahf"; then
+if (test "xyes" = "x$ENABLE_ahf"); then
   AC_DEFINE([HAVE_AHF],[1],[Enable use of AHF data-structures for querying adjacency information])
 fi
 
 if test "xyes" = "x$ENABLE_vtkMOABReader"; then
   if test "xno" = "x$WITH_VTK"; then
     AC_MSG_ERROR([vtkMOABReader requires VTK])
-  elif test "x" = "x$WITH_VTK"; then 
+  elif (test "x" = "x$WITH_VTK"); then 
     WITH_VTK=yes
   fi
 fi
