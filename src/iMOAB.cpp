@@ -1,8 +1,8 @@
 /** \file iMOAB.cpp
 */
 
-#include "moab/Core.hpp"
 #include "moab/MOABConfig.h"
+#include "moab/Core.hpp"
 
 using namespace moab;
 
@@ -83,7 +83,7 @@ std::vector<appData> appDatas; // the same order as pcomms
 ErrCode iMOAB_Initialize( int argc, iMOAB_String* argv )
 {
    iArgc = argc;
-   iArgv = argv; // shalow copy
+   iArgv = argv; // shallow copy
    if (0==refCountMB)
    {
      MBI = new Core();

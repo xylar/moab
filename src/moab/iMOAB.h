@@ -32,6 +32,8 @@ Comments from Mike and Emily:
 11) GetElementConnectivity - clarify whether we return global or local vertex numbering. Preferably local numbering else lot of deciphering for global.
 */
 
+#include "moab/MOABConfig.h"
+
 #define iMOAB_AppID    int*
 #define iMOAB_String   char*
 #define iMOAB_GlobalID int
