@@ -49,7 +49,9 @@ There are several hooks to online continuous integration systems, nightly and co
 - ### **Bitbucket Builds (beta)**: [ ![Bitbucket Build Status](https://drone.io/bitbucket.org/fathomteam/moab/status.png)](https://drone.io/bitbucket.org/fathomteam/moab/latest)
 - ### **CodeShip**: [ ![Codeship Build Status](https://codeship.com/projects/286b0e80-5715-0132-1105-0e0cfcc5dfb4/status?branch=master)](https://codeship.com/projects/49743)
 - ### **Drone**: [ ![Drone.io Build Status](https://drone.io/bitbucket.org/fathomteam/moab/status.png)](https://drone.io/bitbucket.org/fathomteam/moab/latest)
-- ### **Coverity Code Coverage**: [ ![Coverity Scan Build Status](https://scan.coverity.com/projects/6201/badge.svg)](https://scan.coverity.com/projects/moab)
+- ### **Code Coverage**: 
+>  - **Coverity**: [ ![Coverity Scan Build Status](https://scan.coverity.com/projects/6201/badge.svg)](https://scan.coverity.com/projects/moab)
+>  - **CodeCov**: [![codecov](https://codecov.io/bb/fathomteam/moab/branch/master/graph/badge.svg)](https://codecov.io/bb/fathomteam/moab)
 
 # Bugs, Correspondence, Contributing
 MOAB is LGPL code, and we encourage users to submit bug reports (and, if desired, fixes) to moab-dev@mcs.anl.gov. Users are encouraged to check [SIGMA-MOAB] documentation pages often for news and updates. Please submit pull requests (PR) with a Bitbucket fork or send us patches that you would like merged upstream.
