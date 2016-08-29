@@ -21,7 +21,6 @@
 #include "moab/Interface.hpp"
 #include "Internals.hpp"
 #include "moab/OrientedBoxTreeTool.hpp"
-#include "OrientedBox.hpp"
 #include "moab/Range.hpp"
 #include "moab/CN.hpp"
 #include "moab/GeomUtil.hpp"

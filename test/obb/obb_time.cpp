@@ -1,6 +1,6 @@
 #include "moab/Core.hpp"
 #include "moab/CartVect.hpp"
-#include "OrientedBox.hpp"
+#include "moab/OrientedBox.hpp"
 #include "moab/OrientedBoxTreeTool.hpp"
 #include <stdlib.h>
 #include <iostream>

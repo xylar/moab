@@ -9,7 +9,7 @@
 #include "moab/OrientedBoxTreeTool.hpp"
 #include "moab/CartVect.hpp"
 
-#include "OrientedBox.hpp"
+#include "moab/OrientedBox.hpp"
 
 using namespace moab;
 

@@ -41,7 +41,7 @@
 #include "moab/Skinner.hpp"
 #include "moab/MeshTopoUtil.hpp"
 #include "moab/CN.hpp"
-#include "OrientedBox.hpp"
+#include "moab/OrientedBox.hpp"
 #include "moab/CartVect.hpp"
 #include "moab/WriteUtilIface.hpp"
 

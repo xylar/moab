@@ -2,7 +2,7 @@
 #include "moab/Core.hpp"
 #include "moab/CartVect.hpp"
 #include "moab/OrientedBoxTreeTool.hpp"
-#include "OrientedBox.hpp"
+#include "moab/OrientedBox.hpp"
 #include "Internals.hpp"
 #include "moab/Range.hpp"
 
