@@ -259,12 +259,6 @@ ErrCode iMOAB_ReadHeaderInfo ( const iMOAB_String filename, int* num_global_vert
   mhdf_Status status;
   unsigned long max_id;
   struct mhdf_FileDesc* data;
-  /* find PARALLEL_PARTITION tag index */
-  const char * pname = "PARALLEL_PARTITION";
-
-  long int nval, junk;
-  hid_t table[3];
-
 
   file = mhdf_openFile( filen.c_str() , 0, &max_id, -1, &status );
   if (mhdf_isError( &status )) {
@@ -272,7 +266,7 @@ ErrCode iMOAB_ReadHeaderInfo ( const iMOAB_String filename, int* num_global_vert
     return 1;
   }
 
-  data = mhdf_getFileSummary( file, H5T_NATIVE_ULONG, &status, 0); // no extra set info; (for VisIt plugin only)
+  data = mhdf_getFileSummary( file, H5T_NATIVE_ULONG, &status, 1); // will use extra set info; will get parallel partition tag info too!
   if (mhdf_isError( &status )) {
     fprintf( stderr,"%s: %s\n", filename, mhdf_message( &status ) );
     return 1;
@@ -296,32 +290,7 @@ ErrCode iMOAB_ReadHeaderInfo ( const iMOAB_String filename, int* num_global_vert
     if (0==strcmp(el_desc->type, mhdf_POLYHEDRON_TYPE_NAME)) regions += ent_d->count;
     if (0==strcmp(el_desc->type, mhdf_SEPTAHEDRON_TYPE_NAME)) regions += ent_d->count;
   }
-  for (int i=0; i<data->num_tag_desc; i++)
-  {
-    struct mhdf_TagDesc * tag_desc = &(data->tags[i]);
-    if (strcmp(pname,tag_desc->name)==0)
-    {
-      /*printf(" tag index %d is parallel partition tag\n", i);*/
-      if (tag_desc->have_sparse) {
-        mhdf_openSparseTagData(file, pname, &nval, &junk, table, &status);
-        if (mhdf_isError( &status )) {
-          fprintf( stderr,"%s: %s\n", filename, mhdf_message( &status ) );
-          return 1;
-        }
-      }
-      else
-      {
-        /* could be dense tags on sets */
-        mhdf_openDenseTagData(file, pname, mhdf_set_type_handle(), &nval, &status);
-        if (mhdf_isError( &status )) {
-          fprintf( stderr,"%s: %s\n", filename, mhdf_message( &status ) );
-          return 1;
-        }
-      }
-
-      *num_parts = (int)nval;
-    }
-  }
+  *num_parts = data->numEntSets[0];
 
   // is this required?
   if (edges >0 ){
@@ -370,6 +339,8 @@ ErrCode iMOAB_LoadMesh( iMOAB_AppID pid, const iMOAB_String filename, const iMOA
     // because the addl ents can be edges, faces that are part of the neumann sets
     newopts << ";PARALLEL_GHOSTS=3.0."<<*num_ghost_layers<<".3";
   }
+#else
+  *num_ghost_layers = 0; // do not use in case of serial run
 #endif
   ErrorCode rval = context.MBI->load_file(filename, &context.appDatas[*pid].file_set, newopts.str().c_str());
   if (MB_SUCCESS!=rval)
@@ -547,9 +518,9 @@ ErrCode iMOAB_GetVertexID( iMOAB_AppID pid, int * vertices_length, iMOAB_GlobalI
 ErrCode iMOAB_GetVertexOwnership( iMOAB_AppID pid, int *vertices_length, int* visible_global_rank_ID )
 {
   Range & verts = context.appDatas[*pid].all_verts;
+  int i=0;
 #ifdef MOAB_HAVE_MPI
   ParallelComm * pco = context.pcomms[*pid];
-  int i=0;
   for (Range::iterator vit=verts.begin(); vit!=verts.end(); vit++, i++)
   {
     ErrorCode rval = pco->  get_owner(*vit, visible_global_rank_ID[i]);
@@ -560,9 +531,10 @@ ErrCode iMOAB_GetVertexOwnership( iMOAB_AppID pid, int *vertices_length, int* vi
     return 1; // warning array allocation problem
 #else
   /* everything owned by proc 0 */
-  int i=0;
+  if ((int)verts.size()!=*vertices_length)
+      return 1; // warning array allocation problem
   for (Range::iterator vit=verts.begin(); vit!=verts.end(); vit++, i++)
-    visible_global_rank_ID[i] = 0;
+    visible_global_rank_ID[i] = 0; // all vertices are owned by processor 0, as this is serial run
 #endif
   return 0;
 }
@@ -1169,8 +1141,13 @@ ErrCode iMOAB_SynchronizeTags(iMOAB_AppID pid, int * num_tag, int * tag_indices,
   ErrorCode rval = pco->exchange_tags(tags, tags, ent_exchange);
   if (rval!=MB_SUCCESS)
     return 1;
-#endif
+#else
   /* do nothing if serial */
+  // just silence the warning
+  // do not call sync tags in serial!
+  int k = *pid+ *num_tag + *tag_indices + *ent_type; k++;
+#endif
+
   return 0;
 }
 

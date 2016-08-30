@@ -86,7 +86,7 @@ c     find out MY process ID, and how many processes were started.
 #endif
       call errorout(ierr, 'fail to register application')
 C
-      tmpfile =MESHDIR
+      tmpfile = MESHDIR
       filename = trim(tmpfile) // '/io/p8ex1.h5m' //CHAR(0)
       ierr = iMOAB_ReadHeaderInfo ( filename, ngv, nge, ndim, nparts)
       call errorout(ierr, 'fail to read header info')
@@ -294,7 +294,11 @@ C       query vertex BCs
 
 
       outfile = 'fnew.h5m'//CHAR(0)
+#ifdef MOAB_HAVE_MPI
       wopts   = 'PARALLEL=WRITE_PART'//CHAR(0)
+#else
+      wopts=CHAR(0)
+#endif
       ierr = iMOAB_WriteMesh(pid, outfile, wopts)
       call errorout(ierr, 'fail to write the mesh file')
 

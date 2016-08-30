@@ -375,7 +375,11 @@ int main(int argc, char * argv[])
   free (vGlobalID);
   free (vranks);
   char outputFile[] = "fnew.h5m";
+#ifdef MOAB_HAVE_MPI
   char writeOptions[] ="PARALLEL=WRITE_PART";
+#else
+  char writeOptions[] ="";
+#endif
   /*
    * the file can be written in parallel, and it will contain additional tags defined by the user
    * we may extend the method to write only desired tags to the file
