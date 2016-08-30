@@ -23,21 +23,27 @@
 #include "MBParallelConventions.h"
 #endif
 
+// Tempest includes
+#include "TempestRemapAPI.h"
+
 /* Exit values */
 #define SUCCESS 0
 #define USAGE_ERROR 1
-#define NOT_IMPLEMENTED 2
+#define TEMPEST_ERROR 2
+#define NOT_IMPLEMENTED 3
 
 using namespace moab;
 
-static void usage_error( ProgOptions& opts )
-{
-  opts.printUsage();
-#ifdef MOAB_HAVE_MPI
-  MPI_Finalize();
-#endif
-  exit(USAGE_ERROR);
-}
+moab::ErrorCode translate_tempest_mesh(Mesh* mesh, moab::Interface* mb);
+
+// static void usage_error( ProgOptions& opts )
+// {
+//   opts.printUsage();
+// #ifdef MOAB_HAVE_MPI
+//   MPI_Finalize();
+// #endif
+//   exit(USAGE_ERROR);
+// }
 
 inline char* create_char_array(const char* s) {
   const int len = strlen(s);
@@ -55,12 +61,6 @@ inline char* create_carray(T val) {
 }
 
 enum MeshType { CS=0, RLL=1, ICO=2 };
-
-extern "C" {
-  int GenerateICOMesh(int argc, char** argv);
-  int GenerateRLLMesh(int argc, char** argv);
-  int GenerateCSMesh(int argc, char** argv);
-}
 
 int main(int argc, char* argv[])
 {
@@ -94,36 +94,23 @@ int main(int argc, char* argv[])
   opts.parseCommandLine(argc, argv);
 
   std::vector<char*> progargs;
+  Mesh* tempest_mesh;
   switch(meshType) {
     case ICO:
-      progargs.push_back(create_char_array("ICOGenerator"));
-      progargs.push_back(create_char_array("--res"));
-      progargs.push_back(create_carray(blockSize));
-      if (computeDual)
-        progargs.push_back(create_char_array("-dual"));
-      progargs.push_back(create_char_array("--file"));
-      progargs.push_back(create_char_array(outFilename.c_str()));
-      GenerateICOMesh(progargs.size(), &progargs[0]);
+      tempest_mesh = GenerateICOMesh(blockSize, computeDual, outFilename);
       break;
     case RLL:
-      progargs.push_back(create_char_array("RLLGenerator"));
-      progargs.push_back(create_char_array("--lon"));
-      progargs.push_back(create_carray(blockSize*2));
-      progargs.push_back(create_char_array("--lat"));
-      progargs.push_back(create_carray(blockSize));
-      progargs.push_back(create_char_array("--file"));
-      progargs.push_back(create_char_array(outFilename.c_str()));
-      GenerateRLLMesh(progargs.size(), &progargs[0]);
+      tempest_mesh = GenerateRLLMesh(blockSize*2, blockSize, 0.0, 360.0, -90.0, 90.0, false, outFilename);
       break;
     case CS:
     default:
-      progargs.push_back(create_char_array("CSGenerator"));
-      progargs.push_back(create_char_array("--res"));
-      progargs.push_back(create_carray(blockSize));
-      progargs.push_back(create_char_array("--file"));
-      progargs.push_back(create_char_array(outFilename.c_str()));
-      GenerateCSMesh(progargs.size(), &progargs[0]);
+      tempest_mesh = GenerateCSMesh(blockSize, false, outFilename);
       break;
+  }
+
+  if (!tempest_mesh) {
+    std::cout << "Tempest Mesh is not a complete object; Quitting...";
+    exit(TEMPEST_ERROR);
   }
 
   Interface* mb = new (std::nothrow) Core;
@@ -134,10 +121,20 @@ int main(int argc, char* argv[])
     return 1;
   }
 
+  ErrorCode rval = translate_tempest_mesh(tempest_mesh, mb);MB_CHK_ERR(rval);
+
+  // mb->print_database();
+
+
+  delete mb;
 
 #ifdef MOAB_HAVE_MPI
   MPI_Finalize();
 #endif
-
   exit(SUCCESS);
+}
+
+moab::ErrorCode translate_tempest_mesh(Mesh* mesh, moab::Interface* mb)
+{
+  return moab::MB_SUCCESS;
 }
