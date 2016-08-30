@@ -15,20 +15,11 @@
 #include <cstdlib>
 #include <vector>
 #include <string>
-
-#include <iomanip>
-#include <fstream>
-#include <sys/time.h>
-#include <time.h>
-#include <math.h>
-#include <assert.h>
-#include <float.h>
+#include <cassert>
 
 #include "moab/Core.hpp"
-#include "moab/Interface.hpp"
 #include "moab/ProgOptions.hpp"
-#include "../verdict/moab/VerdictWrapper.hpp"
-#include "../RefineMesh/moab/NestedRefine.hpp"
+#include "moab/ReadUtilIface.hpp"
 
 #ifdef MOAB_HAVE_MPI
 #include "moab_mpi.h"
@@ -49,30 +40,6 @@ using namespace moab;
 
 moab::ErrorCode translate_tempest_mesh(Mesh* mesh, moab::Interface* mb);
 
-// static void usage_error( ProgOptions& opts )
-// {
-//   opts.printUsage();
-// #ifdef MOAB_HAVE_MPI
-//   MPI_Finalize();
-// #endif
-//   exit(USAGE_ERROR);
-// }
-
-inline char* create_char_array(const char* s) {
-  const int len = strlen(s);
-  char *a = new char[len+1];
-  a[len]=0;
-  memcpy(a,s,len);
-  return a;
-}
-
-template<typename T>
-inline char* create_carray(T val) {
-  std::stringstream sstr;
-  sstr << val;
-  return create_char_array (sstr.str().c_str());
-}
-
 enum MeshType { CS=0, RLL=1, ICO=2, OVERLAP=3 };
 
 int main(int argc, char* argv[])
@@ -84,6 +51,7 @@ int main(int argc, char* argv[])
   std::string outFilename="output.exo";
   int meshType=0;
   bool computeDual=false;
+
 #ifdef MOAB_HAVE_MPI
   MPI_Init(&argc,&argv);
   MPI_Comm_rank( MPI_COMM_WORLD, &proc_id );
@@ -129,20 +97,25 @@ int main(int argc, char* argv[])
     exit(TEMPEST_ERROR);
   }
 
-  Interface* mb = new (std::nothrow) Core;
-  if (NULL == mb) {
+  Core* mbCore = new (std::nothrow) Core;
+  if (NULL == mbCore) {
 #ifdef MOAB_HAVE_MPI
     MPI_Finalize();
 #endif
     return 1;
   }
 
-  ErrorCode rval = translate_tempest_mesh(tempest_mesh, mb);MB_CHK_ERR(rval);
+  if (meshType != OVERLAP) {
+    ErrorCode rval = translate_tempest_mesh(tempest_mesh, mbCore);MB_CHK_ERR(rval);
 
-  // mb->print_database();
+#if 1
+    mbCore->print_database();
 
+    mbCore->write_file("test.vtk");
+#endif
+  }
 
-  delete mb;
+  delete mbCore;
 
 #ifdef MOAB_HAVE_MPI
   MPI_Finalize();
@@ -152,5 +125,36 @@ int main(int argc, char* argv[])
 
 moab::ErrorCode translate_tempest_mesh(Mesh* mesh, moab::Interface* mb)
 {
+  const NodeVector& nodes = mesh->nodes;
+  const FaceVector& faces = mesh->faces;
+
+  moab::ReadUtilIface* iface;
+  moab::ErrorCode rval = mb->query_interface(iface);MB_CHK_SET_ERR(rval, "Can't get reader interface");
+
+  // Set the data for the vertices
+  std::vector<double*> arrays;
+  moab::EntityHandle startv;
+  rval = iface->get_node_coords(3, nodes.size(), 0, startv, arrays);MB_CHK_SET_ERR(rval, "Can't get node coords");
+  for (unsigned iverts=0; iverts < nodes.size(); ++iverts) {
+      const Node& node = nodes[iverts];
+      arrays[0][iverts] = node.x;
+      arrays[1][iverts] = node.y;
+      arrays[2][iverts] = node.z;
+  }
+
+  // We will assume all elements are of the same type - for now;
+  // need a better way to categorize without doing a full pass first
+  const unsigned num_v_per_elem = faces[0].edges.size(); // Linear elements: nedges = nverts ?
+  EntityHandle starte; // Connectivity
+  EntityHandle* conn;
+  rval = iface->get_element_connect(faces.size(), num_v_per_elem, MBPOLYGON, 0, starte, conn);MB_CHK_SET_ERR(rval, "Can't get element connectivity");
+  for (unsigned ifaces=0,offset=0; ifaces < faces.size(); ++ifaces) {
+      const Face& face = faces[ifaces];
+      conn[offset++] = startv+face.edges[0].node[1];
+      for (unsigned iedges=1; iedges < face.edges.size(); ++iedges) {
+          conn[offset++] = startv+face.edges[iedges].node[1];
+      }
+  }
+
   return moab::MB_SUCCESS;
 }
