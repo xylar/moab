@@ -75,7 +75,10 @@ if HAVE_HDF5
 
 if PARALLEL
 # imoab tests
-  TESTS += imoab_test imoab_testF
+  TESTS += imoab_test
+if ENABLE_FORTRAN
+  TESTS += imoab_testF
+endif
 endif 
 endif
 
@@ -111,7 +114,7 @@ test_Matrix3_SOURCES = test_Matrix3.cpp
 imoab_testF_SOURCES = imoab_testF.F
 #  -DMOAB_HAVE_MPI is added just for fortran compiling; is that wrong?
 # still don't know how to "stringify" for the mesh input files 
-imoab_testF_FFLAGS = -DMOAB_HAVE_MPI -DFMDIR=\"$(MESHDIR)\" -ffixed-line-length-none
+imoab_testF_FFLAGS = -DMOAB_HAVE_MPI -DMESHDIR=\"$(MESHDIR)\" -ffixed-line-length-none
 imoab_testF_LDADD = $(LDADD) $(FCLIBS)
 imoab_test_SOURCES = imoab_test.cpp
 verdict_test_SOURCES = verdict_test.cpp

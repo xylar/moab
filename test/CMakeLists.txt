@@ -53,7 +53,8 @@ if(MOAB_HAVE_HDF5)
              mbfacet_test.cpp
              mbground_test.cpp
              gttool_test.cpp
-             crop_vol_test.cpp )
+             crop_vol_test.cpp 
+             imoab_test.cpp )
 endif()
 
 foreach( fname ${TESTS} )

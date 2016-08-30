@@ -11,7 +11,6 @@
 
 
       program fdriver
-C      include '/home/iulian/3rdparty/mpich-3.1/install/include/mpif.h'
 #ifdef MOAB_HAVE_MPI
       include 'mpif.h'
 #endif
@@ -87,7 +86,7 @@ c     find out MY process ID, and how many processes were started.
 #endif
       call errorout(ierr, 'fail to register application')
 C
-      tmpfile =FMDIR
+      tmpfile =MESHDIR
       filename = trim(tmpfile) // '/io/p8ex1.h5m' //CHAR(0)
       ierr = iMOAB_ReadHeaderInfo ( filename, ngv, nge, ndim, nparts)
       call errorout(ierr, 'fail to read header info')
