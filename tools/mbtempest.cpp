@@ -1,3 +1,16 @@
+/*
+ * Usage: MOAB-Tempest tool
+ *
+ * Generate a Cubed-Sphere mesh: ./mbtempest -t 0 -res 25 -f cubed_sphere_mesh.exo
+ * Generate a RLL mesh: ./mbtempest -t 1 -res 25 -f rll_mesh.exo
+ * Generate a Icosahedral-Sphere mesh: ./mbtempest -t 2 -res 25 <-dual> -f icosa_mesh.exo
+ *
+ * Now you can compute the intersections between the meshes too!
+ *
+ * Generate the overlap mesh: ./mbtempest -t 3 -l cubed_sphere_mesh.exo -l rll_mesh.exo -f overlap_mesh.exo
+ *
+ */
+
 #include <iostream>
 #include <cstdlib>
 #include <vector>
@@ -60,12 +73,14 @@ inline char* create_carray(T val) {
   return create_char_array (sstr.str().c_str());
 }
 
-enum MeshType { CS=0, RLL=1, ICO=2 };
+enum MeshType { CS=0, RLL=1, ICO=2, OVERLAP=3 };
 
 int main(int argc, char* argv[])
 {
   int proc_id = 0, size = 1;
   int blockSize = 5;
+  std::string expectedFName="output.exo";
+  std::vector<std::string> inFilenames;
   std::string outFilename="output.exo";
   int meshType=0;
   bool computeDual=false;
@@ -77,25 +92,26 @@ int main(int argc, char* argv[])
 
   ProgOptions opts;
 
-  opts.addOpt<int>("res,r",
-      "Resolution of the mesh (default=5)", &blockSize);
-  opts.addOpt<int>("type,t",
-      "Type of mesh (default=CS; Choose from [CS=0, RLL=1, ICO=2])", &meshType);
-  opts.addOpt<std::string>("file,f",
-      "Output mesh filename (default=output.exo)", &outFilename);
-
-  // opts.addOpt<int>(string("xproc,M"),
-  //     std::string("Number of processors in x dir (default=1)"), &M);
-  // opts.addOpt<int>(string("yproc,N"),
-  //     std::string("Number of processors in y dir (default=1)"), &N);
-
+  opts.addOpt<int>("res,r", "Resolution of the mesh (default=5)", &blockSize);
+  opts.addOpt<int>("type,t", "Type of mesh (default=CS; Choose from [CS=0, RLL=1, ICO=2, OVERLAP=3])", &meshType);
+  opts.addOpt<std::string>("file,f", "Output mesh filename (default=output.exo)", &outFilename);
   opts.addOpt<void>("dual,d", "Output the dual of the mesh (generally relevant only for ICO mesh)", &computeDual);
+  opts.addOpt<std::string>("load,l", "Input mesh filenames (a source and target mesh)", &expectedFName);
 
   opts.parseCommandLine(argc, argv);
+
+  if (meshType == OVERLAP) {
+    opts.getOptAllArgs("load,l", inFilenames);
+    assert(inFilenames.size() == 2);
+  }
 
   std::vector<char*> progargs;
   Mesh* tempest_mesh;
   switch(meshType) {
+    case OVERLAP:
+      // For the overlap method, choose between: "fuzzy", "exact" or "mixed"
+      tempest_mesh = GenerateOverlapMesh(inFilenames[0], inFilenames[1], outFilename, "exact", false);
+      break;
     case ICO:
       tempest_mesh = GenerateICOMesh(blockSize, computeDual, outFilename);
       break;
