@@ -252,3 +252,4 @@ fi
 enableblas=$ax_blas_ok
 AC_SUBST(enableblas)
 ])dnl AX_BLAS
+
