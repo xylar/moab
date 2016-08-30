@@ -1,7 +1,7 @@
 
       SUBROUTINE errorout(ierr, message)
       integer ierr
-      character (*) message
+      character*(*) message
       if (ierr.ne.0) then
         print *, message
         call exit (1)
@@ -9,7 +9,7 @@
       return
       end
 
-
+#include "moab/MOABConfig.h"
       program fdriver
 #ifdef MOAB_HAVE_MPI
       include 'mpif.h'
@@ -51,8 +51,6 @@ C      IWORK(egID) , IWORK(elID) starts for global el ID, local elem ID
 C       indices for surface BC element, reference surf BC, value
       integer    isBC, irBC, ivBC
 
-
-
       character*100 outfile, wopts
       my_id = 0
 #ifdef MOAB_HAVE_MPI
@@ -86,8 +84,8 @@ c     find out MY process ID, and how many processes were started.
 #endif
       call errorout(ierr, 'fail to register application')
 C
-      tmpfile = MESHDIR
-      filename = trim(tmpfile) // '/io/p8ex1.h5m' //CHAR(0)
+      tmpfile = MESHDIR2
+      filename = trim(tmpfile) // '/io/p8ex1.h5m' // CHAR(0)
       ierr = iMOAB_ReadHeaderInfo ( filename, ngv, nge, ndim, nparts)
       call errorout(ierr, 'fail to read header info')
 

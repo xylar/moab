@@ -18,6 +18,7 @@ endif
 LDADD = $(top_builddir)/src/libMOAB.la
 
 MESHDIR = $(abs_top_srcdir)/MeshFiles/unittest
+RMESHDIR = $(top_srcdir)/MeshFiles/unittest
 
 AM_CPPFLAGS  = -DIS_BUILDING_MB \
                -DSRCDIR=$(srcdir) \
@@ -82,14 +83,12 @@ endif
 endif 
 endif
 
-
 #       merge_test \         # input files no longer exist?
 #       test_tag_server \    # fails
 
 check_PROGRAMS = $(TESTS) \
 		 kd_tree_tool \
 		 kd_tree_time
-
 
 MOSTLYCLEANFILES = mb_write.g \
                    mb_write2.g \
@@ -109,18 +108,12 @@ MOSTLYCLEANFILES = mb_write.g \
                    fnew.h5m
 
 # Tests and such
-
 test_Matrix3_SOURCES = test_Matrix3.cpp
+if ENABLE_FORTRAN
 imoab_testF_SOURCES = imoab_testF.F
-#  -DMOAB_HAVE_MPI is added just for fortran compiling; is that wrong?
-# still don't know how to "stringify" for the mesh input files 
-if PARALLEL
-  imoab_testF_FFLAGS = -DMOAB_HAVE_MPI -DMESHDIR=\"$(MESHDIR)\" -ffixed-line-length-none
-else
-  imoab_testF_FFLAGS = -DMESHDIR=\"$(MESHDIR)\" -ffixed-line-length-none
-endif
-
+imoab_testF_FFLAGS = -DMESHDIR2=\"$(RMESHDIR)\" $(FFLAGS)
 imoab_testF_LDADD = $(LDADD) $(FCLIBS)
+endif
 imoab_test_SOURCES = imoab_test.cpp
 verdict_test_SOURCES = verdict_test.cpp
 range_test_SOURCES = range_test.cpp
