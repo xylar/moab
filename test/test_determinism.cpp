@@ -107,7 +107,7 @@ int main()
     err = iface0->delete_entities(to_delete);
     err = iface1->delete_entities(to_delete);
 
-    for(int qq = 0;qq!=conn_seq.size()/4;qq++) {
+    for(unsigned qq = 0;qq!=conn_seq.size()/4;qq++) {
       EntityHandle q0,q1;
       err = iface1->create_element(MBTET,&conn_seq[4*qq],4,q1);CHECK_ERR(err);
       err = iface0->create_element(MBTET,&conn_seq[4*qq],4,q0);CHECK_ERR(err);

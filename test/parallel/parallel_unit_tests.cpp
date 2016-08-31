@@ -137,6 +137,9 @@ ErrorCode test_delete_entities(const char *);
 ErrorCode test_ghost_polyhedra(const char *);
 // Test failed read with too few parts in partition
 ErrorCode test_too_few_parts(const char *);
+// Test broken sequences due to ghosting
+ErrorCode test_sequences_after_ghosting(const char *);
+
 
 /**************************************************************************
                               Main Method
@@ -237,6 +240,7 @@ int main( int argc, char* argv[] )
   num_errors += RUN_TEST( test_ghost_tag_exchange, filename );
   num_errors += RUN_TEST( regression_ghost_tag_exchange_no_default, filename );
   num_errors += RUN_TEST( test_delete_entities, filename2);
+  num_errors += RUN_TEST (test_sequences_after_ghosting, filename2) ;
   if (2>=size) // run this one only on one or 2 processors; the file has only 2 parts in partition
    num_errors += RUN_TEST( test_ghost_polyhedra, filename3);
   if (2==size)
@@ -1734,6 +1738,78 @@ ErrorCode test_too_few_parts( const char* filename )
   if(rval==MB_SUCCESS)
     return MB_FAILURE;
 
+  return MB_SUCCESS;
+}
+
+ErrorCode test_sequences_after_ghosting( const char* filename )
+{
+  Core mb_instance;
+  Interface& moab = mb_instance;
+  ErrorCode rval;
+
+  rval = moab.load_file( filename, 0,
+                         "PARALLEL=READ_PART;"
+                         "PARTITION=PARALLEL_PARTITION;"
+                         "PARALLEL_RESOLVE_SHARED_ENTS;"
+                         "PARALLEL_GHOSTS=3.2.1;"
+                         "PARALLEL_SEQUENCE_FACTOR=1.5" );
+  CHKERR(rval);
+
+  // get all elements of dimension 3, and check they are on one sequence, with connect_iterate
+  Range elems;
+  rval = moab.get_entities_by_dimension(0, 3, elems);CHKERR(rval);
+  if (elems.psize()!=1)
+  {
+    std::cout << " elems.psize() = " << elems.psize() << "\n";
+    return MB_FAILURE;
+  }
+  // we want only one sequence
+  int count, vpere;
+  EntityHandle *conn_ptr;
+  rval = moab.connect_iterate(elems.begin(), elems.end(), conn_ptr, vpere, count ); CHKERR(rval);
+
+  if (count != (int) elems.size() )
+  {
+    std::cout << " more than one sequence:  elems.size() = " << elems.size() << "  count:" << count << "\n";
+    return MB_FAILURE;
+  }
+  // check also global id tag, which is dense
+  Tag id_tag;
+  rval = moab.tag_get_handle( GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, id_tag ); CHKERR(rval);
+  void * globalid_data= NULL;
+  rval = moab.tag_iterate( id_tag, elems.begin(), elems.end(), count, globalid_data); CHKERR(rval);
+  if (count != (int) elems.size() )
+  {
+    std::cout << " more than one tag sequence:  elems.size() = " << elems.size() << "  count:" << count << "\n";
+    return MB_FAILURE;
+  }
+
+  // repeat the tests for vertex sequences
+  // get all elements of dimension 3, and check they are on one sequence, with coords_iterate
+  Range verts;
+  rval = moab.get_entities_by_dimension(0, 0, verts);CHKERR(rval);
+  if (verts.psize()!=1)
+  {
+    std::cout << " verts.psize() = " << verts.psize() << "\n";
+    return MB_FAILURE;
+  }
+  //
+  double *x_ptr, *y_ptr, *z_ptr;
+  rval = moab.coords_iterate(verts.begin(), verts.end(), x_ptr, y_ptr, z_ptr, count); CHKERR(rval);
+
+
+  if (count != (int) verts.size() )
+  {
+    std::cout << " more than one sequence:  verts.size() = " << verts.size() << "  count:" << count << "\n";
+    return MB_FAILURE;
+  }
+
+  rval = moab.tag_iterate( id_tag, verts.begin(), verts.end(), count, globalid_data); CHKERR(rval);
+  if (count != (int) verts.size() )
+  {
+    std::cout << " more than one tag sequence:  verts.size() = " << verts.size() << "  count:" << count << "\n";
+    return MB_FAILURE;
+  }
   return MB_SUCCESS;
 }
 

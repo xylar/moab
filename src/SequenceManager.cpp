@@ -9,7 +9,6 @@
 #include "PolyElementSeq.hpp"
 #include "SysUtil.hpp"
 #include "moab/Error.hpp"
-#include "CoreOptions.hpp"
 
 #include <assert.h>
 #include <new>
@@ -43,6 +42,9 @@ SequenceManager::~SequenceManager()
 
 void SequenceManager::clear()
 {
+  // reset sequence multiplier
+  sequence_multiplier = 1.0;
+
   // Destroy all TypeSequenceManager instances
   for (EntityType t = MBVERTEX; t < MBMAXTYPE; ++t)
     typeData[t].~TypeSequenceManager();
@@ -417,7 +419,7 @@ EntityID SequenceManager::new_sequence_size(EntityHandle start,
                                             int sequence_size) const
 {
 
-  requested_size = (EntityID) (coreopts.get_sequence_option()*requested_size);
+  requested_size = (EntityID) (this->sequence_multiplier*requested_size);
 
   if (sequence_size < (int)requested_size)
     return requested_size;
