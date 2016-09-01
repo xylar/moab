@@ -38,7 +38,7 @@
 
 using namespace moab;
 
-moab::ErrorCode translate_tempest_mesh(Mesh* mesh, moab::Interface* mb);
+moab::ErrorCode translate_tempest_mesh(Mesh* mesh, moab::Interface* mb, int meshType);
 
 enum MeshType { CS=0, RLL=1, ICO=2, OVERLAP=3 };
 
@@ -105,15 +105,11 @@ int main(int argc, char* argv[])
     return 1;
   }
 
-  if (meshType != OVERLAP) {
-    ErrorCode rval = translate_tempest_mesh(tempest_mesh, mbCore);MB_CHK_ERR(rval);
-
+  ErrorCode rval = translate_tempest_mesh(tempest_mesh, mbCore, meshType);MB_CHK_ERR(rval);
 #if 1
-    mbCore->print_database();
-
-    mbCore->write_file("test.vtk");
+  mbCore->print_database();
+  mbCore->write_file("test.vtk");
 #endif
-  }
 
   delete mbCore;
 
@@ -123,7 +119,7 @@ int main(int argc, char* argv[])
   exit(SUCCESS);
 }
 
-moab::ErrorCode translate_tempest_mesh(Mesh* mesh, moab::Interface* mb)
+moab::ErrorCode translate_tempest_mesh(Mesh* mesh, moab::Interface* mb, int meshType)
 {
   const NodeVector& nodes = mesh->nodes;
   const FaceVector& faces = mesh->faces;
@@ -144,15 +140,57 @@ moab::ErrorCode translate_tempest_mesh(Mesh* mesh, moab::Interface* mb)
 
   // We will assume all elements are of the same type - for now;
   // need a better way to categorize without doing a full pass first
-  const unsigned num_v_per_elem = faces[0].edges.size(); // Linear elements: nedges = nverts ?
-  EntityHandle starte; // Connectivity
-  EntityHandle* conn;
-  rval = iface->get_element_connect(faces.size(), num_v_per_elem, MBPOLYGON, 0, starte, conn);MB_CHK_SET_ERR(rval, "Can't get element connectivity");
-  for (unsigned ifaces=0,offset=0; ifaces < faces.size(); ++ifaces) {
-      const Face& face = faces[ifaces];
-      conn[offset++] = startv+face.edges[0].node[1];
-      for (unsigned iedges=1; iedges < face.edges.size(); ++iedges) {
-          conn[offset++] = startv+face.edges[iedges].node[1];
+  const unsigned lnum_v_per_elem = faces[0].edges.size(); // Linear elements: nedges = nverts ?
+  if (meshType != OVERLAP && lnum_v_per_elem <= 4) {
+      const unsigned num_v_per_elem = lnum_v_per_elem;
+      EntityHandle starte; // Connectivity
+      EntityHandle* conn;
+      rval = iface->get_element_connect(faces.size(), num_v_per_elem, MBPOLYGON, 0, starte, conn);MB_CHK_SET_ERR(rval, "Can't get element connectivity");
+      for (unsigned ifaces=0,offset=0; ifaces < faces.size(); ++ifaces) {
+          const Face& face = faces[ifaces];
+          conn[offset++] = startv+face.edges[0].node[1];
+          for (unsigned iedges=1; iedges < face.edges.size(); ++iedges) {
+              conn[offset++] = startv+face.edges[iedges].node[1];
+          }
+      }
+  }
+  else {
+      const int NMAXPOLYEDGES = 15;
+      std::vector<unsigned> nPolys(NMAXPOLYEDGES,0);
+      std::vector<std::vector<int> > typeNSeqs(NMAXPOLYEDGES);
+      for (unsigned ifaces=0; ifaces < faces.size(); ++ifaces) {
+          const int iType = faces[ifaces].edges.size();
+          nPolys[iType]++;
+          typeNSeqs[iType].push_back(ifaces);
+      }
+      for (unsigned iType=0; iType < NMAXPOLYEDGES; ++iType) {
+          if (!nPolys[iType]) continue; // Nothing to do
+
+          std::cout << "Found " << nPolys[iType] << " polygonal elements with " << iType << " edges.\n";
+          const unsigned num_v_per_elem = iType;
+          EntityHandle starte; // Connectivity
+          EntityHandle* conn;
+
+          // Allocate the connectivity array, depending on the element type
+          switch(num_v_per_elem) {
+            case 3:
+              rval = iface->get_element_connect(nPolys[iType], num_v_per_elem, MBTRI, 0, starte, conn);MB_CHK_SET_ERR(rval, "Can't get element connectivity");
+              break;
+            case 4:
+              rval = iface->get_element_connect(nPolys[iType], num_v_per_elem, MBQUAD, 0, starte, conn);MB_CHK_SET_ERR(rval, "Can't get element connectivity");
+              break;
+            default:
+              rval = iface->get_element_connect(nPolys[iType], num_v_per_elem, MBPOLYGON, 0, starte, conn);MB_CHK_SET_ERR(rval, "Can't get element connectivity");
+              break;
+          }
+
+          for (unsigned ifaces=0,offset=0; ifaces < typeNSeqs[iType].size(); ++ifaces) {
+              const Face& face = faces[typeNSeqs[iType][ifaces]];
+              conn[offset++] = startv+face.edges[0].node[1];
+              for (unsigned iedges=1; iedges < face.edges.size(); ++iedges) {
+                  conn[offset++] = startv+face.edges[iedges].node[1];
+              }
+          }
       }
   }
 
