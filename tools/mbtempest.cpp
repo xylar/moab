@@ -39,6 +39,7 @@
 using namespace moab;
 
 moab::ErrorCode translate_tempest_mesh(Mesh* mesh, moab::Interface* mb, int meshType);
+moab::ErrorCode translate_moab_mesh(moab::Interface* mb, Mesh* mesh);
 
 enum MeshType { CS=0, RLL=1, ICO=2, OVERLAP=3 };
 
@@ -110,7 +111,13 @@ int main(int argc, char* argv[])
   mbCore->print_database();
   mbCore->write_file("test.vtk");
 #endif
+  delete tempest_mesh;
 
+  Mesh* tempest_mesh_copy = new Mesh();
+  rval = translate_moab_mesh(mbCore, tempest_mesh_copy);MB_CHK_ERR(rval);
+  tempest_mesh_copy->Write("test.exo");
+
+  delete tempest_mesh_copy;
   delete mbCore;
 
 #ifdef MOAB_HAVE_MPI
@@ -192,6 +199,65 @@ moab::ErrorCode translate_tempest_mesh(Mesh* mesh, moab::Interface* mb, int mesh
               }
           }
       }
+  }
+
+  return moab::MB_SUCCESS;
+}
+
+
+moab::ErrorCode translate_moab_mesh(moab::Interface* mb, Mesh* mesh)
+{
+  moab::ErrorCode rval;
+  NodeVector& nodes = mesh->nodes;
+  FaceVector& faces = mesh->faces;
+
+  moab::Range verts;
+  rval = mb->get_entities_by_dimension(0, 0, verts);MB_CHK_ERR(rval);
+  nodes.resize(verts.size());
+
+  // Set the data for the vertices
+  int inode=0;
+  std::vector<double> coordx(verts.size()), coordy(verts.size()), coordz(verts.size());
+  rval = mb->get_coords(verts, &coordx[0], &coordy[0], &coordz[0]);MB_CHK_ERR(rval);
+  for (Range::iterator iverts=verts.begin(); iverts!=verts.end(); ++iverts) {
+      Node& node = nodes[inode];
+      node.x = coordx[inode];
+      node.y = coordy[inode];
+      node.z = coordz[inode];
+      inode++;
+  }
+  coordx.clear();
+  coordy.clear();
+  coordz.clear();
+
+  moab::Range elems;
+  rval = mb->get_entities_by_dimension(0, 2, elems);MB_CHK_ERR(rval);
+  faces.resize(elems.size());
+
+  int iface=0;
+  for (Range::iterator ielems=elems.begin(); ielems!=elems.end(); ++ielems) {
+    Face& face = faces[iface++];
+
+    // compute the number of edges per faces
+    std::vector< moab::EntityHandle > face_edges;
+    rval = mb->get_adjacencies(&(*ielems), 1, 1, true, face_edges);MB_CHK_ERR(rval);
+    face.edges.resize(face_edges.size());
+
+    for (unsigned iedges=0; iedges < face_edges.size(); ++iedges) {
+        Edge& edge = face.edges[iedges];
+
+        // get the connectivity for each edge
+        const moab::EntityHandle* connect;
+        int nnodes;
+        rval = mb->get_connectivity(face_edges[iedges], connect, nnodes);MB_CHK_ERR(rval);
+
+        // we expect only linear edges (2 nodes/edge)
+        assert(nnodes == 2);
+
+        // assign the edge nodes
+        edge.node[0] = connect[0];
+        edge.node[1] = connect[1];
+    }
   }
 
   return moab::MB_SUCCESS;
