@@ -25,6 +25,7 @@ config/ltversion.m4
 config/missing
 config.status
 config/test-driver
+config/MOABConfig.h.in
 configure
 .cproject
 *.cub
@@ -258,6 +259,8 @@ test/var_len_test
 test/var_len_test_no_template
 test/verdict_test
 test/xform_test
+test/imoab_test
+test/imoab_testF
 tools/dagmc/dagmc_preproc
 tools/dagmc/pt_vol_test
 tools/dagmc/quads_to_tris

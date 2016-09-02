@@ -3,7 +3,7 @@ AUTOMAKE_OPTIONS = foreign subdir-objects no-dependencies
 
 SUBDIRS = . io dual obb perf
 if HAVE_HDF5
-  SUBDIRS += h5file
+  SUBDIRS += h5file 
 endif
 if ENABLE_dagmc
   SUBDIRS += dagmc
@@ -18,6 +18,7 @@ endif
 LDADD = $(top_builddir)/src/libMOAB.la
 
 MESHDIR = $(abs_top_srcdir)/MeshFiles/unittest
+RMESHDIR = $(top_srcdir)/MeshFiles/unittest
 
 AM_CPPFLAGS  = -DIS_BUILDING_MB \
                -DSRCDIR=$(srcdir) \
@@ -27,6 +28,7 @@ AM_CPPFLAGS  = -DIS_BUILDING_MB \
                -I$(top_srcdir)/src/LocalDiscretization \
                -I$(top_srcdir)/src/verdict \
                -I$(top_srcdir)/src/RefineMesh
+
 
 if PARALLEL
   AM_CPPFLAGS += -I$(top_srcdir)/src/parallel
@@ -71,8 +73,15 @@ if HAVE_HDF5
         mbground_test \
         lloyd_smoother_test \
         mhdf_public_test
-endif
 
+if PARALLEL
+# imoab tests
+  TESTS += imoab_test
+if ENABLE_FORTRAN
+  TESTS += imoab_testF
+endif
+endif 
+endif
 
 #       merge_test \         # input files no longer exist?
 #       test_tag_server \    # fails
@@ -93,11 +102,19 @@ MOSTLYCLEANFILES = mb_write.g \
                    mb_stress_out.g \
                    merge_test.g \
                    mm_out.h5m \
-                   tree.h5m 
+                   tree.h5m \
+                   TaskMesh_n1.0.h5m \
+                   TaskMesh_n1.1.h5m \
+                   fnew.h5m
 
 # Tests and such
-
 test_Matrix3_SOURCES = test_Matrix3.cpp
+if ENABLE_FORTRAN
+imoab_testF_SOURCES = imoab_testF.F
+imoab_testF_FFLAGS = -DMESHDIR2=\"$(RMESHDIR)\" $(FFLAGS)
+imoab_testF_LDADD = $(LDADD) $(FCLIBS)
+endif
+imoab_test_SOURCES = imoab_test.cpp
 verdict_test_SOURCES = verdict_test.cpp
 range_test_SOURCES = range_test.cpp
 moab_test_SOURCES = MBTest.cpp
@@ -169,6 +186,24 @@ moab_test_CPPFLAGS += -I$(top_srcdir)/src/parallel
 kd_tree_test_CPPFLAGS += -I$(top_srcdir)/src/parallel
 test_prog_opt_CPPFLAGS += -I$(top_srcdir)/src/parallel
 endif
+
+FCDEFS += $(FC_DEFINE)SRCDIR=$(srcdir) \
+          $(FC_DEFINE)MESHDIR=$(MESHDIR)
+
+FORTDEFS = $(FCDEFS)
+PPFCCOMPILE = $(FC) $(FORTDEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
+    $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_FCFLAGS) $(FCFLAGS)
+LTPPFCCOMPILE = $(LIBTOOL) $(AM_V_lt) --tag=FC $(AM_LIBTOOLFLAGS) \
+    $(LIBTOOLFLAGS) --mode=compile $(FC) $(FCDEFS) \
+    $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
+    $(AM_FCFLAGS) $(FCFLAGS)
+PPF77COMPILE = $(F77) $(FORTDEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
+   $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_FFLAGS) $(FFLAGS)
+LTPPF77COMPILE = $(LIBTOOL) $(AM_V_lt) --tag=F77 $(AM_LIBTOOLFLAGS) \
+   $(LIBTOOLFLAGS) --mode=compile $(F77) $(FCDEFS) \
+   $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
+   $(AM_FFLAGS) $(FFLAGS)
+
 
 EXTRA_DIST = TestUtil.hpp TestRunner.hpp
 
