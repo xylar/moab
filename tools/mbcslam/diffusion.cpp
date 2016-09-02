@@ -32,7 +32,7 @@ on the sphere; see CSLAM Utils case1
 
 #include "moab/Core.hpp"
 #include "moab/Interface.hpp"
-#include "Intx2MeshOnSphere.hpp"
+#include "moab/Intx2MeshOnSphere.hpp"
 #include "moab/ProgOptions.hpp"
 #include "MBTagConventions.hpp"
 #include "moab/ParallelComm.hpp"

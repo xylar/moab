@@ -14,7 +14,6 @@
 // maximum number of edges on each convex polygon of interest
 #define MAXEDGES 10
 #define MAXEDGES2 20 // used for coordinates in plane
-
 #define CORRTAGNAME "__correspondent"
 
 namespace moab

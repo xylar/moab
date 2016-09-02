@@ -14,7 +14,7 @@
 #include <string.h>
 #include "moab/Core.hpp"
 #include "moab/Interface.hpp"
-#include "Intx2MeshOnSphere.hpp"
+#include "moab/Intx2MeshOnSphere.hpp"
 #include <math.h>
 #include "moab/ProgOptions.hpp"
 #include "MBTagConventions.hpp"

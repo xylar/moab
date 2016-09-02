@@ -19,6 +19,7 @@ configure_file(${CMAKE_CURRENT_BINARY_DIR}/moab/EntityHandle.hpp.in ${CMAKE_CURR
 
 set(moab_link_lib)
 add_subdirectory(io)
+add_subdirectory(IntxMesh)
 
 if (ENABLE_MESQUITE AND MOAB_HAVE_CGM)
   #  add_subdirectory(mesquite)
@@ -257,6 +258,7 @@ add_library(
   MOAB
   ${MOAB_LIB_SOURCES} ${MOAB_INSTALL_HEADERS} ${MOAB_GENERATED_INSTALL_HEADERS}
   $<TARGET_OBJECTS:moabio>
+  $<TARGET_OBJECTS:moab_intx_mesh>
   ${MOABPAR_OBJECTS}
   ${MDHF_OBJ}
   )

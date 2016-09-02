@@ -1232,7 +1232,6 @@ MB_OPTIONAL_TOOL([refiner],      [no], [no])
 MB_OPTIONAL_TOOL([h5mtools],     [${enablehdf5}], [${enablehdf5}])
 MB_OPTIONAL_TOOL([mbquality],    [yes], [yes])
 MB_OPTIONAL_TOOL([mbtempest],    [${HAVE_TEMPEST}], [${HAVE_TEMPEST}])
-echo "ENABLE_tempestremap = $ENABLE_tempestremap and HAVE_TEMPEST = $HAVE_TEMPEST"
 if (test "xyes" = "x$ENABLE_tempestremap"); then
   if (test "xyes" != "x$HAVE_TEMPEST"); then
     AC_MSG_ERROR([mbtempest requires TempestRemap library. Configure using --with-tempestremap])
@@ -1485,6 +1484,7 @@ AC_CONFIG_FILES([Makefile
                  src/Makefile
                  src/io/Makefile
                  src/io/mhdf/Makefile
+                 src/IntxMesh/Makefile
                  test/Makefile
                  test/dagmc/Makefile
                  test/h5file/Makefile

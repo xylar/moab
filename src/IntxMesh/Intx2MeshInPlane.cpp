@@ -5,8 +5,10 @@
  *      Author: iulian
  */
 
-#include "Intx2MeshInPlane.hpp"
+#include "moab/Intx2MeshInPlane.hpp"
 #include "moab/GeomUtil.hpp"
+#include "CslamUtils.hpp"
+
 namespace moab {
 Intx2MeshInPlane::Intx2MeshInPlane(Interface * mbimpl):Intx2Mesh(mbimpl){
 

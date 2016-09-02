@@ -11,7 +11,7 @@
 #include <string.h>
 #include "moab/Core.hpp"
 #include "moab/Interface.hpp"
-#include "Intx2MeshInPlane.hpp"
+#include "moab/Intx2MeshInPlane.hpp"
 #include "../test/TestUtil.hpp"
 #include <math.h>
 

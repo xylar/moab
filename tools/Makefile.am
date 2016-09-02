@@ -195,7 +195,5 @@ mbsurfplot_SOURCES = surfplot.cpp
 mbtagprop_SOURCES = parse.cpp parse.hpp propagate_tags.cpp
 mbmem_SOURCES = mbmem.cpp
 parread_SOURCES = parread.cpp
-mbquality_SOURCES = quality.cpp
 mbhonodes_SOURCES = honodes.cpp
-mbumr_SOURCES = umr.cpp
 

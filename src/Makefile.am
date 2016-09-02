@@ -9,9 +9,9 @@ AM_CPPFLAGS =
 SUBDIRS =
 libMOAB_la_LIBADD =
 
-SUBDIRS += io .
-libMOAB_la_LIBADD += io/libmoabio.la 
 EXTRA_DIST = 
+SUBDIRS += io IntxMesh .
+libMOAB_la_LIBADD += io/libmoabio.la IntxMesh/libIntxMesh.la
 
 if ENABLE_mesquite
 SUBDIRS += mesquite
@@ -27,7 +27,8 @@ AM_CPPFLAGS += -DIS_BUILDING_MB \
                -I$(srcdir)/LocalDiscretization \
                -I$(srcdir)/verdict \
                -I$(srcdir)/RefineMesh \
-               -I$(srcdir)/DiscreteGeometry
+               -I$(srcdir)/DiscreteGeometry \
+               -I$(srcdir)/IntxMesh
 
 # The directory in which to install headers
 libMOAB_la_includedir = $(includedir)

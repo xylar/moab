@@ -4,7 +4,7 @@
  *  Created on: Oct 2, 2012
  */
 
-#include "Intx2Mesh.hpp"
+#include "moab/Intx2Mesh.hpp"
 #ifdef MOAB_HAVE_MPI
 #include "moab/ParallelComm.hpp"
 #endif /* MOAB_HAVE_MPI */

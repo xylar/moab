@@ -17,6 +17,8 @@
 #include "moab/ParallelComm.hpp"
 #include "MBTagConventions.hpp"
 #include "moab/ParallelMergeMesh.hpp"
+#include "CslamUtils.hpp"
+
 #include <sstream>
 #include <mpi.h>
 

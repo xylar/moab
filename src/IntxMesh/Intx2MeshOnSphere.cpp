@@ -4,9 +4,10 @@
  *  Created on: Oct 3, 2012
  */
 
-#include "Intx2MeshOnSphere.hpp"
+#include "moab/Intx2MeshOnSphere.hpp"
 #include "moab/GeomUtil.hpp"
 #include "MBTagConventions.hpp"
+#include "CslamUtils.hpp"
 #ifdef MOAB_HAVE_MPI
 #include "moab/ParallelComm.hpp"
 #endif

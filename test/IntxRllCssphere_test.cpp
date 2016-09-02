@@ -3,7 +3,7 @@
  */
 
 
-#include "IntxRllCssphere.hpp"
+#include "moab/IntxRllCssphere.hpp"
 #include "../../test/TestUtil.hpp"
 using namespace moab;
 
