@@ -30,104 +30,116 @@
 // Tempest includes
 #include "TempestRemapAPI.h"
 
-/* Exit values */
-#define SUCCESS 0
-#define USAGE_ERROR 1
-#define TEMPEST_ERROR 2
-#define NOT_IMPLEMENTED 3
-
-using namespace moab;
-
-moab::ErrorCode translate_tempest_mesh(Mesh* mesh, moab::Interface* mb, int meshType);
-moab::ErrorCode translate_moab_mesh(moab::Interface* mb, Mesh* mesh);
-
 enum MeshType { CS=0, RLL=1, ICO=2, OVERLAP=3 };
+
+struct ToolContext {
+    int blockSize;
+    std::vector<std::string> inFilenames;
+    std::string outFilename;
+    int meshType;
+    bool computeDual;
+
+    ToolContext() : blockSize(5), outFilename("output.exo"), meshType(CS), computeDual(false)
+    {
+        inFilenames.resize(2);
+    }
+
+    void ParseCLOptions(int argc, char* argv[]) {
+        ProgOptions opts;
+        std::string expectedFName="output.exo";
+
+        opts.addOpt<int>("res,r", "Resolution of the mesh (default=5)", &blockSize);
+        opts.addOpt<int>("type,t", "Type of mesh (default=CS; Choose from [CS=0, RLL=1, ICO=2, OVERLAP=3])", &meshType);
+        opts.addOpt<std::string>("file,f", "Output mesh filename (default=output.exo)", &outFilename);
+        opts.addOpt<void>("dual,d", "Output the dual of the mesh (generally relevant only for ICO mesh)", &computeDual);
+        opts.addOpt<std::string>("load,l", "Input mesh filenames (a source and target mesh)", &expectedFName);
+
+        opts.parseCommandLine(argc, argv);
+
+        if (meshType == OVERLAP) {
+          opts.getOptAllArgs("load,l", inFilenames);
+          assert(inFilenames.size() == 2);
+        }
+    }
+};
+
+// Forward declare some methods
+moab::ErrorCode LoadTempestMesh(ToolContext& ctx, Mesh** tempest_mesh);
+moab::ErrorCode ConvertTempestMeshToMOAB(ToolContext& ctx, Mesh* mesh, moab::Interface* mb);
+moab::ErrorCode ConvertMOABMeshToTempest(ToolContext& ctx, moab::Interface* mb, Mesh* mesh);
 
 int main(int argc, char* argv[])
 {
-  int proc_id = 0, size = 1;
-  int blockSize = 5;
-  std::string expectedFName="output.exo";
-  std::vector<std::string> inFilenames;
-  std::string outFilename="output.exo";
-  int meshType=0;
-  bool computeDual=false;
+  moab::ErrorCode rval;
 
 #ifdef MOAB_HAVE_MPI
+  int proc_id = 0, size = 1;
   MPI_Init(&argc,&argv);
   MPI_Comm_rank( MPI_COMM_WORLD, &proc_id );
   MPI_Comm_size( MPI_COMM_WORLD, &size );
 #endif
 
-  ProgOptions opts;
+  ToolContext ctx;
+  ctx.ParseCLOptions(argc, argv);
 
-  opts.addOpt<int>("res,r", "Resolution of the mesh (default=5)", &blockSize);
-  opts.addOpt<int>("type,t", "Type of mesh (default=CS; Choose from [CS=0, RLL=1, ICO=2, OVERLAP=3])", &meshType);
-  opts.addOpt<std::string>("file,f", "Output mesh filename (default=output.exo)", &outFilename);
-  opts.addOpt<void>("dual,d", "Output the dual of the mesh (generally relevant only for ICO mesh)", &computeDual);
-  opts.addOpt<std::string>("load,l", "Input mesh filenames (a source and target mesh)", &expectedFName);
+  Mesh* tempest_mesh=NULL;
+  rval = LoadTempestMesh(ctx, &tempest_mesh);MB_CHK_ERR(rval);
 
-  opts.parseCommandLine(argc, argv);
+  moab::Core* mbCore = new (std::nothrow) moab::Core;
+  if (NULL == mbCore) return 1;
 
-  if (meshType == OVERLAP) {
-    opts.getOptAllArgs("load,l", inFilenames);
-    assert(inFilenames.size() == 2);
-  }
-
-  std::vector<char*> progargs;
-  Mesh* tempest_mesh;
-  switch(meshType) {
-    case OVERLAP:
-      // For the overlap method, choose between: "fuzzy", "exact" or "mixed"
-      tempest_mesh = GenerateOverlapMesh(inFilenames[0], inFilenames[1], outFilename, "exact", false);
-      break;
-    case ICO:
-      tempest_mesh = GenerateICOMesh(blockSize, computeDual, outFilename);
-      break;
-    case RLL:
-      tempest_mesh = GenerateRLLMesh(blockSize*2, blockSize, 0.0, 360.0, -90.0, 90.0, false, outFilename);
-      break;
-    case CS:
-    default:
-      tempest_mesh = GenerateCSMesh(blockSize, false, outFilename);
-      break;
-  }
-
-  if (!tempest_mesh) {
-    std::cout << "Tempest Mesh is not a complete object; Quitting...";
-    exit(TEMPEST_ERROR);
-  }
-
-  Core* mbCore = new (std::nothrow) Core;
-  if (NULL == mbCore) {
-#ifdef MOAB_HAVE_MPI
-    MPI_Finalize();
-#endif
-    return 1;
-  }
-
-  ErrorCode rval = translate_tempest_mesh(tempest_mesh, mbCore, meshType);MB_CHK_ERR(rval);
-#if 1
+  // First convert the loaded Tempest mesh to MOAB
+  rval = ConvertTempestMeshToMOAB(ctx, tempest_mesh, mbCore);MB_CHK_ERR(rval);
+#if 0
   mbCore->print_database();
-  mbCore->write_file("test.vtk");
 #endif
+  mbCore->write_file("test.vtk");
   delete tempest_mesh;
 
+  // Now let us re-convert the MOAB mesh back to Tempest representation
   Mesh* tempest_mesh_copy = new Mesh();
-  rval = translate_moab_mesh(mbCore, tempest_mesh_copy);MB_CHK_ERR(rval);
+  rval = ConvertMOABMeshToTempest(ctx, mbCore, tempest_mesh_copy);MB_CHK_ERR(rval);
   tempest_mesh_copy->Write("test.exo");
-
   delete tempest_mesh_copy;
-  delete mbCore;
 
+  delete mbCore;
 #ifdef MOAB_HAVE_MPI
   MPI_Finalize();
 #endif
-  exit(SUCCESS);
+  exit(0);
 }
 
-moab::ErrorCode translate_tempest_mesh(Mesh* mesh, moab::Interface* mb, int meshType)
+moab::ErrorCode LoadTempestMesh(ToolContext& ctx, Mesh** tempest_mesh)
 {
+    std::cout << "\nLoading TempestRemap Mesh object ...\n";
+    switch(ctx.meshType) {
+      case OVERLAP:
+        // For the overlap method, choose between: "fuzzy", "exact" or "mixed"
+        *tempest_mesh = GenerateOverlapMesh(ctx.inFilenames[0], ctx.inFilenames[1], ctx.outFilename, "exact", false);
+        break;
+      case ICO:
+        *tempest_mesh = GenerateICOMesh(ctx.blockSize, ctx.computeDual, ctx.outFilename);
+        break;
+      case RLL:
+        *tempest_mesh = GenerateRLLMesh(ctx.blockSize*2, ctx.blockSize, 0.0, 360.0, -90.0, 90.0, false, ctx.outFilename);
+        break;
+      case CS:
+      default:
+        *tempest_mesh = GenerateCSMesh(ctx.blockSize, false, ctx.outFilename);
+        break;
+    }
+
+    if (!*tempest_mesh) {
+      std::cout << "Tempest Mesh is not a complete object; Quitting...";
+      exit(-1);
+    }
+
+    return moab::MB_SUCCESS;
+}
+
+moab::ErrorCode ConvertTempestMeshToMOAB(ToolContext& ctx, Mesh* mesh, moab::Interface* mb)
+{
+  std::cout << "\nConverting TempestRemap Mesh object to MOAB representation ...\n";
   const NodeVector& nodes = mesh->nodes;
   const FaceVector& faces = mesh->faces;
 
@@ -148,11 +160,11 @@ moab::ErrorCode translate_tempest_mesh(Mesh* mesh, moab::Interface* mb, int mesh
   // We will assume all elements are of the same type - for now;
   // need a better way to categorize without doing a full pass first
   const unsigned lnum_v_per_elem = faces[0].edges.size(); // Linear elements: nedges = nverts ?
-  if (meshType != OVERLAP && lnum_v_per_elem <= 4) {
+  if (ctx.meshType != OVERLAP && lnum_v_per_elem <= 4) {
       const unsigned num_v_per_elem = lnum_v_per_elem;
-      EntityHandle starte; // Connectivity
-      EntityHandle* conn;
-      rval = iface->get_element_connect(faces.size(), num_v_per_elem, MBPOLYGON, 0, starte, conn);MB_CHK_SET_ERR(rval, "Can't get element connectivity");
+      moab::EntityHandle starte; // Connectivity
+      moab::EntityHandle* conn;
+      rval = iface->get_element_connect(faces.size(), num_v_per_elem, moab::MBPOLYGON, 0, starte, conn);MB_CHK_SET_ERR(rval, "Can't get element connectivity");
       for (unsigned ifaces=0,offset=0; ifaces < faces.size(); ++ifaces) {
           const Face& face = faces[ifaces];
           conn[offset++] = startv+face.edges[0].node[1];
@@ -175,19 +187,19 @@ moab::ErrorCode translate_tempest_mesh(Mesh* mesh, moab::Interface* mb, int mesh
 
           std::cout << "Found " << nPolys[iType] << " polygonal elements with " << iType << " edges.\n";
           const unsigned num_v_per_elem = iType;
-          EntityHandle starte; // Connectivity
-          EntityHandle* conn;
+          moab::EntityHandle starte; // Connectivity
+          moab::EntityHandle* conn;
 
           // Allocate the connectivity array, depending on the element type
           switch(num_v_per_elem) {
             case 3:
-              rval = iface->get_element_connect(nPolys[iType], num_v_per_elem, MBTRI, 0, starte, conn);MB_CHK_SET_ERR(rval, "Can't get element connectivity");
+              rval = iface->get_element_connect(nPolys[iType], num_v_per_elem, moab::MBTRI, 0, starte, conn);MB_CHK_SET_ERR(rval, "Can't get element connectivity");
               break;
             case 4:
-              rval = iface->get_element_connect(nPolys[iType], num_v_per_elem, MBQUAD, 0, starte, conn);MB_CHK_SET_ERR(rval, "Can't get element connectivity");
+              rval = iface->get_element_connect(nPolys[iType], num_v_per_elem, moab::MBQUAD, 0, starte, conn);MB_CHK_SET_ERR(rval, "Can't get element connectivity");
               break;
             default:
-              rval = iface->get_element_connect(nPolys[iType], num_v_per_elem, MBPOLYGON, 0, starte, conn);MB_CHK_SET_ERR(rval, "Can't get element connectivity");
+              rval = iface->get_element_connect(nPolys[iType], num_v_per_elem, moab::MBPOLYGON, 0, starte, conn);MB_CHK_SET_ERR(rval, "Can't get element connectivity");
               break;
           }
 
@@ -205,9 +217,11 @@ moab::ErrorCode translate_tempest_mesh(Mesh* mesh, moab::Interface* mb, int mesh
 }
 
 
-moab::ErrorCode translate_moab_mesh(moab::Interface* mb, Mesh* mesh)
+moab::ErrorCode ConvertMOABMeshToTempest(ToolContext& , moab::Interface* mb, Mesh* mesh)
 {
   moab::ErrorCode rval;
+
+  std::cout << "\nConverting MOAB Mesh object to TempestRemap Mesh representation ...\n";
   NodeVector& nodes = mesh->nodes;
   FaceVector& faces = mesh->faces;
 
@@ -219,7 +233,7 @@ moab::ErrorCode translate_moab_mesh(moab::Interface* mb, Mesh* mesh)
   int inode=0;
   std::vector<double> coordx(verts.size()), coordy(verts.size()), coordz(verts.size());
   rval = mb->get_coords(verts, &coordx[0], &coordy[0], &coordz[0]);MB_CHK_ERR(rval);
-  for (Range::iterator iverts=verts.begin(); iverts!=verts.end(); ++iverts) {
+  for (moab::Range::iterator iverts=verts.begin(); iverts!=verts.end(); ++iverts) {
       Node& node = nodes[inode];
       node.x = coordx[inode];
       node.y = coordy[inode];
@@ -235,7 +249,7 @@ moab::ErrorCode translate_moab_mesh(moab::Interface* mb, Mesh* mesh)
   faces.resize(elems.size());
 
   int iface=0;
-  for (Range::iterator ielems=elems.begin(); ielems!=elems.end(); ++ielems) {
+  for (moab::Range::iterator ielems=elems.begin(); ielems!=elems.end(); ++ielems) {
     Face& face = faces[iface++];
 
     // compute the number of edges per faces
