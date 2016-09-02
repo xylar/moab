@@ -28,9 +28,10 @@
 #endif
 
 // Tempest includes
+#include "netcdfcpp.h"
 #include "TempestRemapAPI.h"
 
-enum MeshType { CS=0, RLL=1, ICO=2, OVERLAP=3 };
+enum MeshType { CS=0, RLL=1, ICO=2, OVERLAP=3, OVERLAP_V2=4 };
 
 struct ToolContext {
     int blockSize;
@@ -56,7 +57,7 @@ struct ToolContext {
 
         opts.parseCommandLine(argc, argv);
 
-        if (meshType == OVERLAP) {
+        if (meshType == OVERLAP || meshType == OVERLAP_V2) {
           opts.getOptAllArgs("load,l", inFilenames);
           assert(inFilenames.size() == 2);
         }
@@ -64,7 +65,8 @@ struct ToolContext {
 };
 
 // Forward declare some methods
-moab::ErrorCode LoadTempestMesh(ToolContext& ctx, Mesh** tempest_mesh);
+moab::ErrorCode LoadTempestMesh(std::string inputFilename, Mesh** tempest_mesh, bool meshValidate=false, bool constructEdgeMap=false);
+moab::ErrorCode CreateTempestMesh(ToolContext& ctx, Mesh** tempest_mesh);
 moab::ErrorCode ConvertTempestMeshToMOAB(ToolContext& ctx, Mesh* mesh, moab::Interface* mb);
 moab::ErrorCode ConvertMOABMeshToTempest(ToolContext& ctx, moab::Interface* mb, Mesh* mesh);
 
@@ -83,7 +85,7 @@ int main(int argc, char* argv[])
   ctx.ParseCLOptions(argc, argv);
 
   Mesh* tempest_mesh=NULL;
-  rval = LoadTempestMesh(ctx, &tempest_mesh);MB_CHK_ERR(rval);
+  rval = CreateTempestMesh(ctx, &tempest_mesh);MB_CHK_ERR(rval);
 
   moab::Core* mbCore = new (std::nothrow) moab::Core;
   if (NULL == mbCore) return 1;
@@ -109,13 +111,65 @@ int main(int argc, char* argv[])
   exit(0);
 }
 
-moab::ErrorCode LoadTempestMesh(ToolContext& ctx, Mesh** tempest_mesh)
+moab::ErrorCode LoadTempestMesh(std::string inputFilename, Mesh** tempest_mesh, bool meshValidate, bool constructEdgeMap)
 {
-    std::cout << "\nLoading TempestRemap Mesh object ...\n";
+    std::cout << "\nLoading TempestRemap Mesh object from file = " << inputFilename << " ...\n";
+    if (tempest_mesh) {
+        NcError error(NcError::silent_nonfatal);
+
+        Mesh* mesh;
+
+        try {
+            // Load input mesh
+            std::cout << "\nLoading mesh ...\n";
+            mesh = new Mesh(inputFilename);
+            mesh->RemoveZeroEdges();
+            std::cout << "\n----------------\n";
+
+            // Validate mesh
+            if (meshValidate) {
+                std::cout << "\nValidating mesh ...\n";
+                mesh->Validate();
+                std::cout << "\n-------------------\n";
+            }
+
+            // Construct the edge map on the mesh
+            if (constructEdgeMap) {
+                std::cout << "\nConstructing edge map on mesh ...\n";
+                mesh->ConstructEdgeMap();
+                std::cout << "\n---------------------------------\n";
+            }
+
+        } catch(Exception & e) {
+            std::cout << "TempestRemap ERROR: " << e.ToString() << "\n";
+            return moab::MB_FAILURE;
+
+        } catch(...) {
+            return moab::MB_FAILURE;
+        }
+
+        *tempest_mesh = mesh;
+    }
+    return moab::MB_SUCCESS;
+}
+
+moab::ErrorCode CreateTempestMesh(ToolContext& ctx, Mesh** tempest_mesh)
+{
+    moab::ErrorCode rval = moab::MB_SUCCESS;
+    std::cout << "\nCreating TempestRemap Mesh object ...\n";
     switch(ctx.meshType) {
       case OVERLAP:
         // For the overlap method, choose between: "fuzzy", "exact" or "mixed"
         *tempest_mesh = GenerateOverlapMesh(ctx.inFilenames[0], ctx.inFilenames[1], ctx.outFilename, "exact", false);
+        break;
+      case OVERLAP_V2:
+        // For the overlap method, choose between: "fuzzy", "exact" or "mixed"
+        Mesh *src, *dest;
+        // Load the meshes and validate
+        rval = LoadTempestMesh(ctx.inFilenames[0], &src, true, true);MB_CHK_ERR(rval);
+        rval = LoadTempestMesh(ctx.inFilenames[1], &dest, true, true);MB_CHK_ERR(rval);
+        // Now let us construct the overlap mesh
+        *tempest_mesh = GenerateOverlapWithMeshes(*src, *dest, ctx.outFilename, "exact", false);
         break;
       case ICO:
         *tempest_mesh = GenerateICOMesh(ctx.blockSize, ctx.computeDual, ctx.outFilename);
@@ -134,7 +188,7 @@ moab::ErrorCode LoadTempestMesh(ToolContext& ctx, Mesh** tempest_mesh)
       exit(-1);
     }
 
-    return moab::MB_SUCCESS;
+    return rval;
 }
 
 moab::ErrorCode ConvertTempestMeshToMOAB(ToolContext& ctx, Mesh* mesh, moab::Interface* mb)
@@ -160,7 +214,7 @@ moab::ErrorCode ConvertTempestMeshToMOAB(ToolContext& ctx, Mesh* mesh, moab::Int
   // We will assume all elements are of the same type - for now;
   // need a better way to categorize without doing a full pass first
   const unsigned lnum_v_per_elem = faces[0].edges.size(); // Linear elements: nedges = nverts ?
-  if (ctx.meshType != OVERLAP && lnum_v_per_elem <= 4) {
+  if ((ctx.meshType != OVERLAP || ctx.meshType == OVERLAP_V2) && lnum_v_per_elem <= 4) {
       const unsigned num_v_per_elem = lnum_v_per_elem;
       moab::EntityHandle starte; // Connectivity
       moab::EntityHandle* conn;
@@ -273,6 +327,8 @@ moab::ErrorCode ConvertMOABMeshToTempest(ToolContext& , moab::Interface* mb, Mes
         edge.node[1] = connect[1];
     }
   }
+
+  mesh->RemoveZeroEdges();
 
   return moab::MB_SUCCESS;
 }
