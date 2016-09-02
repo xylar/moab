@@ -13,6 +13,7 @@
 #include "moab/Core.hpp"
 #include "moab/Interface.hpp"
 #include "moab/Intx2MeshOnSphere.hpp"
+#include "CslamUtils.hpp"
 #include "../test/TestUtil.hpp"
 #include <math.h>
 

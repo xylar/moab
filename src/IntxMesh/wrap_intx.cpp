@@ -12,7 +12,7 @@
 #include "MBiMesh.hpp"
 #include "moab/Core.hpp"
 #include "moab/Range.hpp"
-#include "Intx2MeshOnSphere.hpp"
+#include "moab/Intx2MeshOnSphere.hpp"
 #include "moab/ReadUtilIface.hpp"
 #include "moab/ParallelComm.hpp"
 #include "MBTagConventions.hpp"

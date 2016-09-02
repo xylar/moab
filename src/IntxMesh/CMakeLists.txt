@@ -11,9 +11,9 @@ if( MOAB_HAVE_NETCDF )
   endif ( MOAB_HAVE_MPI )
 endif()
 
-set(MOAB_INTX_LIB_SRCS Intx2Mesh.cpp Intx2MeshInPlane.cpp Intx2MeshOnSphere.cpp IntxRllCssphere.cpp CslamUtils.cpp CslamUtils.hpp wrap_intx.cpp  )
-if(ENABLE_IMESH)
- include_directories( ${CMAKE_SOURCE_DIR}/itaps/imesh )
+set(MOAB_INTX_LIB_SRCS Intx2Mesh.cpp Intx2MeshInPlane.cpp Intx2MeshOnSphere.cpp IntxRllCssphere.cpp CslamUtils.cpp CslamUtils.hpp )
+if(ENABLE_IMESH AND MOAB_HAVE_MPI AND MPI_FOUND)
+ include_directories( ${CMAKE_SOURCE_DIR}/itaps/imesh  ${CMAKE_SOURCE_DIR}/itaps )
  set(MOAB_INTX_LIB_SRCS ${MOAB_INTX_LIB_SRCS} wrap_intx.cpp )
 endif()
 

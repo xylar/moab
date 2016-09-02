@@ -18,14 +18,11 @@ AM_CPPFLAGS  = -I. \
                -I$(top_builddir)/src \
                -I$(top_srcdir)/src \
                -I$(top_srcdir)/src/parallel \
+               -I$(top_srcdir)/src/IntxMesh \
                -I$(top_srcdir)/src/io/mhdf/include
 
 if ENABLE_mbcoupler
   AM_CPPFLAGS += -I$(top_srcdir)/tools/mbcoupler
-endif
-
-if ENABLE_mbcslam
-  AM_CPPFLAGS += -I$(top_srcdir)/tools/mbcslam
 endif
 
 # Run parallel tests in parallel
@@ -67,14 +64,10 @@ endif
 endif
 
 
-if ENABLE_mbcslam
 if HAVE_HDF5_PARALLEL
   MBCSLAM_TESTS = par_intx_sph 
 else
   MBCSLAM_TESTS =
-endif
-else
-  MBCSLAM_TESTS = 
 endif
 
 IMOAB_TESTS = 
@@ -140,10 +133,9 @@ endif
 endif
 
 
-if ENABLE_mbcslam
-  par_intx_sph_SOURCES = par_intx_sph.cpp
-  par_intx_sph_LDADD = $(LDADD) ../../tools/mbcslam/libmbcslam.la  
-endif
+par_intx_sph_SOURCES = par_intx_sph.cpp
+par_intx_sph_LDADD = $(LDADD)  
+
 # Other files to clean up (e.g. output from tests)
 MOSTLYCLEANFILES = mhdf_ll.h5m tmp0.h5m tmp1.h5m tmp2.h5m tmp3.h5m \
                    partial0.vtk \
