@@ -26,7 +26,7 @@
 #include "moab/ReadUtilIface.hpp"
 #include "MBTagConventions.hpp"
 
-#include "CslamUtils.hpp"
+#include "IntxUtils.hpp"
 
 // for M_PI
 #include <math.h>

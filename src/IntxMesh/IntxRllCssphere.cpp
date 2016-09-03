@@ -7,7 +7,7 @@
 
 #include "moab/IntxRllCssphere.hpp"
 #include "moab/GeomUtil.hpp"
-#include "CslamUtils.hpp"
+#include "IntxUtils.hpp"
 
 namespace moab {
 
@@ -439,7 +439,7 @@ bool IntxRllCssphere::is_inside_element(double xyz[3], EntityHandle eh)
     return false;
 
   // now, is the projected point inside the red quad?
-  // cslam utils
+  // Intx utils
   if (point_in_interior_of_convex_polygon (redCoords2D, nsRed, pt))
     return true;
   return false;

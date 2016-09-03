@@ -5,7 +5,7 @@
  *      Author: iulian
  */
 
-#include "CslamUtils.hpp"
+#include "IntxUtils.hpp"
 #include <math.h>
 // this is from mbcoupler; maybe it should be moved somewhere in moab src
 // right now, add a dependency to mbcoupler

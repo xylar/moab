@@ -19,7 +19,7 @@
 #include "moab/ProgOptions.hpp"
 #include "MBTagConventions.hpp"
 #include "../test/TestUtil.hpp"
-#include "CslamUtils.hpp"
+#include "IntxUtils.hpp"
 
 // for M_PI
 #include <math.h>
@@ -73,7 +73,7 @@ ErrorCode manufacture_lagrange_mesh_on_sphere(Interface * mb,
     rval = mb->get_coords(&oldV, 1, &(posi[0]));
     if (MB_SUCCESS != rval)
       return rval;
-    // cslam utils, case 1
+    // Intx utils, case 1
     CartVect newPos;
     departure_point_case1(posi, t, delta_t, newPos);
     newPos = radius * newPos;

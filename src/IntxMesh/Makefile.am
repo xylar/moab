@@ -19,8 +19,8 @@ MOAB_LOCALDISCR_SRCS = \
      Intx2MeshInPlane.cpp  \
      Intx2MeshOnSphere.cpp \
      IntxRllCssphere.cpp \
-     CslamUtils.cpp \
-     CslamUtils.hpp 
+     IntxUtils.cpp \
+     IntxUtils.hpp 
 
 if PARALLEL
     MOAB_LOCALDISCR_SRCS += wrap_intx.cpp

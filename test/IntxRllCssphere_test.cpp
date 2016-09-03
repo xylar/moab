@@ -4,7 +4,9 @@
 
 
 #include "moab/IntxRllCssphere.hpp"
-#include "../../test/TestUtil.hpp"
+#include "TestUtil.hpp"
+#include "IntxUtils.hpp"
+
 using namespace moab;
 
 int main(int argc, char* argv[])
@@ -56,7 +58,7 @@ int main(int argc, char* argv[])
   if (MB_SUCCESS != rval)
     return 1;
 
-  // CslamUtils
+  // IntxUtils
   rval = fix_degenerate_quads(mb, sf1);
   if (MB_SUCCESS != rval)
     return 1;

@@ -13,7 +13,7 @@
 #include "moab/Core.hpp"
 #include "moab/Interface.hpp"
 #include "moab/Intx2MeshOnSphere.hpp"
-#include "CslamUtils.hpp"
+#include "IntxUtils.hpp"
 #include "../test/TestUtil.hpp"
 #include <math.h>
 
@@ -68,7 +68,7 @@ int main(int argc, char* argv[])
   if (MB_SUCCESS != rval)
     return 1;
 
-  // CslamUtils
+  // IntxUtils
   rval = fix_degenerate_quads(mb, sf1);
   if (MB_SUCCESS != rval)
     return 1;

@@ -7,7 +7,7 @@
 
 #include "moab/Intx2MeshInPlane.hpp"
 #include "moab/GeomUtil.hpp"
-#include "CslamUtils.hpp"
+#include "IntxUtils.hpp"
 
 namespace moab {
 Intx2MeshInPlane::Intx2MeshInPlane(Interface * mbimpl):Intx2Mesh(mbimpl){
@@ -400,7 +400,7 @@ bool Intx2MeshInPlane::is_inside_element(double xyz[3], EntityHandle eh)
 
   double pt[2]={xyz[0], xyz[1]};// xy plane only
   // now, is the projected point inside the red quad?
-  // cslam utils
+  // Intx utils
   if (point_in_interior_of_convex_polygon (redCoords2D, num_nodes, pt))
     return true;
   return false;

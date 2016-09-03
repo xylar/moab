@@ -20,9 +20,9 @@
 #include "moab/ProgOptions.hpp"
 #include "MBTagConventions.hpp"
 #include "moab/ParallelComm.hpp"
-#include "TestUtil.hpp"
 
-#include "CslamUtils.hpp"
+#include "IntxUtils.hpp"
+#include "TestUtil.hpp"
 
 using namespace moab;
 // some input data

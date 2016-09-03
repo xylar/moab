@@ -15,7 +15,7 @@
 #include "moab/ReadUtilIface.hpp"
 #include "MBTagConventions.hpp"
 #include "TestUtil.hpp"
-#include "CslamUtils.hpp"
+#include "IntxUtils.hpp"
 
 //std::string file_name("./uniform_30.g");
 //std::string file_name("./uniform_120.g");
@@ -668,7 +668,7 @@ moab::ErrorCode get_departure_grid(moab::Interface * mb, moab::EntityHandle eule
     rval = mb->get_coords(&oldV, 1, &(posi[0]));
     if (MB_SUCCESS != rval)
       return rval;
-    // cslam utils, case 1
+    // Intx utils, case 1
     CartVect newPos;
     departure_point_swirl_rot(posi, t, delta_t, newPos);
     newPos = radius * newPos; // do we need this? the radius should be 1

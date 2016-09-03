@@ -1,7 +1,7 @@
 /*
  * wrap_intx.cpp
  *  Will implement the intersection method that will be callable from fortran too
- *  will be added to the library mbcslam.a
+ *  will be added to the sub-library IntxMesh
  *
  *
  *  Created on: Dec 14, 2013
@@ -17,7 +17,7 @@
 #include "moab/ParallelComm.hpp"
 #include "MBTagConventions.hpp"
 #include "moab/ParallelMergeMesh.hpp"
-#include "CslamUtils.hpp"
+#include "IntxUtils.hpp"
 
 #include <sstream>
 #include <mpi.h>
@@ -782,7 +782,7 @@ void create_mesh(iMesh_Instance instance,
   ERRORV(rval, "can't create moab euler set ");
   *imesh_euler_set = (iBase_EntitySetHandle) euler_set;
 
-  // call in cslam utils
+  // call in Intx utils
   // it will copy the second set from the first set
   rval = deep_copy_set_with_quads(mb, fine_set, euler_set);
   ERRORV(rval, "can't populate lagrange set ");

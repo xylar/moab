@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include "CslamUtils.hpp"
+#include "IntxUtils.hpp"
 #include "moab/Types.hpp"
 
 #include "../test/TestUtil.hpp"
