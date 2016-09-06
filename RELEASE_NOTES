@@ -1,3 +1,27 @@
+#Version 4.9.2:
+## Features
+  * *PR #259*: Introduce the new language-agnostic iMOAB interface to MOAB that is oriented towards FEM/FDM/FVM applications codes.
+               This is a ongoing replacement to the ITAPS iMesh interfaces but with much less verbosity and indirection in implementation.
+  * *PR #196*: Expose "mhdf" publically to be consumed by advanced visualization (VisIt) and parallel I/O use-cases
+  * *PR #195*: Addition of an optimized parallel mesh resolution algorithm when performing UMR in memory
+  * *PR #193*: Support for Attila RTT finite element mesh files
+  * *PR #203*: Support for the general OBJ triangulation files
+  * Add support for Bitbucket pipelines, Codeship/Drone.io integration for improving CI and testing infrastructure on a per-commit basis
+## Enhancements
+  * *PR #229*: Add support for polygon and polyhedra in VTK and NetCDF formats
+  * *PR #246*: Improved re-design of the DagMC tool
+  * *PR #251*: Support 64-bit integers with MetisPartitioner
+  * *PR #247*: Better support for configuration/build on BG/Q systems (ANL Vesta/Mira with GNU/XLC compilers)
+  * *PR #258*: Redesign of options to control sequence allocation (previously CoreOptions)
+## Fixes
+  * *PR #234*: Several key fixes found through cppcheck and Coverity (static analysis tools)
+  * *PR #233*: Parallel h5m file load of recursive sets
+  * *PR #213, #230, #255, #253*: Autotools/CMake fixes for MPI, HDF5, NetCDF configurations on various architectures
+  * *PR #231*: Remove explicit dependence on Cubit through MOAB
+  * *PR #227*: Several fixes for reading NetCDF and MPAS climate files
+  * *PR #236*: Correctly process mesh files created on Windows architectures
+  * *PR #242*: Make the iterator over SequenceData deterministic (especially when filling holes in entity sequences)
+
 # Version 4.9.1:
 ## Features
   * *PR #200*: MOAB now supports auto-download and configuration/installation of several dependencies (HDF5, NetCDF and Metis/ParMetis) out of the box; Use configuration options:
