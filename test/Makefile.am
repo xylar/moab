@@ -64,9 +64,9 @@ TESTS = range_test \
         adj_moab_test \
         uref_mesh_test \
         verdict_test \
-        test_Matrix3
-        hireconst_test
-        hireconst_test_parallel
+        test_Matrix3 \
+        hireconst_test \
+        hireconst_test_parallel \
         uref_hirec_test \
         uref_hirec_test_parallel
 
