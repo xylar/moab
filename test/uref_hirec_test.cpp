@@ -46,13 +46,13 @@ ErrorCode test_closedsurface_mesh(const char* filename, int *level_degrees, int 
 	error = mbImpl->create_meshset(moab::MESHSET_SET, fileset); MB_CHK_ERR(error);
 //load mesh from file
 #ifdef MOAB_HAVE_MPI
-	MPI_COMM comm = MPI_COMM_WORLD;
+	MPI_Comm comm = MPI_COMM_WORLD;
 	EntityHandle partnset;
 	error  = mbImpl->create_meshset(moab::MESHSET_SET, partnset); MB_CHK_ERR(error);
 	pc = moab::ParallelComm::get_pcomm(mbImpl, partnset, &comm);
 
 	int procs = 1;
-	MPI_Comm_size(MPI_COMM_WORLD, &procs);
+	MPI_Comm_size(comm, &procs);
 	if(procs>1){
 		read_options = "PARALLEL=READ_PART;PARTITION=PARALLEL_PARTITION;PARALLEL_RESOLVE_SHARED_ENTS;";
 		error = mbImpl->load_file(filename, &fileset, read_options.c_str()); MB_CHK_ERR(error);
@@ -81,7 +81,7 @@ ErrorCode test_closedsurface_mesh(const char* filename, int *level_degrees, int 
 		//locate the element in level 0 mesh, on which *ivert is lying
 		EntityHandle currvert = *ivert;
 		std::vector<EntityHandle> parentEntities;
-		error = uref.vertex_to_entities(*ivert,num_levels,parentEntities); MB_CHK_ERR(error);
+		error = uref.vertex_to_entities_up(*ivert,0,num_levels,parentEntities); MB_CHK_ERR(error);
 		assert(parentEntities.size());
 		EntityHandle rootelem;
 		error = uref.child_to_parent(parentEntities[0],num_levels-1,0,&rootelem); MB_CHK_ERR(error);
@@ -117,13 +117,13 @@ ErrorCode closedsurface_uref_hirec_convergence_study(const char* filename, int *
 	error = mbImpl->create_meshset(moab::MESHSET_SET, fileset); MB_CHK_ERR(error);
 //load mesh from file
 #ifdef MOAB_HAVE_MPI
-	MPI_COMM comm = MPI_COMM_WORLD;
+	MPI_Comm comm = MPI_COMM_WORLD;
 	EntityHandle partnset;
 	error  = mbImpl->create_meshset(moab::MESHSET_SET, partnset); MB_CHK_ERR(error);
 	pc = moab::ParallelComm::get_pcomm(mbImpl, partnset, &comm);
 
 	int procs = 1;
-	MPI_Comm_size(MPI_COMM_WORLD, &procs);
+	MPI_Comm_size(comm, &procs);
 	if(procs>1){
 		read_options = "PARALLEL=READ_PART;PARTITION=PARALLEL_PARTITION;PARALLEL_RESOLVE_SHARED_ENTS;";
 		error = mbImpl->load_file(filename, &fileset, read_options.c_str()); MB_CHK_ERR(error);
