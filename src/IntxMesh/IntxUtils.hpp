@@ -11,25 +11,20 @@
 #include "moab/Core.hpp"
 #include "moab/Interface.hpp"
 
-// maximum number of edges on each convex polygon of interest
-#define MAXEDGES 10
-#define MAXEDGES2 20 // used for coordinates in plane
-#define CORRTAGNAME "__correspondent"
-
 namespace moab
 {
 double dist2(double * a, double * b);
 double area2D(double *a, double *b, double *c);
-int borderPointsOfXinY2(double * X, int nX, double * Y, int nY, double * P, int side[MAXEDGES], double epsilon_area);
+int borderPointsOfXinY2(double * X, int nX, double * Y, int nY, double * P, int * side, double epsilon_area);
 int SortAndRemoveDoubles2(double * P, int & nP, double epsilon);
 // the marks will show what edges of blue intersect the red
 
 int EdgeIntersections2(double * blue, int nsBlue, double * red, int nsRed,
-    int markb[MAXEDGES], int markr[MAXEDGES], double * points, int & nPoints);
+    int * markb, int * markr, double * points, int & nPoints);
 
 // special one, for intersection between rll (constant latitude)  and cs quads
 int EdgeIntxRllCs(double * blue, CartVect * bluec, int * blueEdgeType, int nsBlue, double * red, CartVect * redc,
-    int nsRed, int markb[MAXEDGES], int markr[MAXEDGES], int plane, double Radius, double * points, int & nPoints);
+    int nsRed, int * markb, int * markr, int plane, double Radius, double * points, int & nPoints);
 // vec utils related to gnomonic projection on a sphere
 
 // vec utils

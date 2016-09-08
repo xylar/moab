@@ -21,6 +21,9 @@
 
 namespace moab {
 
+#define CORRTAGNAME "__correspondent"
+#define MAXEDGES 10
+
 #define CHECK_ERR( A )   if (MB_SUCCESS!=A) { std::cout << "error:" <<  __LINE__ <<" " << __FILE__ "\n"; return rval;}
 
 // vec utilities that could be common between quads on a plane or sphere
@@ -33,7 +36,7 @@ double area2D(double *a, double *b, double *c) {
   return ((b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0])) / 2;
 }
 int borderPointsOfXinY2(double * X, int nX, double * Y, int nY, double * P,
-    int side[MAXEDGES], double epsilon_area) {
+    int * side, double epsilon_area) {
   // 2 triangles, 3 corners, is the corner of X in Y?
   // Y must have a positive area
   /*
@@ -143,7 +146,7 @@ int SortAndRemoveDoubles2(double * P, int & nP, double epsilon_1) {
 // the marks will show what edges of blue intersect the red
 
 int EdgeIntersections2(double * blue, int nsBlue, double * red, int nsRed,
-    int markb[MAXEDGES], int markr[MAXEDGES], double * points, int & nPoints) {
+    int * markb, int * markr, double * points, int & nPoints) {
   /* EDGEINTERSECTIONS computes edge intersections of two elements
    [P,n]=EdgeIntersections(X,Y) computes for the two given elements  * red
    and blue ( stored column wise )
@@ -197,8 +200,8 @@ int EdgeIntersections2(double * blue, int nsBlue, double * red, int nsRed,
 }
 // special one, for intersection between rll (constant latitude)  and cs quads
 int EdgeIntxRllCs(double * blue, CartVect * bluec, int * blueEdgeType,
-    int nsBlue, double * red, CartVect * redc, int nsRed, int markb[MAXEDGES],
-    int markr[MAXEDGES], int plane, double R, double * points, int & nPoints) {
+    int nsBlue, double * red, CartVect * redc, int nsRed, int * markb,
+    int * markr, int plane, double R, double * points, int & nPoints) {
   // if blue edge type is 1, intersect in 3d then project to 2d by gnomonic projection
   // everything else the same (except if there are 2 points resulting, which is rare)
   for (int i = 0; i < 4; i++) { // always at most 4 , so maybe don't bother
