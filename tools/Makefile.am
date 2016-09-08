@@ -158,7 +158,7 @@ mbumr_SOURCES = umr.cpp
 endif
 
 if ENABLE_mbtempest
-  AM_CPPFLAGS += $(TEMPESTREMAP_INCLUDE)
+  AM_CPPFLAGS += $(TEMPESTREMAP_INCLUDE) -I$(top_srcdir)/src/IntxMesh
   bin_PROGRAMS += mbtempest
 mbtempest_SOURCES = mbtempest.cpp
 mbtempest_LDADD = $(LDADD) $(TEMPESTREMAP_LIBS)

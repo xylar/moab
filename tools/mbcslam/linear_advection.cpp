@@ -15,7 +15,7 @@
 #include "moab/ReadUtilIface.hpp"
 #include "MBTagConventions.hpp"
 #include "TestUtil.hpp"
-#include "IntxUtils.hpp"
+#include "moab/IntxUtils.hpp"
 
 //std::string file_name("./uniform_30.g");
 //std::string file_name("./uniform_120.g");

@@ -9,7 +9,6 @@
 
 #include "moab/CartVect.hpp"
 #include "moab/Core.hpp"
-#include "moab/Interface.hpp"
 
 namespace moab
 {

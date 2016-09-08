@@ -19,8 +19,7 @@ MOAB_LOCALDISCR_SRCS = \
      Intx2MeshInPlane.cpp  \
      Intx2MeshOnSphere.cpp \
      IntxRllCssphere.cpp \
-     IntxUtils.cpp \
-     IntxUtils.hpp 
+     IntxUtils.cpp
 
 if PARALLEL
     MOAB_LOCALDISCR_SRCS += wrap_intx.cpp
@@ -28,9 +27,10 @@ endif
 
 MOAB_LOCALDISCR_HDRS = \
 	moab/Intx2Mesh.hpp \
-        moab/Intx2MeshInPlane.hpp \
-        moab/Intx2MeshOnSphere.hpp \
-        moab/IntxRllCssphere.hpp   
+	moab/IntxUtils.hpp \
+  moab/Intx2MeshInPlane.hpp \
+  moab/Intx2MeshOnSphere.hpp \
+  moab/IntxRllCssphere.hpp   
 
 # The list of source files, and any header files that do not need to be installed
 libIntxMesh_la_SOURCES = \
