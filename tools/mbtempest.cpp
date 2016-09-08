@@ -27,6 +27,8 @@
 #include "moab/ParallelComm.hpp"
 #include "MBParallelConventions.h"
 #endif
+#include "moab/Intx2MeshOnSphere.hpp"
+#include "moab/IntxUtils.hpp"
 
 // Tempest includes
 #include "netcdfcpp.h"
@@ -37,6 +39,7 @@ enum MeshType { CS=0, RLL=1, ICO=2, OVERLAP=3, OVERLAP_V2=4 };
 struct ToolContext {
     int blockSize;
     std::vector<std::string> inFilenames;
+    std::vector<Mesh*> meshes;
     std::string outFilename;
     int meshType;
     bool computeDual;
@@ -53,6 +56,12 @@ struct ToolContext {
       delete timer;
     }
 
+    void clear()
+    {
+      for (unsigned i=0; i < meshes.size(); ++i) delete meshes[i];
+      meshes.clear();
+    }
+
     void timer_push(std::string operation)
     {
       timer_ops = timer->time_since_birth();
@@ -61,7 +70,7 @@ struct ToolContext {
 
     void timer_pop()
     {
-      std::cout << "Time taken to " << opName << " = " << timer->time_since_birth() - timer_ops << std::endl;
+      std::cout << "[LOG] Time taken to " << opName << " = " << timer->time_since_birth() - timer_ops << std::endl;
     }
 
     void ParseCLOptions(int argc, char* argv[]) {
@@ -90,12 +99,13 @@ struct ToolContext {
 // Forward declare some methods
 moab::ErrorCode LoadTempestMesh(std::string inputFilename, Mesh** tempest_mesh, bool meshValidate=false, bool constructEdgeMap=false);
 moab::ErrorCode CreateTempestMesh(ToolContext& ctx, Mesh** tempest_mesh);
-moab::ErrorCode ConvertTempestMeshToMOAB(ToolContext& ctx, Mesh* mesh, moab::Interface* mb);
-moab::ErrorCode ConvertMOABMeshToTempest(ToolContext& ctx, moab::Interface* mb, Mesh* mesh);
+moab::ErrorCode ConvertTempestMeshToMOAB(ToolContext& ctx, Mesh* mesh, moab::Interface* mb, moab::EntityHandle& mesh_set);
+moab::ErrorCode ConvertMOABMeshToTempest(ToolContext& ctx, moab::Interface* mb, Mesh* mesh, moab::EntityHandle mesh_set);
 
 int main(int argc, char* argv[])
 {
   moab::ErrorCode rval;
+  NcError error(NcError::verbose_nonfatal);
 
 #ifdef MOAB_HAVE_MPI
   int proc_id = 0, size = 1;
@@ -116,24 +126,83 @@ int main(int argc, char* argv[])
   if (NULL == mbCore) return 1;
 
   // First convert the loaded Tempest mesh to MOAB
-  ctx.timer_push("convert Tempest mesh to MOAB");
-  rval = ConvertTempestMeshToMOAB(ctx, tempest_mesh, mbCore);MB_CHK_ERR(rval);
-  ctx.timer_pop();
-#if 0
-  mbCore->print_database();
+#if 1
+  {
+      moab::EntityHandle mesh_set;
+      ctx.timer_push("convert Tempest mesh to MOAB");
+      rval = ConvertTempestMeshToMOAB(ctx, tempest_mesh, mbCore, mesh_set);MB_CHK_ERR(rval);
+      ctx.timer_pop();
+//      mbCore->print_database();
+//      mbCore->write_file("test.vtk");
+
+      // Now let us re-convert the MOAB mesh back to Tempest representation
+      Mesh tempest_mesh_copy;
+      ctx.timer_push("re-convert MOAB mesh back to Tempest mesh");
+      rval = ConvertMOABMeshToTempest(ctx, mbCore, &tempest_mesh_copy, mesh_set);MB_CHK_ERR(rval);
+      ctx.timer_pop();
+//      tempest_mesh_copy.Write("test.exo");
+  }
 #endif
-  mbCore->write_file("test.vtk");
-  delete tempest_mesh;
 
-  // Now let us re-convert the MOAB mesh back to Tempest representation
-  Mesh* tempest_mesh_copy = new Mesh();
-  ctx.timer_push("re-convert MOAB mesh back to Tempest mesh");
-  rval = ConvertMOABMeshToTempest(ctx, mbCore, tempest_mesh_copy);MB_CHK_ERR(rval);
-  ctx.timer_pop();
-  tempest_mesh_copy->Write("test.exo");
-  delete tempest_mesh_copy;
+  if (ctx.meshType == OVERLAP_V2)
+  { // Compute intersections with MOAB
+    moab::Intx2MeshOnSphere *mbintx = new moab::Intx2MeshOnSphere(mbCore);
 
+    // For the overlap method, choose between: "fuzzy", "exact" or "mixed"
+    moab::EntityHandle red, blue, tempestintx, intxset;
+
+    // Load the meshes and validate
+    rval = ConvertTempestMeshToMOAB(ctx, ctx.meshes[0], mbCore, red);MB_CHK_ERR(rval);
+    rval = ConvertTempestMeshToMOAB(ctx, ctx.meshes[1], mbCore, blue);MB_CHK_ERR(rval);
+    rval = ConvertTempestMeshToMOAB(ctx, ctx.meshes[2], mbCore, tempestintx);MB_CHK_ERR(rval);
+    rval = mbCore->write_mesh("tempest_intersection.h5m",&tempestintx,1);MB_CHK_ERR(rval);
+
+    // print verbosely about the problem setting
+    {
+        moab::Range rintxverts, rintxelems;
+        rval = mbCore->get_entities_by_dimension(red, 0, rintxverts);MB_CHK_ERR(rval);
+        rval = mbCore->get_entities_by_dimension(red, 2, rintxelems);MB_CHK_ERR(rval);
+        std::cout << "The red set contains " << rintxverts.size() << " vertices and " << rintxelems.size() << " elements \n";
+
+        moab::Range bintxverts, bintxelems;
+        rval = mbCore->get_entities_by_dimension(blue, 0, bintxverts);MB_CHK_ERR(rval);
+        rval = mbCore->get_entities_by_dimension(blue, 2, bintxelems);MB_CHK_ERR(rval);
+        std::cout << "The blue set contains " << bintxverts.size() << " vertices and " << bintxelems.size() << " elements \n";
+    }
+
+    const double epsrel=1.e-8;
+    const double radius=1.0;
+    mbintx->SetErrorTolerance(epsrel);
+    mbintx->SetRadius(radius);
+
+    rval = mbCore->create_meshset(moab::MESHSET_SET, intxset);MB_CHK_ERR(rval);
+    ctx.timer_push("compute intersections with MOAB");
+    rval = mbintx->intersect_meshes(red, blue, intxset);MB_CHK_SET_ERR(rval, "Can't compute the intersection of meshes on the sphere");
+    ctx.timer_pop();
+
+    {
+        moab::Range intxelems;
+        rval = mbCore->get_entities_by_dimension(intxset, 2, intxelems);MB_CHK_ERR(rval);
+        std::cout << "\nThe intersection set contains " << intxelems.size() << " elements \n";
+
+        double initial_area = area_on_sphere_lHuiller(mbCore, red, radius);
+        double area_method1 = area_on_sphere_lHuiller(mbCore, intxset, radius);
+        double area_method2 = area_on_sphere(mbCore, intxset, radius);
+
+        std::cout << "initial area: " << initial_area << "\n";
+        std::cout<< " area with l'Huiller: " << area_method1 << " with Girard: " << area_method2<< "\n";
+        std::cout << " relative difference areas " << fabs(area_method1-area_method2)/area_method1 << "\n";
+        std::cout << " relative error " << fabs(area_method1-initial_area)/area_method1 << "\n";
+    }
+
+    // Write out our computed intersection file
+    rval = mbCore->write_mesh("moab_intersection.h5m",&intxset,1);MB_CHK_ERR(rval);
+  }
+
+  // Clean up
+  ctx.clear();
   delete mbCore;
+
 #ifdef MOAB_HAVE_MPI
   MPI_Finalize();
 #endif
@@ -189,7 +258,8 @@ moab::ErrorCode CreateTempestMesh(ToolContext& ctx, Mesh** tempest_mesh)
     switch(ctx.meshType) {
       case OVERLAP:
         // For the overlap method, choose between: "fuzzy", "exact" or "mixed"
-        *tempest_mesh = GenerateOverlapMesh(ctx.inFilenames[0], ctx.inFilenames[1], ctx.outFilename, "exact", false);
+        *tempest_mesh = GenerateOverlapMesh(ctx.inFilenames[0], ctx.inFilenames[1], ctx.outFilename, "exact", true);
+        ctx.meshes.push_back(*tempest_mesh);
         break;
       case OVERLAP_V2:
         // For the overlap method, choose between: "fuzzy", "exact" or "mixed"
@@ -197,18 +267,24 @@ moab::ErrorCode CreateTempestMesh(ToolContext& ctx, Mesh** tempest_mesh)
         // Load the meshes and validate
         rval = LoadTempestMesh(ctx.inFilenames[0], &src, true, true);MB_CHK_ERR(rval);
         rval = LoadTempestMesh(ctx.inFilenames[1], &dest, true, true);MB_CHK_ERR(rval);
+        ctx.meshes.push_back(src);
+        ctx.meshes.push_back(dest);
         // Now let us construct the overlap mesh
-        *tempest_mesh = GenerateOverlapWithMeshes(*src, *dest, ctx.outFilename, "exact", false);
+        *tempest_mesh = GenerateOverlapWithMeshes(*src, *dest, "" /*ctx.outFilename*/, "exact", false);
+        ctx.meshes.push_back(*tempest_mesh);
         break;
       case ICO:
         *tempest_mesh = GenerateICOMesh(ctx.blockSize, ctx.computeDual, ctx.outFilename);
+        ctx.meshes.push_back(*tempest_mesh);
         break;
       case RLL:
         *tempest_mesh = GenerateRLLMesh(ctx.blockSize*2, ctx.blockSize, 0.0, 360.0, -90.0, 90.0, false, ctx.outFilename);
+        ctx.meshes.push_back(*tempest_mesh);
         break;
       case CS:
       default:
         *tempest_mesh = GenerateCSMesh(ctx.blockSize, false, ctx.outFilename);
+        ctx.meshes.push_back(*tempest_mesh);
         break;
     }
 
@@ -220,14 +296,18 @@ moab::ErrorCode CreateTempestMesh(ToolContext& ctx, Mesh** tempest_mesh)
     return rval;
 }
 
-moab::ErrorCode ConvertTempestMeshToMOAB(ToolContext& ctx, Mesh* mesh, moab::Interface* mb)
+moab::ErrorCode ConvertTempestMeshToMOAB(ToolContext& ctx, Mesh* mesh, moab::Interface* mb, moab::EntityHandle& mesh_set)
 {
+  moab::ErrorCode rval;
+
   std::cout << "\nConverting TempestRemap Mesh object to MOAB representation ...\n";
   const NodeVector& nodes = mesh->nodes;
   const FaceVector& faces = mesh->faces;
 
+  rval = mb->create_meshset(moab::MESHSET_SET, mesh_set);MB_CHK_SET_ERR(rval, "Can't create new set");
+
   moab::ReadUtilIface* iface;
-  moab::ErrorCode rval = mb->query_interface(iface);MB_CHK_SET_ERR(rval, "Can't get reader interface");
+  rval = mb->query_interface(iface);MB_CHK_SET_ERR(rval, "Can't get reader interface");
 
   // Set the data for the vertices
   std::vector<double*> arrays;
@@ -239,6 +319,8 @@ moab::ErrorCode ConvertTempestMeshToMOAB(ToolContext& ctx, Mesh* mesh, moab::Int
       arrays[1][iverts] = node.y;
       arrays[2][iverts] = node.z;
   }
+  moab::Range mbverts(startv, startv + nodes.size() - 1);
+  mb->add_entities(mesh_set, mbverts);
 
   // We will assume all elements are of the same type - for now;
   // need a better way to categorize without doing a full pass first
@@ -257,6 +339,7 @@ moab::ErrorCode ConvertTempestMeshToMOAB(ToolContext& ctx, Mesh* mesh, moab::Int
       }
   }
   else {
+      std::cout << "..Mesh size: Nodes [" << nodes.size() << "] Elements [" << faces.size() << "].\n";
       const int NMAXPOLYEDGES = 15;
       std::vector<unsigned> nPolys(NMAXPOLYEDGES,0);
       std::vector<std::vector<int> > typeNSeqs(NMAXPOLYEDGES);
@@ -265,10 +348,11 @@ moab::ErrorCode ConvertTempestMeshToMOAB(ToolContext& ctx, Mesh* mesh, moab::Int
           nPolys[iType]++;
           typeNSeqs[iType].push_back(ifaces);
       }
+      int iBlock=0;
       for (unsigned iType=0; iType < NMAXPOLYEDGES; ++iType) {
           if (!nPolys[iType]) continue; // Nothing to do
 
-          std::cout << "Found " << nPolys[iType] << " polygonal elements with " << iType << " edges.\n";
+          std::cout << "....Block " << iBlock++ << " Polygons [" << iType << "] Elements [" << nPolys[iType] << "].\n";
           const unsigned num_v_per_elem = iType;
           moab::EntityHandle starte; // Connectivity
           moab::EntityHandle* conn;
@@ -285,6 +369,8 @@ moab::ErrorCode ConvertTempestMeshToMOAB(ToolContext& ctx, Mesh* mesh, moab::Int
               rval = iface->get_element_connect(nPolys[iType], num_v_per_elem, moab::MBPOLYGON, 0, starte, conn);MB_CHK_SET_ERR(rval, "Can't get element connectivity");
               break;
           }
+          moab::Range mbcells(starte, starte + nPolys[iType] - 1);
+          mb->add_entities(mesh_set, mbcells);
 
           for (unsigned ifaces=0,offset=0; ifaces < typeNSeqs[iType].size(); ++ifaces) {
               const Face& face = faces[typeNSeqs[iType][ifaces]];
@@ -293,14 +379,20 @@ moab::ErrorCode ConvertTempestMeshToMOAB(ToolContext& ctx, Mesh* mesh, moab::Int
                   conn[offset++] = startv+face.edges[iedges].node[1];
               }
           }
+
+          // Now let us update the adjacency data, because some elements are new
+          rval = iface->update_adjacencies(starte, nPolys[iType], num_v_per_elem, conn);MB_CHK_SET_ERR(rval, "Can't update adjacencies");
+          // Generate all adj entities dimension 1 and 2 (edges and faces/ tri or qua)
+          moab::Range edges;
+          rval = mb->get_adjacencies(mbcells, 1, true, edges,
+                                     moab::Interface::UNION);MB_CHK_SET_ERR(rval, "Can't get edges");
       }
   }
 
   return moab::MB_SUCCESS;
 }
 
-
-moab::ErrorCode ConvertMOABMeshToTempest(ToolContext& , moab::Interface* mb, Mesh* mesh)
+moab::ErrorCode ConvertMOABMeshToTempest(ToolContext& , moab::Interface* mb, Mesh* mesh, moab::EntityHandle mesh_set)
 {
   moab::ErrorCode rval;
 
@@ -309,7 +401,7 @@ moab::ErrorCode ConvertMOABMeshToTempest(ToolContext& , moab::Interface* mb, Mes
   FaceVector& faces = mesh->faces;
 
   moab::Range verts;
-  rval = mb->get_entities_by_dimension(0, 0, verts);MB_CHK_ERR(rval);
+  rval = mb->get_entities_by_dimension(mesh_set, 0, verts);MB_CHK_ERR(rval);
   nodes.resize(verts.size());
 
   // Set the data for the vertices
@@ -328,7 +420,7 @@ moab::ErrorCode ConvertMOABMeshToTempest(ToolContext& , moab::Interface* mb, Mes
   coordz.clear();
 
   moab::Range elems;
-  rval = mb->get_entities_by_dimension(0, 2, elems);MB_CHK_ERR(rval);
+  rval = mb->get_entities_by_dimension(mesh_set, 2, elems);MB_CHK_ERR(rval);
   faces.resize(elems.size());
 
   int iface=0;
