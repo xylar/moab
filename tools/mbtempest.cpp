@@ -20,6 +20,7 @@
 #include "moab/Core.hpp"
 #include "moab/ProgOptions.hpp"
 #include "moab/ReadUtilIface.hpp"
+#include "moab/CpuTimer.hpp"
 
 #ifdef MOAB_HAVE_MPI
 #include "moab_mpi.h"
@@ -42,7 +43,25 @@ struct ToolContext {
 
     ToolContext() : blockSize(5), outFilename("output.exo"), meshType(CS), computeDual(false)
     {
-        inFilenames.resize(2);
+      inFilenames.resize(2);
+      timer = new moab::CpuTimer();
+    }
+
+    ~ToolContext()
+    {
+      inFilenames.clear();
+      delete timer;
+    }
+
+    void timer_push(std::string operation)
+    {
+      timer_ops = timer->time_since_birth();
+      opName = operation;
+    }
+
+    void timer_pop()
+    {
+      std::cout << "Time taken to " << opName << " = " << timer->time_since_birth() - timer_ops << std::endl;
     }
 
     void ParseCLOptions(int argc, char* argv[]) {
@@ -62,6 +81,10 @@ struct ToolContext {
           assert(inFilenames.size() == 2);
         }
     }
+  private:
+    moab::CpuTimer *timer;
+    double timer_ops;
+    std::string opName;
 };
 
 // Forward declare some methods
@@ -85,13 +108,17 @@ int main(int argc, char* argv[])
   ctx.ParseCLOptions(argc, argv);
 
   Mesh* tempest_mesh=NULL;
+  ctx.timer_push("create Tempest mesh");
   rval = CreateTempestMesh(ctx, &tempest_mesh);MB_CHK_ERR(rval);
+  ctx.timer_pop();
 
   moab::Core* mbCore = new (std::nothrow) moab::Core;
   if (NULL == mbCore) return 1;
 
   // First convert the loaded Tempest mesh to MOAB
+  ctx.timer_push("convert Tempest mesh to MOAB");
   rval = ConvertTempestMeshToMOAB(ctx, tempest_mesh, mbCore);MB_CHK_ERR(rval);
+  ctx.timer_pop();
 #if 0
   mbCore->print_database();
 #endif
@@ -100,7 +127,9 @@ int main(int argc, char* argv[])
 
   // Now let us re-convert the MOAB mesh back to Tempest representation
   Mesh* tempest_mesh_copy = new Mesh();
+  ctx.timer_push("re-convert MOAB mesh back to Tempest mesh");
   rval = ConvertMOABMeshToTempest(ctx, mbCore, tempest_mesh_copy);MB_CHK_ERR(rval);
+  ctx.timer_pop();
   tempest_mesh_copy->Write("test.exo");
   delete tempest_mesh_copy;
 
@@ -214,7 +243,7 @@ moab::ErrorCode ConvertTempestMeshToMOAB(ToolContext& ctx, Mesh* mesh, moab::Int
   // We will assume all elements are of the same type - for now;
   // need a better way to categorize without doing a full pass first
   const unsigned lnum_v_per_elem = faces[0].edges.size(); // Linear elements: nedges = nverts ?
-  if ((ctx.meshType != OVERLAP || ctx.meshType == OVERLAP_V2) && lnum_v_per_elem <= 4) {
+  if ((ctx.meshType != OVERLAP && ctx.meshType != OVERLAP_V2) && lnum_v_per_elem <= 4) {
       const unsigned num_v_per_elem = lnum_v_per_elem;
       moab::EntityHandle starte; // Connectivity
       moab::EntityHandle* conn;
@@ -311,6 +340,9 @@ moab::ErrorCode ConvertMOABMeshToTempest(ToolContext& , moab::Interface* mb, Mes
     rval = mb->get_adjacencies(&(*ielems), 1, 1, true, face_edges);MB_CHK_ERR(rval);
     face.edges.resize(face_edges.size());
 
+//    std::vector< moab::EntityHandle > connectivity;
+//    rval = mb->get_connectivity(&face_edges[0], face_edges.size(), connectivity, true);MB_CHK_ERR(rval);
+
     for (unsigned iedges=0; iedges < face_edges.size(); ++iedges) {
         Edge& edge = face.edges[iedges];
 
@@ -329,6 +361,5 @@ moab::ErrorCode ConvertMOABMeshToTempest(ToolContext& , moab::Interface* mb, Mes
   }
 
   mesh->RemoveZeroEdges();
-
   return moab::MB_SUCCESS;
 }
