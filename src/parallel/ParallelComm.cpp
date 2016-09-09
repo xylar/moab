@@ -5907,7 +5907,7 @@ ErrorCode ParallelComm::get_remote_handles(EntityHandle *local_vec, EntityHandle
       this_incoming++;
       PRINT_DEBUG_IRECV(procConfig.proc_rank(), to_proc, (unsigned char*)ack_buff,
                         sizeof(int), mesg_tag - 1, this_incoming);
-      success = MPI_Irecv(ack_buff, sizeof(int),
+      success = MPI_Irecv((void*)ack_buff, sizeof(int),
                           MPI_UNSIGNED_CHAR, to_proc,
                           mesg_tag - 1, procConfig.proc_comm(),
                           &ack_req);
@@ -8301,7 +8301,7 @@ ErrorCode ParallelComm::get_remote_handles(EntityHandle *local_vec, EntityHandle
     // Set up to receive data
     for (int i = 0; i < num_proc; i++) {
       result[i].resize(sizes_recv[i]);
-      ierr = MPI_Irecv(&result[i][0],
+      ierr = MPI_Irecv( (void *)( &(result[i][0]) ),
                        sizeof(SharedEntityData)*sizes_recv[i],
                        MPI_UNSIGNED_CHAR,
                        buffProcs[i], tag, cm, &recv_req[i]);
@@ -8311,7 +8311,7 @@ ErrorCode ParallelComm::get_remote_handles(EntityHandle *local_vec, EntityHandle
 
     // Send data
     for (int i = 0; i < num_proc; i++) {
-      ierr = MPI_Isend(&send_data[i][0],
+      ierr = MPI_Isend((void *)( &(send_data[i][0]) ),
                        sizeof(SharedEntityData)*sizes_send[i],
                        MPI_UNSIGNED_CHAR,
                        buffProcs[i], tag, cm, &send_req[i]);

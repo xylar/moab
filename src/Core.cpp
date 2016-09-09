@@ -359,7 +359,7 @@ ErrorCode Core::query_interface_type( const std::type_info& type, void*& ptr )
   }
   else if (type == typeid(WriteUtilIface)) {
     if(!mMBWriteUtil)
-      mMBWriteUtil = new WriteUtil(this, mError);
+      mMBWriteUtil = new WriteUtil(this);
     ptr = static_cast<WriteUtilIface*>(mMBWriteUtil);
   }
   else if (type == typeid(ReaderWriterSet)) {
