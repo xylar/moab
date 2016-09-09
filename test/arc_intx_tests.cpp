@@ -7,10 +7,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include "IntxUtils.hpp"
 #include "moab/Types.hpp"
+#include "moab/IntxUtils.hpp"
 
-#include "../test/TestUtil.hpp"
+#include "TestUtil.hpp"
 
 using namespace moab;
 void test_great_arc_intx()

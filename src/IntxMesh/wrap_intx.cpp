@@ -23,9 +23,9 @@
 #include <mpi.h>
 
 using namespace moab;
-double radius = 1.;
-double gtol = 1.e-9;
-bool debug = false;
+static double radius = 1.;
+static double gtol = 1.e-9;
+static bool debug = false;
 
 // this mapping to coordinates will keep an index into the coords and dep_coords array
 // more exactly, the fine vertices are in a Range fineVerts;
@@ -38,11 +38,11 @@ bool debug = false;
 // in the same way, departure position for vertex depVerts[i] will be at index
 //   mapping_to_coords[i] * 2 in dep_coords array (it has just latitude and longitude)
 //
-int * mapping_to_coords = NULL;
-int numVertices = 0;
+static int * mapping_to_coords = NULL;
+static int numVertices = 0;
 // this will be instantiated at create mesh step
 // should be cleaned up at the end
-Intx2MeshOnSphere * pworker = NULL;
+static Intx2MeshOnSphere * pworker = NULL;
 
 // should get rid of this; instead of using array[NC+1][NC+1], use  row based indexing (C-style):
 // parray =  new int[ (NC+1)*(NC+1) ] , and instead of array[i][j], use parray[ i*(NC+1) + j ]

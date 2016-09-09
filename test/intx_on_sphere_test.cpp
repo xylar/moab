@@ -13,8 +13,8 @@
 #include "moab/Core.hpp"
 #include "moab/Interface.hpp"
 #include "moab/Intx2MeshOnSphere.hpp"
-#include "IntxUtils.hpp"
-#include "../test/TestUtil.hpp"
+#include "moab/IntxUtils.hpp"
+#include "TestUtil.hpp"
 #include <math.h>
 
 using namespace moab;

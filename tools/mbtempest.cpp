@@ -53,6 +53,7 @@ struct ToolContext {
     ~ToolContext()
     {
       inFilenames.clear();
+      outFilename.clear();
       delete timer;
     }
 
@@ -71,6 +72,7 @@ struct ToolContext {
     void timer_pop()
     {
       std::cout << "\n[LOG] Time taken to " << opName << " = " << timer->time_since_birth() - timer_ops << std::endl;
+      opName.clear();
     }
 
     void ParseCLOptions(int argc, char* argv[]) {
@@ -109,6 +111,7 @@ struct ToolContext {
           opts.getOptAllArgs("load,l", inFilenames);
           assert(inFilenames.size() == 2);
         }
+        expectedFName.clear();
     }
   private:
     moab::CpuTimer *timer;
@@ -171,6 +174,8 @@ int main(int argc, char* argv[])
     // For the overlap method, choose between: "fuzzy", "exact" or "mixed"
     moab::EntityHandle red, blue, tempestintx, intxset;
 
+    assert(ctx.meshes.size() == 3);
+
     // Load the meshes and validate
     rval = ConvertTempestMeshToMOAB(ctx, ctx.meshes[0], mbCore, red);MB_CHK_ERR(rval);
     rval = ConvertTempestMeshToMOAB(ctx, ctx.meshes[1], mbCore, blue);MB_CHK_ERR(rval);
@@ -214,6 +219,7 @@ int main(int argc, char* argv[])
         std::cout << " relative difference areas " << fabs(area_method1-area_method2)/area_method1 << "\n";
         std::cout << " relative error " << fabs(area_method1-initial_area)/area_method1 << "\n";
     }
+    delete mbintx;
 
     // Write out our computed intersection file
     rval = mbCore->write_mesh("moab_intersection.h5m",&intxset,1);MB_CHK_ERR(rval);
@@ -233,6 +239,7 @@ int main(int argc, char* argv[])
                                                           );
     ctx.timer_pop();
     weightMap->Write("outWeights.nc");
+    delete weightMap;
   }
 
   // Clean up
@@ -295,7 +302,6 @@ moab::ErrorCode CreateTempestMesh(ToolContext& ctx, Mesh** tempest_mesh)
       case OVERLAP:
         // For the overlap method, choose between: "fuzzy", "exact" or "mixed"
         *tempest_mesh = GenerateOverlapMesh(ctx.inFilenames[0], ctx.inFilenames[1], ctx.outFilename, "exact", true);
-        ctx.meshes.push_back(*tempest_mesh);
         break;
       case OVERLAP_V2:
         // For the overlap method, choose between: "fuzzy", "exact" or "mixed"
@@ -307,22 +313,19 @@ moab::ErrorCode CreateTempestMesh(ToolContext& ctx, Mesh** tempest_mesh)
         ctx.meshes.push_back(dest);
         // Now let us construct the overlap mesh
         *tempest_mesh = GenerateOverlapWithMeshes(*src, *dest, "" /*ctx.outFilename*/, "exact", false);
-        ctx.meshes.push_back(*tempest_mesh);
         break;
       case ICO:
         *tempest_mesh = GenerateICOMesh(ctx.blockSize, ctx.computeDual, ctx.outFilename);
-        ctx.meshes.push_back(*tempest_mesh);
         break;
       case RLL:
         *tempest_mesh = GenerateRLLMesh(ctx.blockSize*2, ctx.blockSize, 0.0, 360.0, -90.0, 90.0, false, ctx.outFilename);
-        ctx.meshes.push_back(*tempest_mesh);
         break;
       case CS:
       default:
         *tempest_mesh = GenerateCSMesh(ctx.blockSize, false, ctx.outFilename);
-        ctx.meshes.push_back(*tempest_mesh);
         break;
     }
+    ctx.meshes.push_back(*tempest_mesh);
 
     if (!*tempest_mesh) {
       std::cout << "Tempest Mesh is not a complete object; Quitting...";
