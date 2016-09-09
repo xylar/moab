@@ -149,7 +149,7 @@ namespace moab{
     box.bMax *= -1;
 
     /*Communicate to all processors*/
-    MPI_Allreduce(&box, gbox, 6, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
+    MPI_Allreduce( (void*)&box, gbox, 6, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
 
     /*Assemble Global Bounding Box*/
     //Flip the max back

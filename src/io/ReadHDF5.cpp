@@ -2045,7 +2045,7 @@ ErrorCode ReadHDF5::read_all_set_meta()
 
   if (bcast) {
 #ifdef MOAB_HAVE_MPI
-    int ierr = MPI_Bcast(setMeta, num_sets*4, MPI_LONG, 0, comm);
+    int ierr = MPI_Bcast((void*)setMeta, num_sets*4, MPI_LONG, 0, comm);
     if (MPI_SUCCESS != ierr)
       MB_SET_ERR(MB_FAILURE, "ReadHDF5 Failure");
 #else
@@ -3337,7 +3337,7 @@ ErrorCode ReadHDF5::read_var_len_tag(Tag tag_handle,
       {
         ErrorCode rval1;
         if (isHandle) {
-          assert(readSize == sizeof(EntityHandle));
+          assert( (void) (readSize == sizeof(EntityHandle)));
           rval1 = readHDF5->convert_id_to_handle((EntityHandle*)data, count);MB_CHK_ERR(rval1);
         }
         int n = count;

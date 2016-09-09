@@ -37,12 +37,8 @@ using namespace moab;
 const bool debug = false;
 
 MetisPartitioner::MetisPartitioner( Interface *impl, 
-                                    const bool use_coords,
-                                    int argc, 
-                                    char **argv) 
+                                    const bool use_coords)
                                   : PartitionerBase<idx_t>(impl,use_coords), 
-                                    argcArg(argc), 
-                                    argvArg(argv)
 {
 }
 
@@ -613,7 +609,7 @@ ErrorCode MetisPartitioner::write_partition(const idx_t nparts,
     for (i = 0; i < nparts; i++) dum_ids[i] = i;
   
     result = mbImpl->tag_set_data(part_set_tag, partSets, dum_ids); 
-    delete dum_ids;
+    delete [] dum_ids;
 
       // assign entities to the relevant sets
     std::vector<EntityHandle> tmp_part_sets;

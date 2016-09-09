@@ -1218,8 +1218,8 @@ ErrorCode Coupler::get_matching_entities(EntityHandle                           
     }
 
     // Send all buffers to the master proc for consolidation
-    MPI_Gatherv(tuple_buf, tuple_buf_len, MPI_INT,
-                all_tuples_buf, recv_cnts, offsets, MPI_INT, MASTER_PROC,
+    MPI_Gatherv((void*)tuple_buf, tuple_buf_len, MPI_INT,
+                (void*)all_tuples_buf, recv_cnts, offsets, MPI_INT, MASTER_PROC,
                 myPc->proc_config().proc_comm());
     ERRORMPI("Gathering tuple_lists failed.", err);
     free(tuple_buf); // malloc'd in pack_tuples
@@ -1264,7 +1264,7 @@ ErrorCode Coupler::get_matching_entities(EntityHandle                           
     if (rank != MASTER_PROC)
       ctl_buf = (uint*)malloc(ctl_buf_sz * sizeof(uint));
 
-    ierr = MPI_Bcast(ctl_buf, ctl_buf_sz, MPI_INT, MASTER_PROC, myPc->proc_config().proc_comm());
+    ierr = MPI_Bcast((void*)ctl_buf, ctl_buf_sz, MPI_INT, MASTER_PROC, myPc->proc_config().proc_comm());
     ERRORMPI("Broadcasting tuple_list failed.", ierr);
 
     if (rank != MASTER_PROC)
