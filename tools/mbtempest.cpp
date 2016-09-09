@@ -34,14 +34,14 @@
 #include "netcdfcpp.h"
 #include "TempestRemapAPI.h"
 
-enum MeshType { CS=0, RLL=1, ICO=2, OVERLAP=3, OVERLAP_V2=4 };
+enum TempestMeshType { CS=0, RLL=1, ICO=2, OVERLAP=3, OVERLAP_V2=4 };
 
 struct ToolContext {
     int blockSize;
     std::vector<std::string> inFilenames;
     std::vector<Mesh*> meshes;
     std::string outFilename;
-    int meshType;
+    TempestMeshType meshType;
     bool computeDual;
 
     ToolContext() : blockSize(5), outFilename("output.exo"), meshType(CS), computeDual(false)
@@ -70,20 +70,40 @@ struct ToolContext {
 
     void timer_pop()
     {
-      std::cout << "[LOG] Time taken to " << opName << " = " << timer->time_since_birth() - timer_ops << std::endl;
+      std::cout << "\n[LOG] Time taken to " << opName << " = " << timer->time_since_birth() - timer_ops << std::endl;
     }
 
     void ParseCLOptions(int argc, char* argv[]) {
         ProgOptions opts;
+        int imeshType=0;
         std::string expectedFName="output.exo";
 
         opts.addOpt<int>("res,r", "Resolution of the mesh (default=5)", &blockSize);
-        opts.addOpt<int>("type,t", "Type of mesh (default=CS; Choose from [CS=0, RLL=1, ICO=2, OVERLAP=3])", &meshType);
+        opts.addOpt<int>("type,t", "Type of mesh (default=CS; Choose from [CS=0, RLL=1, ICO=2, OVERLAP=3])", &imeshType);
         opts.addOpt<std::string>("file,f", "Output mesh filename (default=output.exo)", &outFilename);
         opts.addOpt<void>("dual,d", "Output the dual of the mesh (generally relevant only for ICO mesh)", &computeDual);
         opts.addOpt<std::string>("load,l", "Input mesh filenames (a source and target mesh)", &expectedFName);
 
         opts.parseCommandLine(argc, argv);
+
+        switch(imeshType) {
+            case 1:
+                meshType = RLL;
+                break;
+            case 2:
+                meshType = ICO;
+                break;
+            case 3:
+                meshType = OVERLAP;
+                break;
+            case 4:
+                meshType = OVERLAP_V2;
+                break;
+            case 0:
+            default:
+                meshType = CS;
+                break;
+        }
 
         if (meshType == OVERLAP || meshType == OVERLAP_V2) {
           opts.getOptAllArgs("load,l", inFilenames);
@@ -197,6 +217,22 @@ int main(int argc, char* argv[])
 
     // Write out our computed intersection file
     rval = mbCore->write_mesh("moab_intersection.h5m",&intxset,1);MB_CHK_ERR(rval);
+
+    ctx.timer_push("compute weights with the Tempest meshes");
+    // Call to generate an offline map with the tempest meshes
+    OfflineMap* weightMap = GenerateOfflineMapWithMeshes(  *ctx.meshes[0], *ctx.meshes[1], *ctx.meshes[2],
+                                                           "", "",     // std::string strInputMeta, std::string strOutputMeta,
+                                                           "fv", "fv", // std::string strInputType, std::string strOutputType,
+                                                           4, 4       // int nPin=4, int nPout=4,
+//                                                           bool fBubble=false, int fMonotoneTypeID=0,
+//                                                           bool fVolumetric=false, bool fNoConservation=false, bool fNoCheck=false,
+//                                                           std::string strVariables="", std::string strOutputMap="",
+//                                                           std::string strInputData="", std::string strOutputData="",
+//                                                           std::string strNColName="", bool fOutputDouble=false,
+//                                                           std::string strPreserveVariables="", bool fPreserveAll=false, double dFillValueOverride=0.0
+                                                          );
+    ctx.timer_pop();
+    weightMap->Write("outWeights.nc");
   }
 
   // Clean up
@@ -392,7 +428,7 @@ moab::ErrorCode ConvertTempestMeshToMOAB(ToolContext& ctx, Mesh* mesh, moab::Int
   return moab::MB_SUCCESS;
 }
 
-moab::ErrorCode ConvertMOABMeshToTempest(ToolContext& , moab::Interface* mb, Mesh* mesh, moab::EntityHandle mesh_set)
+moab::ErrorCode ConvertMOABMeshToTempest(ToolContext& ctx, moab::Interface* mb, Mesh* mesh, moab::EntityHandle mesh_set)
 {
   moab::ErrorCode rval;
 
@@ -432,9 +468,6 @@ moab::ErrorCode ConvertMOABMeshToTempest(ToolContext& , moab::Interface* mb, Mes
     rval = mb->get_adjacencies(&(*ielems), 1, 1, true, face_edges);MB_CHK_ERR(rval);
     face.edges.resize(face_edges.size());
 
-//    std::vector< moab::EntityHandle > connectivity;
-//    rval = mb->get_connectivity(&face_edges[0], face_edges.size(), connectivity, true);MB_CHK_ERR(rval);
-
     for (unsigned iedges=0; iedges < face_edges.size(); ++iedges) {
         Edge& edge = face.edges[iedges];
 
@@ -450,6 +483,11 @@ moab::ErrorCode ConvertMOABMeshToTempest(ToolContext& , moab::Interface* mb, Mes
         edge.node[0] = connect[0];
         edge.node[1] = connect[1];
     }
+  }
+
+  if (ctx.meshType == OVERLAP_V2) {
+      // We need to preserve the source and target FaceID maps so that the offline map can be generated cleanly
+      // vecSourceFaceIx, vecTargetFaceIx
   }
 
   mesh->RemoveZeroEdges();
