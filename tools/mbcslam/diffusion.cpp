@@ -38,7 +38,7 @@ on the sphere; see CSLAM Utils case1
 #include "moab/ParallelComm.hpp"
 
 #include "TestUtil.hpp"
-#include "IntxUtils.hpp"
+#include "moab/IntxUtils.hpp"
 
 const char BRIEF_DESC[] =
     "Simulate a transport problem in a semi-Lagrangian formulation\n";

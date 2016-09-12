@@ -226,7 +226,7 @@ int main(int argc, char* argv[])
 
     ctx.timer_push("compute weights with the Tempest meshes");
     // Call to generate an offline map with the tempest meshes
-    OfflineMap* weightMap = GenerateOfflineMapWithMeshes(  *ctx.meshes[0], *ctx.meshes[1], *ctx.meshes[2],
+    OfflineMap* weightMap = GenerateOfflineMapWithMeshes(  NULL, *ctx.meshes[0], *ctx.meshes[1], *ctx.meshes[2],
                                                            "", "",     // std::string strInputMeta, std::string strOutputMeta,
                                                            "fv", "fv", // std::string strInputType, std::string strOutputType,
                                                            4, 4       // int nPin=4, int nPout=4,

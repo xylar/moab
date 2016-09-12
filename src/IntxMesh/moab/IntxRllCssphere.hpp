@@ -25,11 +25,11 @@ public:
 
   // main method to intersect meshes on a sphere
 
-  int computeIntersectionBetweenRedAndBlue(EntityHandle red, EntityHandle blue,
+  ErrorCode computeIntersectionBetweenRedAndBlue(EntityHandle red, EntityHandle blue,
           double * P, int & nP, double & area, int markb[MAXEDGES], int markr[MAXEDGES],
           int & nsBlue, int & nsRed, bool check_boxes_first=false);
 
-  int findNodes(EntityHandle red, int nsRed, EntityHandle blue, int nsBlue,
+  ErrorCode findNodes(EntityHandle red, int nsRed, EntityHandle blue, int nsBlue,
       double * iP, int nP);
 
   bool is_inside_element(double xyz[3], EntityHandle eh);

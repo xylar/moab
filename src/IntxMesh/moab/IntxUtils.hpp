@@ -18,11 +18,11 @@ int borderPointsOfXinY2(double * X, int nX, double * Y, int nY, double * P, int 
 int SortAndRemoveDoubles2(double * P, int & nP, double epsilon);
 // the marks will show what edges of blue intersect the red
 
-int EdgeIntersections2(double * blue, int nsBlue, double * red, int nsRed,
+ErrorCode EdgeIntersections2(double * blue, int nsBlue, double * red, int nsRed,
     int * markb, int * markr, double * points, int & nPoints);
 
 // special one, for intersection between rll (constant latitude)  and cs quads
-int EdgeIntxRllCs(double * blue, CartVect * bluec, int * blueEdgeType, int nsBlue, double * red, CartVect * redc,
+ErrorCode EdgeIntxRllCs(double * blue, CartVect * bluec, int * blueEdgeType, int nsBlue, double * red, CartVect * redc,
     int nsRed, int * markb, int * markr, int plane, double Radius, double * points, int & nPoints);
 // vec utils related to gnomonic projection on a sphere
 
@@ -41,9 +41,9 @@ int EdgeIntxRllCs(double * blue, CartVect * bluec, int * blueEdgeType, int nsBlu
  */
 void decide_gnomonic_plane(const CartVect & pos, int & oPlane);
 // point on a sphere is projected on one of six planes, decided earlier
-int gnomonic_projection(const CartVect & pos, double R, int plane, double & c1, double & c2);
+ErrorCode gnomonic_projection(const CartVect & pos, double R, int plane, double & c1, double & c2);
 // given the position on plane (one out of 6), find out the position on sphere
-int reverse_gnomonic_projection(const double & c1, const double & c2, double R, int plane,
+ErrorCode reverse_gnomonic_projection(const double & c1, const double & c2, double R, int plane,
     CartVect & pos);
 
 /*

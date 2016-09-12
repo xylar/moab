@@ -18,8 +18,8 @@
 #include <math.h>
 #include "moab/ProgOptions.hpp"
 #include "MBTagConventions.hpp"
-#include "../test/TestUtil.hpp"
-#include "IntxUtils.hpp"
+#include "TestUtil.hpp"
+#include "moab/IntxUtils.hpp"
 
 // for M_PI
 #include <math.h>

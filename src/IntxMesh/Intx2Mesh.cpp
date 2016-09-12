@@ -43,7 +43,8 @@ Intx2Mesh::~Intx2Mesh()
   }
 #endif
 }
-void Intx2Mesh::createTags()
+
+ErrorCode Intx2Mesh::createTags()
 {
   if (redParentTag)
     mb->tag_delete(redParentTag);
@@ -56,19 +57,17 @@ void Intx2Mesh::createTags()
   // maybe the red tag is better to be deleted every time, and recreated;
   // or is it easy to set all values to something again? like 0?
   ErrorCode rval = mb->tag_get_handle("redFlag", 1, MB_TYPE_BIT, RedFlagTag, MB_TAG_CREAT,
-      &def_data_bit);
-  ERRORV(rval, "can't get red flag tag");
+      &def_data_bit);MB_CHK_SET_ERR(rval, "can't get red flag tag");
 
   // assume that the edges are on the red triangles
   Range redElements;
   //Range redEdges;
-  rval = mb->get_entities_by_dimension(mbs2, 2, redElements, false); // so all tri, quad, poly
-  ERRORV(rval, "can't get ents by dimension");
+   // so all tri, quad, poly
+  rval = mb->get_entities_by_dimension(mbs2, 2, redElements, false);MB_CHK_SET_ERR(rval, "can't get ents by dimension");
 
   // create red edges if they do not exist yet; so when they are looked upon, they are found
   // this is the only call that is potentially NlogN, in the whole method
-  rval = mb->get_adjacencies(redElements, 1, true, RedEdges, Interface::UNION);
-  ERRORV(rval, "can't get adjacent red edges");
+  rval = mb->get_adjacencies(redElements, 1, true, RedEdges, Interface::UNION);MB_CHK_SET_ERR(rval, "can't get adjacent red edges");
 
   // now, create a map from each edge to a list of potential new nodes on a red edge
   // this memory has to be cleaned up
@@ -87,18 +86,15 @@ void Intx2Mesh::createTags()
   int defaultInt = 0;
 
   rval = mb->tag_get_handle("RedParent", 1, MB_TYPE_INTEGER, redParentTag,
-      MB_TAG_DENSE | MB_TAG_CREAT, &defaultInt);
-  ERRORV(rval, "can't create positive tag");
+      MB_TAG_DENSE | MB_TAG_CREAT, &defaultInt);MB_CHK_SET_ERR(rval, "can't create positive tag");
 
   rval = mb->tag_get_handle("BlueParent", 1, MB_TYPE_INTEGER, blueParentTag,
-      MB_TAG_DENSE | MB_TAG_CREAT, &defaultInt);
-  ERRORV(rval, "can't create negative tag");
+      MB_TAG_DENSE | MB_TAG_CREAT, &defaultInt);MB_CHK_SET_ERR(rval, "can't create negative tag");
 
   rval = mb->tag_get_handle("Counting", 1, MB_TYPE_INTEGER, countTag,
-        MB_TAG_DENSE | MB_TAG_CREAT, &defaultInt);
-  ERRORV(rval, "can't create Counting tag");
+        MB_TAG_DENSE | MB_TAG_CREAT, &defaultInt);MB_CHK_SET_ERR(rval, "can't create Counting tag");
 
-  return;
+  return MB_SUCCESS;
 }
 
 
@@ -171,8 +167,8 @@ ErrorCode Intx2Mesh::intersect_meshes(EntityHandle mbset1, EntityHandle mbset2,
   createTags(); //
   EntityHandle startBlue=0, startRed=0;
 
-  mb->get_entities_by_dimension(mbs1, 2, rs1);
-  mb->get_entities_by_dimension(mbs2, 2, rs2);
+  rval = mb->get_entities_by_dimension(mbs1, 2, rs1);MB_CHK_ERR(rval);
+  rval = mb->get_entities_by_dimension(mbs2, 2, rs2);MB_CHK_ERR(rval);
   Range rs22=rs2; // a copy of the initial range; we will remove from it elements as we
                  // advance ; rs2 is needed for marking the polygon to the red parent
   while (!rs22.empty())
@@ -181,7 +177,7 @@ ErrorCode Intx2Mesh::intersect_meshes(EntityHandle mbset1, EntityHandle mbset2,
     {
       std::stringstream fff;
       fff << "file0" <<  counting<< ".vtk";
-      mb->write_mesh(fff.str().c_str(), &outputSet, 1);
+      rval = mb->write_mesh(fff.str().c_str(), &outputSet, 1);MB_CHK_ERR(rval);
     }
     for (Range::iterator it = rs1.begin(); it != rs1.end(); ++it)
     {
@@ -221,7 +217,7 @@ ErrorCode Intx2Mesh::intersect_meshes(EntityHandle mbset1, EntityHandle mbset2,
       dbg_1 = 1;*/
     unsigned char used = 1;
     // mark the start red quad as used, so it will not come back again
-    mb->tag_set_data(RedFlagTag, &startRed, 1, &used);
+    rval = mb->tag_set_data(RedFlagTag, &startRed, 1, &used);MB_CHK_ERR(rval);
     while (!redQueue.empty())
     {
       // flags for the side : 0 means a blue cell not found on side
@@ -235,8 +231,7 @@ ErrorCode Intx2Mesh::intersect_meshes(EntityHandle mbset1, EntityHandle mbset2,
       double recoveredArea = 0;
       // get the neighbors of red, and if they are solved already, do not bother with that side of red
       EntityHandle redNeighbors[MAXEDGES];
-      rval = GetOrderedNeighbors(mbs2, currentRed, redNeighbors);
-      ERRORR(rval, "can't get neighbors of current red");
+      rval = GetOrderedNeighbors(mbs2, currentRed, redNeighbors);MB_CHK_SET_ERR(rval,"can't get neighbors of current red");
       if (dbg_1)
       {
         std::cout << "Next: neighbors for current red ";

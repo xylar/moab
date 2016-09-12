@@ -58,13 +58,13 @@ public:
   // so, if you intersect 2 convex polygons with MAXEDGES , you will get a convex polygon
   // with 2*MAXEDGES, at most
   // will also return the number of nodes of red and blue elements
-  virtual int computeIntersectionBetweenRedAndBlue(EntityHandle red,
+  virtual ErrorCode computeIntersectionBetweenRedAndBlue(EntityHandle red,
       EntityHandle blue, double * P, int & nP, double & area,
       int markb[MAXEDGES], int markr[MAXEDGES], int & nsidesBlue,
       int & nsidesRed, bool check_boxes_first=false)=0;
 
   // this is also abstract
-  virtual int findNodes(EntityHandle red, int nsRed, EntityHandle blue, int nsBlue,
+  virtual ErrorCode findNodes(EntityHandle red, int nsRed, EntityHandle blue, int nsBlue,
       double * iP, int nP)=0;
 
   // this is also computing the area of the red cell in plane (gnomonic plane for sphere)
@@ -76,7 +76,8 @@ public:
 
   virtual double setup_red_cell(EntityHandle red, int & nsRed)= 0;
 
-  virtual void createTags();
+  virtual ErrorCode createTags();
+
   ErrorCode GetOrderedNeighbors(EntityHandle set, EntityHandle quad,
       EntityHandle neighbors[MAXEDGES]);
 
@@ -109,8 +110,8 @@ public:
 #ifdef MOAB_HAVE_MPI
   ErrorCode correct_intersection_points_positions();
 #endif
-  void enable_debug()  {dbg_1 = 1;}
-  void disable_debug() {dbg_1 = 0;}
+  // void enable_debug()  {dbg_1 = 1;}
+  // void disable_debug() {dbg_1 = 0;}
 protected: // so it can be accessed in derived classes, InPlane and OnSphere
   Interface * mb;
 
@@ -142,7 +143,7 @@ protected: // so it can be accessed in derived classes, InPlane and OnSphere
   double blueCoords2D[MAXEDGES2]; // these are in plane
 
   std::ofstream mout_1[6]; // some debug files
-  int dbg_1;
+  const int dbg_1;
   // for each red edge, we keep a vector of extra nodes, coming from intersections
   // use the index in RedEdges range, instead of a map, as before
   // std::map<EntityHandle, std::vector<EntityHandle> *> extraNodesMap;

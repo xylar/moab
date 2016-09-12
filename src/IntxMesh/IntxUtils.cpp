@@ -145,7 +145,7 @@ int SortAndRemoveDoubles2(double * P, int & nP, double epsilon_1) {
 
 // the marks will show what edges of blue intersect the red
 
-int EdgeIntersections2(double * blue, int nsBlue, double * red, int nsRed,
+ErrorCode EdgeIntersections2(double * blue, int nsBlue, double * red, int nsRed,
     int * markb, int * markr, double * points, int & nPoints) {
   /* EDGEINTERSECTIONS computes edge intersections of two elements
    [P,n]=EdgeIntersections(X,Y) computes for the two given elements  * red
@@ -196,10 +196,11 @@ int EdgeIntersections2(double * blue, int nsBlue, double * red, int nsRed,
 
     }
   }
-  return 0;
+  return MB_SUCCESS;
 }
+
 // special one, for intersection between rll (constant latitude)  and cs quads
-int EdgeIntxRllCs(double * blue, CartVect * bluec, int * blueEdgeType,
+ErrorCode EdgeIntxRllCs(double * blue, CartVect * bluec, int * blueEdgeType,
     int nsBlue, double * red, CartVect * redc, int nsRed, int * markb,
     int * markr, int plane, double R, double * points, int & nPoints) {
   // if blue edge type is 1, intersect in 3d then project to 2d by gnomonic projection
@@ -269,7 +270,7 @@ int EdgeIntxRllCs(double * blue, CartVect * bluec, int * blueEdgeType,
       }
     }
   }
-  return 0;
+  return MB_SUCCESS;
 }
 
 // vec utils related to gnomonic projection on a sphere
@@ -320,7 +321,7 @@ void decide_gnomonic_plane(const CartVect & pos, int & plane) {
   return;
 }
 // point on a sphere is projected on one of six planes, decided earlier
-int gnomonic_projection(const CartVect & pos, double R, int plane, double & c1,
+ErrorCode gnomonic_projection(const CartVect & pos, double R, int plane, double & c1,
     double & c2) {
   double alfa = 1.; // the new point will be on line alfa*pos
 
@@ -368,13 +369,14 @@ int gnomonic_projection(const CartVect & pos, double R, int plane, double & c1,
     break;
   }
   default:
-    return 1; // error
+    return MB_FAILURE; // error
   }
 
-  return 0; // no error
+  return MB_SUCCESS; // no error
 }
+
 // given the position on plane (one out of 6), find out the position on sphere
-int reverse_gnomonic_projection(const double & c1, const double & c2, double R,
+ErrorCode reverse_gnomonic_projection(const double & c1, const double & c2, double R,
     int plane, CartVect & pos) {
 
   // the new point will be on line beta*pos
@@ -425,10 +427,10 @@ int reverse_gnomonic_projection(const double & c1, const double & c2, double R,
     break;
   }
   default:
-    return 1; // error
+    return MB_FAILURE; // error
   }
 
-  return 0; // no error
+  return MB_SUCCESS; // no error
 }
 
 /*
