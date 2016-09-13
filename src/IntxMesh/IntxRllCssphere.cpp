@@ -255,10 +255,12 @@ ErrorCode IntxRllCssphere::findNodes(EntityHandle red, int nsRed, EntityHandle b
 
         foundIds[i] = redConn[j]; // no new node
         found = 1;
+#ifdef ENABLE_DEBUG
         if (dbg_1)
           std::cout << "  red node j:" << j << " id:"
               << mb->id_from_handle(redConn[j]) << " 2d coords:" << redCoords2D[2 * j] << "  "
               << redCoords2D[2 * j + 1] << " d2: " << d2 << " \n";
+#endif
       }
     }
 
@@ -272,9 +274,11 @@ ErrorCode IntxRllCssphere::findNodes(EntityHandle red, int nsRed, EntityHandle b
 
         foundIds[i] = blueConn[j]; // no new node
         found = 1;
+#ifdef ENABLE_DEBUG
         if (dbg_1)
           std::cout << "  blue node " << j << " "
               << mb->id_from_handle(blueConn[j]) << " d2:" << d2 << " \n";
+#endif
       }
 
     }
@@ -286,10 +290,12 @@ ErrorCode IntxRllCssphere::findNodes(EntityHandle red, int nsRed, EntityHandle b
       {
         int j1 = (j + 1) % nsRed;
         double area = area2D(&redCoords2D[2 * j], &redCoords2D[2 * j1], pp);
+#ifdef ENABLE_DEBUG
         if (dbg_1)
           std::cout << "   edge " << j << ": "
               << mb->id_from_handle(redEdges[j]) << " " << redConn[j] << " "
               << redConn[j1] << "  area : " << area << "\n";
+#endif
         if (fabs(area) < epsilon_1/2)
         {
           // found the edge; now find if there is a point in the list here
@@ -313,8 +319,10 @@ ErrorCode IntxRllCssphere::findNodes(EntityHandle red, int nsRed, EntityHandle b
               {
                 found = 1;
                 foundIds[i] = (*expts)[k];
+#ifdef ENABLE_DEBUG
                 if (dbg_1)
                   std::cout << " found node:" << foundIds[i] << std::endl;
+#endif
               }
             }
             delete[] coords1;
@@ -330,8 +338,10 @@ ErrorCode IntxRllCssphere::findNodes(EntityHandle red, int nsRed, EntityHandle b
             (*expts).push_back(outNode);
             foundIds[i] = outNode;
             found = 1;
+#ifdef ENABLE_DEBUG
             if (dbg_1)
               std::cout << " new node: " << outNode << std::endl;
+#endif
           }
 
         }
@@ -350,12 +360,14 @@ ErrorCode IntxRllCssphere::findNodes(EntityHandle red, int nsRed, EntityHandle b
       return MB_FAILURE;
     }
   }
+#ifdef ENABLE_DEBUG
   if (dbg_1)
   {
     std::cout << " candidate polygon: nP" << nP <<  " plane: " << plane << "\n";
     for (int i1 = 0; i1 < nP; i1++)
             std::cout << iP[2 * i1] << " " << iP[2 * i1 + 1] << " " << foundIds[i1] << "\n";
   }
+#endif
   // first, find out if we have nodes collapsed; shrink them
   // we may have to reduce nP
   // it is possible that some nodes are collapsed after intersection only

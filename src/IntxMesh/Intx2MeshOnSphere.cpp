@@ -253,10 +253,12 @@ ErrorCode Intx2MeshOnSphere::findNodes(EntityHandle red, int nsRed, EntityHandle
 
         foundIds[i] = redConn[j]; // no new node
         found = 1;
+#ifdef ENABLE_DEBUG
         if (dbg_1)
           std::cout << "  red node j:" << j << " id:"
               << mb->id_from_handle(redConn[j]) << " 2d coords:" << redCoords2D[2 * j] << "  "
               << redCoords2D[2 * j + 1] << " d2: " << d2 << " \n";
+#endif
       }
     }
 
@@ -270,9 +272,11 @@ ErrorCode Intx2MeshOnSphere::findNodes(EntityHandle red, int nsRed, EntityHandle
 
         foundIds[i] = blueConn[j]; // no new node
         found = 1;
+#ifdef ENABLE_DEBUG
         if (dbg_1)
           std::cout << "  blue node " << j << " "
               << mb->id_from_handle(blueConn[j]) << " d2:" << d2 << " \n";
+#endif
       }
 
     }
@@ -284,10 +288,12 @@ ErrorCode Intx2MeshOnSphere::findNodes(EntityHandle red, int nsRed, EntityHandle
       {
         int j1 = (j + 1) % nsRed;
         double area = area2D(&redCoords2D[2 * j], &redCoords2D[2 * j1], pp);
+#ifdef ENABLE_DEBUG
         if (dbg_1)
           std::cout << "   edge " << j << ": "
               << mb->id_from_handle(redEdges[j]) << " " << redConn[j] << " "
               << redConn[j1] << "  area : " << area << "\n";
+#endif
         if (fabs(area) < epsilon_1/2)
         {
           // found the edge; now find if there is a point in the list here
@@ -311,8 +317,10 @@ ErrorCode Intx2MeshOnSphere::findNodes(EntityHandle red, int nsRed, EntityHandle
               {
                 found = 1;
                 foundIds[i] = (*expts)[k];
+#ifdef ENABLE_DEBUG
                 if (dbg_1)
                   std::cout << " found node:" << foundIds[i] << std::endl;
+#endif
               }
             }
             delete[] coords1;
@@ -328,8 +336,10 @@ ErrorCode Intx2MeshOnSphere::findNodes(EntityHandle red, int nsRed, EntityHandle
             (*expts).push_back(outNode);
             foundIds[i] = outNode;
             found = 1;
+#ifdef ENABLE_DEBUG
             if (dbg_1)
               std::cout << " new node: " << outNode << std::endl;
+#endif
           }
 
         }
@@ -366,17 +376,17 @@ ErrorCode Intx2MeshOnSphere::findNodes(EntityHandle red, int nsRed, EntityHandle
   if (nP >= 3)
   {
     EntityHandle polyNew;
-    mb->create_element(MBPOLYGON, foundIds, nP, polyNew);
-    mb->add_entities(outSet, &polyNew, 1);
+    ErrorCode rval = mb->create_element(MBPOLYGON, foundIds, nP, polyNew);MB_CHK_ERR(rval);
+    rval = mb->add_entities(outSet, &polyNew, 1);MB_CHK_ERR(rval);
 
     // tag it with the index ids from red and blue sets
     int id = rs1.index(blue); // index starts from 0
-    mb->tag_set_data(blueParentTag, &polyNew, 1, &id);
+    rval = mb->tag_set_data(blueParentTag, &polyNew, 1, &id);MB_CHK_ERR(rval);
     id = rs2.index(red);
-    mb->tag_set_data(redParentTag, &polyNew, 1, &id);
+    rval = mb->tag_set_data(redParentTag, &polyNew, 1, &id);MB_CHK_ERR(rval);
 
     counting++;
-    mb->tag_set_data(countTag, &polyNew, 1, &counting);
+    rval = mb->tag_set_data(countTag, &polyNew, 1, &counting);MB_CHK_ERR(rval);
 
 #ifdef ENABLE_DEBUG
     if (dbg_1)
@@ -394,7 +404,7 @@ ErrorCode Intx2MeshOnSphere::findNodes(EntityHandle red, int nsRed, EntityHandle
 
       std::stringstream fff;
       fff << "file0" <<  counting<< ".vtk";
-         mb->write_mesh(fff.str().c_str(), &outSet, 1);
+      rval = mb->write_mesh(fff.str().c_str(), &outSet, 1);MB_CHK_ERR(rval);
     }
 #endif
 
@@ -411,7 +421,6 @@ bool Intx2MeshOnSphere::is_inside_element(double xyz[3], EntityHandle eh)
   ErrorCode rval = mb->get_connectivity(eh, redConn, num_nodes);MB_CHK_ERR_RET_VAL(rval,false);
 
   int nsRed = num_nodes;
-
   //CartVect coords[4];
   rval = mb->get_coords(redConn, num_nodes, &(redCoords[0][0]));MB_CHK_ERR_RET_VAL(rval,false);
 
@@ -447,16 +456,15 @@ ErrorCode Intx2MeshOnSphere::update_tracer_data(EntityHandle out_set, Tag & tagE
   ErrorCode rval = mb->tag_get_handle(CORRTAGNAME,
                                            1, MB_TYPE_HANDLE, corrTag,
                                            MB_TAG_DENSE, &dum); // it should have been created
-  ERRORR(rval, "can't get correlation tag");
+  MB_CHK_SET_ERR(rval, "can't get correlation tag");
 
   Tag gid;
   rval = mb->tag_get_handle(GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, gid, MB_TAG_DENSE);
-  ERRORR(rval,"can't get global ID tag" );
+  MB_CHK_SET_ERR(rval,"can't get global ID tag" );
 
   // get all polygons out of out_set; then see where are they coming from
   Range polys;
-  rval = mb->get_entities_by_dimension(out_set, 2, polys);
-  ERRORR(rval, "can't get polygons out");
+  rval = mb->get_entities_by_dimension(out_set, 2, polys);MB_CHK_SET_ERR(rval, "can't get polygons out");
 
   // rs2 is the red range, arrival; rs1 is blue, departure;
   // there is a connection between rs1 and rs2, through the corrTag
@@ -467,13 +475,12 @@ ErrorCode Intx2MeshOnSphere::update_tracer_data(EntityHandle out_set, Tag & tagE
 
   // tagElem will have multiple tracers
   int numTracers = 0;
-  rval = mb->tag_get_length(tagElem, numTracers);
-  ERRORR(rval, "can't get number of tracers in simulation");
+  rval = mb->tag_get_length(tagElem, numTracers);MB_CHK_SET_ERR(rval, "can't get number of tracers in simulation");
   if (numTracers < 1)
-    ERRORR(MB_FAILURE, "no tracers data");
+    MB_CHK_SET_ERR(MB_FAILURE, "no tracers data");
+
   std::vector<double>  currentVals(rs2.size()*numTracers);
-  rval = mb->tag_get_data(tagElem, rs2, &currentVals[0]);
-  ERRORR(rval, "can't get existing tracers values");
+  rval = mb->tag_get_data(tagElem, rs2, &currentVals[0]);MB_CHK_SET_ERR(rval, "can't get existing tracers values");
 
   // create new tuple list for tracers to other processors, from remote_cells
 #ifdef MOAB_HAVE_MPI
@@ -509,11 +516,10 @@ ErrorCode Intx2MeshOnSphere::update_tracer_data(EntityHandle out_set, Tag & tagE
   {
     EntityHandle poly=*it;
     int blueIndex, redIndex;
-    rval =  mb->tag_get_data(blueParentTag, &poly, 1, &blueIndex);
-    ERRORR(rval, "can't get blue tag");
+    rval =  mb->tag_get_data(blueParentTag, &poly, 1, &blueIndex);MB_CHK_SET_ERR(rval, "can't get blue tag");
+    
     EntityHandle blue = rs1[blueIndex];
-    rval =  mb->tag_get_data(redParentTag, &poly, 1, &redIndex);
-    ERRORR(rval, "can't get red tag");
+    rval =  mb->tag_get_data(redParentTag, &poly, 1, &redIndex);MB_CHK_SET_ERR(rval, "can't get red tag");
     //EntityHandle red = rs2[redIndex];
     // big assumption here, red and blue are "parallel" ;we should have an index from
     // blue to red (so a deformed blue corresponds to an arrival red)
@@ -528,15 +534,15 @@ ErrorCode Intx2MeshOnSphere::update_tracer_data(EntityHandle out_set, Tag & tagE
     {
 #ifdef MOAB_HAVE_MPI
       if (!remote_cells_with_tracers)
-        ERRORR( MB_FAILURE, "no remote cells, failure\n");
+        MB_CHK_SET_ERR( MB_FAILURE, "no remote cells, failure\n");
       // maybe the element is remote, from another processor
       int global_id_blue;
       rval = mb->tag_get_data(gid, &blue, 1, &global_id_blue);
-      ERRORR(rval, "can't get arrival red for corresponding blue gid");
+      MB_CHK_SET_ERR(rval, "can't get arrival red for corresponding blue gid");
       // find the
       int index_in_remote = remote_cells_with_tracers->find(1, global_id_blue);
       if (index_in_remote==-1)
-        ERRORR( MB_FAILURE, "can't find the global id element in remote cells\n");
+        MB_CHK_SET_ERR( MB_FAILURE, "can't find the global id element in remote cells\n");
       for (int k=0; k<numTracers; k++)
         remote_cells_with_tracers->vr_wr[index_in_remote*numTracers+k] +=
             currentVals[numTracers*redIndex+k]*areap;
@@ -546,13 +552,13 @@ ErrorCode Intx2MeshOnSphere::update_tracer_data(EntityHandle out_set, Tag & tagE
     {
       int arrRedIndex = rs2.index(redArr);
       if (-1 == arrRedIndex)
-        ERRORR(MB_FAILURE, "can't find the red arrival index");
+        MB_CHK_SET_ERR(MB_FAILURE, "can't find the red arrival index");
       for (int k=0; k<numTracers; k++)
         newValues[numTracers*arrRedIndex+k] += currentVals[redIndex*numTracers+k]*areap;
     }
 
     else
-      ERRORR(rval, "can't get arrival red for corresponding ");
+      MB_CHK_SET_ERR(rval, "can't get arrival red for corresponding ");
   }
   // now, send back the remote_cells_with_tracers to the processors they came from, with the updated values for
   // the tracer mass in a cell
@@ -569,7 +575,7 @@ ErrorCode Intx2MeshOnSphere::update_tracer_data(EntityHandle out_set, Tag & tagE
       EntityHandle redCell = remote_cells_with_tracers->vul_rd[j];// entity handle sent back
       int arrRedIndex = rs2.index(redCell);
       if (-1 == arrRedIndex)
-        ERRORR(MB_FAILURE, "can't find the red arrival index");
+        MB_CHK_SET_ERR(MB_FAILURE, "can't find the red arrival index");
       for (int k=0; k<numTracers; k++)
         newValues[arrRedIndex*numTracers+k] += remote_cells_with_tracers->vr_rd[j*numTracers+k];
     }
@@ -583,8 +589,7 @@ ErrorCode Intx2MeshOnSphere::update_tracer_data(EntityHandle out_set, Tag & tagE
   std::vector<double> total_mass_local(numTracers, 0.);
   while (iter != rs2.end())
   {
-    rval = mb->tag_iterate(tagArea, iter, rs2.end(), count, data);
-    ERRORR(rval, "can't tag iterate");
+    rval = mb->tag_iterate(tagArea, iter, rs2.end(), count, data);MB_CHK_SET_ERR(rval, "can't tag iterate");
     double * ptrArea=(double*)data;
     for (int i=0; i<count; i++, ++iter, j++, ptrArea++)
     {
@@ -595,9 +600,7 @@ ErrorCode Intx2MeshOnSphere::update_tracer_data(EntityHandle out_set, Tag & tagE
       }
     }
   }
-  rval = mb->tag_set_data(tagElem, rs2, &newValues[0]);
-  ERRORR(rval, "can't set new values tag");
-
+  rval = mb->tag_set_data(tagElem, rs2, &newValues[0]);MB_CHK_SET_ERR(rval, "can't set new values tag");
 
 #ifdef MOAB_HAVE_MPI
   std::vector<double> total_mass(numTracers,0.);
@@ -626,4 +629,5 @@ ErrorCode Intx2MeshOnSphere::update_tracer_data(EntityHandle out_set, Tag & tagE
 #endif
   return MB_SUCCESS;
 }
+
 } /* namespace moab */

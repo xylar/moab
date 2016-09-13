@@ -23,7 +23,10 @@ Intx2Mesh::Intx2Mesh(Interface * mbimpl): mb(mbimpl),
   mbs1(0), mbs2(0), outSet(0),
   RedFlagTag(0), redParentTag(0), blueParentTag(0), countTag(0),
   redConn(NULL), blueConn(NULL),
-  dbg_1(0), epsilon_1(0.0), epsilon_area(0.0), box_error(0.0),
+#ifdef ENABLE_DEBUG
+  dbg_1(0), 
+#endif
+  epsilon_1(0.0), epsilon_area(0.0), box_error(0.0),
   localRoot(0), my_rank(0)
 #ifdef MOAB_HAVE_MPI
    , parcomm(NULL), remote_cells(NULL), remote_cells_with_tracers(NULL)
@@ -152,12 +155,12 @@ ErrorCode Intx2Mesh::GetOrderedNeighbors(EntityHandle set, EntityHandle cell,
   }
   return MB_SUCCESS;
 }
+
 // main interface; this will do the advancing front trick
 // some are triangles, some are quads, some are polygons ...
 ErrorCode Intx2Mesh::intersect_meshes(EntityHandle mbset1, EntityHandle mbset2,
      EntityHandle & outputSet)
 {
-
   ErrorCode rval;
   mbs1 = mbset1; // set 1 is departure, and it is completely covering the euler set on proc
   mbs2 = mbset2;
@@ -193,8 +196,8 @@ ErrorCode Intx2Mesh::intersect_meshes(EntityHandle mbset1, EntityHandle mbset2,
         int nP = 0;
         int nb[MAXEDGES], nr[MAXEDGES]; // sides 3 or 4? also, check boxes first
         int nsRed, nsBlue;
-        computeIntersectionBetweenRedAndBlue(startRed, startBlue, P, nP, area, nb, nr,
-            nsBlue, nsRed, true);
+        rval = computeIntersectionBetweenRedAndBlue(startRed, startBlue, P, nP, area, nb, nr,
+            nsBlue, nsRed, true);MB_CHK_ERR(rval);
         if (area > 0)
         {
           found = 1;
@@ -232,6 +235,7 @@ ErrorCode Intx2Mesh::intersect_meshes(EntityHandle mbset1, EntityHandle mbset2,
       // get the neighbors of red, and if they are solved already, do not bother with that side of red
       EntityHandle redNeighbors[MAXEDGES];
       rval = GetOrderedNeighbors(mbs2, currentRed, redNeighbors);MB_CHK_SET_ERR(rval,"can't get neighbors of current red");
+#ifdef ENABLE_DEBUG
       if (dbg_1)
       {
         std::cout << "Next: neighbors for current red ";
@@ -244,6 +248,7 @@ ErrorCode Intx2Mesh::intersect_meshes(EntityHandle mbset1, EntityHandle mbset2,
         }
         std::cout << std::endl;
       }
+#endif
       // now get the status of neighbors; if already solved, make them 0, so not to bother anymore on that side of red
       for (int j = 0; j < nsidesRed; j++)
       {
@@ -251,11 +256,12 @@ ErrorCode Intx2Mesh::intersect_meshes(EntityHandle mbset1, EntityHandle mbset2,
         unsigned char status = 1;
         if (redNeigh == 0)
           continue;
-        mb->tag_get_data(RedFlagTag, &redNeigh, 1, &status); // status 0 is unused
+        rval = mb->tag_get_data(RedFlagTag, &redNeigh, 1, &status);MB_CHK_ERR(rval); // status 0 is unused
         if (1==status)
           redNeighbors[j]=0; // so will not look anymore on this side of red
       }
 
+#ifdef ENABLE_DEBUG
       if (dbg_1)
       {
         std::cout << "reset blues: ";
@@ -264,6 +270,7 @@ ErrorCode Intx2Mesh::intersect_meshes(EntityHandle mbset1, EntityHandle mbset2,
           std::cout << mb->id_from_handle(*itr) << " ";
         std::cout << std::endl;
       }
+#endif
       EntityHandle currentBlue = blueQueue.front(); // where do we check for redQueue????
       // red and blue queues are parallel
       blueQueue.pop(); // mark the current red
@@ -292,10 +299,11 @@ ErrorCode Intx2Mesh::intersect_meshes(EntityHandle mbset1, EntityHandle mbset2,
         // nb [j] = 0 means no intersection on the side k for element blue (markers)
         // nb [j] = 1 means that the side j (from j to j+1) of blue poly intersects the
         // red poly.  A potential next poly is the red poly that is adjacent to this side
-        computeIntersectionBetweenRedAndBlue(/* red */currentRed, blueT, P, nP,
-            area, nb, nr, nsidesBlue, nsidesRed);
+        rval = computeIntersectionBetweenRedAndBlue(/* red */currentRed, blueT, P, nP,
+            area, nb, nr, nsidesBlue, nsidesRed);MB_CHK_ERR(rval);
         if (nP > 0)
         {
+#ifdef ENABLE_DEBUG
           if (dbg_1)
           {
             for (int k=0; k<3; k++)
@@ -303,8 +311,9 @@ ErrorCode Intx2Mesh::intersect_meshes(EntityHandle mbset1, EntityHandle mbset2,
               std::cout << " nb, nr: " << k << " " << nb[k] << " " << nr[k] << "\n";
             }
           }
-          // intersection found: output P and original triangles if nP > 2
+#endif
 
+          // intersection found: output P and original triangles if nP > 2
           EntityHandle neighbors[MAXEDGES];
           rval = GetOrderedNeighbors(mbs1, blueT, neighbors);
           if (rval != MB_SUCCESS)
@@ -323,12 +332,14 @@ ErrorCode Intx2Mesh::intersect_meshes(EntityHandle mbset1, EntityHandle mbset2,
               if (toResetBlues.find(neighbor)==toResetBlues.end())
               {
                 localBlue.push(neighbor);
+#ifdef ENABLE_DEBUG
                 if (dbg_1)
                 {
                   std::cout << " local blue elem " << mb->id_from_handle(neighbor)
                       << " for red:" << mb->id_from_handle(currentRed) << "\n";
                   mb->list_entities(&neighbor, 1);
                 }
+#endif
                 toResetBlues.insert(neighbor);
               }
             }
@@ -339,17 +350,20 @@ ErrorCode Intx2Mesh::intersect_meshes(EntityHandle mbset1, EntityHandle mbset2,
             if (nr[nn] > 0 && redNeighbors[nn]>0)
               nextBlue[nn].insert(blueT); // potential blue cell that can intersect the red neighbor nn
           }
-          if (nP > 1) // this will also construct triangles/polygons in the new mesh, if needed
-            findNodes(currentRed, nsidesRed, blueT, nsidesBlue, P, nP);
+          if (nP > 1) { // this will also construct triangles/polygons in the new mesh, if needed
+            rval = findNodes(currentRed, nsidesRed, blueT, nsidesBlue, P, nP);MB_CHK_ERR(rval);
+          }
 
           recoveredArea+=area;
         }
+#ifdef ENABLE_DEBUG
         else if (dbg_1)
         {
           std::cout << " red, blue, do not intersect: "
               << mb->id_from_handle(currentRed) << " "
               << mb->id_from_handle(blueT) << "\n";
         }
+#endif
       } // end while (!localBlue.empty())
       double redRecovery=fabs((recoveredArea-areaRedCell)/areaRedCell); // 0 means everything got recovered
       if ( redRecovery > epsilon_1)
@@ -378,17 +392,19 @@ ErrorCode Intx2Mesh::intersect_meshes(EntityHandle mbset1, EntityHandle mbset2,
           int nr[MAXEDGES] = {0};
 
           int nsidesBlue; ///
-          computeIntersectionBetweenRedAndBlue(/* red */redNeigh, nextB, P, nP,
-                      area, nb, nr, nsidesBlue, nsidesRed2);
+          rval = computeIntersectionBetweenRedAndBlue(/* red */redNeigh, nextB, P, nP,
+                      area, nb, nr, nsidesBlue, nsidesRed2);MB_CHK_ERR(rval);
           if (area>0)
           {
             redQueue.push(redNeigh);
             blueQueue.push(nextB);
+#ifdef ENABLE_DEBUG
             if (dbg_1)
               std::cout << "new polys pushed: blue, red:"
                   << mb->id_from_handle(redNeigh) << " "
                   << mb->id_from_handle(nextB) << std::endl;
-            mb->tag_set_data(RedFlagTag, &redNeigh, 1, &used);
+#endif
+            rval = mb->tag_set_data(RedFlagTag, &redNeigh, 1, &used);MB_CHK_ERR(rval);
             break; // so we are done with this side of red, we have found a proper next seed
           }
         }
@@ -396,22 +412,21 @@ ErrorCode Intx2Mesh::intersect_meshes(EntityHandle mbset1, EntityHandle mbset2,
 
     } // end while (!redQueue.empty())
   }
+#ifdef ENABLE_DEBUG
   if (dbg_1)
   {
     for (int k = 0; k < 6; k++)
       mout_1[k].close();
   }
+#endif
   // before cleaning up , we need to settle the position of the intersection points
   // on the boundary edges
   // this needs to be collective, so we should maybe wait something
 #ifdef MOAB_HAVE_MPI
-  rval = correct_intersection_points_positions();
-  if (rval!=MB_SUCCESS)
-  {
-    std::cout << "can't correct position, Intx2Mesh.cpp \n";
-  }
+  rval = correct_intersection_points_positions();MB_CHK_SET_ERR(rval, "can't correct position, Intx2Mesh.cpp \n");
 #endif
-  clean();
+  
+  this->clean();
   return MB_SUCCESS;
 }
 
@@ -443,6 +458,7 @@ void Intx2Mesh::correct_polygon(EntityHandle * nodes, int & nP)
     int nextIndex = (i+1)%nP;
     if (nodes[i]==nodes[nextIndex])
     {
+#ifdef ENABLE_DEBUG
       // we need to reduce nP, and collapse nodes
       if (dbg_1)
       {
@@ -452,6 +468,7 @@ void Intx2Mesh::correct_polygon(EntityHandle * nodes, int & nP)
         std::cout<<"\n";
         std::cout<<" node " << nodes[i] << " at index " << i << " is duplicated" << "\n";
       }
+#endif
       // this will work even if we start from 1 2 3 1; when i is 3, we find nextIndex is 0, then next thing does nothing
       //  (nP-1 is 3, so k is already >= nP-1); it will result in nodes -> 1, 2, 3
       for (int k=i; k<nP-1; k++)

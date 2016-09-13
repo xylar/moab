@@ -103,13 +103,14 @@ ErrorCode Intx2MeshInPlane::computeIntersectionBetweenRedAndBlue(EntityHandle re
 
   rval = EdgeIntersections2(blueCoords2D, nsBlue, redCoords2D, nsRed, markb,
       markr, P, nP);MB_CHK_ERR(rval);
-
+#ifdef ENABLE_DEBUG
   if (dbg_1) {
     for (int k = 0; k < 3; k++) {
       std::cout << " markb, markr: " << k << " " << markb[k] << " " << markr[k]
           << "\n";
     }
   }
+#endif
 
   int side[MAXEDGES] = { 0 }; // this refers to what side? blue or red?
   int extraPoints = borderPointsOfXinY2(blueCoords2D, nsBlue, redCoords2D,
@@ -235,10 +236,12 @@ ErrorCode Intx2MeshInPlane::findNodes(EntityHandle red, int nsRed, EntityHandle 
 
         foundIds[i] = redConn[j]; // no new node
         found = 1;
+#ifdef ENABLE_DEBUG
         if (dbg_1)
           std::cout << "  red node j:" << j << " id:"
               << mb->id_from_handle(redConn[j]) << " 2d coords:" << redCoords2D[2 * j] << "  "
               << redCoords2D[2 * j + 1] << " d2: " << d2 << " \n";
+#endif
       }
     }
 
@@ -317,8 +320,10 @@ ErrorCode Intx2MeshInPlane::findNodes(EntityHandle red, int nsRed, EntityHandle 
             (*expts).push_back(outNode);
             foundIds[i] = outNode;
             found = 1;
+#ifdef ENABLE_DEBUG
             if (dbg_1)
               std::cout << " new node: " << outNode << std::endl;
+#endif
           }
 
         }

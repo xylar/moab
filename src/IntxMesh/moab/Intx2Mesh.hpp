@@ -110,8 +110,10 @@ public:
 #ifdef MOAB_HAVE_MPI
   ErrorCode correct_intersection_points_positions();
 #endif
-  // void enable_debug()  {dbg_1 = 1;}
-  // void disable_debug() {dbg_1 = 0;}
+#ifdef ENABLE_DEBUG
+  void enable_debug()  {dbg_1 = 1;}
+  void disable_debug() {dbg_1 = 0;}
+#endif
 protected: // so it can be accessed in derived classes, InPlane and OnSphere
   Interface * mb;
 
@@ -142,8 +144,10 @@ protected: // so it can be accessed in derived classes, InPlane and OnSphere
   double redCoords2D[MAXEDGES2]; // these are in plane
   double blueCoords2D[MAXEDGES2]; // these are in plane
 
-  std::ofstream mout_1[6]; // some debug files
+#ifdef ENABLE_DEBUG
   const int dbg_1;
+  std::ofstream mout_1[6]; // some debug files
+#endif
   // for each red edge, we keep a vector of extra nodes, coming from intersections
   // use the index in RedEdges range, instead of a map, as before
   // std::map<EntityHandle, std::vector<EntityHandle> *> extraNodesMap;
