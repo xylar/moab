@@ -27,12 +27,18 @@
 #include "moab/ParallelComm.hpp"
 #include "MBParallelConventions.h"
 #endif
+
+// Intersection includes
 #include "moab/Intx2MeshOnSphere.hpp"
 #include "moab/IntxUtils.hpp"
 
 // Tempest includes
+#ifdef MOAB_HAVE_TEMPESTREMAP
 #include "netcdfcpp.h"
 #include "TempestRemapAPI.h"
+#else
+#error "This tool depends on TempestRemap library. Reconfigure using --with-tempestremap"
+#endif
 
 enum TempestMeshType { CS=0, RLL=1, ICO=2, OVERLAP=3, OVERLAP_V2=4 };
 
@@ -43,8 +49,9 @@ struct ToolContext {
     std::string outFilename;
     TempestMeshType meshType;
     bool computeDual;
+    bool computeWeights;
 
-    ToolContext() : blockSize(5), outFilename("output.exo"), meshType(CS), computeDual(false)
+    ToolContext() : blockSize(5), outFilename("output.exo"), meshType(CS), computeDual(false), computeWeights(false)
     {
       inFilenames.resize(2);
       timer = new moab::CpuTimer();
@@ -81,9 +88,10 @@ struct ToolContext {
         std::string expectedFName="output.exo";
 
         opts.addOpt<int>("res,r", "Resolution of the mesh (default=5)", &blockSize);
-        opts.addOpt<int>("type,t", "Type of mesh (default=CS; Choose from [CS=0, RLL=1, ICO=2, OVERLAP=3])", &imeshType);
+        opts.addOpt<int>("type,t", "Type of mesh (default=CS; Choose from [CS=0, RLL=1, ICO=2, OVERLAP=3, OVERLAP_V2=4])", &imeshType);
         opts.addOpt<std::string>("file,f", "Output mesh filename (default=output.exo)", &outFilename);
         opts.addOpt<void>("dual,d", "Output the dual of the mesh (generally relevant only for ICO mesh)", &computeDual);
+        opts.addOpt<void>("weights,w", "Compute and output the weights using the overlap mesh (generally relevant only for OVERLAP mesh)", &computeDual);
         opts.addOpt<std::string>("load,l", "Input mesh filenames (a source and target mesh)", &expectedFName);
 
         opts.parseCommandLine(argc, argv);
@@ -149,7 +157,7 @@ int main(int argc, char* argv[])
   if (NULL == mbCore) return 1;
 
   // First convert the loaded Tempest mesh to MOAB
-#if 1
+#if 0
   {
       moab::EntityHandle mesh_set;
       ctx.timer_push("convert Tempest mesh to MOAB");
@@ -169,7 +177,6 @@ int main(int argc, char* argv[])
 
   if (ctx.meshType == OVERLAP_V2)
   { // Compute intersections with MOAB
-    moab::Intx2MeshOnSphere *mbintx = new moab::Intx2MeshOnSphere(mbCore);
 
     // For the overlap method, choose between: "fuzzy", "exact" or "mixed"
     moab::EntityHandle red, blue, tempestintx, intxset;
@@ -197,6 +204,7 @@ int main(int argc, char* argv[])
 
     const double epsrel=1.e-8;
     const double radius=1.0;
+    moab::Intx2MeshOnSphere *mbintx = new moab::Intx2MeshOnSphere(mbCore);
     mbintx->SetErrorTolerance(epsrel);
     mbintx->SetRadius(radius);
 
@@ -205,6 +213,7 @@ int main(int argc, char* argv[])
     rval = mbintx->intersect_meshes(red, blue, intxset);MB_CHK_SET_ERR(rval, "Can't compute the intersection of meshes on the sphere");
     ctx.timer_pop();
 
+    delete mbintx;
     {
         moab::Range intxelems;
         rval = mbCore->get_entities_by_dimension(intxset, 2, intxelems);MB_CHK_ERR(rval);
@@ -219,27 +228,33 @@ int main(int argc, char* argv[])
         std::cout << " relative difference areas " << fabs(area_method1-area_method2)/area_method1 << "\n";
         std::cout << " relative error " << fabs(area_method1-initial_area)/area_method1 << "\n";
     }
-    delete mbintx;
 
     // Write out our computed intersection file
     rval = mbCore->write_mesh("moab_intersection.h5m",&intxset,1);MB_CHK_ERR(rval);
 
-    ctx.timer_push("compute weights with the Tempest meshes");
-    // Call to generate an offline map with the tempest meshes
-    OfflineMap* weightMap = GenerateOfflineMapWithMeshes(  NULL, *ctx.meshes[0], *ctx.meshes[1], *ctx.meshes[2],
-                                                           "", "",     // std::string strInputMeta, std::string strOutputMeta,
-                                                           "fv", "fv", // std::string strInputType, std::string strOutputType,
-                                                           4, 4       // int nPin=4, int nPout=4,
-//                                                           bool fBubble=false, int fMonotoneTypeID=0,
-//                                                           bool fVolumetric=false, bool fNoConservation=false, bool fNoCheck=false,
-//                                                           std::string strVariables="", std::string strOutputMap="",
-//                                                           std::string strInputData="", std::string strOutputData="",
-//                                                           std::string strNColName="", bool fOutputDouble=false,
-//                                                           std::string strPreserveVariables="", bool fPreserveAll=false, double dFillValueOverride=0.0
-                                                          );
-    ctx.timer_pop();
-    weightMap->Write("outWeights.nc");
-    delete weightMap;
+    if (ctx.computeWeights) {
+      // Now let us re-convert the MOAB mesh back to Tempest representation
+      Mesh overlap_tempest_mesh_copy;
+      rval = ConvertMOABMeshToTempest(ctx, mbCore, &overlap_tempest_mesh_copy, intxset);MB_CHK_ERR(rval);
+
+      ctx.timer_push("compute weights with the Tempest meshes");
+      // Call to generate an offline map with the tempest meshes
+      // OfflineMap* weightMap = GenerateOfflineMapWithMeshes(  NULL, *ctx.meshes[0], *ctx.meshes[1], *ctx.meshes[2],
+      OfflineMap* weightMap = GenerateOfflineMapWithMeshes(  NULL, *ctx.meshes[0], *ctx.meshes[1], overlap_tempest_mesh_copy,
+                                                            "", "",     // std::string strInputMeta, std::string strOutputMeta,
+                                                            "fv", "fv", // std::string strInputType, std::string strOutputType,
+                                                            4, 4       // int nPin=4, int nPout=4,
+  //                                                           bool fBubble=false, int fMonotoneTypeID=0,
+  //                                                           bool fVolumetric=false, bool fNoConservation=false, bool fNoCheck=false,
+  //                                                           std::string strVariables="", std::string strOutputMap="",
+  //                                                           std::string strInputData="", std::string strOutputData="",
+  //                                                           std::string strNColName="", bool fOutputDouble=false,
+  //                                                           std::string strPreserveVariables="", bool fPreserveAll=false, double dFillValueOverride=0.0
+                                                            );
+      ctx.timer_pop();
+      weightMap->Write("outWeights.nc");
+      delete weightMap;
+    }
   }
 
   // Clean up
@@ -262,23 +277,23 @@ moab::ErrorCode LoadTempestMesh(std::string inputFilename, Mesh** tempest_mesh, 
 
         try {
             // Load input mesh
-            std::cout << "\nLoading mesh ...\n";
+            std::cout << "Loading mesh ...\n";
             mesh = new Mesh(inputFilename);
             mesh->RemoveZeroEdges();
-            std::cout << "\n----------------\n";
+            std::cout << "----------------\n";
 
             // Validate mesh
             if (meshValidate) {
-                std::cout << "\nValidating mesh ...\n";
+                std::cout << "Validating mesh ...\n";
                 mesh->Validate();
-                std::cout << "\n-------------------\n";
+                std::cout << "-------------------\n";
             }
 
             // Construct the edge map on the mesh
             if (constructEdgeMap) {
-                std::cout << "\nConstructing edge map on mesh ...\n";
+                std::cout << "Constructing edge map on mesh ...\n";
                 mesh->ConstructEdgeMap();
-                std::cout << "\n---------------------------------\n";
+                std::cout << "---------------------------------\n";
             }
 
         } catch(Exception & e) {
