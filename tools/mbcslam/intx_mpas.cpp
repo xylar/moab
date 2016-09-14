@@ -5,7 +5,9 @@
  */
 
 // copy from case1 test
-#ifdef HAVE_ZOLTAN
+#include "moab/MOABConfig.h"
+
+#ifdef MOAB_HAVE_ZOLTAN
 
 #include <iostream>
 #include <sstream>
@@ -14,15 +16,16 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>  // for M_PI
+#include <time.h>
 #include "moab/Core.hpp"
 #include "moab/Interface.hpp"
-#include "Intx2MeshOnSphere.hpp"
+#include "moab/Intx2MeshOnSphere.hpp"
 #include "moab/ProgOptions.hpp"
 #include "MBTagConventions.hpp"
 #include "moab/ParallelComm.hpp"
 
-#include "IntxUtils.hpp"
 #include "TestUtil.hpp"
+#include "moab/IntxUtils.hpp"
 
 using namespace moab;
 // some input data
