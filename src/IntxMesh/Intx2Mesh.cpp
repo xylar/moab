@@ -883,7 +883,7 @@ ErrorCode Intx2Mesh::create_departure_mesh_3rd_alg(EntityHandle & lagr_set,
   Tag corrTag;
   ErrorCode rval = mb->tag_get_handle(CORRTAGNAME,
                                            1, MB_TYPE_HANDLE, corrTag,
-                                           MB_TAG_DENSE, &dum);
+                                           MB_TAG_DENSE|MB_TAG_CREAT, &dum);
   //start copy from 2nd alg
   // compute the bounding box on each proc
   parcomm = ParallelComm::get_pcomm(mb, 0);

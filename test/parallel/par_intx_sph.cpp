@@ -236,14 +236,11 @@ void test_intx_mpas()
   rval = mb.load_file(example.c_str(), &euler_set, opts.c_str());
 
   ParallelComm* pcomm = ParallelComm::get_pcomm(&mb, 0);
-  CHECK_ERR(rval);
 
-  rval = pcomm->check_all_shared_handles();
-  CHECK_ERR(rval);
+  rval = pcomm->check_all_shared_handles();CHECK_ERR(rval);
 
   // everybody will get a DP tag, including the non owned entities; so exchange tags is not required for LOC (here)
-  rval = manufacture_lagrange_mesh_on_sphere(&mb, euler_set);
-  CHECK_ERR(rval);
+  rval = manufacture_lagrange_mesh_on_sphere(&mb, euler_set);CHECK_ERR(rval);
 
   int rank = pcomm->proc_config().proc_rank();
 
