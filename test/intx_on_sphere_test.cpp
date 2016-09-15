@@ -30,6 +30,7 @@ int main(int argc, char* argv[])
   MPI_Comm_size(MPI_COMM_WORLD, &size);
 #endif
 
+  bool output_fraction = true;
   // check command line arg second grid is red, arrival, first mesh is blue, departure
   // will will keep the
   const char *filename_mesh1 = STRINGIFY(MESHDIR) "/mbcslam/lagrangeHomme.vtk";
@@ -38,17 +39,18 @@ int main(int argc, char* argv[])
   double epsrel=1.e-8;
   double boxeps=0.1;
   const char *newFile = "intx.h5m";
-  if (argc == 6)
+  if (argc == 7)
   {
     filename_mesh1 = argv[1];
     filename_mesh2 = argv[2];
     R = atof(argv[3]);
     epsrel = atof(argv[4]);
     newFile = argv[5];
+    output_fraction = (bool) atoi(argv[6]); // could be 0 or 1
   }
   else
   {
-    printf("Usage: %s <mesh_filename1> <mesh_filename2> <radius> <epsrel> <newFile>\n",
+    printf("Usage: mpiexec -np <N> %s <mesh_filename1> <mesh_filename2> <radius> <epsrel> <newFile> <output_fraction> \n",
         argv[0]);
     if (argc != 1)
       return 1;
@@ -115,11 +117,51 @@ int main(int argc, char* argv[])
     elapsed = MPI_Wtime() - elapsed;
     if (0==rank)
       std::cout << "\nTime to communicate the mesh = " << elapsed << std::endl;
+    // area fraction of the covering set that needed to be communicated from other processors
+    // number of elements in the covering set communicated, compared to total number of elements in the covering set
+    if (output_fraction)
+    {
+      EntityHandle comm_set; // set with elements communicated from other tasks
+      rval = mb->create_meshset(MESHSET_SET, comm_set); MB_CHK_ERR(rval);
+      // see how much more different is compared to sf1
+      rval = mb->unite_meshset(comm_set, covering_set) ;  MB_CHK_ERR(rval); // will have to subtract from covering set, initial set
+      // subtract
+      rval = mb->subtract_meshset(comm_set, sf1); MB_CHK_ERR(rval);
+      // compute fractions
+      double area_cov_set = area_on_sphere(mb, covering_set, R);
+      assert(area_cov_set>0);
+      double comm_area = area_on_sphere(mb, comm_set, R);
+      // more important is actually the number of elements communicated
+      int num_cov_cells, num_comm_cells;
+      rval = mb->get_number_entities_by_dimension(covering_set, 2, num_cov_cells); MB_CHK_ERR(rval);
+      rval = mb->get_number_entities_by_dimension(comm_set, 2, num_comm_cells); MB_CHK_ERR(rval);
+      double fraction_area = comm_area/area_cov_set;
+      double fraction_num_cells = (double) num_comm_cells/num_cov_cells; // determine min, max, average of these fractions
+
+      double max_fraction_area, max_fraction_num_cells, min_fraction_area, min_fraction_num_cells;
+      double average_fraction_area, average_fraction_num_cells;
+      MPI_Reduce(&fraction_area, &max_fraction_area, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+      MPI_Reduce(&fraction_num_cells, &max_fraction_num_cells, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+      MPI_Reduce(&fraction_area, &min_fraction_area, 1, MPI_DOUBLE, MPI_MIN, 0, MPI_COMM_WORLD);
+      MPI_Reduce(&fraction_num_cells, &min_fraction_num_cells, 1, MPI_DOUBLE, MPI_MIN, 0, MPI_COMM_WORLD);
+      MPI_Reduce(&fraction_area, &average_fraction_area, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+      MPI_Reduce(&fraction_num_cells, &average_fraction_num_cells, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+      average_fraction_area /= size;
+      average_fraction_num_cells /= size;
+      if (rank==0)
+      {
+        std::cout << " fraction area:      min: " << min_fraction_area << " max: " << max_fraction_area << " average :" << average_fraction_area << " \n";
+        std::cout << " fraction num cells: min: " << min_fraction_num_cells << " max: " << max_fraction_num_cells << " average: " <<average_fraction_num_cells <<  " \n";
+      }
+
+    }
     std::stringstream outf, cof;
     outf<<"first_mesh" << rank<<".h5m";
     rval = mb->write_file(outf.str().c_str(), 0, 0, &sf1, 1); MB_CHK_ERR(rval);
     cof<<"covering_mesh" << rank<<".h5m";
     rval = mb->write_file(cof.str().c_str(), 0, 0, &covering_set, 1); MB_CHK_ERR(rval);
+
+
 #endif
   }
   else

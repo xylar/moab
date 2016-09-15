@@ -1161,6 +1161,10 @@ ErrorCode Intx2Mesh::create_departure_mesh_3rd_alg(EntityHandle & lagr_set,
   return MB_SUCCESS;
   //end copy
 }
+// this will use the bounding boxes for the (euler)/ fix  mesh that are already established
+// will distribute the mesh to other procs, so that on each task, the covering set covers the local bounding box
+// this means it will cover the second (local) mesh set;
+// So the covering set will cover completely the second local mesh set (in intersection)
 ErrorCode Intx2Mesh::construct_covering_set(EntityHandle & initial_distributed_set, EntityHandle & covering_set)
 {
 
@@ -1175,27 +1179,27 @@ ErrorCode Intx2Mesh::construct_covering_set(EntityHandle & initial_distributed_s
   ErrorCode rval = mb->tag_get_handle(GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, gid,
       MB_TAG_DENSE);  MB_CHK_SET_ERR(rval, "can't get global ID tag");
 
-  Range secondMeshCells;
-  rval = mb->get_entities_by_dimension(initial_distributed_set, 2, secondMeshCells);  MB_CHK_SET_ERR(rval, "can't get ents by dimension from second mesh set");
+  Range meshCells;
+  rval = mb->get_entities_by_dimension(initial_distributed_set, 2, meshCells);  MB_CHK_SET_ERR(rval, "can't get cells by dimension from mesh set");
 
-  // get all second mesh verts
-  Range second_mesh_verts;
-  rval = mb->get_connectivity(secondMeshCells, second_mesh_verts);  MB_CHK_SET_ERR(rval, "can't get second mesh vertices");
-  int num_second_mesh_verts = (int) second_mesh_verts.size();
+  // get all mesh verts
+  Range mesh_verts;
+  rval = mb->get_connectivity(meshCells, mesh_verts);  MB_CHK_SET_ERR(rval, "can't get  mesh vertices");
+  int num_mesh_verts = (int) mesh_verts.size();
 
-  // now see the second mesh points positions; to what boxes should we send them?
-  std::vector<double> coords_second_mesh(3 * num_second_mesh_verts);
-  rval = mb->get_coords(second_mesh_verts, &coords_second_mesh[0]);  MB_CHK_SET_ERR(rval, "can't get second mesh points position");
+  // now see the mesh points positions; to what boxes should we send them?
+  std::vector<double> coords_mesh(3 * num_mesh_verts);
+  rval = mb->get_coords(mesh_verts, &coords_mesh[0]);  MB_CHK_SET_ERR(rval, "can't get mesh points position");
 
-  std::vector<int> gids(num_second_mesh_verts);
-  rval = mb->tag_get_data(gid, second_mesh_verts, &gids[0]);  MB_CHK_SET_ERR(rval, "can't get local vertices gids");
+  std::vector<int> gids(num_mesh_verts);
+  rval = mb->tag_get_data(gid, mesh_verts, &gids[0]);  MB_CHK_SET_ERR(rval, "can't get vertices gids");
 
   // ranges to send to each processor; will hold vertices and elements (quads/ polygons)
-  // will look if the box of the second mesh cell covers box of first mesh on proc (with tolerances)
+  // will look if the box of the mesh cell covers bounding box(es) (within tolerances)
   std::map<int, Range> Rto;
   int numprocs = parcomm->proc_config().proc_size();
 
-  for (Range::iterator eit = secondMeshCells.begin(); eit != secondMeshCells.end(); ++eit)
+  for (Range::iterator eit = meshCells.begin(); eit != meshCells.end(); ++eit)
   {
     EntityHandle q = *eit;
     const EntityHandle * conn4;
@@ -1207,9 +1211,9 @@ ErrorCode Intx2Mesh::construct_covering_set(EntityHandle & initial_distributed_s
     for (int i = 0; i < num_nodes; i++)
     {
       EntityHandle v = conn4[i];
-      int index = second_mesh_verts.index(v);
+      int index = mesh_verts.index(v);
       assert(-1!=index);
-      CartVect dp(&coords_second_mesh[3 * index]); // uses constructor for CartVect that takes a pointer to double
+      CartVect dp(&coords_mesh[3 * index]); // uses constructor for CartVect that takes a pointer to double
       for (int j = 0; j < 3; j++)
       {
         if (qbmin[j] > dp[j])
@@ -1281,14 +1285,14 @@ ErrorCode Intx2Mesh::construct_covering_set(EntityHandle & initial_distributed_s
     for (Range::iterator it = V.begin(); it != V.end(); ++it)
     {
       EntityHandle v = *it;
-      int index = second_mesh_verts.index(v);//
+      int index = mesh_verts.index(v);//
       assert(-1!=index);
       int n = TLv.get_n(); // current size of tuple list
       TLv.vi_wr[2 * n] = to_proc; // send to processor
       TLv.vi_wr[2 * n + 1] = gids[index]; // global id needs index in the second_mesh_verts range
-      TLv.vr_wr[3 * n] = coords_second_mesh[3 * index]; // departure position, of the node local_verts[i]
-      TLv.vr_wr[3 * n + 1] = coords_second_mesh[3 * index + 1];
-      TLv.vr_wr[3 * n + 2] = coords_second_mesh[3 * index + 2];
+      TLv.vr_wr[3 * n] = coords_mesh[3 * index]; // departure position, of the node local_verts[i]
+      TLv.vr_wr[3 * n + 1] = coords_mesh[3 * index + 1];
+      TLv.vr_wr[3 * n + 2] = coords_mesh[3 * index + 2];
       TLv.inc_n(); // increment tuple list size
     }
     // also, prep the 2d cells for sending ...
@@ -1309,7 +1313,7 @@ ErrorCode Intx2Mesh::construct_covering_set(EntityHandle & initial_distributed_s
       for (int i = 0; i < num_nodes; i++)
       {
         EntityHandle v = conn4[i];
-        int index = second_mesh_verts.index(v);
+        int index = mesh_verts.index(v);
         assert(-1!=index);
         TLq.vi_wr[sizeTuple * n + 2 + i] = gids[index];
       }
@@ -1338,10 +1342,9 @@ ErrorCode Intx2Mesh::construct_covering_set(EntityHandle & initial_distributed_s
   // this is an inverse map from gid to vertex handle, which is local here, we do not want to duplicate vertices
   // their identifier is the global ID!! it must be unique per mesh ! (I mean, second mesh); gid gor first mesh is not needed here
   int k=0;
-  for (Range::iterator vit=second_mesh_verts.begin(); vit!=second_mesh_verts.end(); ++vit, k++)
+  for (Range::iterator vit=mesh_verts.begin(); vit!=mesh_verts.end(); ++vit, k++)
   {
-    globalID_to_vertex_handle[gids[k]] = *vit; // a little bit of overkill
-    // we do know that the global ids between euler and lagr verts are parallel
+    globalID_to_vertex_handle[gids[k]] = *vit;
   }
   /*std::map<int, EntityHandle> globalID_to_eh;*/ // do we need this one?
   globalID_to_eh.clear();  // we do not really need it, but we keep it for debugging mostly

@@ -48,6 +48,15 @@ public:
   Intx2Mesh(Interface * mbimpl);
   virtual ~Intx2Mesh();
 
+  /*
+   * computes intersection between 2 sets;
+   * set 2 (mbs2) should be completely covered by set mbs1, as all elements
+   * from set 2 will be decomposed in polygons ; an area verification is done, and
+   * will signal elements from set 2 that are not "recovered"
+   *
+   * the resulting polygons are inserted in output set; total area from output set should be
+   * equal to total area of elements in set 2 (check that!)
+   */
   ErrorCode intersect_meshes(EntityHandle mbs1, EntityHandle mbs2,
        EntityHandle & outputSet);
 
@@ -106,10 +115,13 @@ public:
 
   ErrorCode create_departure_mesh_3rd_alg(EntityHandle & lagr_set, EntityHandle & covering_set);
 
-  /* in this method, used in parallel, each cell from second mesh need to be sent to the
-   * tasks whose first mesh bounding boxes intersects bounding box of the cell
-   * the covering_set is output,  will cover the first mesh from the task;
-   * Some of the cells will be sent to multiple processors; we keep track of them using the global id
+  /* in this method, used in parallel, each cell from first mesh need to be sent to the
+   * tasks whose second mesh bounding boxes intersects bounding box of the cell
+   * this method assumes that the bounding boxes for the second mesh were computed already in a previous method
+   * (called build_processor_euler_boxes)
+   *
+   * the covering_set is output,  will cover the second mesh (set) from the task;
+   * Some of the cells in the first mesh will be sent to multiple processors; we keep track of them using the global id
    * of the  vertices and global ids of the cells (we do not want to create multiple vertices with the
    * same ids). The global id of the cells are needed just for debugging, the cells cannot come from 2 different
    * tasks, but the vertices can
@@ -117,9 +129,9 @@ public:
    * Right now, we use crystal router, but an improvement might be to use direct communication (send_entities)
    * on parallel comm
    *
-   * param initial_distributed_set (IN) : the initial distribution of the second mesh
+   * param initial_distributed_set (IN) : the initial distribution of the first mesh (set)
    *
-   * param (IN/OUT) : the covering set in second mesh , which completely covers the first mesh
+   * param (IN/OUT) : the covering set in first mesh , which completely covers the second mesh set
   */
   ErrorCode construct_covering_set(EntityHandle & initial_distributed_set, EntityHandle & covering_set);
 
@@ -191,8 +203,6 @@ protected: // so it can be accessed in derived classes, InPlane and OnSphere
 #endif
   int max_edges; // maximum number of edges in the euler set
   int counting;
-
-
 
 };
 
