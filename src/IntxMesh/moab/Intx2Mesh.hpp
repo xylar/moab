@@ -29,10 +29,12 @@
 namespace moab {
 
 #define ERRORR(rval, str) \
-    if (MB_SUCCESS != rval) {std::cout << str << "\n"; return rval;}
+    if (MB_SUCCESS != rval) \
+           {std::cout << str << "\n"; return rval;}
 
 #define ERRORV(rval, str) \
-    if (MB_SUCCESS != rval) {std::cout << str << "\n"; return ;}
+    if (MB_SUCCESS != rval) \
+           {std::cout << str << "\n"; return ;}
 
 #ifdef MOAB_HAVE_MPI
 // forward declarations
@@ -104,6 +106,23 @@ public:
 
   ErrorCode create_departure_mesh_3rd_alg(EntityHandle & lagr_set, EntityHandle & covering_set);
 
+  /* in this method, used in parallel, each cell from second mesh need to be sent to the
+   * tasks whose first mesh bounding boxes intersects bounding box of the cell
+   * the covering_set is output,  will cover the first mesh from the task;
+   * Some of the cells will be sent to multiple processors; we keep track of them using the global id
+   * of the  vertices and global ids of the cells (we do not want to create multiple vertices with the
+   * same ids). The global id of the cells are needed just for debugging, the cells cannot come from 2 different
+   * tasks, but the vertices can
+   *
+   * Right now, we use crystal router, but an improvement might be to use direct communication (send_entities)
+   * on parallel comm
+   *
+   * param initial_distributed_set (IN) : the initial distribution of the second mesh
+   *
+   * param (IN/OUT) : the covering set in second mesh , which completely covers the first mesh
+  */
+  ErrorCode construct_covering_set(EntityHandle & initial_distributed_set, EntityHandle & covering_set);
+
   ErrorCode build_processor_euler_boxes(EntityHandle euler_set, Range & local_verts);
 
   void correct_polygon(EntityHandle * foundIds, int & nP);
@@ -161,7 +180,7 @@ protected: // so it can be accessed in derived classes, InPlane and OnSphere
   double box_error;
   /* \brief Local root of the kdtree */
   EntityHandle localRoot;
-  Range localEnts;// this range is for local elements of interest, euler cells
+  Range localEnts;// this range is for local elements of interest, euler cells, or "first mesh"
   unsigned int my_rank;
 
 #ifdef MOAB_HAVE_MPI
