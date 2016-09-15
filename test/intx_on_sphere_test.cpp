@@ -109,17 +109,24 @@ int main(int argc, char* argv[])
   EntityHandle covering_set;
   if (size>1)
   {
+#ifdef MOAB_HAVE_MPI
+    double elapsed = MPI_Wtime();
     rval = worker.construct_covering_set(sf1, covering_set); MB_CHK_ERR(rval);// lots of communication if mesh is distributed very differently
+    elapsed = MPI_Wtime() - elapsed;
+    if (0==rank)
+      std::cout << "\nTime to communicate the mesh = " << elapsed << std::endl;
     std::stringstream outf, cof;
     outf<<"first_mesh" << rank<<".h5m";
     rval = mb->write_file(outf.str().c_str(), 0, 0, &sf1, 1); MB_CHK_ERR(rval);
     cof<<"covering_mesh" << rank<<".h5m";
     rval = mb->write_file(cof.str().c_str(), 0, 0, &covering_set, 1); MB_CHK_ERR(rval);
+#endif
   }
   else
     covering_set = sf1;
 
-  std::cout << "Computing intersections ..\n";
+  if (0==rank)
+    std::cout << "Computing intersections ..\n";
 #ifdef MOAB_HAVE_MPI
   double elapsed = MPI_Wtime();
 #endif

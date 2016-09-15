@@ -1395,8 +1395,7 @@ ErrorCode Intx2Mesh::construct_covering_set(EntityHandle & initial_distributed_s
     {
       int vgid = TLq.vi_rd[sizeTuple * i + 2 + j]; // vertex global ID
       if (vgid == 0)
-        MB_CHK_SET_ERR(MB_FAILURE, "can't have global id 0 for a vertex. check your mesh ");
-        //new_conn[j] = 0; // this is a blatant error ; get out while we can
+        new_conn[j] = 0; // this can actually happen for polygon mesh (when we have less number of vertices than max_edges)
       else
       {
         assert(globalID_to_vertex_handle.find(vgid)!=globalID_to_vertex_handle.end());
