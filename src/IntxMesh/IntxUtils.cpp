@@ -788,12 +788,17 @@ double area_on_sphere(Interface * mb, EntityHandle set, double R) {
     rval = mb->get_connectivity(eh, verts, num_nodes);
     if (MB_SUCCESS != rval)
       return -1;
-    std::vector<double> coords(3 * num_nodes);
+    int nsides = num_nodes;
+    // account for possible padded polygons
+    while (verts[nsides - 2] == verts[nsides - 1] && nsides > 3)
+      nsides--;
+
+    std::vector<double> coords(3 * nsides);
     // get coordinates
-    rval = mb->get_coords(verts, num_nodes, &coords[0]);
+    rval = mb->get_coords(verts, nsides, &coords[0]);
     if (MB_SUCCESS != rval)
       return -1;
-    total_area += area_spherical_polygon(&coords[0], num_nodes, R);
+    total_area += area_spherical_polygon(&coords[0], nsides, R);
   }
   return total_area;
 }
