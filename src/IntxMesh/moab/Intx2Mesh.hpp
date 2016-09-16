@@ -89,8 +89,7 @@ public:
 
   virtual ErrorCode createTags();
 
-  ErrorCode GetOrderedNeighbors(EntityHandle set, EntityHandle quad,
-      EntityHandle neighbors[MAXEDGES]);
+  ErrorCode DetermineOrderedNeighbors(EntityHandle inputSet);
 
   void SetErrorTolerance(double eps) { epsilon_1=eps; epsilon_area = eps*eps/2;}
 
@@ -165,6 +164,8 @@ protected: // so it can be accessed in derived classes, InPlane and OnSphere
   Tag redParentTag;
   Tag blueParentTag;
   Tag countTag;
+
+  Tag neighTag; // will store neighbors for navigating easily in advancing front
 
   //EntityType type; // this will be tri, quad or MBPOLYGON...
 

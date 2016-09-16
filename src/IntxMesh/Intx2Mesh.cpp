@@ -21,7 +21,7 @@ namespace moab {
 
 Intx2Mesh::Intx2Mesh(Interface * mbimpl): mb(mbimpl),
   mbs1(0), mbs2(0), outSet(0),
-  RedFlagTag(0), redParentTag(0), blueParentTag(0), countTag(0),
+  RedFlagTag(0), redParentTag(0), blueParentTag(0), countTag(0), neighTag(0),
   redConn(NULL), blueConn(NULL),
 #ifdef ENABLE_DEBUG
   dbg_1(0), 
@@ -97,61 +97,75 @@ ErrorCode Intx2Mesh::createTags()
   rval = mb->tag_get_handle("Counting", 1, MB_TYPE_INTEGER, countTag,
         MB_TAG_DENSE | MB_TAG_CREAT, &defaultInt);MB_CHK_SET_ERR(rval, "can't create Counting tag");
 
+  // create entity tags that store the neighbors for each cell in its set;
+  // store data for GetOrderedNeighbors; replace it completely
+  int num_neigh = MAXEDGES; // we could reduce this, but now just try to see if it makes a difference
+  EntityHandle zeroh[MAXEDGES] = {0};
+  rval = mb->tag_get_handle("__neighbors", num_neigh, MB_TYPE_HANDLE, neighTag,
+      MB_TAG_DENSE | MB_TAG_CREAT, (void*)zeroh );MB_CHK_SET_ERR(rval, "can't create neighbors tag");
+  // for each cell in set 1, determine its neigh in set 1 (could be null too)
+  // for each cell in set 2, determine its neigh in set 2 (if on boundary, could be 0)
+  rval = DetermineOrderedNeighbors(mbs1); MB_CHK_SET_ERR(rval, "can't determine neighbors for set 1");
+  rval = DetermineOrderedNeighbors(mbs2); MB_CHK_SET_ERR(rval, "can't determine neighbors for set 2");
   return MB_SUCCESS;
 }
 
-
-// specify also desired set; we are interested only in neighbors in the set!
-// we should always get manifold mesh, each edge is adjacent to 2 cell
-// maybe we should check that first, just in case
-ErrorCode Intx2Mesh::GetOrderedNeighbors(EntityHandle set, EntityHandle cell,
-    EntityHandle neighbors[MAXEDGES])
+ErrorCode Intx2Mesh::DetermineOrderedNeighbors(EntityHandle inputSet)
 {
-  int nnodes = 3;
-  // will get the nnodes ordered neighbors;
-  // first cell is for nodes 0, 1, second to 1, 2, third to 2, 3, last to nnodes-1,
-  const EntityHandle * conn4;
-  ErrorCode rval = mb->get_connectivity(cell, conn4, nnodes);
-  int nsides = nnodes;
-  // account for possible padded polygons
-  while (conn4[nsides-2]==conn4[nsides-1] && nsides>3)
-    nsides--;
-  ERRORR(rval, "can't get connectivity on an element");
-  for (int i = 0; i < nsides; i++)
+  Range cells;
+  ErrorCode rval = mb->get_entities_by_dimension(inputSet, 2, cells); MB_CHK_SET_ERR(rval, "can't get cells in set");
+  for (Range::iterator cit=cells.begin(); cit!=cells.end(); cit++)
   {
-    EntityHandle v[2];
-    v[0] = conn4[i];
-    v[1] = conn4[(i + 1) % nsides];
-    // get quads adjacent to vertices
-    std::vector<EntityHandle> cells;
-    std::vector<EntityHandle> cellsInSet;
-    rval = mb->get_adjacencies(v, 2, 2, false, cells, Interface::INTERSECT);
-    ERRORR(rval, "can't get adjacencies on 2 nodes");
-    size_t siz = cells.size();
-    for (size_t j = 0; j < siz; j++)
-      if (mb->contains_entities(set, &(cells[j]), 1))
-        cellsInSet.push_back(cells[j]);
-    siz = cellsInSet.size();
+    EntityHandle cell = *cit;
+    EntityHandle neighbors[MAXEDGES] = {0};
+    int nnodes = 3;
+    // will get the nnodes ordered neighbors;
+    // first cell is for nodes 0, 1, second to 1, 2, third to 2, 3, last to nnodes-1,
+    const EntityHandle * conn4;
+    rval = mb->get_connectivity(cell, conn4, nnodes); MB_CHK_SET_ERR(rval, "can't get connectivity of a cell");
+    int nsides = nnodes;
+    // account for possible padded polygons
+    while (conn4[nsides-2]==conn4[nsides-1] && nsides>3)
+      nsides--;
 
-    if (siz > 2)
+    for (int i = 0; i < nsides; i++)
     {
-      std::cout << "non manifold mesh, error"
-          << mb->list_entities(&(cellsInSet[0]), cellsInSet.size()) << "\n";
-      return MB_FAILURE; // non-manifold
+      EntityHandle v[2];
+      v[0] = conn4[i];
+      v[1] = conn4[(i + 1) % nsides];
+      // get quads adjacent to vertices
+      std::vector<EntityHandle> adjcells;
+      std::vector<EntityHandle> cellsInSet;
+      rval = mb->get_adjacencies(v, 2, 2, false, adjcells, Interface::INTERSECT); MB_CHK_SET_ERR(rval, "can't adjacency to 2 verts");
+      size_t siz = adjcells.size();
+      for (size_t j = 0; j < siz; j++)
+        if (mb->contains_entities(inputSet, &(adjcells[j]), 1))
+          cellsInSet.push_back(adjcells[j]);
+      siz = cellsInSet.size();
+
+      if (siz > 2)
+      {
+        std::cout << "non manifold mesh, error"
+            << mb->list_entities(&(cellsInSet[0]), cellsInSet.size()) << "\n";
+        MB_CHK_SET_ERR(MB_FAILURE, "non-manifold input mesh set");// non-manifold
+      }
+      if (siz == 1)
+      {
+        // it must be the border,
+        neighbors[i] = 0; // we are guaranteed that ids are !=0; this is marking a border
+        // borders do not appear for a sphere in serial, but they do appear for
+        // parallel processing anyway
+        continue;
+      }
+      // here siz ==2, it is either the first or second
+      if (cell == cellsInSet[0])
+        neighbors[i] = cellsInSet[1];
+      else
+        neighbors[i] = cellsInSet[0];
     }
-    if (siz == 1)
-    {
-      // it must be the border,
-      neighbors[i] = 0; // we are guaranteed that ids are !=0; this is marking a border
-      // borders do not appear for a sphere in serial, but they do appear for
-      // parallel processing anyway
-      continue;
-    }
-    // here siz ==2, it is either the first or second
-    if (cell == cellsInSet[0])
-      neighbors[i] = cellsInSet[1];
-    else
-      neighbors[i] = cellsInSet[0];
+    // now simply set the neighbors tag
+    rval = mb->tag_set_data(neighTag, &cell, 1, neighbors); MB_CHK_SET_ERR(rval, "can't set neigh tag");
+
   }
   return MB_SUCCESS;
 }
@@ -233,8 +247,8 @@ ErrorCode Intx2Mesh::intersect_meshes(EntityHandle mbset1, EntityHandle mbset2,
       double areaRedCell = setup_red_cell(currentRed, nsidesRed); // this is the area in the gnomonic plane
       double recoveredArea = 0;
       // get the neighbors of red, and if they are solved already, do not bother with that side of red
-      EntityHandle redNeighbors[MAXEDGES];
-      rval = GetOrderedNeighbors(mbs2, currentRed, redNeighbors);MB_CHK_SET_ERR(rval,"can't get neighbors of current red");
+      EntityHandle redNeighbors[MAXEDGES]= {0};
+      rval = mb->tag_get_data(neighTag, &currentRed, 1, redNeighbors); MB_CHK_SET_ERR(rval, "can't get neighbors of current red");
 #ifdef ENABLE_DEBUG
       if (dbg_1)
       {
@@ -314,8 +328,8 @@ ErrorCode Intx2Mesh::intersect_meshes(EntityHandle mbset1, EntityHandle mbset2,
 #endif
 
           // intersection found: output P and original triangles if nP > 2
-          EntityHandle neighbors[MAXEDGES];
-          rval = GetOrderedNeighbors(mbs1, blueT, neighbors);
+          EntityHandle neighbors[MAXEDGES]={0};
+          rval = mb->tag_get_data(neighTag, &blueT, 1, neighbors);
           if (rval != MB_SUCCESS)
           {
             std::cout << " can't get the neighbors for blue element "
