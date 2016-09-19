@@ -192,9 +192,7 @@ ErrorCode Intx2Mesh::intersect_meshes(EntityHandle mbset1, EntityHandle mbset2,
   {
     if (rs22.size()<rs2.size())
     {
-      std::stringstream fff;
-      fff << "file0" <<  counting<< ".vtk";
-      rval = mb->write_mesh(fff.str().c_str(), &outputSet, 1);MB_CHK_ERR(rval);
+      std::cout<< " possible not connected arrival mesh; my_rank: " << my_rank << " counting: " << counting <<"\n";
     }
     for (Range::iterator it = rs1.begin(); it != rs1.end(); ++it)
     {
