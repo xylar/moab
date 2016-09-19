@@ -8949,15 +8949,13 @@ ErrorCode ParallelComm::get_remote_handles(EntityHandle *local_vec, EntityHandle
           // Now get the number of nodes on this (now local) edge
           int nverts;
           UNPACK_INT(buff->buff_ptr, nverts);
-          assert(nverts==(int)intx_nodes.size());
-          // Get the positions communicated
           std::vector<double> pos_from_owner;
           pos_from_owner.resize(3*nverts);
           UNPACK_DBLS(buff->buff_ptr, &pos_from_owner[0], 3*nverts);
-          std::vector<double> current_positions(3*nverts);
-          result = mbImpl->get_coords(&intx_nodes[0], nverts, &current_positions[0]);MB_CHK_SET_ERR(result, "Failed to get current positions");
+          std::vector<double> current_positions(3*intx_nodes.size());
+          result = mbImpl->get_coords(&intx_nodes[0], intx_nodes.size(), &current_positions[0]);MB_CHK_SET_ERR(result, "Failed to get current positions");
           // Now, look at what we have in current pos, compare to pos from owner, and reset
-          for (int k = 0; k < nverts; k++) {
+          for (int k = 0;  k < (int)intx_nodes.size(); k++) {
             double * pk = &current_positions[3*k];
             // Take the current pos k, and settle among the ones from owner:
             bool found = false;
@@ -8972,7 +8970,9 @@ ErrorCode ParallelComm::get_remote_handles(EntityHandle *local_vec, EntityHandle
               }
             }
             if (!found) {
+#ifndef  NDEBUG
               std::cout << " pk:" << pk[0] << " " << pk[1] << " " << pk[2] << " not found \n";
+#endif
               result = MB_FAILURE;
             }
           }
