@@ -31,6 +31,7 @@ int main(int argc, char* argv[])
 #endif
 
   bool output_fraction = true;
+  bool write_files_rank = false;
   // check command line arg second grid is red, arrival, first mesh is blue, departure
   // will will keep the
   const char *filename_mesh1 = STRINGIFY(MESHDIR) "/mbcslam/lagrangeHomme.vtk";
@@ -39,18 +40,19 @@ int main(int argc, char* argv[])
   double epsrel=1.e-8;
   double boxeps=0.1;
   const char *newFile = "intx.h5m";
-  if (argc == 7)
+  if (argc == 8)
   {
     filename_mesh1 = argv[1];
     filename_mesh2 = argv[2];
     R = atof(argv[3]);
     epsrel = atof(argv[4]);
     newFile = argv[5];
-    output_fraction = (bool) atoi(argv[6]); // could be 0 or 1
+    output_fraction = (bool) atoi(argv[6]); // could be 0 or 1, default true
+    write_files_rank = (bool) atoi(argv[7]); // could be 0 or 1, false or true (default false)
   }
   else
   {
-    printf("Usage: mpiexec -np <N> %s <mesh_filename1> <mesh_filename2> <radius> <epsrel> <newFile> <output_fraction> \n",
+    printf("Usage: mpiexec -np <N> %s <mesh_filename1> <mesh_filename2> <radius> <epsrel> <newFile> <output_fraction (bool)> <write_files (bool)> \n",
         argv[0]);
     if (argc != 1)
       return 1;
@@ -104,9 +106,12 @@ int main(int argc, char* argv[])
   {
     Range local_verts;
     rval = worker.build_processor_euler_boxes(sf2, local_verts); MB_CHK_ERR(rval);// output also the local_verts
-    std::stringstream outf;
-    outf<<"second_mesh" << rank<<".h5m";
-    rval = mb->write_file(outf.str().c_str(), 0, 0, &sf2, 1); MB_CHK_ERR(rval);
+    if (write_files_rank)
+    {
+      std::stringstream outf;
+      outf<<"second_mesh" << rank<<".h5m";
+      rval = mb->write_file(outf.str().c_str(), 0, 0, &sf2, 1); MB_CHK_ERR(rval);
+    }
   }
   EntityHandle covering_set;
   if (size>1)
@@ -155,11 +160,14 @@ int main(int argc, char* argv[])
       }
 
     }
-    std::stringstream outf, cof;
-    outf<<"first_mesh" << rank<<".h5m";
-    rval = mb->write_file(outf.str().c_str(), 0, 0, &sf1, 1); MB_CHK_ERR(rval);
-    cof<<"covering_mesh" << rank<<".h5m";
-    rval = mb->write_file(cof.str().c_str(), 0, 0, &covering_set, 1); MB_CHK_ERR(rval);
+    if (write_files_rank)
+    {
+      std::stringstream outf, cof;
+      outf<<"first_mesh" << rank<<".h5m";
+      rval = mb->write_file(outf.str().c_str(), 0, 0, &sf1, 1); MB_CHK_ERR(rval);
+      cof<<"covering_mesh" << rank<<".h5m";
+      rval = mb->write_file(cof.str().c_str(), 0, 0, &covering_set, 1); MB_CHK_ERR(rval);
+    }
 
 
 #endif
@@ -191,11 +199,14 @@ int main(int argc, char* argv[])
   //std::cout << " relative difference areas " << fabs(area_method1-area_method2)/area_method1 << "\n";
   //std::cout << " relative error " << fabs(area_method1-initial_area)/area_method1 << "\n";
 
-  std::stringstream outf;
-  outf<<"intersect" << rank<<".h5m";
-  rval = mb->write_file(outf.str().c_str(), 0, 0, &outputSet, 1);
+  if (write_files_rank)
+  {
+    std::stringstream outf;
+    outf<<"intersect" << rank<<".h5m";
+    rval = mb->write_file(outf.str().c_str(), 0, 0, &outputSet, 1);
+  }
   double intx_area = area_on_sphere(mb, outputSet, R);
-  double arrival_area = area_on_sphere(mb, sf1, R) ;
+  double arrival_area = area_on_sphere(mb, sf2, R) ;
   std::cout<< "On rank : " << rank << " arrival area: " << arrival_area<<
       "  intersection area:" << intx_area << " rel error: " << fabs((intx_area-arrival_area)/arrival_area) << "\n";
 

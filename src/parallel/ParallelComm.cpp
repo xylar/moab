@@ -8977,7 +8977,7 @@ ErrorCode ParallelComm::get_remote_handles(EntityHandle *local_vec, EntityHandle
             }
           }
           // After we are done resetting, we can set the new positions of nodes:
-          result = mbImpl->set_coords(&intx_nodes[0], nverts, &current_positions[0]);MB_CHK_SET_ERR(result, "Failed to set new current positions");
+          result = mbImpl->set_coords(&intx_nodes[0], (int)intx_nodes.size(), &current_positions[0]);MB_CHK_SET_ERR(result, "Failed to set new current positions");
         }
       }
     }
