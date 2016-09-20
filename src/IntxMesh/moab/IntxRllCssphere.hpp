@@ -32,8 +32,6 @@ public:
   ErrorCode findNodes(EntityHandle red, int nsRed, EntityHandle blue, int nsBlue,
       double * iP, int nP);
 
-  bool is_inside_element(double xyz[3], EntityHandle eh);
-
 private:
   double R; // radius of the sphere
   int plane; // current gnomonic plane, will still be used for projection

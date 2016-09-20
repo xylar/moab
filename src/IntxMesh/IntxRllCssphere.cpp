@@ -219,23 +219,18 @@ ErrorCode IntxRllCssphere::findNodes(EntityHandle red, int nsRed, EntityHandle b
 
   // get the edges for the red triangle; the extra points will be on those edges, saved as
   // lists (unordered)
-  std::vector<EntityHandle> redEdges(nsRed);//
-  int i = 0;
-  for (i = 0; i < nsRed; i++)
-  {
-    EntityHandle v[2] = { redConn[i], redConn[(i + 1) % nsRed] };// this is fine even for padded polygons
-    std::vector<EntityHandle> adj_entities;
-    ErrorCode rval = mb->get_adjacencies(v, 2, 1, false, adj_entities,
-        Interface::INTERSECT);
-    if (rval != MB_SUCCESS || adj_entities.size() < 1)
-      return rval; // get out , big error
-    redEdges[i] = adj_entities[0]; // should be only one edge between 2 nodes
-  }
+
+  // first get the list of edges adjacent to the red cell
+  // use the neighRedEdgeTag
+  EntityHandle adjRedEdges[MAXEDGES];
+  ErrorCode rval = mb->tag_get_data(neighRedEdgeTag, &red, 1, &(adjRedEdges[0])); MB_CHK_SET_ERR(rval, "can't get edge red tag");
+  // we know that we have only nsRed edges here; [nsRed, MAXEDGES) are ignored, but it is small potatoes
+
   // these will be in the new mesh, mbOut
   // some of them will be handles to the initial vertices from blue or red meshes (lagr or euler)
 
   EntityHandle * foundIds = new EntityHandle[nP];
-  for (i = 0; i < nP; i++)
+  for (int i = 0; i < nP; i++)
   {
     double * pp = &iP[2 * i]; // iP+2*i
     // project the point back on the sphere
@@ -293,14 +288,14 @@ ErrorCode IntxRllCssphere::findNodes(EntityHandle red, int nsRed, EntityHandle b
 #ifdef ENABLE_DEBUG
         if (dbg_1)
           std::cout << "   edge " << j << ": "
-              << mb->id_from_handle(redEdges[j]) << " " << redConn[j] << " "
+              << mb->id_from_handle(adjRedEdges[j]) << " " << redConn[j] << " "
               << redConn[j1] << "  area : " << area << "\n";
 #endif
         if (fabs(area) < epsilon_1/2)
         {
           // found the edge; now find if there is a point in the list here
           //std::vector<EntityHandle> * expts = extraNodesMap[redEdges[j]];
-          int indx = RedEdges.index(redEdges[j]);
+          int indx = RedEdges.index(adjRedEdges[j]);
           std::vector<EntityHandle> * expts = extraNodesVec[indx];
           // if the points pp is between extra points, then just give that id
           // if not, create a new point, (check the id)
@@ -415,46 +410,5 @@ ErrorCode IntxRllCssphere::findNodes(EntityHandle red, int nsRed, EntityHandle b
   foundIds = NULL;
   return MB_SUCCESS;
 }
-
-bool IntxRllCssphere::is_inside_element(double xyz[3], EntityHandle eh)
-{
-  int num_nodes;
-  ErrorCode rval = mb->get_connectivity(eh, redConn, num_nodes);
-
-  if (MB_SUCCESS != rval)
-    return false;
-  int nsRed = num_nodes;
-
-  //CartVect coords[4];
-  rval = mb->get_coords(redConn, num_nodes, &(redCoords[0][0]));
-  if (MB_SUCCESS != rval)
-    return 1;
-  CartVect center(0.,0.,0.);
-  for (int k=0; k<num_nodes; k++)
-      center += redCoords[k];
-  center = 1./num_nodes*center;
-  decide_gnomonic_plane(center, plane);// output the plane
-  for (int j = 0; j < nsRed; j++)
-  {
-    // populate coords in the plane for decision making
-    // they should be oriented correctly, positively
-    int rc = gnomonic_projection(redCoords[j],  R, plane, redCoords2D[2 * j],
-        redCoords2D[2 * j + 1]);
-    if (rc != 0)
-      return false;
-  }
-  double pt[2];
-  CartVect pos(xyz);
-  int rc=gnomonic_projection(pos, R, plane, pt[0], pt[1]);
-  if (rc != 0)
-    return false;
-
-  // now, is the projected point inside the red quad?
-  // Intx utils
-  if (point_in_interior_of_convex_polygon (redCoords2D, nsRed, pt))
-    return true;
-  return false;
-}
-
 
 } /* namespace moab */

@@ -21,7 +21,7 @@ namespace moab {
 
 Intx2Mesh::Intx2Mesh(Interface * mbimpl): mb(mbimpl),
   mbs1(0), mbs2(0), outSet(0),
-  RedFlagTag(0), redParentTag(0), blueParentTag(0), countTag(0), neighTag(0),
+  RedFlagTag(0), redParentTag(0), blueParentTag(0), countTag(0), neighTag(0), neighRedEdgeTag(0),
   redConn(NULL), blueConn(NULL),
 #ifdef ENABLE_DEBUG
   dbg_1(0), 
@@ -76,14 +76,11 @@ ErrorCode Intx2Mesh::createTags()
   // this memory has to be cleaned up
   // change it to a vector, and use the index in range of red edges
   int indx = 0;
-  extraNodesVec.reserve(RedEdges.size());
-  for (Range::iterator eit = RedEdges.begin(); eit != RedEdges.end();
-      ++eit, indx++)
+  extraNodesVec.resize(RedEdges.size());
+  for (Range::iterator eit = RedEdges.begin(); eit != RedEdges.end(); ++eit, indx++)
   {
-    //EntityHandle edge = *eit;
-    //extraNodesMap[edge] = new std::vector<EntityHandle>;
     std::vector<EntityHandle> * nv = new std::vector<EntityHandle>;
-    extraNodesVec.push_back(nv);
+    extraNodesVec[indx]=nv;
   }
 
   int defaultInt = 0;
@@ -99,7 +96,11 @@ ErrorCode Intx2Mesh::createTags()
 
   // create entity tags that store the neighbors for each cell in its set;
   // store data for GetOrderedNeighbors; replace it completely
-  int num_neigh = MAXEDGES; // we could reduce this, but now just try to see if it makes a difference
+  int num_neigh = MAXEDGES; // we can reduce this, if the max_edges was already established for both
+   // sets of meshes; we should actually keep max_edges and __neighbors tags separate for blue and red mesh
+  // it is similar to maxEdges dimension from an MPAS file; there it is usually 10, but it is a waste for
+  // regular CVT meshes, on which it is maximum 6. So on a variable like vertices on cell, or edges on cell,
+  // last 4  positions are not used at all in an array like this verticesOnCell(nCells, maxEdges)
   EntityHandle zeroh[MAXEDGES] = {0};
   rval = mb->tag_get_handle("__neighbors", num_neigh, MB_TYPE_HANDLE, neighTag,
       MB_TAG_DENSE | MB_TAG_CREAT, (void*)zeroh );MB_CHK_SET_ERR(rval, "can't create neighbors tag");
@@ -107,6 +108,34 @@ ErrorCode Intx2Mesh::createTags()
   // for each cell in set 2, determine its neigh in set 2 (if on boundary, could be 0)
   rval = DetermineOrderedNeighbors(mbs1); MB_CHK_SET_ERR(rval, "can't determine neighbors for set 1");
   rval = DetermineOrderedNeighbors(mbs2); MB_CHK_SET_ERR(rval, "can't determine neighbors for set 2");
+
+  // for red cells, save a dense tag with the bordering edges, so we do not have to search for them each time
+  // edges were for sure created before (redEdges)
+  rval = mb->tag_get_handle("__redEdgeNeighbors", num_neigh, MB_TYPE_HANDLE, neighRedEdgeTag,
+      MB_TAG_DENSE | MB_TAG_CREAT, (void*)zeroh );MB_CHK_SET_ERR(rval, "can't create red edge neighbors tag");
+  for (Range::iterator rit=redElements.begin(); rit!=redElements.end(); rit++ )
+  {
+    EntityHandle redCell= *rit;
+    int num_nodes=0;
+    rval = mb->get_connectivity(redCell, redConn, num_nodes); MB_CHK_SET_ERR(rval, "can't get  red conn");
+    // account for padded polygons
+    while ( redConn[num_nodes-2]==redConn[num_nodes-1] && num_nodes>3)
+      num_nodes--;
+
+    int i = 0;
+    for (i = 0; i < num_nodes; i++)
+    {
+      EntityHandle v[2] = { redConn[i], redConn[(i + 1) % num_nodes] };// this is fine even for padded polygons
+      std::vector<EntityHandle> adj_entities;
+      rval = mb->get_adjacencies(v, 2, 1, false, adj_entities,
+          Interface::INTERSECT);
+      if (rval != MB_SUCCESS || adj_entities.size() < 1)
+        return rval; // get out , big error
+      zeroh[i] = adj_entities[0]; // should be only one edge between 2 nodes
+    }
+    // now set the value of the tag
+    rval = mb->tag_set_data(neighRedEdgeTag, &redCell, 1, &(zeroh[0])); MB_CHK_SET_ERR(rval, "can't set edge red tag");
+  }
   return MB_SUCCESS;
 }
 
@@ -133,10 +162,12 @@ ErrorCode Intx2Mesh::DetermineOrderedNeighbors(EntityHandle inputSet)
       EntityHandle v[2];
       v[0] = conn4[i];
       v[1] = conn4[(i + 1) % nsides];
-      // get quads adjacent to vertices
+      // get all cells adjacent to these 2 vertices on the edge
       std::vector<EntityHandle> adjcells;
       std::vector<EntityHandle> cellsInSet;
       rval = mb->get_adjacencies(v, 2, 2, false, adjcells, Interface::INTERSECT); MB_CHK_SET_ERR(rval, "can't adjacency to 2 verts");
+      // now look for the cells contained in the input set;
+      // the input set should be a correct mesh, not overlapping cells, and manifold
       size_t siz = adjcells.size();
       for (size_t j = 0; j < siz; j++)
         if (mb->contains_entities(inputSet, &(adjcells[j]), 1))
@@ -151,7 +182,7 @@ ErrorCode Intx2Mesh::DetermineOrderedNeighbors(EntityHandle inputSet)
       }
       if (siz == 1)
       {
-        // it must be the border,
+        // it must be the border of the input mesh;
         neighbors[i] = 0; // we are guaranteed that ids are !=0; this is marking a border
         // borders do not appear for a sphere in serial, but they do appear for
         // parallel processing anyway
@@ -163,7 +194,8 @@ ErrorCode Intx2Mesh::DetermineOrderedNeighbors(EntityHandle inputSet)
       else
         neighbors[i] = cellsInSet[0];
     }
-    // now simply set the neighbors tag
+    // now simply set the neighbors tag; the last few positions will not be used, but for simplicity will keep
+    // them all (MAXEDGES)
     rval = mb->tag_set_data(neighTag, &cell, 1, neighbors); MB_CHK_SET_ERR(rval, "can't set neigh tag");
 
   }
@@ -194,13 +226,13 @@ ErrorCode Intx2Mesh::intersect_meshes(EntityHandle mbset1, EntityHandle mbset2,
     {
       std::cout<< " possible not connected arrival mesh; my_rank: " << my_rank << " counting: " << counting <<"\n";
     }
-    for (Range::iterator it = rs1.begin(); it != rs1.end(); ++it)
+    for (Range::iterator it = rs22.begin(); it != rs22.end(); ++it)
     {
-      startBlue = *it;
+      startRed = *it;
       int found = 0;
-      for (Range::iterator it2 = rs22.begin(); it2 != rs22.end() && !found; ++it2)
+      for (Range::iterator it2 = rs1.begin(); it2 != rs1.end() && !found; ++it2)
       {
-        startRed = *it2;
+        startBlue = *it2;
         double area = 0;
         // if area is > 0 , we have intersections
         double P[10*MAXEDGES]; // max 8 intx points + 8 more in the polygon
@@ -283,10 +315,12 @@ ErrorCode Intx2Mesh::intersect_meshes(EntityHandle mbset1, EntityHandle mbset2,
         std::cout << std::endl;
       }
 #endif
-      EntityHandle currentBlue = blueQueue.front(); // where do we check for redQueue????
-      // red and blue queues are parallel
-      blueQueue.pop(); // mark the current red
-      //redFlag[currentRed] = 1; //
+      EntityHandle currentBlue = blueQueue.front();
+      // red and blue queues are parallel; for clarity we should have kept in the queue pairs
+      // of entity handle std::pair<EntityHandle, EntityHandle>; so just one queue, with pairs;
+      //  at every moment, the queue contains pairs of cells that intersect, and they form the
+      //  "advancing front"
+      blueQueue.pop();
       toResetBlues.clear(); // empty the range of used blues, will have to be set unused again,
       // at the end of red element processing
       toResetBlues.insert(currentBlue);
@@ -295,6 +329,8 @@ ErrorCode Intx2Mesh::intersect_meshes(EntityHandle mbset1, EntityHandle mbset2,
       localBlue.push(currentBlue);
       int countingStart = counting;
 
+      // will advance-front search in the neighborhood of red cell, until we finish processing all
+      //   possible blue cells; localBlue queue will contain all possible blue cells that cover the current red cell
       while (!localBlue.empty())
       {
         //
@@ -308,9 +344,9 @@ ErrorCode Intx2Mesh::intersect_meshes(EntityHandle mbset1, EntityHandle mbset2,
         int nsidesBlue; ///
         // area is in 2d, points are in 3d (on a sphere), back-projected, or in a plane
         // intersection points could include the vertices of initial elements
-        // nb [j] = 0 means no intersection on the side k for element blue (markers)
+        // nb [j] = 0 means no intersection on the side j for element blue (markers)
         // nb [j] = 1 means that the side j (from j to j+1) of blue poly intersects the
-        // red poly.  A potential next poly is the red poly that is adjacent to this side
+        // red poly.  A potential next poly in the red queue is the red poly that is adjacent to this side
         rval = computeIntersectionBetweenRedAndBlue(/* red */currentRed, blueT, P, nP,
             area, nb, nr, nsidesBlue, nsidesRed);MB_CHK_ERR(rval);
         if (nP > 0)

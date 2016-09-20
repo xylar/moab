@@ -98,8 +98,6 @@ public:
   // clean some memory allocated
   void clean();
 
-  // this will depend on the problem and element type; return true if on the border edge too
-  virtual bool is_inside_element(double xyz[3], EntityHandle eh) = 0;
   void set_box_error(double berror)
    {box_error = berror;}
 
@@ -130,7 +128,7 @@ public:
    *
    * param initial_distributed_set (IN) : the initial distribution of the first mesh (set)
    *
-   * param (IN/OUT) : the covering set in first mesh , which completely covers the second mesh set
+   * param (OUT) : the covering set in first mesh , which completely covers the second mesh set
   */
   ErrorCode construct_covering_set(EntityHandle & initial_distributed_set, EntityHandle & covering_set);
 
@@ -166,6 +164,7 @@ protected: // so it can be accessed in derived classes, InPlane and OnSphere
   Tag countTag;
 
   Tag neighTag; // will store neighbors for navigating easily in advancing front
+  Tag neighRedEdgeTag; // will store edge borders for each red cell
 
   //EntityType type; // this will be tri, quad or MBPOLYGON...
 
@@ -181,9 +180,11 @@ protected: // so it can be accessed in derived classes, InPlane and OnSphere
   std::ofstream mout_1[6]; // some debug files
 #endif
   // for each red edge, we keep a vector of extra nodes, coming from intersections
-  // use the index in RedEdges range, instead of a map, as before
-  // std::map<EntityHandle, std::vector<EntityHandle> *> extraNodesMap;
+  // use the index in RedEdges range
   // so the extra nodes on each red edge are kept track of
+  // only entity handles are in the vector, not the actual coordinates;
+  // actual coordinates are retrieved every time, which could be expensive
+  // maybe we should store the coordinates too, along with entity handles (more memory used, faster to retrieve)
   std::vector<std::vector<EntityHandle> *> extraNodesVec;
 
   double epsilon_1;

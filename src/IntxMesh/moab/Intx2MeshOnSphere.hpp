@@ -31,8 +31,6 @@ public:
   ErrorCode findNodes(EntityHandle red, int nsRed, EntityHandle blue, int nsBlue,
       double * iP, int nP);
 
-  bool is_inside_element(double xyz[3], EntityHandle eh);
-
   ErrorCode update_tracer_data(EntityHandle out_set, Tag & tagElem, Tag & tagArea);
 
 private:

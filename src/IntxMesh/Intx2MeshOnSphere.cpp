@@ -194,7 +194,7 @@ ErrorCode Intx2MeshOnSphere::computeIntersectionBetweenRedAndBlue(EntityHandle r
 }
 
 
-// this method will also construct the triangles/polygons in the new mesh
+// this method will also construct the triangles/quads/polygons in the new mesh
 // if we accept planar polygons, we just save them
 // also, we could just create new vertices every time, and merge only in the end;
 // could be too expensive, and the tolerance for merging could be an
@@ -217,23 +217,16 @@ ErrorCode Intx2MeshOnSphere::findNodes(EntityHandle red, int nsRed, EntityHandle
 
   // get the edges for the red triangle; the extra points will be on those edges, saved as
   // lists (unordered)
-  std::vector<EntityHandle> redEdges(nsRed);//
-  int i = 0;
-  for (i = 0; i < nsRed; i++)
-  {
-    EntityHandle v[2] = { redConn[i], redConn[(i + 1) % nsRed] };// this is fine even for padded polygons
-    std::vector<EntityHandle> adj_entities;
-    ErrorCode rval = mb->get_adjacencies(v, 2, 1, false, adj_entities,
-        Interface::INTERSECT);
-    if (rval != MB_SUCCESS || adj_entities.size() < 1)
-      return rval; // get out , big error
-    redEdges[i] = adj_entities[0]; // should be only one edge between 2 nodes
-  }
-  // these will be in the new mesh, mbOut
-  // some of them will be handles to the initial vertices from blue or red meshes (lagr or euler)
+
+  // first get the list of edges adjacent to the red cell
+  // use the neighRedEdgeTag
+  EntityHandle adjRedEdges[MAXEDGES];
+  ErrorCode rval = mb->tag_get_data(neighRedEdgeTag, &red, 1, &(adjRedEdges[0])); MB_CHK_SET_ERR(rval, "can't get edge red tag");
+  // we know that we have only nsRed edges here; [nsRed, MAXEDGES) are ignored, but it is small potatoes
+  // some of them will be handles to the initial vertices from blue or red meshes
 
   EntityHandle * foundIds = new EntityHandle[nP];
-  for (i = 0; i < nP; i++)
+  for (int i = 0; i < nP; i++)
   {
     double * pp = &iP[2 * i]; // iP+2*i
     // project the point back on the sphere
@@ -291,14 +284,14 @@ ErrorCode Intx2MeshOnSphere::findNodes(EntityHandle red, int nsRed, EntityHandle
 #ifdef ENABLE_DEBUG
         if (dbg_1)
           std::cout << "   edge " << j << ": "
-              << mb->id_from_handle(redEdges[j]) << " " << redConn[j] << " "
+              << mb->id_from_handle(adjRedEdges[j]) << " " << redConn[j] << " "
               << redConn[j1] << "  area : " << area << "\n";
 #endif
-        if (fabs(area) < epsilon_1/2)
+        if (fabs(area) < epsilon_1/2) // this should be some sort of machine epsilon
         {
           // found the edge; now find if there is a point in the list here
           //std::vector<EntityHandle> * expts = extraNodesMap[redEdges[j]];
-          int indx = RedEdges.index(redEdges[j]);
+          int indx = RedEdges.index(adjRedEdges[j]);
           std::vector<EntityHandle> * expts = extraNodesVec[indx];
           // if the points pp is between extra points, then just give that id
           // if not, create a new point, (check the id)
@@ -376,7 +369,7 @@ ErrorCode Intx2MeshOnSphere::findNodes(EntityHandle red, int nsRed, EntityHandle
   if (nP >= 3)
   {
     EntityHandle polyNew;
-    ErrorCode rval = mb->create_element(MBPOLYGON, foundIds, nP, polyNew);MB_CHK_ERR(rval);
+    rval = mb->create_element(MBPOLYGON, foundIds, nP, polyNew);MB_CHK_ERR(rval);
     rval = mb->add_entities(outSet, &polyNew, 1);MB_CHK_ERR(rval);
 
     // tag it with the index ids from red and blue sets
@@ -413,39 +406,6 @@ ErrorCode Intx2MeshOnSphere::findNodes(EntityHandle red, int nsRed, EntityHandle
   delete[] foundIds;
   foundIds = NULL;
   return MB_SUCCESS;
-}
-
-bool Intx2MeshOnSphere::is_inside_element(double xyz[3], EntityHandle eh)
-{
-  int num_nodes;
-  ErrorCode rval = mb->get_connectivity(eh, redConn, num_nodes);MB_CHK_ERR_RET_VAL(rval,false);
-
-  int nsRed = num_nodes;
-  //CartVect coords[4];
-  rval = mb->get_coords(redConn, num_nodes, &(redCoords[0][0]));MB_CHK_ERR_RET_VAL(rval,false);
-
-  CartVect center(0.,0.,0.);
-  for (int k=0; k<num_nodes; k++)
-      center += redCoords[k];
-  center = 1./num_nodes*center;
-  decide_gnomonic_plane(center, plane);// output the plane
-  for (int j = 0; j < nsRed; j++)
-  {
-    // populate coords in the plane for decision making
-    // they should be oriented correctly, positively
-    rval = gnomonic_projection(redCoords[j],  R, plane, redCoords2D[2 * j],
-        redCoords2D[2 * j + 1]);MB_CHK_ERR_RET_VAL(rval,false);
-  }
-
-  double pt[2];
-  CartVect pos(xyz);
-  rval = gnomonic_projection(pos, R, plane, pt[0], pt[1]);MB_CHK_ERR_RET_VAL(rval,false);
-
-  // now, is the projected point inside the red quad?
-  // Intx utils
-  if (point_in_interior_of_convex_polygon (redCoords2D, nsRed, pt))
-    return true;
-  return false;
 }
 
 ErrorCode Intx2MeshOnSphere::update_tracer_data(EntityHandle out_set, Tag & tagElem, Tag & tagArea)

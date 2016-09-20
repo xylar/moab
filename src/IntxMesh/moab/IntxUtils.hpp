@@ -92,8 +92,6 @@ CartVect spherical_to_cart (SphereCoords &) ;
  */
 ErrorCode ProjectOnSphere(Interface * mb, EntityHandle set, double R);
 
-bool point_in_interior_of_convex_polygon (double * points, int np, double pt[2]);
-
 /*
  * utilities to compute area of a polygon on which all edges are arcs of great circles on a sphere
  */
