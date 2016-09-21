@@ -325,7 +325,7 @@ string(STRIP "${MOAB_DEFINES} " MOAB_DEFINES)
 add_subdirectory( src )
 add_subdirectory( itaps )
 add_subdirectory( tools )
-
+add_subdirectory( pymoab )
 ################################################################################
 # Testing Related Settings
 ################################################################################

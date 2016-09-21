@@ -3,7 +3,7 @@ from libcpp cimport bool
 from libcpp.vector cimport vector
 from libcpp.string cimport string as std_string
 
-cdef extern from "moab/Types.hpp" namespace "moab":
+cdef extern from '${CMAKE_CURRENT_SOURCE_DIR}/../src/moab/Types.hpp' namespace "moab":
 
     ctypedef enum EntitySetProperty:
         MESHSET_TRACK_OWNER = 0x01
@@ -32,13 +32,13 @@ cdef extern from "moab/Types.hpp" namespace "moab":
         MB_TAG_NOOPQ 
         MB_TAG_DFTOK 
 
-cdef extern from "moab/TagInfo.hpp" namespace "moab":
+cdef extern from "${CMAKE_CURRENT_SOURCE_DIR}/../src/TagInfo.hpp" namespace "moab":
 
     cdef cppclass TagInfo:
         TagInfo()
         DataType get_data_type()
 
-cdef extern from "moab/Types.hpp" namespace "moab":
+cdef extern from "${CMAKE_CURRENT_SOURCE_DIR}/../src/moab/Types.hpp" namespace "moab":
 
     cdef enum ErrorCode:
         MB_SUCCESS  
@@ -61,9 +61,6 @@ cdef extern from "moab/Types.hpp" namespace "moab":
 
     ctypedef TagInfo* Tag;
 
-
-    ctypedef TagInfo* Tag;
-
 cdef extern from "moab/EntityType.hpp" namespace "moab":
 
     ctypedef enum EntityType:
@@ -82,7 +79,7 @@ cdef extern from "moab/EntityType.hpp" namespace "moab":
         MBMAXTYPE 
 
 
-cdef extern from "moab/EntityHandle.hpp" namespace "moab":
+cdef extern from "${CMAKE_CURRENT_BINARY_DIR}/../src/moab/EntityHandle.hpp" namespace "moab":
 
     ctypedef long EntityID
     ctypedef unsigned long EntityHandle

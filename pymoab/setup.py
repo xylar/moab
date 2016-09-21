@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from __future__ import print_function
+
 from setuptools import setup, find_packages
 import os
 import sys
@@ -14,7 +14,7 @@ moab_default = '/usr/'
 for arg in sys.argv:
     if "--moab-path" in arg:
         moab_root = arg.split("=", 1)[-1]
-        print("Set MOAB location with user-provided install path.")
+        print "Set MOAB location with user-provided install path."
         sys.argv.remove(arg)
 
 #search environment for moab install
@@ -31,13 +31,14 @@ if moab_root is None:
 #check that the moab location is legitimate
 if not os.path.isfile(moab_root+'/include/moab/Core.hpp'):
     raise StandardError('Provided MOAB location is invalid.')
+
     
 moab_include = moab_root + '/include/'
 moab_lib = moab_root + '/lib/'
 
 include_path = [np.get_include(),moab_include]
 
-ext_modules = cythonize('pymoab/*.pyx', language='c++', 
+ext_modules = cythonize('${CMAKE_CURRENT_SOURCE_DIR}/pymoab/*.pyx', language='c++', 
                         include_dirs=include_path)
 for ext in ext_modules:
     ext.include_dirs = include_path
@@ -48,5 +49,5 @@ setup(
     name="pymoab",
     ext_modules=ext_modules,
     packages=find_packages(),
-    package_data = {'pymoab': ['*.pxd']}
+    package_dir = {'':'${CMAKE_CURRENT_SOURCE_DIR}/pymoab'}
 )
