@@ -197,3 +197,6 @@ mbmem_SOURCES = mbmem.cpp
 parread_SOURCES = parread.cpp
 mbhonodes_SOURCES = honodes.cpp
 
+bin_PROGRAMS += mbslavepart
+mbslavepart_SOURCES = mbslavepart.cpp
+
