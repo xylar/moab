@@ -38,7 +38,7 @@ moab_lib = moab_root + '/lib/'
 
 include_path = [np.get_include(),moab_include]
 
-ext_modules = cythonize('${CMAKE_CURRENT_SOURCE_DIR}/pymoab/*.pyx', language='c++', 
+ext_modules = cythonize('/home/shriwise/dagmc_blds/moabs/src/pymoab/pymoab/*.pyx', language='c++', 
                         include_dirs=include_path)
 for ext in ext_modules:
     ext.include_dirs = include_path
@@ -49,5 +49,5 @@ setup(
     name="pymoab",
     ext_modules=ext_modules,
     packages=find_packages(),
-    package_dir = {'':'${CMAKE_CURRENT_SOURCE_DIR}/pymoab'}
+    package_data = {'pymoab': ['*.pxd']}
 )
