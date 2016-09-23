@@ -17,6 +17,8 @@ endif()
 if (PYTHON AND NOSE AND NOT PYTHON_MODULES_MISSING)
   # copy all source to current dir so .cpp's aren't built in source
   FILE(COPY "${CMAKE_CURRENT_SOURCE_DIR}/pymoab/" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/pymoab" FILES_MATCHING PATTERN "*")
+  # copy over test files as well
+  FILE(COPY "${CMAKE_CURRENT_SOURCE_DIR}/tests/" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/tests" FILES_MATCHING PATTERN "*")
 
   # configure the setup script
   SET(SETUP_PY_IN "${CMAKE_CURRENT_SOURCE_DIR}/setup.py.in")
@@ -41,6 +43,6 @@ if (PYTHON AND NOSE AND NOT PYTHON_MODULES_MISSING)
   INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/pymoab-0.0.0-py2.7-linux-x86_64.egg DESTINATION /home/$ENV{USER}/.local/lib/python2.7/site-packages/)
 
   # run all pymoab tests, local install is added to PYTHONPATH so that make check can be run before install
-  ADD_CUSTOM_TARGET(pymoab-tests COMMAND export PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}:$ENV{PYTHONPATH} && cd ${CMAKE_CURRENT_BINARY_DIR}/pymoab/test/ && nosetests)
+  ADD_CUSTOM_TARGET(pymoab-tests COMMAND export PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}:$ENV{PYTHONPATH} && cd ${CMAKE_CURRENT_BINARY_DIR}/tests/ && nosetests)
 endif()
 
