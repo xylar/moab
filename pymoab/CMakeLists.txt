@@ -23,6 +23,6 @@ if (PYTHON AND NOSE)
 
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/pymoab-0.0.0-py2.7-linux-x86_64.egg DESTINATION /home/$ENV{USER}/.local/lib/python2.7/site-packages/)
 
-  add_custom_target(pymoab-tests COMMAND cd ${CMAKE_CURRENT_BINARY_DIR}/pymoab/test/ && nosetests)
+  add_custom_target(pymoab-tests COMMAND export PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}:$ENV{PYTHONPATH} && cd ${CMAKE_CURRENT_BINARY_DIR}/pymoab/test/ && nosetests)
 endif()
 
