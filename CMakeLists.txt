@@ -350,7 +350,7 @@ install(
 # Create some custom command
 
 # For consistency with autoconf, create a "make check" equivalent to "ctest"
-ADD_CUSTOM_TARGET( check COMMAND ctest )
+ADD_CUSTOM_TARGET( check COMMAND ctest DEPENDS pymoab-tests)
 
 # For consistency with autoconf, create "make dist" and "make distcheck" targets
 INCLUDE( CMakeDistCheck )
