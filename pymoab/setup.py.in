@@ -1,52 +1,33 @@
 #!/usr/bin/env python
 from __future__ import print_function
 from setuptools import setup, find_packages
-import os
-import sys
-import numpy as np
 from Cython.Build import cythonize
+import numpy as np #needed for numpy include paths
 
-moab_env_var = 'MOAB_PATH'
-moab_root = None
-moab_default = '/usr/'
+# setup moab include paths
+moab_root = '${CMAKE_SOURCE_DIR}'
+moab_source_include = moab_root + '/src/moab/'
+moab_other_source_include = moab_root + '/src/'
+moab_binary_include = '${CMAKE_BINARY_DIR}/src/'
+moab_lib_path = '${CMAKE_BINARY_DIR}/lib/'
 
-#look for command line argument
-for arg in sys.argv:
-    if "--moab-path" in arg:
-        moab_root = arg.split("=", 1)[-1]
-        print("Set MOAB location with user-provided install path.")
-        sys.argv.remove(arg)
+include_paths = [moab_source_include,
+                moab_other_source_include,
+                moab_binary_include,
+                np.get_include()]
+# cythonize and gather modules
+ext_modules = cythonize('pymoab/*.pyx', language='c++')
 
-#search environment for moab install
-if moab_root is None:
-    try:
-        moab_root = os.environ[moab_env_var]
-    except KeyError:
-        #as a last attempt, check the root location
-        if os.path.isfile(moab_default+'/include/moab/Core.hpp'):
-            moab_root = moab_default
-        else:
-            raise EnvironmentError('MOAB_PATH not found in environment.')
-
-#check that the moab location is legitimate
-if not os.path.isfile(moab_root+'/include/moab/Core.hpp'):
-    raise StandardError('Provided MOAB location is invalid.')
-    
-moab_include = moab_root + '/include/'
-moab_lib = moab_root + '/lib/'
-
-include_path = [np.get_include(),moab_include]
-
-ext_modules = cythonize('pymoab/*.pyx', language='c++', 
-                        include_dirs=include_path)
+# set values for each module
 for ext in ext_modules:
-    ext.include_dirs = include_path
-    ext.library_dirs = [moab_lib]
-    ext.libraries = ["MOAB"]
+    ext.include_dirs = include_paths
+    ext.library_dirs = [moab_lib_path,]
+    ext.libraries = ["MOAB",]
 
+# setup pymoab
 setup(
     name="pymoab",
     ext_modules=ext_modules,
     packages=find_packages(),
-    package_data = {'pymoab': ['*.pxd']}
+    package_data = {'pymoab': ['*.pxd',]}
 )
