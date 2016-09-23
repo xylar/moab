@@ -17,7 +17,7 @@ if (PYTHON AND NOSE)
                      COMMAND ${PYTHON}
                      ARGS setup.py build
 		     DEPENDS ${DEPS})
-  add_custom_target(pymoab-build ALL DEPENDS ${OUTPUT})
+  add_custom_target(pymoab-build ALL DEPENDS ${OUTPUT} MOAB)
 
   add_custom_target(pymoab-local-install ALL COMMAND export PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}:$PYTHONPATH && ${PYTHON} setup.py install --install-platlib=${CMAKE_CURRENT_BINARY_DIR} DEPENDS pymoab-build)
 
