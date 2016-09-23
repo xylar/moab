@@ -23,11 +23,6 @@ if (PYTHON AND NOSE AND NOT PYTHON_MODULES_MISSING)
   SET(SETUP_PY    "${CMAKE_CURRENT_BINARY_DIR}/setup.py")
   CONFIGURE_FILE(${SETUP_PY_IN} ${SETUP_PY})
 
-  # configure moab pxd
-  SET(MOAB_PXD_IN "${CMAKE_CURRENT_SOURCE_DIR}/pymoab/moab.pxd.in")
-  SET(MOAB_PXD "${CMAKE_CURRENT_BINARY_DIR}/pymoab/moab.pxd") 
-  CONFIGURE_FILE(${MOAB_PXD_IN} ${MOAB_PXD})
-
   # setup dependencies of the build command
   SET(DEPS   "${CMAKE_CURRENT_SOURCE_DIR}/pymoab/__init__.py")
   SET(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/build")
