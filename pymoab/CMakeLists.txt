@@ -1,6 +1,7 @@
 find_program(PYTHON "python")
+find_program(NOSE "nosetests")
 
-if (PYTHON)
+if (PYTHON AND NOSE)
   file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/pymoab/" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/pymoab" FILES_MATCHING PATTERN "*")
   SET(SETUP_PY_IN "${CMAKE_CURRENT_SOURCE_DIR}/setup.py.in")
   SET(SETUP_PY    "${CMAKE_CURRENT_BINARY_DIR}/setup.py")
