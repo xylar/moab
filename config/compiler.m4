@@ -154,8 +154,10 @@ AC_PROG_CXXCPP
 if (test "x$CHECK_FC" != "xno"); then
   FATHOM_SET_MPI_COMPILER([FC],  [$FC_LIST],[$COMPILERPATHS])
   FATHOM_SET_MPI_COMPILER([F77],[$F77_LIST],[$COMPILERPATHS])
-  AC_PROG_FC
+  AC_FC_PP_SRCEXT([F])
   AC_PROG_F77
+  AC_FC_PP_SRCEXT([F90])
+  AC_PROG_FC
 fi
 
 ]) # FATHOM_CHECK_COMPILERS
@@ -189,6 +191,7 @@ AC_ARG_ENABLE( optimize, AS_HELP_STRING([--enable-optimize],[Compile optimized (
                [enable_optimize=""; enable_cxx_optimize="no"; enable_cc_optimize="no"; enable_fc_optimize="no";	]
              )
 
+EXTRA_PGI_FCFLAGS="-Mfree"
 if (test "x$enable_debug" != "xno"); then # debug flags
 # GNU
 EXTRA_GNU_CXXFLAGS="-Wall -Wno-long-long -pipe -pedantic -Wshadow -Wunused-parameter -Wpointer-arith -Wformat -Wformat-security -Wextra -Wno-variadic-macros -Wno-unknown-pragmas"
@@ -198,7 +201,7 @@ EXTRA_INTEL_CXXFLAGS="-pipe -C"
 EXTRA_INTEL_FCFLAGS="-C"
 # PGI
 EXTRA_PGI_CXXFLAGS="-traceback --diag_suppress 236 --diag_suppress=unrecognized_gcc_pragma -C"
-EXTRA_PGI_FCFLAGS="-traceback -C -freeform -extend-source"
+EXTRA_PGI_FCFLAGS="$EXTRA_PGI_FCFLAGS -traceback -Mbounds -Ktrap=inv,divz,ovf"
 # XLC
 EXTRA_BG_CXXFLAGS="-qarch=qp -qpic=large -qdebug=except"
 EXTRA_BG_FCFLAGS="-qarch=qp -qpic=large -qdebug=except"
@@ -212,8 +215,8 @@ EXTRA_GNU_FCFLAGS="$EXTRA_GNU_FCFLAGS -ffree-line-length-0 -finline-functions"
 EXTRA_INTEL_CXXFLAGS="$EXTRA_INTEL_CXXFLAGS -xHost -ip -no-prec-div" # -fast
 EXTRA_INTEL_FCFLAGS="$EXTRA_INTEL_FCFLAGS -xHost -ip -no-prec-div" # -fast
 # PGI
-EXTRA_PGI_CXXFLAGS="$EXTRA_PGI_CXXFLAGS -fast -Mvect=fuse"
-EXTRA_PGI_FCFLAGS="$EXTRA_PGI_FCFLAGS -fast -Mvect=fuse -freeform -extend-source"
+EXTRA_PGI_CXXFLAGS="$EXTRA_PGI_CXXFLAGS -fast"
+EXTRA_PGI_FCFLAGS="$EXTRA_PGI_FCFLAGS -fast"
 # XLC
 EXTRA_BG_CXXFLAGS="$EXTRA_BG_CXXFLAGS -qarch=qp -qtune=auto -qpic=large -qenablevmx"
 EXTRA_BG_FCFLAGS="$EXTRA_BG_FCFLAGS -qarch=qp -qtune=auto -qpic=large -qenablevmx"
@@ -298,9 +301,6 @@ if (test "x$ENABLE_FORTRAN" != "xno"); then
     FFLAGS="$FFLAGS -O2"
   fi
   AC_FC_PP_DEFINE
-  AC_FC_PP_SRCEXT
-  # AC_F77_LIBRARY_LDFLAGS
-  # AC_FC_LIBRARY_LDFLAGS
 fi
 
   # Check for 32/64 bit.
