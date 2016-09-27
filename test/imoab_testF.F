@@ -18,6 +18,7 @@
       integer pid
       character*10 appname
       character*200 filename
+      character*14  fname
       character*150 readopts
       integer ngv, nge, ndim, nparts
       integer nghlay
@@ -53,6 +54,7 @@ C       indices for surface BC element, reference surf BC, value
 
       character*100 outfile, wopts
       my_id = 0
+      fname = '/io/p8ex1.h5m' // char(0)
 #ifdef MOAB_HAVE_MPI
       call MPI_INIT ( ierr )
       call errorout(ierr, 'fail to initialize MPI')
@@ -84,7 +86,7 @@ c     find out MY process ID, and how many processes were started.
 #endif
       call errorout(ierr, 'fail to register application')
 C
-      filename = MESHDIR2 // '/io/p8ex1.h5m' // CHAR(0)
+      filename = MESHDIR2//fname
       ierr = iMOAB_ReadHeaderInfo ( filename, ngv, nge, ndim, nparts)
       call errorout(ierr, 'fail to read header info')
 
