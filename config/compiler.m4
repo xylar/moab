@@ -271,7 +271,7 @@ if test "xyes" = "x$enable_debug"; then
     FFLAGS="$FFLAGS -g"
   fi
   # Add -fstack-protector-all option for g++ in debug mode
-  if (test "x$GXX" = "xyes"); then
+  if (test "x$cxx_compiler" = "xGNU"); then
     CXXFLAGS="$CXXFLAGS -fstack-protector-all"
     CFLAGS="$CFLAGS -fstack-protector-all"
     LDFLAGS="$LDFLAGS -fstack-protector-all"
@@ -381,7 +381,7 @@ if (test "x$ENABLE_FORTRAN" != "xno" && test "x$CHECK_FC" != "xno"); then
     *mira*)  LIBS="$LIBS /soft/compilers/ibmcmp-feb2015/vacpp/bg/12.1/bglib64/libibmc++.a"; fcxxlinkage=yes ;;
   esac
 
-  if (test "$cc_compiler" == "Intel"); then
+  if (test "$cxx_compiler" == "Intel"); then
     my_save_ldflags="$LDFLAGS"
     LDFLAGS="$LDFLAGS -cxxlib"
     AC_MSG_CHECKING([whether $FC supports -cxxlib])
@@ -391,7 +391,7 @@ if (test "x$ENABLE_FORTRAN" != "xno" && test "x$CHECK_FC" != "xno"); then
         [AC_MSG_RESULT([no])]
     )
     LDFLAGS="$my_save_ldflags"
-  elif (test "$cc_compiler" == "PortlandGroup"); then
+  elif (test "$cxx_compiler" == "PortlandGroup"); then
     my_save_ldflags="$LDFLAGS"
     LDFLAGS="$LDFLAGS -pgcpplibs -lstd -lC"
     AC_MSG_CHECKING([whether $FC supports -lstd -lC])
@@ -421,7 +421,7 @@ if (test "x$ENABLE_FORTRAN" != "xno" && test "x$CHECK_FC" != "xno"); then
 
       # GNU and other non-intel compilers will use the standard -lstdc++ linkage
       # This case also includes the Ubuntu+Clang combination as mentioned before
-      if (test "$cc_compiler" != "Clang" || test "$fcxxlinkage" != "yes"); then
+      if (test "$cxx_compiler" != "Clang" || test "$fcxxlinkage" != "yes"); then
         my_save_ldflags="$LDFLAGS"
         LDFLAGS="$LDFLAGS -lstdc++"
         AC_MSG_CHECKING([whether $FC supports -stdlib=libstdc++])
@@ -635,6 +635,7 @@ if test x$GXX = xyes; then
   # Intel and Clang claims to be GCC, check for it here
   FATHOM_TRY_COMPILER_DEFINE([__INTEL_COMPILER],[cxx_compiler=Intel])
   FATHOM_TRY_COMPILER_DEFINE([__clang__],[cxx_compiler=Clang])
+  FATHOM_TRY_COMPILER_DEFINE([__PGI],[cxx_compiler=PortlandGroup])
 # Search for other compiler types
 # For efficiency, limit checks to relevant OSs
 else
@@ -786,6 +787,7 @@ if test x$GCC = xyes; then
   # Intel claims to be GCC, check for it here
   FATHOM_TRY_COMPILER_DEFINE([__INTEL_COMPILER],[cc_compiler=Intel])
   FATHOM_TRY_COMPILER_DEFINE([__clang__],[cc_compiler=Clang])
+  FATHOM_TRY_COMPILER_DEFINE([__PGI],[cc_compiler=PortlandGroup])
 # Search for other compiler types
 # For efficiency, limit checks to relevant OSs
 else
