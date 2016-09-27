@@ -9,7 +9,7 @@
 
 #include <stdlib.h>
 #include <string.h>
-
+#include <assert.h>
 #include <vector>
 #include <set>
 #include <map>
@@ -151,24 +151,6 @@ void VALGRIND_MAKE_VEC_UNDEFINED(std::vector<T>& v) {
 #else
   #define START_SERIAL
   #define END_SERIAL
-#endif
-
-#ifdef NDEBUG
-  #undef assert
-  #define assert
-#else
-  #undef assert
-  #define assert(A) \
-    if (!(A)) \
-      do_assert(__FILE__, __LINE__, #A)
-   static void do_assert(const char* file, int line, const char* condstr)
-   {
-     int rank;
-     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-     fprintf(stderr, "[%d] Assert(%s) failed at %s:%d\n", rank, condstr, file, line);
-     fflush(stderr);
-     abort();
-   }
 #endif
 
 static int my_Gatherv(void* sendbuf,
