@@ -118,6 +118,13 @@ const char* mpi_err_str(int errorcode) {
 
 #ifdef VALGRIND
   #include <valgrind/memcheck.h>
+
+template <typename T> inline 
+void VALGRIND_MAKE_VEC_UNDEFINED(std::vector<T>& v) {
+  if (v.size()) {}
+    (void)VALGRIND_MAKE_MEM_UNDEFINED(&v[0], v.size() * sizeof(T));
+}
+
 #else
   #ifndef VALGRIND_CHECK_MEM_IS_DEFINED
     #define VALGRIND_CHECK_MEM_IS_DEFINED(a, b) ((void)0)
@@ -128,13 +135,13 @@ const char* mpi_err_str(int errorcode) {
   #ifndef VALGRIND_MAKE_MEM_UNDEFINED
     #define VALGRIND_MAKE_MEM_UNDEFINED(a, b) ((void)0)
   #endif
-#endif
 
 template <typename T> inline 
-void VALGRIND_MAKE_VEC_UNDEFINED(std::vector<T>& v) {
-  if (v.size()) {}
-    (void)VALGRIND_MAKE_MEM_UNDEFINED(&v[0], v.size() * sizeof(T));
+void VALGRIND_MAKE_VEC_UNDEFINED(std::vector<T>& ) {
+  /* Nothing to do */
 }
+
+#endif
 
 #ifndef NDEBUG
   #define START_SERIAL \
