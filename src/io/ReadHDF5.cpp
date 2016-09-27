@@ -3337,7 +3337,7 @@ ErrorCode ReadHDF5::read_var_len_tag(Tag tag_handle,
       {
         ErrorCode rval1;
         if (isHandle) {
-          assert( (void) (readSize == sizeof(EntityHandle)));
+          assert( readSize == sizeof(EntityHandle) );
           rval1 = readHDF5->convert_id_to_handle((EntityHandle*)data, count);MB_CHK_ERR(rval1);
         }
         int n = count;
