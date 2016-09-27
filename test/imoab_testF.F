@@ -21,7 +21,7 @@
       character*150 readopts
       integer ngv, nge, ndim, nparts
       integer nghlay
-      integer nverts(3), nelem(3), nblocks(3), nsbc(3), ndbc(3);
+      integer nverts(3), nelem(3), nblocks(3), nsbc(3), ndbc(3)
 C      large enough work arrays
       integer iwork(100000)
       real*8  dwork(100000)
@@ -85,7 +85,7 @@ c     find out MY process ID, and how many processes were started.
       call errorout(ierr, 'fail to register application')
 C
       tmpfile = MESHDIR2
-      filename = trim(tmpfile) // '/io/p8ex1.h5m' // CHAR(0)
+      filename = trim(tmpfile)//'/io/p8ex1.h5m'//char(0)
       ierr = iMOAB_ReadHeaderInfo ( filename, ngv, nge, ndim, nparts)
       call errorout(ierr, 'fail to read header info')
 
