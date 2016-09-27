@@ -1,6 +1,6 @@
 """MOAB Tag Class"""
 
-from . cimport moab
+from pymoab cimport moab
 
 cdef class Tag:
     cdef moab.TagInfo * inst

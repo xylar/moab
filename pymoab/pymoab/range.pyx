@@ -1,7 +1,7 @@
 """Implements range functionality."""
 from cython.operator cimport dereference as deref
 
-from . cimport moab
+from pymoab cimport moab
 
 cdef class Range(object):
 

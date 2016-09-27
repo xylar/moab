@@ -1,6 +1,6 @@
 """Implements range functionality."""
 
-from . cimport moab
+from pymoab cimport moab
 
 cdef class Range:
 

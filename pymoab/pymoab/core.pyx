@@ -4,7 +4,7 @@ from cython.operator cimport dereference as deref
 cimport numpy as np
 import numpy as np
 
-from . cimport moab
+from pymoab cimport moab
 from .tag cimport Tag
 from .range cimport Range
 from .types import check_error, np_tag_type, validate_type

@@ -1,6 +1,6 @@
 """MOAB Tag Class"""
 
-from . cimport moab 
+from pymoab cimport moab 
 import numpy as np
 cimport numpy as np
 from libc.stdlib cimport malloc,free

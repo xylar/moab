@@ -1,6 +1,6 @@
 """Python wrappers for MOAB Types."""
 
-from . cimport moab
+from pymoab cimport moab
 cimport numpy as np
 import numpy as np
 
