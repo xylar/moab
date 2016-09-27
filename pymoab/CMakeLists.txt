@@ -43,6 +43,6 @@ if (PYTHON AND NOSE AND NOT PYTHON_MODULES_MISSING)
   INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/pymoab-0.0.0-py2.7-linux-x86_64.egg DESTINATION /home/$ENV{USER}/.local/lib/python2.7/site-packages/)
 
   # run all pymoab tests, local install is added to PYTHONPATH so that make check can be run before install
-  ADD_CUSTOM_TARGET(pymoab-tests COMMAND export PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}:$ENV{PYTHONPATH} && cd ${CMAKE_CURRENT_BINARY_DIR}/tests/ && nosetests)
+  ADD_CUSTOM_TARGET(pymoab-tests COMMAND export LD_LIBRARY_PATH=${CMAKE_CURRENT_BINARY_DIR}/../lib/ && export PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}:$ENV{PYTHONPATH} && cd ${CMAKE_CURRENT_BINARY_DIR}/tests/ && nosetests)
 endif()
 
