@@ -59,7 +59,7 @@ cdef extern from "moab/Types.hpp" namespace "moab":
         MB_STRUCTURED_MESH  
         MB_FAILURE 
 
-    ctypedef TagInfo* Tag;
+    ctypedef TagInfo* Tag
 
 cdef extern from "moab/EntityType.hpp" namespace "moab":
 
