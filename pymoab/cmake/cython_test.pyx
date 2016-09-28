@@ -32,3 +32,16 @@ cdef extern from 'moab/Types.hpp' namespace "moab":
 
     ctypedef TagInfo* Tag
 
+cdef extern from "moab/Core.hpp" namespace "moab":
+
+    cdef cppclass Core:
+        # Constructors
+        Core()
+
+
+cdef class mbcore(object):
+
+    cdef Core * inst
+
+    def __cinit__(self):
+        self.inst = new Core()
