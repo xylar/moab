@@ -1,29 +1,34 @@
 #!/usr/bin/env python
-from __future__ import print_function
-from setuptools import setup, find_packages
+from setuptools import setup, Extension, find_packages
 from Cython.Build import cythonize
 import numpy as np #needed for numpy include paths
-
+import glob
+import os
 # setup moab include paths
 moab_root = '${CMAKE_SOURCE_DIR}'
 moab_source_include = moab_root + '/src/moab/'
 moab_other_source_include = moab_root + '/src/'
 moab_binary_include = '${CMAKE_BINARY_DIR}/src/'
 moab_lib_path = '${CMAKE_BINARY_DIR}/lib/'
-
+pymoab_src_dir = '${CMAKE_CURRENT_BINARY_DIR}/pymoab/'
 include_paths = [moab_source_include,
                 moab_other_source_include,
                 moab_binary_include,
-                np.get_include()]
-# cythonize and gather modules
-ext_modules = cythonize('pymoab/*.pyx', language='c++')
+                 np.get_include(),
+                 pymoab_src_dir]
 
 # set values for each module
-for ext in ext_modules:
-    ext.include_dirs = include_paths
-    ext.library_dirs = [moab_lib_path,]
-    ext.libraries = ["MOAB",]
-
+ext_modules = []
+for f in os.listdir(pymoab_src_dir):
+    if f.endswith(".pyx"):
+        fbase = f.split('.')[0]
+        ext = Extension( "pymoab."+fbase, ["pymoab/"+fbase+".cpp",],
+                         language = 'c++',
+                         include_dirs = include_paths,
+                         library_dirs = [moab_lib_path,],
+                         libraries = ["MOAB",])
+        ext_modules.append(ext)
+    
 # setup pymoab
 setup(
     name="pymoab",

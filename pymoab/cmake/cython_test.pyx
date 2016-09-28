@@ -2,6 +2,8 @@
 from numpy cimport ndarray
 cimport numpy as np
 import numpy as np
+import glob
+import os
 
 # Test that libcpp module is present:
 from libcpp.vector cimport vector
