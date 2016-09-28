@@ -122,14 +122,12 @@ if test "xno" != "x$enablempi"; then
   F77_LIST="mpixlf77 mpif77"
   DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --with-mpi=\"${WITH_MPI}\""
 
-else
-  
-  CC_LIST="$CC gcc icc clang"
-  CXX_LIST="$CXX g++ icpc clang++"
-  FC_LIST="$FC gfortran ifort g77 f77 nag xlf"
-  F77_LIST="$F77 $FC_LIST"
-
 fi
+
+CC_LIST="$CC $CC_LIST gcc icc clang"
+CXX_LIST="$CXX $CXX_LIST g++ icpc clang++"
+FC_LIST="$FC $FC_LIST gfortran ifort pgf90 nag xlf"
+F77_LIST="$F77 $F77_LIST gfortran ifort pgf77 nag xlf g77 f77"
 
 COMPILERPATHS=""
 if test "xno" != "x$enablempi"; then
@@ -152,11 +150,9 @@ AC_PROG_CXXCPP
 
 # Fortran support
 if (test "x$CHECK_FC" != "xno"); then
-  FATHOM_SET_MPI_COMPILER([FC],  [$FC_LIST],[$COMPILERPATHS])
   FATHOM_SET_MPI_COMPILER([F77],[$F77_LIST],[$COMPILERPATHS])
-  AC_FC_PP_SRCEXT([F])
   AC_PROG_F77
-  AC_FC_PP_SRCEXT([F90])
+  FATHOM_SET_MPI_COMPILER([FC],  [$FC_LIST],[$COMPILERPATHS])
   AC_PROG_FC
 fi
 
