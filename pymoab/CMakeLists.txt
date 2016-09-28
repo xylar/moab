@@ -1,8 +1,9 @@
+SET( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_LIST_DIR}/cmake )
 
 # make sure we have the essential elements installed
 FIND_PROGRAM(PYTHON "python")
 FIND_PROGRAM(NOSE "nosetests")
-
+FIND_PACKAGE(Cython REQUIRED)
 # make sure that specific python modules are installed
 SET(NUMPY_MODULE_MISSING false)
 SET(CYTHON_MODULE_MISSING false)
