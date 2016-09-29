@@ -127,7 +127,7 @@ fi
 CC_LIST="$CC $CC_LIST gcc icc clang"
 CXX_LIST="$CXX $CXX_LIST g++ icpc clang++"
 FC_LIST="$FC $FC_LIST gfortran ifort pgf90 nag xlf"
-F77_LIST="$F77 $F77_LIST gfortran ifort pgf77 nag xlf g77 f77"
+F77_LIST="$F77 $F77_LIST $FC gfortran ifort pgf77 nag xlf g77 f77"
 
 COMPILERPATHS=""
 if test "xno" != "x$enablempi"; then
@@ -389,11 +389,11 @@ if (test "x$ENABLE_FORTRAN" != "xno" && test "x$CHECK_FC" != "xno"); then
     LDFLAGS="$my_save_ldflags"
   elif (test "$cxx_compiler" == "PortlandGroup"); then
     my_save_ldflags="$LDFLAGS"
-    LDFLAGS="$LDFLAGS -pgc++libs -lstd -lC"
-    AC_MSG_CHECKING([whether $FC supports -pgc++libs -lstd -lC])
+    LDFLAGS="$LDFLAGS -pgc++libs"
+    AC_MSG_CHECKING([whether $FC supports -pgc++libs])
     AC_LINK_IFELSE([AC_LANG_PROGRAM([])],
         [AC_MSG_RESULT([yes])]
-        [fcxxlinkage=yes; FLIBS="$FLIBS -pgc++libs -lstd -lC"; FCLIBS="$FCLIBS -pgc++libs -lstd -lC"],
+        [fcxxlinkage=yes; FLIBS="$FLIBS -pgc++libs"; FCLIBS="$FCLIBS -pgc++libs"],
         [AC_MSG_RESULT([no])]
     )
     LDFLAGS="$my_save_ldflags"
