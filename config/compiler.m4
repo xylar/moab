@@ -205,7 +205,7 @@ fi
 
 if (test "x$enable_cxx_optimize" != "xno"); then  # optimization flags
 #GNU
-EXTRA_GNU_CXXFLAGS="$EXTRA_GNU_CXXFLAGS -fprefetch-loop-arrays -finline-functions"
+EXTRA_GNU_CXXFLAGS="$EXTRA_GNU_CXXFLAGS -finline-functions"
 EXTRA_GNU_FCFLAGS="$EXTRA_GNU_FCFLAGS -ffree-line-length-0 -finline-functions"
 # Intel
 EXTRA_INTEL_CXXFLAGS="$EXTRA_INTEL_CXXFLAGS -xHost -ip -no-prec-div" # -fast
@@ -299,8 +299,8 @@ if (test "x$ENABLE_FORTRAN" != "xno"); then
   AC_FC_PP_DEFINE
 fi
 
-  # Check for 32/64 bit.
-  # This requires FATHOM_CXX_FLAGS and FATHOM_CC_FLAGS to have been called first
+# Check for 32/64 bit.
+# This requires FATHOM_CXX_FLAGS and FATHOM_CC_FLAGS to have been called first
 AC_ARG_ENABLE(32bit, AS_HELP_STRING([--enable-32bit],[Force 32-bit objects]),
 [
   if (test "xyes" != "x$enableval" && test "xno" != "x$enableval"); then
@@ -389,14 +389,24 @@ if (test "x$ENABLE_FORTRAN" != "xno" && test "x$CHECK_FC" != "xno"); then
     LDFLAGS="$my_save_ldflags"
   elif (test "$cxx_compiler" == "PortlandGroup"); then
     my_save_ldflags="$LDFLAGS"
-    LDFLAGS="$LDFLAGS -pgcpplibs -lstd -lC"
-    AC_MSG_CHECKING([whether $FC supports -lstd -lC])
+    LDFLAGS="$LDFLAGS -pgc++libs -lstd -lC"
+    AC_MSG_CHECKING([whether $FC supports -pgc++libs -lstd -lC])
     AC_LINK_IFELSE([AC_LANG_PROGRAM([])],
         [AC_MSG_RESULT([yes])]
-        [fcxxlinkage=yes; FLIBS="$FLIBS -pgcpplibs -lstd -lC"; FCLIBS="$FCLIBS -pgcpplibs -lstd -lC"],
+        [fcxxlinkage=yes; FLIBS="$FLIBS -pgc++libs -lstd -lC"; FCLIBS="$FCLIBS -pgc++libs -lstd -lC"],
         [AC_MSG_RESULT([no])]
     )
     LDFLAGS="$my_save_ldflags"
+    if (test "$fcxxlinkage" != "yes"); then
+      LDFLAGS="$LDFLAGS -pgcpplibs -lstd -lC"
+      AC_MSG_CHECKING([whether $FC supports -pgcpplibs -lstd -lC])
+      AC_LINK_IFELSE([AC_LANG_PROGRAM([])],
+          [AC_MSG_RESULT([yes])]
+          [fcxxlinkage=yes; FLIBS="$FLIBS -pgcpplibs -lstd -lC"; FCLIBS="$FCLIBS -pgcpplibs -lstd -lC"],
+          [AC_MSG_RESULT([no])]
+      )
+      LDFLAGS="$my_save_ldflags"
+    fi
   else
 
     if (test "$fcxxlinkage" != "yes"); then
@@ -430,6 +440,10 @@ if (test "x$ENABLE_FORTRAN" != "xno" && test "x$CHECK_FC" != "xno"); then
       fi
     fi
 
+  fi
+
+  if (test "$fcxxlinkage" != "yes"); then
+    AC_MSG_WARN([Unrecognized C++ linkage for C/Fortran programs])
   fi
 
 fi
