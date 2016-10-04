@@ -778,7 +778,6 @@ esac
 if test "x$CGM_MISSING" = "xno"; then
   CGM_CONFIG_OPTIONS="include $CGM_MAKE"
 
-  AC_MSG_CHECKING([Checking for GeometryQueryTool::ray_fire(RefFace*,...)])
   FATHOM_MAKE_INC_VAR([$CGM_MAKE],[CGM_DEFINES], [CGM_CPPFLAGS="$make_val"])   
   FATHOM_MAKE_INC_VAR([$CGM_MAKE],[CGM_INCLUDES],[CGM_CPPFLAGS="$CGM_CPPFLAGS $make_val"])   
   FATHOM_MAKE_INC_VAR([$CGM_MAKE],[CGM_LTFLAGS], [CGM_LTFLAGS="$make_val"])   
@@ -790,40 +789,49 @@ if test "x$CGM_MISSING" = "xno"; then
   CPPFLAGS="$CGM_CPPFLAGS $CPPFLAGS"
   HAVE_OCC=no
   HAVE_FACET=no
-  AC_CHECK_HEADER([OCCPoint.hpp], 
-                   [HAVE_OCC=yes; AC_DEFINE(HAVE_CGM_OCC, [1], [MOAB uses CGM configured with OpenCascade]) ],
-                   [HAVE_FACET=yes; AC_DEFINE(HAVE_CGM_FACET, [1], [MOAB uses CGM configured with Facet Engine only]) ]
-                   )
+  AC_MSG_CHECKING([for underlying geometry engine in CGM])
+  AC_COMPILE_IFELSE(
+  [AC_LANG_PROGRAM([@%:@include <CGMConfig.h>],
+  [ #ifndef CGM_HAVE_FACET_ENGINE_ONLY
+  // Perfect!
+  #else
+  # error Only Facet engine available
+  #endif
+  ])
+  ],
+  [HAVE_OCC=yes
+   AC_DEFINE(HAVE_CGM_OCC, [1], [MOAB uses CGM configured with OpenCascade])
+   AC_MSG_RESULT(OCC)],
+  [HAVE_FACET=yes
+   AC_DEFINE(HAVE_CGM_FACET, [1], [MOAB uses CGM configured with Facet Engine only])
+  AC_MSG_RESULT(Facets)] )
   CPPFLAGS="$old_CPPFLAGS"
   AC_LANG_POP([C++])
 
-  if (test "x$HAVE_CUBIT" != "xno"); then
-    AC_LANG_PUSH([C++])
-    old_CPPFLAGS="$CPPFLAGS"
-    old_LDFLAGS="$LDFLAGS"
-    old_LIBS="$LIBS"
-    CPPFLAGS="$CGM_CPPFLAGS $CPPFLAGS"
-    LDFLAGS="$CGM_LDFLAGS $CPPFLAGS"
-    LIBS="$CGM_LIBS $LIBS"
-    HAVE_CGM_FIRE_RAY=no
-    AC_LINK_IFELSE(
-      [AC_LANG_PROGRAM([#include "GeometryQueryTool.hpp"
-                        #include "CubitVector.hpp"],
-                      [CubitVector a,b;
-                      DLIList<double> c;
-                      GeometryQueryTool::instance()->fire_ray((RefFace*)0, a, b, c );
-                      ])],
-      [HAVE_CGM_FIRE_RAY=yes;
-      
-      AC_MSG_RESULT(yes)],
-      [AC_MSG_RESULT(no)])
-    CPPFLAGS="$old_CPPFLAGS"
-    LDFLAGS="$old_LDFLAGS"
-    LIBS="$old_LIBS"
-#  LDFLAGS="$old_LDFLAGS"
-#  LIBS="$old_LIBS"
-    AC_LANG_POP([C++])
-  fi
+  AC_MSG_CHECKING([for GeometryQueryTool::ray_fire(RefFace*,...)])
+  AC_LANG_PUSH([C++])
+  old_CPPFLAGS="$CPPFLAGS"
+  old_LDFLAGS="$LDFLAGS"
+  old_LIBS="$LIBS"
+  CPPFLAGS="$CGM_CPPFLAGS $CPPFLAGS"
+  LDFLAGS="$CGM_LDFLAGS $CPPFLAGS"
+  LIBS="$CGM_LIBS $LIBS"
+  HAVE_CGM_FIRE_RAY=no
+  AC_LINK_IFELSE(
+    [AC_LANG_PROGRAM([#include "GeometryQueryTool.hpp"
+                      #include "CubitVector.hpp"],
+                    [CubitVector a,b;
+                    DLIList<double> c;
+                    GeometryQueryTool::instance()->fire_ray((RefFace*)0, a, b, c );
+                    ])],
+    [HAVE_CGM_FIRE_RAY=yes;
+    AC_MSG_RESULT(yes)],
+    [AC_MSG_RESULT(no)])
+  CPPFLAGS="$old_CPPFLAGS"
+  LDFLAGS="$old_LDFLAGS"
+  LIBS="$old_LIBS"
+  AC_LANG_POP([C++])
+
   EXPORT_LDFLAGS="$EXPORT_LDFLAGS $CGM_LDFLAGS"
   EXPORT_LTFLAGS="$EXPORT_LTFLAGS $CGM_LTFLAGS"
 fi
