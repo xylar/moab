@@ -12,8 +12,12 @@ endif
 
 if HAVE_CGM
   AM_CPPFLAGS += $(CGM_CPPFLAGS)
+if USING_DEV_CGM
+  LDADD+=  ${CGM_DIR}/src/libcgm.la
+else
   LDADD+=  ${CGM_DIR}/lib/libcgm.la
-endif 
+endif
+endif
 
 # For old (pre 1.10.x) versions of Automake
 docdir = @docdir@

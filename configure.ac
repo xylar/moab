@@ -745,6 +745,7 @@ EXPORT_LDFLAGS="$ZOLTAN_LIB_FLAGS $EXPORT_LDFLAGS"
 ################################################################################
 #                           CGM
 ################################################################################
+USING_DEV_CGM=no
 AC_ARG_WITH(cgm, 
 [AS_HELP_STRING([--with-cgm=DIR],[Specify directory containing CGM])],
 [CGM_DIR=$withval
@@ -767,7 +768,7 @@ case "x$CGM_DIR" in
     AC_CHECK_FILE([${CGM_DIR}/lib/cgm.make],
                   [CGM_MAKE="${CGM_DIR}/lib/cgm.make"],
                   [AC_CHECK_FILE([${CGM_DIR}/cgm.make],
-                                 [CGM_MAKE="${CGM_DIR}/cgm.make"],
+                                 [CGM_MAKE="${CGM_DIR}/cgm.make"; USING_DEV_CGM=yes],
                                  [AC_MSG_ERROR([$CGM_DIR : not a configured CGM]); 
                                   CGM_MISSING=yes])
                   ])
@@ -851,6 +852,7 @@ fi
 AC_MSG_CHECKING([if iRel support is to be built])
 AC_MSG_RESULT([$ENABLE_irel])
 AM_CONDITIONAL([ENABLE_irel],[test "xyes" = "x$ENABLE_irel"])
+
 if test "x$ENABLE_irel" = "xyes"; then
   if (test "x$ENABLE_imesh" != "xyes" || test "x$CGM_MISSING" != "xno"); then
     AC_MSG_ERROR([Cannot build iRel API. Enable both iGeom (CGM) and iMesh implementations.])
@@ -861,9 +863,9 @@ if test "x$ENABLE_irel" = "xyes"; then
               [IGEOM_CONFIG_OPTIONS="include ${CGM_DIR}/lib/iGeom-Defs.inc";
                FATHOM_MAKE_INC_VAR([${CGM_DIR}/lib/iGeom-Defs.inc],[IGEOM_DEFINES], [IGEOM_DEFINES="$make_val"],
                   [IGEOM_DEFINES=]) ],
-              [AC_CHECK_FILE([${CGM_DIR}/iGeom-Defs.inc],
-                             [IGEOM_CONFIG_OPTIONS="include ${CGM_DIR}/iGeom-Defs.inc"],
-                             [AC_MSG_WARN([$CGM_DIR : not a configured iGeom])]
+              [AC_CHECK_FILE([${CGM_DIR}/itaps/iGeom-Defs.inc],
+                             [IGEOM_CONFIG_OPTIONS="include ${CGM_DIR}/itaps/iGeom-Defs.inc"],
+                             [AC_MSG_WARN([$CGM_DIR : iGeom is not configured correctly])]
                             )
               ])
   AC_SUBST(IGEOM_DEFINES)
@@ -879,6 +881,7 @@ test "x$ENABLE_irel" != "xyes" || HAVE_IREL="yes"
 AC_SUBST(HAVE_IGEOM)
 AC_SUBST(HAVE_IMESH)
 AC_SUBST(HAVE_IREL)
+AM_CONDITIONAL([USING_DEV_CGM],[test "xyes" = "x$USING_DEV_CGM"])
 
 ###############################################################################
 #                           Optional Tools

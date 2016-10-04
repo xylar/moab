@@ -65,10 +65,16 @@ if HAVE_CGM
     libiRel_la_SOURCES += \
         GeomAssocPairSide.cpp \
         GeomAssocPairSide.hpp
+if USING_DEV_CGM
+    libiRel_la_LIBADD += \
+        ${IGEOM_LTFLAGS} ${IGEOM_LDFLAGS} ${CGM_DIR}/itaps/libiGeom.la
+    TEST_DEPS += ${CGM_DIR}/itaps/libiGeom.la
+else
     libiRel_la_LIBADD += \
         ${IGEOM_LTFLAGS} ${IGEOM_LDFLAGS} ${CGM_DIR}/lib/libiGeom.la
-    LIBS += ${CGM_LIBS}
     TEST_DEPS += ${CGM_DIR}/lib/libiGeom.la
+endif
+    LIBS += ${CGM_LIBS}
 endif
 TEST_DEPS += ${MOAB_CXX_LINKFLAGS} ${MOAB_CXX_LIBS}
 

@@ -34,7 +34,11 @@ CGM_LIBS = @CGM_LIBS@
 
 LDADD = libdagmc.la $(top_builddir)/src/libMOAB.la   
 if HAVE_CGM
- LDADD += $(CGM_DIR)/lib/libcgm.la 
+if USING_DEV_CGM
+ LDADD += $(CGM_DIR)/src/libcgm.la
+else
+ LDADD += $(CGM_DIR)/lib/libcgm.la
+endif
 endif
 
 TESTS = 
