@@ -7,7 +7,7 @@
 
 #include "moab/Intx2MeshInPlane.hpp"
 #include "moab/GeomUtil.hpp"
-#include "IntxUtils.hpp"
+#include "moab/IntxUtils.hpp"
 
 namespace moab {
 Intx2MeshInPlane::Intx2MeshInPlane(Interface * mbimpl):Intx2Mesh(mbimpl){

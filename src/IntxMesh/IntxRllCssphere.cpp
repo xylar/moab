@@ -7,7 +7,7 @@
 
 #include "moab/IntxRllCssphere.hpp"
 #include "moab/GeomUtil.hpp"
-#include "IntxUtils.hpp"
+#include "moab/IntxUtils.hpp"
 
 namespace moab {
 

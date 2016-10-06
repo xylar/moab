@@ -16,6 +16,7 @@ option ( MOAB_BUILD_MBCOUPLER    "Build the mesh coupler tool?"                 
 option ( MOAB_BUILD_MBHONODES    "Build the hex8 to hex27 converter tool?"       ON )
 option ( MOAB_BUILD_MBUMR        "Build the uniform mesh refinement tool?"       ON )
 option ( MOAB_BUILD_MBQUALITY    "Build the quality metrics tool?"               ON )
+option ( MOAB_BUILD_MBTEMPEST    "Build the TempestRemap coupler tool?"         OFF )
 
 if ( MOAB_HAVE_MPI AND MPI_FOUND )
   add_subdirectory( refiner )
@@ -165,7 +166,7 @@ if ( MOAB_BUILD_MBGSETS )
     )
 endif( )
 
-# MOAB_BUILD_MBUMR
+# MBUMR
 if ( MOAB_BUILD_MBUMR )
   add_executable( mbumr umr.cpp )
   set_source_files_properties( umr.cpp COMPILE_FLAGS "${MOAB_DEFINES}" )
@@ -173,6 +174,20 @@ if ( MOAB_BUILD_MBUMR )
   set( MOAB_HAVE_MBUMR 1 )
   install(
     TARGETS mbumr
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    )
+endif( )
+
+# MBTEMPEST
+if ( MOAB_BUILD_MBTEMPEST AND MOAB_HAVE_TEMPEST )
+  add_executable( mbtempest mbtempest.cpp)
+  set_source_files_properties( mbtempest.cpp COMPILE_FLAGS "${MOAB_DEFINES}" )
+  target_link_libraries( mbtempest ${TOOLS_LINK_LIBS} )
+  set( MOAB_HAVE_MBTEMPEST 1 )
+  install(
+    TARGETS mbtempest
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -192,7 +207,6 @@ if ( MOAB_BUILD_MBQUALITY )
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     )
 endif( )
-
 
 # CGM + DagMC
 if ( MOAB_BUILD_DAGMC )

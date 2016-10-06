@@ -17,7 +17,7 @@
 #include "moab/ParallelComm.hpp"
 #include "MBTagConventions.hpp"
 #include "moab/ParallelMergeMesh.hpp"
-#include "IntxUtils.hpp"
+#include "moab/IntxUtils.hpp"
 
 #include <sstream>
 #include <mpi.h>

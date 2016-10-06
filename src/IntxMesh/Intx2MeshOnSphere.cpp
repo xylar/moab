@@ -7,7 +7,7 @@
 #include "moab/Intx2MeshOnSphere.hpp"
 #include "moab/GeomUtil.hpp"
 #include "MBTagConventions.hpp"
-#include "IntxUtils.hpp"
+#include "moab/IntxUtils.hpp"
 #ifdef MOAB_HAVE_MPI
 #include "moab/ParallelComm.hpp"
 #endif

@@ -202,7 +202,7 @@ int main(int argc, char* argv[])
         std::cout << "The blue set contains " << bintxverts.size() << " vertices and " << bintxelems.size() << " elements \n";
     }
 
-    const double epsrel=1.e-8;
+    const double epsrel=1.e-12;
     const double radius=1.0;
     moab::Intx2MeshOnSphere *mbintx = new moab::Intx2MeshOnSphere(mbCore);
     mbintx->SetErrorTolerance(epsrel);
@@ -328,6 +328,7 @@ moab::ErrorCode CreateTempestMesh(ToolContext& ctx, Mesh** tempest_mesh)
         ctx.meshes.push_back(dest);
         // Now let us construct the overlap mesh
         *tempest_mesh = GenerateOverlapWithMeshes(*src, *dest, "" /*ctx.outFilename*/, "exact", false);
+        //*tempest_mesh = src;
         break;
       case ICO:
         *tempest_mesh = GenerateICOMesh(ctx.blockSize, ctx.computeDual, ctx.outFilename);
