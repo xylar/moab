@@ -97,7 +97,10 @@ else
 endif
 
 if HAVE_CGM
-  AM_CPPFLAGS += @CGM_CPPFLAGS@ 
+  AM_CPPFLAGS += @CGM_CPPFLAGS@
+if USING_DEV_CGM
+  AM_CPPFLAGS += -I$(CGM_DIR)/src
+endif
   MOAB_CGM_SRCS =  ReadCGM.cpp  ReadCGM.hpp
   libmoabio_la_LIBADD += @CGM_LIBS@
 else

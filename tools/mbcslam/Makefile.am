@@ -45,10 +45,7 @@ endif
 
 noinst_PROGRAMS =  proj1 create_dp 
 if PARALLEL
-  noinst_PROGRAMS += cslam_par_test intx_imesh linear_advection
-if ENABLE_FORTRAN
-  noinst_PROGRAMS += advection
-endif
+  noinst_PROGRAMS += linear_advection
 endif
 
 check_PROGRAMS = $(TESTS) 
@@ -76,9 +73,11 @@ if HAVE_HDF5
   intx_imesh_LDADD = libmbcslam.la  $(top_builddir)/itaps/imesh/libiMesh.la $(top_builddir)/src/libMOAB.la
   cslam_par_test_SOURCES = cslam_par_test.cpp
   intx_mpas_SOURCES = intx_mpas.cpp
+  noinst_PROGRAMS += cslam_par_test intx_imesh
 if ENABLE_FORTRAN
   advection_SOURCES = advection.F90
   advection_LDADD = libmbcslam.la  $(top_builddir)/itaps/imesh/libiMesh.la $(top_builddir)/src/libMOAB.la $(FCLIBS)
+  noinst_PROGRAMS += advection
 endif
 endif
 endif 
