@@ -208,10 +208,10 @@ fi
 
 if (test "x$enable_cxx_optimize" != "xno"); then  # optimization flags
 #GNU
-EXTRA_GNU_CXXFLAGS="$EXTRA_GNU_CXXFLAGS -finline-functions"
+EXTRA_GNU_CXXFLAGS="$EXTRA_GNU_CXXFLAGS -fprefetch-loop-arrays -finline-functions -march=native"
 EXTRA_GNU_FCFLAGS="$EXTRA_GNU_FCFLAGS -ffree-line-length-0 -finline-functions"
 #CLANG
-EXTRA_CLANG_CXXFLAGS="$EXTRA_CLANG_CXXFLAGS -finline-functions"
+EXTRA_CLANG_CXXFLAGS="$EXTRA_CLANG_CXXFLAGS -march=native"
 EXTRA_CLANG_FCFLAGS="$EXTRA_CLANG_FCFLAGS -ffree-line-length-0 -finline-functions"
 # Intel
 EXTRA_INTEL_CXXFLAGS="$EXTRA_INTEL_CXXFLAGS -xHost -ip -no-prec-div" # -fast
