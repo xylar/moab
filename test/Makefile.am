@@ -44,7 +44,7 @@ TESTS = range_test \
         seq_man_test \
         geom_util_test \
         xform_test \
-        obb_test \
+        oriented_box_test \
         adaptive_kd_tree_tests \
         bsp_tree_test \
         file_options_test \
@@ -138,7 +138,7 @@ seq_man_test_SOURCES = TestUtil.hpp TestTypeSequenceManager.cpp
 mesh_set_test_SOURCES = Test_MBMeshSet.cpp TestUtil.hpp
 geom_util_test_SOURCES = TestUtil.hpp GeomUtilTests.cpp 
 xform_test_SOURCES = affinexform_test.cpp
-obb_test_SOURCES = OBBTest.cpp
+oriented_box_test_SOURCES = oriented_box_test.cpp
 adaptive_kd_tree_tests_SOURCES = adaptive_kd_tree_tests.cpp
 kd_tree_tool_SOURCES = kd_tree_tool.cpp
 kd_tree_time_SOURCES = kd_tree_time.cpp
