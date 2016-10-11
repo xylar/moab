@@ -29,7 +29,7 @@ set( TESTS range_test.cpp
            scd_test_partn.cpp
            test_adj.cpp
            GeomUtilTests.cpp
-           OBBTest.cpp
+           oriented_box_test.cpp
            adaptive_kd_tree_tests.cpp
            kd_tree_test.cpp
            bsp_tree_test.cpp
