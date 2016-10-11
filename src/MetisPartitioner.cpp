@@ -40,9 +40,9 @@ MetisPartitioner::MetisPartitioner( Interface *impl,
                                     const bool use_coords,
                                     int argc, 
                                     char **argv) 
-                                  : PartitionerBase(impl,use_coords), 
-                                             argcArg(argc), 
-                                             argvArg(argv)
+                                  : PartitionerBase<idx_t>(impl,use_coords), 
+                                    argcArg(argc), 
+                                    argvArg(argv)
 {
 }
 
