@@ -57,7 +57,7 @@ const OrientedBox offsetbox( unitaxes, unitcenter );
   // define non-unit centered at origin
 const Matrix3 origaxes ( 5*unitaxes.col(0),
                          10*unitaxes.col(1),
-                         0.1*unitaxes.col(2) );
+                         0.1*unitaxes.col(2) , true);
 const OrientedBox oblongbox( origaxes, origin );
 
   // define non-axis-aligned box at origin (non unit) ;
