@@ -64,7 +64,7 @@ program DirectAccessNoHolesF90
   character*120 opt
 
   ! initialize interface and get root set
-  call iMesh_newMesh("", %REF(imesh), ierr)
+  call iMesh_newMesh("", imesh, ierr)
   CHECK(ierr)
   call iMesh_getRootSet(%val(imesh), root_set, ierr)
   CHECK(ierr)
