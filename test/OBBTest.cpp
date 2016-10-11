@@ -60,14 +60,15 @@ const Matrix3 origaxes ( 5*unitaxes.col(0),
                          0.1*unitaxes.col(2) );
 const OrientedBox oblongbox( origaxes, origin );
 
-  // define non-axis-aligned unit box at origin
-const CartVect rotax0 = unit( CartVect( 1.0, 1.0, 0.0 ) );
-const CartVect rotax1 = unit( CartVect( 1.0,-1.0, 1.0 ) );
-const CartVect rotax2 = unit( CartVect( 1.0, 1.0, 0.0 ) * CartVect( 1.0,-1.0, 1.0 ) );
+  // define non-axis-aligned box at origin (non unit) ;
+ // the constructor of OrientedBox normalizes the vectors, and keeps the scales
+const CartVect rotax0 =  CartVect( 1.0, 1.0, 0.0 ) ;
+const CartVect rotax1 =  CartVect( 1.0,-1.0, 1.0 ) ;
+const CartVect rotax2 =  CartVect( 1.0, 1.0, 0.0 ) * CartVect( 1.0,-1.0, 1.0 ) ;
 const CartVect rotax[3] = {rotax0, rotax1, rotax2};
 const OrientedBox rotbox_cv( rotax, origin );
 
-const Matrix3 rotaxes(rotax0, rotax1, rotax2);
+const Matrix3 rotaxes(rotax0, rotax1, rotax2, false); // so these are columns, as in the constructor that takes 3 "CartVect"s
 const OrientedBox rotbox( rotaxes, origin );
 
 
@@ -158,8 +159,7 @@ static void test_basic()
   ASSERT_DOUBLES_EQUAL( rotbox.volume(), 8.0*dims[0]*dims[1]*dims[2] );
   ASSERT_VECTORS_EQUAL( rotbox.dimensions(), 2*dims );
 
-  //test cartvect constructor
-  axis_dims( rotaxes, dims );
+  //test cartvect constructor; ordering of the axes by length happens in the constructor
   ASSERT_VECTORS_EQUAL( rotbox_cv.center, origin );
   ASSERT_VECTORS_EQUAL( rotbox_cv.scaled_axis(0), rotax0 );
   ASSERT_VECTORS_EQUAL( rotbox_cv.scaled_axis(1), rotax1 );
