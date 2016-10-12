@@ -1,21 +1,20 @@
 #undef DEBUG
 #undef TIME_DEBUG
 
-#include <stdio.h>
 #include <stdarg.h>
-
-#include <stdio.h>
 #include <time.h>
-
 #include <stdlib.h>
+
 #include <string.h>
 #include <assert.h>
+
 #include <vector>
 #include <set>
 #include <map>
 #include <utility>
 #include <iostream>
 #include <sstream>
+#include <string>
 
 #include "moab/Interface.hpp"
 #include "Internals.hpp"
@@ -121,6 +120,13 @@ const char* mpi_err_str(int errorcode) {
 
 #ifdef VALGRIND
   #include <valgrind/memcheck.h>
+
+template <typename T> inline
+void VALGRIND_MAKE_VEC_UNDEFINED(std::vector<T>& v) {
+  if (v.size()) {}
+    (void)VALGRIND_MAKE_MEM_UNDEFINED(&v[0], v.size() * sizeof(T));
+}
+
 #else
   #ifndef VALGRIND_CHECK_MEM_IS_DEFINED
     #define VALGRIND_CHECK_MEM_IS_DEFINED(a, b) ((void)0)
@@ -131,13 +137,13 @@ const char* mpi_err_str(int errorcode) {
   #ifndef VALGRIND_MAKE_MEM_UNDEFINED
     #define VALGRIND_MAKE_MEM_UNDEFINED(a, b) ((void)0)
   #endif
-#endif
 
-template <typename T> inline 
-void VALGRIND_MAKE_VEC_UNDEFINED(std::vector<T>& v) {
-  if (v.size()) {}
-    (void)VALGRIND_MAKE_MEM_UNDEFINED(&v[0], v.size() * sizeof(T));
+template <typename T> inline
+void VALGRIND_MAKE_VEC_UNDEFINED(std::vector<T>& ) {
+  /* Nothing to do */
 }
+
+#endif
 
 #ifndef NDEBUG
   #define START_SERIAL \
@@ -252,7 +258,7 @@ WriteHDF5Parallel::WriteHDF5Parallel(Interface* iface)
 
 WriteHDF5Parallel::~WriteHDF5Parallel()
 {
-  if (pcommAllocated && myPcomm) 
+  if (pcommAllocated && myPcomm)
     delete myPcomm;
 }
 
@@ -637,7 +643,7 @@ ErrorCode WriteHDF5Parallel::check_serial_tag_data(const std::vector<unsigned ch
     if (tag_iter == tagList.end() || n != name) { // New tag
       TagDesc newtag;
 
-      if (ptr->size == MB_VARIABLE_LENGTH) 
+      if (ptr->size == MB_VARIABLE_LENGTH)
         rval = iFace->tag_get_handle(name.c_str(), ptr->def_val_len, ptr->type, newtag.tag_id, MB_TAG_VARLEN|MB_TAG_CREAT|ptr->storage, ptr->default_value());
       else
         rval = iFace->tag_get_handle(name.c_str(), ptr->size, ptr->type, newtag.tag_id, MB_TAG_CREAT|ptr->storage, ptr->default_value());
@@ -684,7 +690,7 @@ ErrorCode WriteHDF5Parallel::check_serial_tag_data(const std::vector<unsigned ch
 
   // Be careful to populate newlist in the same, sorted, order as tagList
   if (newlist) {
-    for (tag_iter = tagList.begin(); tag_iter != tagList.end(); ++tag_iter) 
+    for (tag_iter = tagList.begin(); tag_iter != tagList.end(); ++tag_iter)
       if (newset.find(&*tag_iter) != newset.end())
         newlist->push_back(&*tag_iter);
   }
@@ -1089,7 +1095,7 @@ ErrorCode WriteHDF5Parallel::create_node_table(int dimension)
   nodeSet.num_nodes = dimension; // Put it here so NodeSetCreator can access it
   struct NodeSetCreator : public DataSetCreator {
     ErrorCode operator()(WriteHDF5* file, long count, const ExportSet* group, long& start_id) const
-    { 
+    {
       mhdf_Status status;
       hid_t handle = mhdf_createNodeCoords(file->file_ptr(), group->num_nodes, count, &start_id, &status);CHECK_HDFN(status);
       mhdf_closeData(file->file_ptr(), handle, &status);CHECK_HDFN(status);
@@ -1152,7 +1158,7 @@ ErrorCode WriteHDF5Parallel::negotiate_type_list()
   for (std::list<ExportSet>::iterator eiter = exportList.begin();
        eiter != exportList.end(); ++eiter) {
     viter->first = eiter->type;
-    viter->second = eiter->num_nodes; 
+    viter->second = eiter->num_nodes;
     ++viter;
   }
 
@@ -1527,7 +1533,7 @@ ErrorCode WriteHDF5Parallel::communicate_shared_set_ids(const Range& owned,
   if (dbgOut.get_verbosity() >= SSVB)
     print_shared_sets();
 
-  return MB_SUCCESS;  
+  return MB_SUCCESS;
 }
 
 //void get_global_ids(Interface* iFace, const unsigned long* ptr,
@@ -1763,7 +1769,7 @@ ErrorCode WriteHDF5Parallel::communicate_shared_set_data(const Range& owned,
   for (Range::iterator i = shared.begin(); i != shared.end(); ++i) {
     procs.clear();
     rval = myPcomm->get_entityset_procs(*i, procs);CHECK_MB(rval);
-    nummess += procs.size(); 
+    nummess += procs.size();
   }
 
   // Choose a receive buffer size. We need 4*sizeof(long) minimum,
@@ -1914,7 +1920,7 @@ ErrorCode WriteHDF5Parallel::communicate_shared_set_data(const Range& owned,
       mperr = MPI_Irecv(&buff[0], size, MPI_UNSIGNED_LONG, status.MPI_SOURCE,
                         status.MPI_TAG, comm, &lrecv_req[idx]);CHECK_MPI(mperr);
       ++numrecv;
-    } 
+    }
     recv_req[idx] = MPI_REQUEST_NULL;
   }
 

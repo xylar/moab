@@ -745,6 +745,7 @@ EXPORT_LDFLAGS="$ZOLTAN_LIB_FLAGS $EXPORT_LDFLAGS"
 ################################################################################
 #                           CGM
 ################################################################################
+USING_DEV_CGM=no
 AC_ARG_WITH(cgm, 
 [AS_HELP_STRING([--with-cgm=DIR],[Specify directory containing CGM])],
 [CGM_DIR=$withval
@@ -767,7 +768,7 @@ case "x$CGM_DIR" in
     AC_CHECK_FILE([${CGM_DIR}/lib/cgm.make],
                   [CGM_MAKE="${CGM_DIR}/lib/cgm.make"],
                   [AC_CHECK_FILE([${CGM_DIR}/cgm.make],
-                                 [CGM_MAKE="${CGM_DIR}/cgm.make"],
+                                 [CGM_MAKE="${CGM_DIR}/cgm.make"; USING_DEV_CGM=yes],
                                  [AC_MSG_ERROR([$CGM_DIR : not a configured CGM]); 
                                   CGM_MISSING=yes])
                   ])
@@ -777,7 +778,6 @@ esac
 if test "x$CGM_MISSING" = "xno"; then
   CGM_CONFIG_OPTIONS="include $CGM_MAKE"
 
-  AC_MSG_CHECKING([Checking for GeometryQueryTool::ray_fire(RefFace*,...)])
   FATHOM_MAKE_INC_VAR([$CGM_MAKE],[CGM_DEFINES], [CGM_CPPFLAGS="$make_val"])   
   FATHOM_MAKE_INC_VAR([$CGM_MAKE],[CGM_INCLUDES],[CGM_CPPFLAGS="$CGM_CPPFLAGS $make_val"])   
   FATHOM_MAKE_INC_VAR([$CGM_MAKE],[CGM_LTFLAGS], [CGM_LTFLAGS="$make_val"])   
@@ -789,40 +789,49 @@ if test "x$CGM_MISSING" = "xno"; then
   CPPFLAGS="$CGM_CPPFLAGS $CPPFLAGS"
   HAVE_OCC=no
   HAVE_FACET=no
-  AC_CHECK_HEADER([OCCPoint.hpp], 
-                   [HAVE_OCC=yes; AC_DEFINE(HAVE_CGM_OCC, [1], [MOAB uses CGM configured with OpenCascade]) ],
-                   [HAVE_FACET=yes; AC_DEFINE(HAVE_CGM_FACET, [1], [MOAB uses CGM configured with Facet Engine only]) ]
-                   )
+  AC_MSG_CHECKING([for underlying geometry engine in CGM])
+  AC_COMPILE_IFELSE(
+  [AC_LANG_PROGRAM([@%:@include <CGMConfig.h>],
+  [ #ifndef CGM_HAVE_FACET_ENGINE_ONLY
+  // Perfect!
+  #else
+  # error Only Facet engine available
+  #endif
+  ])
+  ],
+  [HAVE_OCC=yes
+   AC_DEFINE(HAVE_CGM_OCC, [1], [MOAB uses CGM configured with OpenCascade])
+   AC_MSG_RESULT(OCC)],
+  [HAVE_FACET=yes
+   AC_DEFINE(HAVE_CGM_FACET, [1], [MOAB uses CGM configured with Facet Engine only])
+  AC_MSG_RESULT(Facets)] )
   CPPFLAGS="$old_CPPFLAGS"
   AC_LANG_POP([C++])
 
-  if (test "x$HAVE_CUBIT" != "xno"); then
-    AC_LANG_PUSH([C++])
-    old_CPPFLAGS="$CPPFLAGS"
-    old_LDFLAGS="$LDFLAGS"
-    old_LIBS="$LIBS"
-    CPPFLAGS="$CGM_CPPFLAGS $CPPFLAGS"
-    LDFLAGS="$CGM_LDFLAGS $CPPFLAGS"
-    LIBS="$CGM_LIBS $LIBS"
-    HAVE_CGM_FIRE_RAY=no
-    AC_LINK_IFELSE(
-      [AC_LANG_PROGRAM([#include "GeometryQueryTool.hpp"
-                        #include "CubitVector.hpp"],
-                      [CubitVector a,b;
-                      DLIList<double> c;
-                      GeometryQueryTool::instance()->fire_ray((RefFace*)0, a, b, c );
-                      ])],
-      [HAVE_CGM_FIRE_RAY=yes;
-      
-      AC_MSG_RESULT(yes)],
-      [AC_MSG_RESULT(no)])
-    CPPFLAGS="$old_CPPFLAGS"
-    LDFLAGS="$old_LDFLAGS"
-    LIBS="$old_LIBS"
-#  LDFLAGS="$old_LDFLAGS"
-#  LIBS="$old_LIBS"
-    AC_LANG_POP([C++])
-  fi
+  AC_MSG_CHECKING([for GeometryQueryTool::ray_fire(RefFace*,...)])
+  AC_LANG_PUSH([C++])
+  old_CPPFLAGS="$CPPFLAGS"
+  old_LDFLAGS="$LDFLAGS"
+  old_LIBS="$LIBS"
+  CPPFLAGS="$CGM_CPPFLAGS $CPPFLAGS"
+  LDFLAGS="$CGM_LDFLAGS $CPPFLAGS"
+  LIBS="$CGM_LIBS $LIBS"
+  HAVE_CGM_FIRE_RAY=no
+  AC_LINK_IFELSE(
+    [AC_LANG_PROGRAM([#include "GeometryQueryTool.hpp"
+                      #include "CubitVector.hpp"],
+                    [CubitVector a,b;
+                    DLIList<double> c;
+                    GeometryQueryTool::instance()->fire_ray((RefFace*)0, a, b, c );
+                    ])],
+    [HAVE_CGM_FIRE_RAY=yes;
+    AC_MSG_RESULT(yes)],
+    [AC_MSG_RESULT(no)])
+  CPPFLAGS="$old_CPPFLAGS"
+  LDFLAGS="$old_LDFLAGS"
+  LIBS="$old_LIBS"
+  AC_LANG_POP([C++])
+
   EXPORT_LDFLAGS="$EXPORT_LDFLAGS $CGM_LDFLAGS"
   EXPORT_LTFLAGS="$EXPORT_LTFLAGS $CGM_LTFLAGS"
 fi
@@ -851,6 +860,7 @@ fi
 AC_MSG_CHECKING([if iRel support is to be built])
 AC_MSG_RESULT([$ENABLE_irel])
 AM_CONDITIONAL([ENABLE_irel],[test "xyes" = "x$ENABLE_irel"])
+
 if test "x$ENABLE_irel" = "xyes"; then
   if (test "x$ENABLE_imesh" != "xyes" || test "x$CGM_MISSING" != "xno"); then
     AC_MSG_ERROR([Cannot build iRel API. Enable both iGeom (CGM) and iMesh implementations.])
@@ -861,9 +871,9 @@ if test "x$ENABLE_irel" = "xyes"; then
               [IGEOM_CONFIG_OPTIONS="include ${CGM_DIR}/lib/iGeom-Defs.inc";
                FATHOM_MAKE_INC_VAR([${CGM_DIR}/lib/iGeom-Defs.inc],[IGEOM_DEFINES], [IGEOM_DEFINES="$make_val"],
                   [IGEOM_DEFINES=]) ],
-              [AC_CHECK_FILE([${CGM_DIR}/iGeom-Defs.inc],
-                             [IGEOM_CONFIG_OPTIONS="include ${CGM_DIR}/iGeom-Defs.inc"],
-                             [AC_MSG_WARN([$CGM_DIR : not a configured iGeom])]
+              [AC_CHECK_FILE([${CGM_DIR}/itaps/iGeom-Defs.inc],
+                             [IGEOM_CONFIG_OPTIONS="include ${CGM_DIR}/itaps/iGeom-Defs.inc"],
+                             [AC_MSG_WARN([$CGM_DIR : iGeom is not configured correctly])]
                             )
               ])
   AC_SUBST(IGEOM_DEFINES)
@@ -879,6 +889,7 @@ test "x$ENABLE_irel" != "xyes" || HAVE_IREL="yes"
 AC_SUBST(HAVE_IGEOM)
 AC_SUBST(HAVE_IMESH)
 AC_SUBST(HAVE_IREL)
+AM_CONDITIONAL([USING_DEV_CGM],[test "xyes" = "x$USING_DEV_CGM"])
 
 ###############################################################################
 #                           Optional Tools

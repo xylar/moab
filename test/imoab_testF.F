@@ -17,11 +17,12 @@
       integer ierr, num_procs, my_id
       integer pid
       character*10 appname
-      character*132 filename, tmpfile
+      character*200 filename
+      character*14  fname
       character*150 readopts
       integer ngv, nge, ndim, nparts
       integer nghlay
-      integer nverts(3), nelem(3), nblocks(3), nsbc(3), ndbc(3);
+      integer nverts(3), nelem(3), nblocks(3), nsbc(3), ndbc(3)
 C      large enough work arrays
       integer iwork(100000)
       real*8  dwork(100000)
@@ -53,6 +54,7 @@ C       indices for surface BC element, reference surf BC, value
 
       character*100 outfile, wopts
       my_id = 0
+      fname = '/io/p8ex1.h5m' // char(0)
 #ifdef MOAB_HAVE_MPI
       call MPI_INIT ( ierr )
       call errorout(ierr, 'fail to initialize MPI')
@@ -84,11 +86,9 @@ c     find out MY process ID, and how many processes were started.
 #endif
       call errorout(ierr, 'fail to register application')
 C
-      tmpfile = MESHDIR2
-      filename = trim(tmpfile) // '/io/p8ex1.h5m' // CHAR(0)
+      filename = MESHDIR2//fname
       ierr = iMOAB_ReadHeaderInfo ( filename, ngv, nge, ndim, nparts)
       call errorout(ierr, 'fail to read header info')
-
 
       if (0.eq.my_id) then
        print *, filename, ' has ', nparts, ' parts in partition',
@@ -103,10 +103,12 @@ C
 
 C  number of ghost layers needed by application
       nghlay = 1
+
+C  now let us load the mesh in parallel
       ierr = iMOAB_LoadMesh(pid, filename, readopts, nghlay)
       call errorout(ierr, 'fail to read file in parallel')
 
-C  number of
+C  number of vertices/elements/blocks/sidesets in the mesh
       ierr = iMOAB_GetMeshInfo(pid, nverts, nelem, nblocks, nsbc, ndbc)
       call errorout(ierr, 'fail to get mesh info')
 
@@ -136,10 +138,10 @@ C  double * coords = (double*) malloc(3*nverts[2]*sizeof(double));
 C      the 2 tags used in this example exist in the file, already
 C first tag, INTFIELD is on vertices, integer
 C second tag DFIELD is on elements, double
-      tagtype(1)=0                                                       !dense, int
-      tagtype(2)=1                                                       !dense, double
-      enttype(1)=0                                                       ! on verts
-      enttype(2)=1                                                       ! on elem
+      tagtype(1)=0                                  !dense, int
+      tagtype(2)=1                                  !dense, double
+      enttype(1)=0                                  ! on verts
+      enttype(2)=1                                  ! on elem
       num_co = 1
       tagname1 ='INTFIELD'//CHAR(0)
       ierr = iMOAB_DefineTagStorage(pid, tagname1, tagtype(1), num_co,
@@ -150,7 +152,6 @@ C second tag DFIELD is on elements, double
       ierr = iMOAB_DefineTagStorage(pid, tagname2, tagtype(2), num_co,
      &  tagindex(2) )
       call errorout(ierr, 'failed to get tag DFIELD')
-
 
 C       synchronize one of the tags only, just to see what happens
 C        put in the sync array just first tag index (INTFIELD)
@@ -229,7 +230,6 @@ C printf some of the block info */
           enddo
        enddo
 
-
 C      query int tag values on vertices
         iTAG= ifree
 
@@ -252,7 +252,6 @@ C         query double tag values on elements
         write (*, 104) (DWORK(dTAG+k-1), k=1,nelem(3) )
 104     FORMAT ( 10F7.2 )
 
-
 C       query surface BCs
         isBC = ifree
         irBC = isBC + nsbc(3)
@@ -268,7 +267,6 @@ C       query surface BCs
 105     FORMAT (' elem localID: ', I3, ' side:', I1, ' val:', I4)
 
 C       query vertex BCs
-
         iveBC = ifree
         ivaBC = iveBC + ndbc(3)
 
@@ -290,17 +288,17 @@ C       query vertex BCs
 
       enddo
 
-
       outfile = 'fnew.h5m'//CHAR(0)
 #ifdef MOAB_HAVE_MPI
       wopts   = 'PARALLEL=WRITE_PART'//CHAR(0)
 #else
       wopts=CHAR(0)
 #endif
+C     write out the mesh file to disk
       ierr = iMOAB_WriteMesh(pid, outfile, wopts)
       call errorout(ierr, 'fail to write the mesh file')
 
-
+C     all done. de-register and finalize
       ierr = iMOAB_DeregisterApplication(pid)
       call errorout(ierr, 'fail to deregister application')
 
