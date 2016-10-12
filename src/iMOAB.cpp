@@ -208,7 +208,7 @@ ErrCode iMOAB_RegisterFortranApplication( const iMOAB_String app_name,
 
 ErrCode iMOAB_DeregisterApplication( iMOAB_AppID pid )
 {
-	// the file set , parallel comm are all in vectors indexed by *pid
+        // the file set , parallel comm are all in vectors indexed by *pid
   // assume we did not delete anything yet
   // *pid will not be reused if we register another application
 
@@ -1052,7 +1052,7 @@ ErrCode iMOAB_SetDoubleTagStorage(iMOAB_AppID pid, const iMOAB_String tag_storag
     return 1;
 
   // set it on a subset of entities, based on type and length
-  Range * ents_to_set;
+  Range * ents_to_set = NULL;
   if (* ent_type == 0)// vertices
     ents_to_set = &data.all_verts;
   else if (* ent_type == 1)
@@ -1097,7 +1097,7 @@ ErrCode iMOAB_GetDoubleTagStorage(iMOAB_AppID pid, const iMOAB_String tag_storag
     return 1;
 
   // set it on a subset of entities, based on type and length
-  Range * ents_to_get;
+  Range * ents_to_get = NULL;
   if (* ent_type == 0)// vertices
     ents_to_get = &data.all_verts;
   else if (* ent_type == 1)
