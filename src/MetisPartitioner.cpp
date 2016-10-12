@@ -38,7 +38,7 @@ const bool debug = false;
 
 MetisPartitioner::MetisPartitioner( Interface *impl, 
                                     const bool use_coords)
-                                  : PartitionerBase<idx_t>(impl,use_coords), 
+                                  : PartitionerBase<idx_t>(impl,use_coords) 
 {
 }
 
