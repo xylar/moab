@@ -60,9 +60,11 @@ int main(int argc, char *argv[]){
 	ErrorCode error;
 	if(argc==1){
 		error = test_unitsq_tris(); MB_CHK_ERR(error);
+		/*
 		error = test_unitsq_quads(); MB_CHK_ERR(error);
 		error = test_unitsphere(); MB_CHK_ERR(error);
 		error = test_unitcircle(); MB_CHK_ERR(error);
+		*/
 		return 0;
 	}else{
 		infile = argv[1]; bool hasdim=false;
@@ -266,14 +268,14 @@ ErrorCode create_unitsq_quads(Interface *mbImpl, size_t n, std::vector<EntityHan
 
 ErrorCode test_unitsq_tris(){
 	ErrorCode error;
-	for(size_t n=2;n<=8;++n){
+	for(size_t n=2;n<=2;++n){
 		Core moab;
 		Interface *mbImpl=&moab;
 		std::vector<EntityHandle> tris;
 		error = create_unitsq_tris(mbImpl,n,tris); MB_CHK_ERR(error);
 		EntityHandle meshIn = 0;
 		HiReconstruction hirec(dynamic_cast<Core*>(mbImpl),0,meshIn);
-		for(int degree=1;degree<=6;++degree){
+		for(int degree=2;degree<=2;++degree){
 			//reconstruct geometry, interpolation
 			hirec.reconstruct3D_surf_geom(degree, true, true, true);
 			//test fitting result
@@ -291,6 +293,9 @@ ErrorCode test_unitsq_tris(){
 			}
 			std::cout << "triangulated unit square n= " << n << " degree= " << degree << " interpolation:\n";
 			std::cout << "maximum projection lift is " << mxdist << std::endl;
+			// for debug
+			return error;
+
 			mxdist = 0;
 			//reconstruct geometry, least square fitting
 			hirec.reconstruct3D_surf_geom(degree, false, false, true);

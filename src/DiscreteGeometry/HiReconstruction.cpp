@@ -790,7 +790,8 @@ namespace moab
 	 		return;
 	 	}
 
-		//std::cout<<"npnts in initial stencil = "<<nverts<<std::endl;
+		std::cout << "npnts in initial stencil = " << nverts << std::endl;
+		std::cout << "centered at (" << ngbcoords[0] << "," << ngbcoords[1] << "," << ngbcoords[2] << ")" << std::endl; 
 
 	 	//step 1. copmute local coordinate system
 	 	double nrm[3] = {ngbnrms[0],ngbnrms[1],ngbnrms[2]}, tang1[3] = {0,0,0}, tang2[3] = {0,0,0};
@@ -889,6 +890,8 @@ namespace moab
 	 	}
 	 	*degree_pnt = degree;
 
+	 	std::cout << "degree_pnt: " << *degree_pnt << std::endl;
+
 	 	//step 2. construct Vandermonde matrix, stored in columnwise
 	 	std::vector<double> V;//V(npts2fit*(ncols+interp)); //double *V_init = new double[npts2fit*(ncols+interp)];
 	 	Solvers::gen_vander_multivar(npts2fit,2,us,degree,V);
@@ -943,6 +946,8 @@ namespace moab
 	 	}
 	 	*degree_qr = degree;
 
+	 	std::cout << "degree_qr: " << *degree_qr << std::endl;
+
 		/* DBG
 		 * std::cout<<"before Qtb"<<std::endl;
 		std::cout<<std::endl;
@@ -977,6 +982,8 @@ namespace moab
 
 	 	//backsolve
 	 	if(safeguard){
+	 		//for debug
+	 		std::cout << "ts size " << ts.size() << std::endl;
 			Solvers::backsolve_polyfit_safeguarded(2,degree,npts2fit,ncols_sub,&(V[0]),ndim,bs,&(ts[0]),degree_out);
 	 	}else{
 	 		Solvers::backsolve(npts2fit,ncols_sub,&(V[0]),1,bs,&(ts[0]));

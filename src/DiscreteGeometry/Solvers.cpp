@@ -291,25 +291,35 @@ namespace moab {
           }
     std::cout<<" ] "<<std::endl;*/
 
+    std::cout << "R: " << R << "size: [" << mrows << "," << ncols << "]" << std::endl;
+    std::cout << "bs: " << bs << "size: [" << mrows << "," << bncols << "]" << std::endl;
+    std::cout << "ws: " << ws << "size: [" << ncols << "," << 1 << "]" << std::endl;
+    std::cout << "degree_out: " << degree_out << std::endl;
+
     int deg, numcols;
 
     for (int k=0; k< bncols; k++)
       {
         deg = degree;
-
+        /* I think we should consider interp = true/false -Xinglin*/
         if (dim==1)
           numcols = deg+1;
         else if (dim==2)
           numcols = (deg+2)*(deg+1)/2;
 
+        /*ERROR, assert is disabled*/
+        std::cout << "numcols: " << numcols << ", ncols: " << ncols << std::endl;
         assert(numcols <=ncols);
 
-        double *bs_bak = new double[numcols];
+        //double *bs_bak = new double[numcols];
+        std::vector<double> bs_bak(numcols);
 
         if (deg >= 2)
           {
             for (int i=0; i< numcols; i++){
-                bs_bak[i] = bs[mrows*k+i];
+                //bs_bak[i] = bs[mrows*k+i];
+                assert(mrows*k+i < mrows*bncols);
+                bs_bak.at(i) = bs[mrows*k+i];
                 //std::cout<<"bs_bak["<<i<<"] = "<<bs_bak[i]<<std::endl;
               }
           }
@@ -334,12 +344,15 @@ namespace moab {
                 //Solve for  bs
                 for (int j=cend; j>= cstart; j--)
                   {
+                    assert(mrows*k+j < mrows*bncols);
                     for (int i=j+1; i<numcols; ++i)
                       {
+                        assert(mrows*k+i < mrows*bncols);
+                        assert(mrows*i+j < mrows*ncols); // check R
                         bs[mrows*k+j] = bs[mrows*k+j] - R[mrows*i+j]*bs[mrows*k+i];
                       }
+                    assert(mrows*j+j < mrows*ncols); // check R
                     bs[mrows*k+j] = bs[mrows*k+j]/R[mrows*j+j];
-
                     //std::cout<<"bs["<<j<<"] = "<<bs[mrows*k+j]<<std::endl;
                   }
 
@@ -351,7 +364,9 @@ namespace moab {
                     if (dim == 1)
                       {
                         tol = 1e-06;
-                        double tb = bs_bak[cstart]/R[mrows*cstart+cstart];
+                        assert(mrows*cstart+cstart < mrows*ncols); // check R
+                        double tb = bs_bak.at(cstart)/R[mrows*cstart+cstart];
+                        assert(mrows*k+cstart < mrows*bncols);
                         if (fabs(bs[mrows*k+cstart]-tb) > (1+tol)*fabs(tb))
                           {
                             downgrade = true;
@@ -365,10 +380,11 @@ namespace moab {
 
                   //      std::cout<<"cend = "<<cend<<", cstart = "<<cstart<<std::endl;
 
-                        double *tb = new double[cend-cstart+1];
+                        //double *tb = new double[cend-cstart+1];
+                        std::vector<double> tb(cend-cstart+1);
                         for (int j=0; j<=(cend-cstart); j++)
                           {
-                            tb[j] = bs_bak[cstart+j];
+                            tb.at(j) = bs_bak.at(cstart+j);
                           //  std::cout<<"tb["<<j<<"] = "<<tb[j]<<std::endl;
                           }
 
@@ -380,15 +396,17 @@ namespace moab {
 
                             for (int i=j+1; i<=cend; ++i)
                               {
-                                tb[jind] = tb[jind] - R[mrows*i+j]*tb[i-cstart];
+                                assert(mrows*i+j < mrows*ncols); // check R
+                                tb.at(jind) = tb.at(jind) - R[mrows*i+j]*tb.at(i-cstart);
                               }
-                            tb[jind] = tb[jind]/R[mrows*j+j];
-
-                            double err = fabs(bs[mrows*k+j] - tb[jind]);
+                            assert(mrows*j+j < mrows*ncols); // check R
+                            tb.at(jind) = tb.at(jind)/R[mrows*j+j];
+                            assert(mrows*k+j < mrows*bncols);
+                            double err = fabs(bs[mrows*k+j] - tb.at(jind));
 
                          //   std::cout<<"fabs(tb[jind])="<<fabs(tb[jind])<<", err = "<<err<<std::endl;
 
-                            if ((err > tol) && (err >= (1+tol)*fabs(tb[jind])))
+                            if ((err > tol) && (err >= (1+tol)*fabs(tb.at(jind))))
                               {
                                 downgrade = true;
                             //    std::cout<<"downgraded"<<std::endl;
@@ -396,7 +414,7 @@ namespace moab {
                               }
                           }
 
-                        delete [] tb;
+                        //delete [] tb;
 
                         if (downgrade)
                           break;
@@ -416,27 +434,35 @@ namespace moab {
                 else if (dim == 2)
                   numcols = (deg+2)*(deg+1)/2;
 
-               for (int i=0; i<numcols; i++)
-                 bs[mrows*k+i] = bs_bak[i];
+               for (int i=0; i<numcols; i++) {
+                 assert(mrows*k+i < mrows*bncols);
+                 bs[mrows*k+i] = bs_bak.at(i);
+               }
             }
           }
-
+        assert(k < bncols);
         degree_out[k] = deg;
 
         //std::cout<<"BACKSOLVE_SAFEGUARDED solution bs = [ ";
-
+        std::cout << "numcols: " << numcols << std::endl;
         for (int i=0; i<numcols; i++)
           {
+            /*ERROR*/
+            assert(mrows*k+i < mrows*bncols);
+            assert(i < ncols);
+            std::cout << "ws[" << i << "]: " << ws[i] << "\tAddress: " << ws+i << std::endl; 
             bs[mrows*k+i] = bs[mrows*k+i]/ws[i];
         //    std::cout<<bs[mrows*k+i]<<", ";
           }
 
      //   std::cout<<" ] "<<std::endl;
 
-        for (int i=numcols; i<mrows; i++)
+        for (int i=numcols; i<mrows; i++) {
+          assert(mrows*k+i < mrows*bncols);
           bs[mrows*k+i] = 0;
+        }
 
-        delete [] bs_bak;
+        //delete [] bs_bak;
       }
 
   }
