@@ -24,7 +24,7 @@ static void test_save();
 #define ASSERT_DOUBLES_EQUAL(A, B) assert_doubles_equal( (A), (B), #A, #B, __LINE__ )
 #define ASSERT(B) assert_bool( (B), #B, __LINE__ )
 
-static void assert_vector_element( const CartVect& a, const CartVect* b, const char* sa, const char* sb, int lineno );
+static void assert_vector_element( const CartVect& a, const Matrix3& b, const char* sa, const char* sb, int lineno );
 static void assert_vectors_equal( const CartVect& a, const CartVect& b, const char* sa, const char* sb, int lineno );
 static void assert_doubles_equal( double a, double b, const char* sa, const char* sb, int lineno );
 static void assert_bool( bool b, const char* sb, int lineno );
@@ -38,7 +38,6 @@ int main()
   test_build_from_tri();
   test_build_from_pts();
   test_save();
-  
   return error_count;
 }
 
@@ -46,9 +45,9 @@ int main()
 
   // define unit box centered at origin
 const CartVect origin( 0.0, 0.0, 0.0 );
-const CartVect unitaxes[3] = { CartVect(0.5, 0.0, 0.0),
-                                 CartVect(0.0, 0.5, 0.0),
-                                 CartVect(0.0, 0.0, 0.5) };
+const Matrix3 unitaxes ( 0.5, 0.0, 0.0,
+                         0.0, 0.5, 0.0,
+                         0.0, 0.0, 0.5 );
 const OrientedBox unitbox( unitaxes, origin );
 
   // define axis-aligned unit box outside origin
@@ -56,16 +55,22 @@ const CartVect unitcenter( 10, 20, 30 );
 const OrientedBox offsetbox( unitaxes, unitcenter );
 
   // define non-unit centered at origin
-const CartVect origaxes[3] = { 5*unitaxes[0],
-                                10*unitaxes[1],
-                                .1*unitaxes[2] };
+const Matrix3 origaxes ( 5*unitaxes.col(0),
+                         10*unitaxes.col(1),
+                         0.1*unitaxes.col(2) , true);
 const OrientedBox oblongbox( origaxes, origin );
 
-  // define non-axis-aligned unit box at origin
-const CartVect rotaxes[3] = { unit( CartVect( 1.0, 1.0, 0.0 ) ),
-                                unit( CartVect( 1.0,-1.0, 1.0 ) ),
-                                unit( CartVect( 1.0, 1.0, 0.0 )*CartVect( 1.0,-1.0, 1.0 ) ) };
+  // define non-axis-aligned box at origin (non unit) ;
+ // the constructor of OrientedBox normalizes the vectors, and keeps the scales
+const CartVect rotax0 =  CartVect( 1.0, 1.0, 0.0 ) ;
+const CartVect rotax1 =  CartVect( 1.0,-1.0, 1.0 ) ;
+const CartVect rotax2 =  CartVect( 1.0, 1.0, 0.0 ) * CartVect( 1.0,-1.0, 1.0 ) ;
+const CartVect rotax[3] = {rotax0, rotax1, rotax2};
+const OrientedBox rotbox_cv( rotax, origin );
+
+const Matrix3 rotaxes(rotax0, rotax1, rotax2, false); // so these are columns, as in the constructor that takes 3 "CartVect"s
 const OrientedBox rotbox( rotaxes, origin );
+
 
 /********************* Utility methods for tests ***************************/
 
@@ -95,9 +100,9 @@ static CartVect scaled_face( const OrientedBox& box, int face, double factor )
 }
 
 // get vector containing axis lengths, ordered from smallest to largest
-static void axis_dims( const CartVect axis[3], CartVect& dims )
+static void axis_dims( const Matrix3 axis, CartVect& dims )
 {
-  dims = CartVect(axis[0].length(), axis[1].length(), axis[2].length());
+  dims = CartVect(axis.col(0).length(), axis.col(1).length(), axis.col(2).length());
   if (dims[0] > dims[1]) 
     std::swap(dims[0], dims[1]);
   if (dims[1] > dims[2])
@@ -112,7 +117,7 @@ static void axis_dims( const CartVect axis[3], CartVect& dims )
 static void test_basic()
 {
   CartVect dims;
-  
+ 
   axis_dims( unitaxes, dims );
   ASSERT_VECTORS_EQUAL( unitbox.center, origin );
   ASSERT_VECTOR_ELEMENT( unitbox.scaled_axis(0), unitaxes );
@@ -142,7 +147,8 @@ static void test_basic()
   ASSERT_DOUBLES_EQUAL( oblongbox.outer_radius(), dims.length() );
   ASSERT_DOUBLES_EQUAL( oblongbox.volume(), 8.0*dims[0]*dims[1]*dims[2] );
   ASSERT_VECTORS_EQUAL( oblongbox.dimensions(), 2*dims );
-  
+
+  //test matrix constructor
   axis_dims( rotaxes, dims );
   ASSERT_VECTORS_EQUAL( rotbox.center, origin );
   ASSERT_VECTOR_ELEMENT( rotbox.scaled_axis(0), rotaxes );
@@ -152,8 +158,18 @@ static void test_basic()
   ASSERT_DOUBLES_EQUAL( rotbox.outer_radius(), dims.length() );
   ASSERT_DOUBLES_EQUAL( rotbox.volume(), 8.0*dims[0]*dims[1]*dims[2] );
   ASSERT_VECTORS_EQUAL( rotbox.dimensions(), 2*dims );
-}
+
+  //test cartvect constructor; ordering of the axes by length happens in the constructor
+  ASSERT_VECTORS_EQUAL( rotbox_cv.center, origin );
+  ASSERT_VECTORS_EQUAL( rotbox_cv.scaled_axis(0), rotax0 );
+  ASSERT_VECTORS_EQUAL( rotbox_cv.scaled_axis(1), rotax1 );
+  ASSERT_VECTORS_EQUAL( rotbox_cv.scaled_axis(2), rotax2 );
+  ASSERT_DOUBLES_EQUAL( rotbox_cv.inner_radius(), dims[0] );
+  ASSERT_DOUBLES_EQUAL( rotbox_cv.outer_radius(), dims.length() );
+  ASSERT_DOUBLES_EQUAL( rotbox_cv.volume(), 8.0*dims[0]*dims[1]*dims[2] );
+  ASSERT_VECTORS_EQUAL( rotbox_cv.dimensions(), 2*dims );
   
+}
 
 static void test_contained() 
 {
@@ -1256,9 +1272,9 @@ void test_build_from_tri()
   ASSERT( MB_SUCCESS == rval );
   
     // compute range along each box axis for input vertices
-  const CartVect axis[3] = { box.scaled_axis(0),
-                               box.scaled_axis(1),
-                               box.scaled_axis(2) };
+  const Matrix3 axis ( box.scaled_axis(0),
+                       box.scaled_axis(1),
+                       box.scaled_axis(2), false );
   double min[3], max[3];
   CartVect v = CartVect(coords) - box.center;
   min[0] = max[0] = box.scaled_axis(0) % v;
@@ -1268,7 +1284,7 @@ void test_build_from_tri()
     CartVect vi( coords + 3*i );
     CartVect vLocal = vi - box.center;
     for (int j = 0; j < 3; ++j) {
-      double d = (axis[j] % vLocal) / (axis[j] % axis[j]);
+      double d = (axis.col(j) % vLocal) / (axis.col(j) % axis.col(j));
       if (d < min[j])
         min[j] = d;
       if (d > max[j])
@@ -1289,8 +1305,8 @@ void test_build_from_tri()
   ASSERT( box.dimensions()[0] <= TOL );
     // verify that other two axes are in XY plane
   const CartVect z_axis(0.0,0.0,1.0);
-  ASSERT( fabs(box.axis[1] % z_axis) <= TOL );
-  ASSERT( fabs(box.axis[2] % z_axis) <= TOL );
+  ASSERT( fabs(box.axis(1) % z_axis) <= TOL );
+  ASSERT( fabs(box.axis(2) % z_axis) <= TOL );
 }
                          
     
@@ -1384,25 +1400,30 @@ static void test_save()
 /********************* Error Checking Code ***************************/
 
 static void assert_vector_element( const CartVect& a, 
-                                   const CartVect b[3], 
+                                   const Matrix3& b, 
                                    const char* sa, 
                                    const char* sb, 
                                    int lineno )
 {
   int i;
-  for (i = 0; i < 3; ++i) 
-    if (fabs(a[0] - b[i][0]) <= TOL
-     && fabs(a[1] - b[i][1]) <= TOL
-     && fabs(a[2] - b[i][2]) <= TOL)
-      return;
-      
-  ++error_count;
-  std::cerr << "Assertion failed at line " << lineno << std::endl
-            << "\t" << sa << " in " << sb << std::endl
-            << "\t" << sa << " = " << a << std::endl
-            << "\t" << sb << " = " << b[0] << ", " << b[1] << ", " << b[2] << std::endl;
+  bool ismatch=false;
+  for (i = 0; i < 3; ++i) {
+    if (fabs(a[0] - b(0, i)) <= TOL
+     && fabs(a[1] - b(1, i)) <= TOL
+     && fabs(a[2] - b(2, i)) <= TOL) {
+      ismatch = true;
+      break;
+    }
+  }
+  if (!ismatch) {
+    ++error_count;
+    std::cerr << "Assertion failed at line " << lineno << std::endl
+              << "\t" << sa << " in " << sb << std::endl
+              << "\t" << sa << " = " << a << std::endl
+              << "\t" << sb << " = " << b << std::endl;
+  }
+  return;
 }
-
 
 void assert_vectors_equal( const CartVect& a, const CartVect& b, 
                            const char* sa, const char* sb,

@@ -1449,7 +1449,7 @@ bool VolMap::solve_inverse( const CartVect& x, CartVect& xi, double tol ) const
     det = J.determinant();
     if (det < std::numeric_limits<double>::epsilon())
       return false;
-    xi -= J.inverse(1.0/det) * delta;
+    xi -= J.inverse() * delta;
     delta = evaluate( xi ) - x;
   }
   return true;

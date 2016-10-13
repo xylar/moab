@@ -18,6 +18,7 @@
  *\date 2012-08-2 Updated by rhl to be more generic. less code that does more!
  * TODO: Remove all 'inline' keywords as it is only a suggestion to the compiler
  * anyways, and it will ignore it or add it when it thinks its necessary.
+ *\date 2016-08-03 Updated to use Eigen3 support underneath to improve performance
  */
 
 #ifndef MOAB_MATRIX3_HPP
@@ -33,21 +34,38 @@
 #include "moab/Types.hpp"
 #include "moab/CartVect.hpp"
 
+#ifdef __GNUC__
+// save diagnostic state
+#pragma GCC diagnostic push
+// turn off the specific warning. Can also use "-Wshadow"
+#pragma GCC diagnostic ignored "-Wshadow"
+#endif
+
+#define EIGEN_DEFAULT_TO_ROW_MAJOR
+#define EIGEN_INITIALIZE_MATRICES_BY_ZERO
+// #define EIGEN_NO_STATIC_ASSERT
+#include "moab/Eigen/Dense"
+
+#ifdef __GNUC__
+// turn the warnings back on
+#pragma GCC diagnostic pop
+#endif
+
 namespace moab {
 
 namespace Matrix{
 	template< typename Matrix>
 	Matrix inverse( const Matrix & d, const double i){
 		Matrix m( d);
-		 m( 0) = i * (d(4) * d(8) - d(5) * d(7));
-	         m( 1) = i * (d(2) * d(7) - d(8) * d(1));
-	         m( 2) = i * (d(1) * d(5) - d(4) * d(2));
-	         m( 3) = i * (d(5) * d(6) - d(8) * d(3));
-	         m( 4) = i * (d(0) * d(8) - d(6) * d(2));
-	         m( 5) = i * (d(2) * d(3) - d(5) * d(0));
-	         m( 6) = i * (d(3) * d(7) - d(6) * d(4));
-	         m( 7) = i * (d(1) * d(6) - d(7) * d(0));
-	         m( 8) = i * (d(0) * d(4) - d(3) * d(1));
+		m( 0) = i * (d(4) * d(8) - d(5) * d(7));
+    m( 1) = i * (d(2) * d(7) - d(8) * d(1));
+    m( 2) = i * (d(1) * d(5) - d(4) * d(2));
+    m( 3) = i * (d(5) * d(6) - d(8) * d(3));
+    m( 4) = i * (d(0) * d(8) - d(6) * d(2));
+    m( 5) = i * (d(2) * d(3) - d(5) * d(0));
+    m( 6) = i * (d(3) * d(7) - d(6) * d(4));
+    m( 7) = i * (d(1) * d(6) - d(7) * d(0));
+    m( 8) = i * (d(0) * d(4) - d(3) * d(1));
 		return m;
 	}
 
@@ -137,7 +155,7 @@ namespace Matrix{
 	//automatically inlines them.
 
 	template< typename Matrix, typename Vector>
-	ErrorCode EigenDecomp( const Matrix & _a,
+	ErrorCode EigenDecomp2( const Matrix & _a,
 	                       double w[3],
 	                       Vector o[3] ) {
 	  Vector v[3];
@@ -267,183 +285,224 @@ namespace Matrix{
 } //namespace Matrix
 
 class Matrix3  {
-  //TODO: std::array when we can use C++11
-  double d[9];
+  Eigen::Matrix3d _mat;
 
 public:
   //Default Constructor
-  inline Matrix3(){
-	for(int i = 0; i < 9; ++i){ d[ i] = 0; }
+  inline Matrix3() {
+    _mat.fill(0.0);
+  }
+  inline Matrix3(Eigen::Matrix3d mat) : _mat(mat) {
   }
   //TODO: Deprecate this.
   //Then we can go from three Constructors to one. 
-  inline Matrix3( double diagonal ){ 
-      d[0] = d[4] = d[8] = diagonal;
-      d[1] = d[2] = d[3] = 0.0;
-      d[5] = d[6] = d[7] = 0.0;
+  inline Matrix3( double diagonal ) {
+    _mat << diagonal, 0.0, 0.0,
+            0.0, diagonal, 0.0,
+            0.0, 0.0, diagonal;
   }
-  inline Matrix3( const CartVect & diagonal ){ 
-      d[0] = diagonal[0];
-      d[4] = diagonal[1],
-      d[8] = diagonal[2];
-      d[1] = d[2] = d[3] = 0.0;
-      d[5] = d[6] = d[7] = 0.0;
+  inline Matrix3( const CartVect & diagonal ) {
+    _mat << diagonal[0], 0.0, 0.0,
+            0.0, diagonal[1], 0.0,
+            0.0, 0.0, diagonal[2];
   }
   //TODO: not strictly correct as the Matrix3 object
   //is a double d[ 9] so the only valid model of T is
   //double, or any refinement (int, float) 
   //*but* it doesn't really matter anything else
   //will fail to compile.
-  template< typename T> 
-  inline Matrix3( const std::vector< T> & diagonal ){ 
-      d[0] = diagonal[0];
-      d[4] = diagonal[1],
-      d[8] = diagonal[2];
-      d[1] = d[2] = d[3] = 0.0;
-      d[5] = d[6] = d[7] = 0.0;
+  inline Matrix3( const std::vector<double> & diagonal ) { 
+    _mat << diagonal[0], 0.0, 0.0,
+            0.0, diagonal[1], 0.0,
+            0.0, 0.0, diagonal[2];
   }
 
-inline Matrix3( double v00, double v01, double v02,
+  inline Matrix3( double v00, double v01, double v02,
                 double v10, double v11, double v12,
-                double v20, double v21, double v22 ){
-    d[0] = v00; d[1] = v01; d[2] = v02;
-    d[3] = v10; d[4] = v11; d[5] = v12;
-    d[6] = v20; d[7] = v21; d[8] = v22;
-}
+                double v20, double v21, double v22 ) {
+    _mat << v00, v01, v02,
+            v10, v11, v12,
+            v20, v21, v22;
+  }
 
   //Copy constructor 
-  Matrix3 ( const Matrix3 & f){
-	for(int i = 0; i < 9; ++i) { d[ i] = f.d[ i]; }
-  }
+  Matrix3 ( const Matrix3 & f) : _mat(f._mat) {}
+
   //Weird constructors 
   template< typename Vector> 
   inline Matrix3(   const Vector & row0,
                     const Vector & row1,
-                    const Vector & row2 ) {
-      for(std::size_t i = 0; i < 3; ++i){
-	d[ i] = row0[ i];
-	d[ i+3]= row1[ i];
-	d[ i+6] = row2[ i];
-      }
+                    const Vector & row2,
+                    const bool isRow) {
+    if (isRow) {
+      _mat << row0[0], row0[1], row0[2],
+              row1[0], row1[1], row1[2],
+              row2[0], row2[1], row2[2];
+    }
+    else {
+      _mat << row0[0], row1[0], row2[0],
+              row0[1], row1[1], row2[1],
+              row0[2], row1[2], row2[2];
+    }
   }
   
-  inline Matrix3( const double* v ){ 
-      d[0] = v[0]; d[1] = v[1]; d[2] = v[2];
-      d[3] = v[3]; d[4] = v[4]; d[5] = v[5]; 
-      d[6] = v[6]; d[7] = v[7]; d[8] = v[8];
+  inline Matrix3( const double v[9] ){ 
+    _mat << v[0], v[1], v[2],
+            v[3], v[4], v[5],
+            v[6], v[7], v[8];
   }
   
   inline Matrix3& operator=( const Matrix3& m ){
-      d[0] = m.d[0]; d[1] = m.d[1]; d[2] = m.d[2];
-      d[3] = m.d[3]; d[4] = m.d[4]; d[5] = m.d[5];
-      d[6] = m.d[6]; d[7] = m.d[7]; d[8] = m.d[8];
-      return *this;
+    _mat = m._mat;
+    return *this;
   }
   
-  inline Matrix3& operator=( const double* v ){ 
-      d[0] = v[0]; d[1] = v[1]; d[2] = v[2];
-      d[3] = v[3]; d[4] = v[4]; d[5] = v[5]; 
-      d[6] = v[6]; d[7] = v[7]; d[8] = v[8];
-      return *this;
+  inline Matrix3& operator=( const double v[9] ){ 
+    _mat << v[0], v[1], v[2],
+            v[3], v[4], v[5],
+            v[6], v[7], v[8];
+    return *this;
  }
 
-  inline double* operator[]( unsigned i ){ return d + 3*i; }
-  inline const double* operator[]( unsigned i ) const{ return d + 3*i; }
-  inline double& operator()(unsigned r, unsigned c) { return d[3*r+c]; }
-  inline double operator()(unsigned r, unsigned c) const { return d[3*r+c]; }
-  inline double& operator()(unsigned i) { return d[i]; }
-  inline double operator()(unsigned i) const { return d[i]; }
+  inline double* operator[]( unsigned i ){ return _mat.row(i).data(); }
+  inline const double* operator[]( unsigned i ) const{ return _mat.row(i).data(); }
+  inline double& operator()(unsigned r, unsigned c) { return _mat(r,c); }
+  inline double operator()(unsigned r, unsigned c) const { return _mat(r,c); }
+  inline double& operator()(unsigned i) { return _mat(i); }
+  inline double operator()(unsigned i) const { return _mat(i); }
   
     // get pointer to array of nine doubles
   inline double* array()
-      { return d; }
+      { return _mat.data(); }
   inline const double* array() const
-      { return d; }
+      { return _mat.data(); }
 
   inline Matrix3& operator+=( const Matrix3& m ){
-      d[0] += m.d[0]; d[1] += m.d[1]; d[2] += m.d[2];
-      d[3] += m.d[3]; d[4] += m.d[4]; d[5] += m.d[5];
-      d[6] += m.d[6]; d[7] += m.d[7]; d[8] += m.d[8];
-      return *this;
+    _mat += m._mat;
+    return *this;
   }
   
   inline Matrix3& operator-=( const Matrix3& m ){
-      d[0] -= m.d[0]; d[1] -= m.d[1]; d[2] -= m.d[2];
-      d[3] -= m.d[3]; d[4] -= m.d[4]; d[5] -= m.d[5];
-      d[6] -= m.d[6]; d[7] -= m.d[7]; d[8] -= m.d[8];
-      return *this;
+    _mat -= m._mat;
+    return *this;
   }
   
   inline Matrix3& operator*=( double s ){
-      d[0] *= s; d[1] *= s; d[2] *= s;
-      d[3] *= s; d[4] *= s; d[5] *= s;
-      d[6] *= s; d[7] *= s; d[8] *= s;
-      return *this;
- }
-  
+    _mat *= s;
+    return *this;
+  }
+
   inline Matrix3& operator/=( double s ){
-      d[0] /= s; d[1] /= s; d[2] /= s;
-      d[3] /= s; d[4] /= s; d[5] /= s;
-      d[6] /= s; d[7] /= s; d[8] /= s;
-      return *this;
+    _mat /= s;
+    return *this;
   }
- 
+
   inline Matrix3& operator*=( const Matrix3& m ){
-	(*this) = moab::Matrix::mmult3((*this),m); 
-	return *this;
+	  _mat *= m._mat;
+	  return *this;
   }
-  
+
+  inline ErrorCode eigen_decomposition(Eigen::Vector3d& evals, Matrix3& evecs)
+  {
+    Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> eigensolver(this->_mat);
+    if (eigensolver.info() != Eigen::Success)
+      return MB_FAILURE;
+    evals = eigensolver.eigenvalues();
+    evecs._mat = eigensolver.eigenvectors(); //.col(1)
+    return MB_SUCCESS;
+  }
+
+  inline ErrorCode eigen_decomposition(CartVect& evals, Matrix3& evecs)
+  {
+    Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> eigensolver(this->_mat);
+    if (eigensolver.info() != Eigen::Success)
+      return MB_FAILURE;
+    Eigen::Vector3d _evals = eigensolver.eigenvalues();
+    evals[0] = _evals[0];
+    evals[1] = _evals[1];
+    evals[2] = _evals[2];
+    evecs._mat = eigensolver.eigenvectors(); //.col(1)
+    return MB_SUCCESS;
+  }
+
+  inline void transpose_inplace()
+  {
+    return _mat.transposeInPlace();
+  }
+
+  inline Matrix3 transpose() const
+  {
+    return Matrix3( _mat.transpose() );
+  }
+
+  inline void swapcol(int index, Eigen::Vector3d& vol) {
+  	_mat.col(index).swap(vol);
+  }
+
+  inline void swapcol(int srcindex, Matrix3& vol, int destindex) {
+  	_mat.col(srcindex).swap(vol._mat.col(destindex));
+  }
+
+  inline void swapcol(int srcindex, int destindex) {
+  	_mat.col(srcindex).swap(_mat.col(destindex));
+  }
+
+ inline Eigen::Vector3d vcol(int index) const {
+  	return _mat.col(index);
+  }
+
+ inline void colscale(int index, double scale) {
+  	_mat.col(index) *= scale;
+  }
+
+ inline void rowscale(int index, double scale) {
+  	_mat.row(index) *= scale;
+  }
+
+  inline CartVect col(int index) const{
+    Eigen::Vector3d mvec = _mat.col(index);
+  	return CartVect(mvec[0], mvec[1], mvec[2]);
+  }
+
+  inline CartVect row(int index) const{
+    Eigen::Vector3d mvec = _mat.row(index);
+  	return CartVect(mvec[0], mvec[1], mvec[2]);
+  }
+
+  friend Matrix3 operator+( const Matrix3& a, const Matrix3& b );
+  friend Matrix3 operator-( const Matrix3& a, const Matrix3& b );
+  friend Matrix3 operator*( const Matrix3& a, const Matrix3& b );
+
   inline double determinant() const{
-  	return moab::Matrix::determinant3( *this);
+  	return _mat.determinant();
   }
  
-  inline Matrix3 inverse() const { 
-	const double i = 1.0/determinant();
-	return moab::Matrix::inverse( *this, i); 
+  inline Matrix3 inverse() const {
+    return Matrix3(_mat.inverse());
   }
-  inline Matrix3 inverse( double i ) const {
-  	return moab::Matrix::inverse( *this, i); 
-  }
-  
-  inline bool positive_definite() const{
-  	double tmp;
-  	return positive_definite( tmp);
-  }
-  
-  inline bool positive_definite( double& det ) const{
-	  return moab::Matrix::positive_definite( *this, det);
-  }
-  
-  inline Matrix3 transpose() const{ return moab::Matrix::transpose( *this); }
-  
+ 
   inline bool invert() {
-    double i = 1.0 / determinant();
-    if (!Util::is_finite(i) || fabs(i) < std::numeric_limits<double>::epsilon())
+    Eigen::Matrix3d invMat;
+    bool invertible;
+    double d_determinant;
+    _mat.computeInverseAndDetWithCheck(invMat, d_determinant, invertible);
+    if (!Util::is_finite(d_determinant))
       return false;
-    *this = inverse( i );
-    return true;
+    _mat = invMat;
+    return invertible;
   }
     // Calculate determinant of 2x2 submatrix composed of the
     // elements not in the passed row or column.
   inline double subdet( int r, int c ) const{
-	const int r1 = (r+1)%3, r2 = (r+2)%3;
-	const int c1 = (c+1)%3, c2 = (c+2)%3;
-	assert(r >= 0 && c >= 0);
-	if (r < 0 || c < 0) return DBL_MAX;
-	return d[3*r1+c1]*d[3*r2+c2] - d[3*r1+c2]*d[3*r2+c1];
+    const int r1 = (r+1)%3, r2 = (r+2)%3;
+    const int c1 = (c+1)%3, c2 = (c+2)%3;
+    assert(r >= 0 && c >= 0);
+    if (r < 0 || c < 0) return DBL_MAX;
+    return _mat(r1,c1)*_mat(r2,c2) - _mat(r1,c2)*_mat(r2,c1);
   }
 }; //class Matrix3
 
-inline Matrix3 operator+( const Matrix3& a, const Matrix3& b ){ 
-	return Matrix3(a) += b; 
-}
-inline Matrix3 operator-( const Matrix3& a, const Matrix3& b ){ 
-	return Matrix3(a) -= b; 
-}
 
-inline Matrix3 operator*( const Matrix3& a, const Matrix3& b ) {
-	return moab::Matrix::mmult3( a, b);
-}
 
 template< typename Vector>
 inline Matrix3 outer_product( const Vector & u,
@@ -451,6 +510,18 @@ inline Matrix3 outer_product( const Vector & u,
   return Matrix3( u[0] * v[0], u[0] * v[1], u[0] * v[2],
                   u[1] * v[0], u[1] * v[1], u[1] * v[2],
                   u[2] * v[0], u[2] * v[1], u[2] * v[2] );
+}
+
+inline Matrix3 operator+( const Matrix3& a, const Matrix3& b ) {
+  return Matrix3(a._mat + b._mat);
+}
+
+inline Matrix3 operator-( const Matrix3& a, const Matrix3& b ){ 
+  return Matrix3(a._mat - b._mat);
+}
+
+inline Matrix3 operator*( const Matrix3& a, const Matrix3& b ) {
+  return Matrix3(a._mat * b._mat);
 }
 
 template< typename T>

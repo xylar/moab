@@ -35,7 +35,7 @@ namespace moab
     }
 
     ErrorCode LinearTet::evalFcn(const double *params, const double *field, const int /*ndim*/, const int num_tuples, 
-                                 double */*work*/, double *result) {
+                                 double* /*work*/, double *result) {
       assert(params && field && num_tuples > 0);
       std::vector<double> f0(num_tuples);
       std::copy(field, field+num_tuples, f0.begin());
@@ -50,7 +50,7 @@ namespace moab
       return MB_SUCCESS;
     }
 
-    ErrorCode LinearTet::integrateFcn(const double *field, const double */*verts*/, const int nverts, const int /*ndim*/, const int num_tuples,
+    ErrorCode LinearTet::integrateFcn(const double *field, const double* /*verts*/, const int nverts, const int /*ndim*/, const int num_tuples,
                                       double *work, double *result) 
     {
       assert(field && num_tuples > 0);
@@ -122,9 +122,11 @@ namespace moab
       CartVect res = new_pos - *cvposn;
       Matrix3 J;
       rval = (*jacob)(cvparams->array(), verts, nverts, ndim, work, J[0]);
+#ifndef NDEBUG
       double det = J.determinant();
       assert(det > std::numeric_limits<double>::epsilon());
-      Matrix3 Ji = J.inverse(1.0/det);
+#endif
+      Matrix3 Ji = J.inverse();
 
       int iters=0;
         // while |res| larger than tol

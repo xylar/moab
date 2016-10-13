@@ -81,20 +81,19 @@ void test_EigenDecomp()
 
   //now do the Eigen Decomposition of this Matrix
 
-  double lamda[3]; 
-  moab::CartVect vectors[3];
-  moab::ErrorCode rval = moab::Matrix::EigenDecomp( mat, lamda, vectors);
-  CHECK_ERR(rval);
+  CartVect lamda; 
+  Matrix3 vectors;
+  moab::ErrorCode rval = mat.eigen_decomposition(lamda, vectors);CHECK_ERR(rval);
   for (int i=0; i < 3; ++i)
-    vectors[i].normalize();
+    vectors.col(i).normalize();
 
   //Hardcoded check values for the results
   double lamda_check[3];
-  lamda_check[0] = 3.41421; lamda_check[1] = 2.0; lamda_check[2] = 0.585786;
+  lamda_check[0] = 0.585786; lamda_check[1] = 2.0; lamda_check[2] = 3.41421;
 
-  moab::CartVect vec0_check(0.5, -0.707107, 0.5);
+  moab::CartVect vec0_check(0.5, 0.707107, 0.5);
   moab::CartVect vec1_check(0.707107, 3.37748e-17, -0.707107);
-  moab::CartVect vec2_check(0.5, 0.707107, 0.5);
+  moab::CartVect vec2_check(0.5, -0.707107, 0.5);
 
   //now verfy that the returns Eigenvalues and Eigenvectors are correct (within some tolerance)
   double tol = 1e-04;
@@ -109,25 +108,24 @@ void test_EigenDecomp()
 
   //check the Eigenvector values (order should correspond to the Eigenvalues)
   //first vector
-  CHECK_EIGVECREAL_EQUAL( vectors[0], vec0_check, tol );
+  CHECK_EIGVECREAL_EQUAL( vectors.col(0), vec0_check, tol );
   
   //sceond vector
-  CHECK_EIGVECREAL_EQUAL( vectors[1], vec1_check, tol );
+  CHECK_EIGVECREAL_EQUAL( vectors.col(1), vec1_check, tol );
 
   //third vector
-  CHECK_EIGVECREAL_EQUAL( vectors[2], vec2_check, tol );
+  CHECK_EIGVECREAL_EQUAL( vectors.col(2), vec2_check, tol );
 
   //another check to ensure the result is valid (AM-kM = 0)
   for(unsigned i=0; i<3; ++i) {
-    moab::CartVect v = moab::Matrix::matrix_vector(mat, vectors[i])-lamda[i]*vectors[i];
+    moab::CartVect v = moab::Matrix::matrix_vector(mat, vectors.col(i))-lamda[i]*vectors.col(i);
     CHECK_REAL_EQUAL( v.length(), 0, tol );
   }
 
   //for a real, symmetric matrix the Eigenvectors should be orthogonal
-  CHECK_REAL_EQUAL( vectors[0]%vectors[1], 0 , tol );
-  CHECK_REAL_EQUAL( vectors[0]%vectors[2], 0 , tol );
+  CHECK_REAL_EQUAL( vectors.col(0)%vectors.col(1), 0 , tol );
+  CHECK_REAL_EQUAL( vectors.col(0)%vectors.col(2), 0 , tol );
   
   return;
 }
-
 

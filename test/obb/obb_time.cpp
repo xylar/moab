@@ -73,16 +73,16 @@ bool do_trv_stats = false;
 
 // global to make accessable to signal handler
 int rays = 0, xsct = 0, gen = 0;
-clock_t t;
+clock_t ttimer;
 
 extern "C" {
   void signal_handler( int ) {
-    t = clock() - t;
+    ttimer = clock() - ttimer;
     std::cout << filename << ":" << std::endl
               << rays << " of " << num_rays << " ray fires done" << std::endl
               << xsct << " of " << num_xsct << " intersecting fires" << std::endl
               << gen  << " unique rays used" << std::endl
-              << (double)t/CLOCKS_PER_SEC << " seconds" << std::endl;
+              << (double)ttimer/CLOCKS_PER_SEC << " seconds" << std::endl;
     exit(1);
   }
 }
@@ -170,7 +170,7 @@ int main( int argc, char* argv[] )
   randrays.reserve( cached );
   int cached_idx = 0;
   
-  t = clock();
+  ttimer = clock();
   for (;;) {
     if (!num_rays) {
       if (xsct >= num_xsct)
@@ -219,11 +219,11 @@ int main( int argc, char* argv[] )
     }
   }
 
-  t = clock() - t;
+  ttimer = clock() - ttimer;
   std::cout << rays << " ray fires done" << std::endl
             << gen  << " unique rays used" << std::endl
             << xsct << " intersecting fires" << std::endl
-            << (double)t/CLOCKS_PER_SEC << " seconds" << std::endl;
+            << (double)ttimer/CLOCKS_PER_SEC << " seconds" << std::endl;
   
   if( do_trv_stats ){
     std::cout << "Traversal statistics: " << std::endl;
