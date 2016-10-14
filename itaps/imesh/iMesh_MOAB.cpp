@@ -2406,7 +2406,7 @@ extern "C" {
     EntityHandle set1 = ENTITY_HANDLE(entity_set_1),
       set2 = ENTITY_HANDLE(entity_set_2);
 
-    int isList1, isList2;
+    int isList1=0, isList2=0;
     iMesh_isList(instance, entity_set_1, &isList1, err);
     if (*err != iBase_SUCCESS) return;
     iMesh_isList(instance, entity_set_2, &isList2, err);
@@ -2455,7 +2455,7 @@ extern "C" {
     EntityHandle set1 = ENTITY_HANDLE(entity_set_1),
       set2 = ENTITY_HANDLE(entity_set_2);
 
-    int isList1, isList2;
+    int isList1=0, isList2=0;
     iMesh_isList(instance, entity_set_1, &isList1, err);
     if (*err != iBase_SUCCESS) return;
     iMesh_isList(instance, entity_set_2, &isList2, err);
@@ -2561,7 +2561,7 @@ extern "C" {
     EntityHandle set1 = ENTITY_HANDLE(entity_set_1),
       set2 = ENTITY_HANDLE(entity_set_2);
 
-    int isList1, isList2;
+    int isList1=0, isList2=0;
     iMesh_isList(instance, entity_set_1, &isList1, err);
     if (*err != iBase_SUCCESS) return;
     iMesh_isList(instance, entity_set_2, &isList2, err);

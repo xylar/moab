@@ -4,7 +4,6 @@
 #include "MBParallelConventions.h"
 #include "moab/Interface.hpp"
 #include "moab/Range.hpp"
-#include "moab/WriteUtilIface.hpp"
 #include "moab/FileOptions.hpp"
 #include "GmshUtil.hpp"
 

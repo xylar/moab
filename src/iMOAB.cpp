@@ -208,7 +208,7 @@ ErrCode iMOAB_RegisterFortranApplication( const iMOAB_String app_name,
 
 ErrCode iMOAB_DeregisterApplication( iMOAB_AppID pid )
 {
-	// the file set , parallel comm are all in vectors indexed by *pid
+        // the file set , parallel comm are all in vectors indexed by *pid
   // assume we did not delete anything yet
   // *pid will not be reused if we register another application
 
@@ -966,9 +966,9 @@ ErrCode iMOAB_SetIntTagStorage(iMOAB_AppID pid, const iMOAB_String tag_storage_n
     return 1;
   // set it on a subset of entities, based on type and length
   Range * ents_to_set;
-  if (* ent_type == 0)// vertices
+  if (*ent_type == 0)// vertices
     ents_to_set = &data.all_verts;
-  else if (* ent_type == 1)
+  else  // if (*ent_type == 1) // *ent_type can be 0 (vertices) or 1 (elements)
     ents_to_set = &data.primary_elems;
 
   int nents_to_be_set = *num_tag_storage_length /tagLength;
@@ -1008,9 +1008,9 @@ ErrCode iMOAB_GetIntTagStorage(iMOAB_AppID pid, const iMOAB_String tag_storage_n
 
   // set it on a subset of entities, based on type and length
   Range * ents_to_get;
-  if (* ent_type == 0)// vertices
+  if (*ent_type == 0)// vertices
     ents_to_get = &data.all_verts;
-  else if (* ent_type == 1)
+  else  // if (*ent_type == 1)
     ents_to_get = &data.primary_elems;
 
   int nents_to_get = *num_tag_storage_length /tagLength;
@@ -1052,7 +1052,7 @@ ErrCode iMOAB_SetDoubleTagStorage(iMOAB_AppID pid, const iMOAB_String tag_storag
     return 1;
 
   // set it on a subset of entities, based on type and length
-  Range * ents_to_set;
+  Range * ents_to_set = NULL;
   if (* ent_type == 0)// vertices
     ents_to_set = &data.all_verts;
   else if (* ent_type == 1)
@@ -1097,7 +1097,7 @@ ErrCode iMOAB_GetDoubleTagStorage(iMOAB_AppID pid, const iMOAB_String tag_storag
     return 1;
 
   // set it on a subset of entities, based on type and length
-  Range * ents_to_get;
+  Range * ents_to_get = NULL;
   if (* ent_type == 0)// vertices
     ents_to_get = &data.all_verts;
   else if (* ent_type == 1)

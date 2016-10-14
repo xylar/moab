@@ -104,7 +104,7 @@ namespace moab
 
         // find best initial guess to improve convergence
       CartVect tmp_params[] = {CartVect(-1,-1,-1), CartVect(1,-1,-1), CartVect(-1,1,-1), CartVect(-1,-1,1)};
-      double resl = HUGE;
+      double resl = std::numeric_limits<double>::max();
       CartVect new_pos, tmp_pos;
       ErrorCode rval;
       for (unsigned int i = 0; i < 4; i++) {

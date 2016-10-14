@@ -2354,7 +2354,7 @@ int test_entity_copies( iMesh_Instance imesh, iMeshP_PartitionHandle prtn, const
     
       // add all vertices to local_data
     for (size_t j = 0; j < verts.size(); ++j) {
-      int tag;
+      int tag=0;
       ierr = vertex_tag( imesh, verts[j], tag );
       if (ierr)
         break;

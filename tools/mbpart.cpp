@@ -227,7 +227,7 @@ int main(int argc, char* argv[])
 #ifdef MOAB_HAVE_METIS
   MetisPartitioner *metis_tool = NULL;
   if (moab_use_metis && !metis_tool) {
-    metis_tool = new MetisPartitioner (&mb, false, argc, argv);
+    metis_tool = new MetisPartitioner (&mb, false);
   }
 
   if ((aggregating_tag.empty() && partition_tagged_sets) || (aggregating_tag.empty() && partition_tagged_ents))
