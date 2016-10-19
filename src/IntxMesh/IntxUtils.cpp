@@ -1272,8 +1272,12 @@ ErrorCode positive_orientation(Interface * mb, EntityHandle set, double R) {
     if (MB_SUCCESS != rval)
       return rval;
 
-    double area = area_spherical_triangle_lHuiller(coords, coords + 3,
+    double area;
+    if (R>0)
+      area = area_spherical_triangle_lHuiller(coords, coords + 3,
         coords + 6, R);
+    else
+      area = area2D(coords, coords + 3, coords + 6);
     if (area < 0) {
       std::vector<EntityHandle> newconn(num_nodes);
       for (int i = 0; i < num_nodes; i++) {

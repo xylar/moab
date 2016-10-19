@@ -425,9 +425,8 @@ ErrorCode Intx2Mesh::intersect_meshes(EntityHandle mbset1, EntityHandle mbset2,
       for (int j = 0; j < nsidesRed; j++)
       {
         EntityHandle redNeigh = redNeighbors[j];
-        if (redNeigh==0)
+        if (redNeigh==0 || nextBlue[j].size()==0) // if red is bigger than blue, there could be no blue to advance on that side
           continue;
-        assert(nextBlue[j].size()>0);
         int nsidesRed2=0;
         setup_red_cell(redNeigh, nsidesRed2); // find possible intersection with blue cell from nextBlue
         for (Range::iterator nit =nextBlue[j].begin(); nit!=nextBlue[j].end(); ++nit)

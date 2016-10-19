@@ -84,12 +84,12 @@ int main(int argc, char* argv[])
   rval = mb->create_meshset(MESHSET_SET, outputSet);MB_CHK_ERR(rval);
 
   // std::cout << "Fix orientation etc ..\n";
-  // IntxUtils; those calls do nothing for a good mesh
-  //rval = fix_degenerate_quads(mb, sf1);MB_CHK_ERR(rval);
-  //rval = fix_degenerate_quads(mb, sf2);MB_CHK_ERR(rval);
+  //IntxUtils; those calls do nothing for a good mesh
+  rval = fix_degenerate_quads(mb, sf1);MB_CHK_ERR(rval);
+  rval = fix_degenerate_quads(mb, sf2);MB_CHK_ERR(rval);
 
-  //rval = positive_orientation(mb, sf1, R);MB_CHK_ERR(rval);
-  //rval = positive_orientation(mb, sf2, R);MB_CHK_ERR(rval);
+  rval = positive_orientation(mb, sf1, R);MB_CHK_ERR(rval);
+  rval = positive_orientation(mb, sf2, R);MB_CHK_ERR(rval);
 
   //ParallelComm* pcomm = ParallelComm::get_pcomm(mb, 0);
  

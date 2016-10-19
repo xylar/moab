@@ -13,6 +13,7 @@
 #include "moab/Interface.hpp"
 #include "moab/Intx2MeshInPlane.hpp"
 #include "../test/TestUtil.hpp"
+#include "moab/IntxUtils.hpp"
 #include <math.h>
 
 using namespace moab;
@@ -62,6 +63,9 @@ int main(int argc, char* argv[])
   if (MB_SUCCESS != rval)
     return 1;
   Intx2MeshInPlane worker(mb);
+
+  rval = positive_orientation(mb, sf1, -1);MB_CHK_ERR(rval);
+  rval = positive_orientation(mb, sf2, -1);MB_CHK_ERR(rval);
 
   worker.SetErrorTolerance( 1.e-5);
   //worker.enable_debug();
