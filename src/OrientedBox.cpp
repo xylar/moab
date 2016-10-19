@@ -563,9 +563,8 @@ bool OrientedBox::intersect_ray( const CartVect& ray_origin,
   }
   
   // get transpose of axes
-  Matrix3 B = Matrix::transpose(axes);
+  Matrix3 B = axes.transpose();
 
-  
   // transform ray to box coordintae system
   CartVect par_pos = B * (ray_origin - center);
   CartVect par_dir = B * ray_direction;
