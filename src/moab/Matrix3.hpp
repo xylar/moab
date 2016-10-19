@@ -346,6 +346,16 @@ public:
     }
   }
   
+  // will be deprecated in future versions
+  // assumes that the input vectors are rows
+    template< typename Vector>
+    inline Matrix3(   const Vector & row0,
+                      const Vector & row1,
+                      const Vector & row2) {
+      _mat << row0[0], row0[1], row0[2],
+              row1[0], row1[1], row1[2],
+              row2[0], row2[1], row2[2];
+    }
   inline Matrix3( const double v[9] ){ 
     _mat << v[0], v[1], v[2],
             v[3], v[4], v[5],
