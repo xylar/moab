@@ -345,12 +345,13 @@ public:
               row0[2], row1[2], row2[2];
     }
   }
-  
-#ifdef __GNUC__
-#define DEPRECATED __attribute__((deprecated))
-#else
-#pragma message("WARNING: You need to implement DEPRECATED for this compiler")
-#define DEPRECATED
+#ifndef DEPRECATED
+  #ifdef __GNUC__
+    #define DEPRECATED __attribute__((deprecated))
+  #else
+    #pragma message("WARNING: You need to implement DEPRECATED for this compiler")
+    #define DEPRECATED
+  #endif
 #endif
   /*
    * \deprecated { Use instead the constructor with explicit fourth argument, bool isRow, above }
@@ -365,7 +366,7 @@ public:
             row1[0], row1[1], row1[2],
             row2[0], row2[1], row2[2];
   }
-#undef DEPRECATED
+
 
   inline Matrix3( const double v[9] ){ 
     _mat << v[0], v[1], v[2],
