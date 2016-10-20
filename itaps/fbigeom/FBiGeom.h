@@ -2686,7 +2686,7 @@ extern "C" {
      *
      * Reflect an entity across the given plane
      * \param instance FBiGeom instance handle
-     * \param geom_entity the entity to reflect
+     * \param geom_entity the entity to reflect, x, y, z coordinate of the point that the reflecting plane goes though
      * \param plane_normal_x x coordinate of the plane's normal
      * \param plane_normal_y y coordinate of the plane's normal
      * \param plane_normal_z z coordinate of the plane's normal
@@ -2694,16 +2694,14 @@ extern "C" {
      */
   void FBiGeom_reflectEnt( FBiGeom_Instance instance,
                          iBase_EntityHandle geom_entity,
-                         double plane_normal_x,
-                         double plane_normal_y,
-                         double plane_normal_z,
-                         int* err );
+                           double x, double y, double z, double norm_x, double norm_y,
+                           double norm_z,int* err );
 
    /**\brief  Scale an entity in the x, y, and z directions
      *
      * Scale an entity in the x, y, and z directions.
      * \param instance FBiGeom instance handle
-     * \param geom_entity the entity to scale
+     * \param geom_entity the entity to scale, x, y, z coordinate of the point that the scale plane goes though
      * \param scale_x factor to scale by in the x direction
      * \param scale_y factor to scale by in the y direction
      * \param scale_z factor to scale by in the z direction
@@ -2711,10 +2709,8 @@ extern "C" {
      */
   void FBiGeom_scaleEnt( FBiGeom_Instance instance,
                        iBase_EntityHandle geom_entity,
-                       double scale_x,
-                       double scale_y,
-                       double scale_z,
-                       int* err );
+                       double x, double y, double z, double x_factor,
+                       double y_factor, double z_factor, int* err );
 
     /**\brief  Geometrically unite entities
      *

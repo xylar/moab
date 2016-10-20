@@ -1179,7 +1179,7 @@ Initial results have demonstrated that the data abstraction provided by MOAB is 
 
 [3]	T.J. Tautges, MOAB Meta-Data Information, 2010.
 
-[4]	T.J. Tautges, “MOAB - ITAPS – Trac.”, http://trac.mcs.anl.gov/projects/ITAPS/wiki/MOAB
+[4]	T.J. Tautges, “MOAB - ITAPS – SIGMA.”, http://sigma.mcs.anl.gov/
 
 [5]	“MOAB Developers Email List.”, moab-dev@mcs.anl.gov.
 
@@ -1213,7 +1213,7 @@ Initial results have demonstrated that the data abstraction provided by MOAB is 
 
 [20]	M. O. Deville, P. F. Fischer, and E. H. Mund, High-order methods for incompressible fluid flow. Cambridge, UK; New York: Cambridge University Press, 2002.
 
-[21]	T. J. Tautges, “MOAB Wiki.” [Online]. Available: http://trac.mcs.anl.gov/projects/ITAPS/wiki/MOAB. [Accessed: 30-Oct-2012].
+[21]	T. J. Tautges, “MOAB Wiki.” [Online]. Available: http://sigma.mcs.anl.gov/moab-library [Accessed: 20-Oct-2016].
 
 [22]	T. J. Tautges, “Canonical numbering systems for finite-element codes,” International Journal for Numerical Methods in Biomedical Engineering, vol. 26, no. 12, pp. 1559–1572, 2010.
 

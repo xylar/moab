@@ -1271,13 +1271,14 @@ void FBiGeom_rotateEnt(FBiGeom_Instance instance, iBase_EntityHandle ,
 }
 
 void FBiGeom_reflectEnt(FBiGeom_Instance instance, iBase_EntityHandle ,
-                        double , double , double ,
-                        int* err) {
+                        double, double, double, double,
+                        double, double, int* err) {
   RETURN(iBase_NOT_SUPPORTED);
 }
 
 void FBiGeom_scaleEnt(FBiGeom_Instance instance, iBase_EntityHandle ,
-                      double , double , double , int* err) {
+                      double,  double, double, double,
+                      double, double, int* err) {
   RETURN(iBase_NOT_SUPPORTED);
 }
 
