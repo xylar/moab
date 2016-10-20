@@ -1418,7 +1418,7 @@ ErrorCode WriteHDF5Parallel::communicate_shared_set_ids(const Range& owned,
 {
   ErrorCode rval;
   int mperr;
-  const int TAG = 0xDEADF00;
+  const int TAG = 0xD0E;
   //const unsigned rank = myPcomm->proc_config().proc_rank();
   const MPI_Comm comm = myPcomm->proc_config().proc_comm();
 
