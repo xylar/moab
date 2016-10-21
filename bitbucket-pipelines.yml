@@ -13,7 +13,7 @@ pipelines:
                 - echo "Running the Autotools Build System"
                 - autoreconf -fi
                 - cd build_atools
-                - ../configure --with-mpi --enable-optimize --enable-tools --with-hdf5=/usr --with-netcdf=/usr --with-metis=/usr
+                - ../configure --with-mpi --enable-optimize --enable-tools --with-hdf5=/usr --with-netcdf=/usr --with-metis=/usr --enable-debug
                 - make distcheck
                 # Now configure with CMake build system
                 - echo "Running the CMake Build System"
