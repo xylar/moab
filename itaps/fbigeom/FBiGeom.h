@@ -2688,10 +2688,8 @@ extern "C" {
      * \param instance FBiGeom instance handle
      * \param geom_entity the entity to reflect, 
      * \param point_x  x coordinate of the point that the reflecting plane goes though
-     * \param point_y  y coordinate of the point that the reflecting plane goes 
-though
-     * \param point_z  z coordinate of the point that the reflecting plane goes 
-though
+     * \param point_y  y coordinate of the point that the reflecting plane goes though
+     * \param point_z  z coordinate of the point that the reflecting plane goes though
      * \param plane_normal_x x coordinate of the plane's normal
      * \param plane_normal_y y coordinate of the plane's normal
      * \param plane_normal_z z coordinate of the plane's normal
