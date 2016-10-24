@@ -931,7 +931,7 @@ static bool do_ray_fire_test( OrientedBoxTreeTool& tool,
   /* Do standard ray fire tests */
   
   RayTest tests[] = { 
-   { "half-diagonal from center", 1, box.center,                            1.5 * box.dimensions() },
+   { "almost half-diagonal from center", 1, box.center,    1.5 * box.dimensions() + 0.1*box.axis(0)+0.2*box.axis(1) },
    { "large axis through box",    2, box.center - 1.2 * box.scaled_axis(2), box.axis(2) },
    { "small axis through box",    2, box.center - 1.2 * box.scaled_axis(0), box.axis(0) },
    { "parallel miss",             0, box.center + 2.0 * box.scaled_axis(1), box.axis(2) },
