@@ -97,6 +97,11 @@ void test_EigenDecomp()
 
   //now verfy that the returns Eigenvalues and Eigenvectors are correct (within some tolerance)
   double tol = 1e-04;
+
+  // use a deprecated constructor
+  Matrix3 mat3( CartVect(2, -1, 0), CartVect(-1, 2, -1), CartVect(0, -1, 2));
+  CHECK_REAL_EQUAL( mat(1), mat3(1), tol);
+
   vec0_check.normalize();
   vec1_check.normalize();
   vec2_check.normalize();
