@@ -1291,7 +1291,7 @@ bool transforms_test(FBiGeom_Instance geom) {
    }
 
    // now reflect through y plane; should recover original bb
-   FBiGeom_reflectEnt(geom, brick, 0.0, 1.0, 0.0, &err);
+   FBiGeom_reflectEnt(geom, brick, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, &err);
    CHECK( "Problems reflecting brick for transforms test." );
 
    FBiGeom_getEntBoundBox(geom, brick, bb_min, bb_min + 1, bb_min + 2, bb_max,
