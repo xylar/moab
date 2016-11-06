@@ -23,7 +23,6 @@ MCNPError read_files(int, char**);
 MCNPError next_double(std::string, double&, int&);
 MCNPError next_int(std::string, int&, int&);
 
-MCNPError result;
 moab::Tag     coord_tag, rotation_tag, cfd_heating_tag, cfd_error_tag;
 
 std::string h5m_filename;
@@ -36,6 +35,7 @@ bool read_qnv   = false;
 clock_t start_time, load_time, build_time, interp_time;
 
 int main(int argc, char **argv) {
+  MCNPError result;
 
   start_time = clock();
 
@@ -340,6 +340,7 @@ int main(int argc, char **argv) {
 
 
 MCNPError read_files(int argc, char **argv) {
+  MCNPError result;
 
   // Check to see if appropriate command lines specified
   if (argc < 3) {
