@@ -10,8 +10,8 @@ SUBDIRS =
 libMOAB_la_LIBADD =
 
 EXTRA_DIST = 
-SUBDIRS += io IntxMesh .
-libMOAB_la_LIBADD += io/libmoabio.la IntxMesh/libIntxMesh.la
+SUBDIRS += io IntxMesh Remapping .
+libMOAB_la_LIBADD += io/libmoabio.la IntxMesh/libIntxMesh.la Remapping/libRemapping.la
 
 if ENABLE_mesquite
 SUBDIRS += mesquite

@@ -14,7 +14,7 @@ AM_CPPFLAGS += -DIS_BUILDING_MB -DSRCDIR=$(srcdir) -DLOCDIR=src/IntxMesh/ \
 libIntxMesh_la_includedir = $(includedir)
 
 # Conditional sources
-MOAB_LOCALDISCR_SRCS = \
+MOAB_INTXMESH_SRCS = \
      Intx2Mesh.cpp  \
      Intx2MeshInPlane.cpp  \
      Intx2MeshOnSphere.cpp \
@@ -22,10 +22,10 @@ MOAB_LOCALDISCR_SRCS = \
      IntxUtils.cpp
 
 if PARALLEL
-    MOAB_LOCALDISCR_SRCS += wrap_intx.cpp
+    MOAB_INTXMESH_SRCS += wrap_intx.cpp
 endif
 
-MOAB_LOCALDISCR_HDRS = \
+MOAB_INTXMESH_HDRS = \
 	moab/Intx2Mesh.hpp \
 	moab/IntxUtils.hpp \
   moab/Intx2MeshInPlane.hpp \
@@ -34,8 +34,8 @@ MOAB_LOCALDISCR_HDRS = \
 
 # The list of source files, and any header files that do not need to be installed
 libIntxMesh_la_SOURCES = \
-   $(MOAB_LOCALDISCR_SRCS)
+   $(MOAB_INTXMESH_SRCS)
 
 # The list of header files which are to be installed
 nobase_libIntxMesh_la_include_HEADERS = \
-  $(MOAB_LOCALDISCR_HDRS)
+  $(MOAB_INTXMESH_HDRS)
