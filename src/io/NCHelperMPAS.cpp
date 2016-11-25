@@ -111,7 +111,7 @@ ErrorCode NCHelperMPAS::init_mesh_vals()
   if ((vit = std::find(dimNames.begin(), dimNames.end(), "nVertLevels")) != dimNames.end())
     idx = vit - dimNames.begin();
   else {
-    MB_SET_ERR(MB_FAILURE, "Couldn't find 'nVertLevels' dimension");
+    std::cerr << "Warning: dimension nVertLevels not found in header.\nThe file may contain just the mesh" << std::endl;  
   }
   levDim = idx;
   nLevels = dimLens[idx];
