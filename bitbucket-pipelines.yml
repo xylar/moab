@@ -13,7 +13,6 @@ pipelines:
                 - autoreconf -fi && echo "Running the Autotools Build System Static Library Build"
                 - cd build_atools && ../configure --with-mpi --enable-static --enable-optimize --enable-tools --with-hdf5=/usr/lib/x86_64-linux-gnu/hdf5/mpich --with-netcdf=/usr --with-metis=/usr
                 - make distcheck V=1
-                # Now configure with CMake build system
                 # CMake Shared Library Builds
                 - cd ../build_cmake && echo "Running the CMake Shared Build System"
                 - cmake .. -DCMAKE_C_FLAGS="-fPIC -DPIC" -DCMAKE_CXX_FLAGS="-fPIC -DPIC" -DBUILD_SHARED_LIBS=ON -DCMAKE_SHARED_LINKER_FLAGS="-Wl,--no-undefined" -DENABLE_MPI=ON -DMPIHOME=/usr -DENABLE_PYMOAB=ON -DENABLE_HDF5=ON -DHDF5_ROOT=/usr/lib/x86_64-linux-gnu/hdf5/mpich -DENABLE_NETCDF=OFF -DENABLE_METIS=ON -DMETIS_DIR=/usr
