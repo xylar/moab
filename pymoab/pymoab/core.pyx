@@ -94,10 +94,10 @@ cdef class Core(object):
         cdef moab.ErrorCode err
         cdef Range r
         cdef np.ndarray[np.uint64_t, ndim=1] arr
-        cdef moab.DataType tag_type
+        cdef moab.DataType tag_type = moab.MB_MAX_DATA_TYPE
         err = self.inst.tag_get_data_type(tag.inst, tag_type);
         check_error(err, ())
-        cdef int length
+        cdef int length = 0
         err = self.inst.tag_get_length(tag.inst,length);
         check_error(err,())
         data = validate_type(tag_type,length,data)
@@ -116,10 +116,10 @@ cdef class Core(object):
         cdef moab.ErrorCode err
         cdef Range r
         cdef np.ndarray[np.uint64_t, ndim=1] arr
-        cdef moab.DataType tag_type
+        cdef moab.DataType tag_type = moab.MB_MAX_DATA_TYPE
         err = self.inst.tag_get_data_type(tag.inst, tag_type);
         check_error(err,())
-        cdef int length
+        cdef int length = 0
         err = self.inst.tag_get_length(tag.inst,length);
         check_error(err,())
         cdef np.ndarray data
