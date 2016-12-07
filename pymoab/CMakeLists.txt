@@ -37,17 +37,15 @@ if (PYTHON AND NOSE AND NOT PYTHON_MODULES_MISSING)
   # setup dependencies of the build command
   SET(DEPS   "${CMAKE_CURRENT_SOURCE_DIR}/pymoab/__init__.py")
   SET(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/build")
-  # build pymoab
-  ADD_CUSTOM_COMMAND(OUTPUT ${OUTPUT}
-                     COMMAND ${PYTHON}
-                     ARGS setup.py build
-		     DEPENDS ${DEPS})
-
+  
   # cythonize as a separate step to avoid c/c++ clashes in cython versions
   ADD_CUSTOM_TARGET(pymoab-cythonize ALL COMMAND ${CYTHON_BIN} --cplus ${CMAKE_CURRENT_BINARY_DIR}/pymoab/*.pyx DEPENDS MOAB)
 
   # add pymoab build target, depends on MOAB target so that all headers are in place before attempting the build
-  ADD_CUSTOM_TARGET(pymoab-build ALL DEPENDS ${OUTPUT} pymoab-cythonize MOAB)
+  # ADD_CUSTOM_TARGET(pymoab-build ALL DEPENDS ${OUTPUT} pymoab-cythonize MOAB)
+
+  # build pymoab
+  ADD_CUSTOM_TARGET(pymoab-build ALL COMMAND export CFLAGS='-w' && ${PYTHON} setup.py build DEPENDS ${DEPS} pymoab-cythonize MOAB)
 
   # pymoab install- depends on pymoab-build and is run during make
   # !!!!THIS INSTALL IS DONE LOCALLY AND COPIED TO THE CORRECT LOCATOIN DURING INSTALL !!!! (Subject to Change)
