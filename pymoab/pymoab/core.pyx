@@ -5,15 +5,16 @@ cimport numpy as np
 import numpy as np
 
 from pymoab cimport moab
-from .tag cimport Tag
+from .tag cimport Tag, TagArray
 from .range cimport Range
 from .types import check_error, np_tag_type, validate_type
 from . import types
-from .types import check_error
+from libcpp.vector cimport vector
+from libc.stdlib cimport malloc
 
 cdef class Core(object):
 
-    cdef moab.Core * inst
+#    cdef moab.Core *inst
 
     def __cinit__(self):
         self.inst = new moab.Core()
@@ -24,7 +25,13 @@ cdef class Core(object):
     def impl_version(self):
         """MOAB implementation number as a float."""
         return self.inst.impl_version()
-
+    
+    def load_file(self, str fname, exceptions = ()):
+        cfname = fname.decode()
+        cdef const char * file_name = cfname
+        cdef moab.ErrorCode err = self.inst.load_file(fname)
+        check_error(err, exceptions)
+    
     def write_file(self, str fname, exceptions = ()):
         """Writes the MOAB data to a file."""
         cfname = fname.decode()
@@ -84,11 +91,27 @@ cdef class Core(object):
             check_error(err, exceptions)
         return handles
 
-    def tag_get_handle(self, const char* name, int size, moab.DataType tag_type, exceptions = ()):
-        cdef Tag tag = Tag()
-        cdef moab.ErrorCode err = self.inst.tag_get_handle(name, size, tag_type, tag.inst, types.MB_TAG_DENSE|types.MB_TAG_CREAT)
-        check_error(err, exceptions)
-        return tag
+    def tag_get_handle(self,
+                       const char* name,
+                       size = None,
+                       tag_type = None,
+                       create_if_missing = False,
+                       storage_type = types.MB_TAG_DENSE,
+                       exceptions = ()):
+         cdef Tag tag = Tag()
+         cdef moab.ErrorCode err
+         cdef moab.DataType tt
+         cdef int s
+         err = self.inst.tag_get_handle(name, tag.inst)
+         if err == types.MB_TAG_NOT_FOUND and create_if_missing:
+             if tag_type is None or size is None:
+                 print "ERROR: Not enough information provided to create tag."
+                 raise ValueError
+             else:
+                 tt = tag_type
+                 s = size
+                 err = self.inst.tag_get_handle(name, s, tt, tag.inst, storage_type|types.MB_TAG_CREAT)
+             check_error(types.MB_FAILURE,())
     
     def tag_set_data(self, Tag tag, entity_handles, np.ndarray data, exceptions = ()):
         cdef moab.ErrorCode err
@@ -138,3 +161,82 @@ cdef class Core(object):
         else:
             check_error(types.MB_FAILURE)
         return data
+
+    def get_adjacencies(self, entity_handles, int to_dim, bint create_if_missing = False, exceptions = ()):
+        cdef moab.ErrorCode err
+        cdef Range r
+        cdef np.ndarray[np.uint64_t, ndim=1] arr
+        cdef Range adj = Range()
+        if isinstance(entity_handles, Range):
+            r = entity_handles
+            err = self.inst.get_adjacencies(deref(r.inst), to_dim, create_if_missing, deref(adj.inst))
+        else:
+            arr = entity_handles
+            err = self.inst.get_adjacencies(<unsigned long*> arr.data, len(entity_handles), to_dim, create_if_missing, deref(adj.inst))
+        check_error(err, exceptions)
+        return adj
+ 
+    def type_from_handle(self, entity_handle):
+        cdef moab.EntityType t
+        t = self.inst.type_from_handle(<unsigned long> entity_handle)
+        return t
+         
+    def get_child_meshsets(self, meshset_handle, num_hops = 1, exceptions = ()):
+        cdef moab.ErrorCode err
+        cdef Range r = Range()
+        err = self.inst.get_child_meshsets(<unsigned long> meshset_handle, deref(r.inst), num_hops)
+        check_error(err, exceptions)
+        return r
+ 
+    def add_child_meshset(self, parent_meshset, child_meshset, exceptions = ()):
+        cdef moab.ErrorCode err
+        err = self.inst.add_child_meshset(<unsigned long> parent_meshset, <unsigned long> child_meshset)
+        check_error(err, exceptions)
+        
+    def get_root_set(self):
+        return <unsigned long> 0
+ 
+    def get_coords(self, entities, exceptions = ()):
+        cdef moab.ErrorCode err
+        cdef Range r
+        cdef np.ndarray[np.uint64_t, ndim=1] arr
+        cdef np.ndarray coords
+        if isinstance(entities, Range):
+            r = entities
+            coords = np.empty((3*r.size(),),dtype='float64')
+            err = self.inst.get_coords(deref(r.inst), <double*> coords.data)
+        else:
+            arr = entities
+            coords = np.empty((3*len(arr),),dtype='float64')
+            err = self.inst.get_coords(<unsigned long*> arr.data, len(entities), <double*> coords.data)
+        check_error(err, exceptions)
+        return coords
+ 
+    def get_entities_by_type(self, meshset, t, bint recur = False, exceptions = ()):
+        cdef moab.ErrorCode err
+        cdef vector[moab.EntityHandle] entities
+        cdef moab.EntityType typ = t
+        err = self.inst.get_entities_by_type(<unsigned long> meshset, 
+                                             typ, 
+                                             entities, 
+                                             recur) 
+        check_error(err, exceptions)
+        return entities
+    
+    def get_entities_by_type_and_tag(self, meshset, t, tags, vals, int cond = 0, bint recur = False, exceptions = ()):
+        cdef moab.ErrorCode err
+        assert len(tags) == len(vals)
+        cdef int num_tags = len(tags)
+        cdef moab.EntityType typ = t
+        cdef TagArray ta = TagArray(tags)
+        cdef vector[void*] vals_vec
+        for i in range(num_tags):
+            if vals[i] is not None:
+                vals_vec.push_back(<void*> vals[i])
+            else: 
+                vals_vec.push_back(NULL)
+        cdef Range ents = Range()
+        #here goes nothing
+        err = self.inst.get_entities_by_type_and_tag(<unsigned long> meshset, typ, ta.ptr, &(vals_vec[0]), len(tags), deref(ents.inst), cond, recur)
+        check_error(err, exceptions)
+        return ents

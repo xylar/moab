@@ -40,4 +40,7 @@ cdef class Range(object):
             
     def __getitem__(self, int index):
         cdef moab.EntityHandle rtn = deref(self.inst)[index]
-        return rtn
+        if index < self.size():
+            return rtn
+        else:
+            raise StopIteration
