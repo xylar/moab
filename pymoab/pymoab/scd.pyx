@@ -101,7 +101,7 @@ cdef class ScdBox(object):
         cdef moab.EntityHandle vert
         cdef moab.HomCoord mh
         cdef HomCoord h
-        cdef int i,j,k        
+        cdef int i = 0, j = 0, k = 0
         if isinstance(args,HomCoord):
             h = args
             mh = deref(h.inst)
@@ -117,7 +117,7 @@ cdef class ScdBox(object):
             check_error(types.MB_FAILURE)
         
     def get_params(self, moab.EntityHandle entity, exceptions = ()):
-        cdef int i,j,k
+        cdef int i = 0, j = 0, k = 0
         cdef moab.ErrorCode err = self.inst.get_params(entity, i, j, k)
         check_error(err,exceptions)
         return [i,j,k]
