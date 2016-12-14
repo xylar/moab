@@ -98,21 +98,22 @@ cdef class Core(object):
                        create_if_missing = False,
                        storage_type = types.MB_TAG_DENSE,
                        exceptions = ()):
-         cdef Tag tag = Tag()
-         cdef moab.ErrorCode err
-         cdef moab.DataType tt
-         cdef int s
-         err = self.inst.tag_get_handle(name, tag.inst)
-         if err == types.MB_TAG_NOT_FOUND and create_if_missing:
-             if tag_type is None or size is None:
-                 print "ERROR: Not enough information provided to create tag."
-                 raise ValueError
-             else:
-                 tt = tag_type
-                 s = size
-                 err = self.inst.tag_get_handle(name, s, tt, tag.inst, storage_type|types.MB_TAG_CREAT)
-             check_error(types.MB_FAILURE,())
-    
+        cdef Tag tag = Tag()
+        cdef moab.ErrorCode err
+        cdef moab.DataType tt
+        cdef int s
+        err = self.inst.tag_get_handle(name, tag.inst)
+        if err == types.MB_TAG_NOT_FOUND and create_if_missing:
+            if tag_type is None or size is None:
+                print "ERROR: Not enough information provided to create tag."
+                raise ValueError
+            else:
+                tt = tag_type
+                s = size
+                err = self.inst.tag_get_handle(name, s, tt, tag.inst, storage_type|types.MB_TAG_CREAT)
+        check_error(err, exceptions)
+        return tag
+
     def tag_set_data(self, Tag tag, entity_handles, np.ndarray data, exceptions = ()):
         cdef moab.ErrorCode err
         cdef Range r
