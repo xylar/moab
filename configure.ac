@@ -172,6 +172,28 @@ AX_LAPACK
 LIBS="$LAPACK_LIBS $BLAS_LIBS $LIBS"
 
 ################################################################################
+#                                 pymoab
+################################################################################
+AC_MSG_CHECKING([if pymoab interface is to be built])
+AC_ARG_ENABLE( [pymoab],
+[AS_HELP_STRING([--enable-pymoab],[Build support for pymoab interface.])],
+[enable_pymoab=$enableval],
+[enable_pymoab=yes] )
+
+if (test "xyes" != "x$enable_pymoab" && test "xno" != "x$enable_pymoab"); then
+  AC_MSG_ERROR([Unknown argument --enable-pymoab=$enableval])
+else
+  if (test "$enable_pymoab" != "no"); then
+    ENABLE_pymoab=yes
+  else
+    ENABLE_pymoab=no
+  fi
+  DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --enable-pymoab=$ENABLE_pymoab"
+fi
+AC_MSG_RESULT([$ENABLE_pymoab])
+AM_CONDITIONAL([ENABLE_pymoab],[test "xyes" = "x$ENABLE_pymoab"])
+
+################################################################################
 #                           iMesh Part 1 of 2
 ################################################################################
 AC_ARG_ENABLE( [imesh],
