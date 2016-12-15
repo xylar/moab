@@ -1,19 +1,20 @@
 #!/usr/bin/env python
+
 from setuptools import setup, Extension, find_packages
 from Cython.Build import cythonize
 import numpy as np #needed for numpy include paths
 import glob
 import os
 # setup moab include paths
-moab_root = '@abs_top_srcdir@'
+moab_root = '${CMAKE_SOURCE_DIR}'
 moab_source_include = moab_root + '/src/moab/'
 moab_other_source_include = moab_root + '/src/'
-moab_binary_include = '@abs_top_builddir@/src/'
-moab_lib_path = '@abs_top_builddir@/lib/'
-pymoab_src_dir = '@abs_srcdir@'
+moab_binary_include = '${CMAKE_BINARY_DIR}/src/'
+moab_lib_path = '${CMAKE_BINARY_DIR}/lib/'
+pymoab_src_dir = '${CMAKE_CURRENT_BINARY_DIR}/pymoab/'
 include_paths = [moab_source_include,
-                 moab_other_source_include,
-                 moab_binary_include,
+                moab_other_source_include,
+                moab_binary_include,
                  np.get_include(),
                  pymoab_src_dir]
 

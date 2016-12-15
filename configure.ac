@@ -185,6 +185,7 @@ if (test "xyes" != "x$enable_pymoab" && test "xno" != "x$enable_pymoab"); then
 else
   if (test "$enable_pymoab" != "no"); then
     ENABLE_pymoab=yes
+    AC_CONFIG_SRCDIR([pymoab/setup.py.in])
   else
     ENABLE_pymoab=no
   fi
@@ -1270,6 +1271,7 @@ AC_CONFIG_FILES([Makefile
                  test/io/Makefile
                  test/parallel/Makefile
                  pymoab/Makefile
+		 pymoab/setup.py
                  itaps/iBase_f.h
                  itaps/Makefile
                  itaps/imesh/Makefile
@@ -1296,6 +1298,7 @@ AC_CONFIG_FILES([Makefile
                  MeshFiles/unittest/h5file/Makefile
                  MeshFiles/examples/Makefile
                  ])
+
 
 # DISTCHECK_CONFIGURE_FLAGS="$USER_CONFIGURE_CMD"
 # make distcheck will use this DISTCHECK_CONFIGURE_FLAGS 
