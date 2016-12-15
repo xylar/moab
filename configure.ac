@@ -174,17 +174,37 @@ LIBS="$LAPACK_LIBS $BLAS_LIBS $LIBS"
 ################################################################################
 #                                 pymoab
 ################################################################################
+# function for detecting python modules
+AC_DEFUN([AC_PYTHON_MODULE],
+[AC_MSG_CHECKING(for module $1 in python)
+echo "import $1" | python -
+if test $? -ne 0 ; then
+AC_MSG_RESULT(not found)
+AC_MSG_ERROR(You need the module $1 available to python for this package)
+fi
+AC_MSG_RESULT(found)
+])
+
 AC_MSG_CHECKING([if pymoab interface is to be built])
 AC_ARG_ENABLE( [pymoab],
 [AS_HELP_STRING([--enable-pymoab],[Build support for pymoab interface.])],
 [enable_pymoab=$enableval],
-[enable_pymoab=yes] )
+[enable_pymoab=no] )
 
 if (test "xyes" != "x$enable_pymoab" && test "xno" != "x$enable_pymoab"); then
   AC_MSG_ERROR([Unknown argument --enable-pymoab=$enableval])
 else
   if (test "$enable_pymoab" != "no"); then
     ENABLE_pymoab=yes
+    AC_PYTHON_MODULE(numpy)
+    AC_PYTHON_MODULE(nose)
+    AC_PYTHON_MODULE(setuptools)
+    AC_PYTHON_MODULE(cython)
+    AC_MSG_CHECKING(for proper cython capabilities)
+    cython pymoab/cmake/test_cythons.pyx
+    if test $? -ne 0 ; then
+    AC_MSG_ERROR(cython is not the correct version for pymoab)
+    fi
     AC_CONFIG_SRCDIR([pymoab/setup.py.in])
   else
     ENABLE_pymoab=no
