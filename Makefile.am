@@ -5,7 +5,7 @@ AUTOMAKE_OPTIONS = foreign subdir-objects
 ACLOCAL_AMFLAGS = -I config
 
 # Subdirectories to build
-SUBDIRS = src MeshFiles $(itaps_dir) tools test 
+SUBDIRS = src MeshFiles $(itaps_dir) tools test $(pymoab_dir)
 
 if ENABLE_fbigeom
   itaps_dir_fbigeom = itaps
@@ -17,6 +17,12 @@ if ENABLE_imesh
   itaps_dir = itaps
 else
   itaps_dir = $(itaps_dir_fbigeom)
+endif
+
+if ENABLE_pymoab
+  pymoab_dir = pymoab
+else
+  pymoab_dir = 
 endif
 
 # Utility target: build but don't run tests

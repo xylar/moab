@@ -1269,6 +1269,7 @@ AC_CONFIG_FILES([Makefile
                  test/perf/point_location/Makefile
                  test/io/Makefile
                  test/parallel/Makefile
+                 pymoab/Makefile
                  itaps/iBase_f.h
                  itaps/Makefile
                  itaps/imesh/Makefile
