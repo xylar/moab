@@ -51,7 +51,8 @@ if (PYTHON AND NOSE AND NOT PYTHON_MODULES_MISSING)
   # !!!!THIS INSTALL IS DONE LOCALLY AND COPIED TO THE CORRECT LOCATOIN DURING INSTALL !!!! (Subject to Change)
   ADD_CUSTOM_TARGET(pymoab-local-install ALL COMMAND export PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}:$PYTHONPATH && ${PYTHON} setup.py install --install-platlib=${CMAKE_CURRENT_BINARY_DIR} DEPENDS pymoab-build)
   # move pymoab egg into the correct location for a --user setuptools install based on username
-  INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/pymoab-0.0.0-py2.7-linux-x86_64.egg DESTINATION /home/$ENV{USER}/.local/lib/python2.7/site-packages/)
+  FILE(GLOB PYMOAB_EGG *.egg)
+  INSTALL(FILES ${PYMOAB_EGG} DESTINATION ${CMAKE_INSTALL_PREFIX}/pymoab/ )
 
   # run all pymoab tests, local install is added to PYTHONPATH so that make check can be run before install
   ADD_CUSTOM_TARGET(pymoab-tests COMMAND export LD_LIBRARY_PATH=${CMAKE_CURRENT_BINARY_DIR}/../lib/ && export PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}:$ENV{PYTHONPATH} && cd ${CMAKE_CURRENT_BINARY_DIR}/tests/ && nosetests)
