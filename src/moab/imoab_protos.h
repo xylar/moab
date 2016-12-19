@@ -42,4 +42,8 @@
 #define iMOAB_GetNeighborElements            IMOAB_FC_WRAPPER( imoab_getneighborelements, IMOAB_GETNEIGHBORELEMENTS )
 #define iMOAB_GetNeighborVertices            IMOAB_FC_WRAPPER( imoab_getneighborvertices, IMOAB_GETNEIGHBORVERTICES )
 
+#define iMOAB_CreateVertices                 IMOAB_FC_WRAPPER( imoab_createvertices, IMOAB_CREATEVERTICES )
+#define iMOAB_CreateElements                 IMOAB_FC_WRAPPER( imoab_createelements, IMOAB_CREATEELEMENTS )
+#define iMOAB_ResolveSharedEntities          IMOAB_FC_WRAPPER( imoab_resolvesharedentities, IMOAB_RESOLVESHAREDENTITIES )
+
 #endif /*IMOAB_PROTOS_H */

@@ -179,6 +179,46 @@ ErrCode iMOAB_ReadHeaderInfo ( const iMOAB_String filename, int* num_global_vert
 ErrCode iMOAB_LoadMesh( iMOAB_AppID pid, const iMOAB_String filename, const iMOAB_String read_options, int * num_ghost_layers, int filename_length, int read_options_length );
 
 /**
+   \brief Create vertices for an app; it assumes no other vertices
+
+
+  <B>Operations:</B> Not collective
+
+  \param[in]  pid (iMOAB_AppID)                   The unique pointer to the application ID
+  \param[in]  coords_len (int*)                   size of the coords array (nverts * dim)
+  \param[in]  dim (int*)                          dimension (usually 3)
+  \param[in]  coordinates (double*)               coordinates of all vertices, interleaved
+*/
+ErrCode iMOAB_CreateVertices( iMOAB_AppID pid, int * coords_len, int *dim, double * coordinates );
+
+/**
+   \brief Create elements for an app; it assumes connectivity from local vertices, in order
+
+  <B>Operations:</B> Not collective
+
+  \param[in]  pid (iMOAB_AppID)                   The unique pointer to the application ID
+  \param[in]  num_elem (int*)                     number of elements
+  \param[in]  type (int*)                         type of element (moab type)
+  \param[in]  num_nodes_per_element (int*)        number of nodes per element
+  \param[in]  connectivity (int *)                connectivity array, with respect to vertices; assumes vertices contiguous
+*/
+ErrCode iMOAB_CreateElements( iMOAB_AppID pid, int *num_elem, int *type, int *num_nodes_per_element, int * connectivity );
+
+/**
+  \brief resolve shared entities using global markers on shared vertices.
+
+  \note
+  global markers can be a global node id, for example, or a global dof (as for homme)
+
+  <B>Operations:</B> Collective .
+
+  \param[in] pid (iMOAB_AppID)            The unique pointer to the application ID
+  \param[in] num_verts (int*)             Number of vertices
+  \param[in] marker (int*)                resolving marker (global id marker)
+*/
+ErrCode iMOAB_ResolveSharedEntities(  iMOAB_AppID pid, int *num_verts, int * marker );
+
+/**
   \brief Write a MOAB mesh along with the solution tags to a file.
 
   \note
@@ -194,6 +234,7 @@ ErrCode iMOAB_LoadMesh( iMOAB_AppID pid, const iMOAB_String filename, const iMOA
   \param[in] filename_length (int)       Length of the filename string
   \param[in] write_options_length (int)  Length of the write options string
 */
+
 ErrCode iMOAB_WriteMesh( iMOAB_AppID pid, iMOAB_String filename, iMOAB_String write_options, int filename_length, int write_options_length );
 
 /**

@@ -28,6 +28,7 @@ using namespace moab;
 
 #include "MBTagConventions.hpp"
 #include "moab/MeshTopoUtil.hpp"
+#include "moab/ReadUtilIface.hpp"
 #include <sstream>
 
 // global variables ; should they be organized in a structure, for easier references?
@@ -1179,7 +1180,100 @@ ErrCode iMOAB_GetNeighborVertices(iMOAB_AppID pid, iMOAB_LocalID* local_vertex_I
 }
 #endif
 
+ErrCode iMOAB_CreateVertices( iMOAB_AppID pid, int * coords_len, int *dim, double * coordinates )
+{
+  appData & data = context.appDatas[*pid];
+  if (!data.local_verts.empty() ) // we should have no vertices in the app
+    return 1;
+  int nverts = *coords_len / *dim;
 
+  ErrorCode rval = context.MBI->create_vertices(coordinates, nverts, data.local_verts);
+  if (rval!=MB_SUCCESS)
+    return 1;
+
+  rval = context.MBI->add_entities( data.file_set, data.local_verts);
+  if (rval!=MB_SUCCESS)
+    return 1;
+  return 0;
+}
+
+ErrCode iMOAB_CreateElements( iMOAB_AppID pid, int *num_elem, int *type,  int *num_nodes_per_element,  int * connectivity )
+{
+  // Create elements
+  appData & data = context.appDatas[*pid];
+
+  ReadUtilIface *read_iface;
+  ErrorCode rval = context.MBI->query_interface(read_iface);
+  if (rval!=MB_SUCCESS)
+    return 1;
+
+  EntityType mbtype = (EntityType)(*type);
+  EntityHandle actual_start_handle;
+  EntityHandle* array=NULL;
+  rval = read_iface->get_element_connect(*num_elem,
+                                         *num_nodes_per_element,
+                                         mbtype,
+                                         1,
+                                          actual_start_handle,
+                                          array );
+
+  if (rval!=MB_SUCCESS)
+    return 1;
+
+  // fill up with actual connectivity from input
+
+  for (int j=0; j<*num_elem * (*num_nodes_per_element); j++)
+    array[j]=connectivity[j];
+
+  Range new_elems(actual_start_handle, actual_start_handle+ *num_elem -1);
+
+  rval = context.MBI->add_entities( data.file_set, new_elems);
+  if (rval!=MB_SUCCESS)
+    return 1;
+
+  data.primary_elems.merge(new_elems);
+
+
+  return 0;
+}
+
+// this makes sense only for parallel runs
+ErrCode iMOAB_ResolveSharedEntities(  iMOAB_AppID pid, int *num_verts, int * marker )
+{
+
+#ifdef MOAB_HAVE_MPI
+  appData & data = context.appDatas[*pid];
+  ParallelComm * pco = context.pcomms[*pid];
+
+  // create an integer tag for resolving ; maybe it can be a long tag in the future
+  // (more than 2 B vertices;)
+  int dum_id = 0;
+  Tag stag;
+  ErrorCode rval = context.MBI->tag_get_handle("__sharedmarker", 1,  MB_TYPE_INTEGER, stag,
+      MB_TAG_CREAT | MB_TAG_DENSE, &dum_id);
+  if (rval!=MB_SUCCESS)
+    return 1;
+  rval = context.MBI->tag_set_data(stag, data.local_verts, (void*)marker); // assumes integer tag
+  EntityHandle cset = data.file_set;
+  rval = pco->resolve_shared_ents(cset, -1, -1, &stag);
+  if (rval!=MB_SUCCESS)
+    return 1;
+
+  // provide partition tag equal to rank
+  Tag part_tag;
+  dum_id = -1;
+  rval = context.MBI->tag_get_handle("PARALLEL_PARTITION", 1, MB_TYPE_INTEGER,
+                               part_tag, MB_TAG_CREAT | MB_TAG_SPARSE, &dum_id);
+  if (rval!=MB_SUCCESS)
+    return 1;
+  int rank = pco->rank();
+  rval = context.MBI->tag_set_data(part_tag, &cset, 1, &rank);
+  if (rval!=MB_SUCCESS)
+    return 1;
+
+#endif
+  return 0;
+}
 #ifdef __cplusplus
 }
 #endif
