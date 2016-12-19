@@ -267,7 +267,7 @@ static void print_tag_counts( const std::vector<TagCounts>& counts )
   for (EntityType t = MBVERTEX; t != MBMAXTYPE; ++t) 
     if (widths[t])
       printf( " %s", dashes(widths[t]) );
-    printf("\n");
+  printf("\n");
     
     // print data
   for (size_t i = 0; i < counts.size(); ++i) {

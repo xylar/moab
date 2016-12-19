@@ -2358,7 +2358,7 @@ ErrorCode mb_mesh_set_flag_test()
   unsigned int flags;
   rval = mb->get_meshset_options( set, flags );
   CHKERR(rval);
-  if(!MESHSET_SET&flags || MESHSET_TRACK_OWNER&flags || MESHSET_ORDERED&flags){
+  if(!(MESHSET_SET&flags) || (MESHSET_TRACK_OWNER&flags) || (MESHSET_ORDERED&flags) ){
     std::cerr << "set should be MESHSET_SET only, flags=" << flags << std::endl;
     return MB_FAILURE;
   }
