@@ -201,8 +201,10 @@ ErrCode iMOAB_CreateVertices( iMOAB_AppID pid, int * coords_len, int *dim, doubl
   \param[in]  type (int*)                         type of element (moab type)
   \param[in]  num_nodes_per_element (int*)        number of nodes per element
   \param[in]  connectivity (int *)                connectivity array, with respect to vertices; assumes vertices contiguous
+  \param[in]  block_ID (int *)                    block_ID to which the elements will be added to
 */
-ErrCode iMOAB_CreateElements( iMOAB_AppID pid, int *num_elem, int *type, int *num_nodes_per_element, int * connectivity );
+ErrCode iMOAB_CreateElements( iMOAB_AppID pid, int *num_elem, int *type, int *num_nodes_per_element,
+    int * connectivity,  int *block_ID);
 
 /**
   \brief resolve shared entities using global markers on shared vertices.
@@ -217,6 +219,22 @@ ErrCode iMOAB_CreateElements( iMOAB_AppID pid, int *num_elem, int *type, int *nu
   \param[in] marker (int*)                resolving marker (global id marker)
 */
 ErrCode iMOAB_ResolveSharedEntities(  iMOAB_AppID pid, int *num_verts, int * marker );
+
+/**
+  \brief create ghost layers.
+
+  \note
+  it assumes that the shared entities were resolved successfully, and that the mesh is properly
+   distributed on separate tasks
+
+  <B>Operations:</B> Collective .
+
+  \param[in] pid (iMOAB_AppID)            The unique pointer to the application ID
+  \param[in] ghost_dim (int*)             Desired ghost dimension (2 or 3, most of the time)
+  \param[in] num_ghost_layers (int*)      Number of ghost layers requested
+  \param[in] bridge_dim (int*)            Bridge dimension (0 for vertices, 1 for edges, 2 for faces)
+*/
+ErrCode iMOAB_DetermineGhostEntities(  iMOAB_AppID pid, int * ghost_dim, int *num_ghost_layers, int * bridge_dim );
 
 /**
   \brief Write a MOAB mesh along with the solution tags to a file.

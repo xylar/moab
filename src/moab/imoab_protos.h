@@ -45,5 +45,5 @@
 #define iMOAB_CreateVertices                 IMOAB_FC_WRAPPER( imoab_createvertices, IMOAB_CREATEVERTICES )
 #define iMOAB_CreateElements                 IMOAB_FC_WRAPPER( imoab_createelements, IMOAB_CREATEELEMENTS )
 #define iMOAB_ResolveSharedEntities          IMOAB_FC_WRAPPER( imoab_resolvesharedentities, IMOAB_RESOLVESHAREDENTITIES )
-
+#define iMOAB_DetermineGhostEntities         IMOAB_FC_WRAPPER( imoab_determineghostentities, IMOAB_DETERMINEGHOSTENTITIES )
 #endif /*IMOAB_PROTOS_H */

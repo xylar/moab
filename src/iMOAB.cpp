@@ -1197,7 +1197,8 @@ ErrCode iMOAB_CreateVertices( iMOAB_AppID pid, int * coords_len, int *dim, doubl
   return 0;
 }
 
-ErrCode iMOAB_CreateElements( iMOAB_AppID pid, int *num_elem, int *type,  int *num_nodes_per_element,  int * connectivity )
+ErrCode iMOAB_CreateElements( iMOAB_AppID pid, int *num_elem, int *type,  int *num_nodes_per_element,  int * connectivity ,
+       int *block_ID)
 {
   // Create elements
   appData & data = context.appDatas[*pid];
@@ -1220,10 +1221,12 @@ ErrCode iMOAB_CreateElements( iMOAB_AppID pid, int *num_elem, int *type,  int *n
   if (rval!=MB_SUCCESS)
     return 1;
 
-  // fill up with actual connectivity from input
+  // fill up with actual connectivity from input; assume the vertices are in order, and start vertex is
+  // the first in the current data vertex range
+  EntityHandle firstVertex = data.local_verts[0];
 
   for (int j=0; j<*num_elem * (*num_nodes_per_element); j++)
-    array[j]=connectivity[j];
+    array[j]=connectivity[j]+firstVertex-1; // assumes connectivity uses 1 based array (from fortran, mostly)
 
   Range new_elems(actual_start_handle, actual_start_handle+ *num_elem -1);
 
@@ -1233,6 +1236,34 @@ ErrCode iMOAB_CreateElements( iMOAB_AppID pid, int *num_elem, int *type,  int *n
 
   data.primary_elems.merge(new_elems);
 
+  // organize all new elements in block, with the given block ID; if the block set is not existing, create  a
+  // new mesh set;
+  Range sets;
+  int set_no = *block_ID;
+  const void *setno_ptr = &set_no;
+  rval = context.MBI->get_entities_by_type_and_tag(data.file_set, MBENTITYSET,
+      &context.material_tag, &setno_ptr, 1, sets);
+  EntityHandle block_set;
+  if (MB_FAILURE == rval || sets.empty()) {
+    // create a new set, with this block ID
+    rval = context.MBI->create_meshset(MESHSET_SET, block_set );
+    if (MB_FAILURE == rval)
+      return 1; // failure
+    rval = context.MBI->tag_set_data(context.material_tag, &block_set, 1, &set_no);
+    if (MB_FAILURE == rval)
+      return 1; // failure
+    // add the material set to file set
+    rval = context.MBI->add_entities(data.file_set, &block_set, 1);
+    if (MB_FAILURE == rval)
+      return 1; // failure
+  }
+  else
+    block_set = sets[0]; // first set is the one we want
+
+  /// add the new ents to the clock set
+  rval = context.MBI->add_entities(block_set, new_elems);
+  if (MB_FAILURE == rval)
+    return 1; // failure
 
   return 0;
 }
@@ -1273,6 +1304,34 @@ ErrCode iMOAB_ResolveSharedEntities(  iMOAB_AppID pid, int *num_verts, int * mar
 
 #endif
   return 0;
+}
+
+// this assumes that this was not called before
+ErrCode iMOAB_DetermineGhostEntities(  iMOAB_AppID pid, int * ghost_dim, int *num_ghost_layers, int * bridge_dim )
+{
+  if (*num_ghost_layers <= 0)
+    return 0; // nothing to do
+#ifdef MOAB_HAVE_MPI
+  appData & data = context.appDatas[*pid];
+  ParallelComm * pco = context.pcomms[*pid];
+
+  int addl_ents=0; //maybe we should be passing this too; most of the time we do not need additional ents
+  ErrorCode rval = pco->exchange_ghost_cells(*ghost_dim, *bridge_dim,
+      *num_ghost_layers, addl_ents, true, true, &data.file_set); // collective call
+
+  if (rval!=MB_SUCCESS)
+    return 1;
+
+#endif
+ //  iMOAB_GetMeshInfo( iMOAB_AppID pid, int* num_visible_vertices, int* num_visible_elements,
+  // int *num_visible_blocks, int* num_visible_surfaceBC, int* num_visible_vertexBC );
+
+  // now re-establish all mesh info; will reconstruct mesh info, based solely on what is in the file set
+  int num_visible_vertices, num_visible_elements, num_visible_blocks,
+     num_visible_surfaceBC, num_visible_vertexBC;
+  int rc = iMOAB_GetMeshInfo(pid, &num_visible_vertices, &num_visible_elements, &num_visible_blocks,
+      &num_visible_surfaceBC, &num_visible_vertexBC);
+  return rc;
 }
 #ifdef __cplusplus
 }
