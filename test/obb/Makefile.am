@@ -1,5 +1,5 @@
 check_PROGRAMS = obb_test obb_time obb_tree_tool
-TESTS =
+TESTS = obb_test
 
 MESHDIR = $(abs_top_srcdir)/MeshFiles/unittest
 
