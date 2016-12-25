@@ -1,14 +1,14 @@
 add_subdirectory(point_location)
 set( LIBS MOAB )
-set( TESTS seqperf.cpp
-           adj_mem_time_test.cpp
+set( TESTS adj_mem_time_test.cpp
            )
 
 if(MOAB_HAVE_HDF5)
   set( TESTS ${TESTS} adj_time.cpp )
 endif(MOAB_HAVE_HDF5)
 
-set( TOOLS perf.cpp
+set( TOOLS seqperf.cpp
+           perf.cpp
            perftool.cpp
            umr_perf.cpp )
 
