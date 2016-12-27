@@ -8,9 +8,9 @@ all-local:
 	(export PYTHONPATH=$(PWD):$(PYTHONPATH) ; python setup.py install --install-platlib=$(PWD))
 
 install:
-	if [ ! -d @prefix@/pymoab ]; then mkdir @prefix@/pymoab; fi
-	(export PYTHONPATH=@prefix@/pymoab:$(PYTHONPATH) ; python setup.py install --install-platlib=@prefix@/pymoab/ )
+	if [ ! -d $(pymoab_prefix) ]; then mkdir -p $(pymoab_prefix); fi
+	(export PYTHONPATH=$(pymoab_prefix):$(PYTHONPATH) ; python setup.py install --install-platlib=$(pymoab_prefix) )
 
 check:
 	(cp -r $(srcdir)/tests .)
-	(PYTHONPATH=$(PWD):$(PYTHONPATH) cd tests ; nosetests)
+	(cd tests ; PYTHONPATH=$(PWD):$(PYTHONPATH) nosetests)
