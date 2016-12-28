@@ -202,7 +202,7 @@ else
     AC_PYTHON_MODULE(setuptools)
     AC_PYTHON_MODULE(cython)
     AC_MSG_CHECKING(for proper cython capabilities)
-    cython --cplus $srcdir/pymoab/cmake/cython_test.pyx
+    cython --cplus $srcdir/pymoab/cmake/cython_test.pyx --output-file ./.cython_test_out
     if test $? -ne 0 ; then
     AC_MSG_ERROR(cython is not the correct version for pymoab)
     fi
@@ -216,8 +216,12 @@ else
   else
     ENABLE_pymoab=no
   fi
-  DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --enable-pymoab=$ENABLE_pymoab"
+  if (test "xyes" != "x$enable_shared" || test "xno" = "x$enable_shared"); then
+    AC_MSG_ERROR([Cannot build static libraries and the python interface. Please build with shared libraries (--enable-shared) or build without MOAB's python interface.])
+  fi
+  DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --enable-pymoab=$ENABLE_pymoab --enable-shared=yes"
 fi
+
 AC_MSG_RESULT([$ENABLE_pymoab])
 AM_CONDITIONAL([ENABLE_pymoab],[test "xyes" = "x$ENABLE_pymoab"])
 

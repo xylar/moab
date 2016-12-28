@@ -1,10 +1,11 @@
 
+EXTRA_DIST = $(srcdir)/cmake/cython_test.pyx $(srcdir)/pymoab/* $(srcdir)/tests/*
 
 
 all-local:
-	(cp -r $(srcdir)/pymoab .)
+	(cp --no-preserve=all -r $(srcdir)/pymoab .)
 	(cd pymoab ; cython --cplus *.pyx)
-	CFLAGS='-w' python setup.py build
+	CFLAGS='-w -fPIC' python setup.py build
 	(export PYTHONPATH=$(PWD):$(PYTHONPATH) ; python setup.py install --install-platlib=$(PWD))
 
 install:
@@ -12,5 +13,8 @@ install:
 	(export PYTHONPATH=$(pymoab_prefix):$(PYTHONPATH) ; python setup.py install --install-platlib=$(pymoab_prefix) )
 
 check:
-	(cp -r $(srcdir)/tests .)
+	(cp --no-preserve=all -r $(srcdir)/tests .)
 	(cd tests ; PYTHONPATH=$(PWD):$(PYTHONPATH) nosetests)
+
+uninstall:
+	rm -r ${pymoab_prefix}
