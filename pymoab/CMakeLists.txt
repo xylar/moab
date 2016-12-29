@@ -4,6 +4,9 @@ SET( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_LIST_DIR}/cmake )
 FIND_PROGRAM(PYTHON "python")
 FIND_PROGRAM(NOSE "nosetests")
 FIND_PACKAGE(Cython REQUIRED)
+
+find_package(PythonInterp)
+
 # make sure that specific python modules are installed
 SET(NUMPY_MODULE_MISSING false)
 SET(CYTHON_MODULE_MISSING false)
@@ -22,6 +25,10 @@ if (SETUPTOOLS_MODULE_MISSING)
   MESSAGE( SEND_ERROR "Python setuptools module is missing.")
 endif()
 
+if(NOT BUILD_SHARED_LIBS)
+  MESSAGE( SEND_ERROR "Cannot build static libraries and the python interface. Please build with shared libraries (-DBUILD_SHARED_LIBS=ON) or build without MOAB's python interface.")
+endif()
+
 # if all is well go ahead and build/install pymoab interface
 if (PYTHON AND NOSE AND NOT PYTHON_MODULES_MISSING)
   # copy all source to current dir so .cpp's aren't built in source
@@ -29,6 +36,14 @@ if (PYTHON AND NOSE AND NOT PYTHON_MODULES_MISSING)
   # copy over test files as well
   FILE(COPY "${CMAKE_CURRENT_SOURCE_DIR}/tests/" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/tests" FILES_MATCHING PATTERN "*")
 
+  SET(LOCAL_INSTALL_PATH "${CMAKE_CURRENT_BINARY_DIR}/local_inst/")
+
+  if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+    SET(PYMOAB_INSTALL_PREFIX "/usr/lib/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/dist-packages/")
+  else()
+    SET(PYMOAB_INSTALL_PREFIX "${CMAKE_INSTALL_LIBDIR}/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/site-packages/")
+  endif()
+      
   # configure the setup script
   SET(SETUP_PY_IN "${CMAKE_CURRENT_SOURCE_DIR}/setup.py.cmake.in")
   SET(SETUP_PY    "${CMAKE_CURRENT_BINARY_DIR}/setup.py")
@@ -47,14 +62,16 @@ if (PYTHON AND NOSE AND NOT PYTHON_MODULES_MISSING)
   # build pymoab
   ADD_CUSTOM_TARGET(pymoab-build ALL COMMAND export CFLAGS='-w' && ${PYTHON} setup.py build DEPENDS ${DEPS} pymoab-cythonize MOAB)
 
+  #create local installation directory
+  ADD_CUSTOM_TARGET(pymoab-local-install-dir ALL COMMAND ${CMAKE_COMMAND} -E make_directory ${LOCAL_INSTALL_PATH} DEPENDS pymoab-build)
   # pymoab install- depends on pymoab-build and is run during make
   # !!!!THIS INSTALL IS DONE LOCALLY AND COPIED TO THE CORRECT LOCATOIN DURING INSTALL !!!! (Subject to Change)
-  ADD_CUSTOM_TARGET(pymoab-local-install ALL COMMAND export PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}:$PYTHONPATH && ${PYTHON} setup.py install --install-platlib=${CMAKE_CURRENT_BINARY_DIR} DEPENDS pymoab-build)
+  ADD_CUSTOM_TARGET(pymoab-local-install ALL COMMAND export PYTHONPATH=${LOCAL_INSTALL_PATH}:$PYTHONPATH && ${PYTHON} setup.py install --install-platlib=${LOCAL_INSTALL_PATH} DEPENDS pymoab-local-install-dir)
   # move pymoab egg into the correct location for a --user setuptools install based on username
-  FILE(GLOB PYMOAB_EGG *.egg)
-  INSTALL(FILES ${PYMOAB_EGG} DESTINATION ${CMAKE_INSTALL_PREFIX}/pymoab/ )
+  FILE(GLOB PYMOAB_EGG ${LOCAL_INSTALL_PATH}/*)
+  INSTALL(FILES ${PYMOAB_EGG} DESTINATION ${PYMOAB_INSTALL_PREFIX} )
 
   # run all pymoab tests, local install is added to PYTHONPATH so that make check can be run before install
-  ADD_CUSTOM_TARGET(pymoab-tests COMMAND export LD_LIBRARY_PATH=${CMAKE_CURRENT_BINARY_DIR}/../lib/ && export PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}:$ENV{PYTHONPATH} && cd ${CMAKE_CURRENT_BINARY_DIR}/tests/ && nosetests)
+  ADD_CUSTOM_TARGET(pymoab-tests COMMAND export LD_LIBRARY_PATH=${CMAKE_CURRENT_BINARY_DIR}/../lib/ && export PYTHONPATH=${LOCAL_INSTALL_PATH}:$ENV{PYTHONPATH} && cd ${CMAKE_CURRENT_BINARY_DIR}/tests/ && nosetests)
 endif()
 
