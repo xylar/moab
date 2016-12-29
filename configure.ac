@@ -202,15 +202,17 @@ else
     AC_PYTHON_MODULE(setuptools)
     AC_PYTHON_MODULE(cython)
     AC_MSG_CHECKING(for proper cython capabilities)
-    cython --cplus $srcdir/pymoab/cmake/cython_test.pyx --output-file ./.cython_test_out
+    cython --cplus $srcdir/pymoab/cmake/cython_test.pyx --output-file ./.cython_test_out && rm .cython_test_out
     if test $? -ne 0 ; then
     AC_MSG_ERROR(cython is not the correct version for pymoab)
     fi
     AC_CONFIG_SRCDIR([pymoab/setup.py.in])
     if test "x$prefix" = "xNONE"; then
       pymoab_prefix=/usr/lib/python${PYTHON_VERSION}/dist-packages
+      pythondir=pymoab_prefix
     else
       pymoab_prefix=$prefix/lib/python${PYTHON_VERSION}/site-packages
+      pythondir=pymoab_prefix
     fi
     AC_SUBST([pymoab_prefix])
   else
