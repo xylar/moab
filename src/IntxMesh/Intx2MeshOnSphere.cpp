@@ -327,6 +327,7 @@ ErrorCode Intx2MeshOnSphere::findNodes(EntityHandle red, int nsRed, EntityHandle
             // this will be on the edge, and it will be added to the local list
             mb->create_vertex(pos.array(), outNode);
             (*expts).push_back(outNode);
+            rval = mb->add_entities(outSet, &outNode, 1);MB_CHK_ERR(rval);
             foundIds[i] = outNode;
             found = 1;
 #ifdef ENABLE_DEBUG
