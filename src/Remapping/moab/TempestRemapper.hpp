@@ -4,7 +4,7 @@
  *       Filename:  TempestRemapper.hpp
  *
  *    Description:  Interface to the TempestRemap library to enable intersection and
- *                  high-order conservative remapping of climate solution from 
+ *                  high-order conservative remapping of climate solution from
  *                  arbitrary resolution of source and target grids on the sphere.
  *
  *         Author:  Vijay S. Mahadevan (vijaysm), mahadevan@anl.gov
@@ -29,61 +29,66 @@
 
 namespace moab
 {
-    enum TempestMeshType { CS=0, RLL=1, ICO=2, OVERLAP=3, OVERLAP_V2=4 };
+enum TempestMeshType { CS = 0, RLL = 1, ICO = 2, OVERLAP = 3, OVERLAP_V2 = 4, OVERLAP_MOAB = 5 };
 
-    class TempestRemapper : public Remapper
+class TempestRemapper : public Remapper
+{
+public:
+    TempestRemapper(moab::Interface* mbInt, moab::ParallelComm* pcomm = NULL) :
+        Remapper(mbInt, pcomm), meshValidate(false), constructEdgeMap(false)
     {
-    public:
-        TempestRemapper(moab::Interface* mbInt) : Remapper(mbInt), meshValidate(false), constructEdgeMap(false)
-        {
-        }
-        
-        virtual void initialize();
+    }
 
-        moab::ErrorCode GenerateMesh(IntersectionContext ctx, TempestMeshType type);
+    virtual void initialize();
 
-        moab::ErrorCode LoadMesh(IntersectionContext ctx, std::string inputFilename, TempestMeshType type);
+    moab::ErrorCode GenerateMesh(IntersectionContext ctx, TempestMeshType type);
 
-        moab::ErrorCode ComputeOverlapMesh();
-        
-        moab::ErrorCode ConvertTempestMesh(IntersectionContext ctx, moab::EntityHandle& meshset);
+    moab::ErrorCode LoadMesh(IntersectionContext ctx, std::string inputFilename, TempestMeshType type);
 
-        moab::ErrorCode ConvertMeshToTempest(moab::EntityHandle meshset, Mesh* mesh);
+    moab::ErrorCode ComputeOverlapMesh();
 
-        // public members
-        bool meshValidate;  // Validate the mesh after loading from file
+    moab::ErrorCode ConvertTempestMesh(IntersectionContext ctx, moab::EntityHandle& meshset);
 
-        bool constructEdgeMap;  //  Construct the edge map within the TempestRemap datastructures
+    moab::ErrorCode ConvertMeshToTempest(moab::EntityHandle meshset, Mesh* mesh);
 
-        Mesh* GetSourceMesh();
+    // public members
+    bool meshValidate;  // Validate the mesh after loading from file
 
-        Mesh* GetTargetMesh();
+    bool constructEdgeMap;  //  Construct the edge map within the TempestRemap datastructures
 
-        Mesh* GetOverlapMesh();
+    Mesh* GetSourceMesh();
 
-        static  moab::ErrorCode LoadTempestMesh(std::string inputFilename, Mesh** tempest_mesh, bool meshValidate=false, bool constructEdgeMap=false);
+    Mesh* GetTargetMesh();
 
-        static  moab::ErrorCode ConvertTempestMeshToMOAB(TempestMeshType type, moab::Interface* mb, Mesh* mesh, moab::EntityHandle& meshset);
+    Mesh* GetOverlapMesh();
 
-        static  moab::ErrorCode ConvertMOABMeshToTempest(moab::Interface* mb, Mesh* mesh, moab::EntityHandle meshset);
+    static moab::ErrorCode LoadTempestMesh(std::string inputFilename, Mesh** tempest_mesh, bool meshValidate = false, bool constructEdgeMap = false);
 
-    private:
+    static moab::ErrorCode ConvertTempestMeshToMOAB(TempestMeshType type, moab::Interface* mb, Mesh* mesh, moab::EntityHandle& meshset);
 
-        // Source and Target meshes
-        Mesh* m_source;
-        TempestMeshType m_source_type;
-        moab::EntityHandle m_source_set;
+    static moab::ErrorCode ConvertMOABMeshToTempest(moab::Interface * mb, Mesh * mesh, moab::EntityHandle meshset);
 
-        Mesh* m_target;
-        TempestMeshType m_target_type;
-        moab::EntityHandle m_target_set;
+    static moab::ErrorCode AssociateSrcTargetInOverlap(Interface* mb, Mesh* mesh, EntityHandle* meshsets);
 
-        // Overlap meshes
-        Mesh* m_overlap;
-        moab::EntityHandle m_overlap_set;
+    static const bool verbose = true;
 
-    };
- 
+private:
+
+    // Source and Target meshes
+    Mesh* m_source;
+    TempestMeshType m_source_type;
+    moab::EntityHandle m_source_set;
+
+    Mesh* m_target;
+    TempestMeshType m_target_type;
+    moab::EntityHandle m_target_set;
+
+    // Overlap meshes
+    Mesh* m_overlap;
+    moab::EntityHandle m_overlap_set;
+
+};
+
 // Inline functions
 inline
 Mesh* TempestRemapper::GetSourceMesh()
