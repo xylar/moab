@@ -21,6 +21,8 @@
 #include "moab/Range.hpp"
 #include "moab/CartVect.hpp"
 
+// #define ENABLE_DEBUG
+
 // maximum number of edges on each convex polygon of interest
 #define MAXEDGES 10
 #define MAXEDGES2 20 // used for coordinates in plane
@@ -176,7 +178,7 @@ protected: // so it can be accessed in derived classes, InPlane and OnSphere
   double blueCoords2D[MAXEDGES2]; // these are in plane
 
 #ifdef ENABLE_DEBUG
-  const int dbg_1;
+  static int dbg_1;
   std::ofstream mout_1[6]; // some debug files
 #endif
   // for each red edge, we keep a vector of extra nodes, coming from intersections

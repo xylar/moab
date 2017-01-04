@@ -70,6 +70,8 @@ public:
 
     static moab::ErrorCode AssociateSrcTargetInOverlap(Interface* mb, Mesh* mesh, EntityHandle* meshsets);
 
+    static moab::ErrorCode ExchangeGhostWeights(Interface* mb, OfflineMap* weightMap);
+
     static const bool verbose = true;
 
 private:

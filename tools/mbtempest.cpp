@@ -15,6 +15,7 @@
 #include <cstdlib>
 #include <vector>
 #include <string>
+#include <sstream>
 #include <cassert>
 
 #include "moab/Core.hpp"
@@ -132,15 +133,16 @@ int main(int argc, char* argv[])
 {
   moab::ErrorCode rval;
   NcError error(NcError::verbose_nonfatal);
+  std::stringstream sstr;
 
-  int proc_id = 0, size = 1;
+  int proc_id = 0, nprocs = 1;
 #ifdef MOAB_HAVE_MPI
   MPI_Init(&argc, &argv);
   MPI_Comm_rank( MPI_COMM_WORLD, &proc_id );
-  MPI_Comm_size( MPI_COMM_WORLD, &size );
+  MPI_Comm_size( MPI_COMM_WORLD, &nprocs );
 #endif
 
-  ToolContext ctx(proc_id, size);
+  ToolContext ctx(proc_id, nprocs);
   ctx.ParseCLOptions(argc, argv);
 
   moab::Interface* mbCore = new (std::nothrow) moab::Core;
@@ -286,6 +288,7 @@ int main(int argc, char* argv[])
     ctx.timer_push("compute intersections with MOAB");
     rval = mbintx->intersect_meshes(ctx.meshsets[0], ctx.meshsets[1], ctx.meshsets[2]); MB_CHK_SET_ERR(rval, "Can't compute the intersection of meshes on the sphere");
     ctx.timer_pop();
+    delete mbintx;
     rval = mbCore->add_entities(ctx.meshsets[2], &ctx.meshsets[0], 2);MB_CHK_ERR(rval);
 
     std::cout << "MeshSets::: Source = " << ctx.meshsets[0] << " Target = " << ctx.meshsets[1] << " Overlap = " << ctx.meshsets[2] << std::endl;
@@ -298,29 +301,31 @@ int main(int argc, char* argv[])
       rval = mbCore->tag_get_handle("RedParent", redPtag);MB_CHK_ERR(rval);
       rval = mbCore->tag_get_handle("BlueParent", bluePtag);MB_CHK_ERR(rval);
 
-      moab::Range redEls, blueEls;
-      rval = mbCore->get_entities_by_dimension(ctx.meshsets[2], 2, redEls); MB_CHK_ERR(rval);
-      rval = mbCore->get_entities_by_dimension(ctx.meshsets[2], 2, blueEls); MB_CHK_ERR(rval);
+      moab::Range overlapEls, overlapVerts;
+      rval = mbCore->get_entities_by_dimension(ctx.meshsets[2], 2, overlapEls); MB_CHK_ERR(rval);
+      rval = mbCore->get_entities_by_dimension(ctx.meshsets[2], 0, overlapVerts,true); MB_CHK_ERR(rval);
+      if (!proc_id) std::cout << "\nThe intersection set contains " << overlapEls.size() << " elements and " << overlapVerts.size() << " vertices\n";
 
       // Overlap mesh: mesh[2]
-      ctx.meshes[2]->vecSourceFaceIx.resize(redEls.size());
-      ctx.meshes[2]->vecTargetFaceIx.resize(blueEls.size());
+      ctx.meshes[2]->vecSourceFaceIx.resize(overlapEls.size());
+      ctx.meshes[2]->vecTargetFaceIx.resize(overlapEls.size());
+      ctx.meshes[2]->ConstructEdgeMap();
 
-      rval = mbCore->tag_get_data(redPtag, redEls, &ctx.meshes[2]->vecSourceFaceIx[0]); MB_CHK_ERR(rval);
-      rval = mbCore->tag_get_data(bluePtag, blueEls, &ctx.meshes[2]->vecTargetFaceIx[0]); MB_CHK_ERR(rval);
+      std::vector<int> test(overlapEls.size()), test_2(overlapEls.size());
+      rval = mbCore->tag_get_data(redPtag,  overlapEls, &test[0]); MB_CHK_ERR(rval);
+      std::cout << "Couple of indices: " << test[0] << " " << test[1] << " " << test[2] << " " << test[3] << " " << test[4] << " " << test[5] << "\n" ;
+      rval = mbCore->tag_get_data(bluePtag,  overlapEls, &test_2[0]); MB_CHK_ERR(rval);
+      std::cout << "Couple of indices: " << test_2[0] << " " << test_2[1] << " " << test_2[2] << " " << test_2[3] << " " << test_2[4] << " " << test_2[5] << "\n" ;
+      
+      rval = mbCore->tag_get_data(redPtag,  overlapEls, &ctx.meshes[2]->vecSourceFaceIx[0]); MB_CHK_ERR(rval);
+      rval = mbCore->tag_get_data(bluePtag, overlapEls, &ctx.meshes[2]->vecTargetFaceIx[0]); MB_CHK_ERR(rval);
     }
 
     // Write out our computed intersection file
     // rval = mbCore->write_mesh("moab_intersection.h5m", &ctx.meshsets[2], 1); MB_CHK_ERR(rval);
     rval = mbCore->write_file("moab_intersection.h5m", NULL, "PARALLEL=WRITE_PART", &ctx.meshsets[2], 1); MB_CHK_ERR(rval);
 
-    delete mbintx;
     {
-      moab::Range intxelems, intxverts;
-      rval = mbCore->get_entities_by_dimension(ctx.meshsets[2], 2, intxelems); MB_CHK_ERR(rval);
-      rval = mbCore->get_entities_by_dimension(ctx.meshsets[2], 0, intxverts,true); MB_CHK_ERR(rval);
-      if (!proc_id) std::cout << "\nThe intersection set contains " << intxelems.size() << " elements and " << intxverts.size() << " vertices\n";
-
       double local_areas[3], global_areas[3]; // Array for Initial area, and through Method 1 and Method 2
       local_areas[0] = area_on_sphere_lHuiller(mbCore, ctx.meshsets[1], radius);
       local_areas[1] = area_on_sphere_lHuiller(mbCore, ctx.meshsets[2], radius);
@@ -344,18 +349,25 @@ int main(int argc, char* argv[])
       // Call to generate an offline map with the tempest meshes
       OfflineMap* weightMap = new OfflineMap();
       weightMap = GenerateOfflineMapWithMeshes( NULL, *ctx.meshes[0], *ctx.meshes[1], *ctx.meshes[2],
-                              "", "",     // std::string strInputMeta, std::string strOutputMeta,
-                              "fv", "fv", // std::string strInputType, std::string strOutputType,
-                              4, 4       // int nPin=4, int nPout=4,
-                              //                                                           bool fBubble=false, int fMonotoneTypeID=0,
-                              //                                                           bool fVolumetric=false, bool fNoConservation=false, bool fNoCheck=false,
+                              "", "",              // std::string strInputMeta, std::string strOutputMeta,
+                              "fv", "fv",          // std::string strInputType, std::string strOutputType,
+                              nprocs, nprocs,  // int nPin=4, int nPout=4,
+                              false, 0,            // bool fBubble=false, int fMonotoneTypeID=0,
+                              false, false, (nprocs>1) // bool fVolumetric=false, bool fNoConservation=false, bool fNoCheck=false,
                               //                                                           std::string strVariables="", std::string strOutputMap="",
                               //                                                           std::string strInputData="", std::string strOutputData="",
                               //                                                           std::string strNColName="", bool fOutputDouble=false,
                               //                                                           std::string strPreserveVariables="", bool fPreserveAll=false, double dFillValueOverride=0.0
                                                           );
+
+      // weightMap->m_vecSourceDimSizes.resize(ctx.meshes[0]->faces.size());
+      // weightMap->m_vecTargetDimSizes.resize(ctx.meshes[1]->faces.size());
+
+      rval = moab::TempestRemapper::ExchangeGhostWeights(mbCore, weightMap);MB_CHK_ERR(rval);
       ctx.timer_pop();
-      weightMap->Write("outWeights.nc");
+      sstr.str("");
+      sstr << "outWeights_" << proc_id << ".nc";
+      weightMap->Write(sstr.str().c_str());
       delete weightMap;
     }
   }

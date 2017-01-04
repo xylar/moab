@@ -19,13 +19,14 @@
 
 namespace moab {
 
+#ifdef ENABLE_DEBUG
+int Intx2Mesh::dbg_1=1;
+#endif
+
 Intx2Mesh::Intx2Mesh(Interface * mbimpl): mb(mbimpl),
   mbs1(0), mbs2(0), outSet(0),
   RedFlagTag(0), redParentTag(0), blueParentTag(0), countTag(0), neighTag(0), neighRedEdgeTag(0),
   redConn(NULL), blueConn(NULL),
-#ifdef ENABLE_DEBUG
-  dbg_1(0), 
-#endif
   epsilon_1(0.0), epsilon_area(0.0), box_error(0.0),
   localRoot(0), my_rank(0)
 #ifdef MOAB_HAVE_MPI

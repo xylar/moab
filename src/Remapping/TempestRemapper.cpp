@@ -271,7 +271,7 @@ ErrorCode TempestRemapper::ConvertMOABMeshToTempest(Interface* mb, Mesh* mesh, E
 		int nnodesf;
 		rval = mb->get_connectivity(*ielems, connectface, nnodesf); MB_CHK_ERR(rval);
 
-		for (unsigned inodes = 0; inodes < nnodesf; ++inodes) {
+		for (int inodes = 0; inodes < nnodesf; ++inodes) {
 			int iv = verts.index(connectface[inodes]);
 			// std::cout << "Setting vertex iv = " << iv << " for face[" << iface << "] = " << *ielems << std::endl;
 			face.SetNode(inodes, iv);
@@ -313,6 +313,15 @@ ErrorCode TempestRemapper::AssociateSrcTargetInOverlap(Interface* mb, Mesh* mesh
 	// Overlap mesh: mesh[2]
 	mesh[2].vecSourceFaceIx.resize(redEls.size());
 	mesh[2].vecTargetFaceIx.resize(blueEls.size());
+
+	return MB_SUCCESS;
+}
+
+
+ErrorCode TempestRemapper::ExchangeGhostWeights(Interface* mb, OfflineMap* weightMap)
+{
+	ErrorCode rval;
+
 
 	return MB_SUCCESS;
 }

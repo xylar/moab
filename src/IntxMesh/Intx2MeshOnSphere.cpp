@@ -376,8 +376,10 @@ ErrorCode Intx2MeshOnSphere::findNodes(EntityHandle red, int nsRed, EntityHandle
     // tag it with the index ids from red and blue sets
     int id = rs1.index(blue); // index starts from 0
     rval = mb->tag_set_data(blueParentTag, &polyNew, 1, &id);MB_CHK_ERR(rval);
+    // std::cout << "Setting parent for " << polyNew << " : Blue = " << id << ", " << blue << "\t";
     id = rs2.index(red);
     rval = mb->tag_set_data(redParentTag, &polyNew, 1, &id);MB_CHK_ERR(rval);
+    // std::cout << " Red = " << id << ", " << red << "\n";
 
     counting++;
     rval = mb->tag_set_data(countTag, &polyNew, 1, &counting);MB_CHK_ERR(rval);
@@ -385,7 +387,6 @@ ErrorCode Intx2MeshOnSphere::findNodes(EntityHandle red, int nsRed, EntityHandle
 #ifdef ENABLE_DEBUG
     if (dbg_1)
     {
-
       std::cout << "Counting: " << counting << "\n";
       std::cout << " polygon " << mb->id_from_handle(polyNew) << "  nodes: " << nP << " :";
       for (int i1 = 0; i1 < nP; i1++)
