@@ -14,7 +14,7 @@ SUBDIRS += io IntxMesh
 libMOAB_la_LIBADD += io/libmoabio.la IntxMesh/libIntxMesh.la
 if HAVE_TEMPESTREMAP
  SUBDIRS += Remapping
-libMOAB_la_LIBADD += Remapping/libRemapping.la
+ libMOAB_la_LIBADD += Remapping/libRemapping.la
 endif 
 SUBDIRS += .
 
