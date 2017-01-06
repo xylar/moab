@@ -228,6 +228,8 @@ int main(int argc, char **argv)
               << (clock() - tt) / (double) CLOCKS_PER_SEC << " seconds" << std::endl;
      tt = clock();
   }
+  rval = worker.FindMaxEdges(euler_set, euler_set);
+  CHECK_ERR(rval);
   worker.SetErrorTolerance(gtol);
   rval = worker.create_departure_mesh_2nd_alg(euler_set, covering_lagr_set);
   CHECK_ERR(rval);

@@ -82,6 +82,9 @@ int main(int argc, char* argv[])
   //worker.SetEntityType(moab::MBQUAD);
   worker.SetRadius(R);
   //worker.enable_debug();
+  rval = worker.FindMaxEdges(sf1, sf2);
+  if (MB_SUCCESS != rval)
+      return 1;
 
   rval = worker.intersect_meshes(sf1, sf2, outputSet);
   //compute total area with 2 methods

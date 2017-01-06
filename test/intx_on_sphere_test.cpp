@@ -101,6 +101,7 @@ int main(int argc, char* argv[])
   worker.SetRadius(R);
   //worker.enable_debug();
 
+  rval = worker.FindMaxEdges(sf1, sf2);MB_CHK_ERR(rval);
 
   if (size>1)
   {

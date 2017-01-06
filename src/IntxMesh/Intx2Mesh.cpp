@@ -25,14 +25,14 @@ int Intx2Mesh::dbg_1=1;
 
 Intx2Mesh::Intx2Mesh(Interface * mbimpl): mb(mbimpl),
   mbs1(0), mbs2(0), outSet(0),
-  RedFlagTag(0), redParentTag(0), blueParentTag(0), countTag(0), neighTag(0), neighRedEdgeTag(0),
+  RedFlagTag(0), redParentTag(0), blueParentTag(0), countTag(0), blueNeighTag(0), redNeighTag(0), neighRedEdgeTag(0),
   redConn(NULL), blueConn(NULL),
   epsilon_1(0.0), epsilon_area(0.0), box_error(0.0),
   localRoot(0), my_rank(0)
 #ifdef MOAB_HAVE_MPI
    , parcomm(NULL), remote_cells(NULL), remote_cells_with_tracers(NULL)
 #endif
-  , max_edges(0), counting(0)
+  , max_edges_1(0), max_edges_2(0), counting(0)
 {
 }
 
@@ -46,6 +46,42 @@ Intx2Mesh::~Intx2Mesh()
     remote_cells=NULL;
   }
 #endif
+}
+ErrorCode Intx2Mesh::FindMaxEdgesInSet(EntityHandle eset, int & max_edges)
+{
+  Range cells;
+  ErrorCode rval = mb->get_entities_by_dimension(eset, 2, cells);MB_CHK_ERR(rval);
+
+
+
+  max_edges = 3; // should be at least 3
+  for (Range::iterator cit=cells.begin(); cit!=cells.end(); cit++)
+  {
+    EntityHandle cell = *cit;
+    const EntityHandle * conn4;
+    int nnodes = 3;
+    rval = mb->get_connectivity(cell, conn4, nnodes); MB_CHK_SET_ERR(rval, "can't get connectivity of a cell");
+    if (nnodes>max_edges)
+      max_edges = nnodes;
+  }
+    // if in parallel, communicate the actual max_edges; it is not needed for red mesh (to be global) but it is better to be consistent
+#ifdef MOAB_HAVE_MPI
+  if (parcomm){
+    int local_max_edges = max_edges;
+    // now reduce max_edges over all processors
+    int mpi_err = MPI_Allreduce(&local_max_edges, &max_edges, 1, MPI_INT, MPI_MAX, parcomm->proc_config().proc_comm());
+    if (MPI_SUCCESS != mpi_err) return MB_FAILURE;
+  }
+#endif
+
+  return MB_SUCCESS;
+}
+ErrorCode Intx2Mesh::FindMaxEdges(EntityHandle set1, EntityHandle set2)
+{
+  ErrorCode rval = FindMaxEdgesInSet(set1, max_edges_1);MB_CHK_SET_ERR(rval, "can't determine max_edges in set 1");
+  rval = FindMaxEdgesInSet(set2, max_edges_2);MB_CHK_SET_ERR(rval, "can't determine max_edges in set 2");
+
+  return MB_SUCCESS;
 }
 
 ErrorCode Intx2Mesh::createTags()
@@ -63,15 +99,9 @@ ErrorCode Intx2Mesh::createTags()
   ErrorCode rval = mb->tag_get_handle("redFlag", 1, MB_TYPE_BIT, RedFlagTag, MB_TAG_CREAT,
       &def_data_bit);MB_CHK_SET_ERR(rval, "can't get red flag tag");
 
-  // assume that the edges are on the red triangles
-  Range redElements;
-  //Range redEdges;
-   // so all tri, quad, poly
-  rval = mb->get_entities_by_dimension(mbs2, 2, redElements, false);MB_CHK_SET_ERR(rval, "can't get ents by dimension");
-
   // create red edges if they do not exist yet; so when they are looked upon, they are found
   // this is the only call that is potentially NlogN, in the whole method
-  rval = mb->get_adjacencies(redElements, 1, true, RedEdges, Interface::UNION);MB_CHK_SET_ERR(rval, "can't get adjacent red edges");
+  rval = mb->get_adjacencies(rs2, 1, true, RedEdges, Interface::UNION);MB_CHK_SET_ERR(rval, "can't get adjacent red edges");
 
   // now, create a map from each edge to a list of potential new nodes on a red edge
   // this memory has to be cleaned up
@@ -95,26 +125,18 @@ ErrorCode Intx2Mesh::createTags()
   rval = mb->tag_get_handle("Counting", 1, MB_TYPE_INTEGER, countTag,
         MB_TAG_DENSE | MB_TAG_CREAT, &defaultInt);MB_CHK_SET_ERR(rval, "can't create Counting tag");
 
-  // create entity tags that store the neighbors for each cell in its set;
-  // store data for GetOrderedNeighbors; replace it completely
-  int num_neigh = MAXEDGES; // we can reduce this, if the max_edges was already established for both
-   // sets of meshes; we should actually keep max_edges and __neighbors tags separate for blue and red mesh
-  // it is similar to maxEdges dimension from an MPAS file; there it is usually 10, but it is a waste for
-  // regular CVT meshes, on which it is maximum 6. So on a variable like vertices on cell, or edges on cell,
-  // last 4  positions are not used at all in an array like this verticesOnCell(nCells, maxEdges)
-  EntityHandle zeroh[MAXEDGES] = {0};
-  rval = mb->tag_get_handle("__neighbors", num_neigh, MB_TYPE_HANDLE, neighTag,
-      MB_TAG_DENSE | MB_TAG_CREAT, (void*)zeroh );MB_CHK_SET_ERR(rval, "can't create neighbors tag");
+
   // for each cell in set 1, determine its neigh in set 1 (could be null too)
   // for each cell in set 2, determine its neigh in set 2 (if on boundary, could be 0)
-  rval = DetermineOrderedNeighbors(mbs1); MB_CHK_SET_ERR(rval, "can't determine neighbors for set 1");
-  rval = DetermineOrderedNeighbors(mbs2); MB_CHK_SET_ERR(rval, "can't determine neighbors for set 2");
+  rval = DetermineOrderedNeighbors(mbs1, max_edges_1, blueNeighTag); MB_CHK_SET_ERR(rval, "can't determine neighbors for set 1");
+  rval = DetermineOrderedNeighbors(mbs2, max_edges_2, redNeighTag); MB_CHK_SET_ERR(rval, "can't determine neighbors for set 2");
 
   // for red cells, save a dense tag with the bordering edges, so we do not have to search for them each time
   // edges were for sure created before (redEdges)
-  rval = mb->tag_get_handle("__redEdgeNeighbors", num_neigh, MB_TYPE_HANDLE, neighRedEdgeTag,
-      MB_TAG_DENSE | MB_TAG_CREAT, (void*)zeroh );MB_CHK_SET_ERR(rval, "can't create red edge neighbors tag");
-  for (Range::iterator rit=redElements.begin(); rit!=redElements.end(); rit++ )
+  std::vector<EntityHandle> zeroh(max_edges_2, 0);
+  rval = mb->tag_get_handle("__redEdgeNeighbors", max_edges_2, MB_TYPE_HANDLE, neighRedEdgeTag,
+      MB_TAG_DENSE | MB_TAG_CREAT, &zeroh[0] );MB_CHK_SET_ERR(rval, "can't create red edge neighbors tag");
+  for (Range::iterator rit=rs2.begin(); rit!=rs2.end(); rit++ )
   {
     EntityHandle redCell= *rit;
     int num_nodes=0;
@@ -133,21 +155,28 @@ ErrorCode Intx2Mesh::createTags()
       if (rval != MB_SUCCESS || adj_entities.size() < 1)
         return rval; // get out , big error
       zeroh[i] = adj_entities[0]; // should be only one edge between 2 nodes
+      // also, even if number of edges is less than max_edges_2, they will be ignored, even if the tag is dense
     }
     // now set the value of the tag
-    rval = mb->tag_set_data(neighRedEdgeTag, &redCell, 1, &(zeroh[0])); MB_CHK_SET_ERR(rval, "can't set edge red tag");
+    rval = mb->tag_set_data(neighRedEdgeTag, &redCell, 1, &zeroh[0]); MB_CHK_SET_ERR(rval, "can't set edge red tag");
   }
   return MB_SUCCESS;
 }
 
-ErrorCode Intx2Mesh::DetermineOrderedNeighbors(EntityHandle inputSet)
+ErrorCode Intx2Mesh::DetermineOrderedNeighbors(EntityHandle inputSet, int max_edges, Tag & neighTag)
 {
   Range cells;
   ErrorCode rval = mb->get_entities_by_dimension(inputSet, 2, cells); MB_CHK_SET_ERR(rval, "can't get cells in set");
+
+  std::vector<EntityHandle> neighbors(max_edges);
+  std::vector<EntityHandle> zeroh(max_edges, 0);
+  // nameless tag, as the name is not important; we will have 2 related tags, but one on red mesh, one on blue mesh
+  rval = mb->tag_get_handle("", max_edges, MB_TYPE_HANDLE, neighTag,
+      MB_TAG_DENSE | MB_TAG_CREAT, &zeroh[0] );MB_CHK_SET_ERR(rval, "can't create neighbors tag");
+
   for (Range::iterator cit=cells.begin(); cit!=cells.end(); cit++)
   {
     EntityHandle cell = *cit;
-    EntityHandle neighbors[MAXEDGES] = {0};
     int nnodes = 3;
     // will get the nnodes ordered neighbors;
     // first cell is for nodes 0, 1, second to 1, 2, third to 2, 3, last to nnodes-1,
@@ -195,9 +224,12 @@ ErrorCode Intx2Mesh::DetermineOrderedNeighbors(EntityHandle inputSet)
       else
         neighbors[i] = cellsInSet[0];
     }
+    // fill the rest with 0
+    for (int i = nsides; i<max_edges; i++)
+      neighbors[i] = 0;
     // now simply set the neighbors tag; the last few positions will not be used, but for simplicity will keep
     // them all (MAXEDGES)
-    rval = mb->tag_set_data(neighTag, &cell, 1, neighbors); MB_CHK_SET_ERR(rval, "can't set neigh tag");
+    rval = mb->tag_set_data(neighTag, &cell, 1, &neighbors[0]); MB_CHK_SET_ERR(rval, "can't set neigh tag");
 
   }
   return MB_SUCCESS;
@@ -214,15 +246,21 @@ ErrorCode Intx2Mesh::intersect_meshes(EntityHandle mbset1, EntityHandle mbset2,
   outSet = outputSet;
 
   // really, should be something from t1 and t2; blue is 1 (lagrange), red is 2 (euler)
-  createTags(); //
+
   EntityHandle startBlue=0, startRed=0;
 
-  Range vsboth;
+  //Range vsboth;
   rval = mb->get_entities_by_dimension(mbs1, 2, rs1);MB_CHK_ERR(rval);
   rval = mb->get_entities_by_dimension(mbs2, 2, rs2);MB_CHK_ERR(rval);
+
+  createTags(); // will also determine max_edges_1, max_edges_2 (for blue and red meshes)
+  /*
+   HMMMM; we should not be adding to the output set the original elements; they should remain in the input sets only
+   the output set should have the intersection polygons only
+
   rval = mb->get_entities_by_dimension(mbs1, 0, vsboth);MB_CHK_ERR(rval);
   rval = mb->get_entities_by_dimension(mbs2, 0, vsboth);MB_CHK_ERR(rval);
-  rval = mb->add_entities(outputSet, vsboth);MB_CHK_ERR(rval);
+  rval = mb->add_entities(outputSet, vsboth);MB_CHK_ERR(rval);*/
   Range rs22=rs2; // a copy of the initial range; we will remove from it elements as we
                  // advance ; rs2 is needed for marking the polygon to the red parent
   while (!rs22.empty())
@@ -283,7 +321,7 @@ ErrorCode Intx2Mesh::intersect_meshes(EntityHandle mbset1, EntityHandle mbset2,
       double recoveredArea = 0;
       // get the neighbors of red, and if they are solved already, do not bother with that side of red
       EntityHandle redNeighbors[MAXEDGES]= {0};
-      rval = mb->tag_get_data(neighTag, &currentRed, 1, redNeighbors); MB_CHK_SET_ERR(rval, "can't get neighbors of current red");
+      rval = mb->tag_get_data(redNeighTag, &currentRed, 1, redNeighbors); MB_CHK_SET_ERR(rval, "can't get neighbors of current red");
 #ifdef ENABLE_DEBUG
       if (dbg_1)
       {
@@ -368,7 +406,7 @@ ErrorCode Intx2Mesh::intersect_meshes(EntityHandle mbset1, EntityHandle mbset2,
 
           // intersection found: output P and original triangles if nP > 2
           EntityHandle neighbors[MAXEDGES]={0};
-          rval = mb->tag_get_data(neighTag, &blueT, 1, neighbors);
+          rval = mb->tag_get_data(blueNeighTag, &blueT, 1, neighbors);
           if (rval != MB_SUCCESS)
           {
             std::cout << " can't get the neighbors for blue element "
@@ -594,25 +632,10 @@ ErrorCode Intx2Mesh::build_processor_euler_boxes(EntityHandle euler_set, Range &
 #endif
   if (MPI_SUCCESS != mpi_err) return MB_FAILURE;
 
-  // also process the max number of vertices per cell (4 for quads, but could be more for polygons)
-  int local_max_edges = 3;
-  for (Range::iterator it = localEnts.begin(); it!=localEnts.end(); ++it)
-  {
-    const EntityHandle * conn;
-    int num_nodes;
-    rval = mb->get_connectivity(*it, conn, num_nodes);
-    ERRORR(rval, "can't get connectivity");
-    if (num_nodes>local_max_edges)
-      local_max_edges = num_nodes;
-  }
-
-  // now reduce max_edges over all processors
-  mpi_err = MPI_Allreduce(&local_max_edges, &max_edges, 1, MPI_INT, MPI_MAX, parcomm->proc_config().proc_comm());
-  if (MPI_SUCCESS != mpi_err) return MB_FAILURE;
-
   if (my_rank==0)
   {
-    std::cout << " maximum number of vertices per cell is " << max_edges << "\n";
+    std::cout << " maximum number of vertices per cell are " << max_edges_1 << " on first mesh and "
+       << max_edges_2 << " on second mesh \n";
     for (int i=0; i<numprocs; i++)
     {
       std::cout<<"proc: " << i << " box min: " << allBoxes[6*i  ] << " " <<allBoxes[6*i+1] << " " << allBoxes[6*i+2]  << " \n";
@@ -724,8 +747,8 @@ ErrorCode Intx2Mesh::create_departure_mesh_2nd_alg(EntityHandle & euler_set, Ent
   TLv.initialize(2, 0, 0, 3, numv); // to proc, GLOBAL ID, DP points
   TLv.enableWriteAccess();
 
-  int sizeTuple = 2+max_edges; // determined earlier
-  TLq.initialize(2+max_edges, 0, 1, 0, numq); // to proc, elem GLOBAL ID, connectivity[10] (global ID v), local eh
+  int sizeTuple = 2+max_edges_1; // determined earlier, for blue, first mesh
+  TLq.initialize(2+max_edges_1, 0, 1, 0, numq); // to proc, elem GLOBAL ID, connectivity[10] (global ID v), local eh
   TLq.enableWriteAccess();
   std::cout << "from proc " << my_rank << " send " << numv << " vertices and " << numq << " elements\n";
 
@@ -761,7 +784,7 @@ ErrorCode Intx2Mesh::create_departure_mesh_2nd_alg(EntityHandle & euler_set, Ent
       TLq.vi_wr[sizeTuple*n+1] = global_id; // global id of element, used to identify it ...
       const EntityHandle * conn4;
       int num_nodes;
-      rval = mb->get_connectivity(q, conn4, num_nodes);// could be up to MAXEDGES, but it is limited by max_edges
+      rval = mb->get_connectivity(q, conn4, num_nodes);// could be up to MAXEDGES, but it is limited by max_edges_1
       ERRORR(rval, "can't get connectivity for cell");
       if (num_nodes > MAXEDGES)
         ERRORR(MB_FAILURE, "too many nodes in a polygon");
@@ -771,7 +794,7 @@ ErrorCode Intx2Mesh::create_departure_mesh_2nd_alg(EntityHandle & euler_set, Ent
         unsigned int index = local_verts.find(v)-local_verts.begin();
         TLq.vi_wr[sizeTuple*n+2+i] = gids[index];
       }
-      for (int k=num_nodes; k<max_edges; k++)
+      for (int k=num_nodes; k<max_edges_1; k++)
       {
         TLq.vi_wr[sizeTuple*n+2+k] = 0; // fill the rest of node ids with 0; we know that the node ids start from 1!
       }
@@ -877,7 +900,7 @@ ErrorCode Intx2Mesh::create_departure_mesh_2nd_alg(EntityHandle & euler_set, Ent
       // construct the conn quad
       EntityHandle new_conn[MAXEDGES];
       int nnodes = -1;
-      for (int j=0; j<max_edges; j++)
+      for (int j=0; j<max_edges_1; j++)
       {
         int vgid = TLq.vi_rd[sizeTuple*i+2+j];// vertex global ID
         if (vgid==0)
@@ -1036,8 +1059,8 @@ ErrorCode Intx2Mesh::create_departure_mesh_3rd_alg(EntityHandle & lagr_set,
   TLv.initialize(2, 0, 0, 3, numv); // to proc, GLOBAL ID, DP points
   TLv.enableWriteAccess();
 
-  int sizeTuple = 2 + max_edges; // max edges could be up to MAXEDGES :) for polygons
-  TLq.initialize(2+max_edges, 0, 1, 0, numq); // to proc, elem GLOBAL ID, connectivity[max_edges] (global ID v)
+  int sizeTuple = 2 + max_edges_1; // max edges could be up to MAXEDGES :) for polygons
+  TLq.initialize(2+max_edges_1, 0, 1, 0, numq); // to proc, elem GLOBAL ID, connectivity[max_edges] (global ID v)
   // send also the corresponding red cell it will come to
   TLq.enableWriteAccess();
   std::cout << "from proc " << my_rank << " send " << numv << " vertices and "
@@ -1087,7 +1110,7 @@ ErrorCode Intx2Mesh::create_departure_mesh_3rd_alg(EntityHandle & lagr_set,
         assert(-1!=index);
         TLq.vi_wr[sizeTuple * n + 2 + i] = gids[index];
       }
-      for (int k = num_nodes; k < max_edges; k++)
+      for (int k = num_nodes; k < max_edges_1; k++)
       {
         TLq.vi_wr[sizeTuple * n + 2 + k] = 0; // fill the rest of node ids with 0; we know that the node ids start from 1!
       }
@@ -1167,7 +1190,7 @@ ErrorCode Intx2Mesh::create_departure_mesh_3rd_alg(EntityHandle & lagr_set,
       // construct the conn quad
       EntityHandle new_conn[MAXEDGES];
       int nnodes = -1;
-      for (int j = 0; j < max_edges; j++)
+      for (int j = 0; j < max_edges_1; j++)
       {
         int vgid = TLq.vi_rd[sizeTuple * i + 2 + j]; // vertex global ID
         if (vgid == 0)
@@ -1315,8 +1338,8 @@ ErrorCode Intx2Mesh::construct_covering_set(EntityHandle & initial_distributed_s
   TLv.initialize(2, 0, 0, 3, numv); // to proc, GLOBAL ID, 3 real coordinates
   TLv.enableWriteAccess();
 
-  int sizeTuple = 2 + max_edges; // max edges could be up to MAXEDGES :) for polygons
-  TLq.initialize(2+max_edges, 0, 0, 0, numq); // to proc, elem GLOBAL ID, connectivity[max_edges] (global ID v)
+  int sizeTuple = 2 + max_edges_1; // max edges could be up to MAXEDGES :) for polygons
+  TLq.initialize(2+max_edges_1, 0, 0, 0, numq); // to proc, elem GLOBAL ID, connectivity[max_edges] (global ID v)
   // we will not send the entity handle, global ID should be more than enough
   // we will not need more than 2B vertices
   // if we need more than 2B, we will need to use a different marker anyway (GLOBAL ID is not enough then)
@@ -1360,7 +1383,7 @@ ErrorCode Intx2Mesh::construct_covering_set(EntityHandle & initial_distributed_s
       const EntityHandle * conn4;
       int num_nodes; // could be up to MAXEDGES; max_edges?;
       rval = mb->get_connectivity(q, conn4, num_nodes);  MB_CHK_SET_ERR(rval, "can't get connectivity for cell");
-      if (num_nodes > max_edges)
+      if (num_nodes > max_edges_1)
         MB_CHK_SET_ERR(MB_FAILURE, "too many nodes in a cell");
       for (int i = 0; i < num_nodes; i++)
       {
@@ -1369,7 +1392,7 @@ ErrorCode Intx2Mesh::construct_covering_set(EntityHandle & initial_distributed_s
         assert(-1!=index);
         TLq.vi_wr[sizeTuple * n + 2 + i] = gids[index];
       }
-      for (int k = num_nodes; k < max_edges; k++)
+      for (int k = num_nodes; k < max_edges_1; k++)
       {
         TLq.vi_wr[sizeTuple * n + 2 + k] = 0; // fill the rest of node ids with 0; we know that the node ids start from 1!
       }
@@ -1444,9 +1467,9 @@ ErrorCode Intx2Mesh::construct_covering_set(EntityHandle & initial_distributed_s
     //if (globalID_to_eh.find(globalIdEl) == globalID_to_eh.end())
     //{
     // construct the conn quad
-    EntityHandle new_conn[MAXEDGES]; // we should use std::vector with max_edges
+    EntityHandle new_conn[MAXEDGES]; // we should use std::vector with max_edges_1
     int nnodes = -1;
-    for (int j = 0; j < max_edges; j++)
+    for (int j = 0; j < max_edges_1; j++)
     {
       int vgid = TLq.vi_rd[sizeTuple * i + 2 + j]; // vertex global ID
       if (vgid == 0)

@@ -187,6 +187,9 @@ int main(int argc, char **argv)
   rval = mb.create_meshset(MESHSET_SET, outputSet);
   if (MB_SUCCESS != rval)
     return 1;
+  rval = worker.FindMaxEdges(lagrange_set, euler_set);
+  if (MB_SUCCESS != rval)
+    return 1;
   rval = worker.intersect_meshes(lagrange_set, euler_set, outputSet);
   if (MB_SUCCESS != rval)
     return 1;

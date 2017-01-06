@@ -68,6 +68,7 @@ int main(int argc, char* argv[])
   rval = positive_orientation(mb, sf2, -1);MB_CHK_ERR(rval);
 
   worker.SetErrorTolerance( 1.e-5);
+  rval = worker.FindMaxEdges(sf1, sf2);MB_CHK_ERR(rval);
   //worker.enable_debug();
   rval = worker.intersect_meshes(sf1, sf2, outputSet);
   if (MB_SUCCESS != rval)

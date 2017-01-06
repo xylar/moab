@@ -157,6 +157,8 @@ int main(int argc, char *argv[]) {
     pworker->SetRadius(radius);
     pworker->set_box_error(100*gtol);
 
+    rval = pworker->FindMaxEdges(euler_set, euler_set);
+    CHECK_ERR(rval);
 
     // these stay fixed for one run
     moab::Range local_verts;

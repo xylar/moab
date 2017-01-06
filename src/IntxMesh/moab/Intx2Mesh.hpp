@@ -89,9 +89,12 @@ public:
 
   virtual double setup_red_cell(EntityHandle red, int & nsRed)= 0;
 
+  virtual ErrorCode FindMaxEdgesInSet(EntityHandle eset, int & max_edges);
+  virtual ErrorCode FindMaxEdges(EntityHandle set1, EntityHandle set2); // this needs to be called before any covering communication in parallel
+
   virtual ErrorCode createTags();
 
-  ErrorCode DetermineOrderedNeighbors(EntityHandle inputSet);
+  ErrorCode DetermineOrderedNeighbors(EntityHandle inputSet, int max_edges, Tag & neighTag);
 
   void SetErrorTolerance(double eps) { epsilon_1=eps; epsilon_area = eps*eps/2;}
 
@@ -149,8 +152,8 @@ protected: // so it can be accessed in derived classes, InPlane and OnSphere
 
   EntityHandle mbs1;
   EntityHandle mbs2;
-  Range rs1;// range set 1 (departure set, lagrange set, blue set, manufactured set)
-  Range rs2;// range set 2 (arrival set, euler set, red set, initial set)
+  Range rs1;// range set 1 (departure set, lagrange set, blue set, manufactured set, target mesh)
+  Range rs2;// range set 2 (arrival set, euler set, red set, initial set, source mesh)
 
   EntityHandle outSet; // will contain intersection
 
@@ -165,7 +168,9 @@ protected: // so it can be accessed in derived classes, InPlane and OnSphere
   Tag blueParentTag;
   Tag countTag;
 
-  Tag neighTag; // will store neighbors for navigating easily in advancing front
+  Tag blueNeighTag; // will store neighbors for navigating easily in advancing front, for first mesh (blue, target, lagrange)
+  Tag redNeighTag; // will store neighbors for navigating easily in advancing front, for second mesh (red, source, euler)
+
   Tag neighRedEdgeTag; // will store edge borders for each red cell
 
   //EntityType type; // this will be tri, quad or MBPOLYGON...
@@ -205,7 +210,8 @@ protected: // so it can be accessed in derived classes, InPlane and OnSphere
   TupleList * remote_cells_with_tracers; // these will be used now to update tracers on remote procs
   std::map<int, EntityHandle> globalID_to_eh;// needed for parallel, mostly
 #endif
-  int max_edges; // maximum number of edges in the euler set
+  int max_edges_1; // maximum number of edges in the lagrange set (first set, blue)
+  int max_edges_2; // maximum number of edges in the euler set (second set, red)
   int counting;
 
 };

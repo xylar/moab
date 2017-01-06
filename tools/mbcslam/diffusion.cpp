@@ -517,6 +517,8 @@ int main(int argc, char **argv)
 
   worker.SetErrorTolerance(gtol);
 
+  rval = worker.FindMaxEdges(lagr_set, euler_set);
+  CHECK_ERR(rval);
   Range local_verts;
   rval = worker.build_processor_euler_boxes(euler_set, local_verts);// output also the local_verts
   // these stay fixed for one run
