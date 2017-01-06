@@ -66,7 +66,7 @@ public:
 
     static moab::ErrorCode ConvertTempestMeshToMOAB(TempestMeshType type, moab::Interface* mb, Mesh* mesh, moab::EntityHandle& meshset);
 
-    static moab::ErrorCode ConvertMOABMeshToTempest(moab::Interface * mb, Mesh * mesh, moab::EntityHandle meshset);
+    static moab::ErrorCode ConvertMOABMeshToTempest(moab::Interface * mb, ParallelComm* pcomm, Mesh * mesh, moab::EntityHandle meshset);
 
     static moab::ErrorCode AssociateSrcTargetInOverlap(Interface* mb, Mesh* mesh, EntityHandle* meshsets);
 

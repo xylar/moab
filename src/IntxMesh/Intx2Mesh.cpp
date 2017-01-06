@@ -249,18 +249,11 @@ ErrorCode Intx2Mesh::intersect_meshes(EntityHandle mbset1, EntityHandle mbset2,
 
   EntityHandle startBlue=0, startRed=0;
 
-  //Range vsboth;
   rval = mb->get_entities_by_dimension(mbs1, 2, rs1);MB_CHK_ERR(rval);
   rval = mb->get_entities_by_dimension(mbs2, 2, rs2);MB_CHK_ERR(rval);
 
   createTags(); // will also determine max_edges_1, max_edges_2 (for blue and red meshes)
-  /*
-   HMMMM; we should not be adding to the output set the original elements; they should remain in the input sets only
-   the output set should have the intersection polygons only
 
-  rval = mb->get_entities_by_dimension(mbs1, 0, vsboth);MB_CHK_ERR(rval);
-  rval = mb->get_entities_by_dimension(mbs2, 0, vsboth);MB_CHK_ERR(rval);
-  rval = mb->add_entities(outputSet, vsboth);MB_CHK_ERR(rval);*/
   Range rs22=rs2; // a copy of the initial range; we will remove from it elements as we
                  // advance ; rs2 is needed for marking the polygon to the red parent
   while (!rs22.empty())

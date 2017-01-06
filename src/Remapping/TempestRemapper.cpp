@@ -26,7 +26,7 @@ namespace moab
 {
 void TempestRemapper::initialize()
 {
-	Range mbverts, mbelems;
+	// Range mbverts, mbelems;
 }
 
 ErrorCode TempestRemapper::LoadTempestMesh(std::string inputFilename, Mesh** tempest_mesh, bool meshValidate, bool constructEdgeMap)
@@ -216,7 +216,7 @@ ErrorCode TempestRemapper::ConvertTempestMesh(IntersectionContext ctx, EntityHan
 }
 
 
-ErrorCode TempestRemapper::ConvertMOABMeshToTempest(Interface* mb, Mesh* mesh, EntityHandle mesh_set)
+ErrorCode TempestRemapper::ConvertMOABMeshToTempest(Interface* mb, ParallelComm* pcomm, Mesh* mesh, EntityHandle mesh_set)
 {
 	ErrorCode rval;
 
@@ -224,42 +224,15 @@ ErrorCode TempestRemapper::ConvertMOABMeshToTempest(Interface* mb, Mesh* mesh, E
 	NodeVector& nodes = mesh->nodes;
 	FaceVector& faces = mesh->faces;
 
-	Tag tmp_mb_loc_tag;
-	int locid_def=-1;
-	rval = mb->tag_get_handle("TEMPEST_MOAB_LOCALID", 1, MB_TYPE_INTEGER, tmp_mb_loc_tag, MB_TAG_DENSE | MB_TAG_CREAT, &locid_def);MB_CHK_ERR(rval);
-
-	Range verts;
-	rval = mb->get_entities_by_dimension(mesh_set, 0, verts, true); MB_CHK_ERR(rval);
-	nodes.resize(verts.size());
-
-	std::vector<int> loc_id(nodes.size());
-	rval = mb->tag_get_data(tmp_mb_loc_tag, verts, &loc_id[0]);MB_CHK_ERR(rval);
-	loc_id.clear();
-
-	// Set the data for the vertices
-	int inode = 0;
-	std::vector<double> coordx(verts.size()), coordy(verts.size()), coordz(verts.size());
-	rval = mb->get_coords(verts, &coordx[0], &coordy[0], &coordz[0]); MB_CHK_ERR(rval);
-	for (Range::iterator iverts = verts.begin(); iverts != verts.end(); ++iverts) {
-		Node& node = nodes[inode];
-		node.x = coordx[inode];
-		node.y = coordy[inode];
-		node.z = coordz[inode];
-		inode++;
-	}
-	coordx.clear();
-	coordy.clear();
-	coordz.clear();
-
-	Range elems;
+	Range verts, elems;
 	rval = mb->get_entities_by_dimension(mesh_set, 2, elems); MB_CHK_ERR(rval);
 	faces.resize(elems.size());
 
-	std::cout << "Total verts = " << verts.size() << " and Elements = " << elems.size() << std::endl;
+	rval = mb->get_adjacencies(elems, 0, true, verts, Interface::UNION); MB_CHK_ERR(rval);
 
 	int iface = 0;
-	for (Range::iterator ielems = elems.begin(); ielems != elems.end(); ++ielems) {
-		Face& face = faces[iface++];
+	for (Range::iterator ielems = elems.begin(); ielems != elems.end(); ++ielems, ++iface) {
+		Face& face = faces[iface];
 
 		// compute the number of edges per faces
 		std::vector< EntityHandle > face_edges;
@@ -271,40 +244,45 @@ ErrorCode TempestRemapper::ConvertMOABMeshToTempest(Interface* mb, Mesh* mesh, E
 		int nnodesf;
 		rval = mb->get_connectivity(*ielems, connectface, nnodesf); MB_CHK_ERR(rval);
 
-		// face.nodes.size
-
-		// for (int inodes = 0; inodes < nnodesf; ++inodes) {
-		// 	int iv = verts.index(connectface[inodes]);
-		// 	// std::cout << "Setting vertex iv = " << iv << " for face[" << iface << "] = " << *ielems << std::endl;
-		// 	face.SetNode(inodes, iv);
-		// }
-
-		for (unsigned iedges = 0; iedges < face_edges.size(); ++iedges) {
-			int iv = verts.index(connectface[iedges]);
-			// int jv = verts.index(connectface[iedges+1]);
-			// std::cout << "Setting vertex iv = " << iv << " for face[" << iface << "] = " << *ielems << std::endl;
-			face.SetNode(iedges, iv);
-			// face.SetNode(inodes, jv);
+		for (int inodes = 0; inodes < nnodesf; ++inodes) {
+			face.SetNode( inodes, verts.index(connectface[inodes]) );
 		}
-
-		// for (unsigned iedges = 0; iedges < face_edges.size(); ++iedges) {
-		// 	Edge& edge = face.edges[iedges];
-
-		// 	// get the connectivity for each edge
-		// 	const EntityHandle* connect;
-		// 	int nnodes;
-		// 	rval = mb->get_connectivity(face_edges[iedges], connect, nnodes); MB_CHK_ERR(rval);
-
-		// 	// we expect only linear edges (2 nodes/edge)
-		// 	assert(nnodes == 2);
-
-		// 	// assign the edge nodes
-		// 	edge.node[0] = connect[0];
-		// 	edge.node[1] = connect[1];
-		// }
 	}
 
-	mesh->RemoveZeroEdges();
+	// Range tverts;
+	// rval = mb->get_entities_by_dimension(mesh_set, 0, tverts, true); MB_CHK_ERR(rval);
+	// verts.merge(tverts);
+
+	int nnodes=verts.size();
+	nodes.resize(nnodes);
+
+	std::cout << "+-- Total vertices = " << nnodes << " and elements = " << elems.size() << std::endl;
+
+	Tag tmp_mb_loc_tag;
+	int locid_def=-1;
+	rval = mb->tag_get_handle("TEMPEST_MOAB_LOCALID", 1, MB_TYPE_INTEGER, tmp_mb_loc_tag, MB_TAG_DENSE | MB_TAG_CREAT, &locid_def);MB_CHK_ERR(rval);
+
+	std::vector<int> loc_id(nnodes);
+	rval = mb->tag_get_data(tmp_mb_loc_tag, verts, &loc_id[0]);MB_CHK_ERR(rval);
+	loc_id.clear();
+
+	// Set the data for the vertices
+	int inode = 0;
+	std::vector<double> coordx(nnodes), coordy(nnodes), coordz(nnodes);
+	rval = mb->get_coords(verts, &coordx[0], &coordy[0], &coordz[0]); MB_CHK_ERR(rval);
+	for (int inode=0; inode < nnodes; ++inode) {
+		Node& node = nodes[inode];
+		node.x = coordx[inode];
+		node.y = coordy[inode];
+		node.z = coordz[inode];
+	}
+	coordx.clear();
+	coordy.clear();
+	coordz.clear();
+
+	// mesh->RemoveZeroEdges();
+	// mesh->RemoveCoincidentNodes();
+	mesh->Validate();
 	return MB_SUCCESS;
 }
 
@@ -339,7 +317,7 @@ ErrorCode TempestRemapper::ExchangeGhostWeights(Interface* mb, OfflineMap* weigh
 
 ErrorCode TempestRemapper::ConvertMeshToTempest(EntityHandle meshset, Mesh* mesh)
 {
-	return TempestRemapper::ConvertMOABMeshToTempest(m_interface, mesh, meshset);
+	return TempestRemapper::ConvertMOABMeshToTempest(m_interface, m_pcomm, mesh, meshset);
 }
 
 
