@@ -271,10 +271,20 @@ ErrorCode TempestRemapper::ConvertMOABMeshToTempest(Interface* mb, Mesh* mesh, E
 		int nnodesf;
 		rval = mb->get_connectivity(*ielems, connectface, nnodesf); MB_CHK_ERR(rval);
 
-		for (int inodes = 0; inodes < nnodesf; ++inodes) {
-			int iv = verts.index(connectface[inodes]);
+		// face.nodes.size
+
+		// for (int inodes = 0; inodes < nnodesf; ++inodes) {
+		// 	int iv = verts.index(connectface[inodes]);
+		// 	// std::cout << "Setting vertex iv = " << iv << " for face[" << iface << "] = " << *ielems << std::endl;
+		// 	face.SetNode(inodes, iv);
+		// }
+
+		for (unsigned iedges = 0; iedges < face_edges.size(); ++iedges) {
+			int iv = verts.index(connectface[iedges]);
+			// int jv = verts.index(connectface[iedges+1]);
 			// std::cout << "Setting vertex iv = " << iv << " for face[" << iface << "] = " << *ielems << std::endl;
-			face.SetNode(inodes, iv);
+			face.SetNode(iedges, iv);
+			// face.SetNode(inodes, jv);
 		}
 
 		// for (unsigned iedges = 0; iedges < face_edges.size(); ++iedges) {

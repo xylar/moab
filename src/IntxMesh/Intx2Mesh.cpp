@@ -140,7 +140,7 @@ ErrorCode Intx2Mesh::createTags()
   {
     EntityHandle redCell= *rit;
     int num_nodes=0;
-    rval = mb->get_connectivity(redCell, redConn, num_nodes); MB_CHK_SET_ERR(rval, "can't get  red conn");
+    rval = mb->get_connectivity(redCell, redConn, num_nodes);MB_CHK_SET_ERR(rval, "can't get  red conn");
     // account for padded polygons
     while ( redConn[num_nodes-2]==redConn[num_nodes-1] && num_nodes>3)
       num_nodes--;
@@ -158,7 +158,7 @@ ErrorCode Intx2Mesh::createTags()
       // also, even if number of edges is less than max_edges_2, they will be ignored, even if the tag is dense
     }
     // now set the value of the tag
-    rval = mb->tag_set_data(neighRedEdgeTag, &redCell, 1, &zeroh[0]); MB_CHK_SET_ERR(rval, "can't set edge red tag");
+    rval = mb->tag_set_data(neighRedEdgeTag, &redCell, 1, &(zeroh[0]));MB_CHK_SET_ERR(rval, "can't set edge red tag");
   }
   return MB_SUCCESS;
 }
@@ -181,7 +181,7 @@ ErrorCode Intx2Mesh::DetermineOrderedNeighbors(EntityHandle inputSet, int max_ed
     // will get the nnodes ordered neighbors;
     // first cell is for nodes 0, 1, second to 1, 2, third to 2, 3, last to nnodes-1,
     const EntityHandle * conn4;
-    rval = mb->get_connectivity(cell, conn4, nnodes); MB_CHK_SET_ERR(rval, "can't get connectivity of a cell");
+    rval = mb->get_connectivity(cell, conn4, nnodes);MB_CHK_SET_ERR(rval, "can't get connectivity of a cell");
     int nsides = nnodes;
     // account for possible padded polygons
     while (conn4[nsides-2]==conn4[nsides-1] && nsides>3)
@@ -195,7 +195,7 @@ ErrorCode Intx2Mesh::DetermineOrderedNeighbors(EntityHandle inputSet, int max_ed
       // get all cells adjacent to these 2 vertices on the edge
       std::vector<EntityHandle> adjcells;
       std::vector<EntityHandle> cellsInSet;
-      rval = mb->get_adjacencies(v, 2, 2, false, adjcells, Interface::INTERSECT); MB_CHK_SET_ERR(rval, "can't adjacency to 2 verts");
+      rval = mb->get_adjacencies(v, 2, 2, false, adjcells, Interface::INTERSECT);MB_CHK_SET_ERR(rval, "can't adjacency to 2 verts");
       // now look for the cells contained in the input set;
       // the input set should be a correct mesh, not overlapping cells, and manifold
       size_t siz = adjcells.size();
@@ -208,7 +208,7 @@ ErrorCode Intx2Mesh::DetermineOrderedNeighbors(EntityHandle inputSet, int max_ed
       {
         std::cout << "non manifold mesh, error"
             << mb->list_entities(&(cellsInSet[0]), cellsInSet.size()) << "\n";
-        MB_CHK_SET_ERR(MB_FAILURE, "non-manifold input mesh set");// non-manifold
+     MB_CHK_SET_ERR(MB_FAILURE, "non-manifold input mesh set");// non-manifold
       }
       if (siz == 1)
       {
@@ -1252,22 +1252,22 @@ ErrorCode Intx2Mesh::construct_covering_set(EntityHandle & initial_distributed_s
 
   Tag gid;
   ErrorCode rval = mb->tag_get_handle(GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, gid,
-      MB_TAG_DENSE);  MB_CHK_SET_ERR(rval, "can't get global ID tag");
+      MB_TAG_DENSE);MB_CHK_SET_ERR(rval, "can't get global ID tag");
 
   Range meshCells;
-  rval = mb->get_entities_by_dimension(initial_distributed_set, 2, meshCells);  MB_CHK_SET_ERR(rval, "can't get cells by dimension from mesh set");
+  rval = mb->get_entities_by_dimension(initial_distributed_set, 2, meshCells);MB_CHK_SET_ERR(rval, "can't get cells by dimension from mesh set");
 
   // get all mesh verts
   Range mesh_verts;
-  rval = mb->get_connectivity(meshCells, mesh_verts);  MB_CHK_SET_ERR(rval, "can't get  mesh vertices");
+  rval = mb->get_connectivity(meshCells, mesh_verts);MB_CHK_SET_ERR(rval, "can't get  mesh vertices");
   int num_mesh_verts = (int) mesh_verts.size();
 
   // now see the mesh points positions; to what boxes should we send them?
   std::vector<double> coords_mesh(3 * num_mesh_verts);
-  rval = mb->get_coords(mesh_verts, &coords_mesh[0]);  MB_CHK_SET_ERR(rval, "can't get mesh points position");
+  rval = mb->get_coords(mesh_verts, &coords_mesh[0]);MB_CHK_SET_ERR(rval, "can't get mesh points position");
 
   std::vector<int> gids(num_mesh_verts);
-  rval = mb->tag_get_data(gid, mesh_verts, &gids[0]);  MB_CHK_SET_ERR(rval, "can't get vertices gids");
+  rval = mb->tag_get_data(gid, mesh_verts, &gids[0]);MB_CHK_SET_ERR(rval, "can't get vertices gids");
 
   // ranges to send to each processor; will hold vertices and elements (quads/ polygons)
   // will look if the box of the mesh cell covers bounding box(es) (within tolerances)
@@ -1279,7 +1279,7 @@ ErrorCode Intx2Mesh::construct_covering_set(EntityHandle & initial_distributed_s
     EntityHandle q = *eit;
     const EntityHandle * conn4;
     int num_nodes;
-    rval = mb->get_connectivity(q, conn4, num_nodes); MB_CHK_SET_ERR(rval, "can't get connectivity on cell");
+    rval = mb->get_connectivity(q, conn4, num_nodes);MB_CHK_SET_ERR(rval, "can't get connectivity on cell");
 
     CartVect qbmin(DBL_MAX);
     CartVect qbmax(-DBL_MAX);
@@ -1327,7 +1327,7 @@ ErrorCode Intx2Mesh::construct_covering_set(EntityHandle & initial_distributed_s
     if (range_to_P.empty())
       continue; // nothing to send to proc p
     Range vertsToP;
-    rval = mb->get_connectivity(range_to_P, vertsToP); MB_CHK_SET_ERR(rval, "can't get connectivity");
+    rval = mb->get_connectivity(range_to_P, vertsToP);MB_CHK_SET_ERR(rval, "can't get connectivity");
     numq = numq + range_to_P.size();
     numv = numv + vertsToP.size();
     range_to_P.merge(vertsToP);
@@ -1376,15 +1376,17 @@ ErrorCode Intx2Mesh::construct_covering_set(EntityHandle & initial_distributed_s
     {
       EntityHandle q = *it; // this is a second mesh cell (or blue, lagrange set)
       int global_id;
-      rval = mb->tag_get_data(gid, &q, 1, &global_id); MB_CHK_SET_ERR(rval, "can't get gid for polygon");
+      rval = mb->tag_get_data(gid, &q, 1, &global_id);MB_CHK_SET_ERR(rval, "can't get gid for polygon");
       int n = TLq.get_n(); // current size
       TLq.vi_wr[sizeTuple * n] = to_proc; //
       TLq.vi_wr[sizeTuple * n + 1] = global_id; // global id of element, used to identify it for debug purposes only
       const EntityHandle * conn4;
       int num_nodes; // could be up to MAXEDGES; max_edges?;
-      rval = mb->get_connectivity(q, conn4, num_nodes);  MB_CHK_SET_ERR(rval, "can't get connectivity for cell");
-      if (num_nodes > max_edges_1)
-        MB_CHK_SET_ERR(MB_FAILURE, "too many nodes in a cell");
+      rval = mb->get_connectivity(q, conn4, num_nodes);MB_CHK_SET_ERR(rval, "can't get connectivity for cell");
+      if (num_nodes > max_edges_1) {
+        mb->list_entities(&q,1);
+        MB_CHK_SET_ERR(MB_FAILURE, "too many nodes in a cell (" << num_nodes << "," << max_edges_1 << ")");
+      }
       for (int i = 0; i < num_nodes; i++)
       {
         EntityHandle v = conn4[i];
@@ -1434,7 +1436,7 @@ ErrorCode Intx2Mesh::construct_covering_set(EntityHandle & initial_distributed_s
     {
       EntityHandle new_vert;
       double dp_pos[3] = { TLv.vr_wr[3 * i], TLv.vr_wr[3 * i + 1], TLv.vr_wr[3 * i + 2] };
-      rval = mb->create_vertex(dp_pos, new_vert); MB_CHK_SET_ERR(rval, "can't create new vertex ");
+      rval = mb->create_vertex(dp_pos, new_vert);MB_CHK_SET_ERR(rval, "can't create new vertex ");
       globalID_to_vertex_handle[globalId] = new_vert; // now add it to the map
     }
   }
@@ -1449,7 +1451,7 @@ ErrorCode Intx2Mesh::construct_covering_set(EntityHandle & initial_distributed_s
   {
     EntityHandle q = *it;// these are from lagr cells, local
     int gid_el;
-    rval = mb->tag_get_data(gid, &q, 1, &gid_el); MB_CHK_SET_ERR(rval, "can't get global id of cell ");
+    rval = mb->tag_get_data(gid, &q, 1, &gid_el);MB_CHK_SET_ERR(rval, "can't get global id of cell ");
     globalID_to_eh[gid_el] = q; // do we need this? no ; just for debugging
   }
 
@@ -1488,16 +1490,16 @@ ErrorCode Intx2Mesh::construct_covering_set(EntityHandle & initial_distributed_s
       entType = MBPOLYGON;
     if (nnodes < 4)
       entType = MBTRI;
-    rval = mb->create_element(entType, new_conn, nnodes, new_element); MB_CHK_SET_ERR(rval, "can't create new element for second mesh ");
+    rval = mb->create_element(entType, new_conn, nnodes, new_element);MB_CHK_SET_ERR(rval, "can't create new element for second mesh ");
 
     globalID_to_eh[globalIdEl] = new_element; // overkill?
     local_q.insert(new_element);
-    rval = mb->tag_set_data(gid, &new_element, 1, &globalIdEl); MB_CHK_SET_ERR(rval, "can't set gid for cell ");
+    rval = mb->tag_set_data(gid, &new_element, 1, &globalIdEl);MB_CHK_SET_ERR(rval, "can't set gid for cell ");
 
   }
   // now, create a new set, covering_set
-  rval = mb->create_meshset(MESHSET_SET, covering_set); MB_CHK_SET_ERR(rval, "can't create the covering set");
-  rval = mb->add_entities(covering_set, local_q); MB_CHK_SET_ERR(rval,  "can't add entities to new mesh set ");
+  rval = mb->create_meshset(MESHSET_SET, covering_set);MB_CHK_SET_ERR(rval, "can't create the covering set");
+  rval = mb->add_entities(covering_set, local_q);MB_CHK_SET_ERR(rval,  "can't add entities to new mesh set ");
 
   return MB_SUCCESS;
 }

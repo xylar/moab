@@ -256,6 +256,10 @@ int main(int argc, char* argv[])
   }
   else if (ctx.meshType == moab::OVERLAP_MOAB)
   {
+    const double epsrel = 1.e-8;
+    const double radius = 1.0;
+    const double boxeps = 0.1;
+    // Usage: mpiexec -n 2 tools/mbtempest -t 5 -l mycs_2.h5m -l myico_2.h5m -f myoverlap_2.h5m
     moab::ParallelComm* pcomm = moab::ParallelComm::get_pcomm(mbCore, 0);
 
     rval = pcomm->check_all_shared_handles();MB_CHK_ERR(rval);
@@ -268,28 +272,52 @@ int main(int argc, char* argv[])
       moab::Range rintxverts, rintxelems;
       rval = mbCore->get_entities_by_dimension(ctx.meshsets[0], 0, rintxverts); MB_CHK_ERR(rval);
       rval = mbCore->get_entities_by_dimension(ctx.meshsets[0], 2, rintxelems); MB_CHK_ERR(rval);
+      rval = fix_degenerate_quads(mbCore, ctx.meshsets[0]);MB_CHK_ERR(rval);
+      rval = positive_orientation(mbCore, ctx.meshsets[0], radius);MB_CHK_ERR(rval);
       if (!proc_id) std::cout << "The source set contains " << rintxverts.size() << " vertices and " << rintxelems.size() << " elements \n";
 
       moab::Range bintxverts, bintxelems;
       rval = mbCore->get_entities_by_dimension(ctx.meshsets[1], 0, bintxverts); MB_CHK_ERR(rval);
       rval = mbCore->get_entities_by_dimension(ctx.meshsets[1], 2, bintxelems); MB_CHK_ERR(rval);
+      rval = fix_degenerate_quads(mbCore, ctx.meshsets[1]);MB_CHK_ERR(rval);
+      rval = positive_orientation(mbCore, ctx.meshsets[1], radius);MB_CHK_ERR(rval);
       if (!proc_id) std::cout << "The target set contains " << bintxverts.size() << " vertices and " << bintxelems.size() << " elements \n";
     }
 
-    const double epsrel = 1.e-12;
-    const double radius = 1.0;
-    moab::Intx2MeshOnSphere *mbintx = new moab::Intx2MeshOnSphere(mbCore);
-    mbintx->SetErrorTolerance(epsrel);
-    mbintx->SetRadius(radius);
-
     // Compute intersections with MOAB
-    // For the overlap method, choose between: "fuzzy", "exact" or "mixed"
-    rval = mbCore->create_meshset(moab::MESHSET_SET, ctx.meshsets[2]); MB_CHK_SET_ERR(rval, "Can't create new set");
-    ctx.timer_push("compute intersections with MOAB");
-    rval = mbintx->intersect_meshes(ctx.meshsets[0], ctx.meshsets[1], ctx.meshsets[2]); MB_CHK_SET_ERR(rval, "Can't compute the intersection of meshes on the sphere");
-    ctx.timer_pop();
-    delete mbintx;
-    rval = mbCore->add_entities(ctx.meshsets[2], &ctx.meshsets[0], 2);MB_CHK_ERR(rval);
+    {
+      // Create the intersection on the sphere object
+      ctx.timer_push("setup the intersector");
+      
+      moab::Range local_verts;
+      moab::Intx2MeshOnSphere *mbintx = new moab::Intx2MeshOnSphere(mbCore);
+      mbintx->SetErrorTolerance(epsrel);
+      mbintx->set_box_error(boxeps);
+      mbintx->SetRadius(radius);
+
+      rval = mbintx->FindMaxEdges(ctx.meshsets[0], ctx.meshsets[1]);MB_CHK_ERR(rval);
+
+      rval = mbintx->build_processor_euler_boxes(ctx.meshsets[1], local_verts); MB_CHK_ERR(rval);
+      
+      ctx.timer_pop();
+      
+      moab::EntityHandle covering_set;
+      ctx.timer_push("communicate the mesh");
+      rval = mbintx->construct_covering_set(ctx.meshsets[0], covering_set); MB_CHK_ERR(rval);// lots of communication if mesh is distributed very differently
+      ctx.timer_pop();
+
+      // For the overlap method, choose between: "fuzzy", "exact" or "mixed"
+      rval = mbCore->create_meshset(moab::MESHSET_SET, ctx.meshsets[2]); MB_CHK_SET_ERR(rval, "Can't create new set");
+      ctx.timer_push("compute intersections with MOAB");
+      rval = mbintx->intersect_meshes(covering_set, ctx.meshsets[1], ctx.meshsets[2]); MB_CHK_SET_ERR(rval, "Can't compute the intersection of meshes on the sphere");
+      ctx.timer_pop();
+      // rval = mbCore->add_entities(ctx.meshsets[2], &covering_set, 1);MB_CHK_ERR(rval);
+      // rval = mbCore->add_entities(ctx.meshsets[2], &ctx.meshsets[1], 1);MB_CHK_ERR(rval);
+      rval = mbCore->add_entities(ctx.meshsets[2], &ctx.meshsets[0], 2);MB_CHK_ERR(rval);
+
+      // free the memory
+      delete mbintx;
+    }
 
     std::cout << "MeshSets::: Source = " << ctx.meshsets[0] << " Target = " << ctx.meshsets[1] << " Overlap = " << ctx.meshsets[2] << std::endl;
 
@@ -303,20 +331,14 @@ int main(int argc, char* argv[])
 
       moab::Range overlapEls, overlapVerts;
       rval = mbCore->get_entities_by_dimension(ctx.meshsets[2], 2, overlapEls); MB_CHK_ERR(rval);
-      rval = mbCore->get_entities_by_dimension(ctx.meshsets[2], 0, overlapVerts,true); MB_CHK_ERR(rval);
+      rval = mbCore->get_entities_by_dimension(ctx.meshsets[2], 0, overlapVerts, true); MB_CHK_ERR(rval);
       if (!proc_id) std::cout << "\nThe intersection set contains " << overlapEls.size() << " elements and " << overlapVerts.size() << " vertices\n";
 
       // Overlap mesh: mesh[2]
       ctx.meshes[2]->vecSourceFaceIx.resize(overlapEls.size());
       ctx.meshes[2]->vecTargetFaceIx.resize(overlapEls.size());
-      ctx.meshes[2]->ConstructEdgeMap();
+      // ctx.meshes[2]->ConstructEdgeMap();
 
-      std::vector<int> test(overlapEls.size()), test_2(overlapEls.size());
-      rval = mbCore->tag_get_data(redPtag,  overlapEls, &test[0]); MB_CHK_ERR(rval);
-      std::cout << "Couple of indices: " << test[0] << " " << test[1] << " " << test[2] << " " << test[3] << " " << test[4] << " " << test[5] << "\n" ;
-      rval = mbCore->tag_get_data(bluePtag,  overlapEls, &test_2[0]); MB_CHK_ERR(rval);
-      std::cout << "Couple of indices: " << test_2[0] << " " << test_2[1] << " " << test_2[2] << " " << test_2[3] << " " << test_2[4] << " " << test_2[5] << "\n" ;
-      
       rval = mbCore->tag_get_data(redPtag,  overlapEls, &ctx.meshes[2]->vecSourceFaceIx[0]); MB_CHK_ERR(rval);
       rval = mbCore->tag_get_data(bluePtag, overlapEls, &ctx.meshes[2]->vecTargetFaceIx[0]); MB_CHK_ERR(rval);
     }
