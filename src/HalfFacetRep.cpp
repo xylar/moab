@@ -613,7 +613,7 @@ namespace moab {
 
     //Step 1: Create an index list storing the starting position for each vertex
     int nv = verts.size();
-    int *is_index = new int[nv+1];
+    std::vector<int> is_index(nv+1);
     for (int i =0; i<nv+1; i++)
       is_index[i] = 0;
 
@@ -634,8 +634,8 @@ namespace moab {
       is_index[i+1] = is_index[i] + is_index[i+1];
 
     //Step 2: Define two arrays v2hv_eid, v2hv_lvid storing every half-facet on a vertex
-    EntityHandle *v2hv_map_eid = new EntityHandle[2*edges.size()];
-    int *v2hv_map_lvid = new int[2*edges.size()];
+    std::vector<EntityHandle> v2hv_map_eid(2*edges.size());
+    std::vector<int> v2hv_map_lvid(2*edges.size());
 
     for (Range::iterator eid = edges.begin(); eid != edges.end(); ++eid)
       {
@@ -680,10 +680,6 @@ namespace moab {
               }
           }
       }
-
-    delete [] is_index;
-    delete [] v2hv_map_eid;
-    delete [] v2hv_map_lvid;
 
     return MB_SUCCESS;
   }
@@ -817,7 +813,7 @@ namespace moab {
 
     //Step 1: Create an index list storing the starting position for each vertex
     int nv = _verts.size();
-    int *is_index = new int[nv+1];
+    std::vector<int> is_index(nv+1);
     for (int i =0; i<nv+1; i++)
       is_index[i] = 0;
 
@@ -840,9 +836,9 @@ namespace moab {
        is_index[i+1] = is_index[i] + is_index[i+1];
 
      //Step 2: Define two arrays v2hv_eid, v2hv_lvid storing every half-facet on a vertex
-     EntityHandle * v2nv = new EntityHandle[nepf*nfaces];
-     EntityHandle * v2he_map_fid = new EntityHandle[nepf*nfaces];
-     int * v2he_map_leid = new int[nepf*nfaces];
+     std::vector<EntityHandle> v2nv(nepf*nfaces);
+     std::vector<EntityHandle> v2he_map_fid(nepf*nfaces);
+     std::vector<int> v2he_map_leid(nepf*nfaces);
 
      for (Range::iterator fid = faces.begin(); fid != faces.end(); ++fid)
        {
@@ -930,13 +926,7 @@ namespace moab {
            }
        }
 
-     delete [] is_index;
-     delete [] v2nv;
-     delete [] v2he_map_fid;
-     delete [] v2he_map_leid;
-
      return MB_SUCCESS;
-
   }
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   ErrorCode HalfFacetRep::determine_incident_halfedges( Range &faces)
@@ -1632,7 +1622,7 @@ namespace moab {
 
     //Step 1: Create an index list storing the starting position for each vertex
     int nv = _verts.size();
-    int *is_index = new int[nv+1];
+    std::vector<int> is_index(nv+1);
     for (int i =0; i<nv+1; i++)
       is_index[i] = 0;
 
@@ -1663,10 +1653,10 @@ namespace moab {
        is_index[i+1] = is_index[i] + is_index[i+1];
 
      //Step 2: Define four arrays v2hv_eid, v2hv_lvid storing every half-facet on a vertex
-     EntityHandle * v2oe_v1 = new EntityHandle[is_index[nv]];
-     EntityHandle * v2oe_v2 = new EntityHandle[is_index[nv]];
-     EntityHandle * v2hf_map_cid = new EntityHandle[is_index[nv]];
-     int * v2hf_map_lfid = new int[is_index[nv]];
+     std::vector<EntityHandle> v2oe_v1(is_index[nv]);
+     std::vector<EntityHandle> v2oe_v2(is_index[nv]);
+     std::vector<EntityHandle> v2hf_map_cid(is_index[nv]);
+     std::vector<int> v2hf_map_lfid(is_index[nv]);
 
      for (Range::iterator cid = cells.begin(); cid != cells.end(); ++cid)
        {
@@ -1762,14 +1752,7 @@ namespace moab {
            }
        }
 
-     delete [] is_index;
-     delete [] v2oe_v1;
-     delete [] v2oe_v2;
-     delete [] v2hf_map_cid;
-     delete [] v2hf_map_lfid;
-
      return MB_SUCCESS;
-
   }
 
 
