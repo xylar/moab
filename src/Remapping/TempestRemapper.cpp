@@ -29,9 +29,10 @@ void TempestRemapper::initialize()
 	// Range mbverts, mbelems;
 }
 
-ErrorCode TempestRemapper::LoadTempestMesh(std::string inputFilename, Mesh** tempest_mesh, bool meshValidate, bool constructEdgeMap)
+ErrorCode TempestRemapper::LoadTempestMesh_Private(std::string inputFilename, Mesh** tempest_mesh)
 {
 	if (TempestRemapper::verbose) std::cout << "\nLoading TempestRemap Mesh object from file = " << inputFilename << " ...\n";
+
 	{
 		NcError error(NcError::silent_nonfatal);
 
@@ -85,7 +86,7 @@ ErrorCode TempestRemapper::LoadMesh(IntersectionContext ctx, std::string inputFi
 		mesh = m_overlap;
 	}
 
-	return TempestRemapper::LoadTempestMesh(inputFilename, &mesh, meshValidate, constructEdgeMap);
+	return LoadTempestMesh_Private(inputFilename, &mesh);
 }
 
 
@@ -216,7 +217,7 @@ ErrorCode TempestRemapper::ConvertTempestMesh(IntersectionContext ctx, EntityHan
 }
 
 
-ErrorCode TempestRemapper::ConvertMOABMeshToTempest(Interface* mb, ParallelComm* pcomm, Mesh* mesh, EntityHandle mesh_set)
+ErrorCode TempestRemapper::ConvertMOABMeshToTempest(Interface* mb, ParallelComm* /*pcomm*/, Mesh* mesh, EntityHandle mesh_set)
 {
 	ErrorCode rval;
 
@@ -244,8 +245,8 @@ ErrorCode TempestRemapper::ConvertMOABMeshToTempest(Interface* mb, ParallelComm*
 		int nnodesf;
 		rval = mb->get_connectivity(*ielems, connectface, nnodesf); MB_CHK_ERR(rval);
 
-		for (int inodes = 0; inodes < nnodesf; ++inodes) {
-			face.SetNode( inodes, verts.index(connectface[inodes]) );
+		for (unsigned iface = 0; iface < face_edges.size(); ++iface) {
+			face.SetNode( iface, verts.index(connectface[iface]) );
 		}
 	}
 
@@ -267,7 +268,6 @@ ErrorCode TempestRemapper::ConvertMOABMeshToTempest(Interface* mb, ParallelComm*
 	loc_id.clear();
 
 	// Set the data for the vertices
-	int inode = 0;
 	std::vector<double> coordx(nnodes), coordy(nnodes), coordz(nnodes);
 	rval = mb->get_coords(verts, &coordx[0], &coordy[0], &coordz[0]); MB_CHK_ERR(rval);
 	for (int inode=0; inode < nnodes; ++inode) {
