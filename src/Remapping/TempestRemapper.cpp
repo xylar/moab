@@ -24,9 +24,18 @@
 
 namespace moab
 {
-void TempestRemapper::initialize()
+ErrorCode TempestRemapper::initialize()
 {
-	// Range mbverts, mbelems;
+	ErrorCode rval;
+	rval = m_interface->create_meshset(moab::MESHSET_SET, m_source_set);MB_CHK_SET_ERR(rval, "Can't create new set");
+	rval = m_interface->create_meshset(moab::MESHSET_SET, m_target_set);MB_CHK_SET_ERR(rval, "Can't create new set");
+	rval = m_interface->create_meshset(moab::MESHSET_SET, m_overlap_set);MB_CHK_SET_ERR(rval, "Can't create new set");
+
+	m_source = NULL;
+	m_target = NULL;
+	m_overlap = NULL;
+
+	return MB_SUCCESS;
 }
 
 ErrorCode TempestRemapper::LoadTempestMesh_Private(std::string inputFilename, Mesh** tempest_mesh)
@@ -71,26 +80,27 @@ ErrorCode TempestRemapper::LoadTempestMesh_Private(std::string inputFilename, Me
 }
 
 
-ErrorCode TempestRemapper::LoadMesh(IntersectionContext ctx, std::string inputFilename, TempestMeshType type)
+ErrorCode TempestRemapper::LoadMesh(Remapper::IntersectionContext ctx, std::string inputFilename, TempestMeshType type)
 {
-	Mesh* mesh;
-	if (ctx == SourceMesh) {
-		mesh = m_source;
+	if (ctx == Remapper::SourceMesh) {
 		m_source_type = type;
+		return LoadTempestMesh_Private(inputFilename, &m_source);
 	}
-	else if (ctx == TargetMesh) {
-		mesh = m_target;
+	else if (ctx == Remapper::TargetMesh) {
 		m_target_type = type;
+		return LoadTempestMesh_Private(inputFilename, &m_target);
+	}
+	else if (ctx != Remapper::DEFAULT) {
+		m_overlap_type = type;
+		return LoadTempestMesh_Private(inputFilename, &m_overlap);
 	}
 	else {
-		mesh = m_overlap;
+		MB_CHK_SET_ERR(MB_FAILURE, "Invalid IntersectionContext context provided");
 	}
-
-	return LoadTempestMesh_Private(inputFilename, &mesh);
 }
 
 
-ErrorCode TempestRemapper::ConvertTempestMeshToMOAB(TempestMeshType meshType, Interface* mb, Mesh* mesh, EntityHandle& mesh_set)
+ErrorCode TempestRemapper::ConvertTempestMeshToMOAB_Private(TempestMeshType meshType, Mesh* mesh, EntityHandle& mesh_set)
 {
 	ErrorCode rval;
 
@@ -98,14 +108,14 @@ ErrorCode TempestRemapper::ConvertTempestMeshToMOAB(TempestMeshType meshType, In
 	const NodeVector& nodes = mesh->nodes;
 	const FaceVector& faces = mesh->faces;
 
-	rval = mb->create_meshset(MESHSET_SET, mesh_set); MB_CHK_SET_ERR(rval, "Can't create new set");
+	// rval = m_interface->create_meshset(MESHSET_SET, mesh_set); MB_CHK_SET_ERR(rval, "Can't create new set");
 
 	ReadUtilIface* iface;
-	rval = mb->query_interface(iface); MB_CHK_SET_ERR(rval, "Can't get reader interface");
+	rval = m_interface->query_interface(iface); MB_CHK_SET_ERR(rval, "Can't get reader interface");
 
 	Tag tmp_mb_loc_tag;
 	int locid_def=-1;
-	rval = mb->tag_get_handle("TEMPEST_MOAB_LOCALID", 1, MB_TYPE_INTEGER, tmp_mb_loc_tag, MB_TAG_DENSE | MB_TAG_CREAT, &locid_def);MB_CHK_ERR(rval);
+	rval = m_interface->tag_get_handle("TEMPEST_MOAB_LOCALID", 1, MB_TYPE_INTEGER, tmp_mb_loc_tag, MB_TAG_DENSE | MB_TAG_CREAT, &locid_def);MB_CHK_ERR(rval);
 
 	// Set the data for the vertices
 	std::vector<double*> arrays;
@@ -120,8 +130,8 @@ ErrorCode TempestRemapper::ConvertTempestMeshToMOAB(TempestMeshType meshType, In
 		loc_id[iverts] = iverts;
 	}
 	Range mbverts(startv, startv + nodes.size() - 1);
-	mb->add_entities(mesh_set, mbverts);
-	rval = mb->tag_set_data(tmp_mb_loc_tag, mbverts, &loc_id[0]);MB_CHK_ERR(rval);
+	m_interface->add_entities(mesh_set, mbverts);
+	rval = m_interface->tag_set_data(tmp_mb_loc_tag, mbverts, &loc_id[0]);MB_CHK_ERR(rval);
 	loc_id.clear();
 
 	// We will assume all elements are of the same type - for now;
@@ -138,6 +148,8 @@ ErrorCode TempestRemapper::ConvertTempestMeshToMOAB(TempestMeshType meshType, In
 			for (unsigned iedges = 1; iedges < face.edges.size(); ++iedges) {
 				conn[offset++] = startv + face.edges[iedges].node[1];
 			}
+			m_interface->add_entities(mesh_set, &starte, 1);
+			starte++;
 		}
 	}
 	else {
@@ -172,7 +184,7 @@ ErrorCode TempestRemapper::ConvertTempestMeshToMOAB(TempestMeshType meshType, In
 				break;
 			}
 			Range mbcells(starte, starte + nPolys[iType] - 1);
-			mb->add_entities(mesh_set, mbcells);
+			m_interface->add_entities(mesh_set, mbcells);
 
 			for (unsigned ifaces = 0, offset = 0; ifaces < typeNSeqs[iType].size(); ++ifaces) {
 				const Face& face = faces[typeNSeqs[iType][ifaces]];
@@ -186,7 +198,7 @@ ErrorCode TempestRemapper::ConvertTempestMeshToMOAB(TempestMeshType meshType, In
 			rval = iface->update_adjacencies(starte, nPolys[iType], num_v_per_elem, conn); MB_CHK_SET_ERR(rval, "Can't update adjacencies");
 			// Generate all adj entities dimension 1 and 2 (edges and faces/ tri or qua)
 			Range edges;
-			rval = mb->get_adjacencies(mbcells, 1, true, edges,
+			rval = m_interface->get_adjacencies(mbcells, 1, true, edges,
 			                           Interface::UNION); MB_CHK_SET_ERR(rval, "Can't get edges");
 		}
 	}
@@ -195,41 +207,35 @@ ErrorCode TempestRemapper::ConvertTempestMeshToMOAB(TempestMeshType meshType, In
 }
 
 
-ErrorCode TempestRemapper::ConvertTempestMesh(IntersectionContext ctx, EntityHandle& meshset)
+ErrorCode TempestRemapper::ConvertTempestMesh(Remapper::IntersectionContext ctx)
 {
-	Mesh* mesh;
-	TempestMeshType type;
-
-	if (ctx == SourceMesh) {
-		mesh = m_source;
-		type = m_source_type;
+	if (ctx == Remapper::SourceMesh) {
+		return ConvertTempestMeshToMOAB_Private(m_source_type, m_source, m_source_set);
 	}
-	else if (ctx == TargetMesh) {
-		mesh = m_target;
-		type = m_target_type;
+	else if (ctx == Remapper::TargetMesh) {
+		return ConvertTempestMeshToMOAB_Private(m_target_type, m_target, m_target_set);
+	}
+	else if (ctx != Remapper::DEFAULT) {
+		return ConvertTempestMeshToMOAB_Private(m_overlap_type, m_overlap, m_overlap_set);
 	}
 	else {
-		mesh = m_overlap;
-		type = OVERLAP;
+		MB_CHK_SET_ERR(MB_FAILURE, "Invalid IntersectionContext context provided");
 	}
-
-	return TempestRemapper::ConvertTempestMeshToMOAB(type, m_interface, mesh, meshset);
 }
 
 
-ErrorCode TempestRemapper::ConvertMOABMeshToTempest(Interface* mb, ParallelComm* /*pcomm*/, Mesh* mesh, EntityHandle mesh_set)
+ErrorCode TempestRemapper::ConvertMOABMeshToTempest_Private(Mesh* mesh, EntityHandle mesh_set)
 {
-	ErrorCode rval;
-
 	if (TempestRemapper::verbose) std::cout << "\nConverting MOAB Mesh object to TempestRemap Mesh representation ...\n";
 	NodeVector& nodes = mesh->nodes;
 	FaceVector& faces = mesh->faces;
 
+	ErrorCode rval;
 	Range verts, elems;
-	rval = mb->get_entities_by_dimension(mesh_set, 2, elems); MB_CHK_ERR(rval);
+	rval = m_interface->get_entities_by_dimension(mesh_set, 2, elems); MB_CHK_ERR(rval);
 	faces.resize(elems.size());
 
-	rval = mb->get_adjacencies(elems, 0, true, verts, Interface::UNION); MB_CHK_ERR(rval);
+	rval = m_interface->get_adjacencies(elems, 0, true, verts, Interface::UNION); MB_CHK_ERR(rval);
 
 	int iface = 0;
 	for (Range::iterator ielems = elems.begin(); ielems != elems.end(); ++ielems, ++iface) {
@@ -237,22 +243,18 @@ ErrorCode TempestRemapper::ConvertMOABMeshToTempest(Interface* mb, ParallelComm*
 
 		// compute the number of edges per faces
 		std::vector< EntityHandle > face_edges;
-		rval = mb->get_adjacencies(&(*ielems), 1, 1, true, face_edges); MB_CHK_ERR(rval);
+		rval = m_interface->get_adjacencies(&(*ielems), 1, 1, true, face_edges); MB_CHK_ERR(rval);
 		face.edges.resize(face_edges.size());
 
 		// get the connectivity for each edge
 		const EntityHandle* connectface;
 		int nnodesf;
-		rval = mb->get_connectivity(*ielems, connectface, nnodesf); MB_CHK_ERR(rval);
+		rval = m_interface->get_connectivity(*ielems, connectface, nnodesf); MB_CHK_ERR(rval);
 
-		for (unsigned iface = 0; iface < face_edges.size(); ++iface) {
-			face.SetNode( iface, verts.index(connectface[iface]) );
+		for (unsigned ifaces = 0; ifaces < face_edges.size(); ++ifaces) {
+			face.SetNode( ifaces, verts.index(connectface[ifaces]) );
 		}
 	}
-
-	// Range tverts;
-	// rval = mb->get_entities_by_dimension(mesh_set, 0, tverts, true); MB_CHK_ERR(rval);
-	// verts.merge(tverts);
 
 	int nnodes=verts.size();
 	nodes.resize(nnodes);
@@ -261,15 +263,15 @@ ErrorCode TempestRemapper::ConvertMOABMeshToTempest(Interface* mb, ParallelComm*
 
 	Tag tmp_mb_loc_tag;
 	int locid_def=-1;
-	rval = mb->tag_get_handle("TEMPEST_MOAB_LOCALID", 1, MB_TYPE_INTEGER, tmp_mb_loc_tag, MB_TAG_DENSE | MB_TAG_CREAT, &locid_def);MB_CHK_ERR(rval);
+	rval = m_interface->tag_get_handle("TEMPEST_MOAB_LOCALID", 1, MB_TYPE_INTEGER, tmp_mb_loc_tag, MB_TAG_DENSE | MB_TAG_CREAT, &locid_def);MB_CHK_ERR(rval);
 
 	std::vector<int> loc_id(nnodes);
-	rval = mb->tag_get_data(tmp_mb_loc_tag, verts, &loc_id[0]);MB_CHK_ERR(rval);
+	rval = m_interface->tag_get_data(tmp_mb_loc_tag, verts, &loc_id[0]);MB_CHK_ERR(rval);
 	loc_id.clear();
 
 	// Set the data for the vertices
 	std::vector<double> coordx(nnodes), coordy(nnodes), coordz(nnodes);
-	rval = mb->get_coords(verts, &coordx[0], &coordy[0], &coordz[0]); MB_CHK_ERR(rval);
+	rval = m_interface->get_coords(verts, &coordx[0], &coordy[0], &coordz[0]); MB_CHK_ERR(rval);
 	for (int inode=0; inode < nnodes; ++inode) {
 		Node& node = nodes[inode];
 		node.x = coordx[inode];
@@ -287,16 +289,16 @@ ErrorCode TempestRemapper::ConvertMOABMeshToTempest(Interface* mb, ParallelComm*
 }
 
 // Should be ordered as Source, Target, Overlap
-ErrorCode TempestRemapper::AssociateSrcTargetInOverlap(Interface* mb, Mesh* mesh, EntityHandle* meshsets)
+ErrorCode TempestRemapper::AssociateSrcTargetInOverlap(Mesh* mesh, EntityHandle* meshsets)
 {
 	ErrorCode rval;
 	Tag redPtag,bluePtag;
-	rval = mb->tag_get_handle("RedParent", redPtag);MB_CHK_ERR(rval);
-	rval = mb->tag_get_handle("BlueParent", bluePtag);MB_CHK_ERR(rval);
+	rval = m_interface->tag_get_handle("RedParent", redPtag);MB_CHK_ERR(rval);
+	rval = m_interface->tag_get_handle("BlueParent", bluePtag);MB_CHK_ERR(rval);
 
 	Range redEls, blueEls;
-	rval = mb->get_entities_by_dimension(meshsets[0], 2, redEls); MB_CHK_ERR(rval);
-	rval = mb->get_entities_by_dimension(meshsets[1], 2, blueEls); MB_CHK_ERR(rval);
+	rval = m_interface->get_entities_by_dimension(meshsets[0], 2, redEls); MB_CHK_ERR(rval);
+	rval = m_interface->get_entities_by_dimension(meshsets[1], 2, blueEls); MB_CHK_ERR(rval);
 
 	// Overlap mesh: mesh[2]
 	mesh[2].vecSourceFaceIx.resize(redEls.size());
@@ -306,18 +308,85 @@ ErrorCode TempestRemapper::AssociateSrcTargetInOverlap(Interface* mb, Mesh* mesh
 }
 
 
-ErrorCode TempestRemapper::ExchangeGhostWeights(Interface* mb, OfflineMap* weightMap)
+ErrorCode TempestRemapper::ExchangeGhostWeights(OfflineMap* /*weightMap*/)
 {
-	ErrorCode rval;
-
-
 	return MB_SUCCESS;
 }
 
 
-ErrorCode TempestRemapper::ConvertMeshToTempest(EntityHandle meshset, Mesh* mesh)
+ErrorCode TempestRemapper::ConvertMeshToTempest(Remapper::IntersectionContext ctx)
 {
-	return TempestRemapper::ConvertMOABMeshToTempest(m_interface, m_pcomm, mesh, meshset);
+	ErrorCode rval;
+
+	if (ctx == Remapper::SourceMesh) {
+		if (!m_source) m_source = new Mesh();
+		rval = ConvertMOABMeshToTempest_Private(m_source, m_source_set);
+	}
+	else if (ctx == Remapper::TargetMesh) {
+		if (!m_target) m_target = new Mesh();
+		rval = ConvertMOABMeshToTempest_Private(m_target, m_target_set);
+	}
+	else if (ctx != Remapper::DEFAULT) { // Overlap mesh
+		if (!m_overlap) m_overlap = new Mesh();
+		rval = ConvertMOABMeshToTempest_Private(m_overlap, m_overlap_set);
+	}
+	else {
+		MB_CHK_SET_ERR(MB_FAILURE, "Invalid IntersectionContext context provided");
+	}
+
+	return rval;
+}
+
+ErrorCode TempestRemapper::ComputeOverlapMesh(double tolerance, bool use_tempest)
+{
+	ErrorCode rval;
+	// First, split based on whether to use Tempest or MOAB
+	// If Tempest
+	//   1) Check for valid Mesh and pointers to objects for source/target
+	//   2) Invoke GenerateOverlapWithMeshes routine from Tempest library
+	// If MOAB
+	//   1) Check for valid source and target meshsets (and entities)
+	//   2) 
+	if (use_tempest) {
+      // Now let us construct the overlap mesh, by calling TempestRemap interface directly
+      // For the overlap method, choose between: "fuzzy", "exact" or "mixed"
+	  assert(m_source != NULL);
+	  assert(m_target != NULL);
+	  if (m_overlap != NULL) delete m_overlap;
+      m_overlap = GenerateOverlapWithMeshes(*m_source, *m_target, "" /*outFilename*/, "exact", false);
+	}
+	else {
+      const double radius = 1.0 /*2.0*acos(-1.0)*/;
+      const double boxeps = 0.1;
+	  // Create the intersection on the sphere object and set up necessary parameters
+      moab::Range local_verts;
+      moab::Intx2MeshOnSphere *mbintx = new moab::Intx2MeshOnSphere(m_interface);
+      mbintx->SetErrorTolerance(tolerance);
+      mbintx->set_box_error(boxeps);
+      mbintx->SetRadius(radius);
+
+      rval = mbintx->FindMaxEdges(m_source_set, m_target_set);MB_CHK_ERR(rval);
+
+      rval = mbintx->build_processor_euler_boxes(m_target_set, local_verts); MB_CHK_ERR(rval);
+      
+      moab::EntityHandle covering_set;
+      // Note: lots of communication possible, if mesh is distributed very differently
+      rval = mbintx->construct_covering_set(m_source_set, covering_set); MB_CHK_ERR(rval);
+
+      // Now perform the actual parallel intersection between the source and the target meshes
+      rval = mbintx->intersect_meshes(covering_set, m_target_set, m_overlap_set);MB_CHK_SET_ERR(rval, "Can't compute the intersection of meshes on the sphere");
+
+      rval = m_interface->add_entities(m_overlap_set, &m_source_set, 1);MB_CHK_ERR(rval);
+      rval = m_interface->add_entities(m_overlap_set, &m_target_set, 1);MB_CHK_ERR(rval);
+
+      rval = fix_degenerate_quads(m_interface, m_overlap_set);MB_CHK_ERR(rval);
+      rval = positive_orientation(m_interface, m_overlap_set, radius);MB_CHK_ERR(rval);
+
+      // free the memory
+      delete mbintx;
+	}
+
+	return MB_SUCCESS;
 }
 
 

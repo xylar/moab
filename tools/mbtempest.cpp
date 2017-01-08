@@ -35,13 +35,13 @@ struct ToolContext {
   std::vector<Mesh*> meshes;
   std::vector<moab::EntityHandle> meshsets;
   std::string outFilename;
-  moab::TempestMeshType meshType;
+  moab::TempestRemapper::TempestMeshType meshType;
   const int proc_id, n_procs;
   bool computeDual;
   bool computeWeights;
 
   ToolContext(const int procid, const int nprocs) : 
-    blockSize(5), outFilename("output.exo"), meshType(moab::CS), 
+    blockSize(5), outFilename("output.exo"), meshType(moab::TempestRemapper::DEFAULT), 
     proc_id(procid), n_procs(nprocs),
     computeDual(false), computeWeights(false)
   {
@@ -91,29 +91,29 @@ struct ToolContext {
 
     switch (imeshType) {
     case 0:
-      meshType = moab::CS;
+      meshType = moab::TempestRemapper::CS;
       break;
     case 1:
-      meshType = moab::RLL;
+      meshType = moab::TempestRemapper::RLL;
       break;
     case 2:
-      meshType = moab::ICO;
+      meshType = moab::TempestRemapper::ICO;
       break;
     case 3:
-      meshType = moab::OVERLAP;
+      meshType = moab::TempestRemapper::OVERLAP;
       break;
     case 4:
-      meshType = moab::OVERLAP_V2;
+      meshType = moab::TempestRemapper::OVERLAP_V2;
       break;
     case 5:
-      meshType = moab::OVERLAP_MOAB;
+      meshType = moab::TempestRemapper::OVERLAP_MOAB;
       break;
     default:
-      meshType = moab::CS;
+      meshType = moab::TempestRemapper::DEFAULT;
       break;
     }
 
-    if (meshType > moab::ICO) {
+    if (meshType > moab::TempestRemapper::ICO) {
       opts.getOptAllArgs("load,l", inFilenames);
       assert(inFilenames.size() == 2);
     }
@@ -127,7 +127,7 @@ private:
 
 // Forward declare some methods
 // moab::ErrorCode LoadTempestMesh(std::string inputFilename, Mesh** tempest_mesh, bool meshValidate=false, bool constructEdgeMap=false);
-moab::ErrorCode CreateTempestMesh(ToolContext&, moab::Interface*, moab::ParallelComm*, Mesh** );
+moab::ErrorCode CreateTempestMesh(ToolContext&, moab::TempestRemapper& remapper, Mesh** );
 
 int main(int argc, char* argv[])
 {
@@ -150,59 +150,94 @@ int main(int argc, char* argv[])
 
   moab::ParallelComm* pcomm = new moab::ParallelComm(mbCore, MPI_COMM_WORLD, 0);
 
+  moab::TempestRemapper remapper (mbCore, pcomm);
+  remapper.meshValidate = true;
+  remapper.constructEdgeMap = true;
+  remapper.initialize();
+
   Mesh* tempest_mesh = NULL;
   ctx.timer_push("create Tempest mesh");
-  rval = CreateTempestMesh(ctx, mbCore, pcomm, &tempest_mesh); MB_CHK_ERR(rval);
+  rval = CreateTempestMesh(ctx, remapper, &tempest_mesh); MB_CHK_ERR(rval);
   ctx.timer_pop();
 
-  moab::TempestRemapper remapper (mbCore, pcomm);
-
-  if (ctx.meshType == moab::OVERLAP_V2)
+  if (ctx.meshType == moab::TempestRemapper::OVERLAP_V2)
   {
     // Compute intersections with MOAB
     // For the overlap method, choose between: "fuzzy", "exact" or "mixed"
-    moab::EntityHandle red, blue, tempestintx, intxset;
+    // moab::EntityHandle red, blue, tempestintx;
+
+    std::cout << "In overlap_v2, n(meshes) = " << ctx.meshes.size() << " and meshsets = " << ctx.meshsets.size() << "\n";
 
     assert(ctx.meshes.size() == 3);
+ 
+    rval = pcomm->check_all_shared_handles();MB_CHK_ERR(rval);
 
     // Load the meshes and validate
-    rval = moab::TempestRemapper::ConvertTempestMeshToMOAB(ctx.meshType, mbCore, ctx.meshes[0], red); MB_CHK_ERR(rval);
-    rval = moab::TempestRemapper::ConvertTempestMeshToMOAB(ctx.meshType, mbCore, ctx.meshes[1], blue); MB_CHK_ERR(rval);
-    rval = moab::TempestRemapper::ConvertTempestMeshToMOAB(ctx.meshType, mbCore, ctx.meshes[2], tempestintx); MB_CHK_ERR(rval);
-    rval = mbCore->write_mesh("tempest_intersection.h5m", &tempestintx, 1); MB_CHK_ERR(rval);
+    rval = remapper.ConvertTempestMesh(moab::Remapper::SourceMesh); MB_CHK_ERR(rval);
+    rval = remapper.ConvertTempestMesh(moab::Remapper::TargetMesh); MB_CHK_ERR(rval);
+    rval = remapper.ConvertTempestMesh(moab::Remapper::IntersectedMesh); MB_CHK_ERR(rval);
+    rval = mbCore->write_mesh("tempest_intersection.h5m", &ctx.meshsets[2], 1); MB_CHK_ERR(rval);
 
     // print verbosely about the problem setting
     {
       moab::Range rintxverts, rintxelems;
-      rval = mbCore->get_entities_by_dimension(red, 0, rintxverts); MB_CHK_ERR(rval);
-      rval = mbCore->get_entities_by_dimension(red, 2, rintxelems); MB_CHK_ERR(rval);
+      rval = mbCore->get_entities_by_dimension(ctx.meshsets[0], 0, rintxverts); MB_CHK_ERR(rval);
+      rval = mbCore->get_entities_by_dimension(ctx.meshsets[0], 2, rintxelems); MB_CHK_ERR(rval);
       std::cout << "The red set contains " << rintxverts.size() << " vertices and " << rintxelems.size() << " elements \n";
 
       moab::Range bintxverts, bintxelems;
-      rval = mbCore->get_entities_by_dimension(blue, 0, bintxverts); MB_CHK_ERR(rval);
-      rval = mbCore->get_entities_by_dimension(blue, 2, bintxelems); MB_CHK_ERR(rval);
+      rval = mbCore->get_entities_by_dimension(ctx.meshsets[1], 0, bintxverts); MB_CHK_ERR(rval);
+      rval = mbCore->get_entities_by_dimension(ctx.meshsets[1], 2, bintxelems); MB_CHK_ERR(rval);
       std::cout << "The blue set contains " << bintxverts.size() << " vertices and " << bintxelems.size() << " elements \n";
     }
 
-    const double epsrel = 1.e-12;
-    const double radius = 1.0;
-    moab::Intx2MeshOnSphere *mbintx = new moab::Intx2MeshOnSphere(mbCore);
-    mbintx->SetErrorTolerance(epsrel);
-    mbintx->SetRadius(radius);
+    const double epsrel = 1.e-8;
+    const double radius = 1.0 /*2.0*acos(-1.0)*/;
+    const double boxeps = 0.1;
+    moab::EntityHandle intxset; // == remapper.GetMeshSet(moab::Remapper::IntersectedMesh);
 
-    rval = mbCore->create_meshset(moab::MESHSET_SET, intxset); MB_CHK_ERR(rval);
-    ctx.timer_push("compute intersections with MOAB");
-    rval = mbintx->intersect_meshes(red, blue, intxset); MB_CHK_SET_ERR(rval, "Can't compute the intersection of meshes on the sphere");
-    ctx.timer_pop();
+    // Compute intersections with MOAB
+    {
+      // Create the intersection on the sphere object
+      ctx.timer_push("setup the intersector");
+      
+      moab::Range local_verts;
+      moab::Intx2MeshOnSphere *mbintx = new moab::Intx2MeshOnSphere(mbCore);
+      mbintx->SetErrorTolerance(epsrel);
+      mbintx->set_box_error(boxeps);
+      mbintx->SetRadius(radius);
 
-    delete mbintx;
+      rval = mbintx->FindMaxEdges(ctx.meshsets[0], ctx.meshsets[1]);MB_CHK_ERR(rval);
+
+      rval = mbintx->build_processor_euler_boxes(ctx.meshsets[1], local_verts); MB_CHK_ERR(rval);
+      
+      ctx.timer_pop();
+      
+      moab::EntityHandle covering_set;
+      ctx.timer_push("communicate the mesh");
+      rval = mbintx->construct_covering_set(ctx.meshsets[0], covering_set); MB_CHK_ERR(rval);// lots of communication if mesh is distributed very differently
+      ctx.timer_pop();
+
+      // For the overlap method, choose between: "fuzzy", "exact" or "mixed"
+      ctx.timer_push("compute intersections with MOAB");
+      rval = mbCore->create_meshset(moab::MESHSET_SET, intxset);MB_CHK_SET_ERR(rval, "Can't create new set");
+      rval = mbintx->intersect_meshes(covering_set, ctx.meshsets[1], intxset); MB_CHK_SET_ERR(rval, "Can't compute the intersection of meshes on the sphere");
+      ctx.timer_pop();
+
+      rval = fix_degenerate_quads(mbCore, ctx.meshsets[2]);MB_CHK_ERR(rval);
+      rval = positive_orientation(mbCore, ctx.meshsets[2], radius);MB_CHK_ERR(rval);
+
+      // free the memory
+      delete mbintx;
+    }
+
     {
       moab::Range intxelems, intxverts;
       rval = mbCore->get_entities_by_dimension(intxset, 2, intxelems); MB_CHK_ERR(rval);
       rval = mbCore->get_entities_by_dimension(intxset, 0, intxverts,true); MB_CHK_ERR(rval);
       if (!proc_id) std::cout << "\nThe intersection set contains " << intxelems.size() << " elements and " << intxverts.size() << " vertices\n";
 
-      double initial_area = area_on_sphere_lHuiller(mbCore, red, radius);
+      double initial_area = area_on_sphere_lHuiller(mbCore, ctx.meshsets[0], radius);
       double area_method1 = area_on_sphere_lHuiller(mbCore, intxset, radius);
       double area_method2 = area_on_sphere(mbCore, intxset, radius);
 
@@ -217,13 +252,13 @@ int main(int argc, char* argv[])
 
     if (ctx.computeWeights) {
       // Now let us re-convert the MOAB mesh back to Tempest representation
-      Mesh overlap_tempest_mesh_copy;
-      rval = moab::TempestRemapper::ConvertMOABMeshToTempest(mbCore, pcomm, &overlap_tempest_mesh_copy, intxset); MB_CHK_ERR(rval);
+      // Mesh overlap_tempest_mesh_copy;
+      // rval = remapper.ConvertMeshToTempest(&overlap_tempest_mesh_copy, intxset); MB_CHK_ERR(rval);
 
       ctx.timer_push("compute weights with the Tempest meshes");
       // Call to generate an offline map with the tempest meshes
-      // OfflineMap* weightMap = GenerateOfflineMapWithMeshes(  NULL, *ctx.meshes[0], *ctx.meshes[1], *ctx.meshes[2],
-      OfflineMap* weightMap = GenerateOfflineMapWithMeshes(  NULL, *ctx.meshes[0], *ctx.meshes[1], overlap_tempest_mesh_copy,
+      OfflineMap* weightMap = GenerateOfflineMapWithMeshes(  NULL, *ctx.meshes[0], *ctx.meshes[1], *ctx.meshes[2],
+      // OfflineMap* weightMap = GenerateOfflineMapWithMeshes(  NULL, *ctx.meshes[0], *ctx.meshes[1], overlap_tempest_mesh_copy,
                               "", "",     // std::string strInputMeta, std::string strOutputMeta,
                               "fv", "fv", // std::string strInputType, std::string strOutputType,
                               nprocs, nprocs       // int nPin=4, int nPout=4,
@@ -239,7 +274,7 @@ int main(int argc, char* argv[])
       delete weightMap;
     }
   }
-  else if (ctx.meshType == moab::OVERLAP_MOAB)
+  else if (ctx.meshType == moab::TempestRemapper::OVERLAP_MOAB)
   {
     const double epsrel = 1.e-8;
     const double radius = 1.0 /*2.0*acos(-1.0)*/;
@@ -321,7 +356,8 @@ int main(int argc, char* argv[])
 
     {
       // Now let us re-convert the MOAB mesh back to Tempest representation
-      rval = moab::TempestRemapper::ConvertMOABMeshToTempest(mbCore, pcomm, ctx.meshes[2], ctx.meshsets[2]);MB_CHK_ERR(rval);
+      rval = remapper.ConvertMeshToTempest(moab::Remapper::IntersectedMesh);MB_CHK_ERR(rval);
+      ctx.meshes[2] = remapper.GetMesh(moab::Remapper::IntersectedMesh);
 
       moab::Tag redPtag,bluePtag;
       rval = mbCore->tag_get_handle("RedParent", redPtag);MB_CHK_ERR(rval);
@@ -340,7 +376,7 @@ int main(int argc, char* argv[])
       // Overlap mesh: mesh[2]
       ctx.meshes[2]->vecSourceFaceIx.resize(overlapEls.size());
       ctx.meshes[2]->vecTargetFaceIx.resize(overlapEls.size());
-      // ctx.meshes[2]->ConstructEdgeMap();
+      ctx.meshes[2]->ConstructEdgeMap();
 
       rval = mbCore->tag_get_data(redPtag,  overlapEls, &ctx.meshes[2]->vecSourceFaceIx[0]); MB_CHK_ERR(rval);
       rval = mbCore->tag_get_data(bluePtag, overlapEls, &ctx.meshes[2]->vecTargetFaceIx[0]); MB_CHK_ERR(rval);
@@ -388,7 +424,7 @@ int main(int argc, char* argv[])
       // weightMap->m_vecSourceDimSizes.resize(ctx.meshes[0]->faces.size());
       // weightMap->m_vecTargetDimSizes.resize(ctx.meshes[1]->faces.size());
 
-      rval = moab::TempestRemapper::ExchangeGhostWeights(mbCore, weightMap);MB_CHK_ERR(rval);
+      rval = remapper.ExchangeGhostWeights(weightMap);MB_CHK_ERR(rval);
       ctx.timer_pop();
       sstr.str("");
       sstr << "outWeights_" << proc_id << ".nc";
@@ -408,57 +444,75 @@ int main(int argc, char* argv[])
 }
 
 
-moab::ErrorCode CreateTempestMesh(ToolContext& ctx, moab::Interface* mbCore, moab::ParallelComm* pcomm, Mesh** tempest_mesh)
+moab::ErrorCode CreateTempestMesh(ToolContext& ctx, moab::TempestRemapper& remapper, Mesh** tempest_mesh)
 {
   moab::ErrorCode rval = moab::MB_SUCCESS;
+
   std::cout << "\nCreating TempestRemap Mesh object ...\n";
-  if (ctx.meshType == moab::OVERLAP) {
+  if (ctx.meshType == moab::TempestRemapper::OVERLAP) {
     // For the overlap method, choose between: "fuzzy", "exact" or "mixed"
     *tempest_mesh = GenerateOverlapMesh(ctx.inFilenames[0], ctx.inFilenames[1], ctx.outFilename, "exact", true);
+    ctx.meshes.push_back(*tempest_mesh);
   }
-  else if (ctx.meshType == moab::OVERLAP_V2) {
-    // For the overlap method, choose between: "fuzzy", "exact" or "mixed"
-    Mesh *srcv2, *destv2;
+  else if (ctx.meshType == moab::TempestRemapper::OVERLAP_V2) {
     // Load the meshes and validate
-    rval = moab::TempestRemapper::LoadTempestMesh(ctx.inFilenames[0], &srcv2, true, true); MB_CHK_ERR(rval);
-    rval = moab::TempestRemapper::LoadTempestMesh(ctx.inFilenames[1], &destv2, true, true); MB_CHK_ERR(rval);
-    ctx.meshes.push_back(srcv2);
-    ctx.meshes.push_back(destv2);
-    // Now let us construct the overlap mesh
-    *tempest_mesh = GenerateOverlapWithMeshes(*srcv2, *destv2, "" /*ctx.outFilename*/, "exact", false);
-  }
-  else if (ctx.meshType == moab::OVERLAP_MOAB) {
-    // For the overlap method, choose between: "fuzzy", "exact" or "mixed"
-    std::string opts = std::string("PARALLEL=READ_PART;PARTITION=PARALLEL_PARTITION;PARALLEL_RESOLVE_SHARED_ENTS");
-
     ctx.meshsets.resize(3);
     ctx.meshes.resize(3);
-    ctx.meshes[0] = new Mesh();
-    ctx.meshes[1] = new Mesh();
-    ctx.meshes[2] = new Mesh();
+    ctx.meshsets[0] = remapper.GetMeshSet(moab::Remapper::SourceMesh);
+    ctx.meshsets[1] = remapper.GetMeshSet(moab::Remapper::TargetMesh);
+    ctx.meshsets[2] = remapper.GetMeshSet(moab::Remapper::IntersectedMesh);
 
-    // Load the meshes and validate
-    rval = mbCore->create_meshset(moab::MESHSET_SET, ctx.meshsets[0]); MB_CHK_SET_ERR(rval, "Can't create new set");
-    rval = mbCore->load_file(ctx.inFilenames[0].c_str(), &ctx.meshsets[0], opts.c_str()); MB_CHK_ERR(rval);
-    rval = moab::TempestRemapper::ConvertMOABMeshToTempest(mbCore, pcomm, ctx.meshes[0], ctx.meshsets[0]); MB_CHK_ERR(rval);
-    rval = mbCore->create_meshset(moab::MESHSET_SET, ctx.meshsets[1]); MB_CHK_SET_ERR(rval, "Can't create new set");
-    rval = mbCore->load_file(ctx.inFilenames[1].c_str(), &ctx.meshsets[1], opts.c_str()); MB_CHK_ERR(rval);
-    rval = moab::TempestRemapper::ConvertMOABMeshToTempest(mbCore, pcomm, ctx.meshes[1], ctx.meshsets[1]); MB_CHK_ERR(rval);
+    // First the source
+    rval = remapper.LoadMesh(moab::Remapper::SourceMesh, ctx.inFilenames[0], moab::TempestRemapper::DEFAULT); MB_CHK_ERR(rval);
+    ctx.meshes[0] = remapper.GetMesh(moab::Remapper::SourceMesh);
+    
+    // Next the target
+    rval = remapper.LoadMesh(moab::Remapper::TargetMesh, ctx.inFilenames[1], moab::TempestRemapper::DEFAULT); MB_CHK_ERR(rval);
+    ctx.meshes[1] = remapper.GetMesh(moab::Remapper::TargetMesh);
 
-    rval = mbCore->create_meshset(moab::MESHSET_SET, ctx.meshsets[2]); MB_CHK_SET_ERR(rval, "Can't create new set");
+    // Now let us construct the overlap mesh, by calling TempestRemap interface directly
+    // For the overlap method, choose between: "fuzzy", "exact" or "mixed"
+    *tempest_mesh = GenerateOverlapWithMeshes(*ctx.meshes[0], *ctx.meshes[1], "" /*ctx.outFilename*/, "exact", false);
+    remapper.SetMesh(moab::Remapper::IntersectedMesh, *tempest_mesh);
+    // ctx.meshes.push_back(*tempest_mesh);
   }
-  else if (ctx.meshType == moab::ICO) {
+  else if (ctx.meshType == moab::TempestRemapper::OVERLAP_MOAB) {
+    ctx.meshsets.resize(3);
+    ctx.meshes.resize(3);
+    ctx.meshsets[0] = remapper.GetMeshSet(moab::Remapper::SourceMesh);
+    ctx.meshsets[1] = remapper.GetMeshSet(moab::Remapper::TargetMesh);
+    ctx.meshsets[2] = remapper.GetMeshSet(moab::Remapper::IntersectedMesh);
+
+    // Load the source mesh and validate
+    std::cout << "Loading source mesh\n";
+    rval = remapper.LoadNativeMesh(ctx.inFilenames[0], ctx.meshsets[0], 0); MB_CHK_ERR(rval);
+    std::cout << "Loading source MOAB mesh to Tempest\n";
+    rval = remapper.ConvertMeshToTempest(moab::Remapper::SourceMesh); MB_CHK_ERR(rval);
+    ctx.meshes[0] = remapper.GetMesh(moab::Remapper::SourceMesh);
+    std::cout << "All done.\n";
+
+    // Load the target mesh and validate 
+    rval = remapper.LoadNativeMesh(ctx.inFilenames[1], ctx.meshsets[1], 0); MB_CHK_ERR(rval);
+    rval = remapper.ConvertMeshToTempest(moab::Remapper::TargetMesh); MB_CHK_ERR(rval);
+    ctx.meshes[1] = remapper.GetMesh(moab::Remapper::TargetMesh);
+
+    // Set the references for the overlap mesh
+    // ctx.meshes[2] = remapper.GetMesh(moab::Remapper::IntersectedMesh);
+  }
+  else if (ctx.meshType == moab::TempestRemapper::ICO) {
     *tempest_mesh = GenerateICOMesh(ctx.blockSize, ctx.computeDual, ctx.outFilename);
+    ctx.meshes.push_back(*tempest_mesh);
   }
-  else if (ctx.meshType == moab::RLL) {
+  else if (ctx.meshType == moab::TempestRemapper::RLL) {
     *tempest_mesh = GenerateRLLMesh(ctx.blockSize * 2, ctx.blockSize, 0.0, 360.0, -90.0, 90.0, false, ctx.outFilename);
+    ctx.meshes.push_back(*tempest_mesh);
   }
   else { // default
     *tempest_mesh = GenerateCSMesh(ctx.blockSize, false, ctx.outFilename);
+    ctx.meshes.push_back(*tempest_mesh);
   }
-  ctx.meshes.push_back(*tempest_mesh);
 
-  if (ctx.meshType != moab::OVERLAP_MOAB && !*tempest_mesh) {
+  if (ctx.meshType != moab::TempestRemapper::OVERLAP_MOAB && !*tempest_mesh) {
     std::cout << "Tempest Mesh is not a complete object; Quitting...";
     exit(-1);
   }

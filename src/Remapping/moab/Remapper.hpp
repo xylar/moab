@@ -17,6 +17,8 @@
 #ifndef MB_REMAPPER_HPP
 #define MB_REMAPPER_HPP
 
+#include <string>
+
 #include "moab/Interface.hpp"
 #ifdef MOAB_HAVE_MPI
 #include "moab/ParallelComm.hpp"
@@ -32,7 +34,6 @@
 
 namespace moab
 {
-enum IntersectionContext { SourceMesh = 0, TargetMesh = 1, IntersectedMesh = 2 };
 
 class Remapper
 {
@@ -40,7 +41,26 @@ public:
 	Remapper(moab::Interface* mbInt, moab::ParallelComm* pcomm = NULL) : m_interface(mbInt), m_pcomm(pcomm)
 	{ }
 
-	virtual void initialize() = 0;
+	enum IntersectionContext {
+		DEFAULT = -1,
+		SourceMesh = 0,
+		TargetMesh = 1,
+		IntersectedMesh = 2
+	};
+
+	moab::Interface* get_interface()
+	{ return m_interface; }
+
+	moab::ParallelComm* get_parallel_communicator()
+	{ return m_pcomm; }
+
+	ErrorCode LoadNativeMesh(std::string filename, moab::EntityHandle& meshset, const char* readopts=0)
+	{
+	  const std::string opts = std::string("PARALLEL=READ_PART;PARTITION=PARALLEL_PARTITION;PARALLEL_RESOLVE_SHARED_ENTS");
+	  return m_interface->load_file(filename.c_str(), &meshset, (readopts ? readopts : opts.c_str()));
+	}
+
+	virtual ErrorCode initialize() = 0;
 
 protected:
 
