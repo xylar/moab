@@ -194,7 +194,7 @@ AC_ARG_ENABLE( [pymoab],
 if (test "xyes" != "x$enable_pymoab" && test "xno" != "x$enable_pymoab"); then
   AC_MSG_ERROR([Unknown argument --enable-pymoab=$enableval])
 else
-  if (test "$enable_pymoab" != "no"); then
+  if (test "x$enable_pymoab" != "xno"); then
     ENABLE_pymoab=yes
     AM_PATH_PYTHON()
     AC_PYTHON_MODULE(numpy)
@@ -215,11 +215,11 @@ else
       pythondir=pymoab_prefix
     fi
     AC_SUBST([pymoab_prefix])
+      if (test "xyes" != "x$enable_shared" || test "xno" = "x$enable_shared"); then
+    AC_MSG_ERROR([Cannot build static libraries and the python interface. Please build with shared libraries (--enable-shared) or build without MOAB's python interface.])
+  fi
   else
     ENABLE_pymoab=no
-  fi
-  if (test "xyes" != "x$enable_shared" || test "xno" = "x$enable_shared"); then
-    AC_MSG_ERROR([Cannot build static libraries and the python interface. Please build with shared libraries (--enable-shared) or build without MOAB's python interface.])
   fi
   DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --enable-pymoab=$ENABLE_pymoab --enable-shared=yes"
 fi
