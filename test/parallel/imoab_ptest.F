@@ -168,5 +168,16 @@ C     write out the mesh file to disk, in parallel, if h5m
       ierr = iMOAB_WriteMesh(pid, outfile, wopts)
       call errorout(ierr, 'fail to write the mesh file')
 #endif
+C      all done. de-register and finalize
+      ierr = iMOAB_DeregisterApplication(pid)
+      call errorout(ierr, 'fail to deregister application')
+
+      ierr = iMOAB_Finalize()
+      call errorout(ierr, 'fail to finalize iMOAB')
+
+
+      call MPI_FINALIZE ( ierr )
+      call errorout(ierr, 'fail to finalize MPI')
+
       end
 
