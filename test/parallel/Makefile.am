@@ -41,7 +41,7 @@ TESTS = pcomm_unit \
 	parallel_unit_tests \
         $(NETCDF_TESTS) \
         $(HDF5_TESTS) \
-        $(MBCSLAM_TESTS) $(IMESH_TESTS)
+        $(MBCSLAM_TESTS) $(IMESH_TESTS) $(IMOAB_TESTS)
 
 if HAVE_HDF5_PARALLEL
   HDF5_TESTS = parallel_hdf5_test mhdf_parallel parallel_write_test \
@@ -73,6 +73,11 @@ else
 endif
 else
   MBCSLAM_TESTS = 
+endif
+
+IMOAB_TESTS = 
+if ENABLE_FORTRAN
+   IMOAB_TESTS += imoab_ptest
 endif
 
 IMESH_TESTS = 
@@ -117,6 +122,8 @@ par_spatial_locator_test_SOURCES = par_spatial_locator_test.cpp
 parallel_adj_SOURCES = ../adj_moab_test.cpp
 parmerge_test_SOURCES = parmerge_test.cpp
 augment_with_ghosts_SOURCES = augment_with_ghosts.cpp
+imoab_ptest_SOURCES = imoab_ptest.F
+imoab_ptest_LDADD = $(LDADD) $(FCLIBS)
 
 if ENABLE_imesh
 if HAVE_HDF5_PARALLEL
@@ -165,7 +172,8 @@ MOSTLYCLEANFILES = mhdf_ll.h5m tmp0.h5m tmp1.h5m tmp2.h5m tmp3.h5m \
                    TaskMesh_n2.0.h5m \
                    TaskMesh_n2.1.h5m \
                    testReadGhost_n2.0.h5m \
-                   testReadGhost_n2.1.h5m
+                   testReadGhost_n2.1.h5m \
+                   whole.h5m
 
 FORTDEFS = $(FCDEFS) 
 PPFCCOMPILE = $(FC) $(FORTDEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
