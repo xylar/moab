@@ -79,7 +79,7 @@ namespace moab{
     error = ahf->get_entity_ranges(_inverts, _inedges, _infaces, _incells);  MB_CHK_ERR(error);
 
     //DBG
-    std::cout<<"#inverts = "<<_inverts.size()<<", #inedges = "<<_inedges.size()<<", #infaces = "<<_infaces.size()<<", #incells = "<<_incells.size()<<std::endl;
+    // std::cout<<"#inverts = "<<_inverts.size()<<", #inedges = "<<_inedges.size()<<", #infaces = "<<_infaces.size()<<", #incells = "<<_incells.size()<<std::endl;
 
     //Check for supported entity type
     if (!_incells.empty())
@@ -524,6 +524,7 @@ namespace moab{
         error = mbImpl->get_entities_by_type_and_tag(_rset, MBENTITYSET, &mtags[i], NULL, 1, sets);MB_CHK_ERR(error);
         //sets.print();
 
+#ifndef NDEBUG
         if (sets.empty())
           {
             if (i==0)
@@ -539,6 +540,7 @@ namespace moab{
                   std::cout<<"No entities with neumann tag"<<std::endl;
                 }
           }
+#endif
 
         //Loop over all sets, gather entities in each set and add their children at all levels to the set
         Range set_ents;
