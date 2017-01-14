@@ -395,6 +395,16 @@ ErrCode iMOAB_GetMeshInfo( iMOAB_AppID pid, int* num_visible_vertices, int* num_
   //
   appData & data = context.appDatas[*pid];
   EntityHandle fileSet=data.file_set;
+  // first clear all data ranges; this can be called after ghosting
+  data.all_verts.clear();
+  data.primary_elems.clear();
+  data.local_verts.clear();
+  data.owned_elems.clear();
+  data.ghost_elems.clear();
+  data.mat_sets.clear();
+  data.neu_sets.clear();
+  data.diri_sets.clear();
+
   ErrorCode rval = context.MBI->get_entities_by_type(fileSet, MBVERTEX, data.all_verts, true); // recursive
   if (MB_SUCCESS!=rval)
     return 1;
@@ -420,8 +430,6 @@ ErrCode iMOAB_GetMeshInfo( iMOAB_AppID pid, int* num_visible_vertices, int* num_
       if (data.primary_elems.empty())
         return 1; // no elements of dimension 1 or 2 or 3
     }
-      return 1;
-
   }
   num_visible_elements[2] = (int) data.primary_elems.size();
   // separate ghost and local/owned primary elements
@@ -1194,6 +1202,9 @@ ErrCode iMOAB_CreateVertices( iMOAB_AppID pid, int * coords_len, int *dim, doubl
   rval = context.MBI->add_entities( data.file_set, data.local_verts);
   if (rval!=MB_SUCCESS)
     return 1;
+
+  // also add the vertices to the all_verts range
+  data.all_verts.merge(data.local_verts);
   return 0;
 }
 
@@ -1284,6 +1295,8 @@ ErrCode iMOAB_ResolveSharedEntities(  iMOAB_AppID pid, int *num_verts, int * mar
       MB_TAG_CREAT | MB_TAG_DENSE, &dum_id);
   if (rval!=MB_SUCCESS)
     return 1;
+  if (*num_verts > (int)data.local_verts.size())
+    return 1; // we are not setting the size
   rval = context.MBI->tag_set_data(stag, data.local_verts, (void*)marker); // assumes integer tag
   EntityHandle cset = data.file_set;
   rval = pco->resolve_shared_ents(cset, -1, -1, &stag);
@@ -1327,10 +1340,10 @@ ErrCode iMOAB_DetermineGhostEntities(  iMOAB_AppID pid, int * ghost_dim, int *nu
   // int *num_visible_blocks, int* num_visible_surfaceBC, int* num_visible_vertexBC );
 
   // now re-establish all mesh info; will reconstruct mesh info, based solely on what is in the file set
-  int num_visible_vertices, num_visible_elements, num_visible_blocks,
-     num_visible_surfaceBC, num_visible_vertexBC;
-  int rc = iMOAB_GetMeshInfo(pid, &num_visible_vertices, &num_visible_elements, &num_visible_blocks,
-      &num_visible_surfaceBC, &num_visible_vertexBC);
+  int num_visible_vertices[3], num_visible_elements[3], num_visible_blocks[3],
+     num_visible_surfaceBC[3], num_visible_vertexBC[3];
+  ErrCode rc = iMOAB_GetMeshInfo(pid, num_visible_vertices, num_visible_elements, num_visible_blocks,
+      num_visible_surfaceBC, num_visible_vertexBC);
   return rc;
 }
 #ifdef __cplusplus
