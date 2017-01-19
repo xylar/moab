@@ -24,6 +24,9 @@
 
 namespace moab
 {
+
+///////////////////////////////////////////////////////////////////////////////////
+
 ErrorCode TempestRemapper::initialize()
 {
 	ErrorCode rval;
@@ -38,47 +41,7 @@ ErrorCode TempestRemapper::initialize()
 	return MB_SUCCESS;
 }
 
-ErrorCode TempestRemapper::LoadTempestMesh_Private(std::string inputFilename, Mesh** tempest_mesh)
-{
-	if (TempestRemapper::verbose) std::cout << "\nLoading TempestRemap Mesh object from file = " << inputFilename << " ...\n";
-
-	{
-		NcError error(NcError::silent_nonfatal);
-
-		try {
-			// Load input mesh
-			if (TempestRemapper::verbose) std::cout << "Loading mesh ...\n";
-			Mesh* mesh = new Mesh(inputFilename);
-			mesh->RemoveZeroEdges();
-			if (TempestRemapper::verbose) std::cout << "----------------\n";
-
-			// Validate mesh
-			if (meshValidate) {
-				if (TempestRemapper::verbose) std::cout << "Validating mesh ...\n";
-				mesh->Validate();
-				if (TempestRemapper::verbose) std::cout << "-------------------\n";
-			}
-
-			// Construct the edge map on the mesh
-			if (constructEdgeMap) {
-				if (TempestRemapper::verbose) std::cout << "Constructing edge map on mesh ...\n";
-				mesh->ConstructEdgeMap();
-				if (TempestRemapper::verbose) std::cout << "---------------------------------\n";
-			}
-
-			if (tempest_mesh) *tempest_mesh = mesh;
-
-		} catch (Exception & e) {
-			std::cout << "TempestRemap ERROR: " << e.ToString() << "\n";
-			return MB_FAILURE;
-
-		} catch (...) {
-			return MB_FAILURE;
-		}
-	}
-	return MB_SUCCESS;
-}
-
+///////////////////////////////////////////////////////////////////////////////////
 
 ErrorCode TempestRemapper::LoadMesh(Remapper::IntersectionContext ctx, std::string inputFilename, TempestMeshType type)
 {
@@ -99,12 +62,74 @@ ErrorCode TempestRemapper::LoadMesh(Remapper::IntersectionContext ctx, std::stri
 	}
 }
 
+ErrorCode TempestRemapper::LoadTempestMesh_Private(std::string inputFilename, Mesh** tempest_mesh)
+{
+	const bool outputEnabled = (TempestRemapper::verbose && !m_pcomm->rank());
+	if (outputEnabled) std::cout << "\nLoading TempestRemap Mesh object from file = " << inputFilename << " ...\n";
+
+	{
+		NcError error(NcError::silent_nonfatal);
+
+		try {
+			// Load input mesh
+			if (outputEnabled) std::cout << "Loading mesh ...\n";
+			Mesh* mesh = new Mesh(inputFilename);
+			mesh->RemoveZeroEdges();
+			if (outputEnabled) std::cout << "----------------\n";
+
+			// Validate mesh
+			if (meshValidate) {
+				if (outputEnabled) std::cout << "Validating mesh ...\n";
+				mesh->Validate();
+				if (outputEnabled) std::cout << "-------------------\n";
+			}
+
+			// Construct the edge map on the mesh
+			if (constructEdgeMap) {
+				if (outputEnabled) std::cout << "Constructing edge map on mesh ...\n";
+				mesh->ConstructEdgeMap();
+				if (outputEnabled) std::cout << "---------------------------------\n";
+			}
+
+			if (tempest_mesh) *tempest_mesh = mesh;
+
+		} catch (Exception & e) {
+			std::cout << "TempestRemap ERROR: " << e.ToString() << "\n";
+			return MB_FAILURE;
+
+		} catch (...) {
+			return MB_FAILURE;
+		}
+	}
+	return MB_SUCCESS;
+}
+
+///////////////////////////////////////////////////////////////////////////////////
+
+ErrorCode TempestRemapper::ConvertTempestMesh(Remapper::IntersectionContext ctx)
+{
+	if (ctx == Remapper::SourceMesh) {
+		if (TempestRemapper::verbose && !m_pcomm->rank()) std::cout << "\nConverting (source) TempestRemap Mesh object to MOAB representation ...\n";
+		return ConvertTempestMeshToMOAB_Private(m_source_type, m_source, m_source_set);
+	}
+	else if (ctx == Remapper::TargetMesh) {
+		if (TempestRemapper::verbose && !m_pcomm->rank()) std::cout << "\nConverting (target) TempestRemap Mesh object to MOAB representation ...\n";
+		return ConvertTempestMeshToMOAB_Private(m_target_type, m_target, m_target_set);
+	}
+	else if (ctx != Remapper::DEFAULT) {
+		if (TempestRemapper::verbose && !m_pcomm->rank()) std::cout << "\nConverting (overlap) TempestRemap Mesh object to MOAB representation ...\n";
+		return ConvertTempestMeshToMOAB_Private(m_overlap_type, m_overlap, m_overlap_set);
+	}
+	else {
+		MB_CHK_SET_ERR(MB_FAILURE, "Invalid IntersectionContext context provided");
+	}
+}
+
 
 ErrorCode TempestRemapper::ConvertTempestMeshToMOAB_Private(TempestMeshType meshType, Mesh* mesh, EntityHandle& mesh_set)
 {
 	ErrorCode rval;
 
-	if (TempestRemapper::verbose) std::cout << "\nConverting TempestRemap Mesh object to MOAB representation ...\n";
 	const NodeVector& nodes = mesh->nodes;
 	const FaceVector& faces = mesh->faces;
 
@@ -137,7 +162,7 @@ ErrorCode TempestRemapper::ConvertTempestMeshToMOAB_Private(TempestMeshType mesh
 	// We will assume all elements are of the same type - for now;
 	// need a better way to categorize without doing a full pass first
 	const unsigned lnum_v_per_elem = faces[0].edges.size(); // Linear elements: nedges = nverts ?
-	if ((meshType != OVERLAP && meshType != OVERLAP_V2) && lnum_v_per_elem <= 4) {
+	if ((meshType < OVERLAP_FILES) && lnum_v_per_elem <= 4) {
 		const unsigned num_v_per_elem = lnum_v_per_elem;
 		EntityHandle starte; // Connectivity
 		EntityHandle* conn;
@@ -153,7 +178,7 @@ ErrorCode TempestRemapper::ConvertTempestMeshToMOAB_Private(TempestMeshType mesh
 		}
 	}
 	else {
-		if (TempestRemapper::verbose) std::cout << "..Mesh size: Nodes [" << nodes.size() << "] Elements [" << faces.size() << "].\n";
+		if (TempestRemapper::verbose && !m_pcomm->rank()) std::cout << "..Mesh size: Nodes [" << nodes.size() << "] Elements [" << faces.size() << "].\n";
 		const int NMAXPOLYEDGES = 15;
 		std::vector<unsigned> nPolys(NMAXPOLYEDGES, 0);
 		std::vector<std::vector<int> > typeNSeqs(NMAXPOLYEDGES);
@@ -166,7 +191,7 @@ ErrorCode TempestRemapper::ConvertTempestMeshToMOAB_Private(TempestMeshType mesh
 		for (unsigned iType = 0; iType < NMAXPOLYEDGES; ++iType) {
 			if (!nPolys[iType]) continue; // Nothing to do
 
-			if (TempestRemapper::verbose) std::cout << "....Block " << iBlock++ << " Polygons [" << iType << "] Elements [" << nPolys[iType] << "].\n";
+			if (TempestRemapper::verbose && !m_pcomm->rank()) std::cout << "....Block " << iBlock++ << " Polygons [" << iType << "] Elements [" << nPolys[iType] << "].\n";
 			const unsigned num_v_per_elem = iType;
 			EntityHandle starte; // Connectivity
 			EntityHandle* conn;
@@ -207,26 +232,37 @@ ErrorCode TempestRemapper::ConvertTempestMeshToMOAB_Private(TempestMeshType mesh
 }
 
 
-ErrorCode TempestRemapper::ConvertTempestMesh(Remapper::IntersectionContext ctx)
+///////////////////////////////////////////////////////////////////////////////////
+
+ErrorCode TempestRemapper::ConvertMeshToTempest(Remapper::IntersectionContext ctx)
 {
+	ErrorCode rval;
+
 	if (ctx == Remapper::SourceMesh) {
-		return ConvertTempestMeshToMOAB_Private(m_source_type, m_source, m_source_set);
+		if (!m_source) m_source = new Mesh();
+		if (TempestRemapper::verbose && !m_pcomm->rank()) std::cout << "\nConverting (source) MOAB to TempestRemap Mesh representation ...\n";
+		rval = ConvertMOABMeshToTempest_Private(m_source, m_source_set);
 	}
 	else if (ctx == Remapper::TargetMesh) {
-		return ConvertTempestMeshToMOAB_Private(m_target_type, m_target, m_target_set);
+		if (!m_target) m_target = new Mesh();
+		if (TempestRemapper::verbose && !m_pcomm->rank()) std::cout << "\nConverting (target) MOAB to TempestRemap Mesh representation ...\n";
+		rval = ConvertMOABMeshToTempest_Private(m_target, m_target_set);
 	}
-	else if (ctx != Remapper::DEFAULT) {
-		return ConvertTempestMeshToMOAB_Private(m_overlap_type, m_overlap, m_overlap_set);
+	else if (ctx != Remapper::DEFAULT) { // Overlap mesh
+		if (!m_overlap) m_overlap = new Mesh();
+		if (TempestRemapper::verbose && !m_pcomm->rank()) std::cout << "\nConverting (overlap) MOAB to TempestRemap Mesh representation ...\n";
+		rval = ConvertMOABMeshToTempest_Private(m_overlap, m_overlap_set);
 	}
 	else {
 		MB_CHK_SET_ERR(MB_FAILURE, "Invalid IntersectionContext context provided");
 	}
+
+	return rval;
 }
 
 
 ErrorCode TempestRemapper::ConvertMOABMeshToTempest_Private(Mesh* mesh, EntityHandle mesh_set)
 {
-	if (TempestRemapper::verbose) std::cout << "\nConverting MOAB Mesh object to TempestRemap Mesh representation ...\n";
 	NodeVector& nodes = mesh->nodes;
 	FaceVector& faces = mesh->faces;
 
@@ -259,7 +295,7 @@ ErrorCode TempestRemapper::ConvertMOABMeshToTempest_Private(Mesh* mesh, EntityHa
 	int nnodes=verts.size();
 	nodes.resize(nnodes);
 
-	std::cout << "+-- Total vertices = " << nnodes << " and elements = " << elems.size() << std::endl;
+	// std::cout << "+-- Total vertices = " << nnodes << " and elements = " << elems.size() << std::endl;
 
 	Tag tmp_mb_loc_tag;
 	int locid_def=-1;
@@ -282,11 +318,13 @@ ErrorCode TempestRemapper::ConvertMOABMeshToTempest_Private(Mesh* mesh, EntityHa
 	coordy.clear();
 	coordz.clear();
 
-	// mesh->RemoveZeroEdges();
-	// mesh->RemoveCoincidentNodes();
+	mesh->RemoveZeroEdges();
+	mesh->RemoveCoincidentNodes();
 	mesh->Validate();
 	return MB_SUCCESS;
 }
+
+///////////////////////////////////////////////////////////////////////////////////
 
 // Should be ordered as Source, Target, Overlap
 ErrorCode TempestRemapper::AssociateSrcTargetInOverlap(Mesh* mesh, EntityHandle* meshsets)
@@ -297,12 +335,12 @@ ErrorCode TempestRemapper::AssociateSrcTargetInOverlap(Mesh* mesh, EntityHandle*
 	rval = m_interface->tag_get_handle("BlueParent", bluePtag);MB_CHK_ERR(rval);
 
 	Range redEls, blueEls;
-	rval = m_interface->get_entities_by_dimension(meshsets[0], 2, redEls); MB_CHK_ERR(rval);
-	rval = m_interface->get_entities_by_dimension(meshsets[1], 2, blueEls); MB_CHK_ERR(rval);
+	rval = m_interface->get_entities_by_dimension(meshsets[0], 2, blueEls); MB_CHK_ERR(rval);
+	rval = m_interface->get_entities_by_dimension(meshsets[1], 2, redEls); MB_CHK_ERR(rval);
 
 	// Overlap mesh: mesh[2]
-	mesh[2].vecSourceFaceIx.resize(redEls.size());
-	mesh[2].vecTargetFaceIx.resize(blueEls.size());
+	mesh[2].vecSourceFaceIx.resize(blueEls.size());
+	mesh[2].vecTargetFaceIx.resize(redEls.size());
 
 	return MB_SUCCESS;
 }
@@ -313,29 +351,7 @@ ErrorCode TempestRemapper::ExchangeGhostWeights(OfflineMap* /*weightMap*/)
 	return MB_SUCCESS;
 }
 
-
-ErrorCode TempestRemapper::ConvertMeshToTempest(Remapper::IntersectionContext ctx)
-{
-	ErrorCode rval;
-
-	if (ctx == Remapper::SourceMesh) {
-		if (!m_source) m_source = new Mesh();
-		rval = ConvertMOABMeshToTempest_Private(m_source, m_source_set);
-	}
-	else if (ctx == Remapper::TargetMesh) {
-		if (!m_target) m_target = new Mesh();
-		rval = ConvertMOABMeshToTempest_Private(m_target, m_target_set);
-	}
-	else if (ctx != Remapper::DEFAULT) { // Overlap mesh
-		if (!m_overlap) m_overlap = new Mesh();
-		rval = ConvertMOABMeshToTempest_Private(m_overlap, m_overlap_set);
-	}
-	else {
-		MB_CHK_SET_ERR(MB_FAILURE, "Invalid IntersectionContext context provided");
-	}
-
-	return rval;
-}
+///////////////////////////////////////////////////////////////////////////////////
 
 ErrorCode TempestRemapper::ComputeOverlapMesh(double tolerance, bool use_tempest)
 {
@@ -389,5 +405,6 @@ ErrorCode TempestRemapper::ComputeOverlapMesh(double tolerance, bool use_tempest
 	return MB_SUCCESS;
 }
 
+///////////////////////////////////////////////////////////////////////////////////
 
 }

@@ -47,8 +47,8 @@ public:
         CS = 0,
         RLL = 1,
         ICO = 2,
-        OVERLAP = 3,
-        OVERLAP_V2 = 4,
+        OVERLAP_FILES = 3,
+        OVERLAP_MEMORY = 4,
         OVERLAP_MOAB = 5
     };
 

@@ -16,17 +16,24 @@ libRemapping_la_includedir = $(includedir)
 # Conditional sources
 MOAB_REMAPPING_SRCS = \
      Remapper.cpp  \
-     TempestRemapper.cpp  \
      RemapperUtils.cpp
 
 MOAB_REMAPPING_HDRS = \
 	moab/Remapper.hpp \
-	moab/TempestRemapper.hpp \
   moab/RemapperUtils.hpp
 
 if ENABLE_mbtempest
   AM_CPPFLAGS += $(TEMPESTREMAP_INCLUDE)
   AM_LDFLAGS += $(TEMPESTREMAP_LIBS)
+
+  MOAB_REMAPPING_SRCS += \
+     TempestRemapper.cpp  \
+     TempestOfflineMap.cpp
+
+  MOAB_REMAPPING_HDRS += \
+     moab/TempestRemapper.hpp \
+     moab/TempestOfflineMap.hpp
+
 endif
 
 # The list of source files, and any header files that do not need to be installed
