@@ -256,8 +256,19 @@ ErrCode iMOAB_DetermineGhostEntities(  iMOAB_AppID pid, int * ghost_dim, int *nu
 ErrCode iMOAB_WriteMesh( iMOAB_AppID pid, iMOAB_String filename, iMOAB_String write_options, int filename_length, int write_options_length );
 
 /**
-   \brief Obtain local mesh information based on the loaded file.
+   \brief Update local mesh data structure, from file information.
 
+   The method should be called after mesh modifications, for example reading a file or creating mesh in memory
+  <B>Operations:</B> Not Collective
+
+  \param[in]  pid (iMOAB_AppID)            The unique pointer to the application ID
+
+*/
+ErrCode iMOAB_UpdateMeshInfo( iMOAB_AppID pid );
+
+
+/**
+   \brief retrieve mesh information.
    Number of visible vertices and cells include ghost entities. All arrays returned have size 3.
    Local entities are first, then ghost entities are next. Shared vertices can be owned in MOAB sense by
    different tasks. Ghost vertices and cells are always owned by other tasks.

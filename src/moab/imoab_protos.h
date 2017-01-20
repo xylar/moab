@@ -20,6 +20,7 @@
 #define iMOAB_ReadHeaderInfo                 IMOAB_FC_WRAPPER( imoab_readheaderinfo, IMOAB_READHEADERINFO )
 #define iMOAB_LoadMesh                       IMOAB_FC_WRAPPER( imoab_loadmesh, IMOAB_LOADMESH )
 #define iMOAB_WriteMesh                      IMOAB_FC_WRAPPER( imoab_writemesh, IMOAB_WRITEMESH )
+#define iMOAB_UpdateMeshInfo                 IMOAB_FC_WRAPPER( imoab_updatemeshinfo, IMOAB_UPDATEMESHINFO )
 #define iMOAB_GetMeshInfo                    IMOAB_FC_WRAPPER( imoab_getmeshinfo, IMOAB_GETMESHINFO )
 #define iMOAB_GetVertexID                    IMOAB_FC_WRAPPER( imoab_getvertexid, IMOAB_GETVERTEXID )
 #define iMOAB_GetVertexOwnership             IMOAB_FC_WRAPPER( imoab_getvertexownership, IMOAB_GETVERTEXOWNERSHIP )
