@@ -21,13 +21,13 @@ LDADD =  $(top_builddir)/src/libMOAB.la
 TESTS = case1_test  
 if PARALLEL
 if HAVE_HDF5
-   TESTS += intx_mpas linear_remap diffusion
+   TESTS += intx_mpas linear_remap 
 endif
 endif
 
-noinst_PROGRAMS =  proj1 create_dp 
+noinst_PROGRAMS =  proj1 create_dp diffusion
 if PARALLEL
-  noinst_PROGRAMS += linear_advection
+  noinst_PROGRAMS += linear_advection 
 endif
 
 check_PROGRAMS = $(TESTS) 
