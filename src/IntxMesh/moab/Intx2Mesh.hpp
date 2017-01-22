@@ -156,6 +156,7 @@ protected: // so it can be accessed in derived classes, InPlane and OnSphere
   Range rs2;// range set 2 (arrival set, euler set, red set, initial set, source mesh)
 
   EntityHandle outSet; // will contain intersection
+  Tag gid; // global id tag will be used to set the parents of the intersection cell
 
   // tags used in computation, advancing front
   Tag RedFlagTag; // to mark red quads already considered

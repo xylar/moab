@@ -373,12 +373,13 @@ ErrorCode Intx2MeshOnSphere::findNodes(EntityHandle red, int nsRed, EntityHandle
     rval = mb->create_element(MBPOLYGON, foundIds, nP, polyNew);MB_CHK_ERR(rval);
     rval = mb->add_entities(outSet, &polyNew, 1);MB_CHK_ERR(rval);
 
-    // tag it with the index ids from red and blue sets
-    int id = rs1.index(blue); // index starts from 0
-    rval = mb->tag_set_data(blueParentTag, &polyNew, 1, &id);MB_CHK_ERR(rval);
+    // tag it with the global ids from red and blue elements
+    int globalID;
+    rval = mb->tag_get_data(gid, &blue, 1, &globalID);MB_CHK_ERR(rval);
+    rval = mb->tag_set_data(blueParentTag, &polyNew, 1, &globalID);MB_CHK_ERR(rval);
     // std::cout << "Setting parent for " << polyNew << " : Blue = " << id << ", " << blue << "\t";
-    id = rs2.index(red);
-    rval = mb->tag_set_data(redParentTag, &polyNew, 1, &id);MB_CHK_ERR(rval);
+    rval = mb->tag_get_data(gid, &red, 1, &globalID);MB_CHK_ERR(rval);
+    rval = mb->tag_set_data(redParentTag, &polyNew, 1, &globalID);MB_CHK_ERR(rval);
     // std::cout << " Red = " << id << ", " << red << "\n";
 
     counting++;
@@ -419,10 +420,6 @@ ErrorCode Intx2MeshOnSphere::update_tracer_data(EntityHandle out_set, Tag & tagE
                                            1, MB_TYPE_HANDLE, corrTag,
                                            MB_TAG_DENSE, &dum); // it should have been created
   MB_CHK_SET_ERR(rval, "can't get correlation tag");
-
-  Tag gid;
-  rval = mb->tag_get_handle(GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, gid, MB_TAG_DENSE);
-  MB_CHK_SET_ERR(rval,"can't get global ID tag" );
 
   // get all polygons out of out_set; then see where are they coming from
   Range polys;

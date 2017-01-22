@@ -25,7 +25,7 @@ int Intx2Mesh::dbg_1=1;
 
 Intx2Mesh::Intx2Mesh(Interface * mbimpl): mb(mbimpl),
   mbs1(0), mbs2(0), outSet(0),
-  RedFlagTag(0), redParentTag(0), blueParentTag(0), countTag(0), blueNeighTag(0), redNeighTag(0), neighRedEdgeTag(0),
+  gid(0), RedFlagTag(0), redParentTag(0), blueParentTag(0), countTag(0), blueNeighTag(0), redNeighTag(0), neighRedEdgeTag(0),
   redConn(NULL), blueConn(NULL),
   epsilon_1(0.0), epsilon_area(0.0), box_error(0.0),
   localRoot(0), my_rank(0)
@@ -34,6 +34,8 @@ Intx2Mesh::Intx2Mesh(Interface * mbimpl): mb(mbimpl),
 #endif
   , max_edges_1(0), max_edges_2(0), counting(0)
 {
+  mbimpl->tag_get_handle(GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, gid);
+
 }
 
 Intx2Mesh::~Intx2Mesh()
@@ -124,7 +126,6 @@ ErrorCode Intx2Mesh::createTags()
 
   rval = mb->tag_get_handle("Counting", 1, MB_TYPE_INTEGER, countTag,
         MB_TAG_DENSE | MB_TAG_CREAT, &defaultInt);MB_CHK_SET_ERR(rval, "can't create Counting tag");
-
 
   // for each cell in set 1, determine its neigh in set 1 (could be null too)
   // for each cell in set 2, determine its neigh in set 2 (if on boundary, could be 0)
@@ -668,9 +669,7 @@ ErrorCode Intx2Mesh::create_departure_mesh_2nd_alg(EntityHandle & euler_set, Ent
 
   rval = build_processor_euler_boxes(euler_set, local_verts);
   ERRORR(rval, "can't build processor boxes");
-  Tag gid;
-  rval = mb->tag_get_handle(GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, gid, MB_TAG_DENSE);
-  ERRORR(rval,"can't get global ID tag" );
+
   std::vector<int> gids(num_local_verts);
   rval = mb->tag_get_data(gid, local_verts, &gids[0]);
   ERRORR(rval, "can't get local vertices gids");
@@ -967,10 +966,6 @@ ErrorCode Intx2Mesh::create_departure_mesh_3rd_alg(EntityHandle & lagr_set,
   int num_local_verts = (int) local_verts.size();
   ERRORR(rval, "can't get local vertices");
 
-  Tag gid;
-  rval = mb->tag_get_handle(GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, gid,
-      MB_TAG_DENSE);
-  ERRORR(rval, "can't get global ID tag");
   std::vector<int> gids(num_local_verts);
   rval = mb->tag_get_data(gid, local_verts, &gids[0]);
   ERRORR(rval, "can't get local vertices gids");
@@ -1243,12 +1238,8 @@ ErrorCode Intx2Mesh::construct_covering_set(EntityHandle & initial_distributed_s
     return MB_SUCCESS;
   }
 
-  Tag gid;
-  ErrorCode rval = mb->tag_get_handle(GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, gid,
-      MB_TAG_DENSE);MB_CHK_SET_ERR(rval, "can't get global ID tag");
-
   Range meshCells;
-  rval = mb->get_entities_by_dimension(initial_distributed_set, 2, meshCells);MB_CHK_SET_ERR(rval, "can't get cells by dimension from mesh set");
+  ErrorCode rval = mb->get_entities_by_dimension(initial_distributed_set, 2, meshCells);MB_CHK_SET_ERR(rval, "can't get cells by dimension from mesh set");
 
   // get all mesh verts
   Range mesh_verts;
@@ -1445,7 +1436,7 @@ ErrorCode Intx2Mesh::construct_covering_set(EntityHandle & initial_distributed_s
     EntityHandle q = *it;// these are from lagr cells, local
     int gid_el;
     rval = mb->tag_get_data(gid, &q, 1, &gid_el);MB_CHK_SET_ERR(rval, "can't get global id of cell ");
-    globalID_to_eh[gid_el] = q; // do we need this? no ; just for debugging
+    globalID_to_eh[gid_el] = q; // do we need this? yes, now we do; parent tags are now using it heavily
   }
 
   // now look at all elements received through; we do not want to duplicate them
@@ -1485,7 +1476,7 @@ ErrorCode Intx2Mesh::construct_covering_set(EntityHandle & initial_distributed_s
       entType = MBTRI;
     rval = mb->create_element(entType, new_conn, nnodes, new_element);MB_CHK_SET_ERR(rval, "can't create new element for second mesh ");
 
-    globalID_to_eh[globalIdEl] = new_element; // overkill?
+    globalID_to_eh[globalIdEl] = new_element;
     local_q.insert(new_element);
     rval = mb->tag_set_data(gid, &new_element, 1, &globalIdEl);MB_CHK_SET_ERR(rval, "can't set gid for cell ");
 
