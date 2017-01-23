@@ -5,7 +5,7 @@ include_directories(
     ${CMAKE_BINARY_DIR}/src
     ${CMAKE_SOURCE_DIR}/src/parallel
 )
-  
+
 set(TEST_COMP_FLAGS "-DMESHDIR=${MOAB_ABSSRC_DIR}/MeshFiles/unittest")
 
 set( TESTS readutil_test.cpp VtkTest.cpp cub_file_test.cc gmsh_test.cc nastran_test.cc ideas_test.cc stl_test.cc smf_test.cc)
@@ -14,6 +14,7 @@ if( MOAB_HAVE_NETCDF )
   set( TESTS ${TESTS} read_nc.cpp )
   set( TESTS ${TESTS} read_ucd_nc.cpp )
   set( TESTS ${TESTS} read_mpas_nc.cpp )
+  set( TESTS ${TESTS} write_nc.cpp )
 endif()
 
 if(MOAB_HAVE_CCMIO)
