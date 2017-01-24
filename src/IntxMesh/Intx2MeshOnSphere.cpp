@@ -377,10 +377,10 @@ ErrorCode Intx2MeshOnSphere::findNodes(EntityHandle red, int nsRed, EntityHandle
     int globalID;
     rval = mb->tag_get_data(gid, &blue, 1, &globalID);MB_CHK_ERR(rval);
     rval = mb->tag_set_data(blueParentTag, &polyNew, 1, &globalID);MB_CHK_ERR(rval);
-    // std::cout << "Setting parent for " << polyNew << " : Blue = " << id << ", " << blue << "\t";
+    // if(!parcomm->rank()) std::cout << "Setting parent for " << mb->id_from_handle(polyNew) << " : Blue = " << globalID << ", " << mb->id_from_handle(blue) << "\t\n";
     rval = mb->tag_get_data(gid, &red, 1, &globalID);MB_CHK_ERR(rval);
     rval = mb->tag_set_data(redParentTag, &polyNew, 1, &globalID);MB_CHK_ERR(rval);
-    // std::cout << " Red = " << id << ", " << red << "\n";
+    // if(parcomm->rank()) std::cout << "Setting parent for " << mb->id_from_handle(polyNew) << " : Red = " << globalID << ", " << mb->id_from_handle(red) << "\n";
 
     counting++;
     rval = mb->tag_set_data(countTag, &polyNew, 1, &counting);MB_CHK_ERR(rval);
@@ -404,6 +404,9 @@ ErrorCode Intx2MeshOnSphere::findNodes(EntityHandle red, int nsRed, EntityHandle
     }
 #endif
 
+  }
+  else {
+    std::cout << "[[FAILURE]] Number of vertices in polygon is less than 3\n";
   }
   //disable_debug();
   delete[] foundIds;

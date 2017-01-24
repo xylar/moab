@@ -98,6 +98,9 @@ public:
 
   void SetErrorTolerance(double eps) { epsilon_1=eps; epsilon_area = eps*eps/2;}
 
+#ifdef MOAB_HAVE_MPI
+  void set_parallel_comm(moab::ParallelComm* pcomm) { parcomm = pcomm; }
+#endif
   //void SetEntityType (EntityType tp) { type=tp;}
 
   // clean some memory allocated

@@ -54,8 +54,6 @@ ErrorCode Intx2Mesh::FindMaxEdgesInSet(EntityHandle eset, int & max_edges)
   Range cells;
   ErrorCode rval = mb->get_entities_by_dimension(eset, 2, cells);MB_CHK_ERR(rval);
 
-
-
   max_edges = 3; // should be at least 3
   for (Range::iterator cit=cells.begin(); cit!=cells.end(); cit++)
   {
@@ -116,7 +114,7 @@ ErrorCode Intx2Mesh::createTags()
     extraNodesVec[indx]=nv;
   }
 
-  int defaultInt = 0;
+  int defaultInt = -1;
 
   rval = mb->tag_get_handle("RedParent", 1, MB_TYPE_INTEGER, redParentTag,
       MB_TAG_DENSE | MB_TAG_CREAT, &defaultInt);MB_CHK_SET_ERR(rval, "can't create positive tag");
@@ -252,6 +250,7 @@ ErrorCode Intx2Mesh::intersect_meshes(EntityHandle mbset1, EntityHandle mbset2,
 
   rval = mb->get_entities_by_dimension(mbs1, 2, rs1);MB_CHK_ERR(rval);
   rval = mb->get_entities_by_dimension(mbs2, 2, rs2);MB_CHK_ERR(rval);
+  // std::cout << "rs1.size() = " << rs1.size() << " and rs2.size() = "  << rs2.size() << "\n"; std::cout.flush();
 
   createTags(); // will also determine max_edges_1, max_edges_2 (for blue and red meshes)
 
@@ -575,9 +574,7 @@ ErrorCode Intx2Mesh::build_processor_euler_boxes(EntityHandle euler_set, Range &
   int num_local_verts = (int) local_verts.size();
   ERRORR(rval, "can't get local vertices");
 
-  parcomm = ParallelComm::get_pcomm(mb, 0);
-  if (NULL==parcomm)
-    return MB_FAILURE;
+  assert(parcomm != NULL);
 
   // get the position of local vertices, and decide local boxes (allBoxes...)
   double bmin[3]={DBL_MAX, DBL_MAX, DBL_MAX};
@@ -642,9 +639,7 @@ ErrorCode Intx2Mesh::build_processor_euler_boxes(EntityHandle euler_set, Range &
 ErrorCode Intx2Mesh::create_departure_mesh_2nd_alg(EntityHandle & euler_set, EntityHandle & covering_lagr_set)
 {
   // compute the bounding box on each proc
-  parcomm = ParallelComm::get_pcomm(mb, 0);
-  if (NULL==parcomm)
-    return MB_FAILURE;
+  assert(parcomm != NULL);
 
   localEnts.clear();
   ErrorCode rval = mb->get_entities_by_dimension(euler_set, 2, localEnts);
@@ -953,8 +948,8 @@ ErrorCode Intx2Mesh::create_departure_mesh_3rd_alg(EntityHandle & lagr_set,
                                            MB_TAG_DENSE|MB_TAG_CREAT, &dum);
   //start copy from 2nd alg
   // compute the bounding box on each proc
-  parcomm = ParallelComm::get_pcomm(mb, 0);
-  if (NULL == parcomm || ( 1==parcomm->proc_config().proc_size()))
+  assert(parcomm != NULL);
+  if ( 1 == parcomm->proc_config().proc_size())
   {
     covering_set = lagr_set; // nothing to communicate, it must be serial
     return MB_SUCCESS;
@@ -1231,8 +1226,8 @@ ErrorCode Intx2Mesh::create_departure_mesh_3rd_alg(EntityHandle & lagr_set,
 ErrorCode Intx2Mesh::construct_covering_set(EntityHandle & initial_distributed_set, EntityHandle & covering_set)
 {
 
-  parcomm = ParallelComm::get_pcomm(mb, 0);
-  if (NULL == parcomm || ( 1==parcomm->proc_config().proc_size()))
+  assert(parcomm != NULL);
+  if ( 1==parcomm->proc_config().proc_size())
   {
     covering_set = initial_distributed_set; // nothing to communicate, it must be serial
     return MB_SUCCESS;
@@ -1481,8 +1476,9 @@ ErrorCode Intx2Mesh::construct_covering_set(EntityHandle & initial_distributed_s
     rval = mb->tag_set_data(gid, &new_element, 1, &globalIdEl);MB_CHK_SET_ERR(rval, "can't set gid for cell ");
 
   }
+
   // now, create a new set, covering_set
-  rval = mb->create_meshset(MESHSET_SET, covering_set);MB_CHK_SET_ERR(rval, "can't create the covering set");
+  // rval = mb->create_meshset(MESHSET_SET, covering_set);MB_CHK_SET_ERR(rval, "can't create the covering set");
   rval = mb->add_entities(covering_set, local_q);MB_CHK_SET_ERR(rval,  "can't add entities to new mesh set ");
 
   return MB_SUCCESS;
