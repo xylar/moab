@@ -119,6 +119,7 @@ int main(int argc, char* argv[])
   {
 #ifdef MOAB_HAVE_MPI
     double elapsed = MPI_Wtime();
+    rval = mb->create_meshset(moab::MESHSET_SET, covering_set);MB_CHK_SET_ERR(rval, "Can't create new set");
     rval = worker.construct_covering_set(sf1, covering_set); MB_CHK_ERR(rval);// lots of communication if mesh is distributed very differently
     elapsed = MPI_Wtime() - elapsed;
     if (0==rank)

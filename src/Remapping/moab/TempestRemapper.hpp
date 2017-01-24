@@ -56,12 +56,14 @@ public:
 
     moab::ErrorCode LoadMesh(Remapper::IntersectionContext ctx, std::string inputFilename, TempestMeshType type);
 
-    moab::ErrorCode ComputeOverlapMesh(double tolerance=1e-8, bool use_tempest=false);
+    moab::ErrorCode ComputeOverlapMesh(double tolerance=1e-8, double radius=1.0, bool use_tempest=false);
 
     // Converters between MOAB and Tempest representations
     moab::ErrorCode ConvertTempestMesh(Remapper::IntersectionContext ctx);
 
     moab::ErrorCode ConvertMeshToTempest(Remapper::IntersectionContext ctx);
+
+    moab::ErrorCode AssociateSrcTargetInOverlap();
 
     // Parallel utilities
     moab::ErrorCode ExchangeGhostWeights(OfflineMap* weightMap);
@@ -70,7 +72,11 @@ public:
 
     void SetMesh(Remapper::IntersectionContext ctx, Mesh* mesh, bool overwrite=true);
 
+    Mesh* GetCoveringMesh();
+
     moab::EntityHandle GetMeshSet(Remapper::IntersectionContext ctx) const;
+
+    moab::EntityHandle& GetCoveringSet();
 
     void SetMeshType(Remapper::IntersectionContext ctx, TempestMeshType type);
 
@@ -88,25 +94,33 @@ private:
     // private methods
     moab::ErrorCode LoadTempestMesh_Private(std::string inputFilename, Mesh** tempest_mesh);
 
-    moab::ErrorCode ConvertMOABMeshToTempest_Private(Mesh* mesh, moab::EntityHandle meshset);
+    moab::ErrorCode ConvertMOABMeshToTempest_Private(Mesh* mesh, moab::EntityHandle meshset, moab::Range& entities);
 
     moab::ErrorCode ConvertTempestMeshToMOAB_Private(TempestMeshType type, Mesh* mesh, moab::EntityHandle& meshset);
 
-    moab::ErrorCode AssociateSrcTargetInOverlap(Mesh* mesh, EntityHandle* meshsets);
-
-    // Source and Target meshes
+    // Source, Target amd Overlap meshes
     Mesh* m_source;
     TempestMeshType m_source_type;
+    moab::Range m_source_entities;
     moab::EntityHandle m_source_set;
 
     Mesh* m_target;
     TempestMeshType m_target_type;
+    moab::Range m_target_entities;
     moab::EntityHandle m_target_set;
 
     // Overlap meshes
     Mesh* m_overlap;
     TempestMeshType m_overlap_type;
+    moab::Range m_overlap_entities;
     moab::EntityHandle m_overlap_set;
+
+    // Parallel - migrated mesh that is in the local view
+    Mesh* m_covering_target;
+    moab::EntityHandle m_covering_target_set;
+    moab::Range m_covering_target_entities;
+
+    moab::Range m_intersecting_source_entities;
 
 };
 
@@ -140,12 +154,12 @@ void TempestRemapper::SetMesh(Remapper::IntersectionContext ctx, Mesh* mesh, boo
             break;
         case Remapper::TargetMesh:
             if (!overwrite && m_target) return;
-            if (overwrite && m_target) delete m_source;
+            if (overwrite && m_target) delete m_target;
             m_target = mesh;
             break;
         case Remapper::IntersectedMesh:
             if (!overwrite && m_overlap) return;
-            if (overwrite && m_overlap) delete m_source;
+            if (overwrite && m_overlap) delete m_overlap;
             m_overlap = mesh;
             break;
         case Remapper::DEFAULT:
@@ -206,6 +220,16 @@ TempestRemapper::TempestMeshType TempestRemapper::GetMeshType(Remapper::Intersec
             // Nothing to do.
             return TempestRemapper::DEFAULT;
     }
+}
+
+inline
+Mesh* TempestRemapper::GetCoveringMesh() {
+    return m_covering_target;
+}
+
+inline
+moab::EntityHandle& TempestRemapper::GetCoveringSet() {
+    return m_covering_target_set;
 }
 
 }

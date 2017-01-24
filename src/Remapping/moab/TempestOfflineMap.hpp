@@ -41,22 +41,18 @@ public:
 	///	<summary>
 	///		Generate the metadata associated with the offline map.
 	///	</summary>
-	TempestOfflineMap(moab::Interface* mbCore_in, moab::ParallelComm* pcomm_in) : OfflineMap(), mbCore(mbCore_in), pcomm(pcomm_in)
-	{ }
+	TempestOfflineMap(moab::TempestRemapper* remapper);
 
 	///	<summary>
 	///		Define a virtual destructor.
 	///	</summary>
-	virtual ~TempestOfflineMap()
-	{
-		mbCore = NULL;
-		pcomm = NULL;
-	}
+	virtual ~TempestOfflineMap();
 
 	///	<summary>
-	///		Initialize the necessary data so that OfflineMap can be generated in parallel.
+	///		Gather the mapping matrix that was computed in different processors and accumulate the data
+	///     on the root so that OfflineMap can be generated in parallel.
 	///	</summary>
-	virtual void Initialize();
+	virtual void GatherAllToRoot();
 
 public:
 	///	<summary>
@@ -64,8 +60,7 @@ public:
 	///     This method generates the mapping between the two meshes based on the overlap and stores 
 	///     the result in the SparseMatrix.
 	///	</summary>
-	moab::ErrorCode GenerateOfflineMap( Mesh& meshInput, Mesh& meshOutput, Mesh& meshOverlap,
-                                        std::string strInputType, std::string strOutputType,
+	moab::ErrorCode GenerateOfflineMap( std::string strInputType, std::string strOutputType,
                                         int nPin=4, int nPout=4,
                                         bool fBubble=false, int fMonotoneTypeID=0,
                                         bool fVolumetric=false, bool fNoConservation=false, bool fNoCheck=false,
@@ -78,6 +73,22 @@ public:
 	///		Generate the metadata associated with the offline map.
 	///	</summary>
 	// moab::ErrorCode GenerateMetaData();
+
+public:
+
+	///	<summary>
+	///		Read the OfflineMap from a NetCDF file.
+	///	</summary>
+	// virtual void Read(
+	// 	const std::string & strSource
+	// );
+
+	///	<summary>
+	///		Write the TempestOfflineMap to a parallel NetCDF file.
+	///	</summary>
+	virtual void Write(
+		const std::string & strTarget
+	);
 
 public:
 	///	<summary>
@@ -101,7 +112,19 @@ public:
 		double dTolerance
 	);
 
+private:
+	///	<summary>
+	///		Compute the remapping weights for a FV field defined on the source to a 
+	///     FV field defined on the target mesh.
+	///	</summary>
+	void LinearRemapFVtoFV_Tempest_MOAB( int nOrder );
+
 protected:
+	///	<summary>
+	///		The SparseMatrix representing this operator.
+	///	</summary>
+	moab::TempestRemapper* m_remapper;
+
 	///	<summary>
 	///		The SparseMatrix representing this operator.
 	///	</summary>
@@ -111,6 +134,11 @@ protected:
 	///		Vector of areas associated with input degrees of freedom.
 	///	</summary>
 	moab::ParallelComm* pcomm;
+
+	Mesh* m_meshInput;
+	Mesh* m_meshInputCov;
+	Mesh* m_meshOutput;
+	Mesh* m_meshOverlap;
 
 };
 
