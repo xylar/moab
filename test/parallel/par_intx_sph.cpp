@@ -190,6 +190,8 @@ void test_intx_in_parallel_elem_based()
   worker.SetErrorTolerance(radius*1.e-8);
   std::cout << "error tolerance epsilon_1="<< radius*1.e-8 << "\n";
   //  worker.locate_departure_points(euler_set);
+  // set pcomm
+  worker.set_parallel_comm(pcomm);
 
   rval = worker.FindMaxEdges(euler_set, euler_set); // use euler set for both, it is just finding max_edges_1 and 2
   // we need to make sure the covering set is bigger than the euler mesh
@@ -266,6 +268,9 @@ void test_intx_mpas()
   EntityHandle covering_lagr_set;
   rval = mb.create_meshset(MESHSET_SET, covering_lagr_set);
   CHECK_ERR(rval);
+
+  // set pcomm
+  worker.set_parallel_comm(pcomm);
 
   rval = worker.create_departure_mesh_2nd_alg(euler_set, covering_lagr_set);
   CHECK_ERR(rval);
