@@ -512,7 +512,7 @@ try {
         }
     }
 
-    dbgprint.printf(0, "m_meshInputCov->faces = %d, m_meshOutput->faces = %d, ixSourceFaceMax = %d\n", m_meshInput->faces.size(), m_meshOutput->faces.size(), ixSourceFaceMax);
+    dbgprint.printf(0, "m_meshInputCov->faces = %lu, m_meshOutput->faces = %lu, ixSourceFaceMax = %d\n", m_meshInput->faces.size(), m_meshOutput->faces.size(), ixSourceFaceMax);
 
     // Check for forward correspondence in overlap mesh
     if (m_meshInput->faces.size() - ixSourceFaceMax == 0 //&&
