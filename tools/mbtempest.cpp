@@ -302,7 +302,8 @@ int main(int argc, char* argv[])
       // Assign fully new and compatible Global identifiers for vertices and elements
       // rval = pcomm->assign_global_ids(ctx.meshsets[0], 2, 1, false, true, false);MB_CHK_ERR(rval);
       // rval = pcomm->assign_global_ids(ctx.meshsets[1], 2, rintxverts.size(), false, true, false);MB_CHK_ERR(rval);
-      rval = pcomm->assign_global_ids(0, 2, 1, false, true, false);MB_CHK_ERR(rval);
+
+      // rval = pcomm->assign_global_ids(0, 2, 1, true, true, false);MB_CHK_ERR(rval);
     }
 
     // Compute intersections with MOAB
@@ -389,8 +390,10 @@ int main(int argc, char* argv[])
     }
 
     // Write out our computed intersection file
-    rval = mbCore->add_entities(ctx.meshsets[2], &ctx.meshsets[0], 2);MB_CHK_ERR(rval);
-    rval = mbCore->write_file("moab_intersection.h5m", NULL, "PARALLEL=WRITE_PART", &ctx.meshsets[2], 1); MB_CHK_ERR(rval);
+    if (false) {
+      rval = mbCore->add_entities(ctx.meshsets[2], &ctx.meshsets[0], 2);MB_CHK_ERR(rval);
+      rval = mbCore->write_file("moab_intersection.h5m", NULL, "PARALLEL=WRITE_PART", &ctx.meshsets[2], 1); MB_CHK_ERR(rval);
+    }
 
     {
       double local_areas[3], global_areas[3]; // Array for Initial area, and through Method 1 and Method 2

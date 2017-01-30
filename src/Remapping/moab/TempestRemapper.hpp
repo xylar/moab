@@ -120,6 +120,8 @@ private:
     moab::EntityHandle m_covering_target_set;
     moab::Range m_covering_target_entities;
 
+    std::map<int,int> gid_to_lid_src, gid_to_lid_tgt;
+    std::map<int,int> lid_to_gid_src, lid_to_gid_tgt;
     moab::Range m_intersecting_target_entities;
 
 };

@@ -522,7 +522,7 @@ try {
 
     // Check for reverse correspondence in overlap mesh
     } else if (
-        m_meshOutput->faces.size() - ixSourceFaceMax == 0 //&&
+        m_meshInputCov->faces.size() - ixSourceFaceMax == 0 //&&
         //(ixTargetFaceMax == m_meshInput->faces.size())
     ) {
         if (!pcomm->rank()) dbgprint.printf(0, "Overlap mesh reverse correspondence found (reversing)\n");

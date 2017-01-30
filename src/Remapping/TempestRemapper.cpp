@@ -358,30 +358,29 @@ ErrorCode TempestRemapper::ConvertMOABMeshToTempest_Private(Mesh* mesh, EntityHa
 ErrorCode TempestRemapper::AssociateSrcTargetInOverlap()
 {
 	ErrorCode rval;
-	std::map<int,int> gid_to_lid_src,gid_to_lid_tgt;
 	
+	gid_to_lid_src.clear(); lid_to_gid_src.clear();
+	gid_to_lid_tgt.clear(); lid_to_gid_tgt.clear();
 	{
 		Tag gidtag;
 		rval = m_interface->tag_get_handle("GLOBAL_ID", gidtag);MB_CHK_ERR(rval);
 
 		std::vector<int> gids;
 
-		// rval = m_interface->get_entities_by_dimension(m_source_set, 2, aEls); MB_CHK_ERR(rval);
-		// m_covering_target_entities.clear();
-		// rval = m_interface->get_entities_by_dimension(m_covering_target_set, 2, m_covering_target_entities);MB_CHK_ERR(rval);
-		gids.resize(m_source_entities.size(),-1);
-		rval = m_interface->tag_get_data(gidtag,  m_source_entities, &gids[0]);MB_CHK_ERR(rval);
+		gids.resize(m_covering_target_entities.size(),-1);
+		rval = m_interface->tag_get_data(gidtag,  m_covering_target_entities, &gids[0]);MB_CHK_ERR(rval);
 		for (unsigned ie=0; ie < gids.size(); ++ie) {
 			gid_to_lid_src[gids[ie]] = ie;
-			// if(!m_pcomm->rank()) std::cout << "Src[" << ie << "]: GID = " << gids[ie] << " and value = " << gid_to_lid_src[gids[ie]] << "\n";
+			lid_to_gid_src[ie] = gids[ie];
+			// if(m_pcomm->rank()) std::cout << "Src[" << ie << "]: GID = " << gids[ie] << " and value = " << gid_to_lid_src[gids[ie]] << "\n";
 		}
 
-		// rval = m_interface->get_entities_by_dimension(m_target_set, 2, aEls); MB_CHK_ERR(rval);
-		gids.resize(m_covering_target_entities.size(),-1);
-		rval = m_interface->tag_get_data(gidtag,  m_covering_target_entities/*m_covering_target_set*/, &gids[0]); MB_CHK_ERR(rval);
+		gids.resize(m_target_entities.size(),-1);
+		rval = m_interface->tag_get_data(gidtag,  m_target_entities/*m_covering_target_set*/, &gids[0]); MB_CHK_ERR(rval);
 		for (unsigned ie=0; ie < gids.size(); ++ie) {
 			gid_to_lid_tgt[gids[ie]] = ie;
-			// if(!m_pcomm->rank()) std::cout << "Target[" << ie << "]: GID = " << gids[ie] << " and value = " << gid_to_lid_tgt[gids[ie]] << "\n";
+			lid_to_gid_tgt[ie] = gids[ie];
+			// if(m_pcomm->rank()) std::cout << "Target[" << ie << "]: GID = " << gids[ie] << " and value = " << gid_to_lid_tgt[gids[ie]] << "\n";
 		}
 	}
 
@@ -397,7 +396,7 @@ ErrorCode TempestRemapper::AssociateSrcTargetInOverlap()
 	rval = m_interface->tag_get_data(bluePtag,  m_overlap_entities, &rbids[0]); MB_CHK_ERR(rval);
 	for (unsigned ie=0; ie < m_overlap_entities.size(); ++ie) {
 		m_overlap->vecSourceFaceIx[ie] = gid_to_lid_src[rbids[ie]];
-		// if(!m_pcomm->rank()) std::cout << "Overlap vecSourceFaceIx[" << ie << "]: GID = " << rbids[ie] << " and value = " << m_overlap->vecSourceFaceIx[ie] << "\n";
+		// if(m_pcomm->rank()) std::cout << "Overlap vecSourceFaceIx[" << ie << "]: GID = " << rbids[ie] << " and value = " << m_overlap->vecSourceFaceIx[ie] << "\n";
 	}
 	rval = m_interface->tag_get_data(redPtag,  m_overlap_entities, &rbids[0]); MB_CHK_ERR(rval);
 	for (unsigned ie=0; ie < m_overlap_entities.size(); ++ie) {
@@ -451,27 +450,28 @@ ErrorCode TempestRemapper::ComputeOverlapMesh(double tolerance, double radius, b
 
       // Note: lots of communication possible, if mesh is distributed very differently
       if (m_pcomm->size() != 1) {
-      	rval = mbintx->build_processor_euler_boxes(m_source_set, local_verts); MB_CHK_ERR(rval);
+      	rval = mbintx->build_processor_euler_boxes(m_target_set, local_verts); MB_CHK_ERR(rval);
 
       	rval = m_interface->create_meshset(moab::MESHSET_SET, m_covering_target_set);MB_CHK_SET_ERR(rval, "Can't create new set");
-      	rval = mbintx->construct_covering_set(m_target_set, m_covering_target_set); MB_CHK_ERR(rval);
+      	rval = mbintx->construct_covering_set(m_source_set, m_covering_target_set); MB_CHK_ERR(rval);
 
       	m_covering_target = new Mesh();
       	rval = ConvertMOABMeshToTempest_Private(m_covering_target, m_covering_target_set, m_covering_target_entities);MB_CHK_SET_ERR(rval, "Can't convert source Tempest mesh");
 
-      	m_intersecting_target_entities = moab::intersect(m_target_entities, m_covering_target_entities);
-      	std::cout << "Number of common entities = " << m_intersecting_target_entities.size() << "/ (" << m_target_entities.size() << ", " << m_covering_target_entities.size() << ")\n";
+      	m_intersecting_target_entities = moab::intersect(m_source_entities, m_covering_target_entities);
+      	std::cout << "Number of common entities = " << m_intersecting_target_entities.size() << "/ (" << m_source_entities.size() << ", " << m_covering_target_entities.size() << ")\n";
 
       }
       else {
-      	m_covering_target_set = m_target_set;
-      	m_covering_target = m_target;
-      	m_covering_target_entities = m_target_entities;
-      	m_intersecting_target_entities = m_target_entities;
+      	m_covering_target_set = m_source_set;
+      	m_covering_target = m_source;
+      	m_covering_target_entities = m_source_entities;
+      	m_intersecting_target_entities = m_source_entities;
       }
 
       // Now perform the actual parallel intersection between the source and the target meshes
-      rval = mbintx->intersect_meshes(m_source_set, m_covering_target_set, m_overlap_set);MB_CHK_SET_ERR(rval, "Can't compute the intersection of meshes on the sphere");
+      // rval = mbintx->intersect_meshes(m_source_set, m_covering_target_set, m_overlap_set);MB_CHK_SET_ERR(rval, "Can't compute the intersection of meshes on the sphere");
+      rval = mbintx->intersect_meshes(m_covering_target_set, m_target_set, m_overlap_set);MB_CHK_SET_ERR(rval, "Can't compute the intersection of meshes on the sphere");
 
       // rval = m_interface->add_entities(m_overlap_set, &m_source_set, 1);MB_CHK_ERR(rval);
       // rval = m_interface->add_entities(m_overlap_set, &m_target_set, 1);MB_CHK_ERR(rval);
