@@ -5,7 +5,7 @@
 # NETCDF_LIBRARIES           - list of libraries to link against when using NetCDF
 # NETCDF_FOUND               - Do not attempt to use NetCDF if "no", "0", or undefined.
 
-set (NETCDF_ROOT "" CACHE PATH "Path to search for NetCDF header and library files" )
+set (NETCDF_ROOT "/usr" CACHE PATH "Path to search for NetCDF header and library files" )
 set (NETCDF_FOUND NO CACHE INTERNAL "Found NetCDF components successfully." )
 
   find_path( NETCDF_INCLUDE_DIR netcdf.h
@@ -18,6 +18,7 @@ set (NETCDF_FOUND NO CACHE INTERNAL "Found NetCDF components successfully." )
 find_library( NETCDF_C_LIBRARY
     NAMES libnetcdf.a netcdf
     HINTS ${NETCDF_ROOT}
+    ${NETCDF_ROOT}/lib/x86_64-linux-gnu
     ${NETCDF_ROOT}/lib64
     ${NETCDF_ROOT}/lib
     NO_DEFAULT_PATH
@@ -26,6 +27,7 @@ find_library( NETCDF_C_LIBRARY
 find_library( NETCDF_CXX_LIBRARY
     NAMES netcdf_c++
     HINTS ${NETCDF_ROOT}
+    ${NETCDF_ROOT}/lib/x86_64-linux-gnu
     ${NETCDF_ROOT}/lib64
     ${NETCDF_ROOT}/lib
     NO_DEFAULT_PATH
@@ -34,6 +36,7 @@ find_library( NETCDF_CXX_LIBRARY
 find_library( NETCDF_FORTRAN_LIBRARY
     NAMES netcdf_g77 netcdff netcdf_ifc netcdf_x86_64
     HINTS ${NETCDF_ROOT}
+    ${NETCDF_ROOT}/lib/x86_64-linux-gnu
     ${NETCDF_ROOT}/lib64
     ${NETCDF_ROOT}/lib
     NO_DEFAULT_PATH
