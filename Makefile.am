@@ -48,6 +48,7 @@ examples_DATA = examples/CrystalRouterExample.cpp \
                 examples/TestExodusII.cpp \
                 examples/UniformRefinement.cpp \
                 examples/VisTags.cpp \
+                examples/ExtrudePoly.cpp \
                 examples/makefile.in \
                 examples/makefile
 
