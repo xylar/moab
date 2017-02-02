@@ -25,13 +25,13 @@ cdef class Core(object):
     def impl_version(self):
         """MOAB implementation number as a float."""
         return self.inst.impl_version()
-    
+
     def load_file(self, str fname, exceptions = ()):
         cfname = fname.decode()
         cdef const char * file_name = cfname
         cdef moab.ErrorCode err = self.inst.load_file(fname)
         check_error(err, exceptions)
-    
+
     def write_file(self, str fname, exceptions = ()):
         """Writes the MOAB data to a file."""
         cfname = fname.decode()
@@ -41,7 +41,7 @@ cdef class Core(object):
 
     def create_meshset(self, unsigned int options = 0x02, exceptions = ()):
         cdef moab.EntityHandle ms_handle = 0
-        cdef moab.EntitySetProperty es_property = <moab.EntitySetProperty> options 
+        cdef moab.EntitySetProperty es_property = <moab.EntitySetProperty> options
         cdef moab.ErrorCode err = self.inst.create_meshset(es_property, ms_handle)
         check_error(err, exceptions)
         return ms_handle
@@ -49,7 +49,7 @@ cdef class Core(object):
     def add_entities(self, moab.EntityHandle ms_handle, entities, exceptions = ()):
         cdef moab.ErrorCode err
         cdef Range r
-        cdef np.ndarray[np.uint64_t, ndim=1] arr         
+        cdef np.ndarray[np.uint64_t, ndim=1] arr
         if isinstance(entities, Range):
            r = entities
            err = self.inst.add_entities(ms_handle, deref(r.inst))
@@ -60,7 +60,7 @@ cdef class Core(object):
 
     def create_vertices(self, np.ndarray[np.float64_t, ndim=1] coordinates, exceptions = ()):
         cdef Range rng = Range()
-        cdef moab.ErrorCode err = self.inst.create_vertices(<double *> coordinates.data, 
+        cdef moab.ErrorCode err = self.inst.create_vertices(<double *> coordinates.data,
                                                             len(coordinates)//3,
                                                             deref(rng.inst))
         check_error(err, exceptions)
@@ -176,27 +176,27 @@ cdef class Core(object):
             err = self.inst.get_adjacencies(<unsigned long*> arr.data, len(entity_handles), to_dim, create_if_missing, deref(adj.inst))
         check_error(err, exceptions)
         return adj
- 
+
     def type_from_handle(self, entity_handle):
         cdef moab.EntityType t
         t = self.inst.type_from_handle(<unsigned long> entity_handle)
         return t
-         
+
     def get_child_meshsets(self, meshset_handle, num_hops = 1, exceptions = ()):
         cdef moab.ErrorCode err
         cdef Range r = Range()
         err = self.inst.get_child_meshsets(<unsigned long> meshset_handle, deref(r.inst), num_hops)
         check_error(err, exceptions)
         return r
- 
+
     def add_child_meshset(self, parent_meshset, child_meshset, exceptions = ()):
         cdef moab.ErrorCode err
         err = self.inst.add_child_meshset(<unsigned long> parent_meshset, <unsigned long> child_meshset)
         check_error(err, exceptions)
-        
+
     def get_root_set(self):
         return <unsigned long> 0
- 
+
     def get_coords(self, entities, exceptions = ()):
         cdef moab.ErrorCode err
         cdef Range r
@@ -212,18 +212,18 @@ cdef class Core(object):
             err = self.inst.get_coords(<unsigned long*> arr.data, len(entities), <double*> coords.data)
         check_error(err, exceptions)
         return coords
- 
+
     def get_entities_by_type(self, meshset, t, bint recur = False, exceptions = ()):
         cdef moab.ErrorCode err
         cdef vector[moab.EntityHandle] entities
         cdef moab.EntityType typ = t
-        err = self.inst.get_entities_by_type(<unsigned long> meshset, 
-                                             typ, 
-                                             entities, 
-                                             recur) 
+        err = self.inst.get_entities_by_type(<unsigned long> meshset,
+                                             typ,
+                                             entities,
+                                             recur)
         check_error(err, exceptions)
         return entities
-    
+
     def get_entities_by_type_and_tag(self, meshset, t, tags, vals, int cond = 0, bint recur = False, exceptions = ()):
         cdef moab.ErrorCode err
         assert len(tags) == len(vals)
@@ -234,10 +234,17 @@ cdef class Core(object):
         for i in range(num_tags):
             if vals[i] is not None:
                 vals_vec.push_back(<void*> vals[i])
-            else: 
+            else:
                 vals_vec.push_back(NULL)
         cdef Range ents = Range()
         #here goes nothing
         err = self.inst.get_entities_by_type_and_tag(<unsigned long> meshset, typ, ta.ptr, &(vals_vec[0]), len(tags), deref(ents.inst), cond, recur)
+        check_error(err, exceptions)
+        return ents
+
+    def get_entities_by_handle(self, meshset, bint recur = False, exceptions = ()):
+        cdef moab.ErrorCode err
+        cdef Range ents = Range()
+        err = self.inst.get_entities_by_handle(<unsigned long> meshset, deref(ents.inst), recur)
         check_error(err, exceptions)
         return ents

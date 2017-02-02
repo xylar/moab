@@ -19,18 +19,18 @@ cdef extern from 'moab/Types.hpp' namespace "moab":
         MB_MAX_DATA_TYPE = 4
 
     cdef enum TagType:
-        MB_TAG_BIT    
+        MB_TAG_BIT
         MB_TAG_SPARSE
-        MB_TAG_DENSE 
-        MB_TAG_MESH  
-        MB_TAG_BYTES 
+        MB_TAG_DENSE
+        MB_TAG_MESH
+        MB_TAG_BYTES
         MB_TAG_VARLEN
-        MB_TAG_CREAT 
-        MB_TAG_EXCL  
-        MB_TAG_STORE 
-        MB_TAG_ANY   
-        MB_TAG_NOOPQ 
-        MB_TAG_DFTOK 
+        MB_TAG_CREAT
+        MB_TAG_EXCL
+        MB_TAG_STORE
+        MB_TAG_ANY
+        MB_TAG_NOOPQ
+        MB_TAG_DFTOK
 
 cdef extern from "TagInfo.hpp" namespace "moab":
 
@@ -41,23 +41,23 @@ cdef extern from "TagInfo.hpp" namespace "moab":
 cdef extern from "moab/Types.hpp" namespace "moab":
 
     cdef enum ErrorCode:
-        MB_SUCCESS  
-        MB_INDEX_OUT_OF_RANGE   
-        MB_TYPE_OUT_OF_RANGE    
-        MB_MEMORY_ALLOCATION_FAILED     
-        MB_ENTITY_NOT_FOUND     
-        MB_MULTIPLE_ENTITIES_FOUND  
-        MB_TAG_NOT_FOUND    
-        MB_FILE_DOES_NOT_EXIST  
-        MB_FILE_WRITE_ERROR     
-        MB_NOT_IMPLEMENTED  
-        MB_ALREADY_ALLOCATED    
-        MB_VARIABLE_DATA_LENGTH     
-        MB_INVALID_SIZE     
-        MB_UNSUPPORTED_OPERATION    
-        MB_UNHANDLED_OPTION     
-        MB_STRUCTURED_MESH  
-        MB_FAILURE 
+        MB_SUCCESS
+        MB_INDEX_OUT_OF_RANGE
+        MB_TYPE_OUT_OF_RANGE
+        MB_MEMORY_ALLOCATION_FAILED
+        MB_ENTITY_NOT_FOUND
+        MB_MULTIPLE_ENTITIES_FOUND
+        MB_TAG_NOT_FOUND
+        MB_FILE_DOES_NOT_EXIST
+        MB_FILE_WRITE_ERROR
+        MB_NOT_IMPLEMENTED
+        MB_ALREADY_ALLOCATED
+        MB_VARIABLE_DATA_LENGTH
+        MB_INVALID_SIZE
+        MB_UNSUPPORTED_OPERATION
+        MB_UNHANDLED_OPTION
+        MB_STRUCTURED_MESH
+        MB_FAILURE
 
     ctypedef TagInfo* Tag
 
@@ -76,7 +76,7 @@ cdef extern from "moab/EntityType.hpp" namespace "moab":
         MBHEX
         MBPOLYHEDRON
         MBENTITYSET
-        MBMAXTYPE 
+        MBMAXTYPE
 
 
 cdef extern from "moab/EntityHandle.hpp" namespace "moab":
@@ -116,24 +116,20 @@ cdef extern from "moab/Core.hpp" namespace "moab":
 
         ErrorCode write_file(const char *file_name)
         ErrorCode write_file(const char *file_name, const char *file_type)
-        ErrorCode write_file(const char *file_name, const char *file_type, 
+        ErrorCode write_file(const char *file_name, const char *file_type,
                              const char *options)
-        ErrorCode write_file(const char *file_name, const char *file_type, 
+        ErrorCode write_file(const char *file_name, const char *file_type,
                              const char *options, const EntityHandle *output_sets)
-        ErrorCode write_file(const char *file_name, const char *file_type, 
-                             const char *options, const EntityHandle *output_sets, 
+        ErrorCode write_file(const char *file_name, const char *file_type,
+                             const char *options, const EntityHandle *output_sets,
                              int num_output_sets)
-        
-        ErrorCode add_entities(EntityHandle meshset, const EntityHandle *entities, int num_entities)
-        ErrorCode add_entities(EntityHandle meshset, const Range &entities)
- 
-        ErrorCode write_file(const char *file_name, const char *file_type, 
-                             const char *options, const EntityHandle *output_sets, 
-                             int num_output_sets, const Tag *tag_list) 
-        ErrorCode write_file(const char *file_name, const char *file_type, 
-                             const char *options, const EntityHandle *output_sets, 
-                             int num_output_sets, const Tag *tag_list, 
-                             int num_tags)
+        #ErrorCode write_file(const char *file_name, const char *file_type,
+        #                     const char *options, const EntityHandle *output_sets,
+        #                     int num_output_sets, const Tag *tag_list)
+        #ErrorCode write_file(const char *file_name, const char *file_type,
+        #                     const char *options, const EntityHandle *output_sets,
+        #                     int num_output_sets, const Tag *tag_list,
+        #                     int num_tags)
 
         ErrorCode load_file(const char *file_name)
         ErrorCode load_file(const char *file_name, const EntityHandle file_set)
@@ -153,40 +149,40 @@ cdef extern from "moab/Core.hpp" namespace "moab":
 
         ErrorCode add_entities(EntityHandle meshset, const EntityHandle *entities, int num_entities)
         ErrorCode add_entities(EntityHandle meshset, const Range &entities)
- 
+
         ErrorCode create_vertices(const double *coordinates, const int nverts,
-                                  Range &entity_handles)   
+                                  Range &entity_handles)
 
         ErrorCode create_element(const EntityType type, const EntityHandle *connectivity,
                                  const int num_nodes, EntityHandle &element_handle)
 
         ErrorCode get_connectivity(const EntityHandle *entity_handles,
                                    const int num_handles,
-                                   vector[EntityHandle] & connectivity)   
+                                   vector[EntityHandle] & connectivity)
         ErrorCode get_connectivity(const EntityHandle *entity_handles,
                                    const int num_handles,
                                    vector[EntityHandle] & connectivity,
-                                   bool corners_only)   
+                                   bool corners_only)
         ErrorCode get_connectivity(const EntityHandle *entity_handles,
                                    const int num_handles,
                                    vector[EntityHandle] & connectivity,
                                    bool corners_only,
-                                   vector[int] * offsets)   
-        ErrorCode tag_get_handle(const char* name, 
-                                 int size, DataType type, 
-                                 Tag & tag_handle, 
-                                 unsigned flags, 
-                                 const void * default_value = 0, 
+                                   vector[int] * offsets)
+        ErrorCode tag_get_handle(const char* name,
+                                 int size, DataType type,
+                                 Tag & tag_handle,
+                                 unsigned flags,
+                                 const void * default_value = 0,
                                  bool * created = 0)
         ErrorCode tag_get_handle(const char* name,
                                  Tag & tag_handle)
 
         ErrorCode tag_set_data(Tag& tag,
                                const EntityHandle* entity_handles,
-                               int num_entities, 
+                               int num_entities,
                                const void * data)
-        ErrorCode tag_set_data(Tag& tag, 
-                               Range& entity_handles, 
+        ErrorCode tag_set_data(Tag& tag,
+                               Range& entity_handles,
                                const void * data)
         ErrorCode tag_get_data(const Tag tag_handle,
                                const Range& entity_handles,
@@ -222,9 +218,9 @@ cdef extern from "moab/Core.hpp" namespace "moab":
                              double* coords)
         ErrorCode get_coords(const Range& entity_handles,
                              double* coords)
-        ErrorCode get_entities_by_type(const EntityHandle meshset, 
+        ErrorCode get_entities_by_type(const EntityHandle meshset,
                                        const EntityType typ,
-                                       vector[EntityHandle]& entities, 
+                                       vector[EntityHandle]& entities,
                                        const bool recursive)
         ErrorCode get_entities_by_type_and_tag(const EntityHandle meshset,
                                                const EntityType typ,
@@ -234,10 +230,12 @@ cdef extern from "moab/Core.hpp" namespace "moab":
                                                Range& entities,
                                                const int condition,
                                                const bool recursive)
- 
- 
+        ErrorCode get_entities_by_handle(const EntityHandle meshset,
+                                         Range& entities,
+                                         const bool recursive)
+
 cdef extern from "moab/HomXform.hpp" namespace "moab":
- 
+
      cdef cppclass HomCoord:
          #Constructors
          HomCoord()
@@ -245,7 +243,7 @@ cdef extern from "moab/HomXform.hpp" namespace "moab":
          HomCoord(const int*, const int)
          HomCoord(const int, const int, const int, const int)
          HomCoord(const int, const int, const int)
- 
+
          #Member functions
          const int* hom_coord()
          int& operator[](int)
@@ -255,39 +253,39 @@ cdef extern from "moab/HomXform.hpp" namespace "moab":
          int h()
          void set(const int coords[])
          void set(const int i, const int j, const int k, const int h)
- 
+
          int length_squared()
          int length()
          void normalize()
- 
+
          #operators
          HomCoord operator+(const HomCoord&) const
          HomCoord operator-(const HomCoord&) const
          bool operator==(const HomCoord&) const
-         
+
 cdef extern from "moab/ScdInterface.hpp" namespace "moab":
- 
+
     cdef cppclass ScdParData:
         #Constructor
         ScdParData()
- 
+
     cdef cppclass ScdInterface:
         #Constructor
         ScdInterface(Interface*, bint)
- 
+
         #structured mesh creation
         ErrorCode construct_box(HomCoord low,
                                  HomCoord high,
                                 const double * const coords,
                                 unsigned int num_coords,
                                 ScdBox *& new_box,
-                                int * const lperiodic, 
+                                int * const lperiodic,
                                 ScdParData * const par_data,
                                 bool assign_global_ids,
                                 int resolve_shared_ents)
         #Member functions
         ErrorCode find_boxes(Range &boxes)
- 
+
     cdef cppclass ScdBox:
         HomCoord box_min()
         HomCoord box_max()

@@ -52,7 +52,7 @@ def test_get_tag():
     else:
         print "Shouldn't be here. Test fails."
         raise AssertionError
-    
+
 def test_integer_tag():
     mb = core.Core()
     vh = vertex_handle(mb)
@@ -209,7 +209,7 @@ def test_adj():
     #now get the edges and ask MOAB to create them for us
     adjs = mb.get_adjacencies(tris, 1, True)
     assert 3 is adjs.size()
-    
+
     for adj in adjs:
         type = mb.type_from_handle(adj)
         assert type is types.MBEDGE
@@ -246,7 +246,7 @@ def test_get_ents_by_type():
     ret_verts = mb.get_entities_by_type(ms,types.MBVERTEX, False)
     for i in range(verts.size()):
         assert verts[i] == ret_verts[i]
-    
+
 def test_get_ents_by_tnt():
     mb = core.Core()
     coords = np.array((0,0,0,1,0,0,1,1,1),dtype='float64')
@@ -269,4 +269,14 @@ def test_get_ents_by_tnt():
     assert entities.size() == 1
 
     entities = mb.get_entities_by_type_and_tag(rs,types.MBHEX,np.array((test_tag,)),np.array((None,)))
-    assert entities.size() == 0 
+    assert entities.size() == 0
+
+def test_get_entities_by_handle():
+    mb = core.Core()
+    coords = np.array((0,0,0,1,0,0,1,1,1),dtype='float64')
+    verts = mb.create_vertices(coords)
+    ms = mb.create_meshset()
+    mb.add_entities(ms,verts)
+    ret_verts = mb.get_entities_by_handle(ms, False)
+    for i in range(verts.size()):
+        assert verts[i] == ret_verts[i]
