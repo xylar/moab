@@ -158,8 +158,10 @@ def test_range():
     for v in vert:
         dum += 1
         if dum > 100: break
-    assert vert.size() is dum
-    
+    assert vert.size() == dum
+    assert len(vert) == vert.size()
+
+
 def test_tag_failures():
     mb = core.Core()
     coord = np.array((1,1,1),dtype='float64')

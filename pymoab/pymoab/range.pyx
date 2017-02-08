@@ -21,6 +21,9 @@ cdef class Range(object):
         """The number of values this Ranges represents."""
         return self.inst.size()
 
+    def __len__(self):
+        return self.inst.size()
+
     def psize(self):
         """The number of range pairs in the list."""
         return self.inst.psize()
@@ -37,7 +40,7 @@ cdef class Range(object):
         cdef int i = 0
         for i in range(0, self.inst.size()):
             yield self[i]
-            
+
     def __getitem__(self, int index):
         cdef moab.EntityHandle rtn = deref(self.inst)[index]
         if index < self.size():
