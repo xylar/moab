@@ -19,7 +19,7 @@ cdef class Range(object):
 
     def size(self):
         """The number of values this Ranges represents."""
-        return self.inst.size()
+        return len(self)
 
     def __len__(self):
         return self.inst.size()
