@@ -157,9 +157,10 @@ if (test "x$enable_32bit_handles" != "x"); then
   # AC_DEFINE_UNQUOTED([FILE_OFFSET_BITS], [64], [Support for handling files larger than 2GB on 32-bit machines])
 fi
 
-AC_CHECK_LIB(z, compress, LIBS="$LIBS -lz")
 AC_CHECK_LIB(dl, dlopen, LIBS="$LIBS -ldl")
+AC_CHECK_LIB(z, compress, LIBS="$LIBS -lz")
 AC_CHECK_LIB(m, pow, LIBS="$LIBS -lm")
+AC_CHECK_LIB(curl, curl_version, LIBS="$LIBS -lcurl")
 
 ################################################################################
 #                           iMesh Part 1 of 2
