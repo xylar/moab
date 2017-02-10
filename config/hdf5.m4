@@ -131,7 +131,7 @@ fi
 AUSCM_CONFIGURE_DOWNLOAD_HDF5([1.8.12],[no])
 
 enablehdf5=no
-if (test "x" != "x$HDF5_DIR" || test "xno" != "x$HDF5_DIR"); then
+if (test "x" != "x$HDF5_DIR" && test "xno" != "x$HDF5_DIR"); then
   enablehdf5=yes
 
     # if a path is specified, update LIBS and INCLUDES accordingly
