@@ -199,8 +199,8 @@ EXTRA_CLANG_FCFLAGS="$EXTRA_GNU_FCFLAGS"
 EXTRA_INTEL_CXXFLAGS="-pipe -C"
 EXTRA_INTEL_FCFLAGS="-C"
 # PGI
-EXTRA_PGI_CXXFLAGS="-traceback --diag_suppress 236 --diag_suppress=unrecognized_gcc_pragma -C"
-EXTRA_PGI_FCFLAGS="-traceback -Mbounds -Ktrap=inv,divz,ovf"
+#EXTRA_PGI_CXXFLAGS="-traceback --diag_suppress 236 --diag_suppress=unrecognized_gcc_pragma -C"
+#EXTRA_PGI_FCFLAGS="-traceback -Mbounds -Ktrap=inv,divz,ovf"
 # XLC
 EXTRA_BG_CXXFLAGS="-qarch=qp -qpic=large -qdebug=except"
 EXTRA_BG_FCFLAGS="-qarch=qp -qpic=large -qdebug=except"
