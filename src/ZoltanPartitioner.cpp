@@ -73,7 +73,7 @@ ZoltanPartitioner::ZoltanPartitioner( Interface *impl,
                     , GeometryQueryTool *gqt
 #endif
 )
-                   : PartitionerBase(impl,use_coords),
+                   : PartitionerBase<int>(impl,use_coords),
                      myZZ(NULL),
                      argcArg(argc),
                      argvArg(argv)
