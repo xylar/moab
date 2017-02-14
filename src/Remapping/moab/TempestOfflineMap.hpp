@@ -121,17 +121,22 @@ private:
 
 protected:
 	///	<summary>
-	///		The SparseMatrix representing this operator.
+	///		The fundamental remapping operator object.
 	///	</summary>
 	moab::TempestRemapper* m_remapper;
 
 	///	<summary>
 	///		The SparseMatrix representing this operator.
 	///	</summary>
+	SparseMatrix<double> m_mapRemapGlobal;
+
+	///	<summary>
+	///		The reference to the moab::Core object that contains source/target and overlap sets.
+	///	</summary>
 	moab::Interface* mbCore;
 
 	///	<summary>
-	///		Vector of areas associated with input degrees of freedom.
+	///		The reference to the parallel communicator object used by the Core object.
 	///	</summary>
 	moab::ParallelComm* pcomm;
 

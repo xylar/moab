@@ -82,12 +82,18 @@ public:
 
     TempestMeshType GetMeshType(Remapper::IntersectionContext ctx) const;
 
+    int GetGlobalID(Remapper::IntersectionContext ctx, int localID);
+
+    int GetLocalID(Remapper::IntersectionContext ctx, int globalID);
+
     // public members
     bool meshValidate;  // Validate the mesh after loading from file
 
     bool constructEdgeMap;  //  Construct the edge map within the TempestRemap datastructures
 
     static const bool verbose = true;
+
+    friend class TempestOfflineMap;
 
 private:
 
@@ -116,9 +122,9 @@ private:
     moab::EntityHandle m_overlap_set;
 
     // Parallel - migrated mesh that is in the local view
-    Mesh* m_covering_target;
-    moab::EntityHandle m_covering_target_set;
-    moab::Range m_covering_target_entities;
+    Mesh* m_covering_source;
+    moab::EntityHandle m_covering_source_set;
+    moab::Range m_covering_source_entities;
 
     std::map<int,int> gid_to_lid_src, gid_to_lid_tgt;
     std::map<int,int> lid_to_gid_src, lid_to_gid_tgt;
@@ -226,13 +232,46 @@ TempestRemapper::TempestMeshType TempestRemapper::GetMeshType(Remapper::Intersec
 
 inline
 Mesh* TempestRemapper::GetCoveringMesh() {
-    return m_covering_target;
+    return m_covering_source;
 }
 
 inline
 moab::EntityHandle& TempestRemapper::GetCoveringSet() {
-    return m_covering_target_set;
+    return m_covering_source_set;
 }
+
+inline
+int TempestRemapper::GetGlobalID(Remapper::IntersectionContext ctx, int localID)
+{
+    switch(ctx)
+    {
+        case Remapper::SourceMesh:
+            return lid_to_gid_src[localID];
+        case Remapper::TargetMesh:
+            return lid_to_gid_tgt[localID];
+        case Remapper::IntersectedMesh:
+        case Remapper::DEFAULT:
+            // Nothing to do.
+            return -1;
+    }
+}
+
+inline
+int TempestRemapper::GetLocalID(Remapper::IntersectionContext ctx, int globalID)
+{
+    switch(ctx)
+    {
+        case Remapper::SourceMesh:
+            return gid_to_lid_src[globalID];
+        case Remapper::TargetMesh:
+            return gid_to_lid_tgt[globalID];
+        case Remapper::IntersectedMesh:
+        case Remapper::DEFAULT:
+            // Nothing to do.
+            return -1;
+    }
+}
+
 
 }
 

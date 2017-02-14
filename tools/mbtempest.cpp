@@ -303,7 +303,7 @@ int main(int argc, char* argv[])
       // rval = pcomm->assign_global_ids(ctx.meshsets[0], 2, 1, false, true, false);MB_CHK_ERR(rval);
       // rval = pcomm->assign_global_ids(ctx.meshsets[1], 2, rintxverts.size(), false, true, false);MB_CHK_ERR(rval);
 
-      // rval = pcomm->assign_global_ids(0, 2, 1, true, true, false);MB_CHK_ERR(rval);
+      rval = pcomm->assign_global_ids(0, 2, 1, true, true, false);MB_CHK_ERR(rval);
     }
 
     // Compute intersections with MOAB
@@ -311,79 +311,9 @@ int main(int argc, char* argv[])
     rval = remapper.ComputeOverlapMesh(epsrel);MB_CHK_ERR(rval);
     ctx.timer_pop();
 
-    if (false)
-    {
-      // Create the intersection on the sphere object
-      ctx.timer_push("setup the intersector");
-
-      moab::Intx2MeshOnSphere *mbintx = new moab::Intx2MeshOnSphere(mbCore);
-      mbintx->SetErrorTolerance(epsrel);
-      mbintx->set_box_error(boxeps);
-      mbintx->SetRadius(radius);
-      mbintx->set_parallel_comm(pcomm);
-
-      rval = mbintx->FindMaxEdges(ctx.meshsets[0], ctx.meshsets[1]);MB_CHK_ERR(rval);
-
-      moab::Range local_verts;
-      rval = mbintx->build_processor_euler_boxes(ctx.meshsets[1], local_verts); MB_CHK_ERR(rval);
-      // rval = mbintx->build_processor_euler_boxes(ctx.meshsets[0], local_verts); MB_CHK_ERR(rval);
-      // ctx.outStream.printf(0, "--Local verts = %lu\n",local_verts.size());
-
-      ctx.timer_pop();
-
-      moab::EntityHandle covering_set = remapper.GetCoveringSet();
-      ctx.timer_push("communicate the mesh");
-      rval = mbintx->construct_covering_set(ctx.meshsets[0], covering_set); MB_CHK_ERR(rval);// lots of communication if mesh is distributed very differently
-      // rval = mbintx->construct_covering_set(ctx.meshsets[1], covering_set); MB_CHK_ERR(rval);// lots of communication if mesh is distributed very differently
-      ctx.timer_pop();
-
-      // Now let's invoke the MOAB intersection algorithm in parallel with a 
-      // source and target mesh set representing two different decompositions
-      ctx.timer_push("compute intersections with MOAB");
-      rval = mbintx->intersect_meshes(covering_set, ctx.meshsets[1], ctx.meshsets[2]); MB_CHK_SET_ERR(rval, "Can't compute the intersection of meshes on the sphere");
-      // rval = mbintx->intersect_meshes(ctx.meshsets[0], covering_set, ctx.meshsets[2]); MB_CHK_SET_ERR(rval, "Can't compute the intersection of meshes on the sphere");
-      ctx.timer_pop();
-
-      // rval = mbCore->add_entities(ctx.meshsets[2], &ctx.meshsets[0], 2);MB_CHK_ERR(rval);
-      // rval = mbCore->add_entities(ctx.meshsets[2], &covering_set, 1);MB_CHK_ERR(rval);
-
-      rval = fix_degenerate_quads(mbCore, ctx.meshsets[2]);MB_CHK_ERR(rval);
-      rval = positive_orientation(mbCore, ctx.meshsets[2], radius);MB_CHK_ERR(rval);
-
-      // free the memory
-      delete mbintx;
-
-      // Assign fully new and compatible Global identifiers for vertices and elements
-      // pcomm->assign_global_ids(ctx.meshsets[2], 2, 1, false);
-    }
-
     {
       // Now let us re-convert the MOAB mesh back to Tempest representation
       rval = remapper.ConvertMeshToTempest(moab::Remapper::IntersectedMesh);MB_CHK_ERR(rval);
-
-      // moab::Tag redPtag,bluePtag;
-      // rval = mbCore->tag_get_handle("RedParent", redPtag);MB_CHK_ERR(rval);
-      // rval = mbCore->tag_get_handle("BlueParent", bluePtag);MB_CHK_ERR(rval);
-
-      // moab::Range overlapEls, overlapVerts;
-      // int locsize[2], globsize[2];
-      // rval = mbCore->get_entities_by_dimension(ctx.meshsets[2], 2, overlapEls); MB_CHK_ERR(rval);
-      // rval = mbCore->get_entities_by_dimension(ctx.meshsets[2], 0, overlapVerts, true); MB_CHK_ERR(rval);
-      // rval = pcomm->filter_pstatus(overlapVerts, PSTATUS_NOT_OWNED, PSTATUS_NOT);MB_CHK_ERR(rval);
-      // locsize[0] = overlapEls.size(); locsize[1] = overlapVerts.size();
-      // ctx.outStream.printf(0, "The intersection set contains %d elements and %d vertices \n", locsize[0], locsize[1]);
-      // MPI_Reduce(&locsize, &globsize, 2, MPI_INTEGER, MPI_SUM, 0, MPI_COMM_WORLD);
-      // if (!proc_id) ctx.outStream.printf(0, "-- Global: Intersection set contains %d elements and %d vertices\n", globsize[0], globsize[1]);
-
-      // // Overlap mesh: mesh[2]
-      // ctx.meshes[2]->vecSourceFaceIx.resize(overlapEls.size());
-      // ctx.meshes[2]->vecTargetFaceIx.resize(overlapEls.size());
-      // ctx.meshes[2]->ConstructEdgeMap();
-
-      // rval = mbCore->
-
-      // rval = mbCore->tag_get_data(redPtag,  overlapEls, &ctx.meshes[2]->vecSourceFaceIx[0]); MB_CHK_ERR(rval);
-      // rval = mbCore->tag_get_data(bluePtag, overlapEls, &ctx.meshes[2]->vecTargetFaceIx[0]); MB_CHK_ERR(rval);
 
       rval = remapper.AssociateSrcTargetInOverlap();MB_CHK_ERR(rval);
       ctx.meshes[2] = remapper.GetMesh(moab::Remapper::IntersectedMesh);

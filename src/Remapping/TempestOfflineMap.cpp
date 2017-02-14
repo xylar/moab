@@ -59,7 +59,7 @@ TempestOfflineMap::TempestOfflineMap(moab::TempestRemapper* remapper) : OfflineM
     // Initialize dimension information from file
     dbgprint.printf(0, "Initializing dimensions of map\n");
     dbgprint.printf(0, "Input mesh\n");
-    this->InitializeSourceDimensionsFromMesh(*m_meshInput);
+    this->InitializeSourceDimensionsFromMesh(*m_meshInputCov);
     dbgprint.printf(0, "Output mesh\n");
     this->InitializeTargetDimensionsFromMesh(*m_meshOutput);
     // dbgprint.printf(0, "----------------------------------\n");
@@ -181,7 +181,7 @@ void TempestOfflineMap::LinearRemapFVtoFV_Tempest_MOAB(
     const int TriQuadRuleOrder = 4;
 
     // Verify ReverseNodeArray has been calculated
-    if (m_meshInput->revnodearray.size() == 0) {
+    if (m_meshInputCov->revnodearray.size() == 0) {
         _EXCEPTIONT("ReverseNodeArray has not been calculated for m_meshInput");
     }
 
@@ -199,10 +199,15 @@ void TempestOfflineMap::LinearRemapFVtoFV_Tempest_MOAB(
     const int nFitWeightsExponent = nOrder + 2;
 
     // Announcemnets
-    Announce("Triangular quadrature rule order %i", TriQuadRuleOrder);
-    Announce("Number of coefficients: %i", nCoefficients);
-    Announce("Required adjacency set size: %i", nRequiredFaceSetSize);
-    Announce("Fit weights exponent: %i", nFitWeightsExponent);
+    if (!pcomm->rank()) {
+        Announce("Triangular quadrature rule order %i", TriQuadRuleOrder);
+        Announce("Number of coefficients: %i", nCoefficients);
+        Announce("Required adjacency set size: %i", nRequiredFaceSetSize);
+        Announce("Fit weights exponent: %i", nFitWeightsExponent);
+    }
+    if (!pcomm->rank()) Announce("Rank 0 - Input size: %i ", m_meshInputCov->faces.size());
+    if (pcomm->rank()) Announce("Rank 1 - Input size: %i", m_meshInputCov->faces.size());
+    const bool debug = (!pcomm->rank());
 
     // Current overlap face
     int ixOverlap = 0;
@@ -214,11 +219,11 @@ void TempestOfflineMap::LinearRemapFVtoFV_Tempest_MOAB(
     // return ;
 
     // Loop through all faces on m_meshInput
-    for (int ixFirst = 0; ixFirst < m_meshInput->faces.size(); ixFirst++) {
+    for (int ixFirst = 0; ixFirst < m_meshInputCov->faces.size(); ixFirst++) {
 
         // Output every 100 elements
         if (ixFirst % 100 == 0) {
-            Announce("Element %i/%i", ixFirst, m_meshInput->faces.size());
+            Announce("Element %i/%i", ixFirst, m_meshInputCov->faces.size());
         }
 
         // This Face
@@ -239,8 +244,6 @@ void TempestOfflineMap::LinearRemapFVtoFV_Tempest_MOAB(
             }
         }
 
-        // int nOverlapFaces = ixFaces.size();
-
         // Need to re-number the overlap elements such that vecSourceFaceIx[a:b] = 0, then 1 and so on wrt the input mesh data.
         // Then the overlap_end and overlap_begin will be correct. However, the relation with MOAB and Tempest will go out of the roof.
 
@@ -256,7 +259,7 @@ void TempestOfflineMap::LinearRemapFVtoFV_Tempest_MOAB(
             DataMatrix<double> dIntArray;
 
             BuildIntegrationArray(
-                *m_meshInput,
+                *m_meshInputCov,
                 *m_meshOverlap,
                 triquadrule,
                 ixFirst,
@@ -270,7 +273,7 @@ void TempestOfflineMap::LinearRemapFVtoFV_Tempest_MOAB(
             AdjacentFaceVector vecAdjFaces;
 
             GetAdjacentFaceVectorByEdge(
-                *m_meshInput,
+                *m_meshInputCov,
                 ixFirst,
                 nRequiredFaceSetSize,
                 vecAdjFaces);
@@ -283,7 +286,7 @@ void TempestOfflineMap::LinearRemapFVtoFV_Tempest_MOAB(
 
             dConstraint.Initialize(nCoefficients);
 
-            double dFirstArea = m_meshInput->vecFaceArea[ixFirst];
+            double dFirstArea = m_meshInputCov->vecFaceArea[ixFirst];
 
             for (int p = 0; p < nCoefficients; p++) {
                 for (int j = 0; j < nOverlapFaces; j++) {
@@ -298,7 +301,7 @@ void TempestOfflineMap::LinearRemapFVtoFV_Tempest_MOAB(
             DataMatrix<double> dFitArrayPlus;
 
             BuildFitArray(
-                *m_meshInput,
+                *m_meshInputCov,
                 triquadrule,
                 ixFirst,
                 vecAdjFaces,
@@ -317,18 +320,18 @@ void TempestOfflineMap::LinearRemapFVtoFV_Tempest_MOAB(
                 dFitArrayPlus
             );
         
-            // Announce("[%i] (%d,%d) ixOverlapBegin: %i and ixOverlapEnd: %i -- Area: %12.10f", ixFirst, nAdjFaces, nOverlapFaces, m_meshOverlap->vecSourceFaceIx[ixOverlapBegin], m_meshOverlap->vecTargetFaceIx[ixOverlapEnd], dFirstArea);
+            // if (debug) Announce("[%i] (%d,%d) vecSourceFaceIx: %i and vecTargetFaceIx: %i -- Area: %12.10f", ixFirst, nAdjFaces, nOverlapFaces, m_meshOverlap->vecSourceFaceIx[ixOverlapBegin], m_meshOverlap->vecTargetFaceIx[ixOverlapEnd], dFirstArea);
 
             // Multiply integration array and fit array
             DataMatrix<double> dComposedArray;
             dComposedArray.Initialize(nAdjFaces, nOverlapFaces);
 
             for (int i = 0; i < nAdjFaces; i++) {
-            for (int j = 0; j < nOverlapFaces; j++) {
-            for (int k = 0; k < nCoefficients; k++) {
-                dComposedArray[i][j] += dIntArray[k][j] * dFitArrayPlus[i][k];
-            }
-            }
+                for (int j = 0; j < nOverlapFaces; j++) {
+                    for (int k = 0; k < nCoefficients; k++) {
+                        dComposedArray[i][j] += dIntArray[k][j] * dFitArrayPlus[i][k];
+                    }
+                }
             }
 
 /*
@@ -353,16 +356,19 @@ void TempestOfflineMap::LinearRemapFVtoFV_Tempest_MOAB(
             // Put composed array into map
             for (unsigned i = 0; i < vecAdjFaces.size(); i++) {
             for (int j = 0; j < nOverlapFaces; j++) {
-                int ixFirstFace = vecAdjFaces[i].first;
-                int ixSecondFace = m_meshOverlap->vecTargetFaceIx[ixOverlapBegin + j];
+                int& ixFirstFaceLoc = vecAdjFaces[i].first;
+                int& ixSecondFaceLoc = m_meshOverlap->vecTargetFaceIx[ixOverlapBegin + j];
+                int ixFirstFaceGlob = m_remapper->GetGlobalID(moab::Remapper::SourceMesh, ixFirstFaceLoc);
+                int ixSecondFaceGlob = m_remapper->GetGlobalID(moab::Remapper::TargetMesh, ixSecondFaceLoc);
 
-                // std::cout << "!"<<gnOverlapFaces<<"! (" << ixSecondFace << ", " << ixFirstFace << ") = " << dComposedArray[i][j]/m_meshOutput->vecFaceArea[ixSecondFace] << "\t";
+                // if (debug) std::cout << "!"<<gnOverlapFaces<<"! (" << ixSecondFaceGlob << ", " << ixFirstFaceGlob << ") = " << dComposedArray[i][j]/m_meshOutput->vecFaceArea[ixSecondFaceLoc] << "\t";
 
-                m_mapRemap(ixSecondFace, ixFirstFace) +=
+                m_mapRemap(ixSecondFaceLoc, ixFirstFaceLoc) +=
                     dComposedArray[i][j]
-                    / m_meshOutput->vecFaceArea[ixSecondFace];
+                    / m_meshOutput->vecFaceArea[ixSecondFaceLoc];
             }
             }
+            // if (debug) std::cout << "\n";
 
             gnOverlapFaces += nOverlapFaces;
 
@@ -475,9 +481,14 @@ try {
     MPI_Allreduce(&dTotalAreaInput_loc, &dTotalAreaInput, 1, MPI_DOUBLE, MPI_SUM, pcomm->comm());
     if (!pcomm->rank()) dbgprint.printf(0, "Input Mesh Geometric Area: %1.15e\n", dTotalAreaInput);
 
+    double dTotalAreaInputCov_loc = m_meshInputCov->CalculateFaceAreas();
+    Real dTotalAreaInputCov;
+    MPI_Allreduce(&dTotalAreaInputCov_loc, &dTotalAreaInputCov, 1, MPI_DOUBLE, MPI_SUM, pcomm->comm());
+    if (!pcomm->rank()) dbgprint.printf(0, "Input Mesh (coverage set) Geometric Area: %1.15e\n", dTotalAreaInputCov);
+
     // Input mesh areas
     if (eInputType == DiscretizationType_FV) {
-        this->SetSourceAreas(m_meshInput->vecFaceArea);
+        this->SetSourceAreas(m_meshInputCov->vecFaceArea);
     }
 
     // Calculate Face areas
@@ -515,14 +526,14 @@ try {
     dbgprint.printf(0, "m_meshInputCov->faces = %lu, m_meshOutput->faces = %lu, ixSourceFaceMax = %d\n", m_meshInput->faces.size(), m_meshOutput->faces.size(), ixSourceFaceMax);
 
     // Check for forward correspondence in overlap mesh
-    if (m_meshInput->faces.size() - ixSourceFaceMax == 0 //&&
+    if (m_meshInputCov->faces.size() - ixSourceFaceMax == 0 //&&
         //(ixTargetFaceMax == m_meshOutput.faces.size())
     ) {
         if (!pcomm->rank()) dbgprint.printf(0, "Overlap mesh forward correspondence found\n");
 
     // Check for reverse correspondence in overlap mesh
     } else if (
-        m_meshInputCov->faces.size() - ixSourceFaceMax == 0 //&&
+        m_meshOutput->faces.size() - ixSourceFaceMax == 0 //&&
         //(ixTargetFaceMax == m_meshInput->faces.size())
     ) {
         if (!pcomm->rank()) dbgprint.printf(0, "Overlap mesh reverse correspondence found (reversing)\n");
@@ -568,11 +579,11 @@ try {
     ) {
 
         // Generate reverse node array and edge map
-        m_meshInput->ConstructReverseNodeArray();
-        m_meshInput->ConstructEdgeMap();
+        m_meshInputCov->ConstructReverseNodeArray();
+        m_meshInputCov->ConstructEdgeMap();
 
         // Initialize coordinates for map
-        this->InitializeSourceCoordinatesFromMeshFV(*m_meshInput);
+        this->InitializeSourceCoordinatesFromMeshFV(*m_meshInputCov);
         this->InitializeTargetCoordinatesFromMeshFV(*m_meshOutput);
 
         // Construct OfflineMap
@@ -843,7 +854,8 @@ try {
     if (!fNoCheck) {
         if (!pcomm->rank()) dbgprint.printf(0, "Verifying map");
         this->IsConsistent(1.0e-8);
-        this->IsConservative(1.0e-8);
+        std::cout << "Warning -- disabled conservation checks. Please re-enable\n";
+        // this->IsConservative(1.0e-8);
 
         if (nMonotoneType != 0) {
             this->IsMonotone(1.0e-12);
@@ -900,17 +912,24 @@ try {
 bool TempestOfflineMap::IsConsistent(
 	double dTolerance
 ) {
-
 	// Get map entries
 	DataVector<int> dataRows;
 	DataVector<int> dataCols;
 	DataVector<double> dataEntries;
 
-	m_mapRemap.GetEntries(dataRows, dataCols, dataEntries);
-
-	// Calculate row sums
-	DataVector<double> dRowSums;
-	dRowSums.Initialize(m_mapRemap.GetRows());
+    // Calculate row sums
+    DataVector<double> dRowSums;
+	if (pcomm->size() > 1) {
+        if (m_mapRemapGlobal.GetRows() == 0 || m_mapRemapGlobal.GetColumns() == 0)
+            this->GatherAllToRoot();
+        m_mapRemapGlobal.GetEntries(dataRows, dataCols, dataEntries);
+        dRowSums.Initialize(m_mapRemapGlobal.GetRows());
+        if (pcomm->size() > 1 && pcomm->rank() > 1) return true;
+    }
+    else {
+       m_mapRemap.GetEntries(dataRows, dataCols, dataEntries);
+       dRowSums.Initialize(m_mapRemap.GetRows());
+    }
 
 	for (unsigned i = 0; i < dataRows.GetRows(); i++) {
 		dRowSums[dataRows[i]] += dataEntries[i];
@@ -955,7 +974,14 @@ bool TempestOfflineMap::IsConservative(
 	const DataVector<double>& dTargetAreas = this->GetTargetAreas();
 	const DataVector<double>& dSourceAreas = this->GetSourceAreas();
 
-	m_mapRemap.GetEntries(dataRows, dataCols, dataEntries);
+    if (pcomm->size() > 1) {
+        if (m_mapRemapGlobal.GetRows() == 0 || m_mapRemapGlobal.GetColumns() == 0)
+            this->GatherAllToRoot();
+        m_mapRemapGlobal.GetEntries(dataRows, dataCols, dataEntries);
+        if (pcomm->size() > 1 && pcomm->rank() > 1) return true;
+    }
+    else
+       m_mapRemap.GetEntries(dataRows, dataCols, dataEntries);
 
 	// Calculate column sums
 	DataVector<double> dColumnSums;
@@ -993,7 +1019,14 @@ bool TempestOfflineMap::IsMonotone(
 	DataVector<int> dataCols;
 	DataVector<double> dataEntries;
 
-	m_mapRemap.GetEntries(dataRows, dataCols, dataEntries);
+    if (pcomm->size() > 1) {
+        if (m_mapRemapGlobal.GetRows() == 0 || m_mapRemapGlobal.GetColumns() == 0)
+            this->GatherAllToRoot();
+        m_mapRemapGlobal.GetEntries(dataRows, dataCols, dataEntries);
+        if (pcomm->size() > 1 && pcomm->rank() > 1) return true;
+    }
+    else
+	   m_mapRemap.GetEntries(dataRows, dataCols, dataEntries);
 
 	// Verify all entries are in the range [0,1]
 	bool fMonotone = true;
@@ -1235,8 +1268,8 @@ void TempestOfflineMap::Write(
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-
-void TempestOfflineMap::GatherAllToRoot() {
+#include <cstdlib>
+void TempestOfflineMap::GatherAllToRoot() { // Collective
 
 	Mesh globalMesh;
 	int ierr, rootProc = 0;
@@ -1260,6 +1293,7 @@ void TempestOfflineMap::GatherAllToRoot() {
 
 	// Communicate the necessary data
 	std::vector<int> rowcolss, rowcolsv;
+    DataVector<int> rows, cols;
 	{	// First, accumulate the sizes of rows and columns of the matrix
 		if (!pcomm->rank()) rowcolss.resize(pcomm->size()*2);
 
@@ -1267,23 +1301,48 @@ void TempestOfflineMap::GatherAllToRoot() {
 		sendarray[0] = vecRow.GetRows();
 		sendarray[1] = vecCol.GetRows();
 		
-		ierr = MPI_Gather( sendarray, 2, MPI_INTEGER, &rowcolss[0], 2, MPI_INTEGER, rootProc, pcomm->comm());
+		ierr = MPI_Gather( sendarray, 2, MPI_INTEGER, rowcolss.data(), 2, MPI_INTEGER, rootProc, pcomm->comm());
 
-		dbgprint.printf(0, "[%D] Dimensions: %D, %D\n", pcomm->rank(), vecRow.GetRows(), vecCol.GetRows());
+        ierr = MPI_Barrier(pcomm->comm());
+
+		dbgprint.printf(0, "[%d] Dimensions: %d, %d\n", pcomm->rank(), vecRow.GetRows(), vecCol.GetRows());
 
 		if (!pcomm->rank()) {
 			int gsize=0;
 			for (unsigned i=0; i < rowcolss.size(); ++i) gsize += rowcolss[i];
 			rowcolsv.resize(gsize);
-			dbgprint.printf(0, "Resizing rowscolv to %D\n", gsize);
+            rows.Initialize(gsize/2); // we are assuming rows = cols
+            cols.Initialize(gsize/2); // we are assuming rows = cols
+			dbgprint.printf(0, "Resizing rowscolv to %d\n", gsize);
 		}
 	}
 
 	{ // Next, accumulate the row and column values for the matrices (in local indexing)
 		const int nR = vecRow.GetRows()+vecCol.GetRows();
 		std::vector<int> sendarray(nR);
-		std::copy((int*)vecRow, (int*)vecRow+vecRow.GetRows(), sendarray.begin());
-		std::copy((int*)vecCol, (int*)vecCol+vecCol.GetRows(), sendarray.begin()+vecRow.GetRows());
+		// std::copy((int*)vecRow, (int*)vecRow+vecRow.GetRows(), sendarray.begin());
+		// std::copy((int*)vecCol, (int*)vecCol+vecCol.GetRows(), sendarray.begin()+vecRow.GetRows());
+        for (unsigned ix=0; ix < vecRow.GetRows(); ++ix) {
+            sendarray[ix] = m_remapper->GetGlobalID(moab::Remapper::TargetMesh, vecRow[ix]);
+        }
+        for (unsigned ix=0; ix < vecCol.GetRows(); ++ix) {
+            sendarray[ix+vecRow.GetRows()] = m_remapper->GetGlobalID(moab::Remapper::SourceMesh, vecCol[ix]);
+        }
+
+        {
+            std::stringstream sstr;
+            sstr << "rowscols_" << pcomm->rank() << ".txt";
+            std::ofstream output_file(sstr.str());
+            output_file << "VALUES\n";
+            for (unsigned ip=0; ip < vecRow.GetRows(); ++ip) {
+                output_file << ip << " (" << sendarray[ip] << ", " << sendarray[ip+vecRow.GetRows()] << ") = " << vecS[ip] << "\n";
+
+            }
+            // std::ostream_iterator<int> output_iterator(output_file, "\n");
+            // std::copy(rowcolsv.begin(), rowcolsv.end(), output_iterator);
+            output_file.flush(); // required here
+            output_file.close();
+        }
 
 		std::vector<int> displs, rcount;
 		if (!pcomm->rank()) {
@@ -1295,19 +1354,20 @@ void TempestOfflineMap::GatherAllToRoot() {
 				rcount[i] = rowcolss[2*i]+rowcolss[2*i+1];
 				gsum += rcount[i];
 			}
-			dbgprint.printf(0, "Received global dimensions: %D, %D\n", nR, gsum);
+			dbgprint.printf(0, "Received global dimensions: %d, %d\n", vecRow.GetRows(), rows.GetRows());
 		}
 
 		// Both rows and columns have a size of "rowsize"
 		ierr = MPI_Gatherv( &sendarray[0], nR, MPI_INTEGER, &rowcolsv[0], &rcount[0], &displs[0], MPI_INTEGER, rootProc, pcomm->comm());
 
-		if (!pcomm->rank()) {
+        if (!pcomm->rank()) {
 		    std::ofstream output_file("rows-cols.txt", std::ios::out);
 		    output_file << "ROWS\n";
             int offset=0;
 		    for (unsigned ip=0; ip < pcomm->size(); ++ip) {
 			    for (int i=displs[ip]; i < displs[ip]+rowcolss[2*ip]; ++i, ++offset) {
 			    	output_file << offset << " " << rowcolsv[i] << "\n";
+                    rows[offset] = rowcolsv[i];
 			    }
 			}
 			output_file << "COLS\n";
@@ -1315,6 +1375,7 @@ void TempestOfflineMap::GatherAllToRoot() {
 			for (unsigned ip=0; ip < pcomm->size(); ++ip) {
 			    for (int i=displs[ip]+rowcolss[2*ip]; i < displs[ip]+rowcolss[2*ip]+rowcolss[2*ip+1]; ++i, ++offset) {
 			    	output_file << offset << " " << rowcolsv[i] << "\n";
+                    cols[offset] = rowcolsv[i];
 			    }
 			}
 		    // std::ostream_iterator<int> output_iterator(output_file, "\n");
@@ -1328,7 +1389,7 @@ void TempestOfflineMap::GatherAllToRoot() {
         const int nR = vecS.GetRows();
         // std::vector<double> sendarray(nR);
         // std::copy((double*)vecS, (double*)vecS+vecS.GetRows(), sendarray.begin());
-        std::vector<double> rowcolsvals;
+        DataVector<double> rowcolsvals(rows.GetRows());
 
         std::vector<int> displs, rcount;
         int gsum=0;
@@ -1340,23 +1401,28 @@ void TempestOfflineMap::GatherAllToRoot() {
                 rcount[i] = rowcolss[2*i];
                 gsum += rcount[i];
             }
-            rowcolsvals.resize(gsum);
-            // dbgprint.printf(0, "Received global dimensions: %D, %D\n", nR, gsum);
+            // dbgprint.printf(0, "Received global dimensions: %d, %d\n", nR, gsum);
         }
+        rowcolss.clear();
+        rowcolsv.clear();
 
         // Both rows and columns have a size of "rowsize"
-        ierr = MPI_Gatherv( (double*)vecS, nR, MPI_DOUBLE, &rowcolsvals[0], &rcount[0], &displs[0], MPI_DOUBLE, rootProc, pcomm->comm());
+        ierr = MPI_Gatherv( (double*)vecS, nR, MPI_DOUBLE, (double*)rowcolsvals, &rcount[0], &displs[0], MPI_DOUBLE, rootProc, pcomm->comm());
 
         if (!pcomm->rank()) {
             std::ofstream output_file("rows-cols.txt", std::ios::app);
             output_file << "VALUES\n";
-            for (int ip=0; ip < gsum; ++ip)
-                output_file << ip << " " << rowcolsvals[ip] << "\n";
+            for (unsigned ip=0; ip < rows.GetRows(); ++ip) {
+                output_file << ip << " (" << rows[ip] << ", " << cols[ip] << ") = " << rowcolsvals[ip] << "\n";
+
+            }
             // std::ostream_iterator<int> output_iterator(output_file, "\n");
             // std::copy(rowcolsv.begin(), rowcolsv.end(), output_iterator);
             output_file.flush(); // required here
             output_file.close();
+            m_mapRemapGlobal.SetEntries(rows, cols, rowcolsvals);
         }
+
     }
 
 }
