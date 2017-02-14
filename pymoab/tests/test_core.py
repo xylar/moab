@@ -265,10 +265,10 @@ def test_get_ents_by_tnt():
     assert entities.size() == 3
 
     test_tag1 = mb.tag_get_handle("TestTag1",1,types.MB_TYPE_INTEGER,True)
-    mb.tag_set_data(test_tag1,verts,np.array((2*range(3),)))
+    mb.tag_set_data(test_tag1,verts,np.array((range(3),)))
     entities = mb.get_entities_by_type_and_tag(rs,types.MBVERTEX,np.array((test_tag,test_tag1,)),np.array((1,2,)))
     print entities.size()
-    assert entities.size() == 1
+    assert entities.size() == 0
 
     entities = mb.get_entities_by_type_and_tag(rs,types.MBHEX,np.array((test_tag,)),np.array((None,)))
     assert entities.size() == 0
