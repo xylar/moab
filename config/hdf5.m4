@@ -33,6 +33,8 @@ dnl   Arguments:
 dnl ---------------------------------------------------------------------------
 AC_DEFUN([FATHOM_HDF5_LIBS_HELPER_CXX],[
   # Make CXX link line by inserting C++ libraries
+  oldLIBS=$LIBS
+  LIBS=""
   for arg in $HDF5_LIBS
   do
     case "$arg" in #(
@@ -43,7 +45,7 @@ AC_DEFUN([FATHOM_HDF5_LIBS_HELPER_CXX],[
     esac
   done
   HDF5_LIBS="$HDF5_LIBS $HDF5_CXXLIBS"
-
+  LIBS=$oldLIBS
 ])
 
 
