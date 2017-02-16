@@ -191,7 +191,7 @@ void TempestOfflineMap::LinearRemapFVtoFV_Tempest_MOAB(
     // Number of elements needed
     const int nCoefficients = nOrder * (nOrder + 1) / 2;
 
-#pragma message "This should be a command-line parameter"
+// #pragma message "This should be a command-line parameter"
     // Number of faces you need
     const int nRequiredFaceSetSize = nCoefficients;
 
@@ -207,36 +207,27 @@ void TempestOfflineMap::LinearRemapFVtoFV_Tempest_MOAB(
     }
     if (!pcomm->rank()) Announce("Rank 0 - Input size: %i ", m_meshInputCov->faces.size());
     if (pcomm->rank()) Announce("Rank 1 - Input size: %i", m_meshInputCov->faces.size());
-    const bool debug = (!pcomm->rank());
+    // const bool debug = (!pcomm->rank());
 
     // Current overlap face
     int ixOverlap = 0;
 
-    // for (unsigned ix = 0; ix < m_meshOverlap->faces.size(); ix++) {
-    //     if (!pcomm->rank()) std::cout << "[" << ix << "] SrcFaceIx = " << m_meshOverlap->vecSourceFaceIx[ix] 
-    //                                   << " TargetFaceIx = " << m_meshOverlap->vecTargetFaceIx[ix] << std::endl;
-    // }
-    // return ;
-
     // Loop through all faces on m_meshInput
-    for (int ixFirst = 0; ixFirst < m_meshInputCov->faces.size(); ixFirst++) {
+    for (size_t ixFirst = 0; ixFirst < m_meshInputCov->faces.size(); ixFirst++) {
 
         // Output every 100 elements
         if (ixFirst % 100 == 0) {
             Announce("Element %i/%i", ixFirst, m_meshInputCov->faces.size());
         }
 
-        // This Face
-        // const Face & faceFirst = m_meshInput->faces[ixFirst];
-
         std::vector<std::pair<int,int> > ixFaces;
         for (unsigned ix = 0; ix < m_meshOverlap->faces.size(); ix++) {
-            if (m_meshOverlap->vecSourceFaceIx[ix] == ixFirst) {
+            if (ixFirst - m_meshOverlap->vecSourceFaceIx[ix] == 0) {
                 // if (!pcomm->rank()) std::cout << "[" << ix << "] SrcFaceIx = " << m_meshOverlap->vecSourceFaceIx[ix] << std::endl;
                 unsigned jx;
                 for (jx = 1; jx < m_meshOverlap->faces.size()-ix; jx++) {
                     // if (!pcomm->rank()) std::cout << "\t[" << jx << "] SrcFaceJx = " << m_meshOverlap->vecSourceFaceIx[jx] << std::endl;
-                    if (m_meshOverlap->vecSourceFaceIx[ix+jx] != ixFirst)
+                    if (ixFirst - m_meshOverlap->vecSourceFaceIx[ix+jx] != 0)
                         break;
                 }
                 ixFaces.push_back(std::make_pair<int,int>(ix,ix+jx));
@@ -247,7 +238,6 @@ void TempestOfflineMap::LinearRemapFVtoFV_Tempest_MOAB(
         // Need to re-number the overlap elements such that vecSourceFaceIx[a:b] = 0, then 1 and so on wrt the input mesh data.
         // Then the overlap_end and overlap_begin will be correct. However, the relation with MOAB and Tempest will go out of the roof.
 
-        // int ifaceIndx = 0;
         int gnOverlapFaces = 0;
         for (unsigned ifaceIndx = 0; ifaceIndx < ixFaces.size(); ++ifaceIndx) {
 
@@ -358,8 +348,8 @@ void TempestOfflineMap::LinearRemapFVtoFV_Tempest_MOAB(
             for (int j = 0; j < nOverlapFaces; j++) {
                 int& ixFirstFaceLoc = vecAdjFaces[i].first;
                 int& ixSecondFaceLoc = m_meshOverlap->vecTargetFaceIx[ixOverlapBegin + j];
-                int ixFirstFaceGlob = m_remapper->GetGlobalID(moab::Remapper::SourceMesh, ixFirstFaceLoc);
-                int ixSecondFaceGlob = m_remapper->GetGlobalID(moab::Remapper::TargetMesh, ixSecondFaceLoc);
+                // int ixFirstFaceGlob = m_remapper->GetGlobalID(moab::Remapper::SourceMesh, ixFirstFaceLoc);
+                // int ixSecondFaceGlob = m_remapper->GetGlobalID(moab::Remapper::TargetMesh, ixSecondFaceLoc);
 
                 // if (debug) std::cout << "!"<<gnOverlapFaces<<"! (" << ixSecondFaceGlob << ", " << ixFirstFaceGlob << ") = " << dComposedArray[i][j]/m_meshOutput->vecFaceArea[ixSecondFaceLoc] << "\t";
 
@@ -376,7 +366,6 @@ void TempestOfflineMap::LinearRemapFVtoFV_Tempest_MOAB(
 
         // Increment the current overlap index
         ixOverlap += gnOverlapFaces;
-        // break;
     }
 }
 
@@ -1045,229 +1034,6 @@ bool TempestOfflineMap::IsMonotone(
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-
-void TempestOfflineMap::Write(
-	const std::string & strTarget
-) {
-	NcFile ncMap(strTarget.c_str(), NcFile::Replace);
-	if (!ncMap.is_valid()) {
-		_EXCEPTION1("Unable to open output map file \"%s\"",
-			strTarget.c_str());
-	}
-
-	// Attributes
-	ncMap.add_att("Title", "TempestRemap Offline Regridding Weight Generator");
-
-	// Map dimensions
-	int nA = (int)(m_dSourceAreas.GetRows());
-	int nB = (int)(m_dTargetAreas.GetRows());
-
-	// Write output dimensions entries
-	int nSrcGridDims = (int)(m_vecSourceDimSizes.size());
-	int nDstGridDims = (int)(m_vecTargetDimSizes.size());
-
-	NcDim * dimSrcGridRank = ncMap.add_dim("src_grid_rank", nSrcGridDims);
-	NcDim * dimDstGridRank = ncMap.add_dim("dst_grid_rank", nDstGridDims);
-
-	NcVar * varSrcGridDims =
-		ncMap.add_var("src_grid_dims", ncInt, dimSrcGridRank);
-	// varSrcGridDims->DoCollectiveIO (true);
-	NcVar * varDstGridDims =
-		ncMap.add_var("dst_grid_dims", ncInt, dimDstGridRank);
-	// varDstGridDims->DoCollectiveIO (true);
-
-	char szDim[64];
-	if ((nSrcGridDims == 1) && (m_vecSourceDimSizes[0] != nA)) {
-		varSrcGridDims->put(&nA, 1);
-		varSrcGridDims->add_att("name0", "num_dof");
-
-	} else {
-		for (unsigned i = 0; i < m_vecSourceDimSizes.size(); i++) {
-			varSrcGridDims->set_cur(nSrcGridDims - i - 1);
-			varSrcGridDims->put(&(m_vecSourceDimSizes[i]), 1);
-		}
-
-		for (unsigned i = 0; i < m_vecSourceDimSizes.size(); i++) {
-			sprintf(szDim, "name%i", i);
-			varSrcGridDims->add_att(szDim,
-				m_vecSourceDimNames[nSrcGridDims - i - 1].c_str());
-		}
-	}
-
-	if ((nDstGridDims == 1) && (m_vecSourceDimSizes[0] != nB)) {
-		varDstGridDims->put(&nB, 1);
-		varDstGridDims->add_att("name0", "num_dof");
-
-	} else {
-		for (unsigned i = 0; i < m_vecTargetDimSizes.size(); i++) {
-			varDstGridDims->set_cur(nDstGridDims - i - 1);
-			varDstGridDims->put(&(m_vecTargetDimSizes[i]), 1);
-		}
-
-		for (unsigned i = 0; i < m_vecTargetDimSizes.size(); i++) {
-			sprintf(szDim, "name%i", i);
-			varDstGridDims->add_att(szDim,
-				m_vecTargetDimNames[nDstGridDims - i - 1].c_str());
-		}
-	}
-
-	// Source and Target mesh resolutions
-	NcDim * dimNA = ncMap.add_dim("n_a", nA);
-	NcDim * dimNB = ncMap.add_dim("n_b", nB);
-
-	// Number of nodes per Face
-	int nSourceNodesPerFace = m_dSourceVertexLon.GetColumns();
-	int nTargetNodesPerFace = m_dTargetVertexLon.GetColumns();
-
-	NcDim * dimNVA = ncMap.add_dim("nv_a", nSourceNodesPerFace);
-	NcDim * dimNVB = ncMap.add_dim("nv_b", nTargetNodesPerFace);
-
-	// Write coordinates
-	NcVar * varYCA = ncMap.add_var("yc_a", ncDouble, dimNA);
-	NcVar * varYCB = ncMap.add_var("yc_b", ncDouble, dimNB);
-
-	NcVar * varXCA = ncMap.add_var("xc_a", ncDouble, dimNA);
-	NcVar * varXCB = ncMap.add_var("xc_b", ncDouble, dimNB);
-
-	NcVar * varYVA = ncMap.add_var("yv_a", ncDouble, dimNA, dimNVA);
-	NcVar * varYVB = ncMap.add_var("yv_b", ncDouble, dimNB, dimNVB);
-
-	NcVar * varXVA = ncMap.add_var("xv_a", ncDouble, dimNA, dimNVA);
-	NcVar * varXVB = ncMap.add_var("xv_b", ncDouble, dimNB, dimNVB);
-
-	varYCA->add_att("units", "degrees");
-	varYCB->add_att("units", "degrees");
-
-	varXCA->add_att("units", "degrees");
-	varXCB->add_att("units", "degrees");
-
-	varYVA->add_att("units", "degrees");
-	varYVB->add_att("units", "degrees");
-
-	varXVA->add_att("units", "degrees");
-	varXVB->add_att("units", "degrees");
-
-	// Verify dimensionality
-	if (m_dSourceCenterLon.GetRows() - nA != 0) {
-		_EXCEPTIONT("Mismatch between m_dSourceCenterLon and nA");
-	}
-	if (m_dSourceCenterLat.GetRows() - nA != 0) {
-		_EXCEPTIONT("Mismatch between m_dSourceCenterLat and nA");
-	}
-	if (m_dTargetCenterLon.GetRows() - nB != 0) {
-		_EXCEPTIONT("Mismatch between m_dTargetCenterLon and nB");
-	}
-	if (m_dTargetCenterLat.GetRows() - nB != 0) {
-		_EXCEPTIONT("Mismatch between m_dTargetCenterLat and nB");
-	}
-	if (m_dSourceVertexLon.GetRows() - nA != 0) {
-		_EXCEPTIONT("Mismatch between m_dSourceVertexLon and nA");
-	}
-	if (m_dSourceVertexLat.GetRows() - nA != 0) {
-		_EXCEPTIONT("Mismatch between m_dSourceVertexLat and nA");
-	}
-	if (m_dTargetVertexLon.GetRows() - nB != 0) {
-		_EXCEPTIONT("Mismatch between m_dTargetVertexLon and nB");
-	}
-	if (m_dTargetVertexLat.GetRows() - nB != 0) {
-		_EXCEPTIONT("Mismatch between m_dTargetVertexLat and nB");
-	}
-
-	varYCA->put(&(m_dSourceCenterLat[0]), nA);
-	varYCB->put(&(m_dTargetCenterLat[0]), nB);
-
-	varXCA->put(&(m_dSourceCenterLon[0]), nA);
-	varXCB->put(&(m_dTargetCenterLon[0]), nB);
-
-	varYVA->put(&(m_dSourceVertexLat[0][0]), nA, nSourceNodesPerFace);
-	varYVB->put(&(m_dTargetVertexLat[0][0]), nB, nTargetNodesPerFace);
-
-	varXVA->put(&(m_dSourceVertexLon[0][0]), nA, nSourceNodesPerFace);
-	varXVB->put(&(m_dTargetVertexLon[0][0]), nB, nTargetNodesPerFace);
-
-	// Write vector centers
-	if ((m_dVectorTargetCenterLat.GetRows() != 0) &&
-		(m_dVectorTargetCenterLon.GetRows() != 0)
-	) {
-		NcDim * dimLatB =
-			ncMap.add_dim("lat_b", m_dVectorTargetCenterLat.GetRows());
-		NcDim * dimLonB =
-			ncMap.add_dim("lon_b", m_dVectorTargetCenterLon.GetRows());
-
-		NcVar * varLatCB = ncMap.add_var("latc_b", ncDouble, dimLatB);
-		NcVar * varLonCB = ncMap.add_var("lonc_b", ncDouble, dimLonB);
-
-		varLatCB->put(&(m_dVectorTargetCenterLat[0]), dimLatB->size());
-		varLonCB->put(&(m_dVectorTargetCenterLon[0]), dimLonB->size());
-
-		NcDim * dimBounds = ncMap.add_dim("bnds", 2);
-		NcVar * varLatBounds =
-			ncMap.add_var("lat_bnds", ncDouble, dimLatB, dimBounds);
-		NcVar * varLonBounds =
-			ncMap.add_var("lon_bnds", ncDouble, dimLonB, dimBounds);
-
-		varLatBounds->put(&(m_dVectorTargetBoundsLat[0][0]),
-			m_dVectorTargetBoundsLat.GetRows(), 2);
-		varLonBounds->put(&(m_dVectorTargetBoundsLon[0][0]),
-			m_dVectorTargetBoundsLon.GetRows(), 2);
-	}
-
-	// Write areas
-	NcVar * varAreaA = ncMap.add_var("area_a", ncDouble, dimNA);
-	varAreaA->put(&(m_dSourceAreas[0]), nA);
-
-	NcVar * varAreaB = ncMap.add_var("area_b", ncDouble, dimNB);
-	varAreaB->put(&(m_dTargetAreas[0]), nB);
-
-	// Write frac
-	DataVector<double> dFrac;
-
-	dFrac.Initialize(nA);
-	for (int i = 0; i < nA; i++) {
-		dFrac[i] = 1.0;
-	}
-	NcVar * varFracA = ncMap.add_var("frac_a", ncDouble, dimNA);
-	varFracA->put(&(dFrac[0]), nA);
-
-	dFrac.Initialize(nB);
-	for (int i = 0; i < nB; i++) {
-		dFrac[i] = 1.0;
-	}
-	NcVar * varFracB = ncMap.add_var("frac_b", ncDouble, dimNB);
-	varFracB->put(&(dFrac[0]), nB);
-
-	// Write SparseMatrix entries
-	DataVector<int> vecRow;
-	DataVector<int> vecCol;
-	DataVector<double> vecS;
-
-	m_mapRemap.GetEntries(vecRow, vecCol, vecS);
-
-	// Increment vecRow and vecCol
-	for (unsigned i = 0; i < vecRow.GetRows(); i++) {
-		vecRow[i]++;
-		vecCol[i]++;
-	}
-
-	// Load in data
-	int nS = vecRow.GetRows();
-	NcDim * dimNS = ncMap.add_dim("n_s", nS);
-
-	NcVar * varRow = ncMap.add_var("row", ncInt, dimNS);
-	NcVar * varCol = ncMap.add_var("col", ncInt, dimNS);
-	NcVar * varS = ncMap.add_var("S", ncDouble, dimNS);
-
-	varRow->set_cur((long)0);
-	varRow->put(&(vecRow[0]), nS);
-
-	varCol->set_cur((long)0);
-	varCol->put(&(vecCol[0]), nS);
-
-	varS->set_cur((long)0);
-	varS->put(&(vecS[0]), nS);
-}
-
-///////////////////////////////////////////////////////////////////////////////
 #include <cstdlib>
 void TempestOfflineMap::GatherAllToRoot() { // Collective
 
@@ -1282,12 +1048,6 @@ void TempestOfflineMap::GatherAllToRoot() { // Collective
 	moab::DebugOutput dbgprint(std::cout, (pcomm ? pcomm->rank() : 0));
 
 	m_mapRemap.GetEntries(vecRow, vecCol, vecS);
-
-	// Increment vecRow and vecCol
-	// for (unsigned i = 0; i < vecRow.GetRows(); i++) {
-	// 	vecRow[i]++;
-	// 	vecCol[i]++;
-	// }
 
     // Translate the index in Row and Col to global_id and dump it out
 
@@ -1332,7 +1092,7 @@ void TempestOfflineMap::GatherAllToRoot() { // Collective
         {
             std::stringstream sstr;
             sstr << "rowscols_" << pcomm->rank() << ".txt";
-            std::ofstream output_file(sstr.str());
+            std::ofstream output_file(sstr.str().c_str());
             output_file << "VALUES\n";
             for (unsigned ip=0; ip < vecRow.GetRows(); ++ip) {
                 output_file << ip << " (" << sendarray[ip] << ", " << sendarray[ip+vecRow.GetRows()] << ") = " << vecS[ip] << "\n";
@@ -1426,7 +1186,5 @@ void TempestOfflineMap::GatherAllToRoot() { // Collective
     }
 
 }
-
-///////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////

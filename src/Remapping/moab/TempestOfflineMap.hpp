@@ -86,9 +86,9 @@ public:
 	///	<summary>
 	///		Write the TempestOfflineMap to a parallel NetCDF file.
 	///	</summary>
-	virtual void Write(
-		const std::string & strTarget
-	);
+	// virtual void Write(
+	// 	const std::string & strTarget
+	// );
 
 public:
 	///	<summary>

@@ -300,15 +300,12 @@ ErrorCode TempestRemapper::ConvertMOABMeshToTempest_Private(Mesh* mesh, EntityHa
 		int nnodesf;
 		rval = m_interface->get_connectivity(ehandle, connectface, nnodesf); MB_CHK_ERR(rval);
 
-		assert(face_edges.size() - nnodesf == 0);
+		// Can be untrue for polygonal elements with mixed pentagons and hexagons
+		// assert(face_edges.size() - nnodesf == 0);
 
 		for (int iverts = 0; iverts < nnodesf; ++iverts) {
 			int indx = verts.index(connectface[iverts]);
 			assert(indx >= 0);
-			// if (indx < 0) {
-			// 	verts.insert(connectface[iverts]);
-			// 	indx = verts.index(connectface[iverts]);
-			// }
 			face.SetNode( iverts, indx );
 		}
 	}
@@ -348,7 +345,7 @@ ErrorCode TempestRemapper::ConvertMOABMeshToTempest_Private(Mesh* mesh, EntityHa
     if (constructEdgeMap) mesh->ConstructEdgeMap();
     mesh->ConstructReverseNodeArray();
 
-	mesh->Validate();
+	// mesh->Validate();
 	return MB_SUCCESS;
 }
 

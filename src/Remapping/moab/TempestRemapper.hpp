@@ -251,9 +251,10 @@ int TempestRemapper::GetGlobalID(Remapper::IntersectionContext ctx, int localID)
             return lid_to_gid_tgt[localID];
         case Remapper::IntersectedMesh:
         case Remapper::DEFAULT:
-            // Nothing to do.
-            return -1;
+            break;
     }
+    // Nothing to do.
+    return -1;
 }
 
 inline
@@ -267,9 +268,10 @@ int TempestRemapper::GetLocalID(Remapper::IntersectionContext ctx, int globalID)
             return gid_to_lid_tgt[globalID];
         case Remapper::IntersectedMesh:
         case Remapper::DEFAULT:
-            // Nothing to do.
-            return -1;
+            break;
     }
+    // Nothing to do.
+    return -1;
 }
 
 

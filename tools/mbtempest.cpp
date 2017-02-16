@@ -41,6 +41,7 @@ struct ToolContext {
   std::vector<Mesh*> meshes;
   std::vector<moab::EntityHandle> meshsets;
   std::vector<int> disc_orders;
+  std::vector<std::string> disc_methods;
   std::string outFilename;
   moab::TempestRemapper::TempestMeshType meshType;
   const int proc_id, n_procs;
@@ -87,6 +88,7 @@ struct ToolContext {
     ProgOptions opts;
     int imeshType = 0;
     std::string expectedFName = "output.exo";
+    std::string expectedMethod = "fv";
     int expectedOrder = 1;
 
     opts.addOpt<int>("res,r", "Resolution of the mesh (default=5)", &blockSize);
@@ -96,6 +98,7 @@ struct ToolContext {
     opts.addOpt<void>("weights,w", "Compute and output the weights using the overlap mesh (generally relevant only for OVERLAP mesh)", &computeWeights);
     opts.addOpt<std::string>("load,l", "Input mesh filenames (a source and target mesh)", &expectedFName);
     opts.addOpt<int>("order,o", "Discretization orders for the source and target solution fields", &expectedOrder);
+    opts.addOpt<std::string>("method,m", "Discretization orders for the source and target solution fields", &expectedMethod);
 
     opts.parseCommandLine(argc, argv);
 
@@ -126,12 +129,18 @@ struct ToolContext {
     if (meshType > moab::TempestRemapper::ICO) {
       opts.getOptAllArgs("load,l", inFilenames);
       opts.getOptAllArgs("order,o", disc_orders);
+      opts.getOptAllArgs("method,m", disc_methods);
       if (disc_orders.size() == 0)
         disc_orders.resize(2, 1);
       if (disc_orders.size() == 1)
         disc_orders.push_back(1);
+      if (disc_methods.size() == 0)
+        disc_methods.resize(2, "fv");
+      if (disc_methods.size() == 1)
+        disc_methods.push_back("fv");
       assert(inFilenames.size() == 2);
       assert(disc_orders.size() == 2);
+      assert(disc_methods.size() == 2);
     }
     expectedFName.clear();
   }
@@ -266,7 +275,7 @@ int main(int argc, char* argv[])
       // Call to generate an offline map with the tempest meshes
       OfflineMap* weightMap = GenerateOfflineMapWithMeshes(  NULL, *ctx.meshes[0], *ctx.meshes[1], *ctx.meshes[2],
                                                             "", "",     // std::string strInputMeta, std::string strOutputMeta,
-                                                            "fv", "fv", // std::string strInputType, std::string strOutputType,
+                                                            ctx.disc_methods[0], ctx.disc_methods[1], // std::string strInputType, std::string strOutputType,
                                                             ctx.disc_orders[0], ctx.disc_orders[1]  // int nPin=4, int nPout=4,
                                                           );
       ctx.timer_pop();
@@ -298,12 +307,6 @@ int main(int argc, char* argv[])
       rval = fix_degenerate_quads(mbCore, ctx.meshsets[1]);MB_CHK_ERR(rval);
       rval = positive_orientation(mbCore, ctx.meshsets[1], radius);MB_CHK_ERR(rval);
       ctx.outStream.printf(0, "The blue set contains %lu vertices and %lu elements \n", bintxverts.size(), bintxelems.size());
-
-      // Assign fully new and compatible Global identifiers for vertices and elements
-      // rval = pcomm->assign_global_ids(ctx.meshsets[0], 2, 1, false, true, false);MB_CHK_ERR(rval);
-      // rval = pcomm->assign_global_ids(ctx.meshsets[1], 2, rintxverts.size(), false, true, false);MB_CHK_ERR(rval);
-
-      rval = pcomm->assign_global_ids(0, 2, 1, true, true, false);MB_CHK_ERR(rval);
     }
 
     // Compute intersections with MOAB
@@ -348,8 +351,8 @@ int main(int argc, char* argv[])
       // Call to generate an offline map with the tempest meshes
       TempestOfflineMap* weightMap = new TempestOfflineMap(&remapper);
 
-      weightMap->GenerateOfflineMap("fv", "fv",          // std::string strInputType, std::string strOutputType,
-                                    ctx.disc_orders[0], ctx.disc_orders[1],  // int nPin=4, int nPout=4,
+      weightMap->GenerateOfflineMap(ctx.disc_methods[0], ctx.disc_methods[1],          // std::string strInputType, std::string strOutputType,
+                                    ctx.disc_orders[0],  ctx.disc_orders[1],  // int nPin=4, int nPout=4,
                                     false, 0,            // bool fBubble=false, int fMonotoneTypeID=0,
                                     false, false, false/*false*/ // bool fVolumetric=false, bool fNoConservation=false, bool fNoCheck=false,
                                     // std::string strVariables="", std::string strOutputMap="",
@@ -362,7 +365,7 @@ int main(int argc, char* argv[])
       // OfflineMap* weightMap;
       // weightMap = GenerateOfflineMapWithMeshes( NULL, *ctx.meshes[0], *ctx.meshes[1], *ctx.meshes[2],
       //                         "", "",              // std::string strInputMeta, std::string strOutputMeta,
-      //                         "fv", "fv",          // std::string strInputType, std::string strOutputType,
+      //                         ctx.disc_methods[0], ctx.disc_methods[1],// std::string strInputType, std::string strOutputType,
       //                         ctx.disc_orders[0], ctx.disc_orders[1],  // int nPin=4, int nPout=4,
       //                         false, 0,            // bool fBubble=false, int fMonotoneTypeID=0,
       //                         false, false, (nprocs>1) // bool fVolumetric=false, bool fNoConservation=false, bool fNoCheck=false,
