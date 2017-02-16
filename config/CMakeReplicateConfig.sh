@@ -43,5 +43,6 @@ cat $1 | sed -n '/CMAKE_CACHEFILE_DIR:INTERNAL./{n;x;d;};x;1d;$G;p' \
        | sed -n '/EXECUTABLE_OUTPUT_PATH:PATH./{n;x;d;};x;1d;$G;p' \
        | sed -n '/LIBRARY_OUTPUT_PATH:PATH./{n;x;d;};x;1d;$G;p' \
        | sed -n '/produce slightly less optimized./{n;x;d;};x;1d;$G;p' \
+       | sed '/builds for minimum/,+1 d' \
        | cat -s > $2
 

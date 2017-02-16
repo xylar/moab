@@ -2,7 +2,68 @@ AC_DEFUN([FATHOM_HDF5_LIBS_HELPER],[
 if (test "x$HAVE_LIB_HDF5" != "xyes"); then
    unset "ac_cv_lib_${HDF5_LIBNAME}_H5Fopen"
    unset "ac_cv_lib_${HDF5_LIBNAME}___H5Fopen"
-   AC_CHECK_LIB( [${HDF5_LIBNAME}], [H5Fopen], [HAVE_LIB_HDF5=yes; HDF5_LIBS="$HDF5_LIBS $1"], [], [$1] )
+   AC_CHECK_LIB( [${HDF5_LIBNAME}], [H5Fopen], [HAVE_LIB_HDF5=yes; HDF5_LIBS="$HDF5_LIBS -l${HDF5_LIBNAME} $1"], [], [$1] )
+fi
+])
+
+dnl ---------------------------------------------------------------------------
+dnl FATHOM_HDF5_LIBS_HELPER_FORTRAN
+dnl   Inserts the correct fortran libraries into HDF5 libraries
+dnl   Arguments:
+dnl ---------------------------------------------------------------------------
+AC_DEFUN([FATHOM_HDF5_LIBS_HELPER_FORTRAN],[
+  # Make Fortran link line by inserting Fortran libraries
+  for arg in $HDF5_LIBS
+  do
+    case "$arg" in
+      -lhdf5_hl) AC_HAVE_LIBRARY([hdf5hl_fortran], [HDF5_FLIBS="$HDF5_FLIBS -lhdf5hl_fortran"], [], [$HDF5_LIBS $HDF5_FLIBS])
+        ;; 
+      -lhdf5)    AC_HAVE_LIBRARY([hdf5_fortran], [HDF5_FLIBS="$HDF5_FLIBS -lhdf5_fortran"], [], [$HDF5_LIBS $HDF5_FLIBS])
+        ;; 
+    esac
+  done
+  HDF5_LIBS="$HDF5_LIBS $HDF5_FLIBS"
+])
+
+
+dnl ---------------------------------------------------------------------------
+dnl FATHOM_HDF5_LIBS_HELPER_CXX
+dnl   Inserts the correct C++ libraries into HDF5 libraries
+dnl   Arguments:
+dnl ---------------------------------------------------------------------------
+AC_DEFUN([FATHOM_HDF5_LIBS_HELPER_CXX],[
+  # Make CXX link line by inserting C++ libraries
+  oldLIBS=$LIBS
+  LIBS=""
+  for arg in $HDF5_LIBS
+  do
+    case "$arg" in #(
+      -lhdf5_hl) AC_HAVE_LIBRARY([hdf5hl_cpp], [HDF5_CXXLIBS="$HDF5_CXXLIBS -lhdf5hl_cpp"], [], [$HDF5_LIBS $HDF5_CXXLIBS])
+        ;; #(
+      -lhdf5)    AC_HAVE_LIBRARY([hdf5_cpp], [HDF5_CXXLIBS="$HDF5_CXXLIBS -lhdf5_cpp"], [], [$HDF5_LIBS $HDF5_CXXLIBS])
+        ;; #(
+    esac
+  done
+  HDF5_LIBS="$HDF5_LIBS $HDF5_CXXLIBS"
+  LIBS=$oldLIBS
+])
+
+
+dnl ---------------------------------------------------------------------------
+dnl FATHOM_HDF5_LIBS_HELPER_HL
+dnl   Inserts the correct high level libraries into HDF5 libraries
+dnl   Arguments:
+dnl ---------------------------------------------------------------------------
+AC_DEFUN([FATHOM_HDF5_LIBS_HELPER_HL],[
+if (test $HAVE_LIB_HDF5 = yes && test $HAVE_LIB_HDF5HL = no); then
+  # Look for HDF5's high level library
+  AC_HAVE_LIBRARY([hdf5_hl], [HAVE_LIB_HDF5HL=yes; HDF5_LIBS="-lhdf5_hl $HDF5_LIBS"], [], [$HDF5_LIBS])
+  if (test $HAVE_LIB_HDF5HL=yes); then
+    HDF5_FLIBS=""
+    FATHOM_HDF5_LIBS_HELPER_FORTRAN
+    HDF5_CXXLIBS=""
+    FATHOM_HDF5_LIBS_HELPER_CXX
+  fi
 fi
 ])
 
@@ -22,7 +83,9 @@ if (test "xyes" != "x$HAVE_LIB_HDF5"); then
   test "x" != "x$HDF5_LIBNAME" || HDF5_LIBNAME=hdf5
   
   HAVE_LIB_HDF5=no
+  HAVE_LIB_HDF5HL=no
   FATHOM_HDF5_LIBS_HELPER([$LIBS])
+  FATHOM_HDF5_LIBS_HELPER_HL
 fi
 ])
 
@@ -131,7 +194,7 @@ fi
 AUSCM_CONFIGURE_DOWNLOAD_HDF5([1.8.12],[no])
 
 enablehdf5=no
-if (test "x" != "x$HDF5_DIR" || test "xno" != "x$HDF5_DIR"); then
+if (test "x" != "x$HDF5_DIR" && test "xno" != "x$HDF5_DIR"); then
   enablehdf5=yes
 
     # if a path is specified, update LIBS and INCLUDES accordingly
@@ -195,8 +258,6 @@ if (test "x" != "x$HDF5_DIR" || test "xno" != "x$HDF5_DIR"); then
     HDF5_CPPFLAGS=
     HDF5_LDFLAGS=
     HDF5_LIBS=
-  else
-    HDF5_LIBS="-l$HDF5_LIBNAME $HDF5_LIBS"
   fi
   
   CPPFLAGS="$old_CPPFLAGS"
@@ -223,7 +284,7 @@ if (test "xno" != "x$enablehdf5"); then
     old_LDFLAGS="$LDFLAGS"
     old_LIBS="$LIBS"
     LDFLAGS="$LDFLAGS $HDF5_LDFLAGS"
-    LIBS="$HDF5_LIBS $LIBS -lhdf5"
+    LIBS="$HDF5_LIBS $LIBS"
     IS_HDF5_NOT_PARALLEL=""
     AC_PATH_PROGS([H5CC], [h5cc h5pcc], [], [$HDF5_DIR/bin])
     AC_MSG_CHECKING([for parallel HDF5 support])

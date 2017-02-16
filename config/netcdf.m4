@@ -125,11 +125,11 @@ if (test "x" != "x$NETCDF_DIR" && test "xno" != "x$NETCDF_DIR"); then
       # they're in the NetCDF lib directory.
       FATHOM_DETECT_HDF5_LIBS
       LDFLAGS="$LDFLAGS $HDF5_LDFLAGS"
-      AC_CHECK_LIB( [netcdf], [nc_create], [NETCDF_LIBS="-lnetcdf $PNETCDF_LIBS -lhdf5_hl $HDF5_LIBS"; enablenetcdf=yes;], [
+      AC_CHECK_LIB( [netcdf], [nc_create], [NETCDF_LIBS="-lnetcdf $PNETCDF_LIBS $HDF5_LIBS"; enablenetcdf=yes;], [
         # Try one more time with HDF5 and libcurl
         unset ac_cv_lib_netcdf
         unset ac_cv_lib_netcdf_nc_create
-        AC_CHECK_LIB( [netcdf], [nc_create], [NETCDF_LIBS="-lnetcdf $PNETCDF_LIBS -lhdf5_hl $HDF5_LIBS -lcurl"; enablenetcdf=yes;],
+        AC_CHECK_LIB( [netcdf], [nc_create], [NETCDF_LIBS="-lnetcdf $PNETCDF_LIBS $HDF5_LIBS -lcurl"; enablenetcdf=yes;],
           [ 
             # Try one more time with HDF5 and libcurl
             unset ac_cv_lib_netcdf
@@ -139,8 +139,8 @@ if (test "x" != "x$NETCDF_DIR" && test "xno" != "x$NETCDF_DIR"); then
                           [enablenetcdf=no], [$PNETCDF_LIBS -lcurl] 
                         )
           ],
-          [$PNETCDF_LIBS -lhdf5_hl $HDF5_LIBS -lcurl ] )],
-        [$PNETCDF_LIBS -lhdf5_hl $HDF5_LIBS] )],
+          [$PNETCDF_LIBS $HDF5_LIBS -lcurl ] )],
+        [$PNETCDF_LIBS $HDF5_LIBS] )],
       )
   fi
 
