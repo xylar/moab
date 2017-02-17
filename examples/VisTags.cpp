@@ -33,13 +33,20 @@
 #include "moab/Core.hpp" 
 #include "MBTagConventions.hpp"
 #include "moab/FileOptions.hpp"
-
+#ifdef MOAB_HAVE_MPI
+#include "moab/ParallelComm.hpp"
+#endif
 using namespace moab;
 using namespace std;
 
 int main(int argc, char **argv)
 {
 #ifdef MOAB_HAVE_NETCDF
+
+#ifdef MOAB_HAVE_MPI
+  MPI_Init(&argc, &argv);
+#endif
+
   ErrorCode rval;
   string file_input,file_output;
   string read_opts, tags; // Tags to write, separated by commas; it is the name of the tag
@@ -172,6 +179,10 @@ int main(int argc, char **argv)
   cout << "Successfully wrote file " << file_output << "\n";
 
   delete mb;
+
+#ifdef MOAB_HAVE_MPI
+  MPI_Finalize();
+#endif
 #else
   std::cout <<" configure with netcdf for this example to work\n";
 #endif
