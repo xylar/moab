@@ -100,19 +100,20 @@ int main(int argc, char* argv[])
 
   // Get the partition sets on the master mesh
   std::map<int, int> mpartvals;
-  error = mbCore->get_entities_by_type_and_tag(masterfileset, MBENTITYSET, &parttag, NULL, 1, msets, moab::Interface::UNION);MB_CHK_ERR(error);
+  error = mbCore->get_entities_by_type_and_tag(masterfileset, MBENTITYSET, &parttag, NULL, 1, msets, moab::Interface::UNION, true);MB_CHK_ERR(error);
   if (msets.size() == 0) {
     std::cout << "No partition sets found in the master mesh. Quitting..." << std::endl;
     exit (1);
   }
 
   for (unsigned i=0; i < msets.size(); ++i) {
+    EntityHandle mset=msets[i];
+
     moab::Range msetelems;
-    error = mbCore->get_entities_by_dimension(msets[i], dimension, msetelems, true);MB_CHK_ERR(error);
+    error = mbCore->get_entities_by_dimension(mset, dimension, msetelems);MB_CHK_ERR(error);
     melems.merge(msetelems);
     
     int partID;
-    EntityHandle mset=msets[i];
     error = mbCore->tag_get_data(parttag, &mset, 1, &partID);MB_CHK_ERR(error);
 
     // Get the global ID and use that as the indicator
@@ -148,13 +149,13 @@ int main(int argc, char* argv[])
       error = tree.point_search( point, leaf, tolerance, btolerance );MB_CHK_ERR(error);
 
       if (leaf == 0) {
-        std::cout << ie+1 << ": " << " No root leaf found during point search... " << std::endl;
+        leaf = masterfileset; // FIXME: This is terrible -- linear search.
       }
 
       std::vector<moab::EntityHandle> leaf_elems;
       // We only care about the dimension that the user specified.
       // MOAB partitions are ordered by elements anyway.
-      error = mbCore->get_entities_by_dimension( leaf, dimension, leaf_elems, true);MB_CHK_ERR(error);
+      error = mbCore->get_entities_by_dimension( leaf, dimension, leaf_elems);MB_CHK_ERR(error);
 
       // Now get the master element centroids so that we can compute 
       // the minimum distance to the target point
