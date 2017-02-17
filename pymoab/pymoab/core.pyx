@@ -128,6 +128,7 @@ cdef class Core(object):
         if isinstance(entity_handles,Range):
             r = entity_handles
             err = self.inst.tag_set_data(tag.inst, deref(r.inst), <const void*> data.data)
+            check_error(err, exceptions)
         elif isinstance(entity_handles,np.ndarray):
             assert entity_handles.dtype == 'uint64'
             arr = entity_handles
@@ -154,6 +155,7 @@ cdef class Core(object):
         if isinstance(entity_handles,Range):
             r = entity_handles
             err = self.inst.tag_get_data(tag.inst, deref(r.inst), <void*> data.data)
+            check_error(err, exceptions)
         elif isinstance(entity_handles,np.ndarray):
             assert entity_handles.dtype == 'uint64'
             arr = entity_handles
@@ -246,5 +248,12 @@ cdef class Core(object):
         cdef moab.ErrorCode err
         cdef Range ents = Range()
         err = self.inst.get_entities_by_handle(<unsigned long> meshset, deref(ents.inst), recur)
+        check_error(err, exceptions)
+        return ents
+
+    def get_entities_by_dimension(self, meshset, int dimension, bint recur = False, exceptions = ()):
+        cdef moab.ErrorCode err
+        cdef Range ents = Range()
+        err = self.inst.get_entities_by_dimension(<unsigned long> meshset, dimension, deref(ents.inst), recur)
         check_error(err, exceptions)
         return ents

@@ -282,3 +282,12 @@ def test_get_entities_by_handle():
     ret_verts = mb.get_entities_by_handle(ms, False)
     for i in range(verts.size()):
         assert verts[i] == ret_verts[i]
+
+def test_get_entities_by_dimension():
+    mb = core.Core()
+    coords = np.array((0,0,0,1,0,0,1,1,1),dtype='float64')
+    verts = mb.create_vertices(coords)
+    rs = mb.get_root_set()
+    ret_verts = mb.get_entities_by_dimension(rs, 0)
+    for i in range(verts.size()):
+        assert verts[i] == ret_verts[i]

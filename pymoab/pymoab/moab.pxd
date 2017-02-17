@@ -3,6 +3,7 @@ from libcpp cimport bool
 from libcpp.vector cimport vector
 from libcpp.string cimport string as std_string
 
+
 cdef extern from 'moab/Types.hpp' namespace "moab":
 
     ctypedef enum EntitySetProperty:
@@ -32,11 +33,13 @@ cdef extern from 'moab/Types.hpp' namespace "moab":
         MB_TAG_NOOPQ
         MB_TAG_DFTOK
 
+
 cdef extern from "TagInfo.hpp" namespace "moab":
 
     cdef cppclass TagInfo:
         TagInfo()
         DataType get_data_type()
+
 
 cdef extern from "moab/Types.hpp" namespace "moab":
 
@@ -98,10 +101,32 @@ cdef extern from "moab/Range.hpp" namespace "moab":
 
         EntityHandle operator[](EntityID index)
 
+
 cdef extern from "moab/Interface.hpp" namespace "moab":
 
     cdef cppclass Interface:
         Interface()
+
+
+cdef extern from "moab/MeshTopoUtil.hpp" namespace "moab":
+
+    cdef cppclass MeshTopoUtil:
+        MeshTopoUtil(Interface *impl)
+
+        ErrorCode get_bridge_adjacencies(Range &from_entities,
+                                         int bridge_dim,
+                                         int to_dim,
+                                         Range &to_ents,
+                                         int num_layers)
+        ErrorCode get_bridge_adjacencies(const EntityHandle from_entity,
+                                         const int bridge_dim,
+                                         const int to_dim,
+                                         Range &to_adjs)
+        ErrorCode get_average_position(Range& entities,
+                                       double *avg_position)
+        ErrorCode get_average_position(const EntityHandle *entities,
+                                       const int num_entities,
+                                       double * avg_position)
 
 
 cdef extern from "moab/Core.hpp" namespace "moab":
@@ -233,6 +258,11 @@ cdef extern from "moab/Core.hpp" namespace "moab":
         ErrorCode get_entities_by_handle(const EntityHandle meshset,
                                          Range& entities,
                                          const bool recursive)
+        ErrorCode get_entities_by_dimension(const EntityHandle meshset,
+                                            const int dimension,
+                                            Range& entities,
+                                            const bool recursive)
+
 
 cdef extern from "moab/HomXform.hpp" namespace "moab":
 
@@ -262,6 +292,7 @@ cdef extern from "moab/HomXform.hpp" namespace "moab":
          HomCoord operator+(const HomCoord&) const
          HomCoord operator-(const HomCoord&) const
          bool operator==(const HomCoord&) const
+
 
 cdef extern from "moab/ScdInterface.hpp" namespace "moab":
 
