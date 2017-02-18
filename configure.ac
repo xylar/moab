@@ -957,18 +957,19 @@ MB_OPTIONAL_TOOL([mbdepth],      [yes], [yes])
 if test "x$enablempi" != "xno"; then
   MB_OPTIONAL_TOOL([mbcoupler],    [no], [yes] )
   MB_OPTIONAL_TOOL([mcnpmit],      [no], [yes])
-  MB_OPTIONAL_TOOL([refiner],      [no], [yes])
+  MB_OPTIONAL_TOOL([mbcslam],      [no], [yes])
 else
-  AS_ECHO("Disabling mbcoupler and refiner since these tools require MPI/parallel configuration")
+  AS_ECHO(["Disabling mbcoupler, mbcslam and mcnpmit since these tools require MPI/parallel configuration"])
   MB_OPTIONAL_TOOL([mbcoupler],    [no], [no] )
   MB_OPTIONAL_TOOL([mcnpmit],      [no], [no])
-  MB_OPTIONAL_TOOL([refiner],      [no], [no])
+  MB_OPTIONAL_TOOL([mbcslam],      [no], [no])
 fi
+
+MB_OPTIONAL_TOOL([refiner],      [no], [no])
 MB_OPTIONAL_TOOL([h5mtools],     [${enablehdf5}], [${enablehdf5}])
-MB_OPTIONAL_TOOL([mbcslam],      [no], [yes])
 MB_OPTIONAL_TOOL([mbquality],    [yes], [yes])
 
-MB_OPTIONAL_TOOL([ahf],          [no], [no])
+MB_OPTIONAL_TOOL([ahf],          [yes], [yes])
 MB_OPTIONAL_TOOL([mbumr],        [yes], [yes])
 if test "xyes" = "x$ENABLE_ahf"; then
   AC_DEFINE([HAVE_AHF],[1],[Enable use of AHF data-structures for querying adjacency information])
