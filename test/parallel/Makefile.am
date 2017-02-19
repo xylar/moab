@@ -38,7 +38,7 @@ TESTS = pcomm_unit \
         scdtest \
         pcomm_serial \
 	par_spatial_locator_test \
-	parallel_unit_tests \
+	parallel_unit_tests imoab_ptest2\
         $(NETCDF_TESTS) \
         $(HDF5_TESTS) \
         $(MBCSLAM_TESTS) $(IMESH_TESTS) $(IMOAB_TESTS)
@@ -124,6 +124,7 @@ parmerge_test_SOURCES = parmerge_test.cpp
 augment_with_ghosts_SOURCES = augment_with_ghosts.cpp
 imoab_ptest_SOURCES = imoab_ptest.F
 imoab_ptest_LDADD = $(LDADD) $(FCLIBS)
+imoab_ptest2_SOURCES = imoab_ptest2.cpp
 
 if ENABLE_imesh
 if HAVE_HDF5_PARALLEL
