@@ -226,21 +226,17 @@ cdef class Core(object):
         check_error(err, exceptions)
         return entities
 
-    def get_entities_by_type_and_tag(self, meshset, t, tags, vals, int cond = 0, bint recur = False, exceptions = ()):
+    def get_entities_by_type_and_tag(self, meshset, t, tags, np.ndarray vals, int cond = 0, bint recur = False, exceptions = ()):
         cdef moab.ErrorCode err
         assert len(tags) == len(vals)
         cdef int num_tags = len(tags)
         cdef moab.EntityType typ = t
         cdef TagArray ta = TagArray(tags)
         cdef vector[void*] vals_vec
-        for i in range(num_tags):
-            if vals[i] is not None:
-                vals_vec.push_back(<void*> vals[i])
-            else:
-                vals_vec.push_back(NULL)
+        cdef moab.DataType tag_type = moab.MB_MAX_DATA_TYPE
         cdef Range ents = Range()
         #here goes nothing
-        err = self.inst.get_entities_by_type_and_tag(<unsigned long> meshset, typ, ta.ptr, &(vals_vec[0]), len(tags), deref(ents.inst), cond, recur)
+        err = self.inst.get_entities_by_type_and_tag(<unsigned long> meshset, typ, ta.ptr, <const void **> &(vals.data), len(tags), deref(ents.inst), cond, recur)
         check_error(err, exceptions)
         return ents
 
