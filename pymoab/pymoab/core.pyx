@@ -3,6 +3,7 @@ from cython.operator cimport dereference as deref
 
 cimport numpy as np
 import numpy as np
+import ctypes
 
 from pymoab cimport moab
 from .tag cimport Tag, TagArray
@@ -232,11 +233,23 @@ cdef class Core(object):
         cdef int num_tags = len(tags)
         cdef moab.EntityType typ = t
         cdef TagArray ta = TagArray(tags)
-        cdef vector[void*] vals_vec
         cdef moab.DataType tag_type = moab.MB_MAX_DATA_TYPE
         cdef Range ents = Range()
+        cdef np.ndarray tmp
+        #create temporary array
+        cdef int num_none = 0
+        for val in vals:
+            if val == None:
+                num_none +=1
+        cdef char** vals_arr = <char**> malloc(vals.nbytes-num_none*sizeof(None)+num_none*sizeof(NULL))
+        for i in range(num_tags):
+            if vals[i] == None:
+                vals_arr[i] = NULL
+            else:
+                tmp = vals[i:i+1]
+                vals_arr[i] = tmp.data
         #here goes nothing
-        err = self.inst.get_entities_by_type_and_tag(<unsigned long> meshset, typ, ta.ptr, <const void **> &(vals.data), len(tags), deref(ents.inst), cond, recur)
+        err = self.inst.get_entities_by_type_and_tag(<unsigned long> meshset, typ, ta.ptr, <const void**> vals_arr, len(tags), deref(ents.inst), cond, recur)
         check_error(err, exceptions)
         return ents
 
