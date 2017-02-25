@@ -231,35 +231,26 @@ cdef class Core(object):
         return entities
 
     def get_entities_by_type_and_tag(self, meshset, t, tags, np.ndarray vals, int cond = 0, bint recur = False, exceptions = ()):
-        cdef moab.ErrorCode err
         assert len(tags) == len(vals)
+        #setup some initial variables to pass to MOAB function
         cdef int num_tags = len(tags)
         cdef moab.EntityType typ = t
         cdef TagArray ta = TagArray(tags)
-        cdef moab.DataType tag_type = moab.MB_MAX_DATA_TYPE
-        cdef Range ents = Range()
-        cdef np.ndarray tmp
-        #create temporary array
-        cdef int num_none = 0
-        for val in vals:
-            if val == None:
-                num_none +=1
-        cdef char** vals_arr = <char**> malloc(num_tags*sizeof(char*))
-        for i in range(num_tags):
-            if vals[i] == None:
-                vals_arr[i] =  NULL
-            else:
-                tmp = vals[i:i+1]
-                vals_arr[i] = tmp.data
-        #setup vectors to hold data
-        cdef vector[int] int_vec
-        int_vec.resize(num_tags)
-        cdef vector[double] double_vec
-        double_vec.resize(num_tags)
+
+        # vectors to hold data
+        # duplicating storage here out of necessity
+        # fortunately queries don't typically come with many values
+        cdef vector[int] int_storage
+        int_storage.resize(num_tags)
+        cdef vector[double] dbl_storage
+        dbl_storage.resize(num_tags)
         cdef void** arr = <void**> malloc(num_tags*sizeof(void*))
+        
         #get the tag type
+        cdef moab.ErrorCode err
         cdef moab.DataType this_tag_type = moab.MB_MAX_DATA_TYPE
         cdef Tag this_tag
+        # assign values based on tag type
         for i in range(num_tags):
             # if None is passed, set pointer to NULL and continue
             if vals[i] == None:
@@ -269,16 +260,19 @@ cdef class Core(object):
             this_tag = tags[i]
             err = self.inst.tag_get_data_type(this_tag.inst, this_tag_type)
             check_error(err)
-            # cast tag value as type
+            # attempt to cast tag value as type, should return a TypeError on failure
             if this_tag_type == types.MB_TYPE_INTEGER:
-                int_vec[i] = <int> vals[i]
-                arr[i] = &(int_vec[i])
+                int_storage[i] = <int> vals[i]
+                arr[i] = &(int_storage[i])
             if this_tag_type == types.MB_TYPE_DOUBLE:
-                double_vec[i] = <double> vals[i]
-                arr[i] = &(double_vec[i])
+                dbl_storage[i] = <double> vals[i]
+                arr[i] = &(dbl_storage[i])
+        #a range to hold returned entities
+        cdef Range ents = Range()
         #here goes nothing
         err = self.inst.get_entities_by_type_and_tag(<unsigned long> meshset, typ, ta.ptr, <const void**> arr, len(tags), deref(ents.inst), cond, recur)
         check_error(err, exceptions)
+        # return entities found in the MOAB function call
         return ents
 
     def get_entities_by_handle(self, meshset, bint recur = False, exceptions = ()):
