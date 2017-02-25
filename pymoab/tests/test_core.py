@@ -254,13 +254,17 @@ def test_get_ents_by_tnt():
     coords = np.array((0,0,0,1,0,0,1,1,1),dtype='float64')
     verts = mb.create_vertices(coords)
     test_tag = mb.tag_get_handle("TestTag",1,types.MB_TYPE_INTEGER,True)
-    mb.tag_set_data(test_tag,verts,np.array((range(3),)))
+    mb.tag_set_data(test_tag,verts,np.array((0,1,2,)))
+
+    test_tag1 = mb.tag_get_handle("TestTag1",1,types.MB_TYPE_DOUBLE,True)
+    mb.tag_set_data(test_tag1,verts,np.array((3.0,4.0,5.0)))
+    
     rs = mb.get_root_set()
 
     # any vertices tagged with test_tag with a value of 6 (none of them)
-    entities = mb.get_entities_by_type_and_tag(rs,types.MBVERTEX,np.array((test_tag,)),np.array((6,)))
+    entities = mb.get_entities_by_type_and_tag(rs,types.MBVERTEX,np.array((test_tag,test_tag1)),np.array((0,3.0)))
     print entities.size()
-    assert entities.size() == 0
+    assert entities.size() == 1
 
     entities = mb.get_entities_by_type_and_tag(rs,types.MBVERTEX,np.array((test_tag,)),np.array((1,)))
     print entities.size()
@@ -270,13 +274,22 @@ def test_get_ents_by_tnt():
     print entities.size()
     assert entities.size() == 3
 
-    test_tag1 = mb.tag_get_handle("TestTag1",1,types.MB_TYPE_INTEGER,True)
-    mb.tag_set_data(test_tag1,verts,np.array((range(3),)))
-
     # intersection of any vertices with test_tag value 1 and any value for test_tag1
     entities = mb.get_entities_by_type_and_tag(rs,types.MBVERTEX,np.array((test_tag,test_tag1,)),np.array((1,None,)))
     print entities.size()
     assert entities.size() == 1
+
+    entities = mb.get_entities_by_type_and_tag(rs,types.MBVERTEX,np.array((test_tag1,test_tag,)),np.array((None,1,)))
+    print entities.size()
+    assert entities.size() == 1
+
+    entities = mb.get_entities_by_type_and_tag(rs,types.MBVERTEX,np.array((test_tag1,test_tag,)),np.array((3.0,None,)))
+    print entities.size()
+    assert entities.size() == 1
+
+    entities = mb.get_entities_by_type_and_tag(rs,types.MBVERTEX,np.array((test_tag1,test_tag,)),np.array((None,None,)))
+    print entities.size()
+    assert entities.size() == 3
     
     # intersection of any vertices tagged with test_tag and test_tag1 for any value on either tag
     entities = mb.get_entities_by_type_and_tag(rs,types.MBVERTEX,np.array((test_tag,test_tag1,)),np.array((None,None,)))
@@ -284,12 +297,12 @@ def test_get_ents_by_tnt():
     assert entities.size() == 3
 
     # intersection of any vertices tagged with test_tag and test_tag1 with a value of 2
-    entities = mb.get_entities_by_type_and_tag(rs,types.MBVERTEX,np.array((test_tag,test_tag1,)),np.array((None,2,)))
+    entities = mb.get_entities_by_type_and_tag(rs,types.MBVERTEX,np.array((test_tag,test_tag1,)),np.array((None,3.0,)))
     print entities.size()
     assert entities.size() == 1
     
     # intersection of any vertices with test_tag & test_tag1 and values of 6 & 10, respectively (none of them)
-    entities = mb.get_entities_by_type_and_tag(rs,types.MBVERTEX,np.array((test_tag,test_tag1,)),np.array((6,10,)))
+    entities = mb.get_entities_by_type_and_tag(rs,types.MBVERTEX,np.array((test_tag,test_tag1,)),np.array((6,10.0,)))
     print entities.size()
     assert entities.size() == 0
     
