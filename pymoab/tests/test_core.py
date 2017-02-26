@@ -117,6 +117,8 @@ def test_opaque_tag():
     assert data[0] == test_val
     assert data.dtype == '|S' + str(tag_length)
 
+    mb.write_file("four.h5m")
+
 def test_create_meshset():
     mb = core.Core()
     msh = mb.create_meshset()
@@ -262,21 +264,103 @@ def test_get_ents_by_tnt():
     dbl_test_tag_values = np.array((3.0,4.0,5.0))
     mb.tag_set_data(dbl_test_tag,verts,dbl_test_tag_values)
 
-    opaque_test_tag = mb.tag_get_handle("OpaqueTestTag",1,types.MB_TYPE_OPAQUE,True)
+    opaque_test_tag = mb.tag_get_handle("OpaqueTestTag",5,types.MB_TYPE_OPAQUE,True)
     opaque_test_tag_values = np.array(("Six","Seven","Eight",))
     mb.tag_set_data(opaque_test_tag,verts,opaque_test_tag_values)
 
+    mb.write_file("test.h5m")
+    
     rs = mb.get_root_set()
 
-    
-    # any vertices tagged with int_test_tag with a value of 6 (none of them)
+    ###INTEGER TAG TESTS###
+    # test for existing value
     entities = mb.get_entities_by_type_and_tag(rs,
                                                types.MBVERTEX,
-                                               np.array((int_test_tag,dbl_test_tag)),
-                                               np.array((0,3.0)))
+                                               np.array((int_test_tag,)),
+                                               np.array((1,)))
     print entities.size()
     assert entities.size() == 1
+    
+    # test for non-existant value
+    entities = mb.get_entities_by_type_and_tag(rs,
+                                               types.MBVERTEX,
+                                               np.array((int_test_tag,)),
+                                               np.array((16,)))
+    print entities.size()
+    assert entities.size() == 0
 
+    #test for all tagged entities
+    entities = mb.get_entities_by_type_and_tag(rs,
+                                               types.MBVERTEX,
+                                               np.array((int_test_tag,)),
+                                               np.array((None,)))
+    print entities.size()
+    assert entities.size() == 3
+
+    ###DOUBLE TAG TESTS###
+    # test for existing value
+    entities = mb.get_entities_by_type_and_tag(rs,
+                                               types.MBVERTEX,
+                                               np.array((dbl_test_tag,)),
+                                               np.array((4.0,)))
+    print entities.size()
+    assert entities.size() == 1
+    
+    # test for non-existant value
+    entities = mb.get_entities_by_type_and_tag(rs,
+                                               types.MBVERTEX,
+                                               np.array((dbl_test_tag,)),
+                                               np.array((16.0,)))
+    print entities.size()
+    assert entities.size() == 0
+
+    #test for all tagged entities
+    entities = mb.get_entities_by_type_and_tag(rs,
+                                               types.MBVERTEX,
+                                               np.array((dbl_test_tag,)),
+                                               np.array((None,)))
+    print entities.size()
+    assert entities.size() == 3
+
+    ###OPAQUE TAG TESTS###
+    # test for existing value
+    entities = mb.get_entities_by_type_and_tag(rs,
+                                               types.MBVERTEX,
+                                               np.array((opaque_test_tag,)),
+                                               np.array(("Six",)))
+    print entities.size()
+    assert entities.size() == 1
+    
+    # test for non-existant value
+    entities = mb.get_entities_by_type_and_tag(rs,
+                                               types.MBVERTEX,
+                                               np.array((opaque_test_tag,)),
+                                               np.array(("Ten",)))
+    print entities.size()
+    assert entities.size() == 0
+
+    #test for all tagged entities
+    entities = mb.get_entities_by_type_and_tag(rs,
+                                               types.MBVERTEX,
+                                               np.array((opaque_test_tag,)),
+                                               np.array((None,)))
+    print entities.size()
+    assert entities.size() == 3
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    ### OLD TESTS ####
     entities = mb.get_entities_by_type_and_tag(rs,
                                                types.MBVERTEX,
                                                np.array((int_test_tag,)),

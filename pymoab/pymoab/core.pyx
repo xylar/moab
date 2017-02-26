@@ -244,12 +244,16 @@ cdef class Core(object):
         int_storage.resize(num_tags)
         cdef vector[double] dbl_storage
         dbl_storage.resize(num_tags)
+        cdef vector[char*] char_storage
+        char_storage.resize(num_tags)
         cdef void** arr = <void**> malloc(num_tags*sizeof(void*))
         
         #get the tag type
         cdef moab.ErrorCode err
         cdef moab.DataType this_tag_type = moab.MB_MAX_DATA_TYPE
+        cdef int this_tag_length = 0        
         cdef Tag this_tag
+        cdef bytes val_str
         # assign values based on tag type
         for i in range(num_tags):
             # if None is passed, set pointer to NULL and continue
@@ -260,6 +264,8 @@ cdef class Core(object):
             this_tag = tags[i]
             err = self.inst.tag_get_data_type(this_tag.inst, this_tag_type)
             check_error(err)
+            err = self.inst.tag_get_length(this_tag.inst,this_tag_length);
+            check_error(err)
             # attempt to cast tag value as type, should return a TypeError on failure
             if this_tag_type == types.MB_TYPE_INTEGER:
                 int_storage[i] = <int> vals[i]
@@ -267,6 +273,11 @@ cdef class Core(object):
             if this_tag_type == types.MB_TYPE_DOUBLE:
                 dbl_storage[i] = <double> vals[i]
                 arr[i] = &(dbl_storage[i])
+            if this_tag_type == types.MB_TYPE_OPAQUE:
+                char_storage[i] = <char*> malloc(this_tag_length*sizeof(char))
+                char_storage[i] = <char*> vals[i]
+                val_str = char_storage[i]
+                arr[i] = char_storage[i]
         #a range to hold returned entities
         cdef Range ents = Range()
         #here goes nothing
