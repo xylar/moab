@@ -378,8 +378,8 @@ def test_get_ents_by_tnt():
     # intersection of any vertices with int_test_tag value 1 and any value for dbl_test_tag
     entities = mb.get_entities_by_type_and_tag(rs,
                                                types.MBVERTEX,
-                                               np.array((int_test_tag,dbl_test_tag,)),
-                                               np.array((1,None,)))
+                                               np.array((int_test_tag,opaque_test_tag,)),
+                                               np.array((1,"Seven",),dtype=object))
     print entities.size()
     assert entities.size() == 1
 
