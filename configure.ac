@@ -209,10 +209,10 @@ else
     AC_CONFIG_SRCDIR([pymoab/setup.py.in])
     if test "x$prefix" = "xNONE"; then
       pymoab_prefix=/usr/lib/python${PYTHON_VERSION}/dist-packages
-      pythondir=pymoab_prefix
+      pythondir=$pymoab_prefix
     else
       pymoab_prefix=$prefix/lib/python${PYTHON_VERSION}/site-packages
-      pythondir=pymoab_prefix
+      pythondir=$pymoab_prefix
     fi
     AC_SUBST([pymoab_prefix])
       if (test "xyes" != "x$enable_shared" || test "xno" = "x$enable_shared"); then
