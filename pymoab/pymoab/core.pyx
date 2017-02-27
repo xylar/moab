@@ -231,7 +231,8 @@ cdef class Core(object):
         return entities
 
     def get_entities_by_type_and_tag(self, meshset, t, tags, np.ndarray vals, int cond = 0, bint recur = False, exceptions = ()):
-        assert len(tags) == len(vals)
+        assert vals.ndim == 2
+        assert len(tags) == vals.shape[0]
         #setup some initial variables to pass to MOAB function
         cdef int num_tags = len(tags)
         cdef moab.EntityType typ = t
@@ -254,10 +255,11 @@ cdef class Core(object):
         cdef int this_tag_length = 0        
         cdef Tag this_tag
         cdef bytes val_str
+        cdef np.ndarray temp_arr
         # assign values based on tag type
         for i in range(num_tags):
             # if None is passed, set pointer to NULL and continue
-            if vals[i] == None:
+            if vals[i][0] == None:
                 arr[i] = NULL
                 continue
             # otherwise get the tag type
@@ -266,18 +268,22 @@ cdef class Core(object):
             check_error(err)
             err = self.inst.tag_get_length(this_tag.inst,this_tag_length);
             check_error(err)
-            # attempt to cast tag value as type, should return a TypeError on failure
-            if this_tag_type == types.MB_TYPE_INTEGER:
-                int_storage[i] = <int> vals[i]
-                arr[i] = &(int_storage[i])
-            if this_tag_type == types.MB_TYPE_DOUBLE:
-                dbl_storage[i] = <double> vals[i]
-                arr[i] = &(dbl_storage[i])
-            if this_tag_type == types.MB_TYPE_OPAQUE:
-                char_storage[i] = <char*> malloc(this_tag_length*sizeof(char))
-                char_storage[i] = <char*> vals[i]
-                val_str = char_storage[i]
-                arr[i] = char_storage[i]
+            temp_arr = validate_type(this_tag_type, this_tag_length, vals[i])
+            arr[i] = <void*> temp_arr.data
+            
+            
+            # # attempt to cast tag value as type, should return a TypeError on failure
+            # if this_tag_type == types.MB_TYPE_INTEGER:
+            #     int_storage[i] = <int> vals[i]
+            #     arr[i] = &(int_storage[i])
+            # if this_tag_type == types.MB_TYPE_DOUBLE:
+            #     dbl_storage[i] = <double> vals[i]
+            #     arr[i] = &(dbl_storage[i])
+            # if this_tag_type == types.MB_TYPE_OPAQUE:
+            #     char_storage[i] = <char*> malloc(this_tag_length*sizeof(char))
+            #     char_storage[i] = <char*> vals[i]
+            #     val_str = char_storage[i]
+            #     arr[i] = char_storage[i]
         #a range to hold returned entities
         cdef Range ents = Range()
         #here goes nothing

@@ -83,12 +83,12 @@ _VALID_DTYPES= {
 }
 
 _VALID_DTYPES= {
-    MB_TYPE_OPAQUE: frozenset(['S']),
-    MB_TYPE_INTEGER: frozenset(['int8','int16','int32','int64']),
-    MB_TYPE_DOUBLE: frozenset(['float64']),
-    MB_TYPE_BIT: frozenset(['int8','int16','int32','int64','S1','bool']),
-    MB_TYPE_HANDLE: frozenset(['uint64']),
-    MB_MAX_DATA_TYPE: frozenset(['uint64'])
+    MB_TYPE_OPAQUE: frozenset(['S','O']),
+    MB_TYPE_INTEGER: frozenset(['int8','int16','int32','int64','O','object']),
+    MB_TYPE_DOUBLE: frozenset(['float64','O','object']),
+    MB_TYPE_BIT: frozenset(['int8','int16','int32','int64','S1','bool','O','object']),
+    MB_TYPE_HANDLE: frozenset(['uint64','O','object']),
+    MB_MAX_DATA_TYPE: frozenset(['uint64','O','object'])
 }
 
 def np_tag_type(type):
