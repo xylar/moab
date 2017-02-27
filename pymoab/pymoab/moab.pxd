@@ -269,6 +269,14 @@ cdef extern from "moab/Core.hpp" namespace "moab":
                                             const int dimension,
                                             Range& entities,
                                             const bool recursive)
+        ErrorCode remove_entities(EntityHandle meshset,
+                                  const EntityHandle* entities,
+                                  const int num_entities)
+        ErrorCode remove_entities(EntityHandle meshset,
+                                  Range& entities)
+        ErrorCode delete_entities(Range& entities)
+        ErrorCode delete_entities(const EntityHandle* entities,
+                                  const int num_entities)
 
 
 cdef extern from "moab/HomXform.hpp" namespace "moab":

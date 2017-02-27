@@ -367,7 +367,7 @@ def test_get_ents_by_tnt():
     entities = mb.get_entities_by_type_and_tag(rs,
                                                types.MBVERTEX,
                                                [int_vec_test_tag,dbl_vec_test_tag],
-                                               np.array([[None,None,None],[9.0,10.0,11.0]]),dtype='O')
+                                               np.array([[None,None,None],[9.0,10.0,11.0]],dtype='O'))
     assert entities.size() == 1
 
     entities = mb.get_entities_by_type_and_tag(rs,
@@ -443,3 +443,41 @@ def test_parent_child():
     assert child_sets.size() == 1
     child_sets[0] == child_set
     
+def test_remove_ents():
+    mb = core.Core()
+    ms = mb.create_meshset()    
+    coords = np.array((0,0,0,1,0,0,1,1,1),dtype='float64')
+    verts = mb.create_vertices(coords)
+    mb.add_entities(ms,verts)
+
+    #make sure all vertices were added to the meshset
+    entities = mb.get_entities_by_type(ms, types.MBVERTEX)
+    assert len(entities) == 3
+    assert entities[0] == verts[0]
+    assert entities[1] == verts[1]
+    assert entities[2] == verts[2]
+
+    #remove first vertex from meshset
+    vert_to_remove = np.array([verts[0],],dtype='uint64') #not proud of this...
+    mb.remove_entities(ms,vert_to_remove)
+
+    #make sure the right one got removed from the meshset
+    entities = mb.get_entities_by_type(ms, types.MBVERTEX)
+    assert len(entities) == 2
+    assert entities[0] == verts[1]
+    assert entities[1] == verts[2]
+
+    #all verts should still be in the instance
+    rs = mb.get_root_set()
+    entities = mb.get_entities_by_type(rs, types.MBVERTEX)
+    assert len(entities) == 3
+    assert entities[0] == verts[0]
+    assert entities[1] == verts[1]
+    assert entities[2] == verts[2]
+
+    #until it is deleted from the instance
+    mb.delete_entities(vert_to_remove)
+    entities = mb.get_entities_by_type(rs, types.MBVERTEX)
+    assert len(entities) == 2
+    assert entities[0] == verts[1]
+    assert entities[1] == verts[2]

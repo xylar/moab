@@ -62,6 +62,31 @@ cdef class Core(object):
            err = self.inst.add_entities(ms_handle, <unsigned long*> arr.data, len(entities))
         check_error(err, exceptions)
 
+    def remove_entities(self, moab.EntityHandle ms_handle, entities, exceptions = ()):
+        cdef moab.ErrorCode err
+        cdef Range r
+        cdef np.ndarray[np.uint64_t, ndim=1] arr
+        if isinstance(entities, Range):
+            r = entities
+            err = self.inst.remove_entities(ms_handle, deref(r.inst))
+        else:
+            arr = entities
+            err = self.inst.remove_entities(ms_handle, <unsigned long*> arr.data, len(entities))
+        check_error(err, exceptions)
+
+    def delete_entities(self, entities, exceptions = ()):
+        cdef moab.ErrorCode err
+        cdef Range r
+        cdef np.ndarray[np.uint64_t, ndim=1] arr
+        if isinstance(entities, Range):
+            r = entities
+            err = self.inst.delete_entities(deref(r.inst))
+        else:
+            arr = entities
+            err = self.inst.delete_entities(<unsigned long*> arr.data, len(entities))
+        check_error(err, exceptions)
+        
+
     def create_vertices(self, np.ndarray[np.float64_t, ndim=1] coordinates, exceptions = ()):
         cdef Range rng = Range()
         cdef moab.ErrorCode err = self.inst.create_vertices(<double *> coordinates.data,
@@ -318,4 +343,4 @@ cdef class Core(object):
         cdef Range ents = Range()
         err = self.inst.get_entities_by_dimension(<unsigned long> meshset, dimension, deref(ents.inst), recur)
         check_error(err, exceptions)
-        return ents
+        return ents            
