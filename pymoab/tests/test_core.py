@@ -272,179 +272,111 @@ def test_get_ents_by_tnt():
     
     rs = mb.get_root_set()
 
+    single_tag_test_cases = []
     ###INTEGER TAG TESTS###
-    # test for existing value
-    tag_test_vals = np.array([[1]])
-    entities = mb.get_entities_by_type_and_tag(rs,
-                                               types.MBVERTEX,
-                                               np.array((int_test_tag,)),
-                                               tag_test_vals)
-    print entities.size()
-    assert entities.size() == 1
-    
-    # test for non-existant value
-    tag_test_vals = np.array([[16]])
-    entities = mb.get_entities_by_type_and_tag(rs,
-                                               types.MBVERTEX,
-                                               np.array((int_test_tag,)),
-                                               tag_test_vals)
-    print entities.size()
-    assert entities.size() == 0
-
-    #test for all tagged entities
-    tag_test_vals = np.array([[None]])
-    entities = mb.get_entities_by_type_and_tag(rs,
-                                               types.MBVERTEX,
-                                               np.array((int_test_tag,)),
-                                               tag_test_vals)
-    print entities.size()
-    assert entities.size() == 3
-
+    integer_tag_test_cases = [
+        dict(tag_arr = [int_test_tag], value_arr = np.array([[1]]), expected_size = 1),        # existing value
+        dict(tag_arr = [int_test_tag], value_arr = np.array([[16]]), expected_size = 0),       # nonexistant value
+        dict(tag_arr = [int_test_tag], value_arr = np.array([[None]]), expected_size = 3) ]    # any value
+    single_tag_test_cases += integer_tag_test_cases
     ###DOUBLE TAG TESTS###
-    # test for existing value
-    tag_test_vals = np.array([[4.0]])
-    entities = mb.get_entities_by_type_and_tag(rs,
-                                               types.MBVERTEX,
-                                               np.array((dbl_test_tag,)),
-                                               tag_test_vals)
-    print entities.size()
-    assert entities.size() == 1
-    
-    # test for non-existant value
-    tag_test_vals = np.array([[16.0]])
-    entities = mb.get_entities_by_type_and_tag(rs,
-                                               types.MBVERTEX,
-                                               np.array((dbl_test_tag,)),
-                                               tag_test_vals)
-    print entities.size()
-    assert entities.size() == 0
-
-    #test for all tagged entities
-    tag_test_vals = np.array([[None]])
-    entities = mb.get_entities_by_type_and_tag(rs,
-                                               types.MBVERTEX,
-                                               np.array((dbl_test_tag,)),
-                                               tag_test_vals)
-    print entities.size()
-    assert entities.size() == 3
-
+    double_tag_test_cases = [
+        dict(tag_arr = [dbl_test_tag], value_arr = np.array([[4.0]]), expected_size = 1),      # existing value
+        dict(tag_arr = [dbl_test_tag], value_arr = np.array([[16.0]]), expected_size = 0),     # nonexistant value
+        dict(tag_arr = [dbl_test_tag], value_arr = np.array([[None]]), expected_size = 3) ]    # any value
+    single_tag_test_cases += double_tag_test_cases
     ###OPAQUE TAG TESTS###
-    # test for existing value
-    tag_test_vals = np.array([["Six"]])
-    entities = mb.get_entities_by_type_and_tag(rs,
-                                               types.MBVERTEX,
-                                               np.array((opaque_test_tag,)),
-                                               tag_test_vals)
-    print entities.size()
-    assert entities.size() == 1
+    opaque_tag_test_cases = [
+        dict(tag_arr = [opaque_test_tag], value_arr = np.array([["Six"]]), expected_size = 1), # existing value
+        dict(tag_arr = [opaque_test_tag], value_arr = np.array([["Ten"]]), expected_size = 0), # nonexistant value
+        dict(tag_arr = [opaque_test_tag], value_arr = np.array([[None]]), expected_size = 3) ] # any value
+    single_tag_test_cases += opaque_tag_test_cases
     
-    # test for non-existant value
-    tag_test_vals = np.array([["Ten"]])
+    for test_case in single_tag_test_cases:
+        entities = mb.get_entities_by_type_and_tag(rs,
+                                                   types.MBVERTEX,
+                                                   test_case['tag_arr'],
+                                                   test_case['value_arr'])
+        assert entities.size() == test_case['expected_size']
+
+    ###MIXED TAG TYPE TESTS###
+    mixed_tag_test_cases = [
+        # existing values
+        dict(tag_arr = [int_test_tag,opaque_test_tag],
+             value_arr = np.array([[1],["Seven"]], dtype='O'), #dtype must be specified here
+             expected_size = 1),
+        # any and existing value
+        dict(tag_arr = [dbl_test_tag,int_test_tag],
+             value_arr = np.array([[None],[1]]),
+             expected_size = 1),
+        # any and existing value (None comes second)
+        dict(tag_arr = [dbl_test_tag,int_test_tag],
+             value_arr = np.array([[3.0],[None]]),
+             expected_size = 1),
+        # any values for both tags
+        dict(tag_arr = [dbl_test_tag,int_test_tag],
+             value_arr = np.array([[None],[None]]),
+             expected_size = 3),
+        # mixed types, both nonexisting
+        dict(tag_arr = [int_test_tag,dbl_test_tag],
+             value_arr = np.array([[6],[10.0]], dtype = 'O'),
+             expected_size = 0),
+        #mixed types, both existing but not on same entity
+        dict(tag_arr = [int_test_tag,dbl_test_tag],
+             value_arr = np.array([[1],[2.0]],dtype='O'),
+             expected_size = 0),
+        #mixed types, only one existing value
+        dict(tag_arr = [int_test_tag,dbl_test_tag],
+             value_arr = np.array([[1],[12.0]],dtype='O'),
+             expected_size = 0)]
+
+    for test_case in mixed_tag_test_cases:
+        entities = mb.get_entities_by_type_and_tag(rs,
+                                                   types.MBVERTEX,
+                                                   test_case['tag_arr'],
+                                                   test_case['value_arr'])
+        assert entities.size() == test_case['expected_size']
+
+    ###VECTOR TAG TESTS###
+
+    int_vec_test_tag = mb.tag_get_handle("IntegerVecTestTag",3,types.MB_TYPE_INTEGER,True)
+    dbl_vec_test_tag = mb.tag_get_handle("DoubleVecTestTag",3,types.MB_TYPE_DOUBLE,True)
+
+    int_vec_test_tag_values = np.array([0,1,2,3,4,5,6,7,8])
+    dbl_vec_test_tag_values = np.array([9.0,10.0,11.0,12.0,13.0,14.0,15.0,16.0,17.0])
+    mb.tag_set_data(int_vec_test_tag,verts,int_vec_test_tag_values)
+    mb.tag_set_data(dbl_vec_test_tag,verts,dbl_vec_test_tag_values)
+
+    mb.write_file("vec_tags.h5m")
+    # existing sets of values
     entities = mb.get_entities_by_type_and_tag(rs,
                                                types.MBVERTEX,
-                                               np.array((opaque_test_tag,)),
-                                               tag_test_vals)
-    print entities.size()
+                                               [int_vec_test_tag,dbl_vec_test_tag],
+                                               np.array([[0,1,2],[9.0,10.0,11.0]],dtype='O'))
+    assert entities.size() == 1
+
+    #one non existant set of values, one existing
+    entities = mb.get_entities_by_type_and_tag(rs,
+                                               types.MBVERTEX,
+                                               [int_vec_test_tag,dbl_vec_test_tag],
+                                               np.array([[0,1,2],[22.0,10.0,11.0]],dtype='O'))
+
     assert entities.size() == 0
-
-    #test for all tagged entities
-    tag_test_vals = np.array([[None]])
+    # any set of one tag
+    print "Running suspect test"
     entities = mb.get_entities_by_type_and_tag(rs,
                                                types.MBVERTEX,
-                                               np.array((opaque_test_tag,)),
-                                               tag_test_vals)
-    print entities.size()
-    assert entities.size() == 3
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    ### OLD TESTS ####
-    tag_test_vals = np.array([[1]])
-    entities = mb.get_entities_by_type_and_tag(rs,
-                                               types.MBVERTEX,
-                                               np.array((int_test_tag,)),
-                                               tag_test_vals)
-    print entities.size()
-    assert entities.size() == 1
-    
-    tag_test_vals = np.array([[None]])    
-    entities = mb.get_entities_by_type_and_tag(rs,
-                                               types.MBVERTEX,
-                                               np.array((int_test_tag,)),
-                                               tag_test_vals)
-    print entities.size()
-    assert entities.size() == 3
-
-    # intersection of any vertices with int_test_tag value 1 and any value for dbl_test_tag
-    tag_test_vals = np.array([[1],["Seven"]],dtype='O')
-    entities = mb.get_entities_by_type_and_tag(rs,
-                                               types.MBVERTEX,
-                                               np.array((int_test_tag,opaque_test_tag,)),
-                                               tag_test_vals)
-    print entities.size()
-    assert entities.size() == 1
-    
-    tag_test_vals = np.array([[None],[1]])
-    entities = mb.get_entities_by_type_and_tag(rs,
-                                               types.MBVERTEX,
-                                               np.array((dbl_test_tag,int_test_tag,)),
-                                               tag_test_vals)
-    print entities.size()
+                                               [int_vec_test_tag,dbl_vec_test_tag],
+                                               np.array([[None,None,None],[9.0,10.0,11.0]]),dtype='O')
     assert entities.size() == 1
 
-    tag_test_vals = np.array([[3.0],[None]])    
     entities = mb.get_entities_by_type_and_tag(rs,
                                                types.MBVERTEX,
-                                               np.array((dbl_test_tag,int_test_tag,)),
-                                               tag_test_vals)
-    print entities.size()
-    assert entities.size() == 1
-    tag_test_vals = np.array([[None],[None]])
-    entities = mb.get_entities_by_type_and_tag(rs,
-                                               types.MBVERTEX,
-                                               np.array((dbl_test_tag,int_test_tag,)),
-                                               tag_test_vals)
-    print entities.size()
+                                               [int_vec_test_tag,dbl_vec_test_tag],
+                                               np.array([[None],[None]],dtype='O'))
     assert entities.size() == 3
     
-
-    # intersection of any vertices tagged with test_tag and dbl_test_tag with a value of 2
-    tag_test_vals = np.array([[None],[3.0]])    
-    entities = mb.get_entities_by_type_and_tag(rs,
-                                               types.MBVERTEX,
-                                               np.array((int_test_tag,dbl_test_tag,)),
-                                               tag_test_vals)
-    print entities.size()
-    assert entities.size() == 1
-    tag_test_vals = np.array([[6],[10.0]],dtype='O')    
-    # intersection of any vertices with int_test_tag & dbl_test_tag and values of 6 & 10, respectively (none of them)
-    entities = mb.get_entities_by_type_and_tag(rs,
-                                               types.MBVERTEX,
-                                               np.array((int_test_tag,dbl_test_tag,)),
-                                               tag_test_vals)
-    print entities.size()
-    assert entities.size() == 0
-    
-    # intersection of any vertices with int_test_tag & dbl_test_tag tagged with values of 1 & 2 respectively (none of them)
-    tag_test_vals = np.array([[1],[2.0]],dtype='O')    
-    entities = mb.get_entities_by_type_and_tag(rs,
-                                               types.MBVERTEX,
-                                               np.array((int_test_tag,dbl_test_tag,)),
-                                               tag_test_vals)
-    print entities.size()
-    assert entities.size() == 0
-
+        
     # any hex elements tagged with int_test_tag (no hex elements exist, there should be none)
     tag_test_vals = np.array([[None]])        
     entities = mb.get_entities_by_type_and_tag(rs,

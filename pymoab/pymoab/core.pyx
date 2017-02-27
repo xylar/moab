@@ -250,6 +250,7 @@ cdef class Core(object):
     def get_entities_by_type_and_tag(self, meshset, t, tags, np.ndarray vals, int cond = 0, bint recur = False, exceptions = ()):
         # overall dimension of the numpy array should be 2
         # one array for each tag passed to the function
+        print "Got Here"                
         assert vals.ndim == 2
         #ensure that the correct number of arrays exist
         assert len(tags) == vals.shape[0]
