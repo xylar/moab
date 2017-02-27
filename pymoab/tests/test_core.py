@@ -472,3 +472,42 @@ def test_get_entities_by_dimension():
     ret_verts = mb.get_entities_by_dimension(rs, 0)
     for i in range(verts.size()):
         assert verts[i] == ret_verts[i]
+
+def test_parent_child():
+    mb = core.Core()
+    
+    parent_set = mb.create_meshset()
+    child_set = mb.create_meshset()
+
+    mb.add_parent_meshset(child_set, parent_set)
+
+    parent_sets = mb.get_parent_meshsets(child_set)
+    assert parent_sets.size() == 1
+    assert parent_sets[0] == parent_set
+
+    child_sets = mb.get_child_meshsets(parent_set)
+    assert child_sets.size() == 0
+
+    mb.add_child_meshset(parent_set,child_set)
+    
+    child_sets = mb.get_child_meshsets(parent_set)
+    assert child_sets.size() == 1
+    assert child_sets[0] == child_set
+    
+    parent_set = mb.create_meshset()
+    child_set = mb.create_meshset()
+
+    parent_sets = mb.get_parent_meshsets(child_set)
+    assert parent_sets.size() == 0
+    child_sets = mb.get_child_meshsets(parent_set)
+    assert child_sets.size() == 0
+
+    mb.add_parent_child(parent_set,child_set)
+
+    parent_sets = mb.get_parent_meshsets(child_set)
+    assert parent_sets.size() == 1
+    parent_sets[0] == parent_set
+    child_sets = mb.get_child_meshsets(parent_set)
+    assert child_sets.size() == 1
+    child_sets[0] == child_set
+    

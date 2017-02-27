@@ -195,9 +195,26 @@ cdef class Core(object):
         check_error(err, exceptions)
         return r
 
+    def get_parent_meshsets(self, meshset_handle, num_hops = 1, exceptions = ()):
+        cdef moab.ErrorCode err
+        cdef Range r = Range()
+        err = self.inst.get_parent_meshsets(<unsigned long> meshset_handle, deref(r.inst), 0)
+        check_error(err, exceptions)
+        return r
+
+    def add_parent_meshset(self, child_meshset, parent_meshset, exceptions = ()):
+        cdef moab.ErrorCode err
+        err = self.inst.add_parent_meshset(<unsigned long> child_meshset, <unsigned long> parent_meshset)
+        check_error(err, exceptions)
+    
     def add_child_meshset(self, parent_meshset, child_meshset, exceptions = ()):
         cdef moab.ErrorCode err
         err = self.inst.add_child_meshset(<unsigned long> parent_meshset, <unsigned long> child_meshset)
+        check_error(err, exceptions)
+
+    def add_parent_child(self, parent_meshset, child_meshset, exceptions = ()):
+        cdef moab.ErrorCode err
+        err = self.inst.add_parent_child(<unsigned long> parent_meshset, <unsigned long> child_meshset)
         check_error(err, exceptions)
 
     def get_root_set(self):
