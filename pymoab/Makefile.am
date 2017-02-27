@@ -3,6 +3,8 @@ EXTRA_DIST = $(srcdir)/cmake/cython_test.pyx $(srcdir)/pymoab/* $(srcdir)/tests/
 
 local_install_path = local_inst
 
+#CLEANFILES = pymoab/* pymoab build/* build tests/* tests $(local_install_path) pymoab.egg-info dist/* dist
+
 all-local:
 	(if [ ! -d pymoab ]; then cp --no-preserve=all -r $(srcdir)/pymoab .; fi )
 	(cd pymoab ; cython --cplus *.pyx)
@@ -18,8 +20,8 @@ check:
 	(cd tests ; PYTHONPATH=$(PWD)/$(local_install_path)/:$(PYTHONPATH) nosetests)
 
 clean-local:
-	rm -r pymoab build tests $(local_install_path) pymoab.egg-info dist
+	-rm -rf pymoab build tests $(local_install_path) pymoab.egg-info dist
 
 
 uninstall:
-	rm -r ${pythondir}
+	-rm -r ${pythondir}
