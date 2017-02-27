@@ -96,10 +96,14 @@ def np_tag_type(type):
 
 def validate_type(tag_type,tag_length,tag_data):
 
+    #ensure this type is supported
     assert tag_type in _DTYPE_CONV.keys()
+    #and that it is the correct shape
+    assert tag_data.ndim == 0 or tag_data.ndim == 1    
 
+    
     if MB_TYPE_OPAQUE == tag_type:
-        #so long as the array is a string type, we're happy
+        #so long as the array is some kind of string type, we're happy
         is_valid = tag_data.dtype.char in _VALID_DTYPES[tag_type]
         final_type = _DTYPE_CONV[tag_type]+str(tag_length)
     else:

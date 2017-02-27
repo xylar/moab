@@ -231,59 +231,55 @@ cdef class Core(object):
         return entities
 
     def get_entities_by_type_and_tag(self, meshset, t, tags, np.ndarray vals, int cond = 0, bint recur = False, exceptions = ()):
+        # overall dimension of the numpy array should be 2
+        # one array for each tag passed to the function
         assert vals.ndim == 2
+        #ensure that the correct number of arrays exist
         assert len(tags) == vals.shape[0]
         #setup some initial variables to pass to MOAB function
         cdef int num_tags = len(tags)
         cdef moab.EntityType typ = t
+        #create tag array to pass to function
         cdef TagArray ta = TagArray(tags)
-
-        # vectors to hold data
-        # duplicating storage here out of necessity
-        # fortunately queries don't typically come with many values
-        cdef vector[int] int_storage
-        int_storage.resize(num_tags)
-        cdef vector[double] dbl_storage
-        dbl_storage.resize(num_tags)
-        cdef vector[char*] char_storage
-        char_storage.resize(num_tags)
+        #allocate memory for an appropriately sized void** array
         cdef void** arr = <void**> malloc(num_tags*sizeof(void*))
         
         #get the tag type
         cdef moab.ErrorCode err
         cdef moab.DataType this_tag_type = moab.MB_MAX_DATA_TYPE
-        cdef int this_tag_length = 0        
+        cdef int this_tag_length = 0
         cdef Tag this_tag
         cdef bytes val_str
-        cdef np.ndarray temp_arr
-        # assign values based on tag type
+        cdef np.ndarray this_data
+        
+        # assign values to void** array
         for i in range(num_tags):
+            # make sure we're dealing with a 1-D array at this point
+            assert vals[i].ndim == 1
             # if None is passed, set pointer to NULL and continue
             if vals[i][0] == None:
                 arr[i] = NULL
-                continue
             # otherwise get the tag type
-            this_tag = tags[i]
-            err = self.inst.tag_get_data_type(this_tag.inst, this_tag_type)
-            check_error(err)
-            err = self.inst.tag_get_length(this_tag.inst,this_tag_length);
-            check_error(err)
-            temp_arr = validate_type(this_tag_type, this_tag_length, vals[i])
-            arr[i] = <void*> temp_arr.data
+            else:
+                this_data = vals[i]
+                this_tag = tags[i]
+                err = self.inst.tag_get_data_type(this_tag.inst, this_tag_type)
+                check_error(err)
+                #and length
+                err = self.inst.tag_get_length(this_tag.inst,this_tag_length);
+                check_error(err)
+                #check that the data for this tag is the correct length
+                if this_tag_type == moab.MB_TYPE_OPAQUE:
+                    #if this is an opaque tag, there should only be one
+                    #string entry in the array
+                    assert this_data.size == 1
+                else:
+                    assert this_data.size == this_tag_length
+                #validate the array type and convert the dtype if necessary
+                this_data = validate_type(this_tag_type, this_tag_length, this_data)
+                #set the array value
+                arr[i] = <void*> this_data.data
             
-            
-            # # attempt to cast tag value as type, should return a TypeError on failure
-            # if this_tag_type == types.MB_TYPE_INTEGER:
-            #     int_storage[i] = <int> vals[i]
-            #     arr[i] = &(int_storage[i])
-            # if this_tag_type == types.MB_TYPE_DOUBLE:
-            #     dbl_storage[i] = <double> vals[i]
-            #     arr[i] = &(dbl_storage[i])
-            # if this_tag_type == types.MB_TYPE_OPAQUE:
-            #     char_storage[i] = <char*> malloc(this_tag_length*sizeof(char))
-            #     char_storage[i] = <char*> vals[i]
-            #     val_str = char_storage[i]
-            #     arr[i] = char_storage[i]
         #a range to hold returned entities
         cdef Range ents = Range()
         #here goes nothing
