@@ -142,3 +142,7 @@ MB_TAG_STORE = moab.MB_TAG_STORE
 MB_TAG_ANY = moab.MB_TAG_ANY   
 MB_TAG_NOOPQ = moab.MB_TAG_NOOPQ 
 MB_TAG_DFTOK = moab.MB_TAG_DFTOK 
+
+# Query selection types
+INTERSECT = 0
+UNION = 1

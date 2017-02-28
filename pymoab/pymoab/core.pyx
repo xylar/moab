@@ -272,7 +272,14 @@ cdef class Core(object):
         check_error(err, exceptions)
         return entities
 
-    def get_entities_by_type_and_tag(self, meshset, t, tags, np.ndarray vals, int cond = 0, bint recur = False, exceptions = ()):
+    def get_entities_by_type_and_tag(self,
+                                     meshset,
+                                     t,
+                                     tags,
+                                     np.ndarray vals,
+                                     int condition = types.INTERSECT,
+                                     bint recur = False,
+                                     exceptions = ()):
         # overall dimension of the numpy array should be 2
         # one array for each tag passed to the function
         print "Got Here"                
@@ -326,7 +333,14 @@ cdef class Core(object):
         #a range to hold returned entities
         cdef Range ents = Range()
         #here goes nothing
-        err = self.inst.get_entities_by_type_and_tag(<unsigned long> meshset, typ, ta.ptr, <const void**> arr, len(tags), deref(ents.inst), cond, recur)
+        err = self.inst.get_entities_by_type_and_tag(<unsigned long> meshset,
+                                                     typ,
+                                                     ta.ptr,
+                                                     <const void**> arr,
+                                                     len(tags),
+                                                     deref(ents.inst),
+                                                     condition,
+                                                     recur)
         check_error(err, exceptions)
         # return entities found in the MOAB function call
         return ents
