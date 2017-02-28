@@ -4,7 +4,7 @@ from cython.operator cimport dereference as deref
 cimport numpy as np
 import numpy as np
 
-from .range cimport Range
+from .rng cimport Range
 from .core cimport Core
 from .types import check_error
 from . import types

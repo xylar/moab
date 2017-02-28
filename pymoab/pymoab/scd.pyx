@@ -6,7 +6,7 @@ import numpy as np
 from pymoab cimport moab
 from cython.operator cimport dereference as deref
 from libc.stdlib cimport malloc,free
-from .range cimport Range
+from .rng cimport Range
 from .core cimport Core
 from .hcoord cimport HomCoord
 from .types import check_error

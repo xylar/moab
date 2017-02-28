@@ -7,7 +7,7 @@ import ctypes
 
 from pymoab cimport moab
 from .tag cimport Tag, TagArray
-from .range cimport Range
+from .rng cimport Range
 from .types import check_error, np_tag_type, validate_type
 from . import types
 from libcpp.vector cimport vector
