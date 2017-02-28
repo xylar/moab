@@ -36,6 +36,15 @@ cdef class Range(object):
         """clears the contents of the list."""
         self.inst.clear()
 
+    # def erase(self, moab.EntityHandle val):
+    #     self.inst.erase(val)
+
+    def all_of_type(self, moab.EntityType t):
+        return self.inst.all_of_type(t)
+
+    def all_of_dimension(self, int dim):
+        return self.inst.all_of_dimension(dim)
+
     def __iter__(self):
         cdef int i = 0
         for i in range(0, self.inst.size()):

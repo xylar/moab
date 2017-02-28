@@ -97,6 +97,8 @@ cdef extern from "moab/Range.hpp" namespace "moab":
         size_t psize()
         bint empty()
         void clear()
+        bool all_of_type(EntityType t)
+        bool all_of_dimension(int dimension)
         void print_ "print" ()
 
         EntityHandle operator[](EntityID index)
