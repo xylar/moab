@@ -47,3 +47,17 @@ cdef class Range(object):
             return rtn
         else:
             raise StopIteration
+
+    def __str__(self):
+        prefix= "["
+        delim = ", "
+        suffix= "]"
+        out_str=prefix
+        for entity in self:
+            out_str+=str(entity)
+            out_str+=delim
+        #replace final delimiter
+        out_str=out_str[:-2]
+        out_str+=suffix
+        return out_str
+            
