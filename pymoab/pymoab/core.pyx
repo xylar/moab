@@ -31,8 +31,6 @@ def eh_array(iterable):
 
 cdef class Core(object):
 
-#    cdef moab.Core *inst
-
     def __cinit__(self):
         self.inst = new moab.Core()
 
