@@ -136,7 +136,7 @@ def test_create_elements():
     mb = core.Core()
     coords = np.array((0,0,0,1,0,0,1,1,1),dtype='float64')
     verts = mb.create_vertices(coords)
-    assert 3 == verts.size()
+    assert 3 == len(verts)
     #create elements
     verts = np.array(((verts[0],verts[1],verts[2]),),dtype='uint64')
     tris = mb.create_elements(types.MBTRI,verts)
@@ -160,8 +160,8 @@ def test_range():
     for v in vert:
         dum += 1
         if dum > 100: break
-    assert vert.size() == dum
-    assert len(vert) == vert.size()
+    assert len(vert) == dum
+    assert len(vert) == len(vert)
 
 
 def test_tag_failures():
@@ -203,7 +203,7 @@ def test_adj():
     tris = mb.create_elements(types.MBTRI,verts)
     #get the adjacencies of the triangle of dim 1 (should return the vertices)
     adjs = mb.get_adjacencies(tris, 0, False)
-    assert 3 is adjs.size()
+    assert 3 is len(adjs)
 
     #check that the entities are of the correct type
     for adj in adjs:
@@ -212,7 +212,7 @@ def test_adj():
 
     #now get the edges and ask MOAB to create them for us
     adjs = mb.get_adjacencies(tris, 1, True)
-    assert 3 is adjs.size()
+    assert 3 is len(adjs)
 
     for adj in adjs:
         type = mb.type_from_handle(adj)
@@ -225,7 +225,7 @@ def test_meshsets():
         a = mb.create_meshset()
         mb.add_child_meshset(parent_set,a)
     children = mb.get_child_meshsets(parent_set)
-    assert children.size() is 5
+    assert len(children) is 5
 
 def test_rs():
     mb = core.Core()
@@ -248,7 +248,7 @@ def test_get_ents_by_type():
     ms = mb.create_meshset()
     mb.add_entities(ms,verts)
     ret_verts = mb.get_entities_by_type(ms,types.MBVERTEX, False)
-    for i in range(verts.size()):
+    for i in range(len(verts)):
         assert verts[i] == ret_verts[i]
 
 def test_get_ents_by_tnt():
@@ -297,7 +297,7 @@ def test_get_ents_by_tnt():
                                                    types.MBVERTEX,
                                                    test_case['tag_arr'],
                                                    test_case['value_arr'])
-        assert entities.size() == test_case['expected_size']
+        assert len(entities) == test_case['expected_size']
 
     ###MIXED TAG TYPE TESTS###
     mixed_tag_test_cases = [
@@ -335,7 +335,7 @@ def test_get_ents_by_tnt():
                                                    types.MBVERTEX,
                                                    test_case['tag_arr'],
                                                    test_case['value_arr'])
-        assert entities.size() == test_case['expected_size']
+        assert len(entities) == test_case['expected_size']
 
     ###VECTOR TAG TESTS###
 
@@ -353,7 +353,7 @@ def test_get_ents_by_tnt():
                                                types.MBVERTEX,
                                                [int_vec_test_tag,dbl_vec_test_tag],
                                                np.array([[0,1,2],[9.0,10.0,11.0]],dtype='O'))
-    assert entities.size() == 1
+    assert len(entities) == 1
 
     #one non existant set of values, one existing
     entities = mb.get_entities_by_type_and_tag(rs,
@@ -361,20 +361,20 @@ def test_get_ents_by_tnt():
                                                [int_vec_test_tag,dbl_vec_test_tag],
                                                np.array([[0,1,2],[22.0,10.0,11.0]],dtype='O'))
 
-    assert entities.size() == 0
+    assert len(entities) == 0
     # any set of one tag
     print "Running suspect test"
     entities = mb.get_entities_by_type_and_tag(rs,
                                                types.MBVERTEX,
                                                [int_vec_test_tag,dbl_vec_test_tag],
                                                np.array([[None,None,None],[9.0,10.0,11.0]],dtype='O'))
-    assert entities.size() == 1
+    assert len(entities) == 1
 
     entities = mb.get_entities_by_type_and_tag(rs,
                                                types.MBVERTEX,
                                                [int_vec_test_tag,dbl_vec_test_tag],
                                                np.array([[None],[None]],dtype='O'))
-    assert entities.size() == 3
+    assert len(entities) == 3
     
         
     # any hex elements tagged with int_test_tag (no hex elements exist, there should be none)
@@ -383,8 +383,8 @@ def test_get_ents_by_tnt():
                                                types.MBHEX,
                                                np.array((int_test_tag,)),
                                                tag_test_vals)
-    print entities.size()
-    assert entities.size() == 0
+    print len(entities)
+    assert len(entities) == 0
 
 def test_get_entities_by_handle():
     mb = core.Core()
@@ -393,7 +393,7 @@ def test_get_entities_by_handle():
     ms = mb.create_meshset()
     mb.add_entities(ms,verts)
     ret_verts = mb.get_entities_by_handle(ms, False)
-    for i in range(verts.size()):
+    for i in range(len(verts)):
         assert verts[i] == ret_verts[i]
 
 def test_get_entities_by_dimension():
@@ -402,7 +402,7 @@ def test_get_entities_by_dimension():
     verts = mb.create_vertices(coords)
     rs = mb.get_root_set()
     ret_verts = mb.get_entities_by_dimension(rs, 0)
-    for i in range(verts.size()):
+    for i in range(len(verts)):
         assert verts[i] == ret_verts[i]
 
 def test_parent_child():
@@ -414,33 +414,33 @@ def test_parent_child():
     mb.add_parent_meshset(child_set, parent_set)
 
     parent_sets = mb.get_parent_meshsets(child_set)
-    assert parent_sets.size() == 1
+    assert len(parent_sets) == 1
     assert parent_sets[0] == parent_set
 
     child_sets = mb.get_child_meshsets(parent_set)
-    assert child_sets.size() == 0
+    assert len(child_sets) == 0
 
     mb.add_child_meshset(parent_set,child_set)
     
     child_sets = mb.get_child_meshsets(parent_set)
-    assert child_sets.size() == 1
+    assert len(child_sets) == 1
     assert child_sets[0] == child_set
     
     parent_set = mb.create_meshset()
     child_set = mb.create_meshset()
 
     parent_sets = mb.get_parent_meshsets(child_set)
-    assert parent_sets.size() == 0
+    assert len(parent_sets) == 0
     child_sets = mb.get_child_meshsets(parent_set)
-    assert child_sets.size() == 0
+    assert len(child_sets) == 0
 
     mb.add_parent_child(parent_set,child_set)
 
     parent_sets = mb.get_parent_meshsets(child_set)
-    assert parent_sets.size() == 1
+    assert len(parent_sets) == 1
     parent_sets[0] == parent_set
     child_sets = mb.get_child_meshsets(parent_set)
-    assert child_sets.size() == 1
+    assert len(child_sets) == 1
     child_sets[0] == child_set
     
 def test_remove_ents():

@@ -25,14 +25,14 @@ def scd_tst(bnds):
     mb = core.Core()
     scd = ScdInterface(mb)
     boxes = scd.find_boxes()
-    assert boxes.size() == 0 
+    assert len(boxes) == 0 
 
     low = HomCoord(bnds[:3])
     high = HomCoord(bnds[3:])
 
     scdbox = scd.construct_box(low,high)
     hexes = mb.get_entities_by_type(mb.get_root_set(),types.MBHEX)
-    assert 1 == scd.find_boxes().size()
+    assert 1 == len(scd.find_boxes())
     assert bnds[3]*bnds[4]*bnds[5] == len(hexes)
 
     check_sequence(scdbox, *bnds)
