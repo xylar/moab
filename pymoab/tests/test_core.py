@@ -117,20 +117,35 @@ def test_opaque_tag():
     assert data[0] == test_val
     assert data.dtype == '|S' + str(tag_length)
 
-    mb.write_file("four.h5m")
+def test_tag_list():
+    mb = core.Core()
+    vh = vertex_handle(mb)
+    tag_length = 6
+    test_tag = mb.tag_get_handle("Test",tag_length,types.MB_TYPE_OPAQUE,True)
+    test_val = 'four'
+    test_tag_data = np.array((test_val,))
+    # convert vertex handle Range to a list
+    vh = list(vh)
+    mb.tag_set_data(test_tag, vh, test_tag_data)
+    data = mb.tag_get_data(test_tag, vh)
+    
 
+    assert len(data) == 1
+    assert data.nbytes == tag_length
+    assert data[0] == test_val
+    assert data.dtype == '|S' + str(tag_length)
+    
 def test_create_meshset():
     mb = core.Core()
     msh = mb.create_meshset()
     vh = vertex_handle(mb)
     mb.add_entities(msh,vh)
-    
+
 def vertex_handle(core):
     """Convenience function for getting an arbitrary vertex element handle."""
     coord = np.array((1,1,1),dtype='float64')
     vert = core.create_vertices(coord)
-    vert_copy = np.array((vert[0],),dtype='uint64')
-    return vert_copy
+    return vert
 
 def test_create_elements():
     mb = core.Core()
