@@ -17,17 +17,20 @@ cdef void* null = NULL
 
 EH_DTYPE = types._DTYPE_CONV[types.MB_TYPE_HANDLE]
 
-def eh_array(iterable):
+def _convert_array(iterable, accepted_types, return_dtype):
     err_msg = "Incorrect type in EntityHandle Array"
 
     #if this is already an array of the correct type, avoid the loop
-    if isinstance(iterable, np.ndarray) and iterable.dtype == np.dtype(EH_DTYPE):
+    if isinstance(iterable, np.ndarray) and iterable.dtype == return_dtype:
         return  iterable
     #if not, each entry in the iterable should be verified
     for entry in iterable:
-        assert (type(entry) == long or type(entry) == np.uint64), err_msg
+        assert (type(entry) in accepted_types), err_msg
     #if this is true, then create an array from the iterable
-    return np.fromiter(iterable, EH_DTYPE)
+    return np.fromiter(iterable, return_dtype)
+
+def _eh_array(iterable):
+    return _convert_array(iterable, [long, EH_DTYPE], EH_DTYPE)
 
 cdef class Core(object):
 
@@ -69,7 +72,7 @@ cdef class Core(object):
            r = entities
            err = self.inst.add_entities(ms_handle, deref(r.inst))
         else:
-           arr = eh_array(entities)
+           arr = _eh_array(entities)
            err = self.inst.add_entities(ms_handle, <unsigned long*> arr.data, len(entities))
         check_error(err, exceptions)
 
@@ -81,7 +84,7 @@ cdef class Core(object):
             r = entities
             err = self.inst.remove_entities(ms_handle, deref(r.inst))
         else:
-            arr = np.fromiter(entities, EH_DTYPE)
+            arr = _eh_array(entities)
             err = self.inst.remove_entities(ms_handle, <unsigned long*> arr.data, len(entities))
         check_error(err, exceptions)
 
@@ -93,7 +96,7 @@ cdef class Core(object):
             r = entities
             err = self.inst.delete_entities(deref(r.inst))
         else:
-            arr = np.fromiter(entities, EH_DTYPE)
+            arr = _eh_array(entities)
             err = self.inst.delete_entities(<unsigned long*> arr.data, len(entities))
         check_error(err, exceptions)
         
@@ -170,7 +173,7 @@ cdef class Core(object):
             err = self.inst.tag_set_data(tag.inst, deref(r.inst), <const void*> data.data)
             check_error(err, exceptions)
         else:
-            arr = eh_array(entity_handles)
+            arr = _eh_array(entity_handles)
             err = self.inst.tag_set_data(tag.inst, <unsigned long*> arr.data, len(entity_handles), <const void*> data.data)
             check_error(err, exceptions)
 
@@ -194,7 +197,7 @@ cdef class Core(object):
             err = self.inst.tag_get_data(tag.inst, deref(r.inst), <void*> data.data)
             check_error(err, exceptions)
         else:
-            arr = eh_array(entity_handles)
+            arr = _eh_array(entity_handles)
             err = self.inst.tag_get_data(tag.inst, <unsigned long*> arr.data, len(entity_handles), <void*> data.data)
             check_error(err,exceptions)
         return data
@@ -208,7 +211,7 @@ cdef class Core(object):
             r = entity_handles
             err = self.inst.get_adjacencies(deref(r.inst), to_dim, create_if_missing, deref(adj.inst))
         else:
-            arr = eh_array(entity_handles)
+            arr = _eh_array(entity_handles)
             err = self.inst.get_adjacencies(<unsigned long*> arr.data, len(entity_handles), to_dim, create_if_missing, deref(adj.inst))
         check_error(err, exceptions)
         return adj
@@ -260,7 +263,7 @@ cdef class Core(object):
             coords = np.empty((3*r.size(),),dtype='float64')
             err = self.inst.get_coords(deref(r.inst), <double*> coords.data)
         else:
-            arr = eh_array(entities)
+            arr = _eh_array(entities)
             coords = np.empty((3*len(arr),),dtype='float64')
             err = self.inst.get_coords(<unsigned long*> arr.data, len(entities), <double*> coords.data)
         check_error(err, exceptions)
