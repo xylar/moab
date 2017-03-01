@@ -17,7 +17,7 @@ cdef void* null = NULL
 
 EH_DTYPE = types._DTYPE_CONV[types.MB_TYPE_HANDLE]
 
-def _convert_array(iterable, accepted_types, return_dtype):
+def _convert_array(iterable, accepted_dtypes, return_dtype):
     err_msg = "Incorrect type in EntityHandle Array"
 
     #if this is already an array of the correct type, avoid the loop
@@ -25,7 +25,7 @@ def _convert_array(iterable, accepted_types, return_dtype):
         return  iterable
     #if not, each entry in the iterable should be verified
     for entry in iterable:
-        assert (type(entry) in accepted_types), err_msg
+        assert (type(entry) in accepted_dtypes), err_msg
     #if this is true, then create an array from the iterable
     return np.fromiter(iterable, return_dtype)
 
@@ -101,20 +101,22 @@ cdef class Core(object):
         check_error(err, exceptions)
         
 
-    def create_vertices(self, np.ndarray[np.float64_t, ndim=1] coordinates, exceptions = ()):
+    def create_vertices(self, coordinates, exceptions = ()):
         cdef Range rng = Range()
-        cdef moab.ErrorCode err = self.inst.create_vertices(<double *> coordinates.data,
+        cdef np.ndarray[np.float64_t, ndim=1] coords_arr = _convert_array(coordinates, [np.float64], np.float64)
+        cdef moab.ErrorCode err = self.inst.create_vertices(<double *> coords_arr.data,
                                                             len(coordinates)//3,
                                                             deref(rng.inst))
         check_error(err, exceptions)
         return rng
 
-    def create_element(self, int t, np.ndarray[np.uint64_t, ndim=1] connectivity, exceptions = ()):
+    def create_element(self, int t, connectivity, exceptions = ()):
         cdef moab.EntityType typ = <moab.EntityType> t
         cdef moab.EntityHandle handle = 0
+        cdef np.ndarray[np.uint64_t, ndim=1] conn_arr = _eh_array(connectivity)
         cdef int nnodes = len(connectivity)
         cdef moab.ErrorCode err = self.inst.create_element(typ,
-            <unsigned long*> connectivity.data, nnodes, handle)
+            <unsigned long*> conn_arr.data, nnodes, handle)
         check_error(err, exceptions)
         return handle
 
@@ -157,7 +159,7 @@ cdef class Core(object):
         check_error(err, exceptions)
         return tag
 
-    def tag_set_data(self, Tag tag, entity_handles, np.ndarray data, exceptions = ()):
+    def tag_set_data(self, Tag tag, entity_handles, data, exceptions = ()):
         cdef moab.ErrorCode err
         cdef Range r
         cdef np.ndarray[np.uint64_t, ndim=1] arr
@@ -167,14 +169,15 @@ cdef class Core(object):
         cdef int length = 0
         err = self.inst.tag_get_length(tag.inst,length);
         check_error(err,())
-        data = validate_type(tag_type,length,data)
+        cdef np.ndarray data_arr = np.asarray(data)
+        data_arr = validate_type(tag_type,length,data_arr)
         if isinstance(entity_handles,Range):
             r = entity_handles
-            err = self.inst.tag_set_data(tag.inst, deref(r.inst), <const void*> data.data)
+            err = self.inst.tag_set_data(tag.inst, deref(r.inst), <const void*> data_arr.data)
             check_error(err, exceptions)
         else:
             arr = _eh_array(entity_handles)
-            err = self.inst.tag_set_data(tag.inst, <unsigned long*> arr.data, len(entity_handles), <const void*> data.data)
+            err = self.inst.tag_set_data(tag.inst, <unsigned long*> arr.data, len(entity_handles), <const void*> data_arr.data)
             check_error(err, exceptions)
 
     def tag_get_data(self, Tag tag, entity_handles, exceptions = ()):
