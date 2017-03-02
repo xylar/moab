@@ -287,10 +287,11 @@ cdef class Core(object):
                                      meshset,
                                      t,
                                      tags,
-                                     np.ndarray vals,
+                                     values,
                                      int condition = types.INTERSECT,
                                      bint recur = False,
                                      exceptions = ()):
+        cdef np.ndarray vals = np.asarray(values, dtype='O')
         # overall dimension of the numpy array should be 2
         # one array for each tag passed to the function
         assert vals.ndim == 2
