@@ -100,6 +100,7 @@ cdef extern from "moab/Range.hpp" namespace "moab":
         bool all_of_type(EntityType t)
         bool all_of_dimension(int dimension)
         void print_ "print" ()
+        void insert(EntityHandle val)
 
         EntityHandle operator[](EntityID index)
 

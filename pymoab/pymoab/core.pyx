@@ -8,29 +8,12 @@ import ctypes
 from pymoab cimport moab
 from .tag cimport Tag, TagArray
 from .rng cimport Range
-from .types import check_error, np_tag_type, validate_type
+from .types import check_error, np_tag_type, validate_type, _convert_array, _eh_array
 from . import types
 from libcpp.vector cimport vector
 from libc.stdlib cimport malloc
 
 cdef void* null = NULL
-
-EH_DTYPE = types._DTYPE_CONV[types.MB_TYPE_HANDLE]
-
-def _convert_array(iterable, accepted_dtypes, return_dtype):
-    err_msg = "Incorrect type in EntityHandle Array"
-
-    #if this is already an array of the correct type, avoid the loop
-    if isinstance(iterable, np.ndarray) and iterable.dtype == return_dtype:
-        return  iterable
-    #if not, each entry in the iterable should be verified
-    for entry in iterable:
-        assert (type(entry) in accepted_dtypes), err_msg
-    #if this is true, then create an array from the iterable
-    return np.fromiter(iterable, return_dtype)
-
-def _eh_array(iterable):
-    return _convert_array(iterable, [long, EH_DTYPE], EH_DTYPE)
 
 cdef class Core(object):
 

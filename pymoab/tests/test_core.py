@@ -1,5 +1,6 @@
 from pymoab import core
 from pymoab import types
+from pymoab.rng import Range
 from pymoab.scd import ScdInterface
 from pymoab.hcoord import HomCoord
 from subprocess import call
@@ -165,7 +166,7 @@ def test_create_elements():
 def test_range():
 
     mb = core.Core()
-    coord = np.array((1,1,1),dtype='float64')
+    coord = np.array((1,1,1,2,2,2,3,3,3,4,4,4,5,5,5,6,6,6),dtype='float64')
     vert = mb.create_vertices(coord)
     test_tag = mb.tag_get_handle("Test",1,types.MB_TYPE_INTEGER,True)
     data = np.array((1,))
@@ -176,8 +177,49 @@ def test_range():
         dum += 1
         if dum > 100: break
     assert len(vert) == dum
-    assert len(vert) == len(vert)
 
+    #test creation
+    vert_range_as_list = list(vert)
+    new_range = Range(vert_range_as_list)
+    assert len(new_range) == len(vert)
+    for eh_orig,eh_new in zip(vert,new_range):
+        assert eh_orig == eh_new
+    
+    #test slicing/indexing
+    assert vert[-1] == vert[5]
+    assert vert[-2] == vert[4]
+
+    sliced_range = vert[0:2]
+    assert len(sliced_range) == 2
+    assert sliced_range[0] == vert[0]
+    assert sliced_range[1] == vert[1]
+
+    sliced_range = vert[0:5:2]
+    assert len(sliced_range) == 3
+    assert sliced_range[0] == vert[0]
+    assert sliced_range[1] == vert[2]
+    assert sliced_range[2] == vert[4]
+
+    sliced_range = vert[0:]
+    assert len(sliced_range) == len(vert)
+    for eh_orig,eh_new in zip(vert,sliced_range):
+        assert eh_orig == eh_new
+        
+    sliced_range = vert[::]
+    assert len(sliced_range) == len(vert)
+    for eh_orig,eh_new in zip(vert,sliced_range):
+        assert eh_orig == eh_new
+
+    sliced_range = vert[-2:]
+    assert len(sliced_range) == 2
+    assert sliced_range[0] == vert[4]
+    assert sliced_range[1] == vert[5]
+
+    sliced_range = vert[-4:-2]
+    assert len(sliced_range) == 2
+    assert sliced_range[0] == vert[2]
+    assert sliced_range[1] == vert[3]
+    
 
 def test_tag_failures():
     mb = core.Core()

@@ -2,6 +2,7 @@
 from cython.operator cimport dereference as deref
 
 from pymoab cimport moab
+from .types import _eh_array
 
 cdef class Range(object):
 
@@ -11,8 +12,12 @@ cdef class Range(object):
     #    else:
     #        self.inst = new moab.Range(val1, val2)
 
-    def __cinit__(self):
+    def __cinit__(self, entities = None):
         self.inst = new moab.Range()
+        if entities is not None:
+            entity_array = _eh_array(entities)
+            for eh in entity_array:
+                self.inst.insert(eh)
 
     def __del__(self):
         del self.inst
@@ -50,13 +55,24 @@ cdef class Range(object):
         for i in range(0, self.inst.size()):
             yield self[i]
 
-    def __getitem__(self, int index):
-        cdef moab.EntityHandle rtn = deref(self.inst)[index]
-        if index < self.size():
-            return rtn
+    def __getitem__(self, key):
+        cdef moab.EntityHandle rtn
+        if isinstance(key, int):
+            i = key if key >= 0 else len(self)+key
+            rtn = deref(self.inst)[i]
+            if i < self.size():
+                return rtn
+            else:
+                raise StopIteration
+        elif isinstance(key, slice):
+            step = key.step if key.step is not None else 1
+            start = key.start if key.start is not None else 0
+            stop = key.stop if key.stop is not None else len(self)
+            ents = list(self)[start:stop:step]
+            return Range(ents)
         else:
-            raise StopIteration
-
+            raise ValueError
+        
     def __str__(self):
         prefix= "["
         delim = ", "
