@@ -154,6 +154,21 @@ cdef class Core(object):
         err = self.inst.tag_get_length(tag.inst,length);
         check_error(err,())
         cdef np.ndarray data_arr = np.asarray(data)
+        #if the data array is not flat it must be dimension 2 and have
+        #as many entries as entity handles provided
+        if data_arr.ndim > 1:
+            assert data_arr.ndim == 2
+            assert data_arr.shape[0] == len(entity_handles)
+            #each entry must be equal to the tag length as well
+            for entry in data_arr:
+                len(entry) == length
+            #if all of this is true, then flatten the array and continue
+            data_arr = data_arr.flatten()
+        error_str = "Incorrect data length"
+        if types.MB_TYPE_OPAQUE == tag_type:
+            assert data_arr.size == len(entity_handles), error_str
+        else:
+            assert data_arr.size == len(entity_handles)*length, error_str
         data_arr = validate_type(tag_type,length,data_arr)
         if isinstance(entity_handles,Range):
             r = entity_handles
@@ -164,7 +179,7 @@ cdef class Core(object):
             err = self.inst.tag_set_data(tag.inst, <unsigned long*> arr.data, len(entity_handles), <const void*> data_arr.data)
             check_error(err, exceptions)
 
-    def tag_get_data(self, Tag tag, entity_handles, exceptions = ()):
+    def tag_get_data(self, Tag tag, entity_handles, flat = False, exceptions = ()):
         cdef moab.ErrorCode err
         cdef Range r
         cdef np.ndarray[np.uint64_t, ndim=1] arr
@@ -187,7 +202,11 @@ cdef class Core(object):
             arr = _eh_array(entity_handles)
             err = self.inst.tag_get_data(tag.inst, <unsigned long*> arr.data, len(entity_handles), <void*> data.data)
             check_error(err,exceptions)
-        return data
+        if flat:
+            return data
+        else:
+            entry_len = 1 if tag_type == types.MB_TYPE_OPAQUE else length
+            return data.reshape((len(entity_handles),entry_len))
 
     def get_adjacencies(self, entity_handles, int to_dim, bint create_if_missing = False, exceptions = ()):
         cdef moab.ErrorCode err

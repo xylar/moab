@@ -39,7 +39,8 @@ cdef extern from "TagInfo.hpp" namespace "moab":
     cdef cppclass TagInfo:
         TagInfo()
         DataType get_data_type()
-
+        int get_size()
+        int size_from_data_type(DataType t)
 
 cdef extern from "moab/Types.hpp" namespace "moab":
 

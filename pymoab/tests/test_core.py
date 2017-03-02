@@ -54,6 +54,14 @@ def test_get_tag():
         print "Shouldn't be here. Test fails."
         raise AssertionError
 
+def test_tag_properties():
+    mb = core.Core()
+    vh = vertex_handle(mb)
+    tag_size = 16
+    test_tag = mb.tag_get_handle("Test",tag_size,types.MB_TYPE_INTEGER,True)
+
+    assert test_tag.get_length() == tag_size
+
 def test_integer_tag():
     mb = core.Core()
     vh = vertex_handle(mb)
@@ -72,7 +80,7 @@ def test_double_tag():
     vh = vertex_handle(mb)
     test_tag = mb.tag_get_handle("Test",1,types.MB_TYPE_DOUBLE,True)
     test_val = 4.4
-    test_tag_data = np.array((test_val))
+    test_tag_data = np.array((test_val,))
     mb.tag_set_data(test_tag, vh, test_tag_data)
     data = mb.tag_get_data(test_tag, vh)
 
@@ -169,7 +177,7 @@ def test_range():
     coord = np.array((1,1,1,2,2,2,3,3,3,4,4,4,5,5,5,6,6,6),dtype='float64')
     verts = mb.create_vertices(coord)
     test_tag = mb.tag_get_handle("Test",1,types.MB_TYPE_INTEGER,True)
-    data = np.array((1,))
+    data = np.array((1,2,3,4,5,6))
     mb.tag_set_data(test_tag,verts,data)
 
     dum = 0
@@ -353,8 +361,6 @@ def test_get_ents_by_tnt():
     opaque_test_tag = mb.tag_get_handle("OpaqueTestTag",5,types.MB_TYPE_OPAQUE,True)
     opaque_test_tag_values = np.array(("Six","Seven","Eight",))
     mb.tag_set_data(opaque_test_tag,verts,opaque_test_tag_values)
-
-    mb.write_file("test.h5m")
     
     rs = mb.get_root_set()
 
@@ -428,12 +434,11 @@ def test_get_ents_by_tnt():
     int_vec_test_tag = mb.tag_get_handle("IntegerVecTestTag",3,types.MB_TYPE_INTEGER,True)
     dbl_vec_test_tag = mb.tag_get_handle("DoubleVecTestTag",3,types.MB_TYPE_DOUBLE,True)
 
-    int_vec_test_tag_values = np.array([0,1,2,3,4,5,6,7,8])
-    dbl_vec_test_tag_values = np.array([9.0,10.0,11.0,12.0,13.0,14.0,15.0,16.0,17.0])
+    int_vec_test_tag_values = np.array([[0,1,2],[3,4,5],[6,7,8]])
+    dbl_vec_test_tag_values = np.array([[9.0,10.0,11.0],[12.0,13.0,14.0],[15.0,16.0,17.0]])
     mb.tag_set_data(int_vec_test_tag,verts,int_vec_test_tag_values)
     mb.tag_set_data(dbl_vec_test_tag,verts,dbl_vec_test_tag_values)
 
-    mb.write_file("vec_tags.h5m")
     # existing sets of values
     entities = mb.get_entities_by_type_and_tag(rs,
                                                types.MBVERTEX,
@@ -617,4 +622,43 @@ def test_iterables():
     else:
         print "Shouldn't be here. Test fails."
         raise AssertionError        
-    
+
+def test_vec_tags():
+    mb = core.Core()
+    coords = np.array((0,0,0,1,0,0,1,1,1),dtype='float64')
+    verts = mb.create_vertices(coords)
+
+    int_vec_test_tag = mb.tag_get_handle("IntegerVecTestTag",3,types.MB_TYPE_INTEGER,True)
+    dbl_vec_test_tag = mb.tag_get_handle("DoubleVecTestTag",3,types.MB_TYPE_DOUBLE,True)
+    opaque_vec_test_tag = mb.tag_get_handle("OPTag",10,types.MB_TYPE_OPAQUE,True)
+    #should be able to successfully tag using a 2-D array
+    int_vec_test_tag_values = np.array([[0,1,2],[3,4,5],[6,7,8]])
+    dbl_vec_test_tag_values = np.array([[9.0,10.0,11.0],[12.0,13.0,14.0],[15.0,16.0,17.0]])
+    opaque_vec_test_tag_values = np.array([["One"],["Two"],["Three"]])
+    mb.tag_set_data(int_vec_test_tag,verts,int_vec_test_tag_values)
+    mb.tag_set_data(dbl_vec_test_tag,verts,dbl_vec_test_tag_values)
+    mb.tag_set_data(opaque_vec_test_tag,verts,opaque_vec_test_tag_values)
+
+    #or a 1-D array
+    int_vec_test_tag_values_flat = np.array([0,1,2,3,4,5,6,7,8])
+    dbl_vec_test_tag_values_flat = np.array([9.0,10.0,11.0,12.0,13.0,14.0,15.0,16.0,17.0])
+    opaque_vec_test_tag_values_flat = np.array(["One","Two","Three"])
+    mb.tag_set_data(int_vec_test_tag,verts,int_vec_test_tag_values)
+    mb.tag_set_data(dbl_vec_test_tag,verts,dbl_vec_test_tag_values)
+    mb.tag_set_data(opaque_vec_test_tag,verts,opaque_vec_test_tag_values_flat)
+
+    #these values should then be able to be retrieved as a 2-D array
+    returned_int_test_tag_values = mb.tag_get_data(int_vec_test_tag,verts)
+    assert np.array_equal(returned_int_test_tag_values,int_vec_test_tag_values)
+    returned_dbl_test_tag_values = mb.tag_get_data(dbl_vec_test_tag,verts)
+    assert np.array_equal(returned_dbl_test_tag_values,dbl_vec_test_tag_values)
+    returned_opaque_test_tag_values = mb.tag_get_data(opaque_vec_test_tag,verts)
+    assert np.array_equal(returned_opaque_test_tag_values,opaque_vec_test_tag_values)
+
+    #or as a 1-D array
+    returned_int_test_tag_values = mb.tag_get_data(int_vec_test_tag,verts,flat=True)
+    assert np.array_equal(returned_int_test_tag_values,int_vec_test_tag_values_flat)
+    returned_dbl_test_tag_values = mb.tag_get_data(dbl_vec_test_tag,verts,flat=True)
+    assert np.array_equal(returned_dbl_test_tag_values,dbl_vec_test_tag_values_flat)
+    returned_opaque_test_tag_values = mb.tag_get_data(opaque_vec_test_tag,verts,flat=True)
+    assert np.array_equal(returned_opaque_test_tag_values,opaque_vec_test_tag_values_flat)

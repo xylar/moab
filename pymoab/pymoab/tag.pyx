@@ -14,6 +14,12 @@ cdef class Tag(object):
     def __del__(self):
         free(self.inst)
 
+    def get_length(self):
+        t = self.inst.get_data_type()
+        type_byte_size = self.inst.size_from_data_type(t)
+        total_byte_size = self.inst.get_size()
+        return total_byte_size/type_byte_size
+
     def get_data_type(self): 
         return self.inst.get_data_type()
 
