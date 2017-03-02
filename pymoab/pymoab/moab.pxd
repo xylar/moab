@@ -101,6 +101,9 @@ cdef extern from "moab/Range.hpp" namespace "moab":
         bool all_of_dimension(int dimension)
         void print_ "print" ()
         void insert(EntityHandle val)
+        void erase(EntityHandle val)
+        EntityHandle pop_front()
+        EntityHandle pop_back()
 
         EntityHandle operator[](EntityID index)
 

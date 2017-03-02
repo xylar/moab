@@ -12,10 +12,15 @@ cdef class Range(object):
     #    else:
     #        self.inst = new moab.Range(val1, val2)
 
-    def __cinit__(self, entities = None):
+    def __cinit__(self, arg = None):
         self.inst = new moab.Range()
-        if entities is not None:
-            entity_array = _eh_array(entities)
+        #hack to copy
+        if isinstance(arg, Range):
+            for eh in arg:
+                self.inst.insert(eh)
+        #create from iterable
+        if arg is not None:
+            entity_array = _eh_array(arg)
             for eh in entity_array:
                 self.inst.insert(eh)
 
@@ -41,9 +46,15 @@ cdef class Range(object):
         """clears the contents of the list."""
         self.inst.clear()
 
-    # def erase(self, moab.EntityHandle val):
-    #     self.inst.erase(val)
+    def erase(self, moab.EntityHandle val):
+         self.inst.erase(val)
 
+    def pop_front(self):
+        return self.inst.pop_front()
+
+    def pop_back(self):
+        return self.inst.pop_back()
+    
     def all_of_type(self, moab.EntityType t):
         return self.inst.all_of_type(t)
 
