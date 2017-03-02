@@ -496,3 +496,32 @@ def test_remove_ents():
     assert len(entities) == 2
     assert entities[0] == verts[1]
     assert entities[1] == verts[2]
+
+def test_iterables():
+
+    mb = core.Core()
+    coords = np.array([0.,0.,0.,1.,0.,0.,1.,1.,1.])
+    verts = mb.create_vertices(coords)
+
+    int_tag = mb.tag_get_handle("IntTag",1,types.MB_TYPE_INTEGER,True)
+
+    int_data = [1,2,3]
+
+    mb.tag_set_data(int_tag,verts,int_data)
+
+    return_data = mb.tag_get_data(int_tag,verts)
+
+    assert return_data[0] == int_data[0]
+    assert return_data[1] == int_data[1]
+    assert return_data[2] == int_data[2]
+
+    #try to set data with bad array (contains int)
+    int_data = [1,2,3.0]
+
+    try:
+        mb.tag_set_data(int_tag,verts,int_data)
+    except:
+        pass
+    else:
+        print "Shouldn't be here. Test fails."
+        raise AssertionError

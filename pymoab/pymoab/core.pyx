@@ -104,6 +104,7 @@ cdef class Core(object):
     def create_vertices(self, coordinates, exceptions = ()):
         cdef Range rng = Range()
         cdef np.ndarray[np.float64_t, ndim=1] coords_arr = _convert_array(coordinates, [np.float64], np.float64)
+        assert len(coordinates)%3 == 0, "Incorrect number of coordinates provided."
         cdef moab.ErrorCode err = self.inst.create_vertices(<double *> coords_arr.data,
                                                             len(coordinates)//3,
                                                             deref(rng.inst))
@@ -355,6 +356,7 @@ cdef class Core(object):
         check_error(err, exceptions)
         # return entities found in the MOAB function call
         return ents
+
 
     def get_entities_by_handle(self, meshset, bint recur = False, exceptions = ()):
         cdef moab.ErrorCode err
