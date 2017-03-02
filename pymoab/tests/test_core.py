@@ -505,16 +505,6 @@ def test_iterables():
 
     int_tag = mb.tag_get_handle("IntTag",1,types.MB_TYPE_INTEGER,True)
 
-    int_data = [1,2,3]
-
-    mb.tag_set_data(int_tag,verts,int_data)
-
-    return_data = mb.tag_get_data(int_tag,verts)
-
-    assert return_data[0] == int_data[0]
-    assert return_data[1] == int_data[1]
-    assert return_data[2] == int_data[2]
-
     #try to set data with bad array (contains int)
     int_data = [1,2,3.0]
 
@@ -525,3 +515,35 @@ def test_iterables():
     else:
         print "Shouldn't be here. Test fails."
         raise AssertionError
+
+    #now set with valid data and check
+    int_data = [1,2,3]
+
+    mb.tag_set_data(int_tag,verts,int_data)
+
+    return_data = mb.tag_get_data(int_tag,verts)
+
+    assert return_data[0] == int_data[0]
+    assert return_data[1] == int_data[1]
+    assert return_data[2] == int_data[2]
+
+    #insert false vertex handle (not even correct type
+    verts = [verts[0],23,verts[1]]
+    try:
+        mb.tag_set_data(int_tag,verts,[1,2,3])
+    except:
+        pass
+    else:
+        print "Shouldn't be here. Test fails."
+        raise AssertionError        
+
+    #insert correct type, but non-existant handle
+    verts = [verts[0],long(23),verts[1]]
+    try:
+        mb.tag_set_data(int_tag,verts,[1,2,3])
+    except:
+        pass
+    else:
+        print "Shouldn't be here. Test fails."
+        raise AssertionError        
+    
