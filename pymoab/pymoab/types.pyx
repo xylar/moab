@@ -97,9 +97,9 @@ def np_tag_type(type):
 def validate_type(tag_type,tag_length,tag_data):
 
     #ensure this type is supported
-    assert tag_type in _DTYPE_CONV.keys()
+    assert tag_type in _DTYPE_CONV.keys(), "Invalid Tag Type"
     #and that it is the correct shape
-    assert tag_data.ndim == 0 or tag_data.ndim == 1    
+    assert tag_data.ndim == 0 or tag_data.ndim == 1, "Not a flat array"
 
     
     if MB_TYPE_OPAQUE == tag_type:
@@ -110,7 +110,7 @@ def validate_type(tag_type,tag_length,tag_data):
         is_valid = str(tag_data.dtype) in _VALID_DTYPES[tag_type]
         final_type = _DTYPE_CONV[tag_type]
 
-    assert is_valid
+    assert is_valid, "Data is invalid for Tag. Please verify data length and type."
     tag_data = np.asarray(tag_data, dtype=final_type)
     return tag_data
 
