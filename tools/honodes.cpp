@@ -77,4 +77,5 @@ int main(int argc, char *argv[])
   else{
       std::cout << "Wrote output mesh file: " << outFileName << std::endl;
     }
+  delete mb;
 }
