@@ -45,7 +45,8 @@ public:
 		DEFAULT = -1,
 		SourceMesh = 0,
 		TargetMesh = 1,
-		IntersectedMesh = 2
+		IntersectedMesh = 2,
+		CoveringMesh = 3
 	};
 
 	moab::Interface* get_interface()

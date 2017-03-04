@@ -30,6 +30,9 @@
 namespace moab
 {
 
+// Forward declare our friend, the mapper
+class TempestOfflineMap;
+
 class TempestRemapper : public Remapper
 {
 public:
@@ -52,6 +55,8 @@ public:
         OVERLAP_MOAB = 5
     };
 
+    friend class TempestOfflineMap;
+
     moab::ErrorCode GenerateMesh(Remapper::IntersectionContext ctx, TempestMeshType type);
 
     moab::ErrorCode LoadMesh(Remapper::IntersectionContext ctx, std::string inputFilename, TempestMeshType type);
@@ -64,9 +69,6 @@ public:
     moab::ErrorCode ConvertMeshToTempest(Remapper::IntersectionContext ctx);
 
     moab::ErrorCode AssociateSrcTargetInOverlap();
-
-    // Parallel utilities
-    moab::ErrorCode ExchangeGhostWeights(OfflineMap* weightMap);
 
     Mesh* GetMesh(Remapper::IntersectionContext ctx);
 
@@ -92,8 +94,6 @@ public:
     bool constructEdgeMap;  //  Construct the edge map within the TempestRemap datastructures
 
     static const bool verbose = true;
-
-    friend class TempestOfflineMap;
 
 private:
 
@@ -126,8 +126,8 @@ private:
     moab::EntityHandle m_covering_source_set;
     moab::Range m_covering_source_entities;
 
-    std::map<int,int> gid_to_lid_src, gid_to_lid_tgt;
-    std::map<int,int> lid_to_gid_src, lid_to_gid_tgt;
+    std::map<int,int> gid_to_lid_src, gid_to_lid_covsrc, gid_to_lid_tgt;
+    std::map<int,int> lid_to_gid_src, lid_to_gid_covsrc, lid_to_gid_tgt;
     moab::Range m_intersecting_target_entities;
 
 };
@@ -144,8 +144,10 @@ Mesh* TempestRemapper::GetMesh(Remapper::IntersectionContext ctx)
             return m_target;
         case Remapper::IntersectedMesh:
             return m_overlap;
+        case Remapper::CoveringMesh:
+            return m_covering_source;
+        case Remapper::DEFAULT:
         default:
-            // Nothing to return.
             return NULL;
     }
 }
@@ -170,8 +172,13 @@ void TempestRemapper::SetMesh(Remapper::IntersectionContext ctx, Mesh* mesh, boo
             if (overwrite && m_overlap) delete m_overlap;
             m_overlap = mesh;
             break;
+        case Remapper::CoveringMesh:
+            if (!overwrite && m_covering_source) return;
+            if (overwrite && m_covering_source) delete m_covering_source;
+            m_covering_source = mesh;
+            break;
         case Remapper::DEFAULT:
-            // Nothing to do.
+        default:
             break;
     }
 }
@@ -187,8 +194,10 @@ moab::EntityHandle TempestRemapper::GetMeshSet(Remapper::IntersectionContext ctx
             return m_target_set;
         case Remapper::IntersectedMesh:
             return m_overlap_set;
+        case Remapper::CoveringMesh:
+            return m_covering_source_set;
+        case Remapper::DEFAULT:
         default:
-            // Nothing to return, so return the rootset
             return 0;
     }
 }
@@ -208,7 +217,7 @@ void TempestRemapper::SetMeshType(Remapper::IntersectionContext ctx, TempestRema
             m_overlap_type = type;
             break;
         case Remapper::DEFAULT:
-            // Nothing to do.
+        default:
             break;
     }
 }
@@ -225,7 +234,7 @@ TempestRemapper::TempestMeshType TempestRemapper::GetMeshType(Remapper::Intersec
         case Remapper::IntersectedMesh:
             return m_overlap_type;
         case Remapper::DEFAULT:
-            // Nothing to do.
+        default:
             return TempestRemapper::DEFAULT;
     }
 }
@@ -249,12 +258,13 @@ int TempestRemapper::GetGlobalID(Remapper::IntersectionContext ctx, int localID)
             return lid_to_gid_src[localID];
         case Remapper::TargetMesh:
             return lid_to_gid_tgt[localID];
+        case Remapper::CoveringMesh:
+            return lid_to_gid_covsrc[localID];
         case Remapper::IntersectedMesh:
         case Remapper::DEFAULT:
-            break;
+        default:
+            return -1;
     }
-    // Nothing to do.
-    return -1;
 }
 
 inline
@@ -266,12 +276,13 @@ int TempestRemapper::GetLocalID(Remapper::IntersectionContext ctx, int globalID)
             return gid_to_lid_src[globalID];
         case Remapper::TargetMesh:
             return gid_to_lid_tgt[globalID];
-        case Remapper::IntersectedMesh:
+        case Remapper::CoveringMesh:
+            return gid_to_lid_covsrc[globalID];
         case Remapper::DEFAULT:
-            break;
+        case Remapper::IntersectedMesh:
+        default:
+            return -1;
     }
-    // Nothing to do.
-    return -1;
 }
 
 

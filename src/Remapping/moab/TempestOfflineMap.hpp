@@ -31,6 +31,9 @@ class Mesh;
 
 ///////////////////////////////////////////////////////////////////////////////
 
+namespace moab
+{
+
 ///	<summary>
 ///		An offline map between two Meshes.
 ///	</summary>
@@ -52,7 +55,7 @@ public:
 	///		Gather the mapping matrix that was computed in different processors and accumulate the data
 	///     on the root so that OfflineMap can be generated in parallel.
 	///	</summary>
-	virtual void GatherAllToRoot();
+	virtual moab::ErrorCode GatherAllToRoot();
 
 public:
 	///	<summary>
@@ -112,6 +115,10 @@ public:
 		double dTolerance
 	);
 
+	const DataVector<double>& GetGlobalSourceAreas() const;
+
+	const DataVector<double>& GetGlobalTargetAreas() const;
+
 private:
 	///	<summary>
 	///		Compute the remapping weights for a FV field defined on the source to a 
@@ -119,7 +126,7 @@ private:
 	///	</summary>
 	void LinearRemapFVtoFV_Tempest_MOAB( int nOrder );
 
-protected:
+private:
 	///	<summary>
 	///		The fundamental remapping operator object.
 	///	</summary>
@@ -129,6 +136,18 @@ protected:
 	///		The SparseMatrix representing this operator.
 	///	</summary>
 	SparseMatrix<double> m_mapRemapGlobal;
+
+
+	///	<summary>
+	///		The DataVector that stores the global (GID-based) areas of the source mesh.
+	///	</summary>
+	DataVector<double> m_areasSrcGlobal;
+
+	
+	///	<summary>
+	///		The DataVector that stores the global (GID-based) areas of the target mesh.
+	///	</summary>
+	DataVector<double> m_areasTgtGlobal;
 
 	///	<summary>
 	///		The reference to the moab::Core object that contains source/target and overlap sets.
@@ -144,10 +163,31 @@ protected:
 	Mesh* m_meshInputCov;
 	Mesh* m_meshOutput;
 	Mesh* m_meshOverlap;
-
 };
 
 ///////////////////////////////////////////////////////////////////////////////
+
+inline
+const DataVector<double>& TempestOfflineMap::GetGlobalSourceAreas() const {
+	if (pcomm->size() > 1) {
+		return m_areasSrcGlobal;
+	}
+	else {
+		return this->GetSourceAreas();
+	}
+}
+
+inline
+const DataVector<double>& TempestOfflineMap::GetGlobalTargetAreas() const {
+    if (pcomm->size() > 1) {
+		return m_areasTgtGlobal;
+	}
+	else {
+		return this->GetTargetAreas();
+	}
+}
+
+}
 
 #endif
 

@@ -287,7 +287,7 @@ int main(int argc, char* argv[])
   {
     const double epsrel = 1.e-8;
     const double radius = 1.0 /*2.0*acos(-1.0)*/;
-    const double boxeps = 0.1;
+    // const double boxeps = 0.1;
     // Usage: mpiexec -n 2 tools/mbtempest -t 5 -l mycs_2.h5m -l myico_2.h5m -f myoverlap_2.h5m
 
     rval = pcomm->check_all_shared_handles();MB_CHK_ERR(rval);
@@ -349,7 +349,7 @@ int main(int argc, char* argv[])
       ctx.timer_push("compute weights with the Tempest meshes");
 
       // Call to generate an offline map with the tempest meshes
-      TempestOfflineMap* weightMap = new TempestOfflineMap(&remapper);
+      moab::TempestOfflineMap* weightMap = new moab::TempestOfflineMap(&remapper);
 
       weightMap->GenerateOfflineMap(ctx.disc_methods[0], ctx.disc_methods[1],          // std::string strInputType, std::string strOutputType,
                                     ctx.disc_orders[0],  ctx.disc_orders[1],  // int nPin=4, int nPout=4,
@@ -378,7 +378,6 @@ int main(int argc, char* argv[])
       // weightMap->m_vecSourceDimSizes.resize(ctx.meshes[0]->faces.size());
       // weightMap->m_vecTargetDimSizes.resize(ctx.meshes[1]->faces.size());
 
-      rval = remapper.ExchangeGhostWeights(weightMap);MB_CHK_ERR(rval);
       ctx.timer_pop();
       sstr.str("");
       sstr << "outWeights_" << proc_id << ".nc";

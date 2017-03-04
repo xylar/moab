@@ -357,15 +357,24 @@ ErrorCode TempestRemapper::AssociateSrcTargetInOverlap()
 	ErrorCode rval;
 	
 	gid_to_lid_src.clear(); lid_to_gid_src.clear();
+	gid_to_lid_covsrc.clear(); lid_to_gid_covsrc.clear();
 	gid_to_lid_tgt.clear(); lid_to_gid_tgt.clear();
 	{
 		Tag gidtag;
 		rval = m_interface->tag_get_handle("GLOBAL_ID", gidtag);MB_CHK_ERR(rval);
 
-		std::vector<int> gids;
+		rval = m_pcomm->exchange_tags(gidtag, m_covering_source_entities);MB_CHK_ERR(rval);
 
-		gids.resize(m_covering_source_entities.size(),-1);
+		std::vector<int> gids(m_covering_source_entities.size(),-1);
 		rval = m_interface->tag_get_data(gidtag,  m_covering_source_entities, &gids[0]);MB_CHK_ERR(rval);
+		for (unsigned ie=0; ie < gids.size(); ++ie) {
+			gid_to_lid_covsrc[gids[ie]] = ie;
+			lid_to_gid_covsrc[ie] = gids[ie];
+			// if(!m_pcomm->rank()) std::cout << "Src[" << ie << "]: GID = " << gids[ie] << " and value = " << gid_to_lid_src[gids[ie]] << "\n";
+		}
+
+		gids.resize(m_source_entities.size(),-1);
+		rval = m_interface->tag_get_data(gidtag,  m_source_entities, &gids[0]);MB_CHK_ERR(rval);
 		for (unsigned ie=0; ie < gids.size(); ++ie) {
 			gid_to_lid_src[gids[ie]] = ie;
 			lid_to_gid_src[ie] = gids[ie];
@@ -392,7 +401,7 @@ ErrorCode TempestRemapper::AssociateSrcTargetInOverlap()
 	std::vector<int> rbids(m_overlap_entities.size());
 	rval = m_interface->tag_get_data(bluePtag,  m_overlap_entities, &rbids[0]); MB_CHK_ERR(rval);
 	for (unsigned ie=0; ie < m_overlap_entities.size(); ++ie) {
-		m_overlap->vecSourceFaceIx[ie] = gid_to_lid_src[rbids[ie]];
+		m_overlap->vecSourceFaceIx[ie] = gid_to_lid_covsrc[rbids[ie]];
 		// if(m_pcomm->rank()) std::cout << "Overlap vecSourceFaceIx[" << ie << "]: GID = " << rbids[ie] << " and value = " << m_overlap->vecSourceFaceIx[ie] << "\n";
 	}
 	rval = m_interface->tag_get_data(redPtag,  m_overlap_entities, &rbids[0]); MB_CHK_ERR(rval);
@@ -405,11 +414,6 @@ ErrorCode TempestRemapper::AssociateSrcTargetInOverlap()
 	return MB_SUCCESS;
 }
 
-
-ErrorCode TempestRemapper::ExchangeGhostWeights(OfflineMap* /*weightMap*/)
-{
-	return MB_SUCCESS;
-}
 
 ///////////////////////////////////////////////////////////////////////////////////
 
@@ -463,6 +467,7 @@ ErrorCode TempestRemapper::ComputeOverlapMesh(double tolerance, double radius, b
 		{
 			std::vector<int> gids(m_covering_source_entities.size(),-1);
 			rval = m_interface->tag_get_data(gidTag,  m_covering_source_entities, &gids[0]);MB_CHK_ERR(rval);
+#if 0
 			MPI_Barrier(m_pcomm->comm());
 			if(!m_pcomm->rank()) {
 				for (unsigned ie=0; ie < gids.size(); ++ie)
@@ -474,6 +479,7 @@ ErrorCode TempestRemapper::ComputeOverlapMesh(double tolerance, double radius, b
 				std::cout << "[Proc1] CoveringSrc[" << ie << "]: GID = " << gids[ie] << "\n";
 			}
 			MPI_Barrier(m_pcomm->comm());
+#endif
 		}
 
       	m_intersecting_target_entities = moab::intersect(m_source_entities, m_covering_source_entities);

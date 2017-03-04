@@ -39,7 +39,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
-TempestOfflineMap::TempestOfflineMap(moab::TempestRemapper* remapper) : OfflineMap(), m_remapper(remapper)
+moab::TempestOfflineMap::TempestOfflineMap(moab::TempestRemapper* remapper) : OfflineMap(), m_remapper(remapper)
 {
     // Get the references for the MOAB core objects
     mbCore = m_remapper->get_interface();
@@ -74,7 +74,7 @@ TempestOfflineMap::TempestOfflineMap(moab::TempestRemapper* remapper) : OfflineM
 
 ///////////////////////////////////////////////////////////////////////////////
 
-TempestOfflineMap::~TempestOfflineMap()
+moab::TempestOfflineMap::~TempestOfflineMap()
 {
     mbCore = NULL;
     pcomm = NULL;
@@ -174,7 +174,7 @@ extern void GetAdjacentFaceVectorByEdge(
     AdjacentFaceVector & vecFaces
 );
 
-void TempestOfflineMap::LinearRemapFVtoFV_Tempest_MOAB(
+void moab::TempestOfflineMap::LinearRemapFVtoFV_Tempest_MOAB(
     int nOrder
 ) {
     // Order of triangular quadrature rule
@@ -371,7 +371,7 @@ void TempestOfflineMap::LinearRemapFVtoFV_Tempest_MOAB(
 
 
 ///////////////////////////////////////////////////////////////////////////////
-moab::ErrorCode TempestOfflineMap::GenerateOfflineMap( std::string strInputType, std::string strOutputType,
+moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap( std::string strInputType, std::string strOutputType,
                                             int nPin, int nPout,
                                             bool fBubble, int fMonotoneTypeID,
                                             bool fVolumetric, bool fNoConservation, bool fNoCheck,
@@ -515,15 +515,15 @@ try {
     dbgprint.printf(0, "m_meshInputCov->faces = %lu, m_meshOutput->faces = %lu, ixSourceFaceMax = %d\n", m_meshInput->faces.size(), m_meshOutput->faces.size(), ixSourceFaceMax);
 
     // Check for forward correspondence in overlap mesh
-    if (m_meshInputCov->faces.size() - ixSourceFaceMax == 0 //&&
-        //(ixTargetFaceMax == m_meshOutput.faces.size())
+    if (// m_meshInputCov->faces.size() - ixSourceFaceMax == 0 //&&
+        (m_meshOutput->faces.size() - ixTargetFaceMax == 0)
     ) {
         if (!pcomm->rank()) dbgprint.printf(0, "Overlap mesh forward correspondence found\n");
 
     // Check for reverse correspondence in overlap mesh
     } else if (
-        m_meshOutput->faces.size() - ixSourceFaceMax == 0 //&&
-        //(ixTargetFaceMax == m_meshInput->faces.size())
+        // m_meshOutput->faces.size() - ixSourceFaceMax == 0 //&&
+        (m_meshInputCov->faces.size() - ixTargetFaceMax == 0)
     ) {
         if (!pcomm->rank()) dbgprint.printf(0, "Overlap mesh reverse correspondence found (reversing)\n");
 
@@ -532,9 +532,9 @@ try {
 
     // No correspondence found
     } else {
-        _EXCEPTION2("Invalid overlap mesh:\n"
-            "    No correspondence found with input and output meshes (%i,%i)",
-            ixSourceFaceMax, ixTargetFaceMax);
+        _EXCEPTION4("Invalid overlap mesh:\n"
+            "    No correspondence found with input and output meshes (%i,%i) vs (%i,%i)",
+            m_meshInputCov->faces.size(), m_meshOutput->faces.size(), ixSourceFaceMax, ixTargetFaceMax);
     }
 
     // Calculate Face areas
@@ -843,8 +843,8 @@ try {
     if (!fNoCheck) {
         if (!pcomm->rank()) dbgprint.printf(0, "Verifying map");
         this->IsConsistent(1.0e-8);
-        std::cout << "Warning -- disabled conservation checks. Please re-enable\n";
-        // this->IsConservative(1.0e-8);
+        // std::cout << "Warning -- disabled conservation checks. Please re-enable\n";
+        this->IsConservative(1.0e-8);
 
         if (nMonotoneType != 0) {
             this->IsMonotone(1.0e-12);
@@ -898,7 +898,7 @@ try {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-bool TempestOfflineMap::IsConsistent(
+bool moab::TempestOfflineMap::IsConsistent(
 	double dTolerance
 ) {
 	// Get map entries
@@ -939,42 +939,29 @@ bool TempestOfflineMap::IsConsistent(
 
 ///////////////////////////////////////////////////////////////////////////////
 
-bool TempestOfflineMap::IsConservative(
+bool moab::TempestOfflineMap::IsConservative(
 	double dTolerance
 ) {
-/*
-	if (vecSourceAreas.GetRows() != m_mapRemap.GetColumns()) {
-		_EXCEPTIONT("vecSourceAreas / mapRemap dimension mismatch");
-	}
-	if (vecTargetAreas.GetRows() != m_mapRemap.GetRows()) {
-		_EXCEPTIONT("vecTargetAreas / mapRemap dimension mismatch");
-	}
-*/
-	moab::ErrorCode rval;
-	moab::Tag consTag;
-	Real dum=0.0;
-	rval = mbCore->tag_get_handle("CONSERVED", 1, moab::MB_TYPE_DOUBLE, 
-		                           consTag, moab::MB_TAG_DENSE | moab::MB_TAG_CREAT, &dum);MB_CHK_SET_ERR(rval, "can't get conservation tag");
-
 	// Get map entries
 	DataVector<int> dataRows;
 	DataVector<int> dataCols;
 	DataVector<double> dataEntries;
-	const DataVector<double>& dTargetAreas = this->GetTargetAreas();
-	const DataVector<double>& dSourceAreas = this->GetSourceAreas();
+	const DataVector<double>& dTargetAreas = this->GetGlobalTargetAreas();
+	const DataVector<double>& dSourceAreas = this->GetGlobalSourceAreas();
 
+    // Calculate column sums
+    DataVector<double> dColumnSums;
     if (pcomm->size() > 1) {
         if (m_mapRemapGlobal.GetRows() == 0 || m_mapRemapGlobal.GetColumns() == 0)
             this->GatherAllToRoot();
+        if (pcomm->size() > 1 && pcomm->rank()) return true;
         m_mapRemapGlobal.GetEntries(dataRows, dataCols, dataEntries);
-        if (pcomm->size() > 1 && pcomm->rank() > 1) return true;
+        dColumnSums.Initialize(m_mapRemapGlobal.GetColumns());
     }
-    else
+    else {
        m_mapRemap.GetEntries(dataRows, dataCols, dataEntries);
-
-	// Calculate column sums
-	DataVector<double> dColumnSums;
-	dColumnSums.Initialize(m_mapRemap.GetColumns());
+       dColumnSums.Initialize(m_mapRemap.GetColumns());
+    }
 
 	for (unsigned i = 0; i < dataRows.GetRows(); i++) {
 		dColumnSums[dataCols[i]] +=
@@ -992,14 +979,12 @@ bool TempestOfflineMap::IsConservative(
 		}
 	}
 
-	rval = mbCore->tag_delete(consTag);MB_CHK_SET_ERR(rval, "can't delete conservation tag");
-
 	return fConservative;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-bool TempestOfflineMap::IsMonotone(
+bool moab::TempestOfflineMap::IsMonotone(
 	double dTolerance
 ) {
 
@@ -1035,10 +1020,11 @@ bool TempestOfflineMap::IsMonotone(
 
 ///////////////////////////////////////////////////////////////////////////////
 #include <cstdlib>
-void TempestOfflineMap::GatherAllToRoot() { // Collective
+moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot() { // Collective
 
 	Mesh globalMesh;
 	int ierr, rootProc = 0;
+    moab::ErrorCode rval;
 
 	// Write SparseMatrix entries
 	DataVector<int> vecRow;
@@ -1048,60 +1034,83 @@ void TempestOfflineMap::GatherAllToRoot() { // Collective
 	moab::DebugOutput dbgprint(std::cout, (pcomm ? pcomm->rank() : 0));
 
 	m_mapRemap.GetEntries(vecRow, vecCol, vecS);
+    const DataVector<double>& dSourceAreas = m_meshInputCov->vecFaceArea;
+    const DataVector<double>& dTargetAreas = m_meshOutput->vecFaceArea;
 
     // Translate the index in Row and Col to global_id and dump it out
 
 	// Communicate the necessary data
+    int grows=0, gcols=0, gsrc=0, gtar=0;
 	std::vector<int> rowcolss, rowcolsv;
-    DataVector<int> rows, cols;
+    DataVector<int> rows, cols, srcelmindx, tgtelmindx;
 	{	// First, accumulate the sizes of rows and columns of the matrix
-		if (!pcomm->rank()) rowcolss.resize(pcomm->size()*2);
+		if (!pcomm->rank()) rowcolss.resize(pcomm->size()*4);
 
-		int sendarray[2];
+		int sendarray[4];
 		sendarray[0] = vecRow.GetRows();
 		sendarray[1] = vecCol.GetRows();
+        sendarray[2] = dSourceAreas.GetRows();
+        sendarray[3] = dTargetAreas.GetRows();
 		
-		ierr = MPI_Gather( sendarray, 2, MPI_INTEGER, rowcolss.data(), 2, MPI_INTEGER, rootProc, pcomm->comm());
+		ierr = MPI_Gather( sendarray, 4, MPI_INTEGER, rowcolss.data(), 4, MPI_INTEGER, rootProc, pcomm->comm());
 
-        ierr = MPI_Barrier(pcomm->comm());
-
-		dbgprint.printf(0, "[%d] Dimensions: %d, %d\n", pcomm->rank(), vecRow.GetRows(), vecCol.GetRows());
+		// dbgprint.printf(0, "[%d] Dimensions: %d, %d\n", pcomm->rank(), vecRow.GetRows(), vecCol.GetRows());
 
 		if (!pcomm->rank()) {
-			int gsize=0;
-			for (unsigned i=0; i < rowcolss.size(); ++i) gsize += rowcolss[i];
-			rowcolsv.resize(gsize);
-            rows.Initialize(gsize/2); // we are assuming rows = cols
-            cols.Initialize(gsize/2); // we are assuming rows = cols
-			dbgprint.printf(0, "Resizing rowscolv to %d\n", gsize);
+			for (unsigned i=0; i < pcomm->size(); ++i) {
+                grows += rowcolss[4*i];
+                gcols += rowcolss[4*i+1];
+                gsrc += rowcolss[4*i+2];
+                gtar += rowcolss[4*i+3];
+            }
+			rowcolsv.resize(grows+gcols+gsrc+gtar);
+            rows.Initialize(grows); // we are assuming rows = cols
+            cols.Initialize(gcols); // we are assuming rows = cols
+            
+            m_areasSrcGlobal.Initialize(gsrc); srcelmindx.Initialize(gsrc);
+            m_areasTgtGlobal.Initialize(gtar); tgtelmindx.Initialize(gtar);
+            dbgprint.printf(0, "Received global dimensions: %d, %d\n", vecRow.GetRows(), rows.GetRows());
+            dbgprint.printf(0, "Global: n(source) = %d, and n(target) = %d\n", gsrc, gtar);
+			dbgprint.printf(0, "Operator size = %d\n", grows+gcols);
 		}
 	}
 
-	{ // Next, accumulate the row and column values for the matrices (in local indexing)
-		const int nR = vecRow.GetRows()+vecCol.GetRows();
+    {
+        std::stringstream sstr;
+        sstr << "rowscols_" << pcomm->rank() << ".txt";
+        std::ofstream output_file(sstr.str().c_str());
+        output_file << "VALUES\n";
+        for (unsigned ip=0; ip < vecRow.GetRows(); ++ip) {
+            output_file << ip << " (" << vecRow[ip] << ", " << vecCol[ip] << ") = " << vecS[ip] << "\n";
+        }
+        output_file.flush(); // required here
+        output_file.close();
+    }
+
+	{
+        // Next, accumulate the row and column values for the matrices (in local indexing)
+		const int nR = vecRow.GetRows()+vecCol.GetRows()+dSourceAreas.GetRows()+dTargetAreas.GetRows();
 		std::vector<int> sendarray(nR);
-		// std::copy((int*)vecRow, (int*)vecRow+vecRow.GetRows(), sendarray.begin());
-		// std::copy((int*)vecCol, (int*)vecCol+vecCol.GetRows(), sendarray.begin()+vecRow.GetRows());
         for (unsigned ix=0; ix < vecRow.GetRows(); ++ix) {
             sendarray[ix] = m_remapper->GetGlobalID(moab::Remapper::TargetMesh, vecRow[ix]);
         }
-        for (unsigned ix=0; ix < vecCol.GetRows(); ++ix) {
-            sendarray[ix+vecRow.GetRows()] = m_remapper->GetGlobalID(moab::Remapper::SourceMesh, vecCol[ix]);
+        for (unsigned ix=0, offset=vecRow.GetRows(); ix < vecCol.GetRows(); ++ix) {
+            sendarray[offset+ix] = m_remapper->GetGlobalID(moab::Remapper::CoveringMesh, vecCol[ix]);
         }
-
+        // for (unsigned ix=0, offset=vecRow.GetRows()+vecCol.GetRows(); ix < dSourceAreas.GetRows(); ++ix) {
+        //     sendarray[offset+ix] = m_remapper->lid_to_gid_src[ix];
+        //     if (!pcomm->rank()) std::cout << "[ " << offset+ix << "] Source: local id " << ix << " and global ID = " << sendarray[ix+offset] << "\n";
+        // }
+        // for (unsigned ix=0, offset=vecRow.GetRows()+vecCol.GetRows()+dSourceAreas.GetRows(); ix < dTargetAreas.GetRows(); ++ix) {
+        //     sendarray[offset+ix] = m_remapper->lid_to_gid_tgt[ix];
+        // }
         {
-            std::stringstream sstr;
-            sstr << "rowscols_" << pcomm->rank() << ".txt";
-            std::ofstream output_file(sstr.str().c_str());
-            output_file << "VALUES\n";
-            for (unsigned ip=0; ip < vecRow.GetRows(); ++ip) {
-                output_file << ip << " (" << sendarray[ip] << ", " << sendarray[ip+vecRow.GetRows()] << ") = " << vecS[ip] << "\n";
-
-            }
-            // std::ostream_iterator<int> output_iterator(output_file, "\n");
-            // std::copy(rowcolsv.begin(), rowcolsv.end(), output_iterator);
-            output_file.flush(); // required here
-            output_file.close();
+            moab::Tag gidtag;
+            rval = mbCore->tag_get_handle("GLOBAL_ID", gidtag);MB_CHK_ERR(rval);
+            // rval = mbCore->tag_get_data(gidtag, m_remapper->GetEntities(moab::Remapper::SourceMesh), &sendarray[vecRow.GetRows()+vecCol.GetRows()]);MB_CHK_ERR(rval);
+            rval = mbCore->tag_get_data(gidtag, m_remapper->m_covering_source_entities, &sendarray[vecRow.GetRows()+vecCol.GetRows()]);MB_CHK_ERR(rval);
+            // rval = mbCore->tag_get_data(gidtag, m_remapper->m_source_entities, &sendarray[vecRow.GetRows()+vecCol.GetRows()]);MB_CHK_ERR(rval);
+            rval = mbCore->tag_get_data(gidtag, m_remapper->m_target_entities, &sendarray[vecRow.GetRows()+vecCol.GetRows()+dSourceAreas.GetRows()]);MB_CHK_ERR(rval);
         }
 
 		std::vector<int> displs, rcount;
@@ -1111,10 +1120,10 @@ void TempestOfflineMap::GatherAllToRoot() { // Collective
 			int gsum=0;
 			for (unsigned i=0; i < pcomm->size(); ++i) {
 				displs[i] = gsum;
-				rcount[i] = rowcolss[2*i]+rowcolss[2*i+1];
+				rcount[i] = rowcolss[4*i]+rowcolss[4*i+1]+rowcolss[4*i+2]+rowcolss[4*i+3];
 				gsum += rcount[i];
 			}
-			dbgprint.printf(0, "Received global dimensions: %d, %d\n", vecRow.GetRows(), rows.GetRows());
+            assert(rowcolsv.size() - gsum == 0);
 		}
 
 		// Both rows and columns have a size of "rowsize"
@@ -1123,33 +1132,47 @@ void TempestOfflineMap::GatherAllToRoot() { // Collective
         if (!pcomm->rank()) {
 		    std::ofstream output_file("rows-cols.txt", std::ios::out);
 		    output_file << "ROWS\n";
-            int offset=0;
-		    for (unsigned ip=0; ip < pcomm->size(); ++ip) {
-			    for (int i=displs[ip]; i < displs[ip]+rowcolss[2*ip]; ++i, ++offset) {
+		    for (unsigned ip=0, offset=0; ip < pcomm->size(); ++ip) {
+                int istart = displs[ip], iend = istart + rowcolss[4*ip];
+			    for (int i = istart; i < iend; ++i, ++offset) {
 			    	output_file << offset << " " << rowcolsv[i] << "\n";
                     rows[offset] = rowcolsv[i];
 			    }
 			}
 			output_file << "COLS\n";
-            offset=0;
-			for (unsigned ip=0; ip < pcomm->size(); ++ip) {
-			    for (int i=displs[ip]+rowcolss[2*ip]; i < displs[ip]+rowcolss[2*ip]+rowcolss[2*ip+1]; ++i, ++offset) {
+			for (unsigned ip=0, offset=0; ip < pcomm->size(); ++ip) {
+                int istart = displs[ip] + rowcolss[4*ip], iend = istart + rowcolss[4*ip+1];
+                for (int i = istart; i < iend; ++i, ++offset) {
 			    	output_file << offset << " " << rowcolsv[i] << "\n";
                     cols[offset] = rowcolsv[i];
 			    }
 			}
-		    // std::ostream_iterator<int> output_iterator(output_file, "\n");
-		    // std::copy(rowcolsv.begin(), rowcolsv.end(), output_iterator);
 			output_file.flush(); // required here
 			output_file.close();
-		}
+            for (unsigned ip=0, offset=0; ip < pcomm->size(); ++ip) {
+                int istart = displs[ip] + rowcolss[4*ip] + rowcolss[4*ip+1], iend = istart + rowcolss[4*ip+2];
+                for (int i = istart; i < iend; ++i, ++offset) {
+                    srcelmindx[offset] = rowcolsv[i];
+                }
+            }
+            for (unsigned ip=0, offset=0; ip < pcomm->size(); ++ip) {
+                int istart = displs[ip] + rowcolss[4*ip] + rowcolss[4*ip+1] + rowcolss[4*ip+2], iend = istart + rowcolss[4*ip+3];
+                for (int i = istart; i < iend; ++i, ++offset) {
+                    tgtelmindx[offset] = rowcolsv[i];
+                }
+            }
+		} /* (!pcomm->rank()) */
+        rowcolsv.clear();
 	}
 
-    { // Next, accumulate the row and column values for the matrices (in local indexing)
-        const int nR = vecS.GetRows();
-        // std::vector<double> sendarray(nR);
-        // std::copy((double*)vecS, (double*)vecS+vecS.GetRows(), sendarray.begin());
-        DataVector<double> rowcolsvals(rows.GetRows());
+    {
+        // Next, accumulate the row and column values for the matrices (in local indexing)
+        const int nR = vecS.GetRows()+dSourceAreas.GetRows()+dTargetAreas.GetRows();
+
+        std::vector<double> sendarray(nR);
+        std::copy((double*)vecS, (double*)vecS+vecS.GetRows(), sendarray.begin());
+        std::copy((const double*)dSourceAreas, (const double*)dSourceAreas+dSourceAreas.GetRows(), sendarray.begin()+vecS.GetRows());
+        std::copy((const double*)dTargetAreas, (const double*)dTargetAreas+dTargetAreas.GetRows(), sendarray.begin()+vecS.GetRows()+dSourceAreas.GetRows());
 
         std::vector<int> displs, rcount;
         int gsum=0;
@@ -1158,33 +1181,60 @@ void TempestOfflineMap::GatherAllToRoot() { // Collective
             rcount.resize(pcomm->size(),0);
             for (unsigned i=0; i < pcomm->size(); ++i) {
                 displs[i] = gsum;
-                rcount[i] = rowcolss[2*i];
+                rcount[i] = rowcolss[4*i]+rowcolss[4*i+2]+rowcolss[4*i+3];
                 gsum += rcount[i];
             }
-            // dbgprint.printf(0, "Received global dimensions: %d, %d\n", nR, gsum);
         }
-        rowcolss.clear();
-        rowcolsv.clear();
+
+        std::vector<double> rowcolsvals(grows+gsrc+gtar);
 
         // Both rows and columns have a size of "rowsize"
-        ierr = MPI_Gatherv( (double*)vecS, nR, MPI_DOUBLE, (double*)rowcolsvals, &rcount[0], &displs[0], MPI_DOUBLE, rootProc, pcomm->comm());
+        ierr = MPI_Gatherv( sendarray.data(), sendarray.size(), MPI_DOUBLE, rowcolsvals.data(), &rcount[0], &displs[0], MPI_DOUBLE, rootProc, pcomm->comm());
 
         if (!pcomm->rank()) {
             std::ofstream output_file("rows-cols.txt", std::ios::app);
+            DataVector<double> globvalues(grows);
             output_file << "VALUES\n";
-            for (unsigned ip=0; ip < rows.GetRows(); ++ip) {
-                output_file << ip << " (" << rows[ip] << ", " << cols[ip] << ") = " << rowcolsvals[ip] << "\n";
-
+            for (unsigned ip=0, offset=0; ip < pcomm->size(); ++ip) {
+                for (int i=displs[ip]; i < displs[ip]+rowcolss[4*ip]; ++i, ++offset) {
+                    globvalues[offset] = rowcolsvals[i];
+                    output_file << offset << " (" << rows[offset] << ", " << cols[offset] << ") = " << rowcolsvals[i] << "\n";
+                }
             }
-            // std::ostream_iterator<int> output_iterator(output_file, "\n");
-            // std::copy(rowcolsv.begin(), rowcolsv.end(), output_iterator);
             output_file.flush(); // required here
             output_file.close();
-            m_mapRemapGlobal.SetEntries(rows, cols, rowcolsvals);
+            m_mapRemapGlobal.SetEntries(rows, cols, globvalues);
+        }
+
+        if (!pcomm->rank()) {
+            // Store the global source and target elements areas
+            std::ofstream output_file("source-target-areas.txt");
+            output_file << "Source areas\n";
+            for (unsigned ip=0, offset=0; ip < pcomm->size(); ++ip) {
+                int istart = displs[ip] + rowcolss[4*ip], iend = istart + rowcolss[4*ip+2];
+                for (int i=istart; i < iend; ++i, ++offset) {
+                    output_file << srcelmindx[offset] << " " << rowcolsvals[i] << "\n";
+                    m_areasSrcGlobal[srcelmindx[offset]] = rowcolsvals[i];
+                    // m_areasSrcGlobal[offset] = rowcolsvals[i];
+                }
+            }
+            output_file << "Target areas\n";
+            for (unsigned ip=0, offset=0; ip < pcomm->size(); ++ip) {
+                int istart = displs[ip] + rowcolss[4*ip] + rowcolss[4*ip+2], iend = istart + rowcolss[4*ip+3];
+                for (int i=istart; i < iend; ++i, ++offset) {
+                    output_file << tgtelmindx[offset] << " " << rowcolsvals[i] << "\n";
+                    m_areasTgtGlobal[tgtelmindx[offset]] = rowcolsvals[i];
+                    // m_areasTgtGlobal[offset] = rowcolsvals[i];
+                }
+            }
+            output_file.flush(); // required here
+            output_file.close();
         }
 
     }
+    rowcolss.clear();
 
+    return moab::MB_SUCCESS;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
