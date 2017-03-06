@@ -18,19 +18,67 @@ cdef void* null = NULL
 cdef class Core(object):
 
     def __cinit__(self):
+        """ Constructor """
         self.inst = new moab.Core()
 
     def __del__(self):
+        """ Destructor """
         del self.inst
 
     def impl_version(self):
         """MOAB implementation number as a float."""
         return self.inst.impl_version()
 
-    def load_file(self, str fname, exceptions = ()):
+    def load_file(self, str fname, file_set = None, exceptions = ()):
+        """
+        Load or import a file.
+
+        Load a MOAB-native file or import data from some other supported file format.
+
+        Example
+        -------
+        mb = pymoab.core.Core()
+        mb.load_file("/location/of/my_file.h5m")
+
+        OR 
+
+        fs = mb.create_meshset()
+        mb = pymoab.core.Core()
+        mb.load_file("/location/of/my_file.h5m", fs)
+
+        Parameters
+        ----------
+        fname : string
+            The location of the file to read.
+        file_set : EntityHandle 
+            If not None, this argument must be a valid
+            entity set handle. All entities read from the file will be added to
+            this set. File metadata will be added to tags on the set.
+        exceptions : tuple 
+            A tuple containing any error types that should
+            be ignored. See pymoab.types module for more info.
+
+        Returns
+        -------
+          None.
+
+        Raises
+        ------
+          MOAB ErrorCode 
+              if a MOAB error occurs
+          ValueError
+              if a parameter is not of the correct type
+        """
         cfname = fname.decode()
+        cdef moab.EntityHandle fset
+        cdef moab.EntityHandle* ptr
+        if file_set != None:
+            fset = file_set
+            ptr = &fset
+        else:
+            ptr = NULL
         cdef const char * file_name = cfname
-        cdef moab.ErrorCode err = self.inst.load_file(fname)
+        cdef moab.ErrorCode err = self.inst.load_file(fname,ptr)
         check_error(err, exceptions)
 
     def write_file(self, str fname, exceptions = ()):

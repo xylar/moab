@@ -164,15 +164,15 @@ cdef extern from "moab/Core.hpp" namespace "moab":
         #                     int num_tags)
 
         ErrorCode load_file(const char *file_name)
-        ErrorCode load_file(const char *file_name, const EntityHandle file_set)
-        ErrorCode load_file(const char *file_name, const EntityHandle file_set,
+        ErrorCode load_file(const char *file_name, const EntityHandle* file_set)
+        ErrorCode load_file(const char *file_name, const EntityHandle* file_set,
                             const char *options)
-        ErrorCode load_file(const char *file_name, const EntityHandle file_set,
+        ErrorCode load_file(const char *file_name, const EntityHandle* file_set,
                             const char *options, const char *set_tag_names)
-        ErrorCode load_file(const char *file_name, const EntityHandle file_set,
+        ErrorCode load_file(const char *file_name, const EntityHandle* file_set,
                             const char *options, const char *set_tag_names,
                             const char *set_tag_values)
-        ErrorCode load_file(const char *file_name, const EntityHandle file_set,
+        ErrorCode load_file(const char *file_name, const EntityHandle* file_set,
                             const char *options, const char *set_tag_names,
                             const char *set_tag_values, int num_set_tag_values)
 

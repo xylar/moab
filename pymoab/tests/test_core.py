@@ -11,6 +11,14 @@ def test_load_mesh():
     mb = core.Core()
     mb.load_file("cyl_grps.h5m")
 
+    #load into file_set
+    mb1 = core.Core()
+    file_set = mb1.create_meshset()
+    mb.load_file("cyl_grps.h5m",file_set)
+
+    ents = mb.get_entities_by_type(file_set,types.MBMAXTYPE)
+    assert len(ents) != 0
+
 def test_write_mesh():
     mb = core.Core()
     mb.create_vertices(np.ones(3))
