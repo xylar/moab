@@ -350,9 +350,55 @@ cdef class Core(object):
         check_error(err, exceptions)
         return rng
 
-    def create_element(self, int t, connectivity, exceptions = ()):
-        cdef moab.EntityType typ = <moab.EntityType> t
+    def create_element(self, int entity_type, connectivity, exceptions = ()):
+        """
+        Create an elment of type, entity_type, using entities in connectivity.
+
+        Example
+        -------
+        mb = core.Core()
+        #create some vertices
+        coords = np.array((0,0,0,1,0,0,1,1,1),dtype='float64')
+        verts = mb.create_vertices(coords)
+        tri_verts = np.array(((verts[0],verts[1],verts[2]),),dtype='uint64')
+        tris = mb.create_element(types.MBTRI,verts)
+        
+        OR
+
+        mb = core.Core()
+        #create some vertices
+        coords = np.array((0,0,0,1,0,0,1,1,1),dtype='float64')
+        verts = mb.create_vertices(coords)
+        tri_verts = [verts[0],verts[1],verts[2]]
+        tris = mb.create_element(types.MBTRI,verts)
+
+
+        Parameters
+        ----------
+        entity_type : MOAB EntityType (see pymoab.types module)
+            type of entity to create (MBTRI, MBQUAD, etc.)
+        coordinates : iterable of EntityHandles
+            array-like iterable of vertex EntityHandles the element is to be
+            created from
+        exceptions : tuple
+            A tuple containing any error types that should
+            be ignored. (see pymoab.types module for more info)
+
+        Returns
+        -------
+        EntityHandle of element created
+
+        Raises
+        ------
+        MOAB ErrorCode
+            if a MOAB error occurs
+        ValueError
+            if an EntityHandle is not of the correct type
+        """
+        cdef moab.EntityType typ = <moab.EntityType> entity_type
         cdef moab.EntityHandle handle = 0
+        if isinstance(connectivity,Range):
+            connectivity = list(connectivity)
         cdef np.ndarray[np.uint64_t, ndim=1] conn_arr = _eh_array(connectivity)
         cdef int nnodes = len(connectivity)
         cdef moab.ErrorCode err = self.inst.create_element(typ,

@@ -584,3 +584,18 @@ def test_vec_tags():
     assert np.array_equal(returned_dbl_test_tag_values,dbl_vec_test_tag_values_flat)
     returned_opaque_test_tag_values = mb.tag_get_data(opaque_vec_test_tag,verts,flat=True)
     assert np.array_equal(returned_opaque_test_tag_values,opaque_vec_test_tag_values_flat)
+
+def test_create_element_iterable():
+    mb = core.Core()
+    coords = np.array((0,0,0,1,0,0,1,1,1),dtype='float64')
+    verts = mb.create_vertices(coords)
+    assert 3 == len(verts)
+    #create tri using verts as a Range
+    tris = mb.create_element(types.MBTRI,verts)
+    #create another with the same vertices but in a list
+    tri_verts = [verts[0], verts[1], verts[2]]
+    tris = mb.create_element(types.MBTRI,verts)
+
+    rs = mb.get_root_set()
+    all_tris = mb.get_entities_by_type(rs,types.MBTRI)
+    assert len(all_tris) == 2
