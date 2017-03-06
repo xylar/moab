@@ -3,7 +3,6 @@
 #include "moab/Interface.hpp"
 #include "moab/GeomTopoTool.hpp"
 #include "DagMC.hpp"
-#define CHKERR if(MB_SUCCESS != rval){std::cout << "moab error " << rval << std::endl; return rval;} 
 #define MB_OBB_TREE_TAG_NAME "OBB_TREE"
 #define MB_OBB_TAG_NAME "OBB"
 #include <string>

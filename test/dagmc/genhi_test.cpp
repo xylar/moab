@@ -69,8 +69,7 @@ ErrorCode build_cube( Interface *mbi,
   int num_tris = 12; 
   EntityHandle verts[num_verts], tris[num_tris], surf;
 
-  rval = mbi->create_meshset( MESHSET_SET, surf );
-  CHECK_ERR(rval);
+  rval = mbi->create_meshset( MESHSET_SET, surf ); MB_CHK_ERR(rval);
 
   // scale coords
   int i;
@@ -94,11 +93,9 @@ ErrorCode build_cube( Interface *mbi,
   // create vertices and add to meshset
   for ( i = 0; i < num_verts; ++i) 
     {
-      rval = mbi->create_vertex( trans_coords + 3*i, verts[i] ); 
-      CHECK_ERR(rval);
+      rval = mbi->create_vertex( trans_coords + 3*i, verts[i] ); MB_CHK_ERR(rval);
 
-      rval = mbi->add_entities( surf, &verts[i], 1 );
-      CHECK_ERR(rval);
+      rval = mbi->add_entities( surf, &verts[i], 1 ); MB_CHK_ERR(rval);
       
     }
 
@@ -108,54 +105,39 @@ ErrorCode build_cube( Interface *mbi,
       const EntityHandle conn[] = { verts[connectivity[3*i  ]], 
                                     verts[connectivity[3*i+1]], 
                                     verts[connectivity[3*i+2]] };
-      rval = mbi->create_element( MBTRI, conn, 3, tris[i] );
-      CHECK_ERR(rval);
+      rval = mbi->create_element( MBTRI, conn, 3, tris[i] ); MB_CHK_ERR(rval);
 
-      rval = mbi->add_entities( surf, &tris[i], 1 );
-      CHECK_ERR(rval);
+      rval = mbi->add_entities( surf, &tris[i], 1 ); MB_CHK_ERR(rval);
     }
 
 
   // set name, id, geom, and category tags for SURFACE
-  rval = mbi->tag_set_data( name_tag, &surf, 1, "Surface\0" );
-  CHECK_ERR(rval);   
+  rval = mbi->tag_set_data( name_tag, &surf, 1, "Surface\0" ); MB_CHK_ERR(rval);   
   std::string object_name;
-  rval = mbi->tag_set_data( obj_name_tag, &surf, 1, object_name.c_str() ); 
-  CHECK_ERR(rval);
-  rval = mbi->tag_set_data( id_tag, &surf, 1, &object_id );
-  CHECK_ERR(rval);
+  rval = mbi->tag_set_data( obj_name_tag, &surf, 1, object_name.c_str() ); MB_CHK_ERR(rval);
+  rval = mbi->tag_set_data( id_tag, &surf, 1, &object_id ); MB_CHK_ERR(rval);
   int two = 2;
-  rval = mbi->tag_set_data( geom_tag, &surf, 1, &(two) );
-  CHECK_ERR(rval);
-  rval = mbi->tag_set_data( category_tag, &surf, 1, "Surface\0" );
-  CHECK_ERR(rval);
+  rval = mbi->tag_set_data( geom_tag, &surf, 1, &(two) ); MB_CHK_ERR(rval);
+  rval = mbi->tag_set_data( category_tag, &surf, 1, "Surface\0" ); MB_CHK_ERR(rval);
   
   // create volume meshset associated with surface meshset
   EntityHandle volume;
-  rval = mbi->create_meshset( MESHSET_SET, volume );
-  CHECK_ERR(rval);
+  rval = mbi->create_meshset( MESHSET_SET, volume ); MB_CHK_ERR(rval);
  
   // set name, id, geom, and category tags for VOLUME
-  rval = mbi->tag_set_data( name_tag, &volume, 1, "Volume\0" );
-  CHECK_ERR(rval);  
-  rval = mbi->tag_set_data( obj_name_tag, &surf, 1, object_name.c_str() ); 
-  CHECK_ERR(rval);
-  rval = mbi->tag_set_data( id_tag, &volume, 1, &(object_id) );
-  CHECK_ERR(rval);
+  rval = mbi->tag_set_data( name_tag, &volume, 1, "Volume\0" ); MB_CHK_ERR(rval);  
+  rval = mbi->tag_set_data( obj_name_tag, &surf, 1, object_name.c_str() ); MB_CHK_ERR(rval);
+  rval = mbi->tag_set_data( id_tag, &volume, 1, &(object_id) ); MB_CHK_ERR(rval);
   int three = 3;
-  rval = mbi->tag_set_data( geom_tag, &volume, 1, &(three) );
-  CHECK_ERR(rval);
-  rval = mbi->tag_set_data( category_tag, &volume, 1, "Volume\0" );
-  CHECK_ERR(rval);
+  rval = mbi->tag_set_data( geom_tag, &volume, 1, &(three) ); MB_CHK_ERR(rval);
+  rval = mbi->tag_set_data( category_tag, &volume, 1, "Volume\0" ); MB_CHK_ERR(rval);
 
 
   // set surface as child of volume 
-  rval = mbi->add_parent_child( volume, surf );
-  CHECK_ERR(rval);
+  rval = mbi->add_parent_child( volume, surf ); MB_CHK_ERR(rval);
   
   // set sense tag    
-  rval = myGeomTool->set_sense(surf, volume, SENSE_FORWARD);
-  CHECK_ERR(rval); 
+  rval = myGeomTool->set_sense(surf, volume, SENSE_FORWARD); MB_CHK_ERR(rval); 
   
   return MB_SUCCESS;
 }
@@ -177,22 +159,22 @@ ErrorCode get_all_handles(Interface *mbi)
 
   rval = mbi->tag_get_handle( NAME_TAG_NAME, NAME_TAG_SIZE, MB_TYPE_OPAQUE,
                                 name_tag, MB_TAG_SPARSE|MB_TAG_CREAT);
-  CHECK_ERR(rval);
+  MB_CHK_ERR_RET(rval);
 
   rval = mbi->tag_get_handle( "OBJECT_NAME", 32, MB_TYPE_OPAQUE,
                                obj_name_tag, MB_TAG_SPARSE|MB_TAG_CREAT);
-  CHECK_ERR(rval);
+  MB_CHK_ERR_RET(rval);
 
   int negone = -1;
   rval = mbi->tag_get_handle( GEOM_DIMENSION_TAG_NAME, 1, MB_TYPE_INTEGER,
                                 geom_tag, MB_TAG_SPARSE|MB_TAG_CREAT,&negone);
-  CHECK_ERR(rval);
+  MB_CHK_ERR_RET(rval);
 
   rval = mbi->tag_get_handle( GLOBAL_ID_TAG_NAME, 
                               1, MB_TYPE_INTEGER, 
                               id_tag,
                               MB_TAG_DENSE|MB_TAG_CREAT );
-  CHECK_ERR(rval);
+  MB_CHK_ERR_RET(rval);
 
   rval = mbi->tag_get_handle( CATEGORY_TAG_NAME, 
                               CATEGORY_TAG_SIZE,
@@ -200,7 +182,7 @@ ErrorCode get_all_handles(Interface *mbi)
                               category_tag,
                               MB_TAG_SPARSE|MB_TAG_CREAT );
 
-  CHECK_ERR(rval);
+  MB_CHK_ERR_RET(rval);
   return MB_SUCCESS;
 
 }
@@ -227,8 +209,7 @@ bool check_tree ( Interface *mbi, DagMC *DAG, std::map< int, std::set<int> > ref
     {
       //get vol id
       EntityHandle volume = DAG->entity_by_index(3, i);
-      rval = mbi->tag_get_data(id_tag, &volume, 1, &vol_id );
-      CHECK_ERR(rval);
+      rval = mbi->tag_get_data(id_tag, &volume, 1, &vol_id ); MB_CHK_ERR(rval);
 
       //check if test vol in ref map
       if (ref_map.find(vol_id) == ref_map.end())
@@ -355,7 +336,7 @@ void test_two_cubes()
  
   // get all handles (dimension, id, sense)
   rval = get_all_handles(mbi);
-  CHECK_ERR(rval);
+  MB_CHK_SET_ERR(rval, "Failed to get all tag handles.");
   
   int len = 2; 
   int num[2] = {1, 2};
@@ -379,7 +360,7 @@ void test_three_cubes()
   Interface *mbi = new Core(); 
   // get all handles (dimension, id, sense)
   rval = get_all_handles(mbi);
-  CHECK_ERR(rval);
+  MB_CHK_SET_ERR(rval, "Failed to get all tag handles.");
   
   int len = 3; 
   int num[3] = {1, 2, 3};
@@ -403,7 +384,7 @@ void test_six_cubes()
   Interface *mbi = new Core(); 
   // get all handles (dimension, id, sense)
   rval = get_all_handles(mbi);
-  CHECK_ERR(rval);
+  MB_CHK_SET_ERR(rval, "Failed to get all tag handles.");
   
   int len = 6; 
   int num[6] = {1, 2, 3, 4, 5, 6};
@@ -447,19 +428,19 @@ void heappermute(Interface *mbi, int v[], int n, std::map< int, std::set<int> > 
 
       //test tree
       GenerateHierarchy *gh = new GenerateHierarchy(mbi, rval);
-      CHECK_ERR(rval);
+      MB_CHK_SET_ERR(rval, "Failed to create new Generate Hierarchy instance.");
       rval = gh->build_hierarchy();
-      CHECK_ERR(rval);
+      MB_CHK_SET_ERR(rval, "Failed to build the hierarchy.");
       rval = gh->construct_topology();
-      CHECK_ERR(rval);
+      MB_CHK_SET_ERR(rval, "Failed to construct the topology.");
   
       DagMC *DAG = new DagMC(mbi);
       rval = DAG->load_existing_contents();
-      CHECK_ERR(rval);
+      MB_CHK_SET_ERR(rval, "Failed to load existing contents.");
       rval = DAG->setup_obbs();
-      CHECK_ERR(rval);
+      MB_CHK_SET_ERR(rval, "Failed to set up obbs.");
       rval = DAG->setup_indices();
-      CHECK_ERR(rval);
+      MB_CHK_SET_ERR(rval, "Failed to set up indices.");
    
       bool result;
       result = check_tree(mbi, DAG, ref_map );

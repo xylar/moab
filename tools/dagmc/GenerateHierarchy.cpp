@@ -34,19 +34,19 @@ ErrorCode GenerateHierarchy::setup()
 
   // init_obb                                                                 
   rval = DAG->load_existing_contents();         
-  CHKERR;
+  MB_CHK_SET_ERR(rval, "Failed to load existing contents.");
 
   // build obbs
   rval = DAG->setup_obbs();
-  CHKERR;
+  MB_CHK_SET_ERR(rval, "Failed to load set up obbs.");
  
   // setup indices
   rval = DAG->setup_indices();
-  CHKERR;
+  MB_CHK_SET_ERR(rval, "Failed to load set up indices.");
 
   // get all tag handles
   rval = get_all_handles();
-  CHKERR;
+  MB_CHK_SET_ERR(rval, "Failed to get all tag handles.");
 
   return MB_SUCCESS;
 }
@@ -58,8 +58,7 @@ ErrorCode GenerateHierarchy::tear_down()
 
 
   // delete root meshset 
-  rval = MBI->delete_entities( &(root), 1);
-  CHKERR;
+  rval = MBI->delete_entities( &(root), 1); MB_CHK_ERR(rval);
 
   //delete OBB Trees
   for ( int i = 1 ; i <= DAG->num_entities(3) ; i++ )
@@ -69,12 +68,11 @@ ErrorCode GenerateHierarchy::tear_down()
       DAG->get_root(i, obb_root);
       
       //delete tree
-      rval = obbTree->delete_tree(obb_root);
+      rval = obbTree->delete_tree(obb_root); MB_CHK_ERR(rval);
     }
 
   //delete obb tag
-  rval = MBI->tag_delete(obb_tree_tag);
-  CHKERR;
+  rval = MBI->tag_delete(obb_tree_tag); MB_CHK_ERR(rval);
 
   return MB_SUCCESS;
 }
@@ -85,12 +83,9 @@ ErrorCode GenerateHierarchy::build_hierarchy()
 
   // create root meshset-- this will be top of tree
   std::string meshset_name = "root";
-  rval = MBI->create_meshset( MESHSET_SET, root);
-  CHKERR;
-  rval = MBI->tag_set_data( name_tag, &root, 1, meshset_name.c_str());
-  CHKERR;
-  rval = MBI->tag_set_data( obj_name_tag, &root, 1,"ROOT");
-  CHKERR;
+  rval = MBI->create_meshset( MESHSET_SET, root); MB_CHK_ERR(rval);
+  rval = MBI->tag_set_data( name_tag, &root, 1, meshset_name.c_str()); MB_CHK_ERR(rval);
+  rval = MBI->tag_set_data( obj_name_tag, &root, 1,"ROOT"); MB_CHK_ERR(rval);
 
   
   // loop over volumes and insert each into tree
@@ -99,7 +94,7 @@ ErrorCode GenerateHierarchy::build_hierarchy()
      // get eh for vol with index i 
      EntityHandle volume = DAG->entity_by_index(3,i);
      rval = insert_in_tree(volume);
-     CHKERR;
+     MB_CHK_SET_ERR(rval, "Failed to insert volume into tree.");
    }      
 
   return MB_SUCCESS;                                                          
@@ -112,20 +107,20 @@ ErrorCode GenerateHierarchy::get_all_handles()
 
   rval = MBI->tag_get_handle( NAME_TAG_NAME, NAME_TAG_SIZE, MB_TYPE_OPAQUE,
                                 name_tag, MB_TAG_SPARSE|MB_TAG_CREAT);
-  CHKERR;
+  MB_CHK_ERR_RET(rval);
   
   rval = MBI->tag_get_handle( "OBJECT_NAME", 32, MB_TYPE_OPAQUE,
                                obj_name_tag, MB_TAG_SPARSE|MB_TAG_CREAT); 
-  CHKERR;
+  MB_CHK_ERR_RET(rval);
   
   rval = MBI->tag_get_handle( GEOM_DIMENSION_TAG_NAME, 1, MB_TYPE_INTEGER,
                                 geom_tag, MB_TAG_SPARSE|MB_TAG_CREAT,&negone);
-  CHKERR;
+  MB_CHK_ERR_RET(rval);
   
 
   rval = MBI->tag_get_handle( MB_OBB_TREE_TAG_NAME, 1, MB_TYPE_HANDLE, 
                                 obb_tree_tag, MB_TAG_DENSE );
-  CHKERR;
+  MB_CHK_ERR_RET(rval);
 
   return MB_SUCCESS;
 }
@@ -166,7 +161,7 @@ ErrorCode GenerateHierarchy::insert_in_tree(EntityHandle volume)
           else
             { 
               rval = MBI->add_parent_child(parent, current_volume);
-              CHKERR;
+              MB_CHK_SET_ERR(rval, "Failed to add parent-child relationship.");
 
               inserted = true;
             }
@@ -179,15 +174,15 @@ ErrorCode GenerateHierarchy::insert_in_tree(EntityHandle volume)
 	      {
 	        // reverse their parentage
 	        rval = MBI->remove_parent_child(parent, tree_volume);
-	        CHKERR;
+	        MB_CHK_SET_ERR(rval, "Failed to remove parent-child relationship.");
                 rval = MBI->add_parent_child(current_volume, tree_volume);
-                CHKERR;
+                MB_CHK_SET_ERR(rval, "Failed to add parent-child relationship.");
 	      }
 	  
 	    if (child_volumes.size() == 0 )
 	      {
 	        rval = MBI->add_parent_child(parent, current_volume);
-                CHKERR;
+                MB_CHK_SET_ERR(rval, "Failed to add parent-child relationship.");
 	        inserted = true;
 	      }
 
@@ -210,16 +205,13 @@ ErrorCode GenerateHierarchy::point_on_surface(EntityHandle vol, double *coord)
   
   // get surface corresponding to volume, then get the triangles  
   child_surfaces = get_children_by_dimension(vol, 2);
-  rval = MBI-> get_entities_by_type(*child_surfaces.begin(), MBTRI, triangles);
-  CHKERR;
+  rval = MBI-> get_entities_by_type(*child_surfaces.begin(), MBTRI, triangles); MB_CHK_ERR(rval);
 
   // now get 1st triangle vertices
-  rval = MBI->get_connectivity(&(*triangles.begin()),1,vertices);
-  CHKERR;
+  rval = MBI->get_connectivity(&(*triangles.begin()),1,vertices); MB_CHK_ERR(rval);
   
   // now get coordinates of first vertex
-  rval = MBI->get_coords(&(*vertices.begin()), 1 , &(coord[0]));
-  CHKERR;
+  rval = MBI->get_coords(&(*vertices.begin()), 1 , &(coord[0])); MB_CHK_ERR(rval);
   
   return MB_SUCCESS;
 }
@@ -249,7 +241,7 @@ bool GenerateHierarchy::is_A_in_B(EntityHandle volume_A, EntityHandle volume_B)
 
   // if point on A is inside vol B, return T; o.w. return F
   rval = DAG->point_in_volume(volume_B, coord, result);
-  CHKERR;
+  MB_CHK_SET_ERR(rval, "Failed to complete point in volume query.");
   if (result == 0) 
     {   
      return false;
@@ -327,14 +319,14 @@ ErrorCode GenerateHierarchy::construct_topology()
               //set the sense of the surface mapped to the child volume to REVERSE
               // wrt the parent volume
               rval = myGeomTool->set_sense(volume_surface[*j], volume, SENSE_REVERSE);
-              CHKERR;
+              MB_CHK_SET_ERR(rval, "Failed to set sense.");
           
               //add the child volume's surface as a child of the original volume
               // and delete the child volume as a child of original volume
               rval = MBI->add_parent_child(volume,volume_surface[*j]);
-              CHKERR;
+	      MB_CHK_SET_ERR(rval, "Failed to add parent-child relationship.");
               rval = MBI->remove_parent_child(volume,*j);
-              CHKERR;
+	      MB_CHK_SET_ERR(rval, "Failed to remove parent-child relationship.");
             }
         }
 
