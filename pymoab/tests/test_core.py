@@ -491,9 +491,16 @@ def test_remove_ents():
 def test_iterables():
 
     mb = core.Core()
-    coords = np.array([0.,0.,0.,1.,0.,0.,1.,1.,1.])
+    # 1-D iterable
+    coords = [0.,0.,0.,1.,0.,0.,1.,1.,1.]
     verts = mb.create_vertices(coords)
-
+    assert len(verts) == 3
+    # 2-D iterable w/ len 3 entries
+    coords = [[0.,0.,0.],[1.,0.,0.],[1.,1.,1.]]
+    verts = mb.create_vertices(coords)
+    print len(verts)
+    assert len(verts) == 3
+    
     int_tag = mb.tag_get_handle("IntTag",1,types.MB_TYPE_INTEGER,True)
 
     #try to set data with bad array (contains int)

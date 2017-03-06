@@ -85,7 +85,7 @@ _VALID_DTYPES= {
 _VALID_DTYPES= {
     MB_TYPE_OPAQUE: frozenset(['S','O']),
     MB_TYPE_INTEGER: frozenset(['int8','int16','int32','int64','O','object']),
-    MB_TYPE_DOUBLE: frozenset(['float64','O','object']),
+    MB_TYPE_DOUBLE: frozenset(['float64','float','O','object']),
     MB_TYPE_BIT: frozenset(['int8','int16','int32','int64','S1','bool','O','object']),
     MB_TYPE_HANDLE: frozenset(['uint64','O','object']),
     MB_MAX_DATA_TYPE: frozenset(['uint64','O','object'])
@@ -93,7 +93,6 @@ _VALID_DTYPES= {
 
 def _convert_array(iterable, accepted_dtypes, return_dtype):
     err_msg = "Incorrect type in EntityHandle Array"
-
     #if this is already an array of the correct type, avoid the loop
     if isinstance(iterable, np.ndarray) and iterable.dtype == return_dtype:
         return  iterable
@@ -162,3 +161,7 @@ MB_TAG_DFTOK = moab.MB_TAG_DFTOK
 # Query selection types
 INTERSECT = 0
 UNION = 1
+
+MESHSET_TRACK_OWNER = moab.MESHSET_TRACK_OWNER
+MESHSET_SET = moab.MESHSET_SET
+MESHSET_ORDERED = moab.MESHSET_ORDERED

@@ -82,13 +82,77 @@ cdef class Core(object):
         check_error(err, exceptions)
 
     def write_file(self, str fname, exceptions = ()):
-        """Write sthe MOAB data to a file."""
+        """
+        Write or export a file.
+        
+        Write a MOAB-native file or export data to some other supported file format.
+        
+        Example
+        -------
+        mb.write_file("new_file.h5m")
+        
+        Parameters
+        ----------
+        fname : string
+            thhe location of the file to write
+        exceptions : tuple 
+            tuple containing any error types that should
+            be ignored (see pymoab.types module for more info)
+        
+        Returns
+        -------
+        None
+        
+        Raises
+        ------
+        MOAB ErrorCode 
+            if a MOAB error occurs
+        ValueError
+            if a parameter is not of the correct type
+        """
         cfname = fname.decode()
         cdef const char * file_name = cfname
         cdef moab.ErrorCode err = self.inst.write_file(fname)
         check_error(err, exceptions)
 
     def create_meshset(self, unsigned int options = 0x02, exceptions = ()):
+        """
+        Create a new mesh set.
+        
+        Create a new mesh set. Meshsets can store entities ordered or
+        unordered. A set can include entities at most once (MESHSET_SET) or more
+        than once. Meshsets can optionally track its members using adjacencies
+        (MESHSET_TRACK_OWNER); if set, entities are deleted from tracking
+        meshsets before being deleted. This adds data to mesh entities, which
+        can be expensive.
+        
+        Example
+        -------
+        # Create a standard meshset
+        mb = pymoab.core.Core()
+        new_meshset = mb.create_meshset()
+        
+        # Create a meshset which tracks entities
+        mb = pymoab.core.Core()
+        new_meshset = mb.create_meshset(pymoab.types.MESHSET_TRACK_OWNER)
+
+        Parameters
+        ----------
+        options : MOAB EntitySet Property
+            settings for the Meshset being created
+        exceptions : tuple 
+            A tuple containing any error types that should
+            be ignored. (see pymoab.types module for more info)
+        
+        Returns
+        -------
+        MOAB Meshset (EntityHandle)
+        
+        Raises
+        ------
+        MOAB ErrorCode 
+            if a MOAB error occurs
+        """        
         cdef moab.EntityHandle ms_handle = 0
         cdef moab.EntitySetProperty es_property = <moab.EntitySetProperty> options
         cdef moab.ErrorCode err = self.inst.create_meshset(es_property, ms_handle)
@@ -96,6 +160,40 @@ cdef class Core(object):
         return ms_handle
 
     def add_entities(self, moab.EntityHandle ms_handle, entities, exceptions = ()):
+        """
+        Add entities to the specified meshset. Entities can be provided either
+        as a pymoab.rng.Range o bject or as an iterable of EntityHandles.
+
+        If meshset has MESHSET_TRACK_OWNER option set, adjacencies are also
+        added to entities in entities.
+
+        Example
+        -------
+        vertices # a iterable of MOAB vertex handles
+        new_meshset = mb.create_meshset()
+        mb.add_entities(new_meshset, entities)
+        
+        Parameters
+        ----------
+        ms_handle : EntityHandle
+            EntityHandle of the Meshset the entities will be added to
+        entities : Range or iterable of EntityHandles
+            Entities that to add to the Meshset            
+        exceptions : tuple 
+            A tuple containing any error types that should
+            be ignored. (see pymoab.types module for more info)
+        
+        Returns
+        -------
+        None
+        
+        Raises
+        ------
+        MOAB ErrorCode 
+            if a MOAB error occurs
+        ValueError
+            if an EntityHandle is not of the correct type
+        """        
         cdef moab.ErrorCode err
         cdef Range r
         cdef np.ndarray[np.uint64_t, ndim=1] arr
@@ -108,6 +206,42 @@ cdef class Core(object):
         check_error(err, exceptions)
 
     def remove_entities(self, moab.EntityHandle ms_handle, entities, exceptions = ()):
+        """
+        Remove entities from the specified meshset. Entities can be provided either
+        as a pymoab.rng.Range o bject or as an iterable of EntityHandles.
+
+        If meshset has MESHSET_TRACK_OWNER option set, adjacencies in entities
+        in entities are updated.
+
+        Example
+        -------
+        vertices # iterable of MOAB vertex handles
+        new_meshset = mb.create_meshset()
+        mb.add_entities(new_meshset, entities)
+        # keep only the first entity in this meshset
+        mb.remove_entities(new_meshset, entities[1:])
+
+        Parameters
+        ----------
+        ms_handle : EntityHandle
+            EntityHandle of the Meshset the entities will be removed from
+        entities : Range or iterable of EntityHandles
+            Entities that to remove from the Meshset
+        exceptions : tuple
+        A tuple containing any error types that should
+        be ignored. (see pymoab.types module for more info)
+
+        Returns
+        -------
+        None
+
+        Raises
+        ------
+        MOAB ErrorCode
+            if a MOAB error occurs
+        ValueError
+            if an EntityHandle is not of the correct type
+        """
         cdef moab.ErrorCode err
         cdef Range r
         cdef np.ndarray[np.uint64_t, ndim=1] arr
@@ -120,6 +254,37 @@ cdef class Core(object):
         check_error(err, exceptions)
 
     def delete_entities(self, entities, exceptions = ()):
+        """
+        Delete entities from the database.
+
+        If any of the entities are contained in any meshsets, it is removed from
+        those meshsets which were created with MESHSET_TRACK_OWNER option
+
+        Example
+        -------
+        mb = pymoab.core.Core()
+        # generate mesh using other Core functions #
+        mb.delete_entities(entities)
+
+        Parameters
+        ----------
+        entities : Range or iterable of EntityHandles
+            Entities that to delete from the database
+        exceptions : tuple
+            A tuple containing any error types that should
+            be ignored. (see pymoab.types module for more info)
+
+        Returns
+        -------
+        None
+
+        Raises
+        ------
+        MOAB ErrorCode
+            if a MOAB error occurs
+        ValueError
+            if an EntityHandle is not of the correct type
+        """
         cdef moab.ErrorCode err
         cdef Range r
         cdef np.ndarray[np.uint64_t, ndim=1] arr
@@ -133,11 +298,54 @@ cdef class Core(object):
         
 
     def create_vertices(self, coordinates, exceptions = ()):
+        """
+        Create vertices using the specified x,y,z coordinates.
+
+        Example
+        -------
+        mb = pymoab.core.Core()
+        #create two vertices
+        coords = np.array((0, 0, 0, 1, 1, 1),dtype='float64')
+        verts = mb.create_vertices(coords)
+        
+        OR
+
+        mb = pymoab.core.Core()
+        #create two vertices
+        coords = [[0.0, 0.0, 0.0],[1.0, 1.0, 1.0]]
+        verts = mb.create_vertices(coords)       
+
+        Parameters
+        ----------
+        coordinates : 1-D or 2-D iterable
+            Coordinates can be provided as either a 1-D iterable of 3*n floats
+            or as a 2-D array with dimensions (n,3) where n is the number of
+            vertices being created.
+        exceptions : tuple
+            A tuple containing any error types that should
+            be ignored. (see pymoab.types module for more info)
+
+        Returns
+        -------
+        None
+
+        Raises
+        ------
+        MOAB ErrorCode
+            if a MOAB error occurs
+        ValueError
+            if an EntityHandle is not of the correct type
+        """
         cdef Range rng = Range()
-        cdef np.ndarray[np.float64_t, ndim=1] coords_arr = _convert_array(coordinates, [np.float64], np.float64)
+        cdef np.ndarray coords_as_arr = np.asarray(coordinates)
+        if coords_as_arr.ndim > 1:
+            assert coords_as_arr.ndim == 2
+            coords_as_arr = coords_as_arr.flatten()
+            print len(coords_as_arr)
+        cdef np.ndarray[np.float64_t, ndim=1] coords_arr = _convert_array(coords_as_arr, [float, np.float64], np.float64)
         assert len(coordinates)%3 == 0, "Incorrect number of coordinates provided."
         cdef moab.ErrorCode err = self.inst.create_vertices(<double *> coords_arr.data,
-                                                            len(coordinates)//3,
+                                                            len(coords_arr)//3,
                                                             deref(rng.inst))
         check_error(err, exceptions)
         return rng
