@@ -34,7 +34,6 @@ ErrorCode GenerateHierarchy::setup()
 
   // init_obb                                                                 
   rval = DAG->load_existing_contents();         
-  MB_CHK_SET_ERR(rval, "Failed to load existing contents.");
 
   // build obbs
   rval = DAG->setup_obbs();
