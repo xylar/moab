@@ -1,41 +1,27 @@
 ///////////////////////////////////////////////////////////////////////////////
 ///
 ///	\file    GenerateOfflineMap.cpp
-///	\author  Paul Ullrich
-///	\version June 29, 2015
+///	\author  Vijay Mahadevan
+///	\version Feb 28, 2017
 ///
-///	<remarks>
-///		Copyright 2000-2014 Paul Ullrich
-///
-///		This file is distributed as part of the Tempest source code package.
-///		Permission is granted to use, copy, modify and distribute this
-///		source code and its documentation under the terms of the GNU General
-///		Public License.  This software is provided "as is" without express
-///		or implied warranty.
-///	</remarks>
 
 #include "Announce.h"
-#include "CommandLine.h"
-#include "Exception.h"
-#include "GridElements.h"
-#include "OverlapMesh.h"
 #include "DataMatrix3D.h"
 #include "FiniteElementTools.h"
+#include "LinearRemapFV.h"
+#include "GaussLobattoQuadrature.h"
+#include "TriangularQuadrature.h"
 #include "SparseMatrix.h"
 #include "STLStringHelper.h"
 
-#include "OverlapMesh.h"
-#include "LinearRemapSE0.h"
-#include "LinearRemapFV.h"
 #include "TempestOfflineMap.hpp"
-
 #include "DebugOutput.hpp"
 
 #include "netcdfcpp.h"
 
 #include <fstream>
 #include <cmath>
-
+#include <cstdlib>
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -68,7 +54,6 @@ moab::TempestOfflineMap::TempestOfflineMap(moab::TempestRemapper* remapper) : Of
     // the global DoFs in parallel for the mapping weights
     // For example, FV->FV: rows X cols = faces_source X faces_target
     // 
-    // int ierr;
     // MPI_Scan()
 }
 
@@ -102,7 +87,6 @@ static void ParseVariableList(
 				if (iVarCurrent >= strVariables.length()) {
 					break;
 				}
-
 				continue;
 			}
 
@@ -118,14 +102,6 @@ static void ParseVariableList(
 
 
 ///////////////////////////////////////////////////////////////////////////////
-#include "LinearRemapFV.h"
-#include "GridElements.h"
-#include "OfflineMap.h"
-#include "FiniteElementTools.h"
-#include "GaussLobattoQuadrature.h"
-#include "TriangularQuadrature.h"
-#include "MeshUtilitiesFuzzy.h"
-#include "OverlapMesh.h"
 
 extern void BuildIntegrationArray(
     const Mesh & meshInput,
@@ -371,6 +347,309 @@ void moab::TempestOfflineMap::LinearRemapFVtoFV_Tempest_MOAB(
 
 
 ///////////////////////////////////////////////////////////////////////////////
+
+extern void ForceConsistencyConservation3(
+    const DataVector<double> & vecSourceArea,
+    const DataVector<double> & vecTargetArea,
+    DataMatrix<double> & dCoeff,
+    bool fMonotone
+);
+
+void moab::TempestOfflineMap::LinearRemapSE4_Tempest_MOAB(
+    const DataMatrix3D<int> & dataGLLNodes,
+    const DataMatrix3D<double> & dataGLLJacobian,
+    int nMonotoneType,
+    bool fContinuousIn,
+    bool fNoConservation
+) {
+    // Order of the polynomial interpolant
+    int nP = dataGLLNodes.GetRows();
+
+    // Order of triangular quadrature rule
+    const int TriQuadRuleOrder = 4; 
+
+    // Triangular quadrature rule
+    TriangularQuadratureRule triquadrule(TriQuadRuleOrder);
+
+    int TriQuadraturePoints = triquadrule.GetPoints();
+
+    const DataMatrix<double> & TriQuadratureG = triquadrule.GetG();
+
+    const DataVector<double> & TriQuadratureW = triquadrule.GetW();
+
+    // Sample coefficients
+    DataMatrix<double> dSampleCoeff;
+    dSampleCoeff.Initialize(nP, nP);
+
+    // GLL Quadrature nodes on quadrilateral elements
+    DataVector<double> dG;
+    DataVector<double> dW;
+    GaussLobattoQuadrature::GetPoints(nP, 0.0, 1.0, dG, dW);
+
+    // Get SparseMatrix represntation of the OfflineMap
+    SparseMatrix<double> & smatMap = this->GetSparseMatrix();
+
+    // NodeVector from meshOverlap
+    const NodeVector & nodesOverlap = m_meshOverlap->nodes;
+    const NodeVector & nodesFirst   = m_meshInputCov->nodes;
+
+    // Vector of source areas
+    DataVector<double> vecSourceArea;
+    vecSourceArea.Initialize(nP * nP);
+
+    DataVector<double> vecTargetArea;
+
+    DataMatrix<double> dCoeff;
+
+    // Current Overlap Face
+    int ixOverlap = 0;
+
+    // Loop over all input Faces
+    for (size_t ixFirst = 0; ixFirst < m_meshInputCov->faces.size(); ixFirst++) {
+
+        const Face & faceFirst = m_meshInputCov->faces[ixFirst];
+
+        if (faceFirst.edges.size() != 4) {
+            _EXCEPTIONT("Only quadrilateral elements allowed for SE remapping");
+        }
+
+        // Output every 100 elements
+        if (ixFirst % 100 == 0) {
+            Announce("Element %i/%i", ixFirst, m_meshInputCov->faces.size());
+        }
+
+        std::vector<std::pair<int,int> > ixFaces;
+        for (unsigned ix = 0; ix < m_meshOverlap->faces.size(); ix++) {
+            if (ixFirst - m_meshOverlap->vecSourceFaceIx[ix] == 0) { 
+                // if (!pcomm->rank()) std::cout << "[" << ix << "] SrcFaceIx = " << m_meshOverlap->vecSourceFaceIx[ix] << std::endl;
+                unsigned jx;
+                int ntotTris=0;
+                for (jx = 1; jx < m_meshOverlap->faces.size()-ix; jx++) {
+                    // if (!pcomm->rank()) std::cout << "\t[" << jx << "] SrcFaceJx = " << m_meshOverlap->vecSourceFaceIx[jx] << std::endl;
+                    if (ixFirst - m_meshOverlap->vecSourceFaceIx[ix+jx] != 0)
+                        break;
+
+                    ntotTris += m_meshOverlap->faces[ix+jx].edges.size() - 2;
+                }
+                ixFaces.push_back(std::make_pair<int,int>(ix,ix+jx));
+                ix += jx-1;
+            }
+        }
+
+        // Need to re-number the overlap elements such that vecSourceFaceIx[a:b] = 0, then 1 and so on wrt the input mesh data
+        // Then the overlap_end and overlap_begin will be correct. However, the relation with MOAB and Tempest will go out of the roof
+
+        // // Determine how many overlap Faces and triangles are present
+        // int ixOverlapTemp = ixOverlap;
+        // for (; ixOverlapTemp < m_meshOverlap->faces.size(); ixOverlapTemp++) {
+
+        //     const Face & faceOverlap = m_meshOverlap->faces[ixOverlapTemp];
+
+        //     if (m_meshOverlap->vecSourceFaceIx[ixOverlapTemp] != ixFirst) {
+        //         break;
+        //     }
+
+        //     nOverlapFaces++;
+        //     nTotalOverlapTriangles += faceOverlap.edges.size() - 2;
+        // }
+
+        int gnOverlapFaces = 0;
+        double globTargetArea = 0.0;
+
+        for (unsigned ifaceIndx = 0; ifaceIndx < ixFaces.size(); ++ifaceIndx) {
+
+            // Number of overlapping Faces and triangles
+            int ixOverlapBegin = ixFaces[ifaceIndx].first;
+            int ixOverlapEnd = ixFaces[ifaceIndx].second;
+            int nOverlapFaces = ixOverlapEnd - ixOverlapBegin;
+
+            // No overlaps
+            if (nOverlapFaces == 0) {
+                continue;
+            }
+
+            // Allocate remap coefficients array for meshFirst Face
+            DataMatrix3D<double> dRemapCoeff;
+            dRemapCoeff.Initialize(nP, nP, nOverlapFaces);
+
+            // Find the local remap coefficients
+            for (int j = 0; j < nOverlapFaces; j++) {
+                const Face & faceOverlap = m_meshOverlap->faces[ixOverlapBegin + j];
+
+                int nOverlapTriangles = faceOverlap.edges.size() - 2;
+
+                // Loop over all sub-triangles of this Overlap Face
+                for (int k = 0; k < nOverlapTriangles; k++) {
+
+                    // Cornerpoints of triangle
+                    const Node & node0 = nodesOverlap[faceOverlap[0]];
+                    const Node & node1 = nodesOverlap[faceOverlap[k+1]];
+                    const Node & node2 = nodesOverlap[faceOverlap[k+2]];
+
+                    // Calculate the area of the modified Face
+                    Face faceTri(3);
+                    faceTri.SetNode(0, faceOverlap[0]);
+                    faceTri.SetNode(1, faceOverlap[k+1]);
+                    faceTri.SetNode(2, faceOverlap[k+2]);
+
+                    double dTriangleArea =
+                        CalculateFaceArea(faceTri, nodesOverlap);
+
+                    // Coordinates of quadrature Node
+                    for (int l = 0; l < TriQuadraturePoints; l++) {
+                        Node nodeQuadrature;
+                        nodeQuadrature.x =
+                              TriQuadratureG[l][0] * node0.x
+                            + TriQuadratureG[l][1] * node1.x
+                            + TriQuadratureG[l][2] * node2.x;
+
+                        nodeQuadrature.y =
+                              TriQuadratureG[l][0] * node0.y
+                            + TriQuadratureG[l][1] * node1.y
+                            + TriQuadratureG[l][2] * node2.y;
+
+                        nodeQuadrature.z =
+                              TriQuadratureG[l][0] * node0.z
+                            + TriQuadratureG[l][1] * node1.z
+                            + TriQuadratureG[l][2] * node2.z;
+
+                        double dMag = sqrt(
+                              nodeQuadrature.x * nodeQuadrature.x
+                            + nodeQuadrature.y * nodeQuadrature.y
+                            + nodeQuadrature.z * nodeQuadrature.z);
+
+                        nodeQuadrature.x /= dMag;
+                        nodeQuadrature.y /= dMag;
+                        nodeQuadrature.z /= dMag;
+
+                        // Find components of quadrature point in basis
+                        // of the first Face
+                        double dAlpha;
+                        double dBeta;
+
+                        ApplyInverseMap(
+                            faceFirst,
+                            nodesFirst,
+                            nodeQuadrature,
+                            dAlpha,
+                            dBeta);
+
+                        // Check inverse map value
+                        if ((dAlpha < -1.0e-13) || (dAlpha > 1.0 + 1.0e-13) ||
+                            (dBeta  < -1.0e-13) || (dBeta  > 1.0 + 1.0e-13)
+                        ) {
+                            _EXCEPTION2("Inverse Map out of range (%1.5e %1.5e)",
+                                dAlpha, dBeta);
+                        }
+
+                        // Sample the finite element at this point
+                        SampleGLLFiniteElement(
+                            nMonotoneType,
+                            nP,
+                            dAlpha,
+                            dBeta,
+                            dSampleCoeff);
+
+                        // Add sample coefficients to the map
+                        for (int p = 0; p < nP; p++) {
+                            for (int q = 0; q < nP; q++) {
+
+                                dRemapCoeff[p][q][j] +=
+                                    TriQuadratureW[l]
+                                    * dTriangleArea
+                                    * dSampleCoeff[p][q]
+                                    / m_meshOverlap->vecFaceArea[ixOverlapBegin + j];
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Force consistency and conservation
+            if (!fNoConservation) {
+                for (int p = 0; p < nP; p++) {
+                    for (int q = 0; q < nP; q++) {
+                        vecSourceArea[p * nP + q] = dataGLLJacobian[p][q][ixFirst];
+                    }
+                }
+
+                double dTargetArea = 0.0;
+                vecTargetArea.Initialize(nOverlapFaces);
+                for (int j = 0; j < nOverlapFaces; j++) {
+                    vecTargetArea[j] = m_meshOverlap->vecFaceArea[ixOverlapBegin + j];
+                    dTargetArea += m_meshOverlap->vecFaceArea[ixOverlapBegin + j];
+                }
+                globTargetArea += dTargetArea;
+
+                // const double factor = dTargetArea/m_meshInputCov->vecFaceArea[ixFirst]*0+1.0/ixFaces.size();
+                // for (int j = 0; j < nOverlapFaces; j++) {
+                //     vecTargetArea[j] *= factor;
+                // }
+
+                if (fabs(globTargetArea - m_meshInputCov->vecFaceArea[ixFirst]) > 1.0e-10) {
+                    Announce("TempestOfflineMap: Partial element: %i, areas = %f percent", ixFirst, 100*globTargetArea/m_meshInputCov->vecFaceArea[ixFirst]);
+                }
+                else
+                {
+                    dCoeff.Initialize(nOverlapFaces, nP * nP);
+
+                    for (int j = 0; j < nOverlapFaces; j++) {
+                        for (int p = 0; p < nP; p++) {
+                            for (int q = 0; q < nP; q++)
+                                dCoeff[j][p * nP + q] = dRemapCoeff[p][q][j];
+                        }
+                    }
+
+                    ForceConsistencyConservation3(
+                        vecSourceArea,
+                        vecTargetArea,
+                        dCoeff,
+                        (nMonotoneType != 0));
+
+                    for (int j = 0; j < nOverlapFaces; j++) {
+                        for (int p = 0; p < nP; p++) {
+                            for (int q = 0; q < nP; q++)
+                                dRemapCoeff[p][q][j] = dCoeff[j][p * nP + q];
+                        }
+                    }
+                }
+            }
+
+            // Put these remap coefficients into the SparseMatrix map
+            for (int j = 0; j < nOverlapFaces; j++) {
+                int ixSecondFace = m_meshOverlap->vecTargetFaceIx[ixOverlapBegin + j];
+
+                for (int p = 0; p < nP; p++) {
+                    for (int q = 0; q < nP; q++) {
+
+                        if (fContinuousIn) {
+                            int ixFirstNode = dataGLLNodes[p][q][ixFirst] - 1;
+
+                            smatMap(ixSecondFace, ixFirstNode) +=
+                                dRemapCoeff[p][q][j]
+                                * m_meshOverlap->vecFaceArea[ixOverlapBegin + j]
+                                / m_meshOutput->vecFaceArea[ixSecondFace];
+
+                        } else {
+                            int ixFirstNode = ixFirst * nP * nP + p * nP + q;
+
+                            smatMap(ixSecondFace, ixFirstNode) +=
+                                dRemapCoeff[p][q][j]
+                                * m_meshOverlap->vecFaceArea[ixOverlapBegin + j]
+                                / m_meshOutput->vecFaceArea[ixSecondFace];
+                        }
+                    }
+                }
+            }
+            gnOverlapFaces += nOverlapFaces;
+
+        }
+        // Increment the current overlap index
+        ixOverlap += gnOverlapFaces;
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
 moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap( std::string strInputType, std::string strOutputType,
                                             int nPin, int nPout,
                                             bool fBubble, int fMonotoneTypeID,
@@ -512,7 +791,7 @@ try {
         }
     }
 
-    dbgprint.printf(0, "m_meshInputCov->faces = %lu, m_meshOutput->faces = %lu, ixSourceFaceMax = %d\n", m_meshInput->faces.size(), m_meshOutput->faces.size(), ixSourceFaceMax);
+    dbgprint.printf(0, "m_meshInput->faces = %lu, m_meshInputCov->faces = %lu, m_meshOutput->faces = %lu, ixSourceFaceMax = %d\n", m_meshInput->faces.size(), m_meshInputCov->faces.size(), m_meshOutput->faces.size(), ixSourceFaceMax);
 
     // Check for forward correspondence in overlap mesh
     if (// m_meshInputCov->faces.size() - ixSourceFaceMax == 0 //&&
@@ -600,7 +879,7 @@ try {
         if (!pcomm->rank()) dbgprint.printf(0, "Output Mesh Numerical Area: %1.15e\n", dNumericalArea);
 
         // Initialize coordinates for map
-        this->InitializeSourceCoordinatesFromMeshFV(*m_meshInput);
+        this->InitializeSourceCoordinatesFromMeshFV(*m_meshInputCov);
         this->InitializeTargetCoordinatesFromMeshFE(
             *m_meshOutput, nPout, dataGLLNodes);
 
@@ -620,15 +899,15 @@ try {
         }
 
         // Generate reverse node array and edge map
-        m_meshInput->ConstructReverseNodeArray();
-        m_meshInput->ConstructEdgeMap();
+        m_meshInputCov->ConstructReverseNodeArray();
+        m_meshInputCov->ConstructEdgeMap();
 
         // Generate remap weights
         if (!pcomm->rank()) dbgprint.printf(0, "Calculating offline map\n");
 
         if (fVolumetric) {
             LinearRemapFVtoGLL_Volumetric(
-                *m_meshInput,
+                *m_meshInputCov,
                 *m_meshOutput,
                 *m_meshOverlap,
                 dataGLLNodes,
@@ -642,7 +921,7 @@ try {
 
         } else {
             LinearRemapFVtoGLL(
-                *m_meshInput,
+                *m_meshInputCov,
                 *m_meshOutput,
                 *m_meshOverlap,
                 dataGLLNodes,
@@ -666,7 +945,7 @@ try {
         if (!pcomm->rank()) dbgprint.printf(0, "Generating input mesh meta data\n");
         double dNumericalArea_loc =
             GenerateMetaData(
-                *m_meshInput,
+                *m_meshInputCov,
                 nPin,
                 fBubble,
                 dataGLLNodes,
@@ -681,14 +960,14 @@ try {
                 "numerical area and geometric area\n");
         }
 
-        if (dataGLLNodes.GetSubColumns() != m_meshInput->faces.size()) {
+        if (dataGLLNodes.GetSubColumns() != m_meshInputCov->faces.size()) {
             _EXCEPTIONT("Number of element does not match between metadata and "
                 "input mesh");
         }
 
         // Initialize coordinates for map
         this->InitializeSourceCoordinatesFromMeshFE(
-            *m_meshInput, nPin, dataGLLNodes);
+            *m_meshInputCov, nPin, dataGLLNodes);
         this->InitializeTargetCoordinatesFromMeshFV(*m_meshOutput);
 
         // Generate the continuous Jacobian for input mesh
@@ -714,16 +993,16 @@ try {
                 "GLL input mesh");
         }
 
-        LinearRemapSE4(
-            *m_meshInput,
-            *m_meshOutput,
-            *m_meshOverlap,
+        LinearRemapSE4_Tempest_MOAB(
+            // *m_meshInputCov,
+            // *m_meshOutput,
+            // *m_meshOverlap,
             dataGLLNodes,
             dataGLLJacobian,
             nMonotoneType,
             fContinuousIn,
-            fNoConservation,
-            *this
+            fNoConservation
+            // *this
         );
 
     // Finite element input / Finite element output
@@ -741,7 +1020,7 @@ try {
         if (!pcomm->rank()) dbgprint.printf(0, "Generating input mesh meta data");
         double dNumericalAreaIn_loc =
             GenerateMetaData(
-                *m_meshInput,
+                *m_meshInputCov,
                 nPin,
                 fBubble,
                 dataGLLNodesIn,
@@ -778,7 +1057,7 @@ try {
 
         // Initialize coordinates for map
         this->InitializeSourceCoordinatesFromMeshFE(
-            *m_meshInput, nPin, dataGLLNodesIn);
+            *m_meshInputCov, nPin, dataGLLNodesIn);
         this->InitializeTargetCoordinatesFromMeshFE(
             *m_meshOutput, nPout, dataGLLNodesOut);
 
@@ -816,7 +1095,7 @@ try {
         if (!pcomm->rank()) dbgprint.printf(0, "Calculating offline map");
 
         LinearRemapGLLtoGLL2(
-            *m_meshInput,
+            *m_meshInputCov,
             *m_meshOutput,
             *m_meshOverlap,
             dataGLLNodesIn,
@@ -843,8 +1122,7 @@ try {
     if (!fNoCheck) {
         if (!pcomm->rank()) dbgprint.printf(0, "Verifying map");
         this->IsConsistent(1.0e-8);
-        // std::cout << "Warning -- disabled conservation checks. Please re-enable\n";
-        this->IsConservative(1.0e-8);
+        if (!fNoConservation) this->IsConservative(1.0e-8);
 
         if (nMonotoneType != 0) {
             this->IsMonotone(1.0e-12);
@@ -1019,7 +1297,6 @@ bool moab::TempestOfflineMap::IsMonotone(
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-#include <cstdlib>
 moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot() { // Collective
 
 	Mesh globalMesh;

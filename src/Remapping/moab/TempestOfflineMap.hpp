@@ -126,6 +126,25 @@ private:
 	///	</summary>
 	void LinearRemapFVtoFV_Tempest_MOAB( int nOrder );
 
+	///	<summary>
+	///		Generate the OfflineMap for linear conserative element-average
+	///		spectral element to element average remapping.
+	///	</summary>
+	void LinearRemapSE0_Tempest_MOAB(
+		const DataMatrix3D<int> & dataGLLNodes,
+		const DataMatrix3D<double> & dataGLLJacobian);
+
+	///	<summary>
+	///		Generate the OfflineMap for cubic conserative element-average
+	///		spectral element to element average remapping.
+	///	</summary>
+	void LinearRemapSE4_Tempest_MOAB(
+	    const DataMatrix3D<int> & dataGLLNodes,
+	    const DataMatrix3D<double> & dataGLLJacobian,
+	    int nMonotoneType,
+	    bool fContinuousIn,
+	    bool fNoConservation);
+
 private:
 	///	<summary>
 	///		The fundamental remapping operator object.

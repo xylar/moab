@@ -47,12 +47,13 @@ struct ToolContext {
   const int proc_id, n_procs;
   bool computeDual;
   bool computeWeights;
+  bool fNoConservation;
   moab::DebugOutput outStream;
 
   ToolContext(int procid, int nprocs) : 
     blockSize(5), outFilename("output.exo"), meshType(moab::TempestRemapper::DEFAULT), 
     proc_id(procid), n_procs(nprocs),
-    computeDual(false), computeWeights(false),
+    computeDual(false), computeWeights(false), fNoConservation(false),
     outStream(std::cout, procid)
   {
     inFilenames.resize(2);
@@ -96,6 +97,7 @@ struct ToolContext {
     opts.addOpt<std::string>("file,f", "Output mesh filename (default=output.exo)", &outFilename);
     opts.addOpt<void>("dual,d", "Output the dual of the mesh (generally relevant only for ICO mesh)", &computeDual);
     opts.addOpt<void>("weights,w", "Compute and output the weights using the overlap mesh (generally relevant only for OVERLAP mesh)", &computeWeights);
+    opts.addOpt<void>("noconserve,c", "Do not apply conservation to the resultant weights (relevant only when computing weights)", &fNoConservation);
     opts.addOpt<std::string>("load,l", "Input mesh filenames (a source and target mesh)", &expectedFName);
     opts.addOpt<int>("order,o", "Discretization orders for the source and target solution fields", &expectedOrder);
     opts.addOpt<std::string>("method,m", "Discretization orders for the source and target solution fields", &expectedMethod);
@@ -354,7 +356,7 @@ int main(int argc, char* argv[])
       weightMap->GenerateOfflineMap(ctx.disc_methods[0], ctx.disc_methods[1],          // std::string strInputType, std::string strOutputType,
                                     ctx.disc_orders[0],  ctx.disc_orders[1],  // int nPin=4, int nPout=4,
                                     false, 0,            // bool fBubble=false, int fMonotoneTypeID=0,
-                                    false, false, false/*false*/ // bool fVolumetric=false, bool fNoConservation=false, bool fNoCheck=false,
+                                    false, ctx.fNoConservation, false/*false*/ // bool fVolumetric=false, bool fNoConservation=false, bool fNoCheck=false,
                                     // std::string strVariables="", std::string strOutputMap="",
                                     // std::string strInputData="", std::string strOutputData="",
                                     // std::string strNColName="", bool fOutputDouble=false,
