@@ -20,6 +20,7 @@
 #define iMOAB_ReadHeaderInfo                 IMOAB_FC_WRAPPER( imoab_readheaderinfo, IMOAB_READHEADERINFO )
 #define iMOAB_LoadMesh                       IMOAB_FC_WRAPPER( imoab_loadmesh, IMOAB_LOADMESH )
 #define iMOAB_WriteMesh                      IMOAB_FC_WRAPPER( imoab_writemesh, IMOAB_WRITEMESH )
+#define iMOAB_UpdateMeshInfo                 IMOAB_FC_WRAPPER( imoab_updatemeshinfo, IMOAB_UPDATEMESHINFO )
 #define iMOAB_GetMeshInfo                    IMOAB_FC_WRAPPER( imoab_getmeshinfo, IMOAB_GETMESHINFO )
 #define iMOAB_GetVertexID                    IMOAB_FC_WRAPPER( imoab_getvertexid, IMOAB_GETVERTEXID )
 #define iMOAB_GetVertexOwnership             IMOAB_FC_WRAPPER( imoab_getvertexownership, IMOAB_GETVERTEXOWNERSHIP )
@@ -42,4 +43,8 @@
 #define iMOAB_GetNeighborElements            IMOAB_FC_WRAPPER( imoab_getneighborelements, IMOAB_GETNEIGHBORELEMENTS )
 #define iMOAB_GetNeighborVertices            IMOAB_FC_WRAPPER( imoab_getneighborvertices, IMOAB_GETNEIGHBORVERTICES )
 
+#define iMOAB_CreateVertices                 IMOAB_FC_WRAPPER( imoab_createvertices, IMOAB_CREATEVERTICES )
+#define iMOAB_CreateElements                 IMOAB_FC_WRAPPER( imoab_createelements, IMOAB_CREATEELEMENTS )
+#define iMOAB_ResolveSharedEntities          IMOAB_FC_WRAPPER( imoab_resolvesharedentities, IMOAB_RESOLVESHAREDENTITIES )
+#define iMOAB_DetermineGhostEntities         IMOAB_FC_WRAPPER( imoab_determineghostentities, IMOAB_DETERMINEGHOSTENTITIES )
 #endif /*IMOAB_PROTOS_H */

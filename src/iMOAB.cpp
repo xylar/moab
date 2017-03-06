@@ -28,6 +28,7 @@ using namespace moab;
 
 #include "MBTagConventions.hpp"
 #include "moab/MeshTopoUtil.hpp"
+#include "moab/ReadUtilIface.hpp"
 #include <sstream>
 
 // global variables ; should they be organized in a structure, for easier references?
@@ -353,6 +354,7 @@ ErrCode iMOAB_LoadMesh( iMOAB_AppID pid, const iMOAB_String filename, const iMOA
   nprocs = context.pcomms[*pid]->size();
 #endif
 
+
 #ifndef NDEBUG
   // some debugging stuff
   std::ostringstream outfile;
@@ -363,7 +365,8 @@ ErrCode iMOAB_LoadMesh( iMOAB_AppID pid, const iMOAB_String filename, const iMOA
   if (MB_SUCCESS!=rval)
     return 1;
 #endif
-  return 0;
+  int rc = iMOAB_UpdateMeshInfo(pid);
+  return rc;
 }
 
 ErrCode iMOAB_WriteMesh( iMOAB_AppID pid, iMOAB_String filename, iMOAB_String write_options, int filename_length, int write_options_length )
@@ -386,78 +389,110 @@ ErrCode iMOAB_WriteMesh( iMOAB_AppID pid, iMOAB_String filename, iMOAB_String wr
   return 0;
 }
 
+
+ErrCode iMOAB_UpdateMeshInfo(iMOAB_AppID pid)
+{
+  // this will include ghost elements info
+    //
+    appData & data = context.appDatas[*pid];
+    EntityHandle fileSet=data.file_set;
+    // first clear all data ranges; this can be called after ghosting
+    data.all_verts.clear();
+    data.primary_elems.clear();
+    data.local_verts.clear();
+    data.ghost_vertices.clear();
+    data.owned_elems.clear();
+    data.ghost_elems.clear();
+    data.mat_sets.clear();
+    data.neu_sets.clear();
+    data.diri_sets.clear();
+
+    ErrorCode rval = context.MBI->get_entities_by_type(fileSet, MBVERTEX, data.all_verts, true); // recursive
+    if (MB_SUCCESS!=rval)
+      return 1;
+
+    rval = context.MBI->get_entities_by_dimension(fileSet, 3, data.primary_elems, true); // recursive
+    if (MB_SUCCESS!=rval)
+      return 1;
+    data.dimension = 3;
+    if (data.primary_elems.empty())
+    {
+      context.appDatas[*pid].dimension = 2;
+      rval = context.MBI->get_entities_by_dimension(fileSet, 2, data.primary_elems, true); // recursive
+      if (MB_SUCCESS!=rval)
+        return 1;
+      if (data.primary_elems.empty())
+      {
+        context.appDatas[*pid].dimension = 1;
+        rval = context.MBI->get_entities_by_dimension(fileSet, 1, data.primary_elems, true); // recursive
+        if (MB_SUCCESS!=rval)
+          return 1;
+        if (data.primary_elems.empty())
+          return 1; // no elements of dimension 1 or 2 or 3
+      }
+    }
+
+  #ifdef MOAB_HAVE_MPI
+    ParallelComm * pco = context.pcomms[*pid];
+
+    // filter ghost vertices, from local
+    rval = pco -> filter_pstatus(data.all_verts, PSTATUS_GHOST, PSTATUS_NOT, -1, &data.local_verts);
+    if (MB_SUCCESS!=rval)
+      return 1;
+    data.ghost_vertices = subtract(data.all_verts, data.local_verts);
+
+    // get all blocks, BCs, etc
+
+    // filter ghost elements, from local
+    rval = pco -> filter_pstatus(data.primary_elems, PSTATUS_GHOST, PSTATUS_NOT, -1, &data.owned_elems);
+    if (MB_SUCCESS!=rval)
+      return 1;
+    data.ghost_elems = subtract(data.primary_elems, data.owned_elems);
+
+  #else
+
+    data.local_verts = data.all_verts;
+    data.owned_elems = data.primary_elems;
+
+  #endif
+  rval = context.MBI->get_entities_by_type_and_tag(fileSet, MBENTITYSET, &(context.material_tag), 0, 1, data.mat_sets , Interface::UNION);
+  if (MB_SUCCESS!=rval)
+    return 1;
+
+  rval = context.MBI->get_entities_by_type_and_tag(fileSet, MBENTITYSET, &(context.neumann_tag), 0, 1, data.neu_sets , Interface::UNION);
+  if (MB_SUCCESS!=rval)
+    return 1;
+
+  rval = context.MBI->get_entities_by_type_and_tag(fileSet, MBENTITYSET, &(context.dirichlet_tag), 0, 1, data.diri_sets , Interface::UNION);
+  if (MB_SUCCESS!=rval)
+    return 1;
+
+
+  return 0;
+}
 ErrCode iMOAB_GetMeshInfo( iMOAB_AppID pid, int* num_visible_vertices, int* num_visible_elements, int *num_visible_blocks, int* num_visible_surfaceBC, int* num_visible_vertexBC )
 {
 
   // this will include ghost elements
-  // we should keep a data structure with mesh, sets, etc, for each pid
   //
   appData & data = context.appDatas[*pid];
   EntityHandle fileSet=data.file_set;
-  ErrorCode rval = context.MBI->get_entities_by_type(fileSet, MBVERTEX, data.all_verts, true); // recursive
-  if (MB_SUCCESS!=rval)
-    return 1;
-  num_visible_vertices[2] = (int) data.all_verts.size();
-  // we need to differentiate pure ghosted vertices from owned/shared
-  // is dimension 3?
-  rval = context.MBI->get_entities_by_dimension(fileSet, 3, data.primary_elems, true); // recursive
-  if (MB_SUCCESS!=rval)
-    return 1;
-  data.dimension = 3;
-  if (data.primary_elems.empty())
-  {
-    context.appDatas[*pid].dimension = 2;
-    rval = context.MBI->get_entities_by_dimension(fileSet, 2, data.primary_elems, true); // recursive
-    if (MB_SUCCESS!=rval)
-      return 1;
-    if (data.primary_elems.empty())
-    {
-      context.appDatas[*pid].dimension = 1;
-      rval = context.MBI->get_entities_by_dimension(fileSet, 1, data.primary_elems, true); // recursive
-      if (MB_SUCCESS!=rval)
-        return 1;
-      if (data.primary_elems.empty())
-        return 1; // no elements of dimension 1 or 2 or 3
-    }
-      return 1;
+  // first clear all data ranges; this can be called after ghosting
 
-  }
   num_visible_elements[2] = (int) data.primary_elems.size();
   // separate ghost and local/owned primary elements
-
-#ifdef MOAB_HAVE_MPI
-  ParallelComm * pco = context.pcomms[*pid];
-
-  // filter ghost vertices, from local
-  rval = pco -> filter_pstatus(data.all_verts, PSTATUS_GHOST, PSTATUS_NOT, -1, &data.local_verts);
-  if (MB_SUCCESS!=rval)
-    return 1;
-  data.ghost_vertices = subtract(data.all_verts, data.local_verts);
-  num_visible_vertices[0] = (int) data.local_verts.size();
-  num_visible_vertices[1] = (int) data.ghost_vertices.size();
-  // get all blocks, BCs, etc
-
-  // filter ghost elements, from local
-  rval = pco -> filter_pstatus(data.primary_elems, PSTATUS_GHOST, PSTATUS_NOT, -1, &data.owned_elems);
-  if (MB_SUCCESS!=rval)
-    return 1;
-  data.ghost_elems = subtract(data.primary_elems, data.owned_elems);
-    // get all blocks, BCs, etc
   num_visible_elements[0] = (int)data.owned_elems.size();
   num_visible_elements[1] = (int)data.ghost_elems.size();
-#else
-  num_visible_vertices[0] = (int)data.all_verts.size();
-  data.local_verts = data.all_verts;
-  num_visible_vertices[1] = 0; /* no ghosts */
-  data.owned_elems = data.primary_elems;
-  num_visible_elements[0] = (int)data.owned_elems.size();
-  num_visible_elements[1] = (int)data.ghost_elems.size();
+  num_visible_vertices[2] = (int)data.all_verts.size();
+  num_visible_vertices[1] = (int)data.ghost_vertices.size();
+  num_visible_vertices[0] =  num_visible_vertices[2] - num_visible_vertices[1]; // local are those that are not ghosts
 
-#endif
-  rval = context.MBI->get_entities_by_type_and_tag(fileSet, MBENTITYSET, &(context.material_tag), 0, 1, data.mat_sets , Interface::UNION);
+  ErrorCode rval = context.MBI->get_entities_by_type_and_tag(fileSet, MBENTITYSET, &(context.material_tag), 0, 1, data.mat_sets , Interface::UNION);
   if (MB_SUCCESS!=rval)
     return 1;
   num_visible_blocks[2] = data.mat_sets.size();
+  num_visible_blocks[0] = num_visible_blocks[2];
+  num_visible_blocks[1] = 0;
   rval = context.MBI->get_entities_by_type_and_tag(fileSet, MBENTITYSET, &(context.neumann_tag), 0, 1, data.neu_sets , Interface::UNION);
   if (MB_SUCCESS!=rval)
     return 1;
@@ -482,6 +517,8 @@ ErrCode iMOAB_GetMeshInfo( iMOAB_AppID pid, int* num_visible_vertices, int* num_
       num_visible_surfaceBC[2] += (int)adjPrimaryEnts.size();
     }
   }
+  num_visible_surfaceBC[0] = num_visible_surfaceBC[2];
+  num_visible_surfaceBC[1] = 0; //
   rval = context.MBI->get_entities_by_type_and_tag(fileSet, MBENTITYSET, &(context.dirichlet_tag), 0, 1, data.diri_sets , Interface::UNION);
   if (MB_SUCCESS!=rval)
     return 1;
@@ -496,7 +533,8 @@ ErrCode iMOAB_GetMeshInfo( iMOAB_AppID pid, int* num_visible_vertices, int* num_
       return 1;
     num_visible_vertexBC[2] += (int)verts.size();
   }
-
+  num_visible_vertexBC[0] = num_visible_vertexBC[2];
+  num_visible_vertexBC[1] = 0;
 
   return 0;
 }
@@ -1179,7 +1217,159 @@ ErrCode iMOAB_GetNeighborVertices(iMOAB_AppID pid, iMOAB_LocalID* local_vertex_I
 }
 #endif
 
+ErrCode iMOAB_CreateVertices( iMOAB_AppID pid, int * coords_len, int *dim, double * coordinates )
+{
+  appData & data = context.appDatas[*pid];
+  if (!data.local_verts.empty() ) // we should have no vertices in the app
+    return 1;
+  int nverts = *coords_len / *dim;
 
+  ErrorCode rval = context.MBI->create_vertices(coordinates, nverts, data.local_verts);
+  if (rval!=MB_SUCCESS)
+    return 1;
+
+  rval = context.MBI->add_entities( data.file_set, data.local_verts);
+  if (rval!=MB_SUCCESS)
+    return 1;
+
+  // also add the vertices to the all_verts range
+  data.all_verts.merge(data.local_verts);
+  return 0;
+}
+
+ErrCode iMOAB_CreateElements( iMOAB_AppID pid, int *num_elem, int *type,  int *num_nodes_per_element,  int * connectivity ,
+       int *block_ID)
+{
+  // Create elements
+  appData & data = context.appDatas[*pid];
+
+  ReadUtilIface *read_iface;
+  ErrorCode rval = context.MBI->query_interface(read_iface);
+  if (rval!=MB_SUCCESS)
+    return 1;
+
+  EntityType mbtype = (EntityType)(*type);
+  EntityHandle actual_start_handle;
+  EntityHandle* array=NULL;
+  rval = read_iface->get_element_connect(*num_elem,
+                                         *num_nodes_per_element,
+                                         mbtype,
+                                         1,
+                                          actual_start_handle,
+                                          array );
+
+  if (rval!=MB_SUCCESS)
+    return 1;
+
+  // fill up with actual connectivity from input; assume the vertices are in order, and start vertex is
+  // the first in the current data vertex range
+  EntityHandle firstVertex = data.local_verts[0];
+
+  for (int j=0; j<*num_elem * (*num_nodes_per_element); j++)
+    array[j]=connectivity[j]+firstVertex-1; // assumes connectivity uses 1 based array (from fortran, mostly)
+
+  Range new_elems(actual_start_handle, actual_start_handle+ *num_elem -1);
+
+  rval = context.MBI->add_entities( data.file_set, new_elems);
+  if (rval!=MB_SUCCESS)
+    return 1;
+
+  data.primary_elems.merge(new_elems);
+
+  // organize all new elements in block, with the given block ID; if the block set is not existing, create  a
+  // new mesh set;
+  Range sets;
+  int set_no = *block_ID;
+  const void *setno_ptr = &set_no;
+  rval = context.MBI->get_entities_by_type_and_tag(data.file_set, MBENTITYSET,
+      &context.material_tag, &setno_ptr, 1, sets);
+  EntityHandle block_set;
+  if (MB_FAILURE == rval || sets.empty()) {
+    // create a new set, with this block ID
+    rval = context.MBI->create_meshset(MESHSET_SET, block_set );
+    if (MB_FAILURE == rval)
+      return 1; // failure
+    rval = context.MBI->tag_set_data(context.material_tag, &block_set, 1, &set_no);
+    if (MB_FAILURE == rval)
+      return 1; // failure
+    // add the material set to file set
+    rval = context.MBI->add_entities(data.file_set, &block_set, 1);
+    if (MB_FAILURE == rval)
+      return 1; // failure
+  }
+  else
+    block_set = sets[0]; // first set is the one we want
+
+  /// add the new ents to the clock set
+  rval = context.MBI->add_entities(block_set, new_elems);
+  if (MB_FAILURE == rval)
+    return 1; // failure
+
+  return 0;
+}
+
+// this makes sense only for parallel runs
+ErrCode iMOAB_ResolveSharedEntities(  iMOAB_AppID pid, int *num_verts, int * marker )
+{
+
+#ifdef MOAB_HAVE_MPI
+  appData & data = context.appDatas[*pid];
+  ParallelComm * pco = context.pcomms[*pid];
+
+  // create an integer tag for resolving ; maybe it can be a long tag in the future
+  // (more than 2 B vertices;)
+  int dum_id = 0;
+  Tag stag;
+  ErrorCode rval = context.MBI->tag_get_handle("__sharedmarker", 1,  MB_TYPE_INTEGER, stag,
+      MB_TAG_CREAT | MB_TAG_DENSE, &dum_id);
+  if (rval!=MB_SUCCESS)
+    return 1;
+  if (*num_verts > (int)data.local_verts.size())
+    return 1; // we are not setting the size
+  rval = context.MBI->tag_set_data(stag, data.local_verts, (void*)marker); // assumes integer tag
+  EntityHandle cset = data.file_set;
+  rval = pco->resolve_shared_ents(cset, -1, -1, &stag);
+  if (rval!=MB_SUCCESS)
+    return 1;
+
+  // provide partition tag equal to rank
+  Tag part_tag;
+  dum_id = -1;
+  rval = context.MBI->tag_get_handle("PARALLEL_PARTITION", 1, MB_TYPE_INTEGER,
+                               part_tag, MB_TAG_CREAT | MB_TAG_SPARSE, &dum_id);
+  if (rval!=MB_SUCCESS)
+    return 1;
+  int rank = pco->rank();
+  rval = context.MBI->tag_set_data(part_tag, &cset, 1, &rank);
+  if (rval!=MB_SUCCESS)
+    return 1;
+
+#endif
+  return 0;
+}
+
+// this assumes that this was not called before
+ErrCode iMOAB_DetermineGhostEntities(  iMOAB_AppID pid, int * ghost_dim, int *num_ghost_layers, int * bridge_dim )
+{
+  if (*num_ghost_layers <= 0)
+    return 0; // nothing to do
+#ifdef MOAB_HAVE_MPI
+  appData & data = context.appDatas[*pid];
+  ParallelComm * pco = context.pcomms[*pid];
+
+  int addl_ents=0; //maybe we should be passing this too; most of the time we do not need additional ents
+  ErrorCode rval = pco->exchange_ghost_cells(*ghost_dim, *bridge_dim,
+      *num_ghost_layers, addl_ents, true, true, &data.file_set); // collective call
+
+  if (rval!=MB_SUCCESS)
+    return 1;
+
+  // now re-establish all mesh info; will reconstruct mesh info, based solely on what is in the file set
+  int rc=iMOAB_UpdateMeshInfo(pid);
+  return rc;
+#endif
+
+}
 #ifdef __cplusplus
 }
 #endif

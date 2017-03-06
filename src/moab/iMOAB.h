@@ -179,6 +179,64 @@ ErrCode iMOAB_ReadHeaderInfo ( const iMOAB_String filename, int* num_global_vert
 ErrCode iMOAB_LoadMesh( iMOAB_AppID pid, const iMOAB_String filename, const iMOAB_String read_options, int * num_ghost_layers, int filename_length, int read_options_length );
 
 /**
+   \brief Create vertices for an app; it assumes no other vertices
+
+
+  <B>Operations:</B> Not collective
+
+  \param[in]  pid (iMOAB_AppID)                   The unique pointer to the application ID
+  \param[in]  coords_len (int*)                   size of the coords array (nverts * dim)
+  \param[in]  dim (int*)                          dimension (usually 3)
+  \param[in]  coordinates (double*)               coordinates of all vertices, interleaved
+*/
+ErrCode iMOAB_CreateVertices( iMOAB_AppID pid, int * coords_len, int *dim, double * coordinates );
+
+/**
+   \brief Create elements for an app; it assumes connectivity from local vertices, in order
+
+  <B>Operations:</B> Not collective
+
+  \param[in]  pid (iMOAB_AppID)                   The unique pointer to the application ID
+  \param[in]  num_elem (int*)                     number of elements
+  \param[in]  type (int*)                         type of element (moab type)
+  \param[in]  num_nodes_per_element (int*)        number of nodes per element
+  \param[in]  connectivity (int *)                connectivity array, with respect to vertices; assumes vertices contiguous
+  \param[in]  block_ID (int *)                    block_ID to which the elements will be added to
+*/
+ErrCode iMOAB_CreateElements( iMOAB_AppID pid, int *num_elem, int *type, int *num_nodes_per_element,
+    int * connectivity,  int *block_ID);
+
+/**
+  \brief resolve shared entities using global markers on shared vertices.
+
+  \note
+  global markers can be a global node id, for example, or a global dof (as for homme)
+
+  <B>Operations:</B> Collective .
+
+  \param[in] pid (iMOAB_AppID)            The unique pointer to the application ID
+  \param[in] num_verts (int*)             Number of vertices
+  \param[in] marker (int*)                resolving marker (global id marker)
+*/
+ErrCode iMOAB_ResolveSharedEntities(  iMOAB_AppID pid, int *num_verts, int * marker );
+
+/**
+  \brief create ghost layers.
+
+  \note
+  it assumes that the shared entities were resolved successfully, and that the mesh is properly
+   distributed on separate tasks
+
+  <B>Operations:</B> Collective .
+
+  \param[in] pid (iMOAB_AppID)            The unique pointer to the application ID
+  \param[in] ghost_dim (int*)             Desired ghost dimension (2 or 3, most of the time)
+  \param[in] num_ghost_layers (int*)      Number of ghost layers requested
+  \param[in] bridge_dim (int*)            Bridge dimension (0 for vertices, 1 for edges, 2 for faces)
+*/
+ErrCode iMOAB_DetermineGhostEntities(  iMOAB_AppID pid, int * ghost_dim, int *num_ghost_layers, int * bridge_dim );
+
+/**
   \brief Write a MOAB mesh along with the solution tags to a file.
 
   \note
@@ -194,11 +252,23 @@ ErrCode iMOAB_LoadMesh( iMOAB_AppID pid, const iMOAB_String filename, const iMOA
   \param[in] filename_length (int)       Length of the filename string
   \param[in] write_options_length (int)  Length of the write options string
 */
+
 ErrCode iMOAB_WriteMesh( iMOAB_AppID pid, iMOAB_String filename, iMOAB_String write_options, int filename_length, int write_options_length );
 
 /**
-   \brief Obtain local mesh information based on the loaded file.
+   \brief Update local mesh data structure, from file information.
 
+   The method should be called after mesh modifications, for example reading a file or creating mesh in memory
+  <B>Operations:</B> Not Collective
+
+  \param[in]  pid (iMOAB_AppID)            The unique pointer to the application ID
+
+*/
+ErrCode iMOAB_UpdateMeshInfo( iMOAB_AppID pid );
+
+
+/**
+   \brief retrieve mesh information.
    Number of visible vertices and cells include ghost entities. All arrays returned have size 3.
    Local entities are first, then ghost entities are next. Shared vertices can be owned in MOAB sense by
    different tasks. Ghost vertices and cells are always owned by other tasks.
