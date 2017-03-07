@@ -37,45 +37,22 @@ int main(int argc, char *argv[])
   
   // load the input file
   rval = mb->load_mesh(inFileName.c_str());
-  if(rval != moab::MB_SUCCESS){
-      std::cerr<<"Error Opening Mesh File "<< inFileName << std::endl;
-      return 1;
-    }
-  else{
-      std::cout << "Read input mesh file: " << inFileName << std::endl;
-    }
+  MB_CHK_SET_ERR(rval, "Failed to write the mesh file"); 
+  std::cout << "Read input mesh file: " << inFileName << std::endl;
   moab::Range entities;
   moab::EntityHandle meshset;
   
   rval = mb->get_entities_by_type(0, MBHEX, entities);
-  if(rval != moab::MB_SUCCESS){
-      std::cerr<< "failed to get HEX entities" << std::endl;
-      return 1;
-    }
+  MB_CHK_SET_ERR(rval, "Failed to get hex entities"); 
   rval = mb->create_meshset(MESHSET_SET, meshset);
-  if(rval != moab::MB_SUCCESS){
-      std::cerr<< "failed to create meshset" << std::endl;
-      return 1;
-    }
+  MB_CHK_SET_ERR(rval, "Failed to create meshset"); 
   rval = mb->add_entities(meshset, entities);
-  if(rval != moab::MB_SUCCESS){
-      std::cerr<< "failed to add entities" << std::endl;
-      return 1;
-    }
+  MB_CHK_SET_ERR(rval, "Failed to add entitites to meshset"); 
   
   rval = mb->convert_entities(meshset, !edge, !face, !volume);
-  if(rval != moab::MB_SUCCESS){
-      std::cerr<< "failed to convert entities" << std::endl;
-      return 1;
-    }
+  MB_CHK_SET_ERR(rval, "Failed to convert to higher dimension entities"); 
   
   rval = mb->write_mesh(outFileName.c_str());
-  if(rval != moab::MB_SUCCESS){
-      std::cerr<<"Error Writing Mesh File "<< outFileName << std::endl;
-      return 1;
-    }
-  else{
-      std::cout << "Wrote output mesh file: " << outFileName << std::endl;
-    }
+  MB_CHK_SET_ERR(rval, "Failed to write the mesh file"); 
   delete mb;
 }
