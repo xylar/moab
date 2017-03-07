@@ -215,13 +215,13 @@ else
       pythondir=$pymoab_prefix
     fi
     AC_SUBST([pymoab_prefix])
-      if (test "xyes" != "x$enable_shared" || test "xno" = "x$enable_shared"); then
-    AC_MSG_ERROR([Cannot build static libraries and the python interface. Please build with shared libraries (--enable-shared) or build without MOAB's python interface.])
-  fi
+    if (test "xyes" != "x$enable_shared" || test "xno" = "x$enable_shared"); then
+      AC_MSG_ERROR([Cannot build static libraries and the python interface. Please build with shared libraries (--enable-shared) or build without MOAB's python interface.])
+    fi
+    DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --enable-pymoab=$ENABLE_pymoab"
   else
     ENABLE_pymoab=no
   fi
-  DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --enable-pymoab=$ENABLE_pymoab --enable-shared=yes"
 fi
 
 AC_MSG_RESULT([$ENABLE_pymoab])
@@ -992,7 +992,7 @@ AS_HELP_STRING([--disable-$1],[Don't build $1])],
   fi
   AC_MSG_CHECKING([if $1 is to be built])
   AC_MSG_RESULT([${ENABLE_$1}])
-  DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --enable-$1=\"${ENABLE_$1}\""
+  DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --enable-$1=${ENABLE_$1}"
 ])
   # The default for all tools
 AC_ARG_ENABLE( [tools], [
@@ -1333,6 +1333,7 @@ AC_CONFIG_FILES([Makefile
                  ])
 
 
+DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --enable-static=$enable_static --enable-shared=$enable_shared"
 # DISTCHECK_CONFIGURE_FLAGS="$USER_CONFIGURE_CMD"
 # make distcheck will use this DISTCHECK_CONFIGURE_FLAGS 
 # variable to be passed to configure line
