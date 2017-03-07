@@ -595,7 +595,30 @@ def test_create_element_iterable():
     #create another with the same vertices but in a list
     tri_verts = [verts[0], verts[1], verts[2]]
     tris = mb.create_element(types.MBTRI,verts)
-
+    #make sure the right number of triangles is in the instance
     rs = mb.get_root_set()
     all_tris = mb.get_entities_by_type(rs,types.MBTRI)
     assert len(all_tris) == 2
+
+def test_create_elements_iterable():
+    mb = core.Core()
+    #create some vertices for triangle 1
+    coords1 = np.array((0,0,0,1,0,0,1,1,1),dtype='float64')
+    verts1 = mb.create_vertices(coords1)
+    assert len(verts1) == 3
+    #create some more vertices for triangle 2
+    coords2 = np.array((1,2,3,4,5,6,1,1,1),dtype='float64')
+    verts2 = mb.create_vertices(coords2)
+    assert len(verts2) == 3
+    tri_verts = [[verts1[0],verts1[1],verts1[2]],[verts2[0],verts2[1],verts2[2]]]
+    tris = mb.create_elements(types.MBTRI,tri_verts)
+    assert len(tris) == 2
+    tri_verts = [verts1,verts2]
+    tris = mb.create_elements(types.MBTRI,tri_verts)
+    assert len(tris) == 2
+    #make sure the right number of triangles is in the instance
+    rs = mb.get_root_set()
+    all_tris = mb.get_entities_by_type(rs,types.MBTRI)
+    assert len(all_tris) == 4
+
+    

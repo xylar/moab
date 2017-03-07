@@ -352,25 +352,23 @@ cdef class Core(object):
 
     def create_element(self, int entity_type, connectivity, exceptions = ()):
         """
-        Create an elment of type, entity_type, using entities in connectivity.
+        Create an elment of type, entity_type, using vertex EntityHandles in connectivity.
 
         Example
         -------
         mb = core.Core()
-        #create some vertices
+        # create some vertices
         coords = np.array((0,0,0,1,0,0,1,1,1),dtype='float64')
         verts = mb.create_vertices(coords)
+
+        # create the triangle in the database
         tri_verts = np.array(((verts[0],verts[1],verts[2]),),dtype='uint64')
-        tris = mb.create_element(types.MBTRI,verts)
+        tris = mb.create_element(types.MBTRI,tri_verts)
         
         OR
 
-        mb = core.Core()
-        #create some vertices
-        coords = np.array((0,0,0,1,0,0,1,1,1),dtype='float64')
-        verts = mb.create_vertices(coords)
         tri_verts = [verts[0],verts[1],verts[2]]
-        tris = mb.create_element(types.MBTRI,verts)
+        tris = mb.create_element(types.MBTRI,tri_verts)
 
 
         Parameters
@@ -378,7 +376,7 @@ cdef class Core(object):
         entity_type : MOAB EntityType (see pymoab.types module)
             type of entity to create (MBTRI, MBQUAD, etc.)
         coordinates : iterable of EntityHandles
-            array-like iterable of vertex EntityHandles the element is to be
+            1-D array-like iterable of vertex EntityHandles the element is to be
             created from
         exceptions : tuple
             A tuple containing any error types that should
@@ -406,17 +404,64 @@ cdef class Core(object):
         check_error(err, exceptions)
         return handle
 
-    def create_elements(self, int t, np.ndarray[np.uint64_t, ndim=2] connectivity, exceptions = ()):
+    def create_elements(self, int entity_type, connectivity, exceptions = ()):
+        """
+        Create an elments of type, entity_type, using vertex EntityHandles in connectivity.
+
+        Example
+        -------
+        mb = core.Core()
+        # create some vertices for triangle 1
+        coords1 = np.array((0,0,0,1,0,0,1,1,1),dtype='float64')
+        verts1 = mb.create_vertices(coords)
+        # create some more vertices for triangle 2
+        coords2 = np.array((1,2,3,4,5,6,1,1,1),dtype='float64')
+        verts2 = mb.create_vertices(coords)
+
+        # create the triangles in the database
+        tri_verts = [[verts1[0],verts1[1],verts1[2]],[verts2[0],verts2[1],verts2[2]]
+        tris = mb.create_elements(types.MBTRI,tri_verts)
+
+        OR
+
+        tri_verts = [verts1,verts2]
+        tris = mb.create_elements(types.MBTRI,tri_verts)
+
+        Parameters
+        ----------
+        entity_type : MOAB EntityType (see pymoab.types module)
+            type of entity to create (MBTRI, MBQUAD, etc.)
+        coordinates : iterable of EntityHandles
+            2-D array-like iterable of vertex EntityHandles the elements are to
+            be created from. Each entry in first dimension of the array should
+            have an appropriate length for the element type being created (MBTRI
+            means each entry has length 3).
+        exceptions : tuple
+            A tuple containing any error types that should
+            be ignored. (see pymoab.types module for more info)
+
+        Returns
+        -------
+        EntityHandles of element created as a Range
+
+        Raises
+        ------
+        MOAB ErrorCode
+            if a MOAB error occurs
+        ValueError
+            if an EntityHandle is not of the correct type
+        """
         cdef int i
         cdef moab.ErrorCode err
-        cdef moab.EntityType typ = <moab.EntityType> t
-        #cdef moab.EntityHandle handle = 0
-        cdef int nelems = connectivity.shape[0]
-        cdef int nnodes = connectivity.shape[1]
+        cdef moab.EntityType typ = <moab.EntityType> entity_type
+        cdef np.ndarray connectivity_as_arr = np.asarray(connectivity)
+        assert connectivity_as_arr.ndim == 2 #required for now
+        cdef int nelems = connectivity_as_arr.shape[0]
+        cdef int nnodes = connectivity_as_arr.shape[1]
         cdef np.ndarray[np.uint64_t, ndim=1] connectivity_i
         cdef np.ndarray[np.uint64_t, ndim=1] handles = np.empty(nelems, 'uint64')
         for i in range(nelems):
-            connectivity_i = connectivity[i]
+            connectivity_i = _eh_array(connectivity[i])
             err = self.inst.create_element(typ, <unsigned long*> connectivity_i.data,
                                            nnodes, deref((<unsigned long*> handles.data)+i))
             check_error(err, exceptions)
