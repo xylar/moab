@@ -54,5 +54,6 @@ int main(int argc, char *argv[])
   
   rval = mb->write_mesh(outFileName.c_str());
   MB_CHK_SET_ERR(rval, "Failed to write the mesh file"); 
+  std::cout << "Wrote mesh file: " << outFileName << std::endl;
   delete mb;
 }
