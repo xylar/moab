@@ -27,7 +27,11 @@ int main(int argc, char *argv[])
   ProgOptions opts(LONG_DESC.str(), BRIEF_DESC);  
   string inFileName = "";
   opts.addRequiredArg<string>("inFile,i", "Specify the output file name string", &inFileName);
+#ifdef MOAB_HAVE_HDF5
   string outFileName = "outfile.h5m";
+#else
+  string outFileName = "outfile.vtk";
+#endif
   opts.addOpt<string>("outFile,o", "Specify the output file name string (default outfile.h5m)", &outFileName);
   opts.addOpt<void>("edge,e", "DO NOT create mid nodes along edge (default=true)", &edge);
   opts.addOpt<void>("face,f", "DO NOT create face mid nodes (default=true)", &face);
