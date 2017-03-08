@@ -162,6 +162,11 @@ AC_CHECK_LIB(z, compress, LIBS="$LIBS -lz")
 AC_CHECK_LIB(m, pow, LIBS="$LIBS -lm")
 AC_CHECK_LIB(curl, curl_version, LIBS="$LIBS -lcurl")
 
+### Check for BLAS and Lapack dense solvers
+AX_BLAS([], [AC_MSG_ERROR([BLAS library not found])])
+AX_LAPACK([], [AC_MSG_ERROR([LAPACK library not found])])
+LIBS="$LAPACK_LIBS $BLAS_LIBS $LIBS"
+
 ################################################################################
 #                           iMesh Part 1 of 2
 ################################################################################
@@ -368,6 +373,12 @@ if test "xyes" = "x$enablempi"; then
   AC_SUBST([MPE_LIBS])
   test "xyes" != "x$WITH_MPE" || MB_DEFS="$MB_DEFS -DUSE_MPE"
 fi
+
+################################################################################
+#                              Eigen3 OPTIONS
+################################################################################
+
+FATHOM_CONFIGURE_EIGEN3
 
 ################################################################################
 #                              HDF5 OPTIONS

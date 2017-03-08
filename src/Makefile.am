@@ -9,8 +9,6 @@ AM_CPPFLAGS =
 SUBDIRS =
 libMOAB_la_LIBADD =
 
-include moab/EigenHeaders
-
 SUBDIRS += io .
 libMOAB_la_LIBADD += io/libmoabio.la 
 

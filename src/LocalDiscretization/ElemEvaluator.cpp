@@ -52,7 +52,7 @@ namespace moab {
         }
 
           // get jacobian at current params
-        rval = (*jacob)(cvparams->array(), verts, nverts, ndim, work, J[0]);
+        rval = (*jacob)(cvparams->array(), verts, nverts, ndim, work, J.array());
         double det = J.determinant();
         if (det < std::numeric_limits<double>::epsilon()) {
           *tmp_inside = (*inside_f)(params, ndim, inside_tol);

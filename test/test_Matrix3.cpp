@@ -44,6 +44,8 @@ void check_equal_eigvect( const moab::CartVect& A,
   
   std::cout << "  Actual:   ";
   std::cout << B << std::endl;
+
+  std::cout << "Angle between vectors := " << angle << std::endl;
   
   flag_error(); 
 }
@@ -99,7 +101,7 @@ void test_EigenDecomp()
   double tol = 1e-04;
 
   // use a deprecated constructor
-  Matrix3 mat3( CartVect(2, -1, 0), CartVect(-1, 2, -1), CartVect(0, -1, 2));
+  Matrix3 mat3( CartVect(2, -1, 0), CartVect(-1, 2, -1), CartVect(0, -1, 2), true);
   CHECK_REAL_EQUAL( mat(1), mat3(1), tol);
 
   vec0_check.normalize();
