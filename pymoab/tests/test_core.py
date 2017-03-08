@@ -7,6 +7,17 @@ from subprocess import call
 import numpy as np
 import os
 
+
+def CHECK_EQ(actual_value, expected_value):
+    err_msg = "Expected value: {} Actual value: {}"
+    err_msg = err_msg.format(expected_value, actual_value)
+    assert expected_value == actual_value, err_msg
+
+def CHECK_NOT_EQ(actual_value, expected_value):
+    err_msg = "Expected value: not {} Actual value: {}"
+    err_msg = err_msg.format(expected_value, actual_value)
+    assert expected_value != actual_value, err_msg
+
 def test_load_mesh():
     mb = core.Core()
     mb.load_file("cyl_grps.h5m")
@@ -17,7 +28,7 @@ def test_load_mesh():
     mb.load_file("cyl_grps.h5m",file_set)
 
     ents = mb.get_entities_by_type(file_set,types.MBMAXTYPE)
-    assert len(ents) != 0
+    CHECK_NOT_EQ(len(ents),0)
 
 def test_write_mesh():
     mb = core.Core()
@@ -71,9 +82,9 @@ def test_integer_tag():
     mb.tag_set_data(test_tag, vh, test_tag_data)
     data = mb.tag_get_data(test_tag, vh)
 
-    assert len(data) == 1
-    assert data[0] == test_val
-    assert data.dtype == 'int32'
+    CHECK_EQ(len(data),1)
+    CHECK_EQ(data[0],test_val)
+    CHECK_EQ(data.dtype,'int32')
 
 def test_double_tag():
     mb = core.Core()
@@ -84,9 +95,9 @@ def test_double_tag():
     mb.tag_set_data(test_tag, vh, test_tag_data)
     data = mb.tag_get_data(test_tag, vh)
 
-    assert len(data) == 1
-    assert data[0] == test_val
-    assert data.dtype == 'float64'
+    CHECK_EQ(len(data),1)
+    CHECK_EQ(data[0],test_val)
+    CHECK_EQ(data.dtype,'float64')
 
     #a couple of tests that should fail
     test_tag = mb.tag_get_handle("Test1",1,types.MB_TYPE_DOUBLE,True)
@@ -121,10 +132,10 @@ def test_opaque_tag():
     mb.tag_set_data(test_tag, vh, test_tag_data)
     data = mb.tag_get_data(test_tag, vh)
 
-    assert len(data) == 1
-    assert data.nbytes == tag_length
-    assert data[0] == test_val
-    assert data.dtype == '|S' + str(tag_length)
+    CHECK_EQ(len(data),1)
+    CHECK_EQ(data.nbytes,tag_length)
+    CHECK_EQ(data[0],test_val)
+    CHECK_EQ(data.dtype,'|S' + str(tag_length))
 
 def test_tag_list():
     mb = core.Core()
@@ -139,10 +150,10 @@ def test_tag_list():
     data = mb.tag_get_data(test_tag, vh)
     
 
-    assert len(data) == 1
-    assert data.nbytes == tag_length
-    assert data[0] == test_val
-    assert data.dtype == '|S' + str(tag_length)
+    CHECK_EQ(len(data),1)
+    CHECK_EQ(data.nbytes,tag_length)
+    CHECK_EQ(data[0],test_val)
+    CHECK_EQ(data.dtype,'|S' + str(tag_length))
     
 def test_create_meshset():
     mb = core.Core()
@@ -160,16 +171,16 @@ def test_create_elements():
     mb = core.Core()
     coords = np.array((0,0,0,1,0,0,1,1,1),dtype='float64')
     verts = mb.create_vertices(coords)
-    assert 3 == len(verts)
+    CHECK_EQ(len(verts),3)
     #create elements
     verts = np.array(((verts[0],verts[1],verts[2]),),dtype='uint64')
     tris = mb.create_elements(types.MBTRI,verts)
-    assert 1 == len(tris)
+    CHECK_EQ(len(tris),1)
     #check that the element is there via GLOBAL_ID tag
     global_id_tag = mb.tag_get_handle("GLOBAL_ID",1,types.MB_TYPE_INTEGER,True)
     tri_id = mb.tag_get_data(global_id_tag, tris)
-    assert 1 == len(tri_id)
-    assert 0 == tri_id[0]
+    CHECK_EQ(len(tri_id),1)
+    CHECK_EQ(tri_id[0],0)
 
         
     
@@ -212,7 +223,7 @@ def test_adj():
     tris = mb.create_elements(types.MBTRI,verts)
     #get the adjacencies of the triangle of dim 1 (should return the vertices)
     adjs = mb.get_adjacencies(tris, 0, False)
-    assert 3 is len(adjs)
+    CHECK_EQ(len(adjs),3)
 
     #check that the entities are of the correct type
     for adj in adjs:
@@ -221,11 +232,11 @@ def test_adj():
 
     #now get the edges and ask MOAB to create them for us
     adjs = mb.get_adjacencies(tris, 1, True)
-    assert 3 is len(adjs)
+    CHECK_EQ(len(adjs),3)
 
     for adj in adjs:
-        type = mb.type_from_handle(adj)
-        assert type is types.MBEDGE
+        ent_type = mb.type_from_handle(adj)
+        CHECK_EQ(ent_type,types.MBEDGE)
 
 def test_meshsets():
     mb = core.Core()
@@ -234,7 +245,7 @@ def test_meshsets():
         a = mb.create_meshset()
         mb.add_child_meshset(parent_set,a)
     children = mb.get_child_meshsets(parent_set)
-    assert len(children) is 5
+    CHECK_EQ(len(children),5)
 
 def test_rs():
     mb = core.Core()
@@ -248,7 +259,7 @@ def test_get_coords():
     ret_coords = mb.get_coords(verts)
     print ret_coords
     for i in range(len(coords)):
-            assert coords[i] ==  ret_coords[i]
+        CHECK_EQ(ret_coords[i],coords[i])
 
 def test_get_ents_by_type():
     mb = core.Core()
@@ -258,7 +269,7 @@ def test_get_ents_by_type():
     mb.add_entities(ms,verts)
     ret_verts = mb.get_entities_by_type(ms,types.MBVERTEX, False)
     for i in range(len(verts)):
-        assert verts[i] == ret_verts[i]
+        CHECK_EQ(ret_verts[i],verts[i])
 
 def test_get_ents_by_tnt():
     
@@ -285,26 +296,27 @@ def test_get_ents_by_tnt():
         dict(tag_arr = [int_test_tag], value_arr = np.array([[1]]), expected_size = 1),        # existing value
         dict(tag_arr = [int_test_tag], value_arr = np.array([[16]]), expected_size = 0),       # nonexistant value
         dict(tag_arr = [int_test_tag], value_arr = np.array([[None]]), expected_size = 3) ]    # any value
-    single_tag_test_cases += integer_tag_test_cases
+    single_tag_test_cases += integer_tag_test_cases # add integer tag test cases to all tests
     ###DOUBLE TAG TESTS###
     double_tag_test_cases = [
         dict(tag_arr = [dbl_test_tag], value_arr = np.array([[4.0]]), expected_size = 1),      # existing value
         dict(tag_arr = [dbl_test_tag], value_arr = np.array([[16.0]]), expected_size = 0),     # nonexistant value
         dict(tag_arr = [dbl_test_tag], value_arr = np.array([[None]]), expected_size = 3) ]    # any value
-    single_tag_test_cases += double_tag_test_cases
+    single_tag_test_cases += double_tag_test_cases # add double tag test cases to all tests
     ###OPAQUE TAG TESTS###
     opaque_tag_test_cases = [
         dict(tag_arr = [opaque_test_tag], value_arr = np.array([["Six"]]), expected_size = 1), # existing value
         dict(tag_arr = [opaque_test_tag], value_arr = np.array([["Ten"]]), expected_size = 0), # nonexistant value
         dict(tag_arr = [opaque_test_tag], value_arr = np.array([[None]]), expected_size = 3) ] # any value
-    single_tag_test_cases += opaque_tag_test_cases
+    single_tag_test_cases += opaque_tag_test_cases # add opaque tag test cases to all tests
     
     for test_case in single_tag_test_cases:
         entities = mb.get_entities_by_type_and_tag(rs,
                                                    types.MBVERTEX,
                                                    test_case['tag_arr'],
                                                    test_case['value_arr'])
-        assert len(entities) == test_case['expected_size']
+        print "Test case: ", test_case
+        CHECK_EQ(len(entities),test_case['expected_size'])
 
     ###MIXED TAG TYPE TESTS###
     mixed_tag_test_cases = [
@@ -330,11 +342,11 @@ def test_get_ents_by_tnt():
              expected_size = 0),
         #mixed types, both existing but not on same entity
         dict(tag_arr = [int_test_tag,dbl_test_tag],
-             value_arr = np.array([[1],[2.0]],dtype='O'),
+             value_arr = np.array([[1],[2.0]], dtype = 'O'),
              expected_size = 0),
         #mixed types, only one existing value
         dict(tag_arr = [int_test_tag,dbl_test_tag],
-             value_arr = np.array([[1],[12.0]],dtype='O'),
+             value_arr = np.array([[1],[12.0]], dtype = 'O'),
              expected_size = 0)]
 
     for test_case in mixed_tag_test_cases:
@@ -342,10 +354,10 @@ def test_get_ents_by_tnt():
                                                    types.MBVERTEX,
                                                    test_case['tag_arr'],
                                                    test_case['value_arr'])
-        assert len(entities) == test_case['expected_size']
+        print "Test Case: " , test_case
+        CHECK_EQ(len(entities),test_case['expected_size'])
 
     ###VECTOR TAG TESTS###
-
     int_vec_test_tag = mb.tag_get_handle("IntegerVecTestTag",3,types.MB_TYPE_INTEGER,True)
     dbl_vec_test_tag = mb.tag_get_handle("DoubleVecTestTag",3,types.MB_TYPE_DOUBLE,True)
 
@@ -359,7 +371,7 @@ def test_get_ents_by_tnt():
                                                types.MBVERTEX,
                                                [int_vec_test_tag,dbl_vec_test_tag],
                                                np.array([[0,1,2],[9.0,10.0,11.0]],dtype='O'))
-    assert len(entities) == 1
+    CHECK_EQ(len(entities),1)
 
     #one non existant set of values, one existing
     entities = mb.get_entities_by_type_and_tag(rs,
@@ -367,20 +379,21 @@ def test_get_ents_by_tnt():
                                                [int_vec_test_tag,dbl_vec_test_tag],
                                                np.array([[0,1,2],[22.0,10.0,11.0]],dtype='O'))
 
-    assert len(entities) == 0
+    CHECK_EQ(len(entities),0)
+    
     # any set of one tag
     print "Running suspect test"
     entities = mb.get_entities_by_type_and_tag(rs,
                                                types.MBVERTEX,
                                                [int_vec_test_tag,dbl_vec_test_tag],
                                                np.array([[None,None,None],[9.0,10.0,11.0]],dtype='O'))
-    assert len(entities) == 1
+    CHECK_EQ(len(entities),1)
 
     entities = mb.get_entities_by_type_and_tag(rs,
                                                types.MBVERTEX,
                                                [int_vec_test_tag,dbl_vec_test_tag],
                                                np.array([[None],[None]],dtype='O'))
-    assert len(entities) == 3
+    CHECK_EQ(len(entities),3)
     
         
     # any hex elements tagged with int_test_tag (no hex elements exist, there should be none)
@@ -389,8 +402,7 @@ def test_get_ents_by_tnt():
                                                types.MBHEX,
                                                np.array((int_test_tag,)),
                                                tag_test_vals)
-    print len(entities)
-    assert len(entities) == 0
+    CHECK_EQ(len(entities) , 0)
 
 def test_get_entities_by_handle():
     mb = core.Core()
@@ -400,7 +412,7 @@ def test_get_entities_by_handle():
     mb.add_entities(ms,verts)
     ret_verts = mb.get_entities_by_handle(ms, False)
     for i in range(len(verts)):
-        assert verts[i] == ret_verts[i]
+        CHECK_EQ(ret_verts[i],verts[i])
 
 def test_get_entities_by_dimension():
     mb = core.Core()
@@ -409,7 +421,7 @@ def test_get_entities_by_dimension():
     rs = mb.get_root_set()
     ret_verts = mb.get_entities_by_dimension(rs, 0)
     for i in range(len(verts)):
-        assert verts[i] == ret_verts[i]
+        CHECK_EQ(ret_verts[i],verts[i])
 
 def test_parent_child():
     mb = core.Core()
@@ -420,33 +432,33 @@ def test_parent_child():
     mb.add_parent_meshset(child_set, parent_set)
 
     parent_sets = mb.get_parent_meshsets(child_set)
-    assert len(parent_sets) == 1
-    assert parent_sets[0] == parent_set
+    CHECK_EQ(len(parent_sets),1)
+    CHECK_EQ(parent_sets[0],parent_set)
 
     child_sets = mb.get_child_meshsets(parent_set)
-    assert len(child_sets) == 0
+    CHECK_EQ(len(child_sets),0)
 
     mb.add_child_meshset(parent_set,child_set)
     
     child_sets = mb.get_child_meshsets(parent_set)
-    assert len(child_sets) == 1
-    assert child_sets[0] == child_set
+    CHECK_EQ(len(child_sets),1)
+    CHECK_EQ(child_sets[0],child_set)
     
     parent_set = mb.create_meshset()
     child_set = mb.create_meshset()
 
     parent_sets = mb.get_parent_meshsets(child_set)
-    assert len(parent_sets) == 0
+    CHECK_EQ(len(parent_sets),0)
     child_sets = mb.get_child_meshsets(parent_set)
-    assert len(child_sets) == 0
+    CHECK_EQ(len(child_sets),0)
 
     mb.add_parent_child(parent_set,child_set)
 
     parent_sets = mb.get_parent_meshsets(child_set)
-    assert len(parent_sets) == 1
+    CHECK_EQ(len(parent_sets),1)
     parent_sets[0] == parent_set
     child_sets = mb.get_child_meshsets(parent_set)
-    assert len(child_sets) == 1
+    CHECK_EQ(len(child_sets),1)
     child_sets[0] == child_set
     
 def test_remove_ents():
@@ -458,10 +470,10 @@ def test_remove_ents():
 
     #make sure all vertices were added to the meshset
     entities = mb.get_entities_by_type(ms, types.MBVERTEX)
-    assert len(entities) == 3
-    assert entities[0] == verts[0]
-    assert entities[1] == verts[1]
-    assert entities[2] == verts[2]
+    CHECK_EQ(len(entities),3)
+    CHECK_EQ(entities[0],verts[0])
+    CHECK_EQ(entities[1],verts[1])
+    CHECK_EQ(entities[2],verts[2])
 
     #remove first vertex from meshset
     vert_to_remove = np.array([verts[0],],dtype='uint64') #not proud of this...
@@ -469,24 +481,24 @@ def test_remove_ents():
 
     #make sure the right one got removed from the meshset
     entities = mb.get_entities_by_type(ms, types.MBVERTEX)
-    assert len(entities) == 2
-    assert entities[0] == verts[1]
-    assert entities[1] == verts[2]
+    CHECK_EQ(len(entities),2)
+    CHECK_EQ(entities[0],verts[1])
+    CHECK_EQ(entities[1],verts[2])
 
     #all verts should still be in the instance
     rs = mb.get_root_set()
     entities = mb.get_entities_by_type(rs, types.MBVERTEX)
-    assert len(entities) == 3
-    assert entities[0] == verts[0]
-    assert entities[1] == verts[1]
-    assert entities[2] == verts[2]
+    CHECK_EQ(len(entities),3)
+    CHECK_EQ(entities[0],verts[0])
+    CHECK_EQ(entities[1],verts[1])
+    CHECK_EQ(entities[2],verts[2])
 
     #until it is deleted from the instance
     mb.delete_entities(vert_to_remove)
     entities = mb.get_entities_by_type(rs, types.MBVERTEX)
-    assert len(entities) == 2
-    assert entities[0] == verts[1]
-    assert entities[1] == verts[2]
+    CHECK_EQ(len(entities),2)
+    CHECK_EQ(entities[0],verts[1])
+    CHECK_EQ(entities[1],verts[2])
 
 def test_iterables():
 
@@ -494,12 +506,11 @@ def test_iterables():
     # 1-D iterable
     coords = [0.,0.,0.,1.,0.,0.,1.,1.,1.]
     verts = mb.create_vertices(coords)
-    assert len(verts) == 3
+    CHECK_EQ(len(verts),3)
     # 2-D iterable w/ len 3 entries
     coords = [[0.,0.,0.],[1.,0.,0.],[1.,1.,1.]]
     verts = mb.create_vertices(coords)
-    print len(verts)
-    assert len(verts) == 3
+    CHECK_EQ(len(verts),3)
     
     int_tag = mb.tag_get_handle("IntTag",1,types.MB_TYPE_INTEGER,True)
 
@@ -521,9 +532,9 @@ def test_iterables():
 
     return_data = mb.tag_get_data(int_tag,verts)
 
-    assert return_data[0] == int_data[0]
-    assert return_data[1] == int_data[1]
-    assert return_data[2] == int_data[2]
+    CHECK_EQ(return_data[0],int_data[0])
+    CHECK_EQ(return_data[1],int_data[1])
+    CHECK_EQ(return_data[2],int_data[2])
 
     #insert false vertex handle (not even correct type
     verts = [verts[0],23,verts[1]]
@@ -589,7 +600,7 @@ def test_create_element_iterable():
     mb = core.Core()
     coords = np.array((0,0,0,1,0,0,1,1,1),dtype='float64')
     verts = mb.create_vertices(coords)
-    assert 3 == len(verts)
+    CHECK_EQ(3,len(verts))
     #create tri using verts as a Range
     tris = mb.create_element(types.MBTRI,verts)
     #create another with the same vertices but in a list
@@ -598,27 +609,27 @@ def test_create_element_iterable():
     #make sure the right number of triangles is in the instance
     rs = mb.get_root_set()
     all_tris = mb.get_entities_by_type(rs,types.MBTRI)
-    assert len(all_tris) == 2
+    CHECK_EQ(len(all_tris),2)
 
 def test_create_elements_iterable():
     mb = core.Core()
     #create some vertices for triangle 1
     coords1 = np.array((0,0,0,1,0,0,1,1,1),dtype='float64')
     verts1 = mb.create_vertices(coords1)
-    assert len(verts1) == 3
+    CHECK_EQ(len(verts1),3)
     #create some more vertices for triangle 2
     coords2 = np.array((1,2,3,4,5,6,1,1,1),dtype='float64')
     verts2 = mb.create_vertices(coords2)
-    assert len(verts2) == 3
+    CHECK_EQ(len(verts2),3)
     tri_verts = [[verts1[0],verts1[1],verts1[2]],[verts2[0],verts2[1],verts2[2]]]
     tris = mb.create_elements(types.MBTRI,tri_verts)
-    assert len(tris) == 2
+    CHECK_EQ(len(tris),2)
     tri_verts = [verts1,verts2]
     tris = mb.create_elements(types.MBTRI,tri_verts)
-    assert len(tris) == 2
+    CHECK_EQ(len(tris),2)
     #make sure the right number of triangles is in the instance
     rs = mb.get_root_set()
     all_tris = mb.get_entities_by_type(rs,types.MBTRI)
-    assert len(all_tris) == 4
+    CHECK_EQ(len(all_tris),4)
 
     
