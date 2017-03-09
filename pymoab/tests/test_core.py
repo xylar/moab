@@ -284,9 +284,13 @@ def test_get_ents_by_tnt():
     dbl_test_tag_values = np.array((3.0,4.0,5.0))
     mb.tag_set_data(dbl_test_tag,verts,dbl_test_tag_values)
 
-    opaque_test_tag = mb.tag_get_handle("OpaqueTestTag",5,types.MB_TYPE_OPAQUE,True)
+    opaque_test_tag = mb.tag_get_handle("OpaqueTestTag",6,types.MB_TYPE_OPAQUE,True)
     opaque_test_tag_values = np.array(("Six","Seven","Eight",))
     mb.tag_set_data(opaque_test_tag,verts,opaque_test_tag_values)
+
+    opaque_test_tag1 = mb.tag_get_handle("OpaqueTestTag1",6,types.MB_TYPE_OPAQUE,True)
+    opaque_test_tag1_values = np.array(("Nine","Ten","Eleven",))
+    mb.tag_set_data(opaque_test_tag1,verts,opaque_test_tag1_values)
     
     rs = mb.get_root_set()
 
@@ -347,7 +351,11 @@ def test_get_ents_by_tnt():
         #mixed types, only one existing value
         dict(tag_arr = [int_test_tag,dbl_test_tag],
              value_arr = np.array([[1],[12.0]], dtype = 'O'),
-             expected_size = 0)]
+             expected_size = 0),
+        dict(tag_arr = [opaque_test_tag,opaque_test_tag1],
+             value_arr = np.array([["Seven"],["Ten"]], dtype='O'),
+             expected_size = 1)
+    ]
 
     for test_case in mixed_tag_test_cases:
         entities = mb.get_entities_by_type_and_tag(rs,
