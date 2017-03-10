@@ -93,21 +93,14 @@ MOAB_F77_FUNC(dgetri) ( int* N, double* A,
                         double* WORK, int* lwork, 
                         int* INFO);
 
+#include <cstring>
+#define MOAB_DMEMZERO(a,b) memset(a, 0, b*sizeof(double))
+
 #endif
 
 namespace moab {
 
 namespace Matrix{
-
-	template< typename Matrix>
-	inline bool positive_definite( const Matrix & d, 
-				       double& det ){
-	        double subdet6 = d(1)*d(5)-d(2)*d(4);
-	        double subdet7 = d(2)*d(3)-d(0)*d(5);
-	        double subdet8 = d(0)*d(4)-d(1)*d(3);
-	        det = d(6)*subdet6 + d(7)*subdet7 + d(8)*subdet8;
-	        return d(0) > 0 && subdet8 > 0 && det > 0;
-	}
 
 	template< typename Matrix>
 	inline Matrix mmult3( const Matrix& a, const Matrix& b ) {
@@ -166,7 +159,7 @@ public:
 #ifdef MOAB_HAVE_EIGEN
     _mat.fill(0.0);
 #else
-    memset(_mat, 0, size*sizeof(double));
+    MOAB_DMEMZERO(_mat, Matrix3::size);
 #endif
   }
 
@@ -183,7 +176,7 @@ public:
             0.0, diagonal, 0.0,
             0.0, 0.0, diagonal;
 #else
-    memset(_mat, 0, size*sizeof(double));
+    MOAB_DMEMZERO(_mat, Matrix3::size);
     _mat[0] = _mat[4] = _mat[8] = diagonal;
 #endif
   }
@@ -194,7 +187,7 @@ public:
             0.0, diagonal[1], 0.0,
             0.0, 0.0, diagonal[2];
 #else
-    memset(_mat, 0, size*sizeof(double));
+    MOAB_DMEMZERO(_mat, Matrix3::size);
     _mat[0] = diagonal[0];
     _mat[4] = diagonal[1];
     _mat[8] = diagonal[2];
@@ -212,7 +205,7 @@ public:
             0.0, diagonal[1], 0.0,
             0.0, 0.0, diagonal[2];
 #else
-    memset(_mat, 0, size*sizeof(double));
+    MOAB_DMEMZERO(_mat, Matrix3::size);
     _mat[0] = diagonal[0];
     _mat[4] = diagonal[1];
     _mat[8] = diagonal[2];
@@ -227,7 +220,7 @@ public:
             v10, v11, v12,
             v20, v21, v22;
 #else
-    memset(_mat, 0, size*sizeof(double));
+    MOAB_DMEMZERO(_mat, Matrix3::size);
     _mat[0] = v00; _mat[1] = v01; _mat[2] = v02;
     _mat[3] = v10; _mat[4] = v11; _mat[5] = v12;
     _mat[6] = v20; _mat[7] = v21; _mat[8] = v22;
@@ -262,7 +255,7 @@ public:
               row0[2], row1[2], row2[2];
     }
 #else
-    memset(_mat, 0, size*sizeof(double));
+    MOAB_DMEMZERO(_mat, Matrix3::size);
     if (isRow) {
       _mat[0] = row0[0]; _mat[1] = row0[1]; _mat[2] = row0[2];
       _mat[3] = row1[0]; _mat[4] = row1[1]; _mat[5] = row1[2];
@@ -342,6 +335,7 @@ public:
     return &_mat[i*3]; // Row Major
 #endif
   }
+
   inline const double* operator[]( unsigned i ) const
   {
 #ifdef MOAB_HAVE_EIGEN
@@ -350,6 +344,7 @@ public:
     return &_mat[i*3];
 #endif
   }
+
   inline double& operator()(unsigned r, unsigned c)
   {
 #ifdef MOAB_HAVE_EIGEN
@@ -358,6 +353,7 @@ public:
     return _mat[r*3+c];
 #endif
   }
+
   inline double operator()(unsigned r, unsigned c) const
   {
 #ifdef MOAB_HAVE_EIGEN
@@ -366,6 +362,7 @@ public:
     return _mat[r*3+c];
 #endif
   }
+
   inline double& operator()(unsigned i)
   {
 #ifdef MOAB_HAVE_EIGEN
@@ -374,6 +371,7 @@ public:
     return _mat[i];
 #endif
   }
+
   inline double operator()(unsigned i) const
   {
 #ifdef MOAB_HAVE_EIGEN
@@ -458,17 +456,27 @@ public:
 	  return *this;
   }
 
-  inline bool issymmetric() {
+  inline bool is_symmetric() {
     const double EPS = 1e-13;
     if ((fabs(_mat[1] - _mat[3]) < EPS) && (fabs(_mat[2] - _mat[6]) < EPS) && (fabs(_mat[5] - _mat[7]) < EPS))
       return true;
     else return false;
   }
 
+  inline bool is_positive_definite() {
+    double subdet6 = _mat[1]*_mat[5]-_mat[2]*_mat[4];
+    double subdet7 = _mat[2]*_mat[3]-_mat[0]*_mat[5];
+    double subdet8 = _mat[0]*_mat[4]-_mat[1]*_mat[3];
+    // Determinant:= d(6)*subdet6 + d(7)*subdet7 + d(8)*subdet8;
+    const double det = _mat[6]*subdet6 + _mat[7]*subdet7 + _mat[8]*subdet8;
+    return _mat[0] > 0 && subdet8 > 0 && det > 0;
+  }
+
+
   template <typename Vector>
   inline ErrorCode eigen_decomposition(Vector& evals, Matrix3& evecs)
   {
-    const bool is_symmetric = this->issymmetric();
+    const bool bisSymmetric = this->is_symmetric();
 #ifdef MOAB_HAVE_EIGEN
     Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> eigensolver(this->_mat);
     if (eigensolver.info() != Eigen::Success)
@@ -480,7 +488,7 @@ public:
     int info;
     /* Solve eigenproblem */
     double devreal[3], drevecs[9];
-    if (!is_symmetric) {
+    if (!bisSymmetric) {
       double devimag[3], dlevecs[9], dwork[102];
       char dgeev_opts[2] = {'N', 'V'};
       int N=3,LWORK=102,NL=1,NR=N;
@@ -543,7 +551,7 @@ public:
       return MB_SUCCESS;
     }
     else {
-      std::cout << "Failure in LAPACK_" << (is_symmetric?"DSYEVD":"DGEEV") << " call for eigen decomposition.\n";
+      std::cout << "Failure in LAPACK_" << (bisSymmetric ? "DSYEVD" : "DGEEV") << " call for eigen decomposition.\n";
       std::cout << "Failed with error = " << info << ".\n";
       return MB_FAILURE;
     }
@@ -599,28 +607,6 @@ public:
     }
 #endif
   }
-
-//   inline void swapcol(int srcindex, Matrix3& dest, int destindex) {
-// #ifdef MOAB_HAVE_EIGEN
-//   	_mat.col(srcindex).swap(dest._mat.col(destindex));
-// #else
-//     CartVect vol = dest.vcol<CartVect>(destindex);
-//     switch(srcindex) {
-//       case 0:
-//         dest._mat[0] = _mat[0]; dest._mat[3] = _mat[3]; dest._mat[6] = _mat[6];
-//         _mat[0] = vol[0]; _mat[3] = vol[1]; _mat[6] = vol[2];
-//         break;
-//       case 1:
-//         dest._mat[1] = _mat[1]; dest._mat[4] = _mat[4]; dest._mat[7] = _mat[7];
-//         _mat[1] = vol[0]; _mat[4] = vol[1]; _mat[7] = vol[2];
-//         break;
-//       case 2:
-//         dest._mat[2] = _mat[2]; dest._mat[5] = _mat[5]; dest._mat[8] = _mat[8];
-//         _mat[2] = vol[0]; _mat[5] = vol[1]; _mat[8] = vol[2];
-//         break;
-//     }
-// #endif
-//   }
 
   inline void swapcol(int srcindex, int destindex) {
     assert(srcindex < Matrix3::size);
@@ -900,6 +886,11 @@ inline CartVect operator*( const CartVect& v, const Matrix3& m){
 }
 
 } // namespace moab
+
+
+#ifndef MOAB_HAVE_EIGEN
+#undef MOAB_DMEMZERO
+#endif
 
 #ifndef MOAB_MATRIX3_OPERATORLESS
 #define MOAB_MATRIX3_OPERATORLESS
