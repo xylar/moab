@@ -643,6 +643,7 @@ cdef class Core(object):
                                      bint recur = False,
                                      exceptions = ()):
         cdef np.ndarray vals = np.asarray(values, dtype='O')
+        assert isinstance(tags, Tag) or len(tags) == 1 , "Only single-tag queries are currently supported."
         # overall dimension of the numpy array should be 2
         # one array for each tag passed to the function
         # assert vals.ndim == 2 (was for support of multiple tags)
