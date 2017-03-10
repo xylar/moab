@@ -159,22 +159,22 @@ ErrorCode get_all_handles(Interface *mbi)
 
   rval = mbi->tag_get_handle( NAME_TAG_NAME, NAME_TAG_SIZE, MB_TYPE_OPAQUE,
                                 name_tag, MB_TAG_SPARSE|MB_TAG_CREAT);
-  MB_CHK_ERR_RET(rval);
+  MB_CHK_ERR(rval);
 
   rval = mbi->tag_get_handle( "OBJECT_NAME", 32, MB_TYPE_OPAQUE,
                                obj_name_tag, MB_TAG_SPARSE|MB_TAG_CREAT);
-  MB_CHK_ERR_RET(rval);
+  MB_CHK_ERR(rval);
 
   int negone = -1;
   rval = mbi->tag_get_handle( GEOM_DIMENSION_TAG_NAME, 1, MB_TYPE_INTEGER,
                                 geom_tag, MB_TAG_SPARSE|MB_TAG_CREAT,&negone);
-  MB_CHK_ERR_RET(rval);
+  MB_CHK_ERR(rval);
 
   rval = mbi->tag_get_handle( GLOBAL_ID_TAG_NAME, 
                               1, MB_TYPE_INTEGER, 
                               id_tag,
                               MB_TAG_DENSE|MB_TAG_CREAT );
-  MB_CHK_ERR_RET(rval);
+  MB_CHK_ERR(rval);
 
   rval = mbi->tag_get_handle( CATEGORY_TAG_NAME, 
                               CATEGORY_TAG_SIZE,
@@ -182,7 +182,7 @@ ErrorCode get_all_handles(Interface *mbi)
                               category_tag,
                               MB_TAG_SPARSE|MB_TAG_CREAT );
 
-  MB_CHK_ERR_RET(rval);
+  MB_CHK_ERR(rval);
   return MB_SUCCESS;
 
 }
@@ -336,7 +336,8 @@ void test_two_cubes()
  
   // get all handles (dimension, id, sense)
   rval = get_all_handles(mbi);
-  MB_CHK_SET_ERR(rval, "Failed to get all tag handles.");
+  //MB_CHK_SET_ERR(rval, "Failed to get all tag handles.");
+  MB_CHK_ERR_RET(rval);
   
   int len = 2; 
   int num[2] = {1, 2};
@@ -360,7 +361,7 @@ void test_three_cubes()
   Interface *mbi = new Core(); 
   // get all handles (dimension, id, sense)
   rval = get_all_handles(mbi);
-  MB_CHK_SET_ERR(rval, "Failed to get all tag handles.");
+  MB_CHK_ERR_RET(rval);
   
   int len = 3; 
   int num[3] = {1, 2, 3};
@@ -384,7 +385,7 @@ void test_six_cubes()
   Interface *mbi = new Core(); 
   // get all handles (dimension, id, sense)
   rval = get_all_handles(mbi);
-  MB_CHK_SET_ERR(rval, "Failed to get all tag handles.");
+  MB_CHK_ERR_RET(rval);
   
   int len = 6; 
   int num[6] = {1, 2, 3, 4, 5, 6};
@@ -428,19 +429,19 @@ void heappermute(Interface *mbi, int v[], int n, std::map< int, std::set<int> > 
 
       //test tree
       GenerateHierarchy *gh = new GenerateHierarchy(mbi, rval);
-      MB_CHK_SET_ERR(rval, "Failed to create new Generate Hierarchy instance.");
+      MB_CHK_ERR_RET(rval);
       rval = gh->build_hierarchy();
-      MB_CHK_SET_ERR(rval, "Failed to build the hierarchy.");
+      MB_CHK_ERR_RET(rval);
       rval = gh->construct_topology();
-      MB_CHK_SET_ERR(rval, "Failed to construct the topology.");
+      MB_CHK_ERR_RET(rval);
   
       DagMC *DAG = new DagMC(mbi);
       rval = DAG->load_existing_contents();
-      MB_CHK_SET_ERR(rval, "Failed to load existing contents.");
+      MB_CHK_ERR_RET(rval);
       rval = DAG->setup_obbs();
-      MB_CHK_SET_ERR(rval, "Failed to set up obbs.");
+      MB_CHK_ERR_RET(rval);
       rval = DAG->setup_indices();
-      MB_CHK_SET_ERR(rval, "Failed to set up indices.");
+      MB_CHK_ERR_RET(rval);
    
       bool result;
       result = check_tree(mbi, DAG, ref_map );

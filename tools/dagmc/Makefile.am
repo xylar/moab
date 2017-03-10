@@ -3,9 +3,9 @@ AM_CPPFLAGS = -I$(top_srcdir)/src \
 	            -I$(top_srcdir)/tools
 
 lib_LTLIBRARIES = libdagmc.la
-libdagmc_la_SOURCES = DagMC.cpp
+libdagmc_la_SOURCES = DagMC.cpp GenerateHierarchy.cpp
 libdagmc_la_includedir = $(includedir)
-libdagmc_la_include_HEADERS = DagMC.hpp
+libdagmc_la_include_HEADERS = DagMC.hpp GenerateHierarchy.hpp
 
 AM_CXXFLAGS =
 if HAVE_CGM

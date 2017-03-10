@@ -14,7 +14,8 @@ TESTS =
 if HAVE_HDF5
  TESTS += dagmc_simple_test \
         dagmc_rayfire_test \
-        dagmc_pointinvol_test
+        dagmc_pointinvol_test \
+        genhi_test 
 endif
 check_PROGRAMS = $(TESTS)
 

@@ -106,20 +106,20 @@ ErrorCode GenerateHierarchy::get_all_handles()
 
   rval = MBI->tag_get_handle( NAME_TAG_NAME, NAME_TAG_SIZE, MB_TYPE_OPAQUE,
                                 name_tag, MB_TAG_SPARSE|MB_TAG_CREAT);
-  MB_CHK_ERR_RET(rval);
+  MB_CHK_ERR(rval);
   
   rval = MBI->tag_get_handle( "OBJECT_NAME", 32, MB_TYPE_OPAQUE,
                                obj_name_tag, MB_TAG_SPARSE|MB_TAG_CREAT); 
-  MB_CHK_ERR_RET(rval);
+  MB_CHK_ERR(rval);
   
   rval = MBI->tag_get_handle( GEOM_DIMENSION_TAG_NAME, 1, MB_TYPE_INTEGER,
                                 geom_tag, MB_TAG_SPARSE|MB_TAG_CREAT,&negone);
-  MB_CHK_ERR_RET(rval);
+  MB_CHK_ERR(rval);
   
 
   rval = MBI->tag_get_handle( MB_OBB_TREE_TAG_NAME, 1, MB_TYPE_HANDLE, 
                                 obb_tree_tag, MB_TAG_DENSE );
-  MB_CHK_ERR_RET(rval);
+  MB_CHK_ERR(rval);
 
   return MB_SUCCESS;
 }
