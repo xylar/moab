@@ -86,9 +86,14 @@ def test_integer_tag():
     CHECK_EQ(data[0],test_val)
     CHECK_EQ(data.dtype,'int32')
 
-    #set tag data for one vertex
-    mb.tag_set_data(test_tag, vh[0], [1])
+    #set tag data for single handle (non-iterable)
+    new_test_value = 36
+    mb.tag_set_data(test_tag, vh[0], new_test_value)
+    data = mb.tag_get_data(test_tag, vh[0])
     
+    CHECK_EQ(len(data),1)
+    CHECK_EQ(new_test_value, data[0])
+    CHECK_EQ(data.dtype, 'int32')
 
 def test_double_tag():
     mb = core.Core()
@@ -125,6 +130,16 @@ def test_double_tag():
     else:
         print "Shouldn't be here. Test fails."
         raise AssertionError
+
+    #set tag data for single handle (non-iterable)
+    new_test_value = 36.0
+    mb.tag_set_data(test_tag, vh[0], new_test_value)
+    data = mb.tag_get_data(test_tag, vh[0])
+    
+    CHECK_EQ(len(data),1)
+    CHECK_EQ(new_test_value, data[0])
+    CHECK_EQ(data.dtype, 'float64')
+
 
 def test_opaque_tag():
     mb = core.Core()
