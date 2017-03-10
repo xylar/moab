@@ -11,27 +11,24 @@ namespace moab
                                              {1,0},
                                              {0,1}};
 
-    ErrorCode LinearTri::initFcn(const double *verts, const int /*nverts*/, double *&work) {
+    ErrorCode LinearTri::initFcn(const double *verts, const int nverts, double *&work) {
         // allocate work array as: 
         // work[0..8] = T
         // work[9..17] = Tinv
         // work[18] = detT
         // work[19] = detTinv
-      assert(!work && verts);
-      work = new double[20];
-      Matrix3 *T = reinterpret_cast<Matrix3*>(work),
-          *Tinv = reinterpret_cast<Matrix3*>(work+9);
-      double *detT = work+18, *detTinv = work+19;
-      
-      *T = Matrix3(verts[1*3+0]-verts[0*3+0],verts[2*3+0]-verts[0*3+0],0.0,
-                   verts[1*3+1]-verts[0*3+1],verts[2*3+1]-verts[0*3+1],0.0,
-                   verts[1*3+2]-verts[0*3+2],verts[2*3+2]-verts[0*3+2],1.0);
-      *T *= 0.5;
-      (*T)(2,2) = 1.0;
-      
-      *Tinv = T->inverse();
-      *detT = T->determinant();
-      *detTinv = (*detT < 1e-12 ? std::numeric_limits<double>::max() : 1.0 / *detT);
+      assert(nverts == 3 && verts);
+      if (!work) work = new double[20];
+
+      Matrix3 J (verts[1*3+0]-verts[0*3+0],verts[2*3+0]-verts[0*3+0],0.0,
+                 verts[1*3+1]-verts[0*3+1],verts[2*3+1]-verts[0*3+1],0.0,
+                 verts[1*3+2]-verts[0*3+2],verts[2*3+2]-verts[0*3+2],1.0);
+      J *= 0.5;
+
+      J.copyto(work);
+      J.inverse().copyto(work+Matrix3::size);
+      work[18] = J.determinant();
+      work[19] = (work[18] < 1e-12 ? std::numeric_limits<double>::max() : 1.0 / work[18]);
 
       return MB_SUCCESS;
     }
@@ -50,14 +47,17 @@ namespace moab
       return MB_SUCCESS;
     }
 
-    ErrorCode LinearTri::integrateFcn(const double *field, const double */*verts*/, const int /*nverts*/, const int /*ndim*/, const int num_tuples,
+    ErrorCode LinearTri::integrateFcn(const double *field, const double */*verts*/, const int nverts, const int /*ndim*/, const int num_tuples,
                                       double *work, double *result) 
     {
       assert(field && num_tuples > 0);
-      double tmp = work[18];
-      
-      for (int i = 0; i < num_tuples; i++) 
-        result[i] = tmp * (field[num_tuples+i] + field[2*num_tuples+i]);
+      std::fill(result, result+num_tuples, 0.0);
+      for(int i = 0; i < nverts; ++i) {
+        for (int j = 0; j < num_tuples; j++)
+          result[j] += field[i*num_tuples+j];
+      }
+      double tmp = work[18]/6.0;
+      for (int i = 0; i < num_tuples; i++) result[i] *= tmp;
 
       return MB_SUCCESS;
     }

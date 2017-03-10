@@ -12,14 +12,14 @@ namespace moab
                                              {0,1,0},
                                              {0,0,1}};
 
-    ErrorCode LinearTet::initFcn(const double *verts, const int /*nverts*/, double *&work) {
+    ErrorCode LinearTet::initFcn(const double *verts, const int nverts, double *&work) {
         // allocate work array as: 
         // work[0..8] = T
         // work[9..17] = Tinv
         // work[18] = detT
         // work[19] = detTinv
-      assert(!work && verts);
-      work = new double[20];
+      assert(nverts == 4 && verts);
+      if (!work) work = new double[20];
 
       Matrix3 J (verts[1*3+0]-verts[0*3+0],verts[2*3+0]-verts[0*3+0],verts[3*3+0]-verts[0*3+0],
                  verts[1*3+1]-verts[0*3+1],verts[2*3+1]-verts[0*3+1],verts[3*3+1]-verts[0*3+1],
