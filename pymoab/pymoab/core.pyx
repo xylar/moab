@@ -15,6 +15,7 @@ from libc.stdlib cimport malloc
 
 cdef void* null = NULL
 
+
 cdef class Core(object):
 
     def __cinit__(self):
@@ -644,55 +645,38 @@ cdef class Core(object):
         cdef np.ndarray vals = np.asarray(values, dtype='O')
         # overall dimension of the numpy array should be 2
         # one array for each tag passed to the function
-        assert vals.ndim == 2
-        #ensure that the correct number of arrays exist
+        # assert vals.ndim == 2 (was for support of multiple tags)
+        #ensure that the correct number of arrays exist        
         assert len(tags) == vals.shape[0]
-        #setup some initial variables to pass to MOAB function
-        cdef int num_tags = len(tags)
-        cdef moab.EntityType typ = t
-        #create tag array to pass to function
-        cdef TagArray ta = TagArray(tags)
+        cdef int num_tags = len(tags)        
         #allocate memory for an appropriately sized void** array
         cdef void** arr = <void**> malloc(num_tags*sizeof(void*))
-        
-        #get the tag type
+        #some variables to help in setting up the void array
         cdef moab.ErrorCode err
         cdef moab.DataType this_tag_type = moab.MB_MAX_DATA_TYPE
         cdef int this_tag_length = 0
         cdef Tag this_tag
         cdef bytes val_str
         cdef np.ndarray this_data
-        
-        # assign values to void** array
-        for i in range(num_tags):
-            # make sure we're dealing with a 1-D array at this point
-            assert vals[i].ndim == 1
-            # if None is passed, set pointer to NULL and continue
-            if vals[i][0] == None:
-                arr[i] = NULL
-            # otherwise get the tag type
-            else:
-                this_data = vals[i]
-                this_tag = tags[i]
-                err = self.inst.tag_get_data_type(this_tag.inst, this_tag_type)
-                check_error(err)
-                #and length
-                err = self.inst.tag_get_length(this_tag.inst,this_tag_length);
-                check_error(err)
-                #check that the data for this tag is the correct length
-                if this_tag_type == moab.MB_TYPE_OPAQUE:
-                    #if this is an opaque tag, there should only be one
-                    #string entry in the array
-                    assert this_data.size == 1
-                else:
-                    assert this_data.size == this_tag_length
-                #validate the array type and convert the dtype if necessary
-                this_data = validate_type(this_tag_type, this_tag_length, this_data)
+
+        # if this is a single tag and the values array is 1-D
+        # then validate and call function
+        if (num_tags == 1) and (vals.ndim == 1):
+            this_data = self._validate_data_for_tag(tags[0],vals)
+            arr[0] = <void*> this_data.data if this_data is not None else NULL
+        elif vals.ndim == 2:
+            # assign values to void** array
+            for i in range(num_tags):
+                this_data = self._validate_data_for_tag(tags[i],vals[i])
                 #set the array value
-                arr[i] = <void*> this_data.data
+                arr[i] = <void*> this_data.data if this_data is not None else NULL
             
+        #create tag array to pass to function
+        cdef TagArray ta = TagArray(tags)
+        #convert type to tag type
+        cdef moab.EntityType typ = t        
         #a range to hold returned entities
-        cdef Range ents = Range()
+        cdef Range ents = Range()        
         #here goes nothing
         err = self.inst.get_entities_by_type_and_tag(<unsigned long> meshset,
                                                      typ,
@@ -720,3 +704,30 @@ cdef class Core(object):
         err = self.inst.get_entities_by_dimension(<unsigned long> meshset, dimension, deref(ents.inst), recur)
         check_error(err, exceptions)
         return ents            
+
+    def _validate_data_for_tag(self, Tag tag, data_arr):
+        cdef moab.ErrorCode err
+        cdef moab.DataType tag_type = moab.MB_MAX_DATA_TYPE
+        cdef int tag_length = 0
+        # make sure we're dealing with a 1-D array at this point    
+        assert data_arr.ndim == 1
+        # if None is passed, set pointer to NULL and continue
+        if data_arr[0] == None:
+            return None
+        else:
+            # otherwise get the tag type            
+            err = self.inst.tag_get_data_type(tag.inst, tag_type)
+            check_error(err)
+            #and length
+            err = self.inst.tag_get_length(tag.inst,tag_length);
+            check_error(err)
+            #check that the data_arr for this tag is the correct length
+            if tag_type == moab.MB_TYPE_OPAQUE:
+                #if this is an opaque tag, there should only be one
+                #string entry in the array
+                assert data_arr.size == 1
+            else:
+                assert data_arr.size == tag_length
+        #validate the array type and convert the dtype if necessary
+        data_arr = validate_type(tag_type, tag_length, data_arr)
+        return data_arr
