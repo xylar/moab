@@ -458,9 +458,17 @@ public:
 	  return *this;
   }
 
+  inline bool issymmetric() {
+    const double EPS = 1e-13;
+    if ((fabs(_mat[1] - _mat[3]) < EPS) && (fabs(_mat[2] - _mat[6]) < EPS) && (fabs(_mat[5] - _mat[7]) < EPS))
+      return true;
+    else return false;
+  }
+
   template <typename Vector>
   inline ErrorCode eigen_decomposition(Vector& evals, Matrix3& evecs)
   {
+    const bool is_symmetric = this->issymmetric();
 #ifdef MOAB_HAVE_EIGEN
     Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> eigensolver(this->_mat);
     if (eigensolver.info() != Eigen::Success)
@@ -469,85 +477,91 @@ public:
     evecs._mat = eigensolver.eigenvectors(); //.col(1)
     return MB_SUCCESS;
 #else
-    double devreal[3], devimag[3], dlevecs[9], drevecs[9], dwork[120];
     int info;
     /* Solve eigenproblem */
-    std::vector<double> devmat; devmat.assign(_mat, _mat+size);
-    char dgeev_opts[2] = {'N', 'V'};
-    int N=3,LWORK=120,NL=1,NR=N;
-    MOAB_F77_FUNC(dgeev)(&dgeev_opts[0], &dgeev_opts[1], 
-                         &N, &devmat[0], 
-                         &N, devreal, devimag, 
-                         dlevecs, &NL, 
-                         drevecs, &NR, 
-                         dwork, &LWORK, 
-                         &info);
-    
-    // char dgeev_opts[2] = {'V', 'U'};
-    // std::vector<double> devmat(9,0);
-    // int liwork[60];
-    // devmat[0]=_mat[0]; devmat[1]=_mat[1]; devmat[2]=_mat[2]; devmat[3]=_mat[4]; devmat[4]=_mat[5]; devmat[6]=_mat[8];
-    // MOAB_F77_FUNC(dsyevd) ( &dgeev_opts[0], &dgeev_opts[1], &N,
-    //                     &devmat[0], &N, devreal, 
-    //                     dwork, &LWORK, liwork, &LWORK,
-    //                     &info);
-    if (!info) {
-      // std::cout << "Successfully computed eigenvectors... \n";
-      // double dtmp=devreal[0];
-      // evals = Vector(devreal);
-      // evals[0]=evals[2]; evals[2]=dtmp;
-      // evecs = Matrix3(drevecs);
-      // evecs.swapcol(1,3);
+    double devreal[3], drevecs[9];
+    if (!is_symmetric) {
+      double devimag[3], dlevecs[9], dwork[102];
+      char dgeev_opts[2] = {'N', 'V'};
+      int N=3,LWORK=102,NL=1,NR=N;
+      std::vector<double> devmat; devmat.assign(_mat, _mat+size);
+      MOAB_F77_FUNC(dgeev)(&dgeev_opts[0], &dgeev_opts[1], 
+                           &N, &devmat[0], 
+                           &N, devreal, devimag, 
+                           dlevecs, &NL, 
+                           drevecs, &NR, 
+                           dwork, &LWORK, 
+                           &info);
+      // The result eigenvalues are ordered as high-->low 
       evals[0]=devreal[2]; evals[1]=devreal[1]; evals[2]=devreal[0];
-      // evecs._mat[0]=drevecs[2]; evecs._mat[1]=drevecs[5]; evecs._mat[2]=drevecs[8];
-      // evecs._mat[3]=drevecs[1]; evecs._mat[4]=drevecs[4]; evecs._mat[5]=drevecs[7];
-      // evecs._mat[6]=drevecs[0]; evecs._mat[7]=drevecs[3]; evecs._mat[8]=drevecs[6];
-      // evecs._mat[0]=drevecs[6]; evecs._mat[1]=drevecs[7]; evecs._mat[2]=drevecs[8];
-      // evecs._mat[3]=drevecs[3]; evecs._mat[4]=drevecs[4]; evecs._mat[5]=drevecs[5];
-      // evecs._mat[6]=drevecs[0]; evecs._mat[7]=drevecs[1]; evecs._mat[8]=drevecs[2];
       evecs._mat[0]=drevecs[6]; evecs._mat[1]=drevecs[3]; evecs._mat[2]=drevecs[0];
       evecs._mat[3]=drevecs[7]; evecs._mat[4]=drevecs[4]; evecs._mat[5]=drevecs[1];
       evecs._mat[6]=drevecs[8]; evecs._mat[7]=drevecs[5]; evecs._mat[8]=drevecs[2];
-      // std::cout << "Eigenvector matrix:\n";
-      // std::cout << drevecs[0] << ", " << drevecs[1] << ", " << drevecs[2] << ",\n" << 
-      //              drevecs[3] << ", " << drevecs[4] << ", " << drevecs[5] << ",\n" << 
-      //              drevecs[6] << ", " << drevecs[7] << ", " << drevecs[8] << ".\n";
+      std::cout << "DGEEV: Optimal work vector: dsize = " << dwork[0] << ".\n";
+    }
+    else {
+      char dgeev_opts[2] = {'V', 'L'};
+      const bool find_optimal = false;
+      std::vector<int> iwork(18);
+      std::vector<double> devmat(9,0.0);
+      std::vector<double> dwork(38);
+      int N=3,lwork=38,liwork=18;
+      devmat[0]=_mat[0]; devmat[1]=_mat[1]; devmat[2]=_mat[2];
+      devmat[4]=_mat[4]; devmat[5]=_mat[5]; devmat[8]=_mat[8];
+      if (find_optimal)
+      {
+        int _lwork  = -1;
+        int _liwork = -1;
+        double query_work_size = 0;
+        int query_iwork_size = 0;
+        // Make an empty call to find the optimal work vector size
+        MOAB_F77_FUNC(dsyevd) ( &dgeev_opts[0], &dgeev_opts[1], &N,
+                                NULL, &N, NULL, 
+                                &query_work_size, &_lwork,
+                                &query_iwork_size, &_liwork,
+                                &info);
+        lwork = (int) query_work_size;
+        dwork.resize(lwork);
+        liwork = query_iwork_size;
+        iwork.resize(liwork);
+        std::cout << "DSYEVD: Optimal work vector: dsize = " << lwork << ", and isize = " << liwork << ".\n";
+      }
+
+      MOAB_F77_FUNC(dsyevd) ( &dgeev_opts[0], &dgeev_opts[1], &N,
+                              &devmat[0], &N, devreal, 
+                              &dwork[0], &lwork, &iwork[0], &liwork,
+                              &info);
+      for (int i=0; i < 9; ++i) drevecs[i] = devmat[i];
+      // The result eigenvalues are ordered as low-->high, but vectors are in rows of A.
+      evals[0]=devreal[0]; evals[1]=devreal[1]; evals[2]=devreal[2];
+      evecs._mat[0]=drevecs[0]; evecs._mat[3]=drevecs[1]; evecs._mat[6]=drevecs[2];
+      evecs._mat[1]=drevecs[3]; evecs._mat[4]=drevecs[4]; evecs._mat[7]=drevecs[5];
+      evecs._mat[2]=drevecs[6]; evecs._mat[5]=drevecs[7]; evecs._mat[8]=drevecs[8];
+    }
+
+    if (!info) {
       return MB_SUCCESS;
     }
     else {
-      std::cout << "Failure in dgeev call for eigen decomposition.\n";
+      std::cout << "Failure in LAPACK_" << (is_symmetric?"DSYEVD":"DGEEV") << " call for eigen decomposition.\n";
       std::cout << "Failed with error = " << info << ".\n";
       return MB_FAILURE;
     }
 #endif
   }
 
-  // inline ErrorCode eigen_decomposition(CartVect& evals, Matrix3& evecs)
-  // {
-  //   Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> eigensolver(this->_mat);
-  //   if (eigensolver.info() != Eigen::Success)
-  //     return MB_FAILURE;
-  //   Eigen::Vector3d _evals = eigensolver.eigenvalues();
-  //   evals[0] = _evals[0];
-  //   evals[1] = _evals[1];
-  //   evals[2] = _evals[2];
-  //   evecs._mat = eigensolver.eigenvectors(); //.col(1)
-  //   return MB_SUCCESS;
-  // }
-
   inline void transpose_inplace()
   {
 #ifdef MOAB_HAVE_EIGEN
     _mat.transposeInPlace();
 #else
-    std::vector<double> _mtmp;
-    _mtmp.assign(_mat, _mat+size);
-    _mat[1] = _mtmp[3];
-    _mat[2] = _mtmp[6];
-    _mat[3] = _mtmp[1];
-    _mat[5] = _mtmp[7];
-    _mat[6] = _mtmp[2];
-    _mat[7] = _mtmp[5];
+    Matrix3 mtmp(*this);
+    _mat[1] = mtmp._mat[3];
+    _mat[3] = mtmp._mat[1];
+    _mat[2] = mtmp._mat[6];
+    _mat[6] = mtmp._mat[2];
+    _mat[5] = mtmp._mat[7];
+    _mat[7] = mtmp._mat[5];
 #endif
   }
 
@@ -556,15 +570,14 @@ public:
 #ifdef MOAB_HAVE_EIGEN
     return Matrix3( _mat.transpose() );
 #else
-    std::vector<double> _mtmp;
-    _mtmp.assign(_mat, _mat+size);
-    _mtmp[1] = _mat[3];
-    _mtmp[2] = _mat[6];
-    _mtmp[3] = _mat[1];
-    _mtmp[5] = _mat[7];
-    _mtmp[6] = _mat[2];
-    _mtmp[7] = _mat[5];
-    return Matrix3 ( _mtmp );
+    Matrix3 mtmp(*this);
+    mtmp._mat[1] = _mat[3];
+    mtmp._mat[3] = _mat[1];
+    mtmp._mat[2] = _mat[6];
+    mtmp._mat[6] = _mat[2];
+    mtmp._mat[5] = _mat[7];
+    mtmp._mat[7] = _mat[5];
+    return mtmp;
 #endif
   }
 

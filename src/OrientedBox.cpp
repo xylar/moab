@@ -279,8 +279,6 @@ ErrorCode OrientedBox::compute_from_vertices( OrientedBox& result,
     // Get axes (Eigenvectors) from covariance matrix
   CartVect lambda;
   a.eigen_decomposition(lambda, result.axes);
-
-  // moab::Matrix::EigenDecomp( a, lambda, result.axes );
   
     // Calculate center and extents of box given orientation defined by axes
   return box_from_axes( result, instance, vertices );
