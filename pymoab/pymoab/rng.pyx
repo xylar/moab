@@ -14,15 +14,22 @@ cdef class Range(object):
 
     def __cinit__(self, arg = None):
         self.inst = new moab.Range()
+        if arg is None:
+            return
+        if type(arg) is long:
+            self.inst.insert(arg)
         #hack to copy
-        if isinstance(arg, Range):
+        elif isinstance(arg, Range):
             for eh in arg:
                 self.inst.insert(eh)
         #create from iterable
-        if arg is not None:
+        elif arg is not None:
             entity_array = _eh_array(arg)
             for eh in entity_array:
                 self.inst.insert(eh)
+        else:
+            raise ValueError, "Not a valid argument to Range constructor."
+                
 
     def __del__(self):
         del self.inst

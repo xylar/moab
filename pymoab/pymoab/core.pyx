@@ -570,6 +570,10 @@ cdef class Core(object):
         cdef Range r
         cdef np.ndarray[np.uint64_t, ndim=1] arr
         cdef moab.DataType tag_type = moab.MB_MAX_DATA_TYPE
+        if isinstance(entity_handles,Range):
+            r = entity_handles
+        else:
+            r = Range(entity_handles)        
         err = self.inst.tag_get_data_type(tag.inst, tag_type);
         check_error(err, ())
         cdef int length = 0
@@ -580,7 +584,7 @@ cdef class Core(object):
         #as many entries as entity handles provided
         if data_arr.ndim > 1:
             assert data_arr.ndim == 2
-            assert data_arr.shape[0] == len(entity_handles)
+            assert data_arr.shape[0] == len(r)
             #each entry must be equal to the tag length as well
             for entry in data_arr:
                 len(entry) == length
@@ -588,47 +592,43 @@ cdef class Core(object):
             data_arr = data_arr.flatten()
         error_str = "Incorrect data length"
         if types.MB_TYPE_OPAQUE == tag_type:
-            assert data_arr.size == len(entity_handles), error_str
+            assert data_arr.size == len(r), error_str
         else:
-            assert data_arr.size == len(entity_handles)*length, error_str
+            assert data_arr.size == len(r)*length, error_str
         data_arr = validate_type(tag_type,length,data_arr)
-        if isinstance(entity_handles,Range):
-            r = entity_handles
-            err = self.inst.tag_set_data(tag.inst, deref(r.inst), <const void*> data_arr.data)
-            check_error(err, exceptions)
-        else:
-            arr = _eh_array(entity_handles)
-            err = self.inst.tag_set_data(tag.inst, <unsigned long*> arr.data, len(entity_handles), <const void*> data_arr.data)
-            check_error(err, exceptions)
+        err = self.inst.tag_set_data(tag.inst, deref(r.inst), <const void*> data_arr.data)
+        check_error(err, exceptions)
 
     def tag_get_data(self, Tag tag, entity_handles, flat = False, exceptions = ()):
         cdef moab.ErrorCode err
         cdef Range r
         cdef np.ndarray[np.uint64_t, ndim=1] arr
         cdef moab.DataType tag_type = moab.MB_MAX_DATA_TYPE
+        #create a range
+        if isinstance(entity_handles,Range):
+            r = entity_handles
+        else:
+            r = Range(entity_handles)
+        # get the tag type and length for validation
         err = self.inst.tag_get_data_type(tag.inst, tag_type);
         check_error(err,())
         cdef int length = 0
         err = self.inst.tag_get_length(tag.inst,length);
         check_error(err,())
+        #create array to hold data
         cdef np.ndarray data
         if tag_type is types.MB_TYPE_OPAQUE:
-            data = np.empty((len(entity_handles),),dtype='S'+str(length))
+            data = np.empty((len(r),),dtype='S'+str(length))
         else:
-            data = np.empty((length*len(entity_handles),),dtype=np.dtype(np_tag_type(tag_type)))
-        if isinstance(entity_handles,Range):
-            r = entity_handles
-            err = self.inst.tag_get_data(tag.inst, deref(r.inst), <void*> data.data)
-            check_error(err, exceptions)
-        else:
-            arr = _eh_array(entity_handles)
-            err = self.inst.tag_get_data(tag.inst, <unsigned long*> arr.data, len(entity_handles), <void*> data.data)
-            check_error(err,exceptions)
+            data = np.empty((length*len(r),),dtype=np.dtype(np_tag_type(tag_type)))
+        err = self.inst.tag_get_data(tag.inst, deref(r.inst), <void*> data.data)
+        check_error(err, exceptions)
+        # return data as user specifies
         if flat:
             return data
         else:
             entry_len = 1 if tag_type == types.MB_TYPE_OPAQUE else length
-            return data.reshape((len(entity_handles),entry_len))
+            return data.reshape((len(r),entry_len))
 
     def get_adjacencies(self, entity_handles, int to_dim, bint create_if_missing = False, exceptions = ()):
         cdef moab.ErrorCode err

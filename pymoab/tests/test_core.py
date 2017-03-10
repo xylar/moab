@@ -86,6 +86,10 @@ def test_integer_tag():
     CHECK_EQ(data[0],test_val)
     CHECK_EQ(data.dtype,'int32')
 
+    #set tag data for one vertex
+    mb.tag_set_data(test_tag, vh[0], [1])
+    
+
 def test_double_tag():
     mb = core.Core()
     vh = vertex_handle(mb)
