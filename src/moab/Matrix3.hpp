@@ -61,44 +61,43 @@
 #error Need either Eigen3 or BLAS/LAPACK libraries
 #endif
 
-extern "C" int
+extern "C" void
 MOAB_F77_FUNC(dsyevd) ( char *jobz, char *uplo, int *n,
                         double a[], int *lda, double w[], double work[],
                         int *lwork, int iwork[], int *liwork,
                         int *info);
 
-extern "C" int
+extern "C" void
 MOAB_F77_FUNC(dsyevr) (char *jobz, char *range, char *uplo, int *n,
                        double *a, int *lda, double *vl, double *vu,
                        int *il, int *iu, double *abstol, int *m, double *w,
                        double *z, int *ldz, int *isuppz, double *work,
                        int *lwork, int *iwork, int *liwork, int *info);
 
-extern "C" int 
+extern "C" void
 MOAB_F77_FUNC(dgeev)  (char *jobvl, char *jobvr, int *n, double * a, 
                        int *lda, double *wr, double *wi, double *vl, 
                        int *ldvl, double *vr, int *ldvr, double *work, 
                        int *lwork, int *info);
+
+// LU decomoposition of a general matrix
+extern "C" void
+MOAB_F77_FUNC(dgetrf) ( int* M, int *N, double* A, 
+                        int* lda, int* IPIV, 
+                        int* INFO);
+
+// generate inverse of a matrix given its LU decomposition
+extern "C" void
+MOAB_F77_FUNC(dgetri) ( int* N, double* A, 
+                        int* lda, int* IPIV, 
+                        double* WORK, int* lwork, 
+                        int* INFO);
 
 #endif
 
 namespace moab {
 
 namespace Matrix{
-	template< typename Matrix>
-	Matrix compute_inverse( const Matrix & d, const double det){
-		Matrix m( d);
-		m(0) = det * (d(4) * d(8) - d(5) * d(7));
-    m(1) = det * (d(2) * d(7) - d(8) * d(1));
-    m(2) = det * (d(1) * d(5) - d(4) * d(2));
-    m(3) = det * (d(5) * d(6) - d(8) * d(3));
-    m(4) = det * (d(0) * d(8) - d(6) * d(2));
-    m(5) = det * (d(2) * d(3) - d(5) * d(0));
-    m(6) = det * (d(3) * d(7) - d(6) * d(4));
-    m(7) = det * (d(1) * d(6) - d(7) * d(0));
-    m(8) = det * (d(0) * d(4) - d(3) * d(1));
-		return m;
-	}
 
 	template< typename Matrix>
 	inline bool positive_definite( const Matrix & d, 
@@ -121,16 +120,6 @@ namespace Matrix{
 	                 a(2,0) * b(0,0) + a(2,1) * b(1,0) + a(2,2) * b(2,0),
 	                 a(2,0) * b(0,1) + a(2,1) * b(1,1) + a(2,2) * b(2,1),
 	                 a(2,0) * b(0,2) + a(2,1) * b(1,2) + a(2,2) * b(2,2) );
-	}
-
-	template< typename Vector, typename Matrix>
-	inline Matrix outer_product( const Vector & u,
-	                              const Vector & v,
-				      Matrix & m ) {
-	  	m = Matrix( u[0] * v[0], u[0] * v[1], u[0] * v[2],
-	                    u[1] * v[0], u[1] * v[1], u[1] * v[2],
-	                    u[2] * v[0], u[2] * v[1], u[2] * v[2] );
-		return m;
 	}
 	
 	template< typename Matrix>
@@ -158,20 +147,26 @@ namespace Matrix{
 } //namespace Matrix
 
 class Matrix3  {
+
+public:
+  const static int size = 9;
+
+private:
+
 #ifdef MOAB_HAVE_EIGEN
   Eigen::Matrix3d _mat;
 #else
-  std::vector<double> _mat;
+  double _mat[size];
 #endif
-  const static int size = 9;
 
 public:
+
   //Default Constructor
   inline Matrix3() {
 #ifdef MOAB_HAVE_EIGEN
     _mat.fill(0.0);
 #else
-    _mat.resize(9, 0.0);
+    memset(_mat, 0, size*sizeof(double));
 #endif
   }
 
@@ -188,7 +183,7 @@ public:
             0.0, diagonal, 0.0,
             0.0, 0.0, diagonal;
 #else
-    _mat.resize(9, 0.0);
+    memset(_mat, 0, size*sizeof(double));
     _mat[0] = _mat[4] = _mat[8] = diagonal;
 #endif
   }
@@ -199,7 +194,7 @@ public:
             0.0, diagonal[1], 0.0,
             0.0, 0.0, diagonal[2];
 #else
-    _mat.resize(9, 0.0);
+    memset(_mat, 0, size*sizeof(double));
     _mat[0] = diagonal[0];
     _mat[4] = diagonal[1];
     _mat[8] = diagonal[2];
@@ -217,7 +212,7 @@ public:
             0.0, diagonal[1], 0.0,
             0.0, 0.0, diagonal[2];
 #else
-    _mat.resize(9, 0.0);
+    memset(_mat, 0, size*sizeof(double));
     _mat[0] = diagonal[0];
     _mat[4] = diagonal[1];
     _mat[8] = diagonal[2];
@@ -232,7 +227,7 @@ public:
             v10, v11, v12,
             v20, v21, v22;
 #else
-    _mat.resize(9, 0.0);
+    memset(_mat, 0, size*sizeof(double));
     _mat[0] = v00; _mat[1] = v01; _mat[2] = v02;
     _mat[3] = v10; _mat[4] = v11; _mat[5] = v12;
     _mat[6] = v20; _mat[7] = v21; _mat[8] = v22;
@@ -240,14 +235,21 @@ public:
   }
 
   //Copy constructor 
-  Matrix3 ( const Matrix3 & f) : _mat(f._mat) {}
+  Matrix3 ( const Matrix3 & f)
+  {
+#ifdef MOAB_HAVE_EIGEN
+    _mat = f._mat;
+#else
+    memcpy(_mat, f._mat, size*sizeof(double));
+#endif
+  }
 
   //Weird constructors 
   template< typename Vector> 
-  inline Matrix3(   const Vector & row0,
-                    const Vector & row1,
-                    const Vector & row2,
-                    const bool isRow) {
+  inline Matrix3( const Vector & row0,
+                  const Vector & row1,
+                  const Vector & row2,
+                  const bool isRow) {
 #ifdef MOAB_HAVE_EIGEN
     if (isRow) {
       _mat << row0[0], row0[1], row0[2],
@@ -260,7 +262,7 @@ public:
               row0[2], row1[2], row2[2];
     }
 #else
-    _mat.resize(9, 0.0);
+    memset(_mat, 0, size*sizeof(double));
     if (isRow) {
       _mat[0] = row0[0]; _mat[1] = row0[1]; _mat[2] = row0[2];
       _mat[3] = row1[0]; _mat[4] = row1[1]; _mat[5] = row1[2];
@@ -278,8 +280,6 @@ public:
   inline ~Matrix3() {
 #ifdef MOAB_HAVE_EIGEN
     _mat.clear();
-#else
-    _mat.clear();
 #endif
   }
 
@@ -296,28 +296,40 @@ public:
    * \deprecated { Use instead the constructor with explicit fourth argument, bool isRow, above }
    *
    */
-  inline Matrix3( const double v[9] ){ 
+  inline Matrix3( const double v[size] ) {
 #ifdef MOAB_HAVE_EIGEN
     _mat << v[0], v[1], v[2],
             v[3], v[4], v[5],
             v[6], v[7], v[8];
 #else
-    _mat = std::vector<double>(v, v+9);
+    memcpy(_mat, v, size*sizeof(double));
+#endif
+  }
+
+  inline void copyto( double v[Matrix3::size] ) {
+#ifdef MOAB_HAVE_EIGEN
+    std::copy(_mat.data(), _mat.data()+size, v);
+#else
+    memcpy(v, _mat, size*sizeof(double));
 #endif
   }
   
   inline Matrix3& operator=( const Matrix3& m ){
+#ifdef MOAB_HAVE_EIGEN
     _mat = m._mat;
+#else
+    memcpy(_mat, m._mat, size*sizeof(double));
+#endif
     return *this;
   }
   
-  inline Matrix3& operator=( const double v[9] ){ 
+  inline Matrix3& operator=( const double v[size] ){ 
 #ifdef MOAB_HAVE_EIGEN
     _mat << v[0], v[1], v[2],
             v[3], v[4], v[5],
             v[6], v[7], v[8];
 #else
-    _mat = std::vector<double>(v, v+9);
+    memcpy(_mat, v, size*sizeof(double));
 #endif
     return *this;
  }
@@ -373,10 +385,22 @@ public:
   
   // get pointer to array of nine doubles
   inline double* array()
-  { return _mat.data(); }
+  {
+#ifdef MOAB_HAVE_EIGEN
+    return _mat.data();
+#else
+    return _mat;
+#endif
+  }
   
   inline const double* array() const
-  { return _mat.data(); }
+  {
+#ifdef MOAB_HAVE_EIGEN
+    return _mat.data();
+#else
+    return _mat;
+#endif
+  }
 
   inline Matrix3& operator+=( const Matrix3& m ){
 #ifdef MOAB_HAVE_EIGEN
@@ -420,7 +444,7 @@ public:
 #else
     // Uncomment below if you want point-wise multiplication instead (.*)
     // for (int i=0; i < Matrix3::size; ++i) _mat[i] *= m._mat[i];
-    std::vector<double> dmat(_mat);
+    std::vector<double> dmat; dmat.assign(_mat, _mat+size);
     _mat[0] = dmat[0] * m._mat[0] + dmat[1] * m._mat[3] + dmat[2] * m._mat[6];
     _mat[1] = dmat[0] * m._mat[1] + dmat[1] * m._mat[4] + dmat[2] * m._mat[7];
     _mat[2] = dmat[0] * m._mat[2] + dmat[1] * m._mat[5] + dmat[2] * m._mat[8];
@@ -448,7 +472,7 @@ public:
     double devreal[3], devimag[3], dlevecs[9], drevecs[9], dwork[120];
     int info;
     /* Solve eigenproblem */
-    std::vector<double> devmat(_mat);
+    std::vector<double> devmat; devmat.assign(_mat, _mat+size);
     char dgeev_opts[2] = {'N', 'V'};
     int N=3,LWORK=120,NL=1,NR=N;
     MOAB_F77_FUNC(dgeev)(&dgeev_opts[0], &dgeev_opts[1], 
@@ -516,7 +540,8 @@ public:
 #ifdef MOAB_HAVE_EIGEN
     _mat.transposeInPlace();
 #else
-    std::vector<double> _mtmp = _mat;
+    std::vector<double> _mtmp;
+    _mtmp.assign(_mat, _mat+size);
     _mat[1] = _mtmp[3];
     _mat[2] = _mtmp[6];
     _mat[3] = _mtmp[1];
@@ -531,7 +556,8 @@ public:
 #ifdef MOAB_HAVE_EIGEN
     return Matrix3( _mat.transpose() );
 #else
-    std::vector<double> _mtmp = _mat;
+    std::vector<double> _mtmp;
+    _mtmp.assign(_mat, _mat+size);
     _mtmp[1] = _mat[3];
     _mtmp[2] = _mat[6];
     _mtmp[3] = _mat[1];
@@ -729,7 +755,19 @@ public:
 #ifdef MOAB_HAVE_EIGEN
     return Matrix3(_mat.inverse());
 #else
-    return Matrix::compute_inverse( *this, this->determinant() );
+    // return Matrix::compute_inverse( *this, this->determinant() );
+    Matrix3 m(0.0);
+    const double d_determinant = 1.0/this->determinant();
+    m._mat[0] = d_determinant * (_mat[4] * _mat[8] - _mat[5] * _mat[7]);
+    m._mat[1] = d_determinant * (_mat[2] * _mat[7] - _mat[8] * _mat[1]);
+    m._mat[2] = d_determinant * (_mat[1] * _mat[5] - _mat[4] * _mat[2]);
+    m._mat[3] = d_determinant * (_mat[5] * _mat[6] - _mat[8] * _mat[3]);
+    m._mat[4] = d_determinant * (_mat[0] * _mat[8] - _mat[6] * _mat[2]);
+    m._mat[5] = d_determinant * (_mat[2] * _mat[3] - _mat[5] * _mat[0]);
+    m._mat[6] = d_determinant * (_mat[3] * _mat[7] - _mat[6] * _mat[4]);
+    m._mat[7] = d_determinant * (_mat[1] * _mat[6] - _mat[7] * _mat[0]);
+    m._mat[8] = d_determinant * (_mat[0] * _mat[4] - _mat[3] * _mat[1]);
+    return m;
 #endif
   }
  
@@ -746,7 +784,8 @@ public:
 #else
     d_determinant = this->determinant();
     if (d_determinant > 1e-13) invertible = true;
-    std::vector<double> _m(_mat);
+    d_determinant = 1.0/d_determinant; // invert the determinant
+    std::vector<double> _m; _m.assign(_mat, _mat+size);
     _mat[0] = d_determinant * (_m[4] * _m[8] - _m[5] * _m[7]);
     _mat[1] = d_determinant * (_m[2] * _m[7] - _m[8] * _m[1]);
     _mat[2] = d_determinant * (_m[1] * _m[5] - _m[4] * _m[2]);
@@ -763,14 +802,16 @@ public:
   // Calculate determinant of 2x2 submatrix composed of the
   // elements not in the passed row or column.
   inline double subdet( int r, int c ) const{
-    const int r1 = (r+1)%3, r2 = (r+2)%3;
-    const int c1 = (c+1)%3, c2 = (c+2)%3;
     assert(r >= 0 && c >= 0);
     if (r < 0 || c < 0) return DBL_MAX;
 #ifdef MOAB_HAVE_EIGEN
+    const int r1 = (r+1)%3, r2 = (r+2)%3;
+    const int c1 = (c+1)%3, c2 = (c+2)%3;
     return _mat(r1,c1)*_mat(r2,c2) - _mat(r1,c2)*_mat(r2,c1);
 #else
-    return _mat[r1*3+c1]*_mat[r2*3+c2] - _mat[r1*3+c2]*_mat[r2*3+c1];
+    const int r1 = Matrix3::size*((r+1)%3), r2 = Matrix3::size*((r+2)%3);
+    const int c1 = (c+1)%3, c2 = (c+2)%3;
+    return _mat[r1+c1]*_mat[r2+c2] - _mat[r1+c2]*_mat[r2+c1];
 #endif
   }
 
@@ -789,7 +830,6 @@ public:
   }
 
 }; //class Matrix3
-
 
 
 template< typename Vector>

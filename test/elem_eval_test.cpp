@@ -137,7 +137,7 @@ int main()
 {
   int failures = 0;
   
-//  failures += RUN_TEST(test_linear_tri); currently failing linear tri, bad formulation, working on it...
+  // failures += RUN_TEST(test_linear_tri); // currently failing linear tri, bad formulation, working on it...
   failures += RUN_TEST(test_linear_quad);
   failures += RUN_TEST(test_linear_hex);
   failures += RUN_TEST(test_quadratic_hex);
