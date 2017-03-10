@@ -483,23 +483,23 @@ cdef class Core(object):
         -------
         # new MOAB core instance
         mb = core.Core()
-        # 
+        #
         tag_type = pymoab.types.MB_TYPE_INTEGER # define the tag's data type
         tag_size = 1 # the tag size (1 integer value)
-        tag_handle = mb.tag_get_handle("NewDataTag", 
-                                       tag_size, 
+        tag_handle = mb.tag_get_handle("NewDataTag",
+                                       tag_size,
                                        tag_type)
 
         Example - creating a new tag handle
         -------
         # new MOAB core instance
         mb = core.Core()
-        # 
+        #
         tag_type = pymoab.types.MB_TYPE_INTEGER # define the tag's data type
         tag_size = 1 # the tag size (1 integer value)
-        tag_handle = mb.tag_get_handle("NewDataTag", 
-                                       tag_size, 
-                                       tag_type, 
+        tag_handle = mb.tag_get_handle("NewDataTag",
+                                       tag_size,
+                                       tag_type,
                                        create_if_missing = True)
 
         Parameters
@@ -516,7 +516,7 @@ cdef class Core(object):
             indicates to the database instance that the tag should be created
             if it cannot be found
         storage_type : MOAB tag storage type (default MB_TYPE_DENSE)
-            in advanced use of the database, this flag controls how this tag's 
+            in advanced use of the database, this flag controls how this tag's
             data is stored in memory. The two most common storage types are
 
             MB_TYPE_SPARSE -  sparse tags are stored as a list of (entity
@@ -548,7 +548,7 @@ cdef class Core(object):
         ------
         MOAB ErrorCode
             if a MOAB error occurs
-        """        
+        """
         cdef Tag tag = Tag()
         cdef moab.ErrorCode err
         cdef moab.DataType tt
@@ -582,9 +582,11 @@ cdef class Core(object):
         coords = np.array((0,0,0,1,0,0,1,1,1),dtype='float64')
         verts = mb.create_vertices(coords)
         # create a new tag for data
+        tag_length = 2
+        tag_type = pymoab.types.MB_TYPE_DOUBLE
         data_tag = mb.tag_get_handle("Data",
-                                     2,
-                                     pymoab.types.MB_TYPE_DOUBLE,
+                                     tag_length,
+                                     tag_type,
                                      create_if_missing = True)
         # some sample data
         data = np.array([1.0,2.0,3.0,4.0,5.0,6.0], dtype = 'float')
@@ -631,12 +633,18 @@ cdef class Core(object):
         entity_handles : iterable of MOAB EntityHandle's or single EntityHandle
             the EntityHandle(s) to tag the data on. This can be any iterable of
             EntityHandles or a single EntityHandle.
-        entity_type : MOAB EntityType (see pymoab.types module)
-            type of entity to create (MBTRI, MBQUAD, etc.)
+
         exceptions : tuple (default is empty tuple)
             A tuple containing any error types that should
             be ignored. (see pymoab.types module for more info)
-
+        data : iterable of data to set for the tag
+            This is a 1-D or 2-D iterable of data values to set for the tag and
+            entities specified in the entity_handles parameter. If the data is
+            1-D then it must be of size len(entity_handles)*tag_length. If the
+            data is 2-D then it must be of size len(entity_handles) with each
+            second dimension entry having a length equal to the tag's
+            length. All entries in the data must be of the proper type for the
+            tag or be able to be converted to that type.
         Returns
         -------
         None
@@ -682,6 +690,67 @@ cdef class Core(object):
         check_error(err, exceptions)
 
     def tag_get_data(self, Tag tag, entity_handles, flat = False, exceptions = ()):
+        """
+        Retrieve tag data from a set of entities. Data will be returned as a 2-D
+        array with number of entries equal to the number of EntityHandles passed
+        to the function by default. Each entry in the array will be equal to the
+        tag's length. A flat array of data can also be returned if specified by
+        setting the 'flat' parameter to True.
+
+        Example
+        -------
+        mb = core.Core()
+        coords = np.array((0,0,0,1,0,0,1,1,1),dtype='float64')
+        verts = mb.create_vertices(coords)
+        # create a new tag for data
+        tag_length = 2
+        tag_type = pymoab.types.MB_TYPE_DOUBLE
+        data_tag = mb.tag_get_handle("Data",
+                                     tag_length,
+                                     tag_type,
+                                     create_if_missing = True)
+        # some sample data
+        data = np.array([1.0,2.0,3.0,4.0,5.0,6.0], dtype = 'float')
+        # use this function to tag vertices with the data
+        mb.tag_set_data(data_tag, verts, data)
+
+        # now retrieve this tag's data for the vertices from the instance
+        data = mb.tag_get_data(data_tag, verts) # returns 2-D array
+
+        OR
+
+        # now retrieve this tag's data for the vertices from the instance
+        # returns 1-D array of len(verts)*tag_length
+        data = mb.tag_get_data(data_tag, verts)
+        
+        Parameters
+        ----------
+        tag : MOAB TagHandle
+            the tag from which data is to be retrieved
+        entity_handles : iterable of MOAB EntityHandles or a single EntityHandle
+            the EntityHandle(s) to retrieve data for. This can be any iterable of
+            EntityHandles or a single EntityHandle. 
+        flat : bool (default is False)
+            Indicates the structure in which the data is returned. If False, the
+            array is returned as a 2-D numpy array of len(entity_handles) with
+            each second dimension entry equal to the length of the tag. If True,
+            the data is returned as a 1-D numpy array of length
+            len(entity_handles)*tag_length.
+        exceptions : tuple (default is empty tuple)
+            A tuple containing any error types that should
+            be ignored. (see pymoab.types module for more info)
+
+        Returns
+        -------
+        Numpy array of data with dtype matching that of the tag's type
+
+        Raises
+        ------
+        MOAB ErrorCode
+            if a MOAB error occurs
+        ValueError
+            if an EntityHandle is not of the correct type
+        """        
         cdef moab.ErrorCode err
         cdef Range r
         cdef moab.DataType tag_type = moab.MB_MAX_DATA_TYPE
