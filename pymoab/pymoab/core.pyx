@@ -51,7 +51,7 @@ cdef class Core(object):
         ----------
         fname : string
             The location of the file to read.
-        file_set : EntityHandle 
+        file_set : EntityHandle (default None)
             If not None, this argument must be a valid
             entity set handle. All entities read from the file will be added to
             this set. File metadata will be added to tags on the set.
@@ -96,7 +96,7 @@ cdef class Core(object):
         ----------
         fname : string
             thhe location of the file to write
-        exceptions : tuple 
+        exceptions : tuple (default is empty tuple)
             tuple containing any error types that should
             be ignored (see pymoab.types module for more info)
         
@@ -125,7 +125,7 @@ cdef class Core(object):
         than once. Meshsets can optionally track its members using adjacencies
         (MESHSET_TRACK_OWNER); if set, entities are deleted from tracking
         meshsets before being deleted. This adds data to mesh entities, which
-        can be expensive.
+        can be more memory intensive.
         
         Example
         -------
@@ -139,9 +139,9 @@ cdef class Core(object):
 
         Parameters
         ----------
-        options : MOAB EntitySet Property
+        options : MOAB EntitySet Property (default is MESHSET_SET)
             settings for the Meshset being created
-        exceptions : tuple 
+        exceptions : tuple (default is empty tuple)
             A tuple containing any error types that should
             be ignored. (see pymoab.types module for more info)
         
@@ -180,7 +180,7 @@ cdef class Core(object):
             EntityHandle of the Meshset the entities will be added to
         entities : Range or iterable of EntityHandles
             Entities that to add to the Meshset            
-        exceptions : tuple 
+        exceptions : tuple (default is empty tuple)
             A tuple containing any error types that should
             be ignored. (see pymoab.types module for more info)
         
@@ -228,7 +228,7 @@ cdef class Core(object):
             EntityHandle of the Meshset the entities will be removed from
         entities : Range or iterable of EntityHandles
             Entities that to remove from the Meshset
-        exceptions : tuple
+        exceptions : tuple (default is empty tuple)
         A tuple containing any error types that should
         be ignored. (see pymoab.types module for more info)
 
@@ -271,7 +271,7 @@ cdef class Core(object):
         ----------
         entities : Range or iterable of EntityHandles
             Entities that to delete from the database
-        exceptions : tuple
+        exceptions : tuple (default is empty tuple)
             A tuple containing any error types that should
             be ignored. (see pymoab.types module for more info)
 
@@ -322,7 +322,7 @@ cdef class Core(object):
             Coordinates can be provided as either a 1-D iterable of 3*n floats
             or as a 2-D array with dimensions (n,3) where n is the number of
             vertices being created.
-        exceptions : tuple
+        exceptions : tuple (default is empty tuple)
             A tuple containing any error types that should
             be ignored. (see pymoab.types module for more info)
 
@@ -379,7 +379,7 @@ cdef class Core(object):
         coordinates : iterable of EntityHandles
             1-D array-like iterable of vertex EntityHandles the element is to be
             created from
-        exceptions : tuple
+        exceptions : tuple (default is empty tuple)
             A tuple containing any error types that should
             be ignored. (see pymoab.types module for more info)
 
@@ -437,7 +437,7 @@ cdef class Core(object):
             be created from. Each entry in first dimension of the array should
             have an appropriate length for the element type being created (MBTRI
             means each entry has length 3).
-        exceptions : tuple
+        exceptions : tuple (default is empty tuple)
             A tuple containing any error types that should
             be ignored. (see pymoab.types module for more info)
 
@@ -536,10 +536,13 @@ cdef class Core(object):
             MB_TYPE_BIT - Bit tags are stored similarly to dense tags, but with
                 special handling to allow allocation in bit-size amounts per
                 entity.
+        exceptions : tuple (default is empty tuple)
+            A tuple containing any error types that should
+            be ignored. (see pymoab.types module for more info)
 
         Returns
         -------
-        TagHandle
+        MOAB TagHandle
 
         Raises
         ------
