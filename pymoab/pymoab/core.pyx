@@ -566,6 +566,89 @@ cdef class Core(object):
         return tag
 
     def tag_set_data(self, Tag tag, entity_handles, data, exceptions = ()):
+        """
+        Create an elments of type, entity_type, using vertex EntityHandles in connectivity.
+
+        This function will ensure that the data is of the correct type and
+        length based on the tag it is to be applied to. Data can be passed as a
+        1-D iterable of appropriate length or as 2-D iterable with entries for
+        each entity handle equal to the length of the tag.
+
+        Example
+        -------
+        # create moab core instance
+        mb = core.Core()
+        # create some vertices
+        coords = np.array((0,0,0,1,0,0,1,1,1),dtype='float64')
+        verts = mb.create_vertices(coords)
+        # create a new tag for data
+        data_tag = mb.tag_get_handle("Data",
+                                     2,
+                                     pymoab.types.MB_TYPE_DOUBLE,
+                                     create_if_missing = True)
+        # some sample data
+        data = np.array([1.0,2.0,3.0,4.0,5.0,6.0], dtype = 'float')
+        #use this function to tag vertices with the data
+        mb.tag_set_data(data_tag, verts, data)
+
+        OR
+
+        # some sample data
+        data = np.array([[1.0,2.0],[3.0,4.0],[5.0,6.0]], dtype = 'float')
+        #use this function to tag vertices with the data
+        mb.tag_set_data(data_tag, verts, data)
+
+        OR
+
+        ### pass data as a an iterable object ###
+        # some sample data
+        data = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
+        #use this function to tag vertices with the data
+        mb.tag_set_data(data_tag, verts, data)
+
+        OR
+
+        ### pass data as a nested iterable object ###
+        ### (can be convenient for vector tags) ###
+        # some sample data
+        data = [[1.0, 2.0],[3.0, 4.0],[4.0, 5.0]]
+        #use this function to tag vertices with the data
+        mb.tag_set_data(data_tag, verts, data)
+
+        OR
+
+        ### tag a single vertex ###
+        # get a single vertex
+        vertex_to_tag = verts[0]
+        data = [1.0, 2.0]
+        #use this function to tag vertices with the data
+        mb.tag_set_data(data_tag, vertex, data)
+
+        Parameters
+        ----------
+        tag : MOAB TagHandle
+            tag to which the data is applied
+        entity_handles : iterable of MOAB EntityHandle's or single EntityHandle
+            the EntityHandle(s) to tag the data on. This can be any iterable of
+            EntityHandles or a single EntityHandle.
+        entity_type : MOAB EntityType (see pymoab.types module)
+            type of entity to create (MBTRI, MBQUAD, etc.)
+        exceptions : tuple (default is empty tuple)
+            A tuple containing any error types that should
+            be ignored. (see pymoab.types module for more info)
+
+        Returns
+        -------
+        None
+
+        Raises
+        ------
+        MOAB ErrorCode
+            if a MOAB error occurs
+        ValueError
+            if a data entry is not of the correct type or cannot be converted to
+            the correct type
+        """
         cdef moab.ErrorCode err
         cdef Range r
         cdef moab.DataType tag_type = moab.MB_MAX_DATA_TYPE
