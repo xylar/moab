@@ -568,7 +568,6 @@ cdef class Core(object):
     def tag_set_data(self, Tag tag, entity_handles, data, exceptions = ()):
         cdef moab.ErrorCode err
         cdef Range r
-        cdef np.ndarray[np.uint64_t, ndim=1] arr
         cdef moab.DataType tag_type = moab.MB_MAX_DATA_TYPE
         if isinstance(entity_handles,Range):
             r = entity_handles
@@ -602,7 +601,6 @@ cdef class Core(object):
     def tag_get_data(self, Tag tag, entity_handles, flat = False, exceptions = ()):
         cdef moab.ErrorCode err
         cdef Range r
-        cdef np.ndarray[np.uint64_t, ndim=1] arr
         cdef moab.DataType tag_type = moab.MB_MAX_DATA_TYPE
         #create a range
         if isinstance(entity_handles,Range):
