@@ -475,6 +475,77 @@ cdef class Core(object):
                        create_if_missing = False,
                        storage_type = types.MB_TAG_DENSE,
                        exceptions = ()):
+        """
+        Retrieve or create tag handles for storing data on mesh elements, vertices,
+        meshsets, etc.
+
+        Example - retrieving an existing tag handle
+        -------
+        # new MOAB core instance
+        mb = core.Core()
+        # 
+        tag_type = pymoab.types.MB_TYPE_INTEGER # define the tag's data type
+        tag_size = 1 # the tag size (1 integer value)
+        tag_handle = mb.tag_get_handle("NewDataTag", 
+                                       tag_size, 
+                                       tag_type)
+
+        Example - creating a new tag handle
+        -------
+        # new MOAB core instance
+        mb = core.Core()
+        # 
+        tag_type = pymoab.types.MB_TYPE_INTEGER # define the tag's data type
+        tag_size = 1 # the tag size (1 integer value)
+        tag_handle = mb.tag_get_handle("NewDataTag", 
+                                       tag_size, 
+                                       tag_type, 
+                                       create_if_missing = True)
+
+        Parameters
+        ----------
+        name : string
+            name of the tag
+        size : int
+            number of values the tag contains (or the number of characters in
+            the case of an opaque tag)
+        tag_type : MOAB DataType
+            indicates the data type of the tag (MB_TYPE_DOUBLE, MB_TYPE_INTEGER,
+            MB_TYPE_OPAQUE, etc.)
+        create_if_missing : bool (default False)
+            indicates to the database instance that the tag should be created
+            if it cannot be found
+        storage_type : MOAB tag storage type (default MB_TYPE_DENSE)
+            in advanced use of the database, this flag controls how this tag's 
+            data is stored in memory. The two most common storage types are
+
+            MB_TYPE_SPARSE -  sparse tags are stored as a list of (entity
+                handle, tag value) tuples, one list per sparse tag, sorted by
+                entity handle
+
+            MB_TYPE_DENSE - Dense tag values are stored in arrays which match
+                arrays of contiguous entity handles. Dense tags are more
+                efficient in both storage and memory if large numbers of
+                entities are assigned the same tag. Storage for a given dense
+                tag is not allocated until a tag value is set on an entity;
+                memory for a given dense tag is allocated for all entities in a
+                given sequence at the same time.  Sparse: Sparse tags are stored
+                as a list of (entity handle, tag value) tuples, one list per
+                sparse tag, sorted by entity handle.
+
+            MB_TYPE_BIT - Bit tags are stored similarly to dense tags, but with
+                special handling to allow allocation in bit-size amounts per
+                entity.
+
+        Returns
+        -------
+        TagHandle
+
+        Raises
+        ------
+        MOAB ErrorCode
+            if a MOAB error occurs
+        """        
         cdef Tag tag = Tag()
         cdef moab.ErrorCode err
         cdef moab.DataType tt
