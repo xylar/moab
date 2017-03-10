@@ -478,12 +478,22 @@ public:
   {
     const bool bisSymmetric = this->is_symmetric();
 #ifdef MOAB_HAVE_EIGEN
-    Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> eigensolver(this->_mat);
-    if (eigensolver.info() != Eigen::Success)
-      return MB_FAILURE;
-    evals = eigensolver.eigenvalues();
-    evecs._mat = eigensolver.eigenvectors(); //.col(1)
-    return MB_SUCCESS;
+    if (bisSymmetric) {
+      Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> eigensolver(this->_mat);
+      if (eigensolver.info() != Eigen::Success)
+        return MB_FAILURE;
+      evals = eigensolver.eigenvalues();
+      evecs._mat = eigensolver.eigenvectors(); //.col(1)
+      return MB_SUCCESS;
+    }
+    else {
+      Eigen::EigenSolver<Eigen::Matrix3d> eigensolver(this->_mat, true);
+      if (eigensolver.info() != Eigen::Success)
+        return MB_FAILURE;
+      evals = eigensolver.eigenvalues();
+      evecs._mat = eigensolver.eigenvectors(); //.col(1)
+      return MB_SUCCESS;
+    }
 #else
     int info;
     /* Solve eigenproblem */
