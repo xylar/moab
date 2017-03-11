@@ -215,9 +215,11 @@ else
       pythondir=$pymoab_prefix
     fi
     AC_SUBST([pymoab_prefix])
+    # ensure shared libraries are enabled
     if (test "xyes" != "x$enable_shared" || test "xno" = "x$enable_shared"); then
       AC_MSG_ERROR([Cannot build static libraries and the python interface. Please build with shared libraries (--enable-shared) or build without MOAB's python interface.])
     fi
+    # ensure 32 bit objects are NOT enabled
     if (test "xyes" = "x$enable_32bit" || test "xno" != "x$enable_32bit"); then
       AC_MSG_ERROR([Cannot build pymoab with 32bit objects enabled. Please remove the --enable-32bit configuration option or build without MOAB's python interface.])
     fi
