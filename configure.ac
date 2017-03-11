@@ -1205,7 +1205,7 @@ if test "x" = "x$examplesdir"; then
   AC_SUBST(examplesdir)
 fi
 
-CPPFLAGS="$MB_CPPFLAGS"
+CPPFLAGS="$MB_CPPFLAGS $CPPFLAGS"
 FCPPFLAGS=`echo $MB_CPPFLAGS | sed -e "s/-D/$FC_DEFINE/g"`
 FCDEFS=`echo $MB_DEFS | sed -e "s/-D/$FC_DEFINE/g"`
 AC_SUBST([CPPFLAGS])

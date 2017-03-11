@@ -31,6 +31,7 @@
 #include <cassert>
 
 #include "moab/MOABConfig.h"
+#include "moab/ErrorHandler.hpp"
 #include "moab/Util.hpp"
 #include "moab/Types.hpp"
 #include "moab/CartVect.hpp"
@@ -47,7 +48,7 @@
 #define EIGEN_DEFAULT_TO_ROW_MAJOR
 #define EIGEN_INITIALIZE_MATRICES_BY_ZERO
 // #define EIGEN_NO_STATIC_ASSERT
-#include "moab/Eigen/Dense"
+#include "Eigen/Dense"
 
 #ifdef __GNUC__
 // turn the warnings back on
@@ -269,13 +270,6 @@ public:
 #endif
   }
 
-//Default Destructor
-  inline ~Matrix3() {
-#ifdef MOAB_HAVE_EIGEN
-    _mat.clear();
-#endif
-  }
-
 #ifndef DEPRECATED
   #ifdef __GNUC__
     #define DEPRECATED __attribute__((deprecated))
@@ -458,18 +452,32 @@ public:
 
   inline bool is_symmetric() {
     const double EPS = 1e-13;
+#ifdef MOAB_HAVE_EIGEN
+    if ((fabs(_mat(1) - _mat(3)) < EPS) && (fabs(_mat(2) - _mat(6)) < EPS) && (fabs(_mat(5) - _mat(7)) < EPS))
+      return true;
+#else
     if ((fabs(_mat[1] - _mat[3]) < EPS) && (fabs(_mat[2] - _mat[6]) < EPS) && (fabs(_mat[5] - _mat[7]) < EPS))
       return true;
+#endif
     else return false;
   }
 
   inline bool is_positive_definite() {
+#ifdef MOAB_HAVE_EIGEN
+    double subdet6 = _mat(1)*_mat(5)-_mat(2)*_mat(4);
+    double subdet7 = _mat(2)*_mat(3)-_mat(0)*_mat(5);
+    double subdet8 = _mat(0)*_mat(4)-_mat(1)*_mat(3);
+    // Determinant:= d(6)*subdet6 + d(7)*subdet7 + d(8)*subdet8;
+    const double det = _mat(6)*subdet6 + _mat(7)*subdet7 + _mat(8)*subdet8;
+    return _mat(0) > 0 && subdet8 > 0 && det > 0;
+#else
     double subdet6 = _mat[1]*_mat[5]-_mat[2]*_mat[4];
     double subdet7 = _mat[2]*_mat[3]-_mat[0]*_mat[5];
     double subdet8 = _mat[0]*_mat[4]-_mat[1]*_mat[3];
     // Determinant:= d(6)*subdet6 + d(7)*subdet7 + d(8)*subdet8;
     const double det = _mat[6]*subdet6 + _mat[7]*subdet7 + _mat[8]*subdet8;
     return _mat[0] > 0 && subdet8 > 0 && det > 0;
+#endif
   }
 
 
@@ -482,17 +490,20 @@ public:
       Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> eigensolver(this->_mat);
       if (eigensolver.info() != Eigen::Success)
         return MB_FAILURE;
-      evals = eigensolver.eigenvalues();
+      const Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d>::RealVectorType& e3evals = eigensolver.eigenvalues();
+      evals[0] = e3evals(0); evals[1] = e3evals(1); evals[2] = e3evals(2);
       evecs._mat = eigensolver.eigenvectors(); //.col(1)
       return MB_SUCCESS;
     }
     else {
-      Eigen::EigenSolver<Eigen::Matrix3d> eigensolver(this->_mat, true);
-      if (eigensolver.info() != Eigen::Success)
-        return MB_FAILURE;
-      evals = eigensolver.eigenvalues();
-      evecs._mat = eigensolver.eigenvectors(); //.col(1)
-      return MB_SUCCESS;
+      MB_CHK_SET_ERR(MB_FAILURE, "Unsymmetric matrix implementation with Eigen3 is currently not provided.");
+      // Eigen::EigenSolver<Eigen::Matrix3d> eigensolver(this->_mat, true);
+      // if (eigensolver.info() != Eigen::Success)
+      //   return MB_FAILURE;
+      // const Eigen::EigenSolver<Eigen::Matrix3d>::EigenvalueType& e3evals = eigensolver.eigenvalues().real();
+      // evals[0] = e3evals(0); evals[1] = e3evals(1); evals[2] = e3evals(2);
+      // evecs._mat = eigensolver.eigenvectors().real(); //.col(1)
+      // return MB_SUCCESS;
     }
 #else
     int info;
