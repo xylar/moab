@@ -138,11 +138,13 @@ AC_SUBST(LAPACK_LIBS)
 
 # Finally, execute ACTION-IF-FOUND/ACTION-IF-NOT-FOUND:
 if test x"$ax_lapack_ok" = xyes; then
-        ifelse([$1],,AC_DEFINE(HAVE_LAPACK,1,[Define if you have LAPACK library.]),[$1])
-        :
+  AC_DEFINE(HAVE_LAPACK,1,[Define if you have LAPACK library.])
+  $1
+  AC_MSG_NOTICE([Found LAPACK library])
 else
-        ax_lapack_ok=no
-        $2
+  ax_lapack_ok=no
+  $2
+  AC_MSG_ERROR([LAPACK library not found])
 fi
 ])dnl AX_LAPACK
 

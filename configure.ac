@@ -163,8 +163,8 @@ AC_CHECK_LIB(m, pow, LIBS="$LIBS -lm")
 AC_CHECK_LIB(curl, curl_version, LIBS="$LIBS -lcurl")
 
 ### Check for BLAS and Lapack dense solvers
-AX_BLAS([], [AC_MSG_ERROR([BLAS library not found])])
-AX_LAPACK([], [AC_MSG_ERROR([LAPACK library not found])])
+AX_BLAS
+AX_LAPACK
 LIBS="$LAPACK_LIBS $BLAS_LIBS $LIBS"
 
 ################################################################################
