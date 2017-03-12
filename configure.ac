@@ -224,7 +224,7 @@ else
       AC_MSG_ERROR([Cannot build pymoab with 32bit objects enabled. Please remove the --enable-32bit configuration option or build without MOAB's python interface.])
     fi
     # ensure 32 bit handles are NOT enabled
-    if (test "xyes" = "x$enable_32bit_handles" || test "xno" != "x$enable_32bit_handles"); then
+    if (test "x$enable_32bit_handles" != "x"); then
       AC_MSG_ERROR([Cannot build pymoab with 32bit EntityHandles enabled. Please remove the --enable-32bit-handles configuration option or build without MOAB's python interface.])
     fi    
     DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --enable-pymoab=$ENABLE_pymoab"
