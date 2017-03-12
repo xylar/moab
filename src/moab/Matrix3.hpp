@@ -62,37 +62,53 @@
 #error Need either Eigen3 or BLAS/LAPACK libraries
 #endif
 
-extern "C" void
-MOAB_F77_FUNC(dsyevd) ( char *jobz, char *uplo, int *n,
-                        double a[], int *lda, double w[], double work[],
-                        int *lwork, int iwork[], int *liwork,
-                        int *info);
+#define MOAB_dsyevd MOAB_FC_FUNC(dsyevd, DSYEVD)
+#define MOAB_dsyevr MOAB_FC_FUNC(dsyevr, DSYEVR)
+#define MOAB_dgeev  MOAB_FC_FUNC(dgeev, DGEEV)
+#define MOAB_dgetrf MOAB_FC_FUNC(dgetrf, DGETRF)
+#define MOAB_dgetri MOAB_FC_FUNC(dgetri, DGETRI)
 
-extern "C" void
-MOAB_F77_FUNC(dsyevr) (char *jobz, char *range, char *uplo, int *n,
-                       double *a, int *lda, double *vl, double *vu,
-                       int *il, int *iu, double *abstol, int *m, double *w,
-                       double *z, int *ldz, int *isuppz, double *work,
-                       int *lwork, int *iwork, int *liwork, int *info);
+extern "C" {
 
-extern "C" void
-MOAB_F77_FUNC(dgeev)  (char *jobvl, char *jobvr, int *n, double * a, 
-                       int *lda, double *wr, double *wi, double *vl, 
-                       int *ldvl, double *vr, int *ldvr, double *work, 
-                       int *lwork, int *info);
+// Computes all eigenvalues and, optionally, eigenvectors of a
+// real symmetric matrix A. If eigenvectors are desired, it uses a
+// divide and conquer algorithm.
+void MOAB_dsyevd ( char *jobz, char *uplo, int *n,
+                   double a[], int *lda, double w[], double work[],
+                   int *lwork, int iwork[], int *liwork,
+                   int *info);
 
-// LU decomoposition of a general matrix
-extern "C" void
-MOAB_F77_FUNC(dgetrf) ( int* M, int *N, double* A, 
-                        int* lda, int* IPIV, 
-                        int* INFO);
+// Computes selected eigenvalues and, optionally, eigenvectors
+// of a real symmetric matrix A.  Eigenvalues and eigenvectors can be
+// selected by specifying either a range of values or a range of
+// indices for the desired eigenvalues.
+void MOAB_dsyevr ( char *jobz, char *range, char *uplo, int *n,
+                   double *a, int *lda, double *vl, double *vu,
+                   int *il, int *iu, double *abstol, int *m, double *w,
+                   double *z, int *ldz, int *isuppz, double *work,
+                   int *lwork, int *iwork, int *liwork, int *info);
 
-// generate inverse of a matrix given its LU decomposition
-extern "C" void
-MOAB_F77_FUNC(dgetri) ( int* N, double* A, 
-                        int* lda, int* IPIV, 
-                        double* WORK, int* lwork, 
-                        int* INFO);
+// Computes for an N-by-N real nonsymmetric matrix A, the
+// eigenvalues and, optionally, the left and/or right eigenvectors.
+void MOAB_dgeev  ( char *jobvl, char *jobvr, int *n, double * a, 
+                   int *lda, double *wr, double *wi, double *vl, 
+                   int *ldvl, double *vr, int *ldvr, double *work, 
+                   int *lwork, int *info);
+
+// Computes an LU factorization of a general M-by-N matrix A
+// using partial pivoting with row interchanges.
+void MOAB_dgetrf ( int* M, int *N, double* A, 
+                   int* lda, int* IPIV, 
+                   int* INFO);
+
+// Computes the inverse of a matrix using the LU factorization
+// computed by DGETRF.
+void MOAB_dgetri ( int* N, double* A, 
+                   int* lda, int* IPIV, 
+                   double* WORK, int* lwork, 
+                   int* INFO);
+
+}
 
 #include <cstring>
 #define MOAB_DMEMZERO(a,b) memset(a, 0, b*sizeof(double))
@@ -514,13 +530,13 @@ public:
       char dgeev_opts[2] = {'N', 'V'};
       int N=3,LWORK=102,NL=1,NR=N;
       std::vector<double> devmat; devmat.assign(_mat, _mat+size);
-      MOAB_F77_FUNC(dgeev)(&dgeev_opts[0], &dgeev_opts[1], 
-                           &N, &devmat[0], 
-                           &N, devreal, devimag, 
-                           dlevecs, &NL, 
-                           drevecs, &NR, 
-                           dwork, &LWORK, 
-                           &info);
+      MOAB_dgeev (&dgeev_opts[0], &dgeev_opts[1], 
+                  &N, &devmat[0], 
+                  &N, devreal, devimag, 
+                  dlevecs, &NL, 
+                  drevecs, &NR, 
+                  dwork, &LWORK, 
+                  &info);
       // The result eigenvalues are ordered as high-->low 
       evals[0]=devreal[2]; evals[1]=devreal[1]; evals[2]=devreal[0];
       evecs._mat[0]=drevecs[6]; evecs._mat[1]=drevecs[3]; evecs._mat[2]=drevecs[0];
@@ -544,11 +560,11 @@ public:
         double query_work_size = 0;
         int query_iwork_size = 0;
         // Make an empty call to find the optimal work vector size
-        MOAB_F77_FUNC(dsyevd) ( &dgeev_opts[0], &dgeev_opts[1], &N,
-                                NULL, &N, NULL, 
-                                &query_work_size, &_lwork,
-                                &query_iwork_size, &_liwork,
-                                &info);
+        MOAB_dsyevd ( &dgeev_opts[0], &dgeev_opts[1], &N,
+                      NULL, &N, NULL, 
+                      &query_work_size, &_lwork,
+                      &query_iwork_size, &_liwork,
+                      &info);
         lwork = (int) query_work_size;
         dwork.resize(lwork);
         liwork = query_iwork_size;
@@ -556,10 +572,11 @@ public:
         std::cout << "DSYEVD: Optimal work vector: dsize = " << lwork << ", and isize = " << liwork << ".\n";
       }
 
-      MOAB_F77_FUNC(dsyevd) ( &dgeev_opts[0], &dgeev_opts[1], &N,
-                              &devmat[0], &N, devreal, 
-                              &dwork[0], &lwork, &iwork[0], &liwork,
-                              &info);
+      MOAB_dsyevd ( &dgeev_opts[0], &dgeev_opts[1], &N,
+                    &devmat[0], &N, devreal, 
+                    &dwork[0], &lwork,
+                    &iwork[0], &liwork,
+                    &info);
       for (int i=0; i < 9; ++i) drevecs[i] = devmat[i];
       // The result eigenvalues are ordered as low-->high, but vectors are in rows of A.
       evals[0]=devreal[0]; evals[1]=devreal[1]; evals[2]=devreal[2];
