@@ -163,7 +163,7 @@ AC_CHECK_LIB(m, pow, LIBS="$LIBS -lm")
 AC_CHECK_LIB(curl, curl_version, LIBS="$LIBS -lcurl")
 
 ### Check for BLAS and Lapack dense solvers
-AX_BLAS
+#AX_BLAS
 AX_LAPACK
 LIBS="$LAPACK_LIBS $BLAS_LIBS $LIBS"
 

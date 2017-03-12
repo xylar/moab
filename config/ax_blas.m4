@@ -89,7 +89,7 @@ LIBS="$LIBS $FLIBS"
 
 # First, check BLAS_LIBS environment variable
 if test $ax_blas_ok = no; then
-if test "x$BLAS_LIBS" != x; then
+if test "x$BLAS_LIBS" != "x"; then
   save_LIBS="$LIBS"; LIBS="$BLAS_LIBS $LIBS"
   AC_MSG_CHECKING([for $sgemm in $BLAS_LIBS])
   AC_TRY_LINK_FUNC($sgemm, [ax_blas_ok=yes], [BLAS_LIBS=""])
@@ -109,28 +109,47 @@ fi
 
 # BLAS in ATLAS library? (http://math-atlas.sourceforge.net/)
 if test $ax_blas_ok = no; then
-  AC_CHECK_LIB(atlas, ATL_xerbla,
-    [AC_CHECK_LIB(f77blas, $sgemm,
-    [AC_CHECK_LIB(cblas, cblas_dgemm,
-      [ax_blas_ok=yes
-       BLAS_LIBS="-lcblas -lf77blas -latlas"],
-      [], [-lf77blas -latlas])],
-      [], [-latlas])])
+  save_LIBS="$LIBS"; LIBS="-latlas $LIBS"
+  AC_MSG_CHECKING([for $sgemm and $dgemm in -latlas])
+  AC_TRY_LINK_FUNC(ATL_xerbla, 
+          [LIBS="-lf77blas $LIBS";
+           AC_TRY_LINK_FUNC($sgemm,
+               [LIBS="-lcblas $LIBS";
+                AC_TRY_LINK_FUNC(cblas_dgemm,
+                   [ax_blas_ok=yes;
+                    BLAS_LIBS="-lcblas -ldgemm -lblas"
+                   ]) 
+                ]) 
+          ])
+  AC_MSG_RESULT($ax_blas_ok)
+  LIBS="$save_LIBS"
 fi
 
 # BLAS in PhiPACK libraries? (requires generic BLAS lib, too)
 if test $ax_blas_ok = no; then
-  AC_CHECK_LIB(blas, $sgemm,
-    [AC_CHECK_LIB(dgemm, $dgemm,
-    [AC_CHECK_LIB(sgemm, $sgemm,
-      [ax_blas_ok=yes; BLAS_LIBS="-lsgemm -ldgemm -lblas"],
-      [], [-lblas])],
-      [], [-lblas])])
+  save_LIBS="$LIBS"; LIBS="-lblas $LIBS"
+  AC_MSG_CHECKING([for $sgemm and $dgemm in PhiPACK libraries])
+  AC_TRY_LINK_FUNC($sgemm, 
+          [LIBS="-ldgemm $LIBS";
+           AC_TRY_LINK_FUNC($dgemm,
+               [LIBS="-lsgemm $LIBS";
+                AC_TRY_LINK_FUNC($sdgemm,
+                   [ax_blas_ok=yes;
+                    BLAS_LIBS="-lsgemm -ldgemm -lblas"
+                   ]) 
+                ]) 
+          ])
+  AC_MSG_RESULT($ax_blas_ok)
+  LIBS="$save_LIBS"
 fi
 
 # BLAS in Intel MKL library?
 if test $ax_blas_ok = no; then
-  AC_CHECK_LIB(mkl, $sgemm, [ax_blas_ok=yes;BLAS_LIBS="-lmkl"])
+  save_LIBS="$LIBS"; LIBS="-lmkl $LIBS"
+  AC_MSG_CHECKING([for $sgemm in -lmkl])
+  AC_TRY_LINK_FUNC($sgemm, [ax_blas_ok=yes;BLAS_LIBS="-lmkl"])
+  AC_MSG_RESULT($ax_blas_ok)
+  LIBS="$save_LIBS"
 fi
 
 # BLAS in Apple vecLib library?
@@ -141,15 +160,30 @@ if test $ax_blas_ok = no; then
   AC_MSG_RESULT($ax_blas_ok)
   LIBS="$save_LIBS"
 fi
+if test $ax_blas_ok = no; then
+  save_LIBS="$LIBS"; LIBS="-framework Accelerate $LIBS"
+  AC_MSG_CHECKING([for $sgemm in -framework Accelerate])
+  AC_TRY_LINK_FUNC($sgemm, [ax_blas_ok=yes;BLAS_LIBS="-framework Accelerate"])
+  AC_MSG_RESULT($ax_blas_ok)
+  LIBS="$save_LIBS"
+fi
 
 # BLAS in Alpha CXML library?
 if test $ax_blas_ok = no; then
-  AC_CHECK_LIB(cxml, $sgemm, [ax_blas_ok=yes;BLAS_LIBS="-lcxml"])
+  save_LIBS="$LIBS"; LIBS="-lcxml $LIBS"
+  AC_MSG_CHECKING([for $sgemm in -lcxml])
+  AC_TRY_LINK_FUNC($sgemm, [ax_blas_ok=yes;BLAS_LIBS="-lcxml"])
+  AC_MSG_RESULT($ax_blas_ok)
+  LIBS="$save_LIBS"
 fi
 
 # BLAS in Alpha DXML library? (now called CXML, see above)
 if test $ax_blas_ok = no; then
-  AC_CHECK_LIB(dxml, $sgemm, [ax_blas_ok=yes;BLAS_LIBS="-ldxml"])
+  save_LIBS="$LIBS"; LIBS="-ldxml $LIBS"
+  AC_MSG_CHECKING([for $sgemm in -ldxml])
+  AC_TRY_LINK_FUNC($sgemm, [ax_blas_ok=yes;BLAS_LIBS="-ldxml"])
+  AC_MSG_RESULT($ax_blas_ok)
+  LIBS="$save_LIBS"
 fi
 
 # BLAS in Sun Performance library?
@@ -164,13 +198,20 @@ fi
 
 # BLAS in SCSL library?  (SGI/Cray Scientific Library)
 if test $ax_blas_ok = no; then
-  AC_CHECK_LIB(scs, $sgemm, [ax_blas_ok=yes; BLAS_LIBS="-lscs"])
+  save_LIBS="$LIBS"; LIBS="-lscs $LIBS"
+  AC_MSG_CHECKING([for $sgemm in -lscs])
+  AC_TRY_LINK_FUNC($sgemm, [ax_blas_ok=yes;BLAS_LIBS="-lscs"])
+  AC_MSG_RESULT($ax_blas_ok)
+  LIBS="$save_LIBS"
 fi
 
 # BLAS in SGIMATH library?
 if test $ax_blas_ok = no; then
-  AC_CHECK_LIB(complib.sgimath, $sgemm,
-         [ax_blas_ok=yes; BLAS_LIBS="-lcomplib.sgimath"])
+  save_LIBS="$LIBS"; LIBS="-lcomplib.sgimath $LIBS"
+  AC_MSG_CHECKING([for $sgemm in -lcomplib.sgimath])
+  AC_TRY_LINK_FUNC($sgemm, [ax_blas_ok=yes;BLAS_LIBS="-lcomplib.sgimath"])
+  AC_MSG_RESULT($ax_blas_ok)
+  LIBS="$save_LIBS"
 fi
 
 # BLAS in IBM ESSL library? (requires generic BLAS lib, too)
@@ -183,7 +224,11 @@ fi
 
 # Generic BLAS library?
 if test $ax_blas_ok = no; then
-  AC_CHECK_LIB(blas, $sgemm, [ax_blas_ok=yes; BLAS_LIBS="-lblas"])
+  save_LIBS="$LIBS"; LIBS="-lblas $LIBS"
+  AC_MSG_CHECKING([for $sgemm in -lblas])
+  AC_TRY_LINK_FUNC($sgemm, [ax_blas_ok=yes;BLAS_LIBS="-lblas"])
+  AC_MSG_RESULT($ax_blas_ok)
+  LIBS="$save_LIBS"
 fi
 
 AC_SUBST(BLAS_LIBS)
