@@ -13,7 +13,7 @@ if ( CGM_FOUND )
 endif( )
 
 add_library(dagmc DagMC.hpp DagMC.cpp)
-target_link_libraries(dagmc  MOAB)
+target_link_libraries(dagmc  MOAB ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES} )
 set_target_properties(
   dagmc
   PROPERTIES

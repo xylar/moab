@@ -28,7 +28,7 @@ if ( MOAB_HAVE_MPI )
                        ${CMAKE_BINARY_DIR}/src/parallel)
 endif ()
 
-target_link_libraries( FBiGeomMOAB iMesh MOAB )
+target_link_libraries( FBiGeomMOAB iMesh MOAB ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES} )
 
 set_target_properties(
   FBiGeomMOAB

@@ -25,7 +25,7 @@ add_library( mbcoupler
   ${MBCOUPLER_SRCS}
   ${MBCOUPLER_INCLUDE_SRCS} )
 
-target_link_libraries( mbcoupler iMesh MOAB ${CGM_LIBRARIES} )
+target_link_libraries( mbcoupler iMesh MOAB ${CGM_LIBRARIES} ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES} )
 if ( MOAB_HAVE_MPI )
   target_link_libraries( mbcoupler ${MPI_LIBRARIES} )
 endif ( )

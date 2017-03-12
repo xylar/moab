@@ -1,4 +1,4 @@
-set( LIBS MOAB ${CGM_LIBRARIES})
+set( LIBS MOAB ${CGM_LIBRARIES} ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES} )
 set( TESTS point_location.cpp
            tree_searching_perf.cpp
            sploc_searching_perf.cpp )
