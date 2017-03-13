@@ -1078,6 +1078,30 @@ cdef class Core(object):
         return <unsigned long> 0
 
     def get_coords(self, entities, exceptions = ()):
+        """
+        Returns the xyz coordinate information for a set of vertices.
+
+        Parameters
+        ----------
+        parent_meshset : MOAB EntityHandle (long)
+            handle of the parent meshset
+        child_meshset : MOAB EntityHandle (long)
+            handle of the child meshset
+        exceptions : tuple (default is empty tuple)
+            A tuple containing any error types that should
+            be ignored. (see pymoab.types module for more info)
+
+        Returns
+        -------
+        None
+
+        Raises
+        ------
+        MOAB ErrorCode
+            if a MOAB error occurs
+        ValueError
+            if the Meshset EntityHandle is not of the correct type
+        """
         cdef moab.ErrorCode err
         cdef Range r
         cdef np.ndarray[np.uint64_t, ndim=1] arr
@@ -1093,10 +1117,35 @@ cdef class Core(object):
         check_error(err, exceptions)
         return coords
 
-    def get_entities_by_type(self, meshset, t, bint recur = False, exceptions = ()):
+    def get_entities_by_type(self, meshset, entity_type, bint recur = False, exceptions = ()):
+        """
+        Retrieves all entities of a given topological dimension in the database or meshset
+
+        Parameters
+        ----------
+        meshset : MOAB EntityHandle (long)
+            meshset whose entities are being queried
+        entity_type : MOAB EntityType
+            type of the entities desirec (MBVERTEX, MBTRI, etc.)
+        recur : bool (default is False)
+            if True, meshsets containing meshsets are queried recusively. The
+            contenst of these meshsets are returned, but not the meshsets
+            themselves.
+        Returns
+        -------
+        MOAB Range of EntityHandles
+
+        Raises
+        ------
+        MOAB ErrorCode
+            if a MOAB error occurs
+        ValueError
+            if the Meshset EntityHandle is not of the correct type or
+            if the EntityType provided is not valid
+        """
         cdef moab.ErrorCode err
         cdef vector[moab.EntityHandle] entities
-        cdef moab.EntityType typ = t
+        cdef moab.EntityType typ = entity_type
         err = self.inst.get_entities_by_type(<unsigned long> meshset,
                                              typ,
                                              entities,
