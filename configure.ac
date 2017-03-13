@@ -1231,7 +1231,7 @@ AX_PREFIX_CONFIG_H([src/moab/MOABConfig.h],[MOAB],[src/moab/MOABConfig.h])
 
 AC_CONFIG_FILES([Makefile 
                  moab.make                  
-                 MOABConfig.cmake
+                 MOABConfig.cmake:config/MOABConfig.cmake.in
                  examples/makefile
                  examples/old/deform_mesh/makefile
                  src/Makefile
