@@ -257,6 +257,10 @@ def test_adj():
         ent_type = mb.type_from_handle(adj)
         CHECK_EQ(ent_type,types.MBEDGE)
 
+    adjs = mb.get_adjacencies(tris[0], 0, False)
+    CHECK_EQ(len(adjs),3)
+
+
 def test_meshsets():
     mb = core.Core()
     parent_set = mb.create_meshset()

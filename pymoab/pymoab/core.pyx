@@ -466,7 +466,7 @@ cdef class Core(object):
             err = self.inst.create_element(typ, <unsigned long*> connectivity_i.data,
                                            nnodes, deref((<unsigned long*> handles.data)+i))
             check_error(err, exceptions)
-        return handles
+        return Range(handles)
 
     def tag_get_handle(self,
                        const char* name,
@@ -781,16 +781,54 @@ cdef class Core(object):
             return data.reshape((len(r),entry_len))
 
     def get_adjacencies(self, entity_handles, int to_dim, bint create_if_missing = False, exceptions = ()):
+        """
+        Get the adjacencies associated with a range of entities to entities of a specified dimension.
+
+        Example
+        -------
+        mb = core.Core()
+        coords = np.array((0,0,0,1,0,0,1,1,1),dtype='float64')
+        verts = mb.create_vertices(coords)
+        #create elements
+        verts = np.array(((verts[0],verts[1],verts[2]),),dtype='uint64')
+        tris = mb.create_elements(types.MBTRI,verts)
+        #get the adjacencies of the triangle of dim 1 (should return the vertices)
+        adjacent_verts = mb.get_adjacencies(tris, 0, False)
+        #now get the edges and ask MOAB to create them for us
+        adjacent_edgess = mb.get_adjacencies(tris, 1, True)
+        
+        Parameters
+        ----------
+        entity_handles : iterable of MOAB EntityHandles or a single EntityHandle
+            the EntityHandle(s) to get the adjacencies of. This can be any
+            iterable of EntityHandles or a single EntityHandle.
+        to_dim : integer 
+            value indicating the dimension of the entities to return
+        create_if_missing : bool (default is false)
+            this parameter indicates that any adjacencies that do not exist
+            should be created. For instance, in the example above, the second
+            call to get_adjacencies will create the edges of the triangle which
+            did not previously exist in the mesh database.
+        exceptions : tuple (default is empty tuple)
+            A tuple containing any error types that should
+            be ignored. (see pymoab.types module for more info)
+
+        Returns
+        -------
+        Range of MOAB EntityHAndles
+
+        Raises
+        ------
+        MOAB ErrorCode
+            if a MOAB error occurs
+        ValueError
+            if an EntityHandle is not of the correct type
+        """                
         cdef moab.ErrorCode err
         cdef Range r
-        cdef np.ndarray[np.uint64_t, ndim=1] arr
         cdef Range adj = Range()
-        if isinstance(entity_handles, Range):
-            r = entity_handles
-            err = self.inst.get_adjacencies(deref(r.inst), to_dim, create_if_missing, deref(adj.inst))
-        else:
-            arr = _eh_array(entity_handles)
-            err = self.inst.get_adjacencies(<unsigned long*> arr.data, len(entity_handles), to_dim, create_if_missing, deref(adj.inst))
+        r = Range(entity_handles)
+        err = self.inst.get_adjacencies(deref(r.inst), to_dim, create_if_missing, deref(adj.inst))
         check_error(err, exceptions)
         return adj
 
