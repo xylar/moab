@@ -864,7 +864,7 @@ cdef class Core(object):
 
         Returns
         -------
-        Range of MOAB EntityHAndles
+        Range of MOAB EntityHandles
 
         Raises
         ------
@@ -878,6 +878,40 @@ cdef class Core(object):
         return t
 
     def get_child_meshsets(self, meshset_handle, num_hops = 1, exceptions = ()):
+        """
+        Retrieves the child meshsets from a parent meshset.
+
+        Example
+        -------
+        mb = core.Core()
+        parent_set = mb.create_meshset()
+        child_set = mb.create_meshset()
+        mb.add_parent_meshset(child_set, parent_set)
+        child_sets = mb.get_child_meshsets(parent_set)
+
+        Parameters
+        ----------
+        meshset_handle : MOAB EntityHandle (long)
+            handle of the parent meshset
+        num_hops : integer (default is 1)
+            the number of generations to traverse when collecting child
+            meshsets.  If this value is zero, then the maximum number of
+            generations will be traversed.
+        exceptions : tuple (default is empty tuple)
+            A tuple containing any error types that should
+            be ignored. (see pymoab.types module for more info)
+
+        Returns
+        -------
+        Range of MOAB EntityHandles
+
+        Raises
+        ------
+        MOAB ErrorCode
+            if a MOAB error occurs
+        ValueError
+            if the Meshset EntityHandle is not of the correct type
+        """
         cdef moab.ErrorCode err
         cdef Range r = Range()
         err = self.inst.get_child_meshsets(<unsigned long> meshset_handle, deref(r.inst), num_hops)
@@ -885,6 +919,40 @@ cdef class Core(object):
         return r
 
     def get_parent_meshsets(self, meshset_handle, num_hops = 1, exceptions = ()):
+        """
+        Retrieves the parent meshsets from a child meshset.
+
+        Example
+        -------
+        mb = core.Core()
+        parent_set = mb.create_meshset()
+        child_set = mb.create_meshset()
+        mb.add_parent_meshset(child_set, parent_set)
+        child_sets = mb.get_parent_meshsets(child_set)
+
+        Parameters
+        ----------
+        meshset_handle : MOAB EntityHandle (long)
+            handle of the child meshset
+        num_hops : integer (default is 1)
+            the number of generations to traverse when collecting
+            meshsets.  If this value is zero, then the maximum number of
+            generations will be traversed.
+        exceptions : tuple (default is empty tuple)
+            A tuple containing any error types that should
+            be ignored. (see pymoab.types module for more info)
+
+        Returns
+        -------
+        Range of MOAB EntityHandles
+
+        Raises
+        ------
+        MOAB ErrorCode
+            if a MOAB error occurs
+        ValueError
+            if the Meshset EntityHandle is not of the correct type
+        """
         cdef moab.ErrorCode err
         cdef Range r = Range()
         err = self.inst.get_parent_meshsets(<unsigned long> meshset_handle, deref(r.inst), 0)
