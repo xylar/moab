@@ -1339,6 +1339,10 @@ cdef class Core(object):
         check_error(err, exceptions)
         return ents            
 
+    def delete_mesh(self):
+        """Deletes all mesh entities from the database"""
+        self.inst.delete_mesh()
+        
     def _validate_data_for_tag(self, Tag tag, data_arr):
         """Internal method for validating tag data."""
         

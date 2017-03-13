@@ -36,6 +36,18 @@ def test_write_mesh():
     mb.write_file("outfile.h5m")
     assert os.path.isfile("outfile.h5m")
 
+def test_delete_mesh():
+    mb = core.Core()
+    mb.create_vertices(np.ones(9))
+    rs = mb.get_root_set()
+    ents = mb.get_entities_by_handle(rs)
+    CHECK_EQ(len(ents),3)
+    # now delete all mesh entities
+    mb.delete_mesh()
+    ents = mb.get_entities_by_handle(rs)
+    CHECK_EQ(len(ents),0)
+    
+    
 def test_get_tag():
     mb = core.Core()
     #Create new tag

@@ -284,6 +284,7 @@ cdef extern from "moab/Core.hpp" namespace "moab":
         ErrorCode delete_entities(Range& entities)
         ErrorCode delete_entities(const EntityHandle* entities,
                                   const int num_entities)
+        ErrorCode delete_mesh()
 
 
 cdef extern from "moab/HomXform.hpp" namespace "moab":
