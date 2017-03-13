@@ -960,21 +960,121 @@ cdef class Core(object):
         return r
 
     def add_parent_meshset(self, child_meshset, parent_meshset, exceptions = ()):
+        """
+        Add a parent meshset to a meshset.
+
+        Example
+        -------
+        mb = core.Core()
+        parent_set = mb.create_meshset()
+        child_set = mb.create_meshset()
+        mb.add_parent_meshset(child_set, parent_set)
+
+        Parameters
+        ----------
+        child_meshset : MOAB EntityHandle (long)
+            handle of the child meshset
+        parent_meshset : MOAB EntityHandle (long)
+            handle of the parent meshset
+        exceptions : tuple (default is empty tuple)
+            A tuple containing any error types that should
+            be ignored. (see pymoab.types module for more info)
+
+        Returns
+        -------
+        None
+
+        Raises
+        ------
+        MOAB ErrorCode
+            if a MOAB error occurs
+        ValueError
+            if the Meshset EntityHandle is not of the correct type
+        """
         cdef moab.ErrorCode err
         err = self.inst.add_parent_meshset(<unsigned long> child_meshset, <unsigned long> parent_meshset)
         check_error(err, exceptions)
-    
+
     def add_child_meshset(self, parent_meshset, child_meshset, exceptions = ()):
+        """
+        Add a child meshset to a meshset.
+
+        Example
+        -------
+        mb = core.Core()
+        parent_set = mb.create_meshset()
+        child_set = mb.create_meshset()
+        mb.add_child_meshset(parent_set, child_set)
+
+        Parameters
+        ----------
+        parent_meshset : MOAB EntityHandle (long)
+            handle of the parent meshset
+        child_meshset : MOAB EntityHandle (long)
+            handle of the child meshset
+        exceptions : tuple (default is empty tuple)
+            A tuple containing any error types that should
+            be ignored. (see pymoab.types module for more info)
+
+        Returns
+        -------
+        None
+
+        Raises
+        ------
+        MOAB ErrorCode
+            if a MOAB error occurs
+        ValueError
+            if the Meshset EntityHandle is not of the correct type
+        """
         cdef moab.ErrorCode err
         err = self.inst.add_child_meshset(<unsigned long> parent_meshset, <unsigned long> child_meshset)
         check_error(err, exceptions)
 
     def add_parent_child(self, parent_meshset, child_meshset, exceptions = ()):
+        """
+        Add a parent-child link between two meshsets.
+
+        Example
+        -------
+        mb = core.Core()
+        parent_set = mb.create_meshset()
+        child_set = mb.create_meshset()
+        mb.add_parent_child(parent_set, child_set)
+
+        Parameters
+        ----------
+        parent_meshset : MOAB EntityHandle (long)
+            handle of the parent meshset
+        child_meshset : MOAB EntityHandle (long)
+            handle of the child meshset
+        exceptions : tuple (default is empty tuple)
+            A tuple containing any error types that should
+            be ignored. (see pymoab.types module for more info)
+
+        Returns
+        -------
+        None
+
+        Raises
+        ------
+        MOAB ErrorCode
+            if a MOAB error occurs
+        ValueError
+            if the Meshset EntityHandle is not of the correct type
+        """
         cdef moab.ErrorCode err
         err = self.inst.add_parent_child(<unsigned long> parent_meshset, <unsigned long> child_meshset)
         check_error(err, exceptions)
 
     def get_root_set(self):
+        """
+        Return the entity meshset representing the whole mesh.
+
+        Returns
+        -------
+        MOAB EntityHandle (long)
+        """
         return <unsigned long> 0
 
     def get_coords(self, entities, exceptions = ()):
