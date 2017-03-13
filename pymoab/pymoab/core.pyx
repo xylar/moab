@@ -1340,6 +1340,8 @@ cdef class Core(object):
         return ents            
 
     def _validate_data_for_tag(self, Tag tag, data_arr):
+        """Internal method for validating tag data."""
+        
         cdef moab.ErrorCode err
         cdef moab.DataType tag_type = moab.MB_MAX_DATA_TYPE
         cdef int tag_length = 0
