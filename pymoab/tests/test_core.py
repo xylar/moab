@@ -417,14 +417,14 @@ def test_get_ents_by_tnt():
     #     print "Test Case: " , test_case
     #     CHECK_EQ(len(entities),test_case['expected_size'])
 
-    # ###VECTOR TAG TESTS###
-    # int_vec_test_tag = mb.tag_get_handle("IntegerVecTestTag",3,types.MB_TYPE_INTEGER,True)
-    # dbl_vec_test_tag = mb.tag_get_handle("DoubleVecTestTag",3,types.MB_TYPE_DOUBLE,True)
+    ###VECTOR TAG TESTS###
+    int_vec_test_tag = mb.tag_get_handle("IntegerVecTestTag",3,types.MB_TYPE_INTEGER,True)
+    dbl_vec_test_tag = mb.tag_get_handle("DoubleVecTestTag",3,types.MB_TYPE_DOUBLE,True)
 
-    # int_vec_test_tag_values = np.array([[0,1,2],[3,4,5],[6,7,8]])
-    # dbl_vec_test_tag_values = np.array([[9.0,10.0,11.0],[12.0,13.0,14.0],[15.0,16.0,17.0]])
-    # mb.tag_set_data(int_vec_test_tag,verts,int_vec_test_tag_values)
-    # mb.tag_set_data(dbl_vec_test_tag,verts,dbl_vec_test_tag_values)
+    int_vec_test_tag_values = np.array([[0,1,2],[3,4,5],[6,7,8]])
+    dbl_vec_test_tag_values = np.array([[9.0,10.0,11.0],[12.0,13.0,14.0],[15.0,16.0,17.0]])
+    mb.tag_set_data(int_vec_test_tag,verts,int_vec_test_tag_values)
+    mb.tag_set_data(dbl_vec_test_tag,verts,dbl_vec_test_tag_values)
 
     # # existing sets of values
     # entities = mb.get_entities_by_type_and_tag(rs,
@@ -455,7 +455,14 @@ def test_get_ents_by_tnt():
     #                                            np.array([[None],[None]],dtype='O'))
     # CHECK_EQ(len(entities),3)
     
-        
+
+    # any set of one tag
+    entities = mb.get_entities_by_type_and_tag(rs,
+                                               types.MBVERTEX,
+                                               dbl_vec_test_tag,
+                                               np.array([9.0,10.0,11.0],dtype='O'))
+    CHECK_EQ(len(entities),1)
+    
     # any hex elements tagged with int_test_tag (no hex elements exist, there should be none)
     tag_test_vals = np.array([[None]])        
     entities = mb.get_entities_by_type_and_tag(rs,

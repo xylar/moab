@@ -1081,6 +1081,13 @@ cdef class Core(object):
         """
         Returns the xyz coordinate information for a set of vertices.
 
+        Example
+        -------
+        mb = core.Core()
+        verts # list of vertex EntityHandles
+        ret_coords = mb.get_coords(verts)
+
+
         Parameters
         ----------
         parent_meshset : MOAB EntityHandle (long)
@@ -1093,7 +1100,7 @@ cdef class Core(object):
 
         Returns
         -------
-        None
+        Returns coordinates as a 1-D Numpy array of xyz values
 
         Raises
         ------
@@ -1126,7 +1133,7 @@ cdef class Core(object):
         meshset : MOAB EntityHandle (long)
             meshset whose entities are being queried
         entity_type : MOAB EntityType
-            type of the entities desirec (MBVERTEX, MBTRI, etc.)
+            type of the entities desired (MBVERTEX, MBTRI, etc.)
         recur : bool (default is False)
             if True, meshsets containing meshsets are queried recusively. The
             contenst of these meshsets are returned, but not the meshsets
@@ -1155,34 +1162,93 @@ cdef class Core(object):
 
     def get_entities_by_type_and_tag(self,
                                      meshset,
-                                     t,
+                                     entity_type,
                                      tags,
                                      values,
                                      int condition = types.INTERSECT,
                                      bint recur = False,
                                      exceptions = ()):
+        """
+        Retrieve entities of a given EntityType in the database which also have
+        the provided tag and (optionally) the value specified.
+
+        Values are expected to be provided in one or two-dimensional arrays in
+        which each entry in the highest array dimension represents the value (or
+        set of values for a vector tag) to be matched for corresponding tag in
+        the "tags" parameter. If an entry is filled with None values, then any
+        entity with that tag will be returned.
+
+        Example
+        -------
+        mb = core.Core()
+        rs = mb.get_root_set()
+        entities = mb.get_entities_by_type(rs, types.MBVERTEX)
+
+        Parameters
+        ----------
+        meshset : MOAB EntityHandle (long) (defualt is the database root set)
+            meshset whose entities are being queried.
+        entity_type : MOAB EntityType
+            type of the entities desired (MBVERTEX, MBTRI, etc.)
+        tags : iterable of MOAB TagHandles or single TagHandle
+            an iterable of MOAB TagHandles. Only entities with these tags will
+            be returned.
+        values : iterable of tag values
+            an iterable data structure of the tag values to be matched for
+            entities returned by the call (see general description for details
+            on the composition of this data structure)
+        recur : bool (default is False)
+            if True, meshsets containing meshsets are queried recusively. The
+            contenst of these meshsets are returned, but not the meshsets
+            themselves.
+
+        Returns
+        -------
+        MOAB Range of EntityHandles
+
+        Raises
+        ------
+        MOAB ErrorCode
+            if a MOAB error occurs
+        ValueError
+            if the Meshset EntityHandle is not of the correct type or if the
+            EntityType provided is not valid or if the tag data to be matched is
+            not constructed properly
+        """
         cdef np.ndarray vals = np.asarray(values, dtype='O')
         assert isinstance(tags, Tag) or len(tags) == 1 , "Only single-tag queries are currently supported."
         # overall dimension of the numpy array should be 2
         # one array for each tag passed to the function
         # assert vals.ndim == 2 (was for support of multiple tags)
-        #ensure that the correct number of arrays exist        
-        assert len(tags) == vals.shape[0]
-        cdef int num_tags = len(tags)        
+        #ensure that the correct number of arrays exist
+        cdef int num_tags
+        cdef Tag single_tag
+        if isinstance(tags, Tag):
+            num_tags = 1
+            single_tag = tags
+        elif len(tags) == 1:
+            num_tags = 1
+            single_tag = tags[0]
+        else:
+            num_tags = len(tags)
+        if 1 != num_tags:
+            assert values.ndim == 2
+            assert num_tags == values.shape[0]
+
+        assert values.ndim <= 2
         #allocate memory for an appropriately sized void** array
         cdef void** arr = <void**> malloc(num_tags*sizeof(void*))
         #some variables to help in setting up the void array
         cdef moab.ErrorCode err
         cdef moab.DataType this_tag_type = moab.MB_MAX_DATA_TYPE
         cdef int this_tag_length = 0
-        cdef Tag this_tag
         cdef bytes val_str
         cdef np.ndarray this_data
 
         # if this is a single tag and the values array is 1-D
         # then validate and call function
         if (num_tags == 1) and (vals.ndim == 1):
-            this_data = self._validate_data_for_tag(tags[0],vals)
+            this_data = self._validate_data_for_tag(single_tag,vals)
             arr[0] = <void*> this_data.data if this_data is not None else NULL
         elif vals.ndim == 2:
             # assign values to void** array
@@ -1194,7 +1260,7 @@ cdef class Core(object):
         #create tag array to pass to function
         cdef TagArray ta = TagArray(tags)
         #convert type to tag type
-        cdef moab.EntityType typ = t        
+        cdef moab.EntityType typ = entity_type
         #a range to hold returned entities
         cdef Range ents = Range()        
         #here goes nothing
@@ -1202,7 +1268,7 @@ cdef class Core(object):
                                                      typ,
                                                      ta.ptr,
                                                      <const void**> arr,
-                                                     len(tags),
+                                                     num_tags,
                                                      deref(ents.inst),
                                                      condition,
                                                      recur)
