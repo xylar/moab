@@ -1278,6 +1278,29 @@ cdef class Core(object):
 
 
     def get_entities_by_handle(self, meshset, bint recur = False, exceptions = ()):
+        """
+        Retrieves all entities in the database or meshset.
+
+        Parameters
+        ----------
+        meshset : MOAB EntityHandle (long)
+            meshset whose entities are being queried
+        recur : bool (default is False)
+            if True, meshsets containing meshsets are queried recusively. The
+            contenst of these meshsets are returned, but not the meshsets
+            themselves.
+        Returns
+        -------
+        MOAB Range of EntityHandles
+
+        Raises
+        ------
+        MOAB ErrorCode
+            if a MOAB error occurs
+        ValueError
+            if the Meshset EntityHandle is not of the correct type or
+            if the EntityType provided is not valid
+        """
         cdef moab.ErrorCode err
         cdef Range ents = Range()
         err = self.inst.get_entities_by_handle(<unsigned long> meshset, deref(ents.inst), recur)
@@ -1285,6 +1308,31 @@ cdef class Core(object):
         return ents
 
     def get_entities_by_dimension(self, meshset, int dimension, bint recur = False, exceptions = ()):
+        """
+        Retrieves all entities of a given topological dimension in the database or meshset
+
+        Parameters
+        ----------
+        meshset : MOAB EntityHandle (long)
+            meshset whose entities are being queried
+        dimension : integer
+            topological dimension of the entities desired
+        recur : bool (default is False)
+            if True, meshsets containing meshsets are queried recusively. The
+            contenst of these meshsets are returned, but not the meshsets
+            themselves.
+        Returns
+        -------
+        MOAB Range of EntityHandles
+
+        Raises
+        ------
+        MOAB ErrorCode
+            if a MOAB error occurs
+        ValueError
+            if the Meshset EntityHandle is not of the correct type or
+            if the EntityType provided is not valid
+        """
         cdef moab.ErrorCode err
         cdef Range ents = Range()
         err = self.inst.get_entities_by_dimension(<unsigned long> meshset, dimension, deref(ents.inst), recur)
