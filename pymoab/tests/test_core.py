@@ -260,6 +260,24 @@ def test_adj():
     adjs = mb.get_adjacencies(tris[0], 0, False)
     CHECK_EQ(len(adjs),3)
 
+def test_type_from_handle():
+    mb = core.Core()
+    # create vertices
+    coords = np.array((0,0,0,1,0,0,1,1,1),dtype='float64')
+    verts = mb.create_vertices(coords)
+    # create a triangle from the vertices
+    verts_as_array = np.array(((verts[0],verts[1],verts[2]),),dtype='uint64')
+    tris = mb.create_elements(types.MBTRI,verts_as_array)
+    # check that triangle is the correct type
+    entity_type = mb.type_from_handle(tris[0])
+    assert entity_type == types.MBTRI
+    # check that vertex is the correct type
+    entity_type = mb.type_from_handle(verts[0])
+    assert entity_type == types.MBVERTEX
+    # check that an entityset is the correct type
+    rs = mb.get_root_set()
+    entity_type = mb.type_from_handle(rs)
+    assert entity_type == types.MBENTITYSET
 
 def test_meshsets():
     mb = core.Core()

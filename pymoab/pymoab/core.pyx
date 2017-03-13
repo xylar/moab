@@ -328,7 +328,7 @@ cdef class Core(object):
 
         Returns
         -------
-        None
+        MOAB Range of EntityHandles for the vertices
 
         Raises
         ------
@@ -833,6 +833,46 @@ cdef class Core(object):
         return adj
 
     def type_from_handle(self, entity_handle):
+        """
+        Returns the type (MBVERTEX, MBQUAD, etc.) of an EntityHandle
+
+        Example
+        -------
+        mb = core.Core()
+        coords = np.array((0,0,0,1,0,0,1,1,1),dtype='float64')
+        verts = mb.create_vertices(coords)
+        #create elements
+        verts = np.array(((verts[0],verts[1],verts[2]),),dtype='uint64')
+        tris = mb.create_elements(types.MBTRI,verts)
+        entity_type = mb.type_from_handle(tris[0])
+
+        Parameters
+        ----------
+        entity_handles : iterable of MOAB EntityHandles or a single EntityHandle
+            the EntityHandle(s) to get the adjacencies of. This can be any
+            iterable of EntityHandles or a single EntityHandle.
+        to_dim : integer
+            value indicating the dimension of the entities to return
+        create_if_missing : bool (default is false)
+            this parameter indicates that any adjacencies that do not exist
+            should be created. For instance, in the example above, the second
+            call to get_adjacencies will create the edges of the triangle which
+            did not previously exist in the mesh database.
+        exceptions : tuple (default is empty tuple)
+            A tuple containing any error types that should
+            be ignored. (see pymoab.types module for more info)
+
+        Returns
+        -------
+        Range of MOAB EntityHAndles
+
+        Raises
+        ------
+        MOAB ErrorCode
+            if a MOAB error occurs
+        ValueError
+            if an EntityHandle is not of the correct type
+        """
         cdef moab.EntityType t
         t = self.inst.type_from_handle(<unsigned long> entity_handle)
         return t
