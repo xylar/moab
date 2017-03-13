@@ -20,21 +20,54 @@ def CHECK_NOT_EQ(actual_value, expected_value):
 
 def test_load_mesh():
     mb = core.Core()
-    mb.load_file("cyl_grps.h5m")
+    try:
+        mb.load_file("cyl_grps.h5m")
+    except:
+        try:
+            print """
+            WARNING: .h5m file load failed. If hdf5 support is enabled in this
+            build there could be a problem.
+            """
+            mb.load_file("cyl_grps.vtk")
+        except:
+            raise IOError, "Failed to load MOAB file."
 
     #load into file_set
     mb1 = core.Core()
     file_set = mb1.create_meshset()
-    mb.load_file("cyl_grps.h5m",file_set)
+    try:
+        mb1.load_file("cyl_grps.h5m",file_set)
+    except:
+        try:
+            print """
+            WARNING: .h5m file load failed. If hdf5 support is enabled in this
+            build there could be a problem.
+            """
+            mb1.load_file("cyl_grps.vtk",file_set)
+        except:
+            raise IOError, "Failed to load MOAB file."
 
-    ents = mb.get_entities_by_type(file_set,types.MBMAXTYPE)
+    ents = mb1.get_entities_by_type(file_set,types.MBMAXTYPE)
     CHECK_NOT_EQ(len(ents),0)
 
 def test_write_mesh():
     mb = core.Core()
     mb.create_vertices(np.ones(3))
-    mb.write_file("outfile.h5m")
-    assert os.path.isfile("outfile.h5m")
+
+    try:
+        mb.write_file("outfile.h5m")
+        assert os.path.isfile("outfile.h5m")    
+    except:
+        try:
+            print """
+            WARNING: .h5m file write failed. If hdf5 support is enabled in this
+            build there could be a problem.
+            """
+            mb.write_file("outfile.vtk")
+            assert os.path.isfile("outfile.vtk")
+        except:
+            raise IOError, "Failed to write MOAB file."
+
 
 def test_delete_mesh():
     mb = core.Core()
@@ -46,7 +79,6 @@ def test_delete_mesh():
     mb.delete_mesh()
     ents = mb.get_entities_by_handle(rs)
     CHECK_EQ(len(ents),0)
-    
     
 def test_get_tag():
     mb = core.Core()
