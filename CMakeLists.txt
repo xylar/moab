@@ -328,6 +328,7 @@ add_subdirectory( src )
 add_subdirectory( itaps )
 add_subdirectory( tools )
 if (ENABLE_PYMOAB)
+  SET(PYMOAB_LOCAL_INSTALL_PATH "${CMAKE_BINARY_DIR}/pymoab/local_inst/")
   add_subdirectory( pymoab )
 endif()
 ################################################################################
@@ -358,7 +359,7 @@ ADD_CUSTOM_TARGET( check COMMAND ctest DEPENDS )
 
 # add pymoab tests to standard MOAB tests
 if( ENABLE_PYMOAB )
-ADD_DEPENDENCIES( check pymoab-tests )
+  ADD_DEPENDENCIES( check pymoab-tests )
 endif()
 
 # For consistency with autoconf, create "make dist" and "make distcheck" targets
