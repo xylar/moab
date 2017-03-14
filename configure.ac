@@ -67,6 +67,7 @@ AC_SUBST(enable_shared)
 # libtool initialization
 # AC_PROG_LIBTOOL is deprecated
 LT_INIT([dlopen])
+LT_LANG([C++])
 
 AC_C_BIGENDIAN
 
