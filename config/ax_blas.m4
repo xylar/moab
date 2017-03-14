@@ -117,7 +117,7 @@ if test $ax_blas_ok = no; then
                [LIBS="-lcblas $LIBS";
                 AC_TRY_LINK_FUNC(cblas_dgemm,
                    [ax_blas_ok=yes;
-                    BLAS_LIBS="-lcblas -ldgemm -lblas"
+                    BLAS_LIBS="-lcblas -lf77blas -latlas"
                    ]) 
                 ]) 
           ])
