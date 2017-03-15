@@ -6,20 +6,57 @@ pipelines:
         - step:
             script:
                 # Setup the build pipeline
-                - export CC=mpicc CXX=mpicxx FC=mpif90 F77=mpif77 F90=mpif90
-                - rm -rf build_atools build_cmake
-                - mkdir -p build_atools build_cmake
+                - cd $BUILD_DIR && export CC=mpicc CXX=mpicxx FC=mpif90 F77=mpif77 F90=mpif90
+                - pwd && ls -al
+                # AUTOTOOLS STATIC LIB BUILD
+                - rm -rf build_atools build_cmake && mkdir -p build_atools build_cmake
                 # Configure and build with Autotools
-                - echo "Running the Autotools Build System"
-                - autoreconf -fi
-                - cd build_atools
-                - ../configure --with-mpi --enable-optimize --enable-tools --with-hdf5=/usr --with-netcdf=/usr --with-metis=/usr
-                - make distcheck
+                - autoreconf -fi && echo "Running the Autotools Build System Static Library Build"
+                - cd build_atools && ../configure --with-mpi --enable-static --enable-optimize --enable-tools --with-hdf5=/usr --with-netcdf=/usr --with-metis=/usr
+                - make distcheck V=1
+                # AUTOTOOLS SHARED LIB BUILD
+                - make distclean && echo "Running the Autotools Build System Shared Library Build with Python-Enabled"
+                # Configure and build with Autotools
+                - ../configure --with-mpi --enable-shared --enable-optimize --enable-tools --enable-pymoab --with-hdf5=/usr --with-netcdf=/usr --with-metis=/usr
+                - make distcheck V=1
+                # CMAKE STATIC LIB BUILD
                 # Now configure with CMake build system
-                - echo "Running the CMake Build System"
-                - cd ../build_cmake
+                - cd .. && echo "Running the CMake Static Build System"
                 - cmake .. -DCMAKE_C_FLAGS="-fPIC -DPIC" -DCMAKE_CXX_FLAGS="-fPIC -DPIC" -DBUILD_SHARED_LIBS=OFF -DCMAKE_SHARED_LINKER_FLAGS="-Wl,--no-undefined" -DENABLE_MPI=ON -DMPIHOME=/usr -DENABLE_HDF5=ON -DHDF5_ROOT=/usr -DENABLE_NETCDF=OFF -DENABLE_METIS=ON -DMETIS_DIR=/usr
-                - make all test
+                - make all test VERBOSE=1
                 - make dist
-                  # Successfully finished both Autotools and CMake checks
+                # Successfully finished both Autotools and CMake checks
+                # CMAKE SHARED LIB BUILD
+                - cd ../ && rm -rf build_cmake && mkdir -p build_cmake && cd build_cmake
+                - echo "Running the CMake Shared Build System"
+                - cmake .. -DCMAKE_C_FLAGS="-fPIC -DPIC" -DCMAKE_CXX_FLAGS="-fPIC -DPIC" -DBUILD_SHARED_LIBS=ON -DCMAKE_SHARED_LINKER_FLAGS="-Wl,--no-undefined" -DENABLE_MPI=ON -DMPIHOME=/usr -DENABLE_PYMOAB=ON -DENABLE_HDF5=ON -DHDF5_ROOT=/usr -DENABLE_NETCDF=OFF -DENABLE_METIS=ON -DMETIS_DIR=/usr
+                - make all test VERBOSE=1
+                - make dist
+                # Successfully finished both Autotools and CMake checks
                 - echo "All done!"
+#
+# Use our custom Docker image with all scientific tools pre-loaded
+#image: vijaysm/scientific:latest
+#
+#pipelines:
+#    default:
+#        - step:
+#            script:
+#                # Setup the build pipeline
+#                - export CC=mpicc CXX=mpicxx FC=mpif90 F77=mpif77 F90=mpif90
+#                - rm -rf build_atools build_cmake
+#                - mkdir -p build_atools build_cmake
+#                # Configure and build with Autotools
+#                - echo "Running the Autotools Build System"
+#                - autoreconf -fi
+#                - cd build_atools
+#                - ../configure --with-mpi --enable-optimize --enable-tools --with-hdf5=/usr --with-netcdf=/usr --with-metis=/usr
+#                - make distcheck
+#                # Now configure with CMake build system
+#                - echo "Running the CMake Build System"
+#                - cd ../build_cmake
+#                - cmake .. -DCMAKE_C_FLAGS="-fPIC -DPIC" -DCMAKE_CXX_FLAGS="-fPIC -DPIC" -DBUILD_SHARED_LIBS=OFF -DCMAKE_SHARED_LINKER_FLAGS="-Wl,--no-undefined" -DENABLE_MPI=ON -DMPIHOME=/usr -DENABLE_HDF5=ON -DHDF5_ROOT=/usr -DENABLE_NETCDF=OFF -DENABLE_METIS=ON -DMETIS_DIR=/usr
+#                - make all test
+#                - make dist
+#                  # Successfully finished both Autotools and CMake checks
+#                - echo "All done!"
