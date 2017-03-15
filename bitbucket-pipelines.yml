@@ -6,7 +6,7 @@ pipelines:
         - step:
             script:
                 # Setup the build pipeline
-                - cd $BUILD_DIR && export CC=mpicc CXX=mpicxx FC=mpif90 F77=mpif77 F90=mpif90
+                - cd $BITBUCKET_CLONE_DIR && export CC=mpicc CXX=mpicxx FC=mpif90 F77=mpif77 F90=mpif90
                 - pwd && ls -al
                 # AUTOTOOLS STATIC LIB BUILD
                 - rm -rf build_atools build_cmake && mkdir -p build_atools build_cmake
