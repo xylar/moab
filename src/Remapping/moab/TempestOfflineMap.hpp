@@ -27,6 +27,14 @@
 
 #include "moab/TempestRemapper.hpp"
 
+///////////////////////////////////////////////////////////////////////////////
+
+#define RECTANGULAR_TRUNCATION
+//#define TRIANGULAR_TRUNCATION
+
+///////////////////////////////////////////////////////////////////////////////
+
+// Forward declarations
 class Mesh;
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -145,6 +153,83 @@ private:
 	    bool fContinuousIn,
 	    bool fNoConservation);
 
+	///	<summary>
+	///		Generate the OfflineMap for remapping from finite volumes to finite
+	///		elements using simple sampling of the FV reconstruction.
+	///	</summary>
+	void LinearRemapFVtoGLL_Simple_MOAB(
+		const DataMatrix3D<int> & dataGLLNodes,
+		const DataMatrix3D<double> & dataGLLJacobian,
+		const DataVector<double> & dataGLLNodalArea,
+		int nOrder,
+		int nMonotoneType,
+		bool fContinuous,
+		bool fNoConservation
+	);
+
+	///	<summary>
+	///		Generate the OfflineMap for remapping from finite volumes to finite
+	///		elements using a new experimental method.
+	///	</summary>
+	void LinearRemapFVtoGLL_Volumetric_MOAB(
+		const DataMatrix3D<int> & dataGLLNodes,
+		const DataMatrix3D<double> & dataGLLJacobian,
+		const DataVector<double> & dataGLLNodalArea,
+		int nOrder,
+		int nMonotoneType,
+		bool fContinuous,
+		bool fNoConservation
+	);
+
+	///	<summary>
+	///		Generate the OfflineMap for remapping from finite volumes to finite
+	///		elements.
+	///	</summary>
+	void LinearRemapFVtoGLL_MOAB(
+		const DataMatrix3D<int> & dataGLLNodes,
+		const DataMatrix3D<double> & dataGLLJacobian,
+		const DataVector<double> & dataGLLNodalArea,
+		int nOrder,
+		int nMonotoneType,
+		bool fContinuous,
+		bool fNoConservation
+	);
+
+	///	<summary>
+	///		Generate the OfflineMap for remapping from finite elements to finite
+	///		elements.
+	///	</summary>
+	void LinearRemapGLLtoGLL2_MOAB(
+		const DataMatrix3D<int> & dataGLLNodesIn,
+		const DataMatrix3D<double> & dataGLLJacobianIn,
+		const DataMatrix3D<int> & dataGLLNodesOut,
+		const DataMatrix3D<double> & dataGLLJacobianOut,
+		const DataVector<double> & dataNodalAreaOut,
+		int nPin,
+		int nPout,
+		int nMonotoneType,
+		bool fContinuousIn,
+		bool fContinuousOut,
+		bool fNoConservation
+	);
+
+	///	<summary>
+	///		Generate the OfflineMap for remapping from finite elements to finite
+	///		elements (pointwise interpolation).
+	///	</summary>
+	void LinearRemapGLLtoGLL2_Pointwise_MOAB(
+		const DataMatrix3D<int> & dataGLLNodesIn,
+		const DataMatrix3D<double> & dataGLLJacobianIn,
+		const DataMatrix3D<int> & dataGLLNodesOut,
+		const DataMatrix3D<double> & dataGLLJacobianOut,
+		const DataVector<double> & dataNodalAreaOut,
+		int nPin,
+		int nPout,
+		int nMonotoneType,
+		bool fContinuousIn,
+		bool fContinuousOut
+	);
+
 private:
 	///	<summary>
 	///		The fundamental remapping operator object.
@@ -154,19 +239,25 @@ private:
 	///	<summary>
 	///		The SparseMatrix representing this operator.
 	///	</summary>
-	SparseMatrix<double> m_mapRemapGlobal;
+	// SparseMatrix<double> m_mapRemapGlobal;
+	OfflineMap* m_weightMapGlobal;
+
+	///	<summary>
+	///		The boolean flag representing whether the root process has the updated global view.
+	///	</summary>
+	bool m_globalMapAvailable;
 
 
 	///	<summary>
 	///		The DataVector that stores the global (GID-based) areas of the source mesh.
 	///	</summary>
-	DataVector<double> m_areasSrcGlobal;
+	// DataVector<double> m_areasSrcGlobal;
 
 	
 	///	<summary>
 	///		The DataVector that stores the global (GID-based) areas of the target mesh.
 	///	</summary>
-	DataVector<double> m_areasTgtGlobal;
+	// DataVector<double> m_areasTgtGlobal;
 
 	///	<summary>
 	///		The reference to the moab::Core object that contains source/target and overlap sets.
@@ -189,7 +280,7 @@ private:
 inline
 const DataVector<double>& TempestOfflineMap::GetGlobalSourceAreas() const {
 	if (pcomm->size() > 1) {
-		return m_areasSrcGlobal;
+        return m_weightMapGlobal->GetSourceAreas();
 	}
 	else {
 		return this->GetSourceAreas();
@@ -199,7 +290,7 @@ const DataVector<double>& TempestOfflineMap::GetGlobalSourceAreas() const {
 inline
 const DataVector<double>& TempestOfflineMap::GetGlobalTargetAreas() const {
     if (pcomm->size() > 1) {
-		return m_areasTgtGlobal;
+        return m_weightMapGlobal->GetTargetAreas();
 	}
 	else {
 		return this->GetTargetAreas();

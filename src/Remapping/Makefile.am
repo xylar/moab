@@ -28,6 +28,7 @@ if ENABLE_mbtempest
 
   MOAB_REMAPPING_SRCS += \
      TempestRemapper.cpp  \
+     TempestLinearRemap.cpp \
      TempestOfflineMap.cpp
 
   MOAB_REMAPPING_HDRS += \

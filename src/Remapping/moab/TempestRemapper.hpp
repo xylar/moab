@@ -120,6 +120,8 @@ private:
     TempestMeshType m_overlap_type;
     moab::Range m_overlap_entities;
     moab::EntityHandle m_overlap_set;
+    std::vector<std::pair<int,int> > m_sorted_overlap_order;
+    Mesh* m_sorted_overlap;
 
     // Parallel - migrated mesh that is in the local view
     Mesh* m_covering_source;
