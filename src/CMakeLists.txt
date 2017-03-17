@@ -1,11 +1,9 @@
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}
                     ${CMAKE_CURRENT_BINARY_DIR}
                     parallel
-                    LocalDiscretization
                     io io/mhdf
                     ${MOAB_BINARY_DIR}/src/parallel )
 
-add_subdirectory(verdict)
 if(MOAB_HAVE_MPI AND MPI_FOUND)
   add_subdirectory(parallel)
   set( MOAB_MPI moabpar )
@@ -21,9 +19,6 @@ configure_file(${CMAKE_CURRENT_BINARY_DIR}/moab/EntityHandle.hpp.in ${CMAKE_CURR
 
 set(moab_link_lib)
 add_subdirectory(io)
-add_subdirectory(RefineMesh)
-add_subdirectory(LocalDiscretization)
-# add_subdirectory(oldinc)
 
 if( MOAB_HAVE_HDF5 )
   include_directories(${HDF5_INCLUDES})
@@ -37,6 +32,7 @@ if( MOAB_HAVE_NETCDF )
     set( MOAB_NETCDF_LIBS ${NETCDF_LIBRARIES} )
   endif ( MOAB_HAVE_MPI )
 endif()
+
 
 set(MOAB_LIB_SOURCES
         AdaptiveKDTree.cpp
@@ -82,6 +78,12 @@ set(MOAB_LIB_SOURCES
         lotte/findpt.c
         lotte/errmem.c
         lotte/tensor.c
+        LocalDiscretization/ElemEvaluator.cpp
+        LocalDiscretization/LinearHex.cpp
+        LocalDiscretization/LinearQuad.cpp
+        LocalDiscretization/LinearTet.cpp
+        LocalDiscretization/LinearTri.cpp
+        LocalDiscretization/QuadraticHex.cpp
         PolyElementSeq.hpp  PolyElementSeq.cpp
         ProgOptions.cpp
         Range.cpp
@@ -89,6 +91,7 @@ set(MOAB_LIB_SOURCES
         ReadUtil.hpp              ReadUtil.cpp
         ReaderWriterSet.cpp
         ReorderTool.cpp
+        RefineMesh/NestedRefine.cpp
         ScdElementData.hpp        ScdElementData.cpp
         ScdInterface.cpp
         ScdVertexData.hpp         ScdVertexData.cpp
@@ -119,6 +122,21 @@ set(MOAB_LIB_SOURCES
         VarLenTag.hpp      
         VertexSequence.hpp        VertexSequence.cpp
         WriteUtil.hpp             WriteUtil.cpp
+        verdict/v_vector.h
+        verdict/V_EdgeMetric.cpp
+        verdict/V_GaussIntegration.cpp
+        verdict/V_HexMetric.cpp
+        verdict/V_KnifeMetric.cpp
+        verdict/V_PyramidMetric.cpp
+        verdict/V_QuadMetric.cpp
+        verdict/V_TetMetric.cpp
+        verdict/V_TriMetric.cpp
+        verdict/V_WedgeMetric.cpp
+        verdict/VerdictVector.cpp
+        verdict/VerdictWrapper.cpp
+        verdict/verdict_defines.hpp
+        verdict/VerdictVector.hpp
+        verdict/V_GaussIntegration.hpp
         moab_mpe.h )
 
 set( MOAB_INSTALL_HEADERS
@@ -158,6 +176,12 @@ set( MOAB_INSTALL_HEADERS
         moab/point_locater/element_maps/quadratic_hex_map.hpp 
         moab/point_locater/point_locater.hpp
         moab/point_locater/parametrizer.hpp
+        moab/ElemEvaluator.hpp
+        moab/LocalDiscretization/LinearHex.hpp
+        moab/LocalDiscretization/LinearQuad.hpp
+        moab/LocalDiscretization/LinearTet.hpp
+        moab/LocalDiscretization/LinearTri.hpp
+        moab/LocalDiscretization/QuadraticHex.hpp
         moab/Matrix3.hpp
         moab/MergeMesh.hpp
         moab/MeshTopoUtil.hpp
@@ -170,6 +194,8 @@ set( MOAB_INSTALL_HEADERS
         moab/ReaderIface.hpp
         moab/ReaderWriterSet.hpp
         moab/ReorderTool.hpp
+        moab/NestedRefine.hpp
+        moab/RefineMesh/Templates.hpp
         moab/ScdInterface.hpp
         moab/SetIterator.hpp
         moab/Skinner.hpp
@@ -184,6 +210,8 @@ set( MOAB_INSTALL_HEADERS
         moab/Util.hpp
         moab/WriteUtilIface.hpp
         moab/WriterIface.hpp
+        moab/verdict.h
+        moab/verdict/VerdictWrapper.hpp
         MBEntityType.h
         MBCN.h
         MBCN_protos.h
@@ -221,9 +249,6 @@ add_library(
   MOAB
   ${MOAB_LIB_SOURCES} ${MOAB_INSTALL_HEADERS} ${MOAB_GENERATED_INSTALL_HEADERS}
   $<TARGET_OBJECTS:moabio>
-  $<TARGET_OBJECTS:moab_loc_discr>
-  $<TARGET_OBJECTS:moab_refine_mesh>
-  $<TARGET_OBJECTS:moabverdict>
   ${MOABPAR_OBJECTS}
   ${MDHF_OBJ}
   )
@@ -258,3 +283,4 @@ foreach (header ${MOAB_GENERATED_INSTALL_HEADERS})
       DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${DIR}
       )
 endforeach()
+
