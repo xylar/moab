@@ -39,7 +39,7 @@ add_executable(
   obb_analysis.cpp
   dagmc_preproc.hpp
   )
-target_link_libraries( dagmc_preproc MOAB dagmc ${CGM_LIBRARIES} )
+target_link_libraries( dagmc_preproc MOAB dagmc ${CGM_LIBRARIES} ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES} )
 set( MOAB_HAVE_DAGMC 1 )
 install(
   TARGETS dagmc_preproc
@@ -51,7 +51,7 @@ install(
 if ( MOAB_ENABLE_TESTING )
   add_executable( test_geom test_geom.cc )
   set_target_properties( test_geom PROPERTIES COMPILE_FLAGS "${MOAB_DEFINES} -DTEST" )
-  target_link_libraries( test_geom dagmc MOAB ${CGM_LIBRARIES})
+  target_link_libraries( test_geom dagmc MOAB ${CGM_LIBRARIES} ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES})
   add_test( test_geom ${EXECUTABLE_OUTPUT_PATH}/test_geom )
 endif()
 
