@@ -151,6 +151,10 @@ if ENABLE_mbmerge
   bin_PROGRAMS += mbmerge
 endif
 
+if ENABLE_mbhonodes
+  bin_PROGRAMS += mbhonodes
+endif
+
 noinst_PROGRAMS = $(parread)
 
 SUBDIRS = . \
@@ -175,5 +179,6 @@ mbtagprop_SOURCES = parse.cpp parse.hpp propagate_tags.cpp
 mbmem_SOURCES = mbmem.cpp
 parread_SOURCES = parread.cpp
 mbquality_SOURCES = quality.cpp
+mbhonodes_SOURCES = honodes.cpp
 mbumr_SOURCES = umr.cpp
 

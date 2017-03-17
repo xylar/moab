@@ -14,6 +14,8 @@ option ( MOAB_BUILD_MBSURFPLOT   "Build the mbsurfplot application?"            
 option ( MOAB_BUILD_MBPART       "Build the mbpart (Zoltan-based) partitioner?" OFF )
 option ( MOAB_BUILD_DAGMC        "Build the dagmc tool?"                         ON )
 option ( MOAB_BUILD_MBCOUPLER    "Build the mesh coupler tool?"                  ON )
+option ( MOAB_BUILD_MBHONODES    "Build the hex8 to hex27 converter tool?"       ON )
+
 
 if ( MOAB_HAVE_MPI AND MPI_FOUND )
   add_subdirectory( refiner )
@@ -69,6 +71,20 @@ if ( MOAB_BUILD_MBCONVERT )
   set( MOAB_HAVE_MBCONVERT 1 )
   install(
     TARGETS mbconvert
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    )
+endif ( )
+
+# MBHONODES
+if ( MOAB_BUILD_MBHONODES )
+  add_executable( mbhonodes honodes.cpp)
+  set_source_files_properties( honodes.cpp COMPILE_FLAGS "${MOAB_DEFINES}" )
+  target_link_libraries( mbhonodes ${TOOLS_LINK_LIBS} )
+  set( MOAB_HAVE_MBHONODES 1 )
+  install(
+    TARGETS mbhonodes
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
