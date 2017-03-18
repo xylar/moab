@@ -892,7 +892,7 @@ if (test "x$WITH_TEMPEST" != "xno" && test "x$WITH_TEMPEST" != "x"); then
   AC_DEFINE([HAVE_TEMPESTREMAP],[1],[Enable use of TempestRemap library API for computing intersection and remapping for Climate problems])
   HAVE_TEMPEST=yes
 fi
-AM_CONDITIONAL( HAVE_TEMPESTREMAP, [test "x$WITH_TEMPEST" = "xyes"] )
+AM_CONDITIONAL( HAVE_TEMPESTREMAP, [test "x$HAVE_TEMPEST" = "xyes"] )
 
 ################################################################################
 #                           Zoltan - Part 2 of 2
