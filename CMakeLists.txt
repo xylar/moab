@@ -396,7 +396,7 @@ endif ( ENABLE_IMESH OR ENABLE_FBIGEOM )
 #  )
 CONFIGURE_FILE(config/MOABConfig.cmake.h.in "${PROJECT_BINARY_DIR}/src/moab/MOABConfig.h" @ONLY)
 
-CONFIGURE_FILE(config/MOABConfig.cmake.in "${PROJECT_BINARY_DIR}/MOABConfig.cmake" @ONLY)
+CONFIGURE_FILE(config/MOABConfig.cmk.cmake.in "${PROJECT_BINARY_DIR}/MOABConfig.cmake" @ONLY)
 CONFIGURE_FILE(moab.make.in "${PROJECT_BINARY_DIR}/lib/moab.make" @ONLY)
 if ( MOAB_HAVE_FBIGEOM )
   CONFIGURE_FILE(itaps/fbigeom/FBiGeom-Defs.inc.in "${PROJECT_BINARY_DIR}/lib/FBiGeom-Defs.inc" @ONLY)
