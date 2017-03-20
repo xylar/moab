@@ -208,6 +208,80 @@ ErrorCode GeomTopoTool::find_geomsets(Range *ranges)
   return MB_SUCCESS;
 }
 
+void GeomTopoTool::set_contiguous(bool new_value)
+{
+  ErrorCode rval; 
+
+  if(contiguous != new_value)
+    {
+       //move rootSet vector to map
+       // get all surfaces and volumes
+       Range surfs, vols;
+       rval = get_gsets_by_dimension(3, vols);
+       MB_CHK_SET_ERR_RET(rval, "Failed to get volume entity set.");
+
+       rval = get_gsets_by_dimension(2, surfs);
+       MB_CHK_SET_ERR_RET(rval, "Failed to get surface entity set.");
+
+       //combine surfs and vols into one range
+       Range surfs_and_vols;
+       surfs_and_vols.merge(surfs);
+       surfs_and_vols.merge(vols);
+
+       //true to false; vector to map
+       if(contiguous == true && rootSets.size() != 0)
+         { 
+           //clear out rootSet map
+           mapRootSets.clear();
+           for(Range::iterator it = surfs_and_vols.begin(); it != surfs_and_vols.end(); ++it)
+             {
+               EntityHandle root;
+               rval = get_root(*it, root);
+               MB_CHK_SET_ERR_RET(rval, "Failed to get root.");
+               if (root != 0)
+                 {
+                   mapRootSets[*it] = root;
+                 }
+               
+             }
+           rootSets.clear();
+         }  
+       
+       //false to true; map to vector
+       if(contiguous == false && mapRootSets.size() != 0)
+         {
+           rootSets.clear();
+           rootSets.resize(surfs_and_vols.size());
+           for(Range::iterator it = surfs_and_vols.begin(); it != surfs_and_vols.end(); ++it)
+             {
+               EntityHandle root;
+               rval = get_root(*it, root);
+               MB_CHK_SET_ERR_RET(rval, "Failed to get root.");
+              
+               if(mapRootSets.find(*it) != mapRootSets.end())
+                 {
+                   rootSets[*it-setOffset] = mapRootSets[*it];
+                 } 
+             }
+         }
+    }
+   contiguous = new_value;
+
+}
+
+ErrorCode GeomTopoTool::get_gsets_by_dimension(int dim, Range &gset)
+{
+   ErrorCode rval;
+ 
+   const int val = dim;
+   const void* const dim_val[] = { &val };
+   rval = mdbImpl->get_entities_by_type_and_tag(modelSet, MBENTITYSET, &geomTag,
+       dim_val, 1, gset);
+   MB_CHK_SET_ERR(rval, "Failed to get entity set by type and tag.");
+  
+   return MB_SUCCESS;
+}
+
 ErrorCode GeomTopoTool::setup_geom(Range &surfs, Range &vols)
 {
   ErrorCode rval;
@@ -234,6 +308,7 @@ ErrorCode GeomTopoTool::setup_geom(Range &surfs, Range &vols)
   } else {
     setOffset = (surfs.front() < vols.front() ? surfs.front() : vols.front());
   }
+
   EntityHandle minSet = setOffset;
   EntityHandle maxSet = setOffset;
   Range::iterator it;
@@ -244,6 +319,7 @@ ErrorCode GeomTopoTool::setup_geom(Range &surfs, Range &vols)
     if (sf < minSet)
       minSet = sf;
   }
+
   for (it = vols.begin(); it != vols.end(); ++it) {
     EntityHandle sf = *it;
     if (sf > maxSet)
@@ -251,11 +327,12 @@ ErrorCode GeomTopoTool::setup_geom(Range &surfs, Range &vols)
     if (sf < minSet)
       minSet = sf;
   }
+
   if (surfs.size() + vols.size() == maxSet - minSet + 1)
-    contiguous = true;
+    set_contiguous(true);
   else
-    contiguous = false; // need map arrangements
-  EntityHandle root;
+    set_contiguous(false); // need map arrangements
+
   if (contiguous)
     rootSets.resize(surfs.size() + vols.size());
 
