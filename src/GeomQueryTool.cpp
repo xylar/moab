@@ -34,6 +34,8 @@ GeomQueryTool::GeomQueryTool(GeomTopoTool* geomtopotool, bool trace_counting,
   ErrorCode rval = initialize();
 }
 
+GeomQueryTool::~GeomQueryTool() {}
+
 ErrorCode GeomQueryTool::initialize() {
   //senseTag = get_tag( "GEOM_SENSE_2", 2, MB_TAG_SPARSE, MB_TYPE_HANDLE );
 

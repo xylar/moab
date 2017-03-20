@@ -1,5 +1,5 @@
-#ifndef MOABMC_HPP
-#define MOABMC_HPP
+#ifndef MOAB_GEOM_QUERY_TOOL_HPP
+#define MOAB_GEOM_QUERY_TOOL_HPP
 
 #include "MBTagConventions.hpp"
 #include "moab/CartVect.hpp"
