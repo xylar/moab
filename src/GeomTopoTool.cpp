@@ -208,6 +208,55 @@ ErrorCode GeomTopoTool::find_geomsets(Range *ranges)
   return MB_SUCCESS;
 }
 
+ErrorCode GeomTopoTool::construct_obb_tree(EntityHandle eh)
+{
+  ErrorCode rval;
+  int dim;
+ 
+  //get the type
+  EntityType type = mdbImpl->type_from_handle(eh); 
+  //find the dimension of the entity
+  rval = mdbImpl->tag_get_data(geomTag, &eh, 1, &dim);
+  MB_CHK_SET_ERR(rval, "Failed to get dimension.");
+
+  EntityHandle root;
+  //if it's a surface
+  if(dim == 2 && type == MBENTITYSET)
+    {
+       Range tris;
+       rval = mdbImpl->get_entities_by_dimension(eh, 2, tris);
+       if (MB_SUCCESS != rval)
+         return rval;
+     
+       if (tris.empty()) {
+         std::cerr << "WARNING: Surface has no facets." << std::endl;
+       }
+     
+       rval = obbTree.build(tris, root);
+       if (MB_SUCCESS != rval)
+         return rval;
+     
+       rval = mdbImpl->add_entities(root, &eh, 1);
+       if (MB_SUCCESS != rval)
+         return rval;
+     
+       //surfRootSets[*i - surfOffset] = root;
+       if (contiguous)
+         rootSets[eh - setOffset] = root;
+       else
+         mapRootSets[eh] = root;
+       
+       // if just building tree for surface, return here
+       return MB_SUCCESS;
+    }
+
+  //if it's a volume
+  if(dim == 3 && type == MBENTITYSET)
+    {
+
+    }
+
+}
 ErrorCode GeomTopoTool::construct_obb_trees(bool make_one_vol)
 {
   ErrorCode rval;

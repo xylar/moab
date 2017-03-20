@@ -91,6 +91,8 @@ public:
 
   ErrorCode find_geomsets(Range *ranges = NULL);
 
+  ErrorCode construct_obb_tree(EntityHandle eh);
+
   ErrorCode construct_obb_trees(bool make_one_vol = false);
 
   ErrorCode get_root(EntityHandle vol_or_surf, EntityHandle &root);
