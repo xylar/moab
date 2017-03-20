@@ -59,6 +59,7 @@ libMOAB_la_SOURCES = \
   FBEngine.cpp \
   FileOptions.cpp \
   GeomUtil.cpp \
+  GeomQueryTool.cpp \
   GeomTopoTool.cpp \
   HalfFacetRep.cpp \
   HigherOrderFactory.cpp \
@@ -181,6 +182,7 @@ nobase_libMOAB_la_include_HEADERS = \
   moab/CpuTimer.hpp \
   moab/DualTool.hpp \
   moab/Error.hpp \
+  moab/GeomQueryTool.hpp \
   moab/GeomTopoTool.hpp \
   moab/HalfFacetRep.hpp \
   moab/HigherOrderFactory.hpp \

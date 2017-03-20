@@ -124,6 +124,11 @@ public:
   bool check_model();
   // should be used instead of keeping multiple ranges, for example in FBEngine
   const Range * geoRanges() { return geomRanges ; }
+
+  Interface* get_moab_instance() { return mdbImpl; }
+
+  EntityHandle get_impl_compl() { return 0; }  // todo: write this function
+
 private:
   Interface *mdbImpl;
   Tag sense2Tag;
