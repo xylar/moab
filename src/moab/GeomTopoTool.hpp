@@ -20,7 +20,8 @@
 
 #include "moab/Forward.hpp"
 #include "moab/Range.hpp"
-#include "moab/OrientedBoxTreeTool.hpp"
+
+class OrientedBoxTreeTool;
 
 #include <map>
 
