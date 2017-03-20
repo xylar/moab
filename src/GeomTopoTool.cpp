@@ -14,6 +14,7 @@
  */
 
 #include "moab/GeomTopoTool.hpp"
+#include "moab/OrientedBoxTreeTool.hpp"
 #include "moab/Range.hpp"
 #include "MBTagConventions.hpp"
 #include "moab/Interface.hpp"
@@ -39,10 +40,12 @@ const char GEOM_SENSE_N_SENSES_TAG_NAME[] = "GEOM_SENSE_N_SENSES";
 
 GeomTopoTool::GeomTopoTool(Interface *impl, bool find_geoments, EntityHandle modelRootSet) :
   mdbImpl(impl), sense2Tag(0), senseNEntsTag(0), senseNSensesTag(0),
-  geomTag(0), gidTag(0), modelSet(modelRootSet), updated(false), obbTree(impl, NULL, true),
+  geomTag(0), gidTag(0), modelSet(modelRootSet), updated(false), 
   setOffset(0), contiguous(true), oneVolRootSet(0)
 {
 
+  obbTree = new OrientedBoxTreeTool(impl, NULL, true);
+  
   ErrorCode result = mdbImpl->tag_get_handle(GEOM_DIMENSION_TAG_NAME, 1,
       MB_TYPE_INTEGER, geomTag, MB_TAG_CREAT|MB_TAG_SPARSE);
   if (MB_SUCCESS != result) {
@@ -62,6 +65,11 @@ GeomTopoTool::GeomTopoTool(Interface *impl, bool find_geoments, EntityHandle mod
     find_geomsets();
 }
 
+GeomTopoTool::~GeomTopoTool() {
+  delete obbTree;
+}
+    
+  
 int GeomTopoTool::dimension(EntityHandle this_set)
 {
   ErrorCode result;
@@ -234,7 +242,7 @@ ErrorCode GeomTopoTool::construct_obb_trees(bool make_one_vol)
       std::cerr << "WARNING: Surface has no facets." << std::endl;
     }
 
-    rval = obbTree.build(tris, root);
+    rval = obbTree->build(tris, root);
     if (MB_SUCCESS != rval)
       return rval;
 
@@ -272,7 +280,7 @@ ErrorCode GeomTopoTool::construct_obb_trees(bool make_one_vol)
 
     // build OBB tree for volume
     if (!make_one_vol) {
-      rval = obbTree.join_trees(trees, root);
+      rval = obbTree->join_trees(trees, root);
       if (MB_SUCCESS != rval)
         return rval;
       if (contiguous)
@@ -284,7 +292,7 @@ ErrorCode GeomTopoTool::construct_obb_trees(bool make_one_vol)
 
   // build OBB tree for volume
   if (make_one_vol) {
-    rval = obbTree.join_trees(trees, root);
+    rval = obbTree->join_trees(trees, root);
     if (MB_SUCCESS != rval)
       return rval;
     oneVolRootSet = root;

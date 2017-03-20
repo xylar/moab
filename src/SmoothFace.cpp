@@ -6,6 +6,9 @@
 #include <limits>
 #include "SmoothFace.hpp"
 
+#include "moab/OrientedBoxTreeTool.hpp"
+
+
 #define GEOMETRY_RESABS 1.e-6
 #define mbsqr(a) ((a)*(a))
 #define mbcube(a) (mbsqr(a) * (a))
