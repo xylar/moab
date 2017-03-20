@@ -85,7 +85,10 @@ public:
   
   // used mostly for debugging purposes
   int global_id(EntityHandle this_set);
-  
+
+  // map from dimension & global ID to EntityHandle
+  EntityHandle entity_by_id(int dimension, int id);
+
   ErrorCode find_geomsets(Range *ranges = NULL);
 
   ErrorCode construct_obb_trees(bool make_one_vol = false);

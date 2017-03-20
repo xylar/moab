@@ -122,6 +122,34 @@ int GeomTopoTool::global_id(EntityHandle this_set)
     return -1;
   return id;
 }
+
+EntityHandle GeomTopoTool::entity_by_id( int dimension, int id )
+{
+  assert(0 <= dimension && 3 >= dimension);
+  const Tag tags[] = { gidTag, geomTag };
+  const void* const vals[] = { &id, &dimension };
+  ErrorCode rval;
+
+  Range results;
+  rval = mdbImpl->get_entities_by_type_and_tag( 0, MBENTITYSET, tags, vals, 2, results );
+
+  if ( MB_SUCCESS != rval )
+      return 0;
+
+  // if ( results.empty() ){
+  //   // old versions of dagmc did not set tags correctly on the implicit complement 'volume',
+  //   // causing it to not be found by the call above.  This check allows this function to work
+  //   // correctly, even on reloaded files from older versions.
+  //   if( dimension == 3 && global_id(impl_compl_handle) == id )
+  //     return impl_compl_handle;
+  //   else
+  //     return 0;
+  // }
+
+  return results.front();
+}
+
+  
 ErrorCode GeomTopoTool::other_entity(EntityHandle bounded,
     EntityHandle not_this, EntityHandle across, EntityHandle &other)
 {
