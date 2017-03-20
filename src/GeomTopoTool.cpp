@@ -208,6 +208,60 @@ ErrorCode GeomTopoTool::find_geomsets(Range *ranges)
   return MB_SUCCESS;
 }
 
+ErrorCode GeomTopoTool::setup_geom(Range &surfs, Range &vols)
+{
+  ErrorCode rval;
+
+  // get all surfaces and volumes
+  const int three = 3;
+  const void* const three_val[] = { &three };
+  rval = mdbImpl->get_entities_by_type_and_tag(modelSet, MBENTITYSET, &geomTag,
+      three_val, 1, vols);
+  if (MB_SUCCESS != rval)
+    return rval;
+
+  const int two = 2;
+  const void* const two_val[] = { &two };
+  rval = mdbImpl->get_entities_by_type_and_tag(modelSet, MBENTITYSET, &geomTag,
+      two_val, 1, surfs);
+  if (MB_SUCCESS != rval)
+    return rval;
+
+  if (vols.empty() && !surfs.empty()) {
+    setOffset = surfs.front();
+  } else if (!vols.empty() && surfs.empty()) {
+    setOffset = vols.front();
+  } else {
+    setOffset = (surfs.front() < vols.front() ? surfs.front() : vols.front());
+  }
+  EntityHandle minSet = setOffset;
+  EntityHandle maxSet = setOffset;
+  Range::iterator it;
+  for (it = surfs.begin(); it != surfs.end(); ++it) {
+    EntityHandle sf = *it;
+    if (sf > maxSet)
+      maxSet = sf;
+    if (sf < minSet)
+      minSet = sf;
+  }
+  for (it = vols.begin(); it != vols.end(); ++it) {
+    EntityHandle sf = *it;
+    if (sf > maxSet)
+      maxSet = sf;
+    if (sf < minSet)
+      minSet = sf;
+  }
+  if (surfs.size() + vols.size() == maxSet - minSet + 1)
+    contiguous = true;
+  else
+    contiguous = false; // need map arrangements
+  EntityHandle root;
+  if (contiguous)
+    rootSets.resize(surfs.size() + vols.size());
+
+  return MB_SUCCESS;
+}
+
 ErrorCode GeomTopoTool::construct_obb_tree(EntityHandle eh)
 {
   ErrorCode rval;
@@ -288,111 +342,24 @@ ErrorCode GeomTopoTool::construct_obb_trees(bool make_one_vol)
 
   // get all surfaces and volumes
   Range surfs, vols, vol_trees;
-  const int three = 3;
-  const void* const three_val[] = { &three };
-  rval = mdbImpl->get_entities_by_type_and_tag(modelSet, MBENTITYSET, &geomTag,
-      three_val, 1, vols);
-  if (MB_SUCCESS != rval)
-    return rval;
-
-  const int two = 2;
-  const void* const two_val[] = { &two };
-  rval = mdbImpl->get_entities_by_type_and_tag(modelSet, MBENTITYSET, &geomTag,
-      two_val, 1, surfs);
-  if (MB_SUCCESS != rval)
-    return rval;
-
-  if (vols.empty() && !surfs.empty()) {
-    setOffset = surfs.front();
-  } else if (!vols.empty() && surfs.empty()) {
-    setOffset = vols.front();
-  } else {
-    setOffset = (surfs.front() < vols.front() ? surfs.front() : vols.front());
-  }
-  EntityHandle minSet = setOffset;
-  EntityHandle maxSet = setOffset;
-  Range::iterator it;
-  for (it = surfs.begin(); it != surfs.end(); ++it) {
-    EntityHandle sf = *it;
-    if (sf > maxSet)
-      maxSet = sf;
-    if (sf < minSet)
-      minSet = sf;
-  }
-  for (it = vols.begin(); it != vols.end(); ++it) {
-    EntityHandle sf = *it;
-    if (sf > maxSet)
-      maxSet = sf;
-    if (sf < minSet)
-      minSet = sf;
-  }
-  if (surfs.size() + vols.size() == maxSet - minSet + 1)
-    contiguous = true;
-  else
-    contiguous = false; // need map arrangements
+  rval = setup_geom(surfs, vols);
+  MB_CHK_SET_ERR(rval, "Failed to get surfaces and volumes.");
+  
   // for surface
-  EntityHandle root;
-  if (contiguous)
-    rootSets.resize(surfs.size() + vols.size());
   for (Range::iterator i = surfs.begin(); i != surfs.end(); ++i) {
-    Range tris;
-    rval = mdbImpl->get_entities_by_dimension(*i, 2, tris);
-    if (MB_SUCCESS != rval)
-      return rval;
-
-    if (tris.empty()) {
-      std::cerr << "WARNING: Surface has no facets." << std::endl;
-    }
-
-    rval = obbTree->build(tris, root);
-    if (MB_SUCCESS != rval)
-      return rval;
-
-    rval = mdbImpl->add_entities(root, &*i, 1);
-    if (MB_SUCCESS != rval)
-      return rval;
-
-    //surfRootSets[*i - surfOffset] = root;
-    if (contiguous)
-      rootSets[*i - setOffset] = root;
-    else
-      mapRootSets[*i] = root;
+    rval = construct_obb_tree(*i);
+    MB_CHK_SET_ERR(rval, "Failed to construct obb tree for surface.");
   }
 
   // for volumes
   Range trees;
   for (Range::iterator i = vols.begin(); i != vols.end(); ++i) {
-    // get all surfaces in volume
-    Range tmp_surfs;
-    rval = mdbImpl->get_child_meshsets(*i, tmp_surfs);
-    if (MB_SUCCESS != rval)
-      return rval;
-
-    // get OBB trees for each surface
-    if (!make_one_vol)
-      trees.clear();
-    for (Range::iterator j = tmp_surfs.begin(); j != tmp_surfs.end(); ++j) {
-      rval = get_root(*j, root);
-      if (MB_SUCCESS != rval )
-        return rval;
-      if(!root)
-        return MB_FAILURE;
-      trees.insert(root);
-    }
-
-    // build OBB tree for volume
-    if (!make_one_vol) {
-      rval = obbTree->join_trees(trees, root);
-      if (MB_SUCCESS != rval)
-        return rval;
-      if (contiguous)
-        rootSets[*i - setOffset] = root;
-      else
-        mapRootSets[*i] = root;
-    }
+    rval = construct_obb_tree(*i);
+    MB_CHK_SET_ERR(rval, "Failed to construct obb tree for volume.");
   }
 
   // build OBB tree for volume
+  EntityHandle root;
   if (make_one_vol) {
     rval = obbTree->join_trees(trees, root);
     if (MB_SUCCESS != rval)
