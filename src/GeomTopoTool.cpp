@@ -253,7 +253,32 @@ ErrorCode GeomTopoTool::construct_obb_tree(EntityHandle eh)
   //if it's a volume
   if(dim == 3 && type == MBENTITYSET)
     {
-
+      //get its surfaces
+      Range tmp_surfs, surf_trees;
+      rval = mdbImpl->get_child_meshsets(eh, tmp_surfs);
+      if (MB_SUCCESS != rval)
+        return rval;
+     
+      // get OBB trees for each surface
+      for (Range::iterator j = tmp_surfs.begin(); j != tmp_surfs.end(); ++j) {
+        rval = get_root(*j, root);
+        if (MB_SUCCESS != rval )
+          return rval;
+        if(!root)
+          return MB_FAILURE;
+        surf_trees.insert(root);
+      }
+     
+      // build OBB tree for volume
+      rval = obbTree.join_trees(surf_trees, root);
+      if (MB_SUCCESS != rval)
+        return rval;
+      if (contiguous)
+        rootSets[eh - setOffset] = root;
+      else
+        mapRootSets[eh] = root;
+    
+     
     }
 
 }
