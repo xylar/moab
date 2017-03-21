@@ -38,6 +38,8 @@ const char GEOM_SENSE_2_TAG_NAME[] = "GEOM_SENSE_2";
 const char GEOM_SENSE_N_ENTS_TAG_NAME[] = "GEOM_SENSE_N_ENTS";
 const char GEOM_SENSE_N_SENSES_TAG_NAME[] = "GEOM_SENSE_N_SENSES";
 
+const char IMPLICIT_COMPLEMENT_NAME[] = "impl_complement";
+  
 GeomTopoTool::GeomTopoTool(Interface *impl, bool find_geoments, EntityHandle modelRootSet) :
   mdbImpl(impl), sense2Tag(0), senseNEntsTag(0), senseNSensesTag(0),
   geomTag(0), gidTag(0), modelSet(modelRootSet), updated(false), 
@@ -48,18 +50,18 @@ GeomTopoTool::GeomTopoTool(Interface *impl, bool find_geoments, EntityHandle mod
   
   ErrorCode result = mdbImpl->tag_get_handle(GEOM_DIMENSION_TAG_NAME, 1,
       MB_TYPE_INTEGER, geomTag, MB_TAG_CREAT|MB_TAG_SPARSE);
-  if (MB_SUCCESS != result) {
-    std::cerr << "Error: Failed to create geometry dimension tag." << std::endl;
-  }
+  MB_CHK_SET_ERR_CONT(result, "Error: Failed to create geometry dimension tag.");
+  
   // global id tag is not really needed, but mbsize complains if we do not set it for
   // geometry entities
-
   result = mdbImpl->tag_get_handle(GLOBAL_ID_TAG_NAME, 1, 
         MB_TYPE_INTEGER, gidTag, MB_TAG_CREAT|MB_TAG_DENSE);
-  if (MB_SUCCESS != result && MB_ALREADY_ALLOCATED != result) {
-    std::cerr << "Error: Failed to create global id tag." << std::endl;
-  }
+  MB_CHK_SET_ERR_CONT(result,  "Error: Failed to create global id tag.");
 
+  result = mdbImpl->tag_get_handle(NAME_TAG_NAME, NAME_TAG_SIZE,
+      MB_TYPE_OPAQUE, nameTag, MB_TAG_CREAT|MB_TAG_SPARSE);
+  MB_CHK_SET_ERR_CONT(result, "Error: Failed to create name tag.");
+ 
   maxGlobalId[0] = maxGlobalId[1] = maxGlobalId[2] = maxGlobalId[3] =maxGlobalId[4] =0;
   if (find_geoments)
     find_geomsets();
@@ -1471,6 +1473,101 @@ ErrorCode GeomTopoTool::duplicate_model(GeomTopoTool *& duplicate, std::vector<E
   return MB_SUCCESS;
 }
 
+  ErrorCode GeomTopoTool::get_implicit_complement(EntityHandle &implicit_complement, bool create_if_missing) {
+  
+  Range entities;
+  const void* const tagdata[] = {IMPLICIT_COMPLEMENT_NAME};
+  ErrorCode rval = mdbImpl->get_entities_by_type_and_tag( 0, MBENTITYSET,
+                                                           &nameTag, tagdata, 1,
+                                                           entities );
+  // query error
+  if (MB_SUCCESS != rval) {
+    std::cerr << "Unable to query for implicit complement." << std::endl;
+    return rval;
+  }
+  
+  // found too many
+  if (entities.size() > 1) {
+    std::cerr << "Too many implicit complement sets." << std::endl;
+    return MB_MULTIPLE_ENTITIES_FOUND;
+  }
+
+  // found none
+  if (entities.empty()) {
+    // create implicit complement if requested
+    if(create_if_missing) {
+      rval = create_implicit_complement(implicit_complement);
+      MB_CHK_SET_ERR(rval, "Could not create implicit complement.");
+    }
+    // if creation is not requested, report that it is not found
+    else {
+      return MB_ENTITY_NOT_FOUND;
+    }
+    return rval;
+  } else {
+    // found a single implicit complement
+    implicit_complement = entities.front();
+    return MB_SUCCESS;
+  }
+  
+}
+
+ErrorCode GeomTopoTool::create_implicit_complement(EntityHandle &implicit_complement_set) {
+
+  ErrorCode rval;
+
+  rval= mdbImpl->create_meshset(MESHSET_SET,implicit_complement_set);
+  if (MB_SUCCESS != rval) {
+      std::cerr << "Failed to create mesh set for implicit complement." << std::endl;
+      return rval;
+  }
+
+  // make sure the sense2Tag is set
+  rval = check_face_sense_tag(false);
+  MB_CHK_SET_ERR(rval, "Could not create face to volume sense tag.");
+
+  // get all geometric surface sets
+  Range surfs;
+  rval = get_gsets_by_dimension(2, surfs);
+  MB_CHK_SET_ERR(rval, "Could not get surface sets.");
+  
+  // search through all surfaces
+  std::vector<EntityHandle> parent_vols;  
+  for (Range::iterator surf_i = surfs.begin(); surf_i != surfs.end(); ++surf_i) {
+
+    parent_vols.clear();
+      // get parents of each surface
+    rval = mdbImpl->get_parent_meshsets( *surf_i, parent_vols );
+    if (MB_SUCCESS != rval)
+      return rval;
+
+      // if only one parent, get the OBB root for this surface
+    if (parent_vols.size() == 1 ) {
+
+      // add this surf to the topology of the implicit complement volume
+      rval = mdbImpl->add_parent_child(implicit_complement_set,*surf_i);
+      MB_CHK_SET_ERR(rval, "Could not add surface to implicit complement set.");
+      
+      // get the surface sense wrt original volume
+      EntityHandle sense_data[2] = {0,0};
+      rval = mdbImpl->tag_get_data( sense2Tag, &(*surf_i), 1, sense_data );
+      MB_CHK_SET_ERR(rval, "Could not get surface sense data.");
+
+      // set the surface sense wrt implicit complement volume
+      if(0==sense_data[0] && 0==sense_data[1]) return MB_FAILURE;
+      if(0==sense_data[0])
+        sense_data[0] = implicit_complement_set;
+      else if(0==sense_data[1])
+        sense_data[1] = implicit_complement_set;
+      else
+        return MB_FAILURE;
+      rval = mdbImpl->tag_set_data( sense2Tag, &(*surf_i), 1, sense_data );
+      if (MB_SUCCESS != rval)  return rval;
+    }
+  } //end surface loop
+
+}
+  
 #define  RETFALSE(a, b) { std::cout<<a<<"\n"; mdbImpl->list_entity(b); return false; }
 bool GeomTopoTool::check_model()
 {

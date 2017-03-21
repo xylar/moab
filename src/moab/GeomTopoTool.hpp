@@ -107,6 +107,9 @@ public:
   // will output a mesh_set that contains everything (all sets of interest), for proper output
   ErrorCode geometrize_surface_set(EntityHandle surface, EntityHandle & output);
 
+  // get the implicit complement handle
+  ErrorCode get_implicit_complement(EntityHandle &implicit_complement, bool create_if_missing = false);
+  
   // this would be a deep copy, into a new geom topo tool
   // sets will be duplicated, but entities not
   // modelSet will be a new one;
@@ -127,6 +130,7 @@ private:
   Tag senseNEntsTag, senseNSensesTag;
   Tag geomTag;
   Tag gidTag;
+  Tag nameTag;
   // the model set encompasses a full topological model
   EntityHandle modelSet;
   Range geomRanges[5];// add one more dimension, for set of gentities; by default, they will
@@ -142,6 +146,9 @@ private:
   std::map<EntityHandle, EntityHandle>  mapRootSets;
   EntityHandle oneVolRootSet;
 
+    //! creates a volume for undefined space in the model
+  ErrorCode create_implicit_complement(EntityHandle &implicit_complement_set);
+  
     //! compute vertices inclusive and put on tag on sets in geom_sets
   ErrorCode construct_vertex_ranges(const Range &geom_sets,
 				      const Tag verts_tag);
