@@ -21,9 +21,12 @@ debug = true;
 namespace moab {
 
 GeomQueryTool::GeomQueryTool(GeomTopoTool* geomtopotool, bool trace_counting,
-                             double overlap_thickness, double numerical_precision) {
+                             double overlap_thickness, double numerical_precision){
+
   geomTopoTool = geomtopotool;
 
+  senseTag = geomTopoTool->get_sense_tag();
+  
   obbTreeTool = geomTopoTool->obb_tree();
   MBI = geomTopoTool->get_moab_instance();
 
@@ -31,17 +34,13 @@ GeomQueryTool::GeomQueryTool(GeomTopoTool* geomtopotool, bool trace_counting,
   overlapThickness = overlap_thickness;
   numericalPrecision = numerical_precision;
 
-  ErrorCode rval = initialize();
 }
 
 GeomQueryTool::~GeomQueryTool() {}
 
 ErrorCode GeomQueryTool::initialize() {
-  //senseTag = get_tag( "GEOM_SENSE_2", 2, MB_TAG_SPARSE, MB_TYPE_HANDLE );
 
   ErrorCode rval;
-  // rval = MBI->tag_get_handle("GEOM_SENSE_2", 2, MB_TYPE_HANDLE, senseTag, MB_TAG_SPARSE|MB_TAG_CREAT);
-  // MB_CHK_SET_ERR(rval , "Could not get the sense handle");
   
   rval = geomTopoTool->get_implicit_complement(impl_compl_handle, true);
   MB_CHK_SET_ERR(rval , "Couldn't get the implicit complement handle");

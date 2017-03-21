@@ -48,20 +48,24 @@ GeomTopoTool::GeomTopoTool(Interface *impl, bool find_geoments, EntityHandle mod
 
   obbTree = new OrientedBoxTreeTool(impl, NULL, true);
   
-  ErrorCode result = mdbImpl->tag_get_handle(GEOM_DIMENSION_TAG_NAME, 1,
+  ErrorCode rval = mdbImpl->tag_get_handle(GEOM_DIMENSION_TAG_NAME, 1,
       MB_TYPE_INTEGER, geomTag, MB_TAG_CREAT|MB_TAG_SPARSE);
-  MB_CHK_SET_ERR_CONT(result, "Error: Failed to create geometry dimension tag.");
+  MB_CHK_SET_ERR_CONT(rval, "Error: Failed to create geometry dimension tag.");
   
   // global id tag is not really needed, but mbsize complains if we do not set it for
   // geometry entities
-  result = mdbImpl->tag_get_handle(GLOBAL_ID_TAG_NAME, 1, 
+  rval = mdbImpl->tag_get_handle(GLOBAL_ID_TAG_NAME, 1, 
         MB_TYPE_INTEGER, gidTag, MB_TAG_CREAT|MB_TAG_DENSE);
-  MB_CHK_SET_ERR_CONT(result,  "Error: Failed to create global id tag.");
+  MB_CHK_SET_ERR_CONT(rval,  "Error: Failed to create global id tag.");
 
-  result = mdbImpl->tag_get_handle(NAME_TAG_NAME, NAME_TAG_SIZE,
+  rval = mdbImpl->tag_get_handle(NAME_TAG_NAME, NAME_TAG_SIZE,
       MB_TYPE_OPAQUE, nameTag, MB_TAG_CREAT|MB_TAG_SPARSE);
-  MB_CHK_SET_ERR_CONT(result, "Error: Failed to create name tag.");
- 
+  MB_CHK_SET_ERR_CONT(rval, "Error: Failed to create name tag.");
+
+  rval = mdbImpl->tag_get_handle(GEOM_SENSE_2_TAG_NAME, 2,
+      MB_TYPE_HANDLE, sense2Tag, MB_TAG_SPARSE|MB_TAG_CREAT);
+  MB_CHK_SET_ERR_CONT(rval, "Could not create face to volume sense tag");
+
   maxGlobalId[0] = maxGlobalId[1] = maxGlobalId[2] = maxGlobalId[3] =maxGlobalId[4] =0;
   if (find_geoments)
     find_geomsets();
@@ -1524,8 +1528,9 @@ ErrorCode GeomTopoTool::create_implicit_complement(EntityHandle &implicit_comple
   }
 
   // make sure the sense2Tag is set
-  rval = check_face_sense_tag(true);
-  MB_CHK_SET_ERR(rval, "Could not create face to volume sense tag");
+  if(!sense2Tag){
+    check_face_sense_tag(true);
+  }
 
   // get all geometric surface sets
   Range surfs;
@@ -1569,8 +1574,25 @@ ErrorCode GeomTopoTool::create_implicit_complement(EntityHandle &implicit_comple
     }
   } //end surface loop
 
-  rval = mdbImpl->add_entities(modelSet, &implicit_complement_set, 1);
-  MB_CHK_SET_ERR(rval, "Could not add implicit complement to model set.");
+  rval = mdbImpl->tag_set_data(nameTag, &implicit_complement_set, 1, &IMPLICIT_COMPLEMENT_NAME);
+  MB_CHK_SET_ERR(rval, "Could not set the name tag for the implicit complement");
+
+  // assign dimension and category tags
+  int three = 3;
+  rval = mdbImpl->tag_set_data(geomTag, &implicit_complement_set, 1, &three );
+  MB_CHK_SET_ERR(rval, "Could not get the geom dim tag for the implicit complement");
+  
+  Tag category_tag;
+  rval = mdbImpl->tag_get_handle(CATEGORY_TAG_NAME, CATEGORY_TAG_SIZE,
+				 MB_TYPE_OPAQUE, category_tag, MB_TAG_SPARSE|MB_TAG_CREAT);
+  MB_CHK_SET_ERR(rval, "Could not get the category tag");
+  
+  static const char volume_category[CATEGORY_TAG_SIZE] = "Volume\0";
+  rval = mdbImpl->tag_set_data(category_tag, &implicit_complement_set, 1, volume_category );
+  MB_CHK_SET_ERR(rval, "Could not set the category tag for the implicit complement");
+  
+  //  rval = mdbImpl->add_entities(modelSet, &implicit_complement_set, 1);
+  // MB_CHK_SET_ERR(rval, "Could not add implicit complement to model set.");
 
   return MB_SUCCESS;
 }

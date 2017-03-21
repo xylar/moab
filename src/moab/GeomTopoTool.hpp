@@ -129,6 +129,8 @@ public:
 
   Interface* get_moab_instance() { return mdbImpl; }
 
+  Tag get_sense_tag() { check_face_sense_tag(true); return sense2Tag; }
+  
 private:
   Interface *mdbImpl;
   Tag sense2Tag;
