@@ -1562,11 +1562,11 @@ ErrorCode GeomTopoTool::create_implicit_complement(EntityHandle &implicit_comple
       // set the surface sense wrt implicit complement volume
       if(0==sense_data[0] && 0==sense_data[1]) return MB_FAILURE;
       if(0==sense_data[0])
-//        sense_data[0] = implicit_complement_set;
-        set_sense(*surf_i, implicit_complement_set, 1);
+        sense_data[0] = implicit_complement_set;
+      //set_sense(*surf_i, implicit_complement_set, 1);
       else if(0==sense_data[1])
-//        sense_data[1] = implicit_complement_set;
-        set_sense(*surf_i, implicit_complement_set, -1);
+        sense_data[1] = implicit_complement_set;
+      // set_sense(*surf_i, implicit_complement_set, -1);
       else
         return MB_FAILURE;
       rval = mdbImpl->tag_set_data( sense2Tag, &(*surf_i), 1, sense_data );
