@@ -91,13 +91,6 @@ public:
 
   ErrorCode find_geomsets(Range *ranges = NULL);
 
-  void set_contiguous(bool new_value);  
-
-  ErrorCode get_gsets_by_dimension( int dim, Range &gset);
-
-  ErrorCode setup_geom(Range &surfs, Range &vols);
-  
-  ErrorCode construct_obb_tree(EntityHandle eh);
 
   ErrorCode construct_obb_trees(bool make_one_vol = false);
 
@@ -161,6 +154,14 @@ private:
 
   // verify sense edge tags
   ErrorCode check_edge_sense_tags(bool create);
+
+  void set_contiguous(bool new_value);  
+
+  ErrorCode get_gsets_by_dimension( int dim, Range &gset);
+
+  ErrorCode setup_geom(Range &surfs, Range &vols);
+  
+  ErrorCode construct_obb_tree(EntityHandle eh);
 
 };
 
