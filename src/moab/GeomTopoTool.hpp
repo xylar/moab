@@ -166,7 +166,7 @@ private:
 
   ErrorCode get_gsets_by_dimension( int dim, Range &gset);
 
-  ErrorCode setup_geom(Range &surfs, Range &vols);
+  ErrorCode check_contiguous();
   
   ErrorCode construct_obb_tree(EntityHandle eh);
 

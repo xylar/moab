@@ -230,7 +230,7 @@ void GeomTopoTool::set_contiguous(bool new_value)
        surfs_and_vols.merge(surfs);
        surfs_and_vols.merge(vols);
 
-       //true to false; vector to map
+       // changing from true to false; vector to map
        if(contiguous == true && rootSets.size() != 0)
          { 
            //clear out rootSet map
@@ -249,7 +249,7 @@ void GeomTopoTool::set_contiguous(bool new_value)
            rootSets.clear();
          }  
        
-       //false to true; map to vector
+       //changing from false to true; map to vector
        if(contiguous == false && mapRootSets.size() != 0)
          {
            rootSets.clear();
@@ -284,25 +284,18 @@ ErrorCode GeomTopoTool::get_gsets_by_dimension(int dim, Range &gset)
    return MB_SUCCESS;
 }
 
-ErrorCode GeomTopoTool::setup_geom(Range &surfs, Range &vols)
+ErrorCode GeomTopoTool::check_contiguous()
 {
   ErrorCode rval;
 
   // get all surfaces and volumes
-  const int three = 3;
-  const void* const three_val[] = { &three };
-  rval = mdbImpl->get_entities_by_type_and_tag(modelSet, MBENTITYSET, &geomTag,
-      three_val, 1, vols);
-  if (MB_SUCCESS != rval)
-    return rval;
+  Range surfs, vols;
+  rval = get_gsets_by_dimension(2, surfs);
+  MB_CHK_SET_ERR(rval, "Could not get surface sets.");
+  rval = get_gsets_by_dimension(3, vols);
+  MB_CHK_SET_ERR(rval, "Could not get volume sets.");
 
-  const int two = 2;
-  const void* const two_val[] = { &two };
-  rval = mdbImpl->get_entities_by_type_and_tag(modelSet, MBENTITYSET, &geomTag,
-      two_val, 1, surfs);
-  if (MB_SUCCESS != rval)
-    return rval;
-
+  // find the offset
   if (vols.empty() && !surfs.empty()) {
     setOffset = surfs.front();
   } else if (!vols.empty() && surfs.empty()) {
@@ -330,6 +323,7 @@ ErrorCode GeomTopoTool::setup_geom(Range &surfs, Range &vols)
       minSet = sf;
   }
 
+  // find out if ent sets are contiguous or not, and set contiguous variable
   if (surfs.size() + vols.size() == maxSet - minSet + 1)
     set_contiguous(true);
   else
@@ -421,8 +415,13 @@ ErrorCode GeomTopoTool::construct_obb_trees(bool make_one_vol)
 
   // get all surfaces and volumes
   Range surfs, vols, vol_trees;
-  rval = setup_geom(surfs, vols);
-  MB_CHK_SET_ERR(rval, "Failed to get surfaces and volumes.");
+  rval = get_gsets_by_dimension(2, surfs);
+  MB_CHK_SET_ERR(rval, "Could not get surface sets.");
+  rval = get_gsets_by_dimension(3, vols);
+  MB_CHK_SET_ERR(rval, "Could not get volume sets.");
+
+  rval = check_contiguous();
+  MB_CHK_SET_ERR(rval, "Failed to check for entity set contiguity.");
   
   // for surface
   for (Range::iterator i = surfs.begin(); i != surfs.end(); ++i) {
@@ -1473,7 +1472,7 @@ ErrorCode GeomTopoTool::duplicate_model(GeomTopoTool *& duplicate, std::vector<E
   return MB_SUCCESS;
 }
 
-  ErrorCode GeomTopoTool::get_implicit_complement(EntityHandle &implicit_complement, bool create_if_missing) {
+ErrorCode GeomTopoTool::get_implicit_complement(EntityHandle &implicit_complement, bool create_if_missing) {
   
   Range entities;
   const void* const tagdata[] = {IMPLICIT_COMPLEMENT_NAME};
@@ -1560,9 +1559,11 @@ ErrorCode GeomTopoTool::create_implicit_complement(EntityHandle &implicit_comple
       // set the surface sense wrt implicit complement volume
       if(0==sense_data[0] && 0==sense_data[1]) return MB_FAILURE;
       if(0==sense_data[0])
-        sense_data[0] = implicit_complement_set;
+//        sense_data[0] = implicit_complement_set;
+        set_sense(*surf_i, implicit_complement_set, 1);
       else if(0==sense_data[1])
-        sense_data[1] = implicit_complement_set;
+//        sense_data[1] = implicit_complement_set;
+        set_sense(*surf_i, implicit_complement_set, -1);
       else
         return MB_FAILURE;
       rval = mdbImpl->tag_set_data( sense2Tag, &(*surf_i), 1, sense_data );
