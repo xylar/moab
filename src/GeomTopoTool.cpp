@@ -936,8 +936,7 @@ ErrorCode GeomTopoTool::check_face_sense_tag(bool create)
     EntityHandle def_val[2] = {0, 0};
     rval = mdbImpl->tag_get_handle(GEOM_SENSE_2_TAG_NAME, 2,
         MB_TYPE_HANDLE, sense2Tag, flags, def_val);
-    if (MB_SUCCESS != rval)
-      return rval;
+    MB_CHK_SET_ERR(rval, "Could not get/create the sense2Tag");
   }
   return MB_SUCCESS;
 }
@@ -1487,7 +1486,7 @@ ErrorCode GeomTopoTool::get_implicit_complement(EntityHandle &implicit_complemen
 
   // if we found exactly one, return the handle
   if(entities.size() == 1) {
-    implicit_complement = entities.front();
+    *implicit_complement = entities.front();
     return MB_SUCCESS;
   }
   
@@ -1501,14 +1500,14 @@ ErrorCode GeomTopoTool::get_implicit_complement(EntityHandle &implicit_complemen
   if (entities.empty()) {
     // create implicit complement if requested
     if(create_if_missing) {
-      rval = create_implicit_complement(implicit_complement);
+      rval = create_implicit_complement(*implicit_complement);
       MB_CHK_SET_ERR(rval, "Could not create implicit complement.");
+      return MB_SUCCESS;
     }
     // if creation is not requested, report that it is not found
     else {
       return MB_ENTITY_NOT_FOUND;
     }
-    return rval;
   }
   
   return MB_FAILURE;
@@ -1518,21 +1517,20 @@ ErrorCode GeomTopoTool::get_implicit_complement(EntityHandle &implicit_complemen
 ErrorCode GeomTopoTool::create_implicit_complement(EntityHandle &implicit_complement_set) {
 
   ErrorCode rval;
-
   rval= mdbImpl->create_meshset(MESHSET_SET,implicit_complement_set);
   if (MB_SUCCESS != rval) {
-      std::cerr << "Failed to create mesh set for implicit complement." << std::endl;
+      std::cerr << "Failed to create mesh set for implicit complement" << std::endl;
       return rval;
   }
 
   // make sure the sense2Tag is set
-  rval = check_face_sense_tag(false);
-  MB_CHK_SET_ERR(rval, "Could not create face to volume sense tag.");
+  rval = check_face_sense_tag(true);
+  MB_CHK_SET_ERR(rval, "Could not create face to volume sense tag");
 
   // get all geometric surface sets
   Range surfs;
   rval = get_gsets_by_dimension(2, surfs);
-  MB_CHK_SET_ERR(rval, "Could not get surface sets.");
+  MB_CHK_SET_ERR(rval, "Could not get surface sets");
   
   // search through all surfaces
   std::vector<EntityHandle> parent_vols;  

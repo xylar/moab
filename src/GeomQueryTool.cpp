@@ -39,11 +39,13 @@ GeomQueryTool::~GeomQueryTool() {}
 ErrorCode GeomQueryTool::initialize() {
   //senseTag = get_tag( "GEOM_SENSE_2", 2, MB_TAG_SPARSE, MB_TYPE_HANDLE );
 
-  Tag retval = 0;
-  ErrorCode result = MBI->tag_get_handle("GEOM_SENSE_2", 2, MB_TYPE_HANDLE, retval, MB_TAG_SPARSE|MB_TAG_CREAT);
-
-  impl_compl_handle = geomTopoTool->get_impl_compl();
-
+  ErrorCode rval;
+  // rval = MBI->tag_get_handle("GEOM_SENSE_2", 2, MB_TYPE_HANDLE, senseTag, MB_TAG_SPARSE|MB_TAG_CREAT);
+  // MB_CHK_SET_ERR(rval , "Could not get the sense handle");
+  
+  rval = geomTopoTool->get_implicit_complement(&impl_compl_handle, true);
+  MB_CHK_SET_ERR(rval , "Couldn't get the implicit complement handle");
+  
   return MB_SUCCESS;
 }
 

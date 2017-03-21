@@ -108,7 +108,7 @@ public:
   ErrorCode geometrize_surface_set(EntityHandle surface, EntityHandle & output);
 
   // get the implicit complement handle
-  ErrorCode get_implicit_complement(EntityHandle &implicit_complement, bool create_if_missing = false);
+  ErrorCode get_implicit_complement(EntityHandle *implicit_complement = NULL, bool create_if_missing = false);
   
   // this would be a deep copy, into a new geom topo tool
   // sets will be duplicated, but entities not
@@ -126,8 +126,6 @@ public:
   const Range * geoRanges() { return geomRanges ; }
 
   Interface* get_moab_instance() { return mdbImpl; }
-
-  EntityHandle get_impl_compl() { return 0; }  // todo: write this function
 
 private:
   Interface *mdbImpl;
@@ -152,7 +150,7 @@ private:
   EntityHandle oneVolRootSet;
 
     //! creates a volume for undefined space in the model
-  ErrorCode create_implicit_complement(EntityHandle &implicit_complement_set);
+  ErrorCode create_implicit_complement(EntityHandle &implicit_complement);
   
     //! compute vertices inclusive and put on tag on sets in geom_sets
   ErrorCode construct_vertex_ranges(const Range &geom_sets,
