@@ -1485,6 +1485,12 @@ ErrorCode GeomTopoTool::duplicate_model(GeomTopoTool *& duplicate, std::vector<E
     std::cerr << "Unable to query for implicit complement." << std::endl;
     return rval;
   }
+
+  // if we found exactly one, return the handle
+  if(entities.size() == 1) {
+    implicit_complement = entities.front();
+    return MB_SUCCESS;
+  }
   
   // found too many
   if (entities.size() > 1) {
@@ -1504,11 +1510,9 @@ ErrorCode GeomTopoTool::duplicate_model(GeomTopoTool *& duplicate, std::vector<E
       return MB_ENTITY_NOT_FOUND;
     }
     return rval;
-  } else {
-    // found a single implicit complement
-    implicit_complement = entities.front();
-    return MB_SUCCESS;
   }
+  
+  return MB_FAILURE;
   
 }
 
