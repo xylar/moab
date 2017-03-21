@@ -1566,6 +1566,10 @@ ErrorCode GeomTopoTool::create_implicit_complement(EntityHandle &implicit_comple
     }
   } //end surface loop
 
+  rval = mdbImpl->add_entities(modelSet, &implicit_complement_set, 1);
+  MB_CHK_SET_ERR(rval, "Could not add implicit complement to model set.");
+
+  return MB_SUCCESS;
 }
   
 #define  RETFALSE(a, b) { std::cout<<a<<"\n"; mdbImpl->list_entity(b); return false; }
