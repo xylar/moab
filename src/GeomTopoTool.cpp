@@ -1486,7 +1486,7 @@ ErrorCode GeomTopoTool::get_implicit_complement(EntityHandle &implicit_complemen
 
   // if we found exactly one, return the handle
   if(entities.size() == 1) {
-    *implicit_complement = entities.front();
+    implicit_complement = entities.front();
     return MB_SUCCESS;
   }
   
@@ -1500,7 +1500,7 @@ ErrorCode GeomTopoTool::get_implicit_complement(EntityHandle &implicit_complemen
   if (entities.empty()) {
     // create implicit complement if requested
     if(create_if_missing) {
-      rval = create_implicit_complement(*implicit_complement);
+      rval = create_implicit_complement(implicit_complement);
       MB_CHK_SET_ERR(rval, "Could not create implicit complement.");
       return MB_SUCCESS;
     }

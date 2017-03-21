@@ -47,6 +47,8 @@ public:
      //!\return MB_MULTIPLE_ENTITIES_FOUND if surface already has a forward volume.
      //!        MB_SUCCESS if successful
      //!        otherwise whatever internal error code occured.
+   ErrorCode get_gsets_by_dimension( int dim, Range &gset);
+  
    ErrorCode set_sense( EntityHandle entity,
                         EntityHandle wrt_entity,
                         int sense);
@@ -108,7 +110,7 @@ public:
   ErrorCode geometrize_surface_set(EntityHandle surface, EntityHandle & output);
 
   // get the implicit complement handle
-  ErrorCode get_implicit_complement(EntityHandle *implicit_complement = NULL, bool create_if_missing = false);
+  ErrorCode get_implicit_complement(EntityHandle &implicit_complement, bool create_if_missing = false);
   
   // this would be a deep copy, into a new geom topo tool
   // sets will be duplicated, but entities not
@@ -166,8 +168,6 @@ private:
   ErrorCode check_edge_sense_tags(bool create);
 
   void set_contiguous(bool new_value);  
-
-  ErrorCode get_gsets_by_dimension( int dim, Range &gset);
 
   ErrorCode check_contiguous();
   

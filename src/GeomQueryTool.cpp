@@ -43,7 +43,7 @@ ErrorCode GeomQueryTool::initialize() {
   // rval = MBI->tag_get_handle("GEOM_SENSE_2", 2, MB_TYPE_HANDLE, senseTag, MB_TAG_SPARSE|MB_TAG_CREAT);
   // MB_CHK_SET_ERR(rval , "Could not get the sense handle");
   
-  rval = geomTopoTool->get_implicit_complement(&impl_compl_handle, true);
+  rval = geomTopoTool->get_implicit_complement(impl_compl_handle, true);
   MB_CHK_SET_ERR(rval , "Couldn't get the implicit complement handle");
   
   return MB_SUCCESS;
