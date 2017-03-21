@@ -816,4 +816,30 @@ ErrorCode GeomQueryTool::poly_solid_angle( EntityHandle face, const CartVect& po
   return MB_SUCCESS;
 }
 
+void GeomQueryTool::set_overlap_thickness( double new_thickness ){
+
+  if (new_thickness < 0 || new_thickness > 100) {
+    std::cerr << "Invalid overlap_thickness = " << new_thickness << std::endl;
+  }
+  else{
+    overlapThickness = new_thickness;
+  }
+  std::cout << "Set overlap thickness = " << overlapThickness << std::endl;
+
+}
+
+void GeomQueryTool::set_numerical_precision( double new_precision ){
+
+  if ( new_precision <= 0 || new_precision > 1) {
+    std::cerr << "Invalid numerical_precision = " << numericalPrecision << std::endl;
+  }
+  else{
+    numericalPrecision = new_precision;
+  }
+
+  std::cout << "Set numerical precision = " << numericalPrecision << std::endl;
+
+}
+
+
 }

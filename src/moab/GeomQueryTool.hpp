@@ -237,6 +237,14 @@ private:
 
 public:
 
+  /** Attempt to set a new overlap thickness tolerance, first checking for sanity */
+  void set_overlap_thickness( double new_overlap_thickness );
+  
+  /** Attempt to set a new numerical precision , first checking for sanity
+   *  Use of this function is discouraged; see top of DagMC.cpp
+   */
+  void set_numerical_precision( double new_precision );
+  
 private:
 
   GeomTopoTool* geomTopoTool;

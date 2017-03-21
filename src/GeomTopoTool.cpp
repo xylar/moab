@@ -1590,10 +1590,12 @@ ErrorCode GeomTopoTool::create_implicit_complement(EntityHandle &implicit_comple
   static const char volume_category[CATEGORY_TAG_SIZE] = "Volume\0";
   rval = mdbImpl->tag_set_data(category_tag, &implicit_complement_set, 1, volume_category );
   MB_CHK_SET_ERR(rval, "Could not set the category tag for the implicit complement");
-  
-  //  rval = mdbImpl->add_entities(modelSet, &implicit_complement_set, 1);
-  // MB_CHK_SET_ERR(rval, "Could not add implicit complement to model set.");
 
+  if(modelSet != mdbImpl->get_root_set()){
+    rval = mdbImpl->add_entities(modelSet, &implicit_complement_set, 1);
+    MB_CHK_SET_ERR(rval, "Could not add implicit complement to model set.");
+  }
+  
   return MB_SUCCESS;
 }
   
