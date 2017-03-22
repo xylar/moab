@@ -62,8 +62,9 @@ GeomTopoTool::GeomTopoTool(Interface *impl, bool find_geoments, EntityHandle mod
       MB_TYPE_OPAQUE, nameTag, MB_TAG_CREAT|MB_TAG_SPARSE);
   MB_CHK_SET_ERR_CONT(rval, "Error: Failed to create name tag.");
 
-  rval = mdbImpl->tag_get_handle(GEOM_SENSE_2_TAG_NAME, 2,
-      MB_TYPE_HANDLE, sense2Tag, MB_TAG_SPARSE|MB_TAG_CREAT);
+  // rval = mdbImpl->tag_get_handle(GEOM_SENSE_2_TAG_NAME, 2,
+  //     MB_TYPE_HANDLE, sense2Tag, MB_TAG_SPARSE|MB_TAG_CREAT|MB_TAG_ANY);
+  rval = mdbImpl->tag_get_handle(GEOM_SENSE_2_TAG_NAME, sense2Tag);
   MB_CHK_SET_ERR_CONT(rval, "Could not create face to volume sense tag");
 
   maxGlobalId[0] = maxGlobalId[1] = maxGlobalId[2] = maxGlobalId[3] =maxGlobalId[4] =0;
@@ -935,7 +936,7 @@ ErrorCode GeomTopoTool::set_senses(EntityHandle entity, std::vector<
 ErrorCode GeomTopoTool::check_face_sense_tag(bool create)
 {
   ErrorCode rval;
-  unsigned flags = create ? MB_TAG_SPARSE|MB_TAG_CREAT : MB_TAG_SPARSE;
+  unsigned flags = create ? MB_TAG_SPARSE|MB_TAG_CREAT|MB_TAG_ANY : MB_TAG_SPARSE|MB_TAG_ANY;
   if (!sense2Tag) {
     EntityHandle def_val[2] = {0, 0};
     rval = mdbImpl->tag_get_handle(GEOM_SENSE_2_TAG_NAME, 2,
@@ -1306,17 +1307,17 @@ ErrorCode GeomTopoTool::duplicate_model(GeomTopoTool *& duplicate, std::vector<E
   // will
   EntityHandle rootModelSet;
   ErrorCode rval = mdbImpl->create_meshset(MESHSET_SET, rootModelSet);
-  if (MB_SUCCESS!=rval)
-    return rval;
+  MB_CHK_SET_ERR(rval, "MOAB Error");
+  
   if (0 == geomTag) {
     rval = mdbImpl->tag_get_handle(GEOM_DIMENSION_TAG_NAME, 1, MB_TYPE_INTEGER, geomTag);
-    if (MB_SUCCESS != rval)
-      return rval;
+    MB_CHK_SET_ERR(rval, "MOAB Error");
+    
   }
   if (0 == gidTag) {
     rval = mdbImpl->tag_get_handle(GLOBAL_ID_TAG_NAME, 1,MB_TYPE_INTEGER, gidTag);
-    if (MB_SUCCESS != rval)
-      return rval;
+    MB_CHK_SET_ERR(rval, "MOAB Error");
+    
   }
   // extract from the geomSet the dimension, children, and grand-children
   Range depSets;// dependents of the geomSet, including the geomSet
@@ -1331,8 +1332,8 @@ ErrorCode GeomTopoTool::duplicate_model(GeomTopoTool *& duplicate, std::vector<E
       // will keep accumulating to the depSets range
       rval = mdbImpl->get_child_meshsets(geomSet, depSets, 0); // 0 for numHops means that all
       // dependents are returned, not only the direct children.
-      if (MB_SUCCESS != rval)
-        return rval;
+      MB_CHK_SET_ERR(rval, "MOAB Error");
+      
       depSets.insert(geomSet);
     }
 
@@ -1353,40 +1354,40 @@ ErrorCode GeomTopoTool::duplicate_model(GeomTopoTool *& duplicate, std::vector<E
         continue; // this means that this set is not of interest, skip it
       EntityHandle newSet;
       rval = mdbImpl->create_meshset(set_options, newSet);
-      if (MB_SUCCESS!=rval)
-        return rval;
+      MB_CHK_SET_ERR(rval, "MOAB Error");
+      
       relate[set] = newSet;
       rval = mdbImpl->add_entities(rootModelSet, &newSet, 1);
-      if (MB_SUCCESS!=rval)
-        return rval;
+      MB_CHK_SET_ERR(rval, "MOAB Error");
+      
       // make it a geo set, and give also global id in order
       rval = mdbImpl->tag_set_data(geomTag, &newSet, 1, &dim);
-      if (MB_SUCCESS!=rval)
-        return rval;
+      MB_CHK_SET_ERR(rval, "MOAB Error");
+      
       gid++;// increment global id, everything starts with 1 in the new model!
       rval = mdbImpl->tag_set_data(gidTag, &newSet, 1, &gid);
-      if (MB_SUCCESS!=rval)
-        return rval;
+      MB_CHK_SET_ERR(rval, "MOAB Error");
+      
       if (dim==1)
       {
         // the entities are ordered, we need to retrieve them ordered, and set them ordered
         std::vector<EntityHandle> mesh_edges;
         rval = mdbImpl->get_entities_by_handle(set, mesh_edges);
-        if (MB_SUCCESS!=rval)
-          return rval;
+	MB_CHK_SET_ERR(rval, "MOAB Error");
+	
         rval = mdbImpl->add_entities(newSet, &(mesh_edges[0]), (int)mesh_edges.size());
-        if (MB_SUCCESS!=rval)
-          return rval;
+	MB_CHK_SET_ERR(rval, "MOAB Error");
+	
       }
       else
       {
         Range ents;
         rval = mdbImpl->get_entities_by_handle(set, ents);
-        if (MB_SUCCESS!=rval)
-          return rval;
+	MB_CHK_SET_ERR(rval, "MOAB Error");
+	
         rval = mdbImpl->add_entities(newSet, ents);
-        if (MB_SUCCESS!=rval)
-          return rval;
+	MB_CHK_SET_ERR(rval, "MOAB Error");
+	
       }
       //set parent/child relations if dim>=1
       if (dim>=1)
@@ -1394,14 +1395,14 @@ ErrorCode GeomTopoTool::duplicate_model(GeomTopoTool *& duplicate, std::vector<E
         Range children;
         // the children of geo sets are only g sets
         rval = mdbImpl->get_child_meshsets(set, children); // num_hops = 1 by default
-        if (MB_SUCCESS!=rval)
-           return rval;
+	MB_CHK_SET_ERR(rval, "MOAB Error");
+	
         for (Range::iterator it2=children.begin(); it2!=children.end(); ++it2)
         {
           EntityHandle newChildSet = relate[*it2];
           rval = mdbImpl->add_parent_child(newSet, newChildSet);
-          if (MB_SUCCESS!=rval)
-            return rval;
+	  MB_CHK_SET_ERR(rval, "MOAB Error");
+	  
         }
       }
 
@@ -1417,11 +1418,11 @@ ErrorCode GeomTopoTool::duplicate_model(GeomTopoTool *& duplicate, std::vector<E
   // set senses by peeking at the old model
   // make sure we have the sense tags defined
   rval = check_face_sense_tag(true);
-  if (rval!=MB_SUCCESS)
-    return rval;
+  MB_CHK_SET_ERR(rval, "MOAB Error");
+  
   rval = check_edge_sense_tags(true);
-  if (rval!=MB_SUCCESS)
-    return rval;
+  MB_CHK_SET_ERR(rval, "MOAB Error");
+
 
   for (int dd=1; dd<=2; dd++) // do it for surfaces and edges
   {
@@ -1436,8 +1437,8 @@ ErrorCode GeomTopoTool::duplicate_model(GeomTopoTool *& duplicate, std::vector<E
       std::vector<EntityHandle> solids;
       std::vector<int> senses;
       rval = this->get_senses(surf, solids, senses);
-      if (MB_SUCCESS!=rval)
-         return rval;
+      MB_CHK_SET_ERR(rval, "MOAB Error");
+      
       std::vector<EntityHandle> newSolids;
       std::vector<int> newSenses;
       for (unsigned int i = 0; i<solids.size(); i++)
@@ -1450,8 +1451,8 @@ ErrorCode GeomTopoTool::duplicate_model(GeomTopoTool *& duplicate, std::vector<E
         newSenses.push_back(senses[i]);
       }
       rval = duplicate->set_senses(newSurf, newSolids, newSenses);
-      if (MB_SUCCESS!=rval)
-        return rval;
+      MB_CHK_SET_ERR(rval, "MOAB Error");
+      
     }
   }
   // if the original root model set for this model is 0 (root set), then create
@@ -1461,14 +1462,14 @@ ErrorCode GeomTopoTool::duplicate_model(GeomTopoTool *& duplicate, std::vector<E
   if (modelSet==0)
   {
     rval = mdbImpl->create_meshset(MESHSET_SET, modelSet);
-    if (MB_SUCCESS != rval)
-      return rval;
+    MB_CHK_SET_ERR(rval, "MOAB Error");
+    
     // add to this new set all previous sets (which are still in ranges)
     for (int dim=0; dim<5; dim++)
     {
       rval = mdbImpl->add_entities(modelSet, geomRanges[dim]);
-      if (MB_SUCCESS != rval)
-        return rval;
+      MB_CHK_SET_ERR(rval, "MOAB Error");
+      
     }
 
   }
