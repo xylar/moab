@@ -50,17 +50,17 @@ GeomTopoTool::GeomTopoTool(Interface *impl, bool find_geoments, EntityHandle mod
   
   ErrorCode rval = mdbImpl->tag_get_handle(GEOM_DIMENSION_TAG_NAME, 1,
       MB_TYPE_INTEGER, geomTag, MB_TAG_CREAT|MB_TAG_SPARSE);
-  MB_CHK_SET_ERR_CONT(rval, "Error: Failed to create geometry dimension tag.");
+  MB_CHK_SET_ERR_CONT(rval, "Error: Failed to create geometry dimension tag");
   
   // global id tag is not really needed, but mbsize complains if we do not set it for
   // geometry entities
   rval = mdbImpl->tag_get_handle(GLOBAL_ID_TAG_NAME, 1, 
         MB_TYPE_INTEGER, gidTag, MB_TAG_CREAT|MB_TAG_DENSE);
-  MB_CHK_SET_ERR_CONT(rval,  "Error: Failed to create global id tag.");
+  MB_CHK_SET_ERR_CONT(rval,  "Error: Failed to create global id tag");
 
   rval = mdbImpl->tag_get_handle(NAME_TAG_NAME, NAME_TAG_SIZE,
       MB_TYPE_OPAQUE, nameTag, MB_TAG_CREAT|MB_TAG_SPARSE);
-  MB_CHK_SET_ERR_CONT(rval, "Error: Failed to create name tag.");
+  MB_CHK_SET_ERR_CONT(rval, "Error: Failed to create name tag");
 
   maxGlobalId[0] = maxGlobalId[1] = maxGlobalId[2] = maxGlobalId[3] =maxGlobalId[4] =0;
   if (find_geoments)
@@ -211,10 +211,10 @@ void GeomTopoTool::set_contiguous(bool new_value)
        // get all surfaces and volumes
        Range surfs, vols;
        rval = get_gsets_by_dimension(3, vols);
-       MB_CHK_SET_ERR_RET(rval, "Failed to get volume entity set.");
+       MB_CHK_SET_ERR_RET(rval, "Failed to get volume entity set");
 
        rval = get_gsets_by_dimension(2, surfs);
-       MB_CHK_SET_ERR_RET(rval, "Failed to get surface entity set.");
+       MB_CHK_SET_ERR_RET(rval, "Failed to get surface entity set");
 
        // combine surfs and vols into one range
        Range surfs_and_vols;
@@ -230,7 +230,7 @@ void GeomTopoTool::set_contiguous(bool new_value)
              {
                EntityHandle root;
                rval = get_root(*it, root);
-               MB_CHK_SET_ERR_RET(rval, "Failed to get root.");
+               MB_CHK_SET_ERR_RET(rval, "Failed to get root");
                if (root != 0)
                  {
                    mapRootSets[*it] = root;
@@ -249,7 +249,7 @@ void GeomTopoTool::set_contiguous(bool new_value)
              {
                EntityHandle root;
                rval = get_root(*it, root);
-               MB_CHK_SET_ERR_RET(rval, "Failed to get root.");
+               MB_CHK_SET_ERR_RET(rval, "Failed to get root");
               
                if(mapRootSets.find(*it) != mapRootSets.end())
                  {
@@ -271,7 +271,7 @@ ErrorCode GeomTopoTool::get_gsets_by_dimension(int dim, Range &gset)
    const void* const dim_val[] = { &val };
    rval = mdbImpl->get_entities_by_type_and_tag(modelSet, MBENTITYSET, &geomTag,
        dim_val, 1, gset);
-   MB_CHK_SET_ERR(rval, "Failed to get entity set by type and tag.");
+   MB_CHK_SET_ERR(rval, "Failed to get entity set by type and tag");
   
    return MB_SUCCESS;
 }
@@ -283,9 +283,9 @@ ErrorCode GeomTopoTool::check_contiguous()
   // get all surfaces and volumes
   Range surfs, vols;
   rval = get_gsets_by_dimension(2, surfs);
-  MB_CHK_SET_ERR(rval, "Could not get surface sets.");
+  MB_CHK_SET_ERR(rval, "Could not get surface sets");
   rval = get_gsets_by_dimension(3, vols);
-  MB_CHK_SET_ERR(rval, "Could not get volume sets.");
+  MB_CHK_SET_ERR(rval, "Could not get volume sets");
 
   // find the offset
   if (vols.empty() && !surfs.empty()) {
@@ -361,7 +361,7 @@ ErrorCode GeomTopoTool::construct_obb_tree(EntityHandle eh)
        rval = get_root(eh, root);
        if(MB_SUCCESS == rval)
          {
-           std::cerr << "Surface obb tree already exists." << std::endl;
+           std::cerr << "Surface obb tree already exists" << std::endl;
            return MB_SUCCESS;
          }
        else if(MB_INDEX_OUT_OF_RANGE != rval)
@@ -375,7 +375,7 @@ ErrorCode GeomTopoTool::construct_obb_tree(EntityHandle eh)
          return rval;
      
        if (tris.empty()) {
-         std::cerr << "WARNING: Surface has no facets." << std::endl;
+         std::cerr << "WARNING: Surface has no facets" << std::endl;
        }
      
        rval = obbTree.build(tris, root);
@@ -442,21 +442,21 @@ ErrorCode GeomTopoTool::construct_obb_trees(bool make_one_vol)
   // get all surfaces and volumes
   Range surfs, vols, vol_trees;
   rval = get_gsets_by_dimension(2, surfs);
-  MB_CHK_SET_ERR(rval, "Could not get surface sets.");
+  MB_CHK_SET_ERR(rval, "Could not get surface sets");
   rval = get_gsets_by_dimension(3, vols);
-  MB_CHK_SET_ERR(rval, "Could not get volume sets.");
+  MB_CHK_SET_ERR(rval, "Could not get volume sets");
 
   // for surface
   for (Range::iterator i = surfs.begin(); i != surfs.end(); ++i) {
     rval = construct_obb_tree(*i);
-    MB_CHK_SET_ERR(rval, "Failed to construct obb tree for surface.");
+    MB_CHK_SET_ERR(rval, "Failed to construct obb tree for surface");
   }
 
   // for volumes
   Range trees;
   for (Range::iterator i = vols.begin(); i != vols.end(); ++i) {
     rval = construct_obb_tree(*i);
-    MB_CHK_SET_ERR(rval, "Failed to construct obb tree for volume.");
+    MB_CHK_SET_ERR(rval, "Failed to construct obb tree for volume");
   }
 
   // build OBB tree for volume
@@ -1567,12 +1567,12 @@ ErrorCode GeomTopoTool::create_implicit_complement(EntityHandle &implicit_comple
 
       // add this surf to the topology of the implicit complement volume
       rval = mdbImpl->add_parent_child(implicit_complement_set,*surf_i);
-      MB_CHK_SET_ERR(rval, "Could not add surface to implicit complement set.");
+      MB_CHK_SET_ERR(rval, "Could not add surface to implicit complement set");
       
       // get the surface sense wrt original volume
       EntityHandle sense_data[2] = {0,0};
       rval = mdbImpl->tag_get_data( sense2Tag, &(*surf_i), 1, sense_data );
-      MB_CHK_SET_ERR(rval, "Could not get surface sense data.");
+      MB_CHK_SET_ERR(rval, "Could not get surface sense data");
 
       // set the surface sense wrt implicit complement volume
       if(0==sense_data[0] && 0==sense_data[1]) return MB_FAILURE;
@@ -1610,7 +1610,7 @@ ErrorCode GeomTopoTool::create_implicit_complement(EntityHandle &implicit_comple
 
   if( modelSet != mdbImpl->get_root_set() ){
     rval = mdbImpl->add_entities(modelSet, &implicit_complement_set, 1);
-    MB_CHK_SET_ERR(rval, "Could not add implicit complement to model set.");
+    MB_CHK_SET_ERR(rval, "Could not add implicit complement to model set");
   }
   
   return MB_SUCCESS;
