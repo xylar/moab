@@ -64,8 +64,8 @@ GeomTopoTool::GeomTopoTool(Interface *impl, bool find_geoments, EntityHandle mod
 
   // rval = mdbImpl->tag_get_handle(GEOM_SENSE_2_TAG_NAME, 2,
   //     MB_TYPE_HANDLE, sense2Tag, MB_TAG_SPARSE|MB_TAG_CREAT|MB_TAG_ANY);
-  rval = mdbImpl->tag_get_handle(GEOM_SENSE_2_TAG_NAME, sense2Tag);
-  MB_CHK_SET_ERR_CONT(rval, "Could not create face to volume sense tag");
+  // rval = mdbImpl->tag_get_handle(GEOM_SENSE_2_TAG_NAME, sense2Tag);
+  // MB_CHK_SET_ERR_CONT(rval, "Could not create face to volume sense tag");
 
   maxGlobalId[0] = maxGlobalId[1] = maxGlobalId[2] = maxGlobalId[3] =maxGlobalId[4] =0;
   if (find_geoments)
@@ -938,10 +938,14 @@ ErrorCode GeomTopoTool::check_face_sense_tag(bool create)
   ErrorCode rval;
   unsigned flags = create ? MB_TAG_SPARSE|MB_TAG_CREAT|MB_TAG_ANY : MB_TAG_SPARSE|MB_TAG_ANY;
   if (!sense2Tag) {
-    EntityHandle def_val[2] = {0, 0};
-    rval = mdbImpl->tag_get_handle(GEOM_SENSE_2_TAG_NAME, 2,
-        MB_TYPE_HANDLE, sense2Tag, flags, def_val);
-    MB_CHK_SET_ERR(rval, "Could not get/create the sense2Tag");
+    //get any kind of tag that already exists
+    rval = mdbImpl->tag_get_handle(GEOM_SENSE_2_TAG_NAME, sense2Tag);
+    if( rval == MB_TAG_NOT_FOUND ) {
+      EntityHandle def_val[2] = {0, 0};
+      rval = mdbImpl->tag_get_handle(GEOM_SENSE_2_TAG_NAME, 2,
+				     MB_TYPE_HANDLE, sense2Tag, flags, def_val);
+    }
+      MB_CHK_SET_ERR(rval, "Could not get/create the sense2Tag");
   }
   return MB_SUCCESS;
 }
