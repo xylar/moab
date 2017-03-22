@@ -6,7 +6,6 @@
 //---------------------------------------------------------------------------//
 GenerateHierarchy::GenerateHierarchy(Interface *impl, ErrorCode &return_value)
 {
-//  ErrorCode rval;
  
   if (NULL == impl)
     {
@@ -34,6 +33,7 @@ ErrorCode GenerateHierarchy::setup()
 
   // init_obb                                                                 
   rval = DAG->load_existing_contents();         
+  MB_CHK_SET_ERR(rval, "Failed to load DAG existing contents.");
 
   // build obbs
   rval = DAG->setup_obbs();
@@ -64,7 +64,7 @@ ErrorCode GenerateHierarchy::tear_down()
     {
       //get obb tree root node
       moab::EntityHandle obb_root;
-      DAG->get_root(i, obb_root);
+      rval = DAG->get_root(DAG->entity_by_index(3, i), obb_root); MB_CHK_ERR(rval);
       
       //delete tree
       rval = obbTree->delete_tree(obb_root); MB_CHK_ERR(rval);
@@ -73,6 +73,8 @@ ErrorCode GenerateHierarchy::tear_down()
   //delete obb tag
   rval = MBI->tag_delete(obb_tree_tag); MB_CHK_ERR(rval);
 
+  delete obbTree;
+  
   return MB_SUCCESS;
 }
 
