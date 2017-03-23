@@ -70,6 +70,13 @@ public:
     
   ErrorCode construct_obb_tree(EntityHandle eh);
 
+      // get the corners of the OBB for a given volume
+  ErrorCode getobb(EntityHandle volume, double minPt[3], double maxPt[3]);
+
+    // get the center point and three vectors for the OBB of a given volume
+  ErrorCode getobb(EntityHandle volume, double center[3],
+                     double axis1[3], double axis2[3], double axis3[3]);
+
     /** \brief get the other (d-1)-dimensional entity bounding a set across a (d-2)-dimensional entity
      *
      * Given a d-dimensional entity and one (d-1)-dimensional entity, return the (d-1) dimensional
@@ -138,7 +145,13 @@ public:
 
   Interface* get_moab_instance() { return mdbImpl; }
 
-  Tag get_sense_tag() { check_face_sense_tag(true); return sense2Tag; }
+  Tag get_sense_tag();
+
+  Tag get_gid_tag();
+  
+  Tag get_geom_tag();
+
+  bool have_obb_tree();
   
 private:
   Interface *mdbImpl;
@@ -172,11 +185,17 @@ private:
     //! given a range of geom topology sets, separate by dimension
   ErrorCode separate_by_dimension(const Range &geom_sets);
 
-  // verify sense face tag
-  ErrorCode check_face_sense_tag(bool create);
+    //! verify global id tag
+  ErrorCode check_gid_tag(bool create = false);
 
-  // verify sense edge tags
-  ErrorCode check_edge_sense_tags(bool create);
+    //! verify geometry tag
+  ErrorCode check_geom_tag(bool create = false);
+
+    //! verify sense face tag
+  ErrorCode check_face_sense_tag(bool create = false);
+
+    //! verify sense edge tags
+  ErrorCode check_edge_sense_tags(bool create = false);
 
   void set_contiguous(bool new_value);  
 
@@ -220,8 +239,13 @@ inline EntityHandle GeomTopoTool::get_one_vol_root()
   return oneVolRootSet;
 }
 
-}
- // namespace moab 
+  inline Tag GeomTopoTool::get_sense_tag() { check_face_sense_tag(true); return sense2Tag; }
+  
+  inline Tag GeomTopoTool::get_gid_tag() { check_gid_tag(true); return gidTag; }
+  
+  inline Tag GeomTopoTool::get_geom_tag() { check_geom_tag(true); return geomTag; }
+
+} // namespace moab 
 
 #endif
 

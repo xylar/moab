@@ -630,13 +630,9 @@ ErrorCode GeomTopoTool::separate_by_dimension(const Range &geom_sets)
 {
   ErrorCode result;
 
-  if (0 == geomTag) {
-
-    result = mdbImpl->tag_get_handle(GEOM_DIMENSION_TAG_NAME, 1, MB_TYPE_INTEGER, geomTag);
-    if (MB_SUCCESS != result)
-      return result;
-  }
-
+  result = check_geom_tag();
+  MB_CHK_SET_ERR(result, "Could not verify geometry dimension tag");
+  
   // get the data for those tags
   std::vector<int> tag_vals(geom_sets.size());
   result = mdbImpl->tag_get_data(geomTag, geom_sets, &tag_vals[0]);
@@ -985,6 +981,28 @@ ErrorCode GeomTopoTool::set_senses(EntityHandle entity, std::vector<
       return rval;
   }
 
+  return MB_SUCCESS;
+}
+
+ErrorCode GeomTopoTool::check_geom_tag(bool create) {
+  ErrorCode rval;
+  unsigned flags = create ? MB_TAG_DENSE|MB_TAG_CREAT : MB_TAG_DENSE;
+  if (!geomTag) {
+    //get any kind of tag that already exists
+    rval = mdbImpl->tag_get_handle(GEOM_DIMENSION_TAG_NAME, 1, MB_TYPE_INTEGER, geomTag, flags);
+    MB_CHK_SET_ERR(rval, "Could not get/create the geometry dimension tag");
+  }
+  return MB_SUCCESS;
+}
+
+ErrorCode GeomTopoTool::check_gid_tag(bool create) {
+  ErrorCode rval;
+  unsigned flags = create ? MB_TAG_DENSE|MB_TAG_CREAT : MB_TAG_DENSE;
+  if (!gidTag) {
+    //get any kind of tag that already exists
+    rval = mdbImpl->tag_get_handle(GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, gidTag, flags);
+    MB_CHK_SET_ERR(rval, "Could not get/create the global id tag");
+  }
   return MB_SUCCESS;
 }
 
@@ -1823,6 +1841,51 @@ bool GeomTopoTool::check_model()
 
   return true;
 }
+
+bool GeomTopoTool::have_obb_tree() {
+  Tag tmp_tag;
+  bool result;
+  ErrorCode rval = mdbImpl->tag_get_handle("OBB", tmp_tag);
+  if( MB_TAG_NOT_FOUND == rval )
+    result = false;
+  else
+    result = true;
+  MB_CHK_SET_ERR(rval, "Failed to get OBB tag handle");
+}
+
+ErrorCode GeomTopoTool::getobb(EntityHandle volume, double minPt[3],
+                          double maxPt[3])
+{
+  double center[3], axis1[3], axis2[3], axis3[3];
+
+    // get center point and vectors to OBB faces
+  ErrorCode rval = getobb(volume, center, axis1, axis2, axis3);
+  if (MB_SUCCESS != rval)
+    return rval;
+
+    // compute min and max vertices
+  for (int i=0; i<3; i++)
+  {
+    double sum = fabs(axis1[i]) + fabs(axis2[i]) + fabs(axis3[i]);
+    minPt[i] = center[i] - sum;
+    maxPt[i] = center[i] + sum;
+  }
+  return MB_SUCCESS;
+}
+
+ErrorCode GeomTopoTool::getobb(EntityHandle volume, double center[3], double axis1[3],
+                          double axis2[3], double axis3[3])
+{
+  //find EntityHandle node_set for use in box
+  EntityHandle root;
+  ErrorCode rval = get_root(volume, root);
+  MB_CHK_SET_ERR(rval, "Failed to get volume's obb tree root");
+
+  // call box to get center and vectors to faces
+  return obbTree.box(root, center, axis1, axis2, axis3);
+
+}
+
 } // namespace moab
 
 
