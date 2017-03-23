@@ -244,7 +244,11 @@ public:
    *  Use of this function is discouraged; see top of DagMC.cpp
    */
   void set_numerical_precision( double new_precision );
-  
+
+  double get_numerical_precision() { return numericalPrecision; }
+
+  double get_overlap_thickness() { return overlapThickness; }
+
 private:
 
   GeomTopoTool* geomTopoTool;
