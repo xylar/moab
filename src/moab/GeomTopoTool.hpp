@@ -97,8 +97,9 @@ public:
   ErrorCode find_geomsets(Range *ranges = NULL);
 
   ErrorCode construct_obb_trees(bool make_one_vol = false);
-
-  ErrorCode delete_obb_tree(EntityHandle eh);
+  
+  /* Relies on future work in OBBTreeTool before final implementation */
+  //ErrorCode delete_obb_tree(EntityHandle eh);
   
   ErrorCode get_root(EntityHandle vol_or_surf, EntityHandle &root);
 

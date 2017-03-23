@@ -343,28 +343,29 @@ ErrorCode GeomTopoTool::is_owned_set(EntityHandle eh) {
       MB_CHK_SET_ERR(MB_FAILURE, "Entity handle not in model set");
     }  
 }
-    
-ErrorCode GeomTopoTool::delete_obb_tree(EntityHandle eh) {
-  EntityHandle root;
 
-  // make sure this set is part of the model
-  ErrorCode rval = is_owned_set(eh);
-  MB_CHK_SET_ERR(rval, "Entity set is not part of this model");
+  /* Relies on future work in OBBTreeTool before final implementation */
+// ErrorCode GeomTopoTool::delete_obb_tree(EntityHandle eh) {
+//   EntityHandle root;
+
+//   // make sure this set is part of the model
+//   ErrorCode rval = is_owned_set(eh);
+//   MB_CHK_SET_ERR(rval, "Entity set is not part of this model");
   
-  // attempt to find a root for this set
-  rval = get_root(eh, root);
-  MB_CHK_SET_ERR(rval, "Failed to find an obb tree root for the entity set");
+//   // attempt to find a root for this set
+//   rval = get_root(eh, root);
+//   MB_CHK_SET_ERR(rval, "Failed to find an obb tree root for the entity set");
 
-  // delete the tree
-  rval = obbTree.delete_tree(root);
-  MB_CHK_SET_ERR(rval, "Failed to delete obb tree for entity set");
+//   // delete the tree
+//   rval = obbTree.delete_tree(root);
+//   MB_CHK_SET_ERR(rval, "Failed to delete obb tree for entity set");
 
-  // remove root_set entry from data struct
-  rval = remove_root(eh);
-  MB_CHK_SET_ERR(rval, "Failed to remove root set");
+//   // remove root_set entry from data struct
+//   rval = remove_root(eh);
+//   MB_CHK_SET_ERR(rval, "Failed to remove root set");
   
-  return MB_SUCCESS;
-}
+//   return MB_SUCCESS;
+// }
 
 ErrorCode GeomTopoTool::construct_obb_tree(EntityHandle eh)
 {
