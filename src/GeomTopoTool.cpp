@@ -470,7 +470,8 @@ ErrorCode GeomTopoTool::construct_obb_tree(EntityHandle eh)
 ErrorCode GeomTopoTool::construct_obb_trees(bool make_one_vol)
 {
   ErrorCode rval;
-
+  EntityHandle root;
+  
   // get all surfaces and volumes
   Range surfs, vols, vol_trees;
   rval = get_gsets_by_dimension(2, surfs);
@@ -479,22 +480,27 @@ ErrorCode GeomTopoTool::construct_obb_trees(bool make_one_vol)
   MB_CHK_SET_ERR(rval, "Could not get volume sets");
 
   // for surface
+  Range one_vol_trees; 
   for (Range::iterator i = surfs.begin(); i != surfs.end(); ++i) {
     rval = construct_obb_tree(*i);
     MB_CHK_SET_ERR(rval, "Failed to construct obb tree for surface");
+    // get the root set of this volume
+    rval = get_root(*i, root);
+    MB_CHK_SET_ERR(rval, "Failed to get obb tree root for surface");
+    // add to the Range of volume root sets
+    one_vol_trees.insert(root);
   }
 
   // for volumes
-  Range trees;
   for (Range::iterator i = vols.begin(); i != vols.end(); ++i) {
+    // create tree for this volume
     rval = construct_obb_tree(*i);
     MB_CHK_SET_ERR(rval, "Failed to construct obb tree for volume");
   }
 
   // build OBB tree for volume
-  EntityHandle root;
   if (make_one_vol) {
-    rval = obbTree->join_trees(trees, root);
+    rval = obbTree.join_trees(one_vol_trees, root);
     if (MB_SUCCESS != rval)
       return rval;
     oneVolRootSet = root;
