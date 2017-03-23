@@ -67,6 +67,9 @@ public:
                           std::vector<EntityHandle> &wrt_entities,
                           std::vector<int> &senses);
 
+    
+  ErrorCode construct_obb_tree(EntityHandle eh);
+
     /** \brief get the other (d-1)-dimensional entity bounding a set across a (d-2)-dimensional entity
      *
      * Given a d-dimensional entity and one (d-1)-dimensional entity, return the (d-1) dimensional
@@ -93,10 +96,13 @@ public:
 
   ErrorCode find_geomsets(Range *ranges = NULL);
 
-
   ErrorCode construct_obb_trees(bool make_one_vol = false);
 
+  ErrorCode delete_obb_tree(EntityHandle eh);
+  
   ErrorCode get_root(EntityHandle vol_or_surf, EntityHandle &root);
+
+  ErrorCode remove_root(EntityHandle vol_or_surf);
 
   EntityHandle get_one_vol_root();
 
@@ -111,6 +117,8 @@ public:
 
   // get the implicit complement handle
   ErrorCode get_implicit_complement(EntityHandle &implicit_complement, bool create_if_missing = false);
+
+  ErrorCode is_owned_set(EntityHandle eh);
   
   // this would be a deep copy, into a new geom topo tool
   // sets will be duplicated, but entities not
@@ -172,8 +180,6 @@ private:
   void set_contiguous(bool new_value);  
 
   ErrorCode check_contiguous();
-  
-  ErrorCode construct_obb_tree(EntityHandle eh);
 
 };
 
@@ -190,6 +196,24 @@ inline ErrorCode GeomTopoTool::get_root(EntityHandle vol_or_surf, EntityHandle &
    return (root ? MB_SUCCESS : MB_INDEX_OUT_OF_RANGE);
 }
 
+inline ErrorCode GeomTopoTool::remove_root(EntityHandle vol_or_surf) {
+   if(contiguous)
+   {
+     unsigned int index = vol_or_surf - setOffset;
+     if( index < rootSets.size() ) {
+       rootSets[index] = 0;
+     }
+     else {
+       return MB_INDEX_OUT_OF_RANGE;
+     }
+   }
+   else {
+      mapRootSets[vol_or_surf] = 0;
+   }
+   
+   return MB_SUCCESS;
+}
+  
 inline EntityHandle GeomTopoTool::get_one_vol_root()
 {
   return oneVolRootSet;

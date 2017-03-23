@@ -333,20 +333,47 @@ ErrorCode GeomTopoTool::check_contiguous()
   return MB_SUCCESS;
 }
 
-ErrorCode GeomTopoTool::construct_obb_tree(EntityHandle eh)
-{
-  ErrorCode rval;
-  int dim;
-  
+ErrorCode GeomTopoTool::is_owned_set(EntityHandle eh) {
   // make sure entity set is part of the model
   Range model_ents;
-  rval = mdbImpl->get_entities_by_handle(modelSet, model_ents);
+  ErrorCode rval = mdbImpl->get_entities_by_handle(modelSet, model_ents);
   MB_CHK_SET_ERR(rval, "Failed to get entities");
   if(model_ents.find(eh) == model_ents.end())
     {
       MB_CHK_SET_ERR(MB_FAILURE, "Entity handle not in model set");
-    }
- 
+    }  
+}
+    
+ErrorCode GeomTopoTool::delete_obb_tree(EntityHandle eh) {
+  EntityHandle root;
+
+  // make sure this set is part of the model
+  ErrorCode rval = is_owned_set(eh);
+  MB_CHK_SET_ERR(rval, "Entity set is not part of this model");
+  
+  // attempt to find a root for this set
+  rval = get_root(eh, root);
+  MB_CHK_SET_ERR(rval, "Failed to find an obb tree root for the entity set");
+
+  // delete the tree
+  rval = obbTree.delete_tree(root);
+  MB_CHK_SET_ERR(rval, "Failed to delete obb tree for entity set");
+
+  // remove root_set entry from data struct
+  rval = remove_root(eh);
+  MB_CHK_SET_ERR(rval, "Failed to remove root set");
+  
+  return MB_SUCCESS;
+}
+
+ErrorCode GeomTopoTool::construct_obb_tree(EntityHandle eh)
+{
+  ErrorCode rval;
+  int dim;
+
+  rval = is_owned_set(eh);
+  MB_CHK_SET_ERR(rval, "Entity set is not part of this model");
+
   // get the type
   EntityType type = mdbImpl->type_from_handle(eh); 
 
@@ -439,6 +466,7 @@ ErrorCode GeomTopoTool::construct_obb_tree(EntityHandle eh)
     }
 
 }
+  
 ErrorCode GeomTopoTool::construct_obb_trees(bool make_one_vol)
 {
   ErrorCode rval;
