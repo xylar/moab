@@ -280,7 +280,7 @@ ErrorCode GeomTopoTool::get_gsets_by_dimension(int dim, Range &gset)
    return MB_SUCCESS;
 }
 
-ErrorCode GeomTopoTool::check_contiguous()
+ErrorCode GeomTopoTool::update_contiguous()
 {
   ErrorCode rval;
 
@@ -382,7 +382,7 @@ ErrorCode GeomTopoTool::construct_obb_tree(EntityHandle eh)
   rval = mdbImpl->tag_get_data(geomTag, &eh, 1, &dim);
   MB_CHK_SET_ERR(rval, "Failed to get dimension");
 
-  rval = check_contiguous();
+  rval = update_contiguous();
   MB_CHK_SET_ERR(rval, "Failed to check contiguity");
 
 

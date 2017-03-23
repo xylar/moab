@@ -47,7 +47,6 @@ public:
      //!\return MB_MULTIPLE_ENTITIES_FOUND if surface already has a forward volume.
      //!        MB_SUCCESS if successful
      //!        otherwise whatever internal error code occured.
-   ErrorCode get_gsets_by_dimension( int dim, Range &gset);
   
    ErrorCode set_sense( EntityHandle entity,
                         EntityHandle wrt_entity,
@@ -67,7 +66,11 @@ public:
                           std::vector<EntityHandle> &wrt_entities,
                           std::vector<int> &senses);
 
+  // Retrieve geometry sets of desired dimension from model set
+  //  0 = verts, 1 = curves, 2 = surfs, 3 = vols
+  ErrorCode get_gsets_by_dimension( int dim, Range &gset);
     
+  // Build obb tree for the entity set given; entity can be surface or volume
   ErrorCode construct_obb_tree(EntityHandle eh);
 
       // get the corners of the OBB for a given volume
@@ -103,14 +106,17 @@ public:
 
   ErrorCode find_geomsets(Range *ranges = NULL);
 
+  // Build obb trees for all surfaces and volumes in model set
+  // if make_one_vol true, joins trees from all surfaces in model into single
+  // volume obb tree
   ErrorCode construct_obb_trees(bool make_one_vol = false);
   
   /* Relies on future work in OBBTreeTool before final implementation */
   //ErrorCode delete_obb_tree(EntityHandle eh);
   
-  ErrorCode get_root(EntityHandle vol_or_surf, EntityHandle &root);
-
   ErrorCode remove_root(EntityHandle vol_or_surf);
+  
+  ErrorCode get_root(EntityHandle vol_or_surf, EntityHandle &root);
 
   EntityHandle get_one_vol_root();
 
@@ -175,7 +181,10 @@ private:
   std::map<EntityHandle, EntityHandle>  mapRootSets;
   EntityHandle oneVolRootSet;
 
-    //! creates a volume for undefined space in the model
+    //! Creates a volume for undefined space in the model
+    // The implicit complement is composed of all surfaces that only
+    // have one parent volume, i.e. surfaces that are in contact with the outside
+    // world
   ErrorCode create_implicit_complement(EntityHandle &implicit_complement);
   
     //! compute vertices inclusive and put on tag on sets in geom_sets
@@ -197,9 +206,12 @@ private:
     //! verify sense edge tags
   ErrorCode check_edge_sense_tags(bool create = false);
 
+    //! Set the contigous variable
+    //  If it has changed, update the storage of the rootsets 
   void set_contiguous(bool new_value);  
 
-  ErrorCode check_contiguous();
+    //! Test if the entity sets are contiguous or not
+  ErrorCode update_contiguous();
 
 };
 
