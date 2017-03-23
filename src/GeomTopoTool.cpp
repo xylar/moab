@@ -180,17 +180,21 @@ ErrorCode GeomTopoTool::other_entity(EntityHandle bounded,
 
 ErrorCode GeomTopoTool::find_geomsets(Range *ranges)
 {
-
+  ErrorCode rval;
   // get all sets with this tag
   Range geom_sets;
-  ErrorCode result = mdbImpl->get_entities_by_type_and_tag(modelSet, MBENTITYSET,
-      &geomTag, NULL, 1, geom_sets);
-  if (MB_SUCCESS != result || geom_sets.empty())
-    return result;
 
-  result = separate_by_dimension(geom_sets);
-  if (MB_SUCCESS != result)
-    return result;
+  if (0 == geomTag) {
+    rval = mdbImpl->tag_get_handle(GEOM_DIMENSION_TAG_NAME, 1, MB_TYPE_INTEGER, geomTag);
+    MB_CHK_SET_ERR(rval, "Failed to get geom dimension tag handle");
+  }
+
+  rval = mdbImpl->get_entities_by_type_and_tag(modelSet, MBENTITYSET,
+					       &geomTag, NULL, 1, geom_sets);
+  MB_CHK_SET_ERR(rval, "Failed to get the geometry entities");
+
+  rval = separate_by_dimension(geom_sets);
+  MB_CHK_SET_ERR(rval, "Failed to separate geometry sets by dimension");
 
   if (ranges) {
     for (int i = 0; i < 5; i++)
