@@ -1590,14 +1590,9 @@ ErrorCode GeomTopoTool::create_implicit_complement(EntityHandle &implicit_comple
   rval = mdbImpl->tag_set_data(nameTag, &implicit_complement_set, 1, &IMPLICIT_COMPLEMENT_NAME);
   MB_CHK_SET_ERR(rval, "Could not set the name tag for the implicit complement");
 
-  // add implicit complement to model set
-  //  rval = add_geo_set(implicit_complement_set, 3); 
-  //  MB_CHK_SET_ERR(rval, "Could not add implicit complement to model set");
-
-  int dim = 3;
-  rval = mdbImpl->tag_set_data(geomTag, &implicit_complement_set, 1, &dim);
-  MB_CHK_SET_ERR(rval, "Could not set geom dimension tag on impicit complement");
-
+  rval = add_geo_set(implicit_complement_set, 3);
+  MB_CHK_SET_ERR(rval, "Failed to add implicit complement to model");
+  
   // assign category tag
   Tag category_tag;
   rval = mdbImpl->tag_get_handle(CATEGORY_TAG_NAME, CATEGORY_TAG_SIZE,
@@ -1607,11 +1602,6 @@ ErrorCode GeomTopoTool::create_implicit_complement(EntityHandle &implicit_comple
   static const char volume_category[CATEGORY_TAG_SIZE] = "Volume\0";
   rval = mdbImpl->tag_set_data(category_tag, &implicit_complement_set, 1, volume_category );
   MB_CHK_SET_ERR(rval, "Could not set the category tag for the implicit complement");
-
-  if( modelSet != mdbImpl->get_root_set() ){
-    rval = mdbImpl->add_entities(modelSet, &implicit_complement_set, 1);
-    MB_CHK_SET_ERR(rval, "Could not add implicit complement to model set");
-  }
   
   return MB_SUCCESS;
 }
