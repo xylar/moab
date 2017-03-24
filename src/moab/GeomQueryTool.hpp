@@ -291,6 +291,10 @@ public:
 
   double get_overlap_thickness() { return overlapThickness; }
 
+  GeomTopoTool* gttool() { return geomTopoTool; }
+
+  Interface* moab_instance() { return MBI; }
+  
 private:
 
   GeomTopoTool* geomTopoTool;
