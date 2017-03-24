@@ -627,7 +627,7 @@ ErrorCode GeomQueryTool::surface_sense(EntityHandle volume,
   return MB_SUCCESS;
 }
 
-ErrorCode GeomQueryTool::get_angle(EntityHandle surf, const double in_pt[3], double angle[3], const RayHistory* history )
+ErrorCode GeomQueryTool::get_normal(EntityHandle surf, const double in_pt[3], double angle[3], const RayHistory* history )
 {
   EntityHandle root;
   ErrorCode rval = geomTopoTool->get_root(surf, root);

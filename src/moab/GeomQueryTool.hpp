@@ -236,8 +236,8 @@ public:
    *        If present and non-empty, return the normal
    *        of the most recently intersected facet, ignoring xyz.
    */
-  ErrorCode get_angle(EntityHandle surf, const double xyz[3], double angle[3],
-                      const RayHistory* history = NULL );
+  ErrorCode get_normal(EntityHandle surf, const double xyz[3], double angle[3],
+                       const RayHistory* history = NULL );
 
   /** Get the volume on the other side of a surface
    *
