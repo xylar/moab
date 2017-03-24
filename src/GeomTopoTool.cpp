@@ -1884,14 +1884,7 @@ bool GeomTopoTool::check_model()
 }
 
 bool GeomTopoTool::have_obb_tree() {
-  Tag tmp_tag;
-  bool result;
-  ErrorCode rval = mdbImpl->tag_get_handle("OBB", tmp_tag);
-  if( MB_TAG_NOT_FOUND == rval )
-    result = false;
-  else
-    result = true;
-  MB_CHK_SET_ERR(rval, "Failed to get OBB tag handle");
+  return rootSets.size() !=0 || mapRootSets.size() !=0;
 }
 
 ErrorCode GeomTopoTool::getobb(EntityHandle volume, double minPt[3],
