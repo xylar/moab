@@ -46,6 +46,9 @@ ErrorCode GeomQueryTool::initialize() {
   ErrorCode rval;
   rval = geomTopoTool->get_implicit_complement(impl_compl_handle, true);
   MB_CHK_SET_ERR(rval , "Couldn't get the implicit complement handle");
+
+  rval = geomTopoTool->construct_obb_trees();
+  MB_CHK_SET_ERR(rval, "Failed to construct OBB trees");
   
   return MB_SUCCESS;
 }
