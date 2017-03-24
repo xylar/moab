@@ -930,6 +930,27 @@ ErrorCode GeomTopoTool::set_surface_senses(EntityHandle surface_ent,
   return MB_SUCCESS;
 }
 
+// get sense of surface(s) wrt volume
+ErrorCode GeomTopoTool::get_surface_senses(EntityHandle volume,
+                                           int num_surfaces,
+                                           const EntityHandle* surfaces,
+                                           int* senses_out)
+{
+
+  /* The sense tags do not reference the implicit complement handle.
+     All surfaces that interact with the implicit complement should have
+     a null handle in the direction of the implicit complement. */
+  //if (volume == impl_compl_handle)
+  //  volume = (EntityHandle) 0;
+
+  for (int surf_num = 0; surf_num < num_surfaces; surf_num++) {
+    get_sense( surfaces[surf_num], volume, senses_out[surf_num]);
+  }
+  
+  return MB_SUCCESS;
+}
+
+  
 ErrorCode GeomTopoTool::get_senses(EntityHandle entity,
     std::vector<EntityHandle> &wrt_entities, std::vector<int> &senses)
 {

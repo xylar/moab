@@ -57,12 +57,17 @@ public:
    ErrorCode get_sense( EntityHandle entity,
                         EntityHandle wrt_entity,
                         int & sense );
-     //! Get the senses of a surface with respect to its volumes
+
+  ErrorCode get_surface_senses( EntityHandle volume,
+                                int num_surfs,
+                                const EntityHandle* surfs,
+                                int* senses_out);
+  //! Get the senses of a surface with respect to its volumes
   ErrorCode get_surface_senses(EntityHandle surface_ent,
 			       EntityHandle &forward_vol,
 			       EntityHandle &reverse_vol);
   
-     //! Set the senses of a surface with respect to its volumes  
+  //! Set the senses of a surface with respect to its volumes  
   ErrorCode set_surface_senses(EntityHandle surface_ent,
 			       EntityHandle forward_vol,
 			       EntityHandle reverse_vol);

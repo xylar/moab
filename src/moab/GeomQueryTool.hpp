@@ -208,18 +208,6 @@ public:
   /** Calculate sum of area of triangles */
   ErrorCode measure_area( EntityHandle surface, double& result );
 
-  /** Get the sense of surfaces wrt a volume.  Sense values are:
-   *  {-1 -> reversed, 0 -> both, 1 -> forward}
-   */
-  ErrorCode surface_sense( EntityHandle volume,
-                             int num_surfaces,
-                             const EntityHandle* surfaces,
-                             int* senses_out );
-
-  /** Get the sense of a single surface wrt a volume.  Sense values are:
-   *  {-1 -> reversed, 0 -> both, 1 -> forward}
-   */
-  ErrorCode surface_sense( EntityHandle volume, EntityHandle surface, int& sense_out );
 
   /** Get the normal to a given surface at the point on the surface closest to a given point
    *

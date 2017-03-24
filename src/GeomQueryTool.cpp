@@ -408,7 +408,7 @@ ErrorCode GeomQueryTool::point_in_volume_slow( EntityHandle volume, const double
     return rval;
 
   senses.resize( surfs.size() );
-  rval = surface_sense( volume, surfs.size(), &surfs[0], &senses[0] );
+  rval = geomTopoTool->get_surface_senses( volume, surfs.size(), &surfs[0], &senses[0] );
   if (MB_SUCCESS != rval)
     return rval;
 
@@ -480,7 +480,7 @@ ErrorCode GeomQueryTool::measure_volume( EntityHandle volume, double& result )
 
     // get surface senses
   std::vector<int> senses( surfaces.size() );
-  rval = surface_sense( volume, surfaces.size(), &surfaces[0], &senses[0] );
+  rval = geomTopoTool->get_surface_senses( volume, surfaces.size(), &surfaces[0], &senses[0] );
   if (MB_SUCCESS != rval) {
     std::cerr << "ERROR: Surface-Volume relative sense not available. "
               << "Cannot calculate volume." << std::endl;
@@ -567,65 +567,6 @@ ErrorCode GeomQueryTool::measure_area( EntityHandle surface, double& result )
   return MB_SUCCESS;
 }
 
-// get sense of surface(s) wrt volume
-ErrorCode GeomQueryTool::surface_sense(EntityHandle volume,
-                                       int num_surfaces,
-                                       const EntityHandle* surfaces,
-                                       int* senses_out)
-{
-
-  /* The sense tags do not reference the implicit complement handle.
-     All surfaces that interact with the implicit complement should have
-     a null handle in the direction of the implicit complement. */
-  //if (volume == impl_compl_handle)
-  //  volume = (EntityHandle) 0;
-
-  std::vector<EntityHandle> surf_volumes( 2*num_surfaces );
-  ErrorCode rval = MBI->tag_get_data( senseTag, surfaces, num_surfaces, &surf_volumes[0] );
-  if (MB_SUCCESS != rval)  return rval;
-
-  const EntityHandle* end = surfaces + num_surfaces;
-  std::vector<EntityHandle>::const_iterator surf_vols = surf_volumes.begin();
-  while (surfaces != end) {
-    EntityHandle forward = *surf_vols; ++surf_vols;
-    EntityHandle reverse = *surf_vols; ++surf_vols;
-    if (volume == forward)
-      *senses_out = (volume != reverse); // zero if both, otherwise 1
-    else if (volume == reverse)
-      *senses_out = -1;
-    else
-      return MB_ENTITY_NOT_FOUND;
-
-    ++surfaces;
-    ++senses_out;
-  }
-
-  return MB_SUCCESS;
-}
-
-// get sense of surface(s) wrt volume
-ErrorCode GeomQueryTool::surface_sense(EntityHandle volume,
-                                       EntityHandle surface,
-                                       int& sense_out)
-{
-  /* The sense tags do not reference the implicit complement handle.
-     All surfaces that interact with the implicit complement should have
-     a null handle in the direction of the implicit complement. */
-
-    // get sense of surfaces wrt volumes
-  EntityHandle surf_volumes[2];
-  ErrorCode rval = MBI->tag_get_data( senseTag, &surface, 1, surf_volumes );  // todo: this function is redundant
-  if (MB_SUCCESS != rval)  return rval;
-
-  if (surf_volumes[0] == volume)
-    sense_out = (surf_volumes[1] != volume); // zero if both, otherwise 1
-  else if (surf_volumes[1] == volume)
-    sense_out = -1;
-  else
-    return MB_ENTITY_NOT_FOUND;
-
-  return MB_SUCCESS;
-}
 
 ErrorCode GeomQueryTool::get_normal(EntityHandle surf, const double in_pt[3], double angle[3], const RayHistory* history )
 {
@@ -700,7 +641,7 @@ ErrorCode GeomQueryTool::boundary_case(EntityHandle volume, int& result,
     assert(MB_SUCCESS == rval);
     if(MB_SUCCESS != rval) return rval;
 
-    rval = surface_sense( volume, surface, sense_out );
+    rval = geomTopoTool->get_sense( surface, volume, sense_out );
     assert( MB_SUCCESS == rval);
     if(MB_SUCCESS != rval) return rval;
 
