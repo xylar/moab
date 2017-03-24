@@ -884,10 +884,53 @@ ErrorCode GeomTopoTool::get_sense(EntityHandle entity, EntityHandle wrt_entity,
 
 }
 
+ErrorCode GeomTopoTool::get_surface_senses(EntityHandle surface_ent,
+					   EntityHandle &forward_vol,
+					   EntityHandle &reverse_vol) {
+  ErrorCode rval;
+  // this mthod should only be called to retrieve surface to volume
+  // sense relationships
+  int ent_dim = dimension(surface_ent);
+  // verify the incoming entity dimensions for this call
+  if( ent_dim != 2 ) {
+    MB_CHK_SET_ERR(MB_FAILURE, "Entity dimension is incorrect for surface meshset");
+  }
+  
+  // get the sense information for this surface
+  EntityHandle parent_vols[2] = {0 , 0};
+  rval = mdbImpl->tag_get_data(sense2Tag, &surface_ent, 1, parent_vols);
+  MB_CHK_SET_ERR(rval, "Failed to get surface sense data");
+
+  // set the outgoing values
+  forward_vol = parent_vols[0];
+  reverse_vol = parent_vols[1];
+  
+  return MB_SUCCESS;    
+}
+
+ErrorCode GeomTopoTool::set_surface_senses(EntityHandle surface_ent,
+					   EntityHandle forward_vol,
+					   EntityHandle reverse_vol) {
+  ErrorCode rval;
+  // this mthod should only be called to retrieve surface to volume
+  // sense relationships
+  int ent_dim = dimension(surface_ent);
+  // verify the incoming entity dimensions for this call
+  if( ent_dim != 2 ) {
+    MB_CHK_SET_ERR(MB_FAILURE, "Entity dimension is incorrect for surface meshset");
+  }
+
+  // set the sense information for this surface
+  EntityHandle parent_vols[2] = {forward_vol, reverse_vol};
+  rval = mdbImpl->tag_set_data(sense2Tag, &surface_ent, 1, parent_vols);
+  MB_CHK_SET_ERR(rval, "Failed to set surface sense data");
+
+  return MB_SUCCESS;
+}
+
 ErrorCode GeomTopoTool::get_senses(EntityHandle entity,
     std::vector<EntityHandle> &wrt_entities, std::vector<int> &senses)
 {
-  //
   // the question here is: the wrt_entities is supplied or not?
   // I assume not, we will obtain it !!
   int edim = dimension(entity);
@@ -1013,14 +1056,10 @@ ErrorCode GeomTopoTool::check_face_sense_tag(bool create)
   ErrorCode rval;
   unsigned flags = create ? MB_TAG_SPARSE|MB_TAG_CREAT|MB_TAG_ANY : MB_TAG_SPARSE|MB_TAG_ANY;
   if (!sense2Tag) {
-    //get any kind of tag that already exists
-    rval = mdbImpl->tag_get_handle(GEOM_SENSE_2_TAG_NAME, sense2Tag);
-    if( MB_TAG_NOT_FOUND == rval ) {
-      EntityHandle def_val[2] = {0, 0};
-      rval = mdbImpl->tag_get_handle(GEOM_SENSE_2_TAG_NAME, 2,
-				     MB_TYPE_HANDLE, sense2Tag, flags, def_val);
-    }
-      MB_CHK_SET_ERR(rval, "Could not get/create the sense2Tag");
+    EntityHandle def_val[2] = {0, 0};
+    rval = mdbImpl->tag_get_handle(GEOM_SENSE_2_TAG_NAME, 2,
+				   MB_TYPE_HANDLE, sense2Tag, flags, def_val);
+    MB_CHK_SET_ERR(rval, "Could not get/create the sense2Tag");
   }
   return MB_SUCCESS;
 }
@@ -1628,7 +1667,7 @@ ErrorCode GeomTopoTool::create_implicit_complement(EntityHandle &implicit_comple
       
       // get the surface sense wrt original volume
       EntityHandle sense_data[2] = {0,0};
-      rval = mdbImpl->tag_get_data( sense2Tag, &(*surf_i), 1, sense_data );
+      rval = get_surface_senses(*surf_i, sense_data[0], sense_data[1]);
       MB_CHK_SET_ERR(rval, "Could not get surface sense data");
 
       // set the surface sense wrt implicit complement volume
@@ -1639,7 +1678,9 @@ ErrorCode GeomTopoTool::create_implicit_complement(EntityHandle &implicit_comple
         sense_data[1] = implicit_complement_set;
       else
         return MB_FAILURE;
-      rval = mdbImpl->tag_set_data( sense2Tag, &(*surf_i), 1, sense_data );
+      
+      // set the new sense data for this surface
+      rval = set_surface_senses(*surf_i, sense_data[0], sense_data[1]);
       MB_CHK_SET_ERR(rval, "Failed to set sense tag data");
     }
   } //end surface loop
