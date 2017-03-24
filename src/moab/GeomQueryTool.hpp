@@ -319,8 +319,8 @@ private:
   Interface* MBI;
   OrientedBoxTreeTool* obbTreeTool;
   bool counting;
-  long long int n_pt_in_vol_calls = 0;
-  long long int n_ray_fire_calls = 0;
+  long long int n_pt_in_vol_calls;
+  long long int n_ray_fire_calls;
   double overlapThickness, numericalPrecision;
   Tag senseTag;
   EntityHandle impl_compl_handle;

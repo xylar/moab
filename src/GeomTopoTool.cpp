@@ -341,7 +341,8 @@ ErrorCode GeomTopoTool::is_owned_set(EntityHandle eh) {
   if(model_ents.find(eh) == model_ents.end())
     {
       MB_CHK_SET_ERR(MB_FAILURE, "Entity handle not in model set");
-    }  
+    }
+  return MB_SUCCESS;
 }
 
   /* Relies on future work in OBBTreeTool before final implementation */
@@ -426,9 +427,8 @@ ErrorCode GeomTopoTool::construct_obb_tree(EntityHandle eh)
        // if just building tree for surface, return here
        return MB_SUCCESS;
     }
-
   //if it's a volume
-  if(dim == 3 && type == MBENTITYSET)
+  else if(dim == 3 && type == MBENTITYSET)
     {
       //get its surfaces
       Range tmp_surfs, surf_trees;
@@ -462,10 +462,13 @@ ErrorCode GeomTopoTool::construct_obb_tree(EntityHandle eh)
         rootSets[eh - setOffset] = root;
       else
         mapRootSets[eh] = root;
-    
-     
+      
+      return MB_SUCCESS;
     }
-
+  else {
+    MB_CHK_SET_ERR(MB_FAILURE, "Improper dimension or type for constructing obb tree");
+  }
+  
 }
   
 ErrorCode GeomTopoTool::construct_obb_trees(bool make_one_vol)
@@ -502,8 +505,7 @@ ErrorCode GeomTopoTool::construct_obb_trees(bool make_one_vol)
   // build OBB tree for volume
   if (make_one_vol) {
     rval = obbTree.join_trees(one_vol_trees, root);
-    if (MB_SUCCESS != rval)
-      return rval;
+    MB_CHK_SET_ERR(rval, "Failed to join surface trees into one volume");
     oneVolRootSet = root;
   }
 

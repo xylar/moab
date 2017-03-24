@@ -34,6 +34,9 @@ GeomQueryTool::GeomQueryTool(GeomTopoTool* geomtopotool, bool trace_counting,
   overlapThickness = overlap_thickness;
   numericalPrecision = numerical_precision;
 
+  // reset query counters
+  n_pt_in_vol_calls = 0;
+  n_ray_fire_calls = 0;
 }
 
 GeomQueryTool::~GeomQueryTool() {}
@@ -41,7 +44,6 @@ GeomQueryTool::~GeomQueryTool() {}
 ErrorCode GeomQueryTool::initialize() {
 
   ErrorCode rval;
-  
   rval = geomTopoTool->get_implicit_complement(impl_compl_handle, true);
   MB_CHK_SET_ERR(rval , "Couldn't get the implicit complement handle");
   
@@ -370,7 +372,7 @@ ErrorCode GeomQueryTool::test_volume_boundary(const EntityHandle volume, const E
 
     // Get OBB Tree for surface
     EntityHandle root;
-    ErrorCode rval = geomTopoTool->get_root(volume, root);
+    rval = geomTopoTool->get_root(volume, root);
     if(MB_SUCCESS != rval) return rval;
 
     // Get closest triangle on surface
