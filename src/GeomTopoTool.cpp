@@ -1648,7 +1648,7 @@ ErrorCode GeomTopoTool::get_implicit_complement(EntityHandle &implicit_complemen
   
   Range entities;
   const void* const tagdata[] = {IMPLICIT_COMPLEMENT_NAME};
-  ErrorCode rval = mdbImpl->get_entities_by_type_and_tag( 0, MBENTITYSET,
+  ErrorCode rval = mdbImpl->get_entities_by_type_and_tag( modelSet, MBENTITYSET,
                                                            &nameTag, tagdata, 1,
                                                            entities );
   // query error
