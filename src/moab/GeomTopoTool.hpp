@@ -72,9 +72,20 @@ public:
     std::vector<int> &senses);
 
   ErrorCode set_senses (EntityHandle entity,
-                          std::vector<EntityHandle> &wrt_entities,
-                          std::vector<int> &senses);
+                        std::vector<EntityHandle> &wrt_entities,
+                        std::vector<int> &senses);
+  
+  /** Get the volume on the other side of a surface
+   *
+   * @param A surface to query
+   * @param old_volume A volume on one side of surface
+   * @param new_volume Output parameter for volume on the other side of surface
+   * @return MB_SUCCESS if new_volume was set successfully, error if not.
+   */
+  ErrorCode next_vol( EntityHandle surface, EntityHandle old_volume,
+                      EntityHandle& new_volume );
 
+  
   // Retrieve geometry sets of desired dimension from model set
   //  0 = verts, 1 = curves, 2 = surfs, 3 = vols
   ErrorCode get_gsets_by_dimension( int dim, Range &gset);

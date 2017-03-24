@@ -239,16 +239,6 @@ public:
   ErrorCode get_normal(EntityHandle surf, const double xyz[3], double angle[3],
                        const RayHistory* history = NULL );
 
-  /** Get the volume on the other side of a surface
-   *
-   * @param A surface to query
-   * @param old_volume A volume on one side of surface
-   * @param new_volume Output parameter for volume on the other side of surface
-   * @return MB_SUCCESS if new_volume was set successfully, error if not.
-   */
-  ErrorCode next_vol( EntityHandle surface, EntityHandle old_volume,
-                      EntityHandle& new_volume );
-
 private:
 
   /**\brief determine the point membership when the point is effectively on the boundary

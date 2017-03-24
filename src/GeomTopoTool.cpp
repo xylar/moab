@@ -1029,6 +1029,33 @@ ErrorCode GeomTopoTool::set_senses(EntityHandle entity, std::vector<
   return MB_SUCCESS;
 }
 
+
+ErrorCode GeomTopoTool::next_vol(EntityHandle surface, EntityHandle old_volume,
+                                 EntityHandle& new_volume)
+{
+  std::vector<EntityHandle> parents;
+  ErrorCode rval = mdbImpl->get_parent_meshsets( surface, parents );
+
+  if (MB_SUCCESS == rval) {
+    if (parents.size() != 2)
+      rval = MB_FAILURE;
+    else if (parents.front() == old_volume)
+      new_volume = parents.back();
+    else if( parents.back() == old_volume )
+      new_volume = parents.front();
+    else
+      rval = MB_FAILURE;
+  }
+
+  if( rval != MB_SUCCESS ){
+    std::cerr << "mesh error in next_vol for surf " << surface << std::endl;  // todo: use geomtopotool to get id by entity handle
+  }
+
+  return rval;
+
+}
+
+  
 ErrorCode GeomTopoTool::check_geom_tag(bool create) {
   ErrorCode rval;
   unsigned flags = create ? MB_TAG_DENSE|MB_TAG_CREAT : MB_TAG_DENSE;

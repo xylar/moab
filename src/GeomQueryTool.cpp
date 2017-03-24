@@ -668,30 +668,6 @@ ErrorCode GeomQueryTool::get_normal(EntityHandle surf, const double in_pt[3], do
   return MB_SUCCESS;
 }
 
-ErrorCode GeomQueryTool::next_vol(EntityHandle surface, EntityHandle old_volume,
-                                  EntityHandle& new_volume)
-{
-  std::vector<EntityHandle> parents;
-  ErrorCode rval = MBI->get_parent_meshsets( surface, parents );
-
-  if (MB_SUCCESS == rval) {
-    if (parents.size() != 2)
-      rval = MB_FAILURE;
-    else if (parents.front() == old_volume)
-      new_volume = parents.back();
-    else if( parents.back() == old_volume )
-      new_volume = parents.front();
-    else
-      rval = MB_FAILURE;
-  }
-
-  if( rval != MB_SUCCESS ){
-    std::cerr << "DAGMC: mesh error in next_vol for surf " << surface << std::endl;  // todo: use geomtopotool to get id by entity handle
-  }
-
-  return rval;
-
-}
 
 /* SECTION II (private) */
 
