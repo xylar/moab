@@ -17,6 +17,25 @@
 
 namespace moab {
 
+  /** \class GeomQueryTool
+   *
+   * \brief Tool for querying different aspects of geometric topology sets in MOAB
+   *
+   * Given the conventions established in GeomTopoTool for representing
+   * geometric topology through a hierarchy of meshsets, this tool provides a
+   * set of methods to query different geometric aspects of those geometric
+   * topology sets including:
+   * 
+   *   * measures of surface area and volume
+   *   * distance to a bounding surface from a point within a volume
+   *   * test the inclusion of a point within a volume
+   *   * find the angle of a surface at a point
+   *
+   * A feature of these queries is that there is some support for overlapping
+   * geometries.
+   * 
+   */
+  
 class GeomQueryTool
 {
 public:
@@ -30,6 +49,19 @@ public:
 
   ErrorCode initialize();
 
+  /* \class RayHistory
+   *
+   * In many use cases, it is useful to track some of the history of a ray as
+   * it passes through a geometry, particularly a geometry represented by
+   * facets.  For example, given round-off erorr in ray-triangle tests
+   * (GeomUtil::ray_tri_intersect) used as part of a test for ray-surface
+   * intersection, it is possible for subsequent queries to oscillate between
+   * adjacent surfaces.  This class stores information about history of a ray
+   * that can be used to test for such circumstances so that they can be
+   * accommodated.
+   *
+   */
+  
   class RayHistory {
 
   public:
@@ -66,10 +98,12 @@ public:
 
   /**\brief find the next surface crossing from a given point in a given direction
    *
-   * This is the primary method of DagMC, enabling ray tracing through a geometry.
-   * Given a volume and a ray, it computes the surface ID and distance to the
-   * nearest intersection on that volume.  The caller can compute the location of
-   * the intersection by adding the distance to the ray.
+   * This is the primary method to enable ray tracing through a geometry.
+   * Given a volume and a ray, it determines the distance to the nearest intersection
+   * with a bounding surface of that volume and returns that distance and the 
+   * EntityHandle indicating on which surface that intersection occurs.
+   * The caller can compute the location of the intersection by adding the
+   * distance to the ray.
    *
    * When a series of calls to this function are made along the same ray (e.g. for
    * the purpose of tracking a ray through several volumes), the optional history
@@ -81,7 +115,7 @@ public:
    * If a ray changes direction at an intersection site, the caller should call
    * reset_to_last_intersection() on the history object before the next ray fire.
    *
-   * @param volume The volume to fire the ray at.
+   * @param volume The volume at which to fire the ray
    * @param ray_start An array of x,y,z coordinates from which to start the ray.
    * @param ray_dir An array of x,y,z coordinates indicating the direction of the ray.
    *                Must be of unit length.
@@ -189,6 +223,12 @@ public:
 
   /** Get the normal to a given surface at the point on the surface closest to a given point
    *
+   * This method first identifies which facet contains this point and then
+   * calculates the unit outward normal of that facet.  The facet of the
+   * provided volume that is nearest the provided point is used for this
+   * calculation.  The search for that facet can be circumvented by providing
+   * a RayHistory, in which case the last facet of the history will be used.
+   *
    * @param surf Surface on which to get normal
    * @param xyz Point on surf
    * @param angle Set to coordinates of surface normal nearest xyz
@@ -237,11 +277,35 @@ private:
 
 public:
 
+  /*
+   Overlap Thickness:
+   This tolerance is the maximum distance across an overlap. It should be zero
+   unless the geometry has overlaps. The overlap thickness is set using the dagmc
+   card. Overlaps must be small enough not to significantly affect physics.
+     Performance: increasing tolerance decreases performance
+     Robustness:  increasing tolerance increases robustness
+     Knowledge:   user must have intuition of overlap thickness
+  */
+  
   /** Attempt to set a new overlap thickness tolerance, first checking for sanity */
+
   void set_overlap_thickness( double new_overlap_thickness );
   
+
+  /*    
+   Numerical Precision:
+   This tolerance is used for obb.intersect_ray, finding neighborhood of
+   adjacent triangle for edge/node intersections, and error in advancing
+   geometric position of particle (x' ~= x + d*u). When determining the
+   neighborhood of adjacent triangles for edge/node intersections, the facet
+   based model is expected to be watertight.
+     Performance: increasing tolerance decreases performance (but not very much)
+     Robustness:  increasing tolerance increases robustness
+     Knowledge:   user should not change this tolerance
+  */
+  
   /** Attempt to set a new numerical precision , first checking for sanity
-   *  Use of this function is discouraged; see top of DagMC.cpp
+   *  Use of this function is discouraged.
    */
   void set_numerical_precision( double new_precision );
 
