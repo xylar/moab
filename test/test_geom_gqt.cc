@@ -328,7 +328,6 @@ int main( int argc, char* argv[] )
   GeomTopoTool *gtt = new GeomTopoTool(MBI);
   GeomQueryTool *gqt = new GeomQueryTool(gtt);
 
-  EntityHandle impl_compl;
   rval = gqt->initialize();
   if (MB_SUCCESS != rval) {
     std::cerr << "Failed to initialize the GeometryQueryTool." << std::endl;
