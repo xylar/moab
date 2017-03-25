@@ -427,7 +427,7 @@ ErrorCode test_surface_sense( GeomQueryTool * gqt )
   
   for (Range::iterator i = surfs.begin(); i != surfs.end(); ++i) {
     int sense = 0;
-    rval = gqt->surface_sense( vols.front(), 1, &*i, &sense );
+    rval = gqt->gttool()->get_sense(*i, vols.front(), sense);
     if (MB_SUCCESS != rval || sense != 1) {
       std::cerr << "ERROR: Expected 1 for surface sense, got " << sense << std::endl;
       return MB_FAILURE;
@@ -466,7 +466,7 @@ ErrorCode overlap_test_surface_sense( GeomQueryTool * gqt )
   
   for (Range::iterator i = surfs.begin(); i != surfs.end(); ++i) {
     int sense = 0;
-    rval = gqt->surface_sense( vols.front(), 1, &*i, &sense );
+    rval = gqt->gttool()->get_sense(*i, vols.front(), sense);
     if (MB_SUCCESS != rval || sense != 1) {
       std::cerr << "ERROR: Expected 1 for surface sense, got " << sense << std::endl;
       return MB_FAILURE;
@@ -1130,7 +1130,7 @@ ErrorCode overlap_test_tracking( GeomQueryTool * gqt )
 
   // get the next volume (implicit complement)
   EntityHandle next_vol;
-  rval = gqt->next_vol( next_surf, vol, next_vol ); 
+  rval = gqt->gttool()->next_vol( next_surf, vol, next_vol ); 
   CHKERR;
 
   // get the next surface (behind numerical location)
@@ -1144,7 +1144,7 @@ ErrorCode overlap_test_tracking( GeomQueryTool * gqt )
   for(unsigned i=0; i<3; i++) point[i]+=dist*dir[i];
 
   // get the next volume (the explicit volume)
-  rval = gqt->next_vol( next_surf, vol, next_vol );
+  rval = gqt->gttool()->next_vol( next_surf, vol, next_vol );
   CHKERR;
 
   // get the next surface
