@@ -3,7 +3,7 @@ AUTOMAKE_OPTIONS = foreign subdir-objects
 
 # Things to build
 lib_LTLIBRARIES = libMOAB.la 
-AM_CPPFLAGS = $(EIGEN3_INCLUDES)
+AM_CPPFLAGS = 
 
 # Subdirectories to build
 SUBDIRS =
@@ -237,7 +237,6 @@ nobase_libMOAB_la_include_HEADERS = \
   moab/verdict.h \
   moab/WriteUtilIface.hpp \
   moab/WriterIface.hpp \
-  $(EIGEN_INST_HDRS) \
   moab/ElemEvaluator.hpp \
   MBEntityType.h \
   MBCN.h \
