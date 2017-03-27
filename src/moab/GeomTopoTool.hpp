@@ -20,11 +20,14 @@
 
 #include "moab/Forward.hpp"
 #include "moab/Range.hpp"
-#include "moab/OrientedBoxTreeTool.hpp"
+
 
 #include <map>
 
 namespace moab {
+
+// forward declare this class to avoid the header leaking in here
+class OrientedBoxTreeTool;
 
 /** \class GeomTopoTool
  * \brief Tool for interpreting geometric topology sets in MOAB database
@@ -35,7 +38,7 @@ class GeomTopoTool
 {
 public:
   GeomTopoTool(Interface *impl, bool find_geoments = false, EntityHandle modelRootSet = 0);
-  ~GeomTopoTool() {}
+  ~GeomTopoTool();
   
     //! Restore parent/child links between GEOM_TOPO mesh sets
   ErrorCode restore_topology();
@@ -91,7 +94,7 @@ public:
 
   EntityHandle get_one_vol_root();
 
-  OrientedBoxTreeTool *obb_tree() {return &obbTree;}
+  OrientedBoxTreeTool *obb_tree() {return obbTree;}
 
   // this could make the obb tree out of date
   ErrorCode add_geo_set(EntityHandle set, int dimension, int global_id  = 0);
@@ -127,7 +130,7 @@ private:
   int maxGlobalId[5]; // one max global id for each dimension
   bool updated;
 
-  OrientedBoxTreeTool obbTree;
+  OrientedBoxTreeTool* obbTree;
   EntityHandle setOffset;
   std::vector<EntityHandle> rootSets;
 
