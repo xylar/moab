@@ -120,6 +120,7 @@ cdef extern from "moab/MeshTopoUtil.hpp" namespace "moab":
     cdef cppclass MeshTopoUtil:
         MeshTopoUtil(Interface *impl)
 
+        ErrorCode construct_aentities(const Range &vertices)
         ErrorCode get_bridge_adjacencies(Range &from_entities,
                                          int bridge_dim,
                                          int to_dim,

@@ -36,3 +36,23 @@ def test_get_average_position():
     avg_pos = mtu.get_average_position(tris)
 
     np.testing.assert_almost_equal(avg_pos, coords.reshape(3,3).mean(axis=0))
+
+
+def test_construct_aentities():
+    mb = core.Core()
+
+    coords = np.array((0,0,0,1,0,0,1,1,1),dtype='float64')
+    verts = mb.create_vertices(coords)
+    verts_array = np.array(((verts[0],verts[1],verts[2]),),dtype='uint64')
+    mb.create_elements(types.MBTRI,verts_array)
+
+    mtu = topo_util.MeshTopoUtil(mb)
+
+    edges_before = mb.get_entities_by_dimension(0, 1)
+
+    mtu.construct_aentities(verts)
+
+    edges_after = mb.get_entities_by_dimension(0, 1)
+
+    assert edges_before != edges_after
+    assert len(edges_after) == 3

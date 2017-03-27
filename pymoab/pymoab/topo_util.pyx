@@ -65,3 +65,14 @@ cdef class MeshTopoUtil(object):
             check_error(types.MB_FAILURE)
 
         return avg_position
+
+    def construct_aentities(self,
+                            vertices,
+                            exceptions = ()):
+        cdef moab.ErrorCode err
+        cdef Range r
+
+        r = vertices
+        err = self.inst.construct_aentities(deref(r.inst))
+
+        check_error(err, exceptions)
