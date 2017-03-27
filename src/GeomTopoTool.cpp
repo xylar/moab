@@ -890,7 +890,7 @@ ErrorCode GeomTopoTool::get_surface_senses(EntityHandle surface_ent,
 					   EntityHandle &forward_vol,
 					   EntityHandle &reverse_vol) {
   ErrorCode rval;
-  // this mthod should only be called to retrieve surface to volume
+  // this method should only be called to retrieve surface to volume
   // sense relationships
   int ent_dim = dimension(surface_ent);
   // verify the incoming entity dimensions for this call

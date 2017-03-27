@@ -42,40 +42,37 @@ public:
   
     //! Restore parent/child links between GEOM_TOPO mesh sets
   ErrorCode restore_topology();
-
-  //! Store sense of entity relative to wrt_entity.
-     //!\return MB_MULTIPLE_ENTITIES_FOUND if surface already has a forward volume.
-     //!        MB_SUCCESS if successful
-     //!        otherwise whatever internal error code occured.
-  
-   ErrorCode set_sense( EntityHandle entity,
+    //! Store sense of entity relative to wrt_entity.
+    //!\return MB_MULTIPLE_ENTITIES_FOUND if surface already has a forward volume.
+    //!        MB_SUCCESS if successful
+    //!        otherwise whatever internal error code occured.
+  ErrorCode set_sense( EntityHandle entity,
                         EntityHandle wrt_entity,
                         int sense);
-
-     //! Get the sense of entity with respect to wrt_entity
-     //! Returns MB_ENTITY_NOT_FOUND if no relationship found
-   ErrorCode get_sense( EntityHandle entity,
+    //! Get the sense of entity with respect to wrt_entity
+    //! Returns MB_ENTITY_NOT_FOUND if no relationship found
+  ErrorCode get_sense( EntityHandle entity,
                         EntityHandle wrt_entity,
                         int & sense );
-
+    //! Get the sense of the surface(s) with respect to the volume
   ErrorCode get_surface_senses( EntityHandle volume,
                                 int num_surfs,
                                 const EntityHandle* surfs,
                                 int* senses_out);
-  //! Get the senses of a surface with respect to its volumes
+    //! Get the senses of a surface with respect to its volumes
   ErrorCode get_surface_senses(EntityHandle surface_ent,
 			       EntityHandle &forward_vol,
 			       EntityHandle &reverse_vol);
   
-  //! Set the senses of a surface with respect to its volumes  
+    //! Set the senses of a surface with respect to its volumes  
   ErrorCode set_surface_senses(EntityHandle surface_ent,
 			       EntityHandle forward_vol,
 			       EntityHandle reverse_vol);
-
+    //! Get the senses of the lower dimension entity handle wrt the higher dimension entities
   ErrorCode get_senses (EntityHandle entity,
     std::vector<EntityHandle> &wrt_entities,
     std::vector<int> &senses);
-
+    //! Set the senses of the entity wrt multiple higher dimension entities 
   ErrorCode set_senses (EntityHandle entity,
                         std::vector<EntityHandle> &wrt_entities,
                         std::vector<int> &senses);
@@ -91,21 +88,21 @@ public:
                       EntityHandle& new_volume );
 
   
-  // Retrieve geometry sets of desired dimension from model set
-  //  0 = verts, 1 = curves, 2 = surfs, 3 = vols
+    //! Retrieve geometry sets of desired dimension from model set
+    //  0 = verts, 1 = curves, 2 = surfs, 3 = vols
   ErrorCode get_gsets_by_dimension( int dim, Range &gset);
     
-  // Build obb tree for the entity set given; entity can be surface or volume
+    //! Build obb tree for the entity set given; entity can be surface or volume
   ErrorCode construct_obb_tree(EntityHandle eh);
 
-      // get the corners of the OBB for a given volume
+    //! Get the corners of the OBB for a given volume
   ErrorCode getobb(EntityHandle volume, double minPt[3], double maxPt[3]);
 
-    // get the center point and three vectors for the OBB of a given volume
+    //! Get the center point and three vectors for the OBB of a given volume
   ErrorCode getobb(EntityHandle volume, double center[3],
                      double axis1[3], double axis2[3], double axis3[3]);
 
-    /** \brief get the other (d-1)-dimensional entity bounding a set across a (d-2)-dimensional entity
+    /** \brief Get the other (d-1)-dimensional entity bounding a set across a (d-2)-dimensional entity
      *
      * Given a d-dimensional entity and one (d-1)-dimensional entity, return the (d-1) dimensional
      * entity across a specified (d-2)-dimensional entity.  For example, given a surface, edge, and vertex,
@@ -119,69 +116,84 @@ public:
   ErrorCode other_entity(EntityHandle bounded, EntityHandle not_this, EntityHandle across,
                          EntityHandle &other);
 
-    /** \brief return the dimension of the set, or -1 if it's not a geom_dimension set
+    /** \brief Return the dimension of the set, or -1 if it's not a geom_dimension set
      */
   int dimension(EntityHandle this_set);
   
-  // used mostly for debugging purposes
+    //! Used mostly for debugging purposes
   int global_id(EntityHandle this_set);
 
-  // map from dimension & global ID to EntityHandle
+    //! Map from dimension & global ID to EntityHandle
   EntityHandle entity_by_id(int dimension, int id);
 
   ErrorCode find_geomsets(Range *ranges = NULL);
 
-  // Build obb trees for all surfaces and volumes in model set
-  // if make_one_vol true, joins trees from all surfaces in model into single
-  // volume obb tree
+    //! Build obb trees for all surfaces and volumes in model set.
+    //  If make_one_vol true, joins trees from all surfaces in model into single
+    //  volume obb tree.
   ErrorCode construct_obb_trees(bool make_one_vol = false);
   
   /* Relies on future work in OBBTreeTool before final implementation */
   //ErrorCode delete_obb_tree(EntityHandle eh);
-  
+ 
+    //! Delete the root of the obb tree from the set of all roots
   ErrorCode remove_root(EntityHandle vol_or_surf);
   
+    //! Get the root of the obbtree for a given entity
   ErrorCode get_root(EntityHandle vol_or_surf, EntityHandle &root);
 
+    //! If constructing one volume obb tree by joining all surface trees, 
+    //  get the root of that tree 
   EntityHandle get_one_vol_root();
 
+    //! Pointer to Oriented Box Tree Tool class
   OrientedBoxTreeTool *obb_tree() {return obbTree;}
 
-  // this could make the obb tree out of date
+    //! Adds a geometry set to the range of all geometry sets, the model set, and root set
+    //  Make sure the set has the proper geometry dimension tag
+    //  This could make the obb tree out of date
   ErrorCode add_geo_set(EntityHandle set, int dimension, int global_id  = 0);
 
-  // will assume no geo sets are defined for this surface
-  // will output a mesh_set that contains everything (all sets of interest), for proper output
+    //! Will assume no geo sets are defined for this surface
+    //  Will output a mesh_set that contains everything (all sets of interest), for proper output
   ErrorCode geometrize_surface_set(EntityHandle surface, EntityHandle & output);
 
-  // get the implicit complement handle
+    //! Get (or optionally, create) the implicit complement handle
   ErrorCode get_implicit_complement(EntityHandle &implicit_complement, bool create_if_missing = false);
 
+    //! Checks to see if the entity is part of the model set
   ErrorCode is_owned_set(EntityHandle eh);
   
-  // this would be a deep copy, into a new geom topo tool
-  // sets will be duplicated, but entities not
-  // modelSet will be a new one;
-  // will take as input a pointer to a std::vector of gents (surfaces and volumes, usually),
-  // which will serve to filter the gents from modelSet (only dependents will be part of the new gtt)
-  // if the pointer is null, all gsets in the original modelSet are duplicated
-
+    //! This would be a deep copy, into a new geom topo tool
+    //  sets will be duplicated, but entities not
+    //  modelSet will be a new one;
+    //  will take as input a pointer to a std::vector of gents (surfaces and volumes, usually),
+    //  which will serve to filter the gents from modelSet (only dependents will be part of the new gtt)
+    //  if the pointer is null, all gsets in the original modelSet are duplicated
   ErrorCode duplicate_model(GeomTopoTool *& duplicate, std::vector<EntityHandle> * pvGEnts = NULL);
 
+    //! Return the model set handle (this is the full geometry)
   EntityHandle get_root_model_set() { return modelSet; }
 
+    //! Checks that all geometric entities were created properly
   bool check_model();
-  // should be used instead of keeping multiple ranges, for example in FBEngine
+
+    //! Should be used instead of keeping multiple ranges, for example in FBEngine
   const Range * geoRanges() { return geomRanges ; }
 
+    //! Return pointer to moab instance
   Interface* get_moab_instance() { return mdbImpl; }
 
+    //! Returns the sense tag (sense2Tag) from check_face_sense_tag
   Tag get_sense_tag();
 
+    //! Returns the global ID tag (gidTag) from check_gid_tag
   Tag get_gid_tag();
-  
+ 
+    //! Returns the geometry dimension tag (geomTag) from check_geom_tag 
   Tag get_geom_tag();
 
+    //! Returns true if obb trees have been added to the rootset
   bool have_obb_tree();
   
 private:
@@ -212,23 +224,23 @@ private:
     // world
   ErrorCode create_implicit_complement(EntityHandle &implicit_complement);
   
-    //! compute vertices inclusive and put on tag on sets in geom_sets
+    //! Compute vertices inclusive and put on tag on sets in geom_sets
   ErrorCode construct_vertex_ranges(const Range &geom_sets,
 				      const Tag verts_tag);
   
-    //! given a range of geom topology sets, separate by dimension
+    //! Given a range of geom topology sets, separate by dimension
   ErrorCode separate_by_dimension(const Range &geom_sets);
 
-    //! verify global id tag
+    //! Verify global id tag
   ErrorCode check_gid_tag(bool create = false);
 
-    //! verify geometry tag
+    //! Verify geometry tag
   ErrorCode check_geom_tag(bool create = false);
 
-    //! verify sense face tag
+    //! Verify sense face tag
   ErrorCode check_face_sense_tag(bool create = false);
 
-    //! verify sense edge tags
+    //! Verify sense edge tags
   ErrorCode check_edge_sense_tags(bool create = false);
 
     //! Set the contigous variable
@@ -240,7 +252,6 @@ private:
 
 };
 
-// get the root of the obbtree for a given entity
 inline ErrorCode GeomTopoTool::get_root(EntityHandle vol_or_surf, EntityHandle &root) 
 {
    if(contiguous)
