@@ -73,7 +73,8 @@ if HAVE_HDF5
         mbground_test \
         lloyd_smoother_test \
         mhdf_public_test \
-	test_geom_gqt
+	test_geom_gqt \
+	gqt_simple_test
 
 if PARALLEL
 # imoab tests
@@ -183,6 +184,8 @@ adj_moab_test_SOURCES = adj_moab_test.cpp
 uref_mesh_test_SOURCES = urefine_mesh_test.cpp
 
 test_geom_gqt_SOURCES = test_geom_gqt.cc
+
+gqt_simple_test_SOURCES = gqt_simple_test.cpp
 
 if PARALLEL
 moab_test_CPPFLAGS += -I$(top_srcdir)/src/parallel
