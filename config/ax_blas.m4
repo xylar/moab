@@ -153,19 +153,23 @@ if test $ax_blas_ok = no; then
 fi
 
 # BLAS in Apple vecLib library?
-if test $ax_blas_ok = no; then
-  save_LIBS="$LIBS"; LIBS="-framework vecLib $LIBS"
-  AC_MSG_CHECKING([for $sgemm in -framework vecLib])
-  AC_TRY_LINK_FUNC($sgemm, [ax_blas_ok=yes;BLAS_LIBS="-framework vecLib"])
-  AC_MSG_RESULT($ax_blas_ok)
-  LIBS="$save_LIBS"
-fi
-if test $ax_blas_ok = no; then
-  save_LIBS="$LIBS"; LIBS="-framework Accelerate $LIBS"
-  AC_MSG_CHECKING([for $sgemm in -framework Accelerate])
-  AC_TRY_LINK_FUNC($sgemm, [ax_blas_ok=yes;BLAS_LIBS="-framework Accelerate"])
-  AC_MSG_RESULT($ax_blas_ok)
-  LIBS="$save_LIBS"
+if (test "x$target_vendor" = "xapple" && test "x$BLAS_LIBS" = "x"); then
+
+  if test $ax_blas_ok = no; then
+    save_LIBS="$LIBS"; LIBS="-framework vecLib $LIBS"
+    AC_MSG_CHECKING([for $sgemm in -framework vecLib])
+    AC_TRY_LINK_FUNC($sgemm, [ax_blas_ok=yes;BLAS_LIBS="-framework vecLib"])
+    AC_MSG_RESULT($ax_blas_ok)
+    LIBS="$save_LIBS"
+  fi
+  if test $ax_blas_ok = no; then
+    save_LIBS="$LIBS"; LIBS="-framework Accelerate $LIBS"
+    AC_MSG_CHECKING([for $sgemm in -framework Accelerate])
+    AC_TRY_LINK_FUNC($sgemm, [ax_blas_ok=yes;BLAS_LIBS="-framework Accelerate"])
+    AC_MSG_RESULT($ax_blas_ok)
+    LIBS="$save_LIBS"
+  fi
+
 fi
 
 # BLAS in Alpha CXML library?
