@@ -195,6 +195,9 @@ public:
 
     //! Returns true if obb trees have been added to the rootset
   bool have_obb_tree();
+
+  // returns the number of entities in the modelSet with specified geometric dimension
+  int num_ents_of_dim(int dim);
   
 private:
   Interface *mdbImpl;
@@ -252,6 +255,12 @@ private:
 
 };
 
+inline int GeomTopoTool::num_ents_of_dim(int dim) {
+  assert(0 <= dim && 3 >= dim);
+  return geomRanges[dim].size();
+}
+  
+// get the root of the obbtree for a given entity
 inline ErrorCode GeomTopoTool::get_root(EntityHandle vol_or_surf, EntityHandle &root) 
 {
    if(contiguous)

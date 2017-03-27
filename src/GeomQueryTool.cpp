@@ -44,6 +44,10 @@ GeomQueryTool::~GeomQueryTool() {}
 ErrorCode GeomQueryTool::initialize() {
 
   ErrorCode rval;
+
+  rval = geomTopoTool->find_geomsets();
+  MB_CHK_SET_ERR(rval, "Failed to find geometry sets");
+  
   rval = geomTopoTool->get_implicit_complement(impl_compl_handle, true);
   MB_CHK_SET_ERR(rval , "Couldn't get the implicit complement handle");
 
