@@ -69,6 +69,23 @@ cdef class MeshTopoUtil(object):
     def construct_aentities(self,
                             vertices,
                             exceptions = ()):
+        """
+        Generate all the AEntities bounding the vertices.
+
+        Example
+        -------
+        root_set = mb.get_root_set()
+        all_verts = mb.get_entities_by_dimension(root_set, 0)
+        mtu.construct_aentities(all_verts)
+
+        Parameters
+        ----------
+        vertices : Range or iterable of EntityHandles
+            Vertices that will be used to generate the bounding AEntities
+        exceptions : tuple (default is empty tuple)
+            A tuple containing any error types that should
+            be ignored. (see pymoab.types module for more info)
+        """
         cdef moab.ErrorCode err
         cdef Range r
 

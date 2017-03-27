@@ -41,7 +41,7 @@ cdef class Core(object):
         mb = pymoab.core.Core()
         mb.load_file("/location/of/my_file.h5m")
 
-        OR 
+        OR
 
         fs = mb.create_meshset()
         mb = pymoab.core.Core()
@@ -55,9 +55,9 @@ cdef class Core(object):
             If not None, this argument must be a valid
             entity set handle. All entities read from the file will be added to
             this set. File metadata will be added to tags on the set.
-        exceptions : tuple 
+        exceptions : tuple
             A tuple containing any error types that should
-            be ignored. See pymoab.types module for more info.
+            be ignored. (see pymoab.types module for more info)
 
         Returns
         -------
@@ -65,7 +65,7 @@ cdef class Core(object):
 
         Raises
         ------
-          MOAB ErrorCode 
+          MOAB ErrorCode
               if a MOAB error occurs
           ValueError
               if a parameter is not of the correct type
@@ -85,13 +85,13 @@ cdef class Core(object):
     def write_file(self, str fname, exceptions = ()):
         """
         Write or export a file.
-        
+
         Write a MOAB-native file or export data to some other supported file format.
-        
+
         Example
         -------
         mb.write_file("new_file.h5m")
-        
+
         Parameters
         ----------
         fname : string
@@ -99,14 +99,14 @@ cdef class Core(object):
         exceptions : tuple (default is empty tuple)
             tuple containing any error types that should
             be ignored (see pymoab.types module for more info)
-        
+
         Returns
         -------
         None
-        
+
         Raises
         ------
-        MOAB ErrorCode 
+        MOAB ErrorCode
             if a MOAB error occurs
         ValueError
             if a parameter is not of the correct type
@@ -119,20 +119,20 @@ cdef class Core(object):
     def create_meshset(self, unsigned int options = 0x02, exceptions = ()):
         """
         Create a new mesh set.
-        
+
         Create a new mesh set. Meshsets can store entities ordered or
         unordered. A set can include entities at most once (MESHSET_SET) or more
         than once. Meshsets can optionally track its members using adjacencies
         (MESHSET_TRACK_OWNER); if set, entities are deleted from tracking
         meshsets before being deleted. This adds data to mesh entities, which
         can be more memory intensive.
-        
+
         Example
         -------
         # Create a standard meshset
         mb = pymoab.core.Core()
         new_meshset = mb.create_meshset()
-        
+
         # Create a meshset which tracks entities
         mb = pymoab.core.Core()
         new_meshset = mb.create_meshset(pymoab.types.MESHSET_TRACK_OWNER)
@@ -144,16 +144,16 @@ cdef class Core(object):
         exceptions : tuple (default is empty tuple)
             A tuple containing any error types that should
             be ignored. (see pymoab.types module for more info)
-        
+
         Returns
         -------
         MOAB Meshset (EntityHandle)
-        
+
         Raises
         ------
-        MOAB ErrorCode 
+        MOAB ErrorCode
             if a MOAB error occurs
-        """        
+        """
         cdef moab.EntityHandle ms_handle = 0
         cdef moab.EntitySetProperty es_property = <moab.EntitySetProperty> options
         cdef moab.ErrorCode err = self.inst.create_meshset(es_property, ms_handle)
@@ -173,28 +173,28 @@ cdef class Core(object):
         vertices # a iterable of MOAB vertex handles
         new_meshset = mb.create_meshset()
         mb.add_entities(new_meshset, entities)
-        
+
         Parameters
         ----------
         ms_handle : EntityHandle
             EntityHandle of the Meshset the entities will be added to
         entities : Range or iterable of EntityHandles
-            Entities that to add to the Meshset            
+            Entities that to add to the Meshset
         exceptions : tuple (default is empty tuple)
             A tuple containing any error types that should
             be ignored. (see pymoab.types module for more info)
-        
+
         Returns
         -------
         None
-        
+
         Raises
         ------
-        MOAB ErrorCode 
+        MOAB ErrorCode
             if a MOAB error occurs
         ValueError
             if an EntityHandle is not of the correct type
-        """        
+        """
         cdef moab.ErrorCode err
         cdef Range r
         cdef np.ndarray[np.uint64_t, ndim=1] arr
@@ -296,7 +296,7 @@ cdef class Core(object):
             arr = _eh_array(entities)
             err = self.inst.delete_entities(<unsigned long*> arr.data, len(entities))
         check_error(err, exceptions)
-        
+
 
     def create_vertices(self, coordinates, exceptions = ()):
         """
@@ -308,13 +308,13 @@ cdef class Core(object):
         #create two vertices
         coords = np.array((0, 0, 0, 1, 1, 1),dtype='float64')
         verts = mb.create_vertices(coords)
-        
+
         OR
 
         mb = pymoab.core.Core()
         #create two vertices
         coords = [[0.0, 0.0, 0.0],[1.0, 1.0, 1.0]]
-        verts = mb.create_vertices(coords)       
+        verts = mb.create_vertices(coords)
 
         Parameters
         ----------
@@ -365,7 +365,7 @@ cdef class Core(object):
         # create the triangle in the database
         tri_verts = np.array(((verts[0],verts[1],verts[2]),),dtype='uint64')
         tris = mb.create_element(types.MBTRI,tri_verts)
-        
+
         OR
 
         tri_verts = [verts[0],verts[1],verts[2]]
@@ -663,7 +663,7 @@ cdef class Core(object):
         if isinstance(entity_handles,Range):
             r = entity_handles
         else:
-            r = Range(entity_handles)        
+            r = Range(entity_handles)
         err = self.inst.tag_get_data_type(tag.inst, tag_type);
         check_error(err, ())
         cdef int length = 0
@@ -722,14 +722,14 @@ cdef class Core(object):
         # now retrieve this tag's data for the vertices from the instance
         # returns 1-D array of len(verts)*tag_length
         data = mb.tag_get_data(data_tag, verts)
-        
+
         Parameters
         ----------
         tag : MOAB TagHandle
             the tag from which data is to be retrieved
         entity_handles : iterable of MOAB EntityHandles or a single EntityHandle
             the EntityHandle(s) to retrieve data for. This can be any iterable of
-            EntityHandles or a single EntityHandle. 
+            EntityHandles or a single EntityHandle.
         flat : bool (default is False)
             Indicates the structure in which the data is returned. If False, the
             array is returned as a 2-D numpy array of len(entity_handles) with
@@ -750,7 +750,7 @@ cdef class Core(object):
             if a MOAB error occurs
         ValueError
             if an EntityHandle is not of the correct type
-        """        
+        """
         cdef moab.ErrorCode err
         cdef Range r
         cdef moab.DataType tag_type = moab.MB_MAX_DATA_TYPE
@@ -796,13 +796,13 @@ cdef class Core(object):
         adjacent_verts = mb.get_adjacencies(tris, 0, False)
         #now get the edges and ask MOAB to create them for us
         adjacent_edgess = mb.get_adjacencies(tris, 1, True)
-        
+
         Parameters
         ----------
         entity_handles : iterable of MOAB EntityHandles or a single EntityHandle
             the EntityHandle(s) to get the adjacencies of. This can be any
             iterable of EntityHandles or a single EntityHandle.
-        to_dim : integer 
+        to_dim : integer
             value indicating the dimension of the entities to return
         create_if_missing : bool (default is false)
             this parameter indicates that any adjacencies that do not exist
@@ -823,7 +823,7 @@ cdef class Core(object):
             if a MOAB error occurs
         ValueError
             if an EntityHandle is not of the correct type
-        """                
+        """
         cdef moab.ErrorCode err
         cdef Range r
         cdef Range adj = Range()
@@ -1256,13 +1256,13 @@ cdef class Core(object):
                 this_data = self._validate_data_for_tag(tags[i],vals[i])
                 #set the array value
                 arr[i] = <void*> this_data.data if this_data is not None else NULL
-            
+
         #create tag array to pass to function
         cdef TagArray ta = TagArray(tags)
         #convert type to tag type
         cdef moab.EntityType typ = entity_type
         #a range to hold returned entities
-        cdef Range ents = Range()        
+        cdef Range ents = Range()
         #here goes nothing
         err = self.inst.get_entities_by_type_and_tag(<unsigned long> meshset,
                                                      typ,
@@ -1337,25 +1337,25 @@ cdef class Core(object):
         cdef Range ents = Range()
         err = self.inst.get_entities_by_dimension(<unsigned long> meshset, dimension, deref(ents.inst), recur)
         check_error(err, exceptions)
-        return ents            
+        return ents
 
     def delete_mesh(self):
         """Deletes all mesh entities from the database"""
         self.inst.delete_mesh()
-        
+
     def _validate_data_for_tag(self, Tag tag, data_arr):
         """Internal method for validating tag data."""
-        
+
         cdef moab.ErrorCode err
         cdef moab.DataType tag_type = moab.MB_MAX_DATA_TYPE
         cdef int tag_length = 0
-        # make sure we're dealing with a 1-D array at this point    
+        # make sure we're dealing with a 1-D array at this point
         assert data_arr.ndim == 1
         # if None is passed, set pointer to NULL and continue
         if data_arr[0] == None:
             return None
         else:
-            # otherwise get the tag type            
+            # otherwise get the tag type
             err = self.inst.tag_get_data_type(tag.inst, tag_type)
             check_error(err)
             #and length
