@@ -75,7 +75,8 @@ if HAVE_HDF5
         mhdf_public_test \
 	test_geom_gqt \
 	gqt_simple_test \
-	gqt_rayfire_test
+	gqt_rayfire_test \
+	gqt_pointinvol_test
 
 if PARALLEL
 # imoab tests
@@ -188,6 +189,7 @@ test_geom_gqt_SOURCES = test_geom_gqt.cc
 
 gqt_simple_test_SOURCES = gqt_simple_test.cpp
 gqt_rayfire_test_SOURCES = gqt_rayfire_test.cpp
+gqt_pointinvol_test_SOURCES = gqt_pointinvol_test.cpp
 
 if PARALLEL
 moab_test_CPPFLAGS += -I$(top_srcdir)/src/parallel
