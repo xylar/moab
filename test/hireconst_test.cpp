@@ -60,11 +60,9 @@ int main(int argc, char *argv[]){
 	ErrorCode error;
 	if(argc==1){
 		error = test_unitsq_tris(); MB_CHK_ERR(error);
-		/*
 		error = test_unitsq_quads(); MB_CHK_ERR(error);
 		error = test_unitsphere(); MB_CHK_ERR(error);
 		error = test_unitcircle(); MB_CHK_ERR(error);
-		*/
 		return 0;
 	}else{
 		infile = argv[1]; bool hasdim=false;
@@ -294,7 +292,7 @@ ErrorCode test_unitsq_tris(){
 			std::cout << "triangulated unit square n= " << n << " degree= " << degree << " interpolation:\n";
 			std::cout << "maximum projection lift is " << mxdist << std::endl;
 			// for debug
-			return error;
+			//return error;
 
 			mxdist = 0;
 			//reconstruct geometry, least square fitting

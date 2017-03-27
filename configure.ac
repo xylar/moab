@@ -1238,7 +1238,6 @@ AC_CONFIG_FILES([Makefile
                  src/Makefile
                  src/io/Makefile
                  src/io/mhdf/Makefile
-                 src/DiscreteGeometry/Makefile
                  test/Makefile
                  test/dagmc/Makefile
                  test/h5file/Makefile

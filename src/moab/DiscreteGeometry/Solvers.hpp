@@ -56,7 +56,7 @@ public:
 
     static void backsolve(int mrows, int ncols, double *R, int bncols, double *bs, double *ws);
 
-    static void backsolve_polyfit_safeguarded(int dim, int degree, int mrows, int ncols, double *R, int bncols, double *bs, const double *ws, int *degree_out);
+    static void backsolve_polyfit_safeguarded(int dim, int degree, const bool interp, int mrows, int ncols, double *R, int bncols, double *bs, const double *ws, int *degree_out);
 
     static void vec_dotprod(const int len, const double* a, const double* b, double* c);
 

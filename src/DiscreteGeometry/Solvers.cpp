@@ -261,7 +261,7 @@ namespace moab {
       }
   }
 
-  void Solvers::backsolve_polyfit_safeguarded(int dim, int degree, int mrows, int ncols, double *R, int bncols, double *bs, const double *ws, int *degree_out)
+  void Solvers::backsolve_polyfit_safeguarded(int dim, int degree, const bool interp, int mrows, int ncols, double *R, int bncols, double *bs, const double *ws, int *degree_out)
   {
     /*std::cout.precision(12);
     std::cout<<"Before backsolve  "<<std::endl;
@@ -289,12 +289,13 @@ namespace moab {
     for (int k=0; k< ncols; k++){
             std::cout<<ws[k]<<", ";
           }
-    std::cout<<" ] "<<std::endl;*/
+    std::cout<<" ] "<<std::endl;
 
     std::cout << "R: " << R << "size: [" << mrows << "," << ncols << "]" << std::endl;
     std::cout << "bs: " << bs << "size: [" << mrows << "," << bncols << "]" << std::endl;
     std::cout << "ws: " << ws << "size: [" << ncols << "," << 1 << "]" << std::endl;
     std::cout << "degree_out: " << degree_out << std::endl;
+    */
 
     int deg, numcols;
 
@@ -303,12 +304,12 @@ namespace moab {
         deg = degree;
         /* I think we should consider interp = true/false -Xinglin*/
         if (dim==1)
-          numcols = deg+1;
+          numcols = deg+1 - interp;
         else if (dim==2)
-          numcols = (deg+2)*(deg+1)/2;
+          numcols = (deg+2)*(deg+1)/2 - interp;
 
         /*ERROR, assert is disabled*/
-        std::cout << "numcols: " << numcols << ", ncols: " << ncols << std::endl;
+        //std::cout << "numcols: " << numcols << ", ncols: " << ncols << std::endl;
         assert(numcols <=ncols);
 
         //double *bs_bak = new double[numcols];
@@ -444,13 +445,13 @@ namespace moab {
         degree_out[k] = deg;
 
         //std::cout<<"BACKSOLVE_SAFEGUARDED solution bs = [ ";
-        std::cout << "numcols: " << numcols << std::endl;
+        //std::cout << "numcols: " << numcols << std::endl;
         for (int i=0; i<numcols; i++)
           {
             /*ERROR*/
-            assert(mrows*k+i < mrows*bncols);
-            assert(i < ncols);
-            std::cout << "ws[" << i << "]: " << ws[i] << "\tAddress: " << ws+i << std::endl; 
+            //assert(mrows*k+i < mrows*bncols);
+            //assert(i < ncols);
+            //std::cout << "ws[" << i << "]: " << ws[i] << "\tAddress: " << ws+i << std::endl; 
             bs[mrows*k+i] = bs[mrows*k+i]/ws[i];
         //    std::cout<<bs[mrows*k+i]<<", ";
           }
@@ -458,7 +459,7 @@ namespace moab {
      //   std::cout<<" ] "<<std::endl;
 
         for (int i=numcols; i<mrows; i++) {
-          assert(mrows*k+i < mrows*bncols);
+          //assert(mrows*k+i < mrows*bncols);
           bs[mrows*k+i] = 0;
         }
 

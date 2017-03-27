@@ -26,7 +26,6 @@ AM_CPPFLAGS += -DIS_BUILDING_MB \
                -I$(srcdir)/verdict \
                -I$(srcdir)/RefineMesh \
                -I$(srcdir)/DiscreteGeometry
-	       -I$(srcdir)/DiscreteGeometry
 
 # The directory in which to install headers
 libMOAB_la_includedir = $(includedir)
@@ -251,8 +250,8 @@ verdictinclude_HEADERS = \
 
 discretegeomincludedir = $(includedir)/moab/DiscreteGeometry
 discretegeominclude_HEADERS = \
-	moab/Solvers.hpp \
-	moab/HiReconstruction.hpp
+	moab/DiscreteGeometry/Solvers.hpp \
+	moab/DiscreteGeometry/HiReconstruction.hpp
 
 localdiscincludedir = $(includedir)/moab/LocalDiscretization
 localdiscinclude_HEADERS = \
