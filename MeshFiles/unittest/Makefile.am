@@ -1,4 +1,4 @@
-SUBDIRS = dagmc h5file io fbigeom irel mbcslam
+SUBDIRS = h5file io fbigeom irel mbcslam
 
 EXTRA_DIST = 125hex.g \
              16_unmerged_hex.h5m \
@@ -51,5 +51,6 @@ EXTRA_DIST = 125hex.g \
              quad_1000.h5m \
              quad_1000.vtk \
              spectral.h5m \
-             tet_brick.vtk
+             tet_brick.vtk \
+	     test_geom.h5m
 
