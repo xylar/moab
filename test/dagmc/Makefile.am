@@ -9,18 +9,25 @@ AM_CPPFLAGS  = -DSRCDIR=$(srcdir) \
                -I$(top_srcdir)/src \
                -I$(top_srcdir)/src/io \
                -I$(top_srcdir)/src/parallel \
-               -I$(top_srcdir)/tools/dagmc 
+               -I$(top_srcdir)/tools/dagmc
+
 TESTS = 
 if HAVE_HDF5
  TESTS += dagmc_simple_test \
         dagmc_rayfire_test \
         dagmc_pointinvol_test \
-        genhi_test 
+        genhi_test \
+	gqt_simple_test
 endif
+
 check_PROGRAMS = $(TESTS)
 
 dagmc_simple_test_SOURCES = $(srcdir)/../TestUtil.hpp dagmc_simple_test.cpp
 dagmc_simple_test_CXXFLAGS = $(CGM_CPPFLAGS) $(CXXFLAGS) $(CGM_LIBS)
+
+gqt_simple_test_SOURCES = $(srcdir)/../TestUtil.hpp gqt_simple_test.cpp
+gqt_simple_test_CXXFLAGS = $(CGM_CPPFLAGS) $(CXXFLAGS) $(CGM_LIBS)
+
 dagmc_rayfire_test_SOURCES = $(srcdir)/../TestUtil.hpp dagmc_rayfire_test.cpp
 dagmc_rayfire_test_CXXFLAGS = $(CGM_CPPFLAGS) $(CXXFLAGS) $(CGM_LIBS)
 dagmc_pointinvol_test_SOURCES = $(srcdir)/../TestUtil.hpp dagmc_pointinvol_test.cpp
