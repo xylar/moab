@@ -81,8 +81,8 @@ case $with_lapack in
 esac
 
 # Get fortran linker name of LAPACK function to check for.
-AC_F77_FUNC(dgeev)
-AC_F77_FUNC(cheev)
+AC_FC_FUNC(dgeev)
+AC_FC_FUNC(cheev)
 
 # We cannot use LAPACK if BLAS is not found
 if test "x$ax_blas_ok" != xyes; then

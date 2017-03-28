@@ -81,8 +81,8 @@ case $with_blas in
 esac
 
 # Get fortran linker names of BLAS functions to check for.
-AC_F77_FUNC(sgemm)
-AC_F77_FUNC(dgemm)
+AC_FC_FUNC(sgemm)
+AC_FC_FUNC(dgemm)
 
 ax_blas_save_LIBS="$LIBS"
 LIBS="$LIBS $FLIBS"
