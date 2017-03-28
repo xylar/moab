@@ -11,6 +11,7 @@ MOAB_PNETCDF_ENABLED = @enablepnetcdf@
 MOAB_IGEOM_ENABLED = @HAVE_IGEOM@
 MOAB_IMESH_ENABLED = @HAVE_IMESH@
 MOAB_IREL_ENABLED = @HAVE_IREL@
+MOAB_FBIGEOM_ENABLED = @HAVE_FBIGEOM@
 MOAB_MESQUITE_ENABLED = @HAVE_MESQUITE@
 
 # Library and Include paths
@@ -23,6 +24,11 @@ MOAB_INCLUDES = -I@abs_srcdir@/src \
                 -I@abs_builddir@/src/parallel \
                 -I@abs_srcdir@/src/LocalDiscretization \
                 -I@abs_srcdir@/src/RefineMesh
+
+ifeq ($(MOAB_IGEOM_ENABLED),yes)
+include @CGM_DIR@/lib/iGeom-Defs.inc
+MOAB_INCLUDES += $(IGEOM_INCLUDES)
+endif
 
 ifeq ($(MOAB_MESQUITE_ENABLED),yes)
 MSQ_LIBS = -L@abs_builddir@/src/mesquite/.libs -lmbmesquite

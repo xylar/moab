@@ -388,8 +388,9 @@ if test "x$ENABLE_fbigeom" = "xyes"; then
     AC_MSG_ERROR([Cannot build FBiGeom API with sizeof(EntityHandle) != sizeof(void*)])
   fi
   AC_DEFINE([HAVE_FBIGEOM],[1],[Define if configured with FBiGeom interfaces.])
-  
 fi
+HAVE_FBIGEOM=$ENABLE_fbigeom
+AC_SUBST(HAVE_FBIGEOM)
 
 AC_MSG_CHECKING([if iMesh support is to be built])
 AC_MSG_RESULT([$ENABLE_imesh])
