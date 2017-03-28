@@ -357,7 +357,7 @@ ErrorCode ReadGmsh::create_elements(const GmshElemType& type,
     return MB_FAILURE;
 
   // Create the element sequence
-  // do not do anything for point type
+  // for points, simply gather the connectivities and create the materials
   if (type.mb_type==MBVERTEX) {
     Range elements;
     elements.insert< std::vector<EntityHandle> >(connectivity.begin(), connectivity.end());
@@ -365,7 +365,7 @@ ErrorCode ReadGmsh::create_elements(const GmshElemType& type,
     if (MB_SUCCESS != result)
       return result;
 
-    return MB_SUCCESS; // do not create anything
+    return MB_SUCCESS;
   }
   EntityHandle handle = 0;
   EntityHandle* conn_array;
