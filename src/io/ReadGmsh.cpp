@@ -360,9 +360,7 @@ ErrorCode ReadGmsh::create_elements(const GmshElemType& type,
   // do not do anything for point type
   if (type.mb_type==MBVERTEX) {
     Range elements;
-    //for (std::vector<EntityHandle>::const_iterator it = connectivity.begin();
-    //     it != connectivity.end(); ++it)
-      elements.insert< std::vector<EntityHandle> >(connectivity.begin(), connectivity.end());
+    elements.insert< std::vector<EntityHandle> >(connectivity.begin(), connectivity.end());
     result = create_sets(type.mb_type, elements, matl_ids, 0);
     if (MB_SUCCESS != result)
       return result;
