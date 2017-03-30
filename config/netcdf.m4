@@ -118,7 +118,6 @@ if (test "x" != "x$NETCDF_DIR" && test "xno" != "x$NETCDF_DIR"); then
   # Check if netcdf is usable by itself
   if test "x$enablenetcdf" != "xno"; then
     AC_CHECK_LIB( [netcdf], [nc_create], [NETCDF_LIBS="-lnetcdf $PNETCDF_LIBS"; enablenetcdf=yes;], [
-      # Check if netcdf is usable with HDF5
       unset ac_cv_lib_netcdf
       unset ac_cv_lib_netcdf_nc_create
       # If we haven't already looked for HDF5 libraries, again now incase
@@ -158,6 +157,9 @@ if (test "x" != "x$NETCDF_DIR" && test "xno" != "x$NETCDF_DIR"); then
     NETCDF_LDFLAGS=
   fi
 fi
+
+AC_SUBST(enablenetcdf)
+AC_SUBST(NETCDF_DIR)
 
 ]) # FATHOM_enablenetcdf
 
@@ -237,5 +239,11 @@ if (test "xno" != "x$PNETCDF_DIR" && test "x$PNETCDF_DIR" != "x"); then
     PNETCDF_LDFLAGS=
   fi
 fi
+
+AC_SUBST(PNETCDF_DIR)
+AC_SUBST(PNETCDF_LDFLAGS)
+AC_SUBST(PNETCDF_CPPFLAGS)
+AC_SUBST(PNETCDF_LIBS)
+AC_SUBST(enablepnetcdf)
 
 ]) # FATHOM_enablepnetcdf

@@ -8,22 +8,75 @@
 # MOAB_CXX, MOAB_CC, MOAB_F77, MOAB_FC - compilers used to compile MOAB
 # MOAB_CXXFLAGS, MOAB_CCFLAGS, MOAB_FFLAGS, MOAB_FCFLAGS - compiler flags used to compile MOAB; possibly need to use these in add_definitions or CMAKE_<LANG>_FLAGS_<MODE> 
 
-SET(MOAB_FOUND 1)
+set(MOAB_FOUND 1)
 
-# Compilers used by MOAB
-
-SET(MOAB_CXX "@CXX@")
-SET(MOAB_CC "@CC@")
-SET(MOAB_F77 "@F77@")
-SET(MOAB_FC "@FC@")
-
-
+set(MOAB_CXX @CXX@)
+set(MOAB_CC @CC@)
+set(MOAB_FC @FC@)
+set(MOAB_F77 @F77@)
 # Compiler flags used by MOAB
+set(MOAB_CFLAGS "@CFLAGS@")
+set(MOAB_CXXFLAGS "@CXXFLAGS@")
+set(MOAB_FCFLAGS "@FCFLAGS@")
+set(MOAB_FFLAGS "@FFLAGS@")
 
-SET(MOAB_CXXFLAGS "@CXXFLAGS@ @AM_CXXFLAGS@")
-SET(MOAB_CFLAGS "@CFLAGS@ @AM_CFLAGS@")
-SET(MOAB_FORTRAN_FLAGS "@FFLAGS@ @AM_FFLAGS@")
+set(MOAB_BUILT_SHARED @enable_shared@)
+set(MOAB_USE_MPI @enablempi@)
+set(MPI_DIR "@MPI_DIR@")
+set(MOAB_USE_HDF5 @enablehdf5@)
+set(MOAB_USE_HDF5_PARALLEL @enablehdf5parallel@)
+set(HDF5_DIR "@HDF5_DIR@")
+set(MOAB_USE_ZLIB @enablezlib@)
+set(ZLIB_DIR "@ZLIB_DIR@")
+set(MOAB_USE_SZIP @enableszip@)
+set(SZIP_DIR "@SZIP_DIR@")
+set(MOAB_USE_NETCDF @enablenetcdf@)
+set(NETCDF_DIR "@NETCDF_DIR@")
+set(MOAB_USE_PNETCDF @enablepnetcdf@)
+set(PNETCDF_DIR "@PNETCDF_DIR@")
+set(MOAB_USE_METIS @enablemetis@)
+set(METIS_DIR "@METIS_DIR@")
+set(MOAB_USE_PARMETIS @enableparmetis@)
+set(PARMETIS_DIR "@PARMETIS_DIR@")
+set(MOAB_USE_ZOLTAN @enablezoltan@)
+set(ZOLTAN_DIR "@ZOLTAN_DIR@")
+set(MOAB_USE_BLAS @enableblas@)
+set(BLAS_LIBRARIES "@BLAS_LIBS@")
+set(MOAB_USE_LAPACK @enablelapack@)
+set(LAPACK_LIBRARIES "@LAPACK_LIBS@")
+set(MOAB_USE_EIGEN @enableeigen@)
+set(EIGEN_INCLUDE_DIR "@EIGEN3_DIR@")
+
+set(ENABLE_IGEOM @HAVE_IGEOM@)
+set(CGM_DIR "@CGM_DIR@")
+set(ENABLE_IMESH @HAVE_IMESH@)
+
+set (MOAB_PACKAGE_LIBS "@NETCDF_LIBS@ @PNETCDF_LIBS@ @CGNS_LIBS@ @HDF5_LIBS@ @DAMSEL_LIBS@ @CCMIO_LIBS@ @CGM_LIBS@ @ZOLTAN_LIBS@ @PARMETIS_LIBS@ @METIS_LIBS@ @LIBS@")
+string(STRIP "${MOAB_PACKAGE_LIBS}" MOAB_PACKAGE_LIBS)
+set(MOAB_PACKAGE_LIBS_LIST ${MOAB_PACKAGE_LIBS})
+separate_arguments(MOAB_PACKAGE_LIBS_LIST)
+list(REMOVE_DUPLICATES MOAB_PACKAGE_LIBS_LIST)
+set (MOAB_PACKAGE_INCLUDES "@ZOLTAN_INC_FLAGS@ @PNETCDF_CPPFLAGS@ @NETCDF_CPPFLAGS@ @HDF5_CPPFLAGS@ @PARMETIS_INCLUDES@ @METIS_INCLUDES@ @EIGEN3_INCLUDES@ @CGM_CPPFLAGS@" )
+string(STRIP "${MOAB_PACKAGE_INCLUDES}" MOAB_PACKAGE_INCLUDES)
+separate_arguments(MOAB_PACKAGE_INCLUDES)
+list(REMOVE_DUPLICATES MOAB_PACKAGE_INCLUDES)
 
 # Library and include defs
-set(MOAB_INCLUDE_DIRS, "@prefix@/include")
+get_filename_component(MOAB_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+
+#if(NOT TARGET MOAB AND NOT MOAB_BINARY_DIR)
+#  include("${MOAB_CMAKE_DIR}/MOABTargets.cmake")
+#endif()
+
+# Target information
+if(MOAB_USE_HDF5)
+  if(EXISTS "@HDF5_DIR@/share/cmake/hdf5/hdf5-config.cmake")
+    include(@HDF5_DIR@/share/cmake/hdf5/hdf5-config.cmake)
+  endif()
+endif()
+
 set(MOAB_LIBRARY_DIRS, "@prefix@/lib")
+set(MOAB_INCLUDE_DIRS "@prefix@/include")
+set(MOAB_LIBRARIES "-L@prefix@/lib -lMOAB ${MOAB_PACKAGE_LIBS}")
+set(DAGMC_LIBRARIES "-L@prefix@/lib -ldagmc -lMOAB ${MOAB_PACKAGE_LIBS}")
+

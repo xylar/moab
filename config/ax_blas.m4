@@ -249,4 +249,6 @@ else
   AC_MSG_ERROR([BLAS library not found])
   $2
 fi
+enableblas=$ax_blas_ok
+AC_SUBST(enableblas)
 ])dnl AX_BLAS

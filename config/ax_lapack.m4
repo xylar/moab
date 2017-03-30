@@ -146,5 +146,7 @@ else
   $2
   AC_MSG_ERROR([LAPACK library not found])
 fi
+enablelapack=$ax_lapack_ok
+AC_SUBST(enablelapack)
 ])dnl AX_LAPACK
 

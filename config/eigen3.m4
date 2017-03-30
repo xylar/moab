@@ -67,6 +67,7 @@ AC_DEFUN([FATHOM_CONFIGURE_EIGEN3],
   fi
   
   dnl Substitute the substitution variables
+  AC_SUBST(EIGEN3_DIR) 
   AC_SUBST(EIGEN3_INCLUDES) 
   AC_SUBST(enableeigen)
 ])
