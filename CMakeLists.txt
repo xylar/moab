@@ -209,7 +209,7 @@ endif (EIGEN_FOUND)
 find_package( verdict REQUIRED )
 
 # check for MPI package
-set (MOAB_HAVE_MPI ON CACHE INTERNAL "Found necessary MPI components. Configure MOAB with it." )
+set (MOAB_HAVE_MPI OFF CACHE INTERNAL "Found necessary MPI components. Configure MOAB with it." )
 if ( ENABLE_MPI )
   set (MPI_C_COMPILER ${CC} )
   set (MPI_CXX_COMPILER ${CXX} )
