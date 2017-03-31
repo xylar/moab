@@ -43,10 +43,7 @@ set( TESTS range_test.cpp
            coords_connect_iterate.cpp
            urefine_mesh_test.cpp
            adj_moab_test.cpp
-           test_boundbox.cpp
-	   gqt_simple_test.cpp
-	   gqt_rayfire_test.cpp
-	   gqt_pointinvol_test.cpp)
+           test_boundbox.cpp )
            
 if(MOAB_HAVE_HDF5)
   set( TESTS ${TESTS}
@@ -57,7 +54,10 @@ if(MOAB_HAVE_HDF5)
              mbground_test.cpp
              gttool_test.cpp
              crop_vol_test.cpp 
-             imoab_test.cpp )
+             imoab_test.cpp
+	     gqt_simple_test.cpp
+	     gqt_rayfire_test.cpp
+	     gqt_pointinvol_test.cpp )
 endif()
 
 foreach( fname ${TESTS} )
