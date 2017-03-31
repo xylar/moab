@@ -199,18 +199,7 @@ nobase_libMOAB_la_include_HEADERS = \
   moab/iMOAB.h \
   moab/imoab_protos.h \
   moab/LloydSmoother.hpp \
-  moab/point_locater/tree/common_tree.hpp \
-  moab/point_locater/tree/element_tree.hpp \
-  moab/point_locater/tree/bvh_tree.hpp \
-  moab/point_locater/io.hpp  \
-  moab/point_locater/element_maps/linear_hex_map.hpp  \
-  moab/point_locater/element_maps/linear_tet_map.hpp  \
-  moab/point_locater/element_maps/spectral_hex_map.hpp  \
-  moab/point_locater/element_maps/quadratic_hex_map.hpp  \
-  moab/point_locater/point_locater.hpp \
-  moab/point_locater/parametrizer.hpp \
   moab/NestedRefine.hpp \
-  moab/RefineMesh/Templates.hpp \
   moab/Matrix3.hpp \
   moab/MergeMesh.hpp \
   moab/MeshTopoUtil.hpp \
@@ -236,21 +225,44 @@ nobase_libMOAB_la_include_HEADERS = \
   moab/Types.hpp \
   moab/UnknownInterface.hpp \
   moab/Util.hpp \
+  moab/verdict.h \
   moab/WriteUtilIface.hpp \
   moab/WriterIface.hpp \
   $(EIGEN_INST_HDRS) \
   moab/ElemEvaluator.hpp \
-  moab/LocalDiscretization/LinearHex.hpp \
-  moab/LocalDiscretization/LinearQuad.hpp \
-  moab/LocalDiscretization/LinearTet.hpp \
-  moab/LocalDiscretization/LinearTri.hpp \
-  moab/LocalDiscretization/QuadraticHex.hpp \
-  moab/verdict.h \
-  moab/verdict/VerdictWrapper.hpp \
   MBEntityType.h \
   MBCN.h \
   MBCN_protos.h \
   MBTagConventions.hpp 
+
+verdictincludedir = $(includedir)/moab/verdict
+verdictinclude_HEADERS = \
+  moab/verdict/VerdictWrapper.hpp
+
+refinemeshincludedir = $(includedir)/moab/RefineMesh
+refinemeshinclude_HEADERS = \
+  moab/RefineMesh/Templates.hpp
+
+localdiscincludedir = $(includedir)/moab/LocalDiscretization
+localdiscinclude_HEADERS = \
+  moab/LocalDiscretization/LinearHex.hpp \
+  moab/LocalDiscretization/LinearQuad.hpp \
+  moab/LocalDiscretization/LinearTet.hpp \
+  moab/LocalDiscretization/LinearTri.hpp \
+  moab/LocalDiscretization/QuadraticHex.hpp
+
+pointlocincludedir = $(includedir)/moab/point_locater
+pointlocinclude_HEADERS = \
+  moab/point_locater/tree/common_tree.hpp \
+  moab/point_locater/tree/element_tree.hpp \
+  moab/point_locater/tree/bvh_tree.hpp \
+  moab/point_locater/io.hpp  \
+  moab/point_locater/element_maps/linear_hex_map.hpp  \
+  moab/point_locater/element_maps/linear_tet_map.hpp  \
+  moab/point_locater/element_maps/spectral_hex_map.hpp  \
+  moab/point_locater/element_maps/quadratic_hex_map.hpp  \
+  moab/point_locater/point_locater.hpp \
+  moab/point_locater/parametrizer.hpp
 
 if HAVE_HDF5
   nobase_libMOAB_la_include_HEADERS += moab/mhdf_public.h
@@ -273,15 +285,19 @@ if HAVE_HDF5_PARALLEL
                         parallel/WriteHDF5Parallel.hpp
 endif
 
-nobase_libMOAB_la_include_HEADERS += \
-     parallel/moab/gs.hpp \
+mpiparallelincludedir = $(includedir)
+mpiparallelinclude_HEADERS = \
      parallel/moab_mpi.h \
      parallel/moab_mpi_config.h \
+     parallel/MBParallelConventions.h
+
+moabparallelincludedir = $(includedir)/moab
+moabparallelinclude_HEADERS = \
+     parallel/moab/gs.hpp \
      parallel/moab/ParallelComm.hpp \
      parallel/moab/ParallelMergeMesh.hpp \
      parallel/moab/ProcConfig.hpp \
-     parallel/moab/ParallelData.hpp \
-     parallel/MBParallelConventions.h
+     parallel/moab/ParallelData.hpp
 
   AM_CPPFLAGS += -I$(srcdir)/parallel
 endif
