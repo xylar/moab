@@ -59,7 +59,9 @@ EXTRA_DIST = $(doc_DATA) $(examples_DATA)
 # in $(libdir).  Define a $(cfgdir) to get around automake's
 # check that only libraries are going in $(libdir)
 cfgdir = $(libdir)
-cfg_DATA = moab.make moab.config MOABConfig.cmake
+cfg_DATA = moab.make moab.config
+cmakedir = $(libdir)/cmake/MOAB/
+cmake_DATA = MOABConfig.cmake
 
 # By default, moab.make will define these to $(srcdir).  We
 # want to override that during the INSTALL of the file so
