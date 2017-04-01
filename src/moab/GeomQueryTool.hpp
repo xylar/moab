@@ -294,6 +294,10 @@ public:
   GeomTopoTool* gttool() { return geomTopoTool; }
 
   Interface* moab_instance() { return MBI; }
+
+  bool is_implicit_complement( EntityHandle volume );
+
+  bool have_implicit_complement();
   
 private:
 

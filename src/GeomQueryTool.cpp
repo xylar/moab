@@ -754,6 +754,25 @@ void GeomQueryTool::set_overlap_thickness( double new_thickness ){
 
 }
 
+bool GeomQueryTool::is_implicit_complement(EntityHandle volume) {
+    return volume == impl_compl_handle;
+}
+
+bool GeomQueryTool::have_implicit_complement() {
+  EntityHandle implicit_complement;
+  ErrorCode rval = geomTopoTool->get_implicit_complement(implicit_complement);
+  if (MB_SUCCESS == rval) {
+    return true;
+  }
+  else if (MB_ENTITY_NOT_FOUND == rval) {
+    return false;
+  }
+  else {
+    MB_CHK_SET_ERR_CONT(rval,"Failed to check for implicit complement handle in GTT");
+    return false;
+  }
+}
+
 void GeomQueryTool::set_numerical_precision( double new_precision ){
 
   if ( new_precision <= 0 || new_precision > 1) {
