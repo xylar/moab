@@ -11,6 +11,7 @@ from .rng cimport Range
 from .types import check_error, np_tag_type, validate_type, _convert_array, _eh_array
 from . import types
 from libcpp.vector cimport vector
+from libcpp.string cimport string as std_string
 from libc.stdlib cimport malloc
 
 cdef void* null = NULL
@@ -1396,3 +1397,38 @@ cdef class Core(object):
         #validate the array type and convert the dtype if necessary
         data_arr = validate_type(tag_type, tag_length, data_arr)
         return data_arr
+
+    def tag_get_default_value(self, Tag tag, exceptions = () ):
+        # get the tag type and length for validation
+        cdef moab.DataType tag_type = moab.MB_MAX_DATA_TYPE
+        err = self.inst.tag_get_data_type(tag.inst, tag_type);
+        check_error(err,())
+        cdef int length = 0
+        err = self.inst.tag_get_length(tag.inst,length);
+        check_error(err,())
+        #create array to hold data
+        cdef np.ndarray data
+        if tag_type is types.MB_TYPE_OPAQUE:
+            data = np.empty((1,),dtype='S'+str(length))
+        else:
+            data = np.empty((length,),dtype=np.dtype(np_tag_type(tag_type)))
+        err = self.inst.tag_get_default_value(tag.inst, <void*> data.data)
+        check_error(err, exceptions)
+        return data
+
+    def tag_get_length(self, Tag tag, exceptions = () ):
+        cdef int length = 0
+        err = self.inst.tag_get_length(tag.inst, length)
+        check_error(err, exceptions)
+        return length
+
+    def tag_get_tags_on_entity(self, entity):
+        cdef vector[moab.TagInfo*] tags
+        err = self.inst.tag_get_tags_on_entity(entity, tags)
+        tag_list = []
+        for tag in tags:
+            t = Tag()
+            t.inst = tag
+            tag_list.append(t)
+        return tag_list
+        

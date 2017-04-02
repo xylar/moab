@@ -23,6 +23,9 @@ cdef class Tag(object):
     def get_data_type(self): 
         return self.inst.get_data_type()
 
+    def get_name(self):
+        return self.inst.get_name()
+    
 cdef class TagArray(object): 
     def __cinit__(self, tags):
         cdef Tag t

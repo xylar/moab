@@ -134,7 +134,15 @@ def test_get_tag():
         pass
     else:
         raise AssertionError
-    
+
+    # check the default value
+    def_val_chck = mb.tag_get_default_value(def_val_tag)
+    assert len(def_val_chck) == 2
+    assert def_val_chck[0] == def_value[0]
+    assert def_val_chck[1] == def_value[1]
+
+    def_tag_length = mb.tag_get_length(def_val_tag)
+    assert def_tag_length == 2
 
 def test_integer_tag():
     mb = core.Core()
@@ -158,6 +166,9 @@ def test_integer_tag():
     CHECK_EQ(new_test_value, data[0])
     CHECK_EQ(data.dtype, 'int32')
 
+    tags = mb.tag_get_tags_on_entity(vh[0])
+    assert len(tags) > 0
+    
 def test_double_tag():
     mb = core.Core()
     vh = vertex_handle(mb)
