@@ -117,6 +117,25 @@ def test_get_tag():
         print "Shouldn't be here. Test fails."
         raise AssertionError
 
+    def_val_tag_name = "def_val_tag"
+    def_value = [0.0,1.0]
+    def_val_tag = mb.tag_get_handle(def_val_tag_name,2,types.MB_TYPE_DOUBLE, True, default_value = def_value )
+
+    #look up tag by name only
+    tag = mb.tag_get_handle(def_val_tag_name)
+
+    #look up tag with default value
+    tag = mb.tag_get_handle(def_val_tag_name,2,types.MB_TYPE_DOUBLE, default_value = def_value )
+
+    # shouldn't be able to change the default value
+    try:
+        tag = mb.tag_get_handle(def_val_tag_name,2,types.MB_TYPE_DOUBLE,True, default_value = [1.0,0.0] )
+    except:
+        pass
+    else:
+        raise AssertionError
+    
+
 def test_integer_tag():
     mb = core.Core()
     vh = vertex_handle(mb)

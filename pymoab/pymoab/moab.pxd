@@ -202,11 +202,13 @@ cdef extern from "moab/Core.hpp" namespace "moab":
                                    bool corners_only,
                                    vector[int] * offsets)
         ErrorCode tag_get_handle(const char* name,
-                                 int size, DataType type,
+                                 int size,
+                                 DataType type,
                                  Tag & tag_handle,
                                  unsigned flags,
-                                 const void * default_value = 0,
-                                 bool * created = 0)
+                                 const void * default_value,
+                                 bool * created)
+        
         ErrorCode tag_get_handle(const char* name,
                                  Tag & tag_handle)
 

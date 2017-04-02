@@ -474,6 +474,7 @@ cdef class Core(object):
                        tag_type = None,
                        create_if_missing = False,
                        storage_type = types.MB_TAG_DENSE,
+                       default_value = None,
                        exceptions = ()):
         """
         Retrieve or create tag handles for storing data on mesh elements, vertices,
@@ -536,6 +537,11 @@ cdef class Core(object):
             MB_TYPE_BIT - Bit tags are stored similarly to dense tags, but with
                 special handling to allow allocation in bit-size amounts per
                 entity.
+        default_value : default tag value (default None)
+            valid_default value fo the tag based on the tag type and length
+            specified in previous arguments. If no default value is specified,
+            then the returned tag will have no default value in the MOAB
+            instance.
         exceptions : tuple (default is empty tuple)
             A tuple containing any error types that should
             be ignored. (see pymoab.types module for more info)
@@ -553,15 +559,34 @@ cdef class Core(object):
         cdef moab.ErrorCode err
         cdef moab.DataType tt
         cdef int s
-        err = self.inst.tag_get_handle(name, tag.inst)
-        if err == types.MB_TAG_NOT_FOUND and create_if_missing:
-            if tag_type is None or size is None:
-                print "ERROR: Not enough information provided to create tag."
-                raise ValueError
-            else:
-                tt = tag_type
-                s = size
-                err = self.inst.tag_get_handle(name, s, tt, tag.inst, storage_type|types.MB_TAG_CREAT)
+        cdef np.ndarray default_val_arr
+        cdef const void* def_val_ptr = NULL
+        incomplete_tag_specification = False
+        if tag_type is None and size is not None:
+            incomplete_tag_specification = True
+        if size is None and tag_type is not None:
+            incomplete_tag_specification = True
+        if incomplete_tag_specification:
+            raise ValueError("""
+            Partial tag specification supplied. Please only provide tag name for
+            a name-based tag retrieval.
+            """)
+
+        # if a default value is provided, set ptr
+        if default_value is not None:
+            default_val_arr = np.asarray(default_value)
+            # validate default value data for tag type and length
+            default_val_arr = validate_type(tag_type,size,default_val_arr)
+            def_val_ptr = <const void*> default_val_arr.data
+
+        if tag_type is None and size is None:
+            err = self.inst.tag_get_handle(name, tag.inst)
+        else:
+            tt = tag_type
+            s = size
+            flags = storage_type|types.MB_TAG_CREAT if create_if_missing else storage_type
+            err = self.inst.tag_get_handle(name, s, tt, tag.inst, flags, def_val_ptr, NULL)
+
         check_error(err, exceptions)
         return tag
 
