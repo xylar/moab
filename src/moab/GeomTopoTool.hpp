@@ -253,6 +253,8 @@ private:
     //! Test if the entity sets are contiguous or not
   ErrorCode update_contiguous();
 
+  void set_root_set(EntityHandle vol_or_surf, EntityHandle root);
+
 };
 
 inline int GeomTopoTool::num_ents_of_dim(int dim) {

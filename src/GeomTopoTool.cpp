@@ -418,12 +418,9 @@ ErrorCode GeomTopoTool::construct_obb_tree(EntityHandle eh)
        rval = mdbImpl->add_entities(root, &eh, 1);
        if (MB_SUCCESS != rval)
          return rval;
-     
-       if (contiguous)
-         rootSets[eh - setOffset] = root;
-       else
-         mapRootSets[eh] = root;
-       
+
+       // add this root to the GeomTopoTool tree root indexing
+       set_root_set(eh, root);
        // if just building tree for surface, return here
        return MB_SUCCESS;
     }
@@ -458,10 +455,8 @@ ErrorCode GeomTopoTool::construct_obb_tree(EntityHandle eh)
       rval = obbTree.join_trees(surf_trees, root);
       if (MB_SUCCESS != rval)
         return rval;
-      if (contiguous)
-        rootSets[eh - setOffset] = root;
-      else
-        mapRootSets[eh] = root;
+      // add this root to the GeomTopoTool tree root indexing
+      set_root_set(eh, root);
       
       return MB_SUCCESS;
     }
@@ -470,7 +465,14 @@ ErrorCode GeomTopoTool::construct_obb_tree(EntityHandle eh)
   }
   
 }
-  
+
+void GeomTopoTool::set_root_set(EntityHandle vol_or_surf, EntityHandle root) {
+      if (contiguous)
+        rootSets[vol_or_surf - setOffset] = root;
+      else
+        mapRootSets[vol_or_surf] = root;  
+}
+
 ErrorCode GeomTopoTool::construct_obb_trees(bool make_one_vol)
 {
   ErrorCode rval;
