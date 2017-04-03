@@ -10,8 +10,8 @@ if ENABLE_irel
 endif
 
 if ENABLE_imesh
-  MSQ_ITAPS_SRCS += MsqIMesh.cpp
-  MSQ_ITAPS_HDRS += MsqIMesh.hpp
+  MSQ_ITAPS_SRCS += MsqIMesh.cpp MsqMOAB.cpp
+  MSQ_ITAPS_HDRS += MsqIMesh.hpp MsqMOAB.hpp
   MSQ_LIBDEPS += $(top_builddir)/itaps/imesh/libiMesh.la $(top_builddir)/src/libMOAB.la
 if HAVE_MPI
   MSQ_ITAPS_SRCS += MsqIMeshP.cpp

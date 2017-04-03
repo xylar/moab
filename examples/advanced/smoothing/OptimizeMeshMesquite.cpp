@@ -19,8 +19,10 @@
 #include "MeshWriter.hpp"
 
 #include "moab/Core.hpp"
-//#include "moab/ParallelComm.hpp"
 #include "moab/ProgOptions.hpp"
+#ifdef MOAB_HAVE_MPI
+#include "moab/ParallelComm.hpp"
+#endif
 
 // algorithms
 #include "IdealWeightInverseMeanRatio.hpp"
@@ -38,8 +40,6 @@
 #include "ConjugateGradient.hpp"
 #include "SmartLaplacianSmoother.hpp"
 #include "Randomize.hpp"
-
-//#include "ElementSolIndQM.hpp"
 
 #include "ReferenceMesh.hpp"
 #include "RefMeshTargetCalculator.hpp"

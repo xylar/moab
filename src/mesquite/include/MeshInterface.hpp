@@ -45,6 +45,8 @@
 #include "MsqError.hpp"
 #include "MsqVertex.hpp"
 
+#include "moab/EntityHandle.hpp"
+
 #include <vector>
 #include <cstddef>
 #include <string>
@@ -77,6 +79,7 @@ namespace MBMesquite
 //************ Type Definitions **************
       //! Opaque EntityHandle type and tag type.
     typedef void* EntityHandle;
+    // typedef moab::EntityHandle EntityHandle;
     
     
       // We typedef specific types of EntityHandles just

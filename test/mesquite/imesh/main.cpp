@@ -43,8 +43,14 @@ describe main.cpp here
 // DESCRIP-END.
 //
 
+// #define USE_IMESH
+
 #include "Mesquite.hpp"
+#ifdef USE_IMESH
 #include "MsqIMesh.hpp"
+#else
+#include "MsqMOAB.hpp"
+#endif
 #include "MeshImpl.hpp"
 #include "MsqError.hpp"
 #include "InstructionQueue.hpp"
@@ -265,6 +271,7 @@ int run_local_smoother( Mesh* mesh, MsqError& err )
 
 Mesh* get_imesh_mesh( const char* file_name )
 {
+#ifdef USE_IMESH
   int ierr;
   iMesh_Instance imesh_mesh = 0;
   iMesh_newMesh( NULL, &imesh_mesh, &ierr, 0 );
@@ -301,6 +308,30 @@ Mesh* get_imesh_mesh( const char* file_name )
     return 0;
   }
   
+#else
+
+  moab::Core* mb = new (std::nothrow) moab::Core;
+  if (NULL == mb)
+    return 0;
+
+  moab::ErrorCode rval;
+  // This file is in the mesh files directory
+  rval = mb->load_file(file_name);MB_CHK_SET_ERR_RET_VAL(rval, "Failed to read", 0);
+  
+  moab::Tag fixed_tag;
+  rval = mb->tag_get_handle( "fixed", fixed_tag );MB_CHK_SET_ERR_RET_VAL(rval, "Failed to create fixed tag", 0);
+
+	moab::EntityHandle root_set = 0;
+  MsqError err;
+  Mesh* result = new MBMesquite::MsqMOAB( mb, root_set, moab::MBHEX, err, &fixed_tag );
+  if (MSQ_CHKERR(err)) {
+    delete result;
+    cerr << err << endl;
+    return 0;
+  }
+
+#endif
+
   return result;
 }
   
@@ -310,6 +341,10 @@ Mesh* get_native_mesh( const char* file_name )
 {
   MsqError err;
   MeshImpl* mesh = new MeshImpl;
+  if (!mesh) {
+     cerr << "Failed during MeshImpl construction.\n";
+     exit(2);
+  }
   mesh->read_vtk( file_name, err );
   if (err)
   {
