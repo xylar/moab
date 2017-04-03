@@ -294,8 +294,6 @@ public:
   GeomTopoTool* gttool() { return geomTopoTool; }
 
   Interface* moab_instance() { return MBI; }
-
-  bool have_implicit_complement();
   
 private:
 
