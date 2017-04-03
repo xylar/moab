@@ -84,6 +84,7 @@ set(MOAB_LIB_SOURCES
         LocalDiscretization/LinearTet.cpp
         LocalDiscretization/LinearTri.cpp
         LocalDiscretization/QuadraticHex.cpp
+        NestedRefine.cpp
         PolyElementSeq.hpp  PolyElementSeq.cpp
         ProgOptions.cpp
         Range.cpp
@@ -91,7 +92,6 @@ set(MOAB_LIB_SOURCES
         ReadUtil.hpp              ReadUtil.cpp
         ReaderWriterSet.cpp
         ReorderTool.cpp
-        RefineMesh/NestedRefine.cpp
         ScdElementData.hpp        ScdElementData.cpp
         ScdInterface.cpp
         ScdVertexData.hpp         ScdVertexData.cpp
@@ -195,7 +195,7 @@ set( MOAB_INSTALL_HEADERS
         moab/ReaderWriterSet.hpp
         moab/ReorderTool.hpp
         moab/NestedRefine.hpp
-        moab/RefineMesh/Templates.hpp
+        moab/NestedRefineTemplates.hpp
         moab/ScdInterface.hpp
         moab/SetIterator.hpp
         moab/Skinner.hpp

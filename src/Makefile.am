@@ -77,7 +77,7 @@ libMOAB_la_SOURCES = \
   MeshTag.hpp \
   MeshTag.cpp \
   MeshTopoUtil.cpp \
-  RefineMesh/NestedRefine.cpp \
+  NestedRefine.cpp \
   OrientedBox.cpp \
   OrientedBoxTreeTool.cpp \
   lotte/poly.c \
@@ -200,6 +200,7 @@ nobase_libMOAB_la_include_HEADERS = \
   moab/imoab_protos.h \
   moab/LloydSmoother.hpp \
   moab/NestedRefine.hpp \
+  moab/NestedRefineTemplates.hpp \
   moab/Matrix3.hpp \
   moab/MergeMesh.hpp \
   moab/MeshTopoUtil.hpp \
@@ -238,10 +239,6 @@ nobase_libMOAB_la_include_HEADERS = \
 verdictincludedir = $(includedir)/moab/verdict
 verdictinclude_HEADERS = \
   moab/verdict/VerdictWrapper.hpp
-
-refinemeshincludedir = $(includedir)/moab/RefineMesh
-refinemeshinclude_HEADERS = \
-  moab/RefineMesh/Templates.hpp
 
 localdiscincludedir = $(includedir)/moab/LocalDiscretization
 localdiscinclude_HEADERS = \
