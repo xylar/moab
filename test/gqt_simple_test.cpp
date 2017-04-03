@@ -70,8 +70,7 @@ void gqt_load_file_dagmc_via_moab_build_obb() {
   GTT = new GeomTopoTool(MBI);
   GQT = new GeomQueryTool(GTT);
   // create obb trees
-  EntityHandle implicit_complement;
-  rval = GQT->gttool()->get_implicit_complement(implicit_complement, true);
+  rval = GQT->gttool()->setup_implicit_complement();
   CHECK_ERR(rval);
   rval = GQT->gttool()->construct_obb_trees();
   CHECK_ERR(rval);			      
@@ -92,8 +91,7 @@ void gqt_load_file_dagmc_internal_build_obb() {
   CHECK_ERR(rval);
   GTT = new GeomTopoTool(MBI,true,0);
   GQT = new GeomQueryTool(GTT);
-  EntityHandle implicit_complement;
-  rval = GQT->gttool()->get_implicit_complement(implicit_complement, true);
+  rval = GQT->gttool()->setup_implicit_complement();
   CHECK_ERR(rval);
   rval = GQT->gttool()->construct_obb_trees();
   CHECK_ERR(rval);			      
@@ -147,8 +145,7 @@ void gqt_test_obb_retreval() {
 
 
 void gqt_create_impl_compl() {
-  EntityHandle implicit_complement;
-  ErrorCode rval = GQT->gttool()->get_implicit_complement(implicit_complement, true);
+  ErrorCode rval = GQT->gttool()->setup_implicit_complement();
   CHECK_ERR(rval);
 }
 

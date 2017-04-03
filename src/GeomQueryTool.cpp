@@ -47,9 +47,9 @@ ErrorCode GeomQueryTool::initialize() {
 
   rval = geomTopoTool->find_geomsets();
   MB_CHK_SET_ERR(rval, "Failed to find geometry sets");
-  
-  rval = geomTopoTool->get_implicit_complement(impl_compl_handle, true);
-  MB_CHK_SET_ERR(rval , "Couldn't get the implicit complement handle");
+
+  rval = geomTopoTool->setup_implicit_complement();
+  MB_CHK_SET_ERR(rval , "Couldn't setup the implicit complement");
 
   rval = geomTopoTool->construct_obb_trees();
   MB_CHK_SET_ERR(rval, "Failed to construct OBB trees");
@@ -329,10 +329,10 @@ ErrorCode GeomQueryTool::point_in_volume(const EntityHandle volume,
     }
 
     // inside/outside depends on the sum
-    if(0<sum)                          result = 0; // pt is outside (for all vols)
-    else if(0>sum)                     result = 1; // pt is inside  (for all vols)
-    else if(impl_compl_handle==volume) result = 1; // pt is inside  (for impl_compl_vol)
-    else                               result = 0; // pt is outside (for all other vols)
+    if(0<sum)                                                result = 0; // pt is outside (for all vols)
+    else if(0>sum)                                           result = 1; // pt is inside  (for all vols)
+    else if ( geomTopoTool->is_implicit_complement(volume) ) result = 1; // pt is inside  (for impl_compl_vol)
+    else                                                     result = 0; // pt is outside (for all other vols)
 
   // Only use the first crossing
   } else {
@@ -476,7 +476,7 @@ ErrorCode GeomQueryTool::measure_volume( EntityHandle volume, double& result )
   result = 0.0;
 
    // don't try to calculate volume of implicit complement
-  if (volume == impl_compl_handle) {
+  if (geomTopoTool->is_implicit_complement(volume)) {
     result = 1.0;
     return MB_SUCCESS;
   }
@@ -754,12 +754,8 @@ void GeomQueryTool::set_overlap_thickness( double new_thickness ){
 
 }
 
-bool GeomQueryTool::is_implicit_complement(EntityHandle volume) {
-    return volume == impl_compl_handle;
-}
-
 bool GeomQueryTool::have_implicit_complement() {
-  EntityHandle implicit_complement;
+  EntityHandle implicit_complement;  
   ErrorCode rval = geomTopoTool->get_implicit_complement(implicit_complement);
   if (MB_SUCCESS == rval) {
     return true;

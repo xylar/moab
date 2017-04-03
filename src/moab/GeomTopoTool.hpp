@@ -158,9 +158,6 @@ public:
     //  Will output a mesh_set that contains everything (all sets of interest), for proper output
   ErrorCode geometrize_surface_set(EntityHandle surface, EntityHandle & output);
 
-    //! Get (or optionally, create) the implicit complement handle
-  ErrorCode get_implicit_complement(EntityHandle &implicit_complement, bool create_if_missing = false);
-
     //! Checks to see if the entity is part of the model set
   ErrorCode is_owned_set(EntityHandle eh);
   
@@ -196,9 +193,18 @@ public:
     //! Returns true if obb trees have been added to the rootset
   bool have_obb_tree();
 
-  // returns the number of entities in the modelSet with specified geometric dimension
+    //! returns the number of entities in the modelSet with specified geometric dimension
   int num_ents_of_dim(int dim);
   
+    //! sets the implicit complement handle for this tool
+  ErrorCode setup_implicit_complement();
+
+    //! Get (or optionally, create) the implicit complement handle
+  ErrorCode get_implicit_complement(EntityHandle &implicit_complement);
+
+    //! detection method for the implicit complement
+  bool is_implicit_complement(EntityHandle volume);
+    
 private:
   Interface *mdbImpl;
   Tag sense2Tag;
@@ -208,6 +214,9 @@ private:
   Tag nameTag;
   // the model set encompasses a full topological model
   EntityHandle modelSet;
+  // implicit complement handle cache
+  EntityHandle impl_compl_handle;
+
   Range geomRanges[5];// add one more dimension, for set of gentities; by default, they will
                       // have geom_dimension 4
   int maxGlobalId[5]; // one max global id for each dimension
@@ -225,8 +234,8 @@ private:
     // The implicit complement is composed of all surfaces that only
     // have one parent volume, i.e. surfaces that are in contact with the outside
     // world
-  ErrorCode create_implicit_complement(EntityHandle &implicit_complement);
-  
+  ErrorCode generate_implicit_complement(EntityHandle &implicit_complement_set);
+
     //! Compute vertices inclusive and put on tag on sets in geom_sets
   ErrorCode construct_vertex_ranges(const Range &geom_sets,
 				      const Tag verts_tag);
@@ -298,13 +307,16 @@ inline EntityHandle GeomTopoTool::get_one_vol_root()
   return oneVolRootSet;
 }
 
-  inline Tag GeomTopoTool::get_sense_tag() { check_face_sense_tag(true); return sense2Tag; }
+inline Tag GeomTopoTool::get_sense_tag() { check_face_sense_tag(true); return sense2Tag; }
   
-  inline Tag GeomTopoTool::get_gid_tag() { check_gid_tag(true); return gidTag; }
-  
-  inline Tag GeomTopoTool::get_geom_tag() { check_geom_tag(true); return geomTag; }
+inline Tag GeomTopoTool::get_gid_tag() { check_gid_tag(true); return gidTag; }
+
+inline Tag GeomTopoTool::get_geom_tag() { check_geom_tag(true); return geomTag; }
+
+inline bool GeomTopoTool::is_implicit_complement(EntityHandle volume) { return volume == impl_compl_handle; }
 
 } // namespace moab 
 
-#endif
 
+
+#endif

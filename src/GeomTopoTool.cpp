@@ -62,6 +62,9 @@ GeomTopoTool::GeomTopoTool(Interface *impl, bool find_geoments, EntityHandle mod
       MB_TYPE_OPAQUE, nameTag, MB_TAG_CREAT|MB_TAG_SPARSE);
   MB_CHK_SET_ERR_CONT(rval, "Error: Failed to create name tag");
 
+  // set this value to zero for comparisons
+  impl_compl_handle = 0;
+  
   maxGlobalId[0] = maxGlobalId[1] = maxGlobalId[2] = maxGlobalId[3] =maxGlobalId[4] =0;
   if (find_geoments)
     find_geomsets();
@@ -1646,8 +1649,26 @@ ErrorCode GeomTopoTool::duplicate_model(GeomTopoTool *& duplicate, std::vector<E
   return MB_SUCCESS;
 }
 
-ErrorCode GeomTopoTool::get_implicit_complement(EntityHandle &implicit_complement, bool create_if_missing) {
-  
+ErrorCode GeomTopoTool::get_implicit_complement(EntityHandle &implicit_complement) {
+  if ( impl_compl_handle ) {
+    implicit_complement = impl_compl_handle;
+    return MB_SUCCESS;
+  }
+  else {
+    return MB_ENTITY_NOT_FOUND;
+  }
+}
+
+ErrorCode GeomTopoTool::setup_implicit_complement() {
+
+  // if the implicit complement is already setup,
+  // we're done
+  if( impl_compl_handle != 0 ) {
+    std::cout << "IPC already exists!" << std::endl;
+    return MB_SUCCESS;
+  }
+
+  // if not, then query for a set with it's name
   Range entities;
   const void* const tagdata[] = {IMPLICIT_COMPLEMENT_NAME};
   ErrorCode rval = mdbImpl->get_entities_by_type_and_tag( modelSet, MBENTITYSET,
@@ -1656,36 +1677,47 @@ ErrorCode GeomTopoTool::get_implicit_complement(EntityHandle &implicit_complemen
   // query error
   MB_CHK_SET_ERR(rval, "Unable to query for implicit complement");
 
-  // if we found exactly one, return the handle
+  // if we found exactly one, set it as the implicit complement
   if(entities.size() == 1) {
-    implicit_complement = entities.front();
+    impl_compl_handle = entities.front();
     return MB_SUCCESS;
   }
   
   // found too many
   if (entities.size() > 1) 
     MB_CHK_SET_ERR(MB_MULTIPLE_ENTITIES_FOUND, "Too many implicit complement sets");
-  
 
   // found none
   if (entities.empty()) {
     // create implicit complement if requested
-    if(create_if_missing) {
-      rval = create_implicit_complement(implicit_complement);
-      MB_CHK_SET_ERR(rval, "Could not create implicit complement");
-      return MB_SUCCESS;
-    }
-    // if creation is not requested, report that it is not found
-    else {
-      return MB_ENTITY_NOT_FOUND;
-    }
+    rval = generate_implicit_complement(impl_compl_handle);
+    MB_CHK_SET_ERR(rval, "Could not create implicit complement");
+    
+    rval = mdbImpl->tag_set_data(nameTag, &impl_compl_handle, 1, &IMPLICIT_COMPLEMENT_NAME);
+    MB_CHK_SET_ERR(rval, "Could not set the name tag for the implicit complement");
+    
+    rval = add_geo_set(impl_compl_handle, 3);
+    MB_CHK_SET_ERR(rval, "Failed to add implicit complement to model");
+    
+    // assign category tag - this is presumably for consistency so that the
+    // implicit complement has all the appearance of being the same as any
+    // other volume
+    Tag category_tag;
+    rval = mdbImpl->tag_get_handle(CATEGORY_TAG_NAME, CATEGORY_TAG_SIZE,
+				   MB_TYPE_OPAQUE, category_tag, MB_TAG_SPARSE|MB_TAG_CREAT);
+    MB_CHK_SET_ERR(rval, "Could not get the category tag");
+    
+    static const char volume_category[CATEGORY_TAG_SIZE] = "Volume\0";
+    rval = mdbImpl->tag_set_data(category_tag, &impl_compl_handle, 1, volume_category );
+    MB_CHK_SET_ERR(rval, "Could not set the category tag for the implicit complement");
+    
+    return MB_SUCCESS;
   }
   
   return MB_FAILURE;
-  
 }
 
-ErrorCode GeomTopoTool::create_implicit_complement(EntityHandle &implicit_complement_set) {
+ErrorCode GeomTopoTool::generate_implicit_complement(EntityHandle &implicit_complement_set) {
 
   ErrorCode rval;
   rval= mdbImpl->create_meshset(MESHSET_SET,implicit_complement_set);
@@ -1736,24 +1768,6 @@ ErrorCode GeomTopoTool::create_implicit_complement(EntityHandle &implicit_comple
       MB_CHK_SET_ERR(rval, "Failed to set sense tag data");
     }
   } //end surface loop
-
-  rval = mdbImpl->tag_set_data(nameTag, &implicit_complement_set, 1, &IMPLICIT_COMPLEMENT_NAME);
-  MB_CHK_SET_ERR(rval, "Could not set the name tag for the implicit complement");
-
-  rval = add_geo_set(implicit_complement_set, 3);
-  MB_CHK_SET_ERR(rval, "Failed to add implicit complement to model");
-  
-  // assign category tag - this is presumably for consistency so that the
-  // implicit complement has all the appearance of being the same as any
-  // other volume
-  Tag category_tag;
-  rval = mdbImpl->tag_get_handle(CATEGORY_TAG_NAME, CATEGORY_TAG_SIZE,
-				 MB_TYPE_OPAQUE, category_tag, MB_TAG_SPARSE|MB_TAG_CREAT);
-  MB_CHK_SET_ERR(rval, "Could not get the category tag");
-  
-  static const char volume_category[CATEGORY_TAG_SIZE] = "Volume\0";
-  rval = mdbImpl->tag_set_data(category_tag, &implicit_complement_set, 1, volume_category );
-  MB_CHK_SET_ERR(rval, "Could not set the category tag for the implicit complement");
   
   return MB_SUCCESS;
 }
@@ -1975,5 +1989,3 @@ ErrorCode GeomTopoTool::getobb(EntityHandle volume, double center[3], double axi
 }
 
 } // namespace moab
-
-

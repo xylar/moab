@@ -295,8 +295,6 @@ public:
 
   Interface* moab_instance() { return MBI; }
 
-  bool is_implicit_complement( EntityHandle volume );
-
   bool have_implicit_complement();
   
 private:
@@ -309,7 +307,6 @@ private:
   long long int n_ray_fire_calls;
   double overlapThickness, numericalPrecision;
   Tag senseTag;
-  EntityHandle impl_compl_handle;
 
   // temporary storage so functions don't have to reallocate vectors
   // for ray_fire:
