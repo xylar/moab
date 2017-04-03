@@ -1741,7 +1741,9 @@ ErrorCode GeomTopoTool::create_implicit_complement(EntityHandle &implicit_comple
   rval = add_geo_set(implicit_complement_set, 3);
   MB_CHK_SET_ERR(rval, "Failed to add implicit complement to model");
   
-  // assign category tag
+  // assign category tag - this is presumably for consistency so that the
+  // implicit complement has all the appearance of being the same as any
+  // other volume
   Tag category_tag;
   rval = mdbImpl->tag_get_handle(CATEGORY_TAG_NAME, CATEGORY_TAG_SIZE,
 				 MB_TYPE_OPAQUE, category_tag, MB_TAG_SPARSE|MB_TAG_CREAT);
