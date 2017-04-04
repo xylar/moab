@@ -1370,14 +1370,14 @@ if test "x$WARN_PARALLEL_HDF5_NO_COMPLEX" = "xyes"; then
 *************************************************************************])
 fi
 
-echo "Other details"
-echo "Static: $enable_static"
-echo "Shared: $enable_shared"
-echo "BLAS: $enableblas"
-echo "LAPACK: $enablelapack"
-echo "Zoltan: $enablezoltan"
-echo "Zlib: $enablezlib"
-echo "SZip: $enableszip"
+# echo "Other details"
+# echo "Static: $enable_static"
+# echo "Shared: $enable_shared"
+# echo "BLAS: $enableblas"
+# echo "LAPACK: $enablelapack"
+# echo "Zoltan: $enablezoltan"
+# echo "Zlib: $enablezlib"
+# echo "SZip: $enableszip"
 
 # define([ConfigurationSuggestion], [`esyscmd(config/suggest_configure_command)'])
 # m4_echo(echo "m4_expand([ConfigurationSuggestion])")
