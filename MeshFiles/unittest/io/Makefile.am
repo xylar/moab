@@ -12,6 +12,7 @@ EXTRA_DIST = HommeMapping.nc \
 	     cubtest.jou \
 	     dum.stp \
 	     gmsh2.msh \
+       gmsh3.msh \
              airfoil_exterior.msh \
              t1.msh \
              ghosts.msh \
@@ -40,4 +41,4 @@ EXTRA_DIST = HommeMapping.nc \
              oneside.h5m \
              rtttest.rtt \
              test.obj \
-             shuttle.obj 
+             shuttle.obj
