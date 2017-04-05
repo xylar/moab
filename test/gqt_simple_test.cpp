@@ -322,7 +322,62 @@ void gqt_test_boundary()
   // check ray leaving volume
   CHECK_EQUAL(expect_result, result);
 }
-  
+
+void gqt_point_in_box_1()
+{
+  int vol_id = 1;
+  double origin[3] = {0.0, 0.0, 0.0};
+  EntityHandle vol_h = GQT->gttool()->entity_by_id(3, vol_id);
+  int result;
+  ErrorCode rval = GQT->point_in_box(vol_h, origin, result);
+  CHECK_EQUAL(rval,moab::MB_SUCCESS);
+  CHECK_EQUAL(result,1); //inside
+}
+
+void gqt_point_in_box_2()
+{
+  int vol_id = 1;
+  double origin[3] = {5.0, 0.0, 0.0};
+  EntityHandle vol_h = GQT->gttool()->entity_by_id(3, vol_id);
+  int result;
+  ErrorCode rval = GQT->point_in_box(vol_h, origin, result);
+  CHECK_EQUAL(rval,moab::MB_SUCCESS);
+  CHECK_EQUAL(result,1); //inside
+}
+
+void gqt_point_in_box_3()
+{
+  int vol_id = 1;
+  double origin[3] = {5.1, 0.0, 0.0};
+  EntityHandle vol_h = GQT->gttool()->entity_by_id(3, vol_id);
+  int result;
+  ErrorCode rval = GQT->point_in_box(vol_h, origin, result);
+  CHECK_EQUAL(rval,moab::MB_SUCCESS);
+  CHECK_EQUAL(result,0); //outside
+}
+
+void gqt_point_in_box_4()
+{
+  int vol_id = 1;
+  double origin[3] = {5.1, 5.1, 5.1};
+  EntityHandle vol_h = GQT->gttool()->entity_by_id(3, vol_id);
+  int result;
+  ErrorCode rval = GQT->point_in_box(vol_h, origin, result);
+  CHECK_EQUAL(rval,moab::MB_SUCCESS);
+  CHECK_EQUAL(result,0); //outside
+}
+
+void gqt_point_in_box_5()
+{
+  int vol_id = 1;
+  double origin[3] = {5.0-1.e-308, 5.0-1.e-308, 5.0-1.e-308};
+  EntityHandle vol_h = GQT->gttool()->entity_by_id(3, vol_id);
+  int result;
+  ErrorCode rval = GQT->point_in_box(vol_h, origin, result);
+  CHECK_EQUAL(rval,moab::MB_SUCCESS);
+  CHECK_EQUAL(result,1); //outside
+}
+
 int main(int /* argc */, char** /* argv */)
 {
   int result = 0;

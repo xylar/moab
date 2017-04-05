@@ -242,11 +242,19 @@ ErrorCode GeomQueryTool::point_in_volume(const EntityHandle volume,
   // take some stats that are independent of nps
   if(counting) ++n_pt_in_vol_calls;
 
+  // early fail for piv - see if point inside the root level obb
+  // if its not even in the box dont bother doing anything else
+  moab::ErrorCode rval = point_in_box(volume,xyz,result);
+  if( !result ) {
+    result = 0;
+    return moab::MB_SUCCESS;
+  }
+  
   // get OBB Tree for volume
   EntityHandle root;
-  ErrorCode rval = geomTopoTool->get_root(volume, root);
+  rval = geomTopoTool->get_root(volume, root);
   if(MB_SUCCESS != rval) return rval;
-
+  
   // Don't recreate these every call. These cannot be the same as the ray_fire
   // vectors because both are used simultaneously.
   std::vector<double>       &dists = disList;
@@ -362,6 +370,35 @@ ErrorCode GeomQueryTool::point_in_volume(const EntityHandle volume,
   return MB_SUCCESS;
 }
 
+/**
+ *  \brief For the volume pointed to and the point wished to be tested, returns
+ *   whether the point is inside or outside the bounding box of the volume.
+ * inside = 0, not inside, inside = 1, inside   
+ */
+ErrorCode GeomQueryTool::point_in_box(EntityHandle volume, const double point[3], int &inside ) {
+  double minpt[3];
+  double maxpt[3];
+  ErrorCode rval = geomTopoTool->getobb(volume,minpt,maxpt);
+  if (MB_SUCCESS != rval)
+    return rval;
+
+  // early exits
+  if ( point[0] > maxpt[0] || point[0] < minpt[0]) {
+    inside = 0;
+    return rval;
+  }
+  if ( point[1] > maxpt[1] || point[1] < minpt[1]) {
+    inside = 0;
+    return rval;
+  }
+  if ( point[2] > maxpt[2] || point[2] < minpt[2]) {
+    inside = 0;
+    return rval;
+  }
+  inside = 1;
+  return rval;  
+}
+  
 ErrorCode GeomQueryTool::test_volume_boundary(const EntityHandle volume, const EntityHandle surface,
                                               const double xyz[3], const double uvw[3], int& result,
                                               const RayHistory* history )

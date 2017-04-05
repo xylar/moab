@@ -173,7 +173,9 @@ public:
    */
   ErrorCode point_in_volume_slow( const EntityHandle volume, const double xyz[3], int& result );
 
+  ErrorCode point_in_box(const EntityHandle volume, const double point[3], int &inside );
 
+  
   /** \brief Given a ray starting at a surface of a volume, check whether the ray enters or exits the volume
    *
    * This function is most useful for rays that change directions at a surface crossing.
