@@ -7,10 +7,32 @@ import numpy as np
 cdef class MOABErrorCode:
 
     cdef readonly moab.ErrorCode error_value
-    
-    def __cinit__(self, value = 0):
-        self.error_value = <moab.ErrorCode> value
 
+    cdef readonly dict err_strings
+    def __cinit__(self, value = 0):
+        if isinstance(value, MOABErrorCode):
+            self.error_value = value.error_value
+        else:
+            self.error_value = <moab.ErrorCode> value
+
+        self.err_strings = { moab.MB_SUCCESS : "MB_SUCCESS",
+                             moab.MB_INDEX_OUT_OF_RANGE : "MB_INDEX_OUT_OF_RANGE",
+                             moab.MB_TYPE_OUT_OF_RANGE : "MB_TYPE_OUT_OF_RANGE",
+                             moab.MB_MEMORY_ALLOCATION_FAILED : "MB_MEMORY_ALLOCATION_FAILED",
+                             moab.MB_ENTITY_NOT_FOUND : "MB_ENTITY_NOT_FOUND",
+                             moab.MB_MULTIPLE_ENTITIES_FOUND : "MB_MULTIPLE_ENTITIES_FOUND",
+                             moab.MB_TAG_NOT_FOUND : "MB_TAG_NOT_FOUND",
+                             moab.MB_FILE_DOES_NOT_EXIST : "MB_FILE_DOES_NOT_EXIST",
+                             moab.MB_FILE_WRITE_ERROR : "MB_FILE_WRITE_ERROR",
+                             moab.MB_NOT_IMPLEMENTED : "MB_NOT_IMPLEMENTED",
+                             moab.MB_ALREADY_ALLOCATED : "MB_ALREADY_ALLOCATED",
+                             moab.MB_VARIABLE_DATA_LENGTH : "MB_VARIABLE_DATA_LENGTH",
+                             moab.MB_INVALID_SIZE : "MB_INVALID_SIZE",
+                             moab.MB_UNSUPPORTED_OPERATION : "MB_UNSUPPORTED_OPERATION",
+                             moab.MB_UNHANDLED_OPTION : "MB_UNHANDLED_OPTION",
+                             moab.MB_STRUCTURED_MESH : "MB_STRUCTURED_MESH",
+                             moab.MB_FAILURE : "MB_FAILURE" }
+        
     def __richcmp__(self, other, op):
         if op == 2:
             if isinstance(other, MOABErrorCode):
@@ -22,6 +44,13 @@ cdef class MOABErrorCode:
         
     def __hash__(self):
         return self.error_value
+
+    def __repr__(self):
+        return self.__str__()
+    
+    def __str__(self):
+        return "MOAB ErrorCode: "+self.err_strings[self.error_value]
+        
     
 # Error codes
 MB_SUCCESS = MOABErrorCode(moab.MB_SUCCESS)
@@ -73,7 +102,7 @@ def check_error(err, tuple exceptions = (), **kwargs):
     if len(kwargs) > 0:
         msg += ': '
         msg += ', '.join(sorted(['{0}={1!r}'.format(k, v) for k, v in kwargs.items()]))
-    raise errtype(msg)
+    raise errtype(MOABErrorCode(err))
 
 # Data Types
 MB_TYPE_OPAQUE = moab.MB_TYPE_OPAQUE
