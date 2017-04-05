@@ -70,9 +70,6 @@ ErrorCode GenerateHierarchy::tear_down()
       rval = obbTree->delete_tree(obb_root); MB_CHK_ERR(rval);
     }
 
-  //delete obb tag
-  rval = MBI->tag_delete(obb_tree_tag); MB_CHK_ERR(rval);
-
   delete obbTree;
   
   return MB_SUCCESS;
@@ -118,11 +115,6 @@ ErrorCode GenerateHierarchy::get_all_handles()
                                 geom_tag, MB_TAG_SPARSE|MB_TAG_CREAT,&negone);
   MB_CHK_ERR(rval);
   
-
-  rval = MBI->tag_get_handle( MB_OBB_TREE_TAG_NAME, 1, MB_TYPE_HANDLE, 
-                                obb_tree_tag, MB_TAG_DENSE );
-  MB_CHK_ERR(rval);
-
   return MB_SUCCESS;
 }
 
