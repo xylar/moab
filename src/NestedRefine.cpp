@@ -1,6 +1,6 @@
 
 #include "moab/NestedRefine.hpp"
-#include "moab/RefineMesh/Templates.hpp"
+#include "moab/NestedRefineTemplates.hpp"
 #include "moab/HalfFacetRep.hpp"
 #include "moab/CpuTimer.hpp"
 #include "moab/ReadUtilIface.hpp"
