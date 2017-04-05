@@ -3,7 +3,7 @@
 ################################################################################
 AC_INIT([MOAB],[4.9.3pre],[moab-dev@mcs.anl.gov],[moab],[http://sigma.mcs.anl.gov])
 AC_CONFIG_SRCDIR([moab.make.in])
-AC_CONFIG_SRCDIR([MOABConfig.cmake.in])
+AC_CONFIG_SRCDIR([config/MOABConfig.cmake.in])
 AC_CONFIG_SRCDIR([examples/makefile.in])
 AC_CONFIG_MACRO_DIR([config])
 AC_CONFIG_AUX_DIR([config])
@@ -43,6 +43,8 @@ DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --enable-fortran=$ENABLE_F
 FATHOM_CHECK_COMPILERS([yes],[yes],[$ENABLE_FORTRAN])
 AM_CONDITIONAL(PARALLEL,[test "x$enablempi" != "xno"])
 AM_CONDITIONAL(ENABLE_FORTRAN,[test "x$ENABLE_FORTRAN" != "xno"])
+MPI_DIR=$WITH_MPI
+AC_SUBST(MPI_DIR)
 AC_SUBST(enablempi)
 
 # Invoke and find all necessary flags for C, C++, FC
@@ -51,6 +53,8 @@ FATHOM_COMPILER_FLAGS([yes],[yes],[$ENABLE_FORTRAN])
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
 AC_DISABLE_SHARED
+AC_SUBST(enable_static)
+AC_SUBST(enable_shared)
 
 # All language options initialized -- now call
 # libtool initialization
@@ -749,6 +753,9 @@ if test "xyes" = "x$WITH_ZOLTAN"; then
 fi
 
 AM_CONDITIONAL( HAVE_ZOLTAN, [test "x$WITH_ZOLTAN" = "xyes"] )
+enablezoltan=$WITH_ZOLTAN
+AC_SUBST(enablezoltan)
+AC_SUBST(ZOLTAN_DIR)
 AC_SUBST(ZOLTAN_LIBS)
 AC_SUBST(ZOLTAN_LIB_FLAGS)
 AC_SUBST(ZOLTAN_INC_FLAGS)
@@ -1362,6 +1369,15 @@ if test "x$WARN_PARALLEL_HDF5_NO_COMPLEX" = "xyes"; then
 *     significant impact on IO performance.
 *************************************************************************])
 fi
+
+# echo "Other details"
+# echo "Static: $enable_static"
+# echo "Shared: $enable_shared"
+# echo "BLAS: $enableblas"
+# echo "LAPACK: $enablelapack"
+# echo "Zoltan: $enablezoltan"
+# echo "Zlib: $enablezlib"
+# echo "SZip: $enableszip"
 
 # define([ConfigurationSuggestion], [`esyscmd(config/suggest_configure_command)'])
 # m4_echo(echo "m4_expand([ConfigurationSuggestion])")
