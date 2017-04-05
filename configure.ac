@@ -931,16 +931,13 @@ MB_OPTIONAL_TOOL([mbconvert],    [yes], [yes])
 MB_OPTIONAL_TOOL([hexmodops],    [yes], [yes])
 MB_OPTIONAL_TOOL([vtkMOABReader],[${VTKMOAB_DEFAULT}], [${VTKMOAB_DEFAULT}])
 MB_OPTIONAL_TOOL([mbsize],       [yes], [yes])
-MB_OPTIONAL_TOOL([mbhonodes],       [yes], [yes])
+MB_OPTIONAL_TOOL([mbhonodes],    [yes], [yes])
 MB_OPTIONAL_TOOL([mbskin],       [yes], [yes])
 MB_OPTIONAL_TOOL([mbtagprop],    [yes], [yes])
 MB_OPTIONAL_TOOL([mbmem],        [yes], [yes])
 MB_OPTIONAL_TOOL([spheredecomp], [yes], [yes])
 MB_OPTIONAL_TOOL([mbsurfplot],   [yes], [yes])
 if (test "x$WITH_ZOLTAN" != "xno" || test "x$METIS_DIR" != "x"); then
-  # mbpart_deftools=no
-  # test "x$METIS_DIR" != "x" || mbpart_deftools="yes"
-  # MB_OPTIONAL_TOOL([mbpart],     [${mbpart_deftools}], [yes] )
   MB_OPTIONAL_TOOL([mbpart],     [yes], [yes] )
 else
   MB_OPTIONAL_TOOL([mbpart],     [no], [no] )
@@ -953,30 +950,28 @@ if test "xyes" = "x$ENABLE_dagmc"; then
 fi
 
 MB_OPTIONAL_TOOL([gsets],        [yes], [yes])
-MB_OPTIONAL_TOOL([mbmerge],        [yes], [yes])
+MB_OPTIONAL_TOOL([mbmerge],      [yes], [yes])
 MB_OPTIONAL_TOOL([mbdepth],      [yes], [yes])
 if test "x$enablempi" != "xno"; then
-  MB_OPTIONAL_TOOL([mbcoupler],    [no], [yes] )
-  MB_OPTIONAL_TOOL([mcnpmit],      [no], [yes])
-  MB_OPTIONAL_TOOL([mbcslam],      [no], [yes])
+  MB_OPTIONAL_TOOL([mbcoupler],  [no], [yes] )
+  MB_OPTIONAL_TOOL([mcnpmit],    [no], [yes])
+  MB_OPTIONAL_TOOL([mbcslam],    [no], [yes])
 else
   AS_ECHO(["Disabling mbcoupler, mbcslam and mcnpmit since these tools require MPI/parallel configuration"])
-  MB_OPTIONAL_TOOL([mbcoupler],    [no], [no] )
-  MB_OPTIONAL_TOOL([mcnpmit],      [no], [no])
-  MB_OPTIONAL_TOOL([mbcslam],      [no], [no])
+  MB_OPTIONAL_TOOL([mbcoupler],  [no], [no] )
+  MB_OPTIONAL_TOOL([mcnpmit],    [no], [no])
+  MB_OPTIONAL_TOOL([mbcslam],    [no], [no])
 fi
 
 MB_OPTIONAL_TOOL([refiner],      [no], [no])
 MB_OPTIONAL_TOOL([h5mtools],     [${enablehdf5}], [${enablehdf5}])
 MB_OPTIONAL_TOOL([mbquality],    [yes], [yes])
 
-MB_OPTIONAL_TOOL([ahf],          [yes], [yes])
+MB_OPTIONAL_TOOL([ahf],          [no], [no])
 MB_OPTIONAL_TOOL([mbumr],        [yes], [yes])
 if test "xyes" = "x$ENABLE_ahf"; then
   AC_DEFINE([HAVE_AHF],[1],[Enable use of AHF data-structures for querying adjacency information])
 fi
-
-AM_CONDITIONAL(ENABLE_AHF, [test "xyes" = "x$ENABLE_ahf"])
 
 if test "xyes" = "x$ENABLE_vtkMOABReader"; then
   if test "xno" = "x$WITH_VTK"; then
