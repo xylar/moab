@@ -6,7 +6,6 @@
 #include "moab/ReadUtilIface.hpp"
 #include "Internals.hpp"
 #include "MBTagConventions.hpp"
-//#include "DebugOutput.hpp"
 
 #ifdef MOAB_HAVE_MPI
 #include "moab/ParallelComm.hpp"
@@ -51,8 +50,6 @@ namespace moab{
     delete ahf;
 #endif
     delete tm;
-//    delete myDebug;
-
   }
 
   ErrorCode NestedRefine::initialize()
@@ -77,9 +74,6 @@ namespace moab{
 
     error = ahf->initialize(); MB_CHK_ERR(error);
     error = ahf->get_entity_ranges(_inverts, _inedges, _infaces, _incells);  MB_CHK_ERR(error);
-
-    //DBG
-    // std::cout<<"#inverts = "<<_inverts.size()<<", #inedges = "<<_inedges.size()<<", #infaces = "<<_infaces.size()<<", #incells = "<<_incells.size()<<std::endl;
 
     //Check for supported entity type
     if (!_incells.empty())
@@ -114,15 +108,6 @@ namespace moab{
 
     //Set ghost flag to false
       hasghost = false;
-
-    /*  if (!myDebug)
-      {
-        myDebug = new DebugOutput("NestedRefine", std::cerr);
-        myDebug->set_rank( pcomm->rank());
-        myDebug->set_verbosity(1);
-        //std::cout<<"rank = "<<pcomm->rank()<<std::endl;
-      }*/
-
     return MB_SUCCESS;
   }
 
@@ -522,25 +507,6 @@ namespace moab{
         //Gather sets of a particular tag
         Range sets;
         error = mbImpl->get_entities_by_type_and_tag(_rset, MBENTITYSET, &mtags[i], NULL, 1, sets);MB_CHK_ERR(error);
-        //sets.print();
-
-#ifndef NDEBUG
-        if (sets.empty())
-          {
-            if (i==0)
-              {
-                std::cout<<"No entities with material tag"<<std::endl;
-              }
-            else if (i==1)
-              {
-                std::cout<<"No entities with dirichlet tag"<<std::endl;
-              }
-            else if (i==2)
-                {
-                  std::cout<<"No entities with neumann tag"<<std::endl;
-                }
-          }
-#endif
 
         //Loop over all sets, gather entities in each set and add their children at all levels to the set
         Range set_ents;
@@ -552,8 +518,6 @@ namespace moab{
             set_ents.clear();
             childs.clear();
             error = mbImpl->get_entities_by_handle(*set_it, set_ents, true);MB_CHK_ERR(error);
-            //std::cout<<"Entities in meshset before"<<std::endl;
-            //set_ents.print();
 
             //Gather child entities at the input level
             for (Range::iterator sit = set_ents.begin(); sit != set_ents.end(); sit++)
@@ -569,7 +533,6 @@ namespace moab{
                   }
                 else {
                     error = parent_to_child(*sit, 0, level, childs);MB_CHK_ERR(error);
-                    //    std::cout<<"childs.sz = "<<childs.size()<<std::endl;
                   }
 
                 std::sort(childs.begin(), childs.end());
@@ -584,12 +547,6 @@ namespace moab{
 
             //Add
             error = mbImpl->add_entities(lset, &(*set_it), 1);MB_CHK_ERR(error);
-
-            //DBG
-            /*Range rements;
-                   error = mbImpl->get_entities_by_handle(*set_it, rements, true);MB_CHK_ERR(error);
-                   std::cout<<"Entities in meshset after"<<std::endl;
-                   rements.print();*/
           }
       }
     return MB_SUCCESS;
@@ -729,7 +686,6 @@ namespace moab{
 
     //Resize the ahf maps
     error = ahf->resize_hf_maps(level_mesh[cur_level].start_vertex, level_mesh[cur_level].num_verts, level_mesh[cur_level].start_edge, level_mesh[cur_level].num_edges, level_mesh[cur_level].start_face, level_mesh[cur_level].num_faces, level_mesh[cur_level].start_cell, level_mesh[cur_level].num_cells); MB_CHK_ERR(error);
-
 
     error = ahf->update_entity_ranges(*set); MB_CHK_ERR(error);
 
@@ -1956,14 +1912,6 @@ namespace moab{
          //
          // Parallel Communication complete - all entities resolved
          //
-
-         {
-           // Assign new global IDs for all the entities we just generated to maintain contiguity
-           // Range pents[4] = {vtxs, edgs, facs, elms};
-           // error = pcomm->assign_global_ids(pents, 3, 1, true, false);MB_CHK_ERR(error);
-         //  error = pcomm->assign_global_ids(levelset, 0, 1, false, true, false);MB_CHK_ERR(error);
-         }
-
        }
      return MB_SUCCESS;
    }
@@ -2687,7 +2635,6 @@ namespace moab{
      std::pair <std::multimap<EntityHandle, int>::iterator, std::multimap<EntityHandle, int>::iterator> it_procs;
      std::pair <std::multimap<EntityHandle, EntityHandle>::iterator, std::multimap<EntityHandle, EntityHandle>::iterator> it_handles;
 
-     //for ( it = remProcs.begin(); it != remProcs.end(); it++)
      it = remProcs.begin();
      while ( it != remProcs.end())
        {
@@ -2701,14 +2648,6 @@ namespace moab{
            rprocs.push_back(pit->second);
          for (std::multimap<EntityHandle, EntityHandle>::iterator pit = it_handles.first; pit != it_handles.second; pit++)
            rhandles.push_back(pit->second);
-
-         //DBG
-       //  if (entity == 10388)
-      //     std::cout<<"Reached Here"<<std::endl;
-       //  std::cout<<"entity = "<<entity<<std::endl;
-       //  for (int j=0; j<(int)rprocs.size(); j++)
-         // std::cout<<"rprocs["<<j<<"] = "<<rprocs[j]<<", rhandles["<<j<<"] = "<<rhandles[j]<<std::endl;
-         //DBG
 
          error = pcomm->update_remote_data(entity, rprocs, rhandles);MB_CHK_ERR(error);
 
@@ -2898,14 +2837,11 @@ namespace moab{
            }
        }
 
-
      return found;
    }
 
    ErrorCode NestedRefine::check_for_parallelinfo(EntityHandle entity, int proc, std::multimap<EntityHandle, EntityHandle> &remHandles, std::multimap<EntityHandle, int> &remProcs, EntityHandle &rhandle)
    {
-   //  bool found = false;
-
      //shared procs for given entity
      std::pair <std::multimap<EntityHandle, int>::iterator, std::multimap<EntityHandle, int>::iterator> it_ps;
      it_ps = remProcs.equal_range(entity);
@@ -2921,14 +2857,11 @@ namespace moab{
        {
          if (itp->second == proc)
            {
-          //   found = true;
              rhandle = ith->second;
              break;
            }
        }
 
-
-    // return found;
      return MB_SUCCESS;
    }
 
@@ -3390,7 +3323,6 @@ ErrorCode NestedRefine::update_ahf_1D(int cur_level)
        error = ahf->set_incident_map(type, cur_vid, child_ents, child_lids);  MB_CHK_ERR(error);
      }
 
-
    EntityHandle fedge[2];
 
    //Update the sibling half-facet maps across entities
@@ -3580,7 +3512,6 @@ ErrorCode NestedRefine::update_ahf_1D(int cur_level)
 
            assert((int)conn.size() > nidx && (int)conn.size() > slid);
 
-
            bool orient = true;
            nidx = ahf->lConnMap2D[type-2].next[slid];
            if ((fedge[1] == conn[slid])&&(fedge[0] == conn[nidx]))
@@ -3634,7 +3565,6 @@ ErrorCode NestedRefine::update_ahf_1D(int cur_level)
      }
 
    return MB_SUCCESS;
-
  }
 
 
@@ -3817,15 +3747,6 @@ ErrorCode NestedRefine::update_ahf_1D(int cur_level)
 
                error = ahf->get_up_adjacencies_edg_3d_comp(ent, l, cell_comps, &leid_comps);MB_CHK_ERR(error);
 
-               //DBG
-              /* std::cout<<"Edge = [ "<<v_start<<", "<<v_end<<" ] "<<std::endl;
-               std::cout<<"ncomps = "<<cell_comps.size()<<std::endl;
-               for (int j=0; j<(int)cell_comps.size(); j++)
-                 {
-                   std::cout<<"cell_comps["<<j<<"] = "<<cell_comps[j]<<std::endl;
-                   std::cout<<"leid_comps["<<j<<"] = "<<leid_comps[j]<<std::endl;
-                 }*/
-
                int ncomps = cell_comps.size();
                std::vector<EntityHandle> edgverts;
                std::vector<EntityHandle> compchildents(nv*ncomps);
@@ -3851,16 +3772,12 @@ ErrorCode NestedRefine::update_ahf_1D(int cur_level)
                        int lfid = refTemplates[type-1][d].ents_on_vedge[leid_comps[j]][3*k+1];
                        int lvid = refTemplates[type-1][d].ents_on_vedge[leid_comps[j]][3*k+2];
 
-                      // std::cout<<"chid = "<<chid<<", lfid = "<<lfid<<", lvid = "<<lvid<<std::endl;
-
                        EntityHandle childcell = level_mesh[cur_level].start_cell + ind*nchilds + chid;
 
                        const EntityHandle* econn;
                        error = mbImpl->get_connectivity(childcell, econn, nvpc);MB_CHK_ERR(error);
-                      // std::cout<<"childcellconn = [ "<<econn[0]<<", "<<econn[1]<<", "<<econn[2]<<", "<<econn[3]<<", "<<econn[4]<<", "<<econn[5]<<", "<<econn[6]<<", "<<econn[7]<<" ] "<<std::endl;
 
                        EntityHandle vert = econn[lvid];
-                      // std::cout<<"NMvert = "<<vert<<std::endl;
 
                        if (ahf->check_nonmanifold_vertices(type, vert))
                          {
@@ -3899,12 +3816,6 @@ ErrorCode NestedRefine::update_ahf_1D(int cur_level)
                  {
                    break;
                  }
-
-              /* for (int s=0; s<nv*ncomps; s++)
-                   {
-                     std::cout<<"compchildents[ "<<s<<" ] = "<<compchildents[s]<<", compchildlfids[ "<<s<<" ] = "<<compchildlfids[s]<<std::endl;
-                   }*/
-
 
                //Set the incident half-facet map
                for (int k=0; k<nv; k++)
@@ -4266,7 +4177,6 @@ ErrorCode NestedRefine::reorder_indices(int cur_level, int deg, EntityHandle cel
   // Reorders the indices of either vertices or children cell local ids to match with order of the given cell and a local face.
   // index = 0 : vertices,
   //           = 1 : face
-
 
   assert(deg ==2 || deg == 3);
 
