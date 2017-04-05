@@ -9,6 +9,7 @@
 #include "moab/FileOptions.hpp"
 #include "moab/EntityHandle.hpp"
 #include "moab/GeomTopoTool.hpp"
+#include "moab/OrientedBoxTreeTool.hpp"
 
 #include <vector>
 #include <map>
@@ -35,7 +36,7 @@ namespace moab {
    * geometries.
    * 
    */
-  
+
 class GeomQueryTool
 {
 public:

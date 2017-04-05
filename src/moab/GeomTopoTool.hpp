@@ -23,6 +23,7 @@
 
 
 #include <map>
+#include <assert.h>
 
 namespace moab {
 

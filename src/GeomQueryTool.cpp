@@ -13,6 +13,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "moab/OrientedBoxTreeTool.hpp"
+
 const bool debug = false;
 #ifdef __DEBUG
 debug = true;
@@ -244,7 +246,7 @@ ErrorCode GeomQueryTool::point_in_volume(const EntityHandle volume,
 
   // early fail for piv - see if point inside the root level obb
   // if its not even in the box dont bother doing anything else
-  moab::ErrorCode rval = point_in_box(volume,xyz,result);
+  ErrorCode rval = point_in_box(volume,xyz,result);
   if( !result ) {
     result = 0;
     return MB_SUCCESS;

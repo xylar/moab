@@ -361,7 +361,7 @@ ErrorCode GeomTopoTool::is_owned_set(EntityHandle eh) {
 //   MB_CHK_SET_ERR(rval, "Failed to find an obb tree root for the entity set");
 
 //   // delete the tree
-//   rval = obbTree.delete_tree(root);
+//   rval = obbTree->delete_tree(root);
 //   MB_CHK_SET_ERR(rval, "Failed to delete obb tree for entity set");
 
 //   // remove root_set entry from data struct
@@ -414,7 +414,7 @@ ErrorCode GeomTopoTool::construct_obb_tree(EntityHandle eh)
          std::cerr << "WARNING: Surface has no facets" << std::endl;
        }
      
-       rval = obbTree.build(tris, root);
+       rval = obbTree->build(tris, root);
        if (MB_SUCCESS != rval)
          return rval;
      
@@ -455,7 +455,7 @@ ErrorCode GeomTopoTool::construct_obb_tree(EntityHandle eh)
       }
      
       // build OBB tree for volume
-      rval = obbTree.join_trees(surf_trees, root);
+      rval = obbTree->join_trees(surf_trees, root);
       if (MB_SUCCESS != rval)
         return rval;
       // add this root to the GeomTopoTool tree root indexing
@@ -509,7 +509,7 @@ ErrorCode GeomTopoTool::construct_obb_trees(bool make_one_vol)
 
   // build OBB tree for volume
   if (make_one_vol) {
-    rval = obbTree.join_trees(one_vol_trees, root);
+    rval = obbTree->join_trees(one_vol_trees, root);
     MB_CHK_SET_ERR(rval, "Failed to join surface trees into one volume");
     oneVolRootSet = root;
   }
@@ -753,8 +753,7 @@ ErrorCode GeomTopoTool::set_sense(EntityHandle entity, EntityHandle wrt_entity,
     // this case is about setting the sense of an edge in a face
     // it could be -1, 0 (rare, non manifold), or 1
     rval = check_edge_sense_tags(true);
-    if (rval!=MB_SUCCESS)
-      return rval;
+    MB_CHK_SET_ERR(rval, "MOAB Error");
     std::vector<EntityHandle> higher_ents;
     std::vector<int> senses;
     rval = get_senses(entity, higher_ents, senses);// the tags should be defined here
@@ -804,8 +803,7 @@ ErrorCode GeomTopoTool::set_sense(EntityHandle entity, EntityHandle wrt_entity,
     // there could be only 2 volumes
 
     rval = check_face_sense_tag(true);
-    if (rval!=MB_SUCCESS)
-      return rval;
+    MB_CHK_SET_ERR(rval, "MOAB Error");
 
     EntityHandle sense_data[2] = { 0, 0 };
     rval = mdbImpl->tag_get_data(sense2Tag, &entity, 1, sense_data);
@@ -1987,7 +1985,7 @@ ErrorCode GeomTopoTool::get_obb(EntityHandle volume, double center[3], double ax
   MB_CHK_SET_ERR(rval, "Failed to get volume's obb tree root");
 
   // call box to get center and vectors to faces
-  return obbTree.box(root, center, axis1, axis2, axis3);
+  return obbTree->box(root, center, axis1, axis2, axis3);
 
 }
 
