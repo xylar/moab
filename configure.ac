@@ -3,7 +3,7 @@
 ################################################################################
 AC_INIT([MOAB],[4.9.3pre],[moab-dev@mcs.anl.gov],[moab],[http://sigma.mcs.anl.gov])
 AC_CONFIG_SRCDIR([moab.make.in])
-AC_CONFIG_SRCDIR([MOABConfig.cmake.in])
+AC_CONFIG_SRCDIR([config/MOABConfig.cmake.in])
 AC_CONFIG_SRCDIR([examples/makefile.in])
 AC_CONFIG_MACRO_DIR([config])
 AC_CONFIG_AUX_DIR([config])
