@@ -95,11 +95,11 @@ public:
     //! Build obb tree for the entity set given; entity can be surface or volume
   ErrorCode construct_obb_tree(EntityHandle eh);
 
-    //! Get the corners of the OBB for a given volume
-  ErrorCode getobb(EntityHandle volume, double minPt[3], double maxPt[3]);
+    //! Get the bouding points from a bounding box
+  ErrorCode get_bounding_coords(EntityHandle volume, double minPt[3], double maxPt[3]);
 
     //! Get the center point and three vectors for the OBB of a given volume
-  ErrorCode getobb(EntityHandle volume, double center[3],
+  ErrorCode get_obb(EntityHandle volume, double center[3],
                      double axis1[3], double axis2[3], double axis3[3]);
 
     /** \brief Get the other (d-1)-dimensional entity bounding a set across a (d-2)-dimensional entity

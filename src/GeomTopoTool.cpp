@@ -1955,13 +1955,16 @@ bool GeomTopoTool::have_obb_tree() {
   return rootSets.size() !=0 || mapRootSets.size() !=0;
 }
 
-ErrorCode GeomTopoTool::getobb(EntityHandle volume, double minPt[3],
+// This function gets coordinates of the minimum and maxmiumum points
+// from an OBB/AABB, ie. such that these points represent
+// the maximum and minium extents of an AABB
+ErrorCode GeomTopoTool::get_bounding_coords(EntityHandle volume, double minPt[3],
                           double maxPt[3])
 {
   double center[3], axis1[3], axis2[3], axis3[3];
 
     // get center point and vectors to OBB faces
-  ErrorCode rval = getobb(volume, center, axis1, axis2, axis3);
+  ErrorCode rval = get_obb(volume, center, axis1, axis2, axis3);
   if (MB_SUCCESS != rval)
     return rval;
 
@@ -1975,7 +1978,7 @@ ErrorCode GeomTopoTool::getobb(EntityHandle volume, double minPt[3],
   return MB_SUCCESS;
 }
 
-ErrorCode GeomTopoTool::getobb(EntityHandle volume, double center[3], double axis1[3],
+ErrorCode GeomTopoTool::get_obb(EntityHandle volume, double center[3], double axis1[3],
                           double axis2[3], double axis3[3])
 {
   //find EntityHandle node_set for use in box

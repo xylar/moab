@@ -247,7 +247,7 @@ ErrorCode GeomQueryTool::point_in_volume(const EntityHandle volume,
   moab::ErrorCode rval = point_in_box(volume,xyz,result);
   if( !result ) {
     result = 0;
-    return moab::MB_SUCCESS;
+    return MB_SUCCESS;
   }
   
   // get OBB Tree for volume
@@ -378,7 +378,7 @@ ErrorCode GeomQueryTool::point_in_volume(const EntityHandle volume,
 ErrorCode GeomQueryTool::point_in_box(EntityHandle volume, const double point[3], int &inside ) {
   double minpt[3];
   double maxpt[3];
-  ErrorCode rval = geomTopoTool->getobb(volume,minpt,maxpt);
+  ErrorCode rval = geomTopoTool->get_bounding_coords(volume,minpt,maxpt);
   if (MB_SUCCESS != rval)
     return rval;
 
