@@ -4,24 +4,43 @@ from pymoab cimport moab
 cimport numpy as np
 import numpy as np
 
+cdef class MOABErrorCode:
+
+    cdef readonly moab.ErrorCode error_value
+    
+    def __cinit__(self, value = 0):
+        self.error_value = <moab.ErrorCode> value
+
+    def __richcmp__(self, other, op):
+        if op == 2:
+            if isinstance(other, MOABErrorCode):
+                return self.error_value == other.error_value
+            elif type(other) == int:
+                return self.error_value == other
+        else:
+            return NotImplemented
+        
+    def __hash__(self):
+        return self.error_value
+    
 # Error codes
-MB_SUCCESS = moab.MB_SUCCESS
-MB_INDEX_OUT_OF_RANGE = moab.MB_INDEX_OUT_OF_RANGE   
-MB_TYPE_OUT_OF_RANGE = moab.MB_TYPE_OUT_OF_RANGE    
-MB_MEMORY_ALLOCATION_FAILED = moab.MB_MEMORY_ALLOCATION_FAILED     
-MB_ENTITY_NOT_FOUND = moab.MB_ENTITY_NOT_FOUND     
-MB_MULTIPLE_ENTITIES_FOUND = moab.MB_MULTIPLE_ENTITIES_FOUND  
-MB_TAG_NOT_FOUND = moab.MB_TAG_NOT_FOUND    
-MB_FILE_DOES_NOT_EXIST = moab.MB_FILE_DOES_NOT_EXIST  
-MB_FILE_WRITE_ERROR = moab.MB_FILE_WRITE_ERROR     
-MB_NOT_IMPLEMENTED = moab.MB_NOT_IMPLEMENTED  
-MB_ALREADY_ALLOCATED = moab.MB_ALREADY_ALLOCATED    
-MB_VARIABLE_DATA_LENGTH = moab.MB_VARIABLE_DATA_LENGTH     
-MB_INVALID_SIZE = moab.MB_INVALID_SIZE     
-MB_UNSUPPORTED_OPERATION = moab.MB_UNSUPPORTED_OPERATION    
-MB_UNHANDLED_OPTION = moab.MB_UNHANDLED_OPTION     
-MB_STRUCTURED_MESH = moab.MB_STRUCTURED_MESH  
-MB_FAILURE = moab.MB_FAILURE 
+MB_SUCCESS = MOABErrorCode(moab.MB_SUCCESS)
+MB_INDEX_OUT_OF_RANGE = MOABErrorCode(moab.MB_INDEX_OUT_OF_RANGE)
+MB_TYPE_OUT_OF_RANGE = MOABErrorCode(moab.MB_TYPE_OUT_OF_RANGE) 
+MB_MEMORY_ALLOCATION_FAILED = MOABErrorCode(moab.MB_MEMORY_ALLOCATION_FAILED)     
+MB_ENTITY_NOT_FOUND = MOABErrorCode(moab.MB_ENTITY_NOT_FOUND)
+MB_MULTIPLE_ENTITIES_FOUND = MOABErrorCode(moab.MB_MULTIPLE_ENTITIES_FOUND)  
+MB_TAG_NOT_FOUND = MOABErrorCode(moab.MB_TAG_NOT_FOUND)
+MB_FILE_DOES_NOT_EXIST = MOABErrorCode(moab.MB_FILE_DOES_NOT_EXIST)  
+MB_FILE_WRITE_ERROR = MOABErrorCode(moab.MB_FILE_WRITE_ERROR)
+MB_NOT_IMPLEMENTED = MOABErrorCode(moab.MB_NOT_IMPLEMENTED)
+MB_ALREADY_ALLOCATED = MOABErrorCode(moab.MB_ALREADY_ALLOCATED)    
+MB_VARIABLE_DATA_LENGTH = MOABErrorCode(moab.MB_VARIABLE_DATA_LENGTH)     
+MB_INVALID_SIZE = MOABErrorCode(moab.MB_INVALID_SIZE)
+MB_UNSUPPORTED_OPERATION = MOABErrorCode(moab.MB_UNSUPPORTED_OPERATION)    
+MB_UNHANDLED_OPTION = MOABErrorCode(moab.MB_UNHANDLED_OPTION)
+MB_STRUCTURED_MESH = MOABErrorCode(moab.MB_STRUCTURED_MESH)
+MB_FAILURE = MOABErrorCode(moab.MB_FAILURE)
 
 
 cdef dict _ERROR_MSGS = {
@@ -43,12 +62,12 @@ cdef dict _ERROR_MSGS = {
     MB_FAILURE: (RuntimeError, '[MOAB] failure'),
     }
 
-def check_error(int err, tuple exceptions = (), **kwargs):
+def check_error(err, tuple exceptions = (), **kwargs):
     """Checks error status code and raises error if needed."""
     for exception in exceptions:
         if exception == err:
             return
-    if err == moab.MB_SUCCESS:
+    if err == MB_SUCCESS:
         return
     errtype, msg = _ERROR_MSGS[err]
     if len(kwargs) > 0:
