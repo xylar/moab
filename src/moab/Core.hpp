@@ -424,6 +424,15 @@ public:
                                               Range &entities,
                                               const bool recursive = false) const;
 
+      //! Retrieves all entities in the data base of given type.  
+      /** \param type EntityType of entities desired (ie, MeshHex, MeshEdge, MeshTri, etc )
+          \param entities Range in which entities of EntityType <em>type</em> are returned.
+
+          Example: \code
+          EntityType type = MeshTet;
+          Range entities;
+          get_entities_by_dimension( type, entities ); //get MeshTet type EntityHandles in the database
+          \endcode */
     virtual ErrorCode get_entities_by_type( const EntityHandle meshset,
                                               const EntityType type, 
                                               std::vector<EntityHandle> &entities,

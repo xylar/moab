@@ -722,6 +722,20 @@ public:
                                                 Range &entities,
                                                 const bool recursive = false)  const = 0;
 
+    //! Retrieves all entities of a given topological dimension in the database or meshset.
+    /** Appends entities to list passed in.
+        \param meshset Meshset whose entities are being queried (zero if query is for entire mesh).
+        \param dimension Topological dimension of entities desired.
+        \param entities Range in which entities of dimension <em>dimension</em> are returned.
+        \param recursive If true, meshsets containing meshsets are queried recursively.  Returns
+                         the contents of meshsets, but not the meshsets themselves if true.
+
+        Example: \code
+          // get 1d (edge) elements in the entire mesh
+          Range edges;
+          get_entities_by_dimension( 0, 1, edges );
+          \endcode 
+    */
   virtual ErrorCode get_entities_by_dimension(const EntityHandle meshset,
                                                 const int dimension, 
                                                 std::vector<EntityHandle> &entities,
@@ -748,6 +762,22 @@ public:
                                            Range &entities,
                                            const bool recursive = false) const = 0;
 
+    //! Retrieve all entities of a given type in the database or meshset.
+    /** Appends entities to list passed in.
+        \param meshset Meshset whose entities are being queried (zero if query is for entire mesh).
+        \param type Type of entities to be returned
+        \param entities Range in which entities of type <em>type</em> are returned.
+        \param recursive If true, meshsets containing meshsets are queried recursively.  Returns
+                         the contents of meshsets, but not the meshsets themselves.  Specifying 
+                         both recursive=true and type=MBENTITYSET is an error, as it would always 
+                         result in an empty list.
+
+        Example: \code
+          // get the quadrilateral elements in meshset
+          Range quads;
+          get_entities_by_type( meshset, MeshQuad, quads );
+          \endcode 
+    */
   virtual ErrorCode get_entities_by_type(const EntityHandle meshset,
                                            const EntityType type, 
                                            std::vector<EntityHandle> &entities,
