@@ -40,6 +40,9 @@
 /* Enable use of AHF data-structures for querying adjacency information */
 #cmakedefine MOAB_HAVE_AHF @MOAB_HAVE_AHF@
 
+/* Define if you have a BLAS library. */
+#cmakedefine MOAB_HAVE_BLAS @MOAB_HAVE_BLAS@
+
 /* "Define if configured with CCM I/O support." */
 #cmakedefine MOAB_HAVE_CCMIO @MOAB_HAVE_CCMIO@
 
@@ -55,8 +58,8 @@
 /* "Define if configured with CGM support." */
 #cmakedefine MOAB_HAVE_CGM @MOAB_HAVE_CGM@
 
-/* MOAB uses CGM configured with CUBIT */
-#cmakedefine MOAB_HAVE_CGM_CUBIT @MOAB_HAVE_CGM_CUBIT@
+/* MOAB uses CGM configured with Facet Engine */
+#cmakedefine MOAB_HAVE_CGM_FACET @MOAB_HAVE_CGM_FACET@
 
 /* "Define if configured with CGM and Ray fire support." */
 #cmakedefine MOAB_HAVE_CGM_FIRE_RAY @MOAB_HAVE_CGM_FIRE_RAY@
@@ -81,6 +84,9 @@
 
 /* Define if configured with FBiGeom interfaces. */
 #cmakedefine MOAB_HAVE_FBIGEOM @MOAB_HAVE_FBIGEOM@
+
+/* Flag indicating whether the library will be compiled with Eigen support */
+#cmakedefine MOAB_HAVE_EIGEN @MOAB_HAVE_EIGEN@
 
 /* define if compiler has finite */
 #cmakedefine MOAB_HAVE_FINITE @MOAB_HAVE_FINITE@
@@ -112,11 +118,11 @@
 /* MOAB qualified HAVE_INTTYPES_H */
 #cmakedefine MOAB_HAVE_INTTYPES_H @MOAB_HAVE_INTTYPES_H@
 
-/* Define if configured with iRel interfaces. */
-#cmakedefine MOAB_HAVE_IREL @MOAB_HAVE_IREL@
-
 /* define if compiler has isfinite */
 #cmakedefine MOAB_HAVE_ISFINITE @MOAB_HAVE_ISFINITE@
+
+/* Define if you have LAPACK library. */
+#cmakedefine MOAB_HAVE_LAPACK @MOAB_HAVE_LAPACK@
 
 /* Define to 1 if you have the `lmpe' library (-llmpe). */
 #cmakedefine MOAB_HAVE_LIBLMPE @MOAB_HAVE_LIBLMPE@

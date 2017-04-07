@@ -71,11 +71,9 @@
 
 int main(int argc, char ** argv)
 {
-  int ierr, my_id, num_procs, i, ix, iy, numv, nume;
+  int my_id, num_procs, ix, iy, numv, nume;
   int dime, lco, mbtype, blockid, npe;
   char appname[10]="IMTEST";
-  char outfile[32]="whole.h5m";
-  char wopts[100]="PARALLEL=WRITE_PART";
 /* coordinates for 9 vertices */
   double  coordinates[27] , deltax, deltay;
   int ids[9]={1, 2, 3, 6, 7, 8, 11, 12, 13};
@@ -145,10 +143,10 @@ int main(int argc, char ** argv)
   num_layers = 1 ; /* so far, one layer only */
   rc = iMOAB_DetermineGhostEntities( pid, &dimgh, &num_layers, &bridge); ERROR(rc, "can't determine ghosts");
 
-
-
 /*     write out the mesh file to disk, in parallel, if h5m*/
 #ifdef MOAB_HAVE_HDF5_PARALLEL
+  char outfile[32]="whole.h5m";
+  char wopts[100]="PARALLEL=WRITE_PART";
   rc = iMOAB_WriteMesh(pid, outfile, wopts, 9, 19); ERROR(rc,"can't write mesh");
 #endif
 /*     all done. de-register and finalize */

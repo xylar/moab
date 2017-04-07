@@ -28,7 +28,7 @@ set_source_files_properties(
 add_library( MOABrefiner
   ${MOAB_REFINER_SRCS}
   )
-target_link_libraries( MOABrefiner MOAB )
+target_link_libraries( MOABrefiner MOAB ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES} )
 if ( MOAB_HAVE_MPI )
   target_link_libraries( MOABrefiner ${MPI_LIBRARIES} )
 endif ( MOAB_HAVE_MPI )

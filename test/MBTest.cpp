@@ -2461,13 +2461,13 @@ ErrorCode mb_mesh_set_flag_test()
   return MB_SUCCESS;
 }
 
+#ifdef MOAB_HAVE_NETCDF
   // number of entities of type MBVERTEX, MBEDGE, MBDTri, MBQUAD, MBTET, and MBHEX
   // in mbtest1.g  (all other values are 0.
 static const EntityType types[] = { MBVERTEX, MBEDGE, MBTRI, MBQUAD, MBTET, MBHEX };
 const int num_types = sizeof(types)/sizeof(types[0]);
 static const unsigned int num_entities[num_types+1] = {47,12,18,8,22,8,0};
 
-#ifdef MOAB_HAVE_NETCDF
 ErrorCode mb_delete_mesh_test()
 {
   Core moab;

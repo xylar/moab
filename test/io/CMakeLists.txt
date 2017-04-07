@@ -8,7 +8,7 @@ include_directories(
 
 set(TEST_COMP_FLAGS "-DMESHDIR=${MOAB_ABSSRC_DIR}/MeshFiles/unittest")
 
-set( TESTS readutil_test.cpp VtkTest.cpp cub_file_test.cc gmsh_test.cc nastran_test.cc ideas_test.cc stl_test.cc smf_test.cc)
+set( TESTS readutil_test.cpp VtkTest.cpp cub_file_test.cc gmsh_test.cc nastran_test.cc ideas_test.cc stl_test.cc smf_test.cc tqdcfr_test.cpp )
 if( MOAB_HAVE_NETCDF )
   set( TESTS ${TESTS} exodus_test.cc )
   set( TESTS ${TESTS} read_nc.cpp )
@@ -30,14 +30,7 @@ foreach( fname ${TESTS} )
   string( REPLACE ".cc" "" base ${tmp} )
   add_executable( ${base} ${CMAKE_SOURCE_DIR}/test/TestUtil.hpp ${fname})
   set_target_properties( ${base} PROPERTIES COMPILE_FLAGS "${TEST_COMP_FLAGS} ${MOAB_DEFINES}" )
-  target_link_libraries( ${base} MOAB ${CGM_LIBRARIES} )
+  target_link_libraries( ${base} MOAB ${CGM_LIBRARIES} ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES} )
   add_test( ${base} ${EXECUTABLE_OUTPUT_PATH}/${base} )
 endforeach()
 
-
-add_executable( tqdcfr tqdcfr_test.cpp )
-set_source_files_properties( tqdcfr_test.cpp
-    COMPILE_FLAGS "${MOAB_DEFINES}" )
-set_target_properties( tqdcfr PROPERTIES COMPILE_FLAGS "${TEST_COMP_FLAGS} ${MOAB_DEFINES}" )
-target_link_libraries( tqdcfr MOAB ${CGM_LIBRARIES} )
-add_test( TestTQDCFR ${EXECUTABLE_OUTPUT_PATH}/tqdcfr )

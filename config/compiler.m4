@@ -343,13 +343,18 @@ AC_ARG_ENABLE(64bit, AS_HELP_STRING([--enable-64bit],[Force 64-bit objects]),
 if (test "xno" != "x$enable_32bit"); then
   CXXFLAGS="$CXXFLAGS $FATHOM_CXX_32BIT"
   CFLAGS="$CFLAGS $FATHOM_CC_32BIT"
+  FCFLAGS="$FCFLAGS $FATHOM_CC_32BIT"
+  FFLAGS="$FFLAGS $FATHOM_CC_32BIT"
   LDFLAGS="$LDFLAGS $FATHOM_CC_32BIT"
 fi
 if (test "xno" != "x$enable_64bit"); then
   CXXFLAGS="$CXXFLAGS $FATHOM_CXX_64BIT"
   CFLAGS="$CFLAGS $FATHOM_CC_64BIT"
+  FCFLAGS="$FCFLAGS $FATHOM_CC_64BIT"
+  FFLAGS="$FFLAGS $FATHOM_CC_64BIT"
   LDFLAGS="$LDFLAGS $FATHOM_CC_64BIT"
 fi
+
 # Distcheck flags for 32-bit and 64-bit builds
 DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --enable-32bit=$enable_32bit --enable-64bit=$enable_64bit"
 
@@ -366,13 +371,15 @@ if (test "x$enable_static" != "xno" && test "x$MB_BLUEGENE_CONF" != "xno" && tes
   LDFLAGS="$LDFLAGS -qnostaticlink=libgcc"
 fi
 
+# Check how to create C/Fortran interfaces for MOAB
+AC_F77_MAIN
+AC_FC_MAIN
+FAC_FC_WRAPPERS
+
 # Check if we are using new Darwin kernels with Clang -- needs libc++ instead of libstdc++
 if (test "x$ENABLE_FORTRAN" != "xno" && test "x$CHECK_FC" != "xno"); then
 
   # check how to link against C++ runtime for fortran programs correctly
-  AC_F77_MAIN
-  AC_FC_MAIN
-  FAC_FC_WRAPPERS
   fcxxlinkage=no
 
   # Check if we are on IBM ANL BG/Q system
@@ -561,26 +568,27 @@ AC_CACHE_CHECK([for Fortran name-mangling scheme],
      AC_LANG_POP(C)dnl
 
      if test "$ac_success_extra" = "yes"; then
-  ac_cv_[]_AC_LANG_ABBREV[]_mangling="$ac_case case"
-        if test -z "$ac_underscore"; then
-           ac_cv_[]_AC_LANG_ABBREV[]_mangling="$ac_cv_[]_AC_LANG_ABBREV[]_mangling, no underscore"
-  else
-           ac_cv_[]_AC_LANG_ABBREV[]_mangling="$ac_cv_[]_AC_LANG_ABBREV[]_mangling, underscore"
-        fi
-        if test -z "$ac_extra"; then
-           ac_cv_[]_AC_LANG_ABBREV[]_mangling="$ac_cv_[]_AC_LANG_ABBREV[]_mangling, no extra underscore"
-  else
-           ac_cv_[]_AC_LANG_ABBREV[]_mangling="$ac_cv_[]_AC_LANG_ABBREV[]_mangling, extra underscore"
-        fi
-      else
-  ac_cv_[]_AC_LANG_ABBREV[]_mangling="unknown"
-      fi
+       ac_cv_[]_AC_LANG_ABBREV[]_mangling="$ac_case case"
+       if test -z "$ac_underscore"; then
+         ac_cv_[]_AC_LANG_ABBREV[]_mangling="$ac_cv_[]_AC_LANG_ABBREV[]_mangling, no underscore"
+       else
+         ac_cv_[]_AC_LANG_ABBREV[]_mangling="$ac_cv_[]_AC_LANG_ABBREV[]_mangling, underscore"
+       fi
+       if test -z "$ac_extra"; then
+         ac_cv_[]_AC_LANG_ABBREV[]_mangling="$ac_cv_[]_AC_LANG_ABBREV[]_mangling, no extra underscore"
+       else
+         ac_cv_[]_AC_LANG_ABBREV[]_mangling="$ac_cv_[]_AC_LANG_ABBREV[]_mangling, extra underscore"
+       fi
+     else
+       ac_cv_[]_AC_LANG_ABBREV[]_mangling="unknown"
+     fi
   else
      ac_cv_[]_AC_LANG_ABBREV[]_mangling="unknown"
   fi
 
   LIBS=$ac_save_LIBS
-  rm -f cfortran_test* conftest*],
+  rm -f cfortran_test* conftest*
+  ],
   [AC_MSG_FAILURE([cannot compile a simple Fortran program])])
 ])
 ])# FAC_FC_NAME_MANGLING

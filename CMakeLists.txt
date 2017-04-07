@@ -97,12 +97,12 @@ set( MOAB_INSTALL_TARGETS )
 # Options that the user controls
 ################################################################################
 option ( BUILD_SHARED_LIBS   "Should shared or static libraries be created?"   ON  )
-option ( ENABLE_SZIP       "Should build with szip support?"                 OFF )
 option ( ENABLE_CGM        "Should build with CGM support?"                  OFF )
 option ( ENABLE_CGNS       "Should build with CGNS support?"                 OFF )
 option ( ENABLE_MPI        "Should MOAB be compiled with MPI support?"       OFF )
 option ( ENABLE_HDF5       "Include HDF I/O interfaces in the build?"                   OFF )
 option ( ENABLE_ZLIB       "Include Zlib compression libraries (optionally used in HDF5)?"  OFF )
+option ( ENABLE_SZIP       "Should build with szip support?"                 OFF )
 option ( ENABLE_NETCDF     "Include NetCDF (ExodusII) interfaces in the build?" OFF )
 option ( ENABLE_PNETCDF    "Include PNetCDF interfaces in the build (Requires NetCDF) ?" OFF )
 option ( ENABLE_METIS      "Include Metis support for partitioning algorithms?" OFF )
@@ -183,10 +183,33 @@ set_target_properties(MOAB PROPERTIES LINK_SEARCH_END_STATIC 1)
 set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
 endif ( BUILD_SHARED_LIBS EQUAL OFF )
 
+# Find BLAS
+FIND_PACKAGE(BLAS REQUIRED)
+set (MOAB_HAVE_BLAS OFF CACHE INTERNAL "Configured MOAB with BLAS library support." )
+if (BLAS_FOUND)
+  set(MOAB_HAVE_BLAS ON)
+endif(BLAS_FOUND)
+
+# Find LAPACK
+FIND_PACKAGE(LAPACK REQUIRED)
+set (MOAB_HAVE_LAPACK OFF CACHE INTERNAL "Configured MOAB with LAPACK library support." )
+if (LAPACK_FOUND)
+  set(MOAB_HAVE_LAPACK ON)
+endif(LAPACK_FOUND)
+
+# Find Eigen3
+FIND_PACKAGE(Eigen3 OPTIONAL_COMPONENTS)
+set (MOAB_HAVE_EIGEN3 OFF CACHE INTERNAL "Configured MOAB with Eigen3 library support." )
+if ( EIGEN_FOUND )
+  INCLUDE_DIRECTORIES ( "${EIGEN3_INCLUDE_DIR}" )
+  SET(MOAB_DEFINES "$MOAB_DEFINES -I${EIGEN3_INCLUDE_DIR}")
+  SET(MOAB_HAVE_EIGEN3 ON)
+endif (EIGEN_FOUND)
+
 find_package( verdict REQUIRED )
 
 # check for MPI package
-set (MOAB_HAVE_MPI 0 CACHE INTERNAL "Found necessary MPI components. Configure MOAB with it." )
+set (MOAB_HAVE_MPI OFF CACHE INTERNAL "Found necessary MPI components. Configure MOAB with it." )
 if ( ENABLE_MPI )
   set (MPI_C_COMPILER ${CC} )
   set (MPI_CXX_COMPILER ${CXX} )
@@ -194,38 +217,44 @@ if ( ENABLE_MPI )
   find_package( MPI REQUIRED )
   # CMake FindMPI script is sorely lacking:
   if ( MPI_LIBRARY AND MPI_INCLUDE_PATH )
-    set( MPI_FOUND 1 )
+    set( MPI_FOUND ON )
   endif ( MPI_LIBRARY AND MPI_INCLUDE_PATH )
 
   if ( MPI_FOUND )
     set ( MOAB_DEFINES "${MOAB_DEFINES} -DUSE_MPI" )
-    set(CMAKE_CXX_COMPILE_FLAGS ${CMAKE_CXX_COMPILE_FLAGS} ${MPI_COMPILE_FLAGS})
-    set(CMAKE_CXX_LINK_FLAGS ${CMAKE_CXX_LINK_FLAGS} ${MPI_LINK_FLAGS})
+    set(CMAKE_CXX_COMPILE_FLAGS "${CMAKE_CXX_COMPILE_FLAGS} ${MPI_COMPILE_FLAGS}")
+    set(CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} ${MPI_LINK_FLAGS}")
     include_directories(${MPI_INCLUDE_PATH})
-    set( MOAB_HAVE_MPI 1 )
+    set( MOAB_HAVE_MPI ON )
   endif ( MPI_FOUND )
 endif ( ENABLE_MPI )
 include (config/CheckCompilerFlags.cmake)
 
-#set (MOAB_HAVE_ZLIB 0 CACHE INTERNAL "Found necessary Zlib components. Configure MOAB with it." )
+set (MOAB_HAVE_ZLIB OFF CACHE INTERNAL "Found necessary Zlib components. Configure MOAB with it." )
 if ( ENABLE_ZLIB )
   find_package( ZLIB REQUIRED )
-  set (MOAB_HAVE_ZLIB 1)
+  set (MOAB_HAVE_ZLIB ON)
 endif (ENABLE_ZLIB)
+
+set (MOAB_HAVE_SZIP OFF CACHE INTERNAL "Found necessary Zlib components. Configure MOAB with it." )
+if ( ENABLE_SZIP )
+  find_package( SZIP REQUIRED )
+  set (MOAB_HAVE_SZIP ON)
+endif (ENABLE_SZIP)
 
 find_package( CURL )
 
-#set (MOAB_HAVE_HDF5 0 CACHE INTERNAL "Found necessary HDF5 components. Configure MOAB with it." )
-#set (MOAB_HAVE_HDF5_PARALLEL 0 CACHE INTERNAL "Found necessary parallel HDF5 components. Configure MOAB with it." )
+set (MOAB_HAVE_HDF5 OFF CACHE INTERNAL "Found necessary HDF5 components. Configure MOAB with it." )
+set (MOAB_HAVE_HDF5_PARALLEL OFF CACHE INTERNAL "Found necessary parallel HDF5 components. Configure MOAB with it." )
 if ( ENABLE_HDF5 )
   if (MOAB_HAVE_MPI)
     set(HDF5_PREFER_PARALLEL TRUE)
   endif()
   find_package( HDF5_MOAB REQUIRED )
-  set (MOAB_HAVE_HDF5 1)
+  set (MOAB_HAVE_HDF5 ON)
   # if ( HDF5_IS_PARALLEL AND MOAB_HAVE_MPI )
   if ( MOAB_HAVE_MPI )
-    set (MOAB_HAVE_HDF5_PARALLEL 1)
+    set (MOAB_HAVE_HDF5_PARALLEL ON)
   endif ( )
   if ( CURL_FOUND )
     set( HDF5_LIBRARIES ${HDF5_LIBRARIES} ${CURL_LIBRARIES} )
@@ -234,50 +263,53 @@ if ( ENABLE_HDF5 )
   include_directories( ${HDF5_INCLUDE_DIR} src/io/mhdf/include )
 endif ( ENABLE_HDF5 )
 
-#set (MOAB_HAVE_NETCDF 0 CACHE INTERNAL "Found necessary NetCDF components. Configure MOAB with it." )
-#set (MOAB_HAVE_PNETCDF 0 CACHE INTERNAL "Found necessary PNetCDF components. Configure MOAB with it." )
+set (MOAB_HAVE_NETCDF OFF CACHE INTERNAL "Found necessary NetCDF components. Configure MOAB with it." )
+set (MOAB_HAVE_PNETCDF OFF CACHE INTERNAL "Found necessary PNetCDF components. Configure MOAB with it." )
 if ( ENABLE_NETCDF )
   find_package( NetCDF REQUIRED )
   # set( MOAB_DEFINES "-DNETCDF_FILE ${MOAB_DEFINES}" )
-  set (MOAB_HAVE_NETCDF 1)
+  set (MOAB_HAVE_NETCDF ON)
   set (MOAB_HAVE_NETCDF_H 1)
   include_directories( ${NETCDF_INCLUDES} )
   set( MOAB_LIBS ${NETCDF_LIBRARIES} ${MOAB_LIBS} )
   # 
   if ( PNETCDF_FOUND )
     # find_package( PNetCDF REQUIRED )
-    set (MOAB_HAVE_PNETCDF 1)
+    set (MOAB_HAVE_PNETCDF ON)
     include_directories( ${PNETCDF_INCLUDES} )
     set( MOAB_LIBS ${PNETCDF_LIBRARIES} ${MOAB_LIBS} )
   endif ( PNETCDF_FOUND )
 endif ( ENABLE_NETCDF )
 
+set (MOAB_HAVE_METIS OFF CACHE INTERNAL "Found necessary Metis components. Configure MOAB with it." )
 if ( ENABLE_METIS )
   find_package( Metis REQUIRED )
-  set (MOAB_HAVE_METIS 1)
+  set (MOAB_HAVE_METIS ON)
 endif (ENABLE_METIS )
 
+set (MOAB_HAVE_PARMETIS OFF CACHE INTERNAL "Found necessary ParMetis components. Configure MOAB with it." )
 if ( ENABLE_PARMETIS AND ENABLE_METIS AND METIS_FOUND )
   find_package( ParMetis REQUIRED )
-  set (MOAB_HAVE_PARMETIS 1)
+  set (MOAB_HAVE_PARMETIS ON)
 endif ( ENABLE_PARMETIS AND ENABLE_METIS AND METIS_FOUND )
 
-#set (MOAB_HAVE_ZOLTAN 0 CACHE INTERNAL "Found necessary Zoltan components. Configure MOAB with it." )
+set (MOAB_HAVE_ZOLTAN OFF CACHE INTERNAL "Found necessary Zoltan components. Configure MOAB with it." )
 if ( ENABLE_ZOLTAN )
   find_package( Zoltan REQUIRED )
-  set (MOAB_HAVE_ZOLTAN 1)
+  set (MOAB_HAVE_ZOLTAN ON)
 endif (ENABLE_ZOLTAN )
 
-#set (MOAB_HAVE_CGM 0 CACHE INTERNAL "Found necessary CGM components. Configure MOAB with it." )
+set (MOAB_HAVE_CGM OFF CACHE INTERNAL "Found necessary CGM components. Configure MOAB with it." )
 if ( ENABLE_CGM )
    find_package( CGM REQUIRED )
    set( MOAB_DEFINES "${CGM_DEFINES} -DCGM ${MOAB_DEFINES}" )
-   set (MOAB_HAVE_CGM 1)
+   set (MOAB_HAVE_CGM ON)
 endif (ENABLE_CGM)
 
+set (MOAB_HAVE_CGNS OFF CACHE INTERNAL "Found necessary CGNS components. Configure MOAB with it." )
 if (ENABLE_CGNS)
   set( MOABIO_LIBS ${MOABIO_LIBS} ${CGNS_LIBRARIES} )
-  set (MOAB_HAVE_CGNS 1)
+  set (MOAB_HAVE_CGNS ON)
 endif(ENABLE_CGNS)
 
 ################################################################################
@@ -375,12 +407,8 @@ endif ( ENABLE_IMESH OR ENABLE_FBIGEOM )
 #  OUTPUT_STRIP_TRAILING_WHITESPACE
 #  )
 CONFIGURE_FILE(config/MOABConfig.cmake.h.in "${PROJECT_BINARY_DIR}/src/moab/MOABConfig.h" @ONLY)
-# INSTALL(
-#   FILES "${PROJECT_BINARY_DIR}/src/moab/MOABConfig.h"
-#   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-#   )
 
-CONFIGURE_FILE(MOABConfig.new.cmake.in "${PROJECT_BINARY_DIR}/MOABConfig.cmake" @ONLY)
+CONFIGURE_FILE(config/MOABConfig.cmake.cmake "${PROJECT_BINARY_DIR}/MOABConfig.cmake" @ONLY)
 CONFIGURE_FILE(moab.make.in "${PROJECT_BINARY_DIR}/lib/moab.make" @ONLY)
 if ( MOAB_HAVE_FBIGEOM )
   CONFIGURE_FILE(itaps/fbigeom/FBiGeom-Defs.inc.in "${PROJECT_BINARY_DIR}/lib/FBiGeom-Defs.inc" @ONLY)
@@ -394,12 +422,12 @@ if ( MOAB_HAVE_IMESH )
   CONFIGURE_FILE(itaps/imesh/iMesh-Defs.inc.in "${PROJECT_BINARY_DIR}/lib/iMesh-Defs.inc" @ONLY)
   INSTALL(
     FILES "${PROJECT_BINARY_DIR}/lib/iMesh-Defs.inc"
+    "${PROJECT_BINARY_DIR}/lib/moab.make"
     DESTINATION ${CMAKE_INSTALL_LIBDIR}
     )
 endif ( MOAB_HAVE_IMESH )
 INSTALL(
   FILES "${PROJECT_BINARY_DIR}/MOABConfig.cmake"
-  "${PROJECT_BINARY_DIR}/lib/moab.make"
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/MOAB/
   )
 

@@ -3,7 +3,7 @@
 ################################################################################
 AC_INIT([MOAB],[4.9.3pre],[moab-dev@mcs.anl.gov],[moab],[http://sigma.mcs.anl.gov])
 AC_CONFIG_SRCDIR([moab.make.in])
-AC_CONFIG_SRCDIR([MOABConfig.cmake.in])
+AC_CONFIG_SRCDIR([config/MOABConfig.cmake.in])
 AC_CONFIG_SRCDIR([examples/makefile.in])
 AC_CONFIG_MACRO_DIR([config])
 AC_CONFIG_AUX_DIR([config])
@@ -43,6 +43,8 @@ DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --enable-fortran=$ENABLE_F
 FATHOM_CHECK_COMPILERS([yes],[yes],[$ENABLE_FORTRAN])
 AM_CONDITIONAL(PARALLEL,[test "x$enablempi" != "xno"])
 AM_CONDITIONAL(ENABLE_FORTRAN,[test "x$ENABLE_FORTRAN" != "xno"])
+MPI_DIR=$WITH_MPI
+AC_SUBST(MPI_DIR)
 AC_SUBST(enablempi)
 
 # Invoke and find all necessary flags for C, C++, FC
@@ -51,6 +53,8 @@ FATHOM_COMPILER_FLAGS([yes],[yes],[$ENABLE_FORTRAN])
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
 AC_DISABLE_SHARED
+AC_SUBST(enable_static)
+AC_SUBST(enable_shared)
 
 # All language options initialized -- now call
 # libtool initialization
@@ -161,6 +165,11 @@ AC_CHECK_LIB(dl, dlopen, LIBS="$LIBS -ldl")
 AC_CHECK_LIB(z, compress, LIBS="$LIBS -lz")
 AC_CHECK_LIB(m, pow, LIBS="$LIBS -lm")
 AC_CHECK_LIB(curl, curl_version, LIBS="$LIBS -lcurl")
+
+### Check for BLAS and Lapack dense solvers
+#AX_BLAS
+AX_LAPACK
+LIBS="$LAPACK_LIBS $BLAS_LIBS $LIBS"
 
 ################################################################################
 #                           iMesh Part 1 of 2
@@ -368,6 +377,12 @@ if test "xyes" = "x$enablempi"; then
   AC_SUBST([MPE_LIBS])
   test "xyes" != "x$WITH_MPE" || MB_DEFS="$MB_DEFS -DUSE_MPE"
 fi
+
+################################################################################
+#                              Eigen3 OPTIONS
+################################################################################
+
+FATHOM_CONFIGURE_EIGEN3
 
 ################################################################################
 #                              HDF5 OPTIONS
@@ -738,6 +753,9 @@ if test "xyes" = "x$WITH_ZOLTAN"; then
 fi
 
 AM_CONDITIONAL( HAVE_ZOLTAN, [test "x$WITH_ZOLTAN" = "xyes"] )
+enablezoltan=$WITH_ZOLTAN
+AC_SUBST(enablezoltan)
+AC_SUBST(ZOLTAN_DIR)
 AC_SUBST(ZOLTAN_LIBS)
 AC_SUBST(ZOLTAN_LIB_FLAGS)
 AC_SUBST(ZOLTAN_INC_FLAGS)
@@ -1194,7 +1212,7 @@ if test "x" = "x$examplesdir"; then
   AC_SUBST(examplesdir)
 fi
 
-CPPFLAGS="$MB_CPPFLAGS"
+CPPFLAGS="$MB_CPPFLAGS $CPPFLAGS"
 FCPPFLAGS=`echo $MB_CPPFLAGS | sed -e "s/-D/$FC_DEFINE/g"`
 FCDEFS=`echo $MB_DEFS | sed -e "s/-D/$FC_DEFINE/g"`
 AC_SUBST([CPPFLAGS])
@@ -1220,7 +1238,7 @@ AX_PREFIX_CONFIG_H([src/moab/MOABConfig.h],[MOAB],[src/moab/MOABConfig.h])
 
 AC_CONFIG_FILES([Makefile 
                  moab.make                  
-                 MOABConfig.cmake
+                 MOABConfig.cmake:config/MOABConfig.cmake.in
                  examples/makefile
                  examples/old/deform_mesh/makefile
                  src/Makefile
@@ -1351,6 +1369,15 @@ if test "x$WARN_PARALLEL_HDF5_NO_COMPLEX" = "xyes"; then
 *     significant impact on IO performance.
 *************************************************************************])
 fi
+
+# echo "Other details"
+# echo "Static: $enable_static"
+# echo "Shared: $enable_shared"
+# echo "BLAS: $enableblas"
+# echo "LAPACK: $enablelapack"
+# echo "Zoltan: $enablezoltan"
+# echo "Zlib: $enablezlib"
+# echo "SZip: $enableszip"
 
 # define([ConfigurationSuggestion], [`esyscmd(config/suggest_configure_command)'])
 # m4_echo(echo "m4_expand([ConfigurationSuggestion])")

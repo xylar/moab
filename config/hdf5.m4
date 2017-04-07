@@ -103,54 +103,58 @@ AC_DEFUN([FATHOM_CHECK_HDF5],[
 AC_ARG_WITH(zlib,
   [AS_HELP_STRING([--with-zlib=DIR],[HDF5 requires zlib, and zlib can be found at...])],
   [if (test "x$withval" != "x" && test "x$withval" != "xno"); then 
-    WITH_ZLIB=$withval
+    ZLIB_DIR=$withval
     DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --with-zlib=\"${withval}\""
   fi
-  ],[WITH_ZLIB=])
-case "x$WITH_ZLIB" in
+  ],[ZLIB_DIR=])
+case "x$ZLIB_DIR" in
   xyes|xno|x)
     ;;
   *)
-    if ! test -d  ${WITH_ZLIB}/lib; then
-      AC_MSG_ERROR([Not a directory: ${WITH_ZLIB}/lib])
+    if ! test -d  ${ZLIB_DIR}/lib; then
+      AC_MSG_ERROR([Not a directory: ${ZLIB_DIR}/lib])
     fi
-    HDF5_LDFLAGS="$HDF5_LDFLAGS -L${WITH_ZLIB}/lib"
+    HDF5_LDFLAGS="$HDF5_LDFLAGS -L${ZLIB_DIR}/lib"
     ;;
 esac
-HAVE_ZLIB=no
-if test "x$WITH_ZLIB" != "xno"; then
+enablezlib=no
+if test "x$ZLIB_DIR" != "xno"; then
   old_LDFLAGS="$LDFLAGS"
   LDFLAGS="$LDFLAGS $HDF5_LDFLAGS"
-  AC_CHECK_LIB([z],[deflate],[HAVE_ZLIB=yes; HDF5_LIBS="$HDF5_LIBS -lz"],
-    [if test "x$WITH_ZLIB" != "x"; then AC_MSG_ERROR([Could not find zlib]); fi])
+  AC_CHECK_LIB([z],[deflate],[enablezlib=yes; HDF5_LIBS="$HDF5_LIBS -lz"],
+    [if test "x$ZLIB_DIR" != "x"; then AC_MSG_ERROR([Could not find zlib]); fi])
   LDFLAGS="$old_LDFLAGS"
 fi
+AC_SUBST(enablezlib)
+AC_SUBST(ZLIB_DIR)
 
   # CLI option for linking szip
 AC_ARG_WITH(szip,
   [AS_HELP_STRING([--with-szip=DIR],[HDF5 requires szip, and szip an be found at...])],
   [if (test "x$withval" != "x" && test "x$withval" != "xno"); then
-    WITH_SZIP=$withval
+    SZIP_DIR=$withval
     DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --with-szip=\"${withval}\""
-  fi],[WITH_SZIP=])
-case "x$WITH_SZIP" in
+  fi],[SZIP_DIR=])
+case "x$SZIP_DIR" in
   xyes|xno|x)
     ;;
   *)
-    if ! test -d  ${WITH_SZIP}/lib; then
-      AC_MSG_ERROR([Not a directory: ${WITH_SZIP}/lib])
+    if ! test -d  ${SZIP_DIR}/lib; then
+      AC_MSG_ERROR([Not a directory: ${SZIP_DIR}/lib])
     fi
-    HDF5_LDFLAGS="$HDF5_LDFLAGS -L${WITH_SZIP}/lib"
+    HDF5_LDFLAGS="$HDF5_LDFLAGS -L${SZIP_DIR}/lib"
     ;;
 esac
-HAVE_SZIP=no
-if test "x$WITH_SZIP" != "xno"; then
+enableszip=no
+if test "x$SZIP_DIR" != "xno"; then
   old_LDFLAGS="$LDFLAGS"
   LDFLAGS="$LDFLAGS $HDF5_LDFLAGS"
-  AC_CHECK_LIB([sz],[SZ_Decompress],[HAVE_SZIP=yes; HDF5_LIBS="$HDF5_LIBS -lsz"],
-    [if test "x$WITH_SZIP" != "x"; then AC_MSG_ERROR([Could not find libsz]); fi])
+  AC_CHECK_LIB([sz],[SZ_Decompress],[enableszip=yes; HDF5_LIBS="$HDF5_LIBS -lsz"],
+    [if test "x$SZIP_DIR" != "x"; then AC_MSG_ERROR([Could not find libsz]); fi])
   LDFLAGS="$old_LDFLAGS"
 fi
+AC_SUBST(enableszip)
+AC_SUBST(SZIP_DIR)
 
   # CLI option for extra HDF5 link flags
 AC_ARG_WITH([hdf5-ldflags],[AS_HELP_STRING([--with-hdf5-ldflags=...],
@@ -272,6 +276,8 @@ else
 fi
 AM_CONDITIONAL(HAVE_HDF5, [test "xno" != "x$enablehdf5"])
 AC_SUBST(enablehdf5)
+AC_SUBST(HDF5_DIR)
+AC_SUBST(HDF5_CPPFLAGS)
 MB_CPPFLAGS="$HDF5_CPPFLAGS $MB_CPPFLAGS"
 EXPORT_LDFLAGS="$EXPORT_LDFLAGS $HDF5_LDFLAGS"
 AC_SUBST(HDF5_LIBS)
@@ -318,6 +324,5 @@ if test "xno" != "x$enablehdf5parallel"; then
   CPPFLAGS="$old_CPPFLAGS"
 fi
 AC_SUBST(enablehdf5parallel)
-
 
 ]) # FATHOM_CHECK_HDF5

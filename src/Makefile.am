@@ -3,13 +3,11 @@ AUTOMAKE_OPTIONS = foreign subdir-objects
 
 # Things to build
 lib_LTLIBRARIES = libMOAB.la 
-AM_CPPFLAGS =
+AM_CPPFLAGS = $(EIGEN3_INCLUDES)
 
 # Subdirectories to build
 SUBDIRS =
 libMOAB_la_LIBADD =
-
-include moab/EigenHeaders
 
 SUBDIRS += io .
 libMOAB_la_LIBADD += io/libmoabio.la 

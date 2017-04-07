@@ -1,5 +1,5 @@
 add_subdirectory(point_location)
-set( LIBS MOAB )
+set( LIBS MOAB ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES} )
 set( TESTS adj_mem_time_test.cpp
            )
 

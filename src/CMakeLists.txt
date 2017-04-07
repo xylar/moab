@@ -255,7 +255,7 @@ add_library(
 
 target_link_libraries(
   MOAB
-  ${MOAB_DEP_LIBRARIES} ${MOAB_LIBS} ${MOAB_CGM_LIBS} ${MPI_LIBRARIES}
+  ${MOAB_DEP_LIBRARIES} ${MOAB_LIBS} ${MOAB_CGM_LIBS} ${MPI_LIBRARIES} ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES}
   )
 set_target_properties(
   MOAB
