@@ -52,7 +52,12 @@ examples_DATA = examples/CrystalRouterExample.cpp \
                 examples/makefile.in \
                 examples/makefile
 
-EXTRA_DIST = $(doc_DATA) $(examples_DATA)
+cmake_DATA = config/AutoconfHeader.cmake      config/FindCGM.cmake        config/FindMetis.cmake     config/FindZoltan.cmake    config/ForceAddFlags.cmake \
+						 config/ResolveCompilerPaths.cmake  config/CMakeDistCheck.cmake      config/FindEigen3.cmake     config/FindNetCDF.cmake    config/Findgraphviz.cmake \
+						 config/GetAcInitVersion.cmake  config/TestBigEndian.cmake    config/CheckCompilerFlags.cmake  config/FindHDF5_MOAB.cmake  config/FindParMetis.cmake  \
+						 config/Findverdict.cmake   config/MOABConfig.cmake.cmake    config/CMakeReplicateConfig.sh    config/TemplateSpecialization.cxx
+
+EXTRA_DIST = $(doc_DATA) $(examples_DATA) $(cmake_DATA)
 
 # Automake doesn't seem to have a directory defined for
 # platform-dependent data (or include) files. So put 
