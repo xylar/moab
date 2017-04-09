@@ -15,7 +15,7 @@ libMOAB_la_LIBADD += io/libmoabio.la IntxMesh/libIntxMesh.la
 if HAVE_TEMPESTREMAP
  SUBDIRS += Remapping
  libMOAB_la_LIBADD += Remapping/libRemapping.la
-endif 
+endif
 SUBDIRS += .
 
 if ENABLE_mesquite

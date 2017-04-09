@@ -318,14 +318,6 @@ int main(int argc, char* argv[])
     rval = remapper.ComputeOverlapMesh(epsrel);MB_CHK_ERR(rval);
     ctx.timer_pop();
 
-    {
-      // Now let us re-convert the MOAB mesh back to Tempest representation
-      rval = remapper.ConvertMeshToTempest(moab::Remapper::IntersectedMesh);MB_CHK_ERR(rval);
-
-      rval = remapper.AssociateSrcTargetInOverlap();MB_CHK_ERR(rval);
-      ctx.meshes[2] = remapper.GetMesh(moab::Remapper::IntersectedMesh);
-    }
-
     // Write out our computed intersection file
     if (false) {
       rval = mbCore->add_entities(ctx.meshsets[2], &ctx.meshsets[0], 2);MB_CHK_ERR(rval);
@@ -350,11 +342,19 @@ int main(int argc, char* argv[])
 
     if (ctx.computeWeights) {
 
-      ctx.timer_push("compute weights with the Tempest meshes");
+      {
+        // Now let us re-convert the MOAB mesh back to Tempest representation
+        // rval = remapper.ConvertMeshToTempest(moab::Remapper::IntersectedMesh);MB_CHK_ERR(rval);
+        rval = remapper.AssociateSrcTargetInOverlap();MB_CHK_ERR(rval);
+        rval = remapper.ConvertMOABMesh_WithSortedEntitiesBySource();MB_CHK_ERR(rval);
+
+        ctx.meshes[2] = remapper.GetMesh(moab::Remapper::IntersectedMesh);
+      }
 
       // Call to generate an offline map with the tempest meshes
       moab::TempestOfflineMap* weightMap = new moab::TempestOfflineMap(&remapper);
 
+      ctx.timer_push("compute weights with the Tempest meshes");
       weightMap->GenerateOfflineMap(ctx.disc_methods[0], ctx.disc_methods[1],          // std::string strInputType, std::string strOutputType,
                                     ctx.disc_orders[0],  ctx.disc_orders[1],  // int nPin=4, int nPout=4,
                                     false, 0,            // bool fBubble=false, int fMonotoneTypeID=0,
@@ -364,7 +364,11 @@ int main(int argc, char* argv[])
                                     // std::string strNColName="", bool fOutputDouble=false,
                                     // std::string strPreserveVariables="", bool fPreserveAll=false, double dFillValueOverride=0.0
                                                           );
+      ctx.timer_pop();
+
+      ctx.timer_push("gather weights to root process");
       weightMap->GatherAllToRoot();
+      ctx.timer_pop();
 
       // OfflineMap* weightMap;
       // weightMap = GenerateOfflineMapWithMeshes( NULL, *ctx.meshes[0], *ctx.meshes[1], *ctx.meshes[2],
@@ -382,10 +386,9 @@ int main(int argc, char* argv[])
       // weightMap->m_vecSourceDimSizes.resize(ctx.meshes[0]->faces.size());
       // weightMap->m_vecTargetDimSizes.resize(ctx.meshes[1]->faces.size());
 
-      ctx.timer_pop();
-      sstr.str("");
-      sstr << "outWeights_" << proc_id << ".nc";
-      weightMap->Write(sstr.str().c_str());
+      // sstr.str("");
+      // sstr << "outWeights_" << proc_id << ".nc";
+      // weightMap->Write(sstr.str().c_str());
       delete weightMap;
     }
   }

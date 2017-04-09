@@ -70,6 +70,8 @@ public:
 
     moab::ErrorCode AssociateSrcTargetInOverlap();
 
+    moab::ErrorCode ConvertMOABMesh_WithSortedEntitiesBySource();
+
     Mesh* GetMesh(Remapper::IntersectionContext ctx);
 
     void SetMesh(Remapper::IntersectionContext ctx, Mesh* mesh, bool overwrite=true);
@@ -121,7 +123,7 @@ private:
     moab::Range m_overlap_entities;
     moab::EntityHandle m_overlap_set;
     std::vector<std::pair<int,int> > m_sorted_overlap_order;
-    Mesh* m_sorted_overlap;
+    // Mesh* m_sorted_overlap;
 
     // Parallel - migrated mesh that is in the local view
     Mesh* m_covering_source;

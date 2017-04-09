@@ -91,12 +91,13 @@ int main(int argc, char* argv[])
   rval = positive_orientation(mb, sf1, R);MB_CHK_ERR(rval);
   rval = positive_orientation(mb, sf2, R);MB_CHK_ERR(rval);
 
-  //ParallelComm* pcomm = ParallelComm::get_pcomm(mb, 0);
+  ParallelComm* pcomm = ParallelComm::get_pcomm(mb, 0);
  
   Intx2MeshOnSphere  worker(mb);
 
   worker.SetErrorTolerance(R*epsrel);
   worker.set_box_error(boxeps);
+  worker.set_parallel_comm(pcomm);
   //worker.SetEntityType(moab::MBQUAD);
   worker.SetRadius(R);
   //worker.enable_debug();

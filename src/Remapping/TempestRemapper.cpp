@@ -329,13 +329,15 @@ ErrorCode TempestRemapper::ConvertMOABMeshToTempest_Private ( Mesh* mesh, Entity
 
         // get the connectivity for each edge
         const EntityHandle* connectface;
-        int nnodesf;
+        int nvtx, nnodesf;
         rval = m_interface->get_connectivity ( ehandle, connectface, nnodesf ); MB_CHK_ERR ( rval );
 
         // Can be untrue for polygonal elements with mixed pentagons and hexagons
-        // assert(face_edges.size() - nnodesf == 0);
+        // if (face_edges.size() - nnodesf != 0) {
+        // 	nvtx = face_edges.size();
+        // }
 
-        for ( int iverts = 0; iverts < nnodesf; ++iverts )
+        for ( int iverts = 0; iverts < face_edges.size(); ++iverts )
         {
             int indx = verts.index ( connectface[iverts] );
             assert ( indx >= 0 );
@@ -370,7 +372,7 @@ ErrorCode TempestRemapper::ConvertMOABMeshToTempest_Private ( Mesh* mesh, Entity
     coordz.clear();
     verts.clear();
 
-    mesh->RemoveZeroEdges();
+    // mesh->RemoveZeroEdges();
     mesh->RemoveCoincidentNodes();
 
     // Generate reverse node array and edge map
@@ -389,6 +391,142 @@ bool IntPairComparator ( const std::pair<int, int> &a, const std::pair<int, int>
         return a.second < b.second;
     else
         return a.first < b.first;
+}
+
+ErrorCode TempestRemapper::ConvertMOABMesh_WithSortedEntitiesBySource()
+{
+	ErrorCode rval;
+
+    rval = m_interface->get_entities_by_dimension ( m_overlap_set, 2, m_overlap_entities ); MB_CHK_ERR ( rval );
+
+    // Allocate for the overlap mesh
+    if (!m_overlap) m_overlap = new Mesh();
+
+	std::vector<std::pair<int,int> > sorted_overlap_order ( m_overlap_entities.size() );
+    {
+        Tag bluePtag, redPtag;
+        rval = m_interface->tag_get_handle ( "BlueParent", bluePtag ); MB_CHK_ERR ( rval );
+        rval = m_interface->tag_get_handle ( "RedParent", redPtag ); MB_CHK_ERR ( rval );
+
+        rval = m_pcomm->exchange_tags ( bluePtag, m_covering_source_entities ); MB_CHK_ERR ( rval );
+        rval = m_pcomm->exchange_tags ( redPtag, m_covering_source_entities ); MB_CHK_ERR ( rval );
+
+	    // Overlap mesh: resize the source and target connection arrays
+	    m_overlap->vecSourceFaceIx.resize ( m_overlap_entities.size() );
+	    m_overlap->vecTargetFaceIx.resize ( m_overlap_entities.size() );
+
+	    // Overlap mesh: resize the source and target connection arrays
+	    std::vector<int> rbids_src ( m_overlap_entities.size() ), rbids_tgt ( m_overlap_entities.size() );
+	    rval = m_interface->tag_get_data ( bluePtag,  m_overlap_entities, &rbids_src[0] ); MB_CHK_ERR ( rval );
+	    rval = m_interface->tag_get_data ( redPtag,  m_overlap_entities, &rbids_tgt[0] ); MB_CHK_ERR ( rval );
+
+        // Let us re-sort the entities based on the vecSourceFaceIx values
+	    for ( size_t ix = 0; ix < m_overlap_entities.size(); ++ix )
+	    {
+	        sorted_overlap_order[ix].first = gid_to_lid_covsrc[rbids_src[ix]];
+	        sorted_overlap_order[ix].second = ix;
+	        // std::cout << "[" << ix << "]: sorted_overlap_order[ix].first = " << sorted_overlap_order[ix].first << std::endl;
+	    }
+	    std::sort ( sorted_overlap_order.begin(), sorted_overlap_order.end(), IntPairComparator );
+
+	    for ( unsigned ie = 0; ie < m_overlap_entities.size(); ++ie )
+	    {
+	        m_overlap->vecSourceFaceIx[ie] = gid_to_lid_covsrc[rbids_src[sorted_overlap_order[ie].second]];
+	        m_overlap->vecTargetFaceIx[ie] = gid_to_lid_tgt[rbids_tgt[sorted_overlap_order[ie].second]];
+	        // if(m_pcomm->rank()) std::cout << "Overlap vecSourceFaceIx[" << ie << "]: GID = " << rbids_src[ie] << " and value = " << m_overlap->vecSourceFaceIx[ie] << "\n";
+	    }
+    }
+
+    NodeVector& nodes = m_overlap->nodes;
+    FaceVector& faces = m_overlap->faces;
+
+    Range verts;
+
+    faces.resize ( m_overlap_entities.size() );
+    // rval = m_interface->get_adjacencies(m_overlap_entities, 0, true, verts, Interface::UNION); MB_CHK_ERR(rval);
+    // rval = m_interface->get_entities_by_dimension(mesh_set, 0, verts); MB_CHK_ERR(rval);
+    // verts.intersect(vertsall);
+
+    for ( unsigned ifac = 0; ifac < m_overlap_entities.size(); ++ifac )
+    {
+    	const unsigned iface = sorted_overlap_order[ifac].second;
+
+        // get the connectivity for each edge
+        const EntityHandle* connectface;
+        int nnodesf;
+        rval = m_interface->get_connectivity ( m_overlap_entities[iface], connectface, nnodesf ); MB_CHK_ERR ( rval );
+
+        for ( int iverts = 0; iverts < nnodesf; ++iverts )
+        {
+            if ( verts.index ( connectface[iverts] ) < 0 )
+                verts.insert ( connectface[iverts] );
+        }
+    }
+
+    for ( unsigned ifac = 0; ifac < m_overlap_entities.size(); ++ifac )
+    {
+    	const unsigned iface = sorted_overlap_order[ifac].second;
+        Face& face = faces[ifac];
+        EntityHandle ehandle = m_overlap_entities[iface];
+
+        // compute the number of edges per faces
+        std::vector< EntityHandle > face_edges;
+        rval = m_interface->get_adjacencies ( &ehandle, 1, 1, true, face_edges ); MB_CHK_ERR ( rval );
+        face.edges.resize ( face_edges.size() );
+
+        // get the connectivity for each edge
+        const EntityHandle* connectface;
+        int nnodesf;
+        rval = m_interface->get_connectivity ( ehandle, connectface, nnodesf ); MB_CHK_ERR ( rval );
+
+        // Can be untrue for polygonal elements with mixed pentagons and hexagons
+        // assert(face_edges.size() - nnodesf == 0);
+
+        for ( int iverts = 0; iverts < nnodesf; ++iverts )
+        {
+            int indx = verts.index ( connectface[iverts] );
+            assert ( indx >= 0 );
+            face.SetNode ( iverts, indx );
+        }
+    }
+    // std::cout << "+-- Elements = " << m_overlap_entities.size() << " and verts = " << verts.size() << "\n"; std::cout.flush();
+
+    unsigned nnodes = verts.size();
+    nodes.resize ( nnodes );
+
+    Tag tmp_mb_loc_tag;
+    int locid_def = -1;
+    rval = m_interface->tag_get_handle ( "TEMPEST_MOAB_LOCALID", 1, MB_TYPE_INTEGER, tmp_mb_loc_tag, MB_TAG_DENSE | MB_TAG_CREAT, &locid_def ); MB_CHK_ERR ( rval );
+
+    std::vector<int> loc_id ( nnodes );
+    rval = m_interface->tag_get_data ( tmp_mb_loc_tag, verts, &loc_id[0] ); MB_CHK_ERR ( rval );
+    loc_id.clear();
+
+    // Set the data for the vertices
+    std::vector<double> coordx ( nnodes ), coordy ( nnodes ), coordz ( nnodes );
+    rval = m_interface->get_coords ( verts, &coordx[0], &coordy[0], &coordz[0] ); MB_CHK_ERR ( rval );
+    for ( unsigned inode = 0; inode < nnodes; ++inode )
+    {
+        Node& node = nodes[inode];
+        node.x = coordx[inode];
+        node.y = coordy[inode];
+        node.z = coordz[inode];
+    }
+    coordx.clear();
+    coordy.clear();
+    coordz.clear();
+    verts.clear();
+
+    m_overlap->RemoveZeroEdges();
+    m_overlap->RemoveCoincidentNodes();
+
+    // Generate reverse node array and edge map
+    if ( constructEdgeMap ) m_overlap->ConstructEdgeMap();
+    m_overlap->ConstructReverseNodeArray();
+
+    m_overlap->Validate();
+    return MB_SUCCESS;
+
 }
 
 // Should be ordered as Source, Target, Overlap
@@ -433,99 +571,83 @@ ErrorCode TempestRemapper::AssociateSrcTargetInOverlap()
         }
     }
 
-    Tag redPtag, bluePtag;
-    rval = m_interface->tag_get_handle ( "RedParent", redPtag ); MB_CHK_ERR ( rval );
-    rval = m_interface->tag_get_handle ( "BlueParent", bluePtag ); MB_CHK_ERR ( rval );
+    // Tag redPtag, bluePtag;
+    // rval = m_interface->tag_get_handle ( "RedParent", redPtag ); MB_CHK_ERR ( rval );
+    // rval = m_interface->tag_get_handle ( "BlueParent"redPtag, bluePtag,  ); MB_CHK_ERR ( rval );
 
-    // Overlap mesh: resize the source and target connection arrays
-    m_overlap->vecSourceFaceIx.resize ( m_overlap_entities.size() );
-    m_overlap->vecTargetFaceIx.resize ( m_overlap_entities.size() );
+    // // Let us re-sort the entities based on the vecSourceFaceIx values
+    // rval = m_interface->tag_get_handle ( "RedParent", redPtag ); MB_CHK_ERR ( rval );
+    // m_sorted_overlap_order.resize ( m_overlap_entities.size() );
+    // std::vector<std::pair<int, int> > unsorted_order ( m_overlap_entities.size() );
+    // for ( size_t ix = 0; ix < m_overlap_entities.size(); ++ix )
+    // {
+    //     m_sorted_overlap_order[ix].first = m_overlap->vecSourceFaceIx[ix];
+    //     m_sorted_overlap_order[ix].second = ix;
 
-    std::vector<int> rbids_src ( m_overlap_entities.size() );
-    rval = m_interface->tag_get_data ( bluePtag,  m_overlap_entities, &rbids_src[0] ); MB_CHK_ERR ( rval );
-    for ( unsigned ie = 0; ie < m_overlap_entities.size(); ++ie )
-    {
-        m_overlap->vecSourceFaceIx[ie] = gid_to_lid_covsrc[rbids_src[ie]];
-        // if(m_pcomm->rank()) std::cout << "Overlap vecSourceFaceIx[" << ie << "]: GID = " << rbids_src[ie] << " and value = " << m_overlap->vecSourceFaceIx[ie] << "\n";
-    }
-    std::vector<int> rbids_tgt ( m_overlap_entities.size() );
-    rval = m_interface->tag_get_data ( redPtag,  m_overlap_entities, &rbids_tgt[0] ); MB_CHK_ERR ( rval );
-    for ( unsigned ie = 0; ie < m_overlap_entities.size(); ++ie )
-    {
-        m_overlap->vecTargetFaceIx[ie] = gid_to_lid_tgt[rbids_tgt[ie]];
-        // if(!m_pcomm->rank()) std::cout << "Overlap vecTargetFaceIx[" << ie << "]: GID = " << rbids_tgt[ie] << " and value = " << m_overlap->vecTargetFaceIx[ie] << "\n";
-    }
+    //     unsorted_order[ix].first = m_overlap->vecSourceFaceIx[ix];
+    //     unsorted_order[ix].second = ix;
+    // }
 
-    if ( true )
-    {
-        // Let us re-sort the entities based on the vecSourceFaceIx values
-        m_sorted_overlap_order.resize ( m_overlap_entities.size() );
-        std::vector<std::pair<int, int> > unsorted_order ( m_overlap_entities.size() );
-        for ( size_t ix = 0; ix < m_overlap_entities.size(); ++ix )
-        {
-            m_sorted_overlap_order[ix].first = m_overlap->vecSourceFaceIx[ix];
-            m_sorted_overlap_order[ix].second = ix;
+    // std::sort ( m_sorted_overlap_order.begin(), m_sorted_overlap_order.end(), IntPairComparator );
 
-            unsorted_order[ix].first = m_overlap->vecSourceFaceIx[ix];
-            unsorted_order[ix].second = ix;
-        }
+    // if (!m_pcomm->rank()) {
+    // 	std::cout << "New Sorted Order:" << std::endl;
+	   //   for (size_t ix=0; ix < m_overlap_entities.size(); ++ix) {
+	   //   	std::cout << "[" << ix << "]:" << m_sorted_overlap_order[ix].first << " = " << m_sorted_overlap_order[ix].second ;
+	   //   	std::cout << " -- Unsorted :" << unsorted_order[ix].first << " = " << unsorted_order[ix].second << std::endl;
+	   //   }
+    // }
 
-        std::sort ( m_sorted_overlap_order.begin(), m_sorted_overlap_order.end(), IntPairComparator );
+//     if ( false )
+//     {
+//         m_overlap->CalculateFaceAreas();
 
-        // if (m_pcomm->rank()) {
-        // 	std::cout << "New Sorted Order:" << std::endl;
-        //  for (size_t ix=0; ix < m_overlap_entities.size(); ++ix) {
-        //  	std::cout << "[" << ix << "]:" << m_sorted_overlap_order[ix].first << " = " << m_sorted_overlap_order[ix].second ;
-        //  	std::cout << " -- Unsorted :" << unsorted_order[ix].first << " = " << unsorted_order[ix].second << std::endl;
-        //  }
-        // }
+//         m_sorted_overlap = new Mesh();
+//         m_sorted_overlap->type = m_overlap->type; // propagate the type
+//         m_sorted_overlap->nodes.resize ( m_overlap->nodes.size() ); // propagate the nodes sizes
+//         std::copy ( m_overlap->nodes.begin(), m_overlap->nodes.end(), m_sorted_overlap->nodes.begin() ); // copy the nodes as is (unsorted)
+//         m_sorted_overlap->faces.resize ( m_overlap->faces.size() ); // propagate the face sizes
+//         m_sorted_overlap->vecSourceFaceIx.resize ( m_overlap->vecSourceFaceIx.size() );
+//         m_sorted_overlap->vecTargetFaceIx.resize ( m_overlap->vecTargetFaceIx.size() );
+//         m_sorted_overlap->vecFaceArea.Initialize( m_overlap->vecFaceArea.GetRows() );
+//         for ( size_t ifac = 0; ifac < m_overlap_entities.size(); ++ifac )
+//         {
+//             int tmp;
+//             tmp = gid_to_lid_covsrc[rbids_src[ifac]];
+//             gid_to_lid_covsrc[rbids_src[ifac]] = gid_to_lid_covsrc[rbids_src[m_sorted_overlap_order[ifac].second]];
+//             gid_to_lid_covsrc[rbids_src[m_sorted_overlap_order[ifac].second]] = tmp;
+//             tmp = gid_to_lid_tgt[rbids_tgt[ifac]];
+//             gid_to_lid_tgt[rbids_tgt[ifac]] = gid_to_lid_tgt[rbids_tgt[m_sorted_overlap_order[ifac].second]];
+//             gid_to_lid_tgt[rbids_tgt[m_sorted_overlap_order[ifac].second]] = tmp;
+//             // std::swap(gid_to_lid_covsrc[[ifac]], gid_to_lid_covsrc[m_sorted_overlap_order[rbids_tgt[ifac]].second]);
+//             // std::swap(gid_to_lid_tgt[rbids_tgt[ifac]], gid_to_lid_tgt[m_sorted_overlap_order[rbids_tgt[ifac]].second]);
+//             m_sorted_overlap->vecSourceFaceIx[ifac] = m_overlap->vecSourceFaceIx[m_sorted_overlap_order[ifac].second];
+//             m_sorted_overlap->vecTargetFaceIx[ifac] = m_overlap->vecTargetFaceIx[m_sorted_overlap_order[ifac].second];
+//             m_sorted_overlap->vecFaceArea[ifac] = m_overlap->vecFaceArea[m_sorted_overlap_order[ifac].second];
+// //      	std::cout << "Area [" << ifac << "]:" << m_overlap->vecFaceArea[ifac] << std::endl;
+//             Face& sface = m_sorted_overlap->faces[ifac];
+//             sface.edges.resize ( m_overlap->faces[ifac].edges.size() );
+//             for ( size_t iedg = 0; iedg < sface.edges.size(); ++iedg )
+//             {
+//                 const Face& uface = m_overlap->faces[m_sorted_overlap_order[ifac].second];
+//                 sface.edges[iedg].node[0] = uface.edges[iedg].node[0];
+//                 sface.edges[iedg].node[1] = uface.edges[iedg].node[1];
+//                 sface.edges[iedg].type = uface.edges[iedg].type;
+//             }
+//             // std::copy(m_overlap->faces[ifac].edges.begin(), m_overlap->faces[ifac].edges.end(), sface.edges.begin()); // copy the nodes as is (unsorted)
+//         }
+//         // std::cout << "New SrcFaceIx Order:" << std::endl;
+//         // for (size_t ix=0; ix < m_overlap_entities.size(); ++ix) {
+//         // 	std::cout << "[" << ix << "]:" << m_overlap->vecSourceFaceIx[ix] << " = " << m_sorted_overlap->vecSourceFaceIx[ix] << std::endl;
+//         // }
 
-        m_sorted_overlap = new Mesh();
-        m_sorted_overlap->type = m_overlap->type; // propagate the type
-        m_sorted_overlap->nodes.resize ( m_overlap->nodes.size() ); // propagate the nodes sizes
-        std::copy ( m_overlap->nodes.begin(), m_overlap->nodes.end(), m_sorted_overlap->nodes.begin() ); // copy the nodes as is (unsorted)
-        m_sorted_overlap->faces.resize ( m_overlap->faces.size() ); // propagate the face sizes
-        m_sorted_overlap->vecSourceFaceIx.resize ( m_overlap->vecSourceFaceIx.size() );
-        m_sorted_overlap->vecTargetFaceIx.resize ( m_overlap->vecTargetFaceIx.size() );
-//      m_sorted_overlap->vecFaceArea.Initialize(m_overlap->vecFaceArea.GetRows());
-        for ( size_t ifac = 0; ifac < m_overlap_entities.size(); ++ifac )
-        {
-            int tmp;
-            tmp = gid_to_lid_covsrc[ifac];
-            gid_to_lid_covsrc[rbids_src[ifac]] = gid_to_lid_covsrc[rbids_src[m_sorted_overlap_order[ifac].second]];
-            gid_to_lid_covsrc[rbids_src[m_sorted_overlap_order[ifac].second]] = tmp;
-            tmp = gid_to_lid_tgt[rbids_tgt[ifac]];
-            gid_to_lid_tgt[rbids_tgt[ifac]] = gid_to_lid_tgt[rbids_tgt[m_sorted_overlap_order[ifac].second]];
-            gid_to_lid_tgt[rbids_tgt[m_sorted_overlap_order[ifac].second]] = tmp;
-            // std::swap(gid_to_lid_covsrc[[ifac]], gid_to_lid_covsrc[m_sorted_overlap_order[rbids_tgt[ifac]].second]);
-            // std::swap(gid_to_lid_tgt[rbids_tgt[ifac]], gid_to_lid_tgt[m_sorted_overlap_order[rbids_tgt[ifac]].second]);
-            m_sorted_overlap->vecSourceFaceIx[ifac] = m_overlap->vecSourceFaceIx[m_sorted_overlap_order[ifac].second];
-            m_sorted_overlap->vecTargetFaceIx[ifac] = m_overlap->vecTargetFaceIx[m_sorted_overlap_order[ifac].second];
-            // m_sorted_overlap->vecFaceArea[m_sorted_overlap_order[ifac].second] = m_overlap->vecFaceArea[ifac];
-//      	std::cout << "Area [" << ifac << "]:" << m_overlap->vecFaceArea[ifac] << std::endl;
-            Face& sface = m_sorted_overlap->faces[ifac];
-            sface.edges.resize ( m_overlap->faces[ifac].edges.size() );
-            for ( size_t iedg = 0; iedg < sface.edges.size(); ++iedg )
-            {
-                const Face& uface = m_overlap->faces[m_sorted_overlap_order[ifac].second];
-                sface.edges[iedg].node[0] = uface.edges[iedg].node[0];
-                sface.edges[iedg].node[1] = uface.edges[iedg].node[1];
-                sface.edges[iedg].type = uface.edges[iedg].type;
-            }
-            // std::copy(m_overlap->faces[ifac].edges.begin(), m_overlap->faces[ifac].edges.end(), sface.edges.begin()); // copy the nodes as is (unsorted)
-        }
-        // std::cout << "New SrcFaceIx Order:" << std::endl;
-        // for (size_t ix=0; ix < m_overlap_entities.size(); ++ix) {
-        // 	std::cout << "[" << ix << "]:" << m_overlap->vecSourceFaceIx[ix] << " = " << m_sorted_overlap->vecSourceFaceIx[ix] << std::endl;
-        // }
-
-        delete m_overlap;
-        m_overlap = m_sorted_overlap;
-        m_overlap->ConstructEdgeMap();
-        m_overlap->CalculateFaceAreas();
-    }
-    rbids_src.clear();
-    rbids_tgt.clear();
+//         delete m_overlap;
+//         m_overlap = m_sorted_overlap;
+//         // m_overlap->ConstructEdgeMap();
+//         // m_overlap->CalculateFaceAreas();
+//     }
+    // rbids_src.clear();
+    // rbids_tgt.clear();
 
     return MB_SUCCESS;
 }
@@ -603,7 +725,7 @@ ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius,
             }
 
             m_intersecting_target_entities = moab::intersect ( m_source_entities, m_covering_source_entities );
-            std::cout << "Number of common entities = " << m_intersecting_target_entities.size() << "/ (" << m_source_entities.size() << ", " << m_covering_source_entities.size() << ")\n";
+            // std::cout << "Number of common entities = " << m_intersecting_target_entities.size() << "/ (" << m_source_entities.size() << ", " << m_covering_source_entities.size() << ")\n";
 
         }
         else

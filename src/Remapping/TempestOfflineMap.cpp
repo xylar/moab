@@ -277,35 +277,32 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
             }
         }
 
-        dbgprint.printf ( 0, "m_meshInput->faces = %lu, m_meshInputCov->faces = %lu, m_meshOutput->faces = %lu, ixSourceFaceMax = %d\n", m_meshInput->faces.size(), m_meshInputCov->faces.size(), m_meshOutput->faces.size(), ixSourceFaceMax );
+        if ( !pcomm->rank() ) dbgprint.printf ( 0, "[0] m_meshInput->faces = %lu, m_meshInputCov->faces = %lu, m_meshOutput->faces = %lu, ixSourceFaceMax = %d\n", m_meshInput->faces.size(), m_meshInputCov->faces.size(), m_meshOutput->faces.size(), ixSourceFaceMax );
+        if ( pcomm->rank() ) dbgprint.printf ( 0, "[1] m_meshInput->faces = %lu, m_meshInputCov->faces = %lu, m_meshOutput->faces = %lu, ixSourceFaceMax = %d\n", m_meshInput->faces.size(), m_meshInputCov->faces.size(), m_meshOutput->faces.size(), ixSourceFaceMax );
 
-        // Check for forward correspondence in overlap mesh
-        if ( // m_meshInputCov->faces.size() - ixSourceFaceMax == 0 //&&
-            ( m_meshOutput->faces.size() - ixTargetFaceMax == 0 )
-        )
-        {
-            if ( !pcomm->rank() ) dbgprint.printf ( 0, "Overlap mesh forward correspondence found\n" );
+        // // Check for forward correspondence in overlap mesh
+        // if ( // m_meshInputCov->faces.size() - ixSourceFaceMax == 0 //&&
+        //     ( m_meshOutput->faces.size() - ixTargetFaceMax == 0 )
+        // )
+        // {
+        //     if ( !pcomm->rank() ) dbgprint.printf ( 0, "Overlap mesh forward correspondence found\n" );
+        // }
+        // else if (
+        //     // m_meshOutput->faces.size() - ixSourceFaceMax == 0 //&&
+        //     ( m_meshInputCov->faces.size() - ixTargetFaceMax == 0 ) 
+        // )
+        // {   // Check for reverse correspondence in overlap mesh
+        //     if ( !pcomm->rank() ) dbgprint.printf ( 0, "Overlap mesh reverse correspondence found (reversing)\n" );
 
-            // Check for reverse correspondence in overlap mesh
-        }
-        else if (
-            // m_meshOutput->faces.size() - ixSourceFaceMax == 0 //&&
-            ( m_meshInputCov->faces.size() - ixTargetFaceMax == 0 )
-        )
-        {
-            if ( !pcomm->rank() ) dbgprint.printf ( 0, "Overlap mesh reverse correspondence found (reversing)\n" );
-
-            // Reorder overlap mesh
-            m_meshOverlap->ExchangeFirstAndSecondMesh();
-
-            // No correspondence found
-        }
-        else
-        {
-            _EXCEPTION4 ( "Invalid overlap mesh:\n"
-                          "    No correspondence found with input and output meshes (%i,%i) vs (%i,%i)",
-                          m_meshInputCov->faces.size(), m_meshOutput->faces.size(), ixSourceFaceMax, ixTargetFaceMax );
-        }
+        //     // Reorder overlap mesh
+        //     m_meshOverlap->ExchangeFirstAndSecondMesh();
+        // }
+        // else
+        // {   // No correspondence found
+        //     _EXCEPTION4 ( "Invalid overlap mesh:\n"
+        //                   "    No correspondence found with input and output meshes (%i,%i) vs (%i,%i)",
+        //                   m_meshInputCov->faces.size(), m_meshOutput->faces.size(), ixSourceFaceMax, ixTargetFaceMax );
+        // }
 
         // Calculate Face areas
         if ( !pcomm->rank() ) dbgprint.printf ( 0, "Calculating overlap mesh Face areas\n" );
@@ -829,6 +826,7 @@ bool moab::TempestOfflineMap::IsMonotone (
     return fMonotone;
 }
 
+#define VERBOSE
 ///////////////////////////////////////////////////////////////////////////////
 moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot()   // Collective
 {
