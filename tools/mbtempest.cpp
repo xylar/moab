@@ -342,6 +342,7 @@ int main(int argc, char* argv[])
 
     if (ctx.computeWeights) {
 
+      ctx.timer_push("in-memory transform overlap mesh (MOAB->Tempest)");
       {
         // Now let us re-convert the MOAB mesh back to Tempest representation
         // rval = remapper.ConvertMeshToTempest(moab::Remapper::IntersectedMesh);MB_CHK_ERR(rval);
@@ -350,11 +351,14 @@ int main(int argc, char* argv[])
 
         ctx.meshes[2] = remapper.GetMesh(moab::Remapper::IntersectedMesh);
       }
+      ctx.timer_pop();
 
+      ctx.timer_push("setup computation of weights");
       // Call to generate an offline map with the tempest meshes
       moab::TempestOfflineMap* weightMap = new moab::TempestOfflineMap(&remapper);
+      ctx.timer_pop();
 
-      ctx.timer_push("compute weights with the Tempest meshes");
+      ctx.timer_push("compute weights with TempestRemap");
       weightMap->GenerateOfflineMap(ctx.disc_methods[0], ctx.disc_methods[1],          // std::string strInputType, std::string strOutputType,
                                     ctx.disc_orders[0],  ctx.disc_orders[1],  // int nPin=4, int nPout=4,
                                     false, 0,            // bool fBubble=false, int fMonotoneTypeID=0,
