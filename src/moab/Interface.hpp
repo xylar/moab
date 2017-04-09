@@ -810,7 +810,7 @@ public:
           Range dir_sets;
           Tag dir_tag;
           tag_get_handle(DIRICHLET_SET_TAG_NAME, dir_tag, 1, MB_TYPE_INTEGER);
-          get_entities_by_type_and_tag(0, MeshEntitySet, &dir_tag, NULL, 1, dir_sets, 
+          get_entities_by_type_and_tag(0, MBENTITYSET, &dir_tag, NULL, 1, dir_sets,
           Interface::UNION);
           \endcode 
     */
