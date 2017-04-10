@@ -91,19 +91,24 @@ int main(int argc, char* argv[])
   rval = positive_orientation(mb, sf1, R);MB_CHK_ERR(rval);
   rval = positive_orientation(mb, sf2, R);MB_CHK_ERR(rval);
 
+#ifdef MOAB_HAVE_MPI
   ParallelComm* pcomm = ParallelComm::get_pcomm(mb, 0);
- 
+#endif
   Intx2MeshOnSphere  worker(mb);
 
   worker.SetErrorTolerance(R*epsrel);
   worker.set_box_error(boxeps);
+#ifdef MOAB_HAVE_MPI
   worker.set_parallel_comm(pcomm);
+#endif
   //worker.SetEntityType(moab::MBQUAD);
   worker.SetRadius(R);
   //worker.enable_debug();
 
   rval = worker.FindMaxEdges(sf1, sf2);MB_CHK_ERR(rval);
 
+  EntityHandle covering_set;
+#ifdef MOAB_HAVE_MPI
   if (size>1)
   {
     Range local_verts;
@@ -115,10 +120,8 @@ int main(int argc, char* argv[])
       rval = mb->write_file(outf.str().c_str(), 0, 0, &sf2, 1); MB_CHK_ERR(rval);
     }
   }
-  EntityHandle covering_set;
   if (size>1)
   {
-#ifdef MOAB_HAVE_MPI
     double elapsed = MPI_Wtime();
     rval = mb->create_meshset(moab::MESHSET_SET, covering_set);MB_CHK_SET_ERR(rval, "Can't create new set");
     rval = worker.construct_covering_set(sf1, covering_set); MB_CHK_ERR(rval);// lots of communication if mesh is distributed very differently
@@ -171,11 +174,9 @@ int main(int argc, char* argv[])
       cof<<"covering_mesh" << rank<<".h5m";
       rval = mb->write_file(cof.str().c_str(), 0, 0, &covering_set, 1); MB_CHK_ERR(rval);
     }
-
-
-#endif
   }
   else
+#endif
     covering_set = sf1;
 
   if (0==rank)
@@ -219,7 +220,5 @@ int main(int argc, char* argv[])
   MPI_Finalize();
 #endif
   return 0;
-
 }
-
 

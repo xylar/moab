@@ -563,7 +563,7 @@ void Intx2Mesh::correct_polygon(EntityHandle * nodes, int & nP)
   }
   return;
 }
-#if MOAB_HAVE_MPI
+#ifdef MOAB_HAVE_MPI
 ErrorCode Intx2Mesh::build_processor_euler_boxes(EntityHandle euler_set, Range & local_verts)
 {
   localEnts.clear();
