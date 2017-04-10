@@ -127,3 +127,6 @@ install-data-hook:
 if ENABLE_fbigeom
 	$(AM_V_at)echo "FBIGEOM_LIBS=-lFBiGeomMOAB" >> $(DESTDIR)$(cfgdir)/iRel-Defs.inc
 endif
+
+EXTRA_DIST = CMakeLists.txt
+

@@ -11,6 +11,7 @@ libMOAB_la_LIBADD =
 
 SUBDIRS += io .
 libMOAB_la_LIBADD += io/libmoabio.la 
+EXTRA_DIST = 
 
 # Some variables
 AM_CPPFLAGS += -DIS_BUILDING_MB \
@@ -295,6 +296,9 @@ moabparallelinclude_HEADERS = \
      parallel/moab/ParallelData.hpp
 
   AM_CPPFLAGS += -I$(srcdir)/parallel
+
+EXTRA_DIST += parallel/CMakeLists.txt
+
 endif
 
 if ENABLE_metis
@@ -320,4 +324,6 @@ endif
 if HAVE_CGM
   AM_CPPFLAGS += @CGM_CPPFLAGS@ 
 endif
+
+EXTRA_DIST += CMakeLists.txt
 

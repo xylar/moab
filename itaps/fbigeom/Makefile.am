@@ -79,3 +79,6 @@ install-data-hook:
 	$(AM_V_at)echo "FBIGEOM_INCLUDEDIR2=" >> $(DESTDIR)$(cfgdir)/FBiGeom-Defs.inc
 	$(AM_V_at)echo "FBIGEOM_LIBDIR=${libdir}" >> $(DESTDIR)$(cfgdir)/FBiGeom-Defs.inc
 	$(AM_V_at)echo "MOAB_LIBDIR=${libdir}" >> $(DESTDIR)$(cfgdir)/FBiGeom-Defs.inc
+
+EXTRA_DIST = CMakeLists.txt
+

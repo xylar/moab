@@ -58,4 +58,5 @@ endif
 # Run parallel tests with mpiexec
 LOG_COMPILER = `if echo "$(PARALLEL_TESTS)" | $(GREP) "$$p" > /dev/null; then echo "${MPIEXEC} ${MPIEXEC_NP} ${NP}"; else echo ""; fi`
 
+EXTRA_DIST = CMakeLists.txt
 MOSTLYCLEANFILES = dum.h5m

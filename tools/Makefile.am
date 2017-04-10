@@ -33,7 +33,8 @@ EXTRA_DIST = README.hexmodops \
              README.mbskin \
              README.mbsurfplot \
              README.mbtagprop \
-             README.spheredecomp
+             README.spheredecomp \
+             CMakeLists.txt
 
 if ENABLE_mbconvert
   bin_PROGRAMS += mbconvert
@@ -162,7 +163,6 @@ SUBDIRS = . \
           $(refiner_DIR) \
           $(mbcoupler_DIR) \
           $(mbcslam_DIR) \
-          $(mbzoltan_DIR) \
           $(mcnpmit_DIR) \
           $(vtkMOABReader_DIR) \
           $(dagmc_DIR) 
