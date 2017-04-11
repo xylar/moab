@@ -312,6 +312,11 @@ if (ENABLE_CGNS)
   set (MOAB_HAVE_CGNS ON)
 endif(ENABLE_CGNS)
 
+# Strip our custom flags
+string(STRIP ${CMAKE_EXE_LINKER_FLAGS} CMAKE_EXE_LINKER_FLAGS)
+string(STRIP ${MOAB_CXX_FLAGS} MOAB_CXX_FLAGS)
+string(STRIP ${MOAB_DEFINES} MOAB_DEFINES)
+
 ################################################################################
 # Add Directories
 ################################################################################
