@@ -2,7 +2,7 @@
 
 AUTOMAKE_OPTIONS = foreign
 
-MESHDIR = $(abs_top_srcdir)/MeshFiles/unittest/irel
+MESHDIR = $(abs_top_srcdir)/MeshFiles/unittest
 AM_CPPFLAGS = -DSRCDIR=$(srcdir)
 
 # Don't loose the autoconf include path

@@ -43,6 +43,7 @@ EXTRA_DIST = 125hex.g \
              surfrandomtris-4part.h5m \
              hexes_mixed.vtk \
              32hex_ef.h5m \
+             brick.stp \
              brick1.vtk \
              brick2.vtk \
              hex01.vtk \

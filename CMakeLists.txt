@@ -304,6 +304,8 @@ if ( ENABLE_CGM )
    find_package( CGM REQUIRED )
    set( MOAB_DEFINES "${CGM_DEFINES} -DCGM ${MOAB_DEFINES}" )
    set (MOAB_HAVE_CGM ON)
+   set (ENABLE_IREL ON)
+   set (ENABLE_FBIGEOM ON)
 endif (ENABLE_CGM)
 
 set (MOAB_HAVE_CGNS OFF CACHE INTERNAL "Found necessary CGNS components. Configure MOAB with it." )
