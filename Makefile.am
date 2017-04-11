@@ -49,7 +49,7 @@ examples_DATA = examples/CrystalRouterExample.cpp \
                 examples/UniformRefinement.cpp \
                 examples/VisTags.cpp \
                 examples/ExtrudePoly.cpp \
-                examples/makefile.in \
+                examples/makefile.config.in \
                 examples/makefile
 
 CMAKE_CONFIGURATION_FILES = CMakeLists.txt \

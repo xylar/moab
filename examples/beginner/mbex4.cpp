@@ -34,10 +34,6 @@
 #include <iostream>
 #include <cmath>
 
-// "mberr.hpp" contains the MBERR macro and is local to this tutorial
-#include "mberr.hpp"
-
-
 // ****************
 // *              *
 // *     main     *
@@ -45,8 +41,8 @@
 // ****************
 int main()
 {
-  moab::Core mbcore;
-  moab::Interface& mbint = mbcore;
+  moab::ErrorCode rval;
+  moab::Core mbint;
 
   // ***********************
   // *   Create the Mesh   *
@@ -65,8 +61,7 @@ int main()
   moab::ScdInterface *scdint;
 
   // Tell MOAB that our mesh is structured:
-  moab::ErrorCode rval = mbint.query_interface(scdint);
-  MBERR("mbint.query_interface", rval);
+  rval = mbint.query_interface(scdint);MB_CHK_SET_ERR(rval, "mbint.query_interface failed");
 
   // Create the mesh:
   moab::ScdBox *scdbox = NULL;
@@ -74,8 +69,7 @@ int main()
 			       moab::HomCoord(NI,NJ,0),
 			       NULL, 
 			       0, 
-			       scdbox);
-  MBERR("scdint->construct_box", rval);
+			       scdbox);MB_CHK_SET_ERR(rval, "scdint->construct_box failed");
 
   // MOAB knows to make quads instead of hexes because the last start
   // and end indexes are the same (0). Note that it is still a "3D"
@@ -126,15 +120,13 @@ int main()
   double temp_default_value = 0.0;
   rval = mbint.tag_get_handle("temperature", 1, moab::MB_TYPE_DOUBLE, temp_tag, 
                               moab::MB_TAG_DENSE | moab::MB_TAG_CREAT, 
-			      &temp_default_value);
-  MBERR("mbint.tag_get_handle(temperature)",rval);
+			      &temp_default_value);MB_CHK_SET_ERR(rval, "mbint.tag_get_handle(temperature) failed");
 
   moab::Tag vel_tag;
   double vel_default_value[2] = {0.0,0.0};
   rval = mbint.tag_get_handle("velocity", 2, moab::MB_TYPE_DOUBLE, vel_tag, 
                               moab::MB_TAG_DENSE | moab::MB_TAG_CREAT, 
-			      vel_default_value);
-  MBERR("mbint.tag_get_handle(velocity)",rval);
+			      vel_default_value);MB_CHK_SET_ERR(rval, "mbint.tag_get_handle(velocity) failed");
 
   // Note that when we created each tag, we specified two flags:
   //
@@ -172,8 +164,7 @@ int main()
       rval = mbint.tag_set_data(temp_tag, 
 				&handle,
 				1,
-				&temperature);
-      MBERR("mbint.tag_set_data(temp_tag)", rval);
+				&temperature);MB_CHK_SET_ERR(rval, "mbint.tag_set_data(temp_tag) failed");
     }
 
 
@@ -188,8 +179,7 @@ int main()
       rval = mbint.tag_set_data(vel_tag, 
 				&handle,
 				1,
-				velocity);
-      MBERR("mbint.tag_set_data(vel_tag)", rval);
+				velocity);MB_CHK_SET_ERR(rval, "mbint.tag_set_data(vel_tag) failed");
     }
 
   // ***************************
@@ -201,9 +191,7 @@ int main()
   // plot it. But you should be able to plot the temperature on top of
   // the mesh.
 
-  rval = mbint.write_file("moabuse4.vtk");
-  MBERR("write_file(moabuse4.vtk)", rval);
-
+  rval = mbint.write_file("moabuse4.vtk");MB_CHK_SET_ERR(rval, "write_file(moabuse4.vtk) failed");
 
   return 0;
 }

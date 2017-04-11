@@ -98,7 +98,6 @@ lib/*
 libtool
 *.lo
 *.log
-makefile
 Makefile
 */Makefile
 */**/Makefile
