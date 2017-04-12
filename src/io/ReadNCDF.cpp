@@ -1562,6 +1562,10 @@ ErrorCode ReadNCDF::create_sideset_element(const std::vector<EntityHandle>& conn
   // Get adjacent entities
   ErrorCode error = MB_SUCCESS;
   int to_dim = CN::Dimension(type);
+  // for matching purposes , consider only corner nodes
+  // basically, assume everything is matching if the corner nodes are matching, and
+  // the number of total nodes is the same
+  int nb_corner_nodes = CN::VerticesPerEntity(type);
   std::vector<EntityHandle> adj_ent;
   mdbImpl->get_adjacencies(&(connectivity[0]), 1, to_dim, false, adj_ent);
 
@@ -1583,16 +1587,18 @@ ErrorCode ReadNCDF::create_sideset_element(const std::vector<EntityHandle>& conn
 
     // Find a matching node
     std::vector<EntityHandle>::iterator iter;
-    iter = std::find(match_conn.begin(), match_conn.end(), connectivity[0]);
-    if (iter == match_conn.end())
+    std::vector<EntityHandle>::iterator end_corner=match_conn.begin()+nb_corner_nodes;
+    iter = std::find(match_conn.begin(), end_corner, connectivity[0]);
+    if (iter == end_corner)
       continue;
 
     // Rotate to match connectivity
-    std::rotate(match_conn.begin(), iter, match_conn.end());
+    // rotate only corner nodes, ignore the rest from now on
+    std::rotate(match_conn.begin(), iter, end_corner);
 
     bool they_match = true;
-    unsigned int j;
-    for (j = 1; j < connectivity.size(); j++) {
+    int j;
+    for (j = 1; j < nb_corner_nodes; j++) {
       if (connectivity[j] != match_conn[j]) {
         they_match = false;
         break;
@@ -1604,8 +1610,8 @@ ErrorCode ReadNCDF::create_sideset_element(const std::vector<EntityHandle>& conn
       // Try the opposite sense
       they_match = true;
 
-      unsigned int k = connectivity.size() - 1;
-      for (j = 1; j < connectivity.size(); ) {
+      int k = nb_corner_nodes - 1;
+      for (j = 1; j < nb_corner_nodes; ) {
         if (connectivity[j] != match_conn[k]) {
           they_match = false;
           break;
