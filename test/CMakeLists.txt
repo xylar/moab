@@ -157,7 +157,7 @@ if (ENABLE_IREL AND MOAB_HAVE_CGM)
   set( TESTS test_entset.cpp
              test_both.cpp
              test_status.cpp )
-  set(irel_deplibs iRelMOAB)
+  set(irel_deplibs iRel)
   if(MOAB_HAVE_FBIGEOM)
     set(TESTS ${TESTS} test_entsetFB.cpp )
     set(irel_deplibs ${irel_deplibs} FBiGeomMOAB)
