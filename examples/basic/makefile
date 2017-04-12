@@ -93,18 +93,12 @@ UniformRefinement: UniformRefinement.o ${MOAB_LIBDIR}/libMOAB.la
 	@echo "[CXXLD]  $@"
 	${VERBOSE}${MOAB_CXX} -o $@ $< ${MOAB_LIBS_LINK}
 
-run-UniformRefinement: UniformRefinement GenLargeMesh
+run-UniformRefinement: UniformRefinement
 ifeq ("$(MOAB_MPI_ENABLED)-$(MOAB_HDF5_ENABLED)","yes-yes")
-ifeq ("$(wildcard GenLargeMesh.h5m)","")
-	${RUNPARALLEL} ./GenLargeMesh -M @NP@ -N 1 -K 1 -A 1 -B 2 -C 2 -b 5
-endif
-	${RUNSERIAL}   ./UniformRefinement GenLargeMesh.h5m
-	${RUNPARALLEL} ./UniformRefinement GenLargeMesh.h5m
+	${RUNSERIAL}   ./UniformRefinement ${MESH_DIR}/64bricks_12ktet.h5m 3 2
+	${RUNPARALLEL} ./UniformRefinement ${MESH_DIR}/64bricks_512hex_256part.h5m 3
 else
-ifeq ("$(wildcard GenLargeMesh.vtk)","")
-	${RUNSERIAL} ./GenLargeMesh -A 1 -B 2 -C 2 -b 5
-endif
-	${RUNSERIAL} ./UniformRefinement GenLargeMesh.vtk
+	${RUNSERIAL} ./UniformRefinement ${MESH_DIR}/hex_2048.vtk 2
 endif
 
 run: all $(addprefix run-,$(ALLEXAMPLES))

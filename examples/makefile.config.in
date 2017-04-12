@@ -48,5 +48,5 @@ endif
 	@echo "Using development version of MOAB = ${MOAB_DEV}"
 
 clobber:
-	rm -rf *.o *.mod *.h5m *.vtk
+	@rm -rf *.o *.mod *.h5m *.vtk
 

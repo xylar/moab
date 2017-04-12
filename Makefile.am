@@ -25,32 +25,45 @@ build-check:
 
 doc_DATA = ANNOUNCE KNOWN_ISSUES LICENSE README.md RELEASE_NOTES
 
-examples_DATA = examples/CrystalRouterExample.cpp \
-                examples/DirectAccessNoHoles.cpp \
-                examples/DirectAccessNoHolesF90.F90 \
-                examples/DirectAccessWithHoles.cpp \
-                examples/ErrorHandlingSimulation.cpp \
-                examples/GenLargeMesh.cpp \
-                examples/GetEntities.cpp \
-                examples/HelloMOAB.cpp \
-                examples/HelloParMOAB.cpp \
-                examples/LloydRelaxation.cpp \
-                examples/LoadPartial.cpp \
-                examples/PointInElementSearch.cpp \
-                examples/PushParMeshIntoMoabF90.F90 \
-                examples/ReadWriteTest.cpp \
-                examples/ReduceExchangeTags.cpp \
-                examples/StructuredMesh.cpp \
-                examples/StructuredMeshSimple.cpp \
-                examples/SetsNTags.cpp \
-                examples/TestErrorHandling.cpp \
-                examples/TestErrorHandlingPar.cpp \
-                examples/TestExodusII.cpp \
-                examples/UniformRefinement.cpp \
-                examples/VisTags.cpp \
-                examples/ExtrudePoly.cpp \
+examples_DATA = examples/makefile \
                 examples/makefile.config.in \
-                examples/makefile
+                examples/beginner/makefile \
+				examples/beginner/mbex1.cpp \
+				examples/beginner/mbex2.cpp \
+				examples/beginner/mbex3.cpp \
+				examples/beginner/mbex4.cpp \
+				examples/beginner/README \
+				examples/basic/ErrorHandlingSimulation.cpp \
+				examples/basic/GetEntities.cpp \
+				examples/basic/HelloMOAB.cpp \
+				examples/basic/HelloParMOAB.cpp \
+				examples/basic/makefile \
+				examples/basic/ReadWriteTest.cpp \
+				examples/basic/SetsNTags.cpp \
+				examples/basic/StructuredMeshSimple.cpp \
+				examples/basic/TestErrorHandling.cpp \
+				examples/basic/TestErrorHandlingPar.cpp \
+				examples/basic/TestExodusII.cpp \
+				examples/basic/UniformRefinement.cpp \
+				examples/intermediate/DirectAccessNoHoles.cpp \
+				examples/intermediate/DirectAccessWithHoles.cpp \
+				examples/intermediate/LoadPartial.cpp \
+				examples/intermediate/makefile \
+				examples/intermediate/PointInElementSearch.cpp \
+				examples/intermediate/ReduceExchangeTags.cpp \
+				examples/advanced/CrystalRouterExample.cpp \
+				examples/advanced/ExtrudePoly.cpp \
+				examples/advanced/GenLargeMesh.cpp \
+				examples/advanced/LloydRelaxation.cpp \
+				examples/advanced/makefile \
+				examples/advanced/VisTags.cpp \
+				examples/fortran/DirectAccessNoHolesF90.F90 \
+				examples/fortran/makefile \
+				examples/fortran/PushParMeshIntoMoabF90.F90 \
+				examples/cmake/FindMOAB.cmake \
+				examples/cmake/FindPackageMultiPass.cmake \
+				examples/cmake/HelloMOAB.cpp \
+				examples/cmake/ResolveCompilerPaths.cmake
 
 CMAKE_CONFIGURATION_FILES = CMakeLists.txt \
 														config/AutoconfHeader.cmake      config/FindCGM.cmake        config/FindMetis.cmake     config/FindZoltan.cmake    config/ForceAddFlags.cmake \

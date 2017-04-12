@@ -1235,7 +1235,6 @@ AC_CONFIG_FILES([Makefile
                  moab.make                  
                  MOABConfig.cmake:config/MOABConfig.cmake.in
                  examples/makefile.config
-                 examples/old/deform_mesh/makefile
                  src/Makefile
                  src/io/Makefile
                  src/io/mhdf/Makefile
