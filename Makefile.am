@@ -25,42 +25,53 @@ build-check:
 
 doc_DATA = ANNOUNCE KNOWN_ISSUES LICENSE README.md RELEASE_NOTES
 
-examples_DATA = examples/makefile \
-                examples/makefile.config.in \
-                examples/CMakeLists.txt \
-                examples/beginner/makefile \
-                examples/beginner/mbex1.cpp \
-                examples/beginner/mbex2.cpp \
-                examples/beginner/mbex3.cpp \
-                examples/beginner/mbex4.cpp \
-                examples/beginner/README \
-                examples/basic/ErrorHandlingSimulation.cpp \
-                examples/basic/GetEntities.cpp \
-                examples/basic/HelloMOAB.cpp \
-                examples/basic/HelloParMOAB.cpp \
-                examples/basic/makefile \
-                examples/basic/ReadWriteTest.cpp \
-                examples/basic/SetsNTags.cpp \
-                examples/basic/StructuredMeshSimple.cpp \
-                examples/basic/TestErrorHandling.cpp \
-                examples/basic/TestErrorHandlingPar.cpp \
-                examples/basic/TestExodusII.cpp \
-                examples/basic/UniformRefinement.cpp \
-                examples/intermediate/DirectAccessNoHoles.cpp \
-                examples/intermediate/DirectAccessWithHoles.cpp \
-                examples/intermediate/LoadPartial.cpp \
-                examples/intermediate/makefile \
-                examples/intermediate/PointInElementSearch.cpp \
-                examples/intermediate/ReduceExchangeTags.cpp \
-                examples/advanced/CrystalRouterExample.cpp \
-                examples/advanced/ExtrudePoly.cpp \
-                examples/advanced/GenLargeMesh.cpp \
-                examples/advanced/LloydRelaxation.cpp \
-                examples/advanced/makefile \
-                examples/advanced/VisTags.cpp \
-                examples/fortran/DirectAccessNoHolesF90.F90 \
-                examples/fortran/makefile \
-                examples/fortran/PushParMeshIntoMoabF90.F90
+examples_DATA = \
+               examples/makefile \
+               examples/makefile.config.in \
+               examples/CMakeLists.txt
+examples_beginnerdir = $(datadir)/examples/beginner
+examples_beginner_DATA = \
+               examples/beginner/README \
+               examples/beginner/makefile \
+               examples/beginner/mbex1.cpp \
+               examples/beginner/mbex2.cpp \
+               examples/beginner/mbex3.cpp \
+               examples/beginner/mbex4.cpp
+examples_basicdir = $(datadir)/examples/basic
+examples_basic_DATA = \
+               examples/basic/makefile \
+               examples/basic/ErrorHandlingSimulation.cpp \
+               examples/basic/GetEntities.cpp \
+               examples/basic/HelloMOAB.cpp \
+               examples/basic/HelloParMOAB.cpp \
+               examples/basic/ReadWriteTest.cpp \
+               examples/basic/SetsNTags.cpp \
+               examples/basic/StructuredMeshSimple.cpp \
+               examples/basic/TestErrorHandling.cpp \
+               examples/basic/TestErrorHandlingPar.cpp \
+               examples/basic/TestExodusII.cpp \
+               examples/basic/UniformRefinement.cpp
+examples_intermediatedir = $(datadir)/examples/intermediate
+examples_intermediate_DATA = \
+               examples/intermediate/makefile \
+               examples/intermediate/DirectAccessNoHoles.cpp \
+               examples/intermediate/DirectAccessWithHoles.cpp \
+               examples/intermediate/LoadPartial.cpp \
+               examples/intermediate/PointInElementSearch.cpp \
+               examples/intermediate/ReduceExchangeTags.cpp
+examples_advanceddir = $(datadir)/examples/advanced
+examples_advanced_DATA = \
+               examples/advanced/makefile \
+               examples/advanced/CrystalRouterExample.cpp \
+               examples/advanced/ExtrudePoly.cpp \
+               examples/advanced/GenLargeMesh.cpp \
+               examples/advanced/LloydRelaxation.cpp \
+               examples/advanced/VisTags.cpp
+examples_fortrandir = $(datadir)/examples/fortran
+examples_fortran_DATA = \
+               examples/fortran/makefile \
+               examples/fortran/DirectAccessNoHolesF90.F90 \
+               examples/fortran/PushParMeshIntoMoabF90.F90
 
 CMAKE_CONFIGURATION_FILES = CMakeLists.txt \
 														config/AutoconfHeader.cmake      config/FindCGM.cmake        config/FindMetis.cmake     config/FindZoltan.cmake    config/ForceAddFlags.cmake \
@@ -69,7 +80,11 @@ CMAKE_CONFIGURATION_FILES = CMakeLists.txt \
 														config/Findverdict.cmake   config/MOABConfig.cmake.cmake    config/CMakeReplicateConfig.sh    config/cmake_uninstall.cmake.in \
 														config/TemplateSpecialization.cxx   config/MOABConfig.cmake.h.in
 
-EXTRA_DIST = $(doc_DATA) $(examples_DATA) $(CMAKE_CONFIGURATION_FILES) debian
+EXTRA_DIST = $(doc_DATA) \
+						 debian \
+						 $(CMAKE_CONFIGURATION_FILES) \
+						 $(examples_DATA) \
+						 $(examples_beginner_DATA) $(examples_basic_DATA) $(examples_intermediate_DATA) $(examples_advanced_DATA) $(examples_fortran_DATA)
 
 # Automake doesn't seem to have a directory defined for
 # platform-dependent data (or include) files. So put 
@@ -88,6 +103,10 @@ cmake_DATA = MOABConfig.cmake
 install-data-hook:
 	$(AM_V_at)echo "MOAB_LIBDIR=${libdir}" >> $(DESTDIR)$(cfgdir)/moab.make
 	$(AM_V_at)echo "MOAB_INCLUDES=-I${includedir}" >> $(DESTDIR)$(cfgdir)/moab.make
+	$(AM_V_at)cp $(top_builddir)/examples/makefile.config $(DESTDIR)$(datadir)/examples/makefile.config
+
+uninstall-hook:
+	$(AM_V_at)rm $(DESTDIR)$(datadir)/examples/makefile.config
 
 # Generate a file to be installed in $libdir containing the configuration
 # options used for this MOAB build.
