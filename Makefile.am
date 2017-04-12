@@ -27,43 +27,40 @@ doc_DATA = ANNOUNCE KNOWN_ISSUES LICENSE README.md RELEASE_NOTES
 
 examples_DATA = examples/makefile \
                 examples/makefile.config.in \
+                examples/CMakeLists.txt \
                 examples/beginner/makefile \
-				examples/beginner/mbex1.cpp \
-				examples/beginner/mbex2.cpp \
-				examples/beginner/mbex3.cpp \
-				examples/beginner/mbex4.cpp \
-				examples/beginner/README \
-				examples/basic/ErrorHandlingSimulation.cpp \
-				examples/basic/GetEntities.cpp \
-				examples/basic/HelloMOAB.cpp \
-				examples/basic/HelloParMOAB.cpp \
-				examples/basic/makefile \
-				examples/basic/ReadWriteTest.cpp \
-				examples/basic/SetsNTags.cpp \
-				examples/basic/StructuredMeshSimple.cpp \
-				examples/basic/TestErrorHandling.cpp \
-				examples/basic/TestErrorHandlingPar.cpp \
-				examples/basic/TestExodusII.cpp \
-				examples/basic/UniformRefinement.cpp \
-				examples/intermediate/DirectAccessNoHoles.cpp \
-				examples/intermediate/DirectAccessWithHoles.cpp \
-				examples/intermediate/LoadPartial.cpp \
-				examples/intermediate/makefile \
-				examples/intermediate/PointInElementSearch.cpp \
-				examples/intermediate/ReduceExchangeTags.cpp \
-				examples/advanced/CrystalRouterExample.cpp \
-				examples/advanced/ExtrudePoly.cpp \
-				examples/advanced/GenLargeMesh.cpp \
-				examples/advanced/LloydRelaxation.cpp \
-				examples/advanced/makefile \
-				examples/advanced/VisTags.cpp \
-				examples/fortran/DirectAccessNoHolesF90.F90 \
-				examples/fortran/makefile \
-				examples/fortran/PushParMeshIntoMoabF90.F90 \
-				examples/cmake/FindMOAB.cmake \
-				examples/cmake/FindPackageMultiPass.cmake \
-				examples/cmake/HelloMOAB.cpp \
-				examples/cmake/ResolveCompilerPaths.cmake
+                examples/beginner/mbex1.cpp \
+                examples/beginner/mbex2.cpp \
+                examples/beginner/mbex3.cpp \
+                examples/beginner/mbex4.cpp \
+                examples/beginner/README \
+                examples/basic/ErrorHandlingSimulation.cpp \
+                examples/basic/GetEntities.cpp \
+                examples/basic/HelloMOAB.cpp \
+                examples/basic/HelloParMOAB.cpp \
+                examples/basic/makefile \
+                examples/basic/ReadWriteTest.cpp \
+                examples/basic/SetsNTags.cpp \
+                examples/basic/StructuredMeshSimple.cpp \
+                examples/basic/TestErrorHandling.cpp \
+                examples/basic/TestErrorHandlingPar.cpp \
+                examples/basic/TestExodusII.cpp \
+                examples/basic/UniformRefinement.cpp \
+                examples/intermediate/DirectAccessNoHoles.cpp \
+                examples/intermediate/DirectAccessWithHoles.cpp \
+                examples/intermediate/LoadPartial.cpp \
+                examples/intermediate/makefile \
+                examples/intermediate/PointInElementSearch.cpp \
+                examples/intermediate/ReduceExchangeTags.cpp \
+                examples/advanced/CrystalRouterExample.cpp \
+                examples/advanced/ExtrudePoly.cpp \
+                examples/advanced/GenLargeMesh.cpp \
+                examples/advanced/LloydRelaxation.cpp \
+                examples/advanced/makefile \
+                examples/advanced/VisTags.cpp \
+                examples/fortran/DirectAccessNoHolesF90.F90 \
+                examples/fortran/makefile \
+                examples/fortran/PushParMeshIntoMoabF90.F90
 
 CMAKE_CONFIGURATION_FILES = CMakeLists.txt \
 														config/AutoconfHeader.cmake      config/FindCGM.cmake        config/FindMetis.cmake     config/FindZoltan.cmake    config/ForceAddFlags.cmake \
