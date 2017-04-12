@@ -70,7 +70,7 @@ int main(int argc, char **argv)
 #ifdef MOAB_HAVE_HDF5
   // This file is in the mesh files directory
   rval = mb->load_file(filename.c_str(),
-          0, 0, PARALLEL_PARTITION_TAG_NAME, tagvals, (int)tagvals.size());MB_CHK_SET_ERR(rval, "Failed to read");
+          0, 0, PARALLEL_PARTITION_TAG_NAME, tagvals.data(), (int)tagvals.size());MB_CHK_SET_ERR(rval, "Failed to read");
 
   // If HANDLEID tag present, convert to long, and see what we read from file
   Tag handleid_tag;

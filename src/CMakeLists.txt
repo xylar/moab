@@ -200,6 +200,7 @@ set( MOAB_INSTALL_HEADERS
         moab/SetIterator.hpp
         moab/Skinner.hpp
         moab/SpatialLocator.hpp
+        moab/SpatialLocatorTimes.hpp
         moab/SpectralMeshTool.hpp
         moab/Tree.hpp
         moab/TreeStats.hpp
