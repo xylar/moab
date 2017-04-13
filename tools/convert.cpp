@@ -25,6 +25,7 @@
 #include "MBTagConventions.hpp"
 #include "moab/ReaderWriterSet.hpp"
 #include <iostream>
+#include <fstream>
 #include <sstream>
 #include <iomanip>
 #include <set>
@@ -69,6 +70,7 @@ static void print_usage( const char* name, std::ostream& stream )
     << "\t-P             - Append processor ID to output file name" << std::endl
     << "\t-p             - Replace '%' with processor ID in input and output file name" << std::endl
     << "\t-M[0|1|2]      - Read/write in parallel, optionally also doing resolve_shared_ents (1) and exchange_ghosts (2)" << std::endl
+    << "\t-z <file>      - Read metis partition information corresponding to an MPAS grid file and create h5m partition file"
 #endif
     << "\t--             - treat all subsequent options as file names" << std::endl
     << "\t                 (allows file names beginning with '-')" << std::endl
@@ -82,7 +84,7 @@ static void print_usage( const char* name, std::ostream& stream )
     << "\t-c  - Curve" << std::endl
     << "\t-V  - Vertex" << std::endl
     << "\t-m  - Material set (block)" << std::endl
-    << "\t-d  - Dirchlet set (nodeset)" << std::endl
+    << "\t-d  - Dirichlet set (nodeset)" << std::endl
     << "\t-n  - Neumann set (sideset)" << std::endl
     << "\t-D  - Parallel partitioning set (PARALLEL_PARTITION)" << std::endl
     << "\tThe presence of one or more of the following flags limits " << std::endl
@@ -100,7 +102,7 @@ static void print_help( const char* name )
   " This program can be used to convert between mesh file\n"
   " formats, extract a subset of a mesh file to a separate\n"
   " file, or both.  The type of file to write is determined\n"
-  " from the file extension (e.g. \".vtk\") protion of the\n"
+  " from the file extension (e.g. \".vtk\") portion of the\n"
   " output file name.\n"
   " \n"
   " While MOAB strives to export and import all data from\n"
@@ -134,6 +136,8 @@ static void remove_from_vector( std::vector<EntityHandle>& vect, const Range& en
 static bool make_opts_string( std::vector<std::string> options, std::string& result );
 static std::string percent_subst( const std::string& s, int val );
 
+static int process_partition_file(Interface * gMB, std::string & metis_partition_file);
+
 int main(int argc, char* argv[])
 {
   int proc_id = 0;
@@ -159,6 +163,8 @@ int main(int argc, char* argv[])
   std::set<int> geom[4], mesh[4];       // user-specified IDs
   std::vector<EntityHandle> set_list; // list of user-specified sets to write
   std::vector<std::string> write_opts, read_opts;
+  std::string metis_partition_file;
+
   const char* const mesh_tag_names[] = { DIRICHLET_SET_TAG_NAME,
                                          NEUMANN_SET_TAG_NAME,
                                          MATERIAL_SET_TAG_NAME,
@@ -238,6 +244,10 @@ int main(int argc, char* argv[])
             case 'm': pval = parse_id_list( argv[i], mesh[2] ); break;
             case 'n': pval = parse_id_list( argv[i], mesh[1] ); break;
             case 'd': pval = parse_id_list( argv[i], mesh[0] ); break;
+            case 'z':
+              metis_partition_file = argv[i];
+              pval = true;
+              break;
             default: std::cerr << "Invalid option: " << argv[i] << std::endl;
           }
           
@@ -292,6 +302,17 @@ int main(int argc, char* argv[])
     return USAGE_ERROR;
   }
   
+  if (!metis_partition_file.empty())
+  {
+    if ( (in.size()!=1) || (proc_id!=0) )
+    {
+      std::cerr<<" mpas partition allows only one input file, in serial conversion\n";
+#ifdef MOAB_HAVE_MPI
+      MPI_Finalize();
+#endif
+      return USAGE_ERROR;
+    }
+  }
     // Read the input file.
   for (j = in.begin(); j != in.end(); ++j) {
     reset_times();
@@ -489,6 +510,19 @@ int main(int argc, char* argv[])
     return ENT_NOT_FOUND;
   }
   
+  // interpret the mpas partition file created by gpmetis
+  if (!metis_partition_file.empty())
+  {
+    int err = process_partition_file(gMB, metis_partition_file);
+    if (err)
+    {
+      std::cerr << "Failed to process partition file \"" << metis_partition_file << "\"." << std::endl;
+#ifdef MOAB_HAVE_MPI
+      MPI_Finalize();
+#endif
+      return WRITE_ERROR;
+    }
+  }
   if (verbose)
   {
     if (have_sets)
@@ -815,3 +849,93 @@ std::string percent_subst( const std::string& s, int val )
   return st.str();
 }
 
+int process_partition_file(Interface * mb, std::string & metis_partition_file)
+{
+  // how many faces in the file ? how do we make sure it is an mpas file?
+  // mpas atmosphere files can be downloaded from here
+  // https://mpas-dev.github.io/atmosphere/atmosphere_meshes.html
+  Range faces;
+  ErrorCode rval = mb->get_entities_by_dimension(0, 2, faces); MB_CHK_ERR(rval);
+  std::cout << " MPAS model has " << faces.size() << " polygons\n";
+
+  // read the partition file
+  std::ifstream partfile;
+  partfile.open(metis_partition_file.c_str());
+  std::string line;
+  std::vector<int> parts;
+  parts.resize(faces.size(), -1);
+  int i=0;
+  if (partfile.is_open())
+  {
+    while ( getline (partfile,line) )
+    {
+      //cout << line << '\n';
+      parts[i++] = atoi(line.c_str());
+      if (i>(int)faces.size())
+      {
+         std::cerr<< " too many lines in partition file \n. bail out \n";
+         return 1;
+      }
+    }
+    partfile.close();
+  }
+  std::vector<int>::iterator pmax = max_element(parts.begin(), parts.end());
+  std::vector<int>::iterator pmin = min_element(parts.begin(), parts.end());
+  if (*pmin <=-1)
+  {
+    std::cerr<<" partition file is incomplete, *pmin is -1 !! \n";
+    return 1;
+  }
+  std::cout << " partitions range: " << *pmin << " " << *pmax << "\n";
+  Tag part_set_tag;
+  int dum_id = -1;
+  rval = mb->tag_get_handle("PARALLEL_PARTITION", 1, MB_TYPE_INTEGER,
+                                  part_set_tag, MB_TAG_SPARSE|MB_TAG_CREAT, &dum_id);  MB_CHK_ERR(rval);
+
+    // get any sets already with this tag, and clear them
+  // remove the parallel partition sets if they exist
+  Range tagged_sets;
+  rval = mb->get_entities_by_type_and_tag(0, MBENTITYSET, &part_set_tag, NULL, 1,
+                                                tagged_sets, Interface::UNION);  MB_CHK_ERR(rval);
+  if (!tagged_sets.empty()) {
+    rval = mb->clear_meshset(tagged_sets); MB_CHK_ERR(rval);
+    rval = mb->tag_delete_data(part_set_tag, tagged_sets); MB_CHK_ERR(rval);
+  }
+  Tag gid;
+  rval = mb->tag_get_handle("GLOBAL_ID", gid); MB_CHK_ERR(rval);
+  int num_sets =  *pmax + 1;
+  if (*pmin!=0)
+  {
+     std::cout << " problem reading parts; min is not 0 \n";
+     return 1;
+  }
+  for (i = 0; i < num_sets; i++) {
+    EntityHandle new_set;
+    rval = mb->create_meshset(MESHSET_SET, new_set); MB_CHK_ERR(rval);
+    tagged_sets.insert(new_set);
+  }
+  int *dum_ids = new int[num_sets];
+    for (i = 0; i < num_sets; i++) dum_ids[i] = i;
+
+  rval = mb->tag_set_data(part_set_tag, tagged_sets, dum_ids); MB_CHK_ERR(rval);
+  delete [] dum_ids;
+
+  std::vector<int> gids;
+  int num_faces = (int)faces.size();
+  gids.resize(num_faces);
+  rval = mb->tag_get_data(gid, faces, &gids[0]); MB_CHK_ERR(rval);
+
+  for (int j=0; j<num_faces; j++)
+  {
+    int eid = gids[j];
+    EntityHandle eh = faces[j];
+    int partition = parts[eid-1];
+    if (partition <0 || partition >= num_sets)
+    {
+       std::cout << " wrong partition number \n";
+       return 1;
+    }
+    rval = mb->add_entities(tagged_sets[partition], &eh, 1); MB_CHK_ERR(rval);
+  }
+  return 0;
+}
