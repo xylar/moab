@@ -163,7 +163,7 @@ ErrorCode WriteGmsh::write_file(const char *file_name,
     int id = *id_iter;
     ++id_iter;
     if (!elem_global_ids.insert(id).second)
-      id = max_id++;
+      id = ++max_id;
 
     ElemInfo& ei = elem_sets[*i];
     ei.count = 0;
