@@ -14,9 +14,12 @@ set ( MOAB_IREL_LIB_INCLUDES
           iRel_protos.h
     )
 
+set (MOAB_DEFINES "")
+
 set(IREL_LINK_LIBS )
 if (ENABLE_CGM)
   include_directories( ${CGM_INCLUDES} )
+  set (MOAB_DEFINES "-DENABLE_IGEOM ${MOAB_DEFINES}")
   set(IREL_LINK_LIBS ${IGEOM_LIBS} ${CGM_LIBRARIES})
 
   set(MOAB_IREL_SRCS ${MOAB_IREL_SRCS}
@@ -28,6 +31,7 @@ endif()
 set(IREL_LINK_LIBS MOAB ${IREL_LINK_LIBS})
 if (ENABLE_FBIGEOM)
   include_directories( ${CMAKE_SOURCE_DIR}/itaps/fbigeom ${CMAKE_BINARY_DIR}/itaps/fbigeom )
+  set (MOAB_DEFINES "-DENABLE_FBIGEOM ${MOAB_DEFINES}")
   set(IREL_LINK_LIBS FBiGeomMOAB ${IREL_LINK_LIBS})
   set(MOAB_IREL_SRCS ${MOAB_IREL_SRCS}
                      FBGeomAssocPairSide.cpp
@@ -37,6 +41,7 @@ endif()
 
 if (ENABLE_IMESH)
   include_directories( ${CMAKE_SOURCE_DIR}/itaps/imesh ${CMAKE_BINARY_DIR}/itaps/imesh )
+  set (MOAB_DEFINES "-DENABLE_IMESH ${MOAB_DEFINES}")
   set(IREL_LINK_LIBS iMesh ${IREL_LINK_LIBS})
   set(MOAB_IREL_SRCS ${MOAB_IREL_SRCS}
                      MeshAssocPairSide.cpp
