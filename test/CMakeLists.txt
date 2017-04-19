@@ -153,12 +153,13 @@ if(ENABLE_IMESH)
 endif()
 
 if (ENABLE_IREL AND MOAB_HAVE_CGM)
-  include_directories( ${CGM_INCLUDES} ${CMAKE_SOURCE_DIR}/itaps/irel ${CMAKE_BINARY_DIR}/itaps/irel/${fname} )
+  include_directories( ${CGM_INCLUDES} ${CMAKE_SOURCE_DIR}/itaps/irel ${CMAKE_BINARY_DIR}/itaps/irel )
   set( TESTS test_entset.cpp
              test_both.cpp
              test_status.cpp )
   set(irel_deplibs iRel)
   if(MOAB_HAVE_FBIGEOM)
+    include_directories( ${CMAKE_SOURCE_DIR}/itaps/fbigeom ${CMAKE_BINARY_DIR}/itaps/fbigeom )
     set(TESTS ${TESTS} test_entsetFB.cpp )
     set(irel_deplibs ${irel_deplibs} FBiGeomMOAB)
   endif()
