@@ -34,5 +34,6 @@ setup(
     name="pymoab",
     ext_modules=ext_modules,
     packages=find_packages(),
-    package_data = {'pymoab': ['*.pxd',]}
+    package_data = {'pymoab': ['*.pxd',]},
+    version = '@VERSION@'
 )
