@@ -1,6 +1,5 @@
-# Find CGM directory
-find_package( CGM )
-
+# Check that CGM has been enabled
+if ( ENABLE_CGM AND MOAB_HAVE_CGM MATCHES ON)
 include_directories(
   ${CMAKE_CURRENT_BINARY_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}
@@ -77,3 +76,5 @@ if ( MOAB_HAVE_CGM )
       )
   endif()
 endif( )
+
+endif ( ENABLE_CGM AND MOAB_HAVE_CGM MATCHES ON)

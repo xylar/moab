@@ -59,7 +59,7 @@ CMAKE_CONFIGURATION_FILES = CMakeLists.txt \
 														config/Findverdict.cmake   config/MOABConfig.cmake.cmake    config/CMakeReplicateConfig.sh    config/cmake_uninstall.cmake.in \
 														config/TemplateSpecialization.cxx   config/MOABConfig.cmake.h.in
 
-EXTRA_DIST = $(doc_DATA) $(examples_DATA) $(CMAKE_CONFIGURATION_FILES)
+EXTRA_DIST = $(doc_DATA) $(examples_DATA) $(CMAKE_CONFIGURATION_FILES) debian
 
 # Automake doesn't seem to have a directory defined for
 # platform-dependent data (or include) files. So put 

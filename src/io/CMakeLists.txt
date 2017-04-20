@@ -104,7 +104,7 @@ endif()
 
 if( MOAB_HAVE_CGM )
   set( MOAB_CGM_SRCS ReadCGM.hpp ReadCGM.cpp )
-  include_directories(${CGM_INCLUDE_DIRS})
+  include_directories(${CGM_INCLUDES})
 endif()
 
 add_library( moabio OBJECT ${MOABIO_LIB_SRCS} ${MOAB_NETCDF_SRCS}

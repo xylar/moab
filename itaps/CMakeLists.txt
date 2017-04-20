@@ -8,15 +8,22 @@ set( BASE_INCLUDE_HEADERS iBase.h ${CMAKE_CURRENT_BINARY_DIR}/iBase_f.h)
 
 if(ENABLE_IMESH )
   add_subdirectory(imesh)
+  set(MOAB_HAVE_IMESH ON PARENT_SCOPE)
 endif()
 
 if(ENABLE_FBIGEOM )
   add_subdirectory(fbigeom)
+  set(MOAB_HAVE_FBIGEOM ON PARENT_SCOPE)
 endif()
 
 if(ENABLE_IREL AND MOAB_HAVE_CGM )
   add_subdirectory(irel)
+  set(MOAB_HAVE_IREL ON PARENT_SCOPE)
 endif()
+
+if (MOAB_HAVE_CGM)
+  set(MOAB_HAVE_IGEOM ON PARENT_SCOPE)
+endif(MOAB_HAVE_CGM)
 
 install(
   FILES ${BASE_INCLUDE_HEADERS}
