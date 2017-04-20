@@ -850,13 +850,17 @@ AC_ARG_WITH( [vtk-lib-suffix],
                  ;;
                esac],[VTK_LIB_SUFFIX=] )
 
+# Provide downloadable option for TempestRemap library
+# Supported TempestRemap versions: 1.0.beta
+# Arguments: 1) Default Version Number, 2) Download by default ?
+AUSCM_CONFIGURE_DOWNLOAD_TEMPESTREMAP([1.0.beta],[no])
 
 # Configuration for TempestRemap library
 AC_ARG_WITH([tempestremap],
   [AS_HELP_STRING([--with-tempestremap=DIR],[Enable intersection/remapping support through interface to TempestRemap])],
   [WITH_TEMPEST=$withval
    DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --with-tempestremap=\"${withval}\""
-  ],[WITH_TEMPEST=])
+  ],[WITH_TEMPEST=$TEMPESTREMAP_DIR])
 
 HAVE_TEMPEST=no
 if (test "x$WITH_TEMPEST" != "xno" && test "x$WITH_TEMPEST" != "x"); then
