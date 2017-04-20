@@ -32,6 +32,7 @@ if ( CMAKE_COMPILER_IS_GNUCXX OR (CMAKE_CXX_COMPILER_ID MATCHES "Clang") )
   FORCE_ADD_FLAGS(CMAKE_Fortran_FLAGS "${MOAB_CXX_FLAGS}")
   ENABLE_IF_SUPPORTED(MOAB_CXX_FLAGS "-fpermissive")
   ENABLE_IF_SUPPORTED(MOAB_CXX_FLAGS "-Wno-ignored-attributes")
+  ENABLE_IF_SUPPORTED(MOAB_CXX_FLAGS "-Wno-variadic-macros")
   ENABLE_IF_SUPPORTED(MOAB_CXX_FLAGS "-Wno-deprecated-declarations")
   # Need to enable or check for this only if user asks for C++11 support
   # ENABLE_IF_SUPPORTED(MOAB_CXX_FLAGS "-Wno-c++11-long-long")
@@ -86,14 +87,14 @@ IF (CMAKE_BUILD_TYPE MATCHES "Debug")
 
   ENABLE_IF_SUPPORTED(CMAKE_C_FLAGS "-ggdb")
   ENABLE_IF_SUPPORTED(CMAKE_CXX_FLAGS "-ggdb")
-  ENABLE_IF_SUPPORTED(CMAKE_LINKER_FLAGS "-ggdb")
+  ENABLE_IF_SUPPORTED(CMAKE_EXE_LINKER_FLAGS "-ggdb")
   #
   # If -ggdb is not available, fall back to -g:
   #
   IF(NOT CMAKE_HAVE_FLAG_ggdb)
     ENABLE_IF_SUPPORTED(CMAKE_C_FLAGS "-g")
     ENABLE_IF_SUPPORTED(CMAKE_CXX_FLAGS "-g")
-    ENABLE_IF_SUPPORTED(CMAKE_LINKER_FLAGS "-g")
+    ENABLE_IF_SUPPORTED(CMAKE_EXE_LINKER_FLAGS "-g")
   ENDIF()
 
   IF(CMAKE_SETUP_COVERAGE)
@@ -102,7 +103,7 @@ IF (CMAKE_BUILD_TYPE MATCHES "Debug")
     #
     ENABLE_IF_SUPPORTED(CMAKE_CXX_FLAGS "-fno-elide-constructors")
     ENABLE_IF_SUPPORTED(CMAKE_CXX_FLAGS "-ftest-coverage -fprofile-arcs")
-    ENABLE_IF_SUPPORTED(CMAKE_LINKER_FLAGS "-ftest-coverage -fprofile-arcs")
+    ENABLE_IF_SUPPORTED(CMAKE_EXE_LINKER_FLAGS "-ftest-coverage -fprofile-arcs")
   ENDIF()
 
 ENDIF()

@@ -19,7 +19,7 @@ if ENABLE_FORTRAN
   check_PROGRAMS += ScdMeshF90 ScdMeshF77 FindAdjacencyF90
 endif
 
-EXTRA_DIST = brick.vtk quad9.cub
+EXTRA_DIST = brick.vtk quad9.cub CMakeLists.txt
 
 libiMesh_la_SOURCES = \
 	iMesh_MOAB.cpp \

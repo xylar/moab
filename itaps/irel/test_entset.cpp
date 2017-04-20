@@ -10,11 +10,11 @@
 #define STRINGIFY(X) STRINGIFY_(X)
 #ifdef MESHDIR
 #ifdef HAVE_OCC
-#define DEFAULT_GEOM STRINGIFY(MESHDIR/brick.stp)
-#define DEFAULT_MESH STRINGIFY(MESHDIR/brick.h5m)
+#define DEFAULT_GEOM STRINGIFY(MESHDIR/irel/brick.stp)
+#define DEFAULT_MESH STRINGIFY(MESHDIR/irel/brick.h5m)
 #else
-#define DEFAULT_GEOM STRINGIFY(MESHDIR/brick.facet)
-#define DEFAULT_MESH STRINGIFY(MESHDIR/brick.h5m)
+#define DEFAULT_GEOM STRINGIFY(MESHDIR/irel/brick.facet)
+#define DEFAULT_MESH STRINGIFY(MESHDIR/irel/brick.h5m)
 #endif
 #else
 #error Specify MESHDIR to compile test

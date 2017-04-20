@@ -36,5 +36,5 @@ h5mvalidate_LDADD = libmhdf.la $(HDF5_LIBS)
 
 AM_CPPFLAGS = -I$(srcdir)/include -I$(srcdir)/../..
 
-EXTRA_DIST = doc/Doxyfile example/hexes_to_gmsh.c
+EXTRA_DIST = doc/Doxyfile example/hexes_to_gmsh.c CMakeLists.txt
 

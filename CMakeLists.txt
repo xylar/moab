@@ -304,6 +304,8 @@ if ( ENABLE_CGM )
    find_package( CGM REQUIRED )
    set( MOAB_DEFINES "${CGM_DEFINES} -DCGM ${MOAB_DEFINES}" )
    set (MOAB_HAVE_CGM ON)
+   set (ENABLE_IREL ON)
+   set (ENABLE_FBIGEOM ON)
 endif (ENABLE_CGM)
 
 set (MOAB_HAVE_CGNS OFF CACHE INTERNAL "Found necessary CGNS components. Configure MOAB with it." )
@@ -311,6 +313,11 @@ if (ENABLE_CGNS)
   set( MOABIO_LIBS ${MOABIO_LIBS} ${CGNS_LIBRARIES} )
   set (MOAB_HAVE_CGNS ON)
 endif(ENABLE_CGNS)
+
+# Strip our custom flags
+string(STRIP "${CMAKE_EXE_LINKER_FLAGS} " CMAKE_EXE_LINKER_FLAGS)
+string(STRIP "${MOAB_CXX_FLAGS} " MOAB_CXX_FLAGS)
+string(STRIP "${MOAB_DEFINES} " MOAB_DEFINES)
 
 ################################################################################
 # Add Directories

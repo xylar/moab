@@ -2,7 +2,7 @@
 
 AUTOMAKE_OPTIONS = foreign
 
-MESHDIR = $(abs_top_srcdir)/MeshFiles/unittest/irel
+MESHDIR = $(abs_top_srcdir)/MeshFiles/unittest
 AM_CPPFLAGS = -DSRCDIR=$(srcdir)
 
 # Don't loose the autoconf include path
@@ -127,3 +127,6 @@ install-data-hook:
 if ENABLE_fbigeom
 	$(AM_V_at)echo "FBIGEOM_LIBS=-lFBiGeomMOAB" >> $(DESTDIR)$(cfgdir)/iRel-Defs.inc
 endif
+
+EXTRA_DIST = CMakeLists.txt
+

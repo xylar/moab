@@ -60,3 +60,5 @@ ray_fire_test_SOURCES = ray_fire_test.cc
 
 dagmc_preproc_SOURCES = dagmc_preproc.cpp obb_analysis.cpp dagmc_preproc.hpp
 
+EXTRA_DIST = CMakeLists.txt
+

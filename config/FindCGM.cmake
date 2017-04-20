@@ -13,158 +13,56 @@
 # Note that this script does not produce CGM_VERSION as that information
 # is not available in the "cgm.make" configuration file that CGM creates.
 
-find_file(CGM_CFG cgm.make DOC "Path to cgm.make configuration file")
-if(CGM_CFG)
-  set(CGM_FOUND 1)
-  file(READ "${CGM_CFG}" CGM_CFG_DATA)
-  get_filename_component( CGM_LCFGDIR ${CGM_CFG} DIRECTORY )
-  file(READ "${CGM_LCFGDIR}/iGeom-Defs.inc" IGEOM_CFG_DATA)
-  ##
-  ## Replace line continuations ('\' at EOL) so we don't have to parse them later
-  ##
-  string(REGEX REPLACE "\\\\\\\n" "" CGM_CFG_DATA "${CGM_CFG_DATA}")
-  string(REGEX REPLACE "\\\\\\\n" "" IGEOM_CFG_DATA "${IGEOM_CFG_DATA}")
+find_file(CGM_CMAKE_CFG CGMConfig.cmake
+    HINTS ${CGM_DIR} ${CGM_DIR}/lib/cmake/CGM
+)
 
-  ##
-  ## Find include directories
-  ##
-  string(REGEX MATCHALL "CGM_INT_INCLUDE =[^\\\n]*" _CGM_INCS "${CGM_CFG_DATA}")
-  foreach(_CGM_INC ${_CGM_INCS})
-    # Only use include directories specified by the *last*
-    # occurrence of CGM_INT_INCLUDE in the config file:
-    unset(CGM_INCLUDE_DIRS)
+include (${CGM_CMAKE_CFG})
 
-    string(REGEX REPLACE "-I" ";-I" _CGM_INC "${_CGM_INC}")
-    foreach(_CGM_IDIR ${_CGM_INC})
-      if ("${_CGM_IDIR}" MATCHES "^-I.*")
-        string(REGEX REPLACE "-I" "" _CGM_IDIR "${_CGM_IDIR}")
-        string(STRIP "${_CGM_IDIR}" _CGM_IDIR)
-        list(APPEND CGM_INCLUDE_DIRS "${_CGM_IDIR}")
-      endif()
-    endforeach()
-    # Alternately, one might:
-    #list(APPEND CGM_INCLUDE_DIRS "${_CGM_INC}")
-  endforeach()
-  #message("CGM_INCLUDE_DIRS=\"${CGM_INCLUDE_DIRS}\"")
+# Include dir
+find_path(IGEOM_INCLUDE_DIR
+    NAMES iGeom.h
+    PATHS ${CGM_INCLUDES}
+)
 
-  ##
-  ## Find preprocessor definitions
-  ##
-  string(REGEX MATCH "CGM_DEFINES =[^\\\n]*" CGM_DEFINES "${CGM_CFG_DATA}")
-  string(REGEX REPLACE "CGM_DEFINES = ([^\\\n]*)" "\\1" CGM_DEFINES "${CGM_DEFINES}")
+find_path(CGM_LIB_PATH
+    NAMES cgm.make
+    PATHS ${CGM_DIR} ${CGM_DIR}/lib ${CGM_DIR}/../..
+)
+#get_filename_component(OCE_LIBRARY_DIR "${OCE_DIR}/OCEConfig.cmake" PATH)
 
-  ##
-  ## Find CGM library directory(-ies)
-  ##
-  string(REGEX MATCHALL "CGM_INT_LDFLAGS =[^\\\n]*" _CGM_LDIRS "${CGM_CFG_DATA}")
-  foreach(_CGM_LDIR ${_CGM_LDIRS})
-    set(CGM_LIB_DIRS)
-    string(REGEX REPLACE " -L" ";-L" _CGM_LDIR "${_CGM_LDIR}")
-    string(REGEX REPLACE "CGM_INT_LDFLAGS = ([^\\\n]*)" "\\1" _CGM_LDIR "${_CGM_LDIR}")
-    foreach(_CGM_LL ${_CGM_LDIR})
-      if("${_CGM_LL}" MATCHES "^-L.*")
-        string(REGEX REPLACE "-L" "" _CGM_LL "${_CGM_LL}")
-        string(STRIP "${_CGM_LL}" _CGM_LL)
-        list(APPEND CGM_LIB_DIRS "${_CGM_LL}")
-      endif()
-    endforeach()
-  endforeach()
+SET(MOAB_HAVE_CGM_FACET ${CGM_HAS_FACET})
+SET(MOAB_HAVE_CGM_OCC ${CGM_HAS_OCC})
+SET(MOAB_CGM_GEOM_ENGINE "${PRIMARY_GEOMETRY_ENGINE}")
 
-  ##
-  ## Now add dependent library directories to CGM_LIB_DIRS
-  ##
-  string(REGEX MATCH "CGM_LDFLAGS =[^\\\n]*" _CGM_LDIR "${CGM_CFG_DATA}")
-  string(REGEX REPLACE "CGM_LDFLAGS = ([^\\\n]*)" "\\1" _CGM_LDIR "${_CGM_LDIR}")
-  string(REGEX REPLACE " -L" ";-L" _CGM_LDIR "${_CGM_LDIR}")
-  set(_CGM_LDIRS)
-  foreach(_CGM_LL ${_CGM_LDIR})
-    if("${_CGM_LL}" MATCHES "^-L.*")
-      string(REGEX REPLACE "-L" "" _CGM_LL "${_CGM_LL}")
-      string(STRIP "${_CGM_LL}" _CGM_LL)
-      list(APPEND _CGM_LDIRS "${_CGM_LL}")
-    endif()
-  endforeach()
-  set(CGM_LIB_DIRS "${CGM_LIB_DIRS};${_CGM_LDIRS}")
-  #message("${CGM_LIB_DIRS}")
+find_file(CGM_CFG cgm.make
+  PATHS ${CGM_DIR} ${CGM_DIR}/lib ${CGM_LIB_PATH}
+)
 
-  ##
-  ## Find the CGM library and its dependencies
-  ##
-  string(REGEX MATCHALL "CGM_LIBS =[^\\\n]*" _CGM_LIBS "${CGM_CFG_DATA}")
-  string(REGEX MATCHALL "-l[^ \t\n]+" _CGM_LIBS "${_CGM_LIBS}")
-  foreach(_CGM_LIB ${_CGM_LIBS})
-    string(REGEX REPLACE "-l" "" _CGM_LIB "${_CGM_LIB}")
-    find_library(_CGM_LIB_LOC
-      NAME "${_CGM_LIB}"
-      # Cannot quote since it contains semicolons:
-      PATHS ${CGM_LIB_DIRS}
-      NO_DEFAULT_PATH
-      NO_CMAKE_ENVIRONMENT_PATH
-      NO_CMAKE_PATH
-      NO_SYSTEM_ENVIRONMENT_PATH
-      NO_CMAKE_SYSTEM_PATH
-      )
-    #message("Lib \"${_CGM_LIB}\" @ \"${_CGM_LIB_LOC}\" paths \"${CGM_LIB_DIRS}\"")
-    if (_CGM_LIB_LOC)
-      list(APPEND CGM_LIBRARIES "${_CGM_LIB_LOC}")
-      unset(_CGM_LIB_LOC CACHE)
-      unset(_CGM_LIB_LOC)
-    else()
-      message("Could not find ${_CGM_LIB} library (part of CGM)")
-      unset(CGM_FOUND)
-    endif()
-  endforeach()
-  #message("CGM Libs ${CGM_LIBRARIES}")
+SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${CGM_LDFLAGS}")
+message("CGM Linker flags: ${CMAKE_EXE_LINKER_FLAGS}")
 
-  ##
-  ## Find the iGeom library and its dependencies
-  ##
-  ## Note: The regex is fragile since it depends on number of spaces after IGEOM_LIBS
-  ## 
-  string(REGEX MATCHALL "IGEOM_LIBS    =[^\\\n]*" _IGEOM_LIBS "${IGEOM_CFG_DATA}")
-  string(REGEX MATCHALL "-l[^ \t\n]+" _IGEOM_LIBS "${_IGEOM_LIBS}")
-  foreach(_IGEOM_LIB ${_IGEOM_LIBS})
-    string(REGEX REPLACE "-l" "" _IGEOM_LIB "${_IGEOM_LIB}")
-    find_library(_IGEOM_LIB_LOC
-      NAME "${_IGEOM_LIB}"
-      # Cannot quote since it contains semicolons:
-      PATHS ${CGM_LIB_DIRS}
-      NO_DEFAULT_PATH
-      NO_CMAKE_ENVIRONMENT_PATH
-      NO_CMAKE_PATH
-      NO_SYSTEM_ENVIRONMENT_PATH
-      NO_CMAKE_SYSTEM_PATH
-      )
-    # message("[1] iGeom Lib \"${_IGEOM_LIB}\" @ \"${_IGEOM_LIB_LOC}\" paths \"${IGEOM_LIB_DIRS}\"")
-    if (_IGEOM_LIB_LOC)
-      list(APPEND IGEOM_LIBRARIES "${_IGEOM_LIB_LOC}")
-      unset(_IGEOM_LIB_LOC CACHE)
-      unset(_IGEOM_LIB_LOC)
-    else()
-      message("iGeom: Could not find ${_IGEOM_LIB} library (part of CGM)")
-      unset(IGEOM_FOUND)
-    endif()
-  endforeach()
-  #message("iGeom Libs ${IGEOM_LIBRARIES}")
+# Split the version correctly
+string(REPLACE "." ";" VERSION_LIST "${CGM_VERSION}")
+list(GET VERSION_LIST 0 CGM_MAJOR_VERSION)
+list(GET VERSION_LIST 1 CGM_MINOR_VERSION)
 
-  ##
-  ## Kill temporary variables
-  ##
-  unset(_CGM_INCS)
-  unset(_CGM_INC)
-  unset(_CGM_IDIR)
-  unset(_CGM_LDIRS)
-  unset(_CGM_LDIR)
-  unset(_CGM_LL)
-  unset(_CGM_LIBS)
-  unset(_CGM_LIB)
-  unset(_CGM_LIB_LOC)
-else()
-  unset(CGM_FOUND)
-endif()
+# Output details about CGM configuration
+message("Found CGM: ${CGM_DIR}")
+message("---   CGM configuration ::")
+message("        Primary Geometry Engine : ${PRIMARY_GEOMETRY_ENGINE}")
+message("        Include Directory       : ${IGEOM_INCLUDE_DIR}")
+message("        Library Directory       : ${CGM_LIB_PATH}")
+
+#message("CGM_CFG = ${CGM_CFG}")
+#message("CGM_DIR = ${CGM_DIR}")
+#message("CGM_INCLUDE_DIRS = ${CGM_INCLUDES}")
+#message("CGM_LIBRARIES = ${CGM_LIBRARIES}")
+#message("IGEOM_INCLUDE_DIR = ${IGEOM_INCLUDE_DIR}")
+#message("CGM_VERSION = ${CGM_VERSION}")
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(CGM
-  REQUIRED_VARS CGM_INCLUDE_DIRS CGM_LIBRARIES IGEOM_LIBRARIES
+  REQUIRED_VARS CGM_INCLUDES CGM_LDFLAGS CGM_LIBRARIES IGEOM_INCLUDE_DIR
   VERSION_VAR CGM_VERSION
 )
