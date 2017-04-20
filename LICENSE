@@ -1,21 +1,30 @@
-MOAB, a Mesh-Oriented datABase, is a software component for creating,
-storing and accessing finite element mesh data.
+MOAB, a Mesh-Oriented datABase, is a software component for creating, storing, 
+querying and manipulating unstructured finite element mesh data.
 
-Copyright 2004 Sandia Corporation.  Under the terms of Contract
-DE-AC04-94AL85000 with Sandia Coroporation, the U.S. Government
-retains certain rights in this software.
+# COPYRIGHT
 
-This library is free software; you can redistribute it and/or
-modify it under the terms of the GNU Lesser General Public
-License as published by the Free Software Foundation; either
-version 2.1 of the License, or (at your option) any later version.
+The following copyright applies to each file in the MOAB distribution, unless 
+otherwise stated explicitly.
 
-This library is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-Lesser General Public License for more details.  A copy of the full
-GNU Lesser General Public License can be found at
+Copyright (c) 2008, UChicago Argonne, LLC (under contract DE-AC02-06CH11357), 
+2004-2008 Sandia Corporation (under contract DE-AC04-94AL85000) and the MOAB 
+Development Team. All rights reserved.
+
+# LICENSE
+
+The MOAB library is free software; you can redistribute it and/or modify it under 
+the terms of the GNU Lesser General Public License as published by the Free Software 
+Foundation; either version 2.1 of the License, or (at your option) any later version.
+
+The MOAB library is distributed in the hope that it will be useful, but WITHOUT ANY 
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A 
+PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details. 
+A copy of the full GNU Lesser General Public License can be found at
 http://www.gnu.org/copyleft/lesser.html.
 
-For more information, contact the authors of this software at
-moab@sandia.gov.
+You should have received a copy of the GNU Lesser General Public License along
+with this library (file COPYING.LESSER); if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+For more information, contact the authors of this software at moab-dev@mcs.anl.gov.
+
