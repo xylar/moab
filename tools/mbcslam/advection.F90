@@ -12,9 +12,9 @@ program advection
   use ISO_C_BINDING
   implicit none
 
-#include "mpif.h"
 #include "moab/MOABConfig.h"
 #ifdef MOAB_HAVE_MPI
+#  include "mpif.h"
 #  include "iMeshP_f.h"
 #else
 #  include "iMesh_f.h"
