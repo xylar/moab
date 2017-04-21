@@ -26,8 +26,8 @@ if(ENABLE_IREL AND MOAB_HAVE_CGM )
 endif()
 
 if (ENABLE_MESQUITE AND MOAB_HAVE_CGM)
-  add_subdirectory(mesquite)
-  set(MOAB_HAVE_MESQUITE ON PARENT_SCOPE)
+  #add_subdirectory(mesquite)
+  #set(MOAB_HAVE_MESQUITE ON PARENT_SCOPE)
 endif(ENABLE_MESQUITE AND MOAB_HAVE_CGM)
 
 install(

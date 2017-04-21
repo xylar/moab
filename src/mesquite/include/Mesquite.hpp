@@ -27,13 +27,7 @@
 #ifndef MESQUITE_HPP
 #define MESQUITE_HPP
 
-#ifdef _MSC_VER
-#  pragma warning ( 4 : 4786)
-#  pragma warning ( 4 : 4996)
-#  include "mesquite_config.win.h"
-#else
-#  include "mesquite_config.h"
-#endif
+#include "moab/MOABConfig.h"
 
 #ifdef _MSC_VER  //if vc
   #ifdef MESQUITE_DLL_EXPORTS //if we are exporting as dll
@@ -64,8 +58,6 @@
 #include <limits>
 #include <vector>
 #include <assert.h>
-
-#include "mesquite_version.h"
 
 /*! \file Mesquite.hpp
  */
@@ -198,7 +190,7 @@ template <class T> inline T MSQ_MAX_2(T a, T b) { return a > b ? a : b; }
   // Utility functions
 inline double cbrt( double d ) 
 {
-#ifdef HAVE_CBRT
+#ifdef MOAB_HAVE_CBRT
   return ::cbrt( d );
 #else
   return std::pow( d, MSQ_ONE_THIRD );
@@ -207,7 +199,7 @@ inline double cbrt( double d )
 
 inline double cbrt_sqr( double d )
 {
-#ifdef HAVE_CBRT
+#ifdef MOAB_HAVE_CBRT
   return ::cbrt(d*d);
 #else
   return std::pow( d, MSQ_TWO_THIRDS );
@@ -257,13 +249,6 @@ const T* arrptr( const std::vector< T >& v, bool check_zero_size=false )
 
   
 } // namespace Mesquite
-
-#ifndef HAVE_FINITE
-#  ifdef HAVE__ISFINITE
-inline int finite( double x ) { return _Isfinite(x); }
-#  endif
-#endif
-
 
 
 #endif

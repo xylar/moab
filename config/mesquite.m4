@@ -1,10 +1,6 @@
 dnl Process this file with autoconf 2.60 to produce a configure script
 AC_DEFUN([CONFIGURE_MESQUITE],[
 
-AC_DEFINE_UNQUOTED(MSQ_VERSION_MAJOR,[2],"Mesquite Major Version")
-AC_DEFINE_UNQUOTED(MSQ_VERSION_MINOR,[99],"Mesquite Minor Version")
-AC_DEFINE(MSQ_VERSION_STRING,["MOAB :: Mesquite 2.99"],"Mesquite Version String")
-
 MSQ_DO_RELEASE="$enable_optimize"
 MSQ_DO_DEBUG="$enable_debug"
 MSQ_DO_OPTIMIZE="$enable_optimize"

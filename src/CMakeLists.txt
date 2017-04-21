@@ -21,7 +21,7 @@ set(moab_link_lib)
 add_subdirectory(io)
 
 if (ENABLE_MESQUITE AND MOAB_HAVE_CGM)
-  add_subdirectory(mesquite)
+  #  add_subdirectory(mesquite)
 endif(ENABLE_MESQUITE AND MOAB_HAVE_CGM)
 
 if( MOAB_HAVE_HDF5 )

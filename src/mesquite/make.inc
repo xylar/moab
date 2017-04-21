@@ -170,7 +170,6 @@ MSQ_SRCS += \
 	Misc/FileTokenizer.cpp \
 	Misc/MeshDomain1D.cpp \
 	Misc/MeshTransform.cpp \
-	Misc/MesquiteVersion.cpp \
 	Misc/MsqDebug.cpp \
 	Misc/MsqError.cpp \
 	Misc/MsqFPE.cpp \

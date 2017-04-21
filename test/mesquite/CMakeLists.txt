@@ -1,11 +1,5 @@
 # Define Macro for adding tests
 
-IF (NOT ${PROJECT_NAME} STREQUAL "Mesquite")
-    INCLUDE(TribitsAddTest)
-    INCLUDE(TribitsAddExecutable)
-ENDIF()
-
-
 IF(${PACKAGE_NAME}_ENABLE_SHARED)
   SET( TEST_DEFINES "${MESQUITE_DEFINES}" )
 ELSE()
@@ -14,8 +8,8 @@ ENDIF()
 
 MACRO(MSQ_ADD_TEST_PARALLEL name exe nproc)
   IF (NOT ${PROJECT_NAME} STREQUAL "Mesquite")
-    TRIBITS_ADD_EXECUTABLE( ${exe} SOURCES ${ARGN} )
-    TRIBITS_ADD_TEST( ${exe} NAME ${name} NUM_MPI_PROCS ${nproc} )
+    add_executable( ${exe} SOURCES ${ARGN} )
+    ADD_TEST( ${exe} NAME ${name} NUM_MPI_PROCS ${nproc} )
     #TARGET_LINK_LIBRARIES( ${exe} mesquite )
   ELSE(NOT ${PROJECT_NAME} STREQUAL "Mesquite")
     IF (${PACKAGE_NAME}_ENABLE_TESTS)

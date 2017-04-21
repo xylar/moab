@@ -1424,8 +1424,6 @@ AC_SUBST([EXPORT_LDFLAGS])
 
 AC_CONFIG_HEADERS([src/moab/EntityHandle.hpp
                    src/parallel/moab_mpi_config.h
-                   src/mesquite/include/mesquite_config.h
-                   src/mesquite/include/mesquite_version.h
                    src/moab/MOABConfig.h:config/MOABConfig.h.in])
 AX_PREFIX_CONFIG_H([src/moab/MOABConfig.h],[MOAB],[src/moab/MOABConfig.h])
 

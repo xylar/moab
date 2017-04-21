@@ -1,9 +1,4 @@
 
-IF (NOT ${PROJECT_NAME} STREQUAL "Mesquite")
-  INCLUDE(TribitsLibraryMacros)
-  INCLUDE(TribitsAddExecutable)
-ENDIF()
-
 #
 # B) Define the header and source files (and directories)
 #
@@ -11,7 +6,7 @@ ENDIF()
 SET(HEADERS "")
 SET(SOURCES "")
 
-APPEND_SET(SOURCES
+SET(SOURCES ${SOURCES}
   CLArgs.cpp
   CLArgFlag.cpp
   ManPage.cpp
@@ -39,28 +34,28 @@ IF (NOT ${PROJECT_NAME} STREQUAL "Mesquite")
 #    SOURCES ${SOURCES}
 #    )
 
-  TRIBITS_ADD_EXECUTABLE(
+  add_executable(
     vtkrandom
     NOEXEPREFIX
     NOEXESUFFIX
     SOURCES randomize.cpp
     )
 
-  TRIBITS_ADD_EXECUTABLE(
+  add_executable(
     msqshape
     NOEXEPREFIX
     NOEXESUFFIX
     SOURCES shape-improve.cpp
     )
 
-  TRIBITS_ADD_EXECUTABLE(
+  add_executable(
     vtkxform
     NOEXEPREFIX
     NOEXESUFFIX
     SOURCES transform.cpp
     )
 
-  TRIBITS_ADD_EXECUTABLE(
+  add_executable(
     msqquality
     NOEXEPREFIX
     NOEXESUFFIX

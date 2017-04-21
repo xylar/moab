@@ -188,7 +188,7 @@ if (ENABLE_IREL AND MOAB_HAVE_CGM)
 endif()
 
 if (ENABLE_MESQUITE AND MOAB_HAVE_CGM)
-  add_subdirectory(mesquite)
+  # add_subdirectory(mesquite)
 endif(ENABLE_MESQUITE AND MOAB_HAVE_CGM)
 
 if ( MOAB_HAVE_MPI AND MPI_FOUND )

@@ -115,7 +115,6 @@ const double HD = 4.5;
 int main(int , char* [])
 {
   std::cout << std::endl << "********* Wrappers Timing Tests **********" 
-            << std::endl << "Version "  << version_string(true) 
             << std::endl << std::endl;
 
   MBMesquite::MsqPrintError err(cout);
@@ -586,7 +585,6 @@ int main(int , char* [])
 
   // Timing Summary
   std::cout << std::endl << "********* Wrappers Timing Summary **********" 
-            << std::endl << "Version "  << version_string(true) 
             << std::endl << std::endl;
   std::cout << "ShapeImprover small file optimization completed in " 
             << si_s_secs << " seconds" << std::endl;

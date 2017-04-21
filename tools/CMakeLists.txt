@@ -22,7 +22,7 @@ if ( MOAB_HAVE_MPI AND MPI_FOUND )
 endif ( )
 
 if (ENABLE_MESQUITE AND MOAB_HAVE_CGM)
-  add_subdirectory(mesquite)
+  # add_subdirectory(mesquite)
 endif(ENABLE_MESQUITE AND MOAB_HAVE_CGM)
 
 include_directories(
