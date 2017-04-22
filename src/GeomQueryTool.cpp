@@ -92,19 +92,19 @@ ErrorCode GeomQueryTool::ray_fire(const EntityHandle volume,
                 << " n_pt_in_vols=" << n_pt_in_vol_calls << std::endl;
     }
   }
-
+  
   if (debug) {
     std::cout << "ray_fire:"
               << " xyz=" << point[0] << " " << point[1] << " " << point[2]
               << " uvw=" << dir[0] << " " << dir[1] << " " << dir[2]
               << " entity_handle=" << volume << std::endl;
-    }
-
+  }
+  
   const double huge_val = std::numeric_limits<double>::max();
   double dist_limit = huge_val;
   if( user_dist_limit > 0 )
     dist_limit = user_dist_limit;
-
+  
   // don't recreate these every call
   std::vector<double>       &dists       = distList;
   std::vector<EntityHandle> &surfs       = surfList;
@@ -112,11 +112,11 @@ ErrorCode GeomQueryTool::ray_fire(const EntityHandle volume,
   dists.clear();
   surfs.clear();
   facets.clear();
-
+  
   EntityHandle root;
   ErrorCode rval = geomTopoTool->get_root(volume, root);
   if(MB_SUCCESS != rval) return rval;
-
+  
   // check behind the ray origin for intersections
   double neg_ray_len;
   if(0 == overlapThickness) {
@@ -124,16 +124,17 @@ ErrorCode GeomQueryTool::ray_fire(const EntityHandle volume,
   } else {
     neg_ray_len = -overlapThickness;
   }
-
+  
   // optionally, limit the nonneg_ray_len with the distance to next collision.
   double nonneg_ray_len = dist_limit;
-
+  
   // the nonneg_ray_len should not be less than -neg_ray_len, or an overlap
   // may be missed due to optimization within ray_intersect_sets
   if(nonneg_ray_len < -neg_ray_len) nonneg_ray_len = -neg_ray_len;
-  assert(0 <= nonneg_ray_len);
-  assert(0 >     neg_ray_len);
-
+  if (0 > nonneg_ray_len || 0 <= neg_ray_len) {
+    MB_CHK_SET_ERR(MB_FAILURE, "Incorrect ray length provided");
+  }
+  
   // min_tolerance_intersections is passed but not used in this call
   const int min_tolerance_intersections = 0;
 
@@ -146,7 +147,6 @@ ErrorCode GeomQueryTool::ray_fire(const EntityHandle volume,
                                      stats, &neg_ray_len, &volume, &senseTag,
                                      &ray_orientation,
                                      history ? &(history->prev_facets) : NULL );
-  assert( MB_SUCCESS == rval );
   if(MB_SUCCESS != rval) return rval;
 
   // If no distances are returned, the particle is lost unless the physics limit
@@ -164,15 +164,17 @@ ErrorCode GeomQueryTool::ray_fire(const EntityHandle volume,
   // Assume that a (neg, nonneg) pair of RTIs could be returned,
   // however, only one or the other may exist. dists[] may be populated, but
   // intersections are ONLY indicated by nonzero surfs[] and facets[].
-  assert(2 == dists.size());
-  assert(2 == facets.size());
-  assert(0.0 >= dists[0]);
-  assert(0.0 <= dists[1]);
+  if (2 != dists.size() || 2 != facets.size()) {
+    MB_CHK_SET_ERR(MB_FAILURE, "Incorrect number of facets/distances");
+  }
+  if ( 0.0 < dists[0] || 0.0 > dists[1] ) {
+    MB_CHK_SET_ERR(MB_FAILURE, "Invalid intersection distance signs");
+  }
 
   // If both negative and nonnegative RTIs are returned, the negative RTI must
   // closer to the origin.
-  if(0!=facets[0] && 0!=facets[1]) {
-    assert(-dists[0] <= dists[1]);
+  if( (0!=facets[0] && 0!=facets[1]) && (-dists[0] > dists[1]) ) {
+    MB_CHK_SET_ERR(MB_FAILURE, "Invalid intersection distance values");
   }
 
   // If an RTI is found at negative distance, perform a PMT to see if the
@@ -184,7 +186,9 @@ ErrorCode GeomQueryTool::ray_fire(const EntityHandle volume,
     EntityHandle nx_vol;
     rval = MBI->get_parent_meshsets( surfs[0], vols );
     if(MB_SUCCESS != rval) return rval;
-    assert(2 == vols.size());
+    if(2 != vols.size()) {
+      MB_CHK_SET_ERR(MB_FAILURE, "Invaid number of parent volumes found");
+    }
     if(vols.front() == volume) {
       nx_vol = vols.back();
     } else {
@@ -560,7 +564,9 @@ ErrorCode GeomQueryTool::measure_volume( EntityHandle volume, double& result )
     for (Range::iterator j = triangles.begin(); j != triangles.end(); ++j) {
       rval = MBI->get_connectivity( *j, conn, len, true );
       if (MB_SUCCESS != rval) return rval;
-      assert(3 == len);
+      if(3 != len) {
+	MB_CHK_SET_ERR(MB_FAILURE, "Incorrect connectivity length for triangle");
+      }
       rval = MBI->get_coords( conn, 3, coords[0].array() );
       if (MB_SUCCESS != rval) return rval;
 
@@ -600,7 +606,9 @@ ErrorCode GeomQueryTool::measure_area( EntityHandle surface, double& result )
   for (Range::iterator j = triangles.begin(); j != triangles.end(); ++j) {
     rval = MBI->get_connectivity( *j, conn, len, true );
     if (MB_SUCCESS != rval) return rval;
-    assert(3 == len);
+    if(3 != len) {
+      MB_CHK_SET_ERR(MB_FAILURE, "Incorrect connectivity length for triangle");
+    }
     rval = MBI->get_coords( conn, 3, coords[0].array() );
     if (MB_SUCCESS != rval) return rval;
 
@@ -625,7 +633,6 @@ ErrorCode GeomQueryTool::get_normal(EntityHandle surf, const double in_pt[3], do
   // if no history or history empty, use nearby facets
   if( !history || (history->prev_facets.size() == 0) ){
     rval = geomTopoTool->obb_tree()->closest_to_location( in_pt, root, numericalPrecision, facets );
-    assert(MB_SUCCESS == rval);
     if (MB_SUCCESS != rval) return rval;
   }
   // otherwise use most recent facet in history
@@ -638,11 +645,13 @@ ErrorCode GeomQueryTool::get_normal(EntityHandle surf, const double in_pt[3], do
   int len;
   for (unsigned i = 0; i < facets.size(); ++i) {
     rval = MBI->get_connectivity( facets[i], conn, len );
-    assert( MB_SUCCESS == rval );
-    assert( 3 == len );
+    MB_CHK_SET_ERR(rval, "Failed to get facet connectivity");
+    if(3 != len) {
+      MB_CHK_SET_ERR(MB_FAILURE, "Incorrect connectivity length for triangle");
+    }
 
     rval = MBI->get_coords( conn, 3, coords[0].array() );
-    assert(MB_SUCCESS == rval);
+    MB_CHK_SET_ERR(MB_FAILURE, "Failed to get vertex coordinates");
 
     coords[1] -= coords[0];
     coords[2] -= coords[0];
@@ -679,16 +688,15 @@ ErrorCode GeomQueryTool::boundary_case(EntityHandle volume, int& result,
     int len, sense_out;
 
     rval = MBI->get_connectivity( facet, conn, len );
-    assert( MB_SUCCESS == rval );
     if(MB_SUCCESS != rval) return rval;
-    assert( 3 == len );
+    if(3 != len) {
+      MB_CHK_SET_ERR(MB_FAILURE, "Incorrect connectivity length for triangle");
+    }
 
     rval = MBI->get_coords( conn, 3, coords[0].array() );
-    assert(MB_SUCCESS == rval);
     if(MB_SUCCESS != rval) return rval;
 
     rval = geomTopoTool->get_sense( surface, volume, sense_out );
-    assert( MB_SUCCESS == rval);
     if(MB_SUCCESS != rval) return rval;
 
     coords[1] -= coords[0];

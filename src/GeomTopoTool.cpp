@@ -21,7 +21,6 @@
 #include "moab/CN.hpp"
 #include "moab/Skinner.hpp"
 #include "Internals.hpp"
-#include <assert.h>
 #include <iostream>
 
 namespace moab {
@@ -130,7 +129,9 @@ int GeomTopoTool::global_id(EntityHandle this_set)
 
 EntityHandle GeomTopoTool::entity_by_id( int dimension, int id )
 {
-  assert(0 <= dimension && 3 >= dimension);
+  if (0 <= dimension && 3 >= dimension) {
+    MB_CHK_SET_ERR_CONT(MB_FAILURE, "Incorrect dimension provided");
+  };
   const Tag tags[] = { gidTag, geomTag };
   const void* const vals[] = { &id, &dimension };
   ErrorCode rval;
@@ -163,19 +164,19 @@ ErrorCode GeomTopoTool::other_entity(EntityHandle bounded,
   bdy = intersect(bdy, tmpr);
 
   // if only two, choose the other
-  if (1 == bdy.size()) {
-    assert(*bdy.begin() == not_this);
+  if (1 == bdy.size() && *bdy.begin() == not_this) {
     return MB_SUCCESS;
-  } else if (2 == bdy.size()) {
+  }
+  else if (2 == bdy.size()) {
     if (*bdy.begin() == not_this)
       other = *bdy.rbegin();
     if (*bdy.rbegin() == not_this)
       other = *bdy.begin();
     else
       return MB_FAILURE;
-  } else {
-    // attempt to find right answer using senses, though we might be screwed anyway
-    assert(false);
+  }
+  else {
+    return MB_FAILURE;
   }
 
   return MB_SUCCESS;
@@ -580,7 +581,9 @@ ErrorCode GeomTopoTool::restore_topology()
       // get owner tags
       parents.resize(dp1ents.size());
       result = mdbImpl->tag_get_data(owner_tag, dp1ents, &parents[0]);
-      assert(MB_TAG_NOT_FOUND != result);
+      if (MB_TAG_NOT_FOUND == result) {
+	MB_CHK_SET_ERR(result, "Could not find owner tag");
+      }
       if (MB_SUCCESS != result)
         continue;
 
@@ -605,7 +608,9 @@ ErrorCode GeomTopoTool::restore_topology()
         result = mdbImpl->get_connectivity(dents.front(), conn2, len2, true);
         if (MB_SUCCESS != result)
           return result;
-        assert(len2 <= 4);
+	if (len2 > 4) {
+	  MB_CHK_SET_ERR(MB_FAILURE, "Connectivity of incorrect length");
+	}
         err = CN::SideNumber(TYPE_FROM_HANDLE(dp1ents[i]), conn3, conn2, len2,
             dim, num, sense, offset);
         if (err)
@@ -705,7 +710,9 @@ ErrorCode GeomTopoTool::construct_vertex_ranges(const Range &geom_sets,
 
     // make the new range
     temp_verts = new (std::nothrow) Range();
-    assert(NULL != temp_verts);
+    if(NULL == temp_verts) {
+      MB_CHK_SET_ERR(MB_FAILURE, "Could not construct Range object");
+    }
 
     // get all the verts of those elements; use get_adjacencies 'cuz it handles ranges better
     result = mdbImpl->get_adjacencies(temp_elems, 0, false, *temp_verts,
