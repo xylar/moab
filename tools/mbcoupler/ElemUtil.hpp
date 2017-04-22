@@ -214,7 +214,7 @@ namespace ElemUtil {
       void set_gl_points( double * x, double * y, double *z) ;
       virtual CartVect evaluate( const CartVect& xi ) const;
       using Map::ievaluate;
-      virtual CartVect ievaluate(const CartVect& x) const;
+      virtual CartVect ievaluate( double abs_eps, const CartVect& x) const;
       virtual Matrix3  jacobian(const CartVect& xi) const;
       double   evaluate_scalar_field(const CartVect& xi, const double *field_vertex_values) const;
       double   integrate_scalar_field(const double *field_vertex_values) const;
@@ -259,6 +259,20 @@ namespace ElemUtil {
       static const double gauss[1][2];
       static const unsigned int corner_count = 4;
       static const unsigned int gauss_count  = 1;
+
+    };// class LinearQuad
+
+    /**\brief Shape function space for bilinear quadrilateral on sphere, obtained from the canonical linear (affine) functions. */
+    class SphericalQuad : public LinearQuad {
+    public:
+      SphericalQuad(const std::vector<CartVect>& vertices);
+      virtual ~SphericalQuad() {};
+      virtual bool inside_box(const CartVect & pos, double & tol) const;
+      virtual CartVect ievaluate(const CartVect& x, double tol) const ;
+    protected:
+      CartVect v1;
+      Matrix3 transf; // so will have a lot of stuff, including the transf to a coordinate system
+      //double tangent_plane; // at first vertex; normal to the plane is first vertex
 
     };// class LinearQuad
 

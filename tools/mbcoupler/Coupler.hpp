@@ -43,7 +43,7 @@ class Coupler
 {
 public:
 
-  enum Method {CONSTANT, LINEAR_FE, QUADRATIC_FE, SPECTRAL};
+  enum Method {CONSTANT, LINEAR_FE, QUADRATIC_FE, SPECTRAL, SPHERICAL};
 
   enum IntegType {VOLUME};
 
@@ -520,6 +520,9 @@ private:
   void * _spectralTarget;
   moab::Tag _xm1Tag, _ym1Tag, _zm1Tag;
   int _ntot;
+
+  // spherical coupling
+  bool spherical;
 };
 
 inline ErrorCode Coupler::interpolate(Coupler::Method method,

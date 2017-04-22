@@ -213,7 +213,7 @@ void test_spectral_hex()
      // first evaluate a point, then inverse it to see if we get the same thing
      moab::CartVect rst(0.1, -0.1, 0.5);
      moab::CartVect pos = specHex.evaluate(rst);
-     moab::CartVect inverse = specHex.ievaluate(pos);
+     moab::CartVect inverse = specHex.ievaluate(0.0001, pos);
      std::cout << "difference" << rst-inverse << "\n";
      Matrix3 jac=specHex.jacobian(rst);
      std::cout<< "jacobian: \n" << jac << " \n determinant: " << jac.determinant() << "\n";

@@ -32,7 +32,7 @@ Coupler::Coupler(Interface *impl,
                  int coupler_id,
                  bool init_tree,
                  int max_ent_dim)
-  : mbImpl(impl), myPc(pc), myId(coupler_id), numIts(3), max_dim(max_ent_dim), _ntot(0)
+  : mbImpl(impl), myPc(pc), myId(coupler_id), numIts(3), max_dim(max_ent_dim), _ntot(0), spherical(false)
 {
   assert(NULL != impl && (pc || !local_elems.empty()));
 
@@ -68,7 +68,18 @@ ErrorCode Coupler::initialize_tree()
 
   // Get entities on the local part
   ErrorCode result = MB_SUCCESS;
-  if (myPc) result = myPc->get_part_entities(local_ents, max_dim);
+  if (myPc)
+  {
+    result = myPc->get_part_entities(local_ents, max_dim);
+    if (local_ents.empty())
+    {
+      max_dim--;
+      result = myPc->get_part_entities(local_ents, max_dim);// go one dimension lower
+      // it is probably spherical, then
+      // fishy argument, fix this:
+      spherical = true;
+    }
+  }
   else local_ents = myRange;
   if (MB_SUCCESS != result || local_ents.empty()) {
     std::cout << "Problems getting source entities" << std::endl;
@@ -620,7 +631,7 @@ ErrorCode Coupler::interpolate(Coupler::Method *methods,
       Tag tag = tags[tinterp.vi_rd[5*i + 4]];
 
       result = MB_FAILURE;
-      if (LINEAR_FE == method || QUADRATIC_FE == method) {
+      if (LINEAR_FE == method || QUADRATIC_FE == method || SPHERICAL==method) {
         result = interp_field(mappedPts->vul_rd[mindex],
                               CartVect(mappedPts->vr_wr + 3*mindex),
                               tag, tinterp.vr_wr[i]);
@@ -732,13 +743,22 @@ ErrorCode Coupler::nat_param(double xyz[3],
       Element::SpectralHex* spcHex = (Element::SpectralHex*)_spectralSource;
 
       spcHex->set_gl_points((double*)xval, (double*)yval, (double*)zval);
-      tmp_nat_coords = spcHex->ievaluate(CartVect(xyz));
-      bool inside = spcHex->inside_nat_space(CartVect(xyz), epsilon);
-      if (!inside) {
-        std::cout << "point " << xyz[0] << " " << xyz[1] << " " << xyz[2] <<
-            " is not converging inside hex " << mbImpl->id_from_handle(eh) << "\n";
-        continue; // It is possible that the point is outside, so it will not converge
+      try {
+        tmp_nat_coords = spcHex->ievaluate(epsilon, CartVect(xyz) ); // introduce
+        bool inside = spcHex->inside_nat_space(CartVect(tmp_nat_coords), epsilon);
+        if (!inside) {
+#ifndef NDEBUG
+          std::cout << "point " << xyz[0] << " " << xyz[1] << " " << xyz[2] <<
+              " is not converging inside hex " << mbImpl->id_from_handle(eh) << "\n";
+#endif
+          continue; // It is possible that the point is outside, so it will not converge
+        }
       }
+      catch (Element::Map::EvaluationError&) {
+        continue;
+      }
+
+
     }
     else {
       const EntityHandle *connect;
@@ -795,6 +815,22 @@ ErrorCode Coupler::nat_param(double xyz[3],
         tmp_nat_coords = tetmap.ievaluate(pos);
         bool inside = tetmap.inside_nat_space(tmp_nat_coords, epsilon);
         if (!inside)
+          continue;
+      }
+      else if (MBQUAD == etype && spherical) {
+        Element::SphericalQuad sphermap(coords_vert);
+        if (!sphermap.inside_box(pos, epsilon))
+          continue;
+        try {
+          tmp_nat_coords = sphermap.ievaluate(pos, epsilon);
+          bool inside = sphermap.inside_nat_space(tmp_nat_coords, epsilon);
+          if (!inside)
+            continue;
+        }
+        catch (Element::Map::EvaluationError&) {
+          continue;
+        }
+        if (!sphermap.inside_nat_space(tmp_nat_coords, epsilon))
           continue;
       }
       else if (MBQUAD == etype) {

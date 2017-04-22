@@ -470,6 +470,52 @@ namespace Element {
     return xi;
   }// Map::ievaluate()
 
+  SphericalQuad::SphericalQuad(const std::vector<CartVect>& vertices): LinearQuad(vertices)
+  {
+    // project the vertices to the plane tangent at first vertex
+    v1=vertex[0]; // member data
+    double v1v1= v1%v1;
+    for (int j=1; j<4; j++)
+    {
+      CartVect vnew =v1v1/(vertex[j]%v1)*vertex[j]; // so that (vnew-v1)%v1 is 0
+      vertex[j]=vnew;
+    }
+    // will compute a transf matrix, such that a new point will be transformed with
+    // newpos =  transf * (pos-v1);
+    CartVect vx = vertex[1]-v1; // this will become Ox axis
+    vx = vx/vx.length();
+    CartVect vz = -v1/v1.length();// z will point down; with this, if the second vertex is along x,
+                                   // the det will be positive for typical HOMME meshes
+                                   // this allows to simplify the ievaluate,
+                                   // so we can just reuse Map::ievaluate
+    CartVect vy = vz*vx;
+    transf = Matrix3(vx[0], vx[1], vx[2], vy[0], vy[1], vy[2], vz[0], vz[1], vz[2]);
+    vertex[0]= CartVect(0.);
+    for (int j=1; j<4; j++)
+      vertex[j] = transf*(vertex[j]-v1);
+  }
+
+   CartVect SphericalQuad::ievaluate(const CartVect& x, double tol) const
+   {
+     // project to the plane tangent at first vertex
+     //CartVect v1=vertex[0];
+     double v1v1= v1%v1;
+     CartVect vnew =v1v1/(x%v1)*x; // so that (x-v1)%v1 is 0
+     vnew =  transf*(vnew-v1);
+     // det will be positive now
+     return Map::ievaluate(vnew, tol);
+   }
+
+   bool SphericalQuad::inside_box(const CartVect & pos, double & tol) const
+   {
+     // project to the plane tangent at first vertex
+      //CartVect v1=vertex[0];
+      double v1v1= v1%v1;
+      CartVect vnew =v1v1/(pos%v1)*pos; // so that (x-v1)%v1 is 0
+      vnew =  transf*(vnew-v1);
+      return Map::inside_box(vnew, tol);
+   }
+
 // filescope for static member data that is cached
   const double LinearEdge::corner[2][3] = {  { -1, 0, 0 },
                                          {  1, 0, 0 } };
@@ -901,7 +947,7 @@ namespace Element {
     return result;
   }
   // replicate the functionality of hex_findpt
-  CartVect SpectralHex::ievaluate(CartVect const & xyz) const
+  CartVect SpectralHex::ievaluate(double abs_eps, CartVect const & xyz) const
   {
     //find nearest point
     realType x_star[3];
@@ -911,7 +957,7 @@ namespace Element {
     unsigned c = opt_no_constraints_3;
     realType dist = opt_findpt_3(&_data, (const realType **)_xyz, x_star, r, &c);
     // if it did not converge, get out with throw...
-    if (dist > 0.9e+30)
+    if (dist > 10*abs_eps) // outside the element
     {
       std::vector<CartVect> dummy;
       throw Map::EvaluationError(xyz, dummy);
@@ -1049,6 +1095,7 @@ namespace Element {
   }// LinearQuad::evaluate
 
   Matrix3 LinearQuad::jacobian( const CartVect& xi ) const {
+    // this basically ignores the z component: xi[2] or vertex[][2]
     Matrix3 J(0.0);
     for (unsigned i = 0; i < LinearQuad::corner_count; ++i) {
       const double   xi_p = 1 + xi[0]*corner[i][0];
