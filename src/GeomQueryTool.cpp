@@ -115,7 +115,7 @@ ErrorCode GeomQueryTool::ray_fire(const EntityHandle volume,
   
   EntityHandle root;
   ErrorCode rval = geomTopoTool->get_root(volume, root);
-  if(MB_SUCCESS != rval) return rval;
+  MB_CHK_SET_ERR(rval, "Failed to get the obb tree root of the volume");
   
   // check behind the ray origin for intersections
   double neg_ray_len;
@@ -385,8 +385,7 @@ ErrorCode GeomQueryTool::point_in_box(EntityHandle volume, const double point[3]
   double minpt[3];
   double maxpt[3];
   ErrorCode rval = geomTopoTool->get_bounding_coords(volume,minpt,maxpt);
-  if (MB_SUCCESS != rval)
-    return rval;
+  MB_CHK_SET_ERR(rval, "Failed to get the bounding coordinates of the volume");
 
   // early exits
   if ( point[0] > maxpt[0] || point[0] < minpt[0]) {
@@ -415,7 +414,7 @@ ErrorCode GeomQueryTool::test_volume_boundary(const EntityHandle volume, const E
   if( history && history->prev_facets.size() ){
     // the current facet is already available
     rval = boundary_case( volume, dir, uvw[0], uvw[1], uvw[2], history->prev_facets.back(), surface );
-    if (MB_SUCCESS != rval) return rval;
+    MB_CHK_SET_ERR(rval, "Failed to resolve the boundary case");
   }
   else{
     // look up nearest facet
@@ -423,17 +422,17 @@ ErrorCode GeomQueryTool::test_volume_boundary(const EntityHandle volume, const E
     // Get OBB Tree for surface
     EntityHandle root;
     rval = geomTopoTool->get_root(volume, root);
-    if(MB_SUCCESS != rval) return rval;
+    MB_CHK_SET_ERR(rval, "Failed to get the volume's OBB tree root");
 
     // Get closest triangle on surface
     const CartVect point(xyz);
     CartVect nearest;
     EntityHandle facet_out;
     rval = geomTopoTool->obb_tree()->closest_to_location( point.array(), root, nearest.array(), facet_out );
-    if (MB_SUCCESS != rval) return rval;
+    MB_CHK_SET_ERR(rval, "Failed to find the closest point to location");
 
     rval = boundary_case( volume, dir, uvw[0], uvw[1], uvw[2], facet_out, surface );
-    if (MB_SUCCESS != rval) return rval;
+    MB_CHK_SET_ERR(rval, "Failed to resolve the boundary case");
 
   }
 
@@ -454,13 +453,11 @@ ErrorCode GeomQueryTool::point_in_volume_slow( EntityHandle volume, const double
   const CartVect point(xyz);
 
   rval = MBI->get_child_meshsets( volume, surfs );
-  if (MB_SUCCESS != rval)
-    return rval;
+  MB_CHK_SET_ERR(rval, "Failed to get the volume's child surfaces");
 
   senses.resize( surfs.size() );
   rval = geomTopoTool->get_surface_senses( volume, surfs.size(), &surfs[0], &senses[0] );
-  if (MB_SUCCESS != rval)
-    return rval;
+  MB_CHK_SET_ERR(rval, "Failed to get the volume's surface senses");
 
   for (unsigned i = 0; i < surfs.size(); ++i) {
     if (!senses[i])  // skip non-manifold surfaces
@@ -469,13 +466,11 @@ ErrorCode GeomQueryTool::point_in_volume_slow( EntityHandle volume, const double
     double surf_area = 0.0, face_area;
     faces.clear();
     rval = MBI->get_entities_by_dimension( surfs[i], 2, faces );
-    if (MB_SUCCESS != rval)
-      return rval;
+    MB_CHK_SET_ERR(rval, "Failed to get the surface entities by dimension");
 
     for (Range::iterator j = faces.begin(); j != faces.end(); ++j) {
       rval = poly_solid_angle( *j, point, face_area );
-      if (MB_SUCCESS != rval)
-        return rval;
+      MB_CHK_SET_ERR(rval, "Failed to determin the polygon's solid angle");
 
       surf_area += face_area;
     }
@@ -502,7 +497,7 @@ ErrorCode GeomQueryTool::closest_to_location( EntityHandle volume, const double 
   CartVect nearest;
   EntityHandle facet_out;
   rval = geomTopoTool->obb_tree()->closest_to_location( point.array(), root, nearest.array(), facet_out );
-  if (MB_SUCCESS != rval) return rval;
+  MB_CHK_SET_ERR(rval, "Failed to get the closest intersection to location");
 
   // calculate distance between point and nearest facet
   result = (point-nearest).length();
@@ -526,17 +521,13 @@ ErrorCode GeomQueryTool::measure_volume( EntityHandle volume, double& result )
 
     // get surfaces from volume
   rval = MBI->get_child_meshsets( volume, surfaces );
-  if (MB_SUCCESS != rval) return rval;
+  MB_CHK_SET_ERR(rval, "Failed to get the volume's child surfaces");
 
     // get surface senses
   std::vector<int> senses( surfaces.size() );
   rval = geomTopoTool->get_surface_senses( volume, surfaces.size(), &surfaces[0], &senses[0] );
-  if (MB_SUCCESS != rval) {
-    std::cerr << "ERROR: Surface-Volume relative sense not available. "
-              << "Cannot calculate volume." << std::endl;
-    return rval;
-  }
-
+  MB_CHK_SET_ERR(rval, "Failed to retrieve surface-volume sense data. Cannot calculate volume");
+  
   for (unsigned i = 0; i < surfaces.size(); ++i) {
       // skip non-manifold surfaces
     if (!senses[i])
@@ -545,15 +536,15 @@ ErrorCode GeomQueryTool::measure_volume( EntityHandle volume, double& result )
       // get triangles in surface
     Range triangles;
     rval = MBI->get_entities_by_dimension( surfaces[i], 2, triangles );
-    if (MB_SUCCESS != rval)
-      return rval;
+    MB_CHK_SET_ERR(rval, "Failed to get the surface triangles");
+    
     if (!triangles.all_of_type(MBTRI)) {
       std::cout << "WARNING: Surface " << surfaces[i]  // todo: use geomtopotool to get id by entity handle
                 << " contains non-triangle elements. Volume calculation may be incorrect."
                 << std::endl;
       triangles.clear();
       rval = MBI->get_entities_by_type( surfaces[i], MBTRI, triangles );
-      if (MB_SUCCESS != rval) return rval;
+      MB_CHK_SET_ERR(rval, "Failed to get the surface triangles");
     }
 
       // calculate signed volume beneath surface (x 6.0)
@@ -563,12 +554,12 @@ ErrorCode GeomQueryTool::measure_volume( EntityHandle volume, double& result )
     CartVect coords[3];
     for (Range::iterator j = triangles.begin(); j != triangles.end(); ++j) {
       rval = MBI->get_connectivity( *j, conn, len, true );
-      if (MB_SUCCESS != rval) return rval;
+      MB_CHK_SET_ERR(rval, "Failed to get the connectivity of the current triangle");
       if(3 != len) {
 	MB_CHK_SET_ERR(MB_FAILURE, "Incorrect connectivity length for triangle");
       }
       rval = MBI->get_coords( conn, 3, coords[0].array() );
-      if (MB_SUCCESS != rval) return rval;
+      MB_CHK_SET_ERR(rval, "Failed to get the coordinates of the current triangle's vertices");
 
       coords[1] -= coords[0];
       coords[2] -= coords[0];
@@ -587,15 +578,14 @@ ErrorCode GeomQueryTool::measure_area( EntityHandle surface, double& result )
     // get triangles in surface
   Range triangles;
   ErrorCode rval = MBI->get_entities_by_dimension( surface, 2, triangles );
-  if (MB_SUCCESS != rval)
-    return rval;
+  MB_CHK_SET_ERR(rval, "Failed to get the surface entities");
   if (!triangles.all_of_type(MBTRI)) {
     std::cout << "WARNING: Surface " << surface  // todo: use geomtopotool to get id by entity handle
               << " contains non-triangle elements. Area calculation may be incorrect."
               << std::endl;
     triangles.clear();
     rval = MBI->get_entities_by_type( surface, MBTRI, triangles );
-    if (MB_SUCCESS != rval) return rval;
+    MB_CHK_SET_ERR(rval, "Failed to the surface's triangle entities");
   }
 
     // calculate sum of area of triangles
@@ -605,12 +595,12 @@ ErrorCode GeomQueryTool::measure_area( EntityHandle surface, double& result )
   CartVect coords[3];
   for (Range::iterator j = triangles.begin(); j != triangles.end(); ++j) {
     rval = MBI->get_connectivity( *j, conn, len, true );
-    if (MB_SUCCESS != rval) return rval;
+    MB_CHK_SET_ERR(rval, "Failed to get the current triangle's connectivity");
     if(3 != len) {
       MB_CHK_SET_ERR(MB_FAILURE, "Incorrect connectivity length for triangle");
     }
     rval = MBI->get_coords( conn, 3, coords[0].array() );
-    if (MB_SUCCESS != rval) return rval;
+    MB_CHK_SET_ERR(rval, "Failed to get the current triangle's vertex coordinates");
 
     coords[1] -= coords[0];
     coords[2] -= coords[0];
@@ -633,7 +623,7 @@ ErrorCode GeomQueryTool::get_normal(EntityHandle surf, const double in_pt[3], do
   // if no history or history empty, use nearby facets
   if( !history || (history->prev_facets.size() == 0) ){
     rval = geomTopoTool->obb_tree()->closest_to_location( in_pt, root, numericalPrecision, facets );
-    if (MB_SUCCESS != rval) return rval;
+    MB_CHK_SET_ERR(rval, "Failed to get closest intersection to location");
   }
   // otherwise use most recent facet in history
   else{
@@ -742,8 +732,7 @@ ErrorCode GeomQueryTool::poly_solid_angle( EntityHandle face, const CartVect& po
   const EntityHandle* conn;
   int len;
   rval = MBI->get_connectivity( face, conn, len, true );
-  if (MB_SUCCESS != rval)
-    return rval;
+  MB_CHK_SET_ERR(rval, "Failed to get the connectivity of the polygon");
 
   // Allocate space to store vertices
   CartVect coords_static[4];
@@ -756,9 +745,8 @@ ErrorCode GeomQueryTool::poly_solid_angle( EntityHandle face, const CartVect& po
 
   // get coordinates
   rval = MBI->get_coords( conn, len, coords->array() );
-  if (MB_SUCCESS != rval)
-    return rval;
-
+  MB_CHK_SET_ERR(rval, "Failed to get the coordinates of the polygon vertices");
+  
   // calculate normal
   CartVect norm(0.0), v1, v0 = coords[1] - coords[0];
   for (int i = 2; i < len; ++i) {
