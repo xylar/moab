@@ -339,6 +339,7 @@ ErrorCode GeomQueryTool::point_in_volume(const EntityHandle volume,
       } else {
         std::cout << "error: unknown direction" << std::endl;
         return MB_FAILURE;
+	MB_SET_ERR(MB_FAILURE, "Error: unknown direction");
       }
     }
 
