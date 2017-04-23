@@ -130,7 +130,7 @@ int GeomTopoTool::global_id(EntityHandle this_set)
 
 EntityHandle GeomTopoTool::entity_by_id( int dimension, int id )
 {
-  if (0 <= dimension && 3 >= dimension) {
+  if (0 > dimension && 3 < dimension) {
     MB_CHK_SET_ERR_CONT(MB_FAILURE, "Incorrect dimension provided");
   };
   const Tag tags[] = { gidTag, geomTag };
