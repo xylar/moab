@@ -132,7 +132,7 @@ ErrorCode GeomQueryTool::ray_fire(const EntityHandle volume,
   // may be missed due to optimization within ray_intersect_sets
   if(nonneg_ray_len < -neg_ray_len) nonneg_ray_len = -neg_ray_len;
   if (0 > nonneg_ray_len || 0 <= neg_ray_len) {
-    MB_CHK_SET_ERR(MB_FAILURE, "Incorrect ray length provided");
+    MB_SET_ERR(MB_FAILURE, "Incorrect ray length provided");
   }
   
   // min_tolerance_intersections is passed but not used in this call
@@ -165,16 +165,16 @@ ErrorCode GeomQueryTool::ray_fire(const EntityHandle volume,
   // however, only one or the other may exist. dists[] may be populated, but
   // intersections are ONLY indicated by nonzero surfs[] and facets[].
   if (2 != dists.size() || 2 != facets.size()) {
-    MB_CHK_SET_ERR(MB_FAILURE, "Incorrect number of facets/distances");
+    MB_SET_ERR(MB_FAILURE, "Incorrect number of facets/distances");
   }
   if ( 0.0 < dists[0] || 0.0 > dists[1] ) {
-    MB_CHK_SET_ERR(MB_FAILURE, "Invalid intersection distance signs");
+    MB_SET_ERR(MB_FAILURE, "Invalid intersection distance signs");
   }
 
   // If both negative and nonnegative RTIs are returned, the negative RTI must
   // closer to the origin.
   if( (0!=facets[0] && 0!=facets[1]) && (-dists[0] > dists[1]) ) {
-    MB_CHK_SET_ERR(MB_FAILURE, "Invalid intersection distance values");
+    MB_SET_ERR(MB_FAILURE, "Invalid intersection distance values");
   }
 
   // If an RTI is found at negative distance, perform a PMT to see if the
@@ -187,7 +187,7 @@ ErrorCode GeomQueryTool::ray_fire(const EntityHandle volume,
     rval = MBI->get_parent_meshsets( surfs[0], vols );
     MB_CHK_SET_ERR(rval, "Failed to get the parent meshsets");
     if(2 != vols.size()) {
-      MB_CHK_SET_ERR(MB_FAILURE, "Invaid number of parent volumes found");
+      MB_SET_ERR(MB_FAILURE, "Invaid number of parent volumes found");
     }
     if(vols.front() == volume) {
       nx_vol = vols.back();
@@ -337,8 +337,6 @@ ErrorCode GeomQueryTool::point_in_volume(const EntityHandle volume,
         std::cout << "direction==tangent" << std::endl;
         sum+=0;
       } else {
-        std::cout << "error: unknown direction" << std::endl;
-        return MB_FAILURE;
 	MB_SET_ERR(MB_FAILURE, "Error: unknown direction");
       }
     }
@@ -363,8 +361,7 @@ ErrorCode GeomQueryTool::point_in_volume(const EntityHandle volume,
         std::cout << "direction==tangent" << std::endl;
         result = -1;
       } else {
-        std::cout << "error: unknown direction" << std::endl;
-        return MB_FAILURE;
+	MB_SET_ERR(MB_FAILURE, "Error: unknown direction");
       }
     }
   }
@@ -557,7 +554,7 @@ ErrorCode GeomQueryTool::measure_volume( EntityHandle volume, double& result )
       rval = MBI->get_connectivity( *j, conn, len, true );
       MB_CHK_SET_ERR(rval, "Failed to get the connectivity of the current triangle");
       if(3 != len) {
-	MB_CHK_SET_ERR(MB_FAILURE, "Incorrect connectivity length for triangle");
+	MB_SET_ERR(MB_FAILURE, "Incorrect connectivity length for triangle");
       }
       rval = MBI->get_coords( conn, 3, coords[0].array() );
       MB_CHK_SET_ERR(rval, "Failed to get the coordinates of the current triangle's vertices");
@@ -598,7 +595,7 @@ ErrorCode GeomQueryTool::measure_area( EntityHandle surface, double& result )
     rval = MBI->get_connectivity( *j, conn, len, true );
     MB_CHK_SET_ERR(rval, "Failed to get the current triangle's connectivity");
     if(3 != len) {
-      MB_CHK_SET_ERR(MB_FAILURE, "Incorrect connectivity length for triangle");
+      MB_SET_ERR(MB_FAILURE, "Incorrect connectivity length for triangle");
     }
     rval = MBI->get_coords( conn, 3, coords[0].array() );
     MB_CHK_SET_ERR(rval, "Failed to get the current triangle's vertex coordinates");
@@ -639,11 +636,11 @@ ErrorCode GeomQueryTool::get_normal(EntityHandle surf, const double in_pt[3], do
     rval = MBI->get_connectivity( facets[i], conn, len );
     MB_CHK_SET_ERR(rval, "Failed to get facet connectivity");
     if(3 != len) {
-      MB_CHK_SET_ERR(MB_FAILURE, "Incorrect connectivity length for triangle");
+      MB_SET_ERR(MB_FAILURE, "Incorrect connectivity length for triangle");
     }
 
     rval = MBI->get_coords( conn, 3, coords[0].array() );
-    MB_CHK_SET_ERR(MB_FAILURE, "Failed to get vertex coordinates");
+    MB_SET_ERR(MB_FAILURE, "Failed to get vertex coordinates");
 
     coords[1] -= coords[0];
     coords[2] -= coords[0];
@@ -682,7 +679,7 @@ ErrorCode GeomQueryTool::boundary_case(EntityHandle volume, int& result,
     rval = MBI->get_connectivity( facet, conn, len );
     MB_CHK_SET_ERR(rval, "Failed to get the triangle's connectivity");
     if(3 != len) {
-      MB_CHK_SET_ERR(MB_FAILURE, "Incorrect connectivity length for triangle");
+      MB_SET_ERR(MB_FAILURE, "Incorrect connectivity length for triangle");
     }
 
     rval = MBI->get_coords( conn, 3, coords[0].array() );
@@ -705,7 +702,7 @@ ErrorCode GeomQueryTool::boundary_case(EntityHandle volume, int& result,
       result = -1;    // tangent, therefore on boundary
     } else {
       result = -1;    // failure
-      return MB_FAILURE;
+      MB_SET_ERR(MB_FAILURE, "Failed to resolve boundary case");
     }
 
   // if uvw not provided, return on_boundary.

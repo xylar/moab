@@ -344,7 +344,7 @@ ErrorCode GeomTopoTool::is_owned_set(EntityHandle eh) {
   MB_CHK_SET_ERR(rval, "Failed to get entities");
   if(model_ents.find(eh) == model_ents.end())
     {
-      MB_CHK_SET_ERR(MB_FAILURE, "Entity handle not in model set");
+      MB_SET_ERR(MB_FAILURE, "Entity handle not in model set");
     }
   return MB_SUCCESS;
 }
@@ -462,7 +462,7 @@ ErrorCode GeomTopoTool::construct_obb_tree(EntityHandle eh)
       return MB_SUCCESS;
     }
   else {
-    MB_CHK_SET_ERR(MB_FAILURE, "Improper dimension or type for constructing obb tree");
+    MB_SET_ERR(MB_FAILURE, "Improper dimension or type for constructing obb tree");
   }
   
 }
@@ -603,7 +603,7 @@ ErrorCode GeomTopoTool::restore_topology()
         result = mdbImpl->get_connectivity(dents.front(), conn2, len2, true);
 	MB_CHK_SET_ERR(result, "Failed to get the connectivity of the first element");
 	if (len2 > 4) {
-	  MB_CHK_SET_ERR(MB_FAILURE, "Connectivity of incorrect length");
+	  MB_SET_ERR(MB_FAILURE, "Connectivity of incorrect length");
 	}
         err = CN::SideNumber(TYPE_FROM_HANDLE(dp1ents[i]), conn3, conn2, len2,
             dim, num, sense, offset);
@@ -701,7 +701,7 @@ ErrorCode GeomTopoTool::construct_vertex_ranges(const Range &geom_sets,
     // make the new range
     temp_verts = new (std::nothrow) Range();
     if(NULL == temp_verts) {
-      MB_CHK_SET_ERR(MB_FAILURE, "Could not construct Range object");
+      MB_SET_ERR(MB_FAILURE, "Could not construct Range object");
     }
 
     // get all the verts of those elements; use get_adjacencies 'cuz it handles ranges better
@@ -737,11 +737,11 @@ ErrorCode GeomTopoTool::set_sense(EntityHandle entity, EntityHandle wrt_entity,
   int edim = dimension(entity);
   int wrtdim = dimension(wrt_entity);
   if (-1 == edim || -1 == wrtdim)
-    return MB_FAILURE;// not geometry entities
+    MB_SET_ERR(MB_FAILURE, "Non-geometric entity provided");
   if (wrtdim - edim != 1)
-    return MB_FAILURE; // dimension mismatch
+    MB_SET_ERR(MB_FAILURE, "Entity dimension mismatch");
   if (sense < -1 || sense > 1)
-    return MB_FAILURE; // invalid sense
+    MB_SET_ERR(MB_FAILURE, "Invalid sense data provided");
 
   ErrorCode rval;
 
@@ -838,9 +838,10 @@ ErrorCode GeomTopoTool::get_sense(EntityHandle entity, EntityHandle wrt_entity,
   int edim = dimension(entity);
   int wrtdim = dimension(wrt_entity);
   if (-1 == edim || -1 == wrtdim)
-    return MB_FAILURE;// not geometry entities
+    MB_SET_ERR(MB_FAILURE, "Non-geometric entity provided");
   if (wrtdim - edim != 1)
-    return MB_FAILURE; // dimension mismatch
+    MB_SET_ERR(MB_FAILURE, "Entity dimension mismatch");
+
   ErrorCode rval;
 
   if (1 == edim) {
@@ -889,7 +890,7 @@ ErrorCode GeomTopoTool::get_surface_senses(EntityHandle surface_ent,
   int ent_dim = dimension(surface_ent);
   // verify the incoming entity dimensions for this call
   if( ent_dim != 2 ) {
-    MB_CHK_SET_ERR(MB_FAILURE, "Entity dimension is incorrect for surface meshset");
+    MB_SET_ERR(MB_FAILURE, "Entity dimension is incorrect for surface meshset");
   }
   
   // get the sense information for this surface
@@ -913,7 +914,7 @@ ErrorCode GeomTopoTool::set_surface_senses(EntityHandle surface_ent,
   int ent_dim = dimension(surface_ent);
   // verify the incoming entity dimensions for this call
   if( ent_dim != 2 ) {
-    MB_CHK_SET_ERR(MB_FAILURE, "Entity dimension is incorrect for surface meshset");
+    MB_SET_ERR(MB_FAILURE, "Entity dimension is incorrect for surface meshset");
   }
 
   // set the sense information for this surface
@@ -953,7 +954,7 @@ ErrorCode GeomTopoTool::get_senses(EntityHandle entity,
   int edim = dimension(entity);
 
   if (-1 == edim)
-    return MB_FAILURE;// not geometry entity
+    MB_SET_ERR(MB_FAILURE, "Non-geometric entity provided");
 
   ErrorCode rval;
   wrt_entities.clear();
@@ -1119,10 +1120,11 @@ ErrorCode GeomTopoTool::check_edge_sense_tags(bool create)
   return MB_SUCCESS;
 }
 
-ErrorCode  GeomTopoTool::add_geo_set(EntityHandle set, int dim, int gid)
+ErrorCode GeomTopoTool::add_geo_set(EntityHandle set, int dim, int gid)
 {
   if (dim <0 || dim > 4)
-    return MB_FAILURE;
+    MB_SET_ERR(MB_FAILURE, "Invalid geometric dimension provided");
+
   // see if it is not already set
   if (geomRanges[dim].find(set) != geomRanges[dim].end())
   {
@@ -1246,18 +1248,20 @@ ErrorCode GeomTopoTool::geometrize_surface_set(EntityHandle surface, EntityHandl
     rval = mdbImpl->get_adjacencies(&current_edge, 1, 2, false, tris);
     MB_CHK_SET_ERR(rval, "Failed to get the adjacent triangles to the current edge");
     if (tris.size()!=1 )
-      return MB_FAILURE; // not on boundary
+      MB_SET_ERR(MB_FAILURE, "Edge not on boundary");
+
     int side_n, sense, offset;
     rval = mdbImpl->side_number(tris[0], current_edge, side_n, sense, offset);
     MB_CHK_SET_ERR(rval, "Failed to get the current edge's side number");
 
     const EntityHandle * conn2;
     int nnodes2;
-    rval = mdbImpl-> get_connectivity(current_edge, conn2, nnodes2);
+    rval = mdbImpl->get_connectivity(current_edge, conn2, nnodes2);
     MB_CHK_SET_ERR(rval,"Failed to get the current edge's connectivity");
     
     if( nnodes2!=2 )
-      return MB_FAILURE;
+      MB_SET_ERR(MB_FAILURE, "Incorrect number of nodes found.");
+
     EntityHandle start_node = conn2[0];
     EntityHandle next_node = conn2[1];
     
@@ -1306,8 +1310,7 @@ ErrorCode GeomTopoTool::geometrize_surface_set(EntityHandle surface, EntityHandl
       if (good_edges.size()!=1)
       {
         std::cout<< " good_edges.size()=" <<  good_edges.size() << " STOP\n";
-        // cannot complete the loop
-        return MB_FAILURE;
+	MB_SET_ERR(MB_FAILURE, "Number of good edges is not one. Could not complete the loop");
       }
       // see if the orientation is good; if not, revert it
 
@@ -1315,7 +1318,7 @@ ErrorCode GeomTopoTool::geometrize_surface_set(EntityHandle surface, EntityHandl
       rval = mdbImpl-> get_connectivity(current_edge, conn2, nnodes2);
       MB_CHK_SET_ERR(rval, "Failed to get the connectivity of the current edge");
       if( nnodes2!=2)
-        return MB_FAILURE;
+	MB_SET_ERR(MB_FAILURE, "Incorrect number of nodes found");
 
       if (conn2[0] != next_node)
       {
@@ -1325,7 +1328,7 @@ ErrorCode GeomTopoTool::geometrize_surface_set(EntityHandle surface, EntityHandl
           // bail out
           std::cout<< "edge " << mdbImpl->id_from_handle (current_edge) << " not connected to node "<<
               next_node << "\n";
-          return MB_FAILURE;
+          MB_SET_ERR(MB_FAILURE, "Current edge is not connected to node");;
         }
         if (debugFlag)
         {
@@ -1712,13 +1715,14 @@ ErrorCode GeomTopoTool::generate_implicit_complement(EntityHandle &implicit_comp
       MB_CHK_SET_ERR(rval, "Could not get surface sense data");
 
       // set the surface sense wrt implicit complement volume
-      if(0==sense_data[0] && 0==sense_data[1]) return MB_FAILURE;
+      if(0==sense_data[0] && 0==sense_data[1])
+	MB_SET_ERR(MB_FAILURE, "No sense data for current surface");
       if(0==sense_data[0])
         sense_data[0] = implicit_complement_set;
       else if(0==sense_data[1])
         sense_data[1] = implicit_complement_set;
       else
-        return MB_FAILURE;
+	MB_SET_ERR(MB_FAILURE, "Could not insert implicit complement into surface sense data");
       
       // set the new sense data for this surface
       rval = set_surface_senses(*surf_i, sense_data[0], sense_data[1]);
