@@ -174,6 +174,14 @@ public:
    */
   ErrorCode point_in_volume_slow( const EntityHandle volume, const double xyz[3], int& result );
 
+  /**\brief Test if a point is inside or outsize a volume's axis-aligned bounding box
+   *
+   * This is used as a fast way to determine whether a point is inside or outside of a volume
+   * before performing a point_in_volume test which involves firing a ray.
+   * @param volume The volume to test
+   * @param point The location to test for bounding box containment
+   * @param inside set to 0 if point is outside the box, 1 if inside
+   */
   ErrorCode point_in_box(const EntityHandle volume, const double point[3], int &inside );
 
   

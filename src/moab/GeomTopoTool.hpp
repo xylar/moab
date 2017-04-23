@@ -78,7 +78,7 @@ public:
                         std::vector<EntityHandle> &wrt_entities,
                         std::vector<int> &senses);
   
-  /** Get the volume on the other side of a surface
+  /** \brief Get the volume on the other side of a surface
    *
    * @param A surface to query
    * @param old_volume A volume on one side of surface
@@ -93,13 +93,28 @@ public:
     //  0 = verts, 1 = curves, 2 = surfs, 3 = vols
   ErrorCode get_gsets_by_dimension( int dim, Range &gset);
     
-    //! Build obb tree for the entity set given; entity can be surface or volume
+  /** \brief Build obb tree for the entity set given; entity can be surface or volume
+   *
+   * @param eh EntityHandle of the volume or surface to construct the OBB tree around
+   */
   ErrorCode construct_obb_tree(EntityHandle eh);
 
-    //! Get the bouding points from a bounding box
+  /** \brief Get the bouding points from a bounding box
+   *
+   * @param volume The volume for which the bounding coordinates are requested
+   * @param minPt Location of the min xyz corner of the volume's axis-aligned bounding box
+   * @param maxPt Location of the max xyz corner of the volume's axis-aligned bounding box
+   */
   ErrorCode get_bounding_coords(EntityHandle volume, double minPt[3], double maxPt[3]);
 
-    //! Get the center point and three vectors for the OBB of a given volume
+  /** \breif Get the center point and three vectors for the OBB of a given volume
+   *
+   * @param volume The volume for which the OBB axes will be returned
+   * @param center coordinates of the oriented bounding box's center point
+   * @param axis1 scaled axis one of the oriented bounding box
+   * @param axis2 scaled axis two of the oriented bounding box
+   * @param axis3 scaled axis three of the oriented bounding box
+   */
   ErrorCode get_obb(EntityHandle volume, double center[3],
                      double axis1[3], double axis2[3], double axis3[3]);
 
@@ -121,7 +136,10 @@ public:
      */
   int dimension(EntityHandle this_set);
   
-    //! Used mostly for debugging purposes
+  /** \brief Return the global ID of a given entity set
+   *
+   * @param this_set EntitySet for which the global ID will be returned
+   */
   int global_id(EntityHandle this_set);
 
     //! Map from dimension & global ID to EntityHandle
