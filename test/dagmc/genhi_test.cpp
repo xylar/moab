@@ -138,6 +138,8 @@ ErrorCode build_cube( Interface *mbi,
   
   // set sense tag    
   rval = myGeomTool->set_sense(surf, volume, SENSE_FORWARD); MB_CHK_ERR(rval); 
+
+  delete myGeomTool;
   
   return MB_SUCCESS;
 }
@@ -450,6 +452,7 @@ void heappermute(Interface *mbi, int v[], int n, std::map< int, std::set<int> > 
       // delete the geometry so new one can be built;
       mbi->delete_mesh();
       delete DAG;
+      delete gh;
             
     }
   

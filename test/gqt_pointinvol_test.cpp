@@ -12,6 +12,8 @@
 
 using namespace moab;
 
+Core* MBI;
+GeomTopoTool* GTT;
 GeomQueryTool* GQT;
 
 #define CHKERR(A) do { if (MB_SUCCESS != (A)) { \
@@ -27,12 +29,12 @@ static const char input_file[] = STRINGIFY(MESHDIR) "/test_geom.h5m";
 
 void gqt_setup_test() 
 {
-  Interface *mbi = new Core();
-  ErrorCode rval = mbi->load_file(input_file);
+  MBI = new Core();
+  ErrorCode rval = MBI->load_file(input_file);
   CHECK_ERR(rval);
 
-  GeomTopoTool *gtt = new GeomTopoTool(mbi);
-  GQT = new GeomQueryTool(gtt);
+  GTT = new GeomTopoTool(MBI);
+  GQT = new GeomQueryTool(GTT);
   rval = GQT->initialize();
   CHECK_ERR(rval);
 }
@@ -271,5 +273,9 @@ int main(int /* argc */, char** /* argv */)
 	//result += RUN_TEST(dagmc_point_in({5.0, 0.0, 0.0}); // point in centre
 	//result += RUN_TEST(dagmc_point_in({-5.0, 0.0, 0.0}); // point in centre
 
+  delete GQT;
+  delete GTT;
+  delete MBI;
+  
   return result;
 }

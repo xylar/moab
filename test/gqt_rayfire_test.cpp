@@ -13,6 +13,8 @@
 
 using namespace moab;
 
+Interface* MBI;
+GeomTopoTool* GTT;
 GeomQueryTool* GQT;
 
 #define CHKERR(A) do { if (MB_SUCCESS != (A)) { \
@@ -30,11 +32,11 @@ double eps = 1.0e-6;
 
 void gqt_setup_test() 
 {
-  Interface* mbi = new Core();
-  ErrorCode rval = mbi->load_file(input_file);
+  MBI = new Core();
+  ErrorCode rval = MBI->load_file(input_file);
   CHECK_ERR(rval);
-  GeomTopoTool* gtt = new GeomTopoTool(mbi);
-  GQT = new GeomQueryTool(gtt);
+  GTT = new GeomTopoTool(MBI);
+  GQT = new GeomQueryTool(GTT);
   rval = GQT->initialize();
   CHECK_ERR(rval);
 }
@@ -169,5 +171,9 @@ int main(int /* argc */, char** /* argv */)
   result += RUN_TEST(gqt_outside_face_rayfire_history_fail); // fire ray from point outside geometry using ray history
   result += RUN_TEST(gqt_outside_face_rayfire_history); // fire ray from point outside geometry using ray history
 
+  delete GQT;
+  delete GTT;
+  delete MBI;
+  
   return result;
 }

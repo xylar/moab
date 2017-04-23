@@ -34,6 +34,7 @@ void gqt_load_file()
   CHECK_ERR(rval);
   GTT = new GeomTopoTool(MBI,true);
   GQT = new GeomQueryTool(GTT);
+
 }
 
 void gqt_load_file_dagmc_build_obb() 
@@ -50,11 +51,6 @@ void gqt_load_file_dagmc_build_obb()
   GQT = new GeomQueryTool(GTT);
   rval = GQT->initialize();
   CHECK_ERR(rval);
-
-  // delete instances
-  delete GTT;
-  delete GQT;
-  delete MBI;
 
 }
 
@@ -75,9 +71,6 @@ void gqt_load_file_dagmc_via_moab_build_obb() {
   rval = GQT->gttool()->construct_obb_trees();
   CHECK_ERR(rval);			      
 
-  delete GTT;
-  delete GQT;
-  delete MBI;
 
 }
 
@@ -95,10 +88,6 @@ void gqt_load_file_dagmc_internal_build_obb() {
   CHECK_ERR(rval);
   rval = GQT->gttool()->construct_obb_trees();
   CHECK_ERR(rval);			      
-
-  delete GTT;
-  delete GQT;
-  delete MBI;
 
 }
 
@@ -120,11 +109,11 @@ void gqt_test_obb_retreval() {
   rval = MBI->write_file("fcad");
   CHECK_ERR(rval);
 
-  // delete instances
-  delete GTT;
+  // cleanup instances
   delete GQT;
+  delete GTT;
   delete MBI;
-
+    
   // re-load written file
   MBI = new moab::Core();
   rval = MBI->load_file("fcad"); // open the
@@ -136,11 +125,7 @@ void gqt_test_obb_retreval() {
 
   // remove file
   remove("fcad");
-  // delete instances
-  delete GTT;
-  delete GQT;
-  delete MBI;
-  
+
 }
 
 
@@ -186,6 +171,7 @@ void gqt_point_in()
   GQT->point_in_volume(vol_h, xyz, result);
   CHECK_ERR(rval);			      
   CHECK_EQUAL(expect_result, result);
+
 }
 
 void gqt_test_obb_retreval_rayfire() {
@@ -243,10 +229,6 @@ void gqt_test_obb_retreval_rayfire() {
   CHECK_ERR(rval);
   CHECK_REAL_EQUAL(expect_next_surf_dist, next_surf_dist, eps);
 
-  // delete instances
-  delete GTT;
-  delete GQT;
-  delete MBI;
 }
 
 void gqt_rayfire()
@@ -276,7 +258,8 @@ void gqt_rayfire()
   rval = GQT->ray_fire(vol_h, xyz, dir, next_surf, next_surf_dist);
   CHECK_ERR(rval);
   CHECK_REAL_EQUAL(expect_next_surf_dist, next_surf_dist, eps);
-  
+
+
 }
 
 void gqt_closest_to()
@@ -378,28 +361,47 @@ void gqt_point_in_box_5()
   CHECK_EQUAL(result,1); //outside
 }
 
-int main(int /* argc */, char** /* argv */)
+void cleanup()
 {
-  int result = 0;
-  
-  result += RUN_TEST(gqt_load_file); // test ray fire
-  result += RUN_TEST(gqt_build_obb); // build the obb
-  result += RUN_TEST(gqt_create_impl_compl); // build the obb
-  result += RUN_TEST(gqt_num_vols); // make sure the num of vols correct
-  result += RUN_TEST(gqt_load_file_dagmc_build_obb); //
-  result += RUN_TEST(gqt_load_file_dagmc_via_moab_build_obb); //
-  result += RUN_TEST(gqt_load_file_dagmc_internal_build_obb); // 
-  result += RUN_TEST(gqt_test_obb_retreval); // check that we are retreving loaded obbs
-  result += RUN_TEST(gqt_test_obb_retreval_rayfire); // check that we can ray fire on loaded obbs
-  result += RUN_TEST(gqt_point_in); // check entity by point
-  result += RUN_TEST(gqt_rayfire); // ensure ray fire distance is correct
-  result += RUN_TEST(gqt_closest_to); // check the distance to surface nearest point
-  result += RUN_TEST(gqt_test_boundary); // check particle entering leaving
-
   // cleanup instances
   delete GQT;
   delete GTT;
   delete MBI;
+  
+}
+
+int main(int /* argc */, char** /* argv */)
+{
+  int result = 0;
+
+  result += RUN_TEST(gqt_load_file); // test ray fire
+  result += RUN_TEST(gqt_build_obb); // build the obb
+  result += RUN_TEST(gqt_create_impl_compl); // build the obb
+  result += RUN_TEST(gqt_num_vols); // make sure the num of vols correct
+  cleanup();
+  
+  result += RUN_TEST(gqt_load_file_dagmc_build_obb); //
+  cleanup();
+  
+  result += RUN_TEST(gqt_load_file_dagmc_via_moab_build_obb); //
+  cleanup();
+
+  result += RUN_TEST(gqt_load_file_dagmc_internal_build_obb); //
+  cleanup();
+  
+  result += RUN_TEST(gqt_test_obb_retreval); // check that we are retreving loaded obbs
+  cleanup();
+  
+  result += RUN_TEST(gqt_test_obb_retreval_rayfire); // check that we can ray fire on loaded obbs
+  cleanup();
+    
+  result += RUN_TEST(gqt_point_in); // check entity by point
+  cleanup();
+  
+  result += RUN_TEST(gqt_rayfire); // ensure ray fire distance is correct
+  result += RUN_TEST(gqt_closest_to); // check the distance to surface nearest point
+  result += RUN_TEST(gqt_test_boundary); // check particle entering leaving
+  cleanup();
   
   return result;
 }

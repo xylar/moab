@@ -397,6 +397,8 @@ int main( int argc, char* argv[] )
 
   delete gtt;
   delete gqt;
+
+  delete MBI;
   
   return errors;
 }
