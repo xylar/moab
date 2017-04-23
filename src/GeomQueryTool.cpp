@@ -147,7 +147,7 @@ ErrorCode GeomQueryTool::ray_fire(const EntityHandle volume,
                                      stats, &neg_ray_len, &volume, &senseTag,
                                      &ray_orientation,
                                      history ? &(history->prev_facets) : NULL );
-  if(MB_SUCCESS != rval) return rval;
+  MB_CHK_SET_ERR(rval, "Ray query failed");
 
   // If no distances are returned, the particle is lost unless the physics limit
   // is being used. If the physics limit is being used, there is no way to tell
@@ -185,7 +185,7 @@ ErrorCode GeomQueryTool::ray_fire(const EntityHandle volume,
     std::vector<EntityHandle> vols;
     EntityHandle nx_vol;
     rval = MBI->get_parent_meshsets( surfs[0], vols );
-    if(MB_SUCCESS != rval) return rval;
+    MB_CHK_SET_ERR(rval, "Failed to get the parent meshsets");
     if(2 != vols.size()) {
       MB_CHK_SET_ERR(MB_FAILURE, "Invaid number of parent volumes found");
     }
@@ -200,7 +200,7 @@ ErrorCode GeomQueryTool::ray_fire(const EntityHandle volume,
     // (a tolerance).
     int result;
     rval = point_in_volume( nx_vol, point, result, dir, history );
-    if(MB_SUCCESS != rval) return rval;
+    MB_CHK_SET_ERR(rval, "Point in volume query failed");
     if(1==result) exit_idx = 0;
 
   }
@@ -259,7 +259,7 @@ ErrorCode GeomQueryTool::point_in_volume(const EntityHandle volume,
   // get OBB Tree for volume
   EntityHandle root;
   rval = geomTopoTool->get_root(volume, root);
-  if(MB_SUCCESS != rval) return rval;
+  MB_CHK_SET_ERR(rval, "Failed to find the volume's obb tree root");
   
   // Don't recreate these every call. These cannot be the same as the ray_fire
   // vectors because both are used simultaneously.
@@ -316,7 +316,7 @@ ErrorCode GeomQueryTool::point_in_volume(const EntityHandle volume,
                                       &ray_length, NULL, NULL, &volume,
                                       &senseTag, NULL,
                                       history ? &(history->prev_facets) : NULL );
-  if(MB_SUCCESS != rval) return rval;
+  MB_CHK_SET_ERR(rval, "Ray fire query failed");
 
   // determine orientation of all intersections
   // 1 for entering, 0 for leaving, -1 for tangent
@@ -324,7 +324,7 @@ ErrorCode GeomQueryTool::point_in_volume(const EntityHandle volume,
   dirs.resize(dists.size());
   for(unsigned i=0; i<dists.size(); ++i) {
     rval = boundary_case( volume, dirs[i], u, v, w, facets[i], surfs[i] );
-    if(MB_SUCCESS != rval) return rval;
+    MB_CHK_SET_ERR(rval, "Failed to resolve boundary case");
   }
 
   // count all crossings
@@ -490,7 +490,7 @@ ErrorCode GeomQueryTool::closest_to_location( EntityHandle volume, const double 
   // Get OBB Tree for volume
   EntityHandle root;
   ErrorCode rval = geomTopoTool->get_root(volume, root);
-  if(MB_SUCCESS != rval) return rval;
+  MB_CHK_SET_ERR(rval, "Failed to get the volume's obb tree root");
 
   // Get closest triangles in volume
   const CartVect point(coords);
@@ -602,10 +602,11 @@ ErrorCode GeomQueryTool::measure_area( EntityHandle surface, double& result )
     rval = MBI->get_coords( conn, 3, coords[0].array() );
     MB_CHK_SET_ERR(rval, "Failed to get the current triangle's vertex coordinates");
 
-    coords[1] -= coords[0];
-    coords[2] -= coords[0];
-    coords[0] = coords[1] * coords[2];
-    result += coords[0].length();
+    //calculated area using cross product of triangle edges
+    CartVect v1 = coords[1] - coords[0];
+    CartVect v2 = coords[2] - coords[0];
+    CartVect xp = v1 * v2;
+    result += xp.length();
   }
   result *= 0.5;
   return MB_SUCCESS;
@@ -616,7 +617,7 @@ ErrorCode GeomQueryTool::get_normal(EntityHandle surf, const double in_pt[3], do
 {
   EntityHandle root;
   ErrorCode rval = geomTopoTool->get_root(surf, root);
-  if(MB_SUCCESS != rval) return rval;
+  MB_CHK_SET_ERR(rval, "Failed to get the surface's obb tree root");
 
   std::vector<EntityHandle> facets;
 
@@ -678,16 +679,16 @@ ErrorCode GeomQueryTool::boundary_case(EntityHandle volume, int& result,
     int len, sense_out;
 
     rval = MBI->get_connectivity( facet, conn, len );
-    if(MB_SUCCESS != rval) return rval;
+    MB_CHK_SET_ERR(rval, "Failed to get the triangle's connectivity");
     if(3 != len) {
       MB_CHK_SET_ERR(MB_FAILURE, "Incorrect connectivity length for triangle");
     }
 
     rval = MBI->get_coords( conn, 3, coords[0].array() );
-    if(MB_SUCCESS != rval) return rval;
+    MB_CHK_SET_ERR(rval, "Failed to get vertex coordinates");
 
     rval = geomTopoTool->get_sense( surface, volume, sense_out );
-    if(MB_SUCCESS != rval) return rval;
+    MB_CHK_SET_ERR(rval, "Failed to get the surface's sense with respect to it's volume");
 
     coords[1] -= coords[0];
     coords[2] -= coords[0];
