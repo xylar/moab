@@ -181,7 +181,7 @@ void gqt_point_in()
   GQT->initialize();
 
   // get volume
-  vol_h = GQT->gttool()->entity_by_id(3,1);
+  vol_h = GQT->gttool()->entity_by_id(3,vol_idx);
   // test point in volume
   GQT->point_in_volume(vol_h, xyz, result);
   CHECK_ERR(rval);			      

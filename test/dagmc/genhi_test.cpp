@@ -41,7 +41,7 @@ ErrorCode build_cube( Interface *mbi,
   
   // Define a 1x1x1 cube centered at orgin
 
-  // coordinates of each corner 
+  // coordinates of each corner
   const double coords[] = {
     0.5, -0.5, -0.5, 
     0.5,  0.5, -0.5,
@@ -65,8 +65,8 @@ ErrorCode build_cube( Interface *mbi,
 
   
   // Create the geometry
-  int num_verts = 8; 
-  int num_tris = 12; 
+  const int num_verts = 8; 
+  const int num_tris = 12; 
   EntityHandle verts[num_verts], tris[num_tris], surf;
 
   rval = mbi->create_meshset( MESHSET_SET, surf ); MB_CHK_ERR(rval);
@@ -205,7 +205,7 @@ bool check_tree ( Interface *mbi, DagMC *DAG, std::map< int, std::set<int> > ref
    }
 
   //go through volumes, create sets of children
-  for ( int i = 1; i <= DAG->num_entities(3) ; i++)
+  for ( unsigned int i = 1; i <= DAG->num_entities(3) ; i++)
     {
       //get vol id
       EntityHandle volume = DAG->entity_by_index(3, i);
@@ -242,17 +242,16 @@ bool check_tree ( Interface *mbi, DagMC *DAG, std::map< int, std::set<int> > ref
 
 Range get_children_by_dimension(Interface *mbi, EntityHandle parent, int desired_dimension)
 {
-  ErrorCode rval;
   Range all_children, desired_children;
   Range::iterator it;
   int actual_dimension;
 
   all_children.clear();
-  rval = mbi->get_child_meshsets(parent, all_children);
+  mbi->get_child_meshsets(parent, all_children);
 
   for ( it = all_children.begin() ; it != all_children.end() ; ++it)
     {
-      rval = mbi->tag_get_data(geom_tag, &(*it), 1, &actual_dimension);
+      mbi->tag_get_data(geom_tag, &(*it), 1, &actual_dimension);
       if ( actual_dimension == desired_dimension )
         {
           desired_children.insert(*it);
