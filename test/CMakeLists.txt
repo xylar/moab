@@ -70,9 +70,12 @@ foreach( fname ${TESTS} )
 endforeach()
 
 if(ENABLE_PYMOAB)
-  ADD_TEST(NAME PyMOAB_tests
-    COMMAND env LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/lib/:$ENV{LD_LIBRARY_PATH} PYTHONPATH=${PYMOAB_LOCAL_INSTALL_PATH}:$ENV{PYTHONPATH} nosetests
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pymoab/tests/)
+  SET(PYMOAB_TESTS test_core test_hom test_scd test_range test_tag test_topo_util)
+  FOREACH(pymoab_test ${PYMOAB_TESTS})
+    ADD_TEST(NAME pymoab_${pymoab_test}
+      COMMAND env LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/lib/:$ENV{LD_LIBRARY_PATH} PYTHONPATH=${PYMOAB_LOCAL_INSTALL_PATH}:$ENV{PYTHONPATH} python ${pymoab_test}.py
+      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pymoab/tests/)
+  ENDFOREACH(pymoab_test)
 endif()
 
 add_executable( TestTypeSequenceManager ${CMAKE_SOURCE_DIR}/test/TestUtil.hpp TestTypeSequenceManager.cpp)

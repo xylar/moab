@@ -74,7 +74,12 @@ if (PYTHON AND NOSE AND NOT PYTHON_MODULES_MISSING)
   INSTALL(FILES ${PYMOAB_EGG} DESTINATION ${PYMOAB_INSTALL_PREFIX} )
 
   # run all pymoab tests, local install is added to PYTHONPATH so that make check can be run before install
-  ADD_CUSTOM_TARGET(pymoab-tests COMMAND cd ${CMAKE_CURRENT_BINARY_DIR}/tests/ && LD_LIBRARY_PATH=${CMAKE_CURRENT_BINARY_DIR}/../lib/ PYTHONPATH=${PYMOAB_LOCAL_INSTALL_PATH}:$ENV{PYTHONPATH} nosetests)
+  ADD_CUSTOM_TARGET(pymoab-tests)
+
+  SET(PYMOAB_TESTS test_core test_hom test_scd test_range test_tag test_topo_util)
+  FOREACH(pymoab_test ${PYMOAB_TESTS})
+    ADD_DEPENDENCIES(pymoab-tests pymoab_${pymoab_test})
+  ENDFOREACH(pymoab_test)
   
 endif()
 
