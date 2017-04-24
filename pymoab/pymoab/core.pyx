@@ -343,7 +343,6 @@ cdef class Core(object):
         if coords_as_arr.ndim > 1:
             assert coords_as_arr.ndim == 2
             coords_as_arr = coords_as_arr.flatten()
-            print len(coords_as_arr)
         cdef np.ndarray[np.float64_t, ndim=1] coords_arr = _convert_array(coords_as_arr, [float, np.float64], np.float64)
         assert len(coordinates)%3 == 0, "Incorrect number of coordinates provided."
         cdef moab.ErrorCode err = self.inst.create_vertices(<double *> coords_arr.data,

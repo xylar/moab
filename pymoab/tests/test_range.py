@@ -1,6 +1,7 @@
 from pymoab import core
 from pymoab import types
 from pymoab.rng import Range
+from driver import test_driver
 import numpy as np
 
 def test_range():
@@ -88,3 +89,7 @@ def test_range():
     else:
         print "Shouldn't be here. Test fails."
         raise AssertionError
+
+if __name__ == "__main__":
+    tests = [test_range,]
+    test_driver(tests)

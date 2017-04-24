@@ -4,6 +4,7 @@ from pymoab.rng import Range
 from pymoab.scd import ScdInterface
 from pymoab.hcoord import HomCoord
 from subprocess import call
+from driver import test_driver
 import numpy as np
 import os
 
@@ -372,7 +373,6 @@ def test_get_coords():
     coords = np.array((0,0,0,1,0,0,1,1,1),dtype='float64')
     verts = mb.create_vertices(coords)
     ret_coords = mb.get_coords(verts)
-    print ret_coords
     for i in range(len(coords)):
         CHECK_EQ(ret_coords[i],coords[i])
 
@@ -434,7 +434,6 @@ def test_get_ents_by_tnt():
                                                    types.MBVERTEX,
                                                    test_case['tag_arr'],
                                                    test_case['value_arr'])
-        print "Test case: ", test_case
         CHECK_EQ(len(entities),test_case['expected_size'])
 
     try:
@@ -488,7 +487,6 @@ def test_get_ents_by_tnt():
     #                                                types.MBVERTEX,
     #                                                test_case['tag_arr'],
     #                                                test_case['value_arr'])
-    #     print "Test Case: " , test_case
     #     CHECK_EQ(len(entities),test_case['expected_size'])
 
     ###VECTOR TAG TESTS###
@@ -773,4 +771,33 @@ def test_create_elements_iterable():
     all_tris = mb.get_entities_by_type(rs,types.MBTRI)
     CHECK_EQ(len(all_tris),4)
 
+    
+if __name__ == "__main__":
+    tests = [test_load_mesh,
+             test_write_mesh,
+             test_delete_mesh,
+             test_get_tag,
+             test_integer_tag,
+             test_double_tag,
+             test_opaque_tag,
+             test_tag_list,
+             test_create_meshset,
+             test_create_elements,
+             test_tag_failures,
+             test_adj,
+             test_type_from_handle,
+             test_meshsets,
+             test_rs,
+             test_get_coords,
+             test_get_ents_by_type,
+             test_get_ents_by_tnt,
+             test_get_entities_by_handle,
+             test_get_entities_by_dimension,
+             test_parent_child,
+             test_remove_ents,
+             test_iterables,
+             test_vec_tags,
+             test_create_element_iterable,
+             test_create_elements_iterable]
+    test_driver(tests)
     

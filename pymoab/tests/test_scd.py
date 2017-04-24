@@ -3,6 +3,7 @@ from pymoab import types
 from pymoab.scd import ScdInterface
 from pymoab.hcoord import HomCoord
 from subprocess import call
+from driver import test_driver
 import numpy as np
 import os
 
@@ -10,13 +11,10 @@ import os
 def test_scds():
     
     bounds = [0,0,0,10,0,0]
-    print bounds    
     scd_tst(bounds)
     bounds = [0,0,0,10,10,0]
-    print bounds    
     scd_tst(bounds)
     bounds = [0,0,0,10,10,10]
-    print bounds
     scd_tst(bounds)
 
 def scd_tst(bnds):
@@ -77,3 +75,7 @@ def evaluate_sequence(box):
                 assert box.get_params(this_vert) == [i,j,k]
 
                 assert box.contains(i,j,k)
+
+if __name__ == "__main__":
+    tests = [test_scds,]
+    test_driver(tests)

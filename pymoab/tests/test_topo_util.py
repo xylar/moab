@@ -1,6 +1,7 @@
 from pymoab import core
 from pymoab import types
 from pymoab import topo_util
+from driver import test_driver
 import numpy as np
 
 
@@ -56,3 +57,11 @@ def test_construct_aentities():
 
     assert edges_before != edges_after
     assert len(edges_after) == 3
+
+
+if __name__ == "__main__":
+    tests = [test_get_bridge_adjacencies,
+             test_get_average_position,
+             test_construct_aentities]
+    test_driver(tests)
+

@@ -3,6 +3,8 @@ from pymoab import types
 from pymoab.hcoord import HomCoord
 from math import sqrt
 import numpy as np
+from driver import test_driver
+
 
 def test_homcoord():
 
@@ -27,7 +29,6 @@ def test_homcoord():
     assert(2 == h.j())
     assert(3 == h.k())
     assert(4 == h.h())
-    print h.length_squared()
     assert(14 == h.length_squared())
     assert(int(sqrt(14)) == h.length())
     h.normalize()
@@ -38,3 +39,8 @@ def test_homcoord():
     assert(3 == h.j())
     assert(2 == h.k())
     assert(1 == h.h())
+
+
+if __name__ == "__main__":
+    tests = [test_homcoord,]
+    test_driver(tests)

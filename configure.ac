@@ -198,7 +198,6 @@ else
     ENABLE_pymoab=yes
     AM_PATH_PYTHON()
     AC_PYTHON_MODULE(numpy)
-    AC_PYTHON_MODULE(nose)
     AC_PYTHON_MODULE(setuptools)
     AC_PYTHON_MODULE(cython)
     AC_MSG_CHECKING(for proper cython capabilities)
