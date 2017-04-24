@@ -40,7 +40,9 @@ def test_homcoord():
     assert(2 == h.k())
     assert(1 == h.h())
 
-
+    # testing for possible bug in iterator
+    lh = list(h)
+    
 if __name__ == "__main__":
     tests = [test_homcoord,]
     test_driver(tests)

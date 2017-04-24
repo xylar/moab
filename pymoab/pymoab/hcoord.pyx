@@ -30,7 +30,10 @@ cdef class HomCoord(object):
 
     def __getitem__(self, int index):
         cdef int val = deref(self.inst)[index]
-        return val
+        if index < 4:
+            return val
+        else:
+            raise StopIteration
 
     def __add__(HomCoord self, HomCoord a):
         cdef moab.HomCoord sum = deref(self.inst) + deref(a.inst)
