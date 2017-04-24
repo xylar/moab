@@ -161,7 +161,7 @@ if ENABLE_mbtempest
   AM_CPPFLAGS += $(TEMPESTREMAP_INCLUDE) -I$(top_srcdir)/src/Remapping -I$(top_srcdir)/src/IntxMesh
   bin_PROGRAMS += mbtempest
 mbtempest_SOURCES = mbtempest.cpp
-mbtempest_LDADD = $(top_builddir)/src/Remapping/libRemapping.la $(top_builddir)/src/IntxMesh/libIntxMesh.la $(LDADD) $(TEMPESTREMAP_LIBS)
+mbtempest_LDADD = $(LDADD) $(TEMPESTREMAP_LIBS)
 endif
 
 if ENABLE_mbmerge

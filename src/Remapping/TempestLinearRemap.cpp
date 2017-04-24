@@ -16,7 +16,7 @@
 #include "SparseMatrix.h"
 #include "OverlapMesh.h"
 
-#include "TempestOfflineMap.hpp"
+#include "moab/TempestOfflineMap.hpp"
 #include "DebugOutput.hpp"
 
 #include "netcdfcpp.h"

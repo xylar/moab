@@ -145,7 +145,13 @@ void update_tracer_test(iMesh_Instance instance,
 }
 
 void update_tracer(iMesh_Instance instance,
-    iBase_EntitySetHandle imesh_euler_set, int * ierr) {
+    iBase_EntitySetHandle imesh_euler_set, int * ierr)
+{
+  using namespace moab;
+  const double radius = 1.;
+  const double gtol = 1.e-9;
+  const bool debug = false;
+
   Range ents;
   moab::Interface * mb = MOABI;
   *ierr = 1;

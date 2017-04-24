@@ -6,17 +6,9 @@ lib_LTLIBRARIES = libMOAB.la
 AM_CPPFLAGS = 
 
 # Subdirectories to build
-SUBDIRS =
-libMOAB_la_LIBADD =
-
+SUBDIRS = io .
+libMOAB_la_LIBADD = io/libmoabio.la
 EXTRA_DIST = 
-SUBDIRS += io IntxMesh
-libMOAB_la_LIBADD += io/libmoabio.la IntxMesh/libIntxMesh.la
-if HAVE_TEMPESTREMAP
- SUBDIRS += Remapping
- libMOAB_la_LIBADD += Remapping/libRemapping.la
-endif
-SUBDIRS += .
 
 if ENABLE_mesquite
 SUBDIRS += mesquite
@@ -82,6 +74,11 @@ libMOAB_la_SOURCES = \
   HomXform.cpp \
   iMOAB.cpp \
   Internals.hpp \
+  IntxMesh/Intx2Mesh.cpp  \
+  IntxMesh/Intx2MeshInPlane.cpp  \
+  IntxMesh/Intx2MeshOnSphere.cpp \
+  IntxMesh/IntxRllCssphere.cpp \
+  IntxMesh/IntxUtils.cpp \
   LloydSmoother.cpp \
   MBCNArrays.hpp \
   MergeMesh.cpp \
@@ -281,11 +278,55 @@ pointlocinclude_HEADERS = \
   moab/point_locater/point_locater.hpp \
   moab/point_locater/parametrizer.hpp
 
+intxmeshincludedir = $(includedir)/moab/IntxMesh
+intxmeshinclude_HEADERS = \
+	IntxMesh/moab/Intx2Mesh.hpp \
+	IntxMesh/moab/IntxUtils.hpp \
+  IntxMesh/moab/Intx2MeshInPlane.hpp \
+  IntxMesh/moab/Intx2MeshOnSphere.hpp \
+  IntxMesh/moab/IntxRllCssphere.hpp   
+
+# Conditional sources
+if ENABLE_mbtempest
+MOAB_REMAPPING_SRCS = \
+     Remapping/Remapper.cpp  \
+     Remapping/RemapperUtils.cpp
+
+MOAB_REMAPPING_HDRS = \
+	Remapping/moab/Remapper.hpp \
+  Remapping/moab/RemapperUtils.hpp
+
+AM_CPPFLAGS += -I$(srcdir)/Remapping
+
+if HAVE_TEMPESTREMAP
+  AM_CPPFLAGS += $(TEMPESTREMAP_INCLUDE)
+  AM_LDFLAGS += $(TEMPESTREMAP_LIBS)
+
+  MOAB_REMAPPING_SRCS += \
+     Remapping/TempestRemapper.cpp  \
+     Remapping/TempestLinearRemap.cpp \
+     Remapping/TempestOfflineMap.cpp
+
+  MOAB_REMAPPING_HDRS += \
+     Remapping/moab/TempestRemapper.hpp \
+     Remapping/moab/TempestOfflineMap.hpp
+
+endif # if HAVE_TEMPESTREMAP
+
+# Add the remapping sources to the library
+libMOAB_la_SOURCES += $(MOAB_REMAPPING_SRCS)
+# Add the include headers to installation paths
+remappingincludedir = $(includedir)/moab/IntxMesh
+remappinginclude_HEADERS = $(MOAB_REMAPPING_HDRS)
+
+endif # if ENABLE_mbtempest
+
 if HAVE_HDF5
   nobase_libMOAB_la_include_HEADERS += moab/mhdf_public.h
 endif
 
 if PARALLEL
+#  	 IntxMesh/wrap_intx.cpp
   libMOAB_la_SOURCES += \
      parallel/ParallelComm.cpp \
      parallel/ProcConfig.cpp \

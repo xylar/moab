@@ -45,14 +45,14 @@ if PARALLEL
   noinst_PROGRAMS += linear_advection 
 if HAVE_HDF5
   diffusion_SOURCES = diffusion.cpp
-  intx_imesh_SOURCES = intx_imesh.cpp
+  intx_imesh_SOURCES = intx_imesh.cpp update_tracer.cpp
   intx_imesh_LDADD =  $(top_builddir)/itaps/imesh/libiMesh.la $(top_builddir)/src/libMOAB.la
   cslam_par_test_SOURCES = cslam_par_test.cpp
   intx_mpas_SOURCES = intx_mpas.cpp
   noinst_PROGRAMS += cslam_par_test intx_imesh intx_mpas diffusion 
 if ENABLE_FORTRAN
-  advection_SOURCES = advection.F90
-  advection_LDADD =  $(top_builddir)/itaps/imesh/libiMesh.la $(top_builddir)/src/libMOAB.la $(FCLIBS)
+  advection_SOURCES = advection.F90 
+  advection_LDADD =  update_tracer.o $(top_builddir)/itaps/imesh/libiMesh.la $(top_builddir)/src/libMOAB.la $(FCLIBS)
   noinst_PROGRAMS += advection
 endif
 endif

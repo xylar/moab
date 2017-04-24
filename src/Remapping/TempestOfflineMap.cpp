@@ -11,7 +11,7 @@
 #include "SparseMatrix.h"
 #include "STLStringHelper.h"
 
-#include "TempestOfflineMap.hpp"
+#include "moab/TempestOfflineMap.hpp"
 #include "DebugOutput.hpp"
 
 // NetCDF-C++ interfaces

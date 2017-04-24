@@ -4,24 +4,21 @@
  *  Input: arrival mesh, already distributed on processors, and a departure position for
  *  each vertex, saved in a tag DP
  */
-#include <stdio.h>
-#include <string.h>
+#include <string>
+#include <iostream>
+#include "moab/Core.hpp"
+#include "moab/Intx2MeshOnSphere.hpp"
+#include "moab/IntxUtils.hpp"
+
 #include "moab_mpi.h"
 #include "iMeshP.h"
+#include "MBiMesh.hpp"
 
-
-#define IMESH_ASSERT(ierr) if (ierr!=0) printf("imesh assert\n");
+#define IMESH_ASSERT(ierr) if (ierr!=0) std::cout << "iMesh Assert: \n";
 #define IMESH_NULL 0
 
-#ifdef __cplusplus
-extern "C" {
-#endif
- void update_tracer( iMesh_Instance instance,  iBase_EntitySetHandle eulerSet, int * ierr);
-
-#ifdef __cplusplus
-} // extern "C"
-#endif
-
+extern "C" void update_tracer(iMesh_Instance instance,
+    iBase_EntitySetHandle imesh_euler_set, int *ierr);
 
 int main(int argc, char* argv[]){
   MPI_Init(&argc, &argv);
@@ -50,7 +47,7 @@ int main(int argc, char* argv[]){
   const char * filename = "HN16DP.h5m"; // the file should have the dp tag already
 
   if (0==rank)
-    printf("load in parallel the file: %s \n", filename);
+    std::cout << "Load in parallel the file: " << filename << std::endl;
   iMeshP_loadAll(imesh,
               partn,
               root,
@@ -68,27 +65,22 @@ int main(int argc, char* argv[]){
                       &num_sets,
                       &ierr);
   IMESH_ASSERT(ierr);
-  printf("There's %d entity sets here on process rank %d \n", num_sets, rank);
+  std::cout << "There's " << num_sets << " entity sets here on process rank " << rank << std::endl;
 
   iBase_EntitySetHandle euler_set;
 
-  iMesh_createEntSet(imesh, 0, &euler_set, &ierr);
-  IMESH_ASSERT(ierr);
+  iMesh_createEntSet(imesh, 0, &euler_set, &ierr);IMESH_ASSERT(ierr);
 
   iBase_EntityHandle *cells = NULL;
   int ents_alloc = 0;
   int ents_size = 0;
 
   iMesh_getEntities(imesh, root, iBase_FACE, iMesh_ALL_TOPOLOGIES, &cells,
-      &ents_alloc, &ents_size, &ierr);
-  IMESH_ASSERT(ierr);
+      &ents_alloc, &ents_size, &ierr);IMESH_ASSERT(ierr);
 
-  iMesh_addEntArrToSet(imesh, cells, ents_size, euler_set, &ierr);
+  iMesh_addEntArrToSet(imesh, cells, ents_size, euler_set, &ierr);IMESH_ASSERT(ierr);
 
-  IMESH_ASSERT(ierr);
-
-  update_tracer( imesh, euler_set, &ierr);
-  IMESH_ASSERT(ierr);
+  update_tracer( imesh, euler_set, &ierr);IMESH_ASSERT(ierr);
 
   // write everything
   const char * out_name = "out.h5m";
@@ -102,7 +94,10 @@ int main(int argc, char* argv[]){
   IMESH_ASSERT(ierr);
 
   if (0==rank)
-    printf("Done\n");
-  MPI_Finalize(); //probably the 4th time this is called.. no big deal
+    std::cout << "Done\n";
+  MPI_Finalize();
 
+  return 0;
 }
+
+

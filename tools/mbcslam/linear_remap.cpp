@@ -607,9 +607,9 @@ void decide_gnomonic_plane_test(const CartVect & pos, int & plane) {
       plane = 4;
     }
   } else {
-    if (abs(X) < Z) {
+    if (fabs(X) < Z) {
       plane = 6;
-    } else if (Z < -abs(X)) {
+    } else if (Z < -fabs(X)) {
       plane = 5;
     } else if ((X > 0) & (Y > 0)) {
       plane = 1;
