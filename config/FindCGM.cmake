@@ -9,15 +9,18 @@
 #   CGM_INCLUDE_DIRS  directories containing CGM headers
 #   CGM_DEFINES       preprocessor definitions you should add to source files
 #   CGM_LIBRARIES     paths to CGM library and its dependencies
-#
-# Note that this script does not produce CGM_VERSION as that information
-# is not available in the "cgm.make" configuration file that CGM creates.
-
+set (CGM_DIR "" CACHE PATH "Path to search for CGM header and library files")
 find_file(CGM_CMAKE_CFG CGMConfig.cmake
     HINTS ${CGM_DIR} ${CGM_DIR}/lib/cmake/CGM
 )
+MARK_AS_ADVANCED(CGM_CMAKE_CFG)
 
+message("CGM config path - ${CGM_CMAKE_CFG}")
+if (CGM_CMAKE_CFG)
 include (${CGM_CMAKE_CFG})
+endif (CGM_CMAKE_CFG)
+
+if (CGM_FOUND)
 
 # Include dir
 find_path(IGEOM_INCLUDE_DIR
@@ -29,18 +32,14 @@ find_path(CGM_LIB_PATH
     NAMES cgm.make
     PATHS ${CGM_DIR} ${CGM_DIR}/lib ${CGM_DIR}/../..
 )
+MARK_AS_ADVANCED(IGEOM_INCLUDE_DIR CGM_LIB_PATH)
 #get_filename_component(OCE_LIBRARY_DIR "${OCE_DIR}/OCEConfig.cmake" PATH)
 
 SET(MOAB_HAVE_CGM_FACET ${CGM_HAS_FACET})
 SET(MOAB_HAVE_CGM_OCC ${CGM_HAS_OCC})
 SET(MOAB_CGM_GEOM_ENGINE "${PRIMARY_GEOMETRY_ENGINE}")
 
-find_file(CGM_CFG cgm.make
-  PATHS ${CGM_DIR} ${CGM_DIR}/lib ${CGM_LIB_PATH}
-)
-
 SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${CGM_LDFLAGS}")
-message("CGM Linker flags: ${CMAKE_EXE_LINKER_FLAGS}")
 
 # Split the version correctly
 string(REPLACE "." ";" VERSION_LIST "${CGM_VERSION}")
@@ -54,12 +53,7 @@ message("        Primary Geometry Engine : ${PRIMARY_GEOMETRY_ENGINE}")
 message("        Include Directory       : ${IGEOM_INCLUDE_DIR}")
 message("        Library Directory       : ${CGM_LIB_PATH}")
 
-#message("CGM_CFG = ${CGM_CFG}")
-#message("CGM_DIR = ${CGM_DIR}")
-#message("CGM_INCLUDE_DIRS = ${CGM_INCLUDES}")
-#message("CGM_LIBRARIES = ${CGM_LIBRARIES}")
-#message("IGEOM_INCLUDE_DIR = ${IGEOM_INCLUDE_DIR}")
-#message("CGM_VERSION = ${CGM_VERSION}")
+endif(CGM_FOUND)
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(CGM
