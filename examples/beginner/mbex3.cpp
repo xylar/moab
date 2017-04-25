@@ -27,10 +27,6 @@
 
 #include <iostream>
 
-// "mberr.hpp" contains the MBERR macro and is local to this tutorial
-#include "mberr.hpp"
-
-
 // ****************
 // *              *
 // *     main     *
@@ -38,8 +34,8 @@
 // ****************
 int main()
 {
-  moab::Core mbcore;
-  moab::Interface& mbint = mbcore;
+  moab::ErrorCode rval;
+  moab::Core mbint;
 
   // **********************************
   // *   Create the Structured Mesh   *
@@ -68,8 +64,7 @@ int main()
   // for mbcore and will point scdint to it. This is how you tell moab
   // that our moab::Core instance is going to represent a structured
   // mesh.
-  moab::ErrorCode rval = mbint.query_interface(scdint);
-  MBERR("mbint.query_interface", rval);
+  rval = mbint.query_interface(scdint);MB_CHK_SET_ERR(rval, "mbint.query_interface failed");
 
   // Structured meshes a divided into "boxes". Each box represents a
   // little structured mesh. A single mesh, for example a
@@ -81,8 +76,7 @@ int main()
 			       moab::HomCoord(2,2,2), 
 			       vertex_coords, 
 			       NUMVTX, 
-			       scdbox);
-  MBERR("scdint->construct_box", rval);
+			       scdbox);MB_CHK_SET_ERR(rval, "scdint->construct_box failed");
 
   // moab::HomCoord is a little class that is used to represent a
   // coordinate in logical space. Above, we told MOAB that we want
@@ -122,9 +116,7 @@ int main()
   // ***************************
   // *   Write Mesh to Files   *
   // ***************************
-
-  rval = mbint.write_file("moabuse3.vtk");
-  MBERR("write_file(moabuse3.vtk)", rval);
+  rval = mbint.write_file("moabuse3.vtk");MB_CHK_SET_ERR(rval, "write_file(moabuse3.vtk) failed");
 
   return 0;
 }

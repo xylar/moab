@@ -10,8 +10,8 @@
 
 set(MOAB_FOUND 1)
 
-set(MOAB_CXX @CXX@)
 set(MOAB_CC @CC@)
+set(MOAB_CXX @CXX@)
 set(MOAB_FC @FC@)
 set(MOAB_F77 @F77@)
 # Compiler flags used by MOAB
@@ -47,9 +47,13 @@ set(LAPACK_LIBRARIES "@LAPACK_LIBS@")
 set(MOAB_USE_EIGEN @enableeigen@)
 set(EIGEN_INCLUDE_DIR "@EIGEN3_DIR@")
 
+set(MOAB_MESH_DIR "@abs_top_srcdir@/MeshFiles/unittest")
+
 set(ENABLE_IGEOM @HAVE_IGEOM@)
 set(CGM_DIR "@CGM_DIR@")
 set(ENABLE_IMESH @HAVE_IMESH@)
+set(ENABLE_IREL @HAVE_IREL@)
+set(ENABLE_FBIGEOM @HAVE_FBIGEOM@)
 
 set (MOAB_PACKAGE_LIBS "@EXPORT_LDFLAGS@ @PNETCDF_LIBS@ @NETCDF_LIBS@ @CGNS_LIBS@ @HDF5_LIBS@ @DAMSEL_LIBS@ @CCMIO_LIBS@ @CGM_LIBS@ @ZOLTAN_LIBS@ @PARMETIS_LIBS@ @METIS_LIBS@ @LIBS@")
 string(STRIP "${MOAB_PACKAGE_LIBS}" MOAB_PACKAGE_LIBS)
@@ -78,6 +82,21 @@ endif()
 
 set(MOAB_LIBRARY_DIRS, "@prefix@/lib")
 set(MOAB_INCLUDE_DIRS "@prefix@/include")
-set(MOAB_LIBRARIES "-L@prefix@/lib -lMOAB ${MOAB_PACKAGE_LIBS}")
+
+set(MOAB_LIBS "-lMOAB")
+set(MOAB_LIBRARIES "-L@prefix@/lib ${MOAB_LIBS} ${MOAB_PACKAGE_LIBS}")
+if(ENABLE_IMESH)
+  set(MOAB_LIBS "-liMesh ${MOAB_LIBS}")
+  set(IMESH_LIBRARIES "-L@prefix@/lib ${MOAB_LIBS} ${MOAB_PACKAGE_LIBS}")
+endif(ENABLE_IMESH)
+if(ENABLE_FBIGEOM)
+  set(MOAB_LIBS "-lFBiGeom ${MOAB_LIBS}")
+  set(FBIGEOM_LIBRARIES "-L@prefix@/lib ${MOAB_LIBS} ${MOAB_PACKAGE_LIBS}")
+endif(ENABLE_FBIGEOM)
+if(ENABLE_IREL)
+  set(MOAB_LIBS "-liRel ${MOAB_LIBS}")
+  set(IREL_LIBRARIES "-L@prefix@/lib ${MOAB_LIBS} ${MOAB_PACKAGE_LIBS}")
+endif(ENABLE_IREL)
+
 set(DAGMC_LIBRARIES "-L@prefix@/lib -ldagmc -lMOAB ${MOAB_PACKAGE_LIBS}")
 

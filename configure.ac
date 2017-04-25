@@ -4,7 +4,7 @@
 AC_INIT([MOAB],[4.9.3pre],[moab-dev@mcs.anl.gov],[moab],[http://sigma.mcs.anl.gov])
 AC_CONFIG_SRCDIR([moab.make.in])
 AC_CONFIG_SRCDIR([config/MOABConfig.cmake.in])
-AC_CONFIG_SRCDIR([examples/makefile.in])
+AC_CONFIG_SRCDIR([examples/makefile.config.in])
 AC_CONFIG_MACRO_DIR([config])
 AC_CONFIG_AUX_DIR([config])
 AC_CANONICAL_TARGET
@@ -1234,8 +1234,7 @@ AX_PREFIX_CONFIG_H([src/moab/MOABConfig.h],[MOAB],[src/moab/MOABConfig.h])
 AC_CONFIG_FILES([Makefile 
                  moab.make                  
                  MOABConfig.cmake:config/MOABConfig.cmake.in
-                 examples/makefile
-                 examples/old/deform_mesh/makefile
+                 examples/makefile.config
                  src/Makefile
                  src/io/Makefile
                  src/io/mhdf/Makefile

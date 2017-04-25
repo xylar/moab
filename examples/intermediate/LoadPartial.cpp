@@ -19,40 +19,58 @@
 #include "moab/Core.hpp" 
 #include "MBTagConventions.hpp"
 
+#define NTAGVALS 3
+
 using namespace moab;
 using namespace std;
 
-string test_file_name = string(MESH_DIR) + string("/64bricks_512hex_256part.h5m");
+// Function to parse input parameters
+ErrorCode get_file_options(int argc, char **argv,
+                           string& filename,
+                           string& tagName,
+                           vector<int>& tagValues)
+{
+  // Get mesh filename
+  if (argc > 1)
+    filename = string(argv[1]);
+  else
+    filename = string(MESH_DIR) + string("/64bricks_512hex_256part.h5m");
+
+  // Get tag selection options
+  if (argc > 2)
+    tagName = string(argv[2]);
+  else
+    tagName = "USERTAG";
+
+  if (argc > 3) {
+    tagValues.resize(argc-3, 0);
+    for (int i=3; i < argc; ++i) tagValues[i-3] = atoi(argv[i]);
+  }
+  else {
+    for (unsigned i=0; i < tagValues.size(); ++i) tagValues[i] = 2*i+1;
+  }
+
+  if (argc > 1 && argc < 4) // print usage
+    cout << " usage is " << argv[0] << " <file> <tag_name> <value1> <value2> .. \n";
+  return MB_SUCCESS;
+}
+
+
 int main(int argc, char **argv)
 {
   // Get MOAB instance
-#ifdef MOAB_HAVE_HDF5
   Interface* mb = new (std::nothrow) Core;
   if (NULL == mb)
     return 1;
 
-  ErrorCode rval;
-  if (argc <= 1) {
-    // The default file to load
-    int set_tag_values[] = {1, 2, 5};
-    int num_set_tag_values = 3;
-    // This file is in the mesh files directory
-    rval = mb->load_file(test_file_name.c_str(),
-            0, 0, PARALLEL_PARTITION_TAG_NAME, set_tag_values, num_set_tag_values);MB_CHK_SET_ERR(rval, "Failed to read");
-  }
-  else {
-    // First arg is input file, second is tag name, then are the tag values
-    if (argc < 4) {
-      cout << " usage is " << argv[0] << " <file> <tag_name> <value1> <value2> .. \n";
-      return 0;
-    }
-    else {
-      vector<int> vals(argc - 3); // The first 3 args are exe, file, tag name; the rest are values
-      for (int i = 3; i < argc; i++)
-        vals[i - 3] = atoi(argv[i]);
-      rval = mb->load_file(argv[1], 0, 0, argv[2], &vals[0], (int)vals.size());MB_CHK_SET_ERR(rval, "Failed to read");
-    }
-  }
+  std::string filename, tagname;
+  vector<int> tagvals(NTAGVALS); // Allocate for a maximum of 5 tag values
+  ErrorCode rval = get_file_options(argc, argv, filename, tagname, tagvals);MB_CHK_ERR(rval);
+
+#ifdef MOAB_HAVE_HDF5
+  // This file is in the mesh files directory
+  rval = mb->load_file(filename.c_str(),
+          0, 0, PARALLEL_PARTITION_TAG_NAME, tagvals.data(), (int)tagvals.size());MB_CHK_SET_ERR(rval, "Failed to read");
 
   // If HANDLEID tag present, convert to long, and see what we read from file
   Tag handleid_tag;
@@ -70,10 +88,9 @@ int main(int argc, char **argv)
   rval = mb->write_file("part.h5m");MB_CHK_SET_ERR(rval, "Failed to write partial file");
   cout << "Wrote successfully part.h5m.\n";
 
-  delete mb;
 #else
-  std::cout <<"configure MOAB with hdf5 for this to work\n";
+  std::cout << "Configure MOAB with HDF5 to build and use this example correctly.\n";
 #endif
-
+  delete mb;
   return 0;
 }
