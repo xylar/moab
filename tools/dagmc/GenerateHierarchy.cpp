@@ -23,6 +23,7 @@ GenerateHierarchy::GenerateHierarchy(Interface *impl, ErrorCode &return_value)
 //---------------------------------------------------------------------------//
 GenerateHierarchy::~GenerateHierarchy()
 {
+  delete DAG;
 }
 
 ErrorCode GenerateHierarchy::setup()
@@ -325,6 +326,8 @@ ErrorCode GenerateHierarchy::construct_topology()
 
     }
 
+  delete myGeomTool;
+  
   return MB_SUCCESS;
 
 }
