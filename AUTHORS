@@ -1,22 +1,22 @@
-# SIGMA TEAM (Mar 2016)
+# SIGMA TEAM (April 2017)
 
 Vijay Mahadevan  <vijay.m@gmail.com>
 Iulian Grindeanu  <iulian@anl.gov>
 Rajeev Jain  <jain@anl.gov>
-Navamita Ray  <navamitaray@gmail.com> 
-Dan Wu  <wuda@mcs.anl.gov>
-Evan VanderZee  <vanderzee@anl.gov>
 
 # Contributors
 
-Nico  Schlömer  <nico.schloemer@gmail.com>
-Jacob Becker  <jacob.becker@kitware.com>
-Ben Boeckel <ben.boeckel@kitware.com>
-David Thompson  <fathom@mcs.anl.gov>
+Navamita Ray  <navamitaray@gmail.com> 
+Xinglin Zhao <xinglin.zhao@stonybrook.edu>
 Andrew  Davis <davisa@engr.wisc.edu>
 Patrick Shriwise <shriwise@wisc.edu> 
+Anthony Scopatz <scopatz@gmail.com>
+Chelsea D'Angelo <cadangelo@wisc.edu>
 Paul  Wilson  <wilsonp@engr.wisc.edu>
-Lukasz  Kaczmarczyk <likask@wp.pl>
+Nico  Schlömer  <nico.schloemer@gmail.com>
+Guilherme Caminha <gpkc@cin.ufpe.br>
+Evan VanderZee  <vanderzee@anl.gov>
+Lukasz  Kaczmarczyk <Lukasz.Kaczmarczyk@glasgow.ac.uk>
 Lorenzo Botti <bottilorenzo@gmail.com>
 
 # Past contributors
@@ -24,7 +24,11 @@ Lorenzo Botti <bottilorenzo@gmail.com>
 Tim Tautges <tautges@mcs.anl.gov>
 Steve Jackson <fathom@mcs.anl.gov>
 Jason Kraftcheck  <kraftcheck@gmail.com>
+Dan Wu  <wuda@mcs.anl.gov>
 Jim Porter  <fathom@mcs.anl.gov>
+Jacob Becker  <jacob.becker@kitware.com>
+Ben Boeckel <ben.boeckel@kitware.com>
+David Thompson  <fathom@mcs.anl.gov>
 Brandon Smith <fathom@mcs.anl.gov>
 Ryan  Lewis <fathom@mcs.anl.gov>
 Shengyong Cai  <shengyongcai@gmail.com>  
@@ -46,4 +50,94 @@ Dmitry  Karpeev <karpeev@mcs.anl.gov>
 Brian Kiedrowski  <fathom@mcs.anl.gov>
 Karl  Merkley <karl@elemtech.com>
 Jeff  Daily <jeff.daily@pnnl.gov>
+
+## List of all contributors (`git shortlog -n -s -e --all`)
+  1781  Vijay Mahadevan <vijay.m@gmail.com>
+  1454  Jason Kraftcheck <kraftcheck@gmail.com>
+  1398  Iulian Grindeanu <iulian@mcs.anl.gov>
+  1073  Tim Tautges <tautges@mcs.anl.gov>
+   731  Dan Wu <wuda@mcs.anl.gov>
+   397  Jason Kraftcheck <kraftcheck@gmail.com>
+   393  pshriwise <shriwise@wisc.edu>
+   385  nray <navamitaray@gmail.com>
+   261  Pshriwise <shriwise@wisc.edu>
+   249  shriwise <pshriwise@gmail.com>
+   200  Jim Porter <fathom@mcs.anl.gov>
+   174  Ben Boeckel <ben.boeckel@kitware.com>
+   128  Jacob Becker <jacob.becker@kitware.com>
+   118  Andrew Davis <davisa@engr.wisc.edu>
+   117   <lasso-dev@mcs.anl.gov>
+   113  Rajeev Jain <rajeeja@gmail.com>
+   108  cadangelo <cadangelo@wisc.edu>
+   102  Nico Schlömer <nico.schloemer@gmail.com>
+    84  xinglinzhao <xinglin.zhao@stonybrook.edu>
+    80  Chelsea D'Angelo <cadangelo@wisc.edu>
+    69  Steve Jackson <fathom@mcs.anl.gov>
+    67  David Thompson <fathom@mcs.anl.gov>
+    59  Fathom <fathom@mcs.anl.gov>
+    57  Brandon Smith <fathom@mcs.anl.gov>
+    55  Paul P.H. Wilson <paul.wilson@wisc.edu>
+    53  Ryan Lewis <fathom@mcs.anl.gov>
+    49  Anthony Scopatz <scopatz@gmail.com>
+    45  Hong-Jun Kim <fathom@mcs.anl.gov>
+    41  Xiabing Xu <fathom@mcs.anl.gov>
+    39  Rajeev Jain <jain@mcs.anl.gov>
+    37  Phillippe Pebay <fathom@mcs.anl.gov>
+    33  Paul P.H. Wilson <wilsonp@engr.wisc.edu>
+    30  Robert Smith <fathom@mcs.anl.gov>
+    28  Jiangtao Hu <jiangtao_ma@yahoo.com>
+    27  Andrew Davis <andrew.davis@wisc.edu>
+    24  Paul Wilson <wilsonp@engr.wisc.edu>
+    23  Jane Hu <jhu7@wisc.edu>
+    23  Lukasz Kaczmarczyk <likask@wp.pl>
+    21  chelsea <cadangelo@wisc.edu>
+    17  Guilherme <gpkc@cin.ufpe.br>
+    17  Vitus Leung <vjleung@sandia.gov>
+    16  Mitchell <samitch@s939980.srn.sandia.gov>
+    15  Tim Tautges <tautges@engr.wisc.edu>
+    14  Alvaro Caceres <fathom@mcs.anl.gov>
+    14  Chelsea <messyturnips.com>
+    13  ShengyongCai <shengyongcai@shengyongcai-laptop.(none)>
+    12  Scot Breitenfeld <brtnfld@hdfgroup.org>
+    12  Tom Hayes <fathom@mcs.anl.gov>
+    12  Vijay Mahadevan <vijaysm@mcs.anl.gov>
+    11  Robert Maynard <robert.maynard@kitware.com>
+    11  Vijay S. Mahadevan <vijay.m@gmail.com>
+    10  Chelsea <you@example.com>
+     9  Lucas John Jacobson <ljjacobson@wisc.edu>
+     8  Dmitry Karpeev <karpeev@mcs.anl.gov>
+     8  likask <Lukasz.Kaczmarczyk@glasgow.ac.uk>
+     7  (no author) <fathom@mcs.anl.gov>
+     7  Ken Raffenetti <raffenet@mcs.anl.gov>
+     7  Patrick Shriwise <shriwise@wisc.edu>
+     7  jhu <jhu@jhu-mesh-machine.(none)>
+     6  Darryl Melander <fathom@mcs.anl.gov>
+     6  Milad Fatenejad <icksa1@gmail.com>
+     6  Nathan Bertram <fathom@mcs.anl.gov>
+     5  Mark Miller <miller86@llnl.gov>
+     4  David Thompson <david.thompson@kitware.com>
+     4  Guilherme Caminha <gpkc@cin.ufpe.br>
+     3  Brian Kiedrowski <fathom@mcs.anl.gov>
+     3  Chelsea <cadangelo@wisc.edu>
+     3  Evan VanderZee <vanderzee@anl.gov>
+     3  Karl Merkley <karl@elemtech.com>
+     3  Moe Alkhafaji <fathom@mcs.anl.gov>
+     2  Bob Obara <bob.obara@kitware.com>
+     2  Jeff Daily <jeff.daily@pnnl.gov>
+     2  Lukasz Kaczmarczyk <Lukasz.Kaczmarczyk@glasgow.ac.uk>
+     2  Scot Breitenfeld <brtnfld@miralac1.fst.alcf.anl.gov>
+     2  Vijay S Mahadevan <vijaysm@tachyon.(none)>
+     2  shengyongcai <shengyongcai@shengyongcai-desktop.(none)>
+     1  Ben Boeckel <mathstuf@gmail.com>
+     1  Clint Stimpson <fathom@mcs.anl.gov>
+     1  Iulian Grindeanu <iulian@T520-iuli.(none)>
+     1  Iulian Grindeanu <iulian@blogin3.lcrc.anl.gov>
+     1  Jane Hu <jiangtao_ma@yahoo.com>
+     1  Michael Borden <fathom@mcs.anl.gov>
+     1  Paul Wilson <paul.wilson@wisc.edu>
+     1  Rajeev <rajeev@Rajeevs-MacBook-Air.local>
+     1  Rajeev Jain <jain@blogin1.lcrc.anl.gov>
+     1  Vijay Mahadevan <vijaysm@kyuss.mcs.anl.gov>
+     1  Vijay Mahadevan <vijaysm@login01.cosmea.mcs.anl.gov>
+     1  jayeshkrishna <jayesh@mcs.anl.gov>
 
