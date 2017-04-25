@@ -4,6 +4,24 @@ from cython.operator cimport dereference as deref
 from pymoab cimport moab
 from .types import _eh_array
 
+def intersect(Range r1, Range r2):
+    r = Range()
+    cdef moab.Range i = moab.intersect(deref(r1.inst),deref(r2.inst))
+    r.inst.merge(i)
+    return r
+
+def subtract(Range r1, Range r2):
+    r = Range()
+    cdef moab.Range i = moab.subtract(deref(r1.inst),deref(r2.inst))
+    r.inst.merge(i)
+    return r
+
+def unite(Range r1, Range r2):
+    r = Range()
+    cdef moab.Range i = moab.unite(deref(r1.inst),deref(r2.inst))
+    r.inst.merge(i)
+    return r
+
 cdef class Range(object):
 
     #def __cinit__(self, moab.EntityHandle val1=None, moab.EntityHandle val2=None):
@@ -68,6 +86,29 @@ cdef class Range(object):
     def all_of_dimension(self, int dim):
         return self.inst.all_of_dimension(dim)
 
+    def num_of_dimension(self, int dim):
+        return self.inst.num_of_dimension(dim)
+
+    def num_of_type(self, moab.EntityType t):
+        return self.inst.num_of_type(t)
+
+    def insert(self, moab.EntityHandle ent_handle):
+        self.inst.insert(ent_handle)
+
+    def merge(self, other):
+        cdef Range r
+        if isinstance(other, Range):
+            r = other
+            self.inst.merge(deref(r.inst))
+        else:
+            raise ValueError("Operation not valie for non-Range")
+        
+    def unite(self, other):
+        cdef Range r
+        if isinstance(other, Range):
+            r = other
+
+        
     def __iter__(self):
         cdef int i = 0
         for i in range(0, self.inst.size()):

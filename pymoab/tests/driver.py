@@ -1,4 +1,5 @@
 import sys
+import traceback
 
 class colors:
     HEADER = '\033[95m'
@@ -18,7 +19,17 @@ def test_driver(test_list):
         except:
             print colors.FAIL + "FAIL" + colors.ENDC + ": " + test.__name__
             ret_val += 1
+            traceback.print_exc()
         else:
             print colors.OKGREEN + "PASS" + colors.ENDC + ": " + test.__name__
     sys.exit(ret_val)
 
+def CHECK_EQ(actual_value, expected_value):
+    err_msg = "Expected value: {} Actual value: {}"
+    err_msg = err_msg.format(expected_value, actual_value)
+    assert expected_value == actual_value, err_msg
+
+def CHECK_NOT_EQ(actual_value, expected_value):
+    err_msg = "Expected value: not {} Actual value: {}"
+    err_msg = err_msg.format(expected_value, actual_value)
+    assert expected_value != actual_value, err_msg

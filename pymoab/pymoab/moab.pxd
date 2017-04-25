@@ -91,6 +91,10 @@ cdef extern from "moab/EntityHandle.hpp" namespace "moab":
 
 cdef extern from "moab/Range.hpp" namespace "moab":
 
+    Range intersect(Range&, Range&)
+    Range subtract(Range&, Range&)
+    Range unite(Range&, Range&)
+    
     cdef cppclass Range:
         Range()
         Range(EntityHandle val1, EntityHandle val2)
@@ -101,9 +105,12 @@ cdef extern from "moab/Range.hpp" namespace "moab":
         void clear()
         bool all_of_type(EntityType t)
         bool all_of_dimension(int dimension)
+        unsigned num_of_type( EntityType type )
+        unsigned num_of_dimension( int dim )
         void print_ "print" ()
         void insert(EntityHandle val)
         void erase(EntityHandle val)
+        void merge(Range& range)
         EntityHandle pop_front()
         EntityHandle pop_back()
 
@@ -273,6 +280,10 @@ cdef extern from "moab/Core.hpp" namespace "moab":
         ErrorCode get_entities_by_type(const EntityHandle meshset,
                                        const EntityType typ,
                                        vector[EntityHandle]& entities,
+                                       const bool recursive)
+        ErrorCode get_entities_by_type(const EntityHandle meshset,
+                                       const EntityType typ,
+                                       Range& entities,
                                        const bool recursive)
         ErrorCode get_entities_by_type_and_tag(const EntityHandle meshset,
                                                const EntityType typ,

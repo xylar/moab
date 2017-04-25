@@ -1176,11 +1176,11 @@ cdef class Core(object):
             if the EntityType provided is not valid
         """
         cdef moab.ErrorCode err
-        cdef vector[moab.EntityHandle] entities
+        cdef Range entities = Range()
         cdef moab.EntityType typ = entity_type
         err = self.inst.get_entities_by_type(<unsigned long> meshset,
                                              typ,
-                                             entities,
+                                             deref(entities.inst),
                                              recur)
         check_error(err, exceptions)
         return entities

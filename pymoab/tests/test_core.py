@@ -4,20 +4,9 @@ from pymoab.rng import Range
 from pymoab.scd import ScdInterface
 from pymoab.hcoord import HomCoord
 from subprocess import call
-from driver import test_driver
+from driver import test_driver, CHECK_EQ, CHECK_NOT_EQ
 import numpy as np
 import os
-
-
-def CHECK_EQ(actual_value, expected_value):
-    err_msg = "Expected value: {} Actual value: {}"
-    err_msg = err_msg.format(expected_value, actual_value)
-    assert expected_value == actual_value, err_msg
-
-def CHECK_NOT_EQ(actual_value, expected_value):
-    err_msg = "Expected value: not {} Actual value: {}"
-    err_msg = err_msg.format(expected_value, actual_value)
-    assert expected_value != actual_value, err_msg
 
 def test_load_mesh():
     mb = core.Core()
