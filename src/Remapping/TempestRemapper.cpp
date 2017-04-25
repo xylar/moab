@@ -37,8 +37,27 @@ ErrorCode TempestRemapper::initialize()
     m_source = NULL;
     m_target = NULL;
     m_overlap = NULL;
+    m_covering_source = NULL;
 
     return MB_SUCCESS;
+}
+
+///////////////////////////////////////////////////////////////////////////////////
+
+TempestRemapper::~TempestRemapper()
+{
+    // destroy all meshes
+    if (m_source) delete m_source;
+    if (m_target) delete m_target;
+    if (m_overlap) delete m_overlap;
+    if (m_covering_source) delete m_covering_source;
+
+    m_source_entities.clear();
+    m_target_entities.clear();
+    m_overlap_entities.clear();
+    m_intersecting_target_entities.clear();
+    gid_to_lid_src.clear(); gid_to_lid_tgt.clear(); gid_to_lid_covsrc.clear();
+    lid_to_gid_src.clear(); lid_to_gid_tgt.clear(); lid_to_gid_covsrc.clear();
 }
 
 ///////////////////////////////////////////////////////////////////////////////////
@@ -329,15 +348,16 @@ ErrorCode TempestRemapper::ConvertMOABMeshToTempest_Private ( Mesh* mesh, Entity
 
         // get the connectivity for each edge
         const EntityHandle* connectface;
-        int nvtx, nnodesf;
+        int nnodesf;
         rval = m_interface->get_connectivity ( ehandle, connectface, nnodesf ); MB_CHK_ERR ( rval );
 
         // Can be untrue for polygonal elements with mixed pentagons and hexagons
+        // int nvtx;
         // if (face_edges.size() - nnodesf != 0) {
         // 	nvtx = face_edges.size();
         // }
 
-        for ( int iverts = 0; iverts < face_edges.size(); ++iverts )
+        for ( size_t iverts = 0; iverts < face_edges.size(); ++iverts )
         {
             int indx = verts.index ( connectface[iverts] );
             assert ( indx >= 0 );

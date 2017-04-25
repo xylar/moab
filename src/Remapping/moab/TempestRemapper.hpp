@@ -42,6 +42,8 @@ public:
     {
     }
 
+    virtual ~TempestRemapper();
+
     virtual ErrorCode initialize();
 
     // Mesh type with a correspondence to Tempest/Climate formats
@@ -77,6 +79,8 @@ public:
     void SetMesh(Remapper::IntersectionContext ctx, Mesh* mesh, bool overwrite=true);
 
     Mesh* GetCoveringMesh();
+
+    moab::EntityHandle& GetMeshSet(Remapper::IntersectionContext ctx);
 
     moab::EntityHandle GetMeshSet(Remapper::IntersectionContext ctx) const;
 
@@ -188,6 +192,25 @@ void TempestRemapper::SetMesh(Remapper::IntersectionContext ctx, Mesh* mesh, boo
 }
 
 inline
+moab::EntityHandle& TempestRemapper::GetMeshSet(Remapper::IntersectionContext ctx)
+{
+    switch(ctx)
+    {
+        case Remapper::SourceMesh:
+            return m_source_set;
+        case Remapper::TargetMesh:
+            return m_target_set;
+        case Remapper::IntersectedMesh:
+            return m_overlap_set;
+        case Remapper::CoveringMesh:
+            return m_covering_source_set;
+        case Remapper::DEFAULT:
+        default:
+            MB_SET_ERR_RET_VAL("Invalid context passed to GetMeshSet", m_overlap_set);
+    }
+}
+
+inline
 moab::EntityHandle TempestRemapper::GetMeshSet(Remapper::IntersectionContext ctx) const
 {
     switch(ctx)
@@ -202,7 +225,7 @@ moab::EntityHandle TempestRemapper::GetMeshSet(Remapper::IntersectionContext ctx
             return m_covering_source_set;
         case Remapper::DEFAULT:
         default:
-            return 0;
+            MB_SET_ERR_RET_VAL("Invalid context passed to GetMeshSet", m_overlap_set);
     }
 }
 

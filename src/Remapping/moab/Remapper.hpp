@@ -41,6 +41,12 @@ public:
 	Remapper(moab::Interface* mbInt, moab::ParallelComm* pcomm = NULL) : m_interface(mbInt), m_pcomm(pcomm)
 	{ }
 
+	virtual ~Remapper()
+	{
+		m_pcomm = NULL;
+		m_interface = NULL;
+	}
+
 	enum IntersectionContext {
 		DEFAULT = -1,
 		SourceMesh = 0,

@@ -218,6 +218,16 @@ kd_tree_test_CPPFLAGS += -I$(top_srcdir)/src/parallel
 test_prog_opt_CPPFLAGS += -I$(top_srcdir)/src/parallel
 endif
 
+# Tests for remapping
+if ENABLE_mbtempest
+if HAVE_TEMPESTREMAP
+  test_remapping_SOURCES = test_remapping.cpp
+  test_remapping_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/src/Remapping -I$(top_srcdir)/src/IntxMesh $(TEMPESTREMAP_INCLUDE)
+  test_remapping_LDADD = $(LDADD) $(TEMPESTREMAP_LIBS)
+  TESTS += test_remapping
+endif
+endif
+
 FCDEFS += $(FC_DEFINE)SRCDIR=$(srcdir) \
           $(FC_DEFINE)MESHDIR=$(MESHDIR)
 
@@ -252,7 +262,12 @@ cell2.gen: $(MESHDIR)/cell2.gen.gz
 
 CLEANFILES = mb_big_test.g \
              cell1.gen \
-             cell2.gen
+             cell2.gen \
+             outTempestCS.g \
+             outTempestRLL.g \
+             outTempestICO.g \
+             outTempestICOD.g \
+             outTempestOV.g
 
 # Utility target: build but don't run tests
 build-check:
