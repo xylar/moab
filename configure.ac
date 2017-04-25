@@ -206,6 +206,31 @@ else
     AC_MSG_ERROR(cython is not the correct version for pymoab)
     fi
     AC_CONFIG_SRCDIR([pymoab/setup.py.in])
+    AC_CONFIG_LINKS([pymoab/pymoab/moab.pxd:pymoab/pymoab/moab.pxd
+                     pymoab/pymoab/tag.pyx:pymoab/pymoab/tag.pyx
+                     pymoab/pymoab/tag.pxd:pymoab/pymoab/tag.pxd
+                     pymoab/pymoab/core.pyx:pymoab/pymoab/core.pyx
+		     pymoab/pymoab/core.pxd:pymoab/pymoab/core.pxd
+		     pymoab/pymoab/rng.pyx:pymoab/pymoab/rng.pyx
+		     pymoab/pymoab/rng.pxd:pymoab/pymoab/rng.pxd
+		     pymoab/pymoab/hcoord.pyx:pymoab/pymoab/hcoord.pyx
+		     pymoab/pymoab/hcoord.pxd:pymoab/pymoab/hcoord.pxd
+		     pymoab/pymoab/types.pyx:pymoab/pymoab/types.pyx
+		     pymoab/pymoab/topo_util.pyx:pymoab/pymoab/topo_util.pyx
+		     pymoab/pymoab/topo_util.pxd:pymoab/pymoab/topo_util.pxd
+		     pymoab/pymoab/scd.pyx:pymoab/pymoab/scd.pyx
+		     pymoab/pymoab/scd.pxd:pymoab/pymoab/scd.pxd
+		     pymoab/pymoab/__init__.pxd:pymoab/pymoab/__init__.pxd
+		     pymoab/pymoab/__init__.py:pymoab/pymoab/__init__.py])
+    AC_CONFIG_LINKS([pymoab/tests/driver.py:pymoab/tests/driver.py
+                     pymoab/tests/test_core.py:pymoab/tests/test_core.py
+		     pymoab/tests/test_tag.py:pymoab/tests/test_tag.py
+		     pymoab/tests/test_scd.py:pymoab/tests/test_scd.py
+		     pymoab/tests/test_hom.py:pymoab/tests/test_hom.py
+		     pymoab/tests/test_topo_util.py:pymoab/tests/test_topo_util.py
+		     pymoab/tests/test_range.py:pymoab/tests/test_range.py
+		     pymoab/tests/cyl_grps.h5m:pymoab/tests/cyl_grps.h5m
+		     pymoab/tests/cyl_grps.vtk:pymoab/tests/cyl_grps.vtk])
     if test "x$prefix" = "xNONE"; then
       pymoab_prefix=/usr/lib/python${PYTHON_VERSION}/dist-packages
       pythondir=$pymoab_prefix
