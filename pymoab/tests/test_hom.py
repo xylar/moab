@@ -41,7 +41,18 @@ def test_homcoord():
     assert(1 == h.h())
 
     # testing for possible bug in iterator
-    lh = list(h)
+    #these should work
+    assert(4 == h[0])
+    assert(3 == h[1])
+    assert(2 == h[2])
+    assert(1 == h[3])
+    try:
+        h[4]
+    except:
+        pass
+    else:
+        print "Shouldn't be here. Test fails"
+        raise AssertionError
     
 if __name__ == "__main__":
     tests = [test_homcoord,]
