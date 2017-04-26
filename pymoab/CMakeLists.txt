@@ -65,7 +65,7 @@ if (PYTHON AND NOSE AND NOT PYTHON_MODULES_MISSING)
   ADD_CUSTOM_TARGET(pymoab-local-install-dir ALL COMMAND ${CMAKE_COMMAND} -E make_directory ${PYMOAB_LOCAL_INSTALL_PATH} DEPENDS pymoab-build)
   # pymoab install- depends on pymoab-build and is run during make
   # !!!!THIS INSTALL IS DONE LOCALLY AND COPIED TO THE CORRECT LOCATOIN DURING INSTALL !!!! (Subject to Change)
-  ADD_CUSTOM_TARGET(pymoab-local-install ALL COMMAND export PYTHONPATH=${PYMOAB_LOCAL_INSTALL_PATH}:$PYTHONPATH && ${PYTHON} setup.py install --install-platlib=${PYMOAB_LOCAL_INSTALL_PATH} DEPENDS pymoab-local-install-dir)
+  ADD_CUSTOM_TARGET(pymoab-local-install ALL COMMAND export PYTHONPATH=${PYMOAB_LOCAL_INSTALL_PATH}:$PYTHONPATH && ${PYTHON} setup.py install --install-platlib=${PYMOAB_LOCAL_INSTALL_PATH} --install-purelib=${PYMOAB_LOCAL_INSTALL_PATH} DEPENDS pymoab-local-install-dir)
   # move pymoab egg into the correct location for a --user setuptools install based on username
   FILE(GLOB PYMOAB_EGG ${PYMOAB_LOCAL_INSTALL_PATH}/*)
   INSTALL(FILES ${PYMOAB_EGG} DESTINATION ${PYMOAB_INSTALL_PREFIX} )
