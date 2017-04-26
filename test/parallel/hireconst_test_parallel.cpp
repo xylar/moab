@@ -7,10 +7,10 @@
 #include <algorithm>
 #include "moab/Core.hpp"
 #include "moab/Range.hpp"
+#include "moab/CartVect.hpp"
 #include "moab/MeshTopoUtil.hpp"
 #include "moab/NestedRefine.hpp"
-#include "moab/Solvers.hpp"
-#include "moab/HiReconstruction.hpp"
+#include "moab/DiscreteGeometry/HiReconstruction.hpp"
 #include "TestUtil.hpp"
 #include <math.h>
 
@@ -211,17 +211,18 @@ ErrorCode test_mesh(const char* infile,const int degree, const bool interp, cons
 		error = mbimpl->get_connectivity(*ielem,conn,nvpe); MB_CHK_ERR(error);
 		double w = 1.0/(double) nvpe;
 		std::vector<double> naturalcoords2fit(nvpe,w);
-		double newcoords[3],linearcoords[3];
-		error = hirec.hiproj_walf_in_element(*ielem,nvpe,1,&(naturalcoords2fit[0]),newcoords); 
+		CartVect newcoords, linearcoords;
+		error = hirec.hiproj_walf_in_element(*ielem,nvpe,1,&(naturalcoords2fit[0]),newcoords.array()); 
 		if(MB_FAILURE==error) continue;
 		std::vector<double> coords(3*nvpe);
 		error = mbimpl->get_coords(conn,nvpe,&(coords[0])); MB_CHK_ERR(error);
-		compute_linear_coords(nvpe,&(coords[0]),&(naturalcoords2fit[0]),linearcoords);
-		mxdist = std::max(mxdist,Solvers::vec_distance(3,newcoords,linearcoords));
+		compute_linear_coords(nvpe,&(coords[0]),&(naturalcoords2fit[0]),linearcoords.array());
+		CartVect nlcoords = newcoords - linearcoords;
+		mxdist = std::max(mxdist,nlcoords.length());
 	/*#ifdef MOAB_HAVE_MPI
-		std::cout << "Error on element " << *ielem << " is " << Solvers::vec_distance(3,newcoords,linearcoords) << "on Processor " << rank << std::endl;
+		std::cout << "Error on element " << *ielem << " is " << nlcoords.length() << "on Processor " << rank << std::endl;
 	#else
-		std::cout << "Error on element " << *ielem << " is " << Solvers::vec_distance(3,newcoords,linearcoords) << std::endl;
+		std::cout << "Error on element " << *ielem << " is " << nlcoords.length() << std::endl;
 	#endif*/
 	}
 #ifdef MOAB_HAVE_MPI

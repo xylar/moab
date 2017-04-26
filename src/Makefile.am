@@ -55,7 +55,7 @@ libMOAB_la_SOURCES = \
   DenseTag.hpp \
   DenseTag.cpp \
   DualTool.cpp \
-  DiscreteGeometry/Solvers.cpp \
+  DiscreteGeometry/DGMSolver.cpp \
   DiscreteGeometry/HiReconstruction.cpp \
   ElementSequence.hpp \
   EntitySequence.cpp \
@@ -249,7 +249,7 @@ verdictinclude_HEADERS = \
 
 discretegeomincludedir = $(includedir)/moab/DiscreteGeometry
 discretegeominclude_HEADERS = \
-	moab/DiscreteGeometry/Solvers.hpp \
+	moab/DiscreteGeometry/DGMSolver.hpp \
 	moab/DiscreteGeometry/HiReconstruction.hpp
 
 localdiscincludedir = $(includedir)/moab/LocalDiscretization

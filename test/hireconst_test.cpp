@@ -9,8 +9,8 @@
 #include "moab/Range.hpp"
 #include "moab/MeshTopoUtil.hpp"
 #include "moab/NestedRefine.hpp"
-#include "moab/Solvers.hpp"
-#include "moab/HiReconstruction.hpp"
+#include "moab/DiscreteGeometry/DGMSolver.hpp"
+#include "moab/DiscreteGeometry/HiReconstruction.hpp"
 #include "TestUtil.hpp"
 #include <math.h>
 
@@ -192,7 +192,7 @@ ErrorCode test_mesh(const char* infile,const int degree, const bool interp, cons
 		std::vector<double> coords(3*nvpe);
 		error = mbimpl->get_coords(conn,nvpe,&(coords[0])); MB_CHK_ERR(error);
 		compute_linear_coords(nvpe,&(coords[0]),&(naturalcoords2fit[0]),linearcoords);
-		mxdist = std::max(mxdist,Solvers::vec_distance(3,newcoords,linearcoords));	
+		mxdist = std::max(mxdist,DGMSolver::vec_distance(3,newcoords,linearcoords));	
 	}
 
 
@@ -286,7 +286,7 @@ ErrorCode test_unitsq_tris(){
 				double coords[3*nvpe],linearcoords[3];
 				error = mbImpl->get_coords(&(conn[0]),nvpe,coords); MB_CHK_ERR(error);
 				compute_linear_coords(nvpe,coords,naturalcoords2fit,linearcoords);
-				mxdist = std::max(mxdist,Solvers::vec_distance(3,newcoords,linearcoords));
+				mxdist = std::max(mxdist,DGMSolver::vec_distance(3,newcoords,linearcoords));
 			}
 			std::cout << "triangulated unit square n= " << n << " degree= " << degree << " interpolation:\n";
 			std::cout << "maximum projection lift is " << mxdist << std::endl;
@@ -306,7 +306,7 @@ ErrorCode test_unitsq_tris(){
 				double coords[3*nvpe],linearcoords[3];
 				error = mbImpl->get_coords(&(conn[0]),nvpe,coords); MB_CHK_ERR(error);
 				compute_linear_coords(nvpe,coords,naturalcoords2fit,linearcoords);
-				mxdist = std::max(mxdist,Solvers::vec_distance(3,newcoords,linearcoords));
+				mxdist = std::max(mxdist,DGMSolver::vec_distance(3,newcoords,linearcoords));
 			}
 			std::cout << "unit square n= " << n << " degree= " << degree << " least square:\n";
 			std::cout << "maximum projection lift is " << mxdist << std::endl;
@@ -348,7 +348,7 @@ ErrorCode test_unitsq_quads(){
 				double coords[3*nvpe],linearcoords[3];
 				error = mbImpl->get_coords(&(conn[0]),nvpe,coords); MB_CHK_ERR(error);
 				compute_linear_coords(nvpe,coords,naturalcoords2fit,linearcoords);
-				mxdist = std::max(mxdist,Solvers::vec_distance(3,newcoords,linearcoords));
+				mxdist = std::max(mxdist,DGMSolver::vec_distance(3,newcoords,linearcoords));
 			}
 			std::cout << "quadrilateral unit square n= " << n << " degree= " << degree << " interpolation:\n";
 			std::cout << "maximum projection lift is " << mxdist << std::endl;
@@ -365,7 +365,7 @@ ErrorCode test_unitsq_quads(){
 				double coords[3*nvpe],linearcoords[3];
 				error = mbImpl->get_coords(&(conn[0]),nvpe,coords); MB_CHK_ERR(error);
 				compute_linear_coords(nvpe,coords,naturalcoords2fit,linearcoords);
-				mxdist = std::max(mxdist,Solvers::vec_distance(3,newcoords,linearcoords));
+				mxdist = std::max(mxdist,DGMSolver::vec_distance(3,newcoords,linearcoords));
 			}
 			std::cout << "quadrilateral unit square n= " << n << " degree= " << degree << " least square:\n";
 			std::cout << "maximum projection lift is " << mxdist << std::endl;
@@ -411,8 +411,8 @@ ErrorCode test_unitsphere(){
 				std::vector<double> coords(3*nvpe);
 				error = mbimpl->get_coords(conn,nvpe,&(coords[0])); MB_CHK_ERR(error);
 				compute_linear_coords(nvpe,&(coords[0]),&(naturalcoords2fit[0]),linearcoords);
-				mxdist = std::max(mxdist,Solvers::vec_distance(3,newcoords,linearcoords));
-				mxerr = std::max(mxerr,fabs(Solvers::vec_2norm(3,newcoords)-1));
+				mxdist = std::max(mxdist,DGMSolver::vec_distance(3,newcoords,linearcoords));
+				mxerr = std::max(mxerr,fabs(DGMSolver::vec_2norm(3,newcoords)-1));
 			}
 			std::cout << filenames[ifile] << ": unit sphere" << " degree= " << degree << " interpolation:\n";
 			std::cout << "maximum projection lift is " << mxdist << ", maximum error is " << mxerr << std::endl;
@@ -429,8 +429,8 @@ ErrorCode test_unitsphere(){
 				std::vector<double> coords(3*nvpe);
 				error = mbimpl->get_coords(conn,nvpe,&(coords[0])); MB_CHK_ERR(error);
 				compute_linear_coords(nvpe,&(coords[0]),&(naturalcoords2fit[0]),linearcoords);
-				mxdist = std::max(mxdist,Solvers::vec_distance(3,newcoords,linearcoords));
-				mxerr = std::max(mxerr,fabs(Solvers::vec_2norm(3,newcoords)-1));
+				mxdist = std::max(mxdist,DGMSolver::vec_distance(3,newcoords,linearcoords));
+				mxerr = std::max(mxerr,fabs(DGMSolver::vec_2norm(3,newcoords)-1));
 			}
 			std::cout << filenames[ifile] << ": unit sphere" << " degree= " << degree << " least square:\n";
 			std::cout << "maximum projection lift is " << mxdist << ", maximum error is " << mxerr << std::endl;
@@ -477,8 +477,8 @@ ErrorCode test_unitcircle(){
 				std::vector<double> coords(3*nvpe);
 				error = mbimpl->get_coords(conn,nvpe,&(coords[0])); MB_CHK_ERR(error);
 				compute_linear_coords(nvpe,&(coords[0]),&(naturalcoords2fit[0]),linearcoords);
-				mxdist = std::max(mxdist,Solvers::vec_distance(3,newcoords,linearcoords));
-				mxerr = std::max(mxerr,fabs(Solvers::vec_2norm(3,newcoords)-1));
+				mxdist = std::max(mxdist,DGMSolver::vec_distance(3,newcoords,linearcoords));
+				mxerr = std::max(mxerr,fabs(DGMSolver::vec_2norm(3,newcoords)-1));
 			}
 			std::cout << filenames[ifile] << ": unit circle" << " degree= " << degree << " interpolation:\n";
 			std::cout << "maximum projection lift is " << mxdist << ", maximum error is " << mxerr << std::endl;
@@ -495,8 +495,8 @@ ErrorCode test_unitcircle(){
 				std::vector<double> coords(3*nvpe);
 				error = mbimpl->get_coords(conn,nvpe,&(coords[0])); MB_CHK_ERR(error);
 				compute_linear_coords(nvpe,&(coords[0]),&(naturalcoords2fit[0]),linearcoords);
-				mxdist = std::max(mxdist,Solvers::vec_distance(3,newcoords,linearcoords));
-				mxerr = std::max(mxerr,fabs(Solvers::vec_2norm(3,newcoords)-1));
+				mxdist = std::max(mxdist,DGMSolver::vec_distance(3,newcoords,linearcoords));
+				mxerr = std::max(mxerr,fabs(DGMSolver::vec_2norm(3,newcoords)-1));
 			}
 			std::cout << filenames[ifile] << ": unit circle" << " degree= " << degree << " least square:\n";
 			std::cout << "maximum projection lift is " << mxdist << ", maximum error is " << mxerr << std::endl;

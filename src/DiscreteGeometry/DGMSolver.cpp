@@ -1,4 +1,5 @@
-#include "moab/Solvers.hpp"
+#include "moab/DiscreteGeometry/DGMSolver.hpp"
+#include "moab/ErrorHandler.hpp"
 #include <iostream>
 #include <assert.h>
 #include <vector>
@@ -14,7 +15,7 @@ namespace moab {
    *  operations are column-based in the current scenario.
    * */
 
-  unsigned int Solvers::nchoosek(unsigned int n, unsigned int k){
+  unsigned int DGMSolver::nchoosek(unsigned int n, unsigned int k){
     if(k>n){
       return 0;
     }
@@ -32,7 +33,7 @@ namespace moab {
     return ans;
   }
 
-  unsigned int Solvers::compute_numcols_vander_multivar(unsigned int kvars,unsigned int degree){
+  unsigned int DGMSolver::compute_numcols_vander_multivar(unsigned int kvars,unsigned int degree){
     unsigned int mcols=0;
     for(unsigned int i=0;i<=degree;++i){
       unsigned int temp = nchoosek(kvars-1+i,kvars-1);
@@ -45,7 +46,7 @@ namespace moab {
     return mcols;
   }
 
-  void Solvers::gen_multivar_monomial_basis(const int kvars,const double* vars, const int degree, std::vector<double>& basis){
+  void DGMSolver::gen_multivar_monomial_basis(const int kvars,const double* vars, const int degree, std::vector<double>& basis){
     unsigned int len = compute_numcols_vander_multivar(kvars,degree);
     basis.reserve(len-basis.capacity()+basis.size());
     size_t iend = basis.size(),istr = basis.size();
@@ -73,7 +74,7 @@ namespace moab {
     assert(len==iend-istr);
   }
 
-  void Solvers::gen_vander_multivar(const int mrows,const int kvars, const double* us, const int degree, std::vector<double>& V){
+  void DGMSolver::gen_vander_multivar(const int mrows,const int kvars, const double* us, const int degree, std::vector<double>& V){
     unsigned int ncols = compute_numcols_vander_multivar(kvars,degree);
     V.reserve(mrows*ncols-V.capacity()+V.size());
     size_t istr=V.size(),icol=0;
@@ -110,7 +111,7 @@ namespace moab {
     assert(icol==ncols);
   }
 
-  void Solvers::rescale_matrix(int mrows, int ncols, double *V, double *ts)
+  void DGMSolver::rescale_matrix(int mrows, int ncols, double *V, double *ts)
   {
     //This function rescales the input matrix using the norm of each column.
     double *v = new double[mrows];
@@ -134,7 +135,7 @@ namespace moab {
     delete [] v;
   }
 
-  void Solvers::compute_qtransposeB(int mrows, int ncols, const double *Q, int bncols, double *bs)
+  void DGMSolver::compute_qtransposeB(int mrows, int ncols, const double *Q, int bncols, double *bs)
   {
     for (int k=0; k<ncols; k++)
       {
@@ -151,7 +152,7 @@ namespace moab {
       }
   }
 
-  void Solvers::qr_polyfit_safeguarded( const int mrows, const int ncols, double *V, double *D, int *rank)
+  void DGMSolver::qr_polyfit_safeguarded( const int mrows, const int ncols, double *V, double *D, int *rank)
   {
     double tol = 1e-8;
     *rank = ncols;
@@ -216,9 +217,10 @@ namespace moab {
     delete [] v;
   }
 
-  void Solvers::backsolve(int mrows, int ncols, double *R, int bncols, double *bs, double *ws)
+  void DGMSolver::backsolve(int mrows, int ncols, double *R, int bncols, double *bs, double *ws)
   {
-   /* std::cout.precision(16);
+#if 0
+    std::cout.precision(16);
     std::cout<<"Before backsolve  "<<std::endl;
     std::cout<<" V = "<<std::endl;
     for (int k=0; k< ncols; k++){
@@ -237,8 +239,8 @@ namespace moab {
             std::cout<<"  "<<bs[mrows*k+j]<<std::endl;
           }
       }
-    std::cout<<std::endl;*/
-
+    std::cout<<std::endl;
+#endif
 
     for (int k=0; k< bncols; k++)
       {
@@ -248,10 +250,7 @@ namespace moab {
               bs[mrows*k+j] = bs[mrows*k+j] - R[mrows*i+j]*bs[mrows*k+i];
 
             assert(R[mrows*j+j] != 0);
-
             bs[mrows*k+j] = bs[mrows*k+j]/R[mrows*j+j];
-
-          //  std::cout<<"bs["<<j<<"] = "<<bs[mrows*k+j]<<std::endl;
           }
       }
 
@@ -261,9 +260,10 @@ namespace moab {
       }
   }
 
-  void Solvers::backsolve_polyfit_safeguarded(int dim, int degree, const bool interp, int mrows, int ncols, double *R, int bncols, double *bs, const double *ws, int *degree_out)
+  void DGMSolver::backsolve_polyfit_safeguarded(int dim, int degree, const bool interp, int mrows, int ncols, double *R, int bncols, double *bs, const double *ws, int *degree_out)
   {
-    /*std::cout.precision(12);
+#if 0
+    std::cout.precision(12);
     std::cout<<"Before backsolve  "<<std::endl;
     std::cout<<" V = "<<std::endl;
     for (int k=0; k< ncols; k++){
@@ -282,10 +282,11 @@ namespace moab {
             std::cout<<"  "<<bs[mrows*k+j]<<std::endl;
         }
     }
-    std::cout<<std::endl;*/
+    std::cout<<std::endl;
+
     //std::cout<<" ] "<<std::endl;
 
-   /* std::cout<<"Input ws = [ ";
+    std::cout<<"Input ws = [ ";
     for (int k=0; k< ncols; k++){
             std::cout<<ws[k]<<", ";
           }
@@ -295,7 +296,7 @@ namespace moab {
     std::cout << "bs: " << bs << "size: [" << mrows << "," << bncols << "]" << std::endl;
     std::cout << "ws: " << ws << "size: [" << ncols << "," << 1 << "]" << std::endl;
     std::cout << "degree_out: " << degree_out << std::endl;
-    */
+#endif
 
     int deg, numcols;
 
@@ -308,20 +309,15 @@ namespace moab {
         else if (dim==2)
           numcols = (deg+2)*(deg+1)/2 - interp;
 
-        /*ERROR, assert is disabled*/
-        //std::cout << "numcols: " << numcols << ", ncols: " << ncols << std::endl;
         assert(numcols <=ncols);
 
-        //double *bs_bak = new double[numcols];
         std::vector<double> bs_bak(numcols);
 
         if (deg >= 2)
           {
             for (int i=0; i< numcols; i++){
-                //bs_bak[i] = bs[mrows*k+i];
                 assert(mrows*k+i < mrows*bncols);
                 bs_bak.at(i) = bs[mrows*k+i];
-                //std::cout<<"bs_bak["<<i<<"] = "<<bs_bak[i]<<std::endl;
               }
           }
 
@@ -340,8 +336,6 @@ namespace moab {
                   //cstart = ((d*(d+1))>>1)-interp;
                 }
 
-               // std::cout<<"cstart = "<<cstart<<", cend = "<<cend<<std::endl;
-
                 //Solve for  bs
                 for (int j=cend; j>= cstart; j--)
                   {
@@ -354,7 +348,6 @@ namespace moab {
                       }
                     assert(mrows*j+j < mrows*ncols); // check R
                     bs[mrows*k+j] = bs[mrows*k+j]/R[mrows*j+j];
-                    //std::cout<<"bs["<<j<<"] = "<<bs[mrows*k+j]<<std::endl;
                   }
 
                 //Checking for change in the coefficient
@@ -379,21 +372,15 @@ namespace moab {
                       {
                         tol = 0.05;
 
-                  //      std::cout<<"cend = "<<cend<<", cstart = "<<cstart<<std::endl;
-
-                        //double *tb = new double[cend-cstart+1];
                         std::vector<double> tb(cend-cstart+1);
                         for (int j=0; j<=(cend-cstart); j++)
                           {
                             tb.at(j) = bs_bak.at(cstart+j);
-                          //  std::cout<<"tb["<<j<<"] = "<<tb[j]<<std::endl;
                           }
 
                         for (int j=cend; j>= cstart; j--)
                           {
                             int jind = j -cstart;
-
-                         //   std::cout<<"j = "<<j<<", jind = "<<jind<<std::endl;
 
                             for (int i=j+1; i<=cend; ++i)
                               {
@@ -405,17 +392,12 @@ namespace moab {
                             assert(mrows*k+j < mrows*bncols);
                             double err = fabs(bs[mrows*k+j] - tb.at(jind));
 
-                         //   std::cout<<"fabs(tb[jind])="<<fabs(tb[jind])<<", err = "<<err<<std::endl;
-
                             if ((err > tol) && (err >= (1+tol)*fabs(tb.at(jind))))
                               {
                                 downgrade = true;
-                            //    std::cout<<"downgraded"<<std::endl;
                                 break;
                               }
                           }
-
-                        //delete [] tb;
 
                         if (downgrade)
                           break;
@@ -444,35 +426,24 @@ namespace moab {
         assert(k < bncols);
         degree_out[k] = deg;
 
-        //std::cout<<"BACKSOLVE_SAFEGUARDED solution bs = [ ";
-        //std::cout << "numcols: " << numcols << std::endl;
         for (int i=0; i<numcols; i++)
           {
-            /*ERROR*/
             //assert(mrows*k+i < mrows*bncols);
             //assert(i < ncols);
-            //std::cout << "ws[" << i << "]: " << ws[i] << "\tAddress: " << ws+i << std::endl; 
             bs[mrows*k+i] = bs[mrows*k+i]/ws[i];
-        //    std::cout<<bs[mrows*k+i]<<", ";
           }
-
-     //   std::cout<<" ] "<<std::endl;
 
         for (int i=numcols; i<mrows; i++) {
           //assert(mrows*k+i < mrows*bncols);
           bs[mrows*k+i] = 0;
         }
-
-        //delete [] bs_bak;
       }
-
   }
 
-  void Solvers::vec_dotprod(const int len, const double* a, const double* b, double* c)
+  void DGMSolver::vec_dotprod(const int len, const double* a, const double* b, double* c)
   {
     if(!a||!b||!c){
-      std::cerr << __FILE__ << ":" << __LINE__ << "\nNULL Pointer" << std::endl;
-      return;
+      MB_SET_ERR_RET("NULL Pointer");
     }
     for(int i=0;i<len;++i){
         c[i] = a[i]*b[i];
@@ -480,29 +451,27 @@ namespace moab {
 
     }
 
-  void Solvers::vec_scalarprod(const int len, const double* a, const double c, double *b)
+  void DGMSolver::vec_scalarprod(const int len, const double* a, const double c, double *b)
   {
     if(!a||!b){
-      std::cerr << __FILE__ << ":" << __LINE__ << "\nNULL Pointer" << std::endl;
-      return;
+      MB_SET_ERR_RET("NULL Pointer");
     }
     for(int i=0;i<len;++i){
          b[i] = c*a[i];
       }
   }
 
-  void Solvers::vec_crossprod(const double a[3], const double b[3], double (&c)[3])
+  void DGMSolver::vec_crossprod(const double a[3], const double b[3], double (&c)[3])
   {
     c[0] =a[1]*b[2]-a[2]*b[1];
     c[1] =a[2]*b[0]-a[0]*b[2];
     c[2] =a[0]*b[1]-a[1]*b[0];
   }
 
-  double Solvers::vec_innerprod(const int len, const double* a, const double* b)
+  double DGMSolver::vec_innerprod(const int len, const double* a, const double* b)
   {
     if(!a||!b){
-      std::cerr << __FILE__ << ":" << __LINE__ << "\nNULL Pointer" << std::endl;
-      return 0;
+      MB_SET_ERR_RET_VAL("NULL Pointer", 0.0);
     }
     double ans=0;
     for(int i=0;i<len;++i){
@@ -511,11 +480,10 @@ namespace moab {
     return ans;
   }
 
-  double Solvers::vec_2norm(const int len, const double* a)
+  double DGMSolver::vec_2norm(const int len, const double* a)
   {
     if(!a){
-      std::cerr << __FILE__ << ":" << __LINE__ << "\nNULL Pointer" << std::endl;
-      return 0;
+      MB_SET_ERR_RET_VAL("NULL Pointer", 0.0);
     }
     double w=0, s=0;
     for (int k=0; k<len; k++)
@@ -532,11 +500,10 @@ namespace moab {
     return s;
   }
 
-  double Solvers::vec_normalize(const int len, const double* a, double* b)
+  double DGMSolver::vec_normalize(const int len, const double* a, double* b)
   {
     if(!a||!b){
-      std::cerr << __FILE__ << ":" << __LINE__ << "\nNULL Pointer" << std::endl;
-      return 0;
+      MB_SET_ERR_RET_VAL("NULL Pointer", 0.0);
     }
     double nrm=0,mx=0;
     for(int i=0;i<len;++i){
@@ -561,7 +528,7 @@ namespace moab {
     return nrm;
   }
 
-  double Solvers::vec_distance(const int len, const double* a, const double*b){
+  double DGMSolver::vec_distance(const int len, const double* a, const double*b){
     double res=0;
     for(int i=0;i<len;++i){
       res += (a[i]-b[i])*(a[i]-b[i]);
@@ -570,11 +537,10 @@ namespace moab {
   }
 
 
-  void Solvers::vec_projoff(const int len, const double* a, const double* b, double* c)
+  void DGMSolver::vec_projoff(const int len, const double* a, const double* b, double* c)
   {
     if(!a||!b||!c){
-      std::cerr << __FILE__ << ":" << __LINE__ << "\nNULL Pointer" << std::endl;
-      return;
+      MB_SET_ERR_RET("NULL Pointer");
     }
     //c = a-<a,b>b/<b,b>;
     double bnrm = vec_2norm(len,b);
@@ -600,18 +566,17 @@ namespace moab {
     }
   }
 
-    void Solvers::vec_linear_operation(const int len, const double mu, const double* a, const double psi, const double* b, double* c)
+    void DGMSolver::vec_linear_operation(const int len, const double mu, const double* a, const double psi, const double* b, double* c)
     {
       if(!a||!b||!c){
-        std::cerr << __FILE__ << ":" << __LINE__ << "\nNULL Pointer" << std::endl;
-        return;
+        MB_SET_ERR_RET("NULL Pointer");
       }
       for(int i=0;i<len;++i){
           c[i] = mu*a[i]+psi*b[i];
       }
     }
 
-    void Solvers::get_tri_natural_coords(const int dim, const double* cornercoords, const int npts, const double* currcoords, double* naturalcoords){
+    void DGMSolver::get_tri_natural_coords(const int dim, const double* cornercoords, const int npts, const double* currcoords, double* naturalcoords){
       assert(dim==2||dim==3);
       double a=0,b=0,d=0,tol=1e-12;
       for(int i=0;i<dim;++i){
@@ -643,3 +608,4 @@ namespace moab {
       }
     }
 }//namespace
+

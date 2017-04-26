@@ -1,5 +1,5 @@
-#include "moab/HiReconstruction.hpp"
-#include "moab/Solvers.hpp"
+#include "moab/DiscreteGeometry/HiReconstruction.hpp"
+#include "moab/DiscreteGeometry/DGMSolver.hpp"
 #include "moab/HalfFacetRep.hpp"
 
 #ifdef MOAB_HAVE_MPI
@@ -400,8 +400,8 @@ namespace moab
 				local_pos[j] = coords2fit[3*i+j]-local_origin[j];
 			}
 			double u,v,height=0;
-			u = Solvers::vec_innerprod(3,local_pos,xaxis);
-			v = Solvers::vec_innerprod(3,local_pos,yaxis);
+			u = DGMSolver::vec_innerprod(3,local_pos,xaxis);
+			v = DGMSolver::vec_innerprod(3,local_pos,yaxis);
 			basis[0] = u;
 			basis[1] = v;
 			int l=1;
@@ -432,8 +432,8 @@ namespace moab
 		for(int i=0;i<npts2fit;++i){
 			//get the vector from center to current point, project to tangent line
 			double vec[3],ans[3]={0,0,0};
-			Solvers::vec_linear_operation(3,1,coords2fit+3*i,-1,local_origin,vec);
-			double u = Solvers::vec_innerprod(3,local_coords,vec);
+			DGMSolver::vec_linear_operation(3,1,coords2fit+3*i,-1,local_origin,vec);
+			double u = DGMSolver::vec_innerprod(3,local_coords,vec);
 			//evaluate polynomials
 			if(!interp){
 				ans[0] = local_coeffs[0]; ans[1] = local_coeffs[ncoeffspvpd]; ans[2] = local_coeffs[2*ncoeffspvpd];
@@ -660,12 +660,12 @@ namespace moab
 	 			error = mbImpl->get_coords(&pre,1,a); MB_CHK_ERR(error);
 	 			error = mbImpl->get_coords(&vid,1,b); MB_CHK_ERR(error);
 	 			error = mbImpl->get_coords(&nxt,1,c); MB_CHK_ERR(error);
-	 			Solvers::vec_linear_operation(3,1,c,-1,b,v1);
-	 			Solvers::vec_linear_operation(3,1,a,-1,b,v2);
-	 			Solvers::vec_crossprod(v1,v2,v3);
-	 			Solvers::vec_linear_operation(3,1,nrm,1,v3,nrm);
+	 			DGMSolver::vec_linear_operation(3,1,c,-1,b,v1);
+	 			DGMSolver::vec_linear_operation(3,1,a,-1,b,v2);
+	 			DGMSolver::vec_crossprod(v1,v2,v3);
+	 			DGMSolver::vec_linear_operation(3,1,nrm,1,v3,nrm);
 	 		}
-	 		double len=Solvers::vec_normalize(3,nrm,nrm); assert(len);
+	 		double len=DGMSolver::vec_normalize(3,nrm,nrm); assert(len);
 	 	}
 	 	return error;
 	 }
@@ -730,10 +730,10 @@ namespace moab
 	 			double istr[3],iend[3],t[3];
 	 			error = mbImpl->get_coords(&(edgeconn[0]),1,istr);
 	 			error = mbImpl->get_coords(&(edgeconn[1]),1,iend);
-	 			Solvers::vec_linear_operation(3,1,iend,-1,istr,t);
-	 			Solvers::vec_linear_operation(3,1,tang,1,t,tang);
+	 			DGMSolver::vec_linear_operation(3,1,iend,-1,istr,t);
+	 			DGMSolver::vec_linear_operation(3,1,tang,1,t,tang);
 	 		}
-	 		double len=Solvers::vec_normalize(3,tang,tang); assert(len);
+	 		double len=DGMSolver::vec_normalize(3,tang,tang); assert(len);
 	 	}
 	 	return error;
 	 }
@@ -801,9 +801,9 @@ namespace moab
 	 		tang1[0] = 1.0;
 	 	}
 
-	 	Solvers::vec_projoff(3,tang1,nrm,tang1);
-	 	double len1 = Solvers::vec_normalize(3,tang1,tang1); assert(len1);
-	 	Solvers::vec_crossprod(nrm,tang1,tang2);
+	 	DGMSolver::vec_projoff(3,tang1,nrm,tang1);
+	 	double len1 = DGMSolver::vec_normalize(3,tang1,tang1); assert(len1);
+	 	DGMSolver::vec_crossprod(nrm,tang1,tang2);
 	 	if(9<=ncoords&&coords){
 	 		coords[0] = tang1[0]; coords[1] = tang1[1]; coords[2] = tang1[2];
 	 		coords[3] = tang2[0]; coords[4] = tang2[1]; coords[5] = tang2[2];
@@ -830,9 +830,9 @@ namespace moab
 	 	for(int i=interp;i<nverts;++i){
 	 		int k = i-interp;
 	 		double uu[3];
-	 		Solvers::vec_linear_operation(3,1,ngbcoords+3*i,-1,ngbcoords,uu);
-	 		us[k*2] = Solvers::vec_innerprod(3,tang1,uu); us[k*2+1] = Solvers::vec_innerprod(3,tang2,uu);
-	 		bs[k] = Solvers::vec_innerprod(3,nrm,uu);
+	 		DGMSolver::vec_linear_operation(3,1,ngbcoords+3*i,-1,ngbcoords,uu);
+	 		us[k*2] = DGMSolver::vec_innerprod(3,tang1,uu); us[k*2+1] = DGMSolver::vec_innerprod(3,tang2,uu);
+	 		bs[k] = DGMSolver::vec_innerprod(3,nrm,uu);
 	 	}
 
 	 	//step 3. compute weights
@@ -894,7 +894,7 @@ namespace moab
 
 	 	//step 2. construct Vandermonde matrix, stored in columnwise
 	 	std::vector<double> V;//V(npts2fit*(ncols+interp)); //double *V_init = new double[npts2fit*(ncols+interp)];
-	 	Solvers::gen_vander_multivar(npts2fit,2,us,degree,V);
+	 	DGMSolver::gen_vander_multivar(npts2fit,2,us,degree,V);
 	 	//remove the first column of 1s if interpolation
 	 	if(interp){
 	 		V.erase(V.begin(),V.begin()+npts2fit);
@@ -920,12 +920,12 @@ namespace moab
 
 	 	//step 4. scale columns to reduce condition number
 	 	std::vector<double> ts(ncols); //double *ts = new double[ncols];
-	 	Solvers::rescale_matrix(npts2fit,ncols,&(V[0]),&(ts[0]));
+	 	DGMSolver::rescale_matrix(npts2fit,ncols,&(V[0]),&(ts[0]));
 
 	 	//step 5. Perform Householder QR factorization
 	 	std::vector<double> D(ncols); //double *D = new double[ncols];
 	 	int rank;
-	 	Solvers::qr_polyfit_safeguarded(npts2fit,ncols,&(V[0]),&(D[0]),&rank);
+	 	DGMSolver::qr_polyfit_safeguarded(npts2fit,ncols,&(V[0]),&(D[0]),&rank);
 
 	 	//step 6. adjust degree of fitting according to rank of Vandermonde matrix
 	 	int ncols_sub = ncols;
@@ -961,7 +961,7 @@ namespace moab
 		std::cout<<std::endl;*/
 
 	 	//step 7. compute Q'b
-	 	Solvers::compute_qtransposeB(npts2fit,ncols_sub,&(V[0]),ndim,bs);
+	 	DGMSolver::compute_qtransposeB(npts2fit,ncols_sub,&(V[0]),ndim,bs);
 
 		/* DBG
 		 * std::cout<<"after Qtb"<<std::endl;
@@ -984,9 +984,9 @@ namespace moab
 	 	if(safeguard){
 	 		//for debug
 	 		//std::cout << "ts size " << ts.size() << std::endl;
-			Solvers::backsolve_polyfit_safeguarded(2,degree,interp,npts2fit,ncols_sub,&(V[0]),ndim,bs,&(ts[0]),degree_out);
+			DGMSolver::backsolve_polyfit_safeguarded(2,degree,interp,npts2fit,ncols_sub,&(V[0]),ndim,bs,&(ts[0]),degree_out);
 	 	}else{
-	 		Solvers::backsolve(npts2fit,ncols_sub,&(V[0]),1,bs,&(ts[0]));
+	 		DGMSolver::backsolve(npts2fit,ncols_sub,&(V[0]),1,bs,&(ts[0]));
 	 		*degree_out = degree;
 	 	}
 	 	/*if(V_init){
@@ -1024,8 +1024,8 @@ namespace moab
 	 	double uu[3];
 	 	for(int i=interp;i<nverts;++i){
 	 		int k=i-interp;
-	 		Solvers::vec_linear_operation(3,1,ngbcors+3*i,-1,ngbcors,uu);
-	 		us[k] = Solvers::vec_innerprod(3,uu,tang);
+	 		DGMSolver::vec_linear_operation(3,1,ngbcors+3*i,-1,ngbcors,uu);
+	 		us[k] = DGMSolver::vec_innerprod(3,uu,tang);
 	 		bs[k] = uu[0]; bs[npts2fit+k] = uu[1]; bs[2*npts2fit+k] = uu[2];
 	 	}
 
@@ -1099,7 +1099,7 @@ namespace moab
 	 	}
 	 	//step 2. construct Vandermonde matrix
 	 	std::vector<double> V;//V(npts2fit*(ncols+interp));
-	 	Solvers::gen_vander_multivar(npts2fit,1,us,degree,V);
+	 	DGMSolver::gen_vander_multivar(npts2fit,1,us,degree,V);
 
 	 	if(interp){
 	 		V.erase(V.begin(),V.begin()+npts2fit);
@@ -1117,12 +1117,12 @@ namespace moab
 
 	 	//step 4. scale columns to reduce condition number
 	 	std::vector<double> ts(ncols);
-	 	Solvers::rescale_matrix(npts2fit,ncols,&(V[0]),&(ts[0]));
+	 	DGMSolver::rescale_matrix(npts2fit,ncols,&(V[0]),&(ts[0]));
 
 	 	//step 5. perform Householder QR factorization
 	 	std::vector<double> D(ncols);
 	 	int rank;
-	 	Solvers::qr_polyfit_safeguarded(npts2fit,ncols,&(V[0]),&(D[0]),&rank);
+	 	DGMSolver::qr_polyfit_safeguarded(npts2fit,ncols,&(V[0]),&(D[0]),&rank);
 
 	 	//step 6. adjust degree of fitting
 	 	int ncols_sub = ncols;
@@ -1141,7 +1141,7 @@ namespace moab
 	 	}
 
 	 	//step 7. compute Q'*bs
-	 	Solvers::compute_qtransposeB(npts2fit,ncols_sub,&(V[0]),ndim,bs);
+	 	DGMSolver::compute_qtransposeB(npts2fit,ncols_sub,&(V[0]),ndim,bs);
 
 	 	//step 8. perform backward substitution and scale solutions
 	 	//assign diagonals of V
@@ -1150,9 +1150,9 @@ namespace moab
 	 	}
 	 	//backsolve
 	 	if(safeguard){
-			Solvers::backsolve_polyfit_safeguarded(1,degree,interp,npts2fit,ncols,&(V[0]),ndim,bs,ws,degree_out);
+			DGMSolver::backsolve_polyfit_safeguarded(1,degree,interp,npts2fit,ncols,&(V[0]),ndim,bs,ws,degree_out);
 	 	}else{
-	 		Solvers::backsolve(npts2fit,ncols_sub,&(V[0]),ndim,bs,&(ts[0]));
+	 		DGMSolver::backsolve(npts2fit,ncols_sub,&(V[0]),ndim,bs,&(ts[0]));
 	 		*degree_out = degree;
 	 	}
 	 }
@@ -1168,7 +1168,7 @@ namespace moab
 
 	 	//First, compute squared distance from each input piont to the center
 	 	for(int i=0;i<nrows;++i){
-	 		ws[i] = Solvers::vec_innerprod(ncols,us+i*ncols,us+i*ncols);
+	 		ws[i] = DGMSolver::vec_innerprod(ncols,us+i*ncols,us+i*ncols);
 	 	}
 
 	 	//Second, compute a small correction termt o guard against zero
@@ -1181,7 +1181,7 @@ namespace moab
 	 	//Finally, compute the weights for each vertex
 	 	int nzeros = 0;
 	 	for(int i=0;i<nrows;++i){
-	 		double costheta = Solvers::vec_innerprod(3,ngbnrms,ngbnrms+3*(i+interp));
+	 		double costheta = DGMSolver::vec_innerprod(3,ngbnrms,ngbnrms+3*(i+interp));
 	 		if(costheta>toler){
 	 			ws[i] = costheta*pow(ws[i]/h+epsilon,-1*(double) degree/2.0);
 	 		}else{

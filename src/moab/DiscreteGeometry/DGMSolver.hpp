@@ -1,14 +1,14 @@
-#ifndef SOLVERS_HPP
-#define SOLVERS_HPP
+#ifndef DGMSOLVER_HPP
+#define DGMSOLVER_HPP
 #include <vector>
 
 namespace moab
 {
 
-  class Solvers
+  class DGMSolver
   {
-    Solvers() {};
-    ~Solvers() {};
+    DGMSolver() {};
+    ~DGMSolver() {};
 public:
     
     //! \brief compute combinational number, n choose k, maximum output is std::numeric_limits<unsigned int>::max();

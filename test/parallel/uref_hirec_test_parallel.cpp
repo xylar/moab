@@ -9,8 +9,7 @@
 #include "moab/Range.hpp"
 #include "moab/MeshTopoUtil.hpp"
 #include "moab/NestedRefine.hpp"
-#include "moab/Solvers.hpp"
-#include "moab/HiReconstruction.hpp"
+#include "moab/DiscreteGeometry/HiReconstruction.hpp"
 #include "TestUtil.hpp"
 #include "geomObject.cpp"
 #include <math.h>

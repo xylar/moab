@@ -66,9 +66,7 @@ TESTS = range_test \
         verdict_test \
         test_Matrix3 \
         hireconst_test \
-        hireconst_test_parallel \
-        uref_hirec_test \
-        uref_hirec_test_parallel
+        uref_hirec_test
 
 if HAVE_HDF5
   TESTS += mbfacet_test \
@@ -190,9 +188,7 @@ lloyd_smoother_test_SOURCES = lloyd_smoother_test.cpp
 adj_moab_test_SOURCES = adj_moab_test.cpp
 uref_mesh_test_SOURCES = urefine_mesh_test.cpp
 hireconst_test_SOURCES = hireconst_test.cpp
-hireconst_test_parallel_SOURCES = hireconst_test_parallel.cpp
 uref_hirec_test_SOURCES = uref_hirec_test.cpp geomObject.cpp
-uref_hirec_test_parallel_SOURCES = uref_hirec_test_parallel.cpp geomObject.cpp
 
 test_geom_gqt_SOURCES = test_geom_gqt.cc
 

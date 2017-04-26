@@ -37,9 +37,11 @@ endif
 TESTS = pcomm_unit \
         scdtest \
         pcomm_serial \
-	par_spatial_locator_test \
-	parallel_unit_tests imoab_ptest2 \
-	uber_parallel_test \
+        par_spatial_locator_test \
+        parallel_unit_tests imoab_ptest2 \
+        uber_parallel_test \
+        hireconst_test_parallel \
+        uref_hirec_test_parallel \
         $(NETCDF_TESTS) \
         $(HDF5_TESTS) \
         $(MBCSLAM_TESTS) $(IMESH_TESTS) $(IMOAB_TESTS)
@@ -126,6 +128,8 @@ augment_with_ghosts_SOURCES = augment_with_ghosts.cpp
 imoab_ptest_SOURCES = imoab_ptest.F
 imoab_ptest_LDADD = $(LDADD) $(FCLIBS)
 imoab_ptest2_SOURCES = imoab_ptest2.cpp
+hireconst_test_parallel_SOURCES = hireconst_test_parallel.cpp
+uref_hirec_test_parallel_SOURCES = uref_hirec_test_parallel.cpp ../geomObject.cpp
 
 if ENABLE_imesh
 if HAVE_HDF5_PARALLEL

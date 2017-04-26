@@ -9,8 +9,8 @@
 #include "moab/Range.hpp"
 #include "moab/MeshTopoUtil.hpp"
 #include "moab/NestedRefine.hpp"
-#include "moab/Solvers.hpp"
-#include "moab/HiReconstruction.hpp"
+#include "moab/DiscreteGeometry/DGMSolver.hpp"
+#include "moab/DiscreteGeometry/HiReconstruction.hpp"
 #include "TestUtil.hpp"
 #include "geomObject.cpp"
 #include <math.h>
@@ -94,7 +94,7 @@ ErrorCode test_closedsurface_mesh(const char* filename, int *level_degrees, int 
 		error = mbImpl->get_coords(&currvert,1,&(currcoords[0])); MB_CHK_ERR(error);
 		
 		std::vector<double> naturalcoords2fit(3);
-		Solvers::get_tri_natural_coords(3,&(cornercoords[0]),1,&(currcoords[0]),&(naturalcoords2fit[0]));
+		DGMSolver::get_tri_natural_coords(3,&(cornercoords[0]),1,&(currcoords[0]),&(naturalcoords2fit[0]));
 		//project onto the estimated geometry
 		double hicoords[3];
 		error = hirec.hiproj_walf_in_element(rootelem,nvpe,1,&(naturalcoords2fit[0]),hicoords); MB_CHK_ERR(error);
