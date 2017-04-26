@@ -12,7 +12,8 @@ all-local:
 	(export PYTHONPATH=$(PWD)/$(local_install_path)/:$(PYTHONPATH) ; mkdir -m 766 $(local_install_path); $(PYTHON) setup.py install --install-platlib=$(PWD)/$(local_install_path)/ --install-purelib=$(PWD)/$(local_install_path)/)
 
 install:
-	(export PYTHONPATH=$(pythondir):$(PYTHONPATH) ; $(PYTHON) setup.py install --install-platlib=$(DESTDIR)$(pythondir) --install-purelib=$(DESTDIR)$(pythondir))
+	$(MKDIR_P) $(DESTDIR)$(pythondir)
+	(export PYTHONPATH=$(DESTDIR)$(pythondir):$(PYTHONPATH) ; $(PYTHON) setup.py install --install-platlib=$(DESTDIR)$(pythondir) --install-purelib=$(DESTDIR)$(pythondir))
 
 check:
 	cd tests; \
@@ -22,7 +23,7 @@ check:
 	done
 
 clean-local:
-	-rm -rf build tests/*.pyc $(local_install_path) pymoab.egg-info dist
+	-rm -rf build tests/*.pyc tests/outfile.h5m $(local_install_path) pymoab.egg-info dist
 
 uninstall:
-	-rm -r ${pythondir}
+	-rm -rf $(DESTDIR)$(pythondir)
