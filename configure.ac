@@ -206,22 +206,24 @@ else
     AC_MSG_ERROR(cython is not the correct version for pymoab)
     fi
     AC_CONFIG_SRCDIR([pymoab/setup.py.in])
+    # link source files to build location
     AC_CONFIG_LINKS([pymoab/pymoab/moab.pxd:pymoab/pymoab/moab.pxd
-                     pymoab/pymoab/tag.pyx:pymoab/pymoab/tag.pyx
+                     pymoab/pymoab/tag.cpp:pymoab/pymoab/tag.cpp
                      pymoab/pymoab/tag.pxd:pymoab/pymoab/tag.pxd
-                     pymoab/pymoab/core.pyx:pymoab/pymoab/core.pyx
+                     pymoab/pymoab/core.cpp:pymoab/pymoab/core.cpp
 		     pymoab/pymoab/core.pxd:pymoab/pymoab/core.pxd
-		     pymoab/pymoab/rng.pyx:pymoab/pymoab/rng.pyx
+		     pymoab/pymoab/rng.cpp:pymoab/pymoab/rng.cpp
 		     pymoab/pymoab/rng.pxd:pymoab/pymoab/rng.pxd
-		     pymoab/pymoab/hcoord.pyx:pymoab/pymoab/hcoord.pyx
+		     pymoab/pymoab/hcoord.cpp:pymoab/pymoab/hcoord.cpp
 		     pymoab/pymoab/hcoord.pxd:pymoab/pymoab/hcoord.pxd
-		     pymoab/pymoab/types.pyx:pymoab/pymoab/types.pyx
-		     pymoab/pymoab/topo_util.pyx:pymoab/pymoab/topo_util.pyx
+		     pymoab/pymoab/types.cpp:pymoab/pymoab/types.cpp
+		     pymoab/pymoab/topo_util.cpp:pymoab/pymoab/topo_util.cpp
 		     pymoab/pymoab/topo_util.pxd:pymoab/pymoab/topo_util.pxd
-		     pymoab/pymoab/scd.pyx:pymoab/pymoab/scd.pyx
+		     pymoab/pymoab/scd.cpp:pymoab/pymoab/scd.cpp
 		     pymoab/pymoab/scd.pxd:pymoab/pymoab/scd.pxd
 		     pymoab/pymoab/__init__.pxd:pymoab/pymoab/__init__.pxd
 		     pymoab/pymoab/__init__.py:pymoab/pymoab/__init__.py])
+    # link test files to build location
     AC_CONFIG_LINKS([pymoab/tests/driver.py:pymoab/tests/driver.py
                      pymoab/tests/test_core.py:pymoab/tests/test_core.py
 		     pymoab/tests/test_tag.py:pymoab/tests/test_tag.py
