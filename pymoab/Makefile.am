@@ -13,7 +13,7 @@ all-local:
 
 install:
 	if [ ! -d $(pythondir) ]; then mkdir -m 766 -p $(pythondir); fi
-	(export PYTHONPATH=$(pythondir):$(PYTHONPATH) ; python setup.py install --install-platlib=$(pythondir) )
+	(export PYTHONPATH=$(pythondir):$(PYTHONPATH) ; python setup.py install --install-platlib=$(pythondir) --install-purelib=$(pythondir))
 
 check:
 	cd tests; \
@@ -24,7 +24,6 @@ check:
 
 clean-local:
 	-rm -rf build tests/*.pyc $(local_install_path) pymoab.egg-info dist
-
 
 uninstall:
 	-rm -r ${pythondir}
