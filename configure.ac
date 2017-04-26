@@ -209,17 +209,24 @@ else
     # link source files to build location
     AC_CONFIG_LINKS([pymoab/pymoab/moab.pxd:pymoab/pymoab/moab.pxd
                      pymoab/pymoab/tag.cpp:pymoab/pymoab/tag.cpp
+                     pymoab/pymoab/tag.pyx:pymoab/pymoab/tag.pyx
                      pymoab/pymoab/tag.pxd:pymoab/pymoab/tag.pxd
                      pymoab/pymoab/core.cpp:pymoab/pymoab/core.cpp
+                     pymoab/pymoab/core.pyx:pymoab/pymoab/core.pyx
 		     pymoab/pymoab/core.pxd:pymoab/pymoab/core.pxd
 		     pymoab/pymoab/rng.cpp:pymoab/pymoab/rng.cpp
+		     pymoab/pymoab/rng.pyx:pymoab/pymoab/rng.pyx
 		     pymoab/pymoab/rng.pxd:pymoab/pymoab/rng.pxd
 		     pymoab/pymoab/hcoord.cpp:pymoab/pymoab/hcoord.cpp
+		     pymoab/pymoab/hcoord.pyx:pymoab/pymoab/hcoord.pyx
 		     pymoab/pymoab/hcoord.pxd:pymoab/pymoab/hcoord.pxd
 		     pymoab/pymoab/types.cpp:pymoab/pymoab/types.cpp
+		     pymoab/pymoab/types.pyx:pymoab/pymoab/types.pyx
 		     pymoab/pymoab/topo_util.cpp:pymoab/pymoab/topo_util.cpp
+		     pymoab/pymoab/topo_util.pyx:pymoab/pymoab/topo_util.pyx
 		     pymoab/pymoab/topo_util.pxd:pymoab/pymoab/topo_util.pxd
 		     pymoab/pymoab/scd.cpp:pymoab/pymoab/scd.cpp
+		     pymoab/pymoab/scd.pyx:pymoab/pymoab/scd.pyx
 		     pymoab/pymoab/scd.pxd:pymoab/pymoab/scd.pxd
 		     pymoab/pymoab/__init__.pxd:pymoab/pymoab/__init__.pxd
 		     pymoab/pymoab/__init__.py:pymoab/pymoab/__init__.py])
@@ -241,6 +248,8 @@ else
       pythondir=$pymoab_prefix
     fi
     AC_SUBST([pymoab_prefix])
+    AC_MSG_NOTICE([$pymoab_prefix])
+    AC_MSG_NOTICE([$prefix])
     # ensure shared libraries are enabled
     if (test "xyes" != "x$enable_shared" || test "xno" = "x$enable_shared"); then
       AC_MSG_ERROR([Cannot build static libraries and the python interface. Please build with shared libraries (--enable-shared) or build without MOAB's python interface.])
@@ -252,7 +261,7 @@ else
     # ensure 32 bit handles are NOT enabled
     if (test "x$enable_32bit_handles" != "x"); then
       AC_MSG_ERROR([Cannot build pymoab with 32bit EntityHandles enabled. Please remove the --enable-32bit-handles configuration option or build without MOAB's python interface.])
-    fi    
+    fi
     DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --enable-pymoab=$ENABLE_pymoab"
   else
     ENABLE_pymoab=no

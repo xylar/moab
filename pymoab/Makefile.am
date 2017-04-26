@@ -9,7 +9,7 @@ test_files = test_core.py test_hom.py test_scd.py test_range.py test_tag.py test
 
 all-local:
 	CFLAGS='-w -fPIC' python setup.py build
-	(export PYTHONPATH=$(PWD)/$(local_install_path)/:$(PYTHONPATH) ; mkdir -m 766 $(local_install_path); python setup.py install --install-platlib=$(PWD)/$(local_install_path)/)
+	(export PYTHONPATH=$(PWD)/$(local_install_path)/:$(PYTHONPATH) ; mkdir -m 766 $(local_install_path); python setup.py install --install-platlib=$(PWD)/$(local_install_path)/ --install-purelib=$(PWD)/$(local_install_path)/)
 
 install:
 	if [ ! -d $(pythondir) ]; then mkdir -m 766 -p $(pythondir); fi
@@ -23,7 +23,7 @@ check:
 	done
 
 clean-local:
-	-rm -rf pymoab/*.cpp build tests/*.pyc $(local_install_path) pymoab.egg-info dist
+	-rm -rf build tests/*.pyc $(local_install_path) pymoab.egg-info dist
 
 
 uninstall:
