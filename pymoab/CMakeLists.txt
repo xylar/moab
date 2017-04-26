@@ -55,14 +55,11 @@ if (PYTHON AND NOSE AND NOT PYTHON_MODULES_MISSING)
   SET(DEPS   "${CMAKE_CURRENT_SOURCE_DIR}/pymoab/__init__.py")
   SET(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/build")
   
-  # cythonize as a separate step to avoid c/c++ clashes in cython versions
-  ADD_CUSTOM_TARGET(pymoab-cythonize ALL COMMAND ${CYTHON_BIN} --cplus ${CMAKE_CURRENT_BINARY_DIR}/pymoab/*.pyx DEPENDS MOAB)
-
   # add pymoab build target, depends on MOAB target so that all headers are in place before attempting the build
   # ADD_CUSTOM_TARGET(pymoab-build ALL DEPENDS ${OUTPUT} pymoab-cythonize MOAB)
 
   # build pymoab
-  ADD_CUSTOM_TARGET(pymoab-build ALL COMMAND export CFLAGS='-w' && ${PYTHON} setup.py build DEPENDS ${DEPS} pymoab-cythonize MOAB)
+  ADD_CUSTOM_TARGET(pymoab-build ALL COMMAND export CFLAGS='-w' && ${PYTHON} setup.py build DEPENDS ${DEPS} MOAB)
 
   #create local installation directory
   ADD_CUSTOM_TARGET(pymoab-local-install-dir ALL COMMAND ${CMAKE_COMMAND} -E make_directory ${PYMOAB_LOCAL_INSTALL_PATH} DEPENDS pymoab-build)
@@ -72,14 +69,6 @@ if (PYTHON AND NOSE AND NOT PYTHON_MODULES_MISSING)
   # move pymoab egg into the correct location for a --user setuptools install based on username
   FILE(GLOB PYMOAB_EGG ${PYMOAB_LOCAL_INSTALL_PATH}/*)
   INSTALL(FILES ${PYMOAB_EGG} DESTINATION ${PYMOAB_INSTALL_PREFIX} )
-
-  # run all pymoab tests, local install is added to PYTHONPATH so that make check can be run before install
-  ADD_CUSTOM_TARGET(pymoab-tests)
-
-  SET(PYMOAB_TESTS test_core test_hom test_scd test_range test_tag test_topo_util)
-  FOREACH(pymoab_test ${PYMOAB_TESTS})
-    ADD_DEPENDENCIES(pymoab-tests pymoab_${pymoab_test})
-  ENDFOREACH(pymoab_test)
   
 endif()
 

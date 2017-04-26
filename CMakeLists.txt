@@ -357,11 +357,6 @@ install(
 # For consistency with autoconf, create a "make check" equivalent to "ctest"
 ADD_CUSTOM_TARGET( check COMMAND ctest DEPENDS )
 
-# add pymoab tests to standard MOAB tests
-if( ENABLE_PYMOAB )
-  ADD_DEPENDENCIES( check pymoab-tests )
-endif()
-
 # For consistency with autoconf, create "make dist" and "make distcheck" targets
 INCLUDE( CMakeDistCheck )
 DEFINE_DISTCHECK ( )
