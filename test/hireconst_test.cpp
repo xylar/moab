@@ -135,7 +135,8 @@ ErrorCode load_meshset_hirec(const char* infile, Interface* mbimpl, EntityHandle
 		error = mbimpl->load_file(infile,&meshset); MB_CHK_ERR(error);
 	}
 #else
-	error = mbimpl->load_file(infile,&meshset); MB_CHK_ERR(error);
+        assert (!pc && degree && dim);
+        error = mbimpl->load_file(infile,&meshset); MB_CHK_ERR(error);
 #endif
 	return error;
 }
@@ -148,7 +149,7 @@ ErrorCode test_mesh(const char* infile,const int degree, const bool interp, cons
 
 	//load mesh file
 	ErrorCode error;
-	error = load_meshset_hirec(infile,mbimpl,meshset,pc,degree,dim); MB_CHK_ERR(error);
+        error = load_meshset_hirec(infile,mbimpl,meshset,pc,degree,dim); MB_CHK_ERR(error);
 
 	//project to exact surface: torus
 	double center[3]={0,0,0};
@@ -159,8 +160,6 @@ ErrorCode test_mesh(const char* infile,const int degree, const bool interp, cons
 	HiReconstruction hirec(dynamic_cast<Core*>(mbimpl),pc,meshset);
 	Range elems;
 	error = mbimpl->get_entities_by_dimension(meshset,dim,elems); MB_CHK_ERR(error);
-	int nelems = elems.size();
-	//std::cout << "Mesh has " << nelems << " elements" << std::endl;
 
 	//reconstruction
 	if(dim==2){
@@ -198,8 +197,8 @@ ErrorCode test_mesh(const char* infile,const int degree, const bool interp, cons
 
 
 	// compute error for torus
-	/*error = exact_error_torus(R, r, center, (int)elems.size(), pnts_proj, errl1, errl2, errli);MB_CHK_ERR(error);
-	std::cout<<"Errors using exact torus for degree "<<degree<<" fit : L1 = "<<errl1<<", L2 = "<<errl2<<", Linf = "<<errli<<std::endl;*/
+        error = exact_error_torus(R, r, center, (int)elems.size(), pnts_proj, errl1, errl2, errli);MB_CHK_ERR(error);
+        std::cout<<"Errors using exact torus for degree "<<degree<<" fit : L1 = "<<errl1<<", L2 = "<<errl2<<", Linf = "<<errli<<std::endl;
 
 	std::cout << "Maximum projection lift is " << mxdist << std::endl;
 	
@@ -379,7 +378,7 @@ ErrorCode test_unitsphere(){
 	//path to test files
 #ifdef MESHDIR
 	int nfiles = 4;
-	char *filenames[] = {STRINGIFY(MESHDIR) "/sphere_tris_5.vtk", STRINGIFY(MESHDIR) "/sphere_tris_20.vtk", STRINGIFY(MESHDIR) "/sphere_quads_5.vtk", STRINGIFY(MESHDIR) "/sphere_quads_20.vtk"};
+        const char *filenames[] = {STRINGIFY(MESHDIR) "/sphere_tris_5.vtk", STRINGIFY(MESHDIR) "/sphere_tris_20.vtk", STRINGIFY(MESHDIR) "/sphere_quads_5.vtk", STRINGIFY(MESHDIR) "/sphere_quads_20.vtk"};
 #else
 #error Specify MESHDIR to compile test
 #endif
@@ -392,6 +391,7 @@ ErrorCode test_unitsphere(){
 		EntityHandle meshset;
 		//load file
 		error = load_meshset_hirec(filenames[ifile],mbimpl,meshset,pc,maxdeg); MB_CHK_ERR(error);
+
 		//initialize
 		HiReconstruction hirec(&moab,pc,meshset);
 		Range elems;
@@ -443,7 +443,7 @@ ErrorCode test_unitcircle(){
 	//path to test files
 #ifdef MESHDIR
 	int nfiles = 4;
-	char *filenames[] = {STRINGIFY(MESHDIR) "/circle_3.vtk", STRINGIFY(MESHDIR) "/circle_4.vtk", STRINGIFY(MESHDIR) "/circle_10.vtk", STRINGIFY(MESHDIR) "/circle_20.vtk"};
+        const char *filenames[] = {STRINGIFY(MESHDIR) "/circle_3.vtk", STRINGIFY(MESHDIR) "/circle_4.vtk", STRINGIFY(MESHDIR) "/circle_10.vtk", STRINGIFY(MESHDIR) "/circle_20.vtk"};
 #else
 #error Specify MESHDIR to compile test
 #endif
@@ -457,6 +457,7 @@ ErrorCode test_unitcircle(){
 		int dim=1;
 		//load file
 		error = load_meshset_hirec(filenames[ifile],mbimpl,meshset,pc,maxdeg,dim); MB_CHK_ERR(error);
+
 		//initialize
 		HiReconstruction hirec(&moab,pc,meshset);
 		Range edges;
@@ -518,7 +519,7 @@ ErrorCode project_exact_torus(Interface *mbImpl, EntityHandle meshset, int dim, 
     {
       EntityHandle v = verts[i];
       error = mbImpl->get_coords(&v, 1, &pnts[0]);CHECK_ERR(error);
-      x = pnts[0]; y = pnts[1]; z = pnts[2];
+      x = pnts[0]-center[0]; y = pnts[1]-center[0]; z = pnts[2]-center[2];
       d1 = sqrt(x*x+y*y);
       cnt[0]= R*x/d1; cnt[1] = R*y/d1; cnt[2] = 0;
 

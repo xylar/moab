@@ -264,7 +264,7 @@ namespace moab
 		std::swap(ngbcoords[0],ngbcoords[3*index]);std::swap(ngbcoords[1],ngbcoords[3*index+1]);std::swap(ngbcoords[2],ngbcoords[3*index+2]);
 		std::swap(ngbnrms[0],ngbnrms[3*index]);std::swap(ngbnrms[1],ngbnrms[3*index+1]);std::swap(ngbnrms[2],ngbnrms[3*index+2]);
 		//local WLS fitting
-		int degree_pnt,degree_qr;		
+		int degree_pnt,degree_qr;
 		polyfit3d_surf_get_coeff(nverts,ngbcoords,ngbnrms,degree,interp,safeguard,ncoords,coords,ncoeffs,coeffs,degree_out,&degree_pnt,&degree_qr);
 		delete [] ngbcoords; delete [] ngbnrms;
 		return error;
@@ -288,7 +288,7 @@ namespace moab
 		std::swap(ngbcoords[0],ngbcoords[3*index]);std::swap(ngbcoords[1],ngbcoords[3*index+1]);std::swap(ngbcoords[2],ngbcoords[3*index+2]);
 		std::swap(ngbtangs[0],ngbtangs[3*index]);std::swap(ngbtangs[1],ngbtangs[3*index+1]);std::swap(ngbtangs[2],ngbtangs[3*index+2]);
 		//local WLS fittings
-		polyfit3d_curve_get_coeff(nverts,ngbcoords,ngbtangs,degree,interp,safeguard,ncoords,coords,ncoeffs,coeffs,degree_out); 
+		polyfit3d_curve_get_coeff(nverts,ngbcoords,ngbtangs,degree,interp,safeguard,ncoords,coords,ncoeffs,coeffs,degree_out);
 		delete [] ngbcoords; delete [] ngbtangs;
 		return error;
 	}
@@ -446,7 +446,7 @@ namespace moab
 			hiproj_new[3*i] = ans[0]+local_origin[0];
 			hiproj_new[3*i+1] = ans[1]+local_origin[1];
 			hiproj_new[3*i+2] = ans[2]+local_origin[2];
-		}		
+		}
 	}
 
 	bool HiReconstruction::get_fittings_data(EntityHandle vid, GEOMTYPE& geomtype, std::vector<double>& coords, int& degree_out, std::vector<double>& coeffs, bool& interp){
@@ -620,7 +620,7 @@ namespace moab
 	 	}
 	 }
 
-	 ErrorCode HiReconstruction::set_geom_data_surf(const EntityHandle vid, const double* coords, const double degree_out, const double* coeffs, bool interp)
+	/* ErrorCode HiReconstruction::set_geom_data_surf(const EntityHandle vid, const double* coords, const double degree_out, const double* coeffs, bool interp)
 	 {
 	   return MB_SUCCESS;
 	 }
@@ -628,7 +628,7 @@ namespace moab
 	 ErrorCode HiReconstruction::set_geom_data_3Dcurve(const EntityHandle vid, const double* coords, const double degree_out, const double* coeffs, bool interp)
 	 {
 	   return MB_SUCCESS;
-	 }
+	 } */
 
    /*********************************************************
 	* Routines for vertex normal/tangent vector estimation	*
@@ -791,7 +791,7 @@ namespace moab
 	 	}
 
 		//std::cout << "npnts in initial stencil = " << nverts << std::endl;
-		//std::cout << "centered at (" << ngbcoords[0] << "," << ngbcoords[1] << "," << ngbcoords[2] << ")" << std::endl; 
+		//std::cout << "centered at (" << ngbcoords[0] << "," << ngbcoords[1] << "," << ngbcoords[2] << ")" << std::endl;
 
 	 	//step 1. copmute local coordinate system
 	 	double nrm[3] = {ngbnrms[0],ngbnrms[1],ngbnrms[2]}, tang1[3] = {0,0,0}, tang2[3] = {0,0,0};
@@ -1033,7 +1033,7 @@ namespace moab
 	 	std::vector<double> ws(npts2fit);
 	 	int nzeros = compute_weights(npts2fit,1,&(us[0]),nverts,ngbtangs,degree,_MINEPS,&(ws[0])); assert(nzeros<=npts2fit);
 
-	 	//step 4. adjust according to number of zero-weights 
+	 	//step 4. adjust according to number of zero-weights
 	 	if(nzeros){
 	 		if(nzeros==npts2fit){
 	 			//singular case

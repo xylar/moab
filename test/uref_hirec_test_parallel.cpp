@@ -88,6 +88,7 @@ ErrorCode load_meshset_hirec(const char* infile, Interface* mbimpl, EntityHandle
 		error = mbimpl->load_file(infile,&meshset); MB_CHK_ERR(error);
 	}
 #else
+        assert (!pc && degree && dim);
 	error = mbimpl->load_file(infile,&meshset); MB_CHK_ERR(error);
 #endif
 	return error;
@@ -113,7 +114,6 @@ ErrorCode closedsurface_uref_hirec_convergence_study(const char* infile, std::ve
 
 	Range elems,elems_owned;
 	error = mbImpl->get_entities_by_dimension(meshset,dim,elems); MB_CHK_ERR(error);
-	size_t nelems = elems.size();
 
 #ifdef MOAB_HAVE_MPI
 	if(pc){
@@ -289,7 +289,7 @@ ErrorCode closedsurface_uref_hirec_convergence_study(const char* infile, std::ve
 				maxlinferr = elemlinferr; elem_maxerr = *ielem;
 			}*/
 		}
-		assert(index==elems_owned.size());
+                assert((size_t)index==elems_owned.size());
 		//Estimate error
 		obj->compute_projecterror(3,elems_owned.size()*nsamples,&(testpnts[0]),l1err,l2err,linferr);
 		geoml1errs.push_back(l1err); geoml2errs.push_back(l2err); geomlinferrs.push_back(linferr);

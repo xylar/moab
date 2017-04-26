@@ -107,7 +107,7 @@ ErrorCode test_closedsurface_mesh(const char* filename, int *level_degrees, int 
 	return error;
 }
 
-ErrorCode closedsurface_uref_hirec_convergence_study(const char* filename, int *level_degrees, int num_levels, std::vector<int>& degs2fit, bool interp, int dim, geomObject *obj){
+ErrorCode closedsurface_uref_hirec_convergence_study(const char* filename, int *level_degrees, int num_levels, std::vector<int>& degs2fit, bool interp, geomObject *obj){
 	Core moab;
 	Interface *mbImpl = &moab;
 	ParallelComm *pc = NULL;
@@ -140,7 +140,7 @@ ErrorCode closedsurface_uref_hirec_convergence_study(const char* filename, int *
 	error = uref.generate_mesh_hierarchy(num_levels,level_degrees,meshes); MB_CHK_ERR(error);
 	std::vector< std::vector<double> > geoml1errs(1+degs2fit.size()),geoml2errs(1+degs2fit.size()),geomlinferrs(1+degs2fit.size());
 	//Perform high order reconstruction on each level of mesh (projected onto exact geometry) and estimate geometric error with various degrees of fitting
-	for(int i=0;i<meshes.size();++i){
+        for(size_t i=0;i<meshes.size();++i){
 		EntityHandle& mesh = meshes[i];
 		//project onto exact geometry since each level with uref has only linear coordinates
 		Range verts;
@@ -199,7 +199,7 @@ ErrorCode closedsurface_uref_hirec_convergence_study(const char* filename, int *
 		geoml1errs[0].push_back(l1err); geoml2errs[0].push_back(l2err); geomlinferrs[0].push_back(linferr);
 		//Perform high order projection and compute error
 		HiReconstruction hirec(&moab,pc,mesh);
-		for(int ideg=0;ideg<degs2fit.size();++ideg){
+                for(size_t ideg=0;ideg<degs2fit.size();++ideg){
 			//High order reconstruction
 			error = hirec.reconstruct3D_surf_geom(degs2fit[ideg],interp,false,true); MB_CHK_ERR(error);
 			int index=0;
@@ -213,28 +213,28 @@ ErrorCode closedsurface_uref_hirec_convergence_study(const char* filename, int *
 		}
 	}
 	std::cout << "Mesh Size: ";
-	for(int i=0;i<meshsizes.size();++i) std::cout << meshsizes[i] << " ";
+        for(size_t i=0;i<meshsizes.size();++i) std::cout << meshsizes[i] << " ";
 	std::cout << std::endl;
 	std::cout << "Degrees: 0 ";
-	for(int ideg=0;ideg<degs2fit.size();++ideg) std::cout << degs2fit[ideg] << " ";
+        for(size_t ideg=0;ideg<degs2fit.size();++ideg) std::cout << degs2fit[ideg] << " ";
 	std::cout << std::endl;
 	std::cout << "L1-norm error: \n";
-	for(int i=0;i<geoml1errs.size();++i){
-		for(int j=0;j<geoml1errs[i].size();++j){
+        for(size_t i=0;i<geoml1errs.size();++i){
+                for(size_t j=0;j<geoml1errs[i].size();++j){
 			std::cout << geoml1errs[i][j] << " ";
 		}
 		std::cout << std::endl;
 	}
 	std::cout << "L2-norm error: \n";
-	for(int i=0;i<geoml2errs.size();++i){
-		for(int j=0;j<geoml2errs[i].size();++j){
+        for(size_t i=0;i<geoml2errs.size();++i){
+                for(size_t j=0;j<geoml2errs[i].size();++j){
 			std::cout << geoml2errs[i][j] << " ";
 		}
 		std::cout << std::endl;
 	}
 	std::cout << "Linf-norm error: \n";
-	for(int i=0;i<geomlinferrs.size();++i){
-		for(int j=0;j<geomlinferrs[i].size();++j){
+        for(size_t i=0;i<geomlinferrs.size();++i){
+                for(size_t j=0;j<geomlinferrs[i].size();++j){
 			std::cout << geomlinferrs[i][j] << " ";
 		}
 		std::cout << std::endl;
@@ -329,7 +329,7 @@ int main(int argc, char *argv[]){
 	int level_degrees[3]={2,2,2}; int num_levels = 3;
 	error = test_closedsurface_mesh(infile, level_degrees, num_levels, degree, interp, dim, obj); MB_CHK_ERR(error);
 	std::vector<int> degs2fit; for(int d=1;d<=6;++d) degs2fit.push_back(d);
-	error = closedsurface_uref_hirec_convergence_study(infile, level_degrees, num_levels, degs2fit, interp, dim, obj); MB_CHK_ERR(error);
+        error = closedsurface_uref_hirec_convergence_study(infile, level_degrees, num_levels, degs2fit, interp, obj); MB_CHK_ERR(error);
 
 #ifdef MOAB_HAVE_MPI
 	MPI_Finalize();

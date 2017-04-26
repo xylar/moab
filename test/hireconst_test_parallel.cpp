@@ -152,6 +152,7 @@ ErrorCode load_meshset_hirec(const char* infile, Interface* mbimpl, EntityHandle
 		error = mbimpl->load_file(infile,&meshset); MB_CHK_ERR(error);
 	}
 #else
+        assert (!pc && degree && dim);
 	error = mbimpl->load_file(infile,&meshset); MB_CHK_ERR(error);
 #endif
 	return error;

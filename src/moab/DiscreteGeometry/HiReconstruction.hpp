@@ -277,8 +277,8 @@ namespace moab
 				* \param coeffs Pointer to double array, coefficients of local polynomial fittings in monomial basis
 				* \param interp Boolean, true =  interpolation
 			*/
-			ErrorCode set_geom_data_surf(const EntityHandle vid, const double* coords, const double degree_out, const double* coeffs, bool interp);
-			ErrorCode set_geom_data_3Dcurve(const EntityHandle vid, const double* coords, const double degree_out, const double* coeffs, bool interp);
+			//ErrorCode set_geom_data_surf(const EntityHandle vid, const double* coords, const double degree_out, const double* coeffs, bool interp);
+			//ErrorCode set_geom_data_3Dcurve(const EntityHandle vid, const double* coords, const double degree_out, const double* coeffs, bool interp);
 
 			/** Compute area weighted average vertex normals for given vertex, assuming surface mesh
 				* For arbitrary polygon mesh, use incident two edges of each incident polygon of this vertex to form a triangle, then use 
