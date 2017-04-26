@@ -128,13 +128,13 @@ int GeomTopoTool::global_id(EntityHandle this_set)
   return id;
 }
 
-EntityHandle GeomTopoTool::entity_by_id( int dimension, int id )
+EntityHandle GeomTopoTool::entity_by_id( int dimension1, int id )
 {
-  if (0 > dimension && 3 < dimension) {
+  if (0 > dimension1 && 3 < dimension1) {
     MB_CHK_SET_ERR_CONT(MB_FAILURE, "Incorrect dimension provided");
   };
   const Tag tags[] = { gidTag, geomTag };
-  const void* const vals[] = { &id, &dimension };
+  const void* const vals[] = { &id, &dimension1 };
   ErrorCode rval;
 
   Range results;
@@ -755,6 +755,10 @@ ErrorCode GeomTopoTool::set_sense(EntityHandle entity, EntityHandle wrt_entity,
     rval = get_senses(entity, higher_ents, senses);// the tags should be defined here
     // if there are no higher_ents, we are fine, we will just set them
     // if wrt_entity is not among higher_ents, we will add it to the list
+    // it is possible the entity (edge set) has no prior faces adjancent; in that case, the
+    // tag would not be set, and rval could be MB_TAG_NOT_FOUND; it is not a fatal error
+    if (MB_SUCCESS != rval &&  MB_TAG_NOT_FOUND != rval)
+      MB_CHK_SET_ERR(rval, "cannot determine sense tags for edge");
     bool append = true;
     if (!higher_ents.empty()) {
       std::vector<EntityHandle>::iterator it = std::find(higher_ents.begin(),
@@ -967,14 +971,14 @@ ErrorCode GeomTopoTool::get_senses(EntityHandle entity,
     const void *dum_ptr;
     int num_ents;
     rval = mdbImpl->tag_get_by_ptr(senseNEntsTag, &entity, 1, &dum_ptr, &num_ents);
-    MB_CHK_SET_ERR(rval, "Failed to get the curve to surface sense tag handle");
+    MB_CHK_ERR(rval);
 
     const EntityHandle *ents_data = static_cast<const EntityHandle*> (dum_ptr);
     std::copy(ents_data, ents_data + num_ents, std::back_inserter(wrt_entities));
 
     rval = mdbImpl->tag_get_by_ptr(senseNSensesTag, &entity, 1, &dum_ptr,
         &num_ents);
-    MB_CHK_SET_ERR(rval, "Failed to get the curve to surface sense data");
+    MB_CHK_ERR(rval);
 
     const int *senses_data = static_cast<const int*> (dum_ptr);
     std::copy(senses_data, senses_data + num_ents, std::back_inserter(senses));
