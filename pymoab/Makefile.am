@@ -12,7 +12,6 @@ all-local:
 	(export PYTHONPATH=$(PWD)/$(local_install_path)/:$(PYTHONPATH) ; mkdir -m 766 $(local_install_path); $(PYTHON) setup.py install --install-platlib=$(PWD)/$(local_install_path)/ --install-purelib=$(PWD)/$(local_install_path)/)
 
 install:
-	if [ ! -d $(pythondir) ]; then mkdir -m 766 -p $(pythondir); fi
 	(export PYTHONPATH=$(pythondir):$(PYTHONPATH) ; $(PYTHON) setup.py install --install-platlib=$(DESTDIR)$(pythondir) --install-purelib=$(DESTDIR)$(pythondir))
 
 check:
