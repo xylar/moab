@@ -11,6 +11,7 @@ option ( MOAB_BUILD_MBGSETS      "Build the mbgsets tool?"                      
 option ( MOAB_BUILD_SPHEREDECOMP "Build the sphere decomposition tool?"          ON )
 option ( MOAB_BUILD_MBSURFPLOT   "Build the mbsurfplot application?"             ON )
 option ( MOAB_BUILD_MBPART       "Build the mbpart (Zoltan-based) partitioner?" OFF )
+option ( MOAB_BUILD_MBSLAVEPART  "Build the slave partitioner tool?"             ON )
 option ( MOAB_BUILD_DAGMC        "Build the dagmc tool?"                         ON )
 option ( MOAB_BUILD_MBCOUPLER    "Build the mesh coupler tool?"                  ON )
 option ( MOAB_BUILD_MBHONODES    "Build the hex8 to hex27 converter tool?"       ON )
@@ -174,6 +175,20 @@ if ( MOAB_BUILD_MBUMR )
   set( MOAB_HAVE_MBUMR 1 )
   install(
     TARGETS mbumr
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    )
+endif( )
+
+# MBSLAVEPART
+if ( MOAB_BUILD_MBSLAVEPART )
+  add_executable( mbslavepart mbslavepart.cpp)
+  set_source_files_properties( mbslavepart.cpp COMPILE_FLAGS "${MOAB_DEFINES}" )
+  target_link_libraries( mbslavepart ${TOOLS_LINK_LIBS} )
+  set( MOAB_HAVE_MBSLAVEPART 1 )
+  install(
+    TARGETS mbslavepart
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}

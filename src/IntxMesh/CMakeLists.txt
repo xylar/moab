@@ -17,8 +17,6 @@ set(MOAB_INTX_LIB_SRCS Intx2Mesh.cpp Intx2MeshInPlane.cpp Intx2MeshOnSphere.cpp 
 # set(MOAB_INTX_LIB_SRCS ${MOAB_INTX_LIB_SRCS} wrap_intx.cpp )
 #endif()
 
-set(MOAB_INTX_INC_HDRS moab/Intx2Mesh.hpp moab/IntxUtils.hpp moab/Intx2MeshInPlane.hpp moab/Intx2MeshOnSphere.hpp moab/IntxRllCssphere.hpp )
-
 add_library( moab_intx_mesh OBJECT ${MOAB_INTX_LIB_SRCS} ${MOAB_INTX_INC_HDRS} )
 set_target_properties( moab_intx_mesh 
                        PROPERTIES COMPILE_FLAGS "-DIS_BUILDING_MB ${MOAB_DEFINES}")

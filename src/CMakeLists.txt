@@ -172,6 +172,11 @@ set( MOAB_INSTALL_HEADERS
         moab/GeomUtil.hpp
         moab/iMOAB.h
         moab/Interface.hpp
+        moab/IntxMesh/Intx2Mesh.hpp
+        moab/IntxMesh/IntxUtils.hpp
+        moab/IntxMesh/Intx2MeshInPlane.hpp
+        moab/IntxMesh/Intx2MeshOnSphere.hpp
+        moab/IntxMesh/IntxRllCssphere.hpp
         moab/LloydSmoother.hpp
         moab/point_locater/tree/common_tree.hpp
         moab/point_locater/tree/element_tree.hpp
