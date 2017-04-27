@@ -24,12 +24,6 @@ def unite(Range r1, Range r2):
 
 cdef class Range(object):
 
-    #def __cinit__(self, moab.EntityHandle val1=None, moab.EntityHandle val2=None):
-    #    if val1 is None or val2 is None:
-    #        self.inst = new moab.Range()
-    #    else:
-    #        self.inst = new moab.Range(val1, val2)
-
     def __cinit__(self, arg = None):
         self.inst = new moab.Range()
         if arg is None:
@@ -48,7 +42,7 @@ cdef class Range(object):
         else:
             raise ValueError, "Not a valid argument to Range constructor."
                 
-
+    
     def __del__(self):
         del self.inst
 
