@@ -73,7 +73,7 @@ TESTS = range_test \
         intx_on_sphere_test 
 
 if HAVE_NETCDF
-   TESTS += IntxRllCssphere_test 
+   TESTS += intx_rll_cs_sphere_test 
 endif
 if HAVE_HDF5
   TESTS += mbfacet_test \
@@ -175,7 +175,7 @@ intx_on_sphere_test_SOURCES = intx_on_sphere_test.cpp
 intx_in_plane_test_SOURCES = intx_in_plane_test.cpp
 spherical_area_test_SOURCES = spherical_area_test.cpp
 arc_intx_tests_SOURCES = arc_intx_tests.cpp
-IntxRllCssphere_test_SOURCES = IntxRllCssphere_test.cpp
+intx_rll_cs_sphere_test_SOURCES = intx_rll_cs_sphere_test.cpp
 
 #mbcn_test_SOURCES = $(top_srcdir)/src/moab/CN.hpp \
 #                    $(top_srcdir)/src/CN.cpp \

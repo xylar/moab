@@ -6,7 +6,7 @@
  */
 
 #include <math.h>
-#include "moab/IntxUtils.hpp"
+#include "moab/IntxMesh/IntxUtils.hpp"
 // this is from mbcoupler; maybe it should be moved somewhere in moab src
 // right now, add a dependency to mbcoupler
 // #include "ElemUtil.hpp"

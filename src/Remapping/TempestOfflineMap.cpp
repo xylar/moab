@@ -11,7 +11,7 @@
 #include "SparseMatrix.h"
 #include "STLStringHelper.h"
 
-#include "moab/TempestOfflineMap.hpp"
+#include "moab/Remapping/TempestOfflineMap.hpp"
 #include "DebugOutput.hpp"
 
 // NetCDF-C++ interfaces
@@ -863,6 +863,7 @@ moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot()   // Collective
         sendarray[3] = dTargetAreas.GetRows();
 
         ierr = MPI_Gather ( sendarray, 4, MPI_INTEGER, rowcolss.data(), 4, MPI_INTEGER, rootProc, pcomm->comm() );
+        if (ierr != MPI_SUCCESS) return moab::MB_FAILURE;
 
         // dbgprint.printf(0, "[%d] Dimensions: %d, %d\n", pcomm->rank(), vecRow.GetRows(), vecCol.GetRows());
 

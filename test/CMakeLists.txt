@@ -68,7 +68,7 @@ endif()
 
 if(MOAB_HAVE_NETCDF)
   set ( TESTS ${TESTS} 
-              IntxRllCssphere_test.cpp )
+              intx_rll_cs_sphere_test.cpp )
 endif()
 
 foreach( fname ${TESTS} )

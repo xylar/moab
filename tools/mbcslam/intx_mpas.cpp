@@ -19,13 +19,13 @@
 #include <time.h>
 #include "moab/Core.hpp"
 #include "moab/Interface.hpp"
-#include "moab/Intx2MeshOnSphere.hpp"
+#include "moab/IntxMesh/Intx2MeshOnSphere.hpp"
 #include "moab/ProgOptions.hpp"
 #include "MBTagConventions.hpp"
 #include "moab/ParallelComm.hpp"
+#include "moab/IntxMesh/IntxUtils.hpp"
 
 #include "TestUtil.hpp"
-#include "moab/IntxUtils.hpp"
 
 using namespace moab;
 // some input data

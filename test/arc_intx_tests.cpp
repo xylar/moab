@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "moab/Types.hpp"
-#include "moab/IntxUtils.hpp"
+#include "moab/IntxMesh/IntxUtils.hpp"
 
 #include "TestUtil.hpp"
 

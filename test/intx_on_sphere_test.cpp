@@ -14,8 +14,8 @@
 #ifdef MOAB_HAVE_MPI
 #include "moab/ParallelComm.hpp"
 #endif
-#include "moab/Intx2MeshOnSphere.hpp"
-#include "moab/IntxUtils.hpp"
+#include "moab/IntxMesh/Intx2MeshOnSphere.hpp"
+#include "moab/IntxMesh/IntxUtils.hpp"
 #include "TestUtil.hpp"
 #include <math.h>
 

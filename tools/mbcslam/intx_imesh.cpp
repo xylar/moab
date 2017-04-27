@@ -7,8 +7,8 @@
 #include <string>
 #include <iostream>
 #include "moab/Core.hpp"
-#include "moab/Intx2MeshOnSphere.hpp"
-#include "moab/IntxUtils.hpp"
+#include "moab/IntxMesh/Intx2MeshOnSphere.hpp"
+#include "moab/IntxMesh/IntxUtils.hpp"
 
 #include "moab_mpi.h"
 #include "iMeshP.h"

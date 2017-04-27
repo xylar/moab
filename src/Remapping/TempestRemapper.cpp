@@ -15,12 +15,12 @@
 #include <string>
 #include <iostream>
 #include <cassert>
-#include "moab/TempestRemapper.hpp"
+#include "moab/Remapping/TempestRemapper.hpp"
 #include "moab/ReadUtilIface.hpp"
 
 // Intersection includes
-#include "moab/Intx2MeshOnSphere.hpp"
-#include "moab/IntxUtils.hpp"
+#include "moab/IntxMesh/Intx2MeshOnSphere.hpp"
+#include "moab/IntxMesh/IntxUtils.hpp"
 
 namespace moab
 {

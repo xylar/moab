@@ -280,21 +280,19 @@ pointlocinclude_HEADERS = \
 
 intxmeshincludedir = $(includedir)/moab/IntxMesh
 intxmeshinclude_HEADERS = \
-	IntxMesh/moab/Intx2Mesh.hpp \
-	IntxMesh/moab/IntxUtils.hpp \
-  IntxMesh/moab/Intx2MeshInPlane.hpp \
-  IntxMesh/moab/Intx2MeshOnSphere.hpp \
-  IntxMesh/moab/IntxRllCssphere.hpp   
+	moab/IntxMesh/Intx2Mesh.hpp \
+	moab/IntxMesh/IntxUtils.hpp \
+  moab/IntxMesh/Intx2MeshInPlane.hpp \
+  moab/IntxMesh/Intx2MeshOnSphere.hpp \
+  moab/IntxMesh/IntxRllCssphere.hpp   
 
 # Conditional sources
 if ENABLE_mbtempest
-MOAB_REMAPPING_SRCS = \
-     Remapping/Remapper.cpp  \
-     Remapping/RemapperUtils.cpp
+MOAB_REMAPPING_SRCS = 
 
 MOAB_REMAPPING_HDRS = \
-	Remapping/moab/Remapper.hpp \
-  Remapping/moab/RemapperUtils.hpp
+	moab/Remapping/Remapper.hpp \
+  moab/Remapping/RemapperUtils.hpp
 
 AM_CPPFLAGS += -I$(srcdir)/Remapping
 
@@ -308,15 +306,15 @@ if HAVE_TEMPESTREMAP
      Remapping/TempestOfflineMap.cpp
 
   MOAB_REMAPPING_HDRS += \
-     Remapping/moab/TempestRemapper.hpp \
-     Remapping/moab/TempestOfflineMap.hpp
+     moab/Remapping/TempestRemapper.hpp \
+     moab/Remapping/TempestOfflineMap.hpp
 
 endif # if HAVE_TEMPESTREMAP
 
 # Add the remapping sources to the library
 libMOAB_la_SOURCES += $(MOAB_REMAPPING_SRCS)
 # Add the include headers to installation paths
-remappingincludedir = $(includedir)/moab/IntxMesh
+remappingincludedir = $(includedir)/moab/Remapping
 remappinginclude_HEADERS = $(MOAB_REMAPPING_HDRS)
 
 endif # if ENABLE_mbtempest

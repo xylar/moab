@@ -11,9 +11,9 @@
 #include <string.h>
 #include "moab/Core.hpp"
 #include "moab/Interface.hpp"
-#include "moab/Intx2MeshInPlane.hpp"
-#include "../test/TestUtil.hpp"
-#include "moab/IntxUtils.hpp"
+#include "moab/IntxMesh/Intx2MeshInPlane.hpp"
+#include "moab/IntxMesh/IntxUtils.hpp"
+#include "TestUtil.hpp"
 #include <math.h>
 
 using namespace moab;

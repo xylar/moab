@@ -10,7 +10,7 @@
 #include <iostream>
 #include <math.h>
 
-#include "moab/IntxUtils.hpp"
+#include "moab/IntxMesh/IntxUtils.hpp"
 #include <assert.h>
 using namespace moab;
 

@@ -5,9 +5,9 @@
  *      Author: iulian
  */
 
-#include "moab/Intx2MeshInPlane.hpp"
+#include "moab/IntxMesh/Intx2MeshInPlane.hpp"
 #include "moab/GeomUtil.hpp"
-#include "moab/IntxUtils.hpp"
+#include "moab/IntxMesh/IntxUtils.hpp"
 
 namespace moab {
 Intx2MeshInPlane::Intx2MeshInPlane(Interface * mbimpl):Intx2Mesh(mbimpl){

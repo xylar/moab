@@ -4,12 +4,12 @@
  *  Created on: Oct 2, 2012
  */
 
-#include "moab/Intx2Mesh.hpp"
+#include "moab/IntxMesh/Intx2Mesh.hpp"
 #ifdef MOAB_HAVE_MPI
 #include "moab/ParallelComm.hpp"
+#include "MBParallelConventions.h"
 #endif /* MOAB_HAVE_MPI */
 #include "moab/AdaptiveKDTree.hpp"
-#include "MBParallelConventions.h"
 #include "MBTagConventions.hpp"
 // this is for DBL_MAX
 #include <float.h>

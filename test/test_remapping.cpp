@@ -24,7 +24,7 @@
 
 #include <iostream>
 #include "moab/Core.hpp"
-#include "moab/TempestRemapper.hpp"
+#include "moab/Remapping/TempestRemapper.hpp"
 
 #ifdef MOAB_HAVE_MPI
 #include "moab/ParallelComm.hpp"

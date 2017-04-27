@@ -5,9 +5,9 @@
  *      Author: iulian
  */
 
-#include "moab/IntxRllCssphere.hpp"
+#include "moab/IntxMesh/IntxRllCssphere.hpp"
 #include "moab/GeomUtil.hpp"
-#include "moab/IntxUtils.hpp"
+#include "moab/IntxMesh/IntxUtils.hpp"
 
 namespace moab {
 

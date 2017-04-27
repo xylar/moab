@@ -25,7 +25,7 @@
 #include <string>
 #include <vector>
 
-#include "moab/TempestRemapper.hpp"
+#include "moab/Remapping/TempestRemapper.hpp"
 
 ///////////////////////////////////////////////////////////////////////////////
 

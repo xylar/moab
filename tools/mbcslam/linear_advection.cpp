@@ -7,7 +7,7 @@
 #include <string.h>
 #include "moab/Core.hpp"
 #include "moab/Interface.hpp"
-#include "moab/Intx2MeshOnSphere.hpp"
+#include "moab/IntxMesh/Intx2MeshOnSphere.hpp"
 #include <math.h>
 #include "moab/ParallelComm.hpp"
 #include "moab/ProgOptions.hpp"
@@ -15,7 +15,7 @@
 #include "moab/ReadUtilIface.hpp"
 #include "MBTagConventions.hpp"
 #include "TestUtil.hpp"
-#include "moab/IntxUtils.hpp"
+#include "moab/IntxMesh/IntxUtils.hpp"
 
 //std::string file_name("./uniform_30.g");
 //std::string file_name("./uniform_120.g");

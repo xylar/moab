@@ -6,7 +6,7 @@
 #include <iostream>
 #include "moab/Core.hpp"
 #include "moab/Interface.hpp"
-#include "moab/IntxUtils.hpp"
+#include "moab/IntxMesh/IntxUtils.hpp"
 #include "TestUtil.hpp"
 
 using namespace moab;

@@ -4,13 +4,13 @@
  *  Created on: Oct 3, 2012
  */
 
-#include "moab/Intx2MeshOnSphere.hpp"
+#include "moab/IntxMesh/Intx2MeshOnSphere.hpp"
+#include "moab/IntxMesh/IntxUtils.hpp"
 #include "moab/GeomUtil.hpp"
-#include "MBTagConventions.hpp"
-#include "moab/IntxUtils.hpp"
 #ifdef MOAB_HAVE_MPI
 #include "moab/ParallelComm.hpp"
 #endif
+#include "MBTagConventions.hpp"
 
 // #define ENABLE_DEBUG
 

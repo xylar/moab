@@ -22,7 +22,7 @@ using namespace moab;
 
 // A function to get the non-default value from a std::map
 template <typename K, typename V>
-V get_map_value(const  std::map <K,V> & m, const K & key, const V & defval ) {
+static V get_map_value(const  std::map <K,V> & m, const K & key, const V & defval ) {
    typename std::map<K,V>::const_iterator it = m.find( key );
    if ( it == m.end() ) {
       return defval;

@@ -19,8 +19,8 @@
 #include <cassert>
 
 #include "moab/Core.hpp"
-#include "moab/TempestRemapper.hpp"
-#include "moab/TempestOfflineMap.hpp"
+#include "moab/Remapping/TempestRemapper.hpp"
+#include "moab/Remapping/TempestOfflineMap.hpp"
 #include "moab/ProgOptions.hpp"
 #include "moab/CpuTimer.hpp"
 #include "DebugOutput.hpp"
