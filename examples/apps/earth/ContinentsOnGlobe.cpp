@@ -135,8 +135,8 @@ int main(int argc, char **argv)
   for (int loop_index=0; loop_index<6; loop_index++)
   {
     rval = mb->create_meshset(MESHSET_SET, islandSets[loop_index]);MB_CHK_SET_ERR(rval, "Can't create island set");
-    int startLoop=loops[2*loop_index-2];
-    int endLoop = loops[2*loop_index-1];
+    int startLoop=loopsindx[2*loop_index];
+    int endLoop = loopsindx[2*loop_index+1];
 
     vector<EntityHandle> interiorCells;
     for (Range::iterator cit = cells.begin(); cit!=cells.end(); cit++)
