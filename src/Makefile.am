@@ -13,8 +13,6 @@ SUBDIRS += io .
 libMOAB_la_LIBADD += io/libmoabio.la 
 EXTRA_DIST = 
 
-BUILT_SOURCES = MBCN_protos.h
-
 # Some variables
 AM_CPPFLAGS += -DIS_BUILDING_MB \
                -DLOCDIR=src/ \
