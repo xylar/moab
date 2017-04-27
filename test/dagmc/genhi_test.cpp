@@ -213,6 +213,7 @@ bool check_tree ( Interface *mbi, DagMC *DAG, std::map< int, std::set<int> > ref
       EntityHandle volume = DAG->entity_by_index(3, i);
       rval = mbi->tag_get_data(id_tag, &volume, 1, &vol_id ); MB_CHK_ERR(rval);
 
+
       //check if test vol in ref map
       if (ref_map.find(vol_id) == ref_map.end())
         {
@@ -228,7 +229,7 @@ bool check_tree ( Interface *mbi, DagMC *DAG, std::map< int, std::set<int> > ref
         {
             int child_id;
             
-            rval = mbi->tag_get_data(id_tag, &(*j), 1, &child_id );
+            rval = mbi->tag_get_data(id_tag, &(*j), 1, &child_id ); MB_CHK_ERR(rval);
             test_set.insert(child_id);
         }
 
@@ -244,16 +245,19 @@ bool check_tree ( Interface *mbi, DagMC *DAG, std::map< int, std::set<int> > ref
 
 Range get_children_by_dimension(Interface *mbi, EntityHandle parent, int desired_dimension)
 {
+  ErrorCode rval;
   Range all_children, desired_children;
   Range::iterator it;
   int actual_dimension;
 
   all_children.clear();
-  mbi->get_child_meshsets(parent, all_children);
+  rval = mbi->get_child_meshsets(parent, all_children);
+  MB_CHK_SET_ERR_RET_VAL(rval, "Failed to get child meshsets", all_children);
 
   for ( it = all_children.begin() ; it != all_children.end() ; ++it)
     {
-      mbi->tag_get_data(geom_tag, &(*it), 1, &actual_dimension);
+      rval = mbi->tag_get_data(geom_tag, &(*it), 1, &actual_dimension);
+	  MB_CHK_SET_ERR_RET_VAL(rval, "Failed to get geom tag from child meshset", all_children);
       if ( actual_dimension == desired_dimension )
         {
           desired_children.insert(*it);
