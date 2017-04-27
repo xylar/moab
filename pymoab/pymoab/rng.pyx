@@ -47,10 +47,11 @@ cdef class Range(object):
         del self.inst
 
     def size(self):
-        """The number of values this Ranges represents."""
+        """The number of values this Range represents."""
         return len(self)
 
     def __len__(self):
+        """The number of values this Range represents."""
         return self.inst.size()
 
     def psize(self):
@@ -62,46 +63,51 @@ cdef class Range(object):
         return self.inst.empty()
 
     def clear(self):
-        """clears the contents of the list."""
+        """Clears the contents of the Range."""
         self.inst.clear()
 
     def erase(self, moab.EntityHandle val):
+        """Removes the EntityHandle, val, from the Range if present."""
          self.inst.erase(val)
 
     def pop_front(self):
+        """Removes the front-most EntityHandle in the Range and returns the EntityHandle."""
         return self.inst.pop_front()
 
     def pop_back(self):
+        """Removes the back-most EntityHandle in the Range and returns the EntityHandle."""
         return self.inst.pop_back()
     
     def all_of_type(self, moab.EntityType t):
+        """Returns True if all EntityHandles in the Range represent mesh entities of
+        EntityType, t, and False otherwise."""
         return self.inst.all_of_type(t)
 
     def all_of_dimension(self, int dim):
+        """Returns True if all EntityHandles in the Range represent mesh entities of
+        of dimension, dim, and False otherwise."""
         return self.inst.all_of_dimension(dim)
 
     def num_of_dimension(self, int dim):
+        """Returns the number of EntityHandles with dimension, dim, in the Range."""
         return self.inst.num_of_dimension(dim)
 
     def num_of_type(self, moab.EntityType t):
+        """Returns the number of EntityHandles with EntityType, t, in the Range."""
         return self.inst.num_of_type(t)
 
-    def insert(self, moab.EntityHandle ent_handle):
-        self.inst.insert(ent_handle)
+    def insert(self, moab.EntityHandle eh):
+        """Inserts the EntityHandle, eh, into the Range."""
+        self.inst.insert(eh)
 
     def merge(self, other):
+        """Merges this Range with another Range, other."""
         cdef Range r
         if isinstance(other, Range):
             r = other
             self.inst.merge(deref(r.inst))
         else:
             raise ValueError("Operation not valie for non-Range")
-        
-    def unite(self, other):
-        cdef Range r
-        if isinstance(other, Range):
-            r = other
-
         
     def __iter__(self):
         cdef int i = 0
