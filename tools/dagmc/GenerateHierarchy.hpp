@@ -113,6 +113,5 @@ private: // member variables
   Tag geom_tag;
   Tag sense_tag;
   Tag obb_tree_tag,obb_tag; 
-  int negone = -1;
 
 };

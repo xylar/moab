@@ -4,7 +4,7 @@
 //---------------------------------------------------------------------------//
 // constructor
 //---------------------------------------------------------------------------//
-GenerateHierarchy::GenerateHierarchy(Interface *impl, ErrorCode &return_value)
+GenerateHierarchy::GenerateHierarchy(Interface *impl, ErrorCode &return_value) 
 {
  
   if (NULL == impl)
@@ -23,6 +23,7 @@ GenerateHierarchy::GenerateHierarchy(Interface *impl, ErrorCode &return_value)
 //---------------------------------------------------------------------------//
 GenerateHierarchy::~GenerateHierarchy()
 {
+  delete DAG;
 }
 
 ErrorCode GenerateHierarchy::setup()
@@ -60,7 +61,7 @@ ErrorCode GenerateHierarchy::tear_down()
   rval = MBI->delete_entities( &(root), 1); MB_CHK_ERR(rval);
 
   //delete OBB Trees
-  for ( int i = 1 ; i <= DAG->num_entities(3) ; i++ )
+  for ( unsigned int i = 1 ; i <= DAG->num_entities(3) ; i++ )
     {
       //get obb tree root node
       moab::EntityHandle obb_root;
@@ -69,9 +70,6 @@ ErrorCode GenerateHierarchy::tear_down()
       //delete tree
       rval = obbTree->delete_tree(obb_root); MB_CHK_ERR(rval);
     }
-
-  //delete obb tag
-  rval = MBI->tag_delete(obb_tree_tag); MB_CHK_ERR(rval);
 
   delete obbTree;
   
@@ -90,7 +88,7 @@ ErrorCode GenerateHierarchy::build_hierarchy()
 
   
   // loop over volumes and insert each into tree
-  for ( int i = 1 ; i <= DAG->num_entities(3) ; i++ )
+  for ( unsigned int i = 1 ; i <= DAG->num_entities(3) ; i++ )
    {
      // get eh for vol with index i 
      EntityHandle volume = DAG->entity_by_index(3,i);
@@ -113,16 +111,12 @@ ErrorCode GenerateHierarchy::get_all_handles()
   rval = MBI->tag_get_handle( "OBJECT_NAME", 32, MB_TYPE_OPAQUE,
                                obj_name_tag, MB_TAG_SPARSE|MB_TAG_CREAT); 
   MB_CHK_ERR(rval);
-  
+
+  int negone = -1;
   rval = MBI->tag_get_handle( GEOM_DIMENSION_TAG_NAME, 1, MB_TYPE_INTEGER,
                                 geom_tag, MB_TAG_SPARSE|MB_TAG_CREAT,&negone);
   MB_CHK_ERR(rval);
   
-
-  rval = MBI->tag_get_handle( MB_OBB_TREE_TAG_NAME, 1, MB_TYPE_HANDLE, 
-                                obb_tree_tag, MB_TAG_DENSE );
-  MB_CHK_ERR(rval);
-
   return MB_SUCCESS;
 }
 
@@ -258,15 +252,14 @@ Range GenerateHierarchy::get_children_by_dimension(EntityHandle parent, int desi
 {
   Range all_children, desired_children;
   Range::iterator it;
-  ErrorCode rval;
   int actual_dimension;
 
   all_children.clear();
-  rval = MBI->get_child_meshsets(parent, all_children);
-
+  MBI->get_child_meshsets(parent, all_children);
+  
   for ( it = all_children.begin() ; it != all_children.end() ; ++it)
     {
-      rval = MBI->tag_get_data(geom_tag, &(*it), 1, &actual_dimension);
+      MBI->tag_get_data(geom_tag, &(*it), 1, &actual_dimension);
       if ( actual_dimension == desired_dimension )
 	  {
           desired_children.insert(*it);
@@ -290,7 +283,7 @@ ErrorCode GenerateHierarchy::construct_topology()
   ErrorCode rval;
   std::map<EntityHandle,EntityHandle> volume_surface; //map of volume
                                                       // to its surface
-  for ( int i = 1; i <= DAG->num_entities(3) ; i++ )
+  for ( unsigned int i = 1; i <= DAG->num_entities(3) ; i++ )
     {
       //get the EntityHandle of each volume
       EntityHandle volume = DAG->entity_by_index(3,i);
@@ -307,7 +300,7 @@ ErrorCode GenerateHierarchy::construct_topology()
 
   myGeomTool = new GeomTopoTool(MBI);
   //for each original volume, get its child volumes
-  for ( int i = 1 ; i <= DAG->num_entities(3) ; i++)
+  for ( unsigned int i = 1 ; i <= DAG->num_entities(3) ; i++)
     {
       EntityHandle volume = DAG->entity_by_index(3,i);
       Range volume_children = get_children_by_dimension(volume, 3);
@@ -333,6 +326,8 @@ ErrorCode GenerateHierarchy::construct_topology()
 
     }
 
+  delete myGeomTool;
+  
   return MB_SUCCESS;
 
 }

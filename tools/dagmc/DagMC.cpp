@@ -1,10 +1,4 @@
 #include "DagMC.hpp"
-#include "MBTagConventions.hpp"
-#include "moab/CartVect.hpp"
-#include "moab/Range.hpp"
-#include "moab/Core.hpp"
-#include "moab/GeomUtil.hpp"
-#include "moab/FileOptions.hpp"
 
 #include <string>
 #include <iostream>
@@ -37,28 +31,8 @@ namespace moab {
      Robustness:   should not be affected
      Knowledge:    user must understand how coarser faceting influences accuracy
                    of results
-
-   Overlap Thickness:
-   This tolerance is the maximum distance across an overlap. It should be zero
-   unless the geometry has overlaps. The overlap thickness is set using the dagmc
-   card. Overlaps must be small enough not to significantly affect physics.
-     Performance: increasing tolerance decreases performance
-     Robustness:  increasing tolerance increases robustness
-     Knowledge:   user must have intuition of overlap thickness
-
-   Numerical Precision:
-   This tolerance is used for obb.intersect_ray, finding neighborhood of
-   adjacent triangle for edge/node intersections, and error in advancing
-   geometric position of particle (x' ~= x + d*u). When determining the
-   neighborhood of adjacent triangles for edge/node intersections, the facet
-   based model is expected to be watertight.
-     Performance: increasing tolerance decreases performance (but not very much)
-     Robustness:  increasing tolerance increases robustness
-     Knowledge:   user should not change this tolerance
-
 */
 
-  const bool debug    = false; /* controls print statements */
   const bool counting = false; /* controls counts of ray casts and pt_in_vols */
 
 // Empty synonym map for DagMC::parse_metadata()
@@ -76,22 +50,20 @@ DagMC::DagMC(Interface *mb_impl, double overlap_tolerance, double p_numerical_pr
   // set the internal moab pointer
   MBI = mb_impl;
 
-  // make new obbtree
-  obbTree = new moab::OrientedBoxTreeTool(MBI,"OBB",true);
-
+  // make new GeomTopoTool and GeomQueryTool
+  GTT = new moab::GeomTopoTool(MBI,false);
+  GQT = new moab::GeomQueryTool(GTT,overlap_tolerance,p_numerical_precision);
+  
   // This is the correct place to uniquely define default values for the dagmc settings
-  overlapThickness = overlap_tolerance; // must be nonnegative
   defaultFacetingTolerance = .001;
-  numericalPrecision = p_numerical_precision;
-
-  memset( implComplName, 0, NAME_TAG_SIZE );
-  strcpy( implComplName , "impl_complement" );
 }
 
 // Destructor
 DagMC::~DagMC(){
-  // delete the obb tree
-  delete obbTree;
+  // delete the GeomTopoTool and GeomQueryTool
+  delete GTT;
+  delete GQT;
+
   // if we created the moab instance
   // clear it
   if(moab_instance_created) {
@@ -131,10 +103,10 @@ ErrorCode DagMC::load_file(const char* cfile) {
   memcpy(file_ext, &cfile[strlen(cfile) - 4] ,4);
 
   EntityHandle file_set;
-  rval = MBI->create_meshset( MESHSET_SET, file_set );
+  rval = MBI->create_meshset(MESHSET_SET,file_set);
   if (MB_SUCCESS != rval)
     return rval;
-
+  
   rval = MBI->load_file(cfile, &file_set, options, NULL, 0, 0);
 
   if( MB_UNHANDLED_OPTION == rval ){
@@ -158,26 +130,99 @@ ErrorCode DagMC::load_file(const char* cfile) {
 }
 
 // helper function to load the existing contents of a MOAB instance into DAGMC
-ErrorCode DagMC::load_existing_contents( ) {
+ErrorCode DagMC::load_existing_contents() {
   return finish_loading();
 }
 
-// helper function to finish setting up required tags.
+// setup the implicit compliment
+ErrorCode DagMC::setup_impl_compl()
+{
+  // If it doesn't already exist, create implicit complement
+  // Create data structures for implicit complement
+  ErrorCode rval = GTT->setup_implicit_complement();
+  if (MB_SUCCESS != rval) {
+    std::cerr << "Failed to find or create implicit complement handle." << std::endl;
+    return rval;
+  }
+  return MB_SUCCESS;
+}
+
+// gets the entity sets tagged with geomtag 2 and 3
+// surfaces and volumes respectively
+ErrorCode DagMC::setup_geometry(Range &surfs, Range &vols)
+{
+  ErrorCode rval;
+
+  // get all surfaces
+  rval = GTT->get_gsets_by_dimension(2,surfs);
+  MB_CHK_SET_ERR(rval, "Could not get surfaces from GTT");
+
+  // get all volumes
+  rval = GTT->get_gsets_by_dimension(3,vols);
+  MB_CHK_SET_ERR(rval, "Could not get volumes from GTT");
+  
+  return MB_SUCCESS;
+}
+
+// sets up the obb tree for the problem
+ErrorCode DagMC::setup_obbs()
+{
+  ErrorCode rval;
+  
+  // If we havent got an OBB Tree, build one.
+  if (!GTT->have_obb_tree()) {
+    std::cout << "Building OBB Tree..." << std::endl;
+    rval = GTT->construct_obb_trees();
+    MB_CHK_SET_ERR(rval, "Failed to build obb trees");
+  }
+  return MB_SUCCESS;
+}
+
+// setups of the indices for the problem, builds a list of
+ErrorCode DagMC::setup_indices()
+{
+  Range surfs, vols;
+  ErrorCode rval = setup_geometry(surfs,vols);
+
+  // build the various index vectors used for efficiency
+  rval = build_indices(surfs, vols);
+  MB_CHK_SET_ERR(rval, "Failed to build surface/volume indices");
+  return MB_SUCCESS;
+}
+
+// initialise the obb tree
+ErrorCode DagMC::init_OBBTree()
+{
+  ErrorCode rval;
+
+  // find all geometry sets
+  rval = GTT->find_geomsets();
+  MB_CHK_SET_ERR(rval, "GeomTopoTool could not find the geometry sets");
+
+  // implicit compliment
+  // EntityHandle implicit_complement;
+  //  rval = GTT->get_implicit_complement(implicit_complement, true);
+  rval = setup_impl_compl();
+  MB_CHK_SET_ERR(rval, "Failed to setup the implicit compliment");
+
+  // build obbs
+  rval = setup_obbs();
+  MB_CHK_SET_ERR(rval, "Failed to setup the OBBs");
+
+  // setup indices
+  rval = setup_indices();
+  MB_CHK_SET_ERR(rval, "Failed to setup problem indices");
+
+  return MB_SUCCESS;
+}
+
+  // helper function to finish setting up required tags.
 ErrorCode DagMC::finish_loading() {
   ErrorCode rval;
 
   nameTag = get_tag(NAME_TAG_NAME, NAME_TAG_SIZE, MB_TAG_SPARSE, MB_TYPE_OPAQUE, NULL, false);
 
-  idTag = get_tag( GLOBAL_ID_TAG_NAME, 1, MB_TAG_DENSE, MB_TYPE_INTEGER );
-
-  geomTag = get_tag( GEOM_DIMENSION_TAG_NAME, 1, MB_TAG_DENSE, MB_TYPE_INTEGER );
-
-  obbTag = get_tag( MB_OBB_TREE_TAG_NAME, 1, MB_TAG_DENSE, MB_TYPE_HANDLE );
-
   facetingTolTag = get_tag(FACETING_TOL_TAG_NAME, 1, MB_TAG_SPARSE, MB_TYPE_DOUBLE );
-
-  // get sense of surfaces wrt volumes
-  senseTag = get_tag( "GEOM_SENSE_2", 2, MB_TAG_SPARSE, MB_TYPE_HANDLE );
 
   // search for a tag that has the faceting tolerance
   Range tagged_sets;
@@ -206,1134 +251,118 @@ ErrorCode DagMC::finish_loading() {
     facetingTolerance = facet_tol_tagvalue;
   }
 
+  // initialize GQT
+  std::cout << "Initializing the GeomQueryTool..." << std::endl;
+  rval = GTT->find_geomsets();
+  MB_CHK_SET_ERR(rval, "Failed to find the geometry sets");
+
   std::cout << "Using faceting tolerance: " << facetingTolerance << std::endl;
 
   return MB_SUCCESS;
 }
 
-// setup the implicit compliment
-ErrorCode DagMC::setup_impl_compl()
+
+/* SECTION II: Fundamental Geometry Operations/Queries */
+
+ErrorCode DagMC::ray_fire(const EntityHandle volume, const double point[3],
+                          const double dir[3], EntityHandle& next_surf,
+                          double& next_surf_dist,
+                          RayHistory* history,
+                          double user_dist_limit, int ray_orientation,
+                          OrientedBoxTreeTool::TrvStats* stats)
 {
-  // If it doesn't already exist, create implicit complement
-  // Create data structures for implicit complement
-  ErrorCode rval = get_impl_compl();
-  if (MB_SUCCESS != rval) {
-    std::cerr << "Failed to find or create implicit complement handle." << std::endl;
-    return rval;
-  }
-  return MB_SUCCESS;
+  ErrorCode rval = GQT->ray_fire(volume, point, dir, next_surf, next_surf_dist,
+                                 history, user_dist_limit, ray_orientation,
+                                 stats);
+  return rval;
 }
 
-// gets the entity sets tagged with geomtag 2 and 3
-// surfaces and volumes respectively
-ErrorCode DagMC::setup_geometry(Range &surfs, Range &vols)
+ErrorCode DagMC::point_in_volume(const EntityHandle volume, const double xyz[3],
+                                 int& result, const double *uvw,
+                                 const RayHistory *history)
 {
-  ErrorCode rval;
-
-  const int three = 3;
-  const void* const three_val[] = {&three};
-  rval = MBI->get_entities_by_type_and_tag( 0, MBENTITYSET, &geomTag,
-                                            three_val, 1, vols );
-  if (MB_SUCCESS != rval)
-    return rval;
-
-  const int two = 2;
-  const void* const two_val[] = {&two};
-  rval = MBI->get_entities_by_type_and_tag( 0, MBENTITYSET, &geomTag,
-                                            two_val, 1, surfs );
-  if (MB_SUCCESS != rval)
-    return rval;
-
-  return MB_SUCCESS;
+  ErrorCode rval = GQT->point_in_volume(volume, xyz, result, uvw, history);
+  return rval;
 }
 
-// sets up the obb tree for the problem
-ErrorCode DagMC::setup_obbs()
+ErrorCode DagMC::test_volume_boundary(const EntityHandle volume,
+                                      const EntityHandle surface,
+                                      const double xyz[3], const double uvw[3],
+                                      int& result,
+                                      const RayHistory* history)
 {
-  ErrorCode rval;
-  Range surfs,vols;
-  rval = setup_geometry(surfs,vols);
-  if(MB_SUCCESS != rval) {
-    std::cerr << "Failed to setup the geometry" << std::endl;
-    return rval;
-  }
-
-  // If we havent got an OBB Tree, build one.
-  if (!have_obb_tree()) {
-    std::cout << "Building OBB Tree..." << std::endl;
-    rval = build_obbs(surfs, vols);
-    MB_CHK_SET_ERR(rval, "Failed to build obb.");
-  }
-  return MB_SUCCESS;
-}
-
-// setups of the indices for the problem, builds a list of
-ErrorCode DagMC::setup_indices()
-{
-  Range surfs, vols;
-  ErrorCode rval = setup_geometry(surfs,vols);
-
-  // If we haven't got the implicit compliment it would be silly to add it
-  if(have_impl_compl())
-    {
-      // build_indices expects the implicit complement to be in vols.
-      if( vols.find(impl_compl_handle) == vols.end() )
-	     {
-	        vols.insert( vols.end(), impl_compl_handle );
-	     }
-    }
-
-  // build the various index vectors used for efficiency
-  rval = build_indices(surfs, vols);
-  MB_CHK_SET_ERR(rval, "Failed to build surface/volume indices.");
-  return MB_SUCCESS;
-}
-
-// initialise the obb tree
-ErrorCode DagMC::init_OBBTree()
-{
-  ErrorCode rval;
-  // implicit compliment
-  rval = setup_impl_compl();
-  MB_CHK_SET_ERR(rval, "Failed to setup the implicit compliment");
-
-  // build obbs
-  rval = setup_obbs();
-  MB_CHK_SET_ERR(rval, "Failed to setup the OBBs");
-
-  // setup indices
-  rval = setup_indices();
-  MB_CHK_SET_ERR(rval, "Failed to setup problem indices");
-
-  return MB_SUCCESS;
-}
-
-
-/* SECTION I (private) */
-
-bool DagMC::have_obb_tree()
-{
-  Range entities;
-  ErrorCode rval = MBI->get_entities_by_type_and_tag( 0, MBENTITYSET,
-                                                           &obbTag, 0, 1,
-                                                           entities );
-  return MB_SUCCESS == rval && !entities.empty();
-}
-
-bool DagMC::have_impl_compl()
-{
-  Range entities;
-  const void* const tagdata[] = {implComplName};
-  ErrorCode rval = MBI->get_entities_by_type_and_tag( 0, MBENTITYSET,
-                                                           &nameTag, tagdata, 1,
-                                                           entities );MB_CHK_ERR(rval);
-  if (!entities.empty())
-    return true;
-  else
-    return false;
-}
-
-ErrorCode DagMC::get_impl_compl()
-{
-  Range entities;
-  const void* const tagdata[] = {implComplName};
-  ErrorCode rval = MBI->get_entities_by_type_and_tag( 0, MBENTITYSET,
-                                                           &nameTag, tagdata, 1,
-                                                           entities );
-  // query error
-  if (MB_SUCCESS != rval) {
-    std::cerr << "Unable to query for implicit complement." << std::endl;
-    return rval;
-  }
-
-  // found too many
-  if (entities.size() > 1) {
-    std::cerr << "Too many implicit complement sets." << std::endl;
-    return MB_MULTIPLE_ENTITIES_FOUND;
-  }
-
-  // found none
-  if (entities.empty()) {
-    rval= MBI->create_meshset(MESHSET_SET,impl_compl_handle);
-    if (MB_SUCCESS != rval) {
-      std::cerr << "Failed to create mesh set for implicit complement." << std::endl;
-      return rval;
-    }
-      // tag this entity with name for implicit complement
-    rval = MBI->tag_set_data(nameTag,&impl_compl_handle,1,&implComplName);
-    if (MB_SUCCESS != rval) {
-      std::cerr << "Failed to tag new entity as implicit complement." << std::endl;
-    }
-
-    return rval;
-
-  } else {
-    // found a single implicit complement
-    impl_compl_handle = entities.front();
-    return MB_SUCCESS;
-  }
-
-
-}
-
-ErrorCode DagMC::build_obbs(Range &surfs, Range &vols)
-{
-  ErrorCode rval = MB_SUCCESS;
-
-  for (Range::iterator i = surfs.begin(); i != surfs.end(); ++i) {
-    EntityHandle root;
-    Range tris;
-    rval = MBI->get_entities_by_dimension( *i, 2, tris );
-    if (MB_SUCCESS != rval)
-      return rval;
-    if (tris.empty())
-      std::cerr << "WARNING: Surface " << get_entity_id(*i) << " has no facets." << std::endl;
-    rval = obbTree->build( tris, root );
-    if (MB_SUCCESS != rval)
-      return rval;
-    rval = MBI->add_entities( root, &*i, 1 );
-    if (MB_SUCCESS != rval)
-      return rval;
-    rval = MBI->tag_set_data( obbTag, &*i, 1, &root );
-    if (MB_SUCCESS != rval)
-      return rval;
-  }
-
-  for (Range::iterator i = vols.begin(); i != vols.end(); ++i) {
-      // get all surfaces in volume
-    moab::Range tmp_surfs;
-    rval = MBI->get_child_meshsets( *i, tmp_surfs );
-    if (MB_SUCCESS != rval)
-      return rval;
-
-      // get OBB trees for each surface
-    moab::EntityHandle root;
-    moab::Range trees;
-    for (Range::iterator j = tmp_surfs.begin();  j != tmp_surfs.end(); ++j) {
-      // skip any surfaces that are non-manifold in the volume
-      // because point containment code will get confused by them
-      int sense = 0;
-      rval = surface_sense( *i, *j, sense );
-      if (MB_SUCCESS != rval) {
-        std::cerr << "Surface/Volume sense data missing." << std::endl;
-        return rval;
-      }
-      if (!sense)
-        continue;
-      rval = MBI->tag_get_data( obbTag, &*j, 1, &root );
-      if (MB_SUCCESS != rval || !root) return MB_FAILURE;
-      trees.insert( root );
-    }
-    
-    // build OBB tree for volume
-    rval = obbTree->join_trees( trees, root );
-    if (MB_SUCCESS != rval) return rval;
-
-    rval = MBI->tag_set_data( obbTag, &*i, 1, &root );
-    if (MB_SUCCESS != rval) return rval;
-  }
-
-  if ( !(have_impl_compl()) ) {
-    std::cerr << "Warning, there is no implicit compliment" << std::endl;
-  } else {
-    rval = build_obb_impl_compl(surfs);
-    if (MB_SUCCESS != rval) {
-      std::cerr << "Unable to build OBB tree for implicit complement." << std::endl;
-      return rval;
-    }
-  }
-
-  return MB_SUCCESS;
-}
-
-ErrorCode DagMC::build_obb_impl_compl(Range &surfs)
-{
-  EntityHandle comp_root, surf_obb_root;
-  Range comp_tree;
-  ErrorCode rval;
-  std::vector<EntityHandle> parent_vols;
-
-  int impl_compl_surf_count = 0;
-  double impl_compl_surf_area = 0.0;
-
-    // search through all surfaces
-  for (Range::iterator surf_i = surfs.begin(); surf_i != surfs.end(); ++surf_i) {
-
-    parent_vols.clear();
-      // get parents of each surface
-    rval = MBI->get_parent_meshsets( *surf_i, parent_vols );
-    if (MB_SUCCESS != rval)
-      return rval;
-
-      // if only one parent, get the OBB root for this surface
-    if (parent_vols.size() == 1 ) {
-
-      double a;
-      measure_area( *surf_i, a );
-      impl_compl_surf_count += 1;
-      impl_compl_surf_area  += a;
-
-      rval = MBI->tag_get_data( obbTag, &*surf_i, 1, &surf_obb_root );
-      if (MB_SUCCESS != rval)
-        return rval;
-      if (!surf_obb_root)
-        return MB_FAILURE;
-
-        // add obb root to list of obb roots
-      comp_tree.insert( surf_obb_root );
-
-      // add this surf to the topology of the implicit complement volume
-      rval = MBI->add_parent_child(impl_compl_handle,*surf_i);
-      if (MB_SUCCESS != rval)
-        return rval;
-
-      // get the surface sense wrt original volume
-      EntityHandle sense_data[2] = {0,0};
-      rval = MBI->tag_get_data( sense_tag(), &(*surf_i), 1, sense_data );
-      if (MB_SUCCESS != rval) return rval;
-
-      // set the surface sense wrt implicit complement volume
-      if(0==sense_data[0] && 0==sense_data[1]) return MB_FAILURE;
-      if(0==sense_data[0])
-        sense_data[0] = impl_compl_handle;
-      else if(0==sense_data[1])
-        sense_data[1] = impl_compl_handle;
-      else
-        return MB_FAILURE;
-      rval = MBI->tag_set_data( sense_tag(), &(*surf_i), 1, sense_data );
-      if (MB_SUCCESS != rval)  return rval;
-
-    }
-  }
-  // print info about the implicit complement if one was created
-  if( impl_compl_surf_count ){
-    bool one = (impl_compl_surf_count == 1);
-    std::cout << "The implicit complement bounds " << impl_compl_surf_count
-              << (one ? " surface" : " surfaces") << std::endl;
-    std::cout << "The implicit complement's total surface area = "
-              << impl_compl_surf_area << std::endl;
-  }
-
-    // join surface trees to make OBB tree for implicit complement
-  rval = obbTree->join_trees( comp_tree, comp_root );
-  if (MB_SUCCESS != rval)
-    return rval;
-
-    // tag the implicit complement handle with the handle for its own OBB tree
-  rval = MBI->tag_set_data( obbTag, &impl_compl_handle, 1, &comp_root );
-  if (MB_SUCCESS != rval)
-    return rval;
-
-  // following ReadCGM, assign dimension and category tags
-  int three = 3;
-  rval = MBI->tag_set_data(geomTag, &impl_compl_handle, 1, &three );
-  if (MB_SUCCESS != rval)
-    return rval;
-
-  Tag category_tag = get_tag(CATEGORY_TAG_NAME, CATEGORY_TAG_SIZE,
-                             MB_TAG_SPARSE, MB_TYPE_OPAQUE);
-  static const char volume_category[CATEGORY_TAG_SIZE] = "Volume\0";
-  rval = MBI->tag_set_data(category_tag, &impl_compl_handle, 1, volume_category );
-  if (MB_SUCCESS != rval)
-    return rval;
-
-  return MB_SUCCESS;
-
-}
-
-  /* SECTION II: Fundamental Geometry Operations/Queries */
-void DagMC::RayHistory::reset() {
-  prev_facets.clear();
-}
-
-void DagMC::RayHistory::reset_to_last_intersection() {
-
-  if( prev_facets.size() > 1 ){
-    prev_facets[0] = prev_facets.back();
-    prev_facets.resize( 1 );
-  }
-
-}
-
-void DagMC::RayHistory::rollback_last_intersection() {
-  if( prev_facets.size() )
-    prev_facets.pop_back();
-}
-
-ErrorCode DagMC::ray_fire(const EntityHandle vol,
-                          const double point[3], const double dir[3],
-                          EntityHandle& next_surf, double& next_surf_dist,
-                          RayHistory* history, double user_dist_limit,
-			  int ray_orientation,
-                          OrientedBoxTreeTool::TrvStats* stats ) {
-
-  // take some stats that are independent of nps
-  if(counting) {
-    ++n_ray_fire_calls;
-    if(0==n_ray_fire_calls%10000000) {
-      std::cout << "n_ray_fires="   << n_ray_fire_calls
-                << " n_pt_in_vols=" << n_pt_in_vol_calls << std::endl;
-    }
-  }
-
-  if (debug) {
-    std::cout << "ray_fire:"
-              << " xyz=" << point[0] << " " << point[1] << " " << point[2]
-              << " uvw=" << dir[0] << " " << dir[1] << " " << dir[2]
-              << " vol_id=" << id_by_index(3, index_by_handle(vol)) << std::endl;
-    }
-
-  const double huge_val = std::numeric_limits<double>::max();
-  double dist_limit = huge_val;
-  if( user_dist_limit > 0 )
-    dist_limit = user_dist_limit;
-
-  // don't recreate these every call
-  std::vector<double>       &dists       = distList;
-  std::vector<EntityHandle> &surfs       = surfList;
-  std::vector<EntityHandle> &facets      = facetList;
-  dists.clear();
-  surfs.clear();
-  facets.clear();
-
-  assert(vol - setOffset < rootSets.size());
-  const EntityHandle root = rootSets[vol - setOffset];
-  ErrorCode rval;
-
-  // check behind the ray origin for intersections
-  double neg_ray_len;
-  if(0 == overlapThickness) {
-    neg_ray_len = -numericalPrecision;
-  } else {
-    neg_ray_len = -overlapThickness;
-  }
-
-  // optionally, limit the nonneg_ray_len with the distance to next collision.
-  double nonneg_ray_len = dist_limit;
-
-  // the nonneg_ray_len should not be less than -neg_ray_len, or an overlap
-  // may be missed due to optimization within ray_intersect_sets
-  if(nonneg_ray_len < -neg_ray_len) nonneg_ray_len = -neg_ray_len;
-  assert(0 <= nonneg_ray_len);
-  assert(0 >     neg_ray_len);
-
-  // min_tolerance_intersections is passed but not used in this call
-  const int min_tolerance_intersections = 0;
-
-  // numericalPrecision is used for box.intersect_ray and find triangles in the
-  // neighborhood of edge/node intersections.
-  rval = obbTree->ray_intersect_sets( dists, surfs, facets,
-                                     root, numericalPrecision,
-                                     min_tolerance_intersections,
-                                     point, dir, &nonneg_ray_len,
-                                     stats, &neg_ray_len, &vol, &senseTag,
-                                     &ray_orientation,
-                                     history ? &(history->prev_facets) : NULL );
-  assert( MB_SUCCESS == rval );
-  if(MB_SUCCESS != rval) return rval;
-
-  // If no distances are returned, the particle is lost unless the physics limit
-  // is being used. If the physics limit is being used, there is no way to tell
-  // if the particle is lost. To avoid ambiguity, DO NOT use the distance limit
-  // unless you know lost particles do not occur.
-  if( dists.empty() ) {
-    next_surf = 0;
-    if(debug) {
-      std::cout << "          next_surf=0 dist=(undef)" << std::endl;
-    }
-    return MB_SUCCESS;
-  }
-
-  // Assume that a (neg, nonneg) pair of RTIs could be returned,
-  // however, only one or the other may exist. dists[] may be populated, but
-  // intersections are ONLY indicated by nonzero surfs[] and facets[].
-  assert(2 == dists.size());
-  assert(2 == facets.size());
-  assert(0.0 >= dists[0]);
-  assert(0.0 <= dists[1]);
-
-  // If both negative and nonnegative RTIs are returned, the negative RTI must
-  // closer to the origin.
-  if(0!=facets[0] && 0!=facets[1]) {
-    assert(-dists[0] <= dists[1]);
-  }
-
-  // If an RTI is found at negative distance, perform a PMT to see if the
-  // particle is inside an overlap.
-  int exit_idx = -1;
-  if(0!=facets[0]) {
-    // get the next volume
-    std::vector<EntityHandle> vols;
-    EntityHandle nx_vol;
-    rval = MBI->get_parent_meshsets( surfs[0], vols );
-    if(MB_SUCCESS != rval) return rval;
-    assert(2 == vols.size());
-    if(vols.front() == vol) {
-      nx_vol = vols.back();
-    } else {
-      nx_vol = vols.front();
-    }
-    // Check to see if the point is actually in the next volume.
-    // The list of previous facets is used to topologically identify the
-    // "on_boundary" result of the PMT. This avoids a test that uses proximity
-    // (a tolerance).
-    int result;
-    rval = point_in_volume( nx_vol, point, result, dir, history );
-    if(MB_SUCCESS != rval) return rval;
-    if(1==result) exit_idx = 0;
-
-  }
-
-  // if the negative distance is not the exit, try the nonnegative distance
-  if(-1==exit_idx && 0!=facets[1]) exit_idx = 1;
-
-  // if the exit index is still unknown, the particle is lost
-  if(-1 == exit_idx) {
-    next_surf = 0;
-    if (debug) {
-      std::cout << "next surf hit = 0, dist = (undef)" << std::endl;
-    }
-    return MB_SUCCESS;
-  }
-
-  // return the intersection
-  next_surf = surfs[exit_idx];
-  next_surf_dist = ( 0>dists[exit_idx] ? 0 : dists[exit_idx]);
-
-  if( history ){
-    history->prev_facets.push_back( facets[exit_idx] );
-  }
-
-  if (debug) {
-    if( 0 > dists[exit_idx] ){
-      std::cout << "          OVERLAP track length=" << dists[exit_idx] << std::endl;
-    }
-    std::cout << "          next_surf = " <<  id_by_index(2, index_by_handle(next_surf))
-              << ", dist = " << next_surf_dist << " new_pt=";
-    for( int i = 0; i < 3; ++i ){
-      std::cout << point[i]+dir[i]*next_surf_dist << " ";
-    }
-    std::cout << std::endl;
-  }
-
-  return MB_SUCCESS;
-}
-
-ErrorCode DagMC::point_in_volume(const EntityHandle volume,
-                                 const double xyz[3],
-                                 int& result,
-                                 const double *uvw,
-                                 const RayHistory *history) {
-  // take some stats that are independent of nps
-  if(counting) ++n_pt_in_vol_calls;
-
-  // get OBB Tree for volume
-  assert(volume - setOffset < rootSets.size());
-  EntityHandle root = rootSets[volume - setOffset];
-
-  // Don't recreate these every call. These cannot be the same as the ray_fire
-  // vectors because both are used simultaneously.
-  std::vector<double>       &dists = disList;
-  std::vector<EntityHandle> &surfs = surList;
-  std::vector<EntityHandle> &facets= facList;
-  std::vector<int>          &dirs  = dirList;
-  dists.clear();
-  surfs.clear();
-  facets.clear();
-  dirs.clear();
-
-  // if uvw is not given or is full of zeros, use a random direction
-  double u = 0, v = 0, w = 0;
-
-  if( uvw ){
-    u = uvw[0]; v=uvw[1], w=uvw[2];
-  }
-
-  if( u == 0 && v == 0 && w == 0 )
-  {
-    u = rand();
-    v = rand();
-    w = rand();
-    const double magnitude = sqrt( u*u + v*v + w*w );
-    u /= magnitude;
-    v /= magnitude;
-    w /= magnitude;
-  }
-
-  const double ray_direction[] = { u, v, w };
-
-  // if overlaps, ray must be cast to infinity and all RTIs must be returned
-  const double   large       = 1e15;
-  const double   ray_length  = large;
-
-  // If overlaps occur, the pt is inside if traveling along the ray from the
-  // origin, there are ever more exits than entrances. In lieu of implementing
-  // that, all intersections to infinity are required if overlaps occur (expensive)
-  int min_tolerance_intersections;
-  if(0 != overlapThickness) {
-    min_tolerance_intersections = -1;
-  // only the first intersection is needed if overlaps do not occur (cheap)
-  } else {
-    min_tolerance_intersections = 1;
-  }
-
-  // Get intersection(s) of forward and reverse orientation. Do not return
-  // glancing intersections or previous facets.
-  ErrorCode rval = obbTree->ray_intersect_sets( dists, surfs, facets, root,
-                                               numericalPrecision,
-                                               min_tolerance_intersections,
-                                               xyz, ray_direction,
-                                               &ray_length, NULL, NULL, &volume,
-                                               &senseTag, NULL,
-                                               history ? &(history->prev_facets) : NULL );
-  if(MB_SUCCESS != rval) return rval;
-
-  // determine orientation of all intersections
-  // 1 for entering, 0 for leaving, -1 for tangent
-  // Tangent intersections are not returned from ray_tri_intersect.
-  dirs.resize(dists.size());
-  for(unsigned i=0; i<dists.size(); ++i) {
-    rval = boundary_case( volume, dirs[i], u, v, w, facets[i], surfs[i] );
-    if(MB_SUCCESS != rval) return rval;
-  }
-
-  // count all crossings
-  if(0 != overlapThickness) {
-    int sum = 0;
-    for(unsigned i=0; i<dirs.size(); ++i) {
-      if     ( 1==dirs[i]) sum+=1; // +1 for entering
-      else if( 0==dirs[i]) sum-=1; // -1 for leaving
-      else if(-1==dirs[i]) {       //  0 for tangent
-        std::cout << "direction==tangent" << std::endl;
-        sum+=0;
-      } else {
-        std::cout << "error: unknown direction" << std::endl;
-        return MB_FAILURE;
-      }
-    }
-
-    // inside/outside depends on the sum
-    if(0<sum)                          result = 0; // pt is outside (for all vols)
-    else if(0>sum)                     result = 1; // pt is inside  (for all vols)
-    else if(impl_compl_handle==volume) result = 1; // pt is inside  (for impl_compl_vol)
-    else                               result = 0; // pt is outside (for all other vols)
-
-  // Only use the first crossing
-  } else {
-      if( dirs.empty() ) {
-      result = 0; // pt is outside
-    } else {
-      int smallest = std::min_element( dists.begin(), dists.end() ) - dists.begin();
-      if     ( 1==dirs[smallest] ) result = 0; // pt is outside
-      else if( 0==dirs[smallest] ) result = 1; // pt is inside
-      else if(-1==dirs[smallest] ) {
-        // Should not be here because Plucker ray-triangle test does not
-        // return coplanar rays as intersections.
-        std::cout << "direction==tangent" << std::endl;
-        result = -1;
-      } else {
-        std::cout << "error: unknown direction" << std::endl;
-        return MB_FAILURE;
-      }
-    }
-  }
-
-  if(debug)
-    std::cout << "pt_in_vol: result=" << result
-              << " xyz=" << xyz[0] << " " << xyz[1] << " " << xyz[2] << " uvw=" << u << " " << v << " " << w
-              << " vol_id=" << id_by_index(3, index_by_handle(volume)) << std::endl;
-
-  return MB_SUCCESS;
-}
-
-ErrorCode DagMC::test_volume_boundary( const EntityHandle volume, const EntityHandle surface,
-                                       const double xyz[3], const double uvw[3], int& result,
-                                       const RayHistory* history )
-{
-  ErrorCode rval;
-  int dir;
-
-  if( history && history->prev_facets.size() ){
-    // the current facet is already available
-    rval = boundary_case( volume, dir, uvw[0], uvw[1], uvw[2], history->prev_facets.back(), surface );
-    if (MB_SUCCESS != rval) return rval;
-  }
-  else{
-    // look up nearest facet
-
-    // Get OBB Tree for surface
-    assert(volume - setOffset < rootSets.size());
-    EntityHandle root = rootSets[volume - setOffset];
-
-    // Get closest triangle on surface
-    const CartVect point(xyz);
-    CartVect nearest;
-    EntityHandle facet_out;
-    rval = obbTree->closest_to_location( point.array(), root, nearest.array(), facet_out );
-    if (MB_SUCCESS != rval) return rval;
-
-    rval = boundary_case( volume, dir, uvw[0], uvw[1], uvw[2], facet_out, surface );
-    if (MB_SUCCESS != rval) return rval;
-
-  }
-
-  result = dir;
-
-  return MB_SUCCESS;
-
+  ErrorCode rval = GQT->test_volume_boundary(volume, surface, xyz, uvw, result,
+                                             history);
+  return rval;
 }
 
 // use spherical area test to determine inside/outside of a polyhedron.
-ErrorCode DagMC::point_in_volume_slow( EntityHandle volume, const double xyz[3], int& result )
+ErrorCode DagMC::point_in_volume_slow(EntityHandle volume, const double xyz[3],
+                                      int& result)
 {
-  ErrorCode rval;
-  Range faces;
-  std::vector<EntityHandle> surfs;
-  std::vector<int> senses;
-  double sum = 0.0;
-  const CartVect point(xyz);
-
-  rval = MBI->get_child_meshsets( volume, surfs );
-  if (MB_SUCCESS != rval)
-    return rval;
-
-  senses.resize( surfs.size() );
-  rval = surface_sense( volume, surfs.size(), &surfs[0], &senses[0] );
-  if (MB_SUCCESS != rval)
-    return rval;
-
-  for (unsigned i = 0; i < surfs.size(); ++i) {
-    if (!senses[i])  // skip non-manifold surfaces
-      continue;
-
-    double surf_area = 0.0, face_area;
-    faces.clear();
-    rval = MBI->get_entities_by_dimension( surfs[i], 2, faces );
-    if (MB_SUCCESS != rval)
-      return rval;
-
-    for (Range::iterator j = faces.begin(); j != faces.end(); ++j) {
-      rval = poly_solid_angle( *j, point, face_area );
-      if (MB_SUCCESS != rval)
-        return rval;
-
-      surf_area += face_area;
-    }
-
-    sum += senses[i] * surf_area;
-  }
-
-  result = fabs(sum) > 2.0*M_PI;
-  return MB_SUCCESS;
+  ErrorCode rval = GQT->point_in_volume_slow(volume, xyz, result);
+  return rval;
 }
 
-
-
 // detemine distance to nearest surface
-ErrorCode DagMC::closest_to_location( EntityHandle volume, const double coords[3], double& result)
+ErrorCode DagMC::closest_to_location(EntityHandle volume,
+                                     const double coords[3], double& result)
 {
-    // Get OBB Tree for volume
-  assert(volume - setOffset < rootSets.size());
-  EntityHandle root = rootSets[volume - setOffset];
-
-    // Get closest triangles in volume
-  const CartVect point(coords);
-  CartVect nearest;
-  EntityHandle facet_out;
-  ErrorCode rval = obbTree->closest_to_location( point.array(), root, nearest.array(), facet_out );
-  if (MB_SUCCESS != rval) return rval;
-
-  // calculate distance between point and nearest facet
-  result = (point-nearest).length();
-
-  return MB_SUCCESS;
-
+  ErrorCode rval = GQT->closest_to_location(volume, coords, result);
+  return rval;
 }
 
 // calculate volume of polyhedron
-ErrorCode DagMC::measure_volume( EntityHandle volume, double& result )
+ErrorCode DagMC::measure_volume(EntityHandle volume, double& result)
 {
-  ErrorCode rval;
-  std::vector<EntityHandle> surfaces;
-  result = 0.0;
-
-   // don't try to calculate volume of implicit complement
-  if (volume == impl_compl_handle) {
-    result = 1.0;
-    return MB_SUCCESS;
-  }
-
-    // get surfaces from volume
-  rval = MBI->get_child_meshsets( volume, surfaces );
-  if (MB_SUCCESS != rval) return rval;
-
-    // get surface senses
-  std::vector<int> senses( surfaces.size() );
-  rval = surface_sense( volume, surfaces.size(), &surfaces[0], &senses[0] );
-  if (MB_SUCCESS != rval) {
-    std::cerr << "ERROR: Surface-Volume relative sense not available. "
-              << "Cannot calculate volume." << std::endl;
-    return rval;
-  }
-
-  for (unsigned i = 0; i < surfaces.size(); ++i) {
-      // skip non-manifold surfaces
-    if (!senses[i])
-      continue;
-
-      // get triangles in surface
-    Range triangles;
-    rval = MBI->get_entities_by_dimension( surfaces[i], 2, triangles );
-    if (MB_SUCCESS != rval)
-      return rval;
-    if (!triangles.all_of_type(MBTRI)) {
-      std::cout << "WARNING: Surface " << get_entity_id(surfaces[i])
-                << " contains non-triangle elements. Volume calculation may be incorrect."
-                << std::endl;
-      triangles.clear();
-      rval = MBI->get_entities_by_type( surfaces[i], MBTRI, triangles );
-      if (MB_SUCCESS != rval) return rval;
-    }
-
-      // calculate signed volume beneath surface (x 6.0)
-    double surf_sum = 0.0;
-    const EntityHandle *conn;
-    int len;
-    CartVect coords[3];
-    for (Range::iterator j = triangles.begin(); j != triangles.end(); ++j) {
-      rval = MBI->get_connectivity( *j, conn, len, true );
-      if (MB_SUCCESS != rval) return rval;
-      assert(3 == len);
-      rval = MBI->get_coords( conn, 3, coords[0].array() );
-      if (MB_SUCCESS != rval) return rval;
-
-      coords[1] -= coords[0];
-      coords[2] -= coords[0];
-      surf_sum += (coords[0] % (coords[1] * coords[2]));
-    }
-    result += senses[i] * surf_sum;
-  }
-
-  result /= 6.0;
-  return MB_SUCCESS;
+  ErrorCode rval = GQT->measure_volume(volume, result);
+  return rval;
 }
 
 // sum area of elements in surface
-ErrorCode DagMC::measure_area( EntityHandle surface, double& result )
+ErrorCode DagMC::measure_area(EntityHandle surface, double& result)
 {
-    // get triangles in surface
-  Range triangles;
-  ErrorCode rval = MBI->get_entities_by_dimension( surface, 2, triangles );
-  if (MB_SUCCESS != rval)
-    return rval;
-  if (!triangles.all_of_type(MBTRI)) {
-    std::cout << "WARNING: Surface " << get_entity_id(surface)
-              << " contains non-triangle elements. Area calculation may be incorrect."
-              << std::endl;
-    triangles.clear();
-    rval = MBI->get_entities_by_type( surface, MBTRI, triangles );
-    if (MB_SUCCESS != rval) return rval;
-  }
-
-    // calculate sum of area of triangles
-  result = 0.0;
-  const EntityHandle *conn;
-  int len;
-  CartVect coords[3];
-  for (Range::iterator j = triangles.begin(); j != triangles.end(); ++j) {
-    rval = MBI->get_connectivity( *j, conn, len, true );
-    if (MB_SUCCESS != rval) return rval;
-    assert(3 == len);
-    rval = MBI->get_coords( conn, 3, coords[0].array() );
-    if (MB_SUCCESS != rval) return rval;
-
-    coords[1] -= coords[0];
-    coords[2] -= coords[0];
-    coords[0] = coords[1] * coords[2];
-    result += coords[0].length();
-  }
-  result *= 0.5;
-  return MB_SUCCESS;
-}
-
-// get sense of surface(s) wrt volume
-ErrorCode DagMC::surface_sense( EntityHandle volume,
-                           int num_surfaces,
-                           const EntityHandle* surfaces,
-                           int* senses_out )
-{
-
-  /* The sense tags do not reference the implicit complement handle.
-     All surfaces that interact with the implicit complement should have
-     a null handle in the direction of the implicit complement. */
-  //if (volume == impl_compl_handle)
-  //  volume = (EntityHandle) 0;
-
-  std::vector<EntityHandle> surf_volumes( 2*num_surfaces );
-  ErrorCode rval = MBI->tag_get_data( sense_tag(), surfaces, num_surfaces, &surf_volumes[0] );
-  if (MB_SUCCESS != rval)  return rval;
-
-  const EntityHandle* end = surfaces + num_surfaces;
-  std::vector<EntityHandle>::const_iterator surf_vols = surf_volumes.begin();
-  while (surfaces != end) {
-    EntityHandle forward = *surf_vols; ++surf_vols;
-    EntityHandle reverse = *surf_vols; ++surf_vols;
-    if (volume == forward)
-      *senses_out = (volume != reverse); // zero if both, otherwise 1
-    else if (volume == reverse)
-      *senses_out = -1;
-    else
-      return MB_ENTITY_NOT_FOUND;
-
-    ++surfaces;
-    ++senses_out;
-  }
-
-  return MB_SUCCESS;
-}
-
-// get sense of surface(s) wrt volume
-ErrorCode DagMC::surface_sense( EntityHandle volume,
-                                  EntityHandle surface,
-                                  int& sense_out )
-{
-  /* The sense tags do not reference the implicit complement handle.
-     All surfaces that interact with the implicit complement should have
-     a null handle in the direction of the implicit complement. */
-  //if (volume == impl_compl_handle)
-  //  volume = (EntityHandle) 0;
-
-    // get sense of surfaces wrt volumes
-  EntityHandle surf_volumes[2];
-  ErrorCode rval = MBI->tag_get_data( sense_tag(), &surface, 1, surf_volumes );
-  if (MB_SUCCESS != rval)  return rval;
-
-  if (surf_volumes[0] == volume)
-    sense_out = (surf_volumes[1] != volume); // zero if both, otherwise 1
-  else if (surf_volumes[1] == volume)
-    sense_out = -1;
-  else
-    return MB_ENTITY_NOT_FOUND;
-
-  return MB_SUCCESS;
-}
-
-ErrorCode DagMC::get_angle(EntityHandle surf, const double in_pt[3], double angle[3], const RayHistory* history )
-{
-  EntityHandle root = rootSets[surf - setOffset];
-  ErrorCode rval;
-
-  std::vector<EntityHandle> facets;
-
-  // if no history or history empty, use nearby facets
-  if( !history || (history->prev_facets.size() == 0) ){
-    rval = obbTree->closest_to_location( in_pt, root, numericalPrecision, facets );
-    assert(MB_SUCCESS == rval);
-    if (MB_SUCCESS != rval) return rval;
-  }
-  // otherwise use most recent facet in history
-  else{
-    facets.push_back( history->prev_facets.back() );
-  }
-
-  CartVect coords[3], normal(0.0);
-  const EntityHandle *conn;
-  int len;
-  for (unsigned i = 0; i < facets.size(); ++i) {
-    rval = MBI->get_connectivity( facets[i], conn, len );
-    assert( MB_SUCCESS == rval );
-    assert( 3 == len );
-
-    rval = MBI->get_coords( conn, 3, coords[0].array() );
-    assert(MB_SUCCESS == rval);
-
-    coords[1] -= coords[0];
-    coords[2] -= coords[0];
-    normal += coords[1] * coords[2];
-  }
-
-  normal.normalize();
-  normal.get( angle );
-
-  return MB_SUCCESS;
-}
-
-ErrorCode DagMC::next_vol( EntityHandle surface, EntityHandle old_volume,
-                           EntityHandle& new_volume )
-{
-  std::vector<EntityHandle> parents;
-  ErrorCode rval = MBI->get_parent_meshsets( surface, parents );
-
-  if (MB_SUCCESS == rval) {
-    if (parents.size() != 2)
-      rval = MB_FAILURE;
-    else if (parents.front() == old_volume)
-      new_volume = parents.back();
-    else if( parents.back() == old_volume )
-      new_volume = parents.front();
-    else
-      rval = MB_FAILURE;
-  }
-
-  if( rval != MB_SUCCESS ){
-    std::cerr << "DAGMC: mesh error in next_vol for surf " << get_entity_id(surface) << std::endl;
-  }
-
+  ErrorCode rval = GQT->measure_area(surface, result);
   return rval;
-
 }
 
-/* SECTION II (private) */
-
-// If point is on boundary, then this function is called to
-// discriminate cases in which the ray is entering or leaving.
-// result= 1 -> inside volume or entering volume
-// result= 0 -> outside volume or leaving volume
-// result=-1 -> on boundary with null or tangent uvw
-ErrorCode DagMC::boundary_case( EntityHandle volume, int& result,
-                                double u, double v, double w,
-                                EntityHandle facet,
-                                EntityHandle surface)
+// get sense of surface(s) wrt volume
+ErrorCode DagMC::surface_sense(EntityHandle volume, int num_surfaces,
+                               const EntityHandle* surfaces, int* senses_out)
 {
-  ErrorCode rval;
-
-  // test to see if uvw is provided
-  if ( u <= 1.0 && v <= 1.0 && w <= 1.0 ) {
-
-    const CartVect ray_vector(u, v, w);
-    CartVect coords[3], normal(0.0);
-    const EntityHandle *conn;
-    int len, sense_out;
-
-    rval = MBI->get_connectivity( facet, conn, len );
-    assert( MB_SUCCESS == rval );
-    if(MB_SUCCESS != rval) return rval;
-    assert( 3 == len );
-
-    rval = MBI->get_coords( conn, 3, coords[0].array() );
-    assert(MB_SUCCESS == rval);
-    if(MB_SUCCESS != rval) return rval;
-
-    rval = surface_sense( volume, surface, sense_out );
-    assert( MB_SUCCESS == rval);
-    if(MB_SUCCESS != rval) return rval;
-
-    coords[1] -= coords[0];
-    coords[2] -= coords[0];
-    normal = sense_out * (coords[1] * coords[2]);
-
-    double sense = ray_vector % normal;
-
-    if ( sense < 0.0 ) {
-      result = 1;     // inside or entering
-    } else  if ( sense > 0.0 ) {
-      result = 0;     // outside or leaving
-    } else  if ( sense == 0.0 ) {
-      result = -1;    // tangent, therefore on boundary
-    } else {
-      result = -1;    // failure
-      return MB_FAILURE;
-    }
-
-  // if uvw not provided, return on_boundary.
-  } else {
-    result = -1;      // on boundary
-    return MB_SUCCESS;
-
-  }
-
-  return MB_SUCCESS;
+  ErrorCode rval = GTT->get_surface_senses(volume, num_surfaces, surfaces,
+                                           senses_out);
+  return rval;
 }
 
-// point_in_volume_slow, including poly_solid_angle helper subroutine
-// are adapted from "Point in Polyhedron Testing Using Spherical Polygons", Paulo Cezar
-// Pinto Carvalho and Paulo Roma Cavalcanti, _Graphics Gems V_, pg. 42.  Original algorithm
-// was described in "An Efficient Point In Polyhedron Algorithm", Jeff Lane, Bob Magedson,
-// and Mike Rarick, _Computer Vision, Graphics, and Image Processing 26_, pg. 118-225, 1984.
-
-// helper function for point_in_volume_slow.  calculate area of a polygon
-// projected into a unit-sphere space
-ErrorCode DagMC::poly_solid_angle( EntityHandle face, const CartVect& point, double& area )
+// get sense of surface(s) wrt volume
+ErrorCode DagMC::surface_sense(EntityHandle volume, EntityHandle surface,
+                               int& sense_out)
 {
-  ErrorCode rval;
+  ErrorCode rval = GTT->get_sense(surface, volume, sense_out);
+  return rval;
+}
 
-    // Get connectivity
-  const EntityHandle* conn;
-  int len;
-  rval = MBI->get_connectivity( face, conn, len, true );
-  if (MB_SUCCESS != rval)
-    return rval;
+ErrorCode DagMC::get_angle(EntityHandle surf, const double in_pt[3],
+                           double angle[3],
+                           const RayHistory* history)
+{
+  ErrorCode rval = GQT->get_normal(surf, in_pt, angle, history);
+  return rval;
+}
 
-  // Allocate space to store vertices
-  CartVect coords_static[4];
-  std::vector<CartVect> coords_dynamic;
-  CartVect* coords = coords_static;
-  if ((unsigned)len > (sizeof(coords_static)/sizeof(coords_static[0]))) {
-    coords_dynamic.resize(len);
-    coords = &coords_dynamic[0];
-  }
-
-  // get coordinates
-  rval = MBI->get_coords( conn, len, coords->array() );
-  if (MB_SUCCESS != rval)
-    return rval;
-
-  // calculate normal
-  CartVect norm(0.0), v1, v0 = coords[1] - coords[0];
-  for (int i = 2; i < len; ++i) {
-    v1 = coords[i] - coords[0];
-    norm += v0 * v1;
-    v0 = v1;
-  }
-
-  // calculate area
-  double s, ang;
-  area = 0.0;
-  CartVect r, n1, n2, b, a = coords[len-1] - coords[0];
-  for (int i = 0; i < len; ++i) {
-    r = coords[i] - point;
-    b = coords[(i+1)%len] - coords[i];
-    n1 = a * r; // = norm1 (magnitude is important)
-    n2 = r * b; // = norm2 (magnitude is important)
-    s = (n1 % n2) / (n1.length() * n2.length()); // = cos(angle between norm1,norm2)
-    ang = s <= -1.0 ? M_PI : s >= 1.0 ? 0.0 : acos(s); // = acos(s)
-    s = (b * a) % norm; // =orientation of triangle wrt point
-    area += s > 0.0 ? M_PI - ang : M_PI + ang;
-    a = -b;
-  }
-
-  area -= M_PI * (len - 2);
-  if ((norm % r) > 0)
-    area = -area;
-  return MB_SUCCESS;
+ErrorCode DagMC::next_vol(EntityHandle surface, EntityHandle old_volume,
+                          EntityHandle& new_volume)
+{
+  ErrorCode rval = GTT->next_vol(surface, old_volume, new_volume);
+  return rval;
 }
 
 /* SECTION III */
 
 EntityHandle DagMC::entity_by_id( int dimension, int id )
 {
-  assert(0 <= dimension && 3 >= dimension);
-  const Tag tags[] = { idTag, geomTag };
-  const void* const vals[] = { &id, &dimension };
-  ErrorCode rval;
-
-  Range results;
-  rval = MBI->get_entities_by_type_and_tag( 0, MBENTITYSET, tags, vals, 2, results );
-
-  if ( MB_SUCCESS != rval )
-      return 0;
-
-  if ( results.empty() ){
-    // old versions of dagmc did not set tags correctly on the implicit complement 'volume',
-    // causing it to not be found by the call above.  This check allows this function to work
-    // correctly, even on reloaded files from older versions.
-    if( dimension == 3 && get_entity_id(impl_compl_handle) == id )
-      return impl_compl_handle;
-    else
-      return 0;
-  }
-
-  return results.front();
+  return GTT->entity_by_id(dimension, id);  
 }
 
 int DagMC::id_by_index( int dimension, int index )
@@ -1343,18 +372,13 @@ int DagMC::id_by_index( int dimension, int index )
     return 0;
 
   int result = 0;
-  MBI->tag_get_data( idTag, &h, 1, &result );
+  MBI->tag_get_data( GTT->get_gid_tag(), &h, 1, &result );
   return result;
 }
 
 int DagMC::get_entity_id(EntityHandle this_ent)
 {
-  int id = 0;
-  ErrorCode result = MBI->tag_get_data(idTag, &this_ent, 1, &id);
-  if (MB_TAG_NOT_FOUND == result)
-    id = MBI->id_from_handle(this_ent);
-
-  return id;
+  return GTT->global_id(this_ent);
 }
 
 ErrorCode DagMC::build_indices(Range &surfs, Range &vols)
@@ -1368,8 +392,7 @@ ErrorCode DagMC::build_indices(Range &surfs, Range &vols)
   EntityHandle tmp_offset = std::max( surfs.back(), vols.back() );
 
     // set size
-  rootSets.resize(tmp_offset - setOffset + 1);
-  entIndices.resize(rootSets.size());
+  entIndices.resize(tmp_offset - setOffset +1);
 
     // store surf/vol handles lists (surf/vol by index) and
     // index by handle lists
@@ -1385,22 +408,9 @@ ErrorCode DagMC::build_indices(Range &surfs, Range &vols)
   iter = vol_handles().begin();
   *(iter++) = 0;
   std::copy( vols.begin(), vols.end(), iter );
-
   idx = 1;
-  int max_id = -1;
-  for (Range::iterator rit = vols.begin(); rit != vols.end(); ++rit)    {
+  for (Range::iterator rit = vols.begin(); rit != vols.end(); ++rit)
     entIndices[*rit-setOffset] = idx++;
-
-    if( *rit != impl_compl_handle ){
-      int result=0;
-      MBI->tag_get_data( idTag, &*rit, 1, &result );
-      max_id = std::max( max_id, result );
-    }
-  }
-    // assign ID to implicit complement
-    // for consistency with earlier versions of DagMC, make sure it always has the highest ID
-  max_id++;
-  MBI->tag_set_data(idTag, &impl_compl_handle, 1, &max_id);
 
   // get group handles
   Tag category_tag = get_tag(CATEGORY_TAG_NAME, CATEGORY_TAG_SIZE,
@@ -1417,25 +427,6 @@ ErrorCode DagMC::build_indices(Range &surfs, Range &vols)
   group_handles().resize(groups.size()+1);
   group_handles()[0] = 0;
   std::copy(groups.begin(), groups.end(), &group_handles()[1]);
-
-  // if we dont have a tree, dont setup these indices
-  if(have_obb_tree()) {
-    // populate root sets vector
-    std::vector<EntityHandle> rsets;
-    rsets.resize(surfs.size());
-    rval = MBI->tag_get_data(obb_tag(), surfs, &rsets[0]);
-    if (MB_SUCCESS != rval) return MB_FAILURE;
-    Range::iterator rit;
-    int i;
-    for (i = 0, rit = surfs.begin(); rit != surfs.end(); ++rit, i++)
-      rootSets[*rit-setOffset] = rsets[i];
-    
-    rsets.resize(vols.size());
-    rval = MBI->tag_get_data(obb_tag(), vols, &rsets[0]);
-    if (MB_SUCCESS != rval) return MB_FAILURE;
-    for (i = 0, rit = vols.begin(); rit != vols.end(); ++rit, i++)
-      rootSets[*rit-setOffset] = rsets[i];
-  }
   
   return MB_SUCCESS;
 }
@@ -1445,28 +436,11 @@ ErrorCode DagMC::build_indices(Range &surfs, Range &vols)
 /* SECTION IV */
 
 void DagMC::set_overlap_thickness( double new_thickness ){
-
-  if (new_thickness < 0 || new_thickness > 100) {
-    std::cerr << "Invalid overlap_thickness = " << new_thickness << std::endl;
-  }
-  else{
-    overlapThickness = new_thickness;
-  }
-  std::cout << "Set overlap thickness = " << overlapThickness << std::endl;
-
+  GQT->set_overlap_thickness(new_thickness);
 }
 
 void DagMC::set_numerical_precision( double new_precision ){
-
-  if ( new_precision <= 0 || new_precision > 1) {
-    std::cerr << "Invalid numerical_precision = " << numericalPrecision << std::endl;
-  }
-  else{
-    numericalPrecision = new_precision;
-  }
-
-  std::cout << "Set numerical precision = " << numericalPrecision << std::endl;
-
+  GQT->set_numerical_precision(new_precision);
 }
 
 ErrorCode DagMC::write_mesh(const char* ffile,
@@ -1756,7 +730,7 @@ ErrorCode DagMC::entities_by_property( const std::string& prop, std::vector<Enti
   // Note that we cannot specify values for proptag here-- the passed value,
   // if it exists, may be only a subset of the packed string representation
   // of this tag.
-  Tag tags[2] = {proptag, geomTag };
+  Tag tags[2] = {proptag, GTT->get_geom_tag()};
   void* vals[2] = {NULL, (dimension!=0) ? &dimension : NULL };
   rval = MBI->get_entities_by_type_and_tag( 0, MBENTITYSET, tags, vals, 2, all_ents );
   if( MB_SUCCESS != rval ) return rval;
@@ -1782,7 +756,7 @@ ErrorCode DagMC::entities_by_property( const std::string& prop, std::vector<Enti
 
 bool DagMC::is_implicit_complement(EntityHandle volume)
 {
-  return volume == impl_compl_handle;
+  return GTT->is_implicit_complement(volume);
 }
 
 void DagMC::tokenize( const std::string& str,
@@ -1820,38 +794,6 @@ Tag DagMC::get_tag( const char* name, int size, TagType store,
     std::cerr << "Couldn't find nor create tag named " << name << std::endl;
 
   return retval;
-}
-
-
-ErrorCode DagMC::getobb(EntityHandle volume, double minPt[3],
-                          double maxPt[3])
-{
-  double center[3], axis1[3], axis2[3], axis3[3];
-
-    // get center point and vectors to OBB faces
-  ErrorCode rval = getobb(volume, center, axis1, axis2, axis3);
-  if (MB_SUCCESS != rval)
-    return rval;
-
-    // compute min and max vertices
-  for (int i=0; i<3; i++)
-  {
-    double sum = fabs(axis1[i]) + fabs(axis2[i]) + fabs(axis3[i]);
-    minPt[i] = center[i] - sum;
-    maxPt[i] = center[i] + sum;
-  }
-  return MB_SUCCESS;
-}
-
-ErrorCode DagMC::getobb(EntityHandle volume, double center[3], double axis1[3],
-                          double axis2[3], double axis3[3])
-{
-    //find EntityHandle node_set for use in box
-  EntityHandle root = rootSets[volume - setOffset];
-
-    // call box to get center and vectors to faces
-  return obbTree->box(root, center, axis1, axis2, axis3);
-
 }
 
 

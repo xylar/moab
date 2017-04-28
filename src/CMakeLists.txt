@@ -60,6 +60,7 @@ set(MOAB_LIB_SOURCES
         FileOptions.cpp
         GeomUtil.cpp
         GeomTopoTool.cpp
+	GeomQueryTool.cpp
         HalfFacetRep.cpp
         HigherOrderFactory.cpp
         HomXform.cpp
@@ -153,6 +154,7 @@ set( MOAB_INSTALL_HEADERS
         moab/DualTool.hpp
         moab/Error.hpp
         moab/GeomTopoTool.hpp
+        moab/GeomQueryTool.hpp
         moab/HalfFacetRep.hpp
         moab/HigherOrderFactory.hpp
         moab/HomXform.hpp

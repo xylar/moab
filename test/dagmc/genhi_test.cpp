@@ -41,7 +41,7 @@ ErrorCode build_cube( Interface *mbi,
   
   // Define a 1x1x1 cube centered at orgin
 
-  // coordinates of each corner 
+  // coordinates of each corner
   const double coords[] = {
     0.5, -0.5, -0.5, 
     0.5,  0.5, -0.5,
@@ -65,8 +65,8 @@ ErrorCode build_cube( Interface *mbi,
 
   
   // Create the geometry
-  int num_verts = 8; 
-  int num_tris = 12; 
+  const int num_verts = 8; 
+  const int num_tris = 12; 
   EntityHandle verts[num_verts], tris[num_tris], surf;
 
   rval = mbi->create_meshset( MESHSET_SET, surf ); MB_CHK_ERR(rval);
@@ -138,6 +138,8 @@ ErrorCode build_cube( Interface *mbi,
   
   // set sense tag    
   rval = myGeomTool->set_sense(surf, volume, SENSE_FORWARD); MB_CHK_ERR(rval); 
+
+  delete myGeomTool;
   
   return MB_SUCCESS;
 }
@@ -205,11 +207,12 @@ bool check_tree ( Interface *mbi, DagMC *DAG, std::map< int, std::set<int> > ref
    }
 
   //go through volumes, create sets of children
-  for ( int i = 1; i <= DAG->num_entities(3) ; i++)
+  for ( unsigned int i = 1; i <= DAG->num_entities(3) ; i++)
     {
       //get vol id
       EntityHandle volume = DAG->entity_by_index(3, i);
       rval = mbi->tag_get_data(id_tag, &volume, 1, &vol_id ); MB_CHK_ERR(rval);
+
 
       //check if test vol in ref map
       if (ref_map.find(vol_id) == ref_map.end())
@@ -226,7 +229,7 @@ bool check_tree ( Interface *mbi, DagMC *DAG, std::map< int, std::set<int> > ref
         {
             int child_id;
             
-            rval = mbi->tag_get_data(id_tag, &(*j), 1, &child_id );
+            rval = mbi->tag_get_data(id_tag, &(*j), 1, &child_id ); MB_CHK_ERR(rval);
             test_set.insert(child_id);
         }
 
@@ -249,10 +252,12 @@ Range get_children_by_dimension(Interface *mbi, EntityHandle parent, int desired
 
   all_children.clear();
   rval = mbi->get_child_meshsets(parent, all_children);
+  MB_CHK_SET_ERR_RET_VAL(rval, "Failed to get child meshsets", all_children);
 
   for ( it = all_children.begin() ; it != all_children.end() ; ++it)
     {
       rval = mbi->tag_get_data(geom_tag, &(*it), 1, &actual_dimension);
+	  MB_CHK_SET_ERR_RET_VAL(rval, "Failed to get geom tag from child meshset", all_children);
       if ( actual_dimension == desired_dimension )
         {
           desired_children.insert(*it);
@@ -451,6 +456,7 @@ void heappermute(Interface *mbi, int v[], int n, std::map< int, std::set<int> > 
       // delete the geometry so new one can be built;
       mbi->delete_mesh();
       delete DAG;
+      delete gh;
             
     }
   

@@ -89,6 +89,8 @@ ReadRTT::~ReadRTT() {
     MBI->release_interface(readMeshIface);
     readMeshIface = 0;
   }
+
+  delete myGeomTool;
 }
 
 ErrorCode ReadRTT::read_tag_values( const char*        /*file_name*/,

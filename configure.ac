@@ -1269,7 +1269,6 @@ AC_CONFIG_FILES([Makefile
                  MeshFiles/unittest/io/Makefile
                  MeshFiles/unittest/fbigeom/Makefile
                  MeshFiles/unittest/irel/Makefile
-                 MeshFiles/unittest/dagmc/Makefile
                  MeshFiles/unittest/mbcslam/Makefile
                  MeshFiles/unittest/h5file/Makefile
                  MeshFiles/examples/Makefile

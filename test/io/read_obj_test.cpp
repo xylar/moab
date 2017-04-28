@@ -130,6 +130,8 @@ void test_check_meshsets()
   // check that two surfaces and two volumes are created 
   CHECK_EQUAL(2, num_surfs);
   CHECK_EQUAL(2, num_vols);
+
+  delete myGeomTool;
 }
 
 
