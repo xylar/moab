@@ -1,6 +1,6 @@
 """Implements range functionality."""
 from cython.operator cimport dereference as deref
-
+from libcpp.string cimport string as std_string
 from pymoab cimport moab
 from .types import _eh_array
 
@@ -68,7 +68,7 @@ cdef class Range(object):
 
     def erase(self, moab.EntityHandle val):
         """Removes the EntityHandle, val, from the Range if present."""
-         self.inst.erase(val)
+        self.inst.erase(val)
 
     def pop_front(self):
         """Removes the front-most EntityHandle in the Range and returns the EntityHandle."""
@@ -131,17 +131,9 @@ cdef class Range(object):
             return Range(ents)
         else:
             raise ValueError
-        
+
     def __str__(self):
-        prefix= "["
-        delim = ", "
-        suffix= "]"
-        out_str=prefix
-        for entity in self:
-            out_str+=str(entity)
-            out_str+=delim
-        #replace final delimiter
-        out_str=out_str[:-2]
-        out_str+=suffix
-        return out_str
-            
+        self.inst.print_()
+
+    def __repr__(self):
+        self.__str__()
