@@ -34,7 +34,7 @@ double getLon(CartVect p)  {
 
   lon = atan2(p[1],p[0]);
 
-  if(lon < 0){
+  if(lon < -2.95){ // separate Asia/Europe from Americas
     return 2.0 * M_PI + lon;
   } else {
     return lon;
