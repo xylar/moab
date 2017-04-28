@@ -146,7 +146,25 @@ int main(int argc, char **argv)
      co3[i] = CartVect(lon1, lat1, 0.);
   }
   rval = mb->set_coords(verts, &(co3[0][0])); MB_CHK_SET_ERR(rval, "Can't set new vertex coords");
-  mb-> write_file("bound2d.vtk", 0, 0, &bound_set, 1);
+  // remove edges in 2d that are too long (longer than 6; they are on the other side..., periodic)
+  
+  Range longEdges;
+  for (Range::iterator eit=bedges.begin(); eit!=bedges.end(); ++eit)
+  {
+    EntityHandle eh = *eit;
+    const EntityHandle * conn;
+    int nconn;
+    rval = mb->get_connectivity(eh, conn, nconn);MB_CHK_ERR(rval);
+    // get coordinates of nodes
+    CartVect c2[2];
+    rval = mb->get_coords(conn, 2, &(c2[0][0]) ); MB_CHK_ERR(rval);
+    double dist = (c2[1]-c2[0]).length_squared();
+    if (dist>36.) // too long edge in 2d, remove it
+      longEdges.insert(eh);
+  }
+  rval = mb->delete_entities(longEdges); MB_CHK_ERR(rval);
+  
+  mb-> write_file("bound2d.vtk");
   delete mb;
 
   return 0;
