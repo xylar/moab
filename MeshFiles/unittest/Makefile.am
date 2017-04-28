@@ -58,6 +58,8 @@ EXTRA_DIST = 125hex.g \
              sphere_quads_20.vtk \
              sphere_tris_5.vtk \
              sphere_tris_20.vtk \
+             sphere_quads_5_ML_0.h5m \
+             sphere_quads_5_ML_1.h5m \
              circle_3.vtk \
              circle_4.vtk \
              circle_10.vtk \

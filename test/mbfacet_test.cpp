@@ -26,8 +26,6 @@
 #include "moab/FBEngine.hpp"
 #include "moab/GeomTopoTool.hpp"
 
-#define STRINGIFY_(A) #A
-#define STRINGIFY(A) STRINGIFY_(A)
 #ifdef MESHDIR
 std::string TestDir( STRINGIFY(MESHDIR) );
 #else

@@ -27,8 +27,11 @@
 
 using namespace moab;
 
-#define STRINGIFY_(X) #X
-#define STRINGIFY(X) STRINGIFY_(X)
+#ifdef MESHDIR
+std::string TestDir( STRINGIFY(MESHDIR) );
+#else
+#error Specify MESHDIR to compile test
+#endif
 
 #define nsamples 10
 
@@ -382,14 +385,18 @@ int main ( int argc, char* argv[] )
     MPI_Comm_rank ( MPI_COMM_WORLD, &rank );
 #endif
     std::string prefix, suffix, istr, iend;
-    int dim = 0, geom = 0;
+    int dim = 2, geom = 0;
     bool interp = false;
     ErrorCode error;
 
     if ( argc == 1 )
     {
         usage();
-        return 0;
+        prefix = TestDir + "/sphere_quads_5_ML_";
+        suffix = ".h5m";
+        istr = "0";
+        iend = "1";
+        std::cout << "Using defaults: MeshFiles/unittest/sphere_quads_5_ML_*.h5m -str 0 -end 1 -suffix \".h5m\" -interp 0 -dim 2 -geom s" << std::endl;
     }
     else
     {
