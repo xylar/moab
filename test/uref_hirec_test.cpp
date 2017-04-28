@@ -86,12 +86,13 @@ ErrorCode test_closedsurface_mesh ( const char* filename, int* level_degrees, in
     {
         //locate the element in level 0 mesh, on which *ivert is lying
         EntityHandle currvert = *ivert;
-        std::vector<EntityHandle> parentEntities;
-        error = uref.vertex_to_entities_up ( *ivert, 0, num_levels, parentEntities ); MB_CHK_ERR ( error );
 
+        std::vector<EntityHandle> parentEntities;
+        error = uref.get_adjacencies(*ivert, 2, parentEntities ); MB_CHK_ERR ( error );
         assert ( parentEntities.size() );
+
         EntityHandle rootelem;
-        error = uref.child_to_parent ( parentEntities[0], num_levels - 1, 0, &rootelem ); MB_CHK_ERR ( error );
+        error = uref.child_to_parent ( parentEntities[0], num_levels , 0, &rootelem ); MB_CHK_ERR ( error );
 
         //compute the natural coordinates of *ivert in this element
         assert ( TYPE_FROM_HANDLE ( rootelem ) == MBTRI );
@@ -444,7 +445,7 @@ int main ( int argc, char* argv[] )
         else
           obj = new sphere();
 
-        // error = test_closedsurface_mesh ( infile.c_str(), level_degrees, num_levels, degree, interp, dim, obj ); MB_CHK_ERR ( error );
+         error = test_closedsurface_mesh ( infile.c_str(), level_degrees, num_levels, degree, interp, dim, obj ); MB_CHK_ERR ( error );
 
         std::vector<int> degs2fit ( 6 );
         for ( int d = 1; d <= 6; ++d ) { degs2fit[d-1] = d; }
