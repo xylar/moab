@@ -27,7 +27,16 @@ cdef class Tag(object):
 
     def get_name(self):
         """Returns the name of this Tag."""
-        return self.inst.get_name()
+        return str(self.inst.get_name().c_str())
+
+    def __str__(self):
+        outstr = "Name: " + self.get_name()
+        outstr += ", Type: " + str(self.get_data_type())
+        outstr += ", Length: " + str(self.get_length())
+        return outstr
+
+    def __repr__(self):
+        return self.__str__()
     
 cdef class _tagArray(object):
     def __cinit__(self, tags):
