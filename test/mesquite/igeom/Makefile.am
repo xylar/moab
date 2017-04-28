@@ -1,5 +1,5 @@
 include $(top_srcdir)/src/mesquite/make.inc
-LDADD = $(top_builddir)/itaps/mesquite/libmsqitaps.la \
+LDADD = $(top_builddir)/itaps/mesquite/libmbmsqitaps.la \
         $(top_builddir)/src/mesquite/libmbmesquite.la \
         ${IGEOM_LDFLAGS} ${IGEOM_LIBS} \
         ${CGM_LDFLAGS} ${CGM_LIBS}
@@ -8,7 +8,7 @@ MESHDIR = $(abs_top_srcdir)/MeshFiles/mesquite
 
 check_PROGRAMS = main
 main_SOURCES = main.cpp
-main_DEPENDENCIES = $(top_builddir)/itaps/mesquite/libmsqitaps.la \
+main_DEPENDENCIES = $(top_builddir)/itaps/mesquite/libmbmsqitaps.la \
                     $(top_builddir)/src/mesquite/libmbmesquite.la 
 
 TESTS = main

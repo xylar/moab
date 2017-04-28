@@ -52,7 +52,7 @@ MSQ_INCLUDES = -I@abs_top_srcdir@/src/mesquite/include \
 	-I@abs_top_srcdir@/itaps/mesquite
 
 IMESH_INCLUDES += -I@abs_top_srcdir@/itaps/mesquite ${MSQ_INCLUDES}
-IMSQ_LIBS = -L@abs_top_builddir@/itaps/mesquite/.libs -lmsqitaps
+IMSQ_LIBS = -L@abs_top_builddir@/itaps/mesquite/.libs -lmbmsqitaps
 endif
 
 IMESH_LIBS = $(IMESH_LDFLAGS) -L$(MOAB_LIBDIR) \

@@ -14,17 +14,18 @@ libmbmesquite_la_LDFLAGS = $(AM_LDFLAGS) -no-undefined
 
 include make.inc
 
-libmbmesquite_la_includedir = $(includedir)
-libmbmesquite_la_nodist_includedir = $(includedir)
+libmbmesquite_la_includedir = $(includedir)/moab/mesquite
+libmbmesquite_la_nodist_includedir = $(includedir)/moab
 
 libmbmesquite_la_SOURCES = $(MSQ_SRCS) 
 
-libmbmesquite_la_include_HEADERS = include/Mesquite.hpp \
-                                 include/MeshInterface.hpp \
-                                 include/ParallelMeshInterface.hpp \
-                                 include/ParallelHelperInterface.hpp \
-                                 include/CurveDomain.hpp \
-                                 $(MSQ_HDRS)
+libmbmesquite_la_include_HEADERS = \
+																	 include/Mesquite.hpp \
+																	 include/MeshInterface.hpp \
+																	 include/ParallelMeshInterface.hpp \
+																	 include/ParallelHelperInterface.hpp \
+																	 include/CurveDomain.hpp \
+																	 $(MSQ_HDRS)
 
 # don't put these generated headers into the distribution
 nodist_libmbmesquite_la_include_HEADERS = include/Mesquite_all_headers.hpp

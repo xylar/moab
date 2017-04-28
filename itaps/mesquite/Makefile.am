@@ -1,4 +1,4 @@
-MSQ_ITAPS_LIB = libmsqitaps.la
+MSQ_ITAPS_LIB = libmbmsqitaps.la
 MSQ_ITAPS_HDRS =
 MSQ_ITAPS_SRCS =
 MSQ_LIBDEPS = $(top_builddir)/src/mesquite/libmbmesquite.la
@@ -27,10 +27,10 @@ endif
 
 lib_LTLIBRARIES = $(MSQ_ITAPS_LIB)
 
-libmsqitaps_la_includedir = $(includedir)
-libmsqitaps_la_SOURCES = $(MSQ_ITAPS_SRCS)
-libmsqitaps_la_include_HEADERS = $(MSQ_ITAPS_HDRS) 
-libmsqitaps_la_LIBADD = $(MSQ_LIBDEPS)
+libmbmsqitaps_la_includedir = $(includedir)
+libmbmsqitaps_la_SOURCES = $(MSQ_ITAPS_SRCS)
+libmbmsqitaps_la_include_HEADERS = $(MSQ_ITAPS_HDRS) 
+libmbmsqitaps_la_LIBADD = $(MSQ_LIBDEPS)
 
 AM_CPPFLAGS = $(CPPFLAGS) \
               -I$(top_builddir)/src/mesquite/include \
