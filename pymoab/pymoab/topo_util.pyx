@@ -25,6 +25,40 @@ cdef class MeshTopoUtil(object):
                                int to_dim,
                                int num_layers = 1,
                                exceptions = ()):
+        """
+        Get "bridge" or "2nd order" adjacencies of dimension 'to_dim', going
+        through dimension 'bridge_dim'.
+
+        Example
+        -------
+        root_set = mb.get_root_set()
+        all_volumes = mb.get_entities_by_dimension(root_set, 3)
+        adj_volumes = mtu.get_bridge_adjacencies(all_volumes[0], 2, 3)
+
+        Parameters
+        ----------
+        from_ent : Range of EntityHandles or EntityHandle
+            Entity or entities to get adjacent entities from.
+        bridge_dim : integer
+            Dimension of the bridge entities.
+        to_dim : integer
+            Dimension of the target entities.
+        num_layers : integer
+            Depth of the adjacency search. If from_ent is a EntityHandle this
+            parameter is ignored.
+        exceptions : tuple
+            A tuple containing any error types that should
+            be ignored. (see pymoab.types module for more info)
+
+        Returns
+        -------
+          Returns a Range containing the adjacent entities.
+
+        Raises
+        ------
+        MOAB ErrorCode
+            if a MOAB error occurs.
+        """
         cdef moab.ErrorCode err
         cdef moab.EntityHandle ms_handle
         cdef Range r
@@ -44,6 +78,35 @@ cdef class MeshTopoUtil(object):
     def get_average_position(self,
                              entity_handles,
                              exceptions = ()):
+        """
+        Returns the average position of the entities adjacent vertices average
+        position.
+
+        Example
+        -------
+        root_set = mb.get_root_set()
+        all_volumes = mb.get_entities_by_dimension(root_set, 3)
+        mtu.construct_aentities(all_volumes)
+
+        Parameters
+        ----------
+        entities : Range or iterable of EntityHandles
+            Entities which adjacent vertices will be averaged.
+        exceptions : tuple
+            A tuple containing any error types that should
+            be ignored. (see pymoab.types module for more info)
+
+        Returns
+        -------
+          Returns average position as a 1-D Numpy array of xyz values.
+
+        Raises
+        ------
+        MOAB ErrorCode
+            if a MOAB error occurs
+        ValueError
+            if an EntityHandle is not of the correct type
+        """
         cdef moab.ErrorCode err
         cdef moab.EntityHandle ms_handle
         cdef Range r
@@ -85,6 +148,15 @@ cdef class MeshTopoUtil(object):
         exceptions : tuple (default is empty tuple)
             A tuple containing any error types that should
             be ignored. (see pymoab.types module for more info)
+
+        Returns
+        -------
+          None
+
+        Raises
+        ------
+        MOAB ErrorCode
+            if a MOAB error occurs
         """
         cdef moab.ErrorCode err
         cdef Range r
