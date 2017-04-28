@@ -36,5 +36,7 @@ setup(
     ext_modules=ext_modules,
     packages=find_packages(),
     package_data = {'pymoab': ['*.pxd',]},
-    version = '${MOAB_VERSION}'
+    version = '${MOAB_VERSION}',
+    author = "Patrick Shriwise, Guilherme Caminha, Vijay Mahadevan, Iulian Grindeanu, Anthony Scopatz",
+    author_email = "moab-dev@mcs.anl.gov"    
 )
