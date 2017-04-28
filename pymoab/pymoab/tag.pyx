@@ -15,18 +15,21 @@ cdef class Tag(object):
         free(self.inst)
 
     def get_length(self):
+        """Returns the length (number of entries) for this Tag."""
         t = self.inst.get_data_type()
         type_byte_size = self.inst.size_from_data_type(t)
         total_byte_size = self.inst.get_size()
         return total_byte_size/type_byte_size
 
-    def get_data_type(self): 
+    def get_data_type(self):
+        """Returns the Tag's data type."""
         return self.inst.get_data_type()
 
     def get_name(self):
+        """Returns the name of this Tag."""
         return self.inst.get_name()
     
-cdef class TagArray(object): 
+cdef class _tagArray(object):
     def __cinit__(self, tags):
         cdef Tag t
         cdef int num_tags
@@ -40,8 +43,8 @@ cdef class TagArray(object):
             self.inst = <moab.TagInfo**> malloc(num_tags*sizeof(moab.TagInfo*))
             for i in range(0,num_tags):
                 t = <Tag> tags[i]
-                self.inst[i] = t.inst            
+                self.inst[i] = t.inst
         self.ptr = self.inst
-        
+
     def __del__(self):
         free(self.inst)

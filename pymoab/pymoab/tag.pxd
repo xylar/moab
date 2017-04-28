@@ -6,6 +6,6 @@ cdef class Tag:
     cdef moab.TagInfo * inst
     cdef moab.Tag * ptr
  
-cdef class TagArray:
+cdef class _tagArray:
     cdef moab.TagInfo ** inst
     cdef moab.Tag * ptr

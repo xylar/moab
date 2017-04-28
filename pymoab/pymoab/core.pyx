@@ -6,7 +6,7 @@ import numpy as np
 import ctypes
 
 from pymoab cimport moab
-from .tag cimport Tag, TagArray
+from .tag cimport Tag, _tagArray
 from .rng cimport Range
 from .types import check_error, np_tag_type, validate_type, _convert_array, _eh_array
 from . import types
@@ -1283,7 +1283,7 @@ cdef class Core(object):
                 arr[i] = <void*> this_data.data if this_data is not None else NULL
 
         #create tag array to pass to function
-        cdef TagArray ta = TagArray(tags)
+        cdef _tagArray ta = _tagArray(tags)
         #convert type to tag type
         cdef moab.EntityType typ = entity_type
         #a range to hold returned entities
