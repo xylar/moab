@@ -103,7 +103,17 @@ bool ray_tri_intersect( const CartVect vertices[3],
  *                           identify edge/node intersections.
  *\return true if intersection, false otherwise.
  */
-enum intersection_type {NONE, INTERIOR, NODE0, NODE1, NODE2, EDGE0, EDGE1, EDGE2};
+enum intersection_type {NONE=0, INTERIOR, NODE0, NODE1, NODE2, EDGE0, EDGE1, EDGE2};
+/* intersection type is determined by which of the intermediate values are == 0.  There
+   are three such values that can therefore be encoded in a 3 bit integer.
+   0 = none are == 0 -> interior type
+   1 = pip0 == 0 -> EDGE0
+   2 = pip1 == 1 -> EDGE1
+   4 = pip2 == 2 -> EDGE2
+   5 = pip2 = pip0 == 0 -> NOEE0
+   3 = pip0 = pip1 == 0 -> NODE1
+   6 = pip1 = pip2 == 0 -> NODE2 */
+const intersection_type type_list[] = {INTERIOR, EDGE0, EDGE1, NODE1, EDGE2, NODE0, NODE2};
 bool plucker_ray_tri_intersect( const CartVect vertices[3],
                                 const CartVect& ray_point,
                                 const CartVect& ray_unit_direction,

@@ -145,10 +145,13 @@ bool plucker_ray_tri_intersect( const CartVect vertices[3],
                                 const double* nonneg_ray_len,
                                 const double* neg_ray_len,
                                 const int*    orientation,
-			        intersection_type* type ) {
+                                intersection_type* type ) {
 
   const CartVect raya = direction;
   const CartVect rayb = direction*origin;
+
+  const double near_zero = 10*std::numeric_limits<double>::epsilon();
+
 
   // edge 0
   double pip0;
@@ -162,6 +165,8 @@ bool plucker_ray_tri_intersect( const CartVect vertices[3],
     pip0 = raya % edge0b + rayb % edge0a;
     pip0 = -pip0;
   }
+
+  if (near_zero > fabs(pip0)) pip0 = 0.0;
 
   // try to exit early
   if(orientation && (*orientation)*pip0 > 0) {
@@ -181,6 +186,8 @@ bool plucker_ray_tri_intersect( const CartVect vertices[3],
     pip1 = raya % edge1b + rayb % edge1a;
     pip1 = -pip1;
   }
+
+  if (near_zero > fabs(pip1)) pip1 = 0.0;
 
   // try to exit early
   if(orientation) {
@@ -207,6 +214,8 @@ bool plucker_ray_tri_intersect( const CartVect vertices[3],
     pip2 = -pip2;
   }
 
+  if (near_zero > fabs(pip2)) pip2 = 0.0;
+
   // try to exit early
   if(orientation) {
     if( (*orientation)*pip2 > 0) {
@@ -221,7 +230,7 @@ bool plucker_ray_tri_intersect( const CartVect vertices[3],
   }
 
   // check for coplanar case to avoid dividing by zero
-  if(0==pip0 && 0==pip1 && 0==pip2) {
+  if(0.0==pip0 && 0.0==pip1 && 0.0==pip2) {
     //std::cout << "plucker: coplanar" << std::endl;
     if(type) *type = NONE;
     return false;
@@ -231,8 +240,8 @@ bool plucker_ray_tri_intersect( const CartVect vertices[3],
   const double inverse_sum = 1.0/(pip0+pip1+pip2);
   assert(0.0 != inverse_sum);
   const CartVect intersection(pip0*inverse_sum*vertices[2]+ 
-         	       	      pip1*inverse_sum*vertices[0]+
-			      pip2*inverse_sum*vertices[1]);
+                              pip1*inverse_sum*vertices[0]+
+                              pip2*inverse_sum*vertices[1]);
 
   // To minimize numerical error, get index of largest magnitude direction.
   int idx = 0;
@@ -260,38 +269,9 @@ bool plucker_ray_tri_intersect( const CartVect vertices[3],
     return false;
   }    
   dist_out = dist;
- 
-  // check for special cases
-  if(0==pip0 || 0==pip1 || 0==pip2) {
-    if       (0==pip0 && 0==pip1) {
-      //std::cout << "plucker: node1" << std::endl;
-      if(type) *type = NODE1;
-      return true;
-    } else if(0==pip1 && 0==pip2) {
-      //std::cout << "plucker: node2" << std::endl;
-      if(type) *type = NODE2;
-      return true;
-    } else if(0==pip2 && 0==pip0) {
-      //std::cout << "plucker: node0" << std::endl;
-      if(type) *type = NODE0;
-      return true;
-    } else if(0==pip0) {
-      //std::cout << "plucker: edge0" << std::endl;
-      if(type) *type = EDGE0;
-      return true;
-    } else if(0==pip1) {
-      //std::cout << "plucker: edge1" << std::endl;
-      if(type) *type = EDGE1;
-      return true;
-    } else if(0==pip2) {
-      //std::cout << "plucker: edge2" << std::endl;
-      if(type) *type = EDGE2;
-      return true;
-    }
-  }
 
-  // if here, ray intersects interior of tri
-  if(type) *type = INTERIOR;
+  if (type) *type = type_list[  ( (0.0==pip2)<<2 ) + ( (0.0==pip1)<<1 ) + ( 0.0==pip0 ) ];
+
   return true;
 }
 

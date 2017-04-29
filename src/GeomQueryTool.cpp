@@ -22,6 +22,476 @@ debug = true;
 
 namespace moab {
 
+  /*
+   *\param min_tolerance_intersections This method returns all intersections
+   *                     within 'tolerance' of the start of the ray and if 
+   *                     the number of intersections within the 'tolerance' of the
+   *                     ray start point is less than this number, the next closest
+   *                     intersection.  If the desired result is only the closest
+   *                     intersection, pass zero for this argument.
+   *                     This function will return all intersections, regardless
+   *                     of distance from the start of the ray, if this value
+   *                     is negative.
+   *\param nonneg_ray_len Optional ray length ahead of the ray_point (intersect 
+   *                     segment instead of ray.)
+   *\param neg_ray_len   Optional ray length behind the ray_point to search for 
+   *                     intersections.
+   *\param geom_vol      Optional handle of the geometry set being searched. When
+   *                     used, glancing intersections are rejected. Must be used
+   *                     used with sense_tag.
+   *\param sense_tag     Must be used if geom_vol is used. Saves >4% of execution
+   *                     time by avoiding tag_get_handle call.
+   *\param desired_orient Optional ptr used to screen intersections by orientation.
+   *                     Pass 1 to keep intersections with surface normals in the
+   *                     same direction as the ray. Pass -1 for opposite orientation.
+   *                     Requires use of geom_vol.
+   *\param prev_facets   Optional vector of triangles that cannot be returned
+   *                     as intersections.
+   */
+
+  class GQT_IntRegCtxt : public OrientedBoxTreeTool::IntRegCtxt {
+
+  private:
+    // Input
+    OrientedBoxTreeTool* tool;
+    const CartVect       ray_origin;
+    const CartVect       ray_direction;
+    const double         tol;             /* used for box.intersect_ray, radius of
+                                             neighborhood for adjacent triangles,
+                                             and old mode of add_intersection */
+    const int            minTolInt;       /* used for old mode of add_intersection */
+  
+    // Optional Input - to screen RTIs by orientation and edge/node intersection
+    const EntityHandle*  rootSet;         /* used for sphere_intersect */
+    const EntityHandle*  geomVol;         /* used for determining surface sense */
+    const Tag*           senseTag;        /* allows screening by triangle orientation.
+                                             both geomVol and senseTag must be used together. */
+    const int*           desiredOrient;   /* points to desired orientation of ray with
+                                             respect to surf normal, if this feature is used.
+                                             Must point to -1 (reverse) or 1 (forward).
+                                             geomVol and senseTag are needed for this feature */
+  
+    // Optional Input - to avoid returning these as RTIs
+    const std::vector<EntityHandle>* prevFacets; /* intersections on these triangles 
+                                                    will not be returned */
+  
+    // Other Variables
+    std::vector< std::vector<EntityHandle> > neighborhoods;
+    std::vector<EntityHandle> neighborhood;
+
+    void add_intersection( EntityHandle set, EntityHandle tri, double dist, OrientedBoxTreeTool::IntersectSearchWindow &search_win);
+    void append_intersection( EntityHandle set, EntityHandle facet, double dist);
+    void set_intersection( int len_idx, EntityHandle set, EntityHandle facet, double dist);
+    void add_mode1_intersection( EntityHandle set, EntityHandle facet, double dist, OrientedBoxTreeTool::IntersectSearchWindow &search_win);
+    bool edge_node_piercing_intersect(const EntityHandle                tri,
+                                      const CartVect&                   ray_direction,
+                                      const GeomUtil::intersection_type int_type,
+                                      const std::vector<EntityHandle>&  close_tris,
+                                      const std::vector<int>&           close_senses,
+                                      const Interface*                  MBI,
+                                      std::vector<EntityHandle>*        neighborhood_tris =0 );
+
+    bool in_prevFacets(const EntityHandle tri);
+    bool in_neighborhoods(const EntityHandle tri);
+  
+  public:
+
+    GQT_IntRegCtxt(OrientedBoxTreeTool* obbtool,
+                   const double ray_point[3],
+                   const double ray_dir[3],
+                   double tolerance,
+                   int min_tolerance_intersections,
+                   const EntityHandle* root_set,
+                   const EntityHandle* geom_volume,
+                   const Tag* sense_tag,
+                   const int* desired_orient,
+                   const std::vector<EntityHandle>* prev_facets)
+      : tool(obbtool), ray_origin(ray_point), ray_direction(ray_dir),
+        tol(tolerance), minTolInt(min_tolerance_intersections), rootSet(root_set),
+        geomVol(geom_volume), senseTag(sense_tag), desiredOrient(desired_orient),
+        prevFacets(prev_facets) {
+
+    };
+
+    virtual ErrorCode register_intersection(EntityHandle set, EntityHandle triangle, double distance, 
+                                            OrientedBoxTreeTool::IntersectSearchWindow&, GeomUtil::intersection_type int_type);
+
+    virtual ErrorCode update_orient(EntityHandle set, int* surfTriOrient);
+    virtual const int* getDesiredOrient() { return desiredOrient;};
+  };
+
+
+  ErrorCode GQT_IntRegCtxt::update_orient(EntityHandle set, int* surfTriOrient) {
+
+    ErrorCode rval;
+
+    // Get desired orientation of surface wrt volume. Use this to return only 
+    // exit or entrance intersections.
+    if(geomVol && senseTag && desiredOrient && surfTriOrient) {
+      if(1!=*desiredOrient && -1!=*desiredOrient) {
+        std::cerr << "error: desired orientation must be 1 (forward) or -1 (reverse)" 
+                  << std::endl;
+      }
+      EntityHandle vols[2];
+      rval = tool->get_moab_instance()->tag_get_data( *senseTag, &set, 1, vols );
+      assert(MB_SUCCESS == rval);
+      if(MB_SUCCESS != rval) return rval;
+      if(vols[0] == vols[1]) {
+        std::cerr << "error: surface has positive and negative sense wrt same volume" 
+                  << std::endl;
+        return MB_FAILURE;
+      }
+      // surfTriOrient will be used by plucker_ray_tri_intersect to avoid
+      // intersections with wrong orientation.
+      if       (*geomVol == vols[0]) {
+        *surfTriOrient = *desiredOrient*1;
+      } else if(*geomVol == vols[1]) {
+        *surfTriOrient = *desiredOrient*(-1);
+      } else {
+        assert(false);
+        return MB_FAILURE;
+      }
+    }
+
+    return MB_SUCCESS;
+  }
+  
+  bool GQT_IntRegCtxt::in_prevFacets(const EntityHandle tri) {
+    return (prevFacets &&
+            ((*prevFacets).end() != find((*prevFacets).begin(), (*prevFacets).end(), tri) ) );
+  }
+
+  bool GQT_IntRegCtxt::in_neighborhoods(const EntityHandle tri) {
+    bool same_neighborhood = false;
+    for(unsigned i=0; i<neighborhoods.size(); ++i) {
+      if( neighborhoods[i].end() != find(neighborhoods[i].begin(), 
+                                         neighborhoods[i].end(), tri ) ) {
+        same_neighborhood = true;
+        continue;
+      }
+    }
+    return same_neighborhood;
+  }
+
+
+
+  /**\brief Determine if a ray-edge/node intersection is glancing or piercing.
+   *        This function avoids asking for upward adjacencies to prevent their
+   *        creation.
+   *\param tri           The intersected triangle
+   *\param ray_dir       The direction of the ray
+   *\param int_type      The type of intersection (EDGE0, EDGE1, NODE2, ...)
+   *\param close_tris    Vector of triangles in the proximity of the intersection
+   *\param close_senses  Vector of surface senses for tris in the proximity of
+   *                     the intersection
+   *\param neighborhood  Vector of triangles in the topological neighborhood of the intersection
+   *\return              True if piercing, false otherwise.
+   */
+  bool GQT_IntRegCtxt::edge_node_piercing_intersect(const EntityHandle                tri,
+                                                    const CartVect&                   ray_dir,
+                                                    const GeomUtil::intersection_type int_type,
+                                                    const std::vector<EntityHandle>&  close_tris,
+                                                    const std::vector<int>&           close_senses,
+                                                    const Interface*                  MBI,
+                                                    std::vector<EntityHandle>*        neighborhood_tris  ) {
+  
+    // get the node of the triangle
+    const EntityHandle* conn = NULL;
+    int len = 0;
+    ErrorCode rval = MBI->get_connectivity( tri, conn, len );
+    if(MB_SUCCESS!=rval || 3!=len) return MB_FAILURE;
+  
+    // get adjacent tris (and keep their corresponding senses)
+    std::vector<EntityHandle> adj_tris;
+    std::vector<int>          adj_senses;
+
+    // node intersection
+    if(GeomUtil::NODE0==int_type || GeomUtil::NODE1==int_type || GeomUtil::NODE2==int_type) {
+ 
+      // get the intersected node
+      EntityHandle node;
+      if     (GeomUtil::NODE0==int_type) node = conn[0];
+      else if(GeomUtil::NODE1==int_type) node = conn[1];
+      else                               node = conn[2];
+
+      // get tris adjacent to node
+      for(unsigned i=0; i<close_tris.size(); ++i) {
+        const EntityHandle* con = NULL;
+        rval = MBI->get_connectivity( close_tris[i], con, len );
+        if(MB_SUCCESS!=rval || 3!=len) return MB_FAILURE;
+
+        if(node==con[0] || node==con[1] || node==con[2]) {
+          adj_tris.push_back(   close_tris[i]   );
+          adj_senses.push_back( close_senses[i] );
+        }
+      }
+      if( adj_tris.empty() ) {
+        std::cerr << "error: no tris are adjacent to the node" << std::endl;
+        return MB_FAILURE;
+      }
+      // edge intersection
+    } else if(GeomUtil::EDGE0==int_type || GeomUtil::EDGE1==int_type || GeomUtil::EDGE2==int_type) {
+
+      // get the endpoints of the edge
+      EntityHandle endpts[2];
+      if       (GeomUtil::EDGE0==int_type) {
+        endpts[0] = conn[0];
+        endpts[1] = conn[1]; 
+      } else if(GeomUtil::EDGE1==int_type) {
+        endpts[0] = conn[1];
+        endpts[1] = conn[2];
+      } else {
+        endpts[0] = conn[2];
+        endpts[1] = conn[0];
+      }
+
+      // get tris adjacent to edge
+      for(unsigned i=0; i<close_tris.size(); ++i) {
+        const EntityHandle* con = NULL;
+        rval = MBI->get_connectivity( close_tris[i], con, len );
+        if(MB_SUCCESS!=rval || 3!=len) return MB_FAILURE;
+
+        // check both orientations in case close_tris are not on the same surface
+        if( (endpts[0]==con[0] && endpts[1]==con[1]) ||
+            (endpts[0]==con[1] && endpts[1]==con[0]) ||
+            (endpts[0]==con[1] && endpts[1]==con[2]) ||
+            (endpts[0]==con[2] && endpts[1]==con[1]) ||
+            (endpts[0]==con[2] && endpts[1]==con[0]) ||
+            (endpts[0]==con[0] && endpts[1]==con[2]) ) {
+          adj_tris.push_back(   close_tris[i]   );
+          adj_senses.push_back( close_senses[i] );
+        }
+      }   
+      // In a 2-manifold each edge is adjacent to exactly 2 tris
+      if(2 != adj_tris.size() ) {
+        std::cerr << "error: edge of a manifold must be topologically adjacent to exactly 2 tris" 
+                  << std::endl;
+        MBI->list_entities( endpts, 2 );
+        return true;
+      }
+    } else {
+      std::cerr << "error: special case not an node/edge intersection" << std::endl;
+      return MB_FAILURE;
+    }
+
+    // The close tris were in proximity to the intersection. The adj_tris are
+    // topologically adjacent to the intersection (the neighborhood).
+    if(neighborhood_tris) (*neighborhood_tris).assign( adj_tris.begin(), adj_tris.end() );
+
+    // determine glancing/piercing
+    // If a desired_orientation was used in this call to ray_intersect_sets, 
+    // the plucker_ray_tri_intersect will have already used it. For a piercing
+    // intersection, the normal of all tris must have the same orientation.
+    int sign = 0;
+    for(unsigned i=0; i<adj_tris.size(); ++i) {
+      const EntityHandle* con = NULL;
+      rval = MBI->get_connectivity( adj_tris[i], con, len );
+      if(MB_SUCCESS!=rval || 3!=len) return MB_FAILURE;
+      CartVect coords[3];
+      rval = MBI->get_coords( con, len, coords[0].array() );      
+      if(MB_SUCCESS != rval) return MB_FAILURE;
+
+      // get normal of triangle
+      CartVect v0 = coords[1] - coords[0];
+      CartVect v1 = coords[2] - coords[0];
+      CartVect norm = adj_senses[i]*(v0*v1);
+      double dot_prod = norm%ray_dir;
+
+      // if the sign has not yet been decided, choose it
+      if(0==sign && 0!=dot_prod) {
+        if(0<dot_prod) sign = 1;
+        else           sign = -1;
+      }
+
+      // intersection is glancing if tri and ray do not point in same direction
+      // for every triangle
+      if(0!=sign && 0>sign*dot_prod) return false;
+
+    }
+    return true;
+
+  }
+
+
+
+  ErrorCode
+  GQT_IntRegCtxt::register_intersection(EntityHandle set, EntityHandle t, double int_dist, 
+                                        OrientedBoxTreeTool::IntersectSearchWindow &search_win,
+                                        GeomUtil::intersection_type int_type)
+  {
+    ErrorCode rval;
+  
+    // Do not accept intersections if they are in the vector of previously intersected
+    // facets.
+    if( in_prevFacets(t) ) return MB_SUCCESS;
+  
+    // Do not accept intersections if they are in the neighborhood of previous
+    // intersections.
+    if ( in_neighborhoods(t) ) return MB_SUCCESS;
+  
+    neighborhood.clear();
+  
+    // Handle special case of edge/node intersection. Accept piercing 
+    // intersections and reject glancing intersections.
+    // The edge_node_intersection function needs to know surface sense wrt volume.
+    // A less-robust implementation could work without sense information.
+    // Would it ever be useful to accept a glancing intersection?
+    if(GeomUtil::INTERIOR != int_type && rootSet && geomVol && senseTag) {
+      // get triangles in the proximity of the intersection
+      std::vector<EntityHandle> close_tris;
+      std::vector<int> close_senses;
+      rval = tool->get_close_tris(ray_origin + int_dist*ray_direction, tol, rootSet, geomVol, senseTag, 
+                                  close_tris, close_senses);
+    
+      if(MB_SUCCESS != rval) return rval; 
+    
+      if (!edge_node_piercing_intersect( t, ray_direction, int_type, close_tris,
+                                         close_senses, tool->get_moab_instance(), &neighborhood ))
+        return MB_SUCCESS;
+    
+    } else {
+      neighborhood.push_back( t );
+    }      
+  
+    // NOTE: add_intersection may modify the 'neg_ray_len' and 'nonneg_ray_len'
+    //       members, which will affect subsequent calls to ray_tri_intersect 
+    //       in this loop.
+    add_intersection( set, t, int_dist, search_win);
+
+    return MB_SUCCESS;
+  }
+
+  void GQT_IntRegCtxt::append_intersection(EntityHandle set, EntityHandle facet, double dist) {
+    intersections.push_back(dist);
+    sets.push_back(set);
+    facets.push_back(facet);
+    neighborhoods.push_back(neighborhood);
+    return;
+  }
+
+  void GQT_IntRegCtxt::set_intersection(int len_idx, EntityHandle set, EntityHandle facet, double dist) {
+    intersections[len_idx] = dist;
+    sets[len_idx] = set;
+    facets[len_idx] = facet;
+    return;
+  }
+
+  /* Mode 1: Used if neg_ray_len and nonneg_ray_len are specified
+     variables used:     nonneg_ray_len, neg_ray_len
+     variables not used: min_tol_int, tol
+     1) keep the closest nonneg intersection and one negative intersection, if closer
+  */
+  void GQT_IntRegCtxt::add_mode1_intersection(EntityHandle set, EntityHandle facet, double dist,
+                                              OrientedBoxTreeTool::IntersectSearchWindow &search_win) {
+    if(2 != intersections.size()) {
+      intersections.resize(2,0);
+      sets.resize(2,0);
+      facets.resize(2,0);
+      // must initialize this for comparison below
+      intersections[0] = -std::numeric_limits<double>::max();
+    }
+  
+    // negative case
+    if(0.0>dist) {
+      set_intersection(0, set, facet, dist);
+      search_win.second      = &intersections[0];
+      // nonnegative case
+    } else {
+      set_intersection(1, set, facet, dist);
+      search_win.first   = &intersections[1];
+      // if the intersection is closer than the negative one, remove the negative one
+      if(dist < -*(search_win.second) ) {
+        set_intersection(0, 0, 0, -intersections[1]);
+        search_win.second      = &intersections[0]; 
+      }
+    }
+    //    std::cout << "add_intersection: dist = " << dist << " search_win.second=" << *search_win.second
+    //          << " search_win.first=" << *search_win.first << std::endl;
+    return;
+  }
+
+  void GQT_IntRegCtxt::add_intersection( EntityHandle set, EntityHandle facet, double dist,
+                                         OrientedBoxTreeTool::IntersectSearchWindow &search_win ) {
+
+    // Mode 1, detected by non-null neg_ray_len pointer
+    // keep the closest nonneg intersection and one negative intersection, if closer
+    if(search_win.second  && search_win.first ) {
+      return add_mode1_intersection(set,facet,dist,search_win);
+    }
+
+    // ---------------------------------------------------------------------------
+    /*   Mode 2: Used if neg_ray_len is not specified
+         variables used:     min_tol_int, tol, search_win.first
+         variables not used: neg_ray_len
+         1) if(min_tol_int<0) return all intersections
+         2) otherwise return all inside tolerance and unless there are >min_tol_int
+         inside of tolerance, return the closest outside of tolerance */
+    // Mode 2
+    // If minTolInt is less than zero, return all intersections
+    if (minTolInt < 0 && dist > -tol) {
+      append_intersection(set,facet,dist);
+      neighborhoods.push_back(neighborhood);
+      return;
+    }
+
+    // Check if the 'len' pointer is pointing into the intersection
+    // list.  If this is the case, then the list contains, at that
+    // location, an intersection greater than the tolerance away from
+    // the base point of the ray.
+    int len_idx = -1;
+    if (search_win.first && search_win.first >= &intersections[0] && 
+        search_win.first < &intersections[0] + intersections.size())
+      len_idx = search_win.first - &intersections[0];
+
+    // If the intersection is within tol of the ray base point, we 
+    // always add it to the list.
+    if (dist <= tol) {
+      // If the list contains an intersection outside the tolerance...
+      if (len_idx >= 0) {
+        // If we no longer want an intersection outside the tolerance,
+        // remove it.
+        if ((int)intersections.size() >= minTolInt) {
+          set_intersection(len_idx,set,facet,dist);
+          // From now on, we want only intersections within the tolerance,
+          // so update length accordingly
+          search_win.first = &tol;
+        }
+        // Otherwise appended to the list and update pointer
+        else {
+          append_intersection(set,facet,dist);
+          search_win.first = &intersections[len_idx];
+        }
+      }
+      // Otherwise just append it
+      else {
+        append_intersection(set,facet,dist);
+        // If we have all the intersections we want, set
+        // length such that we will only find further intersections
+        // within the tolerance
+        if ((int)intersections.size() >= minTolInt)
+          search_win.first = &tol;
+      }
+    }
+    // Otherwise the intersection is outside the tolerance
+    // If we already have an intersection outside the tolerance and
+    // this one is closer, replace the existing one with this one.
+    else if (len_idx >= 0) {
+      if (dist <= *search_win.first) {
+        set_intersection(len_idx,set,facet,dist);
+      }
+    }
+    // Otherwise if we want an intersection outside the tolerance
+    // and don'thave one yet, add it.
+    else if ((int)intersections.size() < minTolInt) {
+      append_intersection(set,facet,dist);
+      // update length.  this is currently the closest intersection, so
+      // only want further intersections that are closer than this one.
+      search_win.first = &intersections.back();
+    }
+  }
+
+
+  
 GeomQueryTool::GeomQueryTool(GeomTopoTool* geomtopotool, bool trace_counting,
                              double overlap_thickness, double numerical_precision){
 
@@ -140,13 +610,16 @@ ErrorCode GeomQueryTool::ray_fire(const EntityHandle volume,
 
   // numericalPrecision is used for box.intersect_ray and find triangles in the
   // neighborhood of edge/node intersections.
-  rval = geomTopoTool->obb_tree()->ray_intersect_sets( dists, surfs, facets,
-                                     root, numericalPrecision,
-                                     min_tolerance_intersections,
-                                     point, dir, &nonneg_ray_len,
-                                     stats, &neg_ray_len, &volume, &senseTag,
-                                     &ray_orientation,
-                                     history ? &(history->prev_facets) : NULL );
+  GQT_IntRegCtxt int_reg_ctxt(geomTopoTool->obb_tree(), point, dir, numericalPrecision,
+                              min_tolerance_intersections, &root, &volume,
+                              &senseTag, &ray_orientation,
+                              history ? &(history->prev_facets) : NULL );
+  
+  rval = geomTopoTool->obb_tree()->ray_intersect_sets( dists, surfs, facets, root, numericalPrecision,
+                                                       point, dir,
+                                                       OrientedBoxTreeTool::IntersectSearchWindow(&nonneg_ray_len, &neg_ray_len),
+                                                       int_reg_ctxt, stats);
+  
   MB_CHK_SET_ERR(rval, "Ray query failed");
 
   // If no distances are returned, the particle is lost unless the physics limit
@@ -309,13 +782,15 @@ ErrorCode GeomQueryTool::point_in_volume(const EntityHandle volume,
 
   // Get intersection(s) of forward and reverse orientation. Do not return
   // glancing intersections or previous facets.
-  rval = geomTopoTool->obb_tree()->ray_intersect_sets( dists, surfs, facets, root,
-                                      numericalPrecision,
-                                      min_tolerance_intersections,
-                                      xyz, ray_direction,
-                                      &ray_length, NULL, NULL, &volume,
-                                      &senseTag, NULL,
-                                      history ? &(history->prev_facets) : NULL );
+  GQT_IntRegCtxt int_reg_ctxt(geomTopoTool->obb_tree(), xyz, ray_direction, numericalPrecision,
+                              min_tolerance_intersections, &root, &volume,
+                              &senseTag, NULL,
+                              history ? &(history->prev_facets) : NULL );
+  
+  rval = geomTopoTool->obb_tree()->ray_intersect_sets( dists, surfs, facets, root, numericalPrecision,
+                                                       xyz, ray_direction,
+                                                       OrientedBoxTreeTool::IntersectSearchWindow (&ray_length,NULL),
+                                                       int_reg_ctxt);
   MB_CHK_SET_ERR(rval, "Ray fire query failed");
 
   // determine orientation of all intersections
