@@ -41,14 +41,13 @@ TESTS = pcomm_unit \
         parallel_unit_tests imoab_ptest2 \
         uber_parallel_test \
         hireconst_test_parallel \
-        uref_hirec_test_parallel \
         $(NETCDF_TESTS) \
         $(HDF5_TESTS) \
         $(MBCSLAM_TESTS) $(IMESH_TESTS) $(IMOAB_TESTS)
 
 if HAVE_HDF5_PARALLEL
   HDF5_TESTS = parallel_hdf5_test mhdf_parallel parallel_write_test \
-         parallel_adj parmerge_test augment_with_ghosts
+         parallel_adj parmerge_test augment_with_ghosts uref_hirec_test_parallel
 else
   HDF5_TESTS = 
 endif

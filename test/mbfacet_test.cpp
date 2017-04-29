@@ -25,6 +25,7 @@
 #include <math.h>
 #include "moab/FBEngine.hpp"
 #include "moab/GeomTopoTool.hpp"
+#include "TestUtil.hpp"
 
 #ifdef MESHDIR
 std::string TestDir( STRINGIFY(MESHDIR) );
@@ -45,8 +46,6 @@ int number_tests_successful = 0;
 int number_tests_failed = 0;
 
 #define PROCESS_ERROR(A, B)  {if (A!=MB_SUCCESS) {  std::cout << B << std::endl; return 1; } }
-
-#define CHECK( STR ) if (rval != MB_SUCCESS) return print_error( STR, rval, __FILE__, __LINE__ )
 
 using namespace moab;
 
