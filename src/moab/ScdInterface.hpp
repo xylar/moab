@@ -1279,10 +1279,10 @@ inline void ScdBox::start_element(EntityHandle starte)
     
 inline int ScdBox::num_elements() const
 {
-  return (!startElem ? 0 : 
+   return (!startElem ? 0 :
           (boxSize[0]- (locallyPeriodic[0] ? 0 : 1)) * 
-          (-1 == boxSize[1] ? 1 : (boxSize[1]-(locallyPeriodic[1] ? 0 : 1))) * 
-          (boxSize[2] == -1 || boxSize[2] == 1 ? 1 : (boxSize[2]-(locallyPeriodic[2] ? 0 : 1))));
+          (-1 == boxSize[1] || 1 == boxSize[1] ? 1 : (boxSize[1]-(locallyPeriodic[1] ? 0 : 1))) *
+          (-1 == boxSize[2] || 1 == boxSize[2] ? 1 : (boxSize[2]-(locallyPeriodic[2] ? 0 : 1))));
 }
     
 inline int ScdBox::num_vertices() const

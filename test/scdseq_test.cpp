@@ -383,6 +383,8 @@ ErrorCode eseq_test1a(ScdInterface *scdi, HomCoord tmp_min, HomCoord tmp_max)
   result = scdi->create_scd_sequence(tmp_min, tmp_max,
                                      MBEDGE, 1, ebox);
   CHECK_ERR(result);
+  int num_edges=ebox->num_elements();
+  CHECK_EQUAL((tmp_max[0]-tmp_min[0]), num_edges );
   
     // add vertex seq to element seq
   result = ebox->add_vbox(vbox,tmp_min, tmp_min,
