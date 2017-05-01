@@ -115,7 +115,7 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
         int nPin, int nPout,
         bool fBubble, int fMonotoneTypeID,
         bool fVolumetric, bool fNoConservation, bool fNoCheck,
-        std::string strVariables, 
+        std::string strVariables,
         std::string strInputData, std::string strOutputData,
         std::string strNColName, bool fOutputDouble,
         std::string strPreserveVariables, bool fPreserveAll, double dFillValueOverride )
@@ -126,7 +126,6 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
 
     try
     {
-
         // Input / Output types
         enum DiscretizationType
         {
@@ -190,24 +189,6 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
 
         // Monotonicity flags
         int nMonotoneType = fMonotoneTypeID;
-
-        /*
-            // Volumetric
-            if (fVolumetric && (nMonotoneType != 0)) {
-                _EXCEPTIONT("--volumetric cannot be used in conjunction with --mono#");
-            }
-        */
-
-        // // // Initialize dimension information from file
-        // // if (created_local)
-        // {
-        //  dbgprint.printf(0, "Initializing dimensions of map\n");
-        //  dbgprint.printf(0, "Input mesh\n");
-        //  this->InitializeSourceDimensionsFromMesh(m_meshInput);
-        //  dbgprint.printf(0, "Output mesh\n");
-        //  this->InitializeTargetDimensionsFromMesh(meshOutput);
-        //  // dbgprint.printf(0, "----------------------------------\n");
-        // }
 
         // Parse variable list
         std::vector< std::string > vecVariableStrings;
@@ -280,29 +261,31 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
         if ( !pcomm->rank() ) dbgprint.printf ( 0, "[0] m_meshInput->faces = %lu, m_meshInputCov->faces = %lu, m_meshOutput->faces = %lu, ixSourceFaceMax = %d\n", m_meshInput->faces.size(), m_meshInputCov->faces.size(), m_meshOutput->faces.size(), ixSourceFaceMax );
         if ( pcomm->rank() ) dbgprint.printf ( 0, "[1] m_meshInput->faces = %lu, m_meshInputCov->faces = %lu, m_meshOutput->faces = %lu, ixSourceFaceMax = %d\n", m_meshInput->faces.size(), m_meshInputCov->faces.size(), m_meshOutput->faces.size(), ixSourceFaceMax );
 
-        // // Check for forward correspondence in overlap mesh
-        // if ( // m_meshInputCov->faces.size() - ixSourceFaceMax == 0 //&&
-        //     ( m_meshOutput->faces.size() - ixTargetFaceMax == 0 )
-        // )
-        // {
-        //     if ( !pcomm->rank() ) dbgprint.printf ( 0, "Overlap mesh forward correspondence found\n" );
-        // }
-        // else if (
-        //     // m_meshOutput->faces.size() - ixSourceFaceMax == 0 //&&
-        //     ( m_meshInputCov->faces.size() - ixTargetFaceMax == 0 ) 
-        // )
-        // {   // Check for reverse correspondence in overlap mesh
-        //     if ( !pcomm->rank() ) dbgprint.printf ( 0, "Overlap mesh reverse correspondence found (reversing)\n" );
+        /*
+        // Check for forward correspondence in overlap mesh
+        if ( // m_meshInputCov->faces.size() - ixSourceFaceMax == 0 //&&
+            ( m_meshOutput->faces.size() - ixTargetFaceMax == 0 )
+        )
+        {
+            if ( !pcomm->rank() ) dbgprint.printf ( 0, "Overlap mesh forward correspondence found\n" );
+        }
+        else if (
+            // m_meshOutput->faces.size() - ixSourceFaceMax == 0 //&&
+            ( m_meshInputCov->faces.size() - ixTargetFaceMax == 0 )
+        )
+        {   // Check for reverse correspondence in overlap mesh
+            if ( !pcomm->rank() ) dbgprint.printf ( 0, "Overlap mesh reverse correspondence found (reversing)\n" );
 
-        //     // Reorder overlap mesh
-        //     m_meshOverlap->ExchangeFirstAndSecondMesh();
-        // }
-        // else
-        // {   // No correspondence found
-        //     _EXCEPTION4 ( "Invalid overlap mesh:\n"
-        //                   "    No correspondence found with input and output meshes (%i,%i) vs (%i,%i)",
-        //                   m_meshInputCov->faces.size(), m_meshOutput->faces.size(), ixSourceFaceMax, ixTargetFaceMax );
-        // }
+            // Reorder overlap mesh
+            m_meshOverlap->ExchangeFirstAndSecondMesh();
+        }
+        else
+        {   // No correspondence found
+            _EXCEPTION4 ( "Invalid overlap mesh:\n"
+                          "    No correspondence found with input and output meshes (%i,%i) vs (%i,%i)",
+                          m_meshInputCov->faces.size(), m_meshOutput->faces.size(), ixSourceFaceMax, ixTargetFaceMax );
+        }
+        */
 
         // Calculate Face areas
         if ( !pcomm->rank() ) dbgprint.printf ( 0, "Calculating overlap mesh Face areas\n" );
@@ -346,7 +329,6 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
             this->InitializeTargetCoordinatesFromMeshFV ( *m_meshOutput );
 
             // Construct OfflineMap
-            // dbgprint.printf(0, "Number of source (%d) and target (%d) elements and overlap (%d)\n", m_meshInput->faces.size(), m_meshOutput->faces.size(), m_meshOverlap->faces.size());
             if ( !pcomm->rank() ) dbgprint.printf ( 0, "Calculating offline map\n" );
             LinearRemapFVtoFV_Tempest_MOAB ( nPin );
 
@@ -384,7 +366,6 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
                     dataGLLNodes,
                     dataGLLJacobian,
                     this->GetTargetAreas() );
-
             }
             else
             {
@@ -410,7 +391,6 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
                     nMonotoneType,
                     fContinuous,
                     fNoConservation );
-
             }
             else
             {
@@ -473,7 +453,6 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
                     dataGLLNodes,
                     dataGLLJacobian,
                     this->GetSourceAreas() );
-
             }
             else
             {
@@ -492,15 +471,11 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
             }
 
             LinearRemapSE4_Tempest_MOAB (
-                // *m_meshInputCov,
-                // *m_meshOutput,
-                // *m_meshOverlap,
                 dataGLLNodes,
                 dataGLLJacobian,
                 nMonotoneType,
                 fContinuousIn,
                 fNoConservation
-                // *this
             );
 
             // Finite element input / Finite element output
@@ -572,7 +547,6 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
                     dataGLLNodesIn,
                     dataGLLJacobianIn,
                     this->GetSourceAreas() );
-
             }
             else
             {
@@ -590,7 +564,6 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
                     dataGLLNodesOut,
                     dataGLLJacobianOut,
                     this->GetTargetAreas() );
-
             }
             else
             {
@@ -623,7 +596,6 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
         }
 
 //#pragma warning "NOTE: VERIFICATION DISABLED"
-
         // Verify consistency, conservation and monotonicity
         if ( !fNoCheck )
         {
@@ -791,7 +763,6 @@ bool moab::TempestOfflineMap::IsMonotone (
     double dTolerance
 )
 {
-
     // Get map entries
     DataVector<int> dataRows;
     DataVector<int> dataCols;
@@ -826,11 +797,10 @@ bool moab::TempestOfflineMap::IsMonotone (
     return fMonotone;
 }
 
-#define VERBOSE
+
 ///////////////////////////////////////////////////////////////////////////////
 moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot()   // Collective
 {
-
     Mesh globalMesh;
     int ierr, rootProc = 0;
     moab::ErrorCode rval;
@@ -863,7 +833,7 @@ moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot()   // Collective
         sendarray[3] = dTargetAreas.GetRows();
 
         ierr = MPI_Gather ( sendarray, 4, MPI_INTEGER, rowcolss.data(), 4, MPI_INTEGER, rootProc, pcomm->comm() );
-        if (ierr != MPI_SUCCESS) return moab::MB_FAILURE;
+        if ( ierr != MPI_SUCCESS ) return moab::MB_FAILURE;
 
         // dbgprint.printf(0, "[%d] Dimensions: %d, %d\n", pcomm->rank(), vecRow.GetRows(), vecCol.GetRows());
 
@@ -1039,7 +1009,6 @@ moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot()   // Collective
         }
 
         std::vector<double> rowcolsvals ( grows + gsrc + gtar );
-
         // Both rows and columns have a size of "rowsize"
         ierr = MPI_Gatherv ( sendarray.data(), sendarray.size(), MPI_DOUBLE, rowcolsvals.data(), &rcount[0], &displs[0], MPI_DOUBLE, rootProc, pcomm->comm() );
 

@@ -279,12 +279,6 @@ void moab::TempestOfflineMap::LinearRemapFVtoFV_Tempest_MOAB (
         Announce ( "Required adjacency set size: %i", nRequiredFaceSetSize );
         Announce ( "Fit weights exponent: %i", nFitWeightsExponent );
     }
-    // const bool debug = (!pcomm->rank());
-    // if (!pcomm->rank()) {
-    //     for ( int i = 0; i < m_meshOutput->faces.size(); i++ ) {
-    //         std::cout << i << " - " << m_meshOutput->vecFaceArea[i] << "\n" ;
-    //     }
-    // }
 
     // Current overlap face
     int ixOverlap = 0;
@@ -299,23 +293,23 @@ void moab::TempestOfflineMap::LinearRemapFVtoFV_Tempest_MOAB (
         }
 
         // This Face
-        // const Face & faceFirst = m_meshInputCov->faces[ixFirst];
 
         // Find the set of Faces that overlap faceFirst
         int ixOverlapBegin = ixOverlap;
         unsigned ixOverlapEnd = ixOverlapBegin;
-    
-        for (; ixOverlapEnd < m_meshOverlap->faces.size(); ixOverlapEnd++) {
 
-            if (ixFirst - m_meshOverlap->vecSourceFaceIx[ixOverlapEnd] != 0) {
+        for ( ; ixOverlapEnd < m_meshOverlap->faces.size(); ixOverlapEnd++ )
+        {
+            if ( ixFirst - m_meshOverlap->vecSourceFaceIx[ixOverlapEnd] != 0 )
+            {
                 break;
             }
         }
 
         unsigned nOverlapFaces = ixOverlapEnd - ixOverlapBegin;
-        if (!pcomm->rank()) Announce ( "Element %i :: [%i, %i]", ixFirst, ixOverlapBegin, ixOverlapEnd );
+        // if ( !pcomm->rank() ) Announce ( "Element %i :: [%i, %i]", ixFirst, ixOverlapBegin, ixOverlapEnd );
 
-        if (nOverlapFaces == 0) continue;
+        if ( nOverlapFaces == 0 ) continue;
 
         // Build integration array
         DataMatrix<double> dIntArray;
@@ -384,8 +378,6 @@ void moab::TempestOfflineMap::LinearRemapFVtoFV_Tempest_MOAB (
             dFitArrayPlus
         );
 
-        // if (debug) Announce("[%i] (%d,%d) vecSourceFaceIx: %i and vecTargetFaceIx: %i -- Area: %12.10f", ixFirst, nAdjFaces, nOverlapFaces, m_meshOverlap->vecSourceFaceIx[ixOverlapBegin], m_meshOverlap->vecTargetFaceIx[ixOverlapEnd], dFirstArea);
-
         // Multiply integration array and fit array
         DataMatrix<double> dComposedArray;
         dComposedArray.Initialize ( nAdjFaces, nOverlapFaces );
@@ -401,14 +393,18 @@ void moab::TempestOfflineMap::LinearRemapFVtoFV_Tempest_MOAB (
             }
         }
 
-        if (!pcomm->rank()) {
+#if 0
+        if ( !pcomm->rank() )
+        {
             std::cout << "[" << ixFirst << ", " << ixOverlap << "]: ";
-            for ( int i = 0; i < nAdjFaces; i++ ) {
+            for ( int i = 0; i < nAdjFaces; i++ )
+            {
                 for ( unsigned j = 0; j < nOverlapFaces; j++ )
                     std::cout << m_meshOutput->vecFaceArea[m_meshOverlap->vecTargetFaceIx[ixOverlap + j]] << ", " ;
                 std::cout << "\n" ;
             }
         }
+#endif
 
         // Put composed array into map
         for ( unsigned i = 0; i < vecAdjFaces.size(); i++ )
@@ -527,11 +523,13 @@ void moab::TempestOfflineMap::LinearRemapSE4_Tempest_MOAB (
         // Determine how many overlap Faces and triangles are present
         int nOverlapFaces = 0;
         size_t ixOverlapTemp = ixOverlap;
-        for (; ixOverlapTemp < m_meshOverlap->faces.size(); ixOverlapTemp++) {
+        for ( ; ixOverlapTemp < m_meshOverlap->faces.size(); ixOverlapTemp++ )
+        {
 
             // const Face & faceOverlap = m_meshOverlap->faces[ixOverlapTemp];
 
-            if (ixFirst - m_meshOverlap->vecSourceFaceIx[ixOverlapTemp] != 0) {
+            if ( ixFirst - m_meshOverlap->vecSourceFaceIx[ixOverlapTemp] != 0 )
+            {
                 break;
             }
 
@@ -540,7 +538,8 @@ void moab::TempestOfflineMap::LinearRemapSE4_Tempest_MOAB (
         }
 
         // No overlaps
-        if (nOverlapFaces == 0) {
+        if ( nOverlapFaces == 0 )
+        {
             continue;
         }
 
@@ -553,8 +552,10 @@ void moab::TempestOfflineMap::LinearRemapSE4_Tempest_MOAB (
         {
             const Face & faceOverlap = m_meshOverlap->faces[ixOverlap + j];
 
-            if (pcomm->rank())
-                Announce ( "\tLocal ID: %i/%i = %i, areas = %f", j+ixOverlap, nOverlapFaces, m_meshOverlap->vecSourceFaceIx[ixOverlap+j], m_meshOverlap->vecFaceArea[ixOverlap + j]);
+#ifdef VERBOSE
+            if ( pcomm->rank() )
+                Announce ( "\tLocal ID: %i/%i = %i, areas = %f", j + ixOverlap, nOverlapFaces, m_meshOverlap->vecSourceFaceIx[ixOverlap + j], m_meshOverlap->vecFaceArea[ixOverlap + j] );
+#endif
 
             int nOverlapTriangles = faceOverlap.edges.size() - 2;
 
@@ -617,7 +618,7 @@ void moab::TempestOfflineMap::LinearRemapSE4_Tempest_MOAB (
 
                     // Check inverse map value
                     if ( ( dAlpha < -1.0e-13 ) || ( dAlpha > 1.0 + 1.0e-13 ) ||
-                         ( dBeta  < -1.0e-13 ) || ( dBeta  > 1.0 + 1.0e-13 )
+                            ( dBeta  < -1.0e-13 ) || ( dBeta  > 1.0 + 1.0e-13 )
                        )
                     {
                         _EXCEPTION2 ( "Inverse Map out of range (%1.5e %1.5e)",
@@ -819,9 +820,6 @@ void moab::TempestOfflineMap::LinearRemapFVtoGLL_Simple_MOAB (
         // This Face
         const Face & faceFirst = m_meshInputCov->faces[ixFirst];
 
-        // Area of the First Face
-        // double dFirstArea = m_meshInputCov->vecFaceArea[ixFirst];
-
         // Coordinate axes
         Node nodeRef = GetReferenceNode_MOAB ( faceFirst, m_meshInputCov->nodes );
 
@@ -847,9 +845,6 @@ void moab::TempestOfflineMap::LinearRemapFVtoGLL_Simple_MOAB (
             ixFirst,
             nRequiredFaceSetSize,
             vecAdjFaces );
-
-        // Number of adjacent Faces
-        // int nAdjFaces = vecAdjFaces.size();
 
         // Blank constraint
         DataVector<double> dConstraint;
@@ -1034,422 +1029,422 @@ void moab::TempestOfflineMap::LinearRemapFVtoGLL_Simple_MOAB (
 
 ///////////////////////////////////////////////////////////////////////////////
 
-        void moab::TempestOfflineMap::LinearRemapFVtoGLL_Volumetric_MOAB (
-            const DataMatrix3D<int> & dataGLLNodes,
-            const DataMatrix3D<double> & dataGLLJacobian,
-            const DataVector<double> & dataGLLNodalArea,
-            int nOrder,
-            int nMonotoneType,
-            bool /*fContinuous*/,
-            bool fNoConservation
-        )
-        {
-            // Order of triangular quadrature rule
-            const int TriQuadRuleOrder = 4;
+void moab::TempestOfflineMap::LinearRemapFVtoGLL_Volumetric_MOAB (
+    const DataMatrix3D<int> & dataGLLNodes,
+    const DataMatrix3D<double> & dataGLLJacobian,
+    const DataVector<double> & dataGLLNodalArea,
+    int nOrder,
+    int nMonotoneType,
+    bool /*fContinuous*/,
+    bool fNoConservation
+)
+{
+    // Order of triangular quadrature rule
+    const int TriQuadRuleOrder = 4;
 
-            // Verify ReverseNodeArray has been calculated
-            if ( m_meshInputCov->revnodearray.size() == 0 )
-            {
-                _EXCEPTIONT ( "ReverseNodeArray has not been calculated for m_meshInput" );
-            }
+    // Verify ReverseNodeArray has been calculated
+    if ( m_meshInputCov->revnodearray.size() == 0 )
+    {
+        _EXCEPTIONT ( "ReverseNodeArray has not been calculated for m_meshInput" );
+    }
 
-            // Triangular quadrature rule
-            TriangularQuadratureRule triquadrule ( TriQuadRuleOrder );
+    // Triangular quadrature rule
+    TriangularQuadratureRule triquadrule ( TriQuadRuleOrder );
 
-            // Fit weight exponent
-            int nFitWeightsExponent = nOrder + 2;
+    // Fit weight exponent
+    int nFitWeightsExponent = nOrder + 2;
 
-            // Order of the finite element method
-            int nP = dataGLLNodes.GetRows();
+    // Order of the finite element method
+    int nP = dataGLLNodes.GetRows();
 
-            // Announcemnets
-            if ( !pcomm->rank() )
-            {
-                Announce ( "[moab::TempestOfflineMap::LinearRemapFVtoGLL_Volumetric_MOAB] Finite Volume to Finite Element (Volumetric) Projection" );
-                Announce ( "Triangular quadrature rule order %i", TriQuadRuleOrder );
-                Announce ( "Order of the FE polynomial interpolant: %i", nP );
-            }
+    // Announcemnets
+    if ( !pcomm->rank() )
+    {
+        Announce ( "[moab::TempestOfflineMap::LinearRemapFVtoGLL_Volumetric_MOAB] Finite Volume to Finite Element (Volumetric) Projection" );
+        Announce ( "Triangular quadrature rule order %i", TriQuadRuleOrder );
+        Announce ( "Order of the FE polynomial interpolant: %i", nP );
+    }
 
-            // Gauss-Lobatto quadrature nodes and weights
-            DataVector<double> dG;
-            DataVector<double> dW;
+    // Gauss-Lobatto quadrature nodes and weights
+    DataVector<double> dG;
+    DataVector<double> dW;
 
-            GaussLobattoQuadrature::GetPoints ( nP, 0.0, 1.0, dG, dW );
+    GaussLobattoQuadrature::GetPoints ( nP, 0.0, 1.0, dG, dW );
 
-            // Get SparseMatrix represntation of the OfflineMap
-            SparseMatrix<double> & smatMap = this->GetSparseMatrix();
+    // Get SparseMatrix represntation of the OfflineMap
+    SparseMatrix<double> & smatMap = this->GetSparseMatrix();
 
-            // Number of elements needed
+    // Number of elements needed
 #ifdef RECTANGULAR_TRUNCATION
-            int nCoefficients = nOrder * nOrder;
+    int nCoefficients = nOrder * nOrder;
 #endif
 #ifdef TRIANGULAR_TRUNCATION
-            int nCoefficients = nOrder * ( nOrder + 1 ) / 2;
+    int nCoefficients = nOrder * ( nOrder + 1 ) / 2;
 #endif
 
 // #pragma message "This should be a command-line parameter"
-            int nRequiredFaceSetSize = nCoefficients;
+    int nRequiredFaceSetSize = nCoefficients;
 
-            // Accumulated weight vector
-            DataVector<double> dAccumW ( nP + 1 );
-            dAccumW[0] = 0.0;
-            for ( int i = 1; i < nP + 1; i++ )
-            {
-                dAccumW[i] = dAccumW[i - 1] + dW[i - 1];
-            }
-            if ( fabs ( dAccumW[dAccumW.GetRows() - 1] - 1.0 ) > 1.0e-14 )
-            {
-                _EXCEPTIONT ( "Logic error in accumulated weight" );
-            }
+    // Accumulated weight vector
+    DataVector<double> dAccumW ( nP + 1 );
+    dAccumW[0] = 0.0;
+    for ( int i = 1; i < nP + 1; i++ )
+    {
+        dAccumW[i] = dAccumW[i - 1] + dW[i - 1];
+    }
+    if ( fabs ( dAccumW[dAccumW.GetRows() - 1] - 1.0 ) > 1.0e-14 )
+    {
+        _EXCEPTIONT ( "Logic error in accumulated weight" );
+    }
 
-            // Create sub-element mesh and redistribution map
-            Announce ( "Generating sub-element mesh" );
-            Mesh meshTargetSubElement;
+    // Create sub-element mesh and redistribution map
+    Announce ( "Generating sub-element mesh" );
+    Mesh meshTargetSubElement;
 
-            DataVector<double> dFiniteVolumeArea ( nP * nP );
-            DataVector<double> dQuadratureArea ( nP * nP );
-            std::vector< DataMatrix<double> > dRedistributionMaps;
-            dRedistributionMaps.resize ( m_meshOutput->faces.size() );
+    DataVector<double> dFiniteVolumeArea ( nP * nP );
+    DataVector<double> dQuadratureArea ( nP * nP );
+    std::vector< DataMatrix<double> > dRedistributionMaps;
+    dRedistributionMaps.resize ( m_meshOutput->faces.size() );
 
-            for ( size_t ixSecond = 0; ixSecond < m_meshOutput->faces.size(); ixSecond++ )
-            {
+    for ( size_t ixSecond = 0; ixSecond < m_meshOutput->faces.size(); ixSecond++ )
+    {
 
-                const Face & faceSecond = m_meshOutput->faces[ixSecond];
+        const Face & faceSecond = m_meshOutput->faces[ixSecond];
 
-                const Node & nodeOutput0 = m_meshOutput->nodes[faceSecond[0]];
-                const Node & nodeOutput1 = m_meshOutput->nodes[faceSecond[1]];
-                const Node & nodeOutput2 = m_meshOutput->nodes[faceSecond[2]];
-                const Node & nodeOutput3 = m_meshOutput->nodes[faceSecond[3]];
+        const Node & nodeOutput0 = m_meshOutput->nodes[faceSecond[0]];
+        const Node & nodeOutput1 = m_meshOutput->nodes[faceSecond[1]];
+        const Node & nodeOutput2 = m_meshOutput->nodes[faceSecond[2]];
+        const Node & nodeOutput3 = m_meshOutput->nodes[faceSecond[3]];
 
-                for ( int q = 0; q < nP; q++ )
-                {
-                    for ( int p = 0; p < nP; p++ )
-                    {
-
-                        Node node0 =
-                            InterpolateQuadrilateralNode (
-                                nodeOutput0, nodeOutput1, nodeOutput2, nodeOutput3,
-                                dAccumW[p], dAccumW[q] );
-
-                        Node node1 =
-                            InterpolateQuadrilateralNode (
-                                nodeOutput0, nodeOutput1, nodeOutput2, nodeOutput3,
-                                dAccumW[p + 1], dAccumW[q] );
-
-                        Node node2 =
-                            InterpolateQuadrilateralNode (
-                                nodeOutput0, nodeOutput1, nodeOutput2, nodeOutput3,
-                                dAccumW[p + 1], dAccumW[q + 1] );
-
-                        Node node3 =
-                            InterpolateQuadrilateralNode (
-                                nodeOutput0, nodeOutput1, nodeOutput2, nodeOutput3,
-                                dAccumW[p], dAccumW[q + 1] );
-
-                        int nNodeStart = meshTargetSubElement.nodes.size();
-                        meshTargetSubElement.nodes.push_back ( node0 );
-                        meshTargetSubElement.nodes.push_back ( node1 );
-                        meshTargetSubElement.nodes.push_back ( node2 );
-                        meshTargetSubElement.nodes.push_back ( node3 );
-
-                        Face faceNew ( 4 );
-                        faceNew.SetNode ( 0, nNodeStart );
-                        faceNew.SetNode ( 1, nNodeStart + 1 );
-                        faceNew.SetNode ( 2, nNodeStart + 2 );
-                        faceNew.SetNode ( 3, nNodeStart + 3 );
-
-                        meshTargetSubElement.faces.push_back ( faceNew );
-
-                        dFiniteVolumeArea[q * nP + p] =
-                            CalculateFaceArea (
-                                faceNew, meshTargetSubElement.nodes );
-
-                        dQuadratureArea[q * nP + p] =
-                            dataGLLJacobian[q][p][ixSecond];
-                    }
-                }
-
-                dRedistributionMaps[ixSecond].Initialize ( nP * nP, nP * nP );
-                for ( int i = 0; i < nP * nP; i++ )
-                {
-                    dRedistributionMaps[ixSecond][i][i] = 1.0;
-                }
-
-                if ( !fNoConservation )
-                {
-                    ForceIntArrayConsistencyConservation (
-                        dFiniteVolumeArea,
-                        dQuadratureArea,
-                        dRedistributionMaps[ixSecond],
-                        ( nMonotoneType != 0 ) );
-                }
-                /*
-                        double dSumQuadArea = 0.0;
-                        double dSumFVArea = 0.0;
-                        for (int i = 0; i < nP * nP; i++) {
-                            dSumQuadArea += dQuadratureArea[i];
-                            dSumFVArea += dFiniteVolumeArea[i];
-                        }
-                        if (fabs(dSumQuadArea - dSumFVArea) > 1.0e-14) {
-                            printf("%1.15e\n", dSumQuadArea - dSumFVArea);
-                            _EXCEPTION();
-                        }
-                */
-                for ( int i = 0; i < nP * nP; i++ )
-                {
-                    for ( int j = 0; j < nP * nP; j++ )
-                    {
-                        dRedistributionMaps[ixSecond][i][j] *=
-                            dQuadratureArea[i] / dFiniteVolumeArea[j];
-                    }
-                }
-                /*
-                        for (int i = 0; i < nP * nP; i++) {
-                            double dSum = 0.0;
-                            for (int j = 0; j < nP * nP; j++) {
-                                dSum += dRedistributionMaps[ixSecond][i][j] * dFiniteVolumeArea[j];
-                            }
-                            printf("%i %1.15e %1.15e\n", i, dSum, dQuadratureArea[i]);
-                        }
-                        _EXCEPTION();
-                */
-                /*
-                        for (int i = 0; i < nP * nP; i++) {
-                        for (int j = 0; j < nP * nP; j++) {
-                            printf("%i %i %1.15e\n", i, j, dRedistributionMaps[ixSecond][i][j]);
-                        }
-                        }
-                        _EXCEPTION();
-                */
-            }
-
-            // Current overlap face
-            int ixOverlap = 0;
-
-            // Loop through all faces on m_meshInput
-            for ( size_t ixFirst = 0; ixFirst < m_meshInputCov->faces.size(); ixFirst++ )
+        for ( int q = 0; q < nP; q++ )
+        {
+            for ( int p = 0; p < nP; p++ )
             {
 
-                // Output every 100 elements
-                if ( ixFirst % 1000 == 0 )
-                {
-                    Announce ( "Element %i", ixFirst );
-                }
+                Node node0 =
+                    InterpolateQuadrilateralNode (
+                        nodeOutput0, nodeOutput1, nodeOutput2, nodeOutput3,
+                        dAccumW[p], dAccumW[q] );
 
-                // This Face
-                // const Face & faceFirst = m_meshInputCov->faces[ixFirst];
+                Node node1 =
+                    InterpolateQuadrilateralNode (
+                        nodeOutput0, nodeOutput1, nodeOutput2, nodeOutput3,
+                        dAccumW[p + 1], dAccumW[q] );
 
-                // Find the set of Faces that overlap faceFirst
-                size_t ixOverlapBegin = ixOverlap;
-                size_t ixOverlapEnd = ixOverlapBegin;
+                Node node2 =
+                    InterpolateQuadrilateralNode (
+                        nodeOutput0, nodeOutput1, nodeOutput2, nodeOutput3,
+                        dAccumW[p + 1], dAccumW[q + 1] );
 
-                for ( ; ixOverlapEnd < m_meshOverlap->faces.size(); ixOverlapEnd++ )
-                {
-                    if ( ixFirst - m_meshOverlap->vecSourceFaceIx[ixOverlapEnd] != 0 )
-                        break;
-                }
+                Node node3 =
+                    InterpolateQuadrilateralNode (
+                        nodeOutput0, nodeOutput1, nodeOutput2, nodeOutput3,
+                        dAccumW[p], dAccumW[q + 1] );
 
-                size_t nOverlapFaces = ixOverlapEnd - ixOverlapBegin;
+                int nNodeStart = meshTargetSubElement.nodes.size();
+                meshTargetSubElement.nodes.push_back ( node0 );
+                meshTargetSubElement.nodes.push_back ( node1 );
+                meshTargetSubElement.nodes.push_back ( node2 );
+                meshTargetSubElement.nodes.push_back ( node3 );
 
-                // Create a new Mesh representing the division of target finite
-                // elements associated with this finite volume.
-                Mesh meshThisElement;
-                meshThisElement.faces.reserve ( nOverlapFaces * nP * nP );
-                meshThisElement.vecTargetFaceIx.reserve ( nOverlapFaces * nP * nP );
+                Face faceNew ( 4 );
+                faceNew.SetNode ( 0, nNodeStart );
+                faceNew.SetNode ( 1, nNodeStart + 1 );
+                faceNew.SetNode ( 2, nNodeStart + 2 );
+                faceNew.SetNode ( 3, nNodeStart + 3 );
 
-                for ( size_t i = ixOverlapBegin; i < ixOverlapEnd; i++ )
-                {
+                meshTargetSubElement.faces.push_back ( faceNew );
 
-                    int iTargetFace = m_meshOverlap->vecTargetFaceIx[i];
+                dFiniteVolumeArea[q * nP + p] =
+                    CalculateFaceArea (
+                        faceNew, meshTargetSubElement.nodes );
 
-                    int iSubElementBegin =  iTargetFace      * nP * nP;
-                    // int iSubElementEnd   = ( iTargetFace + 1 ) * nP * nP;
-
-                    int iSubElement = iSubElementBegin;
-                    for ( int p = 0; p < nP; p++ )
-                    {
-                        for ( int q = 0; q < nP; q++ )
-                        {
-
-                            // Calculate overlap polygon between sub-element
-                            // and finite volume
-                            NodeVector nodevecOutput;
-
-                            GenerateOverlapFace<MeshUtilitiesFuzzy, Node> (
-                                *m_meshInputCov,
-                                meshTargetSubElement,
-                                ixFirst,
-                                iSubElementBegin + p * nP + q,
-                                nodevecOutput );
-                            /*
-                                            if (nodevecOutput.size() < 3) {
-                                                continue;
-                                            }
-
-                                            Face faceNew(nodevecOutput.size());
-                                            for (int n = 0; n < nodevecOutput.size(); n++) {
-                                                faceNew.SetNode(n, n);
-                                            }
-                                            Real dArea = CalculateFaceArea(faceNew, nodevecOutput);
-
-                                            if (dArea < 1.0e-13) {
-                                                continue;
-                                            }
-                            */
-                            /*
-                                            if (dataGLLNodes[p][q][iTargetFace] - 1 == 3) {
-                                                printf("%1.15e %1.15e %1.15e\n", dArea, dataGLLJacobian[p][q][iTargetFace], dataGLLNodalArea[dataGLLNodes[p][q][iTargetFace] - 1]);
-                                            }
-                            */
-                            Face faceNew ( nodevecOutput.size() );
-                            for ( size_t n = 0; n < nodevecOutput.size(); n++ )
-                            {
-                                meshThisElement.nodes.push_back ( nodevecOutput[n] );
-                                faceNew.SetNode ( n, meshThisElement.nodes.size() - 1 );
-                            }
-
-                            meshThisElement.faces.push_back ( faceNew );
-
-                            meshThisElement.vecTargetFaceIx.push_back (
-                                dataGLLNodes[p][q][iTargetFace] - 1 );
-
-                            iSubElement++;
-                        }
-                    }
-                }
-
-                if ( meshThisElement.faces.size() != nOverlapFaces * nP * nP )
-                {
-                    _EXCEPTIONT ( "Logic error" );
-                }
-
-                // Build integration array
-                DataMatrix<double> dIntArray;
-
-                BuildIntegrationArray (
-                    *m_meshInputCov,
-                    meshThisElement,
-                    triquadrule,
-                    ixFirst,
-                    0,
-                    meshThisElement.faces.size(),
-                    nOrder,
-                    dIntArray );
-
-                // Set of Faces to use in building the reconstruction and associated
-                // distance metric.
-                AdjacentFaceVector vecAdjFaces;
-
-                GetAdjacentFaceVectorByEdge (
-                    *m_meshInputCov,
-                    ixFirst,
-                    nRequiredFaceSetSize,
-                    vecAdjFaces );
-
-                // Number of adjacent Faces
-                int nAdjFaces = vecAdjFaces.size();
-
-                // Determine the conservative constraint equation
-                DataVector<double> dConstraint;
-
-                dConstraint.Initialize ( nCoefficients );
-
-                double dFirstArea = m_meshInputCov->vecFaceArea[ixFirst];
-
-                for ( int p = 0; p < nCoefficients; p++ )
-                {
-                    for ( size_t j = 0; j < meshThisElement.faces.size(); j++ )
-                    {
-                        dConstraint[p] += dIntArray[p][j];
-                    }
-                    dConstraint[p] /= dFirstArea;
-                }
-
-                // Least squares arrays
-                DataMatrix<double> dFitArray;
-                DataVector<double> dFitWeights;
-                DataMatrix<double> dFitArrayPlus;
-
-                BuildFitArray (
-                    *m_meshInputCov,
-                    triquadrule,
-                    ixFirst,
-                    vecAdjFaces,
-                    nOrder,
-                    nFitWeightsExponent,
-                    dConstraint,
-                    dFitArray,
-                    dFitWeights
-                );
-
-                // Compute the inverse fit array
-                InvertFitArray_Corrected (
-                    dConstraint,
-                    dFitArray,
-                    dFitWeights,
-                    dFitArrayPlus
-                );
-
-                // Multiply integration array and fit array
-                DataMatrix<double> dComposedArray;
-                dComposedArray.Initialize ( nAdjFaces, meshThisElement.faces.size() );
-
-                for ( int i = 0; i < nAdjFaces; i++ )
-                {
-                    for ( size_t j = 0; j < meshThisElement.faces.size(); j++ )
-                    {
-                        for ( int k = 0; k < nCoefficients; k++ )
-                        {
-                            dComposedArray[i][j] += dIntArray[k][j] * dFitArrayPlus[i][k];
-                        }
-                    }
-                }
-
-                // Apply redistribution operator
-                DataMatrix<double> dRedistributedArray;
-                dRedistributedArray.Initialize ( nAdjFaces, meshThisElement.faces.size() );
-
-                for ( int i = 0; i < nAdjFaces; i++ )
-                {
-                    for ( size_t j = 0; j < meshThisElement.faces.size(); j++ )
-                    {
-                        int ixSubElement = j % ( nP * nP );
-                        int ixElement = j / ( nP * nP );
-
-                        int ixSecondFace =
-                            m_meshOverlap->vecTargetFaceIx[ixOverlap + ixElement];
-
-                        for ( int k = 0; k < nP * nP; k++ )
-                        {
-                            dRedistributedArray[i][j] +=
-                                dComposedArray[i][ixElement * nP * nP + k]
-                                * dRedistributionMaps[ixSecondFace][ixSubElement][k];
-                        }
-                    }
-                }
-
-                // Put composed array into map
-                for ( size_t i = 0; i < vecAdjFaces.size(); i++ )
-                {
-                    for ( size_t j = 0; j < meshThisElement.faces.size(); j++ )
-                    {
-                        int ixFirstFace = vecAdjFaces[i].first;
-                        int ixSecondNode = meshThisElement.vecTargetFaceIx[j];
-
-                        smatMap ( ixSecondNode, ixFirstFace ) +=
-                            dRedistributedArray[i][j]
-                            / dataGLLNodalArea[ixSecondNode];
-                        // meshThisElement.vecFaceArea[j];
-                        // dataGLLJacobian[ixS][ixT][ixSecondElement];
-                    }
-                }
-
-                // Increment the current overlap index
-                ixOverlap += nOverlapFaces;
-
-                //_EXCEPTION();
+                dQuadratureArea[q * nP + p] =
+                    dataGLLJacobian[q][p][ixSecond];
             }
         }
+
+        dRedistributionMaps[ixSecond].Initialize ( nP * nP, nP * nP );
+        for ( int i = 0; i < nP * nP; i++ )
+        {
+            dRedistributionMaps[ixSecond][i][i] = 1.0;
+        }
+
+        if ( !fNoConservation )
+        {
+            ForceIntArrayConsistencyConservation (
+                dFiniteVolumeArea,
+                dQuadratureArea,
+                dRedistributionMaps[ixSecond],
+                ( nMonotoneType != 0 ) );
+        }
+        /*
+                double dSumQuadArea = 0.0;
+                double dSumFVArea = 0.0;
+                for (int i = 0; i < nP * nP; i++) {
+                    dSumQuadArea += dQuadratureArea[i];
+                    dSumFVArea += dFiniteVolumeArea[i];
+                }
+                if (fabs(dSumQuadArea - dSumFVArea) > 1.0e-14) {
+                    printf("%1.15e\n", dSumQuadArea - dSumFVArea);
+                    _EXCEPTION();
+                }
+        */
+        for ( int i = 0; i < nP * nP; i++ )
+        {
+            for ( int j = 0; j < nP * nP; j++ )
+            {
+                dRedistributionMaps[ixSecond][i][j] *=
+                    dQuadratureArea[i] / dFiniteVolumeArea[j];
+            }
+        }
+        /*
+                for (int i = 0; i < nP * nP; i++) {
+                    double dSum = 0.0;
+                    for (int j = 0; j < nP * nP; j++) {
+                        dSum += dRedistributionMaps[ixSecond][i][j] * dFiniteVolumeArea[j];
+                    }
+                    printf("%i %1.15e %1.15e\n", i, dSum, dQuadratureArea[i]);
+                }
+                _EXCEPTION();
+        */
+        /*
+                for (int i = 0; i < nP * nP; i++) {
+                for (int j = 0; j < nP * nP; j++) {
+                    printf("%i %i %1.15e\n", i, j, dRedistributionMaps[ixSecond][i][j]);
+                }
+                }
+                _EXCEPTION();
+        */
+    }
+
+    // Current overlap face
+    int ixOverlap = 0;
+
+    // Loop through all faces on m_meshInput
+    for ( size_t ixFirst = 0; ixFirst < m_meshInputCov->faces.size(); ixFirst++ )
+    {
+
+        // Output every 100 elements
+        if ( ixFirst % 1000 == 0 )
+        {
+            Announce ( "Element %i", ixFirst );
+        }
+
+        // This Face
+        // const Face & faceFirst = m_meshInputCov->faces[ixFirst];
+
+        // Find the set of Faces that overlap faceFirst
+        size_t ixOverlapBegin = ixOverlap;
+        size_t ixOverlapEnd = ixOverlapBegin;
+
+        for ( ; ixOverlapEnd < m_meshOverlap->faces.size(); ixOverlapEnd++ )
+        {
+            if ( ixFirst - m_meshOverlap->vecSourceFaceIx[ixOverlapEnd] != 0 )
+                break;
+        }
+
+        size_t nOverlapFaces = ixOverlapEnd - ixOverlapBegin;
+
+        // Create a new Mesh representing the division of target finite
+        // elements associated with this finite volume.
+        Mesh meshThisElement;
+        meshThisElement.faces.reserve ( nOverlapFaces * nP * nP );
+        meshThisElement.vecTargetFaceIx.reserve ( nOverlapFaces * nP * nP );
+
+        for ( size_t i = ixOverlapBegin; i < ixOverlapEnd; i++ )
+        {
+
+            int iTargetFace = m_meshOverlap->vecTargetFaceIx[i];
+
+            int iSubElementBegin =  iTargetFace      * nP * nP;
+            // int iSubElementEnd   = ( iTargetFace + 1 ) * nP * nP;
+
+            int iSubElement = iSubElementBegin;
+            for ( int p = 0; p < nP; p++ )
+            {
+                for ( int q = 0; q < nP; q++ )
+                {
+
+                    // Calculate overlap polygon between sub-element
+                    // and finite volume
+                    NodeVector nodevecOutput;
+
+                    GenerateOverlapFace<MeshUtilitiesFuzzy, Node> (
+                        *m_meshInputCov,
+                        meshTargetSubElement,
+                        ixFirst,
+                        iSubElementBegin + p * nP + q,
+                        nodevecOutput );
+                    /*
+                                    if (nodevecOutput.size() < 3) {
+                                        continue;
+                                    }
+
+                                    Face faceNew(nodevecOutput.size());
+                                    for (int n = 0; n < nodevecOutput.size(); n++) {
+                                        faceNew.SetNode(n, n);
+                                    }
+                                    Real dArea = CalculateFaceArea(faceNew, nodevecOutput);
+
+                                    if (dArea < 1.0e-13) {
+                                        continue;
+                                    }
+                    */
+                    /*
+                                    if (dataGLLNodes[p][q][iTargetFace] - 1 == 3) {
+                                        printf("%1.15e %1.15e %1.15e\n", dArea, dataGLLJacobian[p][q][iTargetFace], dataGLLNodalArea[dataGLLNodes[p][q][iTargetFace] - 1]);
+                                    }
+                    */
+                    Face faceNew ( nodevecOutput.size() );
+                    for ( size_t n = 0; n < nodevecOutput.size(); n++ )
+                    {
+                        meshThisElement.nodes.push_back ( nodevecOutput[n] );
+                        faceNew.SetNode ( n, meshThisElement.nodes.size() - 1 );
+                    }
+
+                    meshThisElement.faces.push_back ( faceNew );
+
+                    meshThisElement.vecTargetFaceIx.push_back (
+                        dataGLLNodes[p][q][iTargetFace] - 1 );
+
+                    iSubElement++;
+                }
+            }
+        }
+
+        if ( meshThisElement.faces.size() != nOverlapFaces * nP * nP )
+        {
+            _EXCEPTIONT ( "Logic error" );
+        }
+
+        // Build integration array
+        DataMatrix<double> dIntArray;
+
+        BuildIntegrationArray (
+            *m_meshInputCov,
+            meshThisElement,
+            triquadrule,
+            ixFirst,
+            0,
+            meshThisElement.faces.size(),
+            nOrder,
+            dIntArray );
+
+        // Set of Faces to use in building the reconstruction and associated
+        // distance metric.
+        AdjacentFaceVector vecAdjFaces;
+
+        GetAdjacentFaceVectorByEdge (
+            *m_meshInputCov,
+            ixFirst,
+            nRequiredFaceSetSize,
+            vecAdjFaces );
+
+        // Number of adjacent Faces
+        int nAdjFaces = vecAdjFaces.size();
+
+        // Determine the conservative constraint equation
+        DataVector<double> dConstraint;
+
+        dConstraint.Initialize ( nCoefficients );
+
+        double dFirstArea = m_meshInputCov->vecFaceArea[ixFirst];
+
+        for ( int p = 0; p < nCoefficients; p++ )
+        {
+            for ( size_t j = 0; j < meshThisElement.faces.size(); j++ )
+            {
+                dConstraint[p] += dIntArray[p][j];
+            }
+            dConstraint[p] /= dFirstArea;
+        }
+
+        // Least squares arrays
+        DataMatrix<double> dFitArray;
+        DataVector<double> dFitWeights;
+        DataMatrix<double> dFitArrayPlus;
+
+        BuildFitArray (
+            *m_meshInputCov,
+            triquadrule,
+            ixFirst,
+            vecAdjFaces,
+            nOrder,
+            nFitWeightsExponent,
+            dConstraint,
+            dFitArray,
+            dFitWeights
+        );
+
+        // Compute the inverse fit array
+        InvertFitArray_Corrected (
+            dConstraint,
+            dFitArray,
+            dFitWeights,
+            dFitArrayPlus
+        );
+
+        // Multiply integration array and fit array
+        DataMatrix<double> dComposedArray;
+        dComposedArray.Initialize ( nAdjFaces, meshThisElement.faces.size() );
+
+        for ( int i = 0; i < nAdjFaces; i++ )
+        {
+            for ( size_t j = 0; j < meshThisElement.faces.size(); j++ )
+            {
+                for ( int k = 0; k < nCoefficients; k++ )
+                {
+                    dComposedArray[i][j] += dIntArray[k][j] * dFitArrayPlus[i][k];
+                }
+            }
+        }
+
+        // Apply redistribution operator
+        DataMatrix<double> dRedistributedArray;
+        dRedistributedArray.Initialize ( nAdjFaces, meshThisElement.faces.size() );
+
+        for ( int i = 0; i < nAdjFaces; i++ )
+        {
+            for ( size_t j = 0; j < meshThisElement.faces.size(); j++ )
+            {
+                int ixSubElement = j % ( nP * nP );
+                int ixElement = j / ( nP * nP );
+
+                int ixSecondFace =
+                    m_meshOverlap->vecTargetFaceIx[ixOverlap + ixElement];
+
+                for ( int k = 0; k < nP * nP; k++ )
+                {
+                    dRedistributedArray[i][j] +=
+                        dComposedArray[i][ixElement * nP * nP + k]
+                        * dRedistributionMaps[ixSecondFace][ixSubElement][k];
+                }
+            }
+        }
+
+        // Put composed array into map
+        for ( size_t i = 0; i < vecAdjFaces.size(); i++ )
+        {
+            for ( size_t j = 0; j < meshThisElement.faces.size(); j++ )
+            {
+                int ixFirstFace = vecAdjFaces[i].first;
+                int ixSecondNode = meshThisElement.vecTargetFaceIx[j];
+
+                smatMap ( ixSecondNode, ixFirstFace ) +=
+                    dRedistributedArray[i][j]
+                    / dataGLLNodalArea[ixSecondNode];
+                // meshThisElement.vecFaceArea[j];
+                // dataGLLJacobian[ixS][ixT][ixSecondElement];
+            }
+        }
+
+        // Increment the current overlap index
+        ixOverlap += nOverlapFaces;
+
+        //_EXCEPTION();
+    }
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -1496,7 +1491,7 @@ void moab::TempestOfflineMap::LinearRemapFVtoGLL_MOAB (
     DataMatrix<double> dSampleCoeff;
     dSampleCoeff.Initialize ( nP, nP );
 
-            // Number of elements needed
+    // Number of elements needed
 #ifdef RECTANGULAR_TRUNCATION
     int nCoefficients = nOrder * nOrder;
 #endif
@@ -1673,15 +1668,15 @@ void moab::TempestOfflineMap::LinearRemapFVtoGLL_MOAB (
                         nodeQuadrature,
                         dAlpha,
                         dBeta );
-                        /*
-                                            // Check inverse map value
-                                            if ((dAlpha < -1.0e-12) || (dAlpha > 1.0 + 1.0e-12) ||
-                                                (dBeta  < -1.0e-12) || (dBeta  > 1.0 + 1.0e-12)
-                                            ) {
-                                                _EXCEPTION2("Inverse Map out of range (%1.5e %1.5e)",
-                                                    dAlpha, dBeta);
-                                            }
-                        */
+                    /*
+                                        // Check inverse map value
+                                        if ((dAlpha < -1.0e-12) || (dAlpha > 1.0 + 1.0e-12) ||
+                                            (dBeta  < -1.0e-12) || (dBeta  > 1.0 + 1.0e-12)
+                                        ) {
+                                            _EXCEPTION2("Inverse Map out of range (%1.5e %1.5e)",
+                                                dAlpha, dBeta);
+                                        }
+                    */
                     // Sample the finite element at this point
                     SampleGLLFiniteElement (
                         nMonotoneType,
@@ -1955,330 +1950,255 @@ void moab::TempestOfflineMap::LinearRemapFVtoGLL_MOAB (
 
 ///////////////////////////////////////////////////////////////////////////////
 
-                void moab::TempestOfflineMap::LinearRemapGLLtoGLL2_MOAB (
-                    const DataMatrix3D<int> & dataGLLNodesIn,
-                    const DataMatrix3D<double> & dataGLLJacobianIn,
-                    const DataMatrix3D<int> & dataGLLNodesOut,
-                    const DataMatrix3D<double> & dataGLLJacobianOut,
-                    const DataVector<double> & dataNodalAreaOut,
-                    int nPin,
-                    int nPout,
-                    int nMonotoneType,
-                    bool fContinuousIn,
-                    bool fContinuousOut,
-                    bool fNoConservation
-                )
+void moab::TempestOfflineMap::LinearRemapGLLtoGLL2_MOAB (
+    const DataMatrix3D<int> & dataGLLNodesIn,
+    const DataMatrix3D<double> & dataGLLJacobianIn,
+    const DataMatrix3D<int> & dataGLLNodesOut,
+    const DataMatrix3D<double> & dataGLLJacobianOut,
+    const DataVector<double> & dataNodalAreaOut,
+    int nPin,
+    int nPout,
+    int nMonotoneType,
+    bool fContinuousIn,
+    bool fContinuousOut,
+    bool fNoConservation
+)
+{
+    // Triangular quadrature rule
+    TriangularQuadratureRule triquadrule ( 8 );
+
+    const DataMatrix<double> & dG = triquadrule.GetG();
+    const DataVector<double> & dW = triquadrule.GetW();
+
+    // Get SparseMatrix represntation of the OfflineMap
+    SparseMatrix<double> & smatMap = this->GetSparseMatrix();
+
+    // Sample coefficients
+    DataMatrix<double> dSampleCoeffIn;
+    dSampleCoeffIn.Initialize ( nPin, nPin );
+
+    DataMatrix<double> dSampleCoeffOut;
+    dSampleCoeffOut.Initialize ( nPout, nPout );
+
+    // Announcemnets
+    if ( !pcomm->rank() )
+    {
+        Announce ( "[moab::TempestOfflineMap::LinearRemapGLLtoGLL2_MOAB] Finite Element to Finite Element Projection" );
+        Announce ( "Order of the input FE polynomial interpolant: %i", nPin );
+        Announce ( "Order of the output FE polynomial interpolant: %i", nPout );
+    }
+
+    // Build the integration array for each element on m_meshOverlap
+    DataMatrix3D<double> dGlobalIntArray;
+    dGlobalIntArray.Initialize (
+        nPin * nPin,
+        m_meshOverlap->faces.size(),
+        nPout * nPout );
+
+    // Number of overlap Faces per source Face
+    DataVector<int> nAllOverlapFaces;
+    nAllOverlapFaces.Initialize ( m_meshInputCov->faces.size() );
+
+    int ixOverlap = 0;
+
+    for ( size_t ixFirst = 0; ixFirst < m_meshInputCov->faces.size(); ixFirst++ )
+    {
+        size_t ixOverlapTemp = ixOverlap;
+        for ( ; ixOverlapTemp < m_meshOverlap->faces.size(); ixOverlapTemp++ )
+        {
+            // const Face & faceOverlap = m_meshOverlap->faces[ixOverlapTemp];
+
+            if ( ixFirst - m_meshOverlap->vecSourceFaceIx[ixOverlapTemp] != 0 )
+            {
+                break;
+            }
+
+            nAllOverlapFaces[ixFirst]++;
+        }
+
+        // Increment the current overlap index
+        ixOverlap += nAllOverlapFaces[ixFirst];
+    }
+
+    // Geometric area of each output node
+    DataMatrix<double> dGeometricOutputArea;
+    dGeometricOutputArea.Initialize (
+        m_meshOutput->faces.size(), nPout * nPout );
+
+    // Area of each overlap element in the output basis
+    DataMatrix<double> dOverlapOutputArea;
+    dOverlapOutputArea.Initialize (
+        m_meshOverlap->faces.size(), nPout * nPout );
+
+    // Loop through all faces on m_meshInput
+    ixOverlap = 0;
+
+    if ( !pcomm->rank() )
+        Announce ( "Building conservative distribution maps" );
+    for ( size_t ixFirst = 0; ixFirst < m_meshInputCov->faces.size(); ixFirst++ )
+    {
+        // Output every 100 elements
+        if ( ixFirst % 1000 == 0 && !pcomm->rank() )
+        {
+            Announce ( "Element %i", ixFirst );
+        }
+
+        // Quantities from the First Mesh
+        const Face & faceFirst = m_meshInputCov->faces[ixFirst];
+
+        const NodeVector & nodesFirst = m_meshInputCov->nodes;
+
+        // Number of overlapping Faces and triangles
+        int nOverlapFaces = nAllOverlapFaces[ixFirst];
+
+        if ( !nOverlapFaces ) continue;
+        /*
+                // Calculate total element Jacobian
+                double dTotalJacobian = 0.0;
+                for (int s = 0; s < nPin; s++) {
+                for (int t = 0; t < nPin; t++) {
+                    dTotalJacobian += dataGLLJacobianIn[s][t][ixFirst];
+                }
+                }
+        */
+
+        // Loop through all Overlap Faces
+        for ( int i = 0; i < nOverlapFaces; i++ )
+        {
+
+            // Quantities from the overlap Mesh
+            const Face & faceOverlap = m_meshOverlap->faces[ixOverlap + i];
+
+            const NodeVector & nodesOverlap = m_meshOverlap->nodes;
+
+            int nOverlapTriangles = faceOverlap.edges.size() - 2;
+
+            // Quantities from the Second Mesh
+            int ixSecond = m_meshOverlap->vecTargetFaceIx[ixOverlap + i];
+
+            const NodeVector & nodesSecond = m_meshOutput->nodes;
+
+            const Face & faceSecond = m_meshOutput->faces[ixSecond];
+
+            // Loop over all sub-triangles of this Overlap Face
+            for ( int j = 0; j < nOverlapTriangles; j++ )
+            {
+
+                // Cornerpoints of triangle
+                const Node & node0 = nodesOverlap[faceOverlap[0]];
+                const Node & node1 = nodesOverlap[faceOverlap[j + 1]];
+                const Node & node2 = nodesOverlap[faceOverlap[j + 2]];
+
+                // Calculate the area of the modified Face
+                Face faceTri ( 3 );
+                faceTri.SetNode ( 0, faceOverlap[0] );
+                faceTri.SetNode ( 1, faceOverlap[j + 1] );
+                faceTri.SetNode ( 2, faceOverlap[j + 2] );
+
+                double dTriArea =
+                    CalculateFaceArea ( faceTri, nodesOverlap );
+
+                for ( int k = 0; k < triquadrule.GetPoints(); k++ )
                 {
-                    // Triangular quadrature rule
-                    TriangularQuadratureRule triquadrule ( 8 );
+                    double * dGL = dG[k];
 
-                    const DataMatrix<double> & dG = triquadrule.GetG();
-                    const DataVector<double> & dW = triquadrule.GetW();
+                    // Get the nodal location of this point
+                    double dX[3];
 
-                    // Get SparseMatrix represntation of the OfflineMap
-                    SparseMatrix<double> & smatMap = this->GetSparseMatrix();
+                    dX[0] = dGL[0] * node0.x + dGL[1] * node1.x + dGL[2] * node2.x;
+                    dX[1] = dGL[0] * node0.y + dGL[1] * node1.y + dGL[2] * node2.y;
+                    dX[2] = dGL[0] * node0.z + dGL[1] * node1.z + dGL[2] * node2.z;
 
-                    // Sample coefficients
-                    DataMatrix<double> dSampleCoeffIn;
-                    dSampleCoeffIn.Initialize ( nPin, nPin );
+                    double dMag =
+                        sqrt ( dX[0] * dX[0] + dX[1] * dX[1] + dX[2] * dX[2] );
 
-                    DataMatrix<double> dSampleCoeffOut;
-                    dSampleCoeffOut.Initialize ( nPout, nPout );
+                    dX[0] /= dMag;
+                    dX[1] /= dMag;
+                    dX[2] /= dMag;
 
-                    // Announcemnets
-                    if ( !pcomm->rank() )
+                    Node nodeQuadrature ( dX[0], dX[1], dX[2] );
+
+                    // Find the components of this quadrature point in the basis
+                    // of the first Face.
+                    double dAlphaIn;
+                    double dBetaIn;
+
+                    ApplyInverseMap (
+                        faceFirst,
+                        nodesFirst,
+                        nodeQuadrature,
+                        dAlphaIn,
+                        dBetaIn );
+
+                    // Find the components of this quadrature point in the basis
+                    // of the second Face.
+                    double dAlphaOut;
+                    double dBetaOut;
+
+                    ApplyInverseMap (
+                        faceSecond,
+                        nodesSecond,
+                        nodeQuadrature,
+                        dAlphaOut,
+                        dBetaOut );
+
+                    /*
+                                        // Check inverse map value
+                                        if ((dAlphaIn < 0.0) || (dAlphaIn > 1.0) ||
+                                            (dBetaIn  < 0.0) || (dBetaIn  > 1.0)
+                                        ) {
+                                            _EXCEPTION2("Inverse Map out of range (%1.5e %1.5e)",
+                                                dAlphaIn, dBetaIn);
+                                        }
+
+                                        // Check inverse map value
+                                        if ((dAlphaOut < 0.0) || (dAlphaOut > 1.0) ||
+                                            (dBetaOut  < 0.0) || (dBetaOut  > 1.0)
+                                        ) {
+                                            _EXCEPTION2("Inverse Map out of range (%1.5e %1.5e)",
+                                                dAlphaOut, dBetaOut);
+                                        }
+                    */
+                    // Sample the First finite element at this point
+                    SampleGLLFiniteElement (
+                        nMonotoneType,
+                        nPin,
+                        dAlphaIn,
+                        dBetaIn,
+                        dSampleCoeffIn );
+
+                    // Sample the Second finite element at this point
+                    SampleGLLFiniteElement (
+                        nMonotoneType,
+                        nPout,
+                        dAlphaOut,
+                        dBetaOut,
+                        dSampleCoeffOut );
+
+                    // Overlap output area
+                    for ( int s = 0; s < nPout; s++ )
                     {
-                        Announce ( "[moab::TempestOfflineMap::LinearRemapGLLtoGLL2_MOAB] Finite Element to Finite Element Projection" );
-                        Announce ( "Order of the input FE polynomial interpolant: %i", nPin );
-                        Announce ( "Order of the output FE polynomial interpolant: %i", nPout );
+                        for ( int t = 0; t < nPout; t++ )
+                        {
+                            double dNodeArea =
+                                dSampleCoeffOut[s][t]
+                                * dW[k]
+                                * dTriArea;
+
+                            dOverlapOutputArea[ixOverlap + i][s * nPout + t] +=
+                                dNodeArea;
+
+                            dGeometricOutputArea[ixSecond][s * nPout + t] +=
+                                dNodeArea;
+                        }
                     }
 
-                    // Build the integration array for each element on m_meshOverlap
-                    DataMatrix3D<double> dGlobalIntArray;
-                    dGlobalIntArray.Initialize (
-                        nPin * nPin,
-                        m_meshOverlap->faces.size(),
-                        nPout * nPout );
-
-                    // Number of overlap Faces per source Face
-                    DataVector<int> nAllOverlapFaces;
-                    nAllOverlapFaces.Initialize ( m_meshInputCov->faces.size() );
-
-                    int ixOverlap = 0;
-
-                    for ( size_t ixFirst = 0; ixFirst < m_meshInputCov->faces.size(); ixFirst++ )
+                    // Compute overlap integral
+                    int ixp = 0;
+                    for ( int p = 0; p < nPin; p++ )
                     {
-                        size_t ixOverlapTemp = ixOverlap;
-                        for ( ; ixOverlapTemp < m_meshOverlap->faces.size(); ixOverlapTemp++ )
+                        for ( int q = 0; q < nPin; q++ )
                         {
-                            // const Face & faceOverlap = m_meshOverlap->faces[ixOverlapTemp];
-
-                            if ( ixFirst - m_meshOverlap->vecSourceFaceIx[ixOverlapTemp] != 0 )
-                            {
-                                break;
-                            }
-
-                            nAllOverlapFaces[ixFirst]++;
-                        }
-
-                        // Increment the current overlap index
-                        ixOverlap += nAllOverlapFaces[ixFirst];
-                    }
-
-                    // Geometric area of each output node
-                    DataMatrix<double> dGeometricOutputArea;
-                    dGeometricOutputArea.Initialize (
-                        m_meshOutput->faces.size(), nPout * nPout );
-
-                    // Area of each overlap element in the output basis
-                    DataMatrix<double> dOverlapOutputArea;
-                    dOverlapOutputArea.Initialize (
-                        m_meshOverlap->faces.size(), nPout * nPout );
-
-                    // Loop through all faces on m_meshInput
-                    ixOverlap = 0;
-
-                    if ( !pcomm->rank() )
-                        Announce ( "Building conservative distribution maps" );
-                    for ( size_t ixFirst = 0; ixFirst < m_meshInputCov->faces.size(); ixFirst++ )
-                    {
-                        // Output every 100 elements
-                        if ( ixFirst % 1000 == 0 && !pcomm->rank() )
-                        {
-                            Announce ( "Element %i", ixFirst );
-                        }
-
-                        // Quantities from the First Mesh
-                        const Face & faceFirst = m_meshInputCov->faces[ixFirst];
-
-                        const NodeVector & nodesFirst = m_meshInputCov->nodes;
-
-                        // Number of overlapping Faces and triangles
-                        int nOverlapFaces = nAllOverlapFaces[ixFirst];
-
-                        if (!nOverlapFaces) continue;
-                        /*
-                                // Calculate total element Jacobian
-                                double dTotalJacobian = 0.0;
-                                for (int s = 0; s < nPin; s++) {
-                                for (int t = 0; t < nPin; t++) {
-                                    dTotalJacobian += dataGLLJacobianIn[s][t][ixFirst];
-                                }
-                                }
-                        */
-
-                        // Loop through all Overlap Faces
-                        for ( int i = 0; i < nOverlapFaces; i++ )
-                        {
-
-                            // Quantities from the overlap Mesh
-                            const Face & faceOverlap = m_meshOverlap->faces[ixOverlap + i];
-
-                            const NodeVector & nodesOverlap = m_meshOverlap->nodes;
-
-                            int nOverlapTriangles = faceOverlap.edges.size() - 2;
-
-                            // Quantities from the Second Mesh
-                            int ixSecond = m_meshOverlap->vecTargetFaceIx[ixOverlap + i];
-
-                            const NodeVector & nodesSecond = m_meshOutput->nodes;
-
-                            const Face & faceSecond = m_meshOutput->faces[ixSecond];
-
-                            // Loop over all sub-triangles of this Overlap Face
-                            for ( int j = 0; j < nOverlapTriangles; j++ )
-                            {
-
-                                // Cornerpoints of triangle
-                                const Node & node0 = nodesOverlap[faceOverlap[0]];
-                                const Node & node1 = nodesOverlap[faceOverlap[j + 1]];
-                                const Node & node2 = nodesOverlap[faceOverlap[j + 2]];
-
-                                // Calculate the area of the modified Face
-                                Face faceTri ( 3 );
-                                faceTri.SetNode ( 0, faceOverlap[0] );
-                                faceTri.SetNode ( 1, faceOverlap[j + 1] );
-                                faceTri.SetNode ( 2, faceOverlap[j + 2] );
-
-                                double dTriArea =
-                                    CalculateFaceArea ( faceTri, nodesOverlap );
-
-                                for ( int k = 0; k < triquadrule.GetPoints(); k++ )
-                                {
-                                    double * dGL = dG[k];
-
-                                    // Get the nodal location of this point
-                                    double dX[3];
-
-                                    dX[0] = dGL[0] * node0.x + dGL[1] * node1.x + dGL[2] * node2.x;
-                                    dX[1] = dGL[0] * node0.y + dGL[1] * node1.y + dGL[2] * node2.y;
-                                    dX[2] = dGL[0] * node0.z + dGL[1] * node1.z + dGL[2] * node2.z;
-
-                                    double dMag =
-                                        sqrt ( dX[0] * dX[0] + dX[1] * dX[1] + dX[2] * dX[2] );
-
-                                    dX[0] /= dMag;
-                                    dX[1] /= dMag;
-                                    dX[2] /= dMag;
-
-                                    Node nodeQuadrature ( dX[0], dX[1], dX[2] );
-
-                                    // Find the components of this quadrature point in the basis
-                                    // of the first Face.
-                                    double dAlphaIn;
-                                    double dBetaIn;
-
-                                    ApplyInverseMap (
-                                        faceFirst,
-                                        nodesFirst,
-                                        nodeQuadrature,
-                                        dAlphaIn,
-                                        dBetaIn );
-
-                                    // Find the components of this quadrature point in the basis
-                                    // of the second Face.
-                                    double dAlphaOut;
-                                    double dBetaOut;
-
-                                    ApplyInverseMap (
-                                        faceSecond,
-                                        nodesSecond,
-                                        nodeQuadrature,
-                                        dAlphaOut,
-                                        dBetaOut );
-
-                                    /*
-                                                        // Check inverse map value
-                                                        if ((dAlphaIn < 0.0) || (dAlphaIn > 1.0) ||
-                                                            (dBetaIn  < 0.0) || (dBetaIn  > 1.0)
-                                                        ) {
-                                                            _EXCEPTION2("Inverse Map out of range (%1.5e %1.5e)",
-                                                                dAlphaIn, dBetaIn);
-                                                        }
-
-                                                        // Check inverse map value
-                                                        if ((dAlphaOut < 0.0) || (dAlphaOut > 1.0) ||
-                                                            (dBetaOut  < 0.0) || (dBetaOut  > 1.0)
-                                                        ) {
-                                                            _EXCEPTION2("Inverse Map out of range (%1.5e %1.5e)",
-                                                                dAlphaOut, dBetaOut);
-                                                        }
-                                    */
-                                    // Sample the First finite element at this point
-                                    SampleGLLFiniteElement (
-                                        nMonotoneType,
-                                        nPin,
-                                        dAlphaIn,
-                                        dBetaIn,
-                                        dSampleCoeffIn );
-
-                                    // Sample the Second finite element at this point
-                                    SampleGLLFiniteElement (
-                                        nMonotoneType,
-                                        nPout,
-                                        dAlphaOut,
-                                        dBetaOut,
-                                        dSampleCoeffOut );
-
-                                    // Overlap output area
-                                    for ( int s = 0; s < nPout; s++ )
-                                    {
-                                        for ( int t = 0; t < nPout; t++ )
-                                        {
-                                            double dNodeArea =
-                                                dSampleCoeffOut[s][t]
-                                                * dW[k]
-                                                * dTriArea;
-
-                                            dOverlapOutputArea[ixOverlap + i][s * nPout + t] +=
-                                                dNodeArea;
-
-                                            dGeometricOutputArea[ixSecond][s * nPout + t] +=
-                                                dNodeArea;
-                                        }
-                                    }
-
-                                    // Compute overlap integral
-                                    int ixp = 0;
-                                    for ( int p = 0; p < nPin; p++ )
-                                    {
-                                        for ( int q = 0; q < nPin; q++ )
-                                        {
-
-                                            int ixs = 0;
-                                            for ( int s = 0; s < nPout; s++ )
-                                            {
-                                                for ( int t = 0; t < nPout; t++ )
-                                                {
-
-                                                    // Sample the Second finite element at this point
-                                                    dGlobalIntArray[ixp][ixOverlap + i][ixs] +=
-                                                        dSampleCoeffOut[s][t]
-                                                        * dSampleCoeffIn[p][q]
-                                                        * dW[k]
-                                                        * dTriArea;
-
-                                                    ixs++;
-                                                }
-                                            }
-
-                                            ixp++;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        // Coefficients
-                        DataMatrix<double> dCoeff;
-                        dCoeff.Initialize ( nOverlapFaces * nPout * nPout, nPin * nPin );
-
-                        for ( int i = 0; i < nOverlapFaces; i++ )
-                        {
-                            // int ixSecondFace = m_meshOverlap->vecTargetFaceIx[ixOverlap + i];
-
-                            int ixp = 0;
-                            for ( int p = 0; p < nPin; p++ )
-                            {
-                                for ( int q = 0; q < nPin; q++ )
-                                {
-
-                                    int ixs = 0;
-                                    for ( int s = 0; s < nPout; s++ )
-                                    {
-                                        for ( int t = 0; t < nPout; t++ )
-                                        {
-                                            dCoeff[i * nPout * nPout + ixs][ixp] =
-                                                dGlobalIntArray[ixp][ixOverlap + i][ixs]
-                                                / dOverlapOutputArea[ixOverlap + i][s * nPout + t];
-
-                                            ixs++;
-                                        }
-                                    }
-
-                                    ixp++;
-                                }
-                            }
-                        }
-
-                        // Source areas
-                        DataVector<double> vecSourceArea ( nPin * nPin );
-
-                        for ( int p = 0; p < nPin; p++ )
-                        {
-                            for ( int q = 0; q < nPin; q++ )
-                            {
-                                vecSourceArea[p * nPin + q] =
-                                    dataGLLJacobianIn[p][q][ixFirst];
-                            }
-                        }
-
-                        // Target areas
-                        DataVector<double> vecTargetArea ( nOverlapFaces * nPout * nPout );
-
-                        for ( int i = 0; i < nOverlapFaces; i++ )
-                        {
-                            // int ixSecond = m_meshOverlap->vecTargetFaceIx[ixOverlap + i];
 
                             int ixs = 0;
                             for ( int s = 0; s < nPout; s++ )
@@ -2286,464 +2206,539 @@ void moab::TempestOfflineMap::LinearRemapFVtoGLL_MOAB (
                                 for ( int t = 0; t < nPout; t++ )
                                 {
 
-                                    vecTargetArea[i * nPout * nPout + ixs] =
-                                        dOverlapOutputArea[ixOverlap + i][nPout * s + t];
+                                    // Sample the Second finite element at this point
+                                    dGlobalIntArray[ixp][ixOverlap + i][ixs] +=
+                                        dSampleCoeffOut[s][t]
+                                        * dSampleCoeffIn[p][q]
+                                        * dW[k]
+                                        * dTriArea;
 
                                     ixs++;
                                 }
                             }
+
+                            ixp++;
                         }
-
-                        // Force consistency and conservation
-                        if ( !fNoConservation )
-                        {
-                            ForceIntArrayConsistencyConservation (
-                                vecSourceArea,
-                                vecTargetArea,
-                                dCoeff,
-                                ( nMonotoneType != 0 ) );
-                        }
-
-                        // Update global coefficients
-                        for ( int i = 0; i < nOverlapFaces; i++ )
-                        {
-                            int ixp = 0;
-                            for ( int p = 0; p < nPin; p++ )
-                            {
-                                for ( int q = 0; q < nPin; q++ )
-                                {
-                                    int ixs = 0;
-                                    for ( int s = 0; s < nPout; s++ )
-                                    {
-                                        for ( int t = 0; t < nPout; t++ )
-                                        {
-
-                                            dGlobalIntArray[ixp][ixOverlap + i][ixs] =
-                                                dCoeff[i * nPout * nPout + ixs][ixp]
-                                                * dOverlapOutputArea[ixOverlap + i][s * nPout + t];
-
-                                            ixs++;
-                                        }
-                                    }
-
-                                    ixp++;
-                                }
-                            }
-                        }
-                        /*
-                                // Check column sums (conservation)
-                                for (int i = 0; i < nPin * nPin; i++) {
-                                    double dColSum = 0.0;
-                                    for (int j = 0; j < nOverlapFaces * nPout * nPout; j++) {
-                                        dColSum += dCoeff[j][i] * vecTargetArea[j];
-                                    }
-                                    printf("Col %i: %1.15e\n", i, dColSum / vecSourceArea[i]);
-                                }
-
-                                // Check row sums (consistency)
-                                for (int j = 0; j < nOverlapFaces * nPout * nPout; j++) {
-                                    double dRowSum = 0.0;
-                                    for (int i = 0; i < nPin * nPin; i++) {
-                                        dRowSum += dCoeff[j][i];
-                                    }
-                                    printf("Row %i: %1.15e\n", j, dRowSum);
-                                }
-                                _EXCEPTION();
-                        */
-
-                        // Increment the current overlap index
-                        ixOverlap += nOverlapFaces;
-                    }
-
-                    // Build redistribution map within target element
-                    Announce ( "Building redistribution maps on target mesh" );
-                    DataVector<double> dRedistSourceArea ( nPout * nPout );
-                    DataVector<double> dRedistTargetArea ( nPout * nPout );
-                    std::vector< DataMatrix<double> > dRedistributionMaps;
-                    dRedistributionMaps.resize ( m_meshOutput->faces.size() );
-
-                    for ( size_t ixSecond = 0; ixSecond < m_meshOutput->faces.size(); ixSecond++ )
-                    {
-                        dRedistributionMaps[ixSecond].Initialize (
-                            nPout * nPout, nPout * nPout );
-
-                        for ( int i = 0; i < nPout * nPout; i++ )
-                        {
-                            dRedistributionMaps[ixSecond][i][i] = 1.0;
-                        }
-
-                        for ( int s = 0; s < nPout * nPout; s++ )
-                        {
-                            dRedistSourceArea[s] =
-                                dGeometricOutputArea[ixSecond][s];
-                        }
-
-                        for ( int s = 0; s < nPout * nPout; s++ )
-                        {
-                            dRedistTargetArea[s] =
-                                dataGLLJacobianOut[s / nPout][s % nPout][ixSecond];
-                        }
-
-                        if ( !fNoConservation )
-                        {
-                            ForceIntArrayConsistencyConservation (
-                                dRedistSourceArea,
-                                dRedistTargetArea,
-                                dRedistributionMaps[ixSecond],
-                                ( nMonotoneType != 0 ) );
-
-                            for ( int s = 0; s < nPout * nPout; s++ )
-                            {
-                                for ( int t = 0; t < nPout * nPout; t++ )
-                                {
-                                    dRedistributionMaps[ixSecond][s][t] *=
-                                        dRedistTargetArea[s] / dRedistSourceArea[t];
-                                }
-                            }
-                        }
-                    }
-
-                    // Construct the total geometric area
-                    DataVector<double> dTotalGeometricArea ( dataNodalAreaOut.GetRows() );
-                    for ( size_t ixSecond = 0; ixSecond < m_meshOutput->faces.size(); ixSecond++ )
-                    {
-                        for ( int s = 0; s < nPout; s++ )
-                        {
-                            for ( int t = 0; t < nPout; t++ )
-                            {
-                                dTotalGeometricArea[dataGLLNodesOut[s][t][ixSecond] - 1]
-                                += dGeometricOutputArea[ixSecond][s * nPout + t];
-                            }
-                        }
-                    }
-
-                    // Compose the integration operator with the output map
-                    ixOverlap = 0;
-
-                    Announce ( "Assembling map" );
-
-                    // Map from source DOFs to target DOFs with redistribution applied
-                    DataMatrix<double> dRedistributedOp (
-                        nPin * nPin, nPout * nPout );
-
-                    for ( size_t ixFirst = 0; ixFirst < m_meshInputCov->faces.size(); ixFirst++ )
-                    {
-
-                        // Output every 100 elements
-                        if ( ixFirst % 1000 == 0 )
-                        {
-                            Announce ( "Element %i", ixFirst );
-                        }
-
-                        // This Face
-                        // const Face & faceFirst = m_meshInputCov->faces[ixFirst];
-
-                        // Number of overlapping Faces and triangles
-                        int nOverlapFaces = nAllOverlapFaces[ixFirst];
-
-                        // Put composed array into map
-                        for ( int j = 0; j < nOverlapFaces; j++ )
-                        {
-                            int ixSecondFace = m_meshOverlap->vecTargetFaceIx[ixOverlap + j];
-
-                            dRedistributedOp.Zero();
-                            for ( int p = 0; p < nPin * nPin; p++ )
-                            {
-                                for ( int s = 0; s < nPout * nPout; s++ )
-                                {
-                                    for ( int t = 0; t < nPout * nPout; t++ )
-                                    {
-                                        dRedistributedOp[p][s] +=
-                                            dRedistributionMaps[ixSecondFace][s][t]
-                                            * dGlobalIntArray[p][ixOverlap + j][t];
-                                    }
-                                }
-                            }
-
-                            int ixp = 0;
-                            for ( int p = 0; p < nPin; p++ )
-                            {
-                                for ( int q = 0; q < nPin; q++ )
-                                {
-
-                                    int ixFirstNode;
-                                    if ( fContinuousIn )
-                                    {
-                                        ixFirstNode = dataGLLNodesIn[p][q][ixFirst] - 1;
-                                    }
-                                    else
-                                    {
-                                        ixFirstNode = ixFirst * nPin * nPin + p * nPin + q;
-                                    }
-
-                                    int ixs = 0;
-                                    for ( int s = 0; s < nPout; s++ )
-                                    {
-                                        for ( int t = 0; t < nPout; t++ )
-                                        {
-
-                                            int ixSecondNode;
-                                            if ( fContinuousOut )
-                                            {
-                                                ixSecondNode = dataGLLNodesOut[s][t][ixSecondFace] - 1;
-
-                                                if ( !fNoConservation )
-                                                {
-                                                    smatMap ( ixSecondNode, ixFirstNode ) +=
-                                                        dRedistributedOp[ixp][ixs]
-                                                        / dataNodalAreaOut[ixSecondNode];
-                                                }
-                                                else
-                                                {
-                                                    smatMap ( ixSecondNode, ixFirstNode ) +=
-                                                        dRedistributedOp[ixp][ixs]
-                                                        / dTotalGeometricArea[ixSecondNode];
-                                                }
-
-                                            }
-                                            else
-                                            {
-                                                ixSecondNode =
-                                                    ixSecondFace * nPout * nPout + s * nPout + t;
-
-                                                if ( !fNoConservation )
-                                                {
-                                                    smatMap ( ixSecondNode, ixFirstNode ) +=
-                                                        dRedistributedOp[ixp][ixs]
-                                                        / dataGLLJacobianOut[s][t][ixSecondFace];
-                                                }
-                                                else
-                                                {
-                                                    smatMap ( ixSecondNode, ixFirstNode ) +=
-                                                        dRedistributedOp[ixp][ixs]
-                                                        / dGeometricOutputArea[ixSecondFace][s * nPout + t];
-                                                }
-                                            }
-
-                                            ixs++;
-                                        }
-                                    }
-
-                                    ixp++;
-                                }
-                            }
-                        }
-
-                        // Increment the current overlap index
-                        ixOverlap += nOverlapFaces;
                     }
                 }
+            }
+        }
+
+        // Coefficients
+        DataMatrix<double> dCoeff;
+        dCoeff.Initialize ( nOverlapFaces * nPout * nPout, nPin * nPin );
+
+        for ( int i = 0; i < nOverlapFaces; i++ )
+        {
+            // int ixSecondFace = m_meshOverlap->vecTargetFaceIx[ixOverlap + i];
+
+            int ixp = 0;
+            for ( int p = 0; p < nPin; p++ )
+            {
+                for ( int q = 0; q < nPin; q++ )
+                {
+
+                    int ixs = 0;
+                    for ( int s = 0; s < nPout; s++ )
+                    {
+                        for ( int t = 0; t < nPout; t++ )
+                        {
+                            dCoeff[i * nPout * nPout + ixs][ixp] =
+                                dGlobalIntArray[ixp][ixOverlap + i][ixs]
+                                / dOverlapOutputArea[ixOverlap + i][s * nPout + t];
+
+                            ixs++;
+                        }
+                    }
+
+                    ixp++;
+                }
+            }
+        }
+
+        // Source areas
+        DataVector<double> vecSourceArea ( nPin * nPin );
+
+        for ( int p = 0; p < nPin; p++ )
+        {
+            for ( int q = 0; q < nPin; q++ )
+            {
+                vecSourceArea[p * nPin + q] =
+                    dataGLLJacobianIn[p][q][ixFirst];
+            }
+        }
+
+        // Target areas
+        DataVector<double> vecTargetArea ( nOverlapFaces * nPout * nPout );
+
+        for ( int i = 0; i < nOverlapFaces; i++ )
+        {
+            // int ixSecond = m_meshOverlap->vecTargetFaceIx[ixOverlap + i];
+
+            int ixs = 0;
+            for ( int s = 0; s < nPout; s++ )
+            {
+                for ( int t = 0; t < nPout; t++ )
+                {
+
+                    vecTargetArea[i * nPout * nPout + ixs] =
+                        dOverlapOutputArea[ixOverlap + i][nPout * s + t];
+
+                    ixs++;
+                }
+            }
+        }
+
+        // Force consistency and conservation
+        if ( !fNoConservation )
+        {
+            ForceIntArrayConsistencyConservation (
+                vecSourceArea,
+                vecTargetArea,
+                dCoeff,
+                ( nMonotoneType != 0 ) );
+        }
+
+        // Update global coefficients
+        for ( int i = 0; i < nOverlapFaces; i++ )
+        {
+            int ixp = 0;
+            for ( int p = 0; p < nPin; p++ )
+            {
+                for ( int q = 0; q < nPin; q++ )
+                {
+                    int ixs = 0;
+                    for ( int s = 0; s < nPout; s++ )
+                    {
+                        for ( int t = 0; t < nPout; t++ )
+                        {
+
+                            dGlobalIntArray[ixp][ixOverlap + i][ixs] =
+                                dCoeff[i * nPout * nPout + ixs][ixp]
+                                * dOverlapOutputArea[ixOverlap + i][s * nPout + t];
+
+                            ixs++;
+                        }
+                    }
+
+                    ixp++;
+                }
+            }
+        }
+        /*
+                // Check column sums (conservation)
+                for (int i = 0; i < nPin * nPin; i++) {
+                    double dColSum = 0.0;
+                    for (int j = 0; j < nOverlapFaces * nPout * nPout; j++) {
+                        dColSum += dCoeff[j][i] * vecTargetArea[j];
+                    }
+                    printf("Col %i: %1.15e\n", i, dColSum / vecSourceArea[i]);
+                }
+
+                // Check row sums (consistency)
+                for (int j = 0; j < nOverlapFaces * nPout * nPout; j++) {
+                    double dRowSum = 0.0;
+                    for (int i = 0; i < nPin * nPin; i++) {
+                        dRowSum += dCoeff[j][i];
+                    }
+                    printf("Row %i: %1.15e\n", j, dRowSum);
+                }
+                _EXCEPTION();
+        */
+
+        // Increment the current overlap index
+        ixOverlap += nOverlapFaces;
+    }
+
+    // Build redistribution map within target element
+    Announce ( "Building redistribution maps on target mesh" );
+    DataVector<double> dRedistSourceArea ( nPout * nPout );
+    DataVector<double> dRedistTargetArea ( nPout * nPout );
+    std::vector< DataMatrix<double> > dRedistributionMaps;
+    dRedistributionMaps.resize ( m_meshOutput->faces.size() );
+
+    for ( size_t ixSecond = 0; ixSecond < m_meshOutput->faces.size(); ixSecond++ )
+    {
+        dRedistributionMaps[ixSecond].Initialize (
+            nPout * nPout, nPout * nPout );
+
+        for ( int i = 0; i < nPout * nPout; i++ )
+        {
+            dRedistributionMaps[ixSecond][i][i] = 1.0;
+        }
+
+        for ( int s = 0; s < nPout * nPout; s++ )
+        {
+            dRedistSourceArea[s] =
+                dGeometricOutputArea[ixSecond][s];
+        }
+
+        for ( int s = 0; s < nPout * nPout; s++ )
+        {
+            dRedistTargetArea[s] =
+                dataGLLJacobianOut[s / nPout][s % nPout][ixSecond];
+        }
+
+        if ( !fNoConservation )
+        {
+            ForceIntArrayConsistencyConservation (
+                dRedistSourceArea,
+                dRedistTargetArea,
+                dRedistributionMaps[ixSecond],
+                ( nMonotoneType != 0 ) );
+
+            for ( int s = 0; s < nPout * nPout; s++ )
+            {
+                for ( int t = 0; t < nPout * nPout; t++ )
+                {
+                    dRedistributionMaps[ixSecond][s][t] *=
+                        dRedistTargetArea[s] / dRedistSourceArea[t];
+                }
+            }
+        }
+    }
+
+    // Construct the total geometric area
+    DataVector<double> dTotalGeometricArea ( dataNodalAreaOut.GetRows() );
+    for ( size_t ixSecond = 0; ixSecond < m_meshOutput->faces.size(); ixSecond++ )
+    {
+        for ( int s = 0; s < nPout; s++ )
+        {
+            for ( int t = 0; t < nPout; t++ )
+            {
+                dTotalGeometricArea[dataGLLNodesOut[s][t][ixSecond] - 1]
+                += dGeometricOutputArea[ixSecond][s * nPout + t];
+            }
+        }
+    }
+
+    // Compose the integration operator with the output map
+    ixOverlap = 0;
+
+    Announce ( "Assembling map" );
+
+    // Map from source DOFs to target DOFs with redistribution applied
+    DataMatrix<double> dRedistributedOp (
+        nPin * nPin, nPout * nPout );
+
+    for ( size_t ixFirst = 0; ixFirst < m_meshInputCov->faces.size(); ixFirst++ )
+    {
+
+        // Output every 100 elements
+        if ( ixFirst % 1000 == 0 )
+        {
+            Announce ( "Element %i", ixFirst );
+        }
+
+        // This Face
+        // const Face & faceFirst = m_meshInputCov->faces[ixFirst];
+
+        // Number of overlapping Faces and triangles
+        int nOverlapFaces = nAllOverlapFaces[ixFirst];
+
+        // Put composed array into map
+        for ( int j = 0; j < nOverlapFaces; j++ )
+        {
+            int ixSecondFace = m_meshOverlap->vecTargetFaceIx[ixOverlap + j];
+
+            dRedistributedOp.Zero();
+            for ( int p = 0; p < nPin * nPin; p++ )
+            {
+                for ( int s = 0; s < nPout * nPout; s++ )
+                {
+                    for ( int t = 0; t < nPout * nPout; t++ )
+                    {
+                        dRedistributedOp[p][s] +=
+                            dRedistributionMaps[ixSecondFace][s][t]
+                            * dGlobalIntArray[p][ixOverlap + j][t];
+                    }
+                }
+            }
+
+            int ixp = 0;
+            for ( int p = 0; p < nPin; p++ )
+            {
+                for ( int q = 0; q < nPin; q++ )
+                {
+
+                    int ixFirstNode;
+                    if ( fContinuousIn )
+                    {
+                        ixFirstNode = dataGLLNodesIn[p][q][ixFirst] - 1;
+                    }
+                    else
+                    {
+                        ixFirstNode = ixFirst * nPin * nPin + p * nPin + q;
+                    }
+
+                    int ixs = 0;
+                    for ( int s = 0; s < nPout; s++ )
+                    {
+                        for ( int t = 0; t < nPout; t++ )
+                        {
+
+                            int ixSecondNode;
+                            if ( fContinuousOut )
+                            {
+                                ixSecondNode = dataGLLNodesOut[s][t][ixSecondFace] - 1;
+
+                                if ( !fNoConservation )
+                                {
+                                    smatMap ( ixSecondNode, ixFirstNode ) +=
+                                        dRedistributedOp[ixp][ixs]
+                                        / dataNodalAreaOut[ixSecondNode];
+                                }
+                                else
+                                {
+                                    smatMap ( ixSecondNode, ixFirstNode ) +=
+                                        dRedistributedOp[ixp][ixs]
+                                        / dTotalGeometricArea[ixSecondNode];
+                                }
+
+                            }
+                            else
+                            {
+                                ixSecondNode =
+                                    ixSecondFace * nPout * nPout + s * nPout + t;
+
+                                if ( !fNoConservation )
+                                {
+                                    smatMap ( ixSecondNode, ixFirstNode ) +=
+                                        dRedistributedOp[ixp][ixs]
+                                        / dataGLLJacobianOut[s][t][ixSecondFace];
+                                }
+                                else
+                                {
+                                    smatMap ( ixSecondNode, ixFirstNode ) +=
+                                        dRedistributedOp[ixp][ixs]
+                                        / dGeometricOutputArea[ixSecondFace][s * nPout + t];
+                                }
+                            }
+
+                            ixs++;
+                        }
+                    }
+
+                    ixp++;
+                }
+            }
+        }
+
+        // Increment the current overlap index
+        ixOverlap += nOverlapFaces;
+    }
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 
-                void moab::TempestOfflineMap::LinearRemapGLLtoGLL2_Pointwise_MOAB (
-                    const DataMatrix3D<int> & dataGLLNodesIn,
-                    const DataMatrix3D<double> & /*dataGLLJacobianIn*/,
-                    const DataMatrix3D<int> & dataGLLNodesOut,
-                    const DataMatrix3D<double> & /*dataGLLJacobianOut*/,
-                    const DataVector<double> & dataNodalAreaOut,
-                    int nPin,
-                    int nPout,
-                    int nMonotoneType,
-                    bool fContinuousIn,
-                    bool fContinuousOut
-                )
+void moab::TempestOfflineMap::LinearRemapGLLtoGLL2_Pointwise_MOAB (
+    const DataMatrix3D<int> & dataGLLNodesIn,
+    const DataMatrix3D<double> & /*dataGLLJacobianIn*/,
+    const DataMatrix3D<int> & dataGLLNodesOut,
+    const DataMatrix3D<double> & /*dataGLLJacobianOut*/,
+    const DataVector<double> & dataNodalAreaOut,
+    int nPin,
+    int nPout,
+    int nMonotoneType,
+    bool fContinuousIn,
+    bool fContinuousOut
+)
+{
+    // Gauss-Lobatto quadrature within Faces
+    DataVector<double> dGL;
+    DataVector<double> dWL;
+
+    GaussLobattoQuadrature::GetPoints ( nPout, 0.0, 1.0, dGL, dWL );
+
+    // Utilities
+    MeshUtilitiesFuzzy utils;
+
+    // Get SparseMatrix represntation of the OfflineMap
+    SparseMatrix<double> & smatMap = this->GetSparseMatrix();
+
+    // Sample coefficients
+    DataMatrix<double> dSampleCoeffIn;
+    dSampleCoeffIn.Initialize ( nPin, nPin );
+
+    // Announcemnets
+    if ( !pcomm->rank() )
+    {
+        Announce ( "[moab::TempestOfflineMap::LinearRemapGLLtoGLL2_Pointwise_MOAB] Finite Element to Finite Element (Pointwise) Projection" );
+        Announce ( "Order of the input FE polynomial interpolant: %i", nPin );
+        Announce ( "Order of the output FE polynomial interpolant: %i", nPout );
+    }
+
+    // Number of overlap Faces per source Face
+    DataVector<int> nAllOverlapFaces;
+    nAllOverlapFaces.Initialize ( m_meshInputCov->faces.size() );
+
+    int ixOverlap = 0;
+
+    for ( size_t ixFirst = 0; ixFirst < m_meshInputCov->faces.size(); ixFirst++ )
+    {
+        size_t ixOverlapTemp = ixOverlap;
+        for ( ; ixOverlapTemp < m_meshOverlap->faces.size(); ixOverlapTemp++ )
+        {
+            // const Face & faceOverlap = m_meshOverlap->faces[ixOverlapTemp];
+
+            if ( ixFirst - m_meshOverlap->vecSourceFaceIx[ixOverlapTemp] != 0 )
+                break;
+
+            nAllOverlapFaces[ixFirst]++;
+        }
+
+        // Increment the current overlap index
+        ixOverlap += nAllOverlapFaces[ixFirst];
+    }
+
+    // Number of times this point was found
+    DataVector<bool> fSecondNodeFound ( dataNodalAreaOut.GetRows() );
+
+    // Loop through all faces on m_meshInputCov
+    ixOverlap = 0;
+
+    for ( size_t ixFirst = 0; ixFirst < m_meshInputCov->faces.size(); ixFirst++ )
+    {
+        // Output every 100 elements
+        if ( ixFirst % 1000 == 0 )
+        {
+            Announce ( "Element %i", ixFirst );
+        }
+
+        // Quantities from the First Mesh
+        const Face & faceFirst = m_meshInputCov->faces[ixFirst];
+
+        const NodeVector & nodesFirst = m_meshInputCov->nodes;
+
+        // Number of overlapping Faces and triangles
+        int nOverlapFaces = nAllOverlapFaces[ixFirst];
+
+        // Loop through all Overlap Faces
+        for ( int i = 0; i < nOverlapFaces; i++ )
+        {
+            // Quantities from the overlap Mesh
+            // const Face & faceOverlap = m_meshOverlap->faces[ixOverlap + i];
+
+            // const NodeVector & nodesOverlap = m_meshOverlap->nodes;
+
+            // size_t nOverlapTriangles = faceOverlap.edges.size() - 2;
+
+            // Quantities from the Second Mesh
+            int ixSecond = m_meshOverlap->vecTargetFaceIx[ixOverlap + i];
+
+            const NodeVector & nodesSecond = m_meshOutput->nodes;
+
+            const Face & faceSecond = m_meshOutput->faces[ixSecond];
+
+            // Loop through all nodes on the second face
+            for ( int s = 0; s < nPout; s++ )
+            {
+                for ( int t = 0; t < nPout; t++ )
                 {
-                    // Gauss-Lobatto quadrature within Faces
-                    DataVector<double> dGL;
-                    DataVector<double> dWL;
-
-                    GaussLobattoQuadrature::GetPoints ( nPout, 0.0, 1.0, dGL, dWL );
-
-                    // Utilities
-                    MeshUtilitiesFuzzy utils;
-
-                    // Get SparseMatrix represntation of the OfflineMap
-                    SparseMatrix<double> & smatMap = this->GetSparseMatrix();
-
-                    // Sample coefficients
-                    DataMatrix<double> dSampleCoeffIn;
-                    dSampleCoeffIn.Initialize ( nPin, nPin );
-
-                    // Announcemnets
-                    if ( !pcomm->rank() )
+                    size_t ixSecondNode;
+                    if ( fContinuousOut )
                     {
-                        Announce ( "[moab::TempestOfflineMap::LinearRemapGLLtoGLL2_Pointwise_MOAB] Finite Element to Finite Element (Pointwise) Projection" );
-                        Announce ( "Order of the input FE polynomial interpolant: %i", nPin );
-                        Announce ( "Order of the output FE polynomial interpolant: %i", nPout );
+                        ixSecondNode = dataGLLNodesOut[s][t][ixSecond] - 1;
+                    }
+                    else
+                    {
+                        ixSecondNode =
+                            ixSecond * nPout * nPout + s * nPout + t;
                     }
 
-                    // Number of overlap Faces per source Face
-                    DataVector<int> nAllOverlapFaces;
-                    nAllOverlapFaces.Initialize ( m_meshInputCov->faces.size() );
-
-                    int ixOverlap = 0;
-
-                    for ( size_t ixFirst = 0; ixFirst < m_meshInputCov->faces.size(); ixFirst++ )
+                    if ( ixSecondNode >= fSecondNodeFound.GetRows() )
                     {
-                        size_t ixOverlapTemp = ixOverlap;
-                        for ( ; ixOverlapTemp < m_meshOverlap->faces.size(); ixOverlapTemp++ )
-                        {
-                            // const Face & faceOverlap = m_meshOverlap->faces[ixOverlapTemp];
-
-                            if ( ixFirst - m_meshOverlap->vecSourceFaceIx[ixOverlapTemp] != 0 )
-                                break;
-
-                            nAllOverlapFaces[ixFirst]++;
-                        }
-
-                        // Increment the current overlap index
-                        ixOverlap += nAllOverlapFaces[ixFirst];
+                        _EXCEPTIONT ( "Logic error" );
                     }
 
-                    // Number of times this point was found
-                    DataVector<bool> fSecondNodeFound ( dataNodalAreaOut.GetRows() );
-
-                    // Loop through all faces on m_meshInputCov
-                    ixOverlap = 0;
-
-                    for ( size_t ixFirst = 0; ixFirst < m_meshInputCov->faces.size(); ixFirst++ )
+                    // Check if this node has been found already
+                    if ( fSecondNodeFound[ixSecondNode] )
                     {
-                        // Output every 100 elements
-                        if ( ixFirst % 1000 == 0 )
+                        continue;
+                    }
+
+                    // Check this node
+                    Node node;
+                    Node dDx1G;
+                    Node dDx2G;
+
+                    ApplyLocalMap (
+                        faceSecond,
+                        nodesSecond,
+                        dGL[t],
+                        dGL[s],
+                        node,
+                        dDx1G,
+                        dDx2G );
+
+                    // Find the components of this quadrature point in the basis
+                    // of the first Face.
+                    double dAlphaIn;
+                    double dBetaIn;
+
+                    ApplyInverseMap (
+                        faceFirst,
+                        nodesFirst,
+                        node,
+                        dAlphaIn,
+                        dBetaIn );
+
+                    // Check if this node is within the first Face
+                    if ( ( dAlphaIn < -1.0e-10 ) || ( dAlphaIn > 1.0 + 1.0e-10 ) ||
+                            ( dBetaIn  < -1.0e-10 ) || ( dBetaIn  > 1.0 + 1.0e-10 )
+                       )
+                    {
+                        continue;
+                    }
+
+                    // Node is within the overlap region, mark as found
+                    fSecondNodeFound[ixSecondNode] = true;
+
+                    // Sample the First finite element at this point
+                    SampleGLLFiniteElement (
+                        nMonotoneType,
+                        nPin,
+                        dAlphaIn,
+                        dBetaIn,
+                        dSampleCoeffIn );
+
+                    // Add to map
+                    for ( int p = 0; p < nPin; p++ )
+                    {
+                        for ( int q = 0; q < nPin; q++ )
                         {
-                            Announce ( "Element %i", ixFirst );
-                        }
-
-                        // Quantities from the First Mesh
-                        const Face & faceFirst = m_meshInputCov->faces[ixFirst];
-
-                        const NodeVector & nodesFirst = m_meshInputCov->nodes;
-
-                        // Number of overlapping Faces and triangles
-                        int nOverlapFaces = nAllOverlapFaces[ixFirst];
-
-                        // Loop through all Overlap Faces
-                        for ( int i = 0; i < nOverlapFaces; i++ )
-                        {
-                            // Quantities from the overlap Mesh
-                            // const Face & faceOverlap = m_meshOverlap->faces[ixOverlap + i];
-
-                            // const NodeVector & nodesOverlap = m_meshOverlap->nodes;
-
-                            // size_t nOverlapTriangles = faceOverlap.edges.size() - 2;
-
-                            // Quantities from the Second Mesh
-                            int ixSecond = m_meshOverlap->vecTargetFaceIx[ixOverlap + i];
-
-                            const NodeVector & nodesSecond = m_meshOutput->nodes;
-
-                            const Face & faceSecond = m_meshOutput->faces[ixSecond];
-
-                            // Loop through all nodes on the second face
-                            for ( int s = 0; s < nPout; s++ )
+                            int ixFirstNode;
+                            if ( fContinuousIn )
                             {
-                                for ( int t = 0; t < nPout; t++ )
-                                {
-                                    size_t ixSecondNode;
-                                    if ( fContinuousOut )
-                                    {
-                                        ixSecondNode = dataGLLNodesOut[s][t][ixSecond] - 1;
-                                    }
-                                    else
-                                    {
-                                        ixSecondNode =
-                                            ixSecond * nPout * nPout + s * nPout + t;
-                                    }
-
-                                    if ( ixSecondNode >= fSecondNodeFound.GetRows() )
-                                    {
-                                        _EXCEPTIONT ( "Logic error" );
-                                    }
-
-                                    // Check if this node has been found already
-                                    if ( fSecondNodeFound[ixSecondNode] )
-                                    {
-                                        continue;
-                                    }
-
-                                    // Check this node
-                                    Node node;
-                                    Node dDx1G;
-                                    Node dDx2G;
-
-                                    ApplyLocalMap (
-                                        faceSecond,
-                                        nodesSecond,
-                                        dGL[t],
-                                        dGL[s],
-                                        node,
-                                        dDx1G,
-                                        dDx2G );
-
-                                    // Find the components of this quadrature point in the basis
-                                    // of the first Face.
-                                    double dAlphaIn;
-                                    double dBetaIn;
-
-                                    ApplyInverseMap (
-                                        faceFirst,
-                                        nodesFirst,
-                                        node,
-                                        dAlphaIn,
-                                        dBetaIn );
-
-                                    // Check if this node is within the first Face
-                                    if ( ( dAlphaIn < -1.0e-10 ) || ( dAlphaIn > 1.0 + 1.0e-10 ) ||
-                                         ( dBetaIn  < -1.0e-10 ) || ( dBetaIn  > 1.0 + 1.0e-10 )
-                                       )
-                                    {
-                                        continue;
-                                    }
-
-                                    // Node is within the overlap region, mark as found
-                                    fSecondNodeFound[ixSecondNode] = true;
-
-                                    // Sample the First finite element at this point
-                                    SampleGLLFiniteElement (
-                                        nMonotoneType,
-                                        nPin,
-                                        dAlphaIn,
-                                        dBetaIn,
-                                        dSampleCoeffIn );
-
-                                    // Add to map
-                                    for ( int p = 0; p < nPin; p++ )
-                                    {
-                                        for ( int q = 0; q < nPin; q++ )
-                                        {
-                                            int ixFirstNode;
-                                            if ( fContinuousIn )
-                                            {
-                                                ixFirstNode = dataGLLNodesIn[p][q][ixFirst] - 1;
-                                            }
-                                            else
-                                            {
-                                                ixFirstNode =
-                                                    ixFirst * nPin * nPin + p * nPin + q;
-                                            }
-
-                                            smatMap ( ixSecondNode, ixFirstNode ) +=
-                                                dSampleCoeffIn[p][q];
-                                        }
-                                    }
-                                }
+                                ixFirstNode = dataGLLNodesIn[p][q][ixFirst] - 1;
                             }
-                        }
+                            else
+                            {
+                                ixFirstNode =
+                                    ixFirst * nPin * nPin + p * nPin + q;
+                            }
 
-                        // Increment the current overlap index
-                        ixOverlap += nOverlapFaces;
-                    }
-
-                    // Check for missing samples
-                    for ( size_t i = 0; i < fSecondNodeFound.GetRows(); i++ )
-                    {
-                        if ( !fSecondNodeFound[i] )
-                        {
-                            _EXCEPTION1 ( "Can't sample point %i", i );
+                            smatMap ( ixSecondNode, ixFirstNode ) +=
+                                dSampleCoeffIn[p][q];
                         }
                     }
                 }
+            }
+        }
+
+        // Increment the current overlap index
+        ixOverlap += nOverlapFaces;
+    }
+
+    // Check for missing samples
+    for ( size_t i = 0; i < fSecondNodeFound.GetRows(); i++ )
+    {
+        if ( !fSecondNodeFound[i] )
+        {
+            _EXCEPTION1 ( "Can't sample point %i", i );
+        }
+    }
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 
