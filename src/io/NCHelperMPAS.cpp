@@ -31,7 +31,35 @@ NCHelperMPAS::NCHelperMPAS(ReadNC* readNC, int fileId, const FileOptions& opts, 
   ignoredVarNames.insert("verticesOnCell");
   ignoredVarNames.insert("edgesOnCell");
   ignoredVarNames.insert("cellsOnCell");
-
+  // ignore variables containing mesh related info, that are currently saved as variable tags on
+  // file set ; if needed, these should be saved as dense tags, and read accordingly, in parallel
+  ignoredVarNames.insert("weightsOnEdge");
+  ignoredVarNames.insert("angleEdge");
+  ignoredVarNames.insert("areaCell");
+  ignoredVarNames.insert("areaTriangle");
+  ignoredVarNames.insert("dcEdge");
+  ignoredVarNames.insert("dv1Edge");
+  ignoredVarNames.insert("dv2Edge");
+  ignoredVarNames.insert("fEdge");
+  ignoredVarNames.insert("fVertex");
+  ignoredVarNames.insert("h_s");
+  ignoredVarNames.insert("kiteAreasOnVertex");
+  ignoredVarNames.insert("latCell");
+  ignoredVarNames.insert("latEdge");
+  ignoredVarNames.insert("latVertex");
+  ignoredVarNames.insert("lonCell");
+  ignoredVarNames.insert("lonEdge");
+  ignoredVarNames.insert("lonVertex");
+  ignoredVarNames.insert("meshDensity");
+  ignoredVarNames.insert("xCell");
+  ignoredVarNames.insert("xEdge");
+  ignoredVarNames.insert("xVertex");
+  ignoredVarNames.insert("yCell");
+  ignoredVarNames.insert("yEdge");
+  ignoredVarNames.insert("yVertex");
+  ignoredVarNames.insert("zCell");
+  ignoredVarNames.insert("zEdge");
+  ignoredVarNames.insert("zVertex");
   // Ignore variables for index conversion
   ignoredVarNames.insert("indexToVertexID");
   ignoredVarNames.insert("indexToEdgeID");
