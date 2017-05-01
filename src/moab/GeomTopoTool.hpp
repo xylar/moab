@@ -29,7 +29,8 @@ namespace moab {
 
 // forward declare this class to avoid the header leaking in here
 class OrientedBoxTreeTool;
-
+class GeomQueryTool;
+  
 /** \class GeomTopoTool
  * \brief Tool for interpreting geometric topology sets in MOAB database
  * Tool for interpreting geometric topology sets in MOAB database; see MOAB metadata_info
@@ -224,11 +225,7 @@ public:
     //! detection method for the implicit complement
   bool is_implicit_complement(EntityHandle volume);
 
-  /** \brief determine the topological relationships among a set of volumes
-   */
-  ErrorCode discover_hierarchy(const Range flat_volumes);
-
-  /** \brief invoke the conventions of this class to store the topological relationships from discover_hierarchy
+  /** \brief determine and store the topological relationships among a set of volumes
    */
   ErrorCode construct_topology(const Range flat_volumes);
   
@@ -291,11 +288,9 @@ private:
 
   void set_root_set(EntityHandle vol_or_surf, EntityHandle root);
 
-  Range get_dh_children_by_dimension(const EntityHandle parent, const int desired_dimension);
-  bool A_is_in_B(const EntityHandle volume_A, const EntityHandle volume_B);
-  ErrorCode insert_in_tree(const EntityHandle dh_root, const EntityHandle volume);
-                 
-
+  Range get_ct_children_by_dimension(const EntityHandle parent, const int desired_dimension);
+  bool A_is_in_B(const EntityHandle volume_A, const EntityHandle volume_B, GeomQueryTool* GQT);
+  ErrorCode insert_in_tree(const EntityHandle ct_root, const EntityHandle volume, GeomQueryTool* GQT);
   
 };
 
