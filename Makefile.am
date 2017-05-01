@@ -78,6 +78,11 @@ examples_fortran_DATA = \
                examples/fortran/makefile \
                examples/fortran/DirectAccessNoHolesF90.F90 \
                examples/fortran/PushParMeshIntoMoabF90.F90
+examples_pythonexdir = $(datadir)/examples/python
+examples_pythonex_DATA = \
+               examples/python/makefile \
+               examples/python/yt2moab.py \
+               examples/python/laplaciansmoother.py
 examples_appsdir = $(datadir)/examples/apps
 examples_apps_DATA = \
                examples/apps/makefile
@@ -97,7 +102,14 @@ EXTRA_DIST = $(doc_DATA) \
 						 debian \
 						 $(CMAKE_CONFIGURATION_FILES) \
 						 $(examples_DATA) \
-						 $(examples_beginner_DATA) $(examples_basic_DATA) $(examples_intermediate_DATA) $(examples_advanced_DATA) $(examples_fortran_DATA) $(examples_apps_DATA) $(examples_apps_earth_DATA)
+						 $(examples_beginner_DATA) \
+						 $(examples_basic_DATA) \
+						 $(examples_intermediate_DATA) \
+						 $(examples_advanced_DATA) \
+						 $(examples_fortran_DATA) \
+						 $(examples_pythonex_DATA) \
+						 $(examples_apps_DATA) \
+						 $(examples_apps_earth_DATA)
 
 # Automake doesn't seem to have a directory defined for
 # platform-dependent data (or include) files. So put 
