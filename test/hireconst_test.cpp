@@ -52,7 +52,7 @@ int main ( int argc, char* argv[] )
     MPI_Comm_size ( MPI_COMM_WORLD, &nprocs );
     MPI_Comm_rank ( MPI_COMM_WORLD, &rank );
 #endif
-    char* infile;
+    std::string infile;
     int degree = 2, dim = 0;
     bool interp = false;
     ErrorCode error;
@@ -63,11 +63,14 @@ int main ( int argc, char* argv[] )
         error = test_unitsq_quads(); MB_CHK_ERR ( error );
         error = test_unitsphere(); MB_CHK_ERR ( error );
         error = test_unitcircle(); MB_CHK_ERR ( error );
+#ifdef MOAB_HAVE_MPI
+        MPI_Finalize();
+#endif
         return 0;
     }
     else
     {
-        infile = argv[1]; bool hasdim = false;
+        infile = std::string(argv[1]); bool hasdim = false;
 
         for ( int i = 2; i < argc; ++i )
         {
@@ -112,7 +115,7 @@ int main ( int argc, char* argv[] )
         std::cout << "High order reconstruction with degree " << degree << " " << opts << std::endl;
     }
 
-    error = test_mesh ( infile, degree, interp, dim ); MB_CHK_ERR ( error );
+    error = test_mesh ( infile.c_str(), degree, interp, dim ); MB_CHK_ERR ( error );
 #ifdef MOAB_HAVE_MPI
     MPI_Finalize();
 #endif
