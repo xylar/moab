@@ -480,7 +480,8 @@ ErrorCode Intx2MeshOnSphere::update_tracer_data(EntityHandle out_set, Tag & tagE
     int blueIndex, redIndex;
     rval =  mb->tag_get_data(blueParentTag, &poly, 1, &blueIndex);MB_CHK_SET_ERR(rval, "can't get blue tag");
     
-    EntityHandle blue = rs1[blueIndex];
+    EntityHandle blue = rs1[blueIndex-1]; // big assumption, it should work for meshes where global id is the same
+    // as element handle (ordered from 1 to number of elements); should be OK for Homme meshes
     rval =  mb->tag_get_data(redParentTag, &poly, 1, &redIndex);MB_CHK_SET_ERR(rval, "can't get red tag");
     //EntityHandle red = rs2[redIndex];
     // big assumption here, red and blue are "parallel" ;we should have an index from
@@ -507,7 +508,7 @@ ErrorCode Intx2MeshOnSphere::update_tracer_data(EntityHandle out_set, Tag & tagE
         MB_CHK_SET_ERR( MB_FAILURE, "can't find the global id element in remote cells\n");
       for (int k=0; k<numTracers; k++)
         remote_cells_with_tracers->vr_wr[index_in_remote*numTracers+k] +=
-            currentVals[numTracers*redIndex+k]*areap;
+            currentVals[numTracers*(redIndex-1)+k]*areap;
 #endif
     }
     else if (MB_SUCCESS==rval)
@@ -516,7 +517,7 @@ ErrorCode Intx2MeshOnSphere::update_tracer_data(EntityHandle out_set, Tag & tagE
       if (-1 == arrRedIndex)
         MB_CHK_SET_ERR(MB_FAILURE, "can't find the red arrival index");
       for (int k=0; k<numTracers; k++)
-        newValues[numTracers*arrRedIndex+k] += currentVals[redIndex*numTracers+k]*areap;
+        newValues[numTracers*arrRedIndex+k] += currentVals[(redIndex-1)*numTracers+k]*areap;
     }
 
     else

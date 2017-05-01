@@ -516,6 +516,7 @@ int main(int argc, char **argv)
   worker.SetRadius(radius);
 
   worker.SetErrorTolerance(gtol);
+  worker.set_parallel_comm(pcomm);
 
   rval = worker.FindMaxEdges(lagr_set, euler_set);
   CHECK_ERR(rval);
