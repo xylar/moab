@@ -181,12 +181,31 @@ cdef class ScdBox(object):
         del h.inst
         h.inst = new moab.HomCoord(bsize)
         return h
+
+    def num_vertices(self):
+        """
+        Returns the number of vertices in the box.
+        """
+        return self.inst.num_vertices()
     
+    def num_elements(self):
+        """
+        Returns the number of elements in the box.
+        """
+        return self.inst.num_elements()
+
     def start_vertex(self):
         """
         Returns the EntityHandle of the first vertex in the structured mesh box.
         """
         cdef moab.EntityHandle startv = self.inst.start_vertex()
+        return startv
+
+    def start_element(self):
+        """
+        Returns the EntityHandle of the first element in the structured mesh box.
+        """
+        cdef moab.EntityHandle startv = self.inst.start_element()
         return startv
 
     def get_vertex(self, args):

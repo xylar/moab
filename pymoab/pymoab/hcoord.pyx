@@ -79,3 +79,17 @@ cdef class HomCoord(object):
 
     def normalize(self):
         self.inst.normalize()
+
+    def __str__(self):
+        prefix = "[ "
+        suffix = " ]"
+        outstr = prefix
+        for val in self:
+            outstr += str(val)
+            outstr += ", "
+        outstr = outstr[:-2]
+        outstr += suffix
+        return outstr
+
+    def __repr__(self):
+        return self.__str__()
