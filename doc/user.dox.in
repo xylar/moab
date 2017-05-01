@@ -382,8 +382,7 @@ WARN_LOGFILE           =
 # with spaces.
 
 INPUT                  = @top_srcdir@/src \
-                         @top_srcdir@/src/moab \
-                         @top_srcdir@/src/mesquite \
+                         @top_srcdir@/pymoab \
                          @top_srcdir@/doc/UG \
                          @top_srcdir@/doc/DG \
                          @top_srcdir@/doc/MetaData \
@@ -392,13 +391,7 @@ INPUT                  = @top_srcdir@/src \
                          @top_srcdir@/src/MBEntityType.h \
                          @top_srcdir@/src/parallel/MBParallelConventions.h \
                          @top_srcdir@/tools/ \
-                         @top_srcdir@/tools/mbcoupler \
-                         @top_srcdir@/tools/dagmc/DagMC.hpp \
                          @top_srcdir@/itaps \
-                         @top_srcdir@/itaps/imesh \
-                         @top_srcdir@/itaps/fbigeom \
-                         @top_srcdir@/itaps/irel \
-                         @top_srcdir@/itaps/mesquite \
                          @top_srcdir@/examples
 
 
@@ -407,8 +400,7 @@ INPUT                  = @top_srcdir@/src \
 # and *.h) to filter out the source-files in the directories. If left 
 # blank all files are included.
 
-FILE_PATTERNS          = *.cpp *.cc *.c *.cxx *.hpp *.h *.hxx *.dox *.F90 *.F *.f
-#FILE_PATTERNS          = *.dox
+FILE_PATTERNS          = *.cpp *.cc *.c *.cxx *.hpp *.h *.hxx *.dox *.F90 *.F *.f *.py
 
 # The RECURSIVE tag can be used to turn specify whether or not subdirectories 
 # should be searched for input files as well. Possible values are YES and NO. 
@@ -420,7 +412,7 @@ RECURSIVE              = YES
 # excluded from the INPUT source files. This way you can easily exclude a 
 # subdirectory from a directory tree whose root is specified with the INPUT tag.
 
-EXCLUDE                = 
+EXCLUDE                = config CMakeLists.txt
 
 # If the value of the INPUT tag contains directories, you can use the 
 # EXCLUDE_PATTERNS tag to specify one or more wildcard patterns to exclude 
@@ -432,14 +424,16 @@ EXCLUDE_PATTERNS       =
 # directories that contain example code fragments that are included (see 
 # the \include command).
 
-EXAMPLE_PATH           =  @top_srcdir@/examples/
+EXAMPLE_PATH           =  @top_srcdir@/examples
 
 # If the value of the EXAMPLE_PATH tag contains directories, you can use the 
 # EXAMPLE_PATTERNS tag to specify one or more wildcard pattern (like *.cpp 
 # and *.h) to filter out the source-files in the directories. If left 
 # blank all files are included.
 
-EXAMPLE_PATTERNS       =
+EXAMPLE_PATTERNS       = *.cpp *.h *.hxx *.hpp *.F *.F90 *.py
+
+LAYOUT_FILE = @top_srcdir@/doc/DoxygenLayout.xml
 
 # The IMAGE_PATH tag can be used to specify one or more files or 
 # directories that contain image that are included in the documentation (see 
@@ -505,8 +499,7 @@ HTML_OUTPUT            =
 # each generated HTML page. If it is left blank doxygen will generate a 
 # standard header.
 
-HTML_HEADER            = 
-#@top_srcdir@/doc/header.html
+HTML_HEADER            = @top_srcdir@/doc/header.html
 
 # The HTML_FOOTER tag can be used to specify a personal HTML footer for 
 # each generated HTML page. If it is left blank doxygen will generate a 
@@ -590,7 +583,7 @@ HTML_TIMESTAMP         = YES
 # The default value is: NO.
 # This tag requires that the tag GENERATE_HTML is set to YES.
 
-HTML_DYNAMIC_SECTIONS  = NO
+HTML_DYNAMIC_SECTIONS  = YES
 
 # With HTML_INDEX_NUM_ENTRIES one can control the preferred number of entries
 # shown in the various tree structured indices initially; the user can expand
@@ -664,7 +657,7 @@ TREEVIEW_WIDTH         = 250
 # The default value is: NO.
 # This tag requires that the tag GENERATE_HTML is set to YES.
 
-USE_MATHJAX            = NO
+USE_MATHJAX            = YES
 
 # When MathJax is enabled you can set the default output format to be used for
 # the MathJax output. See the MathJax site (see:
