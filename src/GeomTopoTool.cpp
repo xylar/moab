@@ -2067,6 +2067,7 @@ ErrorCode GeomTopoTool::insert_in_tree(EntityHandle ct_root, EntityHandle volume
 }
 
 
+
 // dicover the hierarchy that exists in a range of volumes and establish it according
 // to the conventions of GeomTopoTool
   
