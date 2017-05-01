@@ -25,6 +25,7 @@ def test_homcoord():
         raise AssertionError
 
     h = HomCoord([1,2,3,4])
+    CHECK_EQ(h.__str__(), "HomCoord: [1, 2, 3, 4]")    
     CHECK_EQ(h.i(),1)
     CHECK_EQ(h.j(),2)
     CHECK_EQ(h.k(),3)
@@ -34,7 +35,9 @@ def test_homcoord():
     h.normalize()
     CHECK_EQ(h.length(),1)
 
+
     h.set(4,3,2,1)
+    CHECK_EQ(h.__str__(), "HomCoord: [4, 3, 2, 1]")        
     CHECK_EQ(h.i(),4)
     CHECK_EQ(h.j(),3)
     CHECK_EQ(h.k(),2)

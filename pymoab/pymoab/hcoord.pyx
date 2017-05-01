@@ -81,8 +81,8 @@ cdef class HomCoord(object):
         self.inst.normalize()
 
     def __str__(self):
-        prefix = "[ "
-        suffix = " ]"
+        prefix = "HomCoord: ["
+        suffix = "]"
         outstr = prefix
         for val in self:
             outstr += str(val)
