@@ -1956,29 +1956,7 @@ ErrorCode GeomTopoTool::get_obb(EntityHandle volume, double center[3], double ax
 
 }
 
-// dicover the hierarchy that exists in a range of volumes and establish it according
-// to the conventions of GeomTopoTool
-  
-ErrorCode GeomTopoTool::discover_hierarchy(Range flat_volumes) {
-
-  ErrorCode rval;
-
-  EntityHandle dh_root;
-  // create root meshset-- this will be top of tree
-  std::string meshset_name = "build_hierarchy_root";
-  rval = mdbImpl->create_meshset( MESHSET_SET, dh_root); MB_CHK_ERR(rval);
-  rval = mdbImpl->tag_set_data( nameTag, &dh_root, 1, meshset_name.c_str()); MB_CHK_ERR(rval);
-
-  for ( Range::iterator it = flat_volumes.begin(); it != flat_volumes.end(); it++) {
-    rval = insert_in_tree(dh_root, *it);
-    MB_CHK_SET_ERR(rval,"Failed to insert volume into tree.");
-  }
-
-  return MB_SUCCESS;
-  
-}
-
-Range GeomTopoTool::get_dh_children_by_dimension(EntityHandle parent, int desired_dimension)
+Range GeomTopoTool::get_ct_children_by_dimension(EntityHandle parent, int desired_dimension)
 {
   Range all_children, desired_children;
   Range::iterator it;
@@ -1999,10 +1977,9 @@ Range GeomTopoTool::get_dh_children_by_dimension(EntityHandle parent, int desire
 
 // runs GeomQueryTool point_in_vol and to test if vol A is inside vol B
 //  returns true or false
-bool GeomTopoTool::A_is_in_B(EntityHandle volume_A, EntityHandle volume_B)
+  bool GeomTopoTool::A_is_in_B(EntityHandle volume_A, EntityHandle volume_B, GeomQueryTool* GQT)
 {
   ErrorCode rval;
-  GeomQueryTool* GQT = new GeomQueryTool(this);
 
   Range child_surfaces, triangles, vertices;
   double coord[3]; // coord[0] = x, etc.
@@ -2010,7 +1987,7 @@ bool GeomTopoTool::A_is_in_B(EntityHandle volume_A, EntityHandle volume_B)
   
   // find coordinates of any point on surface of A
   // get surface corresponding to volume, then get the triangles  
-  child_surfaces = get_dh_children_by_dimension(volume_A, 2);
+  child_surfaces = get_ct_children_by_dimension(volume_A, 2);
   rval = mdbImpl->get_entities_by_type(*child_surfaces.begin(), MBTRI, triangles); MB_CHK_ERR(rval);
 
   // now get 1st triangle vertices
@@ -2022,19 +1999,18 @@ bool GeomTopoTool::A_is_in_B(EntityHandle volume_A, EntityHandle volume_B)
   // if point on A is inside vol B, return T; o.w. return F
   rval = GQT->point_in_volume(volume_B, coord, result);
   MB_CHK_SET_ERR(rval, "Failed to complete point in volume query.");
-  delete GQT;
-  
+   
   return (result != 0);
 }  
   
                                           
-ErrorCode GeomTopoTool::insert_in_tree(EntityHandle dh_root, EntityHandle volume)
+ErrorCode GeomTopoTool::insert_in_tree(EntityHandle ct_root, EntityHandle volume, GeomQueryTool* GQT)
 {
   ErrorCode rval;
 
   bool inserted = false;
   EntityHandle current_volume = volume; // volume to be inserted 
-  EntityHandle tree_volume = dh_root; // volume already existing in the tree
+  EntityHandle tree_volume = ct_root; // volume already existing in the tree
   EntityHandle parent;
   Range child_volumes;
 
@@ -2042,12 +2018,12 @@ ErrorCode GeomTopoTool::insert_in_tree(EntityHandle dh_root, EntityHandle volume
   while ( !inserted )
     {
       // if current volume is insde of tree volume
-      if ( A_is_in_B(current_volume, tree_volume) ) {
+      if ( A_is_in_B(current_volume, tree_volume, GQT) ) {
         parent = tree_volume;  
         
         // if tree_volume has children then we must test them,
         // (tree_volume will change)
-        child_volumes = get_dh_children_by_dimension(tree_volume, 3);
+        child_volumes = get_ct_children_by_dimension(tree_volume, 3);
         if (child_volumes.size() > 0 ) 
           tree_volume = child_volumes.pop_front();
         // otherwise current_volume is the only child of the tree volume
@@ -2060,7 +2036,7 @@ ErrorCode GeomTopoTool::insert_in_tree(EntityHandle dh_root, EntityHandle volume
       // if current volume is not in the tree volume, the converse may be true
       } else {
         // if the tree volume is inside the current volume
-        if( A_is_in_B(tree_volume, current_volume) ) {
+        if( A_is_in_B(tree_volume, current_volume, GQT) ) {
           // reverse their parentage
           rval = mdbImpl->remove_parent_child(parent, tree_volume);
           MB_CHK_SET_ERR(rval, "Failed to remove parent-child relationship.");
@@ -2080,29 +2056,37 @@ ErrorCode GeomTopoTool::insert_in_tree(EntityHandle dh_root, EntityHandle volume
 }
 
 
-ErrorCode GeomTopoTool::construct_topology(Range flat_volumes)
-{
+// dicover the hierarchy that exists in a range of volumes and establish it according
+// to the conventions of GeomTopoTool
+  
+ErrorCode GeomTopoTool::construct_topology(Range flat_volumes) {
 
   ErrorCode rval;
+  GeomQueryTool* GQT = new GeomQueryTool(this);
   std::map<EntityHandle,EntityHandle> volume_surface; //map of volume
                                                       // to its surface
 
-  for ( Range::iterator it = flat_volumes.begin(); it != flat_volumes.end(); it++ )
-    {
-      //get the surface corresponding to each volume
-      // at this point, each volume meshset only has one 'child' surface
-      // which exactly corresponds to that volume
-      Range child_surfaces;
-      Range::const_iterator surface;
-      child_surfaces = get_dh_children_by_dimension(*it, 2);
-      volume_surface[*it]=*child_surfaces.begin();
-    }
- 
+  EntityHandle ct_root;
+  // create root meshset-- this will be top of tree
+  std::string meshset_name = "build_hierarchy_root";
+  rval = mdbImpl->create_meshset( MESHSET_SET, ct_root); MB_CHK_ERR(rval);
+  rval = mdbImpl->tag_set_data( nameTag, &ct_root, 1, meshset_name.c_str()); MB_CHK_ERR(rval);
 
+  for ( Range::iterator vol = flat_volumes.begin(); vol != flat_volumes.end(); vol++) {
+    //get the surface corresponding to each volume
+    // at this point, each volume meshset only has one 'child' surface
+    // which exactly corresponds to that volume
+    Range child_surfaces = get_ct_children_by_dimension(*vol, 2);
+    volume_surface[*vol]=*child_surfaces.begin();
+    
+    rval = insert_in_tree(ct_root, *vol, GQT);
+    MB_CHK_SET_ERR(rval,"Failed to insert volume into tree.");
+  }
+  
   //for each original volume, get its child volumes
   for ( Range::iterator parent_it = flat_volumes.begin() ; parent_it != flat_volumes.end(); parent_it++)
     {
-      Range volume_children = get_dh_children_by_dimension(*parent_it, 3);
+      Range volume_children = get_ct_children_by_dimension(*parent_it, 3);
       
       if (volume_children.size() !=0)
         {
@@ -2125,7 +2109,9 @@ ErrorCode GeomTopoTool::construct_topology(Range flat_volumes)
         }
       
     }
-    
+
+  delete GQT;
+  
   return MB_SUCCESS;
 }  
   
