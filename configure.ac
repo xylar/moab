@@ -191,6 +191,7 @@ AC_ARG_ENABLE( [pymoab],
 [AS_HELP_STRING([--enable-pymoab],[Build support for pymoab interface.])],
 [enable_pymoab=$enableval],
 [enable_pymoab=no] )
+pymoab_custom_install=no
 
 if (test "xyes" != "x$enable_pymoab" && test "xno" != "x$enable_pymoab"); then
   AC_MSG_ERROR([Unknown argument --enable-pymoab=$enableval])
@@ -246,6 +247,7 @@ else
       pythondir=$pymoab_prefix
     else
       pymoab_prefix=$prefix/lib/python${PYTHON_VERSION}/site-packages
+      pymoab_custom_install=yes
       pythondir=$pymoab_prefix
     fi
     AC_SUBST([pymoab_prefix])
@@ -1468,6 +1470,7 @@ if test "x$WARN_PARALLEL_HDF5_NO_COMPLEX" = "xyes"; then
 *************************************************************************])
 fi
 
+
 # echo "Other details"
 # echo "Static: $enable_static"
 # echo "Shared: $enable_shared"
@@ -1476,6 +1479,19 @@ fi
 # echo "Zoltan: $enablezoltan"
 # echo "Zlib: $enablezlib"
 # echo "SZip: $enableszip"
+
+
+if test "xenable_pymoab" != "xno" && test "x$pymoab_custom_install" = "xyes" ; then
+AC_MSG_NOTICE([
+*************************************************************************
+*     The PyMOAB interface has been installed to a custom location.
+*     In order to access this module from a python intpreter, please add
+*     its install location to the PYTHONPATH environment variable:
+*
+*     export PYTHONPATH=$pythondir:\$PYTHONPATH
+*
+*************************************************************************])
+fi
 
 # define([ConfigurationSuggestion], [`esyscmd(config/suggest_configure_command)'])
 # m4_echo(echo "m4_expand([ConfigurationSuggestion])")
