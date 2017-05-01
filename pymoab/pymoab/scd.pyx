@@ -235,6 +235,52 @@ cdef class ScdBox(object):
             return vert
         else:
             check_error(types.MB_FAILURE)
+    def get_element(self, args):
+        """
+        Returns the element handle for parameter values i,j,k. These parameter
+        values can be provided either as a list of 3 integers or as a PyMOAB
+        HomCoord clas with parameter values for the desired element.
+
+        Examples
+        --------
+
+        scdbox.get_element([5,5,5])
+
+        OR
+
+        element_hc = pymoab.HomCoord(5,5,5)
+        scdbox.get_element(element_hc)
+
+        Parameters
+        ----------
+        args : list of 3 ints or a PyMOAB HomCoord class
+
+        Returns
+        -------
+        Element EntityHandle of the specified element.
+
+        Raises
+        ------
+        MOAB ErrorCode
+            if args parameter is not a valid type
+        """
+        cdef moab.EntityHandle vert
+        cdef moab.HomCoord mh
+        cdef HomCoord h
+        cdef int i = 0, j = 0, k = 0
+        if isinstance(args,HomCoord):
+            h = args
+            mh = deref(h.inst)
+            vert = self.inst.get_element(mh)
+            return vert
+        elif 3 == len(args):
+            i = args[0]
+            j = args[1]
+            k = args[2]
+            vert = self.inst.get_element(i,j,k)
+            return vert
+        else:
+            check_error(types.MB_FAILURE)
         
     def get_params(self, moab.EntityHandle entity, exceptions = ()):
         """

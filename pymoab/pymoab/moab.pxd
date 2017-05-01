@@ -371,5 +371,7 @@ cdef extern from "moab/ScdInterface.hpp" namespace "moab":
         EntityHandle start_vertex()
         EntityHandle get_vertex(int i, int j, int k)
         EntityHandle get_vertex(HomCoord& ijk)
+        EntityHandle get_element(int i, int j, int k)
+        EntityHandle get_element(HomCoord& ijk)
         ErrorCode get_params(EntityHandle ent, int &i, int &j, int &k)
         bool contains(int i, int j, int k)
