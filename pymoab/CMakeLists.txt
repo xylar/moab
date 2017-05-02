@@ -40,12 +40,34 @@ if (PYTHON AND NOSE AND NOT PYTHON_MODULES_MISSING)
   # copy over test files as well
   FILE(COPY "${CMAKE_CURRENT_SOURCE_DIR}/tests/" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/tests" FILES_MATCHING PATTERN "*")
 
-  if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-    SET(PYMOAB_INSTALL_PREFIX "/usr/lib/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/dist-packages/")
-  else()
+  #assume a standard install location to start
+  SET(PYMOAB_CUSTOM_INSTALL_LOCATION NO)
+
+  if(PYMOAB_PREFIX)
+    #if a pymoab prefix has been set, us it
+    SET(PYMOAB_INSTALL_PREFIX ${PYMOAB_PREFIX})
+    #set custom install indicator to true
+    SET(PYMOAB_CUSTOM_INSTALL_LOCATION YES)
+  elseif(NOT CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+    #otherwise install to the same location as the CMAKE_INSTALL_PREFIX
     SET(PYMOAB_INSTALL_PREFIX "${CMAKE_INSTALL_LIBDIR}/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/site-packages/")
+    #set custom install indicator to true    
+    SET(PYMOAB_CUSTOM_INSTALL_LOCATION YES)
+  else()
+    # if no prefix is supplied, install to system location
+    SET(PYMOAB_INSTALL_PREFIX "/usr/lib/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/dist-packages/")
   endif()
-      
+
+  if(PYMOAB_CUSTOM_INSTALL_LOCATION)
+      MESSAGE(WARNING "\
+The PyMOAB interface has been installed to a custom location. \
+In order to access this module from a python intpreter, please add \
+its install location to the PYTHONPATH environment variable:
+\
+PYTHONPATH=${CMAKE_INSTALL_PREFIX}/${PYMOAB_INSTALL_PREFIX}:\$PYTHONPATH \
+")
+  endif()
+    
   # configure the setup script
   SET(SETUP_PY_IN "${CMAKE_CURRENT_SOURCE_DIR}/setup.py.cmake.in")
   SET(SETUP_PY    "${CMAKE_CURRENT_BINARY_DIR}/setup.py")
