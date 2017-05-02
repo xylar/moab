@@ -201,12 +201,6 @@ else
     AM_PATH_PYTHON()
     AC_PYTHON_MODULE(numpy)
     AC_PYTHON_MODULE(setuptools)
-    AC_PYTHON_MODULE(cython)
-    AC_MSG_CHECKING(for proper cython capabilities)
-    cython --cplus $srcdir/pymoab/cmake/cython_test.pyx --output-file ./.cython_test_out && rm .cython_test_out
-    if test $? -ne 0 ; then
-    AC_MSG_ERROR(cython is not the correct version for pymoab)
-    fi
     AC_CONFIG_SRCDIR([pymoab/setup.py.in])
     # link source files to build location
     AC_CONFIG_LINKS([pymoab/pymoab/moab.pxd:pymoab/pymoab/moab.pxd

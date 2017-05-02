@@ -3,22 +3,16 @@ SET( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_LIST_DIR}/cmake )
 # make sure we have the essential elements installed
 FIND_PROGRAM(PYTHON "python")
 FIND_PROGRAM(NOSE "nosetests")
-FIND_PACKAGE(Cython REQUIRED)
 
 find_package(PythonInterp)
 
 # make sure that specific python modules are installed
 SET(NUMPY_MODULE_MISSING false)
-SET(CYTHON_MODULE_MISSING false)
 SET(SETUPTOOLS_MODULE_MISSING false)
 
 EXECUTE_PROCESS(COMMAND "${PYTHON}" "-c" "import numpy" RESULT_VARIABLE NUMPY_MODULE_MISSING)
 if (NUMPY_MODULE_MISSING)
   MESSAGE( SEND_ERROR "Python numpy module is missing.")
-endif()
-EXECUTE_PROCESS(COMMAND "${PYTHON}" "-c" "import Cython" RESULT_VARIABLE CYTHON_MODULE_MISSING)
-if (CYTHON_MODULE_MISSING)
-  MESSAGE( SEND_ERROR "Python Cython module is missing.")
 endif()
 EXECUTE_PROCESS(COMMAND "${PYTHON}" "-c" "import setuptools" RESULT_VARIABLE SETUPTOOLS_MODULE_MISSING)
 if (SETUPTOOLS_MODULE_MISSING)
