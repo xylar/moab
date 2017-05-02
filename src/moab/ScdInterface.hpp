@@ -41,7 +41,7 @@ class ParallelComm;
  * tag is integer size 6).  Structured mesh blocks are also available through ScdBox class objects
  * returned by ScdInterface.  These class objects should be treated only as references to the 
  * structured mesh blocks; that is, the structured mesh referenced by these objects is not deleted
- * when the ScdBox instance is destroyed.  Functions for destroying the actual mesh are are available 
+ * when the ScdBox instance is destroyed.  Functions for destroying the actual mesh are available
  * on this class, though.
  *
  * Structured mesh blocks are returned in the form of ScdBox class objects.  Each ScdBox instance
@@ -76,8 +76,6 @@ class ParallelComm;
  * periodic in a given direction, the last process in the periodic direction has local IMAX/JMAX that is 
  * one greater than the global IMAX/JMAX.
  *
-
- * directions, the parameter extent is that for vertices, with edge parameter extents one fewer.
  *
  * In parallel, the periodicity described in the previous paragraph is "local periodicity"; there is also the
  * notion of global periodicity.  For serial meshes, those concepts are the same.  In parallel, a mesh can be
