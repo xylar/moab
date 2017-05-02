@@ -325,6 +325,7 @@ class OrientedBoxTreeTool
                                   double                     tolerance,
                                   const double               ray_point[3],
                                   const double               unit_ray_dir[3],
+                                  const double*              ray_length = 0,
                                   TrvStats*                  accum = 0);
  
     ErrorCode ray_intersect_sets( EntityHandle          root_set,
