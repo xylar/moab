@@ -88,19 +88,25 @@ MBCGM_DIR=""
 MBDWLD_OPTIONS=""
 case "$HOSTNAME" in
   *vesta* | *mira*)
+    MBCC="mpixlc_r"
+    MBCXX="mpixlcxx_r"
+    MBFC="mpixlf90_r"
+    MBF77="mpixlf77_r"
     MBNMPICC="xlc_r"
     MBNMPICXX="xlc++_r"
     MBNMPIFC="xlf_r"
     MBNMPIF77="xlf_r"
     MBHOSTSYS="powerpc64-bgq-linux"
-    MBHDF5_DIR="/soft/libraries/hdf5/1.8.10/cnk-xl/current"
+    MBHDF5_DIR="/soft/libraries/hdf5/1.8.17/cnk-xl/current"
     MBZLIB_DIR="/soft/libraries/alcf/current/xl/ZLIB"
     MBPNETCDF_DIR="/soft/libraries/pnetcdf/current/cnk-xl/current"
-    MBNETCDF_DIR="/soft/libraries/netcdf/4.3.0-f4.2/cnk-xl/V1R2M0-20131211"
+    MBNETCDF_DIR="/soft/libraries/netcdf/4.3.3-f4.4.1/cnk-xl/current"
     MBPARMETIS_DIR="/soft/libraries/alcf/current/xl/PARMETIS"
     MBMETIS_DIR="/soft/libraries/alcf/current/xl/METIS"
     MBDWLD_OPTIONS="--with-zlib=/soft/libraries/alcf/current/xl/ZLIB"
-	  INTERNAL_OPTIONS="$INTERNAL_OPTIONS --enable-static --enable-all-static"
+    INTERNAL_OPTIONS="$INTERNAL_OPTIONS --enable-static --enable-all-static"
+    PREREQ="soft add +mpiwrapper-xl.legacy.ndebug"
+    LIBS="-L/soft/compilers/ibmcmp-may2016/xlmass/bg/7.3/bglib64 -lmassv -lmass -L/soft/libraries/alcf/current/xl/LAPACK/lib -llapack -L/soft/libraries/essl/current/essl/5.1/lib64 -lesslsmpbg -L/soft/compilers/ibmcmp-may2016/xlf/bg/14.1/bglib64 -lxlf90_r -L/soft/compilers/ibmcmp-may2016/xlsmp/bg/3.1/bglib64 -lxlsmp -lxlopt -lxlfmath -lxl -Wl,--allow-multiple-definition"
     ;;
   *blogin*)
     MBNMPICC="icc"
@@ -114,8 +120,25 @@ case "$HOSTNAME" in
     MBPNETCDF_DIR="/soft/pnetcdf/1.6.1-gnu4.4-mvapich2"
     MBMETIS_DIR="/soft/metis/5.0.3"
     ;;
+  *theta*)
+    MBCONFARCH="haswell"
+    MBNMPICC="gcc"
+    MBNMPICXX="g++"
+    MBNMPIFC="gfortran"
+    MBNMPIF77="gfortran"
+    MBMPI_DIR="/opt/intel/compilers_and_libraries_2017.2.174/linux/mpi/intel64"
+    MBHDF5_DIR="/opt/cray/pe/hdf5-parallel/default/GNU/51"
+    MBNETCDF_DIR="/opt/cray/pe/netcdf/default/GNU/51"
+    MBMETIS_DIR="/opt/cray/pe/tpsl/default/GNU/51/$MBCONFARCH"
+    LIBS="-L/opt/cray/pe/libsci/default/GNU/51/haswell/lib -lsci_gnu_mp"
+    PREREQ="module load gcc/6.3.0"
+    ;;
   *edison* | *cori*)
     MBCONFARCH="sandybridge"
+    MBCC="cc"
+    MBCXX="CC"
+    MBFC="ftn"
+    MBF77="ftn"
     MBNMPICC="cc"
     MBNMPICXX="CC"
     MBNMPIFC="ftn"
@@ -201,6 +224,11 @@ if (test "x$MBVTK_DIR" != "x"); then
   DEPENDENCY_OPTIONS="$DEPENDENCY_OPTIONS --with-vtk=$MBVTK_DIR"
 fi
 
+if (test "x$LIBS" != "x"); then
+  DEPENDENCY_OPTIONS="$DEPENDENCY_OPTIONS LIBS=\"$LIBS\""
+  MBDWLD_OPTIONS="$MBDWLD_OPTIONS LIBS=\"$LIBS\""
+fi
+
 # Put them all together
 DWLD_CONFIGURE_CMD="$CONFIGURE_CMD $INTERNAL_OPTIONS $MBDWLD_OPTIONS --with-pic=1 --enable-tools --download-hdf5 --download-netcdf --download-metis"
 CONFIGURE_CMD="$CONFIGURE_CMD $INTERNAL_OPTIONS $DEPENDENCY_OPTIONS"
@@ -210,6 +238,9 @@ echo "###########################################"
 echo "   Hostname: $HOSTNAME"
 echo "###########################################"
 
+if (test "x$PREREQ" != "x"); then
+  echo "MOAB Prerequisites     = $PREREQ"
+fi
 echo "MOAB Install path      = $PREFIX_INSTALL_PATH"
 echo "Enable debug info      = $ENABLE_DEBUG"
 echo "Enable optimization    = $ENABLE_OPTIMIZE"
