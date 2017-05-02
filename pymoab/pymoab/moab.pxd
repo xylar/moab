@@ -384,3 +384,24 @@ cdef extern from "moab/ScdInterface.hpp" namespace "moab":
         ErrorCode get_params(EntityHandle ent, int &i, int &j, int &k)
         bool contains(int i, int j, int k)
 
+
+cdef extern from "moab/Skinner.hpp" namespace "moab":
+
+    cdef cppclass Skinner:
+        #Constructor
+        Skinner(Interface*)
+
+        # Compute the geometric skin
+        ErrorCode find_geometric_skin (const EntityHandle meshset, Range &forward_target_entities)
+
+        # 	get skin entities of prescribed dimension
+        #   will accept entities all of one dimension and return entities of n-1 dimension;
+        #   NOTE: get_vertices argument controls whether vertices or entities of n-1 dimension are returned,
+        #   and only one of these is allowed (i.e. this function returns only vertices or
+        #   (n-1)-dimensional entities, but not both)
+        # Defaults: *output_reverse_handles=0, create_vert_elem_adjs=false, create_skin_elements=true, look_for_scd=false
+        ErrorCode 	find_skin (const EntityHandle meshset, const Range &entities, bool get_vertices,
+                                Range &output_handles, Range *output_reverse_handles, bool create_vert_elem_adjs,
+                                bool create_skin_elements, bool look_for_scd)
+
+
