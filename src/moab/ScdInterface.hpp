@@ -1279,10 +1279,23 @@ inline void ScdBox::start_element(EntityHandle starte)
     
 inline int ScdBox::num_elements() const
 {
-   return (!startElem ? 0 :
-          (boxSize[0]- (locallyPeriodic[0] ? 0 : 1)) * 
-          (-1 == boxSize[1] || 1 == boxSize[1] ? 1 : (boxSize[1]-(locallyPeriodic[1] ? 0 : 1))) *
-          (-1 == boxSize[2] || 1 == boxSize[2] ? 1 : (boxSize[2]-(locallyPeriodic[2] ? 0 : 1))));
+  if (!startElem) return 0; // not initialized yet
+
+  /* for a structured mesh, total number of elements is obtained by multiplying
+      number of elements in each direction
+    number of elements in each direction is given by number of vertices in that direction minus 1
+    if periodic in that direction, the last vertex is the same as first one, count one more element
+    */
+  int num_e_i = (-1 == boxSize[0] || 1 == boxSize[0] ) ? 1 : boxSize[0] - 1;
+  if (locallyPeriodic[0]) ++num_e_i;
+
+  int num_e_j = (-1 == boxSize[1] || 1 == boxSize[1] ) ? 1 : boxSize[1] - 1;
+  if (locallyPeriodic[1]) ++num_e_j;
+
+  int num_e_k = (-1 == boxSize[2] || 1 == boxSize[2] ) ? 1 : boxSize[2] - 1;
+  if (locallyPeriodic[2]) ++num_e_k;
+
+  return num_e_i * num_e_j * num_e_k;
 }
     
 inline int ScdBox::num_vertices() const
