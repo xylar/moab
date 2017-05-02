@@ -834,7 +834,7 @@ cdef class Core(object):
         #get the adjacencies of the triangle of dim 1 (should return the vertices)
         adjacent_verts = mb.get_adjacencies(tris, 0, False)
         #now get the edges and ask MOAB to create them for us
-        adjacent_edgess = mb.get_adjacencies(tris, 1, True)
+        adjacent_edges = mb.get_adjacencies(tris, 1, True)
 
         Parameters
         ----------
@@ -1162,6 +1162,50 @@ cdef class Core(object):
             err = self.inst.get_coords(<unsigned long*> arr.data, len(entities), <double*> coords.data)
         check_error(err, exceptions)
         return coords
+
+    def set_coords(self, entities, np.ndarray coords, exceptions = ()):
+        """
+        Sets the xyz coordinate information for a set of vertices.
+
+        Example
+        -------
+        mb = core.Core()
+        verts # list of vertex EntityHandles
+        coords = np.array([[0,0,0],[1,0,0],[0,1,0],[1,1,0]])
+        ret_coords = mb.set_coords(verts, coords)
+
+        Parameters
+        ----------
+        entities : MOAB EntityHandles (long)
+            handles of the vertices
+        coords : Coordinate positions (float)
+            vertex coordinates to be set in Core object
+        exceptions : tuple (default is empty tuple)
+            A tuple containing any error types that should
+            be ignored. (see pymoab.types module for more info)
+
+        Raises
+        ------
+        MOAB ErrorCode
+            if a MOAB error occurs
+        ValueError
+            if the Meshset EntityHandle is not of the correct type
+        """
+        cdef moab.ErrorCode err
+        cdef Range r
+        cdef np.ndarray[np.uint64_t, ndim=1] arr
+        #cdef np.ndarray coords
+        if isinstance(entities, Range):
+            r = entities
+            if 3*r.size() != len(coords):
+              check_error(moab.MB_INVALID_SIZE, exceptions)
+            err = self.inst.set_coords(deref(r.inst), <const double*> coords.data)
+        else:
+            arr = _eh_array(entities)
+            if 3*len(arr) != len(coords):
+              check_error(moab.MB_INVALID_SIZE, exceptions)
+            err = self.inst.set_coords(<unsigned long*> arr.data, len(entities), <const double*> coords.data)
+        check_error(err, exceptions)
 
     def get_entities_by_type(self, meshset, entity_type, bint recur = False, exceptions = ()):
         """

@@ -277,6 +277,11 @@ cdef extern from "moab/Core.hpp" namespace "moab":
                              double* coords)
         ErrorCode get_coords(const Range& entity_handles,
                              double* coords)
+        ErrorCode set_coords(const EntityHandle* entity_handles,
+                             const int num_entities,
+                             const double* coords)
+        ErrorCode set_coords(const Range& entity_handles,
+                             const double* coords)
         ErrorCode get_entities_by_type(const EntityHandle meshset,
                                        const EntityType typ,
                                        vector[EntityHandle]& entities,
@@ -378,3 +383,4 @@ cdef extern from "moab/ScdInterface.hpp" namespace "moab":
         EntityHandle get_element(HomCoord& ijk)
         ErrorCode get_params(EntityHandle ent, int &i, int &j, int &k)
         bool contains(int i, int j, int k)
+
