@@ -28,7 +28,7 @@ endif()
 
 # if all is well go ahead and build/install pymoab interface
 if (PYTHON AND NOT PYTHON_MODULES_MISSING)
-  
+
   ADD_SUBDIRECTORY(pymoab)
   ADD_SUBDIRECTORY(tests)
 
