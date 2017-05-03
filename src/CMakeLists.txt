@@ -90,6 +90,7 @@ set(MOAB_LIB_SOURCES
         LocalDiscretization/LinearTet.cpp
         LocalDiscretization/LinearTri.cpp
         LocalDiscretization/QuadraticHex.cpp
+        MGen.cpp
         NestedRefine.cpp
         PolyElementSeq.hpp  PolyElementSeq.cpp
         ProgOptions.cpp
@@ -197,6 +198,7 @@ set( MOAB_INSTALL_HEADERS
         moab/Matrix3.hpp
         moab/MergeMesh.hpp
         moab/MeshTopoUtil.hpp
+        moab/MGen.hpp
         moab/OrientedBox.hpp
         moab/OrientedBoxTreeTool.hpp
         moab/ProgOptions.hpp
