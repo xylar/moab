@@ -1,0 +1,36 @@
+language: c
+
+compiler:
+  - g++
+  - clang++
+
+env:
+  - MOAB_BUILD_DIR=$SHIPPABLE_BUILD_DIR
+
+matrix:
+
+build:
+
+  pre_ci:
+
+  pre_ci_boot:
+    image_name: vijaysm/scientific
+    image_tag: latest
+    pull: true
+    options:
+  ci:
+    - autoreconf -fi
+    - ./configure --enable-shared --enable-pymoab --disable-fortran
+    - make all
+    - make check
+  post_ci:
+    - make dist
+  on_success:
+    - echo "Excellent. PyMOAB works cleanly!"
+  on_failure:
+    - echo "Alas. PyMOAB failed."
+  cache: true
+  cache_dir_list:
+    - $SHIPPABLE_BUILD_DIR/.git
+  push:
+
