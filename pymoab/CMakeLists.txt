@@ -2,10 +2,9 @@ SET( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_LIST_DIR}/cmake )
 
 # make sure we have the essential elements installed
 FIND_PROGRAM(PYTHON "python")
-FIND_PROGRAM(NOSE "nosetests")
 
-find_package(PythonInterp)
-
+find_package(PythonInterp REQUIRED)
+find_package(PythonDev REQUIRED)
 # make sure that specific python modules are installed
 SET(NUMPY_MODULE_MISSING false)
 SET(SETUPTOOLS_MODULE_MISSING false)
@@ -28,8 +27,8 @@ if(NOT BUILD_SHARED_LIBS)
 endif()
 
 # if all is well go ahead and build/install pymoab interface
-if (PYTHON AND NOSE AND NOT PYTHON_MODULES_MISSING)
-
+if (PYTHON AND NOT PYTHON_MODULES_MISSING)
+  
   ADD_SUBDIRECTORY(pymoab)
   ADD_SUBDIRECTORY(tests)
 
