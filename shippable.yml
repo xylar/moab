@@ -1,13 +1,8 @@
 language: c
 
-compiler:
-  - g++
-  - clang++
-
 env:
-  - MOAB_BUILD_DIR=$SHIPPABLE_BUILD_DIR
-
-matrix:
+  - CC="clang" CXX="clang++" CONFIGOPTS="--enable-debug --disable-optimize --enable-tools"
+  - CC="gcc" CXX="g++" CONFIGOPTS="--disable-debug --enable-optimize"
 
 build:
 
@@ -20,7 +15,7 @@ build:
     options:
   ci:
     - autoreconf -fi
-    - ./configure --enable-shared --enable-pymoab --disable-fortran
+    - ./configure CC=clang CXX=clang++ --enable-shared --enable-pymoab --disable-fortran $CONFIGOPTS
     - make all
     - make check
   post_ci:
