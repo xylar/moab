@@ -35,13 +35,13 @@ typedef struct BrickOpts
 
 class MGen {
 public:
-  MGen(Interface *mb, ParallelComm * pcomm=0, EntityHandle rset =0);
+  MGen(Interface *mbi, ParallelComm * pcomm=0, EntityHandle rset =0);
   virtual ~MGen();
 
   ErrorCode BrickInstance(brOpts & opts);
 
 private:
-  Interface * mbImpl;
+  Interface * mb;
   ParallelComm * pc;
   EntityHandle cset;
 };
