@@ -1,9 +1,9 @@
 # MOAB_DIR points to top-level install dir, below which MOAB's lib/ and include/ are located
-include makefile.config
+include ../makefile.config
 
 default: build
 
-SUBDIRS = beginner basic intermediate advanced fortran apps# cmake
+SUBDIRS = earth
 
 build: ${MOAB_LIBDIR}/libMOAB.la
 	@for exampledir in ${SUBDIRS} ; do \
