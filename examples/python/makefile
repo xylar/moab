@@ -9,14 +9,14 @@ ALLEXAMPLES = yt2moab laplaciansmoother
 all: $(ALLEXAMPLES)
 
 yt2moab: yt2moab.py
-	@echo "[CXXLD]  $@"
-	${VERBOSE}$(MOAB_CXX) -o $@ $< $(MOAB_LIBS_LINK)
+	@echo "[Python]  $@"
+	${PYTHON} yt2moab.py
 
 laplaciansmoother: laplaciansmoother.py
-	@echo "[CXXLD]  $@"
-	${VERBOSE}$(MOAB_CXX) -o $@ $< $(MOAB_LIBS_LINK)
+	@echo "[Python]  $@"
+	${PYTHON} laplaciansmoother.py ${MESH_DIR}/surfrandomtris-4part.h5m 25
 
-run: all $(addprefix run-,$(ALLEXAMPLES))
+run: all 
 
 clean: clobber
 	rm -rf ${ALLEXAMPLES}
