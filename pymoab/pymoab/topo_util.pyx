@@ -6,7 +6,7 @@ import numpy as np
 
 from .rng cimport Range
 from .core cimport Core
-from .types import check_error
+from .types import check_error, _eh_array
 from . import types
 
 
@@ -86,7 +86,7 @@ cdef class MeshTopoUtil(object):
         -------
         root_set = mb.get_root_set()
         all_volumes = mb.get_entities_by_dimension(root_set, 3)
-        mtu.construct_aentities(all_volumes)
+        mtu.get_average_position(all_volumes)
 
         Parameters
         ----------
@@ -118,14 +118,11 @@ cdef class MeshTopoUtil(object):
             avg_position = np.empty((3,),dtype='float64')
             err = self.inst.get_average_position(deref(r.inst), <double*> avg_position.data)
             check_error(err, exceptions)
-        elif isinstance(entity_handles,np.ndarray):
-            assert entity_handles.dtype == 'uint64'
-            arr = entity_handles
+        else:
+            arr = _eh_array(entity_handles)
             avg_position = np.empty((3,),dtype='float64')
             err = self.inst.get_average_position(<unsigned long*> arr.data, len(entity_handles), <double*> avg_position.data)
             check_error(err, exceptions)
-        else:
-            check_error(types.MB_FAILURE)
 
         return avg_position
 
