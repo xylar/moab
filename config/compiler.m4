@@ -214,8 +214,8 @@ EXTRA_GNU_FCFLAGS="$EXTRA_GNU_FCFLAGS -ffree-line-length-0 -march=native"
 EXTRA_CLANG_CXXFLAGS="$EXTRA_CLANG_CXXFLAGS -march=native"
 EXTRA_CLANG_FCFLAGS="$EXTRA_CLANG_FCFLAGS -ffree-line-length-0 -march=native"
 # Intel
-EXTRA_INTEL_CXXFLAGS="$EXTRA_INTEL_CXXFLAGS -xHost -ip -no-prec-div" # -fast
-EXTRA_INTEL_FCFLAGS="$EXTRA_INTEL_FCFLAGS -xHost -ip -no-prec-div" # -fast
+EXTRA_INTEL_CXXFLAGS="$EXTRA_INTEL_CXXFLAGS -ip -no-prec-div" # -fast
+EXTRA_INTEL_FCFLAGS="$EXTRA_INTEL_FCFLAGS -ip -no-prec-div" # -fast
 # PGI
 EXTRA_PGI_CXXFLAGS="$EXTRA_PGI_CXXFLAGS -fast"
 EXTRA_PGI_FCFLAGS="$EXTRA_PGI_FCFLAGS -fast"
@@ -287,20 +287,20 @@ else
   DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --enable-debug=no"
 fi
 if (test "xno" != "x$enable_cxx_optimize"); then
-  CXXFLAGS="$CXXFLAGS -O2 -DNDEBUG"
+  CXXFLAGS="$CXXFLAGS -O3 -DNDEBUG"
   DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --enable-optimize=yes"
 else
   DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --enable-optimize=no"
 fi
 if (test "xno" != "x$enable_cc_optimize"); then
-  CFLAGS="$CFLAGS -O2 -DNDEBUG"
+  CFLAGS="$CFLAGS -O3 -DNDEBUG"
 fi
 if (test "x$ENABLE_FORTRAN" != "xno"); then
   if (test "xno" != "x$enable_fc_optimize"); then
-    FCFLAGS="$FCFLAGS -O2"
+    FCFLAGS="$FCFLAGS -O3"
   fi
   if (test "xno" != "x$enable_f77_optimize"); then
-    FFLAGS="$FFLAGS -O2"
+    FFLAGS="$FFLAGS -O3"
   fi
   AC_FC_PP_DEFINE
 fi
