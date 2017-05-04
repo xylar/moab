@@ -83,7 +83,7 @@ cdef class Core(object):
         cdef moab.ErrorCode err = self.inst.load_file(fname,ptr)
         check_error(err, exceptions)
 
-    def write_file(self, str fname, exceptions = ()):
+    def write_file(self, str fname, output_sets = None, exceptions = ()):
         """
         Write or export a file.
 
@@ -96,7 +96,11 @@ cdef class Core(object):
         Parameters
         ----------
         fname : string
-            thhe location of the file to write
+            the location of the file to write
+        output_sets : EntityHandle (default None)
+            If not None, this argument must be a valid entity set handle.
+            When specified, the method will write entities from the given
+            meshsets.
         exceptions : tuple (default is empty tuple)
             tuple containing any error types that should
             be ignored (see pymoab.types module for more info)
@@ -114,7 +118,17 @@ cdef class Core(object):
         """
         cfname = fname.decode()
         cdef const char * file_name = cfname
-        cdef moab.ErrorCode err = self.inst.write_file(fname)
+
+        cdef Range r
+        cdef np.ndarray[np.uint64_t, ndim=1] arr
+
+        if output_sets:
+          arr = _eh_array(output_sets)
+          err = self.inst.write_file(
+            fname, <const char*> 0, <const char*> 0, <unsigned long*> arr.data, len(output_sets))
+        else:
+          err = self.inst.write_file(fname)
+
         check_error(err, exceptions)
 
     def create_meshset(self, unsigned int options = 0x02, exceptions = ()):
@@ -1430,4 +1444,3 @@ cdef class Core(object):
             t.inst = tag
             tag_list.append(t)
         return tag_list
-        
