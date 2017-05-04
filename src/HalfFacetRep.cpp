@@ -43,8 +43,8 @@ namespace moab {
   }
 
 
-  HalfFacetRep::HalfFacetRep(Core *impl,   ParallelComm *comm, moab::EntityHandle rset)
-    : mb(impl), pcomm(comm), _rset(rset)
+  HalfFacetRep::HalfFacetRep(Core *impl,   ParallelComm *comm, moab::EntityHandle rset, bool filter_ghosts)
+    : mb(impl), pcomm(comm), _rset(rset), _filterghost(filter_ghosts)
   {
     assert(NULL != impl);
     mInitAHFmaps = false;
@@ -198,7 +198,7 @@ namespace moab {
     if (!mInitAHFmaps){
         mInitAHFmaps = true;
 #ifdef MOAB_HAVE_MPI
-        if (pcomm){
+        if (pcomm && _filterghost){
             moab::Range _averts, _aedgs, _afacs, _acels;
             error = mb->get_entities_by_dimension(this->_rset, 0, _averts, true);MB_CHK_ERR(error);
             error = mb->get_entities_by_dimension(this->_rset, 1, _aedgs, true);MB_CHK_ERR(error);

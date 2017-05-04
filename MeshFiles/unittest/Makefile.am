@@ -53,5 +53,16 @@ EXTRA_DIST = 125hex.g \
              quad_1000.vtk \
              spectral.h5m \
              tet_brick.vtk \
-	     test_geom.h5m
+             test_geom.h5m \
+             sphere_quads_5.vtk \
+             sphere_quads_20.vtk \
+             sphere_tris_5.vtk \
+             sphere_tris_20.vtk \
+             sphere_quads_5_ML_0.h5m \
+             sphere_quads_5_ML_1.h5m \
+             circle_3.vtk \
+             circle_4.vtk \
+             circle_10.vtk \
+             circle_20.vtk \
+             torus_tris_12.vtk
 
