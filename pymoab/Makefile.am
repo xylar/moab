@@ -21,9 +21,6 @@ install:
 		--verbose \
 	)
 
-%.cpp.pyx:
-	cython --cplus -t -o $@ $<
- 
 $(srcdir)/pymoab/core.cpp: $(srcdir)/pymoab/core.pyx $(srcdir)/pymoab/moab.pxd
 	cython --cplus -t -o $@ $<
 $(srcdir)/pymoab/hcoord.cpp: $(srcdir)/pymoab/hcoord.pyx $(srcdir)/pymoab/moab.pxd

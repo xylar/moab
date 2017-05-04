@@ -29,38 +29,38 @@ cdef class Skinner(object):
 
     def find_geometric_skin(self, moab.EntityHandle ms_handle, exceptions = ()):
         """
-        Add entities to the specified meshset. Entities can be provided either
-        as a pymoab.rng.Range o bject or as an iterable of EntityHandles.
+        Find the geometric skin of the domain
+        This method requires that GEOM_DIMENSION tag is available on entities
+        to specify the volumes that they belong to. Internally, the queries 
+        will use CGM.
 
-        If meshset has MESHSET_TRACK_OWNER option set, adjacencies are also
-        added to entities in entities.
+        Returns entities that form the geometric skin.
 
         Example
         -------
-        vertices # a iterable of MOAB vertex handles
-        new_meshset = mb.create_meshset()
-        mb.add_entities(new_meshset, entities)
+        ms_handle # the mesh set corresponding for which boundary is requested
+        ms_handle = mb.get_rootset()
+        skin_ents = find_geometric_skin(ms_handle)
 
         Parameters
         ----------
         ms_handle : EntityHandle
-            EntityHandle of the Meshset the entities will be added to
-        entities : Range or iterable of EntityHandles
-            Entities that to add to the Meshset
+            EntityHandle of the Meshset that is being queried
         exceptions : tuple (default is empty tuple)
             A tuple containing any error types that should
             be ignored. (see pymoab.types module for more info)
 
         Returns
         -------
-        None
+        entities : Range or iterable of EntityHandles
+            Entities that are on the geometric boundary of the queried set
 
         Raises
         ------
         MOAB ErrorCode
             if a MOAB error occurs
         ValueError
-            if an EntityHandle is not of the correct type
+            if the meshset EntityHandle is not of the correct type
         """
         cdef moab.ErrorCode err
         cdef Range ents = Range()
@@ -72,38 +72,48 @@ cdef class Skinner(object):
 
     def find_skin(self, const moab.EntityHandle ms_handle, entities, bint get_vertices=False, bint is_scd=False, exceptions = ()):
         """
-        Add entities to the specified meshset. Entities can be provided either
-        as a pymoab.rng.Range o bject or as an iterable of EntityHandles.
+        Find the entities that are on the topological boundary of the specified meshset.
+        User can query for either vertices or get the d-1 dimensional entities on the
+        mesh boundary.
 
-        If meshset has MESHSET_TRACK_OWNER option set, adjacencies are also
-        added to entities in entities.
+        If the meshset belongs to a SCD set, the information is forwarded to the 
+        underlying call appropriately.
 
         Example
         -------
-        vertices # a iterable of MOAB vertex handles
-        new_meshset = mb.create_meshset()
-        mb.add_entities(new_meshset, entities)
+        ms_handle # the mesh set corresponding for which boundary is requested
+        ms_handle = mb.get_rootset()
+        quads = mb.get_entities_by_dimension(ms_handle, 2)
+        skin_verts = mskn.find_skin(rs, quads, True, False)
+        skin_edges = mskn.find_skin(rs, quads, False, False)
 
         Parameters
         ----------
         ms_handle : EntityHandle
-            EntityHandle of the Meshset the entities will be added to
-        entities : Range or iterable of EntityHandles
-            Entities that to add to the Meshset
+            EntityHandle of the Meshset that is being queried
+        get_vertices : Boolean
+            This flag indicates whether the user wants the 
+            boundary vertices or d-1 elements
+        is_scd : Boolean
+            This flag indicates whether the underlying mesh object
+            is using the SCD interface
         exceptions : tuple (default is empty tuple)
             A tuple containing any error types that should
             be ignored. (see pymoab.types module for more info)
 
         Returns
         -------
-        None
+        entities : Range or iterable of EntityHandles
+            Entities that are on the mesh boundary of the queried set.
+            The entities may contain either the skin vertices or the
+            skin elements depending on the \p get_vertices flag value.
 
         Raises
         ------
         MOAB ErrorCode
             if a MOAB error occurs
         ValueError
-            if an EntityHandle is not of the correct type
+            if the meshset EntityHandle is not of the correct type
         """
         cdef moab.ErrorCode err
         cdef Range r
