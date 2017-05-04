@@ -118,6 +118,7 @@ cdef class Core(object):
         """
         cfname = fname.decode()
         cdef const char * file_name = cfname
+        cdef moab.ErrorCode err
 
         cdef Range r
         cdef np.ndarray[np.uint64_t, ndim=1] arr
