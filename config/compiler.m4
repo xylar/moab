@@ -660,6 +660,7 @@ if test x$GXX = xyes; then
   FATHOM_TRY_COMPILER_DEFINE([__INTEL_COMPILER],[cxx_compiler=Intel])
   FATHOM_TRY_COMPILER_DEFINE([__clang__],[cxx_compiler=Clang])
   FATHOM_TRY_COMPILER_DEFINE([__PGI],[cxx_compiler=PortlandGroup])
+  FATHOM_TRY_COMPILER_DEFINE([_CRAYC],[cxx_compiler=Cray])
 # Search for other compiler types
 # For efficiency, limit checks to relevant OSs
 else
@@ -685,6 +686,7 @@ else
       FATHOM_TRY_COMPILER_DEFINE([__DECCXX_VER],[cxx_compiler=Compaq])
       FATHOM_TRY_COMPILER_DEFINE([__SUNPRO_CC],[cxx_compiler=SunWorkshop])
       FATHOM_TRY_COMPILER_DEFINE([__PGI],[cxx_compiler=PortlandGroup])
+      FATHOM_TRY_COMPILER_DEFINE([_CRAYC],[cxx_compiler=Cray])
       ;;
     hpux*)
       FATHOM_TRY_COMPILER_DEFINE([__HP_aCC],[cxx_compiler=HP])
@@ -739,6 +741,9 @@ case "$cxx_compiler:$host_cpu" in
     FATHOM_CXX_32BIT=-m32
     FATHOM_CXX_64BIT=-m64
     FATHOM_CXX_SPECIAL="$EXTRA_INTEL_CXXFLAGS -wd981 -wd279 -wd1418 -wd383 -wd1572 -wd2259"
+    ;;
+  Cray:*)
+    FATHOM_CXX_SPECIAL="-g –craype-verbose"
     ;;
   VisualAge:*)
     FATHOM_CXX_32BIT=-q32
@@ -812,6 +817,7 @@ if test x$GCC = xyes; then
   FATHOM_TRY_COMPILER_DEFINE([__INTEL_COMPILER],[cc_compiler=Intel])
   FATHOM_TRY_COMPILER_DEFINE([__clang__],[cc_compiler=Clang])
   FATHOM_TRY_COMPILER_DEFINE([__PGI],[cc_compiler=PortlandGroup])
+  FATHOM_TRY_COMPILER_DEFINE([_CRAYC],[cc_compiler=Cray])
 # Search for other compiler types
 # For efficiency, limit checks to relevant OSs
 else
@@ -835,6 +841,7 @@ else
       FATHOM_TRY_COMPILER_DEFINE([__DECC_VER],[cc_compiler=Compaq])
       FATHOM_TRY_COMPILER_DEFINE([__SUNPRO_C],[cc_compiler=SunWorkshop])
       FATHOM_TRY_COMPILER_DEFINE([__PGI],[cc_compiler=PortlandGroup])
+      FATHOM_TRY_COMPILER_DEFINE([_CRAYC],[cc_compiler=Cray])
       ;;
     hpux*)
       FATHOM_TRY_COMPILER_DEFINE([__HP_cc],[cc_compiler=HP])
@@ -900,6 +907,11 @@ case "$cc_compiler:$host_cpu" in
     FATHOM_CC_64BIT=-m64
     FATHOM_CC_SPECIAL="$EXTRA_INTEL_CXXFLAGS -wd981 -wd279 -wd1418 -wd383 -wd1572"
     FATHOM_FC_SPECIAL="$EXTRA_INTEL_FCFLAGS"
+    FATHOM_F77_SPECIAL="$FATHOM_FC_SPECIAL"
+    ;;
+  Cray:*)
+    FATHOM_CC_SPECIAL="-g"
+    FATHOM_FC_SPECIAL="-g"
     FATHOM_F77_SPECIAL="$FATHOM_FC_SPECIAL"
     ;;
   VisualAge:*)
