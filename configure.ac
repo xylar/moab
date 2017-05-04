@@ -278,6 +278,13 @@ else
     if (test "x$enable_32bit_handles" != "x"); then
       AC_MSG_ERROR([Cannot build pymoab with 32bit EntityHandles enabled. Please remove the --enable-32bit-handles configuration option or build without MOAB's python interface.])
     fi
+    UNAME_S=`uname -s`
+    if (test "x$UNAME_S" = "xDarwin"); then
+      SLIBENVPATH="DYLD_LIBRARY_PATH"
+    else
+      SLIBENVPATH="LD_LIBRARY_PATH"
+    fi
+    AC_SUBST(SLIBENVPATH)
     DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --enable-pymoab=$ENABLE_pymoab"
   else
     ENABLE_pymoab=no

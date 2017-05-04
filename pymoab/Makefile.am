@@ -1,3 +1,4 @@
+AUTOMAKE_OPTIONS=foreign
 
 EXTRA_DIST = $(srcdir)/cmake/cython_test.pyx $(srcdir)/pymoab/* $(srcdir)/tests/*
 
@@ -9,11 +10,11 @@ test_files = test_core.py test_hom.py test_scd.py test_range.py test_tag.py test
 
 all-local:
 	CFLAGS='-w -fPIC' $(PYTHON) setup.py build
-	(export PYTHONPATH=$(PWD)/$(local_install_path)/:$(PYTHONPATH) ; $(MKDIR_P) -m 766 $(local_install_path); $(PYTHON) setup.py install --install-platlib=$(PWD)/$(local_install_path)/ --install-purelib=$(PWD)/$(local_install_path)/)
+	($(MKDIR_P) -m 766 $(local_install_path); PYTHONPATH=$(PWD)/$(local_install_path)/:$(PYTHONPATH) $(PYTHON) setup.py install --install-platlib=$(PWD)/$(local_install_path)/ --install-purelib=$(PWD)/$(local_install_path)/)
 
 install:
 	$(MKDIR_P) $(DESTDIR)$(pkgpythondir)
-	(export PYTHONPATH=$(DESTDIR)$(pkgpythondir):$(PYTHONPATH) ; $(PYTHON) setup.py install \
+	(PYTHONPATH=$(DESTDIR)$(pkgpythondir):$(PYTHONPATH) $(PYTHON) setup.py install \
 		--prefix=$(DESTDIR)$(prefix) \
 		--single-version-externally-managed \
 		--record $(DESTDIR)$(pkgpythondir)/install_files.txt \
@@ -46,7 +47,7 @@ check:
 	cd tests; \
 	for i in $(test_files); \
 	do \
-		(LD_LIBRARY_PATH=$(abs_top_builddir)/src/.libs/:$(LD_LIBRARY_PATH) PYTHONPATH=$(PWD)/$(local_install_path)/:$(PYTHONPATH) $(PYTHON) $$i) || exit 1; \
+		(@SLIBENVPATH@=$(abs_top_builddir)/src/.libs/:$(@SLIBENVPATH@) PYTHONPATH=$(abs_builddir)/$(local_install_path)/:$(PYTHONPATH) $(PYTHON) $$i) || exit 1; \
 	done
 
 clean-local:
