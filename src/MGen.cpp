@@ -351,6 +351,9 @@ ErrorCode MGen::BrickInstance(brOpts & opts)
     }
   }
 
+#ifdef MOAB_HAVE_MPI
+   pc->partition_sets()=wsets;
+#endif
 
   /*
   // Before merge locally

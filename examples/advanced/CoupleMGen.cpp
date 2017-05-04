@@ -192,7 +192,10 @@ int main(int argc, char* argv[])
       err_max = err2;
   }
 
-  std::cout<<"err max on proc " << proc_id << " is " << err_max << "\n";
+  double gerr;
+  MPI_Allreduce(&err_max, &gerr, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+  if (0==proc_id)
+   std::cout<<"max err  " << gerr << "\n";
 
 
   MPI_Finalize();
