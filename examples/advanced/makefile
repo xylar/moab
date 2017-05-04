@@ -72,7 +72,7 @@ endif
 
 CoupleMGen: CoupleMGen.o ${MOAB_LIBDIR}/libMOAB.la
 	@echo "[CXXLD]  $@"
-	${VERBOSE}${MOAB_CXX} -o $@ $< ${MOAB_LIBS_LINK}
+	${VERBOSE}${MOAB_CXX} -o $@ $< -lmbcoupler ${MOAB_LIBS_LINK}
 
 run-CoupleMGen: CoupleMGen
 ifeq ("$(MOAB_MPI_ENABLED)-$(MOAB_HDF5_ENABLED)","yes-yes")

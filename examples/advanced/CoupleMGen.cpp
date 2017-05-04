@@ -97,7 +97,7 @@ int main(int argc, char* argv[])
       string("tolerance for coupling, used in locating points"), &toler);
 
   bool writeMeshes=false;
-  popts.addOpt("print,p", "write meshes", &writeMeshes);
+  popts.addOpt<void>("print,p", "write meshes", &writeMeshes);
 
   popts.parseCommandLine(argc, argv);
 
@@ -164,7 +164,7 @@ int main(int argc, char* argv[])
   rval = pc2->get_part_entities(targ_elems, 3);MB_CHK_ERR(rval);
 
   rval = mb->get_adjacencies(targ_elems, 0, false, targ_verts,
-                                     Interface::UNION);MB_CHK_ERR(result);
+                                     Interface::UNION);MB_CHK_ERR(rval);
   Range tmp_verts;
   // Then get non-owned verts and subtract
   rval = pc2->get_pstatus_entities(0, PSTATUS_NOT_OWNED, tmp_verts);MB_CHK_ERR(rval);
@@ -180,7 +180,7 @@ int main(int argc, char* argv[])
   // Now interpolate tag onto target points
   std::vector<double> field(numPointsOfInterest);
 
-  rval = mbc.interpolate(method, interpTag, &field[0]);MB_CHK_ERR(result);
+  rval = mbc.interpolate(method, interpTag, &field[0]);MB_CHK_ERR(rval);
 
   // compare with the actual phys field
   double err_max = 0;
