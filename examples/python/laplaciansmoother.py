@@ -10,7 +10,7 @@ def parse_args():
     parser = argparse.ArgumentParser() 
 
     parser.add_argument('filename', type=str, nargs='?', help="MOAB mesh that needs to be smoothed", default="../../MeshFiles/unittest/surfrandomtris-4part.h5m")
-    parser.add_argument('maxiter', type=str, nargs='?', help="Maximum number of smoothing iterations to apply", default=10)
+    parser.add_argument('maxiter', type=int, nargs='?', help="Maximum number of smoothing iterations to apply", default=10)
     args = parser.parse_args()
 
     return args
