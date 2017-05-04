@@ -205,6 +205,7 @@ else
   if (test "x$enable_pymoab" != "xno"); then
     ENABLE_pymoab=yes
     AM_PATH_PYTHON()
+    AX_PYTHON_DEVEL()
     AC_PYTHON_MODULE(numpy)
     AC_PYTHON_MODULE(setuptools)
     AC_CONFIG_SRCDIR([pymoab/setup.py.in])
