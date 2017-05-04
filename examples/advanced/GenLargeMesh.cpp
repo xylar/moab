@@ -604,8 +604,9 @@ int main(int argc, char **argv)
       rval = pcomm->delete_entities(toDelete);MB_CHK_SET_ERR(rval, "Can't delete entities");
 
       if (0 == rank) {
-        cout << "delete edges and faces, and correct sharedEnts: "
-             << (clock() - tt) / (double)CLOCKS_PER_SEC << " seconds" << endl;
+        cout << "delete edges and faces: \n";
+        toDelete.print(cout);
+        cout << (clock() - tt) / (double)CLOCKS_PER_SEC << " seconds" << endl;
         tt = clock();
       }
     }

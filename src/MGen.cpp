@@ -120,6 +120,8 @@ ErrorCode MGen::BrickInstance(brOpts & opts)
                              part_tag, MB_TAG_CREAT | MB_TAG_SPARSE, &dum_id);MB_CHK_SET_ERR(rval, "Can't get parallel partition tag");
 
   Range wsets; // write only part sets
+  Range localVerts;
+  Range all3dcells;
   for (int a = 0; a < A; a++) {
     for (int b = 0; b < B; b++) {
       for (int c = 0; c < C; c++) {
@@ -161,6 +163,7 @@ ErrorCode MGen::BrickInstance(brOpts & opts)
         {
           rval = mb->tag_set_data(new_id_tag, verts, &lgids[0]);MB_CHK_SET_ERR(rval, "Can't set the new handle id tags");
         }
+        localVerts.merge(verts);
         int num_hexas = blockSize * blockSize * blockSize;
         int num_el = num_hexas * factor;
 
@@ -196,7 +199,7 @@ ErrorCode MGen::BrickInstance(brOpts & opts)
               // These could overflow for large numbers
               gids[ie] = 1 + ((xe+ii) + (ye+jj) * nex + (ze+kk) * (nex*ney))*factor ; // 6 more for tetra
               lgids[ie] = 1 + ((xe+ii) + (ye+jj) * nex + (long)(ze+kk) * (nex*ney))*factor ; // 6 more for tetra
-              EntityHandle eh = starte + ie;
+              //EntityHandle eh = starte + ie;
 
               ie++;
               if (quadratic) {
@@ -299,7 +302,7 @@ ErrorCode MGen::BrickInstance(brOpts & opts)
                 for (int ff = 0; ff < factor - 1; ff++) {
                   gids[ie] = gids[ie-1] + 1; // 6 more for tetra
 
-                  eh = starte + ie;
+                  //eh = starte + ie;
 
                   ie++;
                 }
@@ -322,10 +325,11 @@ ErrorCode MGen::BrickInstance(brOpts & opts)
         EntityHandle part_set;
         rval = mb->create_meshset(MESHSET_SET, part_set);MB_CHK_SET_ERR(rval, "Can't create mesh set");
         rval = mb->add_entities(part_set, cells);MB_CHK_SET_ERR(rval, "Can't add entities to set");
+        all3dcells.merge(cells);
+        // update adjacencies now, because some elements are new;
+        rval = iface->update_adjacencies(starte, num_el, num_v_per_elem, conn);MB_CHK_SET_ERR(rval, "Can't update adjacencies");
         // If needed, add all edges and faces
         if (adjEnts) {
-          // We need to update adjacencies now, because some elements are new
-          rval = iface->update_adjacencies(starte, num_el, num_v_per_elem, conn);MB_CHK_SET_ERR(rval, "Can't update adjacencies");
           // Generate all adj entities dimension 1 and 2 (edges and faces/ tri or qua)
           Range edges, faces;
           rval = mb->get_adjacencies(cells, 1, true, edges,
@@ -354,8 +358,8 @@ ErrorCode MGen::BrickInstance(brOpts & opts)
   */
   // After the mesh is generated on each proc, merge the vertices
   MergeMesh mm(mb);
-  Range all3dcells;
-  rval = mb->get_entities_by_dimension(0, 3, all3dcells);MB_CHK_SET_ERR(rval, "Can't get all 3d cells elements");
+
+  //rval = mb->get_entities_by_dimension(0, 3, all3dcells);MB_CHK_SET_ERR(rval, "Can't get all 3d cells elements");
 
   if (0 == rank) {
     std::cout << "generate local mesh: "
@@ -366,13 +370,10 @@ ErrorCode MGen::BrickInstance(brOpts & opts)
     std::cout << "Element type: " << ( tetra ? "MBTET" : "MBHEX") << " order:" <<
           (quadratic? "quadratic" : "linear" ) << endl;
   }
-  Range verts;
-  rval = mb->get_entities_by_dimension(0, 0, verts);MB_CHK_SET_ERR(rval, "Can't get all vertices");
-
 #ifdef MOAB_HAVE_MPI
   if (A*B*C != 1) { // Merge needed
     if (newMergeMethod) {
-      rval = mm.merge_using_integer_tag(verts, global_id_tag);MB_CHK_SET_ERR(rval, "Can't merge");
+      rval = mm.merge_using_integer_tag(localVerts, global_id_tag);MB_CHK_SET_ERR(rval, "Can't merge");
     }
     else {
       rval = mm.merge_entities(all3dcells, 0.0001);MB_CHK_SET_ERR(rval, "Can't merge");
@@ -428,15 +429,18 @@ ErrorCode MGen::BrickInstance(brOpts & opts)
     if (!keep_skins) { // Default is to delete the 1- and 2-dimensional entities
       // Delete all quads and edges
       Range toDelete;
-      rval = mb->get_entities_by_dimension(0, 1, toDelete);MB_CHK_SET_ERR(rval, "Can't get edges");
+      rval = mb->get_entities_by_dimension(cset, 1, toDelete);MB_CHK_SET_ERR(rval, "Can't get edges");
 
-      rval = mb->get_entities_by_dimension(0, 2, toDelete);MB_CHK_SET_ERR(rval, "Can't get faces");
+      rval = mb->get_entities_by_dimension(cset, 2, toDelete);MB_CHK_SET_ERR(rval, "Can't get faces");
 
       rval = pc->delete_entities(toDelete);MB_CHK_SET_ERR(rval, "Can't delete entities");
-
+      rval = mb->remove_entities(cset, toDelete); MB_CHK_SET_ERR(rval, "Can't remove entities from base set");
       if (0 == rank) {
-        std::cout << "delete edges and faces, and correct sharedEnts: "
-             << (clock() - tt) / (double)CLOCKS_PER_SEC << " seconds" << endl;
+
+        std::cout << "delete edges and faces \n";
+        toDelete.print(std::cout);
+
+        std::cout << (clock() - tt) / (double)CLOCKS_PER_SEC << " seconds" << endl;
         tt = clock();
       }
     }
@@ -473,9 +477,12 @@ ErrorCode MGen::BrickInstance(brOpts & opts)
     }
   }
 #else
-  rval = mb->write_file("GenLargeMesh.vtk", 0, "", wsets);MB_CHK_SET_ERR(rval, "Can't write in serial");
+  if (!nosave){
+    rval = mb->write_file("GenLargeMesh.vtk", 0, "", wsets);MB_CHK_SET_ERR(rval, "Can't write in serial");
+  }
 #endif
 
+  rval = mb->add_entities(cset, wsets); MB_CHK_SET_ERR(rval, "Can't add entity sets");
   return MB_SUCCESS;
 }
 MGen::~MGen() {
