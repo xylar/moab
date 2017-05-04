@@ -21,24 +21,28 @@ install:
 		--verbose \
 	)
 
+if DEVELOPER_MODE
+
 $(srcdir)/pymoab/core.cpp: $(srcdir)/pymoab/core.pyx $(srcdir)/pymoab/moab.pxd
-	cython --cplus -t -o $@ $<
+	$(CYTHON) --cplus -t -o $@ $<
 $(srcdir)/pymoab/hcoord.cpp: $(srcdir)/pymoab/hcoord.pyx $(srcdir)/pymoab/moab.pxd
-	cython --cplus -t -o $@ $<
+	$(CYTHON) --cplus -t -o $@ $<
 $(srcdir)/pymoab/rng.cpp: $(srcdir)/pymoab/rng.pyx $(srcdir)/pymoab/moab.pxd
-	cython --cplus -t -o $@ $<
+	$(CYTHON) --cplus -t -o $@ $<
 $(srcdir)/pymoab/scd.cpp: $(srcdir)/pymoab/scd.pyx $(srcdir)/pymoab/moab.pxd
-	cython --cplus -t -o $@ $<
+	$(CYTHON) --cplus -t -o $@ $<
 $(srcdir)/pymoab/tag.cpp: $(srcdir)/pymoab/tag.pyx $(srcdir)/pymoab/moab.pxd
-	cython --cplus -t -o $@ $<
+	$(CYTHON) --cplus -t -o $@ $<
 $(srcdir)/pymoab/topo_util.cpp: $(srcdir)/pymoab/topo_util.pyx $(srcdir)/pymoab/moab.pxd
-	cython --cplus -t -o $@ $<
+	$(CYTHON) --cplus -t -o $@ $<
 $(srcdir)/pymoab/types.cpp: $(srcdir)/pymoab/types.pyx $(srcdir)/pymoab/moab.pxd
-	cython --cplus -t -o $@ $<
+	$(CYTHON) --cplus -t -o $@ $<
 $(srcdir)/pymoab/skinner.cpp: $(srcdir)/pymoab/skinner.pyx $(srcdir)/pymoab/moab.pxd
-	cython --cplus -t -o $@ $<
+	$(CYTHON) --cplus -t -o $@ $<
 
 cythonize: $(srcdir)/pymoab/core.cpp $(srcdir)/pymoab/hcoord.cpp $(srcdir)/pymoab/rng.cpp $(srcdir)/pymoab/scd.cpp $(srcdir)/pymoab/tag.cpp $(srcdir)/pymoab/topo_util.cpp $(srcdir)/pymoab/types.cpp $(srcdir)/pymoab/skinner.cpp
+
+endif
 
 check:
 	cd tests; \

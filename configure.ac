@@ -29,6 +29,12 @@ INITIALIZE_EXTERNAL_PACKAGES
 MB_CPPFLAGS=""
 MB_DEFS=""
 
+AC_ARG_ENABLE( [devmode],
+[AS_HELP_STRING([--enable-devmode],[Enable (advanced) developer mode in the build (not recommended for users).])],
+[enable_devmode=$enableval],
+[enable_devmode=no] )
+AM_CONDITIONAL(DEVELOPER_MODE,[test "x$enable_devmode" != "xno"])
+
 ENABLE_FORTRAN=no
 AC_ARG_ENABLE([fortran],
               [AS_HELP_STRING([--disable-fortran], [Disable Fortran support and name mangling in ITAPS/MBCN C headers])])
@@ -186,7 +192,7 @@ fi
 AC_MSG_RESULT(found)
 ])
 
-AC_MSG_CHECKING([if pymoab interface is to be built])
+AC_MSG_CHECKING([if pymoab interface was requested by user])
 AC_ARG_ENABLE( [pymoab],
 [AS_HELP_STRING([--enable-pymoab],[Build support for pymoab interface.])],
 [enable_pymoab=$enableval],
@@ -196,6 +202,7 @@ AC_ARG_VAR([PYMOAB_PREFIX],
 Custom location for install of PyMOAB module)
 
 pymoab_custom_install=no
+AC_MSG_RESULT([$enable_pymoab])
 
 if (test "xyes" != "x$enable_pymoab" && test "xno" != "x$enable_pymoab"); then
   AC_MSG_ERROR([Unknown argument --enable-pymoab=$enableval])
@@ -206,6 +213,23 @@ else
     AX_PYTHON_DEVEL()
     AC_PYTHON_MODULE(numpy)
     AC_PYTHON_MODULE(setuptools)
+    if (test "x$enable_devmode" != "xno"); then
+      # Developers updating the PyMOAB modules need Cython (> 0.25)
+      AC_PYTHON_MODULE(cython)
+      AC_MSG_CHECKING(for proper cython capabilities)
+      cython --cplus $srcdir/pymoab/cmake/cython_test.pyx --output-file ./.cython_test_out && rm .cython_test_out
+      if test $? -ne 0 ; then
+        AC_MSG_ERROR(cython is not the correct version for pymoab)
+      fi
+      AC_CHECK_PROG(CYTHON_AVAILABLE, cython, yes, no)
+      if test x"$CYTHON_AVAILABLE" != x"yes" ; then
+          AC_MSG_ERROR([Cython is not installed. Use 'easy_install cython'.])
+      else
+          CYTHON=`which cython`
+          AC_SUBST(CYTHON)
+      fi
+    fi
+
     AC_CONFIG_SRCDIR([pymoab/setup.py.in])
     # link source files to build location
     AC_CONFIG_LINKS([pymoab/pymoab/moab.pxd:pymoab/pymoab/moab.pxd
@@ -291,8 +315,9 @@ else
   fi
 fi
 
-AC_MSG_RESULT([$ENABLE_pymoab])
 AM_CONDITIONAL([ENABLE_pymoab],[test "xyes" = "x$ENABLE_pymoab"])
+AC_MSG_CHECKING([if pymoab interface is enabled])
+AC_MSG_RESULT([$ENABLE_pymoab])
 
 ################################################################################
 #                           iMesh Part 1 of 2
