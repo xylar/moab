@@ -313,7 +313,6 @@ cdef class Core(object):
             err = self.inst.delete_entities(<unsigned long*> arr.data, len(entities))
         check_error(err, exceptions)
 
-
     def create_vertices(self, coordinates, exceptions = ()):
         """
         Create vertices using the specified x,y,z coordinates.
