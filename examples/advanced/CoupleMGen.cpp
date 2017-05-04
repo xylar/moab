@@ -1,7 +1,32 @@
 /*
  * Driver to test coupling online, without using IO hdf5 files
- * Will instantiate 2 different meshes, that cover the same domain, and will
- * call a
+ * Will instantiate 2 different meshes, that cover the same domain; reports in the end the L infinity norm
+ *  of a field
+ *
+ * will report time to build the meshes, instantiate coupler, locate points and interpolate
+ * M and K are options for number of parts in x and z directions
+ *
+ * partitions are ordered lexicographically, (MxNxK)
+ *
+ * it needs to be  np = MxNxK
+ *
+ * if M==K, then the partitions are perfectly aligned
+ *
+ * the second mesh  is ordered (KxNxM), so if you want them to not be perfectly aligned, make M and K different
+ *
+ * for example, run with
+ * M = 16, N=K=1, will verify slabs
+ *
+ * -b controls the number of elements in each partition
+ *
+ * example
+ *
+ *  mpiexec -np 16 CoupleMGen -K 4 -N 4
+ *
+ *  Right now, to build, it needs to install MOAB; coupler is harder if not installed (would need to add
+ *    ../tools/mbcoupler , etc, to include and lib paths)
+ *
+ *
  */
 // MOAB includes
 #include "moab/ParallelComm.hpp"
