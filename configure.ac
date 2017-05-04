@@ -1496,7 +1496,7 @@ if test "x$enable_pymoab" != "xno" && test "x$pymoab_custom_install" = "xyes" ; 
 AC_MSG_NOTICE([
 *************************************************************************
 *     The PyMOAB interface will be installed to a custom location.
-*     In order to access this module from a python intpreter, please add
+*     In order to access this module from a python interpreter, please add
 *     its install location to the PYTHONPATH environment variable:
 *
 *     export PYTHONPATH=$pythondir:\$PYTHONPATH
