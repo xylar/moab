@@ -33,7 +33,7 @@ int main(int argc, char* argv[])
   opts.uj=CartVect(0.,1.,0.);
   opts.uk=CartVect(0.,0.,1.);
   opts.newMergeMethod =  opts.quadratic =  opts.keep_skins =  opts.tetra = false;
-  opts.adjEnts =  opts.parmerge =  opts.nosave = false;
+  opts.adjEnts =  opts.parmerge =  opts.nosave = true;
 
   ProgOptions popts;
 

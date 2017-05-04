@@ -353,6 +353,7 @@ ErrorCode MGen::BrickInstance(brOpts & opts)
 
 #ifdef MOAB_HAVE_MPI
    pc->partition_sets()=wsets;
+   rval = mb->add_entities(cset, wsets); MB_CHK_SET_ERR(rval, "Can't add entity sets");
 #endif
 
   /*
@@ -481,11 +482,11 @@ ErrorCode MGen::BrickInstance(brOpts & opts)
   }
 #else
   if (!nosave){
-    rval = mb->write_file("GenLargeMesh.vtk", 0, "", wsets);MB_CHK_SET_ERR(rval, "Can't write in serial");
+    rval = mb->write_file("out1.vtk", 0, "", wsets);MB_CHK_SET_ERR(rval, "Can't write in serial");
   }
 #endif
 
-  rval = mb->add_entities(cset, wsets); MB_CHK_SET_ERR(rval, "Can't add entity sets");
+
   return MB_SUCCESS;
 }
 MGen::~MGen() {
