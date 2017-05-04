@@ -193,7 +193,7 @@ AC_ARG_ENABLE( [pymoab],
 [enable_pymoab=no] )
 
 AC_ARG_WITH([pymoabdir],
-[AS_HELP_STRING([--with-pymoabdir], [install PyMOAB module in this path])],
+[AS_HELP_STRING([--with-pymoabdir[=DIR]], [install PyMOAB module in this path DIR/lib/python<version>/site-packages/])],
 [pymoabdir=$withval],
 [pymoabdir=NONE])
 
@@ -247,24 +247,22 @@ else
       pymoab_custom_install=yes
       pymoab_prefix=$pymoabdir
       pythondir=$pymoab_prefix
-    fi
-    # if a prefix was supplied, then install under the lib directory
-    # of the specified prefix location
-    if test "x$prefix" != "xNONE" && test "x$pymoabdir" = "xNONE"; then
+    else
+      # if a prefix was supplied, then install under the lib directory
+      # of the specified prefix location
+      if test "x$prefix" != "xNONE"; then
         pymoab_prefix=$prefix/lib/python${PYTHON_VERSION}/site-packages
         pymoab_custom_install=yes
         pythondir=$pymoab_prefix
-    fi
-    # if no specific location is used and no prefix was supplied,
-    # then install to the system location
-    if test "x$prefix" = "xNONE" && test "x$pymoabdir" = "xNONE"; then
+      else
+        # if no specific location is used and no prefix was supplied,
+        # then install to the system location
         pymoab_prefix=/usr/lib/python${PYTHON_VERSION}/dist-packages
         pythondir=$pymoab_prefix
+      fi
     fi
 
     AC_SUBST([pymoab_prefix])
-    AC_MSG_NOTICE([PYMOAB PREFIX $pymoab_prefix])
-    AC_MSG_NOTICE([INSTALL PREFIX $prefix])
     # ensure shared libraries are enabled
     if (test "xyes" != "x$enable_shared" || test "xno" = "x$enable_shared"); then
       AC_MSG_ERROR([Cannot build static libraries and the python interface. Please build with shared libraries (--enable-shared) or build without MOAB's python interface.])
