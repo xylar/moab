@@ -101,6 +101,8 @@ int main(int argc, char* argv[])
 
   popts.parseCommandLine(argc, argv);
 
+  double start_time = MPI_Wtime();
+
   ErrorCode rval = mb->create_meshset(MESHSET_SET, fileset1);MB_CHK_ERR(rval);
   rval = mb->create_meshset(MESHSET_SET, fileset2);MB_CHK_ERR(rval);
 
@@ -109,6 +111,10 @@ int main(int argc, char* argv[])
 
   rval = mgen1->BrickInstance(opts); MB_CHK_ERR(rval); // this will generate first mesh on fileset1
 
+  double instance_time = MPI_Wtime();
+  double current= instance_time;
+  if (!proc_id)
+    std::cout << " instantiate first mesh " << instance_time - start_time<< "\n";
   // set an interpolation tag on source mesh, from phys field
   std::string interpTag("interp_tag");
   Tag tag;
@@ -129,6 +135,10 @@ int main(int argc, char* argv[])
     rval = mb->tag_set_data(tag, &vert, 1, &fieldValue); MB_CHK_ERR(rval);
   }
 
+  double setTag_time = MPI_Wtime();
+  if (!proc_id)
+    std::cout << " set tag " << setTag_time - current;
+  current= instance_time;
   // change some options, so it is a different mesh
   int tmp1=opts.K; opts.K=opts.M; opts.M=tmp1; // swap (opts.K, opts.M)
   opts.tetra = !opts.tetra;
@@ -138,6 +148,11 @@ int main(int argc, char* argv[])
   MGen * mgen2 = new MGen(mb, pc2, fileset2);
 
   rval = mgen2->BrickInstance(opts); MB_CHK_ERR(rval); // this will generate second mesh on fileset2
+
+  double instance_second = MPI_Wtime();
+    if (!proc_id)
+      std::cout << " instance second mesh" << instance_second - current<< "\n";
+    current= instance_second;
 
   // test the sets are fine
   if (writeMeshes)
@@ -149,6 +164,11 @@ int main(int argc, char* argv[])
 
   // Instantiate a coupler, which also initializes the tree
   Coupler mbc(mb, pc1, src_elems, 0);
+
+  double instancecoupler = MPI_Wtime();
+  if (!proc_id)
+    std::cout << " instance coupler " << instancecoupler - current<< "\n";
+  current= instancecoupler;
 
 
   // Get points from the target mesh to interpolate
@@ -174,8 +194,13 @@ int main(int argc, char* argv[])
   vpos.resize(3*targ_verts.size());
   rval = mb->get_coords(targ_verts, &vpos[0]);MB_CHK_ERR(rval);
   // Locate those points in the source mesh
-  std::cout<<"rank "<< proc_id<< " points of interest: " << numPointsOfInterest << "\n";
+  //std::cout<<"rank "<< proc_id<< " points of interest: " << numPointsOfInterest << "\n";
   rval = mbc.locate_points(&vpos[0], numPointsOfInterest, 0, toler);MB_CHK_ERR(rval);
+
+  double locatetime = MPI_Wtime();
+  if (!proc_id)
+    std::cout << " locate points: " << locatetime - current<< "\n";
+  current= locatetime;
 
   // Now interpolate tag onto target points
   std::vector<double> field(numPointsOfInterest);
@@ -191,6 +216,11 @@ int main(int argc, char* argv[])
     if (err2>err_max)
       err_max = err2;
   }
+
+  double interpolateTime = MPI_Wtime();
+  if (!proc_id)
+    std::cout << " interpolate points: " << interpolateTime - current << "\n";
+  current= interpolateTime;
 
   double gerr;
   MPI_Allreduce(&err_max, &gerr, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
