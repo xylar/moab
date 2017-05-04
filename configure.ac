@@ -191,6 +191,12 @@ AC_ARG_ENABLE( [pymoab],
 [AS_HELP_STRING([--enable-pymoab],[Build support for pymoab interface.])],
 [enable_pymoab=$enableval],
 [enable_pymoab=no] )
+
+AC_ARG_WITH([pymoabdir],
+[AS_HELP_STRING([--with-pymoabdir], [install PyMOAB module in this path])],
+[pymoabdir=$withval],
+[pymoabdir=NONE])
+
 pymoab_custom_install=no
 
 if (test "xyes" != "x$enable_pymoab" && test "xno" != "x$enable_pymoab"); then
@@ -236,17 +242,29 @@ else
 		     pymoab/tests/test_range.py:pymoab/tests/test_range.py
 		     pymoab/tests/cyl_grps.h5m:pymoab/tests/cyl_grps.h5m
 		     pymoab/tests/cyl_grps.vtk:pymoab/tests/cyl_grps.vtk])
-    if test "x$prefix" = "xNONE"; then
-      pymoab_prefix=/usr/lib/python${PYTHON_VERSION}/dist-packages
-      pythondir=$pymoab_prefix
-    else
-      pymoab_prefix=$prefix/lib/python${PYTHON_VERSION}/site-packages
+    # if a python install location is specified, use that
+    if test "x$pymoabdir" != "xNONE"; then
       pymoab_custom_install=yes
+      pymoab_prefix=$pymoabdir
       pythondir=$pymoab_prefix
     fi
+    # if a prefix was supplied, then install under the lib directory
+    # of the specified prefix location
+    if test "x$prefix" != "xNONE" && test "x$pymoabdir" = "xNONE"; then
+        pymoab_prefix=$prefix/lib/python${PYTHON_VERSION}/site-packages
+        pymoab_custom_install=yes
+        pythondir=$pymoab_prefix
+    fi
+    # if no specific location is used and no prefix was supplied,
+    # then install to the system location
+    if test "x$prefix" = "xNONE" && test "x$pymoabdir" = "xNONE"; then
+        pymoab_prefix=/usr/lib/python${PYTHON_VERSION}/dist-packages
+        pythondir=$pymoab_prefix
+    fi
+
     AC_SUBST([pymoab_prefix])
-    AC_MSG_NOTICE([$pymoab_prefix])
-    AC_MSG_NOTICE([$prefix])
+    AC_MSG_NOTICE([PYMOAB PREFIX $pymoab_prefix])
+    AC_MSG_NOTICE([INSTALL PREFIX $prefix])
     # ensure shared libraries are enabled
     if (test "xyes" != "x$enable_shared" || test "xno" = "x$enable_shared"); then
       AC_MSG_ERROR([Cannot build static libraries and the python interface. Please build with shared libraries (--enable-shared) or build without MOAB's python interface.])
@@ -1475,10 +1493,10 @@ fi
 # echo "SZip: $enableszip"
 
 
-if test "xenable_pymoab" != "xno" && test "x$pymoab_custom_install" = "xyes" ; then
+if test "x$enable_pymoab" != "xno" && test "x$pymoab_custom_install" = "xyes" ; then
 AC_MSG_NOTICE([
 *************************************************************************
-*     The PyMOAB interface has been installed to a custom location.
+*     The PyMOAB interface will be installed to a custom location.
 *     In order to access this module from a python intpreter, please add
 *     its install location to the PYTHONPATH environment variable:
 *
