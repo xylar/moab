@@ -1430,4 +1430,3 @@ cdef class Core(object):
             t.inst = tag
             tag_list.append(t)
         return tag_list
-        
