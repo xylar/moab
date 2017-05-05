@@ -185,6 +185,10 @@ int main(int argc, char* argv[])
   {
     rval = mb->write_file("mesh1.h5m", 0, ";;PARALLEL=WRITE_PART;CPUTIME;PARALLEL_COMM=0;", &fileset1, 1);MB_CHK_SET_ERR(rval, "Can't write in parallel mesh 1");
     rval = mb->write_file("mesh2.h5m", 0, ";;PARALLEL=WRITE_PART;CPUTIME;PARALLEL_COMM=1;", &fileset2, 1);MB_CHK_SET_ERR(rval, "Can't write in parallel mesh 1");
+    double write_files = MPI_Wtime();
+    if (!proc_id)
+      std::cout << " write files " << write_files - current<< "\n";
+    current= write_files;
   }
 
 
