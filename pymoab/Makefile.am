@@ -8,11 +8,19 @@ local_install_path = local_inst
 
 test_files = test_core.py test_hom.py test_scd.py test_range.py test_tag.py test_topo_util.py test_skinner.py
 
+if DEVELOPER_MODE
+all-local: cythonize
+else
 all-local:
+endif
 	CFLAGS='-w -fPIC' $(PYTHON) setup.py build
 	($(MKDIR_P) -m 766 $(local_install_path); PYTHONPATH=$(PWD)/$(local_install_path)/:$(PYTHONPATH) $(PYTHON) setup.py install --install-platlib=$(PWD)/$(local_install_path)/ --install-purelib=$(PWD)/$(local_install_path)/)
 
-install:
+if DEVELOPER_MODE
+install-exec-local: cythonize
+else
+install-exec-local:
+endif
 	$(MKDIR_P) $(DESTDIR)$(pkgpythondir)
 	(PYTHONPATH=$(DESTDIR)$(pkgpythondir):$(PYTHONPATH) $(PYTHON) setup.py install \
 		--prefix=$(DESTDIR)$(prefix) \
@@ -44,7 +52,11 @@ cythonize: $(srcdir)/pymoab/core.cpp $(srcdir)/pymoab/hcoord.cpp $(srcdir)/pymoa
 
 endif
 
+if DEVELOPER_MODE
+check: cythonize
+else
 check:
+endif
 	cd tests; \
 	for i in $(test_files); \
 	do \
