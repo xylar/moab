@@ -34,6 +34,7 @@ int main(int argc, char* argv[])
   opts.uk=CartVect(0.,0.,1.);
   opts.newMergeMethod =  opts.quadratic =  opts.keep_skins =  opts.tetra = false;
   opts.adjEnts =  opts.parmerge =  opts.nosave = true;
+  opts.GL = 0;
 
   ProgOptions popts;
 
