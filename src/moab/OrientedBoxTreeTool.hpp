@@ -204,8 +204,8 @@ class OrientedBoxTreeTool
       /* provide a default behavior that will simply add the intersection data to the relevent lists
          with no logic or discrimination */
       virtual ErrorCode register_intersection(EntityHandle set, EntityHandle tri, double dist, 
-                                              __attribute__ ((unused)) IntersectSearchWindow &search_win,
-                                              __attribute__ ((unused)) GeomUtil::intersection_type int_type) {
+                                              IntersectSearchWindow & /* search_win */,
+                                              GeomUtil::intersection_type /* int_type */) {
         intersections.push_back(dist);
         sets.push_back(set);
         facets.push_back(tri);
@@ -215,8 +215,7 @@ class OrientedBoxTreeTool
 
       /* determine the orientation of the topological set with respect to any
          topological set in the context */
-      virtual ErrorCode update_orient(__attribute__ ((unused)) EntityHandle set,
-                                      __attribute__ ((unused)) int* surfTriOrient) { return MB_SUCCESS;};
+      virtual ErrorCode update_orient(EntityHandle /* set */, int* /* surfTriOrient */) { return MB_SUCCESS;};
 
       /* determine whether or not a preferred orientation is established  */
       virtual const int* getDesiredOrient() {return NULL;};
@@ -310,7 +309,7 @@ class OrientedBoxTreeTool
                                   double                     tolerance,
                                   const double               ray_point[3],
                                   const double               unit_ray_dir[3],
-                                  IntersectSearchWindow      search_win,
+                                  IntersectSearchWindow&     search_win,
                                   IntRegCtxt&                register_intersection,
                                   TrvStats*                  accum = 0 );
 
@@ -328,13 +327,13 @@ class OrientedBoxTreeTool
                                   const double*              ray_length = 0,
                                   TrvStats*                  accum = 0);
  
-    ErrorCode ray_intersect_sets( EntityHandle          root_set,
-                                  double                tolerance,
-                                  const double          ray_point[3],
-                                  const double          unit_ray_dir[3],
-                                  IntersectSearchWindow search_win,
-                                  IntRegCtxt&           register_intersection,
-                                  TrvStats*             accum = 0 );
+    ErrorCode ray_intersect_sets( EntityHandle           root_set,
+                                  double                 tolerance,
+                                  const double           ray_point[3],
+                                  const double           unit_ray_dir[3],
+                                  IntersectSearchWindow& search_win,
+                                  IntRegCtxt&            register_intersection,
+                                  TrvStats*              accum = 0 );
 
   /**\brief Find closest surface, facet in surface, and location on facet
      *

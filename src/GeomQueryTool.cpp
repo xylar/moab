@@ -614,11 +614,10 @@ ErrorCode GeomQueryTool::ray_fire(const EntityHandle volume,
                               min_tolerance_intersections, &root, &volume,
                               &senseTag, &ray_orientation,
                               history ? &(history->prev_facets) : NULL );
-  
+
+  OrientedBoxTreeTool::IntersectSearchWindow search_win(&nonneg_ray_len, &neg_ray_len);
   rval = geomTopoTool->obb_tree()->ray_intersect_sets( dists, surfs, facets, root, numericalPrecision,
-                                                       point, dir,
-                                                       OrientedBoxTreeTool::IntersectSearchWindow(&nonneg_ray_len, &neg_ray_len),
-                                                       int_reg_ctxt, stats);
+                                                       point, dir, search_win, int_reg_ctxt, stats);
   
   MB_CHK_SET_ERR(rval, "Ray query failed");
 
@@ -787,10 +786,9 @@ ErrorCode GeomQueryTool::point_in_volume(const EntityHandle volume,
                               &senseTag, NULL,
                               history ? &(history->prev_facets) : NULL );
   
+  OrientedBoxTreeTool::IntersectSearchWindow search_win(&ray_length,NULL);
   rval = geomTopoTool->obb_tree()->ray_intersect_sets( dists, surfs, facets, root, numericalPrecision,
-                                                       xyz, ray_direction,
-                                                       OrientedBoxTreeTool::IntersectSearchWindow (&ray_length,NULL),
-                                                       int_reg_ctxt);
+                                                       xyz, ray_direction, search_win, int_reg_ctxt);
   MB_CHK_SET_ERR(rval, "Ray fire query failed");
 
   // determine orientation of all intersections

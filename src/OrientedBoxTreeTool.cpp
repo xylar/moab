@@ -886,7 +886,7 @@ class RayIntersectSets : public OrientedBoxTreeTool::Op
     OrientedBoxTreeTool* tool;
     const CartVect       ray_origin;
     const CartVect       ray_direction;
-    OrientedBoxTreeTool::IntersectSearchWindow search_win;      /* length to search ahead/behind of ray origin */
+    OrientedBoxTreeTool::IntersectSearchWindow& search_win;      /* length to search ahead/behind of ray origin */
     const double         tol;             /* used for box.intersect_ray, radius of
                                              neighborhood for adjacent triangles,
                                              and old mode of add_intersection */
@@ -1049,7 +1049,7 @@ ErrorCode OrientedBoxTreeTool::ray_intersect_sets( std::vector<double>&         
                                                    const double tolerance,
                                                    const double ray_point[3],
                                                    const double unit_ray_dir[3],
-                                                   IntersectSearchWindow search_win,
+                                                   IntersectSearchWindow &search_win,
                                                    IntRegCtxt& int_reg_callback,
                                                    TrvStats* accum)
 
@@ -1100,7 +1100,7 @@ ErrorCode OrientedBoxTreeTool::ray_intersect_sets( EntityHandle root_set,
                                                    const double tolerance,
                                                    const double ray_point[3],
                                                    const double unit_ray_dir[3],
-                                                   IntersectSearchWindow search_win,
+                                                   IntersectSearchWindow &search_win,
                                                    IntRegCtxt& int_reg_callback,
                                                    TrvStats* accum)
 
