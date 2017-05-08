@@ -114,6 +114,7 @@ enum intersection_type {NONE=0, INTERIOR, NODE0, NODE1, NODE2, EDGE0, EDGE1, EDG
    3 = pip0 = pip1 == 0 -> NODE1
    6 = pip1 = pip2 == 0 -> NODE2 */
 const intersection_type type_list[] = {INTERIOR, EDGE0, EDGE1, NODE1, EDGE2, NODE0, NODE2};
+
 bool plucker_ray_tri_intersect( const CartVect vertices[3],
                                 const CartVect& ray_point,
                                 const CartVect& ray_unit_direction,
@@ -123,6 +124,10 @@ bool plucker_ray_tri_intersect( const CartVect vertices[3],
                                 const double* neg_ray_length = 0,
                                 const int* orientation = 0,
                                 intersection_type* int_type = 0);
+double plucker_edge_test( const CartVect& vertexa,
+                          const CartVect& vertexb,
+                          const CartVect& ray,
+                          const CartVect& ray_normal);
 
     //! Find range of overlap between ray and axis-aligned box.
     //!

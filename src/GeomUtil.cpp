@@ -124,6 +124,29 @@ inline bool first( const CartVect& a, const CartVect& b) {
   }
 }
 
+double plucker_edge_test(const CartVect& vertexa, const CartVect& vertexb,
+                         const CartVect& ray, const CartVect& ray_normal) {
+
+  double pip;
+  const double near_zero = 10*std::numeric_limits<double>::epsilon();
+  
+  if(first(vertexa,vertexb)) {
+    const CartVect edge = vertexb-vertexa;
+    const CartVect edge_normal = edge*vertexa;
+    pip = ray % edge_normal + ray_normal % edge;
+  } else {
+    const CartVect edge = vertexa-vertexb;
+    const CartVect edge_normal = edge*vertexb;
+    pip = ray % edge_normal + ray_normal % edge;
+    pip = -pip;
+  }
+
+  if (near_zero > fabs(pip)) pip = 0.0;
+
+  return pip;
+  
+};
+  
 /* This test uses the same edge-ray computation for adjacent triangles so that
    rays passing close to edges/nodes are handled consistently.
 
@@ -150,23 +173,10 @@ bool plucker_ray_tri_intersect( const CartVect vertices[3],
   const CartVect raya = direction;
   const CartVect rayb = direction*origin;
 
-  const double near_zero = 10*std::numeric_limits<double>::epsilon();
 
 
   // edge 0
-  double pip0;
-  if(first(vertices[0],vertices[1])) {
-    const CartVect edge0a = vertices[1]-vertices[0];
-    const CartVect edge0b = edge0a*vertices[0];
-    pip0 = raya % edge0b + rayb % edge0a;
-  } else {
-    const CartVect edge0a = vertices[0]-vertices[1];
-    const CartVect edge0b = edge0a*vertices[1];
-    pip0 = raya % edge0b + rayb % edge0a;
-    pip0 = -pip0;
-  }
-
-  if (near_zero > fabs(pip0)) pip0 = 0.0;
+  double pip0 = plucker_edge_test(vertices[0], vertices[1], raya, rayb);
 
   // try to exit early
   if(orientation && (*orientation)*pip0 > 0) {
@@ -175,19 +185,7 @@ bool plucker_ray_tri_intersect( const CartVect vertices[3],
   }
 
   // edge 1
-  double pip1;
-  if(first(vertices[1],vertices[2])) {
-    const CartVect edge1a = vertices[2]-vertices[1];
-    const CartVect edge1b = edge1a*vertices[1];
-    pip1 = raya % edge1b + rayb % edge1a;
-  } else {
-    const CartVect edge1a = vertices[1]-vertices[2];
-    const CartVect edge1b = edge1a*vertices[2];
-    pip1 = raya % edge1b + rayb % edge1a;
-    pip1 = -pip1;
-  }
-
-  if (near_zero > fabs(pip1)) pip1 = 0.0;
+  double pip1 = plucker_edge_test(vertices[1], vertices[2], raya, rayb);
 
   // try to exit early
   if(orientation) {
@@ -202,19 +200,7 @@ bool plucker_ray_tri_intersect( const CartVect vertices[3],
   }
 
   // edge 2
-  double pip2;
-  if(first(vertices[2],vertices[0])) {
-    const CartVect edge2a = vertices[0]-vertices[2];
-    const CartVect edge2b = edge2a*vertices[2];
-    pip2 = raya % edge2b + rayb % edge2a;
-  } else {
-    const CartVect edge2a = vertices[2]-vertices[0];
-    const CartVect edge2b = edge2a*vertices[0];
-    pip2 = raya % edge2b + rayb % edge2a;
-    pip2 = -pip2;
-  }
-
-  if (near_zero > fabs(pip2)) pip2 = 0.0;
+  double pip2 = plucker_edge_test(vertices[2], vertices[0], raya, rayb);
 
   // try to exit early
   if(orientation) {
