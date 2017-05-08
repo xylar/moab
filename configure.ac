@@ -192,10 +192,8 @@ AC_ARG_ENABLE( [pymoab],
 [enable_pymoab=$enableval],
 [enable_pymoab=no] )
 
-AC_ARG_WITH([pymoabdir],
-[AS_HELP_STRING([--with-pymoabdir[=DIR]], [install PyMOAB module in this path DIR/lib/python<version>/site-packages/])],
-[pymoabdir=$withval],
-[pymoabdir=NONE])
+AC_ARG_VAR([PYMOAB_PREFIX],
+Custom location for install of PyMOAB module)
 
 pymoab_custom_install=no
 
@@ -244,9 +242,9 @@ else
 		     pymoab/tests/cyl_grps.h5m:pymoab/tests/cyl_grps.h5m
 		     pymoab/tests/cyl_grps.vtk:pymoab/tests/cyl_grps.vtk])
     # if a python install location is specified, use that
-    if test "x$pymoabdir" != "xNONE"; then
+    if test "x$PYMOAB_PREFIX" != "x"; then
       pymoab_custom_install=yes
-      pymoab_prefix=$pymoabdir
+      pymoab_prefix=${PYMOAB_PREFIX}
       pythondir=$pymoab_prefix
     else
       # if a prefix was supplied, then install under the lib directory
