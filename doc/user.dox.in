@@ -23,7 +23,7 @@ PROJECT_NAME           = "MOAB: Mesh Oriented datABase"
 # This could be handy for archiving the generated documentation or 
 # if some version control system is used.
 
-PROJECT_NUMBER         = @PACKAGE_VERSION@
+PROJECT_NUMBER         = (version&nbsp;@PACKAGE_VERSION@)
 
 # The OUTPUT_DIRECTORY tag is used to specify the (relative or absolute) 
 # base path where the generated documentation will be put. 
@@ -147,7 +147,7 @@ REFERENCED_BY_RELATION = YES
 # all documented entities called/used by that function will be listed.
 # The default value is: NO.
 
-REFERENCES_RELATION    = NO
+REFERENCES_RELATION    = YES
 
 # If the REFERENCES_LINK_SOURCE tag is set to YES and SOURCE_BROWSER tag is set
 # to YES then the hyperlinks from functions in REFERENCES_RELATION and
@@ -165,7 +165,7 @@ REFERENCES_LINK_SOURCE = YES
 # The default value is: YES.
 # This tag requires that the tag SOURCE_BROWSER is set to YES.
 
-SOURCE_TOOLTIPS        = YES
+SOURCE_TOOLTIPS        = NO
 
 # If the CASE_SENSE_NAMES tag is set to NO then Doxygen will only generate 
 # file names in lower case letters. If set to YES upper case letters are also 
@@ -262,7 +262,7 @@ GENERATE_TESTLIST      = YES
 # disable (NO) the bug list. This list is created by putting \bug 
 # commands in the documentation.
 
-GENERATE_BUGLIST       = YES
+GENERATE_BUGLIST       = NO
 
 # The GENERATE_DEPRECATEDLIST tag can be used to enable (YES) or disable (NO)
 # the deprecated list. This list is created by putting \deprecated commands in
@@ -370,7 +370,7 @@ WARN_FORMAT            = "$file:$line: $text"
 # and error messages should be written. If left blank the output is written 
 # to stderr.
 
-WARN_LOGFILE           = 
+WARN_LOGFILE           = @top_builddir@/doc/doxygen_errors.log
 
 #---------------------------------------------------------------------------
 # configuration options related to the input files
@@ -382,17 +382,18 @@ WARN_LOGFILE           =
 # with spaces.
 
 INPUT                  = @top_srcdir@/src \
+                         @top_srcdir@/tools/ \
+                         @top_srcdir@/itaps \
+                         @top_srcdir@/test \
                          @top_srcdir@/pymoab \
+                         @top_srcdir@/examples \
                          @top_srcdir@/doc/UG \
                          @top_srcdir@/doc/DG \
                          @top_srcdir@/doc/MetaData \
                          @top_srcdir@/src/MBTagConventions.hpp \
                          @top_srcdir@/src/MBCN.h \
                          @top_srcdir@/src/MBEntityType.h \
-                         @top_srcdir@/src/parallel/MBParallelConventions.h \
-                         @top_srcdir@/tools/ \
-                         @top_srcdir@/itaps \
-                         @top_srcdir@/examples
+                         @top_srcdir@/src/parallel/MBParallelConventions.h
 
 
 # If the value of the INPUT tag contains directories, you can use the 
@@ -512,7 +513,7 @@ HTML_FOOTER            = @top_srcdir@/doc/footer.html
 # fine-tune the look of the HTML output. If the tag is left blank doxygen 
 # will generate a default style sheet
 
-HTML_STYLESHEET        = 
+HTML_STYLESHEET        = @top_srcdir@/doc/customdoxygen.css
 
 
 # The HTML_EXTRA_STYLESHEET tag can be used to specify additional user-defined
@@ -526,7 +527,7 @@ HTML_STYLESHEET        =
 # list). For an example see the documentation.
 # This tag requires that the tag GENERATE_HTML is set to YES.
 
-HTML_EXTRA_STYLESHEET  = @top_srcdir@/doc/customdoxygen.css
+HTML_EXTRA_STYLESHEET  = 
 
 # The HTML_EXTRA_FILES tag can be used to specify one or more extra images or
 # other source files which should be copied to the HTML output directory. Note
@@ -536,7 +537,7 @@ HTML_EXTRA_STYLESHEET  = @top_srcdir@/doc/customdoxygen.css
 # files will be copied as-is; there are no commands or markers available.
 # This tag requires that the tag GENERATE_HTML is set to YES.
 
-HTML_EXTRA_FILES       = @top_srcdir@/doc/doxy-boot.js
+HTML_EXTRA_FILES       = 
 
 # The HTML_COLORSTYLE_HUE tag controls the color of the HTML output. Doxygen
 # will adjust the colors in the style sheet and background images according to
@@ -1017,14 +1018,4 @@ GENERATE_LEGEND        = YES
 # the various graphs.
 
 DOT_CLEANUP            = YES
-
-#---------------------------------------------------------------------------
-# Configuration::addtions related to the search engine   
-#---------------------------------------------------------------------------
-
-# The SEARCHENGINE tag specifies whether or not a search engine should be 
-# used. If set to NO the values of all tags below this one will be ignored.
-
-SEARCHENGINE           = YES
-
 
