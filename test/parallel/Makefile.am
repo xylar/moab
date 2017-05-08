@@ -95,11 +95,11 @@ endif
 
 
 pcomm_unit_SOURCES = pcomm_unit.cpp
-parallel_hdf5_test_SOURCES = parallel_hdf5_test.cc
+parallel_hdf5_test_SOURCES = parallel_hdf5_test.cpp
 mhdf_parallel_SOURCES = mhdf_parallel.c
 mhdf_parallel_LDADD = $(LDADD) $(HDF5_LIBS)
 parallel_unit_tests_SOURCES = parallel_unit_tests.cpp
-parallel_write_test_SOURCES = parallel_write_test.cc
+parallel_write_test_SOURCES = parallel_write_test.cpp
 uber_parallel_test_SOURCES = uber_parallel_test.cpp
 pcomm_serial_SOURCES = pcomm_serial.cpp
 mbparallelcomm_test_SOURCES = mbparallelcomm_test.cpp

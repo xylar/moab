@@ -70,7 +70,6 @@ endif()
 
 foreach( fname ${TESTS} )
   string( REPLACE ".cpp" "" tmp ${fname} )
-  string( REPLACE ".cc" "" base ${tmp} )
   add_executable( ${base} ${CMAKE_SOURCE_DIR}/test/TestUtil.hpp ${fname})
   set_target_properties( ${base} PROPERTIES COMPILE_FLAGS "${TEST_COMP_FLAGS} ${MOAB_DEFINES} -DTEST" )
   target_link_libraries( ${base} MOAB ${CGM_LIBRARIES} ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES} )
@@ -129,7 +128,7 @@ add_test( var_len_test_no_template ${EXECUTABLE_OUTPUT_PATH}/var_len_test_no_tem
 
 add_executable( mbcn_test ${CMAKE_SOURCE_DIR}/src/moab/CN.hpp
                           ${CMAKE_SOURCE_DIR}/src/CN.cpp
-                          mbcn_test.cc )
+                          mbcn_test.cpp )
 set_target_properties( mbcn_test PROPERTIES 
   COMPILE_FLAGS "-DMOAB_TEMPLATE_SPECIALIZATION ${MOAB_DEFINES} ${TEST_COMP_FLAGS}" )
 target_link_libraries( mbcn_test MOAB ${CGM_LIBRARIES} ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES} )
@@ -164,7 +163,6 @@ if(ENABLE_IMESH)
   endif()
   foreach( fname ${TESTS} )
     string( REPLACE ".cpp" "" tmp ${fname} )
-    string( REPLACE ".cc" "" base ${tmp} )
     add_executable( ${base} ${CMAKE_SOURCE_DIR}/test/TestUtil.hpp ${CMAKE_SOURCE_DIR}/itaps/imesh/${fname})
     set_target_properties( ${base} PROPERTIES COMPILE_FLAGS "-DSRCDIR=${CMAKE_SOURCE_DIR}/itaps/imesh/ ${TEST_COMP_FLAGS} ${MOAB_DEFINES} -DTEST" )
     target_link_libraries( ${base} iMesh MOAB ${CGM_LIBRARIES} ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES} )
@@ -187,7 +185,6 @@ if (ENABLE_IREL AND MOAB_HAVE_CGM)
   set(irel_deplibs ${irel_deplibs} iMesh MOAB)
   foreach( fname ${TESTS} )
     string( REPLACE ".cpp" "" tmp ${fname} )
-    string( REPLACE ".cc" "" base ${tmp} )
     add_executable( ${base} ${CMAKE_SOURCE_DIR}/test/TestUtil.hpp ${CMAKE_SOURCE_DIR}/itaps/irel/${fname})
     set_target_properties( ${base} PROPERTIES COMPILE_FLAGS "-DSRCDIR=${CMAKE_SOURCE_DIR}/itaps/irel/ ${TEST_COMP_FLAGS} ${MOAB_DEFINES} -DTEST" )
     target_link_libraries( ${base} ${irel_deplibs} ${CGM_LIBRARIES} ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES} )
