@@ -20,7 +20,7 @@
 namespace moab {
 
 #ifdef ENABLE_DEBUG
-int Intx2Mesh::dbg_1=1;
+int Intx2Mesh::dbg_1=0;
 #endif
 
 Intx2Mesh::Intx2Mesh(Interface * mbimpl): mb(mbimpl),
