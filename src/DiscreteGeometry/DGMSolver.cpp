@@ -326,9 +326,12 @@ namespace moab {
             int cend = numcols-1;
             bool downgrade = false;
 
+            // The reconstruction can be applied only on edges (2-d) or faces (3-d)
+            assert(dim > 0 && dim < 3);
+
             for (int d = deg; d>=0 ; d--)
               {
-                int cstart;
+                int cstart=0;
                 if (dim==1){
                   cstart = d ;
                 }else if (dim==2){

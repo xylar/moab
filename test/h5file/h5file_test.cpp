@@ -491,7 +491,7 @@ bool compare_sets( int id, const char* tag_name = 0 )
   
     // Compare set descriptions
 
-  unsigned opt1, opt2;
+  unsigned opt1=0, opt2=0;
   rval = iface->get_meshset_options( set1, opt1 );
   if (MB_SUCCESS != rval) moab_error( "get_meshset_options" );
   rval = iface->get_meshset_options( set2, opt2 );

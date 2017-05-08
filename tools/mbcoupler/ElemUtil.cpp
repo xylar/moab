@@ -495,7 +495,7 @@ namespace Element {
       vertex[j] = transf*(vertex[j]-v1);
   }
 
-   CartVect SphericalQuad::ievaluate(const CartVect& x, double tol) const
+   CartVect SphericalQuad::ievaluate(double tol, const CartVect& x) const
    {
      // project to the plane tangent at first vertex
      //CartVect v1=vertex[0];
@@ -756,7 +756,7 @@ namespace Element {
 
     return x;
   }
-  //virtual CartVect ievaluate(const CartVect& x, double tol) const ;
+
   bool QuadraticHex::inside_nat_space(const CartVect & xi, double & tol) const
   {// just look at the box+tol here
     return ( xi[0]>=-1.-tol) && (xi[0]<=1.+tol) &&
