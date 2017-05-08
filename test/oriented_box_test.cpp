@@ -113,7 +113,7 @@ static void axis_dims( const Matrix3 axis, CartVect& dims )
   
 
 /********************* The Actual Tests ***************************/
-
+// \test Check all basic Oriented Box tests
 static void test_basic()
 {
   CartVect dims;
@@ -171,6 +171,7 @@ static void test_basic()
   
 }
 
+// \test Check all is_contained Oriented Box tests
 static void test_contained() 
 {
     // first do tests of unit box
@@ -419,6 +420,7 @@ static void test_contained()
   ASSERT( ! rotbox.contained( scaled_face( rotbox, 5, 1.3), TOL ) );
 }
 
+// \test Check all closest point query on Oriented Box tests
 static void test_closest_point()
 {
   CartVect result;
@@ -788,6 +790,7 @@ static void test_closest_point()
   ASSERT_VECTORS_EQUAL( result, scaled_face(rotbox,5,1) );
 }
 
+// \test Check all ray_intersect tests on Oriented Box
 void test_ray_intersect()
 {
   CartVect dir, pt;
@@ -1189,6 +1192,11 @@ void test_ray_intersect()
   ASSERT( ! rotbox.intersect_ray( pt, dir, TOL ) );
 }
 
+/*!
+  @test 
+  Construct OBB Box from triangles
+  @li Check building OBB box from triangles
+*/
 void test_build_from_tri()
 {
   ErrorCode rval;
