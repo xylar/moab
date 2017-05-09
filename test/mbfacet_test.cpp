@@ -191,7 +191,6 @@ ErrorCode gentityset_test(FBEngine * pFacet)
   int all_sets = 0;
   rval = pFacet->getNumEntSets(root_set, 0, &all_sets);MB_CHK_SET_ERR(rval, "Problem getting the number of all gentity sets in whole model." );// why do we count all sets
 
-
   // add gentities to entitysets by type
   for (; ent_type < num_type; ent_type++) {
     // initialize the entityset

@@ -26,7 +26,7 @@ if( MOAB_HAVE_CGNS )
 endif()
 
 foreach( fname ${TESTS} )
-  string( REPLACE ".cpp" "" tmp ${fname} )
+  string( REPLACE ".cpp" "" base ${fname} )
   add_executable( ${base} ${CMAKE_SOURCE_DIR}/test/TestUtil.hpp ${fname})
   set_target_properties( ${base} PROPERTIES COMPILE_FLAGS "${TEST_COMP_FLAGS} ${MOAB_DEFINES}" )
   target_link_libraries( ${base} MOAB ${CGM_LIBRARIES} ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES} )
