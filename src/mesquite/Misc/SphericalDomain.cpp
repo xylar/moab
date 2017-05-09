@@ -32,6 +32,7 @@
 #include "MsqVertex.hpp"
 #include "DomainUtil.hpp"
 #include "MsqMatrix.hpp"
+#include "moab/Util.hpp"
 
 #ifdef MSQ_HAVE_IEEEFP_H
 #  include <ieeefp.h>
@@ -52,7 +53,7 @@ void MBMesquite::SphericalDomain::snap_to(Mesh::VertexHandle /*entity_handle*/,
   coordinate *= mRadius / len;
     // If was at center, return arbitrary position on sphere
     // (all possitions are equally close)
-  if (!finite(coordinate.x()))
+  if (!moab::Util::is_finite(coordinate.x()))
     coordinate.set( mRadius, 0.0, 0.0 );
     // Get position from vector
   coordinate += mCenter;
@@ -68,7 +69,7 @@ void MBMesquite::SphericalDomain::vertex_normal_at(Mesh::VertexHandle /*entity_h
   coordinate /= length;
     // if input position was at center, choose same position
     // on sphere as snap_to.
-  if (!finite(coordinate.x()))
+  if (!moab::Util::is_finite(coordinate.x()))
     coordinate.set( 1.0, 0.0, 0.0 );
 }
 void MBMesquite::SphericalDomain::element_normal_at(Mesh::ElementHandle h,
@@ -95,7 +96,7 @@ void MBMesquite::SphericalDomain::closest_point( MBMesquite::Mesh::VertexHandle 
 {
   normal = position - mCenter;
   normal.normalize();
-  if (!finite(normal.x()))
+  if (!moab::Util::is_finite(normal.x()))
     normal.set( 1.0, 0.0, 0.0 );
   closest = mCenter + mRadius * normal;
 }

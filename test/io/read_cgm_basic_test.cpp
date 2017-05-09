@@ -21,15 +21,15 @@ using namespace moab;
 
 #ifdef MESHDIR
 #ifdef HAVE_OCC_STEP
-static const char input_cube[] = STRINGIFY(MESHDIR) "/io/cube.stp";
+const std::string input_cube = TestDir + "/io/cube.stp";
 #else
-static const char input_cube[] = STRINGIFY(MESHDIR) "/io/cube.sat";
+const std::string input_cube = TestDir + "/io/cube.sat";
 #endif
 #else
 #ifdef HAVE_OCC_STEP
-static const char input_cube[] = "cube.stp";
+const std::string input_cube = "cube.stp";
 #else
-static const char input_cube[] = "cube.sat";
+const std::string input_cube = "cube.sat";
 #endif
 #endif
 
@@ -79,7 +79,7 @@ void read_cube_verts_test()
   //Open the test file
   Core moab;
   Interface* mb = &moab;
-  read_file( mb, input_cube );
+  read_file( mb, input_cube.c_str() );
    
   int number_of_vertices;
   rval = mb->get_number_entities_by_type( 0, MBVERTEX, number_of_vertices );
@@ -96,7 +96,7 @@ void read_cube_tris_test()
   //Open the test file
   Core moab;
   Interface* mb = &moab;
-  read_file( mb, input_cube );
+  read_file( mb, input_cube.c_str() );
    
   int number_of_tris;
 
@@ -115,7 +115,7 @@ void read_cube_curves_test()
   //Open the test file
   Core moab;
   Interface* mb = &moab;
-  read_file( mb, input_cube );
+  read_file( mb, input_cube.c_str() );
   //Get the geometry tag handle from the mesh   
   Tag geom_tag;
   rval = mb->tag_get_handle( GEOM_DIMENSION_TAG_NAME, 1,
@@ -141,7 +141,7 @@ void read_cube_surfs_test()
   //Open the test file
   Core moab;
   Interface* mb = &moab;
-  read_file( mb, input_cube );
+  read_file( mb, input_cube.c_str() );
   
   //Get geometry tag for pulling curve data from the mesh 
   Tag geom_tag;
@@ -167,7 +167,7 @@ void read_cube_vols_test()
   //Open the test file
   Core moab;
   Interface* mb = &moab;
-  read_file( mb, input_cube );
+  read_file( mb, input_cube.c_str() );
   
   //Get geometry tag for pulling curve data from the mesh 
   Tag geom_tag;
@@ -194,7 +194,7 @@ void read_cube_vertex_pos_test()
   //Open the test file
   Core moab;
   Interface* mb = &moab;
-  read_file( mb, input_cube );
+  read_file( mb, input_cube.c_str() );
 
   //Retrieve all vertex handles from the mesh
   Range verts;

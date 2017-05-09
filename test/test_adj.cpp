@@ -13,9 +13,6 @@
  * 
  */
 
-
-
-
 #ifdef WIN32
 #ifdef _DEBUG
 // turn off warnings that say they debugging identifier has been truncated
@@ -37,27 +34,20 @@
 
 using namespace moab;
 
-#define STRINGIFY_(X) #X
-#define STRINGIFY(X) STRINGIFY_(X)
-
 int main()
 {
   Interface* iface = new Core;
 
-  const char* filename = 0;
+  std::string filename;
 
-#ifdef MESHDIR
 #ifdef MOAB_HAVE_HDF5
-  filename = STRINGIFY(MESHDIR) "/testquad-cyl.h5m";
+  filename = TestDir + "/testquad-cyl.h5m";
 #else
-  filename = STRINGIFY(MESHDIR) "/hexes_mixed.vtk";
-#endif
-#else
-#error Specify MESHDIR to compile test
+  filename = TestDir + "/hexes_mixed.vtk";
 #endif
 
   ErrorCode err;
-  err =  iface->load_mesh( filename);CHECK_ERR(err);
+  err =  iface->load_mesh(filename.c_str());CHECK_ERR(err);
 
   Range quads, verts;
   err = iface->get_entities_by_dimension(0,0,verts);CHECK_ERR(err);
@@ -110,6 +100,4 @@ int main()
 
   return 0;
 }
-
-
 

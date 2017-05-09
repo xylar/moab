@@ -27,6 +27,8 @@
 #include "Vector3D.hpp"
 #include "MsqError.hpp"
 
+#include "moab/Util.hpp"
+
 #include <iostream>
 #include <math.h>
 
@@ -48,7 +50,7 @@ double Vector3D::interior_angle(const Vector3D &lhs,
     double len1 = lhs.length();
     double len2 = rhs.length();
     double angle_cos = (lhs % rhs)/(len1 * len2);
-    if (!finite( angle_cos ))
+    if (!moab::Util::is_finite( angle_cos ))
     {
       MSQ_SETERR(err)(MsqError::INTERNAL_ERROR);
       return 0.0;

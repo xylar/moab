@@ -536,12 +536,12 @@ int main(int argc, char *argv[])
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif
 
-    const char* filename = 0;
+    std::string filename;
 #ifdef MESHDIR
  #ifdef MOAB_HAVE_HDF5
-    filename = STRINGIFY(MESHDIR) "/32hex_ef.h5m";
+    filename = TestDir + "/32hex_ef.h5m";
  #else
-    filename = STRINGIFY(MESHDIR) "/hexes_mixed.vtk";
+    filename = TestDir + "/hexes_mixed.vtk";
  #endif
 #else
  #ifdef MOAB_HAVE_HDF5
@@ -550,7 +550,6 @@ int main(int argc, char *argv[])
     filename = "hexes_mixed.vtk";
  #endif
 #endif
-
 
     if (argc==1)
     {
@@ -578,7 +577,7 @@ int main(int argc, char *argv[])
     std::cout<<"adj_perf:";
 #endif
 
-    result = adj_perf(filename);
+    result = adj_perf(filename.c_str());
     handle_error_code(result, number_tests_failed, number_tests_successful);
     std::cout<<"\n";
 
@@ -588,6 +587,4 @@ int main(int argc, char *argv[])
 
     return number_tests_failed;
 }
-
-
 

@@ -32,6 +32,7 @@ nodist_libmbmesquite_la_include_HEADERS = include/Mesquite_all_headers.hpp
 
 libmbmesquite_la_LIBADD = $(MESQUITE_LIBS)
 AM_CPPFLAGS  = $(MSQ_INCLUDES) \
+               -I$(top_srcdir)/src \
                -I$(top_builddir)/src \
                -I$(top_srcdir)/itaps \
                -I$(top_srcdir)/itaps/imesh \
