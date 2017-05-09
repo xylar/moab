@@ -906,7 +906,7 @@ class RayIntersectSets : public OrientedBoxTreeTool::Op
                         const double*        ray_point,
                         const double*        unit_ray_dir,
                         const double         tolerance,
-                        OrientedBoxTreeTool::IntersectSearchWindow  win,
+                        OrientedBoxTreeTool::IntersectSearchWindow&  win,
                         unsigned int*        ray_tri_test_count,
                         OrientedBoxTreeTool::IntRegCtxt &intRegCallback)
       : tool(tool_ptr), ray_origin(ray_point), ray_direction(unit_ray_dir),
