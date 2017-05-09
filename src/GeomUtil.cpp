@@ -147,6 +147,8 @@ double plucker_edge_test(const CartVect& vertexa, const CartVect& vertexb,
   
 };
   
+#define EXIT_EARLY if(type) *type = NONE; return false;
+
 /* This test uses the same edge-ray computation for adjacent triangles so that
    rays passing close to edges/nodes are handled consistently.
 
@@ -175,59 +177,55 @@ bool plucker_ray_tri_intersect( const CartVect vertices[3],
 
 
 
-  // edge 0
-  double pip0 = plucker_edge_test(vertices[0], vertices[1], raya, rayb);
+  // Determine the value of the first Plucker coordinate from edge 0
+  double plucker_coord0 = plucker_edge_test(vertices[0], vertices[1], raya, rayb);
 
-  // try to exit early
-  if(orientation && (*orientation)*pip0 > 0) {
-    if(type) *type = NONE;
-    return false;
+  // If orientation is set, confirm that sign of plucker_coordinate indicate
+  // correct orientation of intersection
+  if(orientation && (*orientation)*plucker_coord0 > 0) {
+    EXIT_EARLY
   }
 
-  // edge 1
-  double pip1 = plucker_edge_test(vertices[1], vertices[2], raya, rayb);
+  // Determine the value of the second Plucker coordinate from edge 1
+  double plucker_coord1 = plucker_edge_test(vertices[1], vertices[2], raya, rayb);
 
-  // try to exit early
+  // If orientation is set, confirm that sign of plucker_coordinate indicate
+  // correct orientation of intersection
   if(orientation) {
-    if( (*orientation)*pip1 > 0) {
-      if(type) *type = NONE;
-      return false;
+    if( (*orientation)*plucker_coord1 > 0) {
+      EXIT_EARLY
     }
-  // If the orientation is not specified, all pips must be the same sign or zero.
-  } else if( (0.0<pip0 && 0.0>pip1) || (0.0>pip0 && 0.0<pip1) ) {
-    if(type) *type = NONE;
-    return false;
+  // If the orientation is not specified, all plucker_coords must be the same sign or zero.
+  } else if( (0.0<plucker_coord0 && 0.0>plucker_coord1) || (0.0>plucker_coord0 && 0.0<plucker_coord1) ) {
+    EXIT_EARLY
   }
 
-  // edge 2
-  double pip2 = plucker_edge_test(vertices[2], vertices[0], raya, rayb);
+  // Determine the value of the second Plucker coordinate from edge 2
+  double plucker_coord2 = plucker_edge_test(vertices[2], vertices[0], raya, rayb);
 
-  // try to exit early
+  // If orientation is set, confirm that sign of plucker_coordinate indicate
+  // correct orientation of intersection
   if(orientation) {
-    if( (*orientation)*pip2 > 0) {
-      if(type) *type = NONE;
-      return false;
+    if( (*orientation)*plucker_coord2 > 0) {
+      EXIT_EARLY
     }
-  // If the orientation is not specified, all pips must be the same sign or zero.
-  } else if( (0.0<pip1 && 0.0>pip2) || (0.0>pip1 && 0.0<pip2) ||
-             (0.0<pip0 && 0.0>pip2) || (0.0>pip0 && 0.0<pip2) ) {
-    if(type) *type = NONE;
-    return false;
+  // If the orientation is not specified, all plucker_coords must be the same sign or zero.
+  } else if( (0.0<plucker_coord1 && 0.0>plucker_coord2) || (0.0>plucker_coord1 && 0.0<plucker_coord2) ||
+             (0.0<plucker_coord0 && 0.0>plucker_coord2) || (0.0>plucker_coord0 && 0.0<plucker_coord2) ) {
+    EXIT_EARLY
   }
 
   // check for coplanar case to avoid dividing by zero
-  if(0.0==pip0 && 0.0==pip1 && 0.0==pip2) {
-    //std::cout << "plucker: coplanar" << std::endl;
-    if(type) *type = NONE;
-    return false;
+  if(0.0==plucker_coord0 && 0.0==plucker_coord1 && 0.0==plucker_coord2) {
+    EXIT_EARLY
   }
 
   // get the distance to intersection
-  const double inverse_sum = 1.0/(pip0+pip1+pip2);
+  const double inverse_sum = 1.0/(plucker_coord0+plucker_coord1+plucker_coord2);
   assert(0.0 != inverse_sum);
-  const CartVect intersection(pip0*inverse_sum*vertices[2]+ 
-                              pip1*inverse_sum*vertices[0]+
-                              pip2*inverse_sum*vertices[1]);
+  const CartVect intersection(plucker_coord0*inverse_sum*vertices[2]+ 
+                              plucker_coord1*inverse_sum*vertices[0]+
+                              plucker_coord2*inverse_sum*vertices[1]);
 
   // To minimize numerical error, get index of largest magnitude direction.
   int idx = 0;
@@ -241,22 +239,17 @@ bool plucker_ray_tri_intersect( const CartVect vertices[3],
   const double dist = (intersection[idx]-origin[idx])/direction[idx];
 
   // is the intersection within distance limits?
-  if(nonneg_ray_len && *nonneg_ray_len<dist) {
-    if(type) *type = NONE;
-    return false;
+  if((nonneg_ray_len && *nonneg_ray_len<dist) || // intersection is beyond positive limit
+     (neg_ray_len && *neg_ray_len>=dist) ||      // intersection is behind negative limit
+     (!neg_ray_len && 0>dist) ) {                  // Unless a neg_ray_len is used, don't return negative distances
+    EXIT_EARLY
   }
-  if(neg_ray_len && *neg_ray_len>=dist) {
-    if(type) *type = NONE;
-    return false;
 
-  // Unless a neg_ray_len is used, don't return negative distances
-  } else if (!neg_ray_len && 0>dist) {
-    if(type) *type = NONE;
-    return false;
-  }    
   dist_out = dist;
 
-  if (type) *type = type_list[  ( (0.0==pip2)<<2 ) + ( (0.0==pip1)<<1 ) + ( 0.0==pip0 ) ];
+  if (type) *type = type_list[  ( (0.0==plucker_coord2)<<2 ) +
+                                ( (0.0==plucker_coord1)<<1 ) +
+                                  ( 0.0==plucker_coord0 )       ];
 
   return true;
 }
