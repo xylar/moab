@@ -68,3 +68,5 @@ uninstall:
 	cat $(DESTDIR)$(pkgpythondir)/install_files.txt | xargs rm -rf
 	-rm -rf $(DESTDIR)$(pkgpythondir)
 
+CLEANFILES = tests/quads_test.vtk tests/outfile.h5m
+
