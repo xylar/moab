@@ -14,13 +14,12 @@ else
 all-local:
 endif
 	CFLAGS='-w -fPIC' $(PYTHON) setup.py build
-	($(MKDIR_P) -m 766 $(local_install_path); PYTHONPATH=$(PWD)/$(local_install_path)/:$(PYTHONPATH) $(PYTHON) setup.py install --install-platlib=$(PWD)/$(local_install_path)/ --install-purelib=$(PWD)/$(local_install_path)/)
+	($(MKDIR_P) -m 766 $(local_install_path); \
+		PYTHONPATH=$(PWD)/$(local_install_path)/:$(PYTHONPATH) \
+		$(PYTHON) setup.py install --install-platlib=$(PWD)/$(local_install_path)/ --install-purelib=$(PWD)/$(local_install_path) \
+	)
 
-if DEVELOPER_MODE
-install-exec-local: cythonize
-else
-install-exec-local:
-endif
+install-exec-local: all-local
 	$(MKDIR_P) $(DESTDIR)$(pkgpythondir)
 	(PYTHONPATH=$(DESTDIR)$(pkgpythondir):$(PYTHONPATH) $(PYTHON) setup.py install \
 		--prefix=$(DESTDIR)$(prefix) \
@@ -32,31 +31,30 @@ endif
 if DEVELOPER_MODE
 
 $(srcdir)/pymoab/core.cpp: $(srcdir)/pymoab/core.pyx $(srcdir)/pymoab/moab.pxd
-	$(CYTHON) --cplus -t -o $@ $<
+	$(CYTHON) --cplus --fast-fail --include-dir $(top_srcdir)/src --output-file $@ $<
 $(srcdir)/pymoab/hcoord.cpp: $(srcdir)/pymoab/hcoord.pyx $(srcdir)/pymoab/moab.pxd
-	$(CYTHON) --cplus -t -o $@ $<
+	$(CYTHON) --cplus --fast-fail --include-dir $(top_srcdir)/src --output-file $@ $<
 $(srcdir)/pymoab/rng.cpp: $(srcdir)/pymoab/rng.pyx $(srcdir)/pymoab/moab.pxd
-	$(CYTHON) --cplus -t -o $@ $<
+	$(CYTHON) --cplus --fast-fail --include-dir $(top_srcdir)/src --output-file $@ $<
 $(srcdir)/pymoab/scd.cpp: $(srcdir)/pymoab/scd.pyx $(srcdir)/pymoab/moab.pxd
-	$(CYTHON) --cplus -t -o $@ $<
+	$(CYTHON) --cplus --fast-fail --include-dir $(top_srcdir)/src --output-file $@ $<
 $(srcdir)/pymoab/tag.cpp: $(srcdir)/pymoab/tag.pyx $(srcdir)/pymoab/moab.pxd
-	$(CYTHON) --cplus -t -o $@ $<
+	$(CYTHON) --cplus --fast-fail --include-dir $(top_srcdir)/src --output-file $@ $<
 $(srcdir)/pymoab/topo_util.cpp: $(srcdir)/pymoab/topo_util.pyx $(srcdir)/pymoab/moab.pxd
-	$(CYTHON) --cplus -t -o $@ $<
+	$(CYTHON) --cplus --fast-fail --include-dir $(top_srcdir)/src --output-file $@ $<
 $(srcdir)/pymoab/types.cpp: $(srcdir)/pymoab/types.pyx $(srcdir)/pymoab/moab.pxd
-	$(CYTHON) --cplus -t -o $@ $<
+	$(CYTHON) --cplus --fast-fail --include-dir $(top_srcdir)/src --output-file $@ $<
 $(srcdir)/pymoab/skinner.cpp: $(srcdir)/pymoab/skinner.pyx $(srcdir)/pymoab/moab.pxd
-	$(CYTHON) --cplus -t -o $@ $<
+	$(CYTHON) --cplus --fast-fail --include-dir $(top_srcdir)/src --output-file $@ $<
 
-cythonize: $(srcdir)/pymoab/core.cpp $(srcdir)/pymoab/hcoord.cpp $(srcdir)/pymoab/rng.cpp $(srcdir)/pymoab/scd.cpp $(srcdir)/pymoab/tag.cpp $(srcdir)/pymoab/topo_util.cpp $(srcdir)/pymoab/types.cpp $(srcdir)/pymoab/skinner.cpp
+cythonize: $(srcdir)/pymoab/core.cpp $(srcdir)/pymoab/hcoord.cpp \
+					 $(srcdir)/pymoab/rng.cpp $(srcdir)/pymoab/scd.cpp \
+					 $(srcdir)/pymoab/tag.cpp $(srcdir)/pymoab/topo_util.cpp \
+					 $(srcdir)/pymoab/types.cpp $(srcdir)/pymoab/skinner.cpp
 
 endif
 
-if DEVELOPER_MODE
-check: cythonize
-else
-check:
-endif
+check: all-local
 	cd tests; \
 	for i in $(test_files); \
 	do \

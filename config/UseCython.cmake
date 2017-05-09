@@ -243,6 +243,12 @@ function( compile_pyx _name generated_file )
   list( REMOVE_DUPLICATES pxd_dependencies )
   list( REMOVE_DUPLICATES c_header_dependencies )
 
+  # Print out verbosely the command being used:
+  #message( "${CYTHON_EXECUTABLE}
+  #  ${cxx_arg} ${include_directory_arg} ${version_arg}
+  #  ${annotate_arg} ${no_docstrings_arg} ${cython_debug_arg} ${CYTHON_FLAGS}
+  #  --output-file  ${_generated_file} ${pyx_locations}" )
+
   # Add the command to run the compiler.
   add_custom_command( OUTPUT ${_generated_file}
     COMMAND ${CYTHON_EXECUTABLE}
