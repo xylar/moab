@@ -29,10 +29,9 @@ endif()
 
 # if all is well go ahead and build/install pymoab interface
 if (PYTHON AND NOSE AND NOT PYTHON_MODULES_MISSING)
-  # copy all source to current dir so .cpp's aren't built in source
-  FILE(COPY "${CMAKE_CURRENT_SOURCE_DIR}/pymoab/" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/pymoab" FILES_MATCHING PATTERN "*")
-  # copy over test files as well
-  FILE(COPY "${CMAKE_CURRENT_SOURCE_DIR}/tests/" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/tests" FILES_MATCHING PATTERN "*")
+
+  ADD_SUBDIRECTORY(pymoab)
+  ADD_SUBDIRECTORY(tests)
 
   #assume a standard install location to start
   SET(PYMOAB_CUSTOM_INSTALL_LOCATION NO)

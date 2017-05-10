@@ -9,9 +9,8 @@ from libc.stdlib cimport malloc,free
 from .rng cimport Range
 from .core cimport Core
 from .hcoord cimport HomCoord
-from .types import check_error
-from pymoab import types
-from pymoab.types import _DTYPE_CONV
+from .types import check_error, MB_TYPE_DOUBLE, MB_FAILURE
+from .types import _DTYPE_CONV
 
 cdef class ScdParData(object):
     def __cinit__(self):
@@ -98,7 +97,7 @@ cdef class ScdInterface(object):
         cdef double* coords_ptr = NULL
         cdef int num_c = 0
         if coords is not None:
-            c = np.asarray(coords, dtype = _DTYPE_CONV[types.MB_TYPE_DOUBLE])
+            c = np.asarray(coords, dtype = _DTYPE_CONV[MB_TYPE_DOUBLE])
             assert c.ndim == 1
             num_c = len(coords)
             coords_ptr = <double*> c.data
@@ -253,7 +252,7 @@ cdef class ScdBox(object):
             vert = self.inst.get_vertex(i,j,k)
             return vert
         else:
-            check_error(types.MB_FAILURE)
+            check_error(MB_FAILURE)
     def get_element(self, args):
         """
         Returns the element handle for parameter values i,j,k. These parameter
@@ -299,7 +298,7 @@ cdef class ScdBox(object):
             vert = self.inst.get_element(i,j,k)
             return vert
         else:
-            check_error(types.MB_FAILURE)
+            check_error(MB_FAILURE)
         
     def get_params(self, moab.EntityHandle entity, exceptions = ()):
         """
