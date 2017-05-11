@@ -249,9 +249,6 @@ int main(int argc, char* argv[])
       rval = mbintx->intersect_meshes(covering_set, ctx.meshsets[1], intxset); MB_CHK_SET_ERR(rval, "Can't compute the intersection of meshes on the sphere");
       ctx.timer_pop();
 
-      rval = fix_degenerate_quads(mbCore, ctx.meshsets[2]);MB_CHK_ERR(rval);
-      rval = positive_orientation(mbCore, ctx.meshsets[2], radius);MB_CHK_ERR(rval);
-
       // free the memory
       delete mbintx;
     }
@@ -437,6 +434,7 @@ moab::ErrorCode CreateTempestMesh(ToolContext& ctx, moab::TempestRemapper& remap
     // For the overlap method, choose between: "fuzzy", "exact" or "mixed"
     *tempest_mesh = GenerateOverlapWithMeshes(*ctx.meshes[0], *ctx.meshes[1], "" /*ctx.outFilename*/, "exact", false);
     remapper.SetMesh(moab::Remapper::IntersectedMesh, *tempest_mesh);
+    ctx.meshes[2] = remapper.GetMesh(moab::Remapper::IntersectedMesh);
     // ctx.meshes.push_back(*tempest_mesh);
   }
   else if (ctx.meshType == moab::TempestRemapper::OVERLAP_MOAB) {
