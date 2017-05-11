@@ -197,6 +197,7 @@ int main(int argc, char* argv[])
     // Load the meshes and validate
     rval = remapper.ConvertTempestMesh(moab::Remapper::SourceMesh); MB_CHK_ERR(rval);
     rval = remapper.ConvertTempestMesh(moab::Remapper::TargetMesh); MB_CHK_ERR(rval);
+    remapper.SetMeshType(moab::Remapper::IntersectedMesh, moab::TempestRemapper::OVERLAP_FILES);
     rval = remapper.ConvertTempestMesh(moab::Remapper::IntersectedMesh); MB_CHK_ERR(rval);
     rval = mbCore->write_mesh("tempest_intersection.h5m", &ctx.meshsets[2], 1); MB_CHK_ERR(rval);
 
