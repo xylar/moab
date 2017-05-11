@@ -2,10 +2,9 @@ SET( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_LIST_DIR}/cmake )
 
 # make sure we have the essential elements installed
 FIND_PROGRAM(PYTHON "python")
-FIND_PROGRAM(NOSE "nosetests")
 
-find_package(PythonInterp)
-
+find_package(PythonInterp REQUIRED)
+find_package(PythonDev REQUIRED)
 # make sure that specific python modules are installed
 SET(NUMPY_MODULE_MISSING false)
 SET(SETUPTOOLS_MODULE_MISSING false)
@@ -28,8 +27,8 @@ if(NOT BUILD_SHARED_LIBS)
 endif()
 
 # if all is well go ahead and build/install pymoab interface
-if (PYTHON AND NOSE AND NOT PYTHON_MODULES_MISSING)
-
+if (PYTHON AND NOT PYTHON_MODULES_MISSING)
+  
   ADD_SUBDIRECTORY(pymoab)
   ADD_SUBDIRECTORY(tests)
 
@@ -82,8 +81,7 @@ PYTHONPATH=${CMAKE_INSTALL_PREFIX}/${PYMOAB_INSTALL_PREFIX}:\$PYTHONPATH \
   # !!!!THIS INSTALL IS DONE LOCALLY AND COPIED TO THE CORRECT LOCATOIN DURING INSTALL !!!! (Subject to Change)
   ADD_CUSTOM_TARGET(pymoab-local-install ALL COMMAND export PYTHONPATH=${PYMOAB_LOCAL_INSTALL_PATH}:$PYTHONPATH && ${PYTHON} setup.py install --install-platlib=${PYMOAB_LOCAL_INSTALL_PATH} --install-purelib=${PYMOAB_LOCAL_INSTALL_PATH} DEPENDS pymoab-local-install-dir)
   # move pymoab egg into the correct location for a --user setuptools install based on username
-  FILE(GLOB PYMOAB_EGG ${PYMOAB_LOCAL_INSTALL_PATH}/*)
-  INSTALL(FILES ${PYMOAB_EGG} DESTINATION ${PYMOAB_INSTALL_PREFIX} )
+  INSTALL(DIRECTORY ${PYMOAB_LOCAL_INSTALL_PATH}  DESTINATION ${PYMOAB_INSTALL_PREFIX} )
   
 endif()
 
