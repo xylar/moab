@@ -484,7 +484,7 @@ ErrorCode GeomQueryTool::point_in_volume_slow( EntityHandle volume, const double
 
 // detemine distance to nearest surface
   ErrorCode GeomQueryTool::closest_to_location( EntityHandle volume, const double coords[3], double& result,
-						EntityHandle& closest_surface)
+						EntityHandle* closest_surface)
 {
   // Get OBB Tree for volume
   EntityHandle root;
@@ -496,14 +496,14 @@ ErrorCode GeomQueryTool::point_in_volume_slow( EntityHandle volume, const double
   CartVect nearest;
   EntityHandle facet_out;
   EntityHandle surface_out;
+  if(closest_surface) surface_out = 1;
   rval = geomTopoTool->obb_tree()->closest_to_location( point.array(), root, nearest.array(), facet_out, &surface_out);
   MB_CHK_SET_ERR(rval, "Failed to get the closest intersection to location");
- 
   // calculate distance between point and nearest facet
   result = (point-nearest).length();
-
+ 
   // if closest_surface desired set it;
-  if(cloest_surface) closest_surface = surface_out;
+  if(closest_surface) *closest_surface = surface_out;
   
   return MB_SUCCESS;
 

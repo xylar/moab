@@ -33,6 +33,8 @@ ErrorCode test_ray_fire( GeomQueryTool * );
 
 ErrorCode test_point_in_volume( GeomQueryTool * );
 
+ErrorCode test_closest_to_location( GeomQueryTool *);
+
 ErrorCode test_measure_volume( GeomQueryTool * );
 
 ErrorCode test_measure_area( GeomQueryTool * );
@@ -335,6 +337,7 @@ int main( int argc, char* argv[] )
   }
   
   RUN_TEST( test_ray_fire );
+  RUN_TEST( test_closest_to_location );
   RUN_TEST( test_point_in_volume );
   RUN_TEST( test_measure_volume );
   RUN_TEST( test_measure_area );
@@ -978,6 +981,37 @@ ErrorCode test_point_in_volume( GeomQueryTool * gqt )
     }
   }
   
+  return MB_SUCCESS;
+}
+
+ErrorCode test_closest_to_location( GeomQueryTool * gqt )
+{
+  ErrorCode rval;
+  Interface *moab = gqt->moab_instance();
+
+  Range vols;
+  const int three = 3;
+  const void* ptr = &three;
+  Tag dim_tag = gqt->gttool()->get_geom_tag();
+  rval = moab->get_entities_by_type_and_tag( 0, MBENTITYSET, &dim_tag, &ptr, 1, vols );
+  CHKERR;
+  if (vols.size() != 2) {
+    std::cerr << "ERROR: Expected 2 volumes in input, found " << vols.size() << std::endl;
+    return MB_FAILURE;
+  }
+  const EntityHandle vol = vols.front();
+
+  CartVect position(10,0,0);
+  double result = 0.0;
+  rval = gqt->closest_to_location(vol,position.array(),result);
+  if(result != 9.0) return MB_FAILURE;
+
+  EntityHandle surface = 1;
+  rval = gqt->closest_to_location(vol,position.array(),result,&surface);
+
+  if(result != 9.0) return MB_FAILURE;
+  if(surface == 1) return MB_FAILURE;
+
   return MB_SUCCESS;
 }
 
