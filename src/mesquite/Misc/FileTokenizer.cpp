@@ -173,7 +173,7 @@ bool FileTokenizer::get_double_internal( double& result, MsqError& err )
 
 bool FileTokenizer::get_float_internal( float& result, MsqError& err )
 {
-  double d;
+  double d=0.0;
   get_double_internal( d, err );
   if (MSQ_CHKERR(err))
     return false;
@@ -214,7 +214,7 @@ bool FileTokenizer::get_long_int_internal( long& result, MsqError& err )
 
 bool FileTokenizer::get_byte_internal( unsigned char& result, MsqError& err )
 {
-  long i;
+  long i=0;
   get_long_int_internal( i, err );
   if (MSQ_CHKERR(err))
     return false;
@@ -231,7 +231,7 @@ bool FileTokenizer::get_byte_internal( unsigned char& result, MsqError& err )
 
 bool FileTokenizer::get_short_int_internal( short& result, MsqError& err )
 {
-  long i;
+  long i=0;
   get_long_int_internal( i, err );
   if (MSQ_CHKERR(err))
     return false;
@@ -248,7 +248,7 @@ bool FileTokenizer::get_short_int_internal( short& result, MsqError& err )
 
 bool FileTokenizer::get_integer_internal( int& result, MsqError& err )
 {
-  long i;
+  long i=0;
   get_long_int_internal( i, err );
   if (MSQ_CHKERR(err))
     return false;

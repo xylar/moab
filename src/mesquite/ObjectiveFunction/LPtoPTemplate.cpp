@@ -84,6 +84,7 @@ double LPtoPTemplate::get_value( double power_sum, size_t count, EvalType type,
   double result = 0;
   switch (type) 
   {
+    default: 
     case CALCULATE:
       result = power_sum;
       global_count = count;

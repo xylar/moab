@@ -5,43 +5,35 @@
 #endif
 
 #include "moab/iMOAB.h"
+#include "TestUtil.hpp"
+
 // for malloc, free:
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
-const char* filen = 0;
-
 #define CHECKRC(rc, message)  if (0!=rc) { printf ("%s", message); return 1;}
-#define STRINGIFY_(X) #X
-#define STRINGIFY(X) STRINGIFY_(X)
-
 
 int main(int argc, char * argv[])
 {
   int nprocs=1, rank=0;
+  std::string filen;
 #ifdef MOAB_HAVE_MPI
   MPI_Init(&argc, &argv);
 
-
   MPI_Comm comm=MPI_COMM_WORLD;
-
   MPI_Comm_size(comm, &nprocs);
   MPI_Comm_rank(comm, &rank);
 #endif
 
-#ifdef MESHDIR
 #ifdef MOAB_HAVE_HDF5
-  filen = STRINGIFY(MESHDIR) "/io/p8ex1.h5m";
-#endif
-#else
-#error Specify MESHDIR to compile test
+  filen = TestDir + "/io/p8ex1.h5m";
 #endif
 
   if (argc>1)
-    filen = argv[1];
+    filen = std::string(argv[1]);
 
-  if (!filen)
+  if (!filen.size())
     return 1;
   /*
    * MOAB needs to be initialized; A MOAB instance will be created, and will be used by each application
@@ -57,14 +49,14 @@ int main(int argc, char * argv[])
    * The hdf5 file has to be in MOAB native format, and has to be partitioned in advance. There should
    * be at least as many partitions in the file as number of tasks in the communicator.
    */
-  rc = iMOAB_ReadHeaderInfo ( filen, &num_global_vertices, &num_global_elements, &num_dimension,
-      &num_parts, (int)strlen(filen) );
+  rc = iMOAB_ReadHeaderInfo ( filen.c_str(), &num_global_vertices, &num_global_elements, &num_dimension,
+      &num_parts, (int)(filen.size()) );
 
   CHECKRC(rc, "failed to read header info");
 
   if (0==rank)
   {
-    printf("file %s has %d vertices, %d elements, %d parts in partition\n", filen,
+    printf("file %s has %d vertices, %d elements, %d parts in partition\n", filen.c_str(),
         num_global_vertices, num_global_elements, num_parts);
   }
   int appID;
@@ -93,7 +85,7 @@ int main(int argc, char * argv[])
    * side sets with NEUMANN_SET sets, node sets with DIRICHLET_SET sets. Each element and vertex entity should have
    * a GLOBAL ID tag in the file, which will be available for visible entities
    */
-  rc = iMOAB_LoadMesh(  pid, filen, read_opts, &num_ghost_layers, strlen(filen), strlen(read_opts) );
+  rc = iMOAB_LoadMesh(  pid, filen.c_str(), read_opts, &num_ghost_layers, (int)(filen.size()), strlen(read_opts) );
   CHECKRC(rc, "failed to load mesh");
 
   int nverts[3], nelem[3], nblocks[3], nsbc[3], ndbc[3];
@@ -405,3 +397,4 @@ int main(int argc, char * argv[])
 
   return 0;
 }
+

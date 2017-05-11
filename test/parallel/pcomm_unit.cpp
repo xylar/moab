@@ -19,9 +19,6 @@ using namespace moab;
 #  define MPI_COMM_WORLD 0
 #endif
 
-#define STRINGIFY_(X) #X
-#define STRINGIFY(X) STRINGIFY_(X)
-
 /** Test pack/unpack of vertices */
 void test_pack_vertices();
 /** Test pack/unpack of elements */
@@ -1997,13 +1994,9 @@ void test_new_pcomm_instance()
   Interface& mb = moab;
 
   // This parallel read will create a ParallelComm instance implicitly
-#ifdef MESHDIR
-  const char example[] = STRINGIFY(MESHDIR) "/64bricks_1khex.h5m";
-#else
-#error Specify MESHDIR to compile test
-#endif
+  std::string example = TestDir + "/64bricks_1khex.h5m";
   std::string read_options = "PARALLEL=READ_PART;PARTITION=PARALLEL_PARTITION;PARALLEL_RESOLVE_SHARED_ENTS";
-  ErrorCode rval = mb.load_file(example, 0, read_options.c_str());
+  ErrorCode rval = mb.load_file(example.c_str(), 0, read_options.c_str());
   CHECK_ERR(rval);
 
   // It is highly recommended to reuse existing ParallelComm instance with ParallelComm::get_pcomm()

@@ -5,6 +5,8 @@
 #include "MBTagConventions.hpp"
 #include "moab/Core.hpp"
 #include "moab_mpi.h"
+#include "TestUtil.hpp"
+
 #include <iostream>
 #include <algorithm>
 #include <sstream>
@@ -13,12 +15,7 @@
 #include <unistd.h>
 #endif
 
-
 using namespace moab;
-
-#define STRINGIFY_(X) #X
-#define STRINGIFY(X) STRINGIFY_(X)
-
 
 #define CHKERR(a) do { \
   ErrorCode val = (a); \
@@ -38,7 +35,7 @@ ErrorCode report_error( const char* file, int line )
 
 ErrorCode test_read(const char *filename, const char *option);
 
-#define RUN_TEST(A, B, C) run_test( &A, #A, B, C)
+#define RUN_TEST_ARG3(A, B, C) run_test( &A, #A, B, C)
 
 int is_any_proc_error( int is_my_error )
 {
@@ -49,10 +46,10 @@ int is_any_proc_error( int is_my_error )
 
 int run_test( ErrorCode (*func)(const char*, const char*), 
               const char* func_name,
-              const char* file_name,
+              const std::string file_name,
               const char *option)
 {
-  ErrorCode result = (*func)(file_name, option);
+  ErrorCode result = (*func)(file_name.c_str(), option);
   int is_err = is_any_proc_error( (MB_SUCCESS != result) );
   int rank;
   MPI_Comm_rank( MPI_COMM_WORLD, &rank );
@@ -74,59 +71,55 @@ int main( int argc, char* argv[] )
   MPI_Comm_size( MPI_COMM_WORLD, &size );
   int num_errors = 0;
 
-  const char* filename, *option;
-  const char* filename2=NULL;
+  const char* option;
+  std::string filename, filename2;
   if (1 < argc) 
-    filename = argv[1];
+    filename = std::string(argv[1]);
   else {
-#ifdef MESHDIR
-    filename = STRINGIFY(MESHDIR) "/64bricks_512hex.h5m";
-    filename2 = STRINGIFY(MESHDIR) "/hex_2048.vtk";
-#else
-    filename = "/64bricks_512hex.h5m";
-#endif
+    filename = TestDir + "/64bricks_512hex.h5m";
+    filename2 = TestDir + "/hex_2048.vtk";
   }
 #ifdef MOAB_HAVE_HDF5
     //=========== read_delete, geom_dimension, resolve_shared
   option = "PARALLEL=READ_DELETE;PARTITION=GEOM_DIMENSION;PARTITION_VAL=3;PARTITION_DISTRIBUTE;PARALLEL_RESOLVE_SHARED_ENTS;";
-  num_errors += RUN_TEST( test_read, filename, option );
+  num_errors += RUN_TEST_ARG3( test_read, filename, option );
 
     //=========== read_delete, material_set, resolve_shared
   option = "PARALLEL=READ_DELETE;PARTITION=MATERIAL_SET;PARTITION_DISTRIBUTE;PARALLEL_RESOLVE_SHARED_ENTS;";
-  num_errors += RUN_TEST( test_read, filename, option );
+  num_errors += RUN_TEST_ARG3( test_read, filename, option );
 
     //=========== bcast_delete, geom_dimension, resolve_shared
   option = "PARALLEL=BCAST_DELETE;PARTITION=GEOM_DIMENSION;PARTITION_VAL=3;PARTITION_DISTRIBUTE;PARALLEL_RESOLVE_SHARED_ENTS;";
-  num_errors += RUN_TEST( test_read, filename, option );
+  num_errors += RUN_TEST_ARG3( test_read, filename, option );
 
     //=========== bcast_delete, material_set, resolve_shared
   option = "PARALLEL=BCAST_DELETE;PARTITION=MATERIAL_SET;PARTITION_DISTRIBUTE;PARALLEL_RESOLVE_SHARED_ENTS;";
-  num_errors += RUN_TEST( test_read, filename, option );
+  num_errors += RUN_TEST_ARG3( test_read, filename, option );
 
     //=========== read_delete, geom_dimension, resolve_shared, exch ghost
   option = "PARALLEL=READ_DELETE;PARTITION=GEOM_DIMENSION;PARTITION_VAL=3;PARTITION_DISTRIBUTE;PARALLEL_RESOLVE_SHARED_ENTS;PARALLEL_GHOSTS=3.0.1;";
-  num_errors += RUN_TEST( test_read, filename, option );
+  num_errors += RUN_TEST_ARG3( test_read, filename, option );
 
     //=========== read_delete, material_set, resolve_shared, exch ghost
   option = "PARALLEL=READ_DELETE;PARTITION=MATERIAL_SET;PARTITION_DISTRIBUTE;PARALLEL_RESOLVE_SHARED_ENTS;PARALLEL_GHOSTS=3.0.1;";
-  num_errors += RUN_TEST( test_read, filename, option );
+  num_errors += RUN_TEST_ARG3( test_read, filename, option );
 
     //=========== bcast_delete, geom_dimension, resolve_shared, exch ghost
   option = "PARALLEL=BCAST_DELETE;PARTITION=GEOM_DIMENSION;PARTITION_VAL=3;PARTITION_DISTRIBUTE;PARALLEL_RESOLVE_SHARED_ENTS;PARALLEL_GHOSTS=3.0.1;";
-  num_errors += RUN_TEST( test_read, filename, option );
+  num_errors += RUN_TEST_ARG3( test_read, filename, option );
 
     //=========== bcast_delete, material_set, resolve_shared, exch ghost
   option = "PARALLEL=BCAST_DELETE;PARTITION=MATERIAL_SET;PARTITION_DISTRIBUTE;PARALLEL_RESOLVE_SHARED_ENTS;PARALLEL_GHOSTS=3.0.1;";
-  num_errors += RUN_TEST( test_read, filename, option );
+  num_errors += RUN_TEST_ARG3( test_read, filename, option );
 #endif
-  if (filename2)
+  if (filename2.size())
   {
     //=========== bcast_delete, trivial, resolve_shared
     option = "PARALLEL=BCAST_DELETE;PARTITION=TRIVIAL;PARTITION_DISTRIBUTE;PARALLEL_RESOLVE_SHARED_ENTS;";
-    num_errors += RUN_TEST( test_read, filename2, option );
+    num_errors += RUN_TEST_ARG3( test_read, filename2, option );
     //=========== bcast_delete, trivial, resolve_shared + ghosting
     option = "PARALLEL=BCAST_DELETE;PARTITION=TRIVIAL;PARTITION_DISTRIBUTE;PARALLEL_RESOLVE_SHARED_ENTS;PARALLEL_GHOSTS=3.0.1;";
-    num_errors += RUN_TEST( test_read, filename2, option );
+    num_errors += RUN_TEST_ARG3( test_read, filename2, option );
   }
   MPI_Finalize();
 

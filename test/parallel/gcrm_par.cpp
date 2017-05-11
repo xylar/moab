@@ -10,9 +10,7 @@
 
 using namespace moab;
 
-#ifdef MESHDIR
-static const char example[] = STRINGIFY(MESHDIR) "/io/gcrm_r3.nc";
-#endif
+static const char example[] = std::string(TestDir + "/io/gcrm_r3.nc").c_str();
 
 void test_read_onevar_trivial();
 #if defined(MOAB_HAVE_MPI) && defined(MOAB_HAVE_ZOLTAN)

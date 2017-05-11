@@ -452,12 +452,12 @@ ErrorCode test_unitsq_quads()
 ErrorCode test_unitsphere()
 {
     //path to test files
-#ifdef MESHDIR
     int nfiles = 4;
-    const char* filenames[] = {STRINGIFY ( MESHDIR ) "/sphere_tris_5.vtk", STRINGIFY ( MESHDIR ) "/sphere_tris_20.vtk", STRINGIFY ( MESHDIR ) "/sphere_quads_5.vtk", STRINGIFY ( MESHDIR ) "/sphere_quads_20.vtk"};
-#else
-#error Specify MESHDIR to compile test
-#endif
+    std::string filenames[] = { TestDir + "/sphere_tris_5.vtk",
+                                TestDir + "/sphere_tris_20.vtk",
+                                TestDir + "/sphere_quads_5.vtk",
+                                TestDir + "/sphere_quads_20.vtk"
+                              };
     ErrorCode error;
     int maxdeg = 6;
 
@@ -468,7 +468,7 @@ ErrorCode test_unitsphere()
         ParallelComm* pc = NULL;
         EntityHandle meshset;
         //load file
-        error = load_meshset_hirec ( filenames[ifile], mbimpl, meshset, pc, maxdeg ); MB_CHK_ERR ( error );
+        error = load_meshset_hirec ( filenames[ifile].c_str(), mbimpl, meshset, pc, maxdeg ); MB_CHK_ERR ( error );
         //initialize
         HiReconstruction hirec ( &moab, pc, meshset );
         Range elems;
@@ -528,12 +528,12 @@ ErrorCode test_unitsphere()
 ErrorCode test_unitcircle()
 {
     //path to test files
-#ifdef MESHDIR
     int nfiles = 4;
-    const char* filenames[] = {STRINGIFY ( MESHDIR ) "/circle_3.vtk", STRINGIFY ( MESHDIR ) "/circle_4.vtk", STRINGIFY ( MESHDIR ) "/circle_10.vtk", STRINGIFY ( MESHDIR ) "/circle_20.vtk"};
-#else
-#error Specify MESHDIR to compile test
-#endif
+    std::string filenames[] = { TestDir + "/circle_3.vtk",
+                                TestDir + "/circle_4.vtk",
+                                TestDir + "/circle_10.vtk",
+                                TestDir + "/circle_20.vtk"
+                              };
     ErrorCode error;
     int maxdeg = 6;
 
@@ -545,7 +545,7 @@ ErrorCode test_unitcircle()
         EntityHandle meshset;
         int dim = 1;
         //load file
-        error = load_meshset_hirec ( filenames[ifile], mbimpl, meshset, pc, maxdeg, dim ); MB_CHK_ERR ( error );
+        error = load_meshset_hirec ( filenames[ifile].c_str(), mbimpl, meshset, pc, maxdeg, dim ); MB_CHK_ERR ( error );
         //initialize
         HiReconstruction hirec ( &moab, pc, meshset );
         Range edges;

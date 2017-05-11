@@ -537,19 +537,11 @@ int main(int argc, char *argv[])
 #endif
 
     std::string filename;
-#ifdef MESHDIR
  #ifdef MOAB_HAVE_HDF5
     filename = TestDir + "/32hex_ef.h5m";
  #else
     filename = TestDir + "/hexes_mixed.vtk";
  #endif
-#else
- #ifdef MOAB_HAVE_HDF5
-    filename = "32hex_ef.h5m";
- #else
-    filename = "hexes_mixed.vtk";
- #endif
-#endif
 
     if (argc==1)
     {

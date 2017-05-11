@@ -45,6 +45,7 @@
 #include "DomainClassifier.hpp"
 
 #include "HexLagrangeShape.hpp"
+#include "TestUtil.hpp"
 
 #include <iostream>
 #include <string>

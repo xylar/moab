@@ -6,13 +6,8 @@
 
 using namespace moab;
 
-#ifdef MESHDIR
-static const char example[] = STRINGIFY(MESHDIR) "/io/homme3x3458.t.3.nc";
-static const char conn_fname[] = STRINGIFY(MESHDIR) "/io/HommeMapping.nc";
-#else
-static const char example[] = "/io/homme3x3458.t.3.nc";
-static const char conn_fname[] = "io/HommeMapping.nc";
-#endif
+static const char example[] = std::string(TestDir + "/io/homme3x3458.t.3.nc").c_str();
+static const char conn_fname[] = std::string(TestDir + "/io/HommeMapping.nc").c_str();
 
 #ifdef MOAB_HAVE_MPI
 #include "moab_mpi.h"

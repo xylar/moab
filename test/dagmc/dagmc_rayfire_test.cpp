@@ -21,17 +21,13 @@ DagMC *DAG;
             << __LINE__ << std::endl; \
   return A; } } while(false)
 
-#ifdef MESHDIR
-static const char input_file[] = STRINGIFY(MESHDIR) "/test_geom.h5m";
-#else
-static const char input_file[] = STRINGIFY(MESHDIR) "/test_geom.h5m";
-#endif
+std::string input_file = TestDir + "/test_geom.h5m";
 
 double eps = 1.0e-6;
 
 void dagmc_setup_test() 
 {
-  ErrorCode rval = DAG->load_file(input_file); // open the Dag file
+  ErrorCode rval = DAG->load_file(input_file.c_str()); // open the Dag file
   CHECK_ERR(rval);
   rval = DAG->init_OBBTree();
   CHECK_ERR(rval);

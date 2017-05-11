@@ -23,9 +23,6 @@
     #include "moab_mpi.h"
 #endif
 
-#define STRINGIFY_(X) #X
-#define STRINGIFY(X) STRINGIFY_(X)
-
 using namespace moab;
 
 #ifdef MOAB_HAVE_MPI
@@ -57,14 +54,10 @@ int main ( int argc, char* argv[] )
     bool interp = false;
     ErrorCode error;
 
-#ifdef MESHDIR
 #ifdef MOAB_HAVE_HDF5
-    std::string infile = STRINGIFY(MESHDIR) "/mbcslam/fine4.h5m";
+    std::string infile = TestDir + "/mbcslam/fine4.h5m";
 #else
-    std::string infile = STRINGIFY(MESHDIR) "/sphere_quads_20.vtk";
-#endif
-#else
-#error Specify MESHDIR to compile test
+    std::string infile = TestDir + "/sphere_quads_20.vtk";
 #endif
 
     if ( argc == 1 )

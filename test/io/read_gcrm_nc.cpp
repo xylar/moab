@@ -5,11 +5,7 @@
 
 using namespace moab;
 
-#ifdef MESHDIR
-static const char example[] = STRINGIFY(MESHDIR) "/io/gcrm_r3.nc";
-#else
-static const char example[] = "/io/gcrm_r3.nc";
-#endif
+static const char example[] = std::string (TestDir + "/io/gcrm_r3.nc").c_str();
 
 #ifdef MOAB_HAVE_MPI
 #include "moab_mpi.h"

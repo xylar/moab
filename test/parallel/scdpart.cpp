@@ -7,11 +7,7 @@
 
 using namespace moab;
 
-#ifdef MESHDIR
-static const char example[] = STRINGIFY(MESHDIR) "/io/eul3x48x96.t.3.nc";
-#else
-static const char example[] = "/io/eul3x48x96.t.3.nc";
-#endif
+std::string example = TestDir + "/io/eul3x48x96.t.3.nc";
 
 void test_read_parallel(int nverts);
 void test_read_parallel_alljorkori();
@@ -70,7 +66,7 @@ void test_read_parallel(int num_verts)
 
   std::string opt = std::string("PARALLEL=READ_PART;PARTITION=;PARTITION_DISTRIBUTE;PARALLEL_RESOLVE_SHARED_ENTS") +
       partition_method;
-  rval = mb.load_file(example, &file_set, opt.c_str());
+  rval = mb.load_file(example.c_str(), &file_set, opt.c_str());
   CHECK_ERR(rval);
 
   ParallelComm* pcomm = ParallelComm::get_pcomm(&mb, 0);

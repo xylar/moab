@@ -19,18 +19,10 @@ using namespace moab;
   return A; } } while(false)
 
 
-#ifdef MESHDIR
 #ifdef HAVE_OCC_STEP
-static const char input_cylcube[] = STRINGIFY(MESHDIR) "/io/cylcube.stp";
+std::string input_cylcube = TestDir + "/io/cylcube.stp";
 #else
-static const char input_cylcube[] = STRINGIFY(MESHDIR) "/io/cylcube.sat";
-#endif
-#else
-#ifdef HAVE_OCC_STEP
-static const char input_cylcube[] = "cylcube.stp";
-#else
-static const char input_cylcube[] = "cylcube.sat";
-#endif
+std::string input_cylcube = TestDir + "/io/cylcube.sat";
 #endif
 
 // Function used to load the test file
@@ -85,7 +77,7 @@ void read_cylcube_groups_test()
   //Open the test file
   Core moab;
   Interface* mb = &moab;
-  read_file( mb, input_cylcube);  
+  read_file( mb, input_cylcube.c_str());
 
   //Get (or create) the name and category tags
   Tag name_tag, category_tag;

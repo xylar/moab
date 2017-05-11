@@ -3,13 +3,8 @@
 
 using namespace moab;
 
-#ifdef MESHDIR
-static const char example_eul[] = STRINGIFY(MESHDIR) "/io/eul3x48x96.t.3.nc";
-static const char example_fv[] = STRINGIFY(MESHDIR) "/io/fv3x46x72.t.3.nc";
-#else
-static const char example_eul[] = "/io/eul3x48x96.t.3.nc";
-static const char example_fv[] = "/io/fv3x46x72.t.3.nc";
-#endif
+std::string example_eul = TestDir + "/io/eul3x48x96.t.3.nc";
+std::string example_fv = TestDir + "/io/fv3x46x72.t.3.nc";
 
 #ifdef MOAB_HAVE_MPI
 #include "moab_mpi.h"
@@ -85,7 +80,7 @@ void test_read_eul_all()
   ErrorCode rval = get_options(opts);
   CHECK_ERR(rval);
 
-  rval = mb.load_file(example_eul, NULL, opts.c_str());
+  rval = mb.load_file(example_eul.c_str(), NULL, opts.c_str());
   CHECK_ERR(rval);
 
   // Check for proper tags
@@ -120,7 +115,7 @@ void test_read_eul_onevar()
   CHECK_ERR(rval);
 
   opts += std::string(";VARIABLE=T");
-  rval = mb.load_file(example_eul, NULL, opts.c_str());
+  rval = mb.load_file(example_eul.c_str(), NULL, opts.c_str());
   CHECK_ERR(rval);
 
   // Check for proper tags
@@ -196,7 +191,7 @@ void test_read_eul_onetimestep()
   CHECK_ERR(rval);
 
   opts += std::string(";VARIABLE=T;TIMESTEP=1");
-  rval = mb.load_file(example_eul, NULL, opts.c_str());
+  rval = mb.load_file(example_eul.c_str(), NULL, opts.c_str());
   CHECK_ERR(rval);
 
   // Check for proper tags
@@ -223,7 +218,7 @@ void test_read_eul_nomesh()
   CHECK_ERR(rval);
 
   opts = orig + std::string(";VARIABLE=T;TIMESTEP=0");
-  rval = mb.load_file(example_eul, &set, opts.c_str());
+  rval = mb.load_file(example_eul.c_str(), &set, opts.c_str());
   CHECK_ERR(rval);
 
   // Check for proper tag
@@ -236,7 +231,7 @@ void test_read_eul_nomesh()
 
   // Now read 2nd timestep with nomesh option
   opts = orig + std::string(";VARIABLE=T;TIMESTEP=1;NOMESH");
-  rval = mb.load_file(example_eul, &set, opts.c_str());
+  rval = mb.load_file(example_eul.c_str(), &set, opts.c_str());
   CHECK_ERR(rval);
 
   // Check for proper tag
@@ -259,11 +254,11 @@ void test_read_eul_novars()
   CHECK_ERR(rval);
 
   opts = orig + std::string(";NOMESH;VARIABLE=");
-  rval = mb.load_file(example_eul, &set, opts.c_str());
+  rval = mb.load_file(example_eul.c_str(), &set, opts.c_str());
   CHECK_ERR(rval);
 
   opts = orig + std::string(";VARIABLE=;TIMESTEP=0");
-  rval = mb.load_file(example_eul, &set, opts.c_str());
+  rval = mb.load_file(example_eul.c_str(), &set, opts.c_str());
   CHECK_ERR(rval);
 
   // Check for proper tag
@@ -272,7 +267,7 @@ void test_read_eul_novars()
   CHECK_EQUAL(rval, MB_TAG_NOT_FOUND);
 
   opts = orig + std::string(";VARIABLE=T;TIMESTEP=0;NOMESH");
-  rval = mb.load_file(example_eul, &set, opts.c_str());
+  rval = mb.load_file(example_eul.c_str(), &set, opts.c_str());
   CHECK_ERR(rval);
 
   rval = mb.tag_get_handle("T0", levels, MB_TYPE_DOUBLE, Ttag0);
@@ -283,7 +278,7 @@ void test_read_eul_novars()
 
   // Now read 2nd timestep with nomesh option
   opts = orig + std::string(";VARIABLE=T;TIMESTEP=1;NOMESH");
-  rval = mb.load_file(example_eul, &set, opts.c_str());
+  rval = mb.load_file(example_eul.c_str(), &set, opts.c_str());
   CHECK_ERR(rval);
 
   // Check for proper tag
@@ -300,7 +295,7 @@ void test_read_fv_all()
   ErrorCode rval = get_options(opts);
   CHECK_ERR(rval);
 
-  rval = mb.load_file(example_fv, NULL, opts.c_str());
+  rval = mb.load_file(example_fv.c_str(), NULL, opts.c_str());
   CHECK_ERR(rval);
 
   // Check for proper tags
@@ -324,7 +319,7 @@ void test_read_fv_onevar()
   CHECK_ERR(rval);
 
   opts += std::string(";VARIABLE=T");
-  rval = mb.load_file(example_fv, NULL, opts.c_str());
+  rval = mb.load_file(example_fv.c_str(), NULL, opts.c_str());
   CHECK_ERR(rval);
 
   // Check for proper tags
@@ -400,7 +395,7 @@ void test_read_fv_onetimestep()
   CHECK_ERR(rval);
 
   opts += std::string(";VARIABLE=T;TIMESTEP=1");
-  rval = mb.load_file(example_fv, NULL, opts.c_str());
+  rval = mb.load_file(example_fv.c_str(), NULL, opts.c_str());
   CHECK_ERR(rval);
 
   // Check for proper tags
@@ -438,7 +433,7 @@ void test_read_fv_nomesh()
   CHECK_ERR(rval);
 
   opts = orig + std::string(";VARIABLE=T;TIMESTEP=0");
-  rval = mb.load_file(example_fv, &set, opts.c_str());
+  rval = mb.load_file(example_fv.c_str(), &set, opts.c_str());
   CHECK_ERR(rval);
 
   // Check for proper tag
@@ -451,7 +446,7 @@ void test_read_fv_nomesh()
 
   // Now read 2nd timestep with nomesh option
   opts = orig + std::string(";VARIABLE=T;TIMESTEP=1;NOMESH");
-  rval = mb.load_file(example_fv, &set, opts.c_str());
+  rval = mb.load_file(example_fv.c_str(), &set, opts.c_str());
   CHECK_ERR(rval);
 
   // Check for proper tag
@@ -474,11 +469,11 @@ void test_read_fv_novars()
   CHECK_ERR(rval);
 
   opts = orig + std::string(";NOMESH;VARIABLE=");
-  rval = mb.load_file(example_fv, &set, opts.c_str());
+  rval = mb.load_file(example_fv.c_str(), &set, opts.c_str());
   CHECK_ERR(rval);
 
   opts = orig + std::string(";VARIABLE=;TIMESTEP=0");
-  rval = mb.load_file(example_fv, &set, opts.c_str());
+  rval = mb.load_file(example_fv.c_str(), &set, opts.c_str());
   CHECK_ERR(rval);
 
   // Check for proper tag
@@ -487,7 +482,7 @@ void test_read_fv_novars()
   CHECK_EQUAL(rval, MB_TAG_NOT_FOUND);
 
   opts = orig + std::string(";VARIABLE=T;TIMESTEP=0;NOMESH");
-  rval = mb.load_file(example_fv, &set, opts.c_str());
+  rval = mb.load_file(example_fv.c_str(), &set, opts.c_str());
   CHECK_ERR(rval);
 
   rval = mb.tag_get_handle("T0", levels, MB_TYPE_DOUBLE, Ttag0);
@@ -498,7 +493,7 @@ void test_read_fv_novars()
 
   // Now read 2nd timestep with nomesh option
   opts = orig + std::string(";VARIABLE=T;TIMESTEP=1;NOMESH");
-  rval = mb.load_file(example_fv, &set, opts.c_str());
+  rval = mb.load_file(example_fv.c_str(), &set, opts.c_str());
   CHECK_ERR(rval);
 
   // Check for proper tag
@@ -522,15 +517,15 @@ void test_read_fv_ghosting()
   CHECK_ERR(rval);
 
   opts = std::string("PARALLEL=READ_PART;PARTITION;PARALLEL_GHOSTS=2.0.1;NOMESH;VARIABLE=;PARTITION_METHOD=SQIJ");
-  rval = mb.load_file(example_fv, &set, opts.c_str());
+  rval = mb.load_file(example_fv.c_str(), &set, opts.c_str());
   CHECK_ERR(rval);
 
   opts = std::string("PARALLEL=READ_PART;PARTITION;PARALLEL_RESOLVE_SHARED_ENTS;PARALLEL_GHOSTS=2.0.1;PARTITION_METHOD=SQIJ;VARIABLE=");
-  rval = mb.load_file(example_fv, &set, opts.c_str());
+  rval = mb.load_file(example_fv.c_str(), &set, opts.c_str());
   CHECK_ERR(rval);
 
   opts = std::string("PARALLEL=READ_PART;PARTITION;PARTITION_METHOD=SQIJ;VARIABLE=TOT_CLD_VISTAU;NOMESH;TIMESTEP=0;");
-  rval = mb.load_file(example_fv, &set, opts.c_str());
+  rval = mb.load_file(example_fv.c_str(), &set, opts.c_str());
   CHECK_ERR(rval);
 }
 #endif

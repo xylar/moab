@@ -14,13 +14,8 @@ using namespace moab;
 
 #include "TestUtil.hpp"
 
-#ifdef MESHDIR
-static const char poly_example[] = STRINGIFY(MESHDIR) "/io/poly8-10.vtk";
-static const char polyhedra_example[] = STRINGIFY(MESHDIR) "/io/polyhedra.vtk";
-#else
-static const char poly_example[] = "poly8-10.vtk";
-static const char polyhedra_example[] = "polyhedra.vtk";
-#endif
+std::string poly_example = TestDir + "/io/poly8-10.vtk";
+std::string polyhedra_example = TestDir + "/io/polyhedra.vtk";
 
 #define DECLARE_TEST(A) \
   bool test_ ## A(); \
@@ -416,7 +411,7 @@ bool test_polygon_mix()
   Core moab;
   Interface& mb = moab;
 
-  ErrorCode rval = mb.load_file(poly_example);
+  ErrorCode rval = mb.load_file(poly_example.c_str());
   if (MB_SUCCESS!=rval)
     return false;
 
@@ -429,7 +424,7 @@ bool test_polyhedra()
   Core moab;
   Interface& mb = moab;
 
-  ErrorCode rval = mb.load_file(polyhedra_example);
+  ErrorCode rval = mb.load_file(polyhedra_example.c_str());
   if (MB_SUCCESS!=rval)
     return false;
   Range polyhedras;

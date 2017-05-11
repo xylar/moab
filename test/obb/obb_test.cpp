@@ -10,6 +10,7 @@
 #include "moab_mpi.h"
 #endif
 
+#include "../TestUtil.hpp"
 #include <iostream>
 #include <sstream>
 #include <stdlib.h>
@@ -17,8 +18,6 @@
 #include <cstdio>
 #include <set>
 #include <map>
-#define STRINGIFY_(A) #A
-#define STRINGIFY(A) STRINGIFY_(A)
 
 using namespace moab;
 
@@ -33,7 +32,7 @@ static const char* NAME = "obb_test";
 std::map<std::string, std::vector<RayTest> > default_files_tests;
 typedef std::map<std::string, std::vector<RayTest> >::iterator ray_test_itr;
 
-void initialize_deafult_files() 
+void initialize_default_files() 
 {
   size_t num_tests;
   std::vector<RayTest> tests;
@@ -175,7 +174,7 @@ int main( int argc, char* argv[] )
   if (fail) return fail;
 #endif
 
-  initialize_deafult_files();
+  initialize_default_files();
 
   std::vector<const char*> file_names;
   bool flags = true;

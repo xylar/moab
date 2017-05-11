@@ -19,18 +19,10 @@ using namespace moab;
   return A; } } while(false)
 
 
-#ifdef MESHDIR
 #ifdef HAVE_OCC_STEP
 const std::string input_cube = TestDir + "/io/cube.stp";
 #else
 const std::string input_cube = TestDir + "/io/cube.sat";
-#endif
-#else
-#ifdef HAVE_OCC_STEP
-const std::string input_cube = "cube.stp";
-#else
-const std::string input_cube = "cube.sat";
-#endif
 #endif
 
 // Function used to load the test file
