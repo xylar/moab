@@ -10,7 +10,7 @@
 
 using namespace moab;
 
-static const char example[] = std::string(TestDir + "/io/gcrm_r3.nc").c_str();
+std::string example = TestDir + "/io/gcrm_r3.nc";
 
 void test_read_onevar_trivial();
 #if defined(MOAB_HAVE_MPI) && defined(MOAB_HAVE_ZOLTAN)
@@ -106,7 +106,7 @@ void read_one_cell_var(bool rcbzoltan)
   if (rcbzoltan)
     read_options = "PARALLEL=READ_PART;PARTITION_METHOD=RCBZOLTAN;NO_EDGES;VARIABLE=vorticity;DEBUG_IO=1";
 
-  ErrorCode rval = mb.load_file(example, NULL, read_options.c_str());
+  ErrorCode rval = mb.load_file(example.c_str(), NULL, read_options.c_str());
   CHECK_ERR(rval);
 
   // Get local edges
@@ -300,7 +300,7 @@ void read_mesh_parallel(bool rcbzoltan)
   if (rcbzoltan)
     read_options = "PARALLEL=READ_PART;PARTITION_METHOD=RCBZOLTAN;PARALLEL_RESOLVE_SHARED_ENTS;VARIABLE=";
 
-  ErrorCode rval = mb.load_file(example, NULL, read_options.c_str());
+  ErrorCode rval = mb.load_file(example.c_str(), NULL, read_options.c_str());
   CHECK_ERR(rval);
 
   ParallelComm* pcomm = ParallelComm::get_pcomm(&mb, 0);
@@ -477,7 +477,7 @@ void gather_one_cell_var(int gather_set_rank)
   gather_set_option << ";GATHER_SET=" << gather_set_rank;
   read_options += gather_set_option.str();
 
-  rval = mb.load_file(example, &file_set, read_options.c_str());
+  rval = mb.load_file(example.c_str(), &file_set, read_options.c_str());
   CHECK_ERR(rval);
 
   ParallelComm* pcomm = ParallelComm::get_pcomm(&mb, 0);
@@ -558,19 +558,19 @@ void multiple_loads_of_same_file()
   // Read first only header information, no mesh, no variable
   read_options = "PARALLEL=READ_PART;PARTITION;NOMESH;VARIABLE=;PARTITION_METHOD=TRIVIAL";
 
-  rval = mb.load_file(example, &file_set, read_options.c_str());
+  rval = mb.load_file(example.c_str(), &file_set, read_options.c_str());
   CHECK_ERR(rval);
 
   // Create mesh, no variable
   read_options = "PARALLEL=READ_PART;PARTITION;PARALLEL_RESOLVE_SHARED_ENTS;PARTITION_METHOD=TRIVIAL;VARIABLE=";
 
-  rval = mb.load_file(example, &file_set, read_options.c_str());
+  rval = mb.load_file(example.c_str(), &file_set, read_options.c_str());
   CHECK_ERR(rval);
 
   // Read variable vorticity at timestep 0, no mesh
   read_options = "PARALLEL=READ_PART;PARTITION;PARTITION_METHOD=TRIVIAL;NOMESH;VARIABLE=vorticity;TIMESTEP=0";
 
-  rval = mb.load_file(example, &file_set, read_options.c_str());
+  rval = mb.load_file(example.c_str(), &file_set, read_options.c_str());
   CHECK_ERR(rval);
 
   Range local_verts;
