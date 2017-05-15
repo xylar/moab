@@ -450,15 +450,8 @@ void heappermute(Interface *mbi, int v[], int n, std::map< int, std::set<int> > 
       
       //test the topology
       DagMC *DAG2 = new DagMC(mbi);
-      rval = DAG2->load_existing_contents();
-      MB_CHK_ERR_RET(rval);
-      rval = DAG2->setup_obbs();
-      MB_CHK_ERR_RET(rval);
-      rval = DAG2->setup_indices();
-      MB_CHK_ERR_RET(rval);
-   
-      bool result;
-      result = check_tree(mbi, DAG2, ref_map );
+	  rval = setup(mbi, DAG2);
+      bool result = check_tree(mbi, DAG2, ref_map );
   
       CHECK_EQUAL(1, result); 
  
