@@ -58,7 +58,7 @@ if(MOAB_HAVE_HDF5)
 	     gqt_simple_test.cpp
 	     gqt_rayfire_test.cpp
 	     gqt_pointinvol_test.cpp
-	     test_geom_gqt.cc)
+	     test_geom_gqt.cpp)
 endif()
 
 foreach( fname ${TESTS} )

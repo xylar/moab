@@ -495,15 +495,11 @@ ErrorCode GeomQueryTool::point_in_volume_slow( EntityHandle volume, const double
   const CartVect point(coords);
   CartVect nearest;
   EntityHandle facet_out;
-  EntityHandle surface_out;
-  if(closest_surface) surface_out = 1;
-  rval = geomTopoTool->obb_tree()->closest_to_location( point.array(), root, nearest.array(), facet_out, &surface_out);
+
+  rval = geomTopoTool->obb_tree()->closest_to_location( point.array(), root, nearest.array(), facet_out, closest_surface);
   MB_CHK_SET_ERR(rval, "Failed to get the closest intersection to location");
   // calculate distance between point and nearest facet
   result = (point-nearest).length();
- 
-  // if closest_surface desired set it;
-  if(closest_surface) *closest_surface = surface_out;
   
   return MB_SUCCESS;
 
