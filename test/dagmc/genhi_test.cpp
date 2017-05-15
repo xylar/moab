@@ -26,6 +26,8 @@ Range get_children_by_dimension(Interface *mbi, EntityHandle parent, int desired
 void heappermute(Interface *mbi, int v[], int n, std::map< int, std::set<int> > ref_map, int len);
 void swap(int *x, int *y);
 void get_cube_info( int cube_id, std::vector<double> &scale, std::vector<double> &trans );
+ErrorCode setup(Interface *mbi, DagMC *DAG);
+ErrorCode tear_down(Interface *mbi, DagMC *DAG);
 void test_two_cubes();
 void test_three_cubes();
 void test_six_cubes();
@@ -33,7 +35,8 @@ void test_six_cubes();
 ErrorCode build_cube( Interface *mbi,
                       std::vector<double> scale_vec, 
                       std::vector<double> trans_vec, 
-                      int    object_id )
+                      int    object_id,
+			          EntityHandle &volume	)
 {
   myGeomTool = new GeomTopoTool(mbi);
 
@@ -121,7 +124,7 @@ ErrorCode build_cube( Interface *mbi,
   rval = mbi->tag_set_data( category_tag, &surf, 1, "Surface\0" ); MB_CHK_ERR(rval);
   
   // create volume meshset associated with surface meshset
-  EntityHandle volume;
+  // EntityHandle volume;
   rval = mbi->create_meshset( MESHSET_SET, volume ); MB_CHK_ERR(rval);
  
   // set name, id, geom, and category tags for VOLUME
@@ -422,6 +425,8 @@ void heappermute(Interface *mbi, int v[], int n, std::map< int, std::set<int> > 
 
   ErrorCode rval; 
   std::vector<double> scale, trans;
+  EntityHandle vol;
+  Range flat_vols;
 
   if (n == 1)
     {
@@ -429,34 +434,38 @@ void heappermute(Interface *mbi, int v[], int n, std::map< int, std::set<int> > 
       for (int i = 0; i < len; i++)
         {
           get_cube_info(v[i], scale, trans);
-          build_cube(mbi, scale, trans, v[i]);
+          build_cube(mbi, scale, trans, v[i], vol);
+		  flat_vols.insert(vol);
+
         }
 
-      //test tree
-      GenerateHierarchy *gh = new GenerateHierarchy(mbi, rval);
-      MB_CHK_ERR_RET(rval);
-      rval = gh->build_hierarchy();
-      MB_CHK_ERR_RET(rval);
-      rval = gh->construct_topology();
-      MB_CHK_ERR_RET(rval);
-  
+	  // construct the topology
       DagMC *DAG = new DagMC(mbi);
-      rval = DAG->load_existing_contents();
+	  rval = setup(mbi, DAG);
       MB_CHK_ERR_RET(rval);
-      rval = DAG->setup_obbs();
+	  rval = DAG->geom_tool()->construct_topology(flat_vols);
       MB_CHK_ERR_RET(rval);
-      rval = DAG->setup_indices();
+	  rval = tear_down(mbi, DAG);
+      MB_CHK_ERR_RET(rval);
+      
+      //test the topology
+      DagMC *DAG2 = new DagMC(mbi);
+      rval = DAG2->load_existing_contents();
+      MB_CHK_ERR_RET(rval);
+      rval = DAG2->setup_obbs();
+      MB_CHK_ERR_RET(rval);
+      rval = DAG2->setup_indices();
       MB_CHK_ERR_RET(rval);
    
       bool result;
-      result = check_tree(mbi, DAG, ref_map );
+      result = check_tree(mbi, DAG2, ref_map );
   
       CHECK_EQUAL(1, result); 
  
       // delete the geometry so new one can be built;
       mbi->delete_mesh();
       delete DAG;
-      delete gh;
+	  delete DAG2;
             
     }
   
@@ -486,4 +495,51 @@ void swap(int *x, int *y)
   temp = *x; 
   *x = *y;
   *y = temp;
+}
+
+ErrorCode setup(Interface *mbi, DagMC *DAG)
+{
+  ErrorCode rval;              
+
+  // loab contents into DAG                                                                 
+  rval = DAG->load_existing_contents();         
+  MB_CHK_SET_ERR(rval, "Failed to load DAG existing contents.");
+
+  // build obbs
+  rval = DAG->setup_obbs();
+  MB_CHK_SET_ERR(rval, "Failed to load set up obbs.");
+   	 
+  // setup indices
+  rval = DAG->setup_indices();
+  MB_CHK_SET_ERR(rval, "Failed to load set up indices.");
+
+  // get all tag handles
+  rval = get_all_handles(mbi);
+  MB_CHK_SET_ERR(rval, "Failed to get all tag	handles.");
+
+  return MB_SUCCESS;
+}
+
+ErrorCode tear_down(Interface *mbi, DagMC *DAG)
+{
+  ErrorCode rval;
+  OrientedBoxTreeTool *obbTree = new OrientedBoxTreeTool(mbi, "OBB", false);
+
+  // delete root meshset 
+  //rval = mbi->delete_entities( &(root), 1); MB_CHK_ERR(rval);
+
+  //delete OBB Trees
+  for ( unsigned int i = 1 ; i <= DAG->num_entities(3) ; i++ )
+    {
+	  //get obb tree root node
+	  moab::EntityHandle obb_root;
+	  rval = DAG->get_root(DAG->entity_by_index(3, i), obb_root); MB_CHK_ERR(rval);
+			      
+	  //delete tree
+	  rval = obbTree->delete_tree(obb_root); MB_CHK_ERR(rval);
+    }
+
+ delete obbTree;
+				    
+ return MB_SUCCESS;
 }
