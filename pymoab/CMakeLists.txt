@@ -3,6 +3,10 @@ SET( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_LIST_DIR}/cmake )
 # make sure we have the essential elements installed
 FIND_PROGRAM(PYTHON "python")
 
+if(ENABLE_DEVMODE)
+  FIND_PROGRAM(CYTHON_EXECUTABLE "cython")
+endif(ENABLE_DEVMODE)
+
 find_package(PythonInterp REQUIRED)
 find_package(PythonDev REQUIRED)
 # make sure that specific python modules are installed
@@ -17,6 +21,13 @@ EXECUTE_PROCESS(COMMAND "${PYTHON}" "-c" "import setuptools" RESULT_VARIABLE SET
 if (SETUPTOOLS_MODULE_MISSING)
   MESSAGE( SEND_ERROR "Python setuptools module is missing.")
 endif()
+if(ENABLE_DEVMODE)
+  SET(CYTHON_MODULE_MISSING false)
+  EXECUTE_PROCESS(COMMAND "${PYTHON}" "-c" "import cython" RESULT_VARIABLE CYTHON_MODULE_MISSING)
+  if (CYTHON_MODULE_MISSING)
+    MESSAGE( SEND_ERROR "Python-CPP Cython module is missing. Please disable Developer mode (-DENABLE_DEVMODE=OFF)")
+  endif()
+endif(ENABLE_DEVMODE)
 
 if(MOAB_FORCE_32_BIT_HANDLES)
   MESSAGE( SEND_ERROR "Cannot build pymoab with 32bit EntityHandles enabled. Please remove the --enable-32bit-handles configuration option or build without MOAB's python interface.")
@@ -26,9 +37,16 @@ if(NOT BUILD_SHARED_LIBS)
   MESSAGE( SEND_ERROR "Cannot build static libraries and the python interface. Please build with shared libraries (-DBUILD_SHARED_LIBS=ON) or build without MOAB's python interface.")
 endif()
 
+include_directories(
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_BINARY_DIR}/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/pymoab
+    ${CMAKE_CURRENT_BINARY_DIR}/pymoab
+)
+
 # if all is well go ahead and build/install pymoab interface
 if (PYTHON AND NOT PYTHON_MODULES_MISSING)
-  
+
   ADD_SUBDIRECTORY(pymoab)
   ADD_SUBDIRECTORY(tests)
 
@@ -54,12 +72,11 @@ if (PYTHON AND NOT PYTHON_MODULES_MISSING)
       MESSAGE(WARNING "\
 The PyMOAB interface has been installed to a custom location. \
 In order to access this module from a python intpreter, please add \
-its install location to the PYTHONPATH environment variable:
-\
+its install location to the PYTHONPATH environment variable: \
 PYTHONPATH=${CMAKE_INSTALL_PREFIX}/${PYMOAB_INSTALL_PREFIX}:\$PYTHONPATH \
 ")
   endif()
-    
+
   # configure the setup script
   SET(SETUP_PY_IN "${CMAKE_CURRENT_SOURCE_DIR}/setup.py.cmake.in")
   SET(SETUP_PY    "${CMAKE_CURRENT_BINARY_DIR}/setup.py")
@@ -68,9 +85,19 @@ PYTHONPATH=${CMAKE_INSTALL_PREFIX}/${PYMOAB_INSTALL_PREFIX}:\$PYTHONPATH \
   # setup dependencies of the build command
   SET(DEPS   "${CMAKE_CURRENT_SOURCE_DIR}/pymoab/__init__.py")
   SET(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/build")
-  
+ 
   # add pymoab build target, depends on MOAB target so that all headers are in place before attempting the build
-  # ADD_CUSTOM_TARGET(pymoab-build ALL DEPENDS ${OUTPUT} pymoab-cythonize MOAB)
+  if(ENABLE_DEVMODE)
+    include (UseCython)
+    cython_add_module(core ${CMAKE_CURRENT_SOURCE_DIR}/pymoab/core.pyx ${CMAKE_CURRENT_SOURCE_DIR}/pymoab/core.pxd)
+    cython_add_module(hcoord ${CMAKE_CURRENT_SOURCE_DIR}/pymoab/hcoord.pyx ${CMAKE_CURRENT_SOURCE_DIR}/pymoab/core.pxd)
+    cython_add_module(rng ${CMAKE_CURRENT_SOURCE_DIR}/pymoab/rng.pyx ${CMAKE_CURRENT_SOURCE_DIR}/pymoab/core.pxd)
+    cython_add_module(scd ${CMAKE_CURRENT_SOURCE_DIR}/pymoab/scd.pyx ${CMAKE_CURRENT_SOURCE_DIR}/pymoab/core.pxd)
+    cython_add_module(skinner ${CMAKE_CURRENT_SOURCE_DIR}/pymoab/skinner.pyx ${CMAKE_CURRENT_SOURCE_DIR}/pymoab/core.pxd)
+    cython_add_module(tag ${CMAKE_CURRENT_SOURCE_DIR}/pymoab/tag.pyx ${CMAKE_CURRENT_SOURCE_DIR}/pymoab/core.pxd)
+    cython_add_module(topo_util ${CMAKE_CURRENT_SOURCE_DIR}/pymoab/topo_util.pyx ${CMAKE_CURRENT_SOURCE_DIR}/pymoab/core.pxd)
+    cython_add_module(types ${CMAKE_CURRENT_SOURCE_DIR}/pymoab/types.pyx ${CMAKE_CURRENT_SOURCE_DIR}/pymoab/core.pxd)
+  endif(ENABLE_DEVMODE)
 
   # build pymoab
   ADD_CUSTOM_TARGET(pymoab-build ALL COMMAND export CFLAGS='-w' && ${PYTHON} setup.py build DEPENDS ${DEPS} MOAB)

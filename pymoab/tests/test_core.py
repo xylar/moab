@@ -365,6 +365,17 @@ def test_get_coords():
     for i in range(len(coords)):
         CHECK_EQ(ret_coords[i],coords[i])
 
+def test_set_coords():
+    mb = core.Core()
+    coords = np.array((0,0,0,1,0,0,1,1,1),dtype='float64')
+    verts = mb.create_vertices(coords)
+    ret_coords = mb.get_coords(verts)
+    coords += 1.0 # Shift x/y/z coordinates by 1.0
+    mb.set_coords(verts, coords)
+    ret_coords2 = mb.get_coords(verts)
+    for i in range(len(coords)):
+        CHECK_EQ(ret_coords[i],ret_coords2[i]-1.0)
+
 def test_get_ents_by_type():
     mb = core.Core()
     coords = np.array((0,0,0,1,0,0,1,1,1),dtype='float64')
@@ -778,6 +789,7 @@ if __name__ == "__main__":
              test_meshsets,
              test_rs,
              test_get_coords,
+             test_set_coords,
              test_get_ents_by_type,
              test_get_ents_by_tnt,
              test_get_entities_by_handle,
