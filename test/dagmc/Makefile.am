@@ -14,8 +14,7 @@ TESTS =
 if HAVE_HDF5
  TESTS += dagmc_simple_test \
         dagmc_rayfire_test \
-        dagmc_pointinvol_test \
-        genhi_test
+        dagmc_pointinvol_test
 endif
 check_PROGRAMS = $(TESTS)
 
@@ -25,7 +24,5 @@ dagmc_rayfire_test_SOURCES = $(srcdir)/../TestUtil.hpp dagmc_rayfire_test.cpp
 dagmc_rayfire_test_CXXFLAGS = $(CGM_CPPFLAGS) $(CXXFLAGS) $(CGM_LIBS)
 dagmc_pointinvol_test_SOURCES = $(srcdir)/../TestUtil.hpp dagmc_pointinvol_test.cpp
 dagmc_pointinvol_test_CXXFLAGS = $(CGM_CPPFLAGS) $(CXXFLAGS) $(CGM_LIBS)
-genhi_test_SOURCES = $(srcdir)/../TestUtil.hpp genhi_test.cpp
-genhi_test_CXXFLAGS = $(CGM_CPPFLAGS) $(CXXFLAGS) $(CGM_LIBS)
 
 
