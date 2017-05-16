@@ -5,7 +5,8 @@
 #include "moab/Range.hpp"
 #include "moab/CartVect.hpp"
 #include "MBTagConventions.hpp"
-#include "DagMC.hpp"
+#include "moab/GeomQueryTool.hpp"
+#include "moab/GeomTopoTool.hpp"
 
 #include <sstream>
 #include <iomanip>
@@ -36,8 +37,8 @@ void chkerr( Interface& mbi, ErrorCode code, int line, const char* file ){
   chkerr( &mbi, code, line, file );
 }
 
-void chkerr( DagMC& dag, ErrorCode code, int line, const char* file ){
-  chkerr( dag.moab_instance(), code, line, file );
+void chkerr( GeomQueryTool& gtt, ErrorCode code, int line, const char* file ){
+  chkerr( gtt.moab_instance(), code, line, file );
 }
 
 
@@ -289,11 +290,7 @@ static ErrorCode merge_input_surfs( Interface *mbi,
 
 int main( int argc, char* argv[] ){
 
-  ProgOptions po("dagmc_preproc: a tool for preprocessing CAD and mesh files for DAGMC analysis");
-  std::string dagversion;
-  DagMC::version( &dagversion );
-  po.setVersion( dagversion );
-
+  ProgOptions po("cgm2moab: a tool for preprocessing CAD and mesh files for analysis");
 
   std::string input_file;
   std::string output_file = "dagmc_preproc_out.h5m";
@@ -451,13 +448,14 @@ int main( int argc, char* argv[] ){
   /* OBB statistics and visualization */
   if( obb_task ){
 
-   if( verbose ){ std::cout << "Loading data into DagMC" << std::endl; } 
-   DagMC* dag = new DagMC(&mbi);
-   ret = dag->load_existing_contents();
-   CHECKERR( *dag, ret );
-   ret = dag->init_OBBTree();
-   CHECKERR( *dag, ret );
+   if( verbose ){ std::cout << "Loading data into GeomTopoTool" << std::endl; } 
+   GeomTopoTool* gtt = new GeomTopoTool(&mbi,false);
+   ret = gtt->find_geomsets();
+   CHECKERR(*gtt,ret);
+   ret = gtt->construct_obb_trees();
+   CHECKERR( *gtt, ret );
 
+   /* all this is dagmc specific and should likely go away
    std::vector< std::string > keywords;
    ret = dag->detect_available_props( keywords);
    CHECKERR( *dag, ret );
@@ -510,6 +508,7 @@ int main( int argc, char* argv[] ){
 
   }
 
+   */
   
   return 0; 
 
