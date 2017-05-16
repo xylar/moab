@@ -7,7 +7,6 @@
 #include "moab/FileOptions.hpp"
 #include "moab/Skinner.hpp"
 #include "quads_to_tris.hpp"
-#include "DagMC.hpp"
 #include <limits>
 #include <cstdlib>
 #include <sstream>
@@ -134,11 +133,13 @@ ErrorCode summarize_cell_volume_change(Interface* MBI,
 
     // for each volume, sum predeformed and deformed volume
     double orig_grp_volume = 0, defo_grp_volume = 0;
-    moab::DagMC dagmc = moab::DagMC(MBI);
+
+    moab::GeomTopoTool gtt = moab::GeomTopoTool(MBI,false);
+    moab::GeomQueryTool gqt = moab::GeomQueryTool(MBI);
     for (Range::const_iterator j = vols.begin(); j != vols.end(); ++j)
     {
       double defo_size = 0, orig_size = 0;
-      rval = dagmc.measure_volume(*j, defo_size);
+      rval = gqt.measure_volume(*j, defo_size);
       if (MB_SUCCESS != rval)
         return rval;
       defo_grp_volume += defo_size;
@@ -201,7 +202,7 @@ ErrorCode summarize_cell_volume_change(Interface* MBI,
   return MB_SUCCESS;
 }
 
-// DAGMC cannot build an OBB tree if all of a volume's surfaces have no facets.
+// We cannot build an OBB tree if all of a volume's surfaces have no facets.
 // To prevent this, remove the cgm surface set if the cub surface set exists,
 // but had its faced removed (due to dead elements). Remember that the cgm_file_set
 // is not TRACKING.
@@ -1252,12 +1253,12 @@ int main(int argc, char* argv[])
 
   if (6 != argc && 9 != argc)
   {
-    std::cerr << "To read meshed geometry for DagMC:" << std::endl;
+    std::cerr << "To read meshed geometry for MOAB:" << std::endl;
     std::cerr
         << "$> <cub_file.cub> <acis_file.sat> <facet_tol> <output_file.h5m> conserve_mass<bool>"
         << std::endl;
     std::cerr
-        << "To read meshed geometry for DagMC and update node coordinates:"
+        << "To read meshed geometry for MOAB and update node coordinates:"
         << std::endl;
     std::cerr
         << "$> <cub_file.cub> <acis_file.sat> <facet_tol> <output_file.h5m> <deformed_exo_file.e> time_step<int> check_vol_change<bool> conserve_mass<bool>"
@@ -1460,12 +1461,14 @@ int main(int argc, char* argv[])
       three_val, 1, vol_sets);
   if (MB_SUCCESS != result)
     return result;
-  
-  moab::DagMC dagmc = moab::DagMC(MBI);
+
+  moab::GeomTopoTool gtt = moab::GeomTopoTool(MBI,false);
+  moab::GeomQueryTool gqt = moab::GeomQueryTool(MBI);
+
   for (Range::const_iterator i = vol_sets.begin(); i != vol_sets.end(); ++i)
   {
     double size;
-    result = dagmc.measure_volume(*i, size);
+    result = gqt.measure_volume(*i, size);
     if (MB_SUCCESS != result)
       return result;
     result = MBI->tag_set_data(sizeTag, &(*i), 1, &size);
