@@ -65,6 +65,6 @@ inline int popcount( unsigned int x ) {
 #endif
 }
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

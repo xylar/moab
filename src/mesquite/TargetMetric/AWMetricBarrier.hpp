@@ -99,6 +99,6 @@ public:
                  MsqError& err );
 };
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

@@ -96,6 +96,6 @@ class AWShapeOrientNB1 : public AWMetricNonBarrier
 
 
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

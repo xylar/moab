@@ -100,6 +100,6 @@ class PatchPowerMeanP : public PMeanPTemplate
     MESQUITE_EXPORT virtual ObjectiveFunction* clone() const;
 };
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

@@ -93,6 +93,6 @@ class MESQUITE_EXPORT PatchSet
     Mesh* myMesh;
 };
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

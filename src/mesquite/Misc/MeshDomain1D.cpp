@@ -218,4 +218,4 @@ void CircleDomain::position_from_length( const double from_here[3],
 }
 
 
-} // namespace Mesquite
+} // namespace MBMesquite

@@ -150,4 +150,4 @@ void LinearTetrahedron::ideal( Sample ,
   J(2,0) = 0.0; J(2,1) = 0.0;     J(2,2) = c/b;
 }
 
-} // namespace Mesquite
+} // namespace MBMesquite

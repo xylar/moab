@@ -85,4 +85,4 @@ void JacobianCalculator::get_Jacobian_3D( const MappingFunction3D* mf,
 }
 
 
-} // namespace Mesquite
+} // namespace MBMesquite

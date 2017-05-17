@@ -73,6 +73,6 @@ class QuasiNewton : public VertexMover, public PatchSetUser
     std::vector<SymMatrix3D> mHess;
 };
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

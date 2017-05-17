@@ -111,6 +111,6 @@ class TargetReader
 };
 
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

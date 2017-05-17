@@ -396,6 +396,6 @@ class ArrayMesh : public Mesh
 
 
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

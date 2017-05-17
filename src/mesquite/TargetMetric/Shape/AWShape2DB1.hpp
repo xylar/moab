@@ -75,6 +75,6 @@ class AWShape2DB1 : public AWMetricBarrier2D
 
 
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

@@ -92,5 +92,5 @@ bool LInfTemplate::evaluate( EvalType type,
 }
  
 
-} // namespace Mesquite
+} // namespace MBMesquite
 

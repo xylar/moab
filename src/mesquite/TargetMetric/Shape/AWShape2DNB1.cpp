@@ -77,4 +77,4 @@ bool AWShape2DNB1::evaluate_with_grad( const MsqMatrix<2,2>& A,
   return true;
 }
 
-} // namespace Mesquite
+} // namespace MBMesquite

@@ -235,6 +235,6 @@ inline double Frobenius( const SymMatrix3D& a )
   { return std::sqrt( Frobenius_2(a) ); }
 
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

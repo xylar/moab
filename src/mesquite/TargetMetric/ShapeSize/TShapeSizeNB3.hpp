@@ -95,6 +95,6 @@ class TShapeSizeNB3 : public TMetricNonBarrier
 
 
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

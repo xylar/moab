@@ -176,6 +176,6 @@ class PMeanPTemplate : public ObjectiveFunctionTemplate
     mutable std::vector<Matrix3D> mHessian;
 };
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

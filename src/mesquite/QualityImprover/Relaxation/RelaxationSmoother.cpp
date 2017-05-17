@@ -30,5 +30,5 @@ void RelaxationSmoother::cleanup()
   //  cout << "- Executing LaplacianSmoother::iteration_end()\n";
 }
   
-} // namespace Mesquite
+} // namespace MBMesquite
 

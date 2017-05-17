@@ -95,6 +95,6 @@ class AWSizeNB1 : public AWMetricNonBarrier
 
 
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

@@ -90,6 +90,6 @@ class Exponent
     constMemberPtr funcPointer;
 };
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

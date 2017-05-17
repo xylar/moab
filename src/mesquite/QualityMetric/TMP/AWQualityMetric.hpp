@@ -126,6 +126,6 @@ private:
   AWMetric* targetMetric;
 };
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

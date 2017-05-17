@@ -56,4 +56,4 @@ bool AWMetricBarrier3D::evaluate( const MsqMatrix<2,2>&, const MsqMatrix<2,2>&, 
   return false;
 }
 
-} // namespace Mesquite
+} // namespace MBMesquite

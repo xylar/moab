@@ -499,6 +499,6 @@ namespace MBMesquite
              v1.mCoords[1] != v2.mCoords[1] ||
              v1.mCoords[2] != v2.mCoords[2]; }
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

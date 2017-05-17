@@ -1009,4 +1009,4 @@ void VertexMover::commit_jacobi_coords( TagHandle tag, Mesh* mesh, MsqError& err
   }
 }
 
-} // namespace Mesquite
+} // namespace MBMesquite

@@ -256,4 +256,4 @@ void MappingFunction3D::ideal( Sample location,
   J *= size;
 }
 
-} // namespace Mesquite
+} // namespace MBMesquite

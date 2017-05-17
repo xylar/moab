@@ -175,4 +175,4 @@ static void init_hex_pyr( Vector3D* coords, double side )
   coords[4] = Vector3D(  0.0,       0.0,       0.75*side ); 
 }
 
-} // namespace Mesquite
+} // namespace MBMesquite

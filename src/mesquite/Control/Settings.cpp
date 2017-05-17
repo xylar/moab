@@ -235,4 +235,4 @@ bool Settings::trap_floating_point_exception() const
 
 
 
-} // namespace Mesquite
+} // namespace MBMesquite

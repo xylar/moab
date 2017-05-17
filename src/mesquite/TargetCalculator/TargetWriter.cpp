@@ -237,4 +237,4 @@ void TargetWriter::initialize_queue( MeshDomainAssoc* ,
                                      MsqError&  )
 {
 }
-} // namespace Mesquite
+} // namespace MBMesquite

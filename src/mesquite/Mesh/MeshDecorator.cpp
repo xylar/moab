@@ -193,4 +193,4 @@ void MeshDecorator::release()
   { get_mesh()->release(); }
 
 
-} // namespace Mesquite
+} // namespace MBMesquite

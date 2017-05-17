@@ -200,6 +200,6 @@ void ExtraDataUser<T>::notify_patch_destroyed( ExtraUserData<T>* data )
   delete data;
 }
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

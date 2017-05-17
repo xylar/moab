@@ -1100,4 +1100,4 @@ void TetLagrangeShape::ideal( Sample ,
 }
 
 
-} // namespace Mesquite
+} // namespace MBMesquite

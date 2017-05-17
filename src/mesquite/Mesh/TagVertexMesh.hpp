@@ -190,6 +190,6 @@ class MESQUITE_EXPORT TagVertexMesh : public MeshDecorator, public Instruction
 };
 
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

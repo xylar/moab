@@ -884,6 +884,6 @@ inline bool Matrix3D::positive_definite() const
  return (B[0][0] > 0.0) && (B.sub_det(2,2) > 0.0) && (det(B) > 0.0);
 }
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif // Matrix3D_hpp

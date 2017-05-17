@@ -57,4 +57,4 @@ std::ostream& operator<<( std::ostream& s, NodeSet set )
 
 
 
-} // namespace Mesquite
+} // namespace MBMesquite

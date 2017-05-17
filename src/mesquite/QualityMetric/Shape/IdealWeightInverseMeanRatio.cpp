@@ -644,4 +644,4 @@ bool IdealWeightInverseMeanRatio::evaluate_with_Hessian( PatchData& pd,
   return true;
 }
 
-} // namespace Mesquite
+} // namespace MBMesquite

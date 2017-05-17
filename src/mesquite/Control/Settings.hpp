@@ -136,6 +136,6 @@ class MESQUITE_EXPORT Settings {
 };
 
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

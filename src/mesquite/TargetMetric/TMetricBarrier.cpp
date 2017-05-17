@@ -62,5 +62,5 @@ bool TMetricBarrier3D::evaluate( const MsqMatrix<2,2>&,
 }
 
 
-} // namespace Mesquite
+} // namespace MBMesquite
 

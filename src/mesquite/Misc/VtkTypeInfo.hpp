@@ -70,6 +70,6 @@ struct MESQUITE_EXPORT VtkTypeInfo {
 };
 
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

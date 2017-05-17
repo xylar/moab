@@ -248,4 +248,4 @@ void HexLagrangeShape::ideal( Sample ,
   J = MsqMatrix<3,3>(1.0);
 }
 
-} // namespace Mesquite
+} // namespace MBMesquite

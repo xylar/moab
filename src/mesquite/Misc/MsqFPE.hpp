@@ -85,7 +85,7 @@ private:
   int prevState;
 };
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif
 

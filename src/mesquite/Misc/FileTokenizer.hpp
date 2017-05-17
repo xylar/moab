@@ -241,6 +241,6 @@ class FileTokenizer
     char lastChar;
 };
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

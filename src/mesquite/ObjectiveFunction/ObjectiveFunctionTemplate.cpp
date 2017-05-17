@@ -107,4 +107,4 @@ int ObjectiveFunctionTemplate::min_patch_layers() const
 }
 
 
-} // namespace Mesquite
+} // namespace MBMesquite

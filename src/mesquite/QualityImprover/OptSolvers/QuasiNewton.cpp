@@ -279,4 +279,4 @@ void QuasiNewton::optimize_vertex_positions( PatchData& pd, MsqError& err )
   }
 }
 
-} // namespace Mesquite
+} // namespace MBMesquite

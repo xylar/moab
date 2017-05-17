@@ -104,6 +104,6 @@ private:
   bool orient2D;
 };
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

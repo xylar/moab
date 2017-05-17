@@ -406,4 +406,4 @@ void LinearHexahedron::ideal( Sample ,
   J(2,0) = J(2,1) = J(1,2) = 0.0;
 }
 
-} // namespace Mesquite
+} // namespace MBMesquite

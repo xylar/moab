@@ -72,4 +72,4 @@ bool InvTransBarrier::evaluate( const MsqMatrix<3,3>& T,
 }
 
 
-} // namespace Mesquite
+} // namespace MBMesquite

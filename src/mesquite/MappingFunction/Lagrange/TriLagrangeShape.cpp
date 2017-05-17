@@ -341,4 +341,4 @@ void TriLagrangeShape::ideal( Sample ,
 }
 
 
-} // namespace Mesquite
+} // namespace MBMesquite

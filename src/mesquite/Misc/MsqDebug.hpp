@@ -154,6 +154,6 @@ class MsqDebug
 
 /*@}*/
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

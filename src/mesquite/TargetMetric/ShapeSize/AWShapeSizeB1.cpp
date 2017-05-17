@@ -77,4 +77,4 @@ bool AWShapeSizeB1::evaluate( const MsqMatrix<3,3>& A,
 }
 
 
-} // namespace Mesquite
+} // namespace MBMesquite

@@ -85,4 +85,4 @@ void VertexQM::get_vertex_corner_handles( PatchData& pd,
   }
 }
 
-} // namespace Mesquite
+} // namespace MBMesquite

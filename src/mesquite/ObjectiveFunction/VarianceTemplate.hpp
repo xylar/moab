@@ -139,6 +139,6 @@ class VarianceTemplate : public ObjectiveFunctionTemplate
     mutable std::vector<SymMatrix3D> mHessDiag, hessSum;
 };
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

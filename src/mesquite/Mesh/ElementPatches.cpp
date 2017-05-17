@@ -52,6 +52,6 @@ void ElementPatches::get_patch( PatchHandle patch_handle,
   elem_handles_out.push_back( patch_handle );
 }
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

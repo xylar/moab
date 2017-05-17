@@ -256,5 +256,5 @@ bool TMetric3D::evaluate( const MsqMatrix<2,2>&, double&, MsqError& err )
 }
 
 
-} // namespace Mesquite
+} // namespace MBMesquite
 

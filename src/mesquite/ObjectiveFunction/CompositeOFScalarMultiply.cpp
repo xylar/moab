@@ -148,4 +148,4 @@ bool CompositeOFScalarMultiply::evaluate_with_Hessian( EvalType type,
 int CompositeOFScalarMultiply::min_patch_layers() const
   { return objFunc->min_patch_layers(); }
 
-} // namespace Mesquite
+} // namespace MBMesquite

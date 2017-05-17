@@ -1229,4 +1229,4 @@ void DomainClassifier::delete_all_sub_domains()
 }
 
 
-} // namespace Mesquite
+} // namespace MBMesquite

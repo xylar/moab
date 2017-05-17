@@ -101,6 +101,6 @@ class MESQUITE_EXPORT SlaveBoundaryVertices : public VertexSlaver
 };
 
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

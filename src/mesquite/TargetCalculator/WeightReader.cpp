@@ -151,4 +151,4 @@ void WeightReader::notify_sub_patch( PatchData& /*pd*/,
     other.handles = data.handles;
 }
 
-} // namespace Mesquite
+} // namespace MBMesquite

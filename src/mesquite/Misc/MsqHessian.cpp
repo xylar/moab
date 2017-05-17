@@ -596,5 +596,5 @@ std::ostream& operator<<(std::ostream &s, const MsqHessian &h)
   return s;
 }
 
-} // namespace Mesquite
+} // namespace MBMesquite
 

@@ -243,6 +243,6 @@ class DomainClassifier : public MeshDomain
     std::vector<DomainBlock> elementList;
 };
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif // MSQ_DOMAIN_CLASSIFIER_HPP

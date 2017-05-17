@@ -70,6 +70,6 @@ class TShapeSize2DB2 : public TMetricBarrier2D
 
 
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

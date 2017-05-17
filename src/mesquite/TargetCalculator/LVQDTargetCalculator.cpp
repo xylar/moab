@@ -260,4 +260,4 @@ bool LVQDTargetCalculator::get_surface_target( PatchData& pd,
 }
 
 
-} // namespace Mesquite
+} // namespace MBMesquite

@@ -378,4 +378,4 @@ double QualityMetric::weighted_average_metrics(const double coef[],
   return total_value;
 }
    
-} // namespace Mesquite
+} // namespace MBMesquite

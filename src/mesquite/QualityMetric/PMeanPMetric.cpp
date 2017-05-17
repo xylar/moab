@@ -362,4 +362,4 @@ bool PMeanPMetric::average_with_Hessian( PatchData& pd,
   return rval;
 }  
 
-} // namespace Mesquite
+} // namespace MBMesquite

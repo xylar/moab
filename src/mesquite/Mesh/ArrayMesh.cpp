@@ -797,4 +797,4 @@ void ArrayMesh::tag_get_vertex_data ( TagHandle handle,
 }
 
   
-} // namespace Mesquite
+} // namespace MBMesquite

@@ -204,4 +204,4 @@ void LinearQuadrilateral::ideal( Sample ,
   J(2,0) = J(2,1) = 0.0;
 }
 
-} // namespace Mesquite
+} // namespace MBMesquite

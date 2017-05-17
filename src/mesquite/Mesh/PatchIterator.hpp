@@ -58,6 +58,6 @@ private:
   std::vector<PatchSet::PatchHandle>::iterator current;
 };
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

@@ -104,6 +104,6 @@ class BoundedCylinderDomain : public CylinderDomain
 };
 
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

@@ -94,6 +94,6 @@ class TShapeB1 : public TMetricBarrier
 
 
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

@@ -60,6 +60,6 @@ class InvTransBarrier : public TMetricBarrier
   TMetric* metricPtr;
 };
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

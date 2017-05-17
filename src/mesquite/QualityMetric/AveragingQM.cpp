@@ -993,5 +993,5 @@ double AveragingQM::average_metrics( const double metric_values[],
 
 
 
-} // namespace Mesquite
+} // namespace MBMesquite
 

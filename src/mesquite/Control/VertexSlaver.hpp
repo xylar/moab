@@ -41,6 +41,6 @@ class MESQUITE_EXPORT VertexSlaver : public Instruction
 {
 };
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

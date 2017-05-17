@@ -66,6 +66,6 @@ void PatchIterator::reset()
 }
 
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

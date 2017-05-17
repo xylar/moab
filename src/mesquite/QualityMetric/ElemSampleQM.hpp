@@ -99,6 +99,6 @@ public:
     { return handle & ELEM_SAMPLE_MASK; }
 };
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

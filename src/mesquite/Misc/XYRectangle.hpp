@@ -129,6 +129,6 @@ class XYRectangle : public MBMesquite::MeshDomain
 
 
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

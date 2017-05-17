@@ -268,4 +268,4 @@ void TagVertexMesh::initialize_queue( MeshDomainAssoc* ,
 }
 
 
-} // namespace Mesquite
+} // namespace MBMesquite

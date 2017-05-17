@@ -226,7 +226,7 @@ class MeshImplTags {
     std::vector<TagData*> tagList;
 }; // class MeshImplTags
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif
 

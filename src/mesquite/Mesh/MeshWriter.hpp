@@ -191,6 +191,6 @@ void write_eps_triangle( const Vector3D* coords,
 
 } // namespace MeshWriter
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

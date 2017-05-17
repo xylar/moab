@@ -82,6 +82,6 @@ class StdDevTemplate : public VarianceTemplate
   
 };
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

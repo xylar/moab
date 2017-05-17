@@ -55,4 +55,4 @@ void ReferenceMesh::get_reference_vertex_coordinates(
 }
     
 
-} // namespace Mesquite
+} // namespace MBMesquite

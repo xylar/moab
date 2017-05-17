@@ -155,4 +155,4 @@ void XYRectangle::domain_DoF( const Mesh::VertexHandle* vertices,
   }
 }
 
-} // namespace Mesquite
+} // namespace MBMesquite

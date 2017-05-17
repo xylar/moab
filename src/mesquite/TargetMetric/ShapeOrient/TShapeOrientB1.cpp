@@ -194,4 +194,4 @@ bool TShapeOrientB1::evaluate( const MsqMatrix<3,3>& T,
   return true;
 }
 
-} // namespace Mesquite
+} // namespace MBMesquite

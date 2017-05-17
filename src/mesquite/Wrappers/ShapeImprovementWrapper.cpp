@@ -140,6 +140,6 @@ void ShapeImprovementWrapper::run_wrapper( MeshDomainAssoc* mesh_and_domain,
   q2.run_common( mesh_and_domain, pmesh, settings, err ); MSQ_ERRRTN(err);
 }
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
   

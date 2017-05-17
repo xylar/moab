@@ -82,6 +82,6 @@ class MESQUITE_EXPORT Instruction
                                  MsqError& err );
 };
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

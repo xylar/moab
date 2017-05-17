@@ -337,4 +337,4 @@ bool PMeanPTemplate::evaluate_with_Hessian( EvalType type,
 
 
 
-} // namespace Mesquite
+} // namespace MBMesquite

@@ -392,4 +392,4 @@ void LinearPyramid::ideal( Sample location,
   }  
 }
 
-} // namespace Mesquite
+} // namespace MBMesquite

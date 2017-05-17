@@ -202,4 +202,4 @@ int CompositeOFMultiply::min_patch_layers() const
   return v1 > v2 ? v1 : v2;
 }
 	
-} // namespace Mesquite
+} // namespace MBMesquite

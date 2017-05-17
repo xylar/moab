@@ -74,6 +74,6 @@ class TrustRegion : public VertexMover, public PatchSetUser
     std::vector<double> preCond;
 };
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

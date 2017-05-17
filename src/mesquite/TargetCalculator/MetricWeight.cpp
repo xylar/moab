@@ -57,4 +57,4 @@ double MetricWeight::get_weight( PatchData& pd,
   return value;
 }
 
-} // namespace Mesquite
+} // namespace MBMesquite

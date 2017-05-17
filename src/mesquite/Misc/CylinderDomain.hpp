@@ -105,6 +105,6 @@ namespace MBMesquite
   };
 
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

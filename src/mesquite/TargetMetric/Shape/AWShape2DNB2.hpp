@@ -74,6 +74,6 @@ class AWShape2DNB2 : public AWMetricNonBarrier2D
 
 
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

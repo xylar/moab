@@ -80,6 +80,6 @@ class AWSizeB1 : public AWMetricBarrier
 
 
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

@@ -75,6 +75,6 @@ class MESQUITE_EXPORT ObjectiveFunctionTemplate : public ObjectiveFunction
     QualityMetric* qualityMetric;
 };
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

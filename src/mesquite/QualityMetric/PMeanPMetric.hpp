@@ -108,6 +108,6 @@ class PMeanPMetric
     std::vector<double> mValues;
 };
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

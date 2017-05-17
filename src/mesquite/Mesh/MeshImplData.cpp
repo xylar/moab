@@ -831,6 +831,6 @@ bool MeshImplElemIter::is_at_end() const
 
 
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
       

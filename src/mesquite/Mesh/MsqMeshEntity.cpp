@@ -762,4 +762,4 @@ void MsqMeshEntity::check_element_orientation_corners(
   } // end switch over element type
 }
 
-} // namespace Mesquite
+} // namespace MBMesquite

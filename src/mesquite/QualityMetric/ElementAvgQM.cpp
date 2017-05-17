@@ -93,4 +93,4 @@ bool ElementAvgQM::evaluate( PatchData& pd,
   return valid;
 }
 
-} // namespace Mesquite
+} // namespace MBMesquite

@@ -111,6 +111,6 @@ void CylinderDomain::domain_DoF( const Mesh::VertexHandle* ,
   
 
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

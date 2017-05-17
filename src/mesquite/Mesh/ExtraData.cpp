@@ -52,4 +52,4 @@ ExtraData::~ExtraData()
     assert(false);
 }
 
-} // namespace Mesquite
+} // namespace MBMesquite

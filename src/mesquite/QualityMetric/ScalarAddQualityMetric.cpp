@@ -100,4 +100,4 @@ bool ScalarAddQualityMetric::evaluate_with_Hessian( PatchData& pd,
 }
 
 
-} // namespace Mesquite
+} // namespace MBMesquite

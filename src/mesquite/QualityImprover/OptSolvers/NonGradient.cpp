@@ -564,4 +564,4 @@ void NonGradient::cleanup()
   //MSQ_PRINT(2)("\n - Executing NonGradient::iteration_end() \n");
 }
   
-} // namespace Mesquite
+} // namespace MBMesquite

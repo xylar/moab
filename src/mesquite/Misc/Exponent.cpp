@@ -113,4 +113,4 @@ double Exponent::powNegativeInt( double x ) const
 }
 
 
-} // namespace Mesquite
+} // namespace MBMesquite

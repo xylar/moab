@@ -87,6 +87,6 @@ class TShapeOrientB1 : public TMetricBarrier
                            MsqError& err );
 };
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

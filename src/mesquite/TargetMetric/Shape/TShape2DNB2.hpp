@@ -71,6 +71,6 @@ class TShape2DNB2 : public TMetricNonBarrier2D
 
 
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

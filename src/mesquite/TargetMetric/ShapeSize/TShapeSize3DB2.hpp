@@ -71,6 +71,6 @@ class TShapeSize3DB2 : public TMetricBarrier3D
 
 
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

@@ -57,4 +57,4 @@ double InverseMetricWeight::get_weight( PatchData& pd,
   return 1.0/value;
 }
 
-} // namespace Mesquite
+} // namespace MBMesquite

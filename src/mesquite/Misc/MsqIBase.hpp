@@ -44,7 +44,7 @@ namespace MBMesquite {
 
 std::string process_itaps_error( int itaps_err );
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif
 

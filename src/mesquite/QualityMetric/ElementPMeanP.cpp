@@ -116,4 +116,4 @@ bool ElementPMeanP::evaluate_with_Hessian_diagonal( PatchData& pd,
 }
 
 
-} // namespace Mesquite
+} // namespace MBMesquite

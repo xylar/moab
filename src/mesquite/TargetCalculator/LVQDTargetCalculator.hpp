@@ -98,6 +98,6 @@ private:
                                        //!< or -1 for no source.
 };
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

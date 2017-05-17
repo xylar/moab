@@ -215,6 +215,6 @@ void print_info( size_t elem, Sample sample,
 #endif
 
                     
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

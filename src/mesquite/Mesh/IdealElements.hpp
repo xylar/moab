@@ -67,6 +67,6 @@ const Vector3D* unit_edge_element( EntityTopology type, bool unit_height_pyramid
  */
 const Vector3D* unit_element( EntityTopology type, bool unit_height_pyramid = false );
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

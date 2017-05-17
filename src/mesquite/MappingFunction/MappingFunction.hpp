@@ -552,6 +552,6 @@ MappingFunction::convert_connectivity_indices( EntityTopology topo,
   
                                                   
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

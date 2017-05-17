@@ -80,4 +80,4 @@ bool hess( const MsqMatrix<DIM,DIM>& T,
 
 TMP_T_TEMPL_IMPL_COMMON(TShapeSizeOrientNB1)
 
-} // namespace Mesquite
+} // namespace MBMesquite

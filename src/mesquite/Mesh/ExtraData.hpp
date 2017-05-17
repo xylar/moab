@@ -90,6 +90,6 @@ class ExtraData {
 
 
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

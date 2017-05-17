@@ -89,6 +89,6 @@ bool MaxTemplate::evaluate( EvalType type,
   return true;
 }
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 	

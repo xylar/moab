@@ -206,6 +206,6 @@ class FunctionTimer
   #define MSQ_FUNCTION_TIMER( NAME )
 #endif 
 
-}  // namespace Mesquite
+}  // namespace MBMesquite
 
 #endif

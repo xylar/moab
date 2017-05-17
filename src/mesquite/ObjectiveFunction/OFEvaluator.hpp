@@ -316,6 +316,6 @@ private:
   ObjectiveFunction::EvalType tempType, firstType, updateType, currUpdateType;
 };
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

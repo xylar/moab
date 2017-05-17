@@ -1545,5 +1545,5 @@ void NonSmoothDescent::init_max_step_length( PatchData& pd, MsqError &err )
   MSQ_PRINT(3)("  Maximum step is %g\n",maxAlpha);
 }
 
-} // namespace Mesquite
+} // namespace MBMesquite
 

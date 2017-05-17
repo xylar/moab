@@ -61,6 +61,6 @@ void GlobalPatch::get_patch( PatchHandle patch_handle,
   //get_mesh()->get_all_vertices( free_vertices_out, err ); MSQ_ERRRTN(err);
 }
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

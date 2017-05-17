@@ -194,6 +194,6 @@ class MESQUITE_EXPORT MeshDecorator : public Mesh
 };
 
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

@@ -399,4 +399,4 @@ void ParallelMeshImpl::release()
   myMesh->release();
 }
 
-} // namespace Mesquite
+} // namespace MBMesquite

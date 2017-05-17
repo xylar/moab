@@ -125,6 +125,6 @@ struct MESQUITE_EXPORT Sample {
 
 std::ostream& operator <<( std::ostream& str, Sample s );
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

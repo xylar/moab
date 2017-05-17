@@ -101,6 +101,6 @@ private:
 
 
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

@@ -320,6 +320,6 @@ void NodeSet::set_all_nodes( EntityTopology p_type )
   }
 }
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

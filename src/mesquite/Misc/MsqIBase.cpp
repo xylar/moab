@@ -70,5 +70,5 @@ std::string process_itaps_error( int ierr )
   return result;
 }
 
-} // namespace Mesquite
+} // namespace MBMesquite
 

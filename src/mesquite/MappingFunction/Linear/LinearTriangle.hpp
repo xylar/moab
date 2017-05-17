@@ -77,6 +77,6 @@ public:
 
 
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

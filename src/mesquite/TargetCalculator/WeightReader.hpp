@@ -91,6 +91,6 @@ class WeightReader
 };
 
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

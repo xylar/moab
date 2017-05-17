@@ -92,4 +92,4 @@ bool hess( const MsqMatrix<DIM,DIM>& A,
 
 TMP_AW_TEMPL_IMPL_COMMON_NO2ND(AWShapeOrientNB1)
 
-} // namespace Mesquite
+} // namespace MBMesquite

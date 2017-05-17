@@ -181,4 +181,4 @@ void SlaveBoundaryVertices::initialize_queue( MeshDomainAssoc* ,
 }
 
 
-} // namespace Mesquite
+} // namespace MBMesquite

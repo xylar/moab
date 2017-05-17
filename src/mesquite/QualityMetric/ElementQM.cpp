@@ -90,4 +90,4 @@ bool ElementQM::evaluate_with_indices( PatchData& pd,
   return !MSQ_CHKERR(err) && rval;
 }
 
-} // namespace Mesquite
+} // namespace MBMesquite

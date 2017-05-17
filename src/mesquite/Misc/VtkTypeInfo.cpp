@@ -150,4 +150,4 @@ void VtkTypeInfo::mesquiteToVtkOrder( std::vector<size_t>& conn_list ) const
   }
 }
 
-} // namespace Mesquite
+} // namespace MBMesquite

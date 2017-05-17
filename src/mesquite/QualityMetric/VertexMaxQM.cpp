@@ -120,4 +120,4 @@ bool VertexMaxQM::evaluate_with_indices( PatchData& pd,
   return valid;
 }
 
-} // namespace Mesquite
+} // namespace MBMesquite

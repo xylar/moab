@@ -141,6 +141,6 @@ bool BoundedCylinderDomain::find_curve( Mesh::VertexHandle handle, double& t ) c
 }
 
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

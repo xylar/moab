@@ -65,4 +65,4 @@ bool AWShape2DB1::evaluate( const MsqMatrix<2,2>& A,
 }
 
 
-} // namespace Mesquite
+} // namespace MBMesquite

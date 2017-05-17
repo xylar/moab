@@ -187,6 +187,6 @@ class MESQUITE_EXPORT CircleDomain : public MeshDomain, CurveDomain
 
 
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

@@ -57,6 +57,6 @@ private:
   ElemSampleQM* mMetric;
 };
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

@@ -1079,6 +1079,6 @@ void write_svg( Mesh* mesh,
 
 } // namespace MeshWriter
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

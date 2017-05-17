@@ -128,4 +128,4 @@ bool TShapeSize3DB2::evaluate_with_hess( const MsqMatrix<3,3>& T,
   return true;
 }
 
-} // namespace Mesquite
+} // namespace MBMesquite

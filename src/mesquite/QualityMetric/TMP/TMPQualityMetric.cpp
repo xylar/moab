@@ -357,4 +357,4 @@ void TMPQualityMetric::initialize_queue( MeshDomainAssoc* mesh_and_domain,
 }
 
 
-} // namespace Mesquite
+} // namespace MBMesquite

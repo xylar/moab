@@ -154,4 +154,4 @@ void get_elem_sample_points( PatchData& pd,
   append_elem_samples( pd, elem, handles );
 }
 
-} // namespace Mesquite
+} // namespace MBMesquite

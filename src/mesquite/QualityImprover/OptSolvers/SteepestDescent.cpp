@@ -220,4 +220,4 @@ void SteepestDescent::cleanup()
   //  cout << "- Executing SteepestDescent::iteration_end()\n";
 }
   
-} // namespace Mesquite
+} // namespace MBMesquite

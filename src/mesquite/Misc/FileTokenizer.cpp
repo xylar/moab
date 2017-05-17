@@ -399,7 +399,7 @@ bool FileTokenizer::match_token( const char* str, MsqError& err )
     "Syntax error at line %d: expected \"%s\", got \"%s\"",
     line_number(), str, token );
   return false;
-}  // namespace Mesquite
+}  // namespace MBMesquite
 
 
 int FileTokenizer::match_token( const char* const* list, MsqError& err )
@@ -487,5 +487,5 @@ bool FileTokenizer::get_newline( MsqError& err )
 }
 
 
-}  // namespace Mesquite
+}  // namespace MBMesquite
 

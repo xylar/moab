@@ -145,4 +145,4 @@ bool ElementMaxQM::evaluate_with_gradient( PatchData& pd,
 }
 */
 
-} // namespace Mesquite
+} // namespace MBMesquite

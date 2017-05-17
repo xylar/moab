@@ -182,5 +182,5 @@ bool OFEvaluator::evaluate( PatchData& pd, double& value,
   return !MSQ_CHKERR(err) && b;
 }
 
-} // namespace Mesquite
+} // namespace MBMesquite
 

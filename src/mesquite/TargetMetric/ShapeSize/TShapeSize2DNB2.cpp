@@ -147,4 +147,4 @@ bool TShapeSize2DNB2::evaluate_with_hess( const MsqMatrix<2,2>& T,
 }
 
 
-} // namespace Mesquite
+} // namespace MBMesquite

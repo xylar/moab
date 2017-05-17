@@ -70,5 +70,5 @@ void LaplacianSmoother::optimize_vertex_positions( PatchData &pd,
   pd.snap_vertex_to_domain( center_vtx_index, err );  MSQ_ERRRTN(err);
 }
 
-} // namespace Mesquite
+} // namespace MBMesquite
 

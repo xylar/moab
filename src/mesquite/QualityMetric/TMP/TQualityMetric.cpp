@@ -386,4 +386,4 @@ bool TQualityMetric::evaluate_with_Hessian_diagonal(
 
 
 
-} // namespace Mesquite
+} // namespace MBMesquite

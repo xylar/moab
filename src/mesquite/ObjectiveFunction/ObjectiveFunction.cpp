@@ -261,5 +261,5 @@ bool ObjectiveFunction::evaluate_with_Hessian( EvalType /*type*/,
 
 
 
-} // namespace Mesquite
+} // namespace MBMesquite
 

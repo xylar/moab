@@ -131,6 +131,6 @@ void VertexPatches::get_patch( PatchHandle patch_handle,
   }
 }
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

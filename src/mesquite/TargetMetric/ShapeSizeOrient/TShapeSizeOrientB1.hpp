@@ -89,6 +89,6 @@ class TShapeSizeOrientB1 : public TMetricBarrier
 
 
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

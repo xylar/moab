@@ -909,6 +909,6 @@ void QR( const MsqMatrix<2,2>& A, MsqMatrix<2,2>& Q, MsqMatrix<2,2>& R )
     R(1,0) = 0.0;
 }
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

@@ -79,4 +79,4 @@ bool RefMeshTargetCalculator::get_2D_target( PatchData& pd,
   return !MSQ_CHKERR(err) && valid;
 }
 
-} // namespace Mesquite
+} // namespace MBMesquite

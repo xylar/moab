@@ -88,6 +88,6 @@ class TSizeNB1 : public TMetricNonBarrier
 
 
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

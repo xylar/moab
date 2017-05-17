@@ -87,6 +87,6 @@ class TShapeOrientNB1 : public TMetricNonBarrier
                            MsqError& err );
 };
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

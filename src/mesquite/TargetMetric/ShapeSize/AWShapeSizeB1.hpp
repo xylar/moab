@@ -66,6 +66,6 @@ class AWShapeSizeB1 : public AWMetricBarrier
 
 
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

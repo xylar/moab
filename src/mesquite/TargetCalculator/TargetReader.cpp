@@ -296,4 +296,4 @@ void TargetReader::notify_sub_patch( PatchData& /*pd*/,
   }
 }
 
-} // namespace Mesquite
+} // namespace MBMesquite

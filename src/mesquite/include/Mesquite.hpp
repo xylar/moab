@@ -248,7 +248,7 @@ const T* arrptr( const std::vector< T >& v, bool check_zero_size=false )
 }
 
   
-} // namespace Mesquite
+} // namespace MBMesquite
 
 
 #endif

@@ -162,6 +162,6 @@ private:
   WeightCalculator* weightCalc;
 };
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

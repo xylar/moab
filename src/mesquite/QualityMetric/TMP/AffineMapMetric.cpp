@@ -199,4 +199,4 @@ bool AffineMapMetric::evaluate_with_indices( PatchData& pd,
   return evaluate( pd, p_handle, value, err );
 }
 
-} // namespace Mesquite
+} // namespace MBMesquite

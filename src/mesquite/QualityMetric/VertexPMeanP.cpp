@@ -126,4 +126,4 @@ bool VertexPMeanP::evaluate_with_Hessian_diagonal( PatchData& pd,
   return !MSQ_CHKERR(err) && result;
 }
 
-} // namespace Mesquite
+} // namespace MBMesquite

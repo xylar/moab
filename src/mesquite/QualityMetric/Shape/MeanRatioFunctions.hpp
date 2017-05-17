@@ -3491,6 +3491,6 @@ inline bool h_fcn_3w(double &obj, Vector3D g_obj[4], Matrix3D h_obj[10],
   return true;
 }
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

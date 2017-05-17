@@ -243,4 +243,4 @@ bool MsqSphere::intersect( const MsqSphere& sphere, MsqCircle& result ) const
   return true;
 }
 
-} // namespace Mesquite
+} // namespace MBMesquite

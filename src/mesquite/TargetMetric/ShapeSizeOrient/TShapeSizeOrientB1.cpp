@@ -180,4 +180,4 @@ bool TShapeSizeOrientB1::evaluate_with_hess( const MsqMatrix<3,3>& T,
 
 //TMP_T_TEMPL_IMPL_COMMON(TShapeSizeOrientB1)
 
-} // namespace Mesquite
+} // namespace MBMesquite

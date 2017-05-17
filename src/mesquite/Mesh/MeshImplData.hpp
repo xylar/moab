@@ -315,6 +315,6 @@ class MeshImplElemIter : public ElementIterator
 
 
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif 

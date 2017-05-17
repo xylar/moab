@@ -106,4 +106,4 @@ bool StdDevTemplate::evaluate_with_Hessian_diagonal( EvalType type,
 }
 
 
-} // namespace Mesquite
+} // namespace MBMesquite

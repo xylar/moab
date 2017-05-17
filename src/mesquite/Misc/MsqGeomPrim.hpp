@@ -216,6 +216,6 @@ class MESQUITE_EXPORT MsqSphere
 };
 
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

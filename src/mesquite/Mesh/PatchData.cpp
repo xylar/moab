@@ -2146,4 +2146,4 @@ void PatchData::notify_patch_destroyed()
 }
 
 
-} // namespace Mesquite
+} // namespace MBMesquite

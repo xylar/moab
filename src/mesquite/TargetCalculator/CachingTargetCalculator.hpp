@@ -118,6 +118,6 @@ private:
   TargetCalculator *const cachedCalculator;
 };
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 #endif

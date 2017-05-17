@@ -103,6 +103,6 @@ MsqInterrupt::~MsqInterrupt()
   sawInterrupt = false;
 }
 
-} // namespace Mesquite
+} // namespace MBMesquite
 
 

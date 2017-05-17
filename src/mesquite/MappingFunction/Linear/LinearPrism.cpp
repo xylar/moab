@@ -444,4 +444,4 @@ void LinearPrism::ideal( Sample ,
   J(2,0) = 0.0; J(2,1) = 0.0;  J(2,2) = b;
 }
 
-} // namespace Mesquite
+} // namespace MBMesquite

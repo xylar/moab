@@ -130,4 +130,4 @@ bool AWSizeB1::evaluate_with_grad( const MsqMatrix<3,3>& A,
   return true;
 }
 
-} // namespace Mesquite
+} // namespace MBMesquite
