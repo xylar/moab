@@ -190,7 +190,7 @@ uref_mesh_test_SOURCES = urefine_mesh_test.cpp
 hireconst_test_SOURCES = hireconst_test.cpp
 uref_hirec_test_SOURCES = uref_hirec_test.cpp geomObject.cpp
 
-test_geom_gqt_SOURCES = test_geom_gqt.cc
+test_geom_gqt_SOURCES = test_geom_gqt.cpp
 
 gqt_simple_test_SOURCES = gqt_simple_test.cpp
 gqt_rayfire_test_SOURCES = gqt_rayfire_test.cpp

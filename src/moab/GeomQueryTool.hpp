@@ -211,7 +211,8 @@ public:
    * @param point Coordinates of test point
    * @param result Set to the minimum distance from point to a surface in volume
    */
-  ErrorCode closest_to_location( EntityHandle volume, const double point[3], double& result);
+  ErrorCode closest_to_location( EntityHandle volume, const double point[3], double& result,
+				 EntityHandle* closest_surface = 0 );
 
   /** Calculate the volume contained in a 'volume' */
   ErrorCode measure_volume( EntityHandle volume, double& result );
