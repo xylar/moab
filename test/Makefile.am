@@ -5,9 +5,6 @@ SUBDIRS = . io dual obb perf
 if HAVE_HDF5
   SUBDIRS += h5file 
 endif
-if ENABLE_dagmc
-  SUBDIRS += dagmc
-endif
 if PARALLEL
   SUBDIRS += parallel
 endif
