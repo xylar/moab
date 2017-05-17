@@ -11,7 +11,7 @@ AM_CPPFLAGS  = -DSRCDIR=$(srcdir) \
 
 LDADD = $(top_builddir)/src/mesquite/libmbmesquite.la
 check_PROGRAMS = main voshell
-TESTS = $(check_PROGRAMS)
+TESTS = main
 
 main_SOURCES = main.cpp
 voshell_SOURCES = voshell.cpp

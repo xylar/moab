@@ -179,7 +179,6 @@ void compare_nodes( size_t start_index,
   for (i = start_index; i < end_index; ++i)
     handles1[i-start_index] = handles2[i-start_index] = (void*)i;
   
-  
     // Get coordinates from handles
   mesh1->vertices_get_coordinates( arrptr(handles1), arrptr(verts1), num_verts, err );
   MSQ_ERRRTN(err);
@@ -208,7 +207,6 @@ void compare_nodes( size_t start_index,
   // code copied from testSuite/algorithm_test/main.cpp
 InstructionQueue* create_instruction_queue(MsqError& err)
 {
-  
     // creates an intruction queue
   InstructionQueue* queue1 = new InstructionQueue;
 
@@ -289,9 +287,10 @@ int do_test( bool slave)
   cout << "Smoothing linear elements" << endl;
   InstructionQueue* q1 = create_instruction_queue( err );
   if (MSQ_CHKERR(err)) return 1;
-  MeshDomainAssoc mesh_and_domain = MeshDomainAssoc(linear_in, &geom);
-  q1->run_instructions( &mesh_and_domain, err ); 
+  MeshDomainAssoc *mesh_and_domain = new MeshDomainAssoc(linear_in, &geom);
+  q1->run_instructions( mesh_and_domain, err ); 
   if (MSQ_CHKERR(err)) return 1;
+  delete mesh_and_domain;
   cout << "Checking results" << endl;
   compare_nodes( 0, NUM_CORNER_VERTICES, linear_in, linear_ex, err );
   if (MSQ_CHKERR(err)) {
@@ -300,6 +299,7 @@ int do_test( bool slave)
     return 1;
   }
   delete q1;
+  delete linear_in;
  
     // Smooth corner vertices and adjust mid-side nodes
   cout << "Smoothing quadratic elements" << endl;
@@ -308,14 +308,17 @@ int do_test( bool slave)
   if (!slave)
     q3->set_slaved_ho_node_mode(Settings::SLAVE_NONE);
 //  q3->set_mapping_function( &quad9 );
-  MeshDomainAssoc mesh_and_domain2 = MeshDomainAssoc(quadratic_in_2, &geom);
-  q3->run_instructions( &mesh_and_domain2, err ); 
+  MeshDomainAssoc *mesh_and_domain2 = new MeshDomainAssoc(quadratic_in_2, &geom);
+  q3->run_instructions( mesh_and_domain2, err ); 
   if (MSQ_CHKERR(err)) return 1;
+  delete mesh_and_domain2;
     // Make sure corner vertices are the same as in the linear case
   cout << "Checking results" << endl;
   compare_nodes( 0, NUM_CORNER_VERTICES, quadratic_in_2, linear_ex, err );
   if (MSQ_CHKERR(err)) return 1;
-    // Make sure mid-side vertices are updated correctly
+  delete linear_ex;
+
+  // Make sure mid-side vertices are updated correctly
   compare_nodes( NUM_CORNER_VERTICES, NUM_CORNER_VERTICES + NUM_MID_NODES,
                 quadratic_in_2, quadratic_ex, err );
   if (MSQ_CHKERR(err)) {
@@ -324,6 +327,8 @@ int do_test( bool slave)
     return 1;
   }
   delete q3;
+  delete quadratic_in_2;
+  delete quadratic_ex;
   
   if (MSQ_CHKERR(err)) 
     return 1;
@@ -369,7 +374,8 @@ int do_smooth_ho()
   }
   delete q1;
   quadratic_in->write_vtk("smooth_ho.vtk", err);
-  
+  delete quadratic_in;
+
   if (MSQ_CHKERR(err)) 
     return 1;
   return 0;
