@@ -23,11 +23,23 @@ if ( MOAB_HAVE_CGM )
     add_executable( cgm2moab cgm2moab.cpp
                              obb_analysis.cpp
                              cgm2moab.hpp )
+    add_executable( cub2h5m  cub2h5m.cpp
+    		             quads_to_tris.cpp
+			     quads_to_tris.hpp)
     target_link_libraries( cgm2moab
+                           MOAB
+                           ${CGM_LIBRARIES} )
+    target_link_libraries( cub2h5m
                            MOAB
                            ${CGM_LIBRARIES} )
     install(
       TARGETS cgm2moab
+      RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+      LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+      ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+      )
+    install(
+      TARGETS cub2h5m
       RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
       LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
       ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}

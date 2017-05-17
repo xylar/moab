@@ -36,10 +36,14 @@ else
 endif
 endif
 
+cgm2moab_SOURCES = cgm2moab.cpp obb_analysis.cpp cgm2moab.hpp
+cgm2moab_LDADD = $(top_builddir)/src/libMOAB.la
+
 quads_to_tris_SOURCES = quads_to_tris_driver.cpp quads_to_tris.cpp
 quads_to_tris_LDADD = $(top_builddir)/src/libMOAB.la
 
 cub2h5m_SOURCES = cub2h5m.cpp quads_to_tris.cpp quads_to_tris.hpp
+cub2h5m_LDADD = $(top_builddir)/src/libMOAB.la
 
 EXTRA_DIST = CMakeLists.txt
 

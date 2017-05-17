@@ -41,8 +41,6 @@ if ( MOAB_HAVE_CGM )
   # CGM +
   message(STATUS "build geometry tools")
   add_subdirectory( geometry )
-endif( )
-
 endif ( MOAB_HAVE_CGM )
 
 # MBSIZE
