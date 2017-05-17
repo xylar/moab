@@ -13,7 +13,11 @@ LDADD = $(top_builddir)/src/mesquite/libmbmesquite.la
 check_PROGRAMS = par_hex_smooth_laplace
 par_hex_smooth_laplace_SOURCES = par_hex_smooth_laplace.cpp
 par_hex_smooth_laplace_DEPENDENCIES = $(LDADD)
-TESTS = $(check_PROGRAMS)
+PARALLEL_TESTS = $(check_PROGRAMS)
 EXTRA_DIST = CMakeLists.txt
+TESTS = $(PARALLEL_TESTS)
+
+# Run parallel tests with mpiexec
+LOG_COMPILER = `if echo "$(PARALLEL_TESTS)" | $(GREP) "$$p" > /dev/null; then echo "${MPIEXEC} ${MPIEXEC_NP} ${NP}"; else echo ""; fi`
 
 MOSTLYCLEANFILES = *.*.vtk
