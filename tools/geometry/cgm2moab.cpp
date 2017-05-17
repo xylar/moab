@@ -1,4 +1,4 @@
-#include "dagmc_preproc.hpp"
+#include "cgm2moab.hpp"
 #include "moab/ProgOptions.hpp"
 
 #include "moab/Core.hpp"
@@ -37,8 +37,8 @@ void chkerr( Interface& mbi, ErrorCode code, int line, const char* file ){
   chkerr( &mbi, code, line, file );
 }
 
-void chkerr( GeomQueryTool& gtt, ErrorCode code, int line, const char* file ){
-  chkerr( gtt.moab_instance(), code, line, file );
+void chkerr( GeomTopoTool& gtt, ErrorCode code, int line, const char* file ){
+  chkerr( gtt.get_moab_instance(), code, line, file );
 }
 
 
@@ -449,9 +449,9 @@ int main( int argc, char* argv[] ){
   if( obb_task ){
 
    if( verbose ){ std::cout << "Loading data into GeomTopoTool" << std::endl; } 
-   GeomTopoTool* gtt = new GeomTopoTool(&mbi,false);
+   GeomTopoTool *gtt = new GeomTopoTool(&mbi,false);
    ret = gtt->find_geomsets();
-   CHECKERR(*gtt,ret);
+   CHECKERR( *gtt,ret);
    ret = gtt->construct_obb_trees();
    CHECKERR( *gtt, ret );
 
@@ -505,11 +505,9 @@ int main( int argc, char* argv[] ){
      ret = obbstat_write( *dag, vols, keywords, std::cout );
      CHECKERR(mbi, ret);
    }
-
   }
-
    */
-  
+  }     
   return 0; 
 
 }

@@ -227,15 +227,6 @@ if ( MOAB_BUILD_MBQUALITY )
     )
 endif( )
 
-<<<<<<< HEAD
-# CGM + DagMC
-if ( MOAB_BUILD_DAGMC )
-  add_subdirectory( dagmc )
-endif( )
-=======
-
->>>>>>> Removed DAGMC from MOAB and updated dependent tools accordingly
-
 # Zoltan
 if ( MOAB_BUILD_MBPART OR ( MOAB_HAVE_ZOLTAN OR MOAB_HAVE_METIS ) )
   set(MOAB_BUILD_MBPART ON)
