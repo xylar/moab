@@ -14,7 +14,7 @@ endif( )
 
 
 if ( MOAB_HAVE_CGM )
-  target_link_libraries( dagmc ${CGM_LIBRARIES} )
+  target_link_libraries( ${CGM_LIBRARIES} )
   if ( MOAB_ENABLE_TESTING )
     target_link_libraries( test_geom ${CGM_LIBRARIES} )
   endif()
