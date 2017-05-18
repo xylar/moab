@@ -770,7 +770,7 @@ ErrorCode OrientedBoxTreeTool::ray_intersect_triangles(
       if( raytri_test_count ) *raytri_test_count += 1; 
 
       double td;
-      if (GeomUtil::plucker_ray_tri_intersect( coords, point, dir, tolerance, td, ray_length )){
+      if (GeomUtil::plucker_ray_tri_intersect( coords, point, dir, td, ray_length )){
         intersection_distances_out.push_back(td);
         intersection_facets_out.push_back( *t );
       }
@@ -1028,7 +1028,7 @@ ErrorCode RayIntersectSets::leaf( EntityHandle node )
     double int_dist;
     GeomUtil::intersection_type int_type = GeomUtil::NONE;
 
-    if (GeomUtil::plucker_ray_tri_intersect( coords, ray_origin, ray_direction, tol, int_dist, 
+    if (GeomUtil::plucker_ray_tri_intersect( coords, ray_origin, ray_direction, int_dist, 
                                              search_win.first, search_win.second,
                                              surfTriOrient, &int_type )) {
       

@@ -64,7 +64,6 @@ bool segment_box_intersect( CartVect box_min,
 /**\brief Test for intersection between a ray and a triangle.
  *\param ray_point  The start point of the ray.
  *\param ray_unit_direciton  The direction of the ray. Must be a unit vector.
- *\param tolerance  Absolute distance tolerance for point equality
  *\param t_out Output: The distance along the ray from ray_point in the
  *                  direction of ray_unit_direction at which the ray
  *                  itersected the triangle.
@@ -76,7 +75,6 @@ bool segment_box_intersect( CartVect box_min,
 bool ray_tri_intersect( const CartVect vertices[3],
                         const CartVect& ray_point,
                         const CartVect& ray_unit_direction,
-                        double tolerance,
                         double& t_out,
                         const double* ray_length = 0 );
 
@@ -85,7 +83,6 @@ bool ray_tri_intersect( const CartVect vertices[3],
  *\param vertices            Nodes of the triangle.
  *\param ray_point           The start point of the ray.
  *\param ray_unit_direction  The direction of the ray. Must be a unit vector.
- *\param tolerance           Absolute distance tolerance for point equality
  *\param t_out               Output: The distance along the ray from ray_point in the
  *                           direction of ray_unit_direction at which the ray
  *                           intersected the triangle.
@@ -118,7 +115,6 @@ const intersection_type type_list[] = {INTERIOR, EDGE0, EDGE1, NODE1, EDGE2, NOD
 bool plucker_ray_tri_intersect( const CartVect vertices[3],
                                 const CartVect& ray_point,
                                 const CartVect& ray_unit_direction,
-                                double tolerance, /* unused */
                                 double& dist_out,
                                 const double* nonneg_ray_length = 0,
                                 const double* neg_ray_length = 0,

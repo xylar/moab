@@ -785,7 +785,7 @@ void test_ray_tri_intersect()
   xsect = ray_tri_intersect( tri, 
                              CartVect( 0.0, 0.0, 0.0 ),
                              CartVect( 1.0, 1.0, 1.0 ),
-                             TOL, t );
+                             t );
   ASSERT(xsect);
   ASSERT_DOUBLES_EQUAL( 1.0/3.0, t );
   
@@ -793,14 +793,14 @@ void test_ray_tri_intersect()
   xsect = ray_tri_intersect( tri, 
                              CartVect( 1.0, 1.0, 1.0 ),
                              CartVect( 1.0, 1.0, 1.0 ),
-                             TOL, t );
+                             t );
   ASSERT(!xsect);
   
     // try a same ray the other direction with base point below triangle
   xsect = ray_tri_intersect( tri, 
                              CartVect( 0.0, 0.0, 0.0 ),
                              CartVect(-1.0,-1.0,-1.0 ),
-                             TOL, t );
+                             t );
   ASSERT(!xsect);
   
   
@@ -808,14 +808,14 @@ void test_ray_tri_intersect()
   xsect = ray_tri_intersect( tri, 
                              CartVect( 1.0, 1.0, 1.0 ),
                              CartVect(-1.0,-1.0, 1.0 ),
-                             TOL, t );
+                             t );
   ASSERT(!xsect);
   
     // try a skew ray
   xsect = ray_tri_intersect( tri, 
                              CartVect( 0.0, 0.0, 0.0 ),
                              CartVect( 1.0, 1.0,-0.1 ),
-                             TOL, t );
+                             t );
   ASSERT(!xsect);
 }
 
@@ -833,7 +833,7 @@ void test_plucker_ray_tri_intersect()
   xsect = plucker_ray_tri_intersect( tri, 
                              CartVect( 0.0, 0.0, 0.0 ),
                              CartVect( 1.0, 1.0, 1.0 ),
-                             TOL, t );
+                             t );
   ASSERT(xsect);
   ASSERT_DOUBLES_EQUAL( 1.0/3.0, t );
   
@@ -841,14 +841,14 @@ void test_plucker_ray_tri_intersect()
   xsect = plucker_ray_tri_intersect( tri, 
                              CartVect( 1.0, 1.0, 1.0 ),
                              CartVect( 1.0, 1.0, 1.0 ),
-                             TOL, t );
+                             t );
   ASSERT(!xsect);
   
     // try a same ray the other direction with base point below triangle
   xsect = plucker_ray_tri_intersect( tri, 
                              CartVect( 0.0, 0.0, 0.0 ),
                              CartVect(-1.0,-1.0,-1.0 ),
-                             TOL, t );
+                             t );
   ASSERT(!xsect);
   
   
@@ -856,14 +856,14 @@ void test_plucker_ray_tri_intersect()
   xsect = plucker_ray_tri_intersect( tri, 
                              CartVect( 1.0, 1.0, 1.0 ),
                              CartVect(-1.0,-1.0, 1.0 ),
-                             TOL, t );
+                             t );
   ASSERT(!xsect);
   
     // try a skew ray
   xsect = plucker_ray_tri_intersect( tri, 
                              CartVect( 0.0, 0.0, 0.0 ),
                              CartVect( 1.0, 1.0,-0.1 ),
-                             TOL, t );
+                             t );
   ASSERT(!xsect);
 
     // try a ray that intersects with wrong orientation
@@ -871,7 +871,7 @@ void test_plucker_ray_tri_intersect()
   xsect = plucker_ray_tri_intersect( tri, 
                              CartVect( 0.0, 0.0, 0.0 ),
                              CartVect( 1.0, 1.0, 1.0 ),
-				     TOL, t, NULL, NULL, &orientation );
+				     t, NULL, NULL, &orientation );
   ASSERT(!xsect);
 
     // try a ray that intersects beyond the nonneg_ray_len
@@ -879,7 +879,7 @@ void test_plucker_ray_tri_intersect()
   xsect = plucker_ray_tri_intersect( tri, 
                              CartVect( 0.0, 0.0, 0.0 ),
                              CartVect( 1.0, 1.0, 1.0 ),
-				     TOL, t, &nonneg_ray_len );
+				     t, &nonneg_ray_len );
   ASSERT(!xsect);
 
     // try a ray that intersects behind the origin
@@ -887,7 +887,7 @@ void test_plucker_ray_tri_intersect()
   xsect = plucker_ray_tri_intersect( tri, 
                              CartVect( 0.0, 0.0, 0.0 ),
                              CartVect( -1.0, -1.0, -1.0 ),
-				     TOL, t, NULL, &neg_ray_len );
+				     t, NULL, &neg_ray_len );
   ASSERT(xsect);
 
     // try a ray that intersects a node
@@ -895,7 +895,7 @@ void test_plucker_ray_tri_intersect()
   xsect = plucker_ray_tri_intersect( tri, 
                              CartVect( 0.0, 0.0, 0.0 ),
                              CartVect( 1.0, 0.0, 0.0 ),
-				     TOL, t, NULL, NULL, NULL, &int_type);
+				     t, NULL, NULL, NULL, &int_type);
   ASSERT(xsect);
   ASSERT(NODE0 == int_type);
 
@@ -903,7 +903,7 @@ void test_plucker_ray_tri_intersect()
   xsect = plucker_ray_tri_intersect( tri, 
                              CartVect( 0.0, 0.0, 0.0 ),
                              CartVect( 1.0, 1.0, 0.0 ),
-				     TOL, t, NULL, NULL, NULL, &int_type);
+				     t, NULL, NULL, NULL, &int_type);
   ASSERT(xsect);
   ASSERT(EDGE0 == int_type);
 }
