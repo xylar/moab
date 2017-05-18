@@ -1,4 +1,5 @@
-#include "GeometryQueryTool.hpp"
+#include "moab/GeomQueryTool.hpp"
+#include "moab/GeomTopoTool.hpp"
 #include "InitCGMA.hpp"
 #include "CGMApp.hpp"
 #include "moab/CN.hpp"
@@ -135,7 +136,7 @@ ErrorCode summarize_cell_volume_change(Interface* MBI,
     double orig_grp_volume = 0, defo_grp_volume = 0;
 
     moab::GeomTopoTool gtt = moab::GeomTopoTool(MBI,false);
-    moab::GeomQueryTool gqt = moab::GeomQueryTool(MBI);
+    moab::GeomQueryTool gqt = moab::GeomQueryTool(&gtt);
     for (Range::const_iterator j = vols.begin(); j != vols.end(); ++j)
     {
       double defo_size = 0, orig_size = 0;
@@ -1463,7 +1464,7 @@ int main(int argc, char* argv[])
     return result;
 
   moab::GeomTopoTool gtt = moab::GeomTopoTool(MBI,false);
-  moab::GeomQueryTool gqt = moab::GeomQueryTool(MBI);
+  moab::GeomQueryTool gqt = moab::GeomQueryTool(&gtt);
 
   for (Range::const_iterator i = vol_sets.begin(); i != vol_sets.end(); ++i)
   {
