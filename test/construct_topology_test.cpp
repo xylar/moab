@@ -444,10 +444,11 @@ void heappermute(Interface *mbi, int v[], int n, std::map< int, std::set<int> > 
       //test the topology
       bool result = check_tree(mbi, GTT, ref_map );
       CHECK_EQUAL(1, result); 
+      delete GTT;
  
       // delete the geometry so new one can be built;
-      mbi->delete_mesh();
-      delete GTT;
+      rval = mbi->delete_mesh();
+      MB_CHK_ERR_RET(rval);
             
     }
   
