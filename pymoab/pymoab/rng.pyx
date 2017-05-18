@@ -134,6 +134,7 @@ cdef class Range(object):
 
     def __str__(self):
         self.inst.print_()
+        return ""
 
     def __repr__(self):
-        self.__str__()
+        return self.__str__()
