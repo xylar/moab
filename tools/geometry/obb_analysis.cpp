@@ -2,14 +2,14 @@
 #include <fstream>
 #include <sstream>
 
-#include "dagmc_preproc.hpp"
-#include "DagMC.hpp"
 #include "moab/Core.hpp"
 #include "moab/Interface.hpp"
 #include "moab/OrientedBoxTreeTool.hpp"
 #include "moab/CartVect.hpp"
-
 #include "moab/OrientedBox.hpp"
+#include "moab/GeomTopoTool.hpp"
+
+#include "cgm2moab.hpp"
 
 using namespace moab;
 
@@ -45,19 +45,35 @@ public:
 
 };
 
-ErrorCode obbvis_create( DagMC& dag, std::vector<int> &volumes, int grid, std::string& filename ){
-  OrientedBoxTreeTool& obbtool = *dag.obb_tree();
+ErrorCode obbvis_create( GeomTopoTool& gtt, std::vector<int> &volumes, int grid, std::string& filename ){
+  OrientedBoxTreeTool& obbtool = *gtt.obb_tree();
   
   CartVect min, max;
-  EntityHandle vol = dag.entity_by_id( 3, volumes.front() );
-  ErrorCode rval = dag.getobb( vol, min.array(), max.array() );
-  CHECKERR(dag, rval);
+  EntityHandle vol = gtt.entity_by_id( 3, volumes.front() );
+  double middle[3];
+  double axis1[3],axis2[3],axis3[3];
+  double minPt[3],maxPt[3];
+  ErrorCode rval = gtt.get_obb( vol,middle, axis1, axis2, axis3 );
+  // compute min and max verticies
+  for (int i=0; i<3; i++) {
+    double sum = fabs(axis1[i]) + fabs(axis2[i]) + fabs(axis3[i]);
+    minPt[i] = middle[i] - sum;
+    maxPt[i] = middle[i] + sum;
+  }
+  CHECKERR(gtt, rval);
 
   /* Compute an axis-aligned bounding box of all the requested volumes */
   for( std::vector<int>::iterator i = volumes.begin()+1; i!=volumes.end(); ++i ){
     CartVect i_min, i_max; 
-    vol = dag.entity_by_id( 3, *i );
-    rval = dag.getobb( vol, i_min.array(), i_max.array() );
+    vol = gtt.entity_by_id( 3, *i );
+    rval = gtt.get_obb( vol, middle, axis1, axis2, axis3 );
+    // compute min and max verticies
+    for (int j=0; j<3; j++) {
+      double sum = fabs(axis1[j]) + fabs(axis2[j]) + fabs(axis3[j]);
+      minPt[j] = middle[j] - sum;
+      maxPt[j] = middle[j] + sum;
+    }
+
     for( int j = 0; j < 3; ++j ){ 
       min[j] = std::min( min[j], i_min[j] );
       max[j] = std::max( max[j], i_max[j] );
@@ -65,10 +81,10 @@ ErrorCode obbvis_create( DagMC& dag, std::vector<int> &volumes, int grid, std::s
   }
 
   // These vectors could be repurposed to describe an OBB without changing the loops below
-  CartVect center = (min+max) / 2.0;
-  CartVect v1(max[0]-min[0]/2,0,0);
-  CartVect v2(0,max[1]-min[1]/2,0);
-  CartVect v3(0,0,max[2]-min[2]/2);
+  CartVect center(middle);
+  CartVect v1(axis1);
+  CartVect v2(axis2);
+  CartVect v3(axis3);
   
   /* Compute the vertices of the visualization grid.  Calculation points are at the center 
      of each cell in this grid, so make grid+1 vertices in each direction. */
@@ -119,10 +135,10 @@ ErrorCode obbvis_create( DagMC& dag, std::vector<int> &volumes, int grid, std::s
   Range surfs;
   for(  std::vector<int>::iterator it = volumes.begin(); it!=volumes.end(); ++it ){
     
-    vol = dag.entity_by_id(3,*it);
+    vol = gtt.entity_by_id(3,*it);
     Range it_surfs;
-    rval = dag.moab_instance()->get_child_meshsets( vol, it_surfs );
-    CHECKERR(dag,rval);
+    rval = gtt.get_moab_instance()->get_child_meshsets( vol, it_surfs );
+    CHECKERR(gtt,rval);
     surfs.merge(it_surfs);
 
   }
@@ -137,16 +153,16 @@ ErrorCode obbvis_create( DagMC& dag, std::vector<int> &volumes, int grid, std::s
 	assert( idx + 1 + row + side > numpoints - 1 );
 
         CartVect loc = CartVect((pgrid+(idx*3)) ) + grid_hex_center_offset ;
-        TriCounter tc(dag.moab_instance(), &obbtool, loc );
+        TriCounter tc(gtt.get_moab_instance(), &obbtool, loc );
 
 	for( Range::iterator it = surfs.begin(); it!=surfs.end(); ++it ){
 	  
 	  EntityHandle surf_tree;
-	  rval = dag.get_root( *it, surf_tree );
-	  CHECKERR(dag,rval);
+	  rval = gtt.get_root( *it, surf_tree );
+	  CHECKERR(gtt,rval);
 
 	  rval = obbtool.preorder_traverse( surf_tree, tc );
-	  CHECKERR(dag,rval);
+	  CHECKERR(gtt,rval);
 
 	}
 
@@ -291,6 +307,7 @@ public:
 
 };
 
+/* no longer supported
 static std::string make_property_string( DagMC& dag, EntityHandle eh, std::vector<std::string> &properties )
 {
   ErrorCode ret;
@@ -327,58 +344,54 @@ static std::string make_property_string( DagMC& dag, EntityHandle eh, std::vecto
   }
   return propstring;
 }
+*/
 
-ErrorCode obbstat_write( DagMC& dag, std::vector<int> &volumes, 
+ErrorCode obbstat_write( GeomTopoTool& gtt, std::vector<int> &volumes, 
                          std::vector<std::string> &properties, std::ostream& out ){
 
   ErrorCode ret = MB_SUCCESS;
-  OrientedBoxTreeTool& obbtool = *dag.obb_tree();
+  OrientedBoxTreeTool& obbtool = *gtt.obb_tree();
 
   // can assume that volume numbers are valid.
   for( std::vector<int>::iterator i = volumes.begin(); i!=volumes.end(); ++i){
     EntityHandle vol_root;
-    EntityHandle vol = dag.entity_by_id(3,*i);
-    CHECKERR(dag,ret);
+    EntityHandle vol = gtt.entity_by_id(3,*i);
+    CHECKERR(gtt,ret);
 
     if( vol == 0 ){
       std::cerr << "ERROR: volume " << *i << " has no entity." << std::endl;
       continue;
     }
 
-    ret = dag.get_root( vol, vol_root );
-    CHECKERR(dag,ret);
+    ret = gtt.get_root( vol, vol_root );
+    CHECKERR(gtt,ret);
 
     out << "\nVolume " << *i << " " << std::flush;
 
-    if( dag.is_implicit_complement(vol) ) out << "(implicit complement) ";
+    if( gtt.is_implicit_complement(vol) ) out << "(implicit complement) ";
     out << std::endl;
-
-    std::string propstring = make_property_string( dag, vol, properties );
-    if( propstring.length() ) out << "Properties: " << propstring << std::endl;
 
     // get all surfaces in volume
     Range surfs;
-    ret = dag.moab_instance()->get_child_meshsets( vol, surfs );
-    CHECKERR(dag,ret);
+    ret = gtt.get_moab_instance()->get_child_meshsets( vol, surfs );
+    CHECKERR(gtt,ret);
 
     out << "   with " << surfs.size() << " surfaces" << std::endl;
     
-    TriStats ts( dag.moab_instance(), &obbtool, vol_root );
+    TriStats ts( gtt.get_moab_instance(), &obbtool, vol_root );
     ret = obbtool.preorder_traverse( vol_root, ts );
-    CHECKERR(dag,ret);
+    CHECKERR(gtt,ret);
     ts.write_results( out );
 
     if( verbose ){
       out << "Surface list: " << std::flush;
       for( Range::iterator j = surfs.begin(); j!=surfs.end(); ++j){
-        out << dag.get_entity_id(*j);
-        std::string props = make_property_string( dag, *j, properties );
-        if( props.length() ) out << "(" << props << ")";
+        out << gtt.global_id(*j);
         if( j+1 != surfs.end() ) out << ",";
       }
       out << std::endl;
       ret = obbtool.stats( vol_root, out ); 
-      CHECKERR(dag,ret);
+      CHECKERR(gtt,ret);
     }
 
     out << "\n    ------------ " << std::endl;
