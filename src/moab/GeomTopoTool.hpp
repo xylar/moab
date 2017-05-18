@@ -289,7 +289,7 @@ private:
   void set_root_set(EntityHandle vol_or_surf, EntityHandle root);
 
   Range get_ct_children_by_dimension(const EntityHandle parent, const int desired_dimension);
-  bool A_is_in_B(const EntityHandle volume_A, const EntityHandle volume_B, GeomQueryTool* GQT);
+  bool A_is_in_B(EntityHandle ct_root, const EntityHandle volume_A, const EntityHandle volume_B, GeomQueryTool* GQT);
   ErrorCode insert_in_tree(const EntityHandle ct_root, const EntityHandle volume, GeomQueryTool* GQT);
   
 };

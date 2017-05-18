@@ -1977,13 +1977,24 @@ Range GeomTopoTool::get_ct_children_by_dimension(EntityHandle parent, int desire
 
 // runs GeomQueryTool point_in_vol and to test if vol A is inside vol B
 //  returns true or false
-  bool GeomTopoTool::A_is_in_B(EntityHandle volume_A, EntityHandle volume_B, GeomQueryTool* GQT)
+  bool GeomTopoTool::A_is_in_B(EntityHandle ct_root, EntityHandle volume_A, EntityHandle volume_B, GeomQueryTool* GQT)
 {
   ErrorCode rval;
 
   Range child_surfaces, triangles, vertices;
   double coord[3]; // coord[0] = x, etc.
   int result; // point in vol result; 0=F, 1=T
+
+  // assert that all tree volumes are inside the root set 
+  if ( volume_B == ct_root )
+    {
+      return true;
+    }
+	// A should never be the rootset
+  if ( volume_A == ct_root )
+    {
+      return false;
+    }
   
   // find coordinates of any point on surface of A
   // get surface corresponding to volume, then get the triangles  
@@ -2018,7 +2029,7 @@ ErrorCode GeomTopoTool::insert_in_tree(EntityHandle ct_root, EntityHandle volume
   while ( !inserted )
     {
       // if current volume is insde of tree volume
-      if ( A_is_in_B(current_volume, tree_volume, GQT) ) {
+      if ( A_is_in_B(ct_root, current_volume, tree_volume, GQT) ) {
         parent = tree_volume;  
         
         // if tree_volume has children then we must test them,
@@ -2036,7 +2047,7 @@ ErrorCode GeomTopoTool::insert_in_tree(EntityHandle ct_root, EntityHandle volume
       // if current volume is not in the tree volume, the converse may be true
       } else {
         // if the tree volume is inside the current volume
-        if( A_is_in_B(tree_volume, current_volume, GQT) ) {
+        if( A_is_in_B(ct_root, tree_volume, current_volume, GQT) ) {
           // reverse their parentage
           rval = mdbImpl->remove_parent_child(parent, tree_volume);
           MB_CHK_SET_ERR(rval, "Failed to remove parent-child relationship.");
