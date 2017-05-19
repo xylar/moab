@@ -16,6 +16,7 @@ AM_CPPFLAGS  = $(BGDEF)-DSRCDIR=$(srcdir) \
 if HAVE_NETCDF
   EXODUS_TEST = exodus_test
   NC_TEST = read_nc read_ucd_nc read_mpas_nc write_nc read_gcrm_nc
+  LDADD += $(NETCDF_LIBS) $(PNETCDF_LIBS) $(HDF5_LIBS)
 else
   EXODUS_TEST = 
   NC_TEST = 
@@ -23,6 +24,7 @@ endif
 
 if HAVE_CCMIO
   CCMIO_TEST = ccmio_test
+  LDADD += $(CCMIO_LIBS)
 else
   CCMIO_TEST = 
 endif
@@ -38,6 +40,7 @@ endif
 
 if HAVE_CGNS
   CGNS_TEST = cgns_test
+  LDADD += $(CGNS_LIBS)
 else
   CGNS_TEST = 
 endif

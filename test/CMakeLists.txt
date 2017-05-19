@@ -70,6 +70,15 @@ foreach( fname ${TESTS} )
   add_test( ${base} ${EXECUTABLE_OUTPUT_PATH}/${base} )
 endforeach()
 
+if(ENABLE_PYMOAB)
+  SET(PYMOAB_TESTS test_core test_hom test_scd test_range test_tag test_topo_util test_skinner)
+  FOREACH(pymoab_test ${PYMOAB_TESTS})
+    ADD_TEST(NAME pymoab_${pymoab_test}
+      COMMAND "env" "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/lib/:$ENV{LD_LIBRARY_PATH}" "PYTHONPATH=${PYMOAB_LOCAL_INSTALL_PATH}:$ENV{PYTHONPATH}" "${PYTHON}" "${pymoab_test}.py"
+      WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/pymoab/tests/")
+  ENDFOREACH(pymoab_test)
+endif()
+
 add_executable( TestTypeSequenceManager ${CMAKE_SOURCE_DIR}/test/TestUtil.hpp TestTypeSequenceManager.cpp)
 set_target_properties( TestTypeSequenceManager PROPERTIES COMPILE_FLAGS "${TEST_COMP_FLAGS} ${MOAB_DEFINES} -DTEST -DIS_BUILDING_MB" )
 target_link_libraries( TestTypeSequenceManager MOAB ${CGM_LIBRARIES} ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES} )

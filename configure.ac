@@ -29,6 +29,12 @@ INITIALIZE_EXTERNAL_PACKAGES
 MB_CPPFLAGS=""
 MB_DEFS=""
 
+AC_ARG_ENABLE( [devmode],
+[AS_HELP_STRING([--enable-devmode],[Enable (advanced) developer mode in the build (not recommended for users).])],
+[enable_devmode=$enableval],
+[enable_devmode=no] )
+AM_CONDITIONAL(DEVELOPER_MODE,[test "x$enable_devmode" != "xno"])
+
 ENABLE_FORTRAN=no
 AC_ARG_ENABLE([fortran],
               [AS_HELP_STRING([--disable-fortran], [Disable Fortran support and name mangling in ITAPS/MBCN C headers])])
@@ -52,6 +58,7 @@ FATHOM_COMPILER_FLAGS([yes],[yes],[$ENABLE_FORTRAN])
 
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
+AC_PROG_MKDIR_P
 AC_DISABLE_SHARED
 AC_SUBST(enable_static)
 AC_SUBST(enable_shared)
@@ -170,6 +177,147 @@ AC_CHECK_LIB(curl, curl_version, LIBS="$LIBS -lcurl")
 #AX_BLAS
 AX_LAPACK
 LIBS="$LAPACK_LIBS $BLAS_LIBS $LIBS"
+
+################################################################################
+#                                 pymoab
+################################################################################
+# function for detecting python modules
+AC_DEFUN([AC_PYTHON_MODULE],
+[AC_MSG_CHECKING(for module $1 in python)
+echo "import $1" | python -
+if test $? -ne 0 ; then
+AC_MSG_RESULT(not found)
+AC_MSG_ERROR(You need the module $1 available to python for this package)
+fi
+AC_MSG_RESULT(found)
+])
+
+AC_MSG_CHECKING([if pymoab interface was requested by user])
+AC_ARG_ENABLE( [pymoab],
+[AS_HELP_STRING([--enable-pymoab],[Build support for pymoab interface.])],
+[enable_pymoab=$enableval],
+[enable_pymoab=no] )
+
+AC_ARG_VAR([PYMOAB_PREFIX],
+Custom location for install of PyMOAB module)
+
+pymoab_custom_install=no
+AC_MSG_RESULT([$enable_pymoab])
+
+if (test "xyes" != "x$enable_pymoab" && test "xno" != "x$enable_pymoab"); then
+  AC_MSG_ERROR([Unknown argument --enable-pymoab=$enableval])
+else
+  if (test "x$enable_pymoab" != "xno"); then
+    ENABLE_pymoab=yes
+    AM_PATH_PYTHON()
+    AX_PYTHON_DEVEL()
+    AC_PYTHON_MODULE(numpy)
+    AC_PYTHON_MODULE(setuptools)
+    if (test "x$enable_devmode" != "xno"); then
+      # Developers updating the PyMOAB modules need Cython (> 0.25)
+      AC_PYTHON_MODULE(cython)
+      AC_MSG_CHECKING(for proper cython capabilities)
+      cython --cplus $srcdir/pymoab/cmake/cython_test.pyx --output-file ./.cython_test_out && rm .cython_test_out
+      if test $? -ne 0 ; then
+        AC_MSG_ERROR(cython is not the correct version for pymoab)
+      fi
+      AC_CHECK_PROG(CYTHON_AVAILABLE, cython, yes, no)
+      if test x"$CYTHON_AVAILABLE" != x"yes" ; then
+          AC_MSG_ERROR([Cython is not installed. Use 'easy_install cython'.])
+      else
+          CYTHON=`which cython`
+          AC_SUBST(CYTHON)
+      fi
+    fi
+
+    AC_CONFIG_SRCDIR([pymoab/setup.py.in])
+    # link source files to build location
+    AC_CONFIG_LINKS([pymoab/pymoab/moab.pxd:pymoab/pymoab/moab.pxd
+                     pymoab/pymoab/tag.cpp:pymoab/pymoab/tag.cpp
+                     pymoab/pymoab/tag.pyx:pymoab/pymoab/tag.pyx
+                     pymoab/pymoab/tag.pxd:pymoab/pymoab/tag.pxd
+                     pymoab/pymoab/core.cpp:pymoab/pymoab/core.cpp
+                     pymoab/pymoab/core.pyx:pymoab/pymoab/core.pyx
+		     pymoab/pymoab/core.pxd:pymoab/pymoab/core.pxd
+		     pymoab/pymoab/rng.cpp:pymoab/pymoab/rng.cpp
+		     pymoab/pymoab/rng.pyx:pymoab/pymoab/rng.pyx
+		     pymoab/pymoab/rng.pxd:pymoab/pymoab/rng.pxd
+		     pymoab/pymoab/hcoord.cpp:pymoab/pymoab/hcoord.cpp
+		     pymoab/pymoab/hcoord.pyx:pymoab/pymoab/hcoord.pyx
+		     pymoab/pymoab/hcoord.pxd:pymoab/pymoab/hcoord.pxd
+		     pymoab/pymoab/types.cpp:pymoab/pymoab/types.cpp
+		     pymoab/pymoab/types.pyx:pymoab/pymoab/types.pyx
+		     pymoab/pymoab/topo_util.cpp:pymoab/pymoab/topo_util.cpp
+		     pymoab/pymoab/topo_util.pyx:pymoab/pymoab/topo_util.pyx
+		     pymoab/pymoab/topo_util.pxd:pymoab/pymoab/topo_util.pxd
+		     pymoab/pymoab/scd.cpp:pymoab/pymoab/scd.cpp
+		     pymoab/pymoab/scd.pyx:pymoab/pymoab/scd.pyx
+		     pymoab/pymoab/scd.pxd:pymoab/pymoab/scd.pxd
+		     pymoab/pymoab/skinner.cpp:pymoab/pymoab/skinner.cpp
+		     pymoab/pymoab/skinner.pyx:pymoab/pymoab/skinner.pyx
+		     pymoab/pymoab/skinner.pxd:pymoab/pymoab/skinner.pxd
+		     pymoab/pymoab/__init__.pxd:pymoab/pymoab/__init__.pxd
+		     pymoab/pymoab/__init__.py:pymoab/pymoab/__init__.py])
+    # link test files to build location
+    AC_CONFIG_LINKS([pymoab/tests/driver.py:pymoab/tests/driver.py
+                     pymoab/tests/test_core.py:pymoab/tests/test_core.py
+		     pymoab/tests/test_tag.py:pymoab/tests/test_tag.py
+		     pymoab/tests/test_scd.py:pymoab/tests/test_scd.py
+		     pymoab/tests/test_hom.py:pymoab/tests/test_hom.py
+		     pymoab/tests/test_topo_util.py:pymoab/tests/test_topo_util.py
+		     pymoab/tests/test_range.py:pymoab/tests/test_range.py
+		     pymoab/tests/test_skinner.py:pymoab/tests/test_skinner.py
+		     pymoab/tests/cyl_grps.h5m:pymoab/tests/cyl_grps.h5m
+		     pymoab/tests/cyl_grps.vtk:pymoab/tests/cyl_grps.vtk])
+    # if a python install location is specified, use that
+    if test "x$PYMOAB_PREFIX" != "x"; then
+      pymoab_custom_install=yes
+      pymoab_prefix=${PYMOAB_PREFIX}
+      pythondir=$pymoab_prefix
+    else
+      # if a prefix was supplied, then install under the lib directory
+      # of the specified prefix location
+      if test "x$prefix" != "xNONE"; then
+        pymoab_prefix=$prefix/lib/python${PYTHON_VERSION}/site-packages
+        pymoab_custom_install=yes
+        pythondir=$pymoab_prefix
+      else
+        # if no specific location is used and no prefix was supplied,
+        # then install to the system location
+        pymoab_prefix=/usr/lib/python${PYTHON_VERSION}/dist-packages
+        pythondir=$pymoab_prefix
+      fi
+    fi
+
+    AC_SUBST([pymoab_prefix])
+    # ensure shared libraries are enabled
+    if (test "xyes" != "x$enable_shared" || test "xno" = "x$enable_shared"); then
+      AC_MSG_ERROR([Cannot build static libraries and the python interface. Please build with shared libraries (--enable-shared) or build without MOAB's python interface.])
+    fi
+    # ensure 32 bit objects are NOT enabled
+    if (test "xyes" = "x$enable_32bit" || test "xno" != "x$enable_32bit"); then
+      AC_MSG_ERROR([Cannot build pymoab with 32bit objects enabled. Please remove the --enable-32bit configuration option or build without MOAB's python interface.])
+    fi
+    # ensure 32 bit handles are NOT enabled
+    if (test "x$enable_32bit_handles" != "x"); then
+      AC_MSG_ERROR([Cannot build pymoab with 32bit EntityHandles enabled. Please remove the --enable-32bit-handles configuration option or build without MOAB's python interface.])
+    fi
+    UNAME_S=`uname -s`
+    if (test "x$UNAME_S" = "xDarwin"); then
+      SLIBENVPATH="DYLD_LIBRARY_PATH"
+    else
+      SLIBENVPATH="LD_LIBRARY_PATH"
+    fi
+    AC_SUBST(SLIBENVPATH)
+    DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --enable-pymoab=$ENABLE_pymoab"
+  else
+    ENABLE_pymoab=no
+  fi
+fi
+
+AM_CONDITIONAL([ENABLE_pymoab],[test "xyes" = "x$ENABLE_pymoab"])
+AC_MSG_CHECKING([if pymoab interface is enabled])
+AC_MSG_RESULT([$ENABLE_pymoab])
 
 ################################################################################
 #                           iMesh Part 1 of 2
@@ -936,7 +1084,7 @@ AS_HELP_STRING([--disable-$1],[Don't build $1])],
   fi
   AC_MSG_CHECKING([if $1 is to be built])
   AC_MSG_RESULT([${ENABLE_$1}])
-  DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --enable-$1=\"${ENABLE_$1}\""
+  DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --enable-$1=${ENABLE_$1}"
 ])
   # The default for all tools
 AC_ARG_ENABLE( [tools], [
@@ -1247,6 +1395,8 @@ AC_CONFIG_FILES([Makefile
                  test/perf/point_location/Makefile
                  test/io/Makefile
                  test/parallel/Makefile
+                 pymoab/Makefile
+		 pymoab/setup.py
                  itaps/iBase_f.h
                  itaps/Makefile
                  itaps/imesh/Makefile
@@ -1274,6 +1424,8 @@ AC_CONFIG_FILES([Makefile
                  MeshFiles/examples/Makefile
                  ])
 
+
+DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --enable-static=$enable_static --enable-shared=$enable_shared"
 # DISTCHECK_CONFIGURE_FLAGS="$USER_CONFIGURE_CMD"
 # make distcheck will use this DISTCHECK_CONFIGURE_FLAGS 
 # variable to be passed to configure line
@@ -1363,6 +1515,7 @@ if test "x$WARN_PARALLEL_HDF5_NO_COMPLEX" = "xyes"; then
 *************************************************************************])
 fi
 
+
 # echo "Other details"
 # echo "Static: $enable_static"
 # echo "Shared: $enable_shared"
@@ -1371,6 +1524,19 @@ fi
 # echo "Zoltan: $enablezoltan"
 # echo "Zlib: $enablezlib"
 # echo "SZip: $enableszip"
+
+
+if test "x$enable_pymoab" != "xno" && test "x$pymoab_custom_install" = "xyes" ; then
+AC_MSG_NOTICE([
+*************************************************************************
+*     The PyMOAB interface will be installed to a custom location.
+*     In order to access this module from a python interpreter, please add
+*     its install location to the PYTHONPATH environment variable:
+*
+*     export PYTHONPATH=$pythondir:\$PYTHONPATH
+*
+*************************************************************************])
+fi
 
 # define([ConfigurationSuggestion], [`esyscmd(config/suggest_configure_command)'])
 # m4_echo(echo "m4_expand([ConfigurationSuggestion])")

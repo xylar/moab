@@ -5,7 +5,7 @@ AUTOMAKE_OPTIONS = foreign subdir-objects
 ACLOCAL_AMFLAGS = -I config
 
 # Subdirectories to build
-SUBDIRS = src MeshFiles $(itaps_dir) tools test 
+SUBDIRS = src MeshFiles $(itaps_dir) tools test $(pymoab_dir)
 
 if ENABLE_fbigeom
   itaps_dir_fbigeom = itaps
@@ -17,6 +17,12 @@ if ENABLE_imesh
   itaps_dir = itaps
 else
   itaps_dir = $(itaps_dir_fbigeom)
+endif
+
+if ENABLE_pymoab
+  pymoab_dir = pymoab
+else
+  pymoab_dir = 
 endif
 
 # Utility target: build but don't run tests
@@ -72,6 +78,11 @@ examples_fortran_DATA = \
                examples/fortran/makefile \
                examples/fortran/DirectAccessNoHolesF90.F90 \
                examples/fortran/PushParMeshIntoMoabF90.F90
+examples_pythonexdir = $(datadir)/examples/python
+examples_pythonex_DATA = \
+               examples/python/makefile \
+               examples/python/yt2moab.py \
+               examples/python/laplaciansmoother.py
 examples_appsdir = $(datadir)/examples/apps
 examples_apps_DATA = \
                examples/apps/makefile
@@ -85,13 +96,20 @@ CMAKE_CONFIGURATION_FILES = CMakeLists.txt \
 														config/ResolveCompilerPaths.cmake  config/CMakeDistCheck.cmake      config/FindEigen3.cmake     config/FindNetCDF.cmake    config/Findgraphviz.cmake \
 														config/GetAcInitVersion.cmake  config/TestBigEndian.cmake    config/CheckCompilerFlags.cmake  config/FindHDF5_MOAB.cmake  config/FindParMetis.cmake  \
 														config/Findverdict.cmake   config/MOABConfig.cmake.cmake    config/CMakeReplicateConfig.sh    config/cmake_uninstall.cmake.in \
-														config/TemplateSpecialization.cxx   config/MOABConfig.cmake.h.in
+														config/TemplateSpecialization.cxx   config/MOABConfig.cmake.h.in config/UseCython.cmake
 
 EXTRA_DIST = $(doc_DATA) \
 						 debian \
 						 $(CMAKE_CONFIGURATION_FILES) \
 						 $(examples_DATA) \
-						 $(examples_beginner_DATA) $(examples_basic_DATA) $(examples_intermediate_DATA) $(examples_advanced_DATA) $(examples_fortran_DATA) $(examples_apps_DATA) $(examples_apps_earth_DATA)
+						 $(examples_beginner_DATA) \
+						 $(examples_basic_DATA) \
+						 $(examples_intermediate_DATA) \
+						 $(examples_advanced_DATA) \
+						 $(examples_fortran_DATA) \
+						 $(examples_pythonex_DATA) \
+						 $(examples_apps_DATA) \
+						 $(examples_apps_earth_DATA)
 
 # Automake doesn't seem to have a directory defined for
 # platform-dependent data (or include) files. So put 

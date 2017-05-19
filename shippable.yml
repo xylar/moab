@@ -1,0 +1,31 @@
+language: c
+
+env:
+  - CC="clang" CXX="clang++" CONFIGOPTS="--enable-debug --disable-optimize --enable-tools"
+  - CC="gcc" CXX="g++" CONFIGOPTS="--disable-debug --enable-optimize"
+
+build:
+
+  pre_ci:
+
+  pre_ci_boot:
+    image_name: vijaysm/scientific
+    image_tag: latest
+    pull: true
+    options:
+  ci:
+    - autoreconf -fi
+    - ./configure CC=clang CXX=clang++ --enable-shared --enable-pymoab --disable-fortran $CONFIGOPTS
+    - make all
+    - make check
+  post_ci:
+    - make dist
+  on_success:
+    - echo "Excellent. PyMOAB works cleanly!"
+  on_failure:
+    - echo "Alas. PyMOAB failed."
+  cache: true
+  cache_dir_list:
+    - $SHIPPABLE_BUILD_DIR/.git
+  push:
+

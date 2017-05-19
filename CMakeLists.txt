@@ -113,6 +113,9 @@ option ( ENABLE_TESTING "Enable Testing"                                  ON  )
 option ( MOAB_FORCE_64_BIT_HANDLES "Force MBEntityHandle to be 64 bits (uint64_t)" OFF )
 option ( MOAB_FORCE_32_BIT_HANDLES "Force MBEntityHandle to be 32 bits (uint32_t)" OFF )
 
+option ( ENABLE_PYMOAB  "Build python interface to MOAB?" OFF )
+option ( ENABLE_DEVMODE "Enable developer-mode to toggle advanced build options?" OFF )
+
 option ( ENABLE_IMESH        "Should build IMESH?"       ON )
 option ( ENABLE_FBIGEOM      "Should build FBIGEOM?"     OFF )
 option ( ENABLE_IREL         "Should build IREL?"        OFF )
@@ -325,7 +328,10 @@ string(STRIP "${MOAB_DEFINES} " MOAB_DEFINES)
 add_subdirectory( src )
 add_subdirectory( itaps )
 add_subdirectory( tools )
-
+if (ENABLE_PYMOAB)
+  SET(PYMOAB_LOCAL_INSTALL_PATH "${CMAKE_BINARY_DIR}/pymoab/local_inst/")
+  add_subdirectory( pymoab )
+endif()
 ################################################################################
 # Testing Related Settings
 ################################################################################
@@ -350,7 +356,7 @@ install(
 # Create some custom command
 
 # For consistency with autoconf, create a "make check" equivalent to "ctest"
-ADD_CUSTOM_TARGET( check COMMAND ctest )
+ADD_CUSTOM_TARGET( check COMMAND ctest DEPENDS )
 
 # For consistency with autoconf, create "make dist" and "make distcheck" targets
 INCLUDE( CMakeDistCheck )
