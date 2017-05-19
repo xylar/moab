@@ -84,6 +84,7 @@ MBSCOTCH_DIR=""
 MBPTSCOTCH_DIR=""
 MBVTK_DIR=""
 MBCGM_DIR=""
+CROSSCOMPILE="no"
 
 MBDWLD_OPTIONS=""
 case "$HOSTNAME" in
@@ -121,20 +122,8 @@ case "$HOSTNAME" in
     MBMETIS_DIR="/soft/metis/5.0.3"
     ;;
   *theta*)
+    CROSSCOMPILE="yes"
     MBCONFARCH="haswell"
-    MBNMPICC="gcc"
-    MBNMPICXX="g++"
-    MBNMPIFC="gfortran"
-    MBNMPIF77="gfortran"
-    MBMPI_DIR="/opt/intel/compilers_and_libraries_2017.2.174/linux/mpi/intel64"
-    MBHDF5_DIR="/opt/cray/pe/hdf5-parallel/default/GNU/51"
-    MBNETCDF_DIR="/opt/cray/pe/netcdf/default/GNU/51"
-    MBMETIS_DIR="/opt/cray/pe/tpsl/default/GNU/51/$MBCONFARCH"
-    LIBS="-L/opt/cray/pe/libsci/default/GNU/51/haswell/lib -lsci_gnu_mp"
-    PREREQ="module load gcc/6.3.0"
-    ;;
-  *edison* | *cori*)
-    MBCONFARCH="sandybridge"
     MBCC="cc"
     MBCXX="CC"
     MBFC="ftn"
@@ -143,11 +132,31 @@ case "$HOSTNAME" in
     MBNMPICXX="CC"
     MBNMPIFC="ftn"
     MBNMPIF77="ftn"
-    MBMPI_DIR="/opt/cray/mpt/7.0.0/gni/mpich2-intel/14.0"
-    MBHDF5_DIR="/opt/cray/hdf5-parallel/1.8.14/INTEL/14.0"
-    MBNETCDF_DIR="/opt/cray/netcdf-hdf5parallel/4.3.3.1/INTEL/14.0"
-    MBPNETCDF_DIR="/opt/cray/parallel-netcdf/default/INTEL/14.0"
-    MBMETIS_DIR="/opt/cray/tpsl/1.5.2/INTEL/14.0/$MBCONFARCH"
+    MBMPI_DIR=""
+    MBHDF5_DIR="/opt/cray/pe/hdf5-parallel/default/intel/51"
+    MBNETCDF_DIR="/opt/cray/pe/netcdf/default/intel/51"
+    MBMETIS_DIR="/opt/cray/pe/tpsl/default/intel/51/$MBCONFARCH"
+    LIBS="-L/opt/cray/pe/libsci/default/intel/51/$MBCONFARCH/lib -lsci_gnu_mp"
+    PREREQ="module load gcc/6.3.0 craype-haswell"
+    ;;
+  *edison* | *cori*)
+    CROSSCOMPILE="yes"
+    MBCONFARCH="haswell"
+    MBCC="cc"
+    MBCXX="CC"
+    MBFC="ftn"
+    MBF77="ftn"
+    MBNMPICC="cc"
+    MBNMPICXX="CC"
+    MBNMPIFC="ftn"
+    MBNMPIF77="ftn"
+    MBMPI_DIR=""
+    MBHDF5_DIR="/opt/cray/pe/hdf5-parallel/default/intel/150"
+    MBNETCDF_DIR="/opt/cray/pe/netcdf-hdf5parallel/default/intel/150"
+    MBPNETCDF_DIR="/opt/cray/pe/parallel-netcdf/default/intel/150"
+    MBBLASLAPACK_LIBS="/opt/cray/pe/libsci/default/intel/150/$MBCONFARCH/lib/libsci_intel.a"
+    MBMETIS_DIR="/opt/cray/pe/tpsl/default/INTEL/150/$MBCONFARCH"
+    PREREQ="module load craype-haswell"
     ;;
   *)  # Nothing to do
     ;;
@@ -179,7 +188,15 @@ else
 	INTERNAL_OPTIONS="$INTERNAL_OPTIONS --disable-fortran"
 fi
 
+if (test "x$CROSSCOMPILE" != "xno"); then
+  INTERNAL_OPTIONS="$INTERNAL_OPTIONS cross_compiling=yes"
+fi
+
 DEPENDENCY_OPTIONS=""
+if (test "x$MBBLASLAPACK_LIBS" != "x"); then
+  DEPENDENCY_OPTIONS="$DEPENDENCY_OPTIONS --with-blas=\"$MBBLASLAPACK_LIBS\" --with-lapack=\"$MBBLASLAPACK_LIBS\""
+fi
+
 if (test "x$MBHDF5_DIR" != "x"); then
   DEPENDENCY_OPTIONS="$DEPENDENCY_OPTIONS --with-hdf5=$MBHDF5_DIR"
 fi
