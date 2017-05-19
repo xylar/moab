@@ -22,10 +22,9 @@ Range get_children_by_dimension(Interface *mbi, EntityHandle parent, int desired
 void heappermute(Interface *mbi, int v[], int n, std::map< int, std::set<int> > ref_map, int len);
 void swap(int *x, int *y);
 void get_cube_info( int cube_id, std::vector<double> &scale, std::vector<double> &trans );
-ErrorCode setup(Interface *mbi, GeomTopoTool *GTT);
 void test_two_cubes();
 void test_three_cubes();
-void test_six_cubes();
+void test_four_cubes();
 
 ErrorCode build_cube( Interface *mbi,
                       std::vector<double> scale_vec, 
@@ -68,7 +67,7 @@ ErrorCode build_cube( Interface *mbi,
   EntityHandle verts[num_verts], tris[num_tris], surf;
 
   rval = mbi->create_meshset( MESHSET_SET, surf ); MB_CHK_ERR(rval);
-
+/*
   // scale coords
   int i;
   double scaled_coords[24];
@@ -87,9 +86,18 @@ ErrorCode build_cube( Interface *mbi,
       trans_coords[3*i+1] = scaled_coords[3*i+1] + trans_vec[1];
       trans_coords[3*i+2] = scaled_coords[3*i+2] + trans_vec[2];
     }
+*/
+  // transform coords-- scale and translate
+  double trans_coords[24];
+  for ( int i = 0; i < num_verts; i++ ) 
+    {
+      trans_coords[3*i]   = coords[3*i]*scale_vec[0]   + trans_vec[0];
+      trans_coords[3*i+1] = coords[3*i+1]*scale_vec[1] + trans_vec[1];
+      trans_coords[3*i+2] = coords[3*i+2]*scale_vec[2] + trans_vec[2];
+    }
 
   // create vertices and add to meshset
-  for ( i = 0; i < num_verts; ++i) 
+  for ( int i = 0; i < num_verts; ++i) 
     {
       rval = mbi->create_vertex( trans_coords + 3*i, verts[i] ); MB_CHK_ERR(rval);
 
@@ -98,7 +106,7 @@ ErrorCode build_cube( Interface *mbi,
     }
 
   // create triangles and add to meshset
-  for ( i = 0; i < num_tris; ++i) 
+  for ( int i = 0; i < num_tris; ++i) 
     {
       const EntityHandle conn[] = { verts[connectivity[3*i  ]], 
                                     verts[connectivity[3*i+1]], 
@@ -148,7 +156,8 @@ int main()
 
   result += RUN_TEST(test_two_cubes);
   result += RUN_TEST(test_three_cubes);
-  result += RUN_TEST(test_six_cubes);
+  result += RUN_TEST(test_four_cubes);
+  
   return result;
 
 }
@@ -264,7 +273,7 @@ Range get_children_by_dimension(Interface *mbi, EntityHandle parent, int desired
 }
 
 /* This function contains info for the scale and translation vectors of
-   six different cubes that will be used in the hierarchy testing
+   four different cubes that will be used in the hierarchy testing
 */ 
 void get_cube_info( int cube_id, std::vector<double> &scale, std::vector<double> &trans )
 {
@@ -300,24 +309,6 @@ void get_cube_info( int cube_id, std::vector<double> &scale, std::vector<double>
     }
   if ( cube_id == 4 )
     {
-      scale.push_back(4);
-      scale.push_back(4);
-      scale.push_back(4);
-      trans.push_back(0);
-      trans.push_back(0);
-      trans.push_back(-10);
-    }
-  if ( cube_id == 5 )
-    {
-      scale.push_back(4);
-      scale.push_back(4);
-      scale.push_back(4);
-      trans.push_back(10);
-      trans.push_back(0);
-      trans.push_back(-10);
-    }
-  if ( cube_id == 6 )
-    {
       scale.push_back(40);
       scale.push_back(40);
       scale.push_back(40);
@@ -328,6 +319,9 @@ void get_cube_info( int cube_id, std::vector<double> &scale, std::vector<double>
 
 }
 
+/*
+ * One large cube that contains a smaller one.
+ */
 void test_two_cubes()
 {
   ErrorCode rval; 
@@ -353,6 +347,10 @@ void test_two_cubes()
 
 }
 
+/*
+ * One large cube that contains two others.
+ * The two inner cubes are siblings.
+ */
 void test_three_cubes()
 {
   ErrorCode rval; 
@@ -379,7 +377,10 @@ void test_three_cubes()
   delete mbi;
 }
 
-void test_six_cubes()
+/*
+ * Four nested cubes of decreasing size; one placed inside the next
+ */
+void test_four_cubes()
 {
   ErrorCode rval; 
 
@@ -389,8 +390,8 @@ void test_six_cubes()
   rval = get_all_handles(mbi);
   MB_CHK_ERR_RET(rval);
   
-  int len = 6; 
-  int num[6] = {1, 2, 3, 4, 5, 6};
+  int len = 4; 
+  int num[4] = {1, 2, 3, 4};
 
   //build reference map
   std::map< int, std::set<int> > ref_map;
@@ -400,16 +401,13 @@ void test_six_cubes()
   ref_map[3].insert(3);
   ref_map[3].insert(2);
   ref_map[4].insert(4);
-  ref_map[5].insert(5);
-  ref_map[6].insert(6);
-  ref_map[6].insert(5);
-  ref_map[6].insert(4);
-  ref_map[6].insert(3);
+  ref_map[4].insert(3);
   
   heappermute(mbi, num, len, ref_map, len);
 
   delete mbi;
 }
+
 
 /* Heap's algorithm generates all possible permutations of n objects
    This function is a modification of code found here:
@@ -436,7 +434,8 @@ void heappermute(Interface *mbi, int v[], int n, std::map< int, std::set<int> > 
 
 	  // construct the topology
 	  GeomTopoTool *GTT = new GeomTopoTool(mbi);
-	  rval = setup(mbi, GTT);
+      // first build obbs-- necessary for topology construction
+      rval = GTT->construct_obb_trees();
       MB_CHK_ERR_RET(rval);
 	  rval = GTT->construct_topology(flat_vols);
       MB_CHK_ERR_RET(rval);
@@ -480,17 +479,3 @@ void swap(int *x, int *y)
   *y = temp;
 }
 
-ErrorCode setup(Interface *mbi, GeomTopoTool *GTT)
-{
-  ErrorCode rval;              
-
-  // build obbs
-  rval = GTT->construct_obb_trees();
-  MB_CHK_SET_ERR(rval, "Failed to load set up obbs.");
-   	 
-  // get all tag handles
-  rval = get_all_handles(mbi);
-  MB_CHK_SET_ERR(rval, "Failed to get all tag	handles.");
-
-  return MB_SUCCESS;
-}
