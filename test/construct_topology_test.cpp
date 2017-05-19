@@ -22,6 +22,7 @@ Range get_children_by_dimension(Interface *mbi, EntityHandle parent, int desired
 void heappermute(Interface *mbi, int v[], int n, std::map< int, std::set<int> > ref_map, int len);
 void swap(int *x, int *y);
 void get_cube_info( int cube_id, std::vector<double> &scale, std::vector<double> &trans );
+ErrorCode setup(Interface *mbi, GeomTopoTool *GTT);
 void test_two_cubes();
 void test_three_cubes();
 void test_four_cubes();
