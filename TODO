@@ -1,0 +1,51 @@
+# MOAB TODO LIST
+
+## General
+
+1. Document FileOptions class in UG
+2. Add an example for using various tree decompositions.
+3. AHF should be updated to handle mixed and polygonal/poylhedral meshes.
+4. Make `mbpart` execute in parallel with support for *ParMetis* and *Zoltan*
+5. Add tests for MCNP5 meshtal reader. (@pshriwise, @gonuke) Issue #32
+6. Explore usage of `clang-tidy` for cleaning up MOAB sources
+7. Unify formatting in all sources with `astyle`
+8. Update and improve the re-order entities method to have better memory complexity when rearranging entities for maximizing contiguity
+9. Add an example to use NearestNeighbor/KNN queries; Optionally adding NanoFlann as a dependency.
+10. Add Tag support for `bit`, `bool`, `long`, `float` and `long double` data types 
+
+## Adaptivity
+
+## Non-Conformal
+
+1. Update adjacency queries to return the right list of elements, when the mesh has hanging nodes
+2. Support standard templates for splitting various types of elements (tri/quad/tet/hex/poly) in the reference frame
+3. Ensure defining and manipulating tags on the hanging nodes work correctly
+
+## PyMOAB: Python interface for MOAB
+
+1. User's Guide Section
+2. Variable length tag support via the tag_set/get_by_ptr methods
+3. Better implementation of the PyMOAB Range class's __str__ and __repr__ methods
+
+## Mesquite integration
+
+1. FileTokenizer is one example, used for reading vtk files; Maybe it would be good to unify this, to "maintain" only one; On a glimpse, Mesquite VTK reader allows more datasets. For example structured mesh and rectilinear grids, which are not supported in MOAB for now.
+```C
+switch( datatype )
+{
+  case 1: vtk_read_structured_points( tokens, err ); break;
+  case 2: vtk_read_structured_grid  ( tokens, err ); break;
+  case 3: vtk_read_unstructured_grid( tokens, err ); break;
+  case 4: vtk_read_polydata         ( tokens, err ); break;
+  case 5: vtk_read_rectilinear_grid ( tokens, err ); break;
+  case 6: vtk_read_field            ( tokens, err ); break;
+}
+```
+2. Consolidate usage of MBMesquite::Vector3D and MBMesquite::Matrix3D classes are similar to moab::CartVect and moab::Matrix3
+3. On a more general note, the MOAB database is array-based, while Mesquite is designed based on std::vector of elements/vertices. So in comparison, Mesquite is a more heterogeneous data structure, where each element has an explicit connectivity list, as indices in the vertex array, and there is a C++ object (struct) for each element and each vertex; i.e., each vertex stores its upward adjacency in a vector.
+4. There are several memory leaks in Mesquite tests and examples. These should be fixed and cleaned up. Valgrind is NOT happy.
+5. Add more examples showing Mesquite usage with MOAB
+6. Verify mesh optimization algorithms in both serial and parallel and see if all of the indicators work as they should
+7. Unify error propagation between MOAB and Mesquite
+8. Unify EntityHandle definition between MOAB and Mesquite (void*)
+
