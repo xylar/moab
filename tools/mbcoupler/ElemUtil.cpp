@@ -13,13 +13,13 @@ namespace ElemUtil {
 /**\brief Class representing a 3-D mapping function (e.g. shape function for volume element) */
 class VolMap {
   public:
-      /**\brief Return $\vec \xi$ corresponding to logical center of element */
+      /**\brief Return \f$\vec \xi\f$ corresponding to logical center of element */
     virtual CartVect center_xi() const = 0;
-      /**\brief Evaluate mapping function (calculate $\vec x = F($\vec \xi)$ )*/
+      /**\brief Evaluate mapping function (calculate \f$\vec x = F($\vec \xi)\f$ )*/
     virtual CartVect evaluate( const CartVect& xi ) const = 0;
       /**\brief Evaluate Jacobian of mapping function */
     virtual Matrix3 jacobian( const CartVect& xi ) const = 0;
-      /**\brief Evaluate inverse of mapping function (calculate $\vec \xi = F^-1($\vec x)$ )*/
+      /**\brief Evaluate inverse of mapping function (calculate \f$\vec \xi = F^-1($\vec x)\f$ )*/
     bool solve_inverse( const CartVect& x, CartVect& xi, double tol ) const ;
 };
 
