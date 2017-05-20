@@ -16,7 +16,7 @@ Tag name_tag;
 Tag obj_name_tag;
 Tag dim_tag, id_tag;
 
-bool check_tree ( Interface *mbi, GeomTopoTool *GTT, std::map< int, std::set<int> > ref_map );
+bool check_tree ( Interface *mbi, GeomTopoTool *GTT, std::map< int, std::set<int> > &ref_map );
 ErrorCode get_all_handles(Interface *mbi);
 Range get_children_by_dimension(Interface *mbi, EntityHandle parent, int desired_dimension);
 void heappermute(Interface *mbi, int v[], int n, std::map< int, std::set<int> > ref_map, int len);
@@ -199,7 +199,7 @@ ErrorCode get_all_handles(Interface *mbi)
 /* This function tests that the tree built by generate_hierarchy is the same
    as the reference tree
 */
-bool check_tree ( Interface *mbi, GeomTopoTool *GTT, std::map< int, std::set<int> > ref_map )
+bool check_tree ( Interface *mbi, GeomTopoTool *GTT, std::map< int, std::set<int> > &ref_map )
 {
   ErrorCode rval;
   int vol_id;
@@ -424,6 +424,7 @@ void heappermute(Interface *mbi, int v[], int n, std::map< int, std::set<int> > 
   if (n == 1)
     {
       //build cubes
+      flat_vols.clear();
       for (int i = 0; i < len; i++)
         {
           get_cube_info(v[i], scale, trans);
@@ -437,7 +438,7 @@ void heappermute(Interface *mbi, int v[], int n, std::map< int, std::set<int> > 
       // first build obbs-- necessary for topology construction
       rval = GTT->construct_obb_trees();
       MB_CHK_ERR_RET(rval);
-	  rval = GTT->construct_topology(flat_vols);
+	  rval = GTT->restore_topology_from_geometric_inclusion(flat_vols);
       MB_CHK_ERR_RET(rval);
       
       //test the topology
