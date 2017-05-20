@@ -27,9 +27,9 @@ endif
 
 lib_LTLIBRARIES = $(MSQ_ITAPS_LIB)
 
-libmbmsqitaps_la_includedir = $(includedir)
-libmbmsqitaps_la_SOURCES = $(MSQ_ITAPS_SRCS)
+libmbmsqitaps_la_includedir = $(includedir)/moab/mesquite
 libmbmsqitaps_la_include_HEADERS = $(MSQ_ITAPS_HDRS) 
+libmbmsqitaps_la_SOURCES = $(MSQ_ITAPS_SRCS)
 libmbmsqitaps_la_LIBADD = $(MSQ_LIBDEPS)
 
 AM_CPPFLAGS = $(CPPFLAGS) \
