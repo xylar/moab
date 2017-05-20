@@ -42,6 +42,16 @@ class OrientedBoxTreeTool
 {
   public:
   
+    /**\brief This provides the search range for ray intersections, measured
+       relative to the origin of the ray.
+
+       first: nonnegative limit for search
+       second: negative limit for search
+
+       These are const double* so that the window is always defined by
+       pointing to other quantities, but it is not posible to change those
+       quantities via the window.
+     **/
     typedef std::pair<const double*,const double*> IntersectSearchWindow;
 
     /**\brief Misc. knobs controlling tree subdivision
@@ -188,9 +198,20 @@ class OrientedBoxTreeTool
    *
    * To enable different logic for how individual intersections are
    * accumulated, depending on the usage of ray_intersect_sets().  
+   *
+   * The API to this context has 3 parts:
+   * * getDesiredOrient() during initialization of ray_intersect_sets to
+        determine whether this context filters by context
+   * * update_orient() updates the context to know the orientation of the
+       current surface wrt to its volume during a traversal visit()
+   * * register_intersection() offers an intersection to the context so that
+       it can decide whether to accumulate it or ignore it
    * 
    * This implementation also provides a default NOP version that accumulates
    * all intersections without logic.
+   *
+   * A reference implementation can be found in GeomQueryTool::GQT_IntRegCtxt.
+   *
    */
   
     class IntRegCtxt {

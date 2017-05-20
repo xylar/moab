@@ -22,32 +22,40 @@ debug = true;
 
 namespace moab {
 
-  /*
-   *\param min_tolerance_intersections This method returns all intersections
-   *                     within 'tolerance' of the start of the ray and if 
-   *                     the number of intersections within the 'tolerance' of the
-   *                     ray start point is less than this number, the next closest
-   *                     intersection.  If the desired result is only the closest
-   *                     intersection, pass zero for this argument.
-   *                     This function will return all intersections, regardless
-   *                     of distance from the start of the ray, if this value
-   *                     is negative.
-   *\param nonneg_ray_len Optional ray length ahead of the ray_point (intersect 
-   *                     segment instead of ray.)
-   *\param neg_ray_len   Optional ray length behind the ray_point to search for 
-   *                     intersections.
-   *\param geom_vol      Optional handle of the geometry set being searched. When
-   *                     used, glancing intersections are rejected. Must be used
-   *                     used with sense_tag.
-   *\param sense_tag     Must be used if geom_vol is used. Saves >4% of execution
-   *                     time by avoiding tag_get_handle call.
-   *\param desired_orient Optional ptr used to screen intersections by orientation.
-   *                     Pass 1 to keep intersections with surface normals in the
-   *                     same direction as the ray. Pass -1 for opposite orientation.
-   *                     Requires use of geom_vol.
-   *\param prev_facets   Optional vector of triangles that cannot be returned
-   *                     as intersections.
-   */
+
+  /** \class GQT_IntRegCtxt
+   *
+   *\brief An implementation of an Intersection Registration Context for use GQT ray-firing
+   *
+   * This context uses a variety of tests and conditions to confirm whether or
+   * not to accumulate an intersection, to ensure robustness for ray firing.
+   *
+   * This context only accumulates intersections that are oriented parallel to
+   * the 'desiredOrient', if provided, with respect to 'geomVol', using
+   * information in the in 'senseTag'.
+   *
+   * This context only accumulates a single intersection out of a set of
+   * multiple intersections that fall in the same 'neighborhood', where a
+   * 'neighborhood' is defined as facets that share edges or vertices.
+   *
+   * This context only accumulates piercing intersections.  This is relevant
+   * for intersections that are found to be on an edge or vertex by the
+   * Plucker test.  Such intersections are piercing if the ray has the same
+   * orientation w.r.t. to all fecets that share that edge or vertex.
+   *
+   * This context tests intersections against a list of 'prevFacets' to
+   * prevent a ray from crossing the same facet more than once.  The user is
+   * responsible for ensuring that this list is reset when appropriate.
+   *
+   * This context accumulates all intersections within 'tol' of the
+   * start of the ray and if the number of intersections within the
+   * 'tol' of the ray start point is less than 'minTolInt', the next
+   * closest intersection. If the desired result is only the closest
+   * intersection, 'minTolInt' should be 0.  This function will return all
+   * intersections, regardless of distance from the start of the ray, if
+   * 'minTolInt' is negative.
+   *
+   */  
 
   class GQT_IntRegCtxt : public OrientedBoxTreeTool::IntRegCtxt {
 
@@ -59,7 +67,7 @@ namespace moab {
     const double         tol;             /* used for box.intersect_ray, radius of
                                              neighborhood for adjacent triangles,
                                              and old mode of add_intersection */
-    const int            minTolInt;       /* used for old mode of add_intersection */
+    const int            minTolInt;      
   
     // Optional Input - to screen RTIs by orientation and edge/node intersection
     const EntityHandle*  rootSet;         /* used for sphere_intersect */
