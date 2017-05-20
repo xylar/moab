@@ -517,7 +517,7 @@ ErrorCode GeomTopoTool::construct_obb_trees(bool make_one_vol)
 }
 
 //! Restore parent/child links between GEOM_TOPO mesh sets
-ErrorCode GeomTopoTool::restore_topology()
+ErrorCode GeomTopoTool::restore_topology_from_adjacency()
 {
 
   // look for geometric topology sets and restore parent/child links between them
@@ -1551,7 +1551,7 @@ ErrorCode GeomTopoTool::duplicate_model(GeomTopoTool *& duplicate, std::vector<E
   // sets and put them in ranges
 
   // this is the lazy way to it:
-  // newgtt->restore_topology(); // will reset the sense entities, and with this, the model
+  // newgtt->restore_topology_from_adjacency(); // will reset the sense entities, and with this, the model
   // represented by this new gtt will be complete
   // set senses by peeking at the old model
   // make sure we have the sense tags defined
@@ -2059,10 +2059,7 @@ ErrorCode GeomTopoTool::insert_in_tree(EntityHandle ct_root, EntityHandle volume
 }
 
 
-// dicover the hierarchy that exists in a range of volumes and establish it according
-// to the conventions of GeomTopoTool
-  
-ErrorCode GeomTopoTool::construct_topology(Range flat_volumes) {
+ErrorCode GeomTopoTool::restore_topology_from_geometric_inclusion(const Range &flat_volumes) {
 
   ErrorCode rval;
   GeomQueryTool* GQT = new GeomQueryTool(this);
