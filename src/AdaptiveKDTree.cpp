@@ -1966,7 +1966,7 @@ namespace moab {
             rval = moab()->get_coords( tri_conn, 3, tri_coords[0].array() );
             if (MB_SUCCESS != rval) return rval;
         
-            if (GeomUtil::ray_tri_intersect( tri_coords, ray_pt, ray_dir, tol, tri_t, &ray_end )) {
+            if (GeomUtil::ray_tri_intersect( tri_coords, ray_pt, ray_dir, tri_t, &ray_end )) {
               if (!max_ints) {
                 if (std::find(tris_out.begin(),tris_out.end(),*iter) == tris_out.end()) {
                   tris_out.push_back( *iter );

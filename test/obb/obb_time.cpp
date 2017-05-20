@@ -198,7 +198,11 @@ int main( int argc, char* argv[] )
     if (do_sets) {
       sets.clear();
       facets.clear();
-      rval = tool.ray_intersect_sets( intersections, sets, facets, root, 1e-6, 1, point.array(), dir.array(), 0,  stats );
+
+      OrientedBoxTreeTool::IntersectSearchWindow search_win;
+      OrientedBoxTreeTool::IntRegCtxt int_reg_ctxt;
+      rval = tool.ray_intersect_sets( intersections, sets, facets, root, 1e-6, point.array(), dir.array(),
+                                      search_win, int_reg_ctxt, stats);
     }
     else {
       rval = tool.ray_intersect_triangles( intersections, facets, root, 1e-6, point.array(), dir.array(), 0, stats );

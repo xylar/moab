@@ -14,6 +14,7 @@
  */
 
 #include "moab/GeomTopoTool.hpp"
+#include "moab/GeomUtil.hpp"
 #include "moab/OrientedBoxTreeTool.hpp"
 #include "moab/Range.hpp"
 #include "MBTagConventions.hpp"
