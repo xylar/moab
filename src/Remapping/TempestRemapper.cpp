@@ -424,9 +424,6 @@ ErrorCode TempestRemapper::ConvertMOABMesh_WithSortedEntitiesBySource()
         rval = m_interface->tag_get_handle ( "BlueParent", bluePtag ); MB_CHK_ERR ( rval );
         rval = m_interface->tag_get_handle ( "RedParent", redPtag ); MB_CHK_ERR ( rval );
 
-        rval = m_pcomm->exchange_tags ( bluePtag, m_covering_source_entities ); MB_CHK_ERR ( rval );
-        rval = m_pcomm->exchange_tags ( redPtag, m_covering_source_entities ); MB_CHK_ERR ( rval );
-
         // Overlap mesh: resize the source and target connection arrays
         m_overlap->vecSourceFaceIx.resize ( m_overlap_entities.size() );
         m_overlap->vecTargetFaceIx.resize ( m_overlap_entities.size() );
@@ -451,13 +448,11 @@ ErrorCode TempestRemapper::ConvertMOABMesh_WithSortedEntitiesBySource()
         }
     }
 
-    NodeVector& nodes = m_overlap->nodes;
     FaceVector& faces = m_overlap->faces;
-
-    Range verts;
-
     faces.resize ( m_overlap_entities.size() );
 
+    NodeVector& nodes = m_overlap->nodes;
+    Range verts;
     for ( unsigned ifac = 0; ifac < m_overlap_entities.size(); ++ifac )
     {
         const unsigned iface = sorted_overlap_order[ifac].second;
@@ -551,8 +546,6 @@ ErrorCode TempestRemapper::AssociateSrcTargetInOverlap()
         Tag gidtag;
         rval = m_interface->tag_get_handle ( "GLOBAL_ID", gidtag ); MB_CHK_ERR ( rval );
 
-        rval = m_pcomm->exchange_tags ( gidtag, m_covering_source_entities ); MB_CHK_ERR ( rval );
-
         std::vector<int> gids ( m_covering_source_entities.size(), -1 );
         rval = m_interface->tag_get_data ( gidtag,  m_covering_source_entities, &gids[0] ); MB_CHK_ERR ( rval );
         for ( unsigned ie = 0; ie < gids.size(); ++ie )
@@ -592,7 +585,8 @@ ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius,
     //   2) Invoke GenerateOverlapWithMeshes routine from Tempest library
     // If MOAB
     //   1) Check for valid source and target meshsets (and entities)
-    //   2)
+    //   2) Build processor bounding boxes and construct a covering set
+    //   3) Perform intersection between the source (covering) and target entities 
     if ( use_tempest )
     {
         // Now let us construct the overlap mesh, by calling TempestRemap interface directly
@@ -636,26 +630,9 @@ ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius,
             {
                 std::vector<int> gids ( m_covering_source_entities.size(), -1 );
                 rval = m_interface->tag_get_data ( gidTag,  m_covering_source_entities, &gids[0] ); MB_CHK_ERR ( rval );
-#if 0
-                MPI_Barrier ( m_pcomm->comm() );
-                if ( !m_pcomm->rank() )
-                {
-                    for ( unsigned ie = 0; ie < gids.size(); ++ie )
-                        std::cout << "[Proc0] CoveringSrc[" << ie << "]: GID = " << gids[ie] << "\n";
-                }
-                MPI_Barrier ( m_pcomm->comm() );
-                if ( m_pcomm->rank() )
-                {
-                    for ( unsigned ie = 0; ie < gids.size(); ++ie )
-                        std::cout << "[Proc1] CoveringSrc[" << ie << "]: GID = " << gids[ie] << "\n";
-                }
-                MPI_Barrier ( m_pcomm->comm() );
-#endif
             }
 
             m_intersecting_target_entities = moab::intersect ( m_source_entities, m_covering_source_entities );
-            // std::cout << "Number of common entities = " << m_intersecting_target_entities.size() << "/ (" << m_source_entities.size() << ", " << m_covering_source_entities.size() << ")\n";
-
         }
         else
         {
@@ -666,7 +643,6 @@ ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius,
         }
 
         // Now perform the actual parallel intersection between the source and the target meshes
-        // rval = mbintx->intersect_meshes(m_source_set, m_covering_target_set, m_overlap_set);MB_CHK_SET_ERR(rval, "Can't compute the intersection of meshes on the sphere");
         rval = mbintx->intersect_meshes ( m_covering_source_set, m_target_set, m_overlap_set ); MB_CHK_SET_ERR ( rval, "Can't compute the intersection of meshes on the sphere" );
 
         // Not needed
@@ -685,3 +661,4 @@ ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius,
 ///////////////////////////////////////////////////////////////////////////////////
 
 }
+

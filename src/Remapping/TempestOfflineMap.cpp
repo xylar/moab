@@ -1,9 +1,16 @@
-///////////////////////////////////////////////////////////////////////////////
-///
-/// \file    GenerateOfflineMap.cpp
-/// \author  Vijay Mahadevan
-/// \version Feb 28, 2017
-///
+/*
+ * =====================================================================================
+ *
+ *       Filename:  TempestOfflineMap.hpp
+ *
+ *    Description:  Interface to the TempestRemap library to compute the consistent,
+ *                  and accurate high-order conservative remapping weights for overlap
+ *                  grids on the sphere in climate simulations.
+ *
+ *         Author:  Vijay S. Mahadevan (vijaysm), mahadevan@anl.gov
+ *
+ * =====================================================================================
+ */
 
 #include "Announce.h"
 #include "DataMatrix3D.h"
@@ -13,9 +20,6 @@
 
 #include "moab/Remapping/TempestOfflineMap.hpp"
 #include "DebugOutput.hpp"
-
-// NetCDF-C++ interfaces
-// #include "netcdfcpp.h"
 
 #include <fstream>
 #include <cmath>
@@ -51,13 +55,10 @@ moab::TempestOfflineMap::TempestOfflineMap ( moab::TempestRemapper* remapper ) :
     this->InitializeSourceDimensionsFromMesh ( *m_meshInputCov );
     dbgprint.printf ( 0, "Output mesh\n" );
     this->InitializeTargetDimensionsFromMesh ( *m_meshOutput );
-    // dbgprint.printf(0, "----------------------------------\n");
 
     // Build a matrix of source and target discretization so that we know how to assign
     // the global DoFs in parallel for the mapping weights
     // For example, FV->FV: rows X cols = faces_source X faces_target
-    //
-    // MPI_Scan()
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -210,11 +211,6 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
         MPI_Allreduce ( &dTotalAreaInput_loc, &dTotalAreaInput, 1, MPI_DOUBLE, MPI_SUM, pcomm->comm() );
         if ( !pcomm->rank() ) dbgprint.printf ( 0, "Input Mesh Geometric Area: %1.15e\n", dTotalAreaInput );
 
-        double dTotalAreaInputCov_loc = m_meshInputCov->CalculateFaceAreas();
-        Real dTotalAreaInputCov;
-        MPI_Allreduce ( &dTotalAreaInputCov_loc, &dTotalAreaInputCov, 1, MPI_DOUBLE, MPI_SUM, pcomm->comm() );
-        if ( !pcomm->rank() ) dbgprint.printf ( 0, "Input Mesh (coverage set) Geometric Area: %1.15e\n", dTotalAreaInputCov );
-
         // Input mesh areas
         if ( eInputType == DiscretizationType_FV )
         {
@@ -257,9 +253,6 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
                 ixTargetFaceMax = m_meshOverlap->vecTargetFaceIx[i] + 1;
             }
         }
-
-        if ( !pcomm->rank() ) dbgprint.printf ( 0, "[0] m_meshInput->faces = %lu, m_meshInputCov->faces = %lu, m_meshOutput->faces = %lu, ixSourceFaceMax = %d\n", m_meshInput->faces.size(), m_meshInputCov->faces.size(), m_meshOutput->faces.size(), ixSourceFaceMax );
-        if ( pcomm->rank() ) dbgprint.printf ( 0, "[1] m_meshInput->faces = %lu, m_meshInputCov->faces = %lu, m_meshOutput->faces = %lu, ixSourceFaceMax = %d\n", m_meshInput->faces.size(), m_meshInputCov->faces.size(), m_meshOutput->faces.size(), ixSourceFaceMax );
 
         /*
         // Check for forward correspondence in overlap mesh
@@ -319,7 +312,6 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
                 ( eOutputType == DiscretizationType_FV )
            )
         {
-
             // Generate reverse node array and edge map
             m_meshInputCov->ConstructReverseNodeArray();
             m_meshInputCov->ConstructEdgeMap();
@@ -835,8 +827,6 @@ moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot()   // Collective
         ierr = MPI_Gather ( sendarray, 4, MPI_INTEGER, rowcolss.data(), 4, MPI_INTEGER, rootProc, pcomm->comm() );
         if ( ierr != MPI_SUCCESS ) return moab::MB_FAILURE;
 
-        // dbgprint.printf(0, "[%d] Dimensions: %d, %d\n", pcomm->rank(), vecRow.GetRows(), vecCol.GetRows());
-
         if ( !pcomm->rank() )
         {
             for ( unsigned i = 0; i < pcomm->size(); ++i )
@@ -863,9 +853,11 @@ moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot()   // Collective
             m_weightMapGlobal->GetSourceAreas().Initialize ( gsrc ); srcelmindx.Initialize ( gsrc );
             m_weightMapGlobal->GetTargetAreas().Initialize ( gtar ); tgtelmindx.Initialize ( gtar );
 
+#ifdef VERBOSE
             dbgprint.printf ( 0, "Received global dimensions: %d, %d\n", vecRow.GetRows(), rows.GetRows() );
             dbgprint.printf ( 0, "Global: n(source) = %d, and n(target) = %d\n", gsrc, gtar );
             dbgprint.printf ( 0, "Operator size = %d\n", grows + gcols );
+#endif
         }
     }
 
@@ -906,9 +898,7 @@ moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot()   // Collective
         {
             moab::Tag gidtag;
             rval = mbCore->tag_get_handle ( "GLOBAL_ID", gidtag ); MB_CHK_ERR ( rval );
-            // rval = mbCore->tag_get_data(gidtag, m_remapper->GetEntities(moab::Remapper::SourceMesh), &sendarray[vecRow.GetRows()+vecCol.GetRows()]);MB_CHK_ERR(rval);
             rval = mbCore->tag_get_data ( gidtag, m_remapper->m_covering_source_entities, &sendarray[vecRow.GetRows() + vecCol.GetRows()] ); MB_CHK_ERR ( rval );
-            // rval = mbCore->tag_get_data(gidtag, m_remapper->m_source_entities, &sendarray[vecRow.GetRows()+vecCol.GetRows()]);MB_CHK_ERR(rval);
             rval = mbCore->tag_get_data ( gidtag, m_remapper->m_target_entities, &sendarray[vecRow.GetRows() + vecCol.GetRows() + dSourceAreas.GetRows()] ); MB_CHK_ERR ( rval );
         }
 
@@ -1055,7 +1045,6 @@ moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot()   // Collective
                     output_file << srcelmindx[offset] << " " << rowcolsvals[i] << "\n";
 #endif
                     m_areasSrcGlobal[srcelmindx[offset]] = rowcolsvals[i];
-                    // m_areasSrcGlobal[offset] = rowcolsvals[i];
                 }
             }
 #ifdef VERBOSE
@@ -1070,7 +1059,6 @@ moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot()   // Collective
                     output_file << tgtelmindx[offset] << " " << rowcolsvals[i] << "\n";
 #endif
                     m_areasTgtGlobal[tgtelmindx[offset]] = rowcolsvals[i];
-                    // m_areasTgtGlobal[offset] = rowcolsvals[i];
                 }
             }
 #ifdef VERBOSE
