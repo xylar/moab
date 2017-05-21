@@ -8,16 +8,16 @@
 #include "moab_mpi.h"
 #endif
 
-#ifndef MESHDIR
-#error Specify MESHDIR to compile test
+#ifndef MOAB_HAVE_HDF5
+#error This test requires HDF5 support
 #endif
 
 using namespace moab;
 
-const char* meshfile = STRINGIFY(MESHDIR) "/16_unmerged_hex.h5m";
-const char* meshfile2 = STRINGIFY(MESHDIR) "/merge_with_tag.h5m";
-const char* meshfile3 = STRINGIFY(MESHDIR) "/triangles.h5m";
-const char *outfile = "mm_out.h5m";
+std::string meshfile = TestDir + "/16_unmerged_hex.h5m";
+std::string meshfile2 = TestDir + "/merge_with_tag.h5m";
+std::string meshfile3 = TestDir + "/triangles.h5m";
+std::string outfile = "mm_out.h5m";
 
 void mergesimple_test();
 void merge_with_tag_test();
@@ -46,13 +46,12 @@ int main()
 
 void mergesimple_test()
 {
-
   ErrorCode rval;
   Core mb;
   Interface* iface = &mb;
   // can be generalized to load user defined input/output file
 
-  rval = iface->load_mesh(meshfile);
+  rval = iface->load_mesh(meshfile.c_str());
   CHECK_ERR(rval);
   int dim = 3;
   moab::Range ents;
@@ -66,7 +65,7 @@ void mergesimple_test()
 
   // Fixed for now
 
-  rval = iface->write_file( outfile);
+  rval = iface->write_file( outfile.c_str() );
   CHECK_ERR(rval);
 
   return ;
@@ -79,7 +78,7 @@ void merge_with_tag_test()
   Interface* iface = &mb;
   // can be generalized to load user defined input/output file
 
-  rval = iface->load_mesh(meshfile2);
+  rval = iface->load_mesh(meshfile2.c_str());
   CHECK_ERR(rval);
   int dim = 0;
   moab::Range verts;
@@ -91,7 +90,7 @@ void merge_with_tag_test()
   MergeMesh mm(iface);
   rval = mm.merge_using_integer_tag(verts, tag_for_merge);
   CHECK_ERR(rval);
-  rval = iface->write_file( outfile);
+  rval = iface->write_file( outfile.c_str() );
   CHECK_ERR(rval);
 
   verts.clear();
@@ -100,21 +99,21 @@ void merge_with_tag_test()
 
   return;
 }
+
 void merge_all_test()
 {
-
   ErrorCode rval;
   Core mb;
   Interface* iface = &mb;
 
-  rval = iface->load_mesh(meshfile3);
+  rval = iface->load_mesh(meshfile3.c_str());
   CHECK_ERR(rval);
 
   MergeMesh mm(iface);
   double merge_tol = 1e-3;
   rval = mm.merge_all(0, merge_tol); // root set
   CHECK_ERR(rval);
-  rval = iface->write_file( outfile);
+  rval = iface->write_file( outfile.c_str() );
   CHECK_ERR(rval);
 
   return;

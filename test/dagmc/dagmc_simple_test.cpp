@@ -20,15 +20,11 @@ DagMC *DAG;
             << __LINE__ << std::endl; \
   return A; } } while(false)
 
-#ifdef MESHDIR
-static const char input_file[] = STRINGIFY(MESHDIR) "/test_geom.h5m";
-#else
-static const char input_file[] = STRINGIFY(MESHDIR) "/test_geom.h5m";
-#endif
+const std::string input_file = TestDir + "/test_geom.h5m";
 
 void dagmc_load_file() 
 {
-  ErrorCode rval = DAG->load_file(input_file); // open the Dag file
+  ErrorCode rval = DAG->load_file(input_file.c_str()); // open the Dag file
   CHECK_ERR(rval);
 }
 
@@ -42,7 +38,7 @@ void dagmc_load_file_dagmc()
 
   ErrorCode rval;
   // load a file
-  rval = dagmc->load_file(input_file);
+  rval = dagmc->load_file(input_file.c_str());
   CHECK_ERR(rval);
   
   // delete dagmc
@@ -56,7 +52,7 @@ void dagmc_load_file_dagmc_via_moab() {
   ErrorCode rval;
 
   moab::Core *mbi = new moab::Core();
-  rval = mbi->load_file(input_file);
+  rval = mbi->load_file(input_file.c_str());
   CHECK_ERR(rval);
   moab::DagMC *dagmc = new moab::DagMC(mbi);
   rval = dagmc->load_existing_contents();
@@ -74,7 +70,7 @@ void dagmc_load_file_dagmc_internal() {
 
   moab::DagMC *dagmc = new moab::DagMC();
   // load a file
-  rval = dagmc->load_file(input_file);
+  rval = dagmc->load_file(input_file.c_str());
   CHECK_ERR(rval);
   delete dagmc;
 }
@@ -90,7 +86,7 @@ void dagmc_load_file_dagmc_build_obb()
   DagMC *dagmc = new moab::DagMC(mbi);
 
   // load a file
-  rval = dagmc->load_file(input_file);
+  rval = dagmc->load_file(input_file.c_str());
   CHECK_ERR(rval);
   rval = dagmc->init_OBBTree();
   CHECK_ERR(rval);
@@ -105,7 +101,7 @@ void dagmc_load_file_dagmc_via_moab_build_obb() {
   ErrorCode rval;
 
   moab::Core *mbi = new moab::Core();
-  rval = mbi->load_file(input_file);
+  rval = mbi->load_file(input_file.c_str());
   CHECK_ERR(rval);
   moab::DagMC *dagmc = new moab::DagMC(mbi);
   rval = dagmc->load_existing_contents();
@@ -125,7 +121,7 @@ void dagmc_load_file_dagmc_internal_build_obb() {
 
   moab::DagMC *dagmc = new moab::DagMC();
   // load a file
-  rval = dagmc->load_file(input_file);
+  rval = dagmc->load_file(input_file.c_str());
   CHECK_ERR(rval);
   rval = dagmc->init_OBBTree();
   CHECK_ERR(rval);
@@ -140,7 +136,7 @@ void dagmc_test_obb_retreval() {
 
   ErrorCode rval;
   // load a file
-  rval = dagmc->load_file(input_file);
+  rval = dagmc->load_file(input_file.c_str());
   CHECK_ERR(rval);
   rval = dagmc->init_OBBTree();
   CHECK_ERR(rval);
@@ -208,7 +204,7 @@ void dagmc_test_obb_retreval_rayfire() {
 
   ErrorCode rval;
   // load a file
-  rval = dagmc->load_file(input_file);
+  rval = dagmc->load_file(input_file.c_str());
   CHECK_ERR(rval);
   rval = dagmc->init_OBBTree();
   CHECK_ERR(rval);

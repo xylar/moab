@@ -20,6 +20,10 @@ configure_file(${CMAKE_CURRENT_BINARY_DIR}/moab/EntityHandle.hpp.in ${CMAKE_CURR
 set(moab_link_lib)
 add_subdirectory(io)
 
+if (ENABLE_MESQUITE AND MOAB_HAVE_CGM)
+  #  add_subdirectory(mesquite)
+endif(ENABLE_MESQUITE AND MOAB_HAVE_CGM)
+
 if( MOAB_HAVE_HDF5 )
   include_directories(${HDF5_INCLUDES})
   set( MOAB_HDF_LIBS ${HDF5_LIBRARIES} )

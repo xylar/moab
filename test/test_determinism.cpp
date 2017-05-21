@@ -13,9 +13,6 @@
  *
  */
 
-
-
-
 #ifdef WIN32
 #ifdef _DEBUG
 // turn off warnings that say they debugging identifier has been truncated
@@ -37,25 +34,16 @@
 
 using namespace moab;
 
-#define STRINGIFY_(X) #X
-#define STRINGIFY(X) STRINGIFY_(X)
-
 int main()
 {
   Interface* iface0 = new Core;
   Interface* iface1 = new Core;
 
-  const char* filename = 0;
-
-#ifdef MESHDIR
-  filename = STRINGIFY(MESHDIR) "/tet_brick.vtk";
-#else
-#error Specify MESHDIR to compile test
-#endif
+  std::string filename = TestDir + "/tet_brick.vtk";
 
   ErrorCode err;
-  err =  iface0->load_file( filename);CHECK_ERR(err);
-  err =  iface1->load_file( filename);CHECK_ERR(err);
+  err =  iface0->load_file( filename.c_str() );CHECK_ERR(err);
+  err =  iface1->load_file( filename.c_str() );CHECK_ERR(err);
 
   Range tets0, verts0, edges0, edges1, tris0, tris1;
   err = iface0->get_entities_by_dimension(0,3,tets0);CHECK_ERR(err);
@@ -66,18 +54,15 @@ int main()
   err = iface1->get_adjacencies(tets0,2,true,tris1,Interface::UNION);CHECK_ERR(err);
   CHECK_EQUAL(tris0,tris1);
 
-
   std::vector<EntityHandle> conn_squence;
 
   // At that point iface0 and iface1 should have the same entity handler
   // associated with entities, so we can use one or another, no difference.
 
-
   int repeat = 0;
   for(;repeat!=3;repeat++) {
 
     std::vector<EntityHandle> conn_seq;
-
 
     Range to_delete;
     // Build range of quad to delete form iface0
@@ -133,7 +118,6 @@ int main()
       err = iface1->get_adjacencies(&*tit,1,2,true,adj1);CHECK_ERR(err);
       CHECK_EQUAL(adj0,adj1);
     }
-
   }
 
   delete iface0;
@@ -141,3 +125,4 @@ int main()
 
   return 0;
 }
+

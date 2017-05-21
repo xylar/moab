@@ -3,25 +3,14 @@
 
 using namespace moab;
 
-#ifdef MESHDIR
-static const char example_eul[] = STRINGIFY(MESHDIR) "/io/eul3x48x96.t.3.nc";
-static const char example_eul_t0[] = STRINGIFY(MESHDIR) "/io/eul3x48x96.t0.nc";
-static const char example_eul_t1[] = STRINGIFY(MESHDIR) "/io/eul3x48x96.t1.nc";
-static const char example_eul_t2[] = STRINGIFY(MESHDIR) "/io/eul3x48x96.t2.nc";
-static const char example_fv[] = STRINGIFY(MESHDIR) "/io/fv3x46x72.t.3.nc";
-static const char example_homme[] = STRINGIFY(MESHDIR) "/io/homme3x3458.t.3.nc";
-static const char example_mpas[] = STRINGIFY(MESHDIR) "/io/mpasx1.642.t.2.nc";
-static const char example_gcrm[] = STRINGIFY(MESHDIR) "/io/gcrm_r3.nc";
-#else
-static const char example_eul[] = "/io/eul3x48x96.t.3.nc";
-static const char example_eul_t0[] = "/io/eul3x48x96.t0.nc";
-static const char example_eul_t1[] = "/io/eul3x48x96.t1.nc";
-static const char example_eul_t2[] = "/io/eul3x48x96.t2.nc";
-static const char example_fv[] = "/io/fv3x46x72.t.3.nc";
-static const char example_homme[] = "/io/homme3x3458.t.3.nc";
-static const char example_mpas[] = "/io/mpasx1.642.t.2.nc";
-static const char example_gcrm[] = "/io/gcrm_r3.nc";
-#endif
+std::string example_eul = TestDir + "/io/eul3x48x96.t.3.nc";
+std::string example_eul_t0 = TestDir + "/io/eul3x48x96.t0.nc";
+std::string example_eul_t1 = TestDir + "/io/eul3x48x96.t1.nc";
+std::string example_eul_t2 = TestDir + "/io/eul3x48x96.t2.nc";
+std::string example_fv = TestDir + "/io/fv3x46x72.t.3.nc";
+std::string example_homme = TestDir + "/io/homme3x3458.t.3.nc";
+std::string example_mpas = TestDir + "/io/mpasx1.642.t.2.nc";
+std::string example_gcrm = TestDir + "/io/gcrm_r3.nc";
 
 #ifdef MOAB_HAVE_MPI
 #include "moab_mpi.h"
@@ -161,7 +150,7 @@ void test_eul_read_write_T()
 
   // Read non-set variable T and set variable gw
   read_opts += ";VARIABLE=T,gw;DEBUG_IO=0";
-  rval = mb.load_file(example_eul, &set, read_opts.c_str());
+  rval = mb.load_file(example_eul.c_str(), &set, read_opts.c_str());
   CHECK_ERR(rval);
 
   // Write variables T and gw
@@ -213,9 +202,9 @@ void test_eul_check_T()
     CHECK_EQUAL(0, success);
 
 #ifdef MOAB_HAVE_PNETCDF
-    success = NCFUNC(open)(MPI_COMM_SELF, example_eul, NC_NOWRITE, MPI_INFO_NULL, &ncid_ref);
+    success = NCFUNC(open)(MPI_COMM_SELF, example_eul.c_str(), NC_NOWRITE, MPI_INFO_NULL, &ncid_ref);
 #else
-    success = NCFUNC(open)(example_eul, NC_NOWRITE, &ncid_ref);
+    success = NCFUNC(open)(example_eul.c_str(), NC_NOWRITE, &ncid_ref);
 #endif
     CHECK_EQUAL(0, success);
 
@@ -325,7 +314,7 @@ void test_fv_read_write_T()
 
   // Read non-set variable T
   read_opts += ";VARIABLE=T;DEBUG_IO=0";
-  rval = mb.load_file(example_fv, &set, read_opts.c_str());
+  rval = mb.load_file(example_fv.c_str(), &set, read_opts.c_str());
   CHECK_ERR(rval);
 
   // Write variable T
@@ -376,9 +365,9 @@ void test_fv_check_T()
     CHECK_EQUAL(0, success);
 
 #ifdef MOAB_HAVE_PNETCDF
-    success = NCFUNC(open)(MPI_COMM_SELF, example_fv, NC_NOWRITE, MPI_INFO_NULL, &ncid_ref);
+    success = NCFUNC(open)(MPI_COMM_SELF, example_fv.c_str(), NC_NOWRITE, MPI_INFO_NULL, &ncid_ref);
 #else
-    success = NCFUNC(open)(example_fv, NC_NOWRITE, &ncid_ref);
+    success = NCFUNC(open)(example_fv.c_str(), NC_NOWRITE, &ncid_ref);
 #endif
     CHECK_EQUAL(0, success);
 
@@ -470,7 +459,7 @@ void test_homme_read_write_T()
     // Rotate trivial partition, otherwise localGidVertsOwned.psize() is always 1
     read_opts += ";PARALLEL_RESOLVE_SHARED_ENTS;TRIVIAL_PARTITION_SHIFT=1";
   }
-  rval = mb.load_file(example_homme, &set, read_opts.c_str());
+  rval = mb.load_file(example_homme.c_str(), &set, read_opts.c_str());
   CHECK_ERR(rval);
 
   // Write variables T and lat
@@ -522,9 +511,9 @@ void test_homme_check_T()
     CHECK_EQUAL(0, success);
 
 #ifdef MOAB_HAVE_PNETCDF
-    success = NCFUNC(open)(MPI_COMM_SELF, example_homme, NC_NOWRITE, MPI_INFO_NULL, &ncid_ref);
+    success = NCFUNC(open)(MPI_COMM_SELF, example_homme.c_str(), NC_NOWRITE, MPI_INFO_NULL, &ncid_ref);
 #else
-    success = NCFUNC(open)(example_homme, NC_NOWRITE, &ncid_ref);
+    success = NCFUNC(open)(example_homme.c_str(), NC_NOWRITE, &ncid_ref);
 #endif
     CHECK_EQUAL(0, success);
 
@@ -637,7 +626,7 @@ void test_mpas_read_write_vars()
   read_opts += ";VARIABLE=vorticity,u,ke;DEBUG_IO=0";
   if (procs > 1)
     read_opts += ";PARALLEL_RESOLVE_SHARED_ENTS";
-  rval = mb.load_file(example_mpas, &set, read_opts.c_str());
+  rval = mb.load_file(example_mpas.c_str(), &set, read_opts.c_str());
   CHECK_ERR(rval);
 
   // Write variables vorticity, u and ke
@@ -688,9 +677,9 @@ void test_mpas_check_vars()
     CHECK_EQUAL(0, success);
 
 #ifdef MOAB_HAVE_PNETCDF
-    success = NCFUNC(open)(MPI_COMM_SELF, example_mpas, NC_NOWRITE, MPI_INFO_NULL, &ncid_ref);
+    success = NCFUNC(open)(MPI_COMM_SELF, example_mpas.c_str(), NC_NOWRITE, MPI_INFO_NULL, &ncid_ref);
 #else
-    success = NCFUNC(open)(example_mpas, NC_NOWRITE, &ncid_ref);
+    success = NCFUNC(open)(example_mpas.c_str(), NC_NOWRITE, &ncid_ref);
 #endif
     CHECK_EQUAL(0, success);
 
@@ -831,7 +820,7 @@ void test_gcrm_read_write_vars()
   read_opts += ";VARIABLE=u,wind,vorticity,pressure;DEBUG_IO=0";
   if (procs > 1)
     read_opts += ";PARALLEL_RESOLVE_SHARED_ENTS";
-  rval = mb.load_file(example_gcrm, &set, read_opts.c_str());
+  rval = mb.load_file(example_gcrm.c_str(), &set, read_opts.c_str());
   CHECK_ERR(rval);
 
   // Write variables u, wind, vorticity and pressure
@@ -883,9 +872,9 @@ void test_gcrm_check_vars()
     CHECK_EQUAL(0, success);
 
 #ifdef MOAB_HAVE_PNETCDF
-    success = NCFUNC(open)(MPI_COMM_SELF, example_gcrm, NC_NOWRITE, MPI_INFO_NULL, &ncid_ref);
+    success = NCFUNC(open)(MPI_COMM_SELF, example_gcrm.c_str(), NC_NOWRITE, MPI_INFO_NULL, &ncid_ref);
 #else
-    success = NCFUNC(open)(example_gcrm, NC_NOWRITE, &ncid_ref);
+    success = NCFUNC(open)(example_gcrm.c_str(), NC_NOWRITE, &ncid_ref);
 #endif
     CHECK_EQUAL(0, success);
 
@@ -1042,7 +1031,7 @@ void test_eul_read_write_timestep()
 
   // Read non-set variable T
   read_opts += ";VARIABLE=T;DEBUG_IO=0";
-  rval = mb.load_file(example_eul, &set, read_opts.c_str());
+  rval = mb.load_file(example_eul.c_str(), &set, read_opts.c_str());
   CHECK_ERR(rval);
 
   // Write variable T on timestep 2
@@ -1092,9 +1081,9 @@ void test_eul_check_timestep()
     CHECK_EQUAL(0, success);
 
 #ifdef MOAB_HAVE_PNETCDF
-    success = NCFUNC(open)(MPI_COMM_SELF, example_eul, NC_NOWRITE, MPI_INFO_NULL, &ncid_ref);
+    success = NCFUNC(open)(MPI_COMM_SELF, example_eul.c_str(), NC_NOWRITE, MPI_INFO_NULL, &ncid_ref);
 #else
-    success = NCFUNC(open)(example_eul, NC_NOWRITE, &ncid_ref);
+    success = NCFUNC(open)(example_eul.c_str(), NC_NOWRITE, &ncid_ref);
 #endif
     CHECK_EQUAL(0, success);
 
@@ -1184,7 +1173,7 @@ void test_eul_read_write_append()
 
   // Load non-set variables T, U, V, and the mesh
   read_opts += ";VARIABLE=T,U,V;DEBUG_IO=0";
-  rval = mb.load_file(example_eul, &set, read_opts.c_str());
+  rval = mb.load_file(example_eul.c_str(), &set, read_opts.c_str());
   CHECK_ERR(rval);
 
   // Write variable T
@@ -1258,9 +1247,9 @@ void test_eul_check_append()
     CHECK_EQUAL(0, success);
 
 #ifdef MOAB_HAVE_PNETCDF
-    success = NCFUNC(open)(MPI_COMM_SELF, example_eul, NC_NOWRITE, MPI_INFO_NULL, &ncid_ref);
+    success = NCFUNC(open)(MPI_COMM_SELF, example_eul.c_str(), NC_NOWRITE, MPI_INFO_NULL, &ncid_ref);
 #else
-    success = NCFUNC(open)(example_eul, NC_NOWRITE, &ncid_ref);
+    success = NCFUNC(open)(example_eul.c_str(), NC_NOWRITE, &ncid_ref);
 #endif
     CHECK_EQUAL(0, success);
 
@@ -1387,21 +1376,21 @@ void test_eul_read_write_across_files()
   // Read T as tag T2 with option TIMESTEPBASE=2
   get_eul_read_options(read_opts);
   read_opts += ";VARIABLE=T;TIMESTEPBASE=2;DEBUG_IO=0";
-  rval = mb.load_file(example_eul_t2, &set, read_opts.c_str());
+  rval = mb.load_file(example_eul_t2.c_str(), &set, read_opts.c_str());
   CHECK_ERR(rval);
 
   // This file contains single timestep 0 (option TIMESTEP=0 will be implicitly used)
   // Read T as tag T0 with option TIMESTEPBASE=0
   get_eul_read_options(read_opts);
   read_opts += ";VARIABLE=T;TIMESTEPBASE=0;NOMESH;DEBUG_IO=0";
-  rval = mb.load_file(example_eul_t0, &set, read_opts.c_str());
+  rval = mb.load_file(example_eul_t0.c_str(), &set, read_opts.c_str());
   CHECK_ERR(rval);
 
   // This file contains single timestep 1 (option TIMESTEP=0 will be implicitly used)
   // Read T as tag T1 with option TIMESTEPBASE=1
   get_eul_read_options(read_opts);
   read_opts += ";VARIABLE=T;TIMESTEPBASE=1;NOMESH;DEBUG_IO=0";
-  rval = mb.load_file(example_eul_t1, &set, read_opts.c_str());
+  rval = mb.load_file(example_eul_t1.c_str(), &set, read_opts.c_str());
   CHECK_ERR(rval);
 
   // Write variable T with 3 timesteps
@@ -1451,9 +1440,9 @@ void test_eul_check_across_files()
     CHECK_EQUAL(0, success);
 
 #ifdef MOAB_HAVE_PNETCDF
-    success = NCFUNC(open)(MPI_COMM_SELF, example_eul, NC_NOWRITE, MPI_INFO_NULL, &ncid_ref);
+    success = NCFUNC(open)(MPI_COMM_SELF, example_eul.c_str(), NC_NOWRITE, MPI_INFO_NULL, &ncid_ref);
 #else
-    success = NCFUNC(open)(example_eul, NC_NOWRITE, &ncid_ref);
+    success = NCFUNC(open)(example_eul.c_str(), NC_NOWRITE, &ncid_ref);
 #endif
     CHECK_EQUAL(0, success);
 
@@ -1536,11 +1525,11 @@ void test_eul_read_write_ghosting()
   CHECK_ERR(rval);
 
   std::string read_opts = "PARALLEL=READ_PART;PARTITION;PARALLEL_RESOLVE_SHARED_ENTS;PARALLEL_GHOSTS=2.0.1;PARTITION_METHOD=SQIJ;VARIABLE=";
-  rval = mb.load_file(example_eul, &set, read_opts.c_str());
+  rval = mb.load_file(example_eul.c_str(), &set, read_opts.c_str());
   CHECK_ERR(rval);
 
   read_opts = "PARALLEL=READ_PART;PARTITION;PARTITION_METHOD=SQIJ;VARIABLE=T;NOMESH";
-  rval = mb.load_file(example_eul, &set, read_opts.c_str());
+  rval = mb.load_file(example_eul.c_str(), &set, read_opts.c_str());
   CHECK_ERR(rval);
 
   // Write variable T
@@ -1586,9 +1575,9 @@ void test_eul_check_ghosting()
     CHECK_EQUAL(0, success);
 
 #ifdef MOAB_HAVE_PNETCDF
-    success = NCFUNC(open)(MPI_COMM_SELF, example_eul, NC_NOWRITE, MPI_INFO_NULL, &ncid_ref);
+    success = NCFUNC(open)(MPI_COMM_SELF, example_eul.c_str(), NC_NOWRITE, MPI_INFO_NULL, &ncid_ref);
 #else
-    success = NCFUNC(open)(example_eul, NC_NOWRITE, &ncid_ref);
+    success = NCFUNC(open)(example_eul.c_str(), NC_NOWRITE, &ncid_ref);
 #endif
     CHECK_EQUAL(0, success);
 

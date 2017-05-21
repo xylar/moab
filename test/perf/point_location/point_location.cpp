@@ -148,9 +148,10 @@ int main( int argc, char* argv[] )
   
     // RUN TIMING TEST
   clock_t build_time, test_time;
-  size_t actual_depth;
+  size_t actual_depth=0;
   std::vector<EntityHandle> results(points.size());
   switch (type) {
+   default:
     case UseKDTree: 
       do_kdtree_test( mb, tree_depth, elem_per_leaf, num_points, points, results, build_time, test_time, actual_depth );
       break;

@@ -2,11 +2,8 @@
 #include "moab/Core.hpp"
 #include "moab_mpi.h"
 #include "moab/ParallelMergeMesh.hpp"
+#include "TestUtil.hpp"
 #include <iostream>
-
-
-#define STRINGIFY_(X) #X
-#define STRINGIFY(X) STRINGIFY_(X)
 
 using namespace moab;
 
@@ -23,15 +20,18 @@ int main(int argc, char* argv[])
     MPI_Finalize();
     return 1;
   }
-  const char* filename0 = STRINGIFY(MESHDIR) "/brick1.vtk";
-  const char* filename1 = STRINGIFY(MESHDIR) "/brick2.vtk";
+
+  std::string filename0 = TestDir + "/brick1.vtk";
+  std::string filename1 = TestDir + "/brick2.vtk";
+
   moab::Core *mb = new moab::Core();
   moab::ParallelComm *pc = new moab::ParallelComm(mb, MPI_COMM_WORLD);
   ErrorCode rval = MB_SUCCESS;
+
   if (0==rank)
-    rval = mb->load_file(filename0);
+    rval = mb->load_file(filename0.c_str());
   else
-    rval = mb->load_file(filename1);
+    rval = mb->load_file(filename1.c_str());
 
   if (rval!=MB_SUCCESS)
   {

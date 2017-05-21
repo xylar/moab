@@ -27,12 +27,6 @@
 
 using namespace moab;
 
-#ifdef MESHDIR
-std::string TestDir( STRINGIFY(MESHDIR) );
-#else
-#error Specify MESHDIR to compile test
-#endif
-
 #define nsamples 10
 
 #ifdef MOAB_HAVE_MPI

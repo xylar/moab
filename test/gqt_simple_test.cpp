@@ -21,16 +21,12 @@ Interface* MBI;
             << __LINE__ << std::endl; \
   return A; } } while(false)
 
-#ifdef MESHDIR
-static const char input_file[] = STRINGIFY(MESHDIR) "/test_geom.h5m";
-#else
-static const char input_file[] = STRINGIFY(MESHDIR) "/test_geom.h5m";
-#endif
+const std::string input_file = TestDir + "/test_geom.h5m";
 
 void gqt_load_file() 
 {
   MBI = new moab::Core();
-  ErrorCode rval = MBI->load_file(input_file); // open the
+  ErrorCode rval = MBI->load_file(input_file.c_str()); // open the
   CHECK_ERR(rval);
   GTT = new GeomTopoTool(MBI,true);
   GQT = new GeomQueryTool(GTT);
@@ -45,7 +41,7 @@ void gqt_load_file_dagmc_build_obb()
 
   // load a file
   MBI = new moab::Core();
-  rval = MBI->load_file(input_file); // open the
+  rval = MBI->load_file(input_file.c_str()); // open the
   CHECK_ERR(rval);
   GTT = new GeomTopoTool(MBI);
   GQT = new GeomQueryTool(GTT);
@@ -61,7 +57,7 @@ void gqt_load_file_dagmc_via_moab_build_obb() {
 
   // load file
   MBI = new moab::Core();
-  rval = MBI->load_file(input_file); // open the file
+  rval = MBI->load_file(input_file.c_str()); // open the file
   CHECK_ERR(rval);
   GTT = new GeomTopoTool(MBI);
   GQT = new GeomQueryTool(GTT);
@@ -80,7 +76,7 @@ void gqt_load_file_dagmc_internal_build_obb() {
   ErrorCode rval;
 
   MBI = new moab::Core();
-  rval = MBI->load_file(input_file); // open the
+  rval = MBI->load_file(input_file.c_str()); // open the
   CHECK_ERR(rval);
   GTT = new GeomTopoTool(MBI,true,0);
   GQT = new GeomQueryTool(GTT);
@@ -98,7 +94,7 @@ void gqt_test_obb_retreval() {
   ErrorCode rval;
   // load a file
   MBI = new moab::Core();
-  rval = MBI->load_file(input_file); // open the
+  rval = MBI->load_file(input_file.c_str()); // open the
   CHECK_ERR(rval);
   GTT = new GeomTopoTool(MBI,true,0);
   GQT = new GeomQueryTool(GTT);
@@ -158,7 +154,7 @@ void gqt_point_in()
 
   // load file and create instances
   MBI = new moab::Core();
-  ErrorCode rval = MBI->load_file(input_file); // open the
+  ErrorCode rval = MBI->load_file(input_file.c_str()); // open the
   CHECK_ERR(rval);
   GTT = new GeomTopoTool(MBI,true,0);
   GQT = new GeomQueryTool(GTT);
@@ -182,7 +178,7 @@ void gqt_test_obb_retreval_rayfire() {
 
   // load file and initialize
   MBI = new moab::Core();
-  rval = MBI->load_file(input_file); // open the
+  rval = MBI->load_file(input_file.c_str()); // open the
   CHECK_ERR(rval);
   GTT = new GeomTopoTool(MBI,true,0);
   GQT = new GeomQueryTool(GTT);
@@ -247,7 +243,7 @@ void gqt_rayfire()
   ErrorCode rval;
 
   MBI = new moab::Core();
-  rval = MBI->load_file(input_file); // open the
+  rval = MBI->load_file(input_file.c_str()); // open the
   CHECK_ERR(rval);
   GTT = new GeomTopoTool(MBI,true,0);
   GQT = new GeomQueryTool(GTT);
@@ -405,3 +401,4 @@ int main(int /* argc */, char** /* argv */)
   
   return result;
 }
+

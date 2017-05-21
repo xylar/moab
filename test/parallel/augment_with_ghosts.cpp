@@ -6,12 +6,7 @@
 #include <iostream>
 #include <sstream>
 
-#ifdef MESHDIR
- std::string filename = STRINGIFY(MESHDIR) "/io/p8ex1.h5m";
-#endif
-
-#define STRINGIFY_(X) #X
-#define STRINGIFY(X) STRINGIFY_(X)
+std::string filename = TestDir + "/io/p8ex1.h5m";
 
 using namespace moab;
 void report_sets(moab::Core * mb, int rank, int nproc)

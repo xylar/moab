@@ -326,11 +326,7 @@ int main ( int argc, char* argv[] )
     MPI_Comm_rank ( MPI_COMM_WORLD, &rank );
 #endif
 
-#ifdef MESHDIR
-    std::string infile = STRINGIFY(MESHDIR) "/sphere_tris_5.vtk";
-#else
-#error Specify MESHDIR to compile test
-#endif
+    std::string infile = TestDir + "/sphere_tris_5.vtk";
 
     int degree = 2, dim = 2, geom = 0;
     bool interp = false;

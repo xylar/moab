@@ -115,8 +115,8 @@ if(ZCAT_EXE)
 endif()
 
 add_executable( var_len_test_no_template VarLenTagTest.cpp )
-set_source_files_properties( ${CMAKE_SOURCE_DIR}/src/VarLenTagTest.cpp
-  COMPILE_FLAGS "-DMOAB_TEMPLATE_SPECIALIZATION ${MOAB_DEFINES}" )
+set_source_files_properties( VarLenTagTest.cpp
+  COMPILE_FLAGS "-DMOAB_TEMPLATE_SPECIALIZATION ${MOAB_DEFINES} ${TEST_COMP_FLAGS}" )
 target_link_libraries( var_len_test_no_template MOAB ${CGM_LIBRARIES} ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES} )
 add_test( var_len_test_no_template ${EXECUTABLE_OUTPUT_PATH}/var_len_test_no_template )
 
@@ -124,14 +124,14 @@ add_executable( mbcn_test ${CMAKE_SOURCE_DIR}/src/moab/CN.hpp
                           ${CMAKE_SOURCE_DIR}/src/CN.cpp
                           mbcn_test.cc )
 set_target_properties( mbcn_test PROPERTIES 
-  COMPILE_FLAGS "-DMOAB_TEMPLATE_SPECIALIZATION ${MOAB_DEFINES}" )
+  COMPILE_FLAGS "-DMOAB_TEMPLATE_SPECIALIZATION ${MOAB_DEFINES} ${TEST_COMP_FLAGS}" )
 target_link_libraries( mbcn_test MOAB ${CGM_LIBRARIES} ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES} )
 add_test( mbcn_test ${EXECUTABLE_OUTPUT_PATH}/mbcn_test )
 
 
 add_executable( file_options_test ${CMAKE_SOURCE_DIR}/src/FileOptions.cpp )
 set_source_files_properties( ${CMAKE_SOURCE_DIR}/src/FileOptions.cpp
-                             COMPILE_FLAGS "-DTEST ${MOAB_DEFINES}" )
+                             COMPILE_FLAGS "-DTEST ${MOAB_DEFINES} ${TEST_COMP_FLAGS}" )
 target_link_libraries( file_options_test MOAB ${CGM_LIBRARIES} ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES} )
 add_test( file_options_test ${EXECUTABLE_OUTPUT_PATH}/file_options_test )
 
@@ -186,6 +186,10 @@ if (ENABLE_IREL AND MOAB_HAVE_CGM)
     add_test( ${base} ${EXECUTABLE_OUTPUT_PATH}/${base} )
   endforeach()
 endif()
+
+if (ENABLE_MESQUITE AND MOAB_HAVE_CGM)
+  # add_subdirectory(mesquite)
+endif(ENABLE_MESQUITE AND MOAB_HAVE_CGM)
 
 if ( MOAB_HAVE_MPI AND MPI_FOUND )
 

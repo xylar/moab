@@ -17,8 +17,8 @@ m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 AC_CHECK_PROG( [SED], [sed], [sed], [true] )
 
 # Infer the source directory as the path to the ./configure script
-#srcdir=`dirname $0`
-#top_srcdir=`dirname $0`
+project_topsrcdir=`dirname $0`
+project_topbuilddir="$PWD"
 USER_CONFIGURE_CMD="$0 $ac_configure_args"
 
 ################################################################################
@@ -103,21 +103,30 @@ fi
 ################################################################################
 #                           Basic Portability Stuff
 ################################################################################
-AC_CHECK_FUNC([vsnprintf],
-              AC_DEFINE([HAVE_VSNPRINTF],[1],[Define if vsnprintf is available.]))
+AC_CHECK_FUNC([vsnprintf], [AC_DEFINE([HAVE_VSNPRINTF],[1],[Define if vsnprintf is available.])] )
+AC_CHECK_FUNC([vsprintf],  [AC_DEFINE([HAVE_VSPRINTF], [1],[Define if vsprintf is available.])] )
+AC_CHECK_FUNC([clock],     [AC_DEFINE([HAVE_CLOCK],    [1],[Define if clock is available.])] )
+AC_CHECK_FUNC([times],     [AC_DEFINE([HAVE_TIMES],    [1],[Define if times is available.])] )
+AC_CHECK_FUNC([cbrt],      [AC_DEFINE([HAVE_CBRT],     [1],[Define if cbrt is available.])] )
 
 FATHOM_VECTOR_TEMPLATE_INSERT
 FATHOM_OLD_STD_COUNT
 MB_DEFS="$MB_DEFS $NO_VECTOR_TEMPLATE_INSERT $OLD_STD_COUNT"
 
 ################################################################################
-#                              HANDLE SIZE
+#                              Headers
 ################################################################################
+AC_HEADER_STDC
+AC_CHECK_HEADERS(fcntl.h strings.h sys/file.h sys/time.h unistd.h)
 AC_CHECK_HEADER([inttypes.h], [AC_DEFINE(HAVE_INTTYPES_H,  [1], [MOAB qualified HAVE_INTTYPES_H]) ])
 AC_CHECK_HEADER([stdint.h],   [AC_DEFINE(HAVE_STDINT_H,    [1], [MOAB qualified HAVE_STDINT_H])   ])
-AC_CHECK_HEADER([sys/types.h],[AC_DEFINE(HAVE_SYS_TYPES_H, [1], [MOAB qualified HAVE_SYS_TYPES_H])])
 AC_CHECK_HEADER([stddef.h],   [AC_DEFINE(HAVE_STDDEF_H,    [1], [MOAB qualified HAVE_STDDEF_H])   ])
 AC_CHECK_HEADER([stdlib.h],   [AC_DEFINE(HAVE_STDLIB_H,    [1], [MOAB qualified HAVE_STDLIB_H])   ])
+AC_CHECK_HEADER([ieeefp.h],   [AC_DEFINE(HAVE_IEEEFP_H,    [1], [MOAB qualified HAVE_IEEEFP_H])   ])
+AC_CHECK_HEADER([termios.h],  [AC_DEFINE(HAVE_TERMIOS_H,   [1], [MOAB qualified HAVE_TERMIOS_H])  ])
+AC_CHECK_HEADER([sys/types.h],[AC_DEFINE(HAVE_SYS_TYPES_H, [1], [MOAB qualified HAVE_SYS_TYPES_H])])
+AC_CHECK_HEADER([sys/ioctl.h],[AC_DEFINE(HAVE_SYS_IOCTL_H, [1], [MOAB qualified HAVE_SYS_IOCTL_H])])
+
 SIZEOF_MBENTITYHANDLE=0
 AC_CHECK_SIZEOF([void *])
 SIZEOF_VOID_P=$ac_cv_sizeof_void_p
@@ -328,7 +337,7 @@ AC_ARG_ENABLE( [imesh],
 [disable_imesh=yes] )
 
 if (test "xyes" != "x$disable_imesh" && test "xno" != "x$disable_imesh"); then
-  AC_MSG_ERROR([Unknown argument --enable-imesh=$enableval])
+  AC_MSG_ERROR([Unknown argument --disable-imesh=$enableval])
 else
   if (test "$disable_imesh" != "no"); then
     ENABLE_imesh=yes
@@ -379,8 +388,9 @@ if test "x$ENABLE_fbigeom" = "xyes"; then
     AC_MSG_ERROR([Cannot build FBiGeom API with sizeof(EntityHandle) != sizeof(void*)])
   fi
   AC_DEFINE([HAVE_FBIGEOM],[1],[Define if configured with FBiGeom interfaces.])
-  
 fi
+HAVE_FBIGEOM=$ENABLE_fbigeom
+AC_SUBST(HAVE_FBIGEOM)
 
 AC_MSG_CHECKING([if iMesh support is to be built])
 AC_MSG_RESULT([$ENABLE_imesh])
@@ -406,6 +416,19 @@ else
   DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --enable-irel=$enable_irel"
 fi
 
+################################################################################
+#                           Mesquite Part 1 of 2
+################################################################################
+AC_ARG_ENABLE( [mesquite],
+[AS_HELP_STRING([--enable-mesquite],[Build support for Mesquite interfaces.])],
+[enable_mesquite=$enableval],
+[enable_mesquite=no] )
+
+if (test "xyes" != "x$enable_mesquite" && test "xno" != "x$enable_mesquite"); then
+  AC_MSG_ERROR([Unknown argument --enable-mesquite=$enableval])
+else
+  DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --enable-mesquite=$enable_mesquite"
+fi
 
 ################################################################################
 #                              Version Stuff
@@ -1001,6 +1024,23 @@ if test "x$CGM_MISSING" = "xno"; then
 
   EXPORT_LDFLAGS="$EXPORT_LDFLAGS $CGM_LDFLAGS"
   EXPORT_LTFLAGS="$EXPORT_LTFLAGS $CGM_LTFLAGS"
+
+  AC_CHECK_FILE([${CGM_DIR}/lib/iGeom-Defs.inc],
+              [IGEOM_CONFIG_OPTIONS="include ${CGM_DIR}/lib/iGeom-Defs.inc";
+               FATHOM_MAKE_INC_VAR([${CGM_DIR}/lib/iGeom-Defs.inc],[IGEOM_DEFINES], [IGEOM_DEFINES="$make_val"],[IGEOM_DEFINES=])
+               FATHOM_MAKE_INC_VAR([${CGM_DIR}/lib/iGeom-Defs.inc],[IGEOM_INCLUDES], [IGEOM_INCLUDES="$make_val"],[IGEOM_INCLUDES=])
+               FATHOM_MAKE_INC_VAR([${CGM_DIR}/lib/iGeom-Defs.inc],[IGEOM_LDFLAGS], [IGEOM_LDFLAGS="$make_val"],[IGEOM_LDFLAGS=])
+               FATHOM_MAKE_INC_VAR([${CGM_DIR}/lib/iGeom-Defs.inc],[IGEOM_LIBS], [IGEOM_LIBS="$make_val"],[IGEOM_LIBS=]) ],
+              [AC_CHECK_FILE([${CGM_DIR}/iGeom-Defs.inc],
+                             [IGEOM_CONFIG_OPTIONS="include ${CGM_DIR}/iGeom-Defs.inc";
+                              FATHOM_MAKE_INC_VAR([${CGM_DIR}/iGeom-Defs.inc],[IGEOM_DEFINES], [IGEOM_DEFINES="$make_val"],[IGEOM_DEFINES=])
+                              FATHOM_MAKE_INC_VAR([${CGM_DIR}/iGeom-Defs.inc],[IGEOM_INCLUDES], [IGEOM_INCLUDES="$make_val"],[IGEOM_INCLUDES=])
+                              FATHOM_MAKE_INC_VAR([${CGM_DIR}/iGeom-Defs.inc],[IGEOM_LDFLAGS], [IGEOM_LDFLAGS="$make_val"],[IGEOM_LDFLAGS=])
+                              FATHOM_MAKE_INC_VAR([${CGM_DIR}/iGeom-Defs.inc],[IGEOM_LIBS], [IGEOM_LIBS="$make_val"],[IGEOM_LIBS=]) ],
+                             [AC_MSG_WARN([$CGM_DIR : not a configured iGeom])]
+                            )
+              ])
+
 fi
 
 AC_SUBST(CGM_CPPFLAGS)
@@ -1008,6 +1048,11 @@ AC_SUBST(CGM_LDFLAGS)
 AC_SUBST(CGM_LTFLAGS)
 AC_SUBST(CGM_LIBS)
 AC_SUBST(CGM_DIR)
+AC_SUBST(IGEOM_DEFINES)
+AC_SUBST(IGEOM_INCLUDES)
+AC_SUBST(IGEOM_CONFIG_OPTIONS)
+AC_SUBST(IGEOM_LDFLAGS)
+AC_SUBST(IGEOM_LIBS)
 
 AM_CONDITIONAL( HAVE_CGM, [test "x$CGM_MISSING" = "xno"] )
 AM_CONDITIONAL( HAVE_OCC, [test "x$HAVE_OCC" = "xyes"] )
@@ -1033,18 +1078,6 @@ if test "x$ENABLE_irel" = "xyes"; then
     AC_MSG_ERROR([Cannot build iRel API. Enable both iGeom (CGM) and iMesh implementations.])
   fi
   AC_DEFINE([HAVE_IREL],[1],[Define if configured with iRel interfaces.])
-  
-  AC_CHECK_FILE([${CGM_DIR}/lib/iGeom-Defs.inc],
-              [IGEOM_CONFIG_OPTIONS="include ${CGM_DIR}/lib/iGeom-Defs.inc";
-               FATHOM_MAKE_INC_VAR([${CGM_DIR}/lib/iGeom-Defs.inc],[IGEOM_DEFINES], [IGEOM_DEFINES="$make_val"],
-                  [IGEOM_DEFINES=]) ],
-              [AC_CHECK_FILE([${CGM_DIR}/itaps/iGeom-Defs.inc],
-                             [IGEOM_CONFIG_OPTIONS="include ${CGM_DIR}/itaps/iGeom-Defs.inc"],
-                             [AC_MSG_WARN([$CGM_DIR : iGeom is not configured correctly])]
-                            )
-              ])
-  AC_SUBST(IGEOM_DEFINES)
-  AC_SUBST(IGEOM_CONFIG_OPTIONS)
 fi
 
 HAVE_IGEOM="no"
@@ -1057,6 +1090,28 @@ AC_SUBST(HAVE_IGEOM)
 AC_SUBST(HAVE_IMESH)
 AC_SUBST(HAVE_IREL)
 AM_CONDITIONAL([USING_DEV_CGM],[test "xyes" = "x$USING_DEV_CGM"])
+
+################################################################################
+#                           Mesquite Part 2 of 2
+################################################################################
+
+AC_MSG_CHECKING([if Mesquite support is to be built])
+AC_MSG_RESULT([$enable_mesquite])
+HAVE_MESQUITE="no"
+if (test "xno" != "x$enable_mesquite"); then
+  if (test "x$ENABLE_imesh" != "xyes"); then
+    enable_mesquite=no
+    AC_MSG_WARN([** Disabling Mesquite since iGeom or iMesh is not configured correctly.])
+  fi
+  if (test "xno" != "x$enable_mesquite"); then
+    CONFIGURE_MESQUITE
+    AC_DEFINE(HAVE_MESQUITE,[1],"MOAB configured with Mesquite support")
+    HAVE_MESQUITE="yes"
+  fi
+fi
+AM_CONDITIONAL([ENABLE_mesquite],[test "yes" = "$enable_mesquite"])
+AM_CONDITIONAL([HAVE_CPPUNIT],[test "$HAVE_CPPUNIT" = "yes"])
+AC_SUBST(HAVE_MESQUITE)
 
 ###############################################################################
 #                           Optional Tools
@@ -1367,13 +1422,6 @@ AC_SUBST([AM_LDFLAGS])
 AC_SUBST([EXPORT_LTFLAGS])
 AC_SUBST([EXPORT_LDFLAGS])
 
-AC_ARG_VAR([FC], [FORTRAN compiler command])
-# AC_CONFIG_HEADERS([config.h])
-# Create a temporary file with e.g. HAVE_MPI
-#AC_CONFIG_HEADERS([.MOABConfig.h:config/MOABConfig.h.in])
-# Prefixes everything in the temporary file with MOAB_, e.g. MOAB_HAVE_MPI
-#AX_PREFIX_CONFIG_H([src/moab/MOABConfig.h],[MOAB],[.MOABConfig.h])
-
 AC_CONFIG_HEADERS([src/moab/EntityHandle.hpp
                    src/parallel/moab_mpi_config.h
                    src/moab/MOABConfig.h:config/MOABConfig.h.in])
@@ -1396,7 +1444,7 @@ AC_CONFIG_FILES([Makefile
                  test/io/Makefile
                  test/parallel/Makefile
                  pymoab/Makefile
-		 pymoab/setup.py
+                 pymoab/setup.py
                  itaps/iBase_f.h
                  itaps/Makefile
                  itaps/imesh/Makefile
@@ -1424,6 +1472,22 @@ AC_CONFIG_FILES([Makefile
                  MeshFiles/examples/Makefile
                  ])
 
+# Specify the headers to create for mesquite
+AC_CONFIG_FILES([src/mesquite/Makefile
+                 itaps/mesquite/Makefile
+                 test/mesquite/Makefile
+                 test/mesquite/convert/Makefile
+                 test/mesquite/igeom/Makefile
+                 test/mesquite/imesh/Makefile
+                 test/mesquite/unit/Makefile
+                 test/mesquite/parallel_untangle_shape/Makefile 
+                 test/mesquite/parallel_smooth_laplace/Makefile
+                 test/mesquite/wrapper_tests/Makefile
+                 test/mesquite/higher_order/Makefile
+                 test/mesquite/slaved/Makefile
+                 tools/mesquite/Makefile
+                 MeshFiles/mesquite/Makefile
+                 ])
 
 DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --enable-static=$enable_static --enable-shared=$enable_shared"
 # DISTCHECK_CONFIGURE_FLAGS="$USER_CONFIGURE_CMD"

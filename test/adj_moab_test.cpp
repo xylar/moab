@@ -337,21 +337,16 @@ int main(int argc, char *argv[])
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif
 
-    const char* filename = 0;
-#ifdef MESHDIR
+    std::string filename;
 #ifdef MOAB_HAVE_HDF5
 #ifdef MOAB_HAVE_AHF
-    filename = STRINGIFY(MESHDIR) "/spectral.h5m";
+    filename = TestDir + "/spectral.h5m";
 #else
-    filename = STRINGIFY(MESHDIR) "/32hex_ef.h5m";
+    filename = TestDir + "/32hex_ef.h5m";
 #endif
 #else
-    filename = STRINGIFY(MESHDIR) "/hexes_mixed.vtk";
+    filename = TestDir + "/hexes_mixed.vtk";
  #endif
-#else
-#error Specify MESHDIR to compile test
-#endif
-
 
     if (argc==1)
     {
@@ -364,7 +359,7 @@ int main(int argc, char *argv[])
     }
 
     else if (argc==2)
-        filename = argv[1];
+        filename = std::string(argv[1]);
     else {
             std::cerr << "Usage: " << argv[0] << " [filename]" << std::endl;
             return 1;
@@ -379,7 +374,7 @@ int main(int argc, char *argv[])
     std::cout<<"ahf_test:";
 #endif
 
-    result = ahf_test(filename);
+    result = ahf_test(filename.c_str());
     handle_error_code(result, number_tests_failed, number_tests_successful);
     std::cout<<"\n";
 

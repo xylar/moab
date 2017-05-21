@@ -10,18 +10,14 @@
 
 using namespace moab;
 
-#ifdef MESHDIR
-const char default_input[] = STRINGIFY(MESHDIR) "/hex01.vtk" ;
-#else
-#error Define MESHDIR to compile unit tests
-#endif
+std::string default_input = TestDir + "/hex01.vtk" ;
 const char default_output[] = "dual.vtk";
 
 Interface *gMB;
 
 int main(int argc, char* argv[])
 {
-  const char * f1 = default_input;
+  const char * f1 = default_input.c_str();
   const char * f2 = default_output;
   if (argc <= 2)
   {

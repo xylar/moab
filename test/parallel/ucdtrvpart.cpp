@@ -7,11 +7,7 @@
 
 using namespace moab;
 
-#ifdef MESHDIR
-static const char example[] = STRINGIFY(MESHDIR) "/io/homme3x3458.t.3.nc";
-#else
-#error Specify MESHDIR to compile test
-#endif
+std::string example = TestDir + "/io/homme3x3458.t.3.nc";
 
 void test_read_parallel_ucd_trivial();
 void test_read_parallel_ucd_trivial_spectral();
@@ -59,7 +55,7 @@ void test_read_parallel(int num_verts, bool test_nb_nodes)
   std::string opt = std::string("PARALLEL=READ_PART") + partition_method;
   // Create gather set in processor 0
   opt += std::string(";GATHER_SET=0");
-  rval = mb.load_file(example, &file_set, opt.c_str());
+  rval = mb.load_file(example.c_str(), &file_set, opt.c_str());
   CHECK_ERR(rval);
 
   ParallelComm* pcomm = ParallelComm::get_pcomm(&mb, 0);
@@ -147,17 +143,17 @@ void test_multiple_loads_of_same_file()
 
   // Read first only header information, no mesh, no variable
   std::string opts("PARALLEL=READ_PART;PARTITION;NOMESH;VARIABLE=;PARTITION_METHOD=TRIVIAL");
-  rval = mb.load_file(example, &file_set, opts.c_str());
+  rval = mb.load_file(example.c_str(), &file_set, opts.c_str());
   CHECK_ERR(rval);
 
   opts = "PARALLEL=READ_PART;PARTITION;PARALLEL_RESOLVE_SHARED_ENTS;PARTITION_METHOD=TRIVIAL;VARIABLE=";
   // Create gather set in processor 1
   opts += std::string(";GATHER_SET=1");
-  rval = mb.load_file(example, &file_set, opts.c_str());
+  rval = mb.load_file(example.c_str(), &file_set, opts.c_str());
   CHECK_ERR(rval);
 
   opts = "PARALLEL=READ_PART;PARTITION;PARTITION_METHOD=TRIVIAL;NOMESH;VARIABLE=T;TIMESTEP=0";
-  rval = mb.load_file(example, &file_set, opts.c_str());
+  rval = mb.load_file(example.c_str(), &file_set, opts.c_str());
   CHECK_ERR(rval);
 
   // Check values of tag T0 (first level) at some strategically chosen places below
