@@ -2,17 +2,13 @@
 #include "TestUtil.hpp"
 #include "moab/Core.hpp"
 #include "moab/Types.hpp"
+#include "MBTagConventions.hpp"
 #include "moab/GeomTopoTool.hpp"
-#include "DagMC.hpp"
-#include "GenerateHierarchy.hpp"
 #include <iostream>
 #include <map>
 #include <set>
 
 using namespace moab;
-
-//class GeomtopoTool;
-GeomTopoTool *myGeomTool;
 
 Tag category_tag;
 Tag geom_tag;
@@ -20,7 +16,7 @@ Tag name_tag;
 Tag obj_name_tag;
 Tag dim_tag, id_tag;
 
-bool check_tree ( Interface *mbi, DagMC *DAG, std::map< int, std::set<int> > ref_map );
+bool check_tree ( Interface *mbi, GeomTopoTool *GTT, std::map< int, std::set<int> > &ref_map );
 ErrorCode get_all_handles(Interface *mbi);
 Range get_children_by_dimension(Interface *mbi, EntityHandle parent, int desired_dimension);
 void heappermute(Interface *mbi, int v[], int n, std::map< int, std::set<int> > ref_map, int len);
@@ -28,14 +24,15 @@ void swap(int *x, int *y);
 void get_cube_info( int cube_id, std::vector<double> &scale, std::vector<double> &trans );
 void test_two_cubes();
 void test_three_cubes();
-void test_six_cubes();
+void test_four_cubes();
 
 ErrorCode build_cube( Interface *mbi,
                       std::vector<double> scale_vec, 
                       std::vector<double> trans_vec, 
-                      int    object_id )
+                      int    object_id,
+			          EntityHandle &volume	)
 {
-  myGeomTool = new GeomTopoTool(mbi);
+  GeomTopoTool *GTT = new GeomTopoTool(mbi);
 
   ErrorCode rval;
   
@@ -70,7 +67,7 @@ ErrorCode build_cube( Interface *mbi,
   EntityHandle verts[num_verts], tris[num_tris], surf;
 
   rval = mbi->create_meshset( MESHSET_SET, surf ); MB_CHK_ERR(rval);
-
+/*
   // scale coords
   int i;
   double scaled_coords[24];
@@ -89,9 +86,18 @@ ErrorCode build_cube( Interface *mbi,
       trans_coords[3*i+1] = scaled_coords[3*i+1] + trans_vec[1];
       trans_coords[3*i+2] = scaled_coords[3*i+2] + trans_vec[2];
     }
+*/
+  // transform coords-- scale and translate
+  double trans_coords[24];
+  for ( int i = 0; i < num_verts; i++ ) 
+    {
+      trans_coords[3*i]   = coords[3*i]*scale_vec[0]   + trans_vec[0];
+      trans_coords[3*i+1] = coords[3*i+1]*scale_vec[1] + trans_vec[1];
+      trans_coords[3*i+2] = coords[3*i+2]*scale_vec[2] + trans_vec[2];
+    }
 
   // create vertices and add to meshset
-  for ( i = 0; i < num_verts; ++i) 
+  for ( int i = 0; i < num_verts; ++i) 
     {
       rval = mbi->create_vertex( trans_coords + 3*i, verts[i] ); MB_CHK_ERR(rval);
 
@@ -100,7 +106,7 @@ ErrorCode build_cube( Interface *mbi,
     }
 
   // create triangles and add to meshset
-  for ( i = 0; i < num_tris; ++i) 
+  for ( int i = 0; i < num_tris; ++i) 
     {
       const EntityHandle conn[] = { verts[connectivity[3*i  ]], 
                                     verts[connectivity[3*i+1]], 
@@ -121,7 +127,7 @@ ErrorCode build_cube( Interface *mbi,
   rval = mbi->tag_set_data( category_tag, &surf, 1, "Surface\0" ); MB_CHK_ERR(rval);
   
   // create volume meshset associated with surface meshset
-  EntityHandle volume;
+  // EntityHandle volume;
   rval = mbi->create_meshset( MESHSET_SET, volume ); MB_CHK_ERR(rval);
  
   // set name, id, geom, and category tags for VOLUME
@@ -137,9 +143,9 @@ ErrorCode build_cube( Interface *mbi,
   rval = mbi->add_parent_child( volume, surf ); MB_CHK_ERR(rval);
   
   // set sense tag    
-  rval = myGeomTool->set_sense(surf, volume, SENSE_FORWARD); MB_CHK_ERR(rval); 
+  rval = GTT->set_sense(surf, volume, SENSE_FORWARD); MB_CHK_ERR(rval); 
 
-  delete myGeomTool;
+  delete GTT;
   
   return MB_SUCCESS;
 }
@@ -150,7 +156,8 @@ int main()
 
   result += RUN_TEST(test_two_cubes);
   result += RUN_TEST(test_three_cubes);
-  result += RUN_TEST(test_six_cubes);
+  result += RUN_TEST(test_four_cubes);
+  
   return result;
 
 }
@@ -192,27 +199,24 @@ ErrorCode get_all_handles(Interface *mbi)
 /* This function tests that the tree built by generate_hierarchy is the same
    as the reference tree
 */
-bool check_tree ( Interface *mbi, DagMC *DAG, std::map< int, std::set<int> > ref_map )
+bool check_tree ( Interface *mbi, GeomTopoTool *GTT, std::map< int, std::set<int> > &ref_map )
 {
   ErrorCode rval;
-  std::map< int, std::set<int> > test_map;
   int vol_id;
-  std::set<int> ref_set;
   std::set<int> test_set;
-  std::set<int>::iterator it;
 
-  if (ref_map.size() != DAG->num_entities(3) )
+  Range vols;
+  rval = GTT->get_gsets_by_dimension(3, vols);
+  if (ref_map.size() != vols.size() )
    {
     return false;
    }
 
   //go through volumes, create sets of children
-  for ( unsigned int i = 1; i <= DAG->num_entities(3) ; i++)
+  for ( Range::iterator it = vols.begin(); it != vols.end() ; ++it)
     {
       //get vol id
-      EntityHandle volume = DAG->entity_by_index(3, i);
-      rval = mbi->tag_get_data(id_tag, &volume, 1, &vol_id ); MB_CHK_ERR(rval);
-
+      rval = mbi->tag_get_data(id_tag, &(*it), 1, &vol_id ); MB_CHK_ERR(rval);
 
       //check if test vol in ref map
       if (ref_map.find(vol_id) == ref_map.end())
@@ -223,7 +227,7 @@ bool check_tree ( Interface *mbi, DagMC *DAG, std::map< int, std::set<int> > ref
       //put range of child surfaces into set
       Range child_surfs;
       test_set.clear(); 
-      child_surfs = get_children_by_dimension( mbi, volume, 2);
+      child_surfs = get_children_by_dimension( mbi, *it, 2);
 
       for (Range::iterator j = child_surfs.begin() ; j != child_surfs.end() ; ++j )
         {
@@ -269,7 +273,7 @@ Range get_children_by_dimension(Interface *mbi, EntityHandle parent, int desired
 }
 
 /* This function contains info for the scale and translation vectors of
-   six different cubes that will be used in the hierarchy testing
+   four different cubes that will be used in the hierarchy testing
 */ 
 void get_cube_info( int cube_id, std::vector<double> &scale, std::vector<double> &trans )
 {
@@ -305,24 +309,6 @@ void get_cube_info( int cube_id, std::vector<double> &scale, std::vector<double>
     }
   if ( cube_id == 4 )
     {
-      scale.push_back(4);
-      scale.push_back(4);
-      scale.push_back(4);
-      trans.push_back(0);
-      trans.push_back(0);
-      trans.push_back(-10);
-    }
-  if ( cube_id == 5 )
-    {
-      scale.push_back(4);
-      scale.push_back(4);
-      scale.push_back(4);
-      trans.push_back(10);
-      trans.push_back(0);
-      trans.push_back(-10);
-    }
-  if ( cube_id == 6 )
-    {
       scale.push_back(40);
       scale.push_back(40);
       scale.push_back(40);
@@ -333,6 +319,9 @@ void get_cube_info( int cube_id, std::vector<double> &scale, std::vector<double>
 
 }
 
+/*
+ * One large cube that contains a smaller one.
+ */
 void test_two_cubes()
 {
   ErrorCode rval; 
@@ -341,7 +330,6 @@ void test_two_cubes()
  
   // get all handles (dimension, id, sense)
   rval = get_all_handles(mbi);
-  //MB_CHK_SET_ERR(rval, "Failed to get all tag handles.");
   MB_CHK_ERR_RET(rval);
   
   int len = 2; 
@@ -359,11 +347,16 @@ void test_two_cubes()
 
 }
 
+/*
+ * One large cube that contains two others.
+ * The two inner cubes are siblings.
+ */
 void test_three_cubes()
 {
   ErrorCode rval; 
 
-  Interface *mbi = new Core(); 
+  Interface *mbi = new Core();
+
   // get all handles (dimension, id, sense)
   rval = get_all_handles(mbi);
   MB_CHK_ERR_RET(rval);
@@ -371,6 +364,7 @@ void test_three_cubes()
   int len = 3; 
   int num[3] = {1, 2, 3};
 
+  //build reference map
   std::map< int, std::set<int> > ref_map;
   ref_map[1].insert(1);
   ref_map[2].insert(2);
@@ -383,18 +377,23 @@ void test_three_cubes()
   delete mbi;
 }
 
-void test_six_cubes()
+/*
+ * Four nested cubes of decreasing size; one placed inside the next
+ */
+void test_four_cubes()
 {
   ErrorCode rval; 
 
   Interface *mbi = new Core(); 
+
   // get all handles (dimension, id, sense)
   rval = get_all_handles(mbi);
   MB_CHK_ERR_RET(rval);
   
-  int len = 6; 
-  int num[6] = {1, 2, 3, 4, 5, 6};
+  int len = 4; 
+  int num[4] = {1, 2, 3, 4};
 
+  //build reference map
   std::map< int, std::set<int> > ref_map;
   ref_map[1].insert(1);
   ref_map[2].insert(2);
@@ -402,16 +401,13 @@ void test_six_cubes()
   ref_map[3].insert(3);
   ref_map[3].insert(2);
   ref_map[4].insert(4);
-  ref_map[5].insert(5);
-  ref_map[6].insert(6);
-  ref_map[6].insert(5);
-  ref_map[6].insert(4);
-  ref_map[6].insert(3);
+  ref_map[4].insert(3);
   
   heappermute(mbi, num, len, ref_map, len);
 
   delete mbi;
 }
+
 
 /* Heap's algorithm generates all possible permutations of n objects
    This function is a modification of code found here:
@@ -422,41 +418,37 @@ void heappermute(Interface *mbi, int v[], int n, std::map< int, std::set<int> > 
 
   ErrorCode rval; 
   std::vector<double> scale, trans;
+  EntityHandle vol;
+  Range flat_vols;
 
   if (n == 1)
     {
       //build cubes
+      flat_vols.clear();
       for (int i = 0; i < len; i++)
         {
           get_cube_info(v[i], scale, trans);
-          build_cube(mbi, scale, trans, v[i]);
+          build_cube(mbi, scale, trans, v[i], vol);
+		  flat_vols.insert(vol);
+
         }
 
-      //test tree
-      GenerateHierarchy *gh = new GenerateHierarchy(mbi, rval);
+	  // construct the topology
+	  GeomTopoTool *GTT = new GeomTopoTool(mbi);
+      // first build obbs-- necessary for topology construction
+      rval = GTT->construct_obb_trees();
       MB_CHK_ERR_RET(rval);
-      rval = gh->build_hierarchy();
+	  rval = GTT->restore_topology_from_geometric_inclusion(flat_vols);
       MB_CHK_ERR_RET(rval);
-      rval = gh->construct_topology();
-      MB_CHK_ERR_RET(rval);
-  
-      DagMC *DAG = new DagMC(mbi);
-      rval = DAG->load_existing_contents();
-      MB_CHK_ERR_RET(rval);
-      rval = DAG->setup_obbs();
-      MB_CHK_ERR_RET(rval);
-      rval = DAG->setup_indices();
-      MB_CHK_ERR_RET(rval);
-   
-      bool result;
-      result = check_tree(mbi, DAG, ref_map );
-  
+      
+      //test the topology
+      bool result = check_tree(mbi, GTT, ref_map );
       CHECK_EQUAL(1, result); 
+      delete GTT;
  
       // delete the geometry so new one can be built;
-      mbi->delete_mesh();
-      delete DAG;
-      delete gh;
+      rval = mbi->delete_mesh();
+      MB_CHK_ERR_RET(rval);
             
     }
   
@@ -487,3 +479,4 @@ void swap(int *x, int *y)
   *x = *y;
   *y = temp;
 }
+

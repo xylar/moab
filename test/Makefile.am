@@ -70,6 +70,7 @@ TESTS = range_test \
 if HAVE_HDF5
   TESTS += mbfacet_test \
         gttool_test \
+		restore_topo_geom_incl_test \
         cropvol_test \
         mergemesh_test \
         mbground_test \
@@ -169,6 +170,7 @@ bsp_tree_poly_test_SOURCES = bsp_tree_poly_test.cpp
 mbfacet_test_SOURCES = mbfacet_test.cpp
 mbground_test_SOURCES = mbground_test.cpp
 gttool_test_SOURCES = gttool_test.cpp
+restore_topo_geom_incl_test_SOURCES = restore_topo_geom_incl_test.cpp
 cropvol_test_SOURCES = crop_vol_test.cpp
 mhdf_public_test_SOURCES = mhdf_public_test.cpp
 mhdf_public_test_LDADD = $(LDADD) $(HDF5_LIBS)

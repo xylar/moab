@@ -53,6 +53,7 @@ if(MOAB_HAVE_HDF5)
              mbfacet_test.cpp
              mbground_test.cpp
              gttool_test.cpp
+             restore_topo_geom_incl_test.cpp
              crop_vol_test.cpp 
              imoab_test.cpp
 	     gqt_simple_test.cpp

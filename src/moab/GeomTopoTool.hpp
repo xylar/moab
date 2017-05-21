@@ -29,7 +29,8 @@ namespace moab {
 
 // forward declare this class to avoid the header leaking in here
 class OrientedBoxTreeTool;
-
+class GeomQueryTool;
+  
 /** \class GeomTopoTool
  * \brief Tool for interpreting geometric topology sets in MOAB database
  * Tool for interpreting geometric topology sets in MOAB database; see MOAB metadata_info
@@ -42,7 +43,7 @@ public:
   ~GeomTopoTool();
   
     //! Restore parent/child links between GEOM_TOPO mesh sets
-  ErrorCode restore_topology();
+  ErrorCode restore_topology_from_adjacency();
     //! Store sense of entity relative to wrt_entity.
     //!\return MB_MULTIPLE_ENTITIES_FOUND if surface already has a forward volume.
     //!        MB_SUCCESS if successful
@@ -107,7 +108,7 @@ public:
    */
   ErrorCode get_bounding_coords(EntityHandle volume, double minPt[3], double maxPt[3]);
 
-  /** \breif Get the center point and three vectors for the OBB of a given volume
+  /** \brief Get the center point and three vectors for the OBB of a given volume
    *
    * @param volume The volume for which the OBB axes will be returned
    * @param center coordinates of the oriented bounding box's center point
@@ -223,7 +224,31 @@ public:
 
     //! detection method for the implicit complement
   bool is_implicit_complement(EntityHandle volume);
-    
+
+  /** \brief Discover and store the topological relationships among a set of volumes
+   * This method may be used to discover the hierarchy that exists in a range of
+   * volumes, that have no previous sense of hierarchy, and store it according 
+   * to the conventions of GeomTopoTool.
+   * The following requirements about the range of flat_volumes must be met:
+   * 1. Each volume must be represented by a single, closed surface
+   *    a. The surface meshsets have triangles and vertices as members. 
+   *    b. For each "flat volume", there must be two meshsets: one for the 
+   *       volume and another for the surface that encloses it. These must be
+   *	   linked by a parent-child relationship.
+   *	c. The SENSE_FORWARD tag on the surface meshset must be set to be
+   *	   the volume meshset it encloses.
+   * 2. The surfaces must not touch or overlap
+   * 
+   * After the hierarchy is established, the topological relationships between 
+   * surfaces and the volumes that enclose them are set.  This involves:
+   * 1. Setting parent-child relationship between surfaces and the volumes that
+   *    enclose them.
+   * 2. Setting the SENSE_REVERSE tag on the surfaces to be the volume that
+   *    encloses them.
+   *      
+   */
+  ErrorCode restore_topology_from_geometric_inclusion(const Range &flat_volumes);
+  
 private:
   Interface *mdbImpl;
   Tag sense2Tag;
@@ -283,6 +308,19 @@ private:
 
   void set_root_set(EntityHandle vol_or_surf, EntityHandle root);
 
+    //! Return a range of children of a desired geometric dimension
+  Range get_ct_children_by_dimension(const EntityHandle parent, const int desired_dimension);
+
+    //! Test if volume A is enclosed by volume B
+    //  This will only produce the correct result if the conventions about
+	//  volumes listed in the restore_topology_from_geometric_inclusion are
+	//  upheld
+  bool A_is_in_B(const EntityHandle volume_A, const EntityHandle volume_B, GeomQueryTool* GQT);
+
+    //! Used by restore_topology_from_geometric_inclusion to generate the
+	//  hierarchical tree of volumes
+  ErrorCode insert_in_tree(const EntityHandle ct_root, const EntityHandle volume, GeomQueryTool* GQT);
+  
 };
 
 inline int GeomTopoTool::num_ents_of_dim(int dim) {

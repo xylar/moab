@@ -14,7 +14,7 @@
  */
 
 #include "moab/GeomTopoTool.hpp"
-#include "moab/GeomUtil.hpp"
+#include "moab/GeomQueryTool.hpp"
 #include "moab/OrientedBoxTreeTool.hpp"
 #include "moab/Range.hpp"
 #include "MBTagConventions.hpp"
@@ -517,7 +517,7 @@ ErrorCode GeomTopoTool::construct_obb_trees(bool make_one_vol)
 }
 
 //! Restore parent/child links between GEOM_TOPO mesh sets
-ErrorCode GeomTopoTool::restore_topology()
+ErrorCode GeomTopoTool::restore_topology_from_adjacency()
 {
 
   // look for geometric topology sets and restore parent/child links between them
@@ -1551,7 +1551,7 @@ ErrorCode GeomTopoTool::duplicate_model(GeomTopoTool *& duplicate, std::vector<E
   // sets and put them in ranges
 
   // this is the lazy way to it:
-  // newgtt->restore_topology(); // will reset the sense entities, and with this, the model
+  // newgtt->restore_topology_from_adjacency(); // will reset the sense entities, and with this, the model
   // represented by this new gtt will be complete
   // set senses by peeking at the old model
   // make sure we have the sense tags defined
@@ -1955,5 +1955,165 @@ ErrorCode GeomTopoTool::get_obb(EntityHandle volume, double center[3], double ax
   return obbTree->box(root, center, axis1, axis2, axis3);
 
 }
+
+Range GeomTopoTool::get_ct_children_by_dimension(EntityHandle parent, int desired_dimension)
+{
+  Range all_children, desired_children;
+  Range::iterator it;
+  int actual_dimension;
+
+  desired_children.clear();
+  all_children.clear();
+  mdbImpl->get_child_meshsets(parent, all_children);
+  
+  for ( it = all_children.begin() ; it != all_children.end() ; ++it) {
+    mdbImpl->tag_get_data(geomTag, &(*it), 1, &actual_dimension);
+    if ( actual_dimension == desired_dimension )
+      desired_children.insert(*it);
+  }
+  
+  return desired_children;
+}
+
+// runs GeomQueryTool point_in_vol and to test if vol A is inside vol B
+//  returns true or false
+  bool GeomTopoTool::A_is_in_B(EntityHandle volume_A, EntityHandle volume_B, GeomQueryTool* GQT)
+{
+  ErrorCode rval;
+
+  Range child_surfaces, triangles, vertices;
+  double coord[3]; // coord[0] = x, etc.
+  int result; // point in vol result; 0=F, 1=T
+
+  // find coordinates of any point on surface of A
+  // get surface corresponding to volume, then get the triangles  
+  child_surfaces = get_ct_children_by_dimension(volume_A, 2);
+  rval = mdbImpl->get_entities_by_type(*child_surfaces.begin(), MBTRI, triangles); MB_CHK_ERR(rval);
+
+  // now get 1st triangle vertices
+  rval = mdbImpl->get_connectivity(&(*triangles.begin()),1,vertices); MB_CHK_ERR(rval);
+  
+  // now get coordinates of first vertex
+  rval = mdbImpl->get_coords(&(*vertices.begin()), 1 , &(coord[0])); MB_CHK_ERR(rval);
+
+  // if point on A is inside vol B, return T; o.w. return F
+  rval = GQT->point_in_volume(volume_B, coord, result);
+  MB_CHK_SET_ERR(rval, "Failed to complete point in volume query.");
+   
+  return (result != 0);
+}  
+  
+                                          
+ErrorCode GeomTopoTool::insert_in_tree(EntityHandle ct_root, EntityHandle volume, GeomQueryTool* GQT)
+{
+  ErrorCode rval;
+
+  bool inserted = false;
+  EntityHandle current_volume = volume; // volume to be inserted 
+  EntityHandle tree_volume = ct_root; // volume already existing in the tree
+  EntityHandle parent;
+  Range child_volumes;
+
+  // while not inserted in tree
+  while ( !inserted )
+    {
+      // if current volume is insde of tree volume-- always true if tree volume
+	  // is the root of the tree
+      if ( tree_volume == ct_root ||
+		  (tree_volume != ct_root && A_is_in_B(current_volume, tree_volume, GQT)) ) {
+       
+	     parent = tree_volume;  
+        
+        // if tree_volume has children then we must test them,
+        // (tree_volume will change)
+        child_volumes = get_ct_children_by_dimension(tree_volume, 3);
+        if (child_volumes.size() > 0 ) 
+          tree_volume = child_volumes.pop_front();
+        // otherwise current_volume is the only child of the tree volume
+        else { 
+          rval = mdbImpl->add_parent_child(parent, current_volume);
+          MB_CHK_SET_ERR(rval, "Failed to add parent-child relationship.");
+          
+          inserted = true;
+        }
+      // if current volume is not in the tree volume, the converse may be true
+      } else {
+        // if the tree volume is inside the current volume
+        if( A_is_in_B(tree_volume, current_volume, GQT) ) {
+          // reverse their parentage
+          rval = mdbImpl->remove_parent_child(parent, tree_volume);
+          MB_CHK_SET_ERR(rval, "Failed to remove parent-child relationship.");
+          rval = mdbImpl->add_parent_child(current_volume, tree_volume);
+          MB_CHK_SET_ERR(rval, "Failed to add parent-child relationship.");
+        }
+        
+        if (child_volumes.size() == 0 ) {
+          rval = mdbImpl->add_parent_child(parent, current_volume);
+          MB_CHK_SET_ERR(rval, "Failed to add parent-child relationship.");
+          inserted = true;
+        } else
+          tree_volume = child_volumes.pop_front();
+      }   
+    }
+  return MB_SUCCESS;
+}
+
+
+ErrorCode GeomTopoTool::restore_topology_from_geometric_inclusion(const Range &flat_volumes) {
+
+  ErrorCode rval;
+  GeomQueryTool* GQT = new GeomQueryTool(this);
+  std::map<EntityHandle,EntityHandle> volume_surface; //map of volume
+                                                      // to its surface
+
+  EntityHandle ct_root;
+  // create root meshset-- this will be top of tree
+  std::string meshset_name = "build_hierarchy_root";
+  rval = mdbImpl->create_meshset( MESHSET_SET, ct_root); MB_CHK_ERR(rval);
+  rval = mdbImpl->tag_set_data( nameTag, &ct_root, 1, meshset_name.c_str()); MB_CHK_ERR(rval);
+
+  for ( Range::iterator vol = flat_volumes.begin(); vol != flat_volumes.end(); vol++) {
+    //get the surface corresponding to each volume
+    // at this point, each volume meshset only has one 'child' surface
+    // which exactly corresponds to that volume
+    Range child_surfaces = get_ct_children_by_dimension(*vol, 2);
+    volume_surface[*vol]=*child_surfaces.begin();
+    
+    rval = insert_in_tree(ct_root, *vol, GQT);
+    MB_CHK_SET_ERR(rval,"Failed to insert volume into tree.");
+  }
+  
+  //for each original volume, get its child volumes
+  for ( Range::iterator parent_it = flat_volumes.begin() ; parent_it != flat_volumes.end(); parent_it++)
+    {
+      Range volume_children = get_ct_children_by_dimension(*parent_it, 3);
+      
+      if (volume_children.size() !=0)
+        {
+          //loop over all of original volume's child volumes
+          for ( Range::iterator child_it = volume_children.begin() ;
+                child_it != volume_children.end() ; ++child_it )
+            {
+              //set the sense of the surface mapped to the child volume to REVERSE
+              // wrt the parent volume
+              rval = set_sense(volume_surface[*child_it], *parent_it, SENSE_REVERSE);
+              MB_CHK_SET_ERR(rval, "Failed to set sense.");
+              
+              //add the child volume's surface as a child of the original volume
+              // and delete the child volume as a child of original volume
+              rval = mdbImpl->add_parent_child(*parent_it,volume_surface[*child_it]);
+              MB_CHK_SET_ERR(rval, "Failed to add parent-child relationship.");
+              rval = mdbImpl->remove_parent_child(*parent_it,*child_it);
+              MB_CHK_SET_ERR(rval, "Failed to remove parent-child relationship.");
+            }
+        }
+      
+    }
+
+  delete GQT;
+  
+  return MB_SUCCESS;
+}  
+  
 
 } // namespace moab
