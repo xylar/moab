@@ -291,8 +291,7 @@ if ENABLE_mbtempest
 MOAB_REMAPPING_SRCS = 
 
 MOAB_REMAPPING_HDRS = \
-	moab/Remapping/Remapper.hpp \
-  moab/Remapping/RemapperUtils.hpp
+	moab/Remapping/Remapper.hpp
 
 AM_CPPFLAGS += -I$(srcdir)/Remapping
 
