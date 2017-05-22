@@ -5,8 +5,10 @@
  *      Author: iulian
  */
 
-#include "Intx2MeshInPlane.hpp"
+#include "moab/IntxMesh/Intx2MeshInPlane.hpp"
 #include "moab/GeomUtil.hpp"
+#include "moab/IntxMesh/IntxUtils.hpp"
+
 namespace moab {
 Intx2MeshInPlane::Intx2MeshInPlane(Interface * mbimpl):Intx2Mesh(mbimpl){
 
@@ -45,18 +47,16 @@ double Intx2MeshInPlane::setup_red_cell(EntityHandle red, int & nsRed)
 
   return cellArea;
 }
-int Intx2MeshInPlane::computeIntersectionBetweenRedAndBlue(EntityHandle red,
+
+ErrorCode Intx2MeshInPlane::computeIntersectionBetweenRedAndBlue(EntityHandle red,
     EntityHandle blue, double * P, int & nP, double & area, int markb[MAXEDGES],
     int markr[MAXEDGES], int & nsBlue, int & nsRed, bool check_boxes_first) {
 
   int num_nodes = 0;
-  ErrorCode rval = mb->get_connectivity(blue, blueConn, num_nodes);
-  if (MB_SUCCESS != rval)
-    return 1;
+  ErrorCode rval = mb->get_connectivity(blue, blueConn, num_nodes);MB_CHK_ERR(rval);
+
   nsBlue = num_nodes;
-  rval = mb->get_coords(blueConn, num_nodes, &(blueCoords[0][0]));
-  if (MB_SUCCESS != rval)
-    return 1;
+  rval = mb->get_coords(blueConn, num_nodes, &(blueCoords[0][0]));MB_CHK_ERR(rval);
 
   area = 0.;
   nP = 0; // number of intersection points we are marking the boundary of blue!
@@ -65,8 +65,9 @@ int Intx2MeshInPlane::computeIntersectionBetweenRedAndBlue(EntityHandle red,
     // look at the boxes formed with vertices; if they are far away, return false early
     if (!GeomUtil::bounding_boxes_overlap(redCoords, nsRed, blueCoords, nsBlue,
         box_error))
-      return 0; // no error, but no intersection, decide early to get out
+      return MB_SUCCESS; // no error, but no intersection, decide early to get out
   }
+#ifdef ENABLE_DEBUG
   if (dbg_1) {
     std::cout << "red " << mb->id_from_handle(red) << "\n";
     for (int j = 0; j < nsRed; j++) {
@@ -79,11 +80,13 @@ int Intx2MeshInPlane::computeIntersectionBetweenRedAndBlue(EntityHandle red,
     mb->list_entities(&red, 1);
     mb->list_entities(&blue, 1);
   }
+#endif
 
   for (int j = 0; j < nsBlue; j++) {
     blueCoords2D[2 * j] = blueCoords[j][0]; // x coordinate,
     blueCoords2D[2 * j + 1] = blueCoords[j][1]; // y coordinate
   }
+#ifdef ENABLE_DEBUG
   if (dbg_1) {
     //std::cout << "gnomonic plane: " << plane << "\n";
     std::cout << " red \n";
@@ -96,17 +99,18 @@ int Intx2MeshInPlane::computeIntersectionBetweenRedAndBlue(EntityHandle red,
           << "\n";
     }
   }
+#endif
 
-  int ret = EdgeIntersections2(blueCoords2D, nsBlue, redCoords2D, nsRed, markb,
-      markr, P, nP);
-  if (ret != 0)
-    return 1; // some unforeseen error
+  rval = EdgeIntersections2(blueCoords2D, nsBlue, redCoords2D, nsRed, markb,
+      markr, P, nP);MB_CHK_ERR(rval);
+#ifdef ENABLE_DEBUG
   if (dbg_1) {
     for (int k = 0; k < 3; k++) {
       std::cout << " markb, markr: " << k << " " << markb[k] << " " << markr[k]
           << "\n";
     }
   }
+#endif
 
   int side[MAXEDGES] = { 0 }; // this refers to what side? blue or red?
   int extraPoints = borderPointsOfXinY2(blueCoords2D, nsBlue, redCoords2D,
@@ -125,12 +129,14 @@ int Intx2MeshInPlane::computeIntersectionBetweenRedAndBlue(EntityHandle red,
       }
     }
   }
+#ifdef ENABLE_DEBUG
   if (dbg_1) {
     for (int k = 0; k < 3; k++) {
       std::cout << " markb, markr: " << k << " " << markb[k] << " " << markr[k]
           << "\n";
     }
   }
+#endif
   nP += extraPoints;
 
   extraPoints = borderPointsOfXinY2(redCoords2D, nsRed, blueCoords2D, nsBlue,
@@ -146,12 +152,14 @@ int Intx2MeshInPlane::computeIntersectionBetweenRedAndBlue(EntityHandle red,
       }
     }
   }
+#ifdef ENABLE_DEBUG
   if (dbg_1) {
     for (int k = 0; k < 3; k++) {
       std::cout << " markb, markr: " << k << " " << markb[k] << " " << markr[k]
           << "\n";
     }
   }
+#endif
   nP += extraPoints;
 
   // now sort and orient the points in P, such that they are forming a convex polygon
@@ -165,7 +173,7 @@ int Intx2MeshInPlane::computeIntersectionBetweenRedAndBlue(EntityHandle red,
       area += area2D(P, &P[2 * k], &P[2 * k + 2]);
   }
 
-  return 0; // no error
+  return MB_SUCCESS; // no error
 }
 
 // this method will also construct the triangles/polygons in the new mesh
@@ -173,13 +181,14 @@ int Intx2MeshInPlane::computeIntersectionBetweenRedAndBlue(EntityHandle red,
 // also, we could just create new vertices every time, and merge only in the end;
 // could be too expensive, and the tolerance for merging could be an
 // interesting topic
-int Intx2MeshInPlane::findNodes(EntityHandle red, int nsRed, EntityHandle blue, int nsBlue,
+ErrorCode Intx2MeshInPlane::findNodes(EntityHandle red, int nsRed, EntityHandle blue, int nsBlue,
     double * iP, int nP)
 {
   // except for gnomonic projection, everything is the same as spherical intx
   // start copy
   // first of all, check against red and blue vertices
   //
+#ifdef ENABLE_DEBUG
   if (dbg_1)
   {
     std::cout << "red, blue, nP, P " << mb->id_from_handle(red) << " "
@@ -188,26 +197,22 @@ int Intx2MeshInPlane::findNodes(EntityHandle red, int nsRed, EntityHandle blue, 
       std::cout << " \t" << iP[2 * n] << "\t" << iP[2 * n + 1] << "\n";
 
   }
+#endif
 
   // get the edges for the red triangle; the extra points will be on those edges, saved as
   // lists (unordered)
-  std::vector<EntityHandle> redEdges(nsRed);//
-  int i = 0;
-  for (i = 0; i < nsRed; i++)
-  {
-    EntityHandle v[2] = { redConn[i], redConn[(i + 1) % nsRed] };
-    std::vector<EntityHandle> adj_entities;
-    ErrorCode rval = mb->get_adjacencies(v, 2, 1, false, adj_entities,
-        Interface::INTERSECT);
-    if (rval != MB_SUCCESS || adj_entities.size() < 1)
-      return 0; // get out , big error
-    redEdges[i] = adj_entities[0]; // should be only one edge between 2 nodes
-  }
+
+  // first get the list of edges adjacent to the red cell
+  // use the neighRedEdgeTag
+  EntityHandle adjRedEdges[MAXEDGES];
+  ErrorCode rval = mb->tag_get_data(neighRedEdgeTag, &red, 1, &(adjRedEdges[0])); MB_CHK_SET_ERR(rval, "can't get edge red tag");
+  // we know that we have only nsRed edges here; [nsRed, MAXEDGES) are ignored, but it is small potatoes
+
   // these will be in the new mesh, mbOut
   // some of them will be handles to the initial vertices from blue or red meshes (lagr or euler)
 
   EntityHandle * foundIds = new EntityHandle[nP];
-  for (i = 0; i < nP; i++)
+  for (int i = 0; i < nP; i++)
   {
     double * pp = &iP[2 * i]; // iP+2*i
     //
@@ -226,10 +231,12 @@ int Intx2MeshInPlane::findNodes(EntityHandle red, int nsRed, EntityHandle blue, 
 
         foundIds[i] = redConn[j]; // no new node
         found = 1;
+#ifdef ENABLE_DEBUG
         if (dbg_1)
           std::cout << "  red node j:" << j << " id:"
               << mb->id_from_handle(redConn[j]) << " 2d coords:" << redCoords2D[2 * j] << "  "
               << redCoords2D[2 * j + 1] << " d2: " << d2 << " \n";
+#endif
       }
     }
 
@@ -243,9 +250,11 @@ int Intx2MeshInPlane::findNodes(EntityHandle red, int nsRed, EntityHandle blue, 
 
         foundIds[i] = blueConn[j]; // no new node
         found = 1;
+#ifdef ENABLE_DEBUG
         if (dbg_1)
           std::cout << "  blue node " << j << " "
               << mb->id_from_handle(blueConn[j]) << " d2:" << d2 << " \n";
+#endif
       }
 
     }
@@ -257,15 +266,17 @@ int Intx2MeshInPlane::findNodes(EntityHandle red, int nsRed, EntityHandle blue, 
       {
         int j1 = (j + 1) % nsRed;
         double area = area2D(&redCoords2D[2 * j], &redCoords2D[2 * j1], pp);
+#ifdef ENABLE_DEBUG
         if (dbg_1)
           std::cout << "   edge " << j << ": "
-              << mb->id_from_handle(redEdges[j]) << " " << redConn[j] << " "
+              << mb->id_from_handle(adjRedEdges[j]) << " " << redConn[j] << " "
               << redConn[j1] << "  area : " << area << "\n";
+#endif
         if (fabs(area) < epsilon_1/2)
         {
           // found the edge; now find if there is a point in the list here
           //std::vector<EntityHandle> * expts = extraNodesMap[redEdges[j]];
-          int indx = RedEdges.index(redEdges[j]);
+          int indx = RedEdges.index(adjRedEdges[j]);
           std::vector<EntityHandle> * expts = extraNodesVec[indx];
           // if the points pp is between extra points, then just give that id
           // if not, create a new point, (check the id)
@@ -279,13 +290,15 @@ int Intx2MeshInPlane::findNodes(EntityHandle red, int nsRed, EntityHandle blue, 
             for (int k = 0; k < nbExtraNodesSoFar && !found; k++)
             {
               //int pnt = *it;
-              double d2 = (pos - coords1[k]).length_squared();
-              if (d2 < epsilon_1)
+              double d3 = (pos - coords1[k]).length_squared();
+              if (d3 < epsilon_1)
               {
                 found = 1;
                 foundIds[i] = (*expts)[k];
+#ifdef ENABLE_DEBUG
                 if (dbg_1)
                   std::cout << " found node:" << foundIds[i] << std::endl;
+#endif
               }
             }
             delete[] coords1;
@@ -302,8 +315,10 @@ int Intx2MeshInPlane::findNodes(EntityHandle red, int nsRed, EntityHandle blue, 
             (*expts).push_back(outNode);
             foundIds[i] = outNode;
             found = 1;
+#ifdef ENABLE_DEBUG
             if (dbg_1)
               std::cout << " new node: " << outNode << std::endl;
+#endif
           }
 
         }
@@ -319,15 +334,17 @@ int Intx2MeshInPlane::findNodes(EntityHandle red, int nsRed, EntityHandle blue, 
       std::cout << " a point pp is not on a red polygon " << *pp << " " << pp[1]
           << " red polygon " << mb->id_from_handle(red) << " \n";
       delete[] foundIds;
-      return 1;
+      return MB_FAILURE;
     }
   }
+#ifdef ENABLE_DEBUG
   if (dbg_1)
   {
     std::cout << " candidate polygon: nP " << nP << "\n";
     for (int i1 = 0; i1 < nP; i1++)
             std::cout << iP[2 * i1] << " " << iP[2 * i1 + 1] << " " << foundIds[i1] << "\n";
   }
+#endif
   // first, find out if we have nodes collapsed; shrink them
   // we may have to reduce nP
   // it is possible that some nodes are collapsed after intersection only
@@ -350,6 +367,7 @@ int Intx2MeshInPlane::findNodes(EntityHandle red, int nsRed, EntityHandle blue, 
     counting++;
     mb->tag_set_data(countTag, &polyNew, 1, &counting);
 
+#ifdef ENABLE_DEBUG
     if (dbg_1)
     {
 
@@ -367,40 +385,13 @@ int Intx2MeshInPlane::findNodes(EntityHandle red, int nsRed, EntityHandle blue, 
       fff << "file0" <<  counting<< ".vtk";
           mb->write_mesh(fff.str().c_str(), &outSet, 1);
     }
+#endif
 
   }
   delete[] foundIds;
   foundIds = NULL;
-  return 0;
+  return MB_SUCCESS;
   // end copy
 }
-bool Intx2MeshInPlane::is_inside_element(double xyz[3], EntityHandle eh)
-{
-  int num_nodes;
-  ErrorCode rval = mb->get_connectivity(eh, redConn, num_nodes);
 
-  if (MB_SUCCESS != rval)
-    return false;
-  int nsides = num_nodes;
-
-  //CartVect coords[4];
-  rval = mb->get_coords(redConn, num_nodes, &(redCoords[0][0]));
-  if (MB_SUCCESS != rval)
-    return 1;
-
-  for (int j = 0; j < nsides; j++)
-  {
-    // populate coords in the plane for decision making
-    // they should be oriented correctly, positively
-    redCoords2D[2 * j]     = redCoords[j][0];
-    redCoords2D[2 * j + 1] = redCoords[j][1];
-  }
-
-  double pt[2]={xyz[0], xyz[1]};// xy plane only
-  // now, is the projected point inside the red quad?
-  // cslam utils
-  if (point_in_interior_of_convex_polygon (redCoords2D, num_nodes, pt))
-    return true;
-  return false;
-}
 } // end namespace moab

@@ -189,36 +189,40 @@ AC_DEFUN([DOWNLOAD_EXTERNAL_PACKAGE],
     *)  remoteprotocol=yes ;;
   esac
   currdir="$PWD"
-  if (test $remoteprotocol != no); then
-    if (test "$HAVE_WGET" != "no" ); then
-      PREFIX_PRINT([   WGET: $1 package downloading to $3 ])
-      if (test -f "$3"); then
-        # Check if the file requested exists in the remote directory -- inform user if there is a network error 
-        op_checkifexists="`wget --spider -O/dev/null -q $2 && echo yes || echo no`"
-        if (test "$op_checkifexists" != "yes"); then
-          AC_ERROR([ --  Requested URL does not exist in remote host. Try again later. ($2)  -- ])
-        fi
-        #op_needdownload="`wget --spider -N -q $2 && echo yes || echo no; cd $currdir`"
-        op_downloadlog$1="`wget -q -c -N --progress=bar $2 -O $3`"
-      else
-        # No need to check for time-stamping
-        op_downloadlog$1="`wget -q --progress=bar $2 -O $3`"
-      fi
-      filedownloaded=yes
-    fi
-
-    if (test "$HAVE_CURL" != "no" && test "$filedownloaded" != "yes"); then
-      PREFIX_PRINT([   CURL: $1 package downloading to $3 ])
-      op_downloadlog$1="`curl -R -s $2 -z $3 -o $3`"
-      filedownloaded=yes
-    fi
+  if (test -f "$3" ); then
+    filedownloaded=yes # Perhaps from a previous run
   else
-    if (test "$HAVE_SCP" != "no" && test "$filedownloaded" != "yes"); then
-      bnamerem="`echo $2 | cut -c 2-`"
-      # op_downloadlog$1="`scp -q $bnamerem $3`"
-      PREFIX_PRINT([   SCP: $1 package downloading to $3 ])
-      op_downloadlog$1="`scp -q $2 $3`"
-      filedownloaded=yes
+    if (test $remoteprotocol != no); then
+      if (test "$HAVE_WGET" != "no" ); then
+        PREFIX_PRINT([   WGET: $1 package downloading to $3 ])
+        if (test -f "$3"); then
+          # Check if the file requested exists in the remote directory -- inform user if there is a network error 
+          op_checkifexists="`wget --spider -O/dev/null -q $2 && echo yes || echo no`"
+          if (test "$op_checkifexists" != "yes"); then
+            AC_ERROR([ --  Requested URL does not exist in remote host. Try again later. ($2)  -- ])
+          fi
+          #op_needdownload="`wget --spider -N -q $2 && echo yes || echo no; cd $currdir`"
+          op_downloadlog$1="`wget -q -c -N --progress=bar $2 -O $3`"
+        else
+          # No need to check for time-stamping
+          op_downloadlog$1="`wget -q --progress=bar $2 -O $3`"
+        fi
+        filedownloaded=yes
+      fi
+
+      if (test "$HAVE_CURL" != "no" && test "$filedownloaded" != "yes"); then
+        PREFIX_PRINT([   CURL: $1 package downloading to $3 ])
+        op_downloadlog$1="`curl -R -s $2 -z $3 -o $3`"
+        filedownloaded=yes
+      fi
+    else
+      if (test "$HAVE_SCP" != "no" && test "$filedownloaded" != "yes"); then
+        bnamerem="`echo $2 | cut -c 2-`"
+        # op_downloadlog$1="`scp -q $bnamerem $3`"
+        PREFIX_PRINT([   SCP: $1 package downloading to $3 ])
+        op_downloadlog$1="`scp -q $2 $3`"
+        filedownloaded=yes
+      fi
     fi
   fi
   
@@ -855,9 +859,7 @@ AC_DEFUN([AUSCM_AUTOMATED_BUILD_NETCDF],
     fi
   fi
 
-  #if (test -f "$netcdf_build_dir/liblib/.libs/libnetcdf.*" ); then
-  libexist_check="`ls "$netcdf_build_dir/liblib/.libs/libnetcdf.la" &> /dev/null 2>&1`"
-  if (test "x$libexist_check" == "x") ; then
+  if (test -f "$netcdf_build_dir/liblib/.libs/libnetcdf.a" || test -f "$netcdf_build_dir/liblib/.libs/libnetcdf.so" || test -f "$netcdf_build_dir/liblib/.libs/libnetcdf.dylib") ; then
     netcdf_made=true
   else
     AC_MSG_ERROR([NetCDF build was unsuccessful. Please refer to $netcdf_src_dir/../make_netcdf.log for further details.])
@@ -1428,4 +1430,179 @@ AC_DEFUN([AUSCM_UNLINK_PARMETIS_302],
   ECHO_EVAL($2, "rm -f $1/lib/libparmetis.a $1/include/parmetis.h")
   ECHO_EVAL($2, "rm -f $1/bin/mtest $1/bin/ptest $1/bin/pometis $1/bin/parmetis")
 ])
+
+
+##########################################
+### TempestRemap AUTOMATED CONFIGURATION
+##########################################
+
+dnl
+dnl Arguments:
+dnl   1) Default Version Number,
+dnl   2) Download by default ?
+dnl
+AC_DEFUN([AUSCM_CONFIGURE_DOWNLOAD_TEMPESTREMAP],[
+
+  # Check whether user wants to autodownload TempestRemap
+  # Call package Download/Configure/Installation procedures for TempestRemap, if requested by user
+  PPREFIX=TempestRemap
+
+  # Set the default TempestRemap download version
+  m4_pushdef([TEMPESTREMAP_DOWNLOAD_VERSION],[$1])dnl
+
+  # Invoke the download-tempestremap command
+  m4_case( TEMPESTREMAP_DOWNLOAD_VERSION, [1.0.beta], [ AUSCM_CONFIGURE_EXTERNAL_PACKAGE([TempestRemap], [https://bitbucket.org/fathomteam/tempestremap/downloads/TempestRemap-1.0-beta.tar.gz], [$2] ) ],
+                                  [ AUSCM_CONFIGURE_EXTERNAL_PACKAGE([TempestRemap], [https://bitbucket.org/fathomteam/tempestremap/downloads/TempestRemap-1.0-beta.tar.gz], [$2] ) ] )
+
+  if (test "x$downloadtempestremap" == "xyes") ; then
+    # download the latest TempestRemap sources, configure and install
+    TEMPESTREMAP_SRCDIR="$tempestremap_src_dir"
+    AC_SUBST(TEMPESTREMAP_SRCDIR)
+    # The default TEMPESTREMAP installation is under libraries
+    TEMPESTREMAP_DIR="$tempestremap_install_dir"
+    enabletempestremap=yes
+  fi  # if (test "$downloadtempestremap" != no)
+])
+
+
+dnl ---------------------------------------------------------------------------
+dnl AUSCM_AUTOMATED SETUP PREPROCESS TempestRemap
+dnl   Prepares the system for an existing TEMPESTREMAP install or sets flags to
+dnl   install a new copy of TempestRemap
+dnl   Arguments: [PACKAGE, SRC_DIR, INSTALL_DIR, NEED_CONFIGURATION]
+dnl ---------------------------------------------------------------------------
+AC_DEFUN([AUSCM_AUTOMATED_SETUP_PREPROCESS_TEMPESTREMAP],
+[
+  # configure PACKAGE
+  tempestremap_src_dir="$2"
+  tempestremap_build_dir="$2/build"
+  tempestremap_install_dir="$3"
+  tempestremap_archive_name="$4"
+
+  # Check if the TempestRemap directory is valid
+  if (test ! -d "$tempestremap_src_dir" || test ! -f "$tempestremap_src_dir/configure" ); then
+    AC_MSG_ERROR([Invalid source configuration for TempestRemap. Source directory $tempestremap_src_dir is invalid])
+  fi
+
+  # Check if we need to configure, build, and/or install TEMPESTREMAP
+  tempestremap_configured=false
+  tempestremap_made=false
+  tempestremap_installed=false
+  if (test ! -d "$tempestremap_build_dir" ); then
+   AS_MKDIR_P( $tempestremap_build_dir )
+  else
+    if (test -f "$tempestremap_build_dir/src/TempestConfig.h" ); then
+      tempestremap_configured=true
+      if (test -f "$tempestremap_build_dir/.libs/libTempestRemap.a" || test -f "$tempestremap_build_dir/.libs/libTempestRemap.so" || test -f "$tempestremap_build_dir/.libs/libTempestRemap.dylib") ; then
+        tempestremap_made=true
+        if (test -f "$tempestremap_install_dir/include/GridElements.h"); then
+          tempestremap_installed=true
+        fi
+      fi
+    fi
+  fi
+  AS_IF([ ! $tempestremap_configured || $need_configuration ], [need_configuration=true], [need_configuration=false])
+  AS_IF([ ! $tempestremap_made || $need_configuration ], [need_build=true], [need_build=false])
+  AS_IF([ ! $tempestremap_installed || $need_configuration ], [need_installation=true], [need_installation=false])
+])
+
+
+dnl ---------------------------------------------------------------------------
+dnl AUSCM_AUTOMATED SETUP POSTPROCESS TEMPESTREMAP
+dnl   Postprocessing for TEMPESTREMAP is minimal.  Exists for standardization of all
+dnl   package macros.
+dnl   Arguments: [PACKAGE]
+dnl ---------------------------------------------------------------------------
+AC_DEFUN([AUSCM_AUTOMATED_SETUP_POSTPROCESS_TEMPESTREMAP],
+[
+  # we have already checked configure/build/install logs for
+  # errors before getting here..
+  enabletempestremap=yes
+  DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --with-tempestremap=\"${tempestremap_install_dir}\""
+])
+
+
+dnl ---------------------------------------------------------------------------
+dnl AUSCM_AUTOMATED CONFIGURE TEMPESTREMAP
+dnl   Sets up the configure command and then ensures it ran correctly.
+dnl   Arguments: [NEED_CONFIGURATION)
+dnl ---------------------------------------------------------------------------
+AC_DEFUN([AUSCM_AUTOMATED_CONFIGURE_TEMPESTREMAP],
+[
+if [ $1 ]; then
+  # configure TEMPESTREMAP
+  if [ $need_configuration ]; then
+    # configure PACKAGE with a minimal build: MPI, HDF5, TEMPESTREMAP
+    compiler_opts="CC=$CC CXX=$CXX FC=$FC F90=$FC F77=$F77"
+    configure_command="$tempestremap_src_dir/configure --prefix=$tempestremap_install_dir --libdir=$tempestremap_install_dir/lib --with-pic=1 --enable-shared=$enable_shared $compiler_opts"
+    if (test "$enablenetcdf" != "no"); then
+      configure_command="$configure_command --with-netcdf=$NETCDF_DIR LDFLAGS=\"$HDF5_LDFLAGS $LDFLAGS\" CPPFLAGS=\"$HDF5_CPPFLAGS\" LIBS=\"$HDF5_LIBS -ldl -lm -lz\""
+    else
+      AC_MSG_ERROR([TempestRemap requires NetCDF with C++ interfaces to be enabled.])
+    fi
+    if (test "$enablehdf5" != "no"); then
+      configure_command="$configure_command --with-hdf5=$HDF5_DIR LDFLAGS=\"$HDF5_LDFLAGS $LDFLAGS\" CPPFLAGS=\"$HDF5_CPPFLAGS\" LIBS=\"$HDF5_LIBS -ldl -lm -lz\""
+    else
+      configure_command="$configure_command LDFLAGS=\"$LDFLAGS\" CPPFLAGS=\"$CPPFLAGS\" LIBS=\"$LIBS\""
+    fi
+    configure_command="$configure_command --enable-linkable-library"
+
+    eval "echo 'Using configure command :==> cd $tempestremap_build_dir && $configure_command > $tempestremap_src_dir/../config_tempestremap.log' > $tempestremap_src_dir/../config_tempestremap.log"
+    PREFIX_PRINT([Configuring with default options  (debug=$enable_debug with-netcdf=$enablenetcdf with-hdf5=$enablehdf5 shared=$enable_shared) ])
+    eval "cd $tempestremap_build_dir && $configure_command >> $tempestremap_src_dir/../config_tempestremap.log 2>&1 && cd \"\$OLDPWD\""
+  fi
+
+  if (test ! -f "$tempestremap_build_dir/src/TempestConfig.h" ); then
+    AC_MSG_ERROR([TempestRemap configuration was unsuccessful. Please refer to $tempestremap_build_dir/config.log and $tempestremap_src_dir/../config_tempestremap.log for further details.])
+  fi
+  tempestremap_configured=true
+
+fi
+])
+
+dnl ---------------------------------------------------------------------------
+dnl AUSCM_AUTOMATED BUILD TEMPESTREMAP
+dnl   Builds TEMPESTREMAP and looks for libTEMPESTREMAP.
+dnl   Arguments: [NEED_BUILD)
+dnl ---------------------------------------------------------------------------
+AC_DEFUN([AUSCM_AUTOMATED_BUILD_TEMPESTREMAP],
+[
+  if [ $1 ]; then
+    if [ $recompile_and_install || $need_build ]; then
+      PREFIX_PRINT(Building the sources in parallel)
+      tempestremap_makelog="`make --no-print-directory -C $tempestremap_build_dir all -j4 > $tempestremap_src_dir/../make_tempestremap.log 2>&1`"
+    fi
+  fi
+
+  if (test -f "$tempestremap_build_dir/.libs/libTempestRemap.a" || test -f "$tempestremap_build_dir/.libs/libTempestRemap.so" || test -f "$tempestremap_build_dir/.libs/libTempestRemap.dylib") ; then
+    tempestremap_made=true
+  else
+    AC_MSG_ERROR([TempestRemap build was unsuccessful. Please refer to $tempestremap_src_dir/../make_tempestremap.log for further details.])
+  fi
+])
+
+dnl ---------------------------------------------------------------------------
+dnl AUSCM_AUTOMATED INSTALL TEMPESTREMAP
+dnl   Installs TEMPESTREMAP and checks headers.
+dnl   Arguments: [NEED_INSTALLATION)
+dnl ---------------------------------------------------------------------------
+AC_DEFUN([AUSCM_AUTOMATED_INSTALL_TEMPESTREMAP],
+[
+  if [ $1 ]; then
+    if [ $recompile_and_install ]; then
+      if [ $tempestremap_installed ]; then
+        tempestremap_installlog="`make --no-print-directory -C $tempestremap_build_dir uninstall > $tempestremap_src_dir/../uninstall_tempestremap.log 2>&1`"
+      fi
+      PREFIX_PRINT(Installing the headers and libraries in to directory {$tempestremap_install_dir} )
+      tempestremap_installlog="`make --no-print-directory -C $tempestremap_build_dir install > $tempestremap_src_dir/../install_tempestremap.log 2>&1`"
+    fi
+  fi
+
+  if (test -f "$tempestremap_install_dir/include/GridElements.h"); then
+    tempestremap_installed=true
+  else
+    AC_MSG_ERROR([TempestRemap installation was unsuccessful. Please refer to $tempestremap_src_dir/../install_tempestremap.log for further details.])
+  fi
+])
+
 

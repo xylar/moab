@@ -41,6 +41,11 @@
 #ifdef MOAB_HAVE_MPI
 #  include "moab_mpi.h"
 #endif
+
+#ifdef MOAB_HAVE_TEMPESTREMAP
+#include "moab/Remapping/TempestRemapper.hpp"
+#endif
+
 #include <stdio.h>
 
 /* Exit values */
@@ -70,7 +75,11 @@ static void print_usage( const char* name, std::ostream& stream )
     << "\t-P             - Append processor ID to output file name" << std::endl
     << "\t-p             - Replace '%' with processor ID in input and output file name" << std::endl
     << "\t-M[0|1|2]      - Read/write in parallel, optionally also doing resolve_shared_ents (1) and exchange_ghosts (2)" << std::endl
-    << "\t-z <file>      - Read metis partition information corresponding to an MPAS grid file and create h5m partition file"
+    << "\t-z <file>      - Read metis partition information corresponding to an MPAS grid file and create h5m partition file" << std::endl
+#endif
+
+#ifdef MOAB_HAVE_TEMPESTREMAP
+    << "\t-T             - Use tempest exodus file reader" << std::endl
 #endif
     << "\t--             - treat all subsequent options as file names" << std::endl
     << "\t                 (allows file names beginning with '-')" << std::endl
@@ -146,6 +155,10 @@ int main(int argc, char* argv[])
   MPI_Comm_rank( MPI_COMM_WORLD, &proc_id );
 #endif
 
+#ifdef MOAB_HAVE_TEMPESTREMAP
+  bool tempest=false;
+#endif
+
   Core core;
   Interface* gMB = &core;
   ErrorCode result;
@@ -207,6 +220,9 @@ int main(int argc, char* argv[])
             parallel = true;
             if (argv[i][2] == '1' || argv[i][2] == '2') resolve_shared = true;
             if (argv[i][2] == '2') exchange_ghosts = true;
+#endif
+#ifdef MOAB_HAVE_TEMPESTREMAP
+        case 'T':      tempest=true;    break;
 #endif
         case '1': case '2': case '3':
           dims[argv[i][1] - '0'] = true; break;
@@ -314,9 +330,39 @@ int main(int argc, char* argv[])
     }
   }
     // Read the input file.
+#ifdef MOAB_HAVE_TEMPESTREMAP
+  if (tempest && in.size()>1)
+  {
+    std::cerr<<" we can read only one tempest files at a time\n";
+#ifdef MOAB_HAVE_MPI
+    MPI_Finalize();
+#endif
+    return USAGE_ERROR;
+  }
+#endif
   for (j = in.begin(); j != in.end(); ++j) {
     reset_times();
+#ifdef MOAB_HAVE_TEMPESTREMAP
+    if (tempest)
+    {
+      // convert
+      TempestRemapper *remapper = new moab::TempestRemapper(gMB);
+      remapper->meshValidate = true;
+      //remapper->constructEdgeMap = true;
+      remapper->initialize();
+
+
+      result = remapper->LoadMesh(moab::Remapper::SourceMesh, *j, moab::TempestRemapper::DEFAULT);MB_CHK_ERR(result);
+
+        // Load the meshes and validate
+      result = remapper->ConvertTempestMesh(moab::Remapper::SourceMesh);
+      delete remapper;
+    }
+    else
+      result = gMB->load_file( j->c_str(), 0, read_options.c_str() );
+#else
     result = gMB->load_file( j->c_str(), 0, read_options.c_str() );
+#endif
     if (MB_SUCCESS != result)
     { 
       std::cerr << "Failed to load \"" << *j << "\"." << std::endl;

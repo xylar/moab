@@ -5,8 +5,8 @@
  *      Author: iulian
  */
 
-#include "CslamUtils.hpp"
 #include <math.h>
+#include "moab/IntxMesh/IntxUtils.hpp"
 // this is from mbcoupler; maybe it should be moved somewhere in moab src
 // right now, add a dependency to mbcoupler
 // #include "ElemUtil.hpp"
@@ -16,10 +16,14 @@
 #include <iostream>
 // this is for sstream
 #include <sstream>
+//#include <algorithm>
 
 #include <queue>
 
 namespace moab {
+
+#define CORRTAGNAME "__correspondent"
+#define MAXEDGES 10
 
 #define CHECK_ERR( A )   if (MB_SUCCESS!=A) { std::cout << "error:" <<  __LINE__ <<" " << __FILE__ "\n"; return rval;}
 
@@ -33,14 +37,14 @@ double area2D(double *a, double *b, double *c) {
   return ((b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0])) / 2;
 }
 int borderPointsOfXinY2(double * X, int nX, double * Y, int nY, double * P,
-    int side[MAXEDGES], double epsilon_area) {
+    int * side, double epsilon_area) {
   // 2 triangles, 3 corners, is the corner of X in Y?
   // Y must have a positive area
   /*
    */
   int extraPoint = 0;
   for (int i = 0; i < nX; i++) {
-    // compute twice the area of all nY triangles formed by a side of Y and a corner of X; if one is negative, stop
+    // compute double the area of all nY triangles formed by a side of Y and a corner of X; if one is negative, stop
     // (negative means it is outside; X and Y are all oriented such that they are positive oriented;
     //  if one area is negative, it means it is outside the convex region, for sure)
     double * A = X + 2 * i;
@@ -70,12 +74,17 @@ int borderPointsOfXinY2(double * X, int nX, double * Y, int nY, double * P,
   return extraPoint;
 }
 
-int swap2(double * p, double * q) {
-  double tmp = *p;
-  *p = *q;
-  *q = tmp;
-  return 0;
-}
+// used to order according to angle, so it can remove double easily
+struct angleAndIndex
+{
+  double angle;
+  int index;
+};
+
+bool angleCompare(angleAndIndex lhs, angleAndIndex rhs)
+{ return lhs.angle < rhs.angle; }
+
+// nP might be modified too, we will remove duplicates if found
 int SortAndRemoveDoubles2(double * P, int & nP, double epsilon_1) {
   if (nP < 2)
     return 0; // nothing to do
@@ -88,33 +97,38 @@ int SortAndRemoveDoubles2(double * P, int & nP, double epsilon_1) {
   }
   c[0] /= nP;
   c[1] /= nP;
-  // how many
-  std::vector<double> angle(nP); // could be at most nP points
+
+  // how many? we dimensioned P at MAXEDGES*10; so we imply we could have at most 5*MAXEDGES intersection points
+  struct angleAndIndex pairAngleIndex[5*MAXEDGES];
+
   for (k = 0; k < nP; k++) {
     double x = P[2 * k] - c[0], y = P[2 * k + 1] - c[1];
     if (x != 0. || y != 0.)
-      angle[k] = atan2(y, x);
+    {
+      pairAngleIndex[k].angle = atan2(y, x);
+
+    }
     else {
-      angle[k] = 0;
-      // this means that the points are on a line, or all coincident // degenerate case
+      pairAngleIndex[k].angle = 0;
+      // it would mean that the cells are touching at a vertex
     }
+    pairAngleIndex[k].index = k;
   }
-  // sort according to angle; also eliminate close points
-  // this is a bubble sort, for np = 24 it could be pretty big
-  // maybe a better sort is needed here (qsort?)
-  int sorted = 1;
-  do {
-    sorted = 1;
-    for (k = 0; k < nP - 1; k++) {
-      if (angle[k] > angle[k + 1]) {
-        sorted = 0;
-        swap2(&angle[k], &angle[k + 1]);
-        swap2(P + (2 * k), P + (2 * k + 2));
-        swap2(P + (2 * k + 1), P + (2 * k + 3));
-      }
-    }
-  } while (!sorted);
-  // eliminate doubles
+
+  // this should be faster than the bubble sort we had before
+  std::sort(pairAngleIndex, pairAngleIndex+nP, angleCompare);
+  // copy now to a new double array
+  double  PCopy[10*MAXEDGES]; // the same dimension as P; very conservative, but faster than reallocate for a vector
+  for(k=0; k<nP; k++) // index will show where it should go now;
+  {
+    int ck=pairAngleIndex[k].index;
+    PCopy[2*k]=P[2*ck];
+    PCopy[2*k+1] = P[2*ck+1];
+  }
+  // now copy from PCopy over original P location
+  std::copy(PCopy, PCopy+2*nP, P);
+
+  // eliminate duplicates, finally
 
   int i = 0, j = 1; // the next one; j may advance faster than i
   // check the unit
@@ -129,6 +143,7 @@ int SortAndRemoveDoubles2(double * P, int & nP, double epsilon_1) {
     j++;
   }
   // test also the last point with the first one (index 0)
+  // the first one could be at -PI; last one could be at +PI, according to atan2 span
 
   double d2 = dist2(P, &P[2 * i]); // check the first and last points (ordered from -pi to +pi)
   if (d2 > epsilon_1) {
@@ -142,8 +157,8 @@ int SortAndRemoveDoubles2(double * P, int & nP, double epsilon_1) {
 
 // the marks will show what edges of blue intersect the red
 
-int EdgeIntersections2(double * blue, int nsBlue, double * red, int nsRed,
-    int markb[MAXEDGES], int markr[MAXEDGES], double * points, int & nPoints) {
+ErrorCode EdgeIntersections2(double * blue, int nsBlue, double * red, int nsRed,
+    int * markb, int * markr, double * points, int & nPoints) {
   /* EDGEINTERSECTIONS computes edge intersections of two elements
    [P,n]=EdgeIntersections(X,Y) computes for the two given elements  * red
    and blue ( stored column wise )
@@ -193,12 +208,13 @@ int EdgeIntersections2(double * blue, int nsBlue, double * red, int nsRed,
 
     }
   }
-  return 0;
+  return MB_SUCCESS;
 }
+
 // special one, for intersection between rll (constant latitude)  and cs quads
-int EdgeIntxRllCs(double * blue, CartVect * bluec, int * blueEdgeType,
-    int nsBlue, double * red, CartVect * redc, int nsRed, int markb[MAXEDGES],
-    int markr[MAXEDGES], int plane, double R, double * points, int & nPoints) {
+ErrorCode EdgeIntxRllCs(double * blue, CartVect * bluec, int * blueEdgeType,
+    int nsBlue, double * red, CartVect * redc, int nsRed, int * markb,
+    int * markr, int plane, double R, double * points, int & nPoints) {
   // if blue edge type is 1, intersect in 3d then project to 2d by gnomonic projection
   // everything else the same (except if there are 2 points resulting, which is rare)
   for (int i = 0; i < 4; i++) { // always at most 4 , so maybe don't bother
@@ -266,7 +282,7 @@ int EdgeIntxRllCs(double * blue, CartVect * bluec, int * blueEdgeType,
       }
     }
   }
-  return 0;
+  return MB_SUCCESS;
 }
 
 // vec utils related to gnomonic projection on a sphere
@@ -317,7 +333,7 @@ void decide_gnomonic_plane(const CartVect & pos, int & plane) {
   return;
 }
 // point on a sphere is projected on one of six planes, decided earlier
-int gnomonic_projection(const CartVect & pos, double R, int plane, double & c1,
+ErrorCode gnomonic_projection(const CartVect & pos, double R, int plane, double & c1,
     double & c2) {
   double alfa = 1.; // the new point will be on line alfa*pos
 
@@ -365,13 +381,14 @@ int gnomonic_projection(const CartVect & pos, double R, int plane, double & c1,
     break;
   }
   default:
-    return 1; // error
+    return MB_FAILURE; // error
   }
 
-  return 0; // no error
+  return MB_SUCCESS; // no error
 }
+
 // given the position on plane (one out of 6), find out the position on sphere
-int reverse_gnomonic_projection(const double & c1, const double & c2, double R,
+ErrorCode reverse_gnomonic_projection(const double & c1, const double & c2, double R,
     int plane, CartVect & pos) {
 
   // the new point will be on line beta*pos
@@ -422,10 +439,10 @@ int reverse_gnomonic_projection(const double & c1, const double & c2, double R,
     break;
   }
   default:
-    return 1; // error
+    return MB_FAILURE; // error
   }
 
-  return 0; // no error
+  return MB_SUCCESS; // no error
 }
 
 /*
@@ -613,27 +630,7 @@ ErrorCode ProjectOnSphere(Interface * mb, EntityHandle set, double R) {
   }
   return MB_SUCCESS;
 }
-//
-bool point_in_interior_of_convex_polygon(double * points, int np,
-    double pt[2]) {
-  bool inside = true;
-  // assume points are counterclockwise
-  for (int i = 0; i < np; i++) {
-    // compute the area of triangles formed by a side of polygon and the pt; if one is negative, stop
-    double * A = points + 2 * i;
 
-    int i1 = (i + 1) % np;
-    double * B = points + 2 * i1; // no copy of data
-
-    double area2 = (B[0] - A[0]) * (pt[1] - A[1])
-        - (pt[0] - A[0]) * (B[1] - A[1]);
-    if (area2 < 0.) {
-      inside = false;
-      break;
-    }
-  }
-  return inside;
-}
 // assume they are one the same sphere
 double spherical_angle(double * A, double * B, double * C, double Radius) {
   // the angle by definition is between the planes OAB and OBC
@@ -783,12 +780,17 @@ double area_on_sphere(Interface * mb, EntityHandle set, double R) {
     rval = mb->get_connectivity(eh, verts, num_nodes);
     if (MB_SUCCESS != rval)
       return -1;
-    std::vector<double> coords(3 * num_nodes);
+    int nsides = num_nodes;
+    // account for possible padded polygons
+    while (verts[nsides - 2] == verts[nsides - 1] && nsides > 3)
+      nsides--;
+
+    std::vector<double> coords(3 * nsides);
     // get coordinates
-    rval = mb->get_coords(verts, num_nodes, &coords[0]);
+    rval = mb->get_coords(verts, nsides, &coords[0]);
     if (MB_SUCCESS != rval)
       return -1;
-    total_area += area_spherical_polygon(&coords[0], num_nodes, R);
+    total_area += area_spherical_polygon(&coords[0], nsides, R);
   }
   return total_area;
 }
@@ -1270,8 +1272,12 @@ ErrorCode positive_orientation(Interface * mb, EntityHandle set, double R) {
     if (MB_SUCCESS != rval)
       return rval;
 
-    double area = area_spherical_triangle_lHuiller(coords, coords + 3,
+    double area;
+    if (R>0)
+      area = area_spherical_triangle_lHuiller(coords, coords + 3,
         coords + 6, R);
+    else
+      area = area2D(coords, coords + 3, coords + 6);
     if (area < 0) {
       std::vector<EntityHandle> newconn(num_nodes);
       for (int i = 0; i < num_nodes; i++) {

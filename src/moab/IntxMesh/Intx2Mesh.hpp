@@ -21,16 +21,22 @@
 #include "moab/Range.hpp"
 #include "moab/CartVect.hpp"
 
-// these are intersection utils
-#include "CslamUtils.hpp"
+// #define ENABLE_DEBUG
+
+// maximum number of edges on each convex polygon of interest
+#define MAXEDGES 10
+#define MAXEDGES2 20 // used for coordinates in plane
+#define CORRTAGNAME "__correspondent"
 
 namespace moab {
 
 #define ERRORR(rval, str) \
-    if (MB_SUCCESS != rval) {std::cout << str << "\n"; return rval;}
+    if (MB_SUCCESS != rval) \
+           {std::cout << str << "\n"; return rval;}
 
 #define ERRORV(rval, str) \
-    if (MB_SUCCESS != rval) {std::cout << str << "\n"; return ;}
+    if (MB_SUCCESS != rval) \
+           {std::cout << str << "\n"; return ;}
 
 #ifdef MOAB_HAVE_MPI
 // forward declarations
@@ -44,6 +50,15 @@ public:
   Intx2Mesh(Interface * mbimpl);
   virtual ~Intx2Mesh();
 
+  /*
+   * computes intersection between 2 sets;
+   * set 2 (mbs2) should be completely covered by set mbs1, as all elements
+   * from set 2 will be decomposed in polygons ; an area verification is done, and
+   * will signal elements from set 2 that are not "recovered"
+   *
+   * the resulting polygons are inserted in output set; total area from output set should be
+   * equal to total area of elements in set 2 (check that!)
+   */
   ErrorCode intersect_meshes(EntityHandle mbs1, EntityHandle mbs2,
        EntityHandle & outputSet);
 
@@ -56,13 +71,13 @@ public:
   // so, if you intersect 2 convex polygons with MAXEDGES , you will get a convex polygon
   // with 2*MAXEDGES, at most
   // will also return the number of nodes of red and blue elements
-  virtual int computeIntersectionBetweenRedAndBlue(EntityHandle red,
+  virtual ErrorCode computeIntersectionBetweenRedAndBlue(EntityHandle red,
       EntityHandle blue, double * P, int & nP, double & area,
       int markb[MAXEDGES], int markr[MAXEDGES], int & nsidesBlue,
       int & nsidesRed, bool check_boxes_first=false)=0;
 
   // this is also abstract
-  virtual int findNodes(EntityHandle red, int nsRed, EntityHandle blue, int nsBlue,
+  virtual ErrorCode findNodes(EntityHandle red, int nsRed, EntityHandle blue, int nsBlue,
       double * iP, int nP)=0;
 
   // this is also computing the area of the red cell in plane (gnomonic plane for sphere)
@@ -74,19 +89,23 @@ public:
 
   virtual double setup_red_cell(EntityHandle red, int & nsRed)= 0;
 
-  virtual void createTags();
-  ErrorCode GetOrderedNeighbors(EntityHandle set, EntityHandle quad,
-      EntityHandle neighbors[MAXEDGES]);
+  virtual ErrorCode FindMaxEdgesInSet(EntityHandle eset, int & max_edges);
+  virtual ErrorCode FindMaxEdges(EntityHandle set1, EntityHandle set2); // this needs to be called before any covering communication in parallel
+
+  virtual ErrorCode createTags();
+
+  ErrorCode DetermineOrderedNeighbors(EntityHandle inputSet, int max_edges, Tag & neighTag);
 
   void SetErrorTolerance(double eps) { epsilon_1=eps; epsilon_area = eps*eps/2;}
 
+#ifdef MOAB_HAVE_MPI
+  void set_parallel_comm(moab::ParallelComm* pcomm) { parcomm = pcomm; }
+#endif
   //void SetEntityType (EntityType tp) { type=tp;}
 
   // clean some memory allocated
   void clean();
 
-  // this will depend on the problem and element type; return true if on the border edge too
-  virtual bool is_inside_element(double xyz[3], EntityHandle eh) = 0;
   void set_box_error(double berror)
    {box_error = berror;}
 
@@ -101,23 +120,46 @@ public:
 
   ErrorCode create_departure_mesh_3rd_alg(EntityHandle & lagr_set, EntityHandle & covering_set);
 
+  /* in this method, used in parallel, each cell from first mesh need to be sent to the
+   * tasks whose second mesh bounding boxes intersects bounding box of the cell
+   * this method assumes that the bounding boxes for the second mesh were computed already in a previous method
+   * (called build_processor_euler_boxes)
+   *
+   * the covering_set is output,  will cover the second mesh (set) from the task;
+   * Some of the cells in the first mesh will be sent to multiple processors; we keep track of them using the global id
+   * of the  vertices and global ids of the cells (we do not want to create multiple vertices with the
+   * same ids). The global id of the cells are needed just for debugging, the cells cannot come from 2 different
+   * tasks, but the vertices can
+   *
+   * Right now, we use crystal router, but an improvement might be to use direct communication (send_entities)
+   * on parallel comm
+   *
+   * param initial_distributed_set (IN) : the initial distribution of the first mesh (set)
+   *
+   * param (OUT) : the covering set in first mesh , which completely covers the second mesh set
+  */
+  ErrorCode construct_covering_set(EntityHandle & initial_distributed_set, EntityHandle & covering_set);
+
   ErrorCode build_processor_euler_boxes(EntityHandle euler_set, Range & local_verts);
 
   void correct_polygon(EntityHandle * foundIds, int & nP);
 #ifdef MOAB_HAVE_MPI
   ErrorCode correct_intersection_points_positions();
 #endif
+#ifdef ENABLE_DEBUG
   void enable_debug()  {dbg_1 = 1;}
   void disable_debug() {dbg_1 = 0;}
+#endif
 protected: // so it can be accessed in derived classes, InPlane and OnSphere
   Interface * mb;
 
   EntityHandle mbs1;
   EntityHandle mbs2;
-  Range rs1;// range set 1 (departure set, lagrange set, blue set, manufactured set)
-  Range rs2;// range set 2 (arrival set, euler set, red set, initial set)
+  Range rs1;// range set 1 (departure set, lagrange set, blue set, manufactured set, target mesh)
+  Range rs2;// range set 2 (arrival set, euler set, red set, initial set, source mesh)
 
   EntityHandle outSet; // will contain intersection
+  Tag gid; // global id tag will be used to set the parents of the intersection cell
 
   // tags used in computation, advancing front
   Tag RedFlagTag; // to mark red quads already considered
@@ -130,6 +172,11 @@ protected: // so it can be accessed in derived classes, InPlane and OnSphere
   Tag blueParentTag;
   Tag countTag;
 
+  Tag blueNeighTag; // will store neighbors for navigating easily in advancing front, for first mesh (blue, target, lagrange)
+  Tag redNeighTag; // will store neighbors for navigating easily in advancing front, for second mesh (red, source, euler)
+
+  Tag neighRedEdgeTag; // will store edge borders for each red cell
+
   //EntityType type; // this will be tri, quad or MBPOLYGON...
 
   const EntityHandle * redConn;
@@ -139,12 +186,16 @@ protected: // so it can be accessed in derived classes, InPlane and OnSphere
   double redCoords2D[MAXEDGES2]; // these are in plane
   double blueCoords2D[MAXEDGES2]; // these are in plane
 
+#ifdef ENABLE_DEBUG
+  static int dbg_1;
   std::ofstream mout_1[6]; // some debug files
-  int dbg_1;
+#endif
   // for each red edge, we keep a vector of extra nodes, coming from intersections
-  // use the index in RedEdges range, instead of a map, as before
-  // std::map<EntityHandle, std::vector<EntityHandle> *> extraNodesMap;
+  // use the index in RedEdges range
   // so the extra nodes on each red edge are kept track of
+  // only entity handles are in the vector, not the actual coordinates;
+  // actual coordinates are retrieved every time, which could be expensive
+  // maybe we should store the coordinates too, along with entity handles (more memory used, faster to retrieve)
   std::vector<std::vector<EntityHandle> *> extraNodesVec;
 
   double epsilon_1;
@@ -154,7 +205,7 @@ protected: // so it can be accessed in derived classes, InPlane and OnSphere
   double box_error;
   /* \brief Local root of the kdtree */
   EntityHandle localRoot;
-  Range localEnts;// this range is for local elements of interest, euler cells
+  Range localEnts;// this range is for local elements of interest, euler cells, or "first mesh"
   unsigned int my_rank;
 
 #ifdef MOAB_HAVE_MPI
@@ -163,10 +214,9 @@ protected: // so it can be accessed in derived classes, InPlane and OnSphere
   TupleList * remote_cells_with_tracers; // these will be used now to update tracers on remote procs
   std::map<int, EntityHandle> globalID_to_eh;// needed for parallel, mostly
 #endif
-  int max_edges; // maximum number of edges in the euler set
+  int max_edges_1; // maximum number of edges in the lagrange set (first set, blue)
+  int max_edges_2; // maximum number of edges in the euler set (second set, red)
   int counting;
-
-
 
 };
 

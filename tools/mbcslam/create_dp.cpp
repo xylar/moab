@@ -11,7 +11,7 @@
 #include <math.h>
 #include <TestUtil.hpp>
 
-#include "CslamUtils.hpp"
+#include "moab/IntxMesh/IntxUtils.hpp"
 #include <assert.h>
 using namespace moab;
 

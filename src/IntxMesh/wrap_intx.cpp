@@ -1,7 +1,7 @@
 /*
  * wrap_intx.cpp
  *  Will implement the intersection method that will be callable from fortran too
- *  will be added to the library mbcslam.a
+ *  will be added to the sub-library IntxMesh
  *
  *
  *  Created on: Dec 14, 2013
@@ -12,18 +12,20 @@
 #include "MBiMesh.hpp"
 #include "moab/Core.hpp"
 #include "moab/Range.hpp"
-#include "Intx2MeshOnSphere.hpp"
+#include "moab/Intx2MeshOnSphere.hpp"
 #include "moab/ReadUtilIface.hpp"
 #include "moab/ParallelComm.hpp"
 #include "MBTagConventions.hpp"
 #include "moab/ParallelMergeMesh.hpp"
+#include "moab/IntxUtils.hpp"
+
 #include <sstream>
 #include <mpi.h>
 
 using namespace moab;
-double radius = 1.;
-double gtol = 1.e-9;
-bool debug = false;
+static double radius = 1.;
+static double gtol = 1.e-9;
+static bool debug = false;
 
 // this mapping to coordinates will keep an index into the coords and dep_coords array
 // more exactly, the fine vertices are in a Range fineVerts;
@@ -36,11 +38,11 @@ bool debug = false;
 // in the same way, departure position for vertex depVerts[i] will be at index
 //   mapping_to_coords[i] * 2 in dep_coords array (it has just latitude and longitude)
 //
-int * mapping_to_coords = NULL;
-int numVertices = 0;
+static int * mapping_to_coords = NULL;
+static int numVertices = 0;
 // this will be instantiated at create mesh step
 // should be cleaned up at the end
-Intx2MeshOnSphere * pworker = NULL;
+static Intx2MeshOnSphere * pworker = NULL;
 
 // should get rid of this; instead of using array[NC+1][NC+1], use  row based indexing (C-style):
 // parray =  new int[ (NC+1)*(NC+1) ] , and instead of array[i][j], use parray[ i*(NC+1) + j ]
@@ -143,7 +145,13 @@ void update_tracer_test(iMesh_Instance instance,
 }
 
 void update_tracer(iMesh_Instance instance,
-    iBase_EntitySetHandle imesh_euler_set, int * ierr) {
+    iBase_EntitySetHandle imesh_euler_set, int * ierr)
+{
+  using namespace moab;
+  const double radius = 1.;
+  const double gtol = 1.e-9;
+  const bool debug = false;
+
   Range ents;
   moab::Interface * mb = MOABI;
   *ierr = 1;
@@ -780,7 +788,7 @@ void create_mesh(iMesh_Instance instance,
   ERRORV(rval, "can't create moab euler set ");
   *imesh_euler_set = (iBase_EntitySetHandle) euler_set;
 
-  // call in cslam utils
+  // call in Intx utils
   // it will copy the second set from the first set
   rval = deep_copy_set_with_quads(mb, fine_set, euler_set);
   ERRORV(rval, "can't populate lagrange set ");

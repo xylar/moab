@@ -19,6 +19,7 @@ configure_file(${CMAKE_CURRENT_BINARY_DIR}/moab/EntityHandle.hpp.in ${CMAKE_CURR
 
 set(moab_link_lib)
 add_subdirectory(io)
+add_subdirectory(IntxMesh)
 
 if (ENABLE_MESQUITE AND MOAB_HAVE_CGM)
   #  add_subdirectory(mesquite)
@@ -171,6 +172,11 @@ set( MOAB_INSTALL_HEADERS
         moab/GeomUtil.hpp
         moab/iMOAB.h
         moab/Interface.hpp
+        moab/IntxMesh/Intx2Mesh.hpp
+        moab/IntxMesh/IntxUtils.hpp
+        moab/IntxMesh/Intx2MeshInPlane.hpp
+        moab/IntxMesh/Intx2MeshOnSphere.hpp
+        moab/IntxMesh/IntxRllCssphere.hpp
         moab/LloydSmoother.hpp
         moab/point_locater/tree/common_tree.hpp
         moab/point_locater/tree/element_tree.hpp
@@ -257,6 +263,7 @@ add_library(
   MOAB
   ${MOAB_LIB_SOURCES} ${MOAB_INSTALL_HEADERS} ${MOAB_GENERATED_INSTALL_HEADERS}
   $<TARGET_OBJECTS:moabio>
+  $<TARGET_OBJECTS:moab_intx_mesh>
   ${MOABPAR_OBJECTS}
   ${MDHF_OBJ}
   )

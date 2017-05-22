@@ -27,7 +27,8 @@ AM_CPPFLAGS  = -DIS_BUILDING_MB \
                -I$(top_srcdir)/src/LocalDiscretization \
                -I$(top_srcdir)/src/verdict \
                -I$(top_srcdir)/src/RefineMesh \
-               -I$(top_srcdir)/src/DiscreteGeometry
+               -I$(top_srcdir)/src/DiscreteGeometry \
+               -I$(top_srcdir)/src/IntxMesh
 
 
 if PARALLEL
@@ -65,8 +66,15 @@ TESTS = range_test \
         verdict_test \
         test_Matrix3 \
         hireconst_test \
-        uref_hirec_test
+        uref_hirec_test \
+        spherical_area_test \
+        arc_intx_tests \
+        intx_in_plane_test \
+        intx_on_sphere_test 
 
+if HAVE_NETCDF
+   TESTS += intx_rll_cs_sphere_test 
+endif
 if HAVE_HDF5
   TESTS += mbfacet_test \
         gttool_test \
@@ -112,7 +120,10 @@ MOSTLYCLEANFILES = mb_write.g \
                    tree.h5m \
                    TaskMesh_n1.0.h5m \
                    TaskMesh_n1.1.h5m \
-                   fnew.h5m
+                   fnew.h5m \
+                   intx.vtk \
+                   polyWithEdges.vtk \
+                   intx1.vtk
 
 # Tests and such
 test_Matrix3_SOURCES = test_Matrix3.cpp
@@ -160,6 +171,12 @@ var_len_test_no_template_CPPFLAGS = -UTEMPLATE_SPECIALIZATION $(AM_CPPFLAGS) $(C
 tag_test_SOURCES = TestUtil.hpp TagTest.cpp
 spatial_locator_test_SOURCES = TestUtil.hpp spatial_locator_test.cpp
 mergemesh_test_SOURCES = mergemesh_test.cpp
+# intersection related tests
+intx_on_sphere_test_SOURCES = intx_on_sphere_test.cpp
+intx_in_plane_test_SOURCES = intx_in_plane_test.cpp
+spherical_area_test_SOURCES = spherical_area_test.cpp
+arc_intx_tests_SOURCES = arc_intx_tests.cpp
+intx_rll_cs_sphere_test_SOURCES = intx_rll_cs_sphere_test.cpp
 
 #mbcn_test_SOURCES = $(top_srcdir)/src/moab/CN.hpp \
 #                    $(top_srcdir)/src/CN.cpp \
@@ -203,6 +220,16 @@ kd_tree_test_CPPFLAGS += -I$(top_srcdir)/src/parallel
 test_prog_opt_CPPFLAGS += -I$(top_srcdir)/src/parallel
 endif
 
+# Tests for remapping
+if ENABLE_mbtempest
+if HAVE_TEMPESTREMAP
+  test_remapping_SOURCES = test_remapping.cpp
+  test_remapping_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/src/Remapping -I$(top_srcdir)/src/IntxMesh $(TEMPESTREMAP_INCLUDE)
+  test_remapping_LDADD = $(LDADD) $(TEMPESTREMAP_LIBS)
+  TESTS += test_remapping
+endif
+endif
+
 FCDEFS += $(FC_DEFINE)SRCDIR=$(srcdir) \
           $(FC_DEFINE)MESHDIR=$(MESHDIR)
 
@@ -237,7 +264,12 @@ cell2.gen: $(MESHDIR)/cell2.gen.gz
 
 CLEANFILES = mb_big_test.g \
              cell1.gen \
-             cell2.gen
+             cell2.gen \
+             outTempestCS.g \
+             outTempestRLL.g \
+             outTempestICO.g \
+             outTempestICOD.g \
+             outTempestOV.g
 
 # Utility target: build but don't run tests
 build-check:

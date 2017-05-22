@@ -32,13 +32,13 @@ on the sphere; see CSLAM Utils case1
 
 #include "moab/Core.hpp"
 #include "moab/Interface.hpp"
-#include "Intx2MeshOnSphere.hpp"
+#include "moab/IntxMesh/Intx2MeshOnSphere.hpp"
 #include "moab/ProgOptions.hpp"
 #include "MBTagConventions.hpp"
 #include "moab/ParallelComm.hpp"
+#include "moab/IntxMesh/IntxUtils.hpp"
 
 #include "TestUtil.hpp"
-#include "CslamUtils.hpp"
 
 const char BRIEF_DESC[] =
     "Simulate a transport problem in a semi-Lagrangian formulation\n";
@@ -278,7 +278,7 @@ ErrorCode compute_tracer_case1(Interface * mb, Intx2MeshOnSphere & worker, Entit
     CartVect posi;
     rval = mb->get_coords(&oldV, 1, &(posi[0]));
     CHECK_ERR(rval);
-    // cslam utils, case 1
+    // Intx utils, case 1
     CartVect newPos;
     departure_point_case1(posi, t, delta_t, newPos);
     newPos = radius * newPos; // do we need this? the radius should be 1
@@ -516,7 +516,10 @@ int main(int argc, char **argv)
   worker.SetRadius(radius);
 
   worker.SetErrorTolerance(gtol);
+  worker.set_parallel_comm(pcomm);
 
+  rval = worker.FindMaxEdges(lagr_set, euler_set);
+  CHECK_ERR(rval);
   Range local_verts;
   rval = worker.build_processor_euler_boxes(euler_set, local_verts);// output also the local_verts
   // these stay fixed for one run

@@ -7,7 +7,7 @@
 #include <string.h>
 #include "moab/Core.hpp"
 #include "moab/Interface.hpp"
-#include "Intx2MeshOnSphere.hpp"
+#include "moab/IntxMesh/Intx2MeshOnSphere.hpp"
 #include <math.h>
 #include "moab/ParallelComm.hpp"
 #include "moab/ProgOptions.hpp"
@@ -15,7 +15,7 @@
 #include "moab/ReadUtilIface.hpp"
 #include "MBTagConventions.hpp"
 #include "TestUtil.hpp"
-#include "CslamUtils.hpp"
+#include "moab/IntxMesh/IntxUtils.hpp"
 
 //std::string file_name("./uniform_30.g");
 //std::string file_name("./uniform_120.g");
@@ -157,6 +157,8 @@ int main(int argc, char *argv[]) {
     pworker->SetRadius(radius);
     pworker->set_box_error(100*gtol);
 
+    rval = pworker->FindMaxEdges(euler_set, euler_set);
+    CHECK_ERR(rval);
 
     // these stay fixed for one run
     moab::Range local_verts;
@@ -668,7 +670,7 @@ moab::ErrorCode get_departure_grid(moab::Interface * mb, moab::EntityHandle eule
     rval = mb->get_coords(&oldV, 1, &(posi[0]));
     if (MB_SUCCESS != rval)
       return rval;
-    // cslam utils, case 1
+    // Intx utils, case 1
     CartVect newPos;
     departure_point_swirl_rot(posi, t, delta_t, newPos);
     newPos = radius * newPos; // do we need this? the radius should be 1

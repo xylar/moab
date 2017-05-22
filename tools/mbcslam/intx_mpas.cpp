@@ -5,7 +5,9 @@
  */
 
 // copy from case1 test
-#ifdef HAVE_ZOLTAN
+#include "moab/MOABConfig.h"
+
+#ifdef MOAB_HAVE_ZOLTAN
 
 #include <iostream>
 #include <sstream>
@@ -14,15 +16,16 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>  // for M_PI
+#include <time.h>
 #include "moab/Core.hpp"
 #include "moab/Interface.hpp"
-#include "Intx2MeshOnSphere.hpp"
+#include "moab/IntxMesh/Intx2MeshOnSphere.hpp"
 #include "moab/ProgOptions.hpp"
 #include "MBTagConventions.hpp"
 #include "moab/ParallelComm.hpp"
-#include "TestUtil.hpp"
+#include "moab/IntxMesh/IntxUtils.hpp"
 
-#include "CslamUtils.hpp"
+#include "TestUtil.hpp"
 
 using namespace moab;
 // some input data
@@ -33,6 +36,13 @@ double radius = 1.;// in m:  6371220.
 double t = 0.1, delta_t = 0.05; // check the script
 bool Verbose = false;
 double rot= M_PI/10;
+
+
+#ifdef MESHDIR
+std::string TestDir( STRINGIFY(MESHDIR) );
+#else
+#error Specify MESHDIR
+#endif
 
 ErrorCode manufacture_lagrange_mesh_on_sphere(Interface * mb,
     EntityHandle euler_set)
@@ -219,12 +229,15 @@ int main(int argc, char **argv)
   //double radius = 1.; // input
 
   worker.SetRadius(radius);
+  worker.set_parallel_comm(pcomm);
   if (0==rank)
   {
      std::cout << "manufacture departure mesh " << filename_mesh1 << "\n  on " << procs << " processors in "
               << (clock() - tt) / (double) CLOCKS_PER_SEC << " seconds" << std::endl;
      tt = clock();
   }
+  rval = worker.FindMaxEdges(euler_set, euler_set);
+  CHECK_ERR(rval);
   worker.SetErrorTolerance(gtol);
   rval = worker.create_departure_mesh_2nd_alg(euler_set, covering_lagr_set);
   CHECK_ERR(rval);

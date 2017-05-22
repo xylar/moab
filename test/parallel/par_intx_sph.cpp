@@ -17,7 +17,7 @@
 #include <string.h>
 #include "moab/Core.hpp"
 #include "moab/Interface.hpp"
-#include "Intx2MeshOnSphere.hpp"
+#include "moab/IntxMesh/Intx2MeshOnSphere.hpp"
 #include <math.h>
 #include "TestUtil.hpp"
 #include "moab/ParallelComm.hpp"
@@ -26,7 +26,7 @@
 #include "moab/ReadUtilIface.hpp"
 #include "MBTagConventions.hpp"
 
-#include "CslamUtils.hpp"
+#include "moab/IntxMesh/IntxUtils.hpp"
 
 // for M_PI
 #include <math.h>
@@ -190,7 +190,10 @@ void test_intx_in_parallel_elem_based()
   worker.SetErrorTolerance(radius*1.e-8);
   std::cout << "error tolerance epsilon_1="<< radius*1.e-8 << "\n";
   //  worker.locate_departure_points(euler_set);
+  // set pcomm
+  worker.set_parallel_comm(pcomm);
 
+  rval = worker.FindMaxEdges(euler_set, euler_set); // use euler set for both, it is just finding max_edges_1 and 2
   // we need to make sure the covering set is bigger than the euler mesh
   EntityHandle covering_lagr_set;
   rval = mb.create_meshset(MESHSET_SET, covering_lagr_set);
@@ -236,14 +239,11 @@ void test_intx_mpas()
   rval = mb.load_file(example.c_str(), &euler_set, opts.c_str());
 
   ParallelComm* pcomm = ParallelComm::get_pcomm(&mb, 0);
-  CHECK_ERR(rval);
 
-  rval = pcomm->check_all_shared_handles();
-  CHECK_ERR(rval);
+  rval = pcomm->check_all_shared_handles();CHECK_ERR(rval);
 
   // everybody will get a DP tag, including the non owned entities; so exchange tags is not required for LOC (here)
-  rval = manufacture_lagrange_mesh_on_sphere(&mb, euler_set);
-  CHECK_ERR(rval);
+  rval = manufacture_lagrange_mesh_on_sphere(&mb, euler_set);CHECK_ERR(rval);
 
   int rank = pcomm->proc_config().proc_rank();
 
@@ -262,10 +262,15 @@ void test_intx_mpas()
   std::cout << "error tolerance epsilon_1="<< radius*1.e-8 << "\n";
   //  worker.locate_departure_points(euler_set);
 
+  rval = worker.FindMaxEdges(euler_set, euler_set);
+
   // we need to make sure the covering set is bigger than the euler mesh
   EntityHandle covering_lagr_set;
   rval = mb.create_meshset(MESHSET_SET, covering_lagr_set);
   CHECK_ERR(rval);
+
+  // set pcomm
+  worker.set_parallel_comm(pcomm);
 
   rval = worker.create_departure_mesh_2nd_alg(euler_set, covering_lagr_set);
   CHECK_ERR(rval);

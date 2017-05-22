@@ -6,11 +6,8 @@ lib_LTLIBRARIES = libMOAB.la
 AM_CPPFLAGS = 
 
 # Subdirectories to build
-SUBDIRS =
-libMOAB_la_LIBADD =
-
-SUBDIRS += io .
-libMOAB_la_LIBADD += io/libmoabio.la 
+SUBDIRS = io .
+libMOAB_la_LIBADD = io/libmoabio.la
 EXTRA_DIST = 
 
 if ENABLE_mesquite
@@ -27,7 +24,8 @@ AM_CPPFLAGS += -DIS_BUILDING_MB \
                -I$(srcdir)/LocalDiscretization \
                -I$(srcdir)/verdict \
                -I$(srcdir)/RefineMesh \
-               -I$(srcdir)/DiscreteGeometry
+               -I$(srcdir)/DiscreteGeometry \
+               -I$(srcdir)/IntxMesh
 
 # The directory in which to install headers
 libMOAB_la_includedir = $(includedir)
@@ -76,6 +74,11 @@ libMOAB_la_SOURCES = \
   HomXform.cpp \
   iMOAB.cpp \
   Internals.hpp \
+  IntxMesh/Intx2Mesh.cpp  \
+  IntxMesh/Intx2MeshInPlane.cpp  \
+  IntxMesh/Intx2MeshOnSphere.cpp \
+  IntxMesh/IntxRllCssphere.cpp \
+  IntxMesh/IntxUtils.cpp \
   LloydSmoother.cpp \
   MBCNArrays.hpp \
   MergeMesh.cpp \
@@ -275,11 +278,52 @@ pointlocinclude_HEADERS = \
   moab/point_locater/point_locater.hpp \
   moab/point_locater/parametrizer.hpp
 
+intxmeshincludedir = $(includedir)/moab/IntxMesh
+intxmeshinclude_HEADERS = \
+	moab/IntxMesh/Intx2Mesh.hpp \
+	moab/IntxMesh/IntxUtils.hpp \
+  moab/IntxMesh/Intx2MeshInPlane.hpp \
+  moab/IntxMesh/Intx2MeshOnSphere.hpp \
+  moab/IntxMesh/IntxRllCssphere.hpp   
+
+# Conditional sources
+if ENABLE_mbtempest
+MOAB_REMAPPING_SRCS = 
+
+MOAB_REMAPPING_HDRS = \
+	moab/Remapping/Remapper.hpp
+
+AM_CPPFLAGS += -I$(srcdir)/Remapping
+
+if HAVE_TEMPESTREMAP
+  AM_CPPFLAGS += $(TEMPESTREMAP_INCLUDE)
+  AM_LDFLAGS += $(TEMPESTREMAP_LIBS)
+
+  MOAB_REMAPPING_SRCS += \
+     Remapping/TempestRemapper.cpp  \
+     Remapping/TempestLinearRemap.cpp \
+     Remapping/TempestOfflineMap.cpp
+
+  MOAB_REMAPPING_HDRS += \
+     moab/Remapping/TempestRemapper.hpp \
+     moab/Remapping/TempestOfflineMap.hpp
+
+endif # if HAVE_TEMPESTREMAP
+
+# Add the remapping sources to the library
+libMOAB_la_SOURCES += $(MOAB_REMAPPING_SRCS)
+# Add the include headers to installation paths
+remappingincludedir = $(includedir)/moab/Remapping
+remappinginclude_HEADERS = $(MOAB_REMAPPING_HDRS)
+
+endif # if ENABLE_mbtempest
+
 if HAVE_HDF5
   nobase_libMOAB_la_include_HEADERS += moab/mhdf_public.h
 endif
 
 if PARALLEL
+#  	 IntxMesh/wrap_intx.cpp
   libMOAB_la_SOURCES += \
      parallel/ParallelComm.cpp \
      parallel/ProcConfig.cpp \

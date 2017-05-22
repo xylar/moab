@@ -108,7 +108,8 @@ if (test "x" != "x$NETCDF_DIR" && test "xno" != "x$NETCDF_DIR"); then
   CPPFLAGS="$NETCDF_CPPFLAGS $CPPFLAGS"
   old_LDFLAGS="$LDFLAGS"
   LDFLAGS="$NETCDF_LDFLAGS $PNETCDF_LDFLAGS $LDFLAGS"
-  
+  oldLIBS=$LIBS
+
    # Check for C library
   AC_LANG_PUSH([C])
   AC_CHECK_HEADERS( [netcdf.h], 
@@ -143,9 +144,37 @@ if (test "x" != "x$NETCDF_DIR" && test "xno" != "x$NETCDF_DIR"); then
       )
   fi
 
+  AC_LANG_POP([C])
+
+  if test "x$enablenetcdf" != "xno"; then
+    # check for C++ header files
+    AC_LANG_PUSH([C++])
+    AC_CHECK_HEADER([netcdfcpp.h],[acx_netcdfpp_ok=yes],[acx_netcdfpp_ok=no])
+    LIBS="-lnetcdf_c++ $NETCDF_LIBS $LIBS"
+    AC_MSG_CHECKING([for netCDF C++ library])
+    AC_LINK_IFELSE([
+                  AC_LANG_PROGRAM(
+                      [[
+  @%:@include <netcdfcpp.h>
+                      ]],
+                      [[
+  NcError err_handler;
+                      ]]
+                  )],
+                  [
+                  acx_netcdfpp_ok=yes
+                  NETCDF_LIBS="-lnetcdf_c++ $NETCDF_LIBS"
+                  AC_MSG_RESULT([yes])
+                  ],
+                  [
+                  acx_netcdfpp_ok=no
+                  AC_MSG_RESULT([no])                ]
+              )
+    AC_LANG_POP([C++])
+  fi
+  LIBS=$oldLIBS
   CPPFLAGS="$old_CPPFLAGS"
   LDFLAGS="$old_LDFLAGS"
-  AC_LANG_POP([C])
 
   if test "x$enablenetcdf" = "xno"; then
     if test "x$NETCDF_DIR" != "x"; then 
