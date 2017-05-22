@@ -144,8 +144,7 @@ double plucker_edge_test(const CartVect& vertexa, const CartVect& vertexb,
   if (near_zero > fabs(pip)) pip = 0.0;
 
   return pip;
-  
-};
+}
   
 #define EXIT_EARLY if(type) *type = NONE; return false;
 

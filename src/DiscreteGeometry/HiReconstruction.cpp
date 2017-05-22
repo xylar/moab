@@ -665,7 +665,9 @@ namespace moab
 	 			DGMSolver::vec_crossprod(v1,v2,v3);
 	 			DGMSolver::vec_linear_operation(3,1,nrm,1,v3,nrm);
 	 		}
-	 		double len=DGMSolver::vec_normalize(3,nrm,nrm); assert(len);
+#ifndef NDEBUG
+	 		assert ( DGMSolver::vec_normalize(3,nrm,nrm) );
+#endif
 	 	}
 	 	return error;
 	 }
@@ -733,7 +735,9 @@ namespace moab
 	 			DGMSolver::vec_linear_operation(3,1,iend,-1,istr,t);
 	 			DGMSolver::vec_linear_operation(3,1,tang,1,t,tang);
 	 		}
-	 		double len=DGMSolver::vec_normalize(3,tang,tang); assert(len);
+#ifndef NDEBUG
+	 		assert ( DGMSolver::vec_normalize(3,tang,tang) );
+#endif
 	 	}
 	 	return error;
 	 }
@@ -802,7 +806,9 @@ namespace moab
 	 	}
 
 	 	DGMSolver::vec_projoff(3,tang1,nrm,tang1);
-	 	double len1 = DGMSolver::vec_normalize(3,tang1,tang1); assert(len1);
+#ifndef NDEBUG
+	 	assert (DGMSolver::vec_normalize(3,tang1,tang1));
+#endif
 	 	DGMSolver::vec_crossprod(nrm,tang1,tang2);
 	 	if(9<=ncoords&&coords){
 	 		coords[0] = tang1[0]; coords[1] = tang1[1]; coords[2] = tang1[2];

@@ -1002,7 +1002,7 @@ static int check_valid_tag( int tag_idx, mhdf_FileHandle file, struct mhdf_FileD
   mhdf_Status status;
   const struct mhdf_TagDesc* tag = &(desc->tags[tag_idx]);
   int i, result = 0;
-  long srange[2];
+  long srange[2]={0,0};
   const char* name;
   struct mhdf_EntDesc* group;
   hid_t h5type;
@@ -1211,7 +1211,7 @@ static int check_valid_var_len_tag( int tag_idx, mhdf_FileHandle file, struct mh
     }
     mhdf_closeData( file, handles[2], &status );
     
-    if (check_valid_end_indices( ids, count, 1, 0, num_val, "Varible-length tag", tag->name ))
+    if (check_valid_end_indices( ids, count, 1, 0, num_val, "Variable-length tag", tag->name ))
       ++result;
     free(ids);
   }
