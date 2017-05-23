@@ -29,8 +29,6 @@ typedef struct BrickOpts
   bool tetra ; // = false;
   bool adjEnts ; // = false;
   bool parmerge ; // = false;
-  bool nosave ; // = false;
-
 } brOpts;
 
 class MGen {

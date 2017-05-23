@@ -33,7 +33,7 @@ int main(int argc, char* argv[])
   opts.uj=CartVect(0.,1.,0.);
   opts.uk=CartVect(0.,0.,1.);
   opts.newMergeMethod =  opts.quadratic =  opts.keep_skins =  opts.tetra = false;
-  opts.adjEnts =  opts.parmerge =  opts.nosave = true;
+  opts.adjEnts = opts.parmerge = false;
   opts.GL = 0;
 
   ProgOptions popts;
@@ -75,8 +75,6 @@ int main(int argc, char* argv[])
     string("Number of ghost layers (default=0)"), &opts.GL);
 
   popts.addOpt<void>("parallel_merge,p", "use parallel mesh merge, not vertex ID based merge", &opts.parmerge);
-
-  popts.addOpt<void>("no_save,n", "do not save the file", &opts.nosave);
 
   popts.parseCommandLine(argc, argv);
 

@@ -36,6 +36,9 @@ MGen::MGen(Interface *impl, ParallelComm *comm, EntityHandle rset)
 
   }
 
+MGen::~MGen() {
+}
+
 ErrorCode MGen::BrickInstance(brOpts & opts)
 {
   int A = opts.A, B = opts.B, C = opts.C, M = opts.M, N = opts.N, K = opts.K;
@@ -49,7 +52,6 @@ ErrorCode MGen::BrickInstance(brOpts & opts)
   bool tetra =  opts.tetra;
   bool adjEnts = opts.adjEnts;
   bool parmerge = opts.parmerge;
-  bool nosave = opts.nosave;
 
   int rank = 0, size = 1;
   clock_t tt = clock();
@@ -351,9 +353,10 @@ ErrorCode MGen::BrickInstance(brOpts & opts)
     }
   }
 
+  mb->add_entities(cset, all3dcells);
+  rval = mb->add_entities(cset, wsets); MB_CHK_SET_ERR(rval, "Can't add entity sets");
 #ifdef MOAB_HAVE_MPI
    pc->partition_sets()=wsets;
-   rval = mb->add_entities(cset, wsets); MB_CHK_SET_ERR(rval, "Can't add entity sets");
 #endif
 
   /*
@@ -374,7 +377,7 @@ ErrorCode MGen::BrickInstance(brOpts & opts)
     std::cout << "Element type: " << ( tetra ? "MBTET" : "MBHEX") << " order:" <<
           (quadratic? "quadratic" : "linear" ) << endl;
   }
-#ifdef MOAB_HAVE_MPI
+
   if (A*B*C != 1) { // Merge needed
     if (newMergeMethod) {
       rval = mm.merge_using_integer_tag(localVerts, global_id_tag);MB_CHK_SET_ERR(rval, "Can't merge");
@@ -405,10 +408,11 @@ ErrorCode MGen::BrickInstance(brOpts & opts)
       rval = mb->add_entities(ws, faces);MB_CHK_SET_ERR(rval, "Can't add faces to partition set");
     }
   }
+#ifdef MOAB_HAVE_MPI
   if (size > 1) {
 
     //rval = mb->create_meshset(MESHSET_SET, mesh_set);MB_CHK_SET_ERR(rval, "Can't create new set");
-    mb->add_entities(cset, all3dcells);
+
 
     if (parmerge)
     {
@@ -465,32 +469,12 @@ ErrorCode MGen::BrickInstance(brOpts & opts)
   }
 #endif
 
-
-#ifdef MOAB_HAVE_HDF5_PARALLEL
-  string outFileName("out1.h5m");
   if (!parmerge)
   {
     rval = mb->tag_delete(new_id_tag); MB_CHK_SET_ERR(rval, "Can't delete new ID tag");
   }
-  if (!nosave){
-    rval = mb->write_file(outFileName.c_str(), 0, ";;PARALLEL=WRITE_PART;CPUTIME;", wsets);MB_CHK_SET_ERR(rval, "Can't write in parallel");
-    if (0 == rank) {
-      std::cout << "write file " << outFileName << " in "
-           << (clock() - tt) / (double)CLOCKS_PER_SEC << " seconds" << endl;
-      tt = clock();
-    }
-  }
-#else
-  if (!nosave){
-    rval = mb->write_file("out1.vtk", 0, "", wsets);MB_CHK_SET_ERR(rval, "Can't write in serial");
-  }
-#endif
-
 
   return MB_SUCCESS;
-}
-MGen::~MGen() {
-  // TODO Auto-generated destructor stub
 }
 
 } /* namespace moab */
