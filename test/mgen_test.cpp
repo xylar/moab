@@ -84,7 +84,7 @@ int main(int argc, char* argv[])
   ParallelComm *pc = new ParallelComm(mb, MPI_COMM_WORLD);
   MGen * mgen = new MGen(mb, pc, fileset);
 #else
-  MGen * mgen = new MGen(mb);
+  MGen * mgen = new MGen(mb, 0, fileset);
 #endif
 
   rval = mgen->BrickInstance(opts); MB_CHK_ERR(rval);
