@@ -8,7 +8,7 @@ if HAVE_CGM
   AM_CXXFLAGS += $(CGM_CXXFLAGS)
 
 if HAVE_NETCDF
-  netcdf_progs = update_coords 
+  netcdf_progs = cub2h5m 
 else
   netcdf_progs = 
 endif
