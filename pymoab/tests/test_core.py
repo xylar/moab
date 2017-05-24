@@ -46,7 +46,7 @@ def test_write_mesh():
 
     try:
         mb.write_file("outfile.h5m")
-        assert os.path.isfile("outfile.h5m")    
+        assert os.path.isfile("outfile.h5m")
     except:
         try:
             print """
@@ -69,7 +69,7 @@ def test_delete_mesh():
     mb.delete_mesh()
     ents = mb.get_entities_by_handle(rs)
     CHECK_EQ(len(ents),0)
-    
+
 def test_get_tag():
     mb = core.Core()
     #Create new tag
@@ -151,14 +151,14 @@ def test_integer_tag():
     new_test_value = 36
     mb.tag_set_data(test_tag, vh[0], new_test_value)
     data = mb.tag_get_data(test_tag, vh[0])
-    
+
     CHECK_EQ(len(data),1)
     CHECK_EQ(new_test_value, data[0])
     CHECK_EQ(data.dtype, 'int32')
 
     tags = mb.tag_get_tags_on_entity(vh[0])
     assert len(tags) > 0
-    
+
 def test_double_tag():
     mb = core.Core()
     vh = vertex_handle(mb)
@@ -199,11 +199,10 @@ def test_double_tag():
     new_test_value = 36.0
     mb.tag_set_data(test_tag, vh[0], new_test_value)
     data = mb.tag_get_data(test_tag, vh[0])
-    
+
     CHECK_EQ(len(data),1)
     CHECK_EQ(new_test_value, data[0])
     CHECK_EQ(data.dtype, 'float64')
-
 
 def test_opaque_tag():
     mb = core.Core()
@@ -231,13 +230,41 @@ def test_tag_list():
     vh = list(vh)
     mb.tag_set_data(test_tag, vh, test_tag_data)
     data = mb.tag_get_data(test_tag, vh)
-    
 
     CHECK_EQ(len(data),1)
     CHECK_EQ(data.nbytes,tag_length)
     CHECK_EQ(data[0],test_val)
     CHECK_EQ(data.dtype,'|S' + str(tag_length))
-    
+
+def test_tag_delete():
+    mb = core.Core()
+    vh = vertex_handle(mb)
+    test_tag = mb.tag_get_handle(
+        "Test", 1, types.MB_TYPE_INTEGER, True, types.MB_TAG_SPARSE)
+    test_val = 4
+    test_tag_data = np.array((test_val,))
+    mb.tag_set_data(test_tag, vh, test_tag_data)
+
+    mb.tag_delete_data(test_tag, vh)
+    try:
+        mb.tag_get_data(test_tag, vh)
+        raised = False
+    except RuntimeError as e:
+        er_val = e[0].error_value
+        raised = True
+    CHECK_EQ(raised, True)
+    CHECK_EQ(er_val, types.MB_TAG_NOT_FOUND)
+
+    mb.tag_delete(test_tag)
+    try:
+        mb.tag_get_data(test_tag, vh)
+        raised = False
+    except RuntimeError as e:
+        er_val = e[0].error_value
+        raised = True
+    CHECK_EQ(raised, True)
+    CHECK_EQ(er_val, types.MB_TAG_NOT_FOUND)
+
 def test_create_meshset():
     mb = core.Core()
     msh = mb.create_meshset()
@@ -265,8 +292,8 @@ def test_create_elements():
     CHECK_EQ(len(tri_id),1)
     CHECK_EQ(tri_id[0],0)
 
-        
-    
+
+
 def test_tag_failures():
     mb = core.Core()
     coord = np.array((1,1,1),dtype='float64')
@@ -387,7 +414,7 @@ def test_get_ents_by_type():
         CHECK_EQ(ret_verts[i],verts[i])
 
 def test_get_ents_by_tnt():
-    
+
     mb = core.Core()
     coords = np.array((0,0,0,1,0,0,1,1,1),dtype='float64')
     verts = mb.create_vertices(coords)
@@ -406,7 +433,7 @@ def test_get_ents_by_tnt():
     opaque_test_tag1 = mb.tag_get_handle("OpaqueTestTag1",6,types.MB_TYPE_OPAQUE,True)
     opaque_test_tag1_values = np.array(("Nine","Ten","Eleven",))
     mb.tag_set_data(opaque_test_tag1,verts,opaque_test_tag1_values)
-    
+
     rs = mb.get_root_set()
 
     single_tag_test_cases = []
@@ -428,7 +455,7 @@ def test_get_ents_by_tnt():
         dict(tag_arr = [opaque_test_tag], value_arr = np.array([["Ten"]]), expected_size = 0), # nonexistant value
         dict(tag_arr = [opaque_test_tag], value_arr = np.array([[None]]), expected_size = 3) ] # any value
     single_tag_test_cases += opaque_tag_test_cases # add opaque tag test cases to all tests
-    
+
     for test_case in single_tag_test_cases:
         entities = mb.get_entities_by_type_and_tag(rs,
                                                    types.MBVERTEX,
@@ -512,7 +539,7 @@ def test_get_ents_by_tnt():
     #                                            np.array([[0,1,2],[22.0,10.0,11.0]],dtype='O'))
 
     # CHECK_EQ(len(entities),0)
-    
+
     # # any set of one tag
     # print "Running suspect test"
     # entities = mb.get_entities_by_type_and_tag(rs,
@@ -526,7 +553,7 @@ def test_get_ents_by_tnt():
     #                                            [int_vec_test_tag,dbl_vec_test_tag],
     #                                            np.array([[None],[None]],dtype='O'))
     # CHECK_EQ(len(entities),3)
-    
+
 
     # any set of one tag
     entities = mb.get_entities_by_type_and_tag(rs,
@@ -534,9 +561,9 @@ def test_get_ents_by_tnt():
                                                dbl_vec_test_tag,
                                                np.array([9.0,10.0,11.0],dtype='O'))
     CHECK_EQ(len(entities),1)
-    
+
     # any hex elements tagged with int_test_tag (no hex elements exist, there should be none)
-    tag_test_vals = np.array([[None]])        
+    tag_test_vals = np.array([[None]])
     entities = mb.get_entities_by_type_and_tag(rs,
                                                types.MBHEX,
                                                np.array((int_test_tag,)),
@@ -564,7 +591,7 @@ def test_get_entities_by_dimension():
 
 def test_parent_child():
     mb = core.Core()
-    
+
     parent_set = mb.create_meshset()
     child_set = mb.create_meshset()
 
@@ -578,11 +605,11 @@ def test_parent_child():
     CHECK_EQ(len(child_sets),0)
 
     mb.add_child_meshset(parent_set,child_set)
-    
+
     child_sets = mb.get_child_meshsets(parent_set)
     CHECK_EQ(len(child_sets),1)
     CHECK_EQ(child_sets[0],child_set)
-    
+
     parent_set = mb.create_meshset()
     child_set = mb.create_meshset()
 
@@ -599,10 +626,10 @@ def test_parent_child():
     child_sets = mb.get_child_meshsets(parent_set)
     CHECK_EQ(len(child_sets),1)
     child_sets[0] == child_set
-    
+
 def test_remove_ents():
     mb = core.Core()
-    ms = mb.create_meshset()    
+    ms = mb.create_meshset()
     coords = np.array((0,0,0,1,0,0,1,1,1),dtype='float64')
     verts = mb.create_vertices(coords)
     mb.add_entities(ms,verts)
@@ -650,7 +677,7 @@ def test_iterables():
     coords = [[0.,0.,0.],[1.,0.,0.],[1.,1.,1.]]
     verts = mb.create_vertices(coords)
     CHECK_EQ(len(verts),3)
-    
+
     int_tag = mb.tag_get_handle("IntTag",1,types.MB_TYPE_INTEGER,True)
 
     #try to set data with bad array (contains int)
@@ -683,7 +710,7 @@ def test_iterables():
         pass
     else:
         print "Shouldn't be here. Test fails."
-        raise AssertionError        
+        raise AssertionError
 
     #insert correct type, but non-existant handle
     verts = [verts[0],long(23),verts[1]]
@@ -693,7 +720,7 @@ def test_iterables():
         pass
     else:
         print "Shouldn't be here. Test fails."
-        raise AssertionError        
+        raise AssertionError
 
 def test_vec_tags():
     mb = core.Core()
@@ -771,7 +798,7 @@ def test_create_elements_iterable():
     all_tris = mb.get_entities_by_type(rs,types.MBTRI)
     CHECK_EQ(len(all_tris),4)
 
-    
+
 if __name__ == "__main__":
     tests = [test_load_mesh,
              test_write_mesh,
@@ -781,6 +808,7 @@ if __name__ == "__main__":
              test_double_tag,
              test_opaque_tag,
              test_tag_list,
+             test_tag_delete,
              test_create_meshset,
              test_create_elements,
              test_tag_failures,
@@ -801,4 +829,3 @@ if __name__ == "__main__":
              test_create_element_iterable,
              test_create_elements_iterable]
     test_driver(tests)
-    

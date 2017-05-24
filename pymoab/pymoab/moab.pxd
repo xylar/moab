@@ -42,7 +42,7 @@ cdef extern from "TagInfo.hpp" namespace "moab":
         int get_size()
         int size_from_data_type(DataType t)
         std_string& get_name()
-        
+
 cdef extern from "moab/Types.hpp" namespace "moab":
 
     cdef enum ErrorCode:
@@ -94,7 +94,7 @@ cdef extern from "moab/Range.hpp" namespace "moab":
     Range intersect(Range&, Range&)
     Range subtract(Range&, Range&)
     Range unite(Range&, Range&)
-    
+
     cdef cppclass Range:
         Range()
         Range(EntityHandle val1, EntityHandle val2)
@@ -216,7 +216,7 @@ cdef extern from "moab/Core.hpp" namespace "moab":
                                  unsigned flags,
                                  const void * default_value,
                                  bool * created)
-        
+
         ErrorCode tag_get_handle(const char* name,
                                  Tag & tag_handle)
 
@@ -234,6 +234,15 @@ cdef extern from "moab/Core.hpp" namespace "moab":
                                const EntityHandle * entity_handles,
                                const int num_entities,
                                void* tag_data)
+
+        ErrorCode tag_delete_data(Tag tag_handle,
+                                  const EntityHandle *entity_handles,
+                                  int num_handles)
+        ErrorCode tag_delete_data(Tag tag_handle,
+                                  const Range &entity_range)
+
+        ErrorCode tag_delete(Tag tag_handle);
+
         ErrorCode tag_get_data_type(const Tag tag_handle,
 	                            DataType& type)
         ErrorCode tag_get_length(const Tag tag_handle,
@@ -241,13 +250,13 @@ cdef extern from "moab/Core.hpp" namespace "moab":
 
         ErrorCode tag_get_default_value(const Tag tag,
                                         void* def_val)
-        
+
         ErrorCode tag_get_name(const Tag tag_handle,
                                std_string & tag_name)
 
         ErrorCode tag_get_tags_on_entity( EntityHandle entity,
                                           vector[Tag]& tag_handles)
-        
+
         ErrorCode get_adjacencies(const EntityHandle *from_entities,
                                   const int num_entities,
                                   const int to_dimension,
@@ -267,7 +276,7 @@ cdef extern from "moab/Core.hpp" namespace "moab":
                                      Range &parents,
                                      const int num_hops)
         ErrorCode add_parent_meshset(EntityHandle child_meshset,
-                                    const EntityHandle parent_meshset)        
+                                    const EntityHandle parent_meshset)
         ErrorCode add_child_meshset(EntityHandle parent_meshset,
                                     const EntityHandle child_meshset)
         ErrorCode add_parent_child(EntityHandle parent,
@@ -403,5 +412,3 @@ cdef extern from "moab/Skinner.hpp" namespace "moab":
         ErrorCode 	find_skin (const EntityHandle meshset, const Range &entities, bool get_vertices,
                                 Range &output_handles, Range *output_reverse_handles, bool create_vert_elem_adjs,
                                 bool create_skin_elements, bool look_for_scd)
-
-
