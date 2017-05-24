@@ -37,13 +37,6 @@ double t = 0.1, delta_t = 0.05; // check the script
 bool Verbose = false;
 double rot= M_PI/10;
 
-
-#ifdef MESHDIR
-std::string TestDir( STRINGIFY(MESHDIR) );
-#else
-#error Specify MESHDIR
-#endif
-
 ErrorCode manufacture_lagrange_mesh_on_sphere(Interface * mb,
     EntityHandle euler_set)
 {
