@@ -2,7 +2,7 @@
  * normals.cpp
  *
  *  Created on: Oct 30, 2015
- *     will take a cubit model and compute normals at all vertices, using exact geometrry info
+ *     will take an occ model and compute normals at all vertices, using exact geometry info
  */
 
 
@@ -22,14 +22,12 @@
 #define STRINGIFY(X) STRINGIFY_(X)
 #ifdef MESHDIR
 #ifdef HAVE_OCC
-#define DEFAULT_GEOM STRINGIFY(MESHDIR/brick.stp)
-#define DEFAULT_MESH STRINGIFY(MESHDIR/brick.h5m)
+#define DEFAULT_GEOM STRINGIFY(MESHDIR/irel/cyl2.stp)
+#define DEFAULT_MESH STRINGIFY(MESHDIR/irel/cyl2.h5m)
 #else
-#define DEFAULT_GEOM STRINGIFY(MESHDIR/cyl2.cub)
-#define DEFAULT_MESH STRINGIFY(MESHDIR/cyl2.cub)
+#define DEFAULT_GEOM STRINGIFY(MESHDIR/irel/brick.facet)
+#define DEFAULT_MESH STRINGIFY(MESHDIR/irel/brick.h5m)
 #endif
-#else
-#error Specify MESHDIR to compile test
 #endif
 
 #define CHECK_SIZE_C(type, array, allocated_size, size)  \
@@ -505,7 +503,7 @@ int compute_normals(iRel_Instance assoc,
   moab::ErrorCode rval = MB_SUCCESS;
 
   moab::Tag idtag;
-  rval = mb->tag_get_handle("GLOBAL_ID", idtag);
+  rval = mb->tag_get_handle("GLOBAL_ID", idtag); if (MB_SUCCESS!=rval) return 0;
 
   for (i = 0; i < gentities_size; i++) {
 
@@ -522,78 +520,15 @@ int compute_normals(iRel_Instance assoc,
 
     int id;
     rval = mb->tag_get_data(idtag, &meshSet, 1, &id);
-    printf("surface %d  has %d faces and %d vertices \n", id, faces.size(),  vertices.size() );
+    printf("surface %d  has %d faces and %d vertices \n", id, (int)faces.size(),  (int)vertices.size() );
 
-    /**\brief Get the normal vector AND closest point on an entity(ies) at
-     *        given position(s)
-     *
-     * Get the normal vector AND closest point on an entity(ies) at given
-     * position(s).  If either the number of entities or number of coordinate
-     * triples is unity, then all points or entities are queried for that entity
-     * or point, respectively, otherwise each point corresponds to each entity.
-     * storage_order should be a value in the iBase_StorageOrder enum.
-     * \param instance iGeom instance handle
-     * \param entity_handles Entity(ies) being queried
-     * \param entity_handles_size Number of entity(ies) being queried
-     * \param storage_order Storage order in near_coordinates array
-     * \param near_coordinates Starting coordinates
-     * \param near_coordinates_size Number of values in near_coordinates array
-     * \param on_coordinates Closest point array
-     * \param on_coordinates_allocated Allocated size of closest point array
-     * \param on_coordinates_size Occupied size of closest point array
-     * \param normals Normal array
-     * \param normals_allocated Allocated size of normal array
-     * \param normals_size Occupied size of normal array
-     * \param *err Pointer to error type returned from function
-     */
 
-  /*iGeom_getArrNrmlPlXYZ( iGeom_Instance instance,
-                              iBase_EntityHandle const* entity_handles,
-                              int entity_handles_size,
-                              int storage_order,
-                              double const* near_coordinates,
-                              int near_coordinates_size,
-                              double** on_coordinates,
-                              int* on_coordinates_allocated,
-                              int* on_coordinates_size,
-                              double** normals,
-                              int* normals_allocated,
-                              int* normals_size,
-                              int* err );*/
-
-   /* void iGeom_getEntNrmlXYZ( iGeom_Instance instance,
-                                iBase_EntityHandle entity_handle,
-                                double x,
-                                double y,
-                                double z,
-                                double* nrml_i,
-                                double* nrml_j,
-                                double* nrml_k,
-                                int* err );
-    */
     std::vector<double> normals;
     normals.resize(3*vertices.size());
-    int sizenor=(int)(3*vertices.size());
+
     std::vector<double> on_coordinates;
     on_coordinates.resize(3*vertices.size());
 
-    int on_coordinates_allocated= (int)(3*vertices.size());
-    int on_coordinates_size;
-
-    int sizeall;
-    normals.resize(vertices.size()*3);
-    /*iGeom_getArrNrmlPlXYZ( geom, &gentities[i], 1, iBase_INTERLEAVED,
-        &coords[0], (int)(vertices.size()*3) , &(&on_coordinates[0]), &on_coordinates_allocated,
-                                  &on_coordinates_size,
-                                  &(&normals[0]),
-                                  &sizenor,
-                                  &sizeall,&result);
-
-
-      if (iBase_SUCCESS != result) {
-      printf("Problem getting normals.\n" );
-      return 0;
-    }*/
 
     for (int j=0; j<(int) vertices.size(); j++)
     {
