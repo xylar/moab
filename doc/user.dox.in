@@ -385,7 +385,8 @@ INPUT                  = @top_srcdir@/src \
                          @top_srcdir@/tools/ \
                          @top_srcdir@/itaps \
                          @top_srcdir@/test \
-                         @top_srcdir@/pymoab \
+			 @top_srcdir@/pymoab \
+                         @top_srcdir@/pymoab/pymoab \
                          @top_srcdir@/examples \
                          @top_srcdir@/doc/UG \
                          @top_srcdir@/doc/DG \
@@ -400,7 +401,7 @@ INPUT                  = @top_srcdir@/src \
 # and *.h) to filter out the source-files in the directories. If left 
 # blank all files are included.
 
-FILE_PATTERNS          = *.cpp *.cc *.c *.cxx *.hpp *.h *.hxx *.dox *.F90 *.F *.f *.py
+FILE_PATTERNS          = *.cpp *.cc *.c *.cxx *.hpp *.h *.hxx *.dox *.F90 *.F *.f *.py *.pyx
 
 # The RECURSIVE tag can be used to turn specify whether or not subdirectories 
 # should be searched for input files as well. Possible values are YES and NO. 
@@ -1017,3 +1018,4 @@ GENERATE_LEGEND        = YES
 
 DOT_CLEANUP            = YES
 
+EXTENSION_MAPPING = pyx=PYTHON
