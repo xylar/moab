@@ -21,5 +21,5 @@ FBIGEOM_LIBS = $(FBIGEOM_LDFLAGS) -L$(MOAB_LIBDIR) \
 FBIGEOM_INCLUDEDIR = @abs_srcdir@
 FBIGEOM_INCLUDEDIR2 = -I@abs_top_builddir@
 FBIGEOM_LIBDIR = @abs_builddir@/.libs
-MOAB_LIBDIR = @abs_builddir@/../../.libs
+MOAB_LIBDIR = @abs_top_builddir@/src/.libs
 

@@ -21,7 +21,7 @@
 #include <string.h>
 #include "moab/Core.hpp"
 #include "moab/Interface.hpp"
-#include "Intx2MeshOnSphere.hpp"
+#include "moab/IntxMesh/Intx2MeshOnSphere.hpp"
 #include <math.h>
 #include "TestUtil.hpp"
 #include "moab/ParallelComm.hpp"
@@ -30,16 +30,10 @@
 #include "moab/ReadUtilIface.hpp"
 #include "MBTagConventions.hpp"
 
-#include "CslamUtils.hpp"
+#include "moab/IntxMesh/IntxUtils.hpp"
 
 // for M_PI
 #include <math.h>
-
-#ifdef MESHDIR
-std::string TestDir( STRINGIFY(MESHDIR) );
-#else
-std::string TestDir(".");
-#endif
 
 using namespace moab;
 // some input data
@@ -195,6 +189,7 @@ void test_intx_in_parallel_elem_based()
   std::cout << "error tolerance epsilon_1="<< Radius*1.e-8 << "\n";
   //  worker.locate_departure_points(euler_set);
 
+  rval = worker.FindMaxEdges(euler_set, euler_set); // departure will be the same max_edges
   // we need to make sure the covering set is bigger than the euler mesh
   EntityHandle covering_lagr_set;
   rval = mb.create_meshset(MESHSET_SET, covering_lagr_set);

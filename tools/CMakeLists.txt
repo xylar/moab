@@ -11,15 +11,21 @@ option ( MOAB_BUILD_MBGSETS      "Build the mbgsets tool?"                      
 option ( MOAB_BUILD_SPHEREDECOMP "Build the sphere decomposition tool?"          ON )
 option ( MOAB_BUILD_MBSURFPLOT   "Build the mbsurfplot application?"             ON )
 option ( MOAB_BUILD_MBPART       "Build the mbpart (Zoltan-based) partitioner?" OFF )
+option ( MOAB_BUILD_MBSLAVEPART  "Build the slave partitioner tool?"             ON )
 option ( MOAB_BUILD_DAGMC        "Build the dagmc tool?"                         ON )
 option ( MOAB_BUILD_MBCOUPLER    "Build the mesh coupler tool?"                  ON )
 option ( MOAB_BUILD_MBHONODES    "Build the hex8 to hex27 converter tool?"       ON )
 option ( MOAB_BUILD_MBUMR        "Build the uniform mesh refinement tool?"       ON )
 option ( MOAB_BUILD_MBQUALITY    "Build the quality metrics tool?"               ON )
+option ( MOAB_BUILD_MBTEMPEST    "Build the TempestRemap coupler tool?"         OFF )
 
 if ( MOAB_HAVE_MPI AND MPI_FOUND )
   add_subdirectory( refiner )
 endif ( )
+
+if (ENABLE_MESQUITE AND MOAB_HAVE_CGM)
+  # add_subdirectory(mesquite)
+endif(ENABLE_MESQUITE AND MOAB_HAVE_CGM)
 
 include_directories(
   ${CMAKE_BINARY_DIR}
@@ -161,7 +167,7 @@ if ( MOAB_BUILD_MBGSETS )
     )
 endif( )
 
-# MOAB_BUILD_MBUMR
+# MBUMR
 if ( MOAB_BUILD_MBUMR )
   add_executable( mbumr umr.cpp )
   set_source_files_properties( umr.cpp COMPILE_FLAGS "${MOAB_DEFINES}" )
@@ -169,6 +175,34 @@ if ( MOAB_BUILD_MBUMR )
   set( MOAB_HAVE_MBUMR 1 )
   install(
     TARGETS mbumr
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    )
+endif( )
+
+# MBSLAVEPART
+if ( MOAB_BUILD_MBSLAVEPART )
+  add_executable( mbslavepart mbslavepart.cpp)
+  set_source_files_properties( mbslavepart.cpp COMPILE_FLAGS "${MOAB_DEFINES}" )
+  target_link_libraries( mbslavepart ${TOOLS_LINK_LIBS} )
+  set( MOAB_HAVE_MBSLAVEPART 1 )
+  install(
+    TARGETS mbslavepart
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    )
+endif( )
+
+# MBTEMPEST
+if ( MOAB_BUILD_MBTEMPEST AND MOAB_HAVE_TEMPEST )
+  add_executable( mbtempest mbtempest.cpp)
+  set_source_files_properties( mbtempest.cpp COMPILE_FLAGS "${MOAB_DEFINES}" )
+  target_link_libraries( mbtempest ${TOOLS_LINK_LIBS} )
+  set( MOAB_HAVE_MBTEMPEST 1 )
+  install(
+    TARGETS mbtempest
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -188,7 +222,6 @@ if ( MOAB_BUILD_MBQUALITY )
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     )
 endif( )
-
 
 # CGM + DagMC
 if ( MOAB_BUILD_DAGMC )

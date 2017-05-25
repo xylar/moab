@@ -5,11 +5,7 @@
 
 using namespace moab;
 
-#ifdef MESHDIR
-static const char example[] = STRINGIFY(MESHDIR) "/io/mpasx1.642.t.2.nc";
-#else
-static const char example[] = "/io/mpasx1.642.t.2.nc";
-#endif
+std::string example = TestDir + "/io/mpasx1.642.t.2.nc";
 
 #ifdef MOAB_HAVE_MPI
 #include "moab_mpi.h"
@@ -68,7 +64,7 @@ void test_read_all()
   get_options(opts);
 
   // Read mesh and read all variables at all timesteps
-  ErrorCode rval = mb.load_file(example, NULL, opts.c_str());
+  ErrorCode rval = mb.load_file(example.c_str(), NULL, opts.c_str());
   CHECK_ERR(rval);
 
 #ifdef MOAB_HAVE_MPI
@@ -170,7 +166,7 @@ void test_read_onevar()
 
   // Read mesh and read cell variable ke at all timesteps
   opts += ";VARIABLE=ke";
-  ErrorCode rval = mb.load_file(example, NULL, opts.c_str());
+  ErrorCode rval = mb.load_file(example.c_str(), NULL, opts.c_str());
   CHECK_ERR(rval);
 
 #ifdef MOAB_HAVE_MPI
@@ -226,7 +222,7 @@ void test_read_onetimestep()
 
   // Read mesh and read all variables at 2nd timestep
   opts += ";TIMESTEP=1";
-  ErrorCode rval = mb.load_file(example, NULL, opts.c_str());
+  ErrorCode rval = mb.load_file(example.c_str(), NULL, opts.c_str());
   CHECK_ERR(rval);
 
   // Check vorticity tags
@@ -253,7 +249,7 @@ void test_read_nomesh()
 
   // Read mesh and read all variables at 1st timestep
   opts = orig + ";TIMESTEP=0";
-  rval = mb.load_file(example, &file_set, opts.c_str());
+  rval = mb.load_file(example.c_str(), &file_set, opts.c_str());
   CHECK_ERR(rval);
 
   // Check u tags
@@ -266,7 +262,7 @@ void test_read_nomesh()
 
   // Read all variables at 2nd timestep 0, no need to read mesh
   opts = orig + ";TIMESTEP=1;NOMESH";
-  rval = mb.load_file(example, &file_set, opts.c_str());
+  rval = mb.load_file(example.c_str(), &file_set, opts.c_str());
   CHECK_ERR(rval);
 
   // Check tag u1 again
@@ -291,12 +287,12 @@ void test_read_novars()
 
   // Read header info only, no mesh, no variables
   opts = orig + ";NOMESH;VARIABLE=";
-  rval = mb.load_file(example, &file_set, opts.c_str());
+  rval = mb.load_file(example.c_str(), &file_set, opts.c_str());
   CHECK_ERR(rval);
 
   // Read mesh, but still no variables
   opts = orig + ";VARIABLE=;TIMESTEP=0";
-  rval = mb.load_file(example, &file_set, opts.c_str());
+  rval = mb.load_file(example.c_str(), &file_set, opts.c_str());
   CHECK_ERR(rval);
 
   // Check ke tags
@@ -310,7 +306,7 @@ void test_read_novars()
 
   // Read ke at 1st timestep, no need to read mesh
   opts = orig + ";VARIABLE=ke;TIMESTEP=0;NOMESH";
-  rval = mb.load_file(example, &file_set, opts.c_str());
+  rval = mb.load_file(example.c_str(), &file_set, opts.c_str());
   CHECK_ERR(rval);
 
   // Check ke tags again
@@ -323,7 +319,7 @@ void test_read_novars()
 
   // Read ke at 2nd timestep, no need to read mesh
   opts = orig + ";VARIABLE=ke;TIMESTEP=1;NOMESH";
-  rval = mb.load_file(example, &file_set, opts.c_str());
+  rval = mb.load_file(example.c_str(), &file_set, opts.c_str());
   CHECK_ERR(rval);
 
   // Check tag ke1 again
@@ -377,7 +373,7 @@ void test_read_no_mixed_elements()
 
   // Read mesh with no mixed elements and read all variables at all timesteps
   opts += ";NO_MIXED_ELEMENTS";
-  ErrorCode rval = mb.load_file(example, NULL, opts.c_str());
+  ErrorCode rval = mb.load_file(example.c_str(), NULL, opts.c_str());
   CHECK_ERR(rval);
 
 #ifdef MOAB_HAVE_MPI
@@ -434,7 +430,7 @@ void test_read_no_edges()
   get_options(opts);
 
   opts += ";NO_EDGES;VARIABLE=";
-  ErrorCode rval = mb.load_file(example, NULL, opts.c_str());
+  ErrorCode rval = mb.load_file(example.c_str(), NULL, opts.c_str());
   CHECK_ERR(rval);
 
   // Get edges
@@ -458,7 +454,7 @@ void test_gather_onevar()
 
   // Read cell variable ke and create gather set on processor 0
   opts += ";VARIABLE=ke;GATHER_SET=0";
-  rval = mb.load_file(example, &file_set, opts.c_str());
+  rval = mb.load_file(example.c_str(), &file_set, opts.c_str());
   CHECK_ERR(rval);
 
 #ifdef MOAB_HAVE_MPI

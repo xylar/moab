@@ -21,16 +21,12 @@ GeomQueryTool* GQT;
             << __LINE__ << std::endl; \
   return A; } } while(false)
 
-#ifdef MESHDIR
-static const char input_file[] = STRINGIFY(MESHDIR) "/test_geom.h5m";
-#else
-static const char input_file[] = STRINGIFY(MESHDIR) "/test_geom.h5m";
-#endif
+const std::string input_file = TestDir + "/test_geom.h5m";
 
 void gqt_setup_test() 
 {
   MBI = new Core();
-  ErrorCode rval = MBI->load_file(input_file);
+  ErrorCode rval = MBI->load_file(input_file.c_str());
   CHECK_ERR(rval);
 
   GTT = new GeomTopoTool(MBI);

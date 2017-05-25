@@ -22,5 +22,5 @@ IREL_LIBS = $(IREL_LDFLAGS) -L${MOAB_LIBDIR} -L$(IREL_LIBDIR) \
 IREL_INCLUDEDIR = @abs_srcdir@
 IREL_INCLUDEDIR2 = -I@abs_top_builddir@
 IREL_LIBDIR = @abs_builddir@/.libs
-MOAB_LIBDIR = @abs_builddir@/../../.libs
+MOAB_LIBDIR = @abs_top_builddir@/src/.libs
 

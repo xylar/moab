@@ -127,6 +127,12 @@ else
   dagmc_DIR = 
 endif 
 
+if ENABLE_mesquite
+  mesquite_DIR = mesquite
+else
+  mesquite_DIR = 
+endif
+
 if PARALLEL
   parread = parread
 else
@@ -142,15 +148,25 @@ endif
 if ENABLE_mbquality
   AM_CPPFLAGS += -I$(top_srcdir)/src/verdict
   bin_PROGRAMS += mbquality
+mbquality_SOURCES = quality.cpp
 endif
 
 if ENABLE_mbumr
   AM_CPPFLAGS += -I$(top_srcdir)/src/RefineMesh
   bin_PROGRAMS += mbumr
+mbumr_SOURCES = umr.cpp
+endif
+
+if ENABLE_mbtempest
+  AM_CPPFLAGS += $(TEMPESTREMAP_INCLUDE) -I$(top_srcdir)/src/Remapping -I$(top_srcdir)/src/IntxMesh
+  bin_PROGRAMS += mbtempest
+mbtempest_SOURCES = mbtempest.cpp
+mbtempest_LDADD = $(LDADD) $(TEMPESTREMAP_LIBS)
 endif
 
 if ENABLE_mbmerge
   bin_PROGRAMS += mbmerge
+mbmerge_SOURCES = merge.cpp
 endif
 
 if ENABLE_mbhonodes
@@ -165,10 +181,10 @@ SUBDIRS = . \
           $(mbcslam_DIR) \
           $(mcnpmit_DIR) \
           $(vtkMOABReader_DIR) \
-          $(dagmc_DIR) 
+          $(dagmc_DIR) \
+          $(mesquite_DIR)
 
 mbconvert_SOURCES = convert.cpp
-mbmerge_SOURCES = merge.cpp
 mbgsets_SOURCES = gsets.cc
 hexmodops_SOURCES = makeops.cpp
 mbsize_SOURCES = measure.cpp measure.hpp size.cpp
@@ -179,7 +195,8 @@ mbsurfplot_SOURCES = surfplot.cpp
 mbtagprop_SOURCES = parse.cpp parse.hpp propagate_tags.cpp
 mbmem_SOURCES = mbmem.cpp
 parread_SOURCES = parread.cpp
-mbquality_SOURCES = quality.cpp
 mbhonodes_SOURCES = honodes.cpp
-mbumr_SOURCES = umr.cpp
+
+bin_PROGRAMS += mbslavepart
+mbslavepart_SOURCES = mbslavepart.cpp
 

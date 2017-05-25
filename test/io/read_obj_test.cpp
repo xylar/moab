@@ -15,10 +15,8 @@ using namespace moab;
             << __LINE__ << std::endl; \
   return A; } } while(false)
 
-#ifdef MESHDIR
-static const char test[] = STRINGIFY(MESHDIR) "/io/test.obj";
-static const char shuttle[] = STRINGIFY(MESHDIR) "/io/shuttle.obj";
-#endif
+std::string test = TestDir + "/io/test.obj";
+std::string shuttle = TestDir + "/io/shuttle.obj";
 
 GeomTopoTool *myGeomTool;
 
@@ -57,7 +55,7 @@ void test_check_num_entities()
   ErrorCode rval;
   Core core;
   Interface *mbi = &core;
-  read_file(core, test);
+  read_file(core, test.c_str());
 
   // check that number of verts created is 7 
   Range verts;
@@ -80,7 +78,7 @@ void test_check_meshsets()
   ErrorCode rval;
   Core core;
   Interface *mbi = &core;
-  read_file(core, test);
+  read_file(core, test.c_str());
  
   myGeomTool = new GeomTopoTool(mbi);
   
@@ -140,7 +138,7 @@ void test_check_groups()
   ErrorCode rval;
   Core core;
   Interface *mbi = &core;
-  read_file(core, shuttle);
+  read_file(core, shuttle.c_str());
 
   // check that number of tris created is 616
   //  170 tris + 223 quads split into 2 tris = 616 

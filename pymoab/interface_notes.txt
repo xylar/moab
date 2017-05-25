@@ -1,0 +1,54 @@
+
+This interface has been added to MOAB as a way for users to interactively work
+with MOAB meshes for the purposes of debugging, modification, etc. An additional
+motivation for this interface is the replacement of PyTAPS
+(https://pythonhosted.org/PyTAPS/) in PyNE, the Python Nuclear Engineering
+toolkit.
+
+
+Pure MOAB Interface
+-------------------
+
+Core Interface Functionality:
+
+ - impl_version
+ - load_file
+ - write_file
+ - create_meshset
+ - add_entities
+ - create_vertices
+ - create_element
+ - create_elements
+ - tag_get_handle
+ - tag_set_data
+ - tag_get_data
+ - get_adjacencies
+ - type_from_handle
+ - get_child_meshsets
+ - add_child_meshset
+ - get_root_set
+ - get_coords
+ - get_entities_by_type
+ - get_entities_by_type_and_tag
+
+Types:
+
+ - ErrorTypes: MB_SUCCESS...MB_FAILURE
+ - DataTypes: MB_TYPE_OPAQUE...MB_MAX_DATA_TYPE
+ - EntityTypes: MBVERTEX...MBMAXTYPE
+ - TagTypes: MB_TAG_BIT...MB_TAG_DFTOK
+
+Data Structures:
+
+ - Range
+
+Interface Additions Specific to PyNE Motivation
+-----------------------------------------------
+
+ScdInterface (MOAB's Structured Mesh Interface):
+
+ - construct_box
+ - find_boxes
+ - ScdBox Class
+ - HomCoord Class
+

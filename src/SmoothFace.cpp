@@ -4,10 +4,8 @@
 #include <iomanip>
 #include <cassert>
 #include <limits>
-#include "SmoothFace.hpp"
-
 #include "moab/OrientedBoxTreeTool.hpp"
-
+#include "SmoothFace.hpp"
 
 #define GEOMETRY_RESABS 1.e-6
 #define mbsqr(a) ((a)*(a))

@@ -14,34 +14,17 @@
 #include "moab/FileOptions.hpp"
 using namespace moab;
 
-#ifdef MESHDIR
- #ifdef HAVE_OCC_STEP
- static const char input_cube[] = STRINGIFY(MESHDIR) "/io/cube.stp";
- #else
- static const char input_cube[] = STRINGIFY(MESHDIR) "/io/cube.sat";
- #endif
+#ifdef HAVE_OCC_STEP
+std::string input_cube = TestDir + "/io/cube.stp";
 #else
- #ifdef HAVE_OCC_STEP
- static const char input_cube[] = "cube.stp";
- #else
- static const char input_cube[] = "cube.sat";
- #endif
+std::string input_cube = TestDir + "/io/cube.sat";
 #endif
 
-#ifdef MESHDIR
- #ifdef HAVE_OCC_STEP
- static const char input_cone[] = STRINGIFY(MESHDIR) "/io/cone.stp";
- #else
- static const char input_cone[] = STRINGIFY(MESHDIR) "/io/cone.sat";
- #endif
+#ifdef HAVE_OCC_STEP
+std::string input_cone = TestDir + "/io/cone.stp";
 #else
- #ifdef HAVE_OCC_STEP
- static const char input_cone[] = "cone.stp";
- #else
- static const char input_cone[] = "cone.sat";
- #endif
+std::string input_cone = TestDir + "/io/cone.sat";
 #endif
-
 
 // Function used to load the test file
 void read_file( Interface* moab, const char* input_file );
@@ -93,7 +76,7 @@ void test_cube_curve_facet()
   int curve_fail = 0;
   int surface_fail = 0;
   // should succeed since we are not fatal error on curves
-  read_file( mb,false,input_cube, MB_SUCCESS,curve_fail, surface_fail );  
+  read_file( mb,false,input_cube.c_str(), MB_SUCCESS,curve_fail, surface_fail );  
 }
 
 // Gets the vertex entities from a simple cube file load and checks that the
@@ -106,7 +89,7 @@ void test_cone_curve_facet()
   int curve_fail = 0;
   int surface_fail = 0;
   // should expect MB_FAILURE since we fail on curves
-  read_file( mb, true,input_cone, MB_FAILURE, curve_fail, surface_fail );  
+  read_file( mb, true,input_cone.c_str(), MB_FAILURE, curve_fail, surface_fail );  
 }
 
 

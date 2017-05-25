@@ -1,11 +1,8 @@
 include_directories(
-    ${CMAKE_BINARY_DIR}/src
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_BINARY_DIR}/src
     ${CMAKE_SOURCE_DIR}/src/io
-    ${CMAKE_SOURCE_DIR}/src/LocalDiscretization
-    ${CMAKE_SOURCE_DIR}/src/RefineMesh
-    ${CMAKE_SOURCE_DIR}/src/verdict
     ${CMAKE_SOURCE_DIR}/itaps
     ${CMAKE_BINARY_DIR}/itaps
     ${CMAKE_SOURCE_DIR}/itaps/imesh
@@ -43,7 +40,11 @@ set( TESTS range_test.cpp
            coords_connect_iterate.cpp
            urefine_mesh_test.cpp
            adj_moab_test.cpp
-           test_boundbox.cpp )
+           test_boundbox.cpp 
+           spherical_area_test.cpp
+           arc_intx_tests.cpp
+           intx_in_plane_test.cpp
+           intx_on_sphere_test.cpp )
            
 if(MOAB_HAVE_HDF5)
   set( TESTS ${TESTS}
@@ -53,11 +54,18 @@ if(MOAB_HAVE_HDF5)
              mbfacet_test.cpp
              mbground_test.cpp
              gttool_test.cpp
+             restore_topo_geom_incl_test.cpp
              crop_vol_test.cpp 
              imoab_test.cpp
 	     gqt_simple_test.cpp
 	     gqt_rayfire_test.cpp
-	     gqt_pointinvol_test.cpp )
+	     gqt_pointinvol_test.cpp
+	     test_geom_gqt.cpp)
+endif()
+
+if(MOAB_HAVE_NETCDF)
+  set ( TESTS ${TESTS} 
+              intx_rll_cs_sphere_test.cpp )
 endif()
 
 foreach( fname ${TESTS} )
@@ -68,6 +76,15 @@ foreach( fname ${TESTS} )
   target_link_libraries( ${base} MOAB ${CGM_LIBRARIES} ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES} )
   add_test( ${base} ${EXECUTABLE_OUTPUT_PATH}/${base} )
 endforeach()
+
+if(ENABLE_PYMOAB)
+  SET(PYMOAB_TESTS test_core test_hom test_scd test_range test_tag test_topo_util test_skinner)
+  FOREACH(pymoab_test ${PYMOAB_TESTS})
+    ADD_TEST(NAME pymoab_${pymoab_test}
+      COMMAND "env" "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/lib/:$ENV{LD_LIBRARY_PATH}" "PYTHONPATH=${PYMOAB_LOCAL_INSTALL_PATH}:$ENV{PYTHONPATH}" "${PYTHON}" "${pymoab_test}.py"
+      WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/pymoab/tests/")
+  ENDFOREACH(pymoab_test)
+endif()
 
 add_executable( TestTypeSequenceManager ${CMAKE_SOURCE_DIR}/test/TestUtil.hpp TestTypeSequenceManager.cpp)
 set_target_properties( TestTypeSequenceManager PROPERTIES COMPILE_FLAGS "${TEST_COMP_FLAGS} ${MOAB_DEFINES} -DTEST -DIS_BUILDING_MB" )
@@ -105,8 +122,8 @@ if(ZCAT_EXE)
 endif()
 
 add_executable( var_len_test_no_template VarLenTagTest.cpp )
-set_source_files_properties( ${CMAKE_SOURCE_DIR}/src/VarLenTagTest.cpp
-  COMPILE_FLAGS "-DMOAB_TEMPLATE_SPECIALIZATION ${MOAB_DEFINES}" )
+set_source_files_properties( VarLenTagTest.cpp
+  COMPILE_FLAGS "-DMOAB_TEMPLATE_SPECIALIZATION ${MOAB_DEFINES} ${TEST_COMP_FLAGS}" )
 target_link_libraries( var_len_test_no_template MOAB ${CGM_LIBRARIES} ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES} )
 add_test( var_len_test_no_template ${EXECUTABLE_OUTPUT_PATH}/var_len_test_no_template )
 
@@ -114,14 +131,14 @@ add_executable( mbcn_test ${CMAKE_SOURCE_DIR}/src/moab/CN.hpp
                           ${CMAKE_SOURCE_DIR}/src/CN.cpp
                           mbcn_test.cc )
 set_target_properties( mbcn_test PROPERTIES 
-  COMPILE_FLAGS "-DMOAB_TEMPLATE_SPECIALIZATION ${MOAB_DEFINES}" )
+  COMPILE_FLAGS "-DMOAB_TEMPLATE_SPECIALIZATION ${MOAB_DEFINES} ${TEST_COMP_FLAGS}" )
 target_link_libraries( mbcn_test MOAB ${CGM_LIBRARIES} ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES} )
 add_test( mbcn_test ${EXECUTABLE_OUTPUT_PATH}/mbcn_test )
 
 
 add_executable( file_options_test ${CMAKE_SOURCE_DIR}/src/FileOptions.cpp )
 set_source_files_properties( ${CMAKE_SOURCE_DIR}/src/FileOptions.cpp
-                             COMPILE_FLAGS "-DTEST ${MOAB_DEFINES}" )
+                             COMPILE_FLAGS "-DTEST ${MOAB_DEFINES} ${TEST_COMP_FLAGS}" )
 target_link_libraries( file_options_test MOAB ${CGM_LIBRARIES} ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES} )
 add_test( file_options_test ${EXECUTABLE_OUTPUT_PATH}/file_options_test )
 
@@ -176,6 +193,10 @@ if (ENABLE_IREL AND MOAB_HAVE_CGM)
     add_test( ${base} ${EXECUTABLE_OUTPUT_PATH}/${base} )
   endforeach()
 endif()
+
+if (ENABLE_MESQUITE AND MOAB_HAVE_CGM)
+  # add_subdirectory(mesquite)
+endif(ENABLE_MESQUITE AND MOAB_HAVE_CGM)
 
 if ( MOAB_HAVE_MPI AND MPI_FOUND )
 

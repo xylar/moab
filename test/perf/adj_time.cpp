@@ -7,11 +7,7 @@
 
 using namespace moab;
 
-#ifdef MESHDIR
-static const char default_input_file[] = STRINGIFY(MESHDIR) "/64bricks_512hex.h5m";
-#else 
-#error MESHDIR needs to be defined for running unit tests
-#endif
+static const std::string default_input_file = TestDir + "/64bricks_512hex.h5m";
 
 int main()
 {
@@ -20,7 +16,7 @@ int main()
   Interface& mb = moab;
   
     // load test file
-  rval = mb.load_file( default_input_file );
+  rval = mb.load_file( default_input_file.c_str() );
   if (MB_SUCCESS != rval) {
     std::cerr << default_input_file <<": failed to load file." << std::endl;
     return 1;
@@ -67,7 +63,6 @@ int main()
   clock_t t_down = clock() - t_0;
   std::cout << "Querying of faces for " << vols.size() << " volumes: "
             << t_down/(double)CLOCKS_PER_SEC << " seconds" << std::endl;
-  
   
   return 0;
 }

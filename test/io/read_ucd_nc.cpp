@@ -6,13 +6,8 @@
 
 using namespace moab;
 
-#ifdef MESHDIR
-static const char example[] = STRINGIFY(MESHDIR) "/io/homme3x3458.t.3.nc";
-static const char conn_fname[] = STRINGIFY(MESHDIR) "/io/HommeMapping.nc";
-#else
-static const char example[] = "/io/homme3x3458.t.3.nc";
-static const char conn_fname[] = "io/HommeMapping.nc";
-#endif
+std::string example = TestDir + "/io/homme3x3458.t.3.nc";
+std::string conn_fname = TestDir + "/io/HommeMapping.nc";
 
 #ifdef MOAB_HAVE_MPI
 #include "moab_mpi.h"
@@ -70,7 +65,7 @@ void test_read_all()
   std::string opts;
   get_options(opts);
 
-  ErrorCode rval = mb.load_file(example, NULL, opts.c_str());
+  ErrorCode rval = mb.load_file(example.c_str(), NULL, opts.c_str());
   CHECK_ERR(rval);
 
   // Check for proper tags
@@ -92,7 +87,7 @@ void test_read_onevar()
 
   // Read mesh and read vertex variable T at all timesteps
   opts += std::string(";VARIABLE=T");
-  ErrorCode rval = mb.load_file(example, NULL, opts.c_str());
+  ErrorCode rval = mb.load_file(example.c_str(), NULL, opts.c_str());
   CHECK_ERR(rval);
 
 #ifdef MOAB_HAVE_MPI
@@ -144,7 +139,7 @@ void test_read_onetimestep()
   get_options(opts);
 
   opts += std::string(";TIMESTEP=1");
-  ErrorCode rval = mb.load_file(example, NULL, opts.c_str());
+  ErrorCode rval = mb.load_file(example.c_str(), NULL, opts.c_str());
   CHECK_ERR(rval);
 
   // Check for proper tags
@@ -170,7 +165,7 @@ void test_read_nomesh()
   get_options(orig);
 
   opts = orig + std::string(";TIMESTEP=0");
-  rval = mb.load_file(example, &file_set, opts.c_str());
+  rval = mb.load_file(example.c_str(), &file_set, opts.c_str());
   CHECK_ERR(rval);
 
   // Check for proper tag
@@ -183,7 +178,7 @@ void test_read_nomesh()
 
   // Now read 2nd timestep with nomesh option
   opts = orig + std::string(";TIMESTEP=1;NOMESH");
-  rval = mb.load_file(example, &file_set, opts.c_str());
+  rval = mb.load_file(example.c_str(), &file_set, opts.c_str());
   CHECK_ERR(rval);
 
   // Check for proper tag
@@ -205,11 +200,11 @@ void test_read_novars()
   get_options(orig);
 
   opts = orig + std::string(";NOMESH;VARIABLE=");
-  rval = mb.load_file(example, &set, opts.c_str());
+  rval = mb.load_file(example.c_str(), &set, opts.c_str());
   CHECK_ERR(rval);
 
   opts = orig + std::string(";VARIABLE=;TIMESTEP=0");
-  rval = mb.load_file(example, &set, opts.c_str());
+  rval = mb.load_file(example.c_str(), &set, opts.c_str());
   CHECK_ERR(rval);
 
   // Check for proper tag
@@ -218,7 +213,7 @@ void test_read_novars()
   CHECK_EQUAL(rval, MB_TAG_NOT_FOUND);
 
   opts = orig + std::string(";VARIABLE=T;TIMESTEP=0;NOMESH");
-  rval = mb.load_file(example, &set, opts.c_str());
+  rval = mb.load_file(example.c_str(), &set, opts.c_str());
   CHECK_ERR(rval);
 
   rval = mb.tag_get_handle("T0", levels, MB_TYPE_DOUBLE, Ttag0);
@@ -229,7 +224,7 @@ void test_read_novars()
 
   // Now read 2nd timestep with nomesh option
   opts = orig + std::string(";TIMESTEP=1;NOMESH");
-  rval = mb.load_file(example, &set, opts.c_str());
+  rval = mb.load_file(example.c_str(), &set, opts.c_str());
   CHECK_ERR(rval);
 
   // Check for proper tag
@@ -250,7 +245,7 @@ void test_read_coord_vars()
   get_options(orig);
 
   opts = orig + std::string(";NOMESH;VARIABLE=");
-  rval = mb.load_file(example, &file_set, opts.c_str());
+  rval = mb.load_file(example.c_str(), &file_set, opts.c_str());
   CHECK_ERR(rval);
 
   std::string tag_name;
@@ -296,7 +291,7 @@ void test_read_coord_vars()
   CHECK_ERR(rval);
 
   // Read file again with file_set2
-  rval = mb.load_file(example, &file_set2, opts.c_str());
+  rval = mb.load_file(example.c_str(), &file_set2, opts.c_str());
   CHECK_ERR(rval);
 
   // Check tag for regular coordinate lev
@@ -348,7 +343,7 @@ void test_gather_onevar()
 #ifdef MOAB_HAVE_MPI
   opts += ";PARALLEL_RESOLVE_SHARED_ENTS";
 #endif
-  rval = mb.load_file(example, &file_set, opts.c_str());
+  rval = mb.load_file(example.c_str(), &file_set, opts.c_str());
   CHECK_ERR(rval);
 
 #ifdef MOAB_HAVE_MPI
@@ -415,7 +410,7 @@ void test_read_conn()
   std::string opts;
   get_options(opts);
 
-  ErrorCode rval = mb.load_file(conn_fname, NULL, opts.c_str());
+  ErrorCode rval = mb.load_file(conn_fname.c_str(), NULL, opts.c_str());
   CHECK_ERR(rval);
 
 #ifdef MOAB_HAVE_MPI

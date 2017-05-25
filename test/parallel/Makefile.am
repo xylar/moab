@@ -18,14 +18,11 @@ AM_CPPFLAGS  = -I. \
                -I$(top_builddir)/src \
                -I$(top_srcdir)/src \
                -I$(top_srcdir)/src/parallel \
+               -I$(top_srcdir)/src/IntxMesh \
                -I$(top_srcdir)/src/io/mhdf/include
 
 if ENABLE_mbcoupler
   AM_CPPFLAGS += -I$(top_srcdir)/tools/mbcoupler
-endif
-
-if ENABLE_mbcslam
-  AM_CPPFLAGS += -I$(top_srcdir)/tools/mbcslam
 endif
 
 # Run parallel tests in parallel
@@ -37,16 +34,17 @@ endif
 TESTS = pcomm_unit \
         scdtest \
         pcomm_serial \
-	par_spatial_locator_test \
-	parallel_unit_tests imoab_ptest2 \
-	uber_parallel_test \
+        par_spatial_locator_test \
+        parallel_unit_tests imoab_ptest2 \
+        uber_parallel_test \
+        hireconst_test_parallel \
         $(NETCDF_TESTS) \
         $(HDF5_TESTS) \
         $(MBCSLAM_TESTS) $(IMESH_TESTS) $(IMOAB_TESTS)
 
 if HAVE_HDF5_PARALLEL
   HDF5_TESTS = parallel_hdf5_test mhdf_parallel parallel_write_test \
-         parallel_adj parmerge_test augment_with_ghosts
+         parallel_adj parmerge_test augment_with_ghosts uref_hirec_test_parallel
 else
   HDF5_TESTS = 
 endif
@@ -66,14 +64,10 @@ endif
 endif
 
 
-if ENABLE_mbcslam
 if HAVE_HDF5_PARALLEL
   MBCSLAM_TESTS = par_intx_sph 
 else
   MBCSLAM_TESTS =
-endif
-else
-  MBCSLAM_TESTS = 
 endif
 
 IMOAB_TESTS = 
@@ -126,6 +120,8 @@ augment_with_ghosts_SOURCES = augment_with_ghosts.cpp
 imoab_ptest_SOURCES = imoab_ptest.F
 imoab_ptest_LDADD = $(LDADD) $(FCLIBS)
 imoab_ptest2_SOURCES = imoab_ptest2.cpp
+hireconst_test_parallel_SOURCES = hireconst_test_parallel.cpp
+uref_hirec_test_parallel_SOURCES = uref_hirec_test_parallel.cpp ../geomObject.cpp
 
 if ENABLE_imesh
 if HAVE_HDF5_PARALLEL
@@ -137,10 +133,9 @@ endif
 endif
 
 
-if ENABLE_mbcslam
-  par_intx_sph_SOURCES = par_intx_sph.cpp
-  par_intx_sph_LDADD = $(LDADD) ../../tools/mbcslam/libmbcslam.la  
-endif
+par_intx_sph_SOURCES = par_intx_sph.cpp
+par_intx_sph_LDADD = $(LDADD)  
+
 # Other files to clean up (e.g. output from tests)
 MOSTLYCLEANFILES = mhdf_ll.h5m tmp0.h5m tmp1.h5m tmp2.h5m tmp3.h5m \
                    partial0.vtk \

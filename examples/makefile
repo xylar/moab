@@ -3,7 +3,7 @@ include makefile.config
 
 default: build
 
-SUBDIRS = beginner basic intermediate advanced fortran# cmake
+SUBDIRS = beginner basic intermediate advanced fortran apps# cmake
 
 build: ${MOAB_LIBDIR}/libMOAB.la
 	@for exampledir in ${SUBDIRS} ; do \

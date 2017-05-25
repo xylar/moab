@@ -5,6 +5,8 @@
 #include "MBTagConventions.hpp"
 #include "moab/Core.hpp"
 #include "moab_mpi.h"
+#include "TestUtil.hpp"
+
 #include <iostream>
 #include <algorithm>
 #include <map>
@@ -13,10 +15,6 @@
 #if !defined(_MSC_VER) && !defined(__MINGW32__)
 #include <unistd.h>
 #endif
-
-
-#define STRINGIFY_(X) #X
-#define STRINGIFY(X) STRINGIFY_(X)
 
 using namespace moab;
 
@@ -145,7 +143,7 @@ ErrorCode test_sequences_after_ghosting(const char *);
                               Main Method
  **************************************************************************/
 
-#define RUN_TEST(A, B) run_test( &A, #A, B)
+#define RUN_TEST_ARG2(A, B) run_test( &A, #A, B)
 
 int run_test( ErrorCode (*func)(const char*), 
               const char* func_name,
@@ -173,15 +171,15 @@ int main( int argc, char* argv[] )
   MPI_Comm_size( MPI_COMM_WORLD, &size );
 
   int pause_proc = -1;
-  const char* filename = 0;
+  std::string filename;
   for (int i = 1; i < argc; ++i) {
     if (!strcmp(argv[i],"-p")) {
       ++i;
       assert(i < argc);
       pause_proc = atoi( argv[i] );
     }
-    else if (!filename) {
-      filename = argv[i];
+    else if (!filename.size()) {
+      filename = std::string(argv[i]);
     }
     else {
       std::cerr << "Invalid arg: \"" << argv[i] << '"' << std::endl
@@ -190,26 +188,18 @@ int main( int argc, char* argv[] )
     }
   }
 
-  if (!filename) {
-#ifdef MESHDIR
+  if (!filename.size()) {
 #ifdef MOAB_HAVE_HDF5
-    filename = STRINGIFY(MESHDIR) "/64bricks_512hex.h5m";
+    filename = TestDir + "/64bricks_512hex.h5m";
 #else
-    filename = STRINGIFY(MESHDIR) "/64bricks_512hex.vtk";
-#endif
-#else
-#error Specify MESHDIR to compile test
+    filename = TestDir + "/64bricks_512hex.vtk";
 #endif
   }
-
-#ifdef MESHDIR
+  std::cout << "Loading " << filename << "..\n";
 #ifdef MOAB_HAVE_HDF5
-  const char* filename2 = STRINGIFY(MESHDIR) "/64bricks_1khex.h5m";
-  const char* filename3 = STRINGIFY(MESHDIR) "/twoPolyh.h5m";
-  const char* filename4 = STRINGIFY(MESHDIR) "/onepart.h5m";
-#endif
-#else
-#error Specify MESHDIR to compile test
+  std::string filename2 = TestDir + "/64bricks_1khex.h5m";
+  std::string filename3 = TestDir + "/twoPolyh.h5m";
+  std::string filename4 = TestDir + "/onepart.h5m";
 #endif
 
   if (pause_proc != -1) {
@@ -228,32 +218,31 @@ int main( int argc, char* argv[] )
     MPI_Barrier( MPI_COMM_WORLD );
     std::cout << "Processor " << rank << " resuming" << std::endl;
   }
-
   
   int num_errors = 0;
 #ifdef MOAB_HAVE_HDF5
-  num_errors += RUN_TEST( test_elements_on_several_procs, filename );
-  num_errors += RUN_TEST( test_ghost_elements_3_2_1, filename );
-  num_errors += RUN_TEST( test_ghost_elements_3_2_2, filename );
-  num_errors += RUN_TEST( test_ghost_elements_3_0_1, filename );
-  num_errors += RUN_TEST( test_ghost_elements_2_0_1, filename );
-  num_errors += RUN_TEST( test_ghost_tag_exchange, filename );
-  num_errors += RUN_TEST( regression_ghost_tag_exchange_no_default, filename );
-  num_errors += RUN_TEST( test_delete_entities, filename2);
-  num_errors += RUN_TEST (test_sequences_after_ghosting, filename2) ;
+  num_errors += RUN_TEST_ARG2( test_elements_on_several_procs, filename.c_str() );
+  num_errors += RUN_TEST_ARG2( test_ghost_elements_3_2_1, filename.c_str() );
+  num_errors += RUN_TEST_ARG2( test_ghost_elements_3_2_2, filename.c_str() );
+  num_errors += RUN_TEST_ARG2( test_ghost_elements_3_0_1, filename.c_str() );
+  num_errors += RUN_TEST_ARG2( test_ghost_elements_2_0_1, filename.c_str() );
+  num_errors += RUN_TEST_ARG2( test_ghost_tag_exchange, filename.c_str() );
+  num_errors += RUN_TEST_ARG2( regression_ghost_tag_exchange_no_default, filename.c_str() );
+  num_errors += RUN_TEST_ARG2( test_delete_entities, filename2.c_str());
+  num_errors += RUN_TEST_ARG2 (test_sequences_after_ghosting, filename2.c_str()) ;
   if (2>=size) // run this one only on one or 2 processors; the file has only 2 parts in partition
-   num_errors += RUN_TEST( test_ghost_polyhedra, filename3);
+   num_errors += RUN_TEST_ARG2( test_ghost_polyhedra, filename3.c_str());
   if (2==size)
-    num_errors += RUN_TEST ( test_too_few_parts, filename4);
+    num_errors += RUN_TEST_ARG2 ( test_too_few_parts, filename4.c_str());
 #endif
-  num_errors += RUN_TEST( test_assign_global_ids, 0 );
-  num_errors += RUN_TEST( test_shared_sets, 0 );
-  num_errors += RUN_TEST( test_reduce_tags, 0);
-  num_errors += RUN_TEST( test_reduce_tag_failures, 0);
-  num_errors += RUN_TEST( test_reduce_tag_explicit_dest, 0);
-  num_errors += RUN_TEST( test_interface_owners, 0 );
-  num_errors += RUN_TEST( test_ghosted_entity_shared_data, 0 );
-  num_errors += RUN_TEST( regression_owners_with_ghosting, 0 );
+  num_errors += RUN_TEST_ARG2( test_assign_global_ids, 0 );
+  num_errors += RUN_TEST_ARG2( test_shared_sets, 0 );
+  num_errors += RUN_TEST_ARG2( test_reduce_tags, 0);
+  num_errors += RUN_TEST_ARG2( test_reduce_tag_failures, 0);
+  num_errors += RUN_TEST_ARG2( test_reduce_tag_explicit_dest, 0);
+  num_errors += RUN_TEST_ARG2( test_interface_owners, 0 );
+  num_errors += RUN_TEST_ARG2( test_ghosted_entity_shared_data, 0 );
+  num_errors += RUN_TEST_ARG2( regression_owners_with_ghosting, 0 );
 
   if (rank == 0) {
     if (!num_errors) 

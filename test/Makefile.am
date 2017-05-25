@@ -11,10 +11,9 @@ endif
 if PARALLEL
   SUBDIRS += parallel
 endif
-#if OLD_HEADERS
-#  SUBDIRS += oldinc
-#endif
-
+if ENABLE_mesquite
+  SUBDIRS += mesquite
+endif
 LDADD = $(top_builddir)/src/libMOAB.la
 
 MESHDIR = $(abs_top_srcdir)/MeshFiles/unittest
@@ -27,7 +26,9 @@ AM_CPPFLAGS  = -DIS_BUILDING_MB \
                -I$(top_srcdir)/src  \
                -I$(top_srcdir)/src/LocalDiscretization \
                -I$(top_srcdir)/src/verdict \
-               -I$(top_srcdir)/src/RefineMesh
+               -I$(top_srcdir)/src/RefineMesh \
+               -I$(top_srcdir)/src/DiscreteGeometry \
+               -I$(top_srcdir)/src/IntxMesh
 
 
 if PARALLEL
@@ -63,11 +64,21 @@ TESTS = range_test \
         adj_moab_test \
         uref_mesh_test \
         verdict_test \
-        test_Matrix3
+        test_Matrix3 \
+        hireconst_test \
+        uref_hirec_test \
+        spherical_area_test \
+        arc_intx_tests \
+        intx_in_plane_test \
+        intx_on_sphere_test 
 
+if HAVE_NETCDF
+   TESTS += intx_rll_cs_sphere_test 
+endif
 if HAVE_HDF5
   TESTS += mbfacet_test \
         gttool_test \
+		restore_topo_geom_incl_test \
         cropvol_test \
         mergemesh_test \
         mbground_test \
@@ -109,7 +120,10 @@ MOSTLYCLEANFILES = mb_write.g \
                    tree.h5m \
                    TaskMesh_n1.0.h5m \
                    TaskMesh_n1.1.h5m \
-                   fnew.h5m
+                   fnew.h5m \
+                   intx.vtk \
+                   polyWithEdges.vtk \
+                   intx1.vtk
 
 # Tests and such
 test_Matrix3_SOURCES = test_Matrix3.cpp
@@ -157,6 +171,12 @@ var_len_test_no_template_CPPFLAGS = -UTEMPLATE_SPECIALIZATION $(AM_CPPFLAGS) $(C
 tag_test_SOURCES = TestUtil.hpp TagTest.cpp
 spatial_locator_test_SOURCES = TestUtil.hpp spatial_locator_test.cpp
 mergemesh_test_SOURCES = mergemesh_test.cpp
+# intersection related tests
+intx_on_sphere_test_SOURCES = intx_on_sphere_test.cpp
+intx_in_plane_test_SOURCES = intx_in_plane_test.cpp
+spherical_area_test_SOURCES = spherical_area_test.cpp
+arc_intx_tests_SOURCES = arc_intx_tests.cpp
+intx_rll_cs_sphere_test_SOURCES = intx_rll_cs_sphere_test.cpp
 
 #mbcn_test_SOURCES = $(top_srcdir)/src/moab/CN.hpp \
 #                    $(top_srcdir)/src/CN.cpp \
@@ -167,6 +187,7 @@ bsp_tree_poly_test_SOURCES = bsp_tree_poly_test.cpp
 mbfacet_test_SOURCES = mbfacet_test.cpp
 mbground_test_SOURCES = mbground_test.cpp
 gttool_test_SOURCES = gttool_test.cpp
+restore_topo_geom_incl_test_SOURCES = restore_topo_geom_incl_test.cpp
 cropvol_test_SOURCES = crop_vol_test.cpp
 mhdf_public_test_SOURCES = mhdf_public_test.cpp
 mhdf_public_test_LDADD = $(LDADD) $(HDF5_LIBS)
@@ -184,8 +205,10 @@ lloyd_smoother_test_SOURCES = lloyd_smoother_test.cpp
 
 adj_moab_test_SOURCES = adj_moab_test.cpp
 uref_mesh_test_SOURCES = urefine_mesh_test.cpp
+hireconst_test_SOURCES = hireconst_test.cpp
+uref_hirec_test_SOURCES = uref_hirec_test.cpp geomObject.cpp
 
-test_geom_gqt_SOURCES = test_geom_gqt.cc
+test_geom_gqt_SOURCES = test_geom_gqt.cpp
 
 gqt_simple_test_SOURCES = gqt_simple_test.cpp
 gqt_rayfire_test_SOURCES = gqt_rayfire_test.cpp
@@ -195,6 +218,16 @@ if PARALLEL
 moab_test_CPPFLAGS += -I$(top_srcdir)/src/parallel
 kd_tree_test_CPPFLAGS += -I$(top_srcdir)/src/parallel
 test_prog_opt_CPPFLAGS += -I$(top_srcdir)/src/parallel
+endif
+
+# Tests for remapping
+if ENABLE_mbtempest
+if HAVE_TEMPESTREMAP
+  test_remapping_SOURCES = test_remapping.cpp
+  test_remapping_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/src/Remapping -I$(top_srcdir)/src/IntxMesh $(TEMPESTREMAP_INCLUDE)
+  test_remapping_LDADD = $(LDADD) $(TEMPESTREMAP_LIBS)
+  TESTS += test_remapping
+endif
 endif
 
 FCDEFS += $(FC_DEFINE)SRCDIR=$(srcdir) \
@@ -231,7 +264,12 @@ cell2.gen: $(MESHDIR)/cell2.gen.gz
 
 CLEANFILES = mb_big_test.g \
              cell1.gen \
-             cell2.gen
+             cell2.gen \
+             outTempestCS.g \
+             outTempestRLL.g \
+             outTempestICO.g \
+             outTempestICOD.g \
+             outTempestOV.g
 
 # Utility target: build but don't run tests
 build-check:

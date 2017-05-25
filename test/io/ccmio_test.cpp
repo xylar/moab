@@ -6,17 +6,10 @@
 
 using namespace moab;
 
-#ifdef MESHDIR
-static const char cubfile[] = STRINGIFY(MESHDIR) "/io/singlecyl.cub";
-static const char ccmgfiler[] = STRINGIFY(MESHDIR) "/io/singlecyl.ccmg";
-static const char ccmgfilew[] = "singlecyl_tmp.ccmg";
-#else
-static const char cubfile[] =  "singlecyl.cub";
-static const char ccmgfile[] = "singlecyl.ccmg";
-static const char ccmgfilew[] = "singlecyl_tmp.ccmg";
-#endif
+std::string cubfile = TestDir + "/io/singlecyl.cub";
+std::string ccmgfiler = TestDir + "/io/singlecyl.ccmg";
+std::string ccmgfilew = "singlecyl_tmp.ccmg";
 
-void read_file( Interface& moab, const char* input_file );
 void test_read();
 void test_write();
 
@@ -35,11 +28,11 @@ void test_write()
   ErrorCode rval;
   Core moab;
   Interface& mb = moab;
-  rval = mb.load_file(cubfile);
+  rval = mb.load_file(cubfile.c_str());
   if (MB_SUCCESS != rval) std::cerr << "Trouble reading file " << cubfile << std::endl;
   CHECK_ERR(rval);
   
-  rval = mb.write_file(ccmgfilew);
+  rval = mb.write_file(ccmgfilew.c_str());
   if (MB_SUCCESS != rval) std::cerr << "Trouble writing file " << ccmgfilew << std::endl;
   CHECK_ERR(rval);
 }  
@@ -49,7 +42,7 @@ void test_read()
   ErrorCode rval;
   Core moab;
   Interface& mb = moab;
-  rval = mb.load_file(ccmgfiler);
+  rval = mb.load_file(ccmgfiler.c_str());
   CHECK_ERR(rval);
 }  
 

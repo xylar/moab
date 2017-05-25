@@ -308,3 +308,4 @@ tools/vtkMOABReaderNew/vtkMoabReaderPlugin_Plugin.cxx
 tools/vtkMOABReaderNew/vtkMoabReaderPlugin_Plugin.h
 tools/vtkMOABReaderNew/vtkSMvtkMoabReaderPluginInstantiator.cxx
 tools/vtkMOABReaderNew/vtkSMvtkMoabReaderPluginInstantiator.h
+pymoab/tests/*.pyc

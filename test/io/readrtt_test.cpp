@@ -10,17 +10,7 @@ using namespace moab;
 
 /* Input test file: rtttest.rtt
  */
-#ifdef MESHDIR
-static const char example[] = STRINGIFY(MESHDIR) "/io/rtttest.rtt";
-#else
-static const char example[] = "rtttest.rtt";
-#endif
-// rtttest2.rtt
-#ifdef MESHDIR
-static const char example_2[] = STRINGIFY(MESHDIR) "/io/rtttest2.rtt";
-#else
-static const char example_2[] = "rtttest2.rtt";
-#endif
+std::string example = TestDir + "/io/rtttest.rtt";
 
 void test_loadfile();
 void test_meshset_tags();
@@ -51,13 +41,13 @@ void read_file( Interface& moab, const char* input_file ) {
 
 void test_loadfile() {
   Core moab;
-  read_file( moab, example );
+  read_file( moab, example.c_str() );
 }
 
 void test_meshset_tags() {
   Core moab;
   // load the data into moab
-  read_file( moab, example );
+  read_file( moab, example.c_str() );
   // query the dataset to make sure that there are the correct number of cells
   Range entities;
   ErrorCode rval = moab.get_entities_by_type(0,moab::MBENTITYSET,entities);
@@ -112,7 +102,7 @@ void test_meshset_tags() {
 void test_tets() {
   Core moab;
   // load the data into moab
-  read_file( moab, example );
+  read_file( moab, example.c_str() );
   // query the dataset to make sure that there are the correct number of cells
   // cells = 26710 - number of tets
   Range entities;
@@ -126,7 +116,7 @@ void test_tets() {
 void test_tet_tags() {
   Core moab;
   // load the data into moab
-  read_file( moab, example );
+  read_file( moab, example.c_str() );
   // query the dataset to make sure that there are the correct number of cells
   Range entities;
   ErrorCode rval = moab.get_entities_by_type(0,moab::MBTET,entities);
@@ -155,7 +145,7 @@ void test_tet_tags() {
 void test_triangles() {
   Core moab;
   // load the data into moab
-  read_file( moab, example );
+  read_file( moab, example.c_str() );
   // query the dataset to make sure that there are the correct number of cells
   Range entities;
   ErrorCode rval = moab.get_entities_by_type(0,moab::MBTRI,entities);
@@ -169,7 +159,7 @@ void test_triangles() {
 void test_triangles_tags() {
   Core moab;
   // load the data into moab
-  read_file( moab, example );
+  read_file( moab, example.c_str() );
   // query the dataset to make sure that there are the correct number of cells
   Range entities;
   ErrorCode rval = moab.get_entities_by_type(0,moab::MBTRI,entities);
@@ -213,7 +203,7 @@ void test_triangles_tags() {
 void test_vertices() {
   Core moab;
   // load the data into moab
-  read_file( moab, example );
+  read_file( moab, example.c_str() );
   // query the dataset to make sure that there are the correct number of cells
   Range entities;
   ErrorCode rval = moab.get_entities_by_type(0,moab::MBVERTEX,entities);

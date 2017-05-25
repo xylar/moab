@@ -1,0 +1,40 @@
+#!/usr/bin/env python
+from setuptools import setup, Extension, find_packages
+import numpy as np #needed for numpy include paths
+import glob
+import os
+# setup moab include paths
+moab_root = '@abs_top_srcdir@'
+moab_source_include = moab_root + '/src/moab/'
+moab_other_source_include = moab_root + '/src/'
+moab_binary_include = '@abs_top_builddir@/src/'
+moab_lib_path = '@abs_top_builddir@/src/.libs/'
+pymoab_src_dir = '@abs_builddir@/pymoab'
+include_paths = [moab_source_include,
+                 moab_other_source_include,
+                 moab_binary_include,
+                 np.get_include(),
+                 pymoab_src_dir]
+
+# set values for each module
+ext_modules = []
+for f in os.listdir(pymoab_src_dir):
+    if f.endswith(".pyx"):
+        fbase = f.split('.')[0]
+        ext = Extension( "pymoab."+fbase, ["pymoab/"+fbase+".cpp",],
+                         language = 'c++',
+                         include_dirs = include_paths,
+                         library_dirs = [moab_lib_path,],
+                         libraries = ["MOAB",])
+        ext_modules.append(ext)
+    
+# setup pymoab
+setup(
+    name="pymoab",
+    ext_modules=ext_modules,
+    packages=find_packages(),
+    package_data = {'pymoab': ['*.pxd',]},
+    version = '@VERSION@',
+    author = "Patrick Shriwise, Guilherme Caminha, Vijay Mahadevan, Iulian Grindeanu, Anthony Scopatz",
+    author_email = "moab-dev@mcs.anl.gov"
+)

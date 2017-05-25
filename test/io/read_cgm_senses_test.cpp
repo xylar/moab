@@ -24,20 +24,11 @@ using namespace moab;
   return A; } } while(false)
 
 
-#ifdef MESHDIR
 #ifdef HAVE_OCC_STEP
-static const char input_cylcube[] = STRINGIFY(MESHDIR) "/io/cylcube.stp";
+std::string input_cylcube = TestDir + "/io/cylcube.stp";
 #else
-static const char input_cylcube[] = STRINGIFY(MESHDIR) "/io/cylcube.sat";
+std::string input_cylcube = TestDir + "/io/cylcube.sat";
 #endif
-#else
-#ifdef HAVE_OCC_STEP
-static const char input_cylcube[] = "cylcube.stp";
-#else
-static const char input_cylcube[] = "cylcube.sat";
-#endif
-#endif
-
 
 // Function used to load the test file
 void read_file( Interface* moab, const char* input_file );
@@ -94,7 +85,7 @@ void read_cylcube_curve_senses_test()
   //Open the test file
   Core moab;
   Interface* mb = &moab;
-  read_file( mb, input_cylcube );
+  read_file( mb, input_cylcube.c_str() );
   
   //Get all curve handles
   Tag geom_tag;
@@ -509,7 +500,7 @@ void read_cylcube_surf_senses_test()
   //Open the test file
   Core moab;
   Interface* mb = &moab;
-  read_file( mb, input_cylcube );
+  read_file( mb, input_cylcube.c_str() );
   
   //Get geometry tag for gathering surface information from the mesh
   Tag geom_tag;

@@ -72,9 +72,9 @@ namespace ElemUtil {
       /**\brief Construct a Map defined by n vertices. */
       Map(const unsigned int n) {this->vertex = std::vector<CartVect>(n);};
       virtual ~Map();
-      /**\brief Evaluate the map on \xi (calculate $\vec x = F($\vec \xi)$ )*/
+      /**\brief Evaluate the map on \f$x_i\f$ (calculate \f$\vec x = F($\vec \xi)\f$ )*/
       virtual CartVect evaluate( const CartVect& xi ) const = 0;
-      /**\brief Evaluate the inverse map (calculate $\vec \xi = F^-1($\vec x)$ to given tolerance)*/
+      /**\brief Evaluate the inverse map (calculate \f$\vec \xi = F^-1($\vec x)\f$ to given tolerance)*/
       virtual CartVect ievaluate( const CartVect& x, double tol, const CartVect& x0 = CartVect(0.0)) const ;
       /**\brief decide if within the natural param space, with a tolerance*/
       virtual bool inside_nat_space(const CartVect & xi, double & tol) const = 0;

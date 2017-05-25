@@ -6,22 +6,15 @@
 #include <string.h>
 #include "moab/Core.hpp"
 #include "moab/Interface.hpp"
-#include "Intx2MeshOnSphere.hpp"
+#include "moab/IntxMesh/Intx2MeshOnSphere.hpp"
 #include <math.h>
-//#include "TestUtil.hpp"
 #include "moab/ParallelComm.hpp"
 #include "moab/ProgOptions.hpp"
 #include "MBParallelConventions.h"
 #include "moab/ReadUtilIface.hpp"
 #include "MBTagConventions.hpp"
 #include "TestUtil.hpp"
-#include "CslamUtils.hpp"
-
-#ifdef MESHDIR
-std::string TestDir( STRINGIFY(MESHDIR) );
-#else
-std::string TestDir(".");
-#endif
+#include "moab/IntxMesh/IntxUtils.hpp"
 
 //std::string file_name("./uniform_15.g");
 //std::string file_name("./eulerHomme.vtk");
@@ -614,9 +607,9 @@ void decide_gnomonic_plane_test(const CartVect & pos, int & plane) {
       plane = 4;
     }
   } else {
-    if (abs(X) < Z) {
+    if (fabs(X) < Z) {
       plane = 6;
-    } else if (Z < -abs(X)) {
+    } else if (Z < -fabs(X)) {
       plane = 5;
     } else if ((X > 0) & (Y > 0)) {
       plane = 1;

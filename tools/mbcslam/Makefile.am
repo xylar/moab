@@ -8,44 +8,25 @@ AM_CPPFLAGS  = -I$(top_builddir)/src \
                -I$(top_srcdir)/itaps/imesh \
                -I$(top_builddir)/itaps \
                -I$(top_builddir)/itaps/imesh \
-               -I$(top_srcdir)/test 
-
-lib_LTLIBRARIES = libmbcslam.la
-LDADD = libmbcslam.la  $(top_builddir)/src/libMOAB.la
-
-libmbcslam_la_SOURCES = \
-   Intx2Mesh.cpp Intx2Mesh.hpp Intx2MeshOnSphere.cpp Intx2MeshOnSphere.hpp \
-     CslamUtils.cpp CslamUtils.hpp Intx2MeshInPlane.cpp Intx2MeshInPlane.hpp IntxRllCssphere.hpp IntxRllCssphere.cpp
-     
-if PARALLEL     
-    libmbcslam_la_SOURCES += wrap_intx.cpp 
-endif
-
-# these will be installed
-libmbcslam_la_include_HEADERS = 
-
-libmbcslam_la_includedir = $(includedir)
+               -I$(top_srcdir)/test \
+               -I$(top_srcdir)/src/IntxMesh
 
 # Automake doesn't seem to have a directory defined for
 # platform-dependent data (or include) files. So put 
 # in $(libdir).  Define a $(cfgdir) to get around automake's
 # check that only libraries are going in $(libdir)
 cfgdir = $(libdir)
+LDADD =  $(top_builddir)/src/libMOAB.la
 
-TESTS = intx_on_sphere_test  intx_in_plane_test spherical_area_test \
-         case1_test  arc_intx_tests   
+TESTS = case1_test  
 if PARALLEL
 if HAVE_HDF5
-   TESTS += intx_mpas linear_remap diffusion
-endif
-if HAVE_NETCDF
-   TESTS += IntxRllCssphere_test
+   TESTS += linear_remap 
 endif
 endif
 
 noinst_PROGRAMS =  proj1 create_dp 
 if PARALLEL
-  noinst_PROGRAMS += linear_advection
 endif
 
 check_PROGRAMS = $(TESTS) 
@@ -53,30 +34,25 @@ DEFS += -DBUILDING_MB \
         -DSRCDIR=$(srcdir) \
         -DMESHDIR=$(MESHDIR)
 
-intx_on_sphere_test_SOURCES = intx_on_sphere_test.cpp
-intx_in_plane_test_SOURCES = intx_in_plane_test.cpp
-# spec_visu_test_SOURCES = spec_visu_test.cpp
-spherical_area_test_SOURCES = spherical_area_test.cpp
 case1_test_SOURCES = case1_test.cpp
 proj1_SOURCES = proj1.cpp
 create_dp_SOURCES = create_dp.cpp
-arc_intx_tests_SOURCES = arc_intx_tests.cpp
 # this test is for netcdf only ; maybe convert to vtk for the test
-IntxRllCssphere_test_SOURCES = IntxRllCssphere_test.cpp
 linear_remap_SOURCES = linear_remap.cpp
-linear_advection_SOURCES = linear_advection.cpp
 
 if PARALLEL
+  linear_advection_SOURCES = linear_advection.cpp
+  noinst_PROGRAMS += linear_advection 
 if HAVE_HDF5
   diffusion_SOURCES = diffusion.cpp
-  intx_imesh_SOURCES = intx_imesh.cpp
-  intx_imesh_LDADD = libmbcslam.la  $(top_builddir)/itaps/imesh/libiMesh.la $(top_builddir)/src/libMOAB.la
+  intx_imesh_SOURCES = intx_imesh.cpp update_tracer.cpp
+  intx_imesh_LDADD =  $(top_builddir)/itaps/imesh/libiMesh.la $(top_builddir)/src/libMOAB.la
   cslam_par_test_SOURCES = cslam_par_test.cpp
   intx_mpas_SOURCES = intx_mpas.cpp
-  noinst_PROGRAMS += cslam_par_test intx_imesh
+  noinst_PROGRAMS += cslam_par_test intx_imesh intx_mpas diffusion 
 if ENABLE_FORTRAN
-  advection_SOURCES = advection.F90
-  advection_LDADD = libmbcslam.la  $(top_builddir)/itaps/imesh/libiMesh.la $(top_builddir)/src/libMOAB.la $(FCLIBS)
+  advection_SOURCES = advection.F90 
+  advection_LDADD =  update_tracer.o $(top_builddir)/itaps/imesh/libiMesh.la $(top_builddir)/src/libMOAB.la $(FCLIBS)
   noinst_PROGRAMS += advection
 endif
 endif
