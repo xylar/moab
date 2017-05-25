@@ -2,7 +2,7 @@ AC_DEFUN([FATHOM_HDF5_LIBS_HELPER],[
 if (test "x$HAVE_LIB_HDF5" != "xyes"); then
    unset "ac_cv_lib_${HDF5_LIBNAME}_H5Fopen"
    unset "ac_cv_lib_${HDF5_LIBNAME}___H5Fopen"
-   AC_CHECK_LIB( [${HDF5_LIBNAME}], [H5Fopen], [HAVE_LIB_HDF5=yes; HDF5_LIBS="$HDF5_LIBS -l${HDF5_LIBNAME} $1"], [], [$1] )
+   AC_CHECK_LIB( [${HDF5_LIBNAME}], [H5Fopen], [HAVE_LIB_HDF5=yes; HDF5_LIBS="$HDF5_LIBS -l${HDF5_LIBNAME}"], [], [$1] )
 fi
 ])
 
@@ -13,6 +13,8 @@ dnl   Arguments:
 dnl ---------------------------------------------------------------------------
 AC_DEFUN([FATHOM_HDF5_LIBS_HELPER_FORTRAN],[
   # Make Fortran link line by inserting Fortran libraries
+  oldLIBS=$LIBS
+  LIBS=""
   for arg in $HDF5_LIBS
   do
     case "$arg" in
@@ -23,6 +25,7 @@ AC_DEFUN([FATHOM_HDF5_LIBS_HELPER_FORTRAN],[
     esac
   done
   HDF5_LIBS="$HDF5_LIBS $HDF5_FLIBS"
+  LIBS=$oldLIBS
 ])
 
 
@@ -49,24 +52,6 @@ AC_DEFUN([FATHOM_HDF5_LIBS_HELPER_CXX],[
 ])
 
 
-dnl ---------------------------------------------------------------------------
-dnl FATHOM_HDF5_LIBS_HELPER_HL
-dnl   Inserts the correct high level libraries into HDF5 libraries
-dnl   Arguments:
-dnl ---------------------------------------------------------------------------
-AC_DEFUN([FATHOM_HDF5_LIBS_HELPER_HL],[
-if (test $HAVE_LIB_HDF5 = yes && test $HAVE_LIB_HDF5HL = no); then
-  # Look for HDF5's high level library
-  AC_HAVE_LIBRARY([hdf5_hl], [HAVE_LIB_HDF5HL=yes; HDF5_LIBS="-lhdf5_hl $HDF5_LIBS"], [], [$HDF5_LIBS])
-  if (test $HAVE_LIB_HDF5HL=yes); then
-    HDF5_FLIBS=""
-    FATHOM_HDF5_LIBS_HELPER_FORTRAN
-    HDF5_CXXLIBS=""
-    FATHOM_HDF5_LIBS_HELPER_CXX
-  fi
-fi
-])
-
 #######################################################################################
 # Helper function for FATHOM_CHECK_HDF5 and FATHOM_CHECK_NETCDF
 # If HAVE_LIB_HDF5 == yes, then does nothing.
@@ -85,7 +70,17 @@ if (test "xyes" != "x$HAVE_LIB_HDF5"); then
   HAVE_LIB_HDF5=no
   HAVE_LIB_HDF5HL=no
   FATHOM_HDF5_LIBS_HELPER([$LIBS])
-  FATHOM_HDF5_LIBS_HELPER_HL
+  if (test $HAVE_LIB_HDF5 = yes); then
+    # Look for HDF5's high level library
+    AC_HAVE_LIBRARY([hdf5_hl], [HAVE_LIB_HDF5HL=yes; HDF5_LIBS="-lhdf5_hl $HDF5_LIBS"], [], [$HDF5_LIBS])
+    #if (test $HAVE_LIB_HDF5HL=yes); then
+    #  HDF5_FLIBS=""
+    #  FATHOM_HDF5_LIBS_HELPER_FORTRAN
+    #  HDF5_CXXLIBS=""
+    #  FATHOM_HDF5_LIBS_HELPER_CXX
+    #fi
+  fi
+
 fi
 ])
 
