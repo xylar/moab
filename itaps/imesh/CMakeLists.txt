@@ -16,6 +16,7 @@ if ( MOAB_HAVE_MPI )
                       iMeshP_MOAB.cpp)
   set(MOAB_IMESH_LIB_INCLUDES
           ${MOAB_IMESH_LIB_INCLUDES}
+          iMeshP.h
           iMeshP_f.h
           iMeshP_protos.h )
 endif()
