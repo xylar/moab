@@ -120,6 +120,7 @@ case "$HOSTNAME" in
     MBNETCDF_DIR="/soft/netcdf/4.3.1-parallel/intel-13.1/mvapich2-1.9"
     MBPNETCDF_DIR="/soft/pnetcdf/1.6.1-gnu4.4-mvapich2"
     MBMETIS_DIR="/soft/metis/5.0.3"
+    PREREQ="soft add +intel-15.0 +mvapich2-2.2b-intel-15.0"
     ;;
   *theta*)
     CROSSCOMPILE="yes"
