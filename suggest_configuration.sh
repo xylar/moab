@@ -139,7 +139,7 @@ case "$HOSTNAME" in
     LIBS="-L/opt/cray/pe/libsci/default/intel/51/$MBCONFARCH/lib -lsci_gnu_mp"
     PREREQ="module load gcc/6.3.0 craype-haswell"
     ;;
-  *edison* | *cori*)
+  *cori*)
     CROSSCOMPILE="yes"
     MBCONFARCH="haswell"
     MBCC="cc"
@@ -156,6 +156,25 @@ case "$HOSTNAME" in
     MBPNETCDF_DIR="/opt/cray/pe/parallel-netcdf/default/intel/150"
     MBBLASLAPACK_LIBS="/opt/cray/pe/libsci/default/intel/150/$MBCONFARCH/lib/libsci_intel.a"
     MBMETIS_DIR="/opt/cray/pe/tpsl/default/INTEL/150/$MBCONFARCH"
+    PREREQ="module load craype-haswell"
+    ;;
+  *edison* )
+    CROSSCOMPILE="yes"
+    MBCONFARCH="haswell"
+    MBCC="cc"
+    MBCXX="CC"
+    MBFC="ftn"
+    MBF77="ftn"
+    MBNMPICC="cc"
+    MBNMPICXX="CC"
+    MBNMPIFC="ftn"
+    MBNMPIF77="ftn"
+    MBMPI_DIR=""
+    MBHDF5_DIR="/opt/cray/hdf5-parallel/default/intel/15.0"
+    MBNETCDF_DIR="/opt/cray/netcdf-hdf5parallel/4.4.0/intel/15.0"
+    MBPNETCDF_DIR="/opt/cray/parallel-netcdf/1.7.0/intel/15.0"
+    MBBLASLAPACK_LIBS="/opt/cray/libsci/default/intel/15.0/haswell/lib/libsci_intel.a"
+    MBMETIS_DIR="/opt/cray/tpsl/16.07.1/INTEL/15.0/haswell"
     PREREQ="module load craype-haswell"
     ;;
   *)  # Nothing to do
