@@ -1057,17 +1057,18 @@ Note that using the iMesh interface from Fortran-based applications requires a c
 
   \section pymoab 8. Python Interface (PyMOAB)
 
-A python interface to MOAB's essential core functionality and a few other tools has been added as of Version 5.0. The pymoab module can be used to interactively interrogate existing mesh files or prototype MOAB-based algorithms. It can also be connected to other Python applications or modules for generation, manipulation, and visualization of a MOAB mesh and mesh data. Examples of this can be found in the laplaciansmoother.py and yt2moab.py files.
+A python interface to MOAB's essential core functionality and a few other tools has been added as of Version 5.0. The pymoab module can be used to interactively interrogate existing mesh files or prototype MOAB-based algorithms. It can also be connected to other Python applications or modules for generation, manipulation, and visualization of a MOAB mesh and mesh data. Examples of this can be found in the laplaciansmoother.py and yt2moab.py files. Interaction with the PyMOAB interface is intended to be analagous to interaction with the MOAB C++ API. A simple example of mesh interrogation for tags can be found in interrogate_mesh.py
+
 
 <B>DENSE tags used by default</B> - MOAB's PyMOAB interface creates DENSE tags by default. Different storage types can be defined by supplying the storage_type argument to the tag_get_handle call in the pymoab core module.
 
 <B>PyMOAB uses NumPy internally </B> to represent data and vertex coordinates though other properly formed data structures can be used to create vertices, set data, etc. Data and vertex coordinates will always be returned in the form of NumPy arrays, however. 
 
-EntityHandles are represented by Python long ints and are commonly returned from calls as MOAB Ranges.
+<B>EntityHandles</B> are represented by Python long integers. Arrays of these values are commonly returned from calls as MOAB Ranges.
 
 <B>MOAB ErrorCodes</B> - Errors are automatically checked internally by the PyMOAB instance, raising various exceptions depending on the error that occurs. These exceptions can be handled as raised from the functions or acceptable error values returned can also be specified via the exceptions parameter common to all PyMOAB functions in which case no exception will be raised.
 
-Documentation for PyMOAB functions is provided as part of this User's Guide, but can also be accessed in the Python interpreter by calling help(<function_or_method_name>).
+Documentation for PyMOAB functions is provided as part of this User's Guide, but can also be accessed in the Python interpreter by calling help(<function_or_method>).
 
 
   \ref contents
