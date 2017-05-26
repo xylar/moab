@@ -413,7 +413,7 @@ RECURSIVE              = YES
 # excluded from the INPUT source files. This way you can easily exclude a 
 # subdirectory from a directory tree whose root is specified with the INPUT tag.
 
-EXCLUDE                = config CMakeLists.txt
+EXCLUDE                = config CMakeLists.txt driver.py cython_filter.py
 
 # If the value of the INPUT tag contains directories, you can use the 
 # EXCLUDE_PATTERNS tag to specify one or more wildcard patterns to exclude 
@@ -450,13 +450,13 @@ IMAGE_PATH             =  @top_srcdir@/doc/DG/ \
 # input file. Doxygen will then use the output that the filter program writes 
 # to standard output.
 
-INPUT_FILTER           = 
+INPUT_FILTER           = ./cython_filter.py
 
 # If the FILTER_SOURCE_FILES tag is set to YES, the input filter (if set using 
 # INPUT_FILTER) will be used to filter the input files when producing source 
 # files to browse.
 
-FILTER_SOURCE_FILES    = NO
+FILTER_SOURCE_FILES    = YES
 
 #---------------------------------------------------------------------------
 # configuration options related to the alphabetical class index
