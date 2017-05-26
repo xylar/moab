@@ -86,19 +86,6 @@ PYTHONPATH=${CMAKE_INSTALL_PREFIX}/${PYMOAB_INSTALL_PREFIX}:\$PYTHONPATH \
   SET(DEPS   "${CMAKE_CURRENT_SOURCE_DIR}/pymoab/__init__.py")
   SET(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/build")
  
-  # add pymoab build target, depends on MOAB target so that all headers are in place before attempting the build
-  if(ENABLE_DEVMODE)
-    include (UseCython)
-    cython_add_module(core ${CMAKE_CURRENT_SOURCE_DIR}/pymoab/core.pyx ${CMAKE_CURRENT_SOURCE_DIR}/pymoab/core.pxd)
-    cython_add_module(hcoord ${CMAKE_CURRENT_SOURCE_DIR}/pymoab/hcoord.pyx ${CMAKE_CURRENT_SOURCE_DIR}/pymoab/core.pxd)
-    cython_add_module(rng ${CMAKE_CURRENT_SOURCE_DIR}/pymoab/rng.pyx ${CMAKE_CURRENT_SOURCE_DIR}/pymoab/core.pxd)
-    cython_add_module(scd ${CMAKE_CURRENT_SOURCE_DIR}/pymoab/scd.pyx ${CMAKE_CURRENT_SOURCE_DIR}/pymoab/core.pxd)
-    cython_add_module(skinner ${CMAKE_CURRENT_SOURCE_DIR}/pymoab/skinner.pyx ${CMAKE_CURRENT_SOURCE_DIR}/pymoab/core.pxd)
-    cython_add_module(tag ${CMAKE_CURRENT_SOURCE_DIR}/pymoab/tag.pyx ${CMAKE_CURRENT_SOURCE_DIR}/pymoab/core.pxd)
-    cython_add_module(topo_util ${CMAKE_CURRENT_SOURCE_DIR}/pymoab/topo_util.pyx ${CMAKE_CURRENT_SOURCE_DIR}/pymoab/core.pxd)
-    cython_add_module(types ${CMAKE_CURRENT_SOURCE_DIR}/pymoab/types.pyx ${CMAKE_CURRENT_SOURCE_DIR}/pymoab/core.pxd)
-  endif(ENABLE_DEVMODE)
-
   # build pymoab
   ADD_CUSTOM_TARGET(pymoab-build ALL COMMAND export CFLAGS='-w' && ${PYTHON} setup.py build DEPENDS ${DEPS} MOAB)
 
