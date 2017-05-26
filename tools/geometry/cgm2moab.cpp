@@ -455,58 +455,6 @@ int main( int argc, char* argv[] ){
    ret = gtt->construct_obb_trees();
    CHECKERR( *gtt, ret );
 
-   /* all this is dagmc specific and should likely go away
-   std::vector< std::string > keywords;
-   ret = dag->detect_available_props( keywords);
-   CHECKERR( *dag, ret );
-   ret = dag->parse_properties( keywords );
-   CHECKERR( *dag, ret );
-
-   if( verbose ){
-     std::cout << keywords.size() << " metadata properties detected:" << std::endl;
-     for( std::vector<std::string>::iterator i = keywords.begin();
-          i != keywords.end(); ++i )
-     {
-       std::cout << "    " << (*i) << std::endl;
-     }
-   }
-
-   std::vector<int> vols;
-   po.getOpt( "vols", &vols );
-
-   if(vols.size() == 0 ){
-     // add all vols known by DagMC
-     int num_vols = dag->num_entities( 3 );
-     for( int i = 1; i <= num_vols; ++i){ // dag indices are base-1
-       vols.push_back( dag->id_by_index( 3, i ) );
-     }
-   }
-   else{
-     // verify existence of each user-supplied volume
-     for( std::vector<int>::iterator i = vols.begin(); i!=vols.end(); ++i ){
-       if( dag->entity_by_id( 3, *i ) == 0 ){
-         std::cerr << "Unknown volume ID: " << *i << std::endl;
-         vols.erase(i--);
-       }
-     }
-   }
-
-   std::string visfile;
-   if( po.getOpt( "obb-vis", &visfile ) ){
-     if( verbose ){ std::cout << "Preparing OBB visualization file" << std::endl; } 
-
-     ret = obbvis_create( *dag, vols, grid, visfile );
-     CHECKERR(mbi, ret);
-   }
-
-   if( po.numOptSet( "obb-stats" ) ){
-     if( verbose ){ std::cout << "Printing OBB stats" << std::endl; }
-
-     ret = obbstat_write( *dag, vols, keywords, std::cout );
-     CHECKERR(mbi, ret);
-   }
-  }
-   */
   }     
   return 0; 
 

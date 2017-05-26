@@ -38,8 +38,6 @@ include_directories(
 set( TOOLS_LINK_LIBS MOAB ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES} )
 if ( MOAB_HAVE_CGM )
   set( TOOLS_LINK_LIBS ${TOOLS_LINK_LIBS} ${CGM_LIBRARIES} )
-  # CGM +
-  message(STATUS "build geometry tools")
   add_subdirectory( geometry )
 endif ( MOAB_HAVE_CGM )
 
