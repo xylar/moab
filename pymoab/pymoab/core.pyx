@@ -819,6 +819,75 @@ cdef class Core(object):
             entry_len = 1 if tag_type == types.MB_TYPE_OPAQUE else length
             return data.reshape((len(r),entry_len))
 
+    def tag_delete_data(self, Tag tag, entity_handles, exceptions = ()):
+        """
+        Delete the data of a tag on a vector of entity handles. Only sparse tag
+        data are deleted with this method; dense tags are deleted by deleting
+        the tag itself using tag_delete.
+
+        Example
+        -------
+        # delete data associated with the iterable entities from the tag data_tag
+        data = mb.tag_delete_data(data_tag, entities)
+
+        Parameters
+        ----------
+        tag : MOAB TagHandle
+            the tag from which data is to be deleted
+        entity_handles : iterable of MOAB EntityHandles or a single EntityHandle
+            the EntityHandle(s) to delete data from. This can be any iterable of
+            EntityHandles or a single EntityHandle.
+
+        Returns
+        -------
+        None
+
+        Raises
+        ------
+        MOAB ErrorCode
+            if a MOAB error occurs
+        ValueError
+            if an EntityHandle is not of the correct type
+        """
+        cdef moab.ErrorCode err
+        cdef Range r
+        # Create a range
+        if isinstance(entity_handles,Range):
+            r = entity_handles
+        else:
+            r = Range(entity_handles)
+        # Delete the data
+        err = self.inst.tag_delete_data(tag.inst, deref(r.inst))
+        check_error(err, exceptions)
+
+    def tag_delete(self, Tag tag, exceptions = ()):
+        """
+        Removes the tag from the database and deletes all of its associated data.
+
+        Example
+        -------
+        # delete a tag that was previously created
+        data = mb.tag_delete(data_tag)
+
+        Parameters
+        ----------
+        tag : MOAB TagHandle
+            the tag from which data is to be deleted
+
+        Returns
+        -------
+        None
+
+        Raises
+        ------
+        MOAB ErrorCode
+            if a MOAB error occurs
+        """
+        cdef moab.ErrorCode err
+        # Delete the tag
+        err = self.inst.tag_delete(tag.inst)
+        check_error(err, exceptions)
+
     def get_adjacencies(self, entity_handles, int to_dim, bint create_if_missing = False, exceptions = ()):
         """
         Get the adjacencies associated with a range of entities to entities of a specified dimension.
