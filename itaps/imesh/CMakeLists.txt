@@ -6,6 +6,7 @@ set ( MOAB_IMESH_LIB_INCLUDES
           iMesh.h
           iMesh_extensions.h
           iMesh_f.h
+          iMeshP.h
           iMesh_protos.h
           MBiMesh.hpp )
 
