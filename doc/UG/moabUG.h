@@ -1068,7 +1068,7 @@ A python interface to MOAB's essential core functionality and a few other tools 
 
 <B>MOAB ErrorCodes</B> - Errors are automatically checked internally by the PyMOAB instance, raising various exceptions depending on the error that occurs. These exceptions can be handled as raised from the functions or acceptable error values returned can also be specified via the exceptions parameter common to all PyMOAB functions in which case no exception will be raised.
 
-Documentation for PyMOAB functions is provided as part of this User's Guide, but can also be accessed in the Python interpreter by calling help(<function_or_method>).
+Documentation for PyMOAB functions is provided as part of this User's Guide, but can also be accessed in the Python interpreter by calling `help(<function_or_method>)`.
 
 
   \ref contents
