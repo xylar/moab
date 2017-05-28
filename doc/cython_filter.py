@@ -5,27 +5,36 @@ import sys
 default_val_key = "="
 func_key = " def "
 
-def parse_types(line):
+open_symbol = "("
+close_symbol = ")"    
+
+def line_has_func(line):
     """
     Removes types from cython function arguments.
     """
     # if this is present, check the line for a
     # function definition
-    
-    if func_key in line:
-        return get_args(line)
+    if (func_key in line) or line.startswith(func_key[1:]):
+        return True
     else:
-        return line
+        return False
 
-def get_args(line):
+def filter_types(line):
     """
     Returns the comma-separated arguments 
     (includes types, and default values)
     """
-
     # make sure that open/close parenthesis appear in this line
-    assert( "(" in line and ")" in line)
-    
+    if not (("(" in line) and (")" in line)):
+        print "Eror parsing function in line:"
+        print line
+        raise AssertionError
+
+    if not "(" in line:
+        print "Could not find beginning of the function signature in line:"
+        print line
+        raise AssertionError
+
     # get everything bewteen the first "("
     # and last ")"
     open_idx = line.find("(")+1
@@ -109,9 +118,25 @@ def main():
     # if this is a cython file, parse
     # types from function arguments
     else:
-        for line in f.readlines():
-            print parse_types(line)
-
+        # loop over the whole file
+        while True:
+            line = f.readline()
+            # if a function symbol is found,
+            # make sure the whole signature goes
+            # to the filter
+            if line_has_func(line):
+                count = 1
+                while count != 0:
+                    count = line.count(open_symbol)
+                    count -= line.count(close_symbol)
+                    # if the open/close symbols don't all have a match
+                    # add a line
+                    line += f.readline()
+                print filter_types(line)
+            else:
+                print line
+            #break out of loop at eof
+            if line == '': break
     #close the file
     f.close()
 
