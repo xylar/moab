@@ -1,4 +1,4 @@
-include_directories( ${HDF5_INCLUDE_DIR} )
+include_directories( ${HDF5_INCLUDES} )
 
 set(
   mhdf_LIB_SRCS
