@@ -456,7 +456,7 @@ INPUT_FILTER           = ./cython_filter.py
 # INPUT_FILTER) will be used to filter the input files when producing source 
 # files to browse.
 
-FILTER_SOURCE_FILES    = YES
+FILTER_SOURCE_FILES    = @filter_sources@
 
 #---------------------------------------------------------------------------
 # configuration options related to the alphabetical class index
