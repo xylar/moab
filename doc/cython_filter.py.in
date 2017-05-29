@@ -115,8 +115,7 @@ def main():
     
     # if not a cython file, no filter
     if sys.argv[1].split(".")[-1] != "pyx":
-        for line in f.readlines():
-            print line
+        print f.read()
     # if this is a cython file, parse
     # types from function arguments
     else:

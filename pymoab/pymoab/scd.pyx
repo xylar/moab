@@ -19,11 +19,18 @@ cdef class ScdParData(object):
 cdef class ScdInterface(object):
     
     def __cinit__(self, Core c):
-        """Constructor. Requires a moab core, c, to operate on."""
+        """
+        Constructor. 
+
+        Requires a moab core, c, to operate on.
+        """
         self.interface  = <moab.Interface*> c.inst
         self.inst = new moab.ScdInterface(self.interface,False)
 
     def __del__(self):
+        """
+        Destructor.
+        """
         del self.inst
 
     def construct_box(self,
