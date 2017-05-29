@@ -203,6 +203,8 @@ AC_MSG_RESULT(found)
 ])
 
 filter_sources="NO"
+filter_program=""
+python_patterns=""
 
 AC_MSG_CHECKING([if pymoab interface was requested by user])
 AC_ARG_ENABLE( [pymoab],
@@ -228,7 +230,9 @@ else
     
     # if enabling PyMOAB, turn cython file filter oni
     filter_sources="YES"
-
+    filter_program=$PYTHON" cython_filter.py 2>/dev/null"
+    python_patterns="*.py *.pyx"
+    
     if (test "x$enable_devmode" != "xno"); then
       # Developers updating the PyMOAB modules need Cython (> 0.25)
       AC_PYTHON_MODULE(cython)
@@ -337,7 +341,8 @@ AC_MSG_RESULT([$ENABLE_pymoab])
 python_interpreter=$PYTHON
 AC_SUBST([python_interpreter])
 AC_SUBST([filter_sources])
-
+AC_SUBST([filter_program])
+AC_SUBST([python_patterns])
 ################################################################################
 #                           iMesh Part 1 of 2
 ################################################################################

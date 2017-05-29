@@ -401,7 +401,7 @@ INPUT                  = @top_srcdir@/src \
 # and *.h) to filter out the source-files in the directories. If left 
 # blank all files are included.
 
-FILE_PATTERNS          = *.cpp *.cc *.c *.cxx *.hpp *.h *.hxx *.dox *.F90 *.F *.f *.py *.pyx
+FILE_PATTERNS          = *.cpp *.cc *.c *.cxx *.hpp *.h *.hxx *.dox *.F90 *.F *.f @python_patterns@
 
 # The RECURSIVE tag can be used to turn specify whether or not subdirectories 
 # should be searched for input files as well. Possible values are YES and NO. 
@@ -457,7 +457,7 @@ IMAGE_PATH             =  @top_srcdir@/doc/DG/ \
 # input file. Doxygen will then use the output that the filter program writes 
 # to standard output.
 
-INPUT_FILTER           = "@python_interpreter@ ./cython_filter.py 2>/dev/null" 
+INPUT_FILTER           = "@filter_program@"
 
 # If the FILTER_SOURCE_FILES tag is set to YES, the input filter (if set using 
 # INPUT_FILTER) will be used to filter the input files when producing source 
