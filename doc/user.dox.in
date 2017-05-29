@@ -450,7 +450,7 @@ IMAGE_PATH             =  @top_srcdir@/doc/DG/ \
 # input file. Doxygen will then use the output that the filter program writes 
 # to standard output.
 
-INPUT_FILTER           = ./cython_filter.py
+INPUT_FILTER           = "@python_interpreter@ ./cython_filter.py 2>/dev/null" 
 
 # If the FILTER_SOURCE_FILES tag is set to YES, the input filter (if set using 
 # INPUT_FILTER) will be used to filter the input files when producing source 

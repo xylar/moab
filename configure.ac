@@ -334,6 +334,8 @@ fi
 AM_CONDITIONAL([ENABLE_pymoab],[test "xyes" = "x$ENABLE_pymoab"])
 AC_MSG_CHECKING([if pymoab interface is enabled])
 AC_MSG_RESULT([$ENABLE_pymoab])
+python_interpreter=$PYTHON
+AC_SUBST([python_interpreter])
 AC_SUBST([filter_sources])
 
 ################################################################################
@@ -1517,6 +1519,7 @@ AC_CONFIG_FILES([Makefile
                  tools/geometry/Makefile
                  tools/vtkMOABReader/CMakeLists.txt
                  doc/user.dox
+		 doc/cython_filter.py
                  doc/config.tex
                  MeshFiles/Makefile
                  MeshFiles/unittest/Makefile

@@ -1,5 +1,7 @@
-#!/usr/bin/python
-
+"""
+Removes argument types from .pyx files
+Useage: cython_filter.py <filename>
+"""
 import sys
 
 default_val_key = "="
