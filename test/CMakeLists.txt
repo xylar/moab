@@ -176,7 +176,8 @@ if (ENABLE_IREL AND MOAB_HAVE_CGM)
   include_directories( ${CGM_INCLUDES} ${CMAKE_SOURCE_DIR}/itaps/irel ${CMAKE_BINARY_DIR}/itaps/irel )
   set( TESTS test_entset.cpp
              test_both.cpp
-             test_status.cpp )
+             test_status.cpp 
+             normals.cpp)
   set(irel_deplibs iRel)
   if(MOAB_HAVE_FBIGEOM)
     include_directories( ${CMAKE_SOURCE_DIR}/itaps/fbigeom ${CMAKE_BINARY_DIR}/itaps/fbigeom )
