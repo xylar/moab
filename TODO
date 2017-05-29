@@ -15,7 +15,7 @@
 
 ## Adaptivity
 
-## Non-Conformal
+### Non-Conformal
 
 1. Update adjacency queries to return the right list of elements, when the mesh has hanging nodes
 2. Support standard templates for splitting various types of elements (tri/quad/tet/hex/poly) in the reference frame
@@ -26,6 +26,40 @@
 1. User's Guide Section
 2. Variable length tag support via the tag_set/get_by_ptr methods
 3. Better implementation of the PyMOAB Range class's __str__ and __repr__ methods
+4. More examples and usage tutorials for PyMOAB
+
+## Intersection
+
+1. The intersection points are currently not shared correctly between tasks. When intersection point is on the boundary edge (edge that is shared between partitions), the settle_intersection_points method just sends from the owning processor the correct position for the 3d point. It should also send the entity handle, which should be used for shared tag handle. It can never be multi-shared, so this makes it easier. Also, the non-owning task should send the entity handle towards the owner (would be owner), because this intx point will now be shared. Without this addition, parallel file I/O of the intersection mesh will fail.
+2. Verify the DoF numbering for FEM weight generation with `mbtempest` tool
+3. Remove or minimize the MOAB overload for the mesh loops in TempestOfflineMap.cpp
+4. Modify TempestRemap sources so that it is aware of parallel callers (MOAB)
+
+## Local Discretization
+
+1. Add basis function calculations to simplify FEM operator assembly over MOAB meshes for arbitrary element topologies
+2. Consolidate ElemUtil and LD functions to create a more unified interface 
+
+## iRel
+
+Currently, iRel usage requires that we match the geometry entity with the mesh set based on **global id** for both the descriptions; i.e., the geometry entity from iGeom/CGM and mesh set from iMesh/MOAB. The mesh sets have to exist already in the mesh file, and the way we do this is through implicit assumptions.
+
+1. Create the stp file and export from Cubit
+2. Reset in Cubit, and import the stp file back
+3. Mesh the model depending on user specification and save the *cub* file
+4. `mbconvert` from *cub* file to *h5m* format
+5. Then load the geometry with iGeom, load mesh with iMesh, and call "relate", which will match the geometry entity with the corresponding mesh set based on global IDs of the geometry entity and the mesh set. (they have to match exactly, by ID and dimension)
+
+However, if these models were created through arbitrary workflows like say a geometry model through `Cubit` and a mesh corresponding to that geometry through `Gmsh`, iRel cannot work out the associations.
+
+1. Create a stp file from either Cubit or Gmsh
+2) Mesh with any one of the supported mesher like Gmsh or Netgen
+3) If Gmsh has the same strategy as Cubit (boundary first, then interior), in principle we could identify all 0d, 1d, 2d, 3d cells in the mesh; also, depending on the format Gmsh has, some "parent" type information could be saved in the mesh itself.
+4) Then do a geometric search, to find the associativity relations by "brute" force, if nothing else is possible.
+
+   Brute force means that by looking at a mesh edge, for example, find the curve in the stp file, that is the closest to the mesh edge. It is a complex process, and we will need some iterations to compute the inverse, etc (For any point in space, we could get what is the closest point on a curve in iGeom. There are also some geometry trees that can be used (similar to Kd-tree, for geometry entities, not for mesh). This needs to be investigated further within iGeom and CGM.
+
+   This search procedure might need to happen for every point in the mesh first. Then edges, etc. For a mesh face (a triangle) for example, we could associate it with a geometry face only if all 3 points are "close" to the same geometry face. All those mesh entities associated to a geometry face needs to be put in a mesh set, with the dimension 2, and global id the same as the geometry entity itself. (or just simple relate). For 3d mesh elements, they should be in the interior of a geometry volume. One condition would be that all points are in the interior of the geometric volume.
 
 ## Mesquite integration
 
@@ -48,4 +82,3 @@ switch( datatype )
 6. Verify mesh optimization algorithms in both serial and parallel and see if all of the indicators work as they should
 7. Unify error propagation between MOAB and Mesquite
 8. Unify EntityHandle definition between MOAB and Mesquite (void*)
-
