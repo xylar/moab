@@ -37,6 +37,7 @@ endif()
 
 if ( MOAB_HAVE_HDF5 )
   include_directories(
+    ${HDF5_INCLUDES}
     ${MOAB_SOURCE_DIR}/mhdf/include
   )
 endif ( MOAB_HAVE_HDF5 )

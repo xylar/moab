@@ -220,7 +220,7 @@ if ( MOAB_HAVE_MPI AND MPI_FOUND )
 
   if ( MOAB_HAVE_HDF5 )
     include_directories(
-      ${HDF5_INCLUDE_DIR}
+      ${HDF5_INCLUDES}
       ${CMAKE_SOURCE_DIR}/src/io/mhdf/include
     )
     set_source_files_properties( parallel/mhdf_parallel.c
