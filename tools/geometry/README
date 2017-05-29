@@ -1,0 +1,18 @@
+These are tools related to the representation of geometry and geometric
+topology in MOAB.
+
+Most of these depend on the existence of a functioning CGM installation, and
+some may recquire a version of CGM based on ACIS.
+
+cgm2moab: This tool was originally written to perform operations related to
+          the conversion of a geometry represented in a file format recognized
+          by CGM into a MOAB representation.  The most common options are for
+          setting tolerances used in faceting the geometry (these may be added
+          to mbconvert in the future).  Other options include the ability to
+          impose alternate faceting/tesselation on individual surfaces, and
+          the ability to generate a visualization of the oriented bounding box
+          tree that is generated for geometric queries.
+
+
+
+

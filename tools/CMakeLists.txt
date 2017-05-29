@@ -12,7 +12,6 @@ option ( MOAB_BUILD_SPHEREDECOMP "Build the sphere decomposition tool?"         
 option ( MOAB_BUILD_MBSURFPLOT   "Build the mbsurfplot application?"             ON )
 option ( MOAB_BUILD_MBPART       "Build the mbpart (Zoltan-based) partitioner?" OFF )
 option ( MOAB_BUILD_MBSLAVEPART  "Build the slave partitioner tool?"             ON )
-option ( MOAB_BUILD_DAGMC        "Build the dagmc tool?"                         ON )
 option ( MOAB_BUILD_MBCOUPLER    "Build the mesh coupler tool?"                  ON )
 option ( MOAB_BUILD_MBHONODES    "Build the hex8 to hex27 converter tool?"       ON )
 option ( MOAB_BUILD_MBUMR        "Build the uniform mesh refinement tool?"       ON )
@@ -39,6 +38,7 @@ include_directories(
 set( TOOLS_LINK_LIBS MOAB ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES} )
 if ( MOAB_HAVE_CGM )
   set( TOOLS_LINK_LIBS ${TOOLS_LINK_LIBS} ${CGM_LIBRARIES} )
+  add_subdirectory( geometry )
 endif ( MOAB_HAVE_CGM )
 
 # MBSIZE
@@ -221,11 +221,6 @@ if ( MOAB_BUILD_MBQUALITY )
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     )
-endif( )
-
-# CGM + DagMC
-if ( MOAB_BUILD_DAGMC )
-  add_subdirectory( dagmc )
 endif( )
 
 # Zoltan

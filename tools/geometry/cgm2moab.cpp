@@ -1,11 +1,12 @@
-#include "dagmc_preproc.hpp"
+#include "cgm2moab.hpp"
 #include "moab/ProgOptions.hpp"
 
 #include "moab/Core.hpp"
 #include "moab/Range.hpp"
 #include "moab/CartVect.hpp"
 #include "MBTagConventions.hpp"
-#include "DagMC.hpp"
+#include "moab/GeomQueryTool.hpp"
+#include "moab/GeomTopoTool.hpp"
 
 #include <sstream>
 #include <iomanip>
@@ -36,67 +37,10 @@ void chkerr( Interface& mbi, ErrorCode code, int line, const char* file ){
   chkerr( &mbi, code, line, file );
 }
 
-void chkerr( DagMC& dag, ErrorCode code, int line, const char* file ){
-  chkerr( dag.moab_instance(), code, line, file );
+void chkerr( GeomTopoTool& gtt, ErrorCode code, int line, const char* file ){
+  chkerr( gtt.get_moab_instance(), code, line, file );
 }
 
-
-ErrorCode update_mcnp5_property_names( Interface* MBI )
-{
-  ErrorCode rval;
-  Tag category_tag;
-  rval = MBI->tag_get_handle( CATEGORY_TAG_NAME, 32, MB_TYPE_OPAQUE, category_tag );
-  if (MB_SUCCESS != rval)
-    return rval;
-  char group_category[CATEGORY_TAG_SIZE];
-  std::fill(group_category, group_category+CATEGORY_TAG_SIZE, '\0');
-  sprintf(group_category, "%s", "Group");
-  const void* const group_val[] = {&group_category};
-  Range groups;
-  rval = MBI->get_entities_by_type_and_tag(0, MBENTITYSET, &category_tag, 
-                                           group_val, 1, groups);
-  if (MB_SUCCESS != rval)
-    return rval;
-
-  Tag name_tag;
-  rval = MBI->tag_get_handle( NAME_TAG_NAME, NAME_TAG_SIZE, MB_TYPE_OPAQUE, name_tag );
-  if (MB_SUCCESS != rval)
-    return rval;
-  for( Range::iterator i = groups.begin(); i != groups.end(); ++i ){
-    EntityHandle grp = *i;
-    const void* p;
-    int ignored;
-    rval = MBI->tag_get_by_ptr( name_tag, &grp, 1, &p, &ignored );
-    if( MB_SUCCESS != rval ) return rval;
-    const char* grpname = static_cast<const char*>(p);
-    std::string modname(grpname);
-    size_t idx;
-    if( modname.find("tally_") == 0 ){
-        std::string arg = modname.substr(6);
-        // replace up to 2 underscores
-        int count = 0;
-        while( count < 2 &&  (idx = arg.find_first_of("_")) != arg.npos )
-        {
-          count ++;
-          arg[idx] = '.';
-        }
-        modname = modname.substr(0,6) + arg;
-    }
-    else if( (idx = modname.find("imp_")) != modname.npos ){
-        modname[idx+3] = '.';
-    }
-
-    if( modname != grpname ){
-      std::cout << "Group name " << grpname << " changed to " << modname << std::endl;
-      p = static_cast<const void*>(modname.c_str());
-      int length = NAME_TAG_SIZE;
-      rval = MBI->tag_set_by_ptr( name_tag, &grp, 1, &p, &length);
-      if( MB_SUCCESS != rval ) return rval;
-    }
-  }
-
-  return MB_SUCCESS;
-}
 
 /**
  * Estimate the volume of the surface (actually multiplied by a factor of six).
@@ -289,11 +233,7 @@ static ErrorCode merge_input_surfs( Interface *mbi,
 
 int main( int argc, char* argv[] ){
 
-  ProgOptions po("dagmc_preproc: a tool for preprocessing CAD and mesh files for DAGMC analysis");
-  std::string dagversion;
-  DagMC::version( &dagversion );
-  po.setVersion( dagversion );
-
+  ProgOptions po("cgm2moab: a tool for preprocessing CAD and mesh files for analysis");
 
   std::string input_file;
   std::string output_file = "dagmc_preproc_out.h5m";
@@ -307,7 +247,6 @@ int main( int argc, char* argv[] ){
   po.addOpt<int>( "obb-vis-divs", "Resolution of obb visualization grid (default 50)", &grid );
   po.addOpt<void>( "obb-stats,S", "Print obb statistics.  With -v, print verbose statistics." );
   po.addOpt<std::vector<int> >( "vols,V", "Specify a set of volumes (applies to --obb_vis and --obb_stats, default all)" );
-  po.addOpt<void>( "mcnp5-props", "Update MCNP5 property names" );
   po.addOptionHelpHeading("Options for loading CAD files");
   po.addOpt<double>( "ftol,f", "Faceting distance tolerance", po.add_cancel_opt );
   po.addOpt<double>( "ltol,l", "Faceting edge length tolerance", po.add_cancel_opt );
@@ -390,11 +329,6 @@ int main( int argc, char* argv[] ){
     CHECKERR( mbi, ret );
   }
 
-  if( po.numOptSet( "mcnp5-props" ) ){
-    ret = update_mcnp5_property_names( &mbi );
-    CHECKERR( mbi, ret );
-  }
-
   /* Iterate through any -m alternate mesh files and replace surfaces */
 
   std::vector<std::string> m_list;
@@ -451,66 +385,14 @@ int main( int argc, char* argv[] ){
   /* OBB statistics and visualization */
   if( obb_task ){
 
-   if( verbose ){ std::cout << "Loading data into DagMC" << std::endl; } 
-   DagMC* dag = new DagMC(&mbi);
-   ret = dag->load_existing_contents();
-   CHECKERR( *dag, ret );
-   ret = dag->init_OBBTree();
-   CHECKERR( *dag, ret );
+   if( verbose ){ std::cout << "Loading data into GeomTopoTool" << std::endl; } 
+   GeomTopoTool *gtt = new GeomTopoTool(&mbi,false);
+   ret = gtt->find_geomsets();
+   CHECKERR( *gtt,ret);
+   ret = gtt->construct_obb_trees();
+   CHECKERR( *gtt, ret );
 
-   std::vector< std::string > keywords;
-   ret = dag->detect_available_props( keywords);
-   CHECKERR( *dag, ret );
-   ret = dag->parse_properties( keywords );
-   CHECKERR( *dag, ret );
-
-   if( verbose ){
-     std::cout << keywords.size() << " metadata properties detected:" << std::endl;
-     for( std::vector<std::string>::iterator i = keywords.begin();
-          i != keywords.end(); ++i )
-     {
-       std::cout << "    " << (*i) << std::endl;
-     }
-   }
-
-   std::vector<int> vols;
-   po.getOpt( "vols", &vols );
-
-   if(vols.size() == 0 ){
-     // add all vols known by DagMC
-     int num_vols = dag->num_entities( 3 );
-     for( int i = 1; i <= num_vols; ++i){ // dag indices are base-1
-       vols.push_back( dag->id_by_index( 3, i ) );
-     }
-   }
-   else{
-     // verify existence of each user-supplied volume
-     for( std::vector<int>::iterator i = vols.begin(); i!=vols.end(); ++i ){
-       if( dag->entity_by_id( 3, *i ) == 0 ){
-         std::cerr << "Unknown volume ID: " << *i << std::endl;
-         vols.erase(i--);
-       }
-     }
-   }
-
-   std::string visfile;
-   if( po.getOpt( "obb-vis", &visfile ) ){
-     if( verbose ){ std::cout << "Preparing OBB visualization file" << std::endl; } 
-
-     ret = obbvis_create( *dag, vols, grid, visfile );
-     CHECKERR(mbi, ret);
-   }
-
-   if( po.numOptSet( "obb-stats" ) ){
-     if( verbose ){ std::cout << "Printing OBB stats" << std::endl; }
-
-     ret = obbstat_write( *dag, vols, keywords, std::cout );
-     CHECKERR(mbi, ret);
-   }
-
-  }
-
-  
+  }     
   return 0; 
 
 }

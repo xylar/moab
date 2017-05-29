@@ -20,6 +20,12 @@ else
 endif
 endif
 
+if HAVE_CGM
+  geometry_DIR = geometry
+else
+  geometry_DIR = 
+endif
+
 # For old (pre 1.10.x) versions of Automake
 docdir = @docdir@
 
@@ -121,11 +127,6 @@ else
   mcnpmit_DIR =
 endif
 
-if ENABLE_dagmc
-  dagmc_DIR = dagmc
-else
-  dagmc_DIR = 
-endif 
 
 if ENABLE_mesquite
   mesquite_DIR = mesquite
@@ -181,8 +182,8 @@ SUBDIRS = . \
           $(mbcslam_DIR) \
           $(mcnpmit_DIR) \
           $(vtkMOABReader_DIR) \
-          $(dagmc_DIR) \
-          $(mesquite_DIR)
+          $(mesquite_DIR) \
+          $(geometry_DIR) 
 
 mbconvert_SOURCES = convert.cpp
 mbgsets_SOURCES = gsets.cc

@@ -1213,11 +1213,6 @@ else
   MB_OPTIONAL_TOOL([mbpart],     [no], [no] )
 fi
 
-MB_OPTIONAL_TOOL([dagmc],        [no], [yes])
-if test "xyes" = "x$ENABLE_dagmc"; then
-   DAGMC_LIBS="-ldagmc"
-   AC_SUBST(DAGMC_LIBS)
-fi
 
 MB_OPTIONAL_TOOL([gsets],        [yes], [yes])
 MB_OPTIONAL_TOOL([mbmerge],      [yes], [yes])
@@ -1490,7 +1485,6 @@ AC_CONFIG_FILES([Makefile
                  src/io/Makefile
                  src/io/mhdf/Makefile
                  test/Makefile
-                 test/dagmc/Makefile
                  test/h5file/Makefile
                  test/dual/Makefile
                  test/obb/Makefile
@@ -1513,7 +1507,7 @@ AC_CONFIG_FILES([Makefile
                  tools/mbcoupler/Makefile
                  tools/mbcslam/Makefile
                  tools/mcnpmit/Makefile
-                 tools/dagmc/Makefile
+                 tools/geometry/Makefile
                  tools/vtkMOABReader/CMakeLists.txt
                  doc/user.dox
                  doc/config.tex
