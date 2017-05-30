@@ -1,5 +1,5 @@
 #include "moab/Core.hpp"
-#include "moab/MGen.hpp"
+#include "moab/MeshGeneration.hpp"
 #include "TestUtil.hpp"
 #include "moab/ProgOptions.hpp"
 
@@ -23,7 +23,7 @@ int main(int argc, char* argv[])
   Core mcore;
   Interface* mb = &mcore;
   EntityHandle fileset;
-  brOpts opts;
+  MeshGeneration::BrickOpts opts;
   // default options
   opts.A=opts.B=opts.C=2;
   opts.M=opts.N=opts.K=1;
@@ -82,9 +82,9 @@ int main(int argc, char* argv[])
 
 #ifdef MOAB_HAVE_MPI
   ParallelComm *pc = new ParallelComm(mb, MPI_COMM_WORLD);
-  MGen * mgen = new MGen(mb, pc, fileset);
+  MeshGeneration * mgen = new MeshGeneration(mb, pc, fileset);
 #else
-  MGen * mgen = new MGen(mb, 0, fileset);
+  MeshGeneration * mgen = new MeshGeneration(mb, 0, fileset);
 #endif
 
   rval = mgen->BrickInstance(opts); MB_CHK_ERR(rval);

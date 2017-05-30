@@ -3,7 +3,7 @@
  *
  */
 
-#include "moab/MGen.hpp"
+#include "moab/MeshGeneration.hpp"
 #include "moab/MergeMesh.hpp"
 #include <iostream>
 #include <vector>
@@ -22,7 +22,7 @@ using std::string;
 
 namespace moab {
 
-MGen::MGen(Interface *impl, ParallelComm *comm, EntityHandle rset)
+MeshGeneration::MeshGeneration(Interface *impl, ParallelComm *comm, EntityHandle rset)
     : mb(impl), pc(comm), cset(rset)
   {
     //ErrorCode error;
@@ -36,10 +36,10 @@ MGen::MGen(Interface *impl, ParallelComm *comm, EntityHandle rset)
 
   }
 
-MGen::~MGen() {
+MeshGeneration::~MeshGeneration() {
 }
 
-ErrorCode MGen::BrickInstance(brOpts & opts)
+ErrorCode MeshGeneration::BrickInstance(MeshGeneration::BrickOpts & opts)
 {
   int A = opts.A, B = opts.B, C = opts.C, M = opts.M, N = opts.N, K = opts.K;
   int blockSize = opts.blockSize;

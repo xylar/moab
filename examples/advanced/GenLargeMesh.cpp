@@ -71,7 +71,7 @@
 
 #include "moab/Core.hpp"
 #include "moab/ProgOptions.hpp"
-#include "moab/MGen.hpp"
+#include "moab/MeshGeneration.hpp"
 #ifdef MOAB_HAVE_MPI
 #include "moab/ParallelComm.hpp"
 #include "MBParallelConventions.h"
@@ -92,7 +92,7 @@ int main(int argc, char **argv)
 #ifdef MOAB_HAVE_MPI
   MPI_Init(&argc, &argv);
 #endif
-  brOpts bopts;
+  MeshGeneration::BrickOpts bopts;
     // default options
   bopts.A=bopts.B=bopts.C=2;
   bopts.M=bopts.N=bopts.K=1;
@@ -193,9 +193,9 @@ int main(int argc, char **argv)
   ErrorCode rval = mb->create_meshset(MESHSET_SET, fileset);MB_CHK_ERR(rval);
 #ifdef MOAB_HAVE_MPI
   ParallelComm *pc = new ParallelComm(mb, MPI_COMM_WORLD);
-  MGen * mgen = new MGen(mb, pc, fileset);
+  MeshGeneration * mgen = new MeshGeneration(mb, pc, fileset);
 #else
-  MGen * mgen = new MGen(mb, 0, fileset);
+  MeshGeneration * mgen = new MeshGeneration(mb, 0, fileset);
 #endif
 
   clock_t tt = clock();

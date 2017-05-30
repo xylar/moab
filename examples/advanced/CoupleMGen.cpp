@@ -35,7 +35,7 @@
 #include "Coupler.hpp"
 #include "moab_mpi.h"
 #include "ElemUtil.hpp"
-#include "moab/MGen.hpp"
+#include "moab/MeshGeneration.hpp"
 #include "moab/ProgOptions.hpp"
 
 
@@ -44,7 +44,7 @@ using std::string;
 
 double physField(double x, double y, double z){
 
-  double out = sin(x + y + z);
+  double out = sin(M_PI*x) * cos(M_PI*y) * sin(M_PI*z);
 
   return out;
 }
@@ -57,10 +57,11 @@ int main(int argc, char* argv[])
   MPI_Comm_rank( MPI_COMM_WORLD, &proc_id );
   MPI_Comm_size( MPI_COMM_WORLD, &size );
 
+
   Core mcore;
   Interface* mb = &mcore;
   EntityHandle fileset1, fileset2; // for 2 different meshes
-  brOpts opts;
+  MeshGeneration::BrickOpts opts;
   // default options
   opts.A=opts.B=opts.C=1;
   opts.M=opts.N=opts.K=1;
@@ -71,7 +72,6 @@ int main(int argc, char* argv[])
   opts.uk=CartVect(0.,0.,1.);
   opts.newMergeMethod =  opts.quadratic =  opts.keep_skins =  opts.tetra = false;
   opts.adjEnts =  opts.parmerge = false;
-  opts.nosave = true; // do not save the files
   opts.GL=0;
 
   ProgOptions popts;
@@ -114,8 +114,6 @@ int main(int argc, char* argv[])
 
   popts.addOpt<void>("parallel_merge,p", "use parallel mesh merge, not vertex ID based merge", &opts.parmerge);
 
-  popts.addOpt<void>("no_save,n", "do not save the file", &opts.nosave);
-
   Coupler::Method method = Coupler::LINEAR_FE;
 
   double toler = 1.e-6;
@@ -133,7 +131,7 @@ int main(int argc, char* argv[])
   rval = mb->create_meshset(MESHSET_SET, fileset2);MB_CHK_ERR(rval);
 
   ParallelComm *pc1 = new ParallelComm(mb, MPI_COMM_WORLD);
-  MGen * mgen1 = new MGen(mb, pc1, fileset1);
+  MeshGeneration * mgen1 = new MeshGeneration(mb, pc1, fileset1);
 
   rval = mgen1->BrickInstance(opts); MB_CHK_ERR(rval); // this will generate first mesh on fileset1
 
@@ -171,7 +169,7 @@ int main(int argc, char* argv[])
   opts.blockSize++;
 
   ParallelComm *pc2 = new ParallelComm(mb, MPI_COMM_WORLD);
-  MGen * mgen2 = new MGen(mb, pc2, fileset2);
+  MeshGeneration * mgen2 = new MeshGeneration(mb, pc2, fileset2);
 
   rval = mgen2->BrickInstance(opts); MB_CHK_ERR(rval); // this will generate second mesh on fileset2
 
@@ -257,6 +255,8 @@ int main(int argc, char* argv[])
   if (0==proc_id)
    std::cout<<"max err  " << gerr << "\n";
 
+  delete mgen1;
+  delete mgen2;
 
   MPI_Finalize();
 
