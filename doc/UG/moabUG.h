@@ -83,15 +83,17 @@
 
   \ref implementation         
 
+  \ref pymoab
+
   \ref representation     
 
   \ref element    
 
-    \ref nineone  
+    \ref tenone  
 
-    \ref ninetwo        
+    \ref tentwo        
 
-    \ref ninethree      
+    \ref tenthree      
 
   \ref performance   
 
@@ -1055,10 +1057,9 @@ Note that using the iMesh interface from Fortran-based applications requires a c
 
   \ref contents
 
-  \section pymoab 8. Python Interface (PyMOAB)
+  \section pymoab 8.Python Interface (PyMOAB)
 
-A python interface to MOAB's essential core functionality and a few other tools has been added as of Version 5.0. The pymoab module can be used to interactively interrogate existing mesh files or prototype MOAB-based algorithms. It can also be connected to other Python applications or modules for generation, manipulation, and visualization of a MOAB mesh and mesh data. Examples of this can be found in the laplaciansmoother.py and yt2moab.py files. Interaction with the PyMOAB interface is intended to be analagous to interaction with the MOAB C++ API. A simple example of file loading and mesh interrogation can be found in interrogate_mesh.py
-
+A python interface to MOAB's essential core functionality and a few other tools has been added as of Version 5.0. The pymoab module can be used to interactively interrogate existing mesh files or prototype MOAB-based algorithms. It can also be connected to other Python applications or modules for generation, manipulation, and visualization of a MOAB mesh and mesh data. Examples of this can be found in the laplaciansmoother.py and yt2moab.py files. Interaction with the PyMOAB interface is intended to be somewhat analagous to interaction with the MOAB C++ API. A simple example of file loading and mesh interrogation can be found in interrogate_mesh.py
 
 <B>DENSE tags used by default</B> - MOAB's PyMOAB interface creates DENSE tags by default. Different storage types can be defined by supplying the storage_type argument to the tag_get_handle call in the pymoab core module.
 
