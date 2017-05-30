@@ -338,8 +338,6 @@ fi
 AM_CONDITIONAL([ENABLE_pymoab],[test "xyes" = "x$ENABLE_pymoab"])
 AC_MSG_CHECKING([if pymoab interface is enabled])
 AC_MSG_RESULT([$ENABLE_pymoab])
-python_interpreter=$PYTHON
-AC_SUBST([python_interpreter])
 AC_SUBST([filter_sources])
 AC_SUBST([filter_program])
 AC_SUBST([python_patterns])
