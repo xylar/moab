@@ -386,7 +386,6 @@ INPUT                  = @top_srcdir@/src \
                          @top_srcdir@/itaps \
                          @top_srcdir@/test \
 			 @top_srcdir@/pymoab \
-                         @top_srcdir@/pymoab/pymoab \
                          @top_srcdir@/examples \
                          @top_srcdir@/doc/UG \
                          @top_srcdir@/doc/DG \
