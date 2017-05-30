@@ -413,19 +413,12 @@ RECURSIVE              = YES
 # subdirectory from a directory tree whose root is specified with the INPUT tag.
 
 EXCLUDE                = config CMakeLists.txt driver.py cython_filter.py \
-                         @top_srcdir@/pymoab/pymoab/core.cpp \
-			 @top_srcdir@/pymoab/pymoab/hcoord.cpp \
-			 @top_srcdir@/pymoab/pymoab/rng.cpp \
-			 @top_srcdir@/pymoab/pymoab/skinner.cpp \
-			 @top_srcdir@/pymoab/pymoab/tag.cpp \
-			 @top_srcdir@/pymoab/pymoab/topo_util.cpp \
-			 @top_srcdir@/pymoab/pymoab/types.cpp
 
 # If the value of the INPUT tag contains directories, you can use the 
 # EXCLUDE_PATTERNS tag to specify one or more wildcard patterns to exclude 
 # certain files from those directories.
 
-EXCLUDE_PATTERNS       = 
+EXCLUDE_PATTERNS       = */pymoab/pymoab/*.cpp
 
 # The EXAMPLE_PATH tag can be used to specify one or more files or
 # directories that contain example code fragments that are included (see 
