@@ -17,13 +17,11 @@
   * *PR #291, #302*: The autotools parallel build toolchain has been accelerated and simplified
   * *PR #298, #316*: Read node materials from gmsh file and other I/O issues.
   * *PR #285, #293, #303, #306, #323, #315, #327, #339, #348*: Several DagMC related enhancements
-               - Add a tool to recover the topology of a geometry of nested volumes when the file does not contain this information
-               - Re-add volume indices to entIndices
-               - A major DagMC refactor to move bulk of the capability to OBBTree and GeomTopoUtil tools
-               - Update several APIs including `GeomQueryTool::closest_to_location`
-               - Implement context for determining whether ray intersections are counted
-               - Moving Generate Hierarchy into GeomTopoTool
+               - A major DagMC refactor to move bulk of the capability to OrientedBoxTreeTool, GeomTopoTool, and GeomQueryTool tools
+               - various performance and API improvements
                - Completely remove the DagMC tool from MOAB since the bulk of the capabilities are now exposed through other native classes in MOAB directly.
+               - Implement context for determining whether ray intersections are counted
+               - Add a method to GeomTopoTool to recover the topology of a geometry of nested volumes when the file does not contain this information
   * *PR #311*: Update Debian dependencies.
   * *PR #308*: `mbconvert` tool can now include the MPAS (graph) partition data during conversion
   * *PR #304*: AHF adjacency queries will not be turned on by default until we add support for mixed meshes and poly-meshes
