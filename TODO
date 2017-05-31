@@ -4,7 +4,7 @@
 
 1. Document FileOptions class in UG
 2. Add an example for using various tree decompositions.
-3. AHF should be updated to handle mixed and polygonal/poylhedral meshes.
+3. AHF should be updated to handle mixed and polygonal/polyhedral meshes.
 4. Make `mbpart` execute in parallel with support for *ParMetis* and *Zoltan*
 5. Add tests for MCNP5 meshtal reader. (@pshriwise, @gonuke) Issue #32
 6. Explore usage of `clang-tidy` for cleaning up MOAB sources
@@ -16,11 +16,18 @@
 
 ## Adaptivity
 
+1. Investigate memory management ideas for dynamically resizing the Sequences when performing adaptivity
+
 ### Non-Conformal
 
-1. Update adjacency queries to return the right list of elements, when the mesh has hanging nodes
+1. Update adjacency queries to return the right list of elements, when the mesh has hanging nodes. For example, for a non-conformal element (say 1 quad element adjacent to 2 quads in 2-D), the up adjacency for that hanging vertex (to elem) should return 3 elements. The adjacency for that split edges (and refined elements that contain it) should return the same coarse element. And the coarser element adjacency query will return 2 finer elements that share the half-edges.
 2. Support standard templates for splitting various types of elements (tri/quad/tet/hex/poly) in the reference frame
 3. Ensure defining and manipulating tags on the hanging nodes work correctly
+
+### Conformal
+
+1. Explore automatic quad and triangle refinement schemes such that the meshes remain conformal. Use Mesquite interfaces to apply smoothing techniques in order to improve quality of these refined regions.
+2. Extend the algorithms to 3-D (hexes, tetrahedra)
 
 ## PyMOAB: Python interface for MOAB
 
@@ -83,3 +90,9 @@ switch( datatype )
 6. Verify mesh optimization algorithms in both serial and parallel and see if all of the indicators work as they should
 7. Unify error propagation between MOAB and Mesquite
 8. Unify EntityHandle definition between MOAB and Mesquite (void*)
+
+## Hybrid computing
+
+1. Profile first and investigate algorithms that are amenable for OpenMP parallelism
+2. Make sure all Core interface functions are thread-safe
+3. Add examples that demonstrate hybrid MPI-OpenMP parallelism
