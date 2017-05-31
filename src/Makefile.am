@@ -102,6 +102,7 @@ libMOAB_la_SOURCES = \
   LocalDiscretization/LinearTet.cpp \
   LocalDiscretization/LinearTri.cpp \
   LocalDiscretization/QuadraticHex.cpp \
+  MeshGeneration.cpp \
   PolyElementSeq.cpp \
   PolyElementSeq.hpp \
   ProgOptions.cpp \
@@ -217,6 +218,7 @@ nobase_libMOAB_la_include_HEADERS = \
   moab/Matrix3.hpp \
   moab/MergeMesh.hpp \
   moab/MeshTopoUtil.hpp \
+  moab/MeshGeneration.hpp \
   moab/OrientedBox.hpp \
   moab/OrientedBoxTreeTool.hpp \
   moab/PartitionerBase.hpp \

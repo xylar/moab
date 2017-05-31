@@ -67,11 +67,13 @@ TESTS = range_test \
         spherical_area_test \
         arc_intx_tests \
         intx_in_plane_test \
-        intx_on_sphere_test 
+        intx_on_sphere_test \
+        mgen_test
 
 if HAVE_NETCDF
    TESTS += intx_rll_cs_sphere_test 
 endif
+
 if HAVE_HDF5
   TESTS += mbfacet_test \
         gttool_test \
@@ -117,13 +119,14 @@ MOSTLYCLEANFILES = mb_write.g \
                    tree.h5m \
                    TaskMesh_n1.0.h5m \
                    TaskMesh_n1.1.h5m \
-                   fnew.h5m \
+                   fnew.h5m out1.h5m \
                    intx.vtk \
                    polyWithEdges.vtk \
                    intx1.vtk
 
 # Tests and such
 test_Matrix3_SOURCES = test_Matrix3.cpp
+mgen_test_SOURCES = mgen_test.cpp
 if ENABLE_FORTRAN
 imoab_testF_SOURCES = imoab_testF.F
 imoab_testF_FFLAGS = -DMESHDIR2=\"$(RMESHDIR)\" $(FFLAGS)

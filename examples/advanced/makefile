@@ -4,7 +4,7 @@ include ../makefile.config
 default: all
 
 EXAMPLES =  ExtrudePoly
-PAREXAMPLES = LloydRelaxation CrystalRouterExample GenLargeMesh 
+PAREXAMPLES = LloydRelaxation CrystalRouterExample GenLargeMesh CoupleMGen
 EXOIIEXAMPLES = VisTags
 ALLEXAMPLES = ${EXAMPLES}
 
@@ -69,6 +69,16 @@ ifeq ("$(MOAB_MPI_ENABLED)-$(MOAB_HDF5_ENABLED)","yes-yes")
 	${RUNPARALLEL} ./GenLargeMesh -M @NP@ -N 1 -K 1 -A 1 -B 2 -C 2 -d 10.0 -b 2 -r -f
 	${RUNPARALLEL} ./GenLargeMesh -M @NP@  -b 10  -A 1 -C 1 -B 1 -r -G
 endif
+
+CoupleMGen: CoupleMGen.o ${MOAB_LIBDIR}/libMOAB.la
+	@echo "[CXXLD]  $@"
+	${VERBOSE}${MOAB_CXX} -o $@ $< -lmbcoupler ${MOAB_LIBS_LINK}
+
+run-CoupleMGen: CoupleMGen
+ifeq ("$(MOAB_MPI_ENABLED)-$(MOAB_HDF5_ENABLED)","yes-yes")
+	${RUNPARALLEL} ./CoupleMGen -M @NP@
+endif
+
 
 run: all $(addprefix run-,$(ALLEXAMPLES))
 
