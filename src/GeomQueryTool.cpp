@@ -1120,9 +1120,9 @@ ErrorCode GeomQueryTool::get_normal(EntityHandle surf, const double in_pt[3], do
     if(3 != len) {
       MB_SET_ERR(MB_FAILURE, "Incorrect connectivity length for triangle");
     }
-
+ 
     rval = MBI->get_coords( conn, 3, coords[0].array() );
-    MB_SET_ERR(MB_FAILURE, "Failed to get vertex coordinates");
+    MB_CHK_SET_ERR(rval, "Failed to get vertex coordinates");
 
     coords[1] -= coords[0];
     coords[2] -= coords[0];
