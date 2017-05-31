@@ -486,8 +486,8 @@ cdef class Core(object):
                        const char* name,
                        size = None,
                        tag_type = None,
-                       create_if_missing = False,
-                       storage_type = types.MB_TAG_DENSE,
+                       storage_type = None,
+                       create_if_missing = False,                       
                        default_value = None,
                        exceptions = ()):
         """
@@ -576,11 +576,13 @@ cdef class Core(object):
         cdef np.ndarray default_val_arr
         cdef const void* def_val_ptr = NULL
         incomplete_tag_specification = False
-        if tag_type is None and size is not None:
-            incomplete_tag_specification = True
-        if size is None and tag_type is not None:
-            incomplete_tag_specification = True
-        if incomplete_tag_specification:
+
+        # tag_type, size, and storage_type
+        # should either be all None
+        # or all non-None
+        all_none = all(v == None for v in [size, tag_type, storage_type])
+        all_non_none = all( v != None for v in [size, tag_type, storage_type])
+        if not (all_none or all_non_none):
             raise ValueError("""
             Partial tag specification supplied. Please only provide tag name for
             a name-based tag retrieval.
@@ -593,7 +595,7 @@ cdef class Core(object):
             default_val_arr = validate_type(tag_type,size,default_val_arr)
             def_val_ptr = <const void*> default_val_arr.data
 
-        if tag_type is None and size is None:
+        if tag_type is None and size is None and storage_type is None:
             err = self.inst.tag_get_handle(name, tag.inst)
         else:
             tt = tag_type

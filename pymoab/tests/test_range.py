@@ -11,7 +11,7 @@ def test_range():
     mb = core.Core()
     coord = np.array((1,1,1,2,2,2,3,3,3,4,4,4,5,5,5,6,6,6),dtype='float64')
     verts = mb.create_vertices(coord)
-    test_tag = mb.tag_get_handle("Test",1,types.MB_TYPE_INTEGER,True)
+    test_tag = mb.tag_get_handle("Test",1,types.MB_TYPE_INTEGER,types.MB_TAG_DENSE,True)
     data = np.array((1,2,3,4,5,6))
     mb.tag_set_data(test_tag,verts,data)
 

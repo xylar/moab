@@ -73,9 +73,9 @@ def test_delete_mesh():
 def test_get_tag():
     mb = core.Core()
     #Create new tag
-    tag = mb.tag_get_handle("Test",1,types.MB_TYPE_DOUBLE,True)
+    tag = mb.tag_get_handle("Test",1,types.MB_TYPE_DOUBLE,types.MB_TAG_DENSE,True)
     #Create tag with speicified storage type
-    tag = mb.tag_get_handle("Test1",1,types.MB_TYPE_DOUBLE,True,types.MB_TAG_SPARSE)
+    tag = mb.tag_get_handle("Test1",1,types.MB_TYPE_DOUBLE,types.MB_TAG_SPARSE,True)
     #Query for exisiting tags
     ret_tag = mb.tag_get_handle("Test")
     ret_tag = mb.tag_get_handle("Test1")
@@ -109,17 +109,17 @@ def test_get_tag():
 
     def_val_tag_name = "def_val_tag"
     def_value = [0.0,1.0]
-    def_val_tag = mb.tag_get_handle(def_val_tag_name,2,types.MB_TYPE_DOUBLE, True, default_value = def_value )
+    def_val_tag = mb.tag_get_handle(def_val_tag_name,2,types.MB_TYPE_DOUBLE, types.MB_TAG_DENSE, True, default_value = def_value)
 
     #look up tag by name only
     tag = mb.tag_get_handle(def_val_tag_name)
 
     #look up tag with default value
-    tag = mb.tag_get_handle(def_val_tag_name,2,types.MB_TYPE_DOUBLE, default_value = def_value )
+    tag = mb.tag_get_handle(def_val_tag_name,2,types.MB_TYPE_DOUBLE, types.MB_TAG_DENSE, default_value = def_value)
 
     # shouldn't be able to change the default value
     try:
-        tag = mb.tag_get_handle(def_val_tag_name,2,types.MB_TYPE_DOUBLE,True, default_value = [1.0,0.0] )
+        tag = mb.tag_get_handle(def_val_tag_name,2,types.MB_TYPE_DOUBLE,types.MB_TAG_DENSE, True, default_value = [1.0,0.0])
     except:
         pass
     else:
@@ -137,7 +137,7 @@ def test_get_tag():
 def test_integer_tag():
     mb = core.Core()
     vh = vertex_handle(mb)
-    test_tag = mb.tag_get_handle("Test",1,types.MB_TYPE_INTEGER,True)
+    test_tag = mb.tag_get_handle("Test",1,types.MB_TYPE_INTEGER,types.MB_TAG_DENSE,True)
     test_val = 4
     test_tag_data = np.array((test_val,))
     mb.tag_set_data(test_tag, vh, test_tag_data)
@@ -162,7 +162,7 @@ def test_integer_tag():
 def test_double_tag():
     mb = core.Core()
     vh = vertex_handle(mb)
-    test_tag = mb.tag_get_handle("Test",1,types.MB_TYPE_DOUBLE,True)
+    test_tag = mb.tag_get_handle("Test",1,types.MB_TYPE_DOUBLE,types.MB_TAG_DENSE,True)
     test_val = 4.4
     test_tag_data = np.array((test_val,))
     mb.tag_set_data(test_tag, vh, test_tag_data)
@@ -173,7 +173,7 @@ def test_double_tag():
     CHECK_EQ(data.dtype,'float64')
 
     #a couple of tests that should fail
-    test_tag = mb.tag_get_handle("Test1",1,types.MB_TYPE_DOUBLE,True)
+    test_tag = mb.tag_get_handle("Test1",1,types.MB_TYPE_DOUBLE,types.MB_TAG_DENSE,True)
     test_val = 4.4
     test_tag_data = np.array((test_val),dtype='float32')
     try:
@@ -184,7 +184,7 @@ def test_double_tag():
         print "Shouldn't be here. Test fails."
         raise AssertionError
 
-    test_tag = mb.tag_get_handle("Test2",1,types.MB_TYPE_DOUBLE,True)
+    test_tag = mb.tag_get_handle("Test2",1,types.MB_TYPE_DOUBLE,types.MB_TAG_DENSE,True)
     test_val = 4.4
     test_tag_data = np.array((test_val),dtype='int32')
     try:
@@ -208,7 +208,7 @@ def test_opaque_tag():
     mb = core.Core()
     vh = vertex_handle(mb)
     tag_length = 6
-    test_tag = mb.tag_get_handle("Test",tag_length,types.MB_TYPE_OPAQUE,True)
+    test_tag = mb.tag_get_handle("Test",tag_length,types.MB_TYPE_OPAQUE,types.MB_TAG_DENSE,True)
     test_val = 'four'
     test_tag_data = np.array((test_val,))
     mb.tag_set_data(test_tag, vh, test_tag_data)
@@ -223,7 +223,7 @@ def test_tag_list():
     mb = core.Core()
     vh = vertex_handle(mb)
     tag_length = 6
-    test_tag = mb.tag_get_handle("Test",tag_length,types.MB_TYPE_OPAQUE,True)
+    test_tag = mb.tag_get_handle("Test",tag_length,types.MB_TYPE_OPAQUE,types.MB_TAG_DENSE,True)
     test_val = 'four'
     test_tag_data = np.array((test_val,))
     # convert vertex handle Range to a list
@@ -287,7 +287,7 @@ def test_create_elements():
     tris = mb.create_elements(types.MBTRI,verts)
     CHECK_EQ(len(tris),1)
     #check that the element is there via GLOBAL_ID tag
-    global_id_tag = mb.tag_get_handle("GLOBAL_ID",1,types.MB_TYPE_INTEGER,True)
+    global_id_tag = mb.tag_get_handle("GLOBAL_ID",1,types.MB_TYPE_INTEGER,types.MB_TAG_DENSE,True)
     tri_id = mb.tag_get_data(global_id_tag, tris)
     CHECK_EQ(len(tri_id),1)
     CHECK_EQ(tri_id[0],0)
@@ -299,7 +299,7 @@ def test_tag_failures():
     coord = np.array((1,1,1),dtype='float64')
     verts = mb.create_vertices(coord)
     verts_illicit_copy = np.array((verts[0],),dtype='uint32')
-    test_tag = mb.tag_get_handle("Test",1,types.MB_TYPE_INTEGER,True)
+    test_tag = mb.tag_get_handle("Test",1,types.MB_TYPE_INTEGER,types.MB_TAG_DENSE,True)
     data = np.array((1,))
 
     #this operation should fail due to the entity handle data type
@@ -313,7 +313,7 @@ def test_tag_failures():
         raise AssertionError
 
 
-    global_id_tag = mb.tag_get_handle("GLOBAL_ID",1,types.MB_TYPE_INTEGER,True)
+    global_id_tag = mb.tag_get_handle("GLOBAL_ID",1,types.MB_TYPE_INTEGER,types.MB_TAG_DENSE,True)
     #so should this one
     try:
         tri_id = mb.tag_get_data(global_id_tag, verts_illicit_copy)
@@ -418,19 +418,19 @@ def test_get_ents_by_tnt():
     mb = core.Core()
     coords = np.array((0,0,0,1,0,0,1,1,1),dtype='float64')
     verts = mb.create_vertices(coords)
-    int_test_tag = mb.tag_get_handle("IntegerTestTag",1,types.MB_TYPE_INTEGER,True)
+    int_test_tag = mb.tag_get_handle("IntegerTestTag",1,types.MB_TYPE_INTEGER,types.MB_TAG_DENSE,True)
     int_test_tag_values = np.array((0,1,2,))
     mb.tag_set_data(int_test_tag,verts,int_test_tag_values)
 
-    dbl_test_tag = mb.tag_get_handle("DoubleTestTag",1,types.MB_TYPE_DOUBLE,True)
+    dbl_test_tag = mb.tag_get_handle("DoubleTestTag",1,types.MB_TYPE_DOUBLE,types.MB_TAG_DENSE,True)
     dbl_test_tag_values = np.array((3.0,4.0,5.0))
     mb.tag_set_data(dbl_test_tag,verts,dbl_test_tag_values)
 
-    opaque_test_tag = mb.tag_get_handle("OpaqueTestTag",6,types.MB_TYPE_OPAQUE,True)
+    opaque_test_tag = mb.tag_get_handle("OpaqueTestTag",6,types.MB_TYPE_OPAQUE,types.MB_TAG_DENSE,True)
     opaque_test_tag_values = np.array(("Six","Seven","Eight",))
     mb.tag_set_data(opaque_test_tag,verts,opaque_test_tag_values)
 
-    opaque_test_tag1 = mb.tag_get_handle("OpaqueTestTag1",6,types.MB_TYPE_OPAQUE,True)
+    opaque_test_tag1 = mb.tag_get_handle("OpaqueTestTag1",6,types.MB_TYPE_OPAQUE,types.MB_TAG_DENSE,True)
     opaque_test_tag1_values = np.array(("Nine","Ten","Eleven",))
     mb.tag_set_data(opaque_test_tag1,verts,opaque_test_tag1_values)
 
@@ -517,8 +517,8 @@ def test_get_ents_by_tnt():
     #     CHECK_EQ(len(entities),test_case['expected_size'])
 
     ###VECTOR TAG TESTS###
-    int_vec_test_tag = mb.tag_get_handle("IntegerVecTestTag",3,types.MB_TYPE_INTEGER,True)
-    dbl_vec_test_tag = mb.tag_get_handle("DoubleVecTestTag",3,types.MB_TYPE_DOUBLE,True)
+    int_vec_test_tag = mb.tag_get_handle("IntegerVecTestTag",3,types.MB_TYPE_INTEGER,types.MB_TAG_DENSE,True)
+    dbl_vec_test_tag = mb.tag_get_handle("DoubleVecTestTag",3,types.MB_TYPE_DOUBLE,types.MB_TAG_DENSE,True)
 
     int_vec_test_tag_values = np.array([[0,1,2],[3,4,5],[6,7,8]])
     dbl_vec_test_tag_values = np.array([[9.0,10.0,11.0],[12.0,13.0,14.0],[15.0,16.0,17.0]])
@@ -678,7 +678,7 @@ def test_iterables():
     verts = mb.create_vertices(coords)
     CHECK_EQ(len(verts),3)
 
-    int_tag = mb.tag_get_handle("IntTag",1,types.MB_TYPE_INTEGER,True)
+    int_tag = mb.tag_get_handle("IntTag",1,types.MB_TYPE_INTEGER,types.MB_TAG_DENSE,True)
 
     #try to set data with bad array (contains int)
     int_data = [1,2,3.0]
@@ -727,9 +727,9 @@ def test_vec_tags():
     coords = np.array((0,0,0,1,0,0,1,1,1),dtype='float64')
     verts = mb.create_vertices(coords)
 
-    int_vec_test_tag = mb.tag_get_handle("IntegerVecTestTag",3,types.MB_TYPE_INTEGER,True)
-    dbl_vec_test_tag = mb.tag_get_handle("DoubleVecTestTag",3,types.MB_TYPE_DOUBLE,True)
-    opaque_vec_test_tag = mb.tag_get_handle("OPTag",10,types.MB_TYPE_OPAQUE,True)
+    int_vec_test_tag = mb.tag_get_handle("IntegerVecTestTag",3,types.MB_TYPE_INTEGER,types.MB_TAG_DENSE,True)
+    dbl_vec_test_tag = mb.tag_get_handle("DoubleVecTestTag",3,types.MB_TYPE_DOUBLE,types.MB_TAG_DENSE,True)
+    opaque_vec_test_tag = mb.tag_get_handle("OPTag",10,types.MB_TYPE_OPAQUE,types.MB_TAG_DENSE,True)
     #should be able to successfully tag using a 2-D array
     int_vec_test_tag_values = np.array([[0,1,2],[3,4,5],[6,7,8]])
     dbl_vec_test_tag_values = np.array([[9.0,10.0,11.0],[12.0,13.0,14.0],[15.0,16.0,17.0]])
