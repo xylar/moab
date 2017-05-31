@@ -799,7 +799,7 @@ namespace moab
 
 	 	//step 1. copmute local coordinate system
 	 	double nrm[3] = {ngbnrms[0],ngbnrms[1],ngbnrms[2]}, tang1[3] = {0,0,0}, tang2[3] = {0,0,0};
-	 	if(abs(nrm[0])>abs(nrm[1])&&abs(nrm[0])>abs(nrm[2])){
+	 	if(fabs(nrm[0])>fabs(nrm[1])&&fabs(nrm[0])>fabs(nrm[2])){
 	 		tang1[1] = 1.0;
 	 	}else{
 	 		tang1[0] = 1.0;
@@ -1205,7 +1205,7 @@ namespace moab
 			}
 			sum += naturalcoords[i];
 		}
-		if(abs(1-sum)>_MINEPS){
+		if(fabs(1-sum)>_MINEPS){
 			return false;
 		}else{
 			return true;
