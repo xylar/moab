@@ -494,6 +494,21 @@ cdef class Core(object):
         Retrieve or create tag handles for storing data on mesh elements, vertices,
         meshsets, etc.
 
+
+        Example - creating a new tag handle
+        -------
+        # new MOAB core instance
+        mb = core.Core()
+        #
+        tag_type = pymoab.types.MB_TYPE_INTEGER # define the tag's data type
+        tag_size = 1 # the tag size (1 integer value)
+        storage_type = pymoab.types.MB_TAG_DENSE # define the storage type
+        tag_handle = mb.tag_get_handle("NewDataTag",
+                                       tag_size,
+                                       tag_type,
+                                       storage_type,        
+                                       create_if_missing = True)
+
         Example - retrieving an existing tag handle
         -------
         # new MOAB core instance
@@ -505,17 +520,10 @@ cdef class Core(object):
                                        tag_size,
                                        tag_type)
 
-        Example - creating a new tag handle
-        -------
-        # new MOAB core instance
-        mb = core.Core()
-        #
-        tag_type = pymoab.types.MB_TYPE_INTEGER # define the tag's data type
-        tag_size = 1 # the tag size (1 integer value)
-        tag_handle = mb.tag_get_handle("NewDataTag",
-                                       tag_size,
-                                       tag_type,
-                                       create_if_missing = True)
+        OR
+
+        # find the tag by name rather than using the full signature (less robust)
+        tag_handle = mb.tag_get_handle("NewDataTag")
 
         Parameters
         ----------
@@ -527,10 +535,7 @@ cdef class Core(object):
         tag_type : MOAB DataType
             indicates the data type of the tag (MB_TYPE_DOUBLE, MB_TYPE_INTEGER,
             MB_TYPE_OPAQUE, etc.)
-        create_if_missing : bool (default False)
-            indicates to the database instance that the tag should be created
-            if it cannot be found
-        storage_type : MOAB tag storage type (default MB_TYPE_DENSE)
+        storage_type : MOAB tag storage type (MB_TAG_DENSE, MB_TAG_SPARSE, etc.)
             in advanced use of the database, this flag controls how this tag's
             data is stored in memory. The two most common storage types are
 
@@ -551,6 +556,9 @@ cdef class Core(object):
             MB_TYPE_BIT - Bit tags are stored similarly to dense tags, but with
                 special handling to allow allocation in bit-size amounts per
                 entity.
+        create_if_missing : bool (default False)
+            indicates to the database instance that the tag should be created
+            if it cannot be found
         default_value : default tag value (default None)
             valid_default value fo the tag based on the tag type and length
             specified in previous arguments. If no default value is specified,
@@ -585,7 +593,9 @@ cdef class Core(object):
         if not (all_none or all_non_none):
             raise ValueError("""
             Partial tag specification supplied. Please only provide tag name for
-            a name-based tag retrieval.
+            a name-based tag retrieval or provide a tag name, size, type, and
+            storage type for a more detailed specification of the tag to
+            retrieve.
             """)
 
         # if a default value is provided, set ptr

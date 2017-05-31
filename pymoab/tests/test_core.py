@@ -107,6 +107,15 @@ def test_get_tag():
         print "Shouldn't be here. Test fails."
         raise AssertionError
 
+    # attempt tag lookup with incomplete tag spceification)
+    try:
+        tag = mb.tag_get_handle("Bad Tag", 1, types.MB_TYPE_OPAQUE)
+    except ValueError:
+        pass
+    else:
+        print "Shouldn't be here. Test fails."
+        raise ValueError
+
     def_val_tag_name = "def_val_tag"
     def_value = [0.0,1.0]
     def_val_tag = mb.tag_get_handle(def_val_tag_name,2,types.MB_TYPE_DOUBLE, types.MB_TAG_DENSE, True, default_value = def_value)
