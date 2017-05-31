@@ -11,7 +11,8 @@
 7. Unify formatting in all sources with `astyle`
 8. Update and improve the re-order entities method to have better memory complexity when rearranging entities for maximizing contiguity
 9. Add an example to use NearestNeighbor/KNN queries; Optionally adding NanoFlann as a dependency.
-10. Add Tag support for `bit`, `bool`, `long`, `float` and `long double` data types 
+10. Add Tag support for `bit`, `bool`, `long`, `float` and `long double` data types
+11. Introduce `MOABInitialize(argc,argv)/MOABFinalize()` methods so that we get access to command-line arguments in order to dynamically drive internal behavior exposed through an options database. Note that this routine will not be responsible for `MPI_Init/MPIFinalize` but can initialize global MOAB objects like timers, loggers, error handlers etc.
 
 ## Adaptivity
 
