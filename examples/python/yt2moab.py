@@ -122,7 +122,7 @@ def yt2moab_uniform_gridgen(mb,ds):
         # only tags of length one
         if data_arr.size == len(hex_handles):
             #create field tag
-            density_tag = mb.tag_get_handle(field_name, 1, types.MB_TYPE_DOUBLE, True)
+            density_tag = mb.tag_get_handle(field_name, 1, types.MB_TYPE_DOUBLE, types.MB_TAG_DENSE, True)
             
             # tag with data
             mb.tag_set_data(density_tag, hex_handles, data_arr)
