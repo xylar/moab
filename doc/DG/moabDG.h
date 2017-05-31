@@ -58,8 +58,8 @@ divided into three groups:
 .
 
 The abstract <I>EntitySequence</I> class is a non-strict subset of a <I>SequenceData</I>.
-It contains a pointer to a <I>SequenceData</I> and the start and end handles to indi-
-cate the subset of the referenced <I>SequenceData</I>. The <I>EntitySequence</I> class is
+It contains a pointer to a <I>SequenceData</I> and the start and end handles to indicate
+the subset of the referenced <I>SequenceData</I>. The <I>EntitySequence</I> class is
 used to represent the regions of valid (or allocated) handles in a <I>SequenceData</I>.
 A <I>SequenceData</I> is expected to be referenced by one or more <I>EntitySequence</I>
 instances.
@@ -75,18 +75,18 @@ the entity data. It is created with a constant size (e.g. 4k entities). The new
 one allocated entity. As subsequent entities are allocated, the <I>EntitySequence</I>
 is extended to cover more of the corresponding <I>SequenceData</I>.
 
-Concrete subclasses of the <I>EntitySequence</I> class are responsible for rep-
-resenting specific types of entities using the array storage provided by the
+Concrete subclasses of the <I>EntitySequence</I> class are responsible for representing
+specific types of entities using the array storage provided by the
 <I>SequenceData</I> class. They also handle allocating <I>SequenceData</I> instances with
 appropriate arrays for storing a particular type of entity. Each concrete subclass
 typically provides two constructors corresponding to the two initial allocation
-configurations described in the previous paragraph. <I>EntitySequence</I> imple-
-mentations also provide a split method, which is a type of factory method. It
+configurations described in the previous paragraph. <I>EntitySequence</I> implementations
+also provide a split method, which is a type of factory method. It
 modifies the called sequence and creates a new sequence such that the range of
 entities represented by the original sequence is split.
 
-The <I>VertexSequence</I> class provides an <I>EntitySequence</I> for storing ver-
-tex data. It references a SequenceData containing three arrays of doubles
+The <I>VertexSequence</I> class provides an <I>EntitySequence</I> for storing vertex
+data. It references a SequenceData containing three arrays of doubles
 for storing the blocked vertex coordinate data. The <I>ElementSequence</I> class
 extends the <I>EntitySequence</I> interface with element-specific functionality. The
 <I>UnstructuredElemSeq</I> class is the concrete implementation of <I>ElementSequence</I>
@@ -94,10 +94,10 @@ used to represent unstructured elements, polygons, and polyhedra. <I>MeshSetSequ
 is the <I>EntitySequence</I> used for storing entity sets.
 
 Each <I>EntitySequence</I> implementation also provides an implementation of
-the values per entity method. This value is used to determine if an exist-
-ing <I>SequenceData</I> that has available entities is suitable for storing a particular
-entity. For example, <I>UnstructuredElemSeq</I> returns the number of nodes per el-
-ement from values per entity. When allocating a new element with a specific
+the values per entity method. This value is used to determine if an existing
+<I>SequenceData</I> that has available entities is suitable for storing a particular
+entity. For example, <I>UnstructuredElemSeq</I> returns the number of nodes per element
+from values per entity. When allocating a new element with a specific
 number of nodes, this value is used to determine if that element may be stored
 in a specific <I>SequenceData</I>. For vertices, this value is always zero. This could
 be changed to the number of coordinates per vertex, allowing representation of
@@ -137,13 +137,13 @@ class, such that those methods will fail or behave unexpectedly if the managed
 data does not conform to the rules.
 
 <I>TypeSequenceManager</I> contains three principal data structures. The first is
-a <I>std::set</I> of <I>EntitySequence</I> pointers sorted using a custom comparison op-
-erator that queries the start and end handles of the referenced sequences. The
+a <I>std::set</I> of <I>EntitySequence</I> pointers sorted using a custom comparison
+operator that queries the start and end handles of the referenced sequences. The
 comparison operation is defined as: <I>a->end_handle() < b->start_handle()</I>.
 This method of comparison has the advantage that a sequence corresponding to
 a specific handle can be located by searching the set for a “sequence” beginning
-and ending with the search value. The lower bound and find methods pro-
-vided by the library are guaranteed to return the sequence, if it exists. Using
+and ending with the search value. The lower bound and find methods provided
+by the library are guaranteed to return the sequence, if it exists. Using
 such a comparison operator will result in undefined behavior if the set contains
 overlapping sequences. This is acceptable, as rule two above prohibits such
 a configuration. However, some care must be taken in writing and modifying
@@ -156,7 +156,8 @@ searches by entity handle. This pointer is never null unless the sequence is emp
 This rule is maintained to avoid unnecessary branches in fast query paths. In
 cases where the last referenced sequence is deleted, <I>TypeSequenceManager</I> will
 typically assign an arbitrary sequence (e.g. the first one) to the last referenced
-pointer.
+pointer. (Note: this cached value might give problems for threading models; it
+should probably be different for each thread)
 
 The third data member of <I>TypeSequenceManager</I> is a <I>std::set</I> of <I>SequenceData</I>
 instances that are not completely covered by a <I>EntitySequence</I> instance<sup>2</sup>.
@@ -169,9 +170,11 @@ The <I>SequenceManager</I> class contains an array of <I>TypeSequenceManager</I>
 stances, one for each <I>EntityType</I>. It also provides all type-specific operations
 such as allocating the correct <I>EntitySequence</I> subtype for a given <I>EntityType</I>.
 
-<sup>1</sup>This source of potential error can be eliminated with changes to the entity set representation. This is discussed in a later section.
+<sup>1</sup>This source of potential error can be eliminated with changes to the entity set representation.
+This is discussed in a later section.
 
-<sup>2</sup>Given rule four for the data managed by a <I>TypeSequenceManager</I>, any <I>SequenceData</I> for which all handles are allocated will be referenced by exactly one <I>EntitySequence</I>.
+<sup>2</sup>Given rule four for the data managed by a <I>TypeSequenceManager</I>, any
+<I>SequenceData</I> for which all handles are allocated will be referenced by exactly one <I>EntitySequence</I>.
 
   \ref dg-contents "Top"
 
@@ -193,8 +196,8 @@ The <I>MeshSetSequence</I> class is the same as most other subclasses of <I>Enti
 in that it utilizes SequenceData to store its data. A single array in the <I>SequenceData</I>
 is used to store instances of the MeshSet class, one per allocated <I>EntityHandle</I>.
 <I>SequenceData</I> allocates all of its managed arrays using malloc and free as
-simple arrays of bytes. <I>MeshSetSequence</I> does in-place construction and de-
-struction of <I>MeshSet</I> instances within that array. This is similar to what is
+simple arrays of bytes. <I>MeshSetSequence</I> does in-place construction and
+destruction of <I>MeshSet</I> instances within that array. This is similar to what is
 done by <I>std::vector</I> and other container classes that may own more storage
 than is required at a given time for contained objects.
 
@@ -257,18 +260,19 @@ given call to insert entities into a range or remove entities from a range is ne
 worse than O(ln n) + O(m + n), where ‘n’ is the number of handles to insert
 and ‘m’ is the number of handles already contained in the set. So it is generally
 much more efficient to build Ranges of handles to insert (and remove) and call
-MOAB to insert (or remove) the entire list at once rather than making may
+MOAB to insert (or remove) the entire list at once rather than making many
 calls to insert (or remove) one or a few handles from the contents of a set.
 The set storage could probably be further minimized by allowing up to six
 handles in one of the lists to be elided. That is, as there are six potential ‘slots’
-in the MeshSet object then if two of the lists are empty it should be possible to store up to six values of the remaining list directly in the MeshSet object.
+in the MeshSet object then if two of the lists are empty it should be possible to
+store up to six values of the remaining list directly in the MeshSet object.
 However, the additional runtime cost of such complexity could easily outweigh
 any storage advantage. Further investigation into this has not been done because
 the primary motivation for the storage optimization was to support binary trees.
 
 Another possible optimization of storage would be to remove the <I>MeshSet</I>
-object entirely and instead store the data in a ‘blocked’ format. The corre-
-sponding <I>SequenceData</I> would contain four arrays: flags, parents, children, and
+object entirely and instead store the data in a ‘blocked’ format. The corresponding
+<I>SequenceData</I> would contain four arrays: flags, parents, children, and
 contents instead of a single array of <I>MeshSet</I> objects. If this were done then
 no storage need ever be allocated for parent or child links if none of the sets
 in a <I>SequenceData</I> has parent or child links. The effectiveness of the storage
