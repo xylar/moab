@@ -180,8 +180,9 @@ fi
 
 AC_CHECK_LIB(dl, dlopen, LIBS="$LIBS -ldl")
 AC_CHECK_LIB(z, compress, LIBS="$LIBS -lz")
-AC_CHECK_LIB(m, pow, LIBS="$LIBS -lm")
-AC_CHECK_LIB(curl, curl_version, LIBS="$LIBS -lcurl")
+if (test "$cxx_compiler" != "Intel"); then
+  AC_CHECK_LIB(m, pow, LIBS="$LIBS -lm")
+fi
 
 ### Check for BLAS and Lapack dense solvers
 #AX_BLAS

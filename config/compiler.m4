@@ -214,8 +214,8 @@ EXTRA_GNU_FCFLAGS="$EXTRA_GNU_FCFLAGS -ffree-line-length-0 -march=native"
 EXTRA_CLANG_CXXFLAGS="$EXTRA_CLANG_CXXFLAGS -march=native"
 EXTRA_CLANG_FCFLAGS="$EXTRA_CLANG_FCFLAGS -ffree-line-length-0 -march=native"
 # Intel
-EXTRA_INTEL_CXXFLAGS="$EXTRA_INTEL_CXXFLAGS -xHost -ip -no-prec-div" # -fast
-EXTRA_INTEL_FCFLAGS="$EXTRA_INTEL_FCFLAGS -xHost -ip -no-prec-div" # -fast
+EXTRA_INTEL_CXXFLAGS="$EXTRA_INTEL_CXXFLAGS -ip -no-prec-div" # -fast
+EXTRA_INTEL_FCFLAGS="$EXTRA_INTEL_FCFLAGS -ip -no-prec-div" # -fast
 # PGI
 EXTRA_PGI_CXXFLAGS="$EXTRA_PGI_CXXFLAGS -fast"
 EXTRA_PGI_FCFLAGS="$EXTRA_PGI_FCFLAGS -fast"
@@ -287,20 +287,20 @@ else
   DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --enable-debug=no"
 fi
 if (test "xno" != "x$enable_cxx_optimize"); then
-  CXXFLAGS="$CXXFLAGS -O2 -DNDEBUG"
+  CXXFLAGS="$CXXFLAGS -O3 -DNDEBUG"
   DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --enable-optimize=yes"
 else
   DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --enable-optimize=no"
 fi
 if (test "xno" != "x$enable_cc_optimize"); then
-  CFLAGS="$CFLAGS -O2 -DNDEBUG"
+  CFLAGS="$CFLAGS -O3 -DNDEBUG"
 fi
 if (test "x$ENABLE_FORTRAN" != "xno"); then
   if (test "xno" != "x$enable_fc_optimize"); then
-    FCFLAGS="$FCFLAGS -O2"
+    FCFLAGS="$FCFLAGS -O3"
   fi
   if (test "xno" != "x$enable_f77_optimize"); then
-    FFLAGS="$FFLAGS -O2"
+    FFLAGS="$FFLAGS -O3"
   fi
   AC_FC_PP_DEFINE
 fi
@@ -660,6 +660,7 @@ if test x$GXX = xyes; then
   FATHOM_TRY_COMPILER_DEFINE([__INTEL_COMPILER],[cxx_compiler=Intel])
   FATHOM_TRY_COMPILER_DEFINE([__clang__],[cxx_compiler=Clang])
   FATHOM_TRY_COMPILER_DEFINE([__PGI],[cxx_compiler=PortlandGroup])
+  FATHOM_TRY_COMPILER_DEFINE([_CRAYC],[cxx_compiler=Cray])
 # Search for other compiler types
 # For efficiency, limit checks to relevant OSs
 else
@@ -685,6 +686,7 @@ else
       FATHOM_TRY_COMPILER_DEFINE([__DECCXX_VER],[cxx_compiler=Compaq])
       FATHOM_TRY_COMPILER_DEFINE([__SUNPRO_CC],[cxx_compiler=SunWorkshop])
       FATHOM_TRY_COMPILER_DEFINE([__PGI],[cxx_compiler=PortlandGroup])
+      FATHOM_TRY_COMPILER_DEFINE([_CRAYC],[cxx_compiler=Cray])
       ;;
     hpux*)
       FATHOM_TRY_COMPILER_DEFINE([__HP_aCC],[cxx_compiler=HP])
@@ -739,6 +741,9 @@ case "$cxx_compiler:$host_cpu" in
     FATHOM_CXX_32BIT=-m32
     FATHOM_CXX_64BIT=-m64
     FATHOM_CXX_SPECIAL="$EXTRA_INTEL_CXXFLAGS -wd981 -wd279 -wd1418 -wd383 -wd1572 -wd2259"
+    ;;
+  Cray:*)
+    FATHOM_CXX_SPECIAL="-g –craype-verbose"
     ;;
   VisualAge:*)
     FATHOM_CXX_32BIT=-q32
@@ -812,6 +817,7 @@ if test x$GCC = xyes; then
   FATHOM_TRY_COMPILER_DEFINE([__INTEL_COMPILER],[cc_compiler=Intel])
   FATHOM_TRY_COMPILER_DEFINE([__clang__],[cc_compiler=Clang])
   FATHOM_TRY_COMPILER_DEFINE([__PGI],[cc_compiler=PortlandGroup])
+  FATHOM_TRY_COMPILER_DEFINE([_CRAYC],[cc_compiler=Cray])
 # Search for other compiler types
 # For efficiency, limit checks to relevant OSs
 else
@@ -835,6 +841,7 @@ else
       FATHOM_TRY_COMPILER_DEFINE([__DECC_VER],[cc_compiler=Compaq])
       FATHOM_TRY_COMPILER_DEFINE([__SUNPRO_C],[cc_compiler=SunWorkshop])
       FATHOM_TRY_COMPILER_DEFINE([__PGI],[cc_compiler=PortlandGroup])
+      FATHOM_TRY_COMPILER_DEFINE([_CRAYC],[cc_compiler=Cray])
       ;;
     hpux*)
       FATHOM_TRY_COMPILER_DEFINE([__HP_cc],[cc_compiler=HP])
@@ -900,6 +907,11 @@ case "$cc_compiler:$host_cpu" in
     FATHOM_CC_64BIT=-m64
     FATHOM_CC_SPECIAL="$EXTRA_INTEL_CXXFLAGS -wd981 -wd279 -wd1418 -wd383 -wd1572"
     FATHOM_FC_SPECIAL="$EXTRA_INTEL_FCFLAGS"
+    FATHOM_F77_SPECIAL="$FATHOM_FC_SPECIAL"
+    ;;
+  Cray:*)
+    FATHOM_CC_SPECIAL="-g"
+    FATHOM_FC_SPECIAL="-g"
     FATHOM_F77_SPECIAL="$FATHOM_FC_SPECIAL"
     ;;
   VisualAge:*)

@@ -84,23 +84,30 @@ MBSCOTCH_DIR=""
 MBPTSCOTCH_DIR=""
 MBVTK_DIR=""
 MBCGM_DIR=""
+CROSSCOMPILE="no"
 
 MBDWLD_OPTIONS=""
 case "$HOSTNAME" in
   *vesta* | *mira*)
+    MBCC="mpixlc_r"
+    MBCXX="mpixlcxx_r"
+    MBFC="mpixlf90_r"
+    MBF77="mpixlf77_r"
     MBNMPICC="xlc_r"
     MBNMPICXX="xlc++_r"
     MBNMPIFC="xlf_r"
     MBNMPIF77="xlf_r"
     MBHOSTSYS="powerpc64-bgq-linux"
-    MBHDF5_DIR="/soft/libraries/hdf5/1.8.10/cnk-xl/current"
+    MBHDF5_DIR="/soft/libraries/hdf5/1.8.17/cnk-xl/current"
     MBZLIB_DIR="/soft/libraries/alcf/current/xl/ZLIB"
     MBPNETCDF_DIR="/soft/libraries/pnetcdf/current/cnk-xl/current"
-    MBNETCDF_DIR="/soft/libraries/netcdf/4.3.0-f4.2/cnk-xl/V1R2M0-20131211"
+    MBNETCDF_DIR="/soft/libraries/netcdf/4.3.3-f4.4.1/cnk-xl/current"
     MBPARMETIS_DIR="/soft/libraries/alcf/current/xl/PARMETIS"
     MBMETIS_DIR="/soft/libraries/alcf/current/xl/METIS"
     MBDWLD_OPTIONS="--with-zlib=/soft/libraries/alcf/current/xl/ZLIB"
-	  INTERNAL_OPTIONS="$INTERNAL_OPTIONS --enable-static --enable-all-static"
+    INTERNAL_OPTIONS="$INTERNAL_OPTIONS --enable-static --enable-all-static"
+    PREREQ="soft add +mpiwrapper-xl.legacy.ndebug"
+    LIBS="-L/soft/compilers/ibmcmp-may2016/xlmass/bg/7.3/bglib64 -lmassv -lmass -L/soft/libraries/alcf/current/xl/LAPACK/lib -llapack -L/soft/libraries/essl/current/essl/5.1/lib64 -lesslsmpbg -L/soft/compilers/ibmcmp-may2016/xlf/bg/14.1/bglib64 -lxlf90_r -L/soft/compilers/ibmcmp-may2016/xlsmp/bg/3.1/bglib64 -lxlsmp -lxlopt -lxlfmath -lxl -Wl,--allow-multiple-definition"
     ;;
   *blogin*)
     MBNMPICC="icc"
@@ -113,18 +120,63 @@ case "$HOSTNAME" in
     MBNETCDF_DIR="/soft/netcdf/4.3.1-parallel/intel-13.1/mvapich2-1.9"
     MBPNETCDF_DIR="/soft/pnetcdf/1.6.1-gnu4.4-mvapich2"
     MBMETIS_DIR="/soft/metis/5.0.3"
+    PREREQ="soft add +intel-15.0 +mvapich2-2.2b-intel-15.0"
     ;;
-  *edison* | *cori*)
-    MBCONFARCH="sandybridge"
+  *theta*)
+    CROSSCOMPILE="yes"
+    MBCONFARCH="haswell"
+    MBCC="cc"
+    MBCXX="CC"
+    MBFC="ftn"
+    MBF77="ftn"
     MBNMPICC="cc"
     MBNMPICXX="CC"
     MBNMPIFC="ftn"
     MBNMPIF77="ftn"
-    MBMPI_DIR="/opt/cray/mpt/7.0.0/gni/mpich2-intel/14.0"
-    MBHDF5_DIR="/opt/cray/hdf5-parallel/1.8.14/INTEL/14.0"
-    MBNETCDF_DIR="/opt/cray/netcdf-hdf5parallel/4.3.3.1/INTEL/14.0"
-    MBPNETCDF_DIR="/opt/cray/parallel-netcdf/default/INTEL/14.0"
-    MBMETIS_DIR="/opt/cray/tpsl/1.5.2/INTEL/14.0/$MBCONFARCH"
+    MBMPI_DIR=""
+    MBHDF5_DIR="/opt/cray/pe/hdf5-parallel/default/intel/51"
+    MBNETCDF_DIR="/opt/cray/pe/netcdf/default/intel/51"
+    MBMETIS_DIR="/opt/cray/pe/tpsl/default/intel/51/$MBCONFARCH"
+    LIBS="-L/opt/cray/pe/libsci/default/intel/51/$MBCONFARCH/lib -lsci_gnu_mp"
+    PREREQ="module load gcc/6.3.0 craype-haswell"
+    ;;
+  *cori*)
+    CROSSCOMPILE="yes"
+    MBCONFARCH="haswell"
+    MBCC="cc"
+    MBCXX="CC"
+    MBFC="ftn"
+    MBF77="ftn"
+    MBNMPICC="cc"
+    MBNMPICXX="CC"
+    MBNMPIFC="ftn"
+    MBNMPIF77="ftn"
+    MBMPI_DIR=""
+    MBHDF5_DIR="/opt/cray/pe/hdf5-parallel/default/intel/150"
+    MBNETCDF_DIR="/opt/cray/pe/netcdf-hdf5parallel/default/intel/150"
+    MBPNETCDF_DIR="/opt/cray/pe/parallel-netcdf/default/intel/150"
+    MBBLASLAPACK_LIBS="/opt/cray/pe/libsci/default/intel/150/$MBCONFARCH/lib/libsci_intel.a"
+    MBMETIS_DIR="/opt/cray/pe/tpsl/default/INTEL/150/$MBCONFARCH"
+    PREREQ="module load craype-haswell"
+    ;;
+  *edison* )
+    CROSSCOMPILE="yes"
+    MBCONFARCH="haswell"
+    MBCC="cc"
+    MBCXX="CC"
+    MBFC="ftn"
+    MBF77="ftn"
+    MBNMPICC="cc"
+    MBNMPICXX="CC"
+    MBNMPIFC="ftn"
+    MBNMPIF77="ftn"
+    MBMPI_DIR=""
+    MBHDF5_DIR="/opt/cray/hdf5-parallel/default/intel/15.0"
+    MBNETCDF_DIR="/opt/cray/netcdf-hdf5parallel/4.4.0/intel/15.0"
+    MBPNETCDF_DIR="/opt/cray/parallel-netcdf/1.7.0/intel/15.0"
+    MBBLASLAPACK_LIBS="/opt/cray/libsci/default/intel/15.0/haswell/lib/libsci_intel.a"
+    MBMETIS_DIR="/opt/cray/tpsl/16.07.1/INTEL/15.0/haswell"
+    PREREQ="module load craype-haswell"
     ;;
   *)  # Nothing to do
     ;;
@@ -156,7 +208,15 @@ else
 	INTERNAL_OPTIONS="$INTERNAL_OPTIONS --disable-fortran"
 fi
 
+if (test "x$CROSSCOMPILE" != "xno"); then
+  INTERNAL_OPTIONS="$INTERNAL_OPTIONS cross_compiling=yes"
+fi
+
 DEPENDENCY_OPTIONS=""
+if (test "x$MBBLASLAPACK_LIBS" != "x"); then
+  DEPENDENCY_OPTIONS="$DEPENDENCY_OPTIONS --with-blas=\"$MBBLASLAPACK_LIBS\" --with-lapack=\"$MBBLASLAPACK_LIBS\""
+fi
+
 if (test "x$MBHDF5_DIR" != "x"); then
   DEPENDENCY_OPTIONS="$DEPENDENCY_OPTIONS --with-hdf5=$MBHDF5_DIR"
 fi
@@ -201,6 +261,11 @@ if (test "x$MBVTK_DIR" != "x"); then
   DEPENDENCY_OPTIONS="$DEPENDENCY_OPTIONS --with-vtk=$MBVTK_DIR"
 fi
 
+if (test "x$LIBS" != "x"); then
+  DEPENDENCY_OPTIONS="$DEPENDENCY_OPTIONS LIBS=\"$LIBS\""
+  MBDWLD_OPTIONS="$MBDWLD_OPTIONS LIBS=\"$LIBS\""
+fi
+
 # Put them all together
 DWLD_CONFIGURE_CMD="$CONFIGURE_CMD $INTERNAL_OPTIONS $MBDWLD_OPTIONS --with-pic=1 --enable-tools --download-hdf5 --download-netcdf --download-metis"
 CONFIGURE_CMD="$CONFIGURE_CMD $INTERNAL_OPTIONS $DEPENDENCY_OPTIONS"
@@ -210,6 +275,9 @@ echo "###########################################"
 echo "   Hostname: $HOSTNAME"
 echo "###########################################"
 
+if (test "x$PREREQ" != "x"); then
+  echo "MOAB Prerequisites     = $PREREQ"
+fi
 echo "MOAB Install path      = $PREFIX_INSTALL_PATH"
 echo "Enable debug info      = $ENABLE_DEBUG"
 echo "Enable optimization    = $ENABLE_OPTIMIZE"
