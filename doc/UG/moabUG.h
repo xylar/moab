@@ -83,15 +83,17 @@
 
   \ref implementation         
 
+  \ref pymoab
+
   \ref representation     
 
   \ref element    
 
-    \ref nineone  
+    \ref tenone  
 
-    \ref ninetwo        
+    \ref tentwo        
 
-    \ref ninethree      
+    \ref tenthree      
 
   \ref performance   
 
@@ -1053,9 +1055,26 @@ Note that using the iMesh interface from Fortran-based applications requires a c
 
 <sup>6</sup>iMesh and MOAB both define adjacencies using the topological concept of closure.  Since the closure of an entity includes the entity itself, the d-dimensional entities on the closure of a given entity should include the entity itself.
 
- \ref contents
+  \ref contents
 
-  \section representation 8.Structured Mesh Representation
+  \section pymoab 8.Python Interface (PyMOAB)
+
+A Python interface to MOAB's essential core functionality and a few other tools has been added as of Version 5.0. The pymoab module can be used to interactively interrogate existing mesh files or prototype MOAB-based algorithms. It can also be connected to other Python applications or modules for generation, manipulation, and visualization of a MOAB mesh and mesh data. Examples of this can be found in the laplaciansmoother.py and yt2moab.py files. Interaction with the PyMOAB interface is intended to be somewhat analagous to interaction with the MOAB C++ API. A simple example of file loading and mesh interrogation can be found in interrogate_mesh.py
+
+<B>DENSE tags used by default</B> - MOAB's PyMOAB interface creates DENSE tags by default. Different storage types can be defined by supplying the storage_type argument to the tag_get_handle call in the pymoab core module.
+
+<B>PyMOAB uses NumPy internally </B> to represent data and vertex coordinates though other properly formed data structures can be used to create vertices, set data, etc. Data and vertex coordinates will always be returned in the form of NumPy arrays, however. 
+
+<B>EntityHandles</B> are represented by Python long integers. Arrays of these values are commonly returned from calls as MOAB Ranges.
+
+<B>MOAB ErrorCodes</B> - Errors are automatically checked internally by the PyMOAB instance, raising various exceptions depending on the error that occurs. These exceptions can be handled as raised from the functions or acceptable error values returned can also be specified via the exceptions parameter common to all PyMOAB functions in which case no exception will be raised.
+
+Documentation for PyMOAB functions is provided as part of this User's Guide, but can also be accessed in the Python interpreter by calling `help(<function_or_method>)`.
+
+
+  \ref contents
+
+  \section representation 9.Structured Mesh Representation
 
 A structured mesh is defined as a D-dimensional mesh whose interior vertices have 2D connected edges.   Structured mesh can be stored without connectivity, if certain information is kept about the parametric space of each structured block of mesh.  MOAB can represent structured mesh with implicit connectivity, saving approximately 57% of the storage cost compared to an unstructured representation<sup>7</sup>.  Since connectivity must be computed on the fly, these queries execute a bit slower than those for unstructured mesh.  More information on the theory behind MOAB's structured mesh representation can be found in “MOAB-SD: Integrated structured and unstructured mesh representation”[17].
 
@@ -1065,7 +1084,7 @@ Currently, MOAB's structured mesh representation can only be used by creating st
 
  \ref contents
 
-  \section element 9.Spectral Element Meshes
+  \section element 10.Spectral Element Meshes
 
 The Spectral Element Method (SEM) is a high-order method, using a polynomial Legendre interpolation basis with Gauss-Lobatto quadrature points, in contrast to the Lagrange basis used in (linear) finite elements [20].  SEM obtains exponential convergence with decreasing mesh characteristic sizes, and codes implementing this method typically have high floating-point intensity, making the method highly efficient on modern CPUs.  Most Nth-order SEM codes require tensor product cuboid (quad/hex) meshes, with each d-dimensional element containing (N+1)^d degrees of freedom (DOFs).  There are various methods for representing SEM meshes and solution fields on them; this document discusses these methods and the tradeoffs between them.  The mesh parts of this discussion are given in terms of the iMesh mesh interface and its implementation by the MOAB mesh library [21].
 
@@ -1073,7 +1092,7 @@ The figure above shows a two-dimensional 3rd-order SEM mesh consisting of four q
 
   \ref contents
 
-  \subsection nineone 9.1. Representations
+  \subsection tenone 10.1. Representations
 
 There are various representations of this mesh in a mesh database like MOAB, depending on how DOFs are related to mesh entities and tags on those entities.  We mention several possible representations:
 
@@ -1087,7 +1106,7 @@ As a convenience for applications, functions could also be provided for importan
 
   \ref contents
 
-  \subsection ninetwo 9.2. Tradeoffs
+  \subsection tentwo 10.2. Tradeoffs
 
 There are various competing tradeoffs in the various representation types.  These include:
 
@@ -1100,14 +1119,14 @@ The lower-memory option (storing variables on vertices and assembling into lexic
 
   \ref contents
 
-  \subsection ninethree 9.3. MOAB Representation
+  \subsection tenthree 10.3. MOAB Representation
 In choosing the right MOAB representation for spectral meshes, we are trying to balance a) minimal memory usage, b) access to properly-ordered and -aligned tag storage, and c) maximal compatibility with tools likely to use MOAB.  The solution we propose is to use a representation most like option 2) above, with a few optional behaviors based on application requirements.  
 
 In brief, we propose to represent elements using the linear, FE-ordered connectivity list (containing only corner vertices from the spectral element), with field variables written to either vertices, lexicographically-ordered arrays on elements, or both, and with a lexicographically-ordered array (stored on tag SPECTRAL_VERTICES) of all (corner+higher-order) vertices stored on elements.  In the either/or case, the choice will be evident from the tag size and the entities on which the tag is set.  In the both case, the tag name will have a “-LEX” suffix for the element tags, and the size of the element tag will be (N+1)^2 times that of the vertex-based tag.  Finally, the file set containing the spectral elements (or the root set, if no file set was input to the read) will contain a “SPECTRAL_ORDER” tag whose value is N.  These conventions are described in the “Metadata Information” document distributed with the MOAB source code.
 
   \ref contents
 
-  \section performance 10.Performance and Using MOAB Efficiently from Applications
+  \section performance 11.Performance and Using MOAB Efficiently from Applications
 
 MOAB is designed to operate efficiently on groups of entities and for large meshes.  Applications will be most efficient when they operate on entities in groups, especially groups which are close in their order of creation.  The MOAB API is structured to encourage operations on groups of entities.  Conversely, MOAB will not perform as well as other libraries if there are frequent deletion and creation of entities.  For those types of applications, a mesh library using a C++ object-based representation is more appropriate.  In this section, performance of MOAB when executing a variety of tasks is described, and compared to that of other representations.  Of course, these metrics are based on the particular models and environments where they are run, and may or may not be representative of other application types.
 
@@ -1122,7 +1141,7 @@ This test can be run on your system to determine the runtime and memory performa
 
   \ref contents
 
-  \section error-handling 11.Error Handling
+  \section error-handling 12.Error Handling
 
 Errors are handled through the routine MBError(). This routine calls MBTraceBackErrorHandler(), the default error handler which tries to print a traceback.
 
@@ -1163,7 +1182,7 @@ For example code on error handling, please refer to examples/TestErrorHandling.c
 
   \ref contents
 
-  \section conclusions 12.Conclusions and Future Plans
+  \section conclusions 13.Conclusions and Future Plans
 
 MOAB, a Mesh-Oriented datABase, provides a simple but powerful data abstraction to structured and unstructured mesh, and makes that abstraction available through a function API.  MOAB provides the mesh representation for the VERDE mesh verification tool, which demonstrates some of the powerful mesh metadata representation capabilities in MOAB.  MOAB includes modules that import mesh in the ExodusII, CUBIT .cub and Vtk file formats, as well as the capability to write mesh to ExodusII, all without licensing restrictions normally found in ExodusII-based applications.  MOAB also has the capability to represent and query structured mesh in a way that optimizes storage space using the parametric space of a structured mesh; see Ref. [17] for details.
 
@@ -1171,7 +1190,7 @@ Initial results have demonstrated that the data abstraction provided by MOAB is 
 
   \ref contents
 
-  \section references 13.References
+  \section references 14.References
 
 [1]	M. Fatenejad and G.A. Moses, “Cooper radiation hydrodynamics code..”
 

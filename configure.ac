@@ -203,6 +203,10 @@ fi
 AC_MSG_RESULT(found)
 ])
 
+filter_sources="NO"
+filter_program=""
+python_patterns=""
+
 AC_MSG_CHECKING([if pymoab interface was requested by user])
 AC_ARG_ENABLE( [pymoab],
 [AS_HELP_STRING([--enable-pymoab],[Build support for pymoab interface.])],
@@ -224,6 +228,12 @@ else
     AX_PYTHON_DEVEL()
     AC_PYTHON_MODULE(numpy)
     AC_PYTHON_MODULE(setuptools)
+    
+    # if enabling PyMOAB, turn cython file filter oni
+    filter_sources="YES"
+    filter_program=$PYTHON" cython_filter.py 2>/dev/null"
+    python_patterns="*.py *.pyx"
+    
     if (test "x$enable_devmode" != "xno"); then
       # Developers updating the PyMOAB modules need Cython (> 0.25)
       AC_PYTHON_MODULE(cython)
@@ -329,7 +339,9 @@ fi
 AM_CONDITIONAL([ENABLE_pymoab],[test "xyes" = "x$ENABLE_pymoab"])
 AC_MSG_CHECKING([if pymoab interface is enabled])
 AC_MSG_RESULT([$ENABLE_pymoab])
-
+AC_SUBST([filter_sources])
+AC_SUBST([filter_program])
+AC_SUBST([python_patterns])
 ################################################################################
 #                           iMesh Part 1 of 2
 ################################################################################
@@ -1511,6 +1523,7 @@ AC_CONFIG_FILES([Makefile
                  tools/geometry/Makefile
                  tools/vtkMOABReader/CMakeLists.txt
                  doc/user.dox
+		 doc/cython_filter.py
                  doc/config.tex
                  MeshFiles/Makefile
                  MeshFiles/unittest/Makefile

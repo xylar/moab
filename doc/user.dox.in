@@ -385,7 +385,7 @@ INPUT                  = @top_srcdir@/src \
                          @top_srcdir@/tools/ \
                          @top_srcdir@/itaps \
                          @top_srcdir@/test \
-                         @top_srcdir@/pymoab \
+			 @top_srcdir@/pymoab \
                          @top_srcdir@/examples \
                          @top_srcdir@/doc/UG \
                          @top_srcdir@/doc/DG \
@@ -400,7 +400,7 @@ INPUT                  = @top_srcdir@/src \
 # and *.h) to filter out the source-files in the directories. If left 
 # blank all files are included.
 
-FILE_PATTERNS          = *.cpp *.cc *.c *.cxx *.hpp *.h *.hxx *.dox *.F90 *.F *.f *.py
+FILE_PATTERNS          = *.cpp *.cc *.c *.cxx *.hpp *.h *.hxx *.dox *.F90 *.F *.f @python_patterns@
 
 # The RECURSIVE tag can be used to turn specify whether or not subdirectories 
 # should be searched for input files as well. Possible values are YES and NO. 
@@ -412,13 +412,13 @@ RECURSIVE              = YES
 # excluded from the INPUT source files. This way you can easily exclude a 
 # subdirectory from a directory tree whose root is specified with the INPUT tag.
 
-EXCLUDE                = config CMakeLists.txt
+EXCLUDE                = config CMakeLists.txt driver.py cython_filter.py \
 
 # If the value of the INPUT tag contains directories, you can use the 
 # EXCLUDE_PATTERNS tag to specify one or more wildcard patterns to exclude 
 # certain files from those directories.
 
-EXCLUDE_PATTERNS       = 
+EXCLUDE_PATTERNS       = */pymoab/pymoab/*.cpp
 
 # The EXAMPLE_PATH tag can be used to specify one or more files or
 # directories that contain example code fragments that are included (see 
@@ -449,13 +449,13 @@ IMAGE_PATH             =  @top_srcdir@/doc/DG/ \
 # input file. Doxygen will then use the output that the filter program writes 
 # to standard output.
 
-INPUT_FILTER           = 
+INPUT_FILTER           = "@filter_program@"
 
 # If the FILTER_SOURCE_FILES tag is set to YES, the input filter (if set using 
 # INPUT_FILTER) will be used to filter the input files when producing source 
 # files to browse.
 
-FILTER_SOURCE_FILES    = NO
+FILTER_SOURCE_FILES    = @filter_sources@
 
 #---------------------------------------------------------------------------
 # configuration options related to the alphabetical class index
@@ -1017,3 +1017,4 @@ GENERATE_LEGEND        = YES
 
 DOT_CLEANUP            = YES
 
+EXTENSION_MAPPING = pyx=PYTHON

@@ -5,18 +5,27 @@ from pymoab cimport moab
 from .types import _eh_array
 
 def intersect(Range r1, Range r2):
+    """
+    Returns a range that is the intersection of r1 and r2.
+    """
     r = Range()
     cdef moab.Range i = moab.intersect(deref(r1.inst),deref(r2.inst))
     r.inst.merge(i)
     return r
 
 def subtract(Range r1, Range r2):
+    """
+    Returns a range that is the subtraction of r2 from r1.
+    """
     r = Range()
     cdef moab.Range i = moab.subtract(deref(r1.inst),deref(r2.inst))
     r.inst.merge(i)
     return r
 
 def unite(Range r1, Range r2):
+    """
+    Returns a range that is the union of r1 and r2.
+    """
     r = Range()
     cdef moab.Range i = moab.unite(deref(r1.inst),deref(r2.inst))
     r.inst.merge(i)
@@ -25,6 +34,13 @@ def unite(Range r1, Range r2):
 cdef class Range(object):
 
     def __cinit__(self, arg = None):
+        """
+        Constructor. 
+
+        Accepts either a range or an iterable of EntityHandles.
+
+        If no argument is provided, an empty Range will be created and returned.
+        """
         self.inst = new moab.Range()
         if arg is None:
             return
@@ -44,6 +60,9 @@ cdef class Range(object):
                 
     
     def __del__(self):
+        """
+        Destructor.
+        """
         del self.inst
 
     def size(self):
@@ -110,11 +129,17 @@ cdef class Range(object):
             raise ValueError("Operation not valie for non-Range")
         
     def __iter__(self):
+        """
+        Iterator
+        """
         cdef int i = 0
         for i in range(0, self.inst.size()):
             yield self[i]
 
     def __getitem__(self, key):
+        """
+        Index operator.
+        """
         cdef moab.EntityHandle rtn
         if isinstance(key, int):
             i = key if key >= 0 else len(self)+key
@@ -133,8 +158,14 @@ cdef class Range(object):
             raise ValueError
 
     def __str__(self):
+        """
+        Range as a string
+        """
         self.inst.print_()
         return ""
 
     def __repr__(self):
+        """
+        Representation of class as a string
+        """
         return self.__str__()

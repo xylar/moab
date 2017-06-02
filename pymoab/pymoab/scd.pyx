@@ -19,11 +19,18 @@ cdef class ScdParData(object):
 cdef class ScdInterface(object):
     
     def __cinit__(self, Core c):
-        """Constructor. Requires a moab core, c, to operate on."""
+        """
+        Constructor. 
+
+        Requires a moab core, c, to operate on.
+        """
         self.interface  = <moab.Interface*> c.inst
         self.inst = new moab.ScdInterface(self.interface,False)
 
     def __del__(self):
+        """
+        Destructor.
+        """
         del self.inst
 
     def construct_box(self,
@@ -183,26 +190,26 @@ cdef class ScdBox(object):
 
     def num_vertices(self):
         """
-        Returns the number of vertices in the box.
+        Returns the number of vertices in the box as an integer.
         """
         return self.inst.num_vertices()
     
     def num_elements(self):
         """
-        Returns the number of elements in the box.
+        Returns the number of elements in the box as an integer.
         """
         return self.inst.num_elements()
 
     def start_vertex(self):
         """
-        Returns the EntityHandle of the first vertex in the structured mesh box.
+        Returns the EntityHandle (long int) of the first vertex in the structured mesh box.
         """
         cdef moab.EntityHandle startv = self.inst.start_vertex()
         return startv
 
     def start_element(self):
         """
-        Returns the EntityHandle of the first element in the structured mesh box.
+        Returns the EntityHandle (long int) of the first element in the structured mesh box.
         """
         cdef moab.EntityHandle startv = self.inst.start_element()
         return startv
