@@ -155,8 +155,8 @@ endif ( )
 
 # MBGSETS
 if ( MOAB_BUILD_MBGSETS )
-  add_executable( mbgsets gsets.cc )
-  set_source_files_properties( gsets.cc COMPILE_FLAGS "${MOAB_DEFINES}" )
+  add_executable( mbgsets gsets.cpp )
+  set_source_files_properties( gsets.cpp COMPILE_FLAGS "${MOAB_DEFINES}" )
   target_link_libraries( mbgsets ${TOOLS_LINK_LIBS} )
   set( MOAB_HAVE_MBGSETS 1 )
   install(

@@ -186,7 +186,7 @@ SUBDIRS = . \
           $(geometry_DIR) 
 
 mbconvert_SOURCES = convert.cpp
-mbgsets_SOURCES = gsets.cc
+mbgsets_SOURCES = gsets.cpp
 hexmodops_SOURCES = makeops.cpp
 mbsize_SOURCES = measure.cpp measure.hpp size.cpp
 mbskin_SOURCES = skin.cpp

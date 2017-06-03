@@ -40,9 +40,7 @@ const char ZOLTAN_OCTPART_METHOD[] = "OCTPART";
 #endif
 
 const char METIS_DEFAULT_METHOD[] = "ML_KWAY";
-#ifdef MOAB_HAVE_METIS
-const char METIS_ALTERNATIVE_METHOD[] = "ML_RB";
-#endif
+/* const char METIS_ALTERNATIVE_METHOD[] = "ML_RB"; */
 
 const char BRIEF_DESC[] = "Use Zoltan or Metis to partition MOAB meshes for use on parallel computers";
 std::ostringstream LONG_DESC;

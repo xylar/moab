@@ -49,7 +49,10 @@ namespace moab {
   void DGMSolver::gen_multivar_monomial_basis(const int kvars,const double* vars, const int degree, std::vector<double>& basis){
     unsigned int len = compute_numcols_vander_multivar(kvars,degree);
     basis.reserve(len-basis.capacity()+basis.size());
-    size_t iend = basis.size(),istr = basis.size();
+    size_t iend = basis.size();
+#ifndef NDEBUG
+    size_t istr = basis.size();
+#endif
     basis.push_back(1); ++iend;
     if(!degree){
       return;
@@ -298,7 +301,7 @@ namespace moab {
     std::cout << "degree_out: " << degree_out << std::endl;
 #endif
 
-    int deg, numcols;
+    int deg, numcols=0;
 
     for (int k=0; k< bncols; k++)
       {
@@ -326,9 +329,13 @@ namespace moab {
             int cend = numcols-1;
             bool downgrade = false;
 
+            // The reconstruction can be applied only on edges (2-d) or faces (3-d)
+            assert(cend >= 0);
+            assert(dim > 0 && dim < 3);
+
             for (int d = deg; d>=0 ; d--)
               {
-                int cstart;
+                int cstart=0;
                 if (dim==1){
                   cstart = d ;
                 }else if (dim==2){

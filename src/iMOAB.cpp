@@ -346,19 +346,21 @@ ErrCode iMOAB_LoadMesh( iMOAB_AppID pid, const iMOAB_String filename, const iMOA
   ErrorCode rval = context.MBI->load_file(filename, &context.appDatas[*pid].file_set, newopts.str().c_str());
   if (MB_SUCCESS!=rval)
     return 1;
-  int rank = 0;
-  int nprocs=1;
-
-#ifdef MOAB_HAVE_MPI
-  rank = context.pcomms[*pid]->rank();
-  nprocs = context.pcomms[*pid]->size();
-#endif
-
 
 #ifndef NDEBUG
+
+#ifdef MOAB_HAVE_MPI
+  int rank = context.pcomms[*pid]->rank();
+  int nprocs = context.pcomms[*pid]->size();
+#endif
+
   // some debugging stuff
   std::ostringstream outfile;
+#ifdef MOAB_HAVE_MPI
   outfile <<"TaskMesh_n" <<nprocs<<"."<< rank<<".h5m";
+#else
+  outfile <<"TaskMesh_n1.0.h5m";
+#endif
   // the mesh contains ghosts too, but they are not part of mat/neumann set
   // write in serial the file, to see what tags are missing
   rval = context.MBI->write_file(outfile.str().c_str()); // everything on root

@@ -508,7 +508,7 @@ ErrorCode report_iface_ents(Interface *mbImpl,
   num_local[0] = tot_verts;
   num_local[1] = part_ents.size();
   
-  int failure = MPI_Reduce(&num_local, &num_total, 2,
+  int failure = MPI_Reduce(num_local, num_total, 2,
                            MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
   if (failure) result = MB_FAILURE;
 

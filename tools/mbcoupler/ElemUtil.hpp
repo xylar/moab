@@ -268,13 +268,14 @@ namespace ElemUtil {
       SphericalQuad(const std::vector<CartVect>& vertices);
       virtual ~SphericalQuad() {};
       virtual bool inside_box(const CartVect & pos, double & tol) const;
-      virtual CartVect ievaluate(const CartVect& x, double tol) const ;
+      using Map::ievaluate;
+      virtual CartVect ievaluate( double abs_eps, const CartVect& x) const;
     protected:
       CartVect v1;
       Matrix3 transf; // so will have a lot of stuff, including the transf to a coordinate system
       //double tangent_plane; // at first vertex; normal to the plane is first vertex
 
-    };// class LinearQuad
+    };// class SphericalQuad
 
     /**\brief Shape function space for bilinear quadrilateral, obtained from the canonical linear (affine) functions. */
     class LinearEdge : public Map {

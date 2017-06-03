@@ -1039,8 +1039,8 @@ void test_read_time()
   mb3.delete_mesh();
   
   double max_times[6] = {0,0,0,0,0,0}, sum_times[6] = {0,0,0,0,0,0}; 
-  MPI_Reduce( &times, &max_times, 6, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD );
-  MPI_Reduce( &times, &sum_times, 6, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD );
+  MPI_Reduce( times, max_times, 6, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD );
+  MPI_Reduce( times, sum_times, 6, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD );
   MPI_Barrier( MPI_COMM_WORLD );
   if (0 == rank) {
     printf( "%12s  %12s  %12s  %12s\n", "", "READ_PART", "READ_DELETE", "BCAST_DELETE" );

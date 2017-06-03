@@ -665,7 +665,9 @@ namespace moab
 	 			DGMSolver::vec_crossprod(v1,v2,v3);
 	 			DGMSolver::vec_linear_operation(3,1,nrm,1,v3,nrm);
 	 		}
-	 		double len=DGMSolver::vec_normalize(3,nrm,nrm); assert(len);
+#ifndef NDEBUG
+	 		assert ( DGMSolver::vec_normalize(3,nrm,nrm) );
+#endif
 	 	}
 	 	return error;
 	 }
@@ -733,7 +735,9 @@ namespace moab
 	 			DGMSolver::vec_linear_operation(3,1,iend,-1,istr,t);
 	 			DGMSolver::vec_linear_operation(3,1,tang,1,t,tang);
 	 		}
-	 		double len=DGMSolver::vec_normalize(3,tang,tang); assert(len);
+#ifndef NDEBUG
+	 		assert ( DGMSolver::vec_normalize(3,tang,tang) );
+#endif
 	 	}
 	 	return error;
 	 }
@@ -795,14 +799,16 @@ namespace moab
 
 	 	//step 1. copmute local coordinate system
 	 	double nrm[3] = {ngbnrms[0],ngbnrms[1],ngbnrms[2]}, tang1[3] = {0,0,0}, tang2[3] = {0,0,0};
-	 	if(abs(nrm[0])>abs(nrm[1])&&abs(nrm[0])>abs(nrm[2])){
+	 	if(fabs(nrm[0])>fabs(nrm[1])&&fabs(nrm[0])>fabs(nrm[2])){
 	 		tang1[1] = 1.0;
 	 	}else{
 	 		tang1[0] = 1.0;
 	 	}
 
 	 	DGMSolver::vec_projoff(3,tang1,nrm,tang1);
-	 	double len1 = DGMSolver::vec_normalize(3,tang1,tang1); assert(len1);
+#ifndef NDEBUG
+	 	assert (DGMSolver::vec_normalize(3,tang1,tang1));
+#endif
 	 	DGMSolver::vec_crossprod(nrm,tang1,tang2);
 	 	if(9<=ncoords&&coords){
 	 		coords[0] = tang1[0]; coords[1] = tang1[1]; coords[2] = tang1[2];
@@ -1199,7 +1205,7 @@ namespace moab
 			}
 			sum += naturalcoords[i];
 		}
-		if(abs(1-sum)>_MINEPS){
+		if(fabs(1-sum)>_MINEPS){
 			return false;
 		}else{
 			return true;

@@ -489,14 +489,13 @@ bool compare_sets( int id, const char* tag_name = 0 )
   EntityHandle set1 = *range.begin();
   EntityHandle set2 = *++range.begin();
   
-    // Compare set descriptions
-
-  unsigned opt1, opt2;
+  // Compare set descriptions
+  unsigned opt1=0, opt2=0;
   rval = iface->get_meshset_options( set1, opt1 );
-  if (MB_SUCCESS != rval) moab_error( "get_meshset_options" );
+  if (MB_SUCCESS != rval) moab_error( "get_meshset_options for set1 failed" );
   rval = iface->get_meshset_options( set2, opt2 );
-  if (MB_SUCCESS != rval) moab_error( "get_meshset_options" );
-  
+  if (MB_SUCCESS != rval) moab_error( "get_meshset_options for set2 failed" );
+
   if (opt1 != opt2)
   {
     fprintf(stderr, "Sets with id %d do not have matching options.\n"
@@ -512,17 +511,17 @@ bool compare_sets( int id, const char* tag_name = 0 )
     return false;
   }
 
-    // Compare set contents
-    // First check if same number of entities.
-    // Then select from three possible methods to compare set contents
-    //  o If caller gave us a tag to use, compare entities by tag value
-    //  o If set is ordered, compare entity types in order
-    //  o Otherwise compare counts of entity types in sets
-
+  // Compare set contents
+  // First check if same number of entities.
+  // Then select from three possible methods to compare set contents
+  //  o If caller gave us a tag to use, compare entities by tag value
+  //  o If set is ordered, compare entity types in order
+  //  o Otherwise compare counts of entity types in sets
   std::vector<EntityHandle> list1, list2;
-  if (MB_SUCCESS != iface->get_entities_by_handle( set1, list1 ) ||
-      MB_SUCCESS != iface->get_entities_by_handle( set2, list2 ))
-    moab_error( "get_entities_by_handle" );
+  rval = iface->get_entities_by_handle( set1, list1 );
+  if (MB_SUCCESS != rval) moab_error( "get_entities_by_handle for set1 failed" );
+  rval = iface->get_entities_by_handle( set2, list2 );
+  if (MB_SUCCESS != rval) moab_error( "get_entities_by_handle for set2 failed" );
       
   if (list1.size() != list2.size())
   {

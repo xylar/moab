@@ -713,7 +713,7 @@ ErrorCode OrientedBoxTreeTool::ray_intersect_triangles(
                           std::vector<double>& intersection_distances_out,
                           std::vector<EntityHandle>& intersection_facets_out,
                           const Range& boxes,
-                          double tolerance,
+                          double /*tolerance*/,
                           const double ray_point[3],
                           const double unit_ray_dir[3],
                           const double* ray_length, 

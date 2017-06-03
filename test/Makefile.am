@@ -180,8 +180,8 @@ intx_rll_cs_sphere_test_SOURCES = intx_rll_cs_sphere_test.cpp
 
 #mbcn_test_SOURCES = $(top_srcdir)/src/moab/CN.hpp \
 #                    $(top_srcdir)/src/CN.cpp \
-#                    mbcn_test.cc
-mbcn_test_SOURCES = mbcn_test.cc
+#                    mbcn_test.cpp
+mbcn_test_SOURCES = mbcn_test.cpp
 
 bsp_tree_poly_test_SOURCES = bsp_tree_poly_test.cpp
 mbfacet_test_SOURCES = mbfacet_test.cpp

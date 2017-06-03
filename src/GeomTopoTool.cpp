@@ -2011,7 +2011,7 @@ ErrorCode GeomTopoTool::insert_in_tree(EntityHandle ct_root, EntityHandle volume
   bool inserted = false;
   EntityHandle current_volume = volume; // volume to be inserted 
   EntityHandle tree_volume = ct_root; // volume already existing in the tree
-  EntityHandle parent;
+  EntityHandle parent=ct_root;
   Range child_volumes;
 
   // while not inserted in tree

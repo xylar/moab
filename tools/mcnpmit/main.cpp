@@ -340,7 +340,7 @@ int main(int argc, char **argv) {
 
 
 MCNPError read_files(int argc, char **argv) {
-  MCNPError result;
+  MCNPError result = MCNP_FAILURE;
 
   // Check to see if appropriate command lines specified
   if (argc < 3) {
