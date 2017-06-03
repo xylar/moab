@@ -28,12 +28,13 @@ the license model for your application. The specific exceptions to the
 overall LGPL license terms for sources distributed as part of MOAB library 
 are as follows:
 
-Package             Copyright and attribution                License terms
-------------------------------------------------------------------------------
-**verdict**    Kitware and Sandia Corporation               (BSD license)
-**Mesquite**       Sandia Corporation                        (LGPL v2.1)
-**PyMOAB**   Anthony Scopatz, Patrick Shriwise, MOAB Developers (GPL)
-**TempestRemap**   Paul Ulrich (UCDavis)                        (GPL)
+Package             Copyright and attribution         License terms
+--------------------------------------------------------------------------
+**verdict**      Kitware and Sandia Corporation         (BSD)
+**Mesquite**           Sandia Corporation             (LGPL v2.1)
+**PyMOAB**       Anthony Scopatz, Patrick Shriwise,     (BSD)
+                 Guilherme Caminha, Vijay Mahadevan
+**TempestRemap**      Paul Ulrich (UCDavis)             (GPL)
 
 # LICENSE
 
