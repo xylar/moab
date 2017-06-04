@@ -486,13 +486,28 @@ cdef class Core(object):
                        const char* name,
                        size = None,
                        tag_type = None,
-                       create_if_missing = False,
-                       storage_type = types.MB_TAG_DENSE,
+                       storage_type = None,
+                       create_if_missing = False,                       
                        default_value = None,
                        exceptions = ()):
         """
         Retrieve or create tag handles for storing data on mesh elements, vertices,
         meshsets, etc.
+
+
+        Example - creating a new tag handle
+        -------
+        # new MOAB core instance
+        mb = core.Core()
+        #
+        tag_type = pymoab.types.MB_TYPE_INTEGER # define the tag's data type
+        tag_size = 1 # the tag size (1 integer value)
+        storage_type = pymoab.types.MB_TAG_DENSE # define the storage type
+        tag_handle = mb.tag_get_handle("NewDataTag",
+                                       tag_size,
+                                       tag_type,
+                                       storage_type,        
+                                       create_if_missing = True)
 
         Example - retrieving an existing tag handle
         -------
@@ -505,17 +520,10 @@ cdef class Core(object):
                                        tag_size,
                                        tag_type)
 
-        Example - creating a new tag handle
-        -------
-        # new MOAB core instance
-        mb = core.Core()
-        #
-        tag_type = pymoab.types.MB_TYPE_INTEGER # define the tag's data type
-        tag_size = 1 # the tag size (1 integer value)
-        tag_handle = mb.tag_get_handle("NewDataTag",
-                                       tag_size,
-                                       tag_type,
-                                       create_if_missing = True)
+        OR
+
+        # find the tag by name rather than using the full signature (less robust)
+        tag_handle = mb.tag_get_handle("NewDataTag")
 
         Parameters
         ----------
@@ -527,10 +535,7 @@ cdef class Core(object):
         tag_type : MOAB DataType
             indicates the data type of the tag (MB_TYPE_DOUBLE, MB_TYPE_INTEGER,
             MB_TYPE_OPAQUE, etc.)
-        create_if_missing : bool (default False)
-            indicates to the database instance that the tag should be created
-            if it cannot be found
-        storage_type : MOAB tag storage type (default MB_TYPE_DENSE)
+        storage_type : MOAB tag storage type (MB_TAG_DENSE, MB_TAG_SPARSE, etc.)
             in advanced use of the database, this flag controls how this tag's
             data is stored in memory. The two most common storage types are
 
@@ -551,6 +556,9 @@ cdef class Core(object):
             MB_TYPE_BIT - Bit tags are stored similarly to dense tags, but with
                 special handling to allow allocation in bit-size amounts per
                 entity.
+        create_if_missing : bool (default False)
+            indicates to the database instance that the tag should be created
+            if it cannot be found
         default_value : default tag value (default None)
             valid_default value fo the tag based on the tag type and length
             specified in previous arguments. If no default value is specified,
@@ -576,14 +584,18 @@ cdef class Core(object):
         cdef np.ndarray default_val_arr
         cdef const void* def_val_ptr = NULL
         incomplete_tag_specification = False
-        if tag_type is None and size is not None:
-            incomplete_tag_specification = True
-        if size is None and tag_type is not None:
-            incomplete_tag_specification = True
-        if incomplete_tag_specification:
+
+        # tag_type, size, and storage_type
+        # should either be all None
+        # or all non-None
+        all_none = all(v == None for v in [size, tag_type, storage_type])
+        all_non_none = all( v != None for v in [size, tag_type, storage_type])
+        if not (all_none or all_non_none):
             raise ValueError("""
             Partial tag specification supplied. Please only provide tag name for
-            a name-based tag retrieval.
+            a name-based tag retrieval or provide a tag name, size, type, and
+            storage type for a more detailed specification of the tag to
+            retrieve.
             """)
 
         # if a default value is provided, set ptr
@@ -593,7 +605,7 @@ cdef class Core(object):
             default_val_arr = validate_type(tag_type,size,default_val_arr)
             def_val_ptr = <const void*> default_val_arr.data
 
-        if tag_type is None and size is None:
+        if tag_type is None and size is None and storage_type is None:
             err = self.inst.tag_get_handle(name, tag.inst)
         else:
             tt = tag_type
