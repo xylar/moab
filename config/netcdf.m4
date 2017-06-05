@@ -147,8 +147,28 @@ if (test "x" != "x$NETCDF_DIR" && test "xno" != "x$NETCDF_DIR"); then
 
   AC_LANG_POP([C])
 
-  if test "x$enablenetcdf" != "xno"; then
+  AC_ARG_WITH(netcdf-cxx, 
+  [AS_HELP_STRING([--with-netcdf-cxx@<:@=DIR@:>@], [Specify NetCDF C++ library to use for Climate files])
+  AS_HELP_STRING([--without-netcdf-cxx], [Disable support for NetCDF C++ interfaces])],
+  [if (test "x$withval" != "x" && test "x$withval" != "xno"); then
+    NETCDFCXX_DIR=$withval
+    DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --with-netcdf-cxx=\"${withval}\""
+  fi], [NETCDFCXX_DIR=$NETCDFCXX_DIR])
+  if (test "x" != "x$NETCDFCXX_DIR" && test "xno" != "x$NETCDFCXX_DIR"); then
+    AC_MSG_RESULT([yes])
+  else
+    AC_MSG_RESULT([no])
+    # Reset the directory since we do not want to configure NetCDF C++
+    NETCDFCXX_DIR=""
+  fi
+
+
+  if (test "x$enablenetcdf" != "xno"); then
     # check for C++ header files
+    if (test "x$NETCDFCXX_DIR" != "x"); then # User specified explicitly a NetCDF C++ installation path
+      LDFLAGS="-L$NETCDFCXX_DIR/lib $LDFLAGS"
+      CPPFLAGS="-I$NETCDFCXX_DIR/include $CPPFLAGS"
+    fi
     AC_LANG_PUSH([C++])
     AC_CHECK_HEADER([netcdfcpp.h],[acx_netcdfpp_ok=yes],[acx_netcdfpp_ok=no])
     LIBS="-lnetcdf_c++ $NETCDF_LIBS $LIBS"
@@ -165,6 +185,10 @@ if (test "x" != "x$NETCDF_DIR" && test "xno" != "x$NETCDF_DIR"); then
                   [
                   acx_netcdfpp_ok=yes
                   NETCDF_LIBS="-lnetcdf_c++ $NETCDF_LIBS"
+                  if (test "x$NETCDFCXX_DIR" != "x"); then
+                    NETCDF_LDFLAGS="-L$NETCDFCXX_DIR/lib $NETCDF_LDFLAGS"
+                    NETCDF_CPPFLAGS="-I$NETCDFCXX_DIR/include $NETCDF_CPPFLAGS"
+                  fi
                   AC_MSG_RESULT([yes])
                   ],
                   [
@@ -190,6 +214,7 @@ fi
 
 AC_SUBST(enablenetcdf)
 AC_SUBST(NETCDF_DIR)
+AC_SUBST(NETCDFCXX_DIR)
 
 ]) # FATHOM_enablenetcdf
 
