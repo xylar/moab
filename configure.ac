@@ -1,7 +1,7 @@
 ################################################################################
 #                           Standard Stuff
 ################################################################################
-AC_INIT([MOAB],[4.9.3pre],[moab-dev@mcs.anl.gov],[moab],[http://sigma.mcs.anl.gov])
+AC_INIT([MOAB],[5.0.0],[moab-dev@mcs.anl.gov],[moab],[http://sigma.mcs.anl.gov])
 AC_CONFIG_SRCDIR([moab.make.in])
 AC_CONFIG_SRCDIR([config/MOABConfig.cmake.in])
 AC_CONFIG_SRCDIR([examples/makefile.config.in])

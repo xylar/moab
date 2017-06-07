@@ -1,3 +1,52 @@
+#Version 5.0.0:
+## Features
+  * *PR #248, #290, #299*: Eigen3, BLAS/LAPACK -- Add support for the Eigen3 BLAS/LAPACK header libraries; Now BLAS/LAPACK are required dependencies for MOAB in order to support high-performance dense solver support for various algorithms
+  * *PR #278, #286, #280, #296, #300, #325, #326, #332, #331, #334, #335, #317, #345, #346, #353, #356*: PyMOAB -- This interface now directly exposes Python modules to access common MOAB functionality in order to load, query and manipulate structured/unstructured meshes in memory. It also includes interfaces to some specific classes such as the ScdInterface and its associated classes along with the TopoUtil tool. We have also added support for Tags, Range, Skinner modules that can be used to build more advanced capabilities as needed. Currently, this interface only supports serial configuration and we intend to support parallelism through `mpi4py` dependencies in the next release. Several useful tests and examples have also been added for users to get started.
+  * *PR #162*: Add capability to load an "*unpartitioned*" mesh file through a trivial partition with the parallel option: `PARALLEL=BCAST_DELETE;PARTITION=TRIVIAL`; This works for any mesh format and so we are no longer restricted to just our parallel h5m native mesh.
+  * *PR #238*: Discrete Geometry Module -- Higher order curve and surface reconstruction strategies based on local polynomial fittings along with integrated support for recursive uniform refinement. 
+  * *PR #318*: Add Mesquite optimization support to MOAB so that mesh optimization algorithms can be natively run on a MOAB mesh. It can also use the geometry information when MOAB is configured with CGM (through Lasso relational databases in MOAB). 
+  * *PR #330*: Add support for computing high-order, conservative, multi-mesh projection weights with the **TempestRemap** library. Several optimizations have been implemented for the advancing-front algorithm to compute the intersections between two unstructured meshes on a sphere. In addition to this, the integration with Tempest library enables computation of the projection weights between FV/cGLL/dGLL discretizations seamlessly in a scalable fashion, even though Tempest itself is a serial library!
+  * *PR #288*: HEX8 (linear) to HEX27 (quadratic) mesh conversion utility
+## Enhancements
+  * *PR #263*: Support for building with CGM build directory (instead of installation) to ease SIGMA workflows
+  * *PR #267*: Modify scale and reflect signature in FBiGeom, now it conforms to iGeom
+  * *PR #266*: Update Matrix3 constructor
+  * *PR #143*: The original design of MOAB Core was responsible for initializing MPI (if the user / driver forgot to do it in a parallel setting). However, this is just bad design since after destruction of moab::Core object, and hence call to MPI_Finalize(), no other MPI calls could be made. This design has now been fixed and MPI_Init and MPI_Finalize should now be called in user driver code.
+  * *PR #287*: Code fails gracefully when number of ranks are greater than number of parts in loaded h5m file
+  * *PR #276*: iMOAB extensions to create and manipulate vertices in addition to querying entities and tags on the mesh
+  * *PR #291, #302*: The autotools parallel build toolchain has been accelerated and simplified
+  * *PR #298, #316*: Read node materials from gmsh file and other I/O issues.
+  * *PR #285, #293, #303, #306, #323, #315, #327, #339, #348, #355*: Several DagMC related enhancements
+               - A major DagMC refactor to move bulk of the capability to OrientedBoxTreeTool, GeomTopoTool, and GeomQueryTool tools
+               - various performance and API improvements
+               - Completely remove the DagMC tool from MOAB since the bulk of the capabilities are now exposed through other native classes in MOAB directly.
+               - Implement context for determining whether ray intersections are counted
+               - Add a method to GeomTopoTool to recover the topology of a geometry of nested volumes when the file does not contain this information
+  * *PR #311*: Update Debian dependencies.
+  * *PR #308*: `mbconvert` tool can now include the MPAS (graph) partition data during conversion
+  * *PR #304*: AHF adjacency queries will not be turned on by default until we add support for mixed meshes and poly-meshes
+  * *PR #201, #329*: The examples folder has been fully re-organized to better help users get started with capabilities and understand usage of MOAB for computational use-cases. New examples have also been added.
+  * *PR #344*: Adding an example to compute exact normals using iRel when a geometry is available.
+  * *PR #343*: Refactor the GenLargeMesh example to a callable API to generate structured HEX/TET meshes in memory
+  * *PR #341*: Update the configuration suggestions for LCF machines: ALCF, NERSC
+  * *PR #359*: Adding an option to explicitly specify NetCDF-C++ interfaces when TempestRemap is enabled
+## Fixes
+  * *PR #261*: Removing several verbose error outputs
+  * *PR #264*: Fixes for 32-bit architectures
+  * *PR #250, #262, #282*: Better support for PGI and Clang compilers
+  * *PR #268*: Titan cray intel issue for parallel HDF5 I/O
+  * *PR #250, #277, #324*: MPAS and NetCDF I/O enhancements and fixes
+  * *PR #270*: Better tests for ray tracing and OBB  
+  * *PR #273, #310, #312, #322, #347*: Several updates and fixes for autotools and CMake build configuration
+  * *PR #275, #297*: Several memory leak fixes for MOAB algorithms
+  * *PR #283*: Fix for DAGMC looking for OBB_TAG
+  * *PR #283*: Several updates to `mbcoupler` tool and adding support for moab::SphericalQuad elements
+  * *PR #313*: When reading Exodus files, if the entities are higher order, use only the corner nodes for matching
+  * *PR #320*: Update options to disable fortran (this was complicated due to introduction of BLAS/LAPACK libraries as required dependencies)
+  * *PR #309, #333, #354*: Documentation updates
+  * *PR #349*: Update HDF5 includes - found through failures in Ubuntu installations
+  * *PR #337*: Fixing several compiler (GNU, Clang, Intel) warnings
+
 #Version 4.9.2:
 ## Features
   * *PR #259*: Introduce the new language-agnostic iMOAB interface to MOAB that is oriented towards FEM/FDM/FVM applications codes.
