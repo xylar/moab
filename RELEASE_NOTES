@@ -29,6 +29,7 @@
   * *PR #344*: Adding an example to compute exact normals using iRel when a geometry is available.
   * *PR #343*: Refactor the GenLargeMesh example to a callable API to generate structured HEX/TET meshes in memory
   * *PR #341*: Update the configuration suggestions for LCF machines: ALCF, NERSC
+  * *PR #359*: Adding an option to explicitly specify NetCDF-C++ interfaces when TempestRemap is enabled
 ## Fixes
   * *PR #261*: Removing several verbose error outputs
   * *PR #264*: Fixes for 32-bit architectures
