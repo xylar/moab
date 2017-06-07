@@ -1536,12 +1536,15 @@ if [ $1 ]; then
     compiler_opts="CC=$CC CXX=$CXX FC=$FC F90=$FC F77=$F77"
     configure_command="$tempestremap_src_dir/configure --prefix=$tempestremap_install_dir --libdir=$tempestremap_install_dir/lib --with-pic=1 --enable-shared=$enable_shared $compiler_opts"
     if (test "$enablenetcdf" != "no"); then
-      configure_command="$configure_command --with-netcdf=$NETCDF_DIR LDFLAGS=\"$HDF5_LDFLAGS $LDFLAGS\" CPPFLAGS=\"$HDF5_CPPFLAGS\" LIBS=\"$HDF5_LIBS -ldl -lm -lz\""
+      configure_command="$configure_command --with-netcdf=$NETCDF_DIR LDFLAGS=\"$NETCDF_LDFLAGS $LDFLAGS\" CPPFLAGS=\"$NETCDF_CPPFLAGS $CPPFLAGS\" LIBS=\"$NETCDF_LIBS $LIBS\""
+      if (test "x$NETCDFCXX_DIR" != "x"); then
+        configure_command="$configure_command --with-netcdf-cxx=$NETCDFCXX_DIR"
+      fi
     else
       AC_MSG_ERROR([TempestRemap requires NetCDF with C++ interfaces to be enabled.])
     fi
     if (test "$enablehdf5" != "no"); then
-      configure_command="$configure_command --with-hdf5=$HDF5_DIR LDFLAGS=\"$HDF5_LDFLAGS $LDFLAGS\" CPPFLAGS=\"$HDF5_CPPFLAGS\" LIBS=\"$HDF5_LIBS -ldl -lm -lz\""
+      configure_command="$configure_command --with-hdf5=$HDF5_DIR LDFLAGS=\"$HDF5_LDFLAGS $LDFLAGS\" CPPFLAGS=\"$HDF5_CPPFLAGS $CPPFLAGS\" LIBS=\"$HDF5_LIBS $LIBS -ldl -lm -lz\""
     else
       configure_command="$configure_command LDFLAGS=\"$LDFLAGS\" CPPFLAGS=\"$CPPFLAGS\" LIBS=\"$LIBS\""
     fi
