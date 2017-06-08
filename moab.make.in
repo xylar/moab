@@ -26,7 +26,7 @@ MOAB_INCLUDES = -I@abs_srcdir@/src \
                 -I@abs_srcdir@/src/RefineMesh
 
 ifeq ($(MOAB_IGEOM_ENABLED),yes)
-include @CGM_DIR@/lib/iGeom-Defs.inc
+include @CGM_MAKE@
 MOAB_INCLUDES += $(IGEOM_INCLUDES)
 endif
 

@@ -1027,6 +1027,9 @@ case "x$CGM_DIR" in
     ;;
 esac
 
+AC_SUBST(CGM_MAKE)
+AC_SUBST(USING_DEV_CGM)
+
 if test "x$CGM_MISSING" = "xno"; then
   CGM_CONFIG_OPTIONS="include $CGM_MAKE"
 

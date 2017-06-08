@@ -13,7 +13,7 @@ IMESH_INCLUDES = $(IMESH_CPPFLAGS)
 HAVE_MESQUITE = @HAVE_MESQUITE@
 
 ifeq (@HAVE_IGEOM@,yes)
-include @CGM_DIR@/lib/iGeom-Defs.inc
+include @CGM_MAKE@
 IMESH_INCLUDES += $(IGEOM_INCLUDES)
 endif
 
