@@ -1018,9 +1018,12 @@ case "x$CGM_DIR" in
     CGM_MISSING=no
     CGM_MAKE=
     AC_CHECK_FILE([${CGM_DIR}/lib/cgm.make],
-                  [CGM_MAKE="${CGM_DIR}/lib/cgm.make"],
+                  [CGM_MAKE="${CGM_DIR}/lib/cgm.make"
+                   IGEOM_DEFS="${CGM_DIR}/lib/iGeom-Defs.inc"],
                   [AC_CHECK_FILE([${CGM_DIR}/cgm.make],
-                                 [CGM_MAKE="${CGM_DIR}/cgm.make"; USING_DEV_CGM=yes],
+                                 [CGM_MAKE="${CGM_DIR}/cgm.make";
+                                  IGEOM_DEFS="${CGM_DIR}/itaps/iGeom-Defs.inc";
+                                  USING_DEV_CGM=yes],
                                  [AC_MSG_ERROR([$CGM_DIR : not a configured CGM]); 
                                   CGM_MISSING=yes])
                   ])
@@ -1028,6 +1031,7 @@ case "x$CGM_DIR" in
 esac
 
 AC_SUBST(CGM_MAKE)
+AC_SUBST(IGEOM_DEFS)
 AC_SUBST(USING_DEV_CGM)
 
 if test "x$CGM_MISSING" = "xno"; then
@@ -1090,21 +1094,14 @@ if test "x$CGM_MISSING" = "xno"; then
   EXPORT_LDFLAGS="$EXPORT_LDFLAGS $CGM_LDFLAGS"
   EXPORT_LTFLAGS="$EXPORT_LTFLAGS $CGM_LTFLAGS"
 
-  AC_CHECK_FILE([${CGM_DIR}/lib/iGeom-Defs.inc],
-              [IGEOM_CONFIG_OPTIONS="include ${CGM_DIR}/lib/iGeom-Defs.inc";
-               FATHOM_MAKE_INC_VAR([${CGM_DIR}/lib/iGeom-Defs.inc],[IGEOM_DEFINES], [IGEOM_DEFINES="$make_val"],[IGEOM_DEFINES=])
-               FATHOM_MAKE_INC_VAR([${CGM_DIR}/lib/iGeom-Defs.inc],[IGEOM_INCLUDES], [IGEOM_INCLUDES="$make_val"],[IGEOM_INCLUDES=])
-               FATHOM_MAKE_INC_VAR([${CGM_DIR}/lib/iGeom-Defs.inc],[IGEOM_LDFLAGS], [IGEOM_LDFLAGS="$make_val"],[IGEOM_LDFLAGS=])
-               FATHOM_MAKE_INC_VAR([${CGM_DIR}/lib/iGeom-Defs.inc],[IGEOM_LIBS], [IGEOM_LIBS="$make_val"],[IGEOM_LIBS=]) ],
-              [AC_CHECK_FILE([${CGM_DIR}/iGeom-Defs.inc],
-                             [IGEOM_CONFIG_OPTIONS="include ${CGM_DIR}/iGeom-Defs.inc";
-                              FATHOM_MAKE_INC_VAR([${CGM_DIR}/iGeom-Defs.inc],[IGEOM_DEFINES], [IGEOM_DEFINES="$make_val"],[IGEOM_DEFINES=])
-                              FATHOM_MAKE_INC_VAR([${CGM_DIR}/iGeom-Defs.inc],[IGEOM_INCLUDES], [IGEOM_INCLUDES="$make_val"],[IGEOM_INCLUDES=])
-                              FATHOM_MAKE_INC_VAR([${CGM_DIR}/iGeom-Defs.inc],[IGEOM_LDFLAGS], [IGEOM_LDFLAGS="$make_val"],[IGEOM_LDFLAGS=])
-                              FATHOM_MAKE_INC_VAR([${CGM_DIR}/iGeom-Defs.inc],[IGEOM_LIBS], [IGEOM_LIBS="$make_val"],[IGEOM_LIBS=]) ],
-                             [AC_MSG_WARN([$CGM_DIR : not a configured iGeom])]
-                            )
-              ])
+  AC_CHECK_FILE([$IGEOM_DEFS],
+              [IGEOM_CONFIG_OPTIONS="include $IGEOM_DEFS";
+               FATHOM_MAKE_INC_VAR([$IGEOM_DEFS],[IGEOM_DEFINES], [IGEOM_DEFINES="$make_val"],[IGEOM_DEFINES=])
+               FATHOM_MAKE_INC_VAR([$IGEOM_DEFS],[IGEOM_INCLUDES], [IGEOM_INCLUDES="$make_val"],[IGEOM_INCLUDES=])
+               FATHOM_MAKE_INC_VAR([$IGEOM_DEFS],[IGEOM_LDFLAGS], [IGEOM_LDFLAGS="$make_val"],[IGEOM_LDFLAGS=])
+               FATHOM_MAKE_INC_VAR([$IGEOM_DEFS],[IGEOM_LIBS], [IGEOM_LIBS="$make_val"],[IGEOM_LIBS=]) ],
+               [AC_MSG_WARN([$CGM_DIR : not a configured iGeom])]
+              )
 
 fi
 
