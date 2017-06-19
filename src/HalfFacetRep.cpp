@@ -44,7 +44,7 @@ namespace moab {
 
 
   HalfFacetRep::HalfFacetRep(Core *impl,   ParallelComm *comm, moab::EntityHandle rset, bool filter_ghosts)
-    : mb(impl), pcomm(comm), _rset(rset), _filterghost(filter_ghosts)
+    : thismeshtype(CURVE), mb(impl), pcomm(comm), _rset(rset), _filterghost(filter_ghosts)
   {
     assert(NULL != impl);
     mInitAHFmaps = false;

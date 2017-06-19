@@ -250,7 +250,7 @@ void testC(iMesh_Instance mesh, const int nelem, const double *coords)
                         &new_hex, &status, &result);
         if (iBase_SUCCESS != result) {
           cerr << "Couldn't create hex element in individual call" << endl;
-          return;
+          //return;  do not return if errors, as we would leak memory
         }
       }
     }
@@ -397,7 +397,7 @@ void query_vert_to_elem(iMesh_Instance mesh)
                     &success);
     if (iBase_SUCCESS != success) {
       cerr << "Problem getting connectivity or vertex coords." << endl;
-      return;
+      //return; do not return early, as we would leak memory
     }
   }
 

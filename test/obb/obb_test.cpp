@@ -1078,7 +1078,7 @@ static bool do_ray_fire_test( OrientedBoxTreeTool& tool,
     { "skew miss",                 0, box.center + box.dimensions(),         box.dimensions() * box.axis(2) }
   };
   const size_t num_def_test = sizeof(default_tests)/sizeof(default_tests[0]);
-  tests.insert(tests.begin(),&default_tests[0],&default_tests[num_def_test]);
+  tests.insert(tests.begin(),&default_tests[0],&default_tests[0]+num_def_test);
   tests.insert(tests.end(),default_files_tests[filename].begin(),default_files_tests[filename].end());
 
   OrientedBoxTreeTool::TrvStats stats;

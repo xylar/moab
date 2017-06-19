@@ -292,6 +292,12 @@ ErrorCode Intx2MeshOnSphere::findNodes(EntityHandle red, int nsRed, EntityHandle
           // found the edge; now find if there is a point in the list here
           //std::vector<EntityHandle> * expts = extraNodesMap[redEdges[j]];
           int indx = RedEdges.index(adjRedEdges[j]);
+          if (indx<0) // CID 181166 (#1 of 1): Argument cannot be negative (NEGATIVE_RETURNS)
+          {
+            std::cerr<<" error in adjacent red edge: " << mb->id_from_handle(adjRedEdges[j])<< "\n";
+            delete[] foundIds;
+            return MB_FAILURE;
+          }
           std::vector<EntityHandle> * expts = extraNodesVec[indx];
           // if the points pp is between extra points, then just give that id
           // if not, create a new point, (check the id)
@@ -327,7 +333,8 @@ ErrorCode Intx2MeshOnSphere::findNodes(EntityHandle red, int nsRed, EntityHandle
             // this will be on the edge, and it will be added to the local list
             mb->create_vertex(pos.array(), outNode);
             (*expts).push_back(outNode);
-            rval = mb->add_entities(outSet, &outNode, 1);MB_CHK_ERR(rval);
+            // CID 181168; avoid leak storage error
+            mb->add_entities(outSet, &outNode, 1);
             foundIds[i] = outNode;
             found = 1;
 #ifdef ENABLE_DEBUG

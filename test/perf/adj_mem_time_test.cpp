@@ -521,7 +521,7 @@ ErrorCode adj_perf(const char* filename)
   //Print values in a line to aid data copying later
   std::cout<<qtime.ds_construction<<"  "<<total_time<<"  "<<qmem.entity_storage[1]<<"  "<<qmem.adjacency_storage[1]<<"  "<<qtime.vertex_to_edges_avg<<"  "<<qtime.edge_to_edges_avg<<"  "<<qtime.vertex_to_faces_avg<<"  "<<qtime.edge_to_faces_avg<<"  "<<qtime.face_to_faces_avg<<"  "<<qtime.face_to_edges_avg<<"  "<<qtime.vertex_to_cells_avg<<"  "<<qtime.edge_to_cells_avg<<"  "<<qtime.face_to_cells_avg<<"  "<<qtime.cell_to_cells_avg<<"  "<<qtime.cell_to_edges_avg<<"  "<<qtime.cell_to_faces_avg<<std::endl;
 
-
+  delete mt;
   return MB_SUCCESS;
 }
 

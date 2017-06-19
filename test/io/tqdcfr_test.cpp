@@ -33,7 +33,8 @@ int main(int argc, char* argv[])
   MPI_Init(&argc, &argv);
 #endif
     // Check command line arg
-  const char* file = std::string(TestDir + "/io/brick_cubit10.2.cub").c_str();
+  std::string def_file(TestDir + "/io/brick_cubit10.2.cub");
+  const char* file = def_file.c_str();
   if (argc < 2)
   {
     std::cout << "Usage: tqdcfr <cub_file_name>" << std::endl;

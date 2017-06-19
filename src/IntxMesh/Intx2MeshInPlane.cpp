@@ -277,6 +277,12 @@ ErrorCode Intx2MeshInPlane::findNodes(EntityHandle red, int nsRed, EntityHandle 
           // found the edge; now find if there is a point in the list here
           //std::vector<EntityHandle> * expts = extraNodesMap[redEdges[j]];
           int indx = RedEdges.index(adjRedEdges[j]);
+          if (indx<0) // CID 181166 (#1 of 1): Argument cannot be negative (NEGATIVE_RETURNS)
+          {
+            std::cerr<<" error in adjacent red edge: " << mb->id_from_handle(adjRedEdges[j])<< "\n";
+            delete[] foundIds;
+            return MB_FAILURE;
+          }
           std::vector<EntityHandle> * expts = extraNodesVec[indx];
           // if the points pp is between extra points, then just give that id
           // if not, create a new point, (check the id)

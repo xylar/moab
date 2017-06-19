@@ -222,12 +222,6 @@ int main( int argc, char* argv[] )
         std::cout <<std::setw(30) << "Quality Name" << std::setw(15) << "    MIN" << std::setw(15) << "  MAX" << "\n";
       }
 
-      /*std::map<QualityType, double>::iterator minit;
-      std::map<QualityType, double>::iterator maxit;
-      if (ne_local > 0) {
-        minit = minq.begin();
-        maxit = maxq.begin();
-      }*/
       QualityType quality_type=MB_EDGE_RATIO;
       for (int i=0; i<num_qualities; i++, quality_type=(QualityType)(quality_type+1))
       {

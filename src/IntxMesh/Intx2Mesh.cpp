@@ -9,7 +9,6 @@
 #include "moab/ParallelComm.hpp"
 #include "MBParallelConventions.h"
 #endif /* MOAB_HAVE_MPI */
-#include "moab/AdaptiveKDTree.hpp"
 #include "MBTagConventions.hpp"
 // this is for DBL_MAX
 #include <float.h>
