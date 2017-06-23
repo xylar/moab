@@ -807,7 +807,23 @@ def test_create_elements_iterable():
     all_tris = mb.get_entities_by_type(rs,types.MBTRI)
     CHECK_EQ(len(all_tris),4)
 
+def test_tag_root_set():
+    # make sure that the root set can be tagged with data
+    mb = core.Core()
 
+    test_tag = mb.tag_get_handle("Test",1,types.MB_TYPE_DOUBLE,types.MB_TAG_DENSE,True)
+
+    root_set = mb.get_root_set()
+
+    test_tag_data = np.array((4.,))
+    mb.tag_set_data(test_tag, root_set, test_tag_data)
+
+    data = mb.tag_get_data(test_tag, root_set, flat = True)
+    CHECK_EQ(len(data), 1)
+    CHECK_EQ(data[0],test_tag_data[0])
+
+    mb.tag_delete_data(test_tag, root_set)
+    
 if __name__ == "__main__":
     tests = [test_load_mesh,
              test_write_mesh,
@@ -836,5 +852,6 @@ if __name__ == "__main__":
              test_iterables,
              test_vec_tags,
              test_create_element_iterable,
-             test_create_elements_iterable]
+             test_create_elements_iterable,
+             test_tag_root_set]
     test_driver(tests)
