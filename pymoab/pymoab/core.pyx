@@ -709,12 +709,13 @@ cdef class Core(object):
             the correct type
         """
         cdef moab.ErrorCode err
-        cdef Range r
+        cdef np.ndarray ehs
         cdef moab.DataType tag_type = moab.MB_MAX_DATA_TYPE
-        if isinstance(entity_handles,Range):
-            r = entity_handles
+        # create a numpy array for the entity handles to be tagged
+        if type(entity_handles) is long:
+            ehs = _eh_array([entity_handles,])
         else:
-            r = Range(entity_handles)
+            ehs = _eh_array(entity_handles)
         err = self.inst.tag_get_data_type(tag.inst, tag_type);
         check_error(err, ())
         cdef int length = 0
@@ -725,7 +726,7 @@ cdef class Core(object):
         #as many entries as entity handles provided
         if data_arr.ndim > 1:
             assert data_arr.ndim == 2
-            assert data_arr.shape[0] == len(r)
+            assert data_arr.shape[0] == ehs.size
             #each entry must be equal to the tag length as well
             for entry in data_arr:
                 len(entry) == length
@@ -733,11 +734,11 @@ cdef class Core(object):
             data_arr = data_arr.flatten()
         error_str = "Incorrect data length"
         if types.MB_TYPE_OPAQUE == tag_type:
-            assert data_arr.size == len(r), error_str
+            assert data_arr.size == ehs.size, error_str
         else:
-            assert data_arr.size == len(r)*length, error_str
+            assert data_arr.size == ehs.size*length, error_str
         data_arr = validate_type(tag_type,length,data_arr)
-        err = self.inst.tag_set_data(tag.inst, deref(r.inst), <const void*> data_arr.data)
+        err = self.inst.tag_set_data(tag.inst, <moab.EntityHandle*> ehs.data, ehs.size, <const void*> data_arr.data)
         check_error(err, exceptions)
 
     def tag_get_data(self, Tag tag, entity_handles, flat = False, exceptions = ()):
@@ -803,13 +804,13 @@ cdef class Core(object):
             if an EntityHandle is not of the correct type
         """
         cdef moab.ErrorCode err
-        cdef Range r
+        cdef np.ndarray ehs
         cdef moab.DataType tag_type = moab.MB_MAX_DATA_TYPE
-        #create a range
-        if isinstance(entity_handles,Range):
-            r = entity_handles
+        # create a numpy array for the entity handles to be tagged
+        if type(entity_handles) is long:
+            ehs = _eh_array([entity_handles,])
         else:
-            r = Range(entity_handles)
+            ehs = _eh_array(entity_handles)
         # get the tag type and length for validation
         err = self.inst.tag_get_data_type(tag.inst, tag_type);
         check_error(err,())
@@ -819,17 +820,17 @@ cdef class Core(object):
         #create array to hold data
         cdef np.ndarray data
         if tag_type is types.MB_TYPE_OPAQUE:
-            data = np.empty((len(r),),dtype='S'+str(length))
+            data = np.empty((ehs.size,),dtype='S'+str(length))
         else:
-            data = np.empty((length*len(r),),dtype=np.dtype(np_tag_type(tag_type)))
-        err = self.inst.tag_get_data(tag.inst, deref(r.inst), <void*> data.data)
+            data = np.empty((length*ehs.size,),dtype=np.dtype(np_tag_type(tag_type)))
+        err = self.inst.tag_get_data(tag.inst, <moab.EntityHandle*> ehs.data, ehs.size, <void*> data.data)
         check_error(err, exceptions)
         # return data as user specifies
         if flat:
             return data
         else:
             entry_len = 1 if tag_type == types.MB_TYPE_OPAQUE else length
-            return data.reshape((len(r),entry_len))
+            return data.reshape((ehs.size,entry_len))
 
     def tag_delete_data(self, Tag tag, entity_handles, exceptions = ()):
         """
@@ -862,14 +863,14 @@ cdef class Core(object):
             if an EntityHandle is not of the correct type
         """
         cdef moab.ErrorCode err
-        cdef Range r
-        # Create a range
-        if isinstance(entity_handles,Range):
-            r = entity_handles
+        cdef np.ndarray ehs
+        # create a numpy array for the entity handles to be tagged
+        if type(entity_handles) is long:
+            ehs = _eh_array([entity_handles,])
         else:
-            r = Range(entity_handles)
+            ehs = _eh_array(entity_handles)
         # Delete the data
-        err = self.inst.tag_delete_data(tag.inst, deref(r.inst))
+        err = self.inst.tag_delete_data(tag.inst, <moab.EntityHandle*> ehs.data, ehs.size)
         check_error(err, exceptions)
 
     def tag_delete(self, Tag tag, exceptions = ()):
