@@ -619,7 +619,9 @@ cdef class Core(object):
 
     def tag_set_data(self, Tag tag, entity_handles, data, exceptions = ()):
         """
-        Create an elments of type, entity_type, using vertex EntityHandles in connectivity.
+        Set tag data for a set of MOAB entities. The data provided must be
+        compatible with the tag's data type and be of an appropriate shape and
+        size depending on how many entity handles are provided.
 
         This function will ensure that the data is of the correct type and
         length based on the tag it is to be applied to. Data can be passed as a
