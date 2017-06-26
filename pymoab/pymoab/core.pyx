@@ -4,6 +4,7 @@ from cython.operator cimport dereference as deref
 cimport numpy as np
 import numpy as np
 import ctypes
+import numbers
 
 from pymoab cimport moab
 from .tag cimport Tag, _tagArray
@@ -712,7 +713,7 @@ cdef class Core(object):
         cdef np.ndarray ehs
         cdef moab.DataType tag_type = moab.MB_MAX_DATA_TYPE
         # create a numpy array for the entity handles to be tagged
-        if type(entity_handles) is long:
+        if isinstance(entity_handles,numbers.Integral):
             ehs = _eh_array([entity_handles,])
         else:
             ehs = _eh_array(entity_handles)
@@ -807,7 +808,7 @@ cdef class Core(object):
         cdef np.ndarray ehs
         cdef moab.DataType tag_type = moab.MB_MAX_DATA_TYPE
         # create a numpy array for the entity handles to be tagged
-        if type(entity_handles) is long:
+        if isinstance(entity_handles, numbers.Integral):
             ehs = _eh_array([entity_handles,])
         else:
             ehs = _eh_array(entity_handles)
@@ -865,7 +866,7 @@ cdef class Core(object):
         cdef moab.ErrorCode err
         cdef np.ndarray ehs
         # create a numpy array for the entity handles to be tagged
-        if type(entity_handles) is long:
+        if isinstance(entity_handles, numbers.Integral):
             ehs = _eh_array([entity_handles,])
         else:
             ehs = _eh_array(entity_handles)

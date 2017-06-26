@@ -823,6 +823,32 @@ def test_tag_root_set():
     CHECK_EQ(data[0],test_tag_data[0])
 
     mb.tag_delete_data(test_tag, root_set)
+
+def test_entity_handle_tags():
+    # make sure that the root set can be tagged with data
+    mb = core.Core()
+
+    eh_tag = mb.tag_get_handle("Test", 1, types.MB_TYPE_HANDLE, types.MB_TAG_SPARSE, True)
+    dbl_tag = mb.tag_get_handle("Dbl", 1, types.MB_TYPE_DOUBLE, types.MB_TAG_DENSE, True)
+    
+    meshset_a = mb.create_meshset()
+    meshset_b = mb.create_meshset()
+
+    # tag meshset a with meshset b
+    mb.tag_set_data(eh_tag, meshset_a, meshset_b)
+    # tag meshset b with a double value
+    val = 16.0
+    mb.tag_set_data(dbl_tag, meshset_b, val)
+
+    eh = mb.tag_get_data(eh_tag, meshset_a)
+    CHECK_EQ(eh, meshset_b)
+    dbl_val = mb.tag_get_data(dbl_tag, eh)
+    CHECK_EQ(dbl_val, val)
+
+    eh = mb.tag_get_data(eh_tag, meshset_a, flat = True)[0]
+    CHECK_EQ(eh, meshset_b)
+    dbl_val = mb.tag_get_data(dbl_tag, eh, flat = True)[0]
+    CHECK_EQ(dbl_val, val)
     
 if __name__ == "__main__":
     tests = [test_load_mesh,
@@ -853,5 +879,6 @@ if __name__ == "__main__":
              test_vec_tags,
              test_create_element_iterable,
              test_create_elements_iterable,
-             test_tag_root_set]
+             test_tag_root_set,
+             test_entity_handle_tags]
     test_driver(tests)
