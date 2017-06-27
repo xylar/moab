@@ -83,6 +83,11 @@ def test_range():
     CHECK_EQ(len(verts_copy),len(verts)-1)
     assert(handle not in verts_copy)
 
+    msh = mb.create_meshset()
+    r = Range(msh)
+    msh_copy = np.array((msh,),dtype='uint64')
+    r = Range(msh_copy[0])
+    
     verts_copy.clear()
     CHECK_EQ(len(verts_copy),0)
     try:

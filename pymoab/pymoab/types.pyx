@@ -140,20 +140,20 @@ _VALID_DTYPES= {
     MB_MAX_DATA_TYPE: frozenset(['uint64','O','object'])
 }
 
-def _convert_array(iterable, accepted_dtypes, return_dtype):
+def _convert_array(iterable, accepted_types, return_dtype):
     err_msg = "Incorrect type in EntityHandle Array"
     #if this is already an array of the correct type, avoid the loop
     if isinstance(iterable, np.ndarray) and iterable.dtype == return_dtype:
         return  iterable
     #if not, each entry in the iterable should be verified
     for entry in iterable:
-        assert (type(entry) in accepted_dtypes), err_msg
+        assert (isinstance(entry, accepted_types)), err_msg
     #if this is true, then create an array from the iterable
     return np.fromiter(iterable, return_dtype)
 
 def _eh_array(iterable):
     EH_DTYPE = _DTYPE_CONV[MB_TYPE_HANDLE]
-    return _convert_array(iterable, [long, np.uint64, numbers.Integral], EH_DTYPE)
+    return _convert_array(iterable, (long, np.uint64, numbers.Integral), EH_DTYPE)
 
 def np_tag_type(type):
     return _DTYPE_CONV[type]

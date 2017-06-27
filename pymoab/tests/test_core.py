@@ -305,6 +305,24 @@ def test_create_elements():
 
 def test_tag_failures():
     mb = core.Core()
+
+    coord = np.array((1,1,1),dtype='float64')
+    msh = mb.create_meshset()    
+    msh_illicit_copy = np.array((msh,),dtype='uint32')
+    test_tag = mb.tag_get_handle("Test",1,types.MB_TYPE_INTEGER,types.MB_TAG_DENSE,True)
+    data = np.array((1,))
+
+    #this operation should fail due to the entity handle data type
+    mb.tag_set_data(test_tag,np.array([msh,]),data)
+    try:
+        mb.tag_set_data(test_tag, msh_illicit_copy, data)
+    except RuntimeError:
+        pass
+    else:
+        print "Shouldn't be here. Test fails."
+        raise RuntimeError
+
+
     coord = np.array((1,1,1),dtype='float64')
     verts = mb.create_vertices(coord)
     verts_illicit_copy = np.array((verts[0],),dtype='uint32')
@@ -318,6 +336,7 @@ def test_tag_failures():
     except AssertionError:
         pass
     else:
+        pass
         print "Shouldn't be here. Test fails."
         raise AssertionError
 

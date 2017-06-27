@@ -1640,10 +1640,10 @@ static const char __pyx_k_MB_TYPE_HANDLE[] = "MB_TYPE_HANDLE";
 static const char __pyx_k_MB_TYPE_OPAQUE[] = "MB_TYPE_OPAQUE";
 static const char __pyx_k_MOAB_ErrorCode[] = "MOAB ErrorCode: ";
 static const char __pyx_k_NotImplemented[] = "NotImplemented";
+static const char __pyx_k_accepted_types[] = "accepted_types";
 static const char __pyx_k_MB_INVALID_SIZE[] = "MB_INVALID_SIZE";
 static const char __pyx_k_MB_TYPE_INTEGER[] = "MB_TYPE_INTEGER";
 static const char __pyx_k_MESHSET_ORDERED[] = "MESHSET_ORDERED";
-static const char __pyx_k_accepted_dtypes[] = "accepted_dtypes";
 static const char __pyx_k_structured_mesh[] = "structured mesh";
 static const char __pyx_k_Entity_not_found[] = "Entity not found";
 static const char __pyx_k_File_write_error[] = "File write error";
@@ -1776,7 +1776,7 @@ static PyObject *__pyx_n_s_VALID_DTYPES;
 static PyObject *__pyx_n_s_ValueError;
 static PyObject *__pyx_kp_s__2;
 static PyObject *__pyx_kp_s__3;
-static PyObject *__pyx_n_s_accepted_dtypes;
+static PyObject *__pyx_n_s_accepted_types;
 static PyObject *__pyx_kp_s_already_allocated;
 static PyObject *__pyx_n_s_asarray;
 static PyObject *__pyx_n_s_bool;
@@ -1851,7 +1851,7 @@ static PyObject *__pyx_pf_6pymoab_5types_13MOABErrorCode_11error_value___get__(s
 static PyObject *__pyx_pf_6pymoab_5types_13MOABErrorCode_11err_strings___get__(struct __pyx_obj_6pymoab_5types_MOABErrorCode *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_6pymoab_5types_13MOABErrorCode_10__reduce__(CYTHON_UNUSED struct __pyx_obj_6pymoab_5types_MOABErrorCode *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_6pymoab_5types_check_error(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_err, PyObject *__pyx_v_exceptions, PyObject *__pyx_v_kwargs); /* proto */
-static PyObject *__pyx_pf_6pymoab_5types_2_convert_array(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_iterable, PyObject *__pyx_v_accepted_dtypes, PyObject *__pyx_v_return_dtype); /* proto */
+static PyObject *__pyx_pf_6pymoab_5types_2_convert_array(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_iterable, PyObject *__pyx_v_accepted_types, PyObject *__pyx_v_return_dtype); /* proto */
 static PyObject *__pyx_pf_6pymoab_5types_4_eh_array(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_iterable); /* proto */
 static PyObject *__pyx_pf_6pymoab_5types_6np_tag_type(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_type); /* proto */
 static PyObject *__pyx_pf_6pymoab_5types_8validate_type(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_tag_type, PyObject *__pyx_v_tag_length, PyObject *__pyx_v_tag_data); /* proto */
@@ -3339,7 +3339,7 @@ static PyObject *__pyx_pf_6pymoab_5types_check_error(CYTHON_UNUSED PyObject *__p
 /* "pymoab/types.pyx":143
  * }
  * 
- * def _convert_array(iterable, accepted_dtypes, return_dtype):             # <<<<<<<<<<<<<<
+ * def _convert_array(iterable, accepted_types, return_dtype):             # <<<<<<<<<<<<<<
  *     err_msg = "Incorrect type in EntityHandle Array"
  *     #if this is already an array of the correct type, avoid the loop
  */
@@ -3349,13 +3349,13 @@ static PyObject *__pyx_pw_6pymoab_5types_3_convert_array(PyObject *__pyx_self, P
 static PyMethodDef __pyx_mdef_6pymoab_5types_3_convert_array = {"_convert_array", (PyCFunction)__pyx_pw_6pymoab_5types_3_convert_array, METH_VARARGS|METH_KEYWORDS, 0};
 static PyObject *__pyx_pw_6pymoab_5types_3_convert_array(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_iterable = 0;
-  PyObject *__pyx_v_accepted_dtypes = 0;
+  PyObject *__pyx_v_accepted_types = 0;
   PyObject *__pyx_v_return_dtype = 0;
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("_convert_array (wrapper)", 0);
   {
-    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_iterable,&__pyx_n_s_accepted_dtypes,&__pyx_n_s_return_dtype,0};
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_iterable,&__pyx_n_s_accepted_types,&__pyx_n_s_return_dtype,0};
     PyObject* values[3] = {0,0,0};
     if (unlikely(__pyx_kwds)) {
       Py_ssize_t kw_args;
@@ -3373,7 +3373,7 @@ static PyObject *__pyx_pw_6pymoab_5types_3_convert_array(PyObject *__pyx_self, P
         if (likely((values[0] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_iterable)) != 0)) kw_args--;
         else goto __pyx_L5_argtuple_error;
         case  1:
-        if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_accepted_dtypes)) != 0)) kw_args--;
+        if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_accepted_types)) != 0)) kw_args--;
         else {
           __Pyx_RaiseArgtupleInvalid("_convert_array", 1, 3, 3, 1); __PYX_ERR(0, 143, __pyx_L3_error)
         }
@@ -3394,7 +3394,7 @@ static PyObject *__pyx_pw_6pymoab_5types_3_convert_array(PyObject *__pyx_self, P
       values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
     }
     __pyx_v_iterable = values[0];
-    __pyx_v_accepted_dtypes = values[1];
+    __pyx_v_accepted_types = values[1];
     __pyx_v_return_dtype = values[2];
   }
   goto __pyx_L4_argument_unpacking_done;
@@ -3405,14 +3405,14 @@ static PyObject *__pyx_pw_6pymoab_5types_3_convert_array(PyObject *__pyx_self, P
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_6pymoab_5types_2_convert_array(__pyx_self, __pyx_v_iterable, __pyx_v_accepted_dtypes, __pyx_v_return_dtype);
+  __pyx_r = __pyx_pf_6pymoab_5types_2_convert_array(__pyx_self, __pyx_v_iterable, __pyx_v_accepted_types, __pyx_v_return_dtype);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_6pymoab_5types_2_convert_array(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_iterable, PyObject *__pyx_v_accepted_dtypes, PyObject *__pyx_v_return_dtype) {
+static PyObject *__pyx_pf_6pymoab_5types_2_convert_array(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_iterable, PyObject *__pyx_v_accepted_types, PyObject *__pyx_v_return_dtype) {
   PyObject *__pyx_v_err_msg = NULL;
   PyObject *__pyx_v_entry = NULL;
   PyObject *__pyx_r = NULL;
@@ -3431,7 +3431,7 @@ static PyObject *__pyx_pf_6pymoab_5types_2_convert_array(CYTHON_UNUSED PyObject 
 
   /* "pymoab/types.pyx":144
  * 
- * def _convert_array(iterable, accepted_dtypes, return_dtype):
+ * def _convert_array(iterable, accepted_types, return_dtype):
  *     err_msg = "Incorrect type in EntityHandle Array"             # <<<<<<<<<<<<<<
  *     #if this is already an array of the correct type, avoid the loop
  *     if isinstance(iterable, np.ndarray) and iterable.dtype == return_dtype:
@@ -3488,7 +3488,7 @@ static PyObject *__pyx_pf_6pymoab_5types_2_convert_array(CYTHON_UNUSED PyObject 
  *         return  iterable
  *     #if not, each entry in the iterable should be verified
  *     for entry in iterable:             # <<<<<<<<<<<<<<
- *         assert (type(entry) in accepted_dtypes), err_msg
+ *         assert (isinstance(entry, accepted_types)), err_msg
  *     #if this is true, then create an array from the iterable
  */
   if (likely(PyList_CheckExact(__pyx_v_iterable)) || PyTuple_CheckExact(__pyx_v_iterable)) {
@@ -3536,13 +3536,13 @@ static PyObject *__pyx_pf_6pymoab_5types_2_convert_array(CYTHON_UNUSED PyObject 
     /* "pymoab/types.pyx":150
  *     #if not, each entry in the iterable should be verified
  *     for entry in iterable:
- *         assert (type(entry) in accepted_dtypes), err_msg             # <<<<<<<<<<<<<<
+ *         assert (isinstance(entry, accepted_types)), err_msg             # <<<<<<<<<<<<<<
  *     #if this is true, then create an array from the iterable
  *     return np.fromiter(iterable, return_dtype)
  */
     #ifndef CYTHON_WITHOUT_ASSERTIONS
     if (unlikely(!Py_OptimizeFlag)) {
-      __pyx_t_1 = (__Pyx_PySequence_ContainsTF(((PyObject *)Py_TYPE(__pyx_v_entry)), __pyx_v_accepted_dtypes, Py_EQ)); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 150, __pyx_L1_error)
+      __pyx_t_1 = PyObject_IsInstance(__pyx_v_entry, __pyx_v_accepted_types); if (unlikely(__pyx_t_1 == -1)) __PYX_ERR(0, 150, __pyx_L1_error)
       if (unlikely(!(__pyx_t_1 != 0))) {
         __pyx_t_4 = PyTuple_Pack(1, __pyx_v_err_msg); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 150, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_4);
@@ -3557,14 +3557,14 @@ static PyObject *__pyx_pf_6pymoab_5types_2_convert_array(CYTHON_UNUSED PyObject 
  *         return  iterable
  *     #if not, each entry in the iterable should be verified
  *     for entry in iterable:             # <<<<<<<<<<<<<<
- *         assert (type(entry) in accepted_dtypes), err_msg
+ *         assert (isinstance(entry, accepted_types)), err_msg
  *     #if this is true, then create an array from the iterable
  */
   }
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
   /* "pymoab/types.pyx":152
- *         assert (type(entry) in accepted_dtypes), err_msg
+ *         assert (isinstance(entry, accepted_types)), err_msg
  *     #if this is true, then create an array from the iterable
  *     return np.fromiter(iterable, return_dtype)             # <<<<<<<<<<<<<<
  * 
@@ -3628,7 +3628,7 @@ static PyObject *__pyx_pf_6pymoab_5types_2_convert_array(CYTHON_UNUSED PyObject 
   /* "pymoab/types.pyx":143
  * }
  * 
- * def _convert_array(iterable, accepted_dtypes, return_dtype):             # <<<<<<<<<<<<<<
+ * def _convert_array(iterable, accepted_types, return_dtype):             # <<<<<<<<<<<<<<
  *     err_msg = "Incorrect type in EntityHandle Array"
  *     #if this is already an array of the correct type, avoid the loop
  */
@@ -3654,7 +3654,7 @@ static PyObject *__pyx_pf_6pymoab_5types_2_convert_array(CYTHON_UNUSED PyObject 
  * 
  * def _eh_array(iterable):             # <<<<<<<<<<<<<<
  *     EH_DTYPE = _DTYPE_CONV[MB_TYPE_HANDLE]
- *     return _convert_array(iterable, [long, np.uint64, numbers.Integral], EH_DTYPE)
+ *     return _convert_array(iterable, (long, np.uint64, numbers.Integral), EH_DTYPE)
  */
 
 /* Python wrapper */
@@ -3687,7 +3687,7 @@ static PyObject *__pyx_pf_6pymoab_5types_4_eh_array(CYTHON_UNUSED PyObject *__py
  * 
  * def _eh_array(iterable):
  *     EH_DTYPE = _DTYPE_CONV[MB_TYPE_HANDLE]             # <<<<<<<<<<<<<<
- *     return _convert_array(iterable, [long, np.uint64, numbers.Integral], EH_DTYPE)
+ *     return _convert_array(iterable, (long, np.uint64, numbers.Integral), EH_DTYPE)
  * 
  */
   __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_DTYPE_CONV); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 155, __pyx_L1_error)
@@ -3704,7 +3704,7 @@ static PyObject *__pyx_pf_6pymoab_5types_4_eh_array(CYTHON_UNUSED PyObject *__py
   /* "pymoab/types.pyx":156
  * def _eh_array(iterable):
  *     EH_DTYPE = _DTYPE_CONV[MB_TYPE_HANDLE]
- *     return _convert_array(iterable, [long, np.uint64, numbers.Integral], EH_DTYPE)             # <<<<<<<<<<<<<<
+ *     return _convert_array(iterable, (long, np.uint64, numbers.Integral), EH_DTYPE)             # <<<<<<<<<<<<<<
  * 
  * def np_tag_type(type):
  */
@@ -3721,15 +3721,15 @@ static PyObject *__pyx_pf_6pymoab_5types_4_eh_array(CYTHON_UNUSED PyObject *__py
   __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_Integral); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 156, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = PyList_New(3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 156, __pyx_L1_error)
+  __pyx_t_1 = PyTuple_New(3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 156, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_INCREF(((PyObject *)(&PyLong_Type)));
   __Pyx_GIVEREF(((PyObject *)(&PyLong_Type)));
-  PyList_SET_ITEM(__pyx_t_1, 0, ((PyObject *)(&PyLong_Type)));
+  PyTuple_SET_ITEM(__pyx_t_1, 0, ((PyObject *)(&PyLong_Type)));
   __Pyx_GIVEREF(__pyx_t_4);
-  PyList_SET_ITEM(__pyx_t_1, 1, __pyx_t_4);
+  PyTuple_SET_ITEM(__pyx_t_1, 1, __pyx_t_4);
   __Pyx_GIVEREF(__pyx_t_5);
-  PyList_SET_ITEM(__pyx_t_1, 2, __pyx_t_5);
+  PyTuple_SET_ITEM(__pyx_t_1, 2, __pyx_t_5);
   __pyx_t_4 = 0;
   __pyx_t_5 = 0;
   __pyx_t_5 = NULL;
@@ -3791,7 +3791,7 @@ static PyObject *__pyx_pf_6pymoab_5types_4_eh_array(CYTHON_UNUSED PyObject *__py
  * 
  * def _eh_array(iterable):             # <<<<<<<<<<<<<<
  *     EH_DTYPE = _DTYPE_CONV[MB_TYPE_HANDLE]
- *     return _convert_array(iterable, [long, np.uint64, numbers.Integral], EH_DTYPE)
+ *     return _convert_array(iterable, (long, np.uint64, numbers.Integral), EH_DTYPE)
  */
 
   /* function exit code */
@@ -3811,7 +3811,7 @@ static PyObject *__pyx_pf_6pymoab_5types_4_eh_array(CYTHON_UNUSED PyObject *__py
 }
 
 /* "pymoab/types.pyx":158
- *     return _convert_array(iterable, [long, np.uint64, numbers.Integral], EH_DTYPE)
+ *     return _convert_array(iterable, (long, np.uint64, numbers.Integral), EH_DTYPE)
  * 
  * def np_tag_type(type):             # <<<<<<<<<<<<<<
  *     return _DTYPE_CONV[type]
@@ -3857,7 +3857,7 @@ static PyObject *__pyx_pf_6pymoab_5types_6np_tag_type(CYTHON_UNUSED PyObject *__
   goto __pyx_L0;
 
   /* "pymoab/types.pyx":158
- *     return _convert_array(iterable, [long, np.uint64, numbers.Integral], EH_DTYPE)
+ *     return _convert_array(iterable, (long, np.uint64, numbers.Integral), EH_DTYPE)
  * 
  * def np_tag_type(type):             # <<<<<<<<<<<<<<
  *     return _DTYPE_CONV[type]
@@ -7003,7 +7003,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_ValueError, __pyx_k_ValueError, sizeof(__pyx_k_ValueError), 0, 0, 1, 1},
   {&__pyx_kp_s__2, __pyx_k__2, sizeof(__pyx_k__2), 0, 0, 1, 0},
   {&__pyx_kp_s__3, __pyx_k__3, sizeof(__pyx_k__3), 0, 0, 1, 0},
-  {&__pyx_n_s_accepted_dtypes, __pyx_k_accepted_dtypes, sizeof(__pyx_k_accepted_dtypes), 0, 0, 1, 1},
+  {&__pyx_n_s_accepted_types, __pyx_k_accepted_types, sizeof(__pyx_k_accepted_types), 0, 0, 1, 1},
   {&__pyx_kp_s_already_allocated, __pyx_k_already_allocated, sizeof(__pyx_k_already_allocated), 0, 0, 1, 0},
   {&__pyx_n_s_asarray, __pyx_k_asarray, sizeof(__pyx_k_asarray), 0, 0, 1, 1},
   {&__pyx_n_s_bool, __pyx_k_bool, sizeof(__pyx_k_bool), 0, 0, 1, 1},
@@ -7343,11 +7343,11 @@ static int __Pyx_InitCachedConstants(void) {
   /* "pymoab/types.pyx":143
  * }
  * 
- * def _convert_array(iterable, accepted_dtypes, return_dtype):             # <<<<<<<<<<<<<<
+ * def _convert_array(iterable, accepted_types, return_dtype):             # <<<<<<<<<<<<<<
  *     err_msg = "Incorrect type in EntityHandle Array"
  *     #if this is already an array of the correct type, avoid the loop
  */
-  __pyx_tuple__27 = PyTuple_Pack(5, __pyx_n_s_iterable, __pyx_n_s_accepted_dtypes, __pyx_n_s_return_dtype, __pyx_n_s_err_msg, __pyx_n_s_entry); if (unlikely(!__pyx_tuple__27)) __PYX_ERR(0, 143, __pyx_L1_error)
+  __pyx_tuple__27 = PyTuple_Pack(5, __pyx_n_s_iterable, __pyx_n_s_accepted_types, __pyx_n_s_return_dtype, __pyx_n_s_err_msg, __pyx_n_s_entry); if (unlikely(!__pyx_tuple__27)) __PYX_ERR(0, 143, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__27);
   __Pyx_GIVEREF(__pyx_tuple__27);
   __pyx_codeobj__28 = (PyObject*)__Pyx_PyCode_New(3, 0, 5, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__27, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_types_pyx, __pyx_n_s_convert_array, 143, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__28)) __PYX_ERR(0, 143, __pyx_L1_error)
@@ -7357,7 +7357,7 @@ static int __Pyx_InitCachedConstants(void) {
  * 
  * def _eh_array(iterable):             # <<<<<<<<<<<<<<
  *     EH_DTYPE = _DTYPE_CONV[MB_TYPE_HANDLE]
- *     return _convert_array(iterable, [long, np.uint64, numbers.Integral], EH_DTYPE)
+ *     return _convert_array(iterable, (long, np.uint64, numbers.Integral), EH_DTYPE)
  */
   __pyx_tuple__29 = PyTuple_Pack(2, __pyx_n_s_iterable, __pyx_n_s_EH_DTYPE); if (unlikely(!__pyx_tuple__29)) __PYX_ERR(0, 154, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__29);
@@ -7365,7 +7365,7 @@ static int __Pyx_InitCachedConstants(void) {
   __pyx_codeobj__30 = (PyObject*)__Pyx_PyCode_New(1, 0, 2, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__29, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_types_pyx, __pyx_n_s_eh_array, 154, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__30)) __PYX_ERR(0, 154, __pyx_L1_error)
 
   /* "pymoab/types.pyx":158
- *     return _convert_array(iterable, [long, np.uint64, numbers.Integral], EH_DTYPE)
+ *     return _convert_array(iterable, (long, np.uint64, numbers.Integral), EH_DTYPE)
  * 
  * def np_tag_type(type):             # <<<<<<<<<<<<<<
  *     return _DTYPE_CONV[type]
@@ -8573,7 +8573,7 @@ PyMODINIT_FUNC PyInit_types(void)
   /* "pymoab/types.pyx":143
  * }
  * 
- * def _convert_array(iterable, accepted_dtypes, return_dtype):             # <<<<<<<<<<<<<<
+ * def _convert_array(iterable, accepted_types, return_dtype):             # <<<<<<<<<<<<<<
  *     err_msg = "Incorrect type in EntityHandle Array"
  *     #if this is already an array of the correct type, avoid the loop
  */
@@ -8587,7 +8587,7 @@ PyMODINIT_FUNC PyInit_types(void)
  * 
  * def _eh_array(iterable):             # <<<<<<<<<<<<<<
  *     EH_DTYPE = _DTYPE_CONV[MB_TYPE_HANDLE]
- *     return _convert_array(iterable, [long, np.uint64, numbers.Integral], EH_DTYPE)
+ *     return _convert_array(iterable, (long, np.uint64, numbers.Integral), EH_DTYPE)
  */
   __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_6pymoab_5types_5_eh_array, NULL, __pyx_n_s_pymoab_types); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 154, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
@@ -8595,7 +8595,7 @@ PyMODINIT_FUNC PyInit_types(void)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
   /* "pymoab/types.pyx":158
- *     return _convert_array(iterable, [long, np.uint64, numbers.Integral], EH_DTYPE)
+ *     return _convert_array(iterable, (long, np.uint64, numbers.Integral), EH_DTYPE)
  * 
  * def np_tag_type(type):             # <<<<<<<<<<<<<<
  *     return _DTYPE_CONV[type]
