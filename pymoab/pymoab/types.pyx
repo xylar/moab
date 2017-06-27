@@ -4,6 +4,8 @@ from pymoab cimport moab
 cimport numpy as np
 import numpy as np
 
+_eh_py_types = (long, np.uint64)
+
 cdef class MOABErrorCode:
 
     cdef readonly moab.ErrorCode error_value
@@ -140,7 +142,7 @@ _VALID_DTYPES= {
 }
 
 def _convert_array(iterable, accepted_types, return_dtype):
-    err_msg = "Incorrect type in EntityHandle Array"
+    err_msg = "Incorrect datatype found in array."
     #if this is already an array of the correct type, avoid the loop
     if isinstance(iterable, np.ndarray) and iterable.dtype == return_dtype:
         return  iterable
@@ -151,9 +153,20 @@ def _convert_array(iterable, accepted_types, return_dtype):
     return np.fromiter(iterable, return_dtype)
 
 def _eh_array(iterable):
+    err_msg = """
+               Invalid EntityHandle type is being used.  Please ensure all
+               EntityHandles are either Python type long or NumPy dtype uint64.
+              """
+    # get dtype for EntityHandles
     EH_DTYPE = _DTYPE_CONV[MB_TYPE_HANDLE]
-    return _convert_array(iterable, (long, np.uint64), EH_DTYPE)
-
+    # try to convert array
+    try:
+        arr = _convert_array(iterable, _eh_py_types, EH_DTYPE)
+    except:
+        raise ValueError(err_msg)
+    # return array if successful
+    return arr
+    
 def np_tag_type(type):
     return _DTYPE_CONV[type]
 

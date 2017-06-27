@@ -316,11 +316,11 @@ def test_tag_failures():
     mb.tag_set_data(test_tag,np.array([msh,]),data)
     try:
         mb.tag_set_data(test_tag, msh_illicit_copy, data)
-    except AssertionError:
+    except ValueError:
         pass
     else:
         print "Shouldn't be here. Test fails."
-        raise AssertionError
+        raise ValueError
 
 
     coord = np.array((1,1,1),dtype='float64')
@@ -333,23 +333,23 @@ def test_tag_failures():
     mb.tag_set_data(test_tag,verts,data)
     try:
         mb.tag_set_data(test_tag, verts_illicit_copy, data)
-    except AssertionError:
+    except ValueError:
         pass
     else:
         pass
         print "Shouldn't be here. Test fails."
-        raise AssertionError
+        raise ValueError
 
 
     global_id_tag = mb.tag_get_handle("GLOBAL_ID",1,types.MB_TYPE_INTEGER,types.MB_TAG_DENSE,True)
     #so should this one
     try:
         tri_id = mb.tag_get_data(global_id_tag, verts_illicit_copy)
-    except AssertionError:
+    except ValueError:
         pass
     else:
         print "Shouldn't be here. Test fails."
-        raise AssertionError
+        raise ValueError
 
 def test_adj():
 

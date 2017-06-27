@@ -4,12 +4,11 @@ from cython.operator cimport dereference as deref
 cimport numpy as np
 import numpy as np
 import ctypes
-import numbers
 
 from pymoab cimport moab
 from .tag cimport Tag, _tagArray
 from .rng cimport Range
-from .types import check_error, np_tag_type, validate_type, _convert_array, _eh_array
+from .types import check_error, np_tag_type, validate_type, _convert_array, _eh_array, _eh_py_types
 from . import types
 from libcpp.vector cimport vector
 from libcpp.string cimport string as std_string
@@ -411,7 +410,7 @@ cdef class Core(object):
         """
         cdef moab.EntityType typ = <moab.EntityType> entity_type
         cdef moab.EntityHandle handle = 0
-        if isinstance(connectivity,Range):
+        if isinstance(connectivity, Range):
             connectivity = list(connectivity)
         cdef np.ndarray[np.uint64_t, ndim=1] conn_arr = _eh_array(connectivity)
         cdef int nnodes = len(connectivity)
@@ -715,7 +714,7 @@ cdef class Core(object):
         cdef np.ndarray ehs
         cdef moab.DataType tag_type = moab.MB_MAX_DATA_TYPE
         # create a numpy array for the entity handles to be tagged
-        if isinstance(entity_handles,numbers.Integral):
+        if isinstance(entity_handles, _eh_py_types):
             ehs = _eh_array([entity_handles,])
         else:
             ehs = _eh_array(entity_handles)
@@ -810,7 +809,7 @@ cdef class Core(object):
         cdef np.ndarray ehs
         cdef moab.DataType tag_type = moab.MB_MAX_DATA_TYPE
         # create a numpy array for the entity handles to be tagged
-        if isinstance(entity_handles, numbers.Integral):
+        if isinstance(entity_handles, _eh_py_types):
             ehs = _eh_array([entity_handles,])
         else:
             ehs = _eh_array(entity_handles)
@@ -868,7 +867,7 @@ cdef class Core(object):
         cdef moab.ErrorCode err
         cdef np.ndarray ehs
         # create a numpy array for the entity handles to be tagged
-        if isinstance(entity_handles, numbers.Integral):
+        if isinstance(entity_handles, _eh_py_types):
             ehs = _eh_array([entity_handles,])
         else:
             ehs = _eh_array(entity_handles)
