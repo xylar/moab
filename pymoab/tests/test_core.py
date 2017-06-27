@@ -316,11 +316,11 @@ def test_tag_failures():
     mb.tag_set_data(test_tag,np.array([msh,]),data)
     try:
         mb.tag_set_data(test_tag, msh_illicit_copy, data)
-    except RuntimeError:
+    except AssertionError:
         pass
     else:
         print "Shouldn't be here. Test fails."
-        raise RuntimeError
+        raise AssertionError
 
 
     coord = np.array((1,1,1),dtype='float64')

@@ -3,7 +3,6 @@
 from pymoab cimport moab
 cimport numpy as np
 import numpy as np
-import numbers
 
 cdef class MOABErrorCode:
 
@@ -153,7 +152,7 @@ def _convert_array(iterable, accepted_types, return_dtype):
 
 def _eh_array(iterable):
     EH_DTYPE = _DTYPE_CONV[MB_TYPE_HANDLE]
-    return _convert_array(iterable, (long, np.uint64, numbers.Integral), EH_DTYPE)
+    return _convert_array(iterable, (long, np.uint64), EH_DTYPE)
 
 def np_tag_type(type):
     return _DTYPE_CONV[type]
