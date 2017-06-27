@@ -1878,12 +1878,12 @@ namespace moab {
         // Local id of vid in the cell and the half-faces incident on it
         int lv = -1;
         for (int i = 0; i< nvpc; ++i){
-            if (conn[i] == vid)
+           if (conn[i] == vid)
               {
                 lv = i;
                 break;
               }
-          };
+          }
         if (lv<0)
           MB_SET_ERR(MB_FAILURE, "did not find local vertex ");
         int nhf_thisv = lConnMap3D[index].v2hf_num[lv];

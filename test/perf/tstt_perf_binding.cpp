@@ -397,7 +397,7 @@ void query_vert_to_elem(iMesh_Instance mesh)
                     &success);
     if (iBase_SUCCESS != success) {
       cerr << "Problem getting connectivity or vertex coords." << endl;
-      //return; do not return early, as we would leak memory
+      // do not return early, as we would leak memory
     }
   }
 
