@@ -288,7 +288,7 @@ C       query vertex BCs
 
       enddo
 
-      outfile = 'fnew.h5m'//CHAR(0)
+      outfile = 'fnew2.h5m'//CHAR(0)
 #ifdef MOAB_HAVE_MPI
       wopts   = 'PARALLEL=WRITE_PART'//CHAR(0)
 #else

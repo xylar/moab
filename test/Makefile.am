@@ -119,7 +119,7 @@ MOSTLYCLEANFILES = mb_write.g \
                    tree.h5m \
                    TaskMesh_n1.0.h5m \
                    TaskMesh_n1.1.h5m \
-                   fnew.h5m out1.h5m \
+                   fnew.h5m fnew2.h5m out1.h5m \
                    intx.vtk \
                    polyWithEdges.vtk \
                    intx1.vtk
