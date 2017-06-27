@@ -225,7 +225,8 @@ ErrorCode Intx2MeshOnSphere::findNodes(EntityHandle red, int nsRed, EntityHandle
   // we know that we have only nsRed edges here; [nsRed, MAXEDGES) are ignored, but it is small potatoes
   // some of them will be handles to the initial vertices from blue or red meshes
 
-  EntityHandle * foundIds = new EntityHandle[nP];
+  std::vector<EntityHandle> foundIds;
+  foundIds.resize(nP);
   for (int i = 0; i < nP; i++)
   {
     double * pp = &iP[2 * i]; // iP+2*i
@@ -295,7 +296,6 @@ ErrorCode Intx2MeshOnSphere::findNodes(EntityHandle red, int nsRed, EntityHandle
           if (indx<0) // CID 181166 (#1 of 1): Argument cannot be negative (NEGATIVE_RETURNS)
           {
             std::cerr<<" error in adjacent red edge: " << mb->id_from_handle(adjRedEdges[j])<< "\n";
-            delete[] foundIds;
             return MB_FAILURE;
           }
           std::vector<EntityHandle> * expts = extraNodesVec[indx];
@@ -305,7 +305,8 @@ ErrorCode Intx2MeshOnSphere::findNodes(EntityHandle red, int nsRed, EntityHandle
           int nbExtraNodesSoFar = expts->size();
           if (nbExtraNodesSoFar>0)
           {
-            CartVect * coords1 = new CartVect[nbExtraNodesSoFar];
+            std::vector<CartVect>  coords1;
+            coords1.resize(nbExtraNodesSoFar);
             mb->get_coords(&(*expts)[0], nbExtraNodesSoFar, &(coords1[0][0]));
             //std::list<int>::iterator it;
             for (int k = 0; k < nbExtraNodesSoFar && !found; k++)
@@ -322,7 +323,6 @@ ErrorCode Intx2MeshOnSphere::findNodes(EntityHandle red, int nsRed, EntityHandle
 #endif
               }
             }
-            delete[] coords1;
           }
           if (!found)
           {
@@ -331,10 +331,10 @@ ErrorCode Intx2MeshOnSphere::findNodes(EntityHandle red, int nsRed, EntityHandle
             //expts.push_back(m_num2dPoints);
             // need to create a new node in mbOut
             // this will be on the edge, and it will be added to the local list
-            mb->create_vertex(pos.array(), outNode);
+            rval = mb->create_vertex(pos.array(), outNode); MB_CHK_ERR(rval);
             (*expts).push_back(outNode);
             // CID 181168; avoid leak storage error
-            mb->add_entities(outSet, &outNode, 1);
+            rval = mb->add_entities(outSet, &outNode, 1); MB_CHK_ERR(rval);
             foundIds[i] = outNode;
             found = 1;
 #ifdef ENABLE_DEBUG
@@ -355,7 +355,6 @@ ErrorCode Intx2MeshOnSphere::findNodes(EntityHandle red, int nsRed, EntityHandle
       }
       std::cout << " a point pp is not on a red quad " << *pp << " " << pp[1]
           << " red quad " << mb->id_from_handle(red) << " \n";
-      delete[] foundIds;
       return MB_FAILURE;
     }
   }
@@ -371,13 +370,13 @@ ErrorCode Intx2MeshOnSphere::findNodes(EntityHandle red, int nsRed, EntityHandle
   // we may have to reduce nP
   // it is possible that some nodes are collapsed after intersection only
   // nodes will always be in order (convex intersection)
-  correct_polygon(foundIds, nP);
+  correct_polygon(&foundIds[0], nP);
   // now we can build the triangles, from P array, with foundIds
   // we will put them in the out set
   if (nP >= 3)
   {
     EntityHandle polyNew;
-    rval = mb->create_element(MBPOLYGON, foundIds, nP, polyNew);MB_CHK_ERR(rval);
+    rval = mb->create_element(MBPOLYGON, &foundIds[0], nP, polyNew);MB_CHK_ERR(rval);
     rval = mb->add_entities(outSet, &polyNew, 1);MB_CHK_ERR(rval);
 
     // tag it with the global ids from red and blue elements
@@ -401,7 +400,7 @@ ErrorCode Intx2MeshOnSphere::findNodes(EntityHandle red, int nsRed, EntityHandle
         std::cout << " " << mb->id_from_handle(foundIds[i1]);
       std::cout << " plane: " << plane << "\n";
       std::vector<CartVect> posi(nP);
-      mb->get_coords(foundIds, nP, &(posi[0][0]));
+      mb->get_coords(&foundIds[0], nP, &(posi[0][0]));
       for (int i1 = 0; i1 < nP; i1++)
         std::cout << foundIds[i1]<< " " << posi[i1] << "\n";
 
@@ -416,8 +415,6 @@ ErrorCode Intx2MeshOnSphere::findNodes(EntityHandle red, int nsRed, EntityHandle
   //   std::cout << "[[FAILURE]] Number of vertices in polygon is less than 3\n";
   // }
   //disable_debug();
-  delete[] foundIds;
-  foundIds = NULL;
   return MB_SUCCESS;
 }
 
