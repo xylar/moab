@@ -750,6 +750,35 @@ def test_iterables():
         print "Shouldn't be here. Test fails."
         raise AssertionError
 
+def test_unordered_tagging():
+
+    mb = core.Core()
+    # 1-D iterable
+    coords = [0.,0.,0.,1.,0.,0.,1.,1.,1.]
+    verts = mb.create_vertices(coords)
+    CHECK_EQ(len(verts),3)
+    # 2-D iterable w/ len 3 entries
+    coords = [[0.,0.,0.],[1.,0.,0.],[1.,1.,1.]]
+    verts = mb.create_vertices(coords)
+    CHECK_EQ(len(verts),3)
+
+    #create a tag
+    int_tag = mb.tag_get_handle("IntTag",1,types.MB_TYPE_INTEGER,types.MB_TAG_DENSE,True)
+
+    #try to set data with bad array (contains int)
+    int_data = [1,2,3]
+
+    # tag ordered vertices with value
+    mb.tag_set_data(int_tag, verts, int_data)
+        
+    reordered_verts = [verts[1], verts[2], verts[0]]
+    reordered_data =  [int_data[1], int_data[2], int_data[0]]
+
+    # check that data array is correct for reordered vertex handles
+    data = mb.tag_get_data(int_tag, reordered_verts)
+    CHECK_EQ(data, reordered_data)
+    
+    
 def test_vec_tags():
     mb = core.Core()
     coords = np.array((0,0,0,1,0,0,1,1,1),dtype='float64')
