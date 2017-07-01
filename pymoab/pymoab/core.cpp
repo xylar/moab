@@ -7214,7 +7214,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_26tag_set_data(struct __pyx_obj_6p
 
 /* Python wrapper */
 static PyObject *__pyx_pw_6pymoab_4core_4Core_29tag_get_data(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_6pymoab_4core_4Core_28tag_get_data[] = "\n        Retrieve tag data from a set of entities. Data will be returned as a 2-D\n        array with number of entries equal to the number of EntityHandles passed\n        to the function by default. Each entry in the array will be equal to the\n        tag's length. A flat array of data can also be returned if specified by\n        setting the 'flat' parameter to True.\n\n        Example\n        -------\n        mb = core.Core()\n        coords = np.array((0,0,0,1,0,0,1,1,1),dtype='float64')\n        verts = mb.create_vertices(coords)\n        # create a new tag for data\n        tag_length = 2\n        tag_type = pymoab.types.MB_TYPE_DOUBLE\n        data_tag = mb.tag_get_handle(\"Data\",\n                                     tag_length,\n                                     tag_type,\n                                     create_if_missing = True)\n        # some sample data\n        data = np.array([1.0,2.0,3.0,4.0,5.0,6.0], dtype = 'float')\n        # use this function to tag vertices with the data\n        mb.tag_set_data(data_tag, verts, data)\n\n        # now retrieve this tag's data for the vertices from the instance\n        data = mb.tag_get_data(data_tag, verts) # returns 2-D array\n\n        OR\n\n        # now retrieve this tag's data for the vertices from the instance\n        # returns 1-D array of len(verts)*tag_length\n        data = mb.tag_get_data(data_tag, verts)\n\n        Parameters\n        ----------\n        tag : MOAB TagHandle\n            the tag from which data is to be retrieved\n        entity_handles : iterable of MOAB EntityHandles or a single EntityHandle\n            the EntityHandle(s) to retrieve data for. This can be any iterable of\n            EntityHandles or a single EntityHandle.\n        flat : bool (default is False)\n            Indicates the structure in which the data is returned. If False, the\n            array is returned as a 2-D numpy array of len(entity_handles) with\n            each second dimension entry equ""al to the length of the tag. If True,\n            the data is returned as a 1-D numpy array of length\n            len(entity_handles)*tag_length.\n        exceptions : tuple (default is empty tuple)\n            A tuple containing any error types that should\n            be ignored. (see pymoab.types module for more info)\n\n        Returns\n        -------\n        Numpy array of data with dtype matching that of the tag's type\n\n        Raises\n        ------\n        MOAB ErrorCode\n            if a MOAB error occurs\n        ValueError\n            if an EntityHandle is not of the correct type\n        ";
+static char __pyx_doc_6pymoab_4core_4Core_28tag_get_data[] = "\n        Retrieve tag data from a set of entities. Data will be returned as a 2-D\n        array with number of entries equal to the number of EntityHandles passed\n        to the function by default. Each entry in the array will be equal to the\n        tag's length. A flat array of data can also be returned if specified by\n        setting the 'flat' parameter to True.\n\n        Example\n        -------\n        mb = core.Core()\n        coords = np.array((0,0,0,1,0,0,1,1,1),dtype='float64')\n        verts = mb.create_vertices(coords)\n        # create a new tag for data\n        tag_length = 2\n        tag_type = pymoab.types.MB_TYPE_DOUBLE\n        data_tag = mb.tag_get_handle(\"Data\",\n                                     tag_length,\n                                     tag_type,\n                                     create_if_missing = True)\n        # some sample data\n        data = np.array([1.0,2.0,3.0,4.0,5.0,6.0], dtype = 'float')\n        # use this function to tag vertices with the data\n        mb.tag_set_data(data_tag, verts, data)\n\n        # now retrieve this tag's data for the vertices from the instance\n        data = mb.tag_get_data(data_tag, verts) # returns 2-D array\n\n        OR\n\n        # now retrieve this tag's data for the vertices from the instance\n        # returns 1-D array of len(verts)*tag_length\n        data = mb.tag_get_data(data_tag, verts)\n\n        Parameters\n        ----------\n        tag : MOAB TagHandle\n            the tag from which data is to be retrieved\n        entity_handles : iterable of MOAB EntityHandles or a single EntityHandle\n            the EntityHandle(s) to retrieve data for.\n        flat : bool (default is False)\n            Indicates the structure in which the data is returned. If False, the\n            array is returned as a 2-D numpy array of len(entity_handles) with\n            each second dimension entry equal to the length of the tag. If True,\n            the data is returned as a 1-D ""numpy array of length\n            len(entity_handles)*tag_length.\n        exceptions : tuple (default is empty tuple)\n            A tuple containing any error types that should\n            be ignored. (see pymoab.types module for more info)\n\n        Returns\n        -------\n        Numpy array of data with dtype matching that of the tag's type\n\n        Raises\n        ------\n        MOAB ErrorCode\n            if a MOAB error occurs\n        ValueError\n            if an EntityHandle is not of the correct type\n        ";
 static PyObject *__pyx_pw_6pymoab_4core_4Core_29tag_get_data(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   struct __pyx_obj_6pymoab_3tag_Tag *__pyx_v_tag = 0;
   PyObject *__pyx_v_entity_handles = 0;
@@ -7321,7 +7321,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_28tag_get_data(struct __pyx_obj_6p
   long __pyx_t_12;
   __Pyx_RefNannySetupContext("tag_get_data", 0);
 
-  /* "pymoab/core.pyx":810
+  /* "pymoab/core.pyx":809
  *         cdef moab.ErrorCode err
  *         cdef np.ndarray ehs
  *         cdef moab.DataType tag_type = moab.MB_MAX_DATA_TYPE             # <<<<<<<<<<<<<<
@@ -7330,30 +7330,30 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_28tag_get_data(struct __pyx_obj_6p
  */
   __pyx_v_tag_type = moab::MB_MAX_DATA_TYPE;
 
-  /* "pymoab/core.pyx":812
+  /* "pymoab/core.pyx":811
  *         cdef moab.DataType tag_type = moab.MB_MAX_DATA_TYPE
  *         # create a numpy array for the entity handles to be tagged
  *         if isinstance(entity_handles, _eh_py_types):             # <<<<<<<<<<<<<<
  *             ehs = _eh_array([entity_handles,])
  *         else:
  */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_eh_py_types); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 812, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_eh_py_types); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 811, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = PyObject_IsInstance(__pyx_v_entity_handles, __pyx_t_1); if (unlikely(__pyx_t_2 == -1)) __PYX_ERR(0, 812, __pyx_L1_error)
+  __pyx_t_2 = PyObject_IsInstance(__pyx_v_entity_handles, __pyx_t_1); if (unlikely(__pyx_t_2 == -1)) __PYX_ERR(0, 811, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_t_3 = (__pyx_t_2 != 0);
   if (__pyx_t_3) {
 
-    /* "pymoab/core.pyx":813
+    /* "pymoab/core.pyx":812
  *         # create a numpy array for the entity handles to be tagged
  *         if isinstance(entity_handles, _eh_py_types):
  *             ehs = _eh_array([entity_handles,])             # <<<<<<<<<<<<<<
  *         else:
  *             ehs = _eh_array(entity_handles)
  */
-    __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_eh_array); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 813, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_eh_array); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 812, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_5 = PyList_New(1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 813, __pyx_L1_error)
+    __pyx_t_5 = PyList_New(1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 812, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_INCREF(__pyx_v_entity_handles);
     __Pyx_GIVEREF(__pyx_v_entity_handles);
@@ -7369,14 +7369,14 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_28tag_get_data(struct __pyx_obj_6p
       }
     }
     if (!__pyx_t_6) {
-      __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_5); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 813, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_5); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 812, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       __Pyx_GOTREF(__pyx_t_1);
     } else {
       #if CYTHON_FAST_PYCALL
       if (PyFunction_Check(__pyx_t_4)) {
         PyObject *__pyx_temp[2] = {__pyx_t_6, __pyx_t_5};
-        __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 813, __pyx_L1_error)
+        __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 812, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
         __Pyx_GOTREF(__pyx_t_1);
         __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
@@ -7385,30 +7385,30 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_28tag_get_data(struct __pyx_obj_6p
       #if CYTHON_FAST_PYCCALL
       if (__Pyx_PyFastCFunction_Check(__pyx_t_4)) {
         PyObject *__pyx_temp[2] = {__pyx_t_6, __pyx_t_5};
-        __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 813, __pyx_L1_error)
+        __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 812, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
         __Pyx_GOTREF(__pyx_t_1);
         __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       } else
       #endif
       {
-        __pyx_t_7 = PyTuple_New(1+1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 813, __pyx_L1_error)
+        __pyx_t_7 = PyTuple_New(1+1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 812, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_7);
         __Pyx_GIVEREF(__pyx_t_6); PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_6); __pyx_t_6 = NULL;
         __Pyx_GIVEREF(__pyx_t_5);
         PyTuple_SET_ITEM(__pyx_t_7, 0+1, __pyx_t_5);
         __pyx_t_5 = 0;
-        __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_7, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 813, __pyx_L1_error)
+        __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_7, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 812, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_1);
         __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
       }
     }
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    if (!(likely(((__pyx_t_1) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_1, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 813, __pyx_L1_error)
+    if (!(likely(((__pyx_t_1) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_1, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 812, __pyx_L1_error)
     __pyx_v_ehs = ((PyArrayObject *)__pyx_t_1);
     __pyx_t_1 = 0;
 
-    /* "pymoab/core.pyx":812
+    /* "pymoab/core.pyx":811
  *         cdef moab.DataType tag_type = moab.MB_MAX_DATA_TYPE
  *         # create a numpy array for the entity handles to be tagged
  *         if isinstance(entity_handles, _eh_py_types):             # <<<<<<<<<<<<<<
@@ -7418,7 +7418,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_28tag_get_data(struct __pyx_obj_6p
     goto __pyx_L3;
   }
 
-  /* "pymoab/core.pyx":815
+  /* "pymoab/core.pyx":814
  *             ehs = _eh_array([entity_handles,])
  *         else:
  *             ehs = _eh_array(entity_handles)             # <<<<<<<<<<<<<<
@@ -7426,7 +7426,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_28tag_get_data(struct __pyx_obj_6p
  *         err = self.inst.tag_get_data_type(tag.inst, tag_type);
  */
   /*else*/ {
-    __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_eh_array); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 815, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_eh_array); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 814, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __pyx_t_7 = NULL;
     if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_4))) {
@@ -7439,13 +7439,13 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_28tag_get_data(struct __pyx_obj_6p
       }
     }
     if (!__pyx_t_7) {
-      __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_v_entity_handles); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 815, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_v_entity_handles); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 814, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
     } else {
       #if CYTHON_FAST_PYCALL
       if (PyFunction_Check(__pyx_t_4)) {
         PyObject *__pyx_temp[2] = {__pyx_t_7, __pyx_v_entity_handles};
-        __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 815, __pyx_L1_error)
+        __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 814, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_7); __pyx_t_7 = 0;
         __Pyx_GOTREF(__pyx_t_1);
       } else
@@ -7453,31 +7453,31 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_28tag_get_data(struct __pyx_obj_6p
       #if CYTHON_FAST_PYCCALL
       if (__Pyx_PyFastCFunction_Check(__pyx_t_4)) {
         PyObject *__pyx_temp[2] = {__pyx_t_7, __pyx_v_entity_handles};
-        __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 815, __pyx_L1_error)
+        __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 814, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_7); __pyx_t_7 = 0;
         __Pyx_GOTREF(__pyx_t_1);
       } else
       #endif
       {
-        __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 815, __pyx_L1_error)
+        __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 814, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_5);
         __Pyx_GIVEREF(__pyx_t_7); PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_7); __pyx_t_7 = NULL;
         __Pyx_INCREF(__pyx_v_entity_handles);
         __Pyx_GIVEREF(__pyx_v_entity_handles);
         PyTuple_SET_ITEM(__pyx_t_5, 0+1, __pyx_v_entity_handles);
-        __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_5, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 815, __pyx_L1_error)
+        __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_5, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 814, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_1);
         __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       }
     }
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    if (!(likely(((__pyx_t_1) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_1, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 815, __pyx_L1_error)
+    if (!(likely(((__pyx_t_1) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_1, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 814, __pyx_L1_error)
     __pyx_v_ehs = ((PyArrayObject *)__pyx_t_1);
     __pyx_t_1 = 0;
   }
   __pyx_L3:;
 
-  /* "pymoab/core.pyx":817
+  /* "pymoab/core.pyx":816
  *             ehs = _eh_array(entity_handles)
  *         # get the tag type and length for validation
  *         err = self.inst.tag_get_data_type(tag.inst, tag_type);             # <<<<<<<<<<<<<<
@@ -7486,16 +7486,16 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_28tag_get_data(struct __pyx_obj_6p
  */
   __pyx_v_err = __pyx_v_self->inst->tag_get_data_type(__pyx_v_tag->inst, __pyx_v_tag_type);
 
-  /* "pymoab/core.pyx":818
+  /* "pymoab/core.pyx":817
  *         # get the tag type and length for validation
  *         err = self.inst.tag_get_data_type(tag.inst, tag_type);
  *         check_error(err,())             # <<<<<<<<<<<<<<
  *         cdef int length = 0
  *         err = self.inst.tag_get_length(tag.inst,length);
  */
-  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_check_error); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 818, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_check_error); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 817, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = __Pyx_PyInt_From_enum__moab_3a__3a_ErrorCode(__pyx_v_err); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 818, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyInt_From_enum__moab_3a__3a_ErrorCode(__pyx_v_err); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 817, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __pyx_t_7 = NULL;
   __pyx_t_8 = 0;
@@ -7512,7 +7512,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_28tag_get_data(struct __pyx_obj_6p
   #if CYTHON_FAST_PYCALL
   if (PyFunction_Check(__pyx_t_4)) {
     PyObject *__pyx_temp[3] = {__pyx_t_7, __pyx_t_5, __pyx_empty_tuple};
-    __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_8, 2+__pyx_t_8); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 818, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_8, 2+__pyx_t_8); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 817, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_7); __pyx_t_7 = 0;
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
@@ -7521,14 +7521,14 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_28tag_get_data(struct __pyx_obj_6p
   #if CYTHON_FAST_PYCCALL
   if (__Pyx_PyFastCFunction_Check(__pyx_t_4)) {
     PyObject *__pyx_temp[3] = {__pyx_t_7, __pyx_t_5, __pyx_empty_tuple};
-    __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_8, 2+__pyx_t_8); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 818, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_8, 2+__pyx_t_8); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 817, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_7); __pyx_t_7 = 0;
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   } else
   #endif
   {
-    __pyx_t_6 = PyTuple_New(2+__pyx_t_8); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 818, __pyx_L1_error)
+    __pyx_t_6 = PyTuple_New(2+__pyx_t_8); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 817, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     if (__pyx_t_7) {
       __Pyx_GIVEREF(__pyx_t_7); PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_7); __pyx_t_7 = NULL;
@@ -7539,14 +7539,14 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_28tag_get_data(struct __pyx_obj_6p
     __Pyx_GIVEREF(__pyx_empty_tuple);
     PyTuple_SET_ITEM(__pyx_t_6, 1+__pyx_t_8, __pyx_empty_tuple);
     __pyx_t_5 = 0;
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_6, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 818, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_6, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 817, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   }
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "pymoab/core.pyx":819
+  /* "pymoab/core.pyx":818
  *         err = self.inst.tag_get_data_type(tag.inst, tag_type);
  *         check_error(err,())
  *         cdef int length = 0             # <<<<<<<<<<<<<<
@@ -7555,7 +7555,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_28tag_get_data(struct __pyx_obj_6p
  */
   __pyx_v_length = 0;
 
-  /* "pymoab/core.pyx":820
+  /* "pymoab/core.pyx":819
  *         check_error(err,())
  *         cdef int length = 0
  *         err = self.inst.tag_get_length(tag.inst,length);             # <<<<<<<<<<<<<<
@@ -7564,16 +7564,16 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_28tag_get_data(struct __pyx_obj_6p
  */
   __pyx_v_err = __pyx_v_self->inst->tag_get_length(__pyx_v_tag->inst, __pyx_v_length);
 
-  /* "pymoab/core.pyx":821
+  /* "pymoab/core.pyx":820
  *         cdef int length = 0
  *         err = self.inst.tag_get_length(tag.inst,length);
  *         check_error(err,())             # <<<<<<<<<<<<<<
  *         #create array to hold data
  *         cdef np.ndarray data
  */
-  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_check_error); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 821, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_check_error); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 820, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_6 = __Pyx_PyInt_From_enum__moab_3a__3a_ErrorCode(__pyx_v_err); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 821, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyInt_From_enum__moab_3a__3a_ErrorCode(__pyx_v_err); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 820, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __pyx_t_5 = NULL;
   __pyx_t_8 = 0;
@@ -7590,7 +7590,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_28tag_get_data(struct __pyx_obj_6p
   #if CYTHON_FAST_PYCALL
   if (PyFunction_Check(__pyx_t_4)) {
     PyObject *__pyx_temp[3] = {__pyx_t_5, __pyx_t_6, __pyx_empty_tuple};
-    __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_8, 2+__pyx_t_8); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 821, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_8, 2+__pyx_t_8); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 820, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
@@ -7599,14 +7599,14 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_28tag_get_data(struct __pyx_obj_6p
   #if CYTHON_FAST_PYCCALL
   if (__Pyx_PyFastCFunction_Check(__pyx_t_4)) {
     PyObject *__pyx_temp[3] = {__pyx_t_5, __pyx_t_6, __pyx_empty_tuple};
-    __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_8, 2+__pyx_t_8); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 821, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_8, 2+__pyx_t_8); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 820, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   } else
   #endif
   {
-    __pyx_t_7 = PyTuple_New(2+__pyx_t_8); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 821, __pyx_L1_error)
+    __pyx_t_7 = PyTuple_New(2+__pyx_t_8); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 820, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
     if (__pyx_t_5) {
       __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_5); __pyx_t_5 = NULL;
@@ -7617,25 +7617,25 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_28tag_get_data(struct __pyx_obj_6p
     __Pyx_GIVEREF(__pyx_empty_tuple);
     PyTuple_SET_ITEM(__pyx_t_7, 1+__pyx_t_8, __pyx_empty_tuple);
     __pyx_t_6 = 0;
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_7, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 821, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_7, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 820, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   }
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "pymoab/core.pyx":824
+  /* "pymoab/core.pyx":823
  *         #create array to hold data
  *         cdef np.ndarray data
  *         if tag_type is types.MB_TYPE_OPAQUE:             # <<<<<<<<<<<<<<
  *             data = np.empty((ehs.size,),dtype='S'+str(length))
  *         else:
  */
-  __pyx_t_1 = __Pyx_PyInt_From_enum__moab_3a__3a_DataType(__pyx_v_tag_type); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 824, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_enum__moab_3a__3a_DataType(__pyx_v_tag_type); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 823, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_types); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 824, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_types); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 823, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_MB_TYPE_OPAQUE); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 824, __pyx_L1_error)
+  __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_MB_TYPE_OPAQUE); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 823, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __pyx_t_3 = (__pyx_t_1 == __pyx_t_7);
@@ -7644,57 +7644,57 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_28tag_get_data(struct __pyx_obj_6p
   __pyx_t_2 = (__pyx_t_3 != 0);
   if (__pyx_t_2) {
 
-    /* "pymoab/core.pyx":825
+    /* "pymoab/core.pyx":824
  *         cdef np.ndarray data
  *         if tag_type is types.MB_TYPE_OPAQUE:
  *             data = np.empty((ehs.size,),dtype='S'+str(length))             # <<<<<<<<<<<<<<
  *         else:
  *             data = np.empty((length*ehs.size,),dtype=np.dtype(np_tag_type(tag_type)))
  */
-    __pyx_t_7 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 825, __pyx_L1_error)
+    __pyx_t_7 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 824, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_empty); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 825, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_empty); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 824, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-    __pyx_t_7 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_ehs), __pyx_n_s_size); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 825, __pyx_L1_error)
+    __pyx_t_7 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_ehs), __pyx_n_s_size); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 824, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
-    __pyx_t_4 = PyTuple_New(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 825, __pyx_L1_error)
+    __pyx_t_4 = PyTuple_New(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 824, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_GIVEREF(__pyx_t_7);
     PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_7);
     __pyx_t_7 = 0;
-    __pyx_t_7 = PyTuple_New(1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 825, __pyx_L1_error)
+    __pyx_t_7 = PyTuple_New(1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 824, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
     __Pyx_GIVEREF(__pyx_t_4);
     PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_4);
     __pyx_t_4 = 0;
-    __pyx_t_4 = PyDict_New(); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 825, __pyx_L1_error)
+    __pyx_t_4 = PyDict_New(); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 824, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_6 = __Pyx_PyInt_From_int(__pyx_v_length); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 825, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyInt_From_int(__pyx_v_length); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 824, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
-    __pyx_t_5 = PyTuple_New(1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 825, __pyx_L1_error)
+    __pyx_t_5 = PyTuple_New(1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 824, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_GIVEREF(__pyx_t_6);
     PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_6);
     __pyx_t_6 = 0;
-    __pyx_t_6 = __Pyx_PyObject_Call(((PyObject *)(&PyString_Type)), __pyx_t_5, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 825, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyObject_Call(((PyObject *)(&PyString_Type)), __pyx_t_5, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 824, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __pyx_t_5 = PyNumber_Add(__pyx_n_s_S, __pyx_t_6); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 825, __pyx_L1_error)
+    __pyx_t_5 = PyNumber_Add(__pyx_n_s_S, __pyx_t_6); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 824, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_dtype, __pyx_t_5) < 0) __PYX_ERR(0, 825, __pyx_L1_error)
+    if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_dtype, __pyx_t_5) < 0) __PYX_ERR(0, 824, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_7, __pyx_t_4); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 825, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_7, __pyx_t_4); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 824, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    if (!(likely(((__pyx_t_5) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_5, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 825, __pyx_L1_error)
+    if (!(likely(((__pyx_t_5) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_5, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 824, __pyx_L1_error)
     __pyx_v_data = ((PyArrayObject *)__pyx_t_5);
     __pyx_t_5 = 0;
 
-    /* "pymoab/core.pyx":824
+    /* "pymoab/core.pyx":823
  *         #create array to hold data
  *         cdef np.ndarray data
  *         if tag_type is types.MB_TYPE_OPAQUE:             # <<<<<<<<<<<<<<
@@ -7704,7 +7704,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_28tag_get_data(struct __pyx_obj_6p
     goto __pyx_L4;
   }
 
-  /* "pymoab/core.pyx":827
+  /* "pymoab/core.pyx":826
  *             data = np.empty((ehs.size,),dtype='S'+str(length))
  *         else:
  *             data = np.empty((length*ehs.size,),dtype=np.dtype(np_tag_type(tag_type)))             # <<<<<<<<<<<<<<
@@ -7712,34 +7712,34 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_28tag_get_data(struct __pyx_obj_6p
  *         check_error(err, exceptions)
  */
   /*else*/ {
-    __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 827, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 826, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
-    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_empty); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 827, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_empty); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 826, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __pyx_t_5 = __Pyx_PyInt_From_int(__pyx_v_length); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 827, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyInt_From_int(__pyx_v_length); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 826, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
-    __pyx_t_7 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_ehs), __pyx_n_s_size); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 827, __pyx_L1_error)
+    __pyx_t_7 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_ehs), __pyx_n_s_size); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 826, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
-    __pyx_t_1 = PyNumber_Multiply(__pyx_t_5, __pyx_t_7); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 827, __pyx_L1_error)
+    __pyx_t_1 = PyNumber_Multiply(__pyx_t_5, __pyx_t_7); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 826, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-    __pyx_t_7 = PyTuple_New(1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 827, __pyx_L1_error)
+    __pyx_t_7 = PyTuple_New(1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 826, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
     __Pyx_GIVEREF(__pyx_t_1);
     PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_1);
     __pyx_t_1 = 0;
-    __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 827, __pyx_L1_error)
+    __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 826, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_GIVEREF(__pyx_t_7);
     PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_7);
     __pyx_t_7 = 0;
-    __pyx_t_7 = PyDict_New(); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 827, __pyx_L1_error)
+    __pyx_t_7 = PyDict_New(); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 826, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
-    __pyx_t_6 = __Pyx_GetModuleGlobalName(__pyx_n_s_np_tag_type); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 827, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_GetModuleGlobalName(__pyx_n_s_np_tag_type); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 826, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
-    __pyx_t_9 = __Pyx_PyInt_From_enum__moab_3a__3a_DataType(__pyx_v_tag_type); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 827, __pyx_L1_error)
+    __pyx_t_9 = __Pyx_PyInt_From_enum__moab_3a__3a_DataType(__pyx_v_tag_type); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 826, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_9);
     __pyx_t_10 = NULL;
     if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_6))) {
@@ -7752,14 +7752,14 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_28tag_get_data(struct __pyx_obj_6p
       }
     }
     if (!__pyx_t_10) {
-      __pyx_t_5 = __Pyx_PyObject_CallOneArg(__pyx_t_6, __pyx_t_9); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 827, __pyx_L1_error)
+      __pyx_t_5 = __Pyx_PyObject_CallOneArg(__pyx_t_6, __pyx_t_9); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 826, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
       __Pyx_GOTREF(__pyx_t_5);
     } else {
       #if CYTHON_FAST_PYCALL
       if (PyFunction_Check(__pyx_t_6)) {
         PyObject *__pyx_temp[2] = {__pyx_t_10, __pyx_t_9};
-        __pyx_t_5 = __Pyx_PyFunction_FastCall(__pyx_t_6, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 827, __pyx_L1_error)
+        __pyx_t_5 = __Pyx_PyFunction_FastCall(__pyx_t_6, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 826, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_10); __pyx_t_10 = 0;
         __Pyx_GOTREF(__pyx_t_5);
         __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
@@ -7768,69 +7768,69 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_28tag_get_data(struct __pyx_obj_6p
       #if CYTHON_FAST_PYCCALL
       if (__Pyx_PyFastCFunction_Check(__pyx_t_6)) {
         PyObject *__pyx_temp[2] = {__pyx_t_10, __pyx_t_9};
-        __pyx_t_5 = __Pyx_PyCFunction_FastCall(__pyx_t_6, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 827, __pyx_L1_error)
+        __pyx_t_5 = __Pyx_PyCFunction_FastCall(__pyx_t_6, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 826, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_10); __pyx_t_10 = 0;
         __Pyx_GOTREF(__pyx_t_5);
         __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
       } else
       #endif
       {
-        __pyx_t_11 = PyTuple_New(1+1); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 827, __pyx_L1_error)
+        __pyx_t_11 = PyTuple_New(1+1); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 826, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_11);
         __Pyx_GIVEREF(__pyx_t_10); PyTuple_SET_ITEM(__pyx_t_11, 0, __pyx_t_10); __pyx_t_10 = NULL;
         __Pyx_GIVEREF(__pyx_t_9);
         PyTuple_SET_ITEM(__pyx_t_11, 0+1, __pyx_t_9);
         __pyx_t_9 = 0;
-        __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_6, __pyx_t_11, NULL); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 827, __pyx_L1_error)
+        __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_6, __pyx_t_11, NULL); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 826, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_5);
         __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
       }
     }
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    __pyx_t_6 = PyTuple_New(1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 827, __pyx_L1_error)
+    __pyx_t_6 = PyTuple_New(1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 826, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_GIVEREF(__pyx_t_5);
     PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_5);
     __pyx_t_5 = 0;
-    __pyx_t_5 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_5numpy_dtype), __pyx_t_6, NULL); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 827, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_5numpy_dtype), __pyx_t_6, NULL); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 826, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    if (PyDict_SetItem(__pyx_t_7, __pyx_n_s_dtype, __pyx_t_5) < 0) __PYX_ERR(0, 827, __pyx_L1_error)
+    if (PyDict_SetItem(__pyx_t_7, __pyx_n_s_dtype, __pyx_t_5) < 0) __PYX_ERR(0, 826, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_1, __pyx_t_7); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 827, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_1, __pyx_t_7); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 826, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-    if (!(likely(((__pyx_t_5) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_5, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 827, __pyx_L1_error)
+    if (!(likely(((__pyx_t_5) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_5, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 826, __pyx_L1_error)
     __pyx_v_data = ((PyArrayObject *)__pyx_t_5);
     __pyx_t_5 = 0;
   }
   __pyx_L4:;
 
-  /* "pymoab/core.pyx":828
+  /* "pymoab/core.pyx":827
  *         else:
  *             data = np.empty((length*ehs.size,),dtype=np.dtype(np_tag_type(tag_type)))
  *         err = self.inst.tag_get_data(tag.inst, <moab.EntityHandle*> ehs.data, ehs.size, <void*> data.data)             # <<<<<<<<<<<<<<
  *         check_error(err, exceptions)
  *         # return data as user specifies
  */
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_ehs), __pyx_n_s_size); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 828, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_ehs), __pyx_n_s_size); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 827, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_8 = __Pyx_PyInt_As_int(__pyx_t_5); if (unlikely((__pyx_t_8 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 828, __pyx_L1_error)
+  __pyx_t_8 = __Pyx_PyInt_As_int(__pyx_t_5); if (unlikely((__pyx_t_8 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 827, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __pyx_v_err = __pyx_v_self->inst->tag_get_data(__pyx_v_tag->inst, ((moab::EntityHandle *)__pyx_v_ehs->data), __pyx_t_8, ((void *)__pyx_v_data->data));
 
-  /* "pymoab/core.pyx":829
+  /* "pymoab/core.pyx":828
  *             data = np.empty((length*ehs.size,),dtype=np.dtype(np_tag_type(tag_type)))
  *         err = self.inst.tag_get_data(tag.inst, <moab.EntityHandle*> ehs.data, ehs.size, <void*> data.data)
  *         check_error(err, exceptions)             # <<<<<<<<<<<<<<
  *         # return data as user specifies
  *         if flat:
  */
-  __pyx_t_7 = __Pyx_GetModuleGlobalName(__pyx_n_s_check_error); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 829, __pyx_L1_error)
+  __pyx_t_7 = __Pyx_GetModuleGlobalName(__pyx_n_s_check_error); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 828, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
-  __pyx_t_1 = __Pyx_PyInt_From_enum__moab_3a__3a_ErrorCode(__pyx_v_err); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 829, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_enum__moab_3a__3a_ErrorCode(__pyx_v_err); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 828, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_t_4 = NULL;
   __pyx_t_8 = 0;
@@ -7847,7 +7847,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_28tag_get_data(struct __pyx_obj_6p
   #if CYTHON_FAST_PYCALL
   if (PyFunction_Check(__pyx_t_7)) {
     PyObject *__pyx_temp[3] = {__pyx_t_4, __pyx_t_1, __pyx_v_exceptions};
-    __pyx_t_5 = __Pyx_PyFunction_FastCall(__pyx_t_7, __pyx_temp+1-__pyx_t_8, 2+__pyx_t_8); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 829, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyFunction_FastCall(__pyx_t_7, __pyx_temp+1-__pyx_t_8, 2+__pyx_t_8); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 828, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -7856,14 +7856,14 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_28tag_get_data(struct __pyx_obj_6p
   #if CYTHON_FAST_PYCCALL
   if (__Pyx_PyFastCFunction_Check(__pyx_t_7)) {
     PyObject *__pyx_temp[3] = {__pyx_t_4, __pyx_t_1, __pyx_v_exceptions};
-    __pyx_t_5 = __Pyx_PyCFunction_FastCall(__pyx_t_7, __pyx_temp+1-__pyx_t_8, 2+__pyx_t_8); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 829, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyCFunction_FastCall(__pyx_t_7, __pyx_temp+1-__pyx_t_8, 2+__pyx_t_8); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 828, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   } else
   #endif
   {
-    __pyx_t_6 = PyTuple_New(2+__pyx_t_8); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 829, __pyx_L1_error)
+    __pyx_t_6 = PyTuple_New(2+__pyx_t_8); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 828, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     if (__pyx_t_4) {
       __Pyx_GIVEREF(__pyx_t_4); PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_4); __pyx_t_4 = NULL;
@@ -7874,24 +7874,24 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_28tag_get_data(struct __pyx_obj_6p
     __Pyx_GIVEREF(__pyx_v_exceptions);
     PyTuple_SET_ITEM(__pyx_t_6, 1+__pyx_t_8, __pyx_v_exceptions);
     __pyx_t_1 = 0;
-    __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_7, __pyx_t_6, NULL); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 829, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_7, __pyx_t_6, NULL); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 828, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   }
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "pymoab/core.pyx":831
+  /* "pymoab/core.pyx":830
  *         check_error(err, exceptions)
  *         # return data as user specifies
  *         if flat:             # <<<<<<<<<<<<<<
  *             return data
  *         else:
  */
-  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_v_flat); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 831, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_v_flat); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 830, __pyx_L1_error)
   if (__pyx_t_2) {
 
-    /* "pymoab/core.pyx":832
+    /* "pymoab/core.pyx":831
  *         # return data as user specifies
  *         if flat:
  *             return data             # <<<<<<<<<<<<<<
@@ -7903,7 +7903,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_28tag_get_data(struct __pyx_obj_6p
     __pyx_r = ((PyObject *)__pyx_v_data);
     goto __pyx_L0;
 
-    /* "pymoab/core.pyx":831
+    /* "pymoab/core.pyx":830
  *         check_error(err, exceptions)
  *         # return data as user specifies
  *         if flat:             # <<<<<<<<<<<<<<
@@ -7912,7 +7912,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_28tag_get_data(struct __pyx_obj_6p
  */
   }
 
-  /* "pymoab/core.pyx":834
+  /* "pymoab/core.pyx":833
  *             return data
  *         else:
  *             entry_len = 1 if tag_type == types.MB_TYPE_OPAQUE else length             # <<<<<<<<<<<<<<
@@ -7920,17 +7920,17 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_28tag_get_data(struct __pyx_obj_6p
  * 
  */
   /*else*/ {
-    __pyx_t_5 = __Pyx_PyInt_From_enum__moab_3a__3a_DataType(__pyx_v_tag_type); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 834, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyInt_From_enum__moab_3a__3a_DataType(__pyx_v_tag_type); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 833, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
-    __pyx_t_7 = __Pyx_GetModuleGlobalName(__pyx_n_s_types); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 834, __pyx_L1_error)
+    __pyx_t_7 = __Pyx_GetModuleGlobalName(__pyx_n_s_types); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 833, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
-    __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_MB_TYPE_OPAQUE); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 834, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_MB_TYPE_OPAQUE); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 833, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-    __pyx_t_7 = PyObject_RichCompare(__pyx_t_5, __pyx_t_6, Py_EQ); __Pyx_XGOTREF(__pyx_t_7); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 834, __pyx_L1_error)
+    __pyx_t_7 = PyObject_RichCompare(__pyx_t_5, __pyx_t_6, Py_EQ); __Pyx_XGOTREF(__pyx_t_7); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 833, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_7); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 834, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_7); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 833, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
     if (__pyx_t_2) {
       __pyx_t_12 = 1;
@@ -7939,7 +7939,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_28tag_get_data(struct __pyx_obj_6p
     }
     __pyx_v_entry_len = __pyx_t_12;
 
-    /* "pymoab/core.pyx":835
+    /* "pymoab/core.pyx":834
  *         else:
  *             entry_len = 1 if tag_type == types.MB_TYPE_OPAQUE else length
  *             return data.reshape((ehs.size,entry_len))             # <<<<<<<<<<<<<<
@@ -7947,13 +7947,13 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_28tag_get_data(struct __pyx_obj_6p
  *     def tag_delete_data(self, Tag tag, entity_handles, exceptions = ()):
  */
     __Pyx_XDECREF(__pyx_r);
-    __pyx_t_6 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_data), __pyx_n_s_reshape); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 835, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_data), __pyx_n_s_reshape); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 834, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
-    __pyx_t_5 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_ehs), __pyx_n_s_size); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 835, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_ehs), __pyx_n_s_size); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 834, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
-    __pyx_t_1 = __Pyx_PyInt_From_long(__pyx_v_entry_len); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 835, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyInt_From_long(__pyx_v_entry_len); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 834, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 835, __pyx_L1_error)
+    __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 834, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_GIVEREF(__pyx_t_5);
     PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_5);
@@ -7972,14 +7972,14 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_28tag_get_data(struct __pyx_obj_6p
       }
     }
     if (!__pyx_t_1) {
-      __pyx_t_7 = __Pyx_PyObject_CallOneArg(__pyx_t_6, __pyx_t_4); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 835, __pyx_L1_error)
+      __pyx_t_7 = __Pyx_PyObject_CallOneArg(__pyx_t_6, __pyx_t_4); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 834, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
       __Pyx_GOTREF(__pyx_t_7);
     } else {
       #if CYTHON_FAST_PYCALL
       if (PyFunction_Check(__pyx_t_6)) {
         PyObject *__pyx_temp[2] = {__pyx_t_1, __pyx_t_4};
-        __pyx_t_7 = __Pyx_PyFunction_FastCall(__pyx_t_6, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 835, __pyx_L1_error)
+        __pyx_t_7 = __Pyx_PyFunction_FastCall(__pyx_t_6, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 834, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
         __Pyx_GOTREF(__pyx_t_7);
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
@@ -7988,20 +7988,20 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_28tag_get_data(struct __pyx_obj_6p
       #if CYTHON_FAST_PYCCALL
       if (__Pyx_PyFastCFunction_Check(__pyx_t_6)) {
         PyObject *__pyx_temp[2] = {__pyx_t_1, __pyx_t_4};
-        __pyx_t_7 = __Pyx_PyCFunction_FastCall(__pyx_t_6, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 835, __pyx_L1_error)
+        __pyx_t_7 = __Pyx_PyCFunction_FastCall(__pyx_t_6, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 834, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
         __Pyx_GOTREF(__pyx_t_7);
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
       } else
       #endif
       {
-        __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 835, __pyx_L1_error)
+        __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 834, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_5);
         __Pyx_GIVEREF(__pyx_t_1); PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_1); __pyx_t_1 = NULL;
         __Pyx_GIVEREF(__pyx_t_4);
         PyTuple_SET_ITEM(__pyx_t_5, 0+1, __pyx_t_4);
         __pyx_t_4 = 0;
-        __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_6, __pyx_t_5, NULL); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 835, __pyx_L1_error)
+        __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_6, __pyx_t_5, NULL); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 834, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_7);
         __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       }
@@ -8040,7 +8040,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_28tag_get_data(struct __pyx_obj_6p
   return __pyx_r;
 }
 
-/* "pymoab/core.pyx":837
+/* "pymoab/core.pyx":836
  *             return data.reshape((ehs.size,entry_len))
  * 
  *     def tag_delete_data(self, Tag tag, entity_handles, exceptions = ()):             # <<<<<<<<<<<<<<
@@ -8080,7 +8080,7 @@ static PyObject *__pyx_pw_6pymoab_4core_4Core_31tag_delete_data(PyObject *__pyx_
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_entity_handles)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("tag_delete_data", 0, 2, 3, 1); __PYX_ERR(0, 837, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("tag_delete_data", 0, 2, 3, 1); __PYX_ERR(0, 836, __pyx_L3_error)
         }
         case  2:
         if (kw_args > 0) {
@@ -8089,7 +8089,7 @@ static PyObject *__pyx_pw_6pymoab_4core_4Core_31tag_delete_data(PyObject *__pyx_
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "tag_delete_data") < 0)) __PYX_ERR(0, 837, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "tag_delete_data") < 0)) __PYX_ERR(0, 836, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -8106,13 +8106,13 @@ static PyObject *__pyx_pw_6pymoab_4core_4Core_31tag_delete_data(PyObject *__pyx_
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("tag_delete_data", 0, 2, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 837, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("tag_delete_data", 0, 2, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 836, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("pymoab.core.Core.tag_delete_data", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_tag), __pyx_ptype_6pymoab_3tag_Tag, 1, "tag", 0))) __PYX_ERR(0, 837, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_tag), __pyx_ptype_6pymoab_3tag_Tag, 1, "tag", 0))) __PYX_ERR(0, 836, __pyx_L1_error)
   __pyx_r = __pyx_pf_6pymoab_4core_4Core_30tag_delete_data(((struct __pyx_obj_6pymoab_4core_Core *)__pyx_v_self), __pyx_v_tag, __pyx_v_entity_handles, __pyx_v_exceptions);
 
   /* function exit code */
@@ -8139,30 +8139,30 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_30tag_delete_data(struct __pyx_obj
   int __pyx_t_8;
   __Pyx_RefNannySetupContext("tag_delete_data", 0);
 
-  /* "pymoab/core.pyx":870
+  /* "pymoab/core.pyx":869
  *         cdef np.ndarray ehs
  *         # create a numpy array for the entity handles to be tagged
  *         if isinstance(entity_handles, _eh_py_types):             # <<<<<<<<<<<<<<
  *             ehs = _eh_array([entity_handles,])
  *         else:
  */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_eh_py_types); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 870, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_eh_py_types); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 869, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = PyObject_IsInstance(__pyx_v_entity_handles, __pyx_t_1); if (unlikely(__pyx_t_2 == -1)) __PYX_ERR(0, 870, __pyx_L1_error)
+  __pyx_t_2 = PyObject_IsInstance(__pyx_v_entity_handles, __pyx_t_1); if (unlikely(__pyx_t_2 == -1)) __PYX_ERR(0, 869, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_t_3 = (__pyx_t_2 != 0);
   if (__pyx_t_3) {
 
-    /* "pymoab/core.pyx":871
+    /* "pymoab/core.pyx":870
  *         # create a numpy array for the entity handles to be tagged
  *         if isinstance(entity_handles, _eh_py_types):
  *             ehs = _eh_array([entity_handles,])             # <<<<<<<<<<<<<<
  *         else:
  *             ehs = _eh_array(entity_handles)
  */
-    __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_eh_array); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 871, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_eh_array); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 870, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_5 = PyList_New(1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 871, __pyx_L1_error)
+    __pyx_t_5 = PyList_New(1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 870, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_INCREF(__pyx_v_entity_handles);
     __Pyx_GIVEREF(__pyx_v_entity_handles);
@@ -8178,14 +8178,14 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_30tag_delete_data(struct __pyx_obj
       }
     }
     if (!__pyx_t_6) {
-      __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_5); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 871, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_5); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 870, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       __Pyx_GOTREF(__pyx_t_1);
     } else {
       #if CYTHON_FAST_PYCALL
       if (PyFunction_Check(__pyx_t_4)) {
         PyObject *__pyx_temp[2] = {__pyx_t_6, __pyx_t_5};
-        __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 871, __pyx_L1_error)
+        __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 870, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
         __Pyx_GOTREF(__pyx_t_1);
         __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
@@ -8194,30 +8194,30 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_30tag_delete_data(struct __pyx_obj
       #if CYTHON_FAST_PYCCALL
       if (__Pyx_PyFastCFunction_Check(__pyx_t_4)) {
         PyObject *__pyx_temp[2] = {__pyx_t_6, __pyx_t_5};
-        __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 871, __pyx_L1_error)
+        __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 870, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
         __Pyx_GOTREF(__pyx_t_1);
         __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       } else
       #endif
       {
-        __pyx_t_7 = PyTuple_New(1+1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 871, __pyx_L1_error)
+        __pyx_t_7 = PyTuple_New(1+1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 870, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_7);
         __Pyx_GIVEREF(__pyx_t_6); PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_6); __pyx_t_6 = NULL;
         __Pyx_GIVEREF(__pyx_t_5);
         PyTuple_SET_ITEM(__pyx_t_7, 0+1, __pyx_t_5);
         __pyx_t_5 = 0;
-        __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_7, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 871, __pyx_L1_error)
+        __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_7, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 870, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_1);
         __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
       }
     }
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    if (!(likely(((__pyx_t_1) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_1, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 871, __pyx_L1_error)
+    if (!(likely(((__pyx_t_1) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_1, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 870, __pyx_L1_error)
     __pyx_v_ehs = ((PyArrayObject *)__pyx_t_1);
     __pyx_t_1 = 0;
 
-    /* "pymoab/core.pyx":870
+    /* "pymoab/core.pyx":869
  *         cdef np.ndarray ehs
  *         # create a numpy array for the entity handles to be tagged
  *         if isinstance(entity_handles, _eh_py_types):             # <<<<<<<<<<<<<<
@@ -8227,7 +8227,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_30tag_delete_data(struct __pyx_obj
     goto __pyx_L3;
   }
 
-  /* "pymoab/core.pyx":873
+  /* "pymoab/core.pyx":872
  *             ehs = _eh_array([entity_handles,])
  *         else:
  *             ehs = _eh_array(entity_handles)             # <<<<<<<<<<<<<<
@@ -8235,7 +8235,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_30tag_delete_data(struct __pyx_obj
  *         err = self.inst.tag_delete_data(tag.inst, <moab.EntityHandle*> ehs.data, ehs.size)
  */
   /*else*/ {
-    __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_eh_array); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 873, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_eh_array); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 872, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __pyx_t_7 = NULL;
     if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_4))) {
@@ -8248,13 +8248,13 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_30tag_delete_data(struct __pyx_obj
       }
     }
     if (!__pyx_t_7) {
-      __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_v_entity_handles); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 873, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_v_entity_handles); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 872, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
     } else {
       #if CYTHON_FAST_PYCALL
       if (PyFunction_Check(__pyx_t_4)) {
         PyObject *__pyx_temp[2] = {__pyx_t_7, __pyx_v_entity_handles};
-        __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 873, __pyx_L1_error)
+        __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 872, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_7); __pyx_t_7 = 0;
         __Pyx_GOTREF(__pyx_t_1);
       } else
@@ -8262,53 +8262,53 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_30tag_delete_data(struct __pyx_obj
       #if CYTHON_FAST_PYCCALL
       if (__Pyx_PyFastCFunction_Check(__pyx_t_4)) {
         PyObject *__pyx_temp[2] = {__pyx_t_7, __pyx_v_entity_handles};
-        __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 873, __pyx_L1_error)
+        __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 872, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_7); __pyx_t_7 = 0;
         __Pyx_GOTREF(__pyx_t_1);
       } else
       #endif
       {
-        __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 873, __pyx_L1_error)
+        __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 872, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_5);
         __Pyx_GIVEREF(__pyx_t_7); PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_7); __pyx_t_7 = NULL;
         __Pyx_INCREF(__pyx_v_entity_handles);
         __Pyx_GIVEREF(__pyx_v_entity_handles);
         PyTuple_SET_ITEM(__pyx_t_5, 0+1, __pyx_v_entity_handles);
-        __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_5, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 873, __pyx_L1_error)
+        __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_5, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 872, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_1);
         __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       }
     }
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    if (!(likely(((__pyx_t_1) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_1, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 873, __pyx_L1_error)
+    if (!(likely(((__pyx_t_1) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_1, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 872, __pyx_L1_error)
     __pyx_v_ehs = ((PyArrayObject *)__pyx_t_1);
     __pyx_t_1 = 0;
   }
   __pyx_L3:;
 
-  /* "pymoab/core.pyx":875
+  /* "pymoab/core.pyx":874
  *             ehs = _eh_array(entity_handles)
  *         # Delete the data
  *         err = self.inst.tag_delete_data(tag.inst, <moab.EntityHandle*> ehs.data, ehs.size)             # <<<<<<<<<<<<<<
  *         check_error(err, exceptions)
  * 
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_ehs), __pyx_n_s_size); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 875, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_ehs), __pyx_n_s_size); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 874, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_8 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_8 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 875, __pyx_L1_error)
+  __pyx_t_8 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_8 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 874, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_err = __pyx_v_self->inst->tag_delete_data(__pyx_v_tag->inst, ((moab::EntityHandle *)__pyx_v_ehs->data), __pyx_t_8);
 
-  /* "pymoab/core.pyx":876
+  /* "pymoab/core.pyx":875
  *         # Delete the data
  *         err = self.inst.tag_delete_data(tag.inst, <moab.EntityHandle*> ehs.data, ehs.size)
  *         check_error(err, exceptions)             # <<<<<<<<<<<<<<
  * 
  *     def tag_delete(self, Tag tag, exceptions = ()):
  */
-  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_check_error); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 876, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_check_error); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 875, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = __Pyx_PyInt_From_enum__moab_3a__3a_ErrorCode(__pyx_v_err); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 876, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyInt_From_enum__moab_3a__3a_ErrorCode(__pyx_v_err); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 875, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __pyx_t_7 = NULL;
   __pyx_t_8 = 0;
@@ -8325,7 +8325,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_30tag_delete_data(struct __pyx_obj
   #if CYTHON_FAST_PYCALL
   if (PyFunction_Check(__pyx_t_4)) {
     PyObject *__pyx_temp[3] = {__pyx_t_7, __pyx_t_5, __pyx_v_exceptions};
-    __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_8, 2+__pyx_t_8); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 876, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_8, 2+__pyx_t_8); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 875, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_7); __pyx_t_7 = 0;
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
@@ -8334,14 +8334,14 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_30tag_delete_data(struct __pyx_obj
   #if CYTHON_FAST_PYCCALL
   if (__Pyx_PyFastCFunction_Check(__pyx_t_4)) {
     PyObject *__pyx_temp[3] = {__pyx_t_7, __pyx_t_5, __pyx_v_exceptions};
-    __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_8, 2+__pyx_t_8); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 876, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_8, 2+__pyx_t_8); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 875, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_7); __pyx_t_7 = 0;
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   } else
   #endif
   {
-    __pyx_t_6 = PyTuple_New(2+__pyx_t_8); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 876, __pyx_L1_error)
+    __pyx_t_6 = PyTuple_New(2+__pyx_t_8); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 875, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     if (__pyx_t_7) {
       __Pyx_GIVEREF(__pyx_t_7); PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_7); __pyx_t_7 = NULL;
@@ -8352,14 +8352,14 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_30tag_delete_data(struct __pyx_obj
     __Pyx_GIVEREF(__pyx_v_exceptions);
     PyTuple_SET_ITEM(__pyx_t_6, 1+__pyx_t_8, __pyx_v_exceptions);
     __pyx_t_5 = 0;
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_6, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 876, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_6, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 875, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   }
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "pymoab/core.pyx":837
+  /* "pymoab/core.pyx":836
  *             return data.reshape((ehs.size,entry_len))
  * 
  *     def tag_delete_data(self, Tag tag, entity_handles, exceptions = ()):             # <<<<<<<<<<<<<<
@@ -8385,7 +8385,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_30tag_delete_data(struct __pyx_obj
   return __pyx_r;
 }
 
-/* "pymoab/core.pyx":878
+/* "pymoab/core.pyx":877
  *         check_error(err, exceptions)
  * 
  *     def tag_delete(self, Tag tag, exceptions = ()):             # <<<<<<<<<<<<<<
@@ -8427,7 +8427,7 @@ static PyObject *__pyx_pw_6pymoab_4core_4Core_33tag_delete(PyObject *__pyx_v_sel
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "tag_delete") < 0)) __PYX_ERR(0, 878, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "tag_delete") < 0)) __PYX_ERR(0, 877, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -8442,13 +8442,13 @@ static PyObject *__pyx_pw_6pymoab_4core_4Core_33tag_delete(PyObject *__pyx_v_sel
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("tag_delete", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 878, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("tag_delete", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 877, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("pymoab.core.Core.tag_delete", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_tag), __pyx_ptype_6pymoab_3tag_Tag, 1, "tag", 0))) __PYX_ERR(0, 878, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_tag), __pyx_ptype_6pymoab_3tag_Tag, 1, "tag", 0))) __PYX_ERR(0, 877, __pyx_L1_error)
   __pyx_r = __pyx_pf_6pymoab_4core_4Core_32tag_delete(((struct __pyx_obj_6pymoab_4core_Core *)__pyx_v_self), __pyx_v_tag, __pyx_v_exceptions);
 
   /* function exit code */
@@ -8472,7 +8472,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_32tag_delete(struct __pyx_obj_6pym
   PyObject *__pyx_t_6 = NULL;
   __Pyx_RefNannySetupContext("tag_delete", 0);
 
-  /* "pymoab/core.pyx":903
+  /* "pymoab/core.pyx":902
  *         cdef moab.ErrorCode err
  *         # Delete the tag
  *         err = self.inst.tag_delete(tag.inst)             # <<<<<<<<<<<<<<
@@ -8481,16 +8481,16 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_32tag_delete(struct __pyx_obj_6pym
  */
   __pyx_v_err = __pyx_v_self->inst->tag_delete(__pyx_v_tag->inst);
 
-  /* "pymoab/core.pyx":904
+  /* "pymoab/core.pyx":903
  *         # Delete the tag
  *         err = self.inst.tag_delete(tag.inst)
  *         check_error(err, exceptions)             # <<<<<<<<<<<<<<
  * 
  *     def get_adjacencies(self, entity_handles, int to_dim, bint create_if_missing = False, exceptions = ()):
  */
-  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_check_error); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 904, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_check_error); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 903, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyInt_From_enum__moab_3a__3a_ErrorCode(__pyx_v_err); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 904, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_From_enum__moab_3a__3a_ErrorCode(__pyx_v_err); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 903, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __pyx_t_4 = NULL;
   __pyx_t_5 = 0;
@@ -8507,7 +8507,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_32tag_delete(struct __pyx_obj_6pym
   #if CYTHON_FAST_PYCALL
   if (PyFunction_Check(__pyx_t_2)) {
     PyObject *__pyx_temp[3] = {__pyx_t_4, __pyx_t_3, __pyx_v_exceptions};
-    __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-__pyx_t_5, 2+__pyx_t_5); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 904, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-__pyx_t_5, 2+__pyx_t_5); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 903, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -8516,14 +8516,14 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_32tag_delete(struct __pyx_obj_6pym
   #if CYTHON_FAST_PYCCALL
   if (__Pyx_PyFastCFunction_Check(__pyx_t_2)) {
     PyObject *__pyx_temp[3] = {__pyx_t_4, __pyx_t_3, __pyx_v_exceptions};
-    __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-__pyx_t_5, 2+__pyx_t_5); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 904, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-__pyx_t_5, 2+__pyx_t_5); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 903, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   } else
   #endif
   {
-    __pyx_t_6 = PyTuple_New(2+__pyx_t_5); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 904, __pyx_L1_error)
+    __pyx_t_6 = PyTuple_New(2+__pyx_t_5); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 903, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     if (__pyx_t_4) {
       __Pyx_GIVEREF(__pyx_t_4); PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_4); __pyx_t_4 = NULL;
@@ -8534,14 +8534,14 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_32tag_delete(struct __pyx_obj_6pym
     __Pyx_GIVEREF(__pyx_v_exceptions);
     PyTuple_SET_ITEM(__pyx_t_6, 1+__pyx_t_5, __pyx_v_exceptions);
     __pyx_t_3 = 0;
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_6, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 904, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_6, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 903, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   }
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "pymoab/core.pyx":878
+  /* "pymoab/core.pyx":877
  *         check_error(err, exceptions)
  * 
  *     def tag_delete(self, Tag tag, exceptions = ()):             # <<<<<<<<<<<<<<
@@ -8566,7 +8566,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_32tag_delete(struct __pyx_obj_6pym
   return __pyx_r;
 }
 
-/* "pymoab/core.pyx":906
+/* "pymoab/core.pyx":905
  *         check_error(err, exceptions)
  * 
  *     def get_adjacencies(self, entity_handles, int to_dim, bint create_if_missing = False, exceptions = ()):             # <<<<<<<<<<<<<<
@@ -8608,7 +8608,7 @@ static PyObject *__pyx_pw_6pymoab_4core_4Core_35get_adjacencies(PyObject *__pyx_
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_to_dim)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("get_adjacencies", 0, 2, 4, 1); __PYX_ERR(0, 906, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("get_adjacencies", 0, 2, 4, 1); __PYX_ERR(0, 905, __pyx_L3_error)
         }
         case  2:
         if (kw_args > 0) {
@@ -8622,7 +8622,7 @@ static PyObject *__pyx_pw_6pymoab_4core_4Core_35get_adjacencies(PyObject *__pyx_
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "get_adjacencies") < 0)) __PYX_ERR(0, 906, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "get_adjacencies") < 0)) __PYX_ERR(0, 905, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -8635,9 +8635,9 @@ static PyObject *__pyx_pw_6pymoab_4core_4Core_35get_adjacencies(PyObject *__pyx_
       }
     }
     __pyx_v_entity_handles = values[0];
-    __pyx_v_to_dim = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_to_dim == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 906, __pyx_L3_error)
+    __pyx_v_to_dim = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_to_dim == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 905, __pyx_L3_error)
     if (values[2]) {
-      __pyx_v_create_if_missing = __Pyx_PyObject_IsTrue(values[2]); if (unlikely((__pyx_v_create_if_missing == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 906, __pyx_L3_error)
+      __pyx_v_create_if_missing = __Pyx_PyObject_IsTrue(values[2]); if (unlikely((__pyx_v_create_if_missing == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 905, __pyx_L3_error)
     } else {
       __pyx_v_create_if_missing = ((int)0);
     }
@@ -8645,7 +8645,7 @@ static PyObject *__pyx_pw_6pymoab_4core_4Core_35get_adjacencies(PyObject *__pyx_
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("get_adjacencies", 0, 2, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 906, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("get_adjacencies", 0, 2, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 905, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("pymoab.core.Core.get_adjacencies", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -8672,37 +8672,37 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_34get_adjacencies(struct __pyx_obj
   PyObject *__pyx_t_6 = NULL;
   __Pyx_RefNannySetupContext("get_adjacencies", 0);
 
-  /* "pymoab/core.pyx":952
+  /* "pymoab/core.pyx":951
  *         cdef moab.ErrorCode err
  *         cdef Range r
  *         cdef Range adj = Range()             # <<<<<<<<<<<<<<
  *         r = Range(entity_handles)
  *         err = self.inst.get_adjacencies(deref(r.inst), to_dim, create_if_missing, deref(adj.inst))
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_6pymoab_3rng_Range), __pyx_empty_tuple, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 952, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_6pymoab_3rng_Range), __pyx_empty_tuple, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 951, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_adj = ((struct __pyx_obj_6pymoab_3rng_Range *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "pymoab/core.pyx":953
+  /* "pymoab/core.pyx":952
  *         cdef Range r
  *         cdef Range adj = Range()
  *         r = Range(entity_handles)             # <<<<<<<<<<<<<<
  *         err = self.inst.get_adjacencies(deref(r.inst), to_dim, create_if_missing, deref(adj.inst))
  *         check_error(err, exceptions)
  */
-  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 953, __pyx_L1_error)
+  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 952, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_INCREF(__pyx_v_entity_handles);
   __Pyx_GIVEREF(__pyx_v_entity_handles);
   PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_v_entity_handles);
-  __pyx_t_2 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_6pymoab_3rng_Range), __pyx_t_1, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 953, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_6pymoab_3rng_Range), __pyx_t_1, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 952, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_r = ((struct __pyx_obj_6pymoab_3rng_Range *)__pyx_t_2);
   __pyx_t_2 = 0;
 
-  /* "pymoab/core.pyx":954
+  /* "pymoab/core.pyx":953
  *         cdef Range adj = Range()
  *         r = Range(entity_handles)
  *         err = self.inst.get_adjacencies(deref(r.inst), to_dim, create_if_missing, deref(adj.inst))             # <<<<<<<<<<<<<<
@@ -8711,16 +8711,16 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_34get_adjacencies(struct __pyx_obj
  */
   __pyx_v_err = __pyx_v_self->inst->get_adjacencies((*__pyx_v_r->inst), __pyx_v_to_dim, __pyx_v_create_if_missing, (*__pyx_v_adj->inst), NULL);
 
-  /* "pymoab/core.pyx":955
+  /* "pymoab/core.pyx":954
  *         r = Range(entity_handles)
  *         err = self.inst.get_adjacencies(deref(r.inst), to_dim, create_if_missing, deref(adj.inst))
  *         check_error(err, exceptions)             # <<<<<<<<<<<<<<
  *         return adj
  * 
  */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_check_error); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 955, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_check_error); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 954, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __Pyx_PyInt_From_enum__moab_3a__3a_ErrorCode(__pyx_v_err); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 955, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_From_enum__moab_3a__3a_ErrorCode(__pyx_v_err); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 954, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __pyx_t_4 = NULL;
   __pyx_t_5 = 0;
@@ -8737,7 +8737,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_34get_adjacencies(struct __pyx_obj
   #if CYTHON_FAST_PYCALL
   if (PyFunction_Check(__pyx_t_1)) {
     PyObject *__pyx_temp[3] = {__pyx_t_4, __pyx_t_3, __pyx_v_exceptions};
-    __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_1, __pyx_temp+1-__pyx_t_5, 2+__pyx_t_5); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 955, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_1, __pyx_temp+1-__pyx_t_5, 2+__pyx_t_5); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 954, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -8746,14 +8746,14 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_34get_adjacencies(struct __pyx_obj
   #if CYTHON_FAST_PYCCALL
   if (__Pyx_PyFastCFunction_Check(__pyx_t_1)) {
     PyObject *__pyx_temp[3] = {__pyx_t_4, __pyx_t_3, __pyx_v_exceptions};
-    __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_1, __pyx_temp+1-__pyx_t_5, 2+__pyx_t_5); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 955, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_1, __pyx_temp+1-__pyx_t_5, 2+__pyx_t_5); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 954, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   } else
   #endif
   {
-    __pyx_t_6 = PyTuple_New(2+__pyx_t_5); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 955, __pyx_L1_error)
+    __pyx_t_6 = PyTuple_New(2+__pyx_t_5); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 954, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     if (__pyx_t_4) {
       __Pyx_GIVEREF(__pyx_t_4); PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_4); __pyx_t_4 = NULL;
@@ -8764,14 +8764,14 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_34get_adjacencies(struct __pyx_obj
     __Pyx_GIVEREF(__pyx_v_exceptions);
     PyTuple_SET_ITEM(__pyx_t_6, 1+__pyx_t_5, __pyx_v_exceptions);
     __pyx_t_3 = 0;
-    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_6, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 955, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_6, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 954, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   }
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "pymoab/core.pyx":956
+  /* "pymoab/core.pyx":955
  *         err = self.inst.get_adjacencies(deref(r.inst), to_dim, create_if_missing, deref(adj.inst))
  *         check_error(err, exceptions)
  *         return adj             # <<<<<<<<<<<<<<
@@ -8783,7 +8783,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_34get_adjacencies(struct __pyx_obj
   __pyx_r = ((PyObject *)__pyx_v_adj);
   goto __pyx_L0;
 
-  /* "pymoab/core.pyx":906
+  /* "pymoab/core.pyx":905
  *         check_error(err, exceptions)
  * 
  *     def get_adjacencies(self, entity_handles, int to_dim, bint create_if_missing = False, exceptions = ()):             # <<<<<<<<<<<<<<
@@ -8808,7 +8808,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_34get_adjacencies(struct __pyx_obj
   return __pyx_r;
 }
 
-/* "pymoab/core.pyx":958
+/* "pymoab/core.pyx":957
  *         return adj
  * 
  *     def type_from_handle(self, entity_handle):             # <<<<<<<<<<<<<<
@@ -8838,17 +8838,17 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_36type_from_handle(struct __pyx_ob
   PyObject *__pyx_t_2 = NULL;
   __Pyx_RefNannySetupContext("type_from_handle", 0);
 
-  /* "pymoab/core.pyx":1000
+  /* "pymoab/core.pyx":999
  *         """
  *         cdef moab.EntityType t
  *         t = self.inst.type_from_handle(<unsigned long> entity_handle)             # <<<<<<<<<<<<<<
  *         return t
  * 
  */
-  __pyx_t_1 = __Pyx_PyInt_As_unsigned_long(__pyx_v_entity_handle); if (unlikely((__pyx_t_1 == (unsigned long)-1) && PyErr_Occurred())) __PYX_ERR(0, 1000, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_As_unsigned_long(__pyx_v_entity_handle); if (unlikely((__pyx_t_1 == (unsigned long)-1) && PyErr_Occurred())) __PYX_ERR(0, 999, __pyx_L1_error)
   __pyx_v_t = __pyx_v_self->inst->type_from_handle(((unsigned long)__pyx_t_1));
 
-  /* "pymoab/core.pyx":1001
+  /* "pymoab/core.pyx":1000
  *         cdef moab.EntityType t
  *         t = self.inst.type_from_handle(<unsigned long> entity_handle)
  *         return t             # <<<<<<<<<<<<<<
@@ -8856,13 +8856,13 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_36type_from_handle(struct __pyx_ob
  *     def get_child_meshsets(self, meshset_handle, num_hops = 1, exceptions = ()):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_2 = __Pyx_PyInt_From_moab_3a__3a_EntityType(__pyx_v_t); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1001, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyInt_From_moab_3a__3a_EntityType(__pyx_v_t); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1000, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_r = __pyx_t_2;
   __pyx_t_2 = 0;
   goto __pyx_L0;
 
-  /* "pymoab/core.pyx":958
+  /* "pymoab/core.pyx":957
  *         return adj
  * 
  *     def type_from_handle(self, entity_handle):             # <<<<<<<<<<<<<<
@@ -8881,7 +8881,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_36type_from_handle(struct __pyx_ob
   return __pyx_r;
 }
 
-/* "pymoab/core.pyx":1003
+/* "pymoab/core.pyx":1002
  *         return t
  * 
  *     def get_child_meshsets(self, meshset_handle, num_hops = 1, exceptions = ()):             # <<<<<<<<<<<<<<
@@ -8931,7 +8931,7 @@ static PyObject *__pyx_pw_6pymoab_4core_4Core_39get_child_meshsets(PyObject *__p
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "get_child_meshsets") < 0)) __PYX_ERR(0, 1003, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "get_child_meshsets") < 0)) __PYX_ERR(0, 1002, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -8948,7 +8948,7 @@ static PyObject *__pyx_pw_6pymoab_4core_4Core_39get_child_meshsets(PyObject *__p
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("get_child_meshsets", 0, 1, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 1003, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("get_child_meshsets", 0, 1, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 1002, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("pymoab.core.Core.get_child_meshsets", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -8975,39 +8975,39 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_38get_child_meshsets(struct __pyx_
   PyObject *__pyx_t_7 = NULL;
   __Pyx_RefNannySetupContext("get_child_meshsets", 0);
 
-  /* "pymoab/core.pyx":1039
+  /* "pymoab/core.pyx":1038
  *         """
  *         cdef moab.ErrorCode err
  *         cdef Range r = Range()             # <<<<<<<<<<<<<<
  *         err = self.inst.get_child_meshsets(<unsigned long> meshset_handle, deref(r.inst), num_hops)
  *         check_error(err, exceptions)
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_6pymoab_3rng_Range), __pyx_empty_tuple, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1039, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_6pymoab_3rng_Range), __pyx_empty_tuple, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1038, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_r = ((struct __pyx_obj_6pymoab_3rng_Range *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "pymoab/core.pyx":1040
+  /* "pymoab/core.pyx":1039
  *         cdef moab.ErrorCode err
  *         cdef Range r = Range()
  *         err = self.inst.get_child_meshsets(<unsigned long> meshset_handle, deref(r.inst), num_hops)             # <<<<<<<<<<<<<<
  *         check_error(err, exceptions)
  *         return r
  */
-  __pyx_t_2 = __Pyx_PyInt_As_unsigned_long(__pyx_v_meshset_handle); if (unlikely((__pyx_t_2 == (unsigned long)-1) && PyErr_Occurred())) __PYX_ERR(0, 1040, __pyx_L1_error)
-  __pyx_t_3 = __Pyx_PyInt_As_int(__pyx_v_num_hops); if (unlikely((__pyx_t_3 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 1040, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyInt_As_unsigned_long(__pyx_v_meshset_handle); if (unlikely((__pyx_t_2 == (unsigned long)-1) && PyErr_Occurred())) __PYX_ERR(0, 1039, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_As_int(__pyx_v_num_hops); if (unlikely((__pyx_t_3 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 1039, __pyx_L1_error)
   __pyx_v_err = __pyx_v_self->inst->get_child_meshsets(((unsigned long)__pyx_t_2), (*__pyx_v_r->inst), __pyx_t_3);
 
-  /* "pymoab/core.pyx":1041
+  /* "pymoab/core.pyx":1040
  *         cdef Range r = Range()
  *         err = self.inst.get_child_meshsets(<unsigned long> meshset_handle, deref(r.inst), num_hops)
  *         check_error(err, exceptions)             # <<<<<<<<<<<<<<
  *         return r
  * 
  */
-  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_check_error); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1041, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_check_error); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1040, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = __Pyx_PyInt_From_enum__moab_3a__3a_ErrorCode(__pyx_v_err); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1041, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyInt_From_enum__moab_3a__3a_ErrorCode(__pyx_v_err); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1040, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __pyx_t_6 = NULL;
   __pyx_t_3 = 0;
@@ -9024,7 +9024,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_38get_child_meshsets(struct __pyx_
   #if CYTHON_FAST_PYCALL
   if (PyFunction_Check(__pyx_t_4)) {
     PyObject *__pyx_temp[3] = {__pyx_t_6, __pyx_t_5, __pyx_v_exceptions};
-    __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_3, 2+__pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1041, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_3, 2+__pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1040, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
@@ -9033,14 +9033,14 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_38get_child_meshsets(struct __pyx_
   #if CYTHON_FAST_PYCCALL
   if (__Pyx_PyFastCFunction_Check(__pyx_t_4)) {
     PyObject *__pyx_temp[3] = {__pyx_t_6, __pyx_t_5, __pyx_v_exceptions};
-    __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_3, 2+__pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1041, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_3, 2+__pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1040, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   } else
   #endif
   {
-    __pyx_t_7 = PyTuple_New(2+__pyx_t_3); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 1041, __pyx_L1_error)
+    __pyx_t_7 = PyTuple_New(2+__pyx_t_3); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 1040, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
     if (__pyx_t_6) {
       __Pyx_GIVEREF(__pyx_t_6); PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_6); __pyx_t_6 = NULL;
@@ -9051,14 +9051,14 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_38get_child_meshsets(struct __pyx_
     __Pyx_GIVEREF(__pyx_v_exceptions);
     PyTuple_SET_ITEM(__pyx_t_7, 1+__pyx_t_3, __pyx_v_exceptions);
     __pyx_t_5 = 0;
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_7, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1041, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_7, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1040, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   }
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "pymoab/core.pyx":1042
+  /* "pymoab/core.pyx":1041
  *         err = self.inst.get_child_meshsets(<unsigned long> meshset_handle, deref(r.inst), num_hops)
  *         check_error(err, exceptions)
  *         return r             # <<<<<<<<<<<<<<
@@ -9070,7 +9070,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_38get_child_meshsets(struct __pyx_
   __pyx_r = ((PyObject *)__pyx_v_r);
   goto __pyx_L0;
 
-  /* "pymoab/core.pyx":1003
+  /* "pymoab/core.pyx":1002
  *         return t
  * 
  *     def get_child_meshsets(self, meshset_handle, num_hops = 1, exceptions = ()):             # <<<<<<<<<<<<<<
@@ -9094,7 +9094,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_38get_child_meshsets(struct __pyx_
   return __pyx_r;
 }
 
-/* "pymoab/core.pyx":1044
+/* "pymoab/core.pyx":1043
  *         return r
  * 
  *     def get_parent_meshsets(self, meshset_handle, num_hops = 1, exceptions = ()):             # <<<<<<<<<<<<<<
@@ -9144,7 +9144,7 @@ static PyObject *__pyx_pw_6pymoab_4core_4Core_41get_parent_meshsets(PyObject *__
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "get_parent_meshsets") < 0)) __PYX_ERR(0, 1044, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "get_parent_meshsets") < 0)) __PYX_ERR(0, 1043, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -9161,7 +9161,7 @@ static PyObject *__pyx_pw_6pymoab_4core_4Core_41get_parent_meshsets(PyObject *__
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("get_parent_meshsets", 0, 1, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 1044, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("get_parent_meshsets", 0, 1, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 1043, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("pymoab.core.Core.get_parent_meshsets", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -9188,38 +9188,38 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_40get_parent_meshsets(struct __pyx
   PyObject *__pyx_t_7 = NULL;
   __Pyx_RefNannySetupContext("get_parent_meshsets", 0);
 
-  /* "pymoab/core.pyx":1080
+  /* "pymoab/core.pyx":1079
  *         """
  *         cdef moab.ErrorCode err
  *         cdef Range r = Range()             # <<<<<<<<<<<<<<
  *         err = self.inst.get_parent_meshsets(<unsigned long> meshset_handle, deref(r.inst), 0)
  *         check_error(err, exceptions)
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_6pymoab_3rng_Range), __pyx_empty_tuple, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1080, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_6pymoab_3rng_Range), __pyx_empty_tuple, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1079, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_r = ((struct __pyx_obj_6pymoab_3rng_Range *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "pymoab/core.pyx":1081
+  /* "pymoab/core.pyx":1080
  *         cdef moab.ErrorCode err
  *         cdef Range r = Range()
  *         err = self.inst.get_parent_meshsets(<unsigned long> meshset_handle, deref(r.inst), 0)             # <<<<<<<<<<<<<<
  *         check_error(err, exceptions)
  *         return r
  */
-  __pyx_t_2 = __Pyx_PyInt_As_unsigned_long(__pyx_v_meshset_handle); if (unlikely((__pyx_t_2 == (unsigned long)-1) && PyErr_Occurred())) __PYX_ERR(0, 1081, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyInt_As_unsigned_long(__pyx_v_meshset_handle); if (unlikely((__pyx_t_2 == (unsigned long)-1) && PyErr_Occurred())) __PYX_ERR(0, 1080, __pyx_L1_error)
   __pyx_v_err = __pyx_v_self->inst->get_parent_meshsets(((unsigned long)__pyx_t_2), (*__pyx_v_r->inst), 0);
 
-  /* "pymoab/core.pyx":1082
+  /* "pymoab/core.pyx":1081
  *         cdef Range r = Range()
  *         err = self.inst.get_parent_meshsets(<unsigned long> meshset_handle, deref(r.inst), 0)
  *         check_error(err, exceptions)             # <<<<<<<<<<<<<<
  *         return r
  * 
  */
-  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_check_error); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1082, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_check_error); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1081, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = __Pyx_PyInt_From_enum__moab_3a__3a_ErrorCode(__pyx_v_err); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1082, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyInt_From_enum__moab_3a__3a_ErrorCode(__pyx_v_err); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1081, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __pyx_t_5 = NULL;
   __pyx_t_6 = 0;
@@ -9236,7 +9236,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_40get_parent_meshsets(struct __pyx
   #if CYTHON_FAST_PYCALL
   if (PyFunction_Check(__pyx_t_3)) {
     PyObject *__pyx_temp[3] = {__pyx_t_5, __pyx_t_4, __pyx_v_exceptions};
-    __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_6, 2+__pyx_t_6); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1082, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_6, 2+__pyx_t_6); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1081, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
@@ -9245,14 +9245,14 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_40get_parent_meshsets(struct __pyx
   #if CYTHON_FAST_PYCCALL
   if (__Pyx_PyFastCFunction_Check(__pyx_t_3)) {
     PyObject *__pyx_temp[3] = {__pyx_t_5, __pyx_t_4, __pyx_v_exceptions};
-    __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_6, 2+__pyx_t_6); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1082, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_6, 2+__pyx_t_6); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1081, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   } else
   #endif
   {
-    __pyx_t_7 = PyTuple_New(2+__pyx_t_6); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 1082, __pyx_L1_error)
+    __pyx_t_7 = PyTuple_New(2+__pyx_t_6); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 1081, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
     if (__pyx_t_5) {
       __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_5); __pyx_t_5 = NULL;
@@ -9263,14 +9263,14 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_40get_parent_meshsets(struct __pyx
     __Pyx_GIVEREF(__pyx_v_exceptions);
     PyTuple_SET_ITEM(__pyx_t_7, 1+__pyx_t_6, __pyx_v_exceptions);
     __pyx_t_4 = 0;
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_7, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1082, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_7, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1081, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   }
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "pymoab/core.pyx":1083
+  /* "pymoab/core.pyx":1082
  *         err = self.inst.get_parent_meshsets(<unsigned long> meshset_handle, deref(r.inst), 0)
  *         check_error(err, exceptions)
  *         return r             # <<<<<<<<<<<<<<
@@ -9282,7 +9282,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_40get_parent_meshsets(struct __pyx
   __pyx_r = ((PyObject *)__pyx_v_r);
   goto __pyx_L0;
 
-  /* "pymoab/core.pyx":1044
+  /* "pymoab/core.pyx":1043
  *         return r
  * 
  *     def get_parent_meshsets(self, meshset_handle, num_hops = 1, exceptions = ()):             # <<<<<<<<<<<<<<
@@ -9306,7 +9306,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_40get_parent_meshsets(struct __pyx
   return __pyx_r;
 }
 
-/* "pymoab/core.pyx":1085
+/* "pymoab/core.pyx":1084
  *         return r
  * 
  *     def add_parent_meshset(self, child_meshset, parent_meshset, exceptions = ()):             # <<<<<<<<<<<<<<
@@ -9346,7 +9346,7 @@ static PyObject *__pyx_pw_6pymoab_4core_4Core_43add_parent_meshset(PyObject *__p
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_parent_meshset)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("add_parent_meshset", 0, 2, 3, 1); __PYX_ERR(0, 1085, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("add_parent_meshset", 0, 2, 3, 1); __PYX_ERR(0, 1084, __pyx_L3_error)
         }
         case  2:
         if (kw_args > 0) {
@@ -9355,7 +9355,7 @@ static PyObject *__pyx_pw_6pymoab_4core_4Core_43add_parent_meshset(PyObject *__p
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "add_parent_meshset") < 0)) __PYX_ERR(0, 1085, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "add_parent_meshset") < 0)) __PYX_ERR(0, 1084, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -9372,7 +9372,7 @@ static PyObject *__pyx_pw_6pymoab_4core_4Core_43add_parent_meshset(PyObject *__p
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("add_parent_meshset", 0, 2, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 1085, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("add_parent_meshset", 0, 2, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 1084, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("pymoab.core.Core.add_parent_meshset", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -9399,27 +9399,27 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_42add_parent_meshset(struct __pyx_
   PyObject *__pyx_t_8 = NULL;
   __Pyx_RefNannySetupContext("add_parent_meshset", 0);
 
-  /* "pymoab/core.pyx":1118
+  /* "pymoab/core.pyx":1117
  *         """
  *         cdef moab.ErrorCode err
  *         err = self.inst.add_parent_meshset(<unsigned long> child_meshset, <unsigned long> parent_meshset)             # <<<<<<<<<<<<<<
  *         check_error(err, exceptions)
  * 
  */
-  __pyx_t_1 = __Pyx_PyInt_As_unsigned_long(__pyx_v_child_meshset); if (unlikely((__pyx_t_1 == (unsigned long)-1) && PyErr_Occurred())) __PYX_ERR(0, 1118, __pyx_L1_error)
-  __pyx_t_2 = __Pyx_PyInt_As_unsigned_long(__pyx_v_parent_meshset); if (unlikely((__pyx_t_2 == (unsigned long)-1) && PyErr_Occurred())) __PYX_ERR(0, 1118, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_As_unsigned_long(__pyx_v_child_meshset); if (unlikely((__pyx_t_1 == (unsigned long)-1) && PyErr_Occurred())) __PYX_ERR(0, 1117, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyInt_As_unsigned_long(__pyx_v_parent_meshset); if (unlikely((__pyx_t_2 == (unsigned long)-1) && PyErr_Occurred())) __PYX_ERR(0, 1117, __pyx_L1_error)
   __pyx_v_err = __pyx_v_self->inst->add_parent_meshset(((unsigned long)__pyx_t_1), ((unsigned long)__pyx_t_2));
 
-  /* "pymoab/core.pyx":1119
+  /* "pymoab/core.pyx":1118
  *         cdef moab.ErrorCode err
  *         err = self.inst.add_parent_meshset(<unsigned long> child_meshset, <unsigned long> parent_meshset)
  *         check_error(err, exceptions)             # <<<<<<<<<<<<<<
  * 
  *     def add_child_meshset(self, parent_meshset, child_meshset, exceptions = ()):
  */
-  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_check_error); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1119, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_check_error); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1118, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = __Pyx_PyInt_From_enum__moab_3a__3a_ErrorCode(__pyx_v_err); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1119, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyInt_From_enum__moab_3a__3a_ErrorCode(__pyx_v_err); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1118, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __pyx_t_6 = NULL;
   __pyx_t_7 = 0;
@@ -9436,7 +9436,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_42add_parent_meshset(struct __pyx_
   #if CYTHON_FAST_PYCALL
   if (PyFunction_Check(__pyx_t_4)) {
     PyObject *__pyx_temp[3] = {__pyx_t_6, __pyx_t_5, __pyx_v_exceptions};
-    __pyx_t_3 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_7, 2+__pyx_t_7); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1119, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_7, 2+__pyx_t_7); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1118, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
@@ -9445,14 +9445,14 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_42add_parent_meshset(struct __pyx_
   #if CYTHON_FAST_PYCCALL
   if (__Pyx_PyFastCFunction_Check(__pyx_t_4)) {
     PyObject *__pyx_temp[3] = {__pyx_t_6, __pyx_t_5, __pyx_v_exceptions};
-    __pyx_t_3 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_7, 2+__pyx_t_7); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1119, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_7, 2+__pyx_t_7); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1118, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   } else
   #endif
   {
-    __pyx_t_8 = PyTuple_New(2+__pyx_t_7); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 1119, __pyx_L1_error)
+    __pyx_t_8 = PyTuple_New(2+__pyx_t_7); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 1118, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_8);
     if (__pyx_t_6) {
       __Pyx_GIVEREF(__pyx_t_6); PyTuple_SET_ITEM(__pyx_t_8, 0, __pyx_t_6); __pyx_t_6 = NULL;
@@ -9463,14 +9463,14 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_42add_parent_meshset(struct __pyx_
     __Pyx_GIVEREF(__pyx_v_exceptions);
     PyTuple_SET_ITEM(__pyx_t_8, 1+__pyx_t_7, __pyx_v_exceptions);
     __pyx_t_5 = 0;
-    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_8, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1119, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_8, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1118, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
   }
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "pymoab/core.pyx":1085
+  /* "pymoab/core.pyx":1084
  *         return r
  * 
  *     def add_parent_meshset(self, child_meshset, parent_meshset, exceptions = ()):             # <<<<<<<<<<<<<<
@@ -9495,7 +9495,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_42add_parent_meshset(struct __pyx_
   return __pyx_r;
 }
 
-/* "pymoab/core.pyx":1121
+/* "pymoab/core.pyx":1120
  *         check_error(err, exceptions)
  * 
  *     def add_child_meshset(self, parent_meshset, child_meshset, exceptions = ()):             # <<<<<<<<<<<<<<
@@ -9535,7 +9535,7 @@ static PyObject *__pyx_pw_6pymoab_4core_4Core_45add_child_meshset(PyObject *__py
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_child_meshset)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("add_child_meshset", 0, 2, 3, 1); __PYX_ERR(0, 1121, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("add_child_meshset", 0, 2, 3, 1); __PYX_ERR(0, 1120, __pyx_L3_error)
         }
         case  2:
         if (kw_args > 0) {
@@ -9544,7 +9544,7 @@ static PyObject *__pyx_pw_6pymoab_4core_4Core_45add_child_meshset(PyObject *__py
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "add_child_meshset") < 0)) __PYX_ERR(0, 1121, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "add_child_meshset") < 0)) __PYX_ERR(0, 1120, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -9561,7 +9561,7 @@ static PyObject *__pyx_pw_6pymoab_4core_4Core_45add_child_meshset(PyObject *__py
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("add_child_meshset", 0, 2, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 1121, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("add_child_meshset", 0, 2, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 1120, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("pymoab.core.Core.add_child_meshset", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -9588,27 +9588,27 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_44add_child_meshset(struct __pyx_o
   PyObject *__pyx_t_8 = NULL;
   __Pyx_RefNannySetupContext("add_child_meshset", 0);
 
-  /* "pymoab/core.pyx":1154
+  /* "pymoab/core.pyx":1153
  *         """
  *         cdef moab.ErrorCode err
  *         err = self.inst.add_child_meshset(<unsigned long> parent_meshset, <unsigned long> child_meshset)             # <<<<<<<<<<<<<<
  *         check_error(err, exceptions)
  * 
  */
-  __pyx_t_1 = __Pyx_PyInt_As_unsigned_long(__pyx_v_parent_meshset); if (unlikely((__pyx_t_1 == (unsigned long)-1) && PyErr_Occurred())) __PYX_ERR(0, 1154, __pyx_L1_error)
-  __pyx_t_2 = __Pyx_PyInt_As_unsigned_long(__pyx_v_child_meshset); if (unlikely((__pyx_t_2 == (unsigned long)-1) && PyErr_Occurred())) __PYX_ERR(0, 1154, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_As_unsigned_long(__pyx_v_parent_meshset); if (unlikely((__pyx_t_1 == (unsigned long)-1) && PyErr_Occurred())) __PYX_ERR(0, 1153, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyInt_As_unsigned_long(__pyx_v_child_meshset); if (unlikely((__pyx_t_2 == (unsigned long)-1) && PyErr_Occurred())) __PYX_ERR(0, 1153, __pyx_L1_error)
   __pyx_v_err = __pyx_v_self->inst->add_child_meshset(((unsigned long)__pyx_t_1), ((unsigned long)__pyx_t_2));
 
-  /* "pymoab/core.pyx":1155
+  /* "pymoab/core.pyx":1154
  *         cdef moab.ErrorCode err
  *         err = self.inst.add_child_meshset(<unsigned long> parent_meshset, <unsigned long> child_meshset)
  *         check_error(err, exceptions)             # <<<<<<<<<<<<<<
  * 
  *     def add_parent_child(self, parent_meshset, child_meshset, exceptions = ()):
  */
-  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_check_error); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1155, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_check_error); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1154, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = __Pyx_PyInt_From_enum__moab_3a__3a_ErrorCode(__pyx_v_err); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1155, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyInt_From_enum__moab_3a__3a_ErrorCode(__pyx_v_err); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1154, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __pyx_t_6 = NULL;
   __pyx_t_7 = 0;
@@ -9625,7 +9625,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_44add_child_meshset(struct __pyx_o
   #if CYTHON_FAST_PYCALL
   if (PyFunction_Check(__pyx_t_4)) {
     PyObject *__pyx_temp[3] = {__pyx_t_6, __pyx_t_5, __pyx_v_exceptions};
-    __pyx_t_3 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_7, 2+__pyx_t_7); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1155, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_7, 2+__pyx_t_7); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1154, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
@@ -9634,14 +9634,14 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_44add_child_meshset(struct __pyx_o
   #if CYTHON_FAST_PYCCALL
   if (__Pyx_PyFastCFunction_Check(__pyx_t_4)) {
     PyObject *__pyx_temp[3] = {__pyx_t_6, __pyx_t_5, __pyx_v_exceptions};
-    __pyx_t_3 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_7, 2+__pyx_t_7); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1155, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_7, 2+__pyx_t_7); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1154, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   } else
   #endif
   {
-    __pyx_t_8 = PyTuple_New(2+__pyx_t_7); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 1155, __pyx_L1_error)
+    __pyx_t_8 = PyTuple_New(2+__pyx_t_7); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 1154, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_8);
     if (__pyx_t_6) {
       __Pyx_GIVEREF(__pyx_t_6); PyTuple_SET_ITEM(__pyx_t_8, 0, __pyx_t_6); __pyx_t_6 = NULL;
@@ -9652,14 +9652,14 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_44add_child_meshset(struct __pyx_o
     __Pyx_GIVEREF(__pyx_v_exceptions);
     PyTuple_SET_ITEM(__pyx_t_8, 1+__pyx_t_7, __pyx_v_exceptions);
     __pyx_t_5 = 0;
-    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_8, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1155, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_8, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1154, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
   }
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "pymoab/core.pyx":1121
+  /* "pymoab/core.pyx":1120
  *         check_error(err, exceptions)
  * 
  *     def add_child_meshset(self, parent_meshset, child_meshset, exceptions = ()):             # <<<<<<<<<<<<<<
@@ -9684,7 +9684,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_44add_child_meshset(struct __pyx_o
   return __pyx_r;
 }
 
-/* "pymoab/core.pyx":1157
+/* "pymoab/core.pyx":1156
  *         check_error(err, exceptions)
  * 
  *     def add_parent_child(self, parent_meshset, child_meshset, exceptions = ()):             # <<<<<<<<<<<<<<
@@ -9724,7 +9724,7 @@ static PyObject *__pyx_pw_6pymoab_4core_4Core_47add_parent_child(PyObject *__pyx
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_child_meshset)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("add_parent_child", 0, 2, 3, 1); __PYX_ERR(0, 1157, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("add_parent_child", 0, 2, 3, 1); __PYX_ERR(0, 1156, __pyx_L3_error)
         }
         case  2:
         if (kw_args > 0) {
@@ -9733,7 +9733,7 @@ static PyObject *__pyx_pw_6pymoab_4core_4Core_47add_parent_child(PyObject *__pyx
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "add_parent_child") < 0)) __PYX_ERR(0, 1157, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "add_parent_child") < 0)) __PYX_ERR(0, 1156, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -9750,7 +9750,7 @@ static PyObject *__pyx_pw_6pymoab_4core_4Core_47add_parent_child(PyObject *__pyx
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("add_parent_child", 0, 2, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 1157, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("add_parent_child", 0, 2, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 1156, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("pymoab.core.Core.add_parent_child", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -9777,27 +9777,27 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_46add_parent_child(struct __pyx_ob
   PyObject *__pyx_t_8 = NULL;
   __Pyx_RefNannySetupContext("add_parent_child", 0);
 
-  /* "pymoab/core.pyx":1190
+  /* "pymoab/core.pyx":1189
  *         """
  *         cdef moab.ErrorCode err
  *         err = self.inst.add_parent_child(<unsigned long> parent_meshset, <unsigned long> child_meshset)             # <<<<<<<<<<<<<<
  *         check_error(err, exceptions)
  * 
  */
-  __pyx_t_1 = __Pyx_PyInt_As_unsigned_long(__pyx_v_parent_meshset); if (unlikely((__pyx_t_1 == (unsigned long)-1) && PyErr_Occurred())) __PYX_ERR(0, 1190, __pyx_L1_error)
-  __pyx_t_2 = __Pyx_PyInt_As_unsigned_long(__pyx_v_child_meshset); if (unlikely((__pyx_t_2 == (unsigned long)-1) && PyErr_Occurred())) __PYX_ERR(0, 1190, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_As_unsigned_long(__pyx_v_parent_meshset); if (unlikely((__pyx_t_1 == (unsigned long)-1) && PyErr_Occurred())) __PYX_ERR(0, 1189, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyInt_As_unsigned_long(__pyx_v_child_meshset); if (unlikely((__pyx_t_2 == (unsigned long)-1) && PyErr_Occurred())) __PYX_ERR(0, 1189, __pyx_L1_error)
   __pyx_v_err = __pyx_v_self->inst->add_parent_child(((unsigned long)__pyx_t_1), ((unsigned long)__pyx_t_2));
 
-  /* "pymoab/core.pyx":1191
+  /* "pymoab/core.pyx":1190
  *         cdef moab.ErrorCode err
  *         err = self.inst.add_parent_child(<unsigned long> parent_meshset, <unsigned long> child_meshset)
  *         check_error(err, exceptions)             # <<<<<<<<<<<<<<
  * 
  *     def get_root_set(self):
  */
-  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_check_error); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1191, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_check_error); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1190, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = __Pyx_PyInt_From_enum__moab_3a__3a_ErrorCode(__pyx_v_err); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1191, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyInt_From_enum__moab_3a__3a_ErrorCode(__pyx_v_err); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1190, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __pyx_t_6 = NULL;
   __pyx_t_7 = 0;
@@ -9814,7 +9814,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_46add_parent_child(struct __pyx_ob
   #if CYTHON_FAST_PYCALL
   if (PyFunction_Check(__pyx_t_4)) {
     PyObject *__pyx_temp[3] = {__pyx_t_6, __pyx_t_5, __pyx_v_exceptions};
-    __pyx_t_3 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_7, 2+__pyx_t_7); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1191, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_7, 2+__pyx_t_7); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1190, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
@@ -9823,14 +9823,14 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_46add_parent_child(struct __pyx_ob
   #if CYTHON_FAST_PYCCALL
   if (__Pyx_PyFastCFunction_Check(__pyx_t_4)) {
     PyObject *__pyx_temp[3] = {__pyx_t_6, __pyx_t_5, __pyx_v_exceptions};
-    __pyx_t_3 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_7, 2+__pyx_t_7); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1191, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_7, 2+__pyx_t_7); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1190, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   } else
   #endif
   {
-    __pyx_t_8 = PyTuple_New(2+__pyx_t_7); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 1191, __pyx_L1_error)
+    __pyx_t_8 = PyTuple_New(2+__pyx_t_7); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 1190, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_8);
     if (__pyx_t_6) {
       __Pyx_GIVEREF(__pyx_t_6); PyTuple_SET_ITEM(__pyx_t_8, 0, __pyx_t_6); __pyx_t_6 = NULL;
@@ -9841,14 +9841,14 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_46add_parent_child(struct __pyx_ob
     __Pyx_GIVEREF(__pyx_v_exceptions);
     PyTuple_SET_ITEM(__pyx_t_8, 1+__pyx_t_7, __pyx_v_exceptions);
     __pyx_t_5 = 0;
-    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_8, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1191, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_8, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1190, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
   }
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "pymoab/core.pyx":1157
+  /* "pymoab/core.pyx":1156
  *         check_error(err, exceptions)
  * 
  *     def add_parent_child(self, parent_meshset, child_meshset, exceptions = ()):             # <<<<<<<<<<<<<<
@@ -9873,7 +9873,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_46add_parent_child(struct __pyx_ob
   return __pyx_r;
 }
 
-/* "pymoab/core.pyx":1193
+/* "pymoab/core.pyx":1192
  *         check_error(err, exceptions)
  * 
  *     def get_root_set(self):             # <<<<<<<<<<<<<<
@@ -9901,7 +9901,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_48get_root_set(CYTHON_UNUSED struc
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("get_root_set", 0);
 
-  /* "pymoab/core.pyx":1201
+  /* "pymoab/core.pyx":1200
  *         MOAB EntityHandle (long)
  *         """
  *         return <unsigned long> 0             # <<<<<<<<<<<<<<
@@ -9909,13 +9909,13 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_48get_root_set(CYTHON_UNUSED struc
  *     def get_connectivity(self, entity_handles, exceptions = ()):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyInt_From_unsigned_long(((unsigned long)0)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1201, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_unsigned_long(((unsigned long)0)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1200, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "pymoab/core.pyx":1193
+  /* "pymoab/core.pyx":1192
  *         check_error(err, exceptions)
  * 
  *     def get_root_set(self):             # <<<<<<<<<<<<<<
@@ -9934,16 +9934,17 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_48get_root_set(CYTHON_UNUSED struc
   return __pyx_r;
 }
 
-/* "pymoab/core.pyx":1203
+/* "pymoab/core.pyx":1202
  *         return <unsigned long> 0
  * 
  *     def get_connectivity(self, entity_handles, exceptions = ()):             # <<<<<<<<<<<<<<
- *         cdef moab.ErrorCode err
- *         cdef np.ndarray ehs
+ *         """
+ *         Returns the vertex handles which make up the mesh entities passed in via
  */
 
 /* Python wrapper */
 static PyObject *__pyx_pw_6pymoab_4core_4Core_51get_connectivity(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_6pymoab_4core_4Core_50get_connectivity[] = "\n        Returns the vertex handles which make up the mesh entities passed in via\n        the entity_handles argument.\n        \n        Example\n        -------\n        # new PyMOAB instance\n        mb = core.Core()\n        #create some vertices\n        coords = np.array((0,0,0,1,0,0,1,1,1),dtype='float64')\n        verts = mb.create_vertices(coords)\n        #create a triangle\n        verts = np.array(((verts[0],verts[1],verts[2]),),dtype='uint64')\n        tris = mb.create_elements(types.MBTRI,verts)\n        # retrieve the vertex handles that make up the triangle\n        conn = mb.get_connectivity(tris[0])\n\n        \n        Parameters\n        ----------\n        entity_handles : iterable of MOAB EntityHandles or a single EntityHandle\n            to retrieve the vertex connectivity of. Note that these\n            EntityHandles should represent mesh entities (MBEDGE,\n            MBTRI, MBQUAD, etc.) rather than an EntitySet.\n        exceptions : tuple (default is empty tuple)\n            A tuple containing any error types that should\n            be ignored. (see pymoab.types module for more info)\n\n        Returns\n        -------\n        Numpy array of vertex EntityHandles\n        \n        Raises\n        ------\n        MOAB ErrorCode\n            if a MOAB error occurs\n        ValueError\n            if an EntityHandle is not of the correct datatype\n        ";
 static PyObject *__pyx_pw_6pymoab_4core_4Core_51get_connectivity(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_entity_handles = 0;
   PyObject *__pyx_v_exceptions = 0;
@@ -9975,7 +9976,7 @@ static PyObject *__pyx_pw_6pymoab_4core_4Core_51get_connectivity(PyObject *__pyx
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "get_connectivity") < 0)) __PYX_ERR(0, 1203, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "get_connectivity") < 0)) __PYX_ERR(0, 1202, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -9990,7 +9991,7 @@ static PyObject *__pyx_pw_6pymoab_4core_4Core_51get_connectivity(PyObject *__pyx
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("get_connectivity", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 1203, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("get_connectivity", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 1202, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("pymoab.core.Core.get_connectivity", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -10020,30 +10021,30 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_50get_connectivity(struct __pyx_ob
   int __pyx_t_8;
   __Pyx_RefNannySetupContext("get_connectivity", 0);
 
-  /* "pymoab/core.pyx":1206
+  /* "pymoab/core.pyx":1244
  *         cdef moab.ErrorCode err
  *         cdef np.ndarray ehs
  *         if isinstance(entity_handles, _eh_py_types):             # <<<<<<<<<<<<<<
  *             ehs = _eh_array([entity_handles,])
  *         else:
  */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_eh_py_types); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1206, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_eh_py_types); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1244, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = PyObject_IsInstance(__pyx_v_entity_handles, __pyx_t_1); if (unlikely(__pyx_t_2 == -1)) __PYX_ERR(0, 1206, __pyx_L1_error)
+  __pyx_t_2 = PyObject_IsInstance(__pyx_v_entity_handles, __pyx_t_1); if (unlikely(__pyx_t_2 == -1)) __PYX_ERR(0, 1244, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_t_3 = (__pyx_t_2 != 0);
   if (__pyx_t_3) {
 
-    /* "pymoab/core.pyx":1207
+    /* "pymoab/core.pyx":1245
  *         cdef np.ndarray ehs
  *         if isinstance(entity_handles, _eh_py_types):
  *             ehs = _eh_array([entity_handles,])             # <<<<<<<<<<<<<<
  *         else:
  *             ehs = _eh_array(entity_handles)
  */
-    __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_eh_array); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1207, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_eh_array); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1245, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_5 = PyList_New(1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1207, __pyx_L1_error)
+    __pyx_t_5 = PyList_New(1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1245, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_INCREF(__pyx_v_entity_handles);
     __Pyx_GIVEREF(__pyx_v_entity_handles);
@@ -10059,14 +10060,14 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_50get_connectivity(struct __pyx_ob
       }
     }
     if (!__pyx_t_6) {
-      __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_5); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1207, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_5); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1245, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       __Pyx_GOTREF(__pyx_t_1);
     } else {
       #if CYTHON_FAST_PYCALL
       if (PyFunction_Check(__pyx_t_4)) {
         PyObject *__pyx_temp[2] = {__pyx_t_6, __pyx_t_5};
-        __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1207, __pyx_L1_error)
+        __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1245, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
         __Pyx_GOTREF(__pyx_t_1);
         __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
@@ -10075,30 +10076,30 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_50get_connectivity(struct __pyx_ob
       #if CYTHON_FAST_PYCCALL
       if (__Pyx_PyFastCFunction_Check(__pyx_t_4)) {
         PyObject *__pyx_temp[2] = {__pyx_t_6, __pyx_t_5};
-        __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1207, __pyx_L1_error)
+        __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1245, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
         __Pyx_GOTREF(__pyx_t_1);
         __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       } else
       #endif
       {
-        __pyx_t_7 = PyTuple_New(1+1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 1207, __pyx_L1_error)
+        __pyx_t_7 = PyTuple_New(1+1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 1245, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_7);
         __Pyx_GIVEREF(__pyx_t_6); PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_6); __pyx_t_6 = NULL;
         __Pyx_GIVEREF(__pyx_t_5);
         PyTuple_SET_ITEM(__pyx_t_7, 0+1, __pyx_t_5);
         __pyx_t_5 = 0;
-        __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_7, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1207, __pyx_L1_error)
+        __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_7, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1245, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_1);
         __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
       }
     }
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    if (!(likely(((__pyx_t_1) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_1, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 1207, __pyx_L1_error)
+    if (!(likely(((__pyx_t_1) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_1, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 1245, __pyx_L1_error)
     __pyx_v_ehs = ((PyArrayObject *)__pyx_t_1);
     __pyx_t_1 = 0;
 
-    /* "pymoab/core.pyx":1206
+    /* "pymoab/core.pyx":1244
  *         cdef moab.ErrorCode err
  *         cdef np.ndarray ehs
  *         if isinstance(entity_handles, _eh_py_types):             # <<<<<<<<<<<<<<
@@ -10108,7 +10109,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_50get_connectivity(struct __pyx_ob
     goto __pyx_L3;
   }
 
-  /* "pymoab/core.pyx":1209
+  /* "pymoab/core.pyx":1247
  *             ehs = _eh_array([entity_handles,])
  *         else:
  *             ehs = _eh_array(entity_handles)             # <<<<<<<<<<<<<<
@@ -10116,7 +10117,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_50get_connectivity(struct __pyx_ob
  *         cdef moab.EntityHandle* eh_ptr
  */
   /*else*/ {
-    __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_eh_array); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1209, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_eh_array); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1247, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __pyx_t_7 = NULL;
     if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_4))) {
@@ -10129,13 +10130,13 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_50get_connectivity(struct __pyx_ob
       }
     }
     if (!__pyx_t_7) {
-      __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_v_entity_handles); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1209, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_v_entity_handles); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1247, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
     } else {
       #if CYTHON_FAST_PYCALL
       if (PyFunction_Check(__pyx_t_4)) {
         PyObject *__pyx_temp[2] = {__pyx_t_7, __pyx_v_entity_handles};
-        __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1209, __pyx_L1_error)
+        __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1247, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_7); __pyx_t_7 = 0;
         __Pyx_GOTREF(__pyx_t_1);
       } else
@@ -10143,31 +10144,31 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_50get_connectivity(struct __pyx_ob
       #if CYTHON_FAST_PYCCALL
       if (__Pyx_PyFastCFunction_Check(__pyx_t_4)) {
         PyObject *__pyx_temp[2] = {__pyx_t_7, __pyx_v_entity_handles};
-        __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1209, __pyx_L1_error)
+        __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1247, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_7); __pyx_t_7 = 0;
         __Pyx_GOTREF(__pyx_t_1);
       } else
       #endif
       {
-        __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1209, __pyx_L1_error)
+        __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1247, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_5);
         __Pyx_GIVEREF(__pyx_t_7); PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_7); __pyx_t_7 = NULL;
         __Pyx_INCREF(__pyx_v_entity_handles);
         __Pyx_GIVEREF(__pyx_v_entity_handles);
         PyTuple_SET_ITEM(__pyx_t_5, 0+1, __pyx_v_entity_handles);
-        __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_5, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1209, __pyx_L1_error)
+        __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_5, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1247, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_1);
         __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       }
     }
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    if (!(likely(((__pyx_t_1) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_1, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 1209, __pyx_L1_error)
+    if (!(likely(((__pyx_t_1) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_1, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 1247, __pyx_L1_error)
     __pyx_v_ehs = ((PyArrayObject *)__pyx_t_1);
     __pyx_t_1 = 0;
   }
   __pyx_L3:;
 
-  /* "pymoab/core.pyx":1212
+  /* "pymoab/core.pyx":1250
  *         cdef vector[moab.EntityHandle] ehs_out
  *         cdef moab.EntityHandle* eh_ptr
  *         cdef int num_ents = 0             # <<<<<<<<<<<<<<
@@ -10176,29 +10177,29 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_50get_connectivity(struct __pyx_ob
  */
   __pyx_v_num_ents = 0;
 
-  /* "pymoab/core.pyx":1213
+  /* "pymoab/core.pyx":1251
  *         cdef moab.EntityHandle* eh_ptr
  *         cdef int num_ents = 0
  *         err = self.inst.get_connectivity(<moab.EntityHandle*> ehs.data, ehs.size, ehs_out)             # <<<<<<<<<<<<<<
  *         check_error(err, exceptions)
  *         return _eh_array(ehs_out)
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_ehs), __pyx_n_s_size); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1213, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_ehs), __pyx_n_s_size); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1251, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_8 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_8 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 1213, __pyx_L1_error)
+  __pyx_t_8 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_8 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 1251, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_err = __pyx_v_self->inst->get_connectivity(((moab::EntityHandle *)__pyx_v_ehs->data), __pyx_t_8, __pyx_v_ehs_out);
 
-  /* "pymoab/core.pyx":1214
+  /* "pymoab/core.pyx":1252
  *         cdef int num_ents = 0
  *         err = self.inst.get_connectivity(<moab.EntityHandle*> ehs.data, ehs.size, ehs_out)
  *         check_error(err, exceptions)             # <<<<<<<<<<<<<<
  *         return _eh_array(ehs_out)
  * 
  */
-  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_check_error); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1214, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_check_error); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1252, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = __Pyx_PyInt_From_enum__moab_3a__3a_ErrorCode(__pyx_v_err); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1214, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyInt_From_enum__moab_3a__3a_ErrorCode(__pyx_v_err); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1252, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __pyx_t_7 = NULL;
   __pyx_t_8 = 0;
@@ -10215,7 +10216,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_50get_connectivity(struct __pyx_ob
   #if CYTHON_FAST_PYCALL
   if (PyFunction_Check(__pyx_t_4)) {
     PyObject *__pyx_temp[3] = {__pyx_t_7, __pyx_t_5, __pyx_v_exceptions};
-    __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_8, 2+__pyx_t_8); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1214, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_8, 2+__pyx_t_8); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1252, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_7); __pyx_t_7 = 0;
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
@@ -10224,14 +10225,14 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_50get_connectivity(struct __pyx_ob
   #if CYTHON_FAST_PYCCALL
   if (__Pyx_PyFastCFunction_Check(__pyx_t_4)) {
     PyObject *__pyx_temp[3] = {__pyx_t_7, __pyx_t_5, __pyx_v_exceptions};
-    __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_8, 2+__pyx_t_8); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1214, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_8, 2+__pyx_t_8); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1252, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_7); __pyx_t_7 = 0;
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   } else
   #endif
   {
-    __pyx_t_6 = PyTuple_New(2+__pyx_t_8); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 1214, __pyx_L1_error)
+    __pyx_t_6 = PyTuple_New(2+__pyx_t_8); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 1252, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     if (__pyx_t_7) {
       __Pyx_GIVEREF(__pyx_t_7); PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_7); __pyx_t_7 = NULL;
@@ -10242,14 +10243,14 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_50get_connectivity(struct __pyx_ob
     __Pyx_GIVEREF(__pyx_v_exceptions);
     PyTuple_SET_ITEM(__pyx_t_6, 1+__pyx_t_8, __pyx_v_exceptions);
     __pyx_t_5 = 0;
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_6, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1214, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_6, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1252, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   }
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "pymoab/core.pyx":1215
+  /* "pymoab/core.pyx":1253
  *         err = self.inst.get_connectivity(<moab.EntityHandle*> ehs.data, ehs.size, ehs_out)
  *         check_error(err, exceptions)
  *         return _eh_array(ehs_out)             # <<<<<<<<<<<<<<
@@ -10257,9 +10258,9 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_50get_connectivity(struct __pyx_ob
  * 
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_eh_array); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1215, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_eh_array); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1253, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_6 = __pyx_convert_vector_to_py_moab_3a__3a_EntityHandle(__pyx_v_ehs_out); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 1215, __pyx_L1_error)
+  __pyx_t_6 = __pyx_convert_vector_to_py_moab_3a__3a_EntityHandle(__pyx_v_ehs_out); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 1253, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __pyx_t_5 = NULL;
   if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_4))) {
@@ -10272,14 +10273,14 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_50get_connectivity(struct __pyx_ob
     }
   }
   if (!__pyx_t_5) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_6); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1215, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_6); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1253, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
     __Pyx_GOTREF(__pyx_t_1);
   } else {
     #if CYTHON_FAST_PYCALL
     if (PyFunction_Check(__pyx_t_4)) {
       PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_t_6};
-      __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1215, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1253, __pyx_L1_error)
       __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
       __Pyx_GOTREF(__pyx_t_1);
       __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
@@ -10288,20 +10289,20 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_50get_connectivity(struct __pyx_ob
     #if CYTHON_FAST_PYCCALL
     if (__Pyx_PyFastCFunction_Check(__pyx_t_4)) {
       PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_t_6};
-      __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1215, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1253, __pyx_L1_error)
       __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
       __Pyx_GOTREF(__pyx_t_1);
       __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
     } else
     #endif
     {
-      __pyx_t_7 = PyTuple_New(1+1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 1215, __pyx_L1_error)
+      __pyx_t_7 = PyTuple_New(1+1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 1253, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_7);
       __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_5); __pyx_t_5 = NULL;
       __Pyx_GIVEREF(__pyx_t_6);
       PyTuple_SET_ITEM(__pyx_t_7, 0+1, __pyx_t_6);
       __pyx_t_6 = 0;
-      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_7, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1215, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_7, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1253, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
       __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
     }
@@ -10311,12 +10312,12 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_50get_connectivity(struct __pyx_ob
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "pymoab/core.pyx":1203
+  /* "pymoab/core.pyx":1202
  *         return <unsigned long> 0
  * 
  *     def get_connectivity(self, entity_handles, exceptions = ()):             # <<<<<<<<<<<<<<
- *         cdef moab.ErrorCode err
- *         cdef np.ndarray ehs
+ *         """
+ *         Returns the vertex handles which make up the mesh entities passed in via
  */
 
   /* function exit code */
@@ -10335,7 +10336,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_50get_connectivity(struct __pyx_ob
   return __pyx_r;
 }
 
-/* "pymoab/core.pyx":1219
+/* "pymoab/core.pyx":1257
  * 
  * 
  *     def get_coords(self, entities, exceptions = ()):             # <<<<<<<<<<<<<<
@@ -10377,7 +10378,7 @@ static PyObject *__pyx_pw_6pymoab_4core_4Core_53get_coords(PyObject *__pyx_v_sel
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "get_coords") < 0)) __PYX_ERR(0, 1219, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "get_coords") < 0)) __PYX_ERR(0, 1257, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -10392,7 +10393,7 @@ static PyObject *__pyx_pw_6pymoab_4core_4Core_53get_coords(PyObject *__pyx_v_sel
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("get_coords", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 1219, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("get_coords", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 1257, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("pymoab.core.Core.get_coords", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -10433,7 +10434,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_52get_coords(struct __pyx_obj_6pym
   __pyx_pybuffernd_arr.data = NULL;
   __pyx_pybuffernd_arr.rcbuffer = &__pyx_pybuffer_arr;
 
-  /* "pymoab/core.pyx":1255
+  /* "pymoab/core.pyx":1293
  *         cdef np.ndarray[np.uint64_t, ndim=1] arr
  *         cdef np.ndarray coords
  *         if isinstance(entities, Range):             # <<<<<<<<<<<<<<
@@ -10444,32 +10445,32 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_52get_coords(struct __pyx_obj_6pym
   __pyx_t_2 = (__pyx_t_1 != 0);
   if (__pyx_t_2) {
 
-    /* "pymoab/core.pyx":1256
+    /* "pymoab/core.pyx":1294
  *         cdef np.ndarray coords
  *         if isinstance(entities, Range):
  *             r = entities             # <<<<<<<<<<<<<<
  *             coords = np.empty((3*r.size(),),dtype='float64')
  *             err = self.inst.get_coords(deref(r.inst), <double*> coords.data)
  */
-    if (!(likely(((__pyx_v_entities) == Py_None) || likely(__Pyx_TypeTest(__pyx_v_entities, __pyx_ptype_6pymoab_3rng_Range))))) __PYX_ERR(0, 1256, __pyx_L1_error)
+    if (!(likely(((__pyx_v_entities) == Py_None) || likely(__Pyx_TypeTest(__pyx_v_entities, __pyx_ptype_6pymoab_3rng_Range))))) __PYX_ERR(0, 1294, __pyx_L1_error)
     __pyx_t_3 = __pyx_v_entities;
     __Pyx_INCREF(__pyx_t_3);
     __pyx_v_r = ((struct __pyx_obj_6pymoab_3rng_Range *)__pyx_t_3);
     __pyx_t_3 = 0;
 
-    /* "pymoab/core.pyx":1257
+    /* "pymoab/core.pyx":1295
  *         if isinstance(entities, Range):
  *             r = entities
  *             coords = np.empty((3*r.size(),),dtype='float64')             # <<<<<<<<<<<<<<
  *             err = self.inst.get_coords(deref(r.inst), <double*> coords.data)
  *         else:
  */
-    __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1257, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1295, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_empty); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1257, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_empty); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1295, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __pyx_t_5 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_r), __pyx_n_s_size); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1257, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_r), __pyx_n_s_size); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1295, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     __pyx_t_6 = NULL;
     if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_5))) {
@@ -10482,39 +10483,39 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_52get_coords(struct __pyx_obj_6pym
       }
     }
     if (__pyx_t_6) {
-      __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_t_6); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1257, __pyx_L1_error)
+      __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_t_6); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1295, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
     } else {
-      __pyx_t_3 = __Pyx_PyObject_CallNoArg(__pyx_t_5); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1257, __pyx_L1_error)
+      __pyx_t_3 = __Pyx_PyObject_CallNoArg(__pyx_t_5); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1295, __pyx_L1_error)
     }
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __pyx_t_5 = PyNumber_Multiply(__pyx_int_3, __pyx_t_3); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1257, __pyx_L1_error)
+    __pyx_t_5 = PyNumber_Multiply(__pyx_int_3, __pyx_t_3); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1295, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1257, __pyx_L1_error)
+    __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1295, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_GIVEREF(__pyx_t_5);
     PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_5);
     __pyx_t_5 = 0;
-    __pyx_t_5 = PyTuple_New(1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1257, __pyx_L1_error)
+    __pyx_t_5 = PyTuple_New(1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1295, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_GIVEREF(__pyx_t_3);
     PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_3);
     __pyx_t_3 = 0;
-    __pyx_t_3 = PyDict_New(); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1257, __pyx_L1_error)
+    __pyx_t_3 = PyDict_New(); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1295, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_dtype, __pyx_n_s_float64) < 0) __PYX_ERR(0, 1257, __pyx_L1_error)
-    __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_5, __pyx_t_3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 1257, __pyx_L1_error)
+    if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_dtype, __pyx_n_s_float64) < 0) __PYX_ERR(0, 1295, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_5, __pyx_t_3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 1295, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    if (!(likely(((__pyx_t_6) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_6, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 1257, __pyx_L1_error)
+    if (!(likely(((__pyx_t_6) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_6, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 1295, __pyx_L1_error)
     __pyx_v_coords = ((PyArrayObject *)__pyx_t_6);
     __pyx_t_6 = 0;
 
-    /* "pymoab/core.pyx":1258
+    /* "pymoab/core.pyx":1296
  *             r = entities
  *             coords = np.empty((3*r.size(),),dtype='float64')
  *             err = self.inst.get_coords(deref(r.inst), <double*> coords.data)             # <<<<<<<<<<<<<<
@@ -10523,7 +10524,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_52get_coords(struct __pyx_obj_6pym
  */
     __pyx_v_err = __pyx_v_self->inst->get_coords((*__pyx_v_r->inst), ((double *)__pyx_v_coords->data));
 
-    /* "pymoab/core.pyx":1255
+    /* "pymoab/core.pyx":1293
  *         cdef np.ndarray[np.uint64_t, ndim=1] arr
  *         cdef np.ndarray coords
  *         if isinstance(entities, Range):             # <<<<<<<<<<<<<<
@@ -10533,7 +10534,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_52get_coords(struct __pyx_obj_6pym
     goto __pyx_L3;
   }
 
-  /* "pymoab/core.pyx":1260
+  /* "pymoab/core.pyx":1298
  *             err = self.inst.get_coords(deref(r.inst), <double*> coords.data)
  *         else:
  *             arr = _eh_array(entities)             # <<<<<<<<<<<<<<
@@ -10541,7 +10542,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_52get_coords(struct __pyx_obj_6pym
  *             err = self.inst.get_coords(<unsigned long*> arr.data, len(entities), <double*> coords.data)
  */
   /*else*/ {
-    __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_eh_array); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1260, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_eh_array); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1298, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __pyx_t_5 = NULL;
     if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_3))) {
@@ -10554,13 +10555,13 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_52get_coords(struct __pyx_obj_6pym
       }
     }
     if (!__pyx_t_5) {
-      __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_v_entities); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 1260, __pyx_L1_error)
+      __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_v_entities); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 1298, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_6);
     } else {
       #if CYTHON_FAST_PYCALL
       if (PyFunction_Check(__pyx_t_3)) {
         PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_v_entities};
-        __pyx_t_6 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 1260, __pyx_L1_error)
+        __pyx_t_6 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 1298, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
         __Pyx_GOTREF(__pyx_t_6);
       } else
@@ -10568,25 +10569,25 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_52get_coords(struct __pyx_obj_6pym
       #if CYTHON_FAST_PYCCALL
       if (__Pyx_PyFastCFunction_Check(__pyx_t_3)) {
         PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_v_entities};
-        __pyx_t_6 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 1260, __pyx_L1_error)
+        __pyx_t_6 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 1298, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
         __Pyx_GOTREF(__pyx_t_6);
       } else
       #endif
       {
-        __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1260, __pyx_L1_error)
+        __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1298, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_4);
         __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_5); __pyx_t_5 = NULL;
         __Pyx_INCREF(__pyx_v_entities);
         __Pyx_GIVEREF(__pyx_v_entities);
         PyTuple_SET_ITEM(__pyx_t_4, 0+1, __pyx_v_entities);
-        __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_4, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 1260, __pyx_L1_error)
+        __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_4, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 1298, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_6);
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
       }
     }
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    if (!(likely(((__pyx_t_6) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_6, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 1260, __pyx_L1_error)
+    if (!(likely(((__pyx_t_6) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_6, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 1298, __pyx_L1_error)
     __pyx_t_7 = ((PyArrayObject *)__pyx_t_6);
     {
       __Pyx_BufFmt_StackElem __pyx_stack[1];
@@ -10602,71 +10603,71 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_52get_coords(struct __pyx_obj_6pym
         }
       }
       __pyx_pybuffernd_arr.diminfo[0].strides = __pyx_pybuffernd_arr.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_arr.diminfo[0].shape = __pyx_pybuffernd_arr.rcbuffer->pybuffer.shape[0];
-      if (unlikely(__pyx_t_8 < 0)) __PYX_ERR(0, 1260, __pyx_L1_error)
+      if (unlikely(__pyx_t_8 < 0)) __PYX_ERR(0, 1298, __pyx_L1_error)
     }
     __pyx_t_7 = 0;
     __pyx_v_arr = ((PyArrayObject *)__pyx_t_6);
     __pyx_t_6 = 0;
 
-    /* "pymoab/core.pyx":1261
+    /* "pymoab/core.pyx":1299
  *         else:
  *             arr = _eh_array(entities)
  *             coords = np.empty((3*len(arr),),dtype='float64')             # <<<<<<<<<<<<<<
  *             err = self.inst.get_coords(<unsigned long*> arr.data, len(entities), <double*> coords.data)
  *         check_error(err, exceptions)
  */
-    __pyx_t_6 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 1261, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 1299, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
-    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_empty); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1261, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_empty); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1299, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    __pyx_t_12 = PyObject_Length(((PyObject *)__pyx_v_arr)); if (unlikely(__pyx_t_12 == -1)) __PYX_ERR(0, 1261, __pyx_L1_error)
-    __pyx_t_6 = PyInt_FromSsize_t((3 * __pyx_t_12)); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 1261, __pyx_L1_error)
+    __pyx_t_12 = PyObject_Length(((PyObject *)__pyx_v_arr)); if (unlikely(__pyx_t_12 == -1)) __PYX_ERR(0, 1299, __pyx_L1_error)
+    __pyx_t_6 = PyInt_FromSsize_t((3 * __pyx_t_12)); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 1299, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
-    __pyx_t_4 = PyTuple_New(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1261, __pyx_L1_error)
+    __pyx_t_4 = PyTuple_New(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1299, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_GIVEREF(__pyx_t_6);
     PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_6);
     __pyx_t_6 = 0;
-    __pyx_t_6 = PyTuple_New(1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 1261, __pyx_L1_error)
+    __pyx_t_6 = PyTuple_New(1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 1299, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_GIVEREF(__pyx_t_4);
     PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_4);
     __pyx_t_4 = 0;
-    __pyx_t_4 = PyDict_New(); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1261, __pyx_L1_error)
+    __pyx_t_4 = PyDict_New(); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1299, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
-    if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_dtype, __pyx_n_s_float64) < 0) __PYX_ERR(0, 1261, __pyx_L1_error)
-    __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_6, __pyx_t_4); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1261, __pyx_L1_error)
+    if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_dtype, __pyx_n_s_float64) < 0) __PYX_ERR(0, 1299, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_6, __pyx_t_4); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1299, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    if (!(likely(((__pyx_t_5) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_5, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 1261, __pyx_L1_error)
+    if (!(likely(((__pyx_t_5) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_5, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 1299, __pyx_L1_error)
     __pyx_v_coords = ((PyArrayObject *)__pyx_t_5);
     __pyx_t_5 = 0;
 
-    /* "pymoab/core.pyx":1262
+    /* "pymoab/core.pyx":1300
  *             arr = _eh_array(entities)
  *             coords = np.empty((3*len(arr),),dtype='float64')
  *             err = self.inst.get_coords(<unsigned long*> arr.data, len(entities), <double*> coords.data)             # <<<<<<<<<<<<<<
  *         check_error(err, exceptions)
  *         return coords
  */
-    __pyx_t_12 = PyObject_Length(__pyx_v_entities); if (unlikely(__pyx_t_12 == -1)) __PYX_ERR(0, 1262, __pyx_L1_error)
+    __pyx_t_12 = PyObject_Length(__pyx_v_entities); if (unlikely(__pyx_t_12 == -1)) __PYX_ERR(0, 1300, __pyx_L1_error)
     __pyx_v_err = __pyx_v_self->inst->get_coords(((unsigned long *)__pyx_v_arr->data), __pyx_t_12, ((double *)__pyx_v_coords->data));
   }
   __pyx_L3:;
 
-  /* "pymoab/core.pyx":1263
+  /* "pymoab/core.pyx":1301
  *             coords = np.empty((3*len(arr),),dtype='float64')
  *             err = self.inst.get_coords(<unsigned long*> arr.data, len(entities), <double*> coords.data)
  *         check_error(err, exceptions)             # <<<<<<<<<<<<<<
  *         return coords
  * 
  */
-  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_check_error); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1263, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_check_error); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1301, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_6 = __Pyx_PyInt_From_enum__moab_3a__3a_ErrorCode(__pyx_v_err); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 1263, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyInt_From_enum__moab_3a__3a_ErrorCode(__pyx_v_err); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 1301, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __pyx_t_3 = NULL;
   __pyx_t_8 = 0;
@@ -10683,7 +10684,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_52get_coords(struct __pyx_obj_6pym
   #if CYTHON_FAST_PYCALL
   if (PyFunction_Check(__pyx_t_4)) {
     PyObject *__pyx_temp[3] = {__pyx_t_3, __pyx_t_6, __pyx_v_exceptions};
-    __pyx_t_5 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_8, 2+__pyx_t_8); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1263, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_8, 2+__pyx_t_8); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1301, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
@@ -10692,14 +10693,14 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_52get_coords(struct __pyx_obj_6pym
   #if CYTHON_FAST_PYCCALL
   if (__Pyx_PyFastCFunction_Check(__pyx_t_4)) {
     PyObject *__pyx_temp[3] = {__pyx_t_3, __pyx_t_6, __pyx_v_exceptions};
-    __pyx_t_5 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_8, 2+__pyx_t_8); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1263, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_8, 2+__pyx_t_8); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1301, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   } else
   #endif
   {
-    __pyx_t_13 = PyTuple_New(2+__pyx_t_8); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 1263, __pyx_L1_error)
+    __pyx_t_13 = PyTuple_New(2+__pyx_t_8); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 1301, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_13);
     if (__pyx_t_3) {
       __Pyx_GIVEREF(__pyx_t_3); PyTuple_SET_ITEM(__pyx_t_13, 0, __pyx_t_3); __pyx_t_3 = NULL;
@@ -10710,14 +10711,14 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_52get_coords(struct __pyx_obj_6pym
     __Pyx_GIVEREF(__pyx_v_exceptions);
     PyTuple_SET_ITEM(__pyx_t_13, 1+__pyx_t_8, __pyx_v_exceptions);
     __pyx_t_6 = 0;
-    __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_13, NULL); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1263, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_13, NULL); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1301, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_DECREF(__pyx_t_13); __pyx_t_13 = 0;
   }
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "pymoab/core.pyx":1264
+  /* "pymoab/core.pyx":1302
  *             err = self.inst.get_coords(<unsigned long*> arr.data, len(entities), <double*> coords.data)
  *         check_error(err, exceptions)
  *         return coords             # <<<<<<<<<<<<<<
@@ -10729,7 +10730,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_52get_coords(struct __pyx_obj_6pym
   __pyx_r = ((PyObject *)__pyx_v_coords);
   goto __pyx_L0;
 
-  /* "pymoab/core.pyx":1219
+  /* "pymoab/core.pyx":1257
  * 
  * 
  *     def get_coords(self, entities, exceptions = ()):             # <<<<<<<<<<<<<<
@@ -10764,7 +10765,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_52get_coords(struct __pyx_obj_6pym
   return __pyx_r;
 }
 
-/* "pymoab/core.pyx":1266
+/* "pymoab/core.pyx":1304
  *         return coords
  * 
  *     def set_coords(self, entities, np.ndarray coords, exceptions = ()):             # <<<<<<<<<<<<<<
@@ -10804,7 +10805,7 @@ static PyObject *__pyx_pw_6pymoab_4core_4Core_55set_coords(PyObject *__pyx_v_sel
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_coords)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("set_coords", 0, 2, 3, 1); __PYX_ERR(0, 1266, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("set_coords", 0, 2, 3, 1); __PYX_ERR(0, 1304, __pyx_L3_error)
         }
         case  2:
         if (kw_args > 0) {
@@ -10813,7 +10814,7 @@ static PyObject *__pyx_pw_6pymoab_4core_4Core_55set_coords(PyObject *__pyx_v_sel
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "set_coords") < 0)) __PYX_ERR(0, 1266, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "set_coords") < 0)) __PYX_ERR(0, 1304, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -10830,13 +10831,13 @@ static PyObject *__pyx_pw_6pymoab_4core_4Core_55set_coords(PyObject *__pyx_v_sel
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("set_coords", 0, 2, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 1266, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("set_coords", 0, 2, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 1304, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("pymoab.core.Core.set_coords", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_coords), __pyx_ptype_5numpy_ndarray, 1, "coords", 0))) __PYX_ERR(0, 1266, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_coords), __pyx_ptype_5numpy_ndarray, 1, "coords", 0))) __PYX_ERR(0, 1304, __pyx_L1_error)
   __pyx_r = __pyx_pf_6pymoab_4core_4Core_54set_coords(((struct __pyx_obj_6pymoab_4core_Core *)__pyx_v_self), __pyx_v_entities, __pyx_v_coords, __pyx_v_exceptions);
 
   /* function exit code */
@@ -10876,7 +10877,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_54set_coords(struct __pyx_obj_6pym
   __pyx_pybuffernd_arr.data = NULL;
   __pyx_pybuffernd_arr.rcbuffer = &__pyx_pybuffer_arr;
 
-  /* "pymoab/core.pyx":1298
+  /* "pymoab/core.pyx":1336
  *         cdef np.ndarray[np.uint64_t, ndim=1] arr
  *         #cdef np.ndarray coords
  *         if isinstance(entities, Range):             # <<<<<<<<<<<<<<
@@ -10887,27 +10888,27 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_54set_coords(struct __pyx_obj_6pym
   __pyx_t_2 = (__pyx_t_1 != 0);
   if (__pyx_t_2) {
 
-    /* "pymoab/core.pyx":1299
+    /* "pymoab/core.pyx":1337
  *         #cdef np.ndarray coords
  *         if isinstance(entities, Range):
  *             r = entities             # <<<<<<<<<<<<<<
  *             if 3*r.size() != len(coords):
  *               check_error(moab.MB_INVALID_SIZE, exceptions)
  */
-    if (!(likely(((__pyx_v_entities) == Py_None) || likely(__Pyx_TypeTest(__pyx_v_entities, __pyx_ptype_6pymoab_3rng_Range))))) __PYX_ERR(0, 1299, __pyx_L1_error)
+    if (!(likely(((__pyx_v_entities) == Py_None) || likely(__Pyx_TypeTest(__pyx_v_entities, __pyx_ptype_6pymoab_3rng_Range))))) __PYX_ERR(0, 1337, __pyx_L1_error)
     __pyx_t_3 = __pyx_v_entities;
     __Pyx_INCREF(__pyx_t_3);
     __pyx_v_r = ((struct __pyx_obj_6pymoab_3rng_Range *)__pyx_t_3);
     __pyx_t_3 = 0;
 
-    /* "pymoab/core.pyx":1300
+    /* "pymoab/core.pyx":1338
  *         if isinstance(entities, Range):
  *             r = entities
  *             if 3*r.size() != len(coords):             # <<<<<<<<<<<<<<
  *               check_error(moab.MB_INVALID_SIZE, exceptions)
  *             err = self.inst.set_coords(deref(r.inst), <const double*> coords.data)
  */
-    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_r), __pyx_n_s_size); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1300, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_r), __pyx_n_s_size); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1338, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __pyx_t_5 = NULL;
     if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_4))) {
@@ -10920,36 +10921,36 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_54set_coords(struct __pyx_obj_6pym
       }
     }
     if (__pyx_t_5) {
-      __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_5); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1300, __pyx_L1_error)
+      __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_5); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1338, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     } else {
-      __pyx_t_3 = __Pyx_PyObject_CallNoArg(__pyx_t_4); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1300, __pyx_L1_error)
+      __pyx_t_3 = __Pyx_PyObject_CallNoArg(__pyx_t_4); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1338, __pyx_L1_error)
     }
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __pyx_t_4 = PyNumber_Multiply(__pyx_int_3, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1300, __pyx_L1_error)
+    __pyx_t_4 = PyNumber_Multiply(__pyx_int_3, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1338, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __pyx_t_6 = PyObject_Length(((PyObject *)__pyx_v_coords)); if (unlikely(__pyx_t_6 == -1)) __PYX_ERR(0, 1300, __pyx_L1_error)
-    __pyx_t_3 = PyInt_FromSsize_t(__pyx_t_6); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1300, __pyx_L1_error)
+    __pyx_t_6 = PyObject_Length(((PyObject *)__pyx_v_coords)); if (unlikely(__pyx_t_6 == -1)) __PYX_ERR(0, 1338, __pyx_L1_error)
+    __pyx_t_3 = PyInt_FromSsize_t(__pyx_t_6); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1338, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_5 = PyObject_RichCompare(__pyx_t_4, __pyx_t_3, Py_NE); __Pyx_XGOTREF(__pyx_t_5); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1300, __pyx_L1_error)
+    __pyx_t_5 = PyObject_RichCompare(__pyx_t_4, __pyx_t_3, Py_NE); __Pyx_XGOTREF(__pyx_t_5); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1338, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_5); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 1300, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_5); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 1338, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     if (__pyx_t_2) {
 
-      /* "pymoab/core.pyx":1301
+      /* "pymoab/core.pyx":1339
  *             r = entities
  *             if 3*r.size() != len(coords):
  *               check_error(moab.MB_INVALID_SIZE, exceptions)             # <<<<<<<<<<<<<<
  *             err = self.inst.set_coords(deref(r.inst), <const double*> coords.data)
  *         else:
  */
-      __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_check_error); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1301, __pyx_L1_error)
+      __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_check_error); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1339, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_3);
-      __pyx_t_4 = __Pyx_PyInt_From_enum__moab_3a__3a_ErrorCode(moab::MB_INVALID_SIZE); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1301, __pyx_L1_error)
+      __pyx_t_4 = __Pyx_PyInt_From_enum__moab_3a__3a_ErrorCode(moab::MB_INVALID_SIZE); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1339, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_4);
       __pyx_t_7 = NULL;
       __pyx_t_8 = 0;
@@ -10966,7 +10967,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_54set_coords(struct __pyx_obj_6pym
       #if CYTHON_FAST_PYCALL
       if (PyFunction_Check(__pyx_t_3)) {
         PyObject *__pyx_temp[3] = {__pyx_t_7, __pyx_t_4, __pyx_v_exceptions};
-        __pyx_t_5 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_8, 2+__pyx_t_8); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1301, __pyx_L1_error)
+        __pyx_t_5 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_8, 2+__pyx_t_8); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1339, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_7); __pyx_t_7 = 0;
         __Pyx_GOTREF(__pyx_t_5);
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
@@ -10975,14 +10976,14 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_54set_coords(struct __pyx_obj_6pym
       #if CYTHON_FAST_PYCCALL
       if (__Pyx_PyFastCFunction_Check(__pyx_t_3)) {
         PyObject *__pyx_temp[3] = {__pyx_t_7, __pyx_t_4, __pyx_v_exceptions};
-        __pyx_t_5 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_8, 2+__pyx_t_8); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1301, __pyx_L1_error)
+        __pyx_t_5 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_8, 2+__pyx_t_8); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1339, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_7); __pyx_t_7 = 0;
         __Pyx_GOTREF(__pyx_t_5);
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
       } else
       #endif
       {
-        __pyx_t_9 = PyTuple_New(2+__pyx_t_8); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 1301, __pyx_L1_error)
+        __pyx_t_9 = PyTuple_New(2+__pyx_t_8); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 1339, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_9);
         if (__pyx_t_7) {
           __Pyx_GIVEREF(__pyx_t_7); PyTuple_SET_ITEM(__pyx_t_9, 0, __pyx_t_7); __pyx_t_7 = NULL;
@@ -10993,14 +10994,14 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_54set_coords(struct __pyx_obj_6pym
         __Pyx_GIVEREF(__pyx_v_exceptions);
         PyTuple_SET_ITEM(__pyx_t_9, 1+__pyx_t_8, __pyx_v_exceptions);
         __pyx_t_4 = 0;
-        __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_9, NULL); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1301, __pyx_L1_error)
+        __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_9, NULL); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1339, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_5);
         __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
       }
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-      /* "pymoab/core.pyx":1300
+      /* "pymoab/core.pyx":1338
  *         if isinstance(entities, Range):
  *             r = entities
  *             if 3*r.size() != len(coords):             # <<<<<<<<<<<<<<
@@ -11009,7 +11010,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_54set_coords(struct __pyx_obj_6pym
  */
     }
 
-    /* "pymoab/core.pyx":1302
+    /* "pymoab/core.pyx":1340
  *             if 3*r.size() != len(coords):
  *               check_error(moab.MB_INVALID_SIZE, exceptions)
  *             err = self.inst.set_coords(deref(r.inst), <const double*> coords.data)             # <<<<<<<<<<<<<<
@@ -11018,7 +11019,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_54set_coords(struct __pyx_obj_6pym
  */
     __pyx_v_err = __pyx_v_self->inst->set_coords((*__pyx_v_r->inst), ((double const *)__pyx_v_coords->data));
 
-    /* "pymoab/core.pyx":1298
+    /* "pymoab/core.pyx":1336
  *         cdef np.ndarray[np.uint64_t, ndim=1] arr
  *         #cdef np.ndarray coords
  *         if isinstance(entities, Range):             # <<<<<<<<<<<<<<
@@ -11028,7 +11029,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_54set_coords(struct __pyx_obj_6pym
     goto __pyx_L3;
   }
 
-  /* "pymoab/core.pyx":1304
+  /* "pymoab/core.pyx":1342
  *             err = self.inst.set_coords(deref(r.inst), <const double*> coords.data)
  *         else:
  *             arr = _eh_array(entities)             # <<<<<<<<<<<<<<
@@ -11036,7 +11037,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_54set_coords(struct __pyx_obj_6pym
  *               check_error(moab.MB_INVALID_SIZE, exceptions)
  */
   /*else*/ {
-    __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_eh_array); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1304, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_eh_array); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1342, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __pyx_t_9 = NULL;
     if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_3))) {
@@ -11049,13 +11050,13 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_54set_coords(struct __pyx_obj_6pym
       }
     }
     if (!__pyx_t_9) {
-      __pyx_t_5 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_v_entities); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1304, __pyx_L1_error)
+      __pyx_t_5 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_v_entities); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1342, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_5);
     } else {
       #if CYTHON_FAST_PYCALL
       if (PyFunction_Check(__pyx_t_3)) {
         PyObject *__pyx_temp[2] = {__pyx_t_9, __pyx_v_entities};
-        __pyx_t_5 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1304, __pyx_L1_error)
+        __pyx_t_5 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1342, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_9); __pyx_t_9 = 0;
         __Pyx_GOTREF(__pyx_t_5);
       } else
@@ -11063,25 +11064,25 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_54set_coords(struct __pyx_obj_6pym
       #if CYTHON_FAST_PYCCALL
       if (__Pyx_PyFastCFunction_Check(__pyx_t_3)) {
         PyObject *__pyx_temp[2] = {__pyx_t_9, __pyx_v_entities};
-        __pyx_t_5 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1304, __pyx_L1_error)
+        __pyx_t_5 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1342, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_9); __pyx_t_9 = 0;
         __Pyx_GOTREF(__pyx_t_5);
       } else
       #endif
       {
-        __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1304, __pyx_L1_error)
+        __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1342, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_4);
         __Pyx_GIVEREF(__pyx_t_9); PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_9); __pyx_t_9 = NULL;
         __Pyx_INCREF(__pyx_v_entities);
         __Pyx_GIVEREF(__pyx_v_entities);
         PyTuple_SET_ITEM(__pyx_t_4, 0+1, __pyx_v_entities);
-        __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_4, NULL); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1304, __pyx_L1_error)
+        __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_4, NULL); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1342, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_5);
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
       }
     }
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    if (!(likely(((__pyx_t_5) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_5, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 1304, __pyx_L1_error)
+    if (!(likely(((__pyx_t_5) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_5, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 1342, __pyx_L1_error)
     __pyx_t_10 = ((PyArrayObject *)__pyx_t_5);
     {
       __Pyx_BufFmt_StackElem __pyx_stack[1];
@@ -11097,34 +11098,34 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_54set_coords(struct __pyx_obj_6pym
         }
       }
       __pyx_pybuffernd_arr.diminfo[0].strides = __pyx_pybuffernd_arr.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_arr.diminfo[0].shape = __pyx_pybuffernd_arr.rcbuffer->pybuffer.shape[0];
-      if (unlikely(__pyx_t_8 < 0)) __PYX_ERR(0, 1304, __pyx_L1_error)
+      if (unlikely(__pyx_t_8 < 0)) __PYX_ERR(0, 1342, __pyx_L1_error)
     }
     __pyx_t_10 = 0;
     __pyx_v_arr = ((PyArrayObject *)__pyx_t_5);
     __pyx_t_5 = 0;
 
-    /* "pymoab/core.pyx":1305
+    /* "pymoab/core.pyx":1343
  *         else:
  *             arr = _eh_array(entities)
  *             if 3*len(arr) != len(coords):             # <<<<<<<<<<<<<<
  *               check_error(moab.MB_INVALID_SIZE, exceptions)
  *             err = self.inst.set_coords(<unsigned long*> arr.data, len(entities), <const double*> coords.data)
  */
-    __pyx_t_6 = PyObject_Length(((PyObject *)__pyx_v_arr)); if (unlikely(__pyx_t_6 == -1)) __PYX_ERR(0, 1305, __pyx_L1_error)
-    __pyx_t_14 = PyObject_Length(((PyObject *)__pyx_v_coords)); if (unlikely(__pyx_t_14 == -1)) __PYX_ERR(0, 1305, __pyx_L1_error)
+    __pyx_t_6 = PyObject_Length(((PyObject *)__pyx_v_arr)); if (unlikely(__pyx_t_6 == -1)) __PYX_ERR(0, 1343, __pyx_L1_error)
+    __pyx_t_14 = PyObject_Length(((PyObject *)__pyx_v_coords)); if (unlikely(__pyx_t_14 == -1)) __PYX_ERR(0, 1343, __pyx_L1_error)
     __pyx_t_2 = (((3 * __pyx_t_6) != __pyx_t_14) != 0);
     if (__pyx_t_2) {
 
-      /* "pymoab/core.pyx":1306
+      /* "pymoab/core.pyx":1344
  *             arr = _eh_array(entities)
  *             if 3*len(arr) != len(coords):
  *               check_error(moab.MB_INVALID_SIZE, exceptions)             # <<<<<<<<<<<<<<
  *             err = self.inst.set_coords(<unsigned long*> arr.data, len(entities), <const double*> coords.data)
  *         check_error(err, exceptions)
  */
-      __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_check_error); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1306, __pyx_L1_error)
+      __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_check_error); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1344, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_3);
-      __pyx_t_4 = __Pyx_PyInt_From_enum__moab_3a__3a_ErrorCode(moab::MB_INVALID_SIZE); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1306, __pyx_L1_error)
+      __pyx_t_4 = __Pyx_PyInt_From_enum__moab_3a__3a_ErrorCode(moab::MB_INVALID_SIZE); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1344, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_4);
       __pyx_t_9 = NULL;
       __pyx_t_8 = 0;
@@ -11141,7 +11142,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_54set_coords(struct __pyx_obj_6pym
       #if CYTHON_FAST_PYCALL
       if (PyFunction_Check(__pyx_t_3)) {
         PyObject *__pyx_temp[3] = {__pyx_t_9, __pyx_t_4, __pyx_v_exceptions};
-        __pyx_t_5 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_8, 2+__pyx_t_8); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1306, __pyx_L1_error)
+        __pyx_t_5 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_8, 2+__pyx_t_8); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1344, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_9); __pyx_t_9 = 0;
         __Pyx_GOTREF(__pyx_t_5);
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
@@ -11150,14 +11151,14 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_54set_coords(struct __pyx_obj_6pym
       #if CYTHON_FAST_PYCCALL
       if (__Pyx_PyFastCFunction_Check(__pyx_t_3)) {
         PyObject *__pyx_temp[3] = {__pyx_t_9, __pyx_t_4, __pyx_v_exceptions};
-        __pyx_t_5 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_8, 2+__pyx_t_8); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1306, __pyx_L1_error)
+        __pyx_t_5 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_8, 2+__pyx_t_8); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1344, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_9); __pyx_t_9 = 0;
         __Pyx_GOTREF(__pyx_t_5);
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
       } else
       #endif
       {
-        __pyx_t_7 = PyTuple_New(2+__pyx_t_8); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 1306, __pyx_L1_error)
+        __pyx_t_7 = PyTuple_New(2+__pyx_t_8); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 1344, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_7);
         if (__pyx_t_9) {
           __Pyx_GIVEREF(__pyx_t_9); PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_9); __pyx_t_9 = NULL;
@@ -11168,14 +11169,14 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_54set_coords(struct __pyx_obj_6pym
         __Pyx_GIVEREF(__pyx_v_exceptions);
         PyTuple_SET_ITEM(__pyx_t_7, 1+__pyx_t_8, __pyx_v_exceptions);
         __pyx_t_4 = 0;
-        __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_7, NULL); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1306, __pyx_L1_error)
+        __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_7, NULL); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1344, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_5);
         __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
       }
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-      /* "pymoab/core.pyx":1305
+      /* "pymoab/core.pyx":1343
  *         else:
  *             arr = _eh_array(entities)
  *             if 3*len(arr) != len(coords):             # <<<<<<<<<<<<<<
@@ -11184,28 +11185,28 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_54set_coords(struct __pyx_obj_6pym
  */
     }
 
-    /* "pymoab/core.pyx":1307
+    /* "pymoab/core.pyx":1345
  *             if 3*len(arr) != len(coords):
  *               check_error(moab.MB_INVALID_SIZE, exceptions)
  *             err = self.inst.set_coords(<unsigned long*> arr.data, len(entities), <const double*> coords.data)             # <<<<<<<<<<<<<<
  *         check_error(err, exceptions)
  * 
  */
-    __pyx_t_14 = PyObject_Length(__pyx_v_entities); if (unlikely(__pyx_t_14 == -1)) __PYX_ERR(0, 1307, __pyx_L1_error)
+    __pyx_t_14 = PyObject_Length(__pyx_v_entities); if (unlikely(__pyx_t_14 == -1)) __PYX_ERR(0, 1345, __pyx_L1_error)
     __pyx_v_err = __pyx_v_self->inst->set_coords(((unsigned long *)__pyx_v_arr->data), __pyx_t_14, ((double const *)__pyx_v_coords->data));
   }
   __pyx_L3:;
 
-  /* "pymoab/core.pyx":1308
+  /* "pymoab/core.pyx":1346
  *               check_error(moab.MB_INVALID_SIZE, exceptions)
  *             err = self.inst.set_coords(<unsigned long*> arr.data, len(entities), <const double*> coords.data)
  *         check_error(err, exceptions)             # <<<<<<<<<<<<<<
  * 
  *     def get_entities_by_type(self, meshset, entity_type, bint recur = False, exceptions = ()):
  */
-  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_check_error); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1308, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_check_error); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1346, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_7 = __Pyx_PyInt_From_enum__moab_3a__3a_ErrorCode(__pyx_v_err); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 1308, __pyx_L1_error)
+  __pyx_t_7 = __Pyx_PyInt_From_enum__moab_3a__3a_ErrorCode(__pyx_v_err); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 1346, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
   __pyx_t_4 = NULL;
   __pyx_t_8 = 0;
@@ -11222,7 +11223,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_54set_coords(struct __pyx_obj_6pym
   #if CYTHON_FAST_PYCALL
   if (PyFunction_Check(__pyx_t_3)) {
     PyObject *__pyx_temp[3] = {__pyx_t_4, __pyx_t_7, __pyx_v_exceptions};
-    __pyx_t_5 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_8, 2+__pyx_t_8); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1308, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_8, 2+__pyx_t_8); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1346, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
@@ -11231,14 +11232,14 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_54set_coords(struct __pyx_obj_6pym
   #if CYTHON_FAST_PYCCALL
   if (__Pyx_PyFastCFunction_Check(__pyx_t_3)) {
     PyObject *__pyx_temp[3] = {__pyx_t_4, __pyx_t_7, __pyx_v_exceptions};
-    __pyx_t_5 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_8, 2+__pyx_t_8); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1308, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_8, 2+__pyx_t_8); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1346, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   } else
   #endif
   {
-    __pyx_t_9 = PyTuple_New(2+__pyx_t_8); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 1308, __pyx_L1_error)
+    __pyx_t_9 = PyTuple_New(2+__pyx_t_8); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 1346, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_9);
     if (__pyx_t_4) {
       __Pyx_GIVEREF(__pyx_t_4); PyTuple_SET_ITEM(__pyx_t_9, 0, __pyx_t_4); __pyx_t_4 = NULL;
@@ -11249,14 +11250,14 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_54set_coords(struct __pyx_obj_6pym
     __Pyx_GIVEREF(__pyx_v_exceptions);
     PyTuple_SET_ITEM(__pyx_t_9, 1+__pyx_t_8, __pyx_v_exceptions);
     __pyx_t_7 = 0;
-    __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_9, NULL); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1308, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_9, NULL); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1346, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
   }
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "pymoab/core.pyx":1266
+  /* "pymoab/core.pyx":1304
  *         return coords
  * 
  *     def set_coords(self, entities, np.ndarray coords, exceptions = ()):             # <<<<<<<<<<<<<<
@@ -11292,7 +11293,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_54set_coords(struct __pyx_obj_6pym
   return __pyx_r;
 }
 
-/* "pymoab/core.pyx":1310
+/* "pymoab/core.pyx":1348
  *         check_error(err, exceptions)
  * 
  *     def get_entities_by_type(self, meshset, entity_type, bint recur = False, exceptions = ()):             # <<<<<<<<<<<<<<
@@ -11334,7 +11335,7 @@ static PyObject *__pyx_pw_6pymoab_4core_4Core_57get_entities_by_type(PyObject *_
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_entity_type)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("get_entities_by_type", 0, 2, 4, 1); __PYX_ERR(0, 1310, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("get_entities_by_type", 0, 2, 4, 1); __PYX_ERR(0, 1348, __pyx_L3_error)
         }
         case  2:
         if (kw_args > 0) {
@@ -11348,7 +11349,7 @@ static PyObject *__pyx_pw_6pymoab_4core_4Core_57get_entities_by_type(PyObject *_
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "get_entities_by_type") < 0)) __PYX_ERR(0, 1310, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "get_entities_by_type") < 0)) __PYX_ERR(0, 1348, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -11363,7 +11364,7 @@ static PyObject *__pyx_pw_6pymoab_4core_4Core_57get_entities_by_type(PyObject *_
     __pyx_v_meshset = values[0];
     __pyx_v_entity_type = values[1];
     if (values[2]) {
-      __pyx_v_recur = __Pyx_PyObject_IsTrue(values[2]); if (unlikely((__pyx_v_recur == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 1310, __pyx_L3_error)
+      __pyx_v_recur = __Pyx_PyObject_IsTrue(values[2]); if (unlikely((__pyx_v_recur == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 1348, __pyx_L3_error)
     } else {
       __pyx_v_recur = ((int)0);
     }
@@ -11371,7 +11372,7 @@ static PyObject *__pyx_pw_6pymoab_4core_4Core_57get_entities_by_type(PyObject *_
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("get_entities_by_type", 0, 2, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 1310, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("get_entities_by_type", 0, 2, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 1348, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("pymoab.core.Core.get_entities_by_type", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -11400,38 +11401,38 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_56get_entities_by_type(struct __py
   PyObject *__pyx_t_8 = NULL;
   __Pyx_RefNannySetupContext("get_entities_by_type", 0);
 
-  /* "pymoab/core.pyx":1337
+  /* "pymoab/core.pyx":1375
  *         """
  *         cdef moab.ErrorCode err
  *         cdef Range entities = Range()             # <<<<<<<<<<<<<<
  *         cdef moab.EntityType typ = entity_type
  *         err = self.inst.get_entities_by_type(<unsigned long> meshset,
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_6pymoab_3rng_Range), __pyx_empty_tuple, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1337, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_6pymoab_3rng_Range), __pyx_empty_tuple, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1375, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_entities = ((struct __pyx_obj_6pymoab_3rng_Range *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "pymoab/core.pyx":1338
+  /* "pymoab/core.pyx":1376
  *         cdef moab.ErrorCode err
  *         cdef Range entities = Range()
  *         cdef moab.EntityType typ = entity_type             # <<<<<<<<<<<<<<
  *         err = self.inst.get_entities_by_type(<unsigned long> meshset,
  *                                              typ,
  */
-  __pyx_t_2 = ((moab::EntityType)__Pyx_PyInt_As_moab_3a__3a_EntityType(__pyx_v_entity_type)); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 1338, __pyx_L1_error)
+  __pyx_t_2 = ((moab::EntityType)__Pyx_PyInt_As_moab_3a__3a_EntityType(__pyx_v_entity_type)); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 1376, __pyx_L1_error)
   __pyx_v_typ = __pyx_t_2;
 
-  /* "pymoab/core.pyx":1339
+  /* "pymoab/core.pyx":1377
  *         cdef Range entities = Range()
  *         cdef moab.EntityType typ = entity_type
  *         err = self.inst.get_entities_by_type(<unsigned long> meshset,             # <<<<<<<<<<<<<<
  *                                              typ,
  *                                              deref(entities.inst),
  */
-  __pyx_t_3 = __Pyx_PyInt_As_unsigned_long(__pyx_v_meshset); if (unlikely((__pyx_t_3 == (unsigned long)-1) && PyErr_Occurred())) __PYX_ERR(0, 1339, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_As_unsigned_long(__pyx_v_meshset); if (unlikely((__pyx_t_3 == (unsigned long)-1) && PyErr_Occurred())) __PYX_ERR(0, 1377, __pyx_L1_error)
 
-  /* "pymoab/core.pyx":1342
+  /* "pymoab/core.pyx":1380
  *                                              typ,
  *                                              deref(entities.inst),
  *                                              recur)             # <<<<<<<<<<<<<<
@@ -11440,16 +11441,16 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_56get_entities_by_type(struct __py
  */
   __pyx_v_err = __pyx_v_self->inst->get_entities_by_type(((unsigned long)__pyx_t_3), __pyx_v_typ, (*__pyx_v_entities->inst), __pyx_v_recur);
 
-  /* "pymoab/core.pyx":1343
+  /* "pymoab/core.pyx":1381
  *                                              deref(entities.inst),
  *                                              recur)
  *         check_error(err, exceptions)             # <<<<<<<<<<<<<<
  *         return entities
  * 
  */
-  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_check_error); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1343, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_check_error); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1381, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = __Pyx_PyInt_From_enum__moab_3a__3a_ErrorCode(__pyx_v_err); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1343, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyInt_From_enum__moab_3a__3a_ErrorCode(__pyx_v_err); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1381, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __pyx_t_6 = NULL;
   __pyx_t_7 = 0;
@@ -11466,7 +11467,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_56get_entities_by_type(struct __py
   #if CYTHON_FAST_PYCALL
   if (PyFunction_Check(__pyx_t_4)) {
     PyObject *__pyx_temp[3] = {__pyx_t_6, __pyx_t_5, __pyx_v_exceptions};
-    __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_7, 2+__pyx_t_7); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1343, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_7, 2+__pyx_t_7); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1381, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
@@ -11475,14 +11476,14 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_56get_entities_by_type(struct __py
   #if CYTHON_FAST_PYCCALL
   if (__Pyx_PyFastCFunction_Check(__pyx_t_4)) {
     PyObject *__pyx_temp[3] = {__pyx_t_6, __pyx_t_5, __pyx_v_exceptions};
-    __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_7, 2+__pyx_t_7); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1343, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_7, 2+__pyx_t_7); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1381, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   } else
   #endif
   {
-    __pyx_t_8 = PyTuple_New(2+__pyx_t_7); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 1343, __pyx_L1_error)
+    __pyx_t_8 = PyTuple_New(2+__pyx_t_7); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 1381, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_8);
     if (__pyx_t_6) {
       __Pyx_GIVEREF(__pyx_t_6); PyTuple_SET_ITEM(__pyx_t_8, 0, __pyx_t_6); __pyx_t_6 = NULL;
@@ -11493,14 +11494,14 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_56get_entities_by_type(struct __py
     __Pyx_GIVEREF(__pyx_v_exceptions);
     PyTuple_SET_ITEM(__pyx_t_8, 1+__pyx_t_7, __pyx_v_exceptions);
     __pyx_t_5 = 0;
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_8, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1343, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_8, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1381, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
   }
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "pymoab/core.pyx":1344
+  /* "pymoab/core.pyx":1382
  *                                              recur)
  *         check_error(err, exceptions)
  *         return entities             # <<<<<<<<<<<<<<
@@ -11512,7 +11513,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_56get_entities_by_type(struct __py
   __pyx_r = ((PyObject *)__pyx_v_entities);
   goto __pyx_L0;
 
-  /* "pymoab/core.pyx":1310
+  /* "pymoab/core.pyx":1348
  *         check_error(err, exceptions)
  * 
  *     def get_entities_by_type(self, meshset, entity_type, bint recur = False, exceptions = ()):             # <<<<<<<<<<<<<<
@@ -11536,7 +11537,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_56get_entities_by_type(struct __py
   return __pyx_r;
 }
 
-/* "pymoab/core.pyx":1346
+/* "pymoab/core.pyx":1384
  *         return entities
  * 
  *     def get_entities_by_type_and_tag(self,             # <<<<<<<<<<<<<<
@@ -11562,7 +11563,7 @@ static PyObject *__pyx_pw_6pymoab_4core_4Core_59get_entities_by_type_and_tag(PyO
     static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_meshset,&__pyx_n_s_entity_type,&__pyx_n_s_tags,&__pyx_n_s_values,&__pyx_n_s_condition,&__pyx_n_s_recur,&__pyx_n_s_exceptions,0};
     PyObject* values[7] = {0,0,0,0,0,0,0};
 
-    /* "pymoab/core.pyx":1353
+    /* "pymoab/core.pyx":1391
  *                                      int condition = types.INTERSECT,
  *                                      bint recur = False,
  *                                      exceptions = ()):             # <<<<<<<<<<<<<<
@@ -11592,17 +11593,17 @@ static PyObject *__pyx_pw_6pymoab_4core_4Core_59get_entities_by_type_and_tag(PyO
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_entity_type)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("get_entities_by_type_and_tag", 0, 4, 7, 1); __PYX_ERR(0, 1346, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("get_entities_by_type_and_tag", 0, 4, 7, 1); __PYX_ERR(0, 1384, __pyx_L3_error)
         }
         case  2:
         if (likely((values[2] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_tags)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("get_entities_by_type_and_tag", 0, 4, 7, 2); __PYX_ERR(0, 1346, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("get_entities_by_type_and_tag", 0, 4, 7, 2); __PYX_ERR(0, 1384, __pyx_L3_error)
         }
         case  3:
         if (likely((values[3] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_values)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("get_entities_by_type_and_tag", 0, 4, 7, 3); __PYX_ERR(0, 1346, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("get_entities_by_type_and_tag", 0, 4, 7, 3); __PYX_ERR(0, 1384, __pyx_L3_error)
         }
         case  4:
         if (kw_args > 0) {
@@ -11621,7 +11622,7 @@ static PyObject *__pyx_pw_6pymoab_4core_4Core_59get_entities_by_type_and_tag(PyO
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "get_entities_by_type_and_tag") < 0)) __PYX_ERR(0, 1346, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "get_entities_by_type_and_tag") < 0)) __PYX_ERR(0, 1384, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -11641,15 +11642,15 @@ static PyObject *__pyx_pw_6pymoab_4core_4Core_59get_entities_by_type_and_tag(PyO
     __pyx_v_tags = values[2];
     __pyx_v_values = values[3];
     if (values[4]) {
-      __pyx_v_condition = __Pyx_PyInt_As_int(values[4]); if (unlikely((__pyx_v_condition == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 1351, __pyx_L3_error)
+      __pyx_v_condition = __Pyx_PyInt_As_int(values[4]); if (unlikely((__pyx_v_condition == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 1389, __pyx_L3_error)
     } else {
       __pyx_v_condition = __pyx_k__2;
     }
     if (values[5]) {
-      __pyx_v_recur = __Pyx_PyObject_IsTrue(values[5]); if (unlikely((__pyx_v_recur == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 1352, __pyx_L3_error)
+      __pyx_v_recur = __Pyx_PyObject_IsTrue(values[5]); if (unlikely((__pyx_v_recur == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 1390, __pyx_L3_error)
     } else {
 
-      /* "pymoab/core.pyx":1352
+      /* "pymoab/core.pyx":1390
  *                                      values,
  *                                      int condition = types.INTERSECT,
  *                                      bint recur = False,             # <<<<<<<<<<<<<<
@@ -11662,7 +11663,7 @@ static PyObject *__pyx_pw_6pymoab_4core_4Core_59get_entities_by_type_and_tag(PyO
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("get_entities_by_type_and_tag", 0, 4, 7, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 1346, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("get_entities_by_type_and_tag", 0, 4, 7, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 1384, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("pymoab.core.Core.get_entities_by_type_and_tag", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -11670,7 +11671,7 @@ static PyObject *__pyx_pw_6pymoab_4core_4Core_59get_entities_by_type_and_tag(PyO
   __pyx_L4_argument_unpacking_done:;
   __pyx_r = __pyx_pf_6pymoab_4core_4Core_58get_entities_by_type_and_tag(((struct __pyx_obj_6pymoab_4core_Core *)__pyx_v_self), __pyx_v_meshset, __pyx_v_entity_type, __pyx_v_tags, __pyx_v_values, __pyx_v_condition, __pyx_v_recur, __pyx_v_exceptions);
 
-  /* "pymoab/core.pyx":1346
+  /* "pymoab/core.pyx":1384
  *         return entities
  * 
  *     def get_entities_by_type_and_tag(self,             # <<<<<<<<<<<<<<
@@ -11716,36 +11717,36 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_58get_entities_by_type_and_tag(str
   unsigned long __pyx_t_16;
   __Pyx_RefNannySetupContext("get_entities_by_type_and_tag", 0);
 
-  /* "pymoab/core.pyx":1401
+  /* "pymoab/core.pyx":1439
  *             not constructed properly
  *         """
  *         cdef np.ndarray vals = np.asarray(values, dtype='O')             # <<<<<<<<<<<<<<
  *         assert isinstance(tags, Tag) or len(tags) == 1 , "Only single-tag queries are currently supported."
  *         # overall dimension of the numpy array should be 2
  */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1401, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1439, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_asarray); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1401, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_asarray); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1439, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1401, __pyx_L1_error)
+  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1439, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_INCREF(__pyx_v_values);
   __Pyx_GIVEREF(__pyx_v_values);
   PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_v_values);
-  __pyx_t_3 = PyDict_New(); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1401, __pyx_L1_error)
+  __pyx_t_3 = PyDict_New(); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1439, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_dtype, __pyx_n_s_O) < 0) __PYX_ERR(0, 1401, __pyx_L1_error)
-  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_1, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1401, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_dtype, __pyx_n_s_O) < 0) __PYX_ERR(0, 1439, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_1, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1439, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (!(likely(((__pyx_t_4) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_4, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 1401, __pyx_L1_error)
+  if (!(likely(((__pyx_t_4) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_4, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 1439, __pyx_L1_error)
   __pyx_v_vals = ((PyArrayObject *)__pyx_t_4);
   __pyx_t_4 = 0;
 
-  /* "pymoab/core.pyx":1402
+  /* "pymoab/core.pyx":1440
  *         """
  *         cdef np.ndarray vals = np.asarray(values, dtype='O')
  *         assert isinstance(tags, Tag) or len(tags) == 1 , "Only single-tag queries are currently supported."             # <<<<<<<<<<<<<<
@@ -11761,18 +11762,18 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_58get_entities_by_type_and_tag(str
       __pyx_t_5 = __pyx_t_7;
       goto __pyx_L3_bool_binop_done;
     }
-    __pyx_t_8 = PyObject_Length(__pyx_v_tags); if (unlikely(__pyx_t_8 == -1)) __PYX_ERR(0, 1402, __pyx_L1_error)
+    __pyx_t_8 = PyObject_Length(__pyx_v_tags); if (unlikely(__pyx_t_8 == -1)) __PYX_ERR(0, 1440, __pyx_L1_error)
     __pyx_t_7 = ((__pyx_t_8 == 1) != 0);
     __pyx_t_5 = __pyx_t_7;
     __pyx_L3_bool_binop_done:;
     if (unlikely(!__pyx_t_5)) {
       PyErr_SetObject(PyExc_AssertionError, __pyx_kp_s_Only_single_tag_queries_are_curr);
-      __PYX_ERR(0, 1402, __pyx_L1_error)
+      __PYX_ERR(0, 1440, __pyx_L1_error)
     }
   }
   #endif
 
-  /* "pymoab/core.pyx":1409
+  /* "pymoab/core.pyx":1447
  *         cdef int num_tags
  *         cdef Tag single_tag
  *         if isinstance(tags, Tag):             # <<<<<<<<<<<<<<
@@ -11783,7 +11784,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_58get_entities_by_type_and_tag(str
   __pyx_t_7 = (__pyx_t_5 != 0);
   if (__pyx_t_7) {
 
-    /* "pymoab/core.pyx":1410
+    /* "pymoab/core.pyx":1448
  *         cdef Tag single_tag
  *         if isinstance(tags, Tag):
  *             num_tags = 1             # <<<<<<<<<<<<<<
@@ -11792,20 +11793,20 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_58get_entities_by_type_and_tag(str
  */
     __pyx_v_num_tags = 1;
 
-    /* "pymoab/core.pyx":1411
+    /* "pymoab/core.pyx":1449
  *         if isinstance(tags, Tag):
  *             num_tags = 1
  *             single_tag = tags             # <<<<<<<<<<<<<<
  *         elif len(tags) == 1:
  *             num_tags = 1
  */
-    if (!(likely(((__pyx_v_tags) == Py_None) || likely(__Pyx_TypeTest(__pyx_v_tags, __pyx_ptype_6pymoab_3tag_Tag))))) __PYX_ERR(0, 1411, __pyx_L1_error)
+    if (!(likely(((__pyx_v_tags) == Py_None) || likely(__Pyx_TypeTest(__pyx_v_tags, __pyx_ptype_6pymoab_3tag_Tag))))) __PYX_ERR(0, 1449, __pyx_L1_error)
     __pyx_t_4 = __pyx_v_tags;
     __Pyx_INCREF(__pyx_t_4);
     __pyx_v_single_tag = ((struct __pyx_obj_6pymoab_3tag_Tag *)__pyx_t_4);
     __pyx_t_4 = 0;
 
-    /* "pymoab/core.pyx":1409
+    /* "pymoab/core.pyx":1447
  *         cdef int num_tags
  *         cdef Tag single_tag
  *         if isinstance(tags, Tag):             # <<<<<<<<<<<<<<
@@ -11815,18 +11816,18 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_58get_entities_by_type_and_tag(str
     goto __pyx_L5;
   }
 
-  /* "pymoab/core.pyx":1412
+  /* "pymoab/core.pyx":1450
  *             num_tags = 1
  *             single_tag = tags
  *         elif len(tags) == 1:             # <<<<<<<<<<<<<<
  *             num_tags = 1
  *             single_tag = tags[0]
  */
-  __pyx_t_8 = PyObject_Length(__pyx_v_tags); if (unlikely(__pyx_t_8 == -1)) __PYX_ERR(0, 1412, __pyx_L1_error)
+  __pyx_t_8 = PyObject_Length(__pyx_v_tags); if (unlikely(__pyx_t_8 == -1)) __PYX_ERR(0, 1450, __pyx_L1_error)
   __pyx_t_7 = ((__pyx_t_8 == 1) != 0);
   if (__pyx_t_7) {
 
-    /* "pymoab/core.pyx":1413
+    /* "pymoab/core.pyx":1451
  *             single_tag = tags
  *         elif len(tags) == 1:
  *             num_tags = 1             # <<<<<<<<<<<<<<
@@ -11835,20 +11836,20 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_58get_entities_by_type_and_tag(str
  */
     __pyx_v_num_tags = 1;
 
-    /* "pymoab/core.pyx":1414
+    /* "pymoab/core.pyx":1452
  *         elif len(tags) == 1:
  *             num_tags = 1
  *             single_tag = tags[0]             # <<<<<<<<<<<<<<
  *         else:
  *             num_tags = len(tags)
  */
-    __pyx_t_4 = __Pyx_GetItemInt(__pyx_v_tags, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1414, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_GetItemInt(__pyx_v_tags, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1452, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
-    if (!(likely(((__pyx_t_4) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_4, __pyx_ptype_6pymoab_3tag_Tag))))) __PYX_ERR(0, 1414, __pyx_L1_error)
+    if (!(likely(((__pyx_t_4) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_4, __pyx_ptype_6pymoab_3tag_Tag))))) __PYX_ERR(0, 1452, __pyx_L1_error)
     __pyx_v_single_tag = ((struct __pyx_obj_6pymoab_3tag_Tag *)__pyx_t_4);
     __pyx_t_4 = 0;
 
-    /* "pymoab/core.pyx":1412
+    /* "pymoab/core.pyx":1450
  *             num_tags = 1
  *             single_tag = tags
  *         elif len(tags) == 1:             # <<<<<<<<<<<<<<
@@ -11858,7 +11859,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_58get_entities_by_type_and_tag(str
     goto __pyx_L5;
   }
 
-  /* "pymoab/core.pyx":1416
+  /* "pymoab/core.pyx":1454
  *             single_tag = tags[0]
  *         else:
  *             num_tags = len(tags)             # <<<<<<<<<<<<<<
@@ -11866,12 +11867,12 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_58get_entities_by_type_and_tag(str
  *             assert values.ndim == 2
  */
   /*else*/ {
-    __pyx_t_8 = PyObject_Length(__pyx_v_tags); if (unlikely(__pyx_t_8 == -1)) __PYX_ERR(0, 1416, __pyx_L1_error)
+    __pyx_t_8 = PyObject_Length(__pyx_v_tags); if (unlikely(__pyx_t_8 == -1)) __PYX_ERR(0, 1454, __pyx_L1_error)
     __pyx_v_num_tags = __pyx_t_8;
   }
   __pyx_L5:;
 
-  /* "pymoab/core.pyx":1417
+  /* "pymoab/core.pyx":1455
  *         else:
  *             num_tags = len(tags)
  *         if 1 != num_tags:             # <<<<<<<<<<<<<<
@@ -11881,7 +11882,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_58get_entities_by_type_and_tag(str
   __pyx_t_7 = ((1 != __pyx_v_num_tags) != 0);
   if (__pyx_t_7) {
 
-    /* "pymoab/core.pyx":1418
+    /* "pymoab/core.pyx":1456
  *             num_tags = len(tags)
  *         if 1 != num_tags:
  *             assert values.ndim == 2             # <<<<<<<<<<<<<<
@@ -11890,21 +11891,21 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_58get_entities_by_type_and_tag(str
  */
     #ifndef CYTHON_WITHOUT_ASSERTIONS
     if (unlikely(!Py_OptimizeFlag)) {
-      __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_values, __pyx_n_s_ndim); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1418, __pyx_L1_error)
+      __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_values, __pyx_n_s_ndim); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1456, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_4);
-      __pyx_t_3 = __Pyx_PyInt_EqObjC(__pyx_t_4, __pyx_int_2, 2, 0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1418, __pyx_L1_error)
+      __pyx_t_3 = __Pyx_PyInt_EqObjC(__pyx_t_4, __pyx_int_2, 2, 0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1456, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_3);
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-      __pyx_t_7 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_7 < 0)) __PYX_ERR(0, 1418, __pyx_L1_error)
+      __pyx_t_7 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_7 < 0)) __PYX_ERR(0, 1456, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
       if (unlikely(!__pyx_t_7)) {
         PyErr_SetNone(PyExc_AssertionError);
-        __PYX_ERR(0, 1418, __pyx_L1_error)
+        __PYX_ERR(0, 1456, __pyx_L1_error)
       }
     }
     #endif
 
-    /* "pymoab/core.pyx":1419
+    /* "pymoab/core.pyx":1457
  *         if 1 != num_tags:
  *             assert values.ndim == 2
  *             assert num_tags == values.shape[0]             # <<<<<<<<<<<<<<
@@ -11913,26 +11914,26 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_58get_entities_by_type_and_tag(str
  */
     #ifndef CYTHON_WITHOUT_ASSERTIONS
     if (unlikely(!Py_OptimizeFlag)) {
-      __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_num_tags); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1419, __pyx_L1_error)
+      __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_num_tags); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1457, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_3);
-      __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_values, __pyx_n_s_shape); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1419, __pyx_L1_error)
+      __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_values, __pyx_n_s_shape); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1457, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_4);
-      __pyx_t_1 = __Pyx_GetItemInt(__pyx_t_4, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1419, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_GetItemInt(__pyx_t_4, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1457, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-      __pyx_t_4 = PyObject_RichCompare(__pyx_t_3, __pyx_t_1, Py_EQ); __Pyx_XGOTREF(__pyx_t_4); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1419, __pyx_L1_error)
+      __pyx_t_4 = PyObject_RichCompare(__pyx_t_3, __pyx_t_1, Py_EQ); __Pyx_XGOTREF(__pyx_t_4); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1457, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-      __pyx_t_7 = __Pyx_PyObject_IsTrue(__pyx_t_4); if (unlikely(__pyx_t_7 < 0)) __PYX_ERR(0, 1419, __pyx_L1_error)
+      __pyx_t_7 = __Pyx_PyObject_IsTrue(__pyx_t_4); if (unlikely(__pyx_t_7 < 0)) __PYX_ERR(0, 1457, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
       if (unlikely(!__pyx_t_7)) {
         PyErr_SetNone(PyExc_AssertionError);
-        __PYX_ERR(0, 1419, __pyx_L1_error)
+        __PYX_ERR(0, 1457, __pyx_L1_error)
       }
     }
     #endif
 
-    /* "pymoab/core.pyx":1417
+    /* "pymoab/core.pyx":1455
  *         else:
  *             num_tags = len(tags)
  *         if 1 != num_tags:             # <<<<<<<<<<<<<<
@@ -11941,7 +11942,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_58get_entities_by_type_and_tag(str
  */
   }
 
-  /* "pymoab/core.pyx":1421
+  /* "pymoab/core.pyx":1459
  *             assert num_tags == values.shape[0]
  * 
  *         assert values.ndim <= 2             # <<<<<<<<<<<<<<
@@ -11950,20 +11951,20 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_58get_entities_by_type_and_tag(str
  */
   #ifndef CYTHON_WITHOUT_ASSERTIONS
   if (unlikely(!Py_OptimizeFlag)) {
-    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_values, __pyx_n_s_ndim); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1421, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_values, __pyx_n_s_ndim); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1459, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_1 = PyObject_RichCompare(__pyx_t_4, __pyx_int_2, Py_LE); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1421, __pyx_L1_error)
+    __pyx_t_1 = PyObject_RichCompare(__pyx_t_4, __pyx_int_2, Py_LE); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1459, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __pyx_t_7 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_7 < 0)) __PYX_ERR(0, 1421, __pyx_L1_error)
+    __pyx_t_7 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_7 < 0)) __PYX_ERR(0, 1459, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     if (unlikely(!__pyx_t_7)) {
       PyErr_SetNone(PyExc_AssertionError);
-      __PYX_ERR(0, 1421, __pyx_L1_error)
+      __PYX_ERR(0, 1459, __pyx_L1_error)
     }
   }
   #endif
 
-  /* "pymoab/core.pyx":1423
+  /* "pymoab/core.pyx":1461
  *         assert values.ndim <= 2
  *         #allocate memory for an appropriately sized void** array
  *         cdef void** arr = <void**> malloc(num_tags*sizeof(void*))             # <<<<<<<<<<<<<<
@@ -11972,7 +11973,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_58get_entities_by_type_and_tag(str
  */
   __pyx_v_arr = ((void **)malloc((__pyx_v_num_tags * (sizeof(void *)))));
 
-  /* "pymoab/core.pyx":1426
+  /* "pymoab/core.pyx":1464
  *         #some variables to help in setting up the void array
  *         cdef moab.ErrorCode err
  *         cdef moab.DataType this_tag_type = moab.MB_MAX_DATA_TYPE             # <<<<<<<<<<<<<<
@@ -11981,7 +11982,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_58get_entities_by_type_and_tag(str
  */
   __pyx_v_this_tag_type = moab::MB_MAX_DATA_TYPE;
 
-  /* "pymoab/core.pyx":1427
+  /* "pymoab/core.pyx":1465
  *         cdef moab.ErrorCode err
  *         cdef moab.DataType this_tag_type = moab.MB_MAX_DATA_TYPE
  *         cdef int this_tag_length = 0             # <<<<<<<<<<<<<<
@@ -11990,7 +11991,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_58get_entities_by_type_and_tag(str
  */
   __pyx_v_this_tag_length = 0;
 
-  /* "pymoab/core.pyx":1433
+  /* "pymoab/core.pyx":1471
  *         # if this is a single tag and the values array is 1-D
  *         # then validate and call function
  *         if (num_tags == 1) and (vals.ndim == 1):             # <<<<<<<<<<<<<<
@@ -12008,16 +12009,16 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_58get_entities_by_type_and_tag(str
   __pyx_L8_bool_binop_done:;
   if (__pyx_t_7) {
 
-    /* "pymoab/core.pyx":1434
+    /* "pymoab/core.pyx":1472
  *         # then validate and call function
  *         if (num_tags == 1) and (vals.ndim == 1):
  *             this_data = self._validate_data_for_tag(single_tag,vals)             # <<<<<<<<<<<<<<
  *             arr[0] = <void*> this_data.data if this_data is not None else NULL
  *         elif vals.ndim == 2:
  */
-    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_validate_data_for_tag); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1434, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_validate_data_for_tag); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1472, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
-    if (unlikely(!__pyx_v_single_tag)) { __Pyx_RaiseUnboundLocalError("single_tag"); __PYX_ERR(0, 1434, __pyx_L1_error) }
+    if (unlikely(!__pyx_v_single_tag)) { __Pyx_RaiseUnboundLocalError("single_tag"); __PYX_ERR(0, 1472, __pyx_L1_error) }
     __pyx_t_3 = NULL;
     __pyx_t_9 = 0;
     if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_4))) {
@@ -12033,7 +12034,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_58get_entities_by_type_and_tag(str
     #if CYTHON_FAST_PYCALL
     if (PyFunction_Check(__pyx_t_4)) {
       PyObject *__pyx_temp[3] = {__pyx_t_3, ((PyObject *)__pyx_v_single_tag), ((PyObject *)__pyx_v_vals)};
-      __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_9, 2+__pyx_t_9); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1434, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_9, 2+__pyx_t_9); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1472, __pyx_L1_error)
       __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
       __Pyx_GOTREF(__pyx_t_1);
     } else
@@ -12041,13 +12042,13 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_58get_entities_by_type_and_tag(str
     #if CYTHON_FAST_PYCCALL
     if (__Pyx_PyFastCFunction_Check(__pyx_t_4)) {
       PyObject *__pyx_temp[3] = {__pyx_t_3, ((PyObject *)__pyx_v_single_tag), ((PyObject *)__pyx_v_vals)};
-      __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_9, 2+__pyx_t_9); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1434, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_9, 2+__pyx_t_9); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1472, __pyx_L1_error)
       __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
       __Pyx_GOTREF(__pyx_t_1);
     } else
     #endif
     {
-      __pyx_t_2 = PyTuple_New(2+__pyx_t_9); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1434, __pyx_L1_error)
+      __pyx_t_2 = PyTuple_New(2+__pyx_t_9); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1472, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_2);
       if (__pyx_t_3) {
         __Pyx_GIVEREF(__pyx_t_3); PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_3); __pyx_t_3 = NULL;
@@ -12058,16 +12059,16 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_58get_entities_by_type_and_tag(str
       __Pyx_INCREF(((PyObject *)__pyx_v_vals));
       __Pyx_GIVEREF(((PyObject *)__pyx_v_vals));
       PyTuple_SET_ITEM(__pyx_t_2, 1+__pyx_t_9, ((PyObject *)__pyx_v_vals));
-      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_2, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1434, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_2, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1472, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
       __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     }
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    if (!(likely(((__pyx_t_1) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_1, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 1434, __pyx_L1_error)
+    if (!(likely(((__pyx_t_1) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_1, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 1472, __pyx_L1_error)
     __pyx_v_this_data = ((PyArrayObject *)__pyx_t_1);
     __pyx_t_1 = 0;
 
-    /* "pymoab/core.pyx":1435
+    /* "pymoab/core.pyx":1473
  *         if (num_tags == 1) and (vals.ndim == 1):
  *             this_data = self._validate_data_for_tag(single_tag,vals)
  *             arr[0] = <void*> this_data.data if this_data is not None else NULL             # <<<<<<<<<<<<<<
@@ -12082,7 +12083,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_58get_entities_by_type_and_tag(str
     }
     (__pyx_v_arr[0]) = __pyx_t_10;
 
-    /* "pymoab/core.pyx":1433
+    /* "pymoab/core.pyx":1471
  *         # if this is a single tag and the values array is 1-D
  *         # then validate and call function
  *         if (num_tags == 1) and (vals.ndim == 1):             # <<<<<<<<<<<<<<
@@ -12092,7 +12093,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_58get_entities_by_type_and_tag(str
     goto __pyx_L7;
   }
 
-  /* "pymoab/core.pyx":1436
+  /* "pymoab/core.pyx":1474
  *             this_data = self._validate_data_for_tag(single_tag,vals)
  *             arr[0] = <void*> this_data.data if this_data is not None else NULL
  *         elif vals.ndim == 2:             # <<<<<<<<<<<<<<
@@ -12102,7 +12103,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_58get_entities_by_type_and_tag(str
   __pyx_t_7 = ((__pyx_v_vals->nd == 2) != 0);
   if (__pyx_t_7) {
 
-    /* "pymoab/core.pyx":1438
+    /* "pymoab/core.pyx":1476
  *         elif vals.ndim == 2:
  *             # assign values to void** array
  *             for i in range(num_tags):             # <<<<<<<<<<<<<<
@@ -12113,18 +12114,18 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_58get_entities_by_type_and_tag(str
     for (__pyx_t_11 = 0; __pyx_t_11 < __pyx_t_9; __pyx_t_11+=1) {
       __pyx_v_i = __pyx_t_11;
 
-      /* "pymoab/core.pyx":1439
+      /* "pymoab/core.pyx":1477
  *             # assign values to void** array
  *             for i in range(num_tags):
  *                 this_data = self._validate_data_for_tag(tags[i],vals[i])             # <<<<<<<<<<<<<<
  *                 #set the array value
  *                 arr[i] = <void*> this_data.data if this_data is not None else NULL
  */
-      __pyx_t_4 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_validate_data_for_tag); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1439, __pyx_L1_error)
+      __pyx_t_4 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_validate_data_for_tag); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1477, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_4);
-      __pyx_t_2 = __Pyx_GetItemInt(__pyx_v_tags, __pyx_v_i, int, 1, __Pyx_PyInt_From_int, 0, 1, 1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1439, __pyx_L1_error)
+      __pyx_t_2 = __Pyx_GetItemInt(__pyx_v_tags, __pyx_v_i, int, 1, __Pyx_PyInt_From_int, 0, 1, 1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1477, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_2);
-      __pyx_t_3 = __Pyx_GetItemInt(((PyObject *)__pyx_v_vals), __pyx_v_i, int, 1, __Pyx_PyInt_From_int, 0, 1, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1439, __pyx_L1_error)
+      __pyx_t_3 = __Pyx_GetItemInt(((PyObject *)__pyx_v_vals), __pyx_v_i, int, 1, __Pyx_PyInt_From_int, 0, 1, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1477, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_3);
       __pyx_t_12 = NULL;
       __pyx_t_13 = 0;
@@ -12141,7 +12142,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_58get_entities_by_type_and_tag(str
       #if CYTHON_FAST_PYCALL
       if (PyFunction_Check(__pyx_t_4)) {
         PyObject *__pyx_temp[3] = {__pyx_t_12, __pyx_t_2, __pyx_t_3};
-        __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_13, 2+__pyx_t_13); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1439, __pyx_L1_error)
+        __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_13, 2+__pyx_t_13); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1477, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_12); __pyx_t_12 = 0;
         __Pyx_GOTREF(__pyx_t_1);
         __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
@@ -12151,7 +12152,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_58get_entities_by_type_and_tag(str
       #if CYTHON_FAST_PYCCALL
       if (__Pyx_PyFastCFunction_Check(__pyx_t_4)) {
         PyObject *__pyx_temp[3] = {__pyx_t_12, __pyx_t_2, __pyx_t_3};
-        __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_13, 2+__pyx_t_13); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1439, __pyx_L1_error)
+        __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_13, 2+__pyx_t_13); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1477, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_12); __pyx_t_12 = 0;
         __Pyx_GOTREF(__pyx_t_1);
         __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
@@ -12159,7 +12160,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_58get_entities_by_type_and_tag(str
       } else
       #endif
       {
-        __pyx_t_14 = PyTuple_New(2+__pyx_t_13); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 1439, __pyx_L1_error)
+        __pyx_t_14 = PyTuple_New(2+__pyx_t_13); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 1477, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_14);
         if (__pyx_t_12) {
           __Pyx_GIVEREF(__pyx_t_12); PyTuple_SET_ITEM(__pyx_t_14, 0, __pyx_t_12); __pyx_t_12 = NULL;
@@ -12170,16 +12171,16 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_58get_entities_by_type_and_tag(str
         PyTuple_SET_ITEM(__pyx_t_14, 1+__pyx_t_13, __pyx_t_3);
         __pyx_t_2 = 0;
         __pyx_t_3 = 0;
-        __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_14, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1439, __pyx_L1_error)
+        __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_14, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1477, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_1);
         __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
       }
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-      if (!(likely(((__pyx_t_1) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_1, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 1439, __pyx_L1_error)
+      if (!(likely(((__pyx_t_1) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_1, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 1477, __pyx_L1_error)
       __Pyx_XDECREF_SET(__pyx_v_this_data, ((PyArrayObject *)__pyx_t_1));
       __pyx_t_1 = 0;
 
-      /* "pymoab/core.pyx":1441
+      /* "pymoab/core.pyx":1479
  *                 this_data = self._validate_data_for_tag(tags[i],vals[i])
  *                 #set the array value
  *                 arr[i] = <void*> this_data.data if this_data is not None else NULL             # <<<<<<<<<<<<<<
@@ -12195,7 +12196,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_58get_entities_by_type_and_tag(str
       (__pyx_v_arr[__pyx_v_i]) = __pyx_t_10;
     }
 
-    /* "pymoab/core.pyx":1436
+    /* "pymoab/core.pyx":1474
  *             this_data = self._validate_data_for_tag(single_tag,vals)
  *             arr[0] = <void*> this_data.data if this_data is not None else NULL
  *         elif vals.ndim == 2:             # <<<<<<<<<<<<<<
@@ -12205,56 +12206,56 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_58get_entities_by_type_and_tag(str
   }
   __pyx_L7:;
 
-  /* "pymoab/core.pyx":1444
+  /* "pymoab/core.pyx":1482
  * 
  *         #create tag array to pass to function
  *         cdef _tagArray ta = _tagArray(tags)             # <<<<<<<<<<<<<<
  *         #convert type to tag type
  *         cdef moab.EntityType typ = entity_type
  */
-  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1444, __pyx_L1_error)
+  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1482, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_INCREF(__pyx_v_tags);
   __Pyx_GIVEREF(__pyx_v_tags);
   PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_v_tags);
-  __pyx_t_4 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_6pymoab_3tag__tagArray), __pyx_t_1, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1444, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_6pymoab_3tag__tagArray), __pyx_t_1, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1482, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_ta = ((struct __pyx_obj_6pymoab_3tag__tagArray *)__pyx_t_4);
   __pyx_t_4 = 0;
 
-  /* "pymoab/core.pyx":1446
+  /* "pymoab/core.pyx":1484
  *         cdef _tagArray ta = _tagArray(tags)
  *         #convert type to tag type
  *         cdef moab.EntityType typ = entity_type             # <<<<<<<<<<<<<<
  *         #a range to hold returned entities
  *         cdef Range ents = Range()
  */
-  __pyx_t_15 = ((moab::EntityType)__Pyx_PyInt_As_moab_3a__3a_EntityType(__pyx_v_entity_type)); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 1446, __pyx_L1_error)
+  __pyx_t_15 = ((moab::EntityType)__Pyx_PyInt_As_moab_3a__3a_EntityType(__pyx_v_entity_type)); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 1484, __pyx_L1_error)
   __pyx_v_typ = __pyx_t_15;
 
-  /* "pymoab/core.pyx":1448
+  /* "pymoab/core.pyx":1486
  *         cdef moab.EntityType typ = entity_type
  *         #a range to hold returned entities
  *         cdef Range ents = Range()             # <<<<<<<<<<<<<<
  *         #here goes nothing
  *         err = self.inst.get_entities_by_type_and_tag(<unsigned long> meshset,
  */
-  __pyx_t_4 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_6pymoab_3rng_Range), __pyx_empty_tuple, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1448, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_6pymoab_3rng_Range), __pyx_empty_tuple, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1486, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __pyx_v_ents = ((struct __pyx_obj_6pymoab_3rng_Range *)__pyx_t_4);
   __pyx_t_4 = 0;
 
-  /* "pymoab/core.pyx":1450
+  /* "pymoab/core.pyx":1488
  *         cdef Range ents = Range()
  *         #here goes nothing
  *         err = self.inst.get_entities_by_type_and_tag(<unsigned long> meshset,             # <<<<<<<<<<<<<<
  *                                                      typ,
  *                                                      ta.ptr,
  */
-  __pyx_t_16 = __Pyx_PyInt_As_unsigned_long(__pyx_v_meshset); if (unlikely((__pyx_t_16 == (unsigned long)-1) && PyErr_Occurred())) __PYX_ERR(0, 1450, __pyx_L1_error)
+  __pyx_t_16 = __Pyx_PyInt_As_unsigned_long(__pyx_v_meshset); if (unlikely((__pyx_t_16 == (unsigned long)-1) && PyErr_Occurred())) __PYX_ERR(0, 1488, __pyx_L1_error)
 
-  /* "pymoab/core.pyx":1457
+  /* "pymoab/core.pyx":1495
  *                                                      deref(ents.inst),
  *                                                      condition,
  *                                                      recur)             # <<<<<<<<<<<<<<
@@ -12263,16 +12264,16 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_58get_entities_by_type_and_tag(str
  */
   __pyx_v_err = __pyx_v_self->inst->get_entities_by_type_and_tag(((unsigned long)__pyx_t_16), __pyx_v_typ, __pyx_v_ta->ptr, ((void const **)__pyx_v_arr), __pyx_v_num_tags, (*__pyx_v_ents->inst), __pyx_v_condition, __pyx_v_recur);
 
-  /* "pymoab/core.pyx":1458
+  /* "pymoab/core.pyx":1496
  *                                                      condition,
  *                                                      recur)
  *         check_error(err, exceptions)             # <<<<<<<<<<<<<<
  *         # return entities found in the MOAB function call
  *         return ents
  */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_check_error); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1458, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_check_error); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1496, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_14 = __Pyx_PyInt_From_enum__moab_3a__3a_ErrorCode(__pyx_v_err); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 1458, __pyx_L1_error)
+  __pyx_t_14 = __Pyx_PyInt_From_enum__moab_3a__3a_ErrorCode(__pyx_v_err); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 1496, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_14);
   __pyx_t_3 = NULL;
   __pyx_t_9 = 0;
@@ -12289,7 +12290,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_58get_entities_by_type_and_tag(str
   #if CYTHON_FAST_PYCALL
   if (PyFunction_Check(__pyx_t_1)) {
     PyObject *__pyx_temp[3] = {__pyx_t_3, __pyx_t_14, __pyx_v_exceptions};
-    __pyx_t_4 = __Pyx_PyFunction_FastCall(__pyx_t_1, __pyx_temp+1-__pyx_t_9, 2+__pyx_t_9); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1458, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyFunction_FastCall(__pyx_t_1, __pyx_temp+1-__pyx_t_9, 2+__pyx_t_9); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1496, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
@@ -12298,14 +12299,14 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_58get_entities_by_type_and_tag(str
   #if CYTHON_FAST_PYCCALL
   if (__Pyx_PyFastCFunction_Check(__pyx_t_1)) {
     PyObject *__pyx_temp[3] = {__pyx_t_3, __pyx_t_14, __pyx_v_exceptions};
-    __pyx_t_4 = __Pyx_PyCFunction_FastCall(__pyx_t_1, __pyx_temp+1-__pyx_t_9, 2+__pyx_t_9); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1458, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyCFunction_FastCall(__pyx_t_1, __pyx_temp+1-__pyx_t_9, 2+__pyx_t_9); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1496, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
   } else
   #endif
   {
-    __pyx_t_2 = PyTuple_New(2+__pyx_t_9); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1458, __pyx_L1_error)
+    __pyx_t_2 = PyTuple_New(2+__pyx_t_9); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1496, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     if (__pyx_t_3) {
       __Pyx_GIVEREF(__pyx_t_3); PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_3); __pyx_t_3 = NULL;
@@ -12316,14 +12317,14 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_58get_entities_by_type_and_tag(str
     __Pyx_GIVEREF(__pyx_v_exceptions);
     PyTuple_SET_ITEM(__pyx_t_2, 1+__pyx_t_9, __pyx_v_exceptions);
     __pyx_t_14 = 0;
-    __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_2, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1458, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_2, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1496, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   }
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "pymoab/core.pyx":1460
+  /* "pymoab/core.pyx":1498
  *         check_error(err, exceptions)
  *         # return entities found in the MOAB function call
  *         return ents             # <<<<<<<<<<<<<<
@@ -12335,7 +12336,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_58get_entities_by_type_and_tag(str
   __pyx_r = ((PyObject *)__pyx_v_ents);
   goto __pyx_L0;
 
-  /* "pymoab/core.pyx":1346
+  /* "pymoab/core.pyx":1384
  *         return entities
  * 
  *     def get_entities_by_type_and_tag(self,             # <<<<<<<<<<<<<<
@@ -12364,7 +12365,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_58get_entities_by_type_and_tag(str
   return __pyx_r;
 }
 
-/* "pymoab/core.pyx":1463
+/* "pymoab/core.pyx":1501
  * 
  * 
  *     def get_entities_by_handle(self, meshset, bint recur = False, exceptions = ()):             # <<<<<<<<<<<<<<
@@ -12413,7 +12414,7 @@ static PyObject *__pyx_pw_6pymoab_4core_4Core_61get_entities_by_handle(PyObject 
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "get_entities_by_handle") < 0)) __PYX_ERR(0, 1463, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "get_entities_by_handle") < 0)) __PYX_ERR(0, 1501, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -12426,7 +12427,7 @@ static PyObject *__pyx_pw_6pymoab_4core_4Core_61get_entities_by_handle(PyObject 
     }
     __pyx_v_meshset = values[0];
     if (values[1]) {
-      __pyx_v_recur = __Pyx_PyObject_IsTrue(values[1]); if (unlikely((__pyx_v_recur == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 1463, __pyx_L3_error)
+      __pyx_v_recur = __Pyx_PyObject_IsTrue(values[1]); if (unlikely((__pyx_v_recur == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 1501, __pyx_L3_error)
     } else {
       __pyx_v_recur = ((int)0);
     }
@@ -12434,7 +12435,7 @@ static PyObject *__pyx_pw_6pymoab_4core_4Core_61get_entities_by_handle(PyObject 
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("get_entities_by_handle", 0, 1, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 1463, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("get_entities_by_handle", 0, 1, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 1501, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("pymoab.core.Core.get_entities_by_handle", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -12461,38 +12462,38 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_60get_entities_by_handle(struct __
   PyObject *__pyx_t_7 = NULL;
   __Pyx_RefNannySetupContext("get_entities_by_handle", 0);
 
-  /* "pymoab/core.pyx":1488
+  /* "pymoab/core.pyx":1526
  *         """
  *         cdef moab.ErrorCode err
  *         cdef Range ents = Range()             # <<<<<<<<<<<<<<
  *         err = self.inst.get_entities_by_handle(<unsigned long> meshset, deref(ents.inst), recur)
  *         check_error(err, exceptions)
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_6pymoab_3rng_Range), __pyx_empty_tuple, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1488, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_6pymoab_3rng_Range), __pyx_empty_tuple, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1526, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_ents = ((struct __pyx_obj_6pymoab_3rng_Range *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "pymoab/core.pyx":1489
+  /* "pymoab/core.pyx":1527
  *         cdef moab.ErrorCode err
  *         cdef Range ents = Range()
  *         err = self.inst.get_entities_by_handle(<unsigned long> meshset, deref(ents.inst), recur)             # <<<<<<<<<<<<<<
  *         check_error(err, exceptions)
  *         return ents
  */
-  __pyx_t_2 = __Pyx_PyInt_As_unsigned_long(__pyx_v_meshset); if (unlikely((__pyx_t_2 == (unsigned long)-1) && PyErr_Occurred())) __PYX_ERR(0, 1489, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyInt_As_unsigned_long(__pyx_v_meshset); if (unlikely((__pyx_t_2 == (unsigned long)-1) && PyErr_Occurred())) __PYX_ERR(0, 1527, __pyx_L1_error)
   __pyx_v_err = __pyx_v_self->inst->get_entities_by_handle(((unsigned long)__pyx_t_2), (*__pyx_v_ents->inst), __pyx_v_recur);
 
-  /* "pymoab/core.pyx":1490
+  /* "pymoab/core.pyx":1528
  *         cdef Range ents = Range()
  *         err = self.inst.get_entities_by_handle(<unsigned long> meshset, deref(ents.inst), recur)
  *         check_error(err, exceptions)             # <<<<<<<<<<<<<<
  *         return ents
  * 
  */
-  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_check_error); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1490, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_check_error); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1528, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = __Pyx_PyInt_From_enum__moab_3a__3a_ErrorCode(__pyx_v_err); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1490, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyInt_From_enum__moab_3a__3a_ErrorCode(__pyx_v_err); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1528, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __pyx_t_5 = NULL;
   __pyx_t_6 = 0;
@@ -12509,7 +12510,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_60get_entities_by_handle(struct __
   #if CYTHON_FAST_PYCALL
   if (PyFunction_Check(__pyx_t_3)) {
     PyObject *__pyx_temp[3] = {__pyx_t_5, __pyx_t_4, __pyx_v_exceptions};
-    __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_6, 2+__pyx_t_6); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1490, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_6, 2+__pyx_t_6); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1528, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
@@ -12518,14 +12519,14 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_60get_entities_by_handle(struct __
   #if CYTHON_FAST_PYCCALL
   if (__Pyx_PyFastCFunction_Check(__pyx_t_3)) {
     PyObject *__pyx_temp[3] = {__pyx_t_5, __pyx_t_4, __pyx_v_exceptions};
-    __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_6, 2+__pyx_t_6); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1490, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_6, 2+__pyx_t_6); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1528, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   } else
   #endif
   {
-    __pyx_t_7 = PyTuple_New(2+__pyx_t_6); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 1490, __pyx_L1_error)
+    __pyx_t_7 = PyTuple_New(2+__pyx_t_6); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 1528, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
     if (__pyx_t_5) {
       __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_5); __pyx_t_5 = NULL;
@@ -12536,14 +12537,14 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_60get_entities_by_handle(struct __
     __Pyx_GIVEREF(__pyx_v_exceptions);
     PyTuple_SET_ITEM(__pyx_t_7, 1+__pyx_t_6, __pyx_v_exceptions);
     __pyx_t_4 = 0;
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_7, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1490, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_7, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1528, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   }
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "pymoab/core.pyx":1491
+  /* "pymoab/core.pyx":1529
  *         err = self.inst.get_entities_by_handle(<unsigned long> meshset, deref(ents.inst), recur)
  *         check_error(err, exceptions)
  *         return ents             # <<<<<<<<<<<<<<
@@ -12555,7 +12556,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_60get_entities_by_handle(struct __
   __pyx_r = ((PyObject *)__pyx_v_ents);
   goto __pyx_L0;
 
-  /* "pymoab/core.pyx":1463
+  /* "pymoab/core.pyx":1501
  * 
  * 
  *     def get_entities_by_handle(self, meshset, bint recur = False, exceptions = ()):             # <<<<<<<<<<<<<<
@@ -12579,7 +12580,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_60get_entities_by_handle(struct __
   return __pyx_r;
 }
 
-/* "pymoab/core.pyx":1493
+/* "pymoab/core.pyx":1531
  *         return ents
  * 
  *     def get_entities_by_dimension(self, meshset, int dimension, bint recur = False, exceptions = ()):             # <<<<<<<<<<<<<<
@@ -12621,7 +12622,7 @@ static PyObject *__pyx_pw_6pymoab_4core_4Core_63get_entities_by_dimension(PyObje
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_dimension)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("get_entities_by_dimension", 0, 2, 4, 1); __PYX_ERR(0, 1493, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("get_entities_by_dimension", 0, 2, 4, 1); __PYX_ERR(0, 1531, __pyx_L3_error)
         }
         case  2:
         if (kw_args > 0) {
@@ -12635,7 +12636,7 @@ static PyObject *__pyx_pw_6pymoab_4core_4Core_63get_entities_by_dimension(PyObje
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "get_entities_by_dimension") < 0)) __PYX_ERR(0, 1493, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "get_entities_by_dimension") < 0)) __PYX_ERR(0, 1531, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -12648,9 +12649,9 @@ static PyObject *__pyx_pw_6pymoab_4core_4Core_63get_entities_by_dimension(PyObje
       }
     }
     __pyx_v_meshset = values[0];
-    __pyx_v_dimension = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_dimension == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 1493, __pyx_L3_error)
+    __pyx_v_dimension = __Pyx_PyInt_As_int(values[1]); if (unlikely((__pyx_v_dimension == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 1531, __pyx_L3_error)
     if (values[2]) {
-      __pyx_v_recur = __Pyx_PyObject_IsTrue(values[2]); if (unlikely((__pyx_v_recur == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 1493, __pyx_L3_error)
+      __pyx_v_recur = __Pyx_PyObject_IsTrue(values[2]); if (unlikely((__pyx_v_recur == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 1531, __pyx_L3_error)
     } else {
       __pyx_v_recur = ((int)0);
     }
@@ -12658,7 +12659,7 @@ static PyObject *__pyx_pw_6pymoab_4core_4Core_63get_entities_by_dimension(PyObje
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("get_entities_by_dimension", 0, 2, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 1493, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("get_entities_by_dimension", 0, 2, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 1531, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("pymoab.core.Core.get_entities_by_dimension", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -12685,38 +12686,38 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_62get_entities_by_dimension(struct
   PyObject *__pyx_t_7 = NULL;
   __Pyx_RefNannySetupContext("get_entities_by_dimension", 0);
 
-  /* "pymoab/core.pyx":1520
+  /* "pymoab/core.pyx":1558
  *         """
  *         cdef moab.ErrorCode err
  *         cdef Range ents = Range()             # <<<<<<<<<<<<<<
  *         err = self.inst.get_entities_by_dimension(<unsigned long> meshset, dimension, deref(ents.inst), recur)
  *         check_error(err, exceptions)
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_6pymoab_3rng_Range), __pyx_empty_tuple, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1520, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_6pymoab_3rng_Range), __pyx_empty_tuple, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1558, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_ents = ((struct __pyx_obj_6pymoab_3rng_Range *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "pymoab/core.pyx":1521
+  /* "pymoab/core.pyx":1559
  *         cdef moab.ErrorCode err
  *         cdef Range ents = Range()
  *         err = self.inst.get_entities_by_dimension(<unsigned long> meshset, dimension, deref(ents.inst), recur)             # <<<<<<<<<<<<<<
  *         check_error(err, exceptions)
  *         return ents
  */
-  __pyx_t_2 = __Pyx_PyInt_As_unsigned_long(__pyx_v_meshset); if (unlikely((__pyx_t_2 == (unsigned long)-1) && PyErr_Occurred())) __PYX_ERR(0, 1521, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyInt_As_unsigned_long(__pyx_v_meshset); if (unlikely((__pyx_t_2 == (unsigned long)-1) && PyErr_Occurred())) __PYX_ERR(0, 1559, __pyx_L1_error)
   __pyx_v_err = __pyx_v_self->inst->get_entities_by_dimension(((unsigned long)__pyx_t_2), __pyx_v_dimension, (*__pyx_v_ents->inst), __pyx_v_recur);
 
-  /* "pymoab/core.pyx":1522
+  /* "pymoab/core.pyx":1560
  *         cdef Range ents = Range()
  *         err = self.inst.get_entities_by_dimension(<unsigned long> meshset, dimension, deref(ents.inst), recur)
  *         check_error(err, exceptions)             # <<<<<<<<<<<<<<
  *         return ents
  * 
  */
-  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_check_error); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1522, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_check_error); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1560, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = __Pyx_PyInt_From_enum__moab_3a__3a_ErrorCode(__pyx_v_err); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1522, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyInt_From_enum__moab_3a__3a_ErrorCode(__pyx_v_err); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1560, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __pyx_t_5 = NULL;
   __pyx_t_6 = 0;
@@ -12733,7 +12734,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_62get_entities_by_dimension(struct
   #if CYTHON_FAST_PYCALL
   if (PyFunction_Check(__pyx_t_3)) {
     PyObject *__pyx_temp[3] = {__pyx_t_5, __pyx_t_4, __pyx_v_exceptions};
-    __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_6, 2+__pyx_t_6); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1522, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_6, 2+__pyx_t_6); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1560, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
@@ -12742,14 +12743,14 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_62get_entities_by_dimension(struct
   #if CYTHON_FAST_PYCCALL
   if (__Pyx_PyFastCFunction_Check(__pyx_t_3)) {
     PyObject *__pyx_temp[3] = {__pyx_t_5, __pyx_t_4, __pyx_v_exceptions};
-    __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_6, 2+__pyx_t_6); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1522, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-__pyx_t_6, 2+__pyx_t_6); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1560, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   } else
   #endif
   {
-    __pyx_t_7 = PyTuple_New(2+__pyx_t_6); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 1522, __pyx_L1_error)
+    __pyx_t_7 = PyTuple_New(2+__pyx_t_6); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 1560, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
     if (__pyx_t_5) {
       __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_5); __pyx_t_5 = NULL;
@@ -12760,14 +12761,14 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_62get_entities_by_dimension(struct
     __Pyx_GIVEREF(__pyx_v_exceptions);
     PyTuple_SET_ITEM(__pyx_t_7, 1+__pyx_t_6, __pyx_v_exceptions);
     __pyx_t_4 = 0;
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_7, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1522, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_7, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1560, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   }
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "pymoab/core.pyx":1523
+  /* "pymoab/core.pyx":1561
  *         err = self.inst.get_entities_by_dimension(<unsigned long> meshset, dimension, deref(ents.inst), recur)
  *         check_error(err, exceptions)
  *         return ents             # <<<<<<<<<<<<<<
@@ -12779,7 +12780,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_62get_entities_by_dimension(struct
   __pyx_r = ((PyObject *)__pyx_v_ents);
   goto __pyx_L0;
 
-  /* "pymoab/core.pyx":1493
+  /* "pymoab/core.pyx":1531
  *         return ents
  * 
  *     def get_entities_by_dimension(self, meshset, int dimension, bint recur = False, exceptions = ()):             # <<<<<<<<<<<<<<
@@ -12803,7 +12804,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_62get_entities_by_dimension(struct
   return __pyx_r;
 }
 
-/* "pymoab/core.pyx":1525
+/* "pymoab/core.pyx":1563
  *         return ents
  * 
  *     def delete_mesh(self):             # <<<<<<<<<<<<<<
@@ -12830,7 +12831,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_64delete_mesh(struct __pyx_obj_6py
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("delete_mesh", 0);
 
-  /* "pymoab/core.pyx":1527
+  /* "pymoab/core.pyx":1565
  *     def delete_mesh(self):
  *         """Deletes all mesh entities from the database"""
  *         self.inst.delete_mesh()             # <<<<<<<<<<<<<<
@@ -12839,7 +12840,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_64delete_mesh(struct __pyx_obj_6py
  */
   __pyx_v_self->inst->delete_mesh();
 
-  /* "pymoab/core.pyx":1525
+  /* "pymoab/core.pyx":1563
  *         return ents
  * 
  *     def delete_mesh(self):             # <<<<<<<<<<<<<<
@@ -12854,7 +12855,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_64delete_mesh(struct __pyx_obj_6py
   return __pyx_r;
 }
 
-/* "pymoab/core.pyx":1529
+/* "pymoab/core.pyx":1567
  *         self.inst.delete_mesh()
  * 
  *     def _validate_data_for_tag(self, Tag tag, data_arr):             # <<<<<<<<<<<<<<
@@ -12891,11 +12892,11 @@ static PyObject *__pyx_pw_6pymoab_4core_4Core_67_validate_data_for_tag(PyObject 
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_data_arr)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("_validate_data_for_tag", 1, 2, 2, 1); __PYX_ERR(0, 1529, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("_validate_data_for_tag", 1, 2, 2, 1); __PYX_ERR(0, 1567, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "_validate_data_for_tag") < 0)) __PYX_ERR(0, 1529, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "_validate_data_for_tag") < 0)) __PYX_ERR(0, 1567, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -12908,13 +12909,13 @@ static PyObject *__pyx_pw_6pymoab_4core_4Core_67_validate_data_for_tag(PyObject 
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("_validate_data_for_tag", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 1529, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("_validate_data_for_tag", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 1567, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("pymoab.core.Core._validate_data_for_tag", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_tag), __pyx_ptype_6pymoab_3tag_Tag, 1, "tag", 0))) __PYX_ERR(0, 1529, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_tag), __pyx_ptype_6pymoab_3tag_Tag, 1, "tag", 0))) __PYX_ERR(0, 1567, __pyx_L1_error)
   __pyx_r = __pyx_pf_6pymoab_4core_4Core_66_validate_data_for_tag(((struct __pyx_obj_6pymoab_4core_Core *)__pyx_v_self), __pyx_v_tag, __pyx_v_data_arr);
 
   /* function exit code */
@@ -12943,7 +12944,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_66_validate_data_for_tag(struct __
   __Pyx_RefNannySetupContext("_validate_data_for_tag", 0);
   __Pyx_INCREF(__pyx_v_data_arr);
 
-  /* "pymoab/core.pyx":1533
+  /* "pymoab/core.pyx":1571
  * 
  *         cdef moab.ErrorCode err
  *         cdef moab.DataType tag_type = moab.MB_MAX_DATA_TYPE             # <<<<<<<<<<<<<<
@@ -12952,7 +12953,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_66_validate_data_for_tag(struct __
  */
   __pyx_v_tag_type = moab::MB_MAX_DATA_TYPE;
 
-  /* "pymoab/core.pyx":1534
+  /* "pymoab/core.pyx":1572
  *         cdef moab.ErrorCode err
  *         cdef moab.DataType tag_type = moab.MB_MAX_DATA_TYPE
  *         cdef int tag_length = 0             # <<<<<<<<<<<<<<
@@ -12961,7 +12962,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_66_validate_data_for_tag(struct __
  */
   __pyx_v_tag_length = 0;
 
-  /* "pymoab/core.pyx":1536
+  /* "pymoab/core.pyx":1574
  *         cdef int tag_length = 0
  *         # make sure we're dealing with a 1-D array at this point
  *         assert data_arr.ndim == 1             # <<<<<<<<<<<<<<
@@ -12970,36 +12971,36 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_66_validate_data_for_tag(struct __
  */
   #ifndef CYTHON_WITHOUT_ASSERTIONS
   if (unlikely(!Py_OptimizeFlag)) {
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_data_arr, __pyx_n_s_ndim); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1536, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_data_arr, __pyx_n_s_ndim); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1574, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_2 = __Pyx_PyInt_EqObjC(__pyx_t_1, __pyx_int_1, 1, 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1536, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyInt_EqObjC(__pyx_t_1, __pyx_int_1, 1, 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1574, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_3 < 0)) __PYX_ERR(0, 1536, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_3 < 0)) __PYX_ERR(0, 1574, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     if (unlikely(!__pyx_t_3)) {
       PyErr_SetNone(PyExc_AssertionError);
-      __PYX_ERR(0, 1536, __pyx_L1_error)
+      __PYX_ERR(0, 1574, __pyx_L1_error)
     }
   }
   #endif
 
-  /* "pymoab/core.pyx":1538
+  /* "pymoab/core.pyx":1576
  *         assert data_arr.ndim == 1
  *         # if None is passed, set pointer to NULL and continue
  *         if data_arr[0] == None:             # <<<<<<<<<<<<<<
  *             return None
  *         else:
  */
-  __pyx_t_2 = __Pyx_GetItemInt(__pyx_v_data_arr, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1538, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_GetItemInt(__pyx_v_data_arr, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1576, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_1 = PyObject_RichCompare(__pyx_t_2, Py_None, Py_EQ); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1538, __pyx_L1_error)
+  __pyx_t_1 = PyObject_RichCompare(__pyx_t_2, Py_None, Py_EQ); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1576, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_3 < 0)) __PYX_ERR(0, 1538, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_3 < 0)) __PYX_ERR(0, 1576, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (__pyx_t_3) {
 
-    /* "pymoab/core.pyx":1539
+    /* "pymoab/core.pyx":1577
  *         # if None is passed, set pointer to NULL and continue
  *         if data_arr[0] == None:
  *             return None             # <<<<<<<<<<<<<<
@@ -13011,7 +13012,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_66_validate_data_for_tag(struct __
     __pyx_r = Py_None;
     goto __pyx_L0;
 
-    /* "pymoab/core.pyx":1538
+    /* "pymoab/core.pyx":1576
  *         assert data_arr.ndim == 1
  *         # if None is passed, set pointer to NULL and continue
  *         if data_arr[0] == None:             # <<<<<<<<<<<<<<
@@ -13020,7 +13021,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_66_validate_data_for_tag(struct __
  */
   }
 
-  /* "pymoab/core.pyx":1542
+  /* "pymoab/core.pyx":1580
  *         else:
  *             # otherwise get the tag type
  *             err = self.inst.tag_get_data_type(tag.inst, tag_type)             # <<<<<<<<<<<<<<
@@ -13030,16 +13031,16 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_66_validate_data_for_tag(struct __
   /*else*/ {
     __pyx_v_err = __pyx_v_self->inst->tag_get_data_type(__pyx_v_tag->inst, __pyx_v_tag_type);
 
-    /* "pymoab/core.pyx":1543
+    /* "pymoab/core.pyx":1581
  *             # otherwise get the tag type
  *             err = self.inst.tag_get_data_type(tag.inst, tag_type)
  *             check_error(err)             # <<<<<<<<<<<<<<
  *             #and length
  *             err = self.inst.tag_get_length(tag.inst,tag_length);
  */
-    __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_check_error); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1543, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_check_error); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1581, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_4 = __Pyx_PyInt_From_enum__moab_3a__3a_ErrorCode(__pyx_v_err); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1543, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyInt_From_enum__moab_3a__3a_ErrorCode(__pyx_v_err); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1581, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __pyx_t_5 = NULL;
     if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_2))) {
@@ -13052,14 +13053,14 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_66_validate_data_for_tag(struct __
       }
     }
     if (!__pyx_t_5) {
-      __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1543, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1581, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
       __Pyx_GOTREF(__pyx_t_1);
     } else {
       #if CYTHON_FAST_PYCALL
       if (PyFunction_Check(__pyx_t_2)) {
         PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_t_4};
-        __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1543, __pyx_L1_error)
+        __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1581, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
         __Pyx_GOTREF(__pyx_t_1);
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
@@ -13068,20 +13069,20 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_66_validate_data_for_tag(struct __
       #if CYTHON_FAST_PYCCALL
       if (__Pyx_PyFastCFunction_Check(__pyx_t_2)) {
         PyObject *__pyx_temp[2] = {__pyx_t_5, __pyx_t_4};
-        __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1543, __pyx_L1_error)
+        __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1581, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
         __Pyx_GOTREF(__pyx_t_1);
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
       } else
       #endif
       {
-        __pyx_t_6 = PyTuple_New(1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 1543, __pyx_L1_error)
+        __pyx_t_6 = PyTuple_New(1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 1581, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_6);
         __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_5); __pyx_t_5 = NULL;
         __Pyx_GIVEREF(__pyx_t_4);
         PyTuple_SET_ITEM(__pyx_t_6, 0+1, __pyx_t_4);
         __pyx_t_4 = 0;
-        __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_6, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1543, __pyx_L1_error)
+        __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_6, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1581, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_1);
         __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
       }
@@ -13089,7 +13090,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_66_validate_data_for_tag(struct __
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-    /* "pymoab/core.pyx":1545
+    /* "pymoab/core.pyx":1583
  *             check_error(err)
  *             #and length
  *             err = self.inst.tag_get_length(tag.inst,tag_length);             # <<<<<<<<<<<<<<
@@ -13098,16 +13099,16 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_66_validate_data_for_tag(struct __
  */
     __pyx_v_err = __pyx_v_self->inst->tag_get_length(__pyx_v_tag->inst, __pyx_v_tag_length);
 
-    /* "pymoab/core.pyx":1546
+    /* "pymoab/core.pyx":1584
  *             #and length
  *             err = self.inst.tag_get_length(tag.inst,tag_length);
  *             check_error(err)             # <<<<<<<<<<<<<<
  *             #check that the data_arr for this tag is the correct length
  *             if tag_type == moab.MB_TYPE_OPAQUE:
  */
-    __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_check_error); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1546, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_check_error); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1584, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_6 = __Pyx_PyInt_From_enum__moab_3a__3a_ErrorCode(__pyx_v_err); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 1546, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyInt_From_enum__moab_3a__3a_ErrorCode(__pyx_v_err); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 1584, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     __pyx_t_4 = NULL;
     if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_2))) {
@@ -13120,14 +13121,14 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_66_validate_data_for_tag(struct __
       }
     }
     if (!__pyx_t_4) {
-      __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_6); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1546, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_6); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1584, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
       __Pyx_GOTREF(__pyx_t_1);
     } else {
       #if CYTHON_FAST_PYCALL
       if (PyFunction_Check(__pyx_t_2)) {
         PyObject *__pyx_temp[2] = {__pyx_t_4, __pyx_t_6};
-        __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1546, __pyx_L1_error)
+        __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1584, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
         __Pyx_GOTREF(__pyx_t_1);
         __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
@@ -13136,20 +13137,20 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_66_validate_data_for_tag(struct __
       #if CYTHON_FAST_PYCCALL
       if (__Pyx_PyFastCFunction_Check(__pyx_t_2)) {
         PyObject *__pyx_temp[2] = {__pyx_t_4, __pyx_t_6};
-        __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1546, __pyx_L1_error)
+        __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1584, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
         __Pyx_GOTREF(__pyx_t_1);
         __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
       } else
       #endif
       {
-        __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1546, __pyx_L1_error)
+        __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1584, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_5);
         __Pyx_GIVEREF(__pyx_t_4); PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_4); __pyx_t_4 = NULL;
         __Pyx_GIVEREF(__pyx_t_6);
         PyTuple_SET_ITEM(__pyx_t_5, 0+1, __pyx_t_6);
         __pyx_t_6 = 0;
-        __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_5, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1546, __pyx_L1_error)
+        __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_5, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1584, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_1);
         __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       }
@@ -13157,7 +13158,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_66_validate_data_for_tag(struct __
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-    /* "pymoab/core.pyx":1548
+    /* "pymoab/core.pyx":1586
  *             check_error(err)
  *             #check that the data_arr for this tag is the correct length
  *             if tag_type == moab.MB_TYPE_OPAQUE:             # <<<<<<<<<<<<<<
@@ -13167,7 +13168,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_66_validate_data_for_tag(struct __
     __pyx_t_3 = ((__pyx_v_tag_type == moab::MB_TYPE_OPAQUE) != 0);
     if (__pyx_t_3) {
 
-      /* "pymoab/core.pyx":1551
+      /* "pymoab/core.pyx":1589
  *                 #if this is an opaque tag, there should only be one
  *                 #string entry in the array
  *                 assert data_arr.size == 1             # <<<<<<<<<<<<<<
@@ -13176,21 +13177,21 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_66_validate_data_for_tag(struct __
  */
       #ifndef CYTHON_WITHOUT_ASSERTIONS
       if (unlikely(!Py_OptimizeFlag)) {
-        __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_data_arr, __pyx_n_s_size); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1551, __pyx_L1_error)
+        __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_data_arr, __pyx_n_s_size); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1589, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_1);
-        __pyx_t_2 = __Pyx_PyInt_EqObjC(__pyx_t_1, __pyx_int_1, 1, 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1551, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyInt_EqObjC(__pyx_t_1, __pyx_int_1, 1, 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1589, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_2);
         __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-        __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_3 < 0)) __PYX_ERR(0, 1551, __pyx_L1_error)
+        __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_3 < 0)) __PYX_ERR(0, 1589, __pyx_L1_error)
         __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
         if (unlikely(!__pyx_t_3)) {
           PyErr_SetNone(PyExc_AssertionError);
-          __PYX_ERR(0, 1551, __pyx_L1_error)
+          __PYX_ERR(0, 1589, __pyx_L1_error)
         }
       }
       #endif
 
-      /* "pymoab/core.pyx":1548
+      /* "pymoab/core.pyx":1586
  *             check_error(err)
  *             #check that the data_arr for this tag is the correct length
  *             if tag_type == moab.MB_TYPE_OPAQUE:             # <<<<<<<<<<<<<<
@@ -13200,7 +13201,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_66_validate_data_for_tag(struct __
       goto __pyx_L4;
     }
 
-    /* "pymoab/core.pyx":1553
+    /* "pymoab/core.pyx":1591
  *                 assert data_arr.size == 1
  *             else:
  *                 assert data_arr.size == tag_length             # <<<<<<<<<<<<<<
@@ -13210,18 +13211,18 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_66_validate_data_for_tag(struct __
     /*else*/ {
       #ifndef CYTHON_WITHOUT_ASSERTIONS
       if (unlikely(!Py_OptimizeFlag)) {
-        __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_data_arr, __pyx_n_s_size); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1553, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_data_arr, __pyx_n_s_size); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1591, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_2);
-        __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_tag_length); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1553, __pyx_L1_error)
+        __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_tag_length); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1591, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_1);
-        __pyx_t_5 = PyObject_RichCompare(__pyx_t_2, __pyx_t_1, Py_EQ); __Pyx_XGOTREF(__pyx_t_5); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1553, __pyx_L1_error)
+        __pyx_t_5 = PyObject_RichCompare(__pyx_t_2, __pyx_t_1, Py_EQ); __Pyx_XGOTREF(__pyx_t_5); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1591, __pyx_L1_error)
         __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
         __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-        __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_5); if (unlikely(__pyx_t_3 < 0)) __PYX_ERR(0, 1553, __pyx_L1_error)
+        __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_5); if (unlikely(__pyx_t_3 < 0)) __PYX_ERR(0, 1591, __pyx_L1_error)
         __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
         if (unlikely(!__pyx_t_3)) {
           PyErr_SetNone(PyExc_AssertionError);
-          __PYX_ERR(0, 1553, __pyx_L1_error)
+          __PYX_ERR(0, 1591, __pyx_L1_error)
         }
       }
       #endif
@@ -13229,18 +13230,18 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_66_validate_data_for_tag(struct __
     __pyx_L4:;
   }
 
-  /* "pymoab/core.pyx":1555
+  /* "pymoab/core.pyx":1593
  *                 assert data_arr.size == tag_length
  *         #validate the array type and convert the dtype if necessary
  *         data_arr = validate_type(tag_type, tag_length, data_arr)             # <<<<<<<<<<<<<<
  *         return data_arr
  * 
  */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_validate_type); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1555, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_validate_type); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1593, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyInt_From_enum__moab_3a__3a_DataType(__pyx_v_tag_type); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1555, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyInt_From_enum__moab_3a__3a_DataType(__pyx_v_tag_type); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1593, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_6 = __Pyx_PyInt_From_int(__pyx_v_tag_length); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 1555, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyInt_From_int(__pyx_v_tag_length); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 1593, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __pyx_t_4 = NULL;
   __pyx_t_7 = 0;
@@ -13257,7 +13258,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_66_validate_data_for_tag(struct __
   #if CYTHON_FAST_PYCALL
   if (PyFunction_Check(__pyx_t_1)) {
     PyObject *__pyx_temp[4] = {__pyx_t_4, __pyx_t_2, __pyx_t_6, __pyx_v_data_arr};
-    __pyx_t_5 = __Pyx_PyFunction_FastCall(__pyx_t_1, __pyx_temp+1-__pyx_t_7, 3+__pyx_t_7); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1555, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyFunction_FastCall(__pyx_t_1, __pyx_temp+1-__pyx_t_7, 3+__pyx_t_7); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1593, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
@@ -13267,7 +13268,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_66_validate_data_for_tag(struct __
   #if CYTHON_FAST_PYCCALL
   if (__Pyx_PyFastCFunction_Check(__pyx_t_1)) {
     PyObject *__pyx_temp[4] = {__pyx_t_4, __pyx_t_2, __pyx_t_6, __pyx_v_data_arr};
-    __pyx_t_5 = __Pyx_PyCFunction_FastCall(__pyx_t_1, __pyx_temp+1-__pyx_t_7, 3+__pyx_t_7); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1555, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyCFunction_FastCall(__pyx_t_1, __pyx_temp+1-__pyx_t_7, 3+__pyx_t_7); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1593, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
@@ -13275,7 +13276,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_66_validate_data_for_tag(struct __
   } else
   #endif
   {
-    __pyx_t_8 = PyTuple_New(3+__pyx_t_7); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 1555, __pyx_L1_error)
+    __pyx_t_8 = PyTuple_New(3+__pyx_t_7); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 1593, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_8);
     if (__pyx_t_4) {
       __Pyx_GIVEREF(__pyx_t_4); PyTuple_SET_ITEM(__pyx_t_8, 0, __pyx_t_4); __pyx_t_4 = NULL;
@@ -13289,7 +13290,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_66_validate_data_for_tag(struct __
     PyTuple_SET_ITEM(__pyx_t_8, 2+__pyx_t_7, __pyx_v_data_arr);
     __pyx_t_2 = 0;
     __pyx_t_6 = 0;
-    __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_8, NULL); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1555, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_8, NULL); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 1593, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
   }
@@ -13297,7 +13298,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_66_validate_data_for_tag(struct __
   __Pyx_DECREF_SET(__pyx_v_data_arr, __pyx_t_5);
   __pyx_t_5 = 0;
 
-  /* "pymoab/core.pyx":1556
+  /* "pymoab/core.pyx":1594
  *         #validate the array type and convert the dtype if necessary
  *         data_arr = validate_type(tag_type, tag_length, data_arr)
  *         return data_arr             # <<<<<<<<<<<<<<
@@ -13309,7 +13310,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_66_validate_data_for_tag(struct __
   __pyx_r = __pyx_v_data_arr;
   goto __pyx_L0;
 
-  /* "pymoab/core.pyx":1529
+  /* "pymoab/core.pyx":1567
  *         self.inst.delete_mesh()
  * 
  *     def _validate_data_for_tag(self, Tag tag, data_arr):             # <<<<<<<<<<<<<<
@@ -13334,7 +13335,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_66_validate_data_for_tag(struct __
   return __pyx_r;
 }
 
-/* "pymoab/core.pyx":1558
+/* "pymoab/core.pyx":1596
  *         return data_arr
  * 
  *     def tag_get_default_value(self, Tag tag, exceptions = () ):             # <<<<<<<<<<<<<<
@@ -13375,7 +13376,7 @@ static PyObject *__pyx_pw_6pymoab_4core_4Core_69tag_get_default_value(PyObject *
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "tag_get_default_value") < 0)) __PYX_ERR(0, 1558, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "tag_get_default_value") < 0)) __PYX_ERR(0, 1596, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -13390,13 +13391,13 @@ static PyObject *__pyx_pw_6pymoab_4core_4Core_69tag_get_default_value(PyObject *
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("tag_get_default_value", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 1558, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("tag_get_default_value", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 1596, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("pymoab.core.Core.tag_get_default_value", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_tag), __pyx_ptype_6pymoab_3tag_Tag, 1, "tag", 0))) __PYX_ERR(0, 1558, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_tag), __pyx_ptype_6pymoab_3tag_Tag, 1, "tag", 0))) __PYX_ERR(0, 1596, __pyx_L1_error)
   __pyx_r = __pyx_pf_6pymoab_4core_4Core_68tag_get_default_value(((struct __pyx_obj_6pymoab_4core_Core *)__pyx_v_self), __pyx_v_tag, __pyx_v_exceptions);
 
   /* function exit code */
@@ -13428,7 +13429,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_68tag_get_default_value(struct __p
   PyObject *__pyx_t_11 = NULL;
   __Pyx_RefNannySetupContext("tag_get_default_value", 0);
 
-  /* "pymoab/core.pyx":1560
+  /* "pymoab/core.pyx":1598
  *     def tag_get_default_value(self, Tag tag, exceptions = () ):
  *         # get the tag type and length for validation
  *         cdef moab.DataType tag_type = moab.MB_MAX_DATA_TYPE             # <<<<<<<<<<<<<<
@@ -13437,7 +13438,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_68tag_get_default_value(struct __p
  */
   __pyx_v_tag_type = moab::MB_MAX_DATA_TYPE;
 
-  /* "pymoab/core.pyx":1561
+  /* "pymoab/core.pyx":1599
  *         # get the tag type and length for validation
  *         cdef moab.DataType tag_type = moab.MB_MAX_DATA_TYPE
  *         err = self.inst.tag_get_data_type(tag.inst, tag_type);             # <<<<<<<<<<<<<<
@@ -13446,16 +13447,16 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_68tag_get_default_value(struct __p
  */
   __pyx_v_err = __pyx_v_self->inst->tag_get_data_type(__pyx_v_tag->inst, __pyx_v_tag_type);
 
-  /* "pymoab/core.pyx":1562
+  /* "pymoab/core.pyx":1600
  *         cdef moab.DataType tag_type = moab.MB_MAX_DATA_TYPE
  *         err = self.inst.tag_get_data_type(tag.inst, tag_type);
  *         check_error(err,())             # <<<<<<<<<<<<<<
  *         cdef int length = 0
  *         err = self.inst.tag_get_length(tag.inst,length);
  */
-  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_check_error); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1562, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_check_error); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1600, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyInt_From_enum__moab_3a__3a_ErrorCode(__pyx_v_err); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1562, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_From_enum__moab_3a__3a_ErrorCode(__pyx_v_err); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1600, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __pyx_t_4 = NULL;
   __pyx_t_5 = 0;
@@ -13472,7 +13473,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_68tag_get_default_value(struct __p
   #if CYTHON_FAST_PYCALL
   if (PyFunction_Check(__pyx_t_2)) {
     PyObject *__pyx_temp[3] = {__pyx_t_4, __pyx_t_3, __pyx_empty_tuple};
-    __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-__pyx_t_5, 2+__pyx_t_5); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1562, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-__pyx_t_5, 2+__pyx_t_5); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1600, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -13481,14 +13482,14 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_68tag_get_default_value(struct __p
   #if CYTHON_FAST_PYCCALL
   if (__Pyx_PyFastCFunction_Check(__pyx_t_2)) {
     PyObject *__pyx_temp[3] = {__pyx_t_4, __pyx_t_3, __pyx_empty_tuple};
-    __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-__pyx_t_5, 2+__pyx_t_5); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1562, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-__pyx_t_5, 2+__pyx_t_5); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1600, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   } else
   #endif
   {
-    __pyx_t_6 = PyTuple_New(2+__pyx_t_5); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 1562, __pyx_L1_error)
+    __pyx_t_6 = PyTuple_New(2+__pyx_t_5); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 1600, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     if (__pyx_t_4) {
       __Pyx_GIVEREF(__pyx_t_4); PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_4); __pyx_t_4 = NULL;
@@ -13499,14 +13500,14 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_68tag_get_default_value(struct __p
     __Pyx_GIVEREF(__pyx_empty_tuple);
     PyTuple_SET_ITEM(__pyx_t_6, 1+__pyx_t_5, __pyx_empty_tuple);
     __pyx_t_3 = 0;
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_6, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1562, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_6, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1600, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   }
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "pymoab/core.pyx":1563
+  /* "pymoab/core.pyx":1601
  *         err = self.inst.tag_get_data_type(tag.inst, tag_type);
  *         check_error(err,())
  *         cdef int length = 0             # <<<<<<<<<<<<<<
@@ -13515,7 +13516,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_68tag_get_default_value(struct __p
  */
   __pyx_v_length = 0;
 
-  /* "pymoab/core.pyx":1564
+  /* "pymoab/core.pyx":1602
  *         check_error(err,())
  *         cdef int length = 0
  *         err = self.inst.tag_get_length(tag.inst,length);             # <<<<<<<<<<<<<<
@@ -13524,16 +13525,16 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_68tag_get_default_value(struct __p
  */
   __pyx_v_err = __pyx_v_self->inst->tag_get_length(__pyx_v_tag->inst, __pyx_v_length);
 
-  /* "pymoab/core.pyx":1565
+  /* "pymoab/core.pyx":1603
  *         cdef int length = 0
  *         err = self.inst.tag_get_length(tag.inst,length);
  *         check_error(err,())             # <<<<<<<<<<<<<<
  *         #create array to hold data
  *         cdef np.ndarray data
  */
-  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_check_error); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1565, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_check_error); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1603, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_6 = __Pyx_PyInt_From_enum__moab_3a__3a_ErrorCode(__pyx_v_err); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 1565, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyInt_From_enum__moab_3a__3a_ErrorCode(__pyx_v_err); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 1603, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __pyx_t_3 = NULL;
   __pyx_t_5 = 0;
@@ -13550,7 +13551,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_68tag_get_default_value(struct __p
   #if CYTHON_FAST_PYCALL
   if (PyFunction_Check(__pyx_t_2)) {
     PyObject *__pyx_temp[3] = {__pyx_t_3, __pyx_t_6, __pyx_empty_tuple};
-    __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-__pyx_t_5, 2+__pyx_t_5); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1565, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-__pyx_t_5, 2+__pyx_t_5); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1603, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
@@ -13559,14 +13560,14 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_68tag_get_default_value(struct __p
   #if CYTHON_FAST_PYCCALL
   if (__Pyx_PyFastCFunction_Check(__pyx_t_2)) {
     PyObject *__pyx_temp[3] = {__pyx_t_3, __pyx_t_6, __pyx_empty_tuple};
-    __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-__pyx_t_5, 2+__pyx_t_5); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1565, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-__pyx_t_5, 2+__pyx_t_5); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1603, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   } else
   #endif
   {
-    __pyx_t_4 = PyTuple_New(2+__pyx_t_5); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1565, __pyx_L1_error)
+    __pyx_t_4 = PyTuple_New(2+__pyx_t_5); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1603, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     if (__pyx_t_3) {
       __Pyx_GIVEREF(__pyx_t_3); PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_3); __pyx_t_3 = NULL;
@@ -13577,25 +13578,25 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_68tag_get_default_value(struct __p
     __Pyx_GIVEREF(__pyx_empty_tuple);
     PyTuple_SET_ITEM(__pyx_t_4, 1+__pyx_t_5, __pyx_empty_tuple);
     __pyx_t_6 = 0;
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_4, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1565, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_4, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1603, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   }
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "pymoab/core.pyx":1568
+  /* "pymoab/core.pyx":1606
  *         #create array to hold data
  *         cdef np.ndarray data
  *         if tag_type is types.MB_TYPE_OPAQUE:             # <<<<<<<<<<<<<<
  *             data = np.empty((1,),dtype='S'+str(length))
  *         else:
  */
-  __pyx_t_1 = __Pyx_PyInt_From_enum__moab_3a__3a_DataType(__pyx_v_tag_type); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1568, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_enum__moab_3a__3a_DataType(__pyx_v_tag_type); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1606, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_types); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1568, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_types); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1606, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_MB_TYPE_OPAQUE); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1568, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_MB_TYPE_OPAQUE); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1606, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_t_7 = (__pyx_t_1 == __pyx_t_4);
@@ -13604,44 +13605,44 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_68tag_get_default_value(struct __p
   __pyx_t_8 = (__pyx_t_7 != 0);
   if (__pyx_t_8) {
 
-    /* "pymoab/core.pyx":1569
+    /* "pymoab/core.pyx":1607
  *         cdef np.ndarray data
  *         if tag_type is types.MB_TYPE_OPAQUE:
  *             data = np.empty((1,),dtype='S'+str(length))             # <<<<<<<<<<<<<<
  *         else:
  *             data = np.empty((length,),dtype=np.dtype(np_tag_type(tag_type)))
  */
-    __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1569, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1607, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_empty); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1569, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_empty); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1607, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __pyx_t_4 = PyDict_New(); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1569, __pyx_L1_error)
+    __pyx_t_4 = PyDict_New(); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1607, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_2 = __Pyx_PyInt_From_int(__pyx_v_length); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1569, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyInt_From_int(__pyx_v_length); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1607, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_6 = PyTuple_New(1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 1569, __pyx_L1_error)
+    __pyx_t_6 = PyTuple_New(1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 1607, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_GIVEREF(__pyx_t_2);
     PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_2);
     __pyx_t_2 = 0;
-    __pyx_t_2 = __Pyx_PyObject_Call(((PyObject *)(&PyString_Type)), __pyx_t_6, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1569, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_Call(((PyObject *)(&PyString_Type)), __pyx_t_6, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1607, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    __pyx_t_6 = PyNumber_Add(__pyx_n_s_S, __pyx_t_2); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 1569, __pyx_L1_error)
+    __pyx_t_6 = PyNumber_Add(__pyx_n_s_S, __pyx_t_2); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 1607, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_dtype, __pyx_t_6) < 0) __PYX_ERR(0, 1569, __pyx_L1_error)
+    if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_dtype, __pyx_t_6) < 0) __PYX_ERR(0, 1607, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_tuple__4, __pyx_t_4); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 1569, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_tuple__4, __pyx_t_4); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 1607, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    if (!(likely(((__pyx_t_6) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_6, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 1569, __pyx_L1_error)
+    if (!(likely(((__pyx_t_6) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_6, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 1607, __pyx_L1_error)
     __pyx_v_data = ((PyArrayObject *)__pyx_t_6);
     __pyx_t_6 = 0;
 
-    /* "pymoab/core.pyx":1568
+    /* "pymoab/core.pyx":1606
  *         #create array to hold data
  *         cdef np.ndarray data
  *         if tag_type is types.MB_TYPE_OPAQUE:             # <<<<<<<<<<<<<<
@@ -13651,7 +13652,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_68tag_get_default_value(struct __p
     goto __pyx_L3;
   }
 
-  /* "pymoab/core.pyx":1571
+  /* "pymoab/core.pyx":1609
  *             data = np.empty((1,),dtype='S'+str(length))
  *         else:
  *             data = np.empty((length,),dtype=np.dtype(np_tag_type(tag_type)))             # <<<<<<<<<<<<<<
@@ -13659,28 +13660,28 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_68tag_get_default_value(struct __p
  *         check_error(err, exceptions)
  */
   /*else*/ {
-    __pyx_t_6 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 1571, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_GetModuleGlobalName(__pyx_n_s_np); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 1609, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
-    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_empty); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1571, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_empty); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 1609, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    __pyx_t_6 = __Pyx_PyInt_From_int(__pyx_v_length); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 1571, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyInt_From_int(__pyx_v_length); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 1609, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
-    __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1571, __pyx_L1_error)
+    __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1609, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_GIVEREF(__pyx_t_6);
     PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_6);
     __pyx_t_6 = 0;
-    __pyx_t_6 = PyTuple_New(1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 1571, __pyx_L1_error)
+    __pyx_t_6 = PyTuple_New(1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 1609, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_GIVEREF(__pyx_t_1);
     PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_1);
     __pyx_t_1 = 0;
-    __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1571, __pyx_L1_error)
+    __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1609, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_np_tag_type); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1571, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_np_tag_type); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1609, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_9 = __Pyx_PyInt_From_enum__moab_3a__3a_DataType(__pyx_v_tag_type); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 1571, __pyx_L1_error)
+    __pyx_t_9 = __Pyx_PyInt_From_enum__moab_3a__3a_DataType(__pyx_v_tag_type); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 1609, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_9);
     __pyx_t_10 = NULL;
     if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_3))) {
@@ -13693,14 +13694,14 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_68tag_get_default_value(struct __p
       }
     }
     if (!__pyx_t_10) {
-      __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_9); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1571, __pyx_L1_error)
+      __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_9); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1609, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
       __Pyx_GOTREF(__pyx_t_2);
     } else {
       #if CYTHON_FAST_PYCALL
       if (PyFunction_Check(__pyx_t_3)) {
         PyObject *__pyx_temp[2] = {__pyx_t_10, __pyx_t_9};
-        __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1571, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1609, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_10); __pyx_t_10 = 0;
         __Pyx_GOTREF(__pyx_t_2);
         __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
@@ -13709,47 +13710,47 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_68tag_get_default_value(struct __p
       #if CYTHON_FAST_PYCCALL
       if (__Pyx_PyFastCFunction_Check(__pyx_t_3)) {
         PyObject *__pyx_temp[2] = {__pyx_t_10, __pyx_t_9};
-        __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1571, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1609, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_10); __pyx_t_10 = 0;
         __Pyx_GOTREF(__pyx_t_2);
         __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
       } else
       #endif
       {
-        __pyx_t_11 = PyTuple_New(1+1); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 1571, __pyx_L1_error)
+        __pyx_t_11 = PyTuple_New(1+1); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 1609, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_11);
         __Pyx_GIVEREF(__pyx_t_10); PyTuple_SET_ITEM(__pyx_t_11, 0, __pyx_t_10); __pyx_t_10 = NULL;
         __Pyx_GIVEREF(__pyx_t_9);
         PyTuple_SET_ITEM(__pyx_t_11, 0+1, __pyx_t_9);
         __pyx_t_9 = 0;
-        __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_11, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1571, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_11, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1609, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_2);
         __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
       }
     }
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1571, __pyx_L1_error)
+    __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1609, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_GIVEREF(__pyx_t_2);
     PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_2);
     __pyx_t_2 = 0;
-    __pyx_t_2 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_5numpy_dtype), __pyx_t_3, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1571, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_5numpy_dtype), __pyx_t_3, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1609, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_dtype, __pyx_t_2) < 0) __PYX_ERR(0, 1571, __pyx_L1_error)
+    if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_dtype, __pyx_t_2) < 0) __PYX_ERR(0, 1609, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_6, __pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1571, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_6, __pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1609, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    if (!(likely(((__pyx_t_2) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_2, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 1571, __pyx_L1_error)
+    if (!(likely(((__pyx_t_2) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_2, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 1609, __pyx_L1_error)
     __pyx_v_data = ((PyArrayObject *)__pyx_t_2);
     __pyx_t_2 = 0;
   }
   __pyx_L3:;
 
-  /* "pymoab/core.pyx":1572
+  /* "pymoab/core.pyx":1610
  *         else:
  *             data = np.empty((length,),dtype=np.dtype(np_tag_type(tag_type)))
  *         err = self.inst.tag_get_default_value(tag.inst, <void*> data.data)             # <<<<<<<<<<<<<<
@@ -13758,16 +13759,16 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_68tag_get_default_value(struct __p
  */
   __pyx_v_err = __pyx_v_self->inst->tag_get_default_value(__pyx_v_tag->inst, ((void *)__pyx_v_data->data));
 
-  /* "pymoab/core.pyx":1573
+  /* "pymoab/core.pyx":1611
  *             data = np.empty((length,),dtype=np.dtype(np_tag_type(tag_type)))
  *         err = self.inst.tag_get_default_value(tag.inst, <void*> data.data)
  *         check_error(err, exceptions)             # <<<<<<<<<<<<<<
  *         return data
  * 
  */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_check_error); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1573, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_check_error); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1611, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_6 = __Pyx_PyInt_From_enum__moab_3a__3a_ErrorCode(__pyx_v_err); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 1573, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyInt_From_enum__moab_3a__3a_ErrorCode(__pyx_v_err); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 1611, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __pyx_t_4 = NULL;
   __pyx_t_5 = 0;
@@ -13784,7 +13785,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_68tag_get_default_value(struct __p
   #if CYTHON_FAST_PYCALL
   if (PyFunction_Check(__pyx_t_1)) {
     PyObject *__pyx_temp[3] = {__pyx_t_4, __pyx_t_6, __pyx_v_exceptions};
-    __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_1, __pyx_temp+1-__pyx_t_5, 2+__pyx_t_5); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1573, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_1, __pyx_temp+1-__pyx_t_5, 2+__pyx_t_5); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1611, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
@@ -13793,14 +13794,14 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_68tag_get_default_value(struct __p
   #if CYTHON_FAST_PYCCALL
   if (__Pyx_PyFastCFunction_Check(__pyx_t_1)) {
     PyObject *__pyx_temp[3] = {__pyx_t_4, __pyx_t_6, __pyx_v_exceptions};
-    __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_1, __pyx_temp+1-__pyx_t_5, 2+__pyx_t_5); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1573, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_1, __pyx_temp+1-__pyx_t_5, 2+__pyx_t_5); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1611, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   } else
   #endif
   {
-    __pyx_t_3 = PyTuple_New(2+__pyx_t_5); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1573, __pyx_L1_error)
+    __pyx_t_3 = PyTuple_New(2+__pyx_t_5); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1611, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     if (__pyx_t_4) {
       __Pyx_GIVEREF(__pyx_t_4); PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_4); __pyx_t_4 = NULL;
@@ -13811,14 +13812,14 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_68tag_get_default_value(struct __p
     __Pyx_GIVEREF(__pyx_v_exceptions);
     PyTuple_SET_ITEM(__pyx_t_3, 1+__pyx_t_5, __pyx_v_exceptions);
     __pyx_t_6 = 0;
-    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_3, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1573, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_3, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1611, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   }
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "pymoab/core.pyx":1574
+  /* "pymoab/core.pyx":1612
  *         err = self.inst.tag_get_default_value(tag.inst, <void*> data.data)
  *         check_error(err, exceptions)
  *         return data             # <<<<<<<<<<<<<<
@@ -13830,7 +13831,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_68tag_get_default_value(struct __p
   __pyx_r = ((PyObject *)__pyx_v_data);
   goto __pyx_L0;
 
-  /* "pymoab/core.pyx":1558
+  /* "pymoab/core.pyx":1596
  *         return data_arr
  * 
  *     def tag_get_default_value(self, Tag tag, exceptions = () ):             # <<<<<<<<<<<<<<
@@ -13857,7 +13858,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_68tag_get_default_value(struct __p
   return __pyx_r;
 }
 
-/* "pymoab/core.pyx":1576
+/* "pymoab/core.pyx":1614
  *         return data
  * 
  *     def tag_get_length(self, Tag tag, exceptions = () ):             # <<<<<<<<<<<<<<
@@ -13898,7 +13899,7 @@ static PyObject *__pyx_pw_6pymoab_4core_4Core_71tag_get_length(PyObject *__pyx_v
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "tag_get_length") < 0)) __PYX_ERR(0, 1576, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "tag_get_length") < 0)) __PYX_ERR(0, 1614, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -13913,13 +13914,13 @@ static PyObject *__pyx_pw_6pymoab_4core_4Core_71tag_get_length(PyObject *__pyx_v
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("tag_get_length", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 1576, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("tag_get_length", 0, 1, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 1614, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("pymoab.core.Core.tag_get_length", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_tag), __pyx_ptype_6pymoab_3tag_Tag, 1, "tag", 0))) __PYX_ERR(0, 1576, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_tag), __pyx_ptype_6pymoab_3tag_Tag, 1, "tag", 0))) __PYX_ERR(0, 1614, __pyx_L1_error)
   __pyx_r = __pyx_pf_6pymoab_4core_4Core_70tag_get_length(((struct __pyx_obj_6pymoab_4core_Core *)__pyx_v_self), __pyx_v_tag, __pyx_v_exceptions);
 
   /* function exit code */
@@ -13944,7 +13945,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_70tag_get_length(struct __pyx_obj_
   PyObject *__pyx_t_6 = NULL;
   __Pyx_RefNannySetupContext("tag_get_length", 0);
 
-  /* "pymoab/core.pyx":1577
+  /* "pymoab/core.pyx":1615
  * 
  *     def tag_get_length(self, Tag tag, exceptions = () ):
  *         cdef int length = 0             # <<<<<<<<<<<<<<
@@ -13953,7 +13954,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_70tag_get_length(struct __pyx_obj_
  */
   __pyx_v_length = 0;
 
-  /* "pymoab/core.pyx":1578
+  /* "pymoab/core.pyx":1616
  *     def tag_get_length(self, Tag tag, exceptions = () ):
  *         cdef int length = 0
  *         err = self.inst.tag_get_length(tag.inst, length)             # <<<<<<<<<<<<<<
@@ -13962,16 +13963,16 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_70tag_get_length(struct __pyx_obj_
  */
   __pyx_v_err = __pyx_v_self->inst->tag_get_length(__pyx_v_tag->inst, __pyx_v_length);
 
-  /* "pymoab/core.pyx":1579
+  /* "pymoab/core.pyx":1617
  *         cdef int length = 0
  *         err = self.inst.tag_get_length(tag.inst, length)
  *         check_error(err, exceptions)             # <<<<<<<<<<<<<<
  *         return length
  * 
  */
-  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_check_error); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1579, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_check_error); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1617, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyInt_From_enum__moab_3a__3a_ErrorCode(__pyx_v_err); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1579, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_From_enum__moab_3a__3a_ErrorCode(__pyx_v_err); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1617, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __pyx_t_4 = NULL;
   __pyx_t_5 = 0;
@@ -13988,7 +13989,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_70tag_get_length(struct __pyx_obj_
   #if CYTHON_FAST_PYCALL
   if (PyFunction_Check(__pyx_t_2)) {
     PyObject *__pyx_temp[3] = {__pyx_t_4, __pyx_t_3, __pyx_v_exceptions};
-    __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-__pyx_t_5, 2+__pyx_t_5); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1579, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-__pyx_t_5, 2+__pyx_t_5); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1617, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -13997,14 +13998,14 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_70tag_get_length(struct __pyx_obj_
   #if CYTHON_FAST_PYCCALL
   if (__Pyx_PyFastCFunction_Check(__pyx_t_2)) {
     PyObject *__pyx_temp[3] = {__pyx_t_4, __pyx_t_3, __pyx_v_exceptions};
-    __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-__pyx_t_5, 2+__pyx_t_5); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1579, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-__pyx_t_5, 2+__pyx_t_5); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1617, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   } else
   #endif
   {
-    __pyx_t_6 = PyTuple_New(2+__pyx_t_5); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 1579, __pyx_L1_error)
+    __pyx_t_6 = PyTuple_New(2+__pyx_t_5); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 1617, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     if (__pyx_t_4) {
       __Pyx_GIVEREF(__pyx_t_4); PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_4); __pyx_t_4 = NULL;
@@ -14015,14 +14016,14 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_70tag_get_length(struct __pyx_obj_
     __Pyx_GIVEREF(__pyx_v_exceptions);
     PyTuple_SET_ITEM(__pyx_t_6, 1+__pyx_t_5, __pyx_v_exceptions);
     __pyx_t_3 = 0;
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_6, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1579, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_6, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1617, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   }
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "pymoab/core.pyx":1580
+  /* "pymoab/core.pyx":1618
  *         err = self.inst.tag_get_length(tag.inst, length)
  *         check_error(err, exceptions)
  *         return length             # <<<<<<<<<<<<<<
@@ -14030,13 +14031,13 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_70tag_get_length(struct __pyx_obj_
  *     def tag_get_tags_on_entity(self, entity):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_length); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1580, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_length); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1618, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "pymoab/core.pyx":1576
+  /* "pymoab/core.pyx":1614
  *         return data
  * 
  *     def tag_get_length(self, Tag tag, exceptions = () ):             # <<<<<<<<<<<<<<
@@ -14059,7 +14060,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_70tag_get_length(struct __pyx_obj_
   return __pyx_r;
 }
 
-/* "pymoab/core.pyx":1582
+/* "pymoab/core.pyx":1620
  *         return length
  * 
  *     def tag_get_tags_on_entity(self, entity):             # <<<<<<<<<<<<<<
@@ -14095,29 +14096,29 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_72tag_get_tags_on_entity(struct __
   int __pyx_t_5;
   __Pyx_RefNannySetupContext("tag_get_tags_on_entity", 0);
 
-  /* "pymoab/core.pyx":1584
+  /* "pymoab/core.pyx":1622
  *     def tag_get_tags_on_entity(self, entity):
  *         cdef vector[moab.TagInfo*] tags
  *         err = self.inst.tag_get_tags_on_entity(entity, tags)             # <<<<<<<<<<<<<<
  *         tag_list = []
  *         for tag in tags:
  */
-  __pyx_t_1 = __Pyx_PyInt_As_moab_3a__3a_EntityHandle(__pyx_v_entity); if (unlikely((__pyx_t_1 == ((moab::EntityHandle)-1)) && PyErr_Occurred())) __PYX_ERR(0, 1584, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_As_moab_3a__3a_EntityHandle(__pyx_v_entity); if (unlikely((__pyx_t_1 == ((moab::EntityHandle)-1)) && PyErr_Occurred())) __PYX_ERR(0, 1622, __pyx_L1_error)
   __pyx_v_err = __pyx_v_self->inst->tag_get_tags_on_entity(__pyx_t_1, __pyx_v_tags);
 
-  /* "pymoab/core.pyx":1585
+  /* "pymoab/core.pyx":1623
  *         cdef vector[moab.TagInfo*] tags
  *         err = self.inst.tag_get_tags_on_entity(entity, tags)
  *         tag_list = []             # <<<<<<<<<<<<<<
  *         for tag in tags:
  *             t = Tag()
  */
-  __pyx_t_2 = PyList_New(0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1585, __pyx_L1_error)
+  __pyx_t_2 = PyList_New(0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1623, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_v_tag_list = ((PyObject*)__pyx_t_2);
   __pyx_t_2 = 0;
 
-  /* "pymoab/core.pyx":1586
+  /* "pymoab/core.pyx":1624
  *         err = self.inst.tag_get_tags_on_entity(entity, tags)
  *         tag_list = []
  *         for tag in tags:             # <<<<<<<<<<<<<<
@@ -14131,19 +14132,19 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_72tag_get_tags_on_entity(struct __
     ++__pyx_t_3;
     __pyx_v_tag = __pyx_t_4;
 
-    /* "pymoab/core.pyx":1587
+    /* "pymoab/core.pyx":1625
  *         tag_list = []
  *         for tag in tags:
  *             t = Tag()             # <<<<<<<<<<<<<<
  *             t.inst = tag
  *             tag_list.append(t)
  */
-    __pyx_t_2 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_6pymoab_3tag_Tag), __pyx_empty_tuple, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1587, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_6pymoab_3tag_Tag), __pyx_empty_tuple, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1625, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_XDECREF_SET(__pyx_v_t, ((struct __pyx_obj_6pymoab_3tag_Tag *)__pyx_t_2));
     __pyx_t_2 = 0;
 
-    /* "pymoab/core.pyx":1588
+    /* "pymoab/core.pyx":1626
  *         for tag in tags:
  *             t = Tag()
  *             t.inst = tag             # <<<<<<<<<<<<<<
@@ -14152,15 +14153,15 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_72tag_get_tags_on_entity(struct __
  */
     __pyx_v_t->inst = __pyx_v_tag;
 
-    /* "pymoab/core.pyx":1589
+    /* "pymoab/core.pyx":1627
  *             t = Tag()
  *             t.inst = tag
  *             tag_list.append(t)             # <<<<<<<<<<<<<<
  *         return tag_list
  */
-    __pyx_t_5 = __Pyx_PyList_Append(__pyx_v_tag_list, ((PyObject *)__pyx_v_t)); if (unlikely(__pyx_t_5 == -1)) __PYX_ERR(0, 1589, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyList_Append(__pyx_v_tag_list, ((PyObject *)__pyx_v_t)); if (unlikely(__pyx_t_5 == -1)) __PYX_ERR(0, 1627, __pyx_L1_error)
 
-    /* "pymoab/core.pyx":1586
+    /* "pymoab/core.pyx":1624
  *         err = self.inst.tag_get_tags_on_entity(entity, tags)
  *         tag_list = []
  *         for tag in tags:             # <<<<<<<<<<<<<<
@@ -14169,7 +14170,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_72tag_get_tags_on_entity(struct __
  */
   }
 
-  /* "pymoab/core.pyx":1590
+  /* "pymoab/core.pyx":1628
  *             t.inst = tag
  *             tag_list.append(t)
  *         return tag_list             # <<<<<<<<<<<<<<
@@ -14179,7 +14180,7 @@ static PyObject *__pyx_pf_6pymoab_4core_4Core_72tag_get_tags_on_entity(struct __
   __pyx_r = __pyx_v_tag_list;
   goto __pyx_L0;
 
-  /* "pymoab/core.pyx":1582
+  /* "pymoab/core.pyx":1620
  *         return length
  * 
  *     def tag_get_tags_on_entity(self, entity):             # <<<<<<<<<<<<<<
@@ -16872,7 +16873,7 @@ static PyMethodDef __pyx_methods_6pymoab_4core_Core[] = {
   {"add_child_meshset", (PyCFunction)__pyx_pw_6pymoab_4core_4Core_45add_child_meshset, METH_VARARGS|METH_KEYWORDS, __pyx_doc_6pymoab_4core_4Core_44add_child_meshset},
   {"add_parent_child", (PyCFunction)__pyx_pw_6pymoab_4core_4Core_47add_parent_child, METH_VARARGS|METH_KEYWORDS, __pyx_doc_6pymoab_4core_4Core_46add_parent_child},
   {"get_root_set", (PyCFunction)__pyx_pw_6pymoab_4core_4Core_49get_root_set, METH_NOARGS, __pyx_doc_6pymoab_4core_4Core_48get_root_set},
-  {"get_connectivity", (PyCFunction)__pyx_pw_6pymoab_4core_4Core_51get_connectivity, METH_VARARGS|METH_KEYWORDS, 0},
+  {"get_connectivity", (PyCFunction)__pyx_pw_6pymoab_4core_4Core_51get_connectivity, METH_VARARGS|METH_KEYWORDS, __pyx_doc_6pymoab_4core_4Core_50get_connectivity},
   {"get_coords", (PyCFunction)__pyx_pw_6pymoab_4core_4Core_53get_coords, METH_VARARGS|METH_KEYWORDS, __pyx_doc_6pymoab_4core_4Core_52get_coords},
   {"set_coords", (PyCFunction)__pyx_pw_6pymoab_4core_4Core_55set_coords, METH_VARARGS|METH_KEYWORDS, __pyx_doc_6pymoab_4core_4Core_54set_coords},
   {"get_entities_by_type", (PyCFunction)__pyx_pw_6pymoab_4core_4Core_57get_entities_by_type, METH_VARARGS|METH_KEYWORDS, __pyx_doc_6pymoab_4core_4Core_56get_entities_by_type},
@@ -17425,17 +17426,17 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple_);
   __Pyx_GIVEREF(__pyx_tuple_);
 
-  /* "pymoab/core.pyx":1569
+  /* "pymoab/core.pyx":1607
  *         cdef np.ndarray data
  *         if tag_type is types.MB_TYPE_OPAQUE:
  *             data = np.empty((1,),dtype='S'+str(length))             # <<<<<<<<<<<<<<
  *         else:
  *             data = np.empty((length,),dtype=np.dtype(np_tag_type(tag_type)))
  */
-  __pyx_tuple__3 = PyTuple_Pack(1, __pyx_int_1); if (unlikely(!__pyx_tuple__3)) __PYX_ERR(0, 1569, __pyx_L1_error)
+  __pyx_tuple__3 = PyTuple_Pack(1, __pyx_int_1); if (unlikely(!__pyx_tuple__3)) __PYX_ERR(0, 1607, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__3);
   __Pyx_GIVEREF(__pyx_tuple__3);
-  __pyx_tuple__4 = PyTuple_Pack(1, __pyx_tuple__3); if (unlikely(!__pyx_tuple__4)) __PYX_ERR(0, 1569, __pyx_L1_error)
+  __pyx_tuple__4 = PyTuple_Pack(1, __pyx_tuple__3); if (unlikely(!__pyx_tuple__4)) __PYX_ERR(0, 1607, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__4);
   __Pyx_GIVEREF(__pyx_tuple__4);
 
@@ -17792,19 +17793,19 @@ PyMODINIT_FUNC PyInit_core(void)
  */
   __pyx_v_6pymoab_4core_null = NULL;
 
-  /* "pymoab/core.pyx":1351
+  /* "pymoab/core.pyx":1389
  *                                      tags,
  *                                      values,
  *                                      int condition = types.INTERSECT,             # <<<<<<<<<<<<<<
  *                                      bint recur = False,
  *                                      exceptions = ()):
  */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_types); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1351, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_types); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1389, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_INTERSECT); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1351, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_INTERSECT); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1389, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_3 = __Pyx_PyInt_As_int(__pyx_t_2); if (unlikely((__pyx_t_3 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 1351, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_As_int(__pyx_t_2); if (unlikely((__pyx_t_3 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 1389, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_k__2 = __pyx_t_3;
 

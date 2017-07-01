@@ -388,7 +388,7 @@ def test_get_conn():
     verts = np.array(((verts[0],verts[1],verts[2]),),dtype='uint64')
     tris = mb.create_elements(types.MBTRI,verts)
     #get the adjacencies of the triangle of dim 1 (should return the vertices)
-    conn = mb.get_adjacencies(tris, 0, False)
+    conn = mb.get_connectivity(tris, 0, False)
     CHECK_EQ(len(conn),3)
 
     #check that the entities are of the correct type
@@ -403,6 +403,16 @@ def test_get_conn():
     conn = mb.get_connectivity(Range(tris))
     CHECK_EQ(len(conn),3)
     CHECK_EQ(conn, verts)
+
+    msh = mb.create_meshset()
+    
+    try:
+        mb.get_connectivity(msh)
+    except IndexError:
+        pass
+    else:
+        print "Shouldn't be here. Test fails."
+        raise IndexErrorx
     
 def test_type_from_handle():
     mb = core.Core()

@@ -782,8 +782,7 @@ cdef class Core(object):
         tag : MOAB TagHandle
             the tag from which data is to be retrieved
         entity_handles : iterable of MOAB EntityHandles or a single EntityHandle
-            the EntityHandle(s) to retrieve data for. This can be any iterable of
-            EntityHandles or a single EntityHandle.
+            the EntityHandle(s) to retrieve data for.
         flat : bool (default is False)
             Indicates the structure in which the data is returned. If False, the
             array is returned as a 2-D numpy array of len(entity_handles) with
@@ -1201,6 +1200,45 @@ cdef class Core(object):
         return <unsigned long> 0
 
     def get_connectivity(self, entity_handles, exceptions = ()):
+        """
+        Returns the vertex handles which make up the mesh entities passed in via
+        the entity_handles argument.
+        
+        Example
+        -------
+        # new PyMOAB instance
+        mb = core.Core()
+        #create some vertices
+        coords = np.array((0,0,0,1,0,0,1,1,1),dtype='float64')
+        verts = mb.create_vertices(coords)
+        #create a triangle
+        verts = np.array(((verts[0],verts[1],verts[2]),),dtype='uint64')
+        tris = mb.create_elements(types.MBTRI,verts)
+        # retrieve the vertex handles that make up the triangle
+        conn = mb.get_connectivity(tris[0])
+
+        
+        Parameters
+        ----------
+        entity_handles : iterable of MOAB EntityHandles or a single EntityHandle
+            to retrieve the vertex connectivity of. Note that these
+            EntityHandles should represent mesh entities (MBEDGE,
+            MBTRI, MBQUAD, etc.) rather than an EntitySet.
+        exceptions : tuple (default is empty tuple)
+            A tuple containing any error types that should
+            be ignored. (see pymoab.types module for more info)
+
+        Returns
+        -------
+        Numpy array of vertex EntityHandles
+        
+        Raises
+        ------
+        MOAB ErrorCode
+            if a MOAB error occurs
+        ValueError
+            if an EntityHandle is not of the correct datatype
+        """
         cdef moab.ErrorCode err
         cdef np.ndarray ehs
         if isinstance(entity_handles, _eh_py_types):
