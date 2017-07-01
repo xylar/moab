@@ -379,6 +379,31 @@ def test_adj():
     adjs = mb.get_adjacencies(tris[0], 0, False)
     CHECK_EQ(len(adjs),3)
 
+def test_get_conn():
+
+    mb = core.Core()
+    coords = np.array((0,0,0,1,0,0,1,1,1),dtype='float64')
+    verts = mb.create_vertices(coords)
+    #create elements
+    verts = np.array(((verts[0],verts[1],verts[2]),),dtype='uint64')
+    tris = mb.create_elements(types.MBTRI,verts)
+    #get the adjacencies of the triangle of dim 1 (should return the vertices)
+    conn = mb.get_adjacencies(tris, 0, False)
+    CHECK_EQ(len(conn),3)
+
+    #check that the entities are of the correct type
+    for c in conn:
+        type = mb.type_from_handle(c)
+        assert type is types.MBVERTEX
+
+    conn = mb.get_connectivity(tris[0])
+    CHECK_EQ(len(conn),3)
+    CHECK_EQ(conn, verts)
+
+    conn = mb.get_connectivity(Range(tris))
+    CHECK_EQ(len(conn),3)
+    CHECK_EQ(conn, verts)
+    
 def test_type_from_handle():
     mb = core.Core()
     # create vertices

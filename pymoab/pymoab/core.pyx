@@ -1200,6 +1200,22 @@ cdef class Core(object):
         """
         return <unsigned long> 0
 
+    def get_connectivity(self, entity_handles, exceptions = ()):
+        cdef moab.ErrorCode err
+        cdef np.ndarray ehs
+        if isinstance(entity_handles, _eh_py_types):
+            ehs = _eh_array([entity_handles,])
+        else:
+            ehs = _eh_array(entity_handles)
+        cdef vector[moab.EntityHandle] ehs_out
+        cdef moab.EntityHandle* eh_ptr
+        cdef int num_ents = 0
+        err = self.inst.get_connectivity(<moab.EntityHandle*> ehs.data, ehs.size, ehs_out)
+        check_error(err, exceptions)
+        return _eh_array(ehs_out)
+
+        
+        
     def get_coords(self, entities, exceptions = ()):
         """
         Returns the xyz coordinate information for a set of vertices.
