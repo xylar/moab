@@ -124,7 +124,7 @@ _DTYPE_CONV = {
 }
 
 _VALID_DTYPES= {
-    MB_TYPE_OPAQUE: frozenset(['S']),
+    MB_TYPE_OPAQUE: frozenset(['S','U']),
     MB_TYPE_INTEGER: frozenset(['int8','int16','int32','int64']),
     MB_TYPE_DOUBLE: frozenset(['float64']),
     MB_TYPE_BIT: frozenset(['int8','int16','int32','int64','S1','bool']),
@@ -133,7 +133,7 @@ _VALID_DTYPES= {
 }
 
 _VALID_DTYPES= {
-    MB_TYPE_OPAQUE: frozenset(['S','O']),
+    MB_TYPE_OPAQUE: frozenset(['S','U','O']),
     MB_TYPE_INTEGER: frozenset(['int8','int16','int32','int64','O','object']),
     MB_TYPE_DOUBLE: frozenset(['float64','float','O','object']),
     MB_TYPE_BIT: frozenset(['int8','int16','int32','int64','S1','bool','O','object']),

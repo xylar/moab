@@ -14,13 +14,13 @@ def test_load_mesh():
         mb.load_file("cyl_grps.h5m")
     except:
         try:
-            print """
+            print( """
             WARNING: .h5m file load failed. If hdf5 support is enabled in this
             build there could be a problem.
-            """
+            """)
             mb.load_file("cyl_grps.vtk")
         except:
-            raise IOError, "Failed to load MOAB file."
+            raise(IOError, "Failed to load MOAB file.")
 
     #load into file_set
     mb1 = core.Core()
@@ -29,13 +29,13 @@ def test_load_mesh():
         mb1.load_file("cyl_grps.h5m",file_set)
     except:
         try:
-            print """
+            print("""
             WARNING: .h5m file load failed. If hdf5 support is enabled in this
             build there could be a problem.
-            """
+            """)
             mb1.load_file("cyl_grps.vtk",file_set)
         except:
-            raise IOError, "Failed to load MOAB file."
+            raise(IOError, "Failed to load MOAB file.")
 
     ents = mb1.get_entities_by_type(file_set,types.MBMAXTYPE)
     CHECK_NOT_EQ(len(ents),0)
@@ -49,14 +49,14 @@ def test_write_mesh():
         assert os.path.isfile("outfile.h5m")
     except:
         try:
-            print """
+            print("""
             WARNING: .h5m file write failed. If hdf5 support is enabled in this
             build there could be a problem.
-            """
+            """)
             mb.write_file("outfile.vtk")
             assert os.path.isfile("outfile.vtk")
         except:
-            raise IOError, "Failed to write MOAB file."
+            raise(IOError, "Failed to write MOAB file.")
 
 
 def test_delete_mesh():
@@ -88,24 +88,24 @@ def test_get_tag():
     except:
         pass
     else:
-        print "Shouldn't be here. Test fails."
-        raise AssertionError
+        print("Shouldn't be here. Test fails.")
+        raise(AssertionError)
 
     try:
         tag = mb.tag_get_handle("Fake Tag",1)
     except:
         pass
     else:
-        print "Shouldn't be here. Test fails."
-        raise AssertionError
+        print("Shouldn't be here. Test fails.")
+        raise(AssertionError)
 
     try:
         tag = mb.tag_get_handle("Fake Tag",None,types.MB_TYPE_DOUBLE)
     except:
         pass
     else:
-        print "Shouldn't be here. Test fails."
-        raise AssertionError
+        print("Shouldn't be here. Test fails.")
+        raise(AssertionError)
 
     # attempt tag lookup with incomplete tag spceification)
     try:
@@ -113,8 +113,8 @@ def test_get_tag():
     except ValueError:
         pass
     else:
-        print "Shouldn't be here. Test fails."
-        raise ValueError
+        print("Shouldn't be here. Test fails.")
+        raise(ValueError)
 
     def_val_tag_name = "def_val_tag"
     def_value = [0.0,1.0]
@@ -132,7 +132,7 @@ def test_get_tag():
     except:
         pass
     else:
-        raise AssertionError
+        raise(AssertionError)
 
     # check the default value
     def_val_chck = mb.tag_get_default_value(def_val_tag)
@@ -190,8 +190,8 @@ def test_double_tag():
     except AssertionError:
         pass
     else:
-        print "Shouldn't be here. Test fails."
-        raise AssertionError
+        print("Shouldn't be here. Test fails.")
+        raise(AssertionError)
 
     test_tag = mb.tag_get_handle("Test2",1,types.MB_TYPE_DOUBLE,types.MB_TAG_DENSE,True)
     test_val = 4.4
@@ -201,8 +201,8 @@ def test_double_tag():
     except AssertionError:
         pass
     else:
-        print "Shouldn't be here. Test fails."
-        raise AssertionError
+        print("Shouldn't be here. Test fails.")
+        raise(AssertionError)
 
     #set tag data for single handle (non-iterable)
     new_test_value = 36.0
@@ -259,7 +259,7 @@ def test_tag_delete():
         mb.tag_get_data(test_tag, vh)
         raised = False
     except RuntimeError as e:
-        er_val = e[0].error_value
+        er_val = e.args[0].error_value
         raised = True
     CHECK_EQ(raised, True)
     CHECK_EQ(er_val, types.MB_TAG_NOT_FOUND)
@@ -269,7 +269,7 @@ def test_tag_delete():
         mb.tag_get_data(test_tag, vh)
         raised = False
     except RuntimeError as e:
-        er_val = e[0].error_value
+        er_val = e.args[0].error_value
         raised = True
     CHECK_EQ(raised, True)
     CHECK_EQ(er_val, types.MB_TAG_NOT_FOUND)
@@ -319,8 +319,8 @@ def test_tag_failures():
     except ValueError:
         pass
     else:
-        print "Shouldn't be here. Test fails."
-        raise ValueError
+        print("Shouldn't be here. Test fails.")
+        raise(ValueError)
 
 
     coord = np.array((1,1,1),dtype='float64')
@@ -337,8 +337,8 @@ def test_tag_failures():
         pass
     else:
         pass
-        print "Shouldn't be here. Test fails."
-        raise ValueError
+        print("Shouldn't be here. Test fails.")
+        raise(ValueError)
 
 
     global_id_tag = mb.tag_get_handle("GLOBAL_ID",1,types.MB_TYPE_INTEGER,types.MB_TAG_DENSE,True)
@@ -348,8 +348,8 @@ def test_tag_failures():
     except ValueError:
         pass
     else:
-        print "Shouldn't be here. Test fails."
-        raise ValueError
+        print("Shouldn't be here. Test fails.")
+        raise(ValueError)
 
 def test_adj():
 
@@ -411,8 +411,8 @@ def test_get_conn():
     except IndexError:
         pass
     else:
-        print "Shouldn't be here. Test fails."
-        raise IndexErrorx
+        print("Shouldn't be here. Test fails.")
+        raise(IndexErrorx)
     
 def test_type_from_handle():
     mb = core.Core()
@@ -534,8 +534,8 @@ def test_get_ents_by_tnt():
     except:
         pass
     else:
-        print "Shouldn't be here. Test fails."
-        raise AssertionError
+        print("Shouldn't be here. Test fails.")
+        raise(AssertionError)
 
     # ###MIXED TAG TYPE TESTS###
     # mixed_tag_test_cases = [
@@ -751,8 +751,8 @@ def test_iterables():
     except:
         pass
     else:
-        print "Shouldn't be here. Test fails."
-        raise AssertionError
+        print("Shouldn't be here. Test fails.")
+        raise(AssertionError)
 
     #now set with valid data and check
     int_data = [1,2,3]
@@ -772,18 +772,18 @@ def test_iterables():
     except:
         pass
     else:
-        print "Shouldn't be here. Test fails."
-        raise AssertionError
+        print("Shouldn't be here. Test fails.")
+        raise(AssertionError)
 
     #insert correct type, but non-existant handle
-    verts = [verts[0],long(23),verts[1]]
+    verts = [verts[0],int(23),verts[1]]
     try:
         mb.tag_set_data(int_tag,verts,[1,2,3])
     except:
         pass
     else:
-        print "Shouldn't be here. Test fails."
-        raise AssertionError
+        print("Shouldn't be here. Test fails.")
+        raise(AssertionError)
 
 def test_unordered_tagging():
 
@@ -840,19 +840,19 @@ def test_vec_tags():
 
     #these values should then be able to be retrieved as a 2-D array
     returned_int_test_tag_values = mb.tag_get_data(int_vec_test_tag,verts)
-    assert np.array_equal(returned_int_test_tag_values,int_vec_test_tag_values)
+    CHECK_EQ(returned_int_test_tag_values,int_vec_test_tag_values)
     returned_dbl_test_tag_values = mb.tag_get_data(dbl_vec_test_tag,verts)
-    assert np.array_equal(returned_dbl_test_tag_values,dbl_vec_test_tag_values)
+    CHECK_EQ(returned_dbl_test_tag_values,dbl_vec_test_tag_values)
     returned_opaque_test_tag_values = mb.tag_get_data(opaque_vec_test_tag,verts)
-    assert np.array_equal(returned_opaque_test_tag_values,opaque_vec_test_tag_values)
+    CHECK_EQ(returned_opaque_test_tag_values,opaque_vec_test_tag_values)
 
     #or as a 1-D array
     returned_int_test_tag_values = mb.tag_get_data(int_vec_test_tag,verts,flat=True)
-    assert np.array_equal(returned_int_test_tag_values,int_vec_test_tag_values_flat)
+    CHECK_EQ(returned_int_test_tag_values,int_vec_test_tag_values_flat)
     returned_dbl_test_tag_values = mb.tag_get_data(dbl_vec_test_tag,verts,flat=True)
-    assert np.array_equal(returned_dbl_test_tag_values,dbl_vec_test_tag_values_flat)
+    CHECK_EQ(returned_dbl_test_tag_values,dbl_vec_test_tag_values_flat)
     returned_opaque_test_tag_values = mb.tag_get_data(opaque_vec_test_tag,verts,flat=True)
-    assert np.array_equal(returned_opaque_test_tag_values,opaque_vec_test_tag_values_flat)
+    CHECK_EQ(returned_opaque_test_tag_values,opaque_vec_test_tag_values_flat)
 
 def test_create_element_iterable():
     mb = core.Core()
