@@ -71,7 +71,7 @@ cdef class Core(object):
           ValueError
               if a parameter is not of the correct type
         """
-        cdef bytes cfname = bytes(fname, 'utf8')
+        cdef bytes cfname = fname.encode('UTF-8')
         cdef moab.EntityHandle fset
         cdef moab.EntityHandle* ptr
         if file_set != None:
@@ -116,7 +116,7 @@ cdef class Core(object):
         ValueError
             if a parameter is not of the correct type
         """
-        cdef bytes cfname = bytes(fname,'utf8')
+        cdef bytes cfname = fname.encode('UTF-8')
         cdef const char * file_name = cfname
         cdef moab.ErrorCode err
 
@@ -577,7 +577,7 @@ cdef class Core(object):
         MOAB ErrorCode
             if a MOAB error occurs
         """
-        cdef bytes cname = bytes(name, 'utf8')
+        cdef bytes cname = name.encode('UTF-8')
         cdef const char* tag_name = cname
         cdef Tag tag = Tag()
         cdef moab.ErrorCode err
