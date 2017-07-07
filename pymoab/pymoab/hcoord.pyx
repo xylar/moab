@@ -20,7 +20,9 @@ cdef class HomCoord(object):
         elif 3 == len(args):
             self.inst = new moab.HomCoord(args[0],args[1],args[2])
         else:
-            raise Exception
+            raise ValueError("""
+            Incorrect number of args provided to HomCoord constructor.
+            """)
 
     def __richcmp__(self, y, op):
         """
