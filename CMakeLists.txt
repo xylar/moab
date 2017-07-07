@@ -389,30 +389,28 @@ CONFIGURE_FILE(
     IMMEDIATE @ONLY
     )
 
-if ( ENABLE_IMESH OR ENABLE_FBIGEOM )
-  enable_language(Fortran)
+enable_language(Fortran)
 
-  # Include CMake's Fortran mangling evaluation macros
-  include(FortranCInterface)
+# Include CMake's Fortran mangling evaluation macros
+include(FortranCInterface)
 
-  if ("${FortranCInterface_GLOBAL_CASE}" MATCHES "UPPER")
-    set(FC_CASE "NAME")
-  else ("${FortranCInterface_GLOBAL_CASE}" MATCHES "UPPER")
-    set(FC_CASE "name")
-  endif ("${FortranCInterface_GLOBAL_CASE}" MATCHES "UPPER")
-  if (NOT "${FortranCInterface_GLOBAL_SUFFIX}" STREQUAL "")
-    set(FortranCInterface_GLOBAL_SUFFIX "## ${FortranCInterface_GLOBAL_SUFFIX}")
-  endif (NOT "${FortranCInterface_GLOBAL_SUFFIX}" STREQUAL "")
-  if (NOT "${FortranCInterface_GLOBAL__SUFFIX}" STREQUAL "")
-    set(FortranCInterface_GLOBAL__SUFFIX "## ${FortranCInterface_GLOBAL__SUFFIX}")
-  endif (NOT "${FortranCInterface_GLOBAL__SUFFIX}" STREQUAL "")
- 
-  set(MOAB_F77_FUNC  "${FortranCInterface_GLOBAL_PREFIX} ${FC_CASE} ${FortranCInterface_GLOBAL_SUFFIX}")
-  set(MOAB_F77_FUNC_ "${FortranCInterface_GLOBAL__PREFIX} ${FC_CASE} ${FortranCInterface_GLOBAL__SUFFIX}")
-  set(MOAB_FC_FUNC   "${FortranCInterface_GLOBAL_PREFIX} ${FC_CASE} ${FortranCInterface_GLOBAL_SUFFIX}")
-  set(MOAB_FC_FUNC_  "${FortranCInterface_GLOBAL__PREFIX} ${FC_CASE} ${FortranCInterface_GLOBAL__SUFFIX}")
+if ("${FortranCInterface_GLOBAL_CASE}" MATCHES "UPPER")
+  set(FC_CASE "NAME")
+else ("${FortranCInterface_GLOBAL_CASE}" MATCHES "UPPER")
+  set(FC_CASE "name")
+endif ("${FortranCInterface_GLOBAL_CASE}" MATCHES "UPPER")
+if (NOT "${FortranCInterface_GLOBAL_SUFFIX}" STREQUAL "")
+  set(FortranCInterface_GLOBAL_SUFFIX "## ${FortranCInterface_GLOBAL_SUFFIX}")
+endif (NOT "${FortranCInterface_GLOBAL_SUFFIX}" STREQUAL "")
+if (NOT "${FortranCInterface_GLOBAL__SUFFIX}" STREQUAL "")
+  set(FortranCInterface_GLOBAL__SUFFIX "## ${FortranCInterface_GLOBAL__SUFFIX}")
+endif (NOT "${FortranCInterface_GLOBAL__SUFFIX}" STREQUAL "")
 
-endif ( ENABLE_IMESH OR ENABLE_FBIGEOM )
+set(MOAB_F77_FUNC  "${FortranCInterface_GLOBAL_PREFIX} ${FC_CASE} ${FortranCInterface_GLOBAL_SUFFIX}")
+set(MOAB_F77_FUNC_ "${FortranCInterface_GLOBAL__PREFIX} ${FC_CASE} ${FortranCInterface_GLOBAL__SUFFIX}")
+set(MOAB_FC_FUNC   "${FortranCInterface_GLOBAL_PREFIX} ${FC_CASE} ${FortranCInterface_GLOBAL_SUFFIX}")
+set(MOAB_FC_FUNC_  "${FortranCInterface_GLOBAL__PREFIX} ${FC_CASE} ${FortranCInterface_GLOBAL__SUFFIX}")
+
 # Generate the CMake input header file and then pass it through configuration
 ## execute_process( COMMAND cat MOABConfig.h.in COMMAND sed -e "s/#undef /#cmakedefine MOAB_/g"
 #execute_process( COMMAND cat MOABConfig.h.in COMMAND sed -r "s/#undef ([A-Z].*)/#cmakedefine MOAB_\\1 @MOAB_\\1@/"
