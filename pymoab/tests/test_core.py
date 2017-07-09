@@ -305,6 +305,24 @@ def test_create_elements():
 
 def test_tag_failures():
     mb = core.Core()
+
+    coord = np.array((1,1,1),dtype='float64')
+    msh = mb.create_meshset()    
+    msh_illicit_copy = np.array((msh,),dtype='uint32')
+    test_tag = mb.tag_get_handle("Test",1,types.MB_TYPE_INTEGER,types.MB_TAG_DENSE,True)
+    data = np.array((1,))
+
+    #this operation should fail due to the entity handle data type
+    mb.tag_set_data(test_tag,np.array([msh,]),data)
+    try:
+        mb.tag_set_data(test_tag, msh_illicit_copy, data)
+    except ValueError:
+        pass
+    else:
+        print "Shouldn't be here. Test fails."
+        raise ValueError
+
+
     coord = np.array((1,1,1),dtype='float64')
     verts = mb.create_vertices(coord)
     verts_illicit_copy = np.array((verts[0],),dtype='uint32')
@@ -315,22 +333,23 @@ def test_tag_failures():
     mb.tag_set_data(test_tag,verts,data)
     try:
         mb.tag_set_data(test_tag, verts_illicit_copy, data)
-    except AssertionError:
+    except ValueError:
         pass
     else:
+        pass
         print "Shouldn't be here. Test fails."
-        raise AssertionError
+        raise ValueError
 
 
     global_id_tag = mb.tag_get_handle("GLOBAL_ID",1,types.MB_TYPE_INTEGER,types.MB_TAG_DENSE,True)
     #so should this one
     try:
         tri_id = mb.tag_get_data(global_id_tag, verts_illicit_copy)
-    except AssertionError:
+    except ValueError:
         pass
     else:
         print "Shouldn't be here. Test fails."
-        raise AssertionError
+        raise ValueError
 
 def test_adj():
 
@@ -360,6 +379,41 @@ def test_adj():
     adjs = mb.get_adjacencies(tris[0], 0, False)
     CHECK_EQ(len(adjs),3)
 
+def test_get_conn():
+
+    mb = core.Core()
+    coords = np.array((0,0,0,1,0,0,1,1,1),dtype='float64')
+    verts = mb.create_vertices(coords)
+    #create elements
+    verts = np.array(((verts[0],verts[1],verts[2]),),dtype='uint64')
+    tris = mb.create_elements(types.MBTRI,verts)
+    #get the adjacencies of the triangle of dim 1 (should return the vertices)
+    conn = mb.get_connectivity(tris, 0, False)
+    CHECK_EQ(len(conn),3)
+
+    #check that the entities are of the correct type
+    for c in conn:
+        type = mb.type_from_handle(c)
+        assert type is types.MBVERTEX
+
+    conn = mb.get_connectivity(tris[0])
+    CHECK_EQ(len(conn),3)
+    CHECK_EQ(conn, verts)
+
+    conn = mb.get_connectivity(Range(tris))
+    CHECK_EQ(len(conn),3)
+    CHECK_EQ(conn, verts)
+
+    msh = mb.create_meshset()
+    
+    try:
+        mb.get_connectivity(msh)
+    except IndexError:
+        pass
+    else:
+        print "Shouldn't be here. Test fails."
+        raise IndexErrorx
+    
 def test_type_from_handle():
     mb = core.Core()
     # create vertices
@@ -731,6 +785,35 @@ def test_iterables():
         print "Shouldn't be here. Test fails."
         raise AssertionError
 
+def test_unordered_tagging():
+
+    mb = core.Core()
+    # 1-D iterable
+    coords = [0.,0.,0.,1.,0.,0.,1.,1.,1.]
+    verts = mb.create_vertices(coords)
+    CHECK_EQ(len(verts),3)
+    # 2-D iterable w/ len 3 entries
+    coords = [[0.,0.,0.],[1.,0.,0.],[1.,1.,1.]]
+    verts = mb.create_vertices(coords)
+    CHECK_EQ(len(verts),3)
+
+    #create a tag
+    int_tag = mb.tag_get_handle("IntTag",1,types.MB_TYPE_INTEGER,types.MB_TAG_DENSE,True)
+
+    #try to set data with bad array (contains int)
+    int_data = [1,2,3]
+
+    # tag ordered vertices with value
+    mb.tag_set_data(int_tag, verts, int_data)
+        
+    reordered_verts = [verts[1], verts[2], verts[0]]
+    reordered_data =  [int_data[1], int_data[2], int_data[0]]
+
+    # check that data array is correct for reordered vertex handles
+    data = mb.tag_get_data(int_tag, reordered_verts)
+    CHECK_EQ(data, reordered_data)
+    
+    
 def test_vec_tags():
     mb = core.Core()
     coords = np.array((0,0,0,1,0,0,1,1,1),dtype='float64')
@@ -807,7 +890,49 @@ def test_create_elements_iterable():
     all_tris = mb.get_entities_by_type(rs,types.MBTRI)
     CHECK_EQ(len(all_tris),4)
 
+def test_tag_root_set():
+    # make sure that the root set can be tagged with data
+    mb = core.Core()
 
+    test_tag = mb.tag_get_handle("Test",1,types.MB_TYPE_DOUBLE,types.MB_TAG_DENSE,True)
+
+    root_set = mb.get_root_set()
+
+    test_tag_data = np.array((4.,))
+    mb.tag_set_data(test_tag, root_set, test_tag_data)
+
+    data = mb.tag_get_data(test_tag, root_set, flat = True)
+    CHECK_EQ(len(data), 1)
+    CHECK_EQ(data[0],test_tag_data[0])
+
+    mb.tag_delete_data(test_tag, root_set)
+
+def test_entity_handle_tags():
+    # make sure that the root set can be tagged with data
+    mb = core.Core()
+
+    eh_tag = mb.tag_get_handle("Test", 1, types.MB_TYPE_HANDLE, types.MB_TAG_SPARSE, True)
+    dbl_tag = mb.tag_get_handle("Dbl", 1, types.MB_TYPE_DOUBLE, types.MB_TAG_DENSE, True)
+    
+    meshset_a = mb.create_meshset()
+    meshset_b = mb.create_meshset()
+
+    # tag meshset a with meshset b
+    mb.tag_set_data(eh_tag, meshset_a, meshset_b)
+    # tag meshset b with a double value
+    val = 16.0
+    mb.tag_set_data(dbl_tag, meshset_b, val)
+
+    eh = mb.tag_get_data(eh_tag, meshset_a)
+    CHECK_EQ(eh, meshset_b)
+    dbl_val = mb.tag_get_data(dbl_tag, eh)
+    CHECK_EQ(dbl_val, val)
+
+    eh = mb.tag_get_data(eh_tag, meshset_a, flat = True)[0]
+    CHECK_EQ(eh, meshset_b)
+    dbl_val = mb.tag_get_data(dbl_tag, eh, flat = True)[0]
+    CHECK_EQ(dbl_val, val)
+    
 if __name__ == "__main__":
     tests = [test_load_mesh,
              test_write_mesh,
@@ -836,5 +961,7 @@ if __name__ == "__main__":
              test_iterables,
              test_vec_tags,
              test_create_element_iterable,
-             test_create_elements_iterable]
+             test_create_elements_iterable,
+             test_tag_root_set,
+             test_entity_handle_tags]
     test_driver(tests)

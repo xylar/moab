@@ -8,7 +8,7 @@ import ctypes
 from pymoab cimport moab
 from .tag cimport Tag, _tagArray
 from .rng cimport Range
-from .types import check_error, np_tag_type, validate_type, _convert_array, _eh_array
+from .types import check_error, np_tag_type, validate_type, _convert_array, _eh_array, _eh_py_types
 from . import types
 from libcpp.vector cimport vector
 from libcpp.string cimport string as std_string
@@ -410,7 +410,7 @@ cdef class Core(object):
         """
         cdef moab.EntityType typ = <moab.EntityType> entity_type
         cdef moab.EntityHandle handle = 0
-        if isinstance(connectivity,Range):
+        if isinstance(connectivity, Range):
             connectivity = list(connectivity)
         cdef np.ndarray[np.uint64_t, ndim=1] conn_arr = _eh_array(connectivity)
         cdef int nnodes = len(connectivity)
@@ -618,7 +618,9 @@ cdef class Core(object):
 
     def tag_set_data(self, Tag tag, entity_handles, data, exceptions = ()):
         """
-        Create an elments of type, entity_type, using vertex EntityHandles in connectivity.
+        Set tag data for a set of MOAB entities. The data provided must be
+        compatible with the tag's data type and be of an appropriate shape and
+        size depending on how many entity handles are provided.
 
         This function will ensure that the data is of the correct type and
         length based on the tag it is to be applied to. Data can be passed as a
@@ -709,12 +711,13 @@ cdef class Core(object):
             the correct type
         """
         cdef moab.ErrorCode err
-        cdef Range r
+        cdef np.ndarray ehs
         cdef moab.DataType tag_type = moab.MB_MAX_DATA_TYPE
-        if isinstance(entity_handles,Range):
-            r = entity_handles
+        # create a numpy array for the entity handles to be tagged
+        if isinstance(entity_handles, _eh_py_types):
+            ehs = _eh_array([entity_handles,])
         else:
-            r = Range(entity_handles)
+            ehs = _eh_array(entity_handles)
         err = self.inst.tag_get_data_type(tag.inst, tag_type);
         check_error(err, ())
         cdef int length = 0
@@ -725,7 +728,7 @@ cdef class Core(object):
         #as many entries as entity handles provided
         if data_arr.ndim > 1:
             assert data_arr.ndim == 2
-            assert data_arr.shape[0] == len(r)
+            assert data_arr.shape[0] == ehs.size
             #each entry must be equal to the tag length as well
             for entry in data_arr:
                 len(entry) == length
@@ -733,11 +736,11 @@ cdef class Core(object):
             data_arr = data_arr.flatten()
         error_str = "Incorrect data length"
         if types.MB_TYPE_OPAQUE == tag_type:
-            assert data_arr.size == len(r), error_str
+            assert data_arr.size == ehs.size, error_str
         else:
-            assert data_arr.size == len(r)*length, error_str
+            assert data_arr.size == ehs.size*length, error_str
         data_arr = validate_type(tag_type,length,data_arr)
-        err = self.inst.tag_set_data(tag.inst, deref(r.inst), <const void*> data_arr.data)
+        err = self.inst.tag_set_data(tag.inst, <moab.EntityHandle*> ehs.data, ehs.size, <const void*> data_arr.data)
         check_error(err, exceptions)
 
     def tag_get_data(self, Tag tag, entity_handles, flat = False, exceptions = ()):
@@ -779,8 +782,7 @@ cdef class Core(object):
         tag : MOAB TagHandle
             the tag from which data is to be retrieved
         entity_handles : iterable of MOAB EntityHandles or a single EntityHandle
-            the EntityHandle(s) to retrieve data for. This can be any iterable of
-            EntityHandles or a single EntityHandle.
+            the EntityHandle(s) to retrieve data for.
         flat : bool (default is False)
             Indicates the structure in which the data is returned. If False, the
             array is returned as a 2-D numpy array of len(entity_handles) with
@@ -803,13 +805,13 @@ cdef class Core(object):
             if an EntityHandle is not of the correct type
         """
         cdef moab.ErrorCode err
-        cdef Range r
+        cdef np.ndarray ehs
         cdef moab.DataType tag_type = moab.MB_MAX_DATA_TYPE
-        #create a range
-        if isinstance(entity_handles,Range):
-            r = entity_handles
+        # create a numpy array for the entity handles to be tagged
+        if isinstance(entity_handles, _eh_py_types):
+            ehs = _eh_array([entity_handles,])
         else:
-            r = Range(entity_handles)
+            ehs = _eh_array(entity_handles)
         # get the tag type and length for validation
         err = self.inst.tag_get_data_type(tag.inst, tag_type);
         check_error(err,())
@@ -819,17 +821,17 @@ cdef class Core(object):
         #create array to hold data
         cdef np.ndarray data
         if tag_type is types.MB_TYPE_OPAQUE:
-            data = np.empty((len(r),),dtype='S'+str(length))
+            data = np.empty((ehs.size,),dtype='S'+str(length))
         else:
-            data = np.empty((length*len(r),),dtype=np.dtype(np_tag_type(tag_type)))
-        err = self.inst.tag_get_data(tag.inst, deref(r.inst), <void*> data.data)
+            data = np.empty((length*ehs.size,),dtype=np.dtype(np_tag_type(tag_type)))
+        err = self.inst.tag_get_data(tag.inst, <moab.EntityHandle*> ehs.data, ehs.size, <void*> data.data)
         check_error(err, exceptions)
         # return data as user specifies
         if flat:
             return data
         else:
             entry_len = 1 if tag_type == types.MB_TYPE_OPAQUE else length
-            return data.reshape((len(r),entry_len))
+            return data.reshape((ehs.size,entry_len))
 
     def tag_delete_data(self, Tag tag, entity_handles, exceptions = ()):
         """
@@ -862,14 +864,14 @@ cdef class Core(object):
             if an EntityHandle is not of the correct type
         """
         cdef moab.ErrorCode err
-        cdef Range r
-        # Create a range
-        if isinstance(entity_handles,Range):
-            r = entity_handles
+        cdef np.ndarray ehs
+        # create a numpy array for the entity handles to be tagged
+        if isinstance(entity_handles, _eh_py_types):
+            ehs = _eh_array([entity_handles,])
         else:
-            r = Range(entity_handles)
+            ehs = _eh_array(entity_handles)
         # Delete the data
-        err = self.inst.tag_delete_data(tag.inst, deref(r.inst))
+        err = self.inst.tag_delete_data(tag.inst, <moab.EntityHandle*> ehs.data, ehs.size)
         check_error(err, exceptions)
 
     def tag_delete(self, Tag tag, exceptions = ()):
@@ -1197,6 +1199,61 @@ cdef class Core(object):
         """
         return <unsigned long> 0
 
+    def get_connectivity(self, entity_handles, exceptions = ()):
+        """
+        Returns the vertex handles which make up the mesh entities passed in via
+        the entity_handles argument.
+        
+        Example
+        -------
+        # new PyMOAB instance
+        mb = core.Core()
+        #create some vertices
+        coords = np.array((0,0,0,1,0,0,1,1,1),dtype='float64')
+        verts = mb.create_vertices(coords)
+        #create a triangle
+        verts = np.array(((verts[0],verts[1],verts[2]),),dtype='uint64')
+        tris = mb.create_elements(types.MBTRI,verts)
+        # retrieve the vertex handles that make up the triangle
+        conn = mb.get_connectivity(tris[0])
+
+        
+        Parameters
+        ----------
+        entity_handles : iterable of MOAB EntityHandles or a single EntityHandle
+            to retrieve the vertex connectivity of. Note that these
+            EntityHandles should represent mesh entities (MBEDGE,
+            MBTRI, MBQUAD, etc.) rather than an EntitySet.
+        exceptions : tuple (default is empty tuple)
+            A tuple containing any error types that should
+            be ignored. (see pymoab.types module for more info)
+
+        Returns
+        -------
+        Numpy array of vertex EntityHandles
+        
+        Raises
+        ------
+        MOAB ErrorCode
+            if a MOAB error occurs
+        ValueError
+            if an EntityHandle is not of the correct datatype
+        """
+        cdef moab.ErrorCode err
+        cdef np.ndarray ehs
+        if isinstance(entity_handles, _eh_py_types):
+            ehs = _eh_array([entity_handles,])
+        else:
+            ehs = _eh_array(entity_handles)
+        cdef vector[moab.EntityHandle] ehs_out
+        cdef moab.EntityHandle* eh_ptr
+        cdef int num_ents = 0
+        err = self.inst.get_connectivity(<moab.EntityHandle*> ehs.data, ehs.size, ehs_out)
+        check_error(err, exceptions)
+        return _eh_array(ehs_out)
+
+        
+        
     def get_coords(self, entities, exceptions = ()):
         """
         Returns the xyz coordinate information for a set of vertices.

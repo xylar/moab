@@ -2,7 +2,7 @@
 from cython.operator cimport dereference as deref
 from libcpp.string cimport string as std_string
 from pymoab cimport moab
-from .types import _eh_array
+from .types import _eh_array, _eh_py_types
 
 def intersect(Range r1, Range r2):
     """
@@ -44,7 +44,7 @@ cdef class Range(object):
         self.inst = new moab.Range()
         if arg is None:
             return
-        if type(arg) is long:
+        if isinstance(arg, _eh_py_types):
             self.inst.insert(arg)
         #hack to copy
         elif isinstance(arg, Range):
