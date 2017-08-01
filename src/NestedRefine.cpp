@@ -3050,6 +3050,8 @@ ErrorCode NestedRefine::update_global_ahf_1D(int cur_level, int deg)
 
        // Obtain the corresponding incident child in the current mesh
        int lvid = get_local_vid(vid, inci_ent[0], cur_level-1);
+       if (lvid<0)
+         MB_SET_ERR(MB_FAILURE, "did not find local vertex ix ");
        int chid = refTemplates[0][d].v2hf[lvid][0]-1;
 
        int pid;
@@ -3183,6 +3185,8 @@ ErrorCode NestedRefine::update_global_ahf_1D_sub(int cur_level, int deg)
 
           // Obtain the corresponding incident child in the current mesh
           int lvid = get_local_vid(conn[j], inci_ent[0], cur_level-1);
+          if (lvid<0)
+            MB_SET_ERR(MB_FAILURE, "did not find local vertex ix ");
           int chid = refTemplates[0][d].v2hf[lvid][0]-1;
 
           int pid;
@@ -3307,6 +3311,8 @@ ErrorCode NestedRefine::update_ahf_1D(int cur_level)
        // Obtain the corresponding incident child in the current mesh
        for (int j=0; j<(int) inci_ent.size(); j++){
            int lvid = get_local_vid(vid, inci_ent[j], cur_level-1);
+           if (lvid<0)
+             MB_SET_ERR(MB_FAILURE, "did not find local vertex ix ");
            int chid = refTemplates[type-1][d].v2hf[lvid][0]-1;
 
            int pid;
@@ -3470,6 +3476,8 @@ ErrorCode NestedRefine::update_ahf_1D(int cur_level)
            // Obtain the corresponding incident child in the current mesh
            for (int k=0; k<(int)inci_ent.size(); k++){
                int lvid = get_local_vid(fid_conn[j], inci_ent[k], cur_level-1);
+               if (lvid<0)
+                 MB_SET_ERR(MB_FAILURE, "did not find local vertex ix ");
                int chid = refTemplates[type-1][d].v2hf[lvid][0]-1;
 
                int pid;
@@ -3615,6 +3623,8 @@ ErrorCode NestedRefine::update_ahf_1D(int cur_level)
        // Obtain the corresponding incident child in the current mesh
        for (int j=0;j<(int)inci_ent.size(); j++){
            int lvid = get_local_vid(vid, inci_ent[j], cur_level-1);
+           if (lvid<0)
+             MB_SET_ERR(MB_FAILURE, "did not find local vertex ix ");
            int chid = refTemplates[type-1][d].v2hf[lvid][0]-1;
 
            int pid;
@@ -4462,6 +4472,8 @@ int NestedRefine::get_local_vid(EntityHandle vid, EntityHandle ent, int level)
           break;
         }
     }
+  if (lid < 0)
+    MB_SET_ERR(MB_FAILURE, "Error in getting local vertex id in the given entity");
   return lid;
 }
 

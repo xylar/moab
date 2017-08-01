@@ -2062,7 +2062,8 @@ ErrorCode GeomTopoTool::insert_in_tree(EntityHandle ct_root, EntityHandle volume
 ErrorCode GeomTopoTool::restore_topology_from_geometric_inclusion(const Range &flat_volumes) {
 
   ErrorCode rval;
-  GeomQueryTool* GQT = new GeomQueryTool(this);
+  // local var will go out of scope if errors appear, no need to free it also
+  GeomQueryTool  GQT(this);
   std::map<EntityHandle,EntityHandle> volume_surface; //map of volume
                                                       // to its surface
 
@@ -2079,7 +2080,7 @@ ErrorCode GeomTopoTool::restore_topology_from_geometric_inclusion(const Range &f
     Range child_surfaces = get_ct_children_by_dimension(*vol, 2);
     volume_surface[*vol]=*child_surfaces.begin();
     
-    rval = insert_in_tree(ct_root, *vol, GQT);
+    rval = insert_in_tree(ct_root, *vol, &GQT);
     MB_CHK_SET_ERR(rval,"Failed to insert volume into tree.");
   }
   
@@ -2109,8 +2110,6 @@ ErrorCode GeomTopoTool::restore_topology_from_geometric_inclusion(const Range &f
         }
       
     }
-
-  delete GQT;
   
   return MB_SUCCESS;
 }  

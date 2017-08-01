@@ -44,7 +44,7 @@ namespace moab {
 
 
   HalfFacetRep::HalfFacetRep(Core *impl,   ParallelComm *comm, moab::EntityHandle rset, bool filter_ghosts)
-    : mb(impl), pcomm(comm), _rset(rset), _filterghost(filter_ghosts)
+    : thismeshtype(CURVE), mb(impl), pcomm(comm), _rset(rset), _filterghost(filter_ghosts)
   {
     assert(NULL != impl);
     mInitAHFmaps = false;
@@ -1727,7 +1727,8 @@ namespace moab {
                      lv = k;
                    }
                }
-
+             if (lv<0)
+               MB_SET_ERR(MB_FAILURE, "did not find local vertex ");
              int nidx = lConnMap2D[nvF-3].next[lv];
              int pidx = lConnMap2D[nvF-3].prev[lv];
 
@@ -1877,13 +1878,14 @@ namespace moab {
         // Local id of vid in the cell and the half-faces incident on it
         int lv = -1;
         for (int i = 0; i< nvpc; ++i){
-            if (conn[i] == vid)
+           if (conn[i] == vid)
               {
                 lv = i;
                 break;
               }
-          };
-
+          }
+        if (lv<0)
+          MB_SET_ERR(MB_FAILURE, "did not find local vertex ");
         int nhf_thisv = lConnMap3D[index].v2hf_num[lv];
         int cidx = ID_FROM_HANDLE(cur_cid)-1;
 
@@ -2001,7 +2003,8 @@ namespace moab {
                 break;
               }
           };
-
+        if (lv<0)
+          MB_SET_ERR(MB_FAILURE, "did not find local vertex ");
         //Number of local half-faces incident on the current vertex
         int nhf_thisv = lConnMap3D[index].v2hf_num[lv];
         int cidx = ID_FROM_HANDLE(cur_cid)-1;
@@ -2135,6 +2138,8 @@ ErrorCode HalfFacetRep::get_up_adjacencies_edg_3d( EntityHandle eid,
 
       //push back new found unchecked incident tets of v_start
       int cidx = ID_FROM_HANDLE(cell_id)-1;
+      if (lv<0)
+        MB_SET_ERR(MB_FAILURE, "did not find local vertex ");
       int nhf_thisv = lConnMap3D[index].v2hf_num[lv];
 
       for (int i = 0; i < nhf_thisv; i++){
@@ -2285,7 +2290,8 @@ ErrorCode HalfFacetRep::get_up_adjacencies_edg_3d( EntityHandle eid,
                   adj_orients->push_back(0);
               }
           }
-
+        if (lv<0)
+          MB_SET_ERR(MB_FAILURE, "did not find local vertex ");
         //push back new found unchecked incident tets of v_start
         int cidx = ID_FROM_HANDLE(cell_id)-1;
         int nhf_thisv = lConnMap3D[index].v2hf_num[lv];
@@ -2615,7 +2621,8 @@ ErrorCode HalfFacetRep::get_up_adjacencies_edg_3d( EntityHandle eid,
         //push back new found unchecked incident tets of v_start
         int cidx = ID_FROM_HANDLE(cell_id)-1;
         int nhf_thisv = lConnMap3D[index].v2hf_num[lv];
-
+        if (lv<0)
+          MB_SET_ERR(MB_FAILURE, "did not find local vertex ");
         for (int i = 0; i < nhf_thisv; i++){
             int ind = lConnMap3D[index].v2hf[lv][i];
             HFacet hf = sibhfs[nfpc*cidx+ind];
@@ -2740,6 +2747,8 @@ ErrorCode HalfFacetRep::get_up_adjacencies_edg_3d( EntityHandle eid,
         else
           {
             // Add other cells that are incident on fid_verts[0]
+            if (locfv0<0 || lv[locfv0]<0)
+              MB_SET_ERR(MB_FAILURE, "did not find local vertex ");
             int nhf_thisv = lConnMap3D[index].v2hf_num[lv[locfv0]];
             int cidx = ID_FROM_HANDLE(cur_cid)-1;
 

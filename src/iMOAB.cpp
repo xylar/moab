@@ -944,7 +944,12 @@ ErrCode iMOAB_DefineTagStorage(iMOAB_AppID pid, const iMOAB_String tag_storage_n
     case 3: tagDataType = MB_TYPE_INTEGER; tagType = MB_TAG_SPARSE; defaultVal=defInt; break;
     case 4: tagDataType = MB_TYPE_DOUBLE;  tagType = MB_TAG_SPARSE; defaultVal=defDouble; break;
     case 5: tagDataType = MB_TYPE_HANDLE;  tagType = MB_TAG_SPARSE; defaultVal=defHandle; break;
-    default : return 1; // error
+    default : {
+      delete [] defInt;
+      delete [] defDouble;
+      delete [] defHandle;
+      return 1;
+    } // error
   }
   std::string tag_name(tag_storage_name);
   if (tag_storage_name_length< (int)tag_name.length())
@@ -956,6 +961,11 @@ ErrCode iMOAB_DefineTagStorage(iMOAB_AppID pid, const iMOAB_String tag_storage_n
   ErrorCode rval = context.MBI->tag_get_handle(tag_name.c_str(), *components_per_entity,
       tagDataType,
       tagHandle, tagType, defaultVal);
+
+  // we don't need default values anymore, avoid leaks
+  delete [] defInt;
+  delete [] defDouble;
+  delete [] defHandle;
 
   appData & data = context.appDatas[*pid];
   if (MB_ALREADY_ALLOCATED==rval)
@@ -1370,7 +1380,7 @@ ErrCode iMOAB_DetermineGhostEntities(  iMOAB_AppID pid, int * ghost_dim, int *nu
   int rc=iMOAB_UpdateMeshInfo(pid);
   return rc;
 #endif
-
+  return 0;
 }
 #ifdef __cplusplus
 }

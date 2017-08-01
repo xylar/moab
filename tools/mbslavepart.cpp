@@ -3,6 +3,7 @@
 // tools/mbslavepart -d 2 -m mpas/x1.2562.grid.h5m -s mpas/x1.10242.grid.h5m -o mpas_slave.h5m -e 1e-8 -b 1e-6 -O
 // 
 #include <iostream>
+#include <exception>
 #include <cmath>
 #include <vector>
 #include <string>
@@ -127,102 +128,108 @@ int main(int argc, char* argv[])
 
   std::cout << "Found " << melems.size() << " elements in master mesh with " << msets.size() << " partition sets." << std::endl;
   msets.clear();
+  try {
+    std::map<int, moab::Range > spartvals;
+    int npoints_notfound=0;
+    {
+      EntityHandle tree_root;
 
-  std::map<int, moab::Range > spartvals;
-  int npoints_notfound=0;
-  {
-    EntityHandle tree_root;
-    moab::AdaptiveKDTree tree(mbCore);
-    // moab::BVHTree tree(mbCore);
-    error = tree.build_tree(melems, &tree_root);MB_CHK_ERR(error);
+        moab::AdaptiveKDTree tree(mbCore);
 
-    for (size_t ie=0; ie < selems.size(); ie++) {
-      moab::EntityHandle selem,leaf;
-      double point[3];
-      selem = selems[ie];
+      // moab::BVHTree tree(mbCore);
+      error = tree.build_tree(melems, &tree_root);MB_CHK_ERR(error);
 
-      // Get the element centroid to be queried
-      error = mbCore->get_coords(&selem, 1, point);MB_CHK_ERR(error);
+      for (size_t ie=0; ie < selems.size(); ie++) {
+        moab::EntityHandle selem,leaf;
+        double point[3];
+        selem = selems[ie];
 
-      // Search for the closest source element in the master mesh corresponding
-      // to the target element centroid in the slave mesh 
-      error = tree.point_search( point, leaf, tolerance, btolerance );MB_CHK_ERR(error);
+        // Get the element centroid to be queried
+        error = mbCore->get_coords(&selem, 1, point);MB_CHK_ERR(error);
 
-      if (leaf == 0) {
-        leaf = masterfileset; // FIXME: This is terrible -- linear search.
-      }
+        // Search for the closest source element in the master mesh corresponding
+        // to the target element centroid in the slave mesh
+        error = tree.point_search( point, leaf, tolerance, btolerance );MB_CHK_ERR(error);
 
-      std::vector<moab::EntityHandle> leaf_elems;
-      // We only care about the dimension that the user specified.
-      // MOAB partitions are ordered by elements anyway.
-      error = mbCore->get_entities_by_dimension( leaf, dimension, leaf_elems);MB_CHK_ERR(error);
+        if (leaf == 0) {
+          leaf = masterfileset; // FIXME: This is terrible -- linear search.
+        }
 
-      // Now get the master element centroids so that we can compute 
-      // the minimum distance to the target point
-      std::vector<double> centroids(leaf_elems.size()*3);
-      error = mbCore->get_coords(&leaf_elems[0], leaf_elems.size(), &centroids[0]);MB_CHK_ERR(error);
+        std::vector<moab::EntityHandle> leaf_elems;
+        // We only care about the dimension that the user specified.
+        // MOAB partitions are ordered by elements anyway.
+        error = mbCore->get_entities_by_dimension( leaf, dimension, leaf_elems);MB_CHK_ERR(error);
 
-      if (!leaf_elems.size())
-        std::cout << ie << ": " << " No leaf elements found." << std::endl;
+        // Now get the master element centroids so that we can compute
+        // the minimum distance to the target point
+        std::vector<double> centroids(leaf_elems.size()*3);
+        error = mbCore->get_coords(&leaf_elems[0], leaf_elems.size(), &centroids[0]);MB_CHK_ERR(error);
 
-      double dist=1e10;
-      int pinelem=-1;
-      for (size_t il=0; il < leaf_elems.size(); ++il) {
-        const double *centroid = &centroids[il*3];
-        const double locdist = std::pow(point[0]-centroid[0],2)+std::pow(point[1]-centroid[1],2)+std::pow(point[2]-centroid[2],2);
+        if (!leaf_elems.size())
+          std::cout << ie << ": " << " No leaf elements found." << std::endl;
 
-        if (locdist < dist) {
-          dist = locdist;
-          pinelem = il;
+        double dist=1e10;
+        int pinelem=-1;
+        for (size_t il=0; il < leaf_elems.size(); ++il) {
+          const double *centroid = &centroids[il*3];
+          const double locdist = std::pow(point[0]-centroid[0],2)+std::pow(point[1]-centroid[1],2)+std::pow(point[2]-centroid[2],2);
+
+          if (locdist < dist) {
+            dist = locdist;
+            pinelem = il;
+          }
+        }
+
+        if (pinelem < 0) {
+          std::cout << ie << ": [Error] - Could not find a minimum distance within the leaf nodes." << std::endl;
+          npoints_notfound++;
+        }
+        else {
+          int gidMelem;
+          error = mbCore->tag_get_data(gidtag, &leaf_elems[pinelem], 1, &gidMelem);MB_CHK_ERR(error);
+
+          // if (mpartvals[ gidMelem ])
+          int mpartid = get_map_value(mpartvals, gidMelem, -1);
+          if (mpartid < 0)
+            std::cout << "[WARNING]: Part number for element " << leaf_elems[pinelem] << " with global ID = " << gidMelem << " not found.\n";
+
+          spartvals[ mpartid ].insert(selems[ie]);
         }
       }
+      error = tree.reset_tree();MB_CHK_ERR(error);
+    }
+    if (npoints_notfound) std::cout << "Could not find " << npoints_notfound << " points in the master mesh" << std::endl;
 
-      if (pinelem < 0) {
-        std::cout << ie << ": [Error] - Could not find a minimum distance within the leaf nodes." << std::endl;
-        npoints_notfound++;
+    // Find parallel partition sets in the slave mesh - and delete it since we are going to overwrite the sets
+    if (!keepsparts) {
+      error = mbCore->get_entities_by_type_and_tag(slavefileset, MBENTITYSET, &parttag, NULL, 1, ssets, moab::Interface::UNION);MB_CHK_ERR(error);
+      std::cout << "Deleting " << ssets.size() << " sets in the slave mesh" << std::endl;
+      error = mbCore->delete_entities(ssets);MB_CHK_ERR(error);
+      ssets.clear();
+    }
+
+    for (std::map<int, moab::Range >::iterator it = spartvals.begin(); it != spartvals.end(); ++it) {
+      int partID = it->first;
+      moab::EntityHandle pset;
+      error = mbCore->create_meshset(moab::MESHSET_SET, pset);MB_CHK_ERR(error);
+      error = mbCore->add_entities(pset, it->second);MB_CHK_ERR(error);
+      error = mbCore->add_parent_child(slavefileset, pset);MB_CHK_ERR(error);
+
+      if (keepsparts) {
+        error = mbCore->tag_set_data(sparttag, &pset, 1, &partID);MB_CHK_ERR(error);
       }
       else {
-        int gidMelem;
-        error = mbCore->tag_get_data(gidtag, &leaf_elems[pinelem], 1, &gidMelem);MB_CHK_ERR(error);
-
-        // if (mpartvals[ gidMelem ])
-        int mpartid = get_map_value(mpartvals, gidMelem, -1);
-        if (mpartid < 0)
-          std::cout << "[WARNING]: Part number for element " << leaf_elems[pinelem] << " with global ID = " << gidMelem << " not found.\n";
-
-        spartvals[ mpartid ].insert(selems[ie]);
+        error = mbCore->tag_set_data(parttag, &pset, 1, &partID);MB_CHK_ERR(error);
       }
     }
-    error = tree.reset_tree();MB_CHK_ERR(error);
+
+    error = mbCore->write_file("mpas_slave.vtk", NULL, write_options.c_str(), &slavefileset, 1);MB_CHK_ERR(error);
+    error = mbCore->write_file(outfile.c_str(), NULL, write_options.c_str(), &slavefileset, 1);MB_CHK_ERR(error);
   }
-  if (npoints_notfound) std::cout << "Could not find " << npoints_notfound << " points in the master mesh" << std::endl;
-
-  // Find parallel partition sets in the slave mesh - and delete it since we are going to overwrite the sets
-  if (!keepsparts) {
-    error = mbCore->get_entities_by_type_and_tag(slavefileset, MBENTITYSET, &parttag, NULL, 1, ssets, moab::Interface::UNION);MB_CHK_ERR(error);
-    std::cout << "Deleting " << ssets.size() << " sets in the slave mesh" << std::endl;
-    error = mbCore->delete_entities(ssets);MB_CHK_ERR(error);
-    ssets.clear();
-  }
-
-  for (std::map<int, moab::Range >::iterator it = spartvals.begin(); it != spartvals.end(); ++it) {
-    int partID = it->first;
-    moab::EntityHandle pset;
-    error = mbCore->create_meshset(moab::MESHSET_SET, pset);MB_CHK_ERR(error);
-    error = mbCore->add_entities(pset, it->second);MB_CHK_ERR(error);
-    error = mbCore->add_parent_child(slavefileset, pset);MB_CHK_ERR(error);
-
-    if (keepsparts) {
-      error = mbCore->tag_set_data(sparttag, &pset, 1, &partID);MB_CHK_ERR(error);
+  catch (std::exception & e)
+    {
+      std::cout << " exception caught during tree initialization " << e.what() << std::endl;
     }
-    else {
-      error = mbCore->tag_set_data(parttag, &pset, 1, &partID);MB_CHK_ERR(error);
-    }
-  }
-
-  error = mbCore->write_file("mpas_slave.vtk", NULL, write_options.c_str(), &slavefileset, 1);MB_CHK_ERR(error);
-  error = mbCore->write_file(outfile.c_str(), NULL, write_options.c_str(), &slavefileset, 1);MB_CHK_ERR(error);
-  
   delete mbCore;
 
 #ifdef MOAB_HAVE_MPI
