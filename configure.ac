@@ -224,11 +224,33 @@ if (test "xyes" != "x$enable_pymoab" && test "xno" != "x$enable_pymoab"); then
 else
   if (test "x$enable_pymoab" != "xno"); then
     ENABLE_pymoab=yes
-    AM_PATH_PYTHON()
+    AM_PATH_PYTHON([2.7],,[:])
     AX_PYTHON_DEVEL()
-    AC_PYTHON_MODULE(numpy)
-    AC_PYTHON_MODULE(setuptools)
-    
+
+    AC_MSG_CHECKING([for the numpy Python package])
+    ac_numpy_result=`$PYTHON -c "import numpy" 2>&1`
+    if test $? -eq 0; then
+    AC_MSG_RESULT([yes])
+    else
+    AC_MSG_RESULT([no])
+    AC_MSG_ERROR([cannot import Python module "numpy".
+    Please check your Python installation. The error was:
+    $ac_numpy_result])
+    PYTHON_VERSION=""
+    fi
+
+    AC_MSG_CHECKING([for the setuptools Python package])
+    ac_setuptools_result=`$PYTHON -c "import setuptools" 2>&1`
+    if test $? -eq 0; then
+    AC_MSG_RESULT([yes])
+    else
+    AC_MSG_RESULT([no])
+    AC_MSG_ERROR([cannot import Python module "setuptools".
+    Please check your Python installation. The error was:
+    $ac_setuptools_result])
+    PYTHON_VERSION=""
+    fi
+
     # if enabling PyMOAB, turn cython file filter oni
     filter_sources="YES"
     filter_program=$PYTHON" cython_filter.py 2>/dev/null"

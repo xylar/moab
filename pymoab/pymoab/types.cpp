@@ -1531,6 +1531,7 @@ static PyObject *__pyx_builtin_range;
 static PyObject *__pyx_builtin_ImportError;
 static const char __pyx_k_O[] = "O";
 static const char __pyx_k_S[] = "S";
+static const char __pyx_k_U[] = "U";
 static const char __pyx_k_k[] = "k";
 static const char __pyx_k_v[] = "v";
 static const char __pyx_k_S1[] = "S1";
@@ -1772,6 +1773,7 @@ static PyObject *__pyx_n_s_S;
 static PyObject *__pyx_n_s_S1;
 static PyObject *__pyx_kp_s_Tag_not_found;
 static PyObject *__pyx_n_s_TypeError;
+static PyObject *__pyx_n_s_U;
 static PyObject *__pyx_n_s_UNION;
 static PyObject *__pyx_n_s_VALID_DTYPES;
 static PyObject *__pyx_n_s_ValueError;
@@ -7095,6 +7097,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_S1, __pyx_k_S1, sizeof(__pyx_k_S1), 0, 0, 1, 1},
   {&__pyx_kp_s_Tag_not_found, __pyx_k_Tag_not_found, sizeof(__pyx_k_Tag_not_found), 0, 0, 1, 0},
   {&__pyx_n_s_TypeError, __pyx_k_TypeError, sizeof(__pyx_k_TypeError), 0, 0, 1, 1},
+  {&__pyx_n_s_U, __pyx_k_U, sizeof(__pyx_k_U), 0, 0, 1, 1},
   {&__pyx_n_s_UNION, __pyx_k_UNION, sizeof(__pyx_k_UNION), 0, 0, 1, 1},
   {&__pyx_n_s_VALID_DTYPES, __pyx_k_VALID_DTYPES, sizeof(__pyx_k_VALID_DTYPES), 0, 0, 1, 1},
   {&__pyx_n_s_ValueError, __pyx_k_ValueError, sizeof(__pyx_k_ValueError), 0, 0, 1, 1},
@@ -7309,17 +7312,17 @@ static int __Pyx_InitCachedConstants(void) {
   /* "pymoab/types.pyx":127
  * 
  * _VALID_DTYPES= {
- *     MB_TYPE_OPAQUE: frozenset(['S']),             # <<<<<<<<<<<<<<
+ *     MB_TYPE_OPAQUE: frozenset(['S','U']),             # <<<<<<<<<<<<<<
  *     MB_TYPE_INTEGER: frozenset(['int8','int16','int32','int64']),
  *     MB_TYPE_DOUBLE: frozenset(['float64']),
  */
-  __pyx_tuple__15 = PyTuple_Pack(1, __pyx_n_s_S); if (unlikely(!__pyx_tuple__15)) __PYX_ERR(0, 127, __pyx_L1_error)
+  __pyx_tuple__15 = PyTuple_Pack(2, __pyx_n_s_S, __pyx_n_s_U); if (unlikely(!__pyx_tuple__15)) __PYX_ERR(0, 127, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__15);
   __Pyx_GIVEREF(__pyx_tuple__15);
 
   /* "pymoab/types.pyx":128
  * _VALID_DTYPES= {
- *     MB_TYPE_OPAQUE: frozenset(['S']),
+ *     MB_TYPE_OPAQUE: frozenset(['S','U']),
  *     MB_TYPE_INTEGER: frozenset(['int8','int16','int32','int64']),             # <<<<<<<<<<<<<<
  *     MB_TYPE_DOUBLE: frozenset(['float64']),
  *     MB_TYPE_BIT: frozenset(['int8','int16','int32','int64','S1','bool']),
@@ -7329,7 +7332,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GIVEREF(__pyx_tuple__16);
 
   /* "pymoab/types.pyx":129
- *     MB_TYPE_OPAQUE: frozenset(['S']),
+ *     MB_TYPE_OPAQUE: frozenset(['S','U']),
  *     MB_TYPE_INTEGER: frozenset(['int8','int16','int32','int64']),
  *     MB_TYPE_DOUBLE: frozenset(['float64']),             # <<<<<<<<<<<<<<
  *     MB_TYPE_BIT: frozenset(['int8','int16','int32','int64','S1','bool']),
@@ -7375,17 +7378,17 @@ static int __Pyx_InitCachedConstants(void) {
   /* "pymoab/types.pyx":136
  * 
  * _VALID_DTYPES= {
- *     MB_TYPE_OPAQUE: frozenset(['S','O']),             # <<<<<<<<<<<<<<
+ *     MB_TYPE_OPAQUE: frozenset(['S','U','O']),             # <<<<<<<<<<<<<<
  *     MB_TYPE_INTEGER: frozenset(['int8','int16','int32','int64','O','object']),
  *     MB_TYPE_DOUBLE: frozenset(['float64','float','O','object']),
  */
-  __pyx_tuple__21 = PyTuple_Pack(2, __pyx_n_s_S, __pyx_n_s_O); if (unlikely(!__pyx_tuple__21)) __PYX_ERR(0, 136, __pyx_L1_error)
+  __pyx_tuple__21 = PyTuple_Pack(3, __pyx_n_s_S, __pyx_n_s_U, __pyx_n_s_O); if (unlikely(!__pyx_tuple__21)) __PYX_ERR(0, 136, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__21);
   __Pyx_GIVEREF(__pyx_tuple__21);
 
   /* "pymoab/types.pyx":137
  * _VALID_DTYPES= {
- *     MB_TYPE_OPAQUE: frozenset(['S','O']),
+ *     MB_TYPE_OPAQUE: frozenset(['S','U','O']),
  *     MB_TYPE_INTEGER: frozenset(['int8','int16','int32','int64','O','object']),             # <<<<<<<<<<<<<<
  *     MB_TYPE_DOUBLE: frozenset(['float64','float','O','object']),
  *     MB_TYPE_BIT: frozenset(['int8','int16','int32','int64','S1','bool','O','object']),
@@ -7395,7 +7398,7 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GIVEREF(__pyx_tuple__22);
 
   /* "pymoab/types.pyx":138
- *     MB_TYPE_OPAQUE: frozenset(['S','O']),
+ *     MB_TYPE_OPAQUE: frozenset(['S','U','O']),
  *     MB_TYPE_INTEGER: frozenset(['int8','int16','int32','int64','O','object']),
  *     MB_TYPE_DOUBLE: frozenset(['float64','float','O','object']),             # <<<<<<<<<<<<<<
  *     MB_TYPE_BIT: frozenset(['int8','int16','int32','int64','S1','bool','O','object']),
@@ -8494,7 +8497,7 @@ PyMODINIT_FUNC PyInit_types(void)
   /* "pymoab/types.pyx":127
  * 
  * _VALID_DTYPES= {
- *     MB_TYPE_OPAQUE: frozenset(['S']),             # <<<<<<<<<<<<<<
+ *     MB_TYPE_OPAQUE: frozenset(['S','U']),             # <<<<<<<<<<<<<<
  *     MB_TYPE_INTEGER: frozenset(['int8','int16','int32','int64']),
  *     MB_TYPE_DOUBLE: frozenset(['float64']),
  */
@@ -8510,7 +8513,7 @@ PyMODINIT_FUNC PyInit_types(void)
 
   /* "pymoab/types.pyx":128
  * _VALID_DTYPES= {
- *     MB_TYPE_OPAQUE: frozenset(['S']),
+ *     MB_TYPE_OPAQUE: frozenset(['S','U']),
  *     MB_TYPE_INTEGER: frozenset(['int8','int16','int32','int64']),             # <<<<<<<<<<<<<<
  *     MB_TYPE_DOUBLE: frozenset(['float64']),
  *     MB_TYPE_BIT: frozenset(['int8','int16','int32','int64','S1','bool']),
@@ -8524,7 +8527,7 @@ PyMODINIT_FUNC PyInit_types(void)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
   /* "pymoab/types.pyx":129
- *     MB_TYPE_OPAQUE: frozenset(['S']),
+ *     MB_TYPE_OPAQUE: frozenset(['S','U']),
  *     MB_TYPE_INTEGER: frozenset(['int8','int16','int32','int64']),
  *     MB_TYPE_DOUBLE: frozenset(['float64']),             # <<<<<<<<<<<<<<
  *     MB_TYPE_BIT: frozenset(['int8','int16','int32','int64','S1','bool']),
@@ -8588,7 +8591,7 @@ PyMODINIT_FUNC PyInit_types(void)
   /* "pymoab/types.pyx":136
  * 
  * _VALID_DTYPES= {
- *     MB_TYPE_OPAQUE: frozenset(['S','O']),             # <<<<<<<<<<<<<<
+ *     MB_TYPE_OPAQUE: frozenset(['S','U','O']),             # <<<<<<<<<<<<<<
  *     MB_TYPE_INTEGER: frozenset(['int8','int16','int32','int64','O','object']),
  *     MB_TYPE_DOUBLE: frozenset(['float64','float','O','object']),
  */
@@ -8604,7 +8607,7 @@ PyMODINIT_FUNC PyInit_types(void)
 
   /* "pymoab/types.pyx":137
  * _VALID_DTYPES= {
- *     MB_TYPE_OPAQUE: frozenset(['S','O']),
+ *     MB_TYPE_OPAQUE: frozenset(['S','U','O']),
  *     MB_TYPE_INTEGER: frozenset(['int8','int16','int32','int64','O','object']),             # <<<<<<<<<<<<<<
  *     MB_TYPE_DOUBLE: frozenset(['float64','float','O','object']),
  *     MB_TYPE_BIT: frozenset(['int8','int16','int32','int64','S1','bool','O','object']),
@@ -8618,7 +8621,7 @@ PyMODINIT_FUNC PyInit_types(void)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
   /* "pymoab/types.pyx":138
- *     MB_TYPE_OPAQUE: frozenset(['S','O']),
+ *     MB_TYPE_OPAQUE: frozenset(['S','U','O']),
  *     MB_TYPE_INTEGER: frozenset(['int8','int16','int32','int64','O','object']),
  *     MB_TYPE_DOUBLE: frozenset(['float64','float','O','object']),             # <<<<<<<<<<<<<<
  *     MB_TYPE_BIT: frozenset(['int8','int16','int32','int64','S1','bool','O','object']),

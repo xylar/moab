@@ -21,7 +21,7 @@ def test_homcoord():
     except:
         pass
     else:
-        print "Shouldn't be here. Test fails."
+        print("Shouldn't be here. Test fails.")
         raise AssertionError
 
     h = HomCoord([1,2,3,4])
@@ -54,7 +54,7 @@ def test_homcoord():
     except:
         pass
     else:
-        print "Shouldn't be here. Test fails"
+        print("Shouldn't be here. Test fails")
         raise AssertionError
     
 if __name__ == "__main__":

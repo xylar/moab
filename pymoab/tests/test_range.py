@@ -95,7 +95,7 @@ def test_range():
     except StopIteration:
         pass
     else:
-        print "Shouldn't be here. Test fails."
+        print("Shouldn't be here. Test fails.")
         raise AssertionError
 
 def test_range_methods():

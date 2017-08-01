@@ -71,7 +71,7 @@ cdef class Core(object):
           ValueError
               if a parameter is not of the correct type
         """
-        cfname = fname.decode()
+        cdef bytes cfname = fname.encode('UTF-8')
         cdef moab.EntityHandle fset
         cdef moab.EntityHandle* ptr
         if file_set != None:
@@ -80,7 +80,7 @@ cdef class Core(object):
         else:
             ptr = NULL
         cdef const char * file_name = cfname
-        cdef moab.ErrorCode err = self.inst.load_file(fname,ptr)
+        cdef moab.ErrorCode err = self.inst.load_file(file_name,ptr)
         check_error(err, exceptions)
 
     def write_file(self, str fname, output_sets = None, exceptions = ()):
@@ -116,7 +116,7 @@ cdef class Core(object):
         ValueError
             if a parameter is not of the correct type
         """
-        cfname = fname.decode()
+        cdef bytes cfname = fname.encode('UTF-8')
         cdef const char * file_name = cfname
         cdef moab.ErrorCode err
 
@@ -126,9 +126,9 @@ cdef class Core(object):
         if output_sets:
           arr = _eh_array(output_sets)
           err = self.inst.write_file(
-            fname, <const char*> 0, <const char*> 0, <unsigned long*> arr.data, len(output_sets))
+            file_name, <const char*> 0, <const char*> 0, <unsigned long*> arr.data, len(output_sets))
         else:
-          err = self.inst.write_file(fname)
+          err = self.inst.write_file(file_name)
 
         check_error(err, exceptions)
 
@@ -483,7 +483,7 @@ cdef class Core(object):
         return Range(handles)
 
     def tag_get_handle(self,
-                       const char* name,
+                       str name,
                        size = None,
                        tag_type = None,
                        storage_type = None,
@@ -577,6 +577,8 @@ cdef class Core(object):
         MOAB ErrorCode
             if a MOAB error occurs
         """
+        cdef bytes cname = name.encode('UTF-8')
+        cdef const char* tag_name = cname
         cdef Tag tag = Tag()
         cdef moab.ErrorCode err
         cdef moab.DataType tt
@@ -606,12 +608,12 @@ cdef class Core(object):
             def_val_ptr = <const void*> default_val_arr.data
 
         if tag_type is None and size is None and storage_type is None:
-            err = self.inst.tag_get_handle(name, tag.inst)
+            err = self.inst.tag_get_handle(tag_name, tag.inst)
         else:
             tt = tag_type
             s = size
             flags = storage_type|types.MB_TAG_CREAT if create_if_missing else storage_type
-            err = self.inst.tag_get_handle(name, s, tt, tag.inst, flags, def_val_ptr, NULL)
+            err = self.inst.tag_get_handle(tag_name, s, tt, tag.inst, flags, def_val_ptr, NULL)
 
         check_error(err, exceptions)
         return tag

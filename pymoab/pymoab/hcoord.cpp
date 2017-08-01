@@ -1070,6 +1070,13 @@ static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Generic(PyObject *o, PyObject* j
 static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Fast(PyObject *o, Py_ssize_t i,
                                                      int is_list, int wraparound, int boundscheck);
 
+/* PyObjectCall.proto */
+#if CYTHON_COMPILING_IN_CPYTHON
+static CYTHON_INLINE PyObject* __Pyx_PyObject_Call(PyObject *func, PyObject *arg, PyObject *kw);
+#else
+#define __Pyx_PyObject_Call(func, arg, kw) PyObject_Call(func, arg, kw)
+#endif
+
 /* PyThreadStateGet.proto */
 #if CYTHON_FAST_THREAD_STATE
 #define __Pyx_PyThreadState_declare  PyThreadState *__pyx_tstate;
@@ -1121,13 +1128,6 @@ static PyObject *__Pyx_PyFunction_FastCallDict(PyObject *func, PyObject **args, 
 #else
 #define __Pyx_PyFunction_FastCallDict(func, args, nargs, kwargs) _PyFunction_FastCallDict(func, args, nargs, kwargs)
 #endif
-#endif
-
-/* PyObjectCall.proto */
-#if CYTHON_COMPILING_IN_CPYTHON
-static CYTHON_INLINE PyObject* __Pyx_PyObject_Call(PyObject *func, PyObject *arg, PyObject *kw);
-#else
-#define __Pyx_PyObject_Call(func, arg, kw) PyObject_Call(func, arg, kw)
 #endif
 
 /* PyObjectCallMethO.proto */
@@ -1420,18 +1420,18 @@ static PyTypeObject *__pyx_ptype_6pymoab_6hcoord_HomCoord = 0;
 int __pyx_module_is_main_pymoab__hcoord = 0;
 
 /* Implementation of 'pymoab.hcoord' */
+static PyObject *__pyx_builtin_ValueError;
 static PyObject *__pyx_builtin_StopIteration;
 static PyObject *__pyx_builtin_TypeError;
-static PyObject *__pyx_builtin_ValueError;
 static PyObject *__pyx_builtin_range;
 static PyObject *__pyx_builtin_RuntimeError;
 static PyObject *__pyx_builtin_ImportError;
-static const char __pyx_k_[] = "]";
 static const char __pyx_k_h[] = "h";
 static const char __pyx_k_i[] = "i";
 static const char __pyx_k_j[] = "j";
 static const char __pyx_k_k[] = "k";
-static const char __pyx_k__2[] = ", ";
+static const char __pyx_k__2[] = "]";
+static const char __pyx_k__3[] = ", ";
 static const char __pyx_k_eq[] = "eq";
 static const char __pyx_k_np[] = "np";
 static const char __pyx_k_str[] = "__str__";
@@ -1450,6 +1450,7 @@ static const char __pyx_k_check_error[] = "check_error";
 static const char __pyx_k_RuntimeError[] = "RuntimeError";
 static const char __pyx_k_StopIteration[] = "StopIteration";
 static const char __pyx_k_ndarray_is_not_C_contiguous[] = "ndarray is not C contiguous";
+static const char __pyx_k_Incorrect_number_of_args_provid[] = "\n            Incorrect number of args provided to HomCoord constructor.\n            ";
 static const char __pyx_k_numpy_core_multiarray_failed_to[] = "numpy.core.multiarray failed to import";
 static const char __pyx_k_unknown_dtype_code_in_numpy_pxd[] = "unknown dtype code in numpy.pxd (%d)";
 static const char __pyx_k_Format_string_allocated_too_shor[] = "Format string allocated too short, see comment in numpy.pxd";
@@ -1459,17 +1460,18 @@ static const char __pyx_k_ndarray_is_not_Fortran_contiguou[] = "ndarray is not F
 static const char __pyx_k_no_default___reduce___due_to_non[] = "no default __reduce__ due to non-trivial __cinit__";
 static const char __pyx_k_numpy_core_umath_failed_to_impor[] = "numpy.core.umath failed to import";
 static const char __pyx_k_Format_string_allocated_too_shor_2[] = "Format string allocated too short.";
-static PyObject *__pyx_kp_s_;
 static PyObject *__pyx_kp_u_Format_string_allocated_too_shor;
 static PyObject *__pyx_kp_u_Format_string_allocated_too_shor_2;
 static PyObject *__pyx_kp_s_HomCoord;
 static PyObject *__pyx_n_s_ImportError;
+static PyObject *__pyx_kp_s_Incorrect_number_of_args_provid;
 static PyObject *__pyx_kp_u_Non_native_byte_order_not_suppor;
 static PyObject *__pyx_n_s_RuntimeError;
 static PyObject *__pyx_n_s_StopIteration;
 static PyObject *__pyx_n_s_TypeError;
 static PyObject *__pyx_n_s_ValueError;
 static PyObject *__pyx_kp_s__2;
+static PyObject *__pyx_kp_s__3;
 static PyObject *__pyx_n_s_args;
 static PyObject *__pyx_n_s_check_error;
 static PyObject *__pyx_n_s_eq;
@@ -1515,8 +1517,8 @@ static PyObject *__pyx_tp_new_6pymoab_6hcoord_HomCoord(PyTypeObject *t, PyObject
 static PyObject *__pyx_int_1;
 static PyObject *__pyx_int_2;
 static PyObject *__pyx_int_neg_2;
-static PyObject *__pyx_slice__3;
-static PyObject *__pyx_tuple__4;
+static PyObject *__pyx_tuple_;
+static PyObject *__pyx_slice__4;
 static PyObject *__pyx_tuple__5;
 static PyObject *__pyx_tuple__6;
 static PyObject *__pyx_tuple__7;
@@ -1526,6 +1528,7 @@ static PyObject *__pyx_tuple__10;
 static PyObject *__pyx_tuple__11;
 static PyObject *__pyx_tuple__12;
 static PyObject *__pyx_tuple__13;
+static PyObject *__pyx_tuple__14;
 
 /* "pymoab/hcoord.pyx":12
  * cdef class HomCoord(object):
@@ -1694,7 +1697,7 @@ static int __pyx_pf_6pymoab_6hcoord_8HomCoord___cinit__(struct __pyx_obj_6pymoab
  *         elif 3 == len(args):
  *             self.inst = new moab.HomCoord(args[0],args[1],args[2])             # <<<<<<<<<<<<<<
  *         else:
- *             raise Exception
+ *             raise ValueError("""
  */
     __pyx_t_1 = __Pyx_GetItemInt(__pyx_v_args, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 21, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
@@ -1723,12 +1726,15 @@ static int __pyx_pf_6pymoab_6hcoord_8HomCoord___cinit__(struct __pyx_obj_6pymoab
   /* "pymoab/hcoord.pyx":23
  *             self.inst = new moab.HomCoord(args[0],args[1],args[2])
  *         else:
- *             raise Exception             # <<<<<<<<<<<<<<
- * 
- *     def __richcmp__(self, y, op):
+ *             raise ValueError("""             # <<<<<<<<<<<<<<
+ *             Incorrect number of args provided to HomCoord constructor.
+ *             """)
  */
   /*else*/ {
-    __Pyx_Raise(((PyObject *)(&((PyTypeObject*)PyExc_Exception)[0])), 0, 0, 0);
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple_, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 23, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __Pyx_Raise(__pyx_t_1, 0, 0, 0);
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     __PYX_ERR(0, 23, __pyx_L1_error)
   }
   __pyx_L3:;
@@ -1753,8 +1759,8 @@ static int __pyx_pf_6pymoab_6hcoord_8HomCoord___cinit__(struct __pyx_obj_6pymoab
   return __pyx_r;
 }
 
-/* "pymoab/hcoord.pyx":25
- *             raise Exception
+/* "pymoab/hcoord.pyx":27
+ *             """)
  * 
  *     def __richcmp__(self, y, op):             # <<<<<<<<<<<<<<
  *         """
@@ -1768,7 +1774,7 @@ static PyObject *__pyx_pw_6pymoab_6hcoord_8HomCoord_3__richcmp__(PyObject *__pyx
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__richcmp__ (wrapper)", 0);
-  __pyx_v_op = __Pyx_PyInt_From_int(__pyx_arg_op); if (unlikely(!__pyx_v_op)) __PYX_ERR(0, 25, __pyx_L3_error)
+  __pyx_v_op = __Pyx_PyInt_From_int(__pyx_arg_op); if (unlikely(!__pyx_v_op)) __PYX_ERR(0, 27, __pyx_L3_error)
   __Pyx_GOTREF(__pyx_v_op);
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -1794,20 +1800,20 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_2__richcmp__(PyObject *__pyx
   PyObject *__pyx_t_5 = NULL;
   __Pyx_RefNannySetupContext("__richcmp__", 0);
 
-  /* "pymoab/hcoord.pyx":31
+  /* "pymoab/hcoord.pyx":33
  *         Only equals operator is currently supported.
  *         """
  *         if op == 2: # ==             # <<<<<<<<<<<<<<
  *             return self.eq(y)
  *         else:
  */
-  __pyx_t_1 = __Pyx_PyInt_EqObjC(__pyx_v_op, __pyx_int_2, 2, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 31, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_EqObjC(__pyx_v_op, __pyx_int_2, 2, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 33, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 31, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 33, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (__pyx_t_2) {
 
-    /* "pymoab/hcoord.pyx":32
+    /* "pymoab/hcoord.pyx":34
  *         """
  *         if op == 2: # ==
  *             return self.eq(y)             # <<<<<<<<<<<<<<
@@ -1815,7 +1821,7 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_2__richcmp__(PyObject *__pyx
  *             assert False
  */
     __Pyx_XDECREF(__pyx_r);
-    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_eq); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 32, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_eq); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 34, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __pyx_t_4 = NULL;
     if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_3))) {
@@ -1828,13 +1834,13 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_2__richcmp__(PyObject *__pyx
       }
     }
     if (!__pyx_t_4) {
-      __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_v_y); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 32, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_v_y); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 34, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
     } else {
       #if CYTHON_FAST_PYCALL
       if (PyFunction_Check(__pyx_t_3)) {
         PyObject *__pyx_temp[2] = {__pyx_t_4, __pyx_v_y};
-        __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 32, __pyx_L1_error)
+        __pyx_t_1 = __Pyx_PyFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 34, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
         __Pyx_GOTREF(__pyx_t_1);
       } else
@@ -1842,19 +1848,19 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_2__richcmp__(PyObject *__pyx
       #if CYTHON_FAST_PYCCALL
       if (__Pyx_PyFastCFunction_Check(__pyx_t_3)) {
         PyObject *__pyx_temp[2] = {__pyx_t_4, __pyx_v_y};
-        __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 32, __pyx_L1_error)
+        __pyx_t_1 = __Pyx_PyCFunction_FastCall(__pyx_t_3, __pyx_temp+1-1, 1+1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 34, __pyx_L1_error)
         __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
         __Pyx_GOTREF(__pyx_t_1);
       } else
       #endif
       {
-        __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 32, __pyx_L1_error)
+        __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 34, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_5);
         __Pyx_GIVEREF(__pyx_t_4); PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_4); __pyx_t_4 = NULL;
         __Pyx_INCREF(__pyx_v_y);
         __Pyx_GIVEREF(__pyx_v_y);
         PyTuple_SET_ITEM(__pyx_t_5, 0+1, __pyx_v_y);
-        __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_5, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 32, __pyx_L1_error)
+        __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_5, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 34, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_1);
         __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       }
@@ -1864,7 +1870,7 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_2__richcmp__(PyObject *__pyx
     __pyx_t_1 = 0;
     goto __pyx_L0;
 
-    /* "pymoab/hcoord.pyx":31
+    /* "pymoab/hcoord.pyx":33
  *         Only equals operator is currently supported.
  *         """
  *         if op == 2: # ==             # <<<<<<<<<<<<<<
@@ -1873,7 +1879,7 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_2__richcmp__(PyObject *__pyx
  */
   }
 
-  /* "pymoab/hcoord.pyx":34
+  /* "pymoab/hcoord.pyx":36
  *             return self.eq(y)
  *         else:
  *             assert False             # <<<<<<<<<<<<<<
@@ -1885,14 +1891,14 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_2__richcmp__(PyObject *__pyx
     if (unlikely(!Py_OptimizeFlag)) {
       if (unlikely(!0)) {
         PyErr_SetNone(PyExc_AssertionError);
-        __PYX_ERR(0, 34, __pyx_L1_error)
+        __PYX_ERR(0, 36, __pyx_L1_error)
       }
     }
     #endif
   }
 
-  /* "pymoab/hcoord.pyx":25
- *             raise Exception
+  /* "pymoab/hcoord.pyx":27
+ *             """)
  * 
  *     def __richcmp__(self, y, op):             # <<<<<<<<<<<<<<
  *         """
@@ -1915,7 +1921,7 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_2__richcmp__(PyObject *__pyx
   return __pyx_r;
 }
 
-/* "pymoab/hcoord.pyx":36
+/* "pymoab/hcoord.pyx":38
  *             assert False
  * 
  *     def __del__(self):             # <<<<<<<<<<<<<<
@@ -1942,7 +1948,7 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_4__del__(struct __pyx_obj_6p
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__del__", 0);
 
-  /* "pymoab/hcoord.pyx":40
+  /* "pymoab/hcoord.pyx":42
  *         Destructor
  *         """
  *         del self.inst             # <<<<<<<<<<<<<<
@@ -1951,7 +1957,7 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_4__del__(struct __pyx_obj_6p
  */
   delete __pyx_v_self->inst;
 
-  /* "pymoab/hcoord.pyx":36
+  /* "pymoab/hcoord.pyx":38
  *             assert False
  * 
  *     def __del__(self):             # <<<<<<<<<<<<<<
@@ -1966,7 +1972,7 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_4__del__(struct __pyx_obj_6p
   return __pyx_r;
 }
 
-/* "pymoab/hcoord.pyx":42
+/* "pymoab/hcoord.pyx":44
  *         del self.inst
  * 
  *     def __getitem__(self, int index):             # <<<<<<<<<<<<<<
@@ -1986,7 +1992,7 @@ static PyObject *__pyx_pw_6pymoab_6hcoord_8HomCoord_7__getitem__(PyObject *__pyx
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__getitem__ (wrapper)", 0);
   assert(__pyx_arg_index); {
-    __pyx_v_index = __Pyx_PyInt_As_int(__pyx_arg_index); if (unlikely((__pyx_v_index == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 42, __pyx_L3_error)
+    __pyx_v_index = __Pyx_PyInt_As_int(__pyx_arg_index); if (unlikely((__pyx_v_index == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 44, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -2009,7 +2015,7 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_6__getitem__(struct __pyx_ob
   PyObject *__pyx_t_2 = NULL;
   __Pyx_RefNannySetupContext("__getitem__", 0);
 
-  /* "pymoab/hcoord.pyx":46
+  /* "pymoab/hcoord.pyx":48
  *         Index operator
  *         """
  *         cdef int val = deref(self.inst)[index]             # <<<<<<<<<<<<<<
@@ -2018,7 +2024,7 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_6__getitem__(struct __pyx_ob
  */
   __pyx_v_val = ((*__pyx_v_self->inst)[__pyx_v_index]);
 
-  /* "pymoab/hcoord.pyx":47
+  /* "pymoab/hcoord.pyx":49
  *         """
  *         cdef int val = deref(self.inst)[index]
  *         if index < 4:             # <<<<<<<<<<<<<<
@@ -2028,7 +2034,7 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_6__getitem__(struct __pyx_ob
   __pyx_t_1 = ((__pyx_v_index < 4) != 0);
   if (__pyx_t_1) {
 
-    /* "pymoab/hcoord.pyx":48
+    /* "pymoab/hcoord.pyx":50
  *         cdef int val = deref(self.inst)[index]
  *         if index < 4:
  *             return val             # <<<<<<<<<<<<<<
@@ -2036,13 +2042,13 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_6__getitem__(struct __pyx_ob
  *             raise StopIteration
  */
     __Pyx_XDECREF(__pyx_r);
-    __pyx_t_2 = __Pyx_PyInt_From_int(__pyx_v_val); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 48, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyInt_From_int(__pyx_v_val); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 50, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __pyx_r = __pyx_t_2;
     __pyx_t_2 = 0;
     goto __pyx_L0;
 
-    /* "pymoab/hcoord.pyx":47
+    /* "pymoab/hcoord.pyx":49
  *         """
  *         cdef int val = deref(self.inst)[index]
  *         if index < 4:             # <<<<<<<<<<<<<<
@@ -2051,7 +2057,7 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_6__getitem__(struct __pyx_ob
  */
   }
 
-  /* "pymoab/hcoord.pyx":50
+  /* "pymoab/hcoord.pyx":52
  *             return val
  *         else:
  *             raise StopIteration             # <<<<<<<<<<<<<<
@@ -2060,10 +2066,10 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_6__getitem__(struct __pyx_ob
  */
   /*else*/ {
     __Pyx_Raise(__pyx_builtin_StopIteration, 0, 0, 0);
-    __PYX_ERR(0, 50, __pyx_L1_error)
+    __PYX_ERR(0, 52, __pyx_L1_error)
   }
 
-  /* "pymoab/hcoord.pyx":42
+  /* "pymoab/hcoord.pyx":44
  *         del self.inst
  * 
  *     def __getitem__(self, int index):             # <<<<<<<<<<<<<<
@@ -2082,7 +2088,7 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_6__getitem__(struct __pyx_ob
   return __pyx_r;
 }
 
-/* "pymoab/hcoord.pyx":52
+/* "pymoab/hcoord.pyx":54
  *             raise StopIteration
  * 
  *     def __add__(HomCoord self, HomCoord a):             # <<<<<<<<<<<<<<
@@ -2100,8 +2106,8 @@ static PyObject *__pyx_pw_6pymoab_6hcoord_8HomCoord_9__add__(PyObject *__pyx_v_s
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__add__ (wrapper)", 0);
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_self), __pyx_ptype_6pymoab_6hcoord_HomCoord, 1, "self", 0))) __PYX_ERR(0, 52, __pyx_L1_error)
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_a), __pyx_ptype_6pymoab_6hcoord_HomCoord, 1, "a", 0))) __PYX_ERR(0, 52, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_self), __pyx_ptype_6pymoab_6hcoord_HomCoord, 1, "self", 0))) __PYX_ERR(0, 54, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_a), __pyx_ptype_6pymoab_6hcoord_HomCoord, 1, "a", 0))) __PYX_ERR(0, 54, __pyx_L1_error)
   __pyx_r = __pyx_pf_6pymoab_6hcoord_8HomCoord_8__add__(((struct __pyx_obj_6pymoab_6hcoord_HomCoord *)__pyx_v_self), ((struct __pyx_obj_6pymoab_6hcoord_HomCoord *)__pyx_v_a));
 
   /* function exit code */
@@ -2121,7 +2127,7 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_8__add__(struct __pyx_obj_6p
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__add__", 0);
 
-  /* "pymoab/hcoord.pyx":64
+  /* "pymoab/hcoord.pyx":66
  *         A new HomCoord which is the sum of 'self' and 'a'
  *         """
  *         cdef moab.HomCoord sum = deref(self.inst) + deref(a.inst)             # <<<<<<<<<<<<<<
@@ -2130,19 +2136,19 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_8__add__(struct __pyx_obj_6p
  */
   __pyx_v_sum = ((*__pyx_v_self->inst) + (*__pyx_v_a->inst));
 
-  /* "pymoab/hcoord.pyx":65
+  /* "pymoab/hcoord.pyx":67
  *         """
  *         cdef moab.HomCoord sum = deref(self.inst) + deref(a.inst)
  *         cdef HomCoord h = HomCoord()             # <<<<<<<<<<<<<<
  *         del h.inst
  *         h.inst = new moab.HomCoord(sum)
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_6pymoab_6hcoord_HomCoord), __pyx_empty_tuple, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 65, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_6pymoab_6hcoord_HomCoord), __pyx_empty_tuple, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 67, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_h = ((struct __pyx_obj_6pymoab_6hcoord_HomCoord *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "pymoab/hcoord.pyx":66
+  /* "pymoab/hcoord.pyx":68
  *         cdef moab.HomCoord sum = deref(self.inst) + deref(a.inst)
  *         cdef HomCoord h = HomCoord()
  *         del h.inst             # <<<<<<<<<<<<<<
@@ -2151,7 +2157,7 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_8__add__(struct __pyx_obj_6p
  */
   delete __pyx_v_h->inst;
 
-  /* "pymoab/hcoord.pyx":67
+  /* "pymoab/hcoord.pyx":69
  *         cdef HomCoord h = HomCoord()
  *         del h.inst
  *         h.inst = new moab.HomCoord(sum)             # <<<<<<<<<<<<<<
@@ -2160,7 +2166,7 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_8__add__(struct __pyx_obj_6p
  */
   __pyx_v_h->inst = new moab::HomCoord(__pyx_v_sum);
 
-  /* "pymoab/hcoord.pyx":68
+  /* "pymoab/hcoord.pyx":70
  *         del h.inst
  *         h.inst = new moab.HomCoord(sum)
  *         return h             # <<<<<<<<<<<<<<
@@ -2172,7 +2178,7 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_8__add__(struct __pyx_obj_6p
   __pyx_r = ((PyObject *)__pyx_v_h);
   goto __pyx_L0;
 
-  /* "pymoab/hcoord.pyx":52
+  /* "pymoab/hcoord.pyx":54
  *             raise StopIteration
  * 
  *     def __add__(HomCoord self, HomCoord a):             # <<<<<<<<<<<<<<
@@ -2192,7 +2198,7 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_8__add__(struct __pyx_obj_6p
   return __pyx_r;
 }
 
-/* "pymoab/hcoord.pyx":70
+/* "pymoab/hcoord.pyx":72
  *         return h
  * 
  *     def __sub__(HomCoord self, HomCoord a):             # <<<<<<<<<<<<<<
@@ -2210,8 +2216,8 @@ static PyObject *__pyx_pw_6pymoab_6hcoord_8HomCoord_11__sub__(PyObject *__pyx_v_
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__sub__ (wrapper)", 0);
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_self), __pyx_ptype_6pymoab_6hcoord_HomCoord, 1, "self", 0))) __PYX_ERR(0, 70, __pyx_L1_error)
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_a), __pyx_ptype_6pymoab_6hcoord_HomCoord, 1, "a", 0))) __PYX_ERR(0, 70, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_self), __pyx_ptype_6pymoab_6hcoord_HomCoord, 1, "self", 0))) __PYX_ERR(0, 72, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_a), __pyx_ptype_6pymoab_6hcoord_HomCoord, 1, "a", 0))) __PYX_ERR(0, 72, __pyx_L1_error)
   __pyx_r = __pyx_pf_6pymoab_6hcoord_8HomCoord_10__sub__(((struct __pyx_obj_6pymoab_6hcoord_HomCoord *)__pyx_v_self), ((struct __pyx_obj_6pymoab_6hcoord_HomCoord *)__pyx_v_a));
 
   /* function exit code */
@@ -2231,7 +2237,7 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_10__sub__(struct __pyx_obj_6
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("__sub__", 0);
 
-  /* "pymoab/hcoord.pyx":82
+  /* "pymoab/hcoord.pyx":84
  *         A new HomCoord which is the sum of 'self' and 'a'
  *         """
  *         cdef moab.HomCoord sum = deref(self.inst) - deref(a.inst)             # <<<<<<<<<<<<<<
@@ -2240,19 +2246,19 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_10__sub__(struct __pyx_obj_6
  */
   __pyx_v_sum = ((*__pyx_v_self->inst) - (*__pyx_v_a->inst));
 
-  /* "pymoab/hcoord.pyx":83
+  /* "pymoab/hcoord.pyx":85
  *         """
  *         cdef moab.HomCoord sum = deref(self.inst) - deref(a.inst)
  *         cdef HomCoord h = HomCoord()             # <<<<<<<<<<<<<<
  *         del h.inst
  *         h.inst = new moab.HomCoord(sum)
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_6pymoab_6hcoord_HomCoord), __pyx_empty_tuple, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 83, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_6pymoab_6hcoord_HomCoord), __pyx_empty_tuple, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 85, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_h = ((struct __pyx_obj_6pymoab_6hcoord_HomCoord *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "pymoab/hcoord.pyx":84
+  /* "pymoab/hcoord.pyx":86
  *         cdef moab.HomCoord sum = deref(self.inst) - deref(a.inst)
  *         cdef HomCoord h = HomCoord()
  *         del h.inst             # <<<<<<<<<<<<<<
@@ -2261,7 +2267,7 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_10__sub__(struct __pyx_obj_6
  */
   delete __pyx_v_h->inst;
 
-  /* "pymoab/hcoord.pyx":85
+  /* "pymoab/hcoord.pyx":87
  *         cdef HomCoord h = HomCoord()
  *         del h.inst
  *         h.inst = new moab.HomCoord(sum)             # <<<<<<<<<<<<<<
@@ -2270,7 +2276,7 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_10__sub__(struct __pyx_obj_6
  */
   __pyx_v_h->inst = new moab::HomCoord(__pyx_v_sum);
 
-  /* "pymoab/hcoord.pyx":86
+  /* "pymoab/hcoord.pyx":88
  *         del h.inst
  *         h.inst = new moab.HomCoord(sum)
  *         return h             # <<<<<<<<<<<<<<
@@ -2282,7 +2288,7 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_10__sub__(struct __pyx_obj_6
   __pyx_r = ((PyObject *)__pyx_v_h);
   goto __pyx_L0;
 
-  /* "pymoab/hcoord.pyx":70
+  /* "pymoab/hcoord.pyx":72
  *         return h
  * 
  *     def __sub__(HomCoord self, HomCoord a):             # <<<<<<<<<<<<<<
@@ -2302,7 +2308,7 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_10__sub__(struct __pyx_obj_6
   return __pyx_r;
 }
 
-/* "pymoab/hcoord.pyx":88
+/* "pymoab/hcoord.pyx":90
  *         return h
  * 
  *     def eq(HomCoord self, HomCoord a):             # <<<<<<<<<<<<<<
@@ -2317,7 +2323,7 @@ static PyObject *__pyx_pw_6pymoab_6hcoord_8HomCoord_13eq(PyObject *__pyx_v_self,
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("eq (wrapper)", 0);
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_a), __pyx_ptype_6pymoab_6hcoord_HomCoord, 1, "a", 0))) __PYX_ERR(0, 88, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_a), __pyx_ptype_6pymoab_6hcoord_HomCoord, 1, "a", 0))) __PYX_ERR(0, 90, __pyx_L1_error)
   __pyx_r = __pyx_pf_6pymoab_6hcoord_8HomCoord_12eq(((struct __pyx_obj_6pymoab_6hcoord_HomCoord *)__pyx_v_self), ((struct __pyx_obj_6pymoab_6hcoord_HomCoord *)__pyx_v_a));
 
   /* function exit code */
@@ -2335,7 +2341,7 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_12eq(struct __pyx_obj_6pymoa
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("eq", 0);
 
-  /* "pymoab/hcoord.pyx":92
+  /* "pymoab/hcoord.pyx":94
  *         Equals comparator
  *         """
  *         return deref(self.inst) == deref(a.inst)             # <<<<<<<<<<<<<<
@@ -2343,13 +2349,13 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_12eq(struct __pyx_obj_6pymoa
  *     def set(self, i, j, k, h = 1):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyBool_FromLong(((*__pyx_v_self->inst) == (*__pyx_v_a->inst))); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 92, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyBool_FromLong(((*__pyx_v_self->inst) == (*__pyx_v_a->inst))); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 94, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "pymoab/hcoord.pyx":88
+  /* "pymoab/hcoord.pyx":90
  *         return h
  * 
  *     def eq(HomCoord self, HomCoord a):             # <<<<<<<<<<<<<<
@@ -2368,7 +2374,7 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_12eq(struct __pyx_obj_6pymoa
   return __pyx_r;
 }
 
-/* "pymoab/hcoord.pyx":94
+/* "pymoab/hcoord.pyx":96
  *         return deref(self.inst) == deref(a.inst)
  * 
  *     def set(self, i, j, k, h = 1):             # <<<<<<<<<<<<<<
@@ -2410,12 +2416,12 @@ static PyObject *__pyx_pw_6pymoab_6hcoord_8HomCoord_15set(PyObject *__pyx_v_self
         case  1:
         if (likely((values[1] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_j)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("set", 0, 3, 4, 1); __PYX_ERR(0, 94, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("set", 0, 3, 4, 1); __PYX_ERR(0, 96, __pyx_L3_error)
         }
         case  2:
         if (likely((values[2] = PyDict_GetItem(__pyx_kwds, __pyx_n_s_k)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("set", 0, 3, 4, 2); __PYX_ERR(0, 94, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("set", 0, 3, 4, 2); __PYX_ERR(0, 96, __pyx_L3_error)
         }
         case  3:
         if (kw_args > 0) {
@@ -2424,7 +2430,7 @@ static PyObject *__pyx_pw_6pymoab_6hcoord_8HomCoord_15set(PyObject *__pyx_v_self
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "set") < 0)) __PYX_ERR(0, 94, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "set") < 0)) __PYX_ERR(0, 96, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -2443,7 +2449,7 @@ static PyObject *__pyx_pw_6pymoab_6hcoord_8HomCoord_15set(PyObject *__pyx_v_self
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("set", 0, 3, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 94, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("set", 0, 3, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 96, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("pymoab.hcoord.HomCoord.set", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -2466,7 +2472,7 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_14set(struct __pyx_obj_6pymo
   int __pyx_t_5;
   __Pyx_RefNannySetupContext("set", 0);
 
-  /* "pymoab/hcoord.pyx":98
+  /* "pymoab/hcoord.pyx":100
  *         Sets the coordinates of the HomCoord class
  *         """
  *         assert type(i) is int             # <<<<<<<<<<<<<<
@@ -2478,12 +2484,12 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_14set(struct __pyx_obj_6pymo
     __pyx_t_1 = (((PyObject *)Py_TYPE(__pyx_v_i)) == ((PyObject *)(&PyInt_Type)));
     if (unlikely(!(__pyx_t_1 != 0))) {
       PyErr_SetNone(PyExc_AssertionError);
-      __PYX_ERR(0, 98, __pyx_L1_error)
+      __PYX_ERR(0, 100, __pyx_L1_error)
     }
   }
   #endif
 
-  /* "pymoab/hcoord.pyx":99
+  /* "pymoab/hcoord.pyx":101
  *         """
  *         assert type(i) is int
  *         assert type(j) is int             # <<<<<<<<<<<<<<
@@ -2495,12 +2501,12 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_14set(struct __pyx_obj_6pymo
     __pyx_t_1 = (((PyObject *)Py_TYPE(__pyx_v_j)) == ((PyObject *)(&PyInt_Type)));
     if (unlikely(!(__pyx_t_1 != 0))) {
       PyErr_SetNone(PyExc_AssertionError);
-      __PYX_ERR(0, 99, __pyx_L1_error)
+      __PYX_ERR(0, 101, __pyx_L1_error)
     }
   }
   #endif
 
-  /* "pymoab/hcoord.pyx":100
+  /* "pymoab/hcoord.pyx":102
  *         assert type(i) is int
  *         assert type(j) is int
  *         assert type(k) is int             # <<<<<<<<<<<<<<
@@ -2512,12 +2518,12 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_14set(struct __pyx_obj_6pymo
     __pyx_t_1 = (((PyObject *)Py_TYPE(__pyx_v_k)) == ((PyObject *)(&PyInt_Type)));
     if (unlikely(!(__pyx_t_1 != 0))) {
       PyErr_SetNone(PyExc_AssertionError);
-      __PYX_ERR(0, 100, __pyx_L1_error)
+      __PYX_ERR(0, 102, __pyx_L1_error)
     }
   }
   #endif
 
-  /* "pymoab/hcoord.pyx":101
+  /* "pymoab/hcoord.pyx":103
  *         assert type(j) is int
  *         assert type(k) is int
  *         assert type(h) is int             # <<<<<<<<<<<<<<
@@ -2529,25 +2535,25 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_14set(struct __pyx_obj_6pymo
     __pyx_t_1 = (((PyObject *)Py_TYPE(__pyx_v_h)) == ((PyObject *)(&PyInt_Type)));
     if (unlikely(!(__pyx_t_1 != 0))) {
       PyErr_SetNone(PyExc_AssertionError);
-      __PYX_ERR(0, 101, __pyx_L1_error)
+      __PYX_ERR(0, 103, __pyx_L1_error)
     }
   }
   #endif
 
-  /* "pymoab/hcoord.pyx":102
+  /* "pymoab/hcoord.pyx":104
  *         assert type(k) is int
  *         assert type(h) is int
  *         self.inst.set(<int> i, <int> j, <int> k, <int> h)             # <<<<<<<<<<<<<<
  * 
  *     def i(self):
  */
-  __pyx_t_2 = __Pyx_PyInt_As_int(__pyx_v_i); if (unlikely((__pyx_t_2 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 102, __pyx_L1_error)
-  __pyx_t_3 = __Pyx_PyInt_As_int(__pyx_v_j); if (unlikely((__pyx_t_3 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 102, __pyx_L1_error)
-  __pyx_t_4 = __Pyx_PyInt_As_int(__pyx_v_k); if (unlikely((__pyx_t_4 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 102, __pyx_L1_error)
-  __pyx_t_5 = __Pyx_PyInt_As_int(__pyx_v_h); if (unlikely((__pyx_t_5 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 102, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyInt_As_int(__pyx_v_i); if (unlikely((__pyx_t_2 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 104, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_As_int(__pyx_v_j); if (unlikely((__pyx_t_3 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 104, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyInt_As_int(__pyx_v_k); if (unlikely((__pyx_t_4 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 104, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyInt_As_int(__pyx_v_h); if (unlikely((__pyx_t_5 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 104, __pyx_L1_error)
   __pyx_v_self->inst->set(((int)__pyx_t_2), ((int)__pyx_t_3), ((int)__pyx_t_4), ((int)__pyx_t_5));
 
-  /* "pymoab/hcoord.pyx":94
+  /* "pymoab/hcoord.pyx":96
  *         return deref(self.inst) == deref(a.inst)
  * 
  *     def set(self, i, j, k, h = 1):             # <<<<<<<<<<<<<<
@@ -2567,7 +2573,7 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_14set(struct __pyx_obj_6pymo
   return __pyx_r;
 }
 
-/* "pymoab/hcoord.pyx":104
+/* "pymoab/hcoord.pyx":106
  *         self.inst.set(<int> i, <int> j, <int> k, <int> h)
  * 
  *     def i(self):             # <<<<<<<<<<<<<<
@@ -2595,7 +2601,7 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_16i(struct __pyx_obj_6pymoab
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("i", 0);
 
-  /* "pymoab/hcoord.pyx":108
+  /* "pymoab/hcoord.pyx":110
  *         Retrieves the first coordinate
  *         """
  *         return self.inst.i()             # <<<<<<<<<<<<<<
@@ -2603,13 +2609,13 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_16i(struct __pyx_obj_6pymoab
  *     def j(self):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_self->inst->i()); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 108, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_self->inst->i()); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 110, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "pymoab/hcoord.pyx":104
+  /* "pymoab/hcoord.pyx":106
  *         self.inst.set(<int> i, <int> j, <int> k, <int> h)
  * 
  *     def i(self):             # <<<<<<<<<<<<<<
@@ -2628,7 +2634,7 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_16i(struct __pyx_obj_6pymoab
   return __pyx_r;
 }
 
-/* "pymoab/hcoord.pyx":110
+/* "pymoab/hcoord.pyx":112
  *         return self.inst.i()
  * 
  *     def j(self):             # <<<<<<<<<<<<<<
@@ -2656,7 +2662,7 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_18j(struct __pyx_obj_6pymoab
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("j", 0);
 
-  /* "pymoab/hcoord.pyx":114
+  /* "pymoab/hcoord.pyx":116
  *         Retrieves the second coordinate
  *         """
  *         return self.inst.j()             # <<<<<<<<<<<<<<
@@ -2664,13 +2670,13 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_18j(struct __pyx_obj_6pymoab
  *     def k(self):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_self->inst->j()); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 114, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_self->inst->j()); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 116, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "pymoab/hcoord.pyx":110
+  /* "pymoab/hcoord.pyx":112
  *         return self.inst.i()
  * 
  *     def j(self):             # <<<<<<<<<<<<<<
@@ -2689,7 +2695,7 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_18j(struct __pyx_obj_6pymoab
   return __pyx_r;
 }
 
-/* "pymoab/hcoord.pyx":116
+/* "pymoab/hcoord.pyx":118
  *         return self.inst.j()
  * 
  *     def k(self):             # <<<<<<<<<<<<<<
@@ -2717,7 +2723,7 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_20k(struct __pyx_obj_6pymoab
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("k", 0);
 
-  /* "pymoab/hcoord.pyx":120
+  /* "pymoab/hcoord.pyx":122
  *         Retrieves the third coordinate
  *         """
  *         return self.inst.k()             # <<<<<<<<<<<<<<
@@ -2725,13 +2731,13 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_20k(struct __pyx_obj_6pymoab
  *     def h(self):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_self->inst->k()); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 120, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_self->inst->k()); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 122, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "pymoab/hcoord.pyx":116
+  /* "pymoab/hcoord.pyx":118
  *         return self.inst.j()
  * 
  *     def k(self):             # <<<<<<<<<<<<<<
@@ -2750,7 +2756,7 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_20k(struct __pyx_obj_6pymoab
   return __pyx_r;
 }
 
-/* "pymoab/hcoord.pyx":122
+/* "pymoab/hcoord.pyx":124
  *         return self.inst.k()
  * 
  *     def h(self):             # <<<<<<<<<<<<<<
@@ -2778,7 +2784,7 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_22h(struct __pyx_obj_6pymoab
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("h", 0);
 
-  /* "pymoab/hcoord.pyx":126
+  /* "pymoab/hcoord.pyx":128
  *         Retrieves the fourth coordinate
  *         """
  *         return self.inst.h()             # <<<<<<<<<<<<<<
@@ -2786,13 +2792,13 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_22h(struct __pyx_obj_6pymoab
  *     def length_squared(self):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_self->inst->h()); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 126, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_self->inst->h()); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 128, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "pymoab/hcoord.pyx":122
+  /* "pymoab/hcoord.pyx":124
  *         return self.inst.k()
  * 
  *     def h(self):             # <<<<<<<<<<<<<<
@@ -2811,7 +2817,7 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_22h(struct __pyx_obj_6pymoab
   return __pyx_r;
 }
 
-/* "pymoab/hcoord.pyx":128
+/* "pymoab/hcoord.pyx":130
  *         return self.inst.h()
  * 
  *     def length_squared(self):             # <<<<<<<<<<<<<<
@@ -2839,7 +2845,7 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_24length_squared(struct __py
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("length_squared", 0);
 
-  /* "pymoab/hcoord.pyx":132
+  /* "pymoab/hcoord.pyx":134
  *         Returns the length of the HomCoord squared
  *         """
  *         return self.inst.length_squared()             # <<<<<<<<<<<<<<
@@ -2847,13 +2853,13 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_24length_squared(struct __py
  *     def length(self):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_self->inst->length_squared()); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 132, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_self->inst->length_squared()); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 134, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "pymoab/hcoord.pyx":128
+  /* "pymoab/hcoord.pyx":130
  *         return self.inst.h()
  * 
  *     def length_squared(self):             # <<<<<<<<<<<<<<
@@ -2872,7 +2878,7 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_24length_squared(struct __py
   return __pyx_r;
 }
 
-/* "pymoab/hcoord.pyx":134
+/* "pymoab/hcoord.pyx":136
  *         return self.inst.length_squared()
  * 
  *     def length(self):             # <<<<<<<<<<<<<<
@@ -2900,7 +2906,7 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_26length(struct __pyx_obj_6p
   PyObject *__pyx_t_1 = NULL;
   __Pyx_RefNannySetupContext("length", 0);
 
-  /* "pymoab/hcoord.pyx":138
+  /* "pymoab/hcoord.pyx":140
  *         Returns the length of the HomCoord
  *         """
  *         return self.inst.length()             # <<<<<<<<<<<<<<
@@ -2908,13 +2914,13 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_26length(struct __pyx_obj_6p
  *     def normalize(self):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_self->inst->length()); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 138, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_self->inst->length()); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 140, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "pymoab/hcoord.pyx":134
+  /* "pymoab/hcoord.pyx":136
  *         return self.inst.length_squared()
  * 
  *     def length(self):             # <<<<<<<<<<<<<<
@@ -2933,7 +2939,7 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_26length(struct __pyx_obj_6p
   return __pyx_r;
 }
 
-/* "pymoab/hcoord.pyx":140
+/* "pymoab/hcoord.pyx":142
  *         return self.inst.length()
  * 
  *     def normalize(self):             # <<<<<<<<<<<<<<
@@ -2960,7 +2966,7 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_28normalize(struct __pyx_obj
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("normalize", 0);
 
-  /* "pymoab/hcoord.pyx":144
+  /* "pymoab/hcoord.pyx":146
  *         Normalize the coordinates
  *         """
  *         self.inst.normalize()             # <<<<<<<<<<<<<<
@@ -2969,7 +2975,7 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_28normalize(struct __pyx_obj
  */
   __pyx_v_self->inst->normalize();
 
-  /* "pymoab/hcoord.pyx":140
+  /* "pymoab/hcoord.pyx":142
  *         return self.inst.length()
  * 
  *     def normalize(self):             # <<<<<<<<<<<<<<
@@ -2984,7 +2990,7 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_28normalize(struct __pyx_obj
   return __pyx_r;
 }
 
-/* "pymoab/hcoord.pyx":146
+/* "pymoab/hcoord.pyx":148
  *         self.inst.normalize()
  * 
  *     def __str__(self):             # <<<<<<<<<<<<<<
@@ -3023,7 +3029,7 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_30__str__(struct __pyx_obj_6
   PyObject *__pyx_t_5 = NULL;
   __Pyx_RefNannySetupContext("__str__", 0);
 
-  /* "pymoab/hcoord.pyx":150
+  /* "pymoab/hcoord.pyx":152
  *         HomCoord as a string
  *         """
  *         prefix = "HomCoord: ["             # <<<<<<<<<<<<<<
@@ -3033,17 +3039,17 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_30__str__(struct __pyx_obj_6
   __Pyx_INCREF(__pyx_kp_s_HomCoord);
   __pyx_v_prefix = __pyx_kp_s_HomCoord;
 
-  /* "pymoab/hcoord.pyx":151
+  /* "pymoab/hcoord.pyx":153
  *         """
  *         prefix = "HomCoord: ["
  *         suffix = "]"             # <<<<<<<<<<<<<<
  *         outstr = prefix
  *         for val in self:
  */
-  __Pyx_INCREF(__pyx_kp_s_);
-  __pyx_v_suffix = __pyx_kp_s_;
+  __Pyx_INCREF(__pyx_kp_s__2);
+  __pyx_v_suffix = __pyx_kp_s__2;
 
-  /* "pymoab/hcoord.pyx":152
+  /* "pymoab/hcoord.pyx":154
  *         prefix = "HomCoord: ["
  *         suffix = "]"
  *         outstr = prefix             # <<<<<<<<<<<<<<
@@ -3053,7 +3059,7 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_30__str__(struct __pyx_obj_6
   __Pyx_INCREF(__pyx_v_prefix);
   __pyx_v_outstr = __pyx_v_prefix;
 
-  /* "pymoab/hcoord.pyx":153
+  /* "pymoab/hcoord.pyx":155
  *         suffix = "]"
  *         outstr = prefix
  *         for val in self:             # <<<<<<<<<<<<<<
@@ -3064,26 +3070,26 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_30__str__(struct __pyx_obj_6
     __pyx_t_1 = ((PyObject *)__pyx_v_self); __Pyx_INCREF(__pyx_t_1); __pyx_t_2 = 0;
     __pyx_t_3 = NULL;
   } else {
-    __pyx_t_2 = -1; __pyx_t_1 = PyObject_GetIter(((PyObject *)__pyx_v_self)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 153, __pyx_L1_error)
+    __pyx_t_2 = -1; __pyx_t_1 = PyObject_GetIter(((PyObject *)__pyx_v_self)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 155, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_3 = Py_TYPE(__pyx_t_1)->tp_iternext; if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 153, __pyx_L1_error)
+    __pyx_t_3 = Py_TYPE(__pyx_t_1)->tp_iternext; if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 155, __pyx_L1_error)
   }
   for (;;) {
     if (likely(!__pyx_t_3)) {
       if (likely(PyList_CheckExact(__pyx_t_1))) {
         if (__pyx_t_2 >= PyList_GET_SIZE(__pyx_t_1)) break;
         #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_4 = PyList_GET_ITEM(__pyx_t_1, __pyx_t_2); __Pyx_INCREF(__pyx_t_4); __pyx_t_2++; if (unlikely(0 < 0)) __PYX_ERR(0, 153, __pyx_L1_error)
+        __pyx_t_4 = PyList_GET_ITEM(__pyx_t_1, __pyx_t_2); __Pyx_INCREF(__pyx_t_4); __pyx_t_2++; if (unlikely(0 < 0)) __PYX_ERR(0, 155, __pyx_L1_error)
         #else
-        __pyx_t_4 = PySequence_ITEM(__pyx_t_1, __pyx_t_2); __pyx_t_2++; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 153, __pyx_L1_error)
+        __pyx_t_4 = PySequence_ITEM(__pyx_t_1, __pyx_t_2); __pyx_t_2++; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 155, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_4);
         #endif
       } else {
         if (__pyx_t_2 >= PyTuple_GET_SIZE(__pyx_t_1)) break;
         #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_4 = PyTuple_GET_ITEM(__pyx_t_1, __pyx_t_2); __Pyx_INCREF(__pyx_t_4); __pyx_t_2++; if (unlikely(0 < 0)) __PYX_ERR(0, 153, __pyx_L1_error)
+        __pyx_t_4 = PyTuple_GET_ITEM(__pyx_t_1, __pyx_t_2); __Pyx_INCREF(__pyx_t_4); __pyx_t_2++; if (unlikely(0 < 0)) __PYX_ERR(0, 155, __pyx_L1_error)
         #else
-        __pyx_t_4 = PySequence_ITEM(__pyx_t_1, __pyx_t_2); __pyx_t_2++; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 153, __pyx_L1_error)
+        __pyx_t_4 = PySequence_ITEM(__pyx_t_1, __pyx_t_2); __pyx_t_2++; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 155, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_4);
         #endif
       }
@@ -3093,7 +3099,7 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_30__str__(struct __pyx_obj_6
         PyObject* exc_type = PyErr_Occurred();
         if (exc_type) {
           if (likely(exc_type == PyExc_StopIteration || PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-          else __PYX_ERR(0, 153, __pyx_L1_error)
+          else __PYX_ERR(0, 155, __pyx_L1_error)
         }
         break;
       }
@@ -3102,40 +3108,40 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_30__str__(struct __pyx_obj_6
     __Pyx_XDECREF_SET(__pyx_v_val, __pyx_t_4);
     __pyx_t_4 = 0;
 
-    /* "pymoab/hcoord.pyx":154
+    /* "pymoab/hcoord.pyx":156
  *         outstr = prefix
  *         for val in self:
  *             outstr += str(val)             # <<<<<<<<<<<<<<
  *             outstr += ", "
  *         outstr = outstr[:-2]
  */
-    __pyx_t_4 = PyTuple_New(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 154, __pyx_L1_error)
+    __pyx_t_4 = PyTuple_New(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 156, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_INCREF(__pyx_v_val);
     __Pyx_GIVEREF(__pyx_v_val);
     PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_v_val);
-    __pyx_t_5 = __Pyx_PyObject_Call(((PyObject *)(&PyString_Type)), __pyx_t_4, NULL); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 154, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyObject_Call(((PyObject *)(&PyString_Type)), __pyx_t_4, NULL); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 156, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __pyx_t_4 = PyNumber_InPlaceAdd(__pyx_v_outstr, __pyx_t_5); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 154, __pyx_L1_error)
+    __pyx_t_4 = PyNumber_InPlaceAdd(__pyx_v_outstr, __pyx_t_5); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 156, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     __Pyx_DECREF_SET(__pyx_v_outstr, __pyx_t_4);
     __pyx_t_4 = 0;
 
-    /* "pymoab/hcoord.pyx":155
+    /* "pymoab/hcoord.pyx":157
  *         for val in self:
  *             outstr += str(val)
  *             outstr += ", "             # <<<<<<<<<<<<<<
  *         outstr = outstr[:-2]
  *         outstr += suffix
  */
-    __pyx_t_4 = PyNumber_InPlaceAdd(__pyx_v_outstr, __pyx_kp_s__2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 155, __pyx_L1_error)
+    __pyx_t_4 = PyNumber_InPlaceAdd(__pyx_v_outstr, __pyx_kp_s__3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 157, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF_SET(__pyx_v_outstr, __pyx_t_4);
     __pyx_t_4 = 0;
 
-    /* "pymoab/hcoord.pyx":153
+    /* "pymoab/hcoord.pyx":155
  *         suffix = "]"
  *         outstr = prefix
  *         for val in self:             # <<<<<<<<<<<<<<
@@ -3145,31 +3151,31 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_30__str__(struct __pyx_obj_6
   }
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "pymoab/hcoord.pyx":156
+  /* "pymoab/hcoord.pyx":158
  *             outstr += str(val)
  *             outstr += ", "
  *         outstr = outstr[:-2]             # <<<<<<<<<<<<<<
  *         outstr += suffix
  *         return outstr
  */
-  __pyx_t_1 = __Pyx_PyObject_GetSlice(__pyx_v_outstr, 0, -2L, NULL, NULL, &__pyx_slice__3, 0, 1, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 156, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetSlice(__pyx_v_outstr, 0, -2L, NULL, NULL, &__pyx_slice__4, 0, 1, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 158, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF_SET(__pyx_v_outstr, __pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "pymoab/hcoord.pyx":157
+  /* "pymoab/hcoord.pyx":159
  *             outstr += ", "
  *         outstr = outstr[:-2]
  *         outstr += suffix             # <<<<<<<<<<<<<<
  *         return outstr
  * 
  */
-  __pyx_t_1 = PyNumber_InPlaceAdd(__pyx_v_outstr, __pyx_v_suffix); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 157, __pyx_L1_error)
+  __pyx_t_1 = PyNumber_InPlaceAdd(__pyx_v_outstr, __pyx_v_suffix); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 159, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF_SET(__pyx_v_outstr, __pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "pymoab/hcoord.pyx":158
+  /* "pymoab/hcoord.pyx":160
  *         outstr = outstr[:-2]
  *         outstr += suffix
  *         return outstr             # <<<<<<<<<<<<<<
@@ -3181,7 +3187,7 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_30__str__(struct __pyx_obj_6
   __pyx_r = __pyx_v_outstr;
   goto __pyx_L0;
 
-  /* "pymoab/hcoord.pyx":146
+  /* "pymoab/hcoord.pyx":148
  *         self.inst.normalize()
  * 
  *     def __str__(self):             # <<<<<<<<<<<<<<
@@ -3206,7 +3212,7 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_30__str__(struct __pyx_obj_6
   return __pyx_r;
 }
 
-/* "pymoab/hcoord.pyx":160
+/* "pymoab/hcoord.pyx":162
  *         return outstr
  * 
  *     def __repr__(self):             # <<<<<<<<<<<<<<
@@ -3239,13 +3245,13 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_32__repr__(struct __pyx_obj_
   PyObject *__pyx_t_3 = NULL;
   __Pyx_RefNannySetupContext("__repr__", 0);
 
-  /* "pymoab/hcoord.pyx":164
+  /* "pymoab/hcoord.pyx":166
  *         Representation of class as a string
  *         """
  *         return self.__str__()             # <<<<<<<<<<<<<<
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_str); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 164, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_str); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 166, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_3 = NULL;
   if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
@@ -3258,10 +3264,10 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_32__repr__(struct __pyx_obj_
     }
   }
   if (__pyx_t_3) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 164, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 166, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   } else {
-    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 164, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 166, __pyx_L1_error)
   }
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
@@ -3269,7 +3275,7 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_32__repr__(struct __pyx_obj_
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "pymoab/hcoord.pyx":160
+  /* "pymoab/hcoord.pyx":162
  *         return outstr
  * 
  *     def __repr__(self):             # <<<<<<<<<<<<<<
@@ -3318,7 +3324,7 @@ static PyObject *__pyx_pf_6pymoab_6hcoord_8HomCoord_34__reduce__(CYTHON_UNUSED s
  * def __reduce__(self):
  *     raise TypeError("no default __reduce__ due to non-trivial __cinit__")             # <<<<<<<<<<<<<<
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__4, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 2, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__5, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 2, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_Raise(__pyx_t_1, 0, 0, 0);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -3508,7 +3514,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
  * 
  *             if ((flags & pybuf.PyBUF_F_CONTIGUOUS == pybuf.PyBUF_F_CONTIGUOUS)
  */
-    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__5, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(2, 218, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__6, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(2, 218, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_Raise(__pyx_t_3, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -3564,7 +3570,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
  * 
  *             info.buf = PyArray_DATA(self)
  */
-    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__6, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(2, 222, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__7, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(2, 222, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_Raise(__pyx_t_3, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -3873,7 +3879,7 @@ static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, P
  *                 if   t == NPY_BYTE:        f = "b"
  *                 elif t == NPY_UBYTE:       f = "B"
  */
-      __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__7, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(2, 259, __pyx_L1_error)
+      __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__8, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(2, 259, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_3);
       __Pyx_Raise(__pyx_t_3, 0, 0, 0);
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -4688,7 +4694,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
  * 
  *         if ((child.byteorder == c'>' and little_endian) or
  */
-      __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_RuntimeError, __pyx_tuple__8, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(2, 799, __pyx_L1_error)
+      __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_RuntimeError, __pyx_tuple__9, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(2, 799, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_3);
       __Pyx_Raise(__pyx_t_3, 0, 0, 0);
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -4756,7 +4762,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
  *             # One could encode it in the format string and have Cython
  *             # complain instead, BUT: < and > in format strings also imply
  */
-      __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__9, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(2, 803, __pyx_L1_error)
+      __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__10, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(2, 803, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_3);
       __Pyx_Raise(__pyx_t_3, 0, 0, 0);
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -4865,7 +4871,7 @@ static CYTHON_INLINE char *__pyx_f_5numpy__util_dtypestring(PyArray_Descr *__pyx
  * 
  *             # Until ticket #99 is fixed, use integers to avoid warnings
  */
-        __pyx_t_4 = __Pyx_PyObject_Call(__pyx_builtin_RuntimeError, __pyx_tuple__10, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(2, 823, __pyx_L1_error)
+        __pyx_t_4 = __Pyx_PyObject_Call(__pyx_builtin_RuntimeError, __pyx_tuple__11, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(2, 823, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_4);
         __Pyx_Raise(__pyx_t_4, 0, 0, 0);
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
@@ -5546,7 +5552,7 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_array(void) {
  * 
  * cdef inline int import_umath() except -1:
  */
-      __pyx_t_8 = __Pyx_PyObject_Call(__pyx_builtin_ImportError, __pyx_tuple__11, NULL); if (unlikely(!__pyx_t_8)) __PYX_ERR(2, 989, __pyx_L5_except_error)
+      __pyx_t_8 = __Pyx_PyObject_Call(__pyx_builtin_ImportError, __pyx_tuple__12, NULL); if (unlikely(!__pyx_t_8)) __PYX_ERR(2, 989, __pyx_L5_except_error)
       __Pyx_GOTREF(__pyx_t_8);
       __Pyx_Raise(__pyx_t_8, 0, 0, 0);
       __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
@@ -5677,7 +5683,7 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_umath(void) {
  * 
  * cdef inline int import_ufunc() except -1:
  */
-      __pyx_t_8 = __Pyx_PyObject_Call(__pyx_builtin_ImportError, __pyx_tuple__12, NULL); if (unlikely(!__pyx_t_8)) __PYX_ERR(2, 995, __pyx_L5_except_error)
+      __pyx_t_8 = __Pyx_PyObject_Call(__pyx_builtin_ImportError, __pyx_tuple__13, NULL); if (unlikely(!__pyx_t_8)) __PYX_ERR(2, 995, __pyx_L5_except_error)
       __Pyx_GOTREF(__pyx_t_8);
       __Pyx_Raise(__pyx_t_8, 0, 0, 0);
       __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
@@ -5805,7 +5811,7 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_ufunc(void) {
  *     except Exception:
  *         raise ImportError("numpy.core.umath failed to import")             # <<<<<<<<<<<<<<
  */
-      __pyx_t_8 = __Pyx_PyObject_Call(__pyx_builtin_ImportError, __pyx_tuple__13, NULL); if (unlikely(!__pyx_t_8)) __PYX_ERR(2, 1001, __pyx_L5_except_error)
+      __pyx_t_8 = __Pyx_PyObject_Call(__pyx_builtin_ImportError, __pyx_tuple__14, NULL); if (unlikely(!__pyx_t_8)) __PYX_ERR(2, 1001, __pyx_L5_except_error)
       __Pyx_GOTREF(__pyx_t_8);
       __Pyx_Raise(__pyx_t_8, 0, 0, 0);
       __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
@@ -6061,17 +6067,18 @@ static struct PyModuleDef __pyx_moduledef = {
 #endif
 
 static __Pyx_StringTabEntry __pyx_string_tab[] = {
-  {&__pyx_kp_s_, __pyx_k_, sizeof(__pyx_k_), 0, 0, 1, 0},
   {&__pyx_kp_u_Format_string_allocated_too_shor, __pyx_k_Format_string_allocated_too_shor, sizeof(__pyx_k_Format_string_allocated_too_shor), 0, 1, 0, 0},
   {&__pyx_kp_u_Format_string_allocated_too_shor_2, __pyx_k_Format_string_allocated_too_shor_2, sizeof(__pyx_k_Format_string_allocated_too_shor_2), 0, 1, 0, 0},
   {&__pyx_kp_s_HomCoord, __pyx_k_HomCoord, sizeof(__pyx_k_HomCoord), 0, 0, 1, 0},
   {&__pyx_n_s_ImportError, __pyx_k_ImportError, sizeof(__pyx_k_ImportError), 0, 0, 1, 1},
+  {&__pyx_kp_s_Incorrect_number_of_args_provid, __pyx_k_Incorrect_number_of_args_provid, sizeof(__pyx_k_Incorrect_number_of_args_provid), 0, 0, 1, 0},
   {&__pyx_kp_u_Non_native_byte_order_not_suppor, __pyx_k_Non_native_byte_order_not_suppor, sizeof(__pyx_k_Non_native_byte_order_not_suppor), 0, 1, 0, 0},
   {&__pyx_n_s_RuntimeError, __pyx_k_RuntimeError, sizeof(__pyx_k_RuntimeError), 0, 0, 1, 1},
   {&__pyx_n_s_StopIteration, __pyx_k_StopIteration, sizeof(__pyx_k_StopIteration), 0, 0, 1, 1},
   {&__pyx_n_s_TypeError, __pyx_k_TypeError, sizeof(__pyx_k_TypeError), 0, 0, 1, 1},
   {&__pyx_n_s_ValueError, __pyx_k_ValueError, sizeof(__pyx_k_ValueError), 0, 0, 1, 1},
   {&__pyx_kp_s__2, __pyx_k__2, sizeof(__pyx_k__2), 0, 0, 1, 0},
+  {&__pyx_kp_s__3, __pyx_k__3, sizeof(__pyx_k__3), 0, 0, 1, 0},
   {&__pyx_n_s_args, __pyx_k_args, sizeof(__pyx_k_args), 0, 0, 1, 1},
   {&__pyx_n_s_check_error, __pyx_k_check_error, sizeof(__pyx_k_check_error), 0, 0, 1, 1},
   {&__pyx_n_s_eq, __pyx_k_eq, sizeof(__pyx_k_eq), 0, 0, 1, 1},
@@ -6096,9 +6103,9 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {0, 0, 0, 0, 0, 0, 0}
 };
 static int __Pyx_InitCachedBuiltins(void) {
-  __pyx_builtin_StopIteration = __Pyx_GetBuiltinName(__pyx_n_s_StopIteration); if (!__pyx_builtin_StopIteration) __PYX_ERR(0, 50, __pyx_L1_error)
+  __pyx_builtin_ValueError = __Pyx_GetBuiltinName(__pyx_n_s_ValueError); if (!__pyx_builtin_ValueError) __PYX_ERR(0, 23, __pyx_L1_error)
+  __pyx_builtin_StopIteration = __Pyx_GetBuiltinName(__pyx_n_s_StopIteration); if (!__pyx_builtin_StopIteration) __PYX_ERR(0, 52, __pyx_L1_error)
   __pyx_builtin_TypeError = __Pyx_GetBuiltinName(__pyx_n_s_TypeError); if (!__pyx_builtin_TypeError) __PYX_ERR(1, 2, __pyx_L1_error)
-  __pyx_builtin_ValueError = __Pyx_GetBuiltinName(__pyx_n_s_ValueError); if (!__pyx_builtin_ValueError) __PYX_ERR(2, 218, __pyx_L1_error)
   __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(2, 231, __pyx_L1_error)
   __pyx_builtin_RuntimeError = __Pyx_GetBuiltinName(__pyx_n_s_RuntimeError); if (!__pyx_builtin_RuntimeError) __PYX_ERR(2, 799, __pyx_L1_error)
   __pyx_builtin_ImportError = __Pyx_GetBuiltinName(__pyx_n_s_ImportError); if (!__pyx_builtin_ImportError) __PYX_ERR(2, 989, __pyx_L1_error)
@@ -6111,24 +6118,35 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__Pyx_InitCachedConstants", 0);
 
-  /* "pymoab/hcoord.pyx":156
+  /* "pymoab/hcoord.pyx":23
+ *             self.inst = new moab.HomCoord(args[0],args[1],args[2])
+ *         else:
+ *             raise ValueError("""             # <<<<<<<<<<<<<<
+ *             Incorrect number of args provided to HomCoord constructor.
+ *             """)
+ */
+  __pyx_tuple_ = PyTuple_Pack(1, __pyx_kp_s_Incorrect_number_of_args_provid); if (unlikely(!__pyx_tuple_)) __PYX_ERR(0, 23, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple_);
+  __Pyx_GIVEREF(__pyx_tuple_);
+
+  /* "pymoab/hcoord.pyx":158
  *             outstr += str(val)
  *             outstr += ", "
  *         outstr = outstr[:-2]             # <<<<<<<<<<<<<<
  *         outstr += suffix
  *         return outstr
  */
-  __pyx_slice__3 = PySlice_New(Py_None, __pyx_int_neg_2, Py_None); if (unlikely(!__pyx_slice__3)) __PYX_ERR(0, 156, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_slice__3);
-  __Pyx_GIVEREF(__pyx_slice__3);
+  __pyx_slice__4 = PySlice_New(Py_None, __pyx_int_neg_2, Py_None); if (unlikely(!__pyx_slice__4)) __PYX_ERR(0, 158, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_slice__4);
+  __Pyx_GIVEREF(__pyx_slice__4);
 
   /* "(tree fragment)":2
  * def __reduce__(self):
  *     raise TypeError("no default __reduce__ due to non-trivial __cinit__")             # <<<<<<<<<<<<<<
  */
-  __pyx_tuple__4 = PyTuple_Pack(1, __pyx_kp_s_no_default___reduce___due_to_non); if (unlikely(!__pyx_tuple__4)) __PYX_ERR(1, 2, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__4);
-  __Pyx_GIVEREF(__pyx_tuple__4);
+  __pyx_tuple__5 = PyTuple_Pack(1, __pyx_kp_s_no_default___reduce___due_to_non); if (unlikely(!__pyx_tuple__5)) __PYX_ERR(1, 2, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__5);
+  __Pyx_GIVEREF(__pyx_tuple__5);
 
   /* "../../../../../.local/lib/python2.7/site-packages/Cython-0.25.2-py2.7-linux-x86_64.egg/Cython/Includes/numpy/__init__.pxd":218
  *             if ((flags & pybuf.PyBUF_C_CONTIGUOUS == pybuf.PyBUF_C_CONTIGUOUS)
@@ -6137,9 +6155,9 @@ static int __Pyx_InitCachedConstants(void) {
  * 
  *             if ((flags & pybuf.PyBUF_F_CONTIGUOUS == pybuf.PyBUF_F_CONTIGUOUS)
  */
-  __pyx_tuple__5 = PyTuple_Pack(1, __pyx_kp_u_ndarray_is_not_C_contiguous); if (unlikely(!__pyx_tuple__5)) __PYX_ERR(2, 218, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__5);
-  __Pyx_GIVEREF(__pyx_tuple__5);
+  __pyx_tuple__6 = PyTuple_Pack(1, __pyx_kp_u_ndarray_is_not_C_contiguous); if (unlikely(!__pyx_tuple__6)) __PYX_ERR(2, 218, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__6);
+  __Pyx_GIVEREF(__pyx_tuple__6);
 
   /* "../../../../../.local/lib/python2.7/site-packages/Cython-0.25.2-py2.7-linux-x86_64.egg/Cython/Includes/numpy/__init__.pxd":222
  *             if ((flags & pybuf.PyBUF_F_CONTIGUOUS == pybuf.PyBUF_F_CONTIGUOUS)
@@ -6148,9 +6166,9 @@ static int __Pyx_InitCachedConstants(void) {
  * 
  *             info.buf = PyArray_DATA(self)
  */
-  __pyx_tuple__6 = PyTuple_Pack(1, __pyx_kp_u_ndarray_is_not_Fortran_contiguou); if (unlikely(!__pyx_tuple__6)) __PYX_ERR(2, 222, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__6);
-  __Pyx_GIVEREF(__pyx_tuple__6);
+  __pyx_tuple__7 = PyTuple_Pack(1, __pyx_kp_u_ndarray_is_not_Fortran_contiguou); if (unlikely(!__pyx_tuple__7)) __PYX_ERR(2, 222, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__7);
+  __Pyx_GIVEREF(__pyx_tuple__7);
 
   /* "../../../../../.local/lib/python2.7/site-packages/Cython-0.25.2-py2.7-linux-x86_64.egg/Cython/Includes/numpy/__init__.pxd":259
  *                 if ((descr.byteorder == c'>' and little_endian) or
@@ -6159,9 +6177,9 @@ static int __Pyx_InitCachedConstants(void) {
  *                 if   t == NPY_BYTE:        f = "b"
  *                 elif t == NPY_UBYTE:       f = "B"
  */
-  __pyx_tuple__7 = PyTuple_Pack(1, __pyx_kp_u_Non_native_byte_order_not_suppor); if (unlikely(!__pyx_tuple__7)) __PYX_ERR(2, 259, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__7);
-  __Pyx_GIVEREF(__pyx_tuple__7);
+  __pyx_tuple__8 = PyTuple_Pack(1, __pyx_kp_u_Non_native_byte_order_not_suppor); if (unlikely(!__pyx_tuple__8)) __PYX_ERR(2, 259, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__8);
+  __Pyx_GIVEREF(__pyx_tuple__8);
 
   /* "../../../../../.local/lib/python2.7/site-packages/Cython-0.25.2-py2.7-linux-x86_64.egg/Cython/Includes/numpy/__init__.pxd":799
  * 
@@ -6170,9 +6188,9 @@ static int __Pyx_InitCachedConstants(void) {
  * 
  *         if ((child.byteorder == c'>' and little_endian) or
  */
-  __pyx_tuple__8 = PyTuple_Pack(1, __pyx_kp_u_Format_string_allocated_too_shor); if (unlikely(!__pyx_tuple__8)) __PYX_ERR(2, 799, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__8);
-  __Pyx_GIVEREF(__pyx_tuple__8);
+  __pyx_tuple__9 = PyTuple_Pack(1, __pyx_kp_u_Format_string_allocated_too_shor); if (unlikely(!__pyx_tuple__9)) __PYX_ERR(2, 799, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__9);
+  __Pyx_GIVEREF(__pyx_tuple__9);
 
   /* "../../../../../.local/lib/python2.7/site-packages/Cython-0.25.2-py2.7-linux-x86_64.egg/Cython/Includes/numpy/__init__.pxd":803
  *         if ((child.byteorder == c'>' and little_endian) or
@@ -6181,9 +6199,9 @@ static int __Pyx_InitCachedConstants(void) {
  *             # One could encode it in the format string and have Cython
  *             # complain instead, BUT: < and > in format strings also imply
  */
-  __pyx_tuple__9 = PyTuple_Pack(1, __pyx_kp_u_Non_native_byte_order_not_suppor); if (unlikely(!__pyx_tuple__9)) __PYX_ERR(2, 803, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__9);
-  __Pyx_GIVEREF(__pyx_tuple__9);
+  __pyx_tuple__10 = PyTuple_Pack(1, __pyx_kp_u_Non_native_byte_order_not_suppor); if (unlikely(!__pyx_tuple__10)) __PYX_ERR(2, 803, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__10);
+  __Pyx_GIVEREF(__pyx_tuple__10);
 
   /* "../../../../../.local/lib/python2.7/site-packages/Cython-0.25.2-py2.7-linux-x86_64.egg/Cython/Includes/numpy/__init__.pxd":823
  *             t = child.type_num
@@ -6192,9 +6210,9 @@ static int __Pyx_InitCachedConstants(void) {
  * 
  *             # Until ticket #99 is fixed, use integers to avoid warnings
  */
-  __pyx_tuple__10 = PyTuple_Pack(1, __pyx_kp_u_Format_string_allocated_too_shor_2); if (unlikely(!__pyx_tuple__10)) __PYX_ERR(2, 823, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__10);
-  __Pyx_GIVEREF(__pyx_tuple__10);
+  __pyx_tuple__11 = PyTuple_Pack(1, __pyx_kp_u_Format_string_allocated_too_shor_2); if (unlikely(!__pyx_tuple__11)) __PYX_ERR(2, 823, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__11);
+  __Pyx_GIVEREF(__pyx_tuple__11);
 
   /* "../../../../../.local/lib/python2.7/site-packages/Cython-0.25.2-py2.7-linux-x86_64.egg/Cython/Includes/numpy/__init__.pxd":989
  *         _import_array()
@@ -6203,9 +6221,9 @@ static int __Pyx_InitCachedConstants(void) {
  * 
  * cdef inline int import_umath() except -1:
  */
-  __pyx_tuple__11 = PyTuple_Pack(1, __pyx_kp_s_numpy_core_multiarray_failed_to); if (unlikely(!__pyx_tuple__11)) __PYX_ERR(2, 989, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__11);
-  __Pyx_GIVEREF(__pyx_tuple__11);
+  __pyx_tuple__12 = PyTuple_Pack(1, __pyx_kp_s_numpy_core_multiarray_failed_to); if (unlikely(!__pyx_tuple__12)) __PYX_ERR(2, 989, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__12);
+  __Pyx_GIVEREF(__pyx_tuple__12);
 
   /* "../../../../../.local/lib/python2.7/site-packages/Cython-0.25.2-py2.7-linux-x86_64.egg/Cython/Includes/numpy/__init__.pxd":995
  *         _import_umath()
@@ -6214,18 +6232,18 @@ static int __Pyx_InitCachedConstants(void) {
  * 
  * cdef inline int import_ufunc() except -1:
  */
-  __pyx_tuple__12 = PyTuple_Pack(1, __pyx_kp_s_numpy_core_umath_failed_to_impor); if (unlikely(!__pyx_tuple__12)) __PYX_ERR(2, 995, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__12);
-  __Pyx_GIVEREF(__pyx_tuple__12);
+  __pyx_tuple__13 = PyTuple_Pack(1, __pyx_kp_s_numpy_core_umath_failed_to_impor); if (unlikely(!__pyx_tuple__13)) __PYX_ERR(2, 995, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__13);
+  __Pyx_GIVEREF(__pyx_tuple__13);
 
   /* "../../../../../.local/lib/python2.7/site-packages/Cython-0.25.2-py2.7-linux-x86_64.egg/Cython/Includes/numpy/__init__.pxd":1001
  *         _import_umath()
  *     except Exception:
  *         raise ImportError("numpy.core.umath failed to import")             # <<<<<<<<<<<<<<
  */
-  __pyx_tuple__13 = PyTuple_Pack(1, __pyx_kp_s_numpy_core_umath_failed_to_impor); if (unlikely(!__pyx_tuple__13)) __PYX_ERR(2, 1001, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__13);
-  __Pyx_GIVEREF(__pyx_tuple__13);
+  __pyx_tuple__14 = PyTuple_Pack(1, __pyx_kp_s_numpy_core_umath_failed_to_impor); if (unlikely(!__pyx_tuple__14)) __PYX_ERR(2, 1001, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__14);
+  __Pyx_GIVEREF(__pyx_tuple__14);
   __Pyx_RefNannyFinishContext();
   return 0;
   __pyx_L1_error:;
@@ -6737,6 +6755,26 @@ static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Fast(PyObject *o, Py_ssize_t i, 
     return __Pyx_GetItemInt_Generic(o, PyInt_FromSsize_t(i));
 }
 
+/* PyObjectCall */
+#if CYTHON_COMPILING_IN_CPYTHON
+static CYTHON_INLINE PyObject* __Pyx_PyObject_Call(PyObject *func, PyObject *arg, PyObject *kw) {
+    PyObject *result;
+    ternaryfunc call = func->ob_type->tp_call;
+    if (unlikely(!call))
+        return PyObject_Call(func, arg, kw);
+    if (unlikely(Py_EnterRecursiveCall((char*)" while calling a Python object")))
+        return NULL;
+    result = (*call)(func, arg, kw);
+    Py_LeaveRecursiveCall();
+    if (unlikely(!result) && unlikely(!PyErr_Occurred())) {
+        PyErr_SetString(
+            PyExc_SystemError,
+            "NULL result without error in PyObject_Call");
+    }
+    return result;
+}
+#endif
+
 /* PyErrFetchRestore */
 #if CYTHON_FAST_THREAD_STATE
 static CYTHON_INLINE void __Pyx_ErrRestoreInState(PyThreadState *tstate, PyObject *type, PyObject *value, PyObject *tb) {
@@ -7145,26 +7183,6 @@ done:
     return result;
 }
 #endif
-#endif
-
-/* PyObjectCall */
-  #if CYTHON_COMPILING_IN_CPYTHON
-static CYTHON_INLINE PyObject* __Pyx_PyObject_Call(PyObject *func, PyObject *arg, PyObject *kw) {
-    PyObject *result;
-    ternaryfunc call = func->ob_type->tp_call;
-    if (unlikely(!call))
-        return PyObject_Call(func, arg, kw);
-    if (unlikely(Py_EnterRecursiveCall((char*)" while calling a Python object")))
-        return NULL;
-    result = (*call)(func, arg, kw);
-    Py_LeaveRecursiveCall();
-    if (unlikely(!result) && unlikely(!PyErr_Occurred())) {
-        PyErr_SetString(
-            PyExc_SystemError,
-            "NULL result without error in PyObject_Call");
-    }
-    return result;
-}
 #endif
 
 /* PyObjectCallMethO */

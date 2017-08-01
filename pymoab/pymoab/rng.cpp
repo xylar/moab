@@ -1032,7 +1032,7 @@ static PyObject *__pyx_builtin_StopIteration;
 static PyObject *__pyx_builtin_TypeError;
 static const char __pyx_k_i[] = "i";
 static const char __pyx_k_r[] = "r";
-static const char __pyx_k__2[] = "";
+static const char __pyx_k__4[] = "";
 static const char __pyx_k_r1[] = "r1";
 static const char __pyx_k_r2[] = "r2";
 static const char __pyx_k_arg[] = "arg";
@@ -1062,17 +1062,19 @@ static const char __pyx_k_pymoab_rng[] = "pymoab.rng";
 static const char __pyx_k_eh_py_types[] = "_eh_py_types";
 static const char __pyx_k_Range___iter[] = "Range.__iter__";
 static const char __pyx_k_StopIteration[] = "StopIteration";
+static const char __pyx_k_Invalid_key_provided[] = "Invalid key provided.";
 static const char __pyx_k_Implements_range_functionality[] = "Implements range functionality.";
 static const char __pyx_k_Not_a_valid_argument_to_Range_co[] = "Not a valid argument to Range constructor.";
 static const char __pyx_k_Operation_not_valie_for_non_Rang[] = "Operation not valie for non-Range";
 static const char __pyx_k_no_default___reduce___due_to_non[] = "no default __reduce__ due to non-trivial __cinit__";
+static PyObject *__pyx_kp_s_Invalid_key_provided;
 static PyObject *__pyx_kp_s_Not_a_valid_argument_to_Range_co;
 static PyObject *__pyx_kp_s_Operation_not_valie_for_non_Rang;
 static PyObject *__pyx_n_s_Range___iter;
 static PyObject *__pyx_n_s_StopIteration;
 static PyObject *__pyx_n_s_TypeError;
 static PyObject *__pyx_n_s_ValueError;
-static PyObject *__pyx_kp_s__2;
+static PyObject *__pyx_kp_s__4;
 static PyObject *__pyx_n_s_arg;
 static PyObject *__pyx_n_s_args;
 static PyObject *__pyx_n_s_close;
@@ -1130,13 +1132,15 @@ static PyObject *__pyx_tp_new_6pymoab_3rng___pyx_scope_struct____iter__(PyTypeOb
 static PyObject *__pyx_int_0;
 static PyObject *__pyx_int_1;
 static PyObject *__pyx_tuple_;
+static PyObject *__pyx_tuple__2;
 static PyObject *__pyx_tuple__3;
-static PyObject *__pyx_tuple__4;
+static PyObject *__pyx_tuple__5;
 static PyObject *__pyx_tuple__6;
 static PyObject *__pyx_tuple__8;
-static PyObject *__pyx_codeobj__5;
+static PyObject *__pyx_tuple__10;
 static PyObject *__pyx_codeobj__7;
 static PyObject *__pyx_codeobj__9;
+static PyObject *__pyx_codeobj__11;
 
 /* "pymoab/rng.pyx":7
  * from .types import _eh_array, _eh_py_types
@@ -1931,7 +1935,7 @@ static int __pyx_pf_6pymoab_3rng_5Range___cinit__(struct __pyx_obj_6pymoab_3rng_
  *             for eh in entity_array:
  *                 self.inst.insert(eh)             # <<<<<<<<<<<<<<
  *         else:
- *             raise ValueError, "Not a valid argument to Range constructor."
+ *             raise ValueError("Not a valid argument to Range constructor.")
  */
       __pyx_t_4 = __Pyx_PyInt_As_moab_3a__3a_EntityHandle(__pyx_v_eh); if (unlikely((__pyx_t_4 == ((moab::EntityHandle)-1)) && PyErr_Occurred())) __PYX_ERR(0, 57, __pyx_L1_error)
       __pyx_v_self->inst->insert(__pyx_t_4);
@@ -1959,12 +1963,15 @@ static int __pyx_pf_6pymoab_3rng_5Range___cinit__(struct __pyx_obj_6pymoab_3rng_
   /* "pymoab/rng.pyx":59
  *                 self.inst.insert(eh)
  *         else:
- *             raise ValueError, "Not a valid argument to Range constructor."             # <<<<<<<<<<<<<<
+ *             raise ValueError("Not a valid argument to Range constructor.")             # <<<<<<<<<<<<<<
  * 
  * 
  */
   /*else*/ {
-    __Pyx_Raise(__pyx_builtin_ValueError, __pyx_kp_s_Not_a_valid_argument_to_Range_co, 0, 0);
+    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple_, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 59, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __Pyx_Raise(__pyx_t_3, 0, 0, 0);
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     __PYX_ERR(0, 59, __pyx_L1_error)
   }
   __pyx_L4:;
@@ -2945,7 +2952,7 @@ static PyObject *__pyx_pf_6pymoab_3rng_5Range_30merge(struct __pyx_obj_6pymoab_3
  *     def __iter__(self):
  */
   /*else*/ {
-    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple_, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 129, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__2, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 129, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_Raise(__pyx_t_3, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -3393,7 +3400,7 @@ static PyObject *__pyx_pf_6pymoab_3rng_5Range_35__getitem__(struct __pyx_obj_6py
  *             ents = list(self)[start:stop:step]
  *             return Range(ents)             # <<<<<<<<<<<<<<
  *         else:
- *             raise ValueError
+ *             raise ValueError("Invalid key provided.")
  */
     __Pyx_XDECREF(__pyx_r);
     __pyx_t_4 = PyTuple_New(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 156, __pyx_L1_error)
@@ -3420,12 +3427,15 @@ static PyObject *__pyx_pf_6pymoab_3rng_5Range_35__getitem__(struct __pyx_obj_6py
   /* "pymoab/rng.pyx":158
  *             return Range(ents)
  *         else:
- *             raise ValueError             # <<<<<<<<<<<<<<
+ *             raise ValueError("Invalid key provided.")             # <<<<<<<<<<<<<<
  * 
  *     def __str__(self):
  */
   /*else*/ {
-    __Pyx_Raise(__pyx_builtin_ValueError, 0, 0, 0);
+    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__3, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 158, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __Pyx_Raise(__pyx_t_3, 0, 0, 0);
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     __PYX_ERR(0, 158, __pyx_L1_error)
   }
 
@@ -3456,7 +3466,7 @@ static PyObject *__pyx_pf_6pymoab_3rng_5Range_35__getitem__(struct __pyx_obj_6py
 }
 
 /* "pymoab/rng.pyx":160
- *             raise ValueError
+ *             raise ValueError("Invalid key provided.")
  * 
  *     def __str__(self):             # <<<<<<<<<<<<<<
  *         """
@@ -3502,12 +3512,12 @@ static PyObject *__pyx_pf_6pymoab_3rng_5Range_37__str__(struct __pyx_obj_6pymoab
  *     def __repr__(self):
  */
   __Pyx_XDECREF(__pyx_r);
-  __Pyx_INCREF(__pyx_kp_s__2);
-  __pyx_r = __pyx_kp_s__2;
+  __Pyx_INCREF(__pyx_kp_s__4);
+  __pyx_r = __pyx_kp_s__4;
   goto __pyx_L0;
 
   /* "pymoab/rng.pyx":160
- *             raise ValueError
+ *             raise ValueError("Invalid key provided.")
  * 
  *     def __str__(self):             # <<<<<<<<<<<<<<
  *         """
@@ -3633,7 +3643,7 @@ static PyObject *__pyx_pf_6pymoab_3rng_5Range_41__reduce__(CYTHON_UNUSED struct 
  * def __reduce__(self):
  *     raise TypeError("no default __reduce__ due to non-trivial __cinit__")             # <<<<<<<<<<<<<<
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__3, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 2, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_TypeError, __pyx_tuple__5, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 2, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_Raise(__pyx_t_1, 0, 0, 0);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -3908,13 +3918,14 @@ static struct PyModuleDef __pyx_moduledef = {
 #endif
 
 static __Pyx_StringTabEntry __pyx_string_tab[] = {
+  {&__pyx_kp_s_Invalid_key_provided, __pyx_k_Invalid_key_provided, sizeof(__pyx_k_Invalid_key_provided), 0, 0, 1, 0},
   {&__pyx_kp_s_Not_a_valid_argument_to_Range_co, __pyx_k_Not_a_valid_argument_to_Range_co, sizeof(__pyx_k_Not_a_valid_argument_to_Range_co), 0, 0, 1, 0},
   {&__pyx_kp_s_Operation_not_valie_for_non_Rang, __pyx_k_Operation_not_valie_for_non_Rang, sizeof(__pyx_k_Operation_not_valie_for_non_Rang), 0, 0, 1, 0},
   {&__pyx_n_s_Range___iter, __pyx_k_Range___iter, sizeof(__pyx_k_Range___iter), 0, 0, 1, 1},
   {&__pyx_n_s_StopIteration, __pyx_k_StopIteration, sizeof(__pyx_k_StopIteration), 0, 0, 1, 1},
   {&__pyx_n_s_TypeError, __pyx_k_TypeError, sizeof(__pyx_k_TypeError), 0, 0, 1, 1},
   {&__pyx_n_s_ValueError, __pyx_k_ValueError, sizeof(__pyx_k_ValueError), 0, 0, 1, 1},
-  {&__pyx_kp_s__2, __pyx_k__2, sizeof(__pyx_k__2), 0, 0, 1, 0},
+  {&__pyx_kp_s__4, __pyx_k__4, sizeof(__pyx_k__4), 0, 0, 1, 0},
   {&__pyx_n_s_arg, __pyx_k_arg, sizeof(__pyx_k_arg), 0, 0, 1, 1},
   {&__pyx_n_s_args, __pyx_k_args, sizeof(__pyx_k_args), 0, 0, 1, 1},
   {&__pyx_n_s_close, __pyx_k_close, sizeof(__pyx_k_close), 0, 0, 1, 1},
@@ -3959,6 +3970,17 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__Pyx_InitCachedConstants", 0);
 
+  /* "pymoab/rng.pyx":59
+ *                 self.inst.insert(eh)
+ *         else:
+ *             raise ValueError("Not a valid argument to Range constructor.")             # <<<<<<<<<<<<<<
+ * 
+ * 
+ */
+  __pyx_tuple_ = PyTuple_Pack(1, __pyx_kp_s_Not_a_valid_argument_to_Range_co); if (unlikely(!__pyx_tuple_)) __PYX_ERR(0, 59, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple_);
+  __Pyx_GIVEREF(__pyx_tuple_);
+
   /* "pymoab/rng.pyx":129
  *             self.inst.merge(deref(r.inst))
  *         else:
@@ -3966,17 +3988,28 @@ static int __Pyx_InitCachedConstants(void) {
  * 
  *     def __iter__(self):
  */
-  __pyx_tuple_ = PyTuple_Pack(1, __pyx_kp_s_Operation_not_valie_for_non_Rang); if (unlikely(!__pyx_tuple_)) __PYX_ERR(0, 129, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple_);
-  __Pyx_GIVEREF(__pyx_tuple_);
+  __pyx_tuple__2 = PyTuple_Pack(1, __pyx_kp_s_Operation_not_valie_for_non_Rang); if (unlikely(!__pyx_tuple__2)) __PYX_ERR(0, 129, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__2);
+  __Pyx_GIVEREF(__pyx_tuple__2);
+
+  /* "pymoab/rng.pyx":158
+ *             return Range(ents)
+ *         else:
+ *             raise ValueError("Invalid key provided.")             # <<<<<<<<<<<<<<
+ * 
+ *     def __str__(self):
+ */
+  __pyx_tuple__3 = PyTuple_Pack(1, __pyx_kp_s_Invalid_key_provided); if (unlikely(!__pyx_tuple__3)) __PYX_ERR(0, 158, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__3);
+  __Pyx_GIVEREF(__pyx_tuple__3);
 
   /* "(tree fragment)":2
  * def __reduce__(self):
  *     raise TypeError("no default __reduce__ due to non-trivial __cinit__")             # <<<<<<<<<<<<<<
  */
-  __pyx_tuple__3 = PyTuple_Pack(1, __pyx_kp_s_no_default___reduce___due_to_non); if (unlikely(!__pyx_tuple__3)) __PYX_ERR(1, 2, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__3);
-  __Pyx_GIVEREF(__pyx_tuple__3);
+  __pyx_tuple__5 = PyTuple_Pack(1, __pyx_kp_s_no_default___reduce___due_to_non); if (unlikely(!__pyx_tuple__5)) __PYX_ERR(1, 2, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__5);
+  __Pyx_GIVEREF(__pyx_tuple__5);
 
   /* "pymoab/rng.pyx":7
  * from .types import _eh_array, _eh_py_types
@@ -3985,10 +4018,10 @@ static int __Pyx_InitCachedConstants(void) {
  *     """
  *     Returns a range that is the intersection of r1 and r2.
  */
-  __pyx_tuple__4 = PyTuple_Pack(4, __pyx_n_s_r1, __pyx_n_s_r2, __pyx_n_s_r, __pyx_n_s_i); if (unlikely(!__pyx_tuple__4)) __PYX_ERR(0, 7, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__4);
-  __Pyx_GIVEREF(__pyx_tuple__4);
-  __pyx_codeobj__5 = (PyObject*)__Pyx_PyCode_New(2, 0, 4, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__4, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_rng_pyx, __pyx_n_s_intersect, 7, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__5)) __PYX_ERR(0, 7, __pyx_L1_error)
+  __pyx_tuple__6 = PyTuple_Pack(4, __pyx_n_s_r1, __pyx_n_s_r2, __pyx_n_s_r, __pyx_n_s_i); if (unlikely(!__pyx_tuple__6)) __PYX_ERR(0, 7, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__6);
+  __Pyx_GIVEREF(__pyx_tuple__6);
+  __pyx_codeobj__7 = (PyObject*)__Pyx_PyCode_New(2, 0, 4, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__6, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_rng_pyx, __pyx_n_s_intersect, 7, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__7)) __PYX_ERR(0, 7, __pyx_L1_error)
 
   /* "pymoab/rng.pyx":16
  *     return r
@@ -3997,10 +4030,10 @@ static int __Pyx_InitCachedConstants(void) {
  *     """
  *     Returns a range that is the subtraction of r2 from r1.
  */
-  __pyx_tuple__6 = PyTuple_Pack(4, __pyx_n_s_r1, __pyx_n_s_r2, __pyx_n_s_r, __pyx_n_s_i); if (unlikely(!__pyx_tuple__6)) __PYX_ERR(0, 16, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__6);
-  __Pyx_GIVEREF(__pyx_tuple__6);
-  __pyx_codeobj__7 = (PyObject*)__Pyx_PyCode_New(2, 0, 4, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__6, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_rng_pyx, __pyx_n_s_subtract, 16, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__7)) __PYX_ERR(0, 16, __pyx_L1_error)
+  __pyx_tuple__8 = PyTuple_Pack(4, __pyx_n_s_r1, __pyx_n_s_r2, __pyx_n_s_r, __pyx_n_s_i); if (unlikely(!__pyx_tuple__8)) __PYX_ERR(0, 16, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__8);
+  __Pyx_GIVEREF(__pyx_tuple__8);
+  __pyx_codeobj__9 = (PyObject*)__Pyx_PyCode_New(2, 0, 4, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__8, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_rng_pyx, __pyx_n_s_subtract, 16, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__9)) __PYX_ERR(0, 16, __pyx_L1_error)
 
   /* "pymoab/rng.pyx":25
  *     return r
@@ -4009,10 +4042,10 @@ static int __Pyx_InitCachedConstants(void) {
  *     """
  *     Returns a range that is the union of r1 and r2.
  */
-  __pyx_tuple__8 = PyTuple_Pack(4, __pyx_n_s_r1, __pyx_n_s_r2, __pyx_n_s_r, __pyx_n_s_i); if (unlikely(!__pyx_tuple__8)) __PYX_ERR(0, 25, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__8);
-  __Pyx_GIVEREF(__pyx_tuple__8);
-  __pyx_codeobj__9 = (PyObject*)__Pyx_PyCode_New(2, 0, 4, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__8, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_rng_pyx, __pyx_n_s_unite, 25, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__9)) __PYX_ERR(0, 25, __pyx_L1_error)
+  __pyx_tuple__10 = PyTuple_Pack(4, __pyx_n_s_r1, __pyx_n_s_r2, __pyx_n_s_r, __pyx_n_s_i); if (unlikely(!__pyx_tuple__10)) __PYX_ERR(0, 25, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__10);
+  __Pyx_GIVEREF(__pyx_tuple__10);
+  __pyx_codeobj__11 = (PyObject*)__Pyx_PyCode_New(2, 0, 4, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__10, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_rng_pyx, __pyx_n_s_unite, 25, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__11)) __PYX_ERR(0, 25, __pyx_L1_error)
   __Pyx_RefNannyFinishContext();
   return 0;
   __pyx_L1_error:;

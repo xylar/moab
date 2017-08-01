@@ -56,7 +56,7 @@ cdef class Range(object):
             for eh in entity_array:
                 self.inst.insert(eh)
         else:
-            raise ValueError, "Not a valid argument to Range constructor."
+            raise ValueError("Not a valid argument to Range constructor.")
                 
     
     def __del__(self):
@@ -155,7 +155,7 @@ cdef class Range(object):
             ents = list(self)[start:stop:step]
             return Range(ents)
         else:
-            raise ValueError
+            raise ValueError("Invalid key provided.")
 
     def __str__(self):
         """
