@@ -495,7 +495,7 @@ namespace Element {
       vertex[j] = transf*(vertex[j]-v1);
   }
 
-   CartVect SphericalQuad::ievaluate(double tol, const CartVect& x) const
+   CartVect SphericalQuad::ievaluate( const CartVect& x, double tol) const
    {
      // project to the plane tangent at first vertex
      //CartVect v1=vertex[0];
