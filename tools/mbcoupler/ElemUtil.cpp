@@ -462,7 +462,7 @@ namespace Element {
 
       J = jacobian(xi);
       det = J.determinant();
-      if (det < std::numeric_limits<double>::epsilon())
+      if (fabs(det) < std::numeric_limits<double>::epsilon())
         throw Map::EvaluationError(x, vertex);
       xi -= J.inverse() * delta;
       delta = evaluate( xi ) - x;
@@ -495,7 +495,7 @@ namespace Element {
       vertex[j] = transf*(vertex[j]-v1);
   }
 
-   CartVect SphericalQuad::ievaluate( const CartVect& x, double tol) const
+   CartVect SphericalQuad::project_ieval( const CartVect& x, double tol) const
    {
      // project to the plane tangent at first vertex
      //CartVect v1=vertex[0];
