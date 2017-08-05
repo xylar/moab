@@ -185,7 +185,6 @@ namespace ElemUtil {
       virtual ~LinearTet();
       /* Override the evaluation routines to take advantage of the properties of P1. */
       virtual CartVect evaluate(const CartVect& xi) const {return this->vertex[0] + this->T*xi;};
-      using Map::ievaluate;
       virtual CartVect ievaluate(const CartVect& x) const {return this->T_inverse*(x-this->vertex[0]);};
       virtual Matrix3  jacobian(const CartVect& )  const {return this->T;};
       virtual Matrix3  ijacobian(const CartVect& ) const {return this->T_inverse;};
@@ -213,7 +212,6 @@ namespace ElemUtil {
       virtual ~SpectralHex();
       void set_gl_points( double * x, double * y, double *z) ;
       virtual CartVect evaluate( const CartVect& xi ) const;
-      using Map::ievaluate;
       virtual CartVect ievaluate( double abs_eps, const CartVect& x) const;
       virtual Matrix3  jacobian(const CartVect& xi) const;
       double   evaluate_scalar_field(const CartVect& xi, const double *field_vertex_values) const;
@@ -262,14 +260,14 @@ namespace ElemUtil {
 
     };// class LinearQuad
 
-    /**\brief Shape function space for bilinear quadrilateral on sphere, obtained from the canonical linear (affine) functions. */
+    /**\brief Shape function space for bilinear quadrilateral on sphere, obtained from the
+     *  canonical linear (affine) functions. */
     class SphericalQuad : public LinearQuad {
     public:
       SphericalQuad(const std::vector<CartVect>& vertices);
       virtual ~SphericalQuad() {};
       virtual bool inside_box(const CartVect & pos, double & tol) const;
-      using Map::ievaluate;
-      virtual CartVect ievaluate( double abs_eps, const CartVect& x) const;
+      virtual CartVect ievaluate( const CartVect & x, double tol) const;
     protected:
       CartVect v1;
       Matrix3 transf; // so will have a lot of stuff, including the transf to a coordinate system
@@ -308,7 +306,6 @@ namespace ElemUtil {
         virtual ~SpectralQuad();
         void set_gl_points( double * x, double * y, double *z) ;
         virtual CartVect evaluate( const CartVect& xi ) const;// a 2d, so 3rd component is 0, always
-        using Map::ievaluate;
         virtual CartVect ievaluate(const CartVect& x) const; //a 2d, so 3rd component is 0, always
         virtual Matrix3  jacobian(const CartVect& xi) const;
         double   evaluate_scalar_field(const CartVect& xi, const double *field_vertex_values) const;
