@@ -504,15 +504,14 @@ namespace Element {
       vertex[j] = transf*(vertex[j]-v1);
   }
 
-   CartVect SphericalQuad::project_ieval( const CartVect& x, double tol) const
+   CartVect SphericalQuad::ievaluate( const CartVect& x, double tol, const CartVect& x0) const
    {
      // project to the plane tangent at first vertex (gnomonic projection)
-     //CartVect v1=vertex[0];
      double v1v1= v1%v1;
-     CartVect vnew =v1v1/(x%v1)*x; // so that (x-v1)%v1 is 0
+     CartVect vnew =v1v1/(x%v1)*x; // so that (vnew-v1)%v1 is 0
      vnew =  transf*(vnew-v1);
      // det will be positive now
-     return Map::ievaluate(vnew, tol);
+     return Map::ievaluate(vnew, tol, x0);
    }
 
    bool SphericalQuad::inside_box(const CartVect & pos, double & tol) const

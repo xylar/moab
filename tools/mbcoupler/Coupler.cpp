@@ -822,7 +822,7 @@ ErrorCode Coupler::nat_param(double xyz[3],
         if (!sphermap.inside_box(pos, epsilon))
           continue;
         try {
-          tmp_nat_coords = sphermap.project_ieval(pos, epsilon);
+          tmp_nat_coords = sphermap.ievaluate(pos, epsilon);
           bool inside = sphermap.inside_nat_space(tmp_nat_coords, epsilon);
           if (!inside)
             continue;
