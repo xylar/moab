@@ -261,7 +261,10 @@ namespace ElemUtil {
     };// class LinearQuad
 
     /**\brief Shape function space for bilinear quadrilateral on sphere, obtained from the
-     *  canonical linear (affine) functions. */
+     *  canonical linear (affine) functions.
+     *  It is mapped using gnomonic projection to a plane tangent at the first vertex
+     *  It works well for edges that are great circle arcs; RLL meshes  do not have this property, but
+     *  HOMME or MPAS meshes do have it */
     class SphericalQuad : public LinearQuad {
     public:
       SphericalQuad(const std::vector<CartVect>& vertices);
