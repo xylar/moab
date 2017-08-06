@@ -51,7 +51,7 @@ AC_DEFUN([FATHOM_CHECK_NETCDF],[
 
   # Supported NetCDF versions: 4.3.3, 4.3.2, 4.2.1
   # Arguments: 1) Default Version Number, 2) Download by default ?
-  AUSCM_CONFIGURE_DOWNLOAD_NETCDF([4.3.2],[no])
+  AUSCM_CONFIGURE_DOWNLOAD_NETCDF([4.3.3],[no])
 
 AC_MSG_CHECKING([if NetCDF support is enabled])
 AC_ARG_WITH(netcdf, 
@@ -107,7 +107,7 @@ if (test "x" != "x$NETCDF_DIR" && test "xno" != "x$NETCDF_DIR"); then
   old_CPPFLAGS="$CPPFLAGS"
   CPPFLAGS="$NETCDF_CPPFLAGS $CPPFLAGS"
   old_LDFLAGS="$LDFLAGS"
-  LDFLAGS="$NETCDF_LDFLAGS $PNETCDF_LDFLAGS $LDFLAGS"
+  LDFLAGS="$NETCDF_LDFLAGS $PNETCDF_LDFLAGS $HDF5_LDFLAGS $LDFLAGS"
   oldLIBS=$LIBS
 
    # Check for C library

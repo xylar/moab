@@ -559,11 +559,13 @@ AC_DEFUN([AUSCM_CONFIGURE_DOWNLOAD_HDF5],[
   m4_pushdef([HDF5_DOWNLOAD_VERSION],[$1])dnl
 
   # Invoke the download-hdf5 command
-  m4_case( HDF5_DOWNLOAD_VERSION, [1.8.15], [ AUSCM_CONFIGURE_EXTERNAL_PACKAGE([HDF5], [http://www.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8.15-patch1/src/hdf5-1.8.15-patch1.tar.gz], [$2] ) ],
-                                  [1.8.14], [ AUSCM_CONFIGURE_EXTERNAL_PACKAGE([HDF5], [http://www.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8.14/src/hdf5-1.8.14.tar.gz], [$2] ) ],
-                                  [1.8.12], [ AUSCM_CONFIGURE_EXTERNAL_PACKAGE([HDF5], [http://www.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8.12/src/hdf5-1.8.12.tar.gz], [$2] ) ],
-                                  [1.8.10], [ AUSCM_CONFIGURE_EXTERNAL_PACKAGE([HDF5], [http://www.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8.10/src/hdf5-1.8.10.tar.gz], [$2] ) ],
-                                  [ AUSCM_CONFIGURE_EXTERNAL_PACKAGE([HDF5], [http://www.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8.4/src/hdf5-1.8.14.tar.gz], [$2] ) ] )
+  m4_case( HDF5_DOWNLOAD_VERSION, 
+                                  [1.10.1], [ AUSCM_CONFIGURE_EXTERNAL_PACKAGE([HDF5], [https://support.hdfgroup.org/ftp/HDF5/current/src/hdf5-1.10.1.tar.gz], [$2] ) ],
+                                  [1.8.19], [ AUSCM_CONFIGURE_EXTERNAL_PACKAGE([HDF5], [https://support.hdfgroup.org/ftp/HDF5/prev-releases/hdf5-1.8/hdf5-1.8.19/src/hdf5-1.8.19.tar.gz], [$2] ) ],
+                                  [1.8.15p1], [ AUSCM_CONFIGURE_EXTERNAL_PACKAGE([HDF5], [https://support.hdfgroup.org/ftp/HDF5/prev-releases/hdf5-1.8/hdf5-1.8.15-patch1/src/hdf5-1.8.15-patch1.tar.gz], [$2] ) ],
+                                  [1.8.12], [ AUSCM_CONFIGURE_EXTERNAL_PACKAGE([HDF5], [https://support.hdfgroup.org/ftp/HDF5/prev-releases/hdf5-1.8/hdf5-1.8.12/src/hdf5-1.8.12.tar.gz], [$2] ) ],
+                                  [ AUSCM_CONFIGURE_EXTERNAL_PACKAGE([HDF5], [https://support.hdfgroup.org/ftp/HDF5/prev-releases/hdf5-1.8/hdf5-1.8.19/src/hdf5-1.8.19.tar.gz], [$2] ) ] 
+          )
 
   if (test "x$downloadhdf5" == "xyes") ; then
     # download the latest HDF5 sources, configure and install
@@ -741,7 +743,8 @@ AC_DEFUN([AUSCM_CONFIGURE_DOWNLOAD_NETCDF],[
   m4_pushdef([NETCDF_DOWNLOAD_VERSION],[$1])dnl
 
   # Invoke the download-netcdf command
-  m4_case( NETCDF_DOWNLOAD_VERSION, [4.3.3], [ AUSCM_CONFIGURE_EXTERNAL_PACKAGE([NetCDF], [ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-4.3.3.1.tar.gz], [$2] ) ],
+  m4_case( NETCDF_DOWNLOAD_VERSION, [4.4.1], [ AUSCM_CONFIGURE_EXTERNAL_PACKAGE([NetCDF], [ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-4.4.1.tar.gz], [$2] ) ],
+                                  [4.3.3], [ AUSCM_CONFIGURE_EXTERNAL_PACKAGE([NetCDF], [ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-4.3.3.1.tar.gz], [$2] ) ],
                                   [4.3.2], [ AUSCM_CONFIGURE_EXTERNAL_PACKAGE([NetCDF], [ftp://ftp.unidata.ucar.edu/pub/netcdf/old/netcdf-4.3.2.tar.gz], [$2] ) ],
                                   [4.2.0], [ AUSCM_CONFIGURE_EXTERNAL_PACKAGE([NetCDF], [ftp://ftp.unidata.ucar.edu/pub/netcdf/old/netcdf-4.2.1.1.tar.gz], [$2] ) ],
                                   [ AUSCM_CONFIGURE_EXTERNAL_PACKAGE([NetCDF], [ftp://ftp.unidata.ucar.edu/pub/netcdf/old/netcdf-4.3.2.tar.gz], [$2] ) ] )
