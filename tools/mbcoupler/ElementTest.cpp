@@ -14,6 +14,7 @@ void test_tet();
 void test_hex();
 void test_spectral_hex();
 void test_spectral_quad();
+void test_spherical_quad();
 
 int main()
 {
@@ -22,6 +23,7 @@ int main()
   rval += RUN_TEST(test_hex);
   rval += RUN_TEST(test_spectral_hex);
   rval += RUN_TEST(test_spectral_quad);
+  rval += RUN_TEST(test_spherical_quad);
   return rval;
 }
 
@@ -314,4 +316,30 @@ void test_spectral_quad()
   std::cout << "success...\n";
 
   delete mb;
+}
+void test_spherical_quad()
+{
+  // example from one coupler test, run like this
+  // ./mbcoupler_test -meshes sphere_16p.h5m mpas_p8.h5m -itag vertex_field -meth 4 -outfile dd.h5m
+  // method 4 is spherical
+  double positions[] =
+  {
+   -0.88882388032987436, -0.069951956448441419, 0.45287838714646161,
+   -0.88226455385461389, -0.13973697758043971, 0.4495362433757738,
+   -0.84497006020160348, -0.13383011007602069, 0.51779831884618843,
+   -0.85072691325794214, -0.066953660115039074, 0.52132612293631853
+  };
+  CartVect x(-0.85408569769999998, -0.12391301439999999, 0.50515659540000002);
+  std::vector<CartVect> vertices;
+  for (int i=0; i<4; i++)
+    vertices.push_back(CartVect(positions+3*i));
+
+  moab::Element::SphericalQuad squad(vertices);
+  double tol(0.0001);
+  if (squad.inside_box(x, tol))
+  {
+   CartVect nat_par = squad.ievaluate(x, 0.000001);
+   std::cout<< nat_par << "\n";
+  }
+  std::cout << "success...\n";
 }

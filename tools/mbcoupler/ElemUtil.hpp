@@ -270,7 +270,7 @@ namespace ElemUtil {
       SphericalQuad(const std::vector<CartVect>& vertices);
       virtual ~SphericalQuad() {};
       virtual bool inside_box(const CartVect & pos, double & tol) const;
-      CartVect project_ieval( const CartVect & x, double tol) const;
+      CartVect ievaluate( const CartVect& x, double tol, const CartVect& x0 = CartVect(0.0)) const;
     protected:
       CartVect v1;
       Matrix3 transf; // so will have a lot of stuff, including the transf to a coordinate system
