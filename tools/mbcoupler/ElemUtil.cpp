@@ -462,7 +462,7 @@ namespace Element {
 
       J = jacobian(xi);
       det = J.determinant();
-      if (fabs(det) < std::numeric_limits<double>::epsilon())
+      if (det < std::numeric_limits<double>::epsilon())
         throw Map::EvaluationError(x, vertex);
       xi -= J.inverse() * delta;
       delta = evaluate( xi ) - x;
@@ -474,20 +474,29 @@ namespace Element {
   {
     // project the vertices to the plane tangent at first vertex
     v1=vertex[0]; // member data
-    double v1v1= v1%v1;
+    double v1v1= v1%v1; // this is 1, in general, for unit sphere meshes
     for (int j=1; j<4; j++)
     {
-      CartVect vnew =v1v1/(vertex[j]%v1)*vertex[j]; // so that (vnew-v1)%v1 is 0
+      // first, bring all vertices in the gnomonic plane
+      //  the new vertex will intersect the plane at vnew
+      //   so that (vnew-v1)%v1 is 0 ( vnew is in the tangent plane, i.e. normal to v1 )
+      // pos is the old position of the vertex, and it is in general on the sphere
+      // vnew = alfa*pos;  (alfa*pos-v1)%v1 = 0  <=> alfa*(pos%v1)=v1%v1 <=> alfa = v1v1/(pos%v1)
+      //  <=> vnew = ( v1v1/(pos%v1) )*pos
+      CartVect vnew =v1v1/(vertex[j]%v1)*vertex[j];
       vertex[j]=vnew;
     }
     // will compute a transf matrix, such that a new point will be transformed with
-    // newpos =  transf * (pos-v1);
+    // newpos =  transf * (vnew-v1), and it will be a point in the 2d plane
+    // the transformation matrix will be oriented in such a way that orientation will be positive
     CartVect vx = vertex[1]-v1; // this will become Ox axis
+    // z axis will be along v1, in such a way that orientation of the quad is positive
+    // look at the first 2 edges
+    CartVect vz = vx*(vertex[2]-vertex[1]);
+    vz = vz/vz.length();
+
     vx = vx/vx.length();
-    CartVect vz = -v1/v1.length();// z will point down; with this, if the second vertex is along x,
-                                   // the det will be positive for typical HOMME meshes
-                                   // this allows to simplify the ievaluate,
-                                   // so we can just reuse Map::ievaluate
+
     CartVect vy = vz*vx;
     transf = Matrix3(vx[0], vx[1], vx[2], vy[0], vy[1], vy[2], vz[0], vz[1], vz[2]);
     vertex[0]= CartVect(0.);
@@ -497,7 +506,7 @@ namespace Element {
 
    CartVect SphericalQuad::project_ieval( const CartVect& x, double tol) const
    {
-     // project to the plane tangent at first vertex
+     // project to the plane tangent at first vertex (gnomonic projection)
      //CartVect v1=vertex[0];
      double v1v1= v1%v1;
      CartVect vnew =v1v1/(x%v1)*x; // so that (x-v1)%v1 is 0
