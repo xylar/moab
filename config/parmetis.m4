@@ -27,10 +27,6 @@ AC_DEFUN([FATHOM_CONFIGURE_METIS],[
   AUSCM_CONFIGURE_DOWNLOAD_METIS([5.1.0p2],[no])
 
   if (test "x$enablemetis" == "xyes" && test "x$METIS_DIR" != "x"); then
-    dnl Honor METIS_DIR if it is set
-    if (test ! -d $METIS_DIR); then
-       AC_MSG_ERROR([Invalid METIS_DIR ($METIS_DIR) specified.])
-    fi
 
     # Check to see if we want to override the include directory
     # (do not honor if we are installing our own version of metis)
@@ -127,10 +123,6 @@ AC_DEFUN([FATHOM_CONFIGURE_PARMETIS],[
   AUSCM_CONFIGURE_DOWNLOAD_PARMETIS([4.0.3],[no])
 
   if (test "x$enableparmetis" == "xyes" && test "x$PARMETIS_DIR" != "x"); then
-    dnl Honor PARMETIS_DIR if it is set
-    if (test ! -d $PARMETIS_DIR); then
-       AC_MSG_ERROR([Invalid PARMETIS_DIR ($PARMETIS_DIR) specified.])
-    fi
 
     # Check to see if we want to override the include directory
     # (do not honor if we are installing our own version of parmetis)
