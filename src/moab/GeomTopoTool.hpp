@@ -299,7 +299,7 @@ private:
     //! Verify sense edge tags
   ErrorCode check_edge_sense_tags(bool create = false);
 
-  ErrorCode check_rootsets_size();
+  ErrorCode resize_rootSets();
 
   void set_root_set(EntityHandle vol_or_surf, EntityHandle root);
 
