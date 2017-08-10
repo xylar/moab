@@ -299,12 +299,7 @@ private:
     //! Verify sense edge tags
   ErrorCode check_edge_sense_tags(bool create = false);
 
-    //! Set the contigous variable
-    //  If it has changed, update the storage of the rootsets 
-  void set_contiguous(bool new_value);  
-
-    //! Test if the entity sets are contiguous or not
-  ErrorCode update_contiguous();
+  ErrorCode check_rootsets_size();
 
   void set_root_set(EntityHandle vol_or_surf, EntityHandle root);
 
