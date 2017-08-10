@@ -39,7 +39,7 @@ class GeomQueryTool;
 class GeomTopoTool
 {
 public:
-  GeomTopoTool(Interface *impl, bool find_geoments = false, EntityHandle modelRootSet = 0);
+  GeomTopoTool(Interface *impl, bool find_geoments = false, EntityHandle modelRootSet = 0, bool contiguous = true);
   ~GeomTopoTool();
   
     //! Restore parent/child links between GEOM_TOPO mesh sets
