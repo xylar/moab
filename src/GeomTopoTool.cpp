@@ -225,7 +225,7 @@ ErrorCode GeomTopoTool::get_gsets_by_dimension(int dim, Range &gset)
 }
 
 
-ErrorCode GeomTopoTool::check_rootsets_size() {
+ErrorCode GeomTopoTool::resize_rootSets() {
 
   ErrorCode rval;
   
@@ -320,7 +320,7 @@ ErrorCode GeomTopoTool::construct_obb_tree(EntityHandle eh)
 
   // ensure that the rootSets vector is of the correct size
   if (contiguous && (eh < setOffset || eh > setOffset + rootSets.size()) ) {
-    rval = check_rootsets_size();
+    rval = resize_rootSets();
     MB_CHK_SET_ERR(rval, "Error setting offset and sizing rootSets vector.");
   }
 
