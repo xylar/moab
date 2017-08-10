@@ -459,7 +459,7 @@ ErrorCode test_root_sets_resize(Interface *mb) {
   MB_CHK_SET_ERR(rval, "Failed to load input file");
 
   // create a GTT with all default settings
-  moab::GeomTopoTool gTopoTool(mb);
+  moab::GeomTopoTool* gTopoTool = new GeomTopoTool(mb);
 
 
   Tag geomTag;
@@ -477,29 +477,54 @@ ErrorCode test_root_sets_resize(Interface *mb) {
   MB_CHK_SET_ERR(rval, "Failed to get entity sets by type and tag");
 
   // in reverse order, add surfaces and construct their trees
-  Range::reverse_iterator rit;
-  for ( rit = surfs.rbegin(); rit != surfs.rend(); rit++ ) {
+  for (Range::reverse_iterator rit = surfs.rbegin(); rit != surfs.rend(); rit++ ) {
 
-    rval = gTopoTool.add_geo_set(*rit, 2);
+    rval = gTopoTool->add_geo_set(*rit, 2);
     MB_CHK_SET_ERR(rval, "Failed to add geometry set to GTT");
 
-    rval = gTopoTool.construct_obb_tree(*rit);
+    rval = gTopoTool->construct_obb_tree(*rit);
     MB_CHK_SET_ERR(rval, "Failed to construct obb tree for surf " << *rit);
 
   }
 
-  Range::iterator it;
-  
-  for( it = surfs.begin(); it != surfs.end(); it++ ) {
+  for(Range::iterator it = surfs.begin(); it != surfs.end(); it++ ) {
     EntityHandle obb_root_set;
-    rval = gTopoTool.get_root(*it, obb_root_set);
+    rval = gTopoTool->get_root(*it, obb_root_set);
     MB_CHK_SET_ERR(rval, "Failed to get obb tree root from GTT");
 
     // make sure the returned root is valid
     CHECK(obb_root_set);
   }
-  
 
+  // clean up GTT
+  delete gTopoTool;
+
+  // create a GTT with all default settings
+  gTopoTool = new moab::GeomTopoTool(mb, false, 0, false);
+
+
+  // in reverse order, add surfaces and construct their trees
+  for (Range::reverse_iterator rit = surfs.rbegin(); rit != surfs.rend(); rit++ ) {
+
+    rval = gTopoTool->add_geo_set(*rit, 2);
+    MB_CHK_SET_ERR(rval, "Failed to add geometry set to GTT");
+
+    rval = gTopoTool->construct_obb_tree(*rit);
+    MB_CHK_SET_ERR(rval, "Failed to construct obb tree for surf " << *rit);
+
+  }
+  
+  for(Range::iterator it = surfs.begin(); it != surfs.end(); it++ ) {
+    EntityHandle obb_root_set;
+    rval = gTopoTool->get_root(*it, obb_root_set);
+    MB_CHK_SET_ERR(rval, "Failed to get obb tree root from GTT");
+
+    // make sure the returned root is valid
+    CHECK(obb_root_set);
+  }
+
+  delete gTopoTool;
+  
   return MB_SUCCESS;
 
 }
