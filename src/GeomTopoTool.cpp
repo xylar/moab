@@ -40,10 +40,10 @@ const char GEOM_SENSE_N_SENSES_TAG_NAME[] = "GEOM_SENSE_N_SENSES";
 
 const char IMPLICIT_COMPLEMENT_NAME[] = "impl_complement";
   
-GeomTopoTool::GeomTopoTool(Interface *impl, bool find_geoments, EntityHandle modelRootSet) :
+GeomTopoTool::GeomTopoTool(Interface *impl, bool find_geoments, EntityHandle modelRootSet, bool contiguous) :
   mdbImpl(impl), sense2Tag(0), senseNEntsTag(0), senseNSensesTag(0),
   geomTag(0), gidTag(0), modelSet(modelRootSet), updated(false), 
-  setOffset(0), contiguous(true), oneVolRootSet(0)
+  setOffset(0), contiguous(contiguous), oneVolRootSet(0)
 {
 
   obbTree = new OrientedBoxTreeTool(impl, NULL, true);
