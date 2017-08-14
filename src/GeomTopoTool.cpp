@@ -256,7 +256,7 @@ ErrorCode GeomTopoTool::resize_rootSets() {
   }
 
   if ( exp_size != rootSets.size() ) {
-    // otherwise just resize (new space will be added at the back)
+    // resize rootSets vector if necessary (new space will be added at the back)
     rootSets.resize(exp_size);
   }
   
