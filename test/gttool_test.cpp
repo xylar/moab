@@ -524,6 +524,9 @@ ErrorCode test_root_sets_resize(Interface *mb) {
   }
 
   delete gTopoTool;
+
+  rval = mb->delete_mesh();
+  MB_CHK_SET_ERR(rval, "Failed to delete mesh in MOAB instance.");
   
   return MB_SUCCESS;
 
