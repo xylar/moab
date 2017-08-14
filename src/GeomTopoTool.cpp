@@ -40,10 +40,10 @@ const char GEOM_SENSE_N_SENSES_TAG_NAME[] = "GEOM_SENSE_N_SENSES";
 
 const char IMPLICIT_COMPLEMENT_NAME[] = "impl_complement";
   
-GeomTopoTool::GeomTopoTool(Interface *impl, bool find_geoments, EntityHandle modelRootSet, bool contiguous) :
+GeomTopoTool::GeomTopoTool(Interface *impl, bool find_geoments, EntityHandle modelRootSet, bool p_rootSets_vector) :
   mdbImpl(impl), sense2Tag(0), senseNEntsTag(0), senseNSensesTag(0),
   geomTag(0), gidTag(0), modelSet(modelRootSet), updated(false), 
-  setOffset(0), contiguous(contiguous), oneVolRootSet(0)
+  setOffset(0), m_rootSets_vector(p_rootSets_vector), oneVolRootSet(0)
 {
 
   obbTree = new OrientedBoxTreeTool(impl, NULL, true);
@@ -314,7 +314,7 @@ ErrorCode GeomTopoTool::construct_obb_tree(EntityHandle eh)
   MB_CHK_SET_ERR(rval, "Failed to get dimension");
 
   // ensure that the rootSets vector is of the correct size
-  if (contiguous && (eh < setOffset || eh > setOffset + rootSets.size()) ) {
+  if (m_rootSets_vector && (eh < setOffset || eh > setOffset + rootSets.size()) ) {
     rval = resize_rootSets();
     MB_CHK_SET_ERR(rval, "Error setting offset and sizing rootSets vector.");
   }
@@ -396,7 +396,7 @@ ErrorCode GeomTopoTool::construct_obb_tree(EntityHandle eh)
 }
 
 void GeomTopoTool::set_root_set(EntityHandle vol_or_surf, EntityHandle root) {
-      if (contiguous)
+      if (m_rootSets_vector)
         rootSets[vol_or_surf - setOffset] = root;
       else
         mapRootSets[vol_or_surf] = root;  
