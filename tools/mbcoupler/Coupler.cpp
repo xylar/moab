@@ -951,6 +951,10 @@ ErrorCode Coupler::interp_field(EntityHandle elem,
       elemMap = new moab::Element::LinearQuad();
       num_verts = 4;
     }
+    else if (MBTRI == etype) {
+      elemMap = new moab::Element::LinearTri();
+      num_verts = 3;
+    }
     else
       return MB_FAILURE;
 
