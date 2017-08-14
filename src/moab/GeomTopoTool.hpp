@@ -48,7 +48,7 @@ public:
       \param modelRootSet the GTT will operate only on geometric EntitySets contained by this EntitySet. 
                           If unprovided, the default value for the modelRootSet is the MOAB instance's 
                           root set, which contains everything in the instance.
-      \param contiguous determines the storage datastructure used to relate geometric
+      \param m_rootSets_vector determines the storage datastructure used to relate geometric
                         EntitySets to their OrientedBoundingBox (OBB) Tree roots. If
                         set to true (default) a vector will be used to store the root
                         sets along with an EntityHandle offset for fast lookup of the root
@@ -56,7 +56,7 @@ public:
                         EntitySets (keys) to the OBB Tree root sets (values).
    */
   
-  GeomTopoTool(Interface *impl, bool find_geoments = false, EntityHandle modelRootSet = 0, bool contiguous = true);
+  GeomTopoTool(Interface *impl, bool find_geoments = false, EntityHandle modelRootSet = 0, bool m_rootSets_vector = true);
   ~GeomTopoTool();
   
     //! Restore parent/child links between GEOM_TOPO mesh sets
@@ -287,7 +287,7 @@ private:
   EntityHandle setOffset;
   std::vector<EntityHandle> rootSets;
 
-  bool contiguous;
+  bool m_rootSets_vector;
   std::map<EntityHandle, EntityHandle>  mapRootSets;
   EntityHandle oneVolRootSet;
 
@@ -343,7 +343,7 @@ inline int GeomTopoTool::num_ents_of_dim(int dim) {
 // get the root of the obbtree for a given entity
 inline ErrorCode GeomTopoTool::get_root(EntityHandle vol_or_surf, EntityHandle &root) 
 {
-   if(contiguous)
+   if(m_rootSets_vector)
    {
      unsigned int index = vol_or_surf - setOffset;
      root = (index < rootSets.size() ? rootSets[index] : 0);
@@ -354,7 +354,7 @@ inline ErrorCode GeomTopoTool::get_root(EntityHandle vol_or_surf, EntityHandle &
 }
 
 inline ErrorCode GeomTopoTool::remove_root(EntityHandle vol_or_surf) {
-   if(contiguous)
+   if(m_rootSets_vector)
    {
      unsigned int index = vol_or_surf - setOffset;
      if( index < rootSets.size() ) {
