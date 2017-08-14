@@ -54,9 +54,9 @@ public:
                         sets along with an EntityHandle offset for fast lookup of the root
                         sets. If set to false, then a map will be used to link geometric
                         EntitySets (keys) to the OBB Tree root sets (values).
-   */
+   */  
+  GeomTopoTool(Interface *impl, bool find_geoments = false, EntityHandle modelRootSet = 0, bool p_rootSets_vector = true);
   
-  GeomTopoTool(Interface *impl, bool find_geoments = false, EntityHandle modelRootSet = 0, bool m_rootSets_vector = true);
   ~GeomTopoTool();
   
     //! Restore parent/child links between GEOM_TOPO mesh sets
