@@ -48,7 +48,7 @@ public:
       \param modelRootSet the GTT will operate only on geometric EntitySets contained by this EntitySet. 
                           If unprovided, the default value for the modelRootSet is the MOAB instance's 
                           root set, which contains everything in the instance.
-      \param m_rootSets_vector determines the storage datastructure used to relate geometric
+      \param p_rootSets_vector determines the storage datastructure used to relate geometric
                         EntitySets to their OrientedBoundingBox (OBB) Tree roots. If
                         set to true (default) a vector will be used to store the root
                         sets along with an EntityHandle offset for fast lookup of the root
