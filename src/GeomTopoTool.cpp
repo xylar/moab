@@ -239,19 +239,14 @@ ErrorCode GeomTopoTool::resize_rootSets() {
   rval = get_gsets_by_dimension(3, vols);
   MB_CHK_SET_ERR(rval, "Could not get volume sets");
 
-  // find the offset
-  if (vols.empty() && !surfs.empty()) {
-    setOffset = surfs.front();
-  } else if (!vols.empty() && surfs.empty()) {
-    setOffset = vols.front();
-  } else {
-    setOffset = (surfs.front() < vols.front() ? surfs.front() : vols.front());
-  }
-
   // check the vector size
   Range all;
   all.merge(vols);
   all.merge(surfs);
+
+  // update the setOffset
+  setOffset = all.front();
+
   EntityHandle exp_size = all.back() - setOffset + 1;
   
   // if new EnitytHandle(s) are lower than the original offset
