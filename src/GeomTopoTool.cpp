@@ -240,14 +240,14 @@ ErrorCode GeomTopoTool::resize_rootSets() {
   MB_CHK_SET_ERR(rval, "Could not get volume sets");
 
   // check the vector size
-  Range all;
-  all.merge(vols);
-  all.merge(surfs);
+  Range surfs_and_vols;
+  surfs_and_vols = vols;
+  surfs_and_vols.merge(surfs);
 
   // update the setOffset
-  setOffset = all.front();
+  setOffset = surfs_and_vols.front();
 
-  EntityHandle exp_size = all.back() - setOffset + 1;
+  EntityHandle exp_size = surfs_and_vols.back() - setOffset + 1;
   
   // if new EnitytHandle(s) are lower than the original offset
   if ( setOffset < orig_offset ) {
