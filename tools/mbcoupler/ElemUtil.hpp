@@ -278,6 +278,54 @@ namespace ElemUtil {
 
     };// class SphericalQuad
 
+    /**\brief Shape function space for linear triangle, similar to linear tet. */
+      class LinearTri : public Map {
+      public:
+        LinearTri(const std::vector<CartVect>& vertices) : Map(vertices){set_vertices(vertex);};
+        LinearTri();
+        virtual ~LinearTri();
+        /* Override the evaluation routines to take advantage of the properties of P1. */
+        /* similar to tets */
+        virtual CartVect evaluate(const CartVect& xi) const {return this->vertex[0] + this->T*xi;};
+        virtual CartVect ievaluate(const CartVect& x) const {return this->T_inverse*(x-this->vertex[0]);};
+        virtual Matrix3  jacobian(const CartVect& )  const {return this->T;};
+        virtual Matrix3  ijacobian(const CartVect& ) const {return this->T_inverse;};
+        virtual double   det_jacobian(const CartVect& )  const {return this->det_T;};
+        virtual double   det_ijacobian(const CartVect& ) const {return this->det_T_inverse;};
+
+        /* Override set_vertices so we can precompute the matrices effecting the mapping to and from the canonical simplex. */
+        virtual void  set_vertices(const std::vector<CartVect>& v);
+        virtual bool inside_nat_space(const CartVect & xi, double & tol) const;
+
+        virtual double   evaluate_scalar_field(const CartVect& xi, const double *field_vertex_values) const;
+        virtual double   integrate_scalar_field(const double *field_vertex_values) const;
+
+      protected:
+        /* Preimages of the vertices -- "canonical vertices" -- are known as "corners". */
+        static const double corner[3][3];
+        Matrix3 T, T_inverse;
+        double  det_T, det_T_inverse;
+
+      };// class LinearTri
+
+      /**\brief Shape function space for linear triangle on sphere, obtained from the
+       *  canonical linear (affine) functions.
+       *  It is mapped using gnomonic projection to a plane tangent at the first vertex
+       *  It works well for edges that are great circle arcs; RLL meshes  do not have this property, but
+       *  HOMME or MPAS meshes do have it */
+      class SphericalTri : public LinearTri {
+      public:
+        SphericalTri(const std::vector<CartVect>& vertices);
+        virtual ~SphericalTri() {};
+        virtual bool inside_box(const CartVect & pos, double & tol) const;
+        CartVect ievaluate( const CartVect& x, double tol, const CartVect& x0 = CartVect(0.0)) const;
+      protected:
+        CartVect v1;
+        Matrix3 transf; // so will have a lot of stuff, including the transf to a coordinate system
+        //double tangent_plane; // at first vertex; normal to the plane is first vertex
+
+      };// class SphericalTri
+
     /**\brief Shape function space for bilinear quadrilateral, obtained from the canonical linear (affine) functions. */
     class LinearEdge : public Map {
     public:
