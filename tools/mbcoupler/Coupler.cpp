@@ -75,9 +75,7 @@ ErrorCode Coupler::initialize_tree()
     {
       max_dim--;
       result = myPc->get_part_entities(local_ents, max_dim);// go one dimension lower
-      // it is probably spherical, then
-      // fishy argument, fix this:
-      spherical = true;
+      // right now, this is used for spherical meshes only
     }
   }
   else local_ents = myRange;
@@ -830,9 +828,23 @@ ErrorCode Coupler::nat_param(double xyz[3],
         catch (Element::Map::EvaluationError&) {
           continue;
         }
-        if (!sphermap.inside_nat_space(tmp_nat_coords, epsilon))
-          continue;
+
       }
+      else if (MBTRI == etype && spherical) {
+        Element::SphericalTri sphermap(coords_vert);
+        if (!sphermap.inside_box(pos, epsilon))
+          continue;
+        try {
+          tmp_nat_coords = sphermap.ievaluate(pos, epsilon);
+          bool inside = sphermap.inside_nat_space(tmp_nat_coords, epsilon);
+          if (!inside)
+            continue;
+        }
+        catch (Element::Map::EvaluationError&) {
+          continue;
+        }
+      }
+
       else if (MBQUAD == etype) {
         Element::LinearQuad quadmap(coords_vert);
         if (!quadmap.inside_box(pos, epsilon))

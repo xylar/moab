@@ -15,6 +15,7 @@ void test_hex();
 void test_spectral_hex();
 void test_spectral_quad();
 void test_spherical_quad();
+void test_linear_tri();
 
 int main()
 {
@@ -24,6 +25,7 @@ int main()
   rval += RUN_TEST(test_spectral_hex);
   rval += RUN_TEST(test_spectral_quad);
   rval += RUN_TEST(test_spherical_quad);
+  rval += RUN_TEST(test_linear_tri);
   return rval;
 }
 
@@ -341,5 +343,44 @@ void test_spherical_quad()
    CartVect nat_par = squad.ievaluate(x, 0.000001);
    std::cout<< nat_par << "\n";
   }
+  std::cout << "success...\n";
+}
+
+void test_linear_tri()
+{
+  double positions[] =
+  {
+   0, 0, 0,
+   2, 0, 1,
+   0, 3, 0
+  };
+  CartVect x(1, 0.5, 0);
+  std::vector<CartVect> vertices;
+  for (int i=0; i<3; i++)
+    vertices.push_back(CartVect(positions+3*i));
+
+  moab::Element::LinearTri tri(vertices);
+  double tol(0.0001);
+  if (tri.inside_box(x, tol))
+  {
+   CartVect nat_par = tri.ievaluate(x);
+   std::cout<< x << " :" << nat_par << "\n";
+  }
+
+  x = CartVect(0,2,0);
+  if (tri.inside_box(x, tol))
+  {
+   CartVect nat_par = tri.ievaluate(x);
+   std::cout<< x << " :" << nat_par << "\n";
+  }
+
+  x = CartVect(1,0,0.5);
+  if (tri.inside_box(x, tol))
+  {
+   CartVect nat_par = tri.ievaluate(x);
+   std::cout<< x << " :" << nat_par << "\n";
+  }
+
+
   std::cout << "success...\n";
 }
