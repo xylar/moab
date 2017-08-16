@@ -137,6 +137,7 @@ int main(int argc, char *argv[])
   Interface* mb2 = new Core();
   rval = test_root_sets_resize(mb2);
   handle_error_code(rval, number_tests_failed, number_tests_successful);
+  delete mb2;
   std::cout << "\n";
   
   return number_tests_failed;
