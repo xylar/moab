@@ -448,7 +448,7 @@ ErrorCode Coupler::locate_points(double *xyz, unsigned int num_points,
     if (tl_tmp->vi_rd[3*i + 1] == -1) {
       missing_pts++;
 #ifndef NDEBUG
-      printf(" %f %f %f\n", xyz[3*i], xyz[3*i + 1], xyz[3*i + 2]);
+      printf("missing point at index i:  %d -> %15.10f %15.10f %15.10f\n", i, xyz[3*i], xyz[3*i + 1], xyz[3*i + 2]);
 #endif
     }
     else if (tl_tmp->vi_rd[3*i] == (int)my_rank)
