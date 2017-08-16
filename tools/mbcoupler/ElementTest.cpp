@@ -351,7 +351,7 @@ void test_linear_tri()
   double positions[] =
   {
    0, 0, 0,
-   2, 0, 1,
+   2, 0, 0,
    0, 3, 0
   };
   CartVect x(1, 0.5, 0);
@@ -381,6 +381,34 @@ void test_linear_tri()
    std::cout<< x << " :" << nat_par << "\n";
   }
 
+  double positions2[] =
+  {
+    -0.866026, -0.500001, 0.,
+    0.866026,  -0.500001, 0.,
+    0.000000, 100.000000, 0.
+  };
+  x = CartVect(0, 0, 0);
+  std::vector<CartVect> vertices2;
+  for (int i=0; i<3; i++)
+    vertices2.push_back(CartVect(positions2+3*i));
+
+  moab::Element::LinearTri tri2(vertices2);
+
+  if (tri2.inside_box(x, tol))
+  {
+   CartVect nat_par = tri2.ievaluate(x);
+   std::cout<< x << " :" << nat_par << "\n";
+  }
+
+  std::cout << "vertices2 "  << vertices2[0] << " " << vertices2[1] << " " << vertices2[2] << "\n";
+
+  x = CartVect(-0.866026, -0.500001, 0.);
+  std::cout<< x << " :" << tri2.ievaluate(x) << "\n";
+
+  x = CartVect(+0.866026, -0.500001, 0.);
+  std::cout<< x << " :" << tri2.ievaluate(x) << "\n";
+  x = CartVect(0.000000, 100.000000, 0.);
+  std::cout<< x << " :" << tri2.ievaluate(x) << "\n";
 
   std::cout << "success...\n";
 }
