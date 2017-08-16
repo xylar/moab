@@ -319,26 +319,64 @@ ErrorCode Coupler::locate_points(double *xyz, unsigned int num_points,
   // of <local_index, mapped_index>, where mapped_index is the index
   // into the mappedPts tuple list
   for (unsigned int i = 0; i < 3*num_points; i += 3) {
+
+    std::vector<int>  procs_to_send_to;
     for (unsigned int j = 0; j < (myPc ? myPc->proc_config().proc_size() : 0); j++) {
       // Test if point is in proc's box
       if ((allBoxes[6*j] <= xyz[i] + abs_eps) && (xyz[i] <= allBoxes[6*j + 3] + abs_eps) &&
           (allBoxes[6*j + 1] <= xyz[i + 1] + abs_eps) && (xyz[i + 1] <= allBoxes[6*j + 4] + abs_eps) &&
           (allBoxes[6*j + 2] <= xyz[i + 2] + abs_eps) && (xyz[i + 2] <= allBoxes[6*j + 5] + abs_eps)) {
         // If in this proc's box, will send to proc to test further
-        // Check size, grow if we're at max
-        if (target_pts.get_n() == target_pts.get_max())
-          target_pts.resize(std::max(10.0, 1.5*target_pts.get_max()));
-
-        target_pts.vi_wr[2*target_pts.get_n()] = j;
-        target_pts.vi_wr[2*target_pts.get_n() + 1] = i / 3;
-
-        target_pts.vr_wr[3*target_pts.get_n()] = xyz[i];
-        target_pts.vr_wr[3*target_pts.get_n() + 1] = xyz[i + 1];
-        target_pts.vr_wr[3*target_pts.get_n() + 2] = xyz[i + 2];
-        target_pts.inc_n();
+        procs_to_send_to.push_back(j);
       }
     }
-  }
+    if (procs_to_send_to.empty())
+    {
+#ifndef NDEBUG
+      std::cout << " point index " << i/3 << ": " << xyz[i] << " " << xyz[i+1] << " " << xyz[i+2] << " not found in any box\n";
+#endif
+      // try to find the closest box, and put it in that box, anyway
+      double min_dist = 1.e+20;
+      int index = -1;
+      for (unsigned int j = 0; j < (myPc ? myPc->proc_config().proc_size() : 0); j++)
+      {
+        BoundBox box( &allBoxes[6*j]); // form back the box
+        double distance = box.distance(&xyz[i]); // will compute the distance in 3d, from the box
+        if (distance < min_dist)
+        {
+          index = j;
+          min_dist = distance;
+        }
+      }
+      if (index ==-1)
+      {
+        // need to abort early, nothing we can do
+        assert("cannot locate any box for some points");
+        // need a better exit strategy
+      }
+#ifndef NDEBUG
+      std::cout << " point index " << i/3 << " added to box for proc j:" << index << "\n";
+#endif
+      procs_to_send_to.push_back(index); // will send to just one proc, that has the closest box
+    }
+    // we finally decided to populate the tuple list for a list of processors
+    for (size_t k=0; k<procs_to_send_to.size(); k++)
+    {
+      unsigned int j = procs_to_send_to[k];
+      // Check size of tuple list, grow if we're at max
+      if (target_pts.get_n() == target_pts.get_max())
+             target_pts.resize(std::max(10.0, 1.5*target_pts.get_max()));
+
+      target_pts.vi_wr[2*target_pts.get_n()] = j;
+      target_pts.vi_wr[2*target_pts.get_n() + 1] = i / 3;
+
+      target_pts.vr_wr[3*target_pts.get_n()] = xyz[i];
+      target_pts.vr_wr[3*target_pts.get_n() + 1] = xyz[i + 1];
+      target_pts.vr_wr[3*target_pts.get_n() + 2] = xyz[i + 2];
+      target_pts.inc_n();
+    }
+
+  } // end for (unsigned int i = 0; ..
 
   int num_to_me = 0;
   for (unsigned int i = 0; i < target_pts.get_n(); i++)
@@ -674,6 +712,13 @@ ErrorCode Coupler::nat_param(double xyz[3],
   if (epsilon) {
     std::vector<double> dists;
     std::vector<EntityHandle> leaves;
+    if (spherical)
+    {
+      // increase artificially tolerances, because of problems with the
+      // curvature; a better fix is to augment the bounding boxes of spherical
+      // elements with at least middle points of edges and center points
+      epsilon *= 1.e6 ; // this is very large increase; it works for a relatively coarse tri mesh (2000 tris on a sphere)
+    }
     // Two tolerances
     result = myTree->distance_search(xyz, epsilon, leaves,
                                      /*iter_tol*/ epsilon,
@@ -817,8 +862,9 @@ ErrorCode Coupler::nat_param(double xyz[3],
       }
       else if (MBQUAD == etype && spherical) {
         Element::SphericalQuad sphermap(coords_vert);
-        if (!sphermap.inside_box(pos, epsilon))
-          continue;
+        /* skip box test, because it can filter out good elements with high curvature
+         * if (!sphermap.inside_box(pos, epsilon))
+          continue;*/
         try {
           tmp_nat_coords = sphermap.ievaluate(pos, epsilon);
           bool inside = sphermap.inside_nat_space(tmp_nat_coords, epsilon);
@@ -832,8 +878,9 @@ ErrorCode Coupler::nat_param(double xyz[3],
       }
       else if (MBTRI == etype && spherical) {
         Element::SphericalTri sphermap(coords_vert);
-        if (!sphermap.inside_box(pos, epsilon))
-          continue;
+        /* skip box test, because it can filter out good elements with high curvature
+         * if (!sphermap.inside_box(pos, epsilon))
+            continue;*/
         try {
           tmp_nat_coords = sphermap.ievaluate(pos, epsilon);
           bool inside = sphermap.inside_nat_space(tmp_nat_coords, epsilon);
