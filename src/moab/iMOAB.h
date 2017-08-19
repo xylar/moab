@@ -584,6 +584,34 @@ ErrCode iMOAB_GetNeighborElements(iMOAB_AppID pid, iMOAB_LocalID * local_index, 
 */
 ErrCode iMOAB_GetNeighborVertices(iMOAB_AppID pid, iMOAB_LocalID* local_vertex_ID, int* num_adjacent_vertices, iMOAB_LocalID* adjacent_vertex_IDs);
 
+#ifdef MOAB_HAVE_MPI
+/**
+  \brief migrate (send) a set of elements from one processor to another
+  <B>Operations:</B> Not Collective
+
+   \param[in]  pid (iMOAB_AppID)                      The unique pointer to the application ID source mesh
+   \param[in]  sender (MPI_Comm)                      communicator of sender
+   \param[in]  global (MPI_Comm)                      communicator that overlaps both groups
+   \param[in]  receivingGroup (MPI_Group *)           receiving group
+   \param[in]  target_pid                             target application to receive the mesh
+ */
+
+ErrCode iMOAB_SendElements(iMOAB_AppID pid, MPI_Comm * sender, MPI_Comm * global, MPI_Group * receivingGroup, iMOAB_AppID target_pid);
+/**
+  \brief migrate (receive) a set of elements from another processor
+  <B>Operations:</B> Not Collective
+
+   \param[in]  pid (iMOAB_AppID)                      The unique pointer to the application ID source mesh (receiver)
+   \param[in]  receive (MPI_Comm)                     communicator of receiver
+   \param[in]  global (MPI_Comm)                      communicator that overlaps both groups
+   \param[in]  sendingGroup (MPI_Group *)             sending group
+   \param[in]  source_pid ( iMOAB_AppID)              Application that sent the mesh
+ */
+
+ErrCode iMOAB_ReceiveElements(iMOAB_AppID pid, MPI_Comm * receive, MPI_Comm * global, MPI_Group * sendingGroup, iMOAB_AppID source_pid);
+
+#endif
+
 #ifdef __cplusplus
 }
 #endif

@@ -1382,6 +1382,17 @@ ErrCode iMOAB_DetermineGhostEntities(  iMOAB_AppID pid, int * ghost_dim, int *nu
 #endif
   return 0;
 }
+#ifdef MOAB_HAVE_MPI
+ErrCode iMOAB_SendElements(iMOAB_AppID pid, MPI_Comm * sender, MPI_Comm * global, MPI_Group * receivingGroup, iMOAB_AppID target_pid)
+{
+  return 0;
+}
+ErrCode iMOAB_ReceiveElements(iMOAB_AppID pid, MPI_Comm * receive, MPI_Comm * global, MPI_Group * sendingGroup, iMOAB_AppID source_pid)
+{
+  return 0;
+}
+#endif
+
 #ifdef __cplusplus
 }
 #endif
