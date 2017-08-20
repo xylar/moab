@@ -49,6 +49,8 @@ struct appData {
   Range owned_elems;
   Range ghost_elems;
   int dimension; // 2 or 3, dimension of primary elements (redundant?)
+  long num_global_elements; // reunion of all elements in primary_elements; either from hdf5 reading or from reduce
+  long num_global_vertices; // reunion of all nodes, after sharing is resolved; it could be determined from hdf5 reading
   Range mat_sets;
   std::map<int, int> matIndex; // map from global block id to index in mat_sets
   Range neu_sets;
@@ -1382,9 +1384,204 @@ ErrCode iMOAB_DetermineGhostEntities(  iMOAB_AppID pid, int * ghost_dim, int *nu
 #endif
   return 0;
 }
+
+ErrCode iMOAB_SetGlobalInfo(iMOAB_AppID pid, int * num_global_verts, int * num_global_elems)
+{
+  appData & data = context.appDatas[*pid];
+  data.num_global_vertices = *num_global_verts;
+  data.num_global_elements = *num_global_elems;
+}
+
+
 #ifdef MOAB_HAVE_MPI
+
+// local, find global info from number of owned local verts and elements, reduced, then reset
+ErrCode compute_elems_per_part(iMOAB_AppID pid, std::vector<int> & number_elems_per_part)
+{
+  // compute from number of owned vertices and elements, reduced
+  appData & data = context.appDatas[*pid];
+  ParallelComm * pco = context.pcomms[*pid];
+  Range & owned = data.owned_elems;
+  int local_owned_elem = (int) owned.size();
+  int size = pco->size();
+  int rank = pco->rank();
+  number_elems_per_part.resize(size); //
+  number_elems_per_part[rank] = local_owned_elem;
+  int mpi_err;
+#if (MPI_VERSION >= 2)
+    // Use "in place" option
+  mpi_err = MPI_Allgather(MPI_IN_PLACE, 0, MPI_DATATYPE_NULL,
+                            &number_elems_per_part[0], 1, MPI_INTEGER,
+                            pco->proc_config().proc_comm());
+#else
+  {
+    std::vector<int> all_tmp(size);
+    mpi_err = MPI_Allgather(&number_elems_per_part[rank], 1, MPI_INTEGER,
+                            &all_tmp[0], 1, MPI_INTEGER,
+                            pco->proc_config().proc_comm());
+    number_elems_per_part = all_tmp;
+  }
+#endif
+  return mpi_err;
+}
+
+// utility to find out the ranks of the processes of a group, with respect to a global comm
+void find_group_ranks(MPI_Group group, MPI_Comm global, std::vector<int> & ranks)
+{
+   MPI_Group global_grp;
+   MPI_Comm_group(global, &global_grp);
+
+   int grp_size;
+
+   MPI_Group_size(group, &grp_size);
+   std::vector<int> rks (grp_size);
+   ranks.resize(grp_size);
+
+   for (int i = 0; i < grp_size; i++)
+     rks[i] = i;
+
+   MPI_Group_translate_ranks(group, grp_size, &rks[0], global_grp, &ranks[0]);
+   MPI_Group_free(&global_grp);
+   return;
+}
+// utility to find out the ranks of the processes of a comm, with respect to a global comm
+void find_comm_ranks(MPI_Comm comm, MPI_Comm global, std::vector<int> & ranks)
+{
+   MPI_Group grp;
+   MPI_Comm_group(comm, &grp);
+
+   find_group_ranks(grp, global, ranks);
+   return;
+}
+// distribute per receiving rank, from the total number of elements
+// range will be distributed to some receiving ranks
+//
+void trivial_partition (int sender_rank, std::vector<int> & recvRanks,  std::vector<int> & number_elems_per_part,
+    Range & owned, std::map<int, Range> & ranges_to_send)
+{
+  // first find out total number of elements to be sent from all senders
+  int total_elems=0;
+  for (size_t k=0; k<number_elems_per_part.size(); k++)
+    total_elems+=number_elems_per_part[k];
+
+  assert ( (int) (owned.size()) == number_elems_per_part[sender_rank]);
+
+  int num_recv  =  ((int)recvRanks.size());
+  // in trivial partition, every receiver should get about total_elems/num_receivers elements
+  int num_per_receiver = (int)(total_elems/num_recv);
+  int leftover = total_elems - num_per_receiver*num_recv;
+
+  // so receiver k will receive  [starts[k], starts[k+1] ) interval
+  std::vector<int> starts; starts.resize(num_recv+1);
+  starts[0]=0;
+  for (int k=0; k<num_recv; k++)
+  {
+    starts[k+1] = starts[k]+  num_per_receiver;
+    if (k<leftover) starts[k+1]++;
+  }
+
+  int elems_before_sender_rank = -1;
+  for (int k=0; k<sender_rank-1; k++)
+    elems_before_sender_rank += number_elems_per_part[k];
+
+  // receiver at index_recv will start receiving from owned range
+  // find rank j that will receive the first subrange
+  int j = 0;
+
+  while (starts[j] < elems_before_sender_rank )
+    j++;
+
+  /// so first element in range will go to receiver j interval:  [ starts[j], starts[j+1] )
+  ranges_to_send[ recv_ranks[j] ] = owned; // get the full range first, then we will subtract stuff, fot
+  // the following ranges
+  Range current = owned;
+  while (elems_before_sender_rank + owned.size() > starts[j+1] )
+  {
+    Range & current = ranges_to_send[ recv_ranks[j] ] ; // previous range that needs to be chopped off
+    int in_group_j =
+  }
+
+  return;
+}
+
 ErrCode iMOAB_SendElements(iMOAB_AppID pid, MPI_Comm * sender, MPI_Comm * global, MPI_Group * receivingGroup, iMOAB_AppID target_pid)
 {
+  appData & data = context.appDatas[*pid];
+  ParallelComm * pco = context.pcomms[*pid];
+
+  // first see what are the processors in each group; get the sender group too, from the sender communicator
+  MPI_Group senderGroup, allGroup;
+  int ierr= MPI_Comm_group(*sender, &senderGroup);
+  if (ierr!=0)
+    return 1;
+  std::vector<int> senderRanks;
+  // find global ranks for sender
+  find_comm_ranks(*sender, *global, senderRanks);
+
+  std::vector<int> recvRanks;
+  // find global ranks for receiver
+  find_group_ranks(*receivingGroup, *global, recvRanks);
+
+  int sender_rank=-1;
+  MPI_Comm_rank(*sender, &sender_rank);
+  if (0==sender_rank)
+  {
+    std::cout << " sender tasks:" ;
+    for (size_t j=0; j< senderRanks.size(); j++)
+      std::cout << " " << senderRanks[j];
+    std::cout << "\n";
+
+    std::cout << " receiver tasks:" ;
+    for (size_t j=0; j< recvRanks.size(); j++)
+      std::cout << " " << recvRanks[j];
+    std::cout << "\n";
+
+  }
+
+  // decide how to distribute elements to each processor
+  // now, get the entities on local processor, and pack them into a buffer for various processors
+  // we will do trivial partition: first get the total number of elements from "sender"
+  std::vector<int> number_elems_per_part;
+  ierr = compute_elems_per_part(pid, number_elems_per_part);
+  if (ierr!=0)
+    return 1;
+
+  int local_sender_rank =-1;
+  ierr = MPI_Group_rank(*sender, &local_sender_rank);
+  if (ierr!=0)
+    return 1;
+
+
+  // how to distribute local elements to receiving tasks?
+  // trivial partition: compute first the total number of elements need to be sent
+  Range & owned = context.appDatas[*pid].owned_elems;
+  std::map<int, Range> ranges_to_send;
+  trivial_partition (sender_rank, recvRanks, number_elems_per_part, owned, ranges_to_send);
+
+  for (std::map<int, Range>::iterator it=ranges_to_send.begin(); it!=ranges_to_send.end(); it++)
+  {
+    int receiver_proc = it->first;
+    Range & elems = it->second;
+    ParallelComm::Buffer buffer;
+    /*ErrorCode pack_buffer(Range &orig_ents,
+            const bool adjacencies,
+            const bool tags,
+            const bool store_remote_handles,
+            const int to_proc,
+            Buffer *buff,
+            TupleList *entprocs = NULL,
+            Range *allsent = NULL);*/
+    ErrorCode rval = pco->pack_buffer(elems, false, true, false, receiver_proc, &buffer); if (rval!=MB_SUCCESS) return 1;
+    int size_pack = buffer.get_current_size();
+    // int MPI_Send(const void *buf, int count, MPI_Datatype datatype, int dest, int tag,  MPI_Comm comm)
+
+    ierr = MPI_Send(&size_pack, 1, MPI_INT, receiver_proc, 1, *global); // we have to use global communicator
+    if (ierr!=0) return 1;
+
+    ierr = MPI_Send(buffer.mem_ptr, size_pack, MPI_CHAR, receiver_proc, 2, *global); // we have to use global communicator
+    if (ierr!=0) return 1;
+
+  }
   return 0;
 }
 ErrCode iMOAB_ReceiveElements(iMOAB_AppID pid, MPI_Comm * receive, MPI_Comm * global, MPI_Group * sendingGroup, iMOAB_AppID source_pid)

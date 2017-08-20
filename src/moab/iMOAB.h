@@ -584,6 +584,16 @@ ErrCode iMOAB_GetNeighborElements(iMOAB_AppID pid, iMOAB_LocalID * local_index, 
 */
 ErrCode iMOAB_GetNeighborVertices(iMOAB_AppID pid, iMOAB_LocalID* local_vertex_ID, int* num_adjacent_vertices, iMOAB_LocalID* adjacent_vertex_IDs);
 
+/**
+   \brief Set global information for number of vertices and number of elements
+   it is usually available from hdf5 file or it can be computed with MPI_Reduce
+   \param[in]  pid (iMOAB_AppID)                      The unique pointer to the application ID
+   \param[in]  num_global_verts (int*)                number of total vertices
+   \param[in]  global (MPI_Comm)                      number of total elements
+ */
+
+ErrCode iMOAB_SetGlobalInfo(iMOAB_AppID pid, int * num_global_verts, int * num_global_elems);
+
 #ifdef MOAB_HAVE_MPI
 /**
   \brief migrate (send) a set of elements from one processor to another
