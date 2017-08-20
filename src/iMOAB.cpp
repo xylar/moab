@@ -1480,29 +1480,48 @@ void trivial_partition (int sender_rank, std::vector<int> & recvRanks,  std::vec
     if (k<leftover) starts[k+1]++;
   }
 
-  int elems_before_sender_rank = -1;
-  for (int k=0; k<sender_rank-1; k++)
+  std::cout << " intervals partitions: " ;
+  for (int k=0; k< (int)starts.size(); k++)
+  {
+    std::cout<<" " << starts[k];
+  }
+  std::cout << "\n";
+
+  int elems_before_sender_rank = 0;
+  for (int k=0; k<sender_rank; k++)
     elems_before_sender_rank += number_elems_per_part[k];
+
 
   // receiver at index_recv will start receiving from owned range
   // find rank j that will receive the first subrange
   int j = 0;
 
-  while (starts[j] < elems_before_sender_rank )
+  while (starts[j+1] < elems_before_sender_rank )
     j++;
 
   /// so first element in range will go to receiver j interval:  [ starts[j], starts[j+1] )
-  ranges_to_send[ recv_ranks[j] ] = owned; // get the full range first, then we will subtract stuff, fot
+  Range current = owned; // get the full range first, then we will subtract stuff, fot
   // the following ranges
-  Range current = owned;
-  while (elems_before_sender_rank + owned.size() > starts[j+1] )
+  int current_index = elems_before_sender_rank;
+  Range rleftover=current;
+  while (elems_before_sender_rank + (int)owned.size() > starts[j+1] )
   {
-    Range & current = ranges_to_send[ recv_ranks[j] ] ; // previous range that needs to be chopped off
-    int in_group_j =
+
+    int upper_number = starts[j+1]-current_index;
+    Range newr;
+    newr.insert(current.begin(), current.begin() +upper_number);
+    ranges_to_send[ recvRanks[j] ] = newr;
+
+    rleftover = subtract(current, newr );
+    current_index = starts[j+1];
+    j++;
   }
+  if (!rleftover.empty())
+    ranges_to_send[ recvRanks[j] ] = rleftover;
 
   return;
 }
+
 
 ErrCode iMOAB_SendElements(iMOAB_AppID pid, MPI_Comm * sender, MPI_Comm * global, MPI_Group * receivingGroup, iMOAB_AppID target_pid)
 {
