@@ -1496,7 +1496,7 @@ void trivial_partition (int sender_rank, std::vector<int> & recvRanks,  std::vec
   // find rank j that will receive the first subrange
   int j = 0;
 
-  while (starts[j+1] < elems_before_sender_rank )
+  while (starts[j+1] <= elems_before_sender_rank )
     j++;
 
   /// so first element in range will go to receiver j interval:  [ starts[j], starts[j+1] )
@@ -1513,6 +1513,7 @@ void trivial_partition (int sender_rank, std::vector<int> & recvRanks,  std::vec
     ranges_to_send[ recvRanks[j] ] = newr;
 
     rleftover = subtract(current, newr );
+    current = rleftover;
     current_index = starts[j+1];
     j++;
   }
@@ -1522,6 +1523,55 @@ void trivial_partition (int sender_rank, std::vector<int> & recvRanks,  std::vec
   return;
 }
 
+// will find each who is sending data to each receiver
+// will be sent from rank 0 of senders to rank 0 of communicators, so the receivers are informed
+// who is about to send elements to them; each receiver need to post receives from the senders for
+// their data
+void senders_trivial_partition(std::vector<int> & sndrRanks, std::vector<int> & number_elems_per_part,
+    std::vector<int> & recvRanks, std::map<int, std::vector<int> > & recv_sets)
+{
+  // first find out total number of elements to be sent from all senders
+  int total_elems=0;
+  std::vector<int> accum;
+  accum.push_back(0);
+
+  int num_senders = (int) sndrRanks.size();
+
+  for (size_t k=0; k<number_elems_per_part.size(); k++)
+  {
+    total_elems+=number_elems_per_part[k];
+    accum.push_back(total_elems);
+  }
+
+  int num_recv  =  ((int)recvRanks.size());
+  // in trivial partition, every receiver should get about total_elems/num_receivers elements
+  int num_per_receiver = (int)(total_elems/num_recv);
+  int leftover = total_elems - num_per_receiver*num_recv;
+
+  // so receiver k will receive  [starts[k], starts[k+1] ) interval
+  std::vector<int> starts; starts.resize(num_recv+1);
+  starts[0]=0;
+  for (int k=0; k<num_recv; k++)
+  {
+    starts[k+1] = starts[k]+  num_per_receiver;
+    if (k<leftover) starts[k+1]++;
+  }
+
+  for (int j = 0; j < num_senders; j++ )
+  {
+    for (int k = 0; k<num_recv; k++ )
+    {
+      // if overlap:
+      if (starts[k]<accum[j+1] && starts[k+1]> accum[j] )
+      {
+        recv_sets[ recvRanks[k]].push_back(sndrRanks[j]);
+        if (starts[k] > accum[j+1])
+          break ; // break the k loop
+      }
+    }
+  }
+
+}
 
 ErrCode iMOAB_SendElements(iMOAB_AppID pid, MPI_Comm * sender, MPI_Comm * global, MPI_Group * receivingGroup, iMOAB_AppID target_pid)
 {
@@ -1566,7 +1616,7 @@ ErrCode iMOAB_SendElements(iMOAB_AppID pid, MPI_Comm * sender, MPI_Comm * global
     return 1;
 
   int local_sender_rank =-1;
-  ierr = MPI_Group_rank(*sender, &local_sender_rank);
+  ierr = MPI_Group_rank(senderGroup, &local_sender_rank);
   if (ierr!=0)
     return 1;
 
@@ -1576,6 +1626,41 @@ ErrCode iMOAB_SendElements(iMOAB_AppID pid, MPI_Comm * sender, MPI_Comm * global
   Range & owned = context.appDatas[*pid].owned_elems;
   std::map<int, Range> ranges_to_send;
   trivial_partition (sender_rank, recvRanks, number_elems_per_part, owned, ranges_to_send);
+
+  // will need to build a communication graph, because each sender knows now to which receiver to send data
+  // the receivers need to post receives for each sender that will send data to them
+  // will need to gather on rank 0 on the sender comm, global ranks of sender with receivers to send
+  // build communication matrix, each receiver will receive from what sender
+  std::map<int, std::vector<int> > recv_sets; // map from receiver to its senders (in global space)
+  // each receiver k will receive from senders recv_sets[k]
+
+  if (0==sender_rank)
+  {
+    senders_trivial_partition(senderRanks, number_elems_per_part, recvRanks, recv_sets);
+    // will have to send to the receiver rank 0 in their communicator (recvRanks[0])
+    std::vector<int> packed_array;
+    /*
+     * packed_array will have receiver, number of senders, then senders, etc
+     */
+    for (std::map<int, std::vector<int> >::iterator it=recv_sets.begin(); it!=recv_sets.end(); it++ )
+    {
+      int recv = it->first;
+      std::vector<int> & senders = it->second;
+      packed_array.push_back(recv);
+      packed_array.push_back( (int) senders.size() );
+
+      for (int k = 0; k<(int)senders.size(); k++ )
+        packed_array.push_back( senders[k] );
+    }
+    int size_pack_array = (int) packed_array.size();
+    /// use tag 10 to send size and tag 20 to send the packed array
+    ierr = MPI_Send(&size_pack_array, 1, MPI_INT, recvRanks[0], 10, *global); // we have to use global communicator
+    if (ierr!=0) return 1;
+    ierr = MPI_Send(&packed_array[0], size_pack_array, MPI_INT, recvRanks[0], 20, *global); // we have to use global communicator
+    if (ierr!=0) return 1;
+
+  }
+
 
   for (std::map<int, Range>::iterator it=ranges_to_send.begin(); it!=ranges_to_send.end(); it++)
   {
