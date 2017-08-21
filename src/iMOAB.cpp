@@ -1390,6 +1390,7 @@ ErrCode iMOAB_SetGlobalInfo(iMOAB_AppID pid, int * num_global_verts, int * num_g
   appData & data = context.appDatas[*pid];
   data.num_global_vertices = *num_global_verts;
   data.num_global_elements = *num_global_elems;
+  return 0;
 }
 
 
@@ -1575,11 +1576,11 @@ void senders_trivial_partition(std::vector<int> & sndrRanks, std::vector<int> & 
 
 ErrCode iMOAB_SendElements(iMOAB_AppID pid, MPI_Comm * sender, MPI_Comm * global, MPI_Group * receivingGroup, iMOAB_AppID target_pid)
 {
-  appData & data = context.appDatas[*pid];
+  //appData & data = context.appDatas[*pid];
   ParallelComm * pco = context.pcomms[*pid];
 
   // first see what are the processors in each group; get the sender group too, from the sender communicator
-  MPI_Group senderGroup, allGroup;
+  MPI_Group senderGroup;
   int ierr= MPI_Comm_group(*sender, &senderGroup);
   if (ierr!=0)
     return 1;
@@ -1665,8 +1666,12 @@ ErrCode iMOAB_SendElements(iMOAB_AppID pid, MPI_Comm * sender, MPI_Comm * global
   for (std::map<int, Range>::iterator it=ranges_to_send.begin(); it!=ranges_to_send.end(); it++)
   {
     int receiver_proc = it->first;
-    Range & elems = it->second;
-    ParallelComm::Buffer buffer;
+    Range ents = it->second;
+    // add necessary vertices too
+    Range verts;
+    context.MBI->get_adjacencies(ents, 0, false, verts, Interface::UNION);
+    ents.merge(verts);
+    ParallelComm::Buffer buffer(ParallelComm::INITIAL_BUFF_SIZE);
     /*ErrorCode pack_buffer(Range &orig_ents,
             const bool adjacencies,
             const bool tags,
@@ -1675,7 +1680,7 @@ ErrCode iMOAB_SendElements(iMOAB_AppID pid, MPI_Comm * sender, MPI_Comm * global
             Buffer *buff,
             TupleList *entprocs = NULL,
             Range *allsent = NULL);*/
-    ErrorCode rval = pco->pack_buffer(elems, false, true, false, receiver_proc, &buffer); if (rval!=MB_SUCCESS) return 1;
+    ErrorCode rval = pco->pack_buffer(ents, false, true, false, -1, &buffer); if (rval!=MB_SUCCESS) return 1;
     int size_pack = buffer.get_current_size();
     // int MPI_Send(const void *buf, int count, MPI_Datatype datatype, int dest, int tag,  MPI_Comm comm)
 
@@ -1688,8 +1693,138 @@ ErrCode iMOAB_SendElements(iMOAB_AppID pid, MPI_Comm * sender, MPI_Comm * global
   }
   return 0;
 }
-ErrCode iMOAB_ReceiveElements(iMOAB_AppID pid, MPI_Comm * receive, MPI_Comm * global, MPI_Group * sendingGroup, iMOAB_AppID source_pid)
+ErrCode iMOAB_ReceiveElements(iMOAB_AppID pid, MPI_Comm * receive, MPI_Comm * global, MPI_Group * sendingGroup,
+    iMOAB_AppID source_pid)
 {
+
+  ParallelComm * pco = context.pcomms[*pid];
+
+  // first see what are the processors in each group; get the sender group too, from the sender communicator
+  MPI_Group receiverGroup;
+  int ierr= MPI_Comm_group(*receive, &receiverGroup);
+  if (ierr!=0)
+    return 1;
+  std::vector<int> senderRanks;
+  std::vector<int> recvRanks;
+  // find global ranks for receivers
+  find_comm_ranks(*receive, *global, recvRanks);
+  // find global ranks for senders
+  find_group_ranks(*sendingGroup, *global, senderRanks);
+
+  int receiver_rank=-1;
+  MPI_Comm_rank(*receive, &receiver_rank);
+  if (0==receiver_rank)
+  {
+    std::cout << " sender tasks:" ;
+    for (size_t j=0; j< senderRanks.size(); j++)
+      std::cout << " " << senderRanks[j];
+    std::cout << "\n";
+
+    std::cout << " receiver tasks:" ;
+    for (size_t j=0; j< recvRanks.size(); j++)
+      std::cout << " " << recvRanks[j];
+    std::cout << "\n";
+
+  }
+  // first, receive from sender_rank 0, the communication graph (matrix), so each receiver
+  // knows what data to expect
+  int size_pack_array;
+  std::vector<int> pack_array;
+  MPI_Status status;
+  if (0==receiver_rank)
+  {
+    /*
+     * corresponding to these:
+     *
+        ierr = MPI_Send(&size_pack_array, 1, MPI_INT, recvRanks[0], 10, *global); // we have to use global communicator
+        if (ierr!=0) return 1;
+        ierr = MPI_Send(&packed_array[0], size_pack_array, MPI_INT, recvRanks[0], 20, *global); // we have to use global communicator
+        if (ierr!=0) return 1;
+        MPI_Recv(
+          void* data,
+          int count,
+          MPI_Datatype datatype,
+          int source,
+          int tag,
+          MPI_Comm communicator,
+          MPI_Status* status)
+     */
+    ierr = MPI_Recv (&size_pack_array, 1, MPI_INT, senderRanks[0], 10, *global, &status);
+    if (0!=ierr) return 1;
+    std::cout <<" receive comm graph size: " << size_pack_array << "\n";
+    pack_array.resize (size_pack_array);
+    ierr = MPI_Recv (&pack_array[0], size_pack_array, MPI_INT, senderRanks[0], 20, *global, &status);
+    if (0!=ierr) return 1;
+    std::cout <<" receive comm graph " ;
+    for (int k=0; k<(int)pack_array.size(); k++)
+      std::cout << " " << pack_array[k];
+    std::cout <<"\n";
+  }
+
+  // now broadcast this whole array to all receivers, so they know what to expect
+  MPI_Bcast(&size_pack_array, 1, MPI_INT, 0, *receive);
+  pack_array.resize(size_pack_array);
+  MPI_Bcast(&pack_array[0], size_pack_array, MPI_INT, 0, *receive);
+  // now identify for current task, where are we getting data from
+  if (0==receiver_rank)
+    std::cout << " broadcasted comm array over receiver communicator\n";
+
+  // senders across for the current receiver
+  int current_receiver = recvRanks[receiver_rank];
+
+  std::vector<int> senders_local;
+  for (int k=0; k<(int)pack_array.size(); k++)
+  {
+    if (current_receiver == pack_array[k])
+    {
+      for (int j=0; j< pack_array[k+1]; j++)
+        senders_local.push_back(pack_array[k+1+j]);
+      break;
+    }
+    k = k + pack_array[k+1];
+  }
+  if (!senders_local.empty())
+  {
+    std:: cout << " receiver " << current_receiver << " at rank " <<
+        receiver_rank << " will receive from " << senders_local.size() << " tasks.\n";
+
+    for (int k=0; k<(int)senders_local.size(); k++)
+    {
+      int sender = senders_local[k]; // first receive the size of the buffer
+      /*
+       * corr to this:
+        ierr = MPI_Send(&size_pack, 1, MPI_INT, receiver_proc, 1, *global);
+       */
+      int size_pack;
+      ierr = MPI_Recv (&size_pack, 1, MPI_INT, sender, 1, *global, &status);
+      if (0!=ierr) return 1;
+      // now resize the buffeer, then receive it
+      ParallelComm::Buffer buff(size_pack);
+      /*
+       * corr to this:
+         ierr = MPI_Send(buffer.mem_ptr, size_pack, MPI_CHAR, receiver_proc, 2, *global);
+       */
+      ierr = MPI_Recv (buff.mem_ptr, size_pack, MPI_CHAR, sender, 2, *global, &status);
+      if (0!=ierr) return 1;
+      // now unpack the buffer we just received
+      Range entities;
+      std::vector<std::vector<EntityHandle> > L1hloc, L1hrem;
+      std::vector<std::vector<int> > L1p;
+      std::vector<EntityHandle> L2hloc, L2hrem;
+      std::vector<unsigned int> L2p;
+      buff.reset_ptr(sizeof(int));
+      std::vector<EntityHandle> entities_vec(entities.size());
+      std::copy(entities.begin(), entities.end(), entities_vec.begin());
+      ErrorCode rval = pco->unpack_buffer(buff.buff_ptr, false, -1, -1, L1hloc, L1hrem, L1p, L2hloc,
+                                  L2hrem, L2p, entities_vec);
+      if (MB_SUCCESS!= rval) return 1;
+      //CHECK_ERR(rval);
+      std::copy(entities_vec.begin(), entities_vec.end(), range_inserter(entities));
+    }
+
+  }
+
+
   return 0;
 }
 #endif
