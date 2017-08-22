@@ -40,10 +40,10 @@ const char GEOM_SENSE_N_SENSES_TAG_NAME[] = "GEOM_SENSE_N_SENSES";
 
 const char IMPLICIT_COMPLEMENT_NAME[] = "impl_complement";
   
-GeomTopoTool::GeomTopoTool(Interface *impl, bool find_geoments, EntityHandle modelRootSet) :
+GeomTopoTool::GeomTopoTool(Interface *impl, bool find_geoments, EntityHandle modelRootSet, bool p_rootSets_vector) :
   mdbImpl(impl), sense2Tag(0), senseNEntsTag(0), senseNSensesTag(0),
   geomTag(0), gidTag(0), modelSet(modelRootSet), updated(false), 
-  setOffset(0), contiguous(true), oneVolRootSet(0)
+  setOffset(0), m_rootSets_vector(p_rootSets_vector), oneVolRootSet(0)
 {
 
   obbTree = new OrientedBoxTreeTool(impl, NULL, true);
@@ -206,70 +206,9 @@ ErrorCode GeomTopoTool::find_geomsets(Range *ranges)
     {
       ranges[i] = geomRanges[i];
     }
-  }
+ }
 
   return MB_SUCCESS;
-}
-
-void GeomTopoTool::set_contiguous(bool new_value)
-{
-  ErrorCode rval; 
-
-  if(contiguous != new_value)
-    {
-       // get all surfaces and volumes
-       Range surfs, vols;
-       rval = get_gsets_by_dimension(3, vols);
-       MB_CHK_SET_ERR_RET(rval, "Failed to get volume entity set");
-
-       rval = get_gsets_by_dimension(2, surfs);
-       MB_CHK_SET_ERR_RET(rval, "Failed to get surface entity set");
-
-       // combine surfs and vols into one range
-       Range surfs_and_vols;
-       surfs_and_vols.merge(surfs);
-       surfs_and_vols.merge(vols);
-
-       // changing from true to false; vector to map
-       if(contiguous == true && rootSets.size() != 0)
-         { 
-           // clear out rootSet map and reset it
-           mapRootSets.clear();
-           for(Range::iterator it = surfs_and_vols.begin(); it != surfs_and_vols.end(); ++it)
-             {
-               EntityHandle root;
-               rval = get_root(*it, root);
-               MB_CHK_SET_ERR_RET(rval, "Failed to get root");
-               if (root != 0)
-                 {
-                   mapRootSets[*it] = root;
-                 }
-               
-             }
-           rootSets.clear();
-         }  
-       
-       // changing from false to true; map to vector
-       if(contiguous == false && mapRootSets.size() != 0)
-         {
-           rootSets.clear();
-           rootSets.resize(surfs_and_vols.size());
-           for(Range::iterator it = surfs_and_vols.begin(); it != surfs_and_vols.end(); ++it)
-             {
-               EntityHandle root;
-               rval = get_root(*it, root);
-               MB_CHK_SET_ERR_RET(rval, "Failed to get root");
-              
-               if(mapRootSets.find(*it) != mapRootSets.end())
-                 {
-                   rootSets[*it-setOffset] = mapRootSets[*it];
-                 } 
-             }
-         }
-    }
-
-   // set contiguous variable to the new value
-   contiguous = new_value;
 }
 
 ErrorCode GeomTopoTool::get_gsets_by_dimension(int dim, Range &gset)
@@ -285,10 +224,14 @@ ErrorCode GeomTopoTool::get_gsets_by_dimension(int dim, Range &gset)
    return MB_SUCCESS;
 }
 
-ErrorCode GeomTopoTool::update_contiguous()
-{
-  ErrorCode rval;
 
+ErrorCode GeomTopoTool::resize_rootSets() {
+
+  ErrorCode rval;
+  
+  // store original offset for later
+  EntityHandle orig_offset = setOffset;
+  
   // get all surfaces and volumes
   Range surfs, vols;
   rval = get_gsets_by_dimension(2, surfs);
@@ -296,47 +239,29 @@ ErrorCode GeomTopoTool::update_contiguous()
   rval = get_gsets_by_dimension(3, vols);
   MB_CHK_SET_ERR(rval, "Could not get volume sets");
 
-  // find the offset
-  if (vols.empty() && !surfs.empty()) {
-    setOffset = surfs.front();
-  } else if (!vols.empty() && surfs.empty()) {
-    setOffset = vols.front();
-  } else {
-    setOffset = (surfs.front() < vols.front() ? surfs.front() : vols.front());
+  // check the vector size
+  Range surfs_and_vols;
+  surfs_and_vols = vols;
+  surfs_and_vols.merge(surfs);
+
+  // update the setOffset
+  setOffset = surfs_and_vols.front();
+
+  EntityHandle exp_size = surfs_and_vols.back() - setOffset + 1;
+  
+  // if new EnitytHandle(s) are lower than the original offset
+  if ( setOffset < orig_offset ) {
+    // insert empty values at the beginning of the vector
+    rootSets.insert(rootSets.begin(),orig_offset-setOffset,0);
   }
 
-  EntityHandle minSet = setOffset;
-  EntityHandle maxSet = setOffset;
-  Range::iterator it;
-  for (it = surfs.begin(); it != surfs.end(); ++it) {
-    EntityHandle sf = *it;
-    if (sf > maxSet)
-      maxSet = sf;
-    if (sf < minSet)
-      minSet = sf;
+  if ( exp_size != rootSets.size() ) {
+    // resize rootSets vector if necessary (new space will be added at the back)
+    rootSets.resize(exp_size);
   }
-
-  for (it = vols.begin(); it != vols.end(); ++it) {
-    EntityHandle sf = *it;
-    if (sf > maxSet)
-      maxSet = sf;
-    if (sf < minSet)
-      minSet = sf;
-  }
-
-  // find out if ent sets are contiguous or not, and set contiguous variable
-  if (surfs.size() + vols.size() == maxSet - minSet + 1)
-    {
-      set_contiguous(true);
-      rootSets.resize(surfs.size() + vols.size());
-    }
-  else
-    {
-      set_contiguous(false); // need map arrangements
-    }
-
+  
   return MB_SUCCESS;
-}
+}  
 
 ErrorCode GeomTopoTool::is_owned_set(EntityHandle eh) {
   // make sure entity set is part of the model
@@ -388,9 +313,11 @@ ErrorCode GeomTopoTool::construct_obb_tree(EntityHandle eh)
   rval = mdbImpl->tag_get_data(geomTag, &eh, 1, &dim);
   MB_CHK_SET_ERR(rval, "Failed to get dimension");
 
-  rval = update_contiguous();
-  MB_CHK_SET_ERR(rval, "Failed to check contiguity");
-
+  // ensure that the rootSets vector is of the correct size
+  if (m_rootSets_vector && (eh < setOffset || eh > setOffset + rootSets.size()) ) {
+    rval = resize_rootSets();
+    MB_CHK_SET_ERR(rval, "Error setting offset and sizing rootSets vector.");
+  }
 
   EntityHandle root;
   //if it's a surface
@@ -469,7 +396,7 @@ ErrorCode GeomTopoTool::construct_obb_tree(EntityHandle eh)
 }
 
 void GeomTopoTool::set_root_set(EntityHandle vol_or_surf, EntityHandle root) {
-      if (contiguous)
+      if (m_rootSets_vector)
         rootSets[vol_or_surf - setOffset] = root;
       else
         mapRootSets[vol_or_surf] = root;  

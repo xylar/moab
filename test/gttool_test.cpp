@@ -20,13 +20,17 @@
 
 #include "TestUtil.hpp"
 #include "moab/GeomTopoTool.hpp"
+#include "MBTagConventions.hpp"
 
 using namespace moab;
 
 std::string filename;
+std::string filename2;
 std::string ofile;
 std::string ofile2;
 std::string ofile3;
+
+
 bool remove_output_file;
 ErrorCode geometrize_test(Interface * mb, EntityHandle inputSet);
 
@@ -35,6 +39,8 @@ ErrorCode create_shell_test(Interface * mb);
 ErrorCode duplicate_model_test(Interface * mb);
 
 ErrorCode check_model_test(Interface * mb);
+
+ErrorCode test_root_sets_resize(Interface *mb);
 
 void handle_error_code(ErrorCode rv, int &number_failed, int &number_successful)
 {
@@ -50,10 +56,11 @@ void handle_error_code(ErrorCode rv, int &number_failed, int &number_successful)
 int main(int argc, char *argv[])
 {
   filename = TestDir + "/partBed.smf";
+  filename2 = TestDir + "/test_geom.h5m";
   ofile = "output.h5m";
   ofile2 = "shell.h5m";
   ofile3 = "shellCopy.h5m";
-
+  
   remove_output_file = true;
   bool only_check = false;
   bool only_geometrize = false;
@@ -126,6 +133,13 @@ int main(int argc, char *argv[])
   handle_error_code(rval, number_tests_failed, number_tests_successful);
   std::cout << "\n";
 
+  std::cout << "test_rootsets_resize: ";
+  Interface* mb2 = new Core();
+  rval = test_root_sets_resize(mb2);
+  handle_error_code(rval, number_tests_failed, number_tests_successful);
+  delete mb2;
+  std::cout << "\n";
+  
   return number_tests_failed;
 }
 ErrorCode geometrize_test(Interface * mb, EntityHandle inputSet)
@@ -439,3 +453,83 @@ ErrorCode check_model_test(Interface * mb)
   return MB_SUCCESS;
 }
 
+ErrorCode test_root_sets_resize(Interface *mb) {
+
+  // load the test file
+  ErrorCode rval = mb->load_file(filename2.c_str());
+  MB_CHK_SET_ERR(rval, "Failed to load input file");
+
+  // create a GTT with all default settings
+  moab::GeomTopoTool* gTopoTool = new GeomTopoTool(mb);
+
+
+  Tag geomTag;
+
+  rval = mb->tag_get_handle(GEOM_DIMENSION_TAG_NAME, 1,
+					   MB_TYPE_INTEGER, geomTag, MB_TAG_CREAT|MB_TAG_SPARSE);
+  MB_CHK_SET_ERR(rval, "Error: Failed to create geometry dimension tag");
+  
+  Range surfs;
+  
+  const int dim = 2;
+  const void* const dim_val[] = { &dim };
+  rval = mb->get_entities_by_type_and_tag(0, MBENTITYSET, &geomTag,
+					       dim_val, 1, surfs);
+  MB_CHK_SET_ERR(rval, "Failed to get entity sets by type and tag");
+
+  // in reverse order, add surfaces and construct their trees
+  for (Range::reverse_iterator rit = surfs.rbegin(); rit != surfs.rend(); rit++ ) {
+
+    rval = gTopoTool->add_geo_set(*rit, 2);
+    MB_CHK_SET_ERR(rval, "Failed to add geometry set to GTT");
+
+    rval = gTopoTool->construct_obb_tree(*rit);
+    MB_CHK_SET_ERR(rval, "Failed to construct obb tree for surf " << *rit);
+
+  }
+
+  for(Range::iterator it = surfs.begin(); it != surfs.end(); it++ ) {
+    EntityHandle obb_root_set;
+    rval = gTopoTool->get_root(*it, obb_root_set);
+    MB_CHK_SET_ERR(rval, "Failed to get obb tree root from GTT");
+
+    // make sure the returned root is valid
+    CHECK(obb_root_set);
+  }
+
+  // clean up GTT
+  delete gTopoTool;
+
+  // create a GTT with all default settings
+  gTopoTool = new moab::GeomTopoTool(mb, false, 0, false);
+
+
+  // in reverse order, add surfaces and construct their trees
+  for (Range::reverse_iterator rit = surfs.rbegin(); rit != surfs.rend(); rit++ ) {
+
+    rval = gTopoTool->add_geo_set(*rit, 2);
+    MB_CHK_SET_ERR(rval, "Failed to add geometry set to GTT");
+
+    rval = gTopoTool->construct_obb_tree(*rit);
+    MB_CHK_SET_ERR(rval, "Failed to construct obb tree for surf " << *rit);
+
+  }
+  
+  for(Range::iterator it = surfs.begin(); it != surfs.end(); it++ ) {
+    EntityHandle obb_root_set;
+    rval = gTopoTool->get_root(*it, obb_root_set);
+    MB_CHK_SET_ERR(rval, "Failed to get obb tree root from GTT");
+
+    // make sure the returned root is valid
+    CHECK(obb_root_set);
+  }
+
+  delete gTopoTool;
+
+  rval = mb->delete_mesh();
+  MB_CHK_SET_ERR(rval, "Failed to delete mesh in MOAB instance.");
+  
+  return MB_SUCCESS;
+
+}
+				 

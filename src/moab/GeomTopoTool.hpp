@@ -39,7 +39,24 @@ class GeomQueryTool;
 class GeomTopoTool
 {
 public:
-  GeomTopoTool(Interface *impl, bool find_geoments = false, EntityHandle modelRootSet = 0);
+  /** \brief Constructor (creates a GTT object)						\
+   *  Construct a GeomTopoTool object and search for geometric EntitySets if they
+   *  exist in the provided moab instance.
+   *  \param impl MOAB instance the GeomTopoTool will operate on.
+   *  \param find_geoments if specified as True, geometric objects in the provided MOAB instance
+                           will be searched for and added to the GTT.
+      \param modelRootSet the GTT will operate only on geometric EntitySets contained by this EntitySet. 
+                          If unprovided, the default value for the modelRootSet is the MOAB instance's 
+                          root set, which contains everything in the instance.
+      \param p_rootSets_vector determines the storage datastructure used to relate geometric
+                        EntitySets to their OrientedBoundingBox (OBB) Tree roots. If
+                        set to true (default) a vector will be used to store the root
+                        sets along with an EntityHandle offset for fast lookup of the root
+                        sets. If set to false, then a map will be used to link geometric
+                        EntitySets (keys) to the OBB Tree root sets (values).
+   */  
+  GeomTopoTool(Interface *impl, bool find_geoments = false, EntityHandle modelRootSet = 0, bool p_rootSets_vector = true);
+  
   ~GeomTopoTool();
   
     //! Restore parent/child links between GEOM_TOPO mesh sets
@@ -270,7 +287,7 @@ private:
   EntityHandle setOffset;
   std::vector<EntityHandle> rootSets;
 
-  bool contiguous;
+  bool m_rootSets_vector;
   std::map<EntityHandle, EntityHandle>  mapRootSets;
   EntityHandle oneVolRootSet;
 
@@ -299,12 +316,7 @@ private:
     //! Verify sense edge tags
   ErrorCode check_edge_sense_tags(bool create = false);
 
-    //! Set the contigous variable
-    //  If it has changed, update the storage of the rootsets 
-  void set_contiguous(bool new_value);  
-
-    //! Test if the entity sets are contiguous or not
-  ErrorCode update_contiguous();
+  ErrorCode resize_rootSets();
 
   void set_root_set(EntityHandle vol_or_surf, EntityHandle root);
 
@@ -331,7 +343,7 @@ inline int GeomTopoTool::num_ents_of_dim(int dim) {
 // get the root of the obbtree for a given entity
 inline ErrorCode GeomTopoTool::get_root(EntityHandle vol_or_surf, EntityHandle &root) 
 {
-   if(contiguous)
+   if(m_rootSets_vector)
    {
      unsigned int index = vol_or_surf - setOffset;
      root = (index < rootSets.size() ? rootSets[index] : 0);
@@ -342,7 +354,7 @@ inline ErrorCode GeomTopoTool::get_root(EntityHandle vol_or_surf, EntityHandle &
 }
 
 inline ErrorCode GeomTopoTool::remove_root(EntityHandle vol_or_surf) {
-   if(contiguous)
+   if(m_rootSets_vector)
    {
      unsigned int index = vol_or_surf - setOffset;
      if( index < rootSets.size() ) {
