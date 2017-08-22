@@ -29,6 +29,7 @@ using namespace moab;
 #include "MBTagConventions.hpp"
 #include "moab/MeshTopoUtil.hpp"
 #include "moab/ReadUtilIface.hpp"
+#include "moab/MergeMesh.hpp"
 #include <sstream>
 
 // global variables ; should they be organized in a structure, for easier references?
@@ -1697,8 +1698,10 @@ ErrCode iMOAB_SendElements(iMOAB_AppID pid, MPI_Comm * sender, MPI_Comm * global
 ErrCode iMOAB_ReceiveElements(iMOAB_AppID pid, MPI_Comm * receive, MPI_Comm * global, MPI_Group * sendingGroup,
     iMOAB_AppID source_pid)
 {
-
+  appData & data = context.appDatas[*pid];
   ParallelComm * pco = context.pcomms[*pid];
+  EntityHandle local_set = data.file_set;
+  ErrorCode rval;
 
   // first see what are the processors in each group; get the sender group too, from the sender communicator
   MPI_Group receiverGroup;
@@ -1820,15 +1823,52 @@ ErrCode iMOAB_ReceiveElements(iMOAB_AppID pid, MPI_Comm * receive, MPI_Comm * gl
       buff.reset_ptr(sizeof(int));
       std::vector<EntityHandle> entities_vec(entities.size());
       std::copy(entities.begin(), entities.end(), entities_vec.begin());
-      ErrorCode rval = pco->unpack_buffer(buff.buff_ptr, false, -1, -1, L1hloc, L1hrem, L1p, L2hloc,
+      rval = pco->unpack_buffer(buff.buff_ptr, false, -1, -1, L1hloc, L1hrem, L1p, L2hloc,
                                   L2hrem, L2p, entities_vec);
       if (MB_SUCCESS!= rval) return 1;
       //CHECK_ERR(rval);
       std::copy(entities_vec.begin(), entities_vec.end(), range_inserter(entities));
+      // we have to add them to the local set
+      rval = context.MBI->add_entities(local_set, entities);
     }
 
   }
+  // after we are done, we could merge vertices that come from different senders, but
+  // have the same global id
+  Tag idtag;
+  rval = context.MBI->tag_get_handle("GLOBAL_ID", idtag);
+  if (MB_SUCCESS != rval) return 1;
 
+  if ((int)senders_local.size()>=2) // need to remove duplicate vertices
+                                    // that might come from different senders
+  {
+    Range local_ents;
+    rval = context.MBI->get_entities_by_handle(local_set, local_ents);
+    if (MB_SUCCESS != rval) return 1;
+    Range local_verts = local_ents.subset_by_type(MBVERTEX);
+    Range local_elems = subtract(local_ents, local_verts);
+
+    // remove from local set the vertices
+    rval = context.MBI->remove_entities(local_set, local_verts);
+    if (MB_SUCCESS!= rval) return 1;
+    MergeMesh mm(context.MBI);
+    rval = mm.merge_using_integer_tag(local_verts, idtag);
+    if (MB_SUCCESS != rval) return 1;
+
+    Range new_verts;
+    rval = context.MBI->get_connectivity(local_ents, new_verts);
+    if (MB_SUCCESS!= rval) return 1;
+    rval = context.MBI->add_entities(local_set, new_verts);
+    if (MB_SUCCESS!= rval) return 1;
+  }
+
+  // still need to resolve shared entities (in this case, vertices )
+  rval = pco->resolve_shared_ents(local_set, -1, -1, &idtag);
+  if (rval != MB_SUCCESS) return 1;
+
+  // populate the mesh with current data info
+  ierr = iMOAB_UpdateMeshInfo(pid);
+  if (0!=ierr) return 1;
 
   return 0;
 }

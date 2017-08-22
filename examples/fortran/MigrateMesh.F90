@@ -20,9 +20,12 @@ program MigrateMesh
     character*10 appname
     character*132 readopts
     character*132 filename
+    character*132 outfile
+    character*132 wopts
     integer allgroup, group1, group2 ! Corresponding to MPI_Group in C
     integer tagcomm1, tagcomm2
-    integer iMOAB_InitializeFortran, iMOAB_RegisterFortranApplication, iMOAB_LoadMesh, iMOAB_SendElements, iMOAB_ReceiveElements
+    integer iMOAB_InitializeFortran, iMOAB_RegisterFortranApplication
+    integer iMOAB_LoadMesh, iMOAB_SendElements, iMOAB_ReceiveElements, iMOAB_WriteMesh
 
 
     call MPI_INIT(ierr)
@@ -100,6 +103,11 @@ program MigrateMesh
     else
        ierr = iMOAB_ReceiveElements(pid, comm2, MPI_COMM_WORLD, group1, pid); ! it should be different pid
        call errorout(ierr, 'cannot receive elements' )
+       outfile = 'receivedMesh.h5m'//CHAR(0)
+       wopts   = 'PARALLEL=WRITE_PART'//CHAR(0)
+!      write out the mesh file to disk
+       ierr = iMOAB_WriteMesh(pid, outfile, wopts)
+       call errorout(ierr, 'cannot write received mesh' )
     endif
 
     if (MPI_COMM_NULL /= comm1) call MPI_Comm_free(comm1, ierr)
