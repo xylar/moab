@@ -1680,6 +1680,7 @@ ErrCode iMOAB_SendElements(iMOAB_AppID pid, MPI_Comm * sender, MPI_Comm * global
             Buffer *buff,
             TupleList *entprocs = NULL,
             Range *allsent = NULL);*/
+    buffer.reset_ptr(sizeof(int));
     ErrorCode rval = pco->pack_buffer(ents, false, true, false, -1, &buffer); if (rval!=MB_SUCCESS) return 1;
     int size_pack = buffer.get_current_size();
     // int MPI_Send(const void *buf, int count, MPI_Datatype datatype, int dest, int tag,  MPI_Comm comm)
@@ -1773,20 +1774,24 @@ ErrCode iMOAB_ReceiveElements(iMOAB_AppID pid, MPI_Comm * receive, MPI_Comm * gl
   int current_receiver = recvRanks[receiver_rank];
 
   std::vector<int> senders_local;
-  for (int k=0; k<(int)pack_array.size(); k++)
+  int n=0;
+  while(n<(int)pack_array.size())
   {
-    if (current_receiver == pack_array[k])
+    if (current_receiver == pack_array[n])
     {
-      for (int j=0; j< pack_array[k+1]; j++)
-        senders_local.push_back(pack_array[k+1+j]);
+      for (int j=0; j < pack_array[n+1]; j++)
+        senders_local.push_back(pack_array[n+2+j]);
       break;
     }
-    k = k + pack_array[k+1];
+    n = n + 2 + pack_array[n+1];
   }
   if (!senders_local.empty())
   {
     std:: cout << " receiver " << current_receiver << " at rank " <<
-        receiver_rank << " will receive from " << senders_local.size() << " tasks.\n";
+        receiver_rank << " will receive from " << senders_local.size() << " tasks: ";
+    for (int k=0; k<(int)senders_local.size(); k++)
+      std::cout << " " << senders_local[k];
+    std::cout<<"\n";
 
     for (int k=0; k<(int)senders_local.size(); k++)
     {
