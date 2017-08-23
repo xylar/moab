@@ -80,12 +80,12 @@ program MigrateMesh
     if (rank == 0) print *, "initialize fortran"
 
     if (rank >= sz-2) then
-       appname='phis2'
-       ierr = iMOAB_RegisterFortranApplication(appname, comm1, pid)
+       appname='phis2'//CHAR(0)
+       ierr = iMOAB_RegisterFortranApplication(trim(appname), comm1, pid)
        print *, ' register ', appname, " on rank ", rank, " pid ", pid
     else
-       appname = 'phis1'
-       ierr = iMOAB_RegisterFortranApplication(appname, comm2, pid)
+       appname = 'phis1'//CHAR(0)
+       ierr = iMOAB_RegisterFortranApplication(trim(appname), comm2, pid)
        print *, ' register ', appname, " on rank ", rank, " pid ", pid
     endif
 
@@ -106,7 +106,7 @@ program MigrateMesh
        outfile = 'receivedMesh.h5m'//CHAR(0)
        wopts   = 'PARALLEL=WRITE_PART'//CHAR(0)
 !      write out the mesh file to disk
-       ierr = iMOAB_WriteMesh(pid, outfile, wopts)
+       ierr = iMOAB_WriteMesh(pid, trim(outfile), trim(wopts))
        call errorout(ierr, 'cannot write received mesh' )
     endif
 
