@@ -30,6 +30,8 @@ using namespace moab;
 #include "moab/MeshTopoUtil.hpp"
 #include "moab/ReadUtilIface.hpp"
 #include "moab/MergeMesh.hpp"
+// we need to recompute adjacencies for merging to work
+#include "AEntityFactory.hpp"
 #include <sstream>
 
 // global variables ; should they be organized in a structure, for easier references?
@@ -1481,13 +1483,14 @@ void trivial_partition (int sender_rank, std::vector<int> & recvRanks,  std::vec
     starts[k+1] = starts[k]+  num_per_receiver;
     if (k<leftover) starts[k+1]++;
   }
-
+#ifndef NDEBUG
   std::cout << " intervals partitions: " ;
   for (int k=0; k< (int)starts.size(); k++)
   {
     std::cout<<" " << starts[k];
   }
   std::cout << "\n";
+#endif
 
   int elems_before_sender_rank = 0;
   for (int k=0; k<sender_rank; k++)
@@ -1521,6 +1524,14 @@ void trivial_partition (int sender_rank, std::vector<int> & recvRanks,  std::vec
   }
   if (!rleftover.empty())
     ranges_to_send[ recvRanks[j] ] = rleftover;
+
+#ifndef NDEBUG
+  for (std::map<int, Range>::iterator it = ranges_to_send.begin(); it!=ranges_to_send.end(); it++ )
+  {
+    Range & ran = it->second;
+    std::cout<< " receiver " << it->first << " receive range: [" << ran[0] << ", " << ran[ran.size()-1]  << "] \n";
+  }
+#endif
 
   return;
 }
@@ -1595,6 +1606,7 @@ ErrCode iMOAB_SendElements(iMOAB_AppID pid, MPI_Comm * sender, MPI_Comm * global
 
   int sender_rank=-1;
   MPI_Comm_rank(*sender, &sender_rank);
+#ifndef NDEBUG
   if (0==sender_rank)
   {
     std::cout << " sender tasks:" ;
@@ -1606,8 +1618,8 @@ ErrCode iMOAB_SendElements(iMOAB_AppID pid, MPI_Comm * sender, MPI_Comm * global
     for (size_t j=0; j< recvRanks.size(); j++)
       std::cout << " " << recvRanks[j];
     std::cout << "\n";
-
   }
+#endif
 
   // decide how to distribute elements to each processor
   // now, get the entities on local processor, and pack them into a buffer for various processors
@@ -1717,6 +1729,7 @@ ErrCode iMOAB_ReceiveElements(iMOAB_AppID pid, MPI_Comm * receive, MPI_Comm * gl
 
   int receiver_rank=-1;
   MPI_Comm_rank(*receive, &receiver_rank);
+#ifndef NDEBUG
   if (0==receiver_rank)
   {
     std::cout << " sender tasks:" ;
@@ -1730,6 +1743,7 @@ ErrCode iMOAB_ReceiveElements(iMOAB_AppID pid, MPI_Comm * receive, MPI_Comm * gl
     std::cout << "\n";
 
   }
+#endif
   // first, receive from sender_rank 0, the communication graph (matrix), so each receiver
   // knows what data to expect
   int size_pack_array;
@@ -1755,14 +1769,18 @@ ErrCode iMOAB_ReceiveElements(iMOAB_AppID pid, MPI_Comm * receive, MPI_Comm * gl
      */
     ierr = MPI_Recv (&size_pack_array, 1, MPI_INT, senderRanks[0], 10, *global, &status);
     if (0!=ierr) return 1;
+#ifndef NDEBUG
     std::cout <<" receive comm graph size: " << size_pack_array << "\n";
+#endif
     pack_array.resize (size_pack_array);
     ierr = MPI_Recv (&pack_array[0], size_pack_array, MPI_INT, senderRanks[0], 20, *global, &status);
     if (0!=ierr) return 1;
+#ifndef NDEBUG
     std::cout <<" receive comm graph " ;
     for (int k=0; k<(int)pack_array.size(); k++)
       std::cout << " " << pack_array[k];
     std::cout <<"\n";
+#endif
   }
 
   // now broadcast this whole array to all receivers, so they know what to expect
@@ -1770,8 +1788,10 @@ ErrCode iMOAB_ReceiveElements(iMOAB_AppID pid, MPI_Comm * receive, MPI_Comm * gl
   pack_array.resize(size_pack_array);
   MPI_Bcast(&pack_array[0], size_pack_array, MPI_INT, 0, *receive);
   // now identify for current task, where are we getting data from
+#ifndef NDEBUG
   if (0==receiver_rank)
     std::cout << " broadcasted comm array over receiver communicator\n";
+#endif
 
   // senders across for the current receiver
   int current_receiver = recvRanks[receiver_rank];
@@ -1790,12 +1810,13 @@ ErrCode iMOAB_ReceiveElements(iMOAB_AppID pid, MPI_Comm * receive, MPI_Comm * gl
   }
   if (!senders_local.empty())
   {
+#ifndef NDEBUG
     std:: cout << " receiver " << current_receiver << " at rank " <<
         receiver_rank << " will receive from " << senders_local.size() << " tasks: ";
     for (int k=0; k<(int)senders_local.size(); k++)
       std::cout << " " << senders_local[k];
     std::cout<<"\n";
-
+#endif
     for (int k=0; k<(int)senders_local.size(); k++)
     {
       int sender = senders_local[k]; // first receive the size of the buffer
@@ -1830,9 +1851,28 @@ ErrCode iMOAB_ReceiveElements(iMOAB_AppID pid, MPI_Comm * receive, MPI_Comm * gl
       std::copy(entities_vec.begin(), entities_vec.end(), range_inserter(entities));
       // we have to add them to the local set
       rval = context.MBI->add_entities(local_set, entities);
+      if (MB_SUCCESS!= rval) return 1;
+      // some debugging stuff
+#ifndef NDEBUG
+      std::ostringstream partial_outFile;
+
+      partial_outFile <<"part_send_" <<sender<<"."<< "recv"<< current_receiver <<".vtk";
+
+        // the mesh contains ghosts too, but they are not part of mat/neumann set
+        // write in serial the file, to see what tags are missing
+      std::cout<< " writing from receiver " << current_receiver << " at rank " <<
+        receiver_rank << " from sender " <<  sender << " entities: " << entities.size() << std::endl;
+      rval = context.MBI->write_file(partial_outFile.str().c_str(), 0, 0, &local_set, 1); // everything on local set received
+      if (MB_SUCCESS!= rval) return 1;
+#endif
     }
 
   }
+  // in order for the merging to work, we need to be sure that the adjacencies are updated (created)
+  Core* this_core = dynamic_cast<Core*>(context.MBI);
+  if (this_core && !this_core->a_entity_factory()->vert_elem_adjacencies())
+    this_core->a_entity_factory()->create_vert_elem_adjacencies();
+
   // after we are done, we could merge vertices that come from different senders, but
   // have the same global id
   Tag idtag;
@@ -1851,13 +1891,19 @@ ErrCode iMOAB_ReceiveElements(iMOAB_AppID pid, MPI_Comm * receive, MPI_Comm * gl
     // remove from local set the vertices
     rval = context.MBI->remove_entities(local_set, local_verts);
     if (MB_SUCCESS!= rval) return 1;
+#ifndef NDEBUG
+    std::cout << "current_receiver " << current_receiver << " local verts: " << local_verts.size() << "\n";
+#endif
     MergeMesh mm(context.MBI);
     rval = mm.merge_using_integer_tag(local_verts, idtag);
     if (MB_SUCCESS != rval) return 1;
 
-    Range new_verts;
-    rval = context.MBI->get_connectivity(local_ents, new_verts);
+    Range new_verts; // local elems are local entities without vertices
+    rval = context.MBI->get_connectivity(local_elems, new_verts);
     if (MB_SUCCESS!= rval) return 1;
+#ifndef NDEBUG
+    std::cout << "after merging: new verts: " << new_verts.size() << "\n";
+#endif
     rval = context.MBI->add_entities(local_set, new_verts);
     if (MB_SUCCESS!= rval) return 1;
   }
