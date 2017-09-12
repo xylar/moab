@@ -25,7 +25,7 @@ program MigrateMesh
     integer allgroup, group1, group2 ! Corresponding to MPI_Group in C
     integer tagcomm1, tagcomm2
     integer iMOAB_InitializeFortran, iMOAB_RegisterFortranApplication
-    integer iMOAB_LoadMesh, iMOAB_SendElements, iMOAB_ReceiveElements, iMOAB_WriteMesh
+    integer iMOAB_LoadMesh, iMOAB_SendMesh, iMOAB_ReceiveMesh, iMOAB_WriteMesh
 
 
     call MPI_INIT(ierr)
@@ -98,10 +98,10 @@ program MigrateMesh
 
        ierr = iMOAB_LoadMesh(pid, trim(filename), trim(readopts), nghlay)
        if (rank .eq. sz-2 ) print *, "loaded in parallel ", trim(filename), " error: ", ierr
-       ierr = iMOAB_SendElements(pid, comm1, MPI_COMM_WORLD, group2, pid); ! it should be different pid
+       ierr = iMOAB_SendMesh(pid, comm1, MPI_COMM_WORLD, group2, pid); ! it should be different pid
        call errorout(ierr, 'cannot send elements' )
     else
-       ierr = iMOAB_ReceiveElements(pid, comm2, MPI_COMM_WORLD, group1, pid); ! it should be different pid
+       ierr = iMOAB_ReceiveMesh(pid, comm2, MPI_COMM_WORLD, group1, pid); ! it should be different pid
        call errorout(ierr, 'cannot receive elements' )
        outfile = 'receivedMesh.h5m'//CHAR(0)
        wopts   = 'PARALLEL=WRITE_PART'//CHAR(0)

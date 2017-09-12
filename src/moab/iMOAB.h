@@ -606,7 +606,7 @@ ErrCode iMOAB_SetGlobalInfo(iMOAB_AppID pid, int * num_global_verts, int * num_g
    \param[in]  target_pid                             target application to receive the mesh
  */
 
-ErrCode iMOAB_SendElements(iMOAB_AppID pid, MPI_Comm * sender, MPI_Comm * global, MPI_Group * receivingGroup, iMOAB_AppID target_pid);
+ErrCode iMOAB_SendMesh(iMOAB_AppID pid, MPI_Comm * sender, MPI_Comm * global, MPI_Group * receivingGroup, iMOAB_AppID target_pid);
 /**
   \brief migrate (receive) a set of elements from another processor
   <B>Operations:</B> Not Collective
@@ -618,7 +618,7 @@ ErrCode iMOAB_SendElements(iMOAB_AppID pid, MPI_Comm * sender, MPI_Comm * global
    \param[in]  source_pid ( iMOAB_AppID)              Application that sent the mesh
  */
 
-ErrCode iMOAB_ReceiveElements(iMOAB_AppID pid, MPI_Comm * receive, MPI_Comm * global, MPI_Group * sendingGroup, iMOAB_AppID source_pid);
+ErrCode iMOAB_ReceiveMesh(iMOAB_AppID pid, MPI_Comm * receive, MPI_Comm * global, MPI_Group * sendingGroup, iMOAB_AppID source_pid);
 
 #endif
 

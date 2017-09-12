@@ -3,7 +3,7 @@ include ../makefile.config
 
 default: all
 
-EXAMPLES =  ExtrudePoly test_trivial_distribution
+EXAMPLES =  ExtrudePoly
 PAREXAMPLES = LloydRelaxation CrystalRouterExample GenLargeMesh CoupleMGen
 EXOIIEXAMPLES = VisTags
 ALLEXAMPLES = ${EXAMPLES}
@@ -29,10 +29,6 @@ run-ExtrudePoly: ExtrudePoly
 	${RUNSERIAL} ./ExtrudePoly
 
 LloydRelaxation: LloydRelaxation.o ${MOAB_LIBDIR}/libMOAB.la
-	@echo "[CXXLD]  $@"
-	${VERBOSE}${MOAB_CXX} -o $@ $< ${MOAB_LIBS_LINK}
-
-test_trivial_distribution: test_trivial_distribution.o ${MOAB_LIBDIR}/libMOAB.la
 	@echo "[CXXLD]  $@"
 	${VERBOSE}${MOAB_CXX} -o $@ $< ${MOAB_LIBS_LINK}
 

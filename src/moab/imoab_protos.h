@@ -48,6 +48,6 @@
 #define iMOAB_ResolveSharedEntities          IMOAB_FC_WRAPPER( imoab_resolvesharedentities, IMOAB_RESOLVESHAREDENTITIES )
 #define iMOAB_DetermineGhostEntities         IMOAB_FC_WRAPPER( imoab_determineghostentities, IMOAB_DETERMINEGHOSTENTITIES )
 #define iMOAB_SetGlobalInfo                  IMOAB_FC_WRAPPER( imoab_setglobalinfo, IMOAB_SETGLOBALINFO )
-#define iMOAB_SendElements                   IMOAB_FC_WRAPPER( imoab_sendelements, IMOAB_SENDELEMENTS )
-#define iMOAB_ReceiveElements                IMOAB_FC_WRAPPER( imoab_receiveelements, IMOAB_RECEIVEELEMENTS )
+#define iMOAB_SendMesh                       IMOAB_FC_WRAPPER( imoab_sendmesh, IMOAB_SENDMESH )
+#define iMOAB_ReceiveMesh                    IMOAB_FC_WRAPPER( imoab_receivemesh, IMOAB_RECEIVEMESH )
 #endif /*IMOAB_PROTOS_H */

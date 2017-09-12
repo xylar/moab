@@ -137,6 +137,8 @@ ErrorCode test_ghost_polyhedra(const char *);
 ErrorCode test_too_few_parts(const char *);
 // Test broken sequences due to ghosting
 ErrorCode test_sequences_after_ghosting(const char *);
+// Test trivial partition in use by iMOAB
+void test_trivial_partition();
 
 
 /**************************************************************************
@@ -243,6 +245,7 @@ int main( int argc, char* argv[] )
   num_errors += RUN_TEST_ARG2( test_interface_owners, 0 );
   num_errors += RUN_TEST_ARG2( test_ghosted_entity_shared_data, 0 );
   num_errors += RUN_TEST_ARG2( regression_owners_with_ghosting, 0 );
+  num_errors += RUN_TEST ( test_trivial_partition);
 
   if (rank == 0) {
     if (!num_errors) 
@@ -1800,5 +1803,69 @@ ErrorCode test_sequences_after_ghosting( const char* filename )
     return MB_FAILURE;
   }
   return MB_SUCCESS;
+}
+
+// test trivial partition as used by iMOAB send/receive mesh methods
+// it is hooked to ParallelComm, but it is really not dependent on anything
+// these methods that are tested are just utilities
+
+void test_trivial_partition()
+{
+  // moab and parallelcomm are just handlers here, nothing is modified inside moab
+  // by these methods
+  Core moab_instance;
+  Interface& mb = moab_instance;
+  ParallelComm pcomm( &mb, MPI_COMM_WORLD );
+
+  int sender_rank=1;
+  std::vector<int> recvRanks;
+  std::vector<int>  number_elems_per_part;
+  recvRanks.push_back(3);
+  recvRanks.push_back(4);
+  recvRanks.push_back(5);
+  recvRanks.push_back(6);
+  recvRanks.push_back(7);
+  Range owned(7,7+10-1);
+  std::map<int, Range> ranges_to_send;
+  number_elems_per_part.push_back(6);  number_elems_per_part.push_back(10); number_elems_per_part.push_back(6);
+
+  std::cout<<" send sizes " ;
+  for (int k=0; k< (int)number_elems_per_part.size(); k++)
+  {
+    std::cout<<" " << number_elems_per_part[k];
+  }
+  std::cout << "\n";
+  std::cout<< " sender id: " << sender_rank << "  owned.size() " << owned.size() << " \n";
+  std::cout << " receivers ranks : " << recvRanks.size() << " :" ;
+  for (int k=0; k< (int)recvRanks.size(); k++)
+  {
+    std::cout<<" " << recvRanks[k];
+  }
+  std::cout << "\n";
+  pcomm.trivial_partition (sender_rank, recvRanks,  number_elems_per_part, owned, ranges_to_send);
+
+  for (std::map<int, Range>::iterator it = ranges_to_send.begin(); it!=ranges_to_send.end(); it++ )
+  {
+    Range & ran = it->second;
+    std::cout<< " receiver " << it->first << " receive range: [" << ran[0] << ", " << ran[ran.size()-1]  << "] \n";
+  }
+
+  // build communication matrix, each receiver will receive from what sender
+  std::map<int, std::vector<int> > recv_sets; // map from receiver to its senders (in global space)
+
+  std::vector<int> sndrRanks;
+  sndrRanks.push_back(0); sndrRanks.push_back(1); sndrRanks.push_back(2);
+  pcomm.senders_trivial_partition(sndrRanks, number_elems_per_part, recvRanks, recv_sets);
+
+  for (std::map<int, std::vector<int> >::iterator it=recv_sets.begin(); it!=recv_sets.end(); it++ )
+  {
+    int recv = it->first;
+    std::vector<int> & senders = it->second;
+    std::cout << " receiver: " << recv << " will receive from senders: " ;
+    for (int k = 0; k<(int)senders.size(); k++ )
+      std::cout << " " << senders[k];
+    std::cout << "\n";
+  }
+
 }
 
