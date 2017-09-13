@@ -150,7 +150,7 @@ ErrorCode Coupler::initialize_tree()
   blah << allBoxes[i] << " ";
   std::cout << blah.str() << "\n";*/
 
-#ifndef NDEBUG
+#ifdef VERBOSE
   double min[3] = {0, 0, 0}, max[3] = {0, 0, 0};
   unsigned int dep;
   myTree->get_info(localRoot, min, max, dep);
@@ -332,7 +332,7 @@ ErrorCode Coupler::locate_points(double *xyz, unsigned int num_points,
     }
     if (procs_to_send_to.empty())
     {
-#ifndef NDEBUG
+#ifdef VERBOSE
       std::cout << " point index " << i/3 << ": " << xyz[i] << " " << xyz[i+1] << " " << xyz[i+2] << " not found in any box\n";
 #endif
       // try to find the closest box, and put it in that box, anyway
@@ -354,7 +354,7 @@ ErrorCode Coupler::locate_points(double *xyz, unsigned int num_points,
         assert("cannot locate any box for some points");
         // need a better exit strategy
       }
-#ifndef NDEBUG
+#ifdef VERBOSE
       std::cout << " point index " << i/3 << " added to box for proc j:" << index << "\n";
 #endif
       procs_to_send_to.push_back(index); // will send to just one proc, that has the closest box
@@ -382,7 +382,7 @@ ErrorCode Coupler::locate_points(double *xyz, unsigned int num_points,
   for (unsigned int i = 0; i < target_pts.get_n(); i++)
     if (target_pts.vi_rd[2*i] == (int)my_rank)
       num_to_me++;
-#ifndef NDEBUG
+#ifdef VERBOSE
   printf("rank: %u local points: %u, nb sent target pts: %u mappedPts: %u num to me: %d \n",
          my_rank, num_points, target_pts.get_n(), mappedPts->get_n(), num_to_me);
 #endif
@@ -395,7 +395,7 @@ ErrorCode Coupler::locate_points(double *xyz, unsigned int num_points,
       if (target_pts.vi_rd[2*i] == (int)my_rank)
         num_to_me++;
     }
-#ifndef NDEBUG
+#ifdef VERBOSE
     printf("rank: %u after first gs nb received_pts: %u; num_from_me = %d\n",
            my_rank, target_pts.get_n(), num_to_me);
 #endif
@@ -427,14 +427,14 @@ ErrorCode Coupler::locate_points(double *xyz, unsigned int num_points,
 
     // No longer need target_pts
     target_pts.reset();
-#ifndef NDEBUG
+#ifdef VERBOSE
     printf("rank: %u nb sent source pts: %u, mappedPts now: %u\n",
            my_rank, source_pts.get_n(),  mappedPts->get_n());
 #endif
       // Send target points back to target procs
     (myPc->proc_config().crystal_router())->gs_transfer(1, source_pts, 0);
 
-#ifndef NDEBUG
+#ifdef VERBOSE
     printf("rank: %u nb received source pts: %u\n",
            my_rank, source_pts.get_n());
 #endif
@@ -485,14 +485,14 @@ ErrorCode Coupler::locate_points(double *xyz, unsigned int num_points,
   for (unsigned int i = 0; i < num_points; i++) {
     if (tl_tmp->vi_rd[3*i + 1] == -1) {
       missing_pts++;
-#ifndef NDEBUG
+#ifdef VERBOSE
       printf("missing point at index i:  %d -> %15.10f %15.10f %15.10f\n", i, xyz[3*i], xyz[3*i + 1], xyz[3*i + 2]);
 #endif
     }
     else if (tl_tmp->vi_rd[3*i] == (int)my_rank)
       local_pts++;
   }
-#ifndef NDEBUG
+#ifdef VERBOSE
   printf("rank: %u point location: wanted %u got %u locally, %u remote, missing %u\n",
          my_rank, num_points, local_pts, num_points - missing_pts - local_pts, missing_pts);
 #endif
@@ -790,7 +790,7 @@ ErrorCode Coupler::nat_param(double xyz[3],
         tmp_nat_coords = spcHex->ievaluate(epsilon, CartVect(xyz) ); // introduce
         bool inside = spcHex->inside_nat_space(CartVect(tmp_nat_coords), epsilon);
         if (!inside) {
-#ifndef NDEBUG
+#ifdef VERBOSE
           std::cout << "point " << xyz[0] << " " << xyz[1] << " " << xyz[2] <<
               " is not converging inside hex " << mbImpl->id_from_handle(eh) << "\n";
 #endif
