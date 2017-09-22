@@ -1,8 +1,7 @@
 /*
- * CslamUtils.cpp
+ * IntxUtils.cpp
  *
  *  Created on: Oct 3, 2012
- *      Author: iulian
  */
 
 #include <math.h>

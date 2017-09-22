@@ -1,11 +1,11 @@
 /*
- * CslamUtils.hpp
+ * IntxUtils.hpp
  *
  *  Created on: Oct 3, 2012
  */
 
-#ifndef CSLAMUTILS_HPP_
-#define CSLAMUTILS_HPP_
+#ifndef INTXUTILS_HPP_
+#define INTXUTILS_HPP_
 
 #include "moab/CartVect.hpp"
 #include "moab/Core.hpp"
@@ -177,4 +177,4 @@ ErrorCode  deep_copy_set(Interface * mb, EntityHandle source, EntityHandle dest)
 // used only by homme
 ErrorCode  deep_copy_set_with_quads(Interface * mb, EntityHandle source_set, EntityHandle dest_set);
 }
-#endif /* CSLAMUTILS_HPP_ */
+#endif /* INTXUTILS_HPP_ */

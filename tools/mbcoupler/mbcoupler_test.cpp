@@ -524,10 +524,11 @@ ErrorCode test_interpolation(Interface *mbImpl,
 
   double start_time = MPI_Wtime();
 
-  // Instantiate a coupler, which also initializes the tree
-  Coupler mbc(mbImpl, pcs[0], src_elems, 0);
+  // Instantiate a coupler, which does not initialize the tree yet
+  Coupler mbc(mbImpl, pcs[0], src_elems, 0, false); // do not initialize tree yet
   if (Coupler::SPHERICAL==method)
     mbc.set_spherical();
+  mbc.initialize_tree(); // it is expensive, but do something different for spherical
 
   // Initialize spectral elements, if they exist
   bool specSou=false, specTar = false;

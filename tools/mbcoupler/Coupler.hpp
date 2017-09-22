@@ -66,6 +66,11 @@ public:
      */
   virtual ~Coupler();
 
+  /**
+   *  \brief Initialize the kdtree, locally and across communicator
+   */
+  ErrorCode initialize_tree();
+
     /* \brief Locate points on the source mesh
      * This function finds the element/processor/natural coordinates for the
      * source mesh element containing each point, optionally storing the results 
@@ -457,10 +462,6 @@ private:
     /* \brief MOAB instance
      */
   Interface *mbImpl;
-
-    /* \brief Initialize the kdtree, locally and across communicator
-     */
-  ErrorCode initialize_tree();
 
     /* \brief Kdtree for local mesh
      */
