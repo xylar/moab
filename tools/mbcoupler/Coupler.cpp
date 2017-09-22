@@ -90,6 +90,18 @@ ErrorCode Coupler::initialize_tree()
     std::ostringstream str;
     str << "PLANE_SET=0;"
         << "MAX_PER_LEAF=" << max_per_leaf << ";";
+    if (spherical && !local_ents.empty())
+    {
+      // get coordinates of one vertex, and use for radius computation
+      EntityHandle elem= local_ents[0];
+      const EntityHandle * conn;
+      int numn=0;
+      mbImpl->get_connectivity(elem, conn, numn);
+      CartVect pos0;
+      mbImpl -> get_coords(conn, 1, &(pos0[0]) );
+      double radius = pos0.length();
+      str<<"SPHERICAL=true;RADIUS="<<radius<<";";
+    }
     FileOptions opts(str.str().c_str());
     myTree = new AdaptiveKDTree(mbImpl);
     result = myTree->build_tree(local_ents, &localRoot, &opts);
@@ -712,13 +724,7 @@ ErrorCode Coupler::nat_param(double xyz[3],
   if (epsilon) {
     std::vector<double> dists;
     std::vector<EntityHandle> leaves;
-    if (spherical)
-    {
-      // increase artificially tolerances, because of problems with the
-      // curvature; a better fix is to augment the bounding boxes of spherical
-      // elements with at least middle points of edges and center points
-      epsilon *= 1.e6 ; // this is very large increase; it works for a relatively coarse tri mesh (2000 tris on a sphere)
-    }
+
     // Two tolerances
     result = myTree->distance_search(xyz, epsilon, leaves,
                                      /*iter_tol*/ epsilon,
