@@ -335,6 +335,7 @@ if PARALLEL
      parallel/ReadParallel.hpp \
      parallel/SharedSetData.cpp \
      parallel/SharedSetData.hpp \
+     parallel/ParCommGraph.cpp \
      parallel/gs.cpp
 
 if HAVE_HDF5_PARALLEL
@@ -354,7 +355,8 @@ moabparallelinclude_HEADERS = \
      parallel/moab/ParallelComm.hpp \
      parallel/moab/ParallelMergeMesh.hpp \
      parallel/moab/ProcConfig.hpp \
-     parallel/moab/ParallelData.hpp
+     parallel/moab/ParallelData.hpp \
+     parallel/moab/ParCommGraph.hpp 
 
   AM_CPPFLAGS += -I$(srcdir)/parallel
 
