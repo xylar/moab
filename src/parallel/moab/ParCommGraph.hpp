@@ -7,10 +7,8 @@
  *  communicator, that spans both sets of processes
  *
  *  various methods should be available to partition meshes between the 2 communicators
- *  communicators are represented by their MPI groups, not by their communicators,, because
+ *  communicators are represented by their MPI groups, not by their communicators, because
  *  the groups are always defined, irrespective of what tasks are they on.
- *
- *
  */
 #include "moab_mpi.h"
 #include "moab/Interface.hpp"
@@ -25,24 +23,84 @@ namespace moab {
 
 	class ParCommGraph {
 	public:
-	  ParCommGraph();
+	  // ParCommGraph();
 	  virtual ~ParCommGraph();
 
+	  // collective constructor, will be called on all sender tasks and receiver tasks
 	  ParCommGraph(MPI_Comm joincomm, MPI_Group group1, MPI_Group group2);
 
+	  /**
+	    \brief find ranks of a group with respect to an encompassing communicator
+
+	    <B>Operations:</B> Local, usually called on root process of the group
+
+      \param[in]  joincomm (MPI_Comm)
+	    \param[in]  group (MPI_Group)
+	    \param[out] ranks ( std::vector<int>)  ranks with respect to the joint communicator
+	  */
 	  void find_group_ranks(MPI_Group group, MPI_Comm join, std::vector<int> & ranks);
-	  /*
-	   * based on the number of elements on each task in group 1, partition for group 2, trivially
-	   * establish how many elements are  sent from each task in group 1 to tasks in group 2
+
+	  /**
+	    \brief  Based on the number of elements on each task in group 1, partition for group 2, trivially
+
+     <B>Operations:</B> Local, usually called on root process of the group
+
+      Note:  establish how many elements are sent from each task in group 1 to tasks in group 2
+            This call is usually made on a root / master process, and will construct local maps that are member data,
+            which contain the communication graph, in both directions
+            Also, number of elements migrated/exchanged between each sender/receiver
+
+       \param[in]  numElemsPerTaskInGroup1 (std::vector<int> &)  number of elements on each sender task
 	   */
 	  ErrorCode trivial_partition (std::vector<int> & numElemsPerTaskInGroup1);
 
+	  /**
+	     \brief  pack information about receivers view of the graph, for future sending to receiver root
+
+        <B>Operations:</B> Local, usually called on root process of the group
+
+	     \param[out] packed_recv_array
+	       packed data will be sent eventually to the root of receivers, and distributed from there, and
+	         will have this information, for each receiver, concatenated
+	          receiver 1 task, number of senders for receiver 1, then sender tasks for receiver 1, receiver 2 task,
+	            number of senders for receiver 2, sender tasks for receiver 2, etc
+	   */
+	  ErrorCode pack_receivers_graph(std::vector<int> & packed_recv_array );
+
+	  /**
+	   * \brief  distribute send information (as decided on root) to all senders in the group
+	   * <B>Operations:</B> collective, needs to be called on all tasks on sender group
+	   *
+	   * sending info will contain the rank of the receivers and number of elements
+	   *   (sizes) for each receiver  recv1, size1, recv2, size2, ...
+	   *   size of the array will be the number of receivers times 2
+	   * \param[in]      senderComm(MPI_Comm)
+	   * \param[out]     sendingInfo(std::vector<int> & )
+	   */
+	  ErrorCode distribute_sender_graph_info(MPI_Comm senderComm, std::vector<int> &sendingInfo );
+
+	  // get methods for private data
+	  bool is_root_sender() { return rootSender;}
+
+	  bool is_root_receiver () { return rootReceiver;}
+
+	  int get_index1() { return index1;}
+	  int get_index2() { return index2;}
+
+	  // setter methods for private data
+	  void set_index1(int ix1) {index1=ix1;}
+	  void set_index2(int ix2) {index2=ix2;}
 
 	private:
 	  MPI_Comm  comm;
 	  MPI_Group gr1, gr2;
 	  std::vector<int>  senderTasks;
 	  std::vector<int>  receiverTasks;
+	  bool rootSender;
+	  bool rootReceiver;
+	  int rankInGroup1, rankInGroup2;
+	  int rankInJoin, joinSize;
+	  int index1, index2; // indices in the list of local graphs referred by this application
 
 	  // communication graph from group1 to group2;
 	  //  graph[task1] = vec1; // vec1 is a stl vector of tasks in group2

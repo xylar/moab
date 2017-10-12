@@ -12,13 +12,30 @@ comm(joincomm), gr1(group1), gr2(group2) {
   // find out the tasks from each group, in the joint communicator
   find_group_ranks(gr1, comm, senderTasks);
   find_group_ranks(gr2, comm, receiverTasks);
+
+  rootSender = rootReceiver = false;
+  rankInGroup1 =  rankInGroup2 = rankInJoin = -1; // not initialized, or not part of the group
+  int mpierr = MPI_Group_rank(gr1, &rankInGroup1);
+  if (MPI_SUCCESS != mpierr)
+    rankInGroup1 = -1;
+  mpierr = MPI_Group_rank(gr2, &rankInGroup2);
+  if (MPI_SUCCESS != mpierr)
+    rankInGroup2 = -1;
+  mpierr = MPI_Comm_rank(comm, &rankInJoin);
+  if (MPI_SUCCESS != mpierr) // it should be a fatal error
+    rankInJoin = -1;
+
+  if (0==rankInGroup1)rootSender=true;
+  if (0==rankInGroup2)rootReceiver=true;
 }
 
 ParCommGraph::~ParCommGraph() {
   // TODO Auto-generated destructor stub
 }
 
-// utility to find out the ranks of the processes of a group, with respect to a global comm
+// utility to find out the ranks of the processes of a group, with respect to a joint comm,
+// which spans for sure the group
+// it is used locally (in the constructor), but it can be used as a utility
 void ParCommGraph::find_group_ranks(MPI_Group group, MPI_Comm joincomm, std::vector<int> & ranks)
 {
    MPI_Group global_grp;
@@ -40,6 +57,9 @@ void ParCommGraph::find_group_ranks(MPI_Group group, MPI_Comm joincomm, std::vec
 
 ErrorCode ParCommGraph::trivial_partition (std::vector<int> & numElemsPerTaskInGroup1)
 {
+
+  recv_graph.clear(); recv_sizes.clear();
+  sender_graph.clear(); sender_sizes.clear();
 
   if (numElemsPerTaskInGroup1.size() != senderTasks.size())
     return MB_FAILURE; // each sender has a number of elements that it owns
@@ -116,8 +136,78 @@ ErrorCode ParCommGraph::trivial_partition (std::vector<int> & numElemsPerTaskInG
     }
   }
 
+  return MB_SUCCESS;
+}
+ErrorCode ParCommGraph::pack_receivers_graph(std::vector<int> & packed_recv_array )
+{
+  // it will basically look at local data, to pack communication graph, each receiver task will have to post receives
+  // for each sender task that will send data to it;
+  // the array will be communicated to root receiver, and eventually distributed to receiver tasks
 
+  /*
+   * packed_array will have receiver, number of senders, then senders, etc
+   */
+  for (std::map<int, std::vector<int> >::iterator it=recv_graph.begin(); it!=recv_graph.end(); it++ )
+  {
+    int recv = it->first;
+    std::vector<int> & senders = it->second;
+    packed_recv_array.push_back(recv);
+    packed_recv_array.push_back( (int) senders.size() );
+
+    for (int k = 0; k<(int)senders.size(); k++ )
+      packed_recv_array.push_back( senders[k] );
+  }
 
   return MB_SUCCESS;
 }
+
+ErrorCode ParCommGraph::distribute_sender_graph_info(MPI_Comm senderComm, std::vector<int> &sendingInfo )
+{
+  // only the root of the sender has all info
+  // it will use direct send/receives, for number of elems to be sent to each receiver, in an array
+  if (rootSender)
+  {
+    // just append the local info for the array , and send some data for each receiver
+    int nrecv0 = (int) recv_graph[senderTasks[0]].size();
+    for (int k=0; k<nrecv0; k++)
+    {
+      sendingInfo.push_back(recv_graph[senderTasks[0]][k]);
+      sendingInfo.push_back(recv_sizes[senderTasks[0]][k]);
+    }
+    // the rest of the info will be sent for each sender task
+    for (int j=1; j< (int) senderTasks.size(); j++)
+    {
+      std::vector<int> array_to_send;
+      // in the sender comm and sender group , rank to send to is j
+      for (int k=0; k<(int) recv_graph[senderTasks[j]].size(); k++)
+      {
+        array_to_send.push_back( recv_graph[senderTasks[j]][k]);
+        array_to_send.push_back( recv_sizes[senderTasks[j]][k]);
+      }
+
+      int ierr = MPI_Send(&array_to_send[0], (int)array_to_send.size(), MPI_INT, j, 11, senderComm);
+      if (MPI_SUCCESS != ierr)
+        return MB_FAILURE;
+    }
+  }
+  else
+  {
+    // expect to receive some info about where to send local data
+    // local array it is max the size of 2 times nreceivers;
+    int sizeBuffMax = 2 * (int) receiverTasks.size();
+    std::vector<int> data(sizeBuffMax);
+    MPI_Status status;
+    int ierr = MPI_Recv(&data[0], sizeBuffMax, MPI_INT, 0, 11, senderComm, &status);
+    if (MPI_SUCCESS != ierr)
+      return MB_FAILURE;
+    int count;
+    // find out how much data we actually got
+    MPI_Get_count(&status, MPI_INT, &count);
+    for (int k=0; k<count; k++)
+      sendingInfo.push_back(data[k]);
+
+  }
+  return MB_SUCCESS;
+}
+
 } // namespace moab

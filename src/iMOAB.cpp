@@ -9,6 +9,7 @@ using namespace moab;
 #ifdef MOAB_HAVE_MPI
 #  include "moab_mpi.h"
 #  include "moab/ParallelComm.hpp"
+#  include "moab/ParCommGraph.hpp"
 #endif
 
 #include <assert.h>
@@ -60,6 +61,12 @@ struct appData {
   Range diri_sets;
   std::map< std::string, Tag> tagMap;
   std::vector<Tag>  tagList;
+
+#ifdef MOAB_HAVE_MPI
+  std::vector<ParCommGraph*> pgraph; // created in order of other applications that communicate with this one
+  // constructor for this ParCommGraph takes the joint comm and the MPI groups for each application
+#endif
+
  };
 
 struct GlobalContext {
