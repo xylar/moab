@@ -96,12 +96,14 @@ ErrCode iMOAB_Finalize();
 
   \param[in]  app_name (iMOAB_String) Application name (PROTEUS, NEK5000, etc)
   \param[in]  comm (MPI_Comm*)        MPI communicator to be used for all mesh-related queries originating from this application
+  \param[in]  compid (int*)           external component id, unique identifier
   \param[out] pid (iMOAB_AppID)       The unique pointer to the application ID
 */
 ErrCode iMOAB_RegisterApplication( const iMOAB_String app_name,
 #ifdef MOAB_HAVE_MPI
     MPI_Comm* comm,
 #endif
+    int * compid,
     iMOAB_AppID pid );
 
 /**
@@ -115,6 +117,7 @@ ErrCode iMOAB_RegisterApplication( const iMOAB_String app_name,
 
   \param[in]  app_name (iMOAB_String) Application name (PROTEUS, NEK5000, etc)
   \param[in]  comm (int*)             Fortran MPI communicator to be used for all mesh-related queries originating from this application
+  \param[in]  compid (int*)           external component id, unique identifier
   \param[out] pid (iMOAB_AppID)       The unique pointer to the application ID
   \param[in]  app_name_length (int)   Length of application name string.
 */
@@ -122,6 +125,7 @@ ErrCode iMOAB_RegisterFortranApplication( const iMOAB_String app_name,
 #ifdef MOAB_HAVE_MPI
     int* comm,
 #endif
+    int * compid,
     iMOAB_AppID pid, int app_name_length );
 
 /**
@@ -600,25 +604,23 @@ ErrCode iMOAB_SetGlobalInfo(iMOAB_AppID pid, int * num_global_verts, int * num_g
   <B>Operations:</B> Not Collective
 
    \param[in]  pid (iMOAB_AppID)                      The unique pointer to the application ID source mesh
-   \param[in]  sender (MPI_Comm)                      communicator of sender
-   \param[in]  global (MPI_Comm)                      communicator that overlaps both groups
+   \param[in]  join (MPI_Comm)                        communicator that overlaps both groups
    \param[in]  receivingGroup (MPI_Group *)           receiving group
    \param[in]  target_pid                             target application to receive the mesh
  */
 
-ErrCode iMOAB_SendMesh(iMOAB_AppID pid, MPI_Comm * sender, MPI_Comm * global, MPI_Group * receivingGroup, iMOAB_AppID target_pid);
+ErrCode iMOAB_SendMesh(iMOAB_AppID pid, MPI_Comm * join, MPI_Group * receivingGroup, int * rcompid);
 /**
   \brief migrate (receive) a set of elements from another processor
   <B>Operations:</B> Not Collective
 
-   \param[in]  pid (iMOAB_AppID)                      The unique pointer to the application ID source mesh (receiver)
-   \param[in]  receive (MPI_Comm)                     communicator of receiver
-   \param[in]  global (MPI_Comm)                      communicator that overlaps both groups
+   \param[in]  pid (iMOAB_AppID)                      The unique pointer to the application ID  mesh (receiver)
+   \param[in]  join (MPI_Comm)                        communicator that overlaps both groups
    \param[in]  sendingGroup (MPI_Group *)             sending group
    \param[in]  source_pid ( iMOAB_AppID)              Application that sent the mesh
  */
 
-ErrCode iMOAB_ReceiveMesh(iMOAB_AppID pid, MPI_Comm * receive, MPI_Comm * global, MPI_Group * sendingGroup, iMOAB_AppID source_pid);
+ErrCode iMOAB_ReceiveMesh(iMOAB_AppID pid, MPI_Comm * join, MPI_Group * sendingGroup, int * scompid);
 
 #endif
 

@@ -1,5 +1,6 @@
 #include "moab/ParallelComm.hpp"
 #include "MBParallelConventions.h"
+#include "moab/ParCommGraph.hpp"
 #include "ReadParallel.hpp"
 #include "moab/FileOptions.hpp"
 #include "MBTagConventions.hpp"
@@ -1806,28 +1807,36 @@ ErrorCode test_sequences_after_ghosting( const char* filename )
 }
 
 // test trivial partition as used by iMOAB send/receive mesh methods
-// it is hooked to ParallelComm, but it is really not dependent on anything
+// it is hooked to ParCommGraph, but it is really not dependent on anything from MOAB
 // these methods that are tested are just utilities
 
 void test_trivial_partition()
 {
-  // moab and parallelcomm are just handlers here, nothing is modified inside moab
-  // by these methods
-  Core moab_instance;
-  Interface& mb = moab_instance;
-  ParallelComm pcomm( &mb, MPI_COMM_WORLD );
+  // nothing is modified inside moab
+  // by these methods;
+  // to instantiate par com graph, we just need 2 groups!
+  // they can be overlapping !!!! we do not test that yet
 
-  int sender_rank=1;
-  std::vector<int> recvRanks;
-  std::vector<int>  number_elems_per_part;
-  recvRanks.push_back(3);
-  recvRanks.push_back(4);
-  recvRanks.push_back(5);
-  recvRanks.push_back(6);
-  recvRanks.push_back(7);
-  Range owned(7,7+10-1);
+  // create 2 groups; one over task 0 and 1, one over 2
+  MPI_Group worldg;
+  MPI_Comm duplicate;
+  MPI_Comm_dup(MPI_COMM_WORLD, &duplicate);
+  MPI_Comm_group(duplicate, &worldg);
+
+  // this is usually run on 2 processes
+
+  int rank[2]={0,1};
+  MPI_Group gr1, gr2;
+  MPI_Group_incl(worldg, 2, rank, &gr1); // will contain 2 ranks, 0 and 1
+  MPI_Group_incl(worldg, 1, &rank[1], &gr2); // will contain 1 rank only (1)
+
+  int comp1=10, comp2 = 12;
+  ParCommGraph * pgr = new ParCommGraph(duplicate, gr1, gr2, comp1, comp2 );
+
+
   std::map<int, Range> ranges_to_send;
-  number_elems_per_part.push_back(6);  number_elems_per_part.push_back(10); number_elems_per_part.push_back(6);
+  std::vector<int> number_elems_per_part;
+  number_elems_per_part.push_back(6);  number_elems_per_part.push_back(10);
 
   std::cout<<" send sizes " ;
   for (int k=0; k< (int)number_elems_per_part.size(); k++)
@@ -1835,14 +1844,13 @@ void test_trivial_partition()
     std::cout<<" " << number_elems_per_part[k];
   }
   std::cout << "\n";
-  std::cout<< " sender id: " << sender_rank << "  owned.size() " << owned.size() << " \n";
-  std::cout << " receivers ranks : " << recvRanks.size() << " :" ;
-  for (int k=0; k< (int)recvRanks.size(); k++)
-  {
-    std::cout<<" " << recvRanks[k];
-  }
+
   std::cout << "\n";
-  pcomm.trivial_partition (sender_rank, recvRanks,  number_elems_per_part, owned, ranges_to_send);
+  pgr->trivial_partition ( number_elems_per_part);
+
+  Range verts(10, 20);
+  std::map<int, Range> split_ranges;
+  pgr->split_owned_range (0, verts, split_ranges);
 
   for (std::map<int, Range>::iterator it = ranges_to_send.begin(); it!=ranges_to_send.end(); it++ )
   {
@@ -1850,22 +1858,14 @@ void test_trivial_partition()
     std::cout<< " receiver " << it->first << " receive range: [" << ran[0] << ", " << ran[ran.size()-1]  << "] \n";
   }
 
-  // build communication matrix, each receiver will receive from what sender
-  std::map<int, std::vector<int> > recv_sets; // map from receiver to its senders (in global space)
 
-  std::vector<int> sndrRanks;
-  sndrRanks.push_back(0); sndrRanks.push_back(1); sndrRanks.push_back(2);
-  pcomm.senders_trivial_partition(sndrRanks, number_elems_per_part, recvRanks, recv_sets);
+  delete (pgr);
 
-  for (std::map<int, std::vector<int> >::iterator it=recv_sets.begin(); it!=recv_sets.end(); it++ )
-  {
-    int recv = it->first;
-    std::vector<int> & senders = it->second;
-    std::cout << " receiver: " << recv << " will receive from senders: " ;
-    for (int k = 0; k<(int)senders.size(); k++ )
-      std::cout << " " << senders[k];
-    std::cout << "\n";
-  }
+  MPI_Group_free(&worldg);
+  MPI_Group_free(&gr1);
+  MPI_Group_free(&gr2);
+  MPI_Comm_free(&duplicate);
+
 
 }
 

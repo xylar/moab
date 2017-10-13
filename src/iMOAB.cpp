@@ -45,6 +45,7 @@ extern "C" {
 
 struct appData {
   EntityHandle file_set;
+  int   external_id;  // external component id, unique for application
   Range all_verts;
   Range local_verts; // it could include shared, but not owned at the interface
                      // these vertices would be all_verts if no ghosting was required
@@ -80,6 +81,7 @@ struct GlobalContext {
   int unused_pid;
 
   std::map<std::string, int> appIdMap;     // from app string (uppercase) to app id
+  std::map<int, int> appIdCompMap;         // from component id to app id
 
   #ifdef MOAB_HAVE_MPI
   std::vector<ParallelComm*> pcomms; // created in order of applications, one moab::ParallelComm for each
@@ -140,6 +142,7 @@ ErrCode iMOAB_RegisterApplication( const iMOAB_String app_name,
 #ifdef MOAB_HAVE_MPI
     MPI_Comm* comm,
 #endif
+    int * compid,
     iMOAB_AppID pid )
 {
   // will create a parallel comm for this application too, so there will be a
@@ -147,11 +150,18 @@ ErrCode iMOAB_RegisterApplication( const iMOAB_String app_name,
   std::string name(app_name);
   if (context.appIdMap.find(name)!=context.appIdMap.end())
   {
-    std::cout << " application already registered \n";
+    std::cout << " application " << name << " already registered \n";
     return 1;
   }
   *pid =  context.unused_pid++;
   context.appIdMap[name] = *pid;
+  if (context.appIdCompMap.find(*compid)!=context.appIdCompMap.end())
+  {
+    std::cout << " external application with comp id " << *compid << " is already registered\n";
+    return 1;
+  }
+  context.appIdCompMap[*compid] = *pid;
+
   // now create ParallelComm and a file set for this application
 #ifdef MOAB_HAVE_MPI
   ParallelComm * pco = new ParallelComm(context.MBI, *comm);
@@ -170,6 +180,7 @@ ErrCode iMOAB_RegisterApplication( const iMOAB_String app_name,
     return 1;
   appData app_data;
   app_data.file_set=file_set;
+  app_data.external_id = * compid; // will be used mostly for par comm graph
   context.appDatas.push_back(app_data); // it will correspond to app_FileSets[*pid] will be the file set of interest
   return 0;
 }
@@ -178,7 +189,7 @@ ErrCode iMOAB_RegisterFortranApplication( const iMOAB_String app_name,
 #ifdef MOAB_HAVE_MPI
     int* comm,
 #endif
-    iMOAB_AppID pid, int app_name_length )
+    int *compid, iMOAB_AppID pid, int app_name_length )
 {
   std::string name(app_name);
   if ( (int)name.length() >app_name_length )
@@ -188,11 +199,18 @@ ErrCode iMOAB_RegisterFortranApplication( const iMOAB_String app_name,
   }
   if (context.appIdMap.find(name)!=context.appIdMap.end())
   {
-    std::cout << " application already registered \n";
+    std::cout << " application " << name << " already registered \n";
     return 1;
   }
   *pid =  context.unused_pid++;
   context.appIdMap[name] = *pid;
+  if (context.appIdCompMap.find(*compid)!=context.appIdCompMap.end())
+  {
+    std::cout << " external application with comp id " << *compid << " is already registered\n";
+    return 1;
+  }
+  context.appIdCompMap[*compid] = *pid;
+
 #ifdef MOAB_HAVE_MPI
   // now create ParallelComm and a file set for this application
   // convert from fortran communicator to a c communicator
@@ -215,6 +233,7 @@ ErrCode iMOAB_RegisterFortranApplication( const iMOAB_String app_name,
     return 1;
   appData app_data;
   app_data.file_set=file_set;
+  app_data.external_id = * compid; // will be used mostly for par comm graph
   context.appDatas.push_back(app_data); // it will correspond to app_FileSets[*pid] will be the file set of interest
   return 0;
 }
@@ -1406,70 +1425,27 @@ ErrCode iMOAB_SetGlobalInfo(iMOAB_AppID pid, int * num_global_verts, int * num_g
 
 #ifdef MOAB_HAVE_MPI
 
-// utility to find out the ranks of the processes of a group, with respect to a global comm
-void find_group_ranks(MPI_Group group, MPI_Comm global, std::vector<int> & ranks)
-{
-   MPI_Group global_grp;
-   MPI_Comm_group(global, &global_grp);
-
-   int grp_size;
-
-   MPI_Group_size(group, &grp_size);
-   std::vector<int> rks (grp_size);
-   ranks.resize(grp_size);
-
-   for (int i = 0; i < grp_size; i++)
-     rks[i] = i;
-
-   MPI_Group_translate_ranks(group, grp_size, &rks[0], global_grp, &ranks[0]);
-   MPI_Group_free(&global_grp);
-   return;
-}
-// utility to find out the ranks of the processes of a comm, with respect to a global comm
-void find_comm_ranks(MPI_Comm comm, MPI_Comm global, std::vector<int> & ranks)
-{
-   MPI_Group grp;
-   MPI_Comm_group(comm, &grp);
-
-   find_group_ranks(grp, global, ranks);
-   return;
-}
-
-
-ErrCode iMOAB_SendMesh(iMOAB_AppID pid, MPI_Comm * sender, MPI_Comm * global, MPI_Group * receivingGroup, iMOAB_AppID target_pid)
+ErrCode iMOAB_SendMesh(iMOAB_AppID pid, MPI_Comm * global, MPI_Group * receivingGroup, int * rcompid)
 {
   //appData & data = context.appDatas[*pid];
   ParallelComm * pco = context.pcomms[*pid];
 
+  MPI_Comm sender = pco->comm(); // the sender comm is obtained from parallel comm in moab;
+                                 // no need to pass it along
   // first see what are the processors in each group; get the sender group too, from the sender communicator
   MPI_Group senderGroup;
-  int ierr= MPI_Comm_group(*sender, &senderGroup);
+  int ierr= MPI_Comm_group(sender, &senderGroup);
   if (ierr!=0)
     return 1;
-  std::vector<int> senderRanks;
-  // find global ranks for sender
-  find_comm_ranks(*sender, *global, senderRanks);
-
-  std::vector<int> recvRanks;
-  // find global ranks for receiver
-  find_group_ranks(*receivingGroup, *global, recvRanks);
+  // instantiate the par comm graph
+  // ParCommGraph::ParCommGraph(MPI_Comm joincomm, MPI_Group group1, MPI_Group group2, int coid1, int coid2)
+  ParCommGraph * cgraph = new ParCommGraph(*global, senderGroup, *receivingGroup, context.appDatas[*pid].external_id, *rcompid);
+  // we should search if we have another pcomm with the same comp ids in the list already
+  // sort of check existing comm graphs in the list context.appDatas[*pid].pgraph
+  context.appDatas[*pid].pgraph.push_back(cgraph);
 
   int sender_rank=-1;
-  MPI_Comm_rank(*sender, &sender_rank);
-#ifdef VERBOSE
-  if (0==sender_rank)
-  {
-    std::cout << " sender tasks:" ;
-    for (size_t j=0; j< senderRanks.size(); j++)
-      std::cout << " " << senderRanks[j];
-    std::cout << "\n";
-
-    std::cout << " receiver tasks:" ;
-    for (size_t j=0; j< recvRanks.size(); j++)
-      std::cout << " " << recvRanks[j];
-    std::cout << "\n";
-  }
-#endif
+  MPI_Comm_rank(sender, &sender_rank);
 
   // decide how to distribute elements to each processor
   // now, get the entities on local processor, and pack them into a buffer for various processors
@@ -1488,13 +1464,13 @@ ErrCode iMOAB_SendMesh(iMOAB_AppID pid, MPI_Comm * sender, MPI_Comm * global, MP
       // Use "in place" option
   ierr = MPI_Allgather(MPI_IN_PLACE, 0, MPI_DATATYPE_NULL,
                               &number_elems_per_part[0], 1, MPI_INTEGER,
-                              *sender);
+                              sender);
 #else
   {
     std::vector<int> all_tmp(size);
     ierr = MPI_Allgather(&number_elems_per_part[rank], 1, MPI_INTEGER,
                             &all_tmp[0], 1, MPI_INTEGER,
-                            *sender);
+                            sender);
     number_elems_per_part = all_tmp;
   }
 #endif
@@ -1506,45 +1482,35 @@ ErrCode iMOAB_SendMesh(iMOAB_AppID pid, MPI_Comm * sender, MPI_Comm * global, MP
   if (ierr!=0)
     return 1;
 
-  std::map<int, Range> ranges_to_send;
-  pco->trivial_partition (sender_rank, recvRanks, number_elems_per_part, owned, ranges_to_send);
+  // every sender computes the trivial partition, it is cheap, and we need to send it anyway to each sender
+  cgraph->trivial_partition(number_elems_per_part);
 
-  if (0==sender_rank)
+  if ( cgraph->is_root_sender())
   {
     // will need to build a communication graph, because each sender knows now to which receiver to send data
     // the receivers need to post receives for each sender that will send data to them
     // will need to gather on rank 0 on the sender comm, global ranks of sender with receivers to send
     // build communication matrix, each receiver will receive from what sender
-    std::map<int, std::vector<int> > recv_sets; // map from receiver to its senders (in global space)
-    // each receiver k will receive from senders recv_sets[k]
-    pco->senders_trivial_partition(senderRanks, number_elems_per_part, recvRanks, recv_sets);
-    // will have to send to the receiver rank 0 in their communicator (recvRanks[0])
-    std::vector<int> packed_array;
-    /*
-     * packed_array will have receiver, number of senders, then senders, etc
-     */
-    for (std::map<int, std::vector<int> >::iterator it=recv_sets.begin(); it!=recv_sets.end(); it++ )
-    {
-      int recv = it->first;
-      std::vector<int> & senders = it->second;
-      packed_array.push_back(recv);
-      packed_array.push_back( (int) senders.size() );
 
-      for (int k = 0; k<(int)senders.size(); k++ )
-        packed_array.push_back( senders[k] );
-    }
-    int size_pack_array = (int) packed_array.size();
+    std::vector<int> packed_recv_array;
+    cgraph->pack_receivers_graph(packed_recv_array );
+
+    int size_pack_array = (int) packed_recv_array.size();
     /// use tag 10 to send size and tag 20 to send the packed array
-    ierr = MPI_Send(&size_pack_array, 1, MPI_INT, recvRanks[0], 10, *global); // we have to use global communicator
+    ierr = MPI_Send(&size_pack_array, 1, MPI_INT, cgraph->receiver(0), 10, *global); // we have to use global communicator
     if (ierr!=0) return 1;
-    ierr = MPI_Send(&packed_array[0], size_pack_array, MPI_INT, recvRanks[0], 20, *global); // we have to use global communicator
+    ierr = MPI_Send(&packed_recv_array[0], size_pack_array, MPI_INT, cgraph->receiver(0), 20, *global); // we have to use global communicator
     if (ierr!=0) return 1;
   }
 
-  for (std::map<int, Range>::iterator it=ranges_to_send.begin(); it!=ranges_to_send.end(); it++)
+  std::map<int, Range> split_ranges;
+  cgraph->split_owned_range (sender_rank, owned, split_ranges);
+
+  for (std::map<int, Range>::iterator it=split_ranges.begin(); it!=split_ranges.end(); it++)
   {
     int receiver_proc = it->first;
     Range ents = it->second;
+
     // add necessary vertices too
     Range verts;
     context.MBI->get_adjacencies(ents, 0, false, verts, Interface::UNION);
@@ -1572,43 +1538,31 @@ ErrCode iMOAB_SendMesh(iMOAB_AppID pid, MPI_Comm * sender, MPI_Comm * global, MP
   }
   return 0;
 }
-ErrCode iMOAB_ReceiveMesh(iMOAB_AppID pid, MPI_Comm * receive, MPI_Comm * global, MPI_Group * sendingGroup,
-    iMOAB_AppID source_pid)
+ErrCode iMOAB_ReceiveMesh(iMOAB_AppID pid, MPI_Comm * global, MPI_Group * sendingGroup,
+    int * scompid)
 {
   appData & data = context.appDatas[*pid];
   ParallelComm * pco = context.pcomms[*pid];
+  MPI_Comm receive = pco->comm();
   EntityHandle local_set = data.file_set;
   ErrorCode rval;
 
   // first see what are the processors in each group; get the sender group too, from the sender communicator
   MPI_Group receiverGroup;
-  int ierr= MPI_Comm_group(*receive, &receiverGroup);
+  int ierr= MPI_Comm_group(receive, &receiverGroup);
   if (ierr!=0)
     return 1;
-  std::vector<int> senderRanks;
-  std::vector<int> recvRanks;
-  // find global ranks for receivers
-  find_comm_ranks(*receive, *global, recvRanks);
-  // find global ranks for senders
-  find_group_ranks(*sendingGroup, *global, senderRanks);
+
+  // instantiate the par comm graph
+  // ParCommGraph::ParCommGraph(MPI_Comm joincomm, MPI_Group group1, MPI_Group group2, int coid1, int coid2)
+  ParCommGraph * cgraph = new ParCommGraph(*global, *sendingGroup, receiverGroup, *scompid, context.appDatas[*pid].external_id);
+  // we should search if we have another pcomm with the same comp ids in the list already
+  // sort of check existing comm graphs in the list context.appDatas[*pid].pgraph
+  context.appDatas[*pid].pgraph.push_back(cgraph);
 
   int receiver_rank=-1;
-  MPI_Comm_rank(*receive, &receiver_rank);
-#ifdef VERBOSE
-  if (0==receiver_rank)
-  {
-    std::cout << " sender tasks:" ;
-    for (size_t j=0; j< senderRanks.size(); j++)
-      std::cout << " " << senderRanks[j];
-    std::cout << "\n";
+  MPI_Comm_rank(receive, &receiver_rank);
 
-    std::cout << " receiver tasks:" ;
-    for (size_t j=0; j< recvRanks.size(); j++)
-      std::cout << " " << recvRanks[j];
-    std::cout << "\n";
-
-  }
-#endif
   // first, receive from sender_rank 0, the communication graph (matrix), so each receiver
   // knows what data to expect
   int size_pack_array;
@@ -1632,13 +1586,13 @@ ErrCode iMOAB_ReceiveMesh(iMOAB_AppID pid, MPI_Comm * receive, MPI_Comm * global
           MPI_Comm communicator,
           MPI_Status* status)
      */
-    ierr = MPI_Recv (&size_pack_array, 1, MPI_INT, senderRanks[0], 10, *global, &status);
+    ierr = MPI_Recv (&size_pack_array, 1, MPI_INT, cgraph->sender(0), 10, *global, &status);
     if (0!=ierr) return 1;
 #ifdef VERBOSE
     std::cout <<" receive comm graph size: " << size_pack_array << "\n";
 #endif
     pack_array.resize (size_pack_array);
-    ierr = MPI_Recv (&pack_array[0], size_pack_array, MPI_INT, senderRanks[0], 20, *global, &status);
+    ierr = MPI_Recv (&pack_array[0], size_pack_array, MPI_INT, cgraph->sender(0), 20, *global, &status);
     if (0!=ierr) return 1;
 #ifdef VERBOSE
     std::cout <<" receive comm graph " ;
@@ -1649,17 +1603,13 @@ ErrCode iMOAB_ReceiveMesh(iMOAB_AppID pid, MPI_Comm * receive, MPI_Comm * global
   }
 
   // now broadcast this whole array to all receivers, so they know what to expect
-  MPI_Bcast(&size_pack_array, 1, MPI_INT, 0, *receive);
+  MPI_Bcast(&size_pack_array, 1, MPI_INT, 0, receive);
   pack_array.resize(size_pack_array);
-  MPI_Bcast(&pack_array[0], size_pack_array, MPI_INT, 0, *receive);
+  MPI_Bcast(&pack_array[0], size_pack_array, MPI_INT, 0, receive);
   // now identify for current task, where are we getting data from
-#ifdef VERBOSE
-  if (0==receiver_rank)
-    std::cout << " broadcasted comm array over receiver communicator\n";
-#endif
 
   // senders across for the current receiver
-  int current_receiver = recvRanks[receiver_rank];
+  int current_receiver = cgraph->receiver(receiver_rank);
 
   std::vector<int> senders_local;
   int n=0;

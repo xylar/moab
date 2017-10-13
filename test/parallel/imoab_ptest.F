@@ -75,6 +75,7 @@ C      implicit none
 
       integer ierr, my_id, num_procs, pid, i, ix, iy, numv, nume
       integer dime, lco, mbtype, blockid, npe
+      integer compid
       character*10 appname
       character*100 outfile, wopts
 C coordinates for 9 vertices
@@ -119,10 +120,11 @@ c     find out MY process ID, and how many processes were started.
 
       ierr = iMOAB_InitializeFortran()
       call errorout(ierr, 'fail to initialize iMOAB')
-
+C       give a component id
+      compid = 7
       appname = 'IMTEST'//CHAR(0)
       ierr = iMOAB_RegisterFortranApplication(appname, MPI_COMM_WORLD,
-     & pid)
+     & compid, pid)
       call errorout(ierr, 'fail to initialize fortran app')
 
 C  create first 9 vertices,  in a square 3x3;

@@ -9,6 +9,8 @@
  *  various methods should be available to partition meshes between the 2 communicators
  *  communicators are represented by their MPI groups, not by their communicators, because
  *  the groups are always defined, irrespective of what tasks are they on.
+ *  Some of the methods in here ar executed over the sender communicator, some are over the receiver communicator
+ *
  */
 #include "moab_mpi.h"
 #include "moab/Interface.hpp"
@@ -27,7 +29,7 @@ namespace moab {
 	  virtual ~ParCommGraph();
 
 	  // collective constructor, will be called on all sender tasks and receiver tasks
-	  ParCommGraph(MPI_Comm joincomm, MPI_Group group1, MPI_Group group2);
+	  ParCommGraph(MPI_Comm joincomm, MPI_Group group1, MPI_Group group2, int coid1, int coid2);
 
 	  /**
 	    \brief find ranks of a group with respect to an encompassing communicator
@@ -87,9 +89,19 @@ namespace moab {
 	  int get_index1() { return index1;}
 	  int get_index2() { return index2;}
 
+	  int sender(int index) {return senderTasks[index];}
+
+	  int receiver(int index) {return receiverTasks[index];}
+
 	  // setter methods for private data
 	  void set_index1(int ix1) {index1=ix1;}
 	  void set_index2(int ix2) {index2=ix2;}
+
+	  int get_component_id1(){return compid1;}
+	  int get_component_id2(){return compid2;}
+
+	  // return local graph for a specific root
+	  ErrorCode split_owned_range (int sender_rank, Range & owned, std::map<int, Range> & split_ranges);
 
 	private:
 	  MPI_Comm  comm;
@@ -101,6 +113,7 @@ namespace moab {
 	  int rankInGroup1, rankInGroup2;
 	  int rankInJoin, joinSize;
 	  int index1, index2; // indices in the list of local graphs referred by this application
+	  int compid1, compid2;
 
 	  // communication graph from group1 to group2;
 	  //  graph[task1] = vec1; // vec1 is a stl vector of tasks in group2

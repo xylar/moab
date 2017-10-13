@@ -15,6 +15,8 @@ program MigrateMesh
     integer  newComm
     integer comm1, comm2
     integer pid !  this is for physics id
+    integer compid1, compid2  !  component ids are unique over all pes, and established in
+                              !  advance;
     integer nghlay ! number of ghost layers for loading
     integer gr1(2)   !  2 processes in the first group
     character*10 appname
@@ -46,6 +48,11 @@ program MigrateMesh
     call errorout(ierr, 'cannot get group' )
     gr1(1) = sz-2
     gr1(2) = sz-1
+    ! give some dummy values to component ids, just to differentiate between them
+    ! the par comm graph is unique between components
+    compid1 = 4
+    compid2 = 7
+
     call MPI_Group_incl(allgroup, 2, gr1, group1, ierr)
     call errorout(ierr, 'cannot create group 1' )
 
@@ -81,11 +88,11 @@ program MigrateMesh
 
     if (rank >= sz-2) then
        appname='phis2'//CHAR(0)
-       ierr = iMOAB_RegisterFortranApplication(trim(appname), comm1, pid)
+       ierr = iMOAB_RegisterFortranApplication(trim(appname), comm1, compid1, pid)
        print *, ' register ', appname, " on rank ", rank, " pid ", pid
     else
        appname = 'phis1'//CHAR(0)
-       ierr = iMOAB_RegisterFortranApplication(trim(appname), comm2, pid)
+       ierr = iMOAB_RegisterFortranApplication(trim(appname), comm2, compid2, pid)
        print *, ' register ', appname, " on rank ", rank, " pid ", pid
     endif
 
@@ -98,10 +105,10 @@ program MigrateMesh
 
        ierr = iMOAB_LoadMesh(pid, trim(filename), trim(readopts), nghlay)
        if (rank .eq. sz-2 ) print *, "loaded in parallel ", trim(filename), " error: ", ierr
-       ierr = iMOAB_SendMesh(pid, comm1, MPI_COMM_WORLD, group2, pid); ! it should be different pid
+       ierr = iMOAB_SendMesh(pid, MPI_COMM_WORLD, group2, compid2); ! send to component 2
        call errorout(ierr, 'cannot send elements' )
     else
-       ierr = iMOAB_ReceiveMesh(pid, comm2, MPI_COMM_WORLD, group1, pid); ! it should be different pid
+       ierr = iMOAB_ReceiveMesh(pid, MPI_COMM_WORLD, group1, compid1); ! receive from component 1
        call errorout(ierr, 'cannot receive elements' )
        outfile = 'receivedMesh.h5m'//CHAR(0)
        wopts   = 'PARALLEL=WRITE_PART'//CHAR(0)

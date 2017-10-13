@@ -16,6 +16,7 @@
 #endif
       integer ierr, num_procs, my_id
       integer pid
+      integer compid
       character*10 appname
       character*200 filename
       character*14  fname
@@ -77,11 +78,13 @@ c     find out MY process ID, and how many processes were started.
       call errorout(ierr, 'fail to initialize iMOAB')
 
       appname = 'PROTEUS'//CHAR(0)
+C      give a unique external id; here we just use 8?
+      compid = 8
 #ifdef MOAB_HAVE_MPI
       ierr = iMOAB_RegisterFortranApplication(appname, MPI_COMM_WORLD,
-     & pid)
+     & compid, pid)
 #else
-      ierr = iMOAB_RegisterFortranApplication(appname,
+      ierr = iMOAB_RegisterFortranApplication(appname, compid,
      & pid)
 #endif
       call errorout(ierr, 'fail to register application')

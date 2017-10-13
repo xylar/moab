@@ -7,8 +7,8 @@
 
 namespace moab {
 
-ParCommGraph::ParCommGraph(MPI_Comm joincomm, MPI_Group group1, MPI_Group group2):
-comm(joincomm), gr1(group1), gr2(group2) {
+ParCommGraph::ParCommGraph(MPI_Comm joincomm, MPI_Group group1, MPI_Group group2, int coid1, int coid2):
+comm(joincomm), gr1(group1), gr2(group2), compid1(coid1), compid2(coid2) {
   // find out the tasks from each group, in the joint communicator
   find_group_ranks(gr1, comm, senderTasks);
   find_group_ranks(gr2, comm, receiverTasks);
@@ -16,14 +16,17 @@ comm(joincomm), gr1(group1), gr2(group2) {
   rootSender = rootReceiver = false;
   rankInGroup1 =  rankInGroup2 = rankInJoin = -1; // not initialized, or not part of the group
   int mpierr = MPI_Group_rank(gr1, &rankInGroup1);
-  if (MPI_SUCCESS != mpierr)
+  if (MPI_SUCCESS != mpierr || rankInGroup1 == MPI_UNDEFINED)
     rankInGroup1 = -1;
   mpierr = MPI_Group_rank(gr2, &rankInGroup2);
-  if (MPI_SUCCESS != mpierr)
+  if (MPI_SUCCESS != mpierr || rankInGroup2 == MPI_UNDEFINED)
     rankInGroup2 = -1;
   mpierr = MPI_Comm_rank(comm, &rankInJoin);
   if (MPI_SUCCESS != mpierr) // it should be a fatal error
     rankInJoin = -1;
+  mpierr = MPI_Comm_size(comm, &joinSize);
+  if (MPI_SUCCESS != mpierr) // it should be a fatal error
+    joinSize = -1;
 
   if (0==rankInGroup1)rootSender=true;
   if (0==rankInGroup2)rootReceiver=true;
@@ -161,6 +164,30 @@ ErrorCode ParCommGraph::pack_receivers_graph(std::vector<int> & packed_recv_arra
   return MB_SUCCESS;
 }
 
+ErrorCode ParCommGraph::split_owned_range (int sender_rank, Range & owned, std::map<int, Range> & split_ranges)
+{
+  int senderTask = senderTasks[sender_rank];
+  std::vector<int> & distribution = sender_sizes[senderTask];
+  std::vector<int> & receivers = sender_graph[senderTask];
+  if (distribution.size() != receivers.size()) //
+    return MB_FAILURE;
+
+  Range current = owned; // get the full range first, then we will subtract stuff, fot
+  // the following ranges
+
+  Range rleftover=current;
+  for (size_t k=0; k<receivers.size(); k++ )
+  {
+    Range newr;
+    newr.insert(current.begin(), current.begin() +distribution[k]);
+    split_ranges[ receivers[k] ] = newr;
+
+    rleftover = subtract(current, newr );
+    current = rleftover;
+  }
+
+  return MB_SUCCESS;
+}
 ErrorCode ParCommGraph::distribute_sender_graph_info(MPI_Comm senderComm, std::vector<int> &sendingInfo )
 {
   // only the root of the sender has all info

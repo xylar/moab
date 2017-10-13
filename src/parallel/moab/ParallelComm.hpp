@@ -972,42 +972,6 @@ namespace moab {
      */
     ErrorCode delete_entities(Range & to_delete);
 
-
-    /*
-     * \brief trivial partition
-     * Will be called on each sender, to decide how to distribute its elements to the
-     * receivers (in a trivial partition)
-     *
-     * \param sender_rank              rank of the sender
-     * \param recvRanks                ranks of the receivers
-     * \param number_elems_per_part    number of elements on each sender
-     * \param owned                    range of locally owned elements on the sender
-     * \param ranges_to_send  (output) ranges to send to corresponding receivers
-     *
-     */
-    void trivial_partition (int sender_rank, std::vector<int> & recvRanks,
-          std::vector<int> & number_elems_per_part,
-          Range & owned, std::map<int, Range> & ranges_to_send);
-
-    /*
-     * \brief trivial partition like GlobalMap
-     *  Will compute communication graph when sending meshes between 2 different communicators, in a
-     *  trivial partition
-     *  It assumes that each sender has some elements, and that each receiver will receive something
-     *  sndrRanks.size() == number_elems_per_part.size()
-     *
-     * this could be called on one processor only (root of the sender group); will send later the
-     * result to the root of the receiving group
-     * \param sndrRanks (input)              ranks of the senders
-     * \param number_elems_per_part (input)  number of elements on each rank
-     * \param recvRanks (input)              ranks of the receivers
-     * \param recv_sets (output)             communication graph; map from each sender to receivers
-     *
-     */
-    void senders_trivial_partition(std::vector<int> & sndrRanks, std::vector<int> & number_elems_per_part,
-          std::vector<int> & recvRanks, std::map<int, std::vector<int> > & recv_sets);
-
-
   private:
 
     ErrorCode reduce_void(int tag_data_type, const MPI_Op mpi_op, int num_ents, void *old_vals, void *new_vals);
