@@ -66,10 +66,12 @@ int main(int argc, char * argv[])
    * with each application. A unique application id will be returned, and will be used for all future
    * mesh operations/queries.
    */
+  int compid = 11;
   rc = iMOAB_RegisterApplication( "PROTEUS",
 #ifdef MOAB_HAVE_MPI
       &comm,
 #endif
+      &compid,
       pid);
   CHECKRC(rc, "failed to register application");
 #ifdef MOAB_HAVE_MPI

@@ -261,6 +261,10 @@ ErrCode iMOAB_DeregisterApplication( iMOAB_AppID pid )
   // we could get the pco also with
   // ParallelComm * pcomm = ParallelComm::get_pcomm(context.MBI, *pid);
   delete pco;
+  std::vector<ParCommGraph*> & pargs = context.appDatas[*pid].pgraph;
+  // free the parallel comm graphs associated with this app
+  for (size_t k=0; k<pargs.size(); k++)
+    delete pargs[k];
 #endif
 
   rval = context.MBI->delete_entities(fileents);
