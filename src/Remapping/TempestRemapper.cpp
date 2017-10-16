@@ -594,7 +594,13 @@ ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius,
         assert ( m_source != NULL );
         assert ( m_target != NULL );
         if ( m_overlap != NULL ) delete m_overlap;
-        m_overlap = GenerateOverlapWithMeshes ( *m_source, *m_target, "" /*outFilename*/, "exact", false );
+        m_overlap = new Mesh();
+        bool concaveMeshA=false, concaveMeshB=false;
+        int err = GenerateOverlapWithMeshes ( *m_source, *m_target, *m_overlap, "" /*outFilename*/, "exact", concaveMeshA, concaveMeshB, false );
+        if (err) {
+            rval = MB_FAILURE;
+            return rval;
+        }
     }
     else
     {
