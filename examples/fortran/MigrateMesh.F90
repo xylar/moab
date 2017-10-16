@@ -28,6 +28,7 @@ program MigrateMesh
     integer tagcomm1, tagcomm2
     integer iMOAB_InitializeFortran, iMOAB_RegisterFortranApplication
     integer iMOAB_LoadMesh, iMOAB_SendMesh, iMOAB_ReceiveMesh, iMOAB_WriteMesh
+    integer iMOAB_DeregisterApplication, iMOAB_Finalize
 
 
     call MPI_INIT(ierr)
@@ -117,6 +118,18 @@ program MigrateMesh
        call errorout(ierr, 'cannot write received mesh' )
     endif
 
+ ! it will work for disjoint pes only
+    if (comm1 /= MPI_COMM_NULL) then
+       ierr = iMOAB_DeregisterApplication(pid)
+         call errorout(ierr, 'cannot deregister app' )
+    endif
+    if (comm2 /= MPI_COMM_NULL) then
+       ierr = iMOAB_DeregisterApplication(pid)
+       call errorout(ierr, 'cannot deregister app' )
+    endif
+
+    ierr = iMOAB_Finalize()
+    call errorout(ierr, 'did not finalize iMOAB' )
     if (MPI_COMM_NULL /= comm1) call MPI_Comm_free(comm1, ierr)
     call errorout(ierr, 'did not free comm1' )
 
