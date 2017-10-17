@@ -58,7 +58,7 @@ void ParCommGraph::find_group_ranks(MPI_Group group, MPI_Comm joincomm, std::vec
    return;
 }
 
-ErrorCode ParCommGraph::trivial_partition (std::vector<int> & numElemsPerTaskInGroup1)
+ErrorCode ParCommGraph::compute_trivial_partition (std::vector<int> & numElemsPerTaskInGroup1)
 {
 
   recv_graph.clear(); recv_sizes.clear();

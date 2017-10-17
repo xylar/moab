@@ -155,6 +155,11 @@ ErrCode iMOAB_RegisterApplication( const iMOAB_String app_name,
   }
   *pid =  context.unused_pid++;
   context.appIdMap[name] = *pid;
+  if (*compid <= 0)
+  {
+    std::cout << " convention for external application is to have its id positive \n";
+    return 1;
+  }
   if (context.appIdCompMap.find(*compid)!=context.appIdCompMap.end())
   {
     std::cout << " external application with comp id " << *compid << " is already registered\n";
@@ -1426,6 +1431,14 @@ ErrCode iMOAB_SetGlobalInfo(iMOAB_AppID pid, int * num_global_verts, int * num_g
   return 0;
 }
 
+ErrCode iMOAB_GetGlobalInfo(iMOAB_AppID pid, int * num_global_verts, int * num_global_elems)
+{
+  appData & data = context.appDatas[*pid];
+  *num_global_verts = data.num_global_vertices;
+  *num_global_elems = data.num_global_elements;
+  return 0;
+}
+
 
 #ifdef MOAB_HAVE_MPI
 
@@ -1487,7 +1500,7 @@ ErrCode iMOAB_SendMesh(iMOAB_AppID pid, MPI_Comm * global, MPI_Group * receiving
     return 1;
 
   // every sender computes the trivial partition, it is cheap, and we need to send it anyway to each sender
-  cgraph->trivial_partition(number_elems_per_part);
+  cgraph->compute_trivial_partition(number_elems_per_part);
 
   if ( cgraph->is_root_sender())
   {

@@ -67,7 +67,7 @@ int main(int argc, char * argv[])
    * mesh operations/queries.
    */
   int compid = 11;
-  rc = iMOAB_RegisterApplication( "PROTEUS",
+  rc = iMOAB_RegisterApplication( "MBAPP",
 #ifdef MOAB_HAVE_MPI
       &comm,
 #endif

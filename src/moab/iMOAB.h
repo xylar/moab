@@ -598,6 +598,16 @@ ErrCode iMOAB_GetNeighborVertices(iMOAB_AppID pid, iMOAB_LocalID* local_vertex_I
 
 ErrCode iMOAB_SetGlobalInfo(iMOAB_AppID pid, int * num_global_verts, int * num_global_elems);
 
+
+/**
+   \brief Get global information about number of vertices and number of elements
+   \param[in]  pid (iMOAB_AppID)                      The unique pointer to the application ID
+   \param[in]  num_global_verts (int*)                number of total vertices
+   \param[in]  global (MPI_Comm)                      number of total elements
+ */
+ErrCode iMOAB_GetGlobalInfo(iMOAB_AppID pid, int * num_global_verts, int * num_global_elems);
+
+
 #ifdef MOAB_HAVE_MPI
 /**
   \brief migrate (send) a set of elements from one processor to another
@@ -606,7 +616,7 @@ ErrCode iMOAB_SetGlobalInfo(iMOAB_AppID pid, int * num_global_verts, int * num_g
    \param[in]  pid (iMOAB_AppID)                      The unique pointer to the application ID source mesh
    \param[in]  join (MPI_Comm)                        communicator that overlaps both groups
    \param[in]  receivingGroup (MPI_Group *)           receiving group
-   \param[in]  target_pid                             target application to receive the mesh
+   \param[in]  rcompid  (int*)                        external id of application that receives the mesh
  */
 
 ErrCode iMOAB_SendMesh(iMOAB_AppID pid, MPI_Comm * join, MPI_Group * receivingGroup, int * rcompid);
@@ -617,7 +627,7 @@ ErrCode iMOAB_SendMesh(iMOAB_AppID pid, MPI_Comm * join, MPI_Group * receivingGr
    \param[in]  pid (iMOAB_AppID)                      The unique pointer to the application ID  mesh (receiver)
    \param[in]  join (MPI_Comm)                        communicator that overlaps both groups
    \param[in]  sendingGroup (MPI_Group *)             sending group
-   \param[in]  source_pid ( iMOAB_AppID)              Application that sent the mesh
+   \param[in]  scompid ( int *)                       external id of application that sends the mesh
  */
 
 ErrCode iMOAB_ReceiveMesh(iMOAB_AppID pid, MPI_Comm * join, MPI_Group * sendingGroup, int * scompid);

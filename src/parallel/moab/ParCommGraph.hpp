@@ -9,7 +9,7 @@
  *  various methods should be available to partition meshes between the 2 communicators
  *  communicators are represented by their MPI groups, not by their communicators, because
  *  the groups are always defined, irrespective of what tasks are they on.
- *  Some of the methods in here ar executed over the sender communicator, some are over the receiver communicator
+ *  Some of the methods in here are executed over the sender communicator, some are over the receiver communicator
  *
  */
 #include "moab_mpi.h"
@@ -54,7 +54,7 @@ namespace moab {
 
        \param[in]  numElemsPerTaskInGroup1 (std::vector<int> &)  number of elements on each sender task
 	   */
-	  ErrorCode trivial_partition (std::vector<int> & numElemsPerTaskInGroup1);
+	  ErrorCode compute_trivial_partition (std::vector<int> & numElemsPerTaskInGroup1);
 
 	  /**
 	     \brief  pack information about receivers view of the graph, for future sending to receiver root
@@ -86,16 +86,16 @@ namespace moab {
 
 	  bool is_root_receiver () { return rootReceiver;}
 
-	  int get_index1() { return index1;}
-	  int get_index2() { return index2;}
+	  int get_index_sender() { return index_sender;}
+	  int get_index_receiver() { return index_receiver;}
 
 	  int sender(int index) {return senderTasks[index];}
 
 	  int receiver(int index) {return receiverTasks[index];}
 
 	  // setter methods for private data
-	  void set_index1(int ix1) {index1=ix1;}
-	  void set_index2(int ix2) {index2=ix2;}
+	  void set_index_sender(int ix1) {index_sender=ix1;}
+	  void set_index_receiver(int ix2) {index_receiver=ix2;}
 
 	  int get_component_id1(){return compid1;}
 	  int get_component_id2(){return compid2;}
@@ -112,7 +112,7 @@ namespace moab {
 	  bool rootReceiver;
 	  int rankInGroup1, rankInGroup2;
 	  int rankInJoin, joinSize;
-	  int index1, index2; // indices in the list of local graphs referred by this application
+	  int index_sender, index_receiver; // indices in the list of local graphs referred by this application (not used yet)
 	  int compid1, compid2;
 
 	  // communication graph from group1 to group2;
