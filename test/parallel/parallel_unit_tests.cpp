@@ -1846,7 +1846,7 @@ void test_trivial_partition()
   std::cout << "\n";
 
   std::cout << "\n";
-  pgr->trivial_partition ( number_elems_per_part);
+  pgr->compute_trivial_partition ( number_elems_per_part);
 
   Range verts(10, 20);
   std::map<int, Range> split_ranges;
