@@ -14,6 +14,9 @@ void test_tet();
 void test_hex();
 void test_spectral_hex();
 void test_spectral_quad();
+void test_spherical_quad();
+void test_linear_tri();
+void test_spherical_tri();
 
 int main()
 {
@@ -22,6 +25,9 @@ int main()
   rval += RUN_TEST(test_hex);
   rval += RUN_TEST(test_spectral_hex);
   rval += RUN_TEST(test_spectral_quad);
+  rval += RUN_TEST(test_spherical_quad);
+  rval += RUN_TEST(test_linear_tri);
+  rval += RUN_TEST(test_spherical_tri);
   return rval;
 }
 
@@ -314,4 +320,123 @@ void test_spectral_quad()
   std::cout << "success...\n";
 
   delete mb;
+}
+void test_spherical_quad()
+{
+  // example from one coupler test, run like this
+  // ./mbcoupler_test -meshes sphere_16p.h5m mpas_p8.h5m -itag vertex_field -meth 4 -outfile dd.h5m
+  // method 4 is spherical
+  double positions[] =
+  {
+   -0.88882388032987436, -0.069951956448441419, 0.45287838714646161,
+   -0.88226455385461389, -0.13973697758043971, 0.4495362433757738,
+   -0.84497006020160348, -0.13383011007602069, 0.51779831884618843,
+   -0.85072691325794214, -0.066953660115039074, 0.52132612293631853
+  };
+  CartVect x(-0.85408569769999998, -0.12391301439999999, 0.50515659540000002);
+  std::vector<CartVect> vertices;
+  for (int i=0; i<4; i++)
+    vertices.push_back(CartVect(positions+3*i));
+
+  moab::Element::SphericalQuad squad(vertices);
+  double tol(0.0001);
+  if (squad.inside_box(x, tol))
+  {
+   CartVect nat_par = squad.ievaluate(x, 0.000001);
+   std::cout<< nat_par << "\n";
+  }
+  std::cout << "success...\n";
+}
+
+void test_linear_tri()
+{
+  double positions[] =
+  {
+   0, 0, 0,
+   2, 0, 0,
+   0, 3, 0
+  };
+  CartVect x(1, 0.5, 0);
+  std::vector<CartVect> vertices;
+  for (int i=0; i<3; i++)
+    vertices.push_back(CartVect(positions+3*i));
+
+  moab::Element::LinearTri tri(vertices);
+  double tol(0.0001);
+  if (tri.inside_box(x, tol))
+  {
+   CartVect nat_par = tri.ievaluate(x);
+   std::cout<< x << " :" << nat_par << "\n";
+  }
+
+  x = CartVect(0,2,0);
+  if (tri.inside_box(x, tol))
+  {
+   CartVect nat_par = tri.ievaluate(x);
+   std::cout<< x << " :" << nat_par << "\n";
+  }
+
+  x = CartVect(1,0,0.5);
+  if (tri.inside_box(x, tol))
+  {
+   CartVect nat_par = tri.ievaluate(x);
+   std::cout<< x << " :" << nat_par << "\n";
+  }
+
+  double positions2[] =
+  {
+    -0.866026, -0.500001, 0.,
+    0.866026,  -0.500001, 0.,
+    0.000000, 100.000000, 0.
+  };
+  x = CartVect(0, 0, 0);
+  std::vector<CartVect> vertices2;
+  for (int i=0; i<3; i++)
+    vertices2.push_back(CartVect(positions2+3*i));
+
+  moab::Element::LinearTri tri2(vertices2);
+
+  if (tri2.inside_box(x, tol))
+  {
+   CartVect nat_par = tri2.ievaluate(x);
+   std::cout<< x << " :" << nat_par << "\n";
+  }
+
+  std::cout << "vertices2 "  << vertices2[0] << " " << vertices2[1] << " " << vertices2[2] << "\n";
+
+  x = CartVect(-0.866026, -0.500001, 0.);
+  std::cout<< x << " :" << tri2.ievaluate(x) << "\n";
+
+  x = CartVect(+0.866026, -0.500001, 0.);
+  std::cout<< x << " :" << tri2.ievaluate(x) << "\n";
+  x = CartVect(0.000000, 100.000000, 0.);
+  std::cout<< x << " :" << tri2.ievaluate(x) << "\n";
+
+  std::cout << "success...\n";
+}
+
+void test_spherical_tri()
+{
+  // example from one coupler test, run like this
+    // ./mbcoupler_test -meshes  tri_fl_8p.h5m mpas_p8.h5m -itag vertex_field -meth 4  -outfile oo.h5m -eps 1.e-9
+    // method 4 is spherical
+    double positions[] =
+    {
+         -0.86339258282987197, -0.17004443185241255, 0.47501383044112816,
+         -0.80777478326268271, -0.15172299908552511, 0.5696314870803928,
+         -0.8655618847392077, -0.061613422011313854, 0.49699739427361828
+    };
+    CartVect x(-0.85408569769999998, -0.12391301439999999, 0.50515659540000002);
+    std::vector<CartVect> vertices;
+    for (int i=0; i<3; i++)
+      vertices.push_back(CartVect(positions+3*i));
+
+    moab::Element::SphericalTri sphtri(vertices);
+    double tol(0.000001);
+    if (sphtri.inside_box(x, tol))
+    {
+     CartVect nat_par = sphtri.ievaluate(x, 0.000001);
+     std::cout<< nat_par << "\n";
+    }
+    std::cout << "success...\n";
 }

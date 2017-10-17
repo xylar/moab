@@ -22,6 +22,7 @@ using namespace moab;
     3) P_1 interpolation with epsilon control: ./mbcoupler_test -meshes <src_mesh> <target_mesh> -itag <interp_tag> -meth 1 -eps <tolerance for locating points; say 0.01> -outfile <output>
     3) P_0 interpolation with global normalization: ./mbcoupler_test -meshes <src_mesh> <target_mesh> -itag <interp_tag> -meth 0 -gnorm <gnorm_tag_name> -outfile <output>
     4) P_1 interpolation with subset normalization: ./mbcoupler_test -meshes <src_mesh> <target_mesh> -itag <interp_tag> -meth 1 -ssnorm <snorm_tag_name> <snorm_criteria: MATERIAL_SET> -outfile <output>
+    5) P_1 interpolation for meshes on sphere  ./mbcoupler_test -meshes  <src_mesh> <target_mesh>  -itag  <interp_tag>  -meth 4 -outfile  <output>
 */
 
 // Print usage
@@ -523,8 +524,11 @@ ErrorCode test_interpolation(Interface *mbImpl,
 
   double start_time = MPI_Wtime();
 
-  // Instantiate a coupler, which also initializes the tree
-  Coupler mbc(mbImpl, pcs[0], src_elems, 0);
+  // Instantiate a coupler, which does not initialize the tree yet
+  Coupler mbc(mbImpl, pcs[0], src_elems, 0, false); // do not initialize tree yet
+  if (Coupler::SPHERICAL==method)
+    mbc.set_spherical();
+  mbc.initialize_tree(); // it is expensive, but do something different for spherical
 
   // Initialize spectral elements, if they exist
   bool specSou=false, specTar = false;

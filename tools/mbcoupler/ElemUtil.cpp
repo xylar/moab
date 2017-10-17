@@ -474,20 +474,29 @@ namespace Element {
   {
     // project the vertices to the plane tangent at first vertex
     v1=vertex[0]; // member data
-    double v1v1= v1%v1;
+    double v1v1= v1%v1; // this is 1, in general, for unit sphere meshes
     for (int j=1; j<4; j++)
     {
-      CartVect vnew =v1v1/(vertex[j]%v1)*vertex[j]; // so that (vnew-v1)%v1 is 0
+      // first, bring all vertices in the gnomonic plane
+      //  the new vertex will intersect the plane at vnew
+      //   so that (vnew-v1)%v1 is 0 ( vnew is in the tangent plane, i.e. normal to v1 )
+      // pos is the old position of the vertex, and it is in general on the sphere
+      // vnew = alfa*pos;  (alfa*pos-v1)%v1 = 0  <=> alfa*(pos%v1)=v1%v1 <=> alfa = v1v1/(pos%v1)
+      //  <=> vnew = ( v1v1/(pos%v1) )*pos
+      CartVect vnew =v1v1/(vertex[j]%v1)*vertex[j];
       vertex[j]=vnew;
     }
     // will compute a transf matrix, such that a new point will be transformed with
-    // newpos =  transf * (pos-v1);
+    // newpos =  transf * (vnew-v1), and it will be a point in the 2d plane
+    // the transformation matrix will be oriented in such a way that orientation will be positive
     CartVect vx = vertex[1]-v1; // this will become Ox axis
+    // z axis will be along v1, in such a way that orientation of the quad is positive
+    // look at the first 2 edges
+    CartVect vz = vx*(vertex[2]-vertex[1]);
+    vz = vz/vz.length();
+
     vx = vx/vx.length();
-    CartVect vz = -v1/v1.length();// z will point down; with this, if the second vertex is along x,
-                                   // the det will be positive for typical HOMME meshes
-                                   // this allows to simplify the ievaluate,
-                                   // so we can just reuse Map::ievaluate
+
     CartVect vy = vz*vx;
     transf = Matrix3(vx[0], vx[1], vx[2], vy[0], vy[1], vy[2], vz[0], vz[1], vz[2]);
     vertex[0]= CartVect(0.);
@@ -495,15 +504,14 @@ namespace Element {
       vertex[j] = transf*(vertex[j]-v1);
   }
 
-   CartVect SphericalQuad::ievaluate(double tol, const CartVect& x) const
+   CartVect SphericalQuad::ievaluate( const CartVect& x, double tol, const CartVect& x0) const
    {
-     // project to the plane tangent at first vertex
-     //CartVect v1=vertex[0];
+     // project to the plane tangent at first vertex (gnomonic projection)
      double v1v1= v1%v1;
-     CartVect vnew =v1v1/(x%v1)*x; // so that (x-v1)%v1 is 0
+     CartVect vnew =v1v1/(x%v1)*x; // so that (vnew-v1)%v1 is 0
      vnew =  transf*(vnew-v1);
      // det will be positive now
-     return Map::ievaluate(vnew, tol);
+     return Map::ievaluate(vnew, tol, x0);
    }
 
    bool SphericalQuad::inside_box(const CartVect & pos, double & tol) const
@@ -515,6 +523,115 @@ namespace Element {
       vnew =  transf*(vnew-v1);
       return Map::inside_box(vnew, tol);
    }
+
+   const double LinearTri::corner[3][3] = { {0,0,0},
+                                            {1,0,0},
+                                            {0,1,0} };
+
+
+   LinearTri::LinearTri() : Map(0), det_T(0.0), det_T_inverse(0.0) {
+
+   }// LinearTri::LinearTri()
+
+
+   LinearTri::~LinearTri()
+     {}
+
+   void LinearTri::set_vertices(const std::vector<CartVect>& v) {
+     this->Map::set_vertices(v);
+     this->T = Matrix3(v[1][0]-v[0][0],v[2][0]-v[0][0], 0,
+                       v[1][1]-v[0][1],v[2][1]-v[0][1], 0,
+                       v[1][2]-v[0][2],v[2][2]-v[0][2], 1);
+     this->T_inverse = this->T.inverse();
+     this->det_T = this->T.determinant();
+     this->det_T_inverse = (this->det_T < 1e-12 ? std::numeric_limits<double>::max() : 1.0/this->det_T);
+   }// LinearTri::set_vertices()
+
+   bool LinearTri::inside_nat_space(const CartVect & xi, double & tol) const
+     {
+       // linear tri space is a triangle with vertices (0,0,0), (1,0,0), (0,1,0)
+       // first check if outside bigger box, then below the line x+y=1
+       return ( xi[0]>=-tol)  &&
+           ( xi[1]>=-tol)  &&
+           ( xi[2]>=-tol)  && ( xi[2] <= tol) &&
+           ( xi[0]+xi[1] < 1.0+tol) ;
+     }
+
+   double LinearTri::evaluate_scalar_field(const CartVect& xi, const double *field_vertex_value) const {
+     double f0 = field_vertex_value[0];
+     double f = f0;
+     for (unsigned i = 1; i < 3; ++i) {
+       f += (field_vertex_value[i]-f0)*xi[i-1];
+     }
+     return f;
+   }// LinearTri::evaluate_scalar_field()
+
+   double LinearTri::integrate_scalar_field(const double *field_vertex_values) const {
+     double I(0.0);
+     for(unsigned int i = 0; i < 3; ++i) {
+       I += field_vertex_values[i];
+     }
+     I *= this->det_T/6.0; // TODO
+     return I;
+   }// LinearTri::integrate_scalar_field()
+
+   SphericalTri::SphericalTri(const std::vector<CartVect>& vertices)
+   {
+     vertex.resize(vertices.size()); vertex=vertices;
+     // project the vertices to the plane tangent at first vertex
+     v1=vertex[0]; // member data
+     double v1v1= v1%v1; // this is 1, in general, for unit sphere meshes
+     for (int j=1; j<3; j++)
+     {
+       // first, bring all vertices in the gnomonic plane
+       //  the new vertex will intersect the plane at vnew
+       //   so that (vnew-v1)%v1 is 0 ( vnew is in the tangent plane, i.e. normal to v1 )
+       // pos is the old position of the vertex, and it is in general on the sphere
+       // vnew = alfa*pos;  (alfa*pos-v1)%v1 = 0  <=> alfa*(pos%v1)=v1%v1 <=> alfa = v1v1/(pos%v1)
+       //  <=> vnew = ( v1v1/(pos%v1) )*pos
+       CartVect vnew =v1v1/(vertex[j]%v1)*vertex[j];
+       vertex[j]=vnew;
+     }
+     // will compute a transf matrix, such that a new point will be transformed with
+     // newpos =  transf * (vnew-v1), and it will be a point in the 2d plane
+     // the transformation matrix will be oriented in such a way that orientation will be positive
+     CartVect vx = vertex[1]-v1; // this will become Ox axis
+     // z axis will be along v1, in such a way that orientation of the quad is positive
+     // look at the first 2 edges
+     CartVect vz = vx*(vertex[2]-vertex[1]);
+     vz = vz/vz.length();
+
+     vx = vx/vx.length();
+
+     CartVect vy = vz*vx;
+     transf = Matrix3(vx[0], vx[1], vx[2], vy[0], vy[1], vy[2], vz[0], vz[1], vz[2]);
+     vertex[0]= CartVect(0.);
+     for (int j=1; j<3; j++)
+       vertex[j] = transf*(vertex[j]-v1);
+
+     LinearTri::set_vertices(vertex);
+   }
+
+  CartVect SphericalTri::ievaluate( const CartVect& x, double tol, const CartVect& x0) const
+  {
+    // project to the plane tangent at first vertex (gnomonic projection)
+    double v1v1= v1%v1;
+    CartVect vnew =v1v1/(x%v1)*x; // so that (vnew-v1)%v1 is 0
+    vnew =  transf*(vnew-v1);
+    // det will be positive now
+    return LinearTri::ievaluate(vnew);
+  }
+
+  bool SphericalTri::inside_box(const CartVect & pos, double & tol) const
+  {
+    // project to the plane tangent at first vertex
+     //CartVect v1=vertex[0];
+     double v1v1= v1%v1;
+     CartVect vnew =v1v1/(pos%v1)*pos; // so that (x-v1)%v1 is 0
+     vnew =  transf*(vnew-v1);
+     return Map::inside_box(vnew, tol);
+  }
+
 
 // filescope for static member data that is cached
   const double LinearEdge::corner[2][3] = {  { -1, 0, 0 },

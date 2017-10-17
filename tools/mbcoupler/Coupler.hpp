@@ -66,6 +66,11 @@ public:
      */
   virtual ~Coupler();
 
+  /**
+   *  \brief Initialize the kdtree, locally and across communicator
+   */
+  ErrorCode initialize_tree();
+
     /* \brief Locate points on the source mesh
      * This function finds the element/processor/natural coordinates for the
      * source mesh element containing each point, optionally storing the results 
@@ -426,6 +431,8 @@ public:
   inline const Range &my_range() const { return myRange; }
   inline TupleList *mapped_pts() const { return mappedPts; }
   inline int num_its() const { return numIts; }
+  // used for spherical tests
+  inline void set_spherical (bool arg1=true) {spherical=arg1;}
 
 private:
 
@@ -455,10 +462,6 @@ private:
     /* \brief MOAB instance
      */
   Interface *mbImpl;
-
-    /* \brief Initialize the kdtree, locally and across communicator
-     */
-  ErrorCode initialize_tree();
 
     /* \brief Kdtree for local mesh
      */

@@ -75,9 +75,7 @@ ErrorCode Coupler::initialize_tree()
     {
       max_dim--;
       result = myPc->get_part_entities(local_ents, max_dim);// go one dimension lower
-      // it is probably spherical, then
-      // fishy argument, fix this:
-      spherical = true;
+      // right now, this is used for spherical meshes only
     }
   }
   else local_ents = myRange;
@@ -92,6 +90,18 @@ ErrorCode Coupler::initialize_tree()
     std::ostringstream str;
     str << "PLANE_SET=0;"
         << "MAX_PER_LEAF=" << max_per_leaf << ";";
+    if (spherical && !local_ents.empty())
+    {
+      // get coordinates of one vertex, and use for radius computation
+      EntityHandle elem= local_ents[0];
+      const EntityHandle * conn;
+      int numn=0;
+      mbImpl->get_connectivity(elem, conn, numn);
+      CartVect pos0;
+      mbImpl -> get_coords(conn, 1, &(pos0[0]) );
+      double radius = pos0.length();
+      str<<"SPHERICAL=true;RADIUS="<<radius<<";";
+    }
     FileOptions opts(str.str().c_str());
     myTree = new AdaptiveKDTree(mbImpl);
     result = myTree->build_tree(local_ents, &localRoot, &opts);
@@ -152,7 +162,7 @@ ErrorCode Coupler::initialize_tree()
   blah << allBoxes[i] << " ";
   std::cout << blah.str() << "\n";*/
 
-#ifndef NDEBUG
+#ifdef VERBOSE
   double min[3] = {0, 0, 0}, max[3] = {0, 0, 0};
   unsigned int dep;
   myTree->get_info(localRoot, min, max, dep);
@@ -321,32 +331,70 @@ ErrorCode Coupler::locate_points(double *xyz, unsigned int num_points,
   // of <local_index, mapped_index>, where mapped_index is the index
   // into the mappedPts tuple list
   for (unsigned int i = 0; i < 3*num_points; i += 3) {
+
+    std::vector<int>  procs_to_send_to;
     for (unsigned int j = 0; j < (myPc ? myPc->proc_config().proc_size() : 0); j++) {
       // Test if point is in proc's box
       if ((allBoxes[6*j] <= xyz[i] + abs_eps) && (xyz[i] <= allBoxes[6*j + 3] + abs_eps) &&
           (allBoxes[6*j + 1] <= xyz[i + 1] + abs_eps) && (xyz[i + 1] <= allBoxes[6*j + 4] + abs_eps) &&
           (allBoxes[6*j + 2] <= xyz[i + 2] + abs_eps) && (xyz[i + 2] <= allBoxes[6*j + 5] + abs_eps)) {
         // If in this proc's box, will send to proc to test further
-        // Check size, grow if we're at max
-        if (target_pts.get_n() == target_pts.get_max())
-          target_pts.resize(std::max(10.0, 1.5*target_pts.get_max()));
-
-        target_pts.vi_wr[2*target_pts.get_n()] = j;
-        target_pts.vi_wr[2*target_pts.get_n() + 1] = i / 3;
-
-        target_pts.vr_wr[3*target_pts.get_n()] = xyz[i];
-        target_pts.vr_wr[3*target_pts.get_n() + 1] = xyz[i + 1];
-        target_pts.vr_wr[3*target_pts.get_n() + 2] = xyz[i + 2];
-        target_pts.inc_n();
+        procs_to_send_to.push_back(j);
       }
     }
-  }
+    if (procs_to_send_to.empty())
+    {
+#ifdef VERBOSE
+      std::cout << " point index " << i/3 << ": " << xyz[i] << " " << xyz[i+1] << " " << xyz[i+2] << " not found in any box\n";
+#endif
+      // try to find the closest box, and put it in that box, anyway
+      double min_dist = 1.e+20;
+      int index = -1;
+      for (unsigned int j = 0; j < (myPc ? myPc->proc_config().proc_size() : 0); j++)
+      {
+        BoundBox box( &allBoxes[6*j]); // form back the box
+        double distance = box.distance(&xyz[i]); // will compute the distance in 3d, from the box
+        if (distance < min_dist)
+        {
+          index = j;
+          min_dist = distance;
+        }
+      }
+      if (index ==-1)
+      {
+        // need to abort early, nothing we can do
+        assert("cannot locate any box for some points");
+        // need a better exit strategy
+      }
+#ifdef VERBOSE
+      std::cout << " point index " << i/3 << " added to box for proc j:" << index << "\n";
+#endif
+      procs_to_send_to.push_back(index); // will send to just one proc, that has the closest box
+    }
+    // we finally decided to populate the tuple list for a list of processors
+    for (size_t k=0; k<procs_to_send_to.size(); k++)
+    {
+      unsigned int j = procs_to_send_to[k];
+      // Check size of tuple list, grow if we're at max
+      if (target_pts.get_n() == target_pts.get_max())
+             target_pts.resize(std::max(10.0, 1.5*target_pts.get_max()));
+
+      target_pts.vi_wr[2*target_pts.get_n()] = j;
+      target_pts.vi_wr[2*target_pts.get_n() + 1] = i / 3;
+
+      target_pts.vr_wr[3*target_pts.get_n()] = xyz[i];
+      target_pts.vr_wr[3*target_pts.get_n() + 1] = xyz[i + 1];
+      target_pts.vr_wr[3*target_pts.get_n() + 2] = xyz[i + 2];
+      target_pts.inc_n();
+    }
+
+  } // end for (unsigned int i = 0; ..
 
   int num_to_me = 0;
   for (unsigned int i = 0; i < target_pts.get_n(); i++)
     if (target_pts.vi_rd[2*i] == (int)my_rank)
       num_to_me++;
-#ifndef NDEBUG
+#ifdef VERBOSE
   printf("rank: %u local points: %u, nb sent target pts: %u mappedPts: %u num to me: %d \n",
          my_rank, num_points, target_pts.get_n(), mappedPts->get_n(), num_to_me);
 #endif
@@ -359,7 +407,7 @@ ErrorCode Coupler::locate_points(double *xyz, unsigned int num_points,
       if (target_pts.vi_rd[2*i] == (int)my_rank)
         num_to_me++;
     }
-#ifndef NDEBUG
+#ifdef VERBOSE
     printf("rank: %u after first gs nb received_pts: %u; num_from_me = %d\n",
            my_rank, target_pts.get_n(), num_to_me);
 #endif
@@ -391,14 +439,14 @@ ErrorCode Coupler::locate_points(double *xyz, unsigned int num_points,
 
     // No longer need target_pts
     target_pts.reset();
-#ifndef NDEBUG
+#ifdef VERBOSE
     printf("rank: %u nb sent source pts: %u, mappedPts now: %u\n",
            my_rank, source_pts.get_n(),  mappedPts->get_n());
 #endif
       // Send target points back to target procs
     (myPc->proc_config().crystal_router())->gs_transfer(1, source_pts, 0);
 
-#ifndef NDEBUG
+#ifdef VERBOSE
     printf("rank: %u nb received source pts: %u\n",
            my_rank, source_pts.get_n());
 #endif
@@ -449,14 +497,14 @@ ErrorCode Coupler::locate_points(double *xyz, unsigned int num_points,
   for (unsigned int i = 0; i < num_points; i++) {
     if (tl_tmp->vi_rd[3*i + 1] == -1) {
       missing_pts++;
-#ifndef NDEBUG
-      printf(" %f %f %f\n", xyz[3*i], xyz[3*i + 1], xyz[3*i + 2]);
+#ifdef VERBOSE
+      printf("missing point at index i:  %d -> %15.10f %15.10f %15.10f\n", i, xyz[3*i], xyz[3*i + 1], xyz[3*i + 2]);
 #endif
     }
     else if (tl_tmp->vi_rd[3*i] == (int)my_rank)
       local_pts++;
   }
-#ifndef NDEBUG
+#ifdef VERBOSE
   printf("rank: %u point location: wanted %u got %u locally, %u remote, missing %u\n",
          my_rank, num_points, local_pts, num_points - missing_pts - local_pts, missing_pts);
 #endif
@@ -676,6 +724,7 @@ ErrorCode Coupler::nat_param(double xyz[3],
   if (epsilon) {
     std::vector<double> dists;
     std::vector<EntityHandle> leaves;
+
     // Two tolerances
     result = myTree->distance_search(xyz, epsilon, leaves,
                                      /*iter_tol*/ epsilon,
@@ -747,7 +796,7 @@ ErrorCode Coupler::nat_param(double xyz[3],
         tmp_nat_coords = spcHex->ievaluate(epsilon, CartVect(xyz) ); // introduce
         bool inside = spcHex->inside_nat_space(CartVect(tmp_nat_coords), epsilon);
         if (!inside) {
-#ifndef NDEBUG
+#ifdef VERBOSE
           std::cout << "point " << xyz[0] << " " << xyz[1] << " " << xyz[2] <<
               " is not converging inside hex " << mbImpl->id_from_handle(eh) << "\n";
 #endif
@@ -819,8 +868,9 @@ ErrorCode Coupler::nat_param(double xyz[3],
       }
       else if (MBQUAD == etype && spherical) {
         Element::SphericalQuad sphermap(coords_vert);
-        if (!sphermap.inside_box(pos, epsilon))
-          continue;
+        /* skip box test, because it can filter out good elements with high curvature
+         * if (!sphermap.inside_box(pos, epsilon))
+          continue;*/
         try {
           tmp_nat_coords = sphermap.ievaluate(pos, epsilon);
           bool inside = sphermap.inside_nat_space(tmp_nat_coords, epsilon);
@@ -830,9 +880,24 @@ ErrorCode Coupler::nat_param(double xyz[3],
         catch (Element::Map::EvaluationError&) {
           continue;
         }
-        if (!sphermap.inside_nat_space(tmp_nat_coords, epsilon))
-          continue;
+
       }
+      else if (MBTRI == etype && spherical) {
+        Element::SphericalTri sphermap(coords_vert);
+        /* skip box test, because it can filter out good elements with high curvature
+         * if (!sphermap.inside_box(pos, epsilon))
+            continue;*/
+        try {
+          tmp_nat_coords = sphermap.ievaluate(pos, epsilon);
+          bool inside = sphermap.inside_nat_space(tmp_nat_coords, epsilon);
+          if (!inside)
+            continue;
+        }
+        catch (Element::Map::EvaluationError&) {
+          continue;
+        }
+      }
+
       else if (MBQUAD == etype) {
         Element::LinearQuad quadmap(coords_vert);
         if (!quadmap.inside_box(pos, epsilon))
@@ -938,6 +1003,10 @@ ErrorCode Coupler::interp_field(EntityHandle elem,
     else if (MBQUAD == etype) {
       elemMap = new moab::Element::LinearQuad();
       num_verts = 4;
+    }
+    else if (MBTRI == etype) {
+      elemMap = new moab::Element::LinearTri();
+      num_verts = 3;
     }
     else
       return MB_FAILURE;
