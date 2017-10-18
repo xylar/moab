@@ -197,7 +197,7 @@ ErrCode iMOAB_RegisterFortranApplication( const iMOAB_String app_name,
     int *compid, iMOAB_AppID pid, int app_name_length )
 {
   std::string name(app_name);
-  if ( (int)name.length() >app_name_length )
+  if ( (int)strlen(app_name) >app_name_length )
   {
     std::cout << " length of string issue \n";
     return 1;
@@ -284,7 +284,7 @@ ErrCode iMOAB_ReadHeaderInfo ( const iMOAB_String filename, int* num_global_vert
 {
 #ifdef MOAB_HAVE_HDF5
   std::string filen(filename);
-  if (filename_length< (int)filen.length())
+  if (filename_length < (int)strlen(filename))
   {
     filen = filen.substr(0,filename_length);
   }
@@ -992,7 +992,7 @@ ErrCode iMOAB_DefineTagStorage(iMOAB_AppID pid, const iMOAB_String tag_storage_n
     } // error
   }
   std::string tag_name(tag_storage_name);
-  if (tag_storage_name_length< (int)tag_name.length())
+  if (tag_storage_name_length< (int)strlen(tag_storage_name))
   {
     tag_name = tag_name.substr(0, tag_storage_name_length);
   }
@@ -1037,7 +1037,7 @@ ErrCode iMOAB_SetIntTagStorage(iMOAB_AppID pid, const iMOAB_String tag_storage_n
     int tag_storage_name_length)
 {
   std::string tag_name(tag_storage_name);
-  if (tag_storage_name_length< (int)tag_name.length())
+  if (tag_storage_name_length< (int)strlen(tag_storage_name))
   {
     tag_name = tag_name.substr(0, tag_storage_name_length);
   }
@@ -1434,8 +1434,8 @@ ErrCode iMOAB_SetGlobalInfo(iMOAB_AppID pid, int * num_global_verts, int * num_g
 ErrCode iMOAB_GetGlobalInfo(iMOAB_AppID pid, int * num_global_verts, int * num_global_elems)
 {
   appData & data = context.appDatas[*pid];
-  *num_global_verts = data.num_global_vertices;
-  *num_global_elems = data.num_global_elements;
+  if (NULL != num_global_verts) *num_global_verts = data.num_global_vertices;
+  if (NULL != num_global_elems) *num_global_elems = data.num_global_elements;
   return 0;
 }
 
@@ -1500,7 +1500,9 @@ ErrCode iMOAB_SendMesh(iMOAB_AppID pid, MPI_Comm * global, MPI_Group * receiving
     return 1;
 
   // every sender computes the trivial partition, it is cheap, and we need to send it anyway to each sender
-  cgraph->compute_trivial_partition(number_elems_per_part);
+  ErrorCode rval = cgraph->compute_trivial_partition(number_elems_per_part);
+  if (MB_SUCCESS!=rval)
+	  return 1;
 
   if ( cgraph->is_root_sender())
   {
@@ -1510,7 +1512,8 @@ ErrCode iMOAB_SendMesh(iMOAB_AppID pid, MPI_Comm * global, MPI_Group * receiving
     // build communication matrix, each receiver will receive from what sender
 
     std::vector<int> packed_recv_array;
-    cgraph->pack_receivers_graph(packed_recv_array );
+    rval = cgraph->pack_receivers_graph(packed_recv_array );
+    if (MB_SUCCESS!=rval) return 1;
 
     int size_pack_array = (int) packed_recv_array.size();
     /// use tag 10 to send size and tag 20 to send the packed array
@@ -1521,7 +1524,8 @@ ErrCode iMOAB_SendMesh(iMOAB_AppID pid, MPI_Comm * global, MPI_Group * receiving
   }
 
   std::map<int, Range> split_ranges;
-  cgraph->split_owned_range (sender_rank, owned, split_ranges);
+  rval = cgraph->split_owned_range (sender_rank, owned, split_ranges);
+  if (rval!=MB_SUCCESS) return 1;
 
   for (std::map<int, Range>::iterator it=split_ranges.begin(); it!=split_ranges.end(); it++)
   {
@@ -1530,21 +1534,13 @@ ErrCode iMOAB_SendMesh(iMOAB_AppID pid, MPI_Comm * global, MPI_Group * receiving
 
     // add necessary vertices too
     Range verts;
-    context.MBI->get_adjacencies(ents, 0, false, verts, Interface::UNION);
+    rval = context.MBI->get_adjacencies(ents, 0, false, verts, Interface::UNION);
+    if (rval!=MB_SUCCESS) return 1;
     ents.merge(verts);
     ParallelComm::Buffer buffer(ParallelComm::INITIAL_BUFF_SIZE);
-    /*ErrorCode pack_buffer(Range &orig_ents,
-            const bool adjacencies,
-            const bool tags,
-            const bool store_remote_handles,
-            const int to_proc,
-            Buffer *buff,
-            TupleList *entprocs = NULL,
-            Range *allsent = NULL);*/
     buffer.reset_ptr(sizeof(int));
-    ErrorCode rval = pco->pack_buffer(ents, false, true, false, -1, &buffer); if (rval!=MB_SUCCESS) return 1;
+    rval = pco->pack_buffer(ents, false, true, false, -1, &buffer); if (rval!=MB_SUCCESS) return 1;
     int size_pack = buffer.get_current_size();
-    // int MPI_Send(const void *buf, int count, MPI_Datatype datatype, int dest, int tag,  MPI_Comm comm)
 
     ierr = MPI_Send(&size_pack, 1, MPI_INT, receiver_proc, 1, *global); // we have to use global communicator
     if (ierr!=0) return 1;
@@ -1571,9 +1567,8 @@ ErrCode iMOAB_ReceiveMesh(iMOAB_AppID pid, MPI_Comm * global, MPI_Group * sendin
     return 1;
 
   // instantiate the par comm graph
-  // ParCommGraph::ParCommGraph(MPI_Comm joincomm, MPI_Group group1, MPI_Group group2, int coid1, int coid2)
   ParCommGraph * cgraph = new ParCommGraph(*global, *sendingGroup, receiverGroup, *scompid, context.appDatas[*pid].external_id);
-  // we should search if we have another pcomm with the same comp ids in the list already
+  // TODO we should search if we have another pcomm with the same comp ids in the list already
   // sort of check existing comm graphs in the list context.appDatas[*pid].pgraph
   context.appDatas[*pid].pgraph.push_back(cgraph);
 
@@ -1587,22 +1582,6 @@ ErrCode iMOAB_ReceiveMesh(iMOAB_AppID pid, MPI_Comm * global, MPI_Group * sendin
   MPI_Status status;
   if (0==receiver_rank)
   {
-    /*
-     * corresponding to these:
-     *
-        ierr = MPI_Send(&size_pack_array, 1, MPI_INT, recvRanks[0], 10, *global); // we have to use global communicator
-        if (ierr!=0) return 1;
-        ierr = MPI_Send(&packed_array[0], size_pack_array, MPI_INT, recvRanks[0], 20, *global); // we have to use global communicator
-        if (ierr!=0) return 1;
-        MPI_Recv(
-          void* data,
-          int count,
-          MPI_Datatype datatype,
-          int source,
-          int tag,
-          MPI_Comm communicator,
-          MPI_Status* status)
-     */
     ierr = MPI_Recv (&size_pack_array, 1, MPI_INT, cgraph->sender(0), 10, *global, &status);
     if (0!=ierr) return 1;
 #ifdef VERBOSE
@@ -1629,8 +1608,8 @@ ErrCode iMOAB_ReceiveMesh(iMOAB_AppID pid, MPI_Comm * global, MPI_Group * sendin
   int current_receiver = cgraph->receiver(receiver_rank);
 
   std::vector<int> senders_local;
-  int n=0;
-  while(n<(int)pack_array.size())
+  size_t n=0;
+  while(n < pack_array.size())
   {
     if (current_receiver == pack_array[n])
     {
@@ -1649,22 +1628,16 @@ ErrCode iMOAB_ReceiveMesh(iMOAB_AppID pid, MPI_Comm * global, MPI_Group * sendin
       std::cout << " " << senders_local[k];
     std::cout<<"\n";
 #endif
-    for (int k=0; k<(int)senders_local.size(); k++)
+    for (size_t k=0; k< senders_local.size(); k++)
     {
       int sender = senders_local[k]; // first receive the size of the buffer
-      /*
-       * corr to this:
-        ierr = MPI_Send(&size_pack, 1, MPI_INT, receiver_proc, 1, *global);
-       */
+
       int size_pack;
       ierr = MPI_Recv (&size_pack, 1, MPI_INT, sender, 1, *global, &status);
       if (0!=ierr) return 1;
-      // now resize the buffeer, then receive it
+      // now resize the buffer, then receive it
       ParallelComm::Buffer buff(size_pack);
-      /*
-       * corr to this:
-         ierr = MPI_Send(buffer.mem_ptr, size_pack, MPI_CHAR, receiver_proc, 2, *global);
-       */
+
       ierr = MPI_Recv (buff.mem_ptr, size_pack, MPI_CHAR, sender, 2, *global, &status);
       if (0!=ierr) return 1;
       // now unpack the buffer we just received
@@ -1679,12 +1652,12 @@ ErrCode iMOAB_ReceiveMesh(iMOAB_AppID pid, MPI_Comm * global, MPI_Group * sendin
       rval = pco->unpack_buffer(buff.buff_ptr, false, -1, -1, L1hloc, L1hrem, L1p, L2hloc,
                                   L2hrem, L2p, entities_vec);
       if (MB_SUCCESS!= rval) return 1;
-      //CHECK_ERR(rval);
+
       std::copy(entities_vec.begin(), entities_vec.end(), range_inserter(entities));
       // we have to add them to the local set
       rval = context.MBI->add_entities(local_set, entities);
       if (MB_SUCCESS!= rval) return 1;
-      // some debugging stuff
+
 #ifdef VERBOSE
       std::ostringstream partial_outFile;
 
