@@ -620,6 +620,15 @@ ErrCode iMOAB_GetGlobalInfo(iMOAB_AppID pid, int * num_global_verts, int * num_g
  */
 
 ErrCode iMOAB_SendMesh(iMOAB_AppID pid, MPI_Comm * join, MPI_Group * receivingGroup, int * rcompid);
+
+/**
+   \brief during nonblocking send, buffers were allocated, to keep data until received
+   Free them after receive reached the point
+   \param[in]  pid (iMOAB_AppID)                      The unique pointer to the application ID sender mesh
+   \param[in]  rcompid  (int*)                        external id of application that receives the mesh
+ */
+ErrCode iMOAB_FreeSenderBuffers(iMOAB_AppID pid, MPI_Comm * join, int * rcompid);
+
 /**
   \brief migrate (receive) a set of elements from another processor
   <B>Operations:</B> Not Collective

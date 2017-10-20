@@ -30,6 +30,7 @@ program MigrateMesh
     integer tagcomm1, tagcomm2
     integer iMOAB_InitializeFortran, iMOAB_RegisterFortranApplication
     integer iMOAB_LoadMesh, iMOAB_SendMesh, iMOAB_ReceiveMesh, iMOAB_WriteMesh
+    integer iMOAB_FreeSenderBuffers
     integer iMOAB_DeregisterApplication, iMOAB_Finalize
 
     call MPI_INIT(ierr)
@@ -54,7 +55,7 @@ program MigrateMesh
     call MPI_COMM_GROUP (MPI_COMM_WORLD, allgroup, ierr)
     call errorout(ierr, 'cannot get world group' )
     ! first group, sz/3 to sz-1
-    startG = sz/3
+    startG = sz/2
     endG = sz-1
     sizeG = endG - startG + 1
     
@@ -67,7 +68,7 @@ program MigrateMesh
 
     ! second group, 0, 1, 3/4*sz
     startG = 0
-    endG = 3*sz/4
+    endG = 3*sz/4 -1
     sizeG = endG - startG + 1
     do i=1, sizeG
       groupTasks(i) = startG+i-1
@@ -130,13 +131,21 @@ program MigrateMesh
        call errorout(ierr, 'cannot write received mesh' )
     endif
 
+    call MPI_Barrier(MPI_COMM_WORLD, ierr)
+    call errorout(ierr, 'cannot stop at barrier' )
+
+    ! we can now free the sender buffers
+    if (comm1 /= MPI_COMM_NULL) then
+       ierr = iMOAB_FreeSenderBuffers(pid1, MPI_COMM_WORLD, compid2)
+    endif
+
     if (comm1 /= MPI_COMM_NULL) then
        ierr = iMOAB_DeregisterApplication(pid1)
-         call errorout(ierr, 'cannot deregister app' )
+         call errorout(ierr, 'cannot deregister app 1 sender' )
     endif
     if (comm2 /= MPI_COMM_NULL) then
        ierr = iMOAB_DeregisterApplication(pid2)
-       call errorout(ierr, 'cannot deregister app' )
+       call errorout(ierr, 'cannot deregister app 2 receiver' )
     endif
 
     ierr = iMOAB_Finalize()

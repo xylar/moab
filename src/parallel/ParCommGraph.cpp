@@ -262,6 +262,61 @@ ErrorCode ParCommGraph::send_mesh_parts(MPI_Comm jcomm, ParallelComm * pco, Rang
   }
   return MB_SUCCESS;
 }
+
+// this is called on receiver side
+ErrorCode ParCommGraph::receive_comm_graph(MPI_Comm jcomm, ParallelComm *pco, std::vector<int> & pack_array)
+{
+  // first, receive from sender_rank 0, the communication graph (matrix), so each receiver
+  // knows what data to expect
+  MPI_Comm receive = pco->comm();
+  int size_pack_array, ierr;
+  MPI_Status status;
+  if (rootReceiver)
+  {
+    ierr = MPI_Recv (&size_pack_array, 1, MPI_INT, sender(0), 10, jcomm, &status);
+    if (0!=ierr) return MB_FAILURE;
+#ifdef VERBOSE
+    std::cout <<" receive comm graph size: " << size_pack_array << "\n";
+#endif
+    pack_array.resize (size_pack_array);
+    ierr = MPI_Recv (&pack_array[0], size_pack_array, MPI_INT, sender(0), 20, jcomm, &status);
+    if (0!=ierr) return MB_FAILURE;
+#ifdef VERBOSE
+    std::cout <<" receive comm graph " ;
+    for (int k=0; k<(int)pack_array.size(); k++)
+      std::cout << " " << pack_array[k];
+    std::cout <<"\n";
+#endif
+  }
+
+  // now broadcast this whole array to all receivers, so they know what to expect
+  ierr = MPI_Bcast(&size_pack_array, 1, MPI_INT, 0, receive);
+  if (0!=ierr) return MB_FAILURE;
+  pack_array.resize(size_pack_array);
+  ierr = MPI_Bcast(&pack_array[0], size_pack_array, MPI_INT, 0, receive);
+  if (0!=ierr) return MB_FAILURE;
+  return MB_SUCCESS;
+}
+
+ErrorCode ParCommGraph::release_send_buffers(MPI_Comm jcomm)
+{
+
+  int ierr, nsize = (int)sendReqs.size();
+  std::vector<MPI_Status> mult_status;
+  mult_status.resize(sendReqs.size());
+  ierr = MPI_Waitall(nsize, &sendReqs[0], &mult_status[0]);
+
+  if (ierr!=0)
+    return MB_FAILURE;
+  // now we can free all buffers
+  delete [] this->comm_graph;
+  std::vector<ParallelComm::Buffer*>::iterator vit;
+  for (vit = localSendBuffs.begin(); vit != localSendBuffs.end(); ++vit)
+    delete (*vit);
+  localSendBuffs.clear();
+  return MB_SUCCESS;
+}
+
 ErrorCode ParCommGraph::distribute_sender_graph_info(MPI_Comm senderComm, std::vector<int> &sendingInfo )
 {
   // only the root of the sender has all info

@@ -108,7 +108,10 @@ namespace moab {
 
 	  ErrorCode send_mesh_parts(MPI_Comm jcomm, ParallelComm * pco, Range & owned );
 
-	  ErrorCode release_send_buffers();
+	  // this is called on receiver side
+	  ErrorCode receive_comm_graph(MPI_Comm jcomm, ParallelComm *pco, std::vector<int> & pack_array);
+
+	  ErrorCode release_send_buffers(MPI_Comm jcomm);
 
 	private:
 	  MPI_Comm  comm;

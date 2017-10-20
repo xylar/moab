@@ -1535,33 +1535,12 @@ ErrCode iMOAB_ReceiveMesh(iMOAB_AppID pid, MPI_Comm * global, MPI_Group * sendin
 
   // first, receive from sender_rank 0, the communication graph (matrix), so each receiver
   // knows what data to expect
-  int size_pack_array;
+
   std::vector<int> pack_array;
   MPI_Status status;
-  if (0==receiver_rank)
-  {
-    ierr = MPI_Recv (&size_pack_array, 1, MPI_INT, cgraph->sender(0), 10, *global, &status);
-    if (0!=ierr) return 1;
-#ifdef VERBOSE
-    std::cout <<" receive comm graph size: " << size_pack_array << "\n";
-#endif
-    pack_array.resize (size_pack_array);
-    ierr = MPI_Recv (&pack_array[0], size_pack_array, MPI_INT, cgraph->sender(0), 20, *global, &status);
-    if (0!=ierr) return 1;
-#ifdef VERBOSE
-    std::cout <<" receive comm graph " ;
-    for (int k=0; k<(int)pack_array.size(); k++)
-      std::cout << " " << pack_array[k];
-    std::cout <<"\n";
-#endif
-  }
 
-  // now broadcast this whole array to all receivers, so they know what to expect
-  MPI_Bcast(&size_pack_array, 1, MPI_INT, 0, receive);
-  pack_array.resize(size_pack_array);
-  MPI_Bcast(&pack_array[0], size_pack_array, MPI_INT, 0, receive);
-  // now identify for current task, where are we getting data from
-
+  rval = cgraph->receive_comm_graph(*global, pco, pack_array);
+  if (MB_SUCCESS!= rval) return 1;
   // senders across for the current receiver
   int current_receiver = cgraph->receiver(receiver_rank);
 
@@ -1594,9 +1573,10 @@ ErrCode iMOAB_ReceiveMesh(iMOAB_AppID pid, MPI_Comm * global, MPI_Group * sendin
       ierr = MPI_Recv (&size_pack, 1, MPI_INT, sender, 1, *global, &status);
       if (0!=ierr) return 1;
       // now resize the buffer, then receive it
-      ParallelComm::Buffer buff(size_pack);
+      ParallelComm::Buffer * buffer = new ParallelComm::Buffer(ParallelComm::INITIAL_BUFF_SIZE);
+      buffer->reserve(size_pack);
 
-      ierr = MPI_Recv (buff.mem_ptr, size_pack, MPI_CHAR, sender, 2, *global, &status);
+      ierr = MPI_Recv (buffer->mem_ptr, size_pack, MPI_CHAR, sender, 2, *global, &status);
       if (0!=ierr) return 1;
       // now unpack the buffer we just received
       Range entities;
@@ -1604,11 +1584,13 @@ ErrCode iMOAB_ReceiveMesh(iMOAB_AppID pid, MPI_Comm * global, MPI_Group * sendin
       std::vector<std::vector<int> > L1p;
       std::vector<EntityHandle> L2hloc, L2hrem;
       std::vector<unsigned int> L2p;
-      buff.reset_ptr(sizeof(int));
+
+      buffer->reset_ptr(sizeof(int));
       std::vector<EntityHandle> entities_vec(entities.size());
       std::copy(entities.begin(), entities.end(), entities_vec.begin());
-      rval = pco->unpack_buffer(buff.buff_ptr, false, -1, -1, L1hloc, L1hrem, L1p, L2hloc,
+      rval = pco->unpack_buffer(buffer->buff_ptr, false, -1, -1, L1hloc, L1hrem, L1p, L2hloc,
                                   L2hrem, L2p, entities_vec);
+      delete buffer;
       if (MB_SUCCESS!= rval) return 1;
 
       std::copy(entities_vec.begin(), entities_vec.end(), range_inserter(entities));
@@ -1681,6 +1663,31 @@ ErrCode iMOAB_ReceiveMesh(iMOAB_AppID pid, MPI_Comm * global, MPI_Group * sendin
 
   return 0;
 }
+
+ErrCode iMOAB_FreeSenderBuffers(iMOAB_AppID pid, MPI_Comm * join, int * rcompid)
+{
+  // need first to find the pgraph that holds the information we need
+  // this will be called on sender side only
+  appData & data = context.appDatas[*pid];
+  std::vector<ParCommGraph*> & pgrs = context.appDatas[*pid].pgraph;
+  int ext_id = data.external_id;
+  ParCommGraph * pg = NULL;
+  for (size_t i = 0; i< pgrs.size(); i++)
+  {
+    if ( pgrs[i]->get_component_id2() == *rcompid  && ext_id ==  pgrs[i]->get_component_id1())
+    {
+      pg =  pgrs[i];
+      break;
+    }
+  }
+  // if not found, problem
+  if (pg == NULL)
+    return 1; // cannot find the graph
+
+  pg->release_send_buffers(*join);
+  return 0;
+}
+
 #endif
 
 #ifdef __cplusplus
