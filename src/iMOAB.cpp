@@ -1494,61 +1494,19 @@ ErrCode iMOAB_SendMesh(iMOAB_AppID pid, MPI_Comm * global, MPI_Group * receiving
   if (ierr!=0)
     return 1;
 
-  int local_sender_rank =-1;
-  ierr = MPI_Group_rank(senderGroup, &local_sender_rank);
-  if (ierr!=0)
-    return 1;
-
   // every sender computes the trivial partition, it is cheap, and we need to send it anyway to each sender
   ErrorCode rval = cgraph->compute_trivial_partition(number_elems_per_part);
   if (MB_SUCCESS!=rval)
 	  return 1;
 
-  if ( cgraph->is_root_sender())
-  {
-    // will need to build a communication graph, because each sender knows now to which receiver to send data
-    // the receivers need to post receives for each sender that will send data to them
-    // will need to gather on rank 0 on the sender comm, global ranks of sender with receivers to send
-    // build communication matrix, each receiver will receive from what sender
+  rval = cgraph->send_graph(*global);
+  if (MB_SUCCESS!=rval)
+    return 1;
 
-    std::vector<int> packed_recv_array;
-    rval = cgraph->pack_receivers_graph(packed_recv_array );
-    if (MB_SUCCESS!=rval) return 1;
-
-    int size_pack_array = (int) packed_recv_array.size();
-    /// use tag 10 to send size and tag 20 to send the packed array
-    ierr = MPI_Send(&size_pack_array, 1, MPI_INT, cgraph->receiver(0), 10, *global); // we have to use global communicator
-    if (ierr!=0) return 1;
-    ierr = MPI_Send(&packed_recv_array[0], size_pack_array, MPI_INT, cgraph->receiver(0), 20, *global); // we have to use global communicator
-    if (ierr!=0) return 1;
-  }
-
-  std::map<int, Range> split_ranges;
-  rval = cgraph->split_owned_range (sender_rank, owned, split_ranges);
+  // pco is needed to pack, not for communication
+  rval = cgraph->send_mesh_parts(*global, pco, owned );
   if (rval!=MB_SUCCESS) return 1;
 
-  for (std::map<int, Range>::iterator it=split_ranges.begin(); it!=split_ranges.end(); it++)
-  {
-    int receiver_proc = it->first;
-    Range ents = it->second;
-
-    // add necessary vertices too
-    Range verts;
-    rval = context.MBI->get_adjacencies(ents, 0, false, verts, Interface::UNION);
-    if (rval!=MB_SUCCESS) return 1;
-    ents.merge(verts);
-    ParallelComm::Buffer buffer(ParallelComm::INITIAL_BUFF_SIZE);
-    buffer.reset_ptr(sizeof(int));
-    rval = pco->pack_buffer(ents, false, true, false, -1, &buffer); if (rval!=MB_SUCCESS) return 1;
-    int size_pack = buffer.get_current_size();
-
-    ierr = MPI_Send(&size_pack, 1, MPI_INT, receiver_proc, 1, *global); // we have to use global communicator
-    if (ierr!=0) return 1;
-
-    ierr = MPI_Send(buffer.mem_ptr, size_pack, MPI_CHAR, receiver_proc, 2, *global); // we have to use global communicator
-    if (ierr!=0) return 1;
-
-  }
   return 0;
 }
 ErrCode iMOAB_ReceiveMesh(iMOAB_AppID pid, MPI_Comm * global, MPI_Group * sendingGroup,

@@ -30,6 +30,8 @@ comm(joincomm), gr1(group1), gr2(group2), compid1(coid1), compid2(coid2) {
 
   if (0==rankInGroup1)rootSender=true;
   if (0==rankInGroup2)rootReceiver=true;
+
+  comm_graph = NULL;
 }
 
 ParCommGraph::~ParCommGraph() {
@@ -186,6 +188,78 @@ ErrorCode ParCommGraph::split_owned_range (int sender_rank, Range & owned, std::
     current = rleftover;
   }
 
+  return MB_SUCCESS;
+}
+
+ErrorCode ParCommGraph::send_graph(MPI_Comm jcomm)
+{
+  if ( is_root_sender())
+  {
+    int ierr;
+    // will need to build a communication graph, because each sender knows now to which receiver to send data
+    // the receivers need to post receives for each sender that will send data to them
+    // will need to gather on rank 0 on the sender comm, global ranks of sender with receivers to send
+    // build communication matrix, each receiver will receive from what sender
+
+    std::vector<int> packed_recv_array;
+    ErrorCode rval = pack_receivers_graph(packed_recv_array );
+    if (MB_SUCCESS!=rval) return rval;
+
+    int size_pack_array = (int) packed_recv_array.size();
+    comm_graph = new int[size_pack_array+1];
+    comm_graph[0]=size_pack_array;
+    for (int k=0; k<size_pack_array; k++)
+      comm_graph[k+1]=packed_recv_array[k];
+    // will add 2 requests
+    /// use tag 10 to send size and tag 20 to send the packed array
+    // will allocate some send requests
+    int nsendsroot = 2*(int) sender_graph[senderTasks[0]].size() + 2; // also need to send the graph
+    sendReqs.resize(nsendsroot);
+    ierr = MPI_Isend(&comm_graph[0], 1, MPI_INT, receiver(0), 10, jcomm, &sendReqs[0]); // we have to use global communicator
+    if (ierr!=0) return MB_FAILURE;
+    ierr = MPI_Isend(&comm_graph[1], size_pack_array, MPI_INT, receiver(0), 20, jcomm, &sendReqs[1]); // we have to use global communicator
+    if (ierr!=0) return MB_FAILURE;
+  }
+  return MB_SUCCESS;
+}
+
+// pco has MOAB too get_moab()
+ErrorCode ParCommGraph::send_mesh_parts(MPI_Comm jcomm, ParallelComm * pco, Range & owned )
+{
+  std::map<int, Range> split_ranges;
+  ErrorCode rval = split_owned_range (rankInGroup1, owned, split_ranges);
+  int indexReq=0;
+  int ierr; // MPI error
+  if (is_root_sender()) indexReq = 2; // for sendReqs
+  sendReqs.resize(indexReq+2*split_ranges.size());
+  for (std::map<int, Range>::iterator it=split_ranges.begin(); it!=split_ranges.end(); it++)
+  {
+    int receiver_proc = it->first;
+    Range ents = it->second;
+
+    // add necessary vertices too
+    Range verts;
+    rval = pco->get_moab()->get_adjacencies(ents, 0, false, verts, Interface::UNION);
+    if (rval!=MB_SUCCESS) return rval;
+    ents.merge(verts);
+    ParallelComm::Buffer * buffer = new ParallelComm::Buffer(ParallelComm::INITIAL_BUFF_SIZE);
+    buffer->reset_ptr(sizeof(int));
+    rval = pco->pack_buffer(ents, false, true, false, -1, buffer);
+    if (rval!=MB_SUCCESS) return rval;
+    int size_pack = buffer->get_current_size();
+
+    // TODO there could be an issue with endian things; check !!!!!
+    // we are sending the size of the buffer first as an int!!!
+    ierr = MPI_Isend(buffer->mem_ptr, 1, MPI_INT, receiver_proc, 1, jcomm, &sendReqs[indexReq]); // we have to use global communicator
+    if (ierr!=0) return MB_FAILURE;
+    indexReq++;
+
+    ierr = MPI_Isend(buffer->mem_ptr, size_pack, MPI_CHAR, receiver_proc, 2, jcomm, &sendReqs[indexReq]); // we have to use global communicator
+    if (ierr!=0) return MB_FAILURE;
+    indexReq++;
+    localSendBuffs.push_back(buffer);
+
+  }
   return MB_SUCCESS;
 }
 ErrorCode ParCommGraph::distribute_sender_graph_info(MPI_Comm senderComm, std::vector<int> &sendingInfo )

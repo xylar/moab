@@ -14,6 +14,7 @@
  */
 #include "moab_mpi.h"
 #include "moab/Interface.hpp"
+#include "moab/ParallelComm.hpp"
 #include <map>
 
 
@@ -103,6 +104,12 @@ namespace moab {
 	  // return local graph for a specific root
 	  ErrorCode split_owned_range (int sender_rank, Range & owned, std::map<int, Range> & split_ranges);
 
+	  ErrorCode send_graph(MPI_Comm jcomm);
+
+	  ErrorCode send_mesh_parts(MPI_Comm jcomm, ParallelComm * pco, Range & owned );
+
+	  ErrorCode release_send_buffers();
+
 	private:
 	  MPI_Comm  comm;
 	  MPI_Group gr1, gr2;
@@ -122,7 +129,13 @@ namespace moab {
 	  std::map<int, std::vector<int> >  sender_graph; // to what tasks from group2 to send  (actual communication graph)
 	  std::map<int, std::vector<int> >  sender_sizes; // how many elements to actually send from a sender task to receiver tasks
 
-
+	  std::vector<ParallelComm::Buffer*> localSendBuffs; // this will store the pointers to the Buffers
+	  //                                    will be  released only when all mpi requests are waited for
+	  int * comm_graph; // this will store communication graph, on sender master, sent by nonblocking send to
+	                    // the master receiver
+	                    // first integer will be the size of the graph, the rest will be the packed graph
+	  std::vector<MPI_Request> sendReqs; // there will be multiple requests, 2 for comm graph, 2 for each Buffer
+	  // there are as many buffers as sender_graph[rankInJoin].size()
 };
 
 } // namespace moab
