@@ -4,7 +4,9 @@
  */
 
 #include "moab/ParCommGraph.hpp"
-
+// we need to recompute adjacencies for merging to work
+#include "moab/Core.hpp"
+#include "AEntityFactory.hpp"
 namespace moab {
 
 ParCommGraph::ParCommGraph(MPI_Comm joincomm, MPI_Group group1, MPI_Group group2, int coid1, int coid2):
@@ -262,7 +264,6 @@ ErrorCode ParCommGraph::send_mesh_parts(MPI_Comm jcomm, ParallelComm * pco, Rang
   }
   return MB_SUCCESS;
 }
-
 // this is called on receiver side
 ErrorCode ParCommGraph::receive_comm_graph(MPI_Comm jcomm, ParallelComm *pco, std::vector<int> & pack_array)
 {
@@ -297,7 +298,86 @@ ErrorCode ParCommGraph::receive_comm_graph(MPI_Comm jcomm, ParallelComm *pco, st
   if (0!=ierr) return MB_FAILURE;
   return MB_SUCCESS;
 }
+ErrorCode ParCommGraph::receive_mesh(MPI_Comm jcomm, ParallelComm *pco, EntityHandle local_set, std::vector<int> &senders_local)
+{
+  ErrorCode rval;
+  int ierr;
+  MPI_Status status;
+  Range newEnts;
+  if (!senders_local.empty())
+  {
+    for (size_t k=0; k< senders_local.size(); k++)
+    {
+      int sender = senders_local[k]; // first receive the size of the buffer
 
+      int size_pack;
+      ierr = MPI_Recv (&size_pack, 1, MPI_INT, sender, 1, jcomm, &status);
+      if (0!=ierr) return MB_FAILURE;
+      // now resize the buffer, then receive it
+      ParallelComm::Buffer * buffer = new ParallelComm::Buffer(ParallelComm::INITIAL_BUFF_SIZE);
+      buffer->reserve(size_pack);
+
+      ierr = MPI_Recv (buffer->mem_ptr, size_pack, MPI_CHAR, sender, 2, jcomm, &status);
+      if (0!=ierr) return MB_FAILURE;
+      // now unpack the buffer we just received
+      Range entities;
+      std::vector<std::vector<EntityHandle> > L1hloc, L1hrem;
+      std::vector<std::vector<int> > L1p;
+      std::vector<EntityHandle> L2hloc, L2hrem;
+      std::vector<unsigned int> L2p;
+
+      buffer->reset_ptr(sizeof(int));
+      std::vector<EntityHandle> entities_vec(entities.size());
+      std::copy(entities.begin(), entities.end(), entities_vec.begin());
+      rval = pco->unpack_buffer(buffer->buff_ptr, false, -1, -1, L1hloc, L1hrem, L1p, L2hloc,
+                                  L2hrem, L2p, entities_vec);
+      delete buffer;
+      if (MB_SUCCESS!= rval) return rval;
+
+      std::copy(entities_vec.begin(), entities_vec.end(), range_inserter(entities));
+      // we have to add them to the local set
+      rval = pco->get_moab()->add_entities(local_set, entities);
+      if (MB_SUCCESS!= rval) return rval;
+      newEnts.merge(entities);
+
+#ifdef VERBOSE
+      std::ostringstream partial_outFile;
+
+      partial_outFile <<"part_send_" <<sender<<"."<< "recv"<< rankInJoin <<".vtk";
+
+        // the mesh contains ghosts too, but they are not part of mat/neumann set
+        // write in serial the file, to see what tags are missing
+      std::cout<< " writing from receiver " << rankInJoin << " from sender " <<  sender << " entities: " << entities.size() << std::endl;
+      rval = pco->get_moab()->write_file(partial_outFile.str().c_str(), 0, 0, &local_set, 1); // everything on local set received
+      if (MB_SUCCESS!= rval) return rval;
+#endif
+    }
+
+  }
+  // make sure adjacencies are updated on the new elements
+
+  // in order for the merging to work, we need to be sure that the adjacencies are updated (created)
+  Range local_verts = newEnts.subset_by_type(MBVERTEX);
+  newEnts = subtract(newEnts, local_verts);
+  Core * mb = (Core*)pco->get_moab();
+  AEntityFactory* adj_fact = mb->a_entity_factory();
+  if (!adj_fact->vert_elem_adjacencies())
+    adj_fact->create_vert_elem_adjacencies();
+  else
+  {
+    for (Range::iterator it=newEnts.begin(); it!=newEnts.end(); it++)
+    {
+      EntityHandle eh = *it;
+      const EntityHandle * conn = NULL;
+      int num_nodes=0;
+      rval = mb->get_connectivity(eh, conn, num_nodes);
+      if (MB_SUCCESS!= rval) return rval;
+      adj_fact->notify_create_entity(eh, conn, num_nodes);
+    }
+  }
+
+  return MB_SUCCESS;
+}
 ErrorCode ParCommGraph::release_send_buffers(MPI_Comm jcomm)
 {
 

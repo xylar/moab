@@ -31,8 +31,7 @@ using namespace moab;
 #include "moab/MeshTopoUtil.hpp"
 #include "moab/ReadUtilIface.hpp"
 #include "moab/MergeMesh.hpp"
-// we need to recompute adjacencies for merging to work
-#include "AEntityFactory.hpp"
+
 #include <sstream>
 
 // global variables ; should they be organized in a structure, for easier references?
@@ -1535,10 +1534,7 @@ ErrCode iMOAB_ReceiveMesh(iMOAB_AppID pid, MPI_Comm * global, MPI_Group * sendin
 
   // first, receive from sender_rank 0, the communication graph (matrix), so each receiver
   // knows what data to expect
-
   std::vector<int> pack_array;
-  MPI_Status status;
-
   rval = cgraph->receive_comm_graph(*global, pco, pack_array);
   if (MB_SUCCESS!= rval) return 1;
   // senders across for the current receiver
@@ -1556,67 +1552,17 @@ ErrCode iMOAB_ReceiveMesh(iMOAB_AppID pid, MPI_Comm * global, MPI_Group * sendin
     }
     n = n + 2 + pack_array[n+1];
   }
-  if (!senders_local.empty())
-  {
-#ifdef VERBOSE
-    std:: cout << " receiver " << current_receiver << " at rank " <<
-        receiver_rank << " will receive from " << senders_local.size() << " tasks: ";
-    for (int k=0; k<(int)senders_local.size(); k++)
-      std::cout << " " << senders_local[k];
-    std::cout<<"\n";
-#endif
-    for (size_t k=0; k< senders_local.size(); k++)
-    {
-      int sender = senders_local[k]; // first receive the size of the buffer
-
-      int size_pack;
-      ierr = MPI_Recv (&size_pack, 1, MPI_INT, sender, 1, *global, &status);
-      if (0!=ierr) return 1;
-      // now resize the buffer, then receive it
-      ParallelComm::Buffer * buffer = new ParallelComm::Buffer(ParallelComm::INITIAL_BUFF_SIZE);
-      buffer->reserve(size_pack);
-
-      ierr = MPI_Recv (buffer->mem_ptr, size_pack, MPI_CHAR, sender, 2, *global, &status);
-      if (0!=ierr) return 1;
-      // now unpack the buffer we just received
-      Range entities;
-      std::vector<std::vector<EntityHandle> > L1hloc, L1hrem;
-      std::vector<std::vector<int> > L1p;
-      std::vector<EntityHandle> L2hloc, L2hrem;
-      std::vector<unsigned int> L2p;
-
-      buffer->reset_ptr(sizeof(int));
-      std::vector<EntityHandle> entities_vec(entities.size());
-      std::copy(entities.begin(), entities.end(), entities_vec.begin());
-      rval = pco->unpack_buffer(buffer->buff_ptr, false, -1, -1, L1hloc, L1hrem, L1p, L2hloc,
-                                  L2hrem, L2p, entities_vec);
-      delete buffer;
-      if (MB_SUCCESS!= rval) return 1;
-
-      std::copy(entities_vec.begin(), entities_vec.end(), range_inserter(entities));
-      // we have to add them to the local set
-      rval = context.MBI->add_entities(local_set, entities);
-      if (MB_SUCCESS!= rval) return 1;
 
 #ifdef VERBOSE
-      std::ostringstream partial_outFile;
-
-      partial_outFile <<"part_send_" <<sender<<"."<< "recv"<< current_receiver <<".vtk";
-
-        // the mesh contains ghosts too, but they are not part of mat/neumann set
-        // write in serial the file, to see what tags are missing
-      std::cout<< " writing from receiver " << current_receiver << " at rank " <<
-        receiver_rank << " from sender " <<  sender << " entities: " << entities.size() << std::endl;
-      rval = context.MBI->write_file(partial_outFile.str().c_str(), 0, 0, &local_set, 1); // everything on local set received
-      if (MB_SUCCESS!= rval) return 1;
+  std:: cout << " receiver " << current_receiver << " at rank " <<
+      receiver_rank << " will receive from " << senders_local.size() << " tasks: ";
+  for (int k=0; k<(int)senders_local.size(); k++)
+    std::cout << " " << senders_local[k];
+  std::cout<<"\n";
 #endif
-    }
 
-  }
-  // in order for the merging to work, we need to be sure that the adjacencies are updated (created)
-  Core* this_core = dynamic_cast<Core*>(context.MBI);
-  if (this_core && !this_core->a_entity_factory()->vert_elem_adjacencies())
-    this_core->a_entity_factory()->create_vert_elem_adjacencies();
+  rval = cgraph->receive_mesh(*global, pco, local_set, senders_local);
+  if (MB_SUCCESS!= rval) return 1;
 
   // after we are done, we could merge vertices that come from different senders, but
   // have the same global id

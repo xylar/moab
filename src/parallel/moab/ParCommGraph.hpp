@@ -111,6 +111,9 @@ namespace moab {
 	  // this is called on receiver side
 	  ErrorCode receive_comm_graph(MPI_Comm jcomm, ParallelComm *pco, std::vector<int> & pack_array);
 
+    ErrorCode receive_mesh(MPI_Comm jcomm, ParallelComm *pco, EntityHandle local_set,
+        std::vector<int> &senders_local);
+
 	  ErrorCode release_send_buffers(MPI_Comm jcomm);
 
 	private:
