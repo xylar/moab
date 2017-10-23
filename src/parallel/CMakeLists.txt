@@ -5,6 +5,7 @@ set( moab_PARALLEL_SRCS
   ParallelMergeMesh.cpp
   ReadParallel.hpp      ReadParallel.cpp
   SharedSetData.hpp     SharedSetData.cpp
+  ParCommGraph.cpp 
   gs.cpp
 )
 
@@ -17,6 +18,7 @@ set(moab_PARALLEL_INSTALL_HDRS moab/gs.hpp
                                moab/ParallelMergeMesh.hpp
                                moab/ProcConfig.hpp
                                moab/ParallelData.hpp
+                               moab/ParCommGraph.hpp
                                MBParallelConventions.h )
 
 set( MOAB_GENERATED_INSTALL_PHEADERS

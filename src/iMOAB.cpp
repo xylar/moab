@@ -9,6 +9,7 @@ using namespace moab;
 #ifdef MOAB_HAVE_MPI
 #  include "moab_mpi.h"
 #  include "moab/ParallelComm.hpp"
+#  include "moab/ParCommGraph.hpp"
 #endif
 
 #include <assert.h>
@@ -29,6 +30,9 @@ using namespace moab;
 #include "MBTagConventions.hpp"
 #include "moab/MeshTopoUtil.hpp"
 #include "moab/ReadUtilIface.hpp"
+#include "moab/MergeMesh.hpp"
+// we need to recompute adjacencies for merging to work
+#include "AEntityFactory.hpp"
 #include <sstream>
 
 // global variables ; should they be organized in a structure, for easier references?
@@ -41,6 +45,7 @@ extern "C" {
 
 struct appData {
   EntityHandle file_set;
+  int   external_id;  // external component id, unique for application
   Range all_verts;
   Range local_verts; // it could include shared, but not owned at the interface
                      // these vertices would be all_verts if no ghosting was required
@@ -49,12 +54,20 @@ struct appData {
   Range owned_elems;
   Range ghost_elems;
   int dimension; // 2 or 3, dimension of primary elements (redundant?)
+  long num_global_elements; // reunion of all elements in primary_elements; either from hdf5 reading or from reduce
+  long num_global_vertices; // reunion of all nodes, after sharing is resolved; it could be determined from hdf5 reading
   Range mat_sets;
   std::map<int, int> matIndex; // map from global block id to index in mat_sets
   Range neu_sets;
   Range diri_sets;
   std::map< std::string, Tag> tagMap;
   std::vector<Tag>  tagList;
+
+#ifdef MOAB_HAVE_MPI
+  std::vector<ParCommGraph*> pgraph; // created in order of other applications that communicate with this one
+  // constructor for this ParCommGraph takes the joint comm and the MPI groups for each application
+#endif
+
  };
 
 struct GlobalContext {
@@ -68,6 +81,7 @@ struct GlobalContext {
   int unused_pid;
 
   std::map<std::string, int> appIdMap;     // from app string (uppercase) to app id
+  std::map<int, int> appIdCompMap;         // from component id to app id
 
   #ifdef MOAB_HAVE_MPI
   std::vector<ParallelComm*> pcomms; // created in order of applications, one moab::ParallelComm for each
@@ -128,6 +142,7 @@ ErrCode iMOAB_RegisterApplication( const iMOAB_String app_name,
 #ifdef MOAB_HAVE_MPI
     MPI_Comm* comm,
 #endif
+    int * compid,
     iMOAB_AppID pid )
 {
   // will create a parallel comm for this application too, so there will be a
@@ -135,11 +150,23 @@ ErrCode iMOAB_RegisterApplication( const iMOAB_String app_name,
   std::string name(app_name);
   if (context.appIdMap.find(name)!=context.appIdMap.end())
   {
-    std::cout << " application already registered \n";
+    std::cout << " application " << name << " already registered \n";
     return 1;
   }
   *pid =  context.unused_pid++;
   context.appIdMap[name] = *pid;
+  if (*compid <= 0)
+  {
+    std::cout << " convention for external application is to have its id positive \n";
+    return 1;
+  }
+  if (context.appIdCompMap.find(*compid)!=context.appIdCompMap.end())
+  {
+    std::cout << " external application with comp id " << *compid << " is already registered\n";
+    return 1;
+  }
+  context.appIdCompMap[*compid] = *pid;
+
   // now create ParallelComm and a file set for this application
 #ifdef MOAB_HAVE_MPI
   ParallelComm * pco = new ParallelComm(context.MBI, *comm);
@@ -158,6 +185,7 @@ ErrCode iMOAB_RegisterApplication( const iMOAB_String app_name,
     return 1;
   appData app_data;
   app_data.file_set=file_set;
+  app_data.external_id = * compid; // will be used mostly for par comm graph
   context.appDatas.push_back(app_data); // it will correspond to app_FileSets[*pid] will be the file set of interest
   return 0;
 }
@@ -166,21 +194,28 @@ ErrCode iMOAB_RegisterFortranApplication( const iMOAB_String app_name,
 #ifdef MOAB_HAVE_MPI
     int* comm,
 #endif
-    iMOAB_AppID pid, int app_name_length )
+    int *compid, iMOAB_AppID pid, int app_name_length )
 {
   std::string name(app_name);
-  if ( (int)name.length() >app_name_length )
+  if ( (int)strlen(app_name) >app_name_length )
   {
     std::cout << " length of string issue \n";
     return 1;
   }
   if (context.appIdMap.find(name)!=context.appIdMap.end())
   {
-    std::cout << " application already registered \n";
+    std::cout << " application " << name << " already registered \n";
     return 1;
   }
   *pid =  context.unused_pid++;
   context.appIdMap[name] = *pid;
+  if (context.appIdCompMap.find(*compid)!=context.appIdCompMap.end())
+  {
+    std::cout << " external application with comp id " << *compid << " is already registered\n";
+    return 1;
+  }
+  context.appIdCompMap[*compid] = *pid;
+
 #ifdef MOAB_HAVE_MPI
   // now create ParallelComm and a file set for this application
   // convert from fortran communicator to a c communicator
@@ -203,6 +238,7 @@ ErrCode iMOAB_RegisterFortranApplication( const iMOAB_String app_name,
     return 1;
   appData app_data;
   app_data.file_set=file_set;
+  app_data.external_id = * compid; // will be used mostly for par comm graph
   context.appDatas.push_back(app_data); // it will correspond to app_FileSets[*pid] will be the file set of interest
   return 0;
 }
@@ -230,6 +266,10 @@ ErrCode iMOAB_DeregisterApplication( iMOAB_AppID pid )
   // we could get the pco also with
   // ParallelComm * pcomm = ParallelComm::get_pcomm(context.MBI, *pid);
   delete pco;
+  std::vector<ParCommGraph*> & pargs = context.appDatas[*pid].pgraph;
+  // free the parallel comm graphs associated with this app
+  for (size_t k=0; k<pargs.size(); k++)
+    delete pargs[k];
 #endif
 
   rval = context.MBI->delete_entities(fileents);
@@ -244,7 +284,7 @@ ErrCode iMOAB_ReadHeaderInfo ( const iMOAB_String filename, int* num_global_vert
 {
 #ifdef MOAB_HAVE_HDF5
   std::string filen(filename);
-  if (filename_length< (int)filen.length())
+  if (filename_length < (int)strlen(filename))
   {
     filen = filen.substr(0,filename_length);
   }
@@ -952,7 +992,7 @@ ErrCode iMOAB_DefineTagStorage(iMOAB_AppID pid, const iMOAB_String tag_storage_n
     } // error
   }
   std::string tag_name(tag_storage_name);
-  if (tag_storage_name_length< (int)tag_name.length())
+  if (tag_storage_name_length< (int)strlen(tag_storage_name))
   {
     tag_name = tag_name.substr(0, tag_storage_name_length);
   }
@@ -997,7 +1037,7 @@ ErrCode iMOAB_SetIntTagStorage(iMOAB_AppID pid, const iMOAB_String tag_storage_n
     int tag_storage_name_length)
 {
   std::string tag_name(tag_storage_name);
-  if (tag_storage_name_length< (int)tag_name.length())
+  if (tag_storage_name_length< (int)strlen(tag_storage_name))
   {
     tag_name = tag_name.substr(0, tag_storage_name_length);
   }
@@ -1382,6 +1422,309 @@ ErrCode iMOAB_DetermineGhostEntities(  iMOAB_AppID pid, int * ghost_dim, int *nu
 #endif
   return 0;
 }
+
+ErrCode iMOAB_SetGlobalInfo(iMOAB_AppID pid, int * num_global_verts, int * num_global_elems)
+{
+  appData & data = context.appDatas[*pid];
+  data.num_global_vertices = *num_global_verts;
+  data.num_global_elements = *num_global_elems;
+  return 0;
+}
+
+ErrCode iMOAB_GetGlobalInfo(iMOAB_AppID pid, int * num_global_verts, int * num_global_elems)
+{
+  appData & data = context.appDatas[*pid];
+  if (NULL != num_global_verts) *num_global_verts = data.num_global_vertices;
+  if (NULL != num_global_elems) *num_global_elems = data.num_global_elements;
+  return 0;
+}
+
+
+#ifdef MOAB_HAVE_MPI
+
+ErrCode iMOAB_SendMesh(iMOAB_AppID pid, MPI_Comm * global, MPI_Group * receivingGroup, int * rcompid)
+{
+  //appData & data = context.appDatas[*pid];
+  ParallelComm * pco = context.pcomms[*pid];
+
+  MPI_Comm sender = pco->comm(); // the sender comm is obtained from parallel comm in moab;
+                                 // no need to pass it along
+  // first see what are the processors in each group; get the sender group too, from the sender communicator
+  MPI_Group senderGroup;
+  int ierr= MPI_Comm_group(sender, &senderGroup);
+  if (ierr!=0)
+    return 1;
+  // instantiate the par comm graph
+  // ParCommGraph::ParCommGraph(MPI_Comm joincomm, MPI_Group group1, MPI_Group group2, int coid1, int coid2)
+  ParCommGraph * cgraph = new ParCommGraph(*global, senderGroup, *receivingGroup, context.appDatas[*pid].external_id, *rcompid);
+  // we should search if we have another pcomm with the same comp ids in the list already
+  // sort of check existing comm graphs in the list context.appDatas[*pid].pgraph
+  context.appDatas[*pid].pgraph.push_back(cgraph);
+
+  int sender_rank=-1;
+  MPI_Comm_rank(sender, &sender_rank);
+
+  // decide how to distribute elements to each processor
+  // now, get the entities on local processor, and pack them into a buffer for various processors
+  // we will do trivial partition: first get the total number of elements from "sender"
+  std::vector<int> number_elems_per_part;
+  // how to distribute local elements to receiving tasks?
+  // trivial partition: compute first the total number of elements need to be sent
+  Range & owned = context.appDatas[*pid].owned_elems;
+
+  int local_owned_elem = (int) owned.size();
+  int size = pco->size();
+  int rank = pco->rank();
+  number_elems_per_part.resize(size); //
+  number_elems_per_part[rank] = local_owned_elem;
+#if (MPI_VERSION >= 2)
+      // Use "in place" option
+  ierr = MPI_Allgather(MPI_IN_PLACE, 0, MPI_DATATYPE_NULL,
+                              &number_elems_per_part[0], 1, MPI_INTEGER,
+                              sender);
+#else
+  {
+    std::vector<int> all_tmp(size);
+    ierr = MPI_Allgather(&number_elems_per_part[rank], 1, MPI_INTEGER,
+                            &all_tmp[0], 1, MPI_INTEGER,
+                            sender);
+    number_elems_per_part = all_tmp;
+  }
+#endif
+  if (ierr!=0)
+    return 1;
+
+  int local_sender_rank =-1;
+  ierr = MPI_Group_rank(senderGroup, &local_sender_rank);
+  if (ierr!=0)
+    return 1;
+
+  // every sender computes the trivial partition, it is cheap, and we need to send it anyway to each sender
+  ErrorCode rval = cgraph->compute_trivial_partition(number_elems_per_part);
+  if (MB_SUCCESS!=rval)
+	  return 1;
+
+  if ( cgraph->is_root_sender())
+  {
+    // will need to build a communication graph, because each sender knows now to which receiver to send data
+    // the receivers need to post receives for each sender that will send data to them
+    // will need to gather on rank 0 on the sender comm, global ranks of sender with receivers to send
+    // build communication matrix, each receiver will receive from what sender
+
+    std::vector<int> packed_recv_array;
+    rval = cgraph->pack_receivers_graph(packed_recv_array );
+    if (MB_SUCCESS!=rval) return 1;
+
+    int size_pack_array = (int) packed_recv_array.size();
+    /// use tag 10 to send size and tag 20 to send the packed array
+    ierr = MPI_Send(&size_pack_array, 1, MPI_INT, cgraph->receiver(0), 10, *global); // we have to use global communicator
+    if (ierr!=0) return 1;
+    ierr = MPI_Send(&packed_recv_array[0], size_pack_array, MPI_INT, cgraph->receiver(0), 20, *global); // we have to use global communicator
+    if (ierr!=0) return 1;
+  }
+
+  std::map<int, Range> split_ranges;
+  rval = cgraph->split_owned_range (sender_rank, owned, split_ranges);
+  if (rval!=MB_SUCCESS) return 1;
+
+  for (std::map<int, Range>::iterator it=split_ranges.begin(); it!=split_ranges.end(); it++)
+  {
+    int receiver_proc = it->first;
+    Range ents = it->second;
+
+    // add necessary vertices too
+    Range verts;
+    rval = context.MBI->get_adjacencies(ents, 0, false, verts, Interface::UNION);
+    if (rval!=MB_SUCCESS) return 1;
+    ents.merge(verts);
+    ParallelComm::Buffer buffer(ParallelComm::INITIAL_BUFF_SIZE);
+    buffer.reset_ptr(sizeof(int));
+    rval = pco->pack_buffer(ents, false, true, false, -1, &buffer); if (rval!=MB_SUCCESS) return 1;
+    int size_pack = buffer.get_current_size();
+
+    ierr = MPI_Send(&size_pack, 1, MPI_INT, receiver_proc, 1, *global); // we have to use global communicator
+    if (ierr!=0) return 1;
+
+    ierr = MPI_Send(buffer.mem_ptr, size_pack, MPI_CHAR, receiver_proc, 2, *global); // we have to use global communicator
+    if (ierr!=0) return 1;
+
+  }
+  return 0;
+}
+ErrCode iMOAB_ReceiveMesh(iMOAB_AppID pid, MPI_Comm * global, MPI_Group * sendingGroup,
+    int * scompid)
+{
+  appData & data = context.appDatas[*pid];
+  ParallelComm * pco = context.pcomms[*pid];
+  MPI_Comm receive = pco->comm();
+  EntityHandle local_set = data.file_set;
+  ErrorCode rval;
+
+  // first see what are the processors in each group; get the sender group too, from the sender communicator
+  MPI_Group receiverGroup;
+  int ierr= MPI_Comm_group(receive, &receiverGroup);
+  if (ierr!=0)
+    return 1;
+
+  // instantiate the par comm graph
+  ParCommGraph * cgraph = new ParCommGraph(*global, *sendingGroup, receiverGroup, *scompid, context.appDatas[*pid].external_id);
+  // TODO we should search if we have another pcomm with the same comp ids in the list already
+  // sort of check existing comm graphs in the list context.appDatas[*pid].pgraph
+  context.appDatas[*pid].pgraph.push_back(cgraph);
+
+  int receiver_rank=-1;
+  MPI_Comm_rank(receive, &receiver_rank);
+
+  // first, receive from sender_rank 0, the communication graph (matrix), so each receiver
+  // knows what data to expect
+  int size_pack_array;
+  std::vector<int> pack_array;
+  MPI_Status status;
+  if (0==receiver_rank)
+  {
+    ierr = MPI_Recv (&size_pack_array, 1, MPI_INT, cgraph->sender(0), 10, *global, &status);
+    if (0!=ierr) return 1;
+#ifdef VERBOSE
+    std::cout <<" receive comm graph size: " << size_pack_array << "\n";
+#endif
+    pack_array.resize (size_pack_array);
+    ierr = MPI_Recv (&pack_array[0], size_pack_array, MPI_INT, cgraph->sender(0), 20, *global, &status);
+    if (0!=ierr) return 1;
+#ifdef VERBOSE
+    std::cout <<" receive comm graph " ;
+    for (int k=0; k<(int)pack_array.size(); k++)
+      std::cout << " " << pack_array[k];
+    std::cout <<"\n";
+#endif
+  }
+
+  // now broadcast this whole array to all receivers, so they know what to expect
+  MPI_Bcast(&size_pack_array, 1, MPI_INT, 0, receive);
+  pack_array.resize(size_pack_array);
+  MPI_Bcast(&pack_array[0], size_pack_array, MPI_INT, 0, receive);
+  // now identify for current task, where are we getting data from
+
+  // senders across for the current receiver
+  int current_receiver = cgraph->receiver(receiver_rank);
+
+  std::vector<int> senders_local;
+  size_t n=0;
+  while(n < pack_array.size())
+  {
+    if (current_receiver == pack_array[n])
+    {
+      for (int j=0; j < pack_array[n+1]; j++)
+        senders_local.push_back(pack_array[n+2+j]);
+      break;
+    }
+    n = n + 2 + pack_array[n+1];
+  }
+  if (!senders_local.empty())
+  {
+#ifdef VERBOSE
+    std:: cout << " receiver " << current_receiver << " at rank " <<
+        receiver_rank << " will receive from " << senders_local.size() << " tasks: ";
+    for (int k=0; k<(int)senders_local.size(); k++)
+      std::cout << " " << senders_local[k];
+    std::cout<<"\n";
+#endif
+    for (size_t k=0; k< senders_local.size(); k++)
+    {
+      int sender = senders_local[k]; // first receive the size of the buffer
+
+      int size_pack;
+      ierr = MPI_Recv (&size_pack, 1, MPI_INT, sender, 1, *global, &status);
+      if (0!=ierr) return 1;
+      // now resize the buffer, then receive it
+      ParallelComm::Buffer buff(size_pack);
+
+      ierr = MPI_Recv (buff.mem_ptr, size_pack, MPI_CHAR, sender, 2, *global, &status);
+      if (0!=ierr) return 1;
+      // now unpack the buffer we just received
+      Range entities;
+      std::vector<std::vector<EntityHandle> > L1hloc, L1hrem;
+      std::vector<std::vector<int> > L1p;
+      std::vector<EntityHandle> L2hloc, L2hrem;
+      std::vector<unsigned int> L2p;
+      buff.reset_ptr(sizeof(int));
+      std::vector<EntityHandle> entities_vec(entities.size());
+      std::copy(entities.begin(), entities.end(), entities_vec.begin());
+      rval = pco->unpack_buffer(buff.buff_ptr, false, -1, -1, L1hloc, L1hrem, L1p, L2hloc,
+                                  L2hrem, L2p, entities_vec);
+      if (MB_SUCCESS!= rval) return 1;
+
+      std::copy(entities_vec.begin(), entities_vec.end(), range_inserter(entities));
+      // we have to add them to the local set
+      rval = context.MBI->add_entities(local_set, entities);
+      if (MB_SUCCESS!= rval) return 1;
+
+#ifdef VERBOSE
+      std::ostringstream partial_outFile;
+
+      partial_outFile <<"part_send_" <<sender<<"."<< "recv"<< current_receiver <<".vtk";
+
+        // the mesh contains ghosts too, but they are not part of mat/neumann set
+        // write in serial the file, to see what tags are missing
+      std::cout<< " writing from receiver " << current_receiver << " at rank " <<
+        receiver_rank << " from sender " <<  sender << " entities: " << entities.size() << std::endl;
+      rval = context.MBI->write_file(partial_outFile.str().c_str(), 0, 0, &local_set, 1); // everything on local set received
+      if (MB_SUCCESS!= rval) return 1;
+#endif
+    }
+
+  }
+  // in order for the merging to work, we need to be sure that the adjacencies are updated (created)
+  Core* this_core = dynamic_cast<Core*>(context.MBI);
+  if (this_core && !this_core->a_entity_factory()->vert_elem_adjacencies())
+    this_core->a_entity_factory()->create_vert_elem_adjacencies();
+
+  // after we are done, we could merge vertices that come from different senders, but
+  // have the same global id
+  Tag idtag;
+  rval = context.MBI->tag_get_handle("GLOBAL_ID", idtag);
+  if (MB_SUCCESS != rval) return 1;
+
+  if ((int)senders_local.size()>=2) // need to remove duplicate vertices
+                                    // that might come from different senders
+  {
+    Range local_ents;
+    rval = context.MBI->get_entities_by_handle(local_set, local_ents);
+    if (MB_SUCCESS != rval) return 1;
+    Range local_verts = local_ents.subset_by_type(MBVERTEX);
+    Range local_elems = subtract(local_ents, local_verts);
+
+    // remove from local set the vertices
+    rval = context.MBI->remove_entities(local_set, local_verts);
+    if (MB_SUCCESS!= rval) return 1;
+#ifdef VERBOSE
+    std::cout << "current_receiver " << current_receiver << " local verts: " << local_verts.size() << "\n";
+#endif
+    MergeMesh mm(context.MBI);
+    rval = mm.merge_using_integer_tag(local_verts, idtag);
+    if (MB_SUCCESS != rval) return 1;
+
+    Range new_verts; // local elems are local entities without vertices
+    rval = context.MBI->get_connectivity(local_elems, new_verts);
+    if (MB_SUCCESS!= rval) return 1;
+#ifdef VERBOSE
+    std::cout << "after merging: new verts: " << new_verts.size() << "\n";
+#endif
+    rval = context.MBI->add_entities(local_set, new_verts);
+    if (MB_SUCCESS!= rval) return 1;
+  }
+
+  // still need to resolve shared entities (in this case, vertices )
+  rval = pco->resolve_shared_ents(local_set, -1, -1, &idtag);
+  if (rval != MB_SUCCESS) return 1;
+
+  // populate the mesh with current data info
+  ierr = iMOAB_UpdateMeshInfo(pid);
+  if (0!=ierr) return 1;
+
+  return 0;
+}
+#endif
+
 #ifdef __cplusplus
 }
 #endif

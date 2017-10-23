@@ -66,10 +66,12 @@ int main(int argc, char * argv[])
    * with each application. A unique application id will be returned, and will be used for all future
    * mesh operations/queries.
    */
-  rc = iMOAB_RegisterApplication( "PROTEUS",
+  int compid = 11;
+  rc = iMOAB_RegisterApplication( "MBAPP",
 #ifdef MOAB_HAVE_MPI
       &comm,
 #endif
+      &compid,
       pid);
   CHECKRC(rc, "failed to register application");
 #ifdef MOAB_HAVE_MPI
@@ -87,6 +89,9 @@ int main(int argc, char * argv[])
    */
   rc = iMOAB_LoadMesh(  pid, filen.c_str(), read_opts, &num_ghost_layers, (int)(filen.size()), strlen(read_opts) );
   CHECKRC(rc, "failed to load mesh");
+
+  rc = iMOAB_SetGlobalInfo(pid, &num_global_vertices, &num_global_elements);
+  CHECKRC(rc, "failed to set global info");
 
   int nverts[3], nelem[3], nblocks[3], nsbc[3], ndbc[3];
   /*

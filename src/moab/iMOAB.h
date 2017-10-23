@@ -96,12 +96,14 @@ ErrCode iMOAB_Finalize();
 
   \param[in]  app_name (iMOAB_String) Application name (PROTEUS, NEK5000, etc)
   \param[in]  comm (MPI_Comm*)        MPI communicator to be used for all mesh-related queries originating from this application
+  \param[in]  compid (int*)           external component id, unique identifier
   \param[out] pid (iMOAB_AppID)       The unique pointer to the application ID
 */
 ErrCode iMOAB_RegisterApplication( const iMOAB_String app_name,
 #ifdef MOAB_HAVE_MPI
     MPI_Comm* comm,
 #endif
+    int * compid,
     iMOAB_AppID pid );
 
 /**
@@ -115,6 +117,7 @@ ErrCode iMOAB_RegisterApplication( const iMOAB_String app_name,
 
   \param[in]  app_name (iMOAB_String) Application name (PROTEUS, NEK5000, etc)
   \param[in]  comm (int*)             Fortran MPI communicator to be used for all mesh-related queries originating from this application
+  \param[in]  compid (int*)           external component id, unique identifier
   \param[out] pid (iMOAB_AppID)       The unique pointer to the application ID
   \param[in]  app_name_length (int)   Length of application name string.
 */
@@ -122,6 +125,7 @@ ErrCode iMOAB_RegisterFortranApplication( const iMOAB_String app_name,
 #ifdef MOAB_HAVE_MPI
     int* comm,
 #endif
+    int * compid,
     iMOAB_AppID pid, int app_name_length );
 
 /**
@@ -583,6 +587,52 @@ ErrCode iMOAB_GetNeighborElements(iMOAB_AppID pid, iMOAB_LocalID * local_index, 
    \param[out] adjacent_vertex_IDs (iMOAB_LocalID*)   The local element IDs of all adjacent vertices to the current one (typically, num_total_sides for internal elements or num_total_sides-num_sides_on_boundary for boundary elements)
 */
 ErrCode iMOAB_GetNeighborVertices(iMOAB_AppID pid, iMOAB_LocalID* local_vertex_ID, int* num_adjacent_vertices, iMOAB_LocalID* adjacent_vertex_IDs);
+
+/**
+   \brief Set global information for number of vertices and number of elements
+   it is usually available from hdf5 file or it can be computed with MPI_Reduce
+   \param[in]  pid (iMOAB_AppID)                      The unique pointer to the application ID
+   \param[in]  num_global_verts (int*)                number of total vertices
+   \param[in]  global (MPI_Comm)                      number of total elements
+ */
+
+ErrCode iMOAB_SetGlobalInfo(iMOAB_AppID pid, int * num_global_verts, int * num_global_elems);
+
+
+/**
+   \brief Get global information about number of vertices and number of elements
+   \param[in]  pid (iMOAB_AppID)                      The unique pointer to the application ID
+   \param[in]  num_global_verts (int*)                number of total vertices
+   \param[in]  global (MPI_Comm)                      number of total elements
+ */
+ErrCode iMOAB_GetGlobalInfo(iMOAB_AppID pid, int * num_global_verts, int * num_global_elems);
+
+
+#ifdef MOAB_HAVE_MPI
+/**
+  \brief migrate (send) a set of elements from one processor to another
+  <B>Operations:</B> Not Collective
+
+   \param[in]  pid (iMOAB_AppID)                      The unique pointer to the application ID source mesh
+   \param[in]  join (MPI_Comm)                        communicator that overlaps both groups
+   \param[in]  receivingGroup (MPI_Group *)           receiving group
+   \param[in]  rcompid  (int*)                        external id of application that receives the mesh
+ */
+
+ErrCode iMOAB_SendMesh(iMOAB_AppID pid, MPI_Comm * join, MPI_Group * receivingGroup, int * rcompid);
+/**
+  \brief migrate (receive) a set of elements from another processor
+  <B>Operations:</B> Not Collective
+
+   \param[in]  pid (iMOAB_AppID)                      The unique pointer to the application ID  mesh (receiver)
+   \param[in]  join (MPI_Comm)                        communicator that overlaps both groups
+   \param[in]  sendingGroup (MPI_Group *)             sending group
+   \param[in]  scompid ( int *)                       external id of application that sends the mesh
+ */
+
+ErrCode iMOAB_ReceiveMesh(iMOAB_AppID pid, MPI_Comm * join, MPI_Group * sendingGroup, int * scompid);
+
+#endif
 
 #ifdef __cplusplus
 }

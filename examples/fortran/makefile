@@ -4,7 +4,7 @@ include ../makefile.config
 default: all
 
 F90EXAMPLES = DirectAccessNoHolesF90
-F90PAREXAMPLES = PushParMeshIntoMoabF90
+F90PAREXAMPLES = PushParMeshIntoMoabF90 MigrateMeshF90
 
 ALLEXAMPLES =
 ifeq ("$(MOAB_FORTRAN_ENABLED)-$(MOAB_IMESH_ENABLED)","yes-yes")
@@ -38,6 +38,10 @@ run-PushParMeshIntoMoabF90: PushParMeshIntoMoabF90
 ifeq ("$(MOAB_MPI_ENABLED)","yes")
 	${RUNPARALLEL} ./PushParMeshIntoMoabF90
 endif
+
+MigrateMesh: MigrateMesh.o
+	@echo "[F90LD]  $@"
+	${VERBOSE}${MOAB_FC} -o $@ $< ${IMESH_LIBS}
 
 run: all $(addprefix run-,$(ALLEXAMPLES))
 

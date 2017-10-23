@@ -95,7 +95,7 @@ int main(int argc, char ** argv)
     2., 1., 0.,
     2., 2., 0.
   };
-  int appID;
+  int appID, compid;
   iMOAB_AppID pid=&appID;
 
   MPI_Init( &argc, &argv );
@@ -108,8 +108,9 @@ int main(int argc, char ** argv)
   if (!my_id)
     printf(" I'm process %d out of %d\n", my_id, num_procs);
 
-  appname[7]=0; // make sure it is
-  rc = iMOAB_RegisterApplication( appname, &comm, pid); ERROR(rc, " can't register app");
+  appname[7]=0; // make sure it is NULL
+  compid = 8; // given number, external application number
+  rc = iMOAB_RegisterApplication( appname, &comm, &compid, pid); ERROR(rc, " can't register app");
   /* create first 9 vertices,  in a square 3x3; */
   deltax = (my_id/2) * 2.;
   deltay = (my_id%2) * 2.;

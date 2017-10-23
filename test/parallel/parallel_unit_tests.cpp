@@ -1,5 +1,6 @@
 #include "moab/ParallelComm.hpp"
 #include "MBParallelConventions.h"
+#include "moab/ParCommGraph.hpp"
 #include "ReadParallel.hpp"
 #include "moab/FileOptions.hpp"
 #include "MBTagConventions.hpp"
@@ -137,6 +138,8 @@ ErrorCode test_ghost_polyhedra(const char *);
 ErrorCode test_too_few_parts(const char *);
 // Test broken sequences due to ghosting
 ErrorCode test_sequences_after_ghosting(const char *);
+// Test trivial partition in use by iMOAB
+void test_trivial_partition();
 
 
 /**************************************************************************
@@ -243,6 +246,7 @@ int main( int argc, char* argv[] )
   num_errors += RUN_TEST_ARG2( test_interface_owners, 0 );
   num_errors += RUN_TEST_ARG2( test_ghosted_entity_shared_data, 0 );
   num_errors += RUN_TEST_ARG2( regression_owners_with_ghosting, 0 );
+  num_errors += RUN_TEST ( test_trivial_partition);
 
   if (rank == 0) {
     if (!num_errors) 
@@ -1800,5 +1804,68 @@ ErrorCode test_sequences_after_ghosting( const char* filename )
     return MB_FAILURE;
   }
   return MB_SUCCESS;
+}
+
+// test trivial partition as used by iMOAB send/receive mesh methods
+// it is hooked to ParCommGraph, but it is really not dependent on anything from MOAB
+// these methods that are tested are just utilities
+
+void test_trivial_partition()
+{
+  // nothing is modified inside moab
+  // by these methods;
+  // to instantiate par com graph, we just need 2 groups!
+  // they can be overlapping !!!! we do not test that yet
+
+  // create 2 groups; one over task 0 and 1, one over 2
+  MPI_Group worldg;
+  MPI_Comm duplicate;
+  MPI_Comm_dup(MPI_COMM_WORLD, &duplicate);
+  MPI_Comm_group(duplicate, &worldg);
+
+  // this is usually run on 2 processes
+
+  int rank[2]={0,1};
+  MPI_Group gr1, gr2;
+  MPI_Group_incl(worldg, 2, rank, &gr1); // will contain 2 ranks, 0 and 1
+  MPI_Group_incl(worldg, 1, &rank[1], &gr2); // will contain 1 rank only (1)
+
+  int comp1=10, comp2 = 12;
+  ParCommGraph * pgr = new ParCommGraph(duplicate, gr1, gr2, comp1, comp2 );
+
+
+  std::map<int, Range> ranges_to_send;
+  std::vector<int> number_elems_per_part;
+  number_elems_per_part.push_back(6);  number_elems_per_part.push_back(10);
+
+  std::cout<<" send sizes " ;
+  for (int k=0; k< (int)number_elems_per_part.size(); k++)
+  {
+    std::cout<<" " << number_elems_per_part[k];
+  }
+  std::cout << "\n";
+
+  std::cout << "\n";
+  pgr->compute_trivial_partition ( number_elems_per_part);
+
+  Range verts(10, 20);
+  std::map<int, Range> split_ranges;
+  pgr->split_owned_range (0, verts, split_ranges);
+
+  for (std::map<int, Range>::iterator it = ranges_to_send.begin(); it!=ranges_to_send.end(); it++ )
+  {
+    Range & ran = it->second;
+    std::cout<< " receiver " << it->first << " receive range: [" << ran[0] << ", " << ran[ran.size()-1]  << "] \n";
+  }
+
+
+  delete (pgr);
+
+  MPI_Group_free(&worldg);
+  MPI_Group_free(&gr1);
+  MPI_Group_free(&gr2);
+  MPI_Comm_free(&duplicate);
+
+
 }
 

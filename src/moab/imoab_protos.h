@@ -47,4 +47,8 @@
 #define iMOAB_CreateElements                 IMOAB_FC_WRAPPER( imoab_createelements, IMOAB_CREATEELEMENTS )
 #define iMOAB_ResolveSharedEntities          IMOAB_FC_WRAPPER( imoab_resolvesharedentities, IMOAB_RESOLVESHAREDENTITIES )
 #define iMOAB_DetermineGhostEntities         IMOAB_FC_WRAPPER( imoab_determineghostentities, IMOAB_DETERMINEGHOSTENTITIES )
+#define iMOAB_SetGlobalInfo                  IMOAB_FC_WRAPPER( imoab_setglobalinfo, IMOAB_SETGLOBALINFO )
+#define iMOAB_GetGlobalInfo                  IMOAB_FC_WRAPPER( imoab_getglobalinfo, IMOAB_GETGLOBALINFO )
+#define iMOAB_SendMesh                       IMOAB_FC_WRAPPER( imoab_sendmesh, IMOAB_SENDMESH )
+#define iMOAB_ReceiveMesh                    IMOAB_FC_WRAPPER( imoab_receivemesh, IMOAB_RECEIVEMESH )
 #endif /*IMOAB_PROTOS_H */
