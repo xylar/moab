@@ -78,13 +78,13 @@ void test_tempest_cs_create()
   const std::string outFilename = outFilenames[0];
 
   std::cout << "Creating TempestRemap Cubed-Sphere Mesh ...\n";
-  Mesh *tempest_mesh = GenerateCSMesh(blockSize, false, outFilename);
+  Mesh tempest_mesh;
+  int ierr = GenerateCSMesh(tempest_mesh, blockSize, false, outFilename);
+  CHECK_EQUAL(ierr, 0);
 
   // Compute the surface area of CS mesh
-  const double sphere_area = tempest_mesh->CalculateFaceAreas();
+  const double sphere_area = tempest_mesh.CalculateFaceAreas(false);
   CHECK_REAL_EQUAL(sphere_area, surface_area, 1e-10);
-
-  delete tempest_mesh;
 }
 
 
@@ -95,13 +95,19 @@ void test_tempest_rll_create()
   const std::string outFilename = outFilenames[1];
 
   std::cout << "Creating TempestRemap Latitude-Longitude Mesh ...\n";
-  Mesh *tempest_mesh = GenerateRLLMesh(blockSize * 2, blockSize, 0.0, 360.0, -90.0, 90.0, false, outFilename);
+  Mesh tempest_mesh;
+  int ierr = GenerateRLLMesh(tempest_mesh,
+                             blockSize * 2, blockSize,
+                             0.0, 360.0,
+                             -90.0, 90.0,
+                             false, false,
+                             "", outFilename,
+                             false);
+  CHECK_EQUAL(ierr, 0);
 
   // Compute the surface area of RLL mesh
-  const double sphere_area = tempest_mesh->CalculateFaceAreas();
+  const double sphere_area = tempest_mesh.CalculateFaceAreas(false);
   CHECK_REAL_EQUAL(sphere_area, surface_area, 1e-10);
-
-  delete tempest_mesh;
 }
 
 
@@ -113,13 +119,13 @@ void test_tempest_ico_create()
   const std::string outFilename = outFilenames[2];
 
   std::cout << "Creating TempestRemap Icosahedral Mesh ...\n";
-  Mesh *tempest_mesh = GenerateICOMesh(blockSize, computeDual, outFilename);
+  Mesh tempest_mesh;
+  int ierr = GenerateICOMesh(tempest_mesh, blockSize, computeDual, outFilename);
+  CHECK_EQUAL(ierr, 0);
 
   // Compute the surface area of ICO mesh
-  const double sphere_area = tempest_mesh->CalculateFaceAreas();
+  const double sphere_area = tempest_mesh.CalculateFaceAreas(false);
   CHECK_REAL_EQUAL(sphere_area, surface_area, 1e-10);
-
-  delete tempest_mesh;
 }
 
 
@@ -131,13 +137,13 @@ void test_tempest_mpas_create()
   const std::string outFilename = outFilenames[3];
 
   std::cout << "Creating TempestRemap MPAS Mesh (dual of the Icosahedral) ...\n";
-  Mesh *tempest_mesh = GenerateICOMesh(blockSize, computeDual, outFilename);
+  Mesh tempest_mesh;
+  int ierr = GenerateICOMesh(tempest_mesh, blockSize, computeDual, outFilename);
+  CHECK_EQUAL(ierr, 0);
 
   // Compute the surface area of MPAS mesh
-  const double sphere_area = tempest_mesh->CalculateFaceAreas();
+  const double sphere_area = tempest_mesh.CalculateFaceAreas(false);
   CHECK_REAL_EQUAL(sphere_area, surface_area, 1e-10);
-
-  delete tempest_mesh;
 }
 
 
@@ -146,22 +152,22 @@ void test_tempest_overlap_combinations()
   NcError error(NcError::verbose_nonfatal);
   const std::string outFilename = outFilenames[4];
 
-  Mesh* inpMesh = new Mesh(outFilenames[0]);
+  Mesh inpMesh(outFilenames[0]);
   // verify input mesh area first
-  const double inpArea = inpMesh->CalculateFaceAreas();
+  const double inpArea = inpMesh.CalculateFaceAreas(false);
   CHECK_REAL_EQUAL(inpArea, surface_area, 1e-10);
 
   for (int isrc=0; isrc < 4; ++isrc) {
     for (int jsrc=0; jsrc < 4; ++jsrc) {
       std::cout << "Computing Overlap between " << outFilenames[isrc] << " and " << outFilenames[jsrc] << " ...\n";
-      Mesh *tempest_mesh = GenerateOverlapMesh(outFilenames[isrc], outFilenames[jsrc], outFilename, "exact", false, false);
+      Mesh tempest_mesh;
+      int ierr = GenerateOverlapMesh(outFilenames[isrc], outFilenames[jsrc], tempest_mesh, outFilename, "exact", false, false, false, false);
+      CHECK_EQUAL(ierr, 0);
       // verify overlap mesh area
-      const double ovArea = tempest_mesh->CalculateFaceAreas();
+      const double ovArea = tempest_mesh.CalculateFaceAreas(false);
       CHECK_REAL_EQUAL(ovArea, surface_area, 1e-10);
-      delete tempest_mesh;
     }
   }
-  delete inpMesh;
 }
 
 
