@@ -9,6 +9,7 @@ program MigrateMesh
 #  error "enable parallel build"
 #endif
 
+#define NONOVERLAP
 
     ! init the parallel partition
     integer ierr, sz, rank, i
@@ -19,8 +20,8 @@ program MigrateMesh
                               !  advance;
     integer nghlay ! number of ghost layers for loading
     integer groupTasks(9)   !   run on at most 9 processes
-    integer startG, endG    !   start and end for group tasks, for creation
-    integer sizeG           !   size of the group that gets created
+    integer startG1, startG2, endG1, endG2    !   start and end for group tasks, for creation
+    integer sizeG1, sizeG2           !   size of the group that gets created
     character*10 appname
     character*132 readopts
     character*132 filename
@@ -55,26 +56,29 @@ program MigrateMesh
     call MPI_COMM_GROUP (MPI_COMM_WORLD, allgroup, ierr)
     call errorout(ierr, 'cannot get world group' )
     ! first group, sz/3 to sz-1
-    startG = sz/2
-    endG = sz-1
-    sizeG = endG - startG + 1
+    startG1 = sz/2
+    endG1 = sz-1
+    sizeG1 = endG1 - startG1 + 1
     
-    do i=1, sizeG
-      groupTasks (i) = startG+i-1
+    do i=1, sizeG1
+      groupTasks (i) = startG1+i-1
     end do 
 
-    call MPI_Group_incl(allgroup, sizeG, groupTasks, group1, ierr)
+    call MPI_Group_incl(allgroup, sizeG1, groupTasks, group1, ierr)
     call errorout(ierr, 'cannot create group 1' )
 
     ! second group, 0, 1, 3/4*sz
-    startG = 0
-    endG = 3*sz/4 -1
-    sizeG = endG - startG + 1
-    do i=1, sizeG
-      groupTasks(i) = startG+i-1
+    startG2 = 0
+    endG2 = 3*sz/4 -1
+#ifdef NONOVERLAP
+    endG2 = startG1-1
+#endif
+    sizeG2 = endG2 - startG2 + 1
+    do i=1, sizeG2
+      groupTasks(i) = startG2+i-1
     enddo 
     
-    call MPI_Group_incl(allgroup, sizeG, groupTasks, group2, ierr)
+    call MPI_Group_incl(allgroup, sizeG2, groupTasks, group2, ierr)
     call errorout(ierr, 'cannot create group 2' )
 
     ! now create both communicators
@@ -125,7 +129,7 @@ program MigrateMesh
        ierr = iMOAB_ReceiveMesh(pid2, MPI_COMM_WORLD, group1, compid1); ! receive from component 1
        call errorout(ierr, 'cannot receive elements' )
        outfile = 'receivedMesh.h5m'//CHAR(0)
-       wopts   = 'PARALLEL=WRITE_PART'//CHAR(0)
+       wopts   = 'PARALLEL=WRITE_PART;DEBUG_IO=3;'//CHAR(0)
 !      write out the mesh file to disk
        ierr = iMOAB_WriteMesh(pid2, trim(outfile), trim(wopts))
        call errorout(ierr, 'cannot write received mesh' )

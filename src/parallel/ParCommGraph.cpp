@@ -314,8 +314,8 @@ ErrorCode ParCommGraph::receive_mesh(MPI_Comm jcomm, ParallelComm *pco, EntityHa
       ierr = MPI_Recv (&size_pack, 1, MPI_INT, sender, 1, jcomm, &status);
       if (0!=ierr) return MB_FAILURE;
       // now resize the buffer, then receive it
-      ParallelComm::Buffer * buffer = new ParallelComm::Buffer(ParallelComm::INITIAL_BUFF_SIZE);
-      buffer->reserve(size_pack);
+      ParallelComm::Buffer * buffer = new ParallelComm::Buffer(size_pack);
+      //buffer->reserve(size_pack);
 
       ierr = MPI_Recv (buffer->mem_ptr, size_pack, MPI_CHAR, sender, 2, jcomm, &status);
       if (0!=ierr) return MB_FAILURE;
