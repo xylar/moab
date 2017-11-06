@@ -136,6 +136,7 @@ program MigrateMesh
        outfile = 'receivedMesh.h5m'//CHAR(0)
        wopts   = 'PARALLEL=WRITE_PART;'//CHAR(0)
        print *, "from ", rank, wopts, outfile
+
 !      write out the mesh file to disk
        ierr = iMOAB_WriteMesh(pid2, trim(outfile), trim(wopts))
        call errorout(ierr, 'cannot write received mesh' )
