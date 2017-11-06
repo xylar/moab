@@ -39,8 +39,8 @@ program MigrateMesh
     call MPI_COMM_RANK(MPI_COMM_WORLD, rank, ierr)
     if (rank .eq. 0) print *, "size:", sz
     call errorout(ierr, 'cannot get rank' )
-    if ( (sz < 1) .and. (sz>9) ) then
-      print *, "size is " , sz, ". run on at least 1 processes and at most 9 "
+    if ( (0 .eq. rank) .and. (sz < 2) .and. (sz>9) ) then
+      print *, "size is " , sz, ". run on at least 2 processes and at most 9 "
       call exit(1)
     endif
     ! create 2 overlapping groups, for generality
@@ -81,6 +81,10 @@ program MigrateMesh
     call MPI_Group_incl(allgroup, sizeG2, groupTasks, group2, ierr)
     call errorout(ierr, 'cannot create group 2' )
 
+    if ( (0 .eq. rank) ) then
+      print *, "group 1 tasks: ", (i, i=startG1, endG1)
+      print *, "group 2 tasks: ", (i, i=startG2, endG2)
+    endif
     ! now create both communicators
     !  when we are not on tasks in the communicator, the MPI_Comm created will be null
     tagcomm1 = 1
