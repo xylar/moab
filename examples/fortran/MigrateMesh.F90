@@ -14,7 +14,7 @@ program MigrateMesh
     ! init the parallel partition
     integer ierr, sz, rank, i
     integer  newComm
-    integer comm1, comm2
+    integer gcomm, comm1, comm2
     integer pid1, pid2 !  this is for physics ids
     integer compid1, compid2  !  component ids are unique over all pes, and established in
                               !  advance;
@@ -35,8 +35,9 @@ program MigrateMesh
     integer iMOAB_DeregisterApplication, iMOAB_Finalize
 
     call MPI_INIT(ierr)
-    call MPI_COMM_SIZE(MPI_COMM_WORLD, sz, ierr)
-    call MPI_COMM_RANK(MPI_COMM_WORLD, rank, ierr)
+    call MPI_Comm_dup(MPI_COMM_WORLD, gcomm, ierr)
+    call MPI_COMM_SIZE(gcomm, sz, ierr)
+    call MPI_COMM_RANK(gcomm, rank, ierr)
     if (rank .eq. 0) print *, "size:", sz
     call errorout(ierr, 'cannot get rank' )
     if ( (0 .eq. rank) .and. (sz < 2) .and. (sz>9) ) then
@@ -53,7 +54,7 @@ program MigrateMesh
     ! create new MPI groups for processors 1/3*sz, 1/3*sz+1, ..., sz-1 (group 1) and 0, 1, .., 3/4*sz-1 (group 2)
     
 
-    call MPI_COMM_GROUP (MPI_COMM_WORLD, allgroup, ierr)
+    call MPI_COMM_GROUP (gcomm, allgroup, ierr)
     call errorout(ierr, 'cannot get world group' )
     ! first group, sz/3 to sz-1
     startG1 = sz/2
@@ -88,11 +89,11 @@ program MigrateMesh
     ! now create both communicators
     !  when we are not on tasks in the communicator, the MPI_Comm created will be null
     tagcomm1 = 1
-    call MPI_Comm_create_group(MPI_COMM_WORLD, group1, tagcomm1, comm1, ierr)
+    call MPI_Comm_create_group(gcomm, group1, tagcomm1, comm1, ierr)
     call errorout(ierr, 'cannot create communicator 1' )
 
     tagcomm2 = 2
-    call MPI_Comm_create_group(MPI_COMM_WORLD, group2, tagcomm2, comm2, ierr)
+    call MPI_Comm_create_group(gcomm, group2, tagcomm2, comm2, ierr)
     call errorout(ierr, 'cannot create communicator 2' )
 
 
@@ -125,12 +126,12 @@ program MigrateMesh
 
        ierr = iMOAB_LoadMesh(pid1, trim(filename), trim(readopts), nghlay)
        if (rank .eq. sz-2 ) print *, "loaded in parallel ", trim(filename), " error: ", ierr
-       ierr = iMOAB_SendMesh(pid1, MPI_COMM_WORLD, group2, compid2); ! send to component 2
+       ierr = iMOAB_SendMesh(pid1, gcomm, group2, compid2); ! send to component 2
        call errorout(ierr, 'cannot send elements' )
     endif
 
     if (comm2 /= MPI_COMM_NULL) then
-       ierr = iMOAB_ReceiveMesh(pid2, MPI_COMM_WORLD, group1, compid1); ! receive from component 1
+       ierr = iMOAB_ReceiveMesh(pid2, gcomm, group1, compid1); ! receive from component 1
        call errorout(ierr, 'cannot receive elements' )
        outfile = 'receivedMesh.h5m'//CHAR(0)
        wopts   = 'PARALLEL=WRITE_PART;DEBUG_IO=3;'//CHAR(0)
@@ -140,12 +141,12 @@ program MigrateMesh
        call errorout(ierr, 'cannot write received mesh' )
     endif
 
-    call MPI_Barrier(MPI_COMM_WORLD, ierr)
+    call MPI_Barrier(gcomm, ierr)
     call errorout(ierr, 'cannot stop at barrier' )
 
     ! we can now free the sender buffers
     if (comm1 /= MPI_COMM_NULL) then
-       ierr = iMOAB_FreeSenderBuffers(pid1, MPI_COMM_WORLD, compid2)
+       ierr = iMOAB_FreeSenderBuffers(pid1, gcomm, compid2)
     endif
 
     if (comm1 /= MPI_COMM_NULL) then
@@ -169,6 +170,7 @@ program MigrateMesh
     call MPI_Group_free(allgroup, ierr)
     call MPI_Group_free(group1, ierr)
     call MPI_Group_free(group2, ierr)
+    call MPI_Comm_free(gcomm, ierr)
 
     call MPI_Finalize(ierr)
     call errorout(ierr, 'did not finalize MPI' )
