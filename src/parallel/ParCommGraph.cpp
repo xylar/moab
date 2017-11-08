@@ -308,16 +308,16 @@ ErrorCode ParCommGraph::receive_mesh(MPI_Comm jcomm, ParallelComm *pco, EntityHa
   {
     for (size_t k=0; k< senders_local.size(); k++)
     {
-      int sender = senders_local[k]; // first receive the size of the buffer
+      int sender1 = senders_local[k]; // first receive the size of the buffer
 
       int size_pack;
-      ierr = MPI_Recv (&size_pack, 1, MPI_INT, sender, 1, jcomm, &status);
+      ierr = MPI_Recv (&size_pack, 1, MPI_INT, sender1, 1, jcomm, &status);
       if (0!=ierr) return MB_FAILURE;
       // now resize the buffer, then receive it
       ParallelComm::Buffer * buffer = new ParallelComm::Buffer(size_pack);
       //buffer->reserve(size_pack);
 
-      ierr = MPI_Recv (buffer->mem_ptr, size_pack, MPI_CHAR, sender, 2, jcomm, &status);
+      ierr = MPI_Recv (buffer->mem_ptr, size_pack, MPI_CHAR, sender1, 2, jcomm, &status);
       if (0!=ierr) return MB_FAILURE;
       // now unpack the buffer we just received
       Range entities;
@@ -343,11 +343,11 @@ ErrorCode ParCommGraph::receive_mesh(MPI_Comm jcomm, ParallelComm *pco, EntityHa
 #ifdef VERBOSE
       std::ostringstream partial_outFile;
 
-      partial_outFile <<"part_send_" <<sender<<"."<< "recv"<< rankInJoin <<".vtk";
+      partial_outFile <<"part_send_" <<sender1<<"."<< "recv"<< rankInJoin <<".vtk";
 
         // the mesh contains ghosts too, but they are not part of mat/neumann set
         // write in serial the file, to see what tags are missing
-      std::cout<< " writing from receiver " << rankInJoin << " from sender " <<  sender << " entities: " << entities.size() << std::endl;
+      std::cout<< " writing from receiver " << rankInJoin << " from sender " <<  sender1 << " entities: " << entities.size() << std::endl;
       rval = pco->get_moab()->write_file(partial_outFile.str().c_str(), 0, 0, &local_set, 1); // everything on local set received
       if (MB_SUCCESS!= rval) return rval;
 #endif

@@ -9,7 +9,7 @@ program MigrateMesh
 #  error "enable parallel build"
 #endif
 
-#define NONOVERLAP
+!#define NONOVERLAP
 
     ! init the parallel partition
     integer ierr, sz, rank, i
@@ -134,6 +134,7 @@ program MigrateMesh
        call errorout(ierr, 'cannot receive elements' )
        outfile = 'receivedMesh.h5m'//CHAR(0)
        wopts   = 'PARALLEL=WRITE_PART;DEBUG_IO=3;'//CHAR(0)
+       print *, "from ", rank, wopts, outfile
 !      write out the mesh file to disk
        ierr = iMOAB_WriteMesh(pid2, trim(outfile), trim(wopts))
        call errorout(ierr, 'cannot write received mesh' )
