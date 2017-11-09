@@ -134,7 +134,14 @@ program MigrateMesh
        ierr = iMOAB_ReceiveMesh(pid2, gcomm, group1, compid1); ! receive from component 1
        call errorout(ierr, 'cannot receive elements' )
        outfile = 'receivedMesh.h5m'//CHAR(0)
-       wopts   = 'PARALLEL=WRITE_PART;DEBUG_IO=3;'//CHAR(0)
+       if (pid2 .eq. 0) then
+         wopts   = 'PARALLEL=WRITE_PART;PARALLEL_COMM=0'//CHAR(0)
+       else if (pid2 .eq. 1) then
+         wopts   = 'PARALLEL=WRITE_PART;PARALLEL_COMM=1'//CHAR(0)
+       else
+          call errorout(1, "wrong pid2")
+       endif
+
        print *, "from ", rank, wopts, outfile
 !      write out the mesh file to disk
        ierr = iMOAB_WriteMesh(pid2, trim(outfile), trim(wopts))
