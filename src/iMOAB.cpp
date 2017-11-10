@@ -386,7 +386,7 @@ ErrCode iMOAB_LoadMesh( iMOAB_AppID pid, const iMOAB_String filename, const iMOA
   if (MB_SUCCESS!=rval)
     return 1;
 
-#ifndef NDEBUG
+#ifdef VERBOSE
 
 #ifdef MOAB_HAVE_MPI
   int rank = context.pcomms[*pid]->rank();
@@ -405,6 +405,7 @@ ErrCode iMOAB_LoadMesh( iMOAB_AppID pid, const iMOAB_String filename, const iMOA
   rval = context.MBI->write_file(outfile.str().c_str()); // everything on root
   if (MB_SUCCESS!=rval)
     return 1;
+
 #endif
   int rc = iMOAB_UpdateMeshInfo(pid);
   return rc;
