@@ -82,10 +82,10 @@ int main( int argc, char* argv[] )
     filename = argv[1];
   }
   int num_errors = 0;
-  //num_errors += RUN_TEST_ARG2( migrate_1_1, filename.c_str() );
+  num_errors += RUN_TEST_ARG2( migrate_1_1, filename.c_str() );
   num_errors += RUN_TEST_ARG2( migrate_1_2, filename.c_str() );
-  //num_errors += RUN_TEST_ARG2( migrate_2_1, filename.c_str() );
-  //num_errors += RUN_TEST_ARG2( migrate_2_2, filename.c_str() );
+  num_errors += RUN_TEST_ARG2( migrate_2_1, filename.c_str() );
+  num_errors += RUN_TEST_ARG2( migrate_2_2, filename.c_str() );
 
   if (rank == 0) {
     if (!num_errors)
@@ -189,7 +189,7 @@ ErrorCode migrate(const char*filename)
   }
 
   if (comm1 != MPI_COMM_NULL) {
-     //ierr = iMOAB_DeregisterApplication(pid1);
+     ierr = iMOAB_DeregisterApplication(pid1);
      CHECKRC(ierr, "cannot deregister app 1 sender" )
   }
 

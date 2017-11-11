@@ -271,10 +271,41 @@ ErrCode iMOAB_DeregisterApplication( iMOAB_AppID pid )
     delete pargs[k];
 #endif
 
-  rval = context.MBI->delete_entities(fileents);
+  // delete first all except vertices
+  Range vertices = fileents.subset_by_type(MBVERTEX);
+  Range noverts = subtract(fileents, vertices);
+  rval = context.MBI->delete_entities(noverts);
 
   if (MB_SUCCESS != rval )
     return 1;
+  rval = context.MBI->delete_entities(vertices);
+  if (MB_SUCCESS != rval )
+    return 1;
+
+  std::map<std::string, int>::iterator mit;
+  for (mit=context.appIdMap.begin(); mit !=context.appIdMap.end(); mit++)
+  {
+    int pidx = mit->second;
+    if (*pid == pidx)
+    {
+      break;
+    }
+  }
+  context.appIdMap.erase(mit);
+  std::map<int, int>::iterator mit1;
+  for (mit1=context.appIdCompMap.begin(); mit1 !=context.appIdCompMap.end(); mit1++)
+  {
+    int pidx = mit->second;
+    if (*pid == pidx)
+    {
+      break;
+    }
+  }
+  context.appIdCompMap.erase(mit1);
+
+  context.unused_pid--;
+  context.appDatas.pop_back();
+  context.pcomms.pop_back();
 
   return 0;
 }
