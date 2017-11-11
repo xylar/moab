@@ -305,8 +305,9 @@ ErrCode iMOAB_DeregisterApplication( iMOAB_AppID pid )
 
   context.unused_pid--;
   context.appDatas.pop_back();
+#ifdef MOAB_HAVE_MPI
   context.pcomms.pop_back();
-
+#endif
   return 0;
 }
 
