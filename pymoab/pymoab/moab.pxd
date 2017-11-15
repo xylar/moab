@@ -115,6 +115,10 @@ cdef extern from "moab/Range.hpp" namespace "moab":
         EntityHandle pop_front()
         EntityHandle pop_back()
 
+        Range subset_by_type(EntityType t)
+        Range subset_by_dimension(int dim)
+        
+        
         EntityHandle operator[](EntityID index)
 
 

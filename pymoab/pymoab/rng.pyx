@@ -137,6 +137,27 @@ cdef class Range(object):
         else:
             raise ValueError("Operation not valid for non-Range object")
 
+    def subset_by_type(self, t):
+        """Returns the subset range containing only entities with the specified type"""
+        cdef moab.Range mbr
+        cdef moab.EntityType typ = t
+        mbr = self.inst.subset_by_type(typ)
+        cdef Range r = Range()
+        # kind of a hack? allows one to return
+        # a new range though
+        r.inst.merge(mbr)
+        return r
+
+    def subset_by_dimension(self, int dim):
+        """Returns the subset range containing only entities with the specified dimension"""
+        cdef moab.Range mbr
+        mbr = self.inst.subset_by_dimension(dim)
+        cdef Range r = Range()
+        # kind of a hack? allows one to return
+        # a new range though
+        r.inst.merge(mbr)
+        return r
+    
     def __iter__(self):
         """
         Iterator
