@@ -187,6 +187,22 @@ cdef class Range(object):
         else:
             raise ValueError("Invalid key provided.")
 
+    def __richcmp__(self, other, op):
+        cdef Range r
+        if isinstance(other, Range):
+            r = other
+            result1 = subtract(self, r)
+            result2 = subtract(r, self)
+            result1.merge(result2)
+            if op == 2: # ==
+                return not result1.empty()
+            if op == 3: # !=
+                return result1.empty()
+            else:
+                NotImplementedError("This comparator isn't supported for Ranges at this time.")
+        else:
+            ValueError("Other is not a Range object. Cannot compare.")
+
     def __str__(self):
         """
         Range as a string

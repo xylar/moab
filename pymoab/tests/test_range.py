@@ -220,6 +220,8 @@ def test_range_methods1():
     CHECK(verts.all_of_type(types.MBVERTEX))
     CHECK_EQ(len(verts), 6)
 
+    CHECK(verts == verts)
+    
 if __name__ == "__main__":
     tests = [test_range,
              test_range_methods,
