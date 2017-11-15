@@ -933,6 +933,10 @@ cdef class Core(object):
             should be created. For instance, in the example above, the second
             call to get_adjacencies will create the edges of the triangle which
             did not previously exist in the mesh database.
+        op_type : int (default is 0 or INTERSECT)
+            this value indicates how overlapping adjacencies should be handled
+            INTERSECT - will return the intersection of the adjacencies between mesh elements
+            UNION - will return the union of all adjacencies for the elements provided to the function
         exceptions : tuple (default is empty tuple)
             A tuple containing any error types that should
             be ignored. (see pymoab.types module for more info)
