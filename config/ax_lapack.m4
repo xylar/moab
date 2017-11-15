@@ -68,7 +68,7 @@
 
 AU_ALIAS([ACX_LAPACK], [AX_LAPACK])
 AC_DEFUN([AX_LAPACK], [
-AC_REQUIRE([AX_BLAS])
+
 ax_lapack_ok=no
 
 AC_ARG_WITH(lapack,
@@ -81,13 +81,8 @@ case $with_lapack in
 esac
 
 # Get fortran linker name of LAPACK function to check for.
-if (test "x$ENABLE_FORTRAN" != "xno"); then
-  AC_FC_FUNC(dgeev)
-  AC_FC_FUNC(cheev)
-else
-  dgeev="dgeev_" # Default
-  cheev="cheev_"
-fi
+dgeev="dgeev$FCMANGLE_SUFFIX" # Default
+cheev="cheev$FCMANGLE_SUFFIX"
 
 # We cannot use LAPACK if BLAS is not found
 if test "x$ax_blas_ok" != xyes; then

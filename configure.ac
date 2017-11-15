@@ -45,6 +45,15 @@ fi
 AC_SUBST(ENABLE_FORTRAN)
 DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --enable-fortran=$ENABLE_FORTRAN"
 
+FCMANGLE_SUFFIX="_" # GNU, Intel
+AC_ARG_WITH(fc-mangling-suffix,
+  [AS_HELP_STRING([--with-fc-mangling-suffix=<lib>], [use the provided suffix for Fortran mangled symbols])])
+case $with_fc_mangling_suffix in
+  yes | no | "") ;;
+  *) FCMANGLE_SUFFIX="$with_fc_mangling_suffix" ;;
+esac
+AC_SUBST(FCMANGLE_SUFFIX)
+
 # Find out the appropriate compiler based on user options
 FATHOM_CHECK_COMPILERS([yes],[yes],[$ENABLE_FORTRAN])
 AM_CONDITIONAL(PARALLEL,[test "x$enablempi" != "xno"])
@@ -185,9 +194,16 @@ if (test "$cxx_compiler" != "Intel"); then
 fi
 
 ### Check for BLAS and Lapack dense solvers
-#AX_BLAS
-AX_LAPACK
-LIBS="$LAPACK_LIBS $BLAS_LIBS $LIBS"
+AC_ARG_ENABLE( [blaslapack],
+              [AS_HELP_STRING([--disable-blaslapack], [Enable/disable external BLAS/LAPACK interface; If disabled, Eigen3 should be enabled.])],
+[enable_blaslapack=no],
+[enable_blaslapack=yes] )
+
+if (test "x$enable_blaslapack" != "xno"); then
+  AX_BLAS
+  AX_LAPACK
+  LIBS="$LAPACK_LIBS $BLAS_LIBS $LIBS"
+fi
 
 ################################################################################
 #                                 pymoab
@@ -590,6 +606,10 @@ fi
 ################################################################################
 
 FATHOM_CONFIGURE_EIGEN3
+
+if (test "x$enable_blaslapack" != "xyes" && test "x$enableeigen" != "xyes"); then
+  AC_MSG_ERROR("Either external BLAS/LAPACK libraries or Eigen headers need to be provided.")
+fi
 
 ################################################################################
 #                              HDF5 OPTIONS

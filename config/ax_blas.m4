@@ -80,13 +80,8 @@ case $with_blas in
 esac
 
 # Get fortran linker names of BLAS functions to check for.
-if (test "x$ENABLE_FORTRAN" != "xno"); then
-  AC_FC_FUNC(sgemm)
-  AC_FC_FUNC(dgemm)
-else
-  sgemm="sgemm_" # Default
-  dgemm="dgemm_"
-fi
+sgemm="sgemm$FCMANGLE_SUFFIX" # Default
+dgemm="dgemm$FCMANGLE_SUFFIX"
 
 ax_blas_save_LIBS="$LIBS"
 LIBS="$LIBS $FLIBS"
