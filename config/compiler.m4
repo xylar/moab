@@ -305,7 +305,7 @@ if (test "x$ENABLE_FORTRAN" != "xno"); then
   if (test "xno" != "x$enable_f77_optimize"); then
     FFLAGS="$FFLAGS -O3"
   fi
-  #AC_FC_PP_DEFINE
+  AC_FC_PP_DEFINE
 fi
 
 # Check for 32/64 bit.
