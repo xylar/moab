@@ -1296,6 +1296,8 @@ cdef class Core(object):
         cdef Range r
         cdef np.ndarray[np.uint64_t, ndim=1] arr
         cdef np.ndarray coords
+        if isinstance(entities, long):
+            entities = Range(entities)
         if isinstance(entities, Range):
             r = entities
             coords = np.empty((3*r.size(),),dtype='float64')

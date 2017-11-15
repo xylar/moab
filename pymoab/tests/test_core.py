@@ -483,6 +483,12 @@ def test_get_coords():
     for i in range(len(coords)):
         CHECK_EQ(ret_coords[i],coords[i])
 
+    # test for passing entity handle (non-iterable)
+    ret_coords = mb.get_coords(verts[0])
+    CHECK_EQ(ret_coords[0], coords[0])
+    CHECK_EQ(ret_coords[1], coords[1])
+    CHECK_EQ(ret_coords[2], coords[2])
+
 def test_set_coords():
     mb = core.Core()
     coords = np.array((0,0,0,1,0,0,1,1,1),dtype='float64')
