@@ -111,6 +111,7 @@ cdef extern from "moab/Range.hpp" namespace "moab":
         void insert(EntityHandle val)
         void erase(EntityHandle val)
         void merge(Range& range)
+        bool contains(const Range& range)
         EntityHandle pop_front()
         EntityHandle pop_back()
 

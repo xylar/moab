@@ -126,8 +126,17 @@ cdef class Range(object):
             r = other
             self.inst.merge(deref(r.inst))
         else:
-            raise ValueError("Operation not valie for non-Range")
-        
+            raise ValueError("Operation not valid for non-Range object")
+
+    def contains(self, other):
+        """Checks if this range contains all contents of another Range, other"""
+        cdef Range r
+        if isinstance(other, Range):
+            r = other
+            self.inst.contains(deref(r.inst))
+        else:
+            raise ValueError("Operation not valid for non-Range object")
+
     def __iter__(self):
         """
         Iterator

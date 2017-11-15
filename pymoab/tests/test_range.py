@@ -3,7 +3,7 @@ from pymoab import types
 from pymoab.rng import Range
 from pymoab.rng import intersect, subtract, unite
 from pymoab import types
-from driver import test_driver, CHECK_EQ, CHECK_NOT_EQ
+from driver import test_driver, CHECK_EQ, CHECK_NOT_EQ, CHECK, CHECK_NOT
 import numpy as np
 
 def test_range():
@@ -157,7 +157,52 @@ def test_range_methods():
     range_a.merge(range_b)
     CHECK_EQ(range_a.size(),11)
 
+def test_range_methods1():
+    mb = core.Core()
+    coord = np.array((1,1,1,2,2,2,3,3,3,4,4,4,5,5,5,6,6,6),dtype='float64')
+    range_a = mb.create_vertices(coord)
+    CHECK_EQ(len(range_a), 6)
+    CHECK(range_a.all_of_dimension(0))
+    CHECK(range_a.all_of_type(types.MBVERTEX))
+    CHECK_NOT(range_a.all_of_dimension(1))
+    CHECK_NOT(range_a.all_of_type(types.MBTRI))
+    
+    
+    coord = np.array((2,2,2,3,3,3,4,4,4,5,5,5,6,6,6,7,7,7),dtype='float64')
+    range_b = mb.create_vertices(coord)
+    CHECK_EQ(len(range_b), 6)
+    CHECK(range_b.all_of_dimension(0))
+    CHECK(range_b.all_of_type(types.MBVERTEX))
+    CHECK_NOT(range_b.all_of_dimension(1))
+    CHECK_NOT(range_b.all_of_type(types.MBTRI))
+
+    # range a shouldn't overlap with range_b
+    CHECK_NOT(range_a.contains(range_b))
+
+    # new range that is both
+    range_a_and_b = unite(range_a, range_b)
+
+    # the new range should contain both of
+    # the original ranges
+    CHECK(range_a_and_b.contains(range_b))
+    CHECK(range_a_and_b.contains(range_a))
+    
+    tri_range_a = mb.create_elements(types.MBTRI,[range_a[0:3],range_a[3:]])
+    CHECK_EQ(len(tri_range_a), 2)
+    CHECK(tri_range_a.all_of_dimension(2))
+    CHECK(tri_range_a.all_of_type(types.MBTRI))
+    CHECK_NOT(tri_range_a.all_of_dimension(0))
+    CHECK_NOT(tri_range_a.all_of_type(types.MBVERTEX))
+    
+    tri_range_b = mb.create_elements(types.MBTRI,[range_b[0:3],range_b[3:]])
+    CHECK_EQ(len(tri_range_b), 2)
+    CHECK(tri_range_b.all_of_dimension(2))
+    CHECK(tri_range_b.all_of_type(types.MBTRI))
+    CHECK_NOT(tri_range_b.all_of_dimension(0))
+    CHECK_NOT(tri_range_b.all_of_type(types.MBVERTEX))
+
 if __name__ == "__main__":
     tests = [test_range,
-             test_range_methods]
+             test_range_methods,
+             test_range_methods1]
     test_driver(tests)
