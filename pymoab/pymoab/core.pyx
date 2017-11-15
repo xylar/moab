@@ -904,7 +904,7 @@ cdef class Core(object):
         err = self.inst.tag_delete(tag.inst)
         check_error(err, exceptions)
 
-    def get_adjacencies(self, entity_handles, int to_dim, bint create_if_missing = False, exceptions = ()):
+    def get_adjacencies(self, entity_handles, int to_dim, bint create_if_missing = False, int op_type = types.INTERSECT, exceptions = ()):
         """
         Get the adjacencies associated with a range of entities to entities of a specified dimension.
 
@@ -952,7 +952,7 @@ cdef class Core(object):
         cdef Range r
         cdef Range adj = Range()
         r = Range(entity_handles)
-        err = self.inst.get_adjacencies(deref(r.inst), to_dim, create_if_missing, deref(adj.inst))
+        err = self.inst.get_adjacencies(deref(r.inst), to_dim, create_if_missing, deref(adj.inst), op_type)
         check_error(err, exceptions)
         return adj
 

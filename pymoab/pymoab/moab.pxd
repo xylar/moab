@@ -262,12 +262,14 @@ cdef extern from "moab/Core.hpp" namespace "moab":
                                   const int to_dimension,
                                   const bool create_if_missing,
                                   Range &adj_entities,
-                                  const int operation_type = 0)
+                                  const int operation_type)
+        
         ErrorCode get_adjacencies(const Range &from_entities,
                                   const int to_dimension,
                                   const bool create_if_missing,
                                   Range &adj_entities,
-                                  const int operation_type = 0)
+                                  const int operation_type)
+        
         EntityType type_from_handle(const EntityHandle handle)
         ErrorCode get_child_meshsets(EntityHandle meshset,
                                      Range &children,
