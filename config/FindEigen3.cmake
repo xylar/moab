@@ -58,6 +58,7 @@ if (EIGEN3_INCLUDE_DIR)
   # in cache already
   _eigen3_check_version()
   set(EIGEN3_FOUND ${EIGEN3_VERSION_OK})
+  message (STATUS "Using Eigen3 in ${EIGEN3_INCLUDE_DIR}")
 
 else (EIGEN3_INCLUDE_DIR)
 
@@ -84,4 +85,5 @@ else (EIGEN3_INCLUDE_DIR)
   mark_as_advanced(EIGEN3_INCLUDE_DIR)
 
 endif(EIGEN3_INCLUDE_DIR)
+
 
