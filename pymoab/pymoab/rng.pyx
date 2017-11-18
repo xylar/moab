@@ -1,8 +1,10 @@
 """Implements range functionality."""
 from cython.operator cimport dereference as deref
-from libcpp.string cimport string as std_string
+# from libcpp.string cimport string as std_string
 from pymoab cimport moab
 from .types import _eh_array, _eh_py_types
+
+cdef void *null = NULL
 
 def intersect(Range r1, Range r2):
     """
@@ -207,8 +209,8 @@ cdef class Range(object):
         """
         Range as a string
         """
-        self.inst.print_()
-        return ""
+        res = self.inst.str_rep()
+        return res
 
     def __repr__(self):
         """

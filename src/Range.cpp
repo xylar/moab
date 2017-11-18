@@ -33,6 +33,7 @@
 #include "Internals.hpp"
 #include "moab/CN.hpp"
 #include <iostream>
+#include <sstream>
 #include <string>
 
 #ifdef HAVE_BOOST_POOL_SINGLETON_POOL_HPP
@@ -588,37 +589,47 @@ void Range::sanity_check() const
 
 }
 
-// for debugging
-void Range::print(const char *indent_prefix) const
-{
-  print(std::cout, indent_prefix);
-}
 
-void Range::print(std::ostream& stream, const char *indent_prefix) const
+const char* Range::str_rep(const char* indent_prefix) const
 {
+  std::stringstream str_stream;
   std::string indent_prefix_str;
   if (NULL != indent_prefix) indent_prefix_str += indent_prefix;
   
   if (empty()) {
-    stream << indent_prefix_str << "\tempty" << std::endl;
-    return;
+    str_stream << indent_prefix_str << "\tempty" << std::endl;
+    return str_stream.str().c_str();
   }
   
   for (const_pair_iterator i = const_pair_begin(); i != const_pair_end(); ++i) {
     EntityType t1 = TYPE_FROM_HANDLE( i->first );
     EntityType t2 = TYPE_FROM_HANDLE( i->second );
   
-    stream << indent_prefix_str << "\t" << CN::EntityTypeName( t1 ) << " " 
+    str_stream << indent_prefix_str << "\t" << CN::EntityTypeName( t1 ) << " " 
            << ID_FROM_HANDLE( i->first );
     if(i->first != i->second) {
-      stream << " - ";
+      str_stream << " - ";
       if (t1 != t2) 
-        stream << CN::EntityTypeName( t2 ) << " ";
-      stream << ID_FROM_HANDLE( i->second );
+        str_stream << CN::EntityTypeName( t2 ) << " ";
+      str_stream << ID_FROM_HANDLE( i->second );
     }
-    stream << std::endl;
+    str_stream << std::endl;
   }
+
+  return str_stream.str().c_str();
 }
+
+void Range::print(std::ostream& stream, const char *indent_prefix) const
+{
+  stream << str_rep(indent_prefix);
+}  
+  
+// for debugging
+void Range::print(const char *indent_prefix) const
+{
+  print(std::cout, indent_prefix);
+}
+
 
   // intersect two ranges, placing the results in the return range
 #define MAX(a,b) (a < b ? b : a)
