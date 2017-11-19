@@ -120,6 +120,7 @@ option ( ENABLE_IMESH        "Should build IMESH?"       ON )
 option ( ENABLE_FBIGEOM      "Should build FBIGEOM?"     OFF )
 option ( ENABLE_IREL         "Should build IREL?"        OFF )
 option ( ENABLE_MESQUITE     "Should build Mesquite mesh optimization interfaces?" OFF )
+option ( ENABLE_BLASLAPACK   "Should require BLAS/LAPACK?" ON )
 
 mark_as_advanced(
   MOAB_FORCE_64_BIT_HANDLES
@@ -187,28 +188,34 @@ set_target_properties(MOAB PROPERTIES LINK_SEARCH_END_STATIC 1)
 set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
 endif ( BUILD_SHARED_LIBS EQUAL OFF )
 
-# Find BLAS
-FIND_PACKAGE(BLAS REQUIRED)
-set (MOAB_HAVE_BLAS OFF CACHE INTERNAL "Configured MOAB with BLAS library support." )
-if (BLAS_FOUND)
-  set(MOAB_HAVE_BLAS ON)
-endif(BLAS_FOUND)
+if ( ENABLE_BLASLAPACK  )
+  # Find BLAS
+  FIND_PACKAGE(BLAS REQUIRED)
+  set (MOAB_HAVE_BLAS OFF CACHE INTERNAL "Configured MOAB with BLAS library support." )
+  if (BLAS_FOUND)
+    set(MOAB_HAVE_BLAS ON)
+  endif(BLAS_FOUND)
 
-# Find LAPACK
-FIND_PACKAGE(LAPACK REQUIRED)
-set (MOAB_HAVE_LAPACK OFF CACHE INTERNAL "Configured MOAB with LAPACK library support." )
-if (LAPACK_FOUND)
-  set(MOAB_HAVE_LAPACK ON)
-endif(LAPACK_FOUND)
+  # Find LAPACK
+  FIND_PACKAGE(LAPACK REQUIRED)
+  set (MOAB_HAVE_LAPACK OFF CACHE INTERNAL "Configured MOAB with LAPACK library support." )
+  if (LAPACK_FOUND)
+    set(MOAB_HAVE_LAPACK ON)
+  endif(LAPACK_FOUND)
 
-# Find Eigen3
-FIND_PACKAGE(Eigen3 OPTIONAL_COMPONENTS)
-set (MOAB_HAVE_EIGEN3 OFF CACHE INTERNAL "Configured MOAB with Eigen3 library support." )
-if ( EIGEN_FOUND )
+  # Find Eigen3 is optional
+  FIND_PACKAGE(Eigen3 OPTIONAL_COMPONENTS)
+else (ENABLE_BLASLAPACK)
+  # Find Eigen3 is required
+  FIND_PACKAGE(Eigen3 REQUIRED)
+endif (ENABLE_BLASLAPACK)
+
+set (MOAB_HAVE_EIGEN OFF CACHE INTERNAL "Configured MOAB with Eigen3 library support." )
+if ( EIGEN3_FOUND )
   INCLUDE_DIRECTORIES ( "${EIGEN3_INCLUDE_DIR}" )
-  SET(MOAB_DEFINES "$MOAB_DEFINES -I${EIGEN3_INCLUDE_DIR}")
-  SET(MOAB_HAVE_EIGEN3 ON)
-endif (EIGEN_FOUND)
+  SET(MOAB_DEFINES "${MOAB_DEFINES} -I${EIGEN3_INCLUDE_DIR}")
+  SET(MOAB_HAVE_EIGEN ON)
+endif (EIGEN3_FOUND)
 
 find_package( verdict REQUIRED )
 
