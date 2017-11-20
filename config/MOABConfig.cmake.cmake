@@ -73,8 +73,8 @@ endif()
 
 # Target information
 if(MOAB_USE_HDF5)
-  if(EXISTS "@HDF5_DIR@/share/cmake/hdf5/hdf5-config.cmake")
-    include(@HDF5_DIR@/share/cmake/hdf5/hdf5-config.cmake)
+  if(EXISTS "@HDF5_ROOT@/share/cmake/hdf5/hdf5-config.cmake")
+    include(@HDF5_ROOT@/share/cmake/hdf5/hdf5-config.cmake)
   endif()
 endif()
 
