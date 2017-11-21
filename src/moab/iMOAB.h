@@ -641,6 +641,44 @@ ErrCode iMOAB_FreeSenderBuffers ( iMOAB_AppID pid, MPI_Comm* join, int* rcompid 
 
 ErrCode iMOAB_ReceiveMesh ( iMOAB_AppID pid, MPI_Comm* join, MPI_Group* sendingGroup, int* scompid );
 
+#ifdef MOAB_HAVE_TEMPEST
+
+/**
+  \brief Compute intersection of the surface meshes defined on a sphere. The resulting intersected mesh consists
+  of (convex) polygons with 1-1 associativity with both the source and destination meshes provided.
+
+  \note
+  The mesh intersection between two heterogeneous resolutions will be computed and stored in the fileset corresponding
+  to the \p pid_intx application. This intersection data can be used to compute solution projection weights between
+  these meshes.
+
+  <B>Operations:</B> Collective
+
+  \param[in]  pid_source (iMOAB_AppID) The unique pointer to the source application ID
+  \param[in]  pid_target (iMOAB_AppID)        The unique pointer to the destination application ID
+  \param[in/out] pid_intersection (iMOAB_AppID)       The unique pointer to the intersection application ID
+*/
+ErrCode iMOAB_ComputeMeshIntersectionOnSphere ( iMOAB_AppID pid_src, iMOAB_AppID pid_target, iMOAB_AppID pid_intx);
+
+/**
+  \brief Compute the projection weights to transfer a solution from a source surface mesh to a destination mesh defined on a sphere. 
+  The intersection of the mesh should be computed a-priori.
+
+  \note
+  The mesh intersection data-structure is used along with conservative remapping techniques in TempestRemap to compute
+  the projection weights for transferring the tag (\p soln_tag_name) from \p pid_src to \p pid_target applications.
+
+  <B>Operations:</B> Collective
+
+  \param[in]  pid_source (iMOAB_AppID) The unique pointer to the source application ID
+  \param[in]  pid_target (iMOAB_AppID)        The unique pointer to the destination application ID
+  \param[in/out] pid_intersection (iMOAB_AppID)       The unique pointer to the intersection application ID
+*/
+ErrCode iMOAB_ComputeScalarProjectionWeights ( iMOAB_AppID pid_intx, 
+                                               const iMOAB_String soln_tag_name, int soln_tag_name_length);
+
+#endif
+
 #endif
 
 #ifdef __cplusplus

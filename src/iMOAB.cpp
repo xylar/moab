@@ -23,24 +23,30 @@ using namespace moab;
     #include <H5Tpublic.h>
 #endif
 
-#include <stdio.h>
-
-#include <iostream>
-
 #include "MBTagConventions.hpp"
 #include "moab/MeshTopoUtil.hpp"
 #include "moab/ReadUtilIface.hpp"
 #include "moab/MergeMesh.hpp"
 
+#ifdef MOAB_HAVE_TEMPEST
+    #include "moab/Remapping/TempestRemapper.hpp"
+    #include "moab/Remapping/TempestOfflineMap.hpp"
+#endif
+
+// C++ includes
+#include <stdio.h>
 #include <sstream>
+#include <iostream>
 
 // global variables ; should they be organized in a structure, for easier references?
 // or how do we keep them global?
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#define CHKERRVAL(ierr) { if ( moab::MB_SUCCESS != ierr ) return 1; }
+#define CHKIERRVAL(ierr) { if ( 0 != ierr ) return 1; }
 
 struct appData
 {
@@ -68,6 +74,10 @@ struct appData
     // constructor for this ParCommGraph takes the joint comm and the MPI groups for each application
 #endif
 
+#ifdef MOAB_HAVE_TEMPEST
+	moab::TempestRemapper* remapper;
+	iMOAB_AppID pid_src, pid_dest;
+#endif
 };
 
 struct GlobalContext
@@ -198,9 +208,11 @@ ErrCode iMOAB_RegisterApplication ( const iMOAB_String app_name,
     // create now the file set that will be used for loading the model in
     EntityHandle file_set;
     ErrorCode rval = context.MBI->create_meshset ( MESHSET_SET, file_set );
-
-    if ( MB_SUCCESS != rval )
-    { return 1; }
+    CHKERRVAL(rval);
+    
+#ifdef MOAB_HAVE_TEMPEST
+	remapper = NULL; // Only allocate as needed
+#endif
 
     appData app_data;
     app_data.file_set = file_set;
@@ -257,10 +269,11 @@ ErrCode iMOAB_RegisterFortranApplication ( const iMOAB_String app_name,
 
     // create now the file set that will be used for loading the model in
     EntityHandle file_set;
-    ErrorCode rval = context.MBI->create_meshset ( MESHSET_SET, file_set );
+    ErrorCode rval = context.MBI->create_meshset ( MESHSET_SET, file_set );CHKERRVAL(rval);
 
-    if ( MB_SUCCESS != rval )
-    { return 1; }
+#ifdef MOAB_HAVE_TEMPEST
+	remapper = NULL; // Only allocate as needed
+#endif
 
     appData app_data;
     app_data.file_set = file_set;
@@ -279,16 +292,12 @@ ErrCode iMOAB_DeregisterApplication ( iMOAB_AppID pid )
     // get all entities part of the file set
     Range fileents;
     ErrorCode rval = context.MBI->get_entities_by_handle ( fileSet, fileents, /*recursive */true );
-
-    if ( MB_SUCCESS != rval )
-    { return 1; }
+	CHKERRVAL(rval);
 
     fileents.insert ( fileSet );
 
     rval = context.MBI->get_entities_by_type ( fileSet, MBENTITYSET, fileents ); // append all mesh sets
-
-    if ( MB_SUCCESS != rval )
-    { return 1; }
+	CHKERRVAL(rval);
 
 #ifdef MOAB_HAVE_MPI
     ParallelComm* pco = context.pcomms[*pid];
@@ -306,15 +315,9 @@ ErrCode iMOAB_DeregisterApplication ( iMOAB_AppID pid )
     // delete first all except vertices
     Range vertices = fileents.subset_by_type ( MBVERTEX );
     Range noverts = subtract ( fileents, vertices );
-    rval = context.MBI->delete_entities ( noverts );
 
-    if ( MB_SUCCESS != rval )
-    { return 1; }
-
-    rval = context.MBI->delete_entities ( vertices );
-
-    if ( MB_SUCCESS != rval )
-    { return 1; }
+    rval = context.MBI->delete_entities ( noverts );CHKERRVAL(rval);
+    rval = context.MBI->delete_entities ( vertices );CHKERRVAL(rval);
 
     std::map<std::string, int>::iterator mit;
 
@@ -524,6 +527,7 @@ ErrCode iMOAB_LoadMesh ( iMOAB_AppID pid, const iMOAB_String filename, const iMO
     return rc;
 }
 
+
 ErrCode iMOAB_WriteMesh ( iMOAB_AppID pid, iMOAB_String filename, iMOAB_String write_options, int filename_length, int write_options_length )
 {
     // maybe do some processing of strings and lengths
@@ -663,9 +667,10 @@ ErrCode iMOAB_UpdateMeshInfo ( iMOAB_AppID pid )
     if ( MB_SUCCESS != rval )
     { return 1; }
 
-
     return 0;
 }
+
+
 ErrCode iMOAB_GetMeshInfo ( iMOAB_AppID pid, int* num_visible_vertices, int* num_visible_elements, int* num_visible_blocks, int* num_visible_surfaceBC, int* num_visible_vertexBC )
 {
 
@@ -1554,15 +1559,14 @@ ErrCode iMOAB_SynchronizeTags ( iMOAB_AppID pid, int* num_tag, int* tag_indices,
 
 ErrCode iMOAB_GetNeighborElements ( iMOAB_AppID pid, iMOAB_LocalID* local_index, int* num_adjacent_elements, iMOAB_LocalID* adjacent_element_IDs )
 {
-    //; one neighbor for each subentity of dimension-1
+    ErrorCode rval;
+
+    // one neighbor for each subentity of dimension-1
     MeshTopoUtil mtu ( context.MBI );
     appData& data = context.appDatas[*pid];
     EntityHandle eh = data.primary_elems[*local_index];
     Range adjs;
-    ErrorCode rval = mtu.get_bridge_adjacencies ( eh, data.dimension - 1, data.dimension, adjs );
-
-    if ( rval != MB_SUCCESS )
-    { return 1; }
+    rval = mtu.get_bridge_adjacencies ( eh, data.dimension - 1, data.dimension, adjs );CHKERRVAL(rval);
 
     if ( * num_adjacent_elements < ( int ) adjs.size() )
     { return 1; } // not dimensioned correctly
@@ -1576,16 +1580,20 @@ ErrCode iMOAB_GetNeighborElements ( iMOAB_AppID pid, iMOAB_LocalID* local_index,
 
     return 0;
 }
+
 #if 0
 
 ErrCode iMOAB_GetNeighborVertices ( iMOAB_AppID pid, iMOAB_LocalID* local_vertex_ID, int* num_adjacent_vertices, iMOAB_LocalID* adjacent_vertex_IDs )
 {
     return 0;
 }
+
 #endif
+
 
 ErrCode iMOAB_CreateVertices ( iMOAB_AppID pid, int* coords_len, int* dim, double* coordinates )
 {
+    ErrorCode rval;
     appData& data = context.appDatas[*pid];
 
     if ( !data.local_verts.empty() ) // we should have no vertices in the app
@@ -1593,20 +1601,15 @@ ErrCode iMOAB_CreateVertices ( iMOAB_AppID pid, int* coords_len, int* dim, doubl
 
     int nverts = *coords_len / *dim;
 
-    ErrorCode rval = context.MBI->create_vertices ( coordinates, nverts, data.local_verts );
+    rval = context.MBI->create_vertices ( coordinates, nverts, data.local_verts );CHKERRVAL(rval);
 
-    if ( rval != MB_SUCCESS )
-    { return 1; }
-
-    rval = context.MBI->add_entities ( data.file_set, data.local_verts );
-
-    if ( rval != MB_SUCCESS )
-    { return 1; }
+    rval = context.MBI->add_entities ( data.file_set, data.local_verts );CHKERRVAL(rval);
 
     // also add the vertices to the all_verts range
     data.all_verts.merge ( data.local_verts );
     return 0;
 }
+
 
 ErrCode iMOAB_CreateElements ( iMOAB_AppID pid, int* num_elem, int* type,  int* num_nodes_per_element,  int* connectivity,
                                int* block_ID )
@@ -1615,10 +1618,7 @@ ErrCode iMOAB_CreateElements ( iMOAB_AppID pid, int* num_elem, int* type,  int* 
     appData& data = context.appDatas[*pid];
 
     ReadUtilIface* read_iface;
-    ErrorCode rval = context.MBI->query_interface ( read_iface );
-
-    if ( rval != MB_SUCCESS )
-    { return 1; }
+    ErrorCode rval = context.MBI->query_interface ( read_iface );CHKERRVAL(rval);
 
     EntityType mbtype = ( EntityType ) ( *type );
     EntityHandle actual_start_handle;
@@ -1628,10 +1628,7 @@ ErrCode iMOAB_CreateElements ( iMOAB_AppID pid, int* num_elem, int* type,  int* 
             mbtype,
             1,
             actual_start_handle,
-            array );
-
-    if ( rval != MB_SUCCESS )
-    { return 1; }
+            array );CHKERRVAL(rval);
 
     // fill up with actual connectivity from input; assume the vertices are in order, and start vertex is
     // the first in the current data vertex range
@@ -1642,10 +1639,7 @@ ErrCode iMOAB_CreateElements ( iMOAB_AppID pid, int* num_elem, int* type,  int* 
 
     Range new_elems ( actual_start_handle, actual_start_handle + *num_elem - 1 );
 
-    rval = context.MBI->add_entities ( data.file_set, new_elems );
-
-    if ( rval != MB_SUCCESS )
-    { return 1; }
+    rval = context.MBI->add_entities ( data.file_set, new_elems );CHKERRVAL(rval);
 
     data.primary_elems.merge ( new_elems );
 
@@ -1661,38 +1655,26 @@ ErrCode iMOAB_CreateElements ( iMOAB_AppID pid, int* num_elem, int* type,  int* 
     if ( MB_FAILURE == rval || sets.empty() )
     {
         // create a new set, with this block ID
-        rval = context.MBI->create_meshset ( MESHSET_SET, block_set );
+        rval = context.MBI->create_meshset ( MESHSET_SET, block_set );CHKERRVAL(rval);
 
-        if ( MB_FAILURE == rval )
-        { return 1; } // failure
-
-        rval = context.MBI->tag_set_data ( context.material_tag, &block_set, 1, &set_no );
-
-        if ( MB_FAILURE == rval )
-        { return 1; } // failure
+        rval = context.MBI->tag_set_data ( context.material_tag, &block_set, 1, &set_no );CHKERRVAL(rval);
 
         // add the material set to file set
-        rval = context.MBI->add_entities ( data.file_set, &block_set, 1 );
-
-        if ( MB_FAILURE == rval )
-        { return 1; } // failure
+        rval = context.MBI->add_entities ( data.file_set, &block_set, 1 );CHKERRVAL(rval);
     }
     else
     { block_set = sets[0]; } // first set is the one we want
 
     /// add the new ents to the clock set
-    rval = context.MBI->add_entities ( block_set, new_elems );
-
-    if ( MB_FAILURE == rval )
-    { return 1; } // failure
+    rval = context.MBI->add_entities ( block_set, new_elems );CHKERRVAL(rval);
 
     return 0;
 }
 
+
 // this makes sense only for parallel runs
 ErrCode iMOAB_ResolveSharedEntities (  iMOAB_AppID pid, int* num_verts, int* marker )
 {
-
 #ifdef MOAB_HAVE_MPI
     appData& data = context.appDatas[*pid];
     ParallelComm* pco = context.pcomms[*pid];
@@ -1702,39 +1684,28 @@ ErrCode iMOAB_ResolveSharedEntities (  iMOAB_AppID pid, int* num_verts, int* mar
     int dum_id = 0;
     Tag stag;
     ErrorCode rval = context.MBI->tag_get_handle ( "__sharedmarker", 1,  MB_TYPE_INTEGER, stag,
-                     MB_TAG_CREAT | MB_TAG_DENSE, &dum_id );
-
-    if ( rval != MB_SUCCESS )
-    { return 1; }
+                     MB_TAG_CREAT | MB_TAG_DENSE, &dum_id );CHKERRVAL(rval);
 
     if ( *num_verts > ( int ) data.local_verts.size() )
     { return 1; } // we are not setting the size
 
     rval = context.MBI->tag_set_data ( stag, data.local_verts, ( void* ) marker ); // assumes integer tag
     EntityHandle cset = data.file_set;
-    rval = pco->resolve_shared_ents ( cset, -1, -1, &stag );
-
-    if ( rval != MB_SUCCESS )
-    { return 1; }
+    rval = pco->resolve_shared_ents ( cset, -1, -1, &stag );CHKERRVAL(rval);
 
     // provide partition tag equal to rank
     Tag part_tag;
     dum_id = -1;
     rval = context.MBI->tag_get_handle ( "PARALLEL_PARTITION", 1, MB_TYPE_INTEGER,
-                                         part_tag, MB_TAG_CREAT | MB_TAG_SPARSE, &dum_id );
-
-    if ( rval != MB_SUCCESS )
-    { return 1; }
+                                         part_tag, MB_TAG_CREAT | MB_TAG_SPARSE, &dum_id );CHKERRVAL(rval);
 
     int rank = pco->rank();
-    rval = context.MBI->tag_set_data ( part_tag, &cset, 1, &rank );
-
-    if ( rval != MB_SUCCESS )
-    { return 1; }
+    rval = context.MBI->tag_set_data ( part_tag, &cset, 1, &rank );CHKERRVAL(rval);
 
 #endif
     return 0;
 }
+
 
 // this assumes that this was not called before
 ErrCode iMOAB_DetermineGhostEntities (  iMOAB_AppID pid, int* ghost_dim, int* num_ghost_layers, int* bridge_dim )
@@ -1760,6 +1731,7 @@ ErrCode iMOAB_DetermineGhostEntities (  iMOAB_AppID pid, int* ghost_dim, int* nu
     return 0;
 }
 
+
 ErrCode iMOAB_SetGlobalInfo ( iMOAB_AppID pid, int* num_global_verts, int* num_global_elems )
 {
     appData& data = context.appDatas[*pid];
@@ -1767,6 +1739,7 @@ ErrCode iMOAB_SetGlobalInfo ( iMOAB_AppID pid, int* num_global_verts, int* num_g
     data.num_global_elements = *num_global_elems;
     return 0;
 }
+
 
 ErrCode iMOAB_GetGlobalInfo ( iMOAB_AppID pid, int* num_global_verts, int* num_global_elems )
 {
@@ -1784,6 +1757,7 @@ ErrCode iMOAB_GetGlobalInfo ( iMOAB_AppID pid, int* num_global_verts, int* num_g
 
 ErrCode iMOAB_SendMesh ( iMOAB_AppID pid, MPI_Comm* global, MPI_Group* receivingGroup, int* rcompid )
 {
+    int ierr;
     //appData & data = context.appDatas[*pid];
     ParallelComm* pco = context.pcomms[*pid];
 
@@ -1791,10 +1765,8 @@ ErrCode iMOAB_SendMesh ( iMOAB_AppID pid, MPI_Comm* global, MPI_Group* receiving
     // no need to pass it along
     // first see what are the processors in each group; get the sender group too, from the sender communicator
     MPI_Group senderGroup;
-    int ierr = MPI_Comm_group ( sender, &senderGroup );
-
-    if ( ierr != 0 )
-    { return 1; }
+    ierr = MPI_Comm_group ( sender, &senderGroup );
+    if ( ierr != 0 ) return 1;
 
     // instantiate the par comm graph
     // ParCommGraph::ParCommGraph(MPI_Comm joincomm, MPI_Group group1, MPI_Group group2, int coid1, int coid2)
@@ -1855,6 +1827,8 @@ ErrCode iMOAB_SendMesh ( iMOAB_AppID pid, MPI_Comm* global, MPI_Group* receiving
 
     return 0;
 }
+
+
 ErrCode iMOAB_ReceiveMesh ( iMOAB_AppID pid, MPI_Comm* global, MPI_Group* sendingGroup,
                             int* scompid )
 {
@@ -1884,7 +1858,6 @@ ErrCode iMOAB_ReceiveMesh ( iMOAB_AppID pid, MPI_Comm* global, MPI_Group* sendin
     // knows what data to expect
     std::vector<int> pack_array;
     rval = cgraph->receive_comm_graph ( *global, pco, pack_array );
-
     if ( MB_SUCCESS != rval ) { return 1; }
 
     // senders across for the current receiver
@@ -2002,6 +1975,150 @@ ErrCode iMOAB_FreeSenderBuffers ( iMOAB_AppID pid, MPI_Comm* join, int* rcompid 
     pg->release_send_buffers ( *join );
     return 0;
 }
+
+#ifdef MOAB_HAVE_TEMPEST
+
+ErrCode iMOAB_ComputeMeshIntersectionOnSphere ( iMOAB_AppID pid_src, iMOAB_AppID pid_tgt, iMOAB_AppID pid_intx )
+{
+    ErrorCode rval;
+    
+    // Some constant parameters
+    // TODO: Make these routine parameters
+    const double epsrel = 1.e-8;
+    const double radius = 1.0 /*2.0*acos(-1.0)*/;
+    const double boxeps = 0.1;
+    
+    // Get the source and target data and pcomm objects
+    appData& data_src = context.appDatas[*pid_src];
+    ParallelComm* pco_src = context.pcomms[*pid_src];
+    appData& data_tgt = context.appDatas[*pid_tgt];
+    ParallelComm* pco_tgt = context.pcomms[*pid_tgt];
+	appData& data_intx = context.appDatas[*pid_intx];
+    ParallelComm* pco_intx = context.pcomms[*pid_intx];
+
+	//  Sanity check: Check that the source and target meshes belong to the same pes. 
+    assert(pco_src == pco_tgt);
+    assert(pco_src == pco_intx);
+
+    // Mesh intersection has already been computed; Return early.
+    if(data_intx.remapper != NULL) return 0;
+
+    rval = pco_src->check_all_shared_handles();CHKERRVAL(rval);
+
+	// print verbosely about the problem setting
+	{
+		moab::Range rintxverts, rintxelems;
+		rval = context.MBI->get_entities_by_dimension ( data_src.file_set, 0, rintxverts );CHKERRVAL(rval);
+		rval = context.MBI->get_entities_by_dimension ( data_src.file_set, 2, rintxelems );CHKERRVAL(rval);
+		rval = fix_degenerate_quads ( context.MBI, data_src.file_set );CHKERRVAL(rval);
+		rval = positive_orientation ( context.MBI, data_src.file_set, radius );CHKERRVAL(rval);
+#ifdef VERBOSE
+ 		std::cout << "The red set contains " << rintxverts.size() << " vertices and " << rintxelems.size() << " elements \n";
+#endif
+
+		moab::Range bintxverts, bintxelems;
+		rval = context.MBI->get_entities_by_dimension ( data_tgt.file_set, 0, bintxverts );CHKERRVAL(rval);
+		rval = context.MBI->get_entities_by_dimension ( data_tgt.file_set, 2, bintxelems );CHKERRVAL(rval);
+		rval = fix_degenerate_quads ( context.MBI, data_tgt.file_set );CHKERRVAL(rval);
+		rval = positive_orientation ( context.MBI, data_tgt.file_set, radius );CHKERRVAL(rval);
+#ifdef VERBOSE
+ 		std::cout << "The blue set contains " << bintxverts.size() << " vertices and " << bintxelems.size() << " elements \n";
+#endif
+	}
+
+	// set the context for the source and destination applications
+	data_intx.pid_src = new iMOAB_AppID(*pid_src);
+	data_intx.pid_dest = new iMOAB_AppID(*pid_dest);
+
+	// Now allocate and initialize the remapper object
+    data_intx.remapper = new moab::TempestRemapper ( context.MBI, pco_src );
+    data_intx.remapper->meshValidate = true;
+    data_intx.remapper->constructEdgeMap = true;
+    
+    // Do not create new filesets; Use the sets from our respective applications
+    data_intx.remapper->initialize(false);
+    data_intx.remapper->GetMeshSet ( moab::Remapper::SourceMesh ) = data_src.file_set;
+    data_intx.remapper->GetMeshSet ( moab::Remapper::TargetMesh ) = data_tgt.file_set;
+    data_intx.remapper->GetMeshSet ( moab::Remapper::IntersectedMesh ) = data_intx.file_set;
+
+	// Compute intersections with MOAB
+	rval = data_intx.remapper->ComputeOverlapMesh ( epsrel );CHKERRVAL(rval);
+
+#if 0    
+    // Create the intersection object on the sphere between two meshes
+	// setup the intersector 
+	moab::Intx2MeshOnSphere *mbintx = new moab::Intx2MeshOnSphere( context.MBI );
+	mbintx->SetErrorTolerance ( epsrel );
+	mbintx->set_box_error ( boxeps );
+	mbintx->SetRadius ( radius );
+	mbintx->set_parallel_comm ( pco_src );
+
+	rval = mbintx->FindMaxEdges ( data_src.file_set, data_tgt.file_set );CHKERRVAL(rval);
+
+	// Migrate the meshes locally so that we have full coverage of the source meshset
+	moab::Range local_verts;
+	rval = mbintx->build_processor_euler_boxes ( data_tgt.file_set, local_verts );CHKERRVAL(rval);
+
+	// Compute the covering set
+	moab::EntityHandle covering_set;
+	// lots of communication if mesh is distributed very differently
+	rval = mbintx->construct_covering_set ( data_src.file_set, covering_set );CHKERRVAL(rval);
+
+	// Now let's invoke the MOAB intersection algorithm in parallel with a
+	// source and target mesh set representing two different decompositions
+	rval = context.MBI->create_meshset ( moab::MESHSET_SET, data_intx.file_set );CHKERRVAL(rval);
+	rval = mbintx->intersect_meshes ( covering_set, data_tgt.file_set, intxset );CHKERRVAL(rval);
+
+	// free the memory
+	delete mbintx;
+#endif
+
+    return 0;
+}
+
+ErrCode iMOAB_ComputeScalarProjectionWeights ( iMOAB_AppID pid_intx, 
+                                               const iMOAB_String soln_tag_name, int soln_tag_name_length);
+{
+	ErrorCode ierr;
+	moab::ErrorCode rval;
+	
+    // Get the source and target data and pcomm objects
+	appData& data_intx = context.appDatas[*pid_intx];
+    ParallelComm* pco_intx = context.pcomms[*pid_intx];
+
+	// Now allocate and initialize the remapper object
+    moab::TempestRemapper* remapper = data_intx.remapper;
+
+	{
+		// Now let us re-convert the MOAB mesh back to Tempest representation
+		// rval = remapper.ConvertMeshToTempest(moab::Remapper::IntersectedMesh);MB_CHK_ERR(rval);
+		rval = remapper->AssociateSrcTargetInOverlap();CHKERRVAL(rval);
+		rval = remapper->ConvertMOABMesh_WithSortedEntitiesBySource();CHKERRVAL(rval);
+
+		ctx.meshes[2] = remapper->GetMesh ( moab::Remapper::IntersectedMesh );
+	}
+
+	// setup computation of weights
+	// Call to generate an offline map with the tempest meshes
+	moab::TempestOfflineMap* weightMap = new moab::TempestOfflineMap ( remapper );
+
+	// compute weights with TempestRemap
+	rval = weightMap->GenerateOfflineMap ( ctx.disc_methods[0], ctx.disc_methods[1],        // std::string strInputType, std::string strOutputType,
+										   ctx.disc_orders[0],  ctx.disc_orders[1],  // int nPin=4, int nPout=4,
+										   false, 0,            // bool fBubble=false, int fMonotoneTypeID=0,
+										   ctx.fVolumetric, ctx.fNoConservation, false, // bool fVolumetric=false, bool fNoConservation=false, bool fNoCheck=false,
+										   "", //"",   // std::string strVariables="", std::string strOutputMap="",
+										   "", "",   // std::string strInputData="", std::string strOutputData="",
+										   "", false,  // std::string strNColName="", bool fOutputDouble=false,
+										   "", false, 0.0,   // std::string strPreserveVariables="", bool fPreserveAll=false, double dFillValueOverride=0.0,
+										   false, false   // bool fInputConcave = false, bool fOutputConcave = false
+										 );
+
+	// gather weights to root process to perform consistency/conservation checks
+	weightMap->GatherAllToRoot();
+}
+
+#endif
 
 #endif
 
