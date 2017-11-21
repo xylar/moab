@@ -906,7 +906,6 @@ void moab::TempestOfflineMap::LinearRemapFVtoGLL_Simple_MOAB (
             {
                 for ( int t = 0; t < nP; t++ )
                 {
-
                     // Determine if this Node is in faceFirst
                     Node node;
                     Node dDx1G;

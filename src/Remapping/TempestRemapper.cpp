@@ -27,12 +27,19 @@ namespace moab
 
 ///////////////////////////////////////////////////////////////////////////////////
 
-ErrorCode TempestRemapper::initialize()
+ErrorCode TempestRemapper::initialize(bool initialize_fsets)
 {
     ErrorCode rval;
-    rval = m_interface->create_meshset ( moab::MESHSET_SET, m_source_set ); MB_CHK_SET_ERR ( rval, "Can't create new set" );
-    rval = m_interface->create_meshset ( moab::MESHSET_SET, m_target_set ); MB_CHK_SET_ERR ( rval, "Can't create new set" );
-    rval = m_interface->create_meshset ( moab::MESHSET_SET, m_overlap_set ); MB_CHK_SET_ERR ( rval, "Can't create new set" );
+    if (initialize_fsets) {
+		rval = m_interface->create_meshset ( moab::MESHSET_SET, m_source_set ); MB_CHK_SET_ERR ( rval, "Can't create new set" );
+		rval = m_interface->create_meshset ( moab::MESHSET_SET, m_target_set ); MB_CHK_SET_ERR ( rval, "Can't create new set" );
+		rval = m_interface->create_meshset ( moab::MESHSET_SET, m_overlap_set ); MB_CHK_SET_ERR ( rval, "Can't create new set" );
+	}
+	else {
+		m_source_set = 0;
+		m_target_set = 0;
+		m_overlap_set = 0;
+	}
 
     m_source = NULL;
     m_target = NULL;

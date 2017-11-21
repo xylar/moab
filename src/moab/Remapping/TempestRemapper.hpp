@@ -44,7 +44,7 @@ public:
 
     virtual ~TempestRemapper();
 
-    virtual ErrorCode initialize();
+    virtual ErrorCode initialize(bool initialize_fsets=true);
 
     // Mesh type with a correspondence to Tempest/Climate formats
     enum TempestMeshType { 

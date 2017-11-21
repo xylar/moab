@@ -67,8 +67,6 @@ public:
 	  return m_interface->load_file(filename.c_str(), &meshset, (readopts ? readopts : opts.c_str()));
 	}
 
-	virtual ErrorCode initialize() = 0;
-
 protected:
 
 	// member data
