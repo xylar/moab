@@ -173,6 +173,8 @@ ErrCode iMOAB_RegisterApplication( const iMOAB_String app_name,
 #ifndef NDEBUG
   int index = pco->get_id(); // it could be useful to get app id from pcomm instance ...
   assert(index==*pid);
+  // here, we assert the the pid is the same as the id of the ParallelComm instance
+  // useful for writing in parallel
 #endif
   context.pcomms.push_back(pco);
 #endif
@@ -404,6 +406,14 @@ ErrCode iMOAB_LoadMesh( iMOAB_AppID pid, const iMOAB_String filename, const iMOA
   std::ostringstream newopts;
   newopts  << read_options;
 #ifdef MOAB_HAVE_MPI
+  std::string opts(read_options);
+  std::string pcid("PARALLEL_COMM=");
+  std::size_t found = opts.find(pcid);
+  if (found!=std::string::npos)
+  {
+    std::cerr<< " cannot specify PARALLEL_COMM option, it is implicit \n";
+    return 1;
+  }
   newopts << ";PARALLEL_COMM="<<*pid;
   if (*num_ghost_layers>=1)
   {
@@ -456,8 +466,21 @@ ErrCode iMOAB_WriteMesh( iMOAB_AppID pid, iMOAB_String filename, iMOAB_String wr
     std::cout << " write options issue\n";
     return 1;
   }
-  // maybe do some options processing?
-  ErrorCode rval = context.MBI->write_file(filename,0, write_options,  &context.appDatas[*pid].file_set, 1);
+  std::ostringstream newopts;
+  newopts  << write_options;
+#ifdef MOAB_HAVE_MPI
+  std::string write_opts(write_options);
+  std::string pcid("PARALLEL_COMM=");
+  std::size_t found = write_opts.find(pcid);
+  if (found!=std::string::npos)
+  {
+    std::cerr<< " cannot specify PARALLEL_COMM option, it is implicit \n";
+    return 1;
+  }
+  newopts << ";PARALLEL_COMM="<<*pid;
+  // do some options processing
+#endif
+  ErrorCode rval = context.MBI->write_file(filename,0, newopts.str().c_str(),  &context.appDatas[*pid].file_set, 1);
   if (MB_SUCCESS!=rval)
     return 1;
   return 0;

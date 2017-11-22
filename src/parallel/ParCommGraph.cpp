@@ -389,7 +389,8 @@ ErrorCode ParCommGraph::release_send_buffers(MPI_Comm jcomm)
   if (ierr!=0)
     return MB_FAILURE;
   // now we can free all buffers
-  delete [] this->comm_graph;
+  delete [] comm_graph;
+  comm_graph = NULL;
   std::vector<ParallelComm::Buffer*>::iterator vit;
   for (vit = localSendBuffs.begin(); vit != localSendBuffs.end(); ++vit)
     delete (*vit);

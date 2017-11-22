@@ -125,7 +125,7 @@ program MigrateMesh
        nghlay = 0
 
        ierr = iMOAB_LoadMesh(pid1, trim(filename), trim(readopts), nghlay)
-       if (rank .eq. sz-2 ) print *, "loaded in parallel ", trim(filename), " error: ", ierr
+       if (rank .eq. sz-1 ) print *, "loaded in parallel ", trim(filename), " error: ", ierr
        ierr = iMOAB_SendMesh(pid1, gcomm, group2, compid2); ! send to component 2
        call errorout(ierr, 'cannot send elements' )
     endif
@@ -134,14 +134,7 @@ program MigrateMesh
        ierr = iMOAB_ReceiveMesh(pid2, gcomm, group1, compid1); ! receive from component 1
        call errorout(ierr, 'cannot receive elements' )
        outfile = 'receivedMesh.h5m'//CHAR(0)
-       if (pid2 .eq. 0) then
-         wopts   = 'PARALLEL=WRITE_PART;PARALLEL_COMM=0'//CHAR(0)
-       else if (pid2 .eq. 1) then
-         wopts   = 'PARALLEL=WRITE_PART;PARALLEL_COMM=1'//CHAR(0)
-       else
-          call errorout(1, "wrong pid2")
-       endif
-
+       wopts   = 'PARALLEL=WRITE_PART;'//CHAR(0)
        print *, "from ", rank, wopts, outfile
 !      write out the mesh file to disk
        ierr = iMOAB_WriteMesh(pid2, trim(outfile), trim(wopts))
