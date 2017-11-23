@@ -467,7 +467,6 @@ ErrCode iMOAB_WriteMesh( iMOAB_AppID pid, iMOAB_String filename, iMOAB_String wr
     return 1;
   }
   std::ostringstream newopts;
-  newopts  << write_options;
 #ifdef MOAB_HAVE_MPI
   std::string write_opts(write_options);
   std::string pcid("PARALLEL_COMM=");
@@ -477,9 +476,15 @@ ErrCode iMOAB_WriteMesh( iMOAB_AppID pid, iMOAB_String filename, iMOAB_String wr
     std::cerr<< " cannot specify PARALLEL_COMM option, it is implicit \n";
     return 1;
   }
-  newopts << ";PARALLEL_COMM="<<*pid;
-  // do some options processing
+  // if write in parallel, add pc option, to be sure about which ParallelComm instance is used
+  std::string pw("PARALLEL=WRITE_PART");
+  found = write_opts.find(pw);
+  if (found!=std::string::npos)
+  {
+    newopts << "PARALLEL_COMM="<< *pid << ";";
+  }
 #endif
+  newopts  << write_options;
   ErrorCode rval = context.MBI->write_file(filename,0, newopts.str().c_str(),  &context.appDatas[*pid].file_set, 1);
   if (MB_SUCCESS!=rval)
     return 1;
