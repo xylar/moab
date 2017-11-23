@@ -641,7 +641,7 @@ ErrCode iMOAB_FreeSenderBuffers ( iMOAB_AppID pid, MPI_Comm* join, int* rcompid 
 
 ErrCode iMOAB_ReceiveMesh ( iMOAB_AppID pid, MPI_Comm* join, MPI_Group* sendingGroup, int* scompid );
 
-#ifdef MOAB_HAVE_TEMPEST
+#ifdef MOAB_HAVE_TEMPESTREMAP
 
 /**
   \brief Compute intersection of the surface meshes defined on a sphere. The resulting intersected mesh consists
@@ -675,7 +675,13 @@ ErrCode iMOAB_ComputeMeshIntersectionOnSphere ( iMOAB_AppID pid_src, iMOAB_AppID
   \param[in/out] pid_intersection (iMOAB_AppID)       The unique pointer to the intersection application ID
 */
 ErrCode iMOAB_ComputeScalarProjectionWeights ( iMOAB_AppID pid_intx, 
-                                               const iMOAB_String soln_tag_name, int soln_tag_name_length);
+                                               const iMOAB_String soln_tag_name,
+                                               const iMOAB_String disc_method1, int disc_order1,
+                                               const iMOAB_String disc_method2, int disc_order2,
+                                               int fVolumetric, int fNoConservation,
+                                               int soln_tag_name_length,
+                                               int disc_method1_length,
+                                               int disc_method2_length);
 
 #endif
 
