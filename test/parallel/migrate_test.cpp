@@ -165,13 +165,7 @@ ErrorCode migrate(const char*filename)
      ierr = iMOAB_ReceiveMesh(pid2, &jcomm, &group1, &compid1); // receive from component 1
      CHECKRC(ierr, "cannot receive elements")
      std::string wopts;
-     if (appID2 == 0)
-       wopts   = "PARALLEL=WRITE_PART;PARALLEL_COMM=0";
-     else if (appID2 == 1)
-       wopts   = "PARALLEL=WRITE_PART;PARALLEL_COMM=1";
-     else
-       CHECKRC(1, "wrong pid2" )
-
+     wopts   = "PARALLEL=WRITE_PART;";
      char wfile[] = "recvMesh.h5m";
      ierr = iMOAB_WriteMesh(pid2, wfile , (char*)wopts.c_str(), strlen(wfile), strlen(wopts.c_str()) );
      CHECKRC(ierr, "cannot write received mesh" )
