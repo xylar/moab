@@ -618,8 +618,8 @@ ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius,
         moab::Intx2MeshOnSphere *mbintx = new moab::Intx2MeshOnSphere ( m_interface );
 
         mbintx->SetErrorTolerance ( tolerance );
-        mbintx->set_box_error ( boxeps );
         mbintx->SetRadius ( radius );
+        mbintx->set_box_error ( boxeps );
         mbintx->set_parallel_comm ( m_pcomm );
 
         rval = mbintx->FindMaxEdges ( m_source_set, m_target_set ); MB_CHK_ERR ( rval );
