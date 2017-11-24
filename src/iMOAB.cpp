@@ -114,7 +114,7 @@ ErrCode iMOAB_Initialize ( int argc, iMOAB_String* argv )
 
     if ( 0 == context.refCountMB )
     {
-        context.MBI = new Core();
+        context.MBI = new ( std::nothrow ) moab::Core;
         // retrieve the default tags
         const char* const shared_set_tag_names[] = {MATERIAL_SET_TAG_NAME,
                                                     NEUMANN_SET_TAG_NAME,
@@ -178,6 +178,8 @@ ErrCode iMOAB_RegisterApplication ( const iMOAB_String app_name,
 
     *pid =  context.unused_pid++;
     context.appIdMap[name] = *pid;
+
+	std::cout << " application " << name << " with ID = " << *pid << " is registered now \n";
 
     if ( *compid <= 0 )
     {
@@ -338,7 +340,7 @@ ErrCode iMOAB_DeregisterApplication ( iMOAB_AppID pid )
 
     for ( mit1 = context.appIdCompMap.begin(); mit1 != context.appIdCompMap.end(); mit1++ )
     {
-        int pidx = mit->second;
+        int pidx = mit1->second;
 
         if ( *pid == pidx )
         {
@@ -486,7 +488,7 @@ ErrCode iMOAB_LoadMesh ( iMOAB_AppID pid, const iMOAB_String filename, const iMO
         return 1;
     }
 
-    int rank = context.pcomms[*pid]->rank();
+    // int rank = context.pcomms[*pid]->rank();
     int nprocs = context.pcomms[*pid]->size();
 
     if (nprocs > 1) {
@@ -1211,20 +1213,19 @@ ErrCode iMOAB_DefineTagStorage ( iMOAB_AppID pid, const iMOAB_String tag_storage
                      tagDataType,
                      tagHandle, tagType, defaultVal );
 
-    // we don't need default values anymore, avoid leaks
-    delete [] defInt;
-    delete [] defDouble;
-    delete [] defHandle;
-
-    appData& data = context.appDatas[*pid];
-    
-    
     if ( MB_TAG_NOT_FOUND == rval )
     {    	
 		rval = context.MBI->tag_get_handle ( tag_name.c_str(), *components_per_entity,
 						 tagDataType,
 						 tagHandle, tagType|MB_TAG_CREAT, defaultVal );
     }
+
+    // we don't need default values anymore, avoid leaks
+    delete [] defInt;
+    delete [] defDouble;
+    delete [] defHandle;
+
+    appData& data = context.appDatas[*pid];
 
     if ( MB_ALREADY_ALLOCATED == rval )
     {
@@ -1249,8 +1250,8 @@ ErrCode iMOAB_DefineTagStorage ( iMOAB_AppID pid, const iMOAB_String tag_storage
         data.tagList.push_back ( tagHandle ) ;
         return 0;
     }
-
-    return 1; // some error, maybe the tag was not created
+    else 
+	    return 1; // some error, maybe the tag was not created
 }
 
 ErrCode iMOAB_SetIntTagStorage ( iMOAB_AppID pid, const iMOAB_String tag_storage_name,
@@ -1907,23 +1908,18 @@ ErrCode iMOAB_FreeSenderBuffers ( iMOAB_AppID pid, MPI_Comm* join, int* rcompid 
     return 0;
 }
 
-// #ifdef MOAB_HAVE_TEMPESTREMAP
+#ifdef MOAB_HAVE_TEMPESTREMAP
 
-ErrCode iMOAB_ComputeMeshIntersectionOnSphere ( iMOAB_AppID pid_src, iMOAB_AppID pid_tgt, iMOAB_AppID pid_intx )
+ErrCode iMOAB_ComputeMeshIntersectionOnSphere ( iMOAB_AppID pid_src, iMOAB_AppID pid_tgt, iMOAB_AppID pid_intx, 
+                                                double radius, double epsrel, double boxeps )
 {
     ErrorCode rval;
-    
-    // Some constant parameters
-    // TODO: Make these routine parameters
-    const double epsrel = 1.e-8;
-    const double radius = 1.0 /*2.0*acos(-1.0)*/;
-    const double boxeps = 0.1;
-    
+
     // Get the source and target data and pcomm objects
     appData& data_src = context.appDatas[*pid_src];
-    ParallelComm* pco_src = context.pcomms[*pid_src];
+//     ParallelComm* pco_src = context.pcomms[*pid_src];
     appData& data_tgt = context.appDatas[*pid_tgt];
-    ParallelComm* pco_tgt = context.pcomms[*pid_tgt];
+//     ParallelComm* pco_tgt = context.pcomms[*pid_tgt];
 	appData& data_intx = context.appDatas[*pid_intx];
     ParallelComm* pco_intx = context.pcomms[*pid_intx];
 
@@ -1934,8 +1930,13 @@ ErrCode iMOAB_ComputeMeshIntersectionOnSphere ( iMOAB_AppID pid_src, iMOAB_AppID
     // Mesh intersection has already been computed; Return early.
     if(data_intx.remapper != NULL) return 0;
 
-    rval = pco_src->check_all_shared_handles();CHKERRVAL(rval);
+    rval = pco_intx->check_all_shared_handles();CHKERRVAL(rval);
 
+    // Some constant parameters
+//     const double epsrel = 1.e-8;
+//     const double radius = 1.0 /*2.0*acos(-1.0)*/;
+//     const double boxeps = 0.1;
+    
 	// print verbosely about the problem setting
 	{
 		moab::Range rintxverts, rintxelems;
@@ -1972,10 +1973,10 @@ ErrCode iMOAB_ComputeMeshIntersectionOnSphere ( iMOAB_AppID pid_src, iMOAB_AppID
     data_intx.remapper->GetMeshSet ( moab::Remapper::TargetMesh ) = data_tgt.file_set;
     data_intx.remapper->GetMeshSet ( moab::Remapper::IntersectedMesh ) = data_intx.file_set;
 
-#if 1
+#if 0
 
 	// Compute intersections with MOAB
-	rval = data_intx.remapper->ComputeOverlapMesh ( epsrel, radius, false );CHKERRVAL(rval);
+	rval = data_intx.remapper->ComputeOverlapMesh ( epsrel, radius, boxeps, false );CHKERRVAL(rval);
 
 #else    
     // Create the intersection object on the sphere between two meshes
@@ -1996,12 +1997,11 @@ ErrCode iMOAB_ComputeMeshIntersectionOnSphere ( iMOAB_AppID pid_src, iMOAB_AppID
 	moab::EntityHandle covering_set;
     rval = context.MBI->create_meshset ( moab::MESHSET_SET, covering_set );CHKERRVAL(rval);
 
-	// lots of communication if mesh is distributed very differently
+	// This step involves lots of communication if mesh is distributed very differently
 	rval = mbintx->construct_covering_set ( data_src.file_set, covering_set );CHKERRVAL(rval);
 
 	// Now let's invoke the MOAB intersection algorithm in parallel with a
 	// source and target mesh set representing two different decompositions
-// 	rval = context.MBI->create_meshset ( moab::MESHSET_SET, data_intx.file_set );CHKERRVAL(rval);
 	rval = mbintx->intersect_meshes ( covering_set, data_tgt.file_set, data_intx.file_set );CHKERRVAL(rval);
 
 	// free the memory
@@ -2012,16 +2012,16 @@ ErrCode iMOAB_ComputeMeshIntersectionOnSphere ( iMOAB_AppID pid_src, iMOAB_AppID
 }
 
 ErrCode iMOAB_ComputeScalarProjectionWeights ( iMOAB_AppID pid_intx, 
-                                               const iMOAB_String soln_tag_name,
                                                const iMOAB_String disc_method1, int disc_order1,
                                                const iMOAB_String disc_method2, int disc_order2,
                                                int fVolumetric, int fNoConservation,
-                                               int soln_tag_name_length,
+                                               int fValidate,
                                                int disc_method1_length,
                                                int disc_method2_length)
 {
-	ErrorCode ierr;
 	moab::ErrorCode rval;
+	
+	assert(disc_method1_length > 0 && disc_method2_length > 0);
 	
     // Get the source and target data and pcomm objects
 	appData& data_intx = context.appDatas[*pid_intx];
@@ -2054,15 +2054,35 @@ ErrCode iMOAB_ComputeScalarProjectionWeights ( iMOAB_AppID pid_intx,
 										   "", false,  // std::string strNColName="", bool fOutputDouble=false,
 										   "", false, 0.0,   // std::string strPreserveVariables="", bool fPreserveAll=false, double dFillValueOverride=0.0,
 										   false, false   // bool fInputConcave = false, bool fOutputConcave = false
-										 );
+										 );CHKERRVAL(rval);
 
 	// gather weights to root process to perform consistency/conservation checks
-	weightMap->GatherAllToRoot();
+	rval = weightMap->GatherAllToRoot();CHKERRVAL(rval);
+
+	if (fValidate)
+	{
+		const double radius = 1.0 /*2.0*acos(-1.0)*/;
+		double local_areas[3], global_areas[3]; // Array for Initial area, and through Method 1 and Method 2
+		local_areas[0] = area_on_sphere_lHuiller ( context.MBI, context.appDatas[*(context.appDatas[*pid_intx].pid_src)].file_set, radius );
+		local_areas[1] = area_on_sphere_lHuiller ( context.MBI, context.appDatas[*pid_intx].file_set, radius );
+		local_areas[2] = area_on_sphere ( context.MBI, context.appDatas[*pid_intx].file_set, radius );
+
+		MPI_Allreduce ( &local_areas, &global_areas, 3, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD );
+
+		if ( !pco_intx->rank() )
+		{
+			printf ( "initial area: %12.10f\n", global_areas[0] );
+			printf ( "area with l'Huiller: %12.10f with Girard: %12.10f\n", global_areas[1], global_areas[2] );
+			printf ( "  relative difference areas = %12.10e\n", fabs ( global_areas[1] - global_areas[2] ) / global_areas[1] );
+			printf ( "  relative error = %12.10e\n", fabs ( global_areas[1] - global_areas[0] ) / global_areas[1] );
+		}
+	}
 	
 	return 0;
 }
 
-// #endif
+
+#endif
 
 #endif
 

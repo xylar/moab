@@ -93,11 +93,11 @@ int main(int argc, char * argv[])
   CHECKRC(rc, "failed to register application2");
 
 #ifdef MOAB_HAVE_MPI
-  const char *read_opts=( nprocs>1 ? "PARALLEL=BCAST_DELETE;PARTITION=PARALLEL_PARTITION;PARALLEL_RESOLVE_SHARED_ENTS" : "");
+  const char *read_opts=( nprocs>1 ? "PARALLEL=READ_PART;PARTITION=PARALLEL_PARTITION;PARALLEL_RESOLVE_SHARED_ENTS" : "");
 #else
   const char *read_opts="";
 #endif
-  int num_ghost_layers=1;
+  int num_ghost_layers=0;
 
   /*
    * Loading the mesh is a parallel IO operation. Ghost layers can be exchanged too, and default MOAB
@@ -134,7 +134,7 @@ int main(int argc, char * argv[])
    */
   const char* fieldname = "DFIELD";
   int tagIndex[1];
-  int entTypes[1] = {0}; /* first is on vertex; */
+//   int entTypes[1] = {0}; /* first is on vertex; */
   int tagTypes[1] = { DENSE_DOUBLE } ;
   int num_components = 1;
 
@@ -159,12 +159,12 @@ int main(int argc, char * argv[])
 //   printf("\n");
 //   free(double_tag_vals);
 
-  rc = iMOAB_ComputeMeshIntersectionOnSphere(pid1, pid2, pid3);
-  CHECKRC(rc, "failed to compute mesh intersection");
+  rc = iMOAB_ComputeMeshIntersectionOnSphere(pid1, pid2, pid3, 1.0, 1e-8, 0.1);
+   CHECKRC(rc, "failed to compute mesh intersection");
   
-//   rc = iMOAB_ComputeScalarProjectionWeights ( pid3, fieldname, strlen(fieldname));
-//   CHECKRC(rc, "failed to compute remapping projection weights");
-
+  rc = iMOAB_ComputeScalarProjectionWeights ( pid3, "fv", 1, "fv", 1, 0, 0, 1, strlen("fv"), strlen("fv"));
+  CHECKRC(rc, "failed to compute remapping projection weights");
+  
   // free allocated data
   char outputFile[] = "fnew.h5m";
 #ifdef MOAB_HAVE_MPI
@@ -176,8 +176,8 @@ int main(int argc, char * argv[])
    * the file can be written in parallel, and it will contain additional tags defined by the user
    * we may extend the method to write only desired tags to the file
    */
-  rc = iMOAB_WriteMesh(pid3, outputFile, writeOptions,
-      strlen(outputFile), strlen(writeOptions) );
+//   rc = iMOAB_WriteMesh(pid3, outputFile, writeOptions,
+//       strlen(outputFile), strlen(writeOptions) );
 
   /*
    * deregistering application will delete all mesh entities associated with the application and will
