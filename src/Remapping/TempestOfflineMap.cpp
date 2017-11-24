@@ -663,10 +663,12 @@ bool moab::TempestOfflineMap::IsConsistent (
 
     // Calculate row sums
     DataVector<double> dRowSums;
+    moab::ErrorCode rval;
     if ( pcomm->size() > 1 )
     {
-        if ( !m_globalMapAvailable )
-            this->GatherAllToRoot();
+        if ( !m_globalMapAvailable ) {
+            rval = this->GatherAllToRoot();MB_CHK_ERR(rval);
+        }
         if ( pcomm->size() > 1 && pcomm->rank() ) return true;
         SparseMatrix<double>& m_mapRemapGlobal = m_weightMapGlobal->GetSparseMatrix();
         m_mapRemapGlobal.GetEntries ( dataRows, dataCols, dataEntries );
@@ -713,10 +715,12 @@ bool moab::TempestOfflineMap::IsConservative (
 
     // Calculate column sums
     DataVector<double> dColumnSums;
+    moab::ErrorCode rval;
     if ( pcomm->size() > 1 )
     {
-        if ( !m_globalMapAvailable )
-            this->GatherAllToRoot();
+        if ( !m_globalMapAvailable ) {
+            rval = this->GatherAllToRoot();MB_CHK_ERR(rval);
+        }
         if ( pcomm->size() > 1 && pcomm->rank() ) return true;
         SparseMatrix<double>& m_mapRemapGlobal = m_weightMapGlobal->GetSparseMatrix();
         m_mapRemapGlobal.GetEntries ( dataRows, dataCols, dataEntries );
@@ -761,10 +765,12 @@ bool moab::TempestOfflineMap::IsMonotone (
     DataVector<int> dataCols;
     DataVector<double> dataEntries;
 
+	moab::ErrorCode rval;
     if ( pcomm->size() > 1 )
     {
-        if ( !m_globalMapAvailable )
-            this->GatherAllToRoot();
+        if ( !m_globalMapAvailable ) {
+            rval = this->GatherAllToRoot();MB_CHK_ERR(rval);
+        }
         if ( pcomm->size() > 1 && pcomm->rank() ) return true;
         SparseMatrix<double>& m_mapRemapGlobal = m_weightMapGlobal->GetSparseMatrix();
         m_mapRemapGlobal.GetEntries ( dataRows, dataCols, dataEntries );

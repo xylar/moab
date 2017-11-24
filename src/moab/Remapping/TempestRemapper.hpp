@@ -63,7 +63,7 @@ public:
 
     moab::ErrorCode LoadMesh(Remapper::IntersectionContext ctx, std::string inputFilename, TempestMeshType type);
 
-    moab::ErrorCode ComputeOverlapMesh(double tolerance=1e-8, double radius=1.0, bool use_tempest=false);
+    moab::ErrorCode ComputeOverlapMesh(double tolerance=1e-8, double radius=1.0, double boxeps=0.1, bool use_tempest=false);
 
     // Converters between MOAB and Tempest representations
     moab::ErrorCode ConvertTempestMesh(Remapper::IntersectionContext ctx);

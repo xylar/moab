@@ -536,7 +536,7 @@ ErrorCode TempestRemapper::ConvertMOABMesh_WithSortedEntitiesBySource()
     if ( constructEdgeMap ) m_overlap->ConstructEdgeMap();
     m_overlap->ConstructReverseNodeArray();
 
-    m_overlap->Validate();
+//     m_overlap->Validate();
     return MB_SUCCESS;
 
 }
@@ -583,7 +583,7 @@ ErrorCode TempestRemapper::AssociateSrcTargetInOverlap()
 
 ///////////////////////////////////////////////////////////////////////////////////
 
-ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius, bool use_tempest )
+ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius, double boxeps, bool use_tempest )
 {
     ErrorCode rval;
     // First, split based on whether to use Tempest or MOAB
@@ -612,7 +612,7 @@ ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius,
     else
     {
         // const double radius = 1.0 /*2.0*acos(-1.0)*/;
-        const double boxeps = 0.1;
+        // const double boxeps = 0.1;
         // Create the intersection on the sphere object and set up necessary parameters
         moab::Range local_verts;
         moab::Intx2MeshOnSphere *mbintx = new moab::Intx2MeshOnSphere ( m_interface );

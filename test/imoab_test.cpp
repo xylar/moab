@@ -59,14 +59,15 @@ int main(int argc, char * argv[])
     printf("file %s has %d vertices, %d elements, %d parts in partition\n", filen.c_str(),
         num_global_vertices, num_global_elements, num_parts);
   }
-  int appID;
+  int appID, appDupID;
   iMOAB_AppID pid=&appID;
+  iMOAB_AppID pidDup=&appDupID;
   /*
    * Each application has to be registered once. A mesh set and a parallel communicator will be associated
    * with each application. A unique application id will be returned, and will be used for all future
    * mesh operations/queries.
    */
-  int compid = 11;
+  int compid = 11, compdupid = 12;
   rc = iMOAB_RegisterApplication( "MBAPP",
 #ifdef MOAB_HAVE_MPI
       &comm,
@@ -74,6 +75,15 @@ int main(int argc, char * argv[])
       &compid,
       pid);
   CHECKRC(rc, "failed to register application");
+
+  rc = iMOAB_RegisterApplication( "MBDUPAPP",
+#ifdef MOAB_HAVE_MPI
+      &comm,
+#endif
+      &compdupid,
+      pidDup);
+  CHECKRC(rc, "failed to register duplicate application");
+
 #ifdef MOAB_HAVE_MPI
   const char *read_opts="PARALLEL=READ_PART;PARTITION=PARALLEL_PARTITION;PARALLEL_RESOLVE_SHARED_ENTS";
 #else
@@ -88,6 +98,9 @@ int main(int argc, char * argv[])
    * a GLOBAL ID tag in the file, which will be available for visible entities
    */
   rc = iMOAB_LoadMesh(  pid, filen.c_str(), read_opts, &num_ghost_layers, (int)(filen.size()), strlen(read_opts) );
+  CHECKRC(rc, "failed to load mesh");
+
+  rc = iMOAB_LoadMesh(  pidDup, filen.c_str(), read_opts, &num_ghost_layers, (int)(filen.size()), strlen(read_opts) );
   CHECKRC(rc, "failed to load mesh");
 
   rc = iMOAB_SetGlobalInfo(pid, &num_global_vertices, &num_global_elements);
@@ -389,6 +402,9 @@ int main(int argc, char * argv[])
    *  free allocated tag storage.
    */
   rc = iMOAB_DeregisterApplication(pid);
+  CHECKRC(rc, "failed to de-register application");
+
+  rc = iMOAB_DeregisterApplication(pidDup);
   CHECKRC(rc, "failed to de-register application");
 
   /*
