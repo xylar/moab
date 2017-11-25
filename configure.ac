@@ -466,11 +466,7 @@ else
   DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --enable-mesquite=$enable_mesquite"
 fi
 
-if (test "x$enablempi" != "xno"); then
-  CONFIGURE_HYPRE
-fi
-AM_CONDITIONAL(HAVE_HYPRE, [test "x$enablehypre"!="xno"])
- 
+
 ################################################################################
 #                              Version Stuff
 ################################################################################
@@ -595,6 +591,15 @@ fi
 ################################################################################
 
 FATHOM_CONFIGURE_EIGEN3
+
+################################################################################
+#                              HYPRE OPTIONS
+################################################################################
+
+if (test "x$enablempi" != "xno" && test "x$enableeigen" != "xno"); then
+  CONFIGURE_HYPRE
+fi
+AM_CONDITIONAL(HAVE_HYPRE, [test "x$enablehypre"!="xno"])
 
 ################################################################################
 #                              HDF5 OPTIONS

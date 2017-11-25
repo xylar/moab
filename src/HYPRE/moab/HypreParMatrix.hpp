@@ -9,6 +9,9 @@
 // terms of the GNU Lesser General Public License (as published by the Free
 // Software Foundation) version 2.1 dated February 1999.
 
+/// This HYPRE library interface has been taken originally from MFEM and modified
+/// to suit the needs for the MOAB library.
+
 #ifndef MOAB_HYPREPARMATRIX
 #define MOAB_HYPREPARMATRIX
 
@@ -23,12 +26,12 @@
 //#define HYPRE_TIMING
 //#endif
 
-//#ifdef MOAB_HAVE_EIGEN
+#ifdef MOAB_HAVE_EIGEN
 #include <Eigen/Core>
 #include <Eigen/Sparse>
-//#else
-//#error Configure with Eigen3 enabled
-//#endif
+#else
+#error Configure with Eigen3 enabled
+#endif
 
 // hypre header files
 // #include "HYPRE.h"
