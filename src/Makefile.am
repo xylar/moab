@@ -361,20 +361,20 @@ moabparallelinclude_HEADERS = \
 AM_CPPFLAGS += -I$(srcdir)/parallel
 
 if HAVE_HYPRE
-  AM_CPPFLAGS += $(HYPRE_INCLUDE)
+  AM_CPPFLAGS += $(HYPRE_INCLUDES)
   AM_LDFLAGS += $(HYPRE_LIBS)
 
-  MOAB_HYPRE_SRCS += \
+  MOAB_HYPRE_SRCS = \
      HYPRE/HypreParVector.cpp  \
      HYPRE/hypre_parcsr.cpp \
      HYPRE/HypreParMatrix.cpp \
      HYPRE/HypreSolver.cpp
 
-  MOAB_HYPRE_HDRS += \
+  MOAB_HYPRE_HDRS = \
      moab/HYPRE/HypreParVector.hpp \
      moab/HYPRE/hypre_parcsr/hpp \
      moab/HYPRE/HypreParMatrix.hpp \
-     moab/HYPRE/HypreSolver.hpp \
+     moab/HYPRE/HypreSolver.hpp
 
 endif # if HAVE_HYPRE
 
