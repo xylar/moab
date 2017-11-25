@@ -41,18 +41,17 @@ AC_DEFUN([CONFIGURE_HYPRE],[
 
   # Set some variables
   if (test "x$enablehypre" != "xno"); then
-    HYPRE_LIB_DIR="$HYPRE_DIR/lib"
-    HYPRE_LIBS="-lHYPRE"
+    HYPRE_LIBS="-L$HYPRE_DIR/lib -lHYPRE"
     HYPRE_INCLUDES="-I$HYPRE_DIR/include"
 
     tmpLIBS=$LIBS
     AC_LANG_SAVE
     AC_LANG_PUSH([C])
-    LIBS="$MOAB_LDFLAGS $MOAB_LIBS -L$HYPRE_LIB_DIR $HYPRE_LIBS"
+    LIBS="$MOAB_LDFLAGS $MOAB_LIBS $HYPRE_LIBS"
     # Check if it worked
-    PREFIX_PRINT([Verifying libHYPRE in $HYPRE_LIB_DIR...])
+    PREFIX_PRINT([Verifying libHYPRE in -L$HYPRE_DIR/lib...])
     AC_CHECK_LIB([HYPRE],[main],
-        [MOAB_LDFLAGS="$MOAB_LDFLAGS -L$HYPRE_LIB_DIR"
+        [MOAB_LDFLAGS="$MOAB_LDFLAGS -L$HYPRE_DIR/lib"
         MOAB_LIBS="$HYPRE_LIBS $MOAB_LIBS"],
         [enablehypre=no],
         [$MOAB_LIBS]

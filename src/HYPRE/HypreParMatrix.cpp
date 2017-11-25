@@ -678,7 +678,7 @@ namespace moab
     HYPRE_Int *I = hypre_CSRMatrixI(A_diag);
 #ifdef MOAB_DEBUG
     HYPRE_Int    *J   = hypre_CSRMatrixJ(A_diag);
-    hypre_CSRMatrix *A_offd = hypre_ParCSRMatrixOffd((hypre_ParCSRMatrix *)A.->A_parcsr);
+    hypre_CSRMatrix *A_offd = hypre_ParCSRMatrixOffd((hypre_ParCSRMatrix *)A.A_parcsr);
     HYPRE_Int *I_offd = hypre_CSRMatrixI(A_offd);
     double *data_offd = hypre_CSRMatrixData(A_offd);
 #endif
@@ -695,18 +695,18 @@ namespace moab
       // only one entry -- the diagonal.
       // if (I[r+1] != I[r]+1 || J[I[r]] != r || I_offd[r] != I_offd[r+1])
       if (J[I[r]] != r) {
-        MFEM_ABORT("the diagonal entry must be the first entry in the row!");
+        MB_SET_ERR_RET("the diagonal entry must be the first entry in the row!");
       }
 
       for (int j = I[r] + 1; j < I[r + 1]; j++) {
         if (data[j] != 0.0) {
-          MFEM_ABORT("all off-diagonal entries must be zero!");
+          MB_SET_ERR_RET("all off-diagonal entries must be zero!");
         }
       }
 
       for (int j = I_offd[r]; j < I_offd[r + 1]; j++) {
         if (data_offd[j] != 0.0) {
-          MFEM_ABORT("all off-diagonal entries must be zero!");
+          MB_SET_ERR_RET("all off-diagonal entries must be zero!");
         }
       }
 

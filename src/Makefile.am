@@ -369,12 +369,17 @@ if HAVE_HYPRE
      HYPRE/hypre_parcsr.cpp \
      HYPRE/HypreParMatrix.cpp \
      HYPRE/HypreSolver.cpp
+  libMOAB_la_SOURCES += $(MOAB_HYPRE_SRCS)
 
-  MOAB_HYPRE_HDRS = \
-     moab/HYPRE/HypreParVector.hpp \
-     moab/HYPRE/hypre_parcsr/hpp \
-     moab/HYPRE/HypreParMatrix.hpp \
-     moab/HYPRE/HypreSolver.hpp
+  moabhypreincludedir = $(includedir)/moab/HYPRE
+  moabhypreinclude_HEADERS = \
+     HYPRE/moab/HypreParVector.hpp \
+     HYPRE/moab/hypre_parcsr.hpp \
+     HYPRE/moab/HypreParMatrix.hpp \
+     HYPRE/moab/HypreSolver.hpp
+
+AM_CPPFLAGS += -I$(srcdir)/HYPRE/moab
+AM_LDFLAGS += $(HYPRE_LIBS)
 
 endif # if HAVE_HYPRE
 
