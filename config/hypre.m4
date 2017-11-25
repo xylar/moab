@@ -12,7 +12,6 @@ AC_DEFUN([CONFIGURE_HYPRE],[
   # Call package Download/Configure/Installation procedures for HYPRE, if requested by user
   PPREFIX=HYPRE
 
-  enablehypre=no
   # CLI option for HYPRE
   AC_MSG_CHECKING([if HYPRE support is enabled])
   AC_ARG_WITH(hypre, 
@@ -47,7 +46,7 @@ AC_DEFUN([CONFIGURE_HYPRE],[
     tmpLIBS=$LIBS
     AC_LANG_SAVE
     AC_LANG_PUSH([C])
-    LIBS="$MOAB_LDFLAGS $MOAB_LIBS $HYPRE_LIBS"
+    LIBS="$MOAB_LDFLAGS $HYPRE_LIBS $MOAB_LIBS"
     # Check if it worked
     PREFIX_PRINT([Verifying libHYPRE in -L$HYPRE_DIR/lib...])
     AC_CHECK_LIB([HYPRE],[main],

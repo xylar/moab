@@ -596,6 +596,7 @@ FATHOM_CONFIGURE_EIGEN3
 #                              HYPRE OPTIONS
 ################################################################################
 
+enablehypre=no
 if (test "x$enablempi" != "xno" && test "x$enableeigen" != "xno"); then
   CONFIGURE_HYPRE
 fi
@@ -1626,7 +1627,7 @@ fi
 if (test "xno" != "x$ENABLE_FORTRAN"); then
   AC_MSG_RESULT([Fortran77: $F77 $FFLAGS $FCPPFLAGS])
 fi
-AC_MSG_RESULT([Linker: $LD $EXPORT_LDFLAGS $CXX_LDFLAGS $LDFLAGS -L${PWD}/src/.libs -lMOAB $PNETCDF_LIBS $NETCDF_LIBS $CGNS_LIBS $HDF5_LIBS $CCMIO_LIBS $CGM_LIBS $ZOLTAN_LIBS $PARMETIS_LIBS $METIS_LIBS $LIBS])
+AC_MSG_RESULT([Linker: $LD $EXPORT_LDFLAGS $CXX_LDFLAGS $LDFLAGS -L${PWD}/src/.libs -lMOAB $PNETCDF_LIBS $NETCDF_LIBS $CGNS_LIBS $HDF5_LIBS $CCMIO_LIBS $CGM_LIBS $ZOLTAN_LIBS $PARMETIS_LIBS $METIS_LIBS $HYPRE_LIBS $LAPACK_LIBS $BLAS_LIBS $LIBS])
 
 if test "x$enablehdf5" = "xno"; then
   AC_MSG_WARN([
