@@ -233,6 +233,7 @@ ErrorCode Intx2Mesh::DetermineOrderedNeighbors(EntityHandle inputSet, int max_ed
   return MB_SUCCESS;
 }
 
+
 // main interface; this will do the advancing front trick
 // some are triangles, some are quads, some are polygons ...
 ErrorCode Intx2Mesh::intersect_meshes(EntityHandle mbset1, EntityHandle mbset2,
@@ -1224,7 +1225,6 @@ ErrorCode Intx2Mesh::create_departure_mesh_3rd_alg(EntityHandle & lagr_set,
 // So the covering set will cover completely the second local mesh set (in intersection)
 ErrorCode Intx2Mesh::construct_covering_set(EntityHandle & initial_distributed_set, EntityHandle & covering_set)
 {
-
   assert(parcomm != NULL);
   if ( 1==parcomm->proc_config().proc_size())
   {
@@ -1473,11 +1473,9 @@ ErrorCode Intx2Mesh::construct_covering_set(EntityHandle & initial_distributed_s
     globalID_to_eh[globalIdEl] = new_element;
     local_q.insert(new_element);
     rval = mb->tag_set_data(gid, &new_element, 1, &globalIdEl);MB_CHK_SET_ERR(rval, "can't set gid for cell ");
-
   }
 
   // now, create a new set, covering_set
-  // rval = mb->create_meshset(MESHSET_SET, covering_set);MB_CHK_SET_ERR(rval, "can't create the covering set");
   rval = mb->add_entities(covering_set, local_q);MB_CHK_SET_ERR(rval,  "can't add entities to new mesh set ");
 
   return MB_SUCCESS;

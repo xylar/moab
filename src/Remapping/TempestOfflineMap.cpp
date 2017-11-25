@@ -119,7 +119,8 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
         std::string strVariables,
         std::string strInputData, std::string strOutputData,
         std::string strNColName, bool fOutputDouble,
-        std::string strPreserveVariables, bool fPreserveAll, double dFillValueOverride )
+        std::string strPreserveVariables, bool fPreserveAll, double dFillValueOverride,
+        bool fInputConcave, bool fOutputConcave )
 {
     NcError error ( NcError::silent_nonfatal );
 
@@ -206,7 +207,7 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
 
         // Calculate Face areas
         if ( !pcomm->rank() ) dbgprint.printf ( 0, "Calculating input mesh Face areas\n" );
-        double dTotalAreaInput_loc = m_meshInput->CalculateFaceAreas();
+        double dTotalAreaInput_loc = m_meshInput->CalculateFaceAreas(fInputConcave);
         Real dTotalAreaInput;
         MPI_Allreduce ( &dTotalAreaInput_loc, &dTotalAreaInput, 1, MPI_DOUBLE, MPI_SUM, pcomm->comm() );
         if ( !pcomm->rank() ) dbgprint.printf ( 0, "Input Mesh Geometric Area: %1.15e\n", dTotalAreaInput );
@@ -219,7 +220,7 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
 
         // Calculate Face areas
         if ( !pcomm->rank() ) dbgprint.printf ( 0, "Calculating output mesh Face areas\n" );
-        Real dTotalAreaOutput_loc = m_meshOutput->CalculateFaceAreas();
+        Real dTotalAreaOutput_loc = m_meshOutput->CalculateFaceAreas(fOutputConcave);
         Real dTotalAreaOutput;
         MPI_Allreduce ( &dTotalAreaOutput_loc, &dTotalAreaOutput, 1, MPI_DOUBLE, MPI_SUM, pcomm->comm() );
         if ( !pcomm->rank() ) dbgprint.printf ( 0, "Output Mesh Geometric Area: %1.15e\n", dTotalAreaOutput );
@@ -282,7 +283,7 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
 
         // Calculate Face areas
         if ( !pcomm->rank() ) dbgprint.printf ( 0, "Calculating overlap mesh Face areas\n" );
-        Real dTotalAreaOverlap_loc = m_meshOverlap->CalculateFaceAreas();
+        Real dTotalAreaOverlap_loc = m_meshOverlap->CalculateFaceAreas(false);
         Real dTotalAreaOverlap;
         MPI_Allreduce ( &dTotalAreaOverlap_loc, &dTotalAreaOverlap, 1, MPI_DOUBLE, MPI_SUM, pcomm->comm() );
         if ( !pcomm->rank() ) dbgprint.printf ( 0, "Overlap Mesh Area: %1.15e\n", dTotalAreaOverlap );
@@ -662,10 +663,12 @@ bool moab::TempestOfflineMap::IsConsistent (
 
     // Calculate row sums
     DataVector<double> dRowSums;
+    moab::ErrorCode rval;
     if ( pcomm->size() > 1 )
     {
-        if ( !m_globalMapAvailable )
-            this->GatherAllToRoot();
+        if ( !m_globalMapAvailable ) {
+            rval = this->GatherAllToRoot();MB_CHK_ERR(rval);
+        }
         if ( pcomm->size() > 1 && pcomm->rank() ) return true;
         SparseMatrix<double>& m_mapRemapGlobal = m_weightMapGlobal->GetSparseMatrix();
         m_mapRemapGlobal.GetEntries ( dataRows, dataCols, dataEntries );
@@ -712,10 +715,12 @@ bool moab::TempestOfflineMap::IsConservative (
 
     // Calculate column sums
     DataVector<double> dColumnSums;
+    moab::ErrorCode rval;
     if ( pcomm->size() > 1 )
     {
-        if ( !m_globalMapAvailable )
-            this->GatherAllToRoot();
+        if ( !m_globalMapAvailable ) {
+            rval = this->GatherAllToRoot();MB_CHK_ERR(rval);
+        }
         if ( pcomm->size() > 1 && pcomm->rank() ) return true;
         SparseMatrix<double>& m_mapRemapGlobal = m_weightMapGlobal->GetSparseMatrix();
         m_mapRemapGlobal.GetEntries ( dataRows, dataCols, dataEntries );
@@ -760,10 +765,12 @@ bool moab::TempestOfflineMap::IsMonotone (
     DataVector<int> dataCols;
     DataVector<double> dataEntries;
 
+	moab::ErrorCode rval;
     if ( pcomm->size() > 1 )
     {
-        if ( !m_globalMapAvailable )
-            this->GatherAllToRoot();
+        if ( !m_globalMapAvailable ) {
+            rval = this->GatherAllToRoot();MB_CHK_ERR(rval);
+        }
         if ( pcomm->size() > 1 && pcomm->rank() ) return true;
         SparseMatrix<double>& m_mapRemapGlobal = m_weightMapGlobal->GetSparseMatrix();
         m_mapRemapGlobal.GetEntries ( dataRows, dataCols, dataEntries );

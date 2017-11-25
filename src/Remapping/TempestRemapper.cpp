@@ -27,12 +27,19 @@ namespace moab
 
 ///////////////////////////////////////////////////////////////////////////////////
 
-ErrorCode TempestRemapper::initialize()
+ErrorCode TempestRemapper::initialize(bool initialize_fsets)
 {
     ErrorCode rval;
-    rval = m_interface->create_meshset ( moab::MESHSET_SET, m_source_set ); MB_CHK_SET_ERR ( rval, "Can't create new set" );
-    rval = m_interface->create_meshset ( moab::MESHSET_SET, m_target_set ); MB_CHK_SET_ERR ( rval, "Can't create new set" );
-    rval = m_interface->create_meshset ( moab::MESHSET_SET, m_overlap_set ); MB_CHK_SET_ERR ( rval, "Can't create new set" );
+    if (initialize_fsets) {
+		rval = m_interface->create_meshset ( moab::MESHSET_SET, m_source_set ); MB_CHK_SET_ERR ( rval, "Can't create new set" );
+		rval = m_interface->create_meshset ( moab::MESHSET_SET, m_target_set ); MB_CHK_SET_ERR ( rval, "Can't create new set" );
+		rval = m_interface->create_meshset ( moab::MESHSET_SET, m_overlap_set ); MB_CHK_SET_ERR ( rval, "Can't create new set" );
+	}
+	else {
+		m_source_set = 0;
+		m_target_set = 0;
+		m_overlap_set = 0;
+	}
 
     m_source = NULL;
     m_target = NULL;
@@ -529,7 +536,7 @@ ErrorCode TempestRemapper::ConvertMOABMesh_WithSortedEntitiesBySource()
     if ( constructEdgeMap ) m_overlap->ConstructEdgeMap();
     m_overlap->ConstructReverseNodeArray();
 
-    m_overlap->Validate();
+//     m_overlap->Validate();
     return MB_SUCCESS;
 
 }
@@ -576,7 +583,7 @@ ErrorCode TempestRemapper::AssociateSrcTargetInOverlap()
 
 ///////////////////////////////////////////////////////////////////////////////////
 
-ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius, bool use_tempest )
+ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius, double boxeps, bool use_tempest )
 {
     ErrorCode rval;
     // First, split based on whether to use Tempest or MOAB
@@ -594,19 +601,25 @@ ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius,
         assert ( m_source != NULL );
         assert ( m_target != NULL );
         if ( m_overlap != NULL ) delete m_overlap;
-        m_overlap = GenerateOverlapWithMeshes ( *m_source, *m_target, "" /*outFilename*/, "exact", false );
+        m_overlap = new Mesh();
+        bool concaveMeshA=false, concaveMeshB=false;
+        int err = GenerateOverlapWithMeshes ( *m_source, *m_target, *m_overlap, "" /*outFilename*/, "exact", concaveMeshA, concaveMeshB, false );
+        if (err) {
+            rval = MB_FAILURE;
+            return rval;
+        }
     }
     else
     {
         // const double radius = 1.0 /*2.0*acos(-1.0)*/;
-        const double boxeps = 0.1;
+        // const double boxeps = 0.1;
         // Create the intersection on the sphere object and set up necessary parameters
         moab::Range local_verts;
         moab::Intx2MeshOnSphere *mbintx = new moab::Intx2MeshOnSphere ( m_interface );
 
         mbintx->SetErrorTolerance ( tolerance );
-        mbintx->set_box_error ( boxeps );
         mbintx->SetRadius ( radius );
+        mbintx->set_box_error ( boxeps );
         mbintx->set_parallel_comm ( m_pcomm );
 
         rval = mbintx->FindMaxEdges ( m_source_set, m_target_set ); MB_CHK_ERR ( rval );

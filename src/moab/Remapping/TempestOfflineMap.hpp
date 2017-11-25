@@ -78,7 +78,8 @@ public:
                                         std::string strVariables="", 
                                         std::string strInputData="", std::string strOutputData="",
                                         std::string strNColName="", bool fOutputDouble=false,
-                                        std::string strPreserveVariables="", bool fPreserveAll=false, double dFillValueOverride=0.0 );
+                                       std::string strPreserveVariables="", bool fPreserveAll=false, double dFillValueOverride=0.0,
+                                       bool fInputConcave = false, bool fOutputConcave = false );
 
 	///	<summary>
 	///		Generate the metadata associated with the offline map.
