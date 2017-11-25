@@ -50,5 +50,6 @@
 #define iMOAB_SetGlobalInfo                  IMOAB_FC_WRAPPER( imoab_setglobalinfo, IMOAB_SETGLOBALINFO )
 #define iMOAB_GetGlobalInfo                  IMOAB_FC_WRAPPER( imoab_getglobalinfo, IMOAB_GETGLOBALINFO )
 #define iMOAB_SendMesh                       IMOAB_FC_WRAPPER( imoab_sendmesh, IMOAB_SENDMESH )
+#define iMOAB_FreeSenderBuffers              IMOAB_FC_WRAPPER( imoab_freesenderbuffers, IMOAB_FREESENDERBUFFERS )
 #define iMOAB_ReceiveMesh                    IMOAB_FC_WRAPPER( imoab_receivemesh, IMOAB_RECEIVEMESH )
 #endif /*IMOAB_PROTOS_H */

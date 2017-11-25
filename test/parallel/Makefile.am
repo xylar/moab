@@ -44,7 +44,7 @@ TESTS = pcomm_unit \
 
 if HAVE_HDF5_PARALLEL
   HDF5_TESTS = parallel_hdf5_test mhdf_parallel parallel_write_test \
-         parallel_adj parmerge_test augment_with_ghosts uref_hirec_test_parallel
+         parallel_adj parmerge_test augment_with_ghosts uref_hirec_test_parallel migrate_test
 else
   HDF5_TESTS = 
 endif
@@ -122,6 +122,7 @@ imoab_ptest_LDADD = $(LDADD) $(FCLIBS)
 imoab_ptest2_SOURCES = imoab_ptest2.cpp
 hireconst_test_parallel_SOURCES = hireconst_test_parallel.cpp
 uref_hirec_test_parallel_SOURCES = uref_hirec_test_parallel.cpp ../geomObject.cpp
+migrate_test_SOURCES = migrate_test.cpp
 
 if ENABLE_imesh
 if HAVE_HDF5_PARALLEL
@@ -170,7 +171,8 @@ MOSTLYCLEANFILES = mhdf_ll.h5m tmp0.h5m tmp1.h5m tmp2.h5m tmp3.h5m \
                    TaskMesh_n2.1.h5m \
                    testReadGhost_n2.0.h5m \
                    testReadGhost_n2.1.h5m \
-                   whole.h5m
+                   whole.h5m \
+                   recvMesh.h5m
 
 FORTDEFS = $(FCDEFS) 
 PPFCCOMPILE = $(FC) $(FORTDEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \

@@ -4,7 +4,9 @@
  */
 
 #include "moab/ParCommGraph.hpp"
-
+// we need to recompute adjacencies for merging to work
+#include "moab/Core.hpp"
+#include "AEntityFactory.hpp"
 namespace moab {
 
 ParCommGraph::ParCommGraph(MPI_Comm joincomm, MPI_Group group1, MPI_Group group2, int coid1, int coid2):
@@ -30,6 +32,8 @@ comm(joincomm), gr1(group1), gr2(group2), compid1(coid1), compid2(coid2) {
 
   if (0==rankInGroup1)rootSender=true;
   if (0==rankInGroup2)rootReceiver=true;
+
+  comm_graph = NULL;
 }
 
 ParCommGraph::~ParCommGraph() {
@@ -188,6 +192,212 @@ ErrorCode ParCommGraph::split_owned_range (int sender_rank, Range & owned, std::
 
   return MB_SUCCESS;
 }
+
+ErrorCode ParCommGraph::send_graph(MPI_Comm jcomm)
+{
+  if ( is_root_sender())
+  {
+    int ierr;
+    // will need to build a communication graph, because each sender knows now to which receiver to send data
+    // the receivers need to post receives for each sender that will send data to them
+    // will need to gather on rank 0 on the sender comm, global ranks of sender with receivers to send
+    // build communication matrix, each receiver will receive from what sender
+
+    std::vector<int> packed_recv_array;
+    ErrorCode rval = pack_receivers_graph(packed_recv_array );
+    if (MB_SUCCESS!=rval) return rval;
+
+    int size_pack_array = (int) packed_recv_array.size();
+    comm_graph = new int[size_pack_array+1];
+    comm_graph[0]=size_pack_array;
+    for (int k=0; k<size_pack_array; k++)
+      comm_graph[k+1]=packed_recv_array[k];
+    // will add 2 requests
+    /// use tag 10 to send size and tag 20 to send the packed array
+    // will allocate some send requests
+    int nsendsroot = 2*(int) sender_graph[senderTasks[0]].size() + 2; // also need to send the graph
+    sendReqs.resize(nsendsroot);
+    ierr = MPI_Isend(&comm_graph[0], 1, MPI_INT, receiver(0), 10, jcomm, &sendReqs[0]); // we have to use global communicator
+    if (ierr!=0) return MB_FAILURE;
+    ierr = MPI_Isend(&comm_graph[1], size_pack_array, MPI_INT, receiver(0), 20, jcomm, &sendReqs[1]); // we have to use global communicator
+    if (ierr!=0) return MB_FAILURE;
+  }
+  return MB_SUCCESS;
+}
+
+// pco has MOAB too get_moab()
+ErrorCode ParCommGraph::send_mesh_parts(MPI_Comm jcomm, ParallelComm * pco, Range & owned )
+{
+  std::map<int, Range> split_ranges;
+  ErrorCode rval = split_owned_range (rankInGroup1, owned, split_ranges);
+  int indexReq=0;
+  int ierr; // MPI error
+  if (is_root_sender()) indexReq = 2; // for sendReqs
+  sendReqs.resize(indexReq+2*split_ranges.size());
+  for (std::map<int, Range>::iterator it=split_ranges.begin(); it!=split_ranges.end(); it++)
+  {
+    int receiver_proc = it->first;
+    Range ents = it->second;
+
+    // add necessary vertices too
+    Range verts;
+    rval = pco->get_moab()->get_adjacencies(ents, 0, false, verts, Interface::UNION);
+    if (rval!=MB_SUCCESS) return rval;
+    ents.merge(verts);
+    ParallelComm::Buffer * buffer = new ParallelComm::Buffer(ParallelComm::INITIAL_BUFF_SIZE);
+    buffer->reset_ptr(sizeof(int));
+    rval = pco->pack_buffer(ents, false, true, false, -1, buffer);
+    if (rval!=MB_SUCCESS) return rval;
+    int size_pack = buffer->get_current_size();
+
+    // TODO there could be an issue with endian things; check !!!!!
+    // we are sending the size of the buffer first as an int!!!
+    ierr = MPI_Isend(buffer->mem_ptr, 1, MPI_INT, receiver_proc, 1, jcomm, &sendReqs[indexReq]); // we have to use global communicator
+    if (ierr!=0) return MB_FAILURE;
+    indexReq++;
+
+    ierr = MPI_Isend(buffer->mem_ptr, size_pack, MPI_CHAR, receiver_proc, 2, jcomm, &sendReqs[indexReq]); // we have to use global communicator
+    if (ierr!=0) return MB_FAILURE;
+    indexReq++;
+    localSendBuffs.push_back(buffer);
+
+  }
+  return MB_SUCCESS;
+}
+// this is called on receiver side
+ErrorCode ParCommGraph::receive_comm_graph(MPI_Comm jcomm, ParallelComm *pco, std::vector<int> & pack_array)
+{
+  // first, receive from sender_rank 0, the communication graph (matrix), so each receiver
+  // knows what data to expect
+  MPI_Comm receive = pco->comm();
+  int size_pack_array, ierr;
+  MPI_Status status;
+  if (rootReceiver)
+  {
+    ierr = MPI_Recv (&size_pack_array, 1, MPI_INT, sender(0), 10, jcomm, &status);
+    if (0!=ierr) return MB_FAILURE;
+#ifdef VERBOSE
+    std::cout <<" receive comm graph size: " << size_pack_array << "\n";
+#endif
+    pack_array.resize (size_pack_array);
+    ierr = MPI_Recv (&pack_array[0], size_pack_array, MPI_INT, sender(0), 20, jcomm, &status);
+    if (0!=ierr) return MB_FAILURE;
+#ifdef VERBOSE
+    std::cout <<" receive comm graph " ;
+    for (int k=0; k<(int)pack_array.size(); k++)
+      std::cout << " " << pack_array[k];
+    std::cout <<"\n";
+#endif
+  }
+
+  // now broadcast this whole array to all receivers, so they know what to expect
+  ierr = MPI_Bcast(&size_pack_array, 1, MPI_INT, 0, receive);
+  if (0!=ierr) return MB_FAILURE;
+  pack_array.resize(size_pack_array);
+  ierr = MPI_Bcast(&pack_array[0], size_pack_array, MPI_INT, 0, receive);
+  if (0!=ierr) return MB_FAILURE;
+  return MB_SUCCESS;
+}
+ErrorCode ParCommGraph::receive_mesh(MPI_Comm jcomm, ParallelComm *pco, EntityHandle local_set, std::vector<int> &senders_local)
+{
+  ErrorCode rval;
+  int ierr;
+  MPI_Status status;
+  Range newEnts;
+  if (!senders_local.empty())
+  {
+    for (size_t k=0; k< senders_local.size(); k++)
+    {
+      int sender1 = senders_local[k]; // first receive the size of the buffer
+
+      int size_pack;
+      ierr = MPI_Recv (&size_pack, 1, MPI_INT, sender1, 1, jcomm, &status);
+      if (0!=ierr) return MB_FAILURE;
+      // now resize the buffer, then receive it
+      ParallelComm::Buffer * buffer = new ParallelComm::Buffer(size_pack);
+      //buffer->reserve(size_pack);
+
+      ierr = MPI_Recv (buffer->mem_ptr, size_pack, MPI_CHAR, sender1, 2, jcomm, &status);
+      if (0!=ierr) return MB_FAILURE;
+      // now unpack the buffer we just received
+      Range entities;
+      std::vector<std::vector<EntityHandle> > L1hloc, L1hrem;
+      std::vector<std::vector<int> > L1p;
+      std::vector<EntityHandle> L2hloc, L2hrem;
+      std::vector<unsigned int> L2p;
+
+      buffer->reset_ptr(sizeof(int));
+      std::vector<EntityHandle> entities_vec(entities.size());
+      std::copy(entities.begin(), entities.end(), entities_vec.begin());
+      rval = pco->unpack_buffer(buffer->buff_ptr, false, -1, -1, L1hloc, L1hrem, L1p, L2hloc,
+                                  L2hrem, L2p, entities_vec);
+      delete buffer;
+      if (MB_SUCCESS!= rval) return rval;
+
+      std::copy(entities_vec.begin(), entities_vec.end(), range_inserter(entities));
+      // we have to add them to the local set
+      rval = pco->get_moab()->add_entities(local_set, entities);
+      if (MB_SUCCESS!= rval) return rval;
+      newEnts.merge(entities);
+
+#ifdef VERBOSE
+      std::ostringstream partial_outFile;
+
+      partial_outFile <<"part_send_" <<sender1<<"."<< "recv"<< rankInJoin <<".vtk";
+
+        // the mesh contains ghosts too, but they are not part of mat/neumann set
+        // write in serial the file, to see what tags are missing
+      std::cout<< " writing from receiver " << rankInJoin << " from sender " <<  sender1 << " entities: " << entities.size() << std::endl;
+      rval = pco->get_moab()->write_file(partial_outFile.str().c_str(), 0, 0, &local_set, 1); // everything on local set received
+      if (MB_SUCCESS!= rval) return rval;
+#endif
+    }
+
+  }
+  // make sure adjacencies are updated on the new elements
+
+  // in order for the merging to work, we need to be sure that the adjacencies are updated (created)
+  Range local_verts = newEnts.subset_by_type(MBVERTEX);
+  newEnts = subtract(newEnts, local_verts);
+  Core * mb = (Core*)pco->get_moab();
+  AEntityFactory* adj_fact = mb->a_entity_factory();
+  if (!adj_fact->vert_elem_adjacencies())
+    adj_fact->create_vert_elem_adjacencies();
+  else
+  {
+    for (Range::iterator it=newEnts.begin(); it!=newEnts.end(); it++)
+    {
+      EntityHandle eh = *it;
+      const EntityHandle * conn = NULL;
+      int num_nodes=0;
+      rval = mb->get_connectivity(eh, conn, num_nodes);
+      if (MB_SUCCESS!= rval) return rval;
+      adj_fact->notify_create_entity(eh, conn, num_nodes);
+    }
+  }
+
+  return MB_SUCCESS;
+}
+ErrorCode ParCommGraph::release_send_buffers(MPI_Comm jcomm)
+{
+
+  int ierr, nsize = (int)sendReqs.size();
+  std::vector<MPI_Status> mult_status;
+  mult_status.resize(sendReqs.size());
+  ierr = MPI_Waitall(nsize, &sendReqs[0], &mult_status[0]);
+
+  if (ierr!=0)
+    return MB_FAILURE;
+  // now we can free all buffers
+  delete [] comm_graph;
+  comm_graph = NULL;
+  std::vector<ParallelComm::Buffer*>::iterator vit;
+  for (vit = localSendBuffs.begin(); vit != localSendBuffs.end(); ++vit)
+    delete (*vit);
+  localSendBuffs.clear();
+  return MB_SUCCESS;
+}
+
 ErrorCode ParCommGraph::distribute_sender_graph_info(MPI_Comm senderComm, std::vector<int> &sendingInfo )
 {
   // only the root of the sender has all info

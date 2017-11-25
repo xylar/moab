@@ -25,8 +25,8 @@ SharedSetData::SharedSetData(Interface& moab, unsigned rank)
   zero.sharingProcs = NULL;
   ErrorCode rval = mb.tag_get_handle( "__sharedSetTag", sizeof(SharedSetTagData), MB_TYPE_OPAQUE,
                                       sharedSetTag, MB_TAG_CREAT|MB_TAG_SPARSE, &zero );
-  assert(MB_SUCCESS == rval);
-  if (MB_SUCCESS != rval) {
+  assert(MB_SUCCESS == rval || MB_ALREADY_ALLOCATED == rval);
+  if (MB_SUCCESS != rval && MB_ALREADY_ALLOCATED != rval) {
     fprintf(stderr, "Aborted from the constructor of SharedSetData.\n");
     abort();
   }

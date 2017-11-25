@@ -9,16 +9,19 @@ program MigrateMesh
 #  error "enable parallel build"
 #endif
 
+!#define NONOVERLAP
 
     ! init the parallel partition
-    integer ierr, sz, rank, color, new_rank
+    integer ierr, sz, rank, i
     integer  newComm
-    integer comm1, comm2
-    integer pid !  this is for physics id
+    integer gcomm, comm1, comm2
+    integer pid1, pid2 !  this is for physics ids
     integer compid1, compid2  !  component ids are unique over all pes, and established in
                               !  advance;
     integer nghlay ! number of ghost layers for loading
-    integer gr1(2)   !  2 processes in the first group
+    integer groupTasks(9)   !   run on at most 9 processes
+    integer startG1, startG2, endG1, endG2    !   start and end for group tasks, for creation
+    integer sizeG1, sizeG2           !   size of the group that gets created
     character*10 appname
     character*132 readopts
     character*132 filename
@@ -28,108 +31,136 @@ program MigrateMesh
     integer tagcomm1, tagcomm2
     integer iMOAB_InitializeFortran, iMOAB_RegisterFortranApplication
     integer iMOAB_LoadMesh, iMOAB_SendMesh, iMOAB_ReceiveMesh, iMOAB_WriteMesh
+    integer iMOAB_FreeSenderBuffers
     integer iMOAB_DeregisterApplication, iMOAB_Finalize
 
-
     call MPI_INIT(ierr)
-    call MPI_COMM_SIZE(MPI_COMM_WORLD, sz, ierr)
-    call MPI_COMM_RANK(MPI_COMM_WORLD, rank, ierr)
+    call MPI_Comm_dup(MPI_COMM_WORLD, gcomm, ierr)
+    call MPI_COMM_SIZE(gcomm, sz, ierr)
+    call MPI_COMM_RANK(gcomm, rank, ierr)
     if (rank .eq. 0) print *, "size:", sz
     call errorout(ierr, 'cannot get rank' )
-    if (sz <= 3) then
-      print *, " run on at least 4 processes "
+    if ( (0 .eq. rank) .and. (sz < 2) .and. (sz>9) ) then
+      print *, "size is " , sz, ". run on at least 2 processes and at most 9 "
       call exit(1)
     endif
-    ! split the communicator in 2
-    ! the mesh will be read on first n-2 tasks, and migrated on the last 2 tasks
+    ! create 2 overlapping groups, for generality
+    ! create communicators for each group; 
+    ! one group will represent the sender, the other group the receiver
+    ! about one third of tasks will be on group 1 only,  and one fourth will be on group 2 only
+    !  about (1-1./3 -1./4) will be overlapping, these tasks will be common to both groups
+    ! the mesh will be read on the sender comm, will be sent to receiver comm 
 
-    ! create new MPI groups for processors sz-2, sz-1 (group 1) and 0, 1, .., sz-3 (group 2)
+    ! create new MPI groups for processors 1/3*sz, 1/3*sz+1, ..., sz-1 (group 1) and 0, 1, .., 3/4*sz-1 (group 2)
+    
 
-    call MPI_COMM_GROUP (MPI_COMM_WORLD, allgroup, ierr)
-    call errorout(ierr, 'cannot get group' )
-    gr1(1) = sz-2
-    gr1(2) = sz-1
+    call MPI_COMM_GROUP (gcomm, allgroup, ierr)
+    call errorout(ierr, 'cannot get world group' )
+    ! first group, sz/3 to sz-1
+    startG1 = sz/2
+    endG1 = sz-1
+    sizeG1 = endG1 - startG1 + 1
+    
+    do i=1, sizeG1
+      groupTasks (i) = startG1+i-1
+    end do 
+
+    call MPI_Group_incl(allgroup, sizeG1, groupTasks, group1, ierr)
+    call errorout(ierr, 'cannot create group 1' )
+
+    ! second group, 0, 1, 3/4*sz
+    startG2 = 0
+    endG2 = 3*sz/4 -1
+#ifdef NONOVERLAP
+    endG2 = startG1-1
+#endif
+    sizeG2 = endG2 - startG2 + 1
+    do i=1, sizeG2
+      groupTasks(i) = startG2+i-1
+    enddo 
+    
+    call MPI_Group_incl(allgroup, sizeG2, groupTasks, group2, ierr)
+    call errorout(ierr, 'cannot create group 2' )
+
+    if ( (0 .eq. rank) ) then
+      print *, "group 1 tasks: ", (i, i=startG1, endG1)
+      print *, "group 2 tasks: ", (i, i=startG2, endG2)
+    endif
+    ! now create both communicators
+    !  when we are not on tasks in the communicator, the MPI_Comm created will be null
+    tagcomm1 = 1
+    call MPI_Comm_create_group(gcomm, group1, tagcomm1, comm1, ierr)
+    call errorout(ierr, 'cannot create communicator 1' )
+
+    tagcomm2 = 2
+    call MPI_Comm_create_group(gcomm, group2, tagcomm2, comm2, ierr)
+    call errorout(ierr, 'cannot create communicator 2' )
+
+
+    ierr = iMOAB_InitializeFortran()
+
     ! give some dummy values to component ids, just to differentiate between them
     ! the par comm graph is unique between components
     compid1 = 4
     compid2 = 7
-
-    call MPI_Group_incl(allgroup, 2, gr1, group1, ierr)
-    call errorout(ierr, 'cannot create group 1' )
-
-    call MPI_Group_excl(allgroup, 2, gr1, group2, ierr)
-    call errorout(ierr, 'cannot create group 2' )
-
-    tagcomm1 = 1
-    call MPI_Comm_create_group(MPI_COMM_WORLD, group1, tagcomm1, comm1, ierr)
-    call errorout(ierr, 'cannot create communicator 1' )
-
-    tagcomm2 = 2
-    call MPI_Comm_create_group(MPI_COMM_WORLD, group2, tagcomm2, comm2, ierr)
-    call errorout(ierr, 'cannot create communicator 2' )
-
-!    if (rank < sz-2) then
-!      color = 0
-!    else
-!      color = 1
-!    endif
-
-!    call MPI_Comm_split ( MPI_COMM_WORLD, color, rank, newComm, ierr )
-!    !    print *, "rank, color :", rank, color, " ierr:", ierr
-!    call errorout(ierr, 'did not split communicators' )
-!
-!    call MPI_COMM_RANK(newComm, new_rank, ierr)
-!    call errorout(ierr, 'did not get local rank' )
-!
-!    if (new_rank == 0) print *, "global rank ", rank, " of ", sz, " color ", color, " new rank :" , new_rank
-
-    ierr = iMOAB_InitializeFortran()
     call errorout(ierr, 'did not initialize fortran' )
-    if (rank == 0) print *, "initialize fortran"
+    if (rank == 0) print *, "initialize iMOAB fortran applications"
 
-    if (rank >= sz-2) then
-       appname='phis2'//CHAR(0)
-       ierr = iMOAB_RegisterFortranApplication(trim(appname), comm1, compid1, pid)
-       print *, ' register ', appname, " on rank ", rank, " pid ", pid
-    else
-       appname = 'phis1'//CHAR(0)
-       ierr = iMOAB_RegisterFortranApplication(trim(appname), comm2, compid2, pid)
-       print *, ' register ', appname, " on rank ", rank, " pid ", pid
+    if (comm1 /= MPI_COMM_NULL) then
+       appname='phis1'//CHAR(0)
+       ierr = iMOAB_RegisterFortranApplication(trim(appname), comm1, compid1, pid1)
+       print *, ' register ', appname, " on rank ", rank, " pid1 ", pid1
     endif
+    if (comm2 /= MPI_COMM_NULL) then
+       appname = 'phis2'//CHAR(0)
+       ierr = iMOAB_RegisterFortranApplication(trim(appname), comm2, compid2, pid2)
+       print *, ' register ', appname, " on rank ", rank, " pid2 ", pid2
+    endif
+    
 
-
-    if (rank >= sz-2) then
+    if (comm1 /= MPI_COMM_NULL) then
        filename = 'spherecube.h5m'//CHAR(0)
        readopts = 'PARALLEL=READ_PART;PARTITION=PARALLEL_PARTITION;PARALLEL_RESOLVE_SHARED_ENTS'//CHAR(0)
        if (rank .eq. sz-2 ) print *, "loading " , trim(filename) , " with options " , trim(readopts)
        nghlay = 0
 
-       ierr = iMOAB_LoadMesh(pid, trim(filename), trim(readopts), nghlay)
-       if (rank .eq. sz-2 ) print *, "loaded in parallel ", trim(filename), " error: ", ierr
-       ierr = iMOAB_SendMesh(pid, MPI_COMM_WORLD, group2, compid2); ! send to component 2
+       ierr = iMOAB_LoadMesh(pid1, trim(filename), trim(readopts), nghlay)
+       if (rank .eq. sz-1 ) print *, "loaded in parallel ", trim(filename), " error: ", ierr
+       ierr = iMOAB_SendMesh(pid1, gcomm, group2, compid2); ! send to component 2
        call errorout(ierr, 'cannot send elements' )
-    else
-       ierr = iMOAB_ReceiveMesh(pid, MPI_COMM_WORLD, group1, compid1); ! receive from component 1
+    endif
+
+    if (comm2 /= MPI_COMM_NULL) then
+       ierr = iMOAB_ReceiveMesh(pid2, gcomm, group1, compid1); ! receive from component 1
        call errorout(ierr, 'cannot receive elements' )
        outfile = 'receivedMesh.h5m'//CHAR(0)
-       wopts   = 'PARALLEL=WRITE_PART'//CHAR(0)
+       wopts   = 'PARALLEL=WRITE_PART;'//CHAR(0)
+       print *, "from ", rank, wopts, outfile
 !      write out the mesh file to disk
-       ierr = iMOAB_WriteMesh(pid, trim(outfile), trim(wopts))
+       ierr = iMOAB_WriteMesh(pid2, trim(outfile), trim(wopts))
        call errorout(ierr, 'cannot write received mesh' )
     endif
 
- ! it will work for disjoint pes only
+    call MPI_Barrier(gcomm, ierr)
+    call errorout(ierr, 'cannot stop at barrier' )
+
+    ! we can now free the sender buffers
     if (comm1 /= MPI_COMM_NULL) then
-       ierr = iMOAB_DeregisterApplication(pid)
-         call errorout(ierr, 'cannot deregister app' )
+       ierr = iMOAB_FreeSenderBuffers(pid1, gcomm, compid2)
+    endif
+
+    if (comm1 /= MPI_COMM_NULL) then
+       ierr = iMOAB_DeregisterApplication(pid1)
+         call errorout(ierr, 'cannot deregister app 1 sender' )
     endif
     if (comm2 /= MPI_COMM_NULL) then
-       ierr = iMOAB_DeregisterApplication(pid)
-       call errorout(ierr, 'cannot deregister app' )
+       ierr = iMOAB_DeregisterApplication(pid2)
+       call errorout(ierr, 'cannot deregister app 2 receiver' )
     endif
 
     ierr = iMOAB_Finalize()
     call errorout(ierr, 'did not finalize iMOAB' )
+
     if (MPI_COMM_NULL /= comm1) call MPI_Comm_free(comm1, ierr)
     call errorout(ierr, 'did not free comm1' )
 
@@ -139,7 +170,7 @@ program MigrateMesh
     call MPI_Group_free(allgroup, ierr)
     call MPI_Group_free(group1, ierr)
     call MPI_Group_free(group2, ierr)
-
+    call MPI_Comm_free(gcomm, ierr)
 
     call MPI_Finalize(ierr)
     call errorout(ierr, 'did not finalize MPI' )
