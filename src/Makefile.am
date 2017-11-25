@@ -361,28 +361,25 @@ moabparallelinclude_HEADERS = \
 AM_CPPFLAGS += -I$(srcdir)/parallel
 
 if HAVE_HYPRE
-  AM_CPPFLAGS += $(HYPRE_INCLUDES)
-  AM_LDFLAGS += $(HYPRE_LIBS)
 
-  MOAB_HYPRE_SRCS = \
-     HYPRE/HypreParVector.cpp  \
-     HYPRE/hypre_parcsr.cpp \
-     HYPRE/HypreParMatrix.cpp \
-     HYPRE/HypreSolver.cpp
-  libMOAB_la_SOURCES += $(MOAB_HYPRE_SRCS)
-
-  moabhypreincludedir = $(includedir)/moab/HYPRE
-  moabhypreinclude_HEADERS = \
-     HYPRE/moab/HypreParVector.hpp \
-     HYPRE/moab/hypre_parcsr.hpp \
-     HYPRE/moab/HypreParMatrix.hpp \
-     HYPRE/moab/HypreSolver.hpp
-
-AM_CPPFLAGS += -I$(srcdir)/HYPRE/moab
+AM_CPPFLAGS += $(HYPRE_INCLUDES) -I$(srcdir)/HYPRE/moab
 AM_LDFLAGS += $(HYPRE_LIBS)
 
-endif # if HAVE_HYPRE
+MOAB_HYPRE_SRCS = \
+		HYPRE/HypreParVector.cpp  \
+		HYPRE/hypre_parcsr.cpp \
+		HYPRE/HypreParMatrix.cpp \
+		HYPRE/HypreSolver.cpp
+libMOAB_la_SOURCES += $(MOAB_HYPRE_SRCS)
 
+moabhypreincludedir = $(includedir)/moab/HYPRE
+moabhypreinclude_HEADERS = \
+		HYPRE/moab/HypreParVector.hpp \
+		HYPRE/moab/hypre_parcsr.hpp \
+		HYPRE/moab/HypreParMatrix.hpp \
+		HYPRE/moab/HypreSolver.hpp
+
+endif # if HAVE_HYPRE
 
 EXTRA_DIST += parallel/CMakeLists.txt
 

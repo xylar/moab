@@ -600,7 +600,7 @@ enablehypre=no
 if (test "x$enablempi" != "xno" && test "x$enableeigen" != "xno"); then
   CONFIGURE_HYPRE
 fi
-AM_CONDITIONAL(HAVE_HYPRE, [test "x$enablehypre"!="xno"])
+AM_CONDITIONAL(HAVE_HYPRE, [test "xno" != "x$enablehypre"])
 
 ################################################################################
 #                              HDF5 OPTIONS

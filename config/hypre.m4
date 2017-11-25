@@ -29,11 +29,9 @@ AC_DEFUN([CONFIGURE_HYPRE],[
     AC_MSG_RESULT([no])
     # Reset the directory since we do not want to configure HYPRE
     HYPRE_DIR=""
+    enablehypre=no
   fi
 
-  # VERSIONS: 2.13.0, 2.11.2, 2.10.1
-  m4_pushdef([HYPRE_DOWNLOAD_VERSION],[2.13.0])dnl
- 
   # Supported Hypre versions: 2.13.0, 2.11.2, 2.10.1
   # Arguments: 1) Default Version Number, 2) Download by default ?
   AUSCM_CONFIGURE_DOWNLOAD_HYPRE([2.13.0],[no])
@@ -51,7 +49,8 @@ AC_DEFUN([CONFIGURE_HYPRE],[
     PREFIX_PRINT([Verifying libHYPRE in -L$HYPRE_DIR/lib...])
     AC_CHECK_LIB([HYPRE],[main],
         [MOAB_LDFLAGS="$MOAB_LDFLAGS -L$HYPRE_DIR/lib"
-        MOAB_LIBS="$HYPRE_LIBS $MOAB_LIBS"],
+        MOAB_LIBS="$HYPRE_LIBS $MOAB_LIBS"
+        enablehypre=yes],
         [enablehypre=no],
         [$MOAB_LIBS]
       )
