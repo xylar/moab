@@ -61,6 +61,7 @@ IMESH_LIBS = $(IMESH_LDFLAGS) -L$(MOAB_LIBDIR) \
              @DAMSEL_LIBS@ @CCMIO_LIBS@ \
              @CGM_LDFLAGS@ @CGM_LIBS@ \
              @ZOLTAN_LIBS@ @PARMETIS_LIBS@ @METIS_LIBS@ \
+             @HYPRE_LIBS@ @LAPACK_LIBS@ @BLAS_LIBS@  \
              @FCLIBS@ @LIBS@
 
 IMESH_INCLUDEDIR = @abs_srcdir@
