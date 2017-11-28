@@ -497,7 +497,6 @@ ErrCode iMOAB_LoadMesh ( iMOAB_AppID pid, const iMOAB_String filename, const iMO
         return 1;
     }
 
-    // int rank = context.pcomms[*pid]->rank();
     int nprocs = context.pcomms[*pid]->size();
 
     if (nprocs > 1) {
@@ -522,6 +521,7 @@ ErrCode iMOAB_LoadMesh ( iMOAB_AppID pid, const iMOAB_String filename, const iMO
     // some debugging stuff
     std::ostringstream outfile;
 #ifdef MOAB_HAVE_MPI
+    int rank = context.pcomms[*pid]->rank();
     outfile << "TaskMesh_n" << nprocs << "." << rank << ".h5m";
 #else
     outfile << "TaskMesh_n1.0.h5m";
@@ -1953,6 +1953,7 @@ ErrCode iMOAB_ComputeMeshIntersectionOnSphere ( iMOAB_AppID pid_src, iMOAB_AppID
 		rval = context.MBI->get_entities_by_dimension ( data_src.file_set, 2, rintxelems );CHKERRVAL(rval);
 		rval = fix_degenerate_quads ( context.MBI, data_src.file_set );CHKERRVAL(rval);
 		rval = positive_orientation ( context.MBI, data_src.file_set, radius );CHKERRVAL(rval);
+		ErrCode ierr = iMOAB_UpdateMeshInfo(pid_src); CHKIERRVAL(ierr);
 #ifdef VERBOSE
  		std::cout << "The red set contains " << rintxverts.size() << " vertices and " << rintxelems.size() << " elements \n";
 #endif
@@ -1962,7 +1963,8 @@ ErrCode iMOAB_ComputeMeshIntersectionOnSphere ( iMOAB_AppID pid_src, iMOAB_AppID
 		rval = context.MBI->get_entities_by_dimension ( data_tgt.file_set, 2, bintxelems );CHKERRVAL(rval);
 		rval = fix_degenerate_quads ( context.MBI, data_tgt.file_set );CHKERRVAL(rval);
 		rval = positive_orientation ( context.MBI, data_tgt.file_set, radius );CHKERRVAL(rval);
-#ifdef VERBOSE
+		ierr = iMOAB_UpdateMeshInfo(pid_tgt); CHKIERRVAL(ierr);
+		#ifdef VERBOSE
  		std::cout << "The blue set contains " << bintxverts.size() << " vertices and " << bintxelems.size() << " elements \n";
 #endif
 	}

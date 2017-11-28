@@ -1221,30 +1221,31 @@ ErrorCode create_span_quads(Interface * mb, EntityHandle euler_set, int rank) {
 // then delete the old quad
 ErrorCode fix_degenerate_quads(Interface * mb, EntityHandle set) {
   Range quads;
-  ErrorCode rval = mb->get_entities_by_type(set, MBQUAD, quads);
-  if (MB_SUCCESS != rval)
-    return rval;
+  ErrorCode rval = mb->get_entities_by_type(set, MBQUAD, quads); MB_CHK_ERR(rval);
+  Tag gid;
+  rval = mb->tag_get_handle(GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, gid,
+        MB_TAG_DENSE); MB_CHK_ERR(rval);
   for (Range::iterator qit = quads.begin(); qit != quads.end(); ++qit) {
     EntityHandle quad = *qit;
     const EntityHandle * conn4 = NULL;
     int num_nodes = 0;
-    rval = mb->get_connectivity(quad, conn4, num_nodes);
-    if (MB_SUCCESS != rval)
-      return rval;
+    rval = mb->get_connectivity(quad, conn4, num_nodes); MB_CHK_ERR(rval);
     for (int i = 0; i < num_nodes; i++) {
       int next_node_index = (i + 1) % num_nodes;
       if (conn4[i] == conn4[next_node_index]) {
         // form a triangle and delete the quad
+        // first get the global id, to set it on triangle later
+        int global_id=0;
+        rval = mb->tag_get_data(gid, &quad, 1, &global_id); MB_CHK_ERR(rval);
         int i2 = (i + 2) % num_nodes;
         int i3 = (i + 3) % num_nodes;
         EntityHandle conn3[3] = { conn4[i], conn4[i2], conn4[i3] };
         EntityHandle tri;
-        rval = mb->create_element(MBTRI, conn3, 3, tri);
-        if (MB_SUCCESS != rval)
-          return rval;
+        rval = mb->create_element(MBTRI, conn3, 3, tri); MB_CHK_ERR(rval);
         mb->add_entities(set, &tri, 1);
         mb->remove_entities(set, &quad, 1);
         mb->delete_entities(&quad, 1);
+        rval = mb->tag_set_data(gid, &tri, 1, &global_id); MB_CHK_ERR(rval);
       }
     }
   }
