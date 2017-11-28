@@ -303,6 +303,10 @@ ErrCode iMOAB_DeregisterApplication ( iMOAB_AppID pid )
     rval = context.MBI->get_entities_by_type ( fileSet, MBENTITYSET, fileents ); // append all mesh sets
 	CHKERRVAL(rval);
 
+#ifdef MOAB_HAVE_TEMPESTREMAP
+  if (context.appDatas[*pid].remapper) delete context.appDatas[*pid].remapper;
+#endif
+
 #ifdef MOAB_HAVE_MPI
     ParallelComm* pco = context.pcomms[*pid];
     // we could get the pco also with
@@ -363,10 +367,6 @@ ErrCode iMOAB_DeregisterApplication ( iMOAB_AppID pid )
     }
 
     context.appIdCompMap.erase ( mit1 );
-
-#ifdef MOAB_HAVE_TEMPESTREMAP
-	if (context.appDatas[*pid].remapper) delete context.appDatas[*pid].remapper;
-#endif
 
     context.unused_pid--;
     context.appDatas.pop_back();

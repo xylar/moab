@@ -479,8 +479,8 @@ ErrorCode TempestRemapper::ConvertMOABMesh_WithSortedEntitiesBySource()
 
       // compute the number of edges per faces
     moab::Range face_edges_exist, face_edges_all, face_edges_noexist;
-    rval = m_interface->get_adjacencies ( &m_overlap_entities[0], m_overlap_entities.size(), 1, false, face_edges_exist ); MB_CHK_ERR ( rval );
-    rval = m_interface->get_adjacencies ( &m_overlap_entities[0], m_overlap_entities.size(), 1, true, face_edges_all ); MB_CHK_ERR ( rval );
+    rval = m_interface->get_adjacencies ( m_overlap_entities, 1, false, face_edges_exist, moab::Interface::UNION); MB_CHK_ERR ( rval );
+    rval = m_interface->get_adjacencies ( m_overlap_entities, 1, true, face_edges_all, moab::Interface::UNION); MB_CHK_ERR ( rval );
     face_edges_noexist = subtract(face_edges_all, face_edges_exist);
 
     for ( unsigned ifac = 0; ifac < m_overlap_entities.size(); ++ifac )
