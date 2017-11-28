@@ -320,8 +320,13 @@ ErrCode iMOAB_DeregisterApplication ( iMOAB_AppID pid )
     Range vertices = fileents.subset_by_type ( MBVERTEX );
     Range noverts = subtract ( fileents, vertices );
 
+	printf("deleting entities\n");
     rval = context.MBI->delete_entities ( noverts );CHKERRVAL(rval);
-    rval = context.MBI->delete_entities ( vertices );CHKERRVAL(rval);
+    printf("deleted vertices: %lu\n", vertices.size());
+    rval = context.MBI->delete_entities ( vertices );
+    printf("context.MBI->delete_entities ( vertices ): %d\n",rval);
+    CHKERRVAL(rval);
+    printf("deleting entities success\n");
 
     std::map<std::string, int>::iterator mit;
 
@@ -349,6 +354,10 @@ ErrCode iMOAB_DeregisterApplication ( iMOAB_AppID pid )
     }
 
     context.appIdCompMap.erase ( mit1 );
+
+#ifdef MOAB_HAVE_TEMPESTREMAP
+	if (context.appDatas[*pid].remapper) delete context.appDatas[*pid].remapper;
+#endif
 
     context.unused_pid--;
     context.appDatas.pop_back();
@@ -1973,10 +1982,14 @@ ErrCode iMOAB_ComputeMeshIntersectionOnSphere ( iMOAB_AppID pid_src, iMOAB_AppID
     data_intx.remapper->GetMeshSet ( moab::Remapper::TargetMesh ) = data_tgt.file_set;
     data_intx.remapper->GetMeshSet ( moab::Remapper::IntersectedMesh ) = data_intx.file_set;
 
-#if 0
+#if 1
+
+    rval = data_intx.remapper->ConvertMeshToTempest ( moab::Remapper::SourceMesh );CHKERRVAL(rval);
+    rval = data_intx.remapper->ConvertMeshToTempest ( moab::Remapper::TargetMesh );CHKERRVAL(rval);
 
 	// Compute intersections with MOAB
 	rval = data_intx.remapper->ComputeOverlapMesh ( epsrel, radius, boxeps, false );CHKERRVAL(rval);
+    // rval = data_intx.remapper->ConvertMeshToTempest ( moab::Remapper::IntersectedMesh );CHKERRVAL(rval);
 
 #else    
     // Create the intersection object on the sphere between two meshes
@@ -2030,14 +2043,10 @@ ErrCode iMOAB_ComputeScalarProjectionWeights ( iMOAB_AppID pid_intx,
 	// Now allocate and initialize the remapper object
     moab::TempestRemapper* remapper = data_intx.remapper;
 
-	Mesh* tempestIntx;
 	{
 		// Now let us re-convert the MOAB mesh back to Tempest representation
-		// rval = remapper.ConvertMeshToTempest(moab::Remapper::IntersectedMesh);MB_CHK_ERR(rval);
 		rval = remapper->AssociateSrcTargetInOverlap();CHKERRVAL(rval);
 		rval = remapper->ConvertMOABMesh_WithSortedEntitiesBySource();CHKERRVAL(rval);
-
-		tempestIntx = remapper->GetMesh ( moab::Remapper::IntersectedMesh );
 	}
 
 	// setup computation of weights
