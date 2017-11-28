@@ -556,6 +556,10 @@ namespace Element {
            ( xi[2]>=-tol)  && ( xi[2] <= tol) &&
            ( xi[0]+xi[1] < 1.0+tol) ;
      }
+    CartVect LinearTri::ievaluate(const CartVect& x, double /*tol*/, const CartVect& /*x0*/) const
+    {
+      return this->T_inverse*(x-this->vertex[0]);
+    }// LinearTri::ievaluate
 
    double LinearTri::evaluate_scalar_field(const CartVect& xi, const double *field_vertex_value) const {
      double f0 = field_vertex_value[0];
@@ -612,7 +616,7 @@ namespace Element {
      LinearTri::set_vertices(vertex);
    }
 
-  CartVect SphericalTri::ievaluate( const CartVect& x, double tol, const CartVect& x0) const
+  CartVect SphericalTri::ievaluate( const CartVect& x, double /*tol*/, const CartVect& /*x0*/) const
   {
     // project to the plane tangent at first vertex (gnomonic projection)
     double v1v1= v1%v1;
@@ -957,6 +961,11 @@ namespace Element {
     return f;
   }// LinearTet::evaluate_scalar_field()
 
+  CartVect LinearTet::ievaluate(const CartVect& x, double /*tol*/, const CartVect& /*x0*/) const
+  {
+    return this->T_inverse*(x-this->vertex[0]);
+  }// LinearTet::ievaluate
+
   double LinearTet::integrate_scalar_field(const double *field_vertex_values) const {
     double I(0.0);
     for(unsigned int i = 0; i < 4; ++i) {
@@ -1064,17 +1073,18 @@ namespace Element {
     return result;
   }
   // replicate the functionality of hex_findpt
-  CartVect SpectralHex::ievaluate(double abs_eps, CartVect const & xyz) const
+  CartVect SpectralHex::ievaluate(CartVect const & xyz, double tol, const CartVect& x0) const
   {
     //find nearest point
     realType x_star[3];
     xyz.get(x_star);
 
     realType r[3] = {0, 0, 0 }; // initial guess for parametric coords
+    x0.get(r);
     unsigned c = opt_no_constraints_3;
     realType dist = opt_findpt_3(&_data, (const realType **)_xyz, x_star, r, &c);
     // if it did not converge, get out with throw...
-    if (dist > 10*abs_eps) // outside the element
+    if (dist > 10*tol) // outside the element
     {
       std::vector<CartVect> dummy;
       throw Map::EvaluationError(xyz, dummy);
@@ -1353,7 +1363,7 @@ namespace Element {
     return result;
   }
   // replicate the functionality of hex_findpt
-  CartVect SpectralQuad::ievaluate(CartVect const & xyz) const
+  CartVect SpectralQuad::ievaluate(CartVect const & xyz, double /*tol*/, const CartVect& /*x0*/) const
   {
     //find nearest point
     realType x_star[3];

@@ -395,7 +395,7 @@ ErrorCode TempestRemapper::ConvertMOABMeshToTempest_Private ( Mesh* mesh, Entity
     coordz.clear();
     verts.clear();
 
-    // mesh->RemoveZeroEdges();
+    mesh->RemoveZeroEdges();
     mesh->RemoveCoincidentNodes();
 
     // Generate reverse node array and edge map
@@ -452,6 +452,7 @@ ErrorCode TempestRemapper::ConvertMOABMesh_WithSortedEntitiesBySource()
         {
             m_overlap->vecSourceFaceIx[ie] = gid_to_lid_covsrc[rbids_src[sorted_overlap_order[ie].second]];
             m_overlap->vecTargetFaceIx[ie] = gid_to_lid_tgt[rbids_tgt[sorted_overlap_order[ie].second]];
+            if ( !m_pcomm->rank() ) printf ( "Element %i :: Src: [%i], Tgt: [%i]\n", ie, m_overlap->vecSourceFaceIx[ie], m_overlap->vecTargetFaceIx[ie] );
         }
     }
 
@@ -536,7 +537,7 @@ ErrorCode TempestRemapper::ConvertMOABMesh_WithSortedEntitiesBySource()
     if ( constructEdgeMap ) m_overlap->ConstructEdgeMap();
     m_overlap->ConstructReverseNodeArray();
 
-//     m_overlap->Validate();
+    m_overlap->Validate();
     return MB_SUCCESS;
 
 }
