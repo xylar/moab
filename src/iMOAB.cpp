@@ -320,13 +320,22 @@ ErrCode iMOAB_DeregisterApplication ( iMOAB_AppID pid )
     Range vertices = fileents.subset_by_type ( MBVERTEX );
     Range noverts = subtract ( fileents, vertices );
 
-	printf("deleting entities\n");
     rval = context.MBI->delete_entities ( noverts );CHKERRVAL(rval);
-    printf("deleted vertices: %lu\n", vertices.size());
+    // now retrieve connected elements that still exist (maybe in other sets, pids?)
+    Range adj_ents_left;
+    rval = context.MBI->get_adjacencies(vertices, 1, false, adj_ents_left, Interface::UNION); CHKERRVAL(rval);
+    rval = context.MBI->get_adjacencies(vertices, 2, false, adj_ents_left, Interface::UNION); CHKERRVAL(rval);
+    rval = context.MBI->get_adjacencies(vertices, 3, false, adj_ents_left, Interface::UNION); CHKERRVAL(rval);
+
+    if (!adj_ents_left.empty())
+    {
+      Range conn_verts;
+      rval = context.MBI->get_connectivity(adj_ents_left, conn_verts); CHKERRVAL(rval);
+      vertices = subtract(vertices, conn_verts);
+    }
+
     rval = context.MBI->delete_entities ( vertices );
-    printf("context.MBI->delete_entities ( vertices ): %d\n",rval);
     CHKERRVAL(rval);
-    printf("deleting entities success\n");
 
     std::map<std::string, int>::iterator mit;
 
