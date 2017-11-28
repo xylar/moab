@@ -57,7 +57,7 @@ TempestRemapper::~TempestRemapper()
     if ( m_source ) delete m_source;
     if ( m_target ) delete m_target;
     if ( m_overlap ) delete m_overlap;
-    if ( m_covering_source ) delete m_covering_source;
+    if ( m_covering_source && m_pcomm->size() != 1) delete m_covering_source;
 
     m_source_entities.clear();
     m_target_entities.clear();
