@@ -660,10 +660,8 @@ ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius,
         rval = mbintx->intersect_meshes ( m_covering_source_set, m_target_set, m_overlap_set ); MB_CHK_SET_ERR ( rval, "Can't compute the intersection of meshes on the sphere" );
 
         // Not needed
-        /*
-        rval = fix_degenerate_quads(m_interface, m_overlap_set);MB_CHK_ERR(rval);
-        rval = positive_orientation(m_interface, m_overlap_set, radius);MB_CHK_ERR(rval);
-        */
+        // rval = fix_degenerate_quads(m_interface, m_overlap_set);MB_CHK_ERR(rval);
+        // rval = positive_orientation(m_interface, m_overlap_set, radius);MB_CHK_ERR(rval);
 
         // free the memory
         delete mbintx;

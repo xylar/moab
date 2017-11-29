@@ -12,6 +12,7 @@
 #include "GaussLobattoQuadrature.h"
 #include "TriangularQuadrature.h"
 #include "MeshUtilitiesFuzzy.h"
+#include "MeshUtilitiesExact.h"
 #include "MathHelper.h"
 #include "SparseMatrix.h"
 #include "OverlapMesh.h"

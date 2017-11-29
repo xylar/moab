@@ -213,6 +213,7 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
         if ( !pcomm->rank() ) dbgprint.printf ( 0, "Input Mesh Geometric Area: %1.15e\n", dTotalAreaInput );
 
         // Input mesh areas
+        m_meshInputCov->CalculateFaceAreas(fInputConcave);
         if ( eInputType == DiscretizationType_FV )
         {
             this->SetSourceAreas ( m_meshInputCov->vecFaceArea );
