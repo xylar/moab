@@ -57,7 +57,7 @@ TempestRemapper::~TempestRemapper()
     if ( m_source ) delete m_source;
     if ( m_target ) delete m_target;
     if ( m_overlap ) delete m_overlap;
-    if ( m_covering_source ) delete m_covering_source;
+    if ( m_covering_source && m_pcomm->size() != 1) delete m_covering_source;
 
     m_source_entities.clear();
     m_target_entities.clear();
@@ -477,6 +477,12 @@ ErrorCode TempestRemapper::ConvertMOABMesh_WithSortedEntitiesBySource()
         }
     }
 
+      // compute the number of edges per faces
+    moab::Range face_edges_exist, face_edges_all, face_edges_noexist;
+    rval = m_interface->get_adjacencies ( m_overlap_entities, 1, false, face_edges_exist, moab::Interface::UNION); MB_CHK_ERR ( rval );
+    rval = m_interface->get_adjacencies ( m_overlap_entities, 1, true, face_edges_all, moab::Interface::UNION); MB_CHK_ERR ( rval );
+    face_edges_noexist = subtract(face_edges_all, face_edges_exist);
+
     for ( unsigned ifac = 0; ifac < m_overlap_entities.size(); ++ifac )
     {
         const unsigned iface = sorted_overlap_order[ifac].second;
@@ -485,7 +491,7 @@ ErrorCode TempestRemapper::ConvertMOABMesh_WithSortedEntitiesBySource()
 
         // compute the number of edges per faces
         std::vector< EntityHandle > face_edges;
-        rval = m_interface->get_adjacencies ( &ehandle, 1, 1, true, face_edges ); MB_CHK_ERR ( rval );
+        rval = m_interface->get_adjacencies ( &ehandle, 1, 1, false, face_edges ); MB_CHK_ERR ( rval );
         face.edges.resize ( face_edges.size() );
 
         // get the connectivity for each edge
@@ -503,6 +509,9 @@ ErrorCode TempestRemapper::ConvertMOABMesh_WithSortedEntitiesBySource()
             face.SetNode ( iverts, indx );
         }
     }
+
+    rval = m_interface->delete_entities(face_edges_noexist);MB_CHK_ERR(rval);
+    // rval = m_interface->add_entities(m_overlap_set,face_edges_noexist);MB_CHK_ERR(rval);
 
     unsigned nnodes = verts.size();
     nodes.resize ( nnodes );
@@ -660,10 +669,8 @@ ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius,
         rval = mbintx->intersect_meshes ( m_covering_source_set, m_target_set, m_overlap_set ); MB_CHK_SET_ERR ( rval, "Can't compute the intersection of meshes on the sphere" );
 
         // Not needed
-        /*
-        rval = fix_degenerate_quads(m_interface, m_overlap_set);MB_CHK_ERR(rval);
-        rval = positive_orientation(m_interface, m_overlap_set, radius);MB_CHK_ERR(rval);
-        */
+        // rval = fix_degenerate_quads(m_interface, m_overlap_set);MB_CHK_ERR(rval);
+        // rval = positive_orientation(m_interface, m_overlap_set, radius);MB_CHK_ERR(rval);
 
         // free the memory
         delete mbintx;

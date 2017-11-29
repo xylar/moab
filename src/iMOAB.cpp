@@ -303,6 +303,10 @@ ErrCode iMOAB_DeregisterApplication ( iMOAB_AppID pid )
     rval = context.MBI->get_entities_by_type ( fileSet, MBENTITYSET, fileents ); // append all mesh sets
 	CHKERRVAL(rval);
 
+#ifdef MOAB_HAVE_TEMPESTREMAP
+  if (context.appDatas[*pid].remapper) delete context.appDatas[*pid].remapper;
+#endif
+
 #ifdef MOAB_HAVE_MPI
     ParallelComm* pco = context.pcomms[*pid];
     // we could get the pco also with
@@ -320,13 +324,22 @@ ErrCode iMOAB_DeregisterApplication ( iMOAB_AppID pid )
     Range vertices = fileents.subset_by_type ( MBVERTEX );
     Range noverts = subtract ( fileents, vertices );
 
-	printf("deleting entities\n");
     rval = context.MBI->delete_entities ( noverts );CHKERRVAL(rval);
-    printf("deleted vertices: %lu\n", vertices.size());
+    // now retrieve connected elements that still exist (maybe in other sets, pids?)
+    Range adj_ents_left;
+    rval = context.MBI->get_adjacencies(vertices, 1, false, adj_ents_left, Interface::UNION); CHKERRVAL(rval);
+    rval = context.MBI->get_adjacencies(vertices, 2, false, adj_ents_left, Interface::UNION); CHKERRVAL(rval);
+    rval = context.MBI->get_adjacencies(vertices, 3, false, adj_ents_left, Interface::UNION); CHKERRVAL(rval);
+
+    if (!adj_ents_left.empty())
+    {
+      Range conn_verts;
+      rval = context.MBI->get_connectivity(adj_ents_left, conn_verts); CHKERRVAL(rval);
+      vertices = subtract(vertices, conn_verts);
+    }
+
     rval = context.MBI->delete_entities ( vertices );
-    printf("context.MBI->delete_entities ( vertices ): %d\n",rval);
     CHKERRVAL(rval);
-    printf("deleting entities success\n");
 
     std::map<std::string, int>::iterator mit;
 
@@ -354,10 +367,6 @@ ErrCode iMOAB_DeregisterApplication ( iMOAB_AppID pid )
     }
 
     context.appIdCompMap.erase ( mit1 );
-
-#ifdef MOAB_HAVE_TEMPESTREMAP
-	if (context.appDatas[*pid].remapper) delete context.appDatas[*pid].remapper;
-#endif
 
     context.unused_pid--;
     context.appDatas.pop_back();
@@ -497,7 +506,6 @@ ErrCode iMOAB_LoadMesh ( iMOAB_AppID pid, const iMOAB_String filename, const iMO
         return 1;
     }
 
-    // int rank = context.pcomms[*pid]->rank();
     int nprocs = context.pcomms[*pid]->size();
 
     if (nprocs > 1) {
@@ -522,6 +530,7 @@ ErrCode iMOAB_LoadMesh ( iMOAB_AppID pid, const iMOAB_String filename, const iMO
     // some debugging stuff
     std::ostringstream outfile;
 #ifdef MOAB_HAVE_MPI
+    int rank = context.pcomms[*pid]->rank();
     outfile << "TaskMesh_n" << nprocs << "." << rank << ".h5m";
 #else
     outfile << "TaskMesh_n1.0.h5m";
@@ -1953,6 +1962,7 @@ ErrCode iMOAB_ComputeMeshIntersectionOnSphere ( iMOAB_AppID pid_src, iMOAB_AppID
 		rval = context.MBI->get_entities_by_dimension ( data_src.file_set, 2, rintxelems );CHKERRVAL(rval);
 		rval = fix_degenerate_quads ( context.MBI, data_src.file_set );CHKERRVAL(rval);
 		rval = positive_orientation ( context.MBI, data_src.file_set, radius );CHKERRVAL(rval);
+		ErrCode ierr = iMOAB_UpdateMeshInfo(pid_src); CHKIERRVAL(ierr);
 #ifdef VERBOSE
  		std::cout << "The red set contains " << rintxverts.size() << " vertices and " << rintxelems.size() << " elements \n";
 #endif
@@ -1962,7 +1972,8 @@ ErrCode iMOAB_ComputeMeshIntersectionOnSphere ( iMOAB_AppID pid_src, iMOAB_AppID
 		rval = context.MBI->get_entities_by_dimension ( data_tgt.file_set, 2, bintxelems );CHKERRVAL(rval);
 		rval = fix_degenerate_quads ( context.MBI, data_tgt.file_set );CHKERRVAL(rval);
 		rval = positive_orientation ( context.MBI, data_tgt.file_set, radius );CHKERRVAL(rval);
-#ifdef VERBOSE
+		ierr = iMOAB_UpdateMeshInfo(pid_tgt); CHKIERRVAL(ierr);
+		#ifdef VERBOSE
  		std::cout << "The blue set contains " << bintxverts.size() << " vertices and " << bintxelems.size() << " elements \n";
 #endif
 	}
