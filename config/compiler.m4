@@ -136,8 +136,6 @@ fi
 
 FATHOM_SET_MPI_COMPILER([CC],  [$CC_LIST], [$COMPILERPATHS])
 FATHOM_SET_MPI_COMPILER([CXX],[$CXX_LIST],[$COMPILERPATHS])
-FATHOM_SET_MPI_COMPILER([F77],[$F77_LIST],[$COMPILERPATHS])
-FATHOM_SET_MPI_COMPILER([FC],  [$FC_LIST],[$COMPILERPATHS])
 
 # FATHOM_CHECK_MPI_ENABLED([compiler_supports_mpi])
 # AC_SUBST(compiler_supports_mpi)
@@ -152,8 +150,13 @@ AC_PROG_CXXCPP
 
 # Fortran support
 if (test "x$CHECK_FC" != "xno"); then
+
+  FATHOM_SET_MPI_COMPILER([F77],[$F77_LIST],[$COMPILERPATHS])
+  FATHOM_SET_MPI_COMPILER([FC],  [$FC_LIST],[$COMPILERPATHS])
+
   AC_PROG_F77
   AC_PROG_FC
+
 fi
 
 ]) # FATHOM_CHECK_COMPILERS
@@ -371,13 +374,13 @@ if (test "x$enable_static" != "xno" && test "x$MB_BLUEGENE_CONF" != "xno" && tes
   LDFLAGS="$LDFLAGS -qnostaticlink=libgcc"
 fi
 
-# Check how to create C/Fortran interfaces for MOAB
-AC_F77_MAIN
-AC_FC_MAIN
-FAC_FC_WRAPPERS
-
 # Check if we are using new Darwin kernels with Clang -- needs libc++ instead of libstdc++
 if (test "x$ENABLE_FORTRAN" != "xno" && test "x$CHECK_FC" != "xno"); then
+
+  # Check how to create C/Fortran interfaces for MOAB
+  AC_F77_MAIN
+  AC_FC_MAIN
+  FAC_FC_WRAPPERS
 
   # check how to link against C++ runtime for fortran programs correctly
   fcxxlinkage=no
