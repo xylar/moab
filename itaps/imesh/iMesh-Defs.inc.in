@@ -59,6 +59,7 @@ IMESH_LIBS = $(IMESH_LDFLAGS) -L$(MOAB_LIBDIR) \
              -L$(IMESH_LIBDIR) -liMesh ${IMSQ_LIBS} -lMOAB ${MSQ_LIBS} ${IGEOM_LIBS} \
              @PNETCDF_LIBS@ @NETCDF_LIBS@ @CGNS_LIBS@ @HDF5_LIBS@ \
              @DAMSEL_LIBS@ @CCMIO_LIBS@ \
+             @TEMPESTREMAP_LIBS@ \
              @CGM_LDFLAGS@ @CGM_LIBS@ \
              @ZOLTAN_LIBS@ @PARMETIS_LIBS@ @METIS_LIBS@ \
              @FCLIBS@ @LIBS@
