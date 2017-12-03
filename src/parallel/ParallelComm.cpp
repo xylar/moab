@@ -3869,8 +3869,8 @@ ErrorCode ParallelComm::get_remote_handles(EntityHandle *local_vec, EntityHandle
       Skinner skinner(mbImpl);
       result = skinner.find_skin(this_set, skin_ents[skin_dim + 1], false, skin_ents[skin_dim],
                                  NULL, true, true, true);MB_CHK_SET_ERR(result, "Failed to find skin");
-      myDebug->tprintf(1, "Found skin, now resolving.\n");
-
+      myDebug->tprintf(1, "Found skin:   skin_dim: %d resolve_dim: %d , now resolving.\n", skin_dim, resolve_dim);
+      myDebug->tprintf(3, "skin_ents[0].size(): %d skin_ents[1].size(): %d  \n", (int)skin_ents[0].size(),(int)skin_ents[1].size());
       // Get entities adjacent to skin ents from shared_dim down to zero
       for (int this_dim = skin_dim - 1; this_dim >= 0; this_dim--) {
         result = mbImpl->get_adjacencies(skin_ents[skin_dim], this_dim,
