@@ -1643,6 +1643,7 @@ ErrCode iMOAB_ResolveSharedEntities (  iMOAB_AppID pid, int* num_verts, int* mar
     EntityHandle cset = data.file_set;
     rval = pco->resolve_shared_ents ( cset, -1, -1, &stag );CHKERRVAL(rval);
 
+    rval = context.MBI->tag_delete(stag); CHKERRVAL(rval);
     // provide partition tag equal to rank
     Tag part_tag;
     dum_id = -1;

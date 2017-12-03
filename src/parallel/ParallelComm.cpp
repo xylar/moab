@@ -286,11 +286,10 @@ namespace moab {
       sharedpTag(0), sharedpsTag(0),
       sharedhTag(0), sharedhsTag(0), pstatusTag(0), ifaceSetsTag(0),
       partitionTag(0), globalPartCount(-1), partitioningSet(0),
-      myDebug(NULL),
-      sharedSetData(new SharedSetData(*impl, procConfig.proc_rank()))
+      myDebug(NULL)
   {
     initialize();
-
+    sharedSetData = new SharedSetData(*impl, pcommID, procConfig.proc_rank());
     if (id)
       *id = pcommID;
   }
@@ -303,11 +302,10 @@ namespace moab {
       sharedpTag(0), sharedpsTag(0),
       sharedhTag(0), sharedhsTag(0), pstatusTag(0), ifaceSetsTag(0),
       partitionTag(0), globalPartCount(-1), partitioningSet(0),
-      myDebug(NULL),
-      sharedSetData(new SharedSetData(*impl, procConfig.proc_rank()))
+      myDebug(NULL)
   {
     initialize();
-
+    sharedSetData = new SharedSetData(*impl, pcommID, procConfig.proc_rank());
     if (id)
       *id = pcommID;
   }
