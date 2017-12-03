@@ -1928,6 +1928,8 @@ ErrCode iMOAB_FreeSenderBuffers ( iMOAB_AppID pid, MPI_Comm* join, int* rcompid 
 
 #ifdef MOAB_HAVE_TEMPESTREMAP
 
+#define USE_API
+
 ErrCode iMOAB_ComputeMeshIntersectionOnSphere ( iMOAB_AppID pid_src, iMOAB_AppID pid_tgt, iMOAB_AppID pid_intx, 
                                                 double radius, double epsrel, double boxeps )
 {
@@ -1973,7 +1975,7 @@ ErrCode iMOAB_ComputeMeshIntersectionOnSphere ( iMOAB_AppID pid_src, iMOAB_AppID
 		rval = fix_degenerate_quads ( context.MBI, data_tgt.file_set );CHKERRVAL(rval);
 		rval = positive_orientation ( context.MBI, data_tgt.file_set, radius );CHKERRVAL(rval);
 		ierr = iMOAB_UpdateMeshInfo(pid_tgt); CHKIERRVAL(ierr);
-		#ifdef VERBOSE
+#ifdef VERBOSE
  		std::cout << "The blue set contains " << bintxverts.size() << " vertices and " << bintxelems.size() << " elements \n";
 #endif
 	}
@@ -1993,7 +1995,7 @@ ErrCode iMOAB_ComputeMeshIntersectionOnSphere ( iMOAB_AppID pid_src, iMOAB_AppID
     data_intx.remapper->GetMeshSet ( moab::Remapper::TargetMesh ) = data_tgt.file_set;
     data_intx.remapper->GetMeshSet ( moab::Remapper::IntersectedMesh ) = data_intx.file_set;
 
-#if 1
+#ifdef USE_API
 
     rval = data_intx.remapper->ConvertMeshToTempest ( moab::Remapper::SourceMesh );CHKERRVAL(rval);
     rval = data_intx.remapper->ConvertMeshToTempest ( moab::Remapper::TargetMesh );CHKERRVAL(rval);
@@ -2045,8 +2047,9 @@ ErrCode iMOAB_ComputeScalarProjectionWeights ( iMOAB_AppID pid_intx,
 {
 	moab::ErrorCode rval;
 	
+	assert(disc_order1 > 0 && disc_order2 > 0);
 	assert(disc_method1_length > 0 && disc_method2_length > 0);
-	
+
     // Get the source and target data and pcomm objects
 	appData& data_intx = context.appDatas[*pid_intx];
     ParallelComm* pco_intx = context.pcomms[*pid_intx];

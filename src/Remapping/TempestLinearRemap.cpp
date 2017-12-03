@@ -553,10 +553,10 @@ void moab::TempestOfflineMap::LinearRemapSE4_Tempest_MOAB (
         {
             const Face & faceOverlap = m_meshOverlap->faces[ixOverlap + j];
 
-#ifdef VERBOSE
-            if ( pcomm->rank() )
-                Announce ( "\tLocal ID: %i/%i = %i, areas = %f", j + ixOverlap, nOverlapFaces, m_meshOverlap->vecSourceFaceIx[ixOverlap + j], m_meshOverlap->vecFaceArea[ixOverlap + j] );
-#endif
+// #ifdef VERBOSE
+//             if ( pcomm->rank() )
+//                 Announce ( "\tLocal ID: %i/%i = %i, areas = %f", j + ixOverlap, nOverlapFaces, m_meshOverlap->vecSourceFaceIx[ixOverlap + j], m_meshOverlap->vecFaceArea[ixOverlap + j] );
+// #endif
 
             int nOverlapTriangles = faceOverlap.edges.size() - 2;
 
@@ -1431,11 +1431,19 @@ void moab::TempestOfflineMap::LinearRemapFVtoGLL_Volumetric_MOAB (
                 int ixFirstFace = vecAdjFaces[i].first;
                 int ixSecondNode = meshThisElement.vecTargetFaceIx[j];
 
+#define MOAB_HAVE_HYPRE
                 smatMap ( ixSecondNode, ixFirstFace ) +=
                     dRedistributedArray[i][j]
                     / dataGLLNodalArea[ixSecondNode];
                 // meshThisElement.vecFaceArea[j];
                 // dataGLLJacobian[ixS][ixT][ixSecondElement];
+#else
+                smatMap ( ixSecondNode, ixFirstFace ) +=
+                    dRedistributedArray[i][j]
+                    / dataGLLNodalArea[ixSecondNode];
+                // meshThisElement.vecFaceArea[j];
+                // dataGLLJacobian[ixS][ixT][ixSecondElement];
+#endif
             }
         }
 
