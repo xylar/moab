@@ -165,20 +165,22 @@ int main(int argc, char * argv[])
   rc = iMOAB_ComputeScalarProjectionWeights ( pid3, "fv", 1, "fv", 1, 0, 0, 1, strlen("fv"), strlen("fv"));
   CHECKRC(rc, "failed to compute remapping projection weights");
   
-  // free allocated data
-  char outputFile[] = "fnew.h5m";
-#ifdef MOAB_HAVE_MPI
-  char writeOptions[] ="PARALLEL=WRITE_PART";
-#else
-  char writeOptions[] ="";
-#endif
   /*
    * the file can be written in parallel, and it will contain additional tags defined by the user
    * we may extend the method to write only desired tags to the file
    */
-//   rc = iMOAB_WriteMesh(pid3, outputFile, writeOptions,
-//       strlen(outputFile), strlen(writeOptions) );
-
+  if (nprocs == 1) {
+    // free allocated data
+    char outputFile[] = "fnew.h5m";
+#ifdef MOAB_HAVE_MPI
+    char writeOptions[] ="PARALLEL=WRITE_PART";
+#else
+    char writeOptions[] ="";
+#endif
+    rc = iMOAB_WriteMesh(pid3, outputFile, writeOptions,
+      strlen(outputFile), strlen(writeOptions) );  
+  }
+  
   /*
    * deregistering application will delete all mesh entities associated with the application and will
    *  free allocated tag storage.

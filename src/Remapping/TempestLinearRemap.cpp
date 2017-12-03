@@ -1431,7 +1431,7 @@ void moab::TempestOfflineMap::LinearRemapFVtoGLL_Volumetric_MOAB (
                 int ixFirstFace = vecAdjFaces[i].first;
                 int ixSecondNode = meshThisElement.vecTargetFaceIx[j];
 
-#define MOAB_HAVE_HYPRE
+#ifdef MOAB_HAVE_HYPRE
                 smatMap ( ixSecondNode, ixFirstFace ) +=
                     dRedistributedArray[i][j]
                     / dataGLLNodalArea[ixSecondNode];
