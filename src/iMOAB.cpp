@@ -1593,6 +1593,11 @@ ErrCode iMOAB_CreateElements ( iMOAB_AppID pid, int* num_elem, int* type,  int* 
 
     data.primary_elems.merge ( new_elems );
 
+    // add to adjacency
+    rval  = read_iface->update_adjacencies(actual_start_handle,
+        *num_elem,
+        *num_nodes_per_element,
+        array); CHKERRVAL(rval);
     // organize all new elements in block, with the given block ID; if the block set is not existing, create  a
     // new mesh set;
     Range sets;
