@@ -212,7 +212,7 @@ AC_DEFUN([DOWNLOAD_EXTERNAL_PACKAGE],
 
       if (test "$HAVE_CURL" != "no" && test "$filedownloaded" != "yes"); then
         PREFIX_PRINT([   CURL: $1 package downloading to $3 ])
-        op_downloadlog$1="`curl -R -s $2 -z $3 -o $3`"
+        op_downloadlog$1="`curl -R -L -s $2 -z $3 -o $3`"
         filedownloaded=yes
       fi
     else
@@ -1608,6 +1608,172 @@ AC_DEFUN([AUSCM_AUTOMATED_INSTALL_TEMPESTREMAP],
     tempestremap_installed=true
   else
     AC_MSG_ERROR([TempestRemap installation was unsuccessful. Please refer to $tempestremap_src_dir/../install_tempestremap.log for further details.])
+  fi
+])
+
+##########################################
+### HYPRE AUTOMATED CONFIGURATION
+##########################################
+
+dnl
+dnl Arguments:
+dnl   1) Default Version Number,
+dnl   2) Download by default ?
+dnl
+AC_DEFUN([AUSCM_CONFIGURE_DOWNLOAD_HYPRE],[
+
+  # Check whether user wants to autodownload HYPRE
+  # Call package Download/Configure/Installation procedures for HYPRE, if requested by user
+  PPREFIX=HYPRE
+
+  # Set the default HYPRE download version
+  m4_pushdef([HYPRE_DOWNLOAD_VERSION],[$1])dnl
+
+  # Invoke the download-hypre command
+  m4_case( HYPRE_DOWNLOAD_VERSION, [2.13.0], [ AUSCM_CONFIGURE_EXTERNAL_PACKAGE([HYPRE], [https://github.com/LLNL/hypre/archive/v2.13.0.tar.gz], [$2] ) ],
+                                   [2.11.2], [ AUSCM_CONFIGURE_EXTERNAL_PACKAGE([HYPRE], [https://github.com/LLNL/hypre/archive/v2.11.2.tar.gz], [$2] ) ],
+                                   [2.10.1], [ AUSCM_CONFIGURE_EXTERNAL_PACKAGE([HYPRE], [https://github.com/LLNL/hypre/archive/v2.10.1.tar.gz], [$2] ) ],
+                                             [ AUSCM_CONFIGURE_EXTERNAL_PACKAGE([HYPRE], [https://github.com/LLNL/hypre/archive/v2.13.0.tar.gz], [$2] ) ] )
+
+
+  if (test "x$downloadhypre" == "xyes") ; then
+    # download the latest HYPRE sources, configure and install
+    HYPRE_SRCDIR="$hypre_src_dir"
+    AC_SUBST(HYPRE_SRCDIR)
+    # The default HYPRE installation is under libraries
+    HYPRE_DIR="$hypre_install_dir"
+    enablehypre=yes
+  fi  # if (test "$downloadhypre" != no)
+])
+
+
+dnl ---------------------------------------------------------------------------
+dnl AUSCM_AUTOMATED SETUP PREPROCESS HYPRE
+dnl   Prepares the system for an existing HYPRE install or sets flags to
+dnl   install a new copy of HYPRE
+dnl   Arguments: [PACKAGE, SRC_DIR, INSTALL_DIR, NEED_CONFIGURATION]
+dnl ---------------------------------------------------------------------------
+AC_DEFUN([AUSCM_AUTOMATED_SETUP_PREPROCESS_HYPRE],
+[
+  # configure PACKAGE
+  hypre_src_dir="$2"
+  hypre_build_dir="$2/src"
+  hypre_install_dir="$3"
+  hypre_archive_name="$4"
+
+  # Check if the HYPRE directory is valid
+  if (test ! -d "$hypre_src_dir" || test ! -f "$hypre_src_dir/src/configure" ); then
+    AC_MSG_ERROR([Invalid source configuration for HYPRE. Source directory $hypre_src_dir is invalid])
+  fi
+
+  # Check if we need to configure, build, and/or install HYPRE
+  hypre_configured=false
+  hypre_made=false
+  hypre_installed=false
+  if (test ! -d "$hypre_build_dir" ); then
+   AS_MKDIR_P( $hypre_build_dir )
+  else
+    if (test -f "$hypre_build_dir/HYPRE_config.h" ); then
+      hypre_configured=true
+      if (test -f "$hypre_build_dir/lib/libHYPRE.a" || test -f "$hypre_build_dir/lib/libHYPRE.so" || test -f "$hypre_build_dir/lib/libHYPRE.dylib") ; then
+        hypre_made=true
+        if (test -f "$hypre_install_dir/include/HYPRE.h"); then
+          hypre_installed=true
+        fi
+      fi
+    fi
+  fi
+  AS_IF([ ! $hypre_configured || $need_configuration ], [need_configuration=true], [need_configuration=false])
+  AS_IF([ ! $hypre_made || $need_configuration ], [need_build=true], [need_build=false])
+  AS_IF([ ! $hypre_installed || $need_configuration ], [need_installation=true], [need_installation=false])
+])
+
+
+dnl ---------------------------------------------------------------------------
+dnl AUSCM_AUTOMATED SETUP POSTPROCESS HYPRE
+dnl   Postprocessing for HYPRE is minimal.  Exists for standardization of all
+dnl   package macros.
+dnl   Arguments: [PACKAGE]
+dnl ---------------------------------------------------------------------------
+AC_DEFUN([AUSCM_AUTOMATED_SETUP_POSTPROCESS_HYPRE],
+[
+  # we have already checked configure/build/install logs for
+  # errors before getting here..
+  enablehypre=yes
+  DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --with-hypre=\"${hypre_install_dir}\""
+])
+
+
+dnl ---------------------------------------------------------------------------
+dnl AUSCM_AUTOMATED CONFIGURE HYPRE
+dnl   Sets up the configure command and then ensures it ran correctly.
+dnl   Arguments: [NEED_CONFIGURATION)
+dnl ---------------------------------------------------------------------------
+AC_DEFUN([AUSCM_AUTOMATED_CONFIGURE_HYPRE],
+[
+if [ $1 ]; then
+  # configure HYPRE
+  if [ $need_configuration ]; then
+    # configure PACKAGE with a minimal build: MPI, HDF5, HYPRE
+    compiler_opts="CC=$CC CXX=$CXX FC=$FC F90=$FC F77=$F77"
+    configure_command="$hypre_src_dir/src/configure --prefix=$hypre_install_dir --libdir=$hypre_install_dir/lib --with-pic=1 --enable-shared=$enable_shared $compiler_opts"
+    configure_command="$configure_command LDFLAGS=\"$LDFLAGS\" CPPFLAGS=\"$CPPFLAGS\" LIBS=\"$LIBS\""
+
+    eval "echo 'Using configure command :==> cd $hypre_build_dir && $configure_command > $hypre_src_dir/../config_hypre.log' > $hypre_src_dir/../config_hypre.log"
+    PREFIX_PRINT([Configuring with default options  (debug=$enable_debug shared=$enable_shared) ])
+    eval "cd $hypre_build_dir && $configure_command >> $hypre_src_dir/../config_hypre.log 2>&1 && cd \"\$OLDPWD\""
+  fi
+
+  if (test ! -f "$hypre_build_dir/HYPRE_config.h" ); then
+    AC_MSG_ERROR([HYPRE configuration was unsuccessful. Please refer to $hypre_build_dir/config.log and $hypre_src_dir/../config_hypre.log for further details.])
+  fi
+  hypre_configured=true
+
+fi
+])
+
+dnl ---------------------------------------------------------------------------
+dnl AUSCM_AUTOMATED BUILD HYPRE
+dnl   Builds HYPRE and looks for libHYPRE.
+dnl   Arguments: [NEED_BUILD)
+dnl ---------------------------------------------------------------------------
+AC_DEFUN([AUSCM_AUTOMATED_BUILD_HYPRE],
+[
+  if [ $1 ]; then
+    if [ $recompile_and_install || $need_build ]; then
+      PREFIX_PRINT(Building the sources in parallel)
+      hypre_makelog="`make --no-print-directory -C $hypre_build_dir all -j4 > $hypre_src_dir/../make_hypre.log 2>&1`"
+    fi
+  fi
+
+  if (test -f "$hypre_build_dir/lib/libHYPRE.a" || test -f "$hypre_build_dir/lib/libHYPRE.so" || test -f "$hypre_build_dir/lib/libHYPRE.dylib") ; then
+    hypre_made=true
+  else
+    AC_MSG_ERROR([HYPRE build was unsuccessful. Please refer to $hypre_src_dir/../make_hypre.log for further details.])
+  fi
+])
+
+dnl ---------------------------------------------------------------------------
+dnl AUSCM_AUTOMATED INSTALL HYPRE
+dnl   Installs HYPRE and checks headers.
+dnl   Arguments: [NEED_INSTALLATION)
+dnl ---------------------------------------------------------------------------
+AC_DEFUN([AUSCM_AUTOMATED_INSTALL_HYPRE],
+[
+  if [ $1 ]; then
+    if [ $recompile_and_install ]; then
+      if [ $hypre_installed ]; then
+        hypre_installlog="`make --no-print-directory -C $hypre_build_dir uninstall > $hypre_src_dir/../uninstall_hypre.log 2>&1`"
+      fi
+      PREFIX_PRINT(Installing the headers and libraries in to directory {$hypre_install_dir} )
+      hypre_installlog="`make --no-print-directory -C $hypre_build_dir install > $hypre_src_dir/../install_hypre.log 2>&1`"
+    fi
+  fi
+
+  if (test -f "$hypre_install_dir/include/HYPRE.h"); then
+    hypre_installed=true
+  else
+    AC_MSG_ERROR([HYPRE installation was unsuccessful. Please refer to $hypre_src_dir/../install_hypre.log for further details.])
   fi
 ])
 
