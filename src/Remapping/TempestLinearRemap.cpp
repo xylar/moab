@@ -284,6 +284,23 @@ void moab::TempestOfflineMap::LinearRemapFVtoFV_Tempest_MOAB (
     // Current overlap face
     int ixOverlap = 0;
 
+#ifdef MOAB_HAVE_HYPRE
+    int rcstarts[2] = {m_meshInput->faces.size(), m_meshOutput->faces.size()};
+    int rcgsizes[2], rcgrstarts[2], rcgcstarts[2];
+    MPI_Allreduce(rcstarts, rcgsizes, 2, MPI_INT, MPI_SUM, pcomm->comm());
+    MPI_Scan(rcstarts, rcgrstarts, 2, MPI_INT, MPI_SUM, pcomm->comm());
+    rcgcstarts[1] = rcgrstarts[1];
+    rcgrstarts[1] = rcgrstarts[0];
+    rcgrstarts[0] = rcgrstarts[1] - rcstarts[0];
+    // rcgrstarts[0] = rcgrstarts[0] - rcstarts[0];
+    rcgcstarts[0] = rcgcstarts[1] - rcstarts[1];
+    std::cout << "Proc: " << pcomm->rank() << ": Sizes = " << rcgsizes[0] << ", " << rcgsizes[1] << ", Row = " << rcgrstarts[0] << ", " << rcgrstarts[1] << ", Col = " << rcgcstarts[0] << ", " << rcgcstarts[1] << "\n";
+    // Let us correctly allocate the matrix depending on the NNZ and DoFs
+    m_weightMat->resize(rcgsizes[0], rcgsizes[1], 
+                        rcgrstarts, rcgcstarts,
+                        5, 1); // Need a better way to set nnz/diag/off-diag
+#endif
+
     // Loop through all faces on m_meshInput
     for ( size_t ixFirst = 0; ixFirst < m_meshInputCov->faces.size(); ixFirst++ )
     {
@@ -410,17 +427,40 @@ void moab::TempestOfflineMap::LinearRemapFVtoFV_Tempest_MOAB (
         // Put composed array into map
         for ( unsigned i = 0; i < vecAdjFaces.size(); i++ )
         {
+#ifdef MOAB_HAVE_HYPRE
+            std::vector<int> rows;
+            std::vector<int> cols;
+            std::vector<double> vals;
+#endif
             for ( unsigned j = 0; j < nOverlapFaces; j++ )
             {
                 int& ixFirstFaceLoc = vecAdjFaces[i].first;
                 int& ixSecondFaceLoc = m_meshOverlap->vecTargetFaceIx[ixOverlap + j];
                 // int ixFirstFaceGlob = m_remapper->GetGlobalID(moab::Remapper::SourceMesh, ixFirstFaceLoc);
                 // int ixSecondFaceGlob = m_remapper->GetGlobalID(moab::Remapper::TargetMesh, ixSecondFaceLoc);
-
+#ifdef MOAB_HAVE_HYPRE
                 m_mapRemap ( ixSecondFaceLoc, ixFirstFaceLoc ) +=
                     dComposedArray[i][j]
                     / m_meshOutput->vecFaceArea[ixSecondFaceLoc];
+                rows.push_back(ixSecondFaceLoc);
+                cols.push_back(ixFirstFaceLoc);
+                vals.push_back( dComposedArray[i][j] / m_meshOutput->vecFaceArea[ixSecondFaceLoc] );
+                double val = dComposedArray[i][j] / m_meshOutput->vecFaceArea[ixSecondFaceLoc];
+
+                int ncols = 1;
+                m_weightMat->AddToValues(1, &ncols,
+                                         &ixSecondFaceLoc, &ixFirstFaceLoc, &val);
+#else
+                m_mapRemap ( ixSecondFaceLoc, ixFirstFaceLoc ) +=
+                    dComposedArray[i][j]
+                    / m_meshOutput->vecFaceArea[ixSecondFaceLoc];
+#endif
             }
+#ifdef MOAB_HAVE_HYPRE
+            // int ncols = cols.size();
+            // m_weightMat->AddToValues(rows.size(), &ncols,
+            //                          rows.data(), cols.data(), vals.data();
+#endif
         }
 
         // Increment the current overlap index
@@ -716,21 +756,33 @@ void moab::TempestOfflineMap::LinearRemapSE4_Tempest_MOAB (
                     if ( fContinuousIn )
                     {
                         int ixFirstNode = dataGLLNodes[p][q][ixFirst] - 1;
-
+#ifdef MOAB_HAVE_HYPRE
                         smatMap ( ixSecondFace, ixFirstNode ) +=
                             dRemapCoeff[p][q][j]
                             * m_meshOverlap->vecFaceArea[ixOverlap + j]
                             / m_meshOutput->vecFaceArea[ixSecondFace];
-
+#else
+                        smatMap ( ixSecondFace, ixFirstNode ) +=
+                            dRemapCoeff[p][q][j]
+                            * m_meshOverlap->vecFaceArea[ixOverlap + j]
+                            / m_meshOutput->vecFaceArea[ixSecondFace];
+#endif
                     }
                     else
                     {
                         int ixFirstNode = ixFirst * nP * nP + p * nP + q;
 
+#ifdef MOAB_HAVE_HYPRE
                         smatMap ( ixSecondFace, ixFirstNode ) +=
                             dRemapCoeff[p][q][j]
                             * m_meshOverlap->vecFaceArea[ixOverlap + j]
                             / m_meshOutput->vecFaceArea[ixSecondFace];
+#else
+                        smatMap ( ixSecondFace, ixFirstNode ) +=
+                            dRemapCoeff[p][q][j]
+                            * m_meshOverlap->vecFaceArea[ixOverlap + j]
+                            / m_meshOutput->vecFaceArea[ixSecondFace];
+#endif
                     }
                 }
             }
@@ -1007,11 +1059,17 @@ void moab::TempestOfflineMap::LinearRemapFVtoGLL_Simple_MOAB (
                                     for ( size_t nx = 0; nx < vecAdjFaces.size(); nx++ )
                                     {
                                         int ixAdjFace = vecAdjFaces[nx].first;
-
+#ifdef MOAB_HAVE_HYPRE
                                         smatMap ( ixSecondNode, ixAdjFace ) +=
                                             IPow ( dX[0], p )
                                             * IPow ( dX[1], q )
                                             * dFitArrayPlus[nx][ixp];
+#else
+                                        smatMap ( ixSecondNode, ixAdjFace ) +=
+                                            IPow ( dX[0], p )
+                                            * IPow ( dX[1], q )
+                                            * dFitArrayPlus[nx][ixp];
+#endif
                                     }
 
                                     ixp++;
@@ -1933,19 +1991,28 @@ void moab::TempestOfflineMap::LinearRemapFVtoGLL_MOAB (
                         if ( fContinuous )
                         {
                             int ixSecondNode = dataGLLNodes[s][t][ixSecondFace] - 1;
-
+#ifdef MOAB_HAVE_HYPRE
                             smatMap ( ixSecondNode, ixFirstFace ) +=
                                 dComposedArray[i][jx]
                                 * dataGLLJacobian[s][t][ixSecondFace]
                                 / dataGLLNodalArea[ixSecondNode];
-
+#else
+                            smatMap ( ixSecondNode, ixFirstFace ) +=
+                                dComposedArray[i][jx]
+                                * dataGLLJacobian[s][t][ixSecondFace]
+                                / dataGLLNodalArea[ixSecondNode];
+#endif
                         }
                         else
                         {
                             int ixSecondNode = ixSecondFace * nP * nP + s * nP + t;
-
+#ifdef MOAB_HAVE_HYPRE
                             smatMap ( ixSecondNode, ixFirstFace ) +=
                                 dComposedArray[i][jx];
+#else
+                            smatMap ( ixSecondNode, ixFirstFace ) +=
+                                dComposedArray[i][jx];
+#endif
                         }
                     }
                 }
@@ -2492,15 +2559,28 @@ void moab::TempestOfflineMap::LinearRemapGLLtoGLL2_MOAB (
 
                                 if ( !fNoConservation )
                                 {
+#ifdef MOAB_HAVE_HYPRE
                                     smatMap ( ixSecondNode, ixFirstNode ) +=
                                         dRedistributedOp[ixp][ixs]
                                         / dataNodalAreaOut[ixSecondNode];
+
+#else
+                                    smatMap ( ixSecondNode, ixFirstNode ) +=
+                                        dRedistributedOp[ixp][ixs]
+                                        / dataNodalAreaOut[ixSecondNode];
+#endif
                                 }
                                 else
                                 {
+#ifdef MOAB_HAVE_HYPRE
                                     smatMap ( ixSecondNode, ixFirstNode ) +=
                                         dRedistributedOp[ixp][ixs]
                                         / dTotalGeometricArea[ixSecondNode];
+#else
+                                    smatMap ( ixSecondNode, ixFirstNode ) +=
+                                        dRedistributedOp[ixp][ixs]
+                                        / dTotalGeometricArea[ixSecondNode];
+#endif
                                 }
 
                             }
@@ -2511,15 +2591,29 @@ void moab::TempestOfflineMap::LinearRemapGLLtoGLL2_MOAB (
 
                                 if ( !fNoConservation )
                                 {
+#ifdef MOAB_HAVE_HYPRE
                                     smatMap ( ixSecondNode, ixFirstNode ) +=
                                         dRedistributedOp[ixp][ixs]
                                         / dataGLLJacobianOut[s][t][ixSecondFace];
+
+#else
+                                    smatMap ( ixSecondNode, ixFirstNode ) +=
+                                        dRedistributedOp[ixp][ixs]
+                                        / dataGLLJacobianOut[s][t][ixSecondFace];
+#endif
                                 }
                                 else
                                 {
+#ifdef MOAB_HAVE_HYPRE
                                     smatMap ( ixSecondNode, ixFirstNode ) +=
                                         dRedistributedOp[ixp][ixs]
                                         / dGeometricOutputArea[ixSecondFace][s * nPout + t];
+
+#else
+                                    smatMap ( ixSecondNode, ixFirstNode ) +=
+                                        dRedistributedOp[ixp][ixs]
+                                        / dGeometricOutputArea[ixSecondFace][s * nPout + t];
+#endif
                                 }
                             }
 
@@ -2726,8 +2820,13 @@ void moab::TempestOfflineMap::LinearRemapGLLtoGLL2_Pointwise_MOAB (
                                     ixFirst * nPin * nPin + p * nPin + q;
                             }
 
+#ifdef MOAB_HAVE_HYPRE
                             smatMap ( ixSecondNode, ixFirstNode ) +=
                                 dSampleCoeffIn[p][q];
+#else
+                            smatMap ( ixSecondNode, ixFirstNode ) +=
+                                dSampleCoeffIn[p][q];
+#endif
                         }
                     }
                 }

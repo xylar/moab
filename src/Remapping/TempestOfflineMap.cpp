@@ -56,6 +56,10 @@ moab::TempestOfflineMap::TempestOfflineMap ( moab::TempestRemapper* remapper ) :
     dbgprint.printf ( 0, "Output mesh\n" );
     this->InitializeTargetDimensionsFromMesh ( *m_meshOutput );
 
+#ifdef MOAB_HAVE_HYPRE
+    m_weightMat = new HypreParMatrix(pcomm->comm());
+#endif
+
     // Build a matrix of source and target discretization so that we know how to assign
     // the global DoFs in parallel for the mapping weights
     // For example, FV->FV: rows X cols = faces_source X faces_target
@@ -65,6 +69,10 @@ moab::TempestOfflineMap::TempestOfflineMap ( moab::TempestRemapper* remapper ) :
 
 moab::TempestOfflineMap::~TempestOfflineMap()
 {
+#ifdef MOAB_HAVE_HYPRE
+    delete m_weightMat;
+#endif
+
     mbCore = NULL;
     pcomm = NULL;
     m_meshInput = NULL;
