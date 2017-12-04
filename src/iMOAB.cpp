@@ -1864,6 +1864,8 @@ ErrCode iMOAB_ReceiveMesh ( iMOAB_AppID pid, MPI_Comm* global, MPI_Group* sendin
 
         if ( MB_SUCCESS != rval ) { return 1; }
 
+        Range local_polys = local_ents.subset_by_type ( MBPOLYGON );
+
         Range local_verts = local_ents.subset_by_type ( MBVERTEX );
         Range local_elems = subtract ( local_ents, local_verts );
 
@@ -1876,9 +1878,17 @@ ErrCode iMOAB_ReceiveMesh ( iMOAB_AppID pid, MPI_Comm* global, MPI_Group* sendin
         std::cout << "current_receiver " << current_receiver << " local verts: " << local_verts.size() << "\n";
 #endif
         MergeMesh mm ( context.MBI );
-        rval = mm.merge_using_integer_tag ( local_verts, idtag );
+        if (local_polys.empty())
+        {
+            rval = mm.merge_using_integer_tag ( local_verts, idtag );
 
-        if ( MB_SUCCESS != rval ) { return 1; }
+            if ( MB_SUCCESS != rval ) { return 1; }
+        }
+        /*else
+        {
+            rval = mm.merge_entities(local_elems, 0.0001); //
+            if ( MB_SUCCESS != rval ) { return 1; }
+        }*/
 
         Range new_verts; // local elems are local entities without vertices
         rval = context.MBI->get_connectivity ( local_elems, new_verts );
