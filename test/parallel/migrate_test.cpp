@@ -48,6 +48,9 @@ ErrorCode migrate_1_1( const char* filename );
 ErrorCode migrate_1_2( const char* filename );
 ErrorCode migrate_2_1( const char* filename );
 ErrorCode migrate_2_2( const char* filename );
+ErrorCode migrate_4_2( const char* filename );
+ErrorCode migrate_2_4( const char* filename );
+ErrorCode migrate_4_3( const char* filename );
 
 // some global variables, used by all tests
 int rank, size, ierr;
@@ -65,12 +68,7 @@ int main( int argc, char* argv[] )
   MPI_Init(&argc, &argv);
   MPI_Comm_rank( MPI_COMM_WORLD, &rank );
   MPI_Comm_size( MPI_COMM_WORLD, &size );
-  if (size!=2)
-  {
-    std::cout <<"run on 2 tasks only.\n";
-    MPI_Finalize();
-    return 1;
-  }
+
 
   MPI_Comm_dup(MPI_COMM_WORLD, &jcomm);
   MPI_Comm_group(jcomm, &jgroup);
@@ -86,7 +84,16 @@ int main( int argc, char* argv[] )
   num_errors += RUN_TEST_ARG2( migrate_1_2, filename.c_str() );
   num_errors += RUN_TEST_ARG2( migrate_2_1, filename.c_str() );
   num_errors += RUN_TEST_ARG2( migrate_2_2, filename.c_str() );
+  if (size >= 4)
+  {
+    num_errors += RUN_TEST_ARG2( migrate_4_2, filename.c_str() );
+    num_errors += RUN_TEST_ARG2( migrate_2_4, filename.c_str() );
+  }
+  if (size >= 3)
+  {
+    num_errors += RUN_TEST_ARG2( migrate_4_3, filename.c_str() );
 
+  }
   if (rank == 0) {
     if (!num_errors)
       std::cout << "All tests passed" << std::endl;
@@ -100,7 +107,7 @@ int main( int argc, char* argv[] )
   return num_errors;
 }
 
-ErrorCode migrate(const char*filename)
+ErrorCode migrate(const char*filename, const char * outfile)
 {
   // first create MPI groups
 
@@ -166,8 +173,7 @@ ErrorCode migrate(const char*filename)
      CHECKRC(ierr, "cannot receive elements")
      std::string wopts;
      wopts   = "PARALLEL=WRITE_PART;";
-     char wfile[] = "recvMesh.h5m";
-     ierr = iMOAB_WriteMesh(pid2, wfile , (char*)wopts.c_str(), strlen(wfile), strlen(wopts.c_str()) );
+     ierr = iMOAB_WriteMesh(pid2, (char*)outfile , (char*)wopts.c_str(), strlen(outfile), strlen(wopts.c_str()) );
      CHECKRC(ierr, "cannot write received mesh" )
   }
 
@@ -204,14 +210,14 @@ ErrorCode migrate_1_1( const char* filename )
 {
   startG1= endG1 = 0;
   startG2 = endG2 = 1;
-  return migrate(filename);
+  return migrate(filename, "migrate11.h5m");
 }
 // migrate from task 0 to 2 tasks (0 and 1)
 ErrorCode migrate_1_2( const char* filename )
 {
   startG1= endG1 = startG2 = 0;
   endG2 = 1;
-  return migrate(filename);
+  return migrate(filename, "migrate12.h5m");
 }
 
 // migrate from 2 tasks (0, 1) to 1 task (0)
@@ -219,7 +225,7 @@ ErrorCode migrate_2_1( const char* filename )
 {
   startG1= endG2 = startG2 = 0;
   endG1 = 1;
-  return migrate(filename);
+  return migrate(filename, "migrate21.h5m");
 }
 
 // migrate from 2 tasks to 2 tasks (overkill)
@@ -227,6 +233,29 @@ ErrorCode migrate_2_2( const char* filename )
 {
   startG1 = startG2 = 0;
   endG1 = endG2 = 1;
-  return migrate(filename);
+  return migrate(filename, "migrate22.h5m");
+}
+// migrate from 4 tasks to 2 tasks
+ErrorCode migrate_4_2( const char* filename )
+{
+  startG1 = startG2 = 0;
+  endG2 = 1;
+  endG1 = 3;
+  return migrate(filename, "migrate42.h5m");
 }
 
+ErrorCode migrate_2_4( const char* filename )
+{
+  startG1 = startG2 = 0;
+  endG2 = 3;
+  endG1 = 1;
+  return migrate(filename, "migrate24.h5m");
+}
+
+ErrorCode migrate_4_3( const char* filename )
+{
+  startG1 = startG2 = 0;
+  endG2 = 2;
+  endG1 = 3;
+  return migrate(filename, "migrate43.h5m");
+}
