@@ -90,7 +90,7 @@ CartVect spherical_to_cart (SphereCoords &) ;
 /*
  * given an entity set, get all nodes and project them on a sphere with given radius
  */
-ErrorCode ProjectOnSphere(Interface * mb, EntityHandle set, double R);
+ErrorCode ScaleToRadius(Interface * mb, EntityHandle set, double R);
 
 /*
  * utilities to compute area of a polygon on which all edges are arcs of great circles on a sphere
