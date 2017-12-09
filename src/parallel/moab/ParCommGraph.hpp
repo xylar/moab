@@ -33,17 +33,6 @@ namespace moab {
 	  ParCommGraph(MPI_Comm joincomm, MPI_Group group1, MPI_Group group2, int coid1, int coid2);
 
 	  /**
-	    \brief find ranks of a group with respect to an encompassing communicator
-
-	    <B>Operations:</B> Local, usually called on root process of the group
-
-      \param[in]  joincomm (MPI_Comm)
-	    \param[in]  group (MPI_Group)
-	    \param[out] ranks ( std::vector<int>)  ranks with respect to the joint communicator
-	  */
-	  void find_group_ranks(MPI_Group group, MPI_Comm join, std::vector<int> & ranks);
-
-	  /**
 	    \brief  Based on the number of elements on each task in group 1, partition for group 2, trivially
 
      <B>Operations:</B> Local, usually called on root process of the group
@@ -117,8 +106,18 @@ namespace moab {
 	  ErrorCode release_send_buffers(MPI_Comm jcomm);
 
 	private:
+	  /**
+      \brief find ranks of a group with respect to an encompassing communicator
+
+      <B>Operations:</B> Local, usually called on root process of the group
+
+      \param[in]  joincomm (MPI_Comm)
+      \param[in]  group (MPI_Group)
+      \param[out] ranks ( std::vector<int>)  ranks with respect to the joint communicator
+    */
+	  void find_group_ranks(MPI_Group group, MPI_Comm join, std::vector<int> & ranks);
+
 	  MPI_Comm  comm;
-	  MPI_Group gr1, gr2;
 	  std::vector<int>  senderTasks;
 	  std::vector<int>  receiverTasks;
 	  bool rootSender;

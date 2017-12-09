@@ -51,6 +51,7 @@ ErrorCode migrate_2_2( const char* filename );
 ErrorCode migrate_4_2( const char* filename );
 ErrorCode migrate_2_4( const char* filename );
 ErrorCode migrate_4_3( const char* filename );
+ErrorCode migrate_overlap( const char* filename );
 
 // some global variables, used by all tests
 int rank, size, ierr;
@@ -81,6 +82,7 @@ int main( int argc, char* argv[] )
   }
   int num_errors = 0;
   num_errors += RUN_TEST_ARG2( migrate_1_1, filename.c_str() );
+#if 1
   num_errors += RUN_TEST_ARG2( migrate_1_2, filename.c_str() );
   num_errors += RUN_TEST_ARG2( migrate_2_1, filename.c_str() );
   num_errors += RUN_TEST_ARG2( migrate_2_2, filename.c_str() );
@@ -88,12 +90,10 @@ int main( int argc, char* argv[] )
   {
     num_errors += RUN_TEST_ARG2( migrate_4_2, filename.c_str() );
     num_errors += RUN_TEST_ARG2( migrate_2_4, filename.c_str() );
-  }
-  if (size >= 3)
-  {
     num_errors += RUN_TEST_ARG2( migrate_4_3, filename.c_str() );
-
+    num_errors += RUN_TEST_ARG2( migrate_overlap, filename.c_str() );
   }
+#endif
   if (rank == 0) {
     if (!num_errors)
       std::cout << "All tests passed" << std::endl;
@@ -259,3 +259,14 @@ ErrorCode migrate_4_3( const char* filename )
   endG1 = 3;
   return migrate(filename, "migrate43.h5m");
 }
+
+ErrorCode migrate_overlap( const char* filename )
+{
+  startG1 = 0;
+  startG2 = 1;
+  endG1 = 1;
+  endG2 = 2;
+  return migrate(filename, "migrate_over.h5m");
+}
+
+

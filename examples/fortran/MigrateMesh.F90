@@ -40,8 +40,8 @@ program MigrateMesh
     call MPI_COMM_RANK(gcomm, rank, ierr)
     if (rank .eq. 0) print *, "size:", sz
     call errorout(ierr, 'cannot get rank' )
-    if ( (0 .eq. rank) .and. (sz < 2) .and. (sz>9) ) then
-      print *, "size is " , sz, ". run on at least 2 processes and at most 9 "
+    if ( (0 .eq. rank) .and.  (sz>9)  ) then
+      print *, "size is " , sz, ". run on at most 9 tasks "
       call exit(1)
     endif
     ! create 2 overlapping groups, for generality
@@ -71,6 +71,7 @@ program MigrateMesh
     ! second group, 0, 1, 3/4*sz
     startG2 = 0
     endG2 = 3*sz/4 -1
+    if (endG2 <0) endG2 = 0  !  so it will work even for 1 task
 #ifdef NONOVERLAP
     endG2 = startG1-1
 #endif

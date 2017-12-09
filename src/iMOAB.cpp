@@ -1781,6 +1781,8 @@ ErrCode iMOAB_SendMesh ( iMOAB_AppID pid, MPI_Comm* global, MPI_Group* receiving
 
     if ( rval != MB_SUCCESS ) { return 1; }
 
+    // mark for deletion
+    MPI_Group_free(&senderGroup);
     return 0;
 }
 
@@ -1903,6 +1905,9 @@ ErrCode iMOAB_ReceiveMesh ( iMOAB_AppID pid, MPI_Comm* global, MPI_Group* sendin
     ierr = iMOAB_UpdateMeshInfo ( pid );
 
     if ( 0 != ierr ) { return 1; }
+
+    // mark for deletion
+    MPI_Group_free(&receiverGroup);
 
     return 0;
 }

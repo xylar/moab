@@ -10,17 +10,17 @@
 namespace moab {
 
 ParCommGraph::ParCommGraph(MPI_Comm joincomm, MPI_Group group1, MPI_Group group2, int coid1, int coid2):
-comm(joincomm), gr1(group1), gr2(group2), compid1(coid1), compid2(coid2) {
+comm(joincomm), compid1(coid1), compid2(coid2) {
   // find out the tasks from each group, in the joint communicator
-  find_group_ranks(gr1, comm, senderTasks);
-  find_group_ranks(gr2, comm, receiverTasks);
+  find_group_ranks(group1, comm, senderTasks);
+  find_group_ranks(group2, comm, receiverTasks);
 
   rootSender = rootReceiver = false;
   rankInGroup1 =  rankInGroup2 = rankInJoin = -1; // not initialized, or not part of the group
-  int mpierr = MPI_Group_rank(gr1, &rankInGroup1);
+  int mpierr = MPI_Group_rank(group1, &rankInGroup1);
   if (MPI_SUCCESS != mpierr || rankInGroup1 == MPI_UNDEFINED)
     rankInGroup1 = -1;
-  mpierr = MPI_Group_rank(gr2, &rankInGroup2);
+  mpierr = MPI_Group_rank(group2, &rankInGroup2);
   if (MPI_SUCCESS != mpierr || rankInGroup2 == MPI_UNDEFINED)
     rankInGroup2 = -1;
   mpierr = MPI_Comm_rank(comm, &rankInJoin);
