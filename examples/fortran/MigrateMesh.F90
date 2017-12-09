@@ -151,13 +151,13 @@ program MigrateMesh
        ierr = iMOAB_FreeSenderBuffers(pid1, gcomm, compid2)
     endif
 
-    if (comm1 /= MPI_COMM_NULL) then
-       ierr = iMOAB_DeregisterApplication(pid1)
-         call errorout(ierr, 'cannot deregister app 1 sender' )
-    endif
     if (comm2 /= MPI_COMM_NULL) then
        ierr = iMOAB_DeregisterApplication(pid2)
        call errorout(ierr, 'cannot deregister app 2 receiver' )
+    endif
+    if (comm1 /= MPI_COMM_NULL) then
+       ierr = iMOAB_DeregisterApplication(pid1)
+         call errorout(ierr, 'cannot deregister app 1 sender' )
     endif
 
     ierr = iMOAB_Finalize()
