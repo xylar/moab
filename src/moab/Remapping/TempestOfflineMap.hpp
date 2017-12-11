@@ -237,6 +237,15 @@ private:
 		bool fContinuousOut
 	);
 
+#ifdef MOAB_HAVE_HYPRE
+	///	<summary>
+	///		Copy the local matrix from Tempest SparseMatrix representation (ELL)
+	///		to the parallel CSR Hypre Matrix for scalable application of matvec
+	///     needed for projections.
+	///	</summary>
+	void Hypre_CopyTempestSparseMat();
+#endif
+
 private:
 	///	<summary>
 	///		The fundamental remapping operator object.
