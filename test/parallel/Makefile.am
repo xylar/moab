@@ -63,6 +63,11 @@ else
 endif
 endif
 
+if HAVE_HYPRE
+  MBHYPRE_TESTS = hypre_test
+else
+  MBHYPRE_TESTS = 
+endif
 
 if HAVE_HDF5_PARALLEL
   MBCSLAM_TESTS = par_intx_sph 
@@ -86,6 +91,14 @@ if ENABLE_FORTRAN
               -I$(top_builddir)/itaps/imesh
 endif
 endif 
+endif
+
+if HAVE_HYPRE
+AM_CPPFLAGS += $(HYPRE_INCLUDES) -I$(top_srcdir)/src/HYPRE/moab
+AM_LDFLAGS += $(HYPRE_LIBS)
+
+hypre_test_SOURCES = hypre_test.cpp
+TESTS += hypre_test
 endif
 
 check_PROGRAMS = $(TESTS) mbparallelcomm_test partcheck structured3 

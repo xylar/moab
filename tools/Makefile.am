@@ -158,6 +158,13 @@ if ENABLE_mbumr
 mbumr_SOURCES = umr.cpp
 endif
 
+if HAVE_HYPRE
+
+AM_CPPFLAGS += $(HYPRE_INCLUDES) -I$(top_srcdir)/src/HYPRE/moab
+AM_LDFLAGS += $(HYPRE_LIBS)
+
+endif
+
 if ENABLE_mbtempest
   AM_CPPFLAGS += $(TEMPESTREMAP_INCLUDE) -I$(top_srcdir)/src/Remapping -I$(top_srcdir)/src/IntxMesh
   bin_PROGRAMS += mbtempest

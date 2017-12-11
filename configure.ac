@@ -599,6 +599,9 @@ FATHOM_CONFIGURE_EIGEN3
 enablehypre=no
 if (test "x$enablempi" != "xno" && test "x$enableeigen" != "xno"); then
   CONFIGURE_HYPRE
+  if (test "xno" != "x$enablehypre"); then
+    AC_DEFINE([HAVE_HYPRE],[1],["Define if configured with HYPRE solver support."])
+  fi
 fi
 AM_CONDITIONAL(HAVE_HYPRE, [test "xno" != "x$enablehypre"])
 

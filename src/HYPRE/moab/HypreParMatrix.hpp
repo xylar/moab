@@ -39,6 +39,7 @@
 // #include "HYPRE_MatvecFunctions.h"
 
 #include "seq_mv.h"
+#include "HypreParVector.hpp"
 #include "_hypre_parcsr_mv.h"
 #include "_hypre_parcsr_ls.h"
 #include "interpreter.h"

@@ -426,7 +426,79 @@ void moab::TempestOfflineMap::LinearRemapFVtoFV_Tempest_MOAB (
         // Increment the current overlap index
         ixOverlap += nOverlapFaces;
     }
+
+#ifdef MOAB_HAVE_HYPRE
+    Hypre_CopyTempestSparseMat();
+#endif
+    return;
 }
+
+
+#ifdef MOAB_HAVE_HYPRE
+
+void moab::TempestOfflineMap::Hypre_CopyTempestSparseMat()
+{
+    int rcstarts[2] = {m_meshInput->faces.size(), m_meshOutput->faces.size()};
+    int rcgsizes[2], rcgrstarts[2], rcgcstarts[2];
+    MPI_Allreduce(rcstarts, rcgsizes, 2, MPI_INT, MPI_SUM, pcomm->comm());
+    MPI_Scan(rcstarts, rcgrstarts, 2, MPI_INT, MPI_SUM, pcomm->comm());
+    rcgcstarts[1] = rcgrstarts[1];
+    rcgrstarts[1] = rcgrstarts[0];
+    rcgrstarts[0] = rcgrstarts[1] - rcstarts[0];
+    // rcgrstarts[0] = rcgrstarts[0] - rcstarts[0];
+    rcgcstarts[0] = rcgcstarts[1] - rcstarts[1];
+    rcgcstarts[1] -= 1;
+    rcgrstarts[1] -= 1;
+    std::cout << "Proc: " << pcomm->rank() << ": Sizes = " << rcgsizes[0] << ", " << rcgsizes[1] << ", Row = " << rcgrstarts[0] << ", " << rcgrstarts[1] << ", Col = " << rcgcstarts[0] << ", " << rcgcstarts[1] << "\n";
+
+    int locrows = m_mapRemap.GetRows();
+    // int loccols = m_mapRemap.GetColumns();
+    DataVector<int> lrows;
+    DataVector<int> lcols;
+    DataVector<double> lvals;
+    m_mapRemap.GetEntries(lrows, lcols, lvals);
+    int nvals = lrows.GetRows();
+
+    std::vector<int> nhrows, nhcols;
+    int voffset=0, sumcols=0, maxnnz=0;
+    for (int iv=0; iv < nvals; iv+=voffset) {
+        int ir = lrows[iv];
+        nhrows.push_back(ir);
+        for (voffset=0; voffset < nvals-iv; voffset++) {
+            if (lrows[iv+voffset] == ir) // same row as before
+                continue;
+            else // different row than before
+                break;
+        }
+        maxnnz=std::max(maxnnz,voffset);
+        sumcols += voffset; // We expect this to equal `nvals`
+        nhcols.push_back(voffset);
+    }
+    if (pcomm->rank())
+        std::cout << "Rank[1]: nhrows = " << nhrows.size() << ", nhcols = " << nhcols.size() << ", locrows = " << locrows << ", sumcols = " << sumcols << ", nvals = " << nvals << std::endl;
+    else 
+        std::cout << "Rank[0]: nhrows = " << nhrows.size() << ", nhcols = " << nhcols.size() << ", locrows = " << locrows << ", sumcols = " << sumcols << ", nvals = " << nvals << std::endl;
+    assert(nhrows.size() == nhcols.size() && nhcols.size() - locrows == 0);
+    assert(sumcols == nvals);
+
+    // Let us correctly allocate the matrix depending on the NNZ and DoFs
+    m_weightMat->resize(rcgsizes[0], rcgsizes[1], 
+                        rcgrstarts, rcgcstarts,
+                        maxnnz, 3); // Need a better way to set nnz/diag/off-diag
+
+    m_weightMat->verbosity(2);
+
+    int lrsize = nhrows.size()/*, lcsize = nhcols.size()*/;
+    m_weightMat->SetValues(lrsize, &nhcols[0], &nhrows[0],
+                                      lcols, lvals);
+
+    m_weightMat->FinalizeAssembly();
+
+    // m_weightMat->Print("hypremat.txt", 0, 0);    
+
+    return;
+}
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -553,10 +625,10 @@ void moab::TempestOfflineMap::LinearRemapSE4_Tempest_MOAB (
         {
             const Face & faceOverlap = m_meshOverlap->faces[ixOverlap + j];
 
-#ifdef VERBOSE
-            if ( pcomm->rank() )
-                Announce ( "\tLocal ID: %i/%i = %i, areas = %f", j + ixOverlap, nOverlapFaces, m_meshOverlap->vecSourceFaceIx[ixOverlap + j], m_meshOverlap->vecFaceArea[ixOverlap + j] );
-#endif
+// #ifdef VERBOSE
+//             if ( pcomm->rank() )
+//                 Announce ( "\tLocal ID: %i/%i = %i, areas = %f", j + ixOverlap, nOverlapFaces, m_meshOverlap->vecSourceFaceIx[ixOverlap + j], m_meshOverlap->vecFaceArea[ixOverlap + j] );
+// #endif
 
             int nOverlapTriangles = faceOverlap.edges.size() - 2;
 
@@ -721,7 +793,6 @@ void moab::TempestOfflineMap::LinearRemapSE4_Tempest_MOAB (
                             dRemapCoeff[p][q][j]
                             * m_meshOverlap->vecFaceArea[ixOverlap + j]
                             / m_meshOutput->vecFaceArea[ixSecondFace];
-
                     }
                     else
                     {
@@ -738,6 +809,11 @@ void moab::TempestOfflineMap::LinearRemapSE4_Tempest_MOAB (
         // Increment the current overlap index
         ixOverlap += nOverlapFaces;
     }
+
+#ifdef MOAB_HAVE_HYPRE
+    Hypre_CopyTempestSparseMat();
+#endif
+    return;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -998,34 +1074,39 @@ void moab::TempestOfflineMap::LinearRemapFVtoGLL_Simple_MOAB (
                         {
 #endif
 #ifdef TRIANGULAR_TRUNCATION
-                            for ( int p = 0; p < nOrder; p++ )
-                            {
-                                for ( int q = 0; q < nOrder - p; q++ )
-                                {
+                    for ( int p = 0; p < nOrder; p++ )
+                    {
+                        for ( int q = 0; q < nOrder - p; q++ )
+                        {
 #endif
 
-                                    for ( size_t nx = 0; nx < vecAdjFaces.size(); nx++ )
-                                    {
-                                        int ixAdjFace = vecAdjFaces[nx].first;
+                            for ( size_t nx = 0; nx < vecAdjFaces.size(); nx++ )
+                            {
+                                int ixAdjFace = vecAdjFaces[nx].first;
 
-                                        smatMap ( ixSecondNode, ixAdjFace ) +=
-                                            IPow ( dX[0], p )
-                                            * IPow ( dX[1], q )
-                                            * dFitArrayPlus[nx][ixp];
-                                    }
-
-                                    ixp++;
-                                }
+                                smatMap ( ixSecondNode, ixAdjFace ) +=
+                                    IPow ( dX[0], p )
+                                    * IPow ( dX[1], q )
+                                    * dFitArrayPlus[nx][ixp];
                             }
+
+                            ixp++;
                         }
                     }
                 }
-
-                // Increment the current overlap index
-                ixOverlap += nOverlapFaces;
-
             }
         }
+
+        // Increment the current overlap index
+        ixOverlap += nOverlapFaces;
+
+    }
+
+#ifdef MOAB_HAVE_HYPRE
+    Hypre_CopyTempestSparseMat();
+#endif
+    return;
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -1444,6 +1525,11 @@ void moab::TempestOfflineMap::LinearRemapFVtoGLL_Volumetric_MOAB (
 
         //_EXCEPTION();
     }
+
+#ifdef MOAB_HAVE_HYPRE
+    Hypre_CopyTempestSparseMat();
+#endif
+    return;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1930,7 +2016,6 @@ void moab::TempestOfflineMap::LinearRemapFVtoGLL_MOAB (
                                 dComposedArray[i][jx]
                                 * dataGLLJacobian[s][t][ixSecondFace]
                                 / dataGLLNodalArea[ixSecondNode];
-
                         }
                         else
                         {
@@ -1946,6 +2031,11 @@ void moab::TempestOfflineMap::LinearRemapFVtoGLL_MOAB (
 
         ixOverlap += nOverlapFaces;
     }
+
+#ifdef MOAB_HAVE_HYPRE
+    Hypre_CopyTempestSparseMat();
+#endif
+    return;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -2527,6 +2617,11 @@ void moab::TempestOfflineMap::LinearRemapGLLtoGLL2_MOAB (
         // Increment the current overlap index
         ixOverlap += nOverlapFaces;
     }
+
+#ifdef MOAB_HAVE_HYPRE
+    Hypre_CopyTempestSparseMat();
+#endif
+    return;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -2738,6 +2833,12 @@ void moab::TempestOfflineMap::LinearRemapGLLtoGLL2_Pointwise_MOAB (
             _EXCEPTION1 ( "Can't sample point %i", i );
         }
     }
+
+#ifdef MOAB_HAVE_HYPRE
+    Hypre_CopyTempestSparseMat();
+#endif
+
+    return;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

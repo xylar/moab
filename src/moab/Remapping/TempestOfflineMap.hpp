@@ -17,6 +17,8 @@
 #ifndef _TEMPESTOFFLINEMAP_H_
 #define _TEMPESTOFFLINEMAP_H_
 
+#include "moab/MOABConfig.h"
+
 #include "SparseMatrix.h"
 #include "DataVector.h"
 #include "DataMatrix.h"
@@ -24,6 +26,10 @@
 #include "OfflineMap.h"
 #include <string>
 #include <vector>
+
+#ifdef MOAB_HAVE_HYPRE
+#include "HypreParMatrix.hpp"
+#endif
 
 #include "moab/Remapping/TempestRemapper.hpp"
 
@@ -231,6 +237,15 @@ private:
 		bool fContinuousOut
 	);
 
+#ifdef MOAB_HAVE_HYPRE
+	///	<summary>
+	///		Copy the local matrix from Tempest SparseMatrix representation (ELL)
+	///		to the parallel CSR Hypre Matrix for scalable application of matvec
+	///     needed for projections.
+	///	</summary>
+	void Hypre_CopyTempestSparseMat();
+#endif
+
 private:
 	///	<summary>
 	///		The fundamental remapping operator object.
@@ -242,6 +257,10 @@ private:
 	///	</summary>
 	// SparseMatrix<double> m_mapRemapGlobal;
 	OfflineMap* m_weightMapGlobal;
+
+#ifdef MOAB_HAVE_HYPRE
+	HypreParMatrix* m_weightMat;
+#endif
 
 	///	<summary>
 	///		The boolean flag representing whether the root process has the updated global view.

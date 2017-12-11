@@ -131,8 +131,8 @@ namespace moab
   {
 #ifndef NDEBUG
 
-    if (this->GlobalSize() != y.GlobalSize() || local_size != y.local_size) {
-      MB_SET_ERR_RET("HypreParVector::operator failed. Incompatible vector sizes");
+    if (this->GlobalSize() != y.GlobalSize() ) { // || local_size != y.local_size) {
+      MB_SET_ERR_RET_VAL("HypreParVector::operator failed. Incompatible vector sizes", *this);
     }
 
 #endif

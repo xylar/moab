@@ -91,7 +91,7 @@ namespace moab
       inline HYPRE_Int *Partitioning() { return x->partitioning; }
 
       /// Returns the global number of rows
-      inline HYPRE_Int GlobalSize() { return x->global_num_rows; }
+      inline HYPRE_Int GlobalSize() const { return x->global_num_rows; }
 
       /// Typecasting to hypre's HYPRE_IJVector*
       operator HYPRE_IJVector() const;
