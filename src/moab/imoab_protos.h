@@ -52,4 +52,6 @@
 #define iMOAB_SendMesh                       IMOAB_FC_WRAPPER( imoab_sendmesh, IMOAB_SENDMESH )
 #define iMOAB_FreeSenderBuffers              IMOAB_FC_WRAPPER( imoab_freesenderbuffers, IMOAB_FREESENDERBUFFERS )
 #define iMOAB_ReceiveMesh                    IMOAB_FC_WRAPPER( imoab_receivemesh, IMOAB_RECEIVEMESH )
+#define iMOAB_SendElementTag                 IMOAB_FC_WRAPPER( imoab_sendelementtag, IMOAB_SENDELEMENTTAG )
+#define iMOAB_ReceiveElementTag              IMOAB_FC_WRAPPER( imoab_receiveelementtag, IMOAB_RECEIVEELEMENTTAG )
 #endif /*IMOAB_PROTOS_H */

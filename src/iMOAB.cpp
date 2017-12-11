@@ -1911,6 +1911,18 @@ ErrCode iMOAB_ReceiveMesh ( iMOAB_AppID pid, MPI_Comm* global, MPI_Group* sendin
 
     return 0;
 }
+ErrCode iMOAB_SendElementTag(iMOAB_AppID pid, int* scompid, int* rcompid, const iMOAB_String tag_storage_name,
+    MPI_Comm* join, int tag_storage_name_length)
+{
+  return 0;
+}
+
+ErrCode iMOAB_ReceiveElementTag(iMOAB_AppID pid, int* scompid, int* rcompid, const iMOAB_String tag_storage_name,
+    MPI_Comm* join, int tag_storage_name_length)
+{
+  return 0;
+}
+
 
 ErrCode iMOAB_FreeSenderBuffers ( iMOAB_AppID pid, MPI_Comm* join, int* rcompid )
 {

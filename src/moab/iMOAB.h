@@ -641,6 +641,37 @@ ErrCode iMOAB_FreeSenderBuffers ( iMOAB_AppID pid, MPI_Comm* join, int* rcompid 
 
 ErrCode iMOAB_ReceiveMesh ( iMOAB_AppID pid, MPI_Comm* join, MPI_Group* sendingGroup, int* scompid );
 
+/**
+  \brief migrate (receive) a tag from another component
+  <B>Operations:</B> Not Collective
+
+   \param[in]  pid (iMOAB_AppID)                      The unique pointer to the application ID  mesh (sender)
+   \param[in]  scompid ( int *)                       external id of application that sends the tag data
+   \param[in]  rcompid ( int *)                       external id of application that receives the tag data
+   \param[in]  tag_storage_name (iMOAB_String)        The tag name (to be sent)
+   \param[in]  join (MPI_Comm)                        communicator that overlaps both groups
+   \param[in]  tag_storage_name_length (int)          The length of the tag_storage_name string
+
+ */
+ErrCode iMOAB_SendElementTag(iMOAB_AppID pid, int* scompid, int* rcompid, const iMOAB_String tag_storage_name,
+    MPI_Comm* join, int tag_storage_name_length);
+
+
+/**
+  \brief migrate (receive) a tag from another component
+  <B>Operations:</B> Not Collective
+
+   \param[in]  pid (iMOAB_AppID)                      The unique pointer to the application ID  mesh (receiver)
+   \param[in]  scompid ( int *)                       external id of application that sends the tag data
+   \param[in]  rcompid ( int *)                       external id of application that receives the tag data
+   \param[in]  tag_storage_name (iMOAB_String)        The tag name (to be received)
+   \param[in]  join (MPI_Comm)                        communicator that overlaps both groups
+   \param[in]  tag_storage_name_length (int)          The length of the tag_storage_name string
+
+ */
+ErrCode iMOAB_ReceiveElementTag(iMOAB_AppID pid, int* scompid, int* rcompid, const iMOAB_String tag_storage_name,
+    MPI_Comm* join, int tag_storage_name_length);
+
 #ifdef MOAB_HAVE_TEMPESTREMAP
 
 /**
