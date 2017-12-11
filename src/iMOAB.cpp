@@ -1911,9 +1911,49 @@ ErrCode iMOAB_ReceiveMesh ( iMOAB_AppID pid, MPI_Comm* global, MPI_Group* sendin
 
     return 0;
 }
+
+ErrCode FindParCommGraph(iMOAB_AppID pid, int *scompid, int *rcompid, ParCommGraph *& cgraph, int * sense)
+{
+  //appData& data = context.appDatas[*pid];
+  cgraph = NULL;
+  //ParallelComm* pco = context.pcomms[*pid];
+  std::vector<ParCommGraph*> & vpg = context.appDatas[*pid].pgraph;
+  size_t i = -1;
+  *sense = 0;
+  for (i=0; i<vpg.size(); i++)
+  {
+    ParCommGraph * pg=vpg[i];
+    if ( (pg-> get_component_id1() == *scompid )&& (pg-> get_component_id2() == *rcompid ))
+    {
+      cgraph = pg;
+      *sense = 1;
+      break;
+    }
+    if ( (pg-> get_component_id2() == *scompid )&& (pg-> get_component_id1() == *rcompid ))
+    {
+      cgraph = pg;
+      *sense = -1;
+      break;
+    }
+  }
+  if ( i< vpg.size() && NULL!=cgraph )
+    return 0;
+
+  return 1; // error, we did not find cgraph
+}
+
 ErrCode iMOAB_SendElementTag(iMOAB_AppID pid, int* scompid, int* rcompid, const iMOAB_String tag_storage_name,
     MPI_Comm* join, int tag_storage_name_length)
 {
+  // first, based on the scompid and rcompid, find the parCommGraph corresponding to this exchange
+  // instantiate the par comm graph
+  // ParCommGraph::ParCommGraph(MPI_Comm joincomm, MPI_Group group1, MPI_Group group2, int coid1, int coid2)
+  ParCommGraph* cgraph = NULL;
+  int sense  = 0;
+  int ierr = FindParCommGraph(pid, scompid, rcompid, cgraph, &sense);
+  if ( 0 != ierr || NULL == cgraph ) { return 1; }
+
+
   return 0;
 }
 

@@ -230,6 +230,10 @@ ErrorCode ParCommGraph::send_mesh_parts(MPI_Comm jcomm, ParallelComm * pco, Rang
 {
   std::map<int, Range> split_ranges;
   ErrorCode rval = split_owned_range (rankInGroup1, owned, split_ranges);
+
+  // we know this on the sender side:
+  corr_tasks = sender_graph[ senderTasks[rankInGroup1]]; // copy
+  corr_sizes = sender_sizes[ senderTasks[rankInGroup1]]; // another copy
   int indexReq=0;
   int ierr; // MPI error
   if (is_root_sender()) indexReq = 2; // for sendReqs
@@ -303,6 +307,8 @@ ErrorCode ParCommGraph::receive_mesh(MPI_Comm jcomm, ParallelComm *pco, EntityHa
   ErrorCode rval;
   int ierr;
   MPI_Status status;
+  // we also need to fill corresponding mesh info on the other side
+  corr_tasks = senders_local;
   Range newEnts;
   if (!senders_local.empty())
   {
@@ -338,6 +344,10 @@ ErrorCode ParCommGraph::receive_mesh(MPI_Comm jcomm, ParallelComm *pco, EntityHa
       // we have to add them to the local set
       rval = pco->get_moab()->add_entities(local_set, entities);
       if (MB_SUCCESS!= rval) return rval;
+      // corr_sizes is the size of primary entities received
+      Range verts = entities.subset_by_dimension(0);
+      Range local_primary_ents=subtract(entities, verts);
+      corr_sizes.push_back( (int) local_primary_ents.size());
       newEnts.merge(entities);
 
 #ifdef VERBOSE

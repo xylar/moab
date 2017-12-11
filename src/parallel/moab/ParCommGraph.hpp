@@ -76,16 +76,9 @@ namespace moab {
 
 	  bool is_root_receiver () { return rootReceiver;}
 
-	  int get_index_sender() { return index_sender;}
-	  int get_index_receiver() { return index_receiver;}
-
 	  int sender(int index) {return senderTasks[index];}
 
 	  int receiver(int index) {return receiverTasks[index];}
-
-	  // setter methods for private data
-	  void set_index_sender(int ix1) {index_sender=ix1;}
-	  void set_index_receiver(int ix2) {index_receiver=ix2;}
 
 	  int get_component_id1(){return compid1;}
 	  int get_component_id2(){return compid2;}
@@ -118,13 +111,12 @@ namespace moab {
 	  void find_group_ranks(MPI_Group group, MPI_Comm join, std::vector<int> & ranks);
 
 	  MPI_Comm  comm;
-	  std::vector<int>  senderTasks;
-	  std::vector<int>  receiverTasks;
+	  std::vector<int>  senderTasks;  // these are the sender tasks in joint comm
+	  std::vector<int>  receiverTasks; // these are all the receiver tasks in joint comm
 	  bool rootSender;
 	  bool rootReceiver;
-	  int rankInGroup1, rankInGroup2;
+	  int rankInGroup1, rankInGroup2; // group 1 is sender, 2 is receiver
 	  int rankInJoin, joinSize;
-	  int index_sender, index_receiver; // indices in the list of local graphs referred by this application (not used yet)
 	  int compid1, compid2;
 
 	  // communication graph from group1 to group2;
@@ -141,6 +133,12 @@ namespace moab {
 	                    // first integer will be the size of the graph, the rest will be the packed graph
 	  std::vector<MPI_Request> sendReqs; // there will be multiple requests, 2 for comm graph, 2 for each Buffer
 	  // there are as many buffers as sender_graph[rankInJoin].size()
+
+	  // active on both receiver and sender sides
+	  std::vector<int> corr_tasks; // subset of the senderTasks, in the joint comm for sender;
+	                                // subset of receiverTasks for receiver side
+	  std::vector<int> corr_sizes ; // how many primary entities corresponding to the other side
+
 };
 
 } // namespace moab
