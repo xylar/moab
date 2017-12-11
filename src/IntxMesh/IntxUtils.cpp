@@ -600,14 +600,9 @@ ErrorCode SpectralVisuMesh(Interface * mb, Range & input, int NP, EntityHandle &
 }
 // remove for the time being dependency on coupler
 #endif
-ErrorCode ProjectOnSphere(Interface * mb, EntityHandle set, double R) {
-  Range ents;
-  ErrorCode rval = mb->get_entities_by_handle(set, ents);
-  if (rval != moab::MB_SUCCESS)
-    return rval;
-
+ErrorCode ScaleToRadius(Interface * mb, EntityHandle set, double R) {
   Range nodes;
-  rval = mb->get_connectivity(ents, nodes);
+  ErrorCode rval = mb->get_entities_by_type(set, MBVERTEX, nodes, true); // recursive
   if (rval != moab::MB_SUCCESS)
     return rval;
 

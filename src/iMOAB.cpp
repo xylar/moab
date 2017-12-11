@@ -1593,6 +1593,11 @@ ErrCode iMOAB_CreateElements ( iMOAB_AppID pid, int* num_elem, int* type,  int* 
 
     data.primary_elems.merge ( new_elems );
 
+    // add to adjacency
+    rval  = read_iface->update_adjacencies(actual_start_handle,
+        *num_elem,
+        *num_nodes_per_element,
+        array); CHKERRVAL(rval);
     // organize all new elements in block, with the given block ID; if the block set is not existing, create  a
     // new mesh set;
     Range sets;
@@ -1643,6 +1648,7 @@ ErrCode iMOAB_ResolveSharedEntities (  iMOAB_AppID pid, int* num_verts, int* mar
     EntityHandle cset = data.file_set;
     rval = pco->resolve_shared_ents ( cset, -1, -1, &stag );CHKERRVAL(rval);
 
+    rval = context.MBI->tag_delete(stag); CHKERRVAL(rval);
     // provide partition tag equal to rank
     Tag part_tag;
     dum_id = -1;
@@ -1870,6 +1876,7 @@ ErrCode iMOAB_ReceiveMesh ( iMOAB_AppID pid, MPI_Comm* global, MPI_Group* sendin
         std::cout << "current_receiver " << current_receiver << " local verts: " << local_verts.size() << "\n";
 #endif
         MergeMesh mm ( context.MBI );
+
         rval = mm.merge_using_integer_tag ( local_verts, idtag );
 
         if ( MB_SUCCESS != rval ) { return 1; }
