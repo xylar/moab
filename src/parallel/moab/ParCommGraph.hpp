@@ -86,6 +86,9 @@ namespace moab {
 	  // return local graph for a specific root
 	  ErrorCode split_owned_range (int sender_rank, Range & owned, std::map<int, Range> & split_ranges);
 
+    // use for this the corresponding tasks and sizes
+    ErrorCode split_owned_range_general (Range & owned, std::map<int, Range> & split_ranges);
+
 	  ErrorCode send_graph(MPI_Comm jcomm);
 
 	  ErrorCode send_mesh_parts(MPI_Comm jcomm, ParallelComm * pco, Range & owned );
@@ -97,6 +100,10 @@ namespace moab {
         std::vector<int> &senders_local);
 
 	  ErrorCode release_send_buffers(MPI_Comm jcomm);
+
+	  ErrorCode send_tag_values (MPI_Comm jcomm, ParallelComm *pco, Range & owned, Tag & tag_handle );
+
+	  ErrorCode receive_tag_values (MPI_Comm jcomm, ParallelComm *pco, Range & owned, Tag & tag_handle );
 
 	private:
 	  /**
@@ -138,6 +145,8 @@ namespace moab {
 	  std::vector<int> corr_tasks; // subset of the senderTasks, in the joint comm for sender;
 	                                // subset of receiverTasks for receiver side
 	  std::vector<int> corr_sizes ; // how many primary entities corresponding to the other side
+	  // so what we know is that the local range corresponds to remote corr_sizes[i] size ranges on tasks corr_tasks[i]
+	  //
 
 };
 

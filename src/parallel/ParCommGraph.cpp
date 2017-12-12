@@ -176,7 +176,7 @@ ErrorCode ParCommGraph::split_owned_range (int sender_rank, Range & owned, std::
   if (distribution.size() != receivers.size()) //
     return MB_FAILURE;
 
-  Range current = owned; // get the full range first, then we will subtract stuff, fot
+  Range current = owned; // get the full range first, then we will subtract stuff, for
   // the following ranges
 
   Range rleftover=current;
@@ -185,6 +185,29 @@ ErrorCode ParCommGraph::split_owned_range (int sender_rank, Range & owned, std::
     Range newr;
     newr.insert(current.begin(), current.begin() +distribution[k]);
     split_ranges[ receivers[k] ] = newr;
+
+    rleftover = subtract(current, newr );
+    current = rleftover;
+  }
+
+  return MB_SUCCESS;
+}
+
+// use for this the corresponding tasks and sizes
+ErrorCode ParCommGraph::split_owned_range_general (Range & owned, std::map<int, Range> & split_ranges)
+{
+  if (corr_tasks.size() != corr_sizes.size()) //
+    return MB_FAILURE;
+
+  Range current = owned; // get the full range first, then we will subtract stuff, for
+  // the following ranges
+
+  Range rleftover=current;
+  for (size_t k=0; k<corr_tasks.size(); k++ )
+  {
+    Range newr;
+    newr.insert(current.begin(), current.begin() +corr_sizes[k]);
+    split_ranges[ corr_tasks[k] ] = newr;
 
     rleftover = subtract(current, newr );
     current = rleftover;
@@ -230,6 +253,7 @@ ErrorCode ParCommGraph::send_mesh_parts(MPI_Comm jcomm, ParallelComm * pco, Rang
 {
   std::map<int, Range> split_ranges;
   ErrorCode rval = split_owned_range (rankInGroup1, owned, split_ranges);
+  if (rval!=MB_SUCCESS) return rval;
 
   // we know this on the sender side:
   corr_tasks = sender_graph[ senderTasks[rankInGroup1]]; // copy
@@ -405,6 +429,91 @@ ErrorCode ParCommGraph::release_send_buffers(MPI_Comm jcomm)
   for (vit = localSendBuffs.begin(); vit != localSendBuffs.end(); ++vit)
     delete (*vit);
   localSendBuffs.clear();
+  return MB_SUCCESS;
+}
+// again, will use the send buffers, for nonblocking sends;
+// should be the receives non-blocking too?
+ErrorCode ParCommGraph::send_tag_values (MPI_Comm jcomm, ParallelComm *pco, Range & owned, Tag & tag_handle )
+{
+  // basically, owned.size() needs to be equal to sum(corr_sizes)
+  // get info about the tag size, type, etc
+  int ierr;
+  Core * mb = (Core*)pco->get_moab();
+  std::map<int, Range> split_ranges;
+  ErrorCode rval = split_owned_range_general ( owned, split_ranges);
+  if (rval!=MB_SUCCESS) return rval;
+  // get info about the tag
+  //! Get the size of the specified tag in bytes
+  int bytes_per_tag; // we need to know, to allocate buffers
+  rval = mb-> tag_get_bytes(tag_handle,  bytes_per_tag) ;
+  if (rval!=MB_SUCCESS) return rval;
+  // use the buffers data structure to allocate memory for sending the tags
+
+  sendReqs.resize(split_ranges.size());
+  int indexReq=0;
+  for (std::map<int, Range>::iterator it=split_ranges.begin(); it!=split_ranges.end(); it++)
+  {
+    int receiver_proc = it->first;
+    Range ents = it->second; // primary entities, with the tag data
+    int size_buffer = 4 + bytes_per_tag*(int)ents.size(); // hopefully, below 2B; if more, we have a big problem ...
+    ParallelComm::Buffer * buffer = new ParallelComm::Buffer(size_buffer);
+
+    buffer->reset_ptr(sizeof(int));
+    // copy tag data to buffer->buff_ptr, and send the buffer (we could have used regular char arrays)
+    rval = mb->tag_get_data(tag_handle, ents, (void*)(buffer->buff_ptr) );
+    if (rval!=MB_SUCCESS) return rval;
+    *((int*)buffer->mem_ptr) = size_buffer;
+    //int size_pack = buffer->get_current_size(); // debug check
+    ierr = MPI_Isend(buffer->mem_ptr, size_buffer, MPI_CHAR, receiver_proc, 222, jcomm, &sendReqs[indexReq]); // we have to use global communicator
+    if (ierr!=0) return MB_FAILURE;
+    indexReq++;
+    localSendBuffs.push_back(buffer);
+  }
+
+  return MB_SUCCESS;
+}
+
+ErrorCode ParCommGraph::receive_tag_values (MPI_Comm jcomm, ParallelComm *pco, Range & owned, Tag & tag_handle )
+{
+  // opposite to sending, we will use blocking receives
+  int ierr;
+  MPI_Status status;
+  // basically, owned.size() needs to be equal to sum(corr_sizes)
+  // get info about the tag size, type, etc
+  Core * mb = (Core*)pco->get_moab();
+  std::map<int, Range> split_ranges;
+  ErrorCode rval = split_owned_range_general ( owned, split_ranges);
+  if (rval!=MB_SUCCESS) return rval;
+  // get info about the tag
+  //! Get the size of the specified tag in bytes
+  int bytes_per_tag; // we need to know, to allocate buffers
+  rval = mb-> tag_get_bytes(tag_handle,  bytes_per_tag) ;
+  if (rval!=MB_SUCCESS) return rval;
+  // use the buffers data structure to allocate memory for sending the tags
+
+  for (std::map<int, Range>::iterator it=split_ranges.begin(); it!=split_ranges.end(); it++)
+  {
+    int sender_proc = it->first;
+    Range ents = it->second; // primary entities, with the tag data, we will receive
+    int size_buffer = 4 + bytes_per_tag*(int)ents.size(); // hopefully, below 2B; if more, we have a big problem ...
+    ParallelComm::Buffer * buffer = new ParallelComm::Buffer(size_buffer);
+
+    buffer->reset_ptr(sizeof(int));
+
+    *((int*)buffer->mem_ptr) = size_buffer;
+    //int size_pack = buffer->get_current_size(); // debug check
+
+    ierr = MPI_Recv (buffer->mem_ptr, size_buffer, MPI_CHAR, sender_proc, 222, jcomm, &status);
+    if (ierr!=0) return MB_FAILURE;
+
+    // now set the tag
+    // copy to tag
+    rval = mb->tag_set_data(tag_handle, ents, (void*)(buffer->mem_ptr + 4) );
+    delete buffer; // no need for it afterwards
+    if (rval!=MB_SUCCESS) return rval;
+
+  }
+
   return MB_SUCCESS;
 }
 

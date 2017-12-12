@@ -1953,6 +1953,26 @@ ErrCode iMOAB_SendElementTag(iMOAB_AppID pid, int* scompid, int* rcompid, const 
   int ierr = FindParCommGraph(pid, scompid, rcompid, cgraph, &sense);
   if ( 0 != ierr || NULL == cgraph ) { return 1; }
 
+  ParallelComm* pco = context.pcomms[*pid];
+  Range& owned = context.appDatas[*pid].owned_elems;
+
+  std::string tag_name ( tag_storage_name );
+
+  if ( tag_storage_name_length < ( int ) strlen ( tag_storage_name ) )
+  {
+      tag_name = tag_name.substr ( 0, tag_storage_name_length );
+  }
+  Tag tagHandle;
+  // basically, we assume everything is defined already on the tag,
+  //   and we can get the tag just by its name
+  ErrorCode rval = context.MBI->tag_get_handle ( tag_name.c_str(), tagHandle);
+  if ( MB_SUCCESS != rval || NULL == tagHandle) { return 1; }
+  // pco is needed to pack, and for moab instance, not for communication!
+  // still use nonblocking communication, over the
+  rval = cgraph->send_tag_values ( *join, pco, owned, tagHandle );
+
+  if ( MB_SUCCESS != rval ) { return 1; }
+  // now, send to each corr_tasks[i] tag data for corr_sizes[i] primary entities
 
   return 0;
 }
@@ -1960,6 +1980,35 @@ ErrCode iMOAB_SendElementTag(iMOAB_AppID pid, int* scompid, int* rcompid, const 
 ErrCode iMOAB_ReceiveElementTag(iMOAB_AppID pid, int* scompid, int* rcompid, const iMOAB_String tag_storage_name,
     MPI_Comm* join, int tag_storage_name_length)
 {
+  // first, based on the scompid and rcompid, find the parCommGraph corresponding to this exchange
+  // instantiate the par comm graph
+  // ParCommGraph::ParCommGraph(MPI_Comm joincomm, MPI_Group group1, MPI_Group group2, int coid1, int coid2)
+  ParCommGraph* cgraph = NULL;
+  int sense  = 0;
+  int ierr = FindParCommGraph(pid, scompid, rcompid, cgraph, &sense);
+  if ( 0 != ierr || NULL == cgraph ) { return 1; }
+
+  ParallelComm* pco = context.pcomms[*pid];
+  Range& owned = context.appDatas[*pid].owned_elems;
+
+  std::string tag_name ( tag_storage_name );
+
+  if ( tag_storage_name_length < ( int ) strlen ( tag_storage_name ) )
+  {
+      tag_name = tag_name.substr ( 0, tag_storage_name_length );
+  }
+  Tag tagHandle;
+  // basically, we assume everything is defined already on the tag,
+  //   and we can get the tag just by its name
+  ErrorCode rval = context.MBI->tag_get_handle ( tag_name.c_str(), tagHandle);
+  if ( MB_SUCCESS != rval || NULL == tagHandle) { return 1; }
+  // pco is needed to pack, and for moab instance, not for communication!
+  // still use nonblocking communication, over the
+  rval = cgraph->receive_tag_values ( *join, pco, owned, tagHandle );
+
+  if ( MB_SUCCESS != rval ) { return 1; }
+  // now, send to each corr_tasks[i] tag data for corr_sizes[i] primary entities
+
   return 0;
 }
 

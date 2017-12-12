@@ -81,14 +81,9 @@ int main( int argc, char* argv[] )
     filename = argv[1];
   }
   int num_errors = 0;
-#if 0
   num_errors += RUN_TEST_ARG2( migrate_1_1, filename.c_str() );
   num_errors += RUN_TEST_ARG2( migrate_1_2, filename.c_str() );
-#endif
-#if 1
   num_errors += RUN_TEST_ARG2( migrate_2_1, filename.c_str() );
-#endif
-#if 0
   num_errors += RUN_TEST_ARG2( migrate_2_2, filename.c_str() );
   if (size >= 4)
   {
@@ -97,7 +92,6 @@ int main( int argc, char* argv[] )
     num_errors += RUN_TEST_ARG2( migrate_4_3, filename.c_str() );
     num_errors += RUN_TEST_ARG2( migrate_overlap, filename.c_str() );
   }
-#endif
   if (rank == 0) {
     if (!num_errors)
       std::cout << "All tests passed" << std::endl;
@@ -194,12 +188,19 @@ ErrorCode migrate(const char*filename, const char * outfile)
   int tagType = DENSE_DOUBLE;
   int tagIndex2=0, tagIndex1=0; // these will be tag indices on each app pid
 
+  std::string fileAfterTagMigr(outfile);// has h5m
+  int sizen = fileAfterTagMigr.length();
+  fileAfterTagMigr.erase(sizen-4, 4);// erase extension .h5m
+  fileAfterTagMigr = fileAfterTagMigr + "_tag.h5m";
+
+  // now send a tag from component 2, towards component 1
   if (comm2 != MPI_COMM_NULL ){
      ierr = iMOAB_DefineTagStorage(pid2, "element_field", &tagType, &size_tag, &tagIndex2,  strlen("element_field") );
      CHECKRC(ierr, "failed to get tag element_field ");
     // this tag is already existing in the file
 
     // first, send from compid2 to compid1, from comm2, using common joint comm
+     // as always, use nonblocking sends
      ierr = iMOAB_SendElementTag(pid2, &compid2, &compid1, "element_field", &jcomm, strlen("element_field"));
      CHECKRC(ierr, "cannot send tag values")
   }
@@ -213,10 +214,16 @@ ErrorCode migrate(const char*filename, const char * outfile)
      CHECKRC(ierr, "cannot send tag values")
      std::string wopts;
      wopts   = "PARALLEL=WRITE_PART;";
-     ierr = iMOAB_WriteMesh(pid2, (char*)outfile , (char*)wopts.c_str(), strlen(outfile), strlen(wopts.c_str()) );
+     ierr = iMOAB_WriteMesh(pid1, (char*)fileAfterTagMigr.c_str() , (char*)wopts.c_str(), fileAfterTagMigr.length(), strlen(wopts.c_str()) );
      CHECKRC(ierr, "cannot write received mesh" )
 
   }
+
+  MPI_Barrier(jcomm);
+
+    // we can now free the sender buffers
+  if (comm2 != MPI_COMM_NULL)
+     ierr = iMOAB_FreeSenderBuffers(pid2, &jcomm, &compid1);
 
   if (comm2 != MPI_COMM_NULL) {
     ierr = iMOAB_DeregisterApplication(pid2);
