@@ -2024,7 +2024,8 @@ ErrCode iMOAB_FreeSenderBuffers ( iMOAB_AppID pid, MPI_Comm* join, int* rcompid 
 
     for ( size_t i = 0; i < pgrs.size(); i++ )
     {
-        if ( pgrs[i]->get_component_id2() == *rcompid  && ext_id ==  pgrs[i]->get_component_id1() )
+        if (  ( pgrs[i]->get_component_id2() == *rcompid  && ext_id ==  pgrs[i]->get_component_id1() ) ||
+            ( pgrs[i]->get_component_id2() == ext_id  && *rcompid ==  pgrs[i]->get_component_id1())) // sense -1
         {
             pg =  pgrs[i];
             break;
