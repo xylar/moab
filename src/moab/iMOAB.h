@@ -51,6 +51,13 @@ enum MOAB_TAG_TYPE { DENSE_INTEGER = 0,
                      SPARSE_ENTITYHANDLE
                    };
 
+
+enum MOAB_TAG_OWNER_TYPE { TAG_VERTEX = 0,
+                     TAG_EDGE,
+                     TAG_FACE,
+                     TAG_ELEMENT
+                   };
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -659,7 +666,7 @@ ErrCode iMOAB_ReceiveMesh ( iMOAB_AppID pid, MPI_Comm* join, MPI_Group* sendingG
   \param[in/out] pid_intersection (iMOAB_AppID)       The unique pointer to the intersection application ID
 */
 ErrCode iMOAB_ComputeMeshIntersectionOnSphere ( iMOAB_AppID pid_src, iMOAB_AppID pid_target, iMOAB_AppID pid_intx,
-                                                 double radius/*=1.0*/, double epsrel/*=1e-8*/, double boxeps/*=0.1*/);
+                                                 double *radius/*=1.0*/, double *epsrel/*=1e-8*/, double *boxeps/*=0.1*/);
 
 /**
   \brief Compute the projection weights to transfer a solution from a source surface mesh to a destination mesh defined on a sphere. 
@@ -676,12 +683,12 @@ ErrCode iMOAB_ComputeMeshIntersectionOnSphere ( iMOAB_AppID pid_src, iMOAB_AppID
   \param[in/out] pid_intersection (iMOAB_AppID)       The unique pointer to the intersection application ID
 */
 ErrCode iMOAB_ComputeScalarProjectionWeights ( iMOAB_AppID pid_intersection, 
-                                               const iMOAB_String disc_method1, int disc_order1,
-                                               const iMOAB_String disc_method2, int disc_order2,
-                                               int fVolumetric, int fNoConservation,
-                                               int fValidate,
+                                               const iMOAB_String disc_method1, int* disc_order1,
+                                               const iMOAB_String disc_method2, int* disc_order2,
+                                               int* fVolumetric, int* fNoConservation,
+                                               int* fValidate,
                                                int disc_method1_length,
-                                               int disc_method2_length);
+                                               int disc_method2_length );
 
 
 /**
@@ -696,8 +703,11 @@ ErrCode iMOAB_ComputeScalarProjectionWeights ( iMOAB_AppID pid_intersection,
 */
 ErrCode iMOAB_ApplyScalarProjectionWeights (   iMOAB_AppID pid_intersection, 
                                                const iMOAB_String soln_tag_name,
-                                               int fValidate,
-                                               int soln_tag_name_length);
+                                               const iMOAB_String soln_tag_dof_name,
+                                               int*  esoln_size, int*  esoln_owner,
+                                               int soln_tag_name_length,
+                                               int soln_tag_dof_name_length );
+
 #endif
 
 #endif
