@@ -129,9 +129,7 @@ ErrCode iMOAB_Initialize ( int argc, iMOAB_String* argv )
 
             ErrorCode rval = context.MBI->tag_get_handle ( shared_set_tag_names[i], 1, MB_TYPE_INTEGER,
                              gtags[i], MB_TAG_ANY );
-
-            if ( MB_SUCCESS != rval )
-            { return 1; }
+            CHKERRVAL(rval);
         }
 
         context.material_tag = gtags[0];
@@ -327,19 +325,18 @@ ErrCode iMOAB_DeregisterApplication ( iMOAB_AppID pid )
     rval = context.MBI->delete_entities ( noverts );CHKERRVAL(rval);
     // now retrieve connected elements that still exist (maybe in other sets, pids?)
     Range adj_ents_left;
-    rval = context.MBI->get_adjacencies(vertices, 1, false, adj_ents_left, Interface::UNION); CHKERRVAL(rval);
-    rval = context.MBI->get_adjacencies(vertices, 2, false, adj_ents_left, Interface::UNION); CHKERRVAL(rval);
-    rval = context.MBI->get_adjacencies(vertices, 3, false, adj_ents_left, Interface::UNION); CHKERRVAL(rval);
+    rval = context.MBI->get_adjacencies(vertices, 1, false, adj_ents_left, Interface::UNION);CHKERRVAL(rval);
+    rval = context.MBI->get_adjacencies(vertices, 2, false, adj_ents_left, Interface::UNION);CHKERRVAL(rval);
+    rval = context.MBI->get_adjacencies(vertices, 3, false, adj_ents_left, Interface::UNION);CHKERRVAL(rval);
 
     if (!adj_ents_left.empty())
     {
       Range conn_verts;
-      rval = context.MBI->get_connectivity(adj_ents_left, conn_verts); CHKERRVAL(rval);
+      rval = context.MBI->get_connectivity(adj_ents_left, conn_verts);CHKERRVAL(rval);
       vertices = subtract(vertices, conn_verts);
     }
 
-    rval = context.MBI->delete_entities ( vertices );
-    CHKERRVAL(rval);
+    rval = context.MBI->delete_entities ( vertices );CHKERRVAL(rval);
 
     std::map<std::string, int>::iterator mit;
 
@@ -477,6 +474,7 @@ ErrCode iMOAB_ReadHeaderInfo ( const iMOAB_String filename, int* num_global_vert
 
     return 0;
 }
+
 
 ErrCode iMOAB_LoadMesh ( iMOAB_AppID pid, const iMOAB_String filename, const iMOAB_String read_options, int* num_ghost_layers, int filename_length, int read_options_length )
 {
@@ -2045,7 +2043,7 @@ ErrCode iMOAB_FreeSenderBuffers ( iMOAB_AppID pid, MPI_Comm* join, int* rcompid 
 #define USE_API
 
 ErrCode iMOAB_ComputeMeshIntersectionOnSphere ( iMOAB_AppID pid_src, iMOAB_AppID pid_tgt, iMOAB_AppID pid_intx, 
-                                                double radius, double epsrel, double boxeps )
+                                                double *p_dradius, double *p_depsrel, double *p_dboxeps )
 {
     ErrorCode rval;
 
@@ -2067,9 +2065,9 @@ ErrCode iMOAB_ComputeMeshIntersectionOnSphere ( iMOAB_AppID pid_src, iMOAB_AppID
     rval = pco_intx->check_all_shared_handles();CHKERRVAL(rval);
 
     // Some constant parameters
-//     const double epsrel = 1.e-8;
-//     const double radius = 1.0 /*2.0*acos(-1.0)*/;
-//     const double boxeps = 0.1;
+    const double radius = (p_dradius ? *p_dradius : 1.0);
+    const double epsrel = (p_depsrel ? *p_depsrel : 1.e-8);
+    const double boxeps = (p_dboxeps ? *p_dboxeps : 0.1);
     
 	// print verbosely about the problem setting
 	{
@@ -2151,17 +2149,18 @@ ErrCode iMOAB_ComputeMeshIntersectionOnSphere ( iMOAB_AppID pid_src, iMOAB_AppID
     return 0;
 }
 
+
 ErrCode iMOAB_ComputeScalarProjectionWeights ( iMOAB_AppID pid_intx, 
-                                               const iMOAB_String disc_method1, int disc_order1,
-                                               const iMOAB_String disc_method2, int disc_order2,
-                                               int fVolumetric, int fNoConservation,
-                                               int fValidate,
+                                               const iMOAB_String disc_method1, int* disc_order1,
+                                               const iMOAB_String disc_method2, int* disc_order2,
+                                               int* fVolumetric, int* fNoConservation,
+                                               int* fValidate,
                                                int disc_method1_length,
                                                int disc_method2_length)
 {
 	moab::ErrorCode rval;
 	
-	assert(disc_order1 > 0 && disc_order2 > 0);
+	assert(disc_order1 && disc_order2 && *disc_order1 > 0 && *disc_order2 > 0);
 	assert(disc_method1_length > 0 && disc_method2_length > 0);
 
     // Get the source and target data and pcomm objects
@@ -2183,9 +2182,11 @@ ErrCode iMOAB_ComputeScalarProjectionWeights ( iMOAB_AppID pid_intx,
 
 	// compute weights with TempestRemap
 	rval = weightMap->GenerateOfflineMap ( std::string(disc_method1), std::string(disc_method2),        // std::string strInputType, std::string strOutputType,
-										   disc_order1,  disc_order2,  // int nPin=4, int nPout=4,
+										   *disc_order1,  *disc_order2,  // int nPin=4, int nPout=4,
 										   false, 0,            // bool fBubble=false, int fMonotoneTypeID=0,
-										   (fVolumetric > 0), (fNoConservation > 0), false, // bool fVolumetric=false, bool fNoConservation=false, bool fNoCheck=false,
+										   (fVolumetric ? *fVolumetric > 0 : false),  // bool fVolumetric=false, 
+                                           (fNoConservation ? *fNoConservation > 0 : false), // bool fNoConservation=false, 
+                                           false, // bool fNoCheck=false,
 										   "", //"",   // std::string strVariables="", std::string strOutputMap="",
 										   "", "",   // std::string strInputData="", std::string strOutputData="",
 										   "", false,  // std::string strNColName="", bool fOutputDouble=false,
@@ -2196,7 +2197,7 @@ ErrCode iMOAB_ComputeScalarProjectionWeights ( iMOAB_AppID pid_intx,
 	// gather weights to root process to perform consistency/conservation checks
 	rval = weightMap->GatherAllToRoot();CHKERRVAL(rval);
 
-	if (fValidate)
+	if (fValidate && *fValidate)
 	{
 		const double radius = 1.0 /*2.0*acos(-1.0)*/;
 		double local_areas[3], global_areas[3]; // Array for Initial area, and through Method 1 and Method 2
@@ -2216,6 +2217,36 @@ ErrCode iMOAB_ComputeScalarProjectionWeights ( iMOAB_AppID pid_intx,
 	}
 	
 	return 0;
+}
+
+
+ErrCode iMOAB_ApplyScalarProjectionWeights (   iMOAB_AppID pid_intersection, 
+                                               const iMOAB_String soln_tag_name,
+                                               const iMOAB_String soln_tag_dof_name,
+                                               int*  esoln_size, int*  esoln_owner,
+                                               int soln_tag_name_length,
+                                               int soln_tag_dof_name_length )
+{
+    moab::ErrorCode rval;
+
+    assert(soln_tag_name_length > 0 && soln_tag_dof_name_length > 0);
+
+    // Get the source and target data and pcomm objects
+    appData& data_intx = context.appDatas[*pid_intersection];
+    ParallelComm* pco_intx = context.pcomms[*pid_intersection];
+
+    // Now allocate and initialize the remapper object
+    moab::TempestRemapper* remapper = data_intx.remapper;
+
+    moab::Tag dofTag, solnTag;
+
+    rval = context.MBI->tag_get_handle ( soln_tag_name, 1, MB_TYPE_DOUBLE,
+                             solnTag, MB_TAG_ANY );CHKERRVAL(rval);
+
+    rval = context.MBI->tag_get_handle ( soln_tag_dof_name, 1, MB_TYPE_INTEGER,
+                             dofTag, MB_TAG_ANY );CHKERRVAL(rval);
+
+    return 0;
 }
 
 
