@@ -57,7 +57,7 @@ namespace moab
   class HypreParVector
   {
     private:
-      int own_ParVector, rstart, rend, size;
+      int own_ParVector, rstart, rend, size, gsize;
 
       /// The actual object
       hypre_ParVector *x_par;

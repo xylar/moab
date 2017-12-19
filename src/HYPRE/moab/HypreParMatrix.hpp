@@ -85,8 +85,8 @@ namespace moab
       char ParCSROwner;
 
       // Store the dimensions of the matrix
-      int height;
-      int width;
+      int height, gnrows;
+      int width, gncols;
 
       MPI_Comm comm;
       char initialized;
@@ -297,7 +297,7 @@ namespace moab
       /// Prints the locally owned rows in parallel
       void Print(const char *fname, HYPRE_Int offi = 0, HYPRE_Int offj = 0);
       /// Reads the matrix from a file
-      void Read(MPI_Comm comm, const char *fname);
+      void Read(const char *fname);
 
       /// Calls hypre's destroy function
       virtual ~HypreParMatrix() { Destroy(); }

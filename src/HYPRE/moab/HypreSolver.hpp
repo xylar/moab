@@ -68,17 +68,19 @@ namespace moab
       /// Typecast to HYPRE_Solver -- return the solver
       virtual operator HYPRE_Solver() const = 0;
 
-      virtual void Verbosity(int print_lvl) = 0;
+      virtual void Verbosity(int /*print_level*/)
+      { /* nothing to do */ }
 
       /// Set the hypre solver to be used as a preconditioner
-      virtual void SetPreconditioner(HypreSolver &precond) = 0;
+      virtual void SetPreconditioner(HypreSolver &/*precond*/)
+      { /* Nothing to do */ }
 
       /// hypre's internal Setup function
       virtual HYPRE_PtrToParSolverFcn SetupFcn() const = 0;
       /// hypre's internal Solve function
       virtual HYPRE_PtrToParSolverFcn SolveFcn() const = 0;
 
-      virtual void SetOperator(const HypreParMatrix &op)
+      virtual void SetOperator(const HypreParMatrix &/*op*/)
       { MB_SET_ERR_RET("HypreSolvers do not support SetOperator!"); }
 
       virtual void GetFinalResidualNorm(double &normr) = 0;
@@ -216,9 +218,6 @@ namespace moab
       virtual HYPRE_PtrToParSolverFcn SolveFcn() const
       { return (HYPRE_PtrToParSolverFcn) hypre_ParKrylovIdentity; }
 
-      virtual void SetPreconditioner(HypreSolver &precond)
-      { /* nothing to do */ }
-
       virtual void GetNumIterations(int &num_iterations)
       { num_iterations = 1; }
 
@@ -241,9 +240,6 @@ namespace moab
       virtual HYPRE_PtrToParSolverFcn SolveFcn() const
       { return (HYPRE_PtrToParSolverFcn) HYPRE_ParCSRDiagScale; }
 
-      virtual void SetPreconditioner(HypreSolver &precond)
-      { /* nothing to do */ }
-
       virtual void GetNumIterations(int &num_iterations)
       { num_iterations = 1; }
 
@@ -265,12 +261,6 @@ namespace moab
       HypreParaSails(HypreParMatrix &A);
 
       void SetSymmetry(int sym);
-
-      virtual void Verbosity(int print_level)
-      { /* nothing to do */ }
-
-      virtual void SetPreconditioner(HypreSolver &precond)
-      { /* nothing to do */ }
 
       virtual void GetNumIterations(int &num_iterations)
       { num_iterations = 1; }
@@ -310,9 +300,6 @@ namespace moab
       HypreBoomerAMG(HypreParMatrix &A);
 
       virtual void SetOperator(const HypreParMatrix &op);
-
-      virtual void SetPreconditioner(HypreSolver &precond)
-      { /* nothing to do */ }
 
       virtual void GetNumIterations(int &num_iterations)
       { num_iterations = 1; }
