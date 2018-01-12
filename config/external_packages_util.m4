@@ -1454,8 +1454,8 @@ AC_DEFUN([AUSCM_CONFIGURE_DOWNLOAD_TEMPESTREMAP],[
   m4_pushdef([TEMPESTREMAP_DOWNLOAD_VERSION],[$1])dnl
 
   # Invoke the download-tempestremap command
-  m4_case( TEMPESTREMAP_DOWNLOAD_VERSION, [1.0.beta], [ AUSCM_CONFIGURE_EXTERNAL_PACKAGE([TempestRemap], [https://bitbucket.org/fathomteam/tempestremap/downloads/TempestRemap-1.0-beta.tar.gz], [$2] ) ],
-                                  [ AUSCM_CONFIGURE_EXTERNAL_PACKAGE([TempestRemap], [https://bitbucket.org/fathomteam/tempestremap/downloads/TempestRemap-1.0-beta.tar.gz], [$2] ) ] )
+  m4_case( TEMPESTREMAP_DOWNLOAD_VERSION, [1.0.beta], [ AUSCM_CONFIGURE_EXTERNAL_PACKAGE([TempestRemap], [https://github.com/ClimateGlobalChange/tempestremap/archive/v2.0.0.tar.gz], [$2] ) ],
+                                  [ AUSCM_CONFIGURE_EXTERNAL_PACKAGE([TempestRemap], [https://github.com/ClimateGlobalChange/tempestremap/archive/v2.0.0.tar.gz], [$2] ) ] )
 
   if (test "x$downloadtempestremap" == "xyes") ; then
     # download the latest TempestRemap sources, configure and install
@@ -1483,8 +1483,12 @@ AC_DEFUN([AUSCM_AUTOMATED_SETUP_PREPROCESS_TEMPESTREMAP],
   tempestremap_archive_name="$4"
 
   # Check if the TempestRemap directory is valid
-  if (test ! -d "$tempestremap_src_dir" || test ! -f "$tempestremap_src_dir/configure" ); then
+  if (test ! -d "$tempestremap_src_dir"); then
     AC_MSG_ERROR([Invalid source configuration for TempestRemap. Source directory $tempestremap_src_dir is invalid])
+  fi
+
+  if ( test ! -f "$tempestremap_src_dir/configure" ); then
+    eval `cd $tempestremap_src_dir && autoreconf -fi > $tempestremap_src_dir/bootstrap.log 2>&1`
   fi
 
   # Check if we need to configure, build, and/or install TEMPESTREMAP
