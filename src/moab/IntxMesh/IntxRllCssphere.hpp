@@ -15,7 +15,7 @@ public:
   IntxRllCssphere(Interface * mbimpl);
   virtual ~IntxRllCssphere();
 
-  void SetRadius(double radius) { R=radius ;}
+  void set_radius(double radius) { R=radius ;}
 
   double setup_red_cell(EntityHandle red, int & nsRed);
 
