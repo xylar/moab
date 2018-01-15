@@ -185,7 +185,8 @@ MOSTLYCLEANFILES = mhdf_ll.h5m tmp0.h5m tmp1.h5m tmp2.h5m tmp3.h5m \
                    testReadGhost_n2.0.h5m \
                    testReadGhost_n2.1.h5m \
                    whole.h5m \
-                   recvMesh.h5m
+                   recvMesh.h5m \
+                   migrate12.h5m migrate21.h5m migrate11.h5m migrate22.h5m
 
 FORTDEFS = $(FCDEFS) 
 PPFCCOMPILE = $(FC) $(FORTDEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
