@@ -18,7 +18,8 @@ public:
   Intx2MeshOnSphere(Interface * mbimpl);
   virtual ~Intx2MeshOnSphere();
 
-  void SetRadius(double radius) { R=radius ;}
+  void set_radius_source_mesh(double radius) { Rsrc=radius ;}
+  void set_radius_destination_mesh(double radius) { Rdest=radius ;}
 
   double setup_red_cell(EntityHandle red, int & nsRed);
 
@@ -35,7 +36,7 @@ public:
 
 private:
   int plane; // current gnomonic plane
-  double R; // radius of the sphere
+  double Rsrc, Rdest; // radius of the sphere
 
 
 };

@@ -96,7 +96,7 @@ public:
 
   ErrorCode DetermineOrderedNeighbors(EntityHandle inputSet, int max_edges, Tag & neighTag);
 
-  void SetErrorTolerance(double eps) { epsilon_1=eps; epsilon_area = eps*eps/2;}
+  void set_error_tolerance(double eps) { epsilon_1=eps; epsilon_area = eps*eps/2;}
 
 #ifdef MOAB_HAVE_MPI
   void set_parallel_comm(moab::ParallelComm* pcomm) { parcomm = pcomm; }

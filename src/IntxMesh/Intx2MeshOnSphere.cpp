@@ -17,7 +17,7 @@
 namespace moab {
 
 
-Intx2MeshOnSphere::Intx2MeshOnSphere(Interface * mbimpl):Intx2Mesh(mbimpl), plane(0), R(0.0)
+Intx2MeshOnSphere::Intx2MeshOnSphere(Interface * mbimpl):Intx2Mesh(mbimpl), plane(0), Rsrc(0.0), Rdest(0.0)
 {
   // TODO Auto-generated constructor stub
 
@@ -57,7 +57,7 @@ double Intx2MeshOnSphere::setup_red_cell(EntityHandle red, int & nsRed) {
   {
     // populate coords in the plane for intersection
     // they should be oriented correctly, positively
-    rval = gnomonic_projection(redCoords[j],  R, plane, redCoords2D[2 * j],
+    rval = gnomonic_projection(redCoords[j],  Rdest, plane, redCoords2D[2 * j],
         redCoords2D[2 * j + 1]);MB_CHK_ERR_RET_VAL(rval,cellArea);
   }
 
@@ -118,7 +118,7 @@ ErrorCode Intx2MeshOnSphere::computeIntersectionBetweenRedAndBlue(EntityHandle r
 
   for (int j=0; j<nsBlue; j++)
   {
-    rval = gnomonic_projection(blueCoords[j], R, plane, blueCoords2D[2 * j],
+    rval = gnomonic_projection(blueCoords[j], Rsrc, plane, blueCoords2D[2 * j],
         blueCoords2D[2 * j + 1]);MB_CHK_ERR(rval);
   }
 
@@ -232,7 +232,7 @@ ErrorCode Intx2MeshOnSphere::findNodes(EntityHandle red, int nsRed, EntityHandle
     double * pp = &iP[2 * i]; // iP+2*i
     // project the point back on the sphere
     CartVect pos;
-    reverse_gnomonic_projection(pp[0], pp[1], R, plane, pos);
+    reverse_gnomonic_projection(pp[0], pp[1], Rdest, plane, pos);
     int found = 0;
     // first, are they on vertices from red or blue?
     // priority is the red mesh (mb2?)
@@ -490,7 +490,9 @@ ErrorCode Intx2MeshOnSphere::update_tracer_data(EntityHandle out_set, Tag & tagE
     //EntityHandle red = rs2[redIndex];
     // big assumption here, red and blue are "parallel" ;we should have an index from
     // blue to red (so a deformed blue corresponds to an arrival red)
-    double areap = area_spherical_element(mb, poly, R);
+    /// TODO: VSM: Its unclear whether we need the source or destination radius here.
+    double radius = Rsrc;
+    double areap = area_spherical_element(mb, poly, radius);
     check_intx_area+=areap;
     // so the departure cell at time t (blueIndex) covers a portion of a redCell
     // that quantity will be transported to the redCell at time t+dt
@@ -581,7 +583,7 @@ ErrorCode Intx2MeshOnSphere::update_tracer_data(EntityHandle out_set, Tag & tagE
   {
     for (int k=0; k<numTracers; k++)
       std::cout <<"total mass now tracer k=" << k+1<<" "  << total_mass[k] << "\n";
-    std::cout <<"check: total intersection area: (4 * M_PI * R^2): " << 4 * M_PI * R*R << " " << total_intx_area << "\n";
+    std::cout <<"check: total intersection area: (4 * M_PI * R^2): " << 4 * M_PI * Rsrc*Rsrc << " " << total_intx_area << "\n";
   }
 
   if (remote_cells_with_tracers)
@@ -592,7 +594,7 @@ ErrorCode Intx2MeshOnSphere::update_tracer_data(EntityHandle out_set, Tag & tagE
 #else
   for (int k=0; k<numTracers; k++)
         std::cout <<"total mass now tracer k=" << k+1<<" "  << total_mass_local[k] << "\n";
-  std::cout <<"check: total intersection area: (4 * M_PI * R^2): " << 4 * M_PI * R*R << " " << check_intx_area << "\n";
+  std::cout <<"check: total intersection area: (4 * M_PI * R^2): " << 4 * M_PI * Rsrc*Rsrc << " " << check_intx_area << "\n";
 #endif
   return MB_SUCCESS;
 }

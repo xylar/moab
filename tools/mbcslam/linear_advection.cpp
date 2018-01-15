@@ -153,8 +153,9 @@ int main(int argc, char *argv[]) {
 
 
     pworker = new Intx2MeshOnSphere(&mb);
-    pworker->SetErrorTolerance(gtol);
-    pworker->SetRadius(radius);
+    pworker->set_error_tolerance(gtol);
+    pworker->set_radius_source_mesh(radius);
+    pworker->set_radius_destination_mesh(radius);
     pworker->set_box_error(100*gtol);
 
     rval = pworker->FindMaxEdges(euler_set, euler_set);

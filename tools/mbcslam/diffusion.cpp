@@ -513,9 +513,9 @@ int main(int argc, char **argv)
   CHECK_ERR(rval);
 
   Intx2MeshOnSphere worker(&mb);
-  worker.SetRadius(radius);
-
-  worker.SetErrorTolerance(gtol);
+  worker.set_radius_source_mesh(radius);
+  worker.set_radius_destination_mesh(radius);
+  worker.set_error_tolerance(gtol);
   worker.set_parallel_comm(pcomm);
 
   rval = worker.FindMaxEdges(lagr_set, euler_set);
