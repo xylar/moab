@@ -86,7 +86,6 @@ int main(int argc, char* argv[])
   // fix radius of both meshes, to be consistent with input R
   rval = ScaleToRadius(mb, sf1, R); MB_CHK_ERR(rval);
   rval = ScaleToRadius(mb, sf2, R); MB_CHK_ERR(rval);
-  return 0;
 
   // std::cout << "Fix orientation etc ..\n";
   //IntxUtils; those calls do nothing for a good mesh
@@ -101,13 +100,14 @@ int main(int argc, char* argv[])
 #endif
   Intx2MeshOnSphere  worker(mb);
 
-  worker.SetErrorTolerance(R*epsrel);
+  worker.set_error_tolerance(R*epsrel);
   worker.set_box_error(boxeps);
 #ifdef MOAB_HAVE_MPI
   worker.set_parallel_comm(pcomm);
 #endif
   //worker.SetEntityType(moab::MBQUAD);
-  worker.SetRadius(R);
+  worker.set_radius_source_mesh(R);
+  worker.set_radius_destination_mesh(R);
   //worker.enable_debug();
 
   rval = worker.FindMaxEdges(sf1, sf2);MB_CHK_ERR(rval);
