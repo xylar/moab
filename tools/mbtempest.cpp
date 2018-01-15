@@ -19,6 +19,7 @@
 #include <cassert>
 
 #include "moab/Core.hpp"
+#include "moab/IntxMesh/IntxUtils.hpp"
 #include "moab/Remapping/TempestRemapper.hpp"
 #include "moab/Remapping/TempestOfflineMap.hpp"
 #include "moab/ProgOptions.hpp"
@@ -205,8 +206,13 @@ int main ( int argc, char* argv[] )
 
     // Some constant parameters
     const double epsrel = 1.e-8;
-    const double radius = 1.0 /*2.0*acos(-1.0)*/;
+    const double radius_src = 1.0 /*2.0*acos(-1.0)*/;
+    const double radius_dest = 1.0 /*2.0*acos(-1.0)*/;
     const double boxeps = 0.1;
+
+    // Rescale the radius of both to compute the intersection
+    rval = ScaleToRadius(mbCore, ctx.meshsets[0], radius_src);MB_CHK_ERR ( rval );
+    rval = ScaleToRadius(mbCore, ctx.meshsets[1], radius_dest);MB_CHK_ERR ( rval );
 
     if ( ctx.meshType == moab::TempestRemapper::OVERLAP_MEMORY )
     {
@@ -244,9 +250,10 @@ int main ( int argc, char* argv[] )
             ctx.timer_push ( "setup the intersector" );
 
             moab::Intx2MeshOnSphere* mbintx = new moab::Intx2MeshOnSphere ( mbCore );
-            mbintx->SetErrorTolerance ( epsrel );
+            mbintx->set_error_tolerance ( epsrel );
             mbintx->set_box_error ( boxeps );
-            mbintx->SetRadius ( radius );
+            mbintx->set_radius_source_mesh ( radius_src );
+            mbintx->set_radius_destination_mesh ( radius_dest );
             mbintx->set_parallel_comm ( pcomm );
 
             rval = mbintx->FindMaxEdges ( ctx.meshsets[0], ctx.meshsets[1] ); MB_CHK_ERR ( rval );
@@ -278,9 +285,9 @@ int main ( int argc, char* argv[] )
             rval = mbCore->get_entities_by_dimension ( intxset, 0, intxverts, true ); MB_CHK_ERR ( rval );
             ctx.outStream.printf ( 0, "The intersection set contains %lu elements and %lu vertices \n", intxelems.size(), intxverts.size() );
 
-            double initial_area = area_on_sphere_lHuiller ( mbCore, ctx.meshsets[0], radius );
-            double area_method1 = area_on_sphere_lHuiller ( mbCore, intxset, radius );
-            double area_method2 = area_on_sphere ( mbCore, intxset, radius );
+            double initial_area = area_on_sphere_lHuiller ( mbCore, ctx.meshsets[0], radius_src );
+            double area_method1 = area_on_sphere_lHuiller ( mbCore, intxset, radius_src );
+            double area_method2 = area_on_sphere ( mbCore, intxset, radius_src );
 
             ctx.outStream.printf ( 0, "initial area: %12.10f\n", initial_area );
             ctx.outStream.printf ( 0, " area with l'Huiller: %12.10f with Girard: %12.10f\n", area_method1, area_method2 );
@@ -319,14 +326,14 @@ int main ( int argc, char* argv[] )
             rval = mbCore->get_entities_by_dimension ( ctx.meshsets[0], 0, rintxverts ); MB_CHK_ERR ( rval );
             rval = mbCore->get_entities_by_dimension ( ctx.meshsets[0], 2, rintxelems ); MB_CHK_ERR ( rval );
             rval = fix_degenerate_quads ( mbCore, ctx.meshsets[0] ); MB_CHK_ERR ( rval );
-            rval = positive_orientation ( mbCore, ctx.meshsets[0], radius ); MB_CHK_ERR ( rval );
+            rval = positive_orientation ( mbCore, ctx.meshsets[0], radius_src ); MB_CHK_ERR ( rval );
             ctx.outStream.printf ( 0, "The red set contains %lu vertices and %lu elements \n", rintxverts.size(), rintxelems.size() );
 
             moab::Range bintxverts, bintxelems;
             rval = mbCore->get_entities_by_dimension ( ctx.meshsets[1], 0, bintxverts ); MB_CHK_ERR ( rval );
             rval = mbCore->get_entities_by_dimension ( ctx.meshsets[1], 2, bintxelems ); MB_CHK_ERR ( rval );
             rval = fix_degenerate_quads ( mbCore, ctx.meshsets[1] ); MB_CHK_ERR ( rval );
-            rval = positive_orientation ( mbCore, ctx.meshsets[1], radius ); MB_CHK_ERR ( rval );
+            rval = positive_orientation ( mbCore, ctx.meshsets[1], radius_dest ); MB_CHK_ERR ( rval );
             ctx.outStream.printf ( 0, "The blue set contains %lu vertices and %lu elements \n", bintxverts.size(), bintxelems.size() );
         }
 
@@ -336,17 +343,18 @@ int main ( int argc, char* argv[] )
         ctx.timer_pop();
 
         // Write out our computed intersection file
-        if ( false )
+        if ( true )
         {
+            ctx.outStream.printf ( 0, "writing out the intersection mesh file to %s\n", "moab_intersection.h5m" );
             rval = mbCore->add_entities ( ctx.meshsets[2], &ctx.meshsets[0], 2 ); MB_CHK_ERR ( rval );
             rval = mbCore->write_file ( "moab_intersection.h5m", NULL, "PARALLEL=WRITE_PART", &ctx.meshsets[2], 1 ); MB_CHK_ERR ( rval );
         }
 
         {
             double local_areas[3], global_areas[3]; // Array for Initial area, and through Method 1 and Method 2
-            local_areas[0] = area_on_sphere_lHuiller ( mbCore, ctx.meshsets[1], radius );
-            local_areas[1] = area_on_sphere_lHuiller ( mbCore, ctx.meshsets[2], radius );
-            local_areas[2] = area_on_sphere ( mbCore, ctx.meshsets[2], radius );
+            local_areas[0] = area_on_sphere_lHuiller ( mbCore, ctx.meshsets[1], radius_src );
+            local_areas[1] = area_on_sphere_lHuiller ( mbCore, ctx.meshsets[2], radius_src );
+            local_areas[2] = area_on_sphere ( mbCore, ctx.meshsets[2], radius_src );
 
             MPI_Allreduce ( &local_areas, &global_areas, 3, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD );
 

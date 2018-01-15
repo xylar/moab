@@ -159,10 +159,19 @@ int main(int argc, char * argv[])
 //   printf("\n");
 //   free(double_tag_vals);
 
-  rc = iMOAB_ComputeMeshIntersectionOnSphere(pid1, pid2, pid3, 1.0, 1e-8, 0.1);
-   CHECKRC(rc, "failed to compute mesh intersection");
+  double epsbox=0.1, epsrel=1e-8, radius=1.0;
+  rc = iMOAB_ComputeMeshIntersectionOnSphere(pid1, pid2, pid3, &radius, &epsrel, &epsbox);
+  CHECKRC(rc, "failed to compute mesh intersection");
   
-  rc = iMOAB_ComputeScalarProjectionWeights ( pid3, "fv", 1, "fv", 1, 0, 0, 1, strlen("fv"), strlen("fv"));
+  int disc_orders[2] = {1, 1};
+  const char* disc_methods[2] = {"fv", "fv"};
+  int fVolumetric=0, fValidate=1, fNoConserve=0;
+  rc = iMOAB_ComputeScalarProjectionWeights ( pid3, 
+                                              disc_methods[0], &disc_orders[0], 
+                                              disc_methods[1], &disc_orders[1], 
+                                              &fVolumetric, &fNoConserve, &fValidate, 
+                                              strlen(disc_methods[0]), strlen(disc_methods[1])
+                                            );
   CHECKRC(rc, "failed to compute remapping projection weights");
   
   /*

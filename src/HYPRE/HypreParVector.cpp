@@ -35,11 +35,11 @@ namespace moab
   HypreParVector::HypreParVector(MPI_Comm pcomm) : comm(pcomm)
   {
     x = NULL;
-    initialized = size = rstart = rend = 0;
+    initialized = size = gsize = rstart = rend = 0;
   }
 
   HypreParVector::HypreParVector(MPI_Comm pcomm, HYPRE_Int glob_size,
-                                 HYPRE_Int rstart, HYPRE_Int rend) : comm(pcomm), rstart(rstart), rend(rend)
+                                 HYPRE_Int p_irstart, HYPRE_Int p_irend) : rstart(p_irstart), rend(p_irend), comm(pcomm)
   {
     HYPRE_IJVectorCreate(comm, rstart, rend, &x);
     HYPRE_IJVectorSetObjectType(x, HYPRE_PARCSR);
@@ -47,6 +47,7 @@ namespace moab
     HYPRE_IJVectorAssemble(x);
     HYPRE_IJVectorGetObject(x, (void **) &x_par);
     size = rstart - rend;
+    gsize = glob_size;
     own_ParVector = 1;
     initialized = 1;
   }
@@ -58,12 +59,13 @@ namespace moab
     rstart = y.rstart;
     rend = y.rend;
     size = y.size;
+    gsize = y.gsize;
     HYPRE_IJVectorCreate(comm, y.rstart, y.rend, &x);
     HYPRE_IJVectorSetObjectType(x, HYPRE_PARCSR);
     HYPRE_IJVectorInitialize(x);
     HYPRE_IJVectorAssemble(x);
     HYPRE_IJVectorGetObject(x, (void **) &x_par);
-    HYPRE_Complex    *array;
+    HYPRE_Complex    *array=NULL;
     HYPRE_IJVectorGetValues(y.x, y.size, NULL, array);
     HYPRE_IJVectorSetValues(x, size, NULL, array);
     array = NULL;
@@ -152,16 +154,18 @@ namespace moab
     return *this;
   }
 
-  HYPRE_Int HypreParVector::resize(HYPRE_Int glob_size, HYPRE_Int rstart, HYPRE_Int rend)
+  HYPRE_Int HypreParVector::resize(HYPRE_Int glob_size, HYPRE_Int p_irstart, HYPRE_Int p_irend)
   {
     if (initialized ||
         x != NULL) MB_SET_ERR_RET_VAL("Vector is already initialized and partitioned", -1);
 
-    HYPRE_IJVectorCreate(this->comm, rstart, rend, &x);
+    HYPRE_IJVectorCreate(this->comm, p_irstart, p_irend, &x);
     HYPRE_IJVectorSetObjectType(x, HYPRE_PARCSR);
     HYPRE_IJVectorInitialize(x);
     HYPRE_IJVectorAssemble(x);
     HYPRE_IJVectorGetObject(x, (void **) &x_par);
+    rstart = p_irstart;
+    rend = p_irend;
     size = rstart - rend;
     own_ParVector = 1;
     initialized = 1;

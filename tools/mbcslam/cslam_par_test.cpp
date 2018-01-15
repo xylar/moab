@@ -181,11 +181,12 @@ void test_intx_in_parallel_elem_based()
 
   Intx2MeshOnSphere worker(&mb);
 
-  worker.SetRadius(Radius);
+  worker.set_radius_source_mesh(Radius);
+  worker.set_radius_destination_mesh(Radius);
   worker.set_box_error(EPS1);//
   //worker.SetEntityType(MBQUAD);
 
-  worker.SetErrorTolerance(Radius*1.e-8);
+  worker.set_error_tolerance(Radius*1.e-8);
   std::cout << "error tolerance epsilon_1="<< Radius*1.e-8 << "\n";
   //  worker.locate_departure_points(euler_set);
 

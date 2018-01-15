@@ -627,8 +627,9 @@ ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius,
         moab::Range local_verts;
         moab::Intx2MeshOnSphere *mbintx = new moab::Intx2MeshOnSphere ( m_interface );
 
-        mbintx->SetErrorTolerance ( tolerance );
-        mbintx->SetRadius ( radius );
+        mbintx->set_error_tolerance ( tolerance );
+        mbintx->set_radius_source_mesh ( radius );
+        mbintx->set_radius_destination_mesh ( radius );
         mbintx->set_box_error ( boxeps );
         mbintx->set_parallel_comm ( m_pcomm );
 

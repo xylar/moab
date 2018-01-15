@@ -2151,17 +2151,17 @@ ErrCode iMOAB_ComputeMeshIntersectionOnSphere ( iMOAB_AppID pid_src, iMOAB_AppID
 
 
 ErrCode iMOAB_ComputeScalarProjectionWeights ( iMOAB_AppID pid_intx, 
-                                               const iMOAB_String disc_method1, int* disc_order1,
-                                               const iMOAB_String disc_method2, int* disc_order2,
+                                               const iMOAB_String disc_method_source, int* disc_order_source,
+                                               const iMOAB_String disc_method_target, int* disc_order_target,
                                                int* fVolumetric, int* fNoConservation,
                                                int* fValidate,
-                                               int disc_method1_length,
-                                               int disc_method2_length)
+                                               int disc_method_source_length,
+                                               int disc_method_target_length)
 {
 	moab::ErrorCode rval;
 	
-	assert(disc_order1 && disc_order2 && *disc_order1 > 0 && *disc_order2 > 0);
-	assert(disc_method1_length > 0 && disc_method2_length > 0);
+	assert(disc_order_source && disc_order_target && *disc_order_source > 0 && *disc_order_target > 0);
+	assert(disc_method_source_length > 0 && disc_method_target_length > 0);
 
     // Get the source and target data and pcomm objects
 	appData& data_intx = context.appDatas[*pid_intx];
@@ -2176,13 +2176,13 @@ ErrCode iMOAB_ComputeScalarProjectionWeights ( iMOAB_AppID pid_intx,
 		rval = remapper->ConvertMOABMesh_WithSortedEntitiesBySource();CHKERRVAL(rval);
 	}
 
-	// setup computation of weights
+	// Setup computation of weights
 	// Call to generate an offline map with the tempest meshes
 	moab::TempestOfflineMap* weightMap = new moab::TempestOfflineMap ( remapper );
 
 	// compute weights with TempestRemap
-	rval = weightMap->GenerateOfflineMap ( std::string(disc_method1), std::string(disc_method2),        // std::string strInputType, std::string strOutputType,
-										   *disc_order1,  *disc_order2,  // int nPin=4, int nPout=4,
+	rval = weightMap->GenerateOfflineMap ( std::string(disc_method_source), std::string(disc_method_target),        // std::string strInputType, std::string strOutputType,
+										   *disc_order_source,  *disc_order_target,  // int nPin=4, int nPout=4,
 										   false, 0,            // bool fBubble=false, int fMonotoneTypeID=0,
 										   (fVolumetric ? *fVolumetric > 0 : false),  // bool fVolumetric=false, 
                                            (fNoConservation ? *fNoConservation > 0 : false), // bool fNoConservation=false, 

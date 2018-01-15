@@ -90,6 +90,8 @@ namespace moab
     interpreter = hypre_CTAlloc(mv_InterfaceInterpreter, 1);
     HYPRE_ParCSRSetupInterpreter(interpreter);
     HYPRE_ParCSRSetupMatvec(&matvec_fn);
+    gnrows = glob_size;
+    gncols = glob_size;
     height = GetNumRows();
     width = GetNumCols();
   }
@@ -110,11 +112,15 @@ namespace moab
     HYPRE_IJMatrixInitialize(A);
     /* Get the parcsr matrix object to use */
     HYPRE_IJMatrixGetObject(A, (void **) &A_parcsr);
+    // HYPRE_IJMatrixSetDiagOffdSizes(A, nnz_pr_diag);
+    HYPRE_IJMatrixSetMaxOffProcElmts(A, nnz_pr_offdiag);
     /* define an interpreter for the ParCSR interface */
     HYPRE_MatvecFunctions matvec_fn;
     interpreter = hypre_CTAlloc(mv_InterfaceInterpreter, 1);
     HYPRE_ParCSRSetupInterpreter(interpreter);
     HYPRE_ParCSRSetupMatvec(&matvec_fn);
+    gnrows = global_num_rows;
+    gncols = global_num_cols;
     height = GetNumRows();
     width = GetNumCols();
   }
@@ -503,7 +509,6 @@ namespace moab
   void HypreParMatrix::Threshold(double threshold)
   {
     int  ierr = 0;
-    MPI_Comm comm;
     int num_procs;
     hypre_CSRMatrix *csr_A;
     hypre_CSRMatrix *csr_A_wo_z;
@@ -573,7 +578,7 @@ namespace moab
     hypre_ParCSRMatrixPrintIJ(A_parcsr, offi, offj, fname);
   }
 
-  void HypreParMatrix::Read(MPI_Comm comm, const char *fname)
+  void HypreParMatrix::Read(const char *fname)
   {
     Destroy();
     Init();
@@ -686,7 +691,7 @@ namespace moab
     B.GetValues(ess_dof_list.size(), ess_dof_list.data(), bdata.data());
     X.GetValues(ess_dof_list.size(), ess_dof_list.data(), xdata.data());
 
-    for (int i = 0; i < ess_dof_list.size(); i++) {
+    for (size_t i = 0; i < ess_dof_list.size(); i++) {
       int r = ess_dof_list[i];
       bdata[r] = data[I[r]] * xdata[r];
 #ifdef MOAB_DEBUG
