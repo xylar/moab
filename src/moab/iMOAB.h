@@ -661,11 +661,14 @@ ErrCode iMOAB_ReceiveMesh ( iMOAB_AppID pid, MPI_Comm* join, MPI_Group* sendingG
 
   <B>Operations:</B> Collective
 
-  \param[in]  pid_source (iMOAB_AppID) The unique pointer to the source application ID
-  \param[in]  pid_target (iMOAB_AppID)        The unique pointer to the destination application ID
-  \param[in/out] pid_intersection (iMOAB_AppID)       The unique pointer to the intersection application ID
+  \param[in]  pid_source (iMOAB_AppID)               The unique pointer to the source application ID
+  \param[in]  pid_target (iMOAB_AppID)               The unique pointer to the destination application ID
+  \param[in/out] pid_intersection (iMOAB_AppID)      The unique pointer to the intersection application ID
+  \param[in] radius (double *)                       The radius of the sphere on which the meshes are defined
+  \param[in] epsrel (double *)                       The relative tolerance to be used to compute the mesh intersectoin between source and target meshes
+  \param[in] boxeps (double *)                       The tolerance to be used to compute the box mesh
 */
-ErrCode iMOAB_ComputeMeshIntersectionOnSphere ( iMOAB_AppID pid_src, iMOAB_AppID pid_target, iMOAB_AppID pid_intx,
+ErrCode iMOAB_ComputeMeshIntersectionOnSphere ( iMOAB_AppID pid_source, iMOAB_AppID pid_target, iMOAB_AppID pid_intersection,
                                                  double *radius/*=1.0*/, double *epsrel/*=1e-8*/, double *boxeps/*=0.1*/);
 
 /**
@@ -678,17 +681,25 @@ ErrCode iMOAB_ComputeMeshIntersectionOnSphere ( iMOAB_AppID pid_src, iMOAB_AppID
 
   <B>Operations:</B> Collective
 
-  \param[in]  pid_source (iMOAB_AppID) The unique pointer to the source application ID
-  \param[in]  pid_target (iMOAB_AppID)        The unique pointer to the destination application ID
-  \param[in/out] pid_intersection (iMOAB_AppID)       The unique pointer to the intersection application ID
+  \param[in/out] pid_intersection (iMOAB_AppID)   The unique pointer to the intersection application ID
+  \param[in] disc_method_src  (iMOAB_String)      The discretization type ("fv", "cgll", "dgll") for the solution field on the source grid
+  \param[in] disc_order_src   (int *)             The discretization order for the solution field on the source grid
+  \param[in] disc_method_tgt  (iMOAB_String)      The discretization type ("fv", "cgll", "dgll") for the solution field on the source grid
+  \param[in] disc_order_tgt   (int *)             The discretization order for the solution field on the source grid
+  \param[in] fVolumetric   (int *)                The flag to indicate whether we need to compute volumetric projection weights
+  \param[in] fNoConservation   (int *)            The flag to indicate whether to ignore conservation of solution field during projection
+  \param[in] fValidate   (int *)                  The flag to indicate whether to validate the consistency and conservation of solution field during projection; 
+                                                  Production runs should not have this flag enabled to minimize collective operations.
+  \param[in] disc_method_src_length   (int)       The length of the discretization type string on the source mesh
+  \param[in] disc_method_tgt_length   (int)       The length of the discretization type string on the target mesh
+  
 */
 ErrCode iMOAB_ComputeScalarProjectionWeights ( iMOAB_AppID pid_intersection, 
-                                               const iMOAB_String disc_method1, int* disc_order1,
-                                               const iMOAB_String disc_method2, int* disc_order2,
-                                               int* fVolumetric, int* fNoConservation,
-                                               int* fValidate,
-                                               int disc_method1_length,
-                                               int disc_method2_length );
+                                               const iMOAB_String disc_method_src, int* disc_order_src,
+                                               const iMOAB_String disc_method_tgt, int* disc_order_tgt,
+                                               int* fVolumetric, int* fNoConservation, int* fValidate,
+                                               int disc_method_src_length,
+                                               int disc_method_tgt_length );
 
 
 /**
@@ -697,8 +708,6 @@ ErrCode iMOAB_ComputeScalarProjectionWeights ( iMOAB_AppID pid_intersection,
 
   <B>Operations:</B> Collective
 
-  \param[in]  pid_source (iMOAB_AppID) The unique pointer to the source application ID
-  \param[in]  pid_target (iMOAB_AppID)        The unique pointer to the destination application ID
   \param[in/out] pid_intersection (iMOAB_AppID)       The unique pointer to the intersection application ID
 */
 ErrCode iMOAB_ApplyScalarProjectionWeights (   iMOAB_AppID pid_intersection, 
