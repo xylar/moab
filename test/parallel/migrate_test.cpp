@@ -312,18 +312,3 @@ ErrorCode migrate_overlap( const char* filename )
 }
 
 
-ErrorCode migrate_2_4( const char* filename )
-{
-  startG1 = startG2 = 0;
-  endG2 = 3;
-  endG1 = 1;
-  return migrate(filename, "migrate24.h5m");
-}
-
-ErrorCode migrate_4_3( const char* filename )
-{
-  startG1 = startG2 = 0;
-  endG2 = 2;
-  endG1 = 3;
-  return migrate(filename, "migrate43.h5m");
-}
