@@ -17,12 +17,9 @@ moab::ErrorCode GenerateTestMatrixAndVectors ( int nx, int ny, int nz,
 
 int main ( int argc, char *argv[] )
 {
-  double norm, d;
+  // double norm, d;
   int ierr = 0;
-  int i, j;
-  int ione = 1;
   double times[5];
-  double t6 = 0.0;
   int nx=5, ny=5, nz=5;
 #ifdef MOAB_HAVE_MPI
   MPI_Init ( &argc, &argv );
@@ -135,13 +132,13 @@ int main ( int argc, char *argv[] )
 #endif
 
   if ( rank == 0 ) { // Only PE 0 needs to compute and report timing results
-    double fniters = niters;
-    double fnrow = A.NNZ();
-    double fnnz = A.M();
-    double fnops_ddot = fniters * 4 * fnrow;
-    double fnops_waxpby = fniters * 6 * fnrow;
-    double fnops_sparsemv = fniters * 2 * fnnz;
-    double fnops = fnops_ddot + fnops_waxpby + fnops_sparsemv;
+    // double fniters = niters;
+    // double fnrow = A.NNZ();
+    // double fnnz = A.M();
+    // double fnops_ddot = fniters * 4 * fnrow;
+    // double fnops_waxpby = fniters * 6 * fnrow;
+    // double fnops_sparsemv = fniters * 2 * fnnz;
+    // double fnops = fnops_ddot + fnops_waxpby + fnops_sparsemv;
     std::cout << "Testing Laplace problem solver with HYPRE interface\n";
     {
       std::cout << "\tParallelism\n";
