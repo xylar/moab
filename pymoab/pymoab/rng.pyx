@@ -209,7 +209,7 @@ cdef class Range(object):
         """
         Range as a string
         """
-        res = self.inst.str_rep()
+        res = str(self.inst.str_rep())
         return res
 
     def __repr__(self):
