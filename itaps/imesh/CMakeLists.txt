@@ -45,6 +45,10 @@ add_library(
   ${MOAB_IMESH_LIB_INCLUDES}
   )
 
+target_include_directories(iMesh
+  PUBLIC
+  "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>")
+
 target_link_libraries( iMesh MOAB ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES} )
 
 set_target_properties(
