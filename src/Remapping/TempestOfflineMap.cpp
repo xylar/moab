@@ -1090,7 +1090,7 @@ moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot()   // Collective
     // on the root process
     m_globalMapAvailable = true;
 
-    if ( !pcomm->rank() && false )
+    if ( !pcomm->rank() )
     {
         dbgprint.printf ( 0, "Writing out file outGlobalView.nc\n" );
         // m_dSourceCenterLon

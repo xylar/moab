@@ -546,7 +546,7 @@ ErrorCode TempestRemapper::ConvertMOABMesh_WithSortedEntitiesBySource()
     if ( constructEdgeMap ) m_overlap->ConstructEdgeMap();
     m_overlap->ConstructReverseNodeArray();
 
-    m_overlap->Validate();
+    // m_overlap->Validate();
     return MB_SUCCESS;
 
 }

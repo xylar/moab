@@ -346,7 +346,7 @@ int main ( int argc, char* argv[] )
         if ( true )
         {
             ctx.outStream.printf ( 0, "writing out the intersection mesh file to %s\n", "moab_intersection.h5m" );
-            rval = mbCore->add_entities ( ctx.meshsets[2], &ctx.meshsets[0], 2 ); MB_CHK_ERR ( rval );
+            // rval = mbCore->add_entities ( ctx.meshsets[2], &ctx.meshsets[0], 2 ); MB_CHK_ERR ( rval );
             rval = mbCore->write_file ( "moab_intersection.h5m", NULL, "PARALLEL=WRITE_PART", &ctx.meshsets[2], 1 ); MB_CHK_ERR ( rval );
         }
 
