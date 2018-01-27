@@ -1899,6 +1899,15 @@ ErrCode iMOAB_ReceiveMesh ( iMOAB_AppID pid, MPI_Comm* global, MPI_Group* sendin
 
     if ( rval != MB_SUCCESS ) { return 1; }
 
+    // set the parallel partition tag
+    Tag part_tag;
+	int dum_id = -1;
+	rval = context.MBI->tag_get_handle ( "PARALLEL_PARTITION", 1, MB_TYPE_INTEGER,
+										 part_tag, MB_TAG_CREAT | MB_TAG_SPARSE, &dum_id );CHKERRVAL(rval);
+
+	int rank = pco->rank();
+	rval = context.MBI->tag_set_data ( part_tag, &local_set, 1, &rank );CHKERRVAL(rval);
+
     // populate the mesh with current data info
     ierr = iMOAB_UpdateMeshInfo ( pid );
 
