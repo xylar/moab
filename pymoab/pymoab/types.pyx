@@ -1,6 +1,8 @@
 """Python wrappers for MOAB Types."""
 
 from pymoab cimport moab
+from pymoab cimport tag_conventions
+
 cimport numpy as np
 import numpy as np
 
@@ -114,6 +116,16 @@ MB_TYPE_BIT = moab.MB_TYPE_BIT
 MB_TYPE_HANDLE = moab.MB_TYPE_HANDLE
 MB_MAX_DATA_TYPE = moab.MB_MAX_DATA_TYPE
 
+
+_TAG_TYPE_STRS = {
+    MB_TYPE_OPAQUE : "MB_TYPE_OPAQUE",
+    MB_TYPE_INTEGER : "MB_TYPE_INTEGER",
+    MB_TYPE_DOUBLE : "MB_TYPE_DOUBLE",
+    MB_TYPE_BIT : "MB_TYPE_BIT",
+    MB_TYPE_HANDLE : "MB_TYPE_HANDLE",
+    MB_MAX_DATA_TYPE : "MB_MAX_DATA_TYPE"
+}
+
 _DTYPE_CONV = {
     MB_TYPE_OPAQUE: 'S',
     MB_TYPE_INTEGER: 'int32',
@@ -226,3 +238,15 @@ UNION = 1
 MESHSET_TRACK_OWNER = moab.MESHSET_TRACK_OWNER
 MESHSET_SET = moab.MESHSET_SET
 MESHSET_ORDERED = moab.MESHSET_ORDERED
+
+MATERIAL_SET_TAG_NAME   = tag_conventions.MATERIAL_SET_TAG_NAME
+DIRICHLET_SET_TAG_NAME  = tag_conventions.DIRICHLET_SET_TAG_NAME
+NEUMANN_SET_TAG_NAME    = tag_conventions.NEUMANN_SET_TAG_NAME
+HAS_MID_NODES_TAG_NAME  = tag_conventions.HAS_MID_NODES_TAG_NAME
+GEOM_DIMENSION_TAG_NAME = tag_conventions.GEOM_DIMENSION_TAG_NAME
+MESH_TRANSFORM_TAG_NAME = tag_conventions.MESH_TRANSFORM_TAG_NAME
+GLOBAL_ID_TAG_NAME      = tag_conventions.GLOBAL_ID_TAG_NAME
+CATEGORY_TAG_NAME       = tag_conventions.CATEGORY_TAG_NAME
+CATEGORY_TAG_SIZE       = tag_conventions.CATEGORY_TAG_SIZE
+NAME_TAG_NAME           = tag_conventions.NAME_TAG_NAME
+NAME_TAG_SIZE           = tag_conventions.NAME_TAG_SIZE

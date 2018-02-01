@@ -1,8 +1,10 @@
 """Implements range functionality."""
 from cython.operator cimport dereference as deref
-from libcpp.string cimport string as std_string
+# from libcpp.string cimport string as std_string
 from pymoab cimport moab
 from .types import _eh_array, _eh_py_types
+
+cdef void *null = NULL
 
 def intersect(Range r1, Range r2):
     """
@@ -126,8 +128,38 @@ cdef class Range(object):
             r = other
             self.inst.merge(deref(r.inst))
         else:
-            raise ValueError("Operation not valie for non-Range")
-        
+            raise ValueError("Operation not valid for non-Range object")
+
+    def contains(self, other):
+        """Checks if this range contains all contents of another Range, other"""
+        cdef Range r
+        if isinstance(other, Range):
+            r = other
+            self.inst.contains(deref(r.inst))
+        else:
+            raise ValueError("Operation not valid for non-Range object")
+
+    def subset_by_type(self, t):
+        """Returns the subset range containing only entities with the specified type"""
+        cdef moab.Range mbr
+        cdef moab.EntityType typ = t
+        mbr = self.inst.subset_by_type(typ)
+        cdef Range r = Range()
+        # kind of a hack? allows one to return
+        # a new range though
+        r.inst.merge(mbr)
+        return r
+
+    def subset_by_dimension(self, int dim):
+        """Returns the subset range containing only entities with the specified dimension"""
+        cdef moab.Range mbr
+        mbr = self.inst.subset_by_dimension(dim)
+        cdef Range r = Range()
+        # kind of a hack? allows one to return
+        # a new range though
+        r.inst.merge(mbr)
+        return r
+    
     def __iter__(self):
         """
         Iterator
@@ -157,12 +189,28 @@ cdef class Range(object):
         else:
             raise ValueError("Invalid key provided.")
 
+    def __richcmp__(self, other, op):
+        cdef Range r
+        if isinstance(other, Range):
+            r = other
+            result1 = subtract(self, r)
+            result2 = subtract(r, self)
+            result1.merge(result2)
+            if op == 2: # ==
+                return not result1.empty()
+            if op == 3: # !=
+                return result1.empty()
+            else:
+                NotImplementedError("This comparator isn't supported for Ranges at this time.")
+        else:
+            ValueError("Other is not a Range object. Cannot compare.")
+
     def __str__(self):
         """
         Range as a string
         """
-        self.inst.print_()
-        return ""
+        res = str(self.inst.str_rep())
+        return res
 
     def __repr__(self):
         """

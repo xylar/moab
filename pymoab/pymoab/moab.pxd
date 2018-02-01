@@ -107,13 +107,19 @@ cdef extern from "moab/Range.hpp" namespace "moab":
         bool all_of_dimension(int dimension)
         unsigned num_of_type( EntityType type )
         unsigned num_of_dimension( int dim )
-        void print_ "print" ()
+        void print_ "print"()
+        const char* str_rep()
         void insert(EntityHandle val)
         void erase(EntityHandle val)
         void merge(Range& range)
+        bool contains(const Range& range)
         EntityHandle pop_front()
         EntityHandle pop_back()
 
+        Range subset_by_type(EntityType t)
+        Range subset_by_dimension(int dim)
+        
+        
         EntityHandle operator[](EntityID index)
 
 
@@ -262,12 +268,14 @@ cdef extern from "moab/Core.hpp" namespace "moab":
                                   const int to_dimension,
                                   const bool create_if_missing,
                                   Range &adj_entities,
-                                  const int operation_type = 0)
+                                  const int operation_type)
+        
         ErrorCode get_adjacencies(const Range &from_entities,
                                   const int to_dimension,
                                   const bool create_if_missing,
                                   Range &adj_entities,
-                                  const int operation_type = 0)
+                                  const int operation_type)
+        
         EntityType type_from_handle(const EntityHandle handle)
         ErrorCode get_child_meshsets(EntityHandle meshset,
                                      Range &children,

@@ -904,7 +904,7 @@ cdef class Core(object):
         err = self.inst.tag_delete(tag.inst)
         check_error(err, exceptions)
 
-    def get_adjacencies(self, entity_handles, int to_dim, bint create_if_missing = False, exceptions = ()):
+    def get_adjacencies(self, entity_handles, int to_dim, bint create_if_missing = False, int op_type = types.INTERSECT, exceptions = ()):
         """
         Get the adjacencies associated with a range of entities to entities of a specified dimension.
 
@@ -933,6 +933,10 @@ cdef class Core(object):
             should be created. For instance, in the example above, the second
             call to get_adjacencies will create the edges of the triangle which
             did not previously exist in the mesh database.
+        op_type : int (default is 0 or INTERSECT)
+            this value indicates how overlapping adjacencies should be handled
+            INTERSECT - will return the intersection of the adjacencies between mesh elements
+            UNION - will return the union of all adjacencies for the elements provided to the function
         exceptions : tuple (default is empty tuple)
             A tuple containing any error types that should
             be ignored. (see pymoab.types module for more info)
@@ -952,7 +956,7 @@ cdef class Core(object):
         cdef Range r
         cdef Range adj = Range()
         r = Range(entity_handles)
-        err = self.inst.get_adjacencies(deref(r.inst), to_dim, create_if_missing, deref(adj.inst))
+        err = self.inst.get_adjacencies(deref(r.inst), to_dim, create_if_missing, deref(adj.inst), op_type)
         check_error(err, exceptions)
         return adj
 
@@ -1292,6 +1296,8 @@ cdef class Core(object):
         cdef Range r
         cdef np.ndarray[np.uint64_t, ndim=1] arr
         cdef np.ndarray coords
+        if isinstance(entities, long):
+            entities = Range(entities)
         if isinstance(entities, Range):
             r = entities
             coords = np.empty((3*r.size(),),dtype='float64')

@@ -5,6 +5,7 @@ import numpy as np
 cimport numpy as np
 from libc.stdlib cimport malloc,free
 from cython.operator cimport dereference as deref
+from types import _TAG_TYPE_STRS
 
 cdef class Tag(object): 
     def __cinit__(self):
@@ -37,7 +38,7 @@ cdef class Tag(object):
 
     def __str__(self):
         outstr = "Name: " + self.get_name()
-        outstr += ", Type: " + str(self.get_data_type())
+        outstr += ", Type: " + _TAG_TYPE_STRS[self.get_data_type()]
         outstr += ", Length: " + str(self.get_length())
         return outstr
 

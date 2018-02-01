@@ -2,6 +2,7 @@ from pymoab import core
 from pymoab import types
 from pymoab import topo_util
 from driver import test_driver
+from driver import CHECK_EQ
 import numpy as np
 
 
@@ -19,7 +20,7 @@ def test_get_bridge_adjacencies():
     tris = mb.get_entities_by_dimension(rs, 2)
     adj_verts = mtu.get_bridge_adjacencies(tris, 0, 0, 1)
 
-    assert (adj_verts == verts).all()
+    CHECK_EQ(adj_verts,verts)
 
 
 def test_get_average_position():
@@ -55,9 +56,8 @@ def test_construct_aentities():
 
     edges_after = mb.get_entities_by_dimension(0, 1)
 
-    assert edges_before != edges_after
-    assert len(edges_after) == 3
-
+    CHECK_EQ(edges_before, edges_after)
+    CHECK_EQ(len(edges_after), 3)
 
 if __name__ == "__main__":
     tests = [test_get_bridge_adjacencies,

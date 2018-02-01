@@ -320,6 +320,8 @@ public:
   void clear();
   
   //! for debugging
+  const char* str_rep(const char *indent_prefix = NULL) const;
+
   void print(const char *indent_prefix = NULL) const;
   void print(std::ostream& s, const char *indent_prefix = NULL) const;
   

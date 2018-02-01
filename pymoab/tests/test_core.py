@@ -4,7 +4,7 @@ from pymoab.rng import Range
 from pymoab.scd import ScdInterface
 from pymoab.hcoord import HomCoord
 from subprocess import call
-from driver import test_driver, CHECK_EQ, CHECK_NOT_EQ
+from driver import test_driver, CHECK, CHECK_EQ, CHECK_NOT_EQ
 import numpy as np
 import os
 
@@ -357,12 +357,14 @@ def test_adj():
     coords = np.array((0,0,0,1,0,0,1,1,1),dtype='float64')
     verts = mb.create_vertices(coords)
     #create elements
-    verts = np.array(((verts[0],verts[1],verts[2]),),dtype='uint64')
-    tris = mb.create_elements(types.MBTRI,verts)
+    conn = np.array(((verts[0],verts[1],verts[2]),),dtype='uint64')
+    tris = mb.create_elements(types.MBTRI,conn)
     #get the adjacencies of the triangle of dim 1 (should return the vertices)
     adjs = mb.get_adjacencies(tris, 0, False)
     CHECK_EQ(len(adjs),3)
+    CHECK(adjs.all_of_type(types.MBVERTEX))
 
+    
     #check that the entities are of the correct type
     for adj in adjs:
         type = mb.type_from_handle(adj)
@@ -372,13 +374,39 @@ def test_adj():
     adjs = mb.get_adjacencies(tris, 1, True)
     CHECK_EQ(len(adjs),3)
 
-    for adj in adjs:
-        ent_type = mb.type_from_handle(adj)
-        CHECK_EQ(ent_type,types.MBEDGE)
-
+    CHECK(adjs.all_of_type(types.MBEDGE))
+          
     adjs = mb.get_adjacencies(tris[0], 0, False)
     CHECK_EQ(len(adjs),3)
 
+    # create another triangle (with reverse normal)
+    new_coords = np.array((2,2,2,3,5,3), dtype = 'float64')
+    new_verts = mb.create_vertices(new_coords)
+    
+    # create a new triangle that shares a vertex with the first
+    new_tri_conn = np.array(((verts[2], new_verts[0], new_verts[1]),) , dtype = 'uint64')
+    tris.merge(mb.create_elements(types.MBTRI, new_tri_conn))
+
+    # confirm that we can get the adjacency intersection of the two triangles
+    adjs = mb.get_adjacencies(tris, 0, False)
+    CHECK_EQ(len(adjs), 1)
+    CHECK(adjs.all_of_type(types.MBVERTEX))
+    
+    adjs = mb.get_adjacencies(tris, 1, False)
+    CHECK_EQ(len(adjs), 0)
+    CHECK(adjs.all_of_type(types.MBEDGE))
+
+    # now check that we can get the union of the two triangle adjacencies
+    adjs = mb.get_adjacencies(tris, 0, False, types.UNION)
+    CHECK_EQ(len(adjs), 6)
+    CHECK(adjs.all_of_type(types.MBVERTEX))
+
+    # sanity check for number of edges
+    adjs = mb.get_adjacencies(tris, 1, False, types.UNION)
+    CHECK_EQ(len(adjs), 0)
+    CHECK(adjs.all_of_type(types.MBEDGE))
+    
+    
 def test_get_conn():
 
     mb = core.Core()
@@ -454,6 +482,12 @@ def test_get_coords():
     ret_coords = mb.get_coords(verts)
     for i in range(len(coords)):
         CHECK_EQ(ret_coords[i],coords[i])
+
+    # test for passing entity handle (non-iterable)
+    ret_coords = mb.get_coords(verts[0])
+    CHECK_EQ(ret_coords[0], coords[0])
+    CHECK_EQ(ret_coords[1], coords[1])
+    CHECK_EQ(ret_coords[2], coords[2])
 
 def test_set_coords():
     mb = core.Core()
