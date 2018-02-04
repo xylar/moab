@@ -221,7 +221,8 @@ int main(int argc, char **argv)
 
   //double radius = 1.; // input
 
-  worker.SetRadius(radius);
+  worker.set_radius_source_mesh(radius);
+  worker.set_radius_destination_mesh(radius);
   worker.set_parallel_comm(pcomm);
   if (0==rank)
   {
@@ -231,7 +232,7 @@ int main(int argc, char **argv)
   }
   rval = worker.FindMaxEdges(euler_set, euler_set);
   CHECK_ERR(rval);
-  worker.SetErrorTolerance(gtol);
+  worker.set_error_tolerance(gtol);
   rval = worker.create_departure_mesh_2nd_alg(euler_set, covering_lagr_set);
   CHECK_ERR(rval);
 
