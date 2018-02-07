@@ -16,6 +16,9 @@ include_paths = [moab_source_include,
                  np.get_include(),
                  pymoab_src_dir]
 
+os.environ["CC"] = "@CC@"
+os.environ["CXX"] = "@CXX@"
+
 # set values for each module
 ext_modules = []
 for f in os.listdir(pymoab_src_dir):
