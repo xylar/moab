@@ -211,8 +211,12 @@ int main ( int argc, char* argv[] )
     const double boxeps = 0.1;
 
     // Rescale the radius of both to compute the intersection
-    rval = ScaleToRadius(mbCore, ctx.meshsets[0], radius_src);MB_CHK_ERR ( rval );
-    rval = ScaleToRadius(mbCore, ctx.meshsets[1], radius_dest);MB_CHK_ERR ( rval );
+    if (ctx.meshsets.size() > 0) {
+        rval = ScaleToRadius(mbCore, ctx.meshsets[0], radius_src);MB_CHK_ERR ( rval );
+    }
+    if (ctx.meshsets.size() > 1) {
+        rval = ScaleToRadius(mbCore, ctx.meshsets[1], radius_dest);MB_CHK_ERR ( rval );
+    }
 
     if ( ctx.meshType == moab::TempestRemapper::OVERLAP_MEMORY )
     {
@@ -397,10 +401,6 @@ int main ( int argc, char* argv[] )
                                                    "", false, 0.0,   // std::string strPreserveVariables="", bool fPreserveAll=false, double dFillValueOverride=0.0,
                                                    false, false   // bool fInputConcave = false, bool fOutputConcave = false
                                                  );
-            ctx.timer_pop();
-
-            ctx.timer_push ( "gather weights to root process" );
-            weightMap->GatherAllToRoot();
             ctx.timer_pop();
 
 #if 0
