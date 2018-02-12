@@ -572,6 +572,18 @@ ErrCode iMOAB_GetDoubleTagStorage ( iMOAB_AppID pid, const iMOAB_String tag_stor
 ErrCode iMOAB_SynchronizeTags ( iMOAB_AppID pid, int* num_tag, int* tag_indices, int* ent_type );
 
 /**
+   \fn ErrCode iMOAB_ReduceTagsMax(iMOAB_AppID pid,  int * tag_index, int * ent_type )
+   \brief reduce max tag for a given tag
+
+   <B>Operations:</B> Collective
+
+   \param[in]  pid (iMOAB_AppID)                The unique pointer to the application ID
+   \param[in]  tag_index   (int*)               tag index of interest
+   \param[in]  ent_type (int*)                  type of entity for tag reduce 0 verts, 1 elems
+  */
+ErrCode iMOAB_ReduceTagsMax ( iMOAB_AppID pid, int* tag_index, int* ent_type );
+
+/**
    \brief retrieve the adjacencies for the element entities.
 
    <B>Operations:</B> Not Collective

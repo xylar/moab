@@ -40,6 +40,7 @@
 #define iMOAB_SetDoubleTagStorage            IMOAB_FC_WRAPPER( imoab_setdoubletagstorage, IMOAB_SETDOUBLETAGSTORAGE )
 #define iMOAB_GetDoubleTagStorage            IMOAB_FC_WRAPPER( imoab_getdoubletagstorage, IMOAB_GETDOUBLETAGSTORAGE )
 #define iMOAB_SynchronizeTags                IMOAB_FC_WRAPPER( imoab_synchronizetags, IMOAB_SYNCHRONIZETAGS )
+#define iMOAB_ReduceTagsMax                  IMOAB_FC_WRAPPER( imoab_reducetagsmax, IMOAB_REDUCETAGSMAX )
 #define iMOAB_GetNeighborElements            IMOAB_FC_WRAPPER( imoab_getneighborelements, IMOAB_GETNEIGHBORELEMENTS )
 #define iMOAB_GetNeighborVertices            IMOAB_FC_WRAPPER( imoab_getneighborvertices, IMOAB_GETNEIGHBORVERTICES )
 
