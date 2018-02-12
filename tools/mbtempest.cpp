@@ -347,7 +347,7 @@ int main ( int argc, char* argv[] )
         ctx.timer_pop();
 
         // Write out our computed intersection file
-        if ( true )
+        if ( pcomm->size() == 1 )
         {
             ctx.outStream.printf ( 0, "writing out the intersection mesh file to %s\n", "moab_intersection.h5m" );
             // rval = mbCore->add_entities ( ctx.meshsets[2], &ctx.meshsets[0], 2 ); MB_CHK_ERR ( rval );
@@ -419,11 +419,11 @@ int main ( int argc, char* argv[] )
 
             // weightMap->m_vecSourceDimSizes.resize(ctx.meshes[0]->faces.size());
             // weightMap->m_vecTargetDimSizes.resize(ctx.meshes[1]->faces.size());
-
-            // sstr.str("");
-            // sstr << "outWeights_" << proc_id << ".nc";
-            // weightMap->Write(sstr.str().c_str());
+      
 #endif
+            sstr.str("");
+            sstr << "outWeights_" << proc_id << ".nc";
+            weightMap->Write(sstr.str().c_str());
 
             delete weightMap;
         }

@@ -438,7 +438,11 @@ void moab::TempestOfflineMap::LinearRemapFVtoFV_Tempest_MOAB (
 
 void moab::TempestOfflineMap::Hypre_CopyTempestSparseMat()
 {
-    int rcstarts[2] = {m_meshInput->faces.size(), m_meshOutput->faces.size()};
+    int locrows = m_mapRemap.GetRows();
+    int loccols = m_mapRemap.GetColumns();
+
+    // int rcstarts[2] = {m_meshInput->faces.size(), m_meshOutput->faces.size()};
+    int rcstarts[2] = {locrows, loccols};
     int rcgsizes[2], rcgrstarts[2], rcgcstarts[2];
     MPI_Allreduce(rcstarts, rcgsizes, 2, MPI_INT, MPI_SUM, pcomm->comm());
     MPI_Scan(rcstarts, rcgrstarts, 2, MPI_INT, MPI_SUM, pcomm->comm());
@@ -451,8 +455,6 @@ void moab::TempestOfflineMap::Hypre_CopyTempestSparseMat()
     rcgrstarts[1] -= 1;
     std::cout << "Proc: " << pcomm->rank() << ": Sizes = " << rcgsizes[0] << ", " << rcgsizes[1] << ", Row = " << rcgrstarts[0] << ", " << rcgrstarts[1] << ", Col = " << rcgcstarts[0] << ", " << rcgcstarts[1] << "\n";
 
-    int locrows = m_mapRemap.GetRows();
-    // int loccols = m_mapRemap.GetColumns();
     DataVector<int> lrows;
     DataVector<int> lcols;
     DataVector<double> lvals;
@@ -494,7 +496,7 @@ void moab::TempestOfflineMap::Hypre_CopyTempestSparseMat()
 
     m_weightMat->FinalizeAssembly();
 
-#if 0 // Sanity check to see that the row-sum and column-sum come to 1.0
+#if 1 // Sanity check to see that the row-sum and column-sum come to 1.0
     m_weightMat->Print("hypremat.txt", 0, 0);    
 
     HypreParVector unitVec(pcomm->comm(), rcgsizes[1], rcgcstarts[0], rcgcstarts[1]); // Span based on Matrix cols
@@ -807,7 +809,6 @@ void moab::TempestOfflineMap::LinearRemapSE4_Tempest_MOAB (
             {
                 for ( int q = 0; q < nP; q++ )
                 {
-
                     if ( fContinuousIn )
                     {
                         int ixFirstNode = dataGLLNodes[p][q][ixFirst] - 1;

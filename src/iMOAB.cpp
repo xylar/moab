@@ -2261,6 +2261,11 @@ ErrCode iMOAB_ApplyScalarProjectionWeights (   iMOAB_AppID pid_intersection,
     rval = context.MBI->tag_get_handle ( soln_tag_dof_name, 1, MB_TYPE_INTEGER,
                              dofTag, MB_TAG_ANY );CHKERRVAL(rval);
 
+    std::vector<double> soln_data(data_intx.owned_elems.size());
+    std::vector<int> soln_dofs(data_intx.owned_elems.size());
+    rval = context.MBI->tag_get_data ( solnTag, data_intx.owned_elems, &soln_data[0] );CHKERRVAL(rval);
+    rval = context.MBI->tag_get_data ( dofTag, data_intx.owned_elems, &soln_dofs[0] );CHKERRVAL(rval);
+
 
 
     return 0;
