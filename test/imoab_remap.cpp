@@ -160,7 +160,7 @@ int main(int argc, char * argv[])
 //   free(double_tag_vals);
 
   double epsbox=0.1, epsrel=1e-8, radius=1.0;
-  rc = iMOAB_ComputeMeshIntersectionOnSphere(pid1, pid2, pid3, &radius, &epsrel, &epsbox);
+  rc = iMOAB_ComputeMeshIntersectionOnSphere(pid1, pid2, pid3, &radius, &radius, &epsrel, &epsbox);
   CHECKRC(rc, "failed to compute mesh intersection");
   
   int disc_orders[2] = {1, 1};
