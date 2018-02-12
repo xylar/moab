@@ -1507,6 +1507,43 @@ ErrCode iMOAB_SynchronizeTags ( iMOAB_AppID pid, int* num_tag, int* tag_indices,
     return 0;
 }
 
+ErrCode iMOAB_ReduceTagsMax ( iMOAB_AppID pid, int* tag_index, int* ent_type )
+{
+
+#ifdef MOAB_HAVE_MPI
+    appData& data = context.appDatas[*pid];
+    Range ent_exchange;
+    std::vector<Tag> tags;
+
+
+	if ( *tag_index < 0 || *tag_index >= ( int ) data.tagList.size() )
+        { return 1 ; } // error in tag index
+
+    tags.push_back ( data.tagList[*tag_index] );
+
+
+    if ( * ent_type == 0 )
+    { ent_exchange = data.all_verts; }
+    else if ( *ent_type == 1 )
+    { ent_exchange = data.primary_elems; }
+    else
+    { return 1; } // unexpected type
+
+    ParallelComm* pco = context.pcomms[*pid];
+    // we could do different MPI_Op; do not bother now, we will call from fortran, and
+    ErrorCode rval = pco->reduce_tags ( tags, tags, MPI_MAX, ent_exchange );
+	CHKERRVAL(rval);
+
+#else
+    /* do nothing if serial */
+    // just silence the warning
+    // do not call sync tags in serial!
+    int k = *pid + *tag_index + *ent_type; k++; // just do junk, to avoid complaints
+#endif
+    return 0;
+}
+
+
 ErrCode iMOAB_GetNeighborElements ( iMOAB_AppID pid, iMOAB_LocalID* local_index, int* num_adjacent_elements, iMOAB_LocalID* adjacent_element_IDs )
 {
     ErrorCode rval;
