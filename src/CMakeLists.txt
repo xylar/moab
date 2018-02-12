@@ -270,6 +270,10 @@ add_library(
   ${MDHF_OBJ}
   )
 
+target_include_directories(MOAB
+  PUBLIC
+  "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>")
+
 set_target_properties(
   MOAB
   PROPERTIES
