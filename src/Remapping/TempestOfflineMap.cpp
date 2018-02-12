@@ -136,14 +136,6 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
 
     try
     {
-        // Input / Output types
-        enum DiscretizationType
-        {
-            DiscretizationType_FV,
-            DiscretizationType_CGLL,
-            DiscretizationType_DGLL
-        };
-
         // Check command line parameters (data arguments)
         if ( ( strInputData != "" ) && ( strOutputData == "" ) )
         {
@@ -222,7 +214,7 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
 
         // Input mesh areas
         m_meshInputCov->CalculateFaceAreas(fInputConcave);
-        if ( eInputType == DiscretizationType_FV )
+        // if ( eInputType == DiscretizationType_FV )
         {
             this->SetSourceAreas ( m_meshInputCov->vecFaceArea );
         }
@@ -235,7 +227,7 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
         if ( !pcomm->rank() ) dbgprint.printf ( 0, "Output Mesh Geometric Area: %1.15e\n", dTotalAreaOutput );
 
         // Output mesh areas
-        if ( eOutputType == DiscretizationType_FV )
+        // if ( eOutputType == DiscretizationType_FV )
         {
             this->SetTargetAreas ( m_meshOutput->vecFaceArea );
         }
@@ -601,6 +593,11 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
         // Verify consistency, conservation and monotonicity
         if ( !fNoCheck )
         {
+            if ( !m_globalMapAvailable && pcomm->size() > 1 ) {
+                // gather weights to root process to perform consistency/conservation checks
+                moab::ErrorCode rval = this->GatherAllToRoot(eInputType, eOutputType);MB_CHK_ERR(rval);
+            }
+
             if ( !pcomm->rank() ) dbgprint.printf ( 0, "Verifying map" );
             this->IsConsistent ( 1.0e-8 );
             if ( !fNoConservation ) this->IsConservative ( 1.0e-8 );
@@ -672,12 +669,8 @@ bool moab::TempestOfflineMap::IsConsistent (
 
     // Calculate row sums
     DataVector<double> dRowSums;
-    moab::ErrorCode rval;
     if ( pcomm->size() > 1 )
     {
-        if ( !m_globalMapAvailable ) {
-            rval = this->GatherAllToRoot();MB_CHK_ERR(rval);
-        }
         if ( pcomm->size() > 1 && pcomm->rank() ) return true;
         SparseMatrix<double>& m_mapRemapGlobal = m_weightMapGlobal->GetSparseMatrix();
         m_mapRemapGlobal.GetEntries ( dataRows, dataCols, dataEntries );
@@ -724,12 +717,8 @@ bool moab::TempestOfflineMap::IsConservative (
 
     // Calculate column sums
     DataVector<double> dColumnSums;
-    moab::ErrorCode rval;
     if ( pcomm->size() > 1 )
     {
-        if ( !m_globalMapAvailable ) {
-            rval = this->GatherAllToRoot();MB_CHK_ERR(rval);
-        }
         if ( pcomm->size() > 1 && pcomm->rank() ) return true;
         SparseMatrix<double>& m_mapRemapGlobal = m_weightMapGlobal->GetSparseMatrix();
         m_mapRemapGlobal.GetEntries ( dataRows, dataCols, dataEntries );
@@ -774,12 +763,8 @@ bool moab::TempestOfflineMap::IsMonotone (
     DataVector<int> dataCols;
     DataVector<double> dataEntries;
 
-	moab::ErrorCode rval;
     if ( pcomm->size() > 1 )
     {
-        if ( !m_globalMapAvailable ) {
-            rval = this->GatherAllToRoot();MB_CHK_ERR(rval);
-        }
         if ( pcomm->size() > 1 && pcomm->rank() ) return true;
         SparseMatrix<double>& m_mapRemapGlobal = m_weightMapGlobal->GetSparseMatrix();
         m_mapRemapGlobal.GetEntries ( dataRows, dataCols, dataEntries );
@@ -807,7 +792,7 @@ bool moab::TempestOfflineMap::IsMonotone (
 
 
 ///////////////////////////////////////////////////////////////////////////////
-moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot()   // Collective
+moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot(DiscretizationType eInputType, DiscretizationType eOutputType)   // Collective
 {
     Mesh globalMesh;
     int ierr, rootProc = 0;
@@ -863,8 +848,15 @@ moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot()   // Collective
             // m_weightMapGlobal->InitializeTargetDimensionsFromMesh(*m_meshOutput);
             m_weightMapGlobal->InitializeTargetDimensionsFromMesh ( gtar, 0 );
 
-            m_weightMapGlobal->InitializeSourceCoordinatesFromMeshFV ( *m_meshInput );
-            m_weightMapGlobal->InitializeTargetCoordinatesFromMeshFV ( *m_meshOutput );
+            if (eInputType == DiscretizationType_FV && true) /* unsure if we actually care about the type for this */
+                m_weightMapGlobal->InitializeSourceCoordinatesFromMeshFV ( *m_meshInput );
+            // else
+            //     m_weightMapGlobal->InitializeSourceCoordinatesFromMeshFE ( *m_meshInput );
+
+            if (eOutputType == DiscretizationType_FV && true)  /* unsure if we actually care about the type for this */
+                m_weightMapGlobal->InitializeTargetCoordinatesFromMeshFV ( *m_meshOutput );
+            // else
+            //     m_weightMapGlobal->InitializeTargetCoordinatesFromMeshFE ( *m_meshOutput );
 
             m_weightMapGlobal->GetSourceAreas().Initialize ( gsrc ); srcelmindx.Initialize ( gsrc );
             m_weightMapGlobal->GetTargetAreas().Initialize ( gtar ); tgtelmindx.Initialize ( gtar );
@@ -1090,7 +1082,7 @@ moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot()   // Collective
     // on the root process
     m_globalMapAvailable = true;
 
-    if ( !pcomm->rank() && false )
+    if ( !pcomm->rank() )
     {
         dbgprint.printf ( 0, "Writing out file outGlobalView.nc\n" );
         // m_dSourceCenterLon

@@ -65,13 +65,16 @@ public:
 	///	</summary>
 	virtual ~TempestOfflineMap();
 
-	///	<summary>
-	///		Gather the mapping matrix that was computed in different processors and accumulate the data
-	///     on the root so that OfflineMap can be generated in parallel.
-	///	</summary>
-	virtual moab::ErrorCode GatherAllToRoot();
-
 public:
+
+    // Input / Output types
+    enum DiscretizationType
+    {
+        DiscretizationType_FV,
+        DiscretizationType_CGLL,
+        DiscretizationType_DGLL
+    };
+
 	///	<summary>
 	///		Generate the offline map, given the source and target mesh and discretization details.
 	///     This method generates the mapping between the two meshes based on the overlap and stores 
@@ -135,6 +138,13 @@ public:
 	const DataVector<double>& GetGlobalTargetAreas() const;
 
 private:
+
+	///	<summary>
+	///		Gather the mapping matrix that was computed in different processors and accumulate the data
+	///     on the root so that OfflineMap can be generated in parallel.
+	///	</summary>
+	moab::ErrorCode GatherAllToRoot(DiscretizationType srcType, DiscretizationType destType);
+
 	///	<summary>
 	///		Compute the remapping weights for a FV field defined on the source to a 
 	///     FV field defined on the target mesh.

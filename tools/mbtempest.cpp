@@ -211,8 +211,12 @@ int main ( int argc, char* argv[] )
     const double boxeps = 0.1;
 
     // Rescale the radius of both to compute the intersection
-    rval = ScaleToRadius(mbCore, ctx.meshsets[0], radius_src);MB_CHK_ERR ( rval );
-    rval = ScaleToRadius(mbCore, ctx.meshsets[1], radius_dest);MB_CHK_ERR ( rval );
+    if (ctx.meshsets.size() > 0) {
+        rval = ScaleToRadius(mbCore, ctx.meshsets[0], radius_src);MB_CHK_ERR ( rval );
+    }
+    if (ctx.meshsets.size() > 1) {
+        rval = ScaleToRadius(mbCore, ctx.meshsets[1], radius_dest);MB_CHK_ERR ( rval );
+    }
 
     if ( ctx.meshType == moab::TempestRemapper::OVERLAP_MEMORY )
     {
@@ -343,10 +347,10 @@ int main ( int argc, char* argv[] )
         ctx.timer_pop();
 
         // Write out our computed intersection file
-        if ( true )
+        if ( pcomm->size() == 1 )
         {
             ctx.outStream.printf ( 0, "writing out the intersection mesh file to %s\n", "moab_intersection.h5m" );
-            rval = mbCore->add_entities ( ctx.meshsets[2], &ctx.meshsets[0], 2 ); MB_CHK_ERR ( rval );
+            // rval = mbCore->add_entities ( ctx.meshsets[2], &ctx.meshsets[0], 2 ); MB_CHK_ERR ( rval );
             rval = mbCore->write_file ( "moab_intersection.h5m", NULL, "PARALLEL=WRITE_PART", &ctx.meshsets[2], 1 ); MB_CHK_ERR ( rval );
         }
 
@@ -399,10 +403,6 @@ int main ( int argc, char* argv[] )
                                                  );
             ctx.timer_pop();
 
-            ctx.timer_push ( "gather weights to root process" );
-            weightMap->GatherAllToRoot();
-            ctx.timer_pop();
-
 #if 0
             // OfflineMap* weightMap;
             // weightMap = GenerateOfflineMapWithMeshes( NULL, *ctx.meshes[0], *ctx.meshes[1], *ctx.meshes[2],
@@ -419,11 +419,11 @@ int main ( int argc, char* argv[] )
 
             // weightMap->m_vecSourceDimSizes.resize(ctx.meshes[0]->faces.size());
             // weightMap->m_vecTargetDimSizes.resize(ctx.meshes[1]->faces.size());
-
-            // sstr.str("");
-            // sstr << "outWeights_" << proc_id << ".nc";
-            // weightMap->Write(sstr.str().c_str());
+      
 #endif
+            sstr.str("");
+            sstr << "outWeights_" << proc_id << ".nc";
+            weightMap->Write(sstr.str().c_str());
 
             delete weightMap;
         }
