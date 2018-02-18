@@ -496,7 +496,7 @@ void moab::TempestOfflineMap::Hypre_CopyTempestSparseMat()
 
     m_weightMat->FinalizeAssembly();
 
-#if 1 // Sanity check to see that the row-sum and column-sum come to 1.0
+#if 0 // Sanity check to see that the row-sum and column-sum come to 1.0
     m_weightMat->Print("hypremat.txt", 0, 0);    
 
     HypreParVector unitVec(pcomm->comm(), rcgsizes[1], rcgcstarts[0], rcgcstarts[1]); // Span based on Matrix cols
