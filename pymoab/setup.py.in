@@ -27,6 +27,7 @@ for f in os.listdir(pymoab_src_dir):
         ext = Extension( "pymoab."+fbase, ["pymoab/"+fbase+".cpp",],
                          language = 'c++',
                          include_dirs = include_paths,
+                         runtime_library_dirs = [moab_lib_path,],
                          library_dirs = [moab_lib_path,],
                          libraries = ["MOAB",])
         ext_modules.append(ext)
