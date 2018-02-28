@@ -80,7 +80,7 @@ if(MOAB_USE_HDF5)
   endif()
 endif()
 
-set(MOAB_LIBRARY_DIRS, "@prefix@/lib")
+set(MOAB_LIBRARY_DIRS "@prefix@/lib")
 set(MOAB_INCLUDE_DIRS "@prefix@/include")
 
 set(MOAB_LIBS "-lMOAB")
