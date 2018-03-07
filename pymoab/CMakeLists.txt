@@ -95,7 +95,7 @@ PYTHONPATH=${CMAKE_INSTALL_PREFIX}/${PYMOAB_INSTALL_PREFIX}:\$PYTHONPATH \
   ADD_CUSTOM_TARGET(pymoab-pre-install-dir ALL COMMAND ${CMAKE_COMMAND} -E make_directory ${PYMOAB_PREINSTALL_INSTALL_PATH})
 
   # python setuptools build/install local version of pymoab for testing
-  MESAGE(STATUS "Building local PyMOAB...")
+  MESSAGE(STATUS "Building local PyMOAB...")
   ADD_CUSTOM_TARGET(pymoab-local-install ALL
     COMMAND export CFLAGS='-w' &&
     export "PYTHONPATH=${PYMOAB_LOCAL_INSTALL_PATH}:$PYTHONPATH" &&
@@ -103,11 +103,11 @@ PYTHONPATH=${CMAKE_INSTALL_PREFIX}/${PYMOAB_INSTALL_PREFIX}:\$PYTHONPATH \
     DEPENDS ${DEPS} MOAB pymoab-local-install-dir)
 
   # python setuptools build/install for external install (preinstallation)
-  MESAGE(STATUS "Building pre-installation version of PyMOAB...")
+  MESSAGE(STATUS "Building pre-installation version of PyMOAB...")
   ADD_CUSTOM_TARGET(pymoab-pre-install ALL
     COMMAND export CFLAGS='-w' &&
     export "PYTHONPATH=${PYMOAB_PREINSTALL_INSTALL_PATH}:$PYTHONPATH" &&
-    ${PYTHON} setup.py build -b ${CMAKE_CURRENT_BINARY_DIR}/build_final --preinstall install --install-platlib=${PYMOAB_PREINSTALL_INSTALL_PATH} --install-purelib=${PYMOAB_PREINSTALL_INSTALL_PATH}
+    ${PYTHON} setup.py build -b ${CMAKE_CURRENT_BINARY_DIR}/build_preinstall --preinstall install --install-platlib=${PYMOAB_PREINSTALL_INSTALL_PATH} --install-purelib=${PYMOAB_PREINSTALL_INSTALL_PATH}
     DEPENDS ${DEPS} MOAB pymoab-pre-install-dir pymoab-local-install)
 
   # move pymoab egg into the correct location for a --user setuptools install based on username
