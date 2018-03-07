@@ -4,6 +4,8 @@ from setuptools import setup, Extension, find_packages
 import numpy as np #needed for numpy include paths
 import glob
 import os
+import sys
+
 # setup moab include paths
 moab_root = '${CMAKE_SOURCE_DIR}'
 moab_source_include = moab_root + '/src/moab/'
@@ -20,6 +22,13 @@ include_paths = [moab_source_include,
 os.environ["CC"] = "${CMAKE_C_COMPILER}"
 os.environ["CXX"] = "${CMAKE_CXX_COMPILER}"
 
+
+if "--preinstall" in sys.argv:
+    moab_rpath = '${CMAKE_INSTALL_PREFIX}/lib'
+    sys.argv.remove("--preinstall")
+else:
+    moab_rpath = moab_lib_path
+
 # set values for each module
 ext_modules = []
 for f in os.listdir(pymoab_src_dir):
@@ -28,7 +37,7 @@ for f in os.listdir(pymoab_src_dir):
         ext = Extension( "pymoab."+fbase, ["pymoab/"+fbase+".cpp",],
                          language = 'c++',
                          include_dirs = include_paths,
-                         runtime_library_dirs = [moab_lib_path,],
+                         runtime_library_dirs = [moab_rpath,],
                          library_dirs = [moab_lib_path,],
                          libraries = ["MOAB",])
         ext_modules.append(ext)
