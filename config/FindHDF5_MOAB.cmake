@@ -45,7 +45,7 @@ else (HDF5_FOUND)
     FIND_LIBRARY(HDF5_BASE_LIBRARY NAMES hdf5 hdf5d libhdf5.a libhdf5d.a
       HINTS ${HDF5_ROOT} ${HDF5_ROOT}/lib 
       )
-    FIND_LIBRARY(HDF5_HLBASE_LIBRARY libhdf5_hl.a libhdf5_hld.a hdf5_hl hdf5_hld
+    FIND_LIBRARY(HDF5_HLBASE_LIBRARY hdf5_hl hdf5_hld libhdf5_hl.a libhdf5_hld.a 
       HINTS ${HDF5_ROOT} ${HDF5_ROOT}/lib
       )
 
@@ -54,14 +54,14 @@ else (HDF5_FOUND)
         FIND_LIBRARY(HDF5_CXX_LIBRARY libhdf5_cxx.a hdf5_cxx
           HINTS ${HDF5_ROOT} ${HDF5_ROOT}/lib NO_DEFAULT_PATH
           )
-        FIND_LIBRARY(HDF5_HLCXX_LIBRARY libhdf5_hl_cxx.a hdf5_hl_cxx
+        FIND_LIBRARY(HDF5_HLCXX_LIBRARY hdf5_hl_cxx libhdf5_hl_cxx.a 
           HINTS ${HDF5_ROOT} ${HDF5_ROOT}/lib NO_DEFAULT_PATH
           )
-        FIND_LIBRARY(HDF5_FORT_LIBRARY libhdf5_fortran.a hdf5_fortran
+        FIND_LIBRARY(HDF5_FORT_LIBRARY hdf5_fortran libhdf5_fortran.a 
           HINTS ${HDF5_ROOT} ${HDF5_ROOT}/lib NO_DEFAULT_PATH
           )
         FIND_LIBRARY(HDF5_HLFORT_LIBRARY
-          NAMES libhdf5hl_fortran.a libhdf5_hl_fortran.a hdf5hl_fortran hdf5_hl_fortran
+          NAMES hdf5hl_fortran hdf5_hl_fortran libhdf5hl_fortran.a libhdf5_hl_fortran.a 
           HINTS ${HDF5_ROOT} ${HDF5_ROOT}/lib NO_DEFAULT_PATH
           )
         SET( HDF5_INCLUDES "${HDF5_INCLUDE_DIR}" )
