@@ -42,7 +42,7 @@ else (HDF5_FOUND)
       endif (NOT ${hdf5_deplibs_${VARIANT}} MATCHES "(.*)NOTFOUND")
     endforeach()
 
-    FIND_LIBRARY(HDF5_BASE_LIBRARY NAMES libhdf5.a libhdf5d.a hdf5 hdf5d
+    FIND_LIBRARY(HDF5_BASE_LIBRARY NAMES hdf5 hdf5d libhdf5.a libhdf5d.a
       HINTS ${HDF5_ROOT} ${HDF5_ROOT}/lib 
       )
     FIND_LIBRARY(HDF5_HLBASE_LIBRARY libhdf5_hl.a libhdf5_hld.a hdf5_hl hdf5_hld
