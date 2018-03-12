@@ -1416,6 +1416,8 @@ ErrorCode Intx2Mesh::construct_covering_set(EntityHandle & initial_distributed_s
       double dp_pos[3] = { TLv.vr_wr[3 * i], TLv.vr_wr[3 * i + 1], TLv.vr_wr[3 * i + 2] };
       rval = mb->create_vertex(dp_pos, new_vert);MB_CHK_SET_ERR(rval, "can't create new vertex ");
       globalID_to_vertex_handle[globalId] = new_vert; // now add it to the map
+      // set the GLOBAL ID tag on the new vertex
+      rval = mb->tag_set_data(gid, &new_vert, 1, &globalId); MB_CHK_SET_ERR(rval, "can't set global ID tag on new vertex ");
     }
   }
 

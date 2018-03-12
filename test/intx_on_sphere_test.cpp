@@ -38,7 +38,7 @@ int main(int argc, char* argv[])
   const char *filename_mesh2 = STRINGIFY(MESHDIR) "/mbcslam/eulerHomme.vtk";
   double R = 6. * sqrt(3.) / 2; // input
   double epsrel=1.e-8;
-  double boxeps=0.1;
+  double boxeps=1.e-4;
   const char *newFile = "intx.h5m";
   if (argc == 8)
   {
