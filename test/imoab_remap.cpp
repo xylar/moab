@@ -165,12 +165,15 @@ int main(int argc, char * argv[])
   
   int disc_orders[2] = {1, 1};
   const char* disc_methods[2] = {"fv", "fv"};
+  const char* dof_tag_names[2] = {"GLOBAL_ID", "GLOBAL_ID"};
   int fVolumetric=0, fValidate=1, fNoConserve=0;
   rc = iMOAB_ComputeScalarProjectionWeights ( pid3, 
                                               disc_methods[0], &disc_orders[0], 
                                               disc_methods[1], &disc_orders[1], 
                                               &fVolumetric, &fNoConserve, &fValidate, 
-                                              strlen(disc_methods[0]), strlen(disc_methods[1])
+                                              dof_tag_names[0], dof_tag_names[1],
+                                              strlen(disc_methods[0]), strlen(disc_methods[1]),
+                                              strlen(dof_tag_names[0]), strlen(dof_tag_names[1])
                                             );
   CHECKRC(rc, "failed to compute remapping projection weights");
   

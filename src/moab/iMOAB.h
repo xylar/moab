@@ -740,12 +740,15 @@ ErrCode iMOAB_ComputeMeshIntersectionOnSphere ( iMOAB_AppID pid_source, iMOAB_Ap
   
 */
 ErrCode iMOAB_ComputeScalarProjectionWeights ( iMOAB_AppID pid_intersection, 
-                                               const iMOAB_String disc_method_src, int* disc_order_src,
-                                               const iMOAB_String disc_method_tgt, int* disc_order_tgt,
+                                               const iMOAB_String disc_method_source, int* disc_order_source,
+                                               const iMOAB_String disc_method_target, int* disc_order_target,
                                                int* fVolumetric, int* fNoConservation, int* fValidate,
+                                               const iMOAB_String src_soln_tag_dof_name,
+                                               const iMOAB_String dest_soln_tag_dof_name,
                                                int disc_method_src_length,
-                                               int disc_method_tgt_length );
-
+                                               int disc_method_tgt_length,
+                                               int src_soln_tag_dof_name_length,
+                                               int dest_soln_tag_dof_name_length );
 
 /**
   \brief Apply the projection weights matrix operator onto the source tag in order to compute the solution (tag) repersented
@@ -757,10 +760,8 @@ ErrCode iMOAB_ComputeScalarProjectionWeights ( iMOAB_AppID pid_intersection,
 */
 ErrCode iMOAB_ApplyScalarProjectionWeights (   iMOAB_AppID pid_intersection, 
                                                const iMOAB_String soln_tag_name,
-                                               const iMOAB_String soln_tag_dof_name,
                                                int*  esoln_size, int*  esoln_owner,
-                                               int soln_tag_name_length,
-                                               int soln_tag_dof_name_length );
+                                               int soln_tag_name_length );
 
 #endif
 

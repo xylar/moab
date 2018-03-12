@@ -2218,13 +2218,18 @@ ErrCode iMOAB_ComputeScalarProjectionWeights ( iMOAB_AppID pid_intx,
                                                const iMOAB_String disc_method_target, int* disc_order_target,
                                                int* fVolumetric, int* fNoConservation,
                                                int* fValidate,
+                                               const iMOAB_String source_soln_tag_dof_name,
+                                               const iMOAB_String target_soln_tag_dof_name,
                                                int disc_method_source_length,
-                                               int disc_method_target_length)
+                                               int disc_method_target_length,
+                                               int source_soln_tag_dof_name_length,
+                                               int target_soln_tag_dof_name_length)
 {
 	moab::ErrorCode rval;
 	
 	assert(disc_order_source && disc_order_target && *disc_order_source > 0 && *disc_order_target > 0);
 	assert(disc_method_source_length > 0 && disc_method_target_length > 0);
+    assert(source_soln_tag_dof_name_length > 0 && target_soln_tag_dof_name_length > 0);
 
     // Get the source and target data and pcomm objects
 	appData& data_intx = context.appDatas[*pid_intx];
@@ -2243,6 +2248,10 @@ ErrCode iMOAB_ComputeScalarProjectionWeights ( iMOAB_AppID pid_intx,
 	// Call to generate an offline map with the tempest meshes
 	moab::TempestOfflineMap* weightMap = new moab::TempestOfflineMap ( remapper );
 
+    // Now let us compute the local-global mapping and store it in the context
+    // We need this mapping when computing matvec products and to do reductions in parallel
+    weightMap->SetDofMapTags(source_soln_tag_dof_name, target_soln_tag_dof_name);
+
 	// compute weights with TempestRemap
 	rval = weightMap->GenerateOfflineMap ( std::string(disc_method_source), std::string(disc_method_target),        // std::string strInputType, std::string strOutputType,
 										   *disc_order_source,  *disc_order_target,  // int nPin=4, int nPout=4,
@@ -2257,6 +2266,7 @@ ErrCode iMOAB_ComputeScalarProjectionWeights ( iMOAB_AppID pid_intx,
 										   false, false   // bool fInputConcave = false, bool fOutputConcave = false
 										 );CHKERRVAL(rval);
 
+    // Mapping computation done
 
 	if (fValidate && *fValidate)
 	{
@@ -2282,15 +2292,13 @@ ErrCode iMOAB_ComputeScalarProjectionWeights ( iMOAB_AppID pid_intx,
 
 
 ErrCode iMOAB_ApplyScalarProjectionWeights (   iMOAB_AppID pid_intersection, 
-                                               const iMOAB_String soln_tag_name,
-                                               const iMOAB_String soln_tag_dof_name,
+                                               const iMOAB_String solution_tag_name,
                                                int*  esoln_size, int*  esoln_owner,
-                                               int soln_tag_name_length,
-                                               int soln_tag_dof_name_length )
+                                               int solution_tag_name_length )
 {
     moab::ErrorCode rval;
 
-    assert(soln_tag_name_length > 0 && soln_tag_dof_name_length > 0);
+    assert(solution_tag_name_length > 0);
 
     // Get the source and target data and pcomm objects
     appData& data_intx = context.appDatas[*pid_intersection];
@@ -2299,18 +2307,6 @@ ErrCode iMOAB_ApplyScalarProjectionWeights (   iMOAB_AppID pid_intersection,
     // Now allocate and initialize the remapper object
     moab::TempestRemapper* remapper = data_intx.remapper;
 
-    moab::Tag dofTag, solnTag;
-
-    rval = context.MBI->tag_get_handle ( soln_tag_name, 1, MB_TYPE_DOUBLE,
-                             solnTag, MB_TAG_ANY );CHKERRVAL(rval);
-
-    rval = context.MBI->tag_get_handle ( soln_tag_dof_name, 1, MB_TYPE_INTEGER,
-                             dofTag, MB_TAG_ANY );CHKERRVAL(rval);
-
-    std::vector<double> soln_data(data_intx.owned_elems.size());
-    std::vector<int> soln_dofs(data_intx.owned_elems.size());
-    rval = context.MBI->tag_get_data ( solnTag, data_intx.owned_elems, &soln_data[0] );CHKERRVAL(rval);
-    rval = context.MBI->tag_get_data ( dofTag, data_intx.owned_elems, &soln_dofs[0] );CHKERRVAL(rval);
 
 
 
