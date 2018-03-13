@@ -1069,6 +1069,8 @@ A Python interface to MOAB's essential core functionality and a few other tools 
 
 Documentation for PyMOAB functions is provided as part of this User's Guide, but can also be accessed in the Python interpreter by calling `help(<function_or_method>)`.
 
+Examples of PyMOAB usage can be found in the /examples/python/ directory.
+
 
   \ref contents
 
@@ -1274,6 +1276,8 @@ Initial results have demonstrated that the data abstraction provided by MOAB is 
  
   \page building Building & Installing
  
+<h1> Standard Installation Instructions </h1>
+
   MOAB uses an autoconf and libtool-based build process by default.  The procedure used to build MOAB from scratch depends on whether the source code was obtained from a “tarball” or directly from the Subversion repository.  Assuming the latter, the following steps should be executed for building and installing MOAB:
   - Locate and build any required dependencies.  MOAB can be built with no dependencies on other libraries; this may be useful for applications only needing basic mesh representation and not needing to export mesh to formats implemented in other libraries.  MOAB’s native save/restore capability is built on HDF5-based files; applications needing to save and restore files from MOAB reliably should use this library.  MOAB also uses ExodusII, a netCDF-based file format developed at Sandia National Laboratories [10].  Applications needing to execute these tests should also build netCDF.  Note that MOAB uses netCDF’s C++ interface, which is not enabled by default in netCDF but can be enabled using the “–enable-cxx” option to netCDF’s configure script.
   - Unpack source code into <moab>, and change current working directory to that location.
@@ -1288,5 +1292,15 @@ Initial results have demonstrated that the data abstraction provided by MOAB is 
   .
 
 These steps are sufficient for building MOAB against HDF5 and netCDF.  By default, a small number of standard MOAB-based applications are also built, including mbconvert (a utility for reading and writing files), mbsize (for querying basic information about a mesh), and the iMesh interface (see Section 7).  Other utilities can be enabled using various other options to the configure script; for a complete list of build options, execute “./configure –help”.
- 
+
+<h1> Other MOAB Components </h1>
+
+<h2> PyMOAB </h2>
+
+  To install the PyMOAB module, add "--enable-pymoab" in the configuration step described above. PyMOAB will build using whatever version of Python is available on the system when the configuration command is executed. It requires the following packages to operate properly:
+    - Python's <a href=https://pypi.python.org/pypi/setuptools> setuptools </a> and <a href=https://docs.python.org/3/library/distutils.html> distutils </a> for building, linking, and distribution
+    - <a href=https://docs.python.org/3/library/distutils.html> NumPy </a> for management of data being passed into and out of the MOAB database
+
+  PyMOAB can be installed with a custom prefix path which can be set adding "PYMOAB_PREFIX=/path/to/custom/install/location" to the configuration command.
+
  */
