@@ -52,9 +52,10 @@ public:
         CS = 0,
         RLL = 1,
         ICO = 2,
-        OVERLAP_FILES = 3,
-        OVERLAP_MEMORY = 4,
-        OVERLAP_MOAB = 5
+        ICOD = 3,
+        OVERLAP_FILES = 4,
+        OVERLAP_MEMORY = 5,
+        OVERLAP_MOAB = 6
     };
 
     friend class TempestOfflineMap;

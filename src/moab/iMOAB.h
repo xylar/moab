@@ -712,9 +712,7 @@ ErrCode iMOAB_ReceiveElementTag(iMOAB_AppID pid, int* scompid, int* rcompid, con
   \param[in] epsrel (double *)                       The relative tolerance to be used to compute the mesh intersectoin between source and target meshes
   \param[in] boxeps (double *)                       The tolerance to be used to compute the box mesh
 */
-ErrCode iMOAB_ComputeMeshIntersectionOnSphere ( iMOAB_AppID pid_source, iMOAB_AppID pid_target, iMOAB_AppID pid_intersection,
-                                                 double *radius_source/*=1.0*/, double *radius_target/*=1.0*/, 
-                                                 double *epsrel/*=1e-8*/, double *boxeps/*=0.1*/);
+ErrCode iMOAB_ComputeMeshIntersectionOnSphere ( iMOAB_AppID pid_source, iMOAB_AppID pid_target, iMOAB_AppID pid_intersection);
 
 /**
   \brief Compute the projection weights to transfer a solution from a source surface mesh to a destination mesh defined on a sphere. 
@@ -740,12 +738,15 @@ ErrCode iMOAB_ComputeMeshIntersectionOnSphere ( iMOAB_AppID pid_source, iMOAB_Ap
   
 */
 ErrCode iMOAB_ComputeScalarProjectionWeights ( iMOAB_AppID pid_intersection, 
-                                               const iMOAB_String disc_method_src, int* disc_order_src,
-                                               const iMOAB_String disc_method_tgt, int* disc_order_tgt,
+                                               const iMOAB_String disc_method_source, int* disc_order_source,
+                                               const iMOAB_String disc_method_target, int* disc_order_target,
                                                int* fVolumetric, int* fNoConservation, int* fValidate,
+                                               const iMOAB_String src_soln_tag_dof_name,
+                                               const iMOAB_String dest_soln_tag_dof_name,
                                                int disc_method_src_length,
-                                               int disc_method_tgt_length );
-
+                                               int disc_method_tgt_length,
+                                               int src_soln_tag_dof_name_length,
+                                               int dest_soln_tag_dof_name_length );
 
 /**
   \brief Apply the projection weights matrix operator onto the source tag in order to compute the solution (tag) repersented
@@ -757,10 +758,8 @@ ErrCode iMOAB_ComputeScalarProjectionWeights ( iMOAB_AppID pid_intersection,
 */
 ErrCode iMOAB_ApplyScalarProjectionWeights (   iMOAB_AppID pid_intersection, 
                                                const iMOAB_String soln_tag_name,
-                                               const iMOAB_String soln_tag_dof_name,
                                                int*  esoln_size, int*  esoln_owner,
-                                               int soln_tag_name_length,
-                                               int soln_tag_dof_name_length );
+                                               int soln_tag_name_length );
 
 #endif
 

@@ -117,22 +117,97 @@ static void ParseVariableList (
     }
 }
 
+///////////////////////////////////////////////////////////////////////////////
+
+moab::ErrorCode moab::TempestOfflineMap::SetDofMapTags(const std::string srcDofTagName, const std::string tgtDofTagName)
+{
+    moab::ErrorCode rval;
+
+    rval = mbCore->tag_get_handle ( srcDofTagName.c_str(), 1, MB_TYPE_INTEGER,
+                             this->m_dofTagSrc, MB_TAG_ANY );MB_CHK_ERR(rval);
+    rval = mbCore->tag_get_handle ( tgtDofTagName.c_str(), 1, MB_TYPE_INTEGER,
+                             this->m_dofTagDest, MB_TAG_ANY );MB_CHK_ERR(rval);
+
+    return moab::MB_SUCCESS;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+moab::ErrorCode moab::TempestOfflineMap::SetDofMapAssociation(DiscretizationType srcType, bool isSrcContinuous, int nPin, DataMatrix3D<int>* srcdataGLLNodes,
+    DiscretizationType destType, bool isTgtContinuous, int nPout, DataMatrix3D<int>* tgtdataGLLNodes)
+{
+    moab::ErrorCode rval;
+    std::vector<int> src_soln_gdofs(m_remapper->m_source_entities.size()*nPin);
+    std::vector<int> tgt_soln_gdofs(m_remapper->m_target_entities.size()*nPout);
+
+    // We are assuming that these are element based tags that are sized: np * np
+    rval = mbCore->tag_get_data ( m_dofTagSrc, m_remapper->m_source_entities, &src_soln_gdofs[0] );MB_CHK_ERR(rval);
+    rval = mbCore->tag_get_data ( m_dofTagDest, m_remapper->m_target_entities, &tgt_soln_gdofs[0] );MB_CHK_ERR(rval);
+
+    // Now compute the mapping and store it
+    if (srcdataGLLNodes == NULL || srcType == DiscretizationType_FV) { /* we only have a mapping for elements as DoFs */
+        for (unsigned i=0; i < src_soln_gdofs.size(); ++i)
+            row_dofmap.insert( std::pair<int,int>(i, src_soln_gdofs[i]) );
+    }
+    else {
+        // Put these remap coefficients into the SparseMatrix map
+        int idof=0;
+        for ( unsigned j = 0; j < m_remapper->m_source_entities.size(); j++ )
+        {
+            for ( int p = 0; p < nPin; p++ )
+            {
+                for ( int q = 0; q < nPin; q++ )
+                {
+                    if ( isSrcContinuous )
+                        row_dofmap.insert( std::pair<int,int>((*srcdataGLLNodes)[p][q][j] - 1, src_soln_gdofs[idof++]) );
+                    else
+                        row_dofmap.insert( std::pair<int,int>(j * nPin * nPin + p * nPin + q, src_soln_gdofs[idof++]) );
+                }
+            }
+        }
+    }
+
+    if (tgtdataGLLNodes == NULL || destType == DiscretizationType_FV) { /* we only have a mapping for elements as DoFs */
+        for (unsigned i=0; i < tgt_soln_gdofs.size(); ++i)
+            col_dofmap.insert( std::pair<int,int>(i, tgt_soln_gdofs[i]) );
+    }
+    else {
+        // Put these remap coefficients into the SparseMatrix map
+        int idof=0;
+        for ( unsigned j = 0; j < m_remapper->m_target_entities.size(); j++ )
+        {
+            for ( int p = 0; p < nPout; p++ )
+            {
+                for ( int q = 0; q < nPout; q++ )
+                {
+                    if ( isTgtContinuous )
+                        col_dofmap.insert( std::pair<int,int>((*tgtdataGLLNodes)[p][q][j] - 1, tgt_soln_gdofs[idof++]) );
+                    else
+                        col_dofmap.insert( std::pair<int,int>(j * nPout * nPout + p * nPout + q, tgt_soln_gdofs[idof++]) );
+                }
+            }
+        }
+    }
+
+    return moab::MB_SUCCESS;
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 
 moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInputType, std::string strOutputType,
-        int nPin, int nPout,
+        const int nPin, const int nPout,
         bool fBubble, int fMonotoneTypeID,
         bool fVolumetric, bool fNoConservation, bool fNoCheck,
-        std::string strVariables,
-        std::string strInputData, std::string strOutputData,
-        std::string strNColName, bool fOutputDouble,
-        std::string strPreserveVariables, bool fPreserveAll, double dFillValueOverride,
-        bool fInputConcave, bool fOutputConcave )
+        const std::string strVariables,
+        const std::string strInputData, const std::string strOutputData,
+        const std::string strNColName, const bool fOutputDouble,
+        const std::string strPreserveVariables, const bool fPreserveAll, const double dFillValueOverride,
+        const bool fInputConcave, const bool fOutputConcave )
 {
     NcError error ( NcError::silent_nonfatal );
 
     moab::DebugOutput dbgprint ( std::cout, ( pcomm ? pcomm->rank() : 0 ) );
+    moab::ErrorCode rval;
 
     try
     {
@@ -327,6 +402,7 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
             LinearRemapFVtoFV_Tempest_MOAB ( nPin );
 
             // Finite volume input / Finite element output
+            rval = this->SetDofMapAssociation(eInputType, false, nPin, NULL, eOutputType, false, nPout, NULL);MB_CHK_ERR(rval);
         }
         else if ( eInputType == DiscretizationType_FV )
         {
@@ -398,7 +474,9 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
                     fNoConservation );
             }
 
-            // Finite element input / Finite volume output
+            // Finite volume input / Finite element output
+            rval = this->SetDofMapAssociation(eInputType, false, nPin, NULL, 
+                eOutputType, (eOutputType == DiscretizationType_CGLL), nPout, &dataGLLNodes);MB_CHK_ERR(rval);
         }
         else if (
             ( eInputType != DiscretizationType_FV ) &&
@@ -472,7 +550,9 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
                 fNoConservation
             );
 
-            // Finite element input / Finite element output
+            // Finite element input / Finite volume output
+            rval = this->SetDofMapAssociation(eInputType, (eInputType == DiscretizationType_CGLL), nPin, &dataGLLNodes, 
+                eOutputType, false, nPout, NULL);MB_CHK_ERR(rval);
         }
         else if (
             ( eInputType  != DiscretizationType_FV ) &&
@@ -583,6 +663,10 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
                 fNoConservation
             );
 
+            // Input Finite Element to Output Finite Element
+            rval = this->SetDofMapAssociation(eInputType, (eInputType == DiscretizationType_CGLL), nPin, &dataGLLNodesIn, 
+                eOutputType, (eOutputType == DiscretizationType_CGLL), nPout, &dataGLLNodesOut);MB_CHK_ERR(rval);
+
         }
         else
         {
@@ -595,7 +679,7 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
         {
             if ( !m_globalMapAvailable && pcomm->size() > 1 ) {
                 // gather weights to root process to perform consistency/conservation checks
-                moab::ErrorCode rval = this->GatherAllToRoot(eInputType, eOutputType);MB_CHK_ERR(rval);
+                rval = this->GatherAllToRoot(eInputType, eOutputType);MB_CHK_ERR(rval);
             }
 
             if ( !pcomm->rank() ) dbgprint.printf ( 0, "Verifying map" );

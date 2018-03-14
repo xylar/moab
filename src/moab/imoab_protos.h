@@ -55,4 +55,9 @@
 #define iMOAB_ReceiveMesh                    IMOAB_FC_WRAPPER( imoab_receivemesh, IMOAB_RECEIVEMESH )
 #define iMOAB_SendElementTag                 IMOAB_FC_WRAPPER( imoab_sendelementtag, IMOAB_SENDELEMENTTAG )
 #define iMOAB_ReceiveElementTag              IMOAB_FC_WRAPPER( imoab_receiveelementtag, IMOAB_RECEIVEELEMENTTAG )
+#ifdef MOAB_HAVE_TEMPESTREMAP
+#define iMOAB_ComputeMeshIntersectionOnSphere IMOAB_FC_WRAPPER( imoab_computemeshintersectiononsphere, IMOAB_COMPUTEMESHINTERSECTIONONSPHERE)
+#define iMOAB_ComputeScalarProjectionWeights IMOAB_FC_WRAPPER(imoab_computescalarprojectionweights,IMOAB_COMPUTESCALARPROJECTIONWEIGHTS)
+#define iMOAB_ApplyScalarProjectionWeights   IMOAB_FC_WRAPPER(imoab_applyscalarprojectionweights, IMOAB_APPLYSCALARPROJECTIONWEIGHTS)
+#endif
 #endif /*IMOAB_PROTOS_H */
