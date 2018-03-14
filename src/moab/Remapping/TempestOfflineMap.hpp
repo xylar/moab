@@ -80,15 +80,15 @@ public:
 	///     This method generates the mapping between the two meshes based on the overlap and stores 
 	///     the result in the SparseMatrix.
 	///	</summary>
-	moab::ErrorCode GenerateOfflineMap( std::string strInputType, std::string strOutputType,
-                                        int nPin=4, int nPout=4,
+	moab::ErrorCode GenerateOfflineMap( std::string strInputType="fv", std::string strOutputType="fv",
+                                        const int nPin=1, const int nPout=1,
                                         bool fBubble=false, int fMonotoneTypeID=0,
                                         bool fVolumetric=false, bool fNoConservation=false, bool fNoCheck=false,
-                                        std::string strVariables="", 
-                                        std::string strInputData="", std::string strOutputData="",
-                                        std::string strNColName="", bool fOutputDouble=false,
-                                       std::string strPreserveVariables="", bool fPreserveAll=false, double dFillValueOverride=0.0,
-                                       bool fInputConcave = false, bool fOutputConcave = false );
+                                        const std::string strVariables="", 
+                                        const std::string strInputData="", const std::string strOutputData="",
+                                        const std::string strNColName="", const bool fOutputDouble=false,
+                                        const std::string strPreserveVariables="", const bool fPreserveAll=false, const double dFillValueOverride=0.0,
+                                        const bool fInputConcave = false, const bool fOutputConcave = false );
 
 	///	<summary>
 	///		Generate the metadata associated with the offline map.
@@ -133,9 +133,20 @@ public:
 		double dTolerance
 	);
 
+	///	<summary>
+	///		If we computed the reduction, get the vector representing the source areas for all entities in the mesh
+	///	</summary>
 	const DataVector<double>& GetGlobalSourceAreas() const;
 
+	///	<summary>
+	///		If we computed the reduction, get the vector representing the target areas for all entities in the mesh
+	///	</summary>
 	const DataVector<double>& GetGlobalTargetAreas() const;
+
+	///	<summary>
+	///		Store the tag names associated with global DoF ids for source and target meshes
+	///	</summary>
+	moab::ErrorCode SetDofMapTags(const std::string srcDofTagName, const std::string tgtDofTagName);
 
 private:
 
@@ -247,6 +258,17 @@ private:
 		bool fContinuousOut
 	);
 
+	///	<summary>
+	///		Compute the association between the solution tag global DoF numbering and 
+	///		the local matrix numbering so that matvec operations can be performed
+	///     consistently.
+	///	</summary>
+	moab::ErrorCode SetDofMapAssociation(DiscretizationType srcType, bool isSrcContinuous, 
+		int nPin, DataMatrix3D<int>* srcdataGLLNodes,
+		DiscretizationType destType, bool isDestContinuous, 
+		int nPout, DataMatrix3D<int>* tgtdataGLLNodes);
+
+public: 
 #ifdef MOAB_HAVE_HYPRE
 	///	<summary>
 	///		Copy the local matrix from Tempest SparseMatrix representation (ELL)
@@ -254,6 +276,8 @@ private:
 	///     needed for projections.
 	///	</summary>
 	void Hypre_CopyTempestSparseMat();
+
+	void WriteParallelWeightsToFile(std::string filename);
 #endif
 
 private:
@@ -298,6 +322,12 @@ private:
 	///		The reference to the parallel communicator object used by the Core object.
 	///	</summary>
 	moab::ParallelComm* pcomm;
+
+	///	<summary>
+	///		The original tag data and local to global DoF mapping to associate matrix values to solution
+	///	<summary>
+	moab::Tag m_dofTagSrc, m_dofTagDest;
+	std::map<int,int> row_dofmap, col_dofmap;
 
 	Mesh* m_meshInput;
 	Mesh* m_meshInputCov;

@@ -523,6 +523,11 @@ void moab::TempestOfflineMap::Hypre_CopyTempestSparseMat()
 
     return;
 }
+
+void moab::TempestOfflineMap::WriteParallelWeightsToFile(std::string filename)
+{
+    m_weightMat->Print(filename.c_str(), 0, 0);
+}
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////
