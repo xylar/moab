@@ -712,9 +712,7 @@ ErrCode iMOAB_ReceiveElementTag(iMOAB_AppID pid, int* scompid, int* rcompid, con
   \param[in] epsrel (double *)                       The relative tolerance to be used to compute the mesh intersectoin between source and target meshes
   \param[in] boxeps (double *)                       The tolerance to be used to compute the box mesh
 */
-ErrCode iMOAB_ComputeMeshIntersectionOnSphere ( iMOAB_AppID pid_source, iMOAB_AppID pid_target, iMOAB_AppID pid_intersection,
-                                                 double *radius_source/*=1.0*/, double *radius_target/*=1.0*/, 
-                                                 double *epsrel/*=1e-8*/, double *boxeps/*=0.1*/);
+ErrCode iMOAB_ComputeMeshIntersectionOnSphere ( iMOAB_AppID pid_source, iMOAB_AppID pid_target, iMOAB_AppID pid_intersection);
 
 /**
   \brief Compute the projection weights to transfer a solution from a source surface mesh to a destination mesh defined on a sphere. 
