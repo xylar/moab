@@ -63,7 +63,7 @@ int main( int argc, char* argv[] )
 
   // create 2 communicators, one for each group
   int tagcomm1 = 1, tagcomm2 = 2;
-  MPI_Comm comm1, comm2, comm3; // comm3 will be for the coupler, where the intx is carried on
+  MPI_Comm comm1, comm2;
   ierr = MPI_Comm_create_group(jcomm, group1, tagcomm1, &comm1);
   CHECKRC(ierr, "can't create comm1")
 
@@ -104,6 +104,12 @@ int main( int argc, char* argv[] )
   ierr = iMOAB_ReceiveMesh(pid3, &jcomm, &group1, &compid1); // receive from component 1
   CHECKRC(ierr, "cannot receive elements on ATMX app")
 
+  // we can now free the sender buffers
+  if (comm1 != MPI_COMM_NULL) {
+    ierr = iMOAB_FreeSenderBuffers(pid1, &jcomm, &compid3);
+    CHECKRC(ierr, "cannot free buffers used to send atm mesh")
+  }
+
   if (comm2 != MPI_COMM_NULL) {
     ierr = iMOAB_RegisterApplication("OCN1", &comm2, &compid2, pid2);
     CHECKRC(ierr, "can't register app2 ")
@@ -119,6 +125,12 @@ int main( int argc, char* argv[] )
   ierr = iMOAB_ReceiveMesh(pid4, &jcomm, &group2, &compid2); // receive from component 2
   CHECKRC(ierr, "cannot receive elements on OCNX app")
 
+  if (comm2 != MPI_COMM_NULL) {
+    ierr = iMOAB_FreeSenderBuffers(pid2, &jcomm, &compid4);
+    CHECKRC(ierr, "cannot free buffers used to send ocn mesh")
+  }
+
+#ifdef MOAB_HAVE_TEMPESTREMAP
   // now compute intersection between OCNx and ATMx on coupler PEs
   ierr = iMOAB_RegisterApplication("AO", &jcomm, &intxid, pid5);
   CHECKRC(ierr, "can't register ocn_atm intx over coupler pes ")
@@ -126,6 +138,36 @@ int main( int argc, char* argv[] )
   ierr = iMOAB_ComputeMeshIntersectionOnSphere(pid3, pid4, pid5);
   // check if intx valid, write some h5m intx file
 
+  ierr = iMOAB_DeregisterApplication(pid5);
+  CHECKRC(ierr, "cannot deregister app intx AO" )
+
+#endif
+
+  if (comm2 != MPI_COMM_NULL) {
+    ierr = iMOAB_DeregisterApplication(pid2);
+    CHECKRC(ierr, "cannot deregister app OCN1" )
+  }
+  if (comm1 != MPI_COMM_NULL) {
+    ierr = iMOAB_DeregisterApplication(pid1);
+    CHECKRC(ierr, "cannot deregister app ATM1" )
+  }
+
+  ierr = iMOAB_DeregisterApplication(pid4);
+  CHECKRC(ierr, "cannot deregister app OCNX" )
+
+  ierr = iMOAB_DeregisterApplication(pid3);
+  CHECKRC(ierr, "cannot deregister app OCNX" )
+
+  ierr = iMOAB_Finalize();
+  CHECKRC(ierr, "did not finalize iMOAB" )
+
+  if (MPI_COMM_NULL != comm1) MPI_Comm_free(&comm1);
+  if (MPI_COMM_NULL != comm2) MPI_Comm_free(&comm2);
+
+  MPI_Group_free(&group1);
+  MPI_Group_free(&group2);
+  MPI_Group_free(&jgroup);
+  MPI_Comm_free(&jcomm);
 
   return 0;
 }
