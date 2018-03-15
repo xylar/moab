@@ -1228,12 +1228,17 @@ ErrorCode Intx2Mesh::construct_covering_set(EntityHandle & initial_distributed_s
   assert(parcomm != NULL);
   if ( 1==parcomm->proc_config().proc_size())
   {
-    covering_set = initial_distributed_set; // nothing to communicate, it must be serial
+    covering_set = initial_distributed_set; // nothing to move around, it must be serial
     return MB_SUCCESS;
   }
 
+  int defaultInt= -1; // default value is -1, so unset
+  Tag owningProcTag;
+  ErrorCode  rval = mb->tag_get_handle("owning_processor", 1, MB_TYPE_INTEGER, owningProcTag,
+        MB_TAG_DENSE | MB_TAG_CREAT, &defaultInt);MB_CHK_SET_ERR(rval, "can't create owning processor tag");
+
   Range meshCells;
-  ErrorCode rval = mb->get_entities_by_dimension(initial_distributed_set, 2, meshCells);MB_CHK_SET_ERR(rval, "can't get cells by dimension from mesh set");
+  rval = mb->get_entities_by_dimension(initial_distributed_set, 2, meshCells);MB_CHK_SET_ERR(rval, "can't get cells by dimension from mesh set");
 
   // get all mesh verts
   Range mesh_verts;
@@ -1427,6 +1432,9 @@ ErrorCode Intx2Mesh::construct_covering_set(EntityHandle & initial_distributed_s
   Range & local = Rto[my_rank];
   Range local_q = local.subset_by_dimension(2);
   // the local should have all the vertices in lagr_verts
+  std::vector<int> ownProcVals(local_q.size(), my_rank);
+  rval = mb->tag_set_data(owningProcTag, local_q, &ownProcVals[0]); MB_CHK_SET_ERR(rval, "can't set owning proc for local cells ");
+
   for (Range::iterator it = local_q.begin(); it != local_q.end(); ++it)
   {
     EntityHandle q = *it;// these are from lagr cells, local
@@ -1475,11 +1483,13 @@ ErrorCode Intx2Mesh::construct_covering_set(EntityHandle & initial_distributed_s
     globalID_to_eh[globalIdEl] = new_element;
     local_q.insert(new_element);
     rval = mb->tag_set_data(gid, &new_element, 1, &globalIdEl);MB_CHK_SET_ERR(rval, "can't set gid for cell ");
+    // need to inform the source of this covering element, from what task does it come
+    int from_proc =  TLq.vi_rd[sizeTuple * i]; // crystal router has in first field the sending proc
+    rval = mb->tag_set_data(owningProcTag, &new_element, 1, &from_proc);MB_CHK_SET_ERR(rval, "can't set owning proc for cell ");
   }
 
   // now, create a new set, covering_set
   rval = mb->add_entities(covering_set, local_q);MB_CHK_SET_ERR(rval,  "can't add entities to new mesh set ");
-
   return MB_SUCCESS;
 }
 
