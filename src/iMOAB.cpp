@@ -508,16 +508,24 @@ ErrCode iMOAB_LoadMesh ( iMOAB_AppID pid, const iMOAB_String filename, const iMO
 
     int nprocs = context.pcomms[*pid]->size();
 
-    if (nprocs > 1) {
-    	newopts << ";PARALLEL_COMM=" << *pid;
+    newopts << ";PARALLEL_COMM=" << *pid;
+    if ( *num_ghost_layers >= 1 )
+    {
+      // if we want ghosts, we will want additional entities, the last .1
+      // because the addl ents can be edges, faces that are part of the neumann sets
+      std::string pcid ( "PARALLEL_GHOSTS=" );
+      std::size_t found = opts.find ( pcid );
 
-		if ( *num_ghost_layers >= 1 )
-		{
-			// if we want ghosts, we will want additional entities, the last .1
-			// because the addl ents can be edges, faces that are part of the neumann sets
-			newopts << ";PARALLEL_GHOSTS=3.0." << *num_ghost_layers << ".3";
-		}
-	}
+      if ( found != std::string::npos )
+      {
+          std::cout << " PARALLEL_GHOSTS option is already specified, ignore passed number of layers \n";
+      }
+      else
+      {
+        // dimension of primary entities is 3 here, but it could be 2 for climate meshes
+        newopts << ";PARALLEL_GHOSTS=3.0." << *num_ghost_layers << ".3";
+      }
+    }
 
 #else
     *num_ghost_layers = 0; // do not use in case of serial run
@@ -537,7 +545,7 @@ ErrCode iMOAB_LoadMesh ( iMOAB_AppID pid, const iMOAB_String filename, const iMO
 #endif
     // the mesh contains ghosts too, but they are not part of mat/neumann set
     // write in serial the file, to see what tags are missing
-    rval = context.MBI->write_file ( outfile.str().c_str() ); // everything on root
+    rval = context.MBI->write_file ( outfile.str().c_str() ); // everything on current task, written in serial
     CHKERRVAL(rval);
 
 #endif
@@ -2202,7 +2210,7 @@ ErrCode iMOAB_ComputeMeshIntersectionOnSphere ( iMOAB_AppID pid_src, iMOAB_AppID
     // Create the intersection object on the sphere between two meshes
 	// setup the intersector 
 	moab::Intx2MeshOnSphere *mbintx = new moab::Intx2MeshOnSphere( context.MBI );
-	mbintx->SetErrorTolerance ( epsrel );
+	mbintx->set_error_tolerance ( epsrel );
 	mbintx->set_box_error ( boxeps );
 	mbintx->set_radius_source_mesh ( 1.0 );
     mbintx->set_radius_destination_mesh ( 1.0 );

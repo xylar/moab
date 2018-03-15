@@ -58,7 +58,7 @@ int rank, size, ierr;
 
 int compid1, compid2;  // component ids are unique over all pes, and established in advance;
 int nghlay; // number of ghost layers for loading the file
-int groupTasks[2]; // at most 2 tasks
+int groupTasks[4]; // at most 4 tasks
 int startG1, startG2, endG1, endG2;
 
 MPI_Comm jcomm; // will be a copy of the global
