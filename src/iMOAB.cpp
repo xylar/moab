@@ -506,23 +506,33 @@ ErrCode iMOAB_LoadMesh ( iMOAB_AppID pid, const iMOAB_String filename, const iMO
         return 1;
     }
 
-    int nprocs = context.pcomms[*pid]->size();
+    // in serial, apply PARALLEL_COMM option only for h5m files; it does not work for .g files (used in test_remapping)
+    std::string filen(filename);
+    std::string::size_type idx = filen.rfind('.');
 
-    newopts << ";PARALLEL_COMM=" << *pid;
+    if(idx != std::string::npos)
+    {
+      std::string extension = filen.substr(idx+1);
+      if (extension == std::string("h5m"))
+          newopts << ";;PARALLEL_COMM=" << *pid;
+    }
+
+
     if ( *num_ghost_layers >= 1 )
     {
       // if we want ghosts, we will want additional entities, the last .1
       // because the addl ents can be edges, faces that are part of the neumann sets
-      std::string pcid ( "PARALLEL_GHOSTS=" );
-      std::size_t found = opts.find ( pcid );
+      std::string pcid2 ( "PARALLEL_GHOSTS=" );
+      std::size_t found2 = opts.find ( pcid2 );
 
-      if ( found != std::string::npos )
+      if ( found2 != std::string::npos )
       {
           std::cout << " PARALLEL_GHOSTS option is already specified, ignore passed number of layers \n";
       }
       else
       {
-        // dimension of primary entities is 3 here, but it could be 2 for climate meshes
+        // dimension of primary entities is 3 here, but it could be 2 for climate meshes; we would need to pass
+        // PARALLEL_GHOSTS explicitly for 2d meshes, for example:  ";PARALLEL_GHOSTS=2.0.1"
         newopts << ";PARALLEL_GHOSTS=3.0." << *num_ghost_layers << ".3";
       }
     }
@@ -539,6 +549,7 @@ ErrCode iMOAB_LoadMesh ( iMOAB_AppID pid, const iMOAB_String filename, const iMO
     std::ostringstream outfile;
 #ifdef MOAB_HAVE_MPI
     int rank = context.pcomms[*pid]->rank();
+    int nprocs = context.pcomms[*pid]->size();
     outfile << "TaskMesh_n" << nprocs << "." << rank << ".h5m";
 #else
     outfile << "TaskMesh_n1.0.h5m";
