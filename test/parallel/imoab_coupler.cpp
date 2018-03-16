@@ -138,6 +138,19 @@ int main( int argc, char* argv[] )
   ierr = iMOAB_ComputeMeshIntersectionOnSphere(pid3, pid4, pid5);
   // check if intx valid, write some h5m intx file
 
+  int disc_orders[2] = {4, 1};
+  const char* disc_methods[2] = {"CGLL", "fv"};
+  const char* dof_tag_names[2] = {"GLOBAL_ID", "GLOBAL_ID"};
+  int fVolumetric=0, fValidate=1, fNoConserve=0;
+  ierr = iMOAB_ComputeScalarProjectionWeights ( pid5,
+                                                disc_methods[0], &disc_orders[0],
+                                                disc_methods[1], &disc_orders[1],
+                                                &fVolumetric, &fNoConserve, &fValidate,
+                                                dof_tag_names[0], dof_tag_names[1],
+                                                strlen(disc_methods[0]), strlen(disc_methods[1]),
+                                                strlen(dof_tag_names[0]), strlen(dof_tag_names[1]) );
+  CHECKRC(ierr, "cannot compute scalar projection weights" )
+
   ierr = iMOAB_DeregisterApplication(pid5);
   CHECKRC(ierr, "cannot deregister app intx AO" )
 
