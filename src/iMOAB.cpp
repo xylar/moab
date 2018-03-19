@@ -2294,7 +2294,8 @@ ErrCode iMOAB_ComputeScalarProjectionWeights ( iMOAB_AppID pid_intx,
 
     // Now let us compute the local-global mapping and store it in the context
     // We need this mapping when computing matvec products and to do reductions in parallel
-    weightMap->SetDofMapTags(source_soln_tag_dof_name, target_soln_tag_dof_name);
+    rval = weightMap->SetDofMapTags(source_soln_tag_dof_name, (*disc_order_source)*(*disc_order_source), 
+                                    target_soln_tag_dof_name, (*disc_order_target)*(*disc_order_target));CHKERRVAL(rval);
 
 	// compute weights with TempestRemap
 	rval = weightMap->GenerateOfflineMap ( std::string(disc_method_source), std::string(disc_method_target),        // std::string strInputType, std::string strOutputType,

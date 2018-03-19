@@ -146,7 +146,7 @@ public:
 	///	<summary>
 	///		Store the tag names associated with global DoF ids for source and target meshes
 	///	</summary>
-	moab::ErrorCode SetDofMapTags(const std::string srcDofTagName, const std::string tgtDofTagName);
+	moab::ErrorCode SetDofMapTags(const std::string srcDofTagName, int nPin, const std::string tgtDofTagName, int nPout);
 
 private:
 

@@ -396,6 +396,10 @@ int main ( int argc, char* argv[] )
             ctx.timer_pop();
 
             ctx.timer_push ( "compute weights with TempestRemap" );
+
+            rval = weightMap->SetDofMapTags("GLOBAL_DOFS", ctx.disc_orders[0]*ctx.disc_orders[0], 
+                                            "GLOBAL_ID", ctx.disc_orders[1]*ctx.disc_orders[1]);MB_CHK_ERR ( rval );
+
             rval = weightMap->GenerateOfflineMap ( ctx.disc_methods[0], ctx.disc_methods[1],        // std::string strInputType, std::string strOutputType,
                                                    ctx.disc_orders[0],  ctx.disc_orders[1],  // int nPin=4, int nPout=4,
                                                    false, 0,            // bool fBubble=false, int fMonotoneTypeID=0,
@@ -405,7 +409,7 @@ int main ( int argc, char* argv[] )
                                                    "", false,  // std::string strNColName="", bool fOutputDouble=false,
                                                    "", false, 0.0,   // std::string strPreserveVariables="", bool fPreserveAll=false, double dFillValueOverride=0.0,
                                                    false, false   // bool fInputConcave = false, bool fOutputConcave = false
-                                                 );
+                                                 );MB_CHK_ERR ( rval );
             ctx.timer_pop();
 
 #if 0
@@ -613,7 +617,7 @@ moab::ErrorCode testme(moab::Interface* mbCore, moab::ParallelComm* pcomm)
                                            "", false,  // std::string strNColName="", bool fOutputDouble=false,
                                            "", false, 0.0,   // std::string strPreserveVariables="", bool fPreserveAll=false, double dFillValueOverride=0.0,
                                            false, false   // bool fInputConcave = false, bool fOutputConcave = false
-                                         );
+                                         );MB_CHK_ERR ( rval );
 
 
     weightMap->Write("outWeights.nc");

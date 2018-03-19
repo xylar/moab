@@ -119,13 +119,13 @@ static void ParseVariableList (
 
 ///////////////////////////////////////////////////////////////////////////////
 
-moab::ErrorCode moab::TempestOfflineMap::SetDofMapTags(const std::string srcDofTagName, const std::string tgtDofTagName)
+moab::ErrorCode moab::TempestOfflineMap::SetDofMapTags(const std::string srcDofTagName, int nPin, const std::string tgtDofTagName, int nPout)
 {
     moab::ErrorCode rval;
 
-    rval = mbCore->tag_get_handle ( srcDofTagName.c_str(), 1, MB_TYPE_INTEGER,
+    rval = mbCore->tag_get_handle ( srcDofTagName.c_str(), nPin, MB_TYPE_INTEGER,
                              this->m_dofTagSrc, MB_TAG_ANY );MB_CHK_ERR(rval);
-    rval = mbCore->tag_get_handle ( tgtDofTagName.c_str(), 1, MB_TYPE_INTEGER,
+    rval = mbCore->tag_get_handle ( tgtDofTagName.c_str(), nPout, MB_TYPE_INTEGER,
                              this->m_dofTagDest, MB_TAG_ANY );MB_CHK_ERR(rval);
 
     return moab::MB_SUCCESS;
@@ -137,11 +137,11 @@ moab::ErrorCode moab::TempestOfflineMap::SetDofMapAssociation(DiscretizationType
     DiscretizationType destType, bool isTgtContinuous, int nPout, DataMatrix3D<int>* tgtdataGLLNodes)
 {
     moab::ErrorCode rval;
-    std::vector<int> src_soln_gdofs(m_remapper->m_source_entities.size()*nPin);
-    std::vector<int> tgt_soln_gdofs(m_remapper->m_target_entities.size()*nPout);
+    std::vector<int> src_soln_gdofs(m_remapper->m_covering_source_entities.size()*nPin*nPin);
+    std::vector<int> tgt_soln_gdofs(m_remapper->m_target_entities.size()*nPout*nPout);
 
     // We are assuming that these are element based tags that are sized: np * np
-    rval = mbCore->tag_get_data ( m_dofTagSrc, m_remapper->m_source_entities, &src_soln_gdofs[0] );MB_CHK_ERR(rval);
+    rval = mbCore->tag_get_data ( m_dofTagSrc, m_remapper->m_covering_source_entities, &src_soln_gdofs[0] );MB_CHK_ERR(rval);
     rval = mbCore->tag_get_data ( m_dofTagDest, m_remapper->m_target_entities, &tgt_soln_gdofs[0] );MB_CHK_ERR(rval);
 
     // Now compute the mapping and store it
@@ -152,7 +152,7 @@ moab::ErrorCode moab::TempestOfflineMap::SetDofMapAssociation(DiscretizationType
     else {
         // Put these remap coefficients into the SparseMatrix map
         int idof=0;
-        for ( unsigned j = 0; j < m_remapper->m_source_entities.size(); j++ )
+        for ( unsigned j = 0; j < m_remapper->m_covering_source_entities.size(); j++ )
         {
             for ( int p = 0; p < nPin; p++ )
             {
