@@ -1232,15 +1232,27 @@ ErrorCode Intx2Mesh::construct_covering_set(EntityHandle & initial_distributed_s
     return MB_SUCCESS;
   }
 
-  int defaultInt= -1; // default value is -1, so unset
-  Tag owningProcTag;
-  ErrorCode  rval = mb->tag_get_handle("owning_processor", 1, MB_TYPE_INTEGER, owningProcTag,
-        MB_TAG_DENSE | MB_TAG_CREAT, &defaultInt);MB_CHK_SET_ERR(rval, "can't create owning processor tag");
+  Tag orgSendProcTag; // this will be a tag set on the received mesh, with info about from what task / PE the
+  // primary element came from, in the joint communicator ; this will be forwarded by coverage mesh
+  int defaultInt=-1; // no processor, so it was not migrated from somewhere else
+  ErrorCode rval = mb->tag_get_handle("orig_sending_processor", 1, MB_TYPE_INTEGER, orgSendProcTag,
+      MB_TAG_DENSE | MB_TAG_CREAT, &defaultInt);MB_CHK_SET_ERR(rval, "can't create original sending processor tag");
 
+  // this information needs to be forwarded to coverage mesh, if this mesh was already migrated from somewhere else
   Range meshCells;
   rval = mb->get_entities_by_dimension(initial_distributed_set, 2, meshCells);MB_CHK_SET_ERR(rval, "can't get cells by dimension from mesh set");
 
-  // get all mesh verts
+  // look at the value of orgSendProcTag for one mesh cell; if -1, no need to forward that; if !=-1,
+  // we know that this mesh was migrated, we need to find out more about origin of cell
+  int orig_sender =-1;
+  EntityHandle oneCell= meshCells[0];
+  rval = mb->tag_get_data(orgSendProcTag, &oneCell, 1, &orig_sender); MB_CHK_SET_ERR(rval, "can't get original sending processor value");
+
+  int migrated_mesh = 0;
+  if (orig_sender != -1) migrated_mesh = 1; //
+
+
+  // get all mesh verts1
   Range mesh_verts;
   rval = mb->get_connectivity(meshCells, mesh_verts);MB_CHK_SET_ERR(rval, "can't get  mesh vertices");
   int num_mesh_verts = (int) mesh_verts.size();
@@ -1321,8 +1333,8 @@ ErrorCode Intx2Mesh::construct_covering_set(EntityHandle & initial_distributed_s
   TLv.initialize(2, 0, 0, 3, numv); // to proc, GLOBAL ID, 3 real coordinates
   TLv.enableWriteAccess();
 
-  int sizeTuple = 2 + max_edges_1; // max edges could be up to MAXEDGES :) for polygons
-  TLq.initialize(2+max_edges_1, 0, 0, 0, numq); // to proc, elem GLOBAL ID, connectivity[max_edges] (global ID v)
+  int sizeTuple = 2 + max_edges_1 + migrated_mesh; // max edges could be up to MAXEDGES :) for polygons
+  TLq.initialize(sizeTuple, 0, 0, 0, numq); // to proc, elem GLOBAL ID, connectivity[max_edges] (global ID v), plus original sender if set (migrated mesh case)
   // we will not send the entity handle, global ID should be more than enough
   // we will not need more than 2B vertices
   // if we need more than 2B, we will need to use a different marker anyway (GLOBAL ID is not enough then)
@@ -1381,6 +1393,11 @@ ErrorCode Intx2Mesh::construct_covering_set(EntityHandle & initial_distributed_s
       {
         TLq.vi_wr[sizeTuple * n + 2 + k] = 0; // fill the rest of node ids with 0; we know that the node ids start from 1!
       }
+      if (migrated_mesh)
+      {
+        rval = mb->tag_get_data(orgSendProcTag, &q, 1, &orig_sender);MB_CHK_SET_ERR(rval, "can't get original sender for polygon, in migrate scenario");
+        TLq.vi_wr[sizeTuple * n + 2 + max_edges_1] = orig_sender; // should be different than -1
+      }
 
       TLq.inc_n(); // increment tuple list size
 
@@ -1431,9 +1448,6 @@ ErrorCode Intx2Mesh::construct_covering_set(EntityHandle & initial_distributed_s
 
   Range & local = Rto[my_rank];
   Range local_q = local.subset_by_dimension(2);
-  // the local should have all the vertices in lagr_verts
-  std::vector<int> ownProcVals(local_q.size(), my_rank);
-  rval = mb->tag_set_data(owningProcTag, local_q, &ownProcVals[0]); MB_CHK_SET_ERR(rval, "can't set owning proc for local cells ");
 
   for (Range::iterator it = local_q.begin(); it != local_q.end(); ++it)
   {
@@ -1483,9 +1497,11 @@ ErrorCode Intx2Mesh::construct_covering_set(EntityHandle & initial_distributed_s
     globalID_to_eh[globalIdEl] = new_element;
     local_q.insert(new_element);
     rval = mb->tag_set_data(gid, &new_element, 1, &globalIdEl);MB_CHK_SET_ERR(rval, "can't set gid for cell ");
-    // need to inform the source of this covering element, from what task does it come
-    int from_proc =  TLq.vi_rd[sizeTuple * i]; // crystal router has in first field the sending proc
-    rval = mb->tag_set_data(owningProcTag, &new_element, 1, &from_proc);MB_CHK_SET_ERR(rval, "can't set owning proc for cell ");
+    if (migrated_mesh)
+    {
+      orig_sender = TLq.vi_wr[sizeTuple * n + 2 + max_edges_1];
+      rval = mb->tag_set_data(orgSendProcTag, &new_element, 1, &orig_sender);MB_CHK_SET_ERR(rval, "can't set original sender for polygon, in migrate scenario");
+    }
   }
 
   // now, create a new set, covering_set
