@@ -51,7 +51,7 @@ else (HDF5_FOUND)
 
     IF (NOT HDF5_FOUND)
       IF (HDF5_INCLUDE_DIR AND HDF5_BASE_LIBRARY)
-        FIND_LIBRARY(HDF5_CXX_LIBRARY libhdf5_cxx.a hdf5_cxx
+        FIND_LIBRARY(HDF5_CXX_LIBRARY hdf5_cxx libhdf5_cxx.a
           HINTS ${HDF5_ROOT} ${HDF5_ROOT}/lib NO_DEFAULT_PATH
           )
         FIND_LIBRARY(HDF5_HLCXX_LIBRARY hdf5_hl_cxx libhdf5_hl_cxx.a 
