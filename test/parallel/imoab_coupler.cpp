@@ -137,6 +137,7 @@ int main( int argc, char* argv[] )
 
   ierr = iMOAB_ComputeMeshIntersectionOnSphere(pid3, pid4, pid5);
   // check if intx valid, write some h5m intx file
+  CHECKRC(ierr, "cannot compute intersection" )
 
   int disc_orders[2] = {4, 1};
   const char* disc_methods[2] = {"CGLL", "fv"};
