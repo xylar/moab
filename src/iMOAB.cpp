@@ -2265,6 +2265,7 @@ ErrCode iMOAB_CoverageGraph(MPI_Comm* join, iMOAB_AppID pid_src, int* scompid, i
 {
   // first, based on the scompid and migrcomp, find the parCommGraph corresponding to this exchange
 
+  ErrorCode rval;
   std::vector<int> srcSenders;
   std::vector<int> receivers;
   ParCommGraph* sendGraph = NULL;
@@ -2318,19 +2319,19 @@ ErrCode iMOAB_CoverageGraph(MPI_Comm* join, iMOAB_AppID pid_src, int* scompid, i
       return 1;
     appData& dataIntx = context.appDatas[*pid_intx];
     Tag parentTag ;
-    ErrorCode rval = context.MBI->tag_get_handle("BlueParent", parentTag); // id of the blue, source element
-    if (MPI_SUCCESS != ierr || !parentTag)
+    rval = context.MBI->tag_get_handle("BlueParent", parentTag); // id of the blue, source element
+    if (MB_SUCCESS != rval || !parentTag)
       return 1; // fatal error, abort
     Tag orgSendProcTag ;
     rval = context.MBI->tag_get_handle("orig_sending_processor", orgSendProcTag);
-    if (MPI_SUCCESS != ierr || !orgSendProcTag)
+    if ( MB_SUCCESS != rval || !orgSendProcTag)
       return 1; // fatal error, abort
     // find the file set, red parents for intx cells, and put them in tuples
     EntityHandle intxSet=dataIntx.file_set;
     // get all entities from the set, and look at their RedParent
     Range cells;
     rval = context.MBI->get_entities_by_dimension(intxSet, 2, cells);
-    if (MPI_SUCCESS != ierr)
+    if (MB_SUCCESS != rval)
       return 1; // fatal error, abort
     std::map<int, std::set<int> > idsFromProcs; // send that info back to enhance parCommGraph cache
     for (Range::iterator it=cells.begin(); it!=cells.end(); it++)
@@ -2338,10 +2339,10 @@ ErrCode iMOAB_CoverageGraph(MPI_Comm* join, iMOAB_AppID pid_src, int* scompid, i
       EntityHandle intx_cell = *it;
       int gidCell, origProc; // look at receivers
       rval = context.MBI->tag_get_data(parentTag, &intx_cell, 1, &gidCell);
-      if (MPI_SUCCESS != ierr)
+      if (MB_SUCCESS != rval)
         return 1;
       rval = context.MBI->tag_get_data(orgSendProcTag, &intx_cell, 1, &origProc); // in the
-      if (MPI_SUCCESS != ierr)
+      if (MB_SUCCESS != rval)
         return 1;
       std::set<int> &setInts = idsFromProcs[origProc];
       setInts.insert(gidCell);
@@ -2371,7 +2372,9 @@ ErrCode iMOAB_CoverageGraph(MPI_Comm* join, iMOAB_AppID pid_src, int* scompid, i
   if (NULL != sendGraph)
   {
     // collect TLcovIDs tuple, will set in a local map/set, the ids that are sent to each receiver task
-
+    rval = sendGraph->settle_send_graph(TLcovIDs);
+    if (MB_SUCCESS != rval)
+      return 1;
   }
   return 0;// success
 

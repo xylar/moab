@@ -109,6 +109,8 @@ namespace moab {
 	  const std::vector<int> & senders() { return senderTasks; } //reference copy; refers to sender tasks in joint comm
 	  const std::vector<int> & receivers() { return receiverTasks; }
 
+	  ErrorCode settle_send_graph(TupleList & TLcovIDs);
+
 	private:
 	  /**
       \brief find ranks of a group with respect to an encompassing communicator
@@ -150,7 +152,8 @@ namespace moab {
 	                                // subset of receiverTasks for receiver side
 	  std::vector<int> corr_sizes ; // how many primary entities corresponding to the other side
 	  // so what we know is that the local range corresponds to remote corr_sizes[i] size ranges on tasks corr_tasks[i]
-	  //
+
+	  std::map<int ,std::vector<int> > send_IDs_map; // maybe moab::Range instead of std::vector<int>
 
 };
 
