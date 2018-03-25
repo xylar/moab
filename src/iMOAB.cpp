@@ -2298,7 +2298,7 @@ ErrCode iMOAB_CoverageGraph(MPI_Comm* join, iMOAB_AppID pid_src, int* scompid, i
   // if we are on intx tasks, send coverage info towards original component tasks, about needed cells
   //
   TupleList TLcovIDs;
-  TLcovIDs.initialize(2, 0, 0, 0, 100);// to proc, GLOBAL ID; estimate about 100 IDs to be sent
+  TLcovIDs.initialize(2, 0, 0, 0, 0);// to proc, GLOBAL ID; estimate about 100 IDs to be sent
   // will push_back a new tuple, if needed
   TLcovIDs.enableWriteAccess();
   // the crystal router will send ID cell to the original source, on the component task
@@ -2343,8 +2343,12 @@ ErrCode iMOAB_CoverageGraph(MPI_Comm* join, iMOAB_AppID pid_src, int* scompid, i
       rval = context.MBI->tag_get_data(orgSendProcTag, &intx_cell, 1, &origProc); // in the
       if (MPI_SUCCESS != ierr)
         return 1;
-      idsFromProcs[origProc].insert(gidCell);
+      std::set<int> &setInts = idsFromProcs[origProc];
+      setInts.insert(gidCell);
+      //std::cout << origProc << " id:" << gidCell << " size: " << setInts.size() << std::endl;
     }
+
+    std::cout<<" map size:" << idsFromProcs.size() << std::endl;
     // arrange in tuples , use map iterators to send the ids
     for (std::map<int, std::set<int> >::iterator mit = idsFromProcs.begin(); mit!=idsFromProcs.end(); mit++)
     {
@@ -2352,11 +2356,10 @@ ErrCode iMOAB_CoverageGraph(MPI_Comm* join, iMOAB_AppID pid_src, int* scompid, i
       std::set<int> & idSet = mit->second;
       for (std::set<int>::iterator sit=idSet.begin(); sit!=idSet.end(); sit++)
       {
-        TLcovIDs.reserve();
         int n=TLcovIDs.get_n();
+        TLcovIDs.reserve();
         TLcovIDs.vi_wr[2*n] = procToSendTo; // send to processor
         TLcovIDs.vi_wr[2*n+1] = *sit; // global id needs index in the local_verts range
-        TLcovIDs.inc_n();
       }
     }
   }
@@ -2368,6 +2371,7 @@ ErrCode iMOAB_CoverageGraph(MPI_Comm* join, iMOAB_AppID pid_src, int* scompid, i
   if (NULL != sendGraph)
   {
     // collect TLcovIDs tuple, will set in a local map/set, the ids that are sent to each receiver task
+
   }
   return 0;// success
 

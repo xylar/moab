@@ -1542,7 +1542,7 @@ ErrorCode Intx2Mesh::construct_covering_set(EntityHandle & initial_distributed_s
     int currentIndexIntTuple = 2 + max_edges_1;
     if (migrated_mesh)
     {
-      orig_sender = TLq.vi_wr[sizeTuple * n + currentIndexIntTuple];
+      orig_sender = TLq.vi_wr[sizeTuple * i + currentIndexIntTuple];
       rval = mb->tag_set_data(orgSendProcTag, &new_element, 1, &orig_sender);MB_CHK_SET_ERR(rval, "can't set original sender for polygon, in migrate scenario");
       currentIndexIntTuple ++;// add one more
     }
@@ -1551,7 +1551,7 @@ ErrorCode Intx2Mesh::construct_covering_set(EntityHandle & initial_distributed_s
     {
       for (int j=0; j<size_gdofs_tag; j++)
       {
-        valsDOFs[j] = TLq.vi_wr[sizeTuple * n + currentIndexIntTuple + j];
+        valsDOFs[j] = TLq.vi_wr[sizeTuple * i + currentIndexIntTuple + j];
       }
       rval = mb->tag_set_data(gdsTag, &new_element, 1, &valsDOFs[0]);MB_CHK_SET_ERR(rval, "can't set GLOBAL_DOFS data on coverage mesh");
     }
