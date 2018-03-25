@@ -59,5 +59,6 @@
 #define iMOAB_ComputeMeshIntersectionOnSphere IMOAB_FC_WRAPPER( imoab_computemeshintersectiononsphere, IMOAB_COMPUTEMESHINTERSECTIONONSPHERE)
 #define iMOAB_ComputeScalarProjectionWeights IMOAB_FC_WRAPPER(imoab_computescalarprojectionweights,IMOAB_COMPUTESCALARPROJECTIONWEIGHTS)
 #define iMOAB_ApplyScalarProjectionWeights   IMOAB_FC_WRAPPER(imoab_applyscalarprojectionweights, IMOAB_APPLYSCALARPROJECTIONWEIGHTS)
+#define iMOAB_CoverageGraph                  IMOAB_FC_WRAPPER(imoab_coveragegraph, IMOAB_COVERAGEGRAPH)
 #endif
 #endif /*IMOAB_PROTOS_H */

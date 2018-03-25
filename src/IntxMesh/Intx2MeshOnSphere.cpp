@@ -390,6 +390,12 @@ ErrorCode Intx2MeshOnSphere::findNodes(EntityHandle red, int nsRed, EntityHandle
 
     counting++;
     rval = mb->tag_set_data(countTag, &polyNew, 1, &counting);MB_CHK_ERR(rval);
+    if (orgSendProcTag)
+    {
+      int org_proc=-1;
+      rval = mb->tag_get_data(orgSendProcTag, &blue, 1, &org_proc);MB_CHK_ERR(rval);
+      rval = mb->tag_set_data(orgSendProcTag, &polyNew, 1, &org_proc);MB_CHK_ERR(rval);// yet another tag
+    }
 
 #ifdef ENABLE_DEBUG
     if (dbg_1)

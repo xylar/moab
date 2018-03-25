@@ -105,6 +105,10 @@ namespace moab {
 
 	  ErrorCode receive_tag_values (MPI_Comm jcomm, ParallelComm *pco, Range & owned, Tag & tag_handle );
 
+	  // getter method
+	  const std::vector<int> & senders() { return senderTasks; } //reference copy; refers to sender tasks in joint comm
+	  const std::vector<int> & receivers() { return receiverTasks; }
+
 	private:
 	  /**
       \brief find ranks of a group with respect to an encompassing communicator
