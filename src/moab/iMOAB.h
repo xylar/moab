@@ -758,7 +758,6 @@ ErrCode iMOAB_ComputeScalarProjectionWeights ( iMOAB_AppID pid_intersection,
 */
 ErrCode iMOAB_ApplyScalarProjectionWeights (   iMOAB_AppID pid_intersection, 
                                                const iMOAB_String soln_tag_name,
-                                               int*  esoln_size, int*  esoln_owner,
                                                int soln_tag_name_length );
 
 #endif
