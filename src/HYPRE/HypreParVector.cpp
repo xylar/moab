@@ -173,14 +173,14 @@ namespace moab
     return 0;
   }
 
-  HYPRE_Int HypreParVector::SetData(HYPRE_Complex *_data)
+  HYPRE_Int HypreParVector::SetData(HYPRE_Complex *p_data, HYPRE_Int *p_col)
   {
-    return HYPRE_IJVectorSetValues(x, size, NULL, _data);
+    return HYPRE_IJVectorSetValues(x, size, p_col, p_data);
   }
 
-  HYPRE_Int HypreParVector::AddData(HYPRE_Complex *_data)
+  HYPRE_Int HypreParVector::AddData(HYPRE_Complex *p_data, HYPRE_Int *p_col)
   {
-    return HYPRE_IJVectorAddToValues(x, size, NULL, _data);
+    return HYPRE_IJVectorAddToValues(x, size, p_col, p_data);
   }
 
   HYPRE_Int HypreParVector::GetValues(const int ndata, const HYPRE_Int *indices,
