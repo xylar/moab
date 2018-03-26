@@ -12,7 +12,7 @@ pre_install_path = preinstall
 test_files = test_core.py test_hom.py test_scd.py test_range.py test_tag.py test_topo_util.py test_skinner.py
 
 if DEVELOPER_MODE
-all-local: cythonize
+all-local: cythonize local-install pre-install
 else
 all-local: local-install pre-install
 endif
