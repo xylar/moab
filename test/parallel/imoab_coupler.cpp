@@ -12,6 +12,8 @@
 #include "moab_mpi.h"
 #include "moab/iMOAB.h"
 #include "TestUtil.hpp"
+#include <iostream>
+#include <sstream>
 
 #define CHECKRC(rc, message)  if (0!=rc) { printf ("%s\n", message); return 1;}
 
@@ -139,6 +141,18 @@ int main( int argc, char* argv[] )
   // check if intx valid, write some h5m intx file
   CHECKRC(ierr, "cannot compute intersection" )
 
+  std::stringstream outf;
+  outf<<"intx_0" << rank<<".h5m";
+  std::string intxfile=outf.str(); // write in serial the intx file, for debugging
+  char writeOptions[] ="";
+  ierr = iMOAB_WriteMesh(pid5, (char*)intxfile.c_str(), writeOptions, (int)intxfile.length(), strlen(writeOptions));
+  CHECKRC(ierr, "cannot write intx file result" )
+  // the new graph will be for sending data from atm comp to coverage mesh;
+  // it involves initial atm app; pid1; also migrate atm mesh on coupler pes, pid3
+  // results are in pid5, intx mesh; remapper also has some info about coverage mesh
+  ierr = iMOAB_CoverageGraph(&jcomm, pid1,  &compid1, pid3,  &compid3, pid5); // it happens over joint communicator
+  CHECKRC(ierr, "cannot recompute direct coverage graph" )
+  
   int disc_orders[2] = {4, 1};
   const char* disc_methods[2] = {"CGLL", "fv"};
   const char* dof_tag_names[2] = {"GLOBAL_ID", "GLOBAL_ID"};

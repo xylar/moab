@@ -25,6 +25,7 @@ int Intx2Mesh::dbg_1=0;
 Intx2Mesh::Intx2Mesh(Interface * mbimpl): mb(mbimpl),
   mbs1(0), mbs2(0), outSet(0),
   gid(0), RedFlagTag(0), redParentTag(0), blueParentTag(0), countTag(0), blueNeighTag(0), redNeighTag(0), neighRedEdgeTag(0),
+  orgSendProcTag(0),
   redConn(NULL), blueConn(NULL),
   epsilon_1(0.0), epsilon_area(0.0), box_error(0.0),
   localRoot(0), my_rank(0)
@@ -1232,7 +1233,6 @@ ErrorCode Intx2Mesh::construct_covering_set(EntityHandle & initial_distributed_s
     return MB_SUCCESS;
   }
 
-  Tag orgSendProcTag; // this will be a tag set on the received mesh, with info about from what task / PE the
   // primary element came from, in the joint communicator ; this will be forwarded by coverage mesh
   int defaultInt=-1; // no processor, so it was not migrated from somewhere else
   ErrorCode rval = mb->tag_get_handle("orig_sending_processor", 1, MB_TYPE_INTEGER, orgSendProcTag,
@@ -1541,7 +1541,7 @@ ErrorCode Intx2Mesh::construct_covering_set(EntityHandle & initial_distributed_s
     int currentIndexIntTuple = 2 + max_edges_1;
     if (migrated_mesh)
     {
-      orig_sender = TLq.vi_wr[sizeTuple * n + currentIndexIntTuple];
+      orig_sender = TLq.vi_wr[sizeTuple * i + currentIndexIntTuple];
       rval = mb->tag_set_data(orgSendProcTag, &new_element, 1, &orig_sender);MB_CHK_SET_ERR(rval, "can't set original sender for polygon, in migrate scenario");
       currentIndexIntTuple ++;// add one more
     }
@@ -1550,7 +1550,7 @@ ErrorCode Intx2Mesh::construct_covering_set(EntityHandle & initial_distributed_s
     {
       for (int j=0; j<size_gdofs_tag; j++)
       {
-        valsDOFs[j] = TLq.vi_wr[sizeTuple * n + currentIndexIntTuple + j];
+        valsDOFs[j] = TLq.vi_wr[sizeTuple * i + currentIndexIntTuple + j];
       }
       rval = mb->tag_set_data(gdsTag, &new_element, 1, &valsDOFs[0]);MB_CHK_SET_ERR(rval, "can't set GLOBAL_DOFS data on coverage mesh");
     }

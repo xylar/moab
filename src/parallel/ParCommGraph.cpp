@@ -576,4 +576,29 @@ ErrorCode ParCommGraph::distribute_sender_graph_info(MPI_Comm senderComm, std::v
   return MB_SUCCESS;
 }
 
+ErrorCode ParCommGraph::settle_send_graph(TupleList & TLcovIDs)
+{
+  // fill send_IDs_map with data
+  // will have "receiving proc" and global id of element
+  int n = TLcovIDs.get_n();
+  for (int i=0; i<n; i++)
+  {
+    int to_proc= TLcovIDs.vi_wr[2 * i];
+    int globalIdElem= TLcovIDs.vi_wr[2 * i + 1 ];
+    send_IDs_map[to_proc].push_back(globalIdElem);
+  }
+#ifdef VERBOSE
+  for (std::map<int ,std::vector<int> >::iterator mit=send_IDs_map.begin(); mit!=send_IDs_map.end(); mit++)
+  {
+    std::cout <<" towards task " << mit->first << " send: " << mit->second.size() << " cells "<< std::endl;
+    for (size_t i=0; i< mit->second.size() ; i++)
+    {
+      std::cout << " " <<  mit->second[i] ;
+    }
+    std::cout<<std::endl;
+  }
+#endif
+  return MB_SUCCESS;
+}
+
 } // namespace moab

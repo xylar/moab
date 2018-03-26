@@ -2266,6 +2266,129 @@ ErrCode iMOAB_ComputeMeshIntersectionOnSphere ( iMOAB_AppID pid_src, iMOAB_AppID
     return 0;
 }
 
+// this call must be collective on the joint communicator
+//  intersection tasks on coupler will need to send to the components tasks the list of
+// id elements that are relevant: they intersected some of the target elements (which are not needed here)
+//  in the intersection
+ErrCode iMOAB_CoverageGraph(MPI_Comm* join, iMOAB_AppID pid_src, int* scompid, iMOAB_AppID pid_migr,
+    int* migrcomp, iMOAB_AppID pid_intx)
+{
+  // first, based on the scompid and migrcomp, find the parCommGraph corresponding to this exchange
+
+  ErrorCode rval;
+  std::vector<int> srcSenders;
+  std::vector<int> receivers;
+  ParCommGraph* sendGraph = NULL;
+  int sense = 0;
+  int ierr = FindParCommGraph(pid_src, scompid, migrcomp, sendGraph, &sense);
+  if ( 0 != ierr || NULL == sendGraph || sense != 1) {
+    std::cout<<" probably not on component source PEs \n";
+  }
+  else
+  {
+    // report the sender and receiver tasks in the joint comm
+    srcSenders = sendGraph->senders();
+    receivers = sendGraph->receivers();
+    std::cout << "senders: " << srcSenders.size() << " first sender: "<< srcSenders[0] << std::endl;
+  }
+  ParCommGraph * recvGraph = NULL;
+  int senseRec = 0;
+  ierr = FindParCommGraph(pid_migr, scompid, migrcomp, recvGraph, &senseRec);
+  if ( 0 != ierr || NULL == recvGraph ) {
+    std::cout << " not on receive PEs for migrated mesh \n";
+  }
+  else
+  {
+    // report the sender and receiver tasks in the joint comm, from migrated mesh pt of view
+    srcSenders = recvGraph->senders();
+    receivers = recvGraph->receivers();
+    std::cout << "receivers: " << receivers.size() << " first receiver: "<< receivers[0] << std::endl;
+  }
+
+  // loop over pid_intx elements, to see what original processors in joint comm have sent the coverage mesh
+  // if we are on intx tasks, send coverage info towards original component tasks, about needed cells
+  //
+  TupleList TLcovIDs;
+  TLcovIDs.initialize(2, 0, 0, 0, 0);// to proc, GLOBAL ID; estimate about 100 IDs to be sent
+  // will push_back a new tuple, if needed
+  TLcovIDs.enableWriteAccess();
+  // the crystal router will send ID cell to the original source, on the component task
+  // if we are on intx tasks, loop over all intx elements and
+
+  int currentRankInJointComm = -1;
+  ierr = MPI_Comm_rank(*join, &currentRankInJointComm);
+  if (MPI_SUCCESS != ierr)
+    return 1; // fatal error, abort
+
+  // if currentRankInJointComm is in receivers list, it means that we are on intx tasks too, we need to
+  // send information towards component tasks
+  if ( find(receivers.begin(), receivers.end(), currentRankInJointComm) != receivers.end() ) // we are on receivers tasks, we can request intx info
+  {
+    // find the pcomm for the intx pid
+    if (*pid_intx >= context.appDatas.size() )
+      return 1;
+    appData& dataIntx = context.appDatas[*pid_intx];
+    Tag parentTag ;
+    rval = context.MBI->tag_get_handle("BlueParent", parentTag); // id of the blue, source element
+    if (MB_SUCCESS != rval || !parentTag)
+      return 1; // fatal error, abort
+    Tag orgSendProcTag ;
+    rval = context.MBI->tag_get_handle("orig_sending_processor", orgSendProcTag);
+    if ( MB_SUCCESS != rval || !orgSendProcTag)
+      return 1; // fatal error, abort
+    // find the file set, red parents for intx cells, and put them in tuples
+    EntityHandle intxSet=dataIntx.file_set;
+    // get all entities from the set, and look at their RedParent
+    Range cells;
+    rval = context.MBI->get_entities_by_dimension(intxSet, 2, cells);
+    if (MB_SUCCESS != rval)
+      return 1; // fatal error, abort
+    std::map<int, std::set<int> > idsFromProcs; // send that info back to enhance parCommGraph cache
+    for (Range::iterator it=cells.begin(); it!=cells.end(); it++)
+    {
+      EntityHandle intx_cell = *it;
+      int gidCell, origProc; // look at receivers
+      rval = context.MBI->tag_get_data(parentTag, &intx_cell, 1, &gidCell);
+      if (MB_SUCCESS != rval)
+        return 1;
+      rval = context.MBI->tag_get_data(orgSendProcTag, &intx_cell, 1, &origProc); // in the
+      if (MB_SUCCESS != rval)
+        return 1;
+      std::set<int> &setInts = idsFromProcs[origProc];
+      setInts.insert(gidCell);
+      //std::cout << origProc << " id:" << gidCell << " size: " << setInts.size() << std::endl;
+    }
+
+    std::cout<<" map size:" << idsFromProcs.size() << std::endl;
+    // arrange in tuples , use map iterators to send the ids
+    for (std::map<int, std::set<int> >::iterator mit = idsFromProcs.begin(); mit!=idsFromProcs.end(); mit++)
+    {
+      int procToSendTo = mit->first;
+      std::set<int> & idSet = mit->second;
+      for (std::set<int>::iterator sit=idSet.begin(); sit!=idSet.end(); sit++)
+      {
+        int n=TLcovIDs.get_n();
+        TLcovIDs.reserve();
+        TLcovIDs.vi_wr[2*n] = procToSendTo; // send to processor
+        TLcovIDs.vi_wr[2*n+1] = *sit; // global id needs index in the local_verts range
+      }
+    }
+  }
+  ProcConfig pc(*join); // proc config does the crystal router
+  pc.crystal_router()->gs_transfer(1, TLcovIDs, 0); // communication towards component tasks, with what ids are needed
+  // for each task from receiver
+
+  // a test to know if we are on the sender tasks (original component, in this case, atmosphere)
+  if (NULL != sendGraph)
+  {
+    // collect TLcovIDs tuple, will set in a local map/set, the ids that are sent to each receiver task
+    rval = sendGraph->settle_send_graph(TLcovIDs);
+    if (MB_SUCCESS != rval)
+      return 1;
+  }
+  return 0;// success
+
+}
 
 ErrCode iMOAB_ComputeScalarProjectionWeights ( iMOAB_AppID pid_intx, 
                                                const iMOAB_String disc_method_source, int* disc_order_source,
