@@ -322,7 +322,7 @@ ErrorCode TempestRemapper::ConvertMOABMeshToTempest_Private ( Mesh* mesh, Entity
     NodeVector& nodes = mesh->nodes;
     FaceVector& faces = mesh->faces;
 
-    Range verts;
+    moab::Range verts;
     rval = m_interface->get_entities_by_dimension ( mesh_set, 2, elems ); MB_CHK_ERR ( rval );
 
     faces.resize ( elems.size() );
