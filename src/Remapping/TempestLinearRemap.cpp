@@ -288,7 +288,7 @@ void moab::TempestOfflineMap::LinearRemapFVtoFV_Tempest_MOAB (
     for ( size_t ixFirst = 0; ixFirst < m_meshInputCov->faces.size(); ixFirst++ )
     {
         // Output every 1000 elements
-        if ( ixFirst % 1000 == 0 )
+        if ( ixFirst % 1000 == 1 )
         {
             Announce ( "Element %i/%i", ixFirst, m_meshInputCov->faces.size() );
         }
@@ -308,7 +308,7 @@ void moab::TempestOfflineMap::LinearRemapFVtoFV_Tempest_MOAB (
         }
 
         unsigned nOverlapFaces = ixOverlapEnd - ixOverlapBegin;
-        // if ( !pcomm->rank() ) Announce ( "Element %i :: [%i, %i]", ixFirst, ixOverlapBegin, ixOverlapEnd );
+        if ( !pcomm->rank() ) Announce ( "Element %i :: [%i, %i]", ixFirst, ixOverlapBegin, ixOverlapEnd );
 
         if ( nOverlapFaces == 0 ) continue;
 
@@ -435,7 +435,7 @@ void moab::TempestOfflineMap::LinearRemapFVtoFV_Tempest_MOAB (
 
 
 #ifdef MOAB_HAVE_HYPRE
-
+// #define VERBOSE
 void moab::TempestOfflineMap::Hypre_CopyTempestSparseMat()
 {
     int locrows = m_mapRemap.GetRows();
@@ -453,15 +453,15 @@ void moab::TempestOfflineMap::Hypre_CopyTempestSparseMat()
     rcgcstarts[0] = rcgcstarts[1] - rcstarts[1];
     rcgcstarts[1] -= 1;
     rcgrstarts[1] -= 1;
-    std::cout << "Proc: " << pcomm->rank() << ": Sizes = " << rcgsizes[0] << ", " << rcgsizes[1] << ", Row = " << rcgrstarts[0] << ", " << rcgrstarts[1] << ", Col = " << rcgcstarts[0] << ", " << rcgcstarts[1] << "\n";
+    // std::cout << "Proc: " << pcomm->rank() << ": Sizes = " << rcgsizes[0] << ", " << rcgsizes[1] << ", Row = " << rcgrstarts[0] << ", " << rcgrstarts[1] << ", Col = " << rcgcstarts[0] << ", " << rcgcstarts[1] << "\n";
 
     DataVector<int> lrows;
     DataVector<int> lcols;
     DataVector<double> lvals;
     m_mapRemap.GetEntries(lrows, lcols, lvals);
     const int nvals = lrows.GetRows();
-    DataVector<double> lvals0(nvals);
-    lvals0 = 0.0;
+    // DataVector<double> lvals0(nvals);
+    // lvals0 = 0.0;
 
     for (int iv=0; iv < nvals; iv++) {
         // std::cout << iv << " -- Row: (" << lrows[iv] << ", " << row_dofmap[lrows[iv]] << ") and Col: (" << lcols[iv] << ", " << col_dofmap[lcols[iv]] << ")\n";
@@ -506,7 +506,7 @@ void moab::TempestOfflineMap::Hypre_CopyTempestSparseMat()
     // m_weightMat->AddToValues(lrsize, &nhcols[0], &nhrows[0], lcols, lvals);
     // m_weightMat->FinalizeAssembly();
 
-#if 1 // Sanity check to see that the row-sum and column-sum come to 1.0
+#if VERBOSE // Sanity check to see that the row-sum and column-sum come to 1.0
     m_weightMat->Print("hypremat.txt", 0, 0);    
 
     HypreParVector unitVec(pcomm->comm(), rcgsizes[1], rcgcstarts[0], rcgcstarts[1]); // Span based on Matrix cols

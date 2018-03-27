@@ -717,6 +717,9 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
                 this->IsMonotone ( 1.0e-12 );
             }
         }
+        else {
+            rval = this->GatherAllToRoot(eInputType, eOutputType);MB_CHK_ERR(rval);
+        }
 
         // Apply Offline Map to data
         if ( strInputData != "" )
@@ -1121,10 +1124,10 @@ moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot(DiscretizationType eInp
                 int istart = displs[ip], iend = istart + rowcolss[NDATA * ip];
                 for ( int i = istart; i < iend; ++i, ++offset )
                 {
+                    rows[offset] = rowcolsv[i]-1;
 #ifdef VERBOSE
-                    output_file << offset << " " << rowcolsv[i] << "\n";
+                    output_file << offset << " " << rows[offset] << "\n";
 #endif
-                    rows[offset] = rowcolsv[i];
                 }
             }
 #ifdef VERBOSE
@@ -1135,10 +1138,10 @@ moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot(DiscretizationType eInp
                 int istart = displs[ip] + rowcolss[NDATA * ip], iend = istart + rowcolss[NDATA * ip];
                 for ( int i = istart; i < iend; ++i, ++offset )
                 {
+                    cols[offset] = rowcolsv[i]-1;
 #ifdef VERBOSE
-                    output_file << offset << " " << rowcolsv[i] << "\n";
+                    output_file << offset << " " << cols[offset] << "\n";
 #endif
-                    cols[offset] = rowcolsv[i];
                 }
             }
 #ifdef VERBOSE
@@ -1150,7 +1153,7 @@ moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot(DiscretizationType eInp
                 int istart = displs[ip] + 2 * rowcolss[NDATA * ip], iend = istart + rowcolss[NDATA * ip + 1];
                 for ( int i = istart; i < iend; ++i, ++offset )
                 {
-                    srcelmindx[offset] = rowcolsv[i];
+                    srcelmindx[offset] = rowcolsv[i]-1;
                 }
             }
             for ( unsigned ip = 0, offset = 0; ip < pcomm->size(); ++ip )
@@ -1158,7 +1161,7 @@ moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot(DiscretizationType eInp
                 int istart = displs[ip] + 2 * rowcolss[NDATA * ip] + rowcolss[NDATA * ip + 1], iend = istart + rowcolss[NDATA * ip + 2];
                 for ( int i = istart; i < iend; ++i, ++offset )
                 {
-                    tgtelmindx[offset] = rowcolsv[i];
+                    tgtelmindx[offset] = rowcolsv[i]-1;
                 }
             }
         } /* (!pcomm->rank()) */
@@ -1226,7 +1229,7 @@ moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot(DiscretizationType eInp
             // Store the global source and target elements areas
 #ifdef VERBOSE
             std::ofstream output_file ( "source-target-areas.txt" );
-            output_file << "Source areas\n";
+            output_file << "Source areas (gsrcdofs = " << gsrcdofs << ")\n";
 #endif
             for ( unsigned ip = 0, offset = 0; ip < pcomm->size(); ++ip )
             {
@@ -1234,13 +1237,14 @@ moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot(DiscretizationType eInp
                 for ( int i = istart; i < iend; ++i, ++offset )
                 {
 #ifdef VERBOSE
-                    output_file << srcelmindx[offset] << " " << rowcolsvals[i] << "\n";
+                    output_file << offset << ": " << srcelmindx[offset] << " " << rowcolsvals[i] << "\n";
 #endif
+                    assert(offset < gsrcdofs && srcelmindx[offset] <= gsrcdofs);
                     if (eInputType == DiscretizationType_FV) m_areasSrcGlobal[srcelmindx[offset]] = rowcolsvals[i];
                 }
             }
 #ifdef VERBOSE
-            output_file << "Target areas\n";
+            output_file << "Target areas (gtgtdofs = " << gtgtdofs << ")\n";
 #endif
             for ( unsigned ip = 0, offset = 0; ip < pcomm->size(); ++ip )
             {
@@ -1250,6 +1254,7 @@ moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot(DiscretizationType eInp
 #ifdef VERBOSE
                     output_file << tgtelmindx[offset] << " " << rowcolsvals[i] << "\n";
 #endif
+                    assert(offset < gtgtdofs && tgtelmindx[offset] < gtgtdofs);
                     if (eOutputType == DiscretizationType_FV) m_areasTgtGlobal[tgtelmindx[offset]] = rowcolsvals[i];
                 }
             }
