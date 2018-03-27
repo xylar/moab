@@ -694,12 +694,11 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
             _EXCEPTIONT ( "Not implemented" );
         }
 
-//#pragma warning "NOTE: VERIFICATION DISABLED"
         // Verify consistency, conservation and monotonicity
         // gather weights to root process to perform consistency/conservation checks
-        if (pcomm->size() == 1) {
-            rval = this->GatherAllToRoot(eInputType, eOutputType);MB_CHK_ERR(rval);
-        }
+        // if (pcomm->size() == 1) {
+        //     rval = this->GatherAllToRoot(eInputType, eOutputType);MB_CHK_ERR(rval);
+        // }
 
         if ( !fNoCheck )
         {
@@ -716,9 +715,6 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
             {
                 this->IsMonotone ( 1.0e-12 );
             }
-        }
-        else {
-            rval = this->GatherAllToRoot(eInputType, eOutputType);MB_CHK_ERR(rval);
         }
 
         // Apply Offline Map to data
@@ -964,7 +960,7 @@ bool moab::TempestOfflineMap::IsMonotone (
 
 
 ///////////////////////////////////////////////////////////////////////////////
-#define VERBOSE
+// #define VERBOSE
 moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot(DiscretizationType eInputType, DiscretizationType eOutputType)   // Collective
 {
     Mesh globalMesh;

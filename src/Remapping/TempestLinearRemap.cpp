@@ -460,8 +460,6 @@ void moab::TempestOfflineMap::Hypre_CopyTempestSparseMat()
     DataVector<double> lvals;
     m_mapRemap.GetEntries(lrows, lcols, lvals);
     const int nvals = lrows.GetRows();
-    // DataVector<double> lvals0(nvals);
-    // lvals0 = 0.0;
 
     for (int iv=0; iv < nvals; iv++) {
         // std::cout << iv << " -- Row: (" << lrows[iv] << ", " << row_dofmap[lrows[iv]] << ") and Col: (" << lcols[iv] << ", " << col_dofmap[lcols[iv]] << ")\n";
@@ -506,12 +504,11 @@ void moab::TempestOfflineMap::Hypre_CopyTempestSparseMat()
     // m_weightMat->AddToValues(lrsize, &nhcols[0], &nhrows[0], lcols, lvals);
     // m_weightMat->FinalizeAssembly();
 
-#if VERBOSE // Sanity check to see that the row-sum and column-sum come to 1.0
+#ifdef VERBOSE // Sanity check to see that the row-sum and column-sum come to 1.0
     m_weightMat->Print("hypremat.txt", 0, 0);    
 
     HypreParVector unitVec(pcomm->comm(), rcgsizes[1], rcgcstarts[0], rcgcstarts[1]); // Span based on Matrix cols
     HypreParVector validatorVec(pcomm->comm(), rcgsizes[0], rcgrstarts[0], rcgrstarts[1]); // Span based on Matrix rows
-    // std::vector<double> vecData(rcgsizes[1], 1.0);
     for (int ix=0; ix < rcgsizes[1]; ++ix) 
         unitVec.SetValue(ix, 1.0);
     for (int ix=0; ix < rcgsizes[0]; ++ix) 
