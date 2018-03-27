@@ -50,6 +50,7 @@ struct ToolContext
         const int proc_id, n_procs;
         bool computeDual;
         bool computeWeights;
+        int ensureMonotonicity;
         bool fNoConservation;
         bool fVolumetric;
         moab::DebugOutput outStream;
@@ -57,7 +58,8 @@ struct ToolContext
         ToolContext ( int procid, int nprocs ) :
             blockSize ( 5 ), outFilename ( "output.exo" ), meshType ( moab::TempestRemapper::DEFAULT ),
             proc_id ( procid ), n_procs ( nprocs ),
-            computeDual ( false ), computeWeights ( false ), fNoConservation ( false ), fVolumetric ( false ),
+            computeDual ( false ), computeWeights ( false ), ensureMonotonicity ( 0 ), 
+            fNoConservation ( false ), fVolumetric ( false ),
             outStream ( std::cout, procid )
         {
             inFilenames.resize ( 2 );
@@ -106,6 +108,7 @@ struct ToolContext
             opts.addOpt<void> ( "weights,w", "Compute and output the weights using the overlap mesh (generally relevant only for OVERLAP mesh)", &computeWeights );
             opts.addOpt<void> ( "noconserve,c", "Do not apply conservation to the resultant weights (relevant only when computing weights)", &fNoConservation );
             opts.addOpt<void> ( "volumetric,v", "Apply a volumetric projection to compute the weights (relevant only when computing weights)", &fVolumetric );
+            opts.addOpt<int> ( "monotonic,n", "Ensure monotonicity in the weight generation", &ensureMonotonicity );
             opts.addOpt<std::string> ( "load,l", "Input mesh filenames (a source and target mesh)", &expectedFName );
             opts.addOpt<int> ( "order,o", "Discretization orders for the source and target solution fields", &expectedOrder );
             opts.addOpt<std::string> ( "method,m", "Discretization method for the source and target solution fields", &expectedMethod );
@@ -399,7 +402,7 @@ int main ( int argc, char* argv[] )
 
             rval = weightMap->GenerateOfflineMap ( ctx.disc_methods[0], ctx.disc_methods[1],        // std::string strInputType, std::string strOutputType,
                                                    ctx.disc_orders[0],  ctx.disc_orders[1],  // int nPin=4, int nPout=4,
-                                                   false, 0,            // bool fBubble=false, int fMonotoneTypeID=0,
+                                                   false, ctx.ensureMonotonicity,            // bool fBubble=false, int fMonotoneTypeID=0,
                                                    ctx.fVolumetric, ctx.fNoConservation, false, // bool fVolumetric=false, bool fNoConservation=false, bool fNoCheck=false,
                                                    ctx.doftag_names[0], ctx.doftag_names[1],
                                                    "", //"",   // std::string strVariables="", std::string strOutputMap="",
