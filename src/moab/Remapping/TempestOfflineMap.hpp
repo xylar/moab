@@ -84,6 +84,7 @@ public:
                                         const int nPin=1, const int nPout=1,
                                         bool fBubble=false, int fMonotoneTypeID=0,
                                         bool fVolumetric=false, bool fNoConservation=false, bool fNoCheck=false,
+                                        const std::string srcDofTagName="GLOBAL_ID", const std::string tgtDofTagName="GLOBAL_ID",
                                         const std::string strVariables="", 
                                         const std::string strInputData="", const std::string strOutputData="",
                                         const std::string strNColName="", const bool fOutputDouble=false,
@@ -143,10 +144,9 @@ public:
 	///	</summary>
 	const DataVector<double>& GetGlobalTargetAreas() const;
 
-	///	<summary>
-	///		Store the tag names associated with global DoF ids for source and target meshes
-	///	</summary>
-	moab::ErrorCode SetDofMapTags(const std::string srcDofTagName, int nPin, const std::string tgtDofTagName, int nPout);
+#ifdef MOAB_HAVE_HYPRE
+	void InitVectors();
+#endif
 
 private:
 
@@ -259,23 +259,66 @@ private:
 	);
 
 	///	<summary>
+	///		Store the tag names associated with global DoF ids for source and target meshes
+	///	</summary>
+	moab::ErrorCode SetDofMapTags(const std::string srcDofTagName, const std::string tgtDofTagName);
+
+	///	<summary>
 	///		Compute the association between the solution tag global DoF numbering and 
 	///		the local matrix numbering so that matvec operations can be performed
 	///     consistently.
 	///	</summary>
 	moab::ErrorCode SetDofMapAssociation(DiscretizationType srcType, bool isSrcContinuous, 
-		int nPin, DataMatrix3D<int>* srcdataGLLNodes,
+		DataMatrix3D<int>* srcdataGLLNodes,
 		DiscretizationType destType, bool isDestContinuous, 
-		int nPout, DataMatrix3D<int>* tgtdataGLLNodes);
+		DataMatrix3D<int>* tgtdataGLLNodes);
+
 
 public: 
 #ifdef MOAB_HAVE_HYPRE
+	///	<summary>
+	///		Get the number of total Degrees-Of-Freedom defined on the source mesh.
+	///	</summary>
+	int GetSourceGlobalNDofs();
+
+	///	<summary>
+	///		Get the number of total Degrees-Of-Freedom defined on the destination mesh.
+	///	</summary>
+	int GetDestinationGlobalNDofs();
+
+	///	<summary>
+	///		Get the number of local Degrees-Of-Freedom defined on the source mesh.
+	///	</summary>
+	int GetSourceLocalNDofs();
+
+	///	<summary>
+	///		Get the number of local Degrees-Of-Freedom defined on the destination mesh.
+	///	</summary>
+	int GetDestinationLocalNDofs();
+
+	///	<summary>
+	///		Get the raw reference to the Hypre weight matrix representing the projection from source to destination mesh.
+	///	</summary>
+	HypreParMatrix& GetWeightMatrix();
+
+	///	<summary>
+	///		Get the row vector that is amenable for application of A*x operation.
+	///	</summary>
+	HypreParVector& GetRowVector();
+
+	///	<summary>
+	///		Get the column vector that is amenable for application of A^T*x operation.
+	///	</summary>
+	HypreParVector& GetColVector();
+
 	///	<summary>
 	///		Copy the local matrix from Tempest SparseMatrix representation (ELL)
 	///		to the parallel CSR Hypre Matrix for scalable application of matvec
 	///     needed for projections.
 	///	</summary>
 	void Hypre_CopyTempestSparseMat();
+
+	moab::ErrorCode ApplyWeights (std::vector<double>& srcVals, std::vector<double>& tgtVals);
 
 	void WriteParallelWeightsToFile(std::string filename);
 #endif
@@ -294,6 +337,8 @@ private:
 
 #ifdef MOAB_HAVE_HYPRE
 	HypreParMatrix* m_weightMat;
+	HypreParVector* m_rowVec;
+	HypreParVector* m_colVec;
 #endif
 
 	///	<summary>
@@ -328,6 +373,8 @@ private:
 	///	<summary>
 	moab::Tag m_dofTagSrc, m_dofTagDest;
 	std::map<int,int> row_dofmap, col_dofmap;
+	int m_nDofsPEl_Src, m_nDofsPEl_Dest;
+	DataMatrix3D<int> dataGLLNodesSrc, dataGLLNodesDest;
 
 	Mesh* m_meshInput;
 	Mesh* m_meshInputCov;
