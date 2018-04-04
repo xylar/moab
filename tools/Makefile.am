@@ -42,6 +42,12 @@ EXTRA_DIST = README.hexmodops \
              README.spheredecomp \
              CMakeLists.txt
 
+if HAVE_HDF5
+if HAVE_NETCDF
+  bin_PROGRAMS += mbaddnc
+endif
+endif
+
 if ENABLE_mbconvert
   bin_PROGRAMS += mbconvert
   dist_man1_MANS += mbconvert.man
@@ -204,6 +210,7 @@ mbtagprop_SOURCES = parse.cpp parse.hpp propagate_tags.cpp
 mbmem_SOURCES = mbmem.cpp
 parread_SOURCES = parread.cpp
 mbhonodes_SOURCES = honodes.cpp
+mbaddnc_SOURCES = addncdata.cpp
 
 bin_PROGRAMS += mbslavepart
 mbslavepart_SOURCES = mbslavepart.cpp
