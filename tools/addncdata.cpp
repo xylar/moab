@@ -3,6 +3,14 @@
  * this tool will take an existing h5m file and add data from an nc type file
  * will support mainly showing the data associated with unstructured meshes (Homme, MPAS) with Visit
  *
+ * example of usage:
+ * ./mbaddnc -i wholeFineATM.h5m -n surfdata_ne11np4_simyr1850_c160614.nc -o whole_LONGXY_surfdata.h5m -v LONGXY
+ *
+ * Basically, will output a new h5m file (whole_LONGXY_surfdata.h5m), which has an extra tag, corresponding to the variable
+ *   LONGXY from the file surfdata_ne11np4_simyr1850_c160614.nc; matching is based on the global ids between what we think is the order
+ *   on the original file (wholeFineATM.h5m) and the order of surfdata_ne11np4_simyr1850_c160614.nc
+ *
+ *  file  wholeFineATM.h5m is obtained from a coupled run in e3sm, with the ne 11, np 4,
  */
 
 
@@ -10,6 +18,7 @@
 #include "moab/Core.hpp"
 
 #include "netcdf.h"
+#include <sstream>
 
 using namespace moab;
 
@@ -28,7 +37,7 @@ int ncFile;
       size_t tmp_val; \
       gdfail = nc_inq_dimlen(ncFile, ncdim, &tmp_val); \
       if (NC_NOERR != gdfail) { \
-        MB_SET_ERR(MB_FAILURE, "ReadNCDF:: Couldn't get dimension length"); \
+        MB_SET_ERR(MB_FAILURE, "addncdata:: Couldn't get dimension length"); \
       } \
       else \
         val = tmp_val; \
@@ -52,7 +61,7 @@ int ncFile;
         dims.resize(ndims); \
         gvfail = nc_inq_vardimid(ncFile, id, &dims[0]); \
         if (NC_NOERR != gvfail) { \
-          MB_SET_ERR(MB_FAILURE, "ReadNCDF:: Couldn't get variable dimension IDs"); \
+          MB_SET_ERR(MB_FAILURE, "addncdata:: Couldn't get variable dimension IDs"); \
         } \
       } \
     } \
@@ -65,13 +74,13 @@ int ncFile;
       size_t ntmp; \
       int ivfail = nc_inq_dimlen(ncFile, vals[0], &ntmp); \
       if (NC_NOERR != ivfail) { \
-        MB_SET_ERR(MB_FAILURE, "ReadNCDF:: Couldn't get dimension length"); \
+        MB_SET_ERR(MB_FAILURE, "addncdata:: Couldn't get dimension length"); \
       } \
       vals.resize(ntmp); \
       size_t ntmp1 = 0; \
       ivfail = nc_get_vara_int(ncFile, id, &ntmp1, &ntmp, &vals[0]); \
       if (NC_NOERR != ivfail) { \
-        MB_SET_ERR(MB_FAILURE, "ReadNCDF:: Problem getting variable " << name); \
+        MB_SET_ERR(MB_FAILURE, "addncdata:: Problem getting variable " << name); \
       } \
     } \
   }
@@ -84,17 +93,35 @@ int ncFile;
       size_t ntmp; \
       int dvfail = nc_inq_dimlen(ncFile, dum_dims[0], &ntmp); \
       if (NC_NOERR != dvfail) { \
-        MB_SET_ERR(MB_FAILURE, "ReadNCDF:: Couldn't get dimension length"); \
+        MB_SET_ERR(MB_FAILURE, "addncdata:: Couldn't get dimension length"); \
       } \
       vals.resize(ntmp); \
       size_t ntmp1 = 0; \
       dvfail = nc_get_vara_double(ncFile, id, &ntmp1, &ntmp, &vals[0]); \
       if (NC_NOERR != dvfail) { \
-        MB_SET_ERR(MB_FAILURE, "ReadNCDF:: Problem getting variable " << name); \
+        MB_SET_ERR(MB_FAILURE, "addncdata:: Problem getting variable " << name); \
       } \
     } \
   }
 
+#define GET_1D_FLT_VAR(name, id, vals) \
+  { \
+    std::vector<int> dum_dims; \
+    GET_VAR(name, id, dum_dims); \
+    if (-1 != id) { \
+      size_t ntmp; \
+      int dvfail = nc_inq_dimlen(ncFile, dum_dims[0], &ntmp); \
+      if (NC_NOERR != dvfail) { \
+        MB_SET_ERR(MB_FAILURE, "addncdata:: Couldn't get dimension length"); \
+      } \
+      vals.resize(ntmp); \
+      size_t ntmp1 = 0; \
+      dvfail = nc_get_vara_float(ncFile, id, &ntmp1, &ntmp, &vals[0]); \
+      if (NC_NOERR != dvfail) { \
+        MB_SET_ERR(MB_FAILURE, "addncdata:: Problem getting variable " << name); \
+      } \
+    } \
+  }
 
 int main(int argc, char* argv[])
 {
@@ -201,17 +228,30 @@ int main(int argc, char* argv[])
   size_t size_tag = 1; // good for one dimension
   std::vector<int> evals; // size of size_tag
   std::vector<double> dvals; // size of size_tag
+  nc_type dataType;
+  // read the variable, and set it to the tag
+  fail = nc_inq_vartype(ncFile, nc_var, &dataType);
+  DataType mbtype = MB_TYPE_DOUBLE ;
+  bool float_var = false;
+  if (NC_INT == dataType)
+    mbtype = MB_TYPE_INTEGER;
+  else if (NC_DOUBLE != dataType && NC_FLOAT !=dataType)
+    MB_CHK_SET_ERR(MB_FAILURE, "unknown type");
+
+  if (NC_FLOAT ==dataType)
+    float_var = true;
+
+  int time_id=-1;
+  fail = nc_inq_varid(ncFile, "time", &time_id);
+  std::vector<float> times;
+  if (NC_NOERR == fail)
+  {
+    int ii;
+    GET_1D_FLT_VAR("time", ii, times);
+  }
+
   if (( dims.size()>=1 &&dims.size()<=2)  && (vertex_data || cell_data) )
   {
-    nc_type dataType;
-    // read the variable, and set it to the tag
-    fail = nc_inq_vartype(ncFile, nc_var, &dataType);
-    DataType mbtype = MB_TYPE_DOUBLE ;
-    if (NC_INT == dataType)
-      mbtype = MB_TYPE_INTEGER;
-    else if (NC_DOUBLE != dataType)
-      MB_CHK_SET_ERR(MB_FAILURE, "unknown type");
-
 
     if (dims.size()==2)
     {
@@ -338,7 +378,67 @@ int main(int argc, char* argv[])
       }
     }
   }
+  else if (( dims.size()==3)  && vertex_data && dimIndex==2 && mbtype == MB_TYPE_DOUBLE) // the last one is the vertex
+  {
+    // the case when the last dim is ncol (for homme type mesh))
+    size_t dim0, dim1; // dim 2 is ncol..
+    char recname0[NC_MAX_NAME+1], recname1[NC_MAX_NAME+1];
+    fail = nc_inq_dim(ncFile, dims[0], recname0, &dim0);
+    fail = nc_inq_dim(ncFile, dims[1], recname1, &dim1);
+    std::string name0(recname0);
+    std::string name1(recname1);
+    std::string timestr("time");
+    size_t start[3]={0,0,0};
+    size_t count[3]={1,0,0};
+    count[1]=dim1;
+    count[2]=nodes.size();
+    // create a few tags, with name inserted
+    if (name0.compare("time")==0)
+    {
 
+      std::vector<double> dvalues(dim1*count[2]);
+      std::vector<float> fvalues(dim1*count[2]);
+      std::vector<double> transp(dim1*count[2]);
+      // get the variable time
+      for (size_t k=0; k<dim0; k++)
+      {
+        // create a tag for each time, and
+        std::stringstream tag_name;
+        tag_name<<variable_name<< "_t"<< times[k];
+        Tag newTag;
+        std::vector<double>  defvals(dim1, 0.);
+        rval = mb->tag_get_handle(tag_name.str().c_str(), (int)dim1, mbtype, newTag,
+                MB_TAG_CREAT | MB_TAG_DENSE, &defvals[0]); MB_CHK_SET_ERR(rval, "can't define new tag");
+        start[0]=k;
+
+        if (float_var)
+        {
+          fail = nc_get_vara_float(ncFile, nc_var, start, count, &fvalues[0]);
+          // now arrange them in a tag, transpose data
+          for (size_t ii=0;ii<dim1; ii++)
+            for (size_t j=0; j<count[2]; j++)
+            {
+              transp[j*dim1+ii] = fvalues[ii*count[2]+j];
+            }
+        }
+        else // double
+        {
+          fail = nc_get_vara_double(ncFile, nc_var, start, count, &dvalues[0]);
+          // now arrange them in a tag, transpose data
+          for (size_t ii=0;ii<dim1; ii++)
+            for (size_t j=0; j<count[2]; j++)
+            {
+              transp[j*dim1+ii] = dvalues[ii*count[2]+j];
+            }
+        }
+        for (size_t ii=0; ii<nodes.size(); ii++)
+        {
+          EntityHandle vh=vGidHandle[ii+1];
+          rval = mb->tag_set_data(newTag, &vh, 1, &transp[ii*dim1]); MB_CHK_SET_ERR(rval, "can't set tag on nodes");
+        }
+      }
+    }
+  }
   rval = mb->write_file(outfile.c_str()); MB_CHK_SET_ERR(rval, "can't write file");
   std::cout << " wrote file " << outfile << "\n";
   return 0;
