@@ -33,7 +33,8 @@ namespace moab
     if (!a) { \
       std::cout << "HYPRE Error: " << b << std::endl; \
       exit (-1); \
-    }
+    } \
+  }
 
 
   template<typename TargetT, typename SourceT>
@@ -57,34 +58,55 @@ namespace moab
     ParCSROwner = 1;
   }
 
-  HypreParMatrix::HypreParMatrix(MPI_Comm pcomm) : comm(pcomm)
+  HypreParMatrix::HypreParMatrix(moab::ParallelComm* p_comm) : pcomm(p_comm)
   {
     Init();
     height = width = 0;
   }
 
 // Square block-diagonal constructor
-  HypreParMatrix::HypreParMatrix(MPI_Comm pcomm, HYPRE_Int glob_size,
-                                 HYPRE_Int *row_starts, HYPRE_Int nnz_pr) : comm(pcomm)
+  HypreParMatrix::HypreParMatrix(moab::ParallelComm* p_comm, HYPRE_Int glob_size,
+                                 HYPRE_Int *row_starts, HYPRE_Int nnz_pr) : pcomm(p_comm)
   {
     Init();
     resize(glob_size, row_starts, nnz_pr);
   }
 
 
-  void HypreParMatrix::resize(HYPRE_Int glob_size, HYPRE_Int *row_starts,
-                              HYPRE_Int nnz_pr_diag)
+  void HypreParMatrix::resize(HYPRE_Int glob_size,
+                              HYPRE_Int *row_starts,
+                              HYPRE_Int nnz_pr_diag,
+                              HYPRE_Int nnz_pr_offdiag)
   {
     /* Create the matrix.
         Note that this is a square matrix, so we indicate the row partition
         size twice (since number of rows = number of cols) */
-    HYPRE_IJMatrixCreate(comm, row_starts[0], row_starts[1], row_starts[0], row_starts[1], &A);
+    HYPRE_IJMatrixCreate(pcomm->comm(), row_starts[0], row_starts[1], row_starts[0], row_starts[1], &A);
     /* Choose a parallel csr format storage (see the User's Manual) */
     HYPRE_IJMatrixSetObjectType(A, HYPRE_PARCSR);
     /* Initialize before setting coefficients */
     HYPRE_IJMatrixInitialize(A);
     /* Get the parcsr matrix object to use */
     HYPRE_IJMatrixGetObject(A, (void **) &A_parcsr);
+
+    int num_procs;
+    MPI_Comm_size(pcomm->comm(), &num_procs);
+    if (num_procs > 1) {
+      if (nnz_pr_diag == 0 && nnz_pr_offdiag == 0) {
+        std::cout << "Parameter nnz_pr_diag cannot be null.\n";
+        moab_hypre_assert_t(nnz_pr_diag, true);
+      }
+
+      std::vector<HYPRE_Int> m_nnz_pr_diag(row_starts[1]-row_starts[0], nnz_pr_diag);
+      std::vector<HYPRE_Int> m_onz_pr_diag(row_starts[1]-row_starts[0], nnz_pr_offdiag);
+      HYPRE_IJMatrixSetDiagOffdSizes(A, &m_nnz_pr_diag[0], &m_onz_pr_diag[0]);
+    }
+    else {
+      std::vector<HYPRE_Int> m_nnz_pr_diag(row_starts[1]-row_starts[0], nnz_pr_diag);
+      HYPRE_IJMatrixSetRowSizes(A, &m_nnz_pr_diag[0]);
+    }
+    
+
     /* define an interpreter for the ParCSR interface */
     HYPRE_MatvecFunctions matvec_fn;
     interpreter = hypre_CTAlloc(mv_InterfaceInterpreter, 1);
@@ -97,23 +119,44 @@ namespace moab
   }
 
   void HypreParMatrix::resize(HYPRE_Int global_num_rows,
-                              HYPRE_Int global_num_cols, HYPRE_Int *row_starts,
+                              HYPRE_Int global_num_cols,
+                              HYPRE_Int *row_starts,
                               HYPRE_Int *col_starts,
-                              HYPRE_Int nnz_pr_diag,
+                              HYPRE_Int *nnz_pr_diag,
+                              HYPRE_Int *onz_pr_diag,
                               HYPRE_Int nnz_pr_offdiag)
   {
     /* Create the matrix.
         Note that this is a square matrix, so we indicate the row partition
         size twice (since number of rows = number of cols) */
-    HYPRE_IJMatrixCreate(comm, row_starts[0], row_starts[1], col_starts[0], col_starts[1], &A);
+    HYPRE_IJMatrixCreate(pcomm->comm(), row_starts[0], row_starts[1], col_starts[0], col_starts[1], &A);
     /* Choose a parallel csr format storage (see the User's Manual) */
     HYPRE_IJMatrixSetObjectType(A, HYPRE_PARCSR);
     /* Initialize before setting coefficients */
     HYPRE_IJMatrixInitialize(A);
     /* Get the parcsr matrix object to use */
     HYPRE_IJMatrixGetObject(A, (void **) &A_parcsr);
-    // HYPRE_IJMatrixSetDiagOffdSizes(A, nnz_pr_diag);
-    HYPRE_IJMatrixSetMaxOffProcElmts(A, nnz_pr_offdiag);
+
+    int num_procs;
+    MPI_Comm_size(pcomm->comm(), &num_procs);
+
+    /* Set the matrix pre-allocation data */
+    if (num_procs > 1) {
+      if (nnz_pr_diag == NULL && nnz_pr_offdiag == NULL) {
+        std::cout << "Parameter nnz_pr_diag and nnz_pr_offdiag cannot be NULL.\n";
+        moab_hypre_assert_t(nnz_pr_diag, true);
+      }
+
+      HYPRE_IJMatrixSetDiagOffdSizes(A, nnz_pr_diag, onz_pr_diag);
+    }
+    else {
+      HYPRE_IJMatrixSetRowSizes(A, nnz_pr_diag);
+    }
+
+    if (nnz_pr_offdiag) {
+      HYPRE_IJMatrixSetMaxOffProcElmts(A, nnz_pr_offdiag);
+    }
+
     /* define an interpreter for the ParCSR interface */
     HYPRE_MatvecFunctions matvec_fn;
     interpreter = hypre_CTAlloc(mv_InterfaceInterpreter, 1);
@@ -127,15 +170,19 @@ namespace moab
 
 
 // Rectangular block-diagonal constructor
-  HypreParMatrix::HypreParMatrix(MPI_Comm pcomm,
+  HypreParMatrix::HypreParMatrix(moab::ParallelComm *p_comm,
                                  HYPRE_Int global_num_rows,
                                  HYPRE_Int global_num_cols,
-                                 HYPRE_Int *row_starts, HYPRE_Int *col_starts,
+                                 HYPRE_Int *row_starts,
+                                 HYPRE_Int *col_starts,
                                  HYPRE_Int nnz_pr_diag,
-                                 HYPRE_Int nnz_pr_offdiag) : comm(pcomm)
+                                 HYPRE_Int onz_pr_diag,
+                                 HYPRE_Int nnz_pr_offdiag) : pcomm(p_comm)
   {
     Init();
-    resize(global_num_rows, global_num_cols, row_starts, col_starts, nnz_pr_diag, nnz_pr_offdiag);
+    std::vector<HYPRE_Int> m_nnz_pr_diag(row_starts[1]-row_starts[0], nnz_pr_diag);
+    std::vector<HYPRE_Int> m_onz_pr_diag(row_starts[1]-row_starts[0], onz_pr_diag);
+    resize(global_num_rows, global_num_cols, row_starts, col_starts, &m_nnz_pr_diag[0], &m_onz_pr_diag[0], nnz_pr_offdiag);
   }
 
   void HypreParMatrix::MakeRef(const HypreParMatrix &master)
@@ -519,13 +566,13 @@ namespace moab
     int row_end = -1;
     int col_start = -1;
     int col_end = -1;
-    MPI_Comm_size(comm, &num_procs);
+    MPI_Comm_size(pcomm->comm(), &num_procs);
     ierr += hypre_ParCSRMatrixGetLocalRange(A_parcsr,
                                             &row_start, &row_end,
                                             &col_start, &col_end);
     row_starts = hypre_ParCSRMatrixRowStarts(A_parcsr);
     col_starts = hypre_ParCSRMatrixColStarts(A_parcsr);
-    parcsr_A_ptr = hypre_ParCSRMatrixCreate(comm, row_starts[num_procs],
+    parcsr_A_ptr = hypre_ParCSRMatrixCreate(pcomm->comm(), row_starts[num_procs],
                                             col_starts[num_procs], row_starts,
                                             col_starts, 0, 0, 0);
     csr_A = hypre_MergeDiagAndOffd(A_parcsr);
@@ -566,7 +613,7 @@ namespace moab
     hypre_ParCSRMatrix *Ae;
     internal::hypre_ParCSRMatrixEliminateAAe(
       A_parcsr, &Ae, rc_sorted.size(), rc_sorted.data());
-    HypreParMatrix *tmpMat = new HypreParMatrix(comm, M(), N(), RowPart(), ColPart(), 0, 0);
+    HypreParMatrix *tmpMat = new HypreParMatrix(pcomm, M(), N(), RowPart(), ColPart(), 0, 0);
     hypre_IJMatrixObject(tmpMat->A) = Ae;
     /* Get the parcsr matrix object to use */
     HYPRE_IJMatrixGetObject(tmpMat->A, (void **) tmpMat->A_parcsr);
@@ -583,7 +630,7 @@ namespace moab
     Destroy();
     Init();
     HYPRE_Int base_i, base_j;
-    hypre_ParCSRMatrixReadIJ(comm, fname, &base_i, &base_j, &A_parcsr);
+    hypre_ParCSRMatrixReadIJ(pcomm->comm(), fname, &base_i, &base_j, &A_parcsr);
     hypre_ParCSRMatrixSetNumNonzeros(A_parcsr);
     hypre_MatvecCommPkgCreate(A_parcsr);
     height = GetNumRows();
@@ -608,7 +655,7 @@ namespace moab
     hypre_ParCSRMatrix *ab;
     ab = hypre_ParMatmul(A->A_parcsr, B->A_parcsr);
     hypre_MatvecCommPkgCreate(ab);
-    HypreParMatrix *tmpMat = new HypreParMatrix(A->comm, A->M(), A->N(), A->RowPart(), A->ColPart(), 0,
+    HypreParMatrix *tmpMat = new HypreParMatrix(A->pcomm, A->M(), A->N(), A->RowPart(), A->ColPart(), 0,
         0);
     hypre_IJMatrixObject(tmpMat->A) = ab;
     /* Get the parcsr matrix object to use */
@@ -633,7 +680,7 @@ namespace moab
       hypre_ParCSRMatrixSetColStartsOwner(P->A_parcsr, 1);
     }
 
-    HypreParMatrix *tmpMat = new HypreParMatrix(A->comm, A->M(), A->N(), A->RowPart(), A->ColPart(), 0,
+    HypreParMatrix *tmpMat = new HypreParMatrix(A->pcomm, A->M(), A->N(), A->RowPart(), A->ColPart(), 0,
         0);
     hypre_IJMatrixObject(tmpMat->A) = rap;
     /* Get the parcsr matrix object to use */
@@ -664,7 +711,7 @@ namespace moab
       hypre_ParCSRMatrixSetRowStartsOwner(rap, 0);
     }
 
-    HypreParMatrix *tmpMat = new HypreParMatrix(A->comm, A->M(), A->N(), A->RowPart(), A->ColPart(), 0,
+    HypreParMatrix *tmpMat = new HypreParMatrix(A->pcomm, A->M(), A->N(), A->RowPart(), A->ColPart(), 0,
         0);
     hypre_IJMatrixObject(tmpMat->A) = rap;
     /* Get the parcsr matrix object to use */

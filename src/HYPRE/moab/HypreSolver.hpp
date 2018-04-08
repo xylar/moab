@@ -9,6 +9,10 @@
 // terms of the GNU Lesser General Public License (as published by the Free
 // Software Foundation) version 2.1 dated February 1999.
 
+/// This HYPRE library interface has been taken originally from MFEM and modified
+/// to suit the needs for the MOAB library.
+/// Modified by: Vijay Mahadevan
+
 #ifndef MOAB_HYPRESOLVER
 #define MOAB_HYPRESOLVER
 
@@ -17,6 +21,11 @@
 
 #ifdef MOAB_HAVE_MPI
 #include <mpi.h>
+
+// Enable internal hypre timing routines
+#ifndef HYPRE_TIMING
+#define HYPRE_TIMING
+#endif
 
 #include "HypreParVector.hpp"
 #include "HypreParMatrix.hpp"

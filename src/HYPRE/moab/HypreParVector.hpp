@@ -11,6 +11,7 @@
 
 /// This HYPRE library interface has been taken originally from MFEM and modified
 /// to suit the needs for the MOAB library.
+/// Modified by: Vijay Mahadevan
 
 #ifndef MOAB_HYPREPARVECTOR
 #define MOAB_HYPREPARVECTOR
@@ -18,20 +19,15 @@
 #include "moab/MOABConfig.h"
 #include "moab/Core.hpp"
 
-#ifdef MOAB_HAVE_MPI
-#include <mpi.h>
-
-// Enable internal hypre timing routines
-//#ifndef HYPRE_TIMING
-//#define HYPRE_TIMING
-//#endif
-
 #ifdef MOAB_HAVE_EIGEN
 #include <Eigen/Core>
 #include <Eigen/Sparse>
 #else
 #error Configure with Eigen3 enabled
 #endif
+
+#ifdef MOAB_HAVE_MPI
+#include "moab/ParallelComm.hpp"
 
 // hypre header files
 #include "HYPRE.h"
@@ -66,26 +62,25 @@ namespace moab
       friend class HypreParMatrix;
       friend class HypreSolver;
 
-      MPI_Comm comm;
+      moab::ParallelComm *pcomm;
       char initialized;
 
     public:
       /** Creates an empty vector with given global comm. */
-      HypreParVector(MPI_Comm comm);
+      HypreParVector(moab::ParallelComm* p_comm);
       /** Creates vector with given global size and partitioning of the columns.
           Processor P owns columns [col[P],col[P+1]) */
-      HypreParVector(MPI_Comm comm, HYPRE_Int glob_size, HYPRE_Int rstart, HYPRE_Int rend);
+      HypreParVector(moab::ParallelComm* p_comm, HYPRE_Int glob_size, HYPRE_Int rstart, HYPRE_Int rend);
       /// Creates vector compatible with y
       HypreParVector(const HypreParVector &y);
       /// Creates vector compatible with (i.e. in the domain of) A or A^T
       HypreParVector(HypreParMatrix &A, int tr = 0);
-      /// Creates vector wrapping y
-      HypreParVector(HYPRE_IJVector &y);
+
 
       int resize(HYPRE_Int glob_size, HYPRE_Int rstart, HYPRE_Int rend);
 
       /// MPI communicator
-      MPI_Comm GetComm() { return x->comm; }
+      moab::ParallelComm* GetParallelCommunicator() { return pcomm; }
 
       /// Returns the row partitioning
       inline HYPRE_Int *Partitioning() { return x->partitioning; }
@@ -109,6 +104,7 @@ namespace moab
       int GetOwnership() const { return own_ParVector; }
 
       /// Define '=' for hypre vectors.
+      HypreParVector &operator= (double d);
       HypreParVector &operator= (const HypreParVector &y);
 
       HYPRE_Int GetValues(const int ndata, const HYPRE_Int *indices, HYPRE_Complex *const _data) const;

@@ -14,8 +14,6 @@
 
 #ifdef MOAB_HAVE_MPI
 
-// #include "linalg.hpp"
-//#include "../fem/fem.hpp"
 #include "hypre_parcsr.hpp"
 
 #include <fstream>
@@ -82,10 +80,8 @@ namespace moab
 
   HyprePCG::HyprePCG(HypreParMatrix &_A) : HypreSolver(&_A, true)
   {
-    MPI_Comm comm;
     iterative_mode = true;
-    HYPRE_ParCSRMatrixGetComm(*A, &comm);
-    HYPRE_ParCSRPCGCreate(comm, &pcg_solver);
+    HYPRE_ParCSRPCGCreate(A->GetParallelCommunicator()->comm(), &pcg_solver);
   }
 
   void HyprePCG::SetTol(double tol)
@@ -136,15 +132,17 @@ namespace moab
     HYPRE_Int time_index = 0;
     HYPRE_Int num_iterations;
     double final_res_norm;
-    MPI_Comm comm;
+    moab::ParallelComm* pcomm;
     HYPRE_Int print_level;
     HYPRE_PCGGetPrintLevel(pcg_solver, &print_level);
-    comm = A->GetComm();
+    pcomm = A->GetParallelCommunicator();
 
     if (!setup_called) {
       if (print_level > 0) {
+#ifdef HYPRE_TIMING
         time_index = hypre_InitializeTiming("PCG Setup");
         hypre_BeginTiming(time_index);
+#endif
       }
 
       err = HYPRE_ParCSRPCGSetup(pcg_solver, *A, (HYPRE_ParVector)b, (HYPRE_ParVector)x);
@@ -156,16 +154,20 @@ namespace moab
       }
 
       if (print_level > 0) {
+#ifdef HYPRE_TIMING
         hypre_EndTiming(time_index);
-        hypre_PrintTiming("Setup phase times", comm);
+        hypre_PrintTiming("Setup phase times", pcomm->comm());
         hypre_FinalizeTiming(time_index);
         hypre_ClearTiming();
+#endif
       }
     }
 
     if (print_level > 0) {
+#ifdef HYPRE_TIMING
       time_index = hypre_InitializeTiming("PCG Solve");
       hypre_BeginTiming(time_index);
+#endif
     }
 
     if (!iterative_mode) {
@@ -175,14 +177,16 @@ namespace moab
     err = HYPRE_ParCSRPCGSolve(pcg_solver, *A, (HYPRE_ParVector)b, (HYPRE_ParVector)x);
 
     if (print_level > 0) {
+#ifdef HYPRE_TIMING
       hypre_EndTiming(time_index);
-      hypre_PrintTiming("Solve phase times", comm);
+      hypre_PrintTiming("Solve phase times", pcomm->comm());
       hypre_FinalizeTiming(time_index);
       hypre_ClearTiming();
+#endif
       HYPRE_ParCSRPCGGetNumIterations(pcg_solver, &num_iterations);
       HYPRE_ParCSRPCGGetFinalRelativeResidualNorm(pcg_solver,
           &final_res_norm);
-      MPI_Comm_rank(comm, &myid);
+      MPI_Comm_rank(pcomm->comm(), &myid);
 
       if (myid == 0) {
         cout << "PCG Iterations = " << num_iterations << endl
@@ -262,8 +266,10 @@ namespace moab
 
     if (!setup_called) {
       if (print_level > 0) {
+#ifdef HYPRE_TIMING
         time_index = hypre_InitializeTiming("GMRES Setup");
         hypre_BeginTiming(time_index);
+#endif
       }
 
       err = HYPRE_ParCSRGMRESSetup(gmres_solver, *A, b, x);
@@ -275,16 +281,20 @@ namespace moab
       }
 
       if (print_level > 0) {
+#ifdef HYPRE_TIMING
         hypre_EndTiming(time_index);
         hypre_PrintTiming("Setup phase times", comm);
         hypre_FinalizeTiming(time_index);
         hypre_ClearTiming();
+#endif
       }
     }
 
     if (print_level > 0) {
+#ifdef HYPRE_TIMING
       time_index = hypre_InitializeTiming("GMRES Solve");
       hypre_BeginTiming(time_index);
+#endif
     }
 
     if (!iterative_mode) {
@@ -294,10 +304,12 @@ namespace moab
     err = HYPRE_ParCSRGMRESSolve(gmres_solver, *A, b, x);
 
     if (print_level > 0) {
+#ifdef HYPRE_TIMING
       hypre_EndTiming(time_index);
       hypre_PrintTiming("Solve phase times", comm);
       hypre_FinalizeTiming(time_index);
       hypre_ClearTiming();
+#endif
       HYPRE_ParCSRGMRESGetNumIterations(gmres_solver, &num_iterations);
       HYPRE_ParCSRGMRESGetFinalRelativeResidualNorm(gmres_solver,
           &final_res_norm);

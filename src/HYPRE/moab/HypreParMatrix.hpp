@@ -11,6 +11,7 @@
 
 /// This HYPRE library interface has been taken originally from MFEM and modified
 /// to suit the needs for the MOAB library.
+/// Modified by: Vijay Mahadevan
 
 #ifndef MOAB_HYPREPARMATRIX
 #define MOAB_HYPREPARMATRIX
@@ -18,20 +19,15 @@
 #include "moab/MOABConfig.h"
 #include "moab/Core.hpp"
 
-#ifdef MOAB_HAVE_MPI
-#include <mpi.h>
-
-// Enable internal hypre timing routines
-//#ifndef HYPRE_TIMING
-//#define HYPRE_TIMING
-//#endif
-
 #ifdef MOAB_HAVE_EIGEN
 #include <Eigen/Core>
 #include <Eigen/Sparse>
 #else
 #error Configure with Eigen3 enabled
 #endif
+
+#ifdef MOAB_HAVE_MPI
+#include "moab/ParallelComm.hpp"
 
 // hypre header files
 // #include "HYPRE.h"
@@ -88,7 +84,7 @@ namespace moab
       int height, gnrows;
       int width, gncols;
 
-      MPI_Comm comm;
+      moab::ParallelComm *pcomm;
       char initialized;
 
       // Initialize with defaults. Does not initialize inherited members.
@@ -106,7 +102,7 @@ namespace moab
 
     public:
       /// An empty matrix to be used as a reference to an existing matrix
-      HypreParMatrix(MPI_Comm comm);
+      HypreParMatrix(moab::ParallelComm *p_comm);
 
       /// Converts hypre's format to HypreParMatrix
       HypreParMatrix(HYPRE_IJMatrix a)
@@ -120,16 +116,19 @@ namespace moab
       /** Creates block-diagonal square parallel matrix. Diagonal is given by diag
           which must be in CSR format (finalized). The new HypreParMatrix does not
           take ownership of any of the input arrays. */
-      HypreParMatrix(MPI_Comm comm, HYPRE_Int glob_size, HYPRE_Int *row_starts,
+      HypreParMatrix(moab::ParallelComm *p_comm, HYPRE_Int glob_size, HYPRE_Int *row_starts,
                      HYPRE_Int nnz_pr_diag = 0);
 
       /** Creates block-diagonal rectangular parallel matrix. Diagonal is given by
           diag which must be in CSR format (finalized). The new HypreParMatrix does
           not take ownership of any of the input arrays. */
-      HypreParMatrix(MPI_Comm comm, HYPRE_Int global_num_rows,
-                     HYPRE_Int global_num_cols, HYPRE_Int *row_starts,
+      HypreParMatrix(moab::ParallelComm *p_comm,
+                     HYPRE_Int global_num_rows,
+                     HYPRE_Int global_num_cols,
+                     HYPRE_Int *row_starts,
                      HYPRE_Int *col_starts,
                      HYPRE_Int nnz_pr_diag = 0,
+                     HYPRE_Int onz_pr_diag = 0,
                      HYPRE_Int nnz_pr_offdiag = 0);
 
       /** Creates a general parallel matrix from a local CSR matrix on each
@@ -144,7 +143,7 @@ namespace moab
       void MakeRef(const HypreParMatrix &master);
 
       /// MPI communicator
-      MPI_Comm GetComm() const { return comm; }
+      moab::ParallelComm* GetParallelCommunicator() const { return pcomm; }
 
       /// Typecasting to hypre's HYPRE_IJMatrix*
       operator HYPRE_IJMatrix() { return A; }
@@ -199,16 +198,20 @@ namespace moab
       /** Destroy and resize block-diagonal square parallel matrix. Diagonal is given by diag
           which must be in CSR format (finalized). The new HypreParMatrix does not
           take ownership of any of the input arrays. */
-      void resize(HYPRE_Int glob_size, HYPRE_Int *row_starts,
-                  HYPRE_Int nnz_pr_diag = 0);
+      void resize(HYPRE_Int glob_size,
+                  HYPRE_Int *row_starts,
+                  HYPRE_Int nnz_pr_diag = 0,
+                  HYPRE_Int nnz_pr_offdiag = 0);
 
       /** Destroy and resize block-diagonal rectangular parallel matrix. Diagonal is given by
           diag which must be in CSR format (finalized). The new HypreParMatrix does
           not take ownership of any of the input arrays. */
       void resize(HYPRE_Int global_num_rows,
-                  HYPRE_Int global_num_cols, HYPRE_Int *row_starts,
+                  HYPRE_Int global_num_cols,
+                  HYPRE_Int *row_starts,
                   HYPRE_Int *col_starts,
-                  HYPRE_Int nnz_pr_diag = 0,
+                  HYPRE_Int *nnz_pr_diag = NULL,
+                  HYPRE_Int *onz_pr_diag = NULL,
                   HYPRE_Int nnz_pr_offdiag = 0);
 
       /// Returns the number of rows in the diagonal block of the ParCSRMatrix
@@ -316,6 +319,8 @@ namespace moab
       friend void EliminateBC(HypreParMatrix &A, HypreParMatrix &Ae,
                               const std::vector<int> &ess_dof_list,
                               const HypreParVector &X, HypreParVector &B);
+
+      friend class HypreSolver;
 
   };
 
