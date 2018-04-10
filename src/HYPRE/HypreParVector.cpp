@@ -164,7 +164,6 @@ namespace moab
     size = rstart - rend;
     own_ParVector = 1;
     initialized = 1;
-    std::cout << glob_size << "\tAllocated vector of size: " << rend - rstart << std::endl;
     return 0;
   }
 

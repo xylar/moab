@@ -84,28 +84,28 @@ namespace moab
     HYPRE_IJMatrixCreate(pcomm->comm(), row_starts[0], row_starts[1], row_starts[0], row_starts[1], &A);
     /* Choose a parallel csr format storage (see the User's Manual) */
     HYPRE_IJMatrixSetObjectType(A, HYPRE_PARCSR);
+
+    int locsize = row_starts[1]-row_starts[0]+1;
+    int num_procs, rank;
+    MPI_Comm_size(pcomm->comm(), &num_procs);
+    MPI_Comm_rank(pcomm->comm(), &rank);
+
+    if (nnz_pr_diag != 0 || nnz_pr_offdiag != 0) {
+      if (num_procs > 1) {
+        std::vector<HYPRE_Int> m_nnz_pr_diag(locsize, nnz_pr_diag);
+        std::vector<HYPRE_Int> m_onz_pr_diag(locsize, nnz_pr_offdiag);
+        HYPRE_IJMatrixSetDiagOffdSizes(A, &m_nnz_pr_diag[0], &m_onz_pr_diag[0]);
+      }
+      else {
+        std::vector<HYPRE_Int> m_nnz_pr_diag(locsize, nnz_pr_diag);
+        HYPRE_IJMatrixSetRowSizes(A, &m_nnz_pr_diag[0]);
+      }
+    }
+
     /* Initialize before setting coefficients */
     HYPRE_IJMatrixInitialize(A);
     /* Get the parcsr matrix object to use */
     HYPRE_IJMatrixGetObject(A, (void **) &A_parcsr);
-
-    int num_procs;
-    MPI_Comm_size(pcomm->comm(), &num_procs);
-    if (num_procs > 1) {
-      if (nnz_pr_diag == 0 && nnz_pr_offdiag == 0) {
-        std::cout << "Parameter nnz_pr_diag cannot be null.\n";
-        moab_hypre_assert_t(nnz_pr_diag, true);
-      }
-
-      std::vector<HYPRE_Int> m_nnz_pr_diag(row_starts[1]-row_starts[0], nnz_pr_diag);
-      std::vector<HYPRE_Int> m_onz_pr_diag(row_starts[1]-row_starts[0], nnz_pr_offdiag);
-      HYPRE_IJMatrixSetDiagOffdSizes(A, &m_nnz_pr_diag[0], &m_onz_pr_diag[0]);
-    }
-    else {
-      std::vector<HYPRE_Int> m_nnz_pr_diag(row_starts[1]-row_starts[0], nnz_pr_diag);
-      HYPRE_IJMatrixSetRowSizes(A, &m_nnz_pr_diag[0]);
-    }
-    
 
     /* define an interpreter for the ParCSR interface */
     HYPRE_MatvecFunctions matvec_fn;
@@ -132,18 +132,14 @@ namespace moab
     HYPRE_IJMatrixCreate(pcomm->comm(), row_starts[0], row_starts[1], col_starts[0], col_starts[1], &A);
     /* Choose a parallel csr format storage (see the User's Manual) */
     HYPRE_IJMatrixSetObjectType(A, HYPRE_PARCSR);
-    /* Initialize before setting coefficients */
-    HYPRE_IJMatrixInitialize(A);
-    /* Get the parcsr matrix object to use */
-    HYPRE_IJMatrixGetObject(A, (void **) &A_parcsr);
 
     int num_procs;
     MPI_Comm_size(pcomm->comm(), &num_procs);
 
     /* Set the matrix pre-allocation data */
     if (num_procs > 1) {
-      if (nnz_pr_diag == NULL && nnz_pr_offdiag == NULL) {
-        std::cout << "Parameter nnz_pr_diag and nnz_pr_offdiag cannot be NULL.\n";
+      if (nnz_pr_diag == NULL && onz_pr_diag == NULL) {
+        std::cout << "Parameter nnz_pr_diag and onz_pr_diag cannot be NULL.\n";
         moab_hypre_assert_t(nnz_pr_diag, true);
       }
 
@@ -156,6 +152,11 @@ namespace moab
     if (nnz_pr_offdiag) {
       HYPRE_IJMatrixSetMaxOffProcElmts(A, nnz_pr_offdiag);
     }
+
+    /* Initialize before setting coefficients */
+    HYPRE_IJMatrixInitialize(A);
+    /* Get the parcsr matrix object to use */
+    HYPRE_IJMatrixGetObject(A, (void **) &A_parcsr);
 
     /* define an interpreter for the ParCSR interface */
     HYPRE_MatvecFunctions matvec_fn;
@@ -519,19 +520,19 @@ namespace moab
   HYPRE_Int HypreParMatrix::GetValues(const HYPRE_Int nrows, HYPRE_Int *ncols, HYPRE_Int *rows,
                                       HYPRE_Int *cols, HYPRE_Complex *values)
   {
-    return ::HYPRE_IJMatrixGetValues(A, nrows, ncols, rows, cols, values);
+    return HYPRE_IJMatrixGetValues(A, nrows, ncols, rows, cols, values);
   }
 
   HYPRE_Int HypreParMatrix::SetValues(const HYPRE_Int nrows, HYPRE_Int *ncols, const HYPRE_Int *rows,
                                       const HYPRE_Int *cols, const HYPRE_Complex *values)
   {
-    return ::HYPRE_IJMatrixSetValues(A, nrows, ncols, rows, cols, values);
+    return HYPRE_IJMatrixSetValues(A, nrows, ncols, rows, cols, values);
   }
 
   HYPRE_Int HypreParMatrix::AddToValues(const HYPRE_Int nrows, HYPRE_Int *ncols,
                                         const HYPRE_Int *rows, const HYPRE_Int *cols, const HYPRE_Complex *values)
   {
-    return ::HYPRE_IJMatrixAddToValues(A, nrows, ncols, rows, cols, values);
+    return HYPRE_IJMatrixAddToValues(A, nrows, ncols, rows, cols, values);
   }
 
   HYPRE_Int HypreParMatrix::verbosity(const HYPRE_Int level)
