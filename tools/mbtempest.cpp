@@ -545,7 +545,7 @@ moab::ErrorCode CreateTempestMesh ( ToolContext& ctx, moab::TempestRemapper& rem
     }
     else   // default
     {
-        err = GenerateCSMesh ( *tempest_mesh, ctx.blockSize, false, ctx.outFilename );
+        err = GenerateCSMesh ( *tempest_mesh, ctx.blockSize, true, ctx.outFilename );
 
         if ( err ) { rval = moab::MB_FAILURE; }
         else
