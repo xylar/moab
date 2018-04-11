@@ -85,6 +85,10 @@ public:
 
     moab::EntityHandle GetMeshSet(Remapper::IntersectionContext ctx) const;
 
+    moab::Range& GetMeshEntities(Remapper::IntersectionContext ctx);
+
+    const moab::Range& GetMeshEntities(Remapper::IntersectionContext ctx) const;
+
     moab::EntityHandle& GetCoveringSet();
 
     void SetMeshType(Remapper::IntersectionContext ctx, TempestMeshType type);
@@ -227,6 +231,45 @@ moab::EntityHandle TempestRemapper::GetMeshSet(Remapper::IntersectionContext ctx
         case Remapper::DEFAULT:
         default:
             MB_SET_ERR_RET_VAL("Invalid context passed to GetMeshSet", m_overlap_set);
+    }
+}
+
+
+inline
+moab::Range& TempestRemapper::GetMeshEntities(Remapper::IntersectionContext ctx)
+{
+    switch(ctx)
+    {
+        case Remapper::SourceMesh:
+            return m_source_entities;
+        case Remapper::TargetMesh:
+            return m_target_entities;
+        case Remapper::IntersectedMesh:
+            return m_overlap_entities;
+        case Remapper::CoveringMesh:
+            return m_covering_source_entities;
+        case Remapper::DEFAULT:
+        default:
+            MB_SET_ERR_RET_VAL("Invalid context passed to GetMeshSet", m_overlap_entities);
+    }
+}
+
+inline
+const moab::Range& TempestRemapper::GetMeshEntities(Remapper::IntersectionContext ctx) const
+{
+    switch(ctx)
+    {
+        case Remapper::SourceMesh:
+            return m_source_entities;
+        case Remapper::TargetMesh:
+            return m_target_entities;
+        case Remapper::IntersectedMesh:
+            return m_overlap_entities;
+        case Remapper::CoveringMesh:
+            return m_covering_source_entities;
+        case Remapper::DEFAULT:
+        default:
+            MB_SET_ERR_RET_VAL("Invalid context passed to GetMeshSet", m_overlap_entities);
     }
 }
 

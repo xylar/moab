@@ -177,6 +177,8 @@ protected: // so it can be accessed in derived classes, InPlane and OnSphere
 
   Tag neighRedEdgeTag; // will store edge borders for each red cell
 
+  Tag orgSendProcTag; /// for coverage mesh, will store the original sender
+
   //EntityType type; // this will be tri, quad or MBPOLYGON...
 
   const EntityHandle * redConn;

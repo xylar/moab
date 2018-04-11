@@ -126,12 +126,12 @@ namespace moab
       /** Sets the data of the HYPRE_IJVector to _data.
           Must be the same length as the current local size of the vector.
           If not, this can lead to an inconsistent vector setup. */
-      HYPRE_Int SetData(double *_data);
+      HYPRE_Int SetData(double *p_data, HYPRE_Int *p_col=NULL);
 
       /** Add the data of the HYPRE_IJVector to _data.
           Must be the same length as the current local size of the vector.
           If not, this can lead to an inconsistent vector setup. */
-      HYPRE_Int AddData(double *_data);
+      HYPRE_Int AddData(double *p_data, HYPRE_Int *p_col=NULL);
 
       HYPRE_Int verbosity(const HYPRE_Int level);
 

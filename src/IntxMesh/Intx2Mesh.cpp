@@ -25,6 +25,7 @@ int Intx2Mesh::dbg_1=0;
 Intx2Mesh::Intx2Mesh(Interface * mbimpl): mb(mbimpl),
   mbs1(0), mbs2(0), outSet(0),
   gid(0), RedFlagTag(0), redParentTag(0), blueParentTag(0), countTag(0), blueNeighTag(0), redNeighTag(0), neighRedEdgeTag(0),
+  orgSendProcTag(0),
   redConn(NULL), blueConn(NULL),
   epsilon_1(0.0), epsilon_area(0.0), box_error(0.0),
   localRoot(0), my_rank(0)
@@ -1228,14 +1229,58 @@ ErrorCode Intx2Mesh::construct_covering_set(EntityHandle & initial_distributed_s
   assert(parcomm != NULL);
   if ( 1==parcomm->proc_config().proc_size())
   {
-    covering_set = initial_distributed_set; // nothing to communicate, it must be serial
+    covering_set = initial_distributed_set; // nothing to move around, it must be serial
     return MB_SUCCESS;
   }
 
-  Range meshCells;
-  ErrorCode rval = mb->get_entities_by_dimension(initial_distributed_set, 2, meshCells);MB_CHK_SET_ERR(rval, "can't get cells by dimension from mesh set");
+  // primary element came from, in the joint communicator ; this will be forwarded by coverage mesh
+  int defaultInt=-1; // no processor, so it was not migrated from somewhere else
+  ErrorCode rval = mb->tag_get_handle("orig_sending_processor", 1, MB_TYPE_INTEGER, orgSendProcTag,
+      MB_TAG_DENSE | MB_TAG_CREAT, &defaultInt);MB_CHK_SET_ERR(rval, "can't create original sending processor tag");
 
-  // get all mesh verts
+  // this information needs to be forwarded to coverage mesh, if this mesh was already migrated from somewhere else
+  Range meshCells;
+  rval = mb->get_entities_by_dimension(initial_distributed_set, 2, meshCells);MB_CHK_SET_ERR(rval, "can't get cells by dimension from mesh set");
+
+  // look at the value of orgSendProcTag for one mesh cell; if -1, no need to forward that; if !=-1,
+  // we know that this mesh was migrated, we need to find out more about origin of cell
+  int orig_sender =-1;
+  EntityHandle oneCell= meshCells[0];
+  rval = mb->tag_get_data(orgSendProcTag, &oneCell, 1, &orig_sender); MB_CHK_SET_ERR(rval, "can't get original sending processor value");
+
+  int migrated_mesh = 0;
+  if (orig_sender != -1) migrated_mesh = 1; //
+
+  // decide if we need to transfer global DOFs info attached to each HOMME coarse cell; first we need to decide if the mesh
+  // has that tag; will affect the size of the tuple list involved in the crystal routing
+  int size_gdofs_tag=0;
+  std::vector<int> valsDOFs;
+  Tag gdsTag;
+  rval = mb->tag_get_handle("GLOBAL_DOFS", gdsTag);
+  if (MB_SUCCESS == rval && gdsTag)
+  {
+    DataType dtype;
+    rval = mb->tag_get_data_type(gdsTag, dtype);
+    if (MB_SUCCESS == rval && MB_TYPE_INTEGER == dtype)
+    {
+      // find the values on first cell
+      int lenTag = 0;
+      rval = mb->tag_get_length(gdsTag, lenTag);
+      if (MB_SUCCESS == rval && lenTag > 0)
+      {
+        valsDOFs.resize(lenTag);
+        rval = mb->tag_get_data(gdsTag, &oneCell, 1, &valsDOFs[0]);
+        if (MB_SUCCESS == rval && valsDOFs[0]>0 )
+        {
+          // first value positive means we really need to transport this data during coverage
+          size_gdofs_tag = lenTag;
+        }
+      }
+    }
+  }
+  // if size_gdofs_tag>0, we are sure valsDOFs got resized to what we need
+
+  // get all mesh verts1
   Range mesh_verts;
   rval = mb->get_connectivity(meshCells, mesh_verts);MB_CHK_SET_ERR(rval, "can't get  mesh vertices");
   int num_mesh_verts = (int) mesh_verts.size();
@@ -1316,8 +1361,9 @@ ErrorCode Intx2Mesh::construct_covering_set(EntityHandle & initial_distributed_s
   TLv.initialize(2, 0, 0, 3, numv); // to proc, GLOBAL ID, 3 real coordinates
   TLv.enableWriteAccess();
 
-  int sizeTuple = 2 + max_edges_1; // max edges could be up to MAXEDGES :) for polygons
-  TLq.initialize(2+max_edges_1, 0, 0, 0, numq); // to proc, elem GLOBAL ID, connectivity[max_edges] (global ID v)
+  // add also GLOBAL_DOFS info, if found on the mesh cell; it should be found only on HOMME cells!
+  int sizeTuple = 2 + max_edges_1 + migrated_mesh + size_gdofs_tag; // max edges could be up to MAXEDGES :) for polygons
+  TLq.initialize(sizeTuple, 0, 0, 0, numq); // to proc, elem GLOBAL ID, connectivity[max_edges] (global ID v), plus original sender if set (migrated mesh case)
   // we will not send the entity handle, global ID should be more than enough
   // we will not need more than 2B vertices
   // if we need more than 2B, we will need to use a different marker anyway (GLOBAL ID is not enough then)
@@ -1376,6 +1422,23 @@ ErrorCode Intx2Mesh::construct_covering_set(EntityHandle & initial_distributed_s
       {
         TLq.vi_wr[sizeTuple * n + 2 + k] = 0; // fill the rest of node ids with 0; we know that the node ids start from 1!
       }
+      int currentIndexIntTuple = 2+max_edges_1;
+      // is the mesh migrated before or not?
+      if (migrated_mesh)
+      {
+        rval = mb->tag_get_data(orgSendProcTag, &q, 1, &orig_sender);MB_CHK_SET_ERR(rval, "can't get original sender for polygon, in migrate scenario");
+        TLq.vi_wr[sizeTuple * n + currentIndexIntTuple] = orig_sender; // should be different than -1
+        currentIndexIntTuple ++;
+      }
+      // GLOBAL_DOFS info, if available
+      if (size_gdofs_tag)
+      {
+        rval = mb->tag_get_data(gdsTag, &q, 1, &valsDOFs[0]);MB_CHK_SET_ERR(rval, "can't get gdofs data in HOMME");
+        for (int i=0; i<size_gdofs_tag; i++)
+        {
+          TLq.vi_wr[sizeTuple * n + currentIndexIntTuple + i] = valsDOFs[i]; // should be different than 0 or -1
+        }
+      }
 
       TLq.inc_n(); // increment tuple list size
 
@@ -1426,7 +1489,7 @@ ErrorCode Intx2Mesh::construct_covering_set(EntityHandle & initial_distributed_s
 
   Range & local = Rto[my_rank];
   Range local_q = local.subset_by_dimension(2);
-  // the local should have all the vertices in lagr_verts
+
   for (Range::iterator it = local_q.begin(); it != local_q.end(); ++it)
   {
     EntityHandle q = *it;// these are from lagr cells, local
@@ -1448,7 +1511,7 @@ ErrorCode Intx2Mesh::construct_covering_set(EntityHandle & initial_distributed_s
     // do we already have a quad with this global ID, represented? no way !
     //if (globalID_to_eh.find(globalIdEl) == globalID_to_eh.end())
     //{
-    // construct the conn quad
+    // construct the conn triangle , quad or polygon
     EntityHandle new_conn[MAXEDGES]; // we should use std::vector with max_edges_1
     int nnodes = -1;
     for (int j = 0; j < max_edges_1; j++)
@@ -1475,11 +1538,26 @@ ErrorCode Intx2Mesh::construct_covering_set(EntityHandle & initial_distributed_s
     globalID_to_eh[globalIdEl] = new_element;
     local_q.insert(new_element);
     rval = mb->tag_set_data(gid, &new_element, 1, &globalIdEl);MB_CHK_SET_ERR(rval, "can't set gid for cell ");
+    int currentIndexIntTuple = 2 + max_edges_1;
+    if (migrated_mesh)
+    {
+      orig_sender = TLq.vi_wr[sizeTuple * i + currentIndexIntTuple];
+      rval = mb->tag_set_data(orgSendProcTag, &new_element, 1, &orig_sender);MB_CHK_SET_ERR(rval, "can't set original sender for polygon, in migrate scenario");
+      currentIndexIntTuple ++;// add one more
+    }
+    // check if we need to retrieve and set GLOBAL_DOFS data
+    if (size_gdofs_tag)
+    {
+      for (int j=0; j<size_gdofs_tag; j++)
+      {
+        valsDOFs[j] = TLq.vi_wr[sizeTuple * i + currentIndexIntTuple + j];
+      }
+      rval = mb->tag_set_data(gdsTag, &new_element, 1, &valsDOFs[0]);MB_CHK_SET_ERR(rval, "can't set GLOBAL_DOFS data on coverage mesh");
+    }
   }
 
   // now, create a new set, covering_set
   rval = mb->add_entities(covering_set, local_q);MB_CHK_SET_ERR(rval,  "can't add entities to new mesh set ");
-
   return MB_SUCCESS;
 }
 

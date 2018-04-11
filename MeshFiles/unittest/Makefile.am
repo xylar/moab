@@ -66,5 +66,7 @@ EXTRA_DIST = 125hex.g \
              circle_10.vtk \
              circle_20.vtk \
              torus_tris_12.vtk \
-             field1.h5m
+             field1.h5m \
+             atm.h5m \
+             mpas.h5m
 

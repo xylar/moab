@@ -44,11 +44,13 @@ struct ToolContext
         std::vector<moab::EntityHandle> meshsets;
         std::vector<int> disc_orders;
         std::vector<std::string> disc_methods;
+        std::vector<std::string> doftag_names;
         std::string outFilename;
         moab::TempestRemapper::TempestMeshType meshType;
         const int proc_id, n_procs;
         bool computeDual;
         bool computeWeights;
+        int ensureMonotonicity;
         bool fNoConservation;
         bool fVolumetric;
         moab::DebugOutput outStream;
@@ -56,10 +58,12 @@ struct ToolContext
         ToolContext ( int procid, int nprocs ) :
             blockSize ( 5 ), outFilename ( "output.exo" ), meshType ( moab::TempestRemapper::DEFAULT ),
             proc_id ( procid ), n_procs ( nprocs ),
-            computeDual ( false ), computeWeights ( false ), fNoConservation ( false ), fVolumetric ( false ),
+            computeDual ( false ), computeWeights ( false ), ensureMonotonicity ( 0 ), 
+            fNoConservation ( false ), fVolumetric ( false ),
             outStream ( std::cout, procid )
         {
             inFilenames.resize ( 2 );
+            doftag_names.resize( 2 );
             timer = new moab::CpuTimer();
         }
 
@@ -94,6 +98,7 @@ struct ToolContext
             int imeshType = 0;
             std::string expectedFName = "output.exo";
             std::string expectedMethod = "fv";
+            std::string expectedDofTagName = "GLOBAL_ID";
             int expectedOrder = 1;
 
             opts.addOpt<int> ( "res,r", "Resolution of the mesh (default=5)", &blockSize );
@@ -103,9 +108,11 @@ struct ToolContext
             opts.addOpt<void> ( "weights,w", "Compute and output the weights using the overlap mesh (generally relevant only for OVERLAP mesh)", &computeWeights );
             opts.addOpt<void> ( "noconserve,c", "Do not apply conservation to the resultant weights (relevant only when computing weights)", &fNoConservation );
             opts.addOpt<void> ( "volumetric,v", "Apply a volumetric projection to compute the weights (relevant only when computing weights)", &fVolumetric );
+            opts.addOpt<int> ( "monotonic,n", "Ensure monotonicity in the weight generation", &ensureMonotonicity );
             opts.addOpt<std::string> ( "load,l", "Input mesh filenames (a source and target mesh)", &expectedFName );
             opts.addOpt<int> ( "order,o", "Discretization orders for the source and target solution fields", &expectedOrder );
             opts.addOpt<std::string> ( "method,m", "Discretization method for the source and target solution fields", &expectedMethod );
+            opts.addOpt<std::string> ( "global_id,i", "Tag name that contains the global DoF IDs for source and target solution fields", &expectedDofTagName );
 
             opts.parseCommandLine ( argc, argv );
 
@@ -145,6 +152,7 @@ struct ToolContext
                 opts.getOptAllArgs ( "load,l", inFilenames );
                 opts.getOptAllArgs ( "order,o", disc_orders );
                 opts.getOptAllArgs ( "method,m", disc_methods );
+                opts.getOptAllArgs ( "global_id,i", doftag_names );
 
                 if ( disc_orders.size() == 0 )
                 { disc_orders.resize ( 2, 1 ); }
@@ -173,8 +181,6 @@ struct ToolContext
 
 // Forward declare some methods
 moab::ErrorCode CreateTempestMesh ( ToolContext&, moab::TempestRemapper& remapper, Mesh* );
-moab::ErrorCode testme(moab::Interface* mbCore, moab::ParallelComm* pcomm);
-int apply_map(moab::Interface* mbCore, moab::ParallelComm* pcomm);
 
 int main ( int argc, char* argv[] )
 {
@@ -200,9 +206,6 @@ int main ( int argc, char* argv[] )
     remapper.meshValidate = true;
     remapper.constructEdgeMap = true;
     remapper.initialize();
-
-    // testme(mbCore, pcomm);
-    // apply_map(mbCore, pcomm);
 
     Mesh* tempest_mesh = new Mesh();
     ctx.timer_push ( "create Tempest mesh" );
@@ -396,16 +399,18 @@ int main ( int argc, char* argv[] )
             ctx.timer_pop();
 
             ctx.timer_push ( "compute weights with TempestRemap" );
+
             rval = weightMap->GenerateOfflineMap ( ctx.disc_methods[0], ctx.disc_methods[1],        // std::string strInputType, std::string strOutputType,
                                                    ctx.disc_orders[0],  ctx.disc_orders[1],  // int nPin=4, int nPout=4,
-                                                   false, 0,            // bool fBubble=false, int fMonotoneTypeID=0,
+                                                   false, ctx.ensureMonotonicity,            // bool fBubble=false, int fMonotoneTypeID=0,
                                                    ctx.fVolumetric, ctx.fNoConservation, false, // bool fVolumetric=false, bool fNoConservation=false, bool fNoCheck=false,
+                                                   ctx.doftag_names[0], ctx.doftag_names[1],
                                                    "", //"",   // std::string strVariables="", std::string strOutputMap="",
                                                    "", "",   // std::string strInputData="", std::string strOutputData="",
                                                    "", false,  // std::string strNColName="", bool fOutputDouble=false,
                                                    "", false, 0.0,   // std::string strPreserveVariables="", bool fPreserveAll=false, double dFillValueOverride=0.0,
                                                    false, false   // bool fInputConcave = false, bool fOutputConcave = false
-                                                 );
+                                                 );MB_CHK_ERR ( rval );
             ctx.timer_pop();
 
 #if 0
@@ -557,107 +562,3 @@ moab::ErrorCode CreateTempestMesh ( ToolContext& ctx, moab::TempestRemapper& rem
 
     return rval;
 }
-
-
-moab::ErrorCode testme(moab::Interface* mbCore, moab::ParallelComm* pcomm)
-{
-    moab::ErrorCode rval;
-    moab::TempestRemapper remapper ( mbCore, pcomm );
-    remapper.meshValidate = true;
-    remapper.constructEdgeMap = true;
-    remapper.initialize();
-
-    // Load the source mesh and validate
-    // moab::EntityHandle src_meshset = remapper.GetMeshSet ( moab::Remapper::SourceMesh );
-    // rval = remapper.LoadNativeMesh ( "iulian/new/blu.wholeFineATM.h5m", src_meshset, 0 ); MB_CHK_ERR ( rval );
-    // rval = remapper.ConvertMeshToTempest ( moab::Remapper::SourceMesh ); MB_CHK_ERR ( rval );
-
-    rval = remapper.LoadMesh(moab::Remapper::SourceMesh, "iulian/grids/129x256_SCRIP.20150901.nc", moab::TempestRemapper::ICOD);MB_CHK_ERR ( rval );
-    rval = remapper.ConvertTempestMesh ( moab::Remapper::SourceMesh ); MB_CHK_ERR ( rval );
-    moab::EntityHandle src_meshset = remapper.GetMeshSet ( moab::Remapper::SourceMesh );
-    rval = ScaleToRadius(mbCore, src_meshset, 1.0);MB_CHK_ERR ( rval );
-
-    // Load the target mesh and validate
-    rval = remapper.LoadMesh(moab::Remapper::TargetMesh, "iulian/grids/ne30.g", moab::TempestRemapper::CS);MB_CHK_ERR ( rval );
-    rval = remapper.ConvertTempestMesh ( moab::Remapper::TargetMesh ); MB_CHK_ERR ( rval );
-    moab::EntityHandle tgt_meshset = remapper.GetMeshSet ( moab::Remapper::TargetMesh );
-    rval = ScaleToRadius(mbCore, tgt_meshset, 1.0);MB_CHK_ERR ( rval );
-
-    // rval = remapper.LoadMesh(moab::Remapper::SourceMesh, "iulian/grids/129x256_SCRIP.20150901.nc", moab::TempestRemapper::ICOD);MB_CHK_ERR ( rval );
-    // rval = remapper.LoadMesh(moab::Remapper::SourceMesh, "iulian/new/map_ne30np4_to_oEC60to30v3_conserve_161222.nc", moab::TempestRemapper::ICOD);MB_CHK_ERR ( rval );
-    // rval = remapper.ConvertTempestMesh ( moab::Remapper::SourceMesh ); MB_CHK_ERR ( rval );
-    // moab::EntityHandle meshset = remapper.GetMeshSet ( moab::Remapper::SourceMesh );
-    
-
-    // rval = mbCore->write_file ( "moab_scrip_file2.h5m", NULL, "PARALLEL=WRITE_PART", &meshset, 1 ); MB_CHK_ERR ( rval );
-
-    rval = remapper.ComputeOverlapMesh ( 1e-5 ); MB_CHK_ERR ( rval );
-
-    {
-        // Now let us re-convert the MOAB mesh back to Tempest representation
-        // rval = remapper.ConvertMeshToTempest(moab::Remapper::IntersectedMesh);MB_CHK_ERR(rval);
-        rval = remapper.AssociateSrcTargetInOverlap(); MB_CHK_ERR ( rval );
-        rval = remapper.ConvertMOABMesh_WithSortedEntitiesBySource(); MB_CHK_ERR ( rval );
-    }
-
-
-    // Call to generate an offline map with the tempest meshes
-    moab::TempestOfflineMap* weightMap = new moab::TempestOfflineMap ( &remapper );
-
-    rval = weightMap->GenerateOfflineMap ( "cgll", "fv",        // std::string strInputType, std::string strOutputType,
-                                           4,  1,  // int nPin=4, int nPout=4,
-                                           false, 0,            // bool fBubble=false, int fMonotoneTypeID=0,
-                                           false, false, false, // bool fVolumetric=false, bool fNoConservation=false, bool fNoCheck=false,
-                                           "", //"",   // std::string strVariables="", std::string strOutputMap="",
-                                           "", "",   // std::string strInputData="", std::string strOutputData="",
-                                           "", false,  // std::string strNColName="", bool fOutputDouble=false,
-                                           "", false, 0.0,   // std::string strPreserveVariables="", bool fPreserveAll=false, double dFillValueOverride=0.0,
-                                           false, false   // bool fInputConcave = false, bool fOutputConcave = false
-                                         );
-
-
-    weightMap->Write("outWeights.nc");
-
-    delete weightMap;
-
-    return moab::MB_SUCCESS;
-}
-
-
-#include "Announce.h"
-#include "CommandLine.h"
-#include "Exception.h"
-#include "OfflineMap.h"
-
-#include "TempestRemapAPI.h"
-
-///////////////////////////////////////////////////////////////////////////////
-
-int apply_map(moab::Interface* mbCore, moab::ParallelComm* pcomm)
-{
-    moab::ErrorCode rval;
-    moab::TempestRemapper remapper ( mbCore, pcomm );
-    remapper.meshValidate = true;
-    remapper.constructEdgeMap = true;
-    // remapper.initialize();
-
-    // OfflineMap
-    moab::TempestOfflineMap mapRemap(&remapper);
-    mapRemap.Read("iulian/comparison/map_ne11np4_to_oQU240_aave.160614.nc");
-    mapRemap.SetFillValueOverride(static_cast<float>(0));
-
-    mapRemap.Hypre_CopyTempestSparseMat();
-    mapRemap.WriteParallelWeightsToFile("map_ne11np4_to_oQU240_aave_esmf.mat");
-
-    // OfflineMap
-    moab::TempestOfflineMap mapRemapT(&remapper);
-    mapRemapT.Read("iulian/comparison/map_ne11np4_to_oQU240_SE4FV.nc");
-    mapRemapT.SetFillValueOverride(static_cast<float>(0));
-
-    mapRemapT.Hypre_CopyTempestSparseMat();
-    mapRemapT.WriteParallelWeightsToFile("map_ne11np4_to_oQU240_SE4FV_tempest.mat");
-
-    return 0;
-}
-
-///////////////////////////////////////////////////////////////////////////////

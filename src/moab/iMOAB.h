@@ -715,6 +715,25 @@ ErrCode iMOAB_ReceiveElementTag(iMOAB_AppID pid, int* scompid, int* rcompid, con
 ErrCode iMOAB_ComputeMeshIntersectionOnSphere ( iMOAB_AppID pid_source, iMOAB_AppID pid_target, iMOAB_AppID pid_intersection);
 
 /**
+  \brief Recompute the communication graph between component and coupler, considering intx coverage .
+  \note
+  Original communication graph used an initial partition, while during intx some of the source elements were sent to
+  multiple tasks; send back the intx coverage information for a direct communication between tasks on coupler and
+  interested tasks on the component source mesh
+  The intersection tasks will send to the original source component tasks, in a nonblocking way, the ids of all the cells
+  involved in intx with the target cells
+  on component source tasks, we will wait for information; from each intx task, will receive cells ids involved in intx
+  \param[in]  join (MPI_Comm)                        communicator that overlaps component source PEs and coupler PEs
+  \param[in]  pid_src (iMOAB_AppID)                  moab id for the component mesh on component PE
+  \param[in]  scompid (int*)                         external id of application source
+  \param[in]  pid_migr (iMOAB_AppID)                 moab id for the migrated mesh on coupler PEs
+  \param[in]  migrcomp (int*)                        external id of migrated application to coupler PEs
+  \param[in]  pid_intx (iMOAB_AppID)                 moab id for intersection mesh (on coupler PEs)
+
+  */
+ErrCode iMOAB_CoverageGraph(MPI_Comm* join, iMOAB_AppID pid_src, int* scompid, iMOAB_AppID pid_migr, int* migrcomp, iMOAB_AppID pid_intx);
+
+/**
   \brief Compute the projection weights to transfer a solution from a source surface mesh to a destination mesh defined on a sphere. 
   The intersection of the mesh should be computed a-priori.
 
@@ -737,6 +756,7 @@ ErrCode iMOAB_ComputeMeshIntersectionOnSphere ( iMOAB_AppID pid_source, iMOAB_Ap
   \param[in] disc_method_tgt_length   (int)       The length of the discretization type string on the target mesh
   
 */
+
 ErrCode iMOAB_ComputeScalarProjectionWeights ( iMOAB_AppID pid_intersection, 
                                                const iMOAB_String disc_method_source, int* disc_order_source,
                                                const iMOAB_String disc_method_target, int* disc_order_target,
@@ -758,7 +778,6 @@ ErrCode iMOAB_ComputeScalarProjectionWeights ( iMOAB_AppID pid_intersection,
 */
 ErrCode iMOAB_ApplyScalarProjectionWeights (   iMOAB_AppID pid_intersection, 
                                                const iMOAB_String soln_tag_name,
-                                               int*  esoln_size, int*  esoln_owner,
                                                int soln_tag_name_length );
 
 #endif

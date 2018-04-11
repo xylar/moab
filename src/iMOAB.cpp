@@ -78,6 +78,7 @@ struct appData
 
 #ifdef MOAB_HAVE_TEMPESTREMAP
 	moab::TempestRemapper* remapper;
+    moab::TempestOfflineMap* weightMap;
 	iMOAB_AppID pid_src;
 	iMOAB_AppID pid_dest;
 #endif
@@ -506,18 +507,36 @@ ErrCode iMOAB_LoadMesh ( iMOAB_AppID pid, const iMOAB_String filename, const iMO
         return 1;
     }
 
-    int nprocs = context.pcomms[*pid]->size();
+    // in serial, apply PARALLEL_COMM option only for h5m files; it does not work for .g files (used in test_remapping)
+    std::string filen(filename);
+    std::string::size_type idx = filen.rfind('.');
 
-    if (nprocs > 1) {
-    	newopts << ";PARALLEL_COMM=" << *pid;
+    if(idx != std::string::npos)
+    {
+      std::string extension = filen.substr(idx+1);
+      if (extension == std::string("h5m"))
+          newopts << ";;PARALLEL_COMM=" << *pid;
+    }
 
-		if ( *num_ghost_layers >= 1 )
-		{
-			// if we want ghosts, we will want additional entities, the last .1
-			// because the addl ents can be edges, faces that are part of the neumann sets
-			newopts << ";PARALLEL_GHOSTS=3.0." << *num_ghost_layers << ".3";
-		}
-	}
+
+    if ( *num_ghost_layers >= 1 )
+    {
+      // if we want ghosts, we will want additional entities, the last .1
+      // because the addl ents can be edges, faces that are part of the neumann sets
+      std::string pcid2 ( "PARALLEL_GHOSTS=" );
+      std::size_t found2 = opts.find ( pcid2 );
+
+      if ( found2 != std::string::npos )
+      {
+          std::cout << " PARALLEL_GHOSTS option is already specified, ignore passed number of layers \n";
+      }
+      else
+      {
+        // dimension of primary entities is 3 here, but it could be 2 for climate meshes; we would need to pass
+        // PARALLEL_GHOSTS explicitly for 2d meshes, for example:  ";PARALLEL_GHOSTS=2.0.1"
+        newopts << ";PARALLEL_GHOSTS=3.0." << *num_ghost_layers << ".3";
+      }
+    }
 
 #else
     *num_ghost_layers = 0; // do not use in case of serial run
@@ -531,13 +550,14 @@ ErrCode iMOAB_LoadMesh ( iMOAB_AppID pid, const iMOAB_String filename, const iMO
     std::ostringstream outfile;
 #ifdef MOAB_HAVE_MPI
     int rank = context.pcomms[*pid]->rank();
+    int nprocs = context.pcomms[*pid]->size();
     outfile << "TaskMesh_n" << nprocs << "." << rank << ".h5m";
 #else
     outfile << "TaskMesh_n1.0.h5m";
 #endif
     // the mesh contains ghosts too, but they are not part of mat/neumann set
     // write in serial the file, to see what tags are missing
-    rval = context.MBI->write_file ( outfile.str().c_str() ); // everything on root
+    rval = context.MBI->write_file ( outfile.str().c_str() ); // everything on current task, written in serial
     CHKERRVAL(rval);
 
 #endif
@@ -2202,7 +2222,7 @@ ErrCode iMOAB_ComputeMeshIntersectionOnSphere ( iMOAB_AppID pid_src, iMOAB_AppID
     // Create the intersection object on the sphere between two meshes
 	// setup the intersector 
 	moab::Intx2MeshOnSphere *mbintx = new moab::Intx2MeshOnSphere( context.MBI );
-	mbintx->SetErrorTolerance ( epsrel );
+	mbintx->set_error_tolerance ( epsrel );
 	mbintx->set_box_error ( boxeps );
 	mbintx->set_radius_source_mesh ( 1.0 );
     mbintx->set_radius_destination_mesh ( 1.0 );
@@ -2229,6 +2249,15 @@ ErrCode iMOAB_ComputeMeshIntersectionOnSphere ( iMOAB_AppID pid_src, iMOAB_AppID
 	delete mbintx;
 #endif
 
+    {
+        // Now let us re-convert the MOAB mesh back to Tempest representation
+        rval = data_intx.remapper->AssociateSrcTargetInOverlap();CHKERRVAL(rval);
+        rval = data_intx.remapper->ConvertMOABMesh_WithSortedEntitiesBySource();CHKERRVAL(rval);
+    }
+
+    // Set the context for the OfflineMap computation
+    data_intx.weightMap = new moab::TempestOfflineMap ( data_intx.remapper );
+
     if (radii_scaled) { /* the radii are different, so lets rescale back */
         rval = ScaleToRadius(context.MBI, data_src.file_set, radius_source);CHKERRVAL(rval);
         rval = ScaleToRadius(context.MBI, data_tgt.file_set, radius_target);CHKERRVAL(rval);
@@ -2237,6 +2266,129 @@ ErrCode iMOAB_ComputeMeshIntersectionOnSphere ( iMOAB_AppID pid_src, iMOAB_AppID
     return 0;
 }
 
+// this call must be collective on the joint communicator
+//  intersection tasks on coupler will need to send to the components tasks the list of
+// id elements that are relevant: they intersected some of the target elements (which are not needed here)
+//  in the intersection
+ErrCode iMOAB_CoverageGraph(MPI_Comm* join, iMOAB_AppID pid_src, int* scompid, iMOAB_AppID pid_migr,
+    int* migrcomp, iMOAB_AppID pid_intx)
+{
+  // first, based on the scompid and migrcomp, find the parCommGraph corresponding to this exchange
+
+  ErrorCode rval;
+  std::vector<int> srcSenders;
+  std::vector<int> receivers;
+  ParCommGraph* sendGraph = NULL;
+  int sense = 0;
+  int ierr = FindParCommGraph(pid_src, scompid, migrcomp, sendGraph, &sense);
+  if ( 0 != ierr || NULL == sendGraph || sense != 1) {
+    std::cout<<" probably not on component source PEs \n";
+  }
+  else
+  {
+    // report the sender and receiver tasks in the joint comm
+    srcSenders = sendGraph->senders();
+    receivers = sendGraph->receivers();
+    std::cout << "senders: " << srcSenders.size() << " first sender: "<< srcSenders[0] << std::endl;
+  }
+  ParCommGraph * recvGraph = NULL;
+  int senseRec = 0;
+  ierr = FindParCommGraph(pid_migr, scompid, migrcomp, recvGraph, &senseRec);
+  if ( 0 != ierr || NULL == recvGraph ) {
+    std::cout << " not on receive PEs for migrated mesh \n";
+  }
+  else
+  {
+    // report the sender and receiver tasks in the joint comm, from migrated mesh pt of view
+    srcSenders = recvGraph->senders();
+    receivers = recvGraph->receivers();
+    std::cout << "receivers: " << receivers.size() << " first receiver: "<< receivers[0] << std::endl;
+  }
+
+  // loop over pid_intx elements, to see what original processors in joint comm have sent the coverage mesh
+  // if we are on intx tasks, send coverage info towards original component tasks, about needed cells
+  //
+  TupleList TLcovIDs;
+  TLcovIDs.initialize(2, 0, 0, 0, 0);// to proc, GLOBAL ID; estimate about 100 IDs to be sent
+  // will push_back a new tuple, if needed
+  TLcovIDs.enableWriteAccess();
+  // the crystal router will send ID cell to the original source, on the component task
+  // if we are on intx tasks, loop over all intx elements and
+
+  int currentRankInJointComm = -1;
+  ierr = MPI_Comm_rank(*join, &currentRankInJointComm);
+  if (MPI_SUCCESS != ierr)
+    return 1; // fatal error, abort
+
+  // if currentRankInJointComm is in receivers list, it means that we are on intx tasks too, we need to
+  // send information towards component tasks
+  if ( find(receivers.begin(), receivers.end(), currentRankInJointComm) != receivers.end() ) // we are on receivers tasks, we can request intx info
+  {
+    // find the pcomm for the intx pid
+    if (*pid_intx >= context.appDatas.size() )
+      return 1;
+    appData& dataIntx = context.appDatas[*pid_intx];
+    Tag parentTag ;
+    rval = context.MBI->tag_get_handle("BlueParent", parentTag); // id of the blue, source element
+    if (MB_SUCCESS != rval || !parentTag)
+      return 1; // fatal error, abort
+    Tag orgSendProcTag ;
+    rval = context.MBI->tag_get_handle("orig_sending_processor", orgSendProcTag);
+    if ( MB_SUCCESS != rval || !orgSendProcTag)
+      return 1; // fatal error, abort
+    // find the file set, red parents for intx cells, and put them in tuples
+    EntityHandle intxSet=dataIntx.file_set;
+    // get all entities from the set, and look at their RedParent
+    Range cells;
+    rval = context.MBI->get_entities_by_dimension(intxSet, 2, cells);
+    if (MB_SUCCESS != rval)
+      return 1; // fatal error, abort
+    std::map<int, std::set<int> > idsFromProcs; // send that info back to enhance parCommGraph cache
+    for (Range::iterator it=cells.begin(); it!=cells.end(); it++)
+    {
+      EntityHandle intx_cell = *it;
+      int gidCell, origProc; // look at receivers
+      rval = context.MBI->tag_get_data(parentTag, &intx_cell, 1, &gidCell);
+      if (MB_SUCCESS != rval)
+        return 1;
+      rval = context.MBI->tag_get_data(orgSendProcTag, &intx_cell, 1, &origProc); // in the
+      if (MB_SUCCESS != rval)
+        return 1;
+      std::set<int> &setInts = idsFromProcs[origProc];
+      setInts.insert(gidCell);
+      //std::cout << origProc << " id:" << gidCell << " size: " << setInts.size() << std::endl;
+    }
+
+    std::cout<<" map size:" << idsFromProcs.size() << std::endl;
+    // arrange in tuples , use map iterators to send the ids
+    for (std::map<int, std::set<int> >::iterator mit = idsFromProcs.begin(); mit!=idsFromProcs.end(); mit++)
+    {
+      int procToSendTo = mit->first;
+      std::set<int> & idSet = mit->second;
+      for (std::set<int>::iterator sit=idSet.begin(); sit!=idSet.end(); sit++)
+      {
+        int n=TLcovIDs.get_n();
+        TLcovIDs.reserve();
+        TLcovIDs.vi_wr[2*n] = procToSendTo; // send to processor
+        TLcovIDs.vi_wr[2*n+1] = *sit; // global id needs index in the local_verts range
+      }
+    }
+  }
+  ProcConfig pc(*join); // proc config does the crystal router
+  pc.crystal_router()->gs_transfer(1, TLcovIDs, 0); // communication towards component tasks, with what ids are needed
+  // for each task from receiver
+
+  // a test to know if we are on the sender tasks (original component, in this case, atmosphere)
+  if (NULL != sendGraph)
+  {
+    // collect TLcovIDs tuple, will set in a local map/set, the ids that are sent to each receiver task
+    rval = sendGraph->settle_send_graph(TLcovIDs);
+    if (MB_SUCCESS != rval)
+      return 1;
+  }
+  return 0;// success
+
+}
 
 ErrCode iMOAB_ComputeScalarProjectionWeights ( iMOAB_AppID pid_intx, 
                                                const iMOAB_String disc_method_source, int* disc_order_source,
@@ -2255,7 +2407,7 @@ ErrCode iMOAB_ComputeScalarProjectionWeights ( iMOAB_AppID pid_intx,
 	assert(disc_order_source && disc_order_target && *disc_order_source > 0 && *disc_order_target > 0);
 	assert(disc_method_source_length > 0 && disc_method_target_length > 0);
     assert(source_soln_tag_dof_name_length > 0 && target_soln_tag_dof_name_length > 0);
-
+    
     // Get the source and target data and pcomm objects
 	appData& data_intx = context.appDatas[*pid_intx];
     ParallelComm* pco_intx = context.pcomms[*pid_intx];
@@ -2263,27 +2415,21 @@ ErrCode iMOAB_ComputeScalarProjectionWeights ( iMOAB_AppID pid_intx,
 	// Now allocate and initialize the remapper object
     moab::TempestRemapper* remapper = data_intx.remapper;
 
-	{
-		// Now let us re-convert the MOAB mesh back to Tempest representation
-		rval = remapper->AssociateSrcTargetInOverlap();CHKERRVAL(rval);
-		rval = remapper->ConvertMOABMesh_WithSortedEntitiesBySource();CHKERRVAL(rval);
-	}
-
 	// Setup computation of weights
 	// Call to generate an offline map with the tempest meshes
-	moab::TempestOfflineMap* weightMap = new moab::TempestOfflineMap ( remapper );
+    moab::TempestOfflineMap* weightMap = data_intx.weightMap;
+    assert(weightMap != NULL);
 
     // Now let us compute the local-global mapping and store it in the context
     // We need this mapping when computing matvec products and to do reductions in parallel
-    weightMap->SetDofMapTags(source_soln_tag_dof_name, target_soln_tag_dof_name);
-
-	// compute weights with TempestRemap
+	// Additionally, the call below will also compute weights with TempestRemap
 	rval = weightMap->GenerateOfflineMap ( std::string(disc_method_source), std::string(disc_method_target),        // std::string strInputType, std::string strOutputType,
-										   *disc_order_source,  *disc_order_target,  // int nPin=4, int nPout=4,
-										   false, 0,            // bool fBubble=false, int fMonotoneTypeID=0,
+										   (*disc_order_source), (*disc_order_target),    // const int nPin, const int nPout,
+                                           false, 0,            // bool fBubble=false, int fMonotoneTypeID=0,
 										   (fVolumetric ? *fVolumetric > 0 : false),  // bool fVolumetric=false, 
                                            (fNoConservation ? *fNoConservation > 0 : false), // bool fNoConservation=false, 
                                            false, // bool fNoCheck=false,
+                                           source_soln_tag_dof_name, target_soln_tag_dof_name,
 										   "", //"",   // std::string strVariables="", std::string strOutputMap="",
 										   "", "",   // std::string strInputData="", std::string strOutputData="",
 										   "", false,  // std::string strNColName="", bool fOutputDouble=false,
@@ -2292,7 +2438,6 @@ ErrCode iMOAB_ComputeScalarProjectionWeights ( iMOAB_AppID pid_intx,
 										 );CHKERRVAL(rval);
 
     // Mapping computation done
-
 	if (fValidate && *fValidate)
 	{
 		const double radius = 1.0 /*2.0*acos(-1.0)*/;
@@ -2318,7 +2463,6 @@ ErrCode iMOAB_ComputeScalarProjectionWeights ( iMOAB_AppID pid_intx,
 
 ErrCode iMOAB_ApplyScalarProjectionWeights (   iMOAB_AppID pid_intersection, 
                                                const iMOAB_String solution_tag_name,
-                                               int*  esoln_size, int*  esoln_owner,
                                                int solution_tag_name_length )
 {
     moab::ErrorCode rval;
@@ -2331,9 +2475,25 @@ ErrCode iMOAB_ApplyScalarProjectionWeights (   iMOAB_AppID pid_intersection,
 
     // Now allocate and initialize the remapper object
     moab::TempestRemapper* remapper = data_intx.remapper;
+    moab::TempestOfflineMap* weightMap = data_intx.weightMap;
 
+    /* Global ID - exchange data for covering data */
+    Tag solnTag;
+    rval = context.MBI->tag_get_handle ( solution_tag_name, solnTag );CHKERRVAL(rval);
 
+    // moab::HypreParVector sVals(weightMap->GetRowVector()), tVals(weightMap->GetColVector());
+    std::vector<double> solSTagVals(weightMap->GetSourceLocalNDofs());
+    std::vector<double> solTTagVals(weightMap->GetDestinationLocalNDofs());
 
+    moab::Range& covSrcEnts = remapper->GetMeshEntities(moab::Remapper::CoveringMesh);
+    moab::Range& tgtEnts = remapper->GetMeshEntities(moab::Remapper::TargetMesh);
+    // assert(covSrcEnts.size() == )
+
+    rval = context.MBI->tag_get_data ( solnTag, covSrcEnts, &solSTagVals[0] );CHKERRVAL(rval);
+
+    rval = weightMap->ApplyWeights(solSTagVals, solTTagVals);CHKERRVAL(rval);
+
+    rval = context.MBI->tag_set_data ( solnTag, tgtEnts, &solTTagVals[0] );CHKERRVAL(rval);
 
     return 0;
 }

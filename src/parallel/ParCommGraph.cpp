@@ -334,6 +334,12 @@ ErrorCode ParCommGraph::receive_mesh(MPI_Comm jcomm, ParallelComm *pco, EntityHa
   // we also need to fill corresponding mesh info on the other side
   corr_tasks = senders_local;
   Range newEnts;
+
+  Tag orgSendProcTag; // this will be a tag set on the received mesh, with info about from what task / PE the
+  // primary element came from, in the joint communicator ; this will be forwarded by coverage mesh
+  int defaultInt=-1; // no processor, so it was not migrated from somewhere else
+  rval = pco->get_moab()->tag_get_handle("orig_sending_processor", 1, MB_TYPE_INTEGER, orgSendProcTag,
+      MB_TAG_DENSE | MB_TAG_CREAT, &defaultInt);MB_CHK_SET_ERR(rval, "can't create original sending processor tag");
   if (!senders_local.empty())
   {
     for (size_t k=0; k< senders_local.size(); k++)
@@ -372,6 +378,10 @@ ErrorCode ParCommGraph::receive_mesh(MPI_Comm jcomm, ParallelComm *pco, EntityHa
       Range verts = entities.subset_by_dimension(0);
       Range local_primary_ents=subtract(entities, verts);
       corr_sizes.push_back( (int) local_primary_ents.size());
+      // set a tag with the original sender for the primary entity
+      // will be used later for coverage mesh
+      std::vector<int> orig_senders(local_primary_ents.size(), sender1);
+      rval = pco->get_moab()->tag_set_data(orgSendProcTag, local_primary_ents, &orig_senders[0]);
       newEnts.merge(entities);
 
 #ifdef VERBOSE
@@ -563,6 +573,31 @@ ErrorCode ParCommGraph::distribute_sender_graph_info(MPI_Comm senderComm, std::v
       sendingInfo.push_back(data[k]);
 
   }
+  return MB_SUCCESS;
+}
+
+ErrorCode ParCommGraph::settle_send_graph(TupleList & TLcovIDs)
+{
+  // fill send_IDs_map with data
+  // will have "receiving proc" and global id of element
+  int n = TLcovIDs.get_n();
+  for (int i=0; i<n; i++)
+  {
+    int to_proc= TLcovIDs.vi_wr[2 * i];
+    int globalIdElem= TLcovIDs.vi_wr[2 * i + 1 ];
+    send_IDs_map[to_proc].push_back(globalIdElem);
+  }
+#ifdef VERBOSE
+  for (std::map<int ,std::vector<int> >::iterator mit=send_IDs_map.begin(); mit!=send_IDs_map.end(); mit++)
+  {
+    std::cout <<" towards task " << mit->first << " send: " << mit->second.size() << " cells "<< std::endl;
+    for (size_t i=0; i< mit->second.size() ; i++)
+    {
+      std::cout << " " <<  mit->second[i] ;
+    }
+    std::cout<<std::endl;
+  }
+#endif
   return MB_SUCCESS;
 }
 
