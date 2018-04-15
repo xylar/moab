@@ -34,11 +34,11 @@ int main(int argc, char * argv[])
   MPI_Comm_rank(comm, &rank);
 #endif
 
-#ifdef MOAB_HAVE_NETCDF
+#ifdef MOAB_HAVE_HDF5
   strcpy(filen1, TestDir);
   strcpy(filen2, TestDir);
-  strcat(filen1, "/mbcslam/outCSMesh.g");
-  strcat(filen2, "/mbcslam/outRLLMesh.g");
+  strcat(filen1, "/atm.h5m");
+  strcat(filen2, "/mpas.h5m");
 #endif
 
   if (argc>2) {
@@ -93,7 +93,7 @@ int main(int argc, char * argv[])
   CHECKRC(rc, "failed to register application2");
 
 #ifdef MOAB_HAVE_MPI
-  const char *read_opts=( nprocs>1 ? "PARALLEL=READ_PART;PARTITION=PARALLEL_PARTITION;PARALLEL_RESOLVE_SHARED_ENTS" : "");
+  const char *read_opts="PARALLEL=READ_PART;PARTITION=PARALLEL_PARTITION;PARALLEL_RESOLVE_SHARED_ENTS";
 #else
   const char *read_opts="";
 #endif
@@ -180,7 +180,7 @@ int main(int argc, char * argv[])
 
   /* We have the remapping weights now. Let us apply the weights onto the tag we defined 
      on the srouce mesh and get the projection on the target mesh */
-  rc = iMOAB_ApplyScalarProjectionWeights ( pid3, 
+  rc = iMOAB_ApplyScalarProjectionWeights ( pid3,
                                             "DFIELD",
                                             strlen("DFIELD")
                                             );
