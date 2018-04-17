@@ -11,6 +11,9 @@
  *   on the original file (wholeFineATM.h5m) and the order of surfdata_ne11np4_simyr1850_c160614.nc
  *
  *  file  wholeFineATM.h5m is obtained from a coupled run in e3sm, with the ne 11, np 4,
+ *
+ *  add an option to output the nc data to the original coarse ATM file, the one that also has the GLOBAL_DOFS
+ *   tag with the global DOFs of the GLL points
  */
 
 
@@ -18,6 +21,7 @@
 #include "moab/Core.hpp"
 
 #include "netcdf.h"
+#include <math.h>
 #include <sstream>
 
 using namespace moab;
@@ -128,7 +132,7 @@ int main(int argc, char* argv[])
 
   ProgOptions opts;
 
-  std::string inputfile, outfile("out.h5m"), netcdfFile, variable_name;
+  std::string inputfile, outfile("out.h5m"), netcdfFile, variable_name, sefile_name;
 
   opts.addOpt<std::string>("input,i", "input mesh filename", &inputfile);
   opts.addOpt<std::string>("netcdfFile,n", "netcdf file aligned with the mesh input file", &netcdfFile);
@@ -136,6 +140,7 @@ int main(int argc, char* argv[])
 
   opts.addOpt<std::string>("var,v", "variable to extract and add to output file", &variable_name);
 
+  opts.addOpt<std::string>("sefile,s", "spectral elements file (coarse SE mesh)", &sefile_name);
   opts.parseCommandLine(argc, argv);
 
   ErrorCode rval;
@@ -249,6 +254,7 @@ int main(int argc, char* argv[])
     int ii;
     GET_1D_FLT_VAR("time", ii, times);
   }
+  Tag newTag;
 
   if (( dims.size()>=1 &&dims.size()<=2)  && (vertex_data || cell_data) )
   {
@@ -257,7 +263,7 @@ int main(int argc, char* argv[])
     {
       fail = nc_inq_dim(ncFile, dims[otherDim], recname, &size_tag);
     }
-    Tag newTag;
+
     int def_val = 0;
     rval = mb->tag_get_handle(variable_name.c_str(), (int)size_tag, mbtype, newTag,
         MB_TAG_CREAT | MB_TAG_DENSE, &def_val); MB_CHK_SET_ERR(rval, "can't define new tag");
@@ -405,7 +411,6 @@ int main(int argc, char* argv[])
         // create a tag for each time, and
         std::stringstream tag_name;
         tag_name<<variable_name<< "_t"<< times[k];
-        Tag newTag;
         std::vector<double>  defvals(dim1, 0.);
         rval = mb->tag_get_handle(tag_name.str().c_str(), (int)dim1, mbtype, newTag,
                 MB_TAG_CREAT | MB_TAG_DENSE, &defvals[0]); MB_CHK_SET_ERR(rval, "can't define new tag");
@@ -441,6 +446,67 @@ int main(int argc, char* argv[])
   }
   rval = mb->write_file(outfile.c_str()); MB_CHK_SET_ERR(rval, "can't write file");
   std::cout << " wrote file " << outfile << "\n";
+
+  // now, if s option, load the coarse mesh and put data on each element, according to a matrix
+  if (!sefile_name.empty())
+  {
+    // load the file, check for GLOBAL_DOFS tag, and create a new tag with the data associated
+    Core *mb2 = new Core();
+    rval = mb2->load_file(sefile_name.c_str()); MB_CHK_SET_ERR(rval, "can't load spectral element file");
+    std::cout << " loaded spectral file " << sefile_name << "\n";
+    // look for GLOBAL_DOFS tag
+    Tag gdofeTag;
+    rval = mb2->tag_get_handle("GLOBAL_DOFS", gdofeTag);MB_CHK_SET_ERR(rval, "file does not have GLOBAL_DOFS file");
+    int sizeTag;
+    rval = mb2->tag_get_length(gdofeTag, sizeTag); MB_CHK_SET_ERR(rval, "can't get size of tag");
+    int np = (int) sqrt (1.0*sizeTag);
+    std::cout << " size of tag: " << sizeTag << " np = " << np << "\n";
+    std::vector<int> gdofs;
+    Range cells2;
+    rval = mb2->get_entities_by_dimension(0, 2, cells2);MB_CHK_SET_ERR(rval, "can't get cells on spectral mesh");
+    gdofs.resize(cells2.size()*sizeTag);
+    rval = mb2->tag_get_data(gdofeTag, cells2, &gdofs[0]); MB_CHK_SET_ERR(rval, "can't get global dofs tag");
+    // create a new tag for element data arranged as DFIELD
+
+    std::vector<double> dfield;
+    dfield.resize(sizeTag, 0.0);
+    Tag newTag2;
+    rval = mb2->tag_get_handle(variable_name.c_str(), (int)sizeTag, mbtype, newTag2,
+         MB_TAG_CREAT | MB_TAG_DENSE, &dfield[0]); MB_CHK_SET_ERR(rval, "can't define new tag");
+
+    int i1 = 0; // index in the gdofs array, per element
+
+    // get the tag values from the other moab core, for newTag
+    int dataTagLen;
+    rval = mb->tag_get_length(newTag, dataTagLen);MB_CHK_SET_ERR(rval, "can't get size of newTag");
+    //
+    std::vector<double> oldData;
+    oldData.resize(dataTagLen*nodes.size()); //
+
+    // get the "old" values
+    rval = mb->tag_get_data(newTag, nodes, &oldData[0]); MB_CHK_SET_ERR(rval, "can't get old values");
+    for (Range::iterator it=cells2.begin(); it!=cells2.end(); it++)
+    {
+      EntityHandle cel = *it;
+      // gdofs per element are gdofs[i:i+np*np];
+      for (int k=0; k<sizeTag; k++)
+      {
+        int gdof = gdofs[i1+k];
+        EntityHandle node = vGidHandle[gdof];
+        int index = nodes.index(node);
+        // get last layer of data
+        double val = oldData[ index*dataTagLen+dataTagLen-1]; //
+        dfield[k] = val;
+      }
+      i1 = i1 + sizeTag;
+      rval = mb2->tag_set_data(newTag2, &cel, 1, &dfield[0]);  MB_CHK_SET_ERR(rval, "can't set new tag");
+
+    }
+
+    // write the appended file with the new field:
+    rval = mb2->write_file("atm2.h5m");MB_CHK_SET_ERR(rval, "can't write new spectral file");
+    std::cout << " wrote file atm2.h5m \n";
+  }
   return 0;
 }
 
