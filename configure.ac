@@ -900,9 +900,9 @@ AC_ARG_WITH( [vtk-lib-suffix],
                esac],[VTK_LIB_SUFFIX=] )
 
 # Provide downloadable option for TempestRemap library
-# Supported TempestRemap versions: 1.0.beta
+# Supported TempestRemap versions: 2.0.1
 # Arguments: 1) Default Version Number, 2) Download by default ?
-AUSCM_CONFIGURE_DOWNLOAD_TEMPESTREMAP([1.0.beta],[no])
+AUSCM_CONFIGURE_DOWNLOAD_TEMPESTREMAP([2.0.1],[no])
 
 # Configuration for TempestRemap library
 AC_ARG_WITH([tempestremap],
