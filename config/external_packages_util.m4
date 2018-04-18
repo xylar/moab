@@ -1454,8 +1454,8 @@ AC_DEFUN([AUSCM_CONFIGURE_DOWNLOAD_TEMPESTREMAP],[
   m4_pushdef([TEMPESTREMAP_DOWNLOAD_VERSION],[$1])dnl
 
   # Invoke the download-tempestremap command
-  m4_case( TEMPESTREMAP_DOWNLOAD_VERSION, [1.0.beta], [ AUSCM_CONFIGURE_EXTERNAL_PACKAGE([TempestRemap], [https://github.com/ClimateGlobalChange/tempestremap/archive/v2.0.0.tar.gz], [$2] ) ],
-                                  [ AUSCM_CONFIGURE_EXTERNAL_PACKAGE([TempestRemap], [https://github.com/ClimateGlobalChange/tempestremap/archive/v2.0.0.tar.gz], [$2] ) ] )
+  m4_case( TEMPESTREMAP_DOWNLOAD_VERSION, [2.0.1], [ AUSCM_CONFIGURE_EXTERNAL_PACKAGE([TempestRemap], [https://github.com/ClimateGlobalChange/tempestremap/archive/v2.0.1.tar.gz], [$2] ) ],
+                                  [ AUSCM_CONFIGURE_EXTERNAL_PACKAGE([TempestRemap], [https://github.com/ClimateGlobalChange/tempestremap/archive/v2.0.1.tar.gz], [$2] ) ] )
 
   if (test "x$downloadtempestremap" == "xyes") ; then
     # download the latest TempestRemap sources, configure and install
