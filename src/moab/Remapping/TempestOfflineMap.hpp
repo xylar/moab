@@ -27,8 +27,10 @@
 #include <string>
 #include <vector>
 
-#ifdef MOAB_HAVE_HYPRE
-#include "HypreParMatrix.hpp"
+#define VERBOSE
+
+#ifdef MOAB_HAVE_EIGEN
+#include <Eigen/Sparse>
 #endif
 
 #include "moab/Remapping/TempestRemapper.hpp"
@@ -144,7 +146,7 @@ public:
 	///	</summary>
 	const DataVector<double>& GetGlobalTargetAreas() const;
 
-#ifdef MOAB_HAVE_HYPRE
+#ifdef MOAB_HAVE_EIGEN
 	void InitVectors();
 #endif
 
@@ -269,13 +271,28 @@ private:
 	///     consistently.
 	///	</summary>
 	moab::ErrorCode SetDofMapAssociation(DiscretizationType srcType, bool isSrcContinuous, 
-		DataMatrix3D<int>* srcdataGLLNodes,
+		DataMatrix3D<int>* srcdataGLLNodes, DataMatrix3D<int>* srcdataGLLNodesSrc,
 		DiscretizationType destType, bool isDestContinuous, 
 		DataMatrix3D<int>* tgtdataGLLNodes);
 
 
-public: 
-#ifdef MOAB_HAVE_HYPRE
+public:
+#ifdef MOAB_HAVE_EIGEN
+
+	typedef Eigen::Matrix< double, 1, Eigen::Dynamic > WeightDRowVector;
+	typedef Eigen::Matrix< double, Eigen::Dynamic, 1 > WeightDColVector;
+	typedef Eigen::SparseVector<double> WeightSVector;
+	typedef Eigen::SparseMatrix<double, Eigen::RowMajor> WeightRMatrix;
+	typedef Eigen::SparseMatrix<double, Eigen::ColMajor> WeightCMatrix;
+
+	typedef WeightDRowVector WeightRowVector;
+	typedef WeightDColVector WeightColVector;
+	typedef WeightRMatrix WeightMatrix;
+
+	WeightMatrix m_weightMatrix;
+	WeightRowVector m_rowVector;
+	WeightColVector m_colVector;
+
 	///	<summary>
 	///		Get the number of total Degrees-Of-Freedom defined on the source mesh.
 	///	</summary>
@@ -297,28 +314,28 @@ public:
 	int GetDestinationLocalNDofs();
 
 	///	<summary>
-	///		Get the raw reference to the Hypre weight matrix representing the projection from source to destination mesh.
+	///		Get the raw reference to the Eigen weight matrix representing the projection from source to destination mesh.
 	///	</summary>
-	HypreParMatrix& GetWeightMatrix();
+	WeightMatrix& GetWeightMatrix();
 
 	///	<summary>
 	///		Get the row vector that is amenable for application of A*x operation.
 	///	</summary>
-	HypreParVector& GetRowVector();
+	WeightRowVector& GetRowVector();
 
 	///	<summary>
 	///		Get the column vector that is amenable for application of A^T*x operation.
 	///	</summary>
-	HypreParVector& GetColVector();
+	WeightColVector& GetColVector();
 
 	///	<summary>
 	///		Copy the local matrix from Tempest SparseMatrix representation (ELL)
-	///		to the parallel CSR Hypre Matrix for scalable application of matvec
+	///		to the parallel CSR Eigen Matrix for scalable application of matvec
 	///     needed for projections.
 	///	</summary>
-	void Hypre_CopyTempestSparseMat();
+	void Eigen_CopyTempestSparseMat();
 
-	moab::ErrorCode ApplyWeights (std::vector<double>& srcVals, std::vector<double>& tgtVals);
+	moab::ErrorCode ApplyWeights (std::vector<double>& srcVals, std::vector<double>& tgtVals, bool transpose=false);
 
 	void WriteParallelWeightsToFile(std::string filename);
 #endif
@@ -334,12 +351,6 @@ private:
 	///	</summary>
 	// SparseMatrix<double> m_mapRemapGlobal;
 	OfflineMap* m_weightMapGlobal;
-
-#ifdef MOAB_HAVE_HYPRE
-	HypreParMatrix* m_weightMat;
-	HypreParVector* m_rowVec;
-	HypreParVector* m_colVec;
-#endif
 
 	///	<summary>
 	///		The boolean flag representing whether the root process has the updated global view.
@@ -372,9 +383,11 @@ private:
 	///		The original tag data and local to global DoF mapping to associate matrix values to solution
 	///	<summary>
 	moab::Tag m_dofTagSrc, m_dofTagDest;
-	std::map<int,int> row_dofmap, col_dofmap;
+	std::map<int,int> row_dofmap, col_dofmap, srccol_dofmap;
+
+	DataMatrix3D<int> dataGLLNodesSrc, dataGLLNodesSrcCov, dataGLLNodesDest;
+	DiscretizationType m_srcDiscType, m_destDiscType;
 	int m_nDofsPEl_Src, m_nDofsPEl_Dest;
-	DataMatrix3D<int> dataGLLNodesSrc, dataGLLNodesDest;
 
 	Mesh* m_meshInput;
 	Mesh* m_meshInputCov;
