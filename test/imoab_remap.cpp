@@ -137,14 +137,14 @@ int main(int argc, char * argv[])
   const char* dof_tag_names[2] = {"GLOBAL_DOFS", "GLOBAL_ID"};
   int fVolumetric=0, fValidate=1, fNoConserve=0;
   
-  const char* fieldname = "DFIELD";
+  const char* fieldname = "water_vap_ac";
   int tagIndex[1];
   int entTypes[1] = {1}; /* first is on vertex; */
   int tagTypes[1] = { DENSE_DOUBLE } ;
   int num_components = disc_orders[0]*disc_orders[0];
 
   rc = iMOAB_DefineTagStorage(pid1, fieldname, &tagTypes[0], &num_components, &tagIndex[0],  strlen(fieldname) );
-  CHECKRC(rc, "failed to get tag DFIELD ");
+  CHECKRC(rc, "failed to define the field tag");
   
   /*
    * query double tag values on elements
@@ -152,7 +152,7 @@ int main(int argc, char * argv[])
    */
   double * double_tag_vals = (double *) malloc (sizeof(double) * num_components * nelem[2]); // for all visible elements on the rank
   rc = iMOAB_GetDoubleTagStorage(pid1, fieldname, &nelem[2], &entTypes[0], double_tag_vals, strlen(fieldname));
-  CHECKRC(rc, "failed to get DFIELD tag");
+  CHECKRC(rc, "failed to get the double field tag storage");
   printf("DFIELD tag values: (not exchanged) \n");
   for (int i=0,offset=0; i<nelem[2]; i++)
   {
@@ -160,7 +160,7 @@ int main(int argc, char * argv[])
         double_tag_vals[offset] = i;
   }
   rc = iMOAB_SetDoubleTagStorage(pid1, fieldname, &nelem[2], &entTypes[0], double_tag_vals, strlen(fieldname));
-  CHECKRC(rc, "failed to get DFIELD tag");
+  CHECKRC(rc, "failed to set the double field tag storage");
   free(double_tag_vals);
 
   /* Next compute the mesh intersection on the sphere between the source and target meshes */
@@ -181,8 +181,8 @@ int main(int argc, char * argv[])
   /* We have the remapping weights now. Let us apply the weights onto the tag we defined 
      on the srouce mesh and get the projection on the target mesh */
   rc = iMOAB_ApplyScalarProjectionWeights ( pid3,
-                                            "DFIELD",
-                                            strlen("DFIELD")
+                                            fieldname,
+                                            strlen(fieldname)
                                             );
   CHECKRC(rc, "failed to compute projection weight application");
   
@@ -192,14 +192,19 @@ int main(int argc, char * argv[])
    */
   if (nprocs == 1) {
     // free allocated data
-    char outputFile[] = "fnew.h5m";
+    char outputFileOv[]  = "fIntxOverlap.h5m";
+    char outputFileTgt[] = "fIntxTarget.h5m";
 #ifdef MOAB_HAVE_MPI
     char writeOptions[] ="PARALLEL=WRITE_PART";
 #else
     char writeOptions[] ="";
 #endif
-    rc = iMOAB_WriteMesh(pid3, outputFile, writeOptions,
-      strlen(outputFile), strlen(writeOptions) );  
+
+    rc = iMOAB_WriteMesh(pid2, outputFileTgt, writeOptions,
+      strlen(outputFileTgt), strlen(writeOptions) );  
+
+    rc = iMOAB_WriteMesh(pid3, outputFileOv, writeOptions,
+      strlen(outputFileOv), strlen(writeOptions) );
   }
   
   /*
