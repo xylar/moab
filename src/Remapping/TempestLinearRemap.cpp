@@ -25,6 +25,7 @@
 #include <fstream>
 #include <cmath>
 #include <cstdlib>
+#include <sstream>
 
 // TODO: Replace these with the LAPACK wrappers once we have the Eigen-External-Dep branch merged in
 extern "C" {
@@ -394,19 +395,6 @@ void moab::TempestOfflineMap::LinearRemapFVtoFV_Tempest_MOAB (
             }
         }
 
-#if 0
-        if ( !pcomm->rank() )
-        {
-            std::cout << "[" << ixFirst << ", " << ixOverlap << "]: ";
-            for ( int i = 0; i < nAdjFaces; i++ )
-            {
-                for ( unsigned j = 0; j < nOverlapFaces; j++ )
-                    std::cout << m_meshOutput->vecFaceArea[m_meshOverlap->vecTargetFaceIx[ixOverlap + j]] << ", " ;
-                std::cout << "\n" ;
-            }
-        }
-#endif
-
         // Put composed array into map
         for ( unsigned i = 0; i < vecAdjFaces.size(); i++ )
         {
@@ -427,134 +415,379 @@ void moab::TempestOfflineMap::LinearRemapFVtoFV_Tempest_MOAB (
         ixOverlap += nOverlapFaces;
     }
 
-#ifdef MOAB_HAVE_HYPRE
-    Hypre_CopyTempestSparseMat();
+#ifdef MOAB_HAVE_EIGEN
+    Eigen_CopyTempestSparseMat();
 #endif
     return;
 }
 
 
-#ifdef MOAB_HAVE_HYPRE
-// #define VERBOSE
-void moab::TempestOfflineMap::Hypre_CopyTempestSparseMat()
+#ifdef MOAB_HAVE_EIGEN
+
+void moab::TempestOfflineMap::Eigen_CopyTempestSparseMat()
 {
     int locrows = m_mapRemap.GetRows();
     int loccols = m_mapRemap.GetColumns();
 
-    // int rcstarts[2] = {m_meshInput->faces.size(), m_meshOutput->faces.size()};
-    int rcstarts[2] = {locrows, loccols};
-    int rcgsizes[2], rcgrstarts[2], rcgcstarts[2];
-    MPI_Allreduce(rcstarts, rcgsizes, 2, MPI_INT, MPI_SUM, pcomm->comm());
-    MPI_Scan(rcstarts, rcgrstarts, 2, MPI_INT, MPI_SUM, pcomm->comm());
-    rcgcstarts[1] = rcgrstarts[1];
-    rcgrstarts[1] = rcgrstarts[0];
-    rcgrstarts[0] = rcgrstarts[1] - rcstarts[0];
-    // rcgrstarts[0] = rcgrstarts[0] - rcstarts[0];
-    rcgcstarts[0] = rcgcstarts[1] - rcstarts[1];
-    rcgcstarts[1] -= 1;
-    rcgrstarts[1] -= 1;
-    // std::cout << "Proc: " << pcomm->rank() << ": Sizes = " << rcgsizes[0] << ", " << rcgsizes[1] << ", Row = " << rcgrstarts[0] << ", " << rcgrstarts[1] << ", Col = " << rcgcstarts[0] << ", " << rcgcstarts[1] << "\n";
+    std::cout << m_weightMatrix.rows() << ", " <<  locrows << ", " <<  m_weightMatrix.cols() << ", " << loccols << "\n";
+    assert(m_weightMatrix.rows() == locrows && m_weightMatrix.cols() == loccols);
 
     DataVector<int> lrows;
     DataVector<int> lcols;
     DataVector<double> lvals;
     m_mapRemap.GetEntries(lrows, lcols, lvals);
-    const int nvals = lrows.GetRows();
+    int locvals = lvals.GetRows();
 
-    for (int iv=0; iv < nvals; iv++) {
-        // std::cout << iv << " -- Row: (" << lrows[iv] << ", " << row_dofmap[lrows[iv]] << ") and Col: (" << lcols[iv] << ", " << col_dofmap[lcols[iv]] << ")\n";
-        lrows[iv] = row_dofmap[lrows[iv]];
-        lcols[iv] = col_dofmap[lcols[iv]];
+    m_weightMatrix.reserve(locvals);
+    for (unsigned iv=0; iv < lvals.GetRows(); iv++) {
+        m_weightMatrix.insert(lrows[iv], lcols[iv]) = lvals[iv];
     }
 
-    std::vector<int> nhrows, nhcols;
-    int voffset=0, sumcols=0, maxnnz=0;
-    for (int iv=0; iv < nvals; iv+=voffset) {
-        int ir = lrows[iv];
-        nhrows.push_back(ir);
-        for (voffset=0; voffset < nvals-iv; voffset++) {
-            if (lrows[iv+voffset] == ir) // same row as before
-                continue;
-            else // different row than before
-                break;
-        }
-        maxnnz=std::max(maxnnz,voffset);
-        sumcols += voffset; // We expect this to equal `nvals`
-        nhcols.push_back(voffset);
-    }
+    m_weightMatrix.makeCompressed();
 
 #ifdef VERBOSE
-    std::cout << "Rank[" << pcomm->rank() << "]: nhrows = " << nhrows.size() << ", nhcols = " << nhcols.size() << ", locrows = " << locrows << ", sumcols = " << sumcols << ", nvals = " << nvals << std::endl;
+    std::stringstream sstr;
+    sstr << "tempestmatrix.txt.0000" << pcomm->rank();
+    std::ofstream output_file ( sstr.str(), std::ios::out );
+    output_file << "0 " << locrows << " 0" << loccols << "\n";
+    for (unsigned iv=0; iv < lvals.GetRows(); iv++) {
+        output_file << lrows[iv] << " " << lcols[iv] << " " << lvals[iv] << "\n";
+    }
+    output_file.flush(); // required here
+    output_file.close();
 #endif
-
-    assert(nhrows.size() == nhcols.size() && nhcols.size() - locrows == 0);
-    assert(sumcols == nvals);
-
-    // Let us correctly allocate the matrix depending on the NNZ and DoFs
-    m_weightMat->resize(rcgsizes[0], rcgsizes[1], 
-                        rcgrstarts, rcgcstarts,
-                        maxnnz, 3); // Need a better way to set nnz/diag/off-diag
-
-    m_weightMat->verbosity(1);
-
-    int lrsize = nhrows.size()/*, lcsize = nhcols.size()*/;
-    m_weightMat->SetValues(lrsize, &nhcols[0], &nhrows[0], lcols, lvals);
-    m_weightMat->FinalizeAssembly();
-
-    // m_weightMat->AddToValues(lrsize, &nhcols[0], &nhrows[0], lcols, lvals);
-    // m_weightMat->FinalizeAssembly();
-
-#ifdef VERBOSE // Sanity check to see that the row-sum and column-sum come to 1.0
-    m_weightMat->Print("hypremat.txt", 0, 0);    
-
-    HypreParVector unitVec(pcomm->comm(), rcgsizes[1], rcgcstarts[0], rcgcstarts[1]); // Span based on Matrix cols
-    HypreParVector validatorVec(pcomm->comm(), rcgsizes[0], rcgrstarts[0], rcgrstarts[1]); // Span based on Matrix rows
-    for (int ix=0; ix < rcgsizes[1]; ++ix) 
-        unitVec.SetValue(ix, 1.0);
-    for (int ix=0; ix < rcgsizes[0]; ++ix) 
-        validatorVec.SetValue(ix, -1.0);
-    unitVec.FinalizeAssembly();
-    validatorVec.FinalizeAssembly();
-    unitVec.Print("unitvec.txt");
-
-    m_weightMat->Mult(1.0, unitVec, 0.0, validatorVec);
-    validatorVec.Print("weightvec.txt");
-
-    for (int ix=0; ix < rcgsizes[1]; ++ix)
-        unitVec.SetValue(ix, -1.5);
-    unitVec.FinalizeAssembly();
-    unitVec.Print("unitVecTransposeOld.txt");
-    m_weightMat->MultTranspose(1.0, unitVec, 0.0, validatorVec);
-    validatorVec.Print("unitVecTranspose.txt");
-#endif
-
-    this->InitVectors();
 
     return;
 }
 
-void moab::TempestOfflineMap::WriteParallelWeightsToFile(std::string filename)
+
+// #define IO_USE_PARALLEL_NETCDF
+void moab::TempestOfflineMap::WriteParallelWeightsToFile(std::string strFilename)
 {
-    m_weightMat->Print(filename.c_str(), 0, 0);
+    // m_weightMatrix.Print(filename.c_str(), 0, 0);
+
+#ifdef IO_USE_PARALLEL_NETCDF
+    NcmpiFile ncMap(MPI_COMM_WORLD, strFilename.c_str(), NcmpiFile::Replace, NcmpiFile::classic5);
+#else
+    NcFile ncMap(strFilename.c_str(), NcFile::Replace);
+#endif
+
+    if (!ncMap.is_valid()) {
+        _EXCEPTION1("Unable to open output map file \"%s\"",
+            strFilename.c_str());
+    }
+
+    // Attributes
+    ncMap.add_att("Title", "MOAB-TempestRemap Online Regridding Weight Generator");
+
+    // Map dimensions
+    unsigned nA = (m_dSourceAreas.GetRows());
+    unsigned nB = (m_dTargetAreas.GetRows());
+
+    // Write output dimensions entries
+    unsigned nSrcGridDims = (m_vecSourceDimSizes.size());
+    unsigned nDstGridDims = (m_vecTargetDimSizes.size());
+
+#ifdef IO_USE_PARALLEL_NETCDF
+    NcmpiDim * dimSrcGridRank = ncMap.addDim("src_grid_rank", nSrcGridDims);
+    NcmpiDim * dimDstGridRank = ncMap.addDim("dst_grid_rank", nDstGridDims);
+#else
+    NcDim * dimSrcGridRank = ncMap.add_dim("src_grid_rank", nSrcGridDims);
+    NcDim * dimDstGridRank = ncMap.add_dim("dst_grid_rank", nDstGridDims);
+#endif
+
+#ifdef IO_USE_PARALLEL_NETCDF
+    NcmpiVar * varSrcGridDims =
+        ncMap.addVar("src_grid_dims", ncmpiInt, dimSrcGridRank);
+    NcmpiVar * varDstGridDims =
+        ncMap.addVar("dst_grid_dims", ncmpiInt, dimDstGridRank);
+#else
+    NcVar * varSrcGridDims =
+        ncMap.add_var("src_grid_dims", ncInt, dimSrcGridRank);
+    NcVar * varDstGridDims =
+        ncMap.add_var("dst_grid_dims", ncInt, dimDstGridRank);
+#endif
+
+    char szDim[64];
+    if ((nSrcGridDims == 1) && (m_vecSourceDimSizes[0] != (int)nA)) {
+        int tmp = (int)(nA);
+        varSrcGridDims->put(&tmp, 1);
+        varSrcGridDims->add_att("name0", "num_dof");
+
+    } else {
+        for (unsigned i = 0; i < m_vecSourceDimSizes.size(); i++) {
+            varSrcGridDims->set_cur(nSrcGridDims - i - 1);
+            varSrcGridDims->put(&(m_vecSourceDimSizes[i]), 1);
+        }
+
+        for (unsigned i = 0; i < m_vecSourceDimSizes.size(); i++) {
+            sprintf(szDim, "name%i", i);
+            varSrcGridDims->add_att(szDim,
+                m_vecSourceDimNames[nSrcGridDims - i - 1].c_str());
+        }
+    }
+
+    if ((nDstGridDims == 1) && (m_vecTargetDimSizes[0] != (int)nB)) {
+        int tmp = (int)(nB);
+        varDstGridDims->put(&tmp, 1);
+        varDstGridDims->add_att("name0", "num_dof");
+    } else {
+        for (unsigned i = 0; i < m_vecTargetDimSizes.size(); i++) {
+            varDstGridDims->set_cur(nDstGridDims - i - 1);
+            varDstGridDims->put(&(m_vecTargetDimSizes[i]), 1);
+        }
+
+        for (unsigned i = 0; i < m_vecTargetDimSizes.size(); i++) {
+            sprintf(szDim, "name%i", i);
+            varDstGridDims->add_att(szDim,
+                m_vecTargetDimNames[nDstGridDims - i - 1].c_str());
+        }
+    }
+
+    // Source and Target mesh resolutions
+#ifdef IO_USE_PARALLEL_NETCDF
+    NcmpiDim * dimNA = ncMap.addDim("n_a", nA);
+    NcmpiDim * dimNB = ncMap.addDim("n_b", nB);
+#else
+    NcDim * dimNA = ncMap.add_dim("n_a", nA);
+    NcDim * dimNB = ncMap.add_dim("n_b", nB);
+#endif
+
+    // Number of nodes per Face
+    int nSourceNodesPerFace = m_dSourceVertexLon.GetColumns();
+    int nTargetNodesPerFace = m_dTargetVertexLon.GetColumns();
+
+#ifdef IO_USE_PARALLEL_NETCDF
+    NcmpiDim * dimNVA = ncMap.addDim("nv_a", nSourceNodesPerFace);
+    NcmpiDim * dimNVB = ncMap.addDim("nv_b", nTargetNodesPerFace);
+#else
+    NcDim * dimNVA = ncMap.add_dim("nv_a", nSourceNodesPerFace);
+    NcDim * dimNVB = ncMap.add_dim("nv_b", nTargetNodesPerFace);
+#endif
+
+    // Write coordinates
+#ifdef IO_USE_PARALLEL_NETCDF
+    NcmpiVar * varYCA = ncMap.addVar("yc_a", ncmpiDouble, dimNA);
+    NcmpiVar * varYCB = ncMap.addVar("yc_b", ncmpiDouble, dimNB);
+
+    NcmpiVar * varXCA = ncMap.addVar("xc_a", ncmpiDouble, dimNA);
+    NcmpiVar * varXCB = ncMap.addVar("xc_b", ncmpiDouble, dimNB);
+
+    NcmpiVar * varYVA = ncMap.addVar("yv_a", ncmpiDouble, dimNA, dimNVA);
+    NcmpiVar * varYVB = ncMap.addVar("yv_b", ncmpiDouble, dimNB, dimNVB);
+
+    NcmpiVar * varXVA = ncMap.addVar("xv_a", ncmpiDouble, dimNA, dimNVA);
+    NcmpiVar * varXVB = ncMap.addVar("xv_b", ncmpiDouble, dimNB, dimNVB);
+#else
+    NcVar * varYCA = ncMap.add_var("yc_a", ncDouble, dimNA);
+    NcVar * varYCB = ncMap.add_var("yc_b", ncDouble, dimNB);
+
+    NcVar * varXCA = ncMap.add_var("xc_a", ncDouble, dimNA);
+    NcVar * varXCB = ncMap.add_var("xc_b", ncDouble, dimNB);
+
+    NcVar * varYVA = ncMap.add_var("yv_a", ncDouble, dimNA, dimNVA);
+    NcVar * varYVB = ncMap.add_var("yv_b", ncDouble, dimNB, dimNVB);
+
+    NcVar * varXVA = ncMap.add_var("xv_a", ncDouble, dimNA, dimNVA);
+    NcVar * varXVB = ncMap.add_var("xv_b", ncDouble, dimNB, dimNVB);
+#endif
+
+    varYCA->add_att("units", "degrees");
+    varYCB->add_att("units", "degrees");
+
+    varXCA->add_att("units", "degrees");
+    varXCB->add_att("units", "degrees");
+
+    varYVA->add_att("units", "degrees");
+    varYVB->add_att("units", "degrees");
+
+    varXVA->add_att("units", "degrees");
+    varXVB->add_att("units", "degrees");
+
+    // Verify dimensionality
+    if (m_dSourceCenterLon.GetRows() != nA) {
+        _EXCEPTIONT("Mismatch between m_dSourceCenterLon and nA");
+    }
+    if (m_dSourceCenterLat.GetRows() != nA) {
+        _EXCEPTIONT("Mismatch between m_dSourceCenterLat and nA");
+    }
+    if (m_dTargetCenterLon.GetRows() != nB) {
+        _EXCEPTIONT("Mismatch between m_dTargetCenterLon and nB");
+    }
+    if (m_dTargetCenterLat.GetRows() != nB) {
+        _EXCEPTIONT("Mismatch between m_dTargetCenterLat and nB");
+    }
+    if (m_dSourceVertexLon.GetRows() != nA) {
+        _EXCEPTIONT("Mismatch between m_dSourceVertexLon and nA");
+    }
+    if (m_dSourceVertexLat.GetRows() != nA) {
+        _EXCEPTIONT("Mismatch between m_dSourceVertexLat and nA");
+    }
+    if (m_dTargetVertexLon.GetRows() != nB) {
+        _EXCEPTIONT("Mismatch between m_dTargetVertexLon and nB");
+    }
+    if (m_dTargetVertexLat.GetRows() != nB) {
+        _EXCEPTIONT("Mismatch between m_dTargetVertexLat and nB");
+    }
+
+    varYCA->put(&(m_dSourceCenterLat[0]), nA);
+    varYCB->put(&(m_dTargetCenterLat[0]), nB);
+
+    varXCA->put(&(m_dSourceCenterLon[0]), nA);
+    varXCB->put(&(m_dTargetCenterLon[0]), nB);
+
+    varYVA->put(&(m_dSourceVertexLat[0][0]), nA, nSourceNodesPerFace);
+    varYVB->put(&(m_dTargetVertexLat[0][0]), nB, nTargetNodesPerFace);
+
+    varXVA->put(&(m_dSourceVertexLon[0][0]), nA, nSourceNodesPerFace);
+    varXVB->put(&(m_dTargetVertexLon[0][0]), nB, nTargetNodesPerFace);
+
+    // Write vector centers
+    if ((m_dVectorTargetCenterLat.GetRows() != 0) &&
+        (m_dVectorTargetCenterLon.GetRows() != 0)
+    ) {
+        NcDim * dimLatB =
+            ncMap.add_dim("lat_b", m_dVectorTargetCenterLat.GetRows());
+        NcDim * dimLonB =
+            ncMap.add_dim("lon_b", m_dVectorTargetCenterLon.GetRows());
+
+        NcVar * varLatCB = ncMap.add_var("latc_b", ncDouble, dimLatB);
+        NcVar * varLonCB = ncMap.add_var("lonc_b", ncDouble, dimLonB);
+
+        varLatCB->put(&(m_dVectorTargetCenterLat[0]), dimLatB->size());
+        varLonCB->put(&(m_dVectorTargetCenterLon[0]), dimLonB->size());
+
+        NcDim * dimBounds = ncMap.add_dim("bnds", 2);
+        NcVar * varLatBounds =
+            ncMap.add_var("lat_bnds", ncDouble, dimLatB, dimBounds);
+        NcVar * varLonBounds =
+            ncMap.add_var("lon_bnds", ncDouble, dimLonB, dimBounds);
+
+        varLatBounds->put(&(m_dVectorTargetBoundsLat[0][0]),
+            m_dVectorTargetBoundsLat.GetRows(), 2);
+        varLonBounds->put(&(m_dVectorTargetBoundsLon[0][0]),
+            m_dVectorTargetBoundsLon.GetRows(), 2);
+    }
+
+    // Write areas
+#ifdef IO_USE_PARALLEL_NETCDF
+    NcmpiVar * varAreaA = ncMap.addVar("area_a", ncmpiDouble, dimNA);
+#else
+    NcVar * varAreaA = ncMap.add_var("area_a", ncDouble, dimNA);
+#endif
+    varAreaA->put(&(m_dSourceAreas[0]), nA);
+
+#ifdef IO_USE_PARALLEL_NETCDF
+    NcmpiVar * varAreaB = ncMap.addVar("area_b", ncmpiDouble, dimNB);
+#else
+    NcVar * varAreaB = ncMap.add_var("area_b", ncDouble, dimNB);
+#endif
+    varAreaB->put(&(m_dTargetAreas[0]), nB);
+
+    // Write frac
+    DataVector<double> dFrac;
+
+    dFrac.Initialize(nA);
+    for (unsigned i = 0; i < nA; i++) {
+        dFrac[i] = 1.0;
+    }
+#ifdef IO_USE_PARALLEL_NETCDF
+    NcmpiVar * varFracA = ncMap.addVar("frac_a", ncmpiDouble, dimNA);
+#else
+    NcVar * varFracA = ncMap.add_var("frac_a", ncDouble, dimNA);
+#endif
+    varFracA->put(&(dFrac[0]), nA);
+
+    dFrac.Initialize(nB);
+    for (unsigned i = 0; i < nB; i++) {
+        dFrac[i] = 1.0;
+    }
+#ifdef IO_USE_PARALLEL_NETCDF
+    NcmpiVar * varFracB = ncMap.addVar("frac_b", ncmpiDouble, dimNB);
+#else
+    NcVar * varFracB = ncMap.add_var("frac_b", ncDouble, dimNB);
+#endif
+    varFracB->put(&(dFrac[0]), nB);
+
+    // Write SparseMatrix entries
+    int nS = m_weightMatrix.nonZeros();
+    DataVector<int> vecRow(nS);
+    DataVector<int> vecCol(nS);
+    DataVector<double> vecS(nS);
+
+    for (int i = 0; i < m_weightMatrix.outerSize(); i++) {
+        for (WeightMatrix::InnerIterator it(m_weightMatrix,i); it; ++it) {
+            vecRow[i] = 1+it.row(); // row index
+            vecCol[i] = 1+it.col(); // col index
+            vecS[i] = it.value();   // value
+        }
+    }
+
+    // Load in data
+#ifdef IO_USE_PARALLEL_NETCDF
+    NcmpiDim * dimNS = ncMap.add_dim("n_s", nS);
+#else
+    NcDim * dimNS = ncMap.add_dim("n_s", nS);
+#endif
+
+#ifdef IO_USE_PARALLEL_NETCDF
+    NcmpiVar * varRow = ncMap.addVar("row", ncmpiInt, dimNS);
+    NcmpiVar * varCol = ncMap.addVar("col", ncmpiInt, dimNS);
+    NcmpiVar * varS = ncMap.addVar("S", ncmpiDouble, dimNS);
+#else
+    NcVar * varRow = ncMap.add_var("row", ncInt, dimNS);
+    NcVar * varCol = ncMap.add_var("col", ncInt, dimNS);
+    NcVar * varS = ncMap.add_var("S", ncDouble, dimNS);
+#endif
+
+    varRow->set_cur((long)0);
+    varRow->put(&(vecRow[0]), nS);
+
+    varCol->set_cur((long)0);
+    varCol->put(&(vecCol[0]), nS);
+
+    varS->set_cur((long)0);
+    varS->put(&(vecS[0]), nS);
+
+    // Add global attributes
+    // std::map<std::string, std::string>::const_iterator iterAttributes =
+    //     mapAttributes.begin();
+    // for (; iterAttributes != mapAttributes.end(); iterAttributes++) {
+    //     ncMap.add_att(
+    //         iterAttributes->first.c_str(),
+    //         iterAttributes->second.c_str());
+    // }
 }
 
-moab::ErrorCode moab::TempestOfflineMap::ApplyWeights (std::vector<double>& srcVals, std::vector<double>& tgtVals)
+
+moab::ErrorCode moab::TempestOfflineMap::ApplyWeights (std::vector<double>& srcVals, std::vector<double>& tgtVals, bool transpose)
 {
+    // Reset the source and target data first
+    m_rowVector.setZero();
+    m_colVector.setZero();
+
     // Permute the source data first
-    // moab::HypreParVector sVals(weightMap->GetRowVector()), tVals(weightMap->GetColVector());
-    (*m_rowVec) = 0.0;
-    (*m_colVec) = 0.0;
+    for (unsigned i=0; i < srcVals.size(); ++i) {
+        // m_rowVector(row_dofmap[i]) = srcVals[i]; // permute and set the row (source) vector properly
+        m_colVector(i) = srcVals[i]; // permute and set the row (source) vector properly
+    }
+    
+    // Perform the actual projection of weights: application of weight matrix onto the source solution vector
+    if (transpose) {
+        m_colVector = m_weightMatrix.adjoint() * m_rowVector;
+    }
+    else {
+        m_rowVector = m_weightMatrix * m_colVector;
+    }
+    
 
-    std::vector<HYPRE_Int> l_srcIndx(srcVals.size()), l_tgtIndx(tgtVals.size());
-    for (unsigned i=0; i < srcVals.size(); ++i)
-        l_srcIndx[i] = row_dofmap[i];
-    m_rowVec->SetData(&srcVals[0], &l_srcIndx[0]); // how do we pass the map to permute ?
-    m_weightMat->Mult(*m_rowVec, *m_colVec);
+    // Permute the target data next
+    for (unsigned i=0; i < tgtVals.size(); ++i) {
+        // tgtVals[i] = m_colVector(col_dofmap[i]); // let us re-permute and set the column (target) vector properly
+        tgtVals[i] = m_rowVector(i); // let us re-permute and set the column (target) vector properly
+    }
 
-    for (unsigned i=0; i < tgtVals.size(); ++i)
-        l_tgtIndx[i] = col_dofmap[i];
-    m_colVec->GetValues(tgtVals.size(), &l_tgtIndx[0], &tgtVals[0]);
-
+    // All done with matvec application
     return moab::MB_SUCCESS;
 }
 
@@ -871,8 +1104,8 @@ void moab::TempestOfflineMap::LinearRemapSE4_Tempest_MOAB (
         ixOverlap += nOverlapFaces;
     }
 
-#ifdef MOAB_HAVE_HYPRE
-    Hypre_CopyTempestSparseMat();
+#ifdef MOAB_HAVE_EIGEN
+    Eigen_CopyTempestSparseMat();
 #endif
     return;
 }
@@ -1163,8 +1396,8 @@ void moab::TempestOfflineMap::LinearRemapFVtoGLL_Simple_MOAB (
 
     }
 
-#ifdef MOAB_HAVE_HYPRE
-    Hypre_CopyTempestSparseMat();
+#ifdef MOAB_HAVE_EIGEN
+    Eigen_CopyTempestSparseMat();
 #endif
     return;
 }
@@ -1587,8 +1820,8 @@ void moab::TempestOfflineMap::LinearRemapFVtoGLL_Volumetric_MOAB (
         //_EXCEPTION();
     }
 
-#ifdef MOAB_HAVE_HYPRE
-    Hypre_CopyTempestSparseMat();
+#ifdef MOAB_HAVE_EIGEN
+    Eigen_CopyTempestSparseMat();
 #endif
     return;
 }
@@ -2093,8 +2326,8 @@ void moab::TempestOfflineMap::LinearRemapFVtoGLL_MOAB (
         ixOverlap += nOverlapFaces;
     }
 
-#ifdef MOAB_HAVE_HYPRE
-    Hypre_CopyTempestSparseMat();
+#ifdef MOAB_HAVE_EIGEN
+    Eigen_CopyTempestSparseMat();
 #endif
     return;
 }
@@ -2679,8 +2912,8 @@ void moab::TempestOfflineMap::LinearRemapGLLtoGLL2_MOAB (
         ixOverlap += nOverlapFaces;
     }
 
-#ifdef MOAB_HAVE_HYPRE
-    Hypre_CopyTempestSparseMat();
+#ifdef MOAB_HAVE_EIGEN
+    Eigen_CopyTempestSparseMat();
 #endif
     return;
 }
@@ -2895,8 +3128,8 @@ void moab::TempestOfflineMap::LinearRemapGLLtoGLL2_Pointwise_MOAB (
         }
     }
 
-#ifdef MOAB_HAVE_HYPRE
-    Hypre_CopyTempestSparseMat();
+#ifdef MOAB_HAVE_EIGEN
+    Eigen_CopyTempestSparseMat();
 #endif
 
     return;
