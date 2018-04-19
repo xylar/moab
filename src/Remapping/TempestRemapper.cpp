@@ -325,20 +325,11 @@ ErrorCode TempestRemapper::ConvertMOABMeshToTempest_Private ( Mesh* mesh, Entity
     moab::Range verts;
     rval = m_interface->get_entities_by_dimension ( mesh_set, 2, elems ); MB_CHK_ERR ( rval );
 
+    // resize the number of elements in Tempest mesh
     faces.resize ( elems.size() );
-    for ( unsigned iface = 0; iface < elems.size(); ++iface )
-    {
-        // get the connectivity for each edge
-        const EntityHandle* connectface;
-        int nnodesf;
-        rval = m_interface->get_connectivity ( elems[iface], connectface, nnodesf ); MB_CHK_ERR ( rval );
 
-        for ( int iverts = 0; iverts < nnodesf; ++iverts )
-        {
-            if ( verts.index ( connectface[iverts] ) < 0 )
-                verts.insert ( connectface[iverts] );
-        }
-    }
+    // let us now get the vertices from all the elements
+    rval = m_interface->get_connectivity ( elems, verts ); MB_CHK_ERR ( rval );
 
     for ( unsigned iface = 0; iface < elems.size(); ++iface )
     {
@@ -548,7 +539,6 @@ ErrorCode TempestRemapper::ConvertMOABMesh_WithSortedEntitiesBySource()
 
     // m_overlap->Validate();
     return MB_SUCCESS;
-
 }
 
 // Should be ordered as Source, Target, Overlap
@@ -669,9 +659,9 @@ ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius_
         // Now perform the actual parallel intersection between the source and the target meshes
         rval = mbintx->intersect_meshes ( m_covering_source_set, m_target_set, m_overlap_set ); MB_CHK_SET_ERR ( rval, "Can't compute the intersection of meshes on the sphere" );
 
-        // Not needed
-        // rval = fix_degenerate_quads(m_interface, m_overlap_set);MB_CHK_ERR(rval);
-        // rval = positive_orientation(m_interface, m_overlap_set, radius);MB_CHK_ERR(rval);
+        // Not needed ?
+        rval = fix_degenerate_quads(m_interface, m_overlap_set);MB_CHK_ERR(rval);
+        rval = positive_orientation(m_interface, m_overlap_set, radius_tgt);MB_CHK_ERR(rval);
 
         // free the memory
         delete mbintx;
