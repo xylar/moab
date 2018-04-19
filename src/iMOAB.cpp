@@ -2325,8 +2325,9 @@ ErrCode iMOAB_CoverageGraph(MPI_Comm* join, iMOAB_AppID pid_src, int* scompid, i
   if ( find(receivers.begin(), receivers.end(), currentRankInJointComm) != receivers.end() ) // we are on receivers tasks, we can request intx info
   {
     // find the pcomm for the intx pid
-    if (*pid_intx >= context.appDatas.size() )
+    if (*pid_intx >= (int)context.appDatas.size() )
       return 1;
+
     appData& dataIntx = context.appDatas[*pid_intx];
     Tag parentTag ;
     rval = context.MBI->tag_get_handle("BlueParent", parentTag); // id of the blue, source element
@@ -2413,7 +2414,7 @@ ErrCode iMOAB_ComputeScalarProjectionWeights ( iMOAB_AppID pid_intx,
     ParallelComm* pco_intx = context.pcomms[*pid_intx];
 
 	// Now allocate and initialize the remapper object
-    moab::TempestRemapper* remapper = data_intx.remapper;
+    // moab::TempestRemapper* remapper = data_intx.remapper;
 
 	// Setup computation of weights
 	// Call to generate an offline map with the tempest meshes
@@ -2471,7 +2472,7 @@ ErrCode iMOAB_ApplyScalarProjectionWeights (   iMOAB_AppID pid_intersection,
 
     // Get the source and target data and pcomm objects
     appData& data_intx = context.appDatas[*pid_intersection];
-    ParallelComm* pco_intx = context.pcomms[*pid_intersection];
+    // ParallelComm* pco_intx = context.pcomms[*pid_intersection];
 
     // Now allocate and initialize the remapper object
     moab::TempestRemapper* remapper = data_intx.remapper;
@@ -2481,9 +2482,8 @@ ErrCode iMOAB_ApplyScalarProjectionWeights (   iMOAB_AppID pid_intersection,
     Tag solnTag;
     rval = context.MBI->tag_get_handle ( solution_tag_name, solnTag );CHKERRVAL(rval);
 
-    // moab::HypreParVector sVals(weightMap->GetRowVector()), tVals(weightMap->GetColVector());
-    std::vector<double> solSTagVals(weightMap->GetSourceLocalNDofs());
-    std::vector<double> solTTagVals(weightMap->GetDestinationLocalNDofs());
+    std::vector<double> solSTagVals(weightMap->GetSourceLocalNDofs(), 0.0);
+    std::vector<double> solTTagVals(weightMap->GetDestinationLocalNDofs(), 0.0);
 
     moab::Range& covSrcEnts = remapper->GetMeshEntities(moab::Remapper::CoveringMesh);
     moab::Range& tgtEnts = remapper->GetMeshEntities(moab::Remapper::TargetMesh);
@@ -2491,7 +2491,7 @@ ErrCode iMOAB_ApplyScalarProjectionWeights (   iMOAB_AppID pid_intersection,
 
     rval = context.MBI->tag_get_data ( solnTag, covSrcEnts, &solSTagVals[0] );CHKERRVAL(rval);
 
-    rval = weightMap->ApplyWeights(solSTagVals, solTTagVals);CHKERRVAL(rval);
+    rval = weightMap->ApplyWeights(solSTagVals, solTTagVals, false);CHKERRVAL(rval);
 
     rval = context.MBI->tag_set_data ( solnTag, tgtEnts, &solTTagVals[0] );CHKERRVAL(rval);
 
