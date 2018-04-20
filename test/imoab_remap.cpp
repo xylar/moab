@@ -138,12 +138,16 @@ int main(int argc, char * argv[])
   int fVolumetric=0, fValidate=1, fNoConserve=0;
   
   const char* fieldname = "water_vap_ac";
-  int tagIndex[1];
-  int entTypes[1] = {1}; /* first is on vertex; */
-  int tagTypes[1] = { DENSE_DOUBLE } ;
+  const char* fieldnameT = "water_vap_ac_proj";
+  int tagIndex[2];
+  int entTypes[2] = {1, 1}; /* both on elements; */
+  int tagTypes[2] = { DENSE_DOUBLE, DENSE_DOUBLE } ;
   int num_components = disc_orders[0]*disc_orders[0];
 
   rc = iMOAB_DefineTagStorage(pid1, fieldname, &tagTypes[0], &num_components, &tagIndex[0],  strlen(fieldname) );
+  CHECKRC(rc, "failed to define the field tag");
+
+  rc = iMOAB_DefineTagStorage(pid2, fieldnameT, &tagTypes[1], &num_components, &tagIndex[1],  strlen(fieldnameT) );
   CHECKRC(rc, "failed to define the field tag");
   
   /*
@@ -182,7 +186,9 @@ int main(int argc, char * argv[])
      on the srouce mesh and get the projection on the target mesh */
   rc = iMOAB_ApplyScalarProjectionWeights ( pid3,
                                             fieldname,
-                                            strlen(fieldname)
+                                            fieldnameT,
+                                            strlen(fieldname),
+                                            strlen(fieldnameT)
                                             );
   CHECKRC(rc, "failed to compute projection weight application");
   

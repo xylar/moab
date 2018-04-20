@@ -777,8 +777,10 @@ ErrCode iMOAB_ComputeScalarProjectionWeights ( iMOAB_AppID pid_intersection,
   \param[in/out] pid_intersection (iMOAB_AppID)       The unique pointer to the intersection application ID
 */
 ErrCode iMOAB_ApplyScalarProjectionWeights (   iMOAB_AppID pid_intersection, 
-                                               const iMOAB_String soln_tag_name,
-                                               int soln_tag_name_length );
+                                               const iMOAB_String src_soln_tag_name,
+                                               const iMOAB_String dest_soln_tag_name,
+                                               int src_soln_tag_name_length,
+                                               int dest_soln_tag_name_length );
 
 #endif
 

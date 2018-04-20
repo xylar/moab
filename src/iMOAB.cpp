@@ -2463,37 +2463,38 @@ ErrCode iMOAB_ComputeScalarProjectionWeights ( iMOAB_AppID pid_intx,
 
 
 ErrCode iMOAB_ApplyScalarProjectionWeights (   iMOAB_AppID pid_intersection, 
-                                               const iMOAB_String solution_tag_name,
-                                               int solution_tag_name_length )
+                                               const iMOAB_String src_solution_tag_name,
+                                               const iMOAB_String dest_soln_tag_name,
+                                               int src_soln_tag_name_length,
+                                               int dest_soln_tag_name_length )
 {
     moab::ErrorCode rval;
 
-    assert(solution_tag_name_length > 0);
+    assert(src_soln_tag_name_length > 0 && dest_soln_tag_name_length > 0);
 
     // Get the source and target data and pcomm objects
     appData& data_intx = context.appDatas[*pid_intersection];
-    // ParallelComm* pco_intx = context.pcomms[*pid_intersection];
 
     // Now allocate and initialize the remapper object
     moab::TempestRemapper* remapper = data_intx.remapper;
     moab::TempestOfflineMap* weightMap = data_intx.weightMap;
 
     /* Global ID - exchange data for covering data */
-    Tag solnTag;
-    rval = context.MBI->tag_get_handle ( solution_tag_name, solnTag );CHKERRVAL(rval);
+    Tag ssolnTag, tsolnTag;
+    rval = context.MBI->tag_get_handle ( src_solution_tag_name, ssolnTag );CHKERRVAL(rval);
+    rval = context.MBI->tag_get_handle ( dest_soln_tag_name, tsolnTag );CHKERRVAL(rval);
 
     std::vector<double> solSTagVals(weightMap->GetSourceLocalNDofs(), 0.0);
     std::vector<double> solTTagVals(weightMap->GetDestinationLocalNDofs(), 0.0);
 
     moab::Range& covSrcEnts = remapper->GetMeshEntities(moab::Remapper::CoveringMesh);
     moab::Range& tgtEnts = remapper->GetMeshEntities(moab::Remapper::TargetMesh);
-    // assert(covSrcEnts.size() == )
 
-    rval = context.MBI->tag_get_data ( solnTag, covSrcEnts, &solSTagVals[0] );CHKERRVAL(rval);
+    rval = context.MBI->tag_get_data ( ssolnTag, covSrcEnts, &solSTagVals[0] );CHKERRVAL(rval);
 
     rval = weightMap->ApplyWeights(solSTagVals, solTTagVals, false);CHKERRVAL(rval);
 
-    rval = context.MBI->tag_set_data ( solnTag, tgtEnts, &solTTagVals[0] );CHKERRVAL(rval);
+    rval = context.MBI->tag_set_data ( tsolnTag, tgtEnts, &solTTagVals[0] );CHKERRVAL(rval);
 
     return 0;
 }
