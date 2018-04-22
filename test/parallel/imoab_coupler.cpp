@@ -154,8 +154,8 @@ int main( int argc, char* argv[] )
   CHECKRC(ierr, "cannot recompute direct coverage graph" )
   
   int disc_orders[2] = {4, 1};
-  const char* disc_methods[2] = {"CGLL", "fv"};
-  const char* dof_tag_names[2] = {"GLOBAL_ID", "GLOBAL_ID"};
+  const char* disc_methods[2] = {"cgll", "fv"};
+  const char* dof_tag_names[2] = {"GLOBAL_DOFS", "GLOBAL_ID"};
   int fVolumetric=0, fValidate=1, fNoConserve=0;
   ierr = iMOAB_ComputeScalarProjectionWeights ( pid5,
                                                 disc_methods[0], &disc_orders[0],
@@ -165,6 +165,37 @@ int main( int argc, char* argv[] )
                                                 strlen(disc_methods[0]), strlen(disc_methods[1]),
                                                 strlen(dof_tag_names[0]), strlen(dof_tag_names[1]) );
   CHECKRC(ierr, "cannot compute scalar projection weights" )
+
+  const char* fieldname = "water_vap_ac";
+  const char* fieldnameT = "water_vap_ac_proj";
+  int tagIndex[2];
+  int tagTypes[2] = { DENSE_DOUBLE, DENSE_DOUBLE } ;
+  int num_components1 = disc_orders[0]*disc_orders[0], num_components2 = disc_orders[1]*disc_orders[1];
+
+  ierr = iMOAB_DefineTagStorage(pid3, fieldname, &tagTypes[0], &num_components1, &tagIndex[0],  strlen(fieldname) );
+  CHECKRC(ierr, "failed to define the field tag");
+
+  ierr = iMOAB_DefineTagStorage(pid4, fieldnameT, &tagTypes[1], &num_components2, &tagIndex[1],  strlen(fieldnameT) );
+  CHECKRC(ierr, "failed to define the field tag");
+
+  /* We have the remapping weights now. Let us apply the weights onto the tag we defined 
+     on the srouce mesh and get the projection on the target mesh */
+  ierr = iMOAB_ApplyScalarProjectionWeights ( pid5,
+                                            fieldname,
+                                            fieldnameT,
+                                            strlen(fieldname),
+                                            strlen(fieldnameT)
+                                            );
+  CHECKRC(ierr, "failed to compute projection weight application");
+
+  char outputFileTgt[] = "fIntxTarget.h5m";
+#ifdef MOAB_HAVE_MPI
+    char writeOptions2[] ="PARALLEL=WRITE_PART";
+#else
+    char writeOptions2[] ="";
+#endif
+  ierr = iMOAB_WriteMesh(pid4, outputFileTgt, writeOptions2,
+    strlen(outputFileTgt), strlen(writeOptions2) );
 
   ierr = iMOAB_DeregisterApplication(pid5);
   CHECKRC(ierr, "cannot deregister app intx AO" )

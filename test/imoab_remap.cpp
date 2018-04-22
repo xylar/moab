@@ -142,25 +142,25 @@ int main(int argc, char * argv[])
   int tagIndex[2];
   int entTypes[2] = {1, 1}; /* both on elements; */
   int tagTypes[2] = { DENSE_DOUBLE, DENSE_DOUBLE } ;
-  int num_components = disc_orders[0]*disc_orders[0];
+  int num_components1 = disc_orders[0]*disc_orders[0], num_components2 = disc_orders[1]*disc_orders[1];
 
-  rc = iMOAB_DefineTagStorage(pid1, fieldname, &tagTypes[0], &num_components, &tagIndex[0],  strlen(fieldname) );
+  rc = iMOAB_DefineTagStorage(pid1, fieldname, &tagTypes[0], &num_components1, &tagIndex[0],  strlen(fieldname) );
   CHECKRC(rc, "failed to define the field tag");
 
-  rc = iMOAB_DefineTagStorage(pid2, fieldnameT, &tagTypes[1], &num_components, &tagIndex[1],  strlen(fieldnameT) );
+  rc = iMOAB_DefineTagStorage(pid2, fieldnameT, &tagTypes[1], &num_components2, &tagIndex[1],  strlen(fieldnameT) );
   CHECKRC(rc, "failed to define the field tag");
-  
+
   /*
    * query double tag values on elements
    * This tag was not synchronized, so ghost elements have a default value of 0.
    */
-  double * double_tag_vals = (double *) malloc (sizeof(double) * num_components * nelem[2]); // for all visible elements on the rank
+  double * double_tag_vals = (double *) malloc (sizeof(double) * num_components1 * nelem[2]); // for all visible elements on the rank
   rc = iMOAB_GetDoubleTagStorage(pid1, fieldname, &nelem[2], &entTypes[0], double_tag_vals, strlen(fieldname));
   CHECKRC(rc, "failed to get the double field tag storage");
   printf("DFIELD tag values: (not exchanged) \n");
   for (int i=0,offset=0; i<nelem[2]; i++)
   {
-      for (int j=0; j<num_components; j++,offset++)
+      for (int j=0; j<num_components1; j++,offset++)
         double_tag_vals[offset] = i;
   }
   rc = iMOAB_SetDoubleTagStorage(pid1, fieldname, &nelem[2], &entTypes[0], double_tag_vals, strlen(fieldname));
