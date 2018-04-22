@@ -296,12 +296,12 @@ public:
 	///	<summary>
 	///		Get the number of total Degrees-Of-Freedom defined on the source mesh.
 	///	</summary>
-	int GetSourceGlobalNDofs();
+	// int GetSourceGlobalNDofs();
 
 	///	<summary>
 	///		Get the number of total Degrees-Of-Freedom defined on the destination mesh.
 	///	</summary>
-	int GetDestinationGlobalNDofs();
+	// int GetDestinationGlobalNDofs();
 
 	///	<summary>
 	///		Get the number of local Degrees-Of-Freedom defined on the source mesh.
@@ -312,6 +312,16 @@ public:
 	///		Get the number of local Degrees-Of-Freedom defined on the destination mesh.
 	///	</summary>
 	int GetDestinationLocalNDofs();
+
+	///	<summary>
+	///		Get the number of Degrees-Of-Freedom per element on the source mesh.
+	///	</summary>
+	int GetSourceNDofsPerElement();
+
+	///	<summary>
+	///		Get the number of Degrees-Of-Freedom per element on the destination mesh.
+	///	</summary>
+	int GetDestinationNDofsPerElement();
 
 	///	<summary>
 	///		Get the raw reference to the Eigen weight matrix representing the projection from source to destination mesh.

@@ -817,17 +817,17 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
 ///////////////////////////////////////////////////////////////////////////////
 #ifdef MOAB_HAVE_HYPRE
 
-int moab::TempestOfflineMap::GetSourceGlobalNDofs()
-{
-    return m_weightMatrix.rows(); // return the global number of rows from the weight matrix
-}
+// int moab::TempestOfflineMap::GetSourceGlobalNDofs()
+// {
+//     return m_weightMatrix.rows(); // return the global number of rows from the weight matrix
+// }
 
-///////////////////////////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////////////////////////////
 
-int moab::TempestOfflineMap::GetDestinationGlobalNDofs()
-{
-    return m_weightMatrix.rows(); // return the global number of columns from the weight matrix
-}
+// int moab::TempestOfflineMap::GetDestinationGlobalNDofs()
+// {
+//     return m_weightMatrix.rows(); // return the global number of columns from the weight matrix
+// }
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -840,7 +840,21 @@ int moab::TempestOfflineMap::GetSourceLocalNDofs()
 
 int moab::TempestOfflineMap::GetDestinationLocalNDofs()
 {
-    return m_weightMatrix.cols(); // return the local number of columns from the weight matrix
+    return m_weightMatrix.rows(); // return the local number of columns from the weight matrix
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+int moab::TempestOfflineMap::GetSourceNDofsPerElement()
+{
+    return m_nDofsPEl_Src;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+int moab::TempestOfflineMap::GetDestinationNDofsPerElement()
+{
+    return m_nDofsPEl_Dest;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
