@@ -817,7 +817,7 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-#ifdef MOAB_HAVE_HYPRE
+#ifdef MOAB_HAVE_EIGEN
 
 // int moab::TempestOfflineMap::GetSourceGlobalNDofs()
 // {
