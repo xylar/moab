@@ -32,16 +32,16 @@ namespace moab
     }
 
 
-  HypreParVector::HypreParVector(MPI_Comm pcomm) : comm(pcomm)
+  HypreParVector::HypreParVector(moab::ParallelComm *p_comm) : pcomm(p_comm)
   {
     x = NULL;
     initialized = size = gsize = rstart = rend = 0;
   }
 
-  HypreParVector::HypreParVector(MPI_Comm pcomm, HYPRE_Int glob_size,
-                                 HYPRE_Int p_irstart, HYPRE_Int p_irend) : rstart(p_irstart), rend(p_irend), comm(pcomm)
+  HypreParVector::HypreParVector(moab::ParallelComm *p_comm, HYPRE_Int glob_size,
+                                 HYPRE_Int p_irstart, HYPRE_Int p_irend) : rstart(p_irstart), rend(p_irend), pcomm(p_comm)
   {
-    HYPRE_IJVectorCreate(comm, rstart, rend, &x);
+    HYPRE_IJVectorCreate(pcomm->comm(), rstart, rend, &x);
     HYPRE_IJVectorSetObjectType(x, HYPRE_PARCSR);
     HYPRE_IJVectorInitialize(x);
     HYPRE_IJVectorAssemble(x);
@@ -55,12 +55,12 @@ namespace moab
 
   HypreParVector::HypreParVector(const HypreParVector &y)
   {
-    comm = y.x->comm;
+    pcomm = y.pcomm;
     rstart = y.rstart;
     rend = y.rend;
     size = y.size;
     gsize = y.gsize;
-    HYPRE_IJVectorCreate(comm, y.rstart, y.rend, &x);
+    HYPRE_IJVectorCreate(pcomm->comm(), y.rstart, y.rend, &x);
     HYPRE_IJVectorSetObjectType(x, HYPRE_PARCSR);
     HYPRE_IJVectorInitialize(x);
     HYPRE_IJVectorAssemble(x);
@@ -75,7 +75,7 @@ namespace moab
 
   HypreParVector::HypreParVector(HypreParMatrix &A, int tr)
   {
-    comm = A.GetComm();
+    pcomm = A.GetParallelCommunicator();
     int *part;
 
     if (tr) {
@@ -83,7 +83,7 @@ namespace moab
 
     } else part = A.RowPart();
 
-    HYPRE_IJVectorCreate(comm, part[0], part[1], &x);
+    HYPRE_IJVectorCreate(pcomm->comm(), part[0], part[1], &x);
     HYPRE_IJVectorSetObjectType(x, HYPRE_PARCSR);
     HYPRE_IJVectorInitialize(x);
     HYPRE_IJVectorAssemble(x);
@@ -104,17 +104,6 @@ namespace moab
     initialized = 1;
   }
 
-  HypreParVector::HypreParVector(HYPRE_IJVector &y)
-  {
-    this->x = y;
-    comm = hypre_ParVectorComm(y);
-    HYPRE_IJVectorInitialize(x);
-    HYPRE_IJVectorAssemble(x);
-    HYPRE_IJVectorGetObject(x, (void **) &x_par);
-    own_ParVector = 0;
-    initialized = 1;
-  }
-
 
   HypreParVector::operator HYPRE_IJVector() const
   {
@@ -129,6 +118,12 @@ namespace moab
 // #endif
 
 
+  HypreParVector& HypreParVector::operator=(double d)
+  {
+    hypre_ParVectorSetConstantValues(x_par,d);
+    return *this;
+  }
+
   HypreParVector &HypreParVector::operator=(const HypreParVector &y)
   {
 #ifndef NDEBUG
@@ -138,7 +133,7 @@ namespace moab
     }
 
 #endif
-    comm = y.x->comm;
+    pcomm = y.pcomm;
     rstart = y.rstart;
     rend = y.rend;
     size = y.size;
@@ -159,7 +154,7 @@ namespace moab
     if (initialized ||
         x != NULL) MB_SET_ERR_RET_VAL("Vector is already initialized and partitioned", -1);
 
-    HYPRE_IJVectorCreate(this->comm, p_irstart, p_irend, &x);
+    HYPRE_IJVectorCreate(this->pcomm->comm(), p_irstart, p_irend, &x);
     HYPRE_IJVectorSetObjectType(x, HYPRE_PARCSR);
     HYPRE_IJVectorInitialize(x);
     HYPRE_IJVectorAssemble(x);
@@ -169,7 +164,6 @@ namespace moab
     size = rstart - rend;
     own_ParVector = 1;
     initialized = 1;
-    std::cout << glob_size << "\tAllocated vector of size: " << rend - rstart << std::endl;
     return 0;
   }
 

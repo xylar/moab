@@ -62,10 +62,6 @@ moab::TempestOfflineMap::TempestOfflineMap ( moab::TempestRemapper* remapper ) :
     dimSizes[0] = m_meshOutput->faces.size();
     this->InitializeTargetDimensions(dimNames, dimSizes);
 
-#ifdef MOAB_HAVE_HYPRE
-    m_weightMat = new HypreParMatrix(pcomm->comm());
-    m_rowVec = m_colVec = NULL;
-#endif
     m_weightMapGlobal = NULL;
 
     // Build a matrix of source and target discretization so that we know how to assign
@@ -77,12 +73,6 @@ moab::TempestOfflineMap::TempestOfflineMap ( moab::TempestRemapper* remapper ) :
 
 moab::TempestOfflineMap::~TempestOfflineMap()
 {
-#ifdef MOAB_HAVE_HYPRE
-    delete m_weightMat;
-    if (m_rowVec) delete m_rowVec;
-    if (m_colVec) delete m_colVec;
-#endif
-
     delete m_weightMapGlobal;
     mbCore = NULL;
     pcomm = NULL;
@@ -144,18 +134,23 @@ moab::ErrorCode moab::TempestOfflineMap::SetDofMapTags(const std::string srcDofT
 
 ///////////////////////////////////////////////////////////////////////////////
 
-moab::ErrorCode moab::TempestOfflineMap::SetDofMapAssociation(DiscretizationType srcType, bool isSrcContinuous, DataMatrix3D<int>* srcdataGLLNodes,
+moab::ErrorCode moab::TempestOfflineMap::SetDofMapAssociation(DiscretizationType srcType, bool isSrcContinuous, DataMatrix3D<int>* srcdataGLLNodes, DataMatrix3D<int>* srcdataGLLNodesSrc,
     DiscretizationType destType, bool isTgtContinuous, DataMatrix3D<int>* tgtdataGLLNodes)
 {
     moab::ErrorCode rval;
     std::vector<int> src_soln_gdofs(m_remapper->m_covering_source_entities.size()*m_nDofsPEl_Src*m_nDofsPEl_Src);
+    std::vector<int> locsrc_soln_gdofs(m_remapper->m_source_entities.size()*m_nDofsPEl_Src*m_nDofsPEl_Src);
     std::vector<int> tgt_soln_gdofs(m_remapper->m_target_entities.size()*m_nDofsPEl_Dest*m_nDofsPEl_Dest);
 
     // We are assuming that these are element based tags that are sized: np * np
     rval = mbCore->tag_get_data ( m_dofTagSrc, m_remapper->m_covering_source_entities, &src_soln_gdofs[0] );MB_CHK_ERR(rval);
+    rval = mbCore->tag_get_data ( m_dofTagSrc, m_remapper->m_source_entities, &locsrc_soln_gdofs[0] );MB_CHK_ERR(rval);
     rval = mbCore->tag_get_data ( m_dofTagDest, m_remapper->m_target_entities, &tgt_soln_gdofs[0] );MB_CHK_ERR(rval);
 
-    // Now compute the mapping and store it
+    m_srcDiscType = srcType;
+    m_destDiscType = destType;
+
+    // Now compute the mapping and store it for the covering mesh
     if (srcdataGLLNodes == NULL || srcType == DiscretizationType_FV) { /* we only have a mapping for elements as DoFs */
         for (unsigned i=0; i < src_soln_gdofs.size(); ++i) {
             col_dofmap.insert( std::pair<int,int>(i, src_soln_gdofs[i]) );
@@ -173,9 +168,38 @@ moab::ErrorCode moab::TempestOfflineMap::SetDofMapAssociation(DiscretizationType
                 {
                     if ( isSrcContinuous ) {
                         col_dofmap.insert( std::pair<int,int>((*srcdataGLLNodes)[p][q][j] - 1, src_soln_gdofs[idof++]) );
+                        dgll_cgll_col_ldofmap[j * m_nDofsPEl_Src * m_nDofsPEl_Src + p * m_nDofsPEl_Src + q] = (*srcdataGLLNodes)[p][q][j] - 1;
                     }
                     else {
                         col_dofmap.insert( std::pair<int,int>(j * m_nDofsPEl_Src * m_nDofsPEl_Src + p * m_nDofsPEl_Src + q, src_soln_gdofs[idof++]) );
+                    }
+                }
+            }
+        }
+    }
+
+
+    // Now compute the mapping and store it for the original source mesh
+    if (srcdataGLLNodesSrc == NULL || srcType == DiscretizationType_FV) { /* we only have a mapping for elements as DoFs */
+        for (unsigned i=0; i < locsrc_soln_gdofs.size(); ++i) {
+            srccol_dofmap.insert( std::pair<int,int>(i, locsrc_soln_gdofs[i]) );
+            // std::cout << "Col: (" << i << ", " << locsrc_soln_gdofs[i] << ")\n";
+        }
+    }
+    else {
+        // Put these remap coefficients into the SparseMatrix map
+        int idof=0;
+        for ( unsigned j = 0; j < m_remapper->m_source_entities.size(); j++ )
+        {
+            for ( int p = 0; p < m_nDofsPEl_Src; p++ )
+            {
+                for ( int q = 0; q < m_nDofsPEl_Src; q++ )
+                {
+                    if ( isSrcContinuous ) {
+                        srccol_dofmap.insert( std::pair<int,int>((*srcdataGLLNodesSrc)[p][q][j] - 1, locsrc_soln_gdofs[idof++]) );
+                    }
+                    else {
+                        srccol_dofmap.insert( std::pair<int,int>(j * m_nDofsPEl_Src * m_nDofsPEl_Src + p * m_nDofsPEl_Src + q, locsrc_soln_gdofs[idof++]) );
                     }
                 }
             }
@@ -199,6 +223,7 @@ moab::ErrorCode moab::TempestOfflineMap::SetDofMapAssociation(DiscretizationType
                 {
                     if ( isTgtContinuous ) {
                         row_dofmap.insert( std::pair<int,int>((*tgtdataGLLNodes)[p][q][j] - 1, tgt_soln_gdofs[idof++]) );
+                        dgll_cgll_row_ldofmap[j * m_nDofsPEl_Dest * m_nDofsPEl_Dest + p * m_nDofsPEl_Dest + q] = (*tgtdataGLLNodes)[p][q][j] - 1;
                     }
                     else {
                         row_dofmap.insert( std::pair<int,int>(j * m_nDofsPEl_Dest * m_nDofsPEl_Dest + p * m_nDofsPEl_Dest + q, tgt_soln_gdofs[idof++]) );
@@ -207,6 +232,12 @@ moab::ErrorCode moab::TempestOfflineMap::SetDofMapAssociation(DiscretizationType
             }
         }
     }
+
+    // Let us also allocate the local representation of the sparse matrix
+#ifdef MOAB_HAVE_EIGEN
+    m_weightMatrix.resize(row_dofmap.size(), col_dofmap.size());
+    InitVectors();
+#endif
 
     return moab::MB_SUCCESS;
 }
@@ -423,7 +454,7 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
             this->InitializeTargetCoordinatesFromMeshFV ( *m_meshOutput );
 
             // Finite volume input / Finite element output
-            rval = this->SetDofMapAssociation(eInputType, false, NULL, eOutputType, false, NULL);MB_CHK_ERR(rval);
+            rval = this->SetDofMapAssociation(eInputType, false, NULL, NULL, eOutputType, false, NULL);MB_CHK_ERR(rval);
 
             // Construct OfflineMap
             if ( !pcomm->rank() ) dbgprint.printf ( 0, "Calculating offline map\n" );
@@ -473,7 +504,7 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
             m_meshInputCov->ConstructEdgeMap();
 
             // Finite volume input / Finite element output
-            rval = this->SetDofMapAssociation(eInputType, false, NULL, 
+            rval = this->SetDofMapAssociation(eInputType, false, NULL, NULL, 
                 eOutputType, (eOutputType == DiscretizationType_CGLL), &dataGLLNodesDest);MB_CHK_ERR(rval);
 
             // Generate remap weights
@@ -507,16 +538,26 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
             ( eOutputType == DiscretizationType_FV )
         )
         {
-            DataMatrix3D<double> dataGLLJacobian;
+            DataMatrix3D<double> dataGLLJacobianSrc, dataGLLJacobian;
 
             if ( !pcomm->rank() ) dbgprint.printf ( 0, "Generating input mesh meta data\n" );
-            double dNumericalArea_loc =
+            double dNumericalAreaCov_loc =
                 GenerateMetaData (
                     *m_meshInputCov,
                     nPin,
                     fBubble,
-                    dataGLLNodesSrc,
+                    dataGLLNodesSrcCov,
                     dataGLLJacobian );
+
+            double dNumericalArea_loc =
+                GenerateMetaData (
+                    *m_meshInput,
+                    nPin,
+                    fBubble,
+                    dataGLLNodesSrc,
+                    dataGLLJacobianSrc );
+
+            assert(dNumericalAreaCov_loc >= dNumericalArea_loc);
 
             Real dNumericalArea;
             MPI_Allreduce ( &dNumericalArea_loc, &dNumericalArea, 1, MPI_DOUBLE, MPI_SUM, pcomm->comm() );
@@ -528,7 +569,7 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
                                   "numerical area and geometric area\n" );
             }
 
-            if ( dataGLLNodesSrc.GetSubColumns() != m_meshInputCov->faces.size() )
+            if ( dataGLLNodesSrcCov.GetSubColumns() != m_meshInputCov->faces.size() )
             {
                 _EXCEPTIONT ( "Number of element does not match between metadata and "
                               "input mesh" );
@@ -536,7 +577,7 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
 
             // Initialize coordinates for map
             this->InitializeSourceCoordinatesFromMeshFE (
-                *m_meshInputCov, nPin, dataGLLNodesSrc );
+                *m_meshInputCov, nPin, dataGLLNodesSrcCov );
             this->InitializeTargetCoordinatesFromMeshFV ( *m_meshOutput );
 
             // Generate the continuous Jacobian for input mesh
@@ -545,7 +586,7 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
             if ( eInputType == DiscretizationType_CGLL )
             {
                 GenerateUniqueJacobian (
-                    dataGLLNodesSrc,
+                    dataGLLNodesSrcCov,
                     dataGLLJacobian,
                     this->GetSourceAreas() );
             }
@@ -557,7 +598,7 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
             }
 
             // Finite element input / Finite volume output
-            rval = this->SetDofMapAssociation(eInputType, (eInputType == DiscretizationType_CGLL), &dataGLLNodesSrc, 
+            rval = this->SetDofMapAssociation(eInputType, (eInputType == DiscretizationType_CGLL), &dataGLLNodesSrcCov, &dataGLLNodesSrc, 
                 eOutputType, false, NULL);MB_CHK_ERR(rval);
 
             // Generate offline map
@@ -570,7 +611,7 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
             }
 
             LinearRemapSE4_Tempest_MOAB (
-                dataGLLNodesSrc,
+                dataGLLNodesSrcCov,
                 dataGLLJacobian,
                 nMonotoneType,
                 fContinuousIn,
@@ -583,7 +624,7 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
             ( eOutputType != DiscretizationType_FV )
         )
         {
-            DataMatrix3D<double> dataGLLJacobianIn;
+            DataMatrix3D<double> dataGLLJacobianIn, dataGLLJacobianSrc;
             DataMatrix3D<double> dataGLLJacobianOut;
 
             // Input metadata
@@ -593,11 +634,21 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
                     *m_meshInputCov,
                     nPin,
                     fBubble,
-                    dataGLLNodesSrc,
+                    dataGLLNodesSrcCov,
                     dataGLLJacobianIn );
 
+            double dNumericalAreaSrc_loc =
+                GenerateMetaData (
+                    *m_meshInput,
+                    nPin,
+                    fBubble,
+                    dataGLLNodesSrc,
+                    dataGLLJacobianSrc );
+
+            assert(dNumericalAreaIn_loc >= dNumericalAreaSrc_loc);
+
             Real dNumericalAreaIn;
-            MPI_Allreduce ( &dNumericalAreaIn_loc, &dNumericalAreaIn, 1, MPI_DOUBLE, MPI_SUM, pcomm->comm() );
+            MPI_Allreduce ( &dNumericalAreaSrc_loc, &dNumericalAreaIn, 1, MPI_DOUBLE, MPI_SUM, pcomm->comm() );
             if ( !pcomm->rank() ) dbgprint.printf ( 0, "Input Mesh Numerical Area: %1.15e", dNumericalAreaIn );
 
             if ( fabs ( dNumericalAreaIn - dTotalAreaInput ) > 1.0e-12 )
@@ -629,7 +680,7 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
 
             // Initialize coordinates for map
             this->InitializeSourceCoordinatesFromMeshFE (
-                *m_meshInputCov, nPin, dataGLLNodesSrc );
+                *m_meshInputCov, nPin, dataGLLNodesSrcCov );
             this->InitializeTargetCoordinatesFromMeshFE (
                 *m_meshOutput, nPout, dataGLLNodesDest );
 
@@ -639,7 +690,7 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
             if ( eInputType == DiscretizationType_CGLL )
             {
                 GenerateUniqueJacobian (
-                    dataGLLNodesSrc,
+                    dataGLLNodesSrcCov,
                     dataGLLJacobianIn,
                     this->GetSourceAreas() );
             }
@@ -668,14 +719,14 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
             }
 
             // Input Finite Element to Output Finite Element
-            rval = this->SetDofMapAssociation(eInputType, (eInputType == DiscretizationType_CGLL), &dataGLLNodesSrc, 
+            rval = this->SetDofMapAssociation(eInputType, (eInputType == DiscretizationType_CGLL), &dataGLLNodesSrcCov, &dataGLLNodesSrc, 
                 eOutputType, (eOutputType == DiscretizationType_CGLL), &dataGLLNodesDest);MB_CHK_ERR(rval);
 
             // Generate offline map
             if ( !pcomm->rank() ) dbgprint.printf ( 0, "Calculating offline map" );
 
             LinearRemapGLLtoGLL2_MOAB (
-                dataGLLNodesSrc,
+                dataGLLNodesSrcCov,
                 dataGLLJacobianIn,
                 dataGLLNodesDest,
                 dataGLLJacobianOut,
@@ -768,58 +819,72 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
 ///////////////////////////////////////////////////////////////////////////////
 #ifdef MOAB_HAVE_HYPRE
 
-int moab::TempestOfflineMap::GetSourceGlobalNDofs()
-{
-    return m_weightMat->M(); // return the global number of rows from the weight matrix
-}
+// int moab::TempestOfflineMap::GetSourceGlobalNDofs()
+// {
+//     return m_weightMatrix.rows(); // return the global number of rows from the weight matrix
+// }
 
-///////////////////////////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////////////////////////////
 
-int moab::TempestOfflineMap::GetDestinationGlobalNDofs()
-{
-    return m_weightMat->N(); // return the global number of columns from the weight matrix
-}
+// int moab::TempestOfflineMap::GetDestinationGlobalNDofs()
+// {
+//     return m_weightMatrix.rows(); // return the global number of columns from the weight matrix
+// }
 
 ///////////////////////////////////////////////////////////////////////////////
 
 int moab::TempestOfflineMap::GetSourceLocalNDofs()
 {
-    return m_weightMat->GetNumRows(); // return the local number of rows from the weight matrix
+    return m_weightMatrix.cols(); // return the local number of rows from the weight matrix
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
 int moab::TempestOfflineMap::GetDestinationLocalNDofs()
 {
-    return m_weightMat->GetNumCols(); // return the local number of columns from the weight matrix
+    return m_weightMatrix.rows(); // return the local number of columns from the weight matrix
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+int moab::TempestOfflineMap::GetSourceNDofsPerElement()
+{
+    return m_nDofsPEl_Src;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+int moab::TempestOfflineMap::GetDestinationNDofsPerElement()
+{
+    return m_nDofsPEl_Dest;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
 void moab::TempestOfflineMap::InitVectors()
 {
-    assert(m_weightMat != NULL);
-    m_rowVec = new HypreParVector(*m_weightMat);
-    m_colVec = new HypreParVector(*m_weightMat, 1);
+    assert(m_weightMatrix.rows() != 0 && m_weightMatrix.cols() != 0);
+    m_rowVector.resize( m_weightMatrix.rows() );
+    m_colVector.resize( m_weightMatrix.cols() );
 }
 
 
-moab::HypreParMatrix& moab::TempestOfflineMap::GetWeightMatrix()
+moab::TempestOfflineMap::WeightMatrix& moab::TempestOfflineMap::GetWeightMatrix()
 {
-    assert(m_weightMat != NULL);
-    return *m_weightMat;
+    assert(m_weightMatrix.rows() != 0 && m_weightMatrix.cols() != 0);
+    return m_weightMatrix;
 }
 
-moab::HypreParVector& moab::TempestOfflineMap::GetRowVector()
+moab::TempestOfflineMap::WeightRowVector& moab::TempestOfflineMap::GetRowVector()
 {
-    assert(m_rowVec != NULL);
-    return *m_rowVec;
+    assert(m_rowVector.size() != 0);
+    return m_rowVector;
 }
 
-moab::HypreParVector& moab::TempestOfflineMap::GetColVector()
+moab::TempestOfflineMap::WeightColVector& moab::TempestOfflineMap::GetColVector()
 {
-    assert(m_colVec != NULL);
-    return *m_colVec;
+    assert(m_colVector.size() != 0);
+    return m_colVector;
 }
 
 #endif
@@ -1028,7 +1093,7 @@ moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot(DiscretizationType eInp
             // if (eInputType == DiscretizationType_FV) /* unsure if we actually care about the type for this */
                 m_weightMapGlobal->InitializeSourceCoordinatesFromMeshFV ( *minput );
             // else
-            //     m_weightMapGlobal->InitializeSourceCoordinatesFromMeshFE ( *minput, m_nDofsPEl_Src, dataGLLNodesSrc );
+            //     m_weightMapGlobal->InitializeSourceCoordinatesFromMeshFE ( *minput, m_nDofsPEl_Src, dataGLLNodesSrcCov );
 
             // if (eOutputType == DiscretizationType_FV)  /* unsure if we actually care about the type for this */
                 m_weightMapGlobal->InitializeTargetCoordinatesFromMeshFV ( *m_meshOutput );
@@ -1227,7 +1292,8 @@ moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot(DiscretizationType eInp
             std::ofstream output_file ( "source-target-areas.txt" );
             output_file << "Source areas (gsrcdofs = " << gsrcdofs << ")\n";
 #endif
-            for ( unsigned ip = 0, offset = 0; ip < pcomm->size(); ++ip )
+            int offset = 0;
+            for ( unsigned ip = 0; ip < pcomm->size(); ++ip )
             {
                 int istart = displs[ip] + rowcolss[NDATA * ip], iend = istart + rowcolss[NDATA * ip + 1];
                 for ( int i = istart; i < iend; ++i, ++offset )
@@ -1242,7 +1308,8 @@ moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot(DiscretizationType eInp
 #ifdef VERBOSE
             output_file << "Target areas (gtgtdofs = " << gtgtdofs << ")\n";
 #endif
-            for ( unsigned ip = 0, offset = 0; ip < pcomm->size(); ++ip )
+            offset = 0;
+            for ( unsigned ip = 0; ip < pcomm->size(); ++ip )
             {
                 int istart = displs[ip] + rowcolss[NDATA * ip] + rowcolss[NDATA * ip + 1], iend = istart + rowcolss[NDATA * ip + 2];
                 for ( int i = istart; i < iend; ++i, ++offset )

@@ -434,6 +434,9 @@ int main ( int argc, char* argv[] )
             sstr.str("");
             sstr << "outWeights_" << proc_id << ".nc";
             weightMap->Write(sstr.str().c_str());
+            sstr.str("");
+            sstr << "newoutWeights_" << proc_id << ".nc";
+            weightMap->WriteParallelWeightsToFile(sstr.str().c_str());
 
             delete weightMap;
         }

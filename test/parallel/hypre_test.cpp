@@ -4,7 +4,6 @@
 #include "HypreSolver.hpp"
 
 #include <iostream>
-
 using namespace std;
 
 #undef DEBUG
@@ -31,8 +30,16 @@ int main ( int argc, char *argv[] )
   int rank = 0;
 #endif
   MPI_Comm comm = MPI_COMM_WORLD;
-  moab::HypreParMatrix A ( comm );
-  moab::HypreParVector x ( comm ), b ( comm ), xexact ( comm );
+  
+  moab::Core mbCore;
+  moab::Interface& mb = mbCore;
+
+  // rval = mb.load_file(example.c_str(), &euler_set, opts.c_str());
+
+  moab::ParallelComm* pcomm = new moab::ParallelComm(&mb, comm);
+  
+  moab::HypreParMatrix A ( pcomm );
+  moab::HypreParVector x ( pcomm ), b ( pcomm ), xexact ( pcomm );
 #ifdef DEBUG
 
   if ( rank == 0 ) {
@@ -200,20 +207,26 @@ moab::ErrorCode GenerateTestMatrixAndVectors(int nx, int ny, int nz,
 #endif
   // Set this bool to true if you want a 7-pt stencil instead of a 27 pt stencil
   bool use_7pt_stencil = false;
+  const int NNZPERROW = 27;
+
   int local_nrow = nx * ny * nz; // This is the size of our subblock
   assert(local_nrow > 0);    // Must have something to work with
-  int local_nnz = 27 * local_nrow; // Approximately 27 nonzeros per row (except for boundary nodes)
-  int total_nrow = local_nrow * size; // Total number of grid points in mesh
-  long long total_nnz = 27 * (long long)
+  int local_nnz = NNZPERROW * local_nrow; // Approximately 27 nonzeros per row (except for boundary nodes)
+  int total_nrow = 0;
+  MPI_Allreduce(&local_nrow, &total_nrow, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+
+  // int total_nrow = local_nrow * size; // Total number of grid points in mesh
+  long long total_nnz = NNZPERROW * (long long)
                         total_nrow;   // Approximately 27 nonzeros per row (except for boundary nodes)
   int start_row = local_nrow * rank; // Each processor gets a section of a chimney stack domain
   int stop_row = start_row + local_nrow - 1;
+
   // Allocate arrays that are of length local_nrow
   // Eigen::SparseMatrix<double, Eigen::RowMajor> diagMatrix(local_nrow, local_nrow);
   // diagMatrix.reserve(local_nnz);
   HYPRE_Int col[2] = {start_row, stop_row};
-  A.resize(total_nrow, total_nrow, col, col);
-  // Eigen::VectorXd tmpVec;
+  A.resize(total_nrow, col);
+
   sol.resize(total_nrow, start_row, stop_row);
   rhs.resize(total_nrow, start_row, stop_row);
   exactsol.resize(total_nrow, start_row, stop_row);
@@ -222,8 +235,8 @@ moab::ErrorCode GenerateTestMatrixAndVectors(int nx, int ny, int nz,
   for (int iz = 0; iz < nz; iz++) {
     for (int iy = 0; iy < ny; iy++) {
       for (int ix = 0; ix < nx; ix++) {
-        int curlocalrow = iz * nx * ny + iy * nx + ix;
-        int currow = start_row + iz * nx * ny + iy * nx + ix;
+        const int curlocalrow = iz * nx * ny + iy * nx + ix;
+        const int currow = start_row + curlocalrow;
         int nnzrow = 0;
         std::vector<double> colvals;
         std::vector<int> indices;
@@ -231,19 +244,17 @@ moab::ErrorCode GenerateTestMatrixAndVectors(int nx, int ny, int nz,
         for (int sz = -1; sz <= 1; sz++) {
           for (int sy = -1; sy <= 1; sy++) {
             for (int sx = -1; sx <= 1; sx++) {
-              int curcol = currow + sz * nx * ny + sy * nx + sx;
-              int curlocalcol = curlocalrow + sz * nx * ny + sy * nx + sx;
+              const int curlocalcol = sz * nx * ny + sy * nx + sx;
+              const int curcol = currow + curlocalcol;
 
               // Since we have a stack of nx by ny by nz domains , stacking in the z direction, we check to see
               // if sx and sy are reaching outside of the domain, while the check for the curcol being valid
               // is sufficient to check the z values
-              if ((ix + sx >= 0) && (ix + sx < nx) && (iy + sy >= 0) && (iy + sy < ny) && (curcol >= 0 &&
-                  curcol < total_nrow)) {
+              if ((ix + sx >= 0) && (ix + sx < nx) && (iy + sy >= 0) && (iy + sy < ny) && (curcol >= 0 && curcol < total_nrow)) {
                 if (!use_7pt_stencil ||
                     (sz * sz + sy * sy + sx * sx <= 1)) {     // This logic will skip over point that are not part of a 7-pt stencil
                   if (curcol == currow) {
                     colvals.push_back(27.0);
-
                   } else {
                     colvals.push_back(-1.0);
                   }
@@ -267,7 +278,7 @@ moab::ErrorCode GenerateTestMatrixAndVectors(int nx, int ny, int nz,
     } // end iy loop
   } // end iz loop
 
-  if (debug) cout << "Global size of the matrix: " << total_nrow << " and NNZ = " << total_nnz <<
+  if (debug) cout << "Global size of the matrix: " << total_nrow << " and NNZ (estimate) = " << total_nnz << " NNZ (actual) = " << nnzglobal <<
                     endl;
 
   if (debug) cout << "Process " << rank << " of " << size << " has " << local_nrow << endl;
