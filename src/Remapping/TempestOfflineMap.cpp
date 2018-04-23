@@ -168,6 +168,7 @@ moab::ErrorCode moab::TempestOfflineMap::SetDofMapAssociation(DiscretizationType
                 {
                     if ( isSrcContinuous ) {
                         col_dofmap.insert( std::pair<int,int>((*srcdataGLLNodes)[p][q][j] - 1, src_soln_gdofs[idof++]) );
+                        dgll_cgll_col_ldofmap[j * m_nDofsPEl_Src * m_nDofsPEl_Src + p * m_nDofsPEl_Src + q] = (*srcdataGLLNodes)[p][q][j] - 1;
                     }
                     else {
                         col_dofmap.insert( std::pair<int,int>(j * m_nDofsPEl_Src * m_nDofsPEl_Src + p * m_nDofsPEl_Src + q, src_soln_gdofs[idof++]) );
@@ -222,6 +223,7 @@ moab::ErrorCode moab::TempestOfflineMap::SetDofMapAssociation(DiscretizationType
                 {
                     if ( isTgtContinuous ) {
                         row_dofmap.insert( std::pair<int,int>((*tgtdataGLLNodes)[p][q][j] - 1, tgt_soln_gdofs[idof++]) );
+                        dgll_cgll_row_ldofmap[j * m_nDofsPEl_Dest * m_nDofsPEl_Dest + p * m_nDofsPEl_Dest + q] = (*tgtdataGLLNodes)[p][q][j] - 1;
                     }
                     else {
                         row_dofmap.insert( std::pair<int,int>(j * m_nDofsPEl_Dest * m_nDofsPEl_Dest + p * m_nDofsPEl_Dest + q, tgt_soln_gdofs[idof++]) );

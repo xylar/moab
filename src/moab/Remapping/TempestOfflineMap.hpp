@@ -27,7 +27,7 @@
 #include <string>
 #include <vector>
 
-#define VERBOSE
+// #define VERBOSE
 
 #ifdef MOAB_HAVE_EIGEN
 #include <Eigen/Sparse>
@@ -394,6 +394,7 @@ private:
 	///	<summary>
 	moab::Tag m_dofTagSrc, m_dofTagDest;
 	std::map<int,int> row_dofmap, col_dofmap, srccol_dofmap;
+	std::map<int,int> dgll_cgll_row_ldofmap, dgll_cgll_col_ldofmap;
 
 	DataMatrix3D<int> dataGLLNodesSrc, dataGLLNodesSrcCov, dataGLLNodesDest;
 	DiscretizationType m_srcDiscType, m_destDiscType;

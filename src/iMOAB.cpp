@@ -2474,6 +2474,7 @@ ErrCode iMOAB_ApplyScalarProjectionWeights (   iMOAB_AppID pid_intersection,
 
     // Get the source and target data and pcomm objects
     appData& data_intx = context.appDatas[*pid_intersection];
+    ParallelComm* pco_intx = context.pcomms[*pid_intersection];
 
     // Now allocate and initialize the remapper object
     moab::TempestRemapper* remapper = data_intx.remapper;
@@ -2484,16 +2485,31 @@ ErrCode iMOAB_ApplyScalarProjectionWeights (   iMOAB_AppID pid_intersection,
     rval = context.MBI->tag_get_handle ( src_solution_tag_name, ssolnTag );CHKERRVAL(rval);
     rval = context.MBI->tag_get_handle ( dest_soln_tag_name, tsolnTag );CHKERRVAL(rval);
 
-    std::vector<double> solSTagVals(weightMap->GetSourceLocalNDofs(), 0.0);
-    std::vector<double> solTTagVals(weightMap->GetDestinationLocalNDofs(), 0.0);
-
     moab::Range& covSrcEnts = remapper->GetMeshEntities(moab::Remapper::CoveringMesh);
     moab::Range& tgtEnts = remapper->GetMeshEntities(moab::Remapper::TargetMesh);
 
+    std::vector<double> solSTagVals(covSrcEnts.size()*weightMap->GetSourceNDofsPerElement()*weightMap->GetSourceNDofsPerElement() /*weightMap->GetSourceLocalNDofs()*/, 0.0);
+    std::vector<double> solTTagVals(weightMap->GetDestinationLocalNDofs()*weightMap->GetDestinationNDofsPerElement()*weightMap->GetDestinationNDofsPerElement() /*weightMap->GetDestinationLocalNDofs()*/, 0.0);
+
+#if 0
+    int rank;
+    MPI_Comm_rank ( pco_intx->comm(), &rank );
+    if (!rank)
+        std::cout << "weightMap->GetSourceLocalNDofs() = " << weightMap->GetSourceLocalNDofs() << ", " << covSrcEnts.size()*weightMap->GetSourceNDofsPerElement()*weightMap->GetSourceNDofsPerElement() << "; weightMap->GetDestinationLocalNDofs() = " << weightMap->GetDestinationLocalNDofs()*weightMap->GetDestinationNDofsPerElement()*weightMap->GetDestinationNDofsPerElement() << ", " << tgtEnts.size() << "\n";
+    MPI_Barrier(pco_intx->comm());
+    if (rank)
+        std::cout << "weightMap->GetSourceLocalNDofs() = " << weightMap->GetSourceLocalNDofs() << ", " << covSrcEnts.size()*weightMap->GetSourceNDofsPerElement()*weightMap->GetSourceNDofsPerElement() << "; weightMap->GetDestinationLocalNDofs() = " << weightMap->GetDestinationLocalNDofs()*weightMap->GetDestinationNDofsPerElement()*weightMap->GetDestinationNDofsPerElement() << ", " << tgtEnts.size() << "\n";
+    MPI_Barrier(pco_intx->comm());
+#endif
+
+    // The tag data is np*np*n_el_src
     rval = context.MBI->tag_get_data ( ssolnTag, covSrcEnts, &solSTagVals[0] );CHKERRVAL(rval);
 
+    // Compute the application of weights on the suorce solution data and store it in the destination solution vector data
+    // Optionally, can also perform the transpose application of the weight matrix. Set the 3rd argument to true if this is needed
     rval = weightMap->ApplyWeights(solSTagVals, solTTagVals, false);CHKERRVAL(rval);
 
+    // The tag data is np*np*n_el_dest
     rval = context.MBI->tag_set_data ( tsolnTag, tgtEnts, &solTTagVals[0] );CHKERRVAL(rval);
 
     return 0;

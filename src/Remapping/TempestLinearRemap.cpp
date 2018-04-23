@@ -429,7 +429,7 @@ void moab::TempestOfflineMap::Eigen_CopyTempestSparseMat()
     int locrows = m_mapRemap.GetRows();
     int loccols = m_mapRemap.GetColumns();
 
-    std::cout << m_weightMatrix.rows() << ", " <<  locrows << ", " <<  m_weightMatrix.cols() << ", " << loccols << "\n";
+    // std::cout << m_weightMatrix.rows() << ", " <<  locrows << ", " <<  m_weightMatrix.cols() << ", " << loccols << "\n";
     assert(m_weightMatrix.rows() == locrows && m_weightMatrix.cols() == loccols);
 
     DataVector<int> lrows;
@@ -766,25 +766,44 @@ moab::ErrorCode moab::TempestOfflineMap::ApplyWeights (std::vector<double>& srcV
     m_rowVector.setZero();
     m_colVector.setZero();
 
-    // Permute the source data first
-    for (unsigned i=0; i < srcVals.size(); ++i) {
-        // m_rowVector(row_dofmap[i]) = srcVals[i]; // permute and set the row (source) vector properly
-        m_colVector(i) = srcVals[i]; // permute and set the row (source) vector properly
-    }
-    
     // Perform the actual projection of weights: application of weight matrix onto the source solution vector
     if (transpose) {
+        // Permute the source data first
+        for (unsigned i=0; i < srcVals.size(); ++i) {
+            if (this->m_srcDiscType == moab::TempestOfflineMap::DiscretizationType_CGLL)
+                m_rowVector(dgll_cgll_row_ldofmap[i]) = srcVals[i]; // permute and set the row (source) vector properly
+            else
+                m_rowVector(i) = srcVals[i]; // permute and set the row (source) vector properly
+        }
+        
         m_colVector = m_weightMatrix.adjoint() * m_rowVector;
+
+        // Permute the resulting target data back
+        for (unsigned i=0; i < tgtVals.size(); ++i) {
+            if (this->m_destDiscType == moab::TempestOfflineMap::DiscretizationType_CGLL)
+                tgtVals[i] = m_colVector(dgll_cgll_col_ldofmap[i]); // permute and set the row (source) vector properly
+            else
+                tgtVals[i] = m_colVector(i); // permute and set the row (source) vector properly
+        }
     }
     else {
+        // Permute the source data first
+        for (unsigned i=0; i < srcVals.size(); ++i) {
+            if (this->m_srcDiscType == moab::TempestOfflineMap::DiscretizationType_CGLL)
+                m_colVector(dgll_cgll_col_ldofmap[i]) = srcVals[i]; // permute and set the row (source) vector properly
+            else
+                m_colVector(i) = srcVals[i]; // permute and set the row (source) vector properly
+        }
+        
         m_rowVector = m_weightMatrix * m_colVector;
-    }
-    
 
-    // Permute the target data next
-    for (unsigned i=0; i < tgtVals.size(); ++i) {
-        // tgtVals[i] = m_colVector(col_dofmap[i]); // let us re-permute and set the column (target) vector properly
-        tgtVals[i] = m_rowVector(i); // let us re-permute and set the column (target) vector properly
+        // Permute the resulting target data back
+        for (unsigned i=0; i < tgtVals.size(); ++i) {
+            if (this->m_destDiscType == moab::TempestOfflineMap::DiscretizationType_CGLL)
+                tgtVals[i] = m_rowVector(dgll_cgll_row_ldofmap[i]); // permute and set the row (source) vector properly
+            else
+                tgtVals[i] = m_rowVector(i); // permute and set the row (source) vector properly
+        }
     }
 
     // All done with matvec application
