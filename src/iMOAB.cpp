@@ -2426,7 +2426,7 @@ ErrCode iMOAB_ComputeScalarProjectionWeights ( iMOAB_AppID pid_intx,
 	// Additionally, the call below will also compute weights with TempestRemap
 	rval = weightMap->GenerateOfflineMap ( std::string(disc_method_source), std::string(disc_method_target),        // std::string strInputType, std::string strOutputType,
 										   (*disc_order_source), (*disc_order_target),    // const int nPin, const int nPout,
-                                           false, 0,            // bool fBubble=false, int fMonotoneTypeID=0,
+                                           false, 1,            // bool fBubble=false, int fMonotoneTypeID=0,
 										   (fVolumetric ? *fVolumetric > 0 : false),  // bool fVolumetric=false, 
                                            (fNoConservation ? *fNoConservation > 0 : false), // bool fNoConservation=false, 
                                            false, // bool fNoCheck=false,
