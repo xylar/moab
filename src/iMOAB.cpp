@@ -2057,6 +2057,16 @@ ErrCode iMOAB_ReceiveElementTag(iMOAB_AppID pid, int* scompid, int* rcompid, con
   ParallelComm* pco = context.pcomms[*pid];
   Range& owned = context.appDatas[*pid].owned_elems;
 
+  // how do I know if this receiver already participated in an intersection driven by coupler?
+  // also, what if this was the "source" mesh in intx?
+  // in that case, the elements might have been instantiated in the coverage set locally, the "owned"
+  // range can be different
+  // the elements are now in tempestRemap coverage_set
+  /*
+   * data_intx.remapper exists though only on the intersection application
+   *  how do we get from here ( we know the pid that receives, and the commgraph used by migrate mesh )
+   */
+
   std::string tag_name ( tag_storage_name );
 
   if ( tag_storage_name_length < ( int ) strlen ( tag_storage_name ) )
@@ -2360,8 +2370,11 @@ ErrCode iMOAB_CoverageGraph(MPI_Comm* join, iMOAB_AppID pid_src, int* scompid, i
       //std::cout << origProc << " id:" << gidCell << " size: " << setInts.size() << std::endl;
     }
 
-    std::cout<<" map size:" << idsFromProcs.size() << std::endl;
+    std::cout<<" map size:" << idsFromProcs.size() << std::endl; // on the receiver side, these show how much data to receive
+    // from the sender (how many ids, and how much tag data later; we need to size up the receiver buffer)
     // arrange in tuples , use map iterators to send the ids
+    if (NULL != recvGraph)
+      recvGraph->SetReceivingAfterCoverage(idsFromProcs);
     for (std::map<int, std::set<int> >::iterator mit = idsFromProcs.begin(); mit!=idsFromProcs.end(); mit++)
     {
       int procToSendTo = mit->first;

@@ -111,6 +111,8 @@ namespace moab {
 
 	  ErrorCode settle_send_graph(TupleList & TLcovIDs);
 
+	  // this will set after_cov_rec_sizes
+	  void SetReceivingAfterCoverage(std::map<int, std::set<int> > & idsFromProcs); // will make sense only on receivers, right now after cov
 	private:
 	  /**
       \brief find ranks of a group with respect to an encompassing communicator
@@ -153,7 +155,9 @@ namespace moab {
 	  std::vector<int> corr_sizes ; // how many primary entities corresponding to the other side
 	  // so what we know is that the local range corresponds to remote corr_sizes[i] size ranges on tasks corr_tasks[i]
 
-	  std::map<int ,std::vector<int> > send_IDs_map; // maybe moab::Range instead of std::vector<int>
+	  // these will be used now after coverage, quick fix; they will also be populated by iMOAB_CoverageGraph
+	  std::map<int ,std::vector<int> > send_IDs_map; // maybe moab::Range instead of std::vector<int> // these will be on sender side
+	  std::map<int, std::vector<int> > recv_IDs_map; // receiver side, after coverage, how many elements need to be received from each sender process
 
 };
 
