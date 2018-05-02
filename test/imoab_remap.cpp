@@ -140,7 +140,7 @@ int main(int argc, char * argv[])
   const char* fieldname = "water_vap_ac";
   const char* fieldnameT = "water_vap_ac_proj";
   int tagIndex[2];
-  int entTypes[2] = {1, 1}; /* both on elements; */
+  // int entTypes[2] = {1, 1}; /* both on elements; */
   int tagTypes[2] = { DENSE_DOUBLE, DENSE_DOUBLE } ;
   int num_components1 = disc_orders[0]*disc_orders[0], num_components2 = disc_orders[1]*disc_orders[1];
 
