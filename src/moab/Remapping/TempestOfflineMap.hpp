@@ -156,7 +156,7 @@ private:
 	///		Gather the mapping matrix that was computed in different processors and accumulate the data
 	///     on the root so that OfflineMap can be generated in parallel.
 	///	</summary>
-	moab::ErrorCode GatherAllToRoot(DiscretizationType srcType, DiscretizationType destType);
+	moab::ErrorCode GatherAllToRoot();
 
 	///	<summary>
 	///		Compute the remapping weights for a FV field defined on the source to a 
@@ -350,7 +350,7 @@ public:
 	void WriteParallelWeightsToFile(std::string filename);
 #endif
 
-private:
+public:
 	///	<summary>
 	///		The fundamental remapping operator object.
 	///	</summary>
@@ -393,11 +393,11 @@ private:
 	///		The original tag data and local to global DoF mapping to associate matrix values to solution
 	///	<summary>
 	moab::Tag m_dofTagSrc, m_dofTagDest;
-	std::map<int,int> row_dofmap, col_dofmap, srccol_dofmap;
-	std::map<int,int> dgll_cgll_row_ldofmap, dgll_cgll_col_ldofmap;
+	std::vector<unsigned long> row_dofmap, col_dofmap, srccol_dofmap;
 
 	DataMatrix3D<int> dataGLLNodesSrc, dataGLLNodesSrcCov, dataGLLNodesDest;
 	DiscretizationType m_srcDiscType, m_destDiscType;
+	int m_nTotDofs_Src, m_nTotDofs_SrcCov, m_nTotDofs_Dest;
 	int m_nDofsPEl_Src, m_nDofsPEl_Dest;
 
 	Mesh* m_meshInput;

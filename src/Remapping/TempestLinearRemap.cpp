@@ -435,10 +435,10 @@ void moab::TempestOfflineMap::Eigen_CopyTempestSparseMat()
     DataVector<int> lcols;
     DataVector<double> lvals;
     m_mapRemap.GetEntries(lrows, lcols, lvals);
-    int locvals = lvals.GetRows();
+    unsigned locvals = lvals.GetRows();
 
     m_weightMatrix.reserve(locvals);
-    for (unsigned iv=0; iv < lvals.GetRows(); iv++) {
+    for (unsigned iv=0; iv < locvals; iv++) {
         m_weightMatrix.insert(lrows[iv], lcols[iv]) = lvals[iv];
     }
 
@@ -449,7 +449,7 @@ void moab::TempestOfflineMap::Eigen_CopyTempestSparseMat()
     sstr << "tempestmatrix.txt.0000" << pcomm->rank();
     std::ofstream output_file ( sstr.str(), std::ios::out );
     output_file << "0 " << locrows << " 0" << loccols << "\n";
-    for (unsigned iv=0; iv < lvals.GetRows(); iv++) {
+    for (unsigned iv=0; iv < locvals; iv++) {
         output_file << lrows[iv] << " " << lcols[iv] << " " << lvals[iv] << "\n";
     }
     output_file.flush(); // required here
