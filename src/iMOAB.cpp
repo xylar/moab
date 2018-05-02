@@ -217,8 +217,11 @@ ErrCode iMOAB_RegisterApplication ( const iMOAB_String app_name,
 
     appData app_data;
     app_data.file_set = file_set;
-    app_data.covering_set = file_set;
     app_data.external_id = * compid; // will be used mostly for par comm graph
+
+#ifdef MOAB_HAVE_MPI
+    app_data.covering_set = file_set;
+#endif
 
 #ifdef MOAB_HAVE_TEMPESTREMAP
 	app_data.remapper = NULL; // Only allocate as needed
@@ -2081,12 +2084,13 @@ ErrCode iMOAB_ReceiveElementTag(iMOAB_AppID pid, int* scompid, int* rcompid, con
   //   and we can get the tag just by its name
   ErrorCode rval = context.MBI->tag_get_handle ( tag_name.c_str(), tagHandle);
   if ( MB_SUCCESS != rval || NULL == tagHandle) { return 1; }
-  // pco is needed to pack, and for moab instance, not for communication!
-  // still use nonblocking communication, over the
+
   if ( data.file_set != data.covering_set) // coverage mesh is different from original mesh, it means we are on a source mesh, after intx
   {
     rval = context.MBI->get_entities_by_dimension(data.covering_set, 2, owned); if ( MB_SUCCESS != rval ) { return 1; }
   }
+  // pco is needed to pack, and for moab instance, not for communication!
+  // still use nonblocking communication
   rval = cgraph->receive_tag_values ( *join, pco, owned, tagHandle );
 
   if ( MB_SUCCESS != rval ) { return 1; }
