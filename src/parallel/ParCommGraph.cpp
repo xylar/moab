@@ -456,6 +456,7 @@ ErrorCode ParCommGraph::send_tag_values (MPI_Comm jcomm, ParallelComm *pco, Rang
   if (rval!=MB_SUCCESS) return rval;
 
   bool specified_ids = send_IDs_map.size() > 0;
+  int indexReq=0;
   if (!specified_ids) // original send
   {
     std::map<int, Range> split_ranges;
@@ -464,7 +465,7 @@ ErrorCode ParCommGraph::send_tag_values (MPI_Comm jcomm, ParallelComm *pco, Rang
 
     // use the buffers data structure to allocate memory for sending the tags
     sendReqs.resize(split_ranges.size());
-    int indexReq=0;
+
     for (std::map<int, Range>::iterator it=split_ranges.begin(); it!=split_ranges.end(); it++)
     {
       int receiver_proc = it->first;
@@ -487,7 +488,43 @@ ErrorCode ParCommGraph::send_tag_values (MPI_Comm jcomm, ParallelComm *pco, Rang
   else
   {
     // we know that we will need to send some tag data in a specific order
-    // first, get the ids of the local elements
+    // first, get the ids of the local elements, from owned Range; arrange the buffer in order of increasing global id
+    Tag gidTag;
+    rval = mb->tag_get_handle("GLOBAL_ID", gidTag); MB_CHK_ERR ( rval );
+    std::vector<int> gids;
+    gids.resize(owned.size());
+    rval = mb->tag_get_data(gidTag, owned, &gids[0]);  MB_CHK_ERR ( rval );
+    std::map<int, EntityHandle> gidToHandle;
+    size_t i=0;
+    for (Range::iterator it=owned.begin(); it!= owned.end(); it++)
+    {
+      EntityHandle eh = *it;
+      gidToHandle[gids[i++]] = eh;
+    }
+    // now, pack the data and send it
+    for (std::map<int ,std::vector<int> >::iterator mit =send_IDs_map.begin(); mit!=send_IDs_map.end(); mit++)
+    {
+      int receiver_proc = mit->first;
+      std::vector<int> & eids = mit->second;
+      int size_buffer = 4 + bytes_per_tag*(int)eids.size(); // hopefully, below 2B; if more, we have a big problem ...
+      ParallelComm::Buffer * buffer = new ParallelComm::Buffer(size_buffer);
+      buffer->reset_ptr(sizeof(int));
+      // copy tag data to buffer->buff_ptr, and send the buffer (we could have used regular char arrays)
+      for (std::vector<int>::iterator it=eids.begin(); it!=eids.end(); it++)
+      {
+        int eID = *it;
+        EntityHandle eh = gidToHandle[eID];
+
+        rval = mb->tag_get_data(tag_handle, &eh, 1, (void*)(buffer->buff_ptr) );  MB_CHK_ERR ( rval );
+        buffer->buff_ptr+=bytes_per_tag;
+      }
+      *((int*)buffer->mem_ptr) = size_buffer;
+        //int size_pack = buffer->get_current_size(); // debug check
+      ierr = MPI_Isend(buffer->mem_ptr, size_buffer, MPI_CHAR, receiver_proc, 222, jcomm, &sendReqs[indexReq]); // we have to use global communicator
+      if (ierr!=0) return MB_FAILURE;
+      indexReq++;
+      localSendBuffs.push_back(buffer); // we will release them after nonblocking sends are completed
+    }
   }
 
   return MB_SUCCESS;
@@ -539,6 +576,45 @@ ErrorCode ParCommGraph::receive_tag_values (MPI_Comm jcomm, ParallelComm *pco, R
   }
   else // receive buffer, then extract tag data
   {
+    // we know that we will need to receive some tag data in a specific order (by ids stored)
+    // first, get the ids of the local elements, from owned Range; unpack the buffer in order
+    Tag gidTag;
+    rval = mb->tag_get_handle("GLOBAL_ID", gidTag); MB_CHK_ERR ( rval );
+    std::vector<int> gids;
+    gids.resize(owned.size());
+    rval = mb->tag_get_data(gidTag, owned, &gids[0]);  MB_CHK_ERR ( rval );
+    std::map<int, EntityHandle> gidToHandle;
+    size_t i=0;
+    for (Range::iterator it=owned.begin(); it!= owned.end(); it++)
+    {
+      EntityHandle eh = *it;
+      gidToHandle[gids[i++]] = eh;
+    }
+    //
+    // now, unpack the data and set it to the tag
+    for (std::map<int ,std::vector<int> >::iterator mit =recv_IDs_map.begin(); mit!=recv_IDs_map.end(); mit++)
+    {
+      int sender_proc = mit->first;
+      std::vector<int> & eids = mit->second;
+      int size_buffer = 4 + bytes_per_tag*(int)eids.size(); // hopefully, below 2B; if more, we have a big problem ...
+      ParallelComm::Buffer * buffer = new ParallelComm::Buffer(size_buffer);
+      buffer->reset_ptr(sizeof(int));
+      *((int*)buffer->mem_ptr) = size_buffer;
+
+      // receive the buffer
+      ierr = MPI_Recv (buffer->mem_ptr, size_buffer, MPI_CHAR, sender_proc, 222, jcomm, &status);
+      if (ierr!=0) return MB_FAILURE;
+
+      // copy tag data to buffer->buff_ptr, and send the buffer (we could have used regular char arrays)
+      for (std::vector<int>::iterator it=eids.begin(); it!=eids.end(); it++)
+      {
+        int eID = *it;
+        EntityHandle eh = gidToHandle[eID];
+
+        rval = mb->tag_set_data(tag_handle, &eh, 1, (void*)(buffer->buff_ptr) );  MB_CHK_ERR ( rval );
+        buffer->buff_ptr+=bytes_per_tag;
+      }
+    }
 
   }
   return MB_SUCCESS;
