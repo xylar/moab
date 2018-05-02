@@ -16,7 +16,7 @@ set (NETCDF_FOUND NO CACHE INTERNAL "Found NetCDF components successfully." )
   )
 
 find_library( NETCDF_C_LIBRARY
-    NAMES libnetcdf.a netcdf
+    NAMES netcdf libnetcdf.a
     HINTS ${NETCDF_ROOT}
     ${NETCDF_ROOT}/lib/x86_64-linux-gnu
     ${NETCDF_ROOT}/lib64
@@ -25,7 +25,7 @@ find_library( NETCDF_C_LIBRARY
   )
 
 find_library( NETCDF_CXX_LIBRARY
-    NAMES netcdf_c++
+    NAMES netcdf_c++ libnetcdf_c++.a
     HINTS ${NETCDF_ROOT}
     ${NETCDF_ROOT}/lib/x86_64-linux-gnu
     ${NETCDF_ROOT}/lib64
@@ -82,7 +82,7 @@ IF (MOAB_HAVE_MPI AND ENABLE_PNETCDF)
   )
 
 find_library( PNETCDF_LIBRARIES
-    NAMES pnetcdf
+    NAMES pnetcdf libpnetcdf.a
     HINTS ${PNETCDF_ROOT}
     ${PNETCDF_ROOT}/lib64
     ${PNETCDF_ROOT}/lib
