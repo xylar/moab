@@ -759,6 +759,7 @@ void moab::TempestOfflineMap::WriteParallelWeightsToFile(std::string strFilename
 }
 
 
+#define VERBOSE
 moab::ErrorCode moab::TempestOfflineMap::ApplyWeights (std::vector<double>& srcVals, std::vector<double>& tgtVals, bool transpose)
 {
     // Reset the source and target data first
@@ -787,7 +788,7 @@ moab::ErrorCode moab::TempestOfflineMap::ApplyWeights (std::vector<double>& srcV
     else {
         // Permute the source data first
 #ifdef VERBOSE
-        output_file << "ColVector: " << m_colVector.size() << ", SrcVals: " << srcVals.size() << ", Sizes: " << m_nTotDofs_SrcCov << ", " << col_dofmap.size() << ", " << dgll_cgll_col_ldofmap.size() << "\n";
+        output_file << "ColVector: " << m_colVector.size() << ", SrcVals: " << srcVals.size() << ", Sizes: " << m_nTotDofs_SrcCov << ", " << col_dofmap.size() << "\n";
 #endif
         for (unsigned i=0; i < srcVals.size(); ++i) {
             m_colVector(col_dofmap[i]) = srcVals[i]; // permute and set the row (source) vector properly

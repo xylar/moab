@@ -1364,7 +1364,7 @@ moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot()   // Collective
     if ( !pcomm->rank() )
     {
         dbgprint.printf ( 0, "Writing out file outGlobalView.nc\n" );
-        m_weightMapGlobal->Write ( "outGlobalView.nc" );
+        // m_weightMapGlobal->Write ( "outGlobalView.nc" );
     }
 #endif
     return moab::MB_SUCCESS;
