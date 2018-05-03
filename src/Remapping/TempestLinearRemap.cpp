@@ -459,6 +459,7 @@ void moab::TempestOfflineMap::Eigen_CopyTempestSparseMat()
     return;
 }
 
+///////////////////////////////////////////////////////////////////////////////
 
 // #define IO_USE_PARALLEL_NETCDF
 void moab::TempestOfflineMap::WriteParallelWeightsToFile(std::string strFilename)
@@ -758,8 +759,9 @@ void moab::TempestOfflineMap::WriteParallelWeightsToFile(std::string strFilename
     // }
 }
 
+///////////////////////////////////////////////////////////////////////////////
 
-#define VERBOSE
+// #define VERBOSE
 moab::ErrorCode moab::TempestOfflineMap::ApplyWeights (std::vector<double>& srcVals, std::vector<double>& tgtVals, bool transpose)
 {
     // Reset the source and target data first

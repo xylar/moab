@@ -394,6 +394,7 @@ public:
 	///	<summary>
 	moab::Tag m_dofTagSrc, m_dofTagDest;
 	std::vector<unsigned long> row_dofmap, col_dofmap, srccol_dofmap;
+	std::vector<int> src_soln_gdofs, locsrc_soln_gdofs, tgt_soln_gdofs;
 
 	DataMatrix3D<int> dataGLLNodesSrc, dataGLLNodesSrcCov, dataGLLNodesDest;
 	DiscretizationType m_srcDiscType, m_destDiscType;
