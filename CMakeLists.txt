@@ -121,6 +121,7 @@ option ( ENABLE_FBIGEOM      "Should build FBIGEOM?"     OFF )
 option ( ENABLE_IREL         "Should build IREL?"        OFF )
 option ( ENABLE_MESQUITE     "Should build Mesquite mesh optimization interfaces?" OFF )
 option ( ENABLE_BLASLAPACK   "Should require BLAS/LAPACK?" ON )
+option ( ENABLE_FORTRAN      "Should enable FORTRAN?" ON )
 
 mark_as_advanced(
   MOAB_FORCE_64_BIT_HANDLES
@@ -203,6 +204,8 @@ if ( ENABLE_BLASLAPACK  )
     set(MOAB_HAVE_LAPACK ON)
   endif(LAPACK_FOUND)
 
+  SET (ENABLE_FORTRAN ON)
+  
   # Find Eigen3 is optional
   FIND_PACKAGE(Eigen3 OPTIONAL_COMPONENTS)
 else (ENABLE_BLASLAPACK)
@@ -396,28 +399,30 @@ CONFIGURE_FILE(
     IMMEDIATE @ONLY
     )
 
-enable_language(Fortran)
-
-# Include CMake's Fortran mangling evaluation macros
-include(FortranCInterface)
-
-if ("${FortranCInterface_GLOBAL_CASE}" MATCHES "UPPER")
-  set(FC_CASE "NAME")
-else ("${FortranCInterface_GLOBAL_CASE}" MATCHES "UPPER")
-  set(FC_CASE "name")
-endif ("${FortranCInterface_GLOBAL_CASE}" MATCHES "UPPER")
-if (NOT "${FortranCInterface_GLOBAL_SUFFIX}" STREQUAL "")
-  set(FortranCInterface_GLOBAL_SUFFIX "## ${FortranCInterface_GLOBAL_SUFFIX}")
-endif (NOT "${FortranCInterface_GLOBAL_SUFFIX}" STREQUAL "")
-if (NOT "${FortranCInterface_GLOBAL__SUFFIX}" STREQUAL "")
-  set(FortranCInterface_GLOBAL__SUFFIX "## ${FortranCInterface_GLOBAL__SUFFIX}")
-endif (NOT "${FortranCInterface_GLOBAL__SUFFIX}" STREQUAL "")
-
-set(MOAB_F77_FUNC  "${FortranCInterface_GLOBAL_PREFIX} ${FC_CASE} ${FortranCInterface_GLOBAL_SUFFIX}")
-set(MOAB_F77_FUNC_ "${FortranCInterface_GLOBAL__PREFIX} ${FC_CASE} ${FortranCInterface_GLOBAL__SUFFIX}")
-set(MOAB_FC_FUNC   "${FortranCInterface_GLOBAL_PREFIX} ${FC_CASE} ${FortranCInterface_GLOBAL_SUFFIX}")
-set(MOAB_FC_FUNC_  "${FortranCInterface_GLOBAL__PREFIX} ${FC_CASE} ${FortranCInterface_GLOBAL__SUFFIX}")
-
+if (ENABLE_FORTRAN)
+  enable_language(Fortran)
+  
+  # Include CMake's Fortran mangling evaluation macros
+  include(FortranCInterface)
+  
+  if ("${FortranCInterface_GLOBAL_CASE}" MATCHES "UPPER")
+    set(FC_CASE "NAME")
+  else ("${FortranCInterface_GLOBAL_CASE}" MATCHES "UPPER")
+    set(FC_CASE "name")
+  endif ("${FortranCInterface_GLOBAL_CASE}" MATCHES "UPPER")
+  if (NOT "${FortranCInterface_GLOBAL_SUFFIX}" STREQUAL "")
+    set(FortranCInterface_GLOBAL_SUFFIX "## ${FortranCInterface_GLOBAL_SUFFIX}")
+  endif (NOT "${FortranCInterface_GLOBAL_SUFFIX}" STREQUAL "")
+  if (NOT "${FortranCInterface_GLOBAL__SUFFIX}" STREQUAL "")
+    set(FortranCInterface_GLOBAL__SUFFIX "## ${FortranCInterface_GLOBAL__SUFFIX}")
+  endif (NOT "${FortranCInterface_GLOBAL__SUFFIX}" STREQUAL "")
+  
+  set(MOAB_F77_FUNC  "${FortranCInterface_GLOBAL_PREFIX} ${FC_CASE} ${FortranCInterface_GLOBAL_SUFFIX}")
+  set(MOAB_F77_FUNC_ "${FortranCInterface_GLOBAL__PREFIX} ${FC_CASE} ${FortranCInterface_GLOBAL__SUFFIX}")
+  set(MOAB_FC_FUNC   "${FortranCInterface_GLOBAL_PREFIX} ${FC_CASE} ${FortranCInterface_GLOBAL_SUFFIX}")
+  set(MOAB_FC_FUNC_  "${FortranCInterface_GLOBAL__PREFIX} ${FC_CASE} ${FortranCInterface_GLOBAL__SUFFIX}")
+endif (ENABLE_FORTRAN)
+  
 # Generate the CMake input header file and then pass it through configuration
 ## execute_process( COMMAND cat MOABConfig.h.in COMMAND sed -e "s/#undef /#cmakedefine MOAB_/g"
 #execute_process( COMMAND cat MOABConfig.h.in COMMAND sed -r "s/#undef ([A-Z].*)/#cmakedefine MOAB_\\1 @MOAB_\\1@/"
