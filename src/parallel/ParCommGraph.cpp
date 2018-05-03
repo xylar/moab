@@ -449,35 +449,82 @@ ErrorCode ParCommGraph::send_tag_values (MPI_Comm jcomm, ParallelComm *pco, Rang
   // get info about the tag size, type, etc
   int ierr;
   Core * mb = (Core*)pco->get_moab();
-  std::map<int, Range> split_ranges;
-  ErrorCode rval = split_owned_range_general ( owned, split_ranges);
-  if (rval!=MB_SUCCESS) return rval;
   // get info about the tag
   //! Get the size of the specified tag in bytes
   int bytes_per_tag; // we need to know, to allocate buffers
-  rval = mb-> tag_get_bytes(tag_handle,  bytes_per_tag) ;
+  ErrorCode  rval = mb-> tag_get_bytes(tag_handle,  bytes_per_tag) ;
   if (rval!=MB_SUCCESS) return rval;
-  // use the buffers data structure to allocate memory for sending the tags
 
-  sendReqs.resize(split_ranges.size());
+  bool specified_ids = send_IDs_map.size() > 0;
   int indexReq=0;
-  for (std::map<int, Range>::iterator it=split_ranges.begin(); it!=split_ranges.end(); it++)
+  if (!specified_ids) // original send
   {
-    int receiver_proc = it->first;
-    Range ents = it->second; // primary entities, with the tag data
-    int size_buffer = 4 + bytes_per_tag*(int)ents.size(); // hopefully, below 2B; if more, we have a big problem ...
-    ParallelComm::Buffer * buffer = new ParallelComm::Buffer(size_buffer);
-
-    buffer->reset_ptr(sizeof(int));
-    // copy tag data to buffer->buff_ptr, and send the buffer (we could have used regular char arrays)
-    rval = mb->tag_get_data(tag_handle, ents, (void*)(buffer->buff_ptr) );
+    std::map<int, Range> split_ranges;
+    rval = split_owned_range_general ( owned, split_ranges);
     if (rval!=MB_SUCCESS) return rval;
-    *((int*)buffer->mem_ptr) = size_buffer;
-    //int size_pack = buffer->get_current_size(); // debug check
-    ierr = MPI_Isend(buffer->mem_ptr, size_buffer, MPI_CHAR, receiver_proc, 222, jcomm, &sendReqs[indexReq]); // we have to use global communicator
-    if (ierr!=0) return MB_FAILURE;
-    indexReq++;
-    localSendBuffs.push_back(buffer);
+
+    // use the buffers data structure to allocate memory for sending the tags
+    sendReqs.resize(split_ranges.size());
+
+    for (std::map<int, Range>::iterator it=split_ranges.begin(); it!=split_ranges.end(); it++)
+    {
+      int receiver_proc = it->first;
+      Range ents = it->second; // primary entities, with the tag data
+      int size_buffer = 4 + bytes_per_tag*(int)ents.size(); // hopefully, below 2B; if more, we have a big problem ...
+      ParallelComm::Buffer * buffer = new ParallelComm::Buffer(size_buffer);
+
+      buffer->reset_ptr(sizeof(int));
+      // copy tag data to buffer->buff_ptr, and send the buffer (we could have used regular char arrays)
+      rval = mb->tag_get_data(tag_handle, ents, (void*)(buffer->buff_ptr) );
+      if (rval!=MB_SUCCESS) return rval;
+      *((int*)buffer->mem_ptr) = size_buffer;
+      //int size_pack = buffer->get_current_size(); // debug check
+      ierr = MPI_Isend(buffer->mem_ptr, size_buffer, MPI_CHAR, receiver_proc, 222, jcomm, &sendReqs[indexReq]); // we have to use global communicator
+      if (ierr!=0) return MB_FAILURE;
+      indexReq++;
+      localSendBuffs.push_back(buffer); // we will release them after nonblocking sends are completed
+    }
+  }
+  else
+  {
+    // we know that we will need to send some tag data in a specific order
+    // first, get the ids of the local elements, from owned Range; arrange the buffer in order of increasing global id
+    Tag gidTag;
+    rval = mb->tag_get_handle("GLOBAL_ID", gidTag); MB_CHK_ERR ( rval );
+    std::vector<int> gids;
+    gids.resize(owned.size());
+    rval = mb->tag_get_data(gidTag, owned, &gids[0]);  MB_CHK_ERR ( rval );
+    std::map<int, EntityHandle> gidToHandle;
+    size_t i=0;
+    for (Range::iterator it=owned.begin(); it!= owned.end(); it++)
+    {
+      EntityHandle eh = *it;
+      gidToHandle[gids[i++]] = eh;
+    }
+    // now, pack the data and send it
+    for (std::map<int ,std::vector<int> >::iterator mit =send_IDs_map.begin(); mit!=send_IDs_map.end(); mit++)
+    {
+      int receiver_proc = mit->first;
+      std::vector<int> & eids = mit->second;
+      int size_buffer = 4 + bytes_per_tag*(int)eids.size(); // hopefully, below 2B; if more, we have a big problem ...
+      ParallelComm::Buffer * buffer = new ParallelComm::Buffer(size_buffer);
+      buffer->reset_ptr(sizeof(int));
+      // copy tag data to buffer->buff_ptr, and send the buffer (we could have used regular char arrays)
+      for (std::vector<int>::iterator it=eids.begin(); it!=eids.end(); it++)
+      {
+        int eID = *it;
+        EntityHandle eh = gidToHandle[eID];
+
+        rval = mb->tag_get_data(tag_handle, &eh, 1, (void*)(buffer->buff_ptr) );  MB_CHK_ERR ( rval );
+        buffer->buff_ptr+=bytes_per_tag;
+      }
+      *((int*)buffer->mem_ptr) = size_buffer;
+        //int size_pack = buffer->get_current_size(); // debug check
+      ierr = MPI_Isend(buffer->mem_ptr, size_buffer, MPI_CHAR, receiver_proc, 222, jcomm, &sendReqs[indexReq]); // we have to use global communicator
+      if (ierr!=0) return MB_FAILURE;
+      indexReq++;
+      localSendBuffs.push_back(buffer); // we will release them after nonblocking sends are completed
+    }
   }
 
   return MB_SUCCESS;
@@ -491,39 +538,85 @@ ErrorCode ParCommGraph::receive_tag_values (MPI_Comm jcomm, ParallelComm *pco, R
   // basically, owned.size() needs to be equal to sum(corr_sizes)
   // get info about the tag size, type, etc
   Core * mb = (Core*)pco->get_moab();
-  std::map<int, Range> split_ranges;
-  ErrorCode rval = split_owned_range_general ( owned, split_ranges);
-  if (rval!=MB_SUCCESS) return rval;
   // get info about the tag
   //! Get the size of the specified tag in bytes
   int bytes_per_tag; // we need to know, to allocate buffers
-  rval = mb-> tag_get_bytes(tag_handle,  bytes_per_tag) ;
+  ErrorCode  rval = mb-> tag_get_bytes(tag_handle,  bytes_per_tag) ;
   if (rval!=MB_SUCCESS) return rval;
-  // use the buffers data structure to allocate memory for sending the tags
 
-  for (std::map<int, Range>::iterator it=split_ranges.begin(); it!=split_ranges.end(); it++)
+  bool specified_ids = recv_IDs_map.size() > 0;
+  if (!specified_ids)
   {
-    int sender_proc = it->first;
-    Range ents = it->second; // primary entities, with the tag data, we will receive
-    int size_buffer = 4 + bytes_per_tag*(int)ents.size(); // hopefully, below 2B; if more, we have a big problem ...
-    ParallelComm::Buffer * buffer = new ParallelComm::Buffer(size_buffer);
-
-    buffer->reset_ptr(sizeof(int));
-
-    *((int*)buffer->mem_ptr) = size_buffer;
-    //int size_pack = buffer->get_current_size(); // debug check
-
-    ierr = MPI_Recv (buffer->mem_ptr, size_buffer, MPI_CHAR, sender_proc, 222, jcomm, &status);
-    if (ierr!=0) return MB_FAILURE;
-
-    // now set the tag
-    // copy to tag
-    rval = mb->tag_set_data(tag_handle, ents, (void*)(buffer->mem_ptr + 4) );
-    delete buffer; // no need for it afterwards
+    std::map<int, Range> split_ranges;
+    rval = split_owned_range_general ( owned, split_ranges);
     if (rval!=MB_SUCCESS) return rval;
 
-  }
+    // use the buffers data structure to allocate memory for sending the tags
+    for (std::map<int, Range>::iterator it=split_ranges.begin(); it!=split_ranges.end(); it++)
+    {
+      int sender_proc = it->first;
+      Range ents = it->second; // primary entities, with the tag data, we will receive
+      int size_buffer = 4 + bytes_per_tag*(int)ents.size(); // hopefully, below 2B; if more, we have a big problem ...
+      ParallelComm::Buffer * buffer = new ParallelComm::Buffer(size_buffer);
 
+      buffer->reset_ptr(sizeof(int));
+
+      *((int*)buffer->mem_ptr) = size_buffer;
+      //int size_pack = buffer->get_current_size(); // debug check
+
+      ierr = MPI_Recv (buffer->mem_ptr, size_buffer, MPI_CHAR, sender_proc, 222, jcomm, &status);
+      if (ierr!=0) return MB_FAILURE;
+      // now set the tag
+      // copy to tag
+      rval = mb->tag_set_data(tag_handle, ents, (void*)(buffer->mem_ptr + 4) );
+      delete buffer; // no need for it afterwards
+      if (rval!=MB_SUCCESS) return rval;
+
+    }
+  }
+  else // receive buffer, then extract tag data
+  {
+    // we know that we will need to receive some tag data in a specific order (by ids stored)
+    // first, get the ids of the local elements, from owned Range; unpack the buffer in order
+    Tag gidTag;
+    rval = mb->tag_get_handle("GLOBAL_ID", gidTag); MB_CHK_ERR ( rval );
+    std::vector<int> gids;
+    gids.resize(owned.size());
+    rval = mb->tag_get_data(gidTag, owned, &gids[0]);  MB_CHK_ERR ( rval );
+    std::map<int, EntityHandle> gidToHandle;
+    size_t i=0;
+    for (Range::iterator it=owned.begin(); it!= owned.end(); it++)
+    {
+      EntityHandle eh = *it;
+      gidToHandle[gids[i++]] = eh;
+    }
+    //
+    // now, unpack the data and set it to the tag
+    for (std::map<int ,std::vector<int> >::iterator mit =recv_IDs_map.begin(); mit!=recv_IDs_map.end(); mit++)
+    {
+      int sender_proc = mit->first;
+      std::vector<int> & eids = mit->second;
+      int size_buffer = 4 + bytes_per_tag*(int)eids.size(); // hopefully, below 2B; if more, we have a big problem ...
+      ParallelComm::Buffer * buffer = new ParallelComm::Buffer(size_buffer);
+      buffer->reset_ptr(sizeof(int));
+      *((int*)buffer->mem_ptr) = size_buffer;
+
+      // receive the buffer
+      ierr = MPI_Recv (buffer->mem_ptr, size_buffer, MPI_CHAR, sender_proc, 222, jcomm, &status);
+      if (ierr!=0) return MB_FAILURE;
+
+      // copy tag data to buffer->buff_ptr, and send the buffer (we could have used regular char arrays)
+      for (std::vector<int>::iterator it=eids.begin(); it!=eids.end(); it++)
+      {
+        int eID = *it;
+        EntityHandle eh = gidToHandle[eID];
+
+        rval = mb->tag_set_data(tag_handle, &eh, 1, (void*)(buffer->buff_ptr) );  MB_CHK_ERR ( rval );
+        buffer->buff_ptr+=bytes_per_tag;
+      }
+    }
+
+  }
   return MB_SUCCESS;
 }
 
@@ -601,4 +694,22 @@ ErrorCode ParCommGraph::settle_send_graph(TupleList & TLcovIDs)
   return MB_SUCCESS;
 }
 
+// this will set recv_IDs_map will store all ids to be received from one sender task
+void ParCommGraph::SetReceivingAfterCoverage(std::map<int, std::set<int> > & idsFromProcs) // will make sense only on receivers, right now after cov
+{
+  for (std::map<int, std::set<int> >::iterator mt=idsFromProcs.begin(); mt!=idsFromProcs.end(); mt++)
+  {
+    int fromProc = mt->first;
+    std::set<int> & setIds = mt->second;
+    recv_IDs_map[fromProc].resize( setIds.size() );
+    std::vector<int>  & listIDs = recv_IDs_map[fromProc];
+    size_t indx = 0;
+    for ( std::set<int>::iterator st= setIds.begin(); st!=setIds.end(); st++)
+    {
+      int valueID = *st;
+      listIDs[indx++]=valueID;
+    }
+  }
+  return;
+}
 } // namespace moab

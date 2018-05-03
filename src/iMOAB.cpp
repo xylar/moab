@@ -74,6 +74,7 @@ struct appData
 #ifdef MOAB_HAVE_MPI
     std::vector<ParCommGraph*> pgraph; // created in order of other applications that communicate with this one
     // constructor for this ParCommGraph takes the joint comm and the MPI groups for each application
+    moab::EntityHandle covering_set;
 #endif
 
 #ifdef MOAB_HAVE_TEMPESTREMAP
@@ -217,6 +218,10 @@ ErrCode iMOAB_RegisterApplication ( const iMOAB_String app_name,
     appData app_data;
     app_data.file_set = file_set;
     app_data.external_id = * compid; // will be used mostly for par comm graph
+
+#ifdef MOAB_HAVE_MPI
+    app_data.covering_set = file_set;
+#endif
 
 #ifdef MOAB_HAVE_TEMPESTREMAP
 	app_data.remapper = NULL; // Only allocate as needed
@@ -2046,6 +2051,7 @@ ErrCode iMOAB_SendElementTag(iMOAB_AppID pid, int* scompid, int* rcompid, const 
 ErrCode iMOAB_ReceiveElementTag(iMOAB_AppID pid, int* scompid, int* rcompid, const iMOAB_String tag_storage_name,
     MPI_Comm* join, int tag_storage_name_length)
 {
+  appData& data = context.appDatas[*pid];
   // first, based on the scompid and rcompid, find the parCommGraph corresponding to this exchange
   // instantiate the par comm graph
   // ParCommGraph::ParCommGraph(MPI_Comm joincomm, MPI_Group group1, MPI_Group group2, int coid1, int coid2)
@@ -2056,6 +2062,16 @@ ErrCode iMOAB_ReceiveElementTag(iMOAB_AppID pid, int* scompid, int* rcompid, con
 
   ParallelComm* pco = context.pcomms[*pid];
   Range& owned = context.appDatas[*pid].owned_elems;
+
+  // how do I know if this receiver already participated in an intersection driven by coupler?
+  // also, what if this was the "source" mesh in intx?
+  // in that case, the elements might have been instantiated in the coverage set locally, the "owned"
+  // range can be different
+  // the elements are now in tempestRemap coverage_set
+  /*
+   * data_intx.remapper exists though only on the intersection application
+   *  how do we get from here ( we know the pid that receives, and the commgraph used by migrate mesh )
+   */
 
   std::string tag_name ( tag_storage_name );
 
@@ -2068,8 +2084,13 @@ ErrCode iMOAB_ReceiveElementTag(iMOAB_AppID pid, int* scompid, int* rcompid, con
   //   and we can get the tag just by its name
   ErrorCode rval = context.MBI->tag_get_handle ( tag_name.c_str(), tagHandle);
   if ( MB_SUCCESS != rval || NULL == tagHandle) { return 1; }
+
+  if ( data.file_set != data.covering_set) // coverage mesh is different from original mesh, it means we are on a source mesh, after intx
+  {
+    rval = context.MBI->get_entities_by_dimension(data.covering_set, 2, owned); if ( MB_SUCCESS != rval ) { return 1; }
+  }
   // pco is needed to pack, and for moab instance, not for communication!
-  // still use nonblocking communication, over the
+  // still use nonblocking communication
   rval = cgraph->receive_tag_values ( *join, pco, owned, tagHandle );
 
   if ( MB_SUCCESS != rval ) { return 1; }
@@ -2217,6 +2238,7 @@ ErrCode iMOAB_ComputeMeshIntersectionOnSphere ( iMOAB_AppID pid_src, iMOAB_AppID
 	// Compute intersections with MOAB
 	rval = data_intx.remapper->ComputeOverlapMesh ( epsrel, 1.0, 1.0, boxeps, false );CHKERRVAL(rval);
     // rval = data_intx.remapper->ConvertMeshToTempest ( moab::Remapper::IntersectedMesh );CHKERRVAL(rval);
+	  data_src.covering_set = data_intx.remapper->GetCoveringSet();
 
 #else    
     // Create the intersection object on the sphere between two meshes
@@ -2360,8 +2382,11 @@ ErrCode iMOAB_CoverageGraph(MPI_Comm* join, iMOAB_AppID pid_src, int* scompid, i
       //std::cout << origProc << " id:" << gidCell << " size: " << setInts.size() << std::endl;
     }
 
-    std::cout<<" map size:" << idsFromProcs.size() << std::endl;
+    std::cout<<" map size:" << idsFromProcs.size() << std::endl; // on the receiver side, these show how much data to receive
+    // from the sender (how many ids, and how much tag data later; we need to size up the receiver buffer)
     // arrange in tuples , use map iterators to send the ids
+    if (NULL != recvGraph)
+      recvGraph->SetReceivingAfterCoverage(idsFromProcs);
     for (std::map<int, std::set<int> >::iterator mit = idsFromProcs.begin(); mit!=idsFromProcs.end(); mit++)
     {
       int procToSendTo = mit->first;
@@ -2426,7 +2451,7 @@ ErrCode iMOAB_ComputeScalarProjectionWeights ( iMOAB_AppID pid_intx,
 	// Additionally, the call below will also compute weights with TempestRemap
 	rval = weightMap->GenerateOfflineMap ( std::string(disc_method_source), std::string(disc_method_target),        // std::string strInputType, std::string strOutputType,
 										   (*disc_order_source), (*disc_order_target),    // const int nPin, const int nPout,
-                                           false, 0,            // bool fBubble=false, int fMonotoneTypeID=0,
+                                           false, 1,            // bool fBubble=false, int fMonotoneTypeID=0,
 										   (fVolumetric ? *fVolumetric > 0 : false),  // bool fVolumetric=false, 
                                            (fNoConservation ? *fNoConservation > 0 : false), // bool fNoConservation=false, 
                                            false, // bool fNoCheck=false,

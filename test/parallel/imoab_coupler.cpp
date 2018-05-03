@@ -36,6 +36,11 @@ int main( int argc, char* argv[] )
   MPI_Comm_group(jcomm, &jgroup);
 
   int compid1=4, compid2=7, compid3=11, compid4=12, intxid=15;  // component ids are unique over all pes, and established in advance;
+  // compid1 is for atm on atm pes
+  // compid2 is for ocean, on ocean pe
+  // compid3 is for atm on coupler pes
+  // compid4 is for ocean on coupelr pes
+  // intxid is for intx atm / ocn on coupler pes
   int nghlay=0; // number of ghost layers for loading the file
   int groupTasks[2]; // at most 2 tasks
   int startG1=0, startG2=0, endG1=0, endG2=1;
@@ -66,9 +71,11 @@ int main( int argc, char* argv[] )
   // create 2 communicators, one for each group
   int tagcomm1 = 1, tagcomm2 = 2;
   MPI_Comm comm1, comm2;
+  // comm1 is for atmosphere app;
   ierr = MPI_Comm_create_group(jcomm, group1, tagcomm1, &comm1);
   CHECKRC(ierr, "can't create comm1")
 
+  // comm2 is for ocean app
   ierr = MPI_Comm_create_group(jcomm, group2, tagcomm2, &comm2);
   CHECKRC(ierr, "can't create comm2")
 
@@ -84,10 +91,10 @@ int main( int argc, char* argv[] )
   iMOAB_AppID pid4=&appID4; // ocn on coupler PEs
   iMOAB_AppID pid5= &appID5; // intx atm -ocn on coupler PEs
 
-  ierr = iMOAB_RegisterApplication("ATMX", &jcomm, &compid3, pid3);
+  ierr = iMOAB_RegisterApplication("ATMX", &jcomm, &compid3, pid3); // atm on coupler pes
   CHECKRC(ierr, "can't register atm over coupler pes ")
 
-  ierr = iMOAB_RegisterApplication("OCNX", &jcomm, &compid4, pid4);
+  ierr = iMOAB_RegisterApplication("OCNX", &jcomm, &compid4, pid4); // ocn on coupler pes
   CHECKRC(ierr, "can't register ocn over coupler pes ")
 
   std::string   readopts("PARALLEL=READ_PART;PARTITION=PARALLEL_PARTITION;PARALLEL_RESOLVE_SHARED_ENTS");
@@ -124,7 +131,7 @@ int main( int argc, char* argv[] )
   }
 
 
-  ierr = iMOAB_ReceiveMesh(pid4, &jcomm, &group2, &compid2); // receive from component 2
+  ierr = iMOAB_ReceiveMesh(pid4, &jcomm, &group2, &compid2); // receive from component 2, ocn, on coupler pes
   CHECKRC(ierr, "cannot receive elements on OCNX app")
 
   if (comm2 != MPI_COMM_NULL) {
@@ -137,7 +144,8 @@ int main( int argc, char* argv[] )
   ierr = iMOAB_RegisterApplication("AO", &jcomm, &intxid, pid5);
   CHECKRC(ierr, "can't register ocn_atm intx over coupler pes ")
 
-  ierr = iMOAB_ComputeMeshIntersectionOnSphere(pid3, pid4, pid5);
+  ierr = iMOAB_ComputeMeshIntersectionOnSphere(pid3, pid4, pid5); // coverage mesh was computed here, for pid3, atm on coupler pes
+  // basically, atm was redistributed according to target (ocean) partition, to "cover" the ocean partitions
   // check if intx valid, write some h5m intx file
   CHECKRC(ierr, "cannot compute intersection" )
 
@@ -150,9 +158,12 @@ int main( int argc, char* argv[] )
   // the new graph will be for sending data from atm comp to coverage mesh;
   // it involves initial atm app; pid1; also migrate atm mesh on coupler pes, pid3
   // results are in pid5, intx mesh; remapper also has some info about coverage mesh
+  // afteer this, the sending of tags from atm pes to coupler pes will use the new par comm graph, that has more precise info about
+  // what to send ; every time, we will send also the element global id, which should uniquely identify the element
   ierr = iMOAB_CoverageGraph(&jcomm, pid1,  &compid1, pid3,  &compid3, pid5); // it happens over joint communicator
   CHECKRC(ierr, "cannot recompute direct coverage graph" )
   
+
   int disc_orders[2] = {4, 1};
   const char* disc_methods[2] = {"cgll", "fv"};
   const char* dof_tag_names[2] = {"GLOBAL_DOFS", "GLOBAL_ID"};
@@ -178,8 +189,30 @@ int main( int argc, char* argv[] )
   ierr = iMOAB_DefineTagStorage(pid4, fieldnameT, &tagTypes[1], &num_components2, &tagIndex[1],  strlen(fieldnameT) );
   CHECKRC(ierr, "failed to define the field tag");
 
+  // need to make sure that the coverage mesh (created during intx method) received the tag that need to be projected to target
+  // so far, the coverage mesh has only the ids and global dofs;
+  // need to change the migrate method to accommodate any GLL tag
+  // now send a tag from original atmosphere (pid1) towards migrated coverage mesh (pid3), using the new coverage graph communicator
+    if (comm1 != MPI_COMM_NULL ){
+
+      // basically, adjust the migration of the tag we want to project; it was sent initially with
+      // trivial partitioning, now we need to adjust it for "coverage" mesh
+       // as always, use nonblocking sends
+       ierr = iMOAB_SendElementTag(pid1, &compid1, &compid3, "water_vap_ac", &jcomm, strlen("water_vap_ac"));
+       CHECKRC(ierr, "cannot send tag values")
+    }
+    // receive on atm on coupler pes, that was redistributed according to coverage
+    ierr = iMOAB_ReceiveElementTag(pid3, &compid3, &compid1, "water_vap_ac", &jcomm, strlen("water_vap_ac"));
+    CHECKRC(ierr, "cannot receive tag values")
+
+    // we can now free the sender buffers
+     if (comm1 != MPI_COMM_NULL) {
+       ierr = iMOAB_FreeSenderBuffers(pid1, &jcomm, &compid3);
+       CHECKRC(ierr, "cannot free buffers used to resend atm mesh tag towards the coverage mesh")
+     }
+
   /* We have the remapping weights now. Let us apply the weights onto the tag we defined 
-     on the srouce mesh and get the projection on the target mesh */
+     on the source mesh and get the projection on the target mesh */
   ierr = iMOAB_ApplyScalarProjectionWeights ( pid5,
                                             fieldname,
                                             fieldnameT,

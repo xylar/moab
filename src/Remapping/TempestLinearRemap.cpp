@@ -423,7 +423,6 @@ void moab::TempestOfflineMap::LinearRemapFVtoFV_Tempest_MOAB (
 
 
 #ifdef MOAB_HAVE_EIGEN
-
 void moab::TempestOfflineMap::Eigen_CopyTempestSparseMat()
 {
     int locrows = m_mapRemap.GetRows();
@@ -436,10 +435,10 @@ void moab::TempestOfflineMap::Eigen_CopyTempestSparseMat()
     DataVector<int> lcols;
     DataVector<double> lvals;
     m_mapRemap.GetEntries(lrows, lcols, lvals);
-    int locvals = lvals.GetRows();
+    unsigned locvals = lvals.GetRows();
 
     m_weightMatrix.reserve(locvals);
-    for (unsigned iv=0; iv < lvals.GetRows(); iv++) {
+    for (unsigned iv=0; iv < locvals; iv++) {
         m_weightMatrix.insert(lrows[iv], lcols[iv]) = lvals[iv];
     }
 
@@ -450,7 +449,7 @@ void moab::TempestOfflineMap::Eigen_CopyTempestSparseMat()
     sstr << "tempestmatrix.txt.0000" << pcomm->rank();
     std::ofstream output_file ( sstr.str(), std::ios::out );
     output_file << "0 " << locrows << " 0" << loccols << "\n";
-    for (unsigned iv=0; iv < lvals.GetRows(); iv++) {
+    for (unsigned iv=0; iv < locvals; iv++) {
         output_file << lrows[iv] << " " << lcols[iv] << " " << lvals[iv] << "\n";
     }
     output_file.flush(); // required here
@@ -460,6 +459,7 @@ void moab::TempestOfflineMap::Eigen_CopyTempestSparseMat()
     return;
 }
 
+///////////////////////////////////////////////////////////////////////////////
 
 // #define IO_USE_PARALLEL_NETCDF
 void moab::TempestOfflineMap::WriteParallelWeightsToFile(std::string strFilename)
@@ -759,52 +759,62 @@ void moab::TempestOfflineMap::WriteParallelWeightsToFile(std::string strFilename
     // }
 }
 
+///////////////////////////////////////////////////////////////////////////////
 
+// #define VERBOSE
 moab::ErrorCode moab::TempestOfflineMap::ApplyWeights (std::vector<double>& srcVals, std::vector<double>& tgtVals, bool transpose)
 {
     // Reset the source and target data first
     m_rowVector.setZero();
     m_colVector.setZero();
 
+#ifdef VERBOSE
+    std::stringstream sstr;
+    sstr << "projection_" << this->pcomm->rank() << ".txt";
+    std::ofstream output_file ( sstr.str() );
+#endif
     // Perform the actual projection of weights: application of weight matrix onto the source solution vector
     if (transpose) {
         // Permute the source data first
         for (unsigned i=0; i < srcVals.size(); ++i) {
-            if (this->m_srcDiscType == moab::TempestOfflineMap::DiscretizationType_CGLL)
-                m_rowVector(dgll_cgll_row_ldofmap[i]) = srcVals[i]; // permute and set the row (source) vector properly
-            else
-                m_rowVector(i) = srcVals[i]; // permute and set the row (source) vector properly
+            m_rowVector(row_dofmap[i]) = srcVals[i]; // permute and set the row (source) vector properly
         }
         
         m_colVector = m_weightMatrix.adjoint() * m_rowVector;
 
         // Permute the resulting target data back
         for (unsigned i=0; i < tgtVals.size(); ++i) {
-            if (this->m_destDiscType == moab::TempestOfflineMap::DiscretizationType_CGLL)
-                tgtVals[i] = m_colVector(dgll_cgll_col_ldofmap[i]); // permute and set the row (source) vector properly
-            else
-                tgtVals[i] = m_colVector(i); // permute and set the row (source) vector properly
+            tgtVals[i] = m_colVector(col_dofmap[i]); // permute and set the row (source) vector properly
         }
     }
     else {
         // Permute the source data first
+#ifdef VERBOSE
+        output_file << "ColVector: " << m_colVector.size() << ", SrcVals: " << srcVals.size() << ", Sizes: " << m_nTotDofs_SrcCov << ", " << col_dofmap.size() << "\n";
+#endif
         for (unsigned i=0; i < srcVals.size(); ++i) {
-            if (this->m_srcDiscType == moab::TempestOfflineMap::DiscretizationType_CGLL)
-                m_colVector(dgll_cgll_col_ldofmap[i]) = srcVals[i]; // permute and set the row (source) vector properly
-            else
-                m_colVector(i) = srcVals[i]; // permute and set the row (source) vector properly
+            m_colVector(col_dofmap[i]) = srcVals[i]; // permute and set the row (source) vector properly
+#ifdef VERBOSE
+            output_file << "Col: " << i << ", " << col_dofmap[i] << ", Data = " << srcVals[i]  << "\n";
+#endif
         }
         
         m_rowVector = m_weightMatrix * m_colVector;
 
         // Permute the resulting target data back
+        // output_file << "RowVector: " << m_rowVector.size() << ", TgtVals:" << tgtVals.size() << ", Sizes: " << m_nTotDofs_Dest << ", " << row_dofmap.size() << ", " << dgll_cgll_row_ldofmap.size() << "\n";
         for (unsigned i=0; i < tgtVals.size(); ++i) {
-            if (this->m_destDiscType == moab::TempestOfflineMap::DiscretizationType_CGLL)
-                tgtVals[i] = m_rowVector(dgll_cgll_row_ldofmap[i]); // permute and set the row (source) vector properly
-            else
-                tgtVals[i] = m_rowVector(i); // permute and set the row (source) vector properly
+            tgtVals[i] = m_rowVector(row_dofmap[i]); // permute and set the row (source) vector properly
+#ifdef VERBOSE
+            output_file << "Row: " << i << ", " << row_dofmap[i] << ", Data = " << m_rowVector(i) << "\n";
+#endif
         }
     }
+
+#ifdef VERBOSE
+    output_file.flush(); // required here
+    output_file.close();
+#endif
 
     // All done with matvec application
     return moab::MB_SUCCESS;
