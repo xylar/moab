@@ -35,7 +35,9 @@ int main( int argc, char* argv[] )
   MPI_Comm_dup(MPI_COMM_WORLD, &jcomm);
   MPI_Comm_group(jcomm, &jgroup);
 
-  int compid1=4, compid2=7, compid3=11, compid4=12, intxid=15;  // component ids are unique over all pes, and established in advance;
+  // on a regular case,  5 ATM, 6 CPLATM (ATMX), 17 OCN     , 18 CPLOCN (OCNX)  ; intx atm/ocn is not in e3sm yet, give a number
+  //   6 * 100+ 18 = 618
+  int compid1=5, compid2=17, compid3=6, compid4=18, intxid=618;  // component ids are unique over all pes, and established in advance;
   // compid1 is for atm on atm pes
   // compid2 is for ocean, on ocean pe
   // compid3 is for atm on coupler pes
@@ -43,9 +45,9 @@ int main( int argc, char* argv[] )
   // intxid is for intx atm / ocn on coupler pes
   int nghlay=0; // number of ghost layers for loading the file
   int groupTasks[2]; // at most 2 tasks
-  int startG1=0, startG2=0, endG1=0, endG2=1;
+  int startG1=0, startG2=0, endG1=1, endG2=1; // everything runs now on 2 procs
 
-  // load atm on 1 proc, ocean on 2, migrate both to 2 procs, then compute intx
+  // load atm on 2 proc, ocean on 2, migrate both to 2 procs, then compute intx
   // later, we need to compute weight matrix with tempestremap
   std::string filename1, filename2;
   filename1 = TestDir + "/atm.h5m";
@@ -82,11 +84,11 @@ int main( int argc, char* argv[] )
   ierr = iMOAB_Initialize(0, 0); // not really needed anything from argc, argv, yet; maybe we should
   CHECKRC(ierr, "can't initialize iMOAB")
 
-  int appID1;
+  int appID1 =-1;
   iMOAB_AppID pid1=&appID1; // atm
-  int appID2;
+  int appID2 =-1;
   iMOAB_AppID pid2=&appID2; // ocn
-  int appID3, appID4, appID5;
+  int appID3=-1, appID4=-1, appID5=-1;// -1 means it is not initialized
   iMOAB_AppID pid3=&appID3; // atm on coupler PEs
   iMOAB_AppID pid4=&appID4; // ocn on coupler PEs
   iMOAB_AppID pid5= &appID5; // intx atm -ocn on coupler PEs
