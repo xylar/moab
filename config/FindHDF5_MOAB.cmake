@@ -10,9 +10,13 @@ set (HDF5_FOUND NO CACHE INTERNAL "Found HDF5 components successfully." )
 set( SZIP_ROOT "" CACHE PATH "Path to search for SZIP header and library files" )
 
 # Try to find HDF5 with the CMake finder
-set(ENV{HDF5_ROOT} ${HDF5_ROOT})
-find_package(HDF5 COMPONENTS C HL NO_DEFAULT_PATH)
-
+set(ENV{HDF5_ROOT} ${HDF5_ROOT})i
+f (EXISTS ${HDF5_ROOT})
+   find_package(HDF5 COMPONENTS C HL NO_DEFAULT_PATH)
+else()
+   find_package(HDF5 COMPONENTS C HL)
+endif(EXISTS ${HDF5_ROOT})
+ 
 if (HDF5_FOUND)
   # Translate to MOAB variables
   SET(HDF5_INCLUDES ${HDF5_INCLUDE_DIRS})
