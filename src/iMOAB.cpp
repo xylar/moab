@@ -2158,7 +2158,7 @@ ErrCode iMOAB_ComputeMeshIntersectionOnSphere ( iMOAB_AppID pid_src, iMOAB_AppID
     double radius_source=1.0;
     double radius_target=1.0;
     const double epsrel=1e-8;
-    const double boxeps=1.e-5;
+    const double boxeps=5.e-3;
 
     // Get the source and target data and pcomm objects
     appData& data_src = context.appDatas[*pid_src];
@@ -2302,29 +2302,36 @@ ErrCode iMOAB_CoverageGraph(MPI_Comm* join, iMOAB_AppID pid_src, int* scompid, i
   std::vector<int> receivers;
   ParCommGraph* sendGraph = NULL;
   int sense = 0;
-  int ierr = FindParCommGraph(pid_src, scompid, migrcomp, sendGraph, &sense);
-  if ( 0 != ierr || NULL == sendGraph || sense != 1) {
-    std::cout<<" probably not on component source PEs \n";
-  }
-  else
+  int ierr ;
+  if (*pid_src>=0)
   {
-    // report the sender and receiver tasks in the joint comm
-    srcSenders = sendGraph->senders();
-    receivers = sendGraph->receivers();
-    std::cout << "senders: " << srcSenders.size() << " first sender: "<< srcSenders[0] << std::endl;
+    ierr = FindParCommGraph(pid_src, scompid, migrcomp, sendGraph, &sense);
+    if ( 0 != ierr || NULL == sendGraph || sense != 1) {
+      std::cout<<" probably not on component source PEs \n";
+    }
+    else
+    {
+      // report the sender and receiver tasks in the joint comm
+      srcSenders = sendGraph->senders();
+      receivers = sendGraph->receivers();
+      std::cout << "senders: " << srcSenders.size() << " first sender: "<< srcSenders[0] << std::endl;
+    }
   }
-  ParCommGraph * recvGraph = NULL;
+  ParCommGraph * recvGraph = NULL; // will be non null on receiver tasks (intx tasks)
   int senseRec = 0;
-  ierr = FindParCommGraph(pid_migr, scompid, migrcomp, recvGraph, &senseRec);
-  if ( 0 != ierr || NULL == recvGraph ) {
-    std::cout << " not on receive PEs for migrated mesh \n";
-  }
-  else
+  if (*pid_migr>=0)
   {
-    // report the sender and receiver tasks in the joint comm, from migrated mesh pt of view
-    srcSenders = recvGraph->senders();
-    receivers = recvGraph->receivers();
-    std::cout << "receivers: " << receivers.size() << " first receiver: "<< receivers[0] << std::endl;
+    ierr = FindParCommGraph(pid_migr, scompid, migrcomp, recvGraph, &senseRec);
+    if ( 0 != ierr || NULL == recvGraph ) {
+      std::cout << " not on receive PEs for migrated mesh \n";
+    }
+    else
+    {
+      // report the sender and receiver tasks in the joint comm, from migrated mesh pt of view
+      srcSenders = recvGraph->senders();
+      receivers = recvGraph->receivers();
+      std::cout << "receivers: " << receivers.size() << " first receiver: "<< receivers[0] << std::endl;
+    }
   }
 
   // loop over pid_intx elements, to see what original processors in joint comm have sent the coverage mesh
@@ -2472,7 +2479,7 @@ ErrCode iMOAB_ComputeScalarProjectionWeights ( iMOAB_AppID pid_intx,
 		local_areas[1] = area_on_sphere_lHuiller ( context.MBI, context.appDatas[*pid_intx].file_set, radius );
 		local_areas[2] = area_on_sphere ( context.MBI, context.appDatas[*pid_intx].file_set, radius );
 
-		MPI_Allreduce ( &local_areas, &global_areas, 3, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD );
+		MPI_Allreduce ( &local_areas, &global_areas, 3, MPI_DOUBLE, MPI_SUM, pco_intx->comm() );
 
 		if ( !pco_intx->rank() )
 		{

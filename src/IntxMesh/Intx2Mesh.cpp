@@ -244,7 +244,14 @@ ErrorCode Intx2Mesh::intersect_meshes(EntityHandle mbset1, EntityHandle mbset2,
   mbs1 = mbset1; // set 1 is departure, and it is completely covering the euler set on proc
   mbs2 = mbset2;
   outSet = outputSet;
+#ifdef VERBOSE
+      std::stringstream ffs, fft;
+      ffs << "source_rank0"<< my_rank << ".vtk";
+      rval = mb->write_mesh(ffs.str().c_str(), &mbset1, 1);MB_CHK_ERR(rval);
+      fft << "target_rank0"<< my_rank << ".vtk";
+      rval = mb->write_mesh(fft.str().c_str(), &mbset2, 1);MB_CHK_ERR(rval);
 
+#endif
   // really, should be something from t1 and t2; blue is 1 (lagrange), red is 2 (euler)
 
   EntityHandle startBlue=0, startRed=0;
@@ -262,6 +269,12 @@ ErrorCode Intx2Mesh::intersect_meshes(EntityHandle mbset1, EntityHandle mbset2,
     if (rs22.size()<rs2.size())
     {
       std::cout<< " possible not connected arrival mesh; my_rank: " << my_rank << " counting: " << counting <<"\n";
+#ifdef VERBOSE
+
+      std::stringstream ffo;
+      ffo << "file0" <<  counting<<"rank0"<< my_rank << ".vtk";
+      rval = mb->write_mesh(ffo.str().c_str(), &outSet, 1);MB_CHK_ERR(rval);
+#endif
     }
     for (Range::iterator it = rs22.begin(); it != rs22.end(); ++it)
     {
