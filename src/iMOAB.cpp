@@ -2479,7 +2479,7 @@ ErrCode iMOAB_ComputeScalarProjectionWeights ( iMOAB_AppID pid_intx,
 		local_areas[1] = area_on_sphere_lHuiller ( context.MBI, context.appDatas[*pid_intx].file_set, radius );
 		local_areas[2] = area_on_sphere ( context.MBI, context.appDatas[*pid_intx].file_set, radius );
 
-		MPI_Allreduce ( &local_areas, &global_areas, 3, MPI_DOUBLE, MPI_SUM, pco_intx->comm() );
+		MPI_Allreduce ( &local_areas[0], &global_areas[0], 3, MPI_DOUBLE, MPI_SUM, pco_intx->comm() );
 
 		if ( !pco_intx->rank() )
 		{
