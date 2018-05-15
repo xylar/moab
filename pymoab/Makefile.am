@@ -20,12 +20,12 @@ endif
 local-install:
 	$(MKDIR_P) -m 766 $(local_install_path)
 	(CFLAGS='-w -fPIC' PYTHONPATH=$(PWD)/$(local_install_path)/:$(PYTHONPATH) \
-	 $(PYTHON) setup.py build -b $(PWD)$(local_install_build_path) install --install-platlib=$(PWD)/$(local_install_path)/ --install-purelib=$(PWD)/$(local_install_path))
+	 $(PYTHON) setup.py build -b $(PWD)/$(local_install_build_path) install --install-platlib=$(PWD)/$(local_install_path)/ --install-purelib=$(PWD)/$(local_install_path))
 
 pre-install: local-install
 	$(MKDIR_P) -m 766 $(pre_install_path)
 	(CFLAGS='-w -fPIC' PYTHONPATH=$(PWD)/$(pre_install_path)/:$(PYTHONPATH) \
-	 $(PYTHON) setup.py build -b $(PWD)$(pre_install_build_path) install --install-platlib=$(PWD)/$(pre_install_path)/ --install-purelib=$(PWD)/$(pre_install_path) --preinstall)
+	 $(PYTHON) setup.py build -b $(PWD)/$(pre_install_build_path) install --install-platlib=$(PWD)/$(pre_install_path)/ --install-purelib=$(PWD)/$(pre_install_path) --preinstall)
 
 install-exec-local: all-local
 	$(MKDIR_P) $(DESTDIR)$(pkgpythondir)
