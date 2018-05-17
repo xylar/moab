@@ -2226,56 +2226,13 @@ ErrCode iMOAB_ComputeMeshIntersectionOnSphere ( iMOAB_AppID pid_src, iMOAB_AppID
         rval = ScaleToRadius(context.MBI, data_tgt.file_set, 1.0);CHKERRVAL(rval);
     }
 
-    // Rescale the radius of both to compute the intersection
-    ComputeSphereRadius(pid_src, &radius_source);
-    ComputeSphereRadius(pid_tgt, &radius_target);
-    std::cout << "Radius of spheres: source = " << radius_source << " and target = " << radius_target << "\n";
-#ifdef USE_API
-
     rval = data_intx.remapper->ConvertMeshToTempest ( moab::Remapper::SourceMesh );CHKERRVAL(rval);
     rval = data_intx.remapper->ConvertMeshToTempest ( moab::Remapper::TargetMesh );CHKERRVAL(rval);
 
 	// Compute intersections with MOAB
 	rval = data_intx.remapper->ComputeOverlapMesh ( epsrel, 1.0, 1.0, boxeps, false );CHKERRVAL(rval);
     // rval = data_intx.remapper->ConvertMeshToTempest ( moab::Remapper::IntersectedMesh );CHKERRVAL(rval);
-	  data_src.covering_set = data_intx.remapper->GetCoveringSet();
-
-#else    
-    // Create the intersection object on the sphere between two meshes
-	// setup the intersector 
-	moab::Intx2MeshOnSphere *mbintx = new moab::Intx2MeshOnSphere( context.MBI );
-	mbintx->set_error_tolerance ( epsrel );
-	mbintx->set_box_error ( boxeps );
-	mbintx->set_radius_source_mesh ( 1.0 );
-    mbintx->set_radius_destination_mesh ( 1.0 );
-	mbintx->set_parallel_comm ( pco_intx );
-
-	rval = mbintx->FindMaxEdges ( data_src.file_set, data_tgt.file_set );CHKERRVAL(rval);
-
-	// Migrate the meshes locally so that we have full coverage of the source meshset
-	moab::Range local_verts;
-	rval = mbintx->build_processor_euler_boxes ( data_tgt.file_set, local_verts );CHKERRVAL(rval);
-
-	// Compute the covering set
-	moab::EntityHandle covering_set;
-    rval = context.MBI->create_meshset ( moab::MESHSET_SET, covering_set );CHKERRVAL(rval);
-
-	// This step involves lots of communication if mesh is distributed very differently
-	rval = mbintx->construct_covering_set ( data_src.file_set, covering_set );CHKERRVAL(rval);
-
-	// Now let's invoke the MOAB intersection algorithm in parallel with a
-	// source and target mesh set representing two different decompositions
-	rval = mbintx->intersect_meshes ( covering_set, data_tgt.file_set, data_intx.file_set );CHKERRVAL(rval);
-
-	// free the memory
-	delete mbintx;
-#endif
-
-    {
-        // Now let us re-convert the MOAB mesh back to Tempest representation
-        rval = data_intx.remapper->AssociateSrcTargetInOverlap();CHKERRVAL(rval);
-        rval = data_intx.remapper->ConvertMOABMesh_WithSortedEntitiesBySource();CHKERRVAL(rval);
-    }
+	data_src.covering_set = data_intx.remapper->GetCoveringSet();
 
     // Set the context for the OfflineMap computation
     data_intx.weightMap = new moab::TempestOfflineMap ( data_intx.remapper );
@@ -2521,7 +2478,7 @@ ErrCode iMOAB_ApplyScalarProjectionWeights (   iMOAB_AppID pid_intersection,
     moab::Range& tgtEnts = remapper->GetMeshEntities(moab::Remapper::TargetMesh);
 
     std::vector<double> solSTagVals(covSrcEnts.size()*weightMap->GetSourceNDofsPerElement()*weightMap->GetSourceNDofsPerElement() /*weightMap->GetSourceLocalNDofs()*/, 0.0);
-    std::vector<double> solTTagVals(weightMap->GetDestinationLocalNDofs()*weightMap->GetDestinationNDofsPerElement()*weightMap->GetDestinationNDofsPerElement() /*weightMap->GetDestinationLocalNDofs()*/, 0.0);
+    std::vector<double> solTTagVals(tgtEnts.size()*weightMap->GetDestinationNDofsPerElement()*weightMap->GetDestinationNDofsPerElement() /*weightMap->GetDestinationLocalNDofs()*/, 0.0);
 
 #if 0
     int rank;
