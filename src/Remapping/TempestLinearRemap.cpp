@@ -415,18 +415,20 @@ void moab::TempestOfflineMap::LinearRemapFVtoFV_Tempest_MOAB (
         ixOverlap += nOverlapFaces;
     }
 
-#ifdef MOAB_HAVE_EIGEN
-    Eigen_CopyTempestSparseMat();
-#endif
     return;
 }
 
 
 #ifdef MOAB_HAVE_EIGEN
-void moab::TempestOfflineMap::Eigen_CopyTempestSparseMat()
+void moab::TempestOfflineMap::CopyTempestSparseMat_Eigen()
 {
     int locrows = m_mapRemap.GetRows();
     int loccols = m_mapRemap.GetColumns();
+
+    m_nTotDofs_Dest = locrows;
+    m_nTotDofs_SrcCov = loccols;
+    m_weightMatrix.resize(m_nTotDofs_Dest, m_nTotDofs_SrcCov);
+    InitVectors();
 
     // std::cout << m_weightMatrix.rows() << ", " <<  locrows << ", " <<  m_weightMatrix.cols() << ", " << loccols << "\n";
     assert(m_weightMatrix.rows() == locrows && m_weightMatrix.cols() == loccols);
@@ -793,16 +795,20 @@ moab::ErrorCode moab::TempestOfflineMap::ApplyWeights (std::vector<double>& srcV
         output_file << "ColVector: " << m_colVector.size() << ", SrcVals: " << srcVals.size() << ", Sizes: " << m_nTotDofs_SrcCov << ", " << col_dofmap.size() << "\n";
 #endif
         for (unsigned i=0; i < srcVals.size(); ++i) {
+            // if (pcomm->rank() && col_dofmap[i] >= m_colVector.size()) std::cout << i << " col_dofmap: " << col_dofmap[i] << ", m_colVector: " << m_colVector.size() << "\n";
+            // assert(col_dofmap[i] < m_colVector.size());
             m_colVector(col_dofmap[i]) = srcVals[i]; // permute and set the row (source) vector properly
 #ifdef VERBOSE
-            output_file << "Col: " << i << ", " << col_dofmap[i] << ", Data = " << srcVals[i]  << "\n";
+            if (pcomm->rank()) output_file << "Col: " << i << ", " << col_dofmap[i] << ", Data = " << srcVals[i]  << ", " << m_colVector(col_dofmap[i]) << "\n";
 #endif
         }
         
         m_rowVector = m_weightMatrix * m_colVector;
 
         // Permute the resulting target data back
-        // output_file << "RowVector: " << m_rowVector.size() << ", TgtVals:" << tgtVals.size() << ", Sizes: " << m_nTotDofs_Dest << ", " << row_dofmap.size() << ", " << dgll_cgll_row_ldofmap.size() << "\n";
+#ifdef VERBOSE
+        output_file << "RowVector: " << m_rowVector.size() << ", TgtVals:" << tgtVals.size() << ", Sizes: " << m_nTotDofs_Dest << ", " << row_dofmap.size() << "\n";
+#endif
         for (unsigned i=0; i < tgtVals.size(); ++i) {
             tgtVals[i] = m_rowVector(row_dofmap[i]); // permute and set the row (source) vector properly
 #ifdef VERBOSE
@@ -920,9 +926,7 @@ void moab::TempestOfflineMap::LinearRemapSE4_Tempest_MOAB (
         size_t ixOverlapTemp = ixOverlap;
         for ( ; ixOverlapTemp < m_meshOverlap->faces.size(); ixOverlapTemp++ )
         {
-
             // const Face & faceOverlap = m_meshOverlap->faces[ixOverlapTemp];
-
             if ( ixFirst - m_meshOverlap->vecSourceFaceIx[ixOverlapTemp] != 0 )
             {
                 break;
@@ -1068,7 +1072,6 @@ void moab::TempestOfflineMap::LinearRemapSE4_Tempest_MOAB (
             {
                 Announce ( "TempestOfflineMap: Partial element: %i, areas = %f percent", ixFirst, 100 * dTargetArea / m_meshInputCov->vecFaceArea[ixFirst] );
             }
-            else
 #endif
             {
                 dCoeff.Initialize ( nOverlapFaces, nP * nP );
@@ -1133,9 +1136,6 @@ void moab::TempestOfflineMap::LinearRemapSE4_Tempest_MOAB (
         ixOverlap += nOverlapFaces;
     }
 
-#ifdef MOAB_HAVE_EIGEN
-    Eigen_CopyTempestSparseMat();
-#endif
     return;
 }
 
@@ -1425,9 +1425,6 @@ void moab::TempestOfflineMap::LinearRemapFVtoGLL_Simple_MOAB (
 
     }
 
-#ifdef MOAB_HAVE_EIGEN
-    Eigen_CopyTempestSparseMat();
-#endif
     return;
 }
 
@@ -1849,9 +1846,6 @@ void moab::TempestOfflineMap::LinearRemapFVtoGLL_Volumetric_MOAB (
         //_EXCEPTION();
     }
 
-#ifdef MOAB_HAVE_EIGEN
-    Eigen_CopyTempestSparseMat();
-#endif
     return;
 }
 
@@ -2355,9 +2349,6 @@ void moab::TempestOfflineMap::LinearRemapFVtoGLL_MOAB (
         ixOverlap += nOverlapFaces;
     }
 
-#ifdef MOAB_HAVE_EIGEN
-    Eigen_CopyTempestSparseMat();
-#endif
     return;
 }
 
@@ -2941,9 +2932,6 @@ void moab::TempestOfflineMap::LinearRemapGLLtoGLL2_MOAB (
         ixOverlap += nOverlapFaces;
     }
 
-#ifdef MOAB_HAVE_EIGEN
-    Eigen_CopyTempestSparseMat();
-#endif
     return;
 }
 
@@ -3156,10 +3144,6 @@ void moab::TempestOfflineMap::LinearRemapGLLtoGLL2_Pointwise_MOAB (
             _EXCEPTION1 ( "Can't sample point %i", i );
         }
     }
-
-#ifdef MOAB_HAVE_EIGEN
-    Eigen_CopyTempestSparseMat();
-#endif
 
     return;
 }

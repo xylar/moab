@@ -263,7 +263,8 @@ private:
 	///	<summary>
 	///		Store the tag names associated with global DoF ids for source and target meshes
 	///	</summary>
-	moab::ErrorCode SetDofMapTags(const std::string srcDofTagName, const std::string tgtDofTagName);
+	moab::ErrorCode SetDofMapTags(const std::string srcDofTagName, 
+								  const std::string tgtDofTagName);
 
 	///	<summary>
 	///		Compute the association between the solution tag global DoF numbering and 
@@ -275,6 +276,15 @@ private:
 		DiscretizationType destType, bool isDestContinuous, 
 		DataMatrix3D<int>* tgtdataGLLNodes);
 
+
+	///	<summary>
+	///		Copy the local matrix from Tempest SparseMatrix representation (ELL)
+	///		to the parallel CSR Eigen Matrix for scalable application of matvec
+	///     needed for projections.
+	///	</summary>
+#ifdef MOAB_HAVE_EIGEN
+	void CopyTempestSparseMat_Eigen();
+#endif
 
 public:
 #ifdef MOAB_HAVE_EIGEN
@@ -289,19 +299,15 @@ public:
 	typedef WeightDColVector WeightColVector;
 	typedef WeightRMatrix WeightMatrix;
 
-	WeightMatrix m_weightMatrix;
-	WeightRowVector m_rowVector;
-	WeightColVector m_colVector;
-
 	///	<summary>
 	///		Get the number of total Degrees-Of-Freedom defined on the source mesh.
 	///	</summary>
-	// int GetSourceGlobalNDofs();
+	int GetSourceGlobalNDofs();
 
 	///	<summary>
 	///		Get the number of total Degrees-Of-Freedom defined on the destination mesh.
 	///	</summary>
-	// int GetDestinationGlobalNDofs();
+	int GetDestinationGlobalNDofs();
 
 	///	<summary>
 	///		Get the number of local Degrees-Of-Freedom defined on the source mesh.
@@ -339,18 +345,21 @@ public:
 	WeightColVector& GetColVector();
 
 	///	<summary>
-	///		Copy the local matrix from Tempest SparseMatrix representation (ELL)
-	///		to the parallel CSR Eigen Matrix for scalable application of matvec
-	///     needed for projections.
+	///		Apply the weight matrix onto the source vector provided as input, and return the column vector (solution projection) after the application 
+	///     Compute:        \p tgtVals = A * \srcVals, or 
+	///     if (transpose)  \p tgtVals = A^T * \srcVals
 	///	</summary>
-	void Eigen_CopyTempestSparseMat();
-
 	moab::ErrorCode ApplyWeights (std::vector<double>& srcVals, std::vector<double>& tgtVals, bool transpose=false);
 
+	///	<summary>
+	///		Parallel I/O with NetCDF to write out the SCRIP file from multiple processors.
+	///	</summary>
 	void WriteParallelWeightsToFile(std::string filename);
+
 #endif
 
-public:
+private:
+
 	///	<summary>
 	///		The fundamental remapping operator object.
 	///	</summary>
@@ -367,6 +376,13 @@ public:
 	///	</summary>
 	bool m_globalMapAvailable;
 
+#ifdef MOAB_HAVE_EIGEN
+
+	WeightMatrix m_weightMatrix;
+	WeightRowVector m_rowVector;
+	WeightColVector m_colVector;
+
+#endif
 
 	///	<summary>
 	///		The DataVector that stores the global (GID-based) areas of the source mesh.

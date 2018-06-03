@@ -149,6 +149,7 @@ moab::ErrorCode moab::TempestOfflineMap::SetDofMapAssociation(DiscretizationType
     col_dofmap.resize (m_remapper->m_covering_source_entities.size() * m_nDofsPEl_Src * m_nDofsPEl_Src, ULONG_MAX);
     src_soln_gdofs.resize(m_remapper->m_covering_source_entities.size()*m_nDofsPEl_Src*m_nDofsPEl_Src, -1);
     rval = mbCore->tag_get_data ( m_dofTagSrc, m_remapper->m_covering_source_entities, &src_soln_gdofs[0] );MB_CHK_ERR(rval);
+    int maxcol = -1, mincol = INT_MAX;
     
     // Now compute the mapping and store it for the covering mesh
     m_nTotDofs_SrcCov = 0;
@@ -163,19 +164,23 @@ moab::ErrorCode moab::TempestOfflineMap::SetDofMapAssociation(DiscretizationType
     else {
         if (isSrcContinuous) dgll_cgll_col_ldofmap.resize (m_remapper->m_covering_source_entities.size() * m_nDofsPEl_Src * m_nDofsPEl_Src, false);
         // Put these remap coefficients into the SparseMatrix map
-        for ( unsigned j = 0, idof = 0; j < m_remapper->m_covering_source_entities.size(); j++ )
+        for ( unsigned j = 0; j < m_remapper->m_covering_source_entities.size(); j++ )
         {
             for ( int p = 0; p < m_nDofsPEl_Src; p++ )
             {
-                for ( int q = 0; q < m_nDofsPEl_Src; q++, idof++ )
+                for ( int q = 0; q < m_nDofsPEl_Src; q++)
                 {
-                    if ( isSrcContinuous && !dgll_cgll_col_ldofmap[(*srcdataGLLNodes)[p][q][j] - 1] ) {
+                    const int ldof = (*srcdataGLLNodes)[p][q][j] - 1;
+                    const int idof = j * m_nDofsPEl_Src * m_nDofsPEl_Src + p * m_nDofsPEl_Src + q;
+                    if ( isSrcContinuous && !dgll_cgll_col_ldofmap[ldof] ) {
                         m_nTotDofs_SrcCov++;
-                        dgll_cgll_col_ldofmap[(*srcdataGLLNodes)[p][q][j] - 1] = true;
+                        dgll_cgll_col_ldofmap[ldof] = true;
                     }
                     if ( !isSrcContinuous ) m_nTotDofs_SrcCov++;
-                    col_dofmap[ j * m_nDofsPEl_Src * m_nDofsPEl_Src + p * m_nDofsPEl_Src + q ] = (*srcdataGLLNodes)[p][q][j] - 1;
-                    if (vprint) std::cout << "Col: (" << j * m_nDofsPEl_Src * m_nDofsPEl_Src + p * m_nDofsPEl_Src + q << ", " << (*srcdataGLLNodes)[p][q][j] - 1 << ", " << src_soln_gdofs[idof] - 1 << ")\n";
+                    col_dofmap[ idof ] = ldof;
+                    maxcol = (maxcol > ldof ? maxcol : ldof);
+                    mincol = (mincol < ldof ? mincol : ldof);
+                    if (vprint) std::cout << "Col: (" << idof << ", " << ldof << ", " << src_soln_gdofs[idof] - 1 << "), " << m_nTotDofs_SrcCov << "\n";
                 }
             }
         }
@@ -196,18 +201,20 @@ moab::ErrorCode moab::TempestOfflineMap::SetDofMapAssociation(DiscretizationType
     else {
         if (isSrcContinuous) dgll_cgll_covcol_ldofmap.resize(m_remapper->m_source_entities.size() * m_nDofsPEl_Src * m_nDofsPEl_Src, false);
         // Put these remap coefficients into the SparseMatrix map
-        for ( unsigned j = 0, idof = 0; j < m_remapper->m_source_entities.size(); j++ )
+        for ( unsigned j = 0; j < m_remapper->m_source_entities.size(); j++ )
         {
             for ( int p = 0; p < m_nDofsPEl_Src; p++ )
             {
-                for ( int q = 0; q < m_nDofsPEl_Src; q++, idof++ )
+                for ( int q = 0; q < m_nDofsPEl_Src; q++ )
                 {
-                    if ( isSrcContinuous && !dgll_cgll_covcol_ldofmap[(*srcdataGLLNodesSrc)[p][q][j] - 1] ) {
+                    const int ldof = (*srcdataGLLNodesSrc)[p][q][j] - 1;
+                    const int idof = j * m_nDofsPEl_Src * m_nDofsPEl_Src + p * m_nDofsPEl_Src + q;
+                    if ( isSrcContinuous && !dgll_cgll_covcol_ldofmap[ldof] ) {
                         m_nTotDofs_Src++;
-                        dgll_cgll_covcol_ldofmap[(*srcdataGLLNodesSrc)[p][q][j] - 1] = true;
+                        dgll_cgll_covcol_ldofmap[ldof] = true;
                     }
                     if ( !isSrcContinuous ) m_nTotDofs_Src++;
-                    srccol_dofmap[ j * m_nDofsPEl_Src * m_nDofsPEl_Src + p * m_nDofsPEl_Src + q ] = (*srcdataGLLNodesSrc)[p][q][j] - 1;
+                    srccol_dofmap[ idof ] = ldof;
                 }
             }
         }
@@ -221,7 +228,6 @@ moab::ErrorCode moab::TempestOfflineMap::SetDofMapAssociation(DiscretizationType
     m_nTotDofs_Dest = 0;
     if (tgtdataGLLNodes == NULL || destType == DiscretizationType_FV) { /* we only have a mapping for elements as DoFs */
         for (unsigned i=0; i < row_dofmap.size(); ++i) {
-            // row_dofmap.insert( std::pair<int,int>(i, tgt_soln_gdofs[i]) );
             row_dofmap[i] = i;
             if (vprint) std::cout << "Row: (" << i << ", " << tgt_soln_gdofs[i] << ")\n";
             m_nTotDofs_Dest++;
@@ -230,19 +236,21 @@ moab::ErrorCode moab::TempestOfflineMap::SetDofMapAssociation(DiscretizationType
     else {
         if (isTgtContinuous) dgll_cgll_row_ldofmap.resize (m_remapper->m_target_entities.size() * m_nDofsPEl_Dest * m_nDofsPEl_Dest, false);
         // Put these remap coefficients into the SparseMatrix map
-        for ( unsigned j = 0, idof = 0; j < m_remapper->m_target_entities.size(); j++ )
+        for ( unsigned j = 0; j < m_remapper->m_target_entities.size(); j++ )
         {
             for ( int p = 0; p < m_nDofsPEl_Dest; p++ )
             {
-                for ( int q = 0; q < m_nDofsPEl_Dest; q++, idof++ )
+                for ( int q = 0; q < m_nDofsPEl_Dest; q++ )
                 {
-                    if ( isTgtContinuous && !dgll_cgll_row_ldofmap[(*tgtdataGLLNodes)[p][q][j] - 1] ) {
+                    const int ldof = (*tgtdataGLLNodes)[p][q][j] - 1;
+                    const int idof = j * m_nDofsPEl_Dest * m_nDofsPEl_Dest + p * m_nDofsPEl_Dest + q;
+                    if ( isTgtContinuous && !dgll_cgll_row_ldofmap[ldof] ) {
                         m_nTotDofs_Dest++;
-                        dgll_cgll_row_ldofmap[(*tgtdataGLLNodes)[p][q][j] - 1] = true;
+                        dgll_cgll_row_ldofmap[ldof] = true;
                     }
                     if ( !isTgtContinuous ) m_nTotDofs_Dest++;
-                    row_dofmap[ j * m_nDofsPEl_Dest * m_nDofsPEl_Dest + p * m_nDofsPEl_Dest + q ] = (*tgtdataGLLNodes)[p][q][j] - 1;
-                    if (vprint) std::cout << "Row: (" << j * m_nDofsPEl_Dest * m_nDofsPEl_Dest + p * m_nDofsPEl_Dest + q << ", " << (*tgtdataGLLNodes)[p][q][j] - 1 << ", " << tgt_soln_gdofs[idof] - 1 << ")\n";
+                    row_dofmap[ idof ] = ldof;
+                    if (vprint) std::cout << "Row: (" << idof << ", " << ldof << ", " << tgt_soln_gdofs[idof] - 1 << ")\n";
                 }
             }
         }
@@ -250,9 +258,11 @@ moab::ErrorCode moab::TempestOfflineMap::SetDofMapAssociation(DiscretizationType
 
     // Let us also allocate the local representation of the sparse matrix
 #ifdef MOAB_HAVE_EIGEN
-    if (vprint) std::cout << "DoFs: row = " << m_nTotDofs_Dest << ", " << row_dofmap.size() << ", col = " << m_nTotDofs_Src << ", " << m_nTotDofs_SrcCov << ", " << col_dofmap.size() << "\n";
-    m_weightMatrix.resize(m_nTotDofs_Dest, m_nTotDofs_SrcCov);
-    InitVectors();
+    if (vprint) {
+        std::cout << "DoFs: row = " << m_nTotDofs_Dest << ", " << row_dofmap.size() << ", col = " << m_nTotDofs_Src << ", " << m_nTotDofs_SrcCov << ", " << col_dofmap.size() << "\n";
+        // std::cout << "Max col_dofmap: " << maxcol << ", Min col_dofmap" << mincol << "\n";
+    }
+    // m_weightMatrix.resize(m_nTotDofs_Dest, m_nTotDofs_SrcCov);
 #endif
 
     return moab::MB_SUCCESS;
@@ -361,7 +371,7 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
 
         // Input mesh areas
         m_meshInputCov->CalculateFaceAreas(fInputConcave);
-        // if ( eInputType == DiscretizationType_FV )
+        if ( eInputType == DiscretizationType_FV )
         {
             this->SetSourceAreas ( m_meshInputCov->vecFaceArea );
         }
@@ -374,7 +384,7 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
         if ( !pcomm->rank() ) dbgprint.printf ( 0, "Output Mesh Geometric Area: %1.15e\n", dTotalAreaOutput );
 
         // Output mesh areas
-        // if ( eOutputType == DiscretizationType_FV )
+        if ( eOutputType == DiscretizationType_FV )
         {
             this->SetTargetAreas ( m_meshOutput->vecFaceArea );
         }
@@ -765,6 +775,10 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
             _EXCEPTIONT ( "Not implemented" );
         }
 
+#ifdef MOAB_HAVE_EIGEN
+        CopyTempestSparseMat_Eigen();
+#endif
+
         // Verify consistency, conservation and monotonicity
         // gather weights to root process to perform consistency/conservation checks
         // if (pcomm->size() == 1) {
@@ -839,17 +853,17 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
 ///////////////////////////////////////////////////////////////////////////////
 #ifdef MOAB_HAVE_EIGEN
 
-// int moab::TempestOfflineMap::GetSourceGlobalNDofs()
-// {
-//     return m_weightMatrix.rows(); // return the global number of rows from the weight matrix
-// }
+int moab::TempestOfflineMap::GetSourceGlobalNDofs()
+{
+    return m_weightMatrix.cols(); // return the global number of rows from the weight matrix
+}
 
 // ///////////////////////////////////////////////////////////////////////////////
 
-// int moab::TempestOfflineMap::GetDestinationGlobalNDofs()
-// {
-//     return m_weightMatrix.rows(); // return the global number of columns from the weight matrix
-// }
+int moab::TempestOfflineMap::GetDestinationGlobalNDofs()
+{
+    return m_weightMatrix.rows(); // return the global number of columns from the weight matrix
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 
