@@ -29,7 +29,7 @@ int main( int argc, char* argv[] )
   MPI_Comm_rank( MPI_COMM_WORLD, &rank );
   MPI_Comm_size( MPI_COMM_WORLD, &size );
 
-  if (size!=2)
+  if (size > 1 && size%2 == 1)
     return 1; // launch it on 2 processors only
 
   MPI_Comm_dup(MPI_COMM_WORLD, &jcomm);
@@ -46,6 +46,7 @@ int main( int argc, char* argv[] )
   int nghlay=0; // number of ghost layers for loading the file
   int groupTasks[2]; // at most 2 tasks
   int startG1=0, startG2=0, endG1=1, endG2=1; // everything runs now on 2 procs
+  // int startG1=0, startG2=0, endG1=size/2-1, endG2=size-1; // Support launch of imoab_coupler test on any combo of 2*x processes
 
   // load atm on 2 proc, ocean on 2, migrate both to 2 procs, then compute intx
   // later, we need to compute weight matrix with tempestremap
