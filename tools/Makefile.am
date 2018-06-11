@@ -44,7 +44,7 @@ EXTRA_DIST = README.hexmodops \
 
 if HAVE_HDF5
 if HAVE_NETCDF
-  bin_PROGRAMS += mbaddnc
+  bin_PROGRAMS += mbaddnc mbaddchunk 
 endif
 endif
 
@@ -211,6 +211,7 @@ mbmem_SOURCES = mbmem.cpp
 parread_SOURCES = parread.cpp
 mbhonodes_SOURCES = honodes.cpp
 mbaddnc_SOURCES = addncdata.cpp
+mbaddchunk_SOURCES = mbaddchunk.cpp
 
 bin_PROGRAMS += mbslavepart
 mbslavepart_SOURCES = mbslavepart.cpp
