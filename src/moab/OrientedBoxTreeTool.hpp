@@ -423,6 +423,8 @@ class OrientedBoxTreeTool
                      double axis3[3] );
                          
     ErrorCode delete_tree( EntityHandle root_set );
+    
+    ErrorCode remove_tree( EntityHandle root_set );
 
     /**\brief Print out tree
      *

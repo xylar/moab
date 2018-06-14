@@ -42,6 +42,8 @@ ErrorCode check_model_test(Interface * mb);
 
 ErrorCode test_root_sets_resize(Interface *mb);
 
+ErrorCode test_delete_obb_tree(Interface *mb);
+
 void handle_error_code(ErrorCode rv, int &number_failed, int &number_successful)
 {
   if (rv == MB_SUCCESS) {
@@ -138,6 +140,13 @@ int main(int argc, char *argv[])
   rval = test_root_sets_resize(mb2);
   handle_error_code(rval, number_tests_failed, number_tests_successful);
   delete mb2;
+  std::cout << "\n";
+
+  std::cout << "test_delete_obb_tree: ";
+  Interface* mb3 = new Core();
+  rval = test_delete_obb_tree(mb3);
+  handle_error_code(rval, number_tests_failed, number_tests_successful);
+  delete mb3;
   std::cout << "\n";
   
   return number_tests_failed;
@@ -533,3 +542,50 @@ ErrorCode test_root_sets_resize(Interface *mb) {
 
 }
 				 
+ErrorCode test_delete_obb_tree(Interface *mb){
+
+  // load the test file
+  ErrorCode rval = mb->load_file(filename2.c_str());
+  MB_CHK_SET_ERR(rval, "Failed to load input file");
+
+  // create a GTT with all default settings
+  moab::GeomTopoTool* gTopoTool = new GeomTopoTool(mb);
+
+  //Get all volumes and surfaces
+  Range vols, surfs;
+  rval = gTopoTool->get_gsets_by_dimension(3, vols);
+  MB_CHK_SET_ERR(rval, "Failed to get volume gsets");
+  rval = gTopoTool->get_gsets_by_dimension(2, surfs);
+  MB_CHK_SET_ERR(rval, "Failed to get surface gsets");
+  
+  // Build obb tree for volume
+  EntityHandle test_vol = *vols.begin();
+  rval = gTopoTool->construct_obb_tree(test_vol);
+  MB_CHK_SET_ERR(rval, "Error constructing all trees.");
+
+  // Delete vol obb tree
+  rval = gTopoTool->delete_obb_tree(test_vol);
+  MB_CHK_SET_ERR(rval, "Error deleting volume tree.");
+
+  // Make sure vol tree is gone
+  EntityHandle test_vol_root;
+  rval = gTopoTool->get_root(test_vol, test_vol_root);
+  if (MB_SUCCESS == rval){
+    std::cout << "fail: didn't delete vol root" << std::endl;
+  }
+
+  // Make sure its child surf trees also gone
+  EntityHandle test_surf = *surfs.begin();
+  EntityHandle test_surf_root;
+  rval = gTopoTool->get_root(test_surf, test_surf_root);
+  if (MB_SUCCESS == rval){
+    std::cout << "fail: didn't delete surf root" << std::endl;
+  }
+  
+  rval = gTopoTool->construct_obb_tree(test_surf);
+  MB_CHK_SET_ERR(rval, "Error constructing all trees.");
+
+  delete gTopoTool;
+
+  return MB_SUCCESS;
+}

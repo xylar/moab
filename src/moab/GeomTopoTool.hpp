@@ -171,7 +171,7 @@ public:
   ErrorCode construct_obb_trees(bool make_one_vol = false);
   
   /* Relies on future work in OBBTreeTool before final implementation */
-  //ErrorCode delete_obb_tree(EntityHandle eh);
+  ErrorCode delete_obb_tree(EntityHandle eh);
  
     //! Delete the root of the obb tree from the set of all roots
   ErrorCode remove_root(EntityHandle vol_or_surf);

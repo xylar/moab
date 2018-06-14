@@ -298,6 +298,55 @@ ErrorCode GeomTopoTool::is_owned_set(EntityHandle eh) {
 //   return MB_SUCCESS;
 // }
 
+ErrorCode GeomTopoTool::delete_obb_tree(EntityHandle eh) {
+
+  ErrorCode rval;
+
+  // make sure this set is part of the model
+  rval = is_owned_set(eh);
+  MB_CHK_SET_ERR(rval, "Entity set is not part of this model");
+
+  // attempt to find a root for this set
+  EntityHandle root;
+  rval = get_root(eh, root);
+  MB_CHK_SET_ERR(rval, "Failed to find an obb tree root for the entity set");
+
+  // remove root and all of it's child nodes from obbTree data struct (createdTrees)
+  rval = obbTree->remove_tree(root); 
+  MB_CHK_SET_ERR(rval, "Failed to remove root set");
+
+  // Create range of tree nodes to delete (root of the tree passed in + all its child nodes)
+  Range delete_nodes;
+  rval = mdbImpl->get_child_meshsets( root, delete_nodes, 0 );
+  MB_CHK_SET_ERR(rval, "Failed to child node sets");
+  delete_nodes.insert(root);
+  
+  // Remove the tree nodes from the GTT data structure
+  for (Range::iterator it = delete_nodes.begin(); it != delete_nodes.end(); ++it){ 
+    if (m_rootSets_vector){
+      if (rootSets.size() != 0){
+        std::vector<EntityHandle>::iterator i = find(rootSets.begin(), rootSets.end(), *it);
+        rootSets.erase(i);
+      }
+    }
+    else{
+      if (mapRootSets.size() != 0){
+        std::map<EntityHandle, EntityHandle>::iterator i;
+        for (i = mapRootSets.begin(); i != mapRootSets.end(); ++i){
+          if(i->second == *it)
+            mapRootSets.erase(i->first);
+        }
+      }
+    }
+  }
+  
+  // Delete the tree nodes from the database
+  rval = mdbImpl->delete_entities(delete_nodes);
+  MB_CHK_SET_ERR(rval, "Failed to delete node set");
+
+  return MB_SUCCESS;
+}
+
 ErrorCode GeomTopoTool::construct_obb_tree(EntityHandle eh)
 {
   ErrorCode rval;

@@ -466,6 +466,20 @@ ErrorCode OrientedBoxTreeTool::delete_tree( EntityHandle set )
   return instance->delete_entities( &children[0], children.size() );
 }
 
+ErrorCode OrientedBoxTreeTool::remove_tree( EntityHandle set )
+{
+  std::vector<EntityHandle> children;
+  ErrorCode rval = instance->get_child_meshsets( set, children, 0 );
+  if (MB_SUCCESS != rval)
+    return rval;
+  
+  createdTrees.erase( 
+    std::remove( createdTrees.begin(), createdTrees.end(), set ),
+    createdTrees.end() );
+  children.insert( children.begin(), set );
+  return MB_SUCCESS;
+}
+
 
 /********************** Generic Tree Traversal ****************************/
 struct Data { EntityHandle set; int depth; };
