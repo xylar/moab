@@ -466,17 +466,14 @@ ErrorCode OrientedBoxTreeTool::delete_tree( EntityHandle set )
   return instance->delete_entities( &children[0], children.size() );
 }
 
-ErrorCode OrientedBoxTreeTool::remove_tree( EntityHandle set )
+ErrorCode OrientedBoxTreeTool::remove_root( EntityHandle root )
 {
-  std::vector<EntityHandle> children;
-  ErrorCode rval = instance->get_child_meshsets( set, children, 0 );
-  if (MB_SUCCESS != rval)
-    return rval;
-  
-  createdTrees.erase( 
-    std::remove( createdTrees.begin(), createdTrees.end(), set ),
-    createdTrees.end() );
-  children.insert( children.begin(), set );
+
+  std::vector<EntityHandle>::iterator i = find(createdTrees.begin(), createdTrees.end(), root);
+  if( i != createdTrees.end()){
+    createdTrees.erase(i);
+  }
+
   return MB_SUCCESS;
 }
 

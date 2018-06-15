@@ -424,7 +424,7 @@ class OrientedBoxTreeTool
                          
     ErrorCode delete_tree( EntityHandle root_set );
     
-    ErrorCode remove_tree( EntityHandle root_set );
+    ErrorCode remove_root( EntityHandle root_set );
 
     /**\brief Print out tree
      *

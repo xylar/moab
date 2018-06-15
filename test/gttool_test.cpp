@@ -564,7 +564,7 @@ ErrorCode test_delete_obb_tree(Interface *mb){
   MB_CHK_SET_ERR(rval, "Error constructing all trees.");
 
   // Delete vol obb tree
-  rval = gTopoTool->delete_obb_tree(test_vol);
+  rval = gTopoTool->delete_obb_tree(test_vol, false);
   MB_CHK_SET_ERR(rval, "Error deleting volume tree.");
 
   // Make sure vol tree is gone
@@ -582,8 +582,17 @@ ErrorCode test_delete_obb_tree(Interface *mb){
     std::cout << "fail: didn't delete surf root" << std::endl;
   }
   
-  rval = gTopoTool->construct_obb_tree(test_surf);
+  //rval = gTopoTool->construct_obb_tree(test_surf);
+  //MB_CHK_SET_ERR(rval, "Error constructing all trees.");
+  
+  //rebuild vol tree
+  rval = gTopoTool->construct_obb_tree(test_vol);
   MB_CHK_SET_ERR(rval, "Error constructing all trees.");
+
+  //delete just vol, not surf trees
+  // Delete vol obb tree
+  rval = gTopoTool->delete_obb_tree(test_vol, true);
+  MB_CHK_SET_ERR(rval, "Error deleting volume tree.");
 
   delete gTopoTool;
 
