@@ -51,8 +51,8 @@ int main( int argc, char* argv[] )
   // load atm on 2 proc, ocean on 2, migrate both to 2 procs, then compute intx
   // later, we need to compute weight matrix with tempestremap
   std::string filename1, filename2;
-  filename1 = TestDir + "/atm.h5m";
-  filename2 = TestDir + "/mpas.h5m";
+  filename1 = TestDir + "/wholeATM_T.h5m";
+  filename2 = TestDir + "/recMeshOcn.h5m";
 
   // load files on 2 different communicators, groups
   // first groups has task 0, second group tasks 0 and 1
@@ -180,8 +180,8 @@ int main( int argc, char* argv[] )
                                                 strlen(dof_tag_names[0]), strlen(dof_tag_names[1]) );
   CHECKRC(ierr, "cannot compute scalar projection weights" )
 
-  const char* fieldname = "water_vap_ac";
-  const char* fieldnameT = "water_vap_ac_proj";
+  const char* fieldname = "a2oTAG";
+  const char* fieldnameT = "a2oTAG_proj";
   int tagIndex[2];
   int tagTypes[2] = { DENSE_DOUBLE, DENSE_DOUBLE } ;
   int num_components1 = disc_orders[0]*disc_orders[0], num_components2 = disc_orders[1]*disc_orders[1];
@@ -201,11 +201,11 @@ int main( int argc, char* argv[] )
       // basically, adjust the migration of the tag we want to project; it was sent initially with
       // trivial partitioning, now we need to adjust it for "coverage" mesh
        // as always, use nonblocking sends
-       ierr = iMOAB_SendElementTag(pid1, &compid1, &compid3, "water_vap_ac", &jcomm, strlen("water_vap_ac"));
+       ierr = iMOAB_SendElementTag(pid1, &compid1, &compid3, "a2oTAG", &jcomm, strlen("a2oTAG"));
        CHECKRC(ierr, "cannot send tag values")
     }
     // receive on atm on coupler pes, that was redistributed according to coverage
-    ierr = iMOAB_ReceiveElementTag(pid3, &compid3, &compid1, "water_vap_ac", &jcomm, strlen("water_vap_ac"));
+    ierr = iMOAB_ReceiveElementTag(pid3, &compid3, &compid1, "a2oTAG", &jcomm, strlen("a2oTAG"));
     CHECKRC(ierr, "cannot receive tag values")
 
     // we can now free the sender buffers
