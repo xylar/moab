@@ -2086,19 +2086,17 @@ ErrCode iMOAB_FreeSenderBuffers ( iMOAB_AppID pid, MPI_Comm* join, int* rcompid 
 static ErrCode ComputeSphereRadius ( iMOAB_AppID pid, double* radius)
 {
     ErrorCode rval;
-    double coordinates[3];
+    CartVect pos;
 
     Range& verts = context.appDatas[*pid].all_verts;
     moab::EntityHandle firstVertex = (verts[0]);
 
     // coordinate data
-    rval = context.MBI->get_coords ( &(firstVertex), 1, coordinates );CHKERRVAL(rval);
+    rval = context.MBI->get_coords ( &(firstVertex), 1, (double*) &(pos[0]) );CHKERRVAL(rval);
 
     // compute the distance from origin
-    *radius = coordinates[0]*coordinates[0] + coordinates[1] * coordinates[1] + coordinates[2] * coordinates[2];
-
     // TODO: we could do this in a loop to verify if the pid represents a spherical mesh
-
+    *radius = pos.length();
     return 0;
 }
 
@@ -2126,6 +2124,11 @@ ErrCode iMOAB_ComputeMeshIntersectionOnSphere ( iMOAB_AppID pid_src, iMOAB_AppID
 
     rval = pco_intx->check_all_shared_handles();CHKERRVAL(rval);
     
+    // Rescale the radius of both to compute the intersection
+    ComputeSphereRadius(pid_src, &radius_source);
+    ComputeSphereRadius(pid_tgt, &radius_target);
+    std::cout << "Radius of spheres: source = " << radius_source << " and target = " << radius_target << "\n";
+
 	// print verbosely about the problem setting
 	{
 		moab::Range rintxverts, rintxelems;
@@ -2164,11 +2167,6 @@ ErrCode iMOAB_ComputeMeshIntersectionOnSphere ( iMOAB_AppID pid_src, iMOAB_AppID
     data_intx.remapper->GetMeshSet ( moab::Remapper::TargetMesh ) = data_tgt.file_set;
     data_intx.remapper->GetMeshSet ( moab::Remapper::IntersectedMesh ) = data_intx.file_set;
 
-    // Rescale the radius of both to compute the intersection
-    ComputeSphereRadius(pid_src, &radius_source);
-    ComputeSphereRadius(pid_tgt, &radius_target);
-    std::cout << "Radius of spheres: source = " << radius_source << " and target = " << radius_target << "\n";
-
     /* Let make sure that the radius match for source and target meshes. If not, rescale now and unscale later. */
     bool radii_scaled = false;
     if (fabs(radius_source - radius_target) > 1e-10) { /* the radii are different */
@@ -2188,10 +2186,10 @@ ErrCode iMOAB_ComputeMeshIntersectionOnSphere ( iMOAB_AppID pid_src, iMOAB_AppID
     // Set the context for the OfflineMap computation
     data_intx.weightMap = new moab::TempestOfflineMap ( data_intx.remapper );
 
-    if (radii_scaled) { /* the radii are different, so lets rescale back */
-        rval = ScaleToRadius(context.MBI, data_src.file_set, radius_source);CHKERRVAL(rval);
-        rval = ScaleToRadius(context.MBI, data_tgt.file_set, radius_target);CHKERRVAL(rval);
-    }
+    // if (radii_scaled) { /* the radii are different, so lets rescale back */
+    //     rval = ScaleToRadius(context.MBI, data_src.file_set, radius_source);CHKERRVAL(rval);
+    //     rval = ScaleToRadius(context.MBI, data_tgt.file_set, radius_target);CHKERRVAL(rval);
+    // }
 
     return 0;
 }
