@@ -51,8 +51,16 @@ int main( int argc, char* argv[] )
   // load atm on 2 proc, ocean on 2, migrate both to 2 procs, then compute intx
   // later, we need to compute weight matrix with tempestremap
   std::string filename1, filename2;
+#ifdef MOAB_HAVE_HDF5
   filename1 = TestDir + "/wholeATM_T.h5m";
   filename2 = TestDir + "/recMeshOcn.h5m";
+#endif
+
+  if (argc>2) {
+    filename1 = std::string(argv[1]);
+    filename2 = std::string(argv[2]);
+  }
+
 
   // load files on 2 different communicators, groups
   // first groups has task 0, second group tasks 0 and 1
