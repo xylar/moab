@@ -288,23 +288,24 @@ ErrorCode TempestRemapper::ConvertTempestMeshToMOAB_Private ( TempestMeshType me
 ErrorCode TempestRemapper::ConvertMeshToTempest ( Remapper::IntersectionContext ctx )
 {
     ErrorCode rval;
+    const bool outputEnabled = ( TempestRemapper::verbose && ((!m_pcomm) || !m_pcomm->rank()) );
 
     if ( ctx == Remapper::SourceMesh )
     {
         if ( !m_source ) m_source = new Mesh();
-        if ( TempestRemapper::verbose && !m_pcomm->rank() ) std::cout << "\nConverting (source) MOAB to TempestRemap Mesh representation ...\n";
+        if ( outputEnabled ) std::cout << "\nConverting (source) MOAB to TempestRemap Mesh representation ...\n";
         rval = ConvertMOABMeshToTempest_Private ( m_source, m_source_set, m_source_entities );
     }
     else if ( ctx == Remapper::TargetMesh )
     {
         if ( !m_target ) m_target = new Mesh();
-        if ( TempestRemapper::verbose && !m_pcomm->rank() ) std::cout << "\nConverting (target) MOAB to TempestRemap Mesh representation ...\n";
+        if ( outputEnabled ) std::cout << "\nConverting (target) MOAB to TempestRemap Mesh representation ...\n";
         rval = ConvertMOABMeshToTempest_Private ( m_target, m_target_set, m_target_entities );
     }
     else if ( ctx != Remapper::DEFAULT )     // Overlap mesh
     {
         if ( !m_overlap ) m_overlap = new Mesh();
-        if ( TempestRemapper::verbose && !m_pcomm->rank() ) std::cout << "\nConverting (overlap) MOAB to TempestRemap Mesh representation ...\n";
+        if ( outputEnabled ) std::cout << "\nConverting (overlap) MOAB to TempestRemap Mesh representation ...\n";
         rval = ConvertMOABMeshToTempest_Private ( m_overlap, m_overlap_set, m_overlap_entities );
     }
     else
@@ -675,12 +676,12 @@ ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius_
 
             Range notNeededCovCells = moab::subtract(m_covering_source_entities, intxCov);
             // remove now from coverage set the cells that are not needed
-            rval = m_interface->remove_entities(m_covering_source_set, notNeededCovCells); MB_CHK_ERR ( rval );
+            // rval = m_interface->remove_entities(m_covering_source_set, notNeededCovCells); MB_CHK_ERR ( rval );
             m_covering_source_entities = moab::subtract(m_covering_source_entities, notNeededCovCells);
             m_intersecting_target_entities = moab::intersect ( m_source_entities, m_covering_source_entities );
-#ifdef VERBOSE
+// #ifdef VERBOSE
             std::cout << " remove from coverage set elements that are not intersected: " << notNeededCovCells.size() << "\n";
-#endif
+// #endif
 
             m_covering_source = new Mesh();
             rval = ConvertMOABMeshToTempest_Private ( m_covering_source, m_covering_source_set, m_covering_source_entities ); MB_CHK_SET_ERR ( rval, "Can't convert source Tempest mesh" );
