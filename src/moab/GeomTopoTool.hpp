@@ -227,6 +227,9 @@ public:
     //! Returns the geometry dimension tag (geomTag) from check_geom_tag 
   Tag get_geom_tag();
 
+    //! Returns the geometry dimension tag (geomTag) from check_geom_tag 
+//  Tag get_obb_root_tag();
+
     //! Returns true if obb trees have been added to the rootset
   bool have_obb_tree();
 
@@ -273,6 +276,7 @@ private:
   Tag geomTag;
   Tag gidTag;
   Tag nameTag;
+//  Tag obbRootTag;
   // the model set encompasses a full topological model
   EntityHandle modelSet;
   // implicit complement handle cache
@@ -315,6 +319,9 @@ private:
 
     //! Verify sense edge tags
   ErrorCode check_edge_sense_tags(bool create = false);
+
+    //! Verify obb root tags
+//  ErrorCode check_obb_root_tags(bool create = false);
 
   ErrorCode resize_rootSets();
 
@@ -381,6 +388,8 @@ inline Tag GeomTopoTool::get_sense_tag() { check_face_sense_tag(true); return se
 inline Tag GeomTopoTool::get_gid_tag() { check_gid_tag(true); return gidTag; }
 
 inline Tag GeomTopoTool::get_geom_tag() { check_geom_tag(true); return geomTag; }
+
+//inline Tag GeomTopoTool::get_obb_root_tag() { check_obb_root_tags(true); return obbRootTag; }
 
 inline bool GeomTopoTool::is_implicit_complement(EntityHandle volume) { return volume == impl_compl_handle; }
 
