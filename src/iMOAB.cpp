@@ -2038,11 +2038,28 @@ ErrCode iMOAB_ReceiveElementTag(iMOAB_AppID pid, int* scompid, int* rcompid, con
 
   if ( data.file_set != data.covering_set) // coverage mesh is different from original mesh, it means we are on a source mesh, after intx
   {
+#ifdef VERBOSE
+    std::ostringstream outfile;
+    int rank = pco->rank();
+    outfile << "CovMesh_0" << rank << ".h5m";
+    rval = context.MBI->write_file ( outfile.str().c_str(), 0, 0, &(data.covering_set), 1 );CHKERRVAL(rval); // coverage mesh
+#endif
     rval = context.MBI->get_entities_by_dimension(data.covering_set, 2, owned); if ( MB_SUCCESS != rval ) { return 1; }
   }
   // pco is needed to pack, and for moab instance, not for communication!
   // still use nonblocking communication
   rval = cgraph->receive_tag_values ( *join, pco, owned, tagHandle );
+
+  if ( data.file_set != data.covering_set) // coverage mesh is different from original mesh, it means we are on a source mesh, after intx
+  {
+#ifdef VERBOSE
+    std::ostringstream outfile;
+    int rank = pco->rank();
+    outfile << "CovMeshWithTag_0" << rank << ".h5m";
+    rval = context.MBI->write_file ( outfile.str().c_str(), 0, 0, &(data.covering_set), 1 );CHKERRVAL(rval); // coverage mesh
+#endif
+    rval = context.MBI->get_entities_by_dimension(data.covering_set, 2, owned); if ( MB_SUCCESS != rval ) { return 1; }
+  }
 
   if ( MB_SUCCESS != rval ) { return 1; }
   // now, send to each corr_tasks[i] tag data for corr_sizes[i] primary entities
