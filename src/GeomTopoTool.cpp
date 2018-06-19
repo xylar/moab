@@ -37,14 +37,14 @@ const char GEOM_SENSE_2_TAG_NAME[] = "GEOM_SENSE_2";
 
 const char GEOM_SENSE_N_ENTS_TAG_NAME[] = "GEOM_SENSE_N_ENTS";
 const char GEOM_SENSE_N_SENSES_TAG_NAME[] = "GEOM_SENSE_N_SENSES";
-//const char OBB_ROOT_TAG_NAME[] = "OBB_ROOT";
+const char OBB_ROOT_TAG_NAME[] = "OBB_ROOT";
 
 const char IMPLICIT_COMPLEMENT_NAME[] = "impl_complement";
 
   
 GeomTopoTool::GeomTopoTool(Interface *impl, bool find_geoments, EntityHandle modelRootSet, bool p_rootSets_vector) :
   mdbImpl(impl), sense2Tag(0), senseNEntsTag(0), senseNSensesTag(0),
-  geomTag(0), gidTag(0), //obbRootTag(0),
+  geomTag(0), gidTag(0), obbRootTag(0),
   modelSet(modelRootSet), updated(false), 
   setOffset(0), m_rootSets_vector(p_rootSets_vector), oneVolRootSet(0)
 {
@@ -65,9 +65,9 @@ GeomTopoTool::GeomTopoTool(Interface *impl, bool find_geoments, EntityHandle mod
       MB_TYPE_OPAQUE, nameTag, MB_TAG_CREAT|MB_TAG_SPARSE);
   MB_CHK_SET_ERR_CONT(rval, "Error: Failed to create name tag");
 
-//       rval = mdbImpl->tag_get_handle(OBB_ROOT_TAG_NAME, 1,
-//                       MB_TYPE_INTEGER, obbRootTag, MB_TAG_CREAT|MB_TAG_SPARSE);
-//       MB_CHK_SET_ERR_CONT(rval, "Error: Failed to create geometry dimension tag");
+  rval = mdbImpl->tag_get_handle(OBB_ROOT_TAG_NAME, 1,
+                  MB_TYPE_INTEGER, obbRootTag, MB_TAG_CREAT|MB_TAG_SPARSE);
+  MB_CHK_SET_ERR_CONT(rval, "Error: Failed to create geometry dimension tag");
 
   // set this value to zero for comparisons
   impl_compl_handle = 0;
@@ -454,8 +454,13 @@ ErrorCode GeomTopoTool::construct_obb_tree(EntityHandle eh)
        MB_CHK_SET_ERR(rval, "Failed to add entities to root set");
 
        // // add obbRootTag
-//       rval = mdbImpl->tag_set_data(obbRootTag, &eh, 1, &root);
-//       MB_CHK_SET_ERR(rval, "Failed set the obb root tag");
+       rval = mdbImpl->tag_set_data(obbRootTag, &eh, 1, &root);
+       MB_CHK_SET_ERR(rval, "Failed set the obb root tag");
+       std::cout << "root  " << root << std::endl; 
+       EntityHandle gbroot;
+       rval = mdbImpl->tag_get_data(obbRootTag, &eh, 1, &gbroot);
+       MB_CHK_SET_ERR(rval, "Failed to get the obb root tag");
+       std::cout << "root get back from tag " << gbroot << std::endl; 
 
        // add this root to the GeomTopoTool tree root indexing
        set_root_set(eh, root);

@@ -30,6 +30,8 @@ std::string ofile;
 std::string ofile2;
 std::string ofile3;
 
+const char OBB_ROOT_TAG_NAME[] = "OBB_ROOT";
+Tag obbRootTag;
 
 bool remove_output_file;
 ErrorCode geometrize_test(Interface * mb, EntityHandle inputSet);
@@ -568,15 +570,14 @@ ErrorCode test_delete_obb_tree(Interface *mb){
   if (MB_SUCCESS == rval){
     std::cout << "vol root is: " << test_vol_root << std::endl;
   }
-  //     // get obbRootTag
-  //     EntityHandle gbroot;
-  //     Tag obbRootTag;
-  //     rval = mb->tag_get_handle(OBB_ROOT_TAG_NAME, 1,
-  //                     MB_TYPE_INTEGER, obbRootTag);//, MB_TAG_CREAT|MB_TAG_SPARSE);
-  //     MB_CHK_SET_ERR_CONT(rval, "Error: Failed to get obb root tag");
-  //     rval = mb->tag_get_data(obbRootTag, &test_vol, 1, &gbroot);
-  //     MB_CHK_SET_ERR(rval, "Failed to get the obb root tag");
-  //     std::cout << "root get back from tag " << gbroot << std::endl; 
+       // get obbRootTag
+  rval = mb->tag_get_handle(OBB_ROOT_TAG_NAME, 1,
+                  MB_TYPE_INTEGER, obbRootTag, MB_TAG_CREAT|MB_TAG_SPARSE);
+  MB_CHK_SET_ERR_CONT(rval, "Error: Failed to create geometry dimension tag");
+       EntityHandle gbroot;
+       rval = mb->tag_get_data(obbRootTag, &test_vol, 1, &gbroot);
+       MB_CHK_SET_ERR(rval, "Failed to get the obb root tag");
+       std::cout << "root get back from tag " << gbroot << std::endl; 
 
   // Delete vol obb tree
   rval = gTopoTool->delete_obb_tree(test_vol, false);
