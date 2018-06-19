@@ -563,16 +563,32 @@ ErrorCode test_delete_obb_tree(Interface *mb){
   rval = gTopoTool->construct_obb_tree(test_vol);
   MB_CHK_SET_ERR(rval, "Error constructing all trees.");
 
+  EntityHandle test_vol_root;
+  rval = gTopoTool->get_root(test_vol, test_vol_root);
+  if (MB_SUCCESS == rval){
+    std::cout << "vol root is: " << test_vol_root << std::endl;
+  }
+  //     // get obbRootTag
+  //     EntityHandle gbroot;
+  //     Tag obbRootTag;
+  //     rval = mb->tag_get_handle(OBB_ROOT_TAG_NAME, 1,
+  //                     MB_TYPE_INTEGER, obbRootTag);//, MB_TAG_CREAT|MB_TAG_SPARSE);
+  //     MB_CHK_SET_ERR_CONT(rval, "Error: Failed to get obb root tag");
+  //     rval = mb->tag_get_data(obbRootTag, &test_vol, 1, &gbroot);
+  //     MB_CHK_SET_ERR(rval, "Failed to get the obb root tag");
+  //     std::cout << "root get back from tag " << gbroot << std::endl; 
+
   // Delete vol obb tree
   rval = gTopoTool->delete_obb_tree(test_vol, false);
   MB_CHK_SET_ERR(rval, "Error deleting volume tree.");
 
   // Make sure vol tree is gone
-  EntityHandle test_vol_root;
+//  EntityHandle test_vol_root;
   rval = gTopoTool->get_root(test_vol, test_vol_root);
   if (MB_SUCCESS == rval){
     std::cout << "fail: didn't delete vol root" << std::endl;
   }
+  
 
   // Make sure its child surf trees also gone
   EntityHandle test_surf = *surfs.begin();
