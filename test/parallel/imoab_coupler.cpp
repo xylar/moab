@@ -204,6 +204,33 @@ int main( int argc, char* argv[] )
   // so far, the coverage mesh has only the ids and global dofs;
   // need to change the migrate method to accommodate any GLL tag
   // now send a tag from original atmosphere (pid1) towards migrated coverage mesh (pid3), using the new coverage graph communicator
+
+  // make the tag 0, to check we are actually sending needed data
+  {
+    if (appID3 >= 0)
+    {
+      int nverts[3], nelem[3], nblocks[3], nsbc[3], ndbc[3];
+        /*
+         * Each process in the communicator will have access to a local mesh instance, which will contain the
+         * original cells in the local partition and ghost entities. Number of vertices, primary cells, visible blocks,
+         * number of sidesets and nodesets boundary conditions will be returned in size 3 arrays, for local, ghost and total
+         * numbers.
+         */
+        ierr = iMOAB_GetMeshInfo(  pid3, nverts, nelem, nblocks, nsbc, ndbc);
+        CHECKRC(ierr, "failed to get num primary elems");
+        int numAllElem = nelem[2];
+        std::vector<double> vals;
+        int storLeng = num_components1*numAllElem;
+        vals.resize(storLeng);
+        for (int k=0; k<storLeng; k++)
+          vals[k] = 0.;
+        int eetype = 1;
+        ierr = iMOAB_SetDoubleTagStorage ( pid3, "a2oTAG", &storLeng, &eetype, &vals[0], strlen("a2oTAG"));
+        CHECKRC(ierr, "cannot make tag nul")
+        // set the tag to 0
+    }
+  }
+  //
     if (comm1 != MPI_COMM_NULL ){
 
       // basically, adjust the migration of the tag we want to project; it was sent initially with
@@ -216,6 +243,12 @@ int main( int argc, char* argv[] )
     ierr = iMOAB_ReceiveElementTag(pid3, &compid3, &compid1, "a2oTAG", &jcomm, strlen("a2oTAG"));
     CHECKRC(ierr, "cannot receive tag values")
 
+#ifdef VERBOSE
+    char writeOptions3[] ="PARALLEL=WRITE_PART";
+    char outputFileRecvd[] = "recvAtmCoup.h5m";
+    ierr = iMOAB_WriteMesh(pid3, outputFileRecvd, writeOptions3,
+        strlen(outputFileRecvd), strlen(writeOptions3) );
+#endif
     // we can now free the sender buffers
      if (comm1 != MPI_COMM_NULL) {
        ierr = iMOAB_FreeSenderBuffers(pid1, &jcomm, &compid3);

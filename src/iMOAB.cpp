@@ -1194,7 +1194,7 @@ ErrCode iMOAB_DefineTagStorage ( iMOAB_AppID pid, const iMOAB_String tag_storage
     for ( int i = 0; i < *components_per_entity; i++ )
     {
         defInt[i] = 0;
-        defDouble[i] = 0.;
+        defDouble[i] = -1e+10;
         defHandle[i] = ( EntityHandle ) 0;
     }
 
@@ -2288,10 +2288,35 @@ ErrCode iMOAB_CoverageGraph ( MPI_Comm * join, iMOAB_AppID pid_src,
             setInts.insert ( gidCell );
             //std::cout << origProc << " id:" << gidCell << " size: " << setInts.size() << std::endl;
         }
+#ifdef VERBOSE
+        std::ofstream dbfile;
+        std::stringstream outf;
+        outf << "idsFromProc_0" << currentRankInJointComm << ".txt";
+        dbfile.open (outf.str().c_str());
+        dbfile << "Writing this to a file.\n";
 
-        std::cout << " map size:" << idsFromProcs.size() << std::endl; // on the receiver side, these show how much data to receive
+        dbfile << " map size:" << idsFromProcs.size() << std::endl; // on the receiver side, these show how much data to receive
         // from the sender (how many ids, and how much tag data later; we need to size up the receiver buffer)
         // arrange in tuples , use map iterators to send the ids
+        for (std::map<int, std::set<int> >::iterator mt=idsFromProcs.begin(); mt!=idsFromProcs.end(); mt++)
+          {
+
+            std::set<int> & setIds = mt->second;
+            dbfile << "from id: " << mt->first <<  " receive " << setIds.size() << " cells \n";
+            int counter = 0;
+            for ( std::set<int>::iterator st= setIds.begin(); st!=setIds.end(); st++)
+            {
+              int valueID = *st;
+              dbfile << " " << valueID;
+              counter ++;
+              if (counter%10 == 0)
+                dbfile<<"\n";
+
+            }
+            dbfile<<"\n";
+          }
+        dbfile.close();
+#endif
         if ( NULL != recvGraph )
             recvGraph->SetReceivingAfterCoverage ( idsFromProcs );
         for ( std::map<int, std::set<int> >::iterator mit = idsFromProcs.begin(); mit != idsFromProcs.end(); mit++ )

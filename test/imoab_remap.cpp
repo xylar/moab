@@ -37,8 +37,8 @@ int main(int argc, char * argv[])
 #ifdef MOAB_HAVE_HDF5
   strcpy(filen1, TestDir);
   strcpy(filen2, TestDir);
-  strcat(filen1, "/atm.h5m");
-  strcat(filen2, "/mpas.h5m");
+  strcat(filen1, "/wholeATM_T.h5m");
+  strcat(filen2, "/recMeshOcn.h5m");
 #endif
 
   if (argc>2) {
@@ -137,8 +137,8 @@ int main(int argc, char * argv[])
   const char* dof_tag_names[2] = {"GLOBAL_DOFS", "GLOBAL_ID"};
   int fVolumetric=0, fValidate=1, fNoConserve=0;
   
-  const char* fieldname = "water_vap_ac";
-  const char* fieldnameT = "water_vap_ac_proj";
+  const char* fieldname = "a2oTAG";
+  const char* fieldnameT = "a2oTAG_proj";
   int tagIndex[2];
   // int entTypes[2] = {1, 1}; /* both on elements; */
   int tagTypes[2] = { DENSE_DOUBLE, DENSE_DOUBLE } ;

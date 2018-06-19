@@ -455,6 +455,10 @@ ErrorCode ParCommGraph::send_tag_values (MPI_Comm jcomm, ParallelComm *pco, Rang
   ErrorCode  rval = mb-> tag_get_bytes(tag_handle,  bytes_per_tag) ;
   if (rval!=MB_SUCCESS) return rval;
 
+#ifdef VERBOSE
+  int tag_size;
+  mb->tag_get_length(tag_handle, tag_size);
+#endif
   bool specified_ids = send_IDs_map.size() > 0;
   int indexReq=0;
   if (!specified_ids) // original send
@@ -509,6 +513,13 @@ ErrorCode ParCommGraph::send_tag_values (MPI_Comm jcomm, ParallelComm *pco, Rang
       int size_buffer = 4 + bytes_per_tag*(int)eids.size(); // hopefully, below 2B; if more, we have a big problem ...
       ParallelComm::Buffer * buffer = new ParallelComm::Buffer(size_buffer);
       buffer->reset_ptr(sizeof(int));
+#ifdef VERBOSE
+        std::ofstream dbfile;
+        std::stringstream outf;
+        outf << "from_" << rankInJoin <<"_send_to_" << receiver_proc << ".txt";
+        dbfile.open (outf.str().c_str());
+        dbfile << "from "  << rankInJoin << " send to " << receiver_proc << "\n";
+#endif
       // copy tag data to buffer->buff_ptr, and send the buffer (we could have used regular char arrays)
       for (std::vector<int>::iterator it=eids.begin(); it!=eids.end(); it++)
       {
@@ -517,7 +528,22 @@ ErrorCode ParCommGraph::send_tag_values (MPI_Comm jcomm, ParallelComm *pco, Rang
 
         rval = mb->tag_get_data(tag_handle, &eh, 1, (void*)(buffer->buff_ptr) );  MB_CHK_ERR ( rval );
         buffer->buff_ptr+=bytes_per_tag;
+#ifdef VERBOSE
+        dbfile<< "global ID " << eID << " local handle " << mb->id_from_handle(eh)  << " vals: ";
+        double * vals = (double*) (buffer->buff_ptr -bytes_per_tag );
+        for (int kk=0; kk<tag_size; kk++)
+        {
+          dbfile << " " << *vals;
+          vals++;
+        }
+        dbfile << "\n";
+
+
+#endif
       }
+#ifdef VERBOSE
+        dbfile.close();
+#endif
       *((int*)buffer->mem_ptr) = size_buffer;
         //int size_pack = buffer->get_current_size(); // debug check
       ierr = MPI_Isend(buffer->mem_ptr, size_buffer, MPI_CHAR, receiver_proc, 222, jcomm, &sendReqs[indexReq]); // we have to use global communicator
@@ -543,6 +569,11 @@ ErrorCode ParCommGraph::receive_tag_values (MPI_Comm jcomm, ParallelComm *pco, R
   int bytes_per_tag; // we need to know, to allocate buffers
   ErrorCode  rval = mb-> tag_get_bytes(tag_handle,  bytes_per_tag) ;
   if (rval!=MB_SUCCESS) return rval;
+
+#ifdef VERBOSE
+  int tag_size;
+  mb->tag_get_length(tag_handle, tag_size);
+#endif
 
   bool specified_ids = recv_IDs_map.size() > 0;
   if (!specified_ids)
@@ -604,6 +635,14 @@ ErrorCode ParCommGraph::receive_tag_values (MPI_Comm jcomm, ParallelComm *pco, R
       // receive the buffer
       ierr = MPI_Recv (buffer->mem_ptr, size_buffer, MPI_CHAR, sender_proc, 222, jcomm, &status);
       if (ierr!=0) return MB_FAILURE;
+// start copy
+#ifdef VERBOSE
+        std::ofstream dbfile;
+        std::stringstream outf;
+        outf << "recvFrom_" << sender_proc <<"_on_proc_" << rankInJoin << ".txt";
+        dbfile.open (outf.str().c_str());
+        dbfile << "recvFrom_"  << sender_proc << " on proc  " << rankInJoin << "\n";
+#endif
 
       // copy tag data to buffer->buff_ptr, and send the buffer (we could have used regular char arrays)
       for (std::vector<int>::iterator it=eids.begin(); it!=eids.end(); it++)
@@ -612,8 +651,22 @@ ErrorCode ParCommGraph::receive_tag_values (MPI_Comm jcomm, ParallelComm *pco, R
         EntityHandle eh = gidToHandle[eID];
 
         rval = mb->tag_set_data(tag_handle, &eh, 1, (void*)(buffer->buff_ptr) );  MB_CHK_ERR ( rval );
+#ifdef VERBOSE
+        dbfile<< "global ID " << eID << " local handle " << mb->id_from_handle(eh)  << " vals: ";
+        double * vals = (double*) (buffer->buff_ptr );
+        for (int kk=0; kk<tag_size; kk++)
+        {
+          dbfile << " " << *vals;
+          vals++;
+        }
+        dbfile << "\n";
+#endif
         buffer->buff_ptr+=bytes_per_tag;
       }
+#ifdef VERBOSE
+        dbfile.close();
+#endif
+
     }
 
   }
