@@ -103,6 +103,13 @@
 #include "FileTokenizer.hpp"
 #include "moab/RangeMap.hpp"
 
+// structure to hold the header data
+struct headerData {
+  std::string version;
+  std::string title;
+  std::string date;
+};
+
 // structure to hold sense & vol data
 struct boundary {
   int sense;
@@ -275,6 +282,15 @@ private:
 		       std::map <int,EntityHandle> surface_map);
 
   /**
+   * reads the full set of header data
+   * 
+   * @param filename, the file to read the data from
+   *
+   * @return moab::Error code
+   */
+  ErrorCode read_header(const char* filename);
+
+  /**
    * Reads the full set of side data from the file
    *
    * @param filename, the file to read all the side data from
@@ -323,6 +339,16 @@ private:
    * @return moab::ErrorCode
    */
   ErrorCode read_tets(const char* filename, std::vector<tet> &tet_data);
+
+
+  /**
+   * Reads the header data into a class member structure
+   *
+   * @param input_file, an open filestream
+   *
+   * @return void
+   */
+  ErrorCode get_header_data(std::ifstream &input_file);
 
   /**
    * Reads a single atomic cell data string and populates a cell struct 
@@ -400,6 +426,8 @@ private:
 
   // Class Member variables
   private:
+
+  headerData header_data;
   // read mesh interface
   ReadUtilIface* readMeshIface;
   // Moab Interface
