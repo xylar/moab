@@ -66,7 +66,7 @@ GeomTopoTool::GeomTopoTool(Interface *impl, bool find_geoments, EntityHandle mod
   MB_CHK_SET_ERR_CONT(rval, "Error: Failed to create name tag");
 
   rval = mdbImpl->tag_get_handle(OBB_ROOT_TAG_NAME, 1,
-                  MB_TYPE_INTEGER, obbRootTag, MB_TAG_CREAT|MB_TAG_SPARSE);
+                  MB_TYPE_HANDLE, obbRootTag, MB_TAG_CREAT|MB_TAG_SPARSE);
   MB_CHK_SET_ERR_CONT(rval, "Error: Failed to create geometry dimension tag");
 
   // set this value to zero for comparisons
@@ -453,6 +453,9 @@ ErrorCode GeomTopoTool::construct_obb_tree(EntityHandle eh)
        rval = mdbImpl->add_entities(root, &eh, 1);
        MB_CHK_SET_ERR(rval, "Failed to add entities to root set");
 
+
+       // add this root to the GeomTopoTool tree root indexing
+       set_root_set(eh, root);
        // // add obbRootTag
        rval = mdbImpl->tag_set_data(obbRootTag, &eh, 1, &root);
        MB_CHK_SET_ERR(rval, "Failed set the obb root tag");
@@ -461,9 +464,6 @@ ErrorCode GeomTopoTool::construct_obb_tree(EntityHandle eh)
        rval = mdbImpl->tag_get_data(obbRootTag, &eh, 1, &gbroot);
        MB_CHK_SET_ERR(rval, "Failed to get the obb root tag");
        std::cout << "root get back from tag " << gbroot << std::endl; 
-
-       // add this root to the GeomTopoTool tree root indexing
-       set_root_set(eh, root);
        // if just building tree for surface, return here
        return MB_SUCCESS;
     }
@@ -501,6 +501,14 @@ ErrorCode GeomTopoTool::construct_obb_tree(EntityHandle eh)
       // add this root to the GeomTopoTool tree root indexing
       set_root_set(eh, root);
       
+       // // add obbRootTag
+       rval = mdbImpl->tag_set_data(obbRootTag, &eh, 1, &root);
+       MB_CHK_SET_ERR(rval, "Failed set the obb root tag");
+       std::cout << "root  " << root << std::endl; 
+       EntityHandle gbroot;
+       rval = mdbImpl->tag_get_data(obbRootTag, &eh, 1, &gbroot);
+       MB_CHK_SET_ERR(rval, "Failed to get the obb root tag");
+       std::cout << "root get back from tag " << gbroot << std::endl; 
       return MB_SUCCESS;
     }
   else {

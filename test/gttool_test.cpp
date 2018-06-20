@@ -572,8 +572,8 @@ ErrorCode test_delete_obb_tree(Interface *mb){
   }
        // get obbRootTag
   rval = mb->tag_get_handle(OBB_ROOT_TAG_NAME, 1,
-                  MB_TYPE_INTEGER, obbRootTag, MB_TAG_CREAT|MB_TAG_SPARSE);
-  MB_CHK_SET_ERR_CONT(rval, "Error: Failed to create geometry dimension tag");
+                  MB_TYPE_HANDLE, obbRootTag, MB_TAG_CREAT|MB_TAG_SPARSE);
+  MB_CHK_SET_ERR_CONT(rval, "Error: Failed to create obb root tag");
        EntityHandle gbroot;
        rval = mb->tag_get_data(obbRootTag, &test_vol, 1, &gbroot);
        MB_CHK_SET_ERR(rval, "Failed to get the obb root tag");
