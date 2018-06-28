@@ -277,7 +277,9 @@ AC_MSG_CHECKING(python extra linking flags)
 if test -z "$PYTHON_EXTRA_LIBS"; then
 PYTHON_EXTRA_LIBS=`$PYTHON -c "import distutils.sysconfig; \
 conf = distutils.sysconfig.get_config_var; \
-print (conf('LINKFORSHARED'))"`
+libs = conf('LINKFORSHARED'); \
+libs += '' if conf('Py_ENABLE_SHARED') else ' -pthread -lutil'; \
+print (libs)"`
 fi
 AC_MSG_RESULT([$PYTHON_EXTRA_LIBS])
 AC_SUBST(PYTHON_EXTRA_LIBS)
@@ -290,7 +292,7 @@ AC_MSG_CHECKING([consistency of all components of python development environment
 ac_save_LIBS="$LIBS"
 ac_save_LDFLAGS="$LDFLAGS"
 ac_save_CPPFLAGS="$CPPFLAGS"
-LIBS="$ac_save_LIBS $PYTHON_LIBS $PYTHON_EXTRA_LIBS $PYTHON_EXTRA_LIBS"
+LIBS="$PYTHON_LIBS $PYTHON_EXTRA_LIBS $ac_save_LIBS"
 LDFLAGS="$ac_save_LDFLAGS $PYTHON_EXTRA_LDFLAGS"
 CPPFLAGS="$ac_save_CPPFLAGS $PYTHON_CPPFLAGS"
 AC_LANG_PUSH([C])
