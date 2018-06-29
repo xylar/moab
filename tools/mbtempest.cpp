@@ -38,6 +38,7 @@
 
 struct ToolContext
 {
+        moab::ParallelComm* pcomm;
         int blockSize;
         std::vector<std::string> inFilenames;
         std::vector<Mesh*> meshes;
@@ -55,12 +56,13 @@ struct ToolContext
         bool fVolumetric;
         moab::DebugOutput outStream;
 
-        ToolContext ( int procid, int nprocs ) :
+        ToolContext ( moab::ParallelComm* p_pcomm ) :
+            pcomm(p_pcomm),
             blockSize ( 5 ), outFilename ( "output.exo" ), meshType ( moab::TempestRemapper::DEFAULT ),
-            proc_id ( procid ), n_procs ( nprocs ),
+            proc_id ( pcomm->rank() ), n_procs ( pcomm->size() ),
             computeDual ( false ), computeWeights ( false ), ensureMonotonicity ( 0 ), 
             fNoConservation ( false ), fVolumetric ( false ),
-            outStream ( std::cout, procid )
+            outStream ( std::cout, pcomm->rank() )
         {
             inFilenames.resize ( 2 );
             doftag_names.resize( 2 );
@@ -87,7 +89,13 @@ struct ToolContext
 
         void timer_pop()
         {
-            outStream.printf ( 0, "[LOG] Time taken to %s = %f\n", opName.c_str(), timer->time_since_birth() - timer_ops );
+            double locElapsed=timer->time_since_birth() - timer_ops, avgElapsed=0, maxElapsed=0;
+            MPI_Reduce(&locElapsed, &maxElapsed, 1, MPI_DOUBLE, MPI_MAX, 0, pcomm->comm());
+            MPI_Reduce(&locElapsed, &avgElapsed, 1, MPI_DOUBLE, MPI_SUM, 0, pcomm->comm());
+            if (!pcomm->rank()) {
+                avgElapsed /= pcomm->size();
+                outStream.printf ( 0, "[LOG] Time taken to %s: max = %f, avg = %f\n", opName.c_str(), maxElapsed, avgElapsed );
+            }
             // std::cout << "\n[LOG" << proc_id << "] Time taken to " << opName << " = " << timer->time_since_birth() - timer_ops << std::endl;
             opName.clear();
         }
@@ -166,6 +174,12 @@ struct ToolContext
                 if ( disc_methods.size() == 1 )
                 { disc_methods.push_back ( "fv" ); }
 
+                if ( doftag_names.size() == 0 )
+                { doftag_names.resize ( 2, "GLOBAL_ID" ); }
+
+                if ( doftag_names.size() == 1 )
+                { doftag_names.push_back ( "GLOBAL_ID" ); }
+
                 assert ( inFilenames.size() == 2 );
                 assert ( disc_orders.size() == 2 );
                 assert ( disc_methods.size() == 2 );
@@ -193,14 +207,14 @@ int main ( int argc, char* argv[] )
     MPI_Comm_rank ( MPI_COMM_WORLD, &proc_id );
     MPI_Comm_size ( MPI_COMM_WORLD, &nprocs );
 
-    ToolContext ctx ( proc_id, nprocs );
-    ctx.ParseCLOptions ( argc, argv );
-
     moab::Interface* mbCore = new ( std::nothrow ) moab::Core;
 
     if ( NULL == mbCore ) { return 1; }
 
     moab::ParallelComm* pcomm = new moab::ParallelComm ( mbCore, MPI_COMM_WORLD, 0 );
+
+    ToolContext ctx ( pcomm );
+    ctx.ParseCLOptions ( argc, argv );
 
     moab::TempestRemapper remapper ( mbCore, pcomm );
     remapper.meshValidate = true;
@@ -381,7 +395,6 @@ int main ( int argc, char* argv[] )
 
         if ( ctx.computeWeights )
         {
-
             ctx.timer_push ( "in-memory transform overlap mesh (MOAB->Tempest)" );
             {
                 // Now let us re-convert the MOAB mesh back to Tempest representation
@@ -431,12 +444,30 @@ int main ( int argc, char* argv[] )
             // weightMap->m_vecTargetDimSizes.resize(ctx.meshes[1]->faces.size());
       
 #endif
+
+            /*
+            * the file can be written in parallel, and it will contain additional tags defined by the user
+            * we may extend the method to write only desired tags to the file
+            */
+            if (nprocs == 1) {
+                // free allocated data
+                char outputFileTgt[]  = "fIntxTarget.h5m";
+            #ifdef MOAB_HAVE_MPI
+                char writeOptions[] ="PARALLEL=WRITE_PART";
+            #else
+                char writeOptions[] ="";
+            #endif
+
+                rval = mbCore->write_file ( outputFileTgt, NULL, writeOptions, &ctx.meshsets[2], 1 ); MB_CHK_ERR ( rval );
+
+            }
+            
             sstr.str("");
             sstr << "outWeights_" << proc_id << ".nc";
             weightMap->Write(sstr.str().c_str());
             sstr.str("");
-            sstr << "newoutWeights_" << proc_id << ".nc";
-            weightMap->WriteParallelWeightsToFile(sstr.str().c_str());
+            // sstr << "newoutWeights_" << proc_id << ".nc";
+            // weightMap->WriteParallelWeightsToFile(sstr.str().c_str());
 
             delete weightMap;
         }
