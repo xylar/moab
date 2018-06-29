@@ -2144,7 +2144,7 @@ ErrCode iMOAB_ComputeMeshIntersectionOnSphere ( iMOAB_AppID pid_src, iMOAB_AppID
     // Rescale the radius of both to compute the intersection
     ComputeSphereRadius(pid_src, &radius_source);
     ComputeSphereRadius(pid_tgt, &radius_target);
-    std::cout << "Radius of spheres: source = " << radius_source << " and target = " << radius_target << "\n";
+    if (!pco_intx->rank()) std::cout << "Radius of spheres: source = " << radius_source << " and target = " << radius_target << "\n";
 
 	// print verbosely about the problem setting
 	{
@@ -2443,7 +2443,7 @@ ErrCode iMOAB_ApplyScalarProjectionWeights (   iMOAB_AppID pid_intersection,
 
     // Get the source and target data and pcomm objects
     appData& data_intx = context.appDatas[*pid_intersection];
-    // ParallelComm* pco_intx = context.pcomms[*pid_intersection];
+    ParallelComm* pco_intx = context.pcomms[*pid_intersection];
 
     // Now allocate and initialize the remapper object
     moab::TempestRemapper* remapper = data_intx.remapper;
@@ -2457,9 +2457,23 @@ ErrCode iMOAB_ApplyScalarProjectionWeights (   iMOAB_AppID pid_intersection,
     moab::Range& covSrcEnts = remapper->GetMeshEntities(moab::Remapper::CoveringMesh);
     moab::Range& tgtEnts = remapper->GetMeshEntities(moab::Remapper::TargetMesh);
 
-    std::vector<double> solSTagVals(covSrcEnts.size()*weightMap->GetSourceNDofsPerElement()*weightMap->GetSourceNDofsPerElement() /*weightMap->GetSourceLocalNDofs()*/, 0.0);
-    std::vector<double> solTTagVals(tgtEnts.size()*weightMap->GetDestinationNDofsPerElement()*weightMap->GetDestinationNDofsPerElement() /*weightMap->GetDestinationLocalNDofs()*/, 0.0);
+    std::vector<double> solSTagVals(covSrcEnts.size()*weightMap->GetSourceNDofsPerElement()*weightMap->GetSourceNDofsPerElement() /*weightMap->GetSourceLocalNDofs()*/, -1.0);
+    std::vector<double> solTTagVals(tgtEnts.size()*weightMap->GetDestinationNDofsPerElement()*weightMap->GetDestinationNDofsPerElement() /*weightMap->GetDestinationLocalNDofs()*/, -1.0);
 
+    {
+        std::stringstream sstr;
+        sstr << "outputSrcDest_" << pco_intx->rank() << ".h5m";
+        EntityHandle sets[2] = {context.appDatas[*data_intx.pid_src].file_set, context.appDatas[*data_intx.pid_dest].file_set};
+        rval = context.MBI->write_file ( sstr.str().c_str(), NULL, "", sets, 2 ); MB_CHK_ERR ( rval );
+    }
+    {
+        std::stringstream sstr;
+        sstr << "outputCovSrcDest_" << pco_intx->rank() << ".h5m";
+        // EntityHandle sets[2] = {data_intx.file_set, data_intx.covering_set};
+        EntityHandle sets[2] = {data_intx.covering_set, context.appDatas[*data_intx.pid_dest].file_set};
+        rval = context.MBI->write_file ( sstr.str().c_str(), NULL, "", sets, 2 ); MB_CHK_ERR ( rval );
+    }
+    
 #if 0
     int rank;
     MPI_Comm_rank ( pco_intx->comm(), &rank );
@@ -2473,6 +2487,14 @@ ErrCode iMOAB_ApplyScalarProjectionWeights (   iMOAB_AppID pid_intersection,
 
     // The tag data is np*np*n_el_src
     rval = context.MBI->tag_get_data ( ssolnTag, covSrcEnts, &solSTagVals[0] );CHKERRVAL(rval);
+
+    std::stringstream sstr;
+    sstr << "colvector_" << pco_intx->rank() << ".txt";
+    std::ofstream output_file ( sstr.str() );
+    for (unsigned i = 0; i < solSTagVals.size(); ++i)
+        output_file << i << " " << weightMap->col_dofmap[i] << " " << weightMap->col_gdofmap[i] << " " << solSTagVals[i] << "\n";
+    output_file.flush(); // required here
+    output_file.close();
 
     // Compute the application of weights on the suorce solution data and store it in the destination solution vector data
     // Optionally, can also perform the transpose application of the weight matrix. Set the 3rd argument to true if this is needed

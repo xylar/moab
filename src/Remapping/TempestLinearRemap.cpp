@@ -27,6 +27,8 @@
 #include <cstdlib>
 #include <sstream>
 
+#define VERBOSE
+
 // TODO: Replace these with the LAPACK wrappers once we have the Eigen-External-Dep branch merged in
 extern "C" {
     /// General matrix solver from CLAPACK
@@ -289,7 +291,7 @@ void moab::TempestOfflineMap::LinearRemapFVtoFV_Tempest_MOAB (
     for ( size_t ixFirst = 0; ixFirst < m_meshInputCov->faces.size(); ixFirst++ )
     {
         // Output every 1000 elements
-        if ( ixFirst % 1000 == 1 )
+        if ( ixFirst % 1000 == 100 )
         {
             Announce ( "Element %i/%i", ixFirst, m_meshInputCov->faces.size() );
         }
@@ -309,7 +311,7 @@ void moab::TempestOfflineMap::LinearRemapFVtoFV_Tempest_MOAB (
         }
 
         unsigned nOverlapFaces = ixOverlapEnd - ixOverlapBegin;
-        if ( !pcomm->rank() ) Announce ( "Element %i :: [%i, %i]", ixFirst, ixOverlapBegin, ixOverlapEnd );
+        if ( !pcomm->rank() ) Announce ( "Element %i / %i :: [%i, %i]", ixFirst, m_meshInputCov->faces.size(), ixOverlapBegin, ixOverlapEnd );
 
         if ( nOverlapFaces == 0 ) continue;
 
@@ -450,9 +452,9 @@ void moab::TempestOfflineMap::CopyTempestSparseMat_Eigen()
     std::stringstream sstr;
     sstr << "tempestmatrix.txt.0000" << pcomm->rank();
     std::ofstream output_file ( sstr.str(), std::ios::out );
-    output_file << "0 " << locrows << " 0" << loccols << "\n";
+    output_file << "0 " << locrows << " 0 " << loccols << "\n";
     for (unsigned iv=0; iv < locvals; iv++) {
-        output_file << lrows[iv] << " " << lcols[iv] << " " << lvals[iv] << "\n";
+        output_file << tgt_soln_gdofs[lrows[iv]] << " " << src_soln_gdofs[lcols[iv]] << " " << lvals[iv] << "\n";
     }
     output_file.flush(); // required here
     output_file.close();
@@ -763,7 +765,6 @@ void moab::TempestOfflineMap::WriteParallelWeightsToFile(std::string strFilename
 
 ///////////////////////////////////////////////////////////////////////////////
 
-#define VERBOSE
 moab::ErrorCode moab::TempestOfflineMap::ApplyWeights (std::vector<double>& srcVals, std::vector<double>& tgtVals, bool transpose)
 {
     // Reset the source and target data first
@@ -795,11 +796,11 @@ moab::ErrorCode moab::TempestOfflineMap::ApplyWeights (std::vector<double>& srcV
         output_file << "ColVector: " << m_colVector.size() << ", SrcVals: " << srcVals.size() << ", Sizes: " << m_nTotDofs_SrcCov << ", " << col_dofmap.size() << "\n";
 #endif
         for (unsigned i=0; i < srcVals.size(); ++i) {
-            // if (pcomm->rank() && col_dofmap[i] >= m_colVector.size()) std::cout << i << " col_dofmap: " << col_dofmap[i] << ", m_colVector: " << m_colVector.size() << "\n";
-            // assert(col_dofmap[i] < m_colVector.size());
+            if (col_dofmap[i] >= m_colVector.size()) std::cout << i << " col_dofmap: " << col_dofmap[i] << ", m_colVector: " << m_colVector.size() << "\n";
+            assert(col_dofmap[i] < m_colVector.size());
             m_colVector(col_dofmap[i]) = srcVals[i]; // permute and set the row (source) vector properly
 #ifdef VERBOSE
-            output_file << "Col: " << i << ", " << col_dofmap[i] << ", GID: " << src_soln_gdofs[i] << ", Data = " << srcVals[i]  << ", " << m_colVector(col_dofmap[i]) << "\n";
+            output_file << "Col: " << i << ", " << col_dofmap[i] << ", GID: " << src_soln_gdofs[col_dofmap[i]] << ", Data = " << srcVals[i]  << ", " << m_colVector(col_dofmap[i]) << "\n";
 #endif
         }
         
@@ -810,9 +811,10 @@ moab::ErrorCode moab::TempestOfflineMap::ApplyWeights (std::vector<double>& srcV
         output_file << "RowVector: " << m_rowVector.size() << ", TgtVals:" << tgtVals.size() << ", Sizes: " << m_nTotDofs_Dest << ", " << row_dofmap.size() << "\n";
 #endif
         for (unsigned i=0; i < tgtVals.size(); ++i) {
+            // tgtVals[i] = m_rowVector(row_dofmap[i]); // permute and set the row (source) vector properly
             tgtVals[i] = m_rowVector(row_dofmap[i]); // permute and set the row (source) vector properly
 #ifdef VERBOSE
-            output_file << "Row: " << i << ", " << row_dofmap[i] << ", GID: " << tgt_soln_gdofs[i] << ", Data = " << m_rowVector(i) << "\n";
+            output_file << "Row: " << i << ", " << row_dofmap[i] << ", GID: " << tgt_soln_gdofs[row_dofmap[i]] << ", Data = " << m_rowVector(row_dofmap[i]) << "\n";
 #endif
         }
     }
@@ -1068,10 +1070,10 @@ void moab::TempestOfflineMap::LinearRemapSE4_Tempest_MOAB (
             }
 
 #ifdef VERBOSE
-            if ( fabs ( dTargetArea - m_meshInputCov->vecFaceArea[ixFirst] ) > 1.0e-10 )
-            {
-                Announce ( "TempestOfflineMap: Partial element: %i, areas = %f percent", ixFirst, 100 * dTargetArea / m_meshInputCov->vecFaceArea[ixFirst] );
-            }
+            // if ( fabs ( dTargetArea - m_meshInputCov->vecFaceArea[ixFirst] ) > 1.0e-10 )
+            // {
+            //     Announce ( "TempestOfflineMap: Partial element: %i, areas = %f percent", ixFirst, 100 * dTargetArea / m_meshInputCov->vecFaceArea[ixFirst] );
+            // }
 #endif
             {
                 dCoeff.Initialize ( nOverlapFaces, nP * nP );
@@ -2072,13 +2074,13 @@ void moab::TempestOfflineMap::LinearRemapFVtoGLL_MOAB (
                         dAlpha,
                         dBeta );
                     /*
-                                        // Check inverse map value
-                                        if ((dAlpha < -1.0e-12) || (dAlpha > 1.0 + 1.0e-12) ||
-                                            (dBeta  < -1.0e-12) || (dBeta  > 1.0 + 1.0e-12)
-                                        ) {
-                                            _EXCEPTION2("Inverse Map out of range (%1.5e %1.5e)",
-                                                dAlpha, dBeta);
-                                        }
+                        // Check inverse map value
+                        if ((dAlpha < -1.0e-12) || (dAlpha > 1.0 + 1.0e-12) ||
+                            (dBeta  < -1.0e-12) || (dBeta  > 1.0 + 1.0e-12)
+                        ) {
+                            _EXCEPTION2("Inverse Map out of range (%1.5e %1.5e)",
+                                dAlpha, dBeta);
+                        }
                     */
                     // Sample the finite element at this point
                     SampleGLLFiniteElement (
