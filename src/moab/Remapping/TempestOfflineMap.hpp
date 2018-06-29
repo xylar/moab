@@ -38,7 +38,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #define RECTANGULAR_TRUNCATION
-//#define TRIANGULAR_TRUNCATION
+// #define TRIANGULAR_TRUNCATION
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -358,7 +358,7 @@ public:
 
 #endif
 
-private:
+public:
 
 	///	<summary>
 	///		The fundamental remapping operator object.
@@ -410,6 +410,7 @@ private:
 	///	<summary>
 	moab::Tag m_dofTagSrc, m_dofTagDest;
 	std::vector<unsigned long> row_dofmap, col_dofmap, srccol_dofmap;
+	std::vector<unsigned long> row_gdofmap, col_gdofmap, srccol_gdofmap;
 	std::vector<int> src_soln_gdofs, locsrc_soln_gdofs, tgt_soln_gdofs;
 
 	DataMatrix3D<int> dataGLLNodesSrc, dataGLLNodesSrcCov, dataGLLNodesDest;
