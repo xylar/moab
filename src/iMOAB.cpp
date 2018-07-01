@@ -2457,9 +2457,27 @@ ErrCode iMOAB_ApplyScalarProjectionWeights (   iMOAB_AppID pid_intersection,
     moab::Range& covSrcEnts = remapper->GetMeshEntities(moab::Remapper::CoveringMesh);
     moab::Range& tgtEnts = remapper->GetMeshEntities(moab::Remapper::TargetMesh);
 
-    std::vector<double> solSTagVals(covSrcEnts.size()*weightMap->GetSourceNDofsPerElement()*weightMap->GetSourceNDofsPerElement() /*weightMap->GetSourceLocalNDofs()*/, -1.0);
-    std::vector<double> solTTagVals(tgtEnts.size()*weightMap->GetDestinationNDofsPerElement()*weightMap->GetDestinationNDofsPerElement() /*weightMap->GetDestinationLocalNDofs()*/, -1.0);
+    std::vector<double> solSTagVals(covSrcEnts.size()*weightMap->GetSourceNDofsPerElement()*weightMap->GetSourceNDofsPerElement(), -1.0);
+    std::vector<double> solTTagVals(tgtEnts.size()*weightMap->GetDestinationNDofsPerElement()*weightMap->GetDestinationNDofsPerElement(), -1.0);
 
+    {
+        std::stringstream sstr;
+        sstr << "covsrcTagData_" << pco_intx->rank() << ".txt";
+        std::ofstream output_file ( sstr.str() );
+        for (unsigned i=0; i < covSrcEnts.size(); ++i) {
+            EntityHandle elem = covSrcEnts[i];
+            std::vector<double> locsolSTagVals(16);
+            rval = context.MBI->tag_get_data ( ssolnTag, &elem, 1, &locsolSTagVals[0] );CHKERRVAL(rval);
+            output_file << "\n" << remapper->lid_to_gid_covsrc[i] << "-- \n\t";
+            for (unsigned j=0; j < 16; ++j)
+                output_file << locsolSTagVals[j] << " ";
+        }
+        output_file.flush(); // required here
+        output_file.close();
+    }
+    
+
+#ifdef VERBOSE
     {
         std::stringstream sstr;
         sstr << "outputSrcDest_" << pco_intx->rank() << ".h5m";
@@ -2473,7 +2491,8 @@ ErrCode iMOAB_ApplyScalarProjectionWeights (   iMOAB_AppID pid_intersection,
         EntityHandle sets[2] = {data_intx.covering_set, context.appDatas[*data_intx.pid_dest].file_set};
         rval = context.MBI->write_file ( sstr.str().c_str(), NULL, "", sets, 2 ); MB_CHK_ERR ( rval );
     }
-    
+#endif
+
 #if 0
     int rank;
     MPI_Comm_rank ( pco_intx->comm(), &rank );
@@ -2488,6 +2507,7 @@ ErrCode iMOAB_ApplyScalarProjectionWeights (   iMOAB_AppID pid_intersection,
     // The tag data is np*np*n_el_src
     rval = context.MBI->tag_get_data ( ssolnTag, covSrcEnts, &solSTagVals[0] );CHKERRVAL(rval);
 
+#ifdef VERBOSE
     std::stringstream sstr;
     sstr << "colvector_" << pco_intx->rank() << ".txt";
     std::ofstream output_file ( sstr.str() );
@@ -2495,6 +2515,7 @@ ErrCode iMOAB_ApplyScalarProjectionWeights (   iMOAB_AppID pid_intersection,
         output_file << i << " " << weightMap->col_dofmap[i] << " " << weightMap->col_gdofmap[i] << " " << solSTagVals[i] << "\n";
     output_file.flush(); // required here
     output_file.close();
+#endif
 
     // Compute the application of weights on the suorce solution data and store it in the destination solution vector data
     // Optionally, can also perform the transpose application of the weight matrix. Set the 3rd argument to true if this is needed

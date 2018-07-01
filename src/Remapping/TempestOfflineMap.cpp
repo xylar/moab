@@ -350,7 +350,7 @@ moab::ErrorCode moab::TempestOfflineMap::SetDofMapAssociation(DiscretizationType
                     }
                     if ( !isSrcContinuous ) m_nTotDofs_SrcCov++;
                     col_dofmap[ idof ] = ldof;
-                    if (pcomm->rank()) std::cout << "Col: " << m_remapper->lid_to_gid_covsrc[j] << ", " <<  idof << ", " << ldof << ", " << src_soln_gdofs[idof]-1 << ", " << m_nTotDofs_SrcCov << "\n";
+                    if (vprint) std::cout << "Col: " << m_remapper->lid_to_gid_covsrc[j] << ", " <<  idof << ", " << ldof << ", " << src_soln_gdofs[idof]-1 << ", " << m_nTotDofs_SrcCov << "\n";
                     assert(src_soln_gdofs[idof] > 0);
                     col_gdofmap[ idof ] = src_soln_gdofs[idof] - 1;
                 }
@@ -406,8 +406,7 @@ moab::ErrorCode moab::TempestOfflineMap::SetDofMapAssociation(DiscretizationType
         for (unsigned i=0; i < row_dofmap.size(); ++i) {
             row_dofmap[i] = i;
             row_gdofmap[i] = tgt_soln_gdofs[i];
-            // if (vprint) std::cout << "Row: (" << i << ", " << tgt_soln_gdofs[i] << ")\n";
-            if (pcomm->rank()) std::cout << "Row: " << m_remapper->lid_to_gid_tgt[i] << ", " <<  i << ", " << tgt_soln_gdofs[i] << "\n";
+            if (vprint) std::cout << "Row: " << m_remapper->lid_to_gid_tgt[i] << ", " <<  i << ", " << tgt_soln_gdofs[i] << "\n";
             m_nTotDofs_Dest++;
         }
     }
@@ -437,8 +436,9 @@ moab::ErrorCode moab::TempestOfflineMap::SetDofMapAssociation(DiscretizationType
 
     // Let us also allocate the local representation of the sparse matrix
 #ifdef MOAB_HAVE_EIGEN
-    if (vprint) {
-        std::cout << "DoFs: row = " << m_nTotDofs_Dest << ", " << row_dofmap.size() << ", col = " << m_nTotDofs_Src << ", " << m_nTotDofs_SrcCov << ", " << col_dofmap.size() << "\n";
+    // if (vprint)
+    {
+        std::cout << "[" << pcomm->rank() << "]" << "DoFs: row = " << m_nTotDofs_Dest << ", " << row_dofmap.size() << ", col = " << m_nTotDofs_Src << ", " << m_nTotDofs_SrcCov << ", " << col_dofmap.size() << "\n";
         // std::cout << "Max col_dofmap: " << maxcol << ", Min col_dofmap" << mincol << "\n";
     }
 #endif
@@ -959,11 +959,11 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
 
         // Verify consistency, conservation and monotonicity
         // gather weights to root process to perform consistency/conservation checks
-        if (pcomm->size() == 1) {
-            rval = this->GatherAllToRoot();MB_CHK_ERR(rval);
-        }
+        // if (pcomm->size() == 1) {
+        //     rval = this->GatherAllToRoot();MB_CHK_ERR(rval);
+        // }
 
-        if ( !fNoCheck )
+        if ( !fNoCheck && false)
         {
             if ( !m_globalMapAvailable && pcomm->size() > 1 ) {
                 // gather weights to root process to perform consistency/conservation checks

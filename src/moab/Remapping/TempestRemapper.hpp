@@ -106,7 +106,7 @@ public:
 
     static const bool verbose = true;
 
-private:
+public:
 
     // private methods
     moab::ErrorCode LoadTempestMesh_Private(std::string inputFilename, Mesh** tempest_mesh);
