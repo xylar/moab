@@ -424,16 +424,22 @@ void moab::TempestOfflineMap::LinearRemapFVtoFV_Tempest_MOAB (
 #ifdef MOAB_HAVE_EIGEN
 void moab::TempestOfflineMap::CopyTempestSparseMat_Eigen()
 {
-    int locrows = m_mapRemap.GetRows();
-    int loccols = m_mapRemap.GetColumns();
+    // int locrows = m_mapRemap.GetRows();
+    // int loccols = m_mapRemap.GetColumns();
 
-    m_nTotDofs_Dest = locrows;
-    m_nTotDofs_SrcCov = loccols;
+    // assert(m_nTotDofs_Dest == locrows);
+    // assert(m_nTotDofs_SrcCov == loccols);
+
+    int locrows = std::max(m_mapRemap.GetRows(), m_nTotDofs_Dest);
+    int loccols = std::max(m_mapRemap.GetColumns(), m_nTotDofs_SrcCov);
+
+    // m_nTotDofs_Dest = locrows;
+    // m_nTotDofs_SrcCov = loccols;
     m_weightMatrix.resize(m_nTotDofs_Dest, m_nTotDofs_SrcCov);
     InitVectors();
 
-    // std::cout << m_weightMatrix.rows() << ", " <<  locrows << ", " <<  m_weightMatrix.cols() << ", " << loccols << "\n";
-    assert(m_weightMatrix.rows() == locrows && m_weightMatrix.cols() == loccols);
+    std::cout << m_weightMatrix.rows() << ", " <<  locrows << ", " <<  m_weightMatrix.cols() << ", " << loccols << "\n";
+    // assert(m_weightMatrix.rows() == locrows && m_weightMatrix.cols() == loccols);
 
     DataVector<int> lrows;
     DataVector<int> lcols;
