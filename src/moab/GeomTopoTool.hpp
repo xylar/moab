@@ -277,6 +277,7 @@ private:
   Tag gidTag;
   Tag nameTag;
   Tag obbRootTag;
+  Tag obbGsetTag;
   // the model set encompasses a full topological model
   EntityHandle modelSet;
   // implicit complement handle cache

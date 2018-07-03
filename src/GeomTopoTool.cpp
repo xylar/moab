@@ -38,13 +38,14 @@ const char GEOM_SENSE_2_TAG_NAME[] = "GEOM_SENSE_2";
 const char GEOM_SENSE_N_ENTS_TAG_NAME[] = "GEOM_SENSE_N_ENTS";
 const char GEOM_SENSE_N_SENSES_TAG_NAME[] = "GEOM_SENSE_N_SENSES";
 const char OBB_ROOT_TAG_NAME[] = "OBB_ROOT";
+const char OBB_GSET_TAG_NAME[] = "OBB_GSET";
 
 const char IMPLICIT_COMPLEMENT_NAME[] = "impl_complement";
 
   
 GeomTopoTool::GeomTopoTool(Interface *impl, bool find_geoments, EntityHandle modelRootSet, bool p_rootSets_vector) :
   mdbImpl(impl), sense2Tag(0), senseNEntsTag(0), senseNSensesTag(0),
-  geomTag(0), gidTag(0), obbRootTag(0),
+  geomTag(0), gidTag(0), obbRootTag(0), obbGsetTag(0),
   modelSet(modelRootSet), updated(false), 
   setOffset(0), m_rootSets_vector(p_rootSets_vector), oneVolRootSet(0)
 {
@@ -67,7 +68,11 @@ GeomTopoTool::GeomTopoTool(Interface *impl, bool find_geoments, EntityHandle mod
 
   rval = mdbImpl->tag_get_handle(OBB_ROOT_TAG_NAME, 1,
                   MB_TYPE_HANDLE, obbRootTag, MB_TAG_CREAT|MB_TAG_SPARSE);
-  MB_CHK_SET_ERR_CONT(rval, "Error: Failed to create geometry dimension tag");
+  MB_CHK_SET_ERR_CONT(rval, "Error: Failed to create obb root  tag");
+
+  rval = mdbImpl->tag_get_handle(OBB_GSET_TAG_NAME, 1,
+                  MB_TYPE_HANDLE, obbGsetTag, MB_TAG_CREAT|MB_TAG_SPARSE);
+  MB_CHK_SET_ERR_CONT(rval, "Error: Failed to create obb root gset tag");
 
   // set this value to zero for comparisons
   impl_compl_handle = 0;
@@ -332,7 +337,6 @@ ErrorCode GeomTopoTool::delete_obb_tree(EntityHandle gset, bool vol_only) {
   // check if passed ent is vol, if not, warn and continue to else
   if (dim == 3 && vol_only){
      std::cout << "Deleting only vol tree" << std::endl;
-    //remove from gtt
     // Range of child nodes to check before adding to delete list
     Range child_tree_nodes;
     rval = mdbImpl->get_child_meshsets(root, child_tree_nodes);
@@ -352,14 +356,11 @@ ErrorCode GeomTopoTool::delete_obb_tree(EntityHandle gset, bool vol_only) {
        Range new_child_tree_nodes;
        rval = mdbImpl->get_child_meshsets(child, new_child_tree_nodes);
        MB_CHK_SET_ERR(rval, "Problem getting child nodes");
-       std::cout << "insert new kids " << std::endl;
        child_tree_nodes.insert_list(new_child_tree_nodes.begin(), new_child_tree_nodes.end());
        nodes_to_delete.insert(child);
-       std::cout << "nodes to delete " << nodes_to_delete.size() << std::endl;
       }
       // We're done checking this node, so can erase from child list
       child_tree_nodes.erase(child);
-      std::cout << "child nodes " << child_tree_nodes.size() << std::endl;
     }
     
   }
@@ -373,13 +374,11 @@ ErrorCode GeomTopoTool::delete_obb_tree(EntityHandle gset, bool vol_only) {
     nodes_to_delete.insert_list(all_tree_nodes.begin(), all_tree_nodes.end());
   }
  
-  std::cout << "nodes to delete " << nodes_to_delete.size() << std::endl; 
-  // Remove the tree nodes from the GTT data structure
+  // Remove the tree nodes from the obbtreetool and GTT data structures and delete tag data from gsets
   for (Range::iterator it = nodes_to_delete.begin(); it != nodes_to_delete.end(); ++it){ 
     // remove from obbtreetool
     rval = obbTree->remove_root(*it);
     MB_CHK_SET_ERR(rval, "Failed to remove root from obbTreeTool");
-    std::cout << "removed from obb " << *it << std::endl;
     // remove from GTT
     if (m_rootSets_vector){
       std::vector<EntityHandle>::iterator i = find(rootSets.begin(), rootSets.end(), *it);
@@ -394,6 +393,23 @@ ErrorCode GeomTopoTool::delete_obb_tree(EntityHandle gset, bool vol_only) {
           mapRootSets.erase(i->first);
       }
     }
+    
+   //if this is a vol or surf obb root, delete the obbRootTag data
+   EntityHandle gset, gotroot;
+   rval = mdbImpl->tag_get_data(obbGsetTag, &(*it), 1, &gset);
+   if (MB_SUCCESS == rval){
+     std::cout << "got gset tag" << std::endl;
+     rval = mdbImpl->tag_get_data(obbRootTag, &gset, 1, &gotroot);
+     MB_CHK_SET_ERR(rval, "Failed to get obb root tag from gset");
+     std::cout << "root tag grom gset " << gotroot << " " << *it<<  std::endl;
+   
+     rval = mdbImpl->tag_delete_data(obbRootTag, &gset, 1);
+     MB_CHK_SET_ERR(rval, "Failed to delete obb root tag");
+     rval = mdbImpl->tag_get_data(obbRootTag, &gset, 1, &gotroot);
+     if(MB_SUCCESS == rval)
+       std::cout << "didn't delete tag" << std::endl;
+   }
+   
   }
   
   // Delete the tree nodes from the database
@@ -456,14 +472,20 @@ ErrorCode GeomTopoTool::construct_obb_tree(EntityHandle eh)
 
        // add this root to the GeomTopoTool tree root indexing
        set_root_set(eh, root);
-       // // add obbRootTag
+       // add obbRootTag
        rval = mdbImpl->tag_set_data(obbRootTag, &eh, 1, &root);
-       MB_CHK_SET_ERR(rval, "Failed set the obb root tag");
-       std::cout << "root  " << root << std::endl; 
-       EntityHandle gbroot;
-       rval = mdbImpl->tag_get_data(obbRootTag, &eh, 1, &gbroot);
-       MB_CHK_SET_ERR(rval, "Failed to get the obb root tag");
-       std::cout << "root get back from tag " << gbroot << std::endl; 
+       MB_CHK_SET_ERR(rval, "Failed to set the obb root tag");
+     //  std::cout << "root  " << root << std::endl; 
+     //  EntityHandle gbroot;
+     //  rval = mdbImpl->tag_get_data(obbRootTag, &eh, 1, &gbroot);
+     //  MB_CHK_SET_ERR(rval, "Failed to get the obb root tag");
+     //  std::cout << "root get back from tag " << gbroot << std::endl;
+
+       // add obbGsetTag
+       rval = mdbImpl->tag_set_data(obbGsetTag, &root, 1, &eh);
+       MB_CHK_SET_ERR(rval, "Failed to set the obb gset tag");
+       
+ 
        // if just building tree for surface, return here
        return MB_SUCCESS;
     }
@@ -504,11 +526,18 @@ ErrorCode GeomTopoTool::construct_obb_tree(EntityHandle eh)
        // // add obbRootTag
        rval = mdbImpl->tag_set_data(obbRootTag, &eh, 1, &root);
        MB_CHK_SET_ERR(rval, "Failed set the obb root tag");
-       std::cout << "root  " << root << std::endl; 
-       EntityHandle gbroot;
-       rval = mdbImpl->tag_get_data(obbRootTag, &eh, 1, &gbroot);
+       //std::cout << "root  " << root << std::endl; 
+       //EntityHandle gbroot;
+       //rval = mdbImpl->tag_get_data(obbRootTag, &eh, 1, &gbroot);
+       //MB_CHK_SET_ERR(rval, "Failed to get the obb root tag");
+       //std::cout << "root get back from tag " << gbroot << std::endl; 
+       // add obbGsetTag
+       rval = mdbImpl->tag_set_data(obbGsetTag, &root, 1, &eh);
+       MB_CHK_SET_ERR(rval, "Failed to set the obb gset tag");
+       EntityHandle gbvol;
+       rval = mdbImpl->tag_get_data(obbGsetTag, &root, 1, &gbvol);
        MB_CHK_SET_ERR(rval, "Failed to get the obb root tag");
-       std::cout << "root get back from tag " << gbroot << std::endl; 
+       std::cout << "got gset tag from root " << gbvol << std::endl;
       return MB_SUCCESS;
     }
   else {

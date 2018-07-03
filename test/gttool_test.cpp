@@ -29,6 +29,7 @@ std::string filename2;
 std::string ofile;
 std::string ofile2;
 std::string ofile3;
+std::string ofile4;
 
 const char OBB_ROOT_TAG_NAME[] = "OBB_ROOT";
 Tag obbRootTag;
@@ -45,6 +46,8 @@ ErrorCode check_model_test(Interface * mb);
 ErrorCode test_root_sets_resize(Interface *mb);
 
 ErrorCode test_delete_obb_tree(Interface *mb);
+
+ErrorCode test_load_obb_tree(Interface *mb, Interface *mb2);
 
 void handle_error_code(ErrorCode rv, int &number_failed, int &number_successful)
 {
@@ -64,6 +67,7 @@ int main(int argc, char *argv[])
   ofile = "output.h5m";
   ofile2 = "shell.h5m";
   ofile3 = "shellCopy.h5m";
+  ofile4 = "geom_w_obbs.h5m";
   
   remove_output_file = true;
   bool only_check = false;
@@ -151,6 +155,14 @@ int main(int argc, char *argv[])
   delete mb3;
   std::cout << "\n";
   
+  std::cout << "test_load_obb_tree: ";
+  Interface* mb4 = new Core();
+  Interface* mb5= new Core();
+  rval = test_load_obb_tree(mb4, mb5);
+  handle_error_code(rval, number_tests_failed, number_tests_successful);
+  delete mb4;
+  delete mb5;
+  std::cout << "\n";
   return number_tests_failed;
 }
 ErrorCode geometrize_test(Interface * mb, EntityHandle inputSet)
@@ -565,36 +577,39 @@ ErrorCode test_delete_obb_tree(Interface *mb){
   rval = gTopoTool->construct_obb_tree(test_vol);
   MB_CHK_SET_ERR(rval, "Error constructing all trees.");
 
+
+  // get obbRootTag
+  rval = mb->tag_get_handle(OBB_ROOT_TAG_NAME, 1,
+                            MB_TYPE_HANDLE, obbRootTag, 
+                            MB_TAG_CREAT|MB_TAG_SPARSE);
+  MB_CHK_SET_ERR_CONT(rval, "Error: Failed to create obb root tag");
+  EntityHandle gbroot;
+  rval = mb->tag_get_data(obbRootTag, &test_vol, 1, &gbroot);
+  MB_CHK_SET_ERR(rval, "Failed to get the obb root tag");
+  std::cout << "root get back from tag " << gbroot << std::endl; 
+
+  // test if obb tree in ModelSet
   EntityHandle test_vol_root;
   rval = gTopoTool->get_root(test_vol, test_vol_root);
-  if (MB_SUCCESS == rval){
-    std::cout << "vol root is: " << test_vol_root << std::endl;
-  }
-       // get obbRootTag
-  rval = mb->tag_get_handle(OBB_ROOT_TAG_NAME, 1,
-                  MB_TYPE_HANDLE, obbRootTag, MB_TAG_CREAT|MB_TAG_SPARSE);
-  MB_CHK_SET_ERR_CONT(rval, "Error: Failed to create obb root tag");
-       EntityHandle gbroot;
-       rval = mb->tag_get_data(obbRootTag, &test_vol, 1, &gbroot);
-       MB_CHK_SET_ERR(rval, "Failed to get the obb root tag");
-       std::cout << "root get back from tag " << gbroot << std::endl; 
+  MB_CHK_SET_ERR(rval, "Obb root not in ModelSet");
 
-  // Delete vol obb tree
+  // Delete vol obb tree including all child surface trees
   rval = gTopoTool->delete_obb_tree(test_vol, false);
   MB_CHK_SET_ERR(rval, "Error deleting volume tree.");
 
   // Make sure vol tree is gone
-//  EntityHandle test_vol_root;
-  rval = gTopoTool->get_root(test_vol, test_vol_root);
+  //rval = gTopoTool->get_root(test_vol, test_vol_root);
+  EntityHandle newroot;
+  rval = mb->tag_get_data(obbRootTag, &test_vol, 1, &newroot);
   if (MB_SUCCESS == rval){
-    std::cout << "fail: didn't delete vol root" << std::endl;
+    std::cout << "fail: didn't delete vol root " << newroot <<std::endl;
   }
-  
 
   // Make sure its child surf trees also gone
   EntityHandle test_surf = *surfs.begin();
   EntityHandle test_surf_root;
-  rval = gTopoTool->get_root(test_surf, test_surf_root);
+  //rval = gTopoTool->get_root(test_surf, test_surf_root);
+  rval = mb->tag_get_data(obbRootTag, &test_surf, 1, &test_surf_root);
   if (MB_SUCCESS == rval){
     std::cout << "fail: didn't delete surf root" << std::endl;
   }
@@ -611,7 +626,87 @@ ErrorCode test_delete_obb_tree(Interface *mb){
   rval = gTopoTool->delete_obb_tree(test_vol, true);
   MB_CHK_SET_ERR(rval, "Error deleting volume tree.");
 
+  // Make sure vol tree is gone
+  //rval = gTopoTool->get_root(test_vol, test_vol_root);
+  rval = mb->tag_get_data(obbRootTag, &test_vol, 1, &gbroot);
+  if (MB_SUCCESS == rval){
+    std::cout << "fail: didn't delete vol root" << std::endl;
+  }
+
   delete gTopoTool;
 
   return MB_SUCCESS;
+}
+
+
+ErrorCode test_load_obb_tree(Interface *mb, Interface *mb2){
+  
+  // load the test file (obbs not built yet)
+  ErrorCode rval = mb->load_file(filename2.c_str());
+  MB_CHK_SET_ERR(rval, "Failed to load input file");
+
+  // create a GTT with all default settings
+  moab::GeomTopoTool* gTopoTool = new GeomTopoTool(mb);
+
+  // Build all obb trees
+  rval = gTopoTool->construct_obb_trees();
+  MB_CHK_SET_ERR(rval, "Error constructing all trees.");
+
+  Range vols, surfs;
+  rval = gTopoTool->get_gsets_by_dimension(3, vols);
+  MB_CHK_SET_ERR(rval, "Failed to get volume gsets");
+  EntityHandle test_vol = *vols.begin();
+  EntityHandle test_vol_root;
+  rval = gTopoTool->get_root(test_vol, test_vol_root);
+  if (MB_SUCCESS == rval){
+    std::cout << "vol root is: " << test_vol_root << std::endl;
+  }
+  // get obbRootTag
+  rval = mb->tag_get_handle(OBB_ROOT_TAG_NAME, 1,
+                            MB_TYPE_HANDLE, obbRootTag,
+                            MB_TAG_CREAT|MB_TAG_SPARSE);
+  MB_CHK_SET_ERR_CONT(rval, "Error: Failed to create obb root tag");
+  EntityHandle gbroot;
+  rval = mb->tag_get_data(obbRootTag, &test_vol, 1, &gbroot);
+  MB_CHK_SET_ERR(rval, "Failed to get the obb root tag");
+
+  // write the file
+  rval=mb->write_file(ofile4.c_str());
+  MB_CHK_SET_ERR(rval, "Can't write output file\n");
+
+  // delete the instance 
+
+  // load file containing obbs
+  rval = mb2->load_file(ofile4.c_str());
+  MB_CHK_SET_ERR(rval, "Failed to load file containing obbs");
+
+  // create a GTT with all default settings
+  moab::GeomTopoTool* gTopoTool2 = new GeomTopoTool(mb2);
+
+  // get the root handle again
+  Range vols2;
+  rval = gTopoTool2->get_gsets_by_dimension(3, vols2);
+  MB_CHK_SET_ERR(rval, "Failed to get volume gsets");
+  EntityHandle test_vol2 = *vols.begin();
+  EntityHandle test_vol_root2;
+  rval = gTopoTool2->get_root(test_vol2, test_vol_root2);
+  if (MB_SUCCESS == rval){
+    std::cout << "vol root is: " << test_vol_root2 << std::endl;
+  }
+  // get obbRootTag
+  rval = mb2->tag_get_handle(OBB_ROOT_TAG_NAME, 1,
+                            MB_TYPE_HANDLE, obbRootTag,
+                            MB_TAG_CREAT|MB_TAG_SPARSE);
+  MB_CHK_SET_ERR_CONT(rval, "Error: Failed to create obb root tag");
+  EntityHandle gbroot2;
+  rval = mb2->tag_get_data(obbRootTag, &test_vol2, 1, &gbroot2);
+  MB_CHK_SET_ERR(rval, "Failed to get the obb root tag");
+
+  // make sure it matches that variable already set
+  if (gbroot == gbroot2){
+    std::cout << "roots match " << std::endl;
+  }
+  // clean up
+  //  remove(ofile4.c_str());
+return MB_SUCCESS;
 }
