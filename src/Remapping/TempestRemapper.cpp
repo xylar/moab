@@ -394,7 +394,7 @@ ErrorCode TempestRemapper::ConvertMOABMeshToTempest_Private ( Mesh* mesh, Entity
     if ( constructEdgeMap ) mesh->ConstructEdgeMap();
     mesh->ConstructReverseNodeArray();
 
-    // mesh->Validate();
+    mesh->Validate();
     return MB_SUCCESS;
 }
 
@@ -589,6 +589,40 @@ ErrorCode TempestRemapper::AssociateSrcTargetInOverlap()
 ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius_src, double radius_tgt, double boxeps, bool use_tempest )
 {
     ErrorCode rval;
+
+    // const double radius = 1.0 /*2.0*acos(-1.0)*/;
+    // const double boxeps = 0.1;
+    // Create the intersection on the sphere object and set up necessary parameters
+    moab::Range local_verts;
+    moab::Intx2MeshOnSphere *mbintx = new moab::Intx2MeshOnSphere ( m_interface );
+
+    mbintx->set_error_tolerance ( tolerance );
+    mbintx->set_radius_source_mesh ( radius_src );
+    mbintx->set_radius_destination_mesh ( radius_tgt );
+    mbintx->set_box_error ( boxeps );
+    mbintx->set_parallel_comm ( m_pcomm );
+
+    rval = mbintx->FindMaxEdges ( m_source_set, m_target_set ); MB_CHK_ERR ( rval );
+
+    // Note: lots of communication possible, if mesh is distributed very differently
+    if ( m_pcomm->size() != 1 )
+    {
+        rval = mbintx->build_processor_euler_boxes ( m_target_set, local_verts ); MB_CHK_ERR ( rval );
+
+        rval = m_interface->create_meshset ( moab::MESHSET_SET, m_covering_source_set ); MB_CHK_SET_ERR ( rval, "Can't create new set" );
+        rval = mbintx->construct_covering_set ( m_source_set, m_covering_source_set ); MB_CHK_ERR ( rval );
+
+        m_covering_source = new Mesh();
+        rval = ConvertMOABMeshToTempest_Private ( m_covering_source, m_covering_source_set, m_covering_source_entities ); MB_CHK_SET_ERR ( rval, "Can't convert source Tempest mesh" );
+    }
+    else
+    {
+        m_covering_source_set = m_source_set;
+        m_covering_source = m_source;
+        m_covering_source_entities = m_source_entities; // this is a tempest mesh object; careful about incrementing the reference?
+        m_intersecting_target_entities = m_source_entities; // no migration needed; source is completely covering target
+    }
+
     // First, split based on whether to use Tempest or MOAB
     // If Tempest
     //   1) Check for valid Mesh and pointers to objects for source/target
@@ -606,44 +640,13 @@ ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius_
         if ( m_overlap != NULL ) delete m_overlap;
         m_overlap = new Mesh();
         bool concaveMeshA=false, concaveMeshB=false;
-        int err = GenerateOverlapWithMeshes ( *m_source, *m_target, *m_overlap, "" /*outFilename*/, "exact", concaveMeshA, concaveMeshB, false );
+        int err = GenerateOverlapWithMeshes ( *m_covering_source, *m_target, *m_overlap, "" /*outFilename*/, "exact", concaveMeshA, concaveMeshB, false );
         if (err) {
-            rval = MB_FAILURE;
-            return rval;
+            MB_CHK_SET_ERR ( MB_FAILURE, "TempestRemap: Can't compute the intersection of meshes on the sphere" );
         }
     }
     else
     {
-        // const double radius = 1.0 /*2.0*acos(-1.0)*/;
-        // const double boxeps = 0.1;
-        // Create the intersection on the sphere object and set up necessary parameters
-        moab::Range local_verts;
-        moab::Intx2MeshOnSphere *mbintx = new moab::Intx2MeshOnSphere ( m_interface );
-
-        mbintx->set_error_tolerance ( tolerance );
-        mbintx->set_radius_source_mesh ( radius_src );
-        mbintx->set_radius_destination_mesh ( radius_tgt );
-        mbintx->set_box_error ( boxeps );
-        mbintx->set_parallel_comm ( m_pcomm );
-
-        rval = mbintx->FindMaxEdges ( m_source_set, m_target_set ); MB_CHK_ERR ( rval );
-
-        // Note: lots of communication possible, if mesh is distributed very differently
-        if ( m_pcomm->size() != 1 )
-        {
-            rval = mbintx->build_processor_euler_boxes ( m_target_set, local_verts ); MB_CHK_ERR ( rval );
-
-            rval = m_interface->create_meshset ( moab::MESHSET_SET, m_covering_source_set ); MB_CHK_SET_ERR ( rval, "Can't create new set" );
-            rval = mbintx->construct_covering_set ( m_source_set, m_covering_source_set ); MB_CHK_ERR ( rval );
-        }
-        else
-        {
-            m_covering_source_set = m_source_set;
-            m_covering_source = m_source;
-            m_covering_source_entities = m_source_entities; // this is a tempest mesh object; careful about incrementing the reference?
-            m_intersecting_target_entities = m_source_entities; // no migration needed; source is completely covering target
-        }
-
         // Now perform the actual parallel intersection between the source and the target meshes
         rval = mbintx->intersect_meshes ( m_covering_source_set, m_target_set, m_overlap_set ); MB_CHK_SET_ERR ( rval, "Can't compute the intersection of meshes on the sphere" );
 
@@ -652,11 +655,13 @@ ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius_
             // because we do not want to work with elements in coverage set that do not participate in intersection,
             // remove them from the coverage set
             // we will not delete them yet, just remove from the set !
-#if 0
+#if 1
+            rval = this->AssociateSrcTargetInOverlap();MB_CHK_ERR(rval);
+
             Range intxCov;
             Range intxCells;
             Tag blueParentHandleTag;
-            rval = m_interface->tag_get_handle("BlueParentHandle", blueParentHandleTag);  MB_CHK_ERR ( rval );
+            rval = m_interface->tag_get_handle("BlueParent", blueParentHandleTag);  MB_CHK_ERR ( rval );
             rval = m_interface->get_entities_by_dimension(m_overlap_set, 2, intxCells);  MB_CHK_ERR ( rval );
             for (Range::iterator it=intxCells.begin(); it!=intxCells.end(); it++)
             {
@@ -664,6 +669,7 @@ ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius_
               // EntityHandle blueParent;
               int blueParent;
               rval = m_interface->tag_get_data(blueParentHandleTag, &intxCell, 1, &blueParent ); MB_CHK_ERR ( rval );
+              // if (m_pcomm->rank()) std::cout << "Found intersecting element: " << blueParent << ", " << gid_to_lid_covsrc[blueParent] << "\n";
               intxCov.insert(m_covering_source_entities[gid_to_lid_covsrc[blueParent]]);
             }
 
@@ -673,12 +679,14 @@ ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius_
             m_covering_source_entities = moab::subtract(m_covering_source_entities, notNeededCovCells);
             m_intersecting_target_entities = moab::intersect ( m_source_entities, m_covering_source_entities );
 // #ifdef VERBOSE
+            std::cout << " total participating elements in the covering set: " << intxCov.size() << "\n";
             std::cout << " remove from coverage set elements that are not intersected: " << notNeededCovCells.size() << "\n";
 // #endif
-#endif
 
+            delete m_covering_source;
             m_covering_source = new Mesh();
             rval = ConvertMOABMeshToTempest_Private ( m_covering_source, m_covering_source_set, m_covering_source_entities ); MB_CHK_SET_ERR ( rval, "Can't convert source Tempest mesh" );
+#endif
         }
 
         // Fix any inconsistencies in the overlap mesh

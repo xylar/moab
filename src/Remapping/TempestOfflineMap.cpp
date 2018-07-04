@@ -761,7 +761,7 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
                     dataGLLNodesSrc,
                     dataGLLJacobianSrc );
 
-            assert(dNumericalAreaCov_loc >= dNumericalArea_loc);
+            // assert(dNumericalAreaCov_loc >= dNumericalArea_loc);
 
             Real dNumericalArea;
             MPI_Allreduce ( &dNumericalArea_loc, &dNumericalArea, 1, MPI_DOUBLE, MPI_SUM, pcomm->comm() );
