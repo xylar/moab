@@ -62,7 +62,6 @@ TempestRemapper::~TempestRemapper()
     m_source_entities.clear();
     m_target_entities.clear();
     m_overlap_entities.clear();
-    m_intersecting_target_entities.clear();
     gid_to_lid_src.clear(); gid_to_lid_tgt.clear(); gid_to_lid_covsrc.clear();
     lid_to_gid_src.clear(); lid_to_gid_tgt.clear(); lid_to_gid_covsrc.clear();
 }
@@ -322,6 +321,8 @@ ErrorCode TempestRemapper::ConvertMOABMeshToTempest_Private ( Mesh* mesh, Entity
     ErrorCode rval;
     NodeVector& nodes = mesh->nodes;
     FaceVector& faces = mesh->faces;
+
+    elems.clear();
 
     moab::Range verts;
     rval = m_interface->get_entities_by_dimension ( mesh_set, 2, elems ); MB_CHK_ERR ( rval );
@@ -605,22 +606,21 @@ ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius_
     rval = mbintx->FindMaxEdges ( m_source_set, m_target_set ); MB_CHK_ERR ( rval );
 
     // Note: lots of communication possible, if mesh is distributed very differently
-    if ( m_pcomm->size() != 1 )
+    if ( m_pcomm->size() > 1 )
     {
         rval = mbintx->build_processor_euler_boxes ( m_target_set, local_verts ); MB_CHK_ERR ( rval );
 
         rval = m_interface->create_meshset ( moab::MESHSET_SET, m_covering_source_set ); MB_CHK_SET_ERR ( rval, "Can't create new set" );
         rval = mbintx->construct_covering_set ( m_source_set, m_covering_source_set ); MB_CHK_ERR ( rval );
 
-        m_covering_source = new Mesh();
-        rval = ConvertMOABMeshToTempest_Private ( m_covering_source, m_covering_source_set, m_covering_source_entities ); MB_CHK_SET_ERR ( rval, "Can't convert source Tempest mesh" );
+        // m_covering_source = new Mesh();
+        // rval = ConvertMOABMeshToTempest_Private ( m_covering_source, m_covering_source_set, m_covering_source_entities ); MB_CHK_SET_ERR ( rval, "Can't convert source Tempest mesh" );
     }
     else
     {
         m_covering_source_set = m_source_set;
         m_covering_source = m_source;
         m_covering_source_entities = m_source_entities; // this is a tempest mesh object; careful about incrementing the reference?
-        m_intersecting_target_entities = m_source_entities; // no migration needed; source is completely covering target
     }
 
     // First, split based on whether to use Tempest or MOAB
@@ -655,38 +655,49 @@ ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius_
             // because we do not want to work with elements in coverage set that do not participate in intersection,
             // remove them from the coverage set
             // we will not delete them yet, just remove from the set !
-#if 1
-            rval = this->AssociateSrcTargetInOverlap();MB_CHK_ERR(rval);
-
-            Range intxCov;
-            Range intxCells;
-            Tag blueParentHandleTag;
-            rval = m_interface->tag_get_handle("BlueParent", blueParentHandleTag);  MB_CHK_ERR ( rval );
-            rval = m_interface->get_entities_by_dimension(m_overlap_set, 2, intxCells);  MB_CHK_ERR ( rval );
-            for (Range::iterator it=intxCells.begin(); it!=intxCells.end(); it++)
+            // rval = this->AssociateSrcTargetInOverlap();MB_CHK_ERR(rval);
             {
-              EntityHandle intxCell= *it;
-              // EntityHandle blueParent;
-              int blueParent;
-              rval = m_interface->tag_get_data(blueParentHandleTag, &intxCell, 1, &blueParent ); MB_CHK_ERR ( rval );
-              // if (m_pcomm->rank()) std::cout << "Found intersecting element: " << blueParent << ", " << gid_to_lid_covsrc[blueParent] << "\n";
-              intxCov.insert(m_covering_source_entities[gid_to_lid_covsrc[blueParent]]);
-            }
+                Range covEnts;
+                rval = m_interface->get_entities_by_dimension ( m_covering_source_set, 2, covEnts ); MB_CHK_ERR ( rval );
+                Tag gidtag;
+                rval = m_interface->tag_get_handle ( "GLOBAL_ID", gidtag ); MB_CHK_ERR ( rval );
 
-            Range notNeededCovCells = moab::subtract(m_covering_source_entities, intxCov);
-            // remove now from coverage set the cells that are not needed
-            rval = m_interface->remove_entities(m_covering_source_set, notNeededCovCells); MB_CHK_ERR ( rval );
-            m_covering_source_entities = moab::subtract(m_covering_source_entities, notNeededCovCells);
-            m_intersecting_target_entities = moab::intersect ( m_source_entities, m_covering_source_entities );
-// #ifdef VERBOSE
+                std::map<int,int> loc_gid_to_lid_covsrc;
+                std::vector<int> gids ( covEnts.size(), -1 );
+                rval = m_interface->tag_get_data ( gidtag,  covEnts, &gids[0] ); MB_CHK_ERR ( rval );
+                for ( unsigned ie = 0; ie < gids.size(); ++ie )
+                {
+                    loc_gid_to_lid_covsrc[gids[ie]] = ie;
+                }
+
+                Range intxCov;
+                Range intxCells;
+                Tag blueParentHandleTag;
+                rval = m_interface->tag_get_handle("BlueParent", blueParentHandleTag);  MB_CHK_ERR ( rval );
+                rval = m_interface->get_entities_by_dimension(m_overlap_set, 2, intxCells);  MB_CHK_ERR ( rval );
+                for (Range::iterator it=intxCells.begin(); it!=intxCells.end(); it++)
+                {
+                  EntityHandle intxCell= *it;
+                  int blueParent=-1;
+                  rval = m_interface->tag_get_data(blueParentHandleTag, &intxCell, 1, &blueParent ); MB_CHK_ERR ( rval );
+                  // if (m_pcomm->rank()) std::cout << "Found intersecting element: " << blueParent << ", " << gid_to_lid_covsrc[blueParent] << "\n";
+                  assert(blueParent >= 0);
+                  intxCov.insert(covEnts[loc_gid_to_lid_covsrc[blueParent]]);
+                }
+
+                Range notNeededCovCells = moab::subtract(covEnts, intxCov);
+                // remove now from coverage set the cells that are not needed
+                rval = m_interface->remove_entities(m_covering_source_set, notNeededCovCells); MB_CHK_ERR ( rval );
+                covEnts = moab::subtract(covEnts, notNeededCovCells);
+
+            }
+#ifdef VERBOSE
             std::cout << " total participating elements in the covering set: " << intxCov.size() << "\n";
             std::cout << " remove from coverage set elements that are not intersected: " << notNeededCovCells.size() << "\n";
-// #endif
+#endif
 
-            delete m_covering_source;
             m_covering_source = new Mesh();
             rval = ConvertMOABMeshToTempest_Private ( m_covering_source, m_covering_source_set, m_covering_source_entities ); MB_CHK_SET_ERR ( rval, "Can't convert source Tempest mesh" );
-#endif
         }
 
         // Fix any inconsistencies in the overlap mesh
