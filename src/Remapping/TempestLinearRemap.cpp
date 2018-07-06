@@ -27,7 +27,7 @@
 #include <cstdlib>
 #include <sstream>
 
-#define VERBOSE
+// #define VERBOSE
 
 // TODO: Replace these with the LAPACK wrappers once we have the Eigen-External-Dep branch merged in
 extern "C" {
@@ -424,22 +424,16 @@ void moab::TempestOfflineMap::LinearRemapFVtoFV_Tempest_MOAB (
 #ifdef MOAB_HAVE_EIGEN
 void moab::TempestOfflineMap::CopyTempestSparseMat_Eigen()
 {
-    // int locrows = m_mapRemap.GetRows();
-    // int loccols = m_mapRemap.GetColumns();
-
-    // assert(m_nTotDofs_Dest == locrows);
-    // assert(m_nTotDofs_SrcCov == loccols);
-
-    int locrows = std::max(m_mapRemap.GetRows(), m_nTotDofs_Dest);
-    int loccols = std::max(m_mapRemap.GetColumns(), m_nTotDofs_SrcCov);
-
-    // m_nTotDofs_Dest = locrows;
-    // m_nTotDofs_SrcCov = loccols;
     m_weightMatrix.resize(m_nTotDofs_Dest, m_nTotDofs_SrcCov);
     InitVectors();
 
+#ifdef VERBOSE
+    int locrows = std::max(m_mapRemap.GetRows(), m_nTotDofs_Dest);
+    int loccols = std::max(m_mapRemap.GetColumns(), m_nTotDofs_SrcCov);
+
     std::cout << m_weightMatrix.rows() << ", " <<  locrows << ", " <<  m_weightMatrix.cols() << ", " << loccols << "\n";
     // assert(m_weightMatrix.rows() == locrows && m_weightMatrix.cols() == loccols);
+#endif
 
     DataVector<int> lrows;
     DataVector<int> lcols;
@@ -802,8 +796,7 @@ moab::ErrorCode moab::TempestOfflineMap::ApplyWeights (std::vector<double>& srcV
         output_file << "ColVector: " << m_colVector.size() << ", SrcVals: " << srcVals.size() << ", Sizes: " << m_nTotDofs_SrcCov << ", " << col_dofmap.size() << "\n";
 #endif
         for (unsigned i=0; i < srcVals.size(); ++i) {
-            if (col_dofmap[i] >= m_colVector.size()) std::cout << i << " col_dofmap: " << col_dofmap[i] << ", m_colVector: " << m_colVector.size() << "\n";
-            assert(col_dofmap[i] < m_colVector.size());
+            assert(m_colVector.size()-col_dofmap[i]>0);
             m_colVector(col_dofmap[i]) = srcVals[i]; // permute and set the row (source) vector properly
 #ifdef VERBOSE
             output_file << "Col: " << i << ", " << col_dofmap[i] << ", GID: " << src_soln_gdofs[col_dofmap[i]] << ", Data = " << srcVals[i]  << ", " << m_colVector(col_dofmap[i]) << "\n";
@@ -817,7 +810,6 @@ moab::ErrorCode moab::TempestOfflineMap::ApplyWeights (std::vector<double>& srcV
         output_file << "RowVector: " << m_rowVector.size() << ", TgtVals:" << tgtVals.size() << ", Sizes: " << m_nTotDofs_Dest << ", " << row_dofmap.size() << "\n";
 #endif
         for (unsigned i=0; i < tgtVals.size(); ++i) {
-            // tgtVals[i] = m_rowVector(row_dofmap[i]); // permute and set the row (source) vector properly
             tgtVals[i] = m_rowVector(row_dofmap[i]); // permute and set the row (source) vector properly
 #ifdef VERBOSE
             output_file << "Row: " << i << ", " << row_dofmap[i] << ", GID: " << tgt_soln_gdofs[row_dofmap[i]] << ", Data = " << m_rowVector(row_dofmap[i]) << "\n";

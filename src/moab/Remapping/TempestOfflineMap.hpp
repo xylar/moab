@@ -27,8 +27,6 @@
 #include <string>
 #include <vector>
 
-// #define VERBOSE
-
 #ifdef MOAB_HAVE_EIGEN
 #include <Eigen/Sparse>
 #endif
