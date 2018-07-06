@@ -47,8 +47,8 @@ int main( int argc, char* argv[] )
   // intxid is for intx atm / ocn on coupler pes
   int nghlay=0; // number of ghost layers for loading the file
   int groupTasks[2]; // at most 2 tasks
-  int startG1=0, startG2=0, endG1=1, endG2=1; // everything runs now on 2 procs
-  // int startG1=0, startG2=0, endG1=size/2-1, endG2=size-1; // Support launch of imoab_coupler test on any combo of 2*x processes
+  // int startG1=0, startG2=0, endG1=1, endG2=1; // everything runs now on 2 procs
+  int startG1=0, startG2=0, endG1=size/2-1, endG2=size-1; // Support launch of imoab_coupler test on any combo of 2*x processes
 
   // load atm on 2 proc, ocean on 2, migrate both to 2 procs, then compute intx
   // later, we need to compute weight matrix with tempestremap
