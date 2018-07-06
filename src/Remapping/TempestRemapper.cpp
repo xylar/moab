@@ -582,6 +582,8 @@ ErrorCode TempestRemapper::AssociateSrcTargetInOverlap()
         }
     }
 
+    rval = this->ConvertMOABMesh_WithSortedEntitiesBySource();MB_CHK_ERR(rval);
+
     return MB_SUCCESS;
 }
 
@@ -706,7 +708,6 @@ ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius_
 
         // Now let us re-convert the MOAB mesh back to Tempest representation
         rval = this->AssociateSrcTargetInOverlap();MB_CHK_ERR(rval);
-        rval = this->ConvertMOABMesh_WithSortedEntitiesBySource();MB_CHK_ERR(rval);
 
         // free the memory
         delete mbintx;

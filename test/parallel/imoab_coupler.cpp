@@ -18,7 +18,9 @@
 #define CHECKRC(rc, message)  if (0!=rc) { printf ("%s\n", message); return 1;}
 
 using namespace moab;
-#define VERBOSE
+
+// #define VERBOSE
+
 int main( int argc, char* argv[] )
 {
   int rank, size, ierr;

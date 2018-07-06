@@ -2038,12 +2038,6 @@ ErrCode iMOAB_ReceiveElementTag(iMOAB_AppID pid, int* scompid, int* rcompid, con
 
   if ( data.file_set != data.covering_set) // coverage mesh is different from original mesh, it means we are on a source mesh, after intx
   {
-#ifdef VERBOSE
-    std::ostringstream outfile;
-    int rank = pco->rank();
-    outfile << "CovMesh_0" << rank << ".h5m";
-    rval = context.MBI->write_file ( outfile.str().c_str(), 0, 0, &(data.covering_set), 1 );CHKERRVAL(rval); // coverage mesh
-#endif
     rval = context.MBI->get_entities_by_dimension(data.covering_set, 2, owned); if ( MB_SUCCESS != rval ) { return 1; }
   }
   // pco is needed to pack, and for moab instance, not for communication!
@@ -2058,7 +2052,6 @@ ErrCode iMOAB_ReceiveElementTag(iMOAB_AppID pid, int* scompid, int* rcompid, con
     outfile << "CovMeshWithTag_0" << rank << ".h5m";
     rval = context.MBI->write_file ( outfile.str().c_str(), 0, 0, &(data.covering_set), 1 );CHKERRVAL(rval); // coverage mesh
 #endif
-    rval = context.MBI->get_entities_by_dimension(data.covering_set, 2, owned); if ( MB_SUCCESS != rval ) { return 1; }
   }
 
   if ( MB_SUCCESS != rval ) { return 1; }
@@ -2207,6 +2200,21 @@ ErrCode iMOAB_ComputeMeshIntersectionOnSphere ( iMOAB_AppID pid_src, iMOAB_AppID
     //     rval = ScaleToRadius(context.MBI, data_src.file_set, radius_source);CHKERRVAL(rval);
     //     rval = ScaleToRadius(context.MBI, data_tgt.file_set, radius_target);CHKERRVAL(rval);
     // }
+
+#ifdef VERBOSE
+    {
+        std::ostringstream outfile;
+        int rank = pco_intx->rank();
+        outfile << "CovSource_0" << rank << ".exo";
+        data_intx.remapper->ConvertMeshToTempest ( moab::Remapper::CoveringMesh )->Write(outfile.str());
+    }
+    {
+        std::ostringstream outfile;
+        int rank = pco_intx->rank();
+        outfile << "Target_0" << rank << ".exo";
+        data_intx.remapper->ConvertMeshToTempest ( moab::Remapper::TargetMesh )->Write(outfile.str());
+    }
+#endif
 
     return 0;
 }
@@ -2443,8 +2451,7 @@ ErrCode iMOAB_ApplyScalarProjectionWeights (   iMOAB_AppID pid_intersection,
 
     // Get the source and target data and pcomm objects
     appData& data_intx = context.appDatas[*pid_intersection];
-    ParallelComm* pco_intx = context.pcomms[*pid_intersection];
-
+    
     // Now allocate and initialize the remapper object
     moab::TempestRemapper* remapper = data_intx.remapper;
     moab::TempestOfflineMap* weightMap = data_intx.weightMap;
@@ -2459,6 +2466,19 @@ ErrCode iMOAB_ApplyScalarProjectionWeights (   iMOAB_AppID pid_intersection,
 
     std::vector<double> solSTagVals(covSrcEnts.size()*weightMap->GetSourceNDofsPerElement()*weightMap->GetSourceNDofsPerElement(), -1.0);
     std::vector<double> solTTagVals(tgtEnts.size()*weightMap->GetDestinationNDofsPerElement()*weightMap->GetDestinationNDofsPerElement(), -1.0);
+
+    // The tag data is np*np*n_el_src
+    rval = context.MBI->tag_get_data ( ssolnTag, covSrcEnts, &solSTagVals[0] );CHKERRVAL(rval);
+
+    // Compute the application of weights on the suorce solution data and store it in the destination solution vector data
+    // Optionally, can also perform the transpose application of the weight matrix. Set the 3rd argument to true if this is needed
+    rval = weightMap->ApplyWeights(solSTagVals, solTTagVals, false);CHKERRVAL(rval);
+
+    // The tag data is np*np*n_el_dest
+    rval = context.MBI->tag_set_data ( tsolnTag, tgtEnts, &solTTagVals[0] );CHKERRVAL(rval);
+
+#ifdef VERBOSE
+    ParallelComm* pco_intx = context.pcomms[*pid_intersection];
 
     {
         std::stringstream sstr;
@@ -2475,9 +2495,6 @@ ErrCode iMOAB_ApplyScalarProjectionWeights (   iMOAB_AppID pid_intersection,
         output_file.flush(); // required here
         output_file.close();
     }
-    
-
-#ifdef VERBOSE
     {
         std::stringstream sstr;
         sstr << "outputSrcDest_" << pco_intx->rank() << ".h5m";
@@ -2491,38 +2508,16 @@ ErrCode iMOAB_ApplyScalarProjectionWeights (   iMOAB_AppID pid_intersection,
         EntityHandle sets[2] = {data_intx.covering_set, context.appDatas[*data_intx.pid_dest].file_set};
         rval = context.MBI->write_file ( sstr.str().c_str(), NULL, "", sets, 2 ); MB_CHK_ERR ( rval );
     }
+    {
+        std::stringstream sstr;
+        sstr << "colvector_" << pco_intx->rank() << ".txt";
+        std::ofstream output_file ( sstr.str() );
+        for (unsigned i = 0; i < solSTagVals.size(); ++i)
+            output_file << i << " " << weightMap->col_dofmap[i] << " " << weightMap->col_gdofmap[i] << " " << solSTagVals[i] << "\n";
+        output_file.flush(); // required here
+        output_file.close();
+    }
 #endif
-
-#if 0
-    int rank;
-    MPI_Comm_rank ( pco_intx->comm(), &rank );
-    if (!rank)
-        std::cout << "weightMap->GetSourceLocalNDofs() = " << weightMap->GetSourceLocalNDofs() << ", " << covSrcEnts.size()*weightMap->GetSourceNDofsPerElement()*weightMap->GetSourceNDofsPerElement() << "; weightMap->GetDestinationLocalNDofs() = " << weightMap->GetDestinationLocalNDofs()*weightMap->GetDestinationNDofsPerElement()*weightMap->GetDestinationNDofsPerElement() << ", " << tgtEnts.size() << "\n";
-    MPI_Barrier(pco_intx->comm());
-    if (rank)
-        std::cout << "weightMap->GetSourceLocalNDofs() = " << weightMap->GetSourceLocalNDofs() << ", " << covSrcEnts.size()*weightMap->GetSourceNDofsPerElement()*weightMap->GetSourceNDofsPerElement() << "; weightMap->GetDestinationLocalNDofs() = " << weightMap->GetDestinationLocalNDofs()*weightMap->GetDestinationNDofsPerElement()*weightMap->GetDestinationNDofsPerElement() << ", " << tgtEnts.size() << "\n";
-    MPI_Barrier(pco_intx->comm());
-#endif
-
-    // The tag data is np*np*n_el_src
-    rval = context.MBI->tag_get_data ( ssolnTag, covSrcEnts, &solSTagVals[0] );CHKERRVAL(rval);
-
-#ifdef VERBOSE
-    std::stringstream sstr;
-    sstr << "colvector_" << pco_intx->rank() << ".txt";
-    std::ofstream output_file ( sstr.str() );
-    for (unsigned i = 0; i < solSTagVals.size(); ++i)
-        output_file << i << " " << weightMap->col_dofmap[i] << " " << weightMap->col_gdofmap[i] << " " << solSTagVals[i] << "\n";
-    output_file.flush(); // required here
-    output_file.close();
-#endif
-
-    // Compute the application of weights on the suorce solution data and store it in the destination solution vector data
-    // Optionally, can also perform the transpose application of the weight matrix. Set the 3rd argument to true if this is needed
-    rval = weightMap->ApplyWeights(solSTagVals, solTTagVals, false);CHKERRVAL(rval);
-
-    // The tag data is np*np*n_el_dest
-    rval = context.MBI->tag_set_data ( tsolnTag, tgtEnts, &solTTagVals[0] );CHKERRVAL(rval);
 
     return 0;
 }

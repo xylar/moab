@@ -395,16 +395,7 @@ int main ( int argc, char* argv[] )
 
         if ( ctx.computeWeights )
         {
-            ctx.timer_push ( "in-memory transform overlap mesh (MOAB->Tempest)" );
-            {
-                // Now let us re-convert the MOAB mesh back to Tempest representation
-                // rval = remapper.ConvertMeshToTempest(moab::Remapper::IntersectedMesh);MB_CHK_ERR(rval);
-                rval = remapper.AssociateSrcTargetInOverlap(); MB_CHK_ERR ( rval );
-                rval = remapper.ConvertMOABMesh_WithSortedEntitiesBySource(); MB_CHK_ERR ( rval );
-
-                ctx.meshes[2] = remapper.GetMesh ( moab::Remapper::IntersectedMesh );
-            }
-            ctx.timer_pop();
+            ctx.meshes[2] = remapper.GetMesh ( moab::Remapper::IntersectedMesh );
 
             ctx.timer_push ( "setup computation of weights" );
             // Call to generate an offline map with the tempest meshes

@@ -71,10 +71,6 @@ public:
 
     moab::ErrorCode ConvertMeshToTempest(Remapper::IntersectionContext ctx);
 
-    moab::ErrorCode AssociateSrcTargetInOverlap();
-
-    moab::ErrorCode ConvertMOABMesh_WithSortedEntitiesBySource();
-
     Mesh* GetMesh(Remapper::IntersectionContext ctx);
 
     void SetMesh(Remapper::IntersectionContext ctx, Mesh* mesh, bool overwrite=true);
@@ -106,7 +102,11 @@ public:
 
     static const bool verbose = true;
 
-public:
+private:
+
+    moab::ErrorCode AssociateSrcTargetInOverlap();
+
+    moab::ErrorCode ConvertMOABMesh_WithSortedEntitiesBySource();
 
     // private methods
     moab::ErrorCode LoadTempestMesh_Private(std::string inputFilename, Mesh** tempest_mesh);
