@@ -2201,21 +2201,6 @@ ErrCode iMOAB_ComputeMeshIntersectionOnSphere ( iMOAB_AppID pid_src, iMOAB_AppID
     //     rval = ScaleToRadius(context.MBI, data_tgt.file_set, radius_target);CHKERRVAL(rval);
     // }
 
-#ifdef VERBOSE
-    {
-        std::ostringstream outfile;
-        int rank = pco_intx->rank();
-        outfile << "CovSource_0" << rank << ".exo";
-        data_intx.remapper->ConvertMeshToTempest ( moab::Remapper::CoveringMesh )->Write(outfile.str());
-    }
-    {
-        std::ostringstream outfile;
-        int rank = pco_intx->rank();
-        outfile << "Target_0" << rank << ".exo";
-        data_intx.remapper->ConvertMeshToTempest ( moab::Remapper::TargetMesh )->Write(outfile.str());
-    }
-#endif
-
     return 0;
 }
 
@@ -2488,7 +2473,7 @@ ErrCode iMOAB_ApplyScalarProjectionWeights (   iMOAB_AppID pid_intersection,
             EntityHandle elem = covSrcEnts[i];
             std::vector<double> locsolSTagVals(16);
             rval = context.MBI->tag_get_data ( ssolnTag, &elem, 1, &locsolSTagVals[0] );CHKERRVAL(rval);
-            output_file << "\n" << remapper->lid_to_gid_covsrc[i] << "-- \n\t";
+            output_file << "\n" << remapper->GetGlobalID(Remapper::CoveringMesh, i) << "-- \n\t";
             for (unsigned j=0; j < 16; ++j)
                 output_file << locsolSTagVals[j] << " ";
         }

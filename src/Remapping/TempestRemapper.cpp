@@ -691,12 +691,12 @@ ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius_
                 // remove now from coverage set the cells that are not needed
                 rval = m_interface->remove_entities(m_covering_source_set, notNeededCovCells); MB_CHK_ERR ( rval );
                 covEnts = moab::subtract(covEnts, notNeededCovCells);
-
-            }
 #ifdef VERBOSE
-            std::cout << " total participating elements in the covering set: " << intxCov.size() << "\n";
-            std::cout << " remove from coverage set elements that are not intersected: " << notNeededCovCells.size() << "\n";
+                std::cout << " total participating elements in the covering set: " << intxCov.size() << "\n";
+                std::cout << " remove from coverage set elements that are not intersected: " << notNeededCovCells.size() << "\n";
 #endif
+            }
+
 
             m_covering_source = new Mesh();
             rval = ConvertMOABMeshToTempest_Private ( m_covering_source, m_covering_source_set, m_covering_source_entities ); MB_CHK_SET_ERR ( rval, "Can't convert source Tempest mesh" );
