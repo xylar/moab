@@ -206,7 +206,7 @@ moab::ErrorCode moab::TempestOfflineMap::SetDofMapAssociation(DiscretizationType
                             const int idof = j * m_nDofsPEl_Src * m_nDofsPEl_Src + p * m_nDofsPEl_Src + q;
                             if ( isSrcContinuous && !dgll_cgll_col_ldofmap[ldof] ) {
                                 m_nTotDofs_Src++;
-                                dgll_cgll_covcol_ldofmap[ldof] = true;
+                                dgll_cgll_col_ldofmap[ldof] = true;
                             }
                             output_file << m_remapper->lid_to_gid_src[j] << ", " <<  idof << ", " << ldof << ", " << locsrc_soln_gdofs[idof] << ", " << m_nTotDofs_Src << "\n";
                         }
@@ -286,7 +286,7 @@ moab::ErrorCode moab::TempestOfflineMap::SetDofMapAssociation(DiscretizationType
                             const int idof = j * m_nDofsPEl_Src * m_nDofsPEl_Src + p * m_nDofsPEl_Src + q;
                             if ( isSrcContinuous && !dgll_cgll_col_ldofmap[ldof] ) {
                                 m_nTotDofs_Src++;
-                                dgll_cgll_covcol_ldofmap[ldof] = true;
+                                dgll_cgll_col_ldofmap[ldof] = true;
                             }
                             output_file << m_remapper->lid_to_gid_src[j] << ", " <<  idof << ", " << ldof << ", " << locsrc_soln_gdofs[idof] << ", " << m_nTotDofs_Src << "\n";
                         }
@@ -761,7 +761,8 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
                     dataGLLNodesSrc,
                     dataGLLJacobianSrc );
 
-            assert(dNumericalAreaCov_loc >= dTotalAreaOutput_loc);
+            // if ( !pcomm->rank() ) dbgprint.printf ( 0, "Input Mesh: Coverage Area: %1.15e, Output Area: %1.15e\n", dNumericalAreaCov_loc, dTotalAreaOutput_loc );
+            // assert(dNumericalAreaCov_loc >= dTotalAreaOutput_loc);
 
             Real dNumericalArea;
             MPI_Allreduce ( &dNumericalArea_loc, &dNumericalArea, 1, MPI_DOUBLE, MPI_SUM, pcomm->comm() );
