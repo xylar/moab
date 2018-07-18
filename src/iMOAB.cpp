@@ -40,6 +40,8 @@ using namespace moab;
 #include <sstream>
 #include <iostream>
 
+// #define VERBOSE
+
 // global variables ; should they be organized in a structure, for easier references?
 // or how do we keep them global?
 
@@ -2116,7 +2118,7 @@ ErrCode iMOAB_ComputeMeshIntersectionOnSphere ( iMOAB_AppID pid_src, iMOAB_AppID
 
     double radius_source=1.0;
     double radius_target=1.0;
-    const double epsrel=1e-8;
+    const double epsrel=1e-12;
     const double boxeps=5.e-3;
 
     // Get the source and target data and pcomm objects
