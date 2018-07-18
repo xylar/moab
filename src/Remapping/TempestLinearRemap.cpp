@@ -958,13 +958,24 @@ void moab::TempestOfflineMap::LinearRemapSE4_Tempest_MOAB (
 
             int nOverlapTriangles = faceOverlap.edges.size() - 2;
 
+            // first find out the minimum node, start there the triangle decomposition
+            int minIndex = 0;
+            int nnodes = faceOverlap.edges.size();
+            for (int j1=1; j1<nnodes; j1++)
+            {
+              if ( nodesOverlap[faceOverlap[j1]] < nodesOverlap[faceOverlap[minIndex]] )
+              {
+                minIndex = j1;
+              }
+            }
+
             // Loop over all sub-triangles of this Overlap Face
             for ( int k = 0; k < nOverlapTriangles; k++ )
             {
-                // Cornerpoints of triangle
-                const Node & node0 = nodesOverlap[faceOverlap[0]];
-                const Node & node1 = nodesOverlap[faceOverlap[k + 1]];
-                const Node & node2 = nodesOverlap[faceOverlap[k + 2]];
+                // Cornerpoints of triangle, they start at the minimal Node, for consistency
+                const Node & node0 = nodesOverlap[faceOverlap[minIndex]];
+                const Node & node1 = nodesOverlap[faceOverlap[(minIndex + k + 1)%nnodes]];
+                const Node & node2 = nodesOverlap[faceOverlap[(minIndex + k + 2)%nnodes]];
 
                 // Calculate the area of the modified Face
                 Face faceTri ( 3 );
