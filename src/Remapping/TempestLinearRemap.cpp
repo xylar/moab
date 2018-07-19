@@ -27,6 +27,8 @@
 #include <cstdlib>
 #include <sstream>
 
+// #define VERBOSE
+
 // TODO: Replace these with the LAPACK wrappers once we have the Eigen-External-Dep branch merged in
 extern "C" {
     /// General matrix solver from CLAPACK
@@ -285,11 +287,12 @@ void moab::TempestOfflineMap::LinearRemapFVtoFV_Tempest_MOAB (
     // Current overlap face
     int ixOverlap = 0;
 
+    const unsigned outputFrequency = (m_meshInputCov->faces.size()/10);
     // Loop through all faces on m_meshInput
     for ( size_t ixFirst = 0; ixFirst < m_meshInputCov->faces.size(); ixFirst++ )
     {
         // Output every 1000 elements
-        if ( ixFirst % 1000 == 1 )
+        if ( ixFirst % outputFrequency == 100 )
         {
             Announce ( "Element %i/%i", ixFirst, m_meshInputCov->faces.size() );
         }
@@ -309,7 +312,7 @@ void moab::TempestOfflineMap::LinearRemapFVtoFV_Tempest_MOAB (
         }
 
         unsigned nOverlapFaces = ixOverlapEnd - ixOverlapBegin;
-        if ( !pcomm->rank() ) Announce ( "Element %i :: [%i, %i]", ixFirst, ixOverlapBegin, ixOverlapEnd );
+        if ( !pcomm->rank() ) Announce ( "Element %i / %i :: [%i, %i]", ixFirst, m_meshInputCov->faces.size(), ixOverlapBegin, ixOverlapEnd );
 
         if ( nOverlapFaces == 0 ) continue;
 
@@ -422,16 +425,16 @@ void moab::TempestOfflineMap::LinearRemapFVtoFV_Tempest_MOAB (
 #ifdef MOAB_HAVE_EIGEN
 void moab::TempestOfflineMap::CopyTempestSparseMat_Eigen()
 {
-    int locrows = m_mapRemap.GetRows();
-    int loccols = m_mapRemap.GetColumns();
-
-    m_nTotDofs_Dest = locrows;
-    m_nTotDofs_SrcCov = loccols;
     m_weightMatrix.resize(m_nTotDofs_Dest, m_nTotDofs_SrcCov);
     InitVectors();
 
-    // std::cout << m_weightMatrix.rows() << ", " <<  locrows << ", " <<  m_weightMatrix.cols() << ", " << loccols << "\n";
-    assert(m_weightMatrix.rows() == locrows && m_weightMatrix.cols() == loccols);
+#ifdef VERBOSE
+    int locrows = std::max(m_mapRemap.GetRows(), m_nTotDofs_Dest);
+    int loccols = std::max(m_mapRemap.GetColumns(), m_nTotDofs_SrcCov);
+
+    std::cout << m_weightMatrix.rows() << ", " <<  locrows << ", " <<  m_weightMatrix.cols() << ", " << loccols << "\n";
+    // assert(m_weightMatrix.rows() == locrows && m_weightMatrix.cols() == loccols);
+#endif
 
     DataVector<int> lrows;
     DataVector<int> lcols;
@@ -450,9 +453,9 @@ void moab::TempestOfflineMap::CopyTempestSparseMat_Eigen()
     std::stringstream sstr;
     sstr << "tempestmatrix.txt.0000" << pcomm->rank();
     std::ofstream output_file ( sstr.str(), std::ios::out );
-    output_file << "0 " << locrows << " 0" << loccols << "\n";
+    output_file << "0 " << locrows << " 0 " << loccols << "\n";
     for (unsigned iv=0; iv < locvals; iv++) {
-        output_file << lrows[iv] << " " << lcols[iv] << " " << lvals[iv] << "\n";
+        output_file << tgt_soln_gdofs[lrows[iv]] << " " << src_soln_gdofs[lcols[iv]] << " " << lvals[iv] << "\n";
     }
     output_file.flush(); // required here
     output_file.close();
@@ -763,7 +766,6 @@ void moab::TempestOfflineMap::WriteParallelWeightsToFile(std::string strFilename
 
 ///////////////////////////////////////////////////////////////////////////////
 
-// #define VERBOSE
 moab::ErrorCode moab::TempestOfflineMap::ApplyWeights (std::vector<double>& srcVals, std::vector<double>& tgtVals, bool transpose)
 {
     // Reset the source and target data first
@@ -795,11 +797,10 @@ moab::ErrorCode moab::TempestOfflineMap::ApplyWeights (std::vector<double>& srcV
         output_file << "ColVector: " << m_colVector.size() << ", SrcVals: " << srcVals.size() << ", Sizes: " << m_nTotDofs_SrcCov << ", " << col_dofmap.size() << "\n";
 #endif
         for (unsigned i=0; i < srcVals.size(); ++i) {
-            // if (pcomm->rank() && col_dofmap[i] >= m_colVector.size()) std::cout << i << " col_dofmap: " << col_dofmap[i] << ", m_colVector: " << m_colVector.size() << "\n";
-            // assert(col_dofmap[i] < m_colVector.size());
+            assert(m_colVector.size()-col_dofmap[i]>0);
             m_colVector(col_dofmap[i]) = srcVals[i]; // permute and set the row (source) vector properly
 #ifdef VERBOSE
-            if (pcomm->rank()) output_file << "Col: " << i << ", " << col_dofmap[i] << ", Data = " << srcVals[i]  << ", " << m_colVector(col_dofmap[i]) << "\n";
+            output_file << "Col: " << i << ", " << col_dofmap[i] << ", GID: " << src_soln_gdofs[col_dofmap[i]] << ", Data = " << srcVals[i]  << ", " << m_colVector(col_dofmap[i]) << "\n";
 #endif
         }
         
@@ -812,7 +813,7 @@ moab::ErrorCode moab::TempestOfflineMap::ApplyWeights (std::vector<double>& srcV
         for (unsigned i=0; i < tgtVals.size(); ++i) {
             tgtVals[i] = m_rowVector(row_dofmap[i]); // permute and set the row (source) vector properly
 #ifdef VERBOSE
-            output_file << "Row: " << i << ", " << row_dofmap[i] << ", Data = " << m_rowVector(i) << "\n";
+            output_file << "Row: " << i << ", " << row_dofmap[i] << ", GID: " << tgt_soln_gdofs[row_dofmap[i]] << ", Data = " << m_rowVector(row_dofmap[i]) << "\n";
 #endif
         }
     }
@@ -901,6 +902,7 @@ void moab::TempestOfflineMap::LinearRemapSE4_Tempest_MOAB (
 
     // Current Overlap Face
     int ixOverlap = 0;
+    const unsigned outputFrequency = (m_meshInputCov->faces.size()/10);
 
     // Loop over all input Faces
     for ( size_t ixFirst = 0; ixFirst < m_meshInputCov->faces.size(); ixFirst++ )
@@ -912,11 +914,13 @@ void moab::TempestOfflineMap::LinearRemapSE4_Tempest_MOAB (
             _EXCEPTIONT ( "Only quadrilateral elements allowed for SE remapping" );
         }
 
-        // Output every 100 elements
-        if ( ixFirst % 1000 == 0 )
+#ifdef VERBOSE
+        // Announce computation progress
+        if ( ixFirst % outputFrequency == 0 )
         {
             Announce ( "Element %i/%i", ixFirst, m_meshInputCov->faces.size() );
         }
+#endif
 
         // Need to re-number the overlap elements such that vecSourceFaceIx[a:b] = 0, then 1 and so on wrt the input mesh data
         // Then the overlap_end and overlap_begin will be correct. However, the relation with MOAB and Tempest will go out of the roof
@@ -953,18 +957,29 @@ void moab::TempestOfflineMap::LinearRemapSE4_Tempest_MOAB (
 
 // #ifdef VERBOSE
 //             if ( pcomm->rank() )
-//                 Announce ( "\tLocal ID: %i/%i = %i, areas = %f", j + ixOverlap, nOverlapFaces, m_meshOverlap->vecSourceFaceIx[ixOverlap + j], m_meshOverlap->vecFaceArea[ixOverlap + j] );
+                // Announce ( "\tLocal ID: %i/%i = %i, areas = %2.8e", j + ixOverlap, nOverlapFaces, m_meshOverlap->vecSourceFaceIx[ixOverlap + j], m_meshOverlap->vecFaceArea[ixOverlap + j] );
 // #endif
 
             int nOverlapTriangles = faceOverlap.edges.size() - 2;
 
+            // first find out the minimum node, start there the triangle decomposition
+            int minIndex = 0;
+            int nnodes = faceOverlap.edges.size();
+            for (int j1=1; j1<nnodes; j1++)
+            {
+              if ( nodesOverlap[faceOverlap[j1]] < nodesOverlap[faceOverlap[minIndex]] )
+              {
+                minIndex = j1;
+              }
+            }
+
             // Loop over all sub-triangles of this Overlap Face
             for ( int k = 0; k < nOverlapTriangles; k++ )
             {
-                // Cornerpoints of triangle
-                const Node & node0 = nodesOverlap[faceOverlap[0]];
-                const Node & node1 = nodesOverlap[faceOverlap[k + 1]];
-                const Node & node2 = nodesOverlap[faceOverlap[k + 2]];
+                // Cornerpoints of triangle, they start at the minimal Node, for consistency
+                const Node & node0 = nodesOverlap[faceOverlap[minIndex]];
+                const Node & node1 = nodesOverlap[faceOverlap[(minIndex + k + 1)%nnodes]];
+                const Node & node2 = nodesOverlap[faceOverlap[(minIndex + k + 2)%nnodes]];
 
                 // Calculate the area of the modified Face
                 Face faceTri ( 3 );
@@ -1068,10 +1083,10 @@ void moab::TempestOfflineMap::LinearRemapSE4_Tempest_MOAB (
             }
 
 #ifdef VERBOSE
-            if ( fabs ( dTargetArea - m_meshInputCov->vecFaceArea[ixFirst] ) > 1.0e-10 )
-            {
-                Announce ( "TempestOfflineMap: Partial element: %i, areas = %f percent", ixFirst, 100 * dTargetArea / m_meshInputCov->vecFaceArea[ixFirst] );
-            }
+            // if ( fabs ( dTargetArea - m_meshInputCov->vecFaceArea[ixFirst] ) > 1.0e-10 )
+            // {
+            //     Announce ( "TempestOfflineMap: Partial element: %i, areas = %f percent", ixFirst, 100 * dTargetArea / m_meshInputCov->vecFaceArea[ixFirst] );
+            // }
 #endif
             {
                 dCoeff.Initialize ( nOverlapFaces, nP * nP );
@@ -1208,14 +1223,17 @@ void moab::TempestOfflineMap::LinearRemapFVtoGLL_Simple_MOAB (
 
     // Loop through all faces on m_meshInput
     int ixOverlap = 0;
+    const unsigned outputFrequency = (m_meshInputCov->faces.size()/10);
 
     for ( size_t ixFirst = 0; ixFirst < m_meshInputCov->faces.size(); ixFirst++ )
     {
-        // Output every 100 elements
-        if ( ixFirst % 1000 == 0 )
+#ifdef VERBOSE
+        // Announce computation progress
+        if ( ixFirst % outputFrequency == 0 )
         {
             Announce ( "Element %i", ixFirst );
         }
+#endif
 
         // This Face
         const Face & faceFirst = m_meshInputCov->faces[ixFirst];
@@ -1621,16 +1639,18 @@ void moab::TempestOfflineMap::LinearRemapFVtoGLL_Volumetric_MOAB (
 
     // Current overlap face
     int ixOverlap = 0;
+    const unsigned outputFrequency = (m_meshInputCov->faces.size()/10);
 
     // Loop through all faces on m_meshInput
     for ( size_t ixFirst = 0; ixFirst < m_meshInputCov->faces.size(); ixFirst++ )
     {
-
-        // Output every 100 elements
-        if ( ixFirst % 1000 == 0 )
+#ifdef VERBOSE
+        // Announce computation progress
+        if ( ixFirst % outputFrequency == 0 )
         {
             Announce ( "Element %i", ixFirst );
         }
+#endif
 
         // This Face
         // const Face & faceFirst = m_meshInputCov->faces[ixFirst];
@@ -1954,14 +1974,17 @@ void moab::TempestOfflineMap::LinearRemapFVtoGLL_MOAB (
 
     // Loop through all faces on m_meshInput
     ixOverlap = 0;
+    const unsigned outputFrequency = (m_meshInputCov->faces.size()/10);
 
     for ( size_t ixFirst = 0; ixFirst < m_meshInputCov->faces.size(); ixFirst++ )
     {
-        // Output every 100 elements
-        if ( ixFirst % 1000 == 0 && !pcomm->rank() )
+#ifdef VERBOSE
+        // Announce computation progress
+        if ( ixFirst % outputFrequency == 0 && !pcomm->rank() )
         {
             Announce ( "Element %i/%i", ixFirst, m_meshInputCov->faces.size() );
         }
+#endif
 
         // This Face
         const Face & faceFirst = m_meshInputCov->faces[ixFirst];
@@ -2072,13 +2095,13 @@ void moab::TempestOfflineMap::LinearRemapFVtoGLL_MOAB (
                         dAlpha,
                         dBeta );
                     /*
-                                        // Check inverse map value
-                                        if ((dAlpha < -1.0e-12) || (dAlpha > 1.0 + 1.0e-12) ||
-                                            (dBeta  < -1.0e-12) || (dBeta  > 1.0 + 1.0e-12)
-                                        ) {
-                                            _EXCEPTION2("Inverse Map out of range (%1.5e %1.5e)",
-                                                dAlpha, dBeta);
-                                        }
+                        // Check inverse map value
+                        if ((dAlpha < -1.0e-12) || (dAlpha > 1.0 + 1.0e-12) ||
+                            (dBeta  < -1.0e-12) || (dBeta  > 1.0 + 1.0e-12)
+                        ) {
+                            _EXCEPTION2("Inverse Map out of range (%1.5e %1.5e)",
+                                dAlpha, dBeta);
+                        }
                     */
                     // Sample the finite element at this point
                     SampleGLLFiniteElement (
@@ -2205,22 +2228,19 @@ void moab::TempestOfflineMap::LinearRemapFVtoGLL_MOAB (
 
     for ( size_t ixFirst = 0; ixFirst < m_meshInputCov->faces.size(); ixFirst++ )
     {
-
-        // Output every 100 elements
-        if ( ixFirst % 1000 == 0 )
+#ifdef VERBOSE
+        // Announce computation progress
+        if ( ixFirst % outputFrequency == 0 )
         {
             Announce ( "Element %i", ixFirst );
         }
-
-        // This Face
-        // const Face & faceFirst = m_meshInputCov->faces[ixFirst];
+#endif
 
         // Area of the First Face
         double dFirstArea = m_meshInputCov->vecFaceArea[ixFirst];
 
         // Number of overlapping Faces and triangles
         int nOverlapFaces = nAllOverlapFaces[ixFirst];
-        // int nTotalOverlapTriangles = nAllTotalOverlapTriangles[ixFirst];
 
         // Determine the conservative constraint equation
         DataVector<double> dConstraint;
@@ -2436,16 +2456,19 @@ void moab::TempestOfflineMap::LinearRemapGLLtoGLL2_MOAB (
 
     // Loop through all faces on m_meshInput
     ixOverlap = 0;
+    const unsigned outputFrequency = (m_meshInputCov->faces.size()/10);
 
     if ( !pcomm->rank() )
         Announce ( "Building conservative distribution maps" );
     for ( size_t ixFirst = 0; ixFirst < m_meshInputCov->faces.size(); ixFirst++ )
     {
-        // Output every 100 elements
-        if ( ixFirst % 1000 == 0 && !pcomm->rank() )
+#ifdef VERBOSE
+        // Announce computation progress
+        if ( ixFirst % outputFrequency == 0 && !pcomm->rank() )
         {
             Announce ( "Element %i", ixFirst );
         }
+#endif
 
         // Quantities from the First Mesh
         const Face & faceFirst = m_meshInputCov->faces[ixFirst];
@@ -2827,15 +2850,13 @@ void moab::TempestOfflineMap::LinearRemapGLLtoGLL2_MOAB (
 
     for ( size_t ixFirst = 0; ixFirst < m_meshInputCov->faces.size(); ixFirst++ )
     {
-
-        // Output every 100 elements
-        if ( ixFirst % 1000 == 0 )
+#ifdef VERBOSE
+        // Announce computation progress
+        if ( ixFirst % outputFrequency == 0 )
         {
             Announce ( "Element %i", ixFirst );
         }
-
-        // This Face
-        // const Face & faceFirst = m_meshInputCov->faces[ixFirst];
+#endif
 
         // Number of overlapping Faces and triangles
         int nOverlapFaces = nAllOverlapFaces[ixFirst];
@@ -3000,16 +3021,19 @@ void moab::TempestOfflineMap::LinearRemapGLLtoGLL2_Pointwise_MOAB (
     // Number of times this point was found
     DataVector<bool> fSecondNodeFound ( dataNodalAreaOut.GetRows() );
 
-    // Loop through all faces on m_meshInputCov
     ixOverlap = 0;
+    const unsigned outputFrequency = (m_meshInputCov->faces.size()/10);
 
+    // Loop through all faces on m_meshInputCov
     for ( size_t ixFirst = 0; ixFirst < m_meshInputCov->faces.size(); ixFirst++ )
     {
-        // Output every 100 elements
-        if ( ixFirst % 1000 == 0 )
+#ifdef VERBOSE
+        // Announce computation progress
+        if ( ixFirst % outputFrequency == 0 )
         {
             Announce ( "Element %i", ixFirst );
         }
+#endif
 
         // Quantities from the First Mesh
         const Face & faceFirst = m_meshInputCov->faces[ixFirst];

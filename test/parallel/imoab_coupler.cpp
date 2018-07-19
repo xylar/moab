@@ -19,6 +19,8 @@
 
 using namespace moab;
 
+// #define VERBOSE
+
 int main( int argc, char* argv[] )
 {
   int rank, size, ierr;
@@ -45,14 +47,22 @@ int main( int argc, char* argv[] )
   // intxid is for intx atm / ocn on coupler pes
   int nghlay=0; // number of ghost layers for loading the file
   int groupTasks[2]; // at most 2 tasks
-  int startG1=0, startG2=0, endG1=1, endG2=1; // everything runs now on 2 procs
-  // int startG1=0, startG2=0, endG1=size/2-1, endG2=size-1; // Support launch of imoab_coupler test on any combo of 2*x processes
+  // int startG1=0, startG2=0, endG1=1, endG2=1; // everything runs now on 2 procs
+  int startG1=0, startG2=0, endG1=size/2-1, endG2=size-1; // Support launch of imoab_coupler test on any combo of 2*x processes
 
   // load atm on 2 proc, ocean on 2, migrate both to 2 procs, then compute intx
   // later, we need to compute weight matrix with tempestremap
   std::string filename1, filename2;
-  filename1 = TestDir + "/atm.h5m";
-  filename2 = TestDir + "/mpas.h5m";
+#ifdef MOAB_HAVE_HDF5
+  filename1 = TestDir + "/wholeATM_T.h5m";
+  filename2 = TestDir + "/recMeshOcn.h5m";
+#endif
+
+  if (argc>2) {
+    filename1 = std::string(argv[1]);
+    filename2 = std::string(argv[2]);
+  }
+
 
   // load files on 2 different communicators, groups
   // first groups has task 0, second group tasks 0 and 1
@@ -180,8 +190,8 @@ int main( int argc, char* argv[] )
                                                 strlen(dof_tag_names[0]), strlen(dof_tag_names[1]) );
   CHECKRC(ierr, "cannot compute scalar projection weights" )
 
-  const char* fieldname = "water_vap_ac";
-  const char* fieldnameT = "water_vap_ac_proj";
+  const char* fieldname = "a2oTAG";
+  const char* fieldnameT = "a2oTAG_proj";
   int tagIndex[2];
   int tagTypes[2] = { DENSE_DOUBLE, DENSE_DOUBLE } ;
   int num_components1 = disc_orders[0]*disc_orders[0], num_components2 = disc_orders[1]*disc_orders[1];
@@ -196,18 +206,51 @@ int main( int argc, char* argv[] )
   // so far, the coverage mesh has only the ids and global dofs;
   // need to change the migrate method to accommodate any GLL tag
   // now send a tag from original atmosphere (pid1) towards migrated coverage mesh (pid3), using the new coverage graph communicator
+
+  // make the tag 0, to check we are actually sending needed data
+  {
+    if (appID3 >= 0)
+    {
+      int nverts[3], nelem[3], nblocks[3], nsbc[3], ndbc[3];
+        /*
+         * Each process in the communicator will have access to a local mesh instance, which will contain the
+         * original cells in the local partition and ghost entities. Number of vertices, primary cells, visible blocks,
+         * number of sidesets and nodesets boundary conditions will be returned in size 3 arrays, for local, ghost and total
+         * numbers.
+         */
+        ierr = iMOAB_GetMeshInfo(  pid3, nverts, nelem, nblocks, nsbc, ndbc);
+        CHECKRC(ierr, "failed to get num primary elems");
+        int numAllElem = nelem[2];
+        std::vector<double> vals;
+        int storLeng = num_components1*numAllElem;
+        vals.resize(storLeng);
+        for (int k=0; k<storLeng; k++)
+          vals[k] = 0.;
+        int eetype = 1;
+        ierr = iMOAB_SetDoubleTagStorage ( pid3, "a2oTAG", &storLeng, &eetype, &vals[0], strlen("a2oTAG"));
+        CHECKRC(ierr, "cannot make tag nul")
+        // set the tag to 0
+    }
+  }
+  
     if (comm1 != MPI_COMM_NULL ){
 
       // basically, adjust the migration of the tag we want to project; it was sent initially with
       // trivial partitioning, now we need to adjust it for "coverage" mesh
        // as always, use nonblocking sends
-       ierr = iMOAB_SendElementTag(pid1, &compid1, &compid3, "water_vap_ac", &jcomm, strlen("water_vap_ac"));
+       ierr = iMOAB_SendElementTag(pid1, &compid1, &compid3, "a2oTAG", &jcomm, strlen("a2oTAG"));
        CHECKRC(ierr, "cannot send tag values")
     }
     // receive on atm on coupler pes, that was redistributed according to coverage
-    ierr = iMOAB_ReceiveElementTag(pid3, &compid3, &compid1, "water_vap_ac", &jcomm, strlen("water_vap_ac"));
+    ierr = iMOAB_ReceiveElementTag(pid3, &compid3, &compid1, "a2oTAG", &jcomm, strlen("a2oTAG"));
     CHECKRC(ierr, "cannot receive tag values")
 
+#ifdef VERBOSE
+    char writeOptions3[] ="PARALLEL=WRITE_PART";
+    char outputFileRecvd[] = "recvAtmCoup.h5m";
+    ierr = iMOAB_WriteMesh(pid3, outputFileRecvd, writeOptions3,
+        strlen(outputFileRecvd), strlen(writeOptions3) );
+#endif
     // we can now free the sender buffers
      if (comm1 != MPI_COMM_NULL) {
        ierr = iMOAB_FreeSenderBuffers(pid1, &jcomm, &compid3);

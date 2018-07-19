@@ -40,6 +40,8 @@ using namespace moab;
 #include <sstream>
 #include <iostream>
 
+// #define VERBOSE
+
 // global variables ; should they be organized in a structure, for easier references?
 // or how do we keep them global?
 
@@ -1194,7 +1196,7 @@ ErrCode iMOAB_DefineTagStorage ( iMOAB_AppID pid, const iMOAB_String tag_storage
     for ( int i = 0; i < *components_per_entity; i++ )
     {
         defInt[i] = 0;
-        defDouble[i] = 0.;
+        defDouble[i] = -1e+10;
         defHandle[i] = ( EntityHandle ) 0;
     }
 
@@ -2044,6 +2046,16 @@ ErrCode iMOAB_ReceiveElementTag(iMOAB_AppID pid, int* scompid, int* rcompid, con
   // still use nonblocking communication
   rval = cgraph->receive_tag_values ( *join, pco, owned, tagHandle );
 
+  if ( data.file_set != data.covering_set) // coverage mesh is different from original mesh, it means we are on a source mesh, after intx
+  {
+#ifdef VERBOSE
+    std::ostringstream outfile;
+    int rank = pco->rank();
+    outfile << "CovMeshWithTag_0" << rank << ".h5m";
+    rval = context.MBI->write_file ( outfile.str().c_str(), 0, 0, &(data.covering_set), 1 );CHKERRVAL(rval); // coverage mesh
+#endif
+  }
+
   if ( MB_SUCCESS != rval ) { return 1; }
   // now, send to each corr_tasks[i] tag data for corr_sizes[i] primary entities
 
@@ -2086,19 +2098,17 @@ ErrCode iMOAB_FreeSenderBuffers ( iMOAB_AppID pid, MPI_Comm* join, int* rcompid 
 static ErrCode ComputeSphereRadius ( iMOAB_AppID pid, double* radius)
 {
     ErrorCode rval;
-    double coordinates[3];
+    CartVect pos;
 
     Range& verts = context.appDatas[*pid].all_verts;
     moab::EntityHandle firstVertex = (verts[0]);
 
     // coordinate data
-    rval = context.MBI->get_coords ( &(firstVertex), 1, coordinates );CHKERRVAL(rval);
+    rval = context.MBI->get_coords ( &(firstVertex), 1, (double*) &(pos[0]) );CHKERRVAL(rval);
 
     // compute the distance from origin
-    *radius = coordinates[0]*coordinates[0] + coordinates[1] * coordinates[1] + coordinates[2] * coordinates[2];
-
     // TODO: we could do this in a loop to verify if the pid represents a spherical mesh
-
+    *radius = pos.length();
     return 0;
 }
 
@@ -2108,7 +2118,7 @@ ErrCode iMOAB_ComputeMeshIntersectionOnSphere ( iMOAB_AppID pid_src, iMOAB_AppID
 
     double radius_source=1.0;
     double radius_target=1.0;
-    const double epsrel=1e-8;
+    const double epsrel=1e-12;
     const double boxeps=5.e-3;
 
     // Get the source and target data and pcomm objects
@@ -2126,6 +2136,11 @@ ErrCode iMOAB_ComputeMeshIntersectionOnSphere ( iMOAB_AppID pid_src, iMOAB_AppID
 
     rval = pco_intx->check_all_shared_handles();CHKERRVAL(rval);
     
+    // Rescale the radius of both to compute the intersection
+    ComputeSphereRadius(pid_src, &radius_source);
+    ComputeSphereRadius(pid_tgt, &radius_target);
+    if (!pco_intx->rank()) std::cout << "Radius of spheres: source = " << radius_source << " and target = " << radius_target << "\n";
+
 	// print verbosely about the problem setting
 	{
 		moab::Range rintxverts, rintxelems;
@@ -2164,11 +2179,6 @@ ErrCode iMOAB_ComputeMeshIntersectionOnSphere ( iMOAB_AppID pid_src, iMOAB_AppID
     data_intx.remapper->GetMeshSet ( moab::Remapper::TargetMesh ) = data_tgt.file_set;
     data_intx.remapper->GetMeshSet ( moab::Remapper::IntersectedMesh ) = data_intx.file_set;
 
-    // Rescale the radius of both to compute the intersection
-    ComputeSphereRadius(pid_src, &radius_source);
-    ComputeSphereRadius(pid_tgt, &radius_target);
-    std::cout << "Radius of spheres: source = " << radius_source << " and target = " << radius_target << "\n";
-
     /* Let make sure that the radius match for source and target meshes. If not, rescale now and unscale later. */
     bool radii_scaled = false;
     if (fabs(radius_source - radius_target) > 1e-10) { /* the radii are different */
@@ -2188,10 +2198,10 @@ ErrCode iMOAB_ComputeMeshIntersectionOnSphere ( iMOAB_AppID pid_src, iMOAB_AppID
     // Set the context for the OfflineMap computation
     data_intx.weightMap = new moab::TempestOfflineMap ( data_intx.remapper );
 
-    if (radii_scaled) { /* the radii are different, so lets rescale back */
-        rval = ScaleToRadius(context.MBI, data_src.file_set, radius_source);CHKERRVAL(rval);
-        rval = ScaleToRadius(context.MBI, data_tgt.file_set, radius_target);CHKERRVAL(rval);
-    }
+    // if (radii_scaled) { /* the radii are different, so lets rescale back */
+    //     rval = ScaleToRadius(context.MBI, data_src.file_set, radius_source);CHKERRVAL(rval);
+    //     rval = ScaleToRadius(context.MBI, data_tgt.file_set, radius_target);CHKERRVAL(rval);
+    // }
 
     return 0;
 }
@@ -2290,10 +2300,35 @@ ErrCode iMOAB_CoverageGraph ( MPI_Comm * join, iMOAB_AppID pid_src,
             setInts.insert ( gidCell );
             //std::cout << origProc << " id:" << gidCell << " size: " << setInts.size() << std::endl;
         }
+#ifdef VERBOSE
+        std::ofstream dbfile;
+        std::stringstream outf;
+        outf << "idsFromProc_0" << currentRankInJointComm << ".txt";
+        dbfile.open (outf.str().c_str());
+        dbfile << "Writing this to a file.\n";
 
-        std::cout << " map size:" << idsFromProcs.size() << std::endl; // on the receiver side, these show how much data to receive
+        dbfile << " map size:" << idsFromProcs.size() << std::endl; // on the receiver side, these show how much data to receive
         // from the sender (how many ids, and how much tag data later; we need to size up the receiver buffer)
         // arrange in tuples , use map iterators to send the ids
+        for (std::map<int, std::set<int> >::iterator mt=idsFromProcs.begin(); mt!=idsFromProcs.end(); mt++)
+          {
+
+            std::set<int> & setIds = mt->second;
+            dbfile << "from id: " << mt->first <<  " receive " << setIds.size() << " cells \n";
+            int counter = 0;
+            for ( std::set<int>::iterator st= setIds.begin(); st!=setIds.end(); st++)
+            {
+              int valueID = *st;
+              dbfile << " " << valueID;
+              counter ++;
+              if (counter%10 == 0)
+                dbfile<<"\n";
+
+            }
+            dbfile<<"\n";
+          }
+        dbfile.close();
+#endif
         if ( NULL != recvGraph )
             recvGraph->SetReceivingAfterCoverage ( idsFromProcs );
         for ( std::map<int, std::set<int> >::iterator mit = idsFromProcs.begin(); mit != idsFromProcs.end(); mit++ )
@@ -2403,8 +2438,7 @@ ErrCode iMOAB_ApplyScalarProjectionWeights (   iMOAB_AppID pid_intersection,
 
     // Get the source and target data and pcomm objects
     appData& data_intx = context.appDatas[*pid_intersection];
-    // ParallelComm* pco_intx = context.pcomms[*pid_intersection];
-
+    
     // Now allocate and initialize the remapper object
     moab::TempestRemapper* remapper = data_intx.remapper;
     moab::TempestOfflineMap* weightMap = data_intx.weightMap;
@@ -2417,19 +2451,8 @@ ErrCode iMOAB_ApplyScalarProjectionWeights (   iMOAB_AppID pid_intersection,
     moab::Range& covSrcEnts = remapper->GetMeshEntities(moab::Remapper::CoveringMesh);
     moab::Range& tgtEnts = remapper->GetMeshEntities(moab::Remapper::TargetMesh);
 
-    std::vector<double> solSTagVals(covSrcEnts.size()*weightMap->GetSourceNDofsPerElement()*weightMap->GetSourceNDofsPerElement() /*weightMap->GetSourceLocalNDofs()*/, 0.0);
-    std::vector<double> solTTagVals(tgtEnts.size()*weightMap->GetDestinationNDofsPerElement()*weightMap->GetDestinationNDofsPerElement() /*weightMap->GetDestinationLocalNDofs()*/, 0.0);
-
-#if 0
-    int rank;
-    MPI_Comm_rank ( pco_intx->comm(), &rank );
-    if (!rank)
-        std::cout << "weightMap->GetSourceLocalNDofs() = " << weightMap->GetSourceLocalNDofs() << ", " << covSrcEnts.size()*weightMap->GetSourceNDofsPerElement()*weightMap->GetSourceNDofsPerElement() << "; weightMap->GetDestinationLocalNDofs() = " << weightMap->GetDestinationLocalNDofs()*weightMap->GetDestinationNDofsPerElement()*weightMap->GetDestinationNDofsPerElement() << ", " << tgtEnts.size() << "\n";
-    MPI_Barrier(pco_intx->comm());
-    if (rank)
-        std::cout << "weightMap->GetSourceLocalNDofs() = " << weightMap->GetSourceLocalNDofs() << ", " << covSrcEnts.size()*weightMap->GetSourceNDofsPerElement()*weightMap->GetSourceNDofsPerElement() << "; weightMap->GetDestinationLocalNDofs() = " << weightMap->GetDestinationLocalNDofs()*weightMap->GetDestinationNDofsPerElement()*weightMap->GetDestinationNDofsPerElement() << ", " << tgtEnts.size() << "\n";
-    MPI_Barrier(pco_intx->comm());
-#endif
+    std::vector<double> solSTagVals(covSrcEnts.size()*weightMap->GetSourceNDofsPerElement()*weightMap->GetSourceNDofsPerElement(), -1.0);
+    std::vector<double> solTTagVals(tgtEnts.size()*weightMap->GetDestinationNDofsPerElement()*weightMap->GetDestinationNDofsPerElement(), -1.0);
 
     // The tag data is np*np*n_el_src
     rval = context.MBI->tag_get_data ( ssolnTag, covSrcEnts, &solSTagVals[0] );CHKERRVAL(rval);
@@ -2440,6 +2463,48 @@ ErrCode iMOAB_ApplyScalarProjectionWeights (   iMOAB_AppID pid_intersection,
 
     // The tag data is np*np*n_el_dest
     rval = context.MBI->tag_set_data ( tsolnTag, tgtEnts, &solTTagVals[0] );CHKERRVAL(rval);
+
+#ifdef VERBOSE
+    ParallelComm* pco_intx = context.pcomms[*pid_intersection];
+
+    {
+        std::stringstream sstr;
+        sstr << "covsrcTagData_" << pco_intx->rank() << ".txt";
+        std::ofstream output_file ( sstr.str() );
+        for (unsigned i=0; i < covSrcEnts.size(); ++i) {
+            EntityHandle elem = covSrcEnts[i];
+            std::vector<double> locsolSTagVals(16);
+            rval = context.MBI->tag_get_data ( ssolnTag, &elem, 1, &locsolSTagVals[0] );CHKERRVAL(rval);
+            output_file << "\n" << remapper->GetGlobalID(Remapper::CoveringMesh, i) << "-- \n\t";
+            for (unsigned j=0; j < 16; ++j)
+                output_file << locsolSTagVals[j] << " ";
+        }
+        output_file.flush(); // required here
+        output_file.close();
+    }
+    {
+        std::stringstream sstr;
+        sstr << "outputSrcDest_" << pco_intx->rank() << ".h5m";
+        EntityHandle sets[2] = {context.appDatas[*data_intx.pid_src].file_set, context.appDatas[*data_intx.pid_dest].file_set};
+        rval = context.MBI->write_file ( sstr.str().c_str(), NULL, "", sets, 2 ); MB_CHK_ERR ( rval );
+    }
+    {
+        std::stringstream sstr;
+        sstr << "outputCovSrcDest_" << pco_intx->rank() << ".h5m";
+        // EntityHandle sets[2] = {data_intx.file_set, data_intx.covering_set};
+        EntityHandle sets[2] = {data_intx.covering_set, context.appDatas[*data_intx.pid_dest].file_set};
+        rval = context.MBI->write_file ( sstr.str().c_str(), NULL, "", sets, 2 ); MB_CHK_ERR ( rval );
+    }
+    {
+        std::stringstream sstr;
+        sstr << "colvector_" << pco_intx->rank() << ".txt";
+        std::ofstream output_file ( sstr.str() );
+        for (unsigned i = 0; i < solSTagVals.size(); ++i)
+            output_file << i << " " << weightMap->col_dofmap[i] << " " << weightMap->col_gdofmap[i] << " " << solSTagVals[i] << "\n";
+        output_file.flush(); // required here
+        output_file.close();
+    }
+#endif
 
     return 0;
 }
