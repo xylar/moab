@@ -455,7 +455,8 @@ void moab::TempestOfflineMap::CopyTempestSparseMat_Eigen()
     std::ofstream output_file ( sstr.str(), std::ios::out );
     output_file << "0 " << locrows << " 0 " << loccols << "\n";
     for (unsigned iv=0; iv < locvals; iv++) {
-        output_file << tgt_soln_gdofs[lrows[iv]] << " " << src_soln_gdofs[lcols[iv]] << " " << lvals[iv] << "\n";
+        output_file << "\t" << row_gdofmap[row_ldofmap[lrows[iv]]] << " " << col_gdofmap[col_ldofmap[lcols[iv]]] << " " << lvals[iv] << "\n";
+        
     }
     output_file.flush(); // required here
     output_file.close();
@@ -800,7 +801,7 @@ moab::ErrorCode moab::TempestOfflineMap::ApplyWeights (std::vector<double>& srcV
             assert(m_colVector.size()-col_dofmap[i]>0);
             m_colVector(col_dofmap[i]) = srcVals[i]; // permute and set the row (source) vector properly
 #ifdef VERBOSE
-            output_file << "Col: " << i << ", " << col_dofmap[i] << ", GID: " << src_soln_gdofs[col_dofmap[i]] << ", Data = " << srcVals[i]  << ", " << m_colVector(col_dofmap[i]) << "\n";
+            output_file << "Col: " << i << ", " << col_dofmap[i] << ", GID: " << col_gdofmap[i] << ", Data = " << srcVals[i]  << ", " << m_colVector(col_dofmap[i]) << "\n";
 #endif
         }
         
@@ -813,7 +814,7 @@ moab::ErrorCode moab::TempestOfflineMap::ApplyWeights (std::vector<double>& srcV
         for (unsigned i=0; i < tgtVals.size(); ++i) {
             tgtVals[i] = m_rowVector(row_dofmap[i]); // permute and set the row (source) vector properly
 #ifdef VERBOSE
-            output_file << "Row: " << i << ", " << row_dofmap[i] << ", GID: " << tgt_soln_gdofs[row_dofmap[i]] << ", Data = " << m_rowVector(row_dofmap[i]) << "\n";
+            output_file << "Row: " << i << ", " << row_dofmap[i] << ", GID: " << row_gdofmap[i] << ", Data = " << m_rowVector(row_dofmap[i]) << "\n";
 #endif
         }
     }
