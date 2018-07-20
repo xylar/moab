@@ -455,7 +455,8 @@ void moab::TempestOfflineMap::CopyTempestSparseMat_Eigen()
     std::ofstream output_file ( sstr.str(), std::ios::out );
     output_file << "0 " << locrows << " 0 " << loccols << "\n";
     for (unsigned iv=0; iv < locvals; iv++) {
-        output_file << "\t" << row_gdofmap[row_ldofmap[lrows[iv]]] << " " << col_gdofmap[col_ldofmap[lcols[iv]]] << " " << lvals[iv] << "\n";
+        // output_file << lrows[iv] << " " << row_ldofmap[lrows[iv]] << " " << row_gdofmap[row_ldofmap[lrows[iv]]] << " " << col_gdofmap[col_ldofmap[lcols[iv]]] << " " << lvals[iv] << "\n";
+        output_file << row_gdofmap[row_ldofmap[lrows[iv]]]+1 << " " << col_gdofmap[col_ldofmap[lcols[iv]]]+1 << " " << lvals[iv] << "\n";
         
     }
     output_file.flush(); // required here
@@ -938,7 +939,6 @@ void moab::TempestOfflineMap::LinearRemapSE4_Tempest_MOAB (
             }
 
             nOverlapFaces++;
-            // nTotalOverlapTriangles += faceOverlap.edges.size() - 2;
         }
 
         // No overlaps
@@ -963,6 +963,9 @@ void moab::TempestOfflineMap::LinearRemapSE4_Tempest_MOAB (
 
             int nOverlapTriangles = faceOverlap.edges.size() - 2;
 
+#define USE_MININDEX
+
+#ifdef USE_MININDEX
             // first find out the minimum node, start there the triangle decomposition
             int minIndex = 0;
             int nnodes = faceOverlap.edges.size();
@@ -973,10 +976,12 @@ void moab::TempestOfflineMap::LinearRemapSE4_Tempest_MOAB (
                 minIndex = j1;
               }
             }
+#endif
 
             // Loop over all sub-triangles of this Overlap Face
             for ( int k = 0; k < nOverlapTriangles; k++ )
             {
+#ifdef USE_MININDEX
                 // Cornerpoints of triangle, they start at the minimal Node, for consistency
                 const Node & node0 = nodesOverlap[faceOverlap[minIndex]];
                 const Node & node1 = nodesOverlap[faceOverlap[(minIndex + k + 1)%nnodes]];
@@ -984,9 +989,21 @@ void moab::TempestOfflineMap::LinearRemapSE4_Tempest_MOAB (
 
                 // Calculate the area of the modified Face
                 Face faceTri ( 3 );
-                faceTri.SetNode ( 0, faceOverlap[0] );
-                faceTri.SetNode ( 1, faceOverlap[k + 1] );
-                faceTri.SetNode ( 2, faceOverlap[k + 2] );
+                faceTri.SetNode ( 0, faceOverlap[minIndex] );
+                faceTri.SetNode ( 1, faceOverlap[(minIndex + k + 1)%nnodes] );
+                faceTri.SetNode ( 2, faceOverlap[(minIndex + k + 2)%nnodes] );
+#else
+                // Cornerpoints of triangle
+                const Node & node0 = nodesOverlap[faceOverlap[0]];
+                const Node & node1 = nodesOverlap[faceOverlap[k+1]];
+                const Node & node2 = nodesOverlap[faceOverlap[k+2]];
+
+                // Calculate the area of the modified Face
+                Face faceTri(3);
+                faceTri.SetNode(0, faceOverlap[0]);
+                faceTri.SetNode(1, faceOverlap[k+1]);
+                faceTri.SetNode(2, faceOverlap[k+2]);
+#endif
 
                 double dTriangleArea =
                     CalculateFaceArea ( faceTri, nodesOverlap );
@@ -1067,6 +1084,12 @@ void moab::TempestOfflineMap::LinearRemapSE4_Tempest_MOAB (
         // Force consistency and conservation
         if ( !fNoConservation )
         {
+            double dTargetArea = 0.0;
+            for ( int j = 0; j < nOverlapFaces; j++ )
+            {
+                dTargetArea += m_meshOverlap->vecFaceArea[ixOverlap + j];
+            }
+
             for ( int p = 0; p < nP; p++ )
             {
                 for ( int q = 0; q < nP; q++ )
@@ -1075,21 +1098,15 @@ void moab::TempestOfflineMap::LinearRemapSE4_Tempest_MOAB (
                 }
             }
 
-            double dTargetArea = 0.0;
-            vecTargetArea.Initialize ( nOverlapFaces );
-            for ( int j = 0; j < nOverlapFaces; j++ )
+            // Source elements are completely covered by target volumes
+            if ( fabs ( m_meshInputCov->vecFaceArea[ixFirst] - dTargetArea ) <= 1.0e-10 )
             {
-                vecTargetArea[j] = m_meshOverlap->vecFaceArea[ixOverlap + j];
-                dTargetArea += m_meshOverlap->vecFaceArea[ixOverlap + j];
-            }
+                vecTargetArea.Initialize ( nOverlapFaces );
+                for ( int j = 0; j < nOverlapFaces; j++ )
+                {
+                    vecTargetArea[j] = m_meshOverlap->vecFaceArea[ixOverlap + j];
+                }
 
-#ifdef VERBOSE
-            // if ( fabs ( dTargetArea - m_meshInputCov->vecFaceArea[ixFirst] ) > 1.0e-10 )
-            // {
-            //     Announce ( "TempestOfflineMap: Partial element: %i, areas = %f percent", ixFirst, 100 * dTargetArea / m_meshInputCov->vecFaceArea[ixFirst] );
-            // }
-#endif
-            {
                 dCoeff.Initialize ( nOverlapFaces, nP * nP );
 
                 for ( int j = 0; j < nOverlapFaces; j++ )
@@ -1097,22 +1114,94 @@ void moab::TempestOfflineMap::LinearRemapSE4_Tempest_MOAB (
                     for ( int p = 0; p < nP; p++ )
                     {
                         for ( int q = 0; q < nP; q++ )
+                        {
                             dCoeff[j][p * nP + q] = dRemapCoeff[p][q][j];
+                        }
                     }
                 }
 
-                ForceConsistencyConservation3 (
-                    vecSourceArea,
-                    vecTargetArea,
-                    dCoeff,
-                    ( nMonotoneType != 0 ) );
+                // Target volumes only partially cover source elements
+            }
+            else if ( m_meshInputCov->vecFaceArea[ixFirst] - dTargetArea > 1.0e-10 )
+            {
+                double dExtraneousArea = m_meshInputCov->vecFaceArea[ixFirst] - dTargetArea;
+
+                vecTargetArea.Initialize ( nOverlapFaces + 1 );
+                for ( int j = 0; j < nOverlapFaces; j++ )
+                {
+                    vecTargetArea[j] = m_meshOverlap->vecFaceArea[ixOverlap + j];
+                }
+                vecTargetArea[nOverlapFaces] = dExtraneousArea;
+
+#ifdef VERBOSE
+                Announce ( "Partial volume: %i (%1.10e / %1.10e)",
+                           ixFirst, dTargetArea, m_meshInputCov->vecFaceArea[ixFirst] );
+#endif
+                if ( dTargetArea > m_meshInputCov->vecFaceArea[ixFirst] )
+                {
+                    _EXCEPTIONT ( "Partial element area exceeds total element area" );
+                }
+
+                dCoeff.Initialize ( nOverlapFaces + 1, nP * nP );
 
                 for ( int j = 0; j < nOverlapFaces; j++ )
                 {
                     for ( int p = 0; p < nP; p++ )
                     {
                         for ( int q = 0; q < nP; q++ )
-                            dRemapCoeff[p][q][j] = dCoeff[j][p * nP + q];
+                        {
+                            dCoeff[j][p * nP + q] = dRemapCoeff[p][q][j];
+                        }
+                    }
+                }
+                for ( int p = 0; p < nP; p++ )
+                {
+                    for ( int q = 0; q < nP; q++ )
+                    {
+                        dCoeff[nOverlapFaces][p * nP + q] =
+                            dataGLLJacobian[p][q][ixFirst];
+                    }
+                }
+                for ( int j = 0; j < nOverlapFaces; j++ )
+                {
+                    for ( int p = 0; p < nP; p++ )
+                    {
+                        for ( int q = 0; q < nP; q++ )
+                        {
+                            dCoeff[nOverlapFaces][p * nP + q] -=
+                                dRemapCoeff[p][q][j]
+                                * m_meshOverlap->vecFaceArea[ixOverlap + j];
+                        }
+                    }
+                }
+                for ( int p = 0; p < nP; p++ )
+                {
+                    for ( int q = 0; q < nP; q++ )
+                    {
+                        dCoeff[nOverlapFaces][p * nP + q] /= dExtraneousArea;
+                    }
+                }
+
+                // Source elements only partially cover target volumes
+            }
+            else
+            {
+                _EXCEPTIONT ( "Target grid must be a subset of source grid" );
+            }
+
+            ForceConsistencyConservation3 (
+                vecSourceArea,
+                vecTargetArea,
+                dCoeff,
+                ( nMonotoneType != 0 ) );
+
+            for ( int j = 0; j < nOverlapFaces; j++ )
+            {
+                for ( int p = 0; p < nP; p++ )
+                {
+                    for ( int q = 0; q < nP; q++ )
+                    {
+                        dRemapCoeff[p][q][j] = dCoeff[j][p * nP + q];
                     }
                 }
             }
