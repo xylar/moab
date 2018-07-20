@@ -1098,8 +1098,9 @@ void moab::TempestOfflineMap::LinearRemapSE4_Tempest_MOAB (
                 }
             }
 
+            const double areaTolerance = 1e-10;
             // Source elements are completely covered by target volumes
-            if ( fabs ( m_meshInputCov->vecFaceArea[ixFirst] - dTargetArea ) <= 1.0e-10 )
+            if ( fabs ( m_meshInputCov->vecFaceArea[ixFirst] - dTargetArea ) <= areaTolerance )
             {
                 vecTargetArea.Initialize ( nOverlapFaces );
                 for ( int j = 0; j < nOverlapFaces; j++ )
@@ -1122,7 +1123,7 @@ void moab::TempestOfflineMap::LinearRemapSE4_Tempest_MOAB (
 
                 // Target volumes only partially cover source elements
             }
-            else if ( m_meshInputCov->vecFaceArea[ixFirst] - dTargetArea > 1.0e-10 )
+            else if ( m_meshInputCov->vecFaceArea[ixFirst] - dTargetArea > areaTolerance )
             {
                 double dExtraneousArea = m_meshInputCov->vecFaceArea[ixFirst] - dTargetArea;
 
@@ -1186,6 +1187,8 @@ void moab::TempestOfflineMap::LinearRemapSE4_Tempest_MOAB (
             }
             else
             {
+                Announce ( "Coverage area: %1.10e, and target element area: %1.10e)",
+                           ixFirst, m_meshInputCov->vecFaceArea[ixFirst], dTargetArea );
                 _EXCEPTIONT ( "Target grid must be a subset of source grid" );
             }
 
