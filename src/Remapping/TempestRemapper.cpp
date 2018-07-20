@@ -338,23 +338,13 @@ ErrorCode TempestRemapper::ConvertMOABMeshToTempest_Private ( Mesh* mesh, Entity
         Face& face = faces[iface];
         EntityHandle ehandle = elems[iface];
 
-        // compute the number of edges per faces
-        std::vector< EntityHandle > face_edges;
-        rval = m_interface->get_adjacencies ( &ehandle, 1, 1, true, face_edges ); MB_CHK_ERR ( rval );
-        face.edges.resize ( face_edges.size() );
-
         // get the connectivity for each edge
         const EntityHandle* connectface;
         int nnodesf;
         rval = m_interface->get_connectivity ( ehandle, connectface, nnodesf ); MB_CHK_ERR ( rval );
 
-        // Can be untrue for polygonal elements with mixed pentagons and hexagons
-        // int nvtx;
-        // if (face_edges.size() - nnodesf != 0) {
-        //  nvtx = face_edges.size();
-        // }
-
-        for ( size_t iverts = 0; iverts < face_edges.size(); ++iverts )
+        face.edges.resize ( nnodesf );
+        for ( size_t iverts = 0; iverts < nnodesf; ++iverts )
         {
             int indx = verts.index ( connectface[iverts] );
             assert ( indx >= 0 );
@@ -364,14 +354,6 @@ ErrorCode TempestRemapper::ConvertMOABMeshToTempest_Private ( Mesh* mesh, Entity
 
     unsigned nnodes = verts.size();
     nodes.resize ( nnodes );
-
-    Tag tmp_mb_loc_tag;
-    int locid_def = -1;
-    rval = m_interface->tag_get_handle ( "TEMPEST_MOAB_LOCALID", 1, MB_TYPE_INTEGER, tmp_mb_loc_tag, MB_TAG_DENSE | MB_TAG_CREAT, &locid_def ); MB_CHK_ERR ( rval );
-
-    std::vector<int> loc_id ( nnodes );
-    rval = m_interface->tag_get_data ( tmp_mb_loc_tag, verts, &loc_id[0] ); MB_CHK_ERR ( rval );
-    loc_id.clear();
 
     // Set the data for the vertices
     std::vector<double> coordx ( nnodes ), coordy ( nnodes ), coordz ( nnodes );
@@ -395,7 +377,11 @@ ErrorCode TempestRemapper::ConvertMOABMeshToTempest_Private ( Mesh* mesh, Entity
     if ( constructEdgeMap ) mesh->ConstructEdgeMap();
     mesh->ConstructReverseNodeArray();
 
-    mesh->Validate();
+    // moab::Range face_edges_all;
+    // rval = m_interface->get_adjacencies ( elems, 1, false, face_edges_all, moab::Interface::UNION); MB_CHK_ERR ( rval );
+    // rval = m_interface->delete_entities(face_edges_all);MB_CHK_ERR(rval);
+
+    // mesh->Validate();
     return MB_SUCCESS;
 }
 
@@ -413,6 +399,7 @@ ErrorCode TempestRemapper::ConvertMOABMesh_WithSortedEntitiesBySource()
 {
     ErrorCode rval;
 
+    m_overlap_entities.clear();
     rval = m_interface->get_entities_by_dimension ( m_overlap_set, 2, m_overlap_entities ); MB_CHK_ERR ( rval );
 
     // Allocate for the overlap mesh
@@ -427,8 +414,6 @@ ErrorCode TempestRemapper::ConvertMOABMesh_WithSortedEntitiesBySource()
         // Overlap mesh: resize the source and target connection arrays
         m_overlap->vecSourceFaceIx.resize ( m_overlap_entities.size() );
         m_overlap->vecTargetFaceIx.resize ( m_overlap_entities.size() );
-
-        m_covering_overlap_flag.resize(m_covering_source_entities.size(), false);
 
         // Overlap mesh: resize the source and target connection arrays
         std::vector<int> rbids_src ( m_overlap_entities.size() ), rbids_tgt ( m_overlap_entities.size() );
@@ -454,29 +439,9 @@ ErrorCode TempestRemapper::ConvertMOABMesh_WithSortedEntitiesBySource()
     FaceVector& faces = m_overlap->faces;
     faces.resize ( m_overlap_entities.size() );
 
-    NodeVector& nodes = m_overlap->nodes;
     Range verts;
-    for ( unsigned ifac = 0; ifac < m_overlap_entities.size(); ++ifac )
-    {
-        const unsigned iface = sorted_overlap_order[ifac].second;
-
-        // get the connectivity for each edge
-        const EntityHandle* connectface;
-        int nnodesf;
-        rval = m_interface->get_connectivity ( m_overlap_entities[iface], connectface, nnodesf ); MB_CHK_ERR ( rval );
-
-        for ( int iverts = 0; iverts < nnodesf; ++iverts )
-        {
-            if ( verts.index ( connectface[iverts] ) < 0 )
-                verts.insert ( connectface[iverts] );
-        }
-    }
-
-      // compute the number of edges per faces
-    moab::Range face_edges_exist, face_edges_all, face_edges_noexist;
-    rval = m_interface->get_adjacencies ( m_overlap_entities, 1, false, face_edges_exist, moab::Interface::UNION); MB_CHK_ERR ( rval );
-    rval = m_interface->get_adjacencies ( m_overlap_entities, 1, true, face_edges_all, moab::Interface::UNION); MB_CHK_ERR ( rval );
-    face_edges_noexist = subtract(face_edges_all, face_edges_exist);
+    // let us now get the vertices from all the elements
+    rval = m_interface->get_connectivity ( m_overlap_entities, verts ); MB_CHK_ERR ( rval );
 
     for ( unsigned ifac = 0; ifac < m_overlap_entities.size(); ++ifac )
     {
@@ -484,19 +449,12 @@ ErrorCode TempestRemapper::ConvertMOABMesh_WithSortedEntitiesBySource()
         Face& face = faces[ifac];
         EntityHandle ehandle = m_overlap_entities[iface];
 
-        // compute the number of edges per faces
-        std::vector< EntityHandle > face_edges;
-        rval = m_interface->get_adjacencies ( &ehandle, 1, 1, false, face_edges ); MB_CHK_ERR ( rval );
-        face.edges.resize ( face_edges.size() );
-
         // get the connectivity for each edge
         const EntityHandle* connectface;
         int nnodesf;
         rval = m_interface->get_connectivity ( ehandle, connectface, nnodesf ); MB_CHK_ERR ( rval );
 
-        // Can be untrue for polygonal elements with mixed pentagons and hexagons
-        // assert(face_edges.size() - nnodesf == 0);
-
+        face.edges.resize ( nnodesf );
         for ( int iverts = 0; iverts < nnodesf; ++iverts )
         {
             int indx = verts.index ( connectface[iverts] );
@@ -505,19 +463,9 @@ ErrorCode TempestRemapper::ConvertMOABMesh_WithSortedEntitiesBySource()
         }
     }
 
-    rval = m_interface->delete_entities(face_edges_noexist);MB_CHK_ERR(rval);
-    // rval = m_interface->add_entities(m_overlap_set,face_edges_noexist);MB_CHK_ERR(rval);
-
     unsigned nnodes = verts.size();
+    NodeVector& nodes = m_overlap->nodes;
     nodes.resize ( nnodes );
-
-    Tag tmp_mb_loc_tag;
-    int locid_def = -1;
-    rval = m_interface->tag_get_handle ( "TEMPEST_MOAB_LOCALID", 1, MB_TYPE_INTEGER, tmp_mb_loc_tag, MB_TAG_DENSE | MB_TAG_CREAT, &locid_def ); MB_CHK_ERR ( rval );
-
-    std::vector<int> loc_id ( nnodes );
-    rval = m_interface->tag_get_data ( tmp_mb_loc_tag, verts, &loc_id[0] ); MB_CHK_ERR ( rval );
-    loc_id.clear();
 
     // Set the data for the vertices
     std::vector<double> coordx ( nnodes ), coordy ( nnodes ), coordz ( nnodes );
@@ -614,9 +562,6 @@ ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius_
 
         rval = m_interface->create_meshset ( moab::MESHSET_SET, m_covering_source_set ); MB_CHK_SET_ERR ( rval, "Can't create new set" );
         rval = mbintx->construct_covering_set ( m_source_set, m_covering_source_set ); MB_CHK_ERR ( rval );
-
-        // m_covering_source = new Mesh();
-        // rval = ConvertMOABMeshToTempest_Private ( m_covering_source, m_covering_source_set, m_covering_source_entities ); MB_CHK_SET_ERR ( rval, "Can't convert source Tempest mesh" );
     }
     else
     {
@@ -657,7 +602,6 @@ ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius_
             // because we do not want to work with elements in coverage set that do not participate in intersection,
             // remove them from the coverage set
             // we will not delete them yet, just remove from the set !
-            // rval = this->AssociateSrcTargetInOverlap();MB_CHK_ERR(rval);
             {
                 Range covEnts;
                 rval = m_interface->get_entities_by_dimension ( m_covering_source_set, 2, covEnts ); MB_CHK_ERR ( rval );
@@ -696,7 +640,6 @@ ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius_
                 std::cout << " remove from coverage set elements that are not intersected: " << notNeededCovCells.size() << "\n";
 #endif
             }
-
 
             m_covering_source = new Mesh();
             rval = ConvertMOABMeshToTempest_Private ( m_covering_source, m_covering_source_set, m_covering_source_entities ); MB_CHK_SET_ERR ( rval, "Can't convert source Tempest mesh" );

@@ -27,7 +27,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
-#define VERBOSE
+// #define VERBOSE
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -325,7 +325,7 @@ moab::ErrorCode moab::TempestOfflineMap::SetDofMapAssociation(DiscretizationType
     col_dofmap.resize (m_remapper->m_covering_source_entities.size() * m_nDofsPEl_Src * m_nDofsPEl_Src, ULONG_MAX);
     col_ldofmap.resize (m_remapper->m_covering_source_entities.size() * m_nDofsPEl_Src * m_nDofsPEl_Src, ULONG_MAX);
     col_gdofmap.resize (m_remapper->m_covering_source_entities.size() * m_nDofsPEl_Src * m_nDofsPEl_Src, ULONG_MAX);
-    src_soln_gdofs.resize(m_remapper->m_covering_source_entities.size()*m_nDofsPEl_Src*m_nDofsPEl_Src, -1);
+    src_soln_gdofs.resize(m_remapper->m_covering_source_entities.size()*m_nDofsPEl_Src*m_nDofsPEl_Src, INT_MAX);
     rval = mbCore->tag_get_data ( m_dofTagSrc, m_remapper->m_covering_source_entities, &src_soln_gdofs[0] );MB_CHK_ERR(rval);
     m_nTotDofs_SrcCov = 0;
     if (srcdataGLLNodes == NULL || srcType == DiscretizationType_FV) { /* we only have a mapping for elements as DoFs */
@@ -339,7 +339,6 @@ moab::ErrorCode moab::TempestOfflineMap::SetDofMapAssociation(DiscretizationType
     }
     else {
         if (isSrcContinuous) dgll_cgll_covcol_ldofmap.resize (m_remapper->m_covering_source_entities.size() * m_nDofsPEl_Src * m_nDofsPEl_Src, false);
-        int maxv = -1;
         // Put these remap coefficients into the SparseMatrix map
         for ( unsigned j = 0; j < m_remapper->m_covering_source_entities.size(); j++ )
         {
@@ -356,22 +355,18 @@ moab::ErrorCode moab::TempestOfflineMap::SetDofMapAssociation(DiscretizationType
                     if ( !isSrcContinuous ) m_nTotDofs_SrcCov++;
                     col_dofmap[ idof ] = ldof;
                     col_ldofmap[ ldof ] = idof;
-                    if (vprint) std::cout << "Col: " << m_remapper->lid_to_gid_covsrc[j] << ", " <<  idof << ", " << ldof << ", " << src_soln_gdofs[idof]-1 << ", " << m_nTotDofs_SrcCov << "\n";
                     assert(src_soln_gdofs[idof] > 0);
                     col_gdofmap[ idof ] = src_soln_gdofs[idof] - 1;
-                    // col_gdofmap[ ldof ] = src_soln_gdofs[idof] - 1;
-
-                    maxv = (src_soln_gdofs[idof] > maxv) ? src_soln_gdofs[idof] : maxv;
+                    if (vprint) std::cout << "Col: " << m_remapper->lid_to_gid_covsrc[j] << ", " <<  idof << ", " << ldof << ", " << col_gdofmap[idof] << ", " << m_nTotDofs_SrcCov << "\n";
                 }
             }
         }
-        std::cout << pcomm->rank() << " max value in gdof space: " << maxv << std::endl;
     }
 
     srccol_dofmap.resize (m_remapper->m_source_entities.size() * m_nDofsPEl_Src * m_nDofsPEl_Src, ULONG_MAX);
     srccol_ldofmap.resize (m_remapper->m_source_entities.size() * m_nDofsPEl_Src * m_nDofsPEl_Src, ULONG_MAX);
     srccol_gdofmap.resize (m_remapper->m_source_entities.size() * m_nDofsPEl_Src * m_nDofsPEl_Src, ULONG_MAX);
-    locsrc_soln_gdofs.resize(m_remapper->m_source_entities.size()*m_nDofsPEl_Src*m_nDofsPEl_Src);
+    locsrc_soln_gdofs.resize(m_remapper->m_source_entities.size()*m_nDofsPEl_Src*m_nDofsPEl_Src, INT_MAX);
     rval = mbCore->tag_get_data ( m_dofTagSrc, m_remapper->m_source_entities, &locsrc_soln_gdofs[0] );MB_CHK_ERR(rval);
     
     // Now compute the mapping and store it for the original source mesh
@@ -411,7 +406,7 @@ moab::ErrorCode moab::TempestOfflineMap::SetDofMapAssociation(DiscretizationType
     row_dofmap.resize (m_remapper->m_target_entities.size() * m_nDofsPEl_Dest * m_nDofsPEl_Dest, ULONG_MAX);
     row_ldofmap.resize (m_remapper->m_target_entities.size() * m_nDofsPEl_Dest * m_nDofsPEl_Dest, ULONG_MAX);
     row_gdofmap.resize (m_remapper->m_target_entities.size() * m_nDofsPEl_Dest * m_nDofsPEl_Dest, ULONG_MAX);
-    tgt_soln_gdofs.resize(m_remapper->m_target_entities.size()*m_nDofsPEl_Dest*m_nDofsPEl_Dest);
+    tgt_soln_gdofs.resize(m_remapper->m_target_entities.size()*m_nDofsPEl_Dest*m_nDofsPEl_Dest, INT_MAX);
     rval = mbCore->tag_get_data ( m_dofTagDest, m_remapper->m_target_entities, &tgt_soln_gdofs[0] );MB_CHK_ERR(rval);
 
     // Now compute the mapping and store it for the target mesh
@@ -421,7 +416,7 @@ moab::ErrorCode moab::TempestOfflineMap::SetDofMapAssociation(DiscretizationType
             row_dofmap[i] = i;
             row_ldofmap[i] = i;
             row_gdofmap[i] = tgt_soln_gdofs[i];
-            if (vprint) std::cout << "Row: " << m_remapper->lid_to_gid_tgt[i] << ", " <<  i << ", " << tgt_soln_gdofs[i] << "\n";
+            // if (vprint) std::cout << "Row: " << m_remapper->lid_to_gid_tgt[i] << ", " <<  i << ", " << row_dofmap[i] << ", " << row_ldofmap[i] << ", " << tgt_soln_gdofs[i] << ", " << row_gdofmap[i] << "\n";
             m_nTotDofs_Dest++;
         }
     }
