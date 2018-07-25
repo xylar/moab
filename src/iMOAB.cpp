@@ -2118,7 +2118,7 @@ ErrCode iMOAB_ComputeMeshIntersectionOnSphere ( iMOAB_AppID pid_src, iMOAB_AppID
 
     double radius_source=1.0;
     double radius_target=1.0;
-    const double epsrel=1e-13;
+    const double epsrel=1e-15;
     const double boxeps=1.e-3;
 
     // Get the source and target data and pcomm objects
@@ -2390,7 +2390,7 @@ ErrCode iMOAB_ComputeScalarProjectionWeights ( iMOAB_AppID pid_intx,
 	// Additionally, the call below will also compute weights with TempestRemap
 	rval = weightMap->GenerateOfflineMap ( std::string(disc_method_source), std::string(disc_method_target),        // std::string strInputType, std::string strOutputType,
 										   (*disc_order_source), (*disc_order_target),    // const int nPin, const int nPout,
-                                           false, 1,            // bool fBubble=false, int fMonotoneTypeID=0,
+                                           true, 0,            // bool fBubble=false, int fMonotoneTypeID=0,
 										   (fVolumetric ? *fVolumetric > 0 : false),  // bool fVolumetric=false, 
                                            (fNoConservation ? *fNoConservation > 0 : false), // bool fNoConservation=false, 
                                            false, // bool fNoCheck=false,

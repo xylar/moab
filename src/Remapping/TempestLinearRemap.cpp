@@ -22,6 +22,10 @@
 
 #include "netcdfcpp.h"
 
+#ifdef MOAB_HAVE_EIGEN
+#include <Eigen/Dense>
+#endif
+
 #include <fstream>
 #include <cmath>
 #include <cstdlib>
@@ -456,7 +460,7 @@ void moab::TempestOfflineMap::CopyTempestSparseMat_Eigen()
     output_file << "0 " << locrows << " 0 " << loccols << "\n";
     for (unsigned iv=0; iv < locvals; iv++) {
         // output_file << lrows[iv] << " " << row_ldofmap[lrows[iv]] << " " << row_gdofmap[row_ldofmap[lrows[iv]]] << " " << col_gdofmap[col_ldofmap[lcols[iv]]] << " " << lvals[iv] << "\n";
-        output_file << row_gdofmap[row_ldofmap[lrows[iv]]]+1 << " " << col_gdofmap[col_ldofmap[lcols[iv]]]+1 << " " << lvals[iv] << "\n";
+        output_file << row_gdofmap[row_ldofmap[lrows[iv]]] << " " << col_gdofmap[col_ldofmap[lcols[iv]]] << " " << lvals[iv] << "\n";
         
     }
     output_file.flush(); // required here
@@ -831,14 +835,212 @@ moab::ErrorCode moab::TempestOfflineMap::ApplyWeights (std::vector<double>& srcV
 
 #endif
 
+
 ///////////////////////////////////////////////////////////////////////////////
 
-extern void ForceConsistencyConservation3 (
+extern void ForceConsistencyConservation3(
     const DataVector<double> & vecSourceArea,
     const DataVector<double> & vecTargetArea,
     DataMatrix<double> & dCoeff,
     bool fMonotone
 );
+
+void ForceConsistencyConservation3_MOAB1(
+    const DataVector<double> & vecSourceArea,
+    const DataVector<double> & vecTargetArea,
+    DataMatrix<double> & dCoeff,
+    bool fMonotone,
+    int elemID
+) {
+    ForceConsistencyConservation3(
+    vecSourceArea,
+    vecTargetArea,
+    dCoeff,
+    fMonotone
+    );
+}
+
+void ForceConsistencyConservation3_MOAB(
+    const DataVector<double> & vecSourceArea,
+    const DataVector<double> & vecTargetArea,
+    DataMatrix<double> & dCoeff,
+    bool fMonotone,
+    int elemID
+) {
+    // Number of conditions
+    const int nCondConservation = dCoeff.GetColumns();
+    const int nCondConsistency  = dCoeff.GetRows();
+
+    // Number of free coefficients
+    const int nCoeff = nCondConsistency * nCondConservation;
+
+    // One condition is dropped due to linear dependence
+    const int nCond = nCondConservation + nCondConsistency - 1;
+
+    // Product matrix
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> dCCt(nCond, nCond);
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> dC(nCoeff, nCond);
+    dCCt.setZero();
+    dC.setZero();
+
+    Eigen::VectorXd dRHS(nCoeff);
+    Eigen::VectorXd dRHSC(nCond);
+
+    // RHS
+    int ix = 0;
+    for ( int i = 0; i < nCondConsistency; i++ )
+    {
+        for ( int j = 0; j < nCondConservation; j++)
+        {
+            dRHS(ix++) = dCoeff[i][j];
+        }
+    }
+
+    // Consistency
+    ix = 0;
+    for ( int i = 0; i < nCondConsistency; i++ )
+    {
+        for ( int j = 0; j < nCondConservation; j++ )
+        {
+            dC(i * nCondConservation + j, ix) = 1.0;
+        }
+        dRHSC(ix++) = 1.0;
+    }
+
+    // Conservation
+    for ( int j = 0; j < nCondConservation - 1; j++ )
+    {
+        for ( int i = 0; i < nCondConsistency; i++ )
+        {
+            dC(i * nCondConservation + j, ix) = vecTargetArea[i];
+        }
+        dRHSC(ix++) = vecSourceArea[j];
+    }
+
+    // Calculate CCt
+    double dP = 0.0;
+    for ( int i = 0; i < nCondConsistency; i++ )
+        dP += vecTargetArea[i] * vecTargetArea[i];
+
+    for ( int i = 0; i < nCondConsistency; i++ )
+    {
+        dCCt(i, i) = static_cast<double> ( nCondConservation );
+        for ( int j = 0; j < nCondConservation - 1; j++ )
+        {
+            dCCt(i, nCondConsistency + j) = vecTargetArea[i];
+            dCCt(nCondConsistency + j, i) = vecTargetArea[i];
+        }
+    }
+
+    for (int i = 0; i < nCondConservation-1; i++) {
+        dCCt(nCondConsistency + i, nCondConsistency + i) = dP;
+    }
+/*
+    for (int i = 0; i < nCond; i++) {
+    for (int j = 0; j < nCond; j++) {
+        for (int k = 0; k < nCoeff; k++) {
+            dCCt[i][j] += dC[k][i] * dC[k][j];
+        }
+    }
+    }
+*/
+
+    if (elemID == 504) {
+        std::cout << "ELEM(504): nCondConsistency = " << nCondConsistency << " and nCondConservation = " << nCondConservation << "\n";
+        FILE * fp1 = fopen("cc.dat", "w");
+        for (int i = 0; i < nCoeff; i++) {
+            for (int j = 0; j < nCond; j++) {
+                fprintf(fp1, "%1.15e\t", dC(i, j));
+            }
+            fprintf(fp1, "\n");
+        }
+        fclose(fp1);
+
+        FILE * fp2 = fopen("cct.dat", "w");
+        for (int i = 0; i < nCond; i++) {
+            for (int j = 0; j < nCond; j++) {
+                fprintf(fp2, "%1.15e\t", dCCt(i, j));
+            }
+            fprintf(fp2, "\n");
+        }
+        fclose(fp2);
+    }
+    
+    // // Calculate C*r1 - r2
+    Eigen::VectorXd dTmpRHS = dC.transpose() * dRHS - dRHSC;
+
+    // Solve the general system
+    Eigen::VectorXd xRHS = dCCt.llt().solve((dTmpRHS));
+
+    // Obtain coefficients
+    dRHS -= dC * xRHS;
+
+    // Store coefficients in array
+    ix = 0;
+    for ( int i = 0; i < nCondConsistency; i++ )
+    {
+        for ( int j = 0; j < nCondConservation; j++ )
+        {
+            dCoeff[i][j] = dRHS ( ix );
+            ix++;
+        }
+    }
+
+    // Force monotonicity
+    if ( fMonotone )
+    {
+        // Calculate total element Jacobian
+        double dTotalJacobian = 0.0;
+        for ( unsigned i = 0; i < vecSourceArea.GetRows(); i++ )
+        {
+            dTotalJacobian += vecSourceArea[i];
+        }
+
+        // Determine low-order remap coefficients
+        DataMatrix<double> dMonoCoeff;
+        dMonoCoeff.Initialize ( nCondConsistency, nCondConservation );
+
+        for ( int i = 0; i < nCondConsistency; i++ )
+        {
+            for ( int j = 0; j < nCondConservation; j++ )
+            {
+                dMonoCoeff[i][j] =
+                    vecSourceArea[j]
+                    / dTotalJacobian;
+            }
+        }
+
+        // Compute scaling factor
+        double dA = 0.0;
+        for ( int i = 0; i < nCondConsistency; i++ )
+        {
+            for ( int j = 0; j < nCondConservation; j++ )
+            {
+                if ( dCoeff[i][j] < 0.0 )
+                {
+                    double dNewA =
+                        - dCoeff[i][j] / fabs ( dMonoCoeff[i][j] - dCoeff[i][j] );
+
+                    if ( dNewA > dA )
+                    {
+                        dA = dNewA;
+                    }
+                }
+            }
+        }
+
+        for ( int i = 0; i < nCondConsistency; i++ )
+        {
+            for ( int j = 0; j < nCondConservation; j++ )
+            {
+                dCoeff[i][j] = ( 1.0 - dA ) * dCoeff[i][j] + dA * dMonoCoeff[i][j];
+            }
+        }
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 
 extern void ForceIntArrayConsistencyConservation (
     const DataVector<double> & vecSourceArea,
@@ -902,6 +1104,10 @@ void moab::TempestOfflineMap::LinearRemapSE4_Tempest_MOAB (
 
     DataMatrix<double> dCoeff;
 
+    std::stringstream sstr;
+    sstr << "remapdata_" << this->pcomm->rank() << ".txt";
+    std::ofstream output_file ( sstr.str() );
+
     // Current Overlap Face
     int ixOverlap = 0;
     const unsigned outputFrequency = (m_meshInputCov->faces.size()/10);
@@ -957,13 +1163,13 @@ void moab::TempestOfflineMap::LinearRemapSE4_Tempest_MOAB (
             const Face & faceOverlap = m_meshOverlap->faces[ixOverlap + j];
 
 // #ifdef VERBOSE
-//             if ( pcomm->rank() )
-                // Announce ( "\tLocal ID: %i/%i = %i, areas = %2.8e", j + ixOverlap, nOverlapFaces, m_meshOverlap->vecSourceFaceIx[ixOverlap + j], m_meshOverlap->vecFaceArea[ixOverlap + j] );
+            // if ( !pcomm->rank() )
+            //     Announce ( "\tLocal ID: %i/%i = %i, areas = %2.8e", j + ixOverlap, nOverlapFaces, m_remapper->lid_to_gid_covsrc[m_meshOverlap->vecSourceFaceIx[ixOverlap + j]], m_meshOverlap->vecFaceArea[ixOverlap + j] );
 // #endif
 
             int nOverlapTriangles = faceOverlap.edges.size() - 2;
 
-#define USE_MININDEX
+// #define USE_MININDEX
 
 #ifdef USE_MININDEX
             // first find out the minimum node, start there the triangle decomposition
@@ -1081,6 +1287,19 @@ void moab::TempestOfflineMap::LinearRemapSE4_Tempest_MOAB (
             }
         }
 
+        output_file << "[" << m_remapper->lid_to_gid_covsrc[ixFirst] << "] \t";
+        for ( int j = 0; j < nOverlapFaces; j++ )
+        {
+            for ( int p = 0; p < nP; p++ )
+            {
+                for ( int q = 0; q < nP; q++ )
+                {
+                    output_file << dRemapCoeff[p][q][j] << " ";
+                }
+            }
+        }
+        output_file << std::endl;
+
         // Force consistency and conservation
         if ( !fNoConservation )
         {
@@ -1192,11 +1411,12 @@ void moab::TempestOfflineMap::LinearRemapSE4_Tempest_MOAB (
                 _EXCEPTIONT ( "Target grid must be a subset of source grid" );
             }
 
-            ForceConsistencyConservation3 (
+            ForceConsistencyConservation3_MOAB (
                 vecSourceArea,
                 vecTargetArea,
                 dCoeff,
-                ( nMonotoneType != 0 ) );
+                ( nMonotoneType > 0 ),
+                m_remapper->lid_to_gid_covsrc[ixFirst] );
 
             for ( int j = 0; j < nOverlapFaces; j++ )
             {
@@ -1209,6 +1429,20 @@ void moab::TempestOfflineMap::LinearRemapSE4_Tempest_MOAB (
                 }
             }
         }
+
+        // output_file << "[" << m_remapper->lid_to_gid_covsrc[ixFirst] << "] \t";
+        // for ( int j = 0; j < nOverlapFaces; j++ )
+        // {
+        //     for ( int p = 0; p < nP; p++ )
+        //     {
+        //         for ( int q = 0; q < nP; q++ )
+        //         {
+        //             output_file << dRemapCoeff[p][q][j] << " ";
+        //         }
+        //     }
+        // }
+        // output_file << std::endl;
+        
 
         // Put these remap coefficients into the SparseMatrix map
         for ( int j = 0; j < nOverlapFaces; j++ )
@@ -1243,6 +1477,8 @@ void moab::TempestOfflineMap::LinearRemapSE4_Tempest_MOAB (
         // Increment the current overlap index
         ixOverlap += nOverlapFaces;
     }
+    output_file.flush(); // required here
+    output_file.close();
 
     return;
 }
