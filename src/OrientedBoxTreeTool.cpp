@@ -468,7 +468,6 @@ ErrorCode OrientedBoxTreeTool::delete_tree( EntityHandle set )
 
 ErrorCode OrientedBoxTreeTool::remove_root( EntityHandle root )
 {
-
   std::vector<EntityHandle>::iterator i = find(createdTrees.begin(), createdTrees.end(), root);
   if( i != createdTrees.end()){
     createdTrees.erase(i);

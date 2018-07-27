@@ -47,8 +47,6 @@ ErrorCode test_root_sets_resize(Interface *mb);
 
 ErrorCode test_delete_obb_tree(Interface *mb);
 
-ErrorCode test_load_obb_tree(Interface *mb, Interface *mb2);
-
 void handle_error_code(ErrorCode rv, int &number_failed, int &number_successful)
 {
   if (rv == MB_SUCCESS) {
@@ -155,14 +153,6 @@ int main(int argc, char *argv[])
   delete mb3;
   std::cout << "\n";
   
-  std::cout << "test_load_obb_tree: ";
-  Interface* mb4 = new Core();
-  Interface* mb5= new Core();
-  rval = test_load_obb_tree(mb4, mb5);
-  handle_error_code(rval, number_tests_failed, number_tests_successful);
-  delete mb4;
-  delete mb5;
-  std::cout << "\n";
   return number_tests_failed;
 }
 ErrorCode geometrize_test(Interface * mb, EntityHandle inputSet)
@@ -558,14 +548,14 @@ ErrorCode test_root_sets_resize(Interface *mb) {
 				 
 ErrorCode test_delete_obb_tree(Interface *mb){
 
-  // load the test file
+  // Load the test file
   ErrorCode rval = mb->load_file(filename2.c_str());
   MB_CHK_SET_ERR(rval, "Failed to load input file");
 
-  // create a GTT with all default settings
+  // Create a GTT with all default settings
   moab::GeomTopoTool* gTopoTool = new GeomTopoTool(mb);
 
-  //Get all volumes and surfaces
+  // Get all volumes and surfaces
   Range vols, surfs;
   rval = gTopoTool->get_gsets_by_dimension(3, vols);
   MB_CHK_SET_ERR(rval, "Failed to get volume gsets");
@@ -578,7 +568,7 @@ ErrorCode test_delete_obb_tree(Interface *mb){
   MB_CHK_SET_ERR(rval, "Error constructing all trees.");
 
 
-  // get obbRootTag
+  // Get the obbRootTag for vol
   rval = mb->tag_get_handle(OBB_ROOT_TAG_NAME, 1,
                             MB_TYPE_HANDLE, obbRootTag, 
                             MB_TAG_CREAT|MB_TAG_SPARSE);
@@ -586,127 +576,61 @@ ErrorCode test_delete_obb_tree(Interface *mb){
   EntityHandle gbroot;
   rval = mb->tag_get_data(obbRootTag, &test_vol, 1, &gbroot);
   MB_CHK_SET_ERR(rval, "Failed to get the obb root tag");
-  std::cout << "root get back from tag " << gbroot << std::endl; 
 
-  // test if obb tree in ModelSet
+  // Test if obb tree in ModelSet
   EntityHandle test_vol_root;
   rval = gTopoTool->get_root(test_vol, test_vol_root);
   MB_CHK_SET_ERR(rval, "Obb root not in ModelSet");
 
-  // Delete vol obb tree including all child surface trees
+  // CASE 1: Delete vol obb tree including all child surface trees
   rval = gTopoTool->delete_obb_tree(test_vol, false);
   MB_CHK_SET_ERR(rval, "Error deleting volume tree.");
 
   // Make sure vol tree is gone
-  //rval = gTopoTool->get_root(test_vol, test_vol_root);
   EntityHandle newroot;
   rval = mb->tag_get_data(obbRootTag, &test_vol, 1, &newroot);
   if (MB_SUCCESS == rval){
-    std::cout << "fail: didn't delete vol root " << newroot <<std::endl;
+    return MB_FAILURE;
   }
 
   // Make sure its child surf trees also gone
   EntityHandle test_surf = *surfs.begin();
-  EntityHandle test_surf_root;
-  //rval = gTopoTool->get_root(test_surf, test_surf_root);
-  rval = mb->tag_get_data(obbRootTag, &test_surf, 1, &test_surf_root);
+  EntityHandle test_surf_root_gone;
+  rval = mb->tag_get_data(obbRootTag, &test_surf, 1, &test_surf_root_gone);
   if (MB_SUCCESS == rval){
-    std::cout << "fail: didn't delete surf root" << std::endl;
+    return MB_FAILURE;
   }
   
-  //rval = gTopoTool->construct_obb_tree(test_surf);
-  //MB_CHK_SET_ERR(rval, "Error constructing all trees.");
-  
-  //rebuild vol tree
+  // Rebuild vol tree
   rval = gTopoTool->construct_obb_tree(test_vol);
   MB_CHK_SET_ERR(rval, "Error constructing all trees.");
 
-  //delete just vol, not surf trees
-  // Delete vol obb tree
+  // CASE 2: Delete just vol, not surf trees
   rval = gTopoTool->delete_obb_tree(test_vol, true);
   MB_CHK_SET_ERR(rval, "Error deleting volume tree.");
 
   // Make sure vol tree is gone
-  //rval = gTopoTool->get_root(test_vol, test_vol_root);
   rval = mb->tag_get_data(obbRootTag, &test_vol, 1, &gbroot);
   if (MB_SUCCESS == rval){
-    std::cout << "fail: didn't delete vol root" << std::endl;
+    return MB_FAILURE;
+  }
+
+  // Make sure its child surf trees remain
+  EntityHandle test_surf_root;
+  rval = mb->tag_get_data(obbRootTag, &test_surf, 1, &test_surf_root);
+  MB_CHK_SET_ERR(rval, "Problem getting obb root of surface.");
+
+  // CASE 3: Delete surf tree 
+  rval = gTopoTool->delete_obb_tree(test_surf, false);
+  MB_CHK_SET_ERR(rval, "Error deleting surface tree.");
+
+  // Make sure surf tree is gone
+  rval = mb->tag_get_data(obbRootTag, &test_surf, 1, &gbroot);
+  if (MB_SUCCESS == rval){
+    return MB_FAILURE;
   }
 
   delete gTopoTool;
 
   return MB_SUCCESS;
-}
-
-
-ErrorCode test_load_obb_tree(Interface *mb, Interface *mb2){
-  
-  // load the test file (obbs not built yet)
-  ErrorCode rval = mb->load_file(filename2.c_str());
-  MB_CHK_SET_ERR(rval, "Failed to load input file");
-
-  // create a GTT with all default settings
-  moab::GeomTopoTool* gTopoTool = new GeomTopoTool(mb);
-
-  // Build all obb trees
-  rval = gTopoTool->construct_obb_trees();
-  MB_CHK_SET_ERR(rval, "Error constructing all trees.");
-
-  Range vols, surfs;
-  rval = gTopoTool->get_gsets_by_dimension(3, vols);
-  MB_CHK_SET_ERR(rval, "Failed to get volume gsets");
-  EntityHandle test_vol = *vols.begin();
-  EntityHandle test_vol_root;
-  rval = gTopoTool->get_root(test_vol, test_vol_root);
-  if (MB_SUCCESS == rval){
-    std::cout << "vol root is: " << test_vol_root << std::endl;
-  }
-  // get obbRootTag
-  rval = mb->tag_get_handle(OBB_ROOT_TAG_NAME, 1,
-                            MB_TYPE_HANDLE, obbRootTag,
-                            MB_TAG_CREAT|MB_TAG_SPARSE);
-  MB_CHK_SET_ERR_CONT(rval, "Error: Failed to create obb root tag");
-  EntityHandle gbroot;
-  rval = mb->tag_get_data(obbRootTag, &test_vol, 1, &gbroot);
-  MB_CHK_SET_ERR(rval, "Failed to get the obb root tag");
-
-  // write the file
-  rval=mb->write_file(ofile4.c_str());
-  MB_CHK_SET_ERR(rval, "Can't write output file\n");
-
-  // delete the instance 
-
-  // load file containing obbs
-  rval = mb2->load_file(ofile4.c_str());
-  MB_CHK_SET_ERR(rval, "Failed to load file containing obbs");
-
-  // create a GTT with all default settings
-  moab::GeomTopoTool* gTopoTool2 = new GeomTopoTool(mb2);
-
-  // get the root handle again
-  Range vols2;
-  rval = gTopoTool2->get_gsets_by_dimension(3, vols2);
-  MB_CHK_SET_ERR(rval, "Failed to get volume gsets");
-  EntityHandle test_vol2 = *vols.begin();
-  EntityHandle test_vol_root2;
-  rval = gTopoTool2->get_root(test_vol2, test_vol_root2);
-  if (MB_SUCCESS == rval){
-    std::cout << "vol root is: " << test_vol_root2 << std::endl;
-  }
-  // get obbRootTag
-  rval = mb2->tag_get_handle(OBB_ROOT_TAG_NAME, 1,
-                            MB_TYPE_HANDLE, obbRootTag,
-                            MB_TAG_CREAT|MB_TAG_SPARSE);
-  MB_CHK_SET_ERR_CONT(rval, "Error: Failed to create obb root tag");
-  EntityHandle gbroot2;
-  rval = mb2->tag_get_data(obbRootTag, &test_vol2, 1, &gbroot2);
-  MB_CHK_SET_ERR(rval, "Failed to get the obb root tag");
-
-  // make sure it matches that variable already set
-  if (gbroot == gbroot2){
-    std::cout << "roots match " << std::endl;
-  }
-  // clean up
-  //  remove(ofile4.c_str());
-return MB_SUCCESS;
 }
