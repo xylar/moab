@@ -349,3 +349,10 @@ cdef class ScdBox(object):
         False if not.
         """
         return self.inst.contains(i, j, k)
+
+    def box_set(self):
+        """
+        Returns the EntityHandle of the set containing the structured box elements.
+        """
+        return self.inst.box_set()
+    

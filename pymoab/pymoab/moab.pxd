@@ -392,6 +392,7 @@ cdef extern from "moab/ScdInterface.hpp" namespace "moab":
         HomCoord box_size()
         int num_vertices()
         int num_elements()
+        EntityHandle box_set()
         EntityHandle start_vertex()
         EntityHandle start_element()
         EntityHandle get_vertex(int i, int j, int k)

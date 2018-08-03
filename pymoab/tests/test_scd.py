@@ -30,8 +30,11 @@ def scd_tst(bnds):
 
     scdbox = scd.construct_box(low,high)
     hexes = mb.get_entities_by_type(mb.get_root_set(),types.MBHEX)
+    ent_set = scdbox.box_set()
     assert 1 == len(scd.find_boxes())
     assert bnds[3]*bnds[4]*bnds[5] == len(hexes)
+    assert ent_set != 0
+    assert type(ent_set) == long
 
     check_sequence(scdbox, *bnds)
     evaluate_sequence(scdbox)
