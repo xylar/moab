@@ -36,6 +36,12 @@ def scd_tst(bnds):
     assert ent_set != 0
     assert type(ent_set) == long
 
+    scdbox = scd.get_scd_box(ent_set)
+    bhigh = scdbox.box_max()
+    blow = scdbox.box_min()
+    assert high == bhigh
+    assert low == blow
+    
     check_sequence(scdbox, *bnds)
     evaluate_sequence(scdbox)
 

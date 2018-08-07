@@ -375,7 +375,7 @@ cdef extern from "moab/ScdInterface.hpp" namespace "moab":
 
         #structured mesh creation
         ErrorCode construct_box(HomCoord low,
-                                 HomCoord high,
+                                HomCoord high,
                                 const double * const coords,
                                 unsigned int num_coords,
                                 ScdBox *& new_box,
@@ -385,8 +385,11 @@ cdef extern from "moab/ScdInterface.hpp" namespace "moab":
                                 int resolve_shared_ents)
         #Member functions
         ErrorCode find_boxes(Range &boxes)
-
+        ErrorCode get_boxes(vector[ScdBox*] boxes)
+        ScdBox* get_scd_box(EntityHandle eh)
+        
     cdef cppclass ScdBox:
+        
         HomCoord box_min()
         HomCoord box_max()
         HomCoord box_size()

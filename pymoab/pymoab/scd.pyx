@@ -6,11 +6,14 @@ import numpy as np
 from pymoab cimport moab
 from cython.operator cimport dereference as deref
 from libc.stdlib cimport malloc,free
+from libcpp.vector cimport vector
 from .rng cimport Range
 from .core cimport Core
 from .hcoord cimport HomCoord
 from .types import check_error, MB_TYPE_DOUBLE, MB_FAILURE
 from .types import _DTYPE_CONV
+
+cdef void* null = NULL
 
 cdef class ScdParData(object):
     def __cinit__(self):
@@ -39,6 +42,7 @@ cdef class ScdInterface(object):
                       coords = None,
                       bint assn_gids = False,
                       int resolve_shared_ents = -1,
+                      lperiodic = None,
                       exceptions = ()):
         """
         Construct a new structured mesh box, including both vertices and
@@ -81,6 +85,9 @@ cdef class ScdInterface(object):
         resolve_shared_ents : int (default = -1)
             if != -1, resolves shared entities up to and including dimension
             equal to value
+        lperiodic : int[3] (default = None)
+            indicates whether or not dimensions of the structured mesh
+            are locally periodic
         exceptions : tuple (default is empty tuple)
             contains any error types that should
             be ignored. (see pymoab.types module for more info)
@@ -103,23 +110,65 @@ cdef class ScdInterface(object):
         cdef np.ndarray[np.float64_t, ndim=1] c
         cdef double* coords_ptr = NULL
         cdef int num_c = 0
+        cdef int lp[3]
+        print hl
+        print hh
         if coords is not None:
             c = np.asarray(coords, dtype = _DTYPE_CONV[MB_TYPE_DOUBLE])
             assert c.ndim == 1
             num_c = len(coords)
             coords_ptr = <double*> c.data
+        if lperiodic is not None:
+            lp = lperiodic
         err = self.inst.construct_box(deref(hl.inst),
                                       deref(hh.inst),
                                       coords_ptr,
                                       num_c,
                                       scdb.inst,
-                                      NULL,
+                                      &(lp[0]),
                                       NULL,
                                       assn_gids,
                                       resolve_shared_ents)
         check_error(err,exceptions)
         return scdb
-        
+
+    def get_scd_box(self, eh, exceptions = ()):
+        """
+        Returns all structured mesh blocks in a the PyMOAB core instance
+        in a PyMOAB Range.
+
+        Example
+        -------
+        structured_box = scd.get_scd_box(structured_box_set)
+
+        Parameters
+        ----------
+        eh : MOAB EntityHAndle
+            EntityHandle of the structured box set.
+            
+        exceptions : tuple (default is empty tuple)
+            A tuple containing any error types that should
+            be ignored. (see pymoab.types module for more info)        
+
+        Returns
+        -------
+        A PyMOAB ScdBox (structured box) object.
+
+        Raises
+        ------
+        MOAB ErrorCode
+            if a MOAB error occurs
+        ValueError
+            if an EntityHandle is not of the correct type
+
+        """
+        cdef ScdBox struct_box = ScdBox()
+        struct_box.inst = self.inst.get_scd_box(<unsigned long> eh)
+        if <void*> struct_box.inst == null:
+            check_error(MB_FAILURE, exceptions)
+        else:
+            return struct_box
+            
     def find_boxes(self, exceptions = ()):
         """
         Returns all structured mesh blocks in a the PyMOAB core instance
@@ -149,7 +198,41 @@ cdef class ScdInterface(object):
         err = self.inst.find_boxes(deref(rng.inst))
         check_error(err, exceptions)
         return rng
-    
+
+    def get_boxes(self, exceptions = ()):
+        """
+        Returns all structured mesh blocks created by the ScdInterface.
+
+        Example
+        -------
+        scdBoxes = scd.get_boxes()
+
+        Parameters
+        ----------
+        exceptions : tuple (default is empty tuple)
+            A tuple containing any error types that should
+            be ignored. (see pymoab.types module for more info)
+
+        Returns
+        -------
+        A list of ScdBox objects.
+
+        Raises
+        ------
+        MOAB ErrorCode
+            if a MOAB error occurs
+        """
+        cdef moab.ErrorCode err
+        cdef vector[moab.ScdBox*] vec_boxes
+        err = self.inst.get_boxes(vec_boxes)
+        check_error(err, exceptions)
+        boxes_out = []
+        for i in range(vec_boxes.size()):
+            new_box = ScdBox()
+            new_box.inst = vec_boxes[i] # replace pointer
+            boxes_out.append(new_box)
+        return boxes_out
+                
 cdef class ScdBox(object):
 
     def __cinit__(self):
@@ -355,4 +438,3 @@ cdef class ScdBox(object):
         Returns the EntityHandle of the set containing the structured box elements.
         """
         return self.inst.box_set()
-    
