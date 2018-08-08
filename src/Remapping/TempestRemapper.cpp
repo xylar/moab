@@ -22,6 +22,11 @@
 #include "moab/IntxMesh/Intx2MeshOnSphere.hpp"
 #include "moab/IntxMesh/IntxUtils.hpp"
 
+// skinner for augmenting overlap mesh to complete coverage
+#include "moab/Skinner.hpp"
+#include "MBParallelConventions.h"
+// #include <set>
+
 namespace moab
 {
 
@@ -639,10 +644,19 @@ ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius_
                 std::cout << " total participating elements in the covering set: " << intxCov.size() << "\n";
                 std::cout << " remove from coverage set elements that are not intersected: " << notNeededCovCells.size() << "\n";
 #endif
+
+                // also, form the set of elements in the target mesh that are on the boundary of partition
+                // if an overlap element is in this set has that target, mark the coverage source for it
+                // we will then mark the source, we will need to migrate the overlap elements that cover the to the original
+                // source for the source element; then distribute the overlap elements to all processors that have the
+                // coverage mesh used
+                rval = augment_overlap_set(); MB_CHK_ERR ( rval );
             }
 
             m_covering_source = new Mesh();
             rval = ConvertMOABMeshToTempest_Private ( m_covering_source, m_covering_source_set, m_covering_source_entities ); MB_CHK_SET_ERR ( rval, "Can't convert source Tempest mesh" );
+
+
         }
 
         // Fix any inconsistencies in the overlap mesh
@@ -659,7 +673,176 @@ ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius_
     return MB_SUCCESS;
 }
 
+// this function is called only in parallel, when m_pcomm->size()>1
 ///////////////////////////////////////////////////////////////////////////////////
+ErrorCode TempestRemapper::augment_overlap_set()
+{
+
+  /*
+   * overall strategy:
+   *
+   * 1) collect all boundary target cells on the current task, affected by the partition boundary
+   *
+   * 2) collect all source cells that are intersecting boundary cells (call them affectedCovCells)
+   *
+   * 3) collect overlap
+   */
+  // first, get all edges on the partition boundary, on the target mesh, then all the target elements that border the
+  // partition boundary
+  ErrorCode rval;
+  Skinner skinner(m_interface);
+  Range targetCells, boundaryEdges;
+  rval = m_interface->get_entities_by_dimension(m_target_set, 2, targetCells); MB_CHK_ERR(rval);
+  /// find all boundary edges
+  rval = skinner.find_skin( 0, targetCells, false, boundaryEdges); MB_CHK_ERR(rval);
+  // filter boundary edges that are on partition boundary, not on boundary
+  Range sharedEdges=boundaryEdges;// filter the non shared ones
+  rval = m_pcomm->filter_pstatus(sharedEdges, PSTATUS_SHARED, PSTATUS_AND); MB_CHK_ERR(rval);
+  // find all cells adjacent to these boundary edges, from target set
+  Range boundaryCells; // these will be filtered from target_set
+  rval = m_interface->get_adjacencies(sharedEdges, 2, false, boundaryCells, Interface::UNION); MB_CHK_ERR(rval);
+  boundaryCells = intersect(boundaryCells,targetCells);
+#ifdef VERBOSE
+  EntityHandle tmpSet;
+  rval = m_interface->create_meshset(MESHSET_SET, tmpSet);MB_CHK_SET_ERR(rval, "Can't create temporary set");
+  // add the boundary set and edges, and save it to a file
+  rval = m_interface->add_entities(tmpSet, boundaryCells); MB_CHK_SET_ERR(rval, "Can't add entities");
+  rval = m_interface->add_entities(tmpSet, sharedEdges); MB_CHK_SET_ERR(rval, "Can't add edges");
+  std::stringstream ffs;
+  ffs << "boundaryCells_0"<< m_pcomm->rank() << ".vtk";
+  rval = m_interface->write_mesh(ffs.str().c_str(), &tmpSet, 1);MB_CHK_ERR(rval);
+
+#endif
+
+  // now that we have the boundary cells, see which overlap polys have have these as parents;
+  //   find the ids of the boundary cells;
+  Tag gid;
+  rval = m_interface->tag_get_handle("GLOBAL_ID", gid); MB_CHK_SET_ERR(rval, "Can't get global id tag handle");
+  std::set<int> targetBoundaryIds;
+  for (Range::iterator it=boundaryCells.begin(); it!=boundaryCells.end(); it++)
+  {
+    int tid;
+    EntityHandle targetCell = *it;
+    rval = m_interface->tag_get_data(gid, &targetCell, 1, &tid); MB_CHK_SET_ERR(rval, "Can't get global id tag on target cell");
+    if (tid<=0)
+      std::cout << " incorrect id for a target cell\n";
+    targetBoundaryIds.insert(tid);
+  }
+  // find now all overlap cells that have as parents these boundary cells;
+  // rval = mb->tag_get_handle("orig_sending_processor", 1, MB_TYPE_INTEGER, orgSendProcTag
+  // red are the target meshes; blue are the transported coverage meshes
+  // rval = mb->tag_get_handle("RedParent", 1, MB_TYPE_INTEGER, redParentTag,
+
+  // rval = mb->tag_get_handle("BlueParent", 1, MB_TYPE_INTEGER, blueParentTag
+  // now look at the overlap cells that have as red parents the cells from targetBoundaryIds
+
+  // at this moment m_overlap_entities is not filled up yet; actually, this is what we need to modify, so we need
+  // to add to this set/range
+  // we will not augment the target set! that is partitioned already!
+  Range overlapCells;
+  rval = m_interface->get_entities_by_dimension(m_overlap_set, 2, overlapCells); MB_CHK_ERR(rval);
+
+  std::set<int>  affectedSourceCellsIds;
+  Tag targetParentTag, sourceParentTag; // do not use blue/red, as it is more confusing
+  rval = m_interface->tag_get_handle("RedParent", targetParentTag);  MB_CHK_ERR(rval);
+  rval = m_interface->tag_get_handle("BlueParent", sourceParentTag);  MB_CHK_ERR(rval);
+  for (Range::iterator it=overlapCells.begin(); it!=overlapCells.end(); it++)
+  {
+    EntityHandle intxCell= *it;
+    int targetParentID, sourceParentID;
+    rval = m_interface->tag_get_data(targetParentTag, &intxCell, 1, &targetParentID);  MB_CHK_ERR(rval);
+    if (targetBoundaryIds.find(targetParentID)!=targetBoundaryIds.end() )
+    {
+      // this means that the source element is affected
+      rval = m_interface->tag_get_data(sourceParentTag, &intxCell, 1, &sourceParentID);  MB_CHK_ERR(rval);
+      affectedSourceCellsIds.insert(sourceParentID);
+    }
+  }
+
+  // now find all source cells affected, based on their id;
+  //  (we do not have yet the mapping gid_to_lid_covsrc)
+  std::map<int, EntityHandle> affectedCovCellFromID; // map from source cell id to the eh; it is needed to find out the original processor
+  // this one came from , so to know where to send the overlap elements
+
+  Range affectedCovCells; // their overlap cells will be sent to their original task, then distributed to all
+  // other processes that might need them to compute conservation
+
+  Range covCells;
+  rval = m_interface->get_entities_by_dimension(m_covering_source_set, 2, covCells); MB_CHK_ERR(rval);
+  // loop thru all cov cells, to find the ones with global ids in affectedSourceCellsIds
+  for (Range::iterator it=covCells.begin(); it!=covCells.end(); it++)
+  {
+    EntityHandle covCell = *it; //
+    int covID;
+    rval = m_interface->tag_get_data(gid, &covCell, 1, &covID);
+    if (affectedSourceCellsIds.find(covID)!=affectedSourceCellsIds.end())
+    {
+      // this source cell is affected;
+      affectedCovCellFromID[covID] = covCell;
+      affectedCovCells.insert(covCell);
+    }
+  }
+
+  // now loop again over all overlap cells, to see if their source parent is "affected"
+  // store in ranges the overlap cells that need to be sent to original task of the source cell
+  // from there, they will be distributed to the tasks that need that coverage cell
+  Tag orgSendProcTag;
+  rval = m_interface->tag_get_handle("orig_sending_processor", 1, MB_TYPE_INTEGER, orgSendProcTag);
+
+  // basically a map from original processor task to the range of overlap cells to be sent there
+  std::map<int, Range>  overlapCellsForTask;
+
+  // this range will contain all intx cells that will need to be sent ( a union of above ranges , that are organized per task)
+  Range overlapCellsToSend;
+
+  for (Range::iterator it=overlapCells.begin(); it!=overlapCells.end(); it++)
+  {
+    EntityHandle intxCell= *it;
+    int sourceParentID;
+    rval = m_interface->tag_get_data(sourceParentTag, &intxCell, 1, &sourceParentID);  MB_CHK_ERR(rval);
+    if (affectedSourceCellsIds.find(sourceParentID)!=affectedSourceCellsIds.end() )
+    {
+      EntityHandle covCell=affectedCovCellFromID[sourceParentID];
+      int orgTask ;
+      rval = m_interface->tag_get_data(orgSendProcTag, &covCell, 1, &orgTask); MB_CHK_ERR(rval);
+      overlapCellsForTask[orgTask].insert(intxCell);  // put the overlap cell in corresponding range
+      overlapCellsToSend.insert(intxCell);
+    }
+  }
+
+  // now prepare to send; will use crystal router, as the buffers in ParComm are prepared only
+  // for neighbors; coverage mesh was also migrated with crystal router, so here we go again :(
+
+  // find out the maximum number of edges of the polygons needed to be sent
+  // we could we conservative and use a big number, or the number from intx, if we store it then?
+  int maxEdges=0;
+  for (Range::iterator it=overlapCellsToSend.begin(); it!=overlapCellsToSend.end(); it++)
+  {
+    EntityHandle intxCell=*it;
+    int nnodes;
+    const EntityHandle * conn;
+    rval = m_interface->get_connectivity(intxCell, conn, nnodes); MB_CHK_ERR(rval);
+    if (maxEdges<nnodes)
+      maxEdges = nnodes;
+  }
+
+  // find the maximum among processes in intersection
+  int globalMaxEdges;
+  MPI_Allreduce( &maxEdges, &globalMaxEdges, 1, MPI_INT, MPI_MAX, m_pcomm->comm() );
+#ifdef VERBOSE
+  std::cout << "maximum number of edges for polygons to send is " << globalMaxEdges << "\n";
+#endif
+
+  // form tuple lists to send vertices and cells;
+  // the problem is that the lists of vertices will need to have other information, like the processor it comes from, and
+  // its index in that list; we may have to duplicate vertices, but we do not care much; we will not duplicate
+  // overlap elements, just the vertices, as they may come from different cells and different processes
+  // each vertex will have a local index and a processor task it is coming from
+
+  // look through the ranges to be sent to other processes, and form the vertex tuples
+
+  return MB_SUCCESS;
+}
 
 }
 

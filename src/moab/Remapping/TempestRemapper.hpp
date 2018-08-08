@@ -115,6 +115,8 @@ private:
 
     moab::ErrorCode ConvertTempestMeshToMOAB_Private(TempestMeshType type, Mesh* mesh, moab::EntityHandle& meshset);
 
+    moab::ErrorCode augment_overlap_set();
+
     // Source, Target amd Overlap meshes
     Mesh* m_source;
     TempestMeshType m_source_type;
