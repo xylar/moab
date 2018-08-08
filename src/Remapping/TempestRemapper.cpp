@@ -709,7 +709,7 @@ ErrorCode TempestRemapper::augment_overlap_set()
   rval = m_interface->add_entities(tmpSet, boundaryCells); MB_CHK_SET_ERR(rval, "Can't add entities");
   rval = m_interface->add_entities(tmpSet, sharedEdges); MB_CHK_SET_ERR(rval, "Can't add edges");
   std::stringstream ffs;
-  ffs << "boundaryCells_0"<< m_pcomm->rank() << ".vtk";
+  ffs << "boundaryCells_0"<< m_pcomm->rank() << ".h5m";
   rval = m_interface->write_mesh(ffs.str().c_str(), &tmpSet, 1);MB_CHK_ERR(rval);
 
 #endif
@@ -833,6 +833,17 @@ ErrorCode TempestRemapper::augment_overlap_set()
   std::cout << "maximum number of edges for polygons to send is " << globalMaxEdges << "\n";
 #endif
 
+#ifdef VERBOSE
+  EntityHandle tmpSet2;
+  rval = m_interface->create_meshset(MESHSET_SET, tmpSet2);MB_CHK_SET_ERR(rval, "Can't create temporary set2");
+  // add the affected source and overlap elements
+  rval = m_interface->add_entities(tmpSet2, overlapCellsToSend); MB_CHK_SET_ERR(rval, "Can't add entities");
+  rval = m_interface->add_entities(tmpSet2, affectedCovCells); MB_CHK_SET_ERR(rval, "Can't add edges");
+  std::stringstream ffs2;
+  ffs2 << "affectedCells_0"<< m_pcomm->rank() << ".h5m";
+  rval = m_interface->write_mesh(ffs2.str().c_str(), &tmpSet2, 1);MB_CHK_ERR(rval);
+
+#endif
   // form tuple lists to send vertices and cells;
   // the problem is that the lists of vertices will need to have other information, like the processor it comes from, and
   // its index in that list; we may have to duplicate vertices, but we do not care much; we will not duplicate
