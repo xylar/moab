@@ -696,18 +696,18 @@ ErrorCode TempestRemapper::augment_overlap_set()
   /// find all boundary edges
   rval = skinner.find_skin( 0, targetCells, false, boundaryEdges); MB_CHK_ERR(rval);
   // filter boundary edges that are on partition boundary, not on boundary
-  Range sharedEdges=boundaryEdges;// filter the non shared ones
-  rval = m_pcomm->filter_pstatus(sharedEdges, PSTATUS_SHARED, PSTATUS_AND); MB_CHK_ERR(rval);
+ /* Range sharedEdges=boundaryEdges;// filter the non shared ones
+  rval = m_pcomm->filter_pstatus(sharedEdges, PSTATUS_SHARED, PSTATUS_AND); MB_CHK_ERR(rval);*/
   // find all cells adjacent to these boundary edges, from target set
   Range boundaryCells; // these will be filtered from target_set
-  rval = m_interface->get_adjacencies(sharedEdges, 2, false, boundaryCells, Interface::UNION); MB_CHK_ERR(rval);
+  rval = m_interface->get_adjacencies(boundaryEdges, 2, false, boundaryCells, Interface::UNION); MB_CHK_ERR(rval);
   boundaryCells = intersect(boundaryCells,targetCells);
 #ifdef VERBOSE
   EntityHandle tmpSet;
   rval = m_interface->create_meshset(MESHSET_SET, tmpSet);MB_CHK_SET_ERR(rval, "Can't create temporary set");
   // add the boundary set and edges, and save it to a file
   rval = m_interface->add_entities(tmpSet, boundaryCells); MB_CHK_SET_ERR(rval, "Can't add entities");
-  rval = m_interface->add_entities(tmpSet, sharedEdges); MB_CHK_SET_ERR(rval, "Can't add edges");
+  rval = m_interface->add_entities(tmpSet, boundaryEdges); MB_CHK_SET_ERR(rval, "Can't add edges");
   std::stringstream ffs;
   ffs << "boundaryCells_0"<< m_pcomm->rank() << ".h5m";
   rval = m_interface->write_mesh(ffs.str().c_str(), &tmpSet, 1);MB_CHK_ERR(rval);
@@ -850,7 +850,112 @@ ErrorCode TempestRemapper::augment_overlap_set()
   // overlap elements, just the vertices, as they may come from different cells and different processes
   // each vertex will have a local index and a processor task it is coming from
 
-  // look through the ranges to be sent to other processes, and form the vertex tuples
+  // look through the ranges to be sent to other processes, and form the vertex tuples and cell tuples
+  //
+  std::map<int, Range> verticesOverlapForTask;
+  int numVerts =0;
+  int numOverlapCells = 0;
+  for (std::map<int, Range>::iterator it=overlapCellsForTask.begin(); it!=overlapCellsForTask.end(); it++)
+  {
+    int sendToProc = it->first;
+    Range & overlapCellsToSend2 = it->second; // organize vertices in ranges per processor
+    Range vertices;
+    rval = m_interface->get_connectivity(overlapCellsToSend2, vertices); MB_CHK_ERR(rval);
+    verticesOverlapForTask[sendToProc] = vertices;
+    numVerts += (int)vertices.size();
+    numOverlapCells += (int)overlapCellsToSend2.size();
+  }
+  // first send vertices in a tuple list, then send overlap cells, according to requests
+  // overlap cells need to send info about the blue and red parent tags, too
+  TupleList TLv; //
+  TLv.initialize(2, 0, 0, 3, numVerts); // to proc, index in range, DP points
+  TLv.enableWriteAccess();
+  for (std::map<int, Range>::iterator it=verticesOverlapForTask.begin(); it!=verticesOverlapForTask.end(); it++)
+  {
+    int sentToProc = it->first;
+    Range & vertices = it->second;
+    std::vector<double> coords;
+    coords.resize(3*vertices.size());
+    rval = m_interface->get_coords(vertices, &coords[0]); MB_CHK_ERR(rval);
+    for (int i=0; i<(int)vertices.size(); i++)
+    {
+      int n=TLv.get_n();
+      TLv.vi_wr[2*n] = sentToProc; // send to processor
+      TLv.vi_wr[2*n+1] = i; //  needs index in the local_verts range, from the processor
+      TLv.vr_wr[3*n] = coords[3*i];  // departure position, of the node local_verts[i]
+      TLv.vr_wr[3*n+1] = coords[3*i+1];
+      TLv.vr_wr[3*n+2] = coords[3*i+2];
+      TLv.inc_n();
+    }
+  }
+
+  TupleList TLc ;
+  int sizeTuple = 4+globalMaxEdges;
+  // total number of overlap cells to send
+  TLc.initialize(sizeTuple, 0, 0, 0, numOverlapCells); // to proc, blue parent ID, red parent ID, nvert, connectivity[globalMaxEdges] (global ID v), local eh)
+  TLc.enableWriteAccess();
+
+
+  for (std::map<int, Range>::iterator it=overlapCellsForTask.begin(); it!=overlapCellsForTask.end(); it++)
+  {
+    int sendToProc = it->first;
+    Range & overlapCellsToSend2 = it->second;
+    Range & vertices = verticesOverlapForTask[sendToProc];
+    // connectivity will be with respect to index in these vertices
+    // send also the target and source parents for these overlap cells
+    for (Range::iterator it2= overlapCellsToSend2.begin(); it2!=overlapCellsToSend2.end(); it2++)
+    {
+      EntityHandle intxCell = *it2;
+      int sourceParentID, targetParentID;
+      rval = m_interface->tag_get_data(targetParentTag, &intxCell, 1, &targetParentID);  MB_CHK_ERR(rval);
+      rval = m_interface->tag_get_data(sourceParentTag, &intxCell, 1, &sourceParentID);  MB_CHK_ERR(rval);
+      int n=TLc.get_n();
+      TLc.vi_wr[sizeTuple*n] = sendToProc;
+      TLc.vi_wr[sizeTuple*n+1] = sourceParentID;
+      TLc.vi_wr[sizeTuple*n+2] = targetParentID;
+      int nnodes;
+      const EntityHandle *conn  = NULL;
+      rval = m_interface->get_connectivity(intxCell, conn, nnodes); MB_CHK_ERR(rval);
+      TLc.vi_wr[sizeTuple*n+3] = nnodes;
+      for (int i=0; i<nnodes; i++)
+      {
+        int indexVertex = vertices.index(conn[i]);
+        if (-1==indexVertex) MB_CHK_SET_ERR(MB_FAILURE, "Can't find vertex in range of vertices to send");
+        TLc.vi_wr[sizeTuple*n+4 + i] = indexVertex;
+      }
+      // fill the rest with 0, just because we do not like uninitialized data
+      for (int i = nnodes; i<globalMaxEdges; i++)
+        TLc.vi_wr[sizeTuple*n+4 + i] = 0;
+
+      TLc.inc_n();
+    }
+  }
+
+  // send first the vertices and overlap cells to original task for coverage cells
+  // now we are done populating the tuples; route them to the appropriate processors
+#ifdef VERBOSE
+  std::stringstream ff1;
+  ff1 << "TLc_"<< m_pcomm->rank() << ".txt";
+  TLc.print_to_file(ff1.str().c_str());
+  std::stringstream ffv;
+  ffv << "TLv_"<< m_pcomm->rank() << ".txt";
+  TLv.print_to_file(ffv.str().c_str());
+#endif
+  (m_pcomm->proc_config().crystal_router())->gs_transfer(1, TLv, 0);
+  (m_pcomm->proc_config().crystal_router())->gs_transfer(1, TLc, 0);
+#ifdef VERBOSE
+  TLc.print_to_file(ff1.str().c_str()); // will append to existing file
+  TLv.print_to_file(ffv.str().c_str());
+#endif
+  // first phase of transfer complete
+  // now look at TLc, and sort by the source parent (index 1)
+
+  TupleList::buffer buffer;
+  buffer.buffer_init(sizeTuple*TLc.get_n()*2); // allocate memory for sorting !! double
+  TLc.sort(1, &buffer);
+#ifdef VERBOSE
+  TLc.print_to_file(ff1.str().c_str());
+#endif
 
   return MB_SUCCESS;
 }
