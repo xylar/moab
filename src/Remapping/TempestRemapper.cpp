@@ -957,6 +957,102 @@ ErrorCode TempestRemapper::augment_overlap_set()
   TLc.print_to_file(ff1.str().c_str());
 #endif
 
+  // now we have sorted the incoming overlap elements by the source element;
+  // if we have overlap elements for one source coming from 2 or more processes, we need to send back to the processes that
+  // do not have that overlap cell;
+
+  // form new TLc2, TLv2, that will be distributed to necessary processes
+  // first count source elements that are "spread" over multiple processes
+  // TLc is ordered now by source ID; loop over them
+  int n = TLc.get_n(); // total number of overlap elements received on current task;
+  int currentSourceID = TLc.vi_rd[sizeTuple*0 + 1]; // we  have written sizeTuple*0 for "clarity"
+  int proc0 = TLc.vi_rd[sizeTuple*0];
+  std::map<int, int> currentProcsCount;
+  currentProcsCount[proc0]=1; //
+
+  int sizeOfTLc2 = 0; // only increase when we will have to send data
+
+  int i=1;
+  while (i<n)
+  {
+    int proc = TLc.vi_rd[sizeTuple*i];
+    int sourceID = TLc.vi_rd[sizeTuple*i+1];
+    if (sourceID==currentSourceID)
+    {
+      if (currentProcsCount.find(proc)==currentProcsCount.end())
+      {
+        currentProcsCount[proc]=1;
+      }
+      else
+       currentProcsCount[proc]++;
+    }
+    else
+    {
+      // we have found a new source id, need to reset the proc counts, and establish if we need to send data
+      if (currentProcsCount.size() > 1)
+      {
+#ifdef VERBOSE
+        std::cout << " source element " << currentSourceID << " intersects with " << currentProcsCount.size() << " target partitions\n";
+        for (std::map<int, int>::iterator it=currentProcsCount.begin(); it != currentProcsCount.end(); it++)
+        {
+          int procID = it->first;
+          int numOverCells = it->second;
+          std::cout << "   task:"<< procID << " " << numOverCells << " cells\n";
+        }
+
+#endif
+        // estimate what we need to send
+        for (std::map<int, int>::iterator it1=currentProcsCount.begin(); it1 != currentProcsCount.end(); it1++)
+        {
+          int proc1 = it1->first;
+          for (std::map<int, int>::iterator it2=currentProcsCount.begin(); it2 != currentProcsCount.end(); it2++)
+          {
+            int proc2 = it2->first;
+            if (proc1!=proc2)
+              sizeOfTLc2 += it2->second;
+          }
+
+        }
+      }
+      currentSourceID = sourceID;
+      currentProcsCount.clear();
+      currentProcsCount[proc]=1;
+    }
+
+    i++;
+  }
+
+
+  // we need to check the last one too
+  if (currentProcsCount.size() > 1)
+  {
+#ifdef VERBOSE
+    std::cout << " source element " << currentSourceID << " intersects with " << currentProcsCount.size() << " target partitions\n";
+    for (std::map<int, int>::iterator it=currentProcsCount.begin(); it != currentProcsCount.end(); it++)
+    {
+      int procID = it->first;
+      int numOverCells = it->second;
+      std::cout << "   task:"<< procID << " " << numOverCells << " cells\n";
+    }
+
+#endif
+    // estimate what we need to send
+    for (std::map<int, int>::iterator it1=currentProcsCount.begin(); it1 != currentProcsCount.end(); it1++)
+    {
+      int proc1 = it1->first;
+      for (std::map<int, int>::iterator it2=currentProcsCount.begin(); it2 != currentProcsCount.end(); it2++)
+      {
+        int proc2 = it2->first;
+        if (proc1!=proc2)
+          sizeOfTLc2 += it2->second;
+      }
+
+    }
+  }
+#ifdef VERBOSE
+  std::cout << " need to initialize TLc2 with " << sizeOfTLc2 <<  " cells\n ";
+#endif
+
   return MB_SUCCESS;
 }
 
