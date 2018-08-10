@@ -957,6 +957,22 @@ ErrorCode TempestRemapper::augment_overlap_set()
   TLc.print_to_file(ff1.str().c_str());
 #endif
 
+  // will keep a map with vertices per processor that will need to be used in TLv2;
+  // so, availVertexIndicesPerProcessor[proc] is a map from vertex indices that are available from this processor
+  // to the index in the local TLv; the used vertices will have to be sent to the tasks that need them
+
+  // connectivity of a cell is given by sending proc and index in original list of vertices from that proc
+
+  std::map<int , std::map<int, int>> availVertexIndicesPerProcessor;
+  int nv = TLv.get_n();
+  for (int i=0; i<nv; i++)
+  {
+    int proc=TLv.vi_rd[2*i];
+    int indexVert = TLv.vi_rd[2*i+1];
+    availVertexIndicesPerProcessor[proc][indexVert]=i;
+  }
+
+
   // now we have sorted the incoming overlap elements by the source element;
   // if we have overlap elements for one source coming from 2 or more processes, we need to send back to the processes that
   // do not have that overlap cell;
@@ -970,6 +986,10 @@ ErrorCode TempestRemapper::augment_overlap_set()
   std::map<int, int> currentProcsCount;
   currentProcsCount[proc0]=1; //
 
+  // form a map from proc to sets of vertex indices that will be sent using TLv2
+  std::map<int , std::set<int>> usedVertexIndicesPerProcessor;//
+  // will form a map between a source cell ID and tasks/targets that are partially overlapped by these sources
+  std::map< int, std::set<int> > sourcesForTasks;
   int sizeOfTLc2 = 0; // only increase when we will have to send data
 
   int i=1;
@@ -986,7 +1006,7 @@ ErrorCode TempestRemapper::augment_overlap_set()
       else
        currentProcsCount[proc]++;
     }
-    else
+    if (sourceID!=currentSourceID || ((n-1) == i)) // we study the current source if we reach the last
     {
       // we have found a new source id, need to reset the proc counts, and establish if we need to send data
       if (currentProcsCount.size() > 1)
@@ -1005,54 +1025,92 @@ ErrorCode TempestRemapper::augment_overlap_set()
         for (std::map<int, int>::iterator it1=currentProcsCount.begin(); it1 != currentProcsCount.end(); it1++)
         {
           int proc1 = it1->first;
+          sourcesForTasks[currentSourceID].insert(proc1);
           for (std::map<int, int>::iterator it2=currentProcsCount.begin(); it2 != currentProcsCount.end(); it2++)
           {
             int proc2 = it2->first;
             if (proc1!=proc2)
               sizeOfTLc2 += it2->second;
           }
-
         }
+        // mark vertices in TLv tuple that need to be sent
       }
-      currentSourceID = sourceID;
-      currentProcsCount.clear();
-      currentProcsCount[proc]=1;
+      if (sourceID!=currentSourceID) // maybe we are not at the end, so continue on
+      {
+        currentSourceID = sourceID;
+        currentProcsCount.clear();
+        currentProcsCount[proc]=1;
+      }
     }
 
     i++;
   }
 
+// begin a loop to send the needed cells to the processes; also mark the vertices that need to be sent, put them in a
+  // set
 
-  // we need to check the last one too
-  if (currentProcsCount.size() > 1)
-  {
-#ifdef VERBOSE
-    std::cout << " source element " << currentSourceID << " intersects with " << currentProcsCount.size() << " target partitions\n";
-    for (std::map<int, int>::iterator it=currentProcsCount.begin(); it != currentProcsCount.end(); it++)
-    {
-      int procID = it->first;
-      int numOverCells = it->second;
-      std::cout << "   task:"<< procID << " " << numOverCells << " cells\n";
-    }
-
-#endif
-    // estimate what we need to send
-    for (std::map<int, int>::iterator it1=currentProcsCount.begin(); it1 != currentProcsCount.end(); it1++)
-    {
-      int proc1 = it1->first;
-      for (std::map<int, int>::iterator it2=currentProcsCount.begin(); it2 != currentProcsCount.end(); it2++)
-      {
-        int proc2 = it2->first;
-        if (proc1!=proc2)
-          sizeOfTLc2 += it2->second;
-      }
-
-    }
-  }
 #ifdef VERBOSE
   std::cout << " need to initialize TLc2 with " << sizeOfTLc2 <<  " cells\n ";
 #endif
 
+  TupleList TLc2;
+  int sizeTuple2 = 5+globalMaxEdges; // send to, original proc for intx cell, source parent id, target parent id,
+  // number of vertices, then connectivity in terms of indices in vertex lists from original proc
+  TLc2.initialize(sizeTuple2, 0, 0, 0, sizeOfTLc2);
+  TLc2.enableWriteAccess();
+  // loop again through TLc, and select intx cells that have the problem sources; they are part of
+  for (i=0; i<n; i++)
+  {
+    int sourceID = TLc.vi_rd[sizeTuple*i+1];
+    if (sourcesForTasks.find(sourceID)!=sourcesForTasks.end())
+    {
+      // it means this intx cell needs to be sent to any proc that is not "original" to it
+      std::set<int> procs = sourcesForTasks[sourceID]; // set of processors involved with this source
+      if (procs.size()<2)
+        MB_CHK_SET_ERR(MB_FAILURE, " not enough processes involved with a sourceID cell");
+
+      int orgProc = TLc.vi_rd[sizeTuple*i]; // this intx cell was sent from this orgProc, originally
+      // will need to be sent to all other procs from above set; also, need to mark the vertex indices for that proc,
+      // and check that they are available to populate TLv2
+
+      for (std::set<int>::iterator setIt = procs.begin(); setIt!=procs.end(); setIt++)
+      {
+        int procID = *setIt;
+        // send this cell to the other processors, not to orgProc this cell is coming from
+        if (procID!=orgProc)
+        {
+          // send the cell to this processor;
+          int n2=TLc2.get_n();
+          if(n2<sizeOfTLc2)
+            MB_CHK_SET_ERR(MB_FAILURE, " memory overflow");
+          TLc2.vi_wr[n2*sizeTuple2] = procID; // send to
+          TLc2.vi_wr[n2*sizeTuple2+1] = orgProc; // this cell is coming from here
+          TLc2.vi_wr[n2*sizeTuple2+2] = sourceID; // source parent of the intx cell
+          TLc2.vi_wr[n2*sizeTuple2+3] = TLc.vi_rd[sizeTuple*i+2]; // target parent of the intx cell
+           // number of vertices of the intx cell
+          int nvert = TLc.vi_rd[sizeTuple*i+3];
+          TLc2.vi_wr[n2*sizeTuple2+4] = nvert;
+          // now loop through the connectivity, and make sure the vertices are available; mark them,
+          // to populate later the TLv2 tuple list
+
+          // just copy the vertices, including 0 ones
+          for (int j=0; j<nvert; j++)
+          {
+            TLc2.vi_wr[n2*sizeTuple2+5+j] = TLc.vi_wr[n*sizeTuple2+4+j];
+            int vertexIndex = TLc.vi_wr[n*sizeTuple2+4+j];
+            // is this vertex available from org proc?
+          }
+
+          for (int j=nvert; j<globalMaxEdges; j++)
+          {
+            TLc2.vi_wr[n2*sizeTuple2+5+j] = 0; // or mark them 0
+          }
+          TLc2.inc_n();
+        }
+      }
+    }
+
+  }
   return MB_SUCCESS;
 }
 
