@@ -1081,7 +1081,7 @@ ErrorCode TempestRemapper::augment_overlap_set()
         {
           // send the cell to this processor;
           int n2=TLc2.get_n();
-          if(n2<sizeOfTLc2)
+          if(n2>=sizeOfTLc2)
             MB_CHK_SET_ERR(MB_FAILURE, " memory overflow");
           TLc2.vi_wr[n2*sizeTuple2] = procID; // send to
           TLc2.vi_wr[n2*sizeTuple2+1] = orgProc; // this cell is coming from here
@@ -1096,7 +1096,7 @@ ErrorCode TempestRemapper::augment_overlap_set()
           // just copy the vertices, including 0 ones
           for (int j=0; j<nvert; j++)
           {
-            TLc2.vi_wr[n2*sizeTuple2+5+j] = TLc.vi_wr[n*sizeTuple2+4+j];
+            TLc2.vi_wr[n2*sizeTuple2+5+j] = TLc.vi_wr[n*sizeTuple+4+j];
             int vertexIndex = TLc.vi_wr[n*sizeTuple2+4+j];
             // is this vertex available from org proc?
           }
