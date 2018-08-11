@@ -1174,6 +1174,54 @@ ErrorCode TempestRemapper::augment_overlap_set()
   ffv2 << "TLv2_"<< m_pcomm->rank() << ".txt";
   TLv2.print_to_file(ffv2.str().c_str());
 #endif
+  // first create vertices, and make a map from origin processor, and index, to entity handle (index in TLv2 )
+  int nvNew = TLv2.get_n();
+  // create a vertex h for each coordinate
+  Range newVerts;
+  rval = m_interface->create_vertices(&(TLv2.vr_rd[0]), nvNew, newVerts); MB_CHK_ERR(rval);
+  // now create a map from index , org proc, to actual entity handle corresponding to it
+  std::map<int, std::map<int, EntityHandle>> vertexPerProcAndIndex;
+  for (i=0; i<nvNew; i++)
+  {
+    int orgProc = TLv2.vi_rd[3*i+1];
+    int indexInVert = TLv2.vi_rd[3*i+2];
+    vertexPerProcAndIndex[orgProc][indexInVert]=newVerts[i];
+  }
+  // now form the needed cells, in order
+  Range newPolygons;
+  int ne = TLc2.get_n();
+  for (i=0; i<ne; i++)
+  {
+    int orgProc =  TLc2.vi_rd[i*sizeTuple2+1] ; // this cell is coming from here
+    int sourceID = TLc2.vi_rd[i*sizeTuple2+2] ; // source parent of the intx cell
+    int targetID = TLc2.vi_wr[i*sizeTuple2+3] ; // target parent of intx cell
+    int nve = TLc2.vi_wr[i*sizeTuple2+4] ; // number of vertices for the polygon
+    std::vector<EntityHandle> conn;
+    conn.resize(nve);
+    for (int j=0; j<nve; j++)
+    {
+      int indexV = TLc2.vi_wr[i*sizeTuple2+5+j];
+      EntityHandle vh = vertexPerProcAndIndex[orgProc][indexV];
+      conn[j]=vh;
+    }
+    EntityHandle polyNew;
+    rval = m_interface->create_element(MBPOLYGON, &conn[0], nve, polyNew);MB_CHK_ERR(rval);
+    newPolygons.insert(polyNew);
+    rval = m_interface->tag_set_data(targetParentTag, &polyNew, 1, &targetID);  MB_CHK_ERR(rval);
+    rval = m_interface->tag_set_data(sourceParentTag, &polyNew, 1, &sourceID);  MB_CHK_ERR(rval);
+
+  }
+
+#ifdef VERBOSE
+  EntityHandle tmpSet3;
+  rval = m_interface->create_meshset(MESHSET_SET, tmpSet3);MB_CHK_SET_ERR(rval, "Can't create temporary set3");
+  // add the boundary set and edges, and save it to a file
+  rval = m_interface->add_entities(tmpSet3, newPolygons); MB_CHK_SET_ERR(rval, "Can't add entities");
+
+  std::stringstream ffs4;
+  ffs4 << "extraIntxCells"<< m_pcomm->rank() << ".h5m";
+  rval = m_interface->write_mesh(ffs4.str().c_str(), &tmpSet3, 1);MB_CHK_ERR(rval);
+#endif
 
   return MB_SUCCESS;
 }
