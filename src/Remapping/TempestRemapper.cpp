@@ -987,7 +987,7 @@ ErrorCode TempestRemapper::augment_overlap_set()
   currentProcsCount[proc0]=1; //
 
   // form a map from proc to sets of vertex indices that will be sent using TLv2
-  std::map<int , std::set<int>> usedVertexIndicesPerProcessor;//
+  //std::map<int , std::set<int>> usedVertexIndicesPerProcessor;//
   // will form a map between a source cell ID and tasks/targets that are partially overlapped by these sources
   std::map< int, std::set<int> > sourcesForTasks;
   int sizeOfTLc2 = 0; // only increase when we will have to send data
@@ -1058,7 +1058,10 @@ ErrorCode TempestRemapper::augment_overlap_set()
   // number of vertices, then connectivity in terms of indices in vertex lists from original proc
   TLc2.initialize(sizeTuple2, 0, 0, 0, sizeOfTLc2);
   TLc2.enableWriteAccess();
-  // loop again through TLc, and select intx cells that have the problem sources; they are part of
+  // loop again through TLc, and select intx cells that have the problem sources;
+
+  std::map<int, std::set<int>> verticesToSendForProc; // will look at indices in the TLv list
+  // will form for each processor, the index list from TLv
   for (i=0; i<n; i++)
   {
     int sourceID = TLc.vi_rd[sizeTuple*i+1];
@@ -1072,17 +1075,21 @@ ErrorCode TempestRemapper::augment_overlap_set()
       int orgProc = TLc.vi_rd[sizeTuple*i]; // this intx cell was sent from this orgProc, originally
       // will need to be sent to all other procs from above set; also, need to mark the vertex indices for that proc,
       // and check that they are available to populate TLv2
-
+      std::map<int, int> & availableVerticesFromThisProc = availVertexIndicesPerProcessor[orgProc];
+      //std::set<int> & usedVerticesOnThisProc = usedVertexIndicesPerProcessor[orgProc];
       for (std::set<int>::iterator setIt = procs.begin(); setIt!=procs.end(); setIt++)
       {
         int procID = *setIt;
         // send this cell to the other processors, not to orgProc this cell is coming from
+
         if (procID!=orgProc)
         {
           // send the cell to this processor;
           int n2=TLc2.get_n();
           if(n2>=sizeOfTLc2)
             MB_CHK_SET_ERR(MB_FAILURE, " memory overflow");
+          //
+          std::set<int> &indexVerticesInTLv = verticesToSendForProc[procID];
           TLc2.vi_wr[n2*sizeTuple2] = procID; // send to
           TLc2.vi_wr[n2*sizeTuple2+1] = orgProc; // this cell is coming from here
           TLc2.vi_wr[n2*sizeTuple2+2] = sourceID; // source parent of the intx cell
@@ -1096,9 +1103,16 @@ ErrorCode TempestRemapper::augment_overlap_set()
           // just copy the vertices, including 0 ones
           for (int j=0; j<nvert; j++)
           {
-            TLc2.vi_wr[n2*sizeTuple2+5+j] = TLc.vi_wr[n*sizeTuple+4+j];
-            int vertexIndex = TLc.vi_wr[n*sizeTuple2+4+j];
+            int vertexIndex = TLc.vi_rd[i*sizeTuple+4+j];
             // is this vertex available from org proc?
+            if ( availableVerticesFromThisProc.find(vertexIndex)==availableVerticesFromThisProc.end())
+            {
+              MB_CHK_SET_ERR(MB_FAILURE, " vertex index not available from processor");
+            }
+            TLc2.vi_wr[n2*sizeTuple2+5+j] = vertexIndex;
+            //usedVerticesOnThisProc.insert(vertexIndex);// these will be used to populate TLv2
+            int indexInTLv = availVertexIndicesPerProcessor[orgProc][vertexIndex];
+            indexVerticesInTLv.insert(indexInTLv);
           }
 
           for (int j=nvert; j<globalMaxEdges; j++)
@@ -1111,6 +1125,56 @@ ErrorCode TempestRemapper::augment_overlap_set()
     }
 
   }
+
+  // now we have to populate TLv2, with original source proc, index of vertex, and coordinates from TLv
+  // use the verticesToSendForProc sets from above, and the map from index in proc to the index in TLv
+  TupleList TLv2;
+  int numVerts2=0;
+  // how many vertices to send?
+  for (std::map<int , std::set<int>>::iterator it= verticesToSendForProc.begin();
+        it!= verticesToSendForProc.end(); it++)
+  {
+    std::set<int> & indexInTLvSet = it->second;
+    numVerts2 += (int) indexInTLvSet.size();
+  }
+  TLv2.initialize(3, 0, 0, 3, numVerts2); // send to, original proc, index in original proc, and 3 coords
+  TLv2.enableWriteAccess();
+  for (std::map<int , std::set<int>>::iterator it= verticesToSendForProc.begin();
+      it!= verticesToSendForProc.end(); it++)
+  {
+    int sendToProc = it->first;
+    std::set<int> & indexInTLvSet = it->second;
+    // now, look at indices in TLv, to find out the original proc, and the index in that list
+    for (std::set<int>::iterator itSet=indexInTLvSet.begin(); itSet!=indexInTLvSet.end(); itSet++)
+    {
+      int indexInTLv = *itSet;
+      int orgProc = TLv.vi_rd[2*indexInTLv];
+      int indexVertexInOrgProc = TLv.vi_rd[2*indexInTLv+1];
+      int nv2=TLv2.get_n();
+      TLv2.vi_wr[3*nv2] = sendToProc;
+      TLv2.vi_wr[3*nv2+1] = orgProc;
+      TLv2.vi_wr[3*nv2+2] = indexVertexInOrgProc;
+      for (int j=0; j<3; j++)
+        TLv2.vr_wr[3*nv2+j] = TLv.vr_rd[3*indexInTLv+j] ; // departure position, of the node local_verts[i]
+      TLv2.inc_n();
+    }
+  }
+
+  // now, finally, transfer the vertices and the intx cells;
+  (m_pcomm->proc_config().crystal_router())->gs_transfer(1, TLv2, 0);
+  (m_pcomm->proc_config().crystal_router())->gs_transfer(1, TLc2, 0);
+
+  // now, look at vertices from TLv2, and create them
+  // we should have in TLv2 only vertices with orgProc different from current task
+#ifdef VERBOSE
+  std::stringstream ff2;
+  ff2 << "TLc2_"<< m_pcomm->rank() << ".txt";
+  TLc2.print_to_file(ff2.str().c_str());
+  std::stringstream ffv2;
+  ffv2 << "TLv2_"<< m_pcomm->rank() << ".txt";
+  TLv2.print_to_file(ffv2.str().c_str());
+#endif
+
   return MB_SUCCESS;
 }
 
