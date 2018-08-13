@@ -1448,7 +1448,8 @@ void moab::TempestOfflineMap::LinearRemapSE4_Tempest_MOAB (
         for ( int j = 0; j < nOverlapFaces; j++ )
         {
             int ixSecondFace = m_meshOverlap->vecTargetFaceIx[ixOverlap + j];
-
+            if (m_remapper->isGhostTarget(ixSecondFace))
+              continue; // do not do anything
             for ( int p = 0; p < nP; p++ )
             {
                 for ( int q = 0; q < nP; q++ )

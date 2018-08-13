@@ -412,19 +412,27 @@ ErrorCode TempestRemapper::ConvertMOABMesh_WithSortedEntitiesBySource()
 
     std::vector<std::pair<int, int> > sorted_overlap_order ( m_overlap_entities.size() );
     {
-        Tag bluePtag, redPtag;
+
+        Tag bluePtag, redPtag, ghostTag;
         rval = m_interface->tag_get_handle ( "BlueParent", bluePtag ); MB_CHK_ERR ( rval );
         rval = m_interface->tag_get_handle ( "RedParent", redPtag ); MB_CHK_ERR ( rval );
-
+        rval = m_interface->tag_get_handle ( "ORIG_PROC", ghostTag ); MB_CHK_ERR ( rval );
         // Overlap mesh: resize the source and target connection arrays
         m_overlap->vecSourceFaceIx.resize ( m_overlap_entities.size() );
         m_overlap->vecTargetFaceIx.resize ( m_overlap_entities.size() );
 
         // Overlap mesh: resize the source and target connection arrays
         std::vector<int> rbids_src ( m_overlap_entities.size() ), rbids_tgt ( m_overlap_entities.size() );
+        std::vector<int> ghFlags(m_overlap_entities.size());
         rval = m_interface->tag_get_data ( bluePtag,  m_overlap_entities, &rbids_src[0] ); MB_CHK_ERR ( rval );
         rval = m_interface->tag_get_data ( redPtag,  m_overlap_entities, &rbids_tgt[0] ); MB_CHK_ERR ( rval );
+        rval = m_interface->tag_get_data ( ghostTag,  m_overlap_entities, &ghFlags[0] ); MB_CHK_ERR ( rval );
 
+        // create the set of ghost targets that we need to avoid
+        for ( size_t ix = 0; ix < m_overlap_entities.size(); ++ix )
+        {
+
+        }
         // Let us re-sort the entities based on the vecSourceFaceIx values
         for ( size_t ix = 0; ix < m_overlap_entities.size(); ++ix )
         {
@@ -438,6 +446,8 @@ ErrorCode TempestRemapper::ConvertMOABMesh_WithSortedEntitiesBySource()
             m_overlap->vecSourceFaceIx[ie] = gid_to_lid_covsrc[rbids_src[sorted_overlap_order[ie].second]];
             m_overlap->vecTargetFaceIx[ie] = gid_to_lid_tgt[rbids_tgt[sorted_overlap_order[ie].second]];
             // if ( !m_pcomm->rank() ) printf ( "Element %i :: Src: [%i], Tgt: [%i]\n", ie, m_overlap->vecSourceFaceIx[ie], m_overlap->vecTargetFaceIx[ie] );
+            if (ghFlags[ie]>=0) // it means it is a ghost overlap element
+              ghostTargets.insert(m_overlap->vecTargetFaceIx[ie]); // this should not participate in smat!
         }
     }
 
@@ -1194,6 +1204,13 @@ ErrorCode TempestRemapper::augment_overlap_set()
     int indexInVert = TLv2.vi_rd[3*i+2];
     vertexPerProcAndIndex[orgProc][indexInVert]=newVerts[i];
   }
+
+  // new polygons will receive a dense tag, with default value -1, with the processor task they
+  // originally belonged to
+  Tag ghostTag;
+  int orig_proc = -1;
+  rval = m_interface->tag_get_handle ( "ORIG_PROC", 1, MB_TYPE_INTEGER, ghostTag, MB_TAG_DENSE | MB_TAG_CREAT, &orig_proc ); MB_CHK_ERR ( rval );
+
   // now form the needed cells, in order
   Range newPolygons;
   int ne = TLc2.get_n();
@@ -1216,7 +1233,7 @@ ErrorCode TempestRemapper::augment_overlap_set()
     newPolygons.insert(polyNew);
     rval = m_interface->tag_set_data(targetParentTag, &polyNew, 1, &targetID);  MB_CHK_ERR(rval);
     rval = m_interface->tag_set_data(sourceParentTag, &polyNew, 1, &sourceID);  MB_CHK_ERR(rval);
-
+    rval = m_interface->tag_set_data(ghostTag, &polyNew, 1, &orgProc);  MB_CHK_ERR(rval);
   }
 
 #ifdef VERBOSE
@@ -1229,6 +1246,10 @@ ErrorCode TempestRemapper::augment_overlap_set()
   ffs4 << "extraIntxCells"<< m_pcomm->rank() << ".h5m";
   rval = m_interface->write_mesh(ffs4.str().c_str(), &tmpSet3, 1);MB_CHK_ERR(rval);
 #endif
+
+  // add the new polygons to the overlap set
+  // these will be ghosted, so will participate in conservation only
+  rval = m_interface->add_entities(m_overlap_set, newPolygons); MB_CHK_ERR(rval);
 
   return MB_SUCCESS;
 }
