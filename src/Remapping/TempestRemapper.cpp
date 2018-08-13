@@ -681,11 +681,13 @@ ErrorCode TempestRemapper::augment_overlap_set()
   /*
    * overall strategy:
    *
-   * 1) collect all boundary target cells on the current task, affected by the partition boundary
+   * 1) collect all boundary target cells on the current task, affected by the partition boundary;
+   *    note: not only partition boundary, we need all boundary (all coastal lines) and partition boundary
+   *    targetBoundaryIds is the set of target boundary cell IDs
    *
-   * 2) collect all source cells that are intersecting boundary cells (call them affectedCovCells)
+   * 2) collect all source cells that are intersecting boundary cells (call them affectedSourceCellsIds)
    *
-   * 3) collect overlap
+   * 3) collect overlap, that is accumulate all overlap cells that have source target in affectedSourceCellsIds
    */
   // first, get all edges on the partition boundary, on the target mesh, then all the target elements that border the
   // partition boundary
@@ -696,8 +698,6 @@ ErrorCode TempestRemapper::augment_overlap_set()
   /// find all boundary edges
   rval = skinner.find_skin( 0, targetCells, false, boundaryEdges); MB_CHK_ERR(rval);
   // filter boundary edges that are on partition boundary, not on boundary
- /* Range sharedEdges=boundaryEdges;// filter the non shared ones
-  rval = m_pcomm->filter_pstatus(sharedEdges, PSTATUS_SHARED, PSTATUS_AND); MB_CHK_ERR(rval);*/
   // find all cells adjacent to these boundary edges, from target set
   Range boundaryCells; // these will be filtered from target_set
   rval = m_interface->get_adjacencies(boundaryEdges, 2, false, boundaryCells, Interface::UNION); MB_CHK_ERR(rval);
@@ -711,7 +711,6 @@ ErrorCode TempestRemapper::augment_overlap_set()
   std::stringstream ffs;
   ffs << "boundaryCells_0"<< m_pcomm->rank() << ".h5m";
   rval = m_interface->write_mesh(ffs.str().c_str(), &tmpSet, 1);MB_CHK_ERR(rval);
-
 #endif
 
   // now that we have the boundary cells, see which overlap polys have have these as parents;
@@ -785,14 +784,15 @@ ErrorCode TempestRemapper::augment_overlap_set()
 
   // now loop again over all overlap cells, to see if their source parent is "affected"
   // store in ranges the overlap cells that need to be sent to original task of the source cell
-  // from there, they will be distributed to the tasks that need that coverage cell
+  // from there, they will be redistributed to the tasks that need that coverage cell
   Tag orgSendProcTag;
   rval = m_interface->tag_get_handle("orig_sending_processor", 1, MB_TYPE_INTEGER, orgSendProcTag);
 
   // basically a map from original processor task to the range of overlap cells to be sent there
   std::map<int, Range>  overlapCellsForTask;
 
-  // this range will contain all intx cells that will need to be sent ( a union of above ranges , that are organized per task)
+  // this range will contain all intx cells that will need to be sent ( a union of above ranges , that are organized per task
+  // on the above map )
   Range overlapCellsToSend;
 
   for (Range::iterator it=overlapCells.begin(); it!=overlapCells.end(); it++)
@@ -806,7 +806,7 @@ ErrorCode TempestRemapper::augment_overlap_set()
       int orgTask ;
       rval = m_interface->tag_get_data(orgSendProcTag, &covCell, 1, &orgTask); MB_CHK_ERR(rval);
       overlapCellsForTask[orgTask].insert(intxCell);  // put the overlap cell in corresponding range
-      overlapCellsToSend.insert(intxCell);
+      overlapCellsToSend.insert(intxCell); // also put it in this range, for debugging mostly
     }
   }
 
@@ -830,7 +830,8 @@ ErrorCode TempestRemapper::augment_overlap_set()
   int globalMaxEdges;
   MPI_Allreduce( &maxEdges, &globalMaxEdges, 1, MPI_INT, MPI_MAX, m_pcomm->comm() );
 #ifdef VERBOSE
-  std::cout << "maximum number of edges for polygons to send is " << globalMaxEdges << "\n";
+  if (m_pcomm->rank() == 0)
+    std::cout << "maximum number of edges for polygons to send is " << globalMaxEdges << "\n";
 #endif
 
 #ifdef VERBOSE
@@ -840,7 +841,8 @@ ErrorCode TempestRemapper::augment_overlap_set()
   rval = m_interface->add_entities(tmpSet2, overlapCellsToSend); MB_CHK_SET_ERR(rval, "Can't add entities");
   rval = m_interface->add_entities(tmpSet2, affectedCovCells); MB_CHK_SET_ERR(rval, "Can't add edges");
   std::stringstream ffs2;
-  ffs2 << "affectedCells_0"<< m_pcomm->rank() << ".h5m";
+  // these will contain coverage cells and intx cells on the boundary
+  ffs2 << "affectedCells_"<< m_pcomm->rank() << ".h5m";
   rval = m_interface->write_mesh(ffs2.str().c_str(), &tmpSet2, 1);MB_CHK_ERR(rval);
 
 #endif
@@ -853,6 +855,7 @@ ErrorCode TempestRemapper::augment_overlap_set()
   // look through the ranges to be sent to other processes, and form the vertex tuples and cell tuples
   //
   std::map<int, Range> verticesOverlapForTask;
+  Range allVerticesToSend;
   int numVerts =0;
   int numOverlapCells = 0;
   for (std::map<int, Range>::iterator it=overlapCellsForTask.begin(); it!=overlapCellsForTask.end(); it++)
@@ -864,24 +867,30 @@ ErrorCode TempestRemapper::augment_overlap_set()
     verticesOverlapForTask[sendToProc] = vertices;
     numVerts += (int)vertices.size();
     numOverlapCells += (int)overlapCellsToSend2.size();
+    allVerticesToSend.merge(vertices); // the index will be unique for this orig processor
   }
   // first send vertices in a tuple list, then send overlap cells, according to requests
   // overlap cells need to send info about the blue and red parent tags, too
   TupleList TLv; //
-  TLv.initialize(2, 0, 0, 3, numVerts); // to proc, index in range, DP points
+  TLv.initialize(2, 0, 0, 3, numVerts); // to proc, index in all range, DP points
   TLv.enableWriteAccess();
+
   for (std::map<int, Range>::iterator it=verticesOverlapForTask.begin(); it!=verticesOverlapForTask.end(); it++)
   {
-    int sentToProc = it->first;
+    int sendToProc = it->first;
     Range & vertices = it->second;
     std::vector<double> coords;
     coords.resize(3*vertices.size());
     rval = m_interface->get_coords(vertices, &coords[0]); MB_CHK_ERR(rval);
-    for (int i=0; i<(int)vertices.size(); i++)
+    int i=0;
+    for (Range::iterator it2=vertices.begin(); it2!=vertices.end(); it2++, i++)
     {
       int n=TLv.get_n();
-      TLv.vi_wr[2*n] = sentToProc; // send to processor
-      TLv.vi_wr[2*n+1] = i; //  needs index in the local_verts range, from the processor
+      TLv.vi_wr[2*n] = sendToProc; // send to processor
+      EntityHandle v = *it2;
+      int indexInAllVert=allVerticesToSend.index(v);
+      TLv.vi_wr[2*n+1] = indexInAllVert; // will be orgProc, to differentiate indices of vertices sent to "sentToProc"
+
       TLv.vr_wr[3*n] = coords[3*i];  // departure position, of the node local_verts[i]
       TLv.vr_wr[3*n+1] = coords[3*i+1];
       TLv.vr_wr[3*n+2] = coords[3*i+2];
@@ -900,7 +909,7 @@ ErrorCode TempestRemapper::augment_overlap_set()
   {
     int sendToProc = it->first;
     Range & overlapCellsToSend2 = it->second;
-    Range & vertices = verticesOverlapForTask[sendToProc];
+    //Range & vertices = verticesOverlapForTask[sendToProc];
     // connectivity will be with respect to index in these vertices
     // send also the target and source parents for these overlap cells
     for (Range::iterator it2= overlapCellsToSend2.begin(); it2!=overlapCellsToSend2.end(); it2++)
@@ -919,7 +928,7 @@ ErrorCode TempestRemapper::augment_overlap_set()
       TLc.vi_wr[sizeTuple*n+3] = nnodes;
       for (int i=0; i<nnodes; i++)
       {
-        int indexVertex = vertices.index(conn[i]);
+        int indexVertex = allVerticesToSend.index(conn[i]); // the vertex index will be now unique per original proc
         if (-1==indexVertex) MB_CHK_SET_ERR(MB_FAILURE, "Can't find vertex in range of vertices to send");
         TLc.vi_wr[sizeTuple*n+4 + i] = indexVertex;
       }
@@ -967,9 +976,10 @@ ErrorCode TempestRemapper::augment_overlap_set()
   int nv = TLv.get_n();
   for (int i=0; i<nv; i++)
   {
-    int proc=TLv.vi_rd[2*i];
+    //int proc=TLv.vi_rd[3*i]; // it is coming from this processor
+    int orgProc = TLv.vi_rd[2*i]; // this is the original processor, for index vertex consideration
     int indexVert = TLv.vi_rd[2*i+1];
-    availVertexIndicesPerProcessor[proc][indexVert]=i;
+    availVertexIndicesPerProcessor[orgProc][indexVert]=i;
   }
 
 
@@ -992,8 +1002,7 @@ ErrorCode TempestRemapper::augment_overlap_set()
   std::map< int, std::set<int> > sourcesForTasks;
   int sizeOfTLc2 = 0; // only increase when we will have to send data
 
-  int i=1;
-  while (i<n)
+  for( int i=1; i<n; i++)
   {
     int proc = TLc.vi_rd[sizeTuple*i];
     int sourceID = TLc.vi_rd[sizeTuple*i+1];
@@ -1042,8 +1051,6 @@ ErrorCode TempestRemapper::augment_overlap_set()
         currentProcsCount[proc]=1;
       }
     }
-
-    i++;
   }
 
 // begin a loop to send the needed cells to the processes; also mark the vertices that need to be sent, put them in a
@@ -1062,7 +1069,7 @@ ErrorCode TempestRemapper::augment_overlap_set()
 
   std::map<int, std::set<int>> verticesToSendForProc; // will look at indices in the TLv list
   // will form for each processor, the index list from TLv
-  for (i=0; i<n; i++)
+  for (int i=0; i<n; i++)
   {
     int sourceID = TLc.vi_rd[sizeTuple*i+1];
     if (sourcesForTasks.find(sourceID)!=sourcesForTasks.end())
@@ -1181,7 +1188,7 @@ ErrorCode TempestRemapper::augment_overlap_set()
   rval = m_interface->create_vertices(&(TLv2.vr_rd[0]), nvNew, newVerts); MB_CHK_ERR(rval);
   // now create a map from index , org proc, to actual entity handle corresponding to it
   std::map<int, std::map<int, EntityHandle>> vertexPerProcAndIndex;
-  for (i=0; i<nvNew; i++)
+  for (int i=0; i<nvNew; i++)
   {
     int orgProc = TLv2.vi_rd[3*i+1];
     int indexInVert = TLv2.vi_rd[3*i+2];
@@ -1190,7 +1197,7 @@ ErrorCode TempestRemapper::augment_overlap_set()
   // now form the needed cells, in order
   Range newPolygons;
   int ne = TLc2.get_n();
-  for (i=0; i<ne; i++)
+  for (int i=0; i<ne; i++)
   {
     int orgProc =  TLc2.vi_rd[i*sizeTuple2+1] ; // this cell is coming from here
     int sourceID = TLc2.vi_rd[i*sizeTuple2+2] ; // source parent of the intx cell
