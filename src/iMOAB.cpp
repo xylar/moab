@@ -2295,6 +2295,11 @@ ErrCode iMOAB_CoverageGraph ( MPI_Comm * join, iMOAB_AppID pid_src,
 
             rval = context.MBI->tag_get_data ( parentTag, &intx_cell, 1, &gidCell ); CHKERRVAL ( rval );
             rval = context.MBI->tag_get_data ( orgSendProcTag, &intx_cell, 1, &origProc ); CHKERRVAL ( rval );
+            // we have augmented the overlap set with ghost cells ; in that case, the orig_sending_processor is not set
+            // so it will be -1;
+            if (origProc<0)
+              continue;
+
 
             std::set<int> &setInts = idsFromProcs[origProc];
             setInts.insert ( gidCell );

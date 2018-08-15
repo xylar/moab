@@ -410,30 +410,22 @@ ErrorCode TempestRemapper::ConvertMOABMesh_WithSortedEntitiesBySource()
     // Allocate for the overlap mesh
     if ( !m_overlap ) m_overlap = new Mesh();
 
+    bool ghostsPresent = (m_pcomm->size()>1);
     std::vector<std::pair<int, int> > sorted_overlap_order ( m_overlap_entities.size() );
     {
 
         Tag bluePtag, redPtag, ghostTag;
         rval = m_interface->tag_get_handle ( "BlueParent", bluePtag ); MB_CHK_ERR ( rval );
         rval = m_interface->tag_get_handle ( "RedParent", redPtag ); MB_CHK_ERR ( rval );
-        rval = m_interface->tag_get_handle ( "ORIG_PROC", ghostTag ); MB_CHK_ERR ( rval );
         // Overlap mesh: resize the source and target connection arrays
         m_overlap->vecSourceFaceIx.resize ( m_overlap_entities.size() );
         m_overlap->vecTargetFaceIx.resize ( m_overlap_entities.size() );
 
         // Overlap mesh: resize the source and target connection arrays
         std::vector<int> rbids_src ( m_overlap_entities.size() ), rbids_tgt ( m_overlap_entities.size() );
-        std::vector<int> ghFlags(m_overlap_entities.size());
+        std::vector<int> ghFlags;
         rval = m_interface->tag_get_data ( bluePtag,  m_overlap_entities, &rbids_src[0] ); MB_CHK_ERR ( rval );
         rval = m_interface->tag_get_data ( redPtag,  m_overlap_entities, &rbids_tgt[0] ); MB_CHK_ERR ( rval );
-        rval = m_interface->tag_get_data ( ghostTag,  m_overlap_entities, &ghFlags[0] ); MB_CHK_ERR ( rval );
-
-        // create the set of ghost targets that we need to avoid
-        for ( size_t ix = 0; ix < m_overlap_entities.size(); ++ix )
-        {
-
-        }
-        // Let us re-sort the entities based on the vecSourceFaceIx values
         for ( size_t ix = 0; ix < m_overlap_entities.size(); ++ix )
         {
             sorted_overlap_order[ix].first = gid_to_lid_covsrc[rbids_src[ix]];
@@ -441,12 +433,20 @@ ErrorCode TempestRemapper::ConvertMOABMesh_WithSortedEntitiesBySource()
         }
         std::sort ( sorted_overlap_order.begin(), sorted_overlap_order.end(), IntPairComparator );
 
+        if (ghostsPresent)
+        {
+          Tag ghostTag;
+          ghFlags.resize(m_overlap_entities.size());
+          rval = m_interface->tag_get_handle ( "ORIG_PROC", ghostTag ); MB_CHK_ERR ( rval );
+          rval = m_interface->tag_get_data ( ghostTag,  m_overlap_entities, &ghFlags[0] ); MB_CHK_ERR ( rval );
+
+        }
         for ( unsigned ie = 0; ie < m_overlap_entities.size(); ++ie )
         {
             m_overlap->vecSourceFaceIx[ie] = gid_to_lid_covsrc[rbids_src[sorted_overlap_order[ie].second]];
             m_overlap->vecTargetFaceIx[ie] = gid_to_lid_tgt[rbids_tgt[sorted_overlap_order[ie].second]];
             // if ( !m_pcomm->rank() ) printf ( "Element %i :: Src: [%i], Tgt: [%i]\n", ie, m_overlap->vecSourceFaceIx[ie], m_overlap->vecTargetFaceIx[ie] );
-            if (ghFlags[ie]>=0) // it means it is a ghost overlap element
+            if (ghostsPresent && ghFlags[ie]>=0) // it means it is a ghost overlap element
               ghostTargets.insert(m_overlap->vecTargetFaceIx[ie]); // this should not participate in smat!
         }
     }
