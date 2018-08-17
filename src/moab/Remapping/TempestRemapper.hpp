@@ -95,7 +95,7 @@ public:
 
     int GetLocalID(Remapper::IntersectionContext ctx, int globalID);
 
-    const bool isGhostTarget( int targetID ){ return (ghostTargets.find(targetID) != ghostTargets.end()) ;};
+    bool isGhostTarget( int targetID) { return (ghostTargets.find(targetID) != ghostTargets.end()) ;};
 
     // public members
     bool meshValidate;  // Validate the mesh after loading from file

@@ -432,6 +432,7 @@ ErrorCode TempestRemapper::ConvertMOABMesh_WithSortedEntitiesBySource()
             sorted_overlap_order[ix].second = ix;
         }
         std::sort ( sorted_overlap_order.begin(), sorted_overlap_order.end(), IntPairComparator );
+        // sorted_overlap_order[ie].second , ie=0,nOverlap-1 is the order such that overlap elems are ordered by source parent
 
         if (ghostsPresent)
         {
@@ -443,11 +444,15 @@ ErrorCode TempestRemapper::ConvertMOABMesh_WithSortedEntitiesBySource()
         }
         for ( unsigned ie = 0; ie < m_overlap_entities.size(); ++ie )
         {
-            m_overlap->vecSourceFaceIx[ie] = gid_to_lid_covsrc[rbids_src[sorted_overlap_order[ie].second]];
-            m_overlap->vecTargetFaceIx[ie] = gid_to_lid_tgt[rbids_tgt[sorted_overlap_order[ie].second]];
+            int ix = sorted_overlap_order[ie].second; // original index of the element
+            m_overlap->vecSourceFaceIx[ie] = gid_to_lid_covsrc[rbids_src[ix]];
+            m_overlap->vecTargetFaceIx[ie] = gid_to_lid_tgt[rbids_tgt[ix]];
             // if ( !m_pcomm->rank() ) printf ( "Element %i :: Src: [%i], Tgt: [%i]\n", ie, m_overlap->vecSourceFaceIx[ie], m_overlap->vecTargetFaceIx[ie] );
-            if (ghostsPresent && ghFlags[ie]>=0) // it means it is a ghost overlap element
+
+            if (ghostsPresent && ghFlags[ix]>=0) // it means it is a ghost overlap element
+            {
               ghostTargets.insert(m_overlap->vecTargetFaceIx[ie]); // this should not participate in smat!
+            }
         }
     }
 
@@ -1216,7 +1221,7 @@ ErrorCode TempestRemapper::augment_overlap_set()
   int ne = TLc2.get_n();
   for (int i=0; i<ne; i++)
   {
-    int orgProc =  TLc2.vi_rd[i*sizeTuple2+1] ; // this cell is coming from here
+    int orgProc =  TLc2.vi_rd[i*sizeTuple2+1] ; // this cell is coming from here, originally
     int sourceID = TLc2.vi_rd[i*sizeTuple2+2] ; // source parent of the intx cell
     int targetID = TLc2.vi_wr[i*sizeTuple2+3] ; // target parent of intx cell
     int nve = TLc2.vi_wr[i*sizeTuple2+4] ; // number of vertices for the polygon
