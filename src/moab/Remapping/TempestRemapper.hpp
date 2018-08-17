@@ -95,8 +95,6 @@ public:
 
     int GetLocalID(Remapper::IntersectionContext ctx, int globalID);
 
-    bool isGhostTarget( int targetID) { return (ghostTargets.find(targetID) != ghostTargets.end()) ;};
-
     // public members
     bool meshValidate;  // Validate the mesh after loading from file
 
@@ -145,9 +143,6 @@ private:
 
     std::map<int,int> gid_to_lid_src, gid_to_lid_covsrc, gid_to_lid_tgt;
     std::map<int,int> lid_to_gid_src, lid_to_gid_covsrc, lid_to_gid_tgt;
-    // used to collect local targets that correspond to ghost intx cells; they should not be in smat
-    std::set<int>  ghostTargets;
-
 };
 
 // Inline functions

@@ -446,13 +446,10 @@ ErrorCode TempestRemapper::ConvertMOABMesh_WithSortedEntitiesBySource()
         {
             int ix = sorted_overlap_order[ie].second; // original index of the element
             m_overlap->vecSourceFaceIx[ie] = gid_to_lid_covsrc[rbids_src[ix]];
-            m_overlap->vecTargetFaceIx[ie] = gid_to_lid_tgt[rbids_tgt[ix]];
-            // if ( !m_pcomm->rank() ) printf ( "Element %i :: Src: [%i], Tgt: [%i]\n", ie, m_overlap->vecSourceFaceIx[ie], m_overlap->vecTargetFaceIx[ie] );
-
             if (ghostsPresent && ghFlags[ix]>=0) // it means it is a ghost overlap element
-            {
-              ghostTargets.insert(m_overlap->vecTargetFaceIx[ie]); // this should not participate in smat!
-            }
+              m_overlap->vecTargetFaceIx[ie]=-1; // this should not participate in smat!
+            else
+              m_overlap->vecTargetFaceIx[ie] = gid_to_lid_tgt[rbids_tgt[ix]];
         }
     }
 
