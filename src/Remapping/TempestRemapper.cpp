@@ -25,7 +25,8 @@
 // skinner for augmenting overlap mesh to complete coverage
 #include "moab/Skinner.hpp"
 #include "MBParallelConventions.h"
-// #include <set>
+
+// #define VERBOSE
 
 namespace moab
 {
@@ -500,7 +501,7 @@ ErrorCode TempestRemapper::ConvertMOABMesh_WithSortedEntitiesBySource()
     verts.clear();
 
     m_overlap->RemoveZeroEdges();
-    m_overlap->RemoveCoincidentNodes();
+    // m_overlap->RemoveCoincidentNodes();
 
     // Generate reverse node array and edge map
     if ( constructEdgeMap ) m_overlap->ConstructEdgeMap();
