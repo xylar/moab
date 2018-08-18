@@ -349,7 +349,7 @@ ErrorCode TempestRemapper::ConvertMOABMeshToTempest_Private ( Mesh* mesh, Entity
         rval = m_interface->get_connectivity ( ehandle, connectface, nnodesf ); MB_CHK_ERR ( rval );
 
         face.edges.resize ( nnodesf );
-        for ( size_t iverts = 0; iverts < nnodesf; ++iverts )
+        for ( int iverts = 0; iverts < nnodesf; ++iverts )
         {
             int indx = verts.index ( connectface[iverts] );
             assert ( indx >= 0 );
@@ -414,7 +414,7 @@ ErrorCode TempestRemapper::ConvertMOABMesh_WithSortedEntitiesBySource()
     std::vector<std::pair<int, int> > sorted_overlap_order ( m_overlap_entities.size() );
     {
 
-        Tag bluePtag, redPtag, ghostTag;
+        Tag bluePtag, redPtag;
         rval = m_interface->tag_get_handle ( "BlueParent", bluePtag ); MB_CHK_ERR ( rval );
         rval = m_interface->tag_get_handle ( "RedParent", redPtag ); MB_CHK_ERR ( rval );
         // Overlap mesh: resize the source and target connection arrays
@@ -984,7 +984,7 @@ ErrorCode TempestRemapper::augment_overlap_set()
 
   // connectivity of a cell is given by sending proc and index in original list of vertices from that proc
 
-  std::map<int , std::map<int, int>> availVertexIndicesPerProcessor;
+  std::map<int , std::map<int, int> > availVertexIndicesPerProcessor;
   int nv = TLv.get_n();
   for (int i=0; i<nv; i++)
   {
@@ -1079,7 +1079,7 @@ ErrorCode TempestRemapper::augment_overlap_set()
   TLc2.enableWriteAccess();
   // loop again through TLc, and select intx cells that have the problem sources;
 
-  std::map<int, std::set<int>> verticesToSendForProc; // will look at indices in the TLv list
+  std::map<int, std::set<int> > verticesToSendForProc; // will look at indices in the TLv list
   // will form for each processor, the index list from TLv
   for (int i=0; i<n; i++)
   {
@@ -1150,7 +1150,7 @@ ErrorCode TempestRemapper::augment_overlap_set()
   TupleList TLv2;
   int numVerts2=0;
   // how many vertices to send?
-  for (std::map<int , std::set<int>>::iterator it= verticesToSendForProc.begin();
+  for (std::map<int , std::set<int> >::iterator it= verticesToSendForProc.begin();
         it!= verticesToSendForProc.end(); it++)
   {
     std::set<int> & indexInTLvSet = it->second;
@@ -1158,7 +1158,7 @@ ErrorCode TempestRemapper::augment_overlap_set()
   }
   TLv2.initialize(3, 0, 0, 3, numVerts2); // send to, original proc, index in original proc, and 3 coords
   TLv2.enableWriteAccess();
-  for (std::map<int , std::set<int>>::iterator it= verticesToSendForProc.begin();
+  for (std::map<int , std::set<int> >::iterator it= verticesToSendForProc.begin();
       it!= verticesToSendForProc.end(); it++)
   {
     int sendToProc = it->first;
@@ -1199,7 +1199,7 @@ ErrorCode TempestRemapper::augment_overlap_set()
   Range newVerts;
   rval = m_interface->create_vertices(&(TLv2.vr_rd[0]), nvNew, newVerts); MB_CHK_ERR(rval);
   // now create a map from index , org proc, to actual entity handle corresponding to it
-  std::map<int, std::map<int, EntityHandle>> vertexPerProcAndIndex;
+  std::map<int, std::map<int, EntityHandle> > vertexPerProcAndIndex;
   for (int i=0; i<nvNew; i++)
   {
     int orgProc = TLv2.vi_rd[3*i+1];
