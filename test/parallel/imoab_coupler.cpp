@@ -19,7 +19,7 @@
 
 using namespace moab;
 
-// #define VERBOSE
+#define VERBOSE
 
 int main( int argc, char* argv[] )
 {
@@ -31,8 +31,8 @@ int main( int argc, char* argv[] )
   MPI_Comm_rank( MPI_COMM_WORLD, &rank );
   MPI_Comm_size( MPI_COMM_WORLD, &size );
 
-  if (size > 1 && size%2 == 1)
-    return 1; // launch it on 2 processors only
+  // if (size > 1 && size%2 == 1)
+  //   return 1; // launch it on 2 processors only
 
   MPI_Comm_dup(MPI_COMM_WORLD, &jcomm);
   MPI_Comm_group(jcomm, &jgroup);
@@ -46,9 +46,17 @@ int main( int argc, char* argv[] )
   // compid4 is for ocean on coupelr pes
   // intxid is for intx atm / ocn on coupler pes
   int nghlay=0; // number of ghost layers for loading the file
-  int groupTasks[2]; // at most 2 tasks
-  // int startG1=0, startG2=0, endG1=1, endG2=1; // everything runs now on 2 procs
-  int startG1=0, startG2=0, endG1=size/2-1, endG2=size-1; // Support launch of imoab_coupler test on any combo of 2*x processes
+  std::vector<int> groupTasks; // at most 2 tasks
+  // int startG1=0, startG2=0, endG1=size/2-1, endG2=size-1; // Support launch of imoab_coupler test on any combo of 2*x processes
+  /* COMBOS THAT WORK */
+  // int startG1=0, startG2=0, endG1=0, endG2=0; // Support launch of imoab_coupler test on any combo of 2*x processes
+  // int startG1=0, startG2=0, endG1=1, endG2=0; // Support launch of imoab_coupler test on any combo of 2*x processes
+  // int startG1=0, startG2=0, endG1=size-1, endG2=0; // Support launch of imoab_coupler test on any combo of 2*x processes
+  
+  /* COMBOS THAT **DO NOT** WORK */
+  // int startG1=0, startG2=0, endG1=0, endG2=1; // Support launch of imoab_coupler test on any combo of 2*x processes
+  // int startG1=0, startG2=0, endG1=1, endG2=1; // Support launch of imoab_coupler test on any combo of 2*x processes
+  int startG1=0, startG2=0, endG1=size-1, endG2=size-1; // Support launch of imoab_coupler test on any combo of 2*x processes
 
   // load atm on 2 proc, ocean on 2, migrate both to 2 procs, then compute intx
   // later, we need to compute weight matrix with tempestremap
@@ -68,17 +76,21 @@ int main( int argc, char* argv[] )
   // first groups has task 0, second group tasks 0 and 1
   // coupler will be on joint tasks, will be on a third group (0 and 1, again)
 
+  groupTasks.resize(size, 0);
+
   MPI_Group group1, group2;
   for (int i=startG1; i<=endG1; i++)
     groupTasks [i-startG1] = i;
 
-  ierr = MPI_Group_incl(jgroup, endG1-startG1+1, groupTasks, &group1);
+  ierr = MPI_Group_incl(jgroup, endG1-startG1+1, &groupTasks[0], &group1);
   CHECKRC(ierr, "can't create group1")
 
+  groupTasks.clear();
+  groupTasks.resize(size, 0);
   for (int i=startG2; i<=endG2; i++)
     groupTasks [i-startG2] = i;
 
-  ierr = MPI_Group_incl(jgroup, endG2-startG2+1, groupTasks, &group2);
+  ierr = MPI_Group_incl(jgroup, endG2-startG2+1, &groupTasks[0], &group2);
   CHECKRC(ierr, "can't create group2")
 
   // create 2 communicators, one for each group
