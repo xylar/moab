@@ -68,5 +68,8 @@ EXTRA_DIST = 125hex.g \
              torus_tris_12.vtk \
              field1.h5m \
              atm.h5m \
-             mpas.h5m
+             mpas.h5m \
+             wholeATM_T.h5m \
+             recMeshOcn.h5m
+
 
