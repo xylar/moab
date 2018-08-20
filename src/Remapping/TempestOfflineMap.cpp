@@ -1588,8 +1588,8 @@ moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot()   // Collective
 #endif
             }
 
-            DataVector<double>& dSourceCenterLon = m_weightMapGlobal->GetCenterLon(true);
-            DataVector<double>& dSourceCenterLat = m_weightMapGlobal->GetCenterLat(true);
+            DataVector<double>& dSourceCenterLon = m_weightMapGlobal->GetSourceCenterLon();
+            DataVector<double>& dSourceCenterLat = m_weightMapGlobal->GetSourceCenterLat();
             dSourceCenterLon.Initialize(gsrcdofs);
             dSourceCenterLat.Initialize(gsrcdofs);
             {
@@ -1620,8 +1620,8 @@ moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot()   // Collective
             }
 
 
-            DataMatrix<double>& dSourceVertexLon = m_weightMapGlobal->GetVertexLon(true);
-            DataMatrix<double>& dSourceVertexLat = m_weightMapGlobal->GetVertexLat(true);
+            DataMatrix<double>& dSourceVertexLon = m_weightMapGlobal->GetSourceVertexLon();
+            DataMatrix<double>& dSourceVertexLat = m_weightMapGlobal->GetSourceVertexLat();
             dSourceVertexLon.Initialize(gsrcdofs, nSc);
             dSourceVertexLat.Initialize(gsrcdofs, nSc);
             {
@@ -1652,8 +1652,8 @@ moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot()   // Collective
                 }
             }
 
-            DataVector<double>& dTargetCenterLon = m_weightMapGlobal->GetCenterLon(false);
-            DataVector<double>& dTargetCenterLat = m_weightMapGlobal->GetCenterLat(false);
+            DataVector<double>& dTargetCenterLon = m_weightMapGlobal->GetTargetCenterLon();
+            DataVector<double>& dTargetCenterLat = m_weightMapGlobal->GetTargetCenterLat();
             dTargetCenterLon.Initialize(gtgtdofs);
             dTargetCenterLat.Initialize(gtgtdofs);
             {
@@ -1683,8 +1683,8 @@ moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot()   // Collective
                 }
             }
 
-            DataMatrix<double>& dTargetVertexLon = m_weightMapGlobal->GetVertexLon(false);
-            DataMatrix<double>& dTargetVertexLat = m_weightMapGlobal->GetVertexLat(false);
+            DataMatrix<double>& dTargetVertexLon = m_weightMapGlobal->GetTargetVertexLon();
+            DataMatrix<double>& dTargetVertexLat = m_weightMapGlobal->GetTargetVertexLat();
             dTargetVertexLon.Initialize(gtgtdofs, nTc);
             dTargetVertexLat.Initialize(gtgtdofs, nTc);
             {
