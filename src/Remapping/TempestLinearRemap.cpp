@@ -291,16 +291,19 @@ void moab::TempestOfflineMap::LinearRemapFVtoFV_Tempest_MOAB (
     // Current overlap face
     int ixOverlap = 0;
 
+#ifdef VERBOSE
     const unsigned outputFrequency = (m_meshInputCov->faces.size()/10);
+#endif
     // Loop through all faces on m_meshInput
     for ( size_t ixFirst = 0; ixFirst < m_meshInputCov->faces.size(); ixFirst++ )
     {
+#ifdef VERBOSE
         // Output every 1000 elements
-        if ( ixFirst % outputFrequency == 100 )
+        if ( ixFirst % outputFrequency == 0 )
         {
             Announce ( "Element %i/%i", ixFirst, m_meshInputCov->faces.size() );
         }
-
+#endif
         // This Face
 
         // Find the set of Faces that overlap faceFirst
@@ -838,27 +841,6 @@ moab::ErrorCode moab::TempestOfflineMap::ApplyWeights (std::vector<double>& srcV
 
 ///////////////////////////////////////////////////////////////////////////////
 
-extern void ForceConsistencyConservation3(
-    const DataVector<double> & vecSourceArea,
-    const DataVector<double> & vecTargetArea,
-    DataMatrix<double> & dCoeff,
-    bool fMonotone
-);
-
-void ForceConsistencyConservation3_MOAB1(
-    const DataVector<double> & vecSourceArea,
-    const DataVector<double> & vecTargetArea,
-    DataMatrix<double> & dCoeff,
-    bool fMonotone,
-    int elemID
-) {
-    ForceConsistencyConservation3(
-    vecSourceArea,
-    vecTargetArea,
-    dCoeff,
-    fMonotone
-    );
-}
 
 void ForceConsistencyConservation3_MOAB(
     const DataVector<double> & vecSourceArea,
@@ -1110,7 +1092,9 @@ void moab::TempestOfflineMap::LinearRemapSE4_Tempest_MOAB (
 
     // Current Overlap Face
     int ixOverlap = 0;
+#ifdef VERBOSE
     const unsigned outputFrequency = (m_meshInputCov->faces.size()/10);
+#endif
 
     // Loop over all input Faces
     for ( size_t ixFirst = 0; ixFirst < m_meshInputCov->faces.size(); ixFirst++ )
@@ -1553,7 +1537,9 @@ void moab::TempestOfflineMap::LinearRemapFVtoGLL_Simple_MOAB (
 
     // Loop through all faces on m_meshInput
     int ixOverlap = 0;
+#ifdef VERBOSE
     const unsigned outputFrequency = (m_meshInputCov->faces.size()/10);
+#endif
 
     for ( size_t ixFirst = 0; ixFirst < m_meshInputCov->faces.size(); ixFirst++ )
     {
@@ -1969,7 +1955,9 @@ void moab::TempestOfflineMap::LinearRemapFVtoGLL_Volumetric_MOAB (
 
     // Current overlap face
     int ixOverlap = 0;
+#ifdef VERBOSE
     const unsigned outputFrequency = (m_meshInputCov->faces.size()/10);
+#endif
 
     // Loop through all faces on m_meshInput
     for ( size_t ixFirst = 0; ixFirst < m_meshInputCov->faces.size(); ixFirst++ )
@@ -2304,7 +2292,9 @@ void moab::TempestOfflineMap::LinearRemapFVtoGLL_MOAB (
 
     // Loop through all faces on m_meshInput
     ixOverlap = 0;
+#ifdef VERBOSE
     const unsigned outputFrequency = (m_meshInputCov->faces.size()/10);
+#endif
 
     for ( size_t ixFirst = 0; ixFirst < m_meshInputCov->faces.size(); ixFirst++ )
     {
@@ -2786,7 +2776,9 @@ void moab::TempestOfflineMap::LinearRemapGLLtoGLL2_MOAB (
 
     // Loop through all faces on m_meshInput
     ixOverlap = 0;
+#ifdef VERBOSE
     const unsigned outputFrequency = (m_meshInputCov->faces.size()/10);
+#endif
 
     if ( !pcomm->rank() )
         Announce ( "Building conservative distribution maps" );
@@ -3352,7 +3344,9 @@ void moab::TempestOfflineMap::LinearRemapGLLtoGLL2_Pointwise_MOAB (
     DataVector<bool> fSecondNodeFound ( dataNodalAreaOut.GetRows() );
 
     ixOverlap = 0;
+#ifdef VERBOSE
     const unsigned outputFrequency = (m_meshInputCov->faces.size()/10);
+#endif
 
     // Loop through all faces on m_meshInputCov
     for ( size_t ixFirst = 0; ixFirst < m_meshInputCov->faces.size(); ixFirst++ )
