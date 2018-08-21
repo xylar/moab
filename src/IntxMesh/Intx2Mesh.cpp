@@ -676,7 +676,7 @@ ErrorCode Intx2Mesh::create_departure_mesh_2nd_alg(EntityHandle & euler_set, Ent
   int num_local_verts = (int) local_verts.size();
   ERRORR(rval, "can't get local vertices");
 
-  rval = build_processor_euler_boxes(euler_set, local_verts);
+  rval = Intx2Mesh::build_processor_euler_boxes(euler_set, local_verts);
   ERRORR(rval, "can't build processor boxes");
 
   std::vector<int> gids(num_local_verts);
