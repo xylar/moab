@@ -2119,7 +2119,7 @@ ErrCode iMOAB_ComputeMeshIntersectionOnSphere ( iMOAB_AppID pid_src, iMOAB_AppID
     double radius_source=1.0;
     double radius_target=1.0;
     const double epsrel=1e-15;
-    const double boxeps=1.e-3;
+    const double boxeps=1.e-10;
 
     // Get the source and target data and pcomm objects
     appData& data_src = context.appDatas[*pid_src];

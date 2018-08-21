@@ -34,6 +34,10 @@ public:
 
   ErrorCode update_tracer_data(EntityHandle out_set, Tag & tagElem, Tag & tagArea);
 
+  virtual ErrorCode construct_covering_set(EntityHandle & initial_distributed_set, EntityHandle & covering_set);
+
+  virtual ErrorCode build_processor_euler_boxes(EntityHandle euler_set, Range & local_verts);
+
 private:
   int plane; // current gnomonic plane
   double Rsrc, Rdest; // radius of the sphere

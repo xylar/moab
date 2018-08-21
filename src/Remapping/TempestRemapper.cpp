@@ -617,6 +617,15 @@ ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius_
 
         if (m_pcomm->size() > 1) {
 
+#ifdef VERBOSE
+            std::stringstream ffc, fft, ffo;
+            ffc << "cover_"<< m_pcomm->rank() << ".h5m";
+            fft << "target_"<< m_pcomm->rank() << ".h5m";
+            ffo << "intx_"<< m_pcomm->rank() << ".h5m";
+            rval = m_interface->write_mesh(ffc.str().c_str(), &m_covering_source_set, 1);MB_CHK_ERR(rval);
+            rval = m_interface->write_mesh(fft.str().c_str(), &m_target_set, 1);MB_CHK_ERR(rval);
+            rval = m_interface->write_mesh(ffo.str().c_str(), &m_overlap_set, 1);MB_CHK_ERR(rval);
+#endif
             // because we do not want to work with elements in coverage set that do not participate in intersection,
             // remove them from the coverage set
             // we will not delete them yet, just remove from the set !

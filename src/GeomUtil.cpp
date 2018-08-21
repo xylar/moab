@@ -1380,6 +1380,66 @@ bool bounding_boxes_overlap (const CartVect * list1, int num1, const CartVect * 
 
   return boxes_overlap(box_min1, box_max1, box_min2, box_max2, tolerance);
 }
+
+// see if boxes formed by 2 lists of 2d coordinates overlap (num1>=3, num2>=3, do not check)
+bool bounding_boxes_overlap_2d (const double * list1, int num1, const double * list2, int num2,
+      double tolerance)
+{
+  /*
+   * box1:
+   *         (bmax11, bmax12)
+   *      |-------|
+   *      |       |
+   *      |-------|
+   *  (bmin11, bmin12)
+
+   *         box2:
+   *                (bmax21, bmax22)
+   *             |----------|
+   *             |          |
+   *             |----------|
+   *     (bmin21, bmin22)
+   */
+  double bmin11, bmax11, bmin12, bmax12;
+  bmin11=bmax11=list1[0];
+  bmin12=bmax12=list1[1];
+
+  double bmin21, bmax21, bmin22, bmax22;
+  bmin21=bmax21=list2[0];
+  bmin22=bmax22=list2[1];
+
+  for (int i=1; i<num1; i++)
+  {
+    if(bmin11>list1[2*i])
+      bmin11=list1[2*i];
+    if(bmax11<list1[2*i])
+      bmax11=list1[2*i];
+    if(bmin12>list1[2*i+1])
+      bmin12=list1[2*i+1];
+    if(bmax12<list1[2*i+1])
+      bmax12=list1[2*i+1];
+  }
+  for (int i=1; i<num2; i++)
+  {
+    if(bmin21>list2[2*i])
+      bmin21=list2[2*i];
+    if(bmax21<list2[2*i])
+      bmax21=list2[2*i];
+    if(bmin22>list2[2*i+1])
+      bmin22=list2[2*i+1];
+    if(bmax22<list2[2*i+1])
+      bmax22=list2[2*i+1];
+  }
+
+  if ( (bmax11 <  bmin21 + tolerance) || (bmax21 <  bmin11 + tolerance))
+    return false;
+
+  if ( (bmax12 <  bmin22 + tolerance) || (bmax22 <  bmin12 + tolerance))
+    return false;
+
+  return true;
+}
+
 /**\brief Class representing a 3-D mapping function (e.g. shape function for volume element) */
 class VolMap {
   public:
