@@ -33,10 +33,11 @@ public:
       double * iP, int nP);
 
   ErrorCode update_tracer_data(EntityHandle out_set, Tag & tagElem, Tag & tagArea);
-
+#ifdef MOAB_HAVE_MPI
   virtual ErrorCode construct_covering_set(EntityHandle & initial_distributed_set, EntityHandle & covering_set);
 
   virtual ErrorCode build_processor_euler_boxes(EntityHandle euler_set, Range & local_verts);
+#endif
 
 private:
   int plane; // current gnomonic plane
