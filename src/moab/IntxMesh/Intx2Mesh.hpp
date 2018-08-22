@@ -139,7 +139,6 @@ public:
    * param (OUT) : the covering set in first mesh , which completely covers the second mesh set
   */
 #ifdef MOAB_HAVE_MPI
-  virtual ErrorCode construct_covering_set(EntityHandle & initial_distributed_set, EntityHandle & covering_set);
 
   virtual ErrorCode build_processor_euler_boxes(EntityHandle euler_set, Range & local_verts);
 #endif
