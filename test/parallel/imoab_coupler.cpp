@@ -124,6 +124,7 @@ int main( int argc, char* argv[] )
 
   std::string   readopts("PARALLEL=READ_PART;PARTITION=PARALLEL_PARTITION;PARALLEL_RESOLVE_SHARED_ENTS");
 
+  int method = 1;
   if (comm1 != MPI_COMM_NULL) {
     ierr = iMOAB_RegisterApplication("ATM1", &comm1, &compid1, pid1);
     CHECKRC(ierr, "can't register app1 ")
@@ -131,11 +132,11 @@ int main( int argc, char* argv[] )
     ierr = iMOAB_LoadMesh(pid1, filename1.c_str(), readopts.c_str(), &nghlay, filename1.length(), strlen(readopts.c_str()) );
     CHECKRC(ierr, "can't load mesh1 ")
     // then send mesh to coupler pes, on pid3
-    ierr = iMOAB_SendMesh(pid1, &jcomm, &jgroup, &compid3); // send to component 3, on coupler pes
+    ierr = iMOAB_SendMesh(pid1, &jcomm, &jgroup, &compid3, &method); // send to component 3, on coupler pes
     CHECKRC(ierr, "cannot send elements" )
   }
   // now, receive meshes, on joint communicator; first mesh 1
-  ierr = iMOAB_ReceiveMesh(pid3, &jcomm, &group1, &compid1); // receive from component 1
+  ierr = iMOAB_ReceiveMesh(pid3, &jcomm, &group1, &compid1, &method); // receive from component 1
   CHECKRC(ierr, "cannot receive elements on ATMX app")
 
   // we can now free the sender buffers
@@ -151,12 +152,12 @@ int main( int argc, char* argv[] )
     ierr = iMOAB_LoadMesh(pid2, filename2.c_str(), readopts.c_str(), &nghlay, filename2.length(), strlen(readopts.c_str()) );
     CHECKRC(ierr, "can't load mesh2, on pid2 ")
     // then send mesh to coupler pes, on pid3
-    ierr = iMOAB_SendMesh(pid2, &jcomm, &jgroup, &compid4); // send to component 3, on coupler pes
+    ierr = iMOAB_SendMesh(pid2, &jcomm, &jgroup, &compid4, &method); // send to component 3, on coupler pes
     CHECKRC(ierr, "cannot send elements" )
   }
 
 
-  ierr = iMOAB_ReceiveMesh(pid4, &jcomm, &group2, &compid2); // receive from component 2, ocn, on coupler pes
+  ierr = iMOAB_ReceiveMesh(pid4, &jcomm, &group2, &compid2, &method); // receive from component 2, ocn, on coupler pes
   CHECKRC(ierr, "cannot receive elements on OCNX app")
 
   if (comm2 != MPI_COMM_NULL) {
