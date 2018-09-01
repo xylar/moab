@@ -1746,9 +1746,10 @@ ErrCode iMOAB_GetGlobalInfo ( iMOAB_AppID pid, int* num_global_verts, int* num_g
 
 #ifdef MOAB_HAVE_MPI
 
-ErrCode iMOAB_SendMesh ( iMOAB_AppID pid, MPI_Comm* global, MPI_Group* receivingGroup, int* rcompid )
+ErrCode iMOAB_SendMesh ( iMOAB_AppID pid, MPI_Comm* global, MPI_Group* receivingGroup, int* rcompid, int * method )
 {
-    int ierr;
+    int ierr=0;
+    ErrorCode rval=MB_SUCCESS;
     //appData & data = context.appDatas[*pid];
     ParallelComm* pco = context.pcomms[*pid];
 
@@ -1777,40 +1778,53 @@ ErrCode iMOAB_SendMesh ( iMOAB_AppID pid, MPI_Comm* global, MPI_Group* receiving
     // trivial partition: compute first the total number of elements need to be sent
     Range& owned = context.appDatas[*pid].owned_elems;
 
-    int local_owned_elem = ( int ) owned.size();
-    int size = pco->size();
-    int rank = pco->rank();
-    number_elems_per_part.resize ( size ); //
-    number_elems_per_part[rank] = local_owned_elem;
-#if (MPI_VERSION >= 2)
-    // Use "in place" option
-    ierr = MPI_Allgather ( MPI_IN_PLACE, 0, MPI_DATATYPE_NULL,
-                           &number_elems_per_part[0], 1, MPI_INTEGER,
-                           sender );
-#else
+    if (*method == 0) // trivial partitioning, old method
     {
-        std::vector<int> all_tmp ( size );
-        ierr = MPI_Allgather ( &number_elems_per_part[rank], 1, MPI_INTEGER,
-                               &all_tmp[0], 1, MPI_INTEGER,
-                               sender );
-        number_elems_per_part = all_tmp;
+      int local_owned_elem = ( int ) owned.size();
+      int size = pco->size();
+      int rank = pco->rank();
+      number_elems_per_part.resize ( size ); //
+      number_elems_per_part[rank] = local_owned_elem;
+  #if (MPI_VERSION >= 2)
+      // Use "in place" option
+      ierr = MPI_Allgather ( MPI_IN_PLACE, 0, MPI_DATATYPE_NULL,
+                             &number_elems_per_part[0], 1, MPI_INTEGER,
+                             sender );
+  #else
+      {
+          std::vector<int> all_tmp ( size );
+          ierr = MPI_Allgather ( &number_elems_per_part[rank], 1, MPI_INTEGER,
+                                 &all_tmp[0], 1, MPI_INTEGER,
+                                 sender );
+          number_elems_per_part = all_tmp;
+      }
+  #endif
+
+      if ( ierr != 0 )
+      { return 1; }
+
+      // every sender computes the trivial partition, it is cheap, and we need to send it anyway to each sender
+      rval = cgraph->compute_trivial_partition ( number_elems_per_part );
+
+      if ( MB_SUCCESS != rval )
+      { return 1; }
+
+      rval = cgraph->send_graph ( *global );
+
+      if ( MB_SUCCESS != rval )
+      { return 1; }
     }
-#endif
-
-    if ( ierr != 0 )
-    { return 1; }
-
-    // every sender computes the trivial partition, it is cheap, and we need to send it anyway to each sender
-    ErrorCode rval = cgraph->compute_trivial_partition ( number_elems_per_part );
-
-    if ( MB_SUCCESS != rval )
-    { return 1; }
-
-    rval = cgraph->send_graph ( *global );
-
-    if ( MB_SUCCESS != rval )
-    { return 1; }
-
+    else // *method != 0, so it is either graph or geometric, parallel
+    {
+      // owned are the primary elements on this app
+        rval = cgraph->compute_partition(pco, owned, *method);
+        if ( rval != MB_SUCCESS )
+        { return 1; }
+        // basically, send the graph to the receiver side, with unblocking send
+        rval = cgraph->send_graph_partition (pco, *global );
+        if ( MB_SUCCESS != rval )
+        { return 1; }
+    }
     // pco is needed to pack, not for communication
     rval = cgraph->send_mesh_parts ( *global, pco, owned );
 
@@ -1823,7 +1837,7 @@ ErrCode iMOAB_SendMesh ( iMOAB_AppID pid, MPI_Comm* global, MPI_Group* receiving
 
 
 ErrCode iMOAB_ReceiveMesh ( iMOAB_AppID pid, MPI_Comm* global, MPI_Group* sendingGroup,
-                            int* scompid )
+                            int* scompid , int * method)
 {
     appData& data = context.appDatas[*pid];
     ParallelComm* pco = context.pcomms[*pid];
@@ -1964,6 +1978,51 @@ ErrCode FindParCommGraph(iMOAB_AppID pid, int *scompid, int *rcompid, ParCommGra
     return 0;
 
   return 1; // error, we did not find cgraph
+}
+
+ErrCode iMOAB_SendMeshPartition ( iMOAB_AppID pid, MPI_Comm* join, MPI_Group* receivingGroup, int* rcompid, int* method)
+{
+  // first, need to ensure we ghost one layer, at least, to be able to build the graph correctly
+  //  "vertices" are the elements, and the edges in the graph are between 2 elements that share a dim - 1 cellint ierr;
+  //appData & data = context.appDatas[*pid];
+  ParallelComm* pco = context.pcomms[*pid];
+
+  MPI_Comm sender = pco->comm(); // the sender comm is obtained from parallel comm in moab;
+  // no need to pass it along
+  // first see what are the processors in each group; get the sender group too, from the sender communicator
+  MPI_Group senderGroup;
+  int ierr = MPI_Comm_group ( sender, &senderGroup );
+  if ( ierr != 0 ) return 1;
+
+  // instantiate the par comm graph
+  // ParCommGraph::ParCommGraph(MPI_Comm joincomm, MPI_Group group1, MPI_Group group2, int coid1, int coid2)
+  ParCommGraph* cgraph = new ParCommGraph ( *join, senderGroup, *receivingGroup, context.appDatas[*pid].external_id, *rcompid );
+  // we should search if we have another pcomm with the same comp ids in the list already
+  // sort of check existing comm graphs in the list context.appDatas[*pid].pgraph
+  context.appDatas[*pid].pgraph.push_back ( cgraph );
+
+  int sender_rank = -1;
+  MPI_Comm_rank ( sender, &sender_rank );
+  // decide how to distribute elements to each processor
+  // first, we need to create the graph, to describe the cells and their neighbors
+  // that will be passed to zoltan; if in parallel, we need to identify the id of the cell across shared boundary
+
+  Range& owned = context.appDatas[*pid].owned_elems;
+
+  /*rval = cgraph->send_graph ( *global );
+
+  if ( MB_SUCCESS != rval )
+  { return 1; }
+
+  // pco is needed to pack, not for communication
+  rval = cgraph->send_mesh_parts ( *global, pco, owned );
+
+  if ( rval != MB_SUCCESS ) { return 1; }*/
+
+  // mark for deletion
+  MPI_Group_free(&senderGroup);
+  return 0;
+
 }
 
 ErrCode iMOAB_SendElementTag(iMOAB_AppID pid, int* scompid, int* rcompid, const iMOAB_String tag_storage_name,

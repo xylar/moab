@@ -636,16 +636,18 @@ ErrCode iMOAB_GetGlobalInfo ( iMOAB_AppID pid, int* num_global_verts, int* num_g
    \param[in]  join (MPI_Comm)                        communicator that overlaps both groups
    \param[in]  receivingGroup (MPI_Group *)           receiving group
    \param[in]  rcompid  (int*)                        external id of application that receives the mesh
+   \param[in]  method (int*)                          method of partitioning (0 trivial, 1 graph par, 2 geometric par)
  */
 
-ErrCode iMOAB_SendMesh ( iMOAB_AppID pid, MPI_Comm* join, MPI_Group* receivingGroup, int* rcompid );
+ErrCode iMOAB_SendMesh ( iMOAB_AppID pid, MPI_Comm* join, MPI_Group* receivingGroup, int* rcompid, int* method);
 
 /**
    \brief during nonblocking send, buffers were allocated, to keep data until received
    Free them after receive reached the point
    \param[in]  pid (iMOAB_AppID)                      The unique pointer to the application ID sender mesh
    \param[in]  rcompid  (int*)                        external id of application that receives the mesh
- */
+   */
+
 ErrCode iMOAB_FreeSenderBuffers ( iMOAB_AppID pid, MPI_Comm* join, int* rcompid );
 
 /**
@@ -658,23 +660,21 @@ ErrCode iMOAB_FreeSenderBuffers ( iMOAB_AppID pid, MPI_Comm* join, int* rcompid 
    \param[in]  scompid ( int *)                       external id of application that sends the mesh
  */
 
-ErrCode iMOAB_ReceiveMesh ( iMOAB_AppID pid, MPI_Comm* join, MPI_Group* sendingGroup, int* scompid );
+ErrCode iMOAB_ReceiveMesh ( iMOAB_AppID pid, MPI_Comm* join, MPI_Group* sendingGroup, int* scompid, int* method);
 
 /**
-  \brief migrate (receive) a tag from another component
+  \brief migrate (send) a set of elements from one processor to another, using a smarter partitioning
   <B>Operations:</B> Not Collective
 
-   \param[in]  pid (iMOAB_AppID)                      The unique pointer to the application ID  mesh (sender)
-   \param[in]  scompid ( int *)                       external id of application that sends the tag data
-   \param[in]  rcompid ( int *)                       external id of application that receives the tag data
-   \param[in]  tag_storage_name (iMOAB_String)        The tag name (to be sent)
+   \param[in]  pid (iMOAB_AppID)                      The unique pointer to the application ID source mesh
    \param[in]  join (MPI_Comm)                        communicator that overlaps both groups
-   \param[in]  tag_storage_name_length (int)          The length of the tag_storage_name string
-
+   \param[in]  receivingGroup (MPI_Group *)           receiving group
+   \param[in]  rcompid  (int*)                        external id of application that receives the mesh
+   \param[in]  method (int*)                          method of partitioning (0 trivial, 1 graph par, 2 geometric par)
  */
+
 ErrCode iMOAB_SendElementTag(iMOAB_AppID pid, int* scompid, int* rcompid, const iMOAB_String tag_storage_name,
     MPI_Comm* join, int tag_storage_name_length);
-
 
 /**
   \brief migrate (receive) a tag from another component

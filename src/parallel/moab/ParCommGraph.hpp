@@ -83,13 +83,14 @@ namespace moab {
 	  int get_component_id1(){return compid1;}
 	  int get_component_id2(){return compid2;}
 
-	  // return local graph for a specific root
-	  ErrorCode split_owned_range (int sender_rank, Range & owned, std::map<int, Range> & split_ranges);
+	  // return local graph for a specific task
+	  ErrorCode split_owned_range (int sender_rank, Range & owned);
 
-    // use for this the corresponding tasks and sizes
-    ErrorCode split_owned_range_general (Range & owned, std::map<int, Range> & split_ranges);
+	  ErrorCode split_owned_range (Range & owned);
 
 	  ErrorCode send_graph(MPI_Comm jcomm);
+
+	  ErrorCode send_graph_partition (ParallelComm *pco, MPI_Comm jcomm);
 
 	  ErrorCode send_mesh_parts(MPI_Comm jcomm, ParallelComm * pco, Range & owned );
 
@@ -113,6 +114,9 @@ namespace moab {
 
 	  // this will set after_cov_rec_sizes
 	  void SetReceivingAfterCoverage(std::map<int, std::set<int> > & idsFromProcs); // will make sense only on receivers, right now after cov
+
+	  // new partition calculation
+	  ErrorCode compute_partition (ParallelComm *pco, Range & owned, int met);
 	private:
 	  /**
       \brief find ranks of a group with respect to an encompassing communicator
@@ -145,7 +149,12 @@ namespace moab {
 	  //                                    will be  released only when all mpi requests are waited for
 	  int * comm_graph; // this will store communication graph, on sender master, sent by nonblocking send to
 	                    // the master receiver
-	                    // first integer will be the size of the graph, the rest will be the packed graph
+	                    // first integer will be the size of the graph, the rest will be the packed graph, for trivial partition
+
+	  // these will be now used to store ranges to be sent from current sender to each receiver in joint comm
+	  std::map<int, Range> split_ranges;
+	  int method; // 0 for trivial, 1 for graph partitioner, 2 for geometric
+
 	  std::vector<MPI_Request> sendReqs; // there will be multiple requests, 2 for comm graph, 2 for each Buffer
 	  // there are as many buffers as sender_graph[rankInJoin].size()
 

@@ -44,7 +44,8 @@ TESTS = pcomm_unit \
 
 if HAVE_HDF5_PARALLEL
   HDF5_TESTS = parallel_hdf5_test mhdf_parallel parallel_write_test \
-         parallel_adj parmerge_test augment_with_ghosts uref_hirec_test_parallel migrate_test imoab_coupler
+         parallel_adj parmerge_test augment_with_ghosts uref_hirec_test_parallel migrate_test imoab_coupler \
+         migrate_nontrivial
 else
   HDF5_TESTS = 
 endif
@@ -137,6 +138,7 @@ hireconst_test_parallel_SOURCES = hireconst_test_parallel.cpp
 uref_hirec_test_parallel_SOURCES = uref_hirec_test_parallel.cpp ../geomObject.cpp
 migrate_test_SOURCES = migrate_test.cpp
 imoab_coupler_SOURCES = imoab_coupler.cpp
+migrate_nontrivial_SOURCES = migrate_nontrivial.cpp
 
 if ENABLE_imesh
 if HAVE_HDF5_PARALLEL

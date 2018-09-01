@@ -1,10 +1,19 @@
 /*
- * migrate_test will contain tests for migrating meshes in parallel environments, with iMOAB api
- * these  methods are tested also in the example MigrateMesh.F90, with variable
- * numbers of processes; migrate_test is launched usually on 2 processes, and it tests
- * various cases
- * a mesh is read on senders tasks, sent to receivers tasks, and then written out for verification
- * It depends on hdf5 parallel for reading and writing in parallel
+ * migrate_nontrivial.cpp
+ *
+ *  migrate_nontrivial will contain tests for migrating meshes in parallel environments, with iMOAB api,
+ *  using nontrivial partitions; for starters, we will use zoltan to compute partition
+ *  in parallel, and then use the result to migrate the mesh
+ *  trivial partition gave terrible results for mpas type meshes, that were numbered
+ *  like a fractal; the resulting migrations were like Swiss cheese, full of holes
+ * a mesh is read on senders tasks, one layer is ghosted (to be able to compute the graph)
+ * we will use graph like methods, and will modify the ZoltanPartitioner to add needed methods
+ *
+ *  mesh will be sent to receivers tasks, with nonblocking MPI calls, and then received , parallel
+ *  resolved again;
+ *
+ *  we will not modify the GLOBAL_ID tag, we assume it was set correctly before we started
+ *  // after ghosting, we have to call exchange_tags on global_id tag, before building the graph
  */
 
 #include "moab/ParallelComm.hpp"
@@ -44,14 +53,7 @@ int run_test( ErrorCode (*func)(const char*),
   return is_err;
 }
 
-ErrorCode migrate_1_1( const char* filename );
-ErrorCode migrate_1_2( const char* filename );
-ErrorCode migrate_2_1( const char* filename );
-ErrorCode migrate_2_2( const char* filename );
-ErrorCode migrate_4_2( const char* filename );
-ErrorCode migrate_2_4( const char* filename );
-ErrorCode migrate_4_3( const char* filename );
-ErrorCode migrate_overlap( const char* filename );
+ErrorCode migrate_2_3( const char* filename );
 
 // some global variables, used by all tests
 int rank, size, ierr;
@@ -64,48 +66,7 @@ int startG1, startG2, endG1, endG2;
 MPI_Comm jcomm; // will be a copy of the global
 MPI_Group jgroup;
 
-int main( int argc, char* argv[] )
-{
-  MPI_Init(&argc, &argv);
-  MPI_Comm_rank( MPI_COMM_WORLD, &rank );
-  MPI_Comm_size( MPI_COMM_WORLD, &size );
-
-
-  MPI_Comm_dup(MPI_COMM_WORLD, &jcomm);
-  MPI_Comm_group(jcomm, &jgroup);
-
-	std::string filename;
-	filename = TestDir + "/field1.h5m";
-  if (argc>1)
-  {
-    filename = argv[1];
-  }
-  int num_errors = 0;
-  num_errors += RUN_TEST_ARG2( migrate_1_1, filename.c_str() );
-  num_errors += RUN_TEST_ARG2( migrate_1_2, filename.c_str() );
-  num_errors += RUN_TEST_ARG2( migrate_2_1, filename.c_str() );
-  num_errors += RUN_TEST_ARG2( migrate_2_2, filename.c_str() );
-  if (size >= 4)
-  {
-    num_errors += RUN_TEST_ARG2( migrate_4_2, filename.c_str() );
-    num_errors += RUN_TEST_ARG2( migrate_2_4, filename.c_str() );
-    num_errors += RUN_TEST_ARG2( migrate_4_3, filename.c_str() );
-    num_errors += RUN_TEST_ARG2( migrate_overlap, filename.c_str() );
-  }
-  if (rank == 0) {
-    if (!num_errors)
-      std::cout << "All tests passed" << std::endl;
-    else
-      std::cout << num_errors << " TESTS FAILED!" << std::endl;
-  }
-
-  MPI_Group_free(&jgroup);
-  MPI_Comm_free(&jcomm);
-  MPI_Finalize();
-  return num_errors;
-}
-
-ErrorCode migrate(const char*filename, const char * outfile)
+ErrorCode migrate_smart(const char*filename, const char * outfile)
 {
   // first create MPI groups
 
@@ -154,7 +115,6 @@ ErrorCode migrate(const char*filename, const char * outfile)
     CHECKRC(ierr, "can't register app2 ")
   }
 
-  int method = 0; // trivial partition for sending
   if (comm1 != MPI_COMM_NULL) {
 
       std::string   readopts("PARALLEL=READ_PART;PARTITION=PARALLEL_PARTITION;PARALLEL_RESOLVE_SHARED_ENTS");
@@ -163,12 +123,14 @@ ErrorCode migrate(const char*filename, const char * outfile)
 
       ierr = iMOAB_LoadMesh(pid1, filen.c_str(), readopts.c_str(), &nghlay, filen.length(), strlen(readopts.c_str()) );
       CHECKRC(ierr, "can't load mesh ")
+      int method=1;
       ierr = iMOAB_SendMesh(pid1, &jcomm, &group2, &compid2, &method); // send to component 2
       CHECKRC(ierr, "cannot send elements" )
   }
 
   if (comm2 != MPI_COMM_NULL) {
-     ierr = iMOAB_ReceiveMesh(pid2, &jcomm, &group1, &compid1, &method); // receive from component 1
+     int method2=1; // is it needed?
+     ierr = iMOAB_ReceiveMesh(pid2, &jcomm, &group1, &compid1, &method2); // receive from component 1
      CHECKRC(ierr, "cannot receive elements")
      std::string wopts;
      wopts   = "PARALLEL=WRITE_PART;";
@@ -181,7 +143,7 @@ ErrorCode migrate(const char*filename, const char * outfile)
   // we can now free the sender buffers
   if (comm1 != MPI_COMM_NULL)
      ierr = iMOAB_FreeSenderBuffers(pid1, &jcomm, &compid2);
-
+/*
   // exchange tag, from component to component
   // one is receiving, one is sending the tag; the one that is sending needs to have communicator
   // not null
@@ -225,7 +187,7 @@ ErrorCode migrate(const char*filename, const char * outfile)
     // we can now free the sender buffers
   if (comm2 != MPI_COMM_NULL)
      ierr = iMOAB_FreeSenderBuffers(pid2, &jcomm, &compid1);
-
+*/
   if (comm2 != MPI_COMM_NULL) {
     ierr = iMOAB_DeregisterApplication(pid2);
     CHECKRC(ierr, "cannot deregister app 2 receiver" )
@@ -248,68 +210,51 @@ ErrorCode migrate(const char*filename, const char * outfile)
   MPI_Group_free(&group2);
   return MB_SUCCESS;
 }
-// migrate from task 0 to task 1, non overlapping
-ErrorCode migrate_1_1( const char* filename )
-{
-  startG1= endG1 = 0;
-  startG2 = endG2 = 1;
-  return migrate(filename, "migrate11.h5m");
-}
-// migrate from task 0 to 2 tasks (0 and 1)
-ErrorCode migrate_1_2( const char* filename )
-{
-  startG1= endG1 = startG2 = 0;
-  endG2 = 1;
-  return migrate(filename, "migrate12.h5m");
-}
-
-// migrate from 2 tasks (0, 1) to 1 task (0)
-ErrorCode migrate_2_1( const char* filename )
-{
-  startG1= endG2 = startG2 = 0;
-  endG1 = 1;
-  return migrate(filename, "migrate21.h5m");
-}
-
 // migrate from 2 tasks to 2 tasks (overkill)
-ErrorCode migrate_2_2( const char* filename )
+ErrorCode migrate_2_3( const char* filename )
 {
   startG1 = startG2 = 0;
-  endG1 = endG2 = 1;
-  return migrate(filename, "migrate22.h5m");
-}
-// migrate from 4 tasks to 2 tasks
-ErrorCode migrate_4_2( const char* filename )
-{
-  startG1 = startG2 = 0;
-  endG2 = 1;
-  endG1 = 3;
-  return migrate(filename, "migrate42.h5m");
-}
-
-ErrorCode migrate_2_4( const char* filename )
-{
-  startG1 = startG2 = 0;
-  endG2 = 3;
-  endG1 = 1;
-  return migrate(filename, "migrate24.h5m");
-}
-
-ErrorCode migrate_4_3( const char* filename )
-{
-  startG1 = startG2 = 0;
-  endG2 = 2;
-  endG1 = 3;
-  return migrate(filename, "migrate43.h5m");
-}
-
-ErrorCode migrate_overlap( const char* filename )
-{
-  startG1 = 0;
-  startG2 = 1;
   endG1 = 1;
   endG2 = 2;
-  return migrate(filename, "migrate_over.h5m");
+  return migrate_smart(filename, "migrate23_smart.h5m");
 }
+
+int main( int argc, char* argv[] )
+{
+  MPI_Init(&argc, &argv);
+  MPI_Comm_rank( MPI_COMM_WORLD, &rank );
+  MPI_Comm_size( MPI_COMM_WORLD, &size );
+
+
+  MPI_Comm_dup(MPI_COMM_WORLD, &jcomm);
+  MPI_Comm_group(jcomm, &jgroup);
+
+  std::string filename;
+  filename = TestDir + "/field1.h5m";
+  if (argc>1)
+  {
+    filename = argv[1];
+  }
+  int num_errors = 0;
+
+  if (size == 3)
+  {
+    num_errors += RUN_TEST_ARG2( migrate_2_3, filename.c_str() );
+  }
+  if (rank == 0) {
+    if (!num_errors)
+      std::cout << "All tests passed" << std::endl;
+    else
+      std::cout << num_errors << " TESTS FAILED!" << std::endl;
+  }
+
+  MPI_Group_free(&jgroup);
+  MPI_Comm_free(&jcomm);
+  MPI_Finalize();
+  return num_errors;
+}
+
+
+
 
 

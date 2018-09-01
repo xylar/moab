@@ -8,6 +8,10 @@
 #include "moab/Core.hpp"
 #include "AEntityFactory.hpp"
 
+#ifdef MOAB_HAVE_ZOLTAN
+#include "moab/ZoltanPartitioner.hpp"
+#endif
+
 namespace moab {
 
 ParCommGraph::ParCommGraph(MPI_Comm joincomm, MPI_Group group1, MPI_Group group2, int coid1, int coid2) :
@@ -175,7 +179,7 @@ ErrorCode ParCommGraph::pack_receivers_graph(std::vector<int>& packed_recv_array
   return MB_SUCCESS;
 }
 
-ErrorCode ParCommGraph::split_owned_range (int sender_rank, Range & owned, std::map<int, Range> & split_ranges)
+ErrorCode ParCommGraph::split_owned_range (int sender_rank, Range & owned)
 {
   int senderTask = senderTasks[sender_rank];
   std::vector<int> & distribution = sender_sizes[senderTask];
@@ -201,7 +205,7 @@ ErrorCode ParCommGraph::split_owned_range (int sender_rank, Range & owned, std::
 }
 
 // use for this the corresponding tasks and sizes
-ErrorCode ParCommGraph::split_owned_range_general (Range & owned, std::map<int, Range> & split_ranges)
+ErrorCode ParCommGraph::split_owned_range (Range & owned)
 {
   if (corr_tasks.size() != corr_sizes.size()) //
     return MB_FAILURE;
@@ -244,9 +248,7 @@ ErrorCode ParCommGraph::send_graph(MPI_Comm jcomm)
       comm_graph[k+1]=packed_recv_array[k];
     // will add 2 requests
     /// use tag 10 to send size and tag 20 to send the packed array
-    // will allocate some send requests
-    int nsendsroot = 2*(int) sender_graph[senderTasks[0]].size() + 2; // also need to send the graph
-    sendReqs.resize(nsendsroot);
+    sendReqs.resize(2);
     ierr = MPI_Isend(&comm_graph[0], 1, MPI_INT, receiver(0), 10, jcomm, &sendReqs[0]); // we have to use global communicator
     if (ierr!=0) return MB_FAILURE;
     ierr = MPI_Isend(&comm_graph[1], size_pack_array, MPI_INT, receiver(0), 20, jcomm, &sendReqs[1]); // we have to use global communicator
@@ -256,15 +258,20 @@ ErrorCode ParCommGraph::send_graph(MPI_Comm jcomm)
 }
 
 // pco has MOAB too get_moab()
+// do we need to store "method" as a member variable ?
 ErrorCode ParCommGraph::send_mesh_parts(MPI_Comm jcomm, ParallelComm * pco, Range & owned )
 {
-  std::map<int, Range> split_ranges;
-  ErrorCode rval = split_owned_range (rankInGroup1, owned, split_ranges);
-  if (rval!=MB_SUCCESS) return rval;
 
-  // we know this on the sender side:
-  corr_tasks = sender_graph[ senderTasks[rankInGroup1]]; // copy
-  corr_sizes = sender_sizes[ senderTasks[rankInGroup1]]; // another copy
+  ErrorCode rval;
+  if (split_ranges.empty()) // in trivial partition
+  {
+    rval= split_owned_range (rankInGroup1, owned);
+    if (rval!=MB_SUCCESS) return rval;
+    // we know this on the sender side:
+    corr_tasks = sender_graph[ senderTasks[rankInGroup1]]; // copy
+    corr_sizes = sender_sizes[ senderTasks[rankInGroup1]]; // another copy
+  }
+
   int indexReq=0;
   int ierr; // MPI error
   if (is_root_sender()) indexReq = 2; // for sendReqs
@@ -473,8 +480,11 @@ ErrorCode ParCommGraph::send_tag_values (MPI_Comm jcomm, ParallelComm *pco, Rang
   int indexReq=0;
   if (!specified_ids) // original send
   {
-    std::map<int, Range> split_ranges;
-    rval = split_owned_range_general ( owned, split_ranges);MB_CHK_ERR ( rval );
+    //std::map<int, Range> split_ranges;
+    if (split_ranges.size()==0)
+    {
+      rval = split_owned_range ( owned);MB_CHK_ERR ( rval );
+    }
 
     // use the buffers data structure to allocate memory for sending the tags
     sendReqs.resize(split_ranges.size());
@@ -586,8 +596,8 @@ ErrorCode ParCommGraph::receive_tag_values (MPI_Comm jcomm, ParallelComm *pco, R
   bool specified_ids = recv_IDs_map.size() > 0;
   if (!specified_ids)
   {
-    std::map<int, Range> split_ranges;
-    rval = split_owned_range_general ( owned, split_ranges);MB_CHK_ERR ( rval );
+    //std::map<int, Range> split_ranges;
+    rval = split_owned_range ( owned);MB_CHK_ERR ( rval );
 
     // use the buffers data structure to allocate memory for sending the tags
     for (std::map<int, Range>::iterator it=split_ranges.begin(); it!=split_ranges.end(); it++)
@@ -771,5 +781,176 @@ void ParCommGraph::SetReceivingAfterCoverage(std::map<int, std::set<int> > & ids
     }
   }
   return;
+}
+
+// new partition calculation
+ErrorCode ParCommGraph::compute_partition (ParallelComm *pco, Range & owned, int met)
+{
+  // we are on a task on sender, and need to compute a new partition;
+  // primary cells need to be distributed to nb receivers tasks
+  // first, we will use graph partitioner, with zoltan;
+  // in the graph that we need to build, the first layer of ghosts is needed;
+  // can we avoid that ? For example, we can find out from each boundary edge/face what is the other
+  // cell (on the other side), then form the global graph, and call zoltan in parallel
+  // met 1 would be a geometric partitioner, and met 2 would be a graph partitioner
+  // for method 1 we do not need any ghost exchange
+
+  // find first edges that are shared
+  if (owned.empty())
+    return MB_SUCCESS; // nothing to do? empty partition is not allowed, mabe we should return error?
+  Core * mb = (Core*)pco->get_moab();
+
+  int primaryDim = mb->dimension_from_handle(*owned.rbegin());
+  int interfaceDim = primaryDim -1; // should be 1 or 2
+  Range sharedEdges;
+  ErrorCode rval = pco->get_shared_entities(/*int other_proc*/ -1, sharedEdges, interfaceDim, /*const bool iface*/ true);MB_CHK_ERR ( rval );
+
+#if VERBOSE
+  std::cout <<sharedEdges.size() << "\n";
+#endif
+  // find to what processors we need to send the ghost info about the edge
+  std::vector<int> shprocs(MAX_SHARING_PROCS);
+  std::vector<EntityHandle> shhandles(MAX_SHARING_PROCS);
+
+  Tag gidTag; //
+  rval = mb->tag_get_handle("GLOBAL_ID", gidTag); MB_CHK_ERR ( rval );
+  int np;
+  unsigned char pstatus;
+
+  // first determine the local graph; what elements are adjacent to each cell in owned range
+  // cells that are sharing a partition interface edge, are identified first, and form a map
+  TupleList TLe; // tuple list for cells
+  TLe.initialize(2, 0, 1, 0, sharedEdges.size()); // send to, id of adj cell, remote edge
+  TLe.enableWriteAccess();
+
+  std::map<EntityHandle, int> edgeToCell; // from local boundary edge to adjacent cell id
+  // will be changed after
+  for (Range::iterator eit=sharedEdges.begin(); eit!=sharedEdges.end(); eit++)
+  {
+    EntityHandle edge = *eit;
+    // get the adjacent cell
+    Range adjEnts;
+    rval = mb->get_adjacencies(&edge, 1, primaryDim, false, adjEnts); MB_CHK_ERR ( rval );
+    if (adjEnts.size()>0)
+    {
+      EntityHandle adjCell = adjEnts[0];
+      int gid;
+      rval = mb->tag_get_data(gidTag, &adjCell, 1, &gid);  MB_CHK_ERR ( rval );
+      rval = pco->get_sharing_data(edge, &shprocs[0], &shhandles[0], pstatus, np); MB_CHK_ERR ( rval );
+      int n=TLe.get_n();
+      TLe.vi_wr[2*n] = shprocs[0];
+      TLe.vi_wr[2*n+1] = gid;
+      TLe.vul_wr[n] = shhandles[0]; // the remote edge corresponding to shared edge
+      edgeToCell[edge] = gid; // store the map between edge and local id of adj cell
+      TLe.inc_n();
+    }
+  }
+
+#ifdef VERBOSE
+  std::stringstream ff2;
+  ff2 << "TLe_"<< pco->rank() << ".txt";
+  TLe.print_to_file(ff2.str().c_str());
+#endif
+  // send the data to the other processors:
+  (pco->proc_config().crystal_router())->gs_transfer(1, TLe, 0);
+  // on receiver side, each local edge will have the remote cell adjacent to it!
+  std::map<int, int> adjCellsId;
+  std::map<int, int> extraCellsProc;
+  int ne = TLe.get_n();
+  for (int i=0; i<ne; i++)
+  {
+    int sharedProc =  TLe.vi_rd[2*i] ; // this info is coming from here, originally
+    int  remoteCellID = TLe.vi_rd[2*i+1] ;
+    EntityHandle localCell = TLe.vul_rd[i] ; // this is now local cell on the this proc
+    adjCellsId [edgeToCell[localCell]] = remoteCellID;
+    extraCellsProc[remoteCellID] = sharedProc;
+#if VERBOSE
+    std::cout <<"local ID " << edgeToCell[localCell] << " remote cell ID: " << remoteCellID << "\n";
+#endif
+  }
+  // so adj cells ids; need to call zoltan for parallel partition
+#ifdef MOAB_HAVE_ZOLTAN
+  ZoltanPartitioner * mbZTool = new ZoltanPartitioner(mb);
+  if (1<=met) // graph partition in zoltan
+  {
+    std::map<int, Range> distribution; // how to distribute owned elements by processors in receiving groups
+    // in how many tasks do we want to be distributed?
+    int numNewPartitions = (int)receiverTasks.size();
+    Range primaryCells=owned.subset_by_dimension(primaryDim);
+    rval = mbZTool->partition_owned_cells(primaryCells, pco, adjCellsId, extraCellsProc,
+        numNewPartitions, distribution, met); MB_CHK_ERR ( rval );
+    for (std::map<int, Range>::iterator mit=distribution.begin(); mit!=distribution.end(); mit++)
+    {
+      int part_index = mit->first;
+      assert(part_index <numNewPartitions );
+      split_ranges[receiverTasks[part_index]] = mit->second;
+    }
+  }
+#endif
+
+  return MB_SUCCESS;
+}
+// at this moment, each sender task has split_ranges formed;
+// we need to aggregate that info and send it to receiver
+ErrorCode ParCommGraph::send_graph_partition (ParallelComm *pco, MPI_Comm jcomm)
+{
+  // first, accumulate the info to root of sender; use gatherv
+  // first, accumulate number of receivers from each sender, to the root receiver
+  int numberReceivers = (int) split_ranges.size(); // these are ranges of elements to be sent to each receiver, from this task
+  int nSenders =(int) senderTasks.size();  //
+  // this sender will have to send to this many receivers
+  std::vector<int> displs(1); // displacements for gatherv
+  std::vector<int> counts(1);
+  if ( is_root_sender() )
+  {
+    displs.resize(nSenders+1);
+    counts.resize(nSenders);
+  }
+
+  int ierr= MPI_Gather( &numberReceivers, 1, MPI_INT, &counts[0], 1, MPI_INT, 0, pco->comm() );
+  if (ierr!=MPI_SUCCESS )return MB_FAILURE;
+  // compute now displacements
+  if ( is_root_sender() )
+  {
+    displs[0]=0;
+    for (int k=0; k<nSenders; k++)
+    {
+      displs[k+1] = displs[k]+counts[k];
+    }
+  }
+  std::vector<int> buffer;
+  if ( is_root_sender() ) buffer.resize(displs[nSenders]); // the last one will have the total count now
+
+  std::vector<int> recvs;
+  for (std::map<int, Range>::iterator mit=split_ranges.begin(); mit!=split_ranges.end(); mit++)
+  {
+    recvs.push_back( mit->first );
+  }
+  ierr =  MPI_Gatherv(&recvs[0], numberReceivers, MPI_INT, &buffer[0], &counts[0], &displs[0], MPI_INT, 0, pco->comm());
+  if (ierr!=MPI_SUCCESS )return MB_FAILURE;
+
+  // now form recv_graph map; points from the
+  // now form the graph to be sent to the other side; only on root
+  if ( is_root_sender() )
+  {
+    //
+    for (int k=0; k<nSenders; k++)
+    {
+      int indexInBuff = displs[k];
+      int senderTask = senderTasks[k];
+      for (int j=0; j<counts[k]; j++)
+      {
+        int recvTask = buffer[indexInBuff+j];
+        recv_graph[recvTask].push_back(senderTask); // this will be packed and sent to root receiver, with nonblocking send
+      }
+    }
+    std::vector<int> packed_recv_array;
+
+    // this is the same as trivial partition
+    ErrorCode rval = send_graph(jcomm); MB_CHK_ERR ( rval );
+  }
+
+
+  return MB_SUCCESS;
 }
 } // namespace moab
