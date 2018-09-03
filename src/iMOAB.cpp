@@ -1837,7 +1837,7 @@ ErrCode iMOAB_SendMesh ( iMOAB_AppID pid, MPI_Comm* global, MPI_Group* receiving
 
 
 ErrCode iMOAB_ReceiveMesh ( iMOAB_AppID pid, MPI_Comm* global, MPI_Group* sendingGroup,
-                            int* scompid , int * method)
+                            int* scompid )
 {
     appData& data = context.appDatas[*pid];
     ParallelComm* pco = context.pcomms[*pid];

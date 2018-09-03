@@ -660,7 +660,7 @@ ErrCode iMOAB_FreeSenderBuffers ( iMOAB_AppID pid, MPI_Comm* join, int* rcompid 
    \param[in]  scompid ( int *)                       external id of application that sends the mesh
  */
 
-ErrCode iMOAB_ReceiveMesh ( iMOAB_AppID pid, MPI_Comm* join, MPI_Group* sendingGroup, int* scompid, int* method);
+ErrCode iMOAB_ReceiveMesh ( iMOAB_AppID pid, MPI_Comm* join, MPI_Group* sendingGroup, int* scompid);
 
 /**
   \brief migrate (send) a set of elements from one processor to another, using a smarter partitioning

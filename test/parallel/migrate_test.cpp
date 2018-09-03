@@ -168,7 +168,7 @@ ErrorCode migrate(const char*filename, const char * outfile)
   }
 
   if (comm2 != MPI_COMM_NULL) {
-     ierr = iMOAB_ReceiveMesh(pid2, &jcomm, &group1, &compid1, &method); // receive from component 1
+     ierr = iMOAB_ReceiveMesh(pid2, &jcomm, &group1, &compid1); // receive from component 1
      CHECKRC(ierr, "cannot receive elements")
      std::string wopts;
      wopts   = "PARALLEL=WRITE_PART;";

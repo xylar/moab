@@ -136,7 +136,7 @@ int main( int argc, char* argv[] )
     CHECKRC(ierr, "cannot send elements" )
   }
   // now, receive meshes, on joint communicator; first mesh 1
-  ierr = iMOAB_ReceiveMesh(pid3, &jcomm, &group1, &compid1, &method); // receive from component 1
+  ierr = iMOAB_ReceiveMesh(pid3, &jcomm, &group1, &compid1); // receive from component 1
   CHECKRC(ierr, "cannot receive elements on ATMX app")
 
   // we can now free the sender buffers
@@ -157,7 +157,7 @@ int main( int argc, char* argv[] )
   }
 
 
-  ierr = iMOAB_ReceiveMesh(pid4, &jcomm, &group2, &compid2, &method); // receive from component 2, ocn, on coupler pes
+  ierr = iMOAB_ReceiveMesh(pid4, &jcomm, &group2, &compid2); // receive from component 2, ocn, on coupler pes
   CHECKRC(ierr, "cannot receive elements on OCNX app")
 
   if (comm2 != MPI_COMM_NULL) {

@@ -399,6 +399,8 @@ ErrorCode ParCommGraph::receive_mesh(MPI_Comm jcomm, ParallelComm *pco, EntityHa
       std::vector<int> orig_senders(local_primary_ents.size(), sender1);
       rval = pco->get_moab()->tag_set_data(orgSendProcTag, local_primary_ents, &orig_senders[0]);
       newEnts.merge(entities);
+      // make these in split ranges
+      split_ranges[sender1]=local_primary_ents;
 
 #ifdef VERBOSE
       std::ostringstream partial_outFile;
@@ -480,12 +482,6 @@ ErrorCode ParCommGraph::send_tag_values (MPI_Comm jcomm, ParallelComm *pco, Rang
   int indexReq=0;
   if (!specified_ids) // original send
   {
-    //std::map<int, Range> split_ranges;
-    if (split_ranges.size()==0)
-    {
-      rval = split_owned_range ( owned);MB_CHK_ERR ( rval );
-    }
-
     // use the buffers data structure to allocate memory for sending the tags
     sendReqs.resize(split_ranges.size());
 
@@ -597,7 +593,7 @@ ErrorCode ParCommGraph::receive_tag_values (MPI_Comm jcomm, ParallelComm *pco, R
   if (!specified_ids)
   {
     //std::map<int, Range> split_ranges;
-    rval = split_owned_range ( owned);MB_CHK_ERR ( rval );
+    //rval = split_owned_range ( owned);MB_CHK_ERR ( rval );
 
     // use the buffers data structure to allocate memory for sending the tags
     for (std::map<int, Range>::iterator it=split_ranges.begin(); it!=split_ranges.end(); it++)

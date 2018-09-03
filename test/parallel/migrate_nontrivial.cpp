@@ -129,8 +129,7 @@ ErrorCode migrate_smart(const char*filename, const char * outfile)
   }
 
   if (comm2 != MPI_COMM_NULL) {
-     int method2=1; // is it needed?
-     ierr = iMOAB_ReceiveMesh(pid2, &jcomm, &group1, &compid1, &method2); // receive from component 1
+     ierr = iMOAB_ReceiveMesh(pid2, &jcomm, &group1, &compid1); // receive from component 1
      CHECKRC(ierr, "cannot receive elements")
      std::string wopts;
      wopts   = "PARALLEL=WRITE_PART;";
@@ -143,7 +142,7 @@ ErrorCode migrate_smart(const char*filename, const char * outfile)
   // we can now free the sender buffers
   if (comm1 != MPI_COMM_NULL)
      ierr = iMOAB_FreeSenderBuffers(pid1, &jcomm, &compid2);
-/*
+
   // exchange tag, from component to component
   // one is receiving, one is sending the tag; the one that is sending needs to have communicator
   // not null
@@ -187,7 +186,7 @@ ErrorCode migrate_smart(const char*filename, const char * outfile)
     // we can now free the sender buffers
   if (comm2 != MPI_COMM_NULL)
      ierr = iMOAB_FreeSenderBuffers(pid2, &jcomm, &compid1);
-*/
+
   if (comm2 != MPI_COMM_NULL) {
     ierr = iMOAB_DeregisterApplication(pid2);
     CHECKRC(ierr, "cannot deregister app 2 receiver" )
