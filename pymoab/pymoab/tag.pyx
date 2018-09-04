@@ -24,6 +24,12 @@ cdef class Tag(object):
         total_byte_size = self.inst.get_size()
         return total_byte_size/type_byte_size
 
+    def get_data_type(self):
+        """
+        Returns the Tag's data type.
+        """
+        return self.get_type()
+    
     def get_type(self):
         """
         Returns the Tag's data type.
