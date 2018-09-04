@@ -601,7 +601,10 @@ cdef class Core(object):
 
         # if a default value is provided, set ptr
         if default_value is not None:
-            default_val_arr = np.asarray(default_value)
+            if tag_type is types.MB_TYPE_OPAQUE:
+                default_val_arr = np.asarray((default_value,), dtype='S'+str(size))
+            else:
+                default_val_arr = np.asarray(default_value, dtype=np.dtype(np_tag_type(tag_type)))
             # validate default value data for tag type and length
             default_val_arr = validate_type(tag_type,size,default_val_arr)
             def_val_ptr = <const void*> default_val_arr.data
