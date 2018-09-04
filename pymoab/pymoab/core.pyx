@@ -16,7 +16,6 @@ from libc.stdlib cimport malloc
 
 cdef void* null = NULL
 
-
 cdef class Core(object):
 
     def __cinit__(self):
@@ -1353,20 +1352,22 @@ cdef class Core(object):
             err = self.inst.set_coords(<unsigned long*> arr.data, len(entities), <const double*> coords.data)
         check_error(err, exceptions)
 
-    def get_entities_by_type(self, meshset, entity_type, bint recur = False, exceptions = ()):
+    def get_entities_by_type(self, meshset, entity_type, bint recur = False, bint as_list = False, exceptions = ()):
         """
         Retrieves all entities of a given topological dimension in the database or meshset
 
         Parameters
         ----------
-        meshset : MOAB EntityHandle (long)
-            meshset whose entities are being queried
+        meshset     : MOAB EntityHandle (long)
+                      meshset whose entities are being queried
         entity_type : MOAB EntityType
-            type of the entities desired (MBVERTEX, MBTRI, etc.)
-        recur : bool (default is False)
-            if True, meshsets containing meshsets are queried recusively. The
-            contenst of these meshsets are returned, but not the meshsets
-            themselves.
+                      type of the entities desired (MBVERTEX, MBTRI, etc.)
+        recur       : bool (default is False)
+                      if True, meshsets containing meshsets are queried recusively. The
+                      contenst of these meshsets are returned, but not the meshsets
+                      themselves.
+        as_list        : return entities in a list (preserves ordering if necessary, but
+                      consumes more memory)
         Returns
         -------
         MOAB Range of EntityHandles
@@ -1382,12 +1383,22 @@ cdef class Core(object):
         cdef moab.ErrorCode err
         cdef Range entities = Range()
         cdef moab.EntityType typ = entity_type
-        err = self.inst.get_entities_by_type(<unsigned long> meshset,
-                                             typ,
-                                             deref(entities.inst),
-                                             recur)
-        check_error(err, exceptions)
-        return entities
+        cdef vector[moab.EntityHandle] hvec
+        if as_list:
+            err = self.inst.get_entities_by_type(<unsigned long> meshset,
+                                                 typ,
+                                                 hvec,
+                                                 recur)
+            check_error(err, exceptions)
+            return hvec
+
+        else:
+            err = self.inst.get_entities_by_type(<unsigned long> meshset,
+                                                 typ,
+                                                 deref(entities.inst),
+                                                 recur)
+            check_error(err, exceptions)
+            return entities
 
     def get_entities_by_type_and_tag(self,
                                      meshset,
@@ -1506,7 +1517,7 @@ cdef class Core(object):
         return ents
 
 
-    def get_entities_by_handle(self, meshset, bint recur = False, exceptions = ()):
+    def get_entities_by_handle(self, meshset, bint recur = False, bint as_list = False, exceptions = ()):
         """
         Retrieves all entities in the database or meshset.
 
@@ -1518,6 +1529,8 @@ cdef class Core(object):
             if True, meshsets containing meshsets are queried recusively. The
             contenst of these meshsets are returned, but not the meshsets
             themselves.
+        as_list        : return entities in a list (preserves ordering if necessary, but
+                      consumes more memory)
         Returns
         -------
         MOAB Range of EntityHandles
@@ -1532,24 +1545,32 @@ cdef class Core(object):
         """
         cdef moab.ErrorCode err
         cdef Range ents = Range()
-        err = self.inst.get_entities_by_handle(<unsigned long> meshset, deref(ents.inst), recur)
-        check_error(err, exceptions)
-        return ents
+        cdef vector[moab.EntityHandle] hvec
+        if as_list:
+            err = self.inst.get_entities_by_handle(<unsigned long> meshset, hvec, recur)
+            check_error(err, exceptions)
+            return hvec
+        else:
+            err = self.inst.get_entities_by_handle(<unsigned long> meshset, deref(ents.inst), recur)
+            check_error(err, exceptions)
+            return ents
 
-    def get_entities_by_dimension(self, meshset, int dimension, bint recur = False, exceptions = ()):
+    def get_entities_by_dimension(self, meshset, int dimension, bint recur = False, bint as_list = False, exceptions = ()):
         """
         Retrieves all entities of a given topological dimension in the database or meshset
 
         Parameters
         ----------
-        meshset : MOAB EntityHandle (long)
-            meshset whose entities are being queried
+        meshset   : MOAB EntityHandle (long)
+                    meshset whose entities are being queried
         dimension : integer
-            topological dimension of the entities desired
-        recur : bool (default is False)
-            if True, meshsets containing meshsets are queried recusively. The
-            contenst of these meshsets are returned, but not the meshsets
-            themselves.
+                    topological dimension of the entities desired
+        recur     : bool (default is False)
+                    if True, meshsets containing meshsets are queried recusively. The
+                    contenst of these meshsets are returned, but not the meshsets
+                    themselves.
+        as_list   : return entities in a list (preserves ordering if necessary, but
+                    consumes more memory)
         Returns
         -------
         MOAB Range of EntityHandles
@@ -1564,9 +1585,15 @@ cdef class Core(object):
         """
         cdef moab.ErrorCode err
         cdef Range ents = Range()
-        err = self.inst.get_entities_by_dimension(<unsigned long> meshset, dimension, deref(ents.inst), recur)
-        check_error(err, exceptions)
-        return ents
+        cdef vector[moab.EntityHandle] hvec
+        if as_list:
+            err = self.inst.get_entities_by_dimension(<unsigned long> meshset, dimension, hvec, recur)
+            check_error(err, exceptions)
+            return hvec
+        else:
+            err = self.inst.get_entities_by_dimension(<unsigned long> meshset, dimension, deref(ents.inst), recur)
+            check_error(err, exceptions)
+            return ents
 
     def delete_mesh(self):
         """Deletes all mesh entities from the database"""
