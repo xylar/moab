@@ -8,6 +8,53 @@ import numpy as np
 import os
 
 
+def test_w_coordinates():
+
+    mb = core.Core()
+    scd = ScdInterface(mb)
+    
+    xs = [-1, 3, 5]
+    ys = [-1, 1]
+    zs = [-1, 1]
+
+    coords = []
+    for k in zs:
+        for j in ys:
+            for i in xs:
+               coords += [i,j,k]
+
+    low = HomCoord([0,0,0,0])
+    high = HomCoord([2,1,1,0])
+
+    scdbox = scd.construct_box(low, high, coords)
+
+    verts = mb.get_entities_by_type(0, types.MBVERTEX)
+    assert len(verts) == 12
+
+    # check verts
+    for k in range(high[2]+1):
+        for j in range(high[1]+1):
+            for i in range(high[0]+1):
+                vert = scdbox.get_vertex([i,j,k])
+                vert_coords = mb.get_coords(vert)
+                assert(all(vert_coords == [xs[i], ys[j], zs[k]]))
+    
+    hexes = mb.get_entities_by_type(0, types.MBHEX)
+
+    hex_con_str = "Hex {} connectivity is: {}"
+    vert_str = "Vert: {}"
+    
+    assert len(hexes) == 2
+
+    # expected vertex connectivity
+    hex1_conn = [1, 2, 5, 4, 7, 8, 11, 10]
+    hex2_conn = [2, 3, 6, 5, 8, 9, 12, 11]
+
+    hex_connectivity = [hex1_conn, hex2_conn]
+
+    for i,h in enumerate(hexes):
+        assert(all(mb.get_connectivity(h) == hex_connectivity[i]))
+    
 def test_scds():
     
     bounds = [0,0,0,10,0,0]
@@ -22,6 +69,14 @@ def scd_tst(bnds):
 
     mb = core.Core()
     scd = ScdInterface(mb)
+
+    try:
+        t = scd.box_set_tag(False)
+    except RuntimeError:
+        pass
+
+    t = scd.box_set_tag(True)
+        
     boxes = scd.find_boxes()
     assert len(boxes) == 0 
 
@@ -105,5 +160,5 @@ def evaluate_sequence(box):
 
 
 if __name__ == "__main__":
-    tests = [test_scds,]
+    tests = [test_scds, test_w_coordinates]
     test_driver(tests)
