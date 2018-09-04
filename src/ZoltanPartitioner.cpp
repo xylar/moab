@@ -2131,8 +2131,12 @@ ErrorCode ZoltanPartitioner::partition_owned_cells(Range & primary, ParallelComm
 
   myZZ->Set_Num_Obj_Fn(mbGetNumberOfAssignedObjects, NULL);
   myZZ->Set_Obj_List_Fn(mbGetObjectList, NULL);
-  myZZ->Set_Num_Geom_Fn(mbGetObjectSize, NULL);
-  myZZ->Set_Geom_Multi_Fn(mbGetObject, NULL);
+  // due to a bug in zoltan, if method is graph partitioning, do not pass coordinates!!
+  if (1 != met)
+  {
+    myZZ->Set_Num_Geom_Fn(mbGetObjectSize, NULL);
+    myZZ->Set_Geom_Multi_Fn(mbGetObject, NULL);
+  }
   myZZ->Set_Num_Edges_Multi_Fn(mbGetNumberOfEdges, NULL);
   myZZ->Set_Edge_List_Multi_Fn(mbGetEdgeList, NULL);
 
