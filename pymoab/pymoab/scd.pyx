@@ -10,6 +10,7 @@ from libcpp.vector cimport vector
 from .rng cimport Range
 from .core cimport Core
 from .hcoord cimport HomCoord
+from .tag cimport Tag
 from .types import check_error, MB_TYPE_DOUBLE, MB_FAILURE
 from .types import _DTYPE_CONV
 
@@ -111,8 +112,7 @@ cdef class ScdInterface(object):
         cdef double* coords_ptr = NULL
         cdef int num_c = 0
         cdef int lp[3]
-        print hl
-        print hh
+        for i in range(3): lp[i] = 0
         if coords is not None:
             c = np.asarray(coords, dtype = _DTYPE_CONV[MB_TYPE_DOUBLE])
             assert c.ndim == 1
@@ -132,6 +132,36 @@ cdef class ScdInterface(object):
         check_error(err,exceptions)
         return scdb
 
+    def box_set_tag(self, create_if_missing = True):
+        """
+        Retrieves an internal tag used to link EntitySets and 
+        ScdBox instances.
+
+        Example
+        -------
+        structured_box = scd.get_scd_box(structured_box_set)
+
+        Parameters
+        ----------
+        create_if_missing : bool
+            Indicates that this tag should be created if it doesn't exist already.
+
+        Returns
+        -------
+        A PyMOAB tag.
+
+        Raises
+        ------
+        MOAB ErrorCode
+            if a MOAB error occurs
+        """
+        cdef Tag tag = Tag()
+        tag.inst = self.inst.box_set_tag(create_if_missing)
+        if <void*> tag.inst == null:
+            check_error(MB_FAILURE)
+        else:
+            return tag
+        
     def get_scd_box(self, eh, exceptions = ()):
         """
         Returns all structured mesh blocks in a the PyMOAB core instance
@@ -160,7 +190,6 @@ cdef class ScdInterface(object):
             if a MOAB error occurs
         ValueError
             if an EntityHandle is not of the correct type
-
         """
         cdef ScdBox struct_box = ScdBox()
         struct_box.inst = self.inst.get_scd_box(<unsigned long> eh)
@@ -343,6 +372,7 @@ cdef class ScdBox(object):
             return vert
         else:
             check_error(MB_FAILURE)
+            
     def get_element(self, args):
         """
         Returns the element handle for parameter values i,j,k. These parameter

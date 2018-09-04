@@ -394,6 +394,7 @@ cdef extern from "moab/ScdInterface.hpp" namespace "moab":
         ErrorCode find_boxes(Range &boxes)
         ErrorCode get_boxes(vector[ScdBox*] boxes)
         ScdBox* get_scd_box(EntityHandle eh)
+        Tag box_set_tag(bool create_if_missing)
         
     cdef cppclass ScdBox:
         
