@@ -136,23 +136,38 @@ _DTYPE_CONV = {
 }
 
 _VALID_DTYPES= {
-    MB_TYPE_OPAQUE: frozenset(['S','U']),
-    MB_TYPE_INTEGER: frozenset(['int8','int16','int32','int64']),
-    MB_TYPE_DOUBLE: frozenset(['float64']),
-    MB_TYPE_BIT: frozenset(['int8','int16','int32','int64','S1','bool']),
-    MB_TYPE_HANDLE: frozenset(['uint64']),
-    MB_MAX_DATA_TYPE: frozenset(['uint64'])
-}
-
-_VALID_DTYPES= {
-    MB_TYPE_OPAQUE: frozenset(['S','U','O']),
-    MB_TYPE_INTEGER: frozenset(['int8','int16','int32','int64','O','object']),
-    MB_TYPE_DOUBLE: frozenset(['float64','float','O','object']),
-    MB_TYPE_BIT: frozenset(['int8','int16','int32','int64','S1','bool','O','object']),
+    MB_TYPE_OPAQUE: frozenset(['S','U','O','object']),
+    MB_TYPE_INTEGER: frozenset(['i','int8','int16','int32','int64','O','object']),
+    MB_TYPE_DOUBLE: frozenset(['float64','float','f8','f', 'O','object',]),
+    MB_TYPE_BIT: frozenset(['f','int8','int16','int32','int64','S1','bool','O','object']),
     MB_TYPE_HANDLE: frozenset(['uint64','O','object']),
     MB_MAX_DATA_TYPE: frozenset(['uint64','O','object'])
 }
 
+_VALID_NATIVE_TYPES = {
+    int: MB_TYPE_INTEGER,
+    float: MB_TYPE_DOUBLE,
+    str: MB_TYPE_OPAQUE,
+    object: MB_TYPE_OPAQUE,
+    long : MB_TYPE_HANDLE
+}
+
+def pymoab_data_type(input_type):
+    """
+    Attempts to find a PyMOAB datatype given a Python native type or 
+    NumPy dtype
+    """
+    # check valid dtypes
+    for k in _VALID_DTYPES.keys():
+        if input_type in _VALID_DTYPES[k]:
+            return k
+
+    # check native types
+    try:
+        return _VALID_NATIVE_TYPES[input_type]
+    except KeyError:
+        raise ValueError("Could not determine the PyMOAB data type.")
+                                   
 def _convert_array(iterable, accepted_types, return_dtype):
     err_msg = "Incorrect datatype found in array."
     #if this is already an array of the correct type, avoid the loop
