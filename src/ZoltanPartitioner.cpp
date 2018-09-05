@@ -2044,36 +2044,41 @@ ErrorCode ZoltanPartitioner::partition_owned_cells(Range & primary, ParallelComm
   for (Range::iterator rit = primary.begin(); rit != primary.end(); ++rit, i++)
   {
     EntityHandle cell=*rit;
-    // get bridge adjacencies
-    adjs.clear();
-    rval = mtu.get_bridge_adjacencies(cell, (primaryDim > 0 ? primaryDim-1 : 3),
-        primaryDim, adjs); MB_CHK_ERR ( rval );
-
-      // get the graph vertex ids of those
-    if (!adjs.empty()) {
-      assert(adjs.size() < 5*MAX_SUB_ENTITIES);
-      rval = mbImpl->tag_get_data(gid, adjs, neighbors); MB_CHK_ERR ( rval );
-    }
-    // if adjacent to neighbor partitions, add to the list
-    int size_adjs = (int)adjs.size();
-    moab_id = ids[i] ;
-    for (int k=0; k<size_adjs; k++)
-      neib_proc[k]= rank; // current rank
-    if (extraAdjCellsId.find(moab_id) != extraAdjCellsId.end())
+    // get bridge adjacencies for each cell
+    if (1==met)
     {
-      // it means that the current cell is adjacent to a cell in another partition
-      int otherID = extraAdjCellsId[moab_id];
-      neighbors[size_adjs] = otherID; // the id of the other cell, across partition
-      neib_proc[size_adjs] = procs[otherID]; // this is how we built this map, the cell id maps to what proc it came from
-      size_adjs++;
-    }
-      // copy those into adjacencies vector
-    length.push_back(size_adjs);
-    std::copy(neighbors, neighbors+size_adjs, std::back_inserter(adjacencies));
-    std::copy(neib_proc, neib_proc+size_adjs, std::back_inserter(nbor_proc));
-    rval = mtu.get_average_position(cell, avg_position); MB_CHK_ERR ( rval );
+      adjs.clear();
+      rval = mtu.get_bridge_adjacencies(cell, (primaryDim > 0 ? primaryDim-1 : 3),
+          primaryDim, adjs); MB_CHK_ERR ( rval );
 
-    std::copy(avg_position, avg_position+3, std::back_inserter(coords));
+        // get the graph vertex ids of those
+      if (!adjs.empty()) {
+        assert(adjs.size() < 5*MAX_SUB_ENTITIES);
+        rval = mbImpl->tag_get_data(gid, adjs, neighbors); MB_CHK_ERR ( rval );
+      }
+      // if adjacent to neighbor partitions, add to the list
+      int size_adjs = (int)adjs.size();
+      moab_id = ids[i] ;
+      for (int k=0; k<size_adjs; k++)
+        neib_proc[k]= rank; // current rank
+      if (extraAdjCellsId.find(moab_id) != extraAdjCellsId.end())
+      {
+        // it means that the current cell is adjacent to a cell in another partition
+        int otherID = extraAdjCellsId[moab_id];
+        neighbors[size_adjs] = otherID; // the id of the other cell, across partition
+        neib_proc[size_adjs] = procs[otherID]; // this is how we built this map, the cell id maps to what proc it came from
+        size_adjs++;
+      }
+        // copy those into adjacencies vector
+      length.push_back(size_adjs);
+      std::copy(neighbors, neighbors+size_adjs, std::back_inserter(adjacencies));
+      std::copy(neib_proc, neib_proc+size_adjs, std::back_inserter(nbor_proc));
+    }
+    else if (2==met)
+    {
+      rval = mtu.get_average_position(cell, avg_position); MB_CHK_ERR ( rval );
+      std::copy(avg_position, avg_position+3, std::back_inserter(coords));
+    }
   }
 
 
@@ -2132,18 +2137,19 @@ ErrorCode ZoltanPartitioner::partition_owned_cells(Range & primary, ParallelComm
   myZZ->Set_Num_Obj_Fn(mbGetNumberOfAssignedObjects, NULL);
   myZZ->Set_Obj_List_Fn(mbGetObjectList, NULL);
   // due to a bug in zoltan, if method is graph partitioning, do not pass coordinates!!
-  if (1 != met)
+  if (2 == met)
   {
     myZZ->Set_Num_Geom_Fn(mbGetObjectSize, NULL);
     myZZ->Set_Geom_Multi_Fn(mbGetObject, NULL);
-  }
-  myZZ->Set_Num_Edges_Multi_Fn(mbGetNumberOfEdges, NULL);
-  myZZ->Set_Edge_List_Multi_Fn(mbGetEdgeList, NULL);
-
-  if (1==met)
-    SetHypergraph_Parameters("auto");
-  else if(2==met)
     SetRCB_Parameters(); // geometry
+  }
+  else if (1 == met)
+  {
+    myZZ->Set_Num_Edges_Multi_Fn(mbGetNumberOfEdges, NULL);
+    myZZ->Set_Edge_List_Multi_Fn(mbGetEdgeList, NULL);
+    SetHypergraph_Parameters("auto");
+  }
+
   // Perform the load balancing partitioning
 
   int changes;
@@ -2158,8 +2164,8 @@ ErrorCode ZoltanPartitioner::partition_owned_cells(Range & primary, ParallelComm
   int *assign_procs, *assign_parts;
 
   if (pco->rank() ==0)
-    std::cout << "Computing partition using " << met  <<
-      " method for " << numNewPartitions << " parts..." << std::endl;
+    std::cout << "Computing partition using method (1-graph, 2-geom):" << met  <<
+      " for " << numNewPartitions << " parts..." << std::endl;
 
   retval = myZZ->LB_Partition(changes, numGidEntries, numLidEntries,
                               num_import, import_global_ids, import_local_ids, import_procs, import_to_part,
@@ -2197,6 +2203,14 @@ ErrorCode ZoltanPartitioner::partition_owned_cells(Range & primary, ParallelComm
       &assign_procs, &assign_parts);
 
   delete myZZ;
+
+  // clear arrays that were resized locally, to free up local memory
+
+  std::vector<int>().swap(adjacencies);
+  std::vector<int>().swap(ids);
+  std::vector<int>().swap(length);
+  std::vector<int>().swap(nbor_proc);
+  std::vector<double>().swap(coords);
 
   return MB_SUCCESS;
 }

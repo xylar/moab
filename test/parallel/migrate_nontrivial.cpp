@@ -53,7 +53,8 @@ int run_test( ErrorCode (*func)(const char*),
   return is_err;
 }
 
-ErrorCode migrate_2_3( const char* filename );
+ErrorCode migrate_2_3_graph( const char* filename );
+ErrorCode migrate_2_3_geom( const char* filename );
 
 // some global variables, used by all tests
 int rank, size, ierr;
@@ -66,7 +67,7 @@ int startG1, startG2, endG1, endG2;
 MPI_Comm jcomm; // will be a copy of the global
 MPI_Group jgroup;
 
-ErrorCode migrate_smart(const char*filename, const char * outfile)
+ErrorCode migrate_smart(const char*filename, const char * outfile, int partMethod)
 {
   // first create MPI groups
 
@@ -123,8 +124,7 @@ ErrorCode migrate_smart(const char*filename, const char * outfile)
 
       ierr = iMOAB_LoadMesh(pid1, filen.c_str(), readopts.c_str(), &nghlay, filen.length(), strlen(readopts.c_str()) );
       CHECKRC(ierr, "can't load mesh ")
-      int method=1;
-      ierr = iMOAB_SendMesh(pid1, &jcomm, &group2, &compid2, &method); // send to component 2
+      ierr = iMOAB_SendMesh(pid1, &jcomm, &group2, &compid2, &partMethod); // send to component 2
       CHECKRC(ierr, "cannot send elements" )
   }
 
@@ -209,13 +209,21 @@ ErrorCode migrate_smart(const char*filename, const char * outfile)
   MPI_Group_free(&group2);
   return MB_SUCCESS;
 }
-// migrate from 2 tasks to 2 tasks (overkill)
-ErrorCode migrate_2_3( const char* filename )
+// migrate from 2 tasks to 3 tasks
+ErrorCode migrate_2_3_graph( const char* filename )
 {
   startG1 = startG2 = 0;
   endG1 = 1;
   endG2 = 2;
-  return migrate_smart(filename, "migrate23_smart.h5m");
+  return migrate_smart(filename, "migrate23_graph.h5m", 1);
+}
+
+ErrorCode migrate_2_3_geom( const char* filename )
+{
+  startG1 = startG2 = 0;
+  endG1 = 1;
+  endG2 = 2;
+  return migrate_smart(filename, "migrate23_geom.h5m", 2);
 }
 
 int main( int argc, char* argv[] )
@@ -238,7 +246,8 @@ int main( int argc, char* argv[] )
 
   if (size == 3)
   {
-    num_errors += RUN_TEST_ARG2( migrate_2_3, filename.c_str() );
+    num_errors += RUN_TEST_ARG2( migrate_2_3_graph, filename.c_str() );
+    num_errors += RUN_TEST_ARG2( migrate_2_3_geom, filename.c_str() );
   }
   if (rank == 0) {
     if (!num_errors)

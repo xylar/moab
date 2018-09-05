@@ -793,7 +793,7 @@ ErrorCode ParCommGraph::compute_partition (ParallelComm *pco, Range & owned, int
 
   // find first edges that are shared
   if (owned.empty())
-    return MB_SUCCESS; // nothing to do? empty partition is not allowed, mabe we should return error?
+    return MB_SUCCESS; // nothing to do? empty partition is not allowed, maybe we should return error?
   Core * mb = (Core*)pco->get_moab();
 
   int primaryDim = mb->dimension_from_handle(*owned.rbegin());
@@ -802,7 +802,7 @@ ErrorCode ParCommGraph::compute_partition (ParallelComm *pco, Range & owned, int
   ErrorCode rval = pco->get_shared_entities(/*int other_proc*/ -1, sharedEdges, interfaceDim, /*const bool iface*/ true);MB_CHK_ERR ( rval );
 
 #if VERBOSE
-  std::cout <<sharedEdges.size() << "\n";
+  std::cout <<" on sender task " << pco->rank() << " number of shared interface cells " << sharedEdges.size() << "\n";
 #endif
   // find to what processors we need to send the ghost info about the edge
   std::vector<int> shprocs(MAX_SHARING_PROCS);
@@ -813,61 +813,67 @@ ErrorCode ParCommGraph::compute_partition (ParallelComm *pco, Range & owned, int
   int np;
   unsigned char pstatus;
 
-  // first determine the local graph; what elements are adjacent to each cell in owned range
-  // cells that are sharing a partition interface edge, are identified first, and form a map
-  TupleList TLe; // tuple list for cells
-  TLe.initialize(2, 0, 1, 0, sharedEdges.size()); // send to, id of adj cell, remote edge
-  TLe.enableWriteAccess();
-
-  std::map<EntityHandle, int> edgeToCell; // from local boundary edge to adjacent cell id
-  // will be changed after
-  for (Range::iterator eit=sharedEdges.begin(); eit!=sharedEdges.end(); eit++)
-  {
-    EntityHandle edge = *eit;
-    // get the adjacent cell
-    Range adjEnts;
-    rval = mb->get_adjacencies(&edge, 1, primaryDim, false, adjEnts); MB_CHK_ERR ( rval );
-    if (adjEnts.size()>0)
-    {
-      EntityHandle adjCell = adjEnts[0];
-      int gid;
-      rval = mb->tag_get_data(gidTag, &adjCell, 1, &gid);  MB_CHK_ERR ( rval );
-      rval = pco->get_sharing_data(edge, &shprocs[0], &shhandles[0], pstatus, np); MB_CHK_ERR ( rval );
-      int n=TLe.get_n();
-      TLe.vi_wr[2*n] = shprocs[0];
-      TLe.vi_wr[2*n+1] = gid;
-      TLe.vul_wr[n] = shhandles[0]; // the remote edge corresponding to shared edge
-      edgeToCell[edge] = gid; // store the map between edge and local id of adj cell
-      TLe.inc_n();
-    }
-  }
-
-#ifdef VERBOSE
-  std::stringstream ff2;
-  ff2 << "TLe_"<< pco->rank() << ".txt";
-  TLe.print_to_file(ff2.str().c_str());
-#endif
-  // send the data to the other processors:
-  (pco->proc_config().crystal_router())->gs_transfer(1, TLe, 0);
-  // on receiver side, each local edge will have the remote cell adjacent to it!
   std::map<int, int> adjCellsId;
   std::map<int, int> extraCellsProc;
-  int ne = TLe.get_n();
-  for (int i=0; i<ne; i++)
+  // if method is 2, no need to do the exchange for adjacent cells across partition boundary
+  // these maps above will be empty for method 2 (geometry)
+  if (1==met)
   {
-    int sharedProc =  TLe.vi_rd[2*i] ; // this info is coming from here, originally
-    int  remoteCellID = TLe.vi_rd[2*i+1] ;
-    EntityHandle localCell = TLe.vul_rd[i] ; // this is now local cell on the this proc
-    adjCellsId [edgeToCell[localCell]] = remoteCellID;
-    extraCellsProc[remoteCellID] = sharedProc;
-#if VERBOSE
-    std::cout <<"local ID " << edgeToCell[localCell] << " remote cell ID: " << remoteCellID << "\n";
+    // first determine the local graph; what elements are adjacent to each cell in owned range
+    // cells that are sharing a partition interface edge, are identified first, and form a map
+    TupleList TLe; // tuple list for cells
+    TLe.initialize(2, 0, 1, 0, sharedEdges.size()); // send to, id of adj cell, remote edge
+    TLe.enableWriteAccess();
+
+    std::map<EntityHandle, int> edgeToCell; // from local boundary edge to adjacent cell id
+    // will be changed after
+    for (Range::iterator eit=sharedEdges.begin(); eit!=sharedEdges.end(); eit++)
+    {
+      EntityHandle edge = *eit;
+      // get the adjacent cell
+      Range adjEnts;
+      rval = mb->get_adjacencies(&edge, 1, primaryDim, false, adjEnts); MB_CHK_ERR ( rval );
+      if (adjEnts.size()>0)
+      {
+        EntityHandle adjCell = adjEnts[0];
+        int gid;
+        rval = mb->tag_get_data(gidTag, &adjCell, 1, &gid);  MB_CHK_ERR ( rval );
+        rval = pco->get_sharing_data(edge, &shprocs[0], &shhandles[0], pstatus, np); MB_CHK_ERR ( rval );
+        int n=TLe.get_n();
+        TLe.vi_wr[2*n] = shprocs[0];
+        TLe.vi_wr[2*n+1] = gid;
+        TLe.vul_wr[n] = shhandles[0]; // the remote edge corresponding to shared edge
+        edgeToCell[edge] = gid; // store the map between edge and local id of adj cell
+        TLe.inc_n();
+      }
+    }
+
+#ifdef VERBOSE
+    std::stringstream ff2;
+    ff2 << "TLe_"<< pco->rank() << ".txt";
+    TLe.print_to_file(ff2.str().c_str());
 #endif
+    // send the data to the other processors:
+    (pco->proc_config().crystal_router())->gs_transfer(1, TLe, 0);
+    // on receiver side, each local edge will have the remote cell adjacent to it!
+
+    int ne = TLe.get_n();
+    for (int i=0; i<ne; i++)
+    {
+      int sharedProc =  TLe.vi_rd[2*i] ; // this info is coming from here, originally
+      int  remoteCellID = TLe.vi_rd[2*i+1] ;
+      EntityHandle localCell = TLe.vul_rd[i] ; // this is now local cell on the this proc
+      adjCellsId [edgeToCell[localCell]] = remoteCellID;
+      extraCellsProc[remoteCellID] = sharedProc;
+#if VERBOSE
+      std::cout <<"local ID " << edgeToCell[localCell] << " remote cell ID: " << remoteCellID << "\n";
+#endif
+    }
   }
   // so adj cells ids; need to call zoltan for parallel partition
 #ifdef MOAB_HAVE_ZOLTAN
   ZoltanPartitioner * mbZTool = new ZoltanPartitioner(mb);
-  if (1<=met) // graph partition in zoltan
+  if (1<=met) //  partition in zoltan, either graph or geometric partitioner
   {
     std::map<int, Range> distribution; // how to distribute owned elements by processors in receiving groups
     // in how many tasks do we want to be distributed?
