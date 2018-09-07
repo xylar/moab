@@ -28,6 +28,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 // #define VERBOSE
+// #define VVERBOSE
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -147,8 +148,7 @@ moab::ErrorCode moab::TempestOfflineMap::SetDofMapAssociation(DiscretizationType
 
     bool vprint = !(pcomm->rank() > 0) && false;
 
-#undef VERBOSE
-#ifdef VERBOSE
+#ifdef VVERBOSE
     {
         src_soln_gdofs.resize(m_remapper->m_covering_source_entities.size()*m_nDofsPEl_Src*m_nDofsPEl_Src, -1);
         rval = mbCore->tag_get_data ( m_dofTagSrc, m_remapper->m_covering_source_entities, &src_soln_gdofs[0] );MB_CHK_ERR(rval);
@@ -319,7 +319,6 @@ moab::ErrorCode moab::TempestOfflineMap::SetDofMapAssociation(DiscretizationType
         }
     }
 #endif
-#define VERBOSE
 
     // Now compute the mapping and store it for the covering mesh
     col_dofmap.resize (m_remapper->m_covering_source_entities.size() * m_nDofsPEl_Src * m_nDofsPEl_Src, ULONG_MAX);

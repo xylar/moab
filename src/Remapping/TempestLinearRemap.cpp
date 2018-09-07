@@ -926,27 +926,6 @@ void ForceConsistencyConservation3_MOAB(
     }
     }
 */
-
-    if (elemID == 504) {
-        std::cout << "ELEM(504): nCondConsistency = " << nCondConsistency << " and nCondConservation = " << nCondConservation << "\n";
-        FILE * fp1 = fopen("cc.dat", "w");
-        for (int i = 0; i < nCoeff; i++) {
-            for (int j = 0; j < nCond; j++) {
-                fprintf(fp1, "%1.15e\t", dC(i, j));
-            }
-            fprintf(fp1, "\n");
-        }
-        fclose(fp1);
-
-        FILE * fp2 = fopen("cct.dat", "w");
-        for (int i = 0; i < nCond; i++) {
-            for (int j = 0; j < nCond; j++) {
-                fprintf(fp2, "%1.15e\t", dCCt(i, j));
-            }
-            fprintf(fp2, "\n");
-        }
-        fclose(fp2);
-    }
     
     // // Calculate C*r1 - r2
     Eigen::VectorXd dTmpRHS = dC.transpose() * dRHS - dRHSC;
@@ -1083,12 +1062,13 @@ void moab::TempestOfflineMap::LinearRemapSE4_Tempest_MOAB (
     vecSourceArea.Initialize ( nP * nP );
 
     DataVector<double> vecTargetArea;
-
     DataMatrix<double> dCoeff;
 
+#ifdef VERBOSE
     std::stringstream sstr;
     sstr << "remapdata_" << this->pcomm->rank() << ".txt";
     std::ofstream output_file ( sstr.str() );
+#endif
 
     // Current Overlap Face
     int ixOverlap = 0;
@@ -1271,6 +1251,7 @@ void moab::TempestOfflineMap::LinearRemapSE4_Tempest_MOAB (
             }
         }
 
+#ifdef VERBOSE
         output_file << "[" << m_remapper->lid_to_gid_covsrc[ixFirst] << "] \t";
         for ( int j = 0; j < nOverlapFaces; j++ )
         {
@@ -1283,6 +1264,7 @@ void moab::TempestOfflineMap::LinearRemapSE4_Tempest_MOAB (
             }
         }
         output_file << std::endl;
+#endif
 
         // Force consistency and conservation
         if ( !fNoConservation )
@@ -1414,6 +1396,7 @@ void moab::TempestOfflineMap::LinearRemapSE4_Tempest_MOAB (
             }
         }
 
+#ifdef VERBOSE
         // output_file << "[" << m_remapper->lid_to_gid_covsrc[ixFirst] << "] \t";
         // for ( int j = 0; j < nOverlapFaces; j++ )
         // {
@@ -1426,7 +1409,7 @@ void moab::TempestOfflineMap::LinearRemapSE4_Tempest_MOAB (
         //     }
         // }
         // output_file << std::endl;
-        
+#endif
 
         // Put these remap coefficients into the SparseMatrix map
         for ( int j = 0; j < nOverlapFaces; j++ )
@@ -1462,8 +1445,10 @@ void moab::TempestOfflineMap::LinearRemapSE4_Tempest_MOAB (
         // Increment the current overlap index
         ixOverlap += nOverlapFaces;
     }
+#ifdef VERBOSE
     output_file.flush(); // required here
     output_file.close();
+#endif
 
     return;
 }
