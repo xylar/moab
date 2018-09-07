@@ -26,13 +26,13 @@ int main(int argc, char * argv[])
 {
   int nprocs=1, rank=0;
   char filen1[200], filen2[200];
-#ifdef MOAB_HAVE_MPI
-  MPI_Init(&argc, &argv);
+// #ifdef MOAB_HAVE_MPI
+//   MPI_Init(&argc, &argv);
 
-  MPI_Comm comm=MPI_COMM_WORLD;
-  MPI_Comm_size(comm, &nprocs);
-  MPI_Comm_rank(comm, &rank);
-#endif
+//   MPI_Comm comm=MPI_COMM_WORLD;
+//   MPI_Comm_size(comm, &nprocs);
+//   MPI_Comm_rank(comm, &rank);
+// #endif
 
 #ifdef MOAB_HAVE_HDF5
   strcpy(filen1, TestDir);
@@ -69,34 +69,24 @@ int main(int argc, char * argv[])
    */
   int compid1 = 10, compid2 = 20, compid3 = 100;
   rc = iMOAB_RegisterApplication( "COUP_APP1",
-#ifdef MOAB_HAVE_MPI
-      &comm,
-#endif
+      NULL,
       &compid1,
       pid1);
   CHECKRC(rc, "failed to register application1");
 
   rc = iMOAB_RegisterApplication( "COUP_APP2",
-#ifdef MOAB_HAVE_MPI
-      &comm,
-#endif
+      NULL,
       &compid2,
       pid2);
   CHECKRC(rc, "failed to register application2");
 
   rc = iMOAB_RegisterApplication( "COUPLER",
-#ifdef MOAB_HAVE_MPI
-      &comm,
-#endif
+      NULL,
       &compid3,
       pid3);
   CHECKRC(rc, "failed to register application2");
 
-#ifdef MOAB_HAVE_MPI
-  const char *read_opts="PARALLEL=READ_PART;PARTITION=PARALLEL_PARTITION;PARALLEL_RESOLVE_SHARED_ENTS";
-#else
   const char *read_opts="";
-#endif
   int num_ghost_layers=0;
 
   /*
@@ -215,15 +205,11 @@ int main(int argc, char * argv[])
    * the file can be written in parallel, and it will contain additional tags defined by the user
    * we may extend the method to write only desired tags to the file
    */
-  if (nprocs == 1) {
+  {
     // free allocated data
     char outputFileOv[]  = "fIntxOverlap.h5m";
     char outputFileTgt[] = "fIntxTarget.h5m";
-#ifdef MOAB_HAVE_MPI
-    char writeOptions[] ="PARALLEL=WRITE_PART";
-#else
     char writeOptions[] ="";
-#endif
 
     rc = iMOAB_WriteMesh(pid2, outputFileTgt, writeOptions,
       strlen(outputFileTgt), strlen(writeOptions) );  
@@ -248,9 +234,6 @@ int main(int argc, char * argv[])
    */
   rc = iMOAB_Finalize();
   CHECKRC(rc, "failed to finalize MOAB");
-#ifdef MOAB_HAVE_MPI
-  MPI_Finalize();
-#endif
 
   return 0;
 }

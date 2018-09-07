@@ -203,15 +203,20 @@ ErrCode iMOAB_RegisterApplication ( const iMOAB_String app_name,
 
     // now create ParallelComm and a file set for this application
 #ifdef MOAB_HAVE_MPI
-    ParallelComm* pco = new ParallelComm ( context.MBI, *comm );
+    if (comm) {
+        ParallelComm* pco = new ParallelComm ( context.MBI, *comm );
 
 #ifndef NDEBUG
-    int index = pco->get_id(); // it could be useful to get app id from pcomm instance ...
-    assert ( index == *pid );
-    // here, we assert the the pid is the same as the id of the ParallelComm instance
-    // useful for writing in parallel
+        int index = pco->get_id(); // it could be useful to get app id from pcomm instance ...
+        assert ( index == *pid );
+        // here, we assert the the pid is the same as the id of the ParallelComm instance
+        // useful for writing in parallel
 #endif
-    context.pcomms.push_back ( pco );
+        context.pcomms.push_back ( pco );
+    }
+    else {
+        context.pcomms.push_back ( 0 );
+    }
 #endif
 
     // create now the file set that will be used for loading the model in
@@ -250,10 +255,13 @@ ErrCode iMOAB_RegisterFortranApplication ( const iMOAB_String app_name,
     }
 
 #ifdef MOAB_HAVE_MPI
-    // convert from Fortran communicator to a C communicator
-    // see transfer of handles
-    // http://www.mpi-forum.org/docs/mpi-2.2/mpi22-report/node361.htm
-    MPI_Comm ccomm = MPI_Comm_f2c ( ( MPI_Fint ) * comm );
+    MPI_Comm ccomm;
+    if (comm) {
+      // convert from Fortran communicator to a C communicator
+      // see transfer of handles
+      // http://www.mpi-forum.org/docs/mpi-2.2/mpi22-report/node361.htm
+      ccomm = MPI_Comm_f2c ( ( MPI_Fint ) * comm );
+    }
 #endif
 
     // now call C style registration function:
@@ -287,9 +295,10 @@ ErrCode iMOAB_DeregisterApplication ( iMOAB_AppID pid )
 
 #ifdef MOAB_HAVE_MPI
     ParallelComm* pco = context.pcomms[*pid];
+
     // we could get the pco also with
     // ParallelComm * pcomm = ParallelComm::get_pcomm(context.MBI, *pid);
-    delete pco;
+    if (pco) delete pco;
     std::vector<ParCommGraph*>& pargs = context.appDatas[*pid].pgraph;
 
     // free the parallel comm graphs associated with this app
@@ -475,49 +484,56 @@ ErrCode iMOAB_LoadMesh ( iMOAB_AppID pid, const iMOAB_String filename, const iMO
     std::ostringstream newopts;
     newopts  << read_options;
 #ifdef MOAB_HAVE_MPI
-    std::string opts ( read_options );
-    std::string pcid ( "PARALLEL_COMM=" );
-    std::size_t found = opts.find ( pcid );
+    int flagInit;
+    MPI_Initialized( &flagInit );
 
-    if ( found != std::string::npos )
-    {
-        std::cerr << " cannot specify PARALLEL_COMM option, it is implicit \n";
-        return 1;
+    if (flagInit) {
+        int nprocs;
+        MPI_Comm_size( MPI_COMM_WORLD, &nprocs );
+        if (nprocs > 1) {
+            std::string opts ( read_options );
+            std::string pcid ( "PARALLEL_COMM=" );
+            std::size_t found = opts.find ( pcid );
+
+            if ( found != std::string::npos )
+            {
+                std::cerr << " cannot specify PARALLEL_COMM option, it is implicit \n";
+                return 1;
+            }
+
+            // in serial, apply PARALLEL_COMM option only for h5m files; it does not work for .g files (used in test_remapping)
+            std::string filen(filename);
+            std::string::size_type idx = filen.rfind('.');
+
+            if(idx != std::string::npos)
+            {
+              std::string extension = filen.substr(idx+1);
+              if (extension == std::string("h5m"))
+                  newopts << ";;PARALLEL_COMM=" << *pid;
+            }
+
+
+            if ( *num_ghost_layers >= 1 )
+            {
+              // if we want ghosts, we will want additional entities, the last .1
+              // because the addl ents can be edges, faces that are part of the neumann sets
+              std::string pcid2 ( "PARALLEL_GHOSTS=" );
+              std::size_t found2 = opts.find ( pcid2 );
+
+              if ( found2 != std::string::npos )
+              {
+                  std::cout << " PARALLEL_GHOSTS option is already specified, ignore passed number of layers \n";
+              }
+              else
+              {
+                // dimension of primary entities is 3 here, but it could be 2 for climate meshes; we would need to pass
+                // PARALLEL_GHOSTS explicitly for 2d meshes, for example:  ";PARALLEL_GHOSTS=2.0.1"
+                newopts << ";PARALLEL_GHOSTS=3.0." << *num_ghost_layers << ".3";
+              }
+            }
+        }
     }
 
-    // in serial, apply PARALLEL_COMM option only for h5m files; it does not work for .g files (used in test_remapping)
-    std::string filen(filename);
-    std::string::size_type idx = filen.rfind('.');
-
-    if(idx != std::string::npos)
-    {
-      std::string extension = filen.substr(idx+1);
-      if (extension == std::string("h5m"))
-          newopts << ";;PARALLEL_COMM=" << *pid;
-    }
-
-
-    if ( *num_ghost_layers >= 1 )
-    {
-      // if we want ghosts, we will want additional entities, the last .1
-      // because the addl ents can be edges, faces that are part of the neumann sets
-      std::string pcid2 ( "PARALLEL_GHOSTS=" );
-      std::size_t found2 = opts.find ( pcid2 );
-
-      if ( found2 != std::string::npos )
-      {
-          std::cout << " PARALLEL_GHOSTS option is already specified, ignore passed number of layers \n";
-      }
-      else
-      {
-        // dimension of primary entities is 3 here, but it could be 2 for climate meshes; we would need to pass
-        // PARALLEL_GHOSTS explicitly for 2d meshes, for example:  ";PARALLEL_GHOSTS=2.0.1"
-        newopts << ";PARALLEL_GHOSTS=3.0." << *num_ghost_layers << ".3";
-      }
-    }
-
-#else
-    *num_ghost_layers = 0; // do not use in case of serial run
 #endif
     ErrorCode rval = context.MBI->load_file ( filename, &context.appDatas[*pid].file_set, newopts.str().c_str() );CHKERRVAL(rval);
 
@@ -626,19 +642,28 @@ ErrCode iMOAB_UpdateMeshInfo ( iMOAB_AppID pid )
     }
 
 #ifdef MOAB_HAVE_MPI
-    ParallelComm* pco = context.pcomms[*pid];
+    int flagInit;
+    MPI_Initialized( &flagInit );
 
-    // filter ghost vertices, from local
-    rval = pco -> filter_pstatus ( data.all_verts, PSTATUS_GHOST, PSTATUS_NOT, -1, &data.local_verts );CHKERRVAL(rval);
+    if (flagInit) {
+        ParallelComm* pco = context.pcomms[*pid];
 
-    data.ghost_vertices = subtract ( data.all_verts, data.local_verts );
+        // filter ghost vertices, from local
+        rval = pco -> filter_pstatus ( data.all_verts, PSTATUS_GHOST, PSTATUS_NOT, -1, &data.local_verts );CHKERRVAL(rval);
 
-    // get all blocks, BCs, etc
+        data.ghost_vertices = subtract ( data.all_verts, data.local_verts );
 
-    // filter ghost elements, from local
-    rval = pco -> filter_pstatus ( data.primary_elems, PSTATUS_GHOST, PSTATUS_NOT, -1, &data.owned_elems );CHKERRVAL(rval);
+        // get all blocks, BCs, etc
 
-    data.ghost_elems = subtract ( data.primary_elems, data.owned_elems );
+        // filter ghost elements, from local
+        rval = pco -> filter_pstatus ( data.primary_elems, PSTATUS_GHOST, PSTATUS_NOT, -1, &data.owned_elems );CHKERRVAL(rval);
+
+        data.ghost_elems = subtract ( data.primary_elems, data.owned_elems );
+    }
+    else {
+        data.local_verts = data.all_verts;
+        data.owned_elems = data.primary_elems;        
+    }
 
 #else
 
@@ -2125,13 +2150,18 @@ ErrCode iMOAB_ComputeMeshIntersectionOnSphere ( iMOAB_AppID pid_src, iMOAB_AppID
     // Mesh intersection has already been computed; Return early.
     if(data_intx.remapper != NULL) return 0;
 
-    rval = pco_intx->check_all_shared_handles();CHKERRVAL(rval);
-    
+#ifdef MOAB_HAVE_MPI
+    if (pco_intx) {
+        rval = pco_intx->check_all_shared_handles();CHKERRVAL(rval);
+    }
+#endif
+
     // Rescale the radius of both to compute the intersection
     ComputeSphereRadius(pid_src, &radius_source);
     ComputeSphereRadius(pid_tgt, &radius_target);
-    if (!pco_intx->rank()) std::cout << "Radius of spheres: source = " << radius_source << " and target = " << radius_target << "\n";
-
+#ifdef VERBOSE
+    // std::cout << "Radius of spheres: source = " << radius_source << " and target = " << radius_target << "\n";
+#endif
 	// print verbosely about the problem setting
 	{
 		moab::Range rintxverts, rintxelems;
@@ -2379,6 +2409,19 @@ ErrCode iMOAB_ComputeScalarProjectionWeights ( iMOAB_AppID pid_intx,
 	appData& data_intx = context.appDatas[*pid_intx];
     ParallelComm* pco_intx = context.pcomms[*pid_intx];
 
+    bool is_parallel = false, is_root = true;
+    int rank=0;
+#ifdef MOAB_HAVE_MPI
+    int flagInit;
+    MPI_Initialized( &flagInit );
+    if (flagInit) {
+        is_parallel = true;
+        assert(pco_intx != NULL);
+        rank = pco_intx->rank();
+        is_root = (rank == 0);
+    }
+#endif
+
 	// Setup computation of weights
     // Set the context for the OfflineMap computation
     data_intx.weightMaps[std::string(solution_weights_identifier)] = new moab::TempestOfflineMap ( data_intx.remapper );
@@ -2413,9 +2456,21 @@ ErrCode iMOAB_ComputeScalarProjectionWeights ( iMOAB_AppID pid_intx,
 		local_areas[1] = area_on_sphere_lHuiller ( context.MBI, context.appDatas[*pid_intx].file_set, radius );
 		local_areas[2] = area_on_sphere ( context.MBI, context.appDatas[*pid_intx].file_set, radius );
 
-		MPI_Allreduce ( &local_areas[0], &global_areas[0], 3, MPI_DOUBLE, MPI_SUM, pco_intx->comm() );
+#ifdef MOAB_HAVE_MPI
+		if (is_parallel)
+            MPI_Allreduce ( &local_areas[0], &global_areas[0], 3, MPI_DOUBLE, MPI_SUM, pco_intx->comm() );
+        else {
+            global_areas[0] = local_areas[0];
+            global_areas[1] = local_areas[1];
+            global_areas[2] = local_areas[2];
+        }
+#else
+        global_areas[0] = local_areas[0];
+        global_areas[1] = local_areas[1];
+        global_areas[2] = local_areas[2];
+#endif
 
-		if ( !pco_intx->rank() )
+		if ( is_root )
 		{
 			printf ( "initial area: %12.10f\n", global_areas[0] );
 			printf ( "area with l'Huiller: %12.10f with Girard: %12.10f\n", global_areas[1], global_areas[2] );

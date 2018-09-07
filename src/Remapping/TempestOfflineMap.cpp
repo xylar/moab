@@ -45,7 +45,23 @@ moab::TempestOfflineMap::TempestOfflineMap ( moab::TempestRemapper* remapper ) :
     m_meshOverlap = remapper->GetMesh ( moab::Remapper::IntersectedMesh );
     m_globalMapAvailable = false;
 
-    moab::DebugOutput dbgprint ( std::cout, ( pcomm ? pcomm->rank() : 0 ) );
+    is_parallel = false;
+    is_root = true;
+    rank = 0;
+    size = 1;
+#ifdef MOAB_HAVE_MPI
+    int flagInit;
+    MPI_Initialized( &flagInit );
+    if (flagInit) {
+        is_parallel = true;
+        assert(pcomm != NULL);
+        rank = pcomm->rank();
+        size = pcomm->size();
+        is_root = (rank == 0);
+    }
+#endif
+
+    moab::DebugOutput dbgprint ( std::cout, rank );
 
     // Compute and store the total number of source and target DoFs corresponding
     // to number of rows and columns in the mapping.
@@ -146,7 +162,7 @@ moab::ErrorCode moab::TempestOfflineMap::SetDofMapAssociation(DiscretizationType
     m_srcDiscType = srcType;
     m_destDiscType = destType;
 
-    bool vprint = !(pcomm->rank() > 0) && false;
+    bool vprint = is_root && false;
 
 #ifdef VVERBOSE
     {
@@ -157,7 +173,7 @@ moab::ErrorCode moab::TempestOfflineMap::SetDofMapAssociation(DiscretizationType
         tgt_soln_gdofs.resize(m_remapper->m_target_entities.size()*m_nDofsPEl_Dest*m_nDofsPEl_Dest);
         rval = mbCore->tag_get_data ( m_dofTagDest, m_remapper->m_target_entities, &tgt_soln_gdofs[0] );MB_CHK_ERR(rval);
 
-        if (!pcomm->rank())
+        if (is_root)
         {
             {
                 std::ofstream output_file ( "sourcecov-gids-0.txt" );
@@ -448,7 +464,7 @@ moab::ErrorCode moab::TempestOfflineMap::SetDofMapAssociation(DiscretizationType
 #ifdef MOAB_HAVE_EIGEN
     // if (vprint)
     {
-        std::cout << "[" << pcomm->rank() << "]" << "DoFs: row = " << m_nTotDofs_Dest << ", " << row_dofmap.size() << ", col = " << m_nTotDofs_Src << ", " << m_nTotDofs_SrcCov << ", " << col_dofmap.size() << "\n";
+        std::cout << "[" << (pcomm ? pcomm->rank() : 0) << "]" << "DoFs: row = " << m_nTotDofs_Dest << ", " << row_dofmap.size() << ", col = " << m_nTotDofs_Src << ", " << m_nTotDofs_SrcCov << ", " << col_dofmap.size() << "\n";
         // std::cout << "Max col_dofmap: " << maxcol << ", Min col_dofmap" << mincol << "\n";
     }
 #endif
@@ -551,11 +567,13 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
         rval = SetDofMapTags(srcDofTagName, tgtDofTagName);
 
         // Calculate Face areas
-        if ( !pcomm->rank() ) dbgprint.printf ( 0, "Calculating input mesh Face areas\n" );
+        if ( is_root ) dbgprint.printf ( 0, "Calculating input mesh Face areas\n" );
         double dTotalAreaInput_loc = m_meshInput->CalculateFaceAreas(fInputConcave);
-        Real dTotalAreaInput;
-        MPI_Allreduce ( &dTotalAreaInput_loc, &dTotalAreaInput, 1, MPI_DOUBLE, MPI_SUM, pcomm->comm() );
-        if ( !pcomm->rank() ) dbgprint.printf ( 0, "Input Mesh Geometric Area: %1.15e\n", dTotalAreaInput );
+        double dTotalAreaInput = dTotalAreaInput_loc;
+#ifdef MOAB_HAVE_MPI
+        if (pcomm) MPI_Allreduce ( &dTotalAreaInput_loc, &dTotalAreaInput, 1, MPI_DOUBLE, MPI_SUM, pcomm->comm() );
+#endif
+        if ( is_root ) dbgprint.printf ( 0, "Input Mesh Geometric Area: %1.15e\n", dTotalAreaInput );
 
         // Input mesh areas
         m_meshInputCov->CalculateFaceAreas(fInputConcave);
@@ -565,11 +583,13 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
         }
 
         // Calculate Face areas
-        if ( !pcomm->rank() ) dbgprint.printf ( 0, "Calculating output mesh Face areas\n" );
-        Real dTotalAreaOutput_loc = m_meshOutput->CalculateFaceAreas(fOutputConcave);
-        Real dTotalAreaOutput;
-        MPI_Allreduce ( &dTotalAreaOutput_loc, &dTotalAreaOutput, 1, MPI_DOUBLE, MPI_SUM, pcomm->comm() );
-        if ( !pcomm->rank() ) dbgprint.printf ( 0, "Output Mesh Geometric Area: %1.15e\n", dTotalAreaOutput );
+        if ( is_root ) dbgprint.printf ( 0, "Calculating output mesh Face areas\n" );
+        double dTotalAreaOutput_loc = m_meshOutput->CalculateFaceAreas(fOutputConcave);
+        double dTotalAreaOutput = dTotalAreaOutput_loc;
+#ifdef MOAB_HAVE_MPI
+        if (pcomm) MPI_Allreduce ( &dTotalAreaOutput_loc, &dTotalAreaOutput, 1, MPI_DOUBLE, MPI_SUM, pcomm->comm() );
+#endif
+        if ( is_root ) dbgprint.printf ( 0, "Output Mesh Geometric Area: %1.15e\n", dTotalAreaOutput );
 
         // Output mesh areas
         if ( eOutputType == DiscretizationType_FV )
@@ -607,14 +627,14 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
             ( m_meshOutput->faces.size() - ixTargetFaceMax == 0 )
         )
         {
-            if ( !pcomm->rank() ) dbgprint.printf ( 0, "Overlap mesh forward correspondence found\n" );
+            if ( is_root ) dbgprint.printf ( 0, "Overlap mesh forward correspondence found\n" );
         }
         else if (
             // m_meshOutput->faces.size() - ixSourceFaceMax == 0 //&&
             ( m_meshInputCov->faces.size() - ixTargetFaceMax == 0 )
         )
         {   // Check for reverse correspondence in overlap mesh
-            if ( !pcomm->rank() ) dbgprint.printf ( 0, "Overlap mesh reverse correspondence found (reversing)\n" );
+            if ( is_root ) dbgprint.printf ( 0, "Overlap mesh reverse correspondence found (reversing)\n" );
 
             // Reorder overlap mesh
             m_meshOverlap->ExchangeFirstAndSecondMesh();
@@ -628,18 +648,20 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
         */
 
         // Calculate Face areas
-        if ( !pcomm->rank() ) dbgprint.printf ( 0, "Calculating overlap mesh Face areas\n" );
-        Real dTotalAreaOverlap_loc = m_meshOverlap->CalculateFaceAreas(false);
-        Real dTotalAreaOverlap;
-        MPI_Allreduce ( &dTotalAreaOverlap_loc, &dTotalAreaOverlap, 1, MPI_DOUBLE, MPI_SUM, pcomm->comm() );
-        if ( !pcomm->rank() ) dbgprint.printf ( 0, "Overlap Mesh Area: %1.15e\n", dTotalAreaOverlap );
+        if ( is_root ) dbgprint.printf ( 0, "Calculating overlap mesh Face areas\n" );
+        double dTotalAreaOverlap_loc = m_meshOverlap->CalculateFaceAreas(false);
+        double dTotalAreaOverlap = dTotalAreaOverlap_loc;
+#ifdef MOAB_HAVE_MPI
+        if (pcomm) MPI_Allreduce ( &dTotalAreaOverlap_loc, &dTotalAreaOverlap, 1, MPI_DOUBLE, MPI_SUM, pcomm->comm() );
+#endif
+        if ( is_root ) dbgprint.printf ( 0, "Overlap Mesh Area: %1.15e\n", dTotalAreaOverlap );
 
         // Partial cover
         if ( fabs ( dTotalAreaOverlap - dTotalAreaInput ) > 1.0e-10 )
         {
             if ( !fNoCheck )
             {
-                if ( !pcomm->rank() ) dbgprint.printf ( 0, "WARNING: Significant mismatch between overlap mesh area "
+                if ( is_root ) dbgprint.printf ( 0, "WARNING: Significant mismatch between overlap mesh area "
                                                             "and input mesh area.\n  Automatically enabling --nocheck\n" );
                 fNoCheck = true;
             }
@@ -671,14 +693,14 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
             rval = this->SetDofMapAssociation(eInputType, false, NULL, NULL, eOutputType, false, NULL);MB_CHK_ERR(rval);
 
             // Construct OfflineMap
-            if ( !pcomm->rank() ) dbgprint.printf ( 0, "Calculating offline map\n" );
+            if ( is_root ) dbgprint.printf ( 0, "Calculating offline map\n" );
             LinearRemapFVtoFV_Tempest_MOAB ( nPin );
         }
         else if ( eInputType == DiscretizationType_FV )
         {
             DataMatrix3D<double> dataGLLJacobian;
 
-            if ( !pcomm->rank() ) dbgprint.printf ( 0, "Generating output mesh meta data\n" );
+            if ( is_root ) dbgprint.printf ( 0, "Generating output mesh meta data\n" );
             double dNumericalArea_loc =
                 GenerateMetaData (
                     *m_meshOutput,
@@ -687,9 +709,11 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
                     dataGLLNodesDest,
                     dataGLLJacobian );
 
-            Real dNumericalArea;
-            MPI_Allreduce ( &dNumericalArea_loc, &dNumericalArea, 1, MPI_DOUBLE, MPI_SUM, pcomm->comm() );
-            if ( !pcomm->rank() ) dbgprint.printf ( 0, "Output Mesh Numerical Area: %1.15e\n", dNumericalArea );
+            double dNumericalArea = dNumericalArea_loc;
+#ifdef MOAB_HAVE_MPI
+            if (pcomm) MPI_Allreduce ( &dNumericalArea_loc, &dNumericalArea, 1, MPI_DOUBLE, MPI_SUM, pcomm->comm() );
+#endif
+            if ( is_root ) dbgprint.printf ( 0, "Output Mesh Numerical Area: %1.15e\n", dNumericalArea );
 
             // Initialize coordinates for map
             this->InitializeSourceCoordinatesFromMeshFV ( *m_meshInputCov );
@@ -722,7 +746,7 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
                 eOutputType, (eOutputType == DiscretizationType_CGLL), &dataGLLNodesDest);MB_CHK_ERR(rval);
 
             // Generate remap weights
-            if ( !pcomm->rank() ) dbgprint.printf ( 0, "Calculating offline map\n" );
+            if ( is_root ) dbgprint.printf ( 0, "Calculating offline map\n" );
 
             if ( fVolumetric )
             {
@@ -754,7 +778,7 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
         {
             DataMatrix3D<double> dataGLLJacobianSrc, dataGLLJacobian;
 
-            if ( !pcomm->rank() ) dbgprint.printf ( 0, "Generating input mesh meta data\n" );
+            if ( is_root ) dbgprint.printf ( 0, "Generating input mesh meta data\n" );
             // double dNumericalAreaCov_loc =
                 GenerateMetaData (
                     *m_meshInputCov,
@@ -771,12 +795,14 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
                     dataGLLNodesSrc,
                     dataGLLJacobianSrc );
 
-            // if ( !pcomm->rank() ) dbgprint.printf ( 0, "Input Mesh: Coverage Area: %1.15e, Output Area: %1.15e\n", dNumericalAreaCov_loc, dTotalAreaOutput_loc );
+            // if ( is_root ) dbgprint.printf ( 0, "Input Mesh: Coverage Area: %1.15e, Output Area: %1.15e\n", dNumericalAreaCov_loc, dTotalAreaOutput_loc );
             // assert(dNumericalAreaCov_loc >= dTotalAreaOutput_loc);
 
-            Real dNumericalArea;
-            MPI_Allreduce ( &dNumericalArea_loc, &dNumericalArea, 1, MPI_DOUBLE, MPI_SUM, pcomm->comm() );
-            if ( !pcomm->rank() ) dbgprint.printf ( 0, "Input Mesh Numerical Area: %1.15e\n", dNumericalArea );
+            double dNumericalArea = dNumericalArea_loc;
+#ifdef MOAB_HAVE_MPI
+            if (pcomm) MPI_Allreduce ( &dNumericalArea_loc, &dNumericalArea, 1, MPI_DOUBLE, MPI_SUM, pcomm->comm() );
+#endif
+            if ( is_root ) dbgprint.printf ( 0, "Input Mesh Numerical Area: %1.15e\n", dNumericalArea );
 
             if ( fabs ( dNumericalArea - dTotalAreaInput ) > 1.0e-12 )
             {
@@ -819,7 +845,7 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
                 eOutputType, false, NULL);MB_CHK_ERR(rval);
 
             // Generate offline map
-            if ( !pcomm->rank() ) dbgprint.printf ( 0, "Calculating offline map\n" );
+            if ( is_root ) dbgprint.printf ( 0, "Calculating offline map\n" );
 
             if ( fVolumetric )
             {
@@ -845,7 +871,7 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
             DataMatrix3D<double> dataGLLJacobianOut;
 
             // Input metadata
-            if ( !pcomm->rank() ) dbgprint.printf ( 0, "Generating input mesh meta data" );
+            if ( is_root ) dbgprint.printf ( 0, "Generating input mesh meta data" );
             double dNumericalAreaIn_loc =
                 GenerateMetaData (
                     *m_meshInputCov,
@@ -864,9 +890,11 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
 
             assert(dNumericalAreaIn_loc >= dNumericalAreaSrc_loc);
 
-            Real dNumericalAreaIn;
-            MPI_Allreduce ( &dNumericalAreaSrc_loc, &dNumericalAreaIn, 1, MPI_DOUBLE, MPI_SUM, pcomm->comm() );
-            if ( !pcomm->rank() ) dbgprint.printf ( 0, "Input Mesh Numerical Area: %1.15e", dNumericalAreaIn );
+            double dNumericalAreaIn = dNumericalAreaSrc_loc;
+#ifdef MOAB_HAVE_MPI
+            if (pcomm) MPI_Allreduce ( &dNumericalAreaSrc_loc, &dNumericalAreaIn, 1, MPI_DOUBLE, MPI_SUM, pcomm->comm() );
+#endif
+            if ( is_root ) dbgprint.printf ( 0, "Input Mesh Numerical Area: %1.15e", dNumericalAreaIn );
 
             if ( fabs ( dNumericalAreaIn - dTotalAreaInput ) > 1.0e-12 )
             {
@@ -875,7 +903,7 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
             }
 
             // Output metadata
-            if ( !pcomm->rank() ) dbgprint.printf ( 0, "Generating output mesh meta data" );
+            if ( is_root ) dbgprint.printf ( 0, "Generating output mesh meta data" );
             double dNumericalAreaOut_loc =
                 GenerateMetaData (
                     *m_meshOutput,
@@ -884,14 +912,15 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
                     dataGLLNodesDest,
                     dataGLLJacobianOut );
 
-            Real dNumericalAreaOut;
-            MPI_Allreduce ( &dNumericalAreaOut_loc, &dNumericalAreaOut, 1, MPI_DOUBLE, MPI_SUM, pcomm->comm() );
-
-            if ( !pcomm->rank() ) dbgprint.printf ( 0, "Output Mesh Numerical Area: %1.15e", dNumericalAreaOut );
+            double dNumericalAreaOut = dNumericalAreaOut_loc;
+#ifdef MOAB_HAVE_MPI
+            if (pcomm) MPI_Allreduce ( &dNumericalAreaOut_loc, &dNumericalAreaOut, 1, MPI_DOUBLE, MPI_SUM, pcomm->comm() );
+#endif
+            if ( is_root ) dbgprint.printf ( 0, "Output Mesh Numerical Area: %1.15e", dNumericalAreaOut );
 
             if ( fabs ( dNumericalAreaOut - dTotalAreaOutput ) > 1.0e-12 )
             {
-                if ( !pcomm->rank() ) dbgprint.printf ( 0, "WARNING: Significant mismatch between output mesh "
+                if ( is_root ) dbgprint.printf ( 0, "WARNING: Significant mismatch between output mesh "
                                                             "numerical area and geometric area" );
             }
 
@@ -942,7 +971,7 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
                 eOutputType, (eOutputType == DiscretizationType_CGLL), &dataGLLNodesDest);MB_CHK_ERR(rval);
 
             // Generate offline map
-            if ( !pcomm->rank() ) dbgprint.printf ( 0, "Calculating offline map" );
+            if ( is_root ) dbgprint.printf ( 0, "Calculating offline map" );
 
             LinearRemapGLLtoGLL2_MOAB (
                 dataGLLNodesSrcCov,
@@ -977,7 +1006,7 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
                 rval = this->GatherAllToRoot();MB_CHK_ERR(rval);
             }
 
-            if ( !pcomm->rank() ) dbgprint.printf ( 0, "Verifying map" );
+            if ( is_root ) dbgprint.printf ( 0, "Verifying map" );
             this->IsConsistent ( 1.0e-8 );
             if ( !fNoConservation ) this->IsConservative ( 1.0e-8 );
 
@@ -990,7 +1019,7 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
         // Apply Offline Map to data
         if ( strInputData != "" )
         {
-            if ( !pcomm->rank() ) dbgprint.printf ( 0, "Applying offline map to data\n" );
+            if ( is_root ) dbgprint.printf ( 0, "Applying offline map to data\n" );
 
             this->SetFillValueOverride ( static_cast<float> ( dFillValueOverride ) );
             this->Apply (
@@ -1007,13 +1036,13 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
         {
             if ( fPreserveAll )
             {
-                if ( !pcomm->rank() ) dbgprint.printf ( 0, "Preserving variables" );
+                if ( is_root ) dbgprint.printf ( 0, "Preserving variables" );
                 this->PreserveAllVariables ( strInputData, strOutputData );
 
             }
             else if ( vecPreserveVariableStrings.size() != 0 )
             {
-                if ( !pcomm->rank() ) dbgprint.printf ( 0, "Preserving variables" );
+                if ( is_root ) dbgprint.printf ( 0, "Preserving variables" );
                 this->PreserveVariables (
                     strInputData,
                     strOutputData,

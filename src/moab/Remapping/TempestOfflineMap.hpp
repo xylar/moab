@@ -420,6 +420,9 @@ public:
 	Mesh* m_meshInputCov;
 	Mesh* m_meshOutput;
 	Mesh* m_meshOverlap;
+
+    bool is_parallel, is_root;
+    int rank, size;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
