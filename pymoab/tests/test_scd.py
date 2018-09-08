@@ -89,7 +89,7 @@ def scd_tst(bnds):
     assert 1 == len(scd.find_boxes())
     assert bnds[3]*bnds[4]*bnds[5] == len(hexes)
     assert ent_set != 0
-    assert type(ent_set) == long
+    assert type(ent_set) in (long, int)
 
     scdbox = scd.get_scd_box(ent_set)
     bhigh = scdbox.box_max()
