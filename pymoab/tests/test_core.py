@@ -771,14 +771,14 @@ def test_iterables():
     verts = mb.create_vertices(coords)
     CHECK_EQ(len(verts),3)
     # 2-D iterable w/ len 3 entries
-    coords = [[0.,0.,0.],[1.,0.,0.],[1.,1.,1.]]
+    coords = [[0.,0.,0.],[1.,0.,0.],[1.,1.,1.],[0., 1., 0.]]
     verts = mb.create_vertices(coords)
-    CHECK_EQ(len(verts),3)
+    CHECK_EQ(len(verts),4)
 
     int_tag = mb.tag_get_handle("IntTag",1,types.MB_TYPE_INTEGER,types.MB_TAG_DENSE,True)
 
     #try to set data with bad array (contains int)
-    int_data = [1,2,3.0]
+    int_data = [1, 2, 3, 4.0]
 
     try:
         mb.tag_set_data(int_tag,verts,int_data)
@@ -789,7 +789,7 @@ def test_iterables():
         raise(AssertionError)
 
     #now set with valid data and check
-    int_data = [1,2,3]
+    int_data = [1, 2, 3, 4]
 
     mb.tag_set_data(int_tag,verts,int_data)
 
@@ -798,11 +798,12 @@ def test_iterables():
     CHECK_EQ(return_data[0],int_data[0])
     CHECK_EQ(return_data[1],int_data[1])
     CHECK_EQ(return_data[2],int_data[2])
+    CHECK_EQ(return_data[3],int_data[3])
 
     #insert false vertex handle (not even correct type
     verts = [verts[0],23,verts[1]]
     try:
-        mb.tag_set_data(int_tag,verts,[1,2,3])
+        mb.tag_set_data(int_tag,verts,int_data)
     except:
         pass
     else:
@@ -812,7 +813,7 @@ def test_iterables():
     #insert correct type, but non-existant handle
     verts = [verts[0],int(23),verts[1]]
     try:
-        mb.tag_set_data(int_tag,verts,[1,2,3])
+        mb.tag_set_data(int_tag,verts,int_data)
     except:
         pass
     else:
