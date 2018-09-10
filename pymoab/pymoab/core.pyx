@@ -482,7 +482,7 @@ cdef class Core(object):
         return Range(handles)
 
     def tag_get_handle(self,
-                       str name,
+                       name,
                        size = None,
                        tag_type = None,
                        storage_type = None,
@@ -576,7 +576,7 @@ cdef class Core(object):
         MOAB ErrorCode
             if a MOAB error occurs
         """
-        cdef bytes cname = name.encode('UTF-8')
+        cdef bytes cname = str(name).encode('UTF-8')
         cdef const char* tag_name = cname
         cdef Tag tag = Tag()
         cdef moab.ErrorCode err
@@ -1475,10 +1475,9 @@ cdef class Core(object):
         else:
             num_tags = len(tags)
         if 1 != num_tags:
-            assert values.ndim == 2
-            assert num_tags == values.shape[0]
-
-        assert values.ndim <= 2
+            assert vals.ndim == 2
+            assert num_tags == vals.shape[0]
+        assert vals.ndim <= 2
         #allocate memory for an appropriately sized void** array
         cdef void** arr = <void**> malloc(num_tags*sizeof(void*))
         #some variables to help in setting up the void array
