@@ -761,9 +761,15 @@ ErrorCode Intx2MeshOnSphere::construct_covering_set(EntityHandle & initial_distr
   }
 
   // primary element came from, in the joint communicator ; this will be forwarded by coverage mesh
+  // needed for tag migrate later on
   int defaultInt=-1; // no processor, so it was not migrated from somewhere else
   ErrorCode rval = mb->tag_get_handle("orig_sending_processor", 1, MB_TYPE_INTEGER, orgSendProcTag,
       MB_TAG_DENSE | MB_TAG_CREAT, &defaultInt);MB_CHK_SET_ERR(rval, "can't create original sending processor tag");
+
+  // mark on the coverage mesh where this element came from
+  Tag sendProcTag; /// for coverage mesh, will store the sender
+  rval = mb->tag_get_handle("sending_processor", 1, MB_TYPE_INTEGER, sendProcTag,
+        MB_TAG_DENSE | MB_TAG_CREAT, &defaultInt);MB_CHK_SET_ERR(rval, "can't create sending processor tag");
 
   // this information needs to be forwarded to coverage mesh, if this mesh was already migrated from somewhere else
   Range meshCells;
@@ -1064,6 +1070,7 @@ ErrorCode Intx2MeshOnSphere::construct_covering_set(EntityHandle & initial_distr
     int gid_el;
     rval = mb->tag_get_data(gid, &q, 1, &gid_el);MB_CHK_SET_ERR(rval, "can't get global id of cell ");
     globalID_to_eh[gid_el] = q; // do we need this? yes, now we do; parent tags are now using it heavily
+    rval = mb->tag_set_data(sendProcTag, &q, 1, &my_rank);MB_CHK_SET_ERR(rval, "can't set sender for cell");
   }
 
   // now look at all elements received through; we do not want to duplicate them
@@ -1110,7 +1117,7 @@ ErrorCode Intx2MeshOnSphere::construct_covering_set(EntityHandle & initial_distr
     if (migrated_mesh)
     {
       orig_sender = TLq.vi_wr[sizeTuple * i + currentIndexIntTuple];
-      rval = mb->tag_set_data(orgSendProcTag, &new_element, 1, &orig_sender);MB_CHK_SET_ERR(rval, "can't set original sender for polygon, in migrate scenario");
+      rval = mb->tag_set_data(orgSendProcTag, &new_element, 1, &orig_sender);MB_CHK_SET_ERR(rval, "can't set original sender for cell, in migrate scenario");
       currentIndexIntTuple ++;// add one more
     }
     // check if we need to retrieve and set GLOBAL_DOFS data
@@ -1122,6 +1129,9 @@ ErrorCode Intx2MeshOnSphere::construct_covering_set(EntityHandle & initial_distr
       }
       rval = mb->tag_set_data(gdsTag, &new_element, 1, &valsDOFs[0]);MB_CHK_SET_ERR(rval, "can't set GLOBAL_DOFS data on coverage mesh");
     }
+    // store also the processor this coverage element came from
+    int from_proc = TLq.vi_rd[sizeTuple * i];
+    rval = mb->tag_set_data(sendProcTag, &new_element, 1, &from_proc);MB_CHK_SET_ERR(rval, "can't set sender for cell");
   }
 
   // now, create a new set, covering_set

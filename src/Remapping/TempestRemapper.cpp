@@ -667,9 +667,12 @@ ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius_
                 std::cout << " remove from coverage set elements that are not intersected: " << notNeededCovCells.size() << "\n";
 #endif
 
-                // also, form the set of elements in the target mesh that are on the boundary of partition
-                // if an overlap element is in this set has that target, mark the coverage source for it
-                // we will then mark the source, we will need to migrate the overlap elements that cover the to the original
+                // some source elements cover multiple target partitions; the conservation logic requires to know
+                // all overlap elements for a source element; they need to be communicated from the other target partitions
+                //
+                // so first we have to identify source (coverage) elements that cover multiple target partitions
+
+                // we will then mark the source, we will need to migrate the overlap elements that cover this to the original
                 // source for the source element; then distribute the overlap elements to all processors that have the
                 // coverage mesh used
                 rval = augment_overlap_set(); MB_CHK_ERR ( rval );
@@ -750,7 +753,7 @@ ErrorCode TempestRemapper::augment_overlap_set()
     targetBoundaryIds.insert(tid);
   }
   // find now all overlap cells that have as parents these boundary cells;
-  // rval = mb->tag_get_handle("orig_sending_processor", 1, MB_TYPE_INTEGER, orgSendProcTag
+  // rval = mb->tag_get_handle("sending_processor", 1, MB_TYPE_INTEGER, sendProcTag
   // red are the target meshes; blue are the transported coverage meshes
   // rval = mb->tag_get_handle("RedParent", 1, MB_TYPE_INTEGER, redParentTag,
 
@@ -807,8 +810,8 @@ ErrorCode TempestRemapper::augment_overlap_set()
   // now loop again over all overlap cells, to see if their source parent is "affected"
   // store in ranges the overlap cells that need to be sent to original task of the source cell
   // from there, they will be redistributed to the tasks that need that coverage cell
-  Tag orgSendProcTag;
-  rval = m_interface->tag_get_handle("orig_sending_processor", 1, MB_TYPE_INTEGER, orgSendProcTag);
+  Tag sendProcTag;
+  rval = m_interface->tag_get_handle("sending_processor", 1, MB_TYPE_INTEGER, sendProcTag);
 
   // basically a map from original processor task to the range of overlap cells to be sent there
   std::map<int, Range>  overlapCellsForTask;
@@ -826,7 +829,7 @@ ErrorCode TempestRemapper::augment_overlap_set()
     {
       EntityHandle covCell=affectedCovCellFromID[sourceParentID];
       int orgTask ;
-      rval = m_interface->tag_get_data(orgSendProcTag, &covCell, 1, &orgTask); MB_CHK_ERR(rval);
+      rval = m_interface->tag_get_data(sendProcTag, &covCell, 1, &orgTask); MB_CHK_ERR(rval);
       overlapCellsForTask[orgTask].insert(intxCell);  // put the overlap cell in corresponding range
       overlapCellsToSend.insert(intxCell); // also put it in this range, for debugging mostly
     }
