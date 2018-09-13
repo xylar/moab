@@ -763,10 +763,22 @@ double area_on_sphere(Interface * mb, EntityHandle set, double R) {
   if (MB_SUCCESS != rval)
     return -1;
 
+  std::vector<int> ownerinfo(inputRange.size(), -1);
+  Tag intxOwnerTag;
+  rval = mb->tag_get_handle ( "ORIG_PROC", intxOwnerTag );
+  if (MB_SUCCESS == rval) {
+    rval = mb->tag_get_data(intxOwnerTag, inputRange, &ownerinfo[0]);
+    if (MB_SUCCESS != rval)
+      return -1;
+  }
+  
   // compare total area with 4*M_PI * R^2
+  int ie = 0;
   double total_area = 0.;
   for (Range::iterator eit = inputRange.begin(); eit != inputRange.end();
       ++eit) {
+    if (ownerinfo[ie++] >= 0) continue; // All zero/positive owner data represents ghosted elems
+
     EntityHandle eh = *eit;
     // get the nodes, then the coordinates
     const EntityHandle * verts;
@@ -788,6 +800,7 @@ double area_on_sphere(Interface * mb, EntityHandle set, double R) {
   }
   return total_area;
 }
+
 double area_on_sphere_lHuiller(Interface * mb, EntityHandle set, double R) {
   // get all entities of dimension 2
   // then get the connectivity, etc
@@ -796,9 +809,20 @@ double area_on_sphere_lHuiller(Interface * mb, EntityHandle set, double R) {
   if (MB_SUCCESS != rval)
     return -1;
 
+  std::vector<int> ownerinfo(inputRange.size(), -1);
+  Tag intxOwnerTag;
+  rval = mb->tag_get_handle ( "ORIG_PROC", intxOwnerTag );
+  if (MB_SUCCESS == rval) {
+    rval = mb->tag_get_data(intxOwnerTag, inputRange, &ownerinfo[0]);
+    if (MB_SUCCESS != rval)
+      return -1;
+  }
+
+  int ie = 0;
   double total_area = 0.;
   for (Range::iterator eit = inputRange.begin(); eit != inputRange.end();
       ++eit) {
+    if (ownerinfo[ie++] >= 0) continue; // All zero/positive owner data represents ghosted elems
     EntityHandle eh = *eit;
     // get the nodes, then the coordinates
     const EntityHandle * verts;

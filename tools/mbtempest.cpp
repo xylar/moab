@@ -54,15 +54,13 @@ struct ToolContext
         int ensureMonotonicity;
         bool fNoConservation;
         bool fVolumetric;
-        moab::DebugOutput outStream;
 
         ToolContext ( moab::ParallelComm* p_pcomm ) :
             pcomm(p_pcomm),
             blockSize ( 5 ), outFilename ( "output.exo" ), meshType ( moab::TempestRemapper::DEFAULT ),
             proc_id ( pcomm->rank() ), n_procs ( pcomm->size() ),
             computeDual ( false ), computeWeights ( false ), ensureMonotonicity ( 0 ), 
-            fNoConservation ( false ), fVolumetric ( false ),
-            outStream ( std::cout, pcomm->rank() )
+            fNoConservation ( false ), fVolumetric ( false )
         {
             inFilenames.resize ( 2 );
             doftag_names.resize( 2 );
@@ -94,7 +92,7 @@ struct ToolContext
             MPI_Reduce(&locElapsed, &avgElapsed, 1, MPI_DOUBLE, MPI_SUM, 0, pcomm->comm());
             if (!pcomm->rank()) {
                 avgElapsed /= pcomm->size();
-                outStream.printf ( 0, "[LOG] Time taken to %s: max = %f, avg = %f\n", opName.c_str(), maxElapsed, avgElapsed );
+                std::cout << "[LOG] Time taken to " << opName.c_str() << ": max = " << maxElapsed << ", avg = " << avgElapsed << "\n";
             }
             // std::cout << "\n[LOG" << proc_id << "] Time taken to " << opName << " = " << timer->time_since_birth() - timer_ops << std::endl;
             opName.clear();
@@ -260,12 +258,12 @@ int main ( int argc, char* argv[] )
             moab::Range rintxverts, rintxelems;
             rval = mbCore->get_entities_by_dimension ( ctx.meshsets[0], 0, rintxverts ); MB_CHK_ERR ( rval );
             rval = mbCore->get_entities_by_dimension ( ctx.meshsets[0], 2, rintxelems ); MB_CHK_ERR ( rval );
-            ctx.outStream.printf ( 0, "The red set contains %lu vertices and %lu elements \n", rintxverts.size(), rintxelems.size() );
+            printf ( "The red set contains %lu vertices and %lu elements \n", rintxverts.size(), rintxelems.size() );
 
             moab::Range bintxverts, bintxelems;
             rval = mbCore->get_entities_by_dimension ( ctx.meshsets[1], 0, bintxverts ); MB_CHK_ERR ( rval );
             rval = mbCore->get_entities_by_dimension ( ctx.meshsets[1], 2, bintxelems ); MB_CHK_ERR ( rval );
-            ctx.outStream.printf ( 0, "The blue set contains %lu vertices and %lu elements \n", bintxverts.size(), bintxelems.size() );
+            printf ( "The blue set contains %lu vertices and %lu elements \n", bintxverts.size(), bintxelems.size() );
         }
 
         moab::EntityHandle intxset; // == remapper.GetMeshSet(moab::Remapper::IntersectedMesh);
@@ -309,16 +307,16 @@ int main ( int argc, char* argv[] )
             moab::Range intxelems, intxverts;
             rval = mbCore->get_entities_by_dimension ( intxset, 2, intxelems ); MB_CHK_ERR ( rval );
             rval = mbCore->get_entities_by_dimension ( intxset, 0, intxverts, true ); MB_CHK_ERR ( rval );
-            ctx.outStream.printf ( 0, "The intersection set contains %lu elements and %lu vertices \n", intxelems.size(), intxverts.size() );
+            printf ( "The intersection set contains %lu elements and %lu vertices \n", intxelems.size(), intxverts.size() );
 
-            double initial_area = area_on_sphere_lHuiller ( mbCore, ctx.meshsets[0], radius_src );
+            double initial_area = area_on_sphere_lHuiller ( mbCore, ctx.meshsets[0], radius_src ); // use the target to compute the initial area
             double area_method1 = area_on_sphere_lHuiller ( mbCore, intxset, radius_src );
             double area_method2 = area_on_sphere ( mbCore, intxset, radius_src );
 
-            ctx.outStream.printf ( 0, "initial area: %12.10f\n", initial_area );
-            ctx.outStream.printf ( 0, " area with l'Huiller: %12.10f with Girard: %12.10f\n", area_method1, area_method2 );
-            ctx.outStream.printf ( 0, " relative difference areas = %12.10e\n", fabs ( area_method1 - area_method2 ) / area_method1 );
-            ctx.outStream.printf ( 0, " relative error = %12.10e\n", fabs ( area_method1 - initial_area ) / area_method1 );
+            printf ( "initial area: %12.10f\n", initial_area );
+            printf ( " area with l'Huiller: %12.10f with Girard: %12.10f\n", area_method1, area_method2 );
+            printf ( " relative difference areas = %12.10e\n", fabs ( area_method1 - area_method2 ) / area_method1 );
+            printf ( " relative error = %12.10e\n", fabs ( area_method1 - initial_area ) / area_method1 );
         }
 
         // Write out our computed intersection file
@@ -353,14 +351,14 @@ int main ( int argc, char* argv[] )
             rval = mbCore->get_entities_by_dimension ( ctx.meshsets[0], 2, rintxelems ); MB_CHK_ERR ( rval );
             rval = fix_degenerate_quads ( mbCore, ctx.meshsets[0] ); MB_CHK_ERR ( rval );
             rval = positive_orientation ( mbCore, ctx.meshsets[0], radius_src ); MB_CHK_ERR ( rval );
-            ctx.outStream.printf ( 0, "The red set contains %lu vertices and %lu elements \n", rintxverts.size(), rintxelems.size() );
+            printf ( "The red set contains %lu vertices and %lu elements \n", rintxverts.size(), rintxelems.size() );
 
             moab::Range bintxverts, bintxelems;
             rval = mbCore->get_entities_by_dimension ( ctx.meshsets[1], 0, bintxverts ); MB_CHK_ERR ( rval );
             rval = mbCore->get_entities_by_dimension ( ctx.meshsets[1], 2, bintxelems ); MB_CHK_ERR ( rval );
             rval = fix_degenerate_quads ( mbCore, ctx.meshsets[1] ); MB_CHK_ERR ( rval );
             rval = positive_orientation ( mbCore, ctx.meshsets[1], radius_dest ); MB_CHK_ERR ( rval );
-            ctx.outStream.printf ( 0, "The blue set contains %lu vertices and %lu elements \n", bintxverts.size(), bintxelems.size() );
+            printf ( "The blue set contains %lu vertices and %lu elements \n", bintxverts.size(), bintxelems.size() );
         }
 
         // Compute intersections with MOAB
@@ -371,25 +369,26 @@ int main ( int argc, char* argv[] )
         // Write out our computed intersection file
         if ( pcomm->size() == 1 )
         {
-            ctx.outStream.printf ( 0, "writing out the intersection mesh file to %s\n", "moab_intersection.h5m" );
+            printf ( "writing out the intersection mesh file to %s\n", "moab_intersection.h5m" );
             // rval = mbCore->add_entities ( ctx.meshsets[2], &ctx.meshsets[0], 2 ); MB_CHK_ERR ( rval );
             rval = mbCore->write_file ( "moab_intersection.h5m", NULL, "PARALLEL=WRITE_PART", &ctx.meshsets[2], 1 ); MB_CHK_ERR ( rval );
         }
 
         {
             double local_areas[3], global_areas[3]; // Array for Initial area, and through Method 1 and Method 2
-            local_areas[0] = area_on_sphere_lHuiller ( mbCore, ctx.meshsets[1], radius_src );
+            // local_areas[0] = area_on_sphere_lHuiller ( mbCore, ctx.meshsets[1], radius_src );
+            local_areas[0] = area_on_sphere ( mbCore, ctx.meshsets[1], radius_src );
             local_areas[1] = area_on_sphere_lHuiller ( mbCore, ctx.meshsets[2], radius_src );
             local_areas[2] = area_on_sphere ( mbCore, ctx.meshsets[2], radius_src );
 
-            MPI_Allreduce ( &local_areas, &global_areas, 3, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD );
+            MPI_Allreduce ( &local_areas[0], &global_areas[0], 3, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD );
 
             if ( !proc_id )
             {
-                ctx.outStream.printf ( 0, "initial area: %12.10f\n", global_areas[0] );
-                ctx.outStream.printf ( 0, " area with l'Huiller: %12.10f with Girard: %12.10f\n", global_areas[1], global_areas[2] );
-                ctx.outStream.printf ( 0, " relative difference areas = %12.10e\n", fabs ( global_areas[1] - global_areas[2] ) / global_areas[1] );
-                ctx.outStream.printf ( 0, " relative error = %12.10e\n", fabs ( global_areas[1] - global_areas[0] ) / global_areas[1] );
+                printf ( "initial area: %12.10f\n", global_areas[0] );
+                printf ( " area with l'Huiller: %12.10f with Girard: %12.10f\n", global_areas[1], global_areas[2] );
+                printf ( " relative difference areas = %12.10e\n", fabs ( global_areas[1] - global_areas[2] ) / global_areas[1] );
+                printf ( " relative error = %12.10e\n", fabs ( global_areas[1] - global_areas[0] ) / global_areas[1] );
             }
         }
 
@@ -478,7 +477,7 @@ moab::ErrorCode CreateTempestMesh ( ToolContext& ctx, moab::TempestRemapper& rem
     moab::ErrorCode rval = moab::MB_SUCCESS;
     int err;
 
-    if ( !ctx.proc_id ) { ctx.outStream.printf ( 0, "Creating TempestRemap Mesh object ...\n" ); }
+    if ( !ctx.proc_id ) { printf ( "Creating TempestRemap Mesh object ...\n" ); }
 
     if ( ctx.meshType == moab::TempestRemapper::OVERLAP_FILES )
     {

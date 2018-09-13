@@ -2412,7 +2412,7 @@ ErrCode iMOAB_ComputeScalarProjectionWeights ( iMOAB_AppID pid_intx,
 	{
 		const double radius = 1.0 /*2.0*acos(-1.0)*/;
 		double local_areas[3], global_areas[3]; // Array for Initial area, and through Method 1 and Method 2
-		local_areas[0] = area_on_sphere_lHuiller ( context.MBI, context.appDatas[*(context.appDatas[*pid_intx].pid_src)].file_set, radius );
+		local_areas[0] = area_on_sphere_lHuiller ( context.MBI, context.appDatas[*(context.appDatas[*pid_intx].pid_dest)].file_set, radius );
 		local_areas[1] = area_on_sphere_lHuiller ( context.MBI, context.appDatas[*pid_intx].file_set, radius );
 		local_areas[2] = area_on_sphere ( context.MBI, context.appDatas[*pid_intx].file_set, radius );
 
