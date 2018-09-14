@@ -318,15 +318,6 @@ private:
   double overlapThickness, numericalPrecision;
   Tag senseTag;
 
-  // temporary storage so functions don't have to reallocate vectors
-  // for ray_fire:
-  std::vector<double> distList;
-  std::vector<EntityHandle> prevFacetList, surfList, facetList;
-
-  std::vector<double>       disList;
-  std::vector<EntityHandle> surList, facList;
-  std::vector<int>          dirList;
-
 };
 
 }
