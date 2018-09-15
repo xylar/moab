@@ -28,7 +28,7 @@
 #define POP_TIMER() { \
   double locElapsed=timer.time_since_birth() - timer_ops, minElapsed=0, maxElapsed=0; \
   MPI_Reduce(&locElapsed, &maxElapsed, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD); \
-  MPI_Reduce(&locElapsed, &minElapsed, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD); \
+  MPI_Reduce(&locElapsed, &minElapsed, 1, MPI_DOUBLE, MPI_MIN, 0, MPI_COMM_WORLD); \
   if (!rank) std::cout << "[LOG] Time taken to " << opName.c_str() << ": max = " << maxElapsed << ", avg = " << (maxElapsed+minElapsed)/2 << "\n"; \
   opName.clear(); \
 }
