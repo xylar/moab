@@ -123,8 +123,10 @@ int main( int argc, char* argv[] )
   CHECKRC(ierr, "can't register ocn over coupler pes ")
 
   std::string   readopts("PARALLEL=READ_PART;PARTITION=PARALLEL_PARTITION;PARALLEL_RESOLVE_SHARED_ENTS");
-
-  int method = 1;
+  int method = 0;
+#ifdef MOAB_HAVE_ZOLTAN
+  method = 1; // use the graph partitioner in that caseS
+#endif
   if (comm1 != MPI_COMM_NULL) {
     ierr = iMOAB_RegisterApplication("ATM1", &comm1, &compid1, pid1);
     CHECKRC(ierr, "can't register app1 ")
