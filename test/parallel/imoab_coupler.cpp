@@ -7,15 +7,31 @@
  *
  */
 
-#include "moab/ParallelComm.hpp"
 #include "moab/Core.hpp"
+#ifndef MOAB_HAVE_MPI
+    #error mbtempest tool requires MPI configuration
+#endif
+
+// MPI includes
 #include "moab_mpi.h"
+#include "moab/ParallelComm.hpp"
+#include "MBParallelConventions.h"
+
 #include "moab/iMOAB.h"
 #include "TestUtil.hpp"
+#include "moab/CpuTimer.hpp"
 #include <iostream>
 #include <sstream>
 
 #define CHECKRC(rc, message)  if (0!=rc) { printf ("%s\n", message); return 1;}
+#define PUSH_TIMER(operation)  { timer_ops = timer.time_since_birth(); opName = operation;}
+#define POP_TIMER() { \
+  double locElapsed=timer.time_since_birth() - timer_ops, minElapsed=0, maxElapsed=0; \
+  MPI_Reduce(&locElapsed, &maxElapsed, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD); \
+  MPI_Reduce(&locElapsed, &minElapsed, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD); \
+  if (!rank) std::cout << "[LOG] Time taken to " << opName.c_str() << ": max = " << maxElapsed << ", avg = " << (maxElapsed+minElapsed)/2 << "\n"; \
+  opName.clear(); \
+}
 
 using namespace moab;
 
@@ -26,13 +42,21 @@ int main( int argc, char* argv[] )
   int rank, size, ierr;
   MPI_Comm jcomm; // will be a copy of the global
   MPI_Group jgroup;
+  std::string readopts("PARALLEL=READ_PART;PARTITION=PARALLEL_PARTITION;PARALLEL_RESOLVE_SHARED_ENTS");
+
+  // Timer data
+  moab::CpuTimer timer;
+  double timer_ops;
+  std::string opName;
+
+  int repartitioner_scheme = 0;
+#ifdef MOAB_HAVE_ZOLTAN
+  repartitioner_scheme = 1; // use the graph partitioner in that caseS
+#endif
 
   MPI_Init(&argc, &argv);
   MPI_Comm_rank( MPI_COMM_WORLD, &rank );
   MPI_Comm_size( MPI_COMM_WORLD, &size );
-
-  // if (size > 1 && size%2 == 1)
-  //   return 1; // launch it on 2 processors only
 
   MPI_Comm_dup(MPI_COMM_WORLD, &jcomm);
   MPI_Comm_group(jcomm, &jgroup);
@@ -47,7 +71,7 @@ int main( int argc, char* argv[] )
   // intxid is for intx atm / ocn on coupler pes
   int nghlay=0; // number of ghost layers for loading the file
   std::vector<int> groupTasks; // at most 2 tasks
-  // int startG1=0, startG2=0, endG1=size/2-1, endG2=size-1; // Support launch of imoab_coupler test on any combo of 2*x processes
+  int startG1=0, startG2=0, endG1=size/2-1, endG2=size-1; // Support launch of imoab_coupler test on any combo of 2*x processes
   /* COMBOS THAT WORK */
   // int startG1=0, startG2=0, endG1=0, endG2=0; // Support launch of imoab_coupler test on any combo of 2*x processes
   // int startG1=0, startG2=0, endG1=1, endG2=0; // Support launch of imoab_coupler test on any combo of 2*x processes
@@ -56,7 +80,7 @@ int main( int argc, char* argv[] )
   /* COMBOS THAT **DO NOT** WORK */
   // int startG1=0, startG2=0, endG1=0, endG2=1; // Support launch of imoab_coupler test on any combo of 2*x processes
   // int startG1=0, startG2=0, endG1=1, endG2=1; // Support launch of imoab_coupler test on any combo of 2*x processes
-  int startG1=0, startG2=0, endG1=size-1, endG2=size-1; // Support launch of imoab_coupler test on any combo of 2*x processes
+  // int startG1=0, startG2=0, endG1=size-1, endG2=size-1; // Support launch of imoab_coupler test on any combo of 2*x processes
 
   // load atm on 2 proc, ocean on 2, migrate both to 2 procs, then compute intx
   // later, we need to compute weight matrix with tempestremap
@@ -122,24 +146,22 @@ int main( int argc, char* argv[] )
   ierr = iMOAB_RegisterApplication("OCNX", &jcomm, &compid4, pid4); // ocn on coupler pes
   CHECKRC(ierr, "can't register ocn over coupler pes ")
 
-  std::string   readopts("PARALLEL=READ_PART;PARTITION=PARALLEL_PARTITION;PARALLEL_RESOLVE_SHARED_ENTS");
-  int method = 0;
-#ifdef MOAB_HAVE_ZOLTAN
-  method = 1; // use the graph partitioner in that caseS
-#endif
+  PUSH_TIMER("Load source mesh")
   if (comm1 != MPI_COMM_NULL) {
     ierr = iMOAB_RegisterApplication("ATM1", &comm1, &compid1, pid1);
     CHECKRC(ierr, "can't register app1 ")
     // load first mesh
     ierr = iMOAB_LoadMesh(pid1, filename1.c_str(), readopts.c_str(), &nghlay, filename1.length(), strlen(readopts.c_str()) );
     CHECKRC(ierr, "can't load mesh1 ")
+
     // then send mesh to coupler pes, on pid3
-    ierr = iMOAB_SendMesh(pid1, &jcomm, &jgroup, &compid3, &method); // send to component 3, on coupler pes
+    ierr = iMOAB_SendMesh(pid1, &jcomm, &jgroup, &compid3, &repartitioner_scheme); // send to component 3, on coupler pes
     CHECKRC(ierr, "cannot send elements" )
   }
   // now, receive meshes, on joint communicator; first mesh 1
   ierr = iMOAB_ReceiveMesh(pid3, &jcomm, &group1, &compid1); // receive from component 1
   CHECKRC(ierr, "cannot receive elements on ATMX app")
+  POP_TIMER()
 
   // we can now free the sender buffers
   if (comm1 != MPI_COMM_NULL) {
@@ -147,6 +169,7 @@ int main( int argc, char* argv[] )
     CHECKRC(ierr, "cannot free buffers used to send atm mesh")
   }
 
+  PUSH_TIMER("Load target mesh")
   if (comm2 != MPI_COMM_NULL) {
     ierr = iMOAB_RegisterApplication("OCN1", &comm2, &compid2, pid2);
     CHECKRC(ierr, "can't register app2 ")
@@ -154,13 +177,14 @@ int main( int argc, char* argv[] )
     ierr = iMOAB_LoadMesh(pid2, filename2.c_str(), readopts.c_str(), &nghlay, filename2.length(), strlen(readopts.c_str()) );
     CHECKRC(ierr, "can't load mesh2, on pid2 ")
     // then send mesh to coupler pes, on pid3
-    ierr = iMOAB_SendMesh(pid2, &jcomm, &jgroup, &compid4, &method); // send to component 3, on coupler pes
+    ierr = iMOAB_SendMesh(pid2, &jcomm, &jgroup, &compid4, &repartitioner_scheme); // send to component 3, on coupler pes
     CHECKRC(ierr, "cannot send elements" )
   }
 
 
   ierr = iMOAB_ReceiveMesh(pid4, &jcomm, &group2, &compid2); // receive from component 2, ocn, on coupler pes
   CHECKRC(ierr, "cannot receive elements on OCNX app")
+  POP_TIMER()
 
   if (comm2 != MPI_COMM_NULL) {
     ierr = iMOAB_FreeSenderBuffers(pid2, &jcomm, &compid4);
@@ -172,10 +196,12 @@ int main( int argc, char* argv[] )
   ierr = iMOAB_RegisterApplication("AO", &jcomm, &intxid, pid5);
   CHECKRC(ierr, "can't register ocn_atm intx over coupler pes ")
 
+  PUSH_TIMER("Compute source-target mesh intersection")
   ierr = iMOAB_ComputeMeshIntersectionOnSphere(pid3, pid4, pid5); // coverage mesh was computed here, for pid3, atm on coupler pes
   // basically, atm was redistributed according to target (ocean) partition, to "cover" the ocean partitions
   // check if intx valid, write some h5m intx file
   CHECKRC(ierr, "cannot compute intersection" )
+  POP_TIMER()
 
 #ifdef VERBOSE
   std::stringstream outf;
@@ -191,14 +217,17 @@ int main( int argc, char* argv[] )
   // results are in pid5, intx mesh; remapper also has some info about coverage mesh
   // afteer this, the sending of tags from atm pes to coupler pes will use the new par comm graph, that has more precise info about
   // what to send ; every time, we will send also the element global id, which should uniquely identify the element
+  PUSH_TIMER("Compute coverage graph")
   ierr = iMOAB_CoverageGraph(&jcomm, pid1,  &compid1, pid3,  &compid3, pid5); // it happens over joint communicator
   CHECKRC(ierr, "cannot recompute direct coverage graph" )
+  POP_TIMER()
   
 
   int disc_orders[2] = {4, 1};
   const char* disc_methods[2] = {"cgll", "fv"};
   const char* dof_tag_names[2] = {"GLOBAL_DOFS", "GLOBAL_ID"};
   int fVolumetric=0, fValidate=1, fNoConserve=0;
+  PUSH_TIMER("Compute the projection weights with TempestRemap")
   ierr = iMOAB_ComputeScalarProjectionWeights ( pid5,
                                                 disc_methods[0], &disc_orders[0],
                                                 disc_methods[1], &disc_orders[1],
@@ -207,6 +236,7 @@ int main( int argc, char* argv[] )
                                                 strlen(disc_methods[0]), strlen(disc_methods[1]),
                                                 strlen(dof_tag_names[0]), strlen(dof_tag_names[1]) );
   CHECKRC(ierr, "cannot compute scalar projection weights" )
+  POP_TIMER()
 
   const char* fieldname = "a2oTAG";
   const char* fieldnameT = "a2oTAG_proj";
@@ -251,17 +281,19 @@ int main( int argc, char* argv[] )
     }
   }
   
-    if (comm1 != MPI_COMM_NULL ){
+  PUSH_TIMER("Send/receive data from component to coupler")
+  if (comm1 != MPI_COMM_NULL ){
 
-      // basically, adjust the migration of the tag we want to project; it was sent initially with
-      // trivial partitioning, now we need to adjust it for "coverage" mesh
-       // as always, use nonblocking sends
-       ierr = iMOAB_SendElementTag(pid1, &compid1, &compid3, "a2oTAG", &jcomm, strlen("a2oTAG"));
-       CHECKRC(ierr, "cannot send tag values")
-    }
-    // receive on atm on coupler pes, that was redistributed according to coverage
-    ierr = iMOAB_ReceiveElementTag(pid3, &compid3, &compid1, "a2oTAG", &jcomm, strlen("a2oTAG"));
-    CHECKRC(ierr, "cannot receive tag values")
+    // basically, adjust the migration of the tag we want to project; it was sent initially with
+    // trivial partitioning, now we need to adjust it for "coverage" mesh
+     // as always, use nonblocking sends
+     ierr = iMOAB_SendElementTag(pid1, &compid1, &compid3, "a2oTAG", &jcomm, strlen("a2oTAG"));
+     CHECKRC(ierr, "cannot send tag values")
+  }
+  // receive on atm on coupler pes, that was redistributed according to coverage
+  ierr = iMOAB_ReceiveElementTag(pid3, &compid3, &compid1, "a2oTAG", &jcomm, strlen("a2oTAG"));
+  CHECKRC(ierr, "cannot receive tag values")
+  POP_TIMER()
 
 #ifdef VERBOSE
     char writeOptions3[] ="PARALLEL=WRITE_PART";
@@ -277,6 +309,7 @@ int main( int argc, char* argv[] )
 
   /* We have the remapping weights now. Let us apply the weights onto the tag we defined 
      on the source mesh and get the projection on the target mesh */
+  PUSH_TIMER("Apply Scalar projection weights")
   ierr = iMOAB_ApplyScalarProjectionWeights ( pid5,
                                             fieldname,
                                             fieldnameT,
@@ -284,6 +317,7 @@ int main( int argc, char* argv[] )
                                             strlen(fieldnameT)
                                             );
   CHECKRC(ierr, "failed to compute projection weight application");
+  POP_TIMER()
 
   char outputFileTgt[] = "fIntxTarget.h5m";
 #ifdef MOAB_HAVE_MPI
