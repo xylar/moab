@@ -504,8 +504,8 @@ ErrorCode TempestRemapper::ConvertMOABMesh_WithSortedEntitiesBySource()
     // m_overlap->RemoveCoincidentNodes();
 
     // Generate reverse node array and edge map
-    if ( constructEdgeMap ) m_overlap->ConstructEdgeMap();
-    m_overlap->ConstructReverseNodeArray();
+    // if ( constructEdgeMap ) m_overlap->ConstructEdgeMap();
+    // m_overlap->ConstructReverseNodeArray();
 
     // m_overlap->Validate();
     return MB_SUCCESS;

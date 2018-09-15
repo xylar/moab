@@ -319,7 +319,7 @@ void moab::TempestOfflineMap::LinearRemapFVtoFV_Tempest_MOAB (
         }
 
         unsigned nOverlapFaces = ixOverlapEnd - ixOverlapBegin;
-        if ( !pcomm->rank() ) Announce ( "Element %i / %i :: [%i, %i]", ixFirst, m_meshInputCov->faces.size(), ixOverlapBegin, ixOverlapEnd );
+        // if ( !pcomm->rank() ) Announce ( "Element %i / %i :: [%i, %i]", ixFirst, m_meshInputCov->faces.size(), ixOverlapBegin, ixOverlapEnd );
 
         if ( nOverlapFaces == 0 ) continue;
 
