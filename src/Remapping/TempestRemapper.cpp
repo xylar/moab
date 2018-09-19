@@ -461,6 +461,14 @@ ErrorCode TempestRemapper::ConvertMOABMesh_WithSortedEntitiesBySource()
     // let us now get the vertices from all the elements
     rval = m_interface->get_connectivity ( m_overlap_entities, verts ); MB_CHK_ERR ( rval );
 
+    std::map<EntityHandle, int> indxMap;
+    int j=0;
+    for (Range::iterator it=verts.begin(); it!=verts.end(); it++)
+    {
+      indxMap[*it]=j;
+      j++;
+    }
+
     for ( unsigned ifac = 0; ifac < m_overlap_entities.size(); ++ifac )
     {
         const unsigned iface = sorted_overlap_order[ifac].second;
@@ -475,7 +483,7 @@ ErrorCode TempestRemapper::ConvertMOABMesh_WithSortedEntitiesBySource()
         face.edges.resize ( nnodesf );
         for ( int iverts = 0; iverts < nnodesf; ++iverts )
         {
-            int indx = verts.index ( connectface[iverts] );
+            int indx = indxMap[ connectface[iverts] ];
             assert ( indx >= 0 );
             face.SetNode ( iverts, indx );
         }
