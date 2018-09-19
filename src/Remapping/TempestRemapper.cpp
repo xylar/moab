@@ -1215,7 +1215,15 @@ ErrorCode TempestRemapper::augment_overlap_set()
   TLv2.print_to_file(ffv2.str().c_str());
 #endif
   // first create vertices, and make a map from origin processor, and index, to entity handle (index in TLv2 )
+  Tag ghostTag;
+  int orig_proc = -1;
+  rval = m_interface->tag_get_handle ( "ORIG_PROC", 1, MB_TYPE_INTEGER, ghostTag, MB_TAG_DENSE | MB_TAG_CREAT, &orig_proc ); MB_CHK_ERR ( rval );
+
   int nvNew = TLv2.get_n();
+  // if number of vertices to be created is 0, it means there is no need of ghost intx cells, because everything
+  // matched perfectly (it can happen in manufactured cases)
+  if (0 == nvNew)
+    return MB_SUCCESS;
   // create a vertex h for each coordinate
   Range newVerts;
   rval = m_interface->create_vertices(&(TLv2.vr_rd[0]), nvNew, newVerts); MB_CHK_ERR(rval);
@@ -1230,9 +1238,6 @@ ErrorCode TempestRemapper::augment_overlap_set()
 
   // new polygons will receive a dense tag, with default value -1, with the processor task they
   // originally belonged to
-  Tag ghostTag;
-  int orig_proc = -1;
-  rval = m_interface->tag_get_handle ( "ORIG_PROC", 1, MB_TYPE_INTEGER, ghostTag, MB_TAG_DENSE | MB_TAG_CREAT, &orig_proc ); MB_CHK_ERR ( rval );
 
   // now form the needed cells, in order
   Range newPolygons;
