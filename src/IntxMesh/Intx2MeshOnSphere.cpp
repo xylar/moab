@@ -1069,6 +1069,7 @@ ErrorCode Intx2MeshOnSphere::construct_covering_set(EntityHandle & initial_distr
     EntityHandle q = *it;// these are from lagr cells, local
     int gid_el;
     rval = mb->tag_get_data(gid, &q, 1, &gid_el);MB_CHK_SET_ERR(rval, "can't get global id of cell ");
+    assert(gid_el >= 0);
     globalID_to_eh[gid_el] = q; // do we need this? yes, now we do; parent tags are now using it heavily
     rval = mb->tag_set_data(sendProcTag, &q, 1, &my_rank);MB_CHK_SET_ERR(rval, "can't set sender for cell");
   }

@@ -414,7 +414,6 @@ ErrorCode TempestRemapper::ConvertMOABMesh_WithSortedEntitiesBySource()
     bool ghostsPresent = (m_pcomm->size()>1);
     std::vector<std::pair<int, int> > sorted_overlap_order ( m_overlap_entities.size() );
     {
-
         Tag bluePtag, redPtag;
         rval = m_interface->tag_get_handle ( "BlueParent", bluePtag ); MB_CHK_ERR ( rval );
         rval = m_interface->tag_get_handle ( "RedParent", redPtag ); MB_CHK_ERR ( rval );
@@ -460,6 +459,16 @@ ErrorCode TempestRemapper::ConvertMOABMesh_WithSortedEntitiesBySource()
     Range verts;
     // let us now get the vertices from all the elements
     rval = m_interface->get_connectivity ( m_overlap_entities, verts ); MB_CHK_ERR ( rval );
+    // std::cout << "Vertices size = " << verts.size() << " , psize = " << verts.psize() << ", compactness = " << verts.compactness() << std::endl;
+
+    std::map<EntityHandle, int> indxMap;
+    bool useRange = true;
+    if (verts.compactness() > 0.1) {
+        int j=0;
+        for (Range::iterator it=verts.begin(); it!=verts.end(); it++)
+          indxMap[*it]=j++;
+        useRange = false;
+    }
 
     for ( unsigned ifac = 0; ifac < m_overlap_entities.size(); ++ifac )
     {
@@ -475,7 +484,7 @@ ErrorCode TempestRemapper::ConvertMOABMesh_WithSortedEntitiesBySource()
         face.edges.resize ( nnodesf );
         for ( int iverts = 0; iverts < nnodesf; ++iverts )
         {
-            int indx = verts.index ( connectface[iverts] );
+            int indx = (useRange ? verts.index ( connectface[iverts] ) : indxMap[ connectface[iverts] ] );
             assert ( indx >= 0 );
             face.SetNode ( iverts, indx );
         }
@@ -1207,7 +1216,15 @@ ErrorCode TempestRemapper::augment_overlap_set()
   TLv2.print_to_file(ffv2.str().c_str());
 #endif
   // first create vertices, and make a map from origin processor, and index, to entity handle (index in TLv2 )
+  Tag ghostTag;
+  int orig_proc = -1;
+  rval = m_interface->tag_get_handle ( "ORIG_PROC", 1, MB_TYPE_INTEGER, ghostTag, MB_TAG_DENSE | MB_TAG_CREAT, &orig_proc ); MB_CHK_ERR ( rval );
+
   int nvNew = TLv2.get_n();
+  // if number of vertices to be created is 0, it means there is no need of ghost intx cells, because everything
+  // matched perfectly (it can happen in manufactured cases)
+  if (0 == nvNew)
+    return MB_SUCCESS;
   // create a vertex h for each coordinate
   Range newVerts;
   rval = m_interface->create_vertices(&(TLv2.vr_rd[0]), nvNew, newVerts); MB_CHK_ERR(rval);
@@ -1222,9 +1239,6 @@ ErrorCode TempestRemapper::augment_overlap_set()
 
   // new polygons will receive a dense tag, with default value -1, with the processor task they
   // originally belonged to
-  Tag ghostTag;
-  int orig_proc = -1;
-  rval = m_interface->tag_get_handle ( "ORIG_PROC", 1, MB_TYPE_INTEGER, ghostTag, MB_TAG_DENSE | MB_TAG_CREAT, &orig_proc ); MB_CHK_ERR ( rval );
 
   // now form the needed cells, in order
   Range newPolygons;
