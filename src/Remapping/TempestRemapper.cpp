@@ -414,7 +414,6 @@ ErrorCode TempestRemapper::ConvertMOABMesh_WithSortedEntitiesBySource()
     bool ghostsPresent = (m_pcomm->size()>1);
     std::vector<std::pair<int, int> > sorted_overlap_order ( m_overlap_entities.size() );
     {
-
         Tag bluePtag, redPtag;
         rval = m_interface->tag_get_handle ( "BlueParent", bluePtag ); MB_CHK_ERR ( rval );
         rval = m_interface->tag_get_handle ( "RedParent", redPtag ); MB_CHK_ERR ( rval );
@@ -460,13 +459,15 @@ ErrorCode TempestRemapper::ConvertMOABMesh_WithSortedEntitiesBySource()
     Range verts;
     // let us now get the vertices from all the elements
     rval = m_interface->get_connectivity ( m_overlap_entities, verts ); MB_CHK_ERR ( rval );
+    // std::cout << "Vertices size = " << verts.size() << " , psize = " << verts.psize() << ", compactness = " << verts.compactness() << std::endl;
 
     std::map<EntityHandle, int> indxMap;
-    int j=0;
-    for (Range::iterator it=verts.begin(); it!=verts.end(); it++)
-    {
-      indxMap[*it]=j;
-      j++;
+    bool useRange = true;
+    if (verts.compactness() > 0.1) {
+        int j=0;
+        for (Range::iterator it=verts.begin(); it!=verts.end(); it++)
+          indxMap[*it]=j++;
+        useRange = false;
     }
 
     for ( unsigned ifac = 0; ifac < m_overlap_entities.size(); ++ifac )
@@ -483,7 +484,7 @@ ErrorCode TempestRemapper::ConvertMOABMesh_WithSortedEntitiesBySource()
         face.edges.resize ( nnodesf );
         for ( int iverts = 0; iverts < nnodesf; ++iverts )
         {
-            int indx = indxMap[ connectface[iverts] ];
+            int indx = (useRange ? verts.index ( connectface[iverts] ) : indxMap[ connectface[iverts] ] );
             assert ( indx >= 0 );
             face.SetNode ( iverts, indx );
         }
