@@ -48,6 +48,23 @@ cdef class Tag(object):
         """
         return str(self.inst.get_name().c_str())
 
+    def get_default_value(self):
+        """
+        Returns the default value of the tag. 
+        If the tag does not have a default value, None is returned.
+        """
+        tag_size = self.get_length()
+        dtype = self.get_dtype()
+        cdef np.ndarray arr = np.empty((tag_size,), dtype = dtype)
+        
+        cdef const void* data_ptr = self.inst.get_default_value()
+        arr.data = <char *> data_ptr
+
+        if tag_size == 1:
+            return arr[0]
+        else:
+            return arr
+    
     def __str__(self):
         outstr = "Name: " + self.get_name()
         outstr += ", Type: " + _TAG_TYPE_STRS[self.get_data_type()]

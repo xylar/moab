@@ -42,6 +42,7 @@ cdef extern from "TagInfo.hpp" namespace "moab":
         int get_size()
         int size_from_data_type(DataType t)
         std_string& get_name()
+        const void* get_default_value()
 
 cdef extern from "moab/Types.hpp" namespace "moab":
 
