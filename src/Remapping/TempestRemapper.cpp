@@ -463,7 +463,7 @@ ErrorCode TempestRemapper::ConvertMOABMesh_WithSortedEntitiesBySource()
 
     std::map<EntityHandle, int> indxMap;
     bool useRange = true;
-    if (verts.compactness() > 0.1) {
+    if (verts.compactness() > 0.01) {
         int j=0;
         for (Range::iterator it=verts.begin(); it!=verts.end(); it++)
           indxMap[*it]=j++;
