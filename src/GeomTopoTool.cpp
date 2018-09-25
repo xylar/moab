@@ -309,76 +309,93 @@ ErrorCode GeomTopoTool::delete_obb_tree(EntityHandle gset, bool vol_only) {
   Range nodes_to_delete;
   nodes_to_delete.insert(root);
 
-  // If passed ent is a vol and 'vol_only' is true
+  // If passed ent is a vol and 'vol_only' is true, delete vol root and all nodes between vol and surf root
   if (dim == 3 && vol_only){
     // Range of child nodes to check before adding to delete list
     Range child_tree_nodes;
     rval = mdbImpl->get_child_meshsets(root, child_tree_nodes);
     MB_CHK_SET_ERR(rval, "Problem getting child tree nodes");
 
-    // While the range of child nodes is not empty
+    // Traverse the tree, checking each child node until 
+    // a surface root node is reached
     while(child_tree_nodes.size() != 0){
-      // If child is not a surface tree root node, surf range will be empty
       EntityHandle child = *child_tree_nodes.begin();
-      Range surfs;
-      const int two = 2;
-      const void* ptr[] = { &two };
-      rval = mdbImpl->get_entities_by_type_and_tag( child, MBENTITYSET, &geomTag, ptr, 1, surfs );
-      MB_CHK_SET_ERR(rval, "Problem getting entities by type and tag");
-   
-      // If not a surf tree root node, add its children to child list then add this node to delete list
-      if (surfs.size() == 0 ){
-       Range new_child_tree_nodes;
-       rval = mdbImpl->get_child_meshsets(child, new_child_tree_nodes);
-       MB_CHK_SET_ERR(rval, "Problem getting child nodes");
-       child_tree_nodes.insert_list(new_child_tree_nodes.begin(), new_child_tree_nodes.end());
-       nodes_to_delete.insert(child);
+      EntityHandle gset;
+      rval = mdbImpl->tag_get_data(obbGsetTag, &child, 1, &gset);
+      // If the node has a gset tag, it is a surf root. Stop here.
+      // If not, it is a tree node that needs to 1) have its children checked and
+      //  2) be added to delete range
+      if (MB_TAG_NOT_FOUND == rval){
+        Range new_child_tree_nodes;
+        rval = mdbImpl->get_child_meshsets(child, new_child_tree_nodes);
+        MB_CHK_SET_ERR(rval, "Problem getting child nodes");
+        child_tree_nodes.insert_list(new_child_tree_nodes.begin(), new_child_tree_nodes.end());
+        nodes_to_delete.insert(child);
       }
-
       // We're done checking this node, so can erase from child list
       child_tree_nodes.erase(child);
     }
+
   }
-  // If passed ent is a surf or a vol and 'vol_only' is false
+  // If passed ent is a surf or a vol and 'vol_only' is false, recursively gather all child nodes 
+  // and add them to delete list
   else{
-    // Create range of tree nodes to delete (root of the tree passed in + all its child nodes)
     Range all_tree_nodes;
     rval = mdbImpl->get_child_meshsets( root, all_tree_nodes, 0 );
     MB_CHK_SET_ERR(rval, "Failed to get child tree node sets");
     nodes_to_delete.insert_list(all_tree_nodes.begin(), all_tree_nodes.end());
   }
- 
-  // Remove the tree nodes from the obbtreetool and GTT data structures and delete tag data from gsets
-  for (Range::iterator it = nodes_to_delete.begin(); it != nodes_to_delete.end(); ++it){ 
-    // Remove from obbtreetool
-    rval = obbTree->remove_root(*it);
+
+  // Remove the vol root from obbtreetool
+  if (dim == 3){
+    rval = obbTree->remove_root(root);
     MB_CHK_SET_ERR(rval, "Failed to remove root from obbTreeTool");
-    // Remove from GTT
-    if (m_rootSets_vector){
-      std::vector<EntityHandle>::iterator i = find(rootSets.begin(), rootSets.end(), *it);
-      if(i != rootSets.end())
-        rootSets.erase(i);
+  }
+ 
+  // Remove the root nodes from the GTT data structures and delete tag data from gsets
+  for (Range::iterator it = nodes_to_delete.begin(); it != nodes_to_delete.end(); ++it){ 
+    // Check to see if node is a root
+    EntityHandle gset;
+    rval = mdbImpl->tag_get_data(obbGsetTag, &(*it), 1, &gset);
+    if (MB_SUCCESS == rval){
+      // Remove from GTT
+      rval = remove_obb_root(*it);
+      MB_CHK_SET_ERR(rval, "Failed to remove node from GTT data structure");
+      // Delete the obbRootTag data from the vol or surf 
+      rval = mdbImpl->tag_delete_data(obbRootTag, &gset, 1);
+      MB_CHK_SET_ERR(rval, "Failed to delete obb root tag");
     }
-    else{
-      std::map<EntityHandle, EntityHandle>::iterator i;
-      for (i = mapRootSets.begin(); i != mapRootSets.end(); ++i){
-        if(i->second == *it)
-          mapRootSets.erase(i->first);
-      }
-    }
-    
-   // If this is a vol or surf obb root, delete the obbRootTag data
-   EntityHandle gset, gotroot;
-   rval = mdbImpl->tag_get_data(obbGsetTag, &(*it), 1, &gset);
-   if (MB_SUCCESS == rval){
-     rval = mdbImpl->tag_delete_data(obbRootTag, &gset, 1);
-     MB_CHK_SET_ERR(rval, "Failed to delete obb root tag");
-   }
   }
   
   // Delete the tree nodes from the database
   rval = mdbImpl->delete_entities(nodes_to_delete);
   MB_CHK_SET_ERR(rval, "Failed to delete node set");
+
+  return MB_SUCCESS;
+}
+
+ErrorCode GeomTopoTool::remove_obb_root(EntityHandle root){
+
+  if (m_rootSets_vector){
+    std::vector<EntityHandle>::iterator i = find(rootSets.begin(), rootSets.end(), root);
+    if(i != rootSets.end())
+      rootSets.erase(i);
+    else
+      return MB_ENTITY_NOT_FOUND;
+  }
+  else{
+    std::map<EntityHandle, EntityHandle>::iterator i;
+    bool removed = false;
+    for (i = mapRootSets.begin(); i != mapRootSets.end(); ++i){
+      if(i->second == root){
+        mapRootSets.erase(i->first);
+        removed = true;
+      }
+    }
+    if (removed == false){
+      return MB_ENTITY_NOT_FOUND;
+    }
+  }
 
   return MB_SUCCESS;
 }
