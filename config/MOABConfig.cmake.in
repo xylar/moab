@@ -98,5 +98,4 @@ if(ENABLE_IREL)
   set(IREL_LIBRARIES "-L@prefix@/lib ${MOAB_LIBS} ${MOAB_PACKAGE_LIBS}")
 endif(ENABLE_IREL)
 
-set(DAGMC_LIBRARIES "-L@prefix@/lib -ldagmc -lMOAB ${MOAB_PACKAGE_LIBS}")
 
