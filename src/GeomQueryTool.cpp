@@ -584,12 +584,9 @@ ErrorCode GeomQueryTool::ray_fire(const EntityHandle volume,
     dist_limit = user_dist_limit;
   
   // don't recreate these every call
-  std::vector<double>       &dists       = distList;
-  std::vector<EntityHandle> &surfs       = surfList;
-  std::vector<EntityHandle> &facets      = facetList;
-  dists.clear();
-  surfs.clear();
-  facets.clear();
+  std::vector<double>       dists;
+  std::vector<EntityHandle> surfs;
+  std::vector<EntityHandle> facets;
   
   EntityHandle root;
   ErrorCode rval = geomTopoTool->get_root(volume, root);
@@ -743,14 +740,10 @@ ErrorCode GeomQueryTool::point_in_volume(const EntityHandle volume,
   
   // Don't recreate these every call. These cannot be the same as the ray_fire
   // vectors because both are used simultaneously.
-  std::vector<double>       &dists = disList;
-  std::vector<EntityHandle> &surfs = surList;
-  std::vector<EntityHandle> &facets= facList;
-  std::vector<int>          &dirs  = dirList;
-  dists.clear();
-  surfs.clear();
-  facets.clear();
-  dirs.clear();
+  std::vector<double>       dists;
+  std::vector<EntityHandle> surfs;
+  std::vector<EntityHandle> facets;
+  std::vector<int>          dirs;
 
   // if uvw is not given or is full of zeros, use a random direction
   double u = 0, v = 0, w = 0;
