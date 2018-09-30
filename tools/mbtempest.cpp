@@ -38,6 +38,7 @@
 
 struct ToolContext
 {
+        moab::Interface* mbcore;
         moab::ParallelComm* pcomm;
         int blockSize;
         std::vector<std::string> inFilenames;
@@ -55,7 +56,8 @@ struct ToolContext
         bool fNoConservation;
         bool fVolumetric;
 
-        ToolContext ( moab::ParallelComm* p_pcomm ) :
+        ToolContext ( moab::Interface* icore, moab::ParallelComm* p_pcomm ) :
+            mbcore(icore),
             pcomm(p_pcomm),
             blockSize ( 5 ), outFilename ( "output.exo" ), meshType ( moab::TempestRemapper::DEFAULT ),
             proc_id ( pcomm->rank() ), n_procs ( pcomm->size() ),
@@ -211,8 +213,11 @@ int main ( int argc, char* argv[] )
 
     moab::ParallelComm* pcomm = new moab::ParallelComm ( mbCore, MPI_COMM_WORLD, 0 );
 
-    ToolContext ctx ( pcomm );
+    ToolContext ctx ( mbCore, pcomm );
     ctx.ParseCLOptions ( argc, argv );
+
+    const double radius_src = 1.0 /*2.0*acos(-1.0)*/;
+    const double radius_dest = 1.0 /*2.0*acos(-1.0)*/;
 
     moab::TempestRemapper remapper ( mbCore, pcomm );
     remapper.meshValidate = true;
@@ -226,17 +231,7 @@ int main ( int argc, char* argv[] )
 
     // Some constant parameters
     const double epsrel = 1.e-8;
-    const double radius_src = 1.0 /*2.0*acos(-1.0)*/;
-    const double radius_dest = 1.0 /*2.0*acos(-1.0)*/;
     const double boxeps = 0.1;
-
-    // Rescale the radius of both to compute the intersection
-    if (ctx.meshsets.size() > 0) {
-        rval = ScaleToRadius(mbCore, ctx.meshsets[0], radius_src);MB_CHK_ERR ( rval );
-    }
-    if (ctx.meshsets.size() > 1) {
-        rval = ScaleToRadius(mbCore, ctx.meshsets[1], radius_dest);MB_CHK_ERR ( rval );
-    }
 
     if ( ctx.meshType == moab::TempestRemapper::OVERLAP_MEMORY )
     {
@@ -527,13 +522,19 @@ moab::ErrorCode CreateTempestMesh ( ToolContext& ctx, moab::TempestRemapper& rem
         ctx.meshsets[1] = remapper.GetMeshSet ( moab::Remapper::TargetMesh );
         ctx.meshsets[2] = remapper.GetMeshSet ( moab::Remapper::IntersectedMesh );
 
+        const double radius_src = 1.0 /*2.0*acos(-1.0)*/;
+        const double radius_dest = 1.0 /*2.0*acos(-1.0)*/;
+  
         // Load the source mesh and validate
         rval = remapper.LoadNativeMesh ( ctx.inFilenames[0], ctx.meshsets[0], 0 ); MB_CHK_ERR ( rval );
+        // Rescale the radius of both to compute the intersection
+        rval = ScaleToRadius(ctx.mbcore, ctx.meshsets[0], radius_src);MB_CHK_ERR ( rval );
         rval = remapper.ConvertMeshToTempest ( moab::Remapper::SourceMesh ); MB_CHK_ERR ( rval );
         ctx.meshes[0] = remapper.GetMesh ( moab::Remapper::SourceMesh );
 
         // Load the target mesh and validate
         rval = remapper.LoadNativeMesh ( ctx.inFilenames[1], ctx.meshsets[1], 0 ); MB_CHK_ERR ( rval );
+        rval = ScaleToRadius(ctx.mbcore, ctx.meshsets[1], radius_dest);MB_CHK_ERR ( rval );
         rval = remapper.ConvertMeshToTempest ( moab::Remapper::TargetMesh ); MB_CHK_ERR ( rval );
         ctx.meshes[1] = remapper.GetMesh ( moab::Remapper::TargetMesh );
 
