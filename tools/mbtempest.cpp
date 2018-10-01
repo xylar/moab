@@ -230,8 +230,8 @@ int main ( int argc, char* argv[] )
     ctx.timer_pop();
 
     // Some constant parameters
-    const double epsrel = 1.e-8;
-    const double boxeps = 0.1;
+    const double epsrel = 1.e-12;
+    const double boxeps = 1e-6;
 
     if ( ctx.meshType == moab::TempestRemapper::OVERLAP_MEMORY )
     {
@@ -366,7 +366,7 @@ int main ( int argc, char* argv[] )
         {
             printf ( "writing out the intersection mesh file to %s\n", "moab_intersection.h5m" );
             // rval = mbCore->add_entities ( ctx.meshsets[2], &ctx.meshsets[0], 2 ); MB_CHK_ERR ( rval );
-            rval = mbCore->write_file ( "moab_intersection.h5m", NULL, "PARALLEL=WRITE_PART", &ctx.meshsets[2], 1 ); MB_CHK_ERR ( rval );
+            rval = mbCore->write_file ( "moab_intersection.h5m", NULL, "PARALLEL=WRITE_PART", &ctx.meshsets[0], 3 ); MB_CHK_ERR ( rval );
         }
 
         {
@@ -447,10 +447,10 @@ int main ( int argc, char* argv[] )
 
             }
             
-            sstr.str("");
-            sstr << "outWeights_" << proc_id << ".nc";
-            weightMap->Write(sstr.str().c_str());
-            sstr.str("");
+            // sstr.str("");
+            // sstr << "outWeights_" << proc_id << ".nc";
+            // weightMap->Write(sstr.str().c_str());
+            // sstr.str("");
             // sstr << "newoutWeights_" << proc_id << ".nc";
             // weightMap->WriteParallelWeightsToFile(sstr.str().c_str());
 
