@@ -359,7 +359,7 @@ ErrorCode GeomTopoTool::delete_obb_tree(EntityHandle gset, bool vol_only) {
     rval = mdbImpl->tag_get_data(obbGsetTag, &(*it), 1, &gset);
     if (MB_SUCCESS == rval){
       // Remove from GTT
-      rval = remove_obb_root(*it);
+      rval = remove_root(gset);
       MB_CHK_SET_ERR(rval, "Failed to remove node from GTT data structure");
       // Delete the obbRootTag data from the vol or surf 
       rval = mdbImpl->tag_delete_data(obbRootTag, &gset, 1);
@@ -370,32 +370,6 @@ ErrorCode GeomTopoTool::delete_obb_tree(EntityHandle gset, bool vol_only) {
   // Delete the tree nodes from the database
   rval = mdbImpl->delete_entities(nodes_to_delete);
   MB_CHK_SET_ERR(rval, "Failed to delete node set");
-
-  return MB_SUCCESS;
-}
-
-ErrorCode GeomTopoTool::remove_obb_root(EntityHandle root){
-
-  if (m_rootSets_vector){
-    std::vector<EntityHandle>::iterator i = find(rootSets.begin(), rootSets.end(), root);
-    if(i != rootSets.end())
-      rootSets.erase(i);
-    else
-      return MB_ENTITY_NOT_FOUND;
-  }
-  else{
-    std::map<EntityHandle, EntityHandle>::iterator i;
-    bool removed = false;
-    for (i = mapRootSets.begin(); i != mapRootSets.end(); ++i){
-      if(i->second == root){
-        mapRootSets.erase(i->first);
-        removed = true;
-      }
-    }
-    if (removed == false){
-      return MB_ENTITY_NOT_FOUND;
-    }
-  }
 
   return MB_SUCCESS;
 }
