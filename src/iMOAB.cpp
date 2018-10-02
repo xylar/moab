@@ -2133,8 +2133,8 @@ ErrCode iMOAB_ComputeMeshIntersectionOnSphere ( iMOAB_AppID pid_src, iMOAB_AppID
 
     double radius_source=1.0;
     double radius_target=1.0;
-    const double epsrel=1e-12;
-    const double boxeps=1.e-6;
+    const double epsrel=1e-15;
+    const double boxeps=1.e-8;
 
     // Get the source and target data and pcomm objects
     appData& data_src = context.appDatas[*pid_src];
@@ -2490,7 +2490,7 @@ ErrCode iMOAB_ApplyScalarProjectionWeights (   iMOAB_AppID pid_intersection,
     {
         std::stringstream sstr;
         sstr << "covsrcTagData_" << pco_intx->rank() << ".txt";
-        std::ofstream output_file ( sstr.str() );
+        std::ofstream output_file ( sstr.str().c_str() );
         for (unsigned i=0; i < covSrcEnts.size(); ++i) {
             EntityHandle elem = covSrcEnts[i];
             std::vector<double> locsolSTagVals(16);
@@ -2518,7 +2518,7 @@ ErrCode iMOAB_ApplyScalarProjectionWeights (   iMOAB_AppID pid_intersection,
     {
         std::stringstream sstr;
         sstr << "colvector_" << pco_intx->rank() << ".txt";
-        std::ofstream output_file ( sstr.str() );
+        std::ofstream output_file ( sstr.str().c_str() );
         for (unsigned i = 0; i < solSTagVals.size(); ++i)
             output_file << i << " " << weightMap->col_dofmap[i] << " " << weightMap->col_gdofmap[i] << " " << solSTagVals[i] << "\n";
         output_file.flush(); // required here
