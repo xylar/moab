@@ -230,7 +230,7 @@ int main ( int argc, char* argv[] )
     ctx.timer_pop();
 
     // Some constant parameters
-    const double epsrel = 1.e-12;
+    const double epsrel = 1.e-15;
     const double boxeps = 1e-6;
 
     if ( ctx.meshType == moab::TempestRemapper::OVERLAP_MEMORY )
@@ -431,6 +431,12 @@ int main ( int argc, char* argv[] )
 #endif
 
             /*
+               ctx.timer_push ( "apply weights onto a vector" );
+               rval = weightMap->ApplyWeights ( srcVals, tgtvals, false);MB_CHK_ERR ( rval );
+               ctx.timer_pop();
+            */
+
+            /*
             * the file can be written in parallel, and it will contain additional tags defined by the user
             * we may extend the method to write only desired tags to the file
             */
@@ -438,19 +444,22 @@ int main ( int argc, char* argv[] )
                 // free allocated data
                 char outputFileTgt[]  = "fIntxTarget.h5m";
             #ifdef MOAB_HAVE_MPI
-                char writeOptions[] ="PARALLEL=WRITE_PART";
+                const char *writeOptions = (nprocs > 1 ? "PARALLEL=WRITE_PART" : "");
             #else
-                char writeOptions[] ="";
+                const char *writeOptions = "";
             #endif
 
                 rval = mbCore->write_file ( outputFileTgt, NULL, writeOptions, &ctx.meshsets[2], 1 ); MB_CHK_ERR ( rval );
 
             }
-            
-            // sstr.str("");
-            // sstr << "outWeights_" << proc_id << ".nc";
-            // weightMap->Write(sstr.str().c_str());
-            // sstr.str("");
+
+#ifdef VERBOSE
+            sstr.str("");
+            sstr << "outWeights_" << proc_id << ".nc";
+            weightMap->Write(sstr.str().c_str());
+            sstr.str("");
+#endif
+
             // sstr << "newoutWeights_" << proc_id << ".nc";
             // weightMap->WriteParallelWeightsToFile(sstr.str().c_str());
 
