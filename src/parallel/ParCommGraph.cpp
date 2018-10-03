@@ -42,7 +42,7 @@ ParCommGraph::ParCommGraph(MPI_Comm joincomm, MPI_Group group1, MPI_Group group2
 
   if (0==rankInGroup1)rootSender=true;
   if (0==rankInGroup2)rootReceiver=true;
-
+  recomputed_send_graph = false;
   comm_graph = NULL;
 }
 
@@ -478,7 +478,8 @@ ErrorCode ParCommGraph::send_tag_values (MPI_Comm jcomm, ParallelComm *pco, Rang
   int tag_size;
   rval = mb->tag_get_length(tag_handle, tag_size);MB_CHK_ERR ( rval );
 #endif
-  bool specified_ids = send_IDs_map.size() > 0;
+  // bool specified_ids = send_IDs_map.size() > 0;
+  bool specified_ids = recomputed_send_graph; // in cases when sender is completely over land, send_IDs_map can still be size 0
   int indexReq=0;
   if (!specified_ids) // original send
   {
@@ -741,6 +742,7 @@ ErrorCode ParCommGraph::settle_send_graph(TupleList & TLcovIDs)
   // fill send_IDs_map with data
   // will have "receiving proc" and global id of element
   int n = TLcovIDs.get_n();
+  recomputed_send_graph = true; // do not rely only on send_IDs_map.size(); this can be 0 in some cases
   for (int i=0; i<n; i++)
   {
     int to_proc= TLcovIDs.vi_wr[2 * i];
