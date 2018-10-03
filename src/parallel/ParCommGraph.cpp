@@ -521,6 +521,7 @@ ErrorCode ParCommGraph::send_tag_values (MPI_Comm jcomm, ParallelComm *pco, Rang
       gidToHandle[gids[i++]] = eh;
     }
     // now, pack the data and send it
+    sendReqs.resize(send_IDs_map.size());
     for (std::map<int ,std::vector<int> >::iterator mit =send_IDs_map.begin(); mit!=send_IDs_map.end(); mit++)
     {
       int receiver_proc = mit->first;
