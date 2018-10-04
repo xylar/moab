@@ -165,6 +165,11 @@ ErrorCode ParCommGraph::pack_receivers_graph(std::vector<int>& packed_recv_array
   /*
    * packed_array will have receiver, number of senders, then senders, etc
    */
+  if (recv_graph.size() < receiverTasks.size())
+  {
+    // big problem, we have empty partitions in receive
+    std::cout<<" WARNING: empty partitions, some receiver tasks will receive nothing.\n";
+  }
   for (std::map<int, std::vector<int> >::iterator it=recv_graph.begin(); it!=recv_graph.end(); it++ )
   {
     int recv = it->first;
@@ -418,6 +423,10 @@ ErrorCode ParCommGraph::receive_mesh(MPI_Comm jcomm, ParallelComm *pco, EntityHa
   }
   // make sure adjacencies are updated on the new elements
 
+  if (newEnts.empty())
+  {
+    std::cout <<" WARNING: this task did not receive any entities \n";
+  }
   // in order for the merging to work, we need to be sure that the adjacencies are updated (created)
   Range local_verts = newEnts.subset_by_type(MBVERTEX);
   newEnts = subtract(newEnts, local_verts);

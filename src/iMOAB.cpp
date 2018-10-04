@@ -1892,6 +1892,10 @@ ErrCode iMOAB_ReceiveMesh ( iMOAB_AppID pid, MPI_Comm* global, MPI_Group* sendin
     std::cout << "\n";
 #endif
 
+    if (senders_local.empty())
+    {
+      std::cout <<" we do not have any senders for receiver rank " << receiver_rank << "\n";
+    }
     rval = cgraph->receive_mesh ( *global, pco, local_set, senders_local );CHKERRVAL(rval);
 
     // after we are done, we could merge vertices that come from different senders, but
