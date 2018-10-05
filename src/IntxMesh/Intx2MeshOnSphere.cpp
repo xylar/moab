@@ -729,6 +729,7 @@ ErrorCode Intx2MeshOnSphere::build_processor_euler_boxes(EntityHandle euler_set,
 #endif
   if (MPI_SUCCESS != mpi_err) return MB_FAILURE;
 
+#ifdef VERBOSE
   if (my_rank==0)
   {
     std::cout << " maximum number of vertices per cell are " << max_edges_1 << " on first mesh and "
@@ -743,6 +744,7 @@ ErrorCode Intx2MeshOnSphere::build_processor_euler_boxes(EntityHandle euler_set,
       }
     }
   }
+#endif
 
   return MB_SUCCESS;
 }
@@ -943,7 +945,7 @@ ErrorCode Intx2MeshOnSphere::construct_covering_set(EntityHandle & initial_distr
   // if we need more than 2B, we will need to use a different marker anyway (GLOBAL ID is not enough then)
 
   TLq.enableWriteAccess();
-#ifndef NDEBUG
+#ifdef VERBOSE
   std::cout << "from proc " << my_rank << " send " << numv << " vertices and "
       << numq << " elements\n";
 #endif

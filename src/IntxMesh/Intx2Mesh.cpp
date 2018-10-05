@@ -268,9 +268,8 @@ ErrorCode Intx2Mesh::intersect_meshes(EntityHandle mbset1, EntityHandle mbset2,
   {
     if (rs22.size()<rs2.size())
     {
-      std::cout<< " possible not connected arrival mesh; my_rank: " << my_rank << " counting: " << counting <<"\n";
 #ifdef VERBOSE
-
+      std::cout<< " possible not connected arrival mesh; my_rank: " << my_rank << " counting: " << counting <<"\n";
       std::stringstream ffo;
       ffo << "file0" <<  counting<<"rank0"<< my_rank << ".vtk";
       rval = mb->write_mesh(ffo.str().c_str(), &outSet, 1);MB_CHK_ERR(rval);
@@ -377,8 +376,9 @@ ErrorCode Intx2Mesh::intersect_meshes(EntityHandle mbset1, EntityHandle mbset2,
       //mb2->set_tag_data
       std::queue<EntityHandle> localBlue;
       localBlue.push(currentBlue);
+#ifdef VERBOSE
       int countingStart = counting;
-
+#endif
       // will advance-front search in the neighborhood of red cell, until we finish processing all
       //   possible blue cells; localBlue queue will contain all possible blue cells that cover the current red cell
       while (!localBlue.empty())
@@ -466,7 +466,10 @@ ErrorCode Intx2Mesh::intersect_meshes(EntityHandle mbset1, EntityHandle mbset2,
       double redRecovery=fabs((recoveredArea-areaRedCell)/areaRedCell); // 0 means everything got recovered
       if ( redRecovery > epsilon_1)
       {
-        std::cout << " red area: " << areaRedCell << " recovered :" <<recoveredArea << " redID: " << mb->id_from_handle(currentRed) << " countingStart:" << countingStart <<  "\n";
+#ifdef VERBOSE
+        std::cout << " red area: " << areaRedCell << " recovered :" <<recoveredArea <<
+            " redID: " << mb->id_from_handle(currentRed) << " countingStart:" << countingStart <<  "\n";
+#endif
       }
       // here, we are finished with redCurrent, take it out of the rs22 range (red, arrival mesh)
       rs22.erase(currentRed);
@@ -751,8 +754,9 @@ ErrorCode Intx2Mesh::create_departure_mesh_2nd_alg(EntityHandle & euler_set, Ent
   int sizeTuple = 2+max_edges_1; // determined earlier, for blue, first mesh
   TLq.initialize(2+max_edges_1, 0, 1, 0, numq); // to proc, elem GLOBAL ID, connectivity[10] (global ID v), local eh
   TLq.enableWriteAccess();
+#ifdef VERBOSE
   std::cout << "from proc " << my_rank << " send " << numv << " vertices and " << numq << " elements\n";
-
+#endif
   for (int to_proc=0; to_proc<numprocs; to_proc++)
   {
     if (to_proc==(int)my_rank)
@@ -1060,8 +1064,10 @@ ErrorCode Intx2Mesh::create_departure_mesh_3rd_alg(EntityHandle & lagr_set,
   TLq.initialize(2+max_edges_1, 0, 1, 0, numq); // to proc, elem GLOBAL ID, connectivity[max_edges] (global ID v)
   // send also the corresponding red cell it will come to
   TLq.enableWriteAccess();
+#ifdef VERBOSE
   std::cout << "from proc " << my_rank << " send " << numv << " vertices and "
       << numq << " elements\n";
+#endif
 
   for (int to_proc = 0; to_proc < numprocs; to_proc++)
   {

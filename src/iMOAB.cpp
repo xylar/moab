@@ -182,9 +182,11 @@ ErrCode iMOAB_RegisterApplication ( const iMOAB_String app_name,
 
     *pid =  context.unused_pid++;
     context.appIdMap[name] = *pid;
-
-	std::cout << " application " << name << " with ID = " << *pid << " is registered now \n";
-
+    int rankHere=0;
+#ifdef MOAB_HAVE_MPI
+    MPI_Comm_rank( *comm, &rankHere );
+#endif
+    if (!rankHere) std::cout << " application " << name << " with ID = " << *pid << " is registered now \n";
     if ( *compid <= 0 )
     {
         std::cout << " convention for external application is to have its id positive \n";
@@ -2251,7 +2253,9 @@ ErrCode iMOAB_CoverageGraph ( MPI_Comm * join, iMOAB_AppID pid_src,
         // report the sender and receiver tasks in the joint comm
         srcSenders = sendGraph->senders();
         receivers = sendGraph->receivers();
+#ifdef VERBOSE
         std::cout << "senders: " << srcSenders.size() << " first sender: "<< srcSenders[0] << std::endl;
+#endif
       }
     }
     ParCommGraph * recvGraph = NULL; // will be non null on receiver tasks (intx tasks)
@@ -2267,7 +2271,9 @@ ErrCode iMOAB_CoverageGraph ( MPI_Comm * join, iMOAB_AppID pid_src,
         // report the sender and receiver tasks in the joint comm, from migrated mesh pt of view
         srcSenders = recvGraph->senders();
         receivers = recvGraph->receivers();
+#ifdef VERBOSE
         std::cout << "receivers: " << receivers.size() << " first receiver: "<< receivers[0] << std::endl;
+#endif
       }
     }
 

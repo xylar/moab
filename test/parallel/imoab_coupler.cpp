@@ -93,8 +93,28 @@ int main( int argc, char* argv[] )
   if (argc>2) {
     filename1 = std::string(argv[1]);
     filename2 = std::string(argv[2]);
+    if (argc>3) repartitioner_scheme = atoi(argv[3]);
+    if (argc>4)
+    {
+      int collocation;
+      collocation = atoi(argv[4]); // 0) original (half atm) 1) (half ocn) 2) collocated
+      if (1==collocation)
+      {
+        endG2=size/2-1; endG1=size-1;
+      }
+      else if (2==collocation)
+      {
+        endG2=size-1; endG1=size-1;
+      }
+    }
   }
 
+  if (!rank)
+  {
+    std::cout << " atm file: " << filename1 << "\n   on tasks : " << startG1 << ":"<<endG1 <<
+        "\n ocn file: " << filename2 << "\n     on tasks : " << startG2 << ":"<<endG2 <<
+        "\n  partitioning (0 trivial, 1 graph, 2 geometry) " << repartitioner_scheme << "\n  ";
+  }
 
   // load files on 2 different communicators, groups
   // first groups has task 0, second group tasks 0 and 1
@@ -119,6 +139,7 @@ int main( int argc, char* argv[] )
 
   // create 2 communicators, one for each group
   int tagcomm1 = 1, tagcomm2 = 2;
+  int rankInComm1 = -1, rankInComm2 = -1;
   MPI_Comm comm1, comm2;
   // comm1 is for atmosphere app;
   ierr = MPI_Comm_create_group(jcomm, group1, tagcomm1, &comm1);
@@ -148,19 +169,27 @@ int main( int argc, char* argv[] )
 
   PUSH_TIMER("Load source mesh")
   if (comm1 != MPI_COMM_NULL) {
+    MPI_Comm_rank( comm1, &rankInComm1 );
+    double t1= MPI_Wtime();
     ierr = iMOAB_RegisterApplication("ATM1", &comm1, &compid1, pid1);
     CHECKRC(ierr, "can't register app1 ")
     // load first mesh
     ierr = iMOAB_LoadMesh(pid1, filename1.c_str(), readopts.c_str(), &nghlay, filename1.length(), strlen(readopts.c_str()) );
     CHECKRC(ierr, "can't load mesh1 ")
-
+    double t2= MPI_Wtime();
+    if (!rankInComm1) std::cout << "[LOG] load atm mesh:" << t2-t1 << "\n";
     // then send mesh to coupler pes, on pid3
     ierr = iMOAB_SendMesh(pid1, &jcomm, &jgroup, &compid3, &repartitioner_scheme); // send to component 3, on coupler pes
     CHECKRC(ierr, "cannot send elements" )
+    double t3= MPI_Wtime();
+    if (!rankInComm1) std::cout << "[LOG] compute partition and send atm mesh: " << t3-t2 << "\n";
   }
   // now, receive meshes, on joint communicator; first mesh 1
+  double t4=MPI_Wtime();
   ierr = iMOAB_ReceiveMesh(pid3, &jcomm, &group1, &compid1); // receive from component 1
   CHECKRC(ierr, "cannot receive elements on ATMX app")
+  double t5=MPI_Wtime();
+  if (!rank) std::cout << "[LOG] receive atm mesh and resolve shared entities: " << t5-t4 << "\n";
   POP_TIMER()
 
   // we can now free the sender buffers
@@ -169,21 +198,31 @@ int main( int argc, char* argv[] )
     CHECKRC(ierr, "cannot free buffers used to send atm mesh")
   }
 
+  MPI_Barrier(MPI_COMM_WORLD);
+
   PUSH_TIMER("Load target mesh")
   if (comm2 != MPI_COMM_NULL) {
+    MPI_Comm_rank( comm2, &rankInComm2 );
     ierr = iMOAB_RegisterApplication("OCN1", &comm2, &compid2, pid2);
     CHECKRC(ierr, "can't register app2 ")
     // load second mesh
+    double t6 = MPI_Wtime();
     ierr = iMOAB_LoadMesh(pid2, filename2.c_str(), readopts.c_str(), &nghlay, filename2.length(), strlen(readopts.c_str()) );
     CHECKRC(ierr, "can't load mesh2, on pid2 ")
+    double t7 = MPI_Wtime();
+    if (!rankInComm2) std::cout << "[LOG] load ocn mesh:"<< t7-t6 << "\n";
     // then send mesh to coupler pes, on pid3
     ierr = iMOAB_SendMesh(pid2, &jcomm, &jgroup, &compid4, &repartitioner_scheme); // send to component 3, on coupler pes
     CHECKRC(ierr, "cannot send elements" )
+    double t8 = MPI_Wtime();
+    if (!rankInComm2) std::cout << "[LOG] compute partition and send ocn mesh:"<< t8-t7 << "\n";
   }
 
-
+  double t9=MPI_Wtime();
   ierr = iMOAB_ReceiveMesh(pid4, &jcomm, &group2, &compid2); // receive from component 2, ocn, on coupler pes
   CHECKRC(ierr, "cannot receive elements on OCNX app")
+  double t10=MPI_Wtime();
+  if (!rank) std::cout << "[LOG] receive ocn mesh and resolve shared entities: "<< t10-t9 << "\n";
   POP_TIMER()
 
   if (comm2 != MPI_COMM_NULL) {
@@ -191,6 +230,7 @@ int main( int argc, char* argv[] )
     CHECKRC(ierr, "cannot free buffers used to send ocn mesh")
   }
 
+  MPI_Barrier(MPI_COMM_WORLD);
 #ifdef MOAB_HAVE_TEMPESTREMAP
   // now compute intersection between OCNx and ATMx on coupler PEs
   ierr = iMOAB_RegisterApplication("AO", &jcomm, &intxid, pid5);
