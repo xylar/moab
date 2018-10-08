@@ -231,6 +231,19 @@ int main( int argc, char* argv[] )
   }
 
   MPI_Barrier(MPI_COMM_WORLD);
+  char outputFileTgt3[] = "recvTarget.h5m";
+  #ifdef MOAB_HAVE_MPI
+    char writeOptions3[] ="PARALLEL=WRITE_PART";
+  #else
+    char writeOptions3[] ="";
+  #endif
+  ierr = iMOAB_WriteMesh(pid4, outputFileTgt3, writeOptions3,
+    strlen(outputFileTgt3), strlen(writeOptions3) );
+  CHECKRC(ierr, "cannot write ocn mesh after receiving")
+
+  double t11=MPI_Wtime();
+    if (!rank) std::cout << "[LOG] write received ocn mesh on coupler pes: "<< t11-t10 << "\n";
+
 #ifdef MOAB_HAVE_TEMPESTREMAP
   // now compute intersection between OCNx and ATMx on coupler PEs
   ierr = iMOAB_RegisterApplication("AO", &jcomm, &intxid, pid5);
