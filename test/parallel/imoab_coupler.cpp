@@ -349,7 +349,6 @@ int main( int argc, char* argv[] )
   POP_TIMER()
 
 #ifdef VERBOSE
-    char writeOptions3[] ="PARALLEL=WRITE_PART";
     char outputFileRecvd[] = "recvAtmCoup.h5m";
     ierr = iMOAB_WriteMesh(pid3, outputFileRecvd, writeOptions3,
         strlen(outputFileRecvd), strlen(writeOptions3) );
