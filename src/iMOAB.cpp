@@ -1513,13 +1513,12 @@ ErrCode iMOAB_ReduceTagsMax ( iMOAB_AppID pid, int* tag_index, int* ent_type )
 #ifdef MOAB_HAVE_MPI
     appData& data = context.appDatas[*pid];
     Range ent_exchange;
-    std::vector<Tag> tags;
 
 
 	if ( *tag_index < 0 || *tag_index >= ( int ) data.tagList.size() )
         { return 1 ; } // error in tag index
 
-    tags.push_back ( data.tagList[*tag_index] );
+	Tag tagh = data.tagList[*tag_index];
 
 
     if ( * ent_type == 0 )
@@ -1530,8 +1529,8 @@ ErrCode iMOAB_ReduceTagsMax ( iMOAB_AppID pid, int* tag_index, int* ent_type )
     { return 1; } // unexpected type
 
     ParallelComm* pco = context.pcomms[*pid];
-    // we could do different MPI_Op; do not bother now, we will call from fortran, and
-    ErrorCode rval = pco->reduce_tags ( tags, tags, MPI_MAX, ent_exchange );
+    // we could do different MPI_Op; do not bother now, we will call from fortran
+    ErrorCode rval = pco->reduce_tags ( tagh, MPI_MAX, ent_exchange );
 	CHKERRVAL(rval);
 
 #else

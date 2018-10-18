@@ -66,6 +66,8 @@
 #include "moab_mpi.h"
 #include "moab/iMOAB.h"
 #include <stdio.h>
+#include <string.h>
+#include <vector>
 
 #define ERROR(rc, msg) if (0 != rc)  { printf ("error %s", msg); return 1;}
 
@@ -137,6 +139,27 @@ int main(int argc, char ** argv)
   rc = iMOAB_CreateElements(pid, &nume, &mbtype, &npe, connec, &blockid); ERROR(rc, "can't create elements");
 
   rc = iMOAB_ResolveSharedEntities( pid, &numv, ids ); ERROR(rc, "can't resolve shared ents");
+
+  // test iMOAB_ReduceTagsMax on a tag
+  int tagType = DENSE_INTEGER;
+  int num_components = 1;
+  int tagIndex = 0; // output
+
+  rc = iMOAB_DefineTagStorage(pid, "INTFIELD", &tagType, &num_components, &tagIndex,  strlen("INTFIELD") );
+  ERROR(rc, "failed to get tag INTFIELD ");
+  //set some values
+  std::vector<int> valstest(numv);
+  for (int k=0; k<numv; k++)
+  {
+    valstest[k] = my_id+k;
+  }
+  int num_tag_storage_length = numv*num_components;
+  int entType = 0; // vertex
+  rc = iMOAB_SetIntTagStorage ( pid, "INTFIELD", &num_tag_storage_length, &entType, &valstest[0], strlen("INTFIELD") );
+  ERROR(rc, "failed to set tag INTFIELD ");
+
+  rc = iMOAB_ReduceTagsMax ( pid, &tagIndex, &entType );
+  ERROR(rc, "failed reduce tags max ");
 
   /* see ghost elements */
   dimgh = 2; /* will ghost quads, topological dim 2 */
