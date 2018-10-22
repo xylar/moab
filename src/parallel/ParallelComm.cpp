@@ -3603,7 +3603,7 @@ ErrorCode ParallelComm::get_remote_handles(EntityHandle *local_vec, EntityHandle
     int num_tags;
     UNPACK_INT(buff_ptr, num_tags);
     std::vector<const void*> var_len_vals;
-    std::vector<unsigned char*> dum_vals;
+    std::vector<unsigned char> dum_vals;
     std::vector<EntityHandle> dum_ehvals;
 
     for (int i = 0; i < num_tags; i++) {
@@ -3721,7 +3721,13 @@ ErrorCode ParallelComm::get_remote_handles(EntityHandle *local_vec, EntityHandle
   ErrorCode ParallelComm::reduce(const MPI_Op mpi_op, int num_ents, void *old_vals, void *new_vals)
   {
     T *old_tmp = reinterpret_cast<T*>(old_vals);
-    T *new_tmp = reinterpret_cast<T*>(new_vals);
+    //T *new_tmp = reinterpret_cast<T*>(new_vals);
+    // new vals pointer needs to be aligned , some compilers will optimize and will shift
+
+    std::vector<T> new_values;
+    new_values.resize(num_ents);
+    memcpy( &new_values[0], new_vals, num_ents * sizeof(T));
+    T *new_tmp = &new_values[0];
 
     if (mpi_op == MPI_SUM)
       std::transform(old_tmp, old_tmp + num_ents, new_tmp, new_tmp, ADD<T>);
@@ -3745,6 +3751,10 @@ ErrorCode ParallelComm::get_remote_handles(EntityHandle *local_vec, EntityHandle
       std::cerr << "Unknown MPI operation type." << std::endl;
       return MB_TYPE_OUT_OF_RANGE;
     }
+
+    // copy now the result back where it should be
+    memcpy( new_vals, new_tmp, num_ents * sizeof(T));
+    std::vector<T>().swap(new_values); // way to release allocated vector
 
     return MB_SUCCESS;
   }
