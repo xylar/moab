@@ -3754,7 +3754,7 @@ ErrorCode ParallelComm::get_remote_handles(EntityHandle *local_vec, EntityHandle
 
     // copy now the result back where it should be
     memcpy( new_vals, new_tmp, num_ents * sizeof(T));
-    new_values.resize(0);
+    std::vector<T>().swap(new_values); // way to release allocated vector
 
     return MB_SUCCESS;
   }
