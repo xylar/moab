@@ -274,14 +274,14 @@ int main( int argc, char* argv[] )
   ierr = iMOAB_CoverageGraph(&jcomm, pid1,  &compid1, pid3,  &compid3, pid5); // it happens over joint communicator
   CHECKRC(ierr, "cannot recompute direct coverage graph" )
   POP_TIMER()
-  
 
+  const char* weights_identifiers[1] = {"scalar"};
   int disc_orders[2] = {4, 1};
   const char* disc_methods[2] = {"cgll", "fv"};
   const char* dof_tag_names[2] = {"GLOBAL_DOFS", "GLOBAL_ID"};
   int fVolumetric=0, fValidate=1, fNoConserve=0;
   PUSH_TIMER("Compute the projection weights with TempestRemap")
-  ierr = iMOAB_ComputeScalarProjectionWeights ( pid5,
+  ierr = iMOAB_ComputeScalarProjectionWeights ( pid5, weights_identifiers[0],
                                                 disc_methods[0], &disc_orders[0],
                                                 disc_methods[1], &disc_orders[1],
                                                 &fVolumetric, &fNoConserve, &fValidate,
@@ -362,7 +362,7 @@ int main( int argc, char* argv[] )
   /* We have the remapping weights now. Let us apply the weights onto the tag we defined 
      on the source mesh and get the projection on the target mesh */
   PUSH_TIMER("Apply Scalar projection weights")
-  ierr = iMOAB_ApplyScalarProjectionWeights ( pid5,
+  ierr = iMOAB_ApplyScalarProjectionWeights ( pid5, weights_identifiers[0],
                                             fieldname,
                                             fieldnameT,
                                             strlen(fieldname),

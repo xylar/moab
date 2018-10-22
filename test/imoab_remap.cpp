@@ -133,12 +133,14 @@ int main(int argc, char * argv[])
    * This method is collective.
    */
   int disc_orders[2] = {4, 1};
+  const char* weights_identifiers[2] = {"scalar", "scalar_conservative"};
   const char* disc_methods[2] = {"cgll", "fv"};
   const char* dof_tag_names[2] = {"GLOBAL_DOFS", "GLOBAL_ID"};
   int fVolumetric=0, fValidate=1, fNoConserve=0;
   
   const char* fieldname = "a2oTAG";
   const char* fieldnameT = "a2oTAG_proj";
+  const char* fieldnameTnc = "a2oTAG_projnocons";
   int tagIndex[2];
   // int entTypes[2] = {1, 1}; /* both on elements; */
   int tagTypes[2] = { DENSE_DOUBLE, DENSE_DOUBLE } ;
@@ -150,12 +152,17 @@ int main(int argc, char * argv[])
   rc = iMOAB_DefineTagStorage(pid2, fieldnameT, &tagTypes[1], &num_components2, &tagIndex[1],  strlen(fieldnameT) );
   CHECKRC(rc, "failed to define the field tag");
 
+  rc = iMOAB_DefineTagStorage(pid2, fieldnameTnc, &tagTypes[1], &num_components2, &tagIndex[1],  strlen(fieldnameTnc) );
+  CHECKRC(rc, "failed to define the field tag");
+
   /* Next compute the mesh intersection on the sphere between the source and target meshes */
   rc = iMOAB_ComputeMeshIntersectionOnSphere(pid1, pid2, pid3);
   CHECKRC(rc, "failed to compute mesh intersection");
   
   /* We have the mesh intersection now. Let us compute the remapping weights */
+  fNoConserve=1;
   rc = iMOAB_ComputeScalarProjectionWeights ( pid3, 
+                                              weights_identifiers[0], 
                                               disc_methods[0], &disc_orders[0], 
                                               disc_methods[1], &disc_orders[1], 
                                               &fVolumetric, &fNoConserve, &fValidate, 
@@ -163,17 +170,42 @@ int main(int argc, char * argv[])
                                               strlen(disc_methods[0]), strlen(disc_methods[1]),
                                               strlen(dof_tag_names[0]), strlen(dof_tag_names[1])
                                             );
-  CHECKRC(rc, "failed to compute remapping projection weights");
+  CHECKRC(rc, "failed to compute remapping projection weights for scalar non-conservative field");
+
+  /* We have the mesh intersection now. Let us compute the remapping weights */
+  fNoConserve=0;
+  rc = iMOAB_ComputeScalarProjectionWeights ( pid3, 
+                                              weights_identifiers[1], 
+                                              disc_methods[0], &disc_orders[0], 
+                                              disc_methods[1], &disc_orders[1], 
+                                              &fVolumetric, &fNoConserve, &fValidate, 
+                                              dof_tag_names[0], dof_tag_names[1],
+                                              strlen(disc_methods[0]), strlen(disc_methods[1]),
+                                              strlen(dof_tag_names[0]), strlen(dof_tag_names[1])
+                                            );
+  CHECKRC(rc, "failed to compute remapping projection weights for scalar conservative field");
 
   /* We have the remapping weights now. Let us apply the weights onto the tag we defined 
      on the srouce mesh and get the projection on the target mesh */
   rc = iMOAB_ApplyScalarProjectionWeights ( pid3,
+                                            weights_identifiers[0], 
+                                            fieldname,
+                                            fieldnameTnc,
+                                            strlen(fieldname),
+                                            strlen(fieldnameTnc)
+                                            );
+  CHECKRC(rc, "failed to compute projection weight application for scalar non-conservative field");
+
+  /* We have the remapping weights now. Let us apply the weights onto the tag we defined 
+     on the srouce mesh and get the projection on the target mesh */
+  rc = iMOAB_ApplyScalarProjectionWeights ( pid3,
+                                            weights_identifiers[1], 
                                             fieldname,
                                             fieldnameT,
                                             strlen(fieldname),
                                             strlen(fieldnameT)
                                             );
-  CHECKRC(rc, "failed to compute projection weight application");
+  CHECKRC(rc, "failed to compute projection weight application for scalar conservative field");
   
   /*
    * the file can be written in parallel, and it will contain additional tags defined by the user

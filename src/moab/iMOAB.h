@@ -743,30 +743,36 @@ ErrCode iMOAB_CoverageGraph(MPI_Comm* join, iMOAB_AppID pid_src, int* scompid, i
 
   <B>Operations:</B> Collective
 
-  \param[in/out] pid_intersection (iMOAB_AppID)   The unique pointer to the intersection application ID
-  \param[in] disc_method_src  (iMOAB_String)      The discretization type ("fv", "cgll", "dgll") for the solution field on the source grid
-  \param[in] disc_order_src   (int *)             The discretization order for the solution field on the source grid
-  \param[in] disc_method_tgt  (iMOAB_String)      The discretization type ("fv", "cgll", "dgll") for the solution field on the source grid
-  \param[in] disc_order_tgt   (int *)             The discretization order for the solution field on the source grid
-  \param[in] fVolumetric   (int *)                The flag to indicate whether we need to compute volumetric projection weights
-  \param[in] fNoConservation   (int *)            The flag to indicate whether to ignore conservation of solution field during projection
-  \param[in] fValidate   (int *)                  The flag to indicate whether to validate the consistency and conservation of solution field during projection; 
-                                                  Production runs should not have this flag enabled to minimize collective operations.
-  \param[in] disc_method_src_length   (int)       The length of the discretization type string on the source mesh
-  \param[in] disc_method_tgt_length   (int)       The length of the discretization type string on the target mesh
-  
+  \param[in/out] pid_intersection (iMOAB_AppID)            The unique pointer to the intersection application ID
+  \param[in] solution_weights_identifier  (iMOAB_String)   The unique identifier used to store the computed projection weights locally. Typically, 
+                                                           values could be identifiers such as "scalar", "flux" or "custom".
+  \param[in] disc_method_source  (iMOAB_String)            The discretization type ("fv", "cgll", "dgll") for the solution field on the source grid
+  \param[in] disc_order_source   (int *)                   The discretization order for the solution field on the source grid
+  \param[in] disc_method_target  (iMOAB_String)            The discretization type ("fv", "cgll", "dgll") for the solution field on the source grid
+  \param[in] disc_order_target   (int *)                   The discretization order for the solution field on the source grid
+  \param[in] fVolumetric   (int *)                         The flag to indicate whether we need to compute volumetric projection weights
+  \param[in] fNoConservation   (int *)                     The flag to indicate whether to ignore conservation of solution field during projection
+  \param[in] fValidate   (int *)                           The flag to indicate whether to validate the consistency and conservation of solution field during projection; 
+                                                           Production runs should not have this flag enabled to minimize collective operations.
+  \param[in] source_solution_tag_dof_name   (iMOAB_String) The global DoF IDs corresponding to participating degrees-of-freedom for the source discretization
+  \param[in] target_solution_tag_dof_name   (iMOAB_String) The global DoF IDs corresponding to participating degrees-of-freedom for the target discretization
+  \param[in] disc_method_src_length   (int)                The length of the discretization type string on the source mesh
+  \param[in] disc_method_tgt_length   (int)                The length of the discretization type string on the target mesh
+  \param[in] source_solution_tag_dof_name_length   (int)   The length of the source solution DoF tag name string
+  \param[in] target_solution_tag_dof_name_length   (int)   The length of the target solution DoF tag name string
 */
 
-ErrCode iMOAB_ComputeScalarProjectionWeights ( iMOAB_AppID pid_intersection, 
+ErrCode iMOAB_ComputeScalarProjectionWeights ( iMOAB_AppID pid_intersection,
+                                               const iMOAB_String solution_weights_identifier, /* "scalar", "flux", "custom" */
                                                const iMOAB_String disc_method_source, int* disc_order_source,
                                                const iMOAB_String disc_method_target, int* disc_order_target,
                                                int* fVolumetric, int* fNoConservation, int* fValidate,
-                                               const iMOAB_String src_soln_tag_dof_name,
-                                               const iMOAB_String dest_soln_tag_dof_name,
+                                               const iMOAB_String source_solution_tag_dof_name,
+                                               const iMOAB_String target_solution_tag_dof_name,
                                                int disc_method_src_length,
                                                int disc_method_tgt_length,
-                                               int src_soln_tag_dof_name_length,
-                                               int dest_soln_tag_dof_name_length );
+                                               int source_solution_tag_dof_name_length,
+                                               int target_solution_tag_dof_name_length );
 
 /**
   \brief Apply the projection weights matrix operator onto the source tag in order to compute the solution (tag) repersented
@@ -774,13 +780,20 @@ ErrCode iMOAB_ComputeScalarProjectionWeights ( iMOAB_AppID pid_intersection,
 
   <B>Operations:</B> Collective
 
-  \param[in/out] pid_intersection (iMOAB_AppID)       The unique pointer to the intersection application ID
+  \param[in/out] pid_intersection (iMOAB_AppID)            The unique pointer to the intersection application ID
+  \param[in] solution_weights_identifier  (iMOAB_String)   The unique identifier used to store the computed projection weights locally. Typically, 
+                                                           values could be identifiers such as "scalar", "flux" or "custom".
+  \param[in] source_solution_tag_name   (iMOAB_String)     The global solution field tag vector corresponding to participating degrees-of-freedom for the source discretization
+  \param[in] target_solution_tag_name   (iMOAB_String)     The global solution field tag vector corresponding to participating degrees-of-freedom for the target discretization
+  \param[in] source_solution_tag_name_length   (int)       The length of the source solution field tag name string
+  \param[in] target_solution_tag_name_length   (int)       The length of the target solution fieldtag name string
 */
 ErrCode iMOAB_ApplyScalarProjectionWeights (   iMOAB_AppID pid_intersection, 
-                                               const iMOAB_String src_soln_tag_name,
-                                               const iMOAB_String dest_soln_tag_name,
-                                               int src_soln_tag_name_length,
-                                               int dest_soln_tag_name_length );
+                                               const iMOAB_String solution_weights_identifier, /* "scalar", "flux", "custom" */
+                                               const iMOAB_String source_solution_tag_name,
+                                               const iMOAB_String target_solution_tag_name,
+                                               int source_solution_tag_name_length,
+                                               int target_solution_tag_name_length );
 
 #endif
 

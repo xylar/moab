@@ -81,7 +81,7 @@ struct appData
 
 #ifdef MOAB_HAVE_TEMPESTREMAP
 	moab::TempestRemapper* remapper;
-    moab::TempestOfflineMap* weightMap;
+    std::map<std::string,moab::TempestOfflineMap*> weightMaps;
 	iMOAB_AppID pid_src;
 	iMOAB_AppID pid_dest;
 #endif
@@ -479,7 +479,8 @@ ErrCode iMOAB_ReadHeaderInfo ( const iMOAB_String filename, int* num_global_vert
     free ( data );
 
 #else
-    std::cout << " cannot retrieve header info except for h5m file \n";
+    std::cout << filename << ": Please reconfigure with HDF5. Cannot retrieve header information for file formats other than a h5m file.\n";
+    *num_global_vertices = *num_global_elements = *num_dimension = *num_parts = 0;
 #endif
 
     return 0;
@@ -2215,9 +2216,6 @@ ErrCode iMOAB_ComputeMeshIntersectionOnSphere ( iMOAB_AppID pid_src, iMOAB_AppID
     // rval = data_intx.remapper->ConvertMeshToTempest ( moab::Remapper::IntersectedMesh );CHKERRVAL(rval);
 	data_src.covering_set = data_intx.remapper->GetCoveringSet();
 
-    // Set the context for the OfflineMap computation
-    data_intx.weightMap = new moab::TempestOfflineMap ( data_intx.remapper );
-
     // if (radii_scaled) { /* the radii are different, so lets rescale back */
     //     rval = ScaleToRadius(context.MBI, data_src.file_set, radius_source);CHKERRVAL(rval);
     //     rval = ScaleToRadius(context.MBI, data_tgt.file_set, radius_target);CHKERRVAL(rval);
@@ -2388,30 +2386,34 @@ ErrCode iMOAB_CoverageGraph ( MPI_Comm * join, iMOAB_AppID pid_src,
 }
 
 ErrCode iMOAB_ComputeScalarProjectionWeights ( iMOAB_AppID pid_intx, 
+                                               const iMOAB_String solution_weights_identifier, /* "scalar", "flux", "custom" */
                                                const iMOAB_String disc_method_source, int* disc_order_source,
                                                const iMOAB_String disc_method_target, int* disc_order_target,
                                                int* fVolumetric, int* fNoConservation,
                                                int* fValidate,
-                                               const iMOAB_String source_soln_tag_dof_name,
-                                               const iMOAB_String target_soln_tag_dof_name,
+                                               const iMOAB_String source_solution_tag_dof_name,
+                                               const iMOAB_String target_solution_tag_dof_name,
                                                int disc_method_source_length,
                                                int disc_method_target_length,
-                                               int source_soln_tag_dof_name_length,
-                                               int target_soln_tag_dof_name_length)
+                                               int source_solution_tag_dof_name_length,
+                                               int target_solution_tag_dof_name_length)
 {
 	moab::ErrorCode rval;
 	
 	assert(disc_order_source && disc_order_target && *disc_order_source > 0 && *disc_order_target > 0);
 	assert(disc_method_source_length > 0 && disc_method_target_length > 0);
-    assert(source_soln_tag_dof_name_length > 0 && target_soln_tag_dof_name_length > 0);
+    assert(source_solution_tag_dof_name_length > 0 && target_solution_tag_dof_name_length > 0);
     
     // Get the source and target data and pcomm objects
 	appData& data_intx = context.appDatas[*pid_intx];
     ParallelComm* pco_intx = context.pcomms[*pid_intx];
 
 	// Setup computation of weights
+    // Set the context for the OfflineMap computation
+    data_intx.weightMaps[solution_weights_identifier] = new moab::TempestOfflineMap ( data_intx.remapper );
+
 	// Call to generate an offline map with the tempest meshes
-    moab::TempestOfflineMap* weightMap = data_intx.weightMap;
+    moab::TempestOfflineMap* weightMap = data_intx.weightMaps[solution_weights_identifier];
     assert(weightMap != NULL);
 
     // Now let us compute the local-global mapping and store it in the context
@@ -2423,7 +2425,7 @@ ErrCode iMOAB_ComputeScalarProjectionWeights ( iMOAB_AppID pid_intx,
 										   (fVolumetric ? *fVolumetric > 0 : false),  // bool fVolumetric=false, 
                                            (fNoConservation ? *fNoConservation > 0 : false), // bool fNoConservation=false, 
                                            false, // bool fNoCheck=false,
-                                           source_soln_tag_dof_name, target_soln_tag_dof_name,
+                                           source_solution_tag_dof_name, target_solution_tag_dof_name,
 										   "", //"",   // std::string strVariables="", std::string strOutputMap="",
 										   "", "",   // std::string strInputData="", std::string strOutputData="",
 										   "", false,  // std::string strNColName="", bool fOutputDouble=false,
@@ -2456,26 +2458,27 @@ ErrCode iMOAB_ComputeScalarProjectionWeights ( iMOAB_AppID pid_intx,
 
 
 ErrCode iMOAB_ApplyScalarProjectionWeights (   iMOAB_AppID pid_intersection, 
-                                               const iMOAB_String src_solution_tag_name,
-                                               const iMOAB_String dest_soln_tag_name,
-                                               int src_soln_tag_name_length,
-                                               int dest_soln_tag_name_length )
+                                               const iMOAB_String solution_weights_identifier, /* "scalar", "flux", "custom" */
+                                               const iMOAB_String source_solution_tag_name,
+                                               const iMOAB_String target_solution_tag_name,
+                                               int source_solution_tag_name_length,
+                                               int target_solution_tag_name_length )
 {
     moab::ErrorCode rval;
 
-    assert(src_soln_tag_name_length > 0 && dest_soln_tag_name_length > 0);
+    assert(source_solution_tag_name_length > 0 && target_solution_tag_name_length > 0);
 
     // Get the source and target data and pcomm objects
     appData& data_intx = context.appDatas[*pid_intersection];
     
     // Now allocate and initialize the remapper object
     moab::TempestRemapper* remapper = data_intx.remapper;
-    moab::TempestOfflineMap* weightMap = data_intx.weightMap;
+    moab::TempestOfflineMap* weightMap = data_intx.weightMaps[solution_weights_identifier];
 
     /* Global ID - exchange data for covering data */
     Tag ssolnTag, tsolnTag;
-    rval = context.MBI->tag_get_handle ( src_solution_tag_name, ssolnTag );CHKERRVAL(rval);
-    rval = context.MBI->tag_get_handle ( dest_soln_tag_name, tsolnTag );CHKERRVAL(rval);
+    rval = context.MBI->tag_get_handle ( source_solution_tag_name, ssolnTag );CHKERRVAL(rval);
+    rval = context.MBI->tag_get_handle ( target_solution_tag_name, tsolnTag );CHKERRVAL(rval);
 
     moab::Range& covSrcEnts = remapper->GetMeshEntities(moab::Remapper::CoveringMesh);
     moab::Range& tgtEnts = remapper->GetMeshEntities(moab::Remapper::TargetMesh);
