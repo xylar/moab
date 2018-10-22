@@ -152,7 +152,7 @@ int main(int argc, char* argv[])
 
     int compid, ngseg, gsize;
     inFile >> compid >> ngseg >> gsize;
-    for (int i=1; i <= ngseg; i++)
+    for ( i=1; i <= ngseg; i++)
     {
       int start, len, pe;
       inFile >> start >>  len >> pe;

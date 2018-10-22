@@ -463,12 +463,13 @@ ErrorCode Intx2Mesh::intersect_meshes(EntityHandle mbset1, EntityHandle mbset2,
         }
 #endif
       } // end while (!localBlue.empty())
-      double redRecovery=fabs((recoveredArea-areaRedCell)/areaRedCell); // 0 means everything got recovered
+      recoveredArea = (recoveredArea-areaRedCell)/areaRedCell; // replace now with recovery fraction
 #if defined(ENABLE_DEBUG) || defined(VERBOSE)
-      if ( redRecovery > epsilon_1)
+      if ( fabs(recoveredArea) > epsilon_1)
       {
 #ifdef VERBOSE
-        std::cout << " red area: " << areaRedCell << " recovered :" <<recoveredArea <<
+        std::cout << " red area: " << areaRedCell << " recovered :" <<recoveredArea*(1+areaRedCell) <<
+            " fraction error recovery:" << recoveredArea <<
             " redID: " << mb->id_from_handle(currentRed) << " countingStart:" << countingStart <<  "\n";
 #endif
       }

@@ -180,7 +180,6 @@ int main(int argc, char* argv[])
   i=0;
   for (Range::iterator c2it = cells2.begin(); c2it != cells2.end(); c2it++)
   {
-    EntityHandle c2 = *c2it;
     double val2 = vals2[i];
     int id2 = gids[i];
     i++;
