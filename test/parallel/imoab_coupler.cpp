@@ -380,8 +380,35 @@ int main( int argc, char* argv[] )
   ierr = iMOAB_WriteMesh(pid4, outputFileTgt, writeOptions2,
     strlen(outputFileTgt), strlen(writeOptions2) );
 
+  // send the projected tag back to ocean pes, with send/receive tag
+  if (comm2 != MPI_COMM_NULL) {
+    int tagIndexIn2;
+    ierr = iMOAB_DefineTagStorage(pid2, fieldnameT, &tagTypes[1], &num_components2, &tagIndexIn2,  strlen(fieldnameT) );
+    CHECKRC(ierr, "failed to define the field tag for receiving back the tag on ocn pes");
+  }
+  // send the tag to ocean pes, from ocean mesh on coupler pes
+  // first, send from compid4 to compid4, from comm2, using common joint comm
+      // as always, use nonblocking sends
+  ierr = iMOAB_SendElementTag(pid4, &compid4, &compid2, "a2oTAG_proj", &jcomm, strlen("a2oTAG_proj"));
+  CHECKRC(ierr, "cannot send tag values back to ocean pes")
+
+  // receive on component 2, ocean
+  if (comm2 != MPI_COMM_NULL)
+  {
+    ierr = iMOAB_ReceiveElementTag(pid2, &compid2, &compid4, "a2oTAG_proj", &jcomm, strlen("a2oTAG_proj"));
+    CHECKRC(ierr, "cannot receive tag values from ocean mesh on coupler pes")
+  }
+
+  ierr = iMOAB_FreeSenderBuffers(pid4, &jcomm, &compid4);
+
+  char outputFileOcn[] = "OcnWithProj.h5m";
+  ierr = iMOAB_WriteMesh(pid2, outputFileOcn, writeOptions2,
+      strlen(outputFileOcn), strlen(writeOptions2) );
+
+
   ierr = iMOAB_DeregisterApplication(pid5);
   CHECKRC(ierr, "cannot deregister app intx AO" )
+
 
 #endif
 
