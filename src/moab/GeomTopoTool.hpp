@@ -332,7 +332,7 @@ private:
 
   ErrorCode resize_rootSets();
 
-  void set_root_set(EntityHandle vol_or_surf, EntityHandle root);
+  ErrorCode set_root_set(EntityHandle vol_or_surf, EntityHandle root);
 
     //! Return a range of children of a desired geometric dimension
   Range get_ct_children_by_dimension(const EntityHandle parent, const int desired_dimension);
@@ -367,23 +367,6 @@ inline ErrorCode GeomTopoTool::get_root(EntityHandle vol_or_surf, EntityHandle &
    return (root ? MB_SUCCESS : MB_INDEX_OUT_OF_RANGE);
 }
 
-inline ErrorCode GeomTopoTool::remove_root(EntityHandle vol_or_surf) {
-   if(m_rootSets_vector)
-   {
-     unsigned int index = vol_or_surf - setOffset;
-     if( index < rootSets.size() ) {
-       rootSets[index] = 0;
-     }
-     else {
-       return MB_INDEX_OUT_OF_RANGE;
-     }
-   }
-   else {
-      mapRootSets[vol_or_surf] = 0;
-   }
-   
-   return MB_SUCCESS;
-}
   
 inline EntityHandle GeomTopoTool::get_one_vol_root()
 {
@@ -395,8 +378,6 @@ inline Tag GeomTopoTool::get_sense_tag() { check_face_sense_tag(true); return se
 inline Tag GeomTopoTool::get_gid_tag() { check_gid_tag(true); return gidTag; }
 
 inline Tag GeomTopoTool::get_geom_tag() { check_geom_tag(true); return geomTag; }
-
-//inline Tag GeomTopoTool::get_obb_root_tag() { check_obb_root_tags(true); return obbRootTag; }
 
 inline bool GeomTopoTool::is_implicit_complement(EntityHandle volume) { return volume == impl_compl_handle; }
 

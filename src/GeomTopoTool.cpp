@@ -320,8 +320,8 @@ ErrorCode GeomTopoTool::delete_obb_tree(EntityHandle gset, bool vol_only) {
     // a surface root node is reached
     while(child_tree_nodes.size() != 0){
       EntityHandle child = *child_tree_nodes.begin();
-      EntityHandle gset;
-      rval = mdbImpl->tag_get_data(obbGsetTag, &child, 1, &gset);
+      EntityHandle surf;
+      rval = mdbImpl->tag_get_data(obbGsetTag, &child, 1, &surf);
       // If the node has a gset tag, it is a surf root. Stop here.
       // If not, it is a tree node that needs to 1) have its children checked and
       //  2) be added to delete range
@@ -346,24 +346,15 @@ ErrorCode GeomTopoTool::delete_obb_tree(EntityHandle gset, bool vol_only) {
     nodes_to_delete.insert_list(all_tree_nodes.begin(), all_tree_nodes.end());
   }
 
-  // Remove the vol root from obbtreetool
-  if (dim == 3){
-    rval = obbTree->remove_root(root);
-    MB_CHK_SET_ERR(rval, "Failed to remove root from obbTreeTool");
-  }
- 
-  // Remove the root nodes from the GTT data structures and delete tag data from gsets
+  // Remove the root nodes from the GTT data structures
   for (Range::iterator it = nodes_to_delete.begin(); it != nodes_to_delete.end(); ++it){ 
     // Check to see if node is a root
-    EntityHandle gset;
-    rval = mdbImpl->tag_get_data(obbGsetTag, &(*it), 1, &gset);
+    EntityHandle vol_or_surf;
+    rval = mdbImpl->tag_get_data(obbGsetTag, &(*it), 1, &vol_or_surf);
     if (MB_SUCCESS == rval){
-      // Remove from GTT
-      rval = remove_root(gset);
+      // Remove from set of all roots
+      rval = remove_root(vol_or_surf);
       MB_CHK_SET_ERR(rval, "Failed to remove node from GTT data structure");
-      // Delete the obbRootTag data from the vol or surf 
-      rval = mdbImpl->tag_delete_data(obbRootTag, &gset, 1);
-      MB_CHK_SET_ERR(rval, "Failed to delete obb root tag");
     }
   }
   
@@ -427,14 +418,12 @@ ErrorCode GeomTopoTool::construct_obb_tree(EntityHandle eh)
     // add this root to the GeomTopoTool tree root indexing
     set_root_set(eh, root);
 
-    // Tag gset with its obb root (obbRootTag)
-    rval = mdbImpl->tag_set_data(obbRootTag, &eh, 1, &root);
-    MB_CHK_SET_ERR(rval, "Failed to set the obb root tag");
 
-    // Tag obb root with corresponding gset (obbGsetTag)
-    rval = mdbImpl->tag_set_data(obbGsetTag, &root, 1, &eh);
-    MB_CHK_SET_ERR(rval, "Failed to set the obb gset tag");
-    
+   
+    //Range rootmems;
+    //rval = mdbImpl->get_entities_by_type(root, MBENTITYSET, rootmems);
+    //std::cout << "num ents, begin " << rootmems.size() << ", " << *rootmems.begin() << ", " << eh << std::endl;
+  
  
     // if just building tree for surface, return here
     return MB_SUCCESS;
@@ -472,13 +461,6 @@ ErrorCode GeomTopoTool::construct_obb_tree(EntityHandle eh)
     // add this root to the GeomTopoTool tree root indexing
     set_root_set(eh, root);
     
-    // Tag gset with its obb root (obbRootTag)
-    rval = mdbImpl->tag_set_data(obbRootTag, &eh, 1, &root);
-    MB_CHK_SET_ERR(rval, "Failed to set the obb root tag");
-
-    // Tag obb root with corresponding gset (obbGsetTag)
-    rval = mdbImpl->tag_set_data(obbGsetTag, &root, 1, &eh);
-    MB_CHK_SET_ERR(rval, "Failed to set the obb gset tag");
     return MB_SUCCESS;
   }
   else {
@@ -487,11 +469,61 @@ ErrorCode GeomTopoTool::construct_obb_tree(EntityHandle eh)
   
 }
 
-void GeomTopoTool::set_root_set(EntityHandle vol_or_surf, EntityHandle root) {
-      if (m_rootSets_vector)
-        rootSets[vol_or_surf - setOffset] = root;
-      else
-        mapRootSets[vol_or_surf] = root;  
+ErrorCode GeomTopoTool::set_root_set(EntityHandle vol_or_surf, EntityHandle root) {
+
+  // Tag the vol or surf with its obb root (obbRootTag)
+  ErrorCode rval;
+  rval = mdbImpl->tag_set_data(obbRootTag, &vol_or_surf, 1, &root);
+  MB_CHK_SET_ERR(rval, "Failed to set the obb root tag");
+
+  // Tag obb root with corresponding gset (obbGsetTag)
+  rval = mdbImpl->tag_set_data(obbGsetTag, &root, 1, &vol_or_surf);
+  MB_CHK_SET_ERR(rval, "Failed to set the obb gset tag");
+
+  // Add to the set of all roots
+  if (m_rootSets_vector)
+    rootSets[vol_or_surf - setOffset] = root;
+  else
+    mapRootSets[vol_or_surf] = root;  
+
+  return MB_SUCCESS;
+}
+
+ErrorCode GeomTopoTool::remove_root(EntityHandle vol_or_surf) {
+  
+  ErrorCode rval;
+  EntityHandle root;
+  rval = mdbImpl->tag_get_data(obbRootTag, &(vol_or_surf), 1, &root);
+  MB_CHK_SET_ERR(rval, "Failed to get obb root tag");
+  
+  // Remove the vol root from obbtreetool
+  rval = obbTree->remove_root(root);
+  MB_CHK_SET_ERR(rval, "Failed to remove root from obbTreeTool");
+
+  // Delete the obbGsetTag data from the root 
+  rval = mdbImpl->tag_delete_data(obbGsetTag, &root, 1);
+  MB_CHK_SET_ERR(rval, "Failed to delete obb root tag");
+
+  // Delete the obbRootTag data from the vol or surf 
+  rval = mdbImpl->tag_delete_data(obbRootTag, &vol_or_surf, 1);
+  MB_CHK_SET_ERR(rval, "Failed to delete obb root tag");
+
+
+  if(m_rootSets_vector)
+  {
+    unsigned int index = vol_or_surf - setOffset;
+    if( index < rootSets.size() ) {
+      rootSets[index] = 0;
+    }
+    else {
+      return MB_INDEX_OUT_OF_RANGE;
+    }
+  }
+  else {
+     mapRootSets[vol_or_surf] = 0;
+  }
+  
+  return MB_SUCCESS;
 }
 
 ErrorCode GeomTopoTool::construct_obb_trees(bool make_one_vol)
