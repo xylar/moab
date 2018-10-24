@@ -249,52 +249,22 @@ ErrCode iMOAB_RegisterFortranApplication ( const iMOAB_String app_name,
         return 1;
     }
 
-    if ( context.appIdMap.find ( name ) != context.appIdMap.end() )
-    {
-        std::cout << " application " << name << " already registered \n";
-        return 1;
-    }
-
-    *pid =  context.unused_pid++;
-    context.appIdMap[name] = *pid;
-
-    if ( context.appIdCompMap.find ( *compid ) != context.appIdCompMap.end() )
-    {
-        std::cout << " external application with comp id " << *compid << " is already registered\n";
-        return 1;
-    }
-
-    context.appIdCompMap[*compid] = *pid;
-
 #ifdef MOAB_HAVE_MPI
-    // now create ParallelComm and a file set for this application
-    // convert from fortran communicator to a c communicator
+    // convert from Fortran communicator to a C communicator
     // see transfer of handles
     // http://www.mpi-forum.org/docs/mpi-2.2/mpi22-report/node361.htm
     MPI_Comm ccomm = MPI_Comm_f2c ( ( MPI_Fint ) * comm );
-    ParallelComm* pco = new ParallelComm ( context.MBI, ccomm );
-
-#ifndef NDEBUG
-    int index = pco->get_id(); // it could be useful to get app id from pcomm instance ...
-    assert ( index == *pid );
-#endif
-    context.pcomms.push_back ( pco );
 #endif
 
-    // create now the file set that will be used for loading the model in
-    EntityHandle file_set;
-    ErrorCode rval = context.MBI->create_meshset ( MESHSET_SET, file_set );CHKERRVAL(rval);
-
-    appData app_data;
-    app_data.file_set = file_set;
-    app_data.external_id = * compid; // will be used mostly for par comm graph
-#ifdef MOAB_HAVE_TEMPESTREMAP
-	app_data.remapper = NULL; // Only allocate as needed
+    // now call C style registration function:
+    return iMOAB_RegisterApplication ( app_name,
+#ifdef MOAB_HAVE_MPI
+                                    &ccomm,
 #endif
-
-    context.appDatas.push_back ( app_data ); // it will correspond to app_FileSets[*pid] will be the file set of interest
-    return 0;
+                                    compid,
+                                    pid );
 }
+
 
 ErrCode iMOAB_DeregisterApplication ( iMOAB_AppID pid )
 {
