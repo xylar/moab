@@ -490,15 +490,21 @@ ErrorCode GeomTopoTool::set_root_set(EntityHandle vol_or_surf, EntityHandle root
 }
 
 ErrorCode GeomTopoTool::remove_root(EntityHandle vol_or_surf) {
-  
+ 
+  // Find the root of the vol or surf 
   ErrorCode rval;
   EntityHandle root;
   rval = mdbImpl->tag_get_data(obbRootTag, &(vol_or_surf), 1, &root);
   MB_CHK_SET_ERR(rval, "Failed to get obb root tag");
   
-  // Remove the vol root from obbtreetool
-  rval = obbTree->remove_root(root);
-  MB_CHK_SET_ERR(rval, "Failed to remove root from obbTreeTool");
+  // If the ent is a vol, remove its root from obbtreetool
+  int dim;
+  rval = mdbImpl->tag_get_data(geomTag, &vol_or_surf, 1, &dim);
+  MB_CHK_SET_ERR(rval, "Failed to get dimension");
+  if (dim == 3){
+    rval = obbTree->remove_root(root);
+    MB_CHK_SET_ERR(rval, "Failed to remove root from obbTreeTool");
+  }
 
   // Delete the obbGsetTag data from the root 
   rval = mdbImpl->tag_delete_data(obbGsetTag, &root, 1);
@@ -508,7 +514,7 @@ ErrorCode GeomTopoTool::remove_root(EntityHandle vol_or_surf) {
   rval = mdbImpl->tag_delete_data(obbRootTag, &vol_or_surf, 1);
   MB_CHK_SET_ERR(rval, "Failed to delete obb root tag");
 
-
+  // Remove the root from set of all roots
   if(m_rootSets_vector)
   {
     unsigned int index = vol_or_surf - setOffset;
