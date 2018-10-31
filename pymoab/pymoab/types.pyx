@@ -6,7 +6,7 @@ from pymoab cimport tag_conventions
 cimport numpy as np
 import numpy as np
 
-_eh_py_types = (long, np.uint64)
+_eh_py_type = np.uint64
 
 cdef class MOABErrorCode:
 
@@ -149,7 +149,7 @@ _VALID_NATIVE_TYPES = {
     float: MB_TYPE_DOUBLE,
     str: MB_TYPE_OPAQUE,
     object: MB_TYPE_OPAQUE,
-    long : MB_TYPE_HANDLE
+    np.uint64 : MB_TYPE_HANDLE
 }
 
 def pymoab_data_type(input_type):
@@ -157,26 +157,31 @@ def pymoab_data_type(input_type):
     Attempts to find a PyMOAB datatype given a Python native type or 
     NumPy dtype
     """
+
+    # check native types
+    try:
+        t = _VALID_NATIVE_TYPES[input_type]
+        return t
+    except KeyError:
+        print("Checking all types...")
+        pass
+
     # check valid dtypes
     for k in _VALID_DTYPES.keys():
         if input_type in _VALID_DTYPES[k]:
             return k
 
-    # check native types
-    try:
-        return _VALID_NATIVE_TYPES[input_type]
-    except KeyError:
-        raise ValueError("Could not determine the PyMOAB data type.")
-                                   
+    raise ValueError("Could not determine the PyMOAB data type.")
+    
 def _convert_array(iterable, accepted_types, return_dtype):
-    err_msg = "Incorrect datatype found in array."
+    err_msg = "Incorrect datatype found in array: {}"
     #if this is already an array of the correct type, avoid the loop
     if isinstance(iterable, np.ndarray) and iterable.dtype == return_dtype:
         return  iterable
     #if not, each entry in the iterable should be verified
     for entry in iterable:
-        assert (isinstance(entry, accepted_types)), err_msg
-    #if this is true, then create an array from the iterable
+        assert (isinstance(entry, accepted_types)), err_msg.format(type(entry))
+        #if this is true, then create an array from the iterable
     return np.fromiter(iterable, return_dtype)
 
 def _eh_array(iterable):
@@ -188,7 +193,7 @@ def _eh_array(iterable):
     EH_DTYPE = _DTYPE_CONV[MB_TYPE_HANDLE]
     # try to convert array
     try:
-        arr = _convert_array(iterable, _eh_py_types, EH_DTYPE)
+        arr = _convert_array(iterable, (_eh_py_type,), EH_DTYPE)
     except:
         raise ValueError(err_msg)
     # return array if successful

@@ -3,6 +3,7 @@ from libcpp cimport bool
 from libcpp.vector cimport vector
 from libcpp.string cimport string as std_string
 
+cimport numpy as np
 
 cdef extern from 'moab/Types.hpp' namespace "moab":
 
@@ -88,7 +89,7 @@ cdef extern from "moab/EntityType.hpp" namespace "moab":
 cdef extern from "moab/EntityHandle.hpp" namespace "moab":
 
     ctypedef long EntityID
-    ctypedef unsigned long EntityHandle
+    ctypedef np.uint64_t EntityHandle
 
 cdef extern from "moab/Range.hpp" namespace "moab":
 

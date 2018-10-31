@@ -8,7 +8,7 @@ import ctypes
 from pymoab cimport moab
 from .tag cimport Tag, _tagArray
 from .rng cimport Range
-from .types import check_error, np_tag_type, validate_type, _convert_array, _eh_array, _eh_py_types
+from .types import check_error, np_tag_type, validate_type, _convert_array, _eh_array, _eh_py_type
 from . import types
 from libcpp.vector cimport vector
 from libcpp.string cimport string as std_string
@@ -125,7 +125,7 @@ cdef class Core(object):
         if output_sets:
           arr = _eh_array(output_sets)
           err = self.inst.write_file(
-            file_name, <const char*> 0, <const char*> 0, <unsigned long*> arr.data, len(output_sets))
+            file_name, <const char*> 0, <const char*> 0, <moab.EntityHandle*> arr.data, len(output_sets))
         else:
           err = self.inst.write_file(file_name)
 
@@ -173,7 +173,7 @@ cdef class Core(object):
         cdef moab.EntitySetProperty es_property = <moab.EntitySetProperty> options
         cdef moab.ErrorCode err = self.inst.create_meshset(es_property, ms_handle)
         check_error(err, exceptions)
-        return ms_handle
+        return _eh_py_type(ms_handle)
 
     def add_entities(self, moab.EntityHandle ms_handle, entities, exceptions = ()):
         """
@@ -218,7 +218,7 @@ cdef class Core(object):
            err = self.inst.add_entities(ms_handle, deref(r.inst))
         else:
            arr = _eh_array(entities)
-           err = self.inst.add_entities(ms_handle, <unsigned long*> arr.data, len(entities))
+           err = self.inst.add_entities(ms_handle, <moab.EntityHandle*> arr.data, len(entities))
         check_error(err, exceptions)
 
     def remove_entities(self, moab.EntityHandle ms_handle, entities, exceptions = ()):
@@ -266,7 +266,7 @@ cdef class Core(object):
             err = self.inst.remove_entities(ms_handle, deref(r.inst))
         else:
             arr = _eh_array(entities)
-            err = self.inst.remove_entities(ms_handle, <unsigned long*> arr.data, len(entities))
+            err = self.inst.remove_entities(ms_handle, <moab.EntityHandle*> arr.data, len(entities))
         check_error(err, exceptions)
 
     def delete_entities(self, entities, exceptions = ()):
@@ -309,7 +309,7 @@ cdef class Core(object):
             err = self.inst.delete_entities(deref(r.inst))
         else:
             arr = _eh_array(entities)
-            err = self.inst.delete_entities(<unsigned long*> arr.data, len(entities))
+            err = self.inst.delete_entities(<moab.EntityHandle*> arr.data, len(entities))
         check_error(err, exceptions)
 
     def create_vertices(self, coordinates, exceptions = ()):
@@ -414,9 +414,9 @@ cdef class Core(object):
         cdef np.ndarray[np.uint64_t, ndim=1] conn_arr = _eh_array(connectivity)
         cdef int nnodes = len(connectivity)
         cdef moab.ErrorCode err = self.inst.create_element(typ,
-            <unsigned long*> conn_arr.data, nnodes, handle)
+            <moab.EntityHandle*> conn_arr.data, nnodes, handle)
         check_error(err, exceptions)
-        return handle
+        return _eh_py_type(handle)
 
     def create_elements(self, int entity_type, connectivity, exceptions = ()):
         """
@@ -476,8 +476,8 @@ cdef class Core(object):
         cdef np.ndarray[np.uint64_t, ndim=1] handles = np.empty(nelems, 'uint64')
         for i in range(nelems):
             connectivity_i = _eh_array(connectivity[i])
-            err = self.inst.create_element(typ, <unsigned long*> connectivity_i.data,
-                                           nnodes, deref((<unsigned long*> handles.data)+i))
+            err = self.inst.create_element(typ, <moab.EntityHandle*> connectivity_i.data,
+                                           nnodes, deref((<moab.EntityHandle*> handles.data)+i))
             check_error(err, exceptions)
         return Range(handles)
 
@@ -718,7 +718,7 @@ cdef class Core(object):
         cdef np.ndarray ehs
         cdef moab.DataType tag_type = moab.MB_MAX_DATA_TYPE
         # create a numpy array for the entity handles to be tagged
-        if isinstance(entity_handles, _eh_py_types):
+        if isinstance(entity_handles, _eh_py_type):
             ehs = _eh_array([entity_handles,])
         else:
             ehs = _eh_array(entity_handles)
@@ -812,7 +812,7 @@ cdef class Core(object):
         cdef np.ndarray ehs
         cdef moab.DataType tag_type = moab.MB_MAX_DATA_TYPE
         # create a numpy array for the entity handles to be tagged
-        if isinstance(entity_handles, _eh_py_types):
+        if isinstance(entity_handles, _eh_py_type):
             ehs = _eh_array([entity_handles,])
         else:
             ehs = _eh_array(entity_handles)
@@ -870,7 +870,7 @@ cdef class Core(object):
         cdef moab.ErrorCode err
         cdef np.ndarray ehs
         # create a numpy array for the entity handles to be tagged
-        if isinstance(entity_handles, _eh_py_types):
+        if isinstance(entity_handles, _eh_py_type):
             ehs = _eh_array([entity_handles,])
         else:
             ehs = _eh_array(entity_handles)
@@ -1205,7 +1205,7 @@ cdef class Core(object):
         -------
         MOAB EntityHandle (long)
         """
-        return <unsigned long> 0
+        return _eh_py_type(0)
 
     def get_connectivity(self, entity_handles, exceptions = ()):
         """
@@ -1248,8 +1248,8 @@ cdef class Core(object):
             if an EntityHandle is not of the correct datatype
         """
         cdef moab.ErrorCode err
-        cdef np.ndarray ehs
-        if isinstance(entity_handles, _eh_py_types):
+        cdef np.ndarray[moab.EntityHandle] ehs
+        if isinstance(entity_handles, _eh_py_type):
             ehs = _eh_array([entity_handles,])
         else:
             ehs = _eh_array(entity_handles)
@@ -1258,7 +1258,8 @@ cdef class Core(object):
         cdef int num_ents = 0
         err = self.inst.get_connectivity(<moab.EntityHandle*> ehs.data, ehs.size, ehs_out)
         check_error(err, exceptions)
-        return _eh_array(ehs_out)
+        
+        return np.asarray(ehs_out, dtype = np.uint64)
 
         
         
@@ -1298,7 +1299,7 @@ cdef class Core(object):
         cdef Range r
         cdef np.ndarray[np.uint64_t, ndim=1] arr
         cdef np.ndarray coords
-        if isinstance(entities, long):
+        if isinstance(entities, _eh_py_type):
             entities = Range(entities)
         if isinstance(entities, Range):
             r = entities
@@ -1307,7 +1308,7 @@ cdef class Core(object):
         else:
             arr = _eh_array(entities)
             coords = np.empty((3*len(arr),),dtype='float64')
-            err = self.inst.get_coords(<unsigned long*> arr.data, len(entities), <double*> coords.data)
+            err = self.inst.get_coords(<moab.EntityHandle*> arr.data, len(entities), <double*> coords.data)
         check_error(err, exceptions)
         return coords
 
@@ -1352,7 +1353,7 @@ cdef class Core(object):
             arr = _eh_array(entities)
             if 3*len(arr) != len(coords):
               check_error(moab.MB_INVALID_SIZE, exceptions)
-            err = self.inst.set_coords(<unsigned long*> arr.data, len(entities), <const double*> coords.data)
+            err = self.inst.set_coords(<moab.EntityHandle*> arr.data, len(entities), <const double*> coords.data)
         check_error(err, exceptions)
 
     def get_entities_by_type(self, meshset, entity_type, bint recur = False, bint as_list = False, exceptions = ()):

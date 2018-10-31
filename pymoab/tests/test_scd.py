@@ -3,10 +3,10 @@ from pymoab import types
 from pymoab.scd import ScdInterface
 from pymoab.hcoord import HomCoord
 from subprocess import call
-from driver import test_driver, CHECK_EQ
+from driver import test_driver, CHECK_EQ, CHECK_ITER_EQ
 import numpy as np
 import os
-
+from pymoab.types import _eh_py_type
 
 def test_w_coordinates():
 
@@ -53,7 +53,7 @@ def test_w_coordinates():
     hex_connectivity = [hex1_conn, hex2_conn]
 
     for i,h in enumerate(hexes):
-        assert(all(mb.get_connectivity(h) == hex_connectivity[i]))
+        CHECK_ITER_EQ(mb.get_connectivity(h), hex_connectivity[i])
     
 def test_scds():
     
@@ -86,6 +86,7 @@ def scd_tst(bnds):
     scdbox = scd.construct_box(low,high)
     hexes = mb.get_entities_by_type(mb.get_root_set(),types.MBHEX)
     ent_set = scdbox.box_set()
+    assert isinstance(ent_set, _eh_py_type)
     assert 1 == len(scd.find_boxes())
     assert bnds[3]*bnds[4]*bnds[5] == len(hexes)
     assert ent_set != 0

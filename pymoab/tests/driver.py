@@ -24,6 +24,11 @@ def test_driver(test_list):
             print(colors.OKGREEN + "PASS" + colors.ENDC + ": " + test.__name__)
     sys.exit(ret_val)
 
+def CHECK_ITER_EQ(actual_value, expected_value):
+    CHECK_EQ(len(actual_value), len(expected_value))
+    for a,e in zip(actual_value, expected_value):
+        CHECK_EQ(a,e)
+    
 def CHECK_EQ(actual_value, expected_value):
     err_msg = "Expected value: {} Actual value: {}"
     err_msg = err_msg.format(expected_value, actual_value)

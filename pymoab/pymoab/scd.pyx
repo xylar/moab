@@ -12,7 +12,7 @@ from .core cimport Core
 from .hcoord cimport HomCoord
 from .tag cimport Tag
 from .types import check_error, MB_TYPE_DOUBLE, MB_FAILURE
-from .types import _DTYPE_CONV
+from .types import _DTYPE_CONV, _eh_py_type
 
 cdef void* null = NULL
 
@@ -363,13 +363,13 @@ cdef class ScdBox(object):
             h = args
             mh = deref(h.inst)
             vert = self.inst.get_vertex(mh)
-            return vert
+            return _eh_py_type(vert)
         elif 3 == len(args):
             i = args[0]
             j = args[1]
             k = args[2]
             vert = self.inst.get_vertex(i,j,k)
-            return vert
+            return _eh_py_type(vert)
         else:
             check_error(MB_FAILURE)
             
@@ -467,4 +467,4 @@ cdef class ScdBox(object):
         """
         Returns the EntityHandle of the set containing the structured box elements.
         """
-        return self.inst.box_set()
+        return _eh_py_type(self.inst.box_set())

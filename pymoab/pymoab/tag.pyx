@@ -5,7 +5,7 @@ import numpy as np
 cimport numpy as np
 from libc.stdlib cimport malloc,free
 from cython.operator cimport dereference as deref
-from types import _TAG_TYPE_STRS, _DTYPE_CONV
+from .types import _TAG_TYPE_STRS, _DTYPE_CONV
 
 cdef class Tag(object): 
     def __cinit__(self):
@@ -22,7 +22,7 @@ cdef class Tag(object):
         t = self.inst.get_data_type()
         type_byte_size = self.inst.size_from_data_type(t)
         total_byte_size = self.inst.get_size()
-        return total_byte_size/type_byte_size
+        return int(total_byte_size/type_byte_size)
 
     def get_data_type(self):
         """
@@ -46,7 +46,7 @@ cdef class Tag(object):
         """
         Returns the name of this Tag.
         """
-        return str(self.inst.get_name().c_str())
+        return str(self.inst.get_name().c_str().decode())
 
     def get_default_value(self):
         """

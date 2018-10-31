@@ -2,7 +2,7 @@
 from cython.operator cimport dereference as deref
 # from libcpp.string cimport string as std_string
 from pymoab cimport moab
-from .types import _eh_array, _eh_py_types
+from .types import _eh_array, _eh_py_type
 
 cdef void *null = NULL
 
@@ -46,7 +46,7 @@ cdef class Range(object):
         self.inst = new moab.Range()
         if arg is None:
             return
-        if isinstance(arg, _eh_py_types):
+        if isinstance(arg, _eh_py_type):
             self.inst.insert(arg)
         #hack to copy
         elif isinstance(arg, Range):
@@ -166,7 +166,7 @@ cdef class Range(object):
         """
         cdef int i = 0
         for i in range(0, self.inst.size()):
-            yield self[i]
+            yield _eh_py_type(self[i])
 
     def __getitem__(self, key):
         """
@@ -177,7 +177,7 @@ cdef class Range(object):
             i = key if key >= 0 else len(self)+key
             rtn = deref(self.inst)[i]
             if i < self.size():
-                return rtn
+                return _eh_py_type(rtn)
             else:
                 raise StopIteration
         elif isinstance(key, slice):
@@ -187,7 +187,7 @@ cdef class Range(object):
             ents = list(self)[start:stop:step]
             return Range(ents)
         else:
-            raise ValueError("Invalid key provided.")
+            raise ValueError("Invalid key (type: {}) provided.".format(type(key)))
 
     def __richcmp__(self, other, op):
         cdef Range r
