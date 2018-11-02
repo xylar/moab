@@ -286,6 +286,7 @@ int main( int argc, char* argv[] )
                                                 disc_methods[1], &disc_orders[1],
                                                 &fVolumetric, &fNoConserve, &fValidate,
                                                 dof_tag_names[0], dof_tag_names[1],
+                                                strlen(weights_identifiers[0]),
                                                 strlen(disc_methods[0]), strlen(disc_methods[1]),
                                                 strlen(dof_tag_names[0]), strlen(dof_tag_names[1]) );
   CHECKRC(ierr, "cannot compute scalar projection weights" )
@@ -365,6 +366,7 @@ int main( int argc, char* argv[] )
   ierr = iMOAB_ApplyScalarProjectionWeights ( pid5, weights_identifiers[0],
                                             fieldname,
                                             fieldnameT,
+                                            strlen(weights_identifiers[0]),
                                             strlen(fieldname),
                                             strlen(fieldnameT)
                                             );

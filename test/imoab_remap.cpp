@@ -167,6 +167,7 @@ int main(int argc, char * argv[])
                                               disc_methods[1], &disc_orders[1], 
                                               &fVolumetric, &fNoConserve, &fValidate, 
                                               dof_tag_names[0], dof_tag_names[1],
+                                              strlen(weights_identifiers[0]),
                                               strlen(disc_methods[0]), strlen(disc_methods[1]),
                                               strlen(dof_tag_names[0]), strlen(dof_tag_names[1])
                                             );
@@ -180,6 +181,7 @@ int main(int argc, char * argv[])
                                               disc_methods[1], &disc_orders[1], 
                                               &fVolumetric, &fNoConserve, &fValidate, 
                                               dof_tag_names[0], dof_tag_names[1],
+                                              strlen(weights_identifiers[1]),
                                               strlen(disc_methods[0]), strlen(disc_methods[1]),
                                               strlen(dof_tag_names[0]), strlen(dof_tag_names[1])
                                             );
@@ -191,6 +193,7 @@ int main(int argc, char * argv[])
                                             weights_identifiers[0], 
                                             fieldname,
                                             fieldnameTnc,
+                                            strlen(weights_identifiers[0]),
                                             strlen(fieldname),
                                             strlen(fieldnameTnc)
                                             );
@@ -202,6 +205,7 @@ int main(int argc, char * argv[])
                                             weights_identifiers[1], 
                                             fieldname,
                                             fieldnameT,
+                                            strlen(weights_identifiers[1]),
                                             strlen(fieldname),
                                             strlen(fieldnameT)
                                             );

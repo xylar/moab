@@ -2363,6 +2363,7 @@ ErrCode iMOAB_ComputeScalarProjectionWeights ( iMOAB_AppID pid_intx,
                                                int* fValidate,
                                                const iMOAB_String source_solution_tag_dof_name,
                                                const iMOAB_String target_solution_tag_dof_name,
+                                               int solution_weights_identifier_length,
                                                int disc_method_source_length,
                                                int disc_method_target_length,
                                                int source_solution_tag_dof_name_length,
@@ -2372,7 +2373,7 @@ ErrCode iMOAB_ComputeScalarProjectionWeights ( iMOAB_AppID pid_intx,
 	
 	assert(disc_order_source && disc_order_target && *disc_order_source > 0 && *disc_order_target > 0);
 	assert(disc_method_source_length > 0 && disc_method_target_length > 0);
-    assert(source_solution_tag_dof_name_length > 0 && target_solution_tag_dof_name_length > 0);
+    assert(solution_weights_identifier_length > 0 && source_solution_tag_dof_name_length > 0 && target_solution_tag_dof_name_length > 0);
     
     // Get the source and target data and pcomm objects
 	appData& data_intx = context.appDatas[*pid_intx];
@@ -2380,10 +2381,10 @@ ErrCode iMOAB_ComputeScalarProjectionWeights ( iMOAB_AppID pid_intx,
 
 	// Setup computation of weights
     // Set the context for the OfflineMap computation
-    data_intx.weightMaps[solution_weights_identifier] = new moab::TempestOfflineMap ( data_intx.remapper );
+    data_intx.weightMaps[std::string(solution_weights_identifier)] = new moab::TempestOfflineMap ( data_intx.remapper );
 
 	// Call to generate an offline map with the tempest meshes
-    moab::TempestOfflineMap* weightMap = data_intx.weightMaps[solution_weights_identifier];
+    moab::TempestOfflineMap* weightMap = data_intx.weightMaps[std::string(solution_weights_identifier)];
     assert(weightMap != NULL);
 
     // Now let us compute the local-global mapping and store it in the context
@@ -2431,19 +2432,20 @@ ErrCode iMOAB_ApplyScalarProjectionWeights (   iMOAB_AppID pid_intersection,
                                                const iMOAB_String solution_weights_identifier, /* "scalar", "flux", "custom" */
                                                const iMOAB_String source_solution_tag_name,
                                                const iMOAB_String target_solution_tag_name,
+                                               int solution_weights_identifier_length,
                                                int source_solution_tag_name_length,
                                                int target_solution_tag_name_length )
 {
     moab::ErrorCode rval;
 
-    assert(source_solution_tag_name_length > 0 && target_solution_tag_name_length > 0);
+    assert(solution_weights_identifier_length > 0 && source_solution_tag_name_length > 0 && target_solution_tag_name_length > 0);
 
     // Get the source and target data and pcomm objects
     appData& data_intx = context.appDatas[*pid_intersection];
     
     // Now allocate and initialize the remapper object
     moab::TempestRemapper* remapper = data_intx.remapper;
-    moab::TempestOfflineMap* weightMap = data_intx.weightMaps[solution_weights_identifier];
+    moab::TempestOfflineMap* weightMap = data_intx.weightMaps[std::string(solution_weights_identifier)];
 
     /* Global ID - exchange data for covering data */
     Tag ssolnTag, tsolnTag;

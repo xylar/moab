@@ -769,6 +769,7 @@ ErrCode iMOAB_ComputeScalarProjectionWeights ( iMOAB_AppID pid_intersection,
                                                int* fVolumetric, int* fNoConservation, int* fValidate,
                                                const iMOAB_String source_solution_tag_dof_name,
                                                const iMOAB_String target_solution_tag_dof_name,
+                                               int solution_weights_identifier_length,
                                                int disc_method_src_length,
                                                int disc_method_tgt_length,
                                                int source_solution_tag_dof_name_length,
@@ -792,6 +793,7 @@ ErrCode iMOAB_ApplyScalarProjectionWeights (   iMOAB_AppID pid_intersection,
                                                const iMOAB_String solution_weights_identifier, /* "scalar", "flux", "custom" */
                                                const iMOAB_String source_solution_tag_name,
                                                const iMOAB_String target_solution_tag_name,
+                                               int solution_weights_identifier_length,
                                                int source_solution_tag_name_length,
                                                int target_solution_tag_name_length );
 
