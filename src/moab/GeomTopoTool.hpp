@@ -233,9 +233,6 @@ public:
     //! Returns the geometry dimension tag (geomTag) from check_geom_tag 
   Tag get_geom_tag();
 
-    //! Returns the geometry dimension tag (geomTag) from check_geom_tag 
-//  Tag get_obb_root_tag();
-
     //! Returns true if obb trees have been added to the rootset
   bool have_obb_tree();
 
@@ -326,9 +323,6 @@ private:
 
     //! Verify sense edge tags
   ErrorCode check_edge_sense_tags(bool create = false);
-
-    //! Verify obb root tags
-//  ErrorCode check_obb_root_tags(bool create = false);
 
   ErrorCode resize_rootSets();
 

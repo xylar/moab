@@ -414,16 +414,8 @@ ErrorCode GeomTopoTool::construct_obb_tree(EntityHandle eh)
     rval = mdbImpl->add_entities(root, &eh, 1);
     MB_CHK_SET_ERR(rval, "Failed to add entities to root set");
 
-
     // add this root to the GeomTopoTool tree root indexing
     set_root_set(eh, root);
-
-
-   
-    //Range rootmems;
-    //rval = mdbImpl->get_entities_by_type(root, MBENTITYSET, rootmems);
-    //std::cout << "num ents, begin " << rootmems.size() << ", " << *rootmems.begin() << ", " << eh << std::endl;
-  
  
     // if just building tree for surface, return here
     return MB_SUCCESS;
