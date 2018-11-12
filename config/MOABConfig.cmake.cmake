@@ -1,4 +1,4 @@
-# Config file for MOAB; use the CMake find_package() function to pull this into
+ Config file for MOAB; use the CMake find_package() function to pull this into
 # your own CMakeLists.txt file.
 #
 # This file defines the following variables:
@@ -82,7 +82,7 @@ if(MOAB_USE_HDF5)
 endif()
 
 set(MOAB_LIBRARY_DIRS "@CMAKE_INSTALL_PREFIX@/lib")
-set(MOAB_INCLUDE_DIRS "@CMAKE_INSTALL_PREFIX@/include ${MOAB_PACKAGE_INCLUDES}")
+set(MOAB_INCLUDE_DIRS "-I@CMAKE_INSTALL_PREFIX@/include ${MOAB_PACKAGE_INCLUDES}")
 set(MOAB_LIBS "-lMOAB")
 set(MOAB_LIBRARIES "-L@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@ ${MOAB_LIBS} ${MOAB_PACKAGE_LIBS}")
 if(ENABLE_IMESH)
