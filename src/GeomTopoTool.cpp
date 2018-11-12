@@ -37,12 +37,16 @@ const char GEOM_SENSE_2_TAG_NAME[] = "GEOM_SENSE_2";
 
 const char GEOM_SENSE_N_ENTS_TAG_NAME[] = "GEOM_SENSE_N_ENTS";
 const char GEOM_SENSE_N_SENSES_TAG_NAME[] = "GEOM_SENSE_N_SENSES";
+const char OBB_ROOT_TAG_NAME[] = "OBB_ROOT";
+const char OBB_GSET_TAG_NAME[] = "OBB_GSET";
 
 const char IMPLICIT_COMPLEMENT_NAME[] = "impl_complement";
+
   
 GeomTopoTool::GeomTopoTool(Interface *impl, bool find_geoments, EntityHandle modelRootSet, bool p_rootSets_vector) :
   mdbImpl(impl), sense2Tag(0), senseNEntsTag(0), senseNSensesTag(0),
-  geomTag(0), gidTag(0), modelSet(modelRootSet), updated(false), 
+  geomTag(0), gidTag(0), obbRootTag(0), obbGsetTag(0),
+  modelSet(modelRootSet), updated(false), 
   setOffset(0), m_rootSets_vector(p_rootSets_vector), oneVolRootSet(0)
 {
 
@@ -61,6 +65,14 @@ GeomTopoTool::GeomTopoTool(Interface *impl, bool find_geoments, EntityHandle mod
   rval = mdbImpl->tag_get_handle(NAME_TAG_NAME, NAME_TAG_SIZE,
       MB_TYPE_OPAQUE, nameTag, MB_TAG_CREAT|MB_TAG_SPARSE);
   MB_CHK_SET_ERR_CONT(rval, "Error: Failed to create name tag");
+
+  rval = mdbImpl->tag_get_handle(OBB_ROOT_TAG_NAME, 1,
+                  MB_TYPE_HANDLE, obbRootTag, MB_TAG_CREAT|MB_TAG_SPARSE);
+  MB_CHK_SET_ERR_CONT(rval, "Error: Failed to create obb root tag");
+
+  rval = mdbImpl->tag_get_handle(OBB_GSET_TAG_NAME, 1,
+                  MB_TYPE_HANDLE, obbGsetTag, MB_TAG_CREAT|MB_TAG_SPARSE);
+  MB_CHK_SET_ERR_CONT(rval, "Error: Failed to create obb gset tag");
 
   // set this value to zero for comparisons
   impl_compl_handle = 0;
@@ -275,28 +287,83 @@ ErrorCode GeomTopoTool::is_owned_set(EntityHandle eh) {
   return MB_SUCCESS;
 }
 
-  /* Relies on future work in OBBTreeTool before final implementation */
-// ErrorCode GeomTopoTool::delete_obb_tree(EntityHandle eh) {
-//   EntityHandle root;
+ErrorCode GeomTopoTool::delete_obb_tree(EntityHandle gset, bool vol_only) {
 
-//   // make sure this set is part of the model
-//   ErrorCode rval = is_owned_set(eh);
-//   MB_CHK_SET_ERR(rval, "Entity set is not part of this model");
+  ErrorCode rval;
+
+  // Make sure this set is part of the model
+  rval = is_owned_set(gset);
+  MB_CHK_SET_ERR(rval, "Entity set is not part of this model");
+
+  // Find the dimension of the entity
+  int dim;
+  rval = mdbImpl->tag_get_data(geomTag, &gset, 1, &dim);
+  MB_CHK_SET_ERR(rval, "Failed to get dimension");
+
+  // Attempt to find a root for this set
+  EntityHandle root;
+  rval = get_root(gset, root);
+  MB_CHK_SET_ERR(rval, "Failed to find an obb tree root for the entity set");
+ 
+  // Create range of tree nodes to delete
+  Range nodes_to_delete;
+  nodes_to_delete.insert(root);
+
+  // If passed ent is a vol and 'vol_only' is true, delete vol root and all nodes between vol and surf root
+  if (dim == 3 && vol_only){
+    // Range of child nodes to check before adding to delete list
+    Range child_tree_nodes;
+    rval = mdbImpl->get_child_meshsets(root, child_tree_nodes);
+    MB_CHK_SET_ERR(rval, "Problem getting child tree nodes");
+
+    // Traverse the tree, checking each child node until 
+    // a surface root node is reached
+    while(child_tree_nodes.size() != 0){
+      EntityHandle child = *child_tree_nodes.begin();
+      EntityHandle surf;
+      rval = mdbImpl->tag_get_data(obbGsetTag, &child, 1, &surf);
+      // If the node has a gset tag, it is a surf root. Stop here.
+      // If not, it is a tree node that needs to 1) have its children checked and
+      //  2) be added to delete range
+      if (MB_TAG_NOT_FOUND == rval){
+        Range new_child_tree_nodes;
+        rval = mdbImpl->get_child_meshsets(child, new_child_tree_nodes);
+        MB_CHK_SET_ERR(rval, "Problem getting child nodes");
+        child_tree_nodes.insert_list(new_child_tree_nodes.begin(), new_child_tree_nodes.end());
+        nodes_to_delete.insert(child);
+      }
+      // We're done checking this node, so can erase from child list
+      child_tree_nodes.erase(child);
+    }
+
+  }
+  // If passed ent is a surf or a vol and 'vol_only' is false, recursively gather all child nodes 
+  // and add them to delete list
+  else{
+    Range all_tree_nodes;
+    rval = mdbImpl->get_child_meshsets( root, all_tree_nodes, 0 );
+    MB_CHK_SET_ERR(rval, "Failed to get child tree node sets");
+    nodes_to_delete.insert_list(all_tree_nodes.begin(), all_tree_nodes.end());
+  }
+
+  // Remove the root nodes from the GTT data structures
+  for (Range::iterator it = nodes_to_delete.begin(); it != nodes_to_delete.end(); ++it){ 
+    // Check to see if node is a root
+    EntityHandle vol_or_surf;
+    rval = mdbImpl->tag_get_data(obbGsetTag, &(*it), 1, &vol_or_surf);
+    if (MB_SUCCESS == rval){
+      // Remove from set of all roots
+      rval = remove_root(vol_or_surf);
+      MB_CHK_SET_ERR(rval, "Failed to remove node from GTT data structure");
+    }
+  }
   
-//   // attempt to find a root for this set
-//   rval = get_root(eh, root);
-//   MB_CHK_SET_ERR(rval, "Failed to find an obb tree root for the entity set");
+  // Delete the tree nodes from the database
+  rval = mdbImpl->delete_entities(nodes_to_delete);
+  MB_CHK_SET_ERR(rval, "Failed to delete node set");
 
-//   // delete the tree
-//   rval = obbTree->delete_tree(root);
-//   MB_CHK_SET_ERR(rval, "Failed to delete obb tree for entity set");
-
-//   // remove root_set entry from data struct
-//   rval = remove_root(eh);
-//   MB_CHK_SET_ERR(rval, "Failed to remove root set");
-  
-//   return MB_SUCCESS;
-// }
+  return MB_SUCCESS;
+}
 
 ErrorCode GeomTopoTool::construct_obb_tree(EntityHandle eh)
 {
@@ -321,85 +388,140 @@ ErrorCode GeomTopoTool::construct_obb_tree(EntityHandle eh)
 
   EntityHandle root;
   //if it's a surface
-  if(dim == 2 && type == MBENTITYSET)
-    { 
-       rval = get_root(eh, root);
-       if(MB_SUCCESS == rval)
-         {
-           std::cerr << "Surface obb tree already exists" << std::endl;
-           return MB_SUCCESS;
-         }
-       else if(MB_INDEX_OUT_OF_RANGE != rval)
-         {
-           MB_CHK_SET_ERR(rval, "Failed to get surface obb tree root");
-         }
-       
-       Range tris;
-       rval = mdbImpl->get_entities_by_dimension(eh, 2, tris);
-       MB_CHK_SET_ERR(rval, "Failed to get entities by dimension");
-     
-       if (tris.empty()) {
-         std::cerr << "WARNING: Surface has no facets" << std::endl;
-       }
-     
-       rval = obbTree->build(tris, root);
-       MB_CHK_SET_ERR(rval, "Failed to build obb Tree for surface");
-     
-       rval = mdbImpl->add_entities(root, &eh, 1);
-       MB_CHK_SET_ERR(rval, "Failed to add entities to root set");
-
-       // add this root to the GeomTopoTool tree root indexing
-       set_root_set(eh, root);
-       // if just building tree for surface, return here
-       return MB_SUCCESS;
-    }
-  //if it's a volume
-  else if(dim == 3 && type == MBENTITYSET)
-    {
-      //get its surfaces
-      Range tmp_surfs, surf_trees;
-      rval = mdbImpl->get_child_meshsets(eh, tmp_surfs);
-      MB_CHK_SET_ERR(rval, "Failed to get surface meshsets");
-     
-      // get OBB trees or create for each surface
-      for (Range::iterator j = tmp_surfs.begin(); j != tmp_surfs.end(); ++j) {
-        rval = get_root(*j, root);
-        // if root doesn't exist, create obb tree
-        if( MB_INDEX_OUT_OF_RANGE == rval)
-          {
-            rval = construct_obb_tree(*j);
-            MB_CHK_SET_ERR(rval, "Failed to get create surface obb tree");
-            rval = get_root(*j, root);
-            MB_CHK_SET_ERR(rval, "Failed to get surface obb tree root");
-          }
-        else
-          {
-            MB_CHK_SET_ERR(rval, "Failed to get surface obb tree root");
-          }
-
-        surf_trees.insert(root);
+  if(dim == 2 && type == MBENTITYSET){ 
+    rval = get_root(eh, root);
+    if(MB_SUCCESS == rval)
+      {
+        std::cerr << "Surface obb tree already exists" << std::endl;
+        return MB_SUCCESS;
       }
-     
-      // build OBB tree for volume
-      rval = obbTree->join_trees(surf_trees, root);
-      MB_CHK_SET_ERR(rval, "Failed to join the obb trees");
-      
-      // add this root to the GeomTopoTool tree root indexing
-      set_root_set(eh, root);
-      
-      return MB_SUCCESS;
+    else if(MB_INDEX_OUT_OF_RANGE != rval)
+      {
+        MB_CHK_SET_ERR(rval, "Failed to get surface obb tree root");
+      }
+    
+    Range tris;
+    rval = mdbImpl->get_entities_by_dimension(eh, 2, tris);
+    MB_CHK_SET_ERR(rval, "Failed to get entities by dimension");
+    
+    if (tris.empty()) {
+      std::cerr << "WARNING: Surface has no facets" << std::endl;
     }
+    
+    rval = obbTree->build(tris, root);
+    MB_CHK_SET_ERR(rval, "Failed to build obb Tree for surface");
+    
+    rval = mdbImpl->add_entities(root, &eh, 1);
+    MB_CHK_SET_ERR(rval, "Failed to add entities to root set");
+
+    // add this root to the GeomTopoTool tree root indexing
+    set_root_set(eh, root);
+ 
+    // if just building tree for surface, return here
+    return MB_SUCCESS;
+  }
+  //if it's a volume
+  else if(dim == 3 && type == MBENTITYSET){
+    //get its surfaces
+    Range tmp_surfs, surf_trees;
+    rval = mdbImpl->get_child_meshsets(eh, tmp_surfs);
+    MB_CHK_SET_ERR(rval, "Failed to get surface meshsets");
+    
+    // get OBB trees or create for each surface
+    for (Range::iterator j = tmp_surfs.begin(); j != tmp_surfs.end(); ++j) {
+      rval = get_root(*j, root);
+      // if root doesn't exist, create obb tree
+      if( MB_INDEX_OUT_OF_RANGE == rval)
+        {
+          rval = construct_obb_tree(*j);
+          MB_CHK_SET_ERR(rval, "Failed to get create surface obb tree");
+          rval = get_root(*j, root);
+          MB_CHK_SET_ERR(rval, "Failed to get surface obb tree root");
+        }
+      else
+        {
+          MB_CHK_SET_ERR(rval, "Failed to get surface obb tree root");
+        }
+
+      surf_trees.insert(root);
+    }
+    
+    // build OBB tree for volume
+    rval = obbTree->join_trees(surf_trees, root);
+    MB_CHK_SET_ERR(rval, "Failed to join the obb trees");
+    
+    // add this root to the GeomTopoTool tree root indexing
+    set_root_set(eh, root);
+    
+    return MB_SUCCESS;
+  }
   else {
     MB_SET_ERR(MB_FAILURE, "Improper dimension or type for constructing obb tree");
   }
   
 }
 
-void GeomTopoTool::set_root_set(EntityHandle vol_or_surf, EntityHandle root) {
-      if (m_rootSets_vector)
-        rootSets[vol_or_surf - setOffset] = root;
-      else
-        mapRootSets[vol_or_surf] = root;  
+ErrorCode GeomTopoTool::set_root_set(EntityHandle vol_or_surf, EntityHandle root) {
+
+  // Tag the vol or surf with its obb root (obbRootTag)
+  ErrorCode rval;
+  rval = mdbImpl->tag_set_data(obbRootTag, &vol_or_surf, 1, &root);
+  MB_CHK_SET_ERR(rval, "Failed to set the obb root tag");
+
+  // Tag obb root with corresponding gset (obbGsetTag)
+  rval = mdbImpl->tag_set_data(obbGsetTag, &root, 1, &vol_or_surf);
+  MB_CHK_SET_ERR(rval, "Failed to set the obb gset tag");
+
+  // Add to the set of all roots
+  if (m_rootSets_vector)
+    rootSets[vol_or_surf - setOffset] = root;
+  else
+    mapRootSets[vol_or_surf] = root;  
+
+  return MB_SUCCESS;
+}
+
+ErrorCode GeomTopoTool::remove_root(EntityHandle vol_or_surf) {
+ 
+  // Find the root of the vol or surf 
+  ErrorCode rval;
+  EntityHandle root;
+  rval = mdbImpl->tag_get_data(obbRootTag, &(vol_or_surf), 1, &root);
+  MB_CHK_SET_ERR(rval, "Failed to get obb root tag");
+  
+  // If the ent is a vol, remove its root from obbtreetool
+  int dim;
+  rval = mdbImpl->tag_get_data(geomTag, &vol_or_surf, 1, &dim);
+  MB_CHK_SET_ERR(rval, "Failed to get dimension");
+  if (dim == 3){
+    rval = obbTree->remove_root(root);
+    MB_CHK_SET_ERR(rval, "Failed to remove root from obbTreeTool");
+  }
+
+  // Delete the obbGsetTag data from the root 
+  rval = mdbImpl->tag_delete_data(obbGsetTag, &root, 1);
+  MB_CHK_SET_ERR(rval, "Failed to delete obb root tag");
+
+  // Delete the obbRootTag data from the vol or surf 
+  rval = mdbImpl->tag_delete_data(obbRootTag, &vol_or_surf, 1);
+  MB_CHK_SET_ERR(rval, "Failed to delete obb root tag");
+
+  // Remove the root from set of all roots
+  if(m_rootSets_vector)
+  {
+    unsigned int index = vol_or_surf - setOffset;
+    if( index < rootSets.size() ) {
+      rootSets[index] = 0;
+    }
+    else {
+      return MB_INDEX_OUT_OF_RANGE;
+    }
+  }
+  else {
+     mapRootSets[vol_or_surf] = 0;
+  }
+  
+  return MB_SUCCESS;
 }
 
 ErrorCode GeomTopoTool::construct_obb_trees(bool make_one_vol)

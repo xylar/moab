@@ -423,6 +423,12 @@ class OrientedBoxTreeTool
                      double axis3[3] );
                          
     ErrorCode delete_tree( EntityHandle root_set );
+    
+    /**\brief Remove obb tree root from the Oriented Box Tree Tool data structure 
+     *
+     * Remove obb tree root from the Oriented Box Tree Tool data structure (createdTrees)
+     */
+    ErrorCode remove_root( EntityHandle root_set );
 
     /**\brief Print out tree
      *

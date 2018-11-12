@@ -29,7 +29,10 @@ std::string filename2;
 std::string ofile;
 std::string ofile2;
 std::string ofile3;
+std::string ofile4;
 
+const char OBB_ROOT_TAG_NAME[] = "OBB_ROOT";
+Tag obbRootTag;
 
 bool remove_output_file;
 ErrorCode geometrize_test(Interface * mb, EntityHandle inputSet);
@@ -41,6 +44,8 @@ ErrorCode duplicate_model_test(Interface * mb);
 ErrorCode check_model_test(Interface * mb);
 
 ErrorCode test_root_sets_resize(Interface *mb);
+
+ErrorCode test_delete_obb_tree(Interface *mb);
 
 void handle_error_code(ErrorCode rv, int &number_failed, int &number_successful)
 {
@@ -60,6 +65,7 @@ int main(int argc, char *argv[])
   ofile = "output.h5m";
   ofile2 = "shell.h5m";
   ofile3 = "shellCopy.h5m";
+  ofile4 = "geom_w_obbs.h5m";
   
   remove_output_file = true;
   bool only_check = false;
@@ -138,6 +144,13 @@ int main(int argc, char *argv[])
   rval = test_root_sets_resize(mb2);
   handle_error_code(rval, number_tests_failed, number_tests_successful);
   delete mb2;
+  std::cout << "\n";
+
+  std::cout << "test_delete_obb_tree: ";
+  Interface* mb3 = new Core();
+  rval = test_delete_obb_tree(mb3);
+  handle_error_code(rval, number_tests_failed, number_tests_successful);
+  delete mb3;
   std::cout << "\n";
   
   return number_tests_failed;
@@ -533,3 +546,96 @@ ErrorCode test_root_sets_resize(Interface *mb) {
 
 }
 				 
+ErrorCode test_delete_obb_tree(Interface *mb){
+
+  // Load the test file
+  ErrorCode rval = mb->load_file(filename2.c_str());
+  MB_CHK_SET_ERR(rval, "Failed to load input file");
+
+  // Create a GTT with all default settings
+  moab::GeomTopoTool* gTopoTool = new GeomTopoTool(mb);
+
+  // Get all volumes and surfaces
+  Range vols, surfs;
+  rval = gTopoTool->get_gsets_by_dimension(3, vols);
+  MB_CHK_SET_ERR(rval, "Failed to get volume gsets");
+  rval = gTopoTool->get_gsets_by_dimension(2, surfs);
+  MB_CHK_SET_ERR(rval, "Failed to get surface gsets");
+  
+  // Build obb tree for volume
+  EntityHandle test_vol = vols.front();
+  rval = gTopoTool->construct_obb_tree(test_vol);
+  MB_CHK_SET_ERR(rval, "Error constructing all trees.");
+
+
+  // Get the obbRootTag for vol
+  rval = mb->tag_get_handle(OBB_ROOT_TAG_NAME, 1,
+                            MB_TYPE_HANDLE, obbRootTag, 
+                            MB_TAG_CREAT|MB_TAG_SPARSE);
+  MB_CHK_SET_ERR_CONT(rval, "Error: Failed to create obb root tag");
+  EntityHandle gbroot;
+  rval = mb->tag_get_data(obbRootTag, &test_vol, 1, &gbroot);
+  MB_CHK_SET_ERR(rval, "Failed to get the obb root tag");
+
+  // Test if obb tree in ModelSet
+  EntityHandle test_vol_root;
+  rval = gTopoTool->get_root(test_vol, test_vol_root);
+  MB_CHK_SET_ERR(rval, "Obb root not in ModelSet");
+
+  // CASE 1: Delete vol obb tree including all child surface trees
+  rval = gTopoTool->delete_obb_tree(test_vol, false);
+  MB_CHK_SET_ERR(rval, "Error deleting volume tree.");
+
+  // Make sure vol tree is gone
+  EntityHandle newroot;
+  rval = mb->tag_get_data(obbRootTag, &test_vol, 1, &newroot);
+  if (MB_SUCCESS == rval){
+    return MB_FAILURE;
+  }
+
+  // Make sure its child surf trees also gone
+  Range::iterator surf_it;
+  for(surf_it = surfs.begin(); surf_it != surfs.end(); ++surf_it){
+    EntityHandle test_surf_root_gone;
+    rval = mb->tag_get_data(obbRootTag, &(*surf_it), 1, &test_surf_root_gone);
+    if (MB_SUCCESS == rval){
+      return MB_FAILURE;
+    }
+  }
+  
+  // Rebuild vol tree
+  rval = gTopoTool->construct_obb_tree(test_vol);
+  MB_CHK_SET_ERR(rval, "Error constructing all trees.");
+
+  // CASE 2: Delete just vol, not surf trees
+  rval = gTopoTool->delete_obb_tree(test_vol, true);
+  MB_CHK_SET_ERR(rval, "Error deleting volume tree.");
+
+  // Make sure vol tree is gone
+  rval = mb->tag_get_data(obbRootTag, &test_vol, 1, &gbroot);
+  if (MB_SUCCESS == rval){
+    return MB_FAILURE;
+  }
+
+  // Make sure its child surf trees remain
+  for(surf_it = surfs.begin(); surf_it != surfs.end(); ++surf_it){
+    EntityHandle test_surf_root;
+    rval = mb->tag_get_data(obbRootTag, &(*surf_it), 1, &test_surf_root);
+    MB_CHK_SET_ERR(rval, "Problem getting obb root of surface.");
+  }
+
+  // CASE 3: Delete surf tree 
+  EntityHandle test_surf = surfs.front();
+  rval = gTopoTool->delete_obb_tree(test_surf, false);
+  MB_CHK_SET_ERR(rval, "Error deleting surface tree.");
+
+  // Make sure surf tree is gone
+  rval = mb->tag_get_data(obbRootTag, &test_surf, 1, &gbroot);
+  if (MB_SUCCESS == rval){
+    return MB_FAILURE;
+  }
+
+  delete gTopoTool;
+
+  return MB_SUCCESS;
+}

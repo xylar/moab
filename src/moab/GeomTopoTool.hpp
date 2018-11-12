@@ -170,9 +170,15 @@ public:
     //  volume obb tree.
   ErrorCode construct_obb_trees(bool make_one_vol = false);
   
-  /* Relies on future work in OBBTreeTool before final implementation */
-  //ErrorCode delete_obb_tree(EntityHandle eh);
- 
+    //! Delete the OBB tree of a volume or surface.
+    //  If the passed entity is a volume, and the bool 'vol_only'
+    //  is True, function will delete the volume OBB tree, but
+    //  OBB trees of the surfaces that compose (are children of)
+    //  the volume will remain in tact.  If the entity is a volume and
+    //  'vol_only' is False, function will delete the volume OBB tree 
+    //  along with all child surface OBB trees.
+  ErrorCode delete_obb_tree(EntityHandle gset, bool vol_only = false);
+
     //! Delete the root of the obb tree from the set of all roots
   ErrorCode remove_root(EntityHandle vol_or_surf);
   
@@ -273,6 +279,8 @@ private:
   Tag geomTag;
   Tag gidTag;
   Tag nameTag;
+  Tag obbRootTag;
+  Tag obbGsetTag;
   // the model set encompasses a full topological model
   EntityHandle modelSet;
   // implicit complement handle cache
@@ -318,7 +326,7 @@ private:
 
   ErrorCode resize_rootSets();
 
-  void set_root_set(EntityHandle vol_or_surf, EntityHandle root);
+  ErrorCode set_root_set(EntityHandle vol_or_surf, EntityHandle root);
 
     //! Return a range of children of a desired geometric dimension
   Range get_ct_children_by_dimension(const EntityHandle parent, const int desired_dimension);
@@ -353,23 +361,6 @@ inline ErrorCode GeomTopoTool::get_root(EntityHandle vol_or_surf, EntityHandle &
    return (root ? MB_SUCCESS : MB_INDEX_OUT_OF_RANGE);
 }
 
-inline ErrorCode GeomTopoTool::remove_root(EntityHandle vol_or_surf) {
-   if(m_rootSets_vector)
-   {
-     unsigned int index = vol_or_surf - setOffset;
-     if( index < rootSets.size() ) {
-       rootSets[index] = 0;
-     }
-     else {
-       return MB_INDEX_OUT_OF_RANGE;
-     }
-   }
-   else {
-      mapRootSets[vol_or_surf] = 0;
-   }
-   
-   return MB_SUCCESS;
-}
   
 inline EntityHandle GeomTopoTool::get_one_vol_root()
 {
