@@ -400,7 +400,7 @@ ErrorCode MeshTopoUtil::get_bridge_adjacencies(Range &from_entities,
                                                  Range &to_ents,
                                                  int num_layers)
 {
-  Range bridge_ents, last_toents, new_toents(from_entities);
+  Range bridge_ents, accum_layers, new_toents(from_entities);
   ErrorCode result;
   if (0 == num_layers || from_entities.empty()) return MB_FAILURE;
 
@@ -413,27 +413,29 @@ ErrorCode MeshTopoUtil::get_bridge_adjacencies(Range &from_entities,
     if (MB_SUCCESS != result) return result;
 
       // get to_dim adjacencies, merge into to_ents
-    last_toents =  to_ents;
+    Range new_layer;
     if (-1 == to_dim) {
-      result = mbImpl->get_adjacencies(new_bridges, 3, false, to_ents,
+      result = mbImpl->get_adjacencies(new_bridges, 3, false, new_layer,
 				       Interface::UNION);
       if (MB_SUCCESS != result) return result;
       for (int d = 2; d >= 1; d--) {
-	result = mbImpl->get_adjacencies(to_ents, d, true, to_ents,
+	result = mbImpl->get_adjacencies(to_ents, d, true, new_layer,
 					 Interface::UNION);
 	if (MB_SUCCESS != result) return result;
       }
     }
     else {
-      result = mbImpl->get_adjacencies(new_bridges, to_dim, false, to_ents,
+      result = mbImpl->get_adjacencies(new_bridges, to_dim, false, new_layer,
 				       Interface::UNION);
       if (MB_SUCCESS != result) return result;
     }
 
       // subtract last_toents to get new_toents
+    accum_layers.merge(new_layer);
     if (nl < num_layers-1)
-      new_toents = subtract( to_ents, last_toents);
+      new_toents = subtract( new_layer, new_toents);
   }
+  to_ents.merge(accum_layers);
 
   return MB_SUCCESS;
 }
