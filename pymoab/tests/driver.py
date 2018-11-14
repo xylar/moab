@@ -32,7 +32,8 @@ def CHECK_ITER_EQ(actual_value, expected_value):
 def CHECK_EQ(actual_value, expected_value):
     err_msg = "Expected value: {} Actual value: {}"
     err_msg = err_msg.format(expected_value, actual_value)
-    assert(expected_value == actual_value, err_msg)
+    result = expected_value == actual_value
+    assert result, err_msg
 
 def CHECK(actual_value):
     CHECK_EQ(actual_value, True)
@@ -43,4 +44,4 @@ def CHECK_NOT(actual_value):
 def CHECK_NOT_EQ(actual_value, expected_value):
     err_msg = "Expected value: not {} Actual value: {}"
     err_msg = err_msg.format(expected_value, actual_value)
-    assert(expected_value != actual_value, err_msg)
+    assert expected_value != actual_value, err_msg
