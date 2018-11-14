@@ -222,7 +222,6 @@ def test_opaque_tag():
     test_tag_data = np.array((test_val,))
     mb.tag_set_data(test_tag, vh, test_tag_data)
     data = mb.tag_get_data(test_tag, vh)
-
     CHECK_EQ(len(data),1)
     CHECK_EQ(data.nbytes,tag_length)
     CHECK_EQ(data[0],test_val)
@@ -386,7 +385,6 @@ def test_adj():
     # create a new triangle that shares a vertex with the first
     new_tri_conn = np.array(((verts[2], new_verts[0], new_verts[1]),) , dtype = 'uint64')
     tris.merge(mb.create_elements(types.MBTRI, new_tri_conn))
-
     # confirm that we can get the adjacency intersection of the two triangles
     adjs = mb.get_adjacencies(tris, 0, False)
     CHECK_EQ(len(adjs), 1)
@@ -398,7 +396,7 @@ def test_adj():
 
     # now check that we can get the union of the two triangle adjacencies
     adjs = mb.get_adjacencies(tris, 0, False, types.UNION)
-    CHECK_EQ(len(adjs), 6)
+    CHECK_EQ(len(adjs), 5)
     CHECK(adjs.all_of_type(types.MBVERTEX))
 
     # sanity check for number of edges
