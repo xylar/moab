@@ -44,6 +44,10 @@ if ( MOAB_HAVE_HDF5 )
   )
 endif ( MOAB_HAVE_HDF5 )
 
+if ( MOAB_HAVE_ZOLTAN )
+  include_directories( ${ZOLTAN_INCLUDE_DIR} )
+endif ( MOAB_HAVE_ZOLTAN )
+
 set_source_files_properties( ${moab_PARALLEL_SRCS}
   COMPILE_FLAGS "-DIS_BUILDING_MB -DSRCDIR=\"${MOAB_SOURCE_DIR}\" ${MOAB_DEFINES}"
 )
