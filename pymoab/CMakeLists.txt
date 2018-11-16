@@ -7,10 +7,6 @@ if(NOT PYTHON)
   FIND_PROGRAM(PYTHON "python3")
 endif()
 
-if(ENABLE_DEVMODE)
-  FIND_PROGRAM(CYTHON_EXECUTABLE "cython")
-endif(ENABLE_DEVMODE)
-
 find_package(PythonInterp REQUIRED)
 find_package(PythonDev REQUIRED)
 # make sure that specific python modules are installed
@@ -25,13 +21,6 @@ EXECUTE_PROCESS(COMMAND "${PYTHON}" "-c" "import setuptools" RESULT_VARIABLE SET
 if (SETUPTOOLS_MODULE_MISSING)
   MESSAGE( SEND_ERROR "Python setuptools module is missing.")
 endif()
-if(ENABLE_DEVMODE)
-  SET(CYTHON_MODULE_MISSING false)
-  EXECUTE_PROCESS(COMMAND "${PYTHON}" "-c" "import cython" RESULT_VARIABLE CYTHON_MODULE_MISSING)
-  if (CYTHON_MODULE_MISSING)
-    MESSAGE( SEND_ERROR "Python-CPP Cython module is missing. Please disable Developer mode (-DENABLE_DEVMODE=OFF)")
-  endif()
-endif(ENABLE_DEVMODE)
 
 if(MOAB_FORCE_32_BIT_HANDLES)
   MESSAGE( SEND_ERROR "Cannot build pymoab with 32bit EntityHandles enabled. Please remove the --enable-32bit-handles configuration option or build without MOAB's python interface.")
@@ -55,31 +44,32 @@ if (PYTHON AND NOT PYTHON_MODULES_MISSING)
   ADD_SUBDIRECTORY(tests)
 
   #assume a standard install location to start
- SET(PYMOAB_CUSTOM_INSTALL_LOCATION NO)
-
-  if(PYMOAB_PREFIX)
-    #if a pymoab prefix has been set, us it
-    SET(PYMOAB_INSTALL_PREFIX ${PYMOAB_PREFIX})
-    #set custom install indicator to true
-    SET(PYMOAB_CUSTOM_INSTALL_LOCATION YES)
-  elseif(NOT CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-    #otherwise install to the same location as the CMAKE_INSTALL_PREFIX
-    SET(PYMOAB_INSTALL_PREFIX "${CMAKE_INSTALL_LIBDIR}/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/site-packages/")
+  SET(PYMOAB_RELATIVE_INSTALL "/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/site-packages/")
+  SET(PYMOAB_USER_INSTALL_LOCATION YES)
+ 
+if(NOT PYMOAB_PREFIX)
+  if(NOT CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+    SET(PYMOAB_PREFIX "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
     #set custom install indicator to true    
-    SET(PYMOAB_CUSTOM_INSTALL_LOCATION YES)
+    SET(PYMOAB_USER_INSTALL_LOCATION YES)
   else()
     # if no prefix is supplied, install to system location
-    SET(PYMOAB_INSTALL_PREFIX "/usr/lib/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/dist-packages/")
-  endif()
+    SET(PYMOAB_PREFIX "/usr/lib")
+    SET(PYMOAB_RELATIVE_INSTALL "/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/dist-packages/")
+    SET(PYMOAB_USER_INSTALL_LOCATION NO)
+  endif(NOT CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+endif(NOT PYMOAB_PREFIX)
 
-  if(PYMOAB_CUSTOM_INSTALL_LOCATION)
+set(PYMOAB_INSTALL_PREFIX "${PYMOAB_PREFIX}/${PYMOAB_RELATIVE_INSTALL}")
+
+if(PYMOAB_USER_INSTALL_LOCATION)
       MESSAGE(WARNING "\
 The PyMOAB interface has been installed to a custom location. \
 In order to access this module from a python intpreter, please add \
 its install location to the PYTHONPATH environment variable: \
-PYTHONPATH=${CMAKE_INSTALL_PREFIX}/${PYMOAB_INSTALL_PREFIX}:\$PYTHONPATH \
+PYTHONPATH=${PYMOAB_INSTALL_PREFIX}/:\$PYTHONPATH \
 ")
-  endif()
+endif()
 
   # configure the setup script
   SET(SETUP_PY_IN "${CMAKE_CURRENT_SOURCE_DIR}/setup.py.cmake.in")
@@ -90,28 +80,18 @@ PYTHONPATH=${CMAKE_INSTALL_PREFIX}/${PYMOAB_INSTALL_PREFIX}:\$PYTHONPATH \
   SET(DEPS   "${CMAKE_CURRENT_SOURCE_DIR}/pymoab/__init__.py")
   SET(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/build")
 
-  #create local installation directories
-  ADD_CUSTOM_TARGET(pymoab-local-install-dir ALL COMMAND ${CMAKE_COMMAND} -E make_directory ${PYMOAB_LOCAL_INSTALL_PATH})
-  ADD_CUSTOM_TARGET(pymoab-pre-install-dir ALL COMMAND ${CMAKE_COMMAND} -E make_directory ${PYMOAB_PREINSTALL_INSTALL_PATH})
-
   # python setuptools build/install local version of pymoab for testing
-  MESSAGE(STATUS "Building local PyMOAB...")
   ADD_CUSTOM_TARGET(pymoab-local-install ALL
     COMMAND export CFLAGS='-w' &&
-    export "PYTHONPATH=${PYMOAB_LOCAL_INSTALL_PATH}:$PYTHONPATH" &&
-    ${PYTHON} setup.py build -b ${CMAKE_CURRENT_BINARY_DIR}/build_local install --install-platlib=${PYMOAB_LOCAL_INSTALL_PATH} --install-purelib=${PYMOAB_LOCAL_INSTALL_PATH}
-    DEPENDS ${DEPS} MOAB pymoab-local-install-dir)
-
-  # python setuptools build/install for external install (preinstallation)
-  MESSAGE(STATUS "Building pre-installation version of PyMOAB...")
-  ADD_CUSTOM_TARGET(pymoab-pre-install ALL
-    COMMAND export CFLAGS='-w' &&
-    export "PYTHONPATH=${PYMOAB_PREINSTALL_INSTALL_PATH}:$PYTHONPATH" &&
-    ${PYTHON} setup.py build -b ${CMAKE_CURRENT_BINARY_DIR}/build_preinstall --preinstall install --install-platlib=${PYMOAB_PREINSTALL_INSTALL_PATH} --install-purelib=${PYMOAB_PREINSTALL_INSTALL_PATH}
-    DEPENDS ${DEPS} MOAB pymoab-pre-install-dir pymoab-local-install)
+    ${PYTHON} setup.py build_ext --inplace
+    DEPENDS ${DEPS} MOAB)
 
   # move pymoab egg into the correct location for a --user setuptools install based on username
-  INSTALL(DIRECTORY ${PYMOAB_PREINSTALL_INSTALL_PATH}  DESTINATION ${PYMOAB_INSTALL_PREFIX} )
+  SET(INSTALL_SCRIPT_IN "${CMAKE_CURRENT_SOURCE_DIR}/install.sh.cmake")
+  SET(INSTALL_SCRIPT    "${CMAKE_CURRENT_BINARY_DIR}/install.sh")
+  CONFIGURE_FILE(${INSTALL_SCRIPT_IN} ${INSTALL_SCRIPT})
+  INSTALL(CODE "EXECUTE_PROCESS(COMMAND bash ./install.sh)")
+#  INSTALL(DIRECTORY ${PYMOAB_PREINSTALL_INSTALL_PATH} DESTINATION ${PYMOAB_INSTALL_PREFIX} )
   
 endif()
 

@@ -340,8 +340,6 @@ add_subdirectory( src )
 add_subdirectory( itaps )
 add_subdirectory( tools )
 if (ENABLE_PYMOAB)
-  SET(PYMOAB_LOCAL_INSTALL_PATH "${CMAKE_BINARY_DIR}/pymoab/local_inst/")
-  SET(PYMOAB_PREINSTALL_INSTALL_PATH "${CMAKE_BINARY_DIR}/pymoab/preinstall/")
   add_subdirectory( pymoab )
 endif()
 ################################################################################
