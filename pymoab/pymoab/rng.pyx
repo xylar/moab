@@ -135,7 +135,7 @@ cdef class Range(object):
         cdef Range r
         if isinstance(other, Range):
             r = other
-            self.inst.contains(deref(r.inst))
+            return self.inst.contains(deref(r.inst))
         else:
             raise ValueError("Operation not valid for non-Range object")
 
@@ -197,9 +197,9 @@ cdef class Range(object):
             result2 = subtract(r, self)
             result1.merge(result2)
             if op == 2: # ==
-                return not result1.empty()
-            if op == 3: # !=
                 return result1.empty()
+            if op == 3: # !=
+                return not result1.empty()
             else:
                 NotImplementedError("This comparator isn't supported for Ranges at this time.")
         else:
@@ -209,7 +209,7 @@ cdef class Range(object):
         """
         Range as a string
         """
-        res = str(self.inst.str_rep())
+        res = str(self.inst.str_rep().decode())
         return res
 
     def __repr__(self):

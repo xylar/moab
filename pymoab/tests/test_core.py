@@ -4,7 +4,7 @@ from pymoab.rng import Range
 from pymoab.scd import ScdInterface
 from pymoab.hcoord import HomCoord
 from subprocess import call
-from driver import test_driver, CHECK, CHECK_EQ, CHECK_NOT_EQ
+from driver import test_driver, CHECK, CHECK_EQ, CHECK_NOT_EQ, CHECK_ITER_EQ
 import numpy as np
 import os
 
@@ -871,19 +871,19 @@ def test_vec_tags():
 
     #these values should then be able to be retrieved as a 2-D array
     returned_int_test_tag_values = mb.tag_get_data(int_vec_test_tag,verts)
-    CHECK_EQ(returned_int_test_tag_values,int_vec_test_tag_values)
+    CHECK_ITER_EQ(returned_int_test_tag_values,int_vec_test_tag_values)
     returned_dbl_test_tag_values = mb.tag_get_data(dbl_vec_test_tag,verts)
-    CHECK_EQ(returned_dbl_test_tag_values,dbl_vec_test_tag_values)
+    CHECK_ITER_EQ(returned_dbl_test_tag_values,dbl_vec_test_tag_values)
     returned_opaque_test_tag_values = mb.tag_get_data(opaque_vec_test_tag,verts)
-    CHECK_EQ(returned_opaque_test_tag_values,opaque_vec_test_tag_values)
+    CHECK_ITER_EQ(returned_opaque_test_tag_values,opaque_vec_test_tag_values)
 
     #or as a 1-D array
     returned_int_test_tag_values = mb.tag_get_data(int_vec_test_tag,verts,flat=True)
-    CHECK_EQ(returned_int_test_tag_values,int_vec_test_tag_values_flat)
+    CHECK_ITER_EQ(returned_int_test_tag_values,int_vec_test_tag_values_flat)
     returned_dbl_test_tag_values = mb.tag_get_data(dbl_vec_test_tag,verts,flat=True)
-    CHECK_EQ(returned_dbl_test_tag_values,dbl_vec_test_tag_values_flat)
+    CHECK_ITER_EQ(returned_dbl_test_tag_values,dbl_vec_test_tag_values_flat)
     returned_opaque_test_tag_values = mb.tag_get_data(opaque_vec_test_tag,verts,flat=True)
-    CHECK_EQ(returned_opaque_test_tag_values,opaque_vec_test_tag_values_flat)
+    CHECK_ITER_EQ(returned_opaque_test_tag_values,opaque_vec_test_tag_values_flat)
 
 def test_create_element_iterable():
     mb = core.Core()

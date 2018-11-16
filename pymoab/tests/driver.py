@@ -1,5 +1,6 @@
 import sys
 import traceback
+from collections import Iterable
 
 class colors:
     HEADER = '\033[95m'
@@ -27,7 +28,13 @@ def test_driver(test_list):
 def CHECK_ITER_EQ(actual_value, expected_value):
     CHECK_EQ(len(actual_value), len(expected_value))
     for a,e in zip(actual_value, expected_value):
-        CHECK_EQ(a,e)
+        if isinstance(a, str) and (e, str):
+            CHECK_EQ(a,e)
+            continue
+        if isinstance(a, Iterable) and isinstance(e, Iterable):
+            CHECK_ITER_EQ(a,e)
+        else:
+            CHECK_EQ(a,e)
     
 def CHECK_EQ(actual_value, expected_value):
     err_msg = "Expected value: {} Actual value: {}"

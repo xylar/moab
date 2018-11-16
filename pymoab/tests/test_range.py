@@ -208,19 +208,29 @@ def test_range_methods1():
     all_ents.merge(tri_range_a)
     all_ents.merge(tri_range_b)
 
-    CHECK_EQ(len(all_ents), 10)
+    CHECK_EQ(len(all_ents), 16)
     CHECK_NOT(all_ents.all_of_type(types.MBVERTEX))
 
     # get vertices from all_ents range
     verts = all_ents.subset_by_type(types.MBVERTEX)
     CHECK(verts.all_of_type(types.MBVERTEX))
-    CHECK_EQ(len(verts), 6)
+    CHECK_EQ(len(verts), 12)
     
     verts = all_ents.subset_by_dimension(0)
     CHECK(verts.all_of_type(types.MBVERTEX))
-    CHECK_EQ(len(verts), 6)
+    CHECK_EQ(len(verts), 12)
 
     CHECK(verts == verts)
+
+    tris = all_ents.subset_by_type(types.MBTRI)
+    CHECK(tris.all_of_type(types.MBTRI))
+    CHECK_EQ(len(tris), 4)
+
+    tris = all_ents.subset_by_dimension(2)
+    CHECK(tris.all_of_type(types.MBTRI))
+    CHECK_EQ(len(tris), 4)
+
+    CHECK(tris == tris)
     
 if __name__ == "__main__":
     tests = [test_range,
