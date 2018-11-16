@@ -17,10 +17,10 @@ local-install:
 	 $(PYTHON) setup.py build_ext --inplace)
 
 install-exec-local: all-local
-	$(MKDIR_P) $(DESTDIR)$(pkgpythondir)
-	(PYTHONPATH=$(DESTDIR)$(pkgpythondir):$(PYTHONPATH) $(PYTHON) setup.py install \
+	$(MKDIR_P) $(DESTDIR)$(pythondir)
+	(PYTHONPATH=$(DESTDIR)$(pythondir):$(PYTHONPATH) $(PYTHON) setup.py install \
 		--prefix=$(DESTDIR)$(prefix) \
-		--record $(DESTDIR)$(pkgpythondir)/install_files.txt \
+		--record $(DESTDIR)$(pythondir)/install_files.txt \
 	)
 
 check: all-local
