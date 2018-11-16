@@ -8,6 +8,8 @@ from driver import test_driver, CHECK, CHECK_EQ, CHECK_NOT_EQ, CHECK_ITER_EQ
 import numpy as np
 import os
 
+bytes_per_char_ = np.array(["a"]).nbytes
+
 def test_load_mesh():
     mb = core.Core()
     try:
@@ -223,9 +225,8 @@ def test_opaque_tag():
     mb.tag_set_data(test_tag, vh, test_tag_data)
     data = mb.tag_get_data(test_tag, vh)
     CHECK_EQ(len(data),1)
-    CHECK_EQ(data.nbytes,tag_length)
+    CHECK_EQ(data.nbytes,tag_length*bytes_per_char_)
     CHECK_EQ(data[0],test_val)
-    CHECK_EQ(data.dtype,'|S' + str(tag_length))
 
 def test_tag_list():
     mb = core.Core()
@@ -240,9 +241,8 @@ def test_tag_list():
     data = mb.tag_get_data(test_tag, vh)
 
     CHECK_EQ(len(data),1)
-    CHECK_EQ(data.nbytes,tag_length)
+    CHECK_EQ(data.nbytes,tag_length*bytes_per_char_)
     CHECK_EQ(data[0],test_val)
-    CHECK_EQ(data.dtype,'|S' + str(tag_length))
 
 def test_tag_delete():
     mb = core.Core()
