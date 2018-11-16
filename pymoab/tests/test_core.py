@@ -400,10 +400,8 @@ def test_adj():
     CHECK(adjs.all_of_type(types.MBVERTEX))
 
     # sanity check for number of edges
-    adjs = mb.get_adjacencies(tris, 1, False, types.UNION)
-    CHECK_EQ(len(adjs), 0)
-    CHECK(adjs.all_of_type(types.MBEDGE))
-    
+    adjs = mb.get_adjacencies(tris[1], 1, False, types.UNION)
+    CHECK_EQ(len(adjs), 0)    
     
 def test_get_conn():
 
