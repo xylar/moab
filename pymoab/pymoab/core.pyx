@@ -827,10 +827,12 @@ cdef class Core(object):
         if tag_type is types.MB_TYPE_OPAQUE:
             data = np.empty((ehs.size,),dtype='S'+str(length))
         else:
-            data = np.empty((length*ehs.size,),dtype=np.dtype(np_tag_type(tag_type)))
+            data = np.empty((length*ehs.size,), dtype=np.dtype(np_tag_type(tag_type)))
         err = self.inst.tag_get_data(tag.inst, <moab.EntityHandle*> ehs.data, ehs.size, <void*> data.data)
         check_error(err, exceptions)
         # return data as user specifies
+        if tag_type is types.MB_TYPE_OPAQUE:
+            data = data.astype('str')
         if flat:
             return data
         else:
