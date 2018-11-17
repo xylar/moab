@@ -23,42 +23,60 @@ set ( BASIC_EXAMPLES
   basic/ErrorHandlingSimulation.cpp
   basic/GetEntities.cpp
   basic/HelloMOAB.cpp
-  basic/HelloParMOAB.cpp
   basic/ReadWriteTest.cpp
   basic/SetsNTags.cpp
   basic/StructuredMeshSimple.cpp
   basic/TestErrorHandling.cpp
-  basic/TestErrorHandlingPar.cpp
   basic/TestExodusII.cpp
   basic/UniformRefinement.cpp
 )
+
+if ( MOAB_USE_MPI )
+  set ( BASIC_EXAMPLES ${BASIC_EXAMPLES}
+                basic/HelloParMOAB.cpp
+                basic/TestErrorHandlingPar.cpp
+    )
+endif ( MOAB_USE_MPI )
 
 set ( INTERMEDIATE_EXAMPLES
   intermediate/DirectAccessNoHoles.cpp
   intermediate/DirectAccessWithHoles.cpp
   intermediate/LoadPartial.cpp
   intermediate/PointInElementSearch.cpp
-  intermediate/ReduceExchangeTags.cpp
 )
+if ( MOAB_USE_MPI )
+  set ( INTERMEDIATE_EXAMPLES ${INTERMEDIATE_EXAMPLES}
+                              intermediate/ReduceExchangeTags.cpp
+    )
+endif ( MOAB_USE_MPI )
 
 set ( ADVANCED_EXAMPLES
   advanced/CrystalRouterExample.cpp
   advanced/ExtrudePoly.cpp
-  advanced/GenLargeMesh.cpp
   advanced/LloydRelaxation.cpp
   advanced/VisTags.cpp
 )
+if ( MOAB_USE_MPI )
+  set ( ADVANCED_EXAMPLES ${ADVANCED_EXAMPLES}
+                          advanced/GenLargeMesh.cpp
+    )
+endif ( MOAB_USE_MPI )
 
 set ( FORTRAN_EXAMPLES
   fortran/DirectAccessNoHolesF90.F90
-  fortran/PushParMeshIntoMoabF90.F90
 )
+if ( MOAB_USE_MPI )
+  set ( FORTRAN_EXAMPLES ${FORTRAN_EXAMPLES}
+                          fortran/PushParMeshIntoMoabF90.cpp
+    )
+endif ( MOAB_USE_MPI )
 
 set ( APPS_EXAMPLES
   apps/earth/ContinentsOnGlobe.cpp
 )
 
-include_directories(${MOAB_INCLUDE_DIRS} ${MOAB_PACKAGE_INCLUDES})
+MESSAGE( "All include directories: ${MOAB_INCLUDE_DIRS} " )
+include_directories(${MOAB_INCLUDE_DIRS})
 
 set ( ALLCXXEXAMPLES ${BEGINNER_EXAMPLES} ${BASIC_EXAMPLES} ${INTERMEDIATE_EXAMPLES} ${ADVANCED_EXAMPLES} ${APPS_EXAMPLES} )
 
