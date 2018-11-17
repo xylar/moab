@@ -96,9 +96,10 @@ cdef class Core(object):
         ----------
         fname : string
             the location of the file to write
-        output_sets : EntityHandle (default None)
-            If not None, this argument must be a valid entity set handle.
-            When specified, the method will write entities from the given
+        output_sets : EntityHandle or Range (default None)
+            If not None, this argument must be a valid EntitySet handle or
+            Range containing only EntitySets.
+            When specified, the method will write any entities from the given
             meshsets.
         exceptions : tuple (default is empty tuple)
             tuple containing any error types that should
@@ -982,30 +983,16 @@ cdef class Core(object):
 
         Parameters
         ----------
-        entity_handles : iterable of MOAB EntityHandles or a single EntityHandle
-            the EntityHandle(s) to get the adjacencies of. This can be any
-            iterable of EntityHandles or a single EntityHandle.
-        to_dim : integer
-            value indicating the dimension of the entities to return
-        create_if_missing : bool (default is false)
-            this parameter indicates that any adjacencies that do not exist
-            should be created. For instance, in the example above, the second
-            call to get_adjacencies will create the edges of the triangle which
-            did not previously exist in the mesh database.
-        exceptions : tuple (default is empty tuple)
-            A tuple containing any error types that should
-            be ignored. (see pymoab.types module for more info)
+        entity_handle : a MOAB EntityHandle
 
         Returns
         -------
-        Range of MOAB EntityHandles
+        An integer representing the EntityType
 
         Raises
         ------
         MOAB ErrorCode
             if a MOAB error occurs
-        ValueError
-            if an EntityHandle is not of the correct type
         """
         cdef moab.EntityType t
         t = self.inst.type_from_handle(<unsigned long> entity_handle)
