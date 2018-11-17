@@ -281,6 +281,26 @@ def test_tag_delete():
     CHECK_EQ(raised, True)
     CHECK_EQ(er_val, types.MB_TAG_NOT_FOUND)
 
+def test_tag_delete_single():
+    mb = core.Core()
+    vh = vertex_handle(mb)
+    test_tag = mb.tag_get_handle(
+        "Test", 1, types.MB_TYPE_INTEGER, True, types.MB_TAG_SPARSE)
+    test_val = 4
+    test_tag_data = np.array((test_val,))
+    mb.tag_set_data(test_tag, vh, test_tag_data)
+
+    mb.tag_delete_data(test_tag, vh[0])
+    try:
+        mb.tag_get_data(test_tag, vh[0])
+        raised = False
+    except RuntimeError as e:
+        er_val = e.args[0].error_value
+        raised = True
+    CHECK_EQ(raised, True)
+    CHECK_EQ(er_val, types.MB_TAG_NOT_FOUND)
+    
+    
 def test_create_meshset():
     mb = core.Core()
     msh = mb.create_meshset()
