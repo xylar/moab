@@ -121,11 +121,13 @@ cdef class Core(object):
 
         cdef Range r
         cdef np.ndarray[np.uint64_t, ndim=1] arr
-
         if output_sets:
           arr = _eh_array(output_sets)
+          r = Range(arr)
+          if not r.all_of_type(types.MBENTITYSET):
+              raise IOError("Only EntitySets should be passed to write file.")
           err = self.inst.write_file(
-            file_name, <const char*> 0, <const char*> 0, <moab.EntityHandle*> arr.data, len(output_sets))
+              file_name, <const char*> 0, <const char*> 0, <moab.EntityHandle*> arr.data, len(output_sets))
         else:
           err = self.inst.write_file(file_name)
 

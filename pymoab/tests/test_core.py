@@ -60,6 +60,14 @@ def test_write_mesh():
         except:
             raise(IOError, "Failed to write MOAB file.")
 
+def test_write_ents():
+    try:
+        mb = core.Core()
+        vs = mb.create_vertices(np.ones(3))
+        mb.write_file("ents.h5m", vs)
+    except(IOError):
+        pass
+
 
 def test_delete_mesh():
     mb = core.Core()
@@ -306,7 +314,7 @@ def test_tag_failures():
     mb = core.Core()
 
     coord = np.array((1,1,1),dtype='float64')
-    msh = mb.create_meshset()    
+    msh = mb.create_meshset()
     msh_illicit_copy = np.array((msh,),dtype='uint32')
     test_tag = mb.tag_get_handle("Test",1,types.MB_TYPE_INTEGER,types.MB_TAG_DENSE,True)
     data = np.array((1,))
@@ -363,7 +371,7 @@ def test_adj():
     CHECK_EQ(len(adjs),3)
     CHECK(adjs.all_of_type(types.MBVERTEX))
 
-    
+
     #check that the entities are of the correct type
     for adj in adjs:
         type = mb.type_from_handle(adj)
@@ -374,14 +382,14 @@ def test_adj():
     CHECK_EQ(len(adjs),3)
 
     CHECK(adjs.all_of_type(types.MBEDGE))
-          
+
     adjs = mb.get_adjacencies(tris[0], 0, False)
     CHECK_EQ(len(adjs),3)
 
     # create another triangle (with reverse normal)
     new_coords = np.array((2,2,2,3,5,3), dtype = 'float64')
     new_verts = mb.create_vertices(new_coords)
-    
+
     # create a new triangle that shares a vertex with the first
     new_tri_conn = np.array(((verts[2], new_verts[0], new_verts[1]),) , dtype = 'uint64')
     tris.merge(mb.create_elements(types.MBTRI, new_tri_conn))
@@ -389,7 +397,7 @@ def test_adj():
     adjs = mb.get_adjacencies(tris, 0, False)
     CHECK_EQ(len(adjs), 1)
     CHECK(adjs.all_of_type(types.MBVERTEX))
-    
+
     adjs = mb.get_adjacencies(tris, 1, False)
     CHECK_EQ(len(adjs), 0)
     CHECK(adjs.all_of_type(types.MBEDGE))
@@ -401,8 +409,8 @@ def test_adj():
 
     # sanity check for number of edges
     adjs = mb.get_adjacencies(tris[1], 1, False, types.UNION)
-    CHECK_EQ(len(adjs), 0)    
-    
+    CHECK_EQ(len(adjs), 0)
+
 def test_get_conn():
 
     mb = core.Core()
@@ -429,7 +437,7 @@ def test_get_conn():
     CHECK_EQ(conn, verts)
 
     msh = mb.create_meshset()
-    
+
     try:
         mb.get_connectivity(msh)
     except IndexError:
@@ -437,7 +445,7 @@ def test_get_conn():
     else:
         print("Shouldn't be here. Test fails.")
         raise(IndexErrorx)
-    
+
 def test_type_from_handle():
     mb = core.Core()
     # create vertices
@@ -836,15 +844,15 @@ def test_unordered_tagging():
 
     # tag ordered vertices with value
     mb.tag_set_data(int_tag, verts, int_data)
-        
+
     reordered_verts = [verts[1], verts[2], verts[0]]
     reordered_data =  [int_data[1], int_data[2], int_data[0]]
 
     # check that data array is correct for reordered vertex handles
     data = mb.tag_get_data(int_tag, reordered_verts)
     CHECK_EQ(data, reordered_data)
-    
-    
+
+
 def test_vec_tags():
     mb = core.Core()
     coords = np.array((0,0,0,1,0,0,1,1,1),dtype='float64')
@@ -944,7 +952,7 @@ def test_entity_handle_tags():
 
     eh_tag = mb.tag_get_handle("Test", 1, types.MB_TYPE_HANDLE, types.MB_TAG_SPARSE, True)
     dbl_tag = mb.tag_get_handle("Dbl", 1, types.MB_TYPE_DOUBLE, types.MB_TAG_DENSE, True)
-    
+
     meshset_a = mb.create_meshset()
     meshset_b = mb.create_meshset()
 
@@ -963,10 +971,13 @@ def test_entity_handle_tags():
     CHECK_EQ(eh, meshset_b)
     dbl_val = mb.tag_get_data(dbl_tag, eh, flat = True)[0]
     CHECK_EQ(dbl_val, val)
-    
+
+
+
 if __name__ == "__main__":
     tests = [test_load_mesh,
              test_write_mesh,
+             test_write_ents,
              test_delete_mesh,
              test_get_tag,
              test_integer_tag,
