@@ -287,6 +287,12 @@ def test_create_meshset():
     vh = vertex_handle(mb)
     mb.add_entities(msh,vh)
 
+def test_add_entity():
+    mb = core.Core()
+    msh = mb.create_meshset()
+    vh = vertex_handle(mb)[0]
+    mb.add_entity(msh, vh)
+
 def vertex_handle(core):
     """Convenience function for getting an arbitrary vertex element handle."""
     coord = np.array((1,1,1),dtype='float64')
@@ -987,6 +993,7 @@ if __name__ == "__main__":
              test_tag_delete,
              test_create_meshset,
              test_create_elements,
+             test_add_entity,
              test_tag_failures,
              test_adj,
              test_type_from_handle,

@@ -178,6 +178,44 @@ cdef class Core(object):
         check_error(err, exceptions)
         return _eh_py_type(ms_handle)
 
+    def add_entity(self, moab.EntityHandle ms_handle, entity, exceptions = ()):
+        """
+        Add entities to the specified meshset. Entities can be provided either
+        as a pymoab.rng.Range o bject or as an iterable of EntityHandles.
+
+        If meshset has MESHSET_TRACK_OWNER option set, adjacencies are also
+        added to entities in entities.
+
+        Example
+        -------
+        vertices # a iterable of MOAB vertex handles
+        new_meshset = mb.create_meshset()
+        mb.add_entities(new_meshset, entities)
+
+        Parameters
+        ----------
+        ms_handle : EntityHandle
+            EntityHandle of the Meshset the entities will be added to
+        entities : Range or iterable of EntityHandles
+            Entities that to add to the Meshset
+        exceptions : tuple (default is empty tuple)
+            A tuple containing any error types that should
+            be ignored. (see pymoab.types module for more info)
+
+        Returns
+        -------
+        None
+
+        Raises
+        ------
+        MOAB ErrorCode
+            if a MOAB error occurs
+        """
+        cdef moab.ErrorCode err
+        cdef Range r = Range(entity)
+        err = self.inst.add_entities(ms_handle, deref(r.inst))
+        check_error(err, exceptions)
+
     def add_entities(self, moab.EntityHandle ms_handle, entities, exceptions = ()):
         """
         Add entities to the specified meshset. Entities can be provided either
@@ -489,7 +527,7 @@ cdef class Core(object):
                        size = None,
                        tag_type = None,
                        storage_type = None,
-                       create_if_missing = False,                       
+                       create_if_missing = False,
                        default_value = None,
                        exceptions = ()):
         """
@@ -508,7 +546,7 @@ cdef class Core(object):
         tag_handle = mb.tag_get_handle("NewDataTag",
                                        tag_size,
                                        tag_type,
-                                       storage_type,        
+                                       storage_type,
                                        create_if_missing = True)
 
         Example - retrieving an existing tag handle
@@ -1202,7 +1240,7 @@ cdef class Core(object):
         """
         Returns the vertex handles which make up the mesh entities passed in via
         the entity_handles argument.
-        
+
         Example
         -------
         # new PyMOAB instance
@@ -1216,7 +1254,7 @@ cdef class Core(object):
         # retrieve the vertex handles that make up the triangle
         conn = mb.get_connectivity(tris[0])
 
-        
+
         Parameters
         ----------
         entity_handles : iterable of MOAB EntityHandles or a single EntityHandle
@@ -1230,7 +1268,7 @@ cdef class Core(object):
         Returns
         -------
         Numpy array of vertex EntityHandles
-        
+
         Raises
         ------
         MOAB ErrorCode
@@ -1249,11 +1287,11 @@ cdef class Core(object):
         cdef int num_ents = 0
         err = self.inst.get_connectivity(<moab.EntityHandle*> ehs.data, ehs.size, ehs_out)
         check_error(err, exceptions)
-        
+
         return np.asarray(ehs_out, dtype = np.uint64)
 
-        
-        
+
+
     def get_coords(self, entities, exceptions = ()):
         """
         Returns the xyz coordinate information for a set of vertices.
