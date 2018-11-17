@@ -1,5 +1,5 @@
 # Use our custom Docker image with all scientific tools pre-loaded
-image: vijaysm/scientific:latest
+image: pshriwise/scientific:latest
 
 pipelines:
     default:
