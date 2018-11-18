@@ -28,14 +28,14 @@ def yt2moab_uniform_gridgen(mb,ds):
 
     #uniform grid parameters    
     #number of elements in each axis
-    nex = domain[0] 
-    ney = domain[1]
-    nez = domain[2]
+    nex = int(domain[0])
+    ney = int(domain[1])
+    nez = int(domain[2])
 
     #number of vertices in each axis
-    nvx = domain[0]+1
-    nvy = domain[1]+1
-    nvz = domain[2]+1
+    nvx = int(domain[0]+1)
+    nvy = int(domain[1]+1)
+    nvz = int(domain[2]+1)
     
     num_elems = nex*ney*nez
     
@@ -53,7 +53,9 @@ def yt2moab_uniform_gridgen(mb,ds):
     j=0
     k=0
 
-    coords = np.empty(3*num_verts,dtype='float64')
+    print(nvx, nvy, nvz)
+    print(num_verts)
+    coords = np.empty(3*num_verts, dtype='float64')
 
     while k < (nvz):
         j=0
@@ -74,7 +76,7 @@ def yt2moab_uniform_gridgen(mb,ds):
     #create vertices
     vert_handles = mb.create_vertices(coords)
 
-    print "Number of verts added to MOAB instance: ", vert_handles.size()
+    print("Number of verts added to MOAB instance: ", vert_handles.size())
 
     #reset indices for connectivity loop
     i=0
@@ -98,7 +100,7 @@ def yt2moab_uniform_gridgen(mb,ds):
 
                 ref_index = i+j*nvx+k*nvx*nvy
 
-                connectivity = ref_index+offsets
+                connectivity = [int(i) for i in ref_index+offsets]
 
                 conn_arr[j+i*ney+k*nex*ney] = [vert_handles[connectivity[elem]] for elem in range(8)]
                 k+=1
@@ -138,9 +140,9 @@ def main():
 
     args = parse_args() 
     filename = args.filename
-    print filename
+    print(filename)
 
-    print "Loading yt dataset " + filename.split("/")[-1] + "..."
+    print("Loading yt dataset " + filename.split("/")[-1] + "...")
     ds = yt.load(filename)
 
     #establish a moab instance for use
