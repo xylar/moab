@@ -30,12 +30,12 @@ def laplacian_smooth(mb, maxiter):
 
     mverts = mb.get_entities_by_dimension(rs, 0)
 
-    print "The " + str(ldim) + "-d mesh contains " + str(mverts.size()) + " vertices and " + str(melems.size()) + " elements!"
+    print("The " + str(ldim) + "-d mesh contains " + str(mverts.size()) + " vertices and " + str(melems.size()) + " elements!")
 
     # Compute the skin and fix the boundary vertices - these should not be moved
     sknr = skinner.Skinner(mb)
     skin_verts = sknr.find_skin(rs, melems, True, False)
-    print "Found " + str(skin_verts.size()) + " boundary vertices in the mesh"
+    print("Found " + str(skin_verts.size()) + " boundary vertices in the mesh")
 
     # Now let us set the new "smoothed" coordinate to the vertex
     oldvtxcoords = mb.get_coords(mverts)
@@ -46,7 +46,7 @@ def laplacian_smooth(mb, maxiter):
     iter = 0
     while iter < maxiter:
         ivtx = 0
-        print 'Laplacian smoothing iteration: ' + str(iter)
+        print('Laplacian smoothing iteration: ' + str(iter))
         for vtx in mverts:
             if vtx in skin_verts:
                 ivtx += 1
@@ -91,7 +91,7 @@ def main():
     #establish a moab instance for use
     mb = core.Core()
 
-    print "Loading input dataset " + filename.split("/")[-1] + "..."
+    print("Loading input dataset " + filename.split("/")[-1] + "...")
     mb.load_file(filename)
 
     # Apply Laplacian smoothing while fixing the boundary nodes
