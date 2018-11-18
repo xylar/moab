@@ -82,7 +82,6 @@ examples_fortran_DATA = \
 examples_pythonexdir = $(datadir)/examples/python
 examples_pythonex_DATA = \
                examples/python/makefile \
-               examples/python/yt2moab.py \
                examples/python/laplaciansmoother.py
 examples_appsdir = $(datadir)/examples/apps
 examples_apps_DATA = \
