@@ -9,6 +9,10 @@ find_package(MOAB REQUIRED
 set ( CMAKE_C_COMPILER ${MOAB_CC} )
 set ( CMAKE_CXX_COMPILER ${MOAB_CXX} )
 set ( CMAKE_Fortran_COMPILER ${MOAB_FC} )
+set ( CMAKE_C_FLAGS ${MOAB_C_FLAGS} )
+set ( CMAKE_CXX_FLAGS ${MOAB_CXX_FLAGS} )
+set ( CMAKE_Fortran_FLAGS ${MOAB_FC_FLAGS} )
+set ( CMAKE_CXX_LINK_FLAGS ${CMAKE_CXX_LINK_FLAGS} )
 
 project( MOAB_Examples )
 
