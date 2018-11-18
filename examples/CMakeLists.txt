@@ -1,10 +1,11 @@
 cmake_minimum_required( VERSION 2.8.12 )
 enable_language(Fortran)
 
-set ( MOAB_DIR "" CACHE PATH "Path to MOAB library installation" )
+set ( MOAB_ROOT "" CACHE PATH "Path to MOAB library installation" )
 
 find_package(MOAB REQUIRED
-  HINTS ${MOAB_DIR} ../../ $ENV{MOAB_DIR})
+  HINTS ${MOAB_ROOT} ${MOAB_ROOT}/lib/cmake/MOAB ../ ../../ $ENV{MOAB_DIR} $ENV{MOAB_DIR}/lib/cmake/MOAB)
+
 
 set ( CMAKE_C_COMPILER ${MOAB_CC} )
 set ( CMAKE_CXX_COMPILER ${MOAB_CXX} )
