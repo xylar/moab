@@ -43,7 +43,8 @@ const char OBB_GSET_TAG_NAME[] = "OBB_GSET";
 const char IMPLICIT_COMPLEMENT_NAME[] = "impl_complement";
 
   
-GeomTopoTool::GeomTopoTool(Interface *impl, bool find_geoments, EntityHandle modelRootSet, bool p_rootSets_vector) :
+GeomTopoTool::GeomTopoTool(Interface *impl, bool find_geoments, EntityHandle modelRootSet,
+                           bool p_rootSets_vector, bool restore_rootSets) :
   mdbImpl(impl), sense2Tag(0), senseNEntsTag(0), senseNSensesTag(0),
   geomTag(0), gidTag(0), obbRootTag(0), obbGsetTag(0),
   modelSet(modelRootSet), updated(false), 
@@ -78,8 +79,11 @@ GeomTopoTool::GeomTopoTool(Interface *impl, bool find_geoments, EntityHandle mod
   impl_compl_handle = 0;
   
   maxGlobalId[0] = maxGlobalId[1] = maxGlobalId[2] = maxGlobalId[3] =maxGlobalId[4] =0;
-  if (find_geoments)
+  if (find_geoments) {
     find_geomsets();
+    if (restore_rootSets)
+      restore_obb_index();
+  }
 }
 
 GeomTopoTool::~GeomTopoTool() {
@@ -195,6 +199,28 @@ ErrorCode GeomTopoTool::other_entity(EntityHandle bounded,
   return MB_SUCCESS;
 }
 
+
+ErrorCode GeomTopoTool::restore_obb_index()
+{
+
+  if (m_rootSets_vector)
+    resize_rootSets();
+  
+  ErrorCode rval;
+  EntityHandle root;
+
+  for (int dim = 2; dim <=3; dim++)
+    for (Range::iterator rit = geomRanges[dim].begin(); rit != geomRanges[dim].end(); ++rit) {
+      rval = mdbImpl->tag_get_data(obbRootTag, rit, 1, &root);
+
+      if (MB_SUCCESS == rval)
+        set_root_set(*rit, root);
+    }
+
+  return MB_SUCCESS
+
+}
+  
 ErrorCode GeomTopoTool::find_geomsets(Range *ranges)
 {
   ErrorCode rval;
