@@ -211,13 +211,13 @@ ErrorCode GeomTopoTool::restore_obb_index()
 
   for (int dim = 2; dim <=3; dim++)
     for (Range::iterator rit = geomRanges[dim].begin(); rit != geomRanges[dim].end(); ++rit) {
-      rval = mdbImpl->tag_get_data(obbRootTag, rit, 1, &root);
+      rval = mdbImpl->tag_get_data(obbRootTag, &(*rit), 1, &root);
 
       if (MB_SUCCESS == rval)
         set_root_set(*rit, root);
     }
 
-  return MB_SUCCESS
+  return MB_SUCCESS;
 
 }
   

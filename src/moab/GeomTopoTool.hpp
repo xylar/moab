@@ -59,7 +59,7 @@ public:
                               find_geoments is true. (default = true)
    */  
   GeomTopoTool(Interface *impl, bool find_geoments = false, EntityHandle modelRootSet = 0,
-               bool p_rootSets_vector = true, restore_rootSets = true);
+               bool p_rootSets_vector = true, bool restore_rootSets = true);
   
   ~GeomTopoTool();
   
