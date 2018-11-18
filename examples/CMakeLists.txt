@@ -72,7 +72,7 @@ set ( FORTRAN_EXAMPLES
 )
 if ( MOAB_USE_MPI )
   set ( FORTRAN_EXAMPLES ${FORTRAN_EXAMPLES}
-                          fortran/PushParMeshIntoMoabF90.cpp
+          fortran/PushParMeshIntoMoabF90.F90
     )
 endif ( MOAB_USE_MPI )
 
