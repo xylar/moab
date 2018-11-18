@@ -45,7 +45,6 @@ set(BLAS_LIBRARIES "@BLAS_LIBS@")
 set(MOAB_USE_LAPACK @enablelapack@)
 set(LAPACK_LIBRARIES "@LAPACK_LIBS@")
 set(MOAB_USE_EIGEN @enableeigen@)
-set(EIGEN_INCLUDE_DIR "@EIGEN3_DIR@")
 
 set(MOAB_MESH_DIR "@abs_top_srcdir@/MeshFiles/unittest")
 
