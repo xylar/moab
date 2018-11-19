@@ -1429,8 +1429,8 @@ namespace moab {
     Range partitionSets, interfaceSets;
 
     //! all local entities shared with others, whether ghost or ghosted
-    std::vector<EntityHandle> sharedEnts;
-
+    std::set<EntityHandle> sharedEnts;
+  
     //! tags used to save sharing procs and handles
     Tag sharedpTag, sharedpsTag, sharedhTag, sharedhsTag, pstatusTag,
       ifaceSetsTag, partitionTag;
