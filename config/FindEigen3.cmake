@@ -7,7 +7,7 @@
 # Once done this will define
 #
 #  EIGEN3_FOUND - system has eigen lib with correct version
-#  EIGEN3_INCLUDE_DIR - the eigen include directory
+#  EIGEN3_DIR - the eigen include directory
 #  EIGEN3_VERSION - eigen version
 
 # Copyright (c) 2006, 2007 Montel Laurent, <montel@kde.org>
@@ -30,7 +30,7 @@ if(NOT Eigen3_FIND_VERSION)
 endif(NOT Eigen3_FIND_VERSION)
 
 macro(_eigen3_check_version)
-  file(READ "${EIGEN3_INCLUDE_DIR}/Eigen/src/Core/util/Macros.h" _eigen3_version_header)
+  file(READ "${EIGEN3_DIR}/Eigen/src/Core/util/Macros.h" _eigen3_version_header)
 
   string(REGEX MATCH "define[ \t]+EIGEN_WORLD_VERSION[ \t]+([0-9]+)" _eigen3_world_version_match "${_eigen3_version_header}")
   set(EIGEN3_WORLD_VERSION "${CMAKE_MATCH_1}")
@@ -48,26 +48,28 @@ macro(_eigen3_check_version)
 
   if(NOT EIGEN3_VERSION_OK)
 
-    message(STATUS "Eigen3 version ${EIGEN3_VERSION} found in ${EIGEN3_INCLUDE_DIR}, "
+    message(STATUS "Eigen3 version ${EIGEN3_VERSION} found in ${EIGEN3_DIR}, "
                    "but at least version ${Eigen3_FIND_VERSION} is required")
   endif(NOT EIGEN3_VERSION_OK)
 endmacro(_eigen3_check_version)
 
-if (EIGEN3_INCLUDE_DIR)
+if (EIGEN3_DIR)
 
   # in cache already
   _eigen3_check_version()
   set(EIGEN3_FOUND ${EIGEN3_VERSION_OK})
-  message (STATUS "Using Eigen3 in ${EIGEN3_INCLUDE_DIR}")
+  set(EIGEN3_INCLUDES "-I${EIGEN3_DIR}")
+  mark_as_advanced(EIGEN3_INCLUDES)
+  message (STATUS "Using Eigen3 in ${EIGEN3_DIR}")
 
-else (EIGEN3_INCLUDE_DIR)
+else (EIGEN3_DIR)
 
   # specific additional paths for some OS
   if (WIN32)
     set(EIGEN_ADDITIONAL_SEARCH_PATHS ${EIGEN_ADDITIONAL_SEARCH_PATHS} "C:/Program Files/Eigen/include" "C:/Program Files (x86)/Eigen/include")
   endif(WIN32)
 
-  find_path(EIGEN3_INCLUDE_DIR NAMES signature_of_eigen3_matrix_library
+  find_path(EIGEN3_DIR NAMES signature_of_eigen3_matrix_library
       PATHS
       ${CMAKE_INSTALL_PREFIX}/include
       ${EIGEN_ADDITIONAL_SEARCH_PATHS}
@@ -75,15 +77,16 @@ else (EIGEN3_INCLUDE_DIR)
       PATH_SUFFIXES eigen3 eigen
     )
 
-  if(EIGEN3_INCLUDE_DIR)
+  if(EIGEN3_DIR)
     _eigen3_check_version()
-  endif(EIGEN3_INCLUDE_DIR)
+  endif(EIGEN3_DIR)
 
   include(FindPackageHandleStandardArgs)
-  find_package_handle_standard_args(Eigen3 DEFAULT_MSG EIGEN3_INCLUDE_DIR EIGEN3_VERSION_OK)
+  find_package_handle_standard_args(Eigen3 DEFAULT_MSG EIGEN3_DIR EIGEN3_VERSION_OK)
 
-  mark_as_advanced(EIGEN3_INCLUDE_DIR)
+  set(EIGEN3_INCLUDES "-I${EIGEN3_DIR}")
+  mark_as_advanced(EIGEN3_DIR)
+  mark_as_advanced(EIGEN3_INCLUDES)
 
-endif(EIGEN3_INCLUDE_DIR)
-
+endif(EIGEN3_DIR)
 
