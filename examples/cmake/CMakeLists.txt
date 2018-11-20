@@ -1,5 +1,8 @@
 ####################################################################################
 #       MOAB - CMake downstream application configuration/compilation template     #
+#                                                                                  #
+#  Configuration Usage:                                                            #
+#       cmake -DMOAB_ROOT=${PATH_TO_MOAB_INSTALLATION} ${EXAMPLE_SRC_PATH}         #
 ####################################################################################
 ##                           DO NOT MODIFY BELOW                                  ##
 ####################################################################################
