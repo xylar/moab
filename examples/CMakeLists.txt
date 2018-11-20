@@ -17,6 +17,8 @@ if ( ENABLE_IMESH )
   enable_language(Fortran)
 endif ( ENABLE_IMESH )
 
+message ( "++ Found MOAB configuration details at: ${MOAB_DIR}" )
+
 project( MOAB_Examples )
 
 set ( BEGINNER_EXAMPLES
@@ -86,7 +88,6 @@ set ( APPS_EXAMPLES
   apps/earth/BoundaryContinents.cpp
 )
 
-MESSAGE( "All include directories: ${MOAB_INCLUDE_DIRS} " )
 include_directories(${MOAB_INCLUDE_DIRS})
 
 set ( ALLCXXEXAMPLES ${BEGINNER_EXAMPLES} ${BASIC_EXAMPLES} ${INTERMEDIATE_EXAMPLES} ${ADVANCED_EXAMPLES} ${APPS_EXAMPLES} )
