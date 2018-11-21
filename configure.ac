@@ -318,6 +318,7 @@ else
     AC_CONFIG_SRCDIR([pymoab/setup.py.in])
     # link source files to build location
     AC_CONFIG_LINKS([pymoab/pymoab/moab.pxd:pymoab/pymoab/moab.pxd
+                     pymoab/pymoab/eh.pxd:pymoab/pymoab/eh.pxd
                      pymoab/pymoab/tag.pyx:pymoab/pymoab/tag.pyx
                      pymoab/pymoab/tag.pxd:pymoab/pymoab/tag.pxd
                      pymoab/pymoab/core.pyx:pymoab/pymoab/core.pyx
