@@ -11,7 +11,7 @@ from distutils.version import StrictVersion
 
 # make sure cython isn't too old
 if StrictVersion(Cython.__version__) < StrictVersion('0.26'):
-    sys.exit("Cython version is too old. Please update using pip install cython [--user]")
+    sys.exit("Cython version is too old. Please update using pip install cython --upgrade [--user]")
     
 # setup moab include paths
 moab_root = '@abs_top_srcdir@'
