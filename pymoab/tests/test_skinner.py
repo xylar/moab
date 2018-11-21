@@ -4,7 +4,6 @@ from pymoab import core, types, skinner
 from driver import test_driver, CHECK_EQ, CHECK_NOT_EQ
 import numpy as np
 
-
 def test_get_geometric_skin():
     mb = core.Core()
 
@@ -44,10 +43,10 @@ def test_get_geometric_skin():
     mskn = skinner.Skinner(mb)
 
     rs = mb.get_root_set()
-    skin_verts = mskn.find_geometric_skin(0)
+    skin = mskn.find_geometric_skin(0)
 
-    CHECK_EQ(len(skin_verts), 8)
-
+    CHECK_EQ(skin.num_of_type(types.MBVERTEX), 8)
+    CHECK_EQ(skin.num_of_type(types.MBQUAD), 4)
 
 def test_get_skin():
     mb = core.Core()
