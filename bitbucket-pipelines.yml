@@ -1,5 +1,5 @@
 # Use our custom Docker image with all scientific tools pre-loaded
-image: pshriwise/scientific:latest
+image: vijaysm/scientific:latest
 
 pipelines:
     default:
@@ -27,6 +27,9 @@ pipelines:
             script:
                 # Setup the build pipeline
                 - cd $BITBUCKET_CLONE_DIR && export CC=mpicc CXX=mpicxx FC=mpif90 F77=mpif77 F90=mpif90
+                # Setup cython properly
+                - easy_install pip
+                - pip install cython --user
                 # AutoTools Static Library Builds
                 - rm -rf build_atools build_cmake && mkdir -p build_atools build_cmake
                 # Configure and build with Autotools
