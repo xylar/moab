@@ -9,6 +9,7 @@ from Cython.Distutils import build_ext
 import Cython
 from distutils.version import StrictVersion
 
+# make sure cython isn't too old
 if StrictVersion(Cython.__version__) < StrictVersion('0.26'):
     sys.exit("Cython version is too old. Please update using pip install cython [--user]")
 
