@@ -18,6 +18,8 @@
 
 namespace moab {
 
+
+  
   /** \class GeomQueryTool
    *
    * \brief Tool for querying different aspects of geometric topology sets in MOAB
@@ -40,15 +42,6 @@ namespace moab {
 class GeomQueryTool
 {
 public:
-
-  // Constructor
-  GeomQueryTool(GeomTopoTool* geomtopotool, bool trace_counting = false,
-                double overlap_thickness = 0., double numerical_precision = 0.001);
-
-  // Destructor
-  ~GeomQueryTool();
-
-  ErrorCode initialize();
 
   /* \class RayHistory
    *
@@ -90,12 +83,30 @@ public:
      */
     int size() const { return prev_facets.size(); }
 
+    /**
+     * @return Boolean indicating if this entity is in the RayHistory
+     */
+    bool in_history(EntityHandle ent);
+
+    /**
+     * Add entity to the RayHistory
+     */
+    void add_entity(EntityHandle ent);
+    
   private:
     std::vector<EntityHandle> prev_facets;
 
     friend class GeomQueryTool;
-
   };
+  
+  // Constructor
+  GeomQueryTool(GeomTopoTool* geomtopotool, bool trace_counting = false,
+                double overlap_thickness = 0., double numerical_precision = 0.001);
+
+  // Destructor
+  ~GeomQueryTool();
+
+  ErrorCode initialize();
 
   /**\brief find the next surface crossing from a given point in a given direction
    *
