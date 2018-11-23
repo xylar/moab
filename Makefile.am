@@ -130,9 +130,6 @@ install-data-hook:
 	$(AM_V_at)echo "MOAB_LIBDIR=${libdir}" >> $(DESTDIR)$(cfgdir)/moab.make
 	$(AM_V_at)echo "MOAB_INCLUDES=-I${includedir}" >> $(DESTDIR)$(cfgdir)/moab.make
 
-uninstall-hook:
-	$(AM_V_at)rm $(DESTDIR)$(datadir)/examples/makefile.config
-
 # Generate a file to be installed in $libdir containing the configuration
 # options used for this MOAB build.
 # Note: If you modify this, verify that it works correctly for option
