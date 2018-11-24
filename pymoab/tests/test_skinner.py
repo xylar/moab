@@ -21,7 +21,7 @@ def test_get_geometric_skin():
     # create a geometric set for the quads
     surf_set = mb.create_meshset()
 
-    geom_tag = mb.tag_get_handle(types.GEOM_DIMENSION_TAG_NAME,
+    geom_tag = mb.tag_get_handle("GEOM_DIMENSION",
                                  1,
                                  types.MB_TYPE_INTEGER,
                                  types.MB_TAG_SPARSE,
