@@ -43,7 +43,7 @@ def test_get_geometric_skin():
     mskn = skinner.Skinner(mb)
 
     rs = mb.get_root_set()
-    skin = mskn.find_geometric_skin(0)
+    skin = mskn.find_geometric_skin(rs)
 
     CHECK_EQ(skin.num_of_type(types.MBVERTEX), 8)
     CHECK_EQ(skin.num_of_type(types.MBQUAD), 4)
