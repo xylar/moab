@@ -530,6 +530,12 @@ def test_set_coords():
     for i in range(len(coords)):
         CHECK_EQ(ret_coords[i],ret_coords2[i]-1.0)
 
+    # check that setting with a single eh is ok
+    coord = np.array((5,5,5), dtype='float64')
+    mb.set_coords(verts[0], coord)
+    ret_coords3 = mb.get_coords(verts[0])
+    CHECK_ITER_EQ(ret_coords3, coord)
+        
 def test_get_ents_by_type():
     mb = core.Core()
     coords = np.array((0,0,0,1,0,0,1,1,1),dtype='float64')
