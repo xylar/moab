@@ -4,7 +4,6 @@ from pymoab import core, types, skinner
 from driver import test_driver, CHECK_EQ, CHECK_NOT_EQ
 import numpy as np
 
-
 def test_get_geometric_skin():
     mb = core.Core()
 
@@ -19,13 +18,35 @@ def test_get_geometric_skin():
                         [5, 6, 9, 8]],dtype='uint64')
     quads = mb.create_elements(types.MBQUAD,connect)
 
+    # create a geometric set for the quads
+    surf_set = mb.create_meshset()
+
+    geom_tag = mb.tag_get_handle("GEOM_DIMENSION",
+                                 1,
+                                 types.MB_TYPE_INTEGER,
+                                 types.MB_TAG_SPARSE,
+                                 create_if_missing = True)
+
+    mb.tag_set_data(geom_tag, surf_set, 2)
+
+    # place 2-D entities in this set
+    mb.add_entities(surf_set, verts)
+    mb.add_entities(surf_set, quads)
+
+    # create a dummy volume set
+    vol_set = mb.create_meshset()
+    mb.tag_set_data(geom_tag, vol_set, 3)
+
+    # set surface to volume parent-child relationship
+    mb.add_parent_meshset(surf_set, vol_set)
+    
     mskn = skinner.Skinner(mb)
 
     rs = mb.get_root_set()
-    skin_verts = mskn.find_geometric_skin(rs)
+    skin = mskn.find_geometric_skin(rs)
 
-    CHECK_EQ(len(skin_verts), 8)
-
+    CHECK_EQ(skin.num_of_type(types.MBVERTEX), 8)
+    CHECK_EQ(skin.num_of_type(types.MBQUAD), 4)
 
 def test_get_skin():
     mb = core.Core()
@@ -57,7 +78,7 @@ def test_get_skin():
 
 if __name__ == "__main__":
     tests = [
-#             test_get_geometric_skin,
+             test_get_geometric_skin,
              test_get_skin]
     test_driver(tests)
 
