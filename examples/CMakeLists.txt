@@ -3,7 +3,7 @@ cmake_minimum_required( VERSION 2.8.12 )
 set ( MOAB_ROOT "" CACHE PATH "Path to MOAB library installation" )
 
 find_package(MOAB REQUIRED
-  HINTS ${MOAB_ROOT} ${MOAB_ROOT}/lib/cmake/MOAB ../ ../../ $ENV{MOAB_DIR} $ENV{MOAB_DIR}/lib/cmake/MOAB)
+  HINTS ${MOAB_ROOT} ${MOAB_ROOT}/lib/cmake/MOAB)
 
 set ( CMAKE_C_COMPILER ${MOAB_CC} )
 set ( CMAKE_CXX_COMPILER ${MOAB_CXX} )
