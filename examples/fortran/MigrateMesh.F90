@@ -33,6 +33,7 @@ program MigrateMesh
     integer iMOAB_LoadMesh, iMOAB_SendMesh, iMOAB_ReceiveMesh, iMOAB_WriteMesh
     integer iMOAB_FreeSenderBuffers
     integer iMOAB_DeregisterApplication, iMOAB_Finalize
+    integer repart_scheme 
 
     call MPI_INIT(ierr)
     call MPI_Comm_dup(MPI_COMM_WORLD, gcomm, ierr)
@@ -100,6 +101,10 @@ program MigrateMesh
 
     ierr = iMOAB_InitializeFortran()
 
+    repart_scheme = 0 !  this is for trivial partitioning
+#ifdef MOAB_HAVE_ZOLTAN
+    repart_scheme = 1 !  use the graph partitioner in that case
+#endif
     ! give some dummy values to component ids, just to differentiate between them
     ! the par comm graph is unique between components
     compid1 = 4
@@ -127,7 +132,7 @@ program MigrateMesh
 
        ierr = iMOAB_LoadMesh(pid1, trim(filename), trim(readopts), nghlay)
        if (rank .eq. sz-1 ) print *, "loaded in parallel ", trim(filename), " error: ", ierr
-       ierr = iMOAB_SendMesh(pid1, gcomm, group2, compid2); ! send to component 2
+       ierr = iMOAB_SendMesh(pid1, gcomm, group2, compid2, repart_scheme); ! send to component 2
        call errorout(ierr, 'cannot send elements' )
     endif
 
