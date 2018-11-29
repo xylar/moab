@@ -191,6 +191,8 @@ public:
     //  'vol_only' is False, function will delete the volume OBB tree 
     //  along with all child surface OBB trees.
   ErrorCode delete_obb_tree(EntityHandle gset, bool vol_only = false);
+  
+  ErrorCode delete_all_obb_trees();
 
     //! Delete the root of the obb tree from the set of all roots
   ErrorCode remove_root(EntityHandle vol_or_surf);
