@@ -222,8 +222,9 @@ ErrorCode GeomTopoTool::restore_obb_index()
 
       if (MB_SUCCESS == rval)
         set_root_set(*rit, root);
-      else
+      else{
         return MB_TAG_NOT_FOUND;
+      }
     }
 
   return MB_SUCCESS;
@@ -405,8 +406,12 @@ ErrorCode GeomTopoTool::delete_all_obb_trees(){
   ErrorCode rval;
 
   for (Range::iterator rit = geomRanges[3].begin(); rit != geomRanges[3].end(); ++rit){
-    rval = delete_obb_tree(*rit, false);
-    MB_CHK_SET_ERR(rval, "Failed to delete obb tree");
+    EntityHandle root;
+    rval = mdbImpl->tag_get_data(obbRootTag, &(*rit), 1, &root);
+    if (MB_SUCCESS == rval){
+      rval = delete_obb_tree(*rit, false);
+      MB_CHK_SET_ERR(rval, "Failed to delete obb tree");
+    }
   }
 
   return MB_SUCCESS;
