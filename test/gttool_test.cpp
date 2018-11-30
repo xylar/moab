@@ -686,8 +686,10 @@ ErrorCode test_restore_obb_trees(Interface *mb, Interface *mb2, Interface *mb3){
   rval = mb2->load_file(ofile4.c_str());
   MB_CHK_SET_ERR(rval, "Failed to load file containing obbs");
 
-  // 1) Check that roots are NOT restored
-  moab::GeomTopoTool* gTopoTool2 = new GeomTopoTool(mb2, false);
+  // 1) Check that roots are NOT restored by default GTT settings
+  // GeomTopoTool(Interface *impl, bool find_geoments = false, EntityHandle modelRootSet = 0,
+  //             bool p_rootSets_vector = true, bool restore_rootSets = true);
+  moab::GeomTopoTool* gTopoTool2 = new GeomTopoTool(mb2, false, 0, true, true);
 
   // Check that roots DO NOT EXIST
   vols.clear();
@@ -708,8 +710,8 @@ ErrorCode test_restore_obb_trees(Interface *mb, Interface *mb2, Interface *mb3){
     }
   }
 
-  // 2) Check that roots ARE restored
-  moab::GeomTopoTool* gTopoTool3 = new GeomTopoTool(mb2, true);
+  // 2) Check that roots ARE restored by setting find_geoments and restore_rootSets to true
+  moab::GeomTopoTool* gTopoTool3 = new GeomTopoTool(mb2, true, 0, true, true);
 
   // Check that roots still exist
   vols.clear();
@@ -729,7 +731,7 @@ ErrorCode test_restore_obb_trees(Interface *mb, Interface *mb2, Interface *mb3){
     CHECK(test_root3);
   }
 
-  // 3) Check that roots are deleted and then rebuit if an obb tree is missing
+  // 3) Check that roots are deleted and then rebuilt if an obb tree is missing
 
   // Load file missing obb
   rval = mb3->load_file(ofile5.c_str());
@@ -737,7 +739,7 @@ ErrorCode test_restore_obb_trees(Interface *mb, Interface *mb2, Interface *mb3){
 
 
   // Create GTT and try to restore OBBs
-  moab::GeomTopoTool* gTopoTool4 = new GeomTopoTool(mb3, true);
+  moab::GeomTopoTool* gTopoTool4 = new GeomTopoTool(mb3, true, 0, true, true);
   
   // Check that roots still exist
   vols.clear();
