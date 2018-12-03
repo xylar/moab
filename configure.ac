@@ -913,37 +913,41 @@ AC_ARG_WITH([tempestremap],
 
 HAVE_TEMPEST=no
 if (test "x$WITH_TEMPEST" != "xno" && test "x$WITH_TEMPEST" != "x"); then
-  # Test for Tempest headers
-  AC_LANG_PUSH([C++])
-  old_CPPFLAGS="$CPPFLAGS"
-  CPPFLAGS="$CPPFLAGS -I$WITH_TEMPEST/include"
-  AC_CHECK_HEADER([TempestConfig.h],[TEMPESTREMAP_INCLUDE="-I$WITH_TEMPEST/include"],
-                  [WITH_TEMPEST=no
-                  AC_MSG_WARN([TempestConfig.h: header not found in $WITH_TEMPEST/include.])],
-                  [#include <stdlib.h>])
-  CPPFLAGS="$old_CPPFLAGS"
-  AC_SUBST(TEMPESTREMAP_INCLUDE)
+  if (test "x$enableeigen" != "xyes"); then
+    AC_MSG_WARN([TempestRemap remapping operators cannot be computed without Eigen3 support])
+  else
+    # Test for Tempest headers
+    AC_LANG_PUSH([C++])
+    old_CPPFLAGS="$CPPFLAGS"
+    CPPFLAGS="$CPPFLAGS -I$WITH_TEMPEST/include"
+    AC_CHECK_HEADER([TempestConfig.h],[TEMPESTREMAP_INCLUDE="-I$WITH_TEMPEST/include"],
+                    [WITH_TEMPEST=no
+                    AC_MSG_WARN([TempestConfig.h: header not found in $WITH_TEMPEST/include.])],
+                    [#include <stdlib.h>])
+    CPPFLAGS="$old_CPPFLAGS"
+    AC_SUBST(TEMPESTREMAP_INCLUDE)
 
-  # Test for TempestRemap library, possibly requiring NetCDF
-  old_LDFLAGS="$LDFLAGS"
-  old_LIBS="$LIBS"
-  LDFLAGS="$LDFLAGS -L$WITH_TEMPEST/lib $PNETCDF_LDFLAGS $NETCDF_LDFLAGS $HDF5_LDFLAGS"
-  LIBS="$NETCDF_LIBS $LAPACK_LIBS $BLAS_LIBS $LIBS"
-  AC_CHECK_LIB([TempestRemap],[GenerateOfflineMap],[TEMPESTREMAP_LIBS="-L$WITH_TEMPEST/lib -lTempestRemap $NETCDF_LIBS $LAPACK_LIBS $BLAS_LIBS"],
-    [unset ac_cv_lib_TempestRemap_GenerateOfflineMap
-    LIBS="$NETCDF_LIBS $PNETCDF_LIBS $HDF5_LIBS $LAPACK_LIBS $BLAS_LIBS $LIBS"
-    AC_CHECK_LIB([TempestRemap],[GenerateOfflineMap],
-                  [TEMPESTREMAP_LIBS="-L$WITH_TEMPEST/lib -lTempestRemap $NETCDF_LIBS $PNETCDF_LIBS $LAPACK_LIBS $BLAS_LIBS"],
-                  [AC_MSG_ERROR([TempestRemap library not found or not usable.])]
-                  [$NETCDF_LIBS $PNETCDF_LIBS])],[$NETCDF_LIBS])
-  LDFLAGS="$old_LDFLAGS"
-  LIBS="$old_LIBS"
-  AC_LANG_POP([C++])
-  AC_SUBST(TEMPESTREMAP_LIBS)
+    # Test for TempestRemap library, possibly requiring NetCDF
+    old_LDFLAGS="$LDFLAGS"
+    old_LIBS="$LIBS"
+    LDFLAGS="$LDFLAGS -L$WITH_TEMPEST/lib $PNETCDF_LDFLAGS $NETCDF_LDFLAGS $HDF5_LDFLAGS"
+    LIBS="$NETCDF_LIBS $LAPACK_LIBS $BLAS_LIBS $LIBS"
+    AC_CHECK_LIB([TempestRemap],[GenerateOfflineMap],[TEMPESTREMAP_LIBS="-L$WITH_TEMPEST/lib -lTempestRemap $NETCDF_LIBS $LAPACK_LIBS $BLAS_LIBS"],
+      [unset ac_cv_lib_TempestRemap_GenerateOfflineMap
+      LIBS="$NETCDF_LIBS $PNETCDF_LIBS $HDF5_LIBS $LAPACK_LIBS $BLAS_LIBS $LIBS"
+      AC_CHECK_LIB([TempestRemap],[GenerateOfflineMap],
+                    [TEMPESTREMAP_LIBS="-L$WITH_TEMPEST/lib -lTempestRemap $NETCDF_LIBS $PNETCDF_LIBS $LAPACK_LIBS $BLAS_LIBS"],
+                    [AC_MSG_ERROR([TempestRemap library not found or not usable.])]
+                    [$NETCDF_LIBS $PNETCDF_LIBS])],[$NETCDF_LIBS])
+    LDFLAGS="$old_LDFLAGS"
+    LIBS="$old_LIBS"
+    AC_LANG_POP([C++])
+    AC_SUBST(TEMPESTREMAP_LIBS)
 
-    # Define macro HAVE_TEMPESTREMAP
-  AC_DEFINE([HAVE_TEMPESTREMAP],[1],[Enable use of TempestRemap library API for computing intersection and remapping for Climate problems])
-  HAVE_TEMPEST=yes
+      # Define macro HAVE_TEMPESTREMAP
+    AC_DEFINE([HAVE_TEMPESTREMAP],[1],[Enable use of TempestRemap library API for computing intersection and remapping for Climate problems])
+    HAVE_TEMPEST=yes
+  fi
 fi
 AM_CONDITIONAL( HAVE_TEMPESTREMAP, [test "x$HAVE_TEMPEST" = "xyes"] )
 
