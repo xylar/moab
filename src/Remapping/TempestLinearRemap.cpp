@@ -279,7 +279,7 @@ void moab::TempestOfflineMap::LinearRemapFVtoFV_Tempest_MOAB (
     const int nFitWeightsExponent = nOrder + 2;
 
     // Announcemnets
-    if ( !pcomm->rank() )
+    if ( is_root )
     {
         Announce ( "[moab::TempestOfflineMap::LinearRemapFVtoFV_Tempest_MOAB] Finite Volume to Finite Volume Projection" );
         Announce ( "Triangular quadrature rule order %i", TriQuadRuleOrder );
@@ -319,7 +319,7 @@ void moab::TempestOfflineMap::LinearRemapFVtoFV_Tempest_MOAB (
         }
 
         unsigned nOverlapFaces = ixOverlapEnd - ixOverlapBegin;
-        // if ( !pcomm->rank() ) Announce ( "Element %i / %i :: [%i, %i]", ixFirst, m_meshInputCov->faces.size(), ixOverlapBegin, ixOverlapEnd );
+        // if ( is_root ) Announce ( "Element %i / %i :: [%i, %i]", ixFirst, m_meshInputCov->faces.size(), ixOverlapBegin, ixOverlapEnd );
 
         if ( nOverlapFaces == 0 ) continue;
 
@@ -458,7 +458,7 @@ void moab::TempestOfflineMap::CopyTempestSparseMat_Eigen()
 
 #ifdef VERBOSE
     std::stringstream sstr;
-    sstr << "tempestmatrix.txt.0000" << pcomm->rank();
+    sstr << "tempestmatrix.txt.0000" << rank;
     std::ofstream output_file ( sstr.str(), std::ios::out );
     output_file << "0 " << locrows << " 0 " << loccols << "\n";
     for (unsigned iv=0; iv < locvals; iv++) {
@@ -783,7 +783,7 @@ moab::ErrorCode moab::TempestOfflineMap::ApplyWeights (std::vector<double>& srcV
 
 #ifdef VERBOSE
     std::stringstream sstr;
-    sstr << "projection_" << this->pcomm->rank() << ".txt";
+    sstr << "projection_" << rank << ".txt";
     std::ofstream output_file ( sstr.str() );
 #endif
     // Perform the actual projection of weights: application of weight matrix onto the source solution vector
@@ -1043,7 +1043,7 @@ void moab::TempestOfflineMap::LinearRemapSE4_Tempest_MOAB (
     GaussLobattoQuadrature::GetPoints ( nP, 0.0, 1.0, dG, dW );
 
     // Announcemnets
-    if ( !pcomm->rank() )
+    if ( is_root )
     {
         Announce ( "[moab::TempestOfflineMap::LinearRemapSE4_Tempest_MOAB] Finite Element to Finite Volume Projection" );
         Announce ( "Triangular quadrature rule order %i", TriQuadRuleOrder );
@@ -1066,7 +1066,7 @@ void moab::TempestOfflineMap::LinearRemapSE4_Tempest_MOAB (
 
 #ifdef VERBOSE
     std::stringstream sstr;
-    sstr << "remapdata_" << this->pcomm->rank() << ".txt";
+    sstr << "remapdata_" << rank << ".txt";
     std::ofstream output_file ( sstr.str() );
 #endif
 
@@ -1127,7 +1127,7 @@ void moab::TempestOfflineMap::LinearRemapSE4_Tempest_MOAB (
             const Face & faceOverlap = m_meshOverlap->faces[ixOverlap + j];
 
 // #ifdef VERBOSE
-            // if ( !pcomm->rank() )
+            // if ( is_root )
             //     Announce ( "\tLocal ID: %i/%i = %i, areas = %2.8e", j + ixOverlap, nOverlapFaces, m_remapper->lid_to_gid_covsrc[m_meshOverlap->vecSourceFaceIx[ixOverlap + j]], m_meshOverlap->vecFaceArea[ixOverlap + j] );
 // #endif
 
@@ -1488,7 +1488,7 @@ void moab::TempestOfflineMap::LinearRemapFVtoGLL_Simple_MOAB (
     int nP = dataGLLNodes.GetRows();
 
     // Announcemnets
-    if ( !pcomm->rank() )
+    if ( is_root )
     {
         Announce ( "[moab::TempestOfflineMap::LinearRemapFVtoGLL_Simple_MOAB] Finite Volume to Finite Element (Simple) Projection" );
         Announce ( "Triangular quadrature rule order %i", TriQuadRuleOrder );
@@ -1778,7 +1778,7 @@ void moab::TempestOfflineMap::LinearRemapFVtoGLL_Volumetric_MOAB (
     int nP = dataGLLNodes.GetRows();
 
     // Announcemnets
-    if ( !pcomm->rank() )
+    if ( is_root )
     {
         Announce ( "[moab::TempestOfflineMap::LinearRemapFVtoGLL_Volumetric_MOAB] Finite Volume to Finite Element (Volumetric) Projection" );
         Announce ( "Triangular quadrature rule order %i", TriQuadRuleOrder );
@@ -2228,7 +2228,7 @@ void moab::TempestOfflineMap::LinearRemapFVtoGLL_MOAB (
     int nRequiredFaceSetSize = nCoefficients;
 
     // Announcemnets
-    if ( !pcomm->rank() )
+    if ( is_root )
     {
         Announce ( "[moab::TempestOfflineMap::LinearRemapFVtoGLL_MOAB] Finite Volume to Finite Element Projection" );
         Announce ( "Triangular quadrature rule order %i", TriQuadRuleOrder );
@@ -2285,7 +2285,7 @@ void moab::TempestOfflineMap::LinearRemapFVtoGLL_MOAB (
     {
 #ifdef VERBOSE
         // Announce computation progress
-        if ( ixFirst % outputFrequency == 0 && !pcomm->rank() )
+        if ( ixFirst % outputFrequency == 0 && is_root )
         {
             Announce ( "Element %i/%i", ixFirst, m_meshInputCov->faces.size() );
         }
@@ -2710,7 +2710,7 @@ void moab::TempestOfflineMap::LinearRemapGLLtoGLL2_MOAB (
     dSampleCoeffOut.Initialize ( nPout, nPout );
 
     // Announcemnets
-    if ( !pcomm->rank() )
+    if ( is_root )
     {
         Announce ( "[moab::TempestOfflineMap::LinearRemapGLLtoGLL2_MOAB] Finite Element to Finite Element Projection" );
         Announce ( "Order of the input FE polynomial interpolant: %i", nPin );
@@ -2765,13 +2765,13 @@ void moab::TempestOfflineMap::LinearRemapGLLtoGLL2_MOAB (
     const unsigned outputFrequency = (m_meshInputCov->faces.size()/10);
 #endif
 
-    if ( !pcomm->rank() )
+    if ( is_root )
         Announce ( "Building conservative distribution maps" );
     for ( size_t ixFirst = 0; ixFirst < m_meshInputCov->faces.size(); ixFirst++ )
     {
 #ifdef VERBOSE
         // Announce computation progress
-        if ( ixFirst % outputFrequency == 0 && !pcomm->rank() )
+        if ( ixFirst % outputFrequency == 0 && is_root )
         {
             Announce ( "Element %i", ixFirst );
         }
@@ -3295,7 +3295,7 @@ void moab::TempestOfflineMap::LinearRemapGLLtoGLL2_Pointwise_MOAB (
     dSampleCoeffIn.Initialize ( nPin, nPin );
 
     // Announcemnets
-    if ( !pcomm->rank() )
+    if ( is_root )
     {
         Announce ( "[moab::TempestOfflineMap::LinearRemapGLLtoGLL2_Pointwise_MOAB] Finite Element to Finite Element (Pointwise) Projection" );
         Announce ( "Order of the input FE polynomial interpolant: %i", nPin );

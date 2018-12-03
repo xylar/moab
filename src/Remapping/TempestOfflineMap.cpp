@@ -36,7 +36,9 @@ moab::TempestOfflineMap::TempestOfflineMap ( moab::TempestRemapper* remapper ) :
 {
     // Get the references for the MOAB core objects
     mbCore = m_remapper->get_interface();
+#ifdef MOAB_HAVE_MPI
     pcomm = m_remapper->get_parallel_communicator();
+#endif
 
     // Update the references to the meshes
     m_meshInput = remapper->GetMesh ( moab::Remapper::SourceMesh );
@@ -45,7 +47,23 @@ moab::TempestOfflineMap::TempestOfflineMap ( moab::TempestRemapper* remapper ) :
     m_meshOverlap = remapper->GetMesh ( moab::Remapper::IntersectedMesh );
     m_globalMapAvailable = false;
 
-    moab::DebugOutput dbgprint ( std::cout, ( pcomm ? pcomm->rank() : 0 ) );
+    is_parallel = false;
+    is_root = true;
+    rank = 0;
+    size = 1;
+#ifdef MOAB_HAVE_MPI
+    int flagInit;
+    MPI_Initialized( &flagInit );
+    if (flagInit) {
+        is_parallel = true;
+        assert(pcomm != NULL);
+        rank = rank;
+        size = size;
+        is_root = (rank == 0);
+    }
+#endif
+
+    moab::DebugOutput dbgprint ( std::cout, rank );
 
     // Compute and store the total number of source and target DoFs corresponding
     // to number of rows and columns in the mapping.
@@ -76,7 +94,9 @@ moab::TempestOfflineMap::~TempestOfflineMap()
 {
     delete m_weightMapGlobal;
     mbCore = NULL;
+#ifdef MOAB_HAVE_MPI
     pcomm = NULL;
+#endif
     m_meshInput = NULL;
     m_meshOutput = NULL;
     m_meshOverlap = NULL;
@@ -146,7 +166,7 @@ moab::ErrorCode moab::TempestOfflineMap::SetDofMapAssociation(DiscretizationType
     m_srcDiscType = srcType;
     m_destDiscType = destType;
 
-    bool vprint = !(pcomm->rank() > 0) && false;
+    bool vprint = is_root && false;
 
 #ifdef VVERBOSE
     {
@@ -157,7 +177,7 @@ moab::ErrorCode moab::TempestOfflineMap::SetDofMapAssociation(DiscretizationType
         tgt_soln_gdofs.resize(m_remapper->m_target_entities.size()*m_nDofsPEl_Dest*m_nDofsPEl_Dest);
         rval = mbCore->tag_get_data ( m_dofTagDest, m_remapper->m_target_entities, &tgt_soln_gdofs[0] );MB_CHK_ERR(rval);
 
-        if (!pcomm->rank())
+        if (is_root)
         {
             {
                 std::ofstream output_file ( "sourcecov-gids-0.txt" );
@@ -448,7 +468,7 @@ moab::ErrorCode moab::TempestOfflineMap::SetDofMapAssociation(DiscretizationType
 #ifdef MOAB_HAVE_EIGEN
     // if (vprint)
     {
-        std::cout << "[" << pcomm->rank() << "]" << "DoFs: row = " << m_nTotDofs_Dest << ", " << row_dofmap.size() << ", col = " << m_nTotDofs_Src << ", " << m_nTotDofs_SrcCov << ", " << col_dofmap.size() << "\n";
+        std::cout << "[" << rank << "]" << "DoFs: row = " << m_nTotDofs_Dest << ", " << row_dofmap.size() << ", col = " << m_nTotDofs_Src << ", " << m_nTotDofs_SrcCov << ", " << col_dofmap.size() << "\n";
         // std::cout << "Max col_dofmap: " << maxcol << ", Min col_dofmap" << mincol << "\n";
     }
 #endif
@@ -471,7 +491,7 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
 {
     NcError error ( NcError::silent_nonfatal );
 
-    moab::DebugOutput dbgprint ( std::cout, ( pcomm ? pcomm->rank() : 0 ) );
+    moab::DebugOutput dbgprint ( std::cout, ( rank ) );
     moab::ErrorCode rval;
 
     try
@@ -551,11 +571,13 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
         rval = SetDofMapTags(srcDofTagName, tgtDofTagName);
 
         // Calculate Face areas
-        if ( !pcomm->rank() ) dbgprint.printf ( 0, "Calculating input mesh Face areas\n" );
+        if ( is_root ) dbgprint.printf ( 0, "Calculating input mesh Face areas\n" );
         double dTotalAreaInput_loc = m_meshInput->CalculateFaceAreas(fInputConcave);
-        Real dTotalAreaInput;
-        MPI_Allreduce ( &dTotalAreaInput_loc, &dTotalAreaInput, 1, MPI_DOUBLE, MPI_SUM, pcomm->comm() );
-        if ( !pcomm->rank() ) dbgprint.printf ( 0, "Input Mesh Geometric Area: %1.15e\n", dTotalAreaInput );
+        double dTotalAreaInput = dTotalAreaInput_loc;
+#ifdef MOAB_HAVE_MPI
+        if (pcomm) MPI_Allreduce ( &dTotalAreaInput_loc, &dTotalAreaInput, 1, MPI_DOUBLE, MPI_SUM, pcomm->comm() );
+#endif
+        if ( is_root ) dbgprint.printf ( 0, "Input Mesh Geometric Area: %1.15e\n", dTotalAreaInput );
 
         // Input mesh areas
         m_meshInputCov->CalculateFaceAreas(fInputConcave);
@@ -565,11 +587,13 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
         }
 
         // Calculate Face areas
-        if ( !pcomm->rank() ) dbgprint.printf ( 0, "Calculating output mesh Face areas\n" );
-        Real dTotalAreaOutput_loc = m_meshOutput->CalculateFaceAreas(fOutputConcave);
-        Real dTotalAreaOutput;
-        MPI_Allreduce ( &dTotalAreaOutput_loc, &dTotalAreaOutput, 1, MPI_DOUBLE, MPI_SUM, pcomm->comm() );
-        if ( !pcomm->rank() ) dbgprint.printf ( 0, "Output Mesh Geometric Area: %1.15e\n", dTotalAreaOutput );
+        if ( is_root ) dbgprint.printf ( 0, "Calculating output mesh Face areas\n" );
+        double dTotalAreaOutput_loc = m_meshOutput->CalculateFaceAreas(fOutputConcave);
+        double dTotalAreaOutput = dTotalAreaOutput_loc;
+#ifdef MOAB_HAVE_MPI
+        if (pcomm) MPI_Allreduce ( &dTotalAreaOutput_loc, &dTotalAreaOutput, 1, MPI_DOUBLE, MPI_SUM, pcomm->comm() );
+#endif
+        if ( is_root ) dbgprint.printf ( 0, "Output Mesh Geometric Area: %1.15e\n", dTotalAreaOutput );
 
         // Output mesh areas
         if ( eOutputType == DiscretizationType_FV )
@@ -607,14 +631,14 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
             ( m_meshOutput->faces.size() - ixTargetFaceMax == 0 )
         )
         {
-            if ( !pcomm->rank() ) dbgprint.printf ( 0, "Overlap mesh forward correspondence found\n" );
+            if ( is_root ) dbgprint.printf ( 0, "Overlap mesh forward correspondence found\n" );
         }
         else if (
             // m_meshOutput->faces.size() - ixSourceFaceMax == 0 //&&
             ( m_meshInputCov->faces.size() - ixTargetFaceMax == 0 )
         )
         {   // Check for reverse correspondence in overlap mesh
-            if ( !pcomm->rank() ) dbgprint.printf ( 0, "Overlap mesh reverse correspondence found (reversing)\n" );
+            if ( is_root ) dbgprint.printf ( 0, "Overlap mesh reverse correspondence found (reversing)\n" );
 
             // Reorder overlap mesh
             m_meshOverlap->ExchangeFirstAndSecondMesh();
@@ -628,18 +652,20 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
         */
 
         // Calculate Face areas
-        if ( !pcomm->rank() ) dbgprint.printf ( 0, "Calculating overlap mesh Face areas\n" );
-        Real dTotalAreaOverlap_loc = m_meshOverlap->CalculateFaceAreas(false);
-        Real dTotalAreaOverlap;
-        MPI_Allreduce ( &dTotalAreaOverlap_loc, &dTotalAreaOverlap, 1, MPI_DOUBLE, MPI_SUM, pcomm->comm() );
-        if ( !pcomm->rank() ) dbgprint.printf ( 0, "Overlap Mesh Area: %1.15e\n", dTotalAreaOverlap );
+        if ( is_root ) dbgprint.printf ( 0, "Calculating overlap mesh Face areas\n" );
+        double dTotalAreaOverlap_loc = m_meshOverlap->CalculateFaceAreas(false);
+        double dTotalAreaOverlap = dTotalAreaOverlap_loc;
+#ifdef MOAB_HAVE_MPI
+        if (pcomm) MPI_Allreduce ( &dTotalAreaOverlap_loc, &dTotalAreaOverlap, 1, MPI_DOUBLE, MPI_SUM, pcomm->comm() );
+#endif
+        if ( is_root ) dbgprint.printf ( 0, "Overlap Mesh Area: %1.15e\n", dTotalAreaOverlap );
 
         // Partial cover
         if ( fabs ( dTotalAreaOverlap - dTotalAreaInput ) > 1.0e-10 )
         {
             if ( !fNoCheck )
             {
-                if ( !pcomm->rank() ) dbgprint.printf ( 0, "WARNING: Significant mismatch between overlap mesh area "
+                if ( is_root ) dbgprint.printf ( 0, "WARNING: Significant mismatch between overlap mesh area "
                                                             "and input mesh area.\n  Automatically enabling --nocheck\n" );
                 fNoCheck = true;
             }
@@ -671,14 +697,14 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
             rval = this->SetDofMapAssociation(eInputType, false, NULL, NULL, eOutputType, false, NULL);MB_CHK_ERR(rval);
 
             // Construct OfflineMap
-            if ( !pcomm->rank() ) dbgprint.printf ( 0, "Calculating offline map\n" );
+            if ( is_root ) dbgprint.printf ( 0, "Calculating offline map\n" );
             LinearRemapFVtoFV_Tempest_MOAB ( nPin );
         }
         else if ( eInputType == DiscretizationType_FV )
         {
             DataMatrix3D<double> dataGLLJacobian;
 
-            if ( !pcomm->rank() ) dbgprint.printf ( 0, "Generating output mesh meta data\n" );
+            if ( is_root ) dbgprint.printf ( 0, "Generating output mesh meta data\n" );
             double dNumericalArea_loc =
                 GenerateMetaData (
                     *m_meshOutput,
@@ -687,9 +713,11 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
                     dataGLLNodesDest,
                     dataGLLJacobian );
 
-            Real dNumericalArea;
-            MPI_Allreduce ( &dNumericalArea_loc, &dNumericalArea, 1, MPI_DOUBLE, MPI_SUM, pcomm->comm() );
-            if ( !pcomm->rank() ) dbgprint.printf ( 0, "Output Mesh Numerical Area: %1.15e\n", dNumericalArea );
+            double dNumericalArea = dNumericalArea_loc;
+#ifdef MOAB_HAVE_MPI
+            if (pcomm) MPI_Allreduce ( &dNumericalArea_loc, &dNumericalArea, 1, MPI_DOUBLE, MPI_SUM, pcomm->comm() );
+#endif
+            if ( is_root ) dbgprint.printf ( 0, "Output Mesh Numerical Area: %1.15e\n", dNumericalArea );
 
             // Initialize coordinates for map
             this->InitializeSourceCoordinatesFromMeshFV ( *m_meshInputCov );
@@ -722,7 +750,7 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
                 eOutputType, (eOutputType == DiscretizationType_CGLL), &dataGLLNodesDest);MB_CHK_ERR(rval);
 
             // Generate remap weights
-            if ( !pcomm->rank() ) dbgprint.printf ( 0, "Calculating offline map\n" );
+            if ( is_root ) dbgprint.printf ( 0, "Calculating offline map\n" );
 
             if ( fVolumetric )
             {
@@ -754,7 +782,7 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
         {
             DataMatrix3D<double> dataGLLJacobianSrc, dataGLLJacobian;
 
-            if ( !pcomm->rank() ) dbgprint.printf ( 0, "Generating input mesh meta data\n" );
+            if ( is_root ) dbgprint.printf ( 0, "Generating input mesh meta data\n" );
             // double dNumericalAreaCov_loc =
                 GenerateMetaData (
                     *m_meshInputCov,
@@ -771,12 +799,14 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
                     dataGLLNodesSrc,
                     dataGLLJacobianSrc );
 
-            // if ( !pcomm->rank() ) dbgprint.printf ( 0, "Input Mesh: Coverage Area: %1.15e, Output Area: %1.15e\n", dNumericalAreaCov_loc, dTotalAreaOutput_loc );
+            // if ( is_root ) dbgprint.printf ( 0, "Input Mesh: Coverage Area: %1.15e, Output Area: %1.15e\n", dNumericalAreaCov_loc, dTotalAreaOutput_loc );
             // assert(dNumericalAreaCov_loc >= dTotalAreaOutput_loc);
 
-            Real dNumericalArea;
-            MPI_Allreduce ( &dNumericalArea_loc, &dNumericalArea, 1, MPI_DOUBLE, MPI_SUM, pcomm->comm() );
-            if ( !pcomm->rank() ) dbgprint.printf ( 0, "Input Mesh Numerical Area: %1.15e\n", dNumericalArea );
+            double dNumericalArea = dNumericalArea_loc;
+#ifdef MOAB_HAVE_MPI
+            if (pcomm) MPI_Allreduce ( &dNumericalArea_loc, &dNumericalArea, 1, MPI_DOUBLE, MPI_SUM, pcomm->comm() );
+#endif
+            if ( is_root ) dbgprint.printf ( 0, "Input Mesh Numerical Area: %1.15e\n", dNumericalArea );
 
             if ( fabs ( dNumericalArea - dTotalAreaInput ) > 1.0e-12 )
             {
@@ -819,7 +849,7 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
                 eOutputType, false, NULL);MB_CHK_ERR(rval);
 
             // Generate offline map
-            if ( !pcomm->rank() ) dbgprint.printf ( 0, "Calculating offline map\n" );
+            if ( is_root ) dbgprint.printf ( 0, "Calculating offline map\n" );
 
             if ( fVolumetric )
             {
@@ -845,7 +875,7 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
             DataMatrix3D<double> dataGLLJacobianOut;
 
             // Input metadata
-            if ( !pcomm->rank() ) dbgprint.printf ( 0, "Generating input mesh meta data" );
+            if ( is_root ) dbgprint.printf ( 0, "Generating input mesh meta data" );
             double dNumericalAreaIn_loc =
                 GenerateMetaData (
                     *m_meshInputCov,
@@ -864,9 +894,11 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
 
             assert(dNumericalAreaIn_loc >= dNumericalAreaSrc_loc);
 
-            Real dNumericalAreaIn;
-            MPI_Allreduce ( &dNumericalAreaSrc_loc, &dNumericalAreaIn, 1, MPI_DOUBLE, MPI_SUM, pcomm->comm() );
-            if ( !pcomm->rank() ) dbgprint.printf ( 0, "Input Mesh Numerical Area: %1.15e", dNumericalAreaIn );
+            double dNumericalAreaIn = dNumericalAreaSrc_loc;
+#ifdef MOAB_HAVE_MPI
+            if (pcomm) MPI_Allreduce ( &dNumericalAreaSrc_loc, &dNumericalAreaIn, 1, MPI_DOUBLE, MPI_SUM, pcomm->comm() );
+#endif
+            if ( is_root ) dbgprint.printf ( 0, "Input Mesh Numerical Area: %1.15e", dNumericalAreaIn );
 
             if ( fabs ( dNumericalAreaIn - dTotalAreaInput ) > 1.0e-12 )
             {
@@ -875,7 +907,7 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
             }
 
             // Output metadata
-            if ( !pcomm->rank() ) dbgprint.printf ( 0, "Generating output mesh meta data" );
+            if ( is_root ) dbgprint.printf ( 0, "Generating output mesh meta data" );
             double dNumericalAreaOut_loc =
                 GenerateMetaData (
                     *m_meshOutput,
@@ -884,14 +916,15 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
                     dataGLLNodesDest,
                     dataGLLJacobianOut );
 
-            Real dNumericalAreaOut;
-            MPI_Allreduce ( &dNumericalAreaOut_loc, &dNumericalAreaOut, 1, MPI_DOUBLE, MPI_SUM, pcomm->comm() );
-
-            if ( !pcomm->rank() ) dbgprint.printf ( 0, "Output Mesh Numerical Area: %1.15e", dNumericalAreaOut );
+            double dNumericalAreaOut = dNumericalAreaOut_loc;
+#ifdef MOAB_HAVE_MPI
+            if (pcomm) MPI_Allreduce ( &dNumericalAreaOut_loc, &dNumericalAreaOut, 1, MPI_DOUBLE, MPI_SUM, pcomm->comm() );
+#endif
+            if ( is_root ) dbgprint.printf ( 0, "Output Mesh Numerical Area: %1.15e", dNumericalAreaOut );
 
             if ( fabs ( dNumericalAreaOut - dTotalAreaOutput ) > 1.0e-12 )
             {
-                if ( !pcomm->rank() ) dbgprint.printf ( 0, "WARNING: Significant mismatch between output mesh "
+                if ( is_root ) dbgprint.printf ( 0, "WARNING: Significant mismatch between output mesh "
                                                             "numerical area and geometric area" );
             }
 
@@ -942,7 +975,7 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
                 eOutputType, (eOutputType == DiscretizationType_CGLL), &dataGLLNodesDest);MB_CHK_ERR(rval);
 
             // Generate offline map
-            if ( !pcomm->rank() ) dbgprint.printf ( 0, "Calculating offline map" );
+            if ( is_root ) dbgprint.printf ( 0, "Calculating offline map" );
 
             LinearRemapGLLtoGLL2_MOAB (
                 dataGLLNodesSrcCov,
@@ -972,12 +1005,12 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
         // gather weights to root process to perform consistency/conservation checks
         if ( !fNoCheck && false)
         {
-            if ( !m_globalMapAvailable && pcomm->size() > 1 ) {
+            if ( !m_globalMapAvailable && size > 1 ) {
                 // gather weights to root process to perform consistency/conservation checks
                 rval = this->GatherAllToRoot();MB_CHK_ERR(rval);
             }
 
-            if ( !pcomm->rank() ) dbgprint.printf ( 0, "Verifying map" );
+            if ( is_root ) dbgprint.printf ( 0, "Verifying map" );
             this->IsConsistent ( 1.0e-8 );
             if ( !fNoConservation ) this->IsConservative ( 1.0e-8 );
 
@@ -990,7 +1023,7 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
         // Apply Offline Map to data
         if ( strInputData != "" )
         {
-            if ( !pcomm->rank() ) dbgprint.printf ( 0, "Applying offline map to data\n" );
+            if ( is_root ) dbgprint.printf ( 0, "Applying offline map to data\n" );
 
             this->SetFillValueOverride ( static_cast<float> ( dFillValueOverride ) );
             this->Apply (
@@ -1007,13 +1040,13 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
         {
             if ( fPreserveAll )
             {
-                if ( !pcomm->rank() ) dbgprint.printf ( 0, "Preserving variables" );
+                if ( is_root ) dbgprint.printf ( 0, "Preserving variables" );
                 this->PreserveAllVariables ( strInputData, strOutputData );
 
             }
             else if ( vecPreserveVariableStrings.size() != 0 )
             {
-                if ( !pcomm->rank() ) dbgprint.printf ( 0, "Preserving variables" );
+                if ( is_root ) dbgprint.printf ( 0, "Preserving variables" );
                 this->PreserveVariables (
                     strInputData,
                     strOutputData,
@@ -1121,9 +1154,9 @@ bool moab::TempestOfflineMap::IsConsistent (
 
     // Calculate row sums
     DataVector<double> dRowSums;
-    if ( pcomm->size() > 1 )
+    if ( size > 1 )
     {
-        if ( pcomm->rank() ) return true;
+        if ( rank ) return true;
         SparseMatrix<double>& m_mapRemapGlobal = m_weightMapGlobal->GetSparseMatrix();
         m_mapRemapGlobal.GetEntries ( dataRows, dataCols, dataEntries );
         dRowSums.Initialize ( m_mapRemapGlobal.GetRows() );
@@ -1169,9 +1202,9 @@ bool moab::TempestOfflineMap::IsConservative (
 
     // Calculate column sums
     DataVector<double> dColumnSums;
-    if ( pcomm->size() > 1 )
+    if ( size > 1 )
     {
-        if ( pcomm->rank() ) return true;
+        if ( rank ) return true;
         SparseMatrix<double>& m_mapRemapGlobal = m_weightMapGlobal->GetSparseMatrix();
         m_mapRemapGlobal.GetEntries ( dataRows, dataCols, dataEntries );
         dColumnSums.Initialize ( m_mapRemapGlobal.GetColumns() );
@@ -1215,9 +1248,9 @@ bool moab::TempestOfflineMap::IsMonotone (
     DataVector<int> dataCols;
     DataVector<double> dataEntries;
 
-    if ( pcomm->size() > 1 )
+    if ( size > 1 )
     {
-        if ( pcomm->rank() ) return true;
+        if ( rank ) return true;
         SparseMatrix<double>& m_mapRemapGlobal = m_weightMapGlobal->GetSparseMatrix();
         m_mapRemapGlobal.GetEntries ( dataRows, dataCols, dataEntries );
     }
@@ -1244,6 +1277,7 @@ bool moab::TempestOfflineMap::IsMonotone (
 
 
 ///////////////////////////////////////////////////////////////////////////////
+#ifdef MOAB_HAVE_MPI
 moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot()   // Collective
 {
     Mesh globalMesh;
@@ -1255,7 +1289,7 @@ moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot()   // Collective
     DataVector<int> vecCol;
     DataVector<double> vecS;
 
-    moab::DebugOutput dbgprint ( std::cout, ( pcomm ? pcomm->rank() : 0 ) );
+    moab::DebugOutput dbgprint ( std::cout, ( rank ) );
 
     m_mapRemap.GetEntries ( vecRow, vecCol, vecS );
     const DataVector<double>& dOrigSourceAreas = m_meshInput->vecFaceArea;
@@ -1271,7 +1305,7 @@ moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot()   // Collective
     DataVector<int> rows, cols, srcelmindx, tgtelmindx;
     {
         // First, accumulate the sizes of rows and columns of the matrix
-        if ( !pcomm->rank() ) rootSizesData.resize ( pcomm->size() * NDATA );
+        if ( !rank ) rootSizesData.resize ( size * NDATA );
 
         int sendarray[NDATA];
         sendarray[0] = vecS.GetRows();
@@ -1285,9 +1319,9 @@ moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot()   // Collective
         ierr = MPI_Gather ( sendarray, NDATA, MPI_INTEGER, rootSizesData.data(), NDATA, MPI_INTEGER, rootProc, pcomm->comm() );
         if ( ierr != MPI_SUCCESS ) return moab::MB_FAILURE;
 
-        if ( !pcomm->rank() )
+        if ( !rank )
         {
-            for ( unsigned i = 0; i < pcomm->size(); ++i )
+            for ( unsigned i = 0; i < size; ++i )
             {
                 unsigned offset = NDATA * i;
                 gnnz     += rootSizesData[offset];
@@ -1342,7 +1376,7 @@ moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot()   // Collective
 #ifdef VERBOSE
     {
         std::stringstream sstr;
-        sstr << "rowscols_" << pcomm->rank() << ".txt";
+        sstr << "rowscols_" << rank << ".txt";
         std::ofstream output_file ( sstr.str().c_str() );
         output_file << "VALUES\n";
         for ( unsigned ip = 0; ip < vecS.GetRows(); ++ip )
@@ -1382,12 +1416,12 @@ moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot()   // Collective
         }
 
         std::vector<int> displs, rcount;
-        if ( !pcomm->rank() )
+        if ( !rank )
         {
-            displs.resize ( pcomm->size(), 0 );
-            rcount.resize ( pcomm->size(), 0 );
+            displs.resize ( size, 0 );
+            rcount.resize ( size, 0 );
             int gsum = 0;
-            for ( unsigned i = 0; i < pcomm->size(); ++i )
+            for ( unsigned i = 0; i < size; ++i )
             {
                 displs[i] = gsum;
                 rcount[i] = 2 * rootSizesData[NDATA * i] + rootSizesData[NDATA * i + 1] + rootSizesData[NDATA * i + 2];
@@ -1400,13 +1434,13 @@ moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot()   // Collective
         // Both rows and columns have a size of "rowsize"
         ierr = MPI_Gatherv ( &sendarray[0], nR, MPI_INTEGER, &rowcolsv[0], &rcount[0], &displs[0], MPI_INTEGER, rootProc, pcomm->comm() );
 
-        if ( !pcomm->rank() )
+        if ( !rank )
         {
 #ifdef VERBOSE
             std::ofstream output_file ( "rows-cols.txt", std::ios::out );
             output_file << "ROWS\n";
 #endif
-            for ( unsigned ip = 0, offset = 0; ip < pcomm->size(); ++ip )
+            for ( unsigned ip = 0, offset = 0; ip < size; ++ip )
             {
                 int istart = displs[ip], iend = istart + rootSizesData[NDATA * ip];
                 for ( int i = istart; i < iend; ++i, ++offset )
@@ -1420,7 +1454,7 @@ moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot()   // Collective
 #ifdef VERBOSE
             output_file << "COLS\n";
 #endif
-            for ( unsigned ip = 0, offset = 0; ip < pcomm->size(); ++ip )
+            for ( unsigned ip = 0, offset = 0; ip < size; ++ip )
             {
                 int istart = displs[ip] + rootSizesData[NDATA * ip], iend = istart + rootSizesData[NDATA * ip];
                 for ( int i = istart; i < iend; ++i, ++offset )
@@ -1435,7 +1469,7 @@ moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot()   // Collective
             output_file.flush(); // required here
             output_file.close();
 #endif
-            for ( unsigned ip = 0, offset = 0; ip < pcomm->size(); ++ip )
+            for ( unsigned ip = 0, offset = 0; ip < size; ++ip )
             {
                 int istart = displs[ip] + 2 * rootSizesData[NDATA * ip], iend = istart + rootSizesData[NDATA * ip + 1];
                 for ( int i = istart; i < iend; ++i, ++offset )
@@ -1443,7 +1477,7 @@ moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot()   // Collective
                     srcelmindx[offset] = rowcolsv[i];
                 }
             }
-            for ( unsigned ip = 0, offset = 0; ip < pcomm->size(); ++ip )
+            for ( unsigned ip = 0, offset = 0; ip < size; ++ip )
             {
                 int istart = displs[ip] + 2 * rootSizesData[NDATA * ip] + rootSizesData[NDATA * ip + 1], iend = istart + rootSizesData[NDATA * ip + 2];
                 for ( int i = istart; i < iend; ++i, ++offset )
@@ -1451,7 +1485,7 @@ moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot()   // Collective
                     tgtelmindx[offset] = rowcolsv[i];
                 }
             }
-        } /* (!pcomm->rank()) */
+        } /* (!rank) */
         rowcolsv.clear();
     }
 
@@ -1476,7 +1510,7 @@ moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot()   // Collective
         std::copy ( ( const double* ) dOrigSourceAreas, ( const double* ) dOrigSourceAreas + dOrigSourceAreas.GetRows(), sendarray.begin() + locoffset ); locoffset += dOrigSourceAreas.GetRows();
         std::copy ( ( const double* ) dTargetAreas, ( const double* ) dTargetAreas + dTargetAreas.GetRows(), sendarray.begin() + locoffset ); locoffset += dTargetAreas.GetRows();
 
-        std::cout << "[" << pcomm->rank() << "] " <<  m_nTotDofs_Src << ", m_dSourceCenterLon.size() = " << m_dSourceCenterLon.GetRows() << " and " << m_nTotDofs_Dest << ", m_dTargetCenterLon.size() = " << m_dTargetCenterLon.GetRows() << "\n";
+        std::cout << "[" << rank << "] " <<  m_nTotDofs_Src << ", m_dSourceCenterLon.size() = " << m_dSourceCenterLon.GetRows() << " and " << m_nTotDofs_Dest << ", m_dTargetCenterLon.size() = " << m_dTargetCenterLon.GetRows() << "\n";
 
         std::copy ( ( const double* ) m_dSourceCenterLon, ( const double* ) m_dSourceCenterLon + m_dSourceCenterLon.GetRows(), sendarray.begin() + locoffset ); locoffset += m_dSourceCenterLon.GetRows();
         std::copy ( ( const double* ) m_dSourceCenterLat, ( const double* ) m_dSourceCenterLat + m_dSourceCenterLat.GetRows(), sendarray.begin() + locoffset ); locoffset += m_dSourceCenterLat.GetRows();
@@ -1496,11 +1530,11 @@ moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot()   // Collective
 
         std::vector<int> displs, rcount;
         int gsum = 0;
-        if ( !pcomm->rank() )
+        if ( !rank )
         {
-            displs.resize ( pcomm->size(), 0 );
-            rcount.resize ( pcomm->size(), 0 );
-            for ( unsigned i = 0; i < pcomm->size(); ++i )
+            displs.resize ( size, 0 );
+            rcount.resize ( size, 0 );
+            for ( unsigned i = 0; i < size; ++i )
             {
                 displs[i] = gsum;
                 rcount[i] = rootSizesData[NDATA * i] + rootSizesData[NDATA * i + 1] + rootSizesData[NDATA * i + 2] + 
@@ -1510,11 +1544,11 @@ moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot()   // Collective
             }
         }
 
-        std::vector<double> rowcolsvals ( (!pcomm->rank() ? gnnz + gsrc + gtar + 2*gsrcdofs*(1+nSc) + 2*gtgtdofs*(1+nTc) : 0 ) );
+        std::vector<double> rowcolsvals ( (!rank ? gnnz + gsrc + gtar + 2*gsrcdofs*(1+nSc) + 2*gtgtdofs*(1+nTc) : 0 ) );
         // Both rows and columns have a size of "rowsize"
         ierr = MPI_Gatherv ( sendarray.data(), sendarray.size(), MPI_DOUBLE, rowcolsvals.data(), &rcount[0], &displs[0], MPI_DOUBLE, rootProc, pcomm->comm() );
 
-        if ( !pcomm->rank() )
+        if ( !rank )
         {
             SparseMatrix<double>& spmat = m_weightMapGlobal->GetSparseMatrix();
             {
@@ -1522,7 +1556,7 @@ moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot()   // Collective
                 std::ofstream output_file ( "rows-cols.txt", std::ios::app );
                 output_file << "VALUES\n";
 #endif
-                for ( unsigned ip = 0, offset = 0; ip < pcomm->size(); ++ip )
+                for ( unsigned ip = 0, offset = 0; ip < size; ++ip )
                 {
                     for ( int i = displs[ip]; i < displs[ip] + rootSizesData[NDATA * ip]; ++i, ++offset )
                     {
@@ -1551,7 +1585,7 @@ moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot()   // Collective
                 output_file << "Source areas (nelems = " << gsrc << ")\n";
 #endif
                 int offset = 0;
-                for ( unsigned ip = 0; ip < pcomm->size(); ++ip )
+                for ( unsigned ip = 0; ip < size; ++ip )
                 {
                     int istart = displs[ip] + rootSizesData[NDATA * ip], iend = istart + rootSizesData[NDATA * ip + 1];
                     for ( int i = istart; i < iend; ++i, ++offset )
@@ -1567,7 +1601,7 @@ moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot()   // Collective
 #endif
 
                 offset = 0;
-                for ( unsigned ip = 0; ip < pcomm->size(); ++ip )
+                for ( unsigned ip = 0; ip < size; ++ip )
                 {
                     int istart = displs[ip] + rootSizesData[NDATA * ip] + rootSizesData[NDATA * ip + 1], iend = istart + rootSizesData[NDATA * ip + 2];
                     for ( int i = istart; i < iend; ++i, ++offset )
@@ -1593,7 +1627,7 @@ moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot()   // Collective
             dSourceCenterLat.Initialize(gsrcdofs);
             {
                 int offset = 0;
-                for ( unsigned ip = 0; ip < pcomm->size(); ++ip )
+                for ( unsigned ip = 0; ip < size; ++ip )
                 {
                     int ibase = rootSizesData[NDATA * ip] + rootSizesData[NDATA * ip + 1] + rootSizesData[NDATA * ip + 2];
                     int istart = displs[ip] + ibase, iend = istart + rootSizesData[NDATA * ip + 4];
@@ -1606,7 +1640,7 @@ moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot()   // Collective
                 }
 
                 offset = 0;
-                for ( unsigned ip = 0; ip < pcomm->size(); ++ip )
+                for ( unsigned ip = 0; ip < size; ++ip )
                 {
                     int ibase = rootSizesData[NDATA * ip] + rootSizesData[NDATA * ip + 1] + rootSizesData[NDATA * ip + 2] + rootSizesData[NDATA * ip + 4];
                     int istart = displs[ip] + ibase, iend = istart + rootSizesData[NDATA * ip + 4];
@@ -1625,7 +1659,7 @@ moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot()   // Collective
             dSourceVertexLat.Initialize(gsrcdofs, nSc);
             {
                 int ioffset = 0;
-                for ( unsigned ip = 0; ip < pcomm->size(); ++ip )
+                for ( unsigned ip = 0; ip < size; ++ip )
                 {
                     int ibase = rootSizesData[NDATA * ip] + rootSizesData[NDATA * ip + 1] + rootSizesData[NDATA * ip + 2] + 2 * rootSizesData[NDATA * ip + 4];
                     int istart = displs[ip] + ibase, iend = istart + rootSizesData[NDATA * ip + 4] * nSc;
@@ -1638,7 +1672,7 @@ moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot()   // Collective
                 }
 
                 ioffset = 0;
-                for ( unsigned ip = 0; ip < pcomm->size(); ++ip )
+                for ( unsigned ip = 0; ip < size; ++ip )
                 {
                     int ibase = rootSizesData[NDATA * ip] + rootSizesData[NDATA * ip + 1] + rootSizesData[NDATA * ip + 2] + 2 * rootSizesData[NDATA * ip + 4] + rootSizesData[NDATA * ip + 4] * nSc;
                     int istart = displs[ip] + ibase, iend = istart + rootSizesData[NDATA * ip + 4] * nSc;
@@ -1657,7 +1691,7 @@ moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot()   // Collective
             dTargetCenterLat.Initialize(gtgtdofs);
             {
                 int offset = 0;
-                for ( unsigned ip = 0; ip < pcomm->size(); ++ip )
+                for ( unsigned ip = 0; ip < size; ++ip )
                 {
                     int ibase = rootSizesData[NDATA * ip] + rootSizesData[NDATA * ip + 1] + rootSizesData[NDATA * ip + 2] + 2 * rootSizesData[NDATA * ip + 4] * (1+nSc);
                     int istart = displs[ip] + ibase, iend = istart + rootSizesData[NDATA * ip + 5];
@@ -1670,7 +1704,7 @@ moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot()   // Collective
                 }
 
                 offset = 0;
-                for ( unsigned ip = 0; ip < pcomm->size(); ++ip )
+                for ( unsigned ip = 0; ip < size; ++ip )
                 {
                     int ibase = rootSizesData[NDATA * ip] + rootSizesData[NDATA * ip + 1] + rootSizesData[NDATA * ip + 2] + 2 * rootSizesData[NDATA * ip + 4] * (1+nSc) + rootSizesData[NDATA * ip + 5];
                     int istart = displs[ip] + ibase, iend = istart + rootSizesData[NDATA * ip + 5];
@@ -1689,7 +1723,7 @@ moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot()   // Collective
             {
                 int ioffset = 0;
                 int nc = dTargetVertexLon.GetColumns();
-                for ( unsigned ip = 0; ip < pcomm->size(); ++ip )
+                for ( unsigned ip = 0; ip < size; ++ip )
                 {
                     int ibase = rootSizesData[NDATA * ip] + rootSizesData[NDATA * ip + 1] + rootSizesData[NDATA * ip + 2] + 2 * rootSizesData[NDATA * ip + 4] * (1+nSc) + 2 * rootSizesData[NDATA * ip + 5];
                     int istart = displs[ip] + ibase, iend = istart + rootSizesData[NDATA * ip + 5]*nTc;
@@ -1702,7 +1736,7 @@ moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot()   // Collective
                 }
 
                 ioffset = 0;
-                for ( unsigned ip = 0; ip < pcomm->size(); ++ip )
+                for ( unsigned ip = 0; ip < size; ++ip )
                 {
                     int ibase = rootSizesData[NDATA * ip] + rootSizesData[NDATA * ip + 1] + rootSizesData[NDATA * ip + 2] + 2 * rootSizesData[NDATA * ip + 4] * (1+nSc) + 2 * rootSizesData[NDATA * ip + 5] + rootSizesData[NDATA * ip + 5]*nTc;
                     int istart = displs[ip] + ibase, iend = istart + rootSizesData[NDATA * ip + 5]*nTc;
@@ -1724,7 +1758,7 @@ moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot()   // Collective
     m_globalMapAvailable = true;
 
 #ifdef VERBOSE
-    if ( !pcomm->rank() )
+    if ( !rank )
     {
         dbgprint.printf ( 0, "Writing out file outGlobalView.nc\n" );
         m_weightMapGlobal->Write ( "outGlobalView.nc" );
@@ -1734,3 +1768,5 @@ moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot()   // Collective
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+#endif
+

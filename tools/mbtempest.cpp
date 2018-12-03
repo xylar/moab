@@ -26,20 +26,23 @@
 #include "moab/CpuTimer.hpp"
 #include "DebugOutput.hpp"
 
-#ifndef MOAB_HAVE_MPI
-    #error mbtempest tool requires MPI configuration
-#endif
+//#ifndef MOAB_HAVE_MPI
+//    #error mbtempest tool requires MPI configuration
+//#endif
 
+#ifdef MOAB_HAVE_MPI
 // MPI includes
 #include "moab_mpi.h"
 #include "moab/ParallelComm.hpp"
 #include "MBParallelConventions.h"
-
+#endif
 
 struct ToolContext
 {
         moab::Interface* mbcore;
+#ifdef MOAB_HAVE_MPI
         moab::ParallelComm* pcomm;
+#endif
         int blockSize;
         std::vector<std::string> inFilenames;
         std::vector<Mesh*> meshes;
@@ -56,11 +59,16 @@ struct ToolContext
         bool fNoConservation;
         bool fVolumetric;
 
+#ifdef MOAB_HAVE_MPI
         ToolContext ( moab::Interface* icore, moab::ParallelComm* p_pcomm ) :
-            mbcore(icore),
-            pcomm(p_pcomm),
-            blockSize ( 5 ), outFilename ( "output.exo" ), meshType ( moab::TempestRemapper::DEFAULT ),
+            mbcore(icore), pcomm(p_pcomm),
             proc_id ( pcomm->rank() ), n_procs ( pcomm->size() ),
+#else
+        ToolContext ( moab::Interface* icore ) :
+            mbcore(icore),
+            proc_id ( 0 ), n_procs ( 1 ),
+#endif
+            blockSize ( 5 ), outFilename ( "output.exo" ), meshType ( moab::TempestRemapper::DEFAULT ),
             computeDual ( false ), computeWeights ( false ), ensureMonotonicity ( 0 ), 
             fNoConservation ( false ), fVolumetric ( false )
         {
@@ -90,10 +98,15 @@ struct ToolContext
         void timer_pop()
         {
             double locElapsed=timer->time_since_birth() - timer_ops, avgElapsed=0, maxElapsed=0;
+#ifdef MOAB_HAVE_MPI
             MPI_Reduce(&locElapsed, &maxElapsed, 1, MPI_DOUBLE, MPI_MAX, 0, pcomm->comm());
             MPI_Reduce(&locElapsed, &avgElapsed, 1, MPI_DOUBLE, MPI_SUM, 0, pcomm->comm());
-            if (!pcomm->rank()) {
-                avgElapsed /= pcomm->size();
+#else
+            maxElapsed = locElapsed;
+            avgElapsed = locElapsed;
+#endif
+            if (!proc_id) {
+                avgElapsed /= n_procs;
                 std::cout << "[LOG] Time taken to " << opName.c_str() << ": max = " << maxElapsed << ", avg = " << avgElapsed << "\n";
             }
             // std::cout << "\n[LOG" << proc_id << "] Time taken to " << opName << " = " << timer->time_since_birth() - timer_ops << std::endl;
@@ -203,23 +216,33 @@ int main ( int argc, char* argv[] )
     std::stringstream sstr;
 
     int proc_id = 0, nprocs = 1;
+#ifdef MOAB_HAVE_MPI
     MPI_Init ( &argc, &argv );
     MPI_Comm_rank ( MPI_COMM_WORLD, &proc_id );
     MPI_Comm_size ( MPI_COMM_WORLD, &nprocs );
+#endif
 
     moab::Interface* mbCore = new ( std::nothrow ) moab::Core;
 
     if ( NULL == mbCore ) { return 1; }
 
+#ifdef MOAB_HAVE_MPI
     moab::ParallelComm* pcomm = new moab::ParallelComm ( mbCore, MPI_COMM_WORLD, 0 );
 
     ToolContext ctx ( mbCore, pcomm );
+#else
+    ToolContext ctx ( mbCore );
+#endif
     ctx.ParseCLOptions ( argc, argv );
 
     const double radius_src = 1.0 /*2.0*acos(-1.0)*/;
     const double radius_dest = 1.0 /*2.0*acos(-1.0)*/;
 
+#ifdef MOAB_HAVE_MPI
     moab::TempestRemapper remapper ( mbCore, pcomm );
+#else
+    moab::TempestRemapper remapper ( mbCore );
+#endif
     remapper.meshValidate = true;
     remapper.constructEdgeMap = true;
     remapper.initialize();
@@ -239,7 +262,9 @@ int main ( int argc, char* argv[] )
         // For the overlap method, choose between: "fuzzy", "exact" or "mixed"
         assert ( ctx.meshes.size() == 3 );
 
+#ifdef MOAB_HAVE_MPI
         rval = pcomm->check_all_shared_handles(); MB_CHK_ERR ( rval );
+#endif
 
         // Load the meshes and validate
         rval = remapper.ConvertTempestMesh ( moab::Remapper::SourceMesh ); MB_CHK_ERR ( rval );
@@ -273,10 +298,12 @@ int main ( int argc, char* argv[] )
             mbintx->set_box_error ( boxeps );
             mbintx->set_radius_source_mesh ( radius_src );
             mbintx->set_radius_destination_mesh ( radius_dest );
+#ifdef MOAB_HAVE_MPI
             mbintx->set_parallel_comm ( pcomm );
-
+#endif
             rval = mbintx->FindMaxEdges ( ctx.meshsets[0], ctx.meshsets[1] ); MB_CHK_ERR ( rval );
 
+#ifdef MOAB_HAVE_MPI
             moab::Range local_verts;
             rval = mbintx->build_processor_euler_boxes ( ctx.meshsets[1], local_verts ); MB_CHK_ERR ( rval );
 
@@ -286,7 +313,9 @@ int main ( int argc, char* argv[] )
             ctx.timer_push ( "communicate the mesh" );
             rval = mbintx->construct_covering_set ( ctx.meshsets[0], covering_set ); MB_CHK_ERR ( rval ); // lots of communication if mesh is distributed very differently
             ctx.timer_pop();
-
+#else
+            moab::EntityHandle covering_set = ctx.meshsets[0];
+#endif
             // Now let's invoke the MOAB intersection algorithm in parallel with a
             // source and target mesh set representing two different decompositions
             ctx.timer_push ( "compute intersections with MOAB" );
@@ -336,9 +365,9 @@ int main ( int argc, char* argv[] )
     else if ( ctx.meshType == moab::TempestRemapper::OVERLAP_MOAB )
     {
         // Usage: mpiexec -n 2 tools/mbtempest -t 5 -l mycs_2.h5m -l myico_2.h5m -f myoverlap_2.h5m
-
+#ifdef MOAB_HAVE_MPI
         rval = pcomm->check_all_shared_handles(); MB_CHK_ERR ( rval );
-
+#endif
         // print verbosely about the problem setting
         {
             moab::Range rintxverts, rintxelems;
@@ -362,7 +391,7 @@ int main ( int argc, char* argv[] )
         ctx.timer_pop();
 
         // Write out our computed intersection file
-        if ( pcomm->size() == 1 )
+        if ( ctx.n_procs == 1 )
         {
             printf ( "writing out the intersection mesh file to %s\n", "moab_intersection.h5m" );
             // rval = mbCore->add_entities ( ctx.meshsets[2], &ctx.meshsets[0], 2 ); MB_CHK_ERR ( rval );
@@ -376,8 +405,13 @@ int main ( int argc, char* argv[] )
             local_areas[1] = area_on_sphere_lHuiller ( mbCore, ctx.meshsets[2], radius_src );
             local_areas[2] = area_on_sphere ( mbCore, ctx.meshsets[2], radius_src );
 
+#ifdef MOAB_HAVE_MPI
             MPI_Allreduce ( &local_areas[0], &global_areas[0], 3, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD );
-
+#else
+            global_areas[0] = local_areas[0];
+            global_areas[1] = local_areas[1];
+            global_areas[2] = local_areas[2];
+#endif
             if ( !proc_id )
             {
                 printf ( "initial area: %12.10f\n", global_areas[0] );
@@ -471,7 +505,9 @@ int main ( int argc, char* argv[] )
     ctx.clear();
     delete mbCore;
 
+#ifdef MOAB_HAVE_MPI
     MPI_Finalize();
+#endif
     exit ( 0 );
 }
 

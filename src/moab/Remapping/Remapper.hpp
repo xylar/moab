@@ -38,12 +38,18 @@ namespace moab
 class Remapper
 {
 public:
+#ifdef MOAB_HAVE_MPI
 	Remapper(moab::Interface* mbInt, moab::ParallelComm* pcomm = NULL) : m_interface(mbInt), m_pcomm(pcomm)
+#else
+	Remapper(moab::Interface* mbInt) : m_interface(mbInt)
+#endif
 	{ }
 
 	virtual ~Remapper()
 	{
+#ifdef MOAB_HAVE_MPI
 		m_pcomm = NULL;
+#endif
 		m_interface = NULL;
 	}
 
@@ -58,8 +64,10 @@ public:
 	moab::Interface* get_interface()
 	{ return m_interface; }
 
+#ifdef MOAB_HAVE_MPI
 	moab::ParallelComm* get_parallel_communicator()
 	{ return m_pcomm; }
+#endif
 
 	ErrorCode LoadNativeMesh(std::string filename, moab::EntityHandle& meshset, const char* readopts=0)
 	{
@@ -71,7 +79,10 @@ protected:
 
 	// member data
 	Interface* m_interface;
+
+#ifdef MOAB_HAVE_MPI
 	ParallelComm* m_pcomm;
+#endif
 };
 
 }

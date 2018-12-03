@@ -47,6 +47,22 @@ ErrorCode TempestRemapper::initialize(bool initialize_fsets)
 		m_overlap_set = 0;
 	}
 
+    is_parallel = false;
+    is_root = true;
+    rank = 0;
+    size = 1;
+#ifdef MOAB_HAVE_MPI
+    int flagInit;
+    MPI_Initialized( &flagInit );
+    if (flagInit) {
+        is_parallel = true;
+        assert(m_pcomm != NULL);
+        rank = m_pcomm->rank();
+        size = m_pcomm->size();
+        is_root = (rank == 0);
+    }
+#endif
+
     m_source = NULL;
     m_target = NULL;
     m_overlap = NULL;
@@ -63,7 +79,7 @@ TempestRemapper::~TempestRemapper()
     if ( m_source ) delete m_source;
     if ( m_target ) delete m_target;
     if ( m_overlap ) delete m_overlap;
-    if ( m_covering_source && m_pcomm->size() != 1) delete m_covering_source;
+    if ( m_covering_source && is_parallel) delete m_covering_source;
 
     m_source_entities.clear();
     m_target_entities.clear();
@@ -99,7 +115,7 @@ ErrorCode TempestRemapper::LoadMesh ( Remapper::IntersectionContext ctx, std::st
 
 ErrorCode TempestRemapper::LoadTempestMesh_Private ( std::string inputFilename, Mesh** tempest_mesh )
 {
-    const bool outputEnabled = ( TempestRemapper::verbose && ((!m_pcomm) || !m_pcomm->rank()) );
+    const bool outputEnabled = ( TempestRemapper::verbose && is_root );
     if ( outputEnabled ) std::cout << "\nLoading TempestRemap Mesh object from file = " << inputFilename << " ...\n";
 
     {
@@ -150,7 +166,7 @@ ErrorCode TempestRemapper::LoadTempestMesh_Private ( std::string inputFilename, 
 
 ErrorCode TempestRemapper::ConvertTempestMesh ( Remapper::IntersectionContext ctx )
 {
-    const bool outputEnabled = ( TempestRemapper::verbose && ((!m_pcomm) || !m_pcomm->rank()) );
+    const bool outputEnabled = ( TempestRemapper::verbose && is_root );
     if ( ctx == Remapper::SourceMesh )
     {
         if ( outputEnabled ) std::cout << "\nConverting (source) TempestRemap Mesh object to MOAB representation ...\n";
@@ -177,7 +193,7 @@ ErrorCode TempestRemapper::ConvertTempestMeshToMOAB_Private ( TempestMeshType me
 {
     ErrorCode rval;
 
-    const bool outputEnabled = ( TempestRemapper::verbose && ((!m_pcomm) || !m_pcomm->rank()) );
+    const bool outputEnabled = ( TempestRemapper::verbose && is_root );
     const NodeVector& nodes = mesh->nodes;
     const FaceVector& faces = mesh->faces;
 
@@ -293,7 +309,7 @@ ErrorCode TempestRemapper::ConvertTempestMeshToMOAB_Private ( TempestMeshType me
 ErrorCode TempestRemapper::ConvertMeshToTempest ( Remapper::IntersectionContext ctx )
 {
     ErrorCode rval;
-    const bool outputEnabled = ( TempestRemapper::verbose && ((!m_pcomm) || !m_pcomm->rank()) );
+    const bool outputEnabled = ( TempestRemapper::verbose && is_root );
 
     if ( ctx == Remapper::SourceMesh )
     {
@@ -411,7 +427,6 @@ ErrorCode TempestRemapper::ConvertMOABMesh_WithSortedEntitiesBySource()
     // Allocate for the overlap mesh
     if ( !m_overlap ) m_overlap = new Mesh();
 
-    bool ghostsPresent = (m_pcomm->size()>1);
     std::vector<std::pair<int, int> > sorted_overlap_order ( m_overlap_entities.size() );
     {
         Tag bluePtag, redPtag;
@@ -434,7 +449,7 @@ ErrorCode TempestRemapper::ConvertMOABMesh_WithSortedEntitiesBySource()
         std::sort ( sorted_overlap_order.begin(), sorted_overlap_order.end(), IntPairComparator );
         // sorted_overlap_order[ie].second , ie=0,nOverlap-1 is the order such that overlap elems are ordered by source parent
 
-        if (ghostsPresent)
+        if (is_parallel)
         {
           Tag ghostTag;
           ghFlags.resize(m_overlap_entities.size());
@@ -446,7 +461,7 @@ ErrorCode TempestRemapper::ConvertMOABMesh_WithSortedEntitiesBySource()
         {
             int ix = sorted_overlap_order[ie].second; // original index of the element
             m_overlap->vecSourceFaceIx[ie] = gid_to_lid_covsrc[rbids_src[ix]];
-            if (ghostsPresent && ghFlags[ix]>=0) // it means it is a ghost overlap element
+            if (is_parallel && ghFlags[ix]>=0) // it means it is a ghost overlap element
               m_overlap->vecTargetFaceIx[ie]=-1; // this should not participate in smat!
             else
               m_overlap->vecTargetFaceIx[ie] = gid_to_lid_tgt[rbids_tgt[ix]];
@@ -578,12 +593,14 @@ ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius_
     mbintx->set_radius_source_mesh ( radius_src );
     mbintx->set_radius_destination_mesh ( radius_tgt );
     mbintx->set_box_error ( boxeps );
+#ifdef MOAB_HAVE_MPI
     mbintx->set_parallel_comm ( m_pcomm );
-
+#endif
     rval = mbintx->FindMaxEdges ( m_source_set, m_target_set ); MB_CHK_ERR ( rval );
 
     // Note: lots of communication possible, if mesh is distributed very differently
-    if ( m_pcomm->size() > 1 )
+#ifdef MOAB_HAVE_MPI
+    if ( is_parallel )
     {
         rval = mbintx->build_processor_euler_boxes ( m_target_set, local_verts ); MB_CHK_ERR ( rval );
 
@@ -592,11 +609,13 @@ ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius_
     }
     else
     {
+#endif
         m_covering_source_set = m_source_set;
         m_covering_source = m_source;
         m_covering_source_entities = m_source_entities; // this is a tempest mesh object; careful about incrementing the reference?
+#ifdef MOAB_HAVE_MPI
     }
-
+#endif
     // First, split based on whether to use Tempest or MOAB
     // If Tempest
     //   1) Check for valid Mesh and pointers to objects for source/target
@@ -624,13 +643,13 @@ ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius_
         // Now perform the actual parallel intersection between the source and the target meshes
         rval = mbintx->intersect_meshes ( m_covering_source_set, m_target_set, m_overlap_set ); MB_CHK_SET_ERR ( rval, "Can't compute the intersection of meshes on the sphere" );
 
-        if (m_pcomm->size() > 1) {
+        if (is_parallel) {
 
 #ifdef VERBOSE
             std::stringstream ffc, fft, ffo;
-            ffc << "cover_"<< m_pcomm->rank() << ".h5m";
-            fft << "target_"<< m_pcomm->rank() << ".h5m";
-            ffo << "intx_"<< m_pcomm->rank() << ".h5m";
+            ffc << "cover_"<< rank << ".h5m";
+            fft << "target_"<< rank << ".h5m";
+            ffo << "intx_"<< rank << ".h5m";
             rval = m_interface->write_mesh(ffc.str().c_str(), &m_covering_source_set, 1);MB_CHK_ERR(rval);
             rval = m_interface->write_mesh(fft.str().c_str(), &m_target_set, 1);MB_CHK_ERR(rval);
             rval = m_interface->write_mesh(ffo.str().c_str(), &m_overlap_set, 1);MB_CHK_ERR(rval);
@@ -662,7 +681,7 @@ ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius_
                   EntityHandle intxCell= *it;
                   int blueParent=-1;
                   rval = m_interface->tag_get_data(blueParentHandleTag, &intxCell, 1, &blueParent ); MB_CHK_ERR ( rval );
-                  // if (m_pcomm->rank()) std::cout << "Found intersecting element: " << blueParent << ", " << gid_to_lid_covsrc[blueParent] << "\n";
+                  // if (is_root) std::cout << "Found intersecting element: " << blueParent << ", " << gid_to_lid_covsrc[blueParent] << "\n";
                   assert(blueParent >= 0);
                   intxCov.insert(covEnts[loc_gid_to_lid_covsrc[blueParent]]);
                 }
@@ -684,13 +703,15 @@ ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius_
                 // we will then mark the source, we will need to migrate the overlap elements that cover this to the original
                 // source for the source element; then distribute the overlap elements to all processors that have the
                 // coverage mesh used
-                rval = augment_overlap_set(); MB_CHK_ERR ( rval );
+#ifdef MOAB_HAVE_MPI
+                if (is_parallel && size > 1) {
+                    rval = augment_overlap_set(); MB_CHK_ERR ( rval );
+                }
+#endif
             }
 
             m_covering_source = new Mesh();
             rval = ConvertMOABMeshToTempest_Private ( m_covering_source, m_covering_source_set, m_covering_source_entities ); MB_CHK_SET_ERR ( rval, "Can't convert source Tempest mesh" );
-
-
         }
 
         // Fix any inconsistencies in the overlap mesh
@@ -707,11 +728,11 @@ ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius_
     return MB_SUCCESS;
 }
 
-// this function is called only in parallel, when m_pcomm->size()>1
+#ifdef MOAB_HAVE_MPI
+// this function is called only in parallel
 ///////////////////////////////////////////////////////////////////////////////////
 ErrorCode TempestRemapper::augment_overlap_set()
 {
-
   /*
    * overall strategy:
    *
@@ -743,7 +764,7 @@ ErrorCode TempestRemapper::augment_overlap_set()
   rval = m_interface->add_entities(tmpSet, boundaryCells); MB_CHK_SET_ERR(rval, "Can't add entities");
   rval = m_interface->add_entities(tmpSet, boundaryEdges); MB_CHK_SET_ERR(rval, "Can't add edges");
   std::stringstream ffs;
-  ffs << "boundaryCells_0"<< m_pcomm->rank() << ".h5m";
+  ffs << "boundaryCells_0"<< rank << ".h5m";
   rval = m_interface->write_mesh(ffs.str().c_str(), &tmpSet, 1);MB_CHK_ERR(rval);
 #endif
 
@@ -862,10 +883,11 @@ ErrorCode TempestRemapper::augment_overlap_set()
 
   // find the maximum among processes in intersection
   int globalMaxEdges;
-  MPI_Allreduce( &maxEdges, &globalMaxEdges, 1, MPI_INT, MPI_MAX, m_pcomm->comm() );
+  if (m_pcomm) MPI_Allreduce( &maxEdges, &globalMaxEdges, 1, MPI_INT, MPI_MAX, m_pcomm->comm() );
+  else globalMaxEdges = maxEdges;
+
 #ifdef VERBOSE
-  if (m_pcomm->rank() == 0)
-    std::cout << "maximum number of edges for polygons to send is " << globalMaxEdges << "\n";
+  if ( is_root ) std::cout << "maximum number of edges for polygons to send is " << globalMaxEdges << "\n";
 #endif
 
 #ifdef VERBOSE
@@ -978,10 +1000,10 @@ ErrorCode TempestRemapper::augment_overlap_set()
   // now we are done populating the tuples; route them to the appropriate processors
 #ifdef VERBOSE
   std::stringstream ff1;
-  ff1 << "TLc_"<< m_pcomm->rank() << ".txt";
+  ff1 << "TLc_"<< rank << ".txt";
   TLc.print_to_file(ff1.str().c_str());
   std::stringstream ffv;
-  ffv << "TLv_"<< m_pcomm->rank() << ".txt";
+  ffv << "TLv_"<< rank << ".txt";
   TLv.print_to_file(ffv.str().c_str());
 #endif
   (m_pcomm->proc_config().crystal_router())->gs_transfer(1, TLv, 0);
@@ -1209,10 +1231,10 @@ ErrorCode TempestRemapper::augment_overlap_set()
   // we should have in TLv2 only vertices with orgProc different from current task
 #ifdef VERBOSE
   std::stringstream ff2;
-  ff2 << "TLc2_"<< m_pcomm->rank() << ".txt";
+  ff2 << "TLc2_"<< rank << ".txt";
   TLc2.print_to_file(ff2.str().c_str());
   std::stringstream ffv2;
-  ffv2 << "TLv2_"<< m_pcomm->rank() << ".txt";
+  ffv2 << "TLv2_"<< rank << ".txt";
   TLv2.print_to_file(ffv2.str().c_str());
 #endif
   // first create vertices, and make a map from origin processor, and index, to entity handle (index in TLv2 )
@@ -1272,7 +1294,7 @@ ErrorCode TempestRemapper::augment_overlap_set()
   rval = m_interface->add_entities(tmpSet3, newPolygons); MB_CHK_SET_ERR(rval, "Can't add entities");
 
   std::stringstream ffs4;
-  ffs4 << "extraIntxCells"<< m_pcomm->rank() << ".h5m";
+  ffs4 << "extraIntxCells"<< rank << ".h5m";
   rval = m_interface->write_mesh(ffs4.str().c_str(), &tmpSet3, 1);MB_CHK_ERR(rval);
 #endif
 
@@ -1282,6 +1304,8 @@ ErrorCode TempestRemapper::augment_overlap_set()
 
   return MB_SUCCESS;
 }
+
+#endif
 
 }
 
