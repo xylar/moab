@@ -593,11 +593,13 @@ ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius_
     mbintx->set_radius_source_mesh ( radius_src );
     mbintx->set_radius_destination_mesh ( radius_tgt );
     mbintx->set_box_error ( boxeps );
+#ifdef MOAB_HAVE_MPI
     mbintx->set_parallel_comm ( m_pcomm );
-
+#endif
     rval = mbintx->FindMaxEdges ( m_source_set, m_target_set ); MB_CHK_ERR ( rval );
 
     // Note: lots of communication possible, if mesh is distributed very differently
+#ifdef MOAB_HAVE_MPI
     if ( is_parallel )
     {
         rval = mbintx->build_processor_euler_boxes ( m_target_set, local_verts ); MB_CHK_ERR ( rval );
@@ -607,11 +609,13 @@ ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius_
     }
     else
     {
+#endif
         m_covering_source_set = m_source_set;
         m_covering_source = m_source;
         m_covering_source_entities = m_source_entities; // this is a tempest mesh object; careful about incrementing the reference?
+#ifdef MOAB_HAVE_MPI
     }
-
+#endif
     // First, split based on whether to use Tempest or MOAB
     // If Tempest
     //   1) Check for valid Mesh and pointers to objects for source/target
@@ -699,9 +703,11 @@ ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius_
                 // we will then mark the source, we will need to migrate the overlap elements that cover this to the original
                 // source for the source element; then distribute the overlap elements to all processors that have the
                 // coverage mesh used
+#ifdef MOAB_HAVE_MPI
                 if (is_parallel && size > 1) {
                     rval = augment_overlap_set(); MB_CHK_ERR ( rval );
                 }
+#endif
             }
 
             m_covering_source = new Mesh();
@@ -722,11 +728,11 @@ ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius_
     return MB_SUCCESS;
 }
 
+#ifdef MOAB_HAVE_MPI
 // this function is called only in parallel
 ///////////////////////////////////////////////////////////////////////////////////
 ErrorCode TempestRemapper::augment_overlap_set()
 {
-
   /*
    * overall strategy:
    *
@@ -1225,10 +1231,10 @@ ErrorCode TempestRemapper::augment_overlap_set()
   // we should have in TLv2 only vertices with orgProc different from current task
 #ifdef VERBOSE
   std::stringstream ff2;
-  ff2 << "TLc2_"<< m_pcomm->rank() << ".txt";
+  ff2 << "TLc2_"<< rank << ".txt";
   TLc2.print_to_file(ff2.str().c_str());
   std::stringstream ffv2;
-  ffv2 << "TLv2_"<< m_pcomm->rank() << ".txt";
+  ffv2 << "TLv2_"<< rank << ".txt";
   TLv2.print_to_file(ffv2.str().c_str());
 #endif
   // first create vertices, and make a map from origin processor, and index, to entity handle (index in TLv2 )
@@ -1288,7 +1294,7 @@ ErrorCode TempestRemapper::augment_overlap_set()
   rval = m_interface->add_entities(tmpSet3, newPolygons); MB_CHK_SET_ERR(rval, "Can't add entities");
 
   std::stringstream ffs4;
-  ffs4 << "extraIntxCells"<< m_pcomm->rank() << ".h5m";
+  ffs4 << "extraIntxCells"<< rank << ".h5m";
   rval = m_interface->write_mesh(ffs4.str().c_str(), &tmpSet3, 1);MB_CHK_ERR(rval);
 #endif
 
@@ -1298,6 +1304,8 @@ ErrorCode TempestRemapper::augment_overlap_set()
 
   return MB_SUCCESS;
 }
+
+#endif
 
 }
 

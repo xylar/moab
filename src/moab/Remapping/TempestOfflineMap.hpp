@@ -298,6 +298,21 @@ public:
 	typedef WeightRMatrix WeightMatrix;
 
 	///	<summary>
+	///		Get the raw reference to the Eigen weight matrix representing the projection from source to destination mesh.
+	///	</summary>
+	WeightMatrix& GetWeightMatrix();
+
+	///	<summary>
+	///		Get the row vector that is amenable for application of A*x operation.
+	///	</summary>
+	WeightRowVector& GetRowVector();
+
+	///	<summary>
+	///		Get the column vector that is amenable for application of A^T*x operation.
+	///	</summary>
+	WeightColVector& GetColVector();
+
+  ///	<summary>
 	///		Get the number of total Degrees-Of-Freedom defined on the source mesh.
 	///	</summary>
 	int GetSourceGlobalNDofs();
@@ -326,21 +341,6 @@ public:
 	///		Get the number of Degrees-Of-Freedom per element on the destination mesh.
 	///	</summary>
 	int GetDestinationNDofsPerElement();
-
-	///	<summary>
-	///		Get the raw reference to the Eigen weight matrix representing the projection from source to destination mesh.
-	///	</summary>
-	WeightMatrix& GetWeightMatrix();
-
-	///	<summary>
-	///		Get the row vector that is amenable for application of A*x operation.
-	///	</summary>
-	WeightRowVector& GetRowVector();
-
-	///	<summary>
-	///		Get the column vector that is amenable for application of A^T*x operation.
-	///	</summary>
-	WeightColVector& GetColVector();
 
 	///	<summary>
 	///		Apply the weight matrix onto the source vector provided as input, and return the column vector (solution projection) after the application 
@@ -386,7 +386,6 @@ public:
 	///		The DataVector that stores the global (GID-based) areas of the source mesh.
 	///	</summary>
 	// DataVector<double> m_areasSrcGlobal;
-
 	
 	///	<summary>
 	///		The DataVector that stores the global (GID-based) areas of the target mesh.
@@ -398,10 +397,12 @@ public:
 	///	</summary>
 	moab::Interface* mbCore;
 
+#ifdef MOAB_HAVE_MPI
 	///	<summary>
 	///		The reference to the parallel communicator object used by the Core object.
 	///	</summary>
 	moab::ParallelComm* pcomm;
+#endif
 
 	///	<summary>
 	///		The original tag data and local to global DoF mapping to associate matrix values to solution
@@ -420,31 +421,39 @@ public:
 	Mesh* m_meshInputCov;
 	Mesh* m_meshOutput;
 	Mesh* m_meshOverlap;
-
-    bool is_parallel, is_root;
-    int rank, size;
+	
+	bool is_parallel, is_root;
+	int rank, size;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 
 inline
 const DataVector<double>& TempestOfflineMap::GetGlobalSourceAreas() const {
-	if (pcomm->size() > 1) {
+#ifdef MOAB_HAVE_MPI
+  if (pcomm->size() > 1) {
         return m_weightMapGlobal->GetSourceAreas();
 	}
 	else {
 		return this->GetSourceAreas();
 	}
+#else
+  return this->GetSourceAreas();
+#endif
 }
 
 inline
 const DataVector<double>& TempestOfflineMap::GetGlobalTargetAreas() const {
-    if (pcomm->size() > 1) {
+#ifdef MOAB_HAVE_MPI
+  if (pcomm->size() > 1) {
         return m_weightMapGlobal->GetTargetAreas();
 	}
 	else {
 		return this->GetTargetAreas();
 	}
+#else
+  return this->GetTargetAreas();
+#endif
 }
 
 }

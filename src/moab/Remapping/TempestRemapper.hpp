@@ -36,9 +36,14 @@ class TempestOfflineMap;
 class TempestRemapper : public Remapper
 {
 public:
-
+#ifdef MOAB_HAVE_MPI
     TempestRemapper(moab::Interface* mbInt, moab::ParallelComm* pcomm = NULL) :
-        Remapper(mbInt, pcomm), meshValidate(false), constructEdgeMap(false), m_source_type(DEFAULT), m_target_type(DEFAULT)
+        Remapper(mbInt, pcomm),
+#else
+    TempestRemapper(moab::Interface* mbInt) :
+        Remapper(mbInt),
+#endif
+        meshValidate(false), constructEdgeMap(false), m_source_type(DEFAULT), m_target_type(DEFAULT)
     {
     }
 
