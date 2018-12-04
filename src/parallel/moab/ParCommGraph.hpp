@@ -102,9 +102,11 @@ namespace moab {
 
 	  ErrorCode release_send_buffers(MPI_Comm jcomm);
 
-	  ErrorCode send_tag_values (MPI_Comm jcomm, ParallelComm *pco, Range & owned, Tag & tag_handle );
+	  ErrorCode send_tag_values (MPI_Comm jcomm, ParallelComm *pco, Range & owned,
+	      std::vector<Tag> & tag_handles );
 
-	  ErrorCode receive_tag_values (MPI_Comm jcomm, ParallelComm *pco, Range & owned, Tag & tag_handle );
+	  ErrorCode receive_tag_values (MPI_Comm jcomm, ParallelComm *pco, Range & owned,
+        std::vector<Tag> & tag_handles );
 
 	  // getter method
 	  const std::vector<int> & senders() { return senderTasks; } //reference copy; refers to sender tasks in joint comm

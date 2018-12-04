@@ -292,17 +292,34 @@ int main( int argc, char* argv[] )
   CHECKRC(ierr, "cannot compute scalar projection weights" )
   POP_TIMER()
 
-  const char* fieldname = "a2oTAG";
-  const char* fieldnameT = "a2oTAG_proj";
+  const char* fieldname = "a2oTbot";
+  const char* fieldnameT = "a2oTbot_proj";
   int tagIndex[2];
   int tagTypes[2] = { DENSE_DOUBLE, DENSE_DOUBLE } ;
   int num_components1 = disc_orders[0]*disc_orders[0], num_components2 = disc_orders[1]*disc_orders[1];
 
   ierr = iMOAB_DefineTagStorage(pid3, fieldname, &tagTypes[0], &num_components1, &tagIndex[0],  strlen(fieldname) );
-  CHECKRC(ierr, "failed to define the field tag");
+  CHECKRC(ierr, "failed to define the field tag a2oTbot");
 
   ierr = iMOAB_DefineTagStorage(pid4, fieldnameT, &tagTypes[1], &num_components2, &tagIndex[1],  strlen(fieldnameT) );
-  CHECKRC(ierr, "failed to define the field tag");
+  CHECKRC(ierr, "failed to define the field tag a2oTbot_proj");
+
+  // two more fields for testing : U, V
+  const char* fieldname2 = "a2oUbot";
+  const char* fieldnameT2 = "a2oUbot_proj";
+  ierr = iMOAB_DefineTagStorage(pid3, fieldname2, &tagTypes[0], &num_components1, &tagIndex[0],  strlen(fieldname2) );
+  CHECKRC(ierr, "failed to define the field tag a2oUbot");
+
+  ierr = iMOAB_DefineTagStorage(pid4, fieldnameT2, &tagTypes[1], &num_components2, &tagIndex[1],  strlen(fieldnameT2) );
+  CHECKRC(ierr, "failed to define the field tag a2oUbot_proj");
+
+  const char* fieldname3 = "a2oVbot";
+  const char* fieldnameT3 = "a2oVbot_proj";
+  ierr = iMOAB_DefineTagStorage(pid3, fieldname3, &tagTypes[0], &num_components1, &tagIndex[0],  strlen(fieldname3) );
+  CHECKRC(ierr, "failed to define the field tag a2oUbot");
+
+  ierr = iMOAB_DefineTagStorage(pid4, fieldnameT3, &tagTypes[1], &num_components2, &tagIndex[1],  strlen(fieldnameT3) );
+  CHECKRC(ierr, "failed to define the field tag a2oUbot_proj");
 
   // need to make sure that the coverage mesh (created during intx method) received the tag that need to be projected to target
   // so far, the coverage mesh has only the ids and global dofs;
@@ -329,8 +346,12 @@ int main( int argc, char* argv[] )
         for (int k=0; k<storLeng; k++)
           vals[k] = 0.;
         int eetype = 1;
-        ierr = iMOAB_SetDoubleTagStorage ( pid3, "a2oTAG", &storLeng, &eetype, &vals[0], strlen("a2oTAG"));
+        ierr = iMOAB_SetDoubleTagStorage ( pid3, fieldname, &storLeng, &eetype, &vals[0], strlen(fieldname));
         CHECKRC(ierr, "cannot make tag nul")
+        ierr = iMOAB_SetDoubleTagStorage ( pid3, fieldname2, &storLeng, &eetype, &vals[0], strlen(fieldname2));
+                CHECKRC(ierr, "cannot make tag nul")
+        ierr = iMOAB_SetDoubleTagStorage ( pid3, fieldname3, &storLeng, &eetype, &vals[0], strlen(fieldname3));
+                CHECKRC(ierr, "cannot make tag nul")
         // set the tag to 0
     }
   }
@@ -341,11 +362,11 @@ int main( int argc, char* argv[] )
     // basically, adjust the migration of the tag we want to project; it was sent initially with
     // trivial partitioning, now we need to adjust it for "coverage" mesh
      // as always, use nonblocking sends
-     ierr = iMOAB_SendElementTag(pid1, &compid1, &compid3, "a2oTAG", &jcomm, strlen("a2oTAG"));
+     ierr = iMOAB_SendElementTag(pid1, &compid1, &compid3, "a2oTbot;a2oUbot;a2oVbot;", &jcomm, strlen("a2oTbot;a2oUbot;a2oVbot;"));
      CHECKRC(ierr, "cannot send tag values")
   }
   // receive on atm on coupler pes, that was redistributed according to coverage
-  ierr = iMOAB_ReceiveElementTag(pid3, &compid3, &compid1, "a2oTAG", &jcomm, strlen("a2oTAG"));
+  ierr = iMOAB_ReceiveElementTag(pid3, &compid3, &compid1, "a2oTbot;a2oUbot;a2oVbot;", &jcomm, strlen("a2oTbot;a2oUbot;a2oVbot;"));
   CHECKRC(ierr, "cannot receive tag values")
   POP_TIMER()
 
@@ -363,12 +384,14 @@ int main( int argc, char* argv[] )
   /* We have the remapping weights now. Let us apply the weights onto the tag we defined 
      on the source mesh and get the projection on the target mesh */
   PUSH_TIMER("Apply Scalar projection weights")
+  const char * concat_fieldname = "a2oTbot;a2oUbot;a2oVbot;";
+  const char * concat_fieldnameT = "a2oTbot_proj;a2oUbot_proj;a2oVbot_proj;";
   ierr = iMOAB_ApplyScalarProjectionWeights ( pid5, weights_identifiers[0],
-                                            fieldname,
-                                            fieldnameT,
+                                            concat_fieldname,
+                                            concat_fieldnameT,
                                             strlen(weights_identifiers[0]),
-                                            strlen(fieldname),
-                                            strlen(fieldnameT)
+                                            strlen(concat_fieldname),
+                                            strlen(concat_fieldnameT)
                                             );
   CHECKRC(ierr, "failed to compute projection weight application");
   POP_TIMER()
@@ -386,18 +409,25 @@ int main( int argc, char* argv[] )
   if (comm2 != MPI_COMM_NULL) {
     int tagIndexIn2;
     ierr = iMOAB_DefineTagStorage(pid2, fieldnameT, &tagTypes[1], &num_components2, &tagIndexIn2,  strlen(fieldnameT) );
-    CHECKRC(ierr, "failed to define the field tag for receiving back the tag on ocn pes");
+    CHECKRC(ierr, "failed to define the field tag for receiving back the tag a2oTbot_proj on ocn pes");
+    ierr = iMOAB_DefineTagStorage(pid2, fieldnameT2, &tagTypes[1], &num_components2, &tagIndexIn2,  strlen(fieldnameT2) );
+    CHECKRC(ierr, "failed to define the field tag for receiving back the tag a2oUbot_proj on ocn pes");
+    ierr = iMOAB_DefineTagStorage(pid2, fieldnameT3, &tagTypes[1], &num_components2, &tagIndexIn2,  strlen(fieldnameT3) );
+    CHECKRC(ierr, "failed to define the field tag for receiving back the tag a2oVbot_proj on ocn pes");
+
   }
   // send the tag to ocean pes, from ocean mesh on coupler pes
   // first, send from compid4 to compid4, from comm2, using common joint comm
       // as always, use nonblocking sends
-  ierr = iMOAB_SendElementTag(pid4, &compid4, &compid2, "a2oTAG_proj", &jcomm, strlen("a2oTAG_proj"));
+  ierr = iMOAB_SendElementTag(pid4, &compid4, &compid2, "a2oTbot_proj;a2oUbot_proj;a2oVbot_proj;", &jcomm,
+      strlen("a2oTbot_proj;a2oUbot_proj;a2oVbot_proj;"));
   CHECKRC(ierr, "cannot send tag values back to ocean pes")
 
   // receive on component 2, ocean
   if (comm2 != MPI_COMM_NULL)
   {
-    ierr = iMOAB_ReceiveElementTag(pid2, &compid2, &compid4, "a2oTAG_proj", &jcomm, strlen("a2oTAG_proj"));
+    ierr = iMOAB_ReceiveElementTag(pid2, &compid2, &compid4, "a2oTbot_proj;a2oUbot_proj;a2oVbot_proj;",
+        &jcomm, strlen("a2oTbot_proj;a2oUbot_proj;a2oVbot_proj;"));
     CHECKRC(ierr, "cannot receive tag values from ocean mesh on coupler pes")
   }
 

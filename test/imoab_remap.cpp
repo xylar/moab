@@ -134,9 +134,9 @@ int main(int argc, char * argv[])
   const char* dof_tag_names[2] = {"GLOBAL_DOFS", "GLOBAL_ID"};
   int fVolumetric=0, fValidate=1, fNoConserve=0;
   
-  const char* fieldname = "a2oTAG";
-  const char* fieldnameT = "a2oTAG_proj";
-  const char* fieldnameTnc = "a2oTAG_projnocons";
+  const char* fieldname = "a2oTbot";
+  const char* fieldnameT = "a2oTbot_proj";
+  const char* fieldnameTnc = "a2oTbot_projnocons";
   int tagIndex[2];
   // int entTypes[2] = {1, 1}; /* both on elements; */
   int tagTypes[2] = { DENSE_DOUBLE, DENSE_DOUBLE } ;

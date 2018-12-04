@@ -1981,6 +1981,23 @@ ErrCode FindParCommGraph(iMOAB_AppID pid, int *scompid, int *rcompid, ParCommGra
   return 1; // error, we did not find cgraph
 }
 
+void split_tag_names(std::string input_names, std::string & separator, std::vector<std::string> & list_tag_names)
+{
+  size_t pos = 0;
+  std::string token;
+  while ((pos = input_names.find(separator)) != std::string::npos) {
+      token = input_names.substr(0, pos);
+      list_tag_names.push_back(token);
+      //std::cout << token << std::endl;
+      input_names.erase(0, pos + separator.length());
+  }
+  if (!input_names.empty())
+  {
+    // if leftover something, or if not ended with delimiter
+    list_tag_names.push_back(input_names);
+  }
+  return ;
+}
 
 ErrCode iMOAB_SendElementTag(iMOAB_AppID pid, int* scompid, int* rcompid, const iMOAB_String tag_storage_name,
     MPI_Comm* join, int tag_storage_name_length)
@@ -2002,14 +2019,25 @@ ErrCode iMOAB_SendElementTag(iMOAB_AppID pid, int* scompid, int* rcompid, const 
   {
       tag_name = tag_name.substr ( 0, tag_storage_name_length );
   }
-  Tag tagHandle;
   // basically, we assume everything is defined already on the tag,
-  //   and we can get the tag just by its name
-  ErrorCode rval = context.MBI->tag_get_handle ( tag_name.c_str(), tagHandle);
-  if ( MB_SUCCESS != rval || NULL == tagHandle) { return 1; }
+  //   and we can get the tags just by its name
+  // we assume that there are separators ";" between the tag names
+  std::vector<std::string> tagNames;
+  std::vector<Tag> tagHandles;
+  std::string separator(";");
+  split_tag_names( tag_name, separator, tagNames);
+  ErrorCode rval ;
+  for (size_t i=0; i < tagNames.size(); i++ )
+  {
+    Tag tagHandle;
+    rval = context.MBI->tag_get_handle ( tagNames[i].c_str(), tagHandle);
+    if ( MB_SUCCESS != rval || NULL == tagHandle) { return 1; }
+    tagHandles.push_back(tagHandle);
+  }
+
   // pco is needed to pack, and for moab instance, not for communication!
-  // still use nonblocking communication, over the
-  rval = cgraph->send_tag_values ( *join, pco, owned, tagHandle );
+  // still use nonblocking communication, over the joint comm
+  rval = cgraph->send_tag_values ( *join, pco, owned, tagHandles );
 
   if ( MB_SUCCESS != rval ) { return 1; }
   // now, send to each corr_tasks[i] tag data for corr_sizes[i] primary entities
@@ -2048,11 +2076,20 @@ ErrCode iMOAB_ReceiveElementTag(iMOAB_AppID pid, int* scompid, int* rcompid, con
   {
       tag_name = tag_name.substr ( 0, tag_storage_name_length );
   }
-  Tag tagHandle;
-  // basically, we assume everything is defined already on the tag,
-  //   and we can get the tag just by its name
-  ErrorCode rval = context.MBI->tag_get_handle ( tag_name.c_str(), tagHandle);
-  if ( MB_SUCCESS != rval || NULL == tagHandle) { return 1; }
+
+  // we assume that there are separators ";" between the tag names
+  std::vector<std::string> tagNames;
+  std::vector<Tag> tagHandles;
+  std::string separator(";");
+  split_tag_names( tag_name, separator, tagNames);
+  ErrorCode rval ;
+  for (size_t i=0; i < tagNames.size(); i++ )
+  {
+    Tag tagHandle;
+    rval = context.MBI->tag_get_handle ( tagNames[i].c_str(), tagHandle);
+    if ( MB_SUCCESS != rval || NULL == tagHandle) { return 1; }
+    tagHandles.push_back(tagHandle);
+  }
 
   if ( data.file_set != data.covering_set) // coverage mesh is different from original mesh, it means we are on a source mesh, after intx
   {
@@ -2060,7 +2097,7 @@ ErrCode iMOAB_ReceiveElementTag(iMOAB_AppID pid, int* scompid, int* rcompid, con
   }
   // pco is needed to pack, and for moab instance, not for communication!
   // still use nonblocking communication
-  rval = cgraph->receive_tag_values ( *join, pco, owned, tagHandle );
+  rval = cgraph->receive_tag_values ( *join, pco, owned, tagHandles );
 
   if ( data.file_set != data.covering_set) // coverage mesh is different from original mesh, it means we are on a source mesh, after intx
   {
@@ -2516,10 +2553,33 @@ ErrCode iMOAB_ApplyScalarProjectionWeights (   iMOAB_AppID pid_intersection,
     moab::TempestRemapper* remapper = data_intx.remapper;
     moab::TempestOfflineMap* weightMap = data_intx.weightMaps[std::string(solution_weights_identifier)];
 
-    /* Global ID - exchange data for covering data */
-    Tag ssolnTag, tsolnTag;
-    rval = context.MBI->tag_get_handle ( source_solution_tag_name, ssolnTag );CHKERRVAL(rval);
-    rval = context.MBI->tag_get_handle ( target_solution_tag_name, tsolnTag );CHKERRVAL(rval);
+
+    // we assume that there are separators ";" between the tag names
+    std::vector<std::string> srcNames;
+    std::vector<std::string> tgtNames;
+    std::vector<Tag> srcTagHandles;
+    std::vector<Tag> tgtTagHandles;
+    std::string separator(";");
+    std::string src_name(source_solution_tag_name);
+    std::string tgt_name(target_solution_tag_name);
+    split_tag_names( src_name, separator, srcNames);
+    split_tag_names( tgt_name, separator, tgtNames);
+    if (srcNames.size() != tgtNames.size())
+    {
+      std::cout <<" error in parsing source and target tag names. \n";
+      return 1;
+    }
+
+    for (size_t i=0; i < srcNames.size(); i++ )
+    {
+      Tag tagHandle;
+      rval = context.MBI->tag_get_handle ( srcNames[i].c_str(), tagHandle);
+      if ( MB_SUCCESS != rval || NULL == tagHandle) { return 1; }
+      srcTagHandles.push_back(tagHandle);
+      rval = context.MBI->tag_get_handle ( tgtNames[i].c_str(), tagHandle);
+      if ( MB_SUCCESS != rval || NULL == tagHandle) { return 1; }
+      tgtTagHandles.push_back(tagHandle);
+    }
 
     moab::Range& covSrcEnts = remapper->GetMeshEntities(moab::Remapper::CoveringMesh);
     moab::Range& tgtEnts = remapper->GetMeshEntities(moab::Remapper::TargetMesh);
@@ -2527,58 +2587,62 @@ ErrCode iMOAB_ApplyScalarProjectionWeights (   iMOAB_AppID pid_intersection,
     std::vector<double> solSTagVals(covSrcEnts.size()*weightMap->GetSourceNDofsPerElement()*weightMap->GetSourceNDofsPerElement(), -1.0);
     std::vector<double> solTTagVals(tgtEnts.size()*weightMap->GetDestinationNDofsPerElement()*weightMap->GetDestinationNDofsPerElement(), -1.0);
 
-    // The tag data is np*np*n_el_src
-    rval = context.MBI->tag_get_data ( ssolnTag, covSrcEnts, &solSTagVals[0] );CHKERRVAL(rval);
+    for (size_t i=0; i < srcTagHandles.size(); i++ )
+    {
+      // The tag data is np*np*n_el_src
+      Tag ssolnTag = srcTagHandles[i];
+      Tag tsolnTag = tgtTagHandles[i];
+      rval = context.MBI->tag_get_data (ssolnTag , covSrcEnts, &solSTagVals[0] );CHKERRVAL(rval);
 
-    // Compute the application of weights on the suorce solution data and store it in the destination solution vector data
-    // Optionally, can also perform the transpose application of the weight matrix. Set the 3rd argument to true if this is needed
-    rval = weightMap->ApplyWeights(solSTagVals, solTTagVals, false);CHKERRVAL(rval);
+      // Compute the application of weights on the suorce solution data and store it in the destination solution vector data
+      // Optionally, can also perform the transpose application of the weight matrix. Set the 3rd argument to true if this is needed
+      rval = weightMap->ApplyWeights(solSTagVals, solTTagVals, false);CHKERRVAL(rval);
 
-    // The tag data is np*np*n_el_dest
-    rval = context.MBI->tag_set_data ( tsolnTag, tgtEnts, &solTTagVals[0] );CHKERRVAL(rval);
+      // The tag data is np*np*n_el_dest
+      rval = context.MBI->tag_set_data (tsolnTag , tgtEnts, &solTTagVals[0] );CHKERRVAL(rval);
 
 #ifdef VERBOSE
-    ParallelComm* pco_intx = context.pcomms[*pid_intersection];
+      ParallelComm* pco_intx = context.pcomms[*pid_intersection];
 
-    {
-        std::stringstream sstr;
-        sstr << "covsrcTagData_" << pco_intx->rank() << ".txt";
-        std::ofstream output_file ( sstr.str().c_str() );
-        for (unsigned i=0; i < covSrcEnts.size(); ++i) {
-            EntityHandle elem = covSrcEnts[i];
-            std::vector<double> locsolSTagVals(16);
-            rval = context.MBI->tag_get_data ( ssolnTag, &elem, 1, &locsolSTagVals[0] );CHKERRVAL(rval);
-            output_file << "\n" << remapper->GetGlobalID(Remapper::CoveringMesh, i) << "-- \n\t";
-            for (unsigned j=0; j < 16; ++j)
-                output_file << locsolSTagVals[j] << " ";
-        }
-        output_file.flush(); // required here
-        output_file.close();
-    }
-    {
-        std::stringstream sstr;
-        sstr << "outputSrcDest_" << pco_intx->rank() << ".h5m";
-        EntityHandle sets[2] = {context.appDatas[*data_intx.pid_src].file_set, context.appDatas[*data_intx.pid_dest].file_set};
-        rval = context.MBI->write_file ( sstr.str().c_str(), NULL, "", sets, 2 ); MB_CHK_ERR ( rval );
-    }
-    {
-        std::stringstream sstr;
-        sstr << "outputCovSrcDest_" << pco_intx->rank() << ".h5m";
-        // EntityHandle sets[2] = {data_intx.file_set, data_intx.covering_set};
-        EntityHandle sets[2] = {data_intx.covering_set, context.appDatas[*data_intx.pid_dest].file_set};
-        rval = context.MBI->write_file ( sstr.str().c_str(), NULL, "", sets, 2 ); MB_CHK_ERR ( rval );
-    }
-    {
-        std::stringstream sstr;
-        sstr << "colvector_" << pco_intx->rank() << ".txt";
-        std::ofstream output_file ( sstr.str().c_str() );
-        for (unsigned i = 0; i < solSTagVals.size(); ++i)
-            output_file << i << " " << weightMap->col_dofmap[i] << " " << weightMap->col_gdofmap[i] << " " << solSTagVals[i] << "\n";
-        output_file.flush(); // required here
-        output_file.close();
-    }
+      {
+          std::stringstream sstr;
+          sstr << "covsrcTagData_" << i << "_" << pco_intx->rank() << ".txt";
+          std::ofstream output_file ( sstr.str().c_str() );
+          for (unsigned i=0; i < covSrcEnts.size(); ++i) {
+              EntityHandle elem = covSrcEnts[i];
+              std::vector<double> locsolSTagVals(16);
+              rval = context.MBI->tag_get_data ( ssolnTag, &elem, 1, &locsolSTagVals[0] );CHKERRVAL(rval);
+              output_file << "\n" << remapper->GetGlobalID(Remapper::CoveringMesh, i) << "-- \n\t";
+              for (unsigned j=0; j < 16; ++j)
+                  output_file << locsolSTagVals[j] << " ";
+          }
+          output_file.flush(); // required here
+          output_file.close();
+      }
+      {
+          std::stringstream sstr;
+          sstr << "outputSrcDest_" << i << "_"<< pco_intx->rank() << ".h5m";
+          EntityHandle sets[2] = {context.appDatas[*data_intx.pid_src].file_set, context.appDatas[*data_intx.pid_dest].file_set};
+          rval = context.MBI->write_file ( sstr.str().c_str(), NULL, "", sets, 2 ); MB_CHK_ERR ( rval );
+      }
+      {
+          std::stringstream sstr;
+          sstr << "outputCovSrcDest_" << i << "_" << pco_intx->rank() << ".h5m";
+          // EntityHandle sets[2] = {data_intx.file_set, data_intx.covering_set};
+          EntityHandle sets[2] = {data_intx.covering_set, context.appDatas[*data_intx.pid_dest].file_set};
+          rval = context.MBI->write_file ( sstr.str().c_str(), NULL, "", sets, 2 ); MB_CHK_ERR ( rval );
+      }
+      {
+          std::stringstream sstr;
+          sstr << "colvector_" << i << "_" << pco_intx->rank() << ".txt";
+          std::ofstream output_file ( sstr.str().c_str() );
+          for (unsigned i = 0; i < solSTagVals.size(); ++i)
+              output_file << i << " " << weightMap->col_dofmap[i] << " " << weightMap->col_gdofmap[i] << " " << solSTagVals[i] << "\n";
+          output_file.flush(); // required here
+          output_file.close();
+      }
 #endif
-
+    }
     return 0;
 }
 
