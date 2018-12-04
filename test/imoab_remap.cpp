@@ -26,13 +26,13 @@ int main(int argc, char * argv[])
 {
   int nprocs=1, rank=0;
   char filen1[200], filen2[200];
-// #ifdef MOAB_HAVE_MPI
-//   MPI_Init(&argc, &argv);
+#ifdef MOAB_HAVE_MPI
+  MPI_Init(&argc, &argv);
 
-//   MPI_Comm comm=MPI_COMM_WORLD;
-//   MPI_Comm_size(comm, &nprocs);
-//   MPI_Comm_rank(comm, &rank);
-// #endif
+  MPI_Comm comm=MPI_COMM_WORLD;
+  MPI_Comm_size(comm, &nprocs);
+  MPI_Comm_rank(comm, &rank);
+#endif
 
 #ifdef MOAB_HAVE_HDF5
   strcpy(filen1, TestDir);
@@ -69,19 +69,25 @@ int main(int argc, char * argv[])
    */
   int compid1 = 10, compid2 = 20, compid3 = 100;
   rc = iMOAB_RegisterApplication( "COUP_APP1",
-      NULL,
+#ifdef MOAB_HAVE_MPI
+      &comm,
+#endif
       &compid1,
       pid1);
   CHECKRC(rc, "failed to register application1");
 
   rc = iMOAB_RegisterApplication( "COUP_APP2",
-      NULL,
+#ifdef MOAB_HAVE_MPI
+      &comm,
+#endif
       &compid2,
       pid2);
   CHECKRC(rc, "failed to register application2");
 
   rc = iMOAB_RegisterApplication( "COUPLER",
-      NULL,
+#ifdef MOAB_HAVE_MPI
+      &comm,
+#endif
       &compid3,
       pid3);
   CHECKRC(rc, "failed to register application2");
