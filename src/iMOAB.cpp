@@ -2106,123 +2106,6 @@ ErrCode iMOAB_FreeSenderBuffers ( iMOAB_AppID pid, MPI_Comm* join, int* rcompid 
     return 0;
 }
 
-#ifdef MOAB_HAVE_TEMPESTREMAP
-
-#define USE_API
-
-
-static ErrCode ComputeSphereRadius ( iMOAB_AppID pid, double* radius)
-{
-    ErrorCode rval;
-    CartVect pos;
-
-    Range& verts = context.appDatas[*pid].all_verts;
-    moab::EntityHandle firstVertex = (verts[0]);
-
-    // coordinate data
-    rval = context.MBI->get_coords ( &(firstVertex), 1, (double*) &(pos[0]) );CHKERRVAL(rval);
-
-    // compute the distance from origin
-    // TODO: we could do this in a loop to verify if the pid represents a spherical mesh
-    *radius = pos.length();
-    return 0;
-}
-
-ErrCode iMOAB_ComputeMeshIntersectionOnSphere ( iMOAB_AppID pid_src, iMOAB_AppID pid_tgt, iMOAB_AppID pid_intx)
-{
-    ErrorCode rval;
-
-    double radius_source=1.0;
-    double radius_target=1.0;
-    const double epsrel=1e-15;
-    const double boxeps=1.e-8;
-
-    // Get the source and target data and pcomm objects
-    appData& data_src = context.appDatas[*pid_src];
-    appData& data_tgt = context.appDatas[*pid_tgt];
-	appData& data_intx = context.appDatas[*pid_intx];
-    ParallelComm* pco_intx = context.pcomms[*pid_intx];
-
-	//  Sanity check: Check that the source and target meshes belong to the same pes. 
-    //  assert(pco_src->get_id() == pco_tgt->get_id());
-    //  assert(pco_src->get_id() == pco_intx->get_id());
-
-    // Mesh intersection has already been computed; Return early.
-    if(data_intx.remapper != NULL) return 0;
-
-#ifdef MOAB_HAVE_MPI
-    if (pco_intx) {
-        rval = pco_intx->check_all_shared_handles();CHKERRVAL(rval);
-    }
-#endif
-
-    // Rescale the radius of both to compute the intersection
-    ComputeSphereRadius(pid_src, &radius_source);
-    ComputeSphereRadius(pid_tgt, &radius_target);
-#ifdef VERBOSE
-    // std::cout << "Radius of spheres: source = " << radius_source << " and target = " << radius_target << "\n";
-#endif
-	// print verbosely about the problem setting
-	{
-		moab::Range rintxverts, rintxelems;
-		rval = context.MBI->get_entities_by_dimension ( data_src.file_set, 0, rintxverts );CHKERRVAL(rval);
-		rval = context.MBI->get_entities_by_dimension ( data_src.file_set, 2, rintxelems );CHKERRVAL(rval);
-		rval = fix_degenerate_quads ( context.MBI, data_src.file_set );CHKERRVAL(rval);
-		rval = positive_orientation ( context.MBI, data_src.file_set, radius_source );CHKERRVAL(rval);
-		ErrCode ierr = iMOAB_UpdateMeshInfo(pid_src); CHKIERRVAL(ierr);
-#ifdef VERBOSE
- 		std::cout << "The red set contains " << rintxverts.size() << " vertices and " << rintxelems.size() << " elements \n";
-#endif
-
-		moab::Range bintxverts, bintxelems;
-		rval = context.MBI->get_entities_by_dimension ( data_tgt.file_set, 0, bintxverts );CHKERRVAL(rval);
-		rval = context.MBI->get_entities_by_dimension ( data_tgt.file_set, 2, bintxelems );CHKERRVAL(rval);
-		rval = fix_degenerate_quads ( context.MBI, data_tgt.file_set );CHKERRVAL(rval);
-		rval = positive_orientation ( context.MBI, data_tgt.file_set, radius_target );CHKERRVAL(rval);
-		ierr = iMOAB_UpdateMeshInfo(pid_tgt); CHKIERRVAL(ierr);
-#ifdef VERBOSE
- 		std::cout << "The blue set contains " << bintxverts.size() << " vertices and " << bintxelems.size() << " elements \n";
-#endif
-	}
-
-	// set the context for the source and destination applications
-	data_intx.pid_src = pid_src;
-	data_intx.pid_dest = pid_tgt;
-
-	// Now allocate and initialize the remapper object
-    data_intx.remapper = new moab::TempestRemapper ( context.MBI, pco_intx );
-    data_intx.remapper->meshValidate = true;
-    data_intx.remapper->constructEdgeMap = true;
-    
-    // Do not create new filesets; Use the sets from our respective applications
-    data_intx.remapper->initialize(false);
-    data_intx.remapper->GetMeshSet ( moab::Remapper::SourceMesh ) = data_src.file_set;
-    data_intx.remapper->GetMeshSet ( moab::Remapper::TargetMesh ) = data_tgt.file_set;
-    data_intx.remapper->GetMeshSet ( moab::Remapper::IntersectedMesh ) = data_intx.file_set;
-
-    /* Let make sure that the radius match for source and target meshes. If not, rescale now and unscale later. */
-    bool radii_scaled = false;
-    if (fabs(radius_source - radius_target) > 1e-10) { /* the radii are different */
-        radii_scaled = true;
-        rval = ScaleToRadius(context.MBI, data_src.file_set, 1.0);CHKERRVAL(rval);
-        rval = ScaleToRadius(context.MBI, data_tgt.file_set, 1.0);CHKERRVAL(rval);
-    }
-
-    rval = data_intx.remapper->ConvertMeshToTempest ( moab::Remapper::SourceMesh );CHKERRVAL(rval);
-    rval = data_intx.remapper->ConvertMeshToTempest ( moab::Remapper::TargetMesh );CHKERRVAL(rval);
-
-	// Compute intersections with MOAB
-	rval = data_intx.remapper->ComputeOverlapMesh ( epsrel, 1.0, 1.0, boxeps, false );CHKERRVAL(rval);
-    // rval = data_intx.remapper->ConvertMeshToTempest ( moab::Remapper::IntersectedMesh );CHKERRVAL(rval);
-	data_src.covering_set = data_intx.remapper->GetCoveringSet();
-
-    // if (radii_scaled) { /* the radii are different, so lets rescale back */
-    //     rval = ScaleToRadius(context.MBI, data_src.file_set, radius_source);CHKERRVAL(rval);
-    //     rval = ScaleToRadius(context.MBI, data_tgt.file_set, radius_target);CHKERRVAL(rval);
-    // }
-
-    return 0;
-}
 
 // this call must be collective on the joint communicator
 //  intersection tasks on coupler will need to send to the components tasks the list of
@@ -2385,6 +2268,135 @@ ErrCode iMOAB_CoverageGraph ( MPI_Comm * join, iMOAB_AppID pid_src,
     return 0;// success
 }
 
+#endif // MOAB_HAVE_MPI
+
+#ifdef MOAB_HAVE_TEMPESTREMAP
+
+#define USE_API
+
+static ErrCode ComputeSphereRadius ( iMOAB_AppID pid, double* radius)
+{
+    ErrorCode rval;
+    CartVect pos;
+
+    Range& verts = context.appDatas[*pid].all_verts;
+    moab::EntityHandle firstVertex = (verts[0]);
+
+    // coordinate data
+    rval = context.MBI->get_coords ( &(firstVertex), 1, (double*) &(pos[0]) );CHKERRVAL(rval);
+
+    // compute the distance from origin
+    // TODO: we could do this in a loop to verify if the pid represents a spherical mesh
+    *radius = pos.length();
+    return 0;
+}
+
+ErrCode iMOAB_ComputeMeshIntersectionOnSphere ( iMOAB_AppID pid_src, iMOAB_AppID pid_tgt, iMOAB_AppID pid_intx)
+{
+    ErrorCode rval;
+
+    double radius_source=1.0;
+    double radius_target=1.0;
+    const double epsrel=1e-15;
+    const double boxeps=1.e-8;
+
+    // Get the source and target data and pcomm objects
+    appData& data_src = context.appDatas[*pid_src];
+    appData& data_tgt = context.appDatas[*pid_tgt];
+	appData& data_intx = context.appDatas[*pid_intx];
+#ifdef MOAB_HAVE_MPI
+    ParallelComm* pco_intx = context.pcomms[*pid_intx];
+#endif
+
+	//  Sanity check: Check that the source and target meshes belong to the same pes. 
+    //  assert(pco_src->get_id() == pco_tgt->get_id());
+    //  assert(pco_src->get_id() == pco_intx->get_id());
+
+    // Mesh intersection has already been computed; Return early.
+    if(data_intx.remapper != NULL) return 0;
+
+#ifdef MOAB_HAVE_MPI
+    if (pco_intx) {
+        rval = pco_intx->check_all_shared_handles();CHKERRVAL(rval);
+    }
+#endif
+
+    // Rescale the radius of both to compute the intersection
+    ComputeSphereRadius(pid_src, &radius_source);
+    ComputeSphereRadius(pid_tgt, &radius_target);
+#ifdef VERBOSE
+    // std::cout << "Radius of spheres: source = " << radius_source << " and target = " << radius_target << "\n";
+#endif
+	// print verbosely about the problem setting
+	{
+		moab::Range rintxverts, rintxelems;
+		rval = context.MBI->get_entities_by_dimension ( data_src.file_set, 0, rintxverts );CHKERRVAL(rval);
+		rval = context.MBI->get_entities_by_dimension ( data_src.file_set, 2, rintxelems );CHKERRVAL(rval);
+		rval = fix_degenerate_quads ( context.MBI, data_src.file_set );CHKERRVAL(rval);
+		rval = positive_orientation ( context.MBI, data_src.file_set, radius_source );CHKERRVAL(rval);
+		ErrCode ierr = iMOAB_UpdateMeshInfo(pid_src); CHKIERRVAL(ierr);
+#ifdef VERBOSE
+ 		std::cout << "The red set contains " << rintxverts.size() << " vertices and " << rintxelems.size() << " elements \n";
+#endif
+
+		moab::Range bintxverts, bintxelems;
+		rval = context.MBI->get_entities_by_dimension ( data_tgt.file_set, 0, bintxverts );CHKERRVAL(rval);
+		rval = context.MBI->get_entities_by_dimension ( data_tgt.file_set, 2, bintxelems );CHKERRVAL(rval);
+		rval = fix_degenerate_quads ( context.MBI, data_tgt.file_set );CHKERRVAL(rval);
+		rval = positive_orientation ( context.MBI, data_tgt.file_set, radius_target );CHKERRVAL(rval);
+		ierr = iMOAB_UpdateMeshInfo(pid_tgt); CHKIERRVAL(ierr);
+#ifdef VERBOSE
+ 		std::cout << "The blue set contains " << bintxverts.size() << " vertices and " << bintxelems.size() << " elements \n";
+#endif
+	}
+
+	// set the context for the source and destination applications
+	data_intx.pid_src = pid_src;
+	data_intx.pid_dest = pid_tgt;
+
+	// Now allocate and initialize the remapper object
+#ifdef MOAB_HAVE_MPI
+    data_intx.remapper = new moab::TempestRemapper ( context.MBI, pco_intx );
+#else
+    data_intx.remapper = new moab::TempestRemapper ( context.MBI );
+#endif
+    data_intx.remapper->meshValidate = true;
+    data_intx.remapper->constructEdgeMap = true;
+    
+    // Do not create new filesets; Use the sets from our respective applications
+    data_intx.remapper->initialize(false);
+    data_intx.remapper->GetMeshSet ( moab::Remapper::SourceMesh ) = data_src.file_set;
+    data_intx.remapper->GetMeshSet ( moab::Remapper::TargetMesh ) = data_tgt.file_set;
+    data_intx.remapper->GetMeshSet ( moab::Remapper::IntersectedMesh ) = data_intx.file_set;
+
+    /* Let make sure that the radius match for source and target meshes. If not, rescale now and unscale later. */
+    bool radii_scaled = false;
+    if (fabs(radius_source - radius_target) > 1e-10) { /* the radii are different */
+        radii_scaled = true;
+        rval = ScaleToRadius(context.MBI, data_src.file_set, 1.0);CHKERRVAL(rval);
+        rval = ScaleToRadius(context.MBI, data_tgt.file_set, 1.0);CHKERRVAL(rval);
+    }
+
+    rval = data_intx.remapper->ConvertMeshToTempest ( moab::Remapper::SourceMesh );CHKERRVAL(rval);
+    rval = data_intx.remapper->ConvertMeshToTempest ( moab::Remapper::TargetMesh );CHKERRVAL(rval);
+
+	// Compute intersections with MOAB
+	rval = data_intx.remapper->ComputeOverlapMesh ( epsrel, 1.0, 1.0, boxeps, false );CHKERRVAL(rval);
+    // rval = data_intx.remapper->ConvertMeshToTempest ( moab::Remapper::IntersectedMesh );CHKERRVAL(rval);
+
+#ifdef MOAB_HAVE_MPI
+	data_src.covering_set = data_intx.remapper->GetCoveringSet();
+#endif
+
+    // if (radii_scaled) { /* the radii are different, so lets rescale back */
+    //     rval = ScaleToRadius(context.MBI, data_src.file_set, radius_source);CHKERRVAL(rval);
+    //     rval = ScaleToRadius(context.MBI, data_tgt.file_set, radius_target);CHKERRVAL(rval);
+    // }
+
+    return 0;
+}
+
+
 ErrCode iMOAB_ComputeScalarProjectionWeights ( iMOAB_AppID pid_intx, 
                                                const iMOAB_String solution_weights_identifier, /* "scalar", "flux", "custom" */
                                                const iMOAB_String disc_method_source, int* disc_order_source,
@@ -2407,7 +2419,9 @@ ErrCode iMOAB_ComputeScalarProjectionWeights ( iMOAB_AppID pid_intx,
     
     // Get the source and target data and pcomm objects
 	appData& data_intx = context.appDatas[*pid_intx];
+#ifdef MOAB_HAVE_MPI
     ParallelComm* pco_intx = context.pcomms[*pid_intx];
+#endif
 
     bool is_parallel = false, is_root = true;
     int rank=0;
@@ -2569,9 +2583,7 @@ ErrCode iMOAB_ApplyScalarProjectionWeights (   iMOAB_AppID pid_intersection,
 }
 
 
-#endif
-
-#endif
+#endif // MOAB_HAVE_TEMPESTREMAP
 
 #ifdef __cplusplus
 }
