@@ -449,7 +449,7 @@ ErrorCode TempestRemapper::ConvertMOABMesh_WithSortedEntitiesBySource()
         std::sort ( sorted_overlap_order.begin(), sorted_overlap_order.end(), IntPairComparator );
         // sorted_overlap_order[ie].second , ie=0,nOverlap-1 is the order such that overlap elems are ordered by source parent
 
-        if (is_parallel)
+        if (is_parallel && size > 1)
         {
           Tag ghostTag;
           ghFlags.resize(m_overlap_entities.size());
@@ -461,7 +461,7 @@ ErrorCode TempestRemapper::ConvertMOABMesh_WithSortedEntitiesBySource()
         {
             int ix = sorted_overlap_order[ie].second; // original index of the element
             m_overlap->vecSourceFaceIx[ie] = gid_to_lid_covsrc[rbids_src[ix]];
-            if (is_parallel && ghFlags[ix]>=0) // it means it is a ghost overlap element
+            if (is_parallel && size > 1 && ghFlags[ix]>=0) // it means it is a ghost overlap element
               m_overlap->vecTargetFaceIx[ie]=-1; // this should not participate in smat!
             else
               m_overlap->vecTargetFaceIx[ie] = gid_to_lid_tgt[rbids_tgt[ix]];
@@ -600,7 +600,7 @@ ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius_
 
     // Note: lots of communication possible, if mesh is distributed very differently
 #ifdef MOAB_HAVE_MPI
-    if ( is_parallel )
+    if ( is_parallel && size > 1 )
     {
         rval = mbintx->build_processor_euler_boxes ( m_target_set, local_verts ); MB_CHK_ERR ( rval );
 
