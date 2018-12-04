@@ -31,7 +31,7 @@
 11) GetElementConnectivity - clarify whether we return global or local vertex numbering. Preferably local numbering else lot of deciphering for global.
 */
 
-#include "moab/MOABConfig.h"
+#include "imoab_protos.h"
 
 #define iMOAB_AppID    int*
 #define iMOAB_String   char*
@@ -39,7 +39,6 @@
 #define iMOAB_LocalID  int
 #define ErrCode        int
 
-#include "imoab_protos.h"
 /*
  * tag types can be: dense/sparse, int/ double/entityhandle , they could be on both elements and vertices
  */
