@@ -536,7 +536,7 @@ ErrorCode GeomQueryTool::initialize() {
   
   return MB_SUCCESS;
 }
-  
+
 void GeomQueryTool::RayHistory::reset() {
   prev_facets.clear();
 }

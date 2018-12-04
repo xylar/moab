@@ -18,8 +18,6 @@
 
 namespace moab {
 
-
-  
   /** \class GeomQueryTool
    *
    * \brief Tool for querying different aspects of geometric topology sets in MOAB
@@ -97,6 +95,7 @@ public:
     std::vector<EntityHandle> prev_facets;
 
     friend class GeomQueryTool;
+
   };
   
   // Constructor
