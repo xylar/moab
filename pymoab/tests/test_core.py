@@ -329,7 +329,7 @@ def test_create_elements():
     tris = mb.create_elements(types.MBTRI,verts)
     CHECK_EQ(len(tris),1)
     #check that the element is there via GLOBAL_ID tag
-    global_id_tag = mb.tag_get_handle("GLOBAL_ID",1,types.MB_TYPE_INTEGER,types.MB_TAG_DENSE,True)
+    global_id_tag = mb.tag_get_handle(types.GLOBAL_ID_TAG_NAME,1,types.MB_TYPE_INTEGER,types.MB_TAG_DENSE,True)
     tri_id = mb.tag_get_data(global_id_tag, tris)
     CHECK_EQ(len(tri_id),1)
     CHECK_EQ(tri_id[0],0)
@@ -374,7 +374,7 @@ def test_tag_failures():
         raise(ValueError)
 
 
-    global_id_tag = mb.tag_get_handle("GLOBAL_ID",1,types.MB_TYPE_INTEGER,types.MB_TAG_DENSE,True)
+    global_id_tag = mb.tag_get_handle(types.GLOBAL_ID_TAG_NAME,1,types.MB_TYPE_INTEGER,types.MB_TAG_DENSE,True)
     #so should this one
     try:
         tri_id = mb.tag_get_data(global_id_tag, verts_illicit_copy)

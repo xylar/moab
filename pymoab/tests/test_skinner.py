@@ -21,7 +21,7 @@ def test_get_geometric_skin():
     # create a geometric set for the quads
     surf_set = mb.create_meshset()
 
-    geom_tag = mb.tag_get_handle("GEOM_DIMENSION",
+    geom_tag = mb.tag_get_handle(types.GEOM_DIMENSION_TAG_NAME,
                                  1,
                                  types.MB_TYPE_INTEGER,
                                  types.MB_TAG_SPARSE,
@@ -39,7 +39,7 @@ def test_get_geometric_skin():
 
     # set surface to volume parent-child relationship
     mb.add_parent_meshset(surf_set, vol_set)
-    
+
     mskn = skinner.Skinner(mb)
 
     rs = mb.get_root_set()
@@ -81,4 +81,3 @@ if __name__ == "__main__":
              test_get_geometric_skin,
              test_get_skin]
     test_driver(tests)
-
