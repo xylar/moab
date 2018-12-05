@@ -484,6 +484,9 @@ ErrorCode ParCommGraph::send_tag_values (MPI_Comm jcomm, ParallelComm *pco, Rang
   int total_bytes_per_entity=0; // we need to know, to allocate buffers
   ErrorCode  rval;
   std::vector<int> vect_bytes_per_tag;
+#ifdef VERBOSE
+  std::vector<int> tag_sizes;
+#endif
   for (size_t i=0; i<tag_handles.size(); i++)
   {
     int bytes_per_tag;
@@ -493,6 +496,7 @@ ErrorCode ParCommGraph::send_tag_values (MPI_Comm jcomm, ParallelComm *pco, Rang
 #ifdef VERBOSE
     int tag_size;
     rval = mb->tag_get_length(tag_handles[i], tag_size);MB_CHK_ERR ( rval );
+    tag_sizes.push_back(tag_size);
 #endif
   }
 
@@ -572,19 +576,17 @@ ErrorCode ParCommGraph::send_tag_values (MPI_Comm jcomm, ParallelComm *pco, Rang
           EntityHandle eh = gidToHandle[eID];
 
           rval = mb->tag_get_data(tag_handles[i], &eh, 1, (void*)(buffer->buff_ptr) );  MB_CHK_ERR ( rval );
-          buffer->buff_ptr+=vect_bytes_per_tag[i];
 #ifdef VERBOSE
           dbfile<< "global ID " << eID << " local handle " << mb->id_from_handle(eh)  << " vals: ";
-          double * vals = (double*) (buffer->buff_ptr -bytes_per_tag );
-          for (int kk=0; kk<tag_size; kk++)
+          double * vals = (double*) (buffer->buff_ptr);
+          for (int kk=0; kk<tag_sizes[i]; kk++)
           {
             dbfile << " " << *vals;
             vals++;
           }
           dbfile << "\n";
-
-
 #endif
+          buffer->buff_ptr+=vect_bytes_per_tag[i];
         }
       }
 
@@ -617,6 +619,9 @@ ErrorCode ParCommGraph::receive_tag_values (MPI_Comm jcomm, ParallelComm *pco, R
   ErrorCode  rval;
   int total_bytes_per_entity=0;
   std::vector<int> vect_bytes_per_tag;
+#ifdef VERBOSE
+  std::vector<int> tag_sizes;
+#endif
   for (size_t i=0; i<tag_handles.size(); i++)
   {
     int bytes_per_tag;
@@ -626,13 +631,11 @@ ErrorCode ParCommGraph::receive_tag_values (MPI_Comm jcomm, ParallelComm *pco, R
 #ifdef VERBOSE
     int tag_size;
     rval = mb->tag_get_length(tag_handles[i], tag_size);MB_CHK_ERR ( rval );
+    tag_sizes.push_back(tag_size);
 #endif
   }
 
-#ifdef VERBOSE
-  int tag_size;
-  mb->tag_get_length(tag_handle, tag_size);
-#endif
+
 
   bool specified_ids = recv_IDs_map.size() > 0;
   if (!specified_ids)
@@ -718,7 +721,7 @@ ErrorCode ParCommGraph::receive_tag_values (MPI_Comm jcomm, ParallelComm *pco, R
 #ifdef VERBOSE
           dbfile<< "global ID " << eID << " local handle " << mb->id_from_handle(eh)  << " vals: ";
           double * vals = (double*) (buffer->buff_ptr );
-          for (int kk=0; kk<tag_size; kk++)
+          for (int kk=0; kk<tag_sizes[i]; kk++)
           {
             dbfile << " " << *vals;
             vals++;
