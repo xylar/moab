@@ -55,12 +55,6 @@ INITIALIZE_EXTERNAL_PACKAGES
 MB_CPPFLAGS=""
 MB_DEFS=""
 
-AC_ARG_ENABLE( [devmode],
-[AS_HELP_STRING([--enable-devmode],[Enable (advanced) developer mode in the build (not recommended for users).])],
-[enable_devmode=$enableval],
-[enable_devmode=no] )
-AM_CONDITIONAL(DEVELOPER_MODE,[test "x$enable_devmode" != "xno"])
-
 ENABLE_FORTRAN=no
 AC_ARG_ENABLE([fortran],
               [AS_HELP_STRING([--disable-fortran], [Disable Fortran support and name mangling in ITAPS/MBCN C headers])])
