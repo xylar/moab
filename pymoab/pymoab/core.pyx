@@ -191,7 +191,7 @@ cdef class Core(object):
         -------
         vertices # a iterable of MOAB vertex handles
         new_meshset = mb.create_meshset()
-        mb.add_entities(new_meshset, entities)
+        mb.add_entity(new_meshset, entity)
 
         Parameters
         ----------
@@ -262,6 +262,41 @@ cdef class Core(object):
            err = self.inst.add_entities(ms_handle, <eh.EntityHandle*> arr.data, len(entities))
         check_error(err, exceptions)
 
+    def remove_entity(self, eh.EntityHandle ms_handle, entity, exceptions = ()):
+        """
+        Remove an entity from the specified meshset.
+
+        If meshset has MESHSET_TRACK_OWNER option set, entity adjacencies
+        are updated.
+
+        Example
+        -------
+        new_meshset = mb.create_meshset()
+        mb.remove_entity(new_meshset, entity)
+
+        Parameters
+        ----------
+        ms_handle : EntityHandle
+            EntityHandle of the Meshset the entities will be added to
+        entity : EntityHandle
+        exceptions : tuple (default is empty tuple)
+            A tuple containing any error types that should
+            be ignored. (see pymoab.types module for more info)
+
+        Returns
+        -------
+        None
+
+        Raises
+        ------
+        MOAB ErrorCode
+            if a MOAB error occurs
+        """
+        cdef moab.ErrorCode err
+        cdef Range r = Range(entity)
+        err = self.inst.remove_entities(ms_handle, deref(r.inst))
+        check_error(err, exceptions)
+
     def remove_entities(self, eh.EntityHandle ms_handle, entities, exceptions = ()):
         """
         Remove entities from the specified meshset. Entities can be provided either
@@ -308,6 +343,40 @@ cdef class Core(object):
         else:
             arr = _eh_array(entities)
             err = self.inst.remove_entities(ms_handle, <eh.EntityHandle*> arr.data, len(entities))
+        check_error(err, exceptions)
+
+    def delete_entity(self, entity, exceptions = ()):
+        """
+        Delete an entity from the database.
+
+        If the entity is contained in any meshsets, it are removed
+        from those meshsets which were created with MESHSET_TRACK_OWNER option.
+
+        Example
+        -------
+        mb.delete_entity(entity)
+
+        Parameters
+        ----------
+        entity : EntityHandle
+        exceptions : tuple (default is empty tuple)
+            A tuple containing any error types that should
+            be ignored. (see pymoab.types module for more info)
+
+        Returns
+        -------
+        None
+
+        Raises
+        ------
+        MOAB ErrorCode
+            if a MOAB error occurs
+        ValueError
+            if an EntityHandle is not of the correct type
+        """
+        cdef moab.ErrorCode err
+        cdef Range r = Range(entity)
+        err = self.inst.delete_entities(deref(r.inst))
         check_error(err, exceptions)
 
     def delete_entities(self, entities, exceptions = ()):
@@ -1671,7 +1740,7 @@ cdef class Core(object):
         Returns
         -------
         NumPy 1-D array
-        
+
         Raises
         ------
         MOAB ErrorCode
@@ -1705,7 +1774,7 @@ cdef class Core(object):
         Returns
         -------
         int : the tag length
-        
+
         Raises
         ------
         MOAB ErrorCode
@@ -1723,7 +1792,7 @@ cdef class Core(object):
         Parameters
         ----------
         entity : MOAB EntityHandle
-       
+
         Returns
         -------
         A list of tags on that entity

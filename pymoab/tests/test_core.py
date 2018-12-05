@@ -299,8 +299,8 @@ def test_tag_delete_single():
         raised = True
     CHECK_EQ(raised, True)
     CHECK_EQ(er_val, types.MB_TAG_NOT_FOUND)
-    
-    
+
+
 def test_create_meshset():
     mb = core.Core()
     msh = mb.create_meshset()
@@ -535,7 +535,7 @@ def test_set_coords():
     mb.set_coords(verts[0], coord)
     ret_coords3 = mb.get_coords(verts[0])
     CHECK_ITER_EQ(ret_coords3, coord)
-        
+
 def test_get_ents_by_type():
     mb = core.Core()
     coords = np.array((0,0,0,1,0,0,1,1,1),dtype='float64')
@@ -775,8 +775,7 @@ def test_remove_ents():
     CHECK_EQ(entities[2],verts[2])
 
     #remove first vertex from meshset
-    vert_to_remove = np.array([verts[0],],dtype='uint64') #not proud of this...
-    mb.remove_entities(ms,vert_to_remove)
+    mb.remove_entity(ms, verts[0])
 
     #make sure the right one got removed from the meshset
     entities = mb.get_entities_by_type(ms, types.MBVERTEX)
@@ -793,7 +792,7 @@ def test_remove_ents():
     CHECK_EQ(entities[2],verts[2])
 
     #until it is deleted from the instance
-    mb.delete_entities(vert_to_remove)
+    mb.delete_entity(verts[0])
     entities = mb.get_entities_by_type(rs, types.MBVERTEX)
     CHECK_EQ(len(entities),2)
     CHECK_EQ(entities[0],verts[1])
