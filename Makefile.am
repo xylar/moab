@@ -22,7 +22,7 @@ endif
 if ENABLE_pymoab
   pymoab_dir = pymoab
 else
-  pymoab_dir = 
+  pymoab_dir =
 endif
 
 # Utility target: build but don't run tests
@@ -92,11 +92,11 @@ examples_apps_earth_DATA = \
                examples/apps/earth/ContinentsOnGlobe.cpp
 
 CMAKE_CONFIGURATION_FILES = CMakeLists.txt \
-								config/AutoconfHeader.cmake      config/FindCGM.cmake        config/FindMetis.cmake     config/FindZoltan.cmake    config/ForceAddFlags.cmake \
-								config/ResolveCompilerPaths.cmake  config/CMakeDistCheck.cmake      config/FindEigen3.cmake     config/FindNetCDF.cmake    config/Findgraphviz.cmake \
-								config/GetAcInitVersion.cmake  config/TestBigEndian.cmake    config/CheckCompilerFlags.cmake  config/FindHDF5_MOAB.cmake  config/FindParMetis.cmake  \
-								config/Findverdict.cmake   config/MOABConfig.cmake.cmake    config/CMakeReplicateConfig.sh    config/cmake_uninstall.cmake.in \
-								config/TemplateSpecialization.cxx   config/MOABConfig.cmake.h.in config/UseCython.cmake
+			    config/AutoconfHeader.cmake      config/FindCGM.cmake        config/FindMetis.cmake     config/FindZoltan.cmake    config/ForceAddFlags.cmake \
+			    config/ResolveCompilerPaths.cmake  config/CMakeDistCheck.cmake      config/FindEigen3.cmake     config/FindNetCDF.cmake    config/Findgraphviz.cmake \
+			    config/GetAcInitVersion.cmake  config/TestBigEndian.cmake    config/CheckCompilerFlags.cmake  config/FindHDF5_MOAB.cmake  config/FindParMetis.cmake  \
+			    config/Findverdict.cmake   config/MOABConfig.cmake.cmake    config/CMakeReplicateConfig.sh    config/cmake_uninstall.cmake.in \
+			    config/TemplateSpecialization.cxx   config/MOABConfig.cmake.h.in config/UseCython.cmake
 
 EXTRA_DIST = $(doc_DATA) \
 						 debian \
@@ -112,17 +112,17 @@ EXTRA_DIST = $(doc_DATA) \
 						 $(examples_apps_earth_DATA)
 
 # Automake doesn't seem to have a directory defined for
-# platform-dependent data (or include) files. So put 
+# platform-dependent data (or include) files. So put
 # in $(libdir).  Define a $(cfgdir) to get around automake's
 # check that only libraries are going in $(libdir)
 cfgdir = $(libdir)
 cfg_DATA = moab.make moab.config
 cmakedir = $(libdir)/cmake/MOAB
-cmake_DATA = MOABConfig.cmake config/ResolveCompilerPaths.cmake 
+cmake_DATA = MOABConfig.cmake config/ResolveCompilerPaths.cmake
 
 # By default, moab.make will define these to $(srcdir).  We
 # want to override that during the INSTALL of the file so
-# that the correct values are set (e.g. if someone does 
+# that the correct values are set (e.g. if someone does
 # 'make prefix=/foo install', we don't know the correct install
 # directory until we're doing the install.
 install-data-hook:
@@ -144,4 +144,3 @@ moab.config: config.status Makefile.am
 	  sed -e '/^ *$$/d' > $@
 
 CLEANFILES = moab.config a.out configs.sed
-
