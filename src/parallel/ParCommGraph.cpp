@@ -660,7 +660,7 @@ ErrorCode ParCommGraph::receive_tag_values (MPI_Comm jcomm, ParallelComm *pco, R
       if (ierr!=0) return MB_FAILURE;
       // now set the tag
       // copy to tag
-      buffer->buff_ptr+=4; // start here to unload tag data to memory
+
       for (size_t i=0; i<tag_handles.size(); i++)
       {
         rval = mb->tag_set_data(tag_handles[i], ents, (void*)(buffer->buff_ptr) );
@@ -711,12 +711,15 @@ ErrorCode ParCommGraph::receive_tag_values (MPI_Comm jcomm, ParallelComm *pco, R
 #endif
 
       // copy tag data from buffer->buff_ptr
-      for (std::vector<int>::iterator it=eids.begin(); it!=eids.end(); it++)
+      // data is arranged by tag , and repeat the loop for each entity ()
+        // maybe it should be arranged by entity now, not by tag (so one loop for entities, outside)
+      for (i=0; i<tag_handles.size(); i++)
       {
-        int eID = *it;
-        EntityHandle eh = gidToHandle[eID];
-        for (i=0; i<tag_handles.size(); i++)
+        for (std::vector<int>::iterator it=eids.begin(); it!=eids.end(); it++)
         {
+          int eID = *it;
+          EntityHandle eh = gidToHandle[eID];
+
           rval = mb->tag_set_data(tag_handles[i], &eh, 1, (void*)(buffer->buff_ptr) );  MB_CHK_ERR ( rval );
 #ifdef VERBOSE
           dbfile<< "global ID " << eID << " local handle " << mb->id_from_handle(eh)  << " vals: ";
