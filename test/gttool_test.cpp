@@ -666,10 +666,10 @@ ErrorCode test_restore_obb_trees(Interface *mb, Interface *mb2, Interface *mb3){
 
   // Build all obb trees
   rval = gTopoTool->construct_obb_trees();
-  MB_CHK_SET_ERR(rval, "Error constructing all trees.");
+  MB_CHK_SET_ERR(rval, "Error constructing all trees");
   // Write the file with all obbs
   rval=mb->write_file(ofile4.c_str());
-  MB_CHK_SET_ERR(rval, "Can't write output file\n");
+  MB_CHK_SET_ERR(rval, "Can't write output file");
 
   // Delete a vol obb tree  
   Range vols;
@@ -677,10 +677,10 @@ ErrorCode test_restore_obb_trees(Interface *mb, Interface *mb2, Interface *mb3){
   MB_CHK_SET_ERR(rval, "Failed to get volume gsets");
   EntityHandle test_vol = vols.front();
   rval = gTopoTool->delete_obb_tree(test_vol, false);
-  MB_CHK_SET_ERR(rval, "Error deleting volume tree.");
+  MB_CHK_SET_ERR(rval, "Error deleting volume tree");
   // Write the file missing an obb
   rval=mb->write_file(ofile5.c_str());
-  MB_CHK_SET_ERR(rval, "Can't write output file\n");
+  MB_CHK_SET_ERR(rval, "Can't write output file");
 
   // Load file containing obbs
   rval = mb2->load_file(ofile4.c_str());
@@ -709,7 +709,6 @@ ErrorCode test_restore_obb_trees(Interface *mb, Interface *mb2, Interface *mb3){
     }
   }
 
-
   // 2) Check that roots ARE restored by setting find_geoments and restore_rootSets to true
   moab::GeomTopoTool* gTopoTool3 = new GeomTopoTool(mb2, true, 0, true, true);
 
@@ -735,7 +734,6 @@ ErrorCode test_restore_obb_trees(Interface *mb, Interface *mb2, Interface *mb3){
   // Load file missing obb
   rval = mb3->load_file(ofile5.c_str());
   MB_CHK_SET_ERR(rval, "Failed to load file containing obbs");
-
 
   // Create GTT and try to restore OBBs
   moab::GeomTopoTool* gTopoTool4 = new GeomTopoTool(mb3, true, 0, true, true);
@@ -784,9 +782,7 @@ ErrorCode test_restore_obb_trees(Interface *mb, Interface *mb2, Interface *mb3){
     MB_CHK_SET_ERR(rval, "Failed to get root from tag");
     CHECK(tagged_root);
     rval = gTopoTool5->get_root(*rit, test_root5);
-    if (MB_SUCCESS == rval){
-      return MB_FAILURE;
-    }
+    if (MB_SUCCESS == rval) return MB_FAILURE;
   }
 
   delete gTopoTool;

@@ -210,8 +210,7 @@ ErrorCode GeomTopoTool::other_entity(EntityHandle bounded,
 ErrorCode GeomTopoTool::restore_obb_index()
 {
 
-  if (m_rootSets_vector)
-    resize_rootSets();
+  if (m_rootSets_vector) resize_rootSets();
   
   ErrorCode rval;
   EntityHandle root;
