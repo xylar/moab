@@ -568,13 +568,12 @@ ErrorCode ParCommGraph::send_tag_values (MPI_Comm jcomm, ParallelComm *pco, Rang
       // copy tag data to buffer->buff_ptr, and send the buffer (we could have used regular char arrays)
       // pack data by tag, to be consistent with above, even though we loop through the entities for each tag
 
-      for (i=0; i<tag_handles.size(); i++)
+      for (std::vector<int>::iterator it=eids.begin(); it!=eids.end(); it++)
       {
-        for (std::vector<int>::iterator it=eids.begin(); it!=eids.end(); it++)
+        int eID = *it;
+        EntityHandle eh = gidToHandle[eID];
+        for (i=0; i<tag_handles.size(); i++)
         {
-          int eID = *it;
-          EntityHandle eh = gidToHandle[eID];
-
           rval = mb->tag_get_data(tag_handles[i], &eh, 1, (void*)(buffer->buff_ptr) );  MB_CHK_ERR ( rval );
 #ifdef VERBOSE
           dbfile<< "global ID " << eID << " local handle " << mb->id_from_handle(eh)  << " vals: ";
@@ -713,13 +712,13 @@ ErrorCode ParCommGraph::receive_tag_values (MPI_Comm jcomm, ParallelComm *pco, R
       // copy tag data from buffer->buff_ptr
       // data is arranged by tag , and repeat the loop for each entity ()
         // maybe it should be arranged by entity now, not by tag (so one loop for entities, outside)
-      for (i=0; i<tag_handles.size(); i++)
-      {
-        for (std::vector<int>::iterator it=eids.begin(); it!=eids.end(); it++)
-        {
-          int eID = *it;
-          EntityHandle eh = gidToHandle[eID];
 
+      for (std::vector<int>::iterator it=eids.begin(); it!=eids.end(); it++)
+      {
+        int eID = *it;
+        EntityHandle eh = gidToHandle[eID];
+        for (i=0; i<tag_handles.size(); i++)
+        {
           rval = mb->tag_set_data(tag_handles[i], &eh, 1, (void*)(buffer->buff_ptr) );  MB_CHK_ERR ( rval );
 #ifdef VERBOSE
           dbfile<< "global ID " << eID << " local handle " << mb->id_from_handle(eh)  << " vals: ";
