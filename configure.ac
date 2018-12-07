@@ -23,8 +23,6 @@ USER_CONFIGURE_CMD="$0 $ac_configure_args"
 ################################################################################
 #                         Operating system
 ################################################################################
-
-# AC_CANONICAL_HOST is needed to access the 'host_os' variable
 build_linux=no
 build_windows=no
 build_mac=no
