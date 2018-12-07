@@ -25,13 +25,12 @@ USER_CONFIGURE_CMD="$0 $ac_configure_args"
 ################################################################################
 
 # AC_CANONICAL_HOST is needed to access the 'host_os' variable
-AC_CANONICAL_HOST
 build_linux=no
 build_windows=no
 build_mac=no
 
 # Detect the target system
-case "${host_os}" in
+case "${target_os}" in
     linux*)
         build_linux=yes
         ;;
@@ -42,7 +41,7 @@ case "${host_os}" in
         build_mac=yes
         ;;
     *)
-        AC_MSG_ERROR(["OS $host_os is not supported"])
+        AC_MSG_ERROR(["OS $target_os is not supported"])
         ;;
 esac
 
