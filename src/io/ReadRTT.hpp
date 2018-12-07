@@ -103,69 +103,6 @@
 #include "FileTokenizer.hpp"
 #include "moab/RangeMap.hpp"
 
-// structure to hold the header data
-struct headerData {
-  std::string version;
-  std::string title;
-  std::string date;
-};
-
-// structure to hold sense & vol data
-struct boundary {
-  int sense;
-  std::string name;
-};
-
-// structure to hold side data
-struct side {
-  int id;
-  int senses[2];
-  std::string names[2];
-  side() : id(0) {
-    senses[0]=senses[1]=0;
-    names[0]=names[1]="";
-  }
-};
-
-// structure to hold cell data
-struct cell {
-  int id;
-  std::string name;
-  cell() : id(0), name("") {}
-};
-
-// structure to hold node data
-struct node {
-  int id;
-  double x,y,z;
-  node() : id(0), x(0.), y(0.), z(0.) {}
-};
-
-// structure to hold facet data
-struct facet {
-  int id;
-  int connectivity[3];
-  int side_id;
-  int surface_number;
-  facet() :id(0), side_id(0), surface_number(0)
-  {
-     for (int k=0; k<3; k++)
-       connectivity[k]=0;
-  }
-};
-
-// structure to hold tet data
-struct tet {
-  int id;
-  int connectivity[4];
-  int material_number;
-  // with c++11 we could use tet(): id(0), connectivity({0}), material_number(0) {}
-  tet(): id(0), material_number(0)
-  {
-     for (int k=0; k<4; k++)
-       connectivity[k]=0;
-  }
-};
 
 namespace moab {
 
@@ -202,6 +139,71 @@ protected:
 
 // private functions
 private:
+  // structure to hold the header data
+  struct headerData {
+    std::string version;
+    std::string title;
+    std::string date;
+  };
+  
+  // structure to hold sense & vol data
+  struct boundary {
+    int sense;
+    std::string name;
+  };
+  
+  // structure to hold side data
+  struct side {
+    int id;
+    int senses[2];
+    std::string names[2];
+    side() : id(0) {
+      senses[0]=senses[1]=0;
+      names[0]=names[1]="";
+    }
+  };
+  
+  // structure to hold cell data
+  struct cell {
+    int id;
+    std::string name;
+    cell() : id(0), name("") {}
+  };
+  
+  // structure to hold node data
+  struct node {
+    int id;
+    double x,y,z;
+    node() : id(0), x(0.), y(0.), z(0.) {}
+  };
+  
+  // structure to hold facet data
+  struct facet {
+    int id;
+    int connectivity[3];
+    int side_id;
+    int surface_number;
+    facet() :id(0), side_id(0), surface_number(0)
+    {
+      for (int k=0; k<3; k++)
+        connectivity[k]=0;
+    }
+  };
+  
+  // structure to hold tet data
+  struct tet {
+    int id;
+    int connectivity[4];
+    int material_number;
+    // with c++11 we could use tet(): id(0), connectivity({0}), material_number(0) {}
+    tet(): id(0), material_number(0)
+    {
+      for (int k=0; k<4; k++)
+        connectivity[k]=0;
+    }
+  };
+  
+
   /**
    * generates the topology of the problem from the already read input data, loops over the 2 and 3 dimension macrodata that
    * exist from the rtt file, sides = dagmc surfaces, cells = dagmc cells, creates a meshset for each surface and tags with

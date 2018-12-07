@@ -541,7 +541,7 @@ ErrorCode ReadRTT::get_header_data(std::ifstream &input_file) {
 /*
  * given the string sidedata, get the id number, senses and names of the sides
  */
-side ReadRTT::get_side_data(std::string sidedata) {
+ReadRTT::side ReadRTT::get_side_data(std::string sidedata) {
   side new_side;
   std::vector<std::string> tokens;
   tokens = ReadRTT::split_string(sidedata,' ');
@@ -576,7 +576,7 @@ side ReadRTT::get_side_data(std::string sidedata) {
 /*
  * given the string celldata, get the id number and name of each cell
  */
-cell ReadRTT::get_cell_data(std::string celldata) {
+ReadRTT::cell ReadRTT::get_cell_data(std::string celldata) {
   cell new_cell;
   std::vector<std::string> tokens;
   tokens = ReadRTT::split_string(celldata,' ');
@@ -597,7 +597,7 @@ cell ReadRTT::get_cell_data(std::string celldata) {
 /*
  * given the string nodedata, get the id number and coordinates of the node
  */
-node ReadRTT::get_node_data(std::string nodedata) {
+ReadRTT::node ReadRTT::get_node_data(std::string nodedata) {
   node new_node;
   std::vector<std::string> tokens;
   tokens = ReadRTT::split_string(nodedata,' ');
@@ -617,7 +617,7 @@ node ReadRTT::get_node_data(std::string nodedata) {
 /*
  * given the string nodedata, get the id number, connectivity and sense data
  */
-facet ReadRTT::get_facet_data(std::string facetdata) {
+ReadRTT::facet ReadRTT::get_facet_data(std::string facetdata) {
   facet new_facet;
   std::vector<std::string> tokens;
   tokens = ReadRTT::split_string(facetdata,' ');
@@ -651,7 +651,7 @@ facet ReadRTT::get_facet_data(std::string facetdata) {
 /*
  * given the string tetdata, get the id number, connectivity and mat num of the tet
  */
-tet ReadRTT::get_tet_data(std::string tetdata) {
+ReadRTT::tet ReadRTT::get_tet_data(std::string tetdata) {
   tet new_tet;
   std::vector<std::string> tokens;
   tokens = ReadRTT::split_string(tetdata,' ');
@@ -685,7 +685,7 @@ tet ReadRTT::get_tet_data(std::string tetdata) {
  * splits string into sense and name, to later facilitate the building
  * of sense data, strips off the tailing @ if it exists
  */
-boundary ReadRTT::split_name(std::string atilla_cellname) {
+ReadRTT::boundary ReadRTT::split_name(std::string atilla_cellname) {
   boundary new_boundary;
   // default initialisation
   new_boundary.sense = 0;
