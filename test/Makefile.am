@@ -269,7 +269,9 @@ CLEANFILES = mb_big_test.g \
              outTempestRLL.g \
              outTempestICO.g \
              outTempestICOD.g \
-             outTempestOV.g
+             outTempestOV.g \
+             geom_missing_obb.h5m \
+             geom_w_obbs.h5m
 
 # Utility target: build but don't run tests
 build-check:
