@@ -547,12 +547,19 @@ void GeomQueryTool::RayHistory::reset_to_last_intersection() {
     prev_facets[0] = prev_facets.back();
     prev_facets.resize( 1 );
   }
-
 }
 
 void GeomQueryTool::RayHistory::rollback_last_intersection() {
   if( prev_facets.size() )
     prev_facets.pop_back();
+}
+
+bool GeomQueryTool::RayHistory::in_history(EntityHandle ent) {
+  return std::find(prev_facets.begin(), prev_facets.end(), ent) != prev_facets.end();
+}
+
+void GeomQueryTool::RayHistory::add_entity(EntityHandle ent) {
+  prev_facets.push_back(ent);
 }
 
 ErrorCode GeomQueryTool::ray_fire(const EntityHandle volume,
