@@ -44,7 +44,8 @@ TESTS = pcomm_unit \
 
 if HAVE_HDF5_PARALLEL
   HDF5_TESTS = parallel_hdf5_test mhdf_parallel parallel_write_test \
-         parallel_adj parmerge_test augment_with_ghosts uref_hirec_test_parallel
+         parallel_adj parmerge_test augment_with_ghosts uref_hirec_test_parallel migrate_test imoab_coupler \
+         migrate_nontrivial
 else
   HDF5_TESTS = 
 endif
@@ -63,6 +64,11 @@ else
 endif
 endif
 
+if HAVE_HYPRE
+  MBHYPRE_TESTS = hypre_test
+else
+  MBHYPRE_TESTS = 
+endif
 
 if HAVE_HDF5_PARALLEL
   MBCSLAM_TESTS = par_intx_sph 
@@ -86,6 +92,14 @@ if ENABLE_FORTRAN
               -I$(top_builddir)/itaps/imesh
 endif
 endif 
+endif
+
+if HAVE_HYPRE
+AM_CPPFLAGS += $(HYPRE_INCLUDES) -I$(top_srcdir)/src/HYPRE/moab
+AM_LDFLAGS += $(HYPRE_LIBS)
+
+hypre_test_SOURCES = hypre_test.cpp
+TESTS += hypre_test
 endif
 
 check_PROGRAMS = $(TESTS) mbparallelcomm_test partcheck structured3 
@@ -122,6 +136,9 @@ imoab_ptest_LDADD = $(LDADD) $(FCLIBS)
 imoab_ptest2_SOURCES = imoab_ptest2.cpp
 hireconst_test_parallel_SOURCES = hireconst_test_parallel.cpp
 uref_hirec_test_parallel_SOURCES = uref_hirec_test_parallel.cpp ../geomObject.cpp
+migrate_test_SOURCES = migrate_test.cpp
+imoab_coupler_SOURCES = imoab_coupler.cpp
+migrate_nontrivial_SOURCES = migrate_nontrivial.cpp
 
 if ENABLE_imesh
 if HAVE_HDF5_PARALLEL
@@ -170,7 +187,11 @@ MOSTLYCLEANFILES = mhdf_ll.h5m tmp0.h5m tmp1.h5m tmp2.h5m tmp3.h5m \
                    TaskMesh_n2.1.h5m \
                    testReadGhost_n2.0.h5m \
                    testReadGhost_n2.1.h5m \
-                   whole.h5m
+                   whole.h5m \
+                   recvMesh.h5m \
+                   migrate12.h5m migrate21.h5m migrate11.h5m migrate22.h5m \
+                   migrate11_tag.h5m migrate21_tag.h5m migrate12_tag.h5m migrate22_tag.h5m \
+                   intx_00.h5m intx_01.h5m fIntxTarget.h5m recvTarget.h5m OcnWithProj.h5m
 
 FORTDEFS = $(FCDEFS) 
 PPFCCOMPILE = $(FC) $(FORTDEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \

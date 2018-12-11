@@ -40,6 +40,7 @@
 #define iMOAB_SetDoubleTagStorage            IMOAB_FC_WRAPPER( imoab_setdoubletagstorage, IMOAB_SETDOUBLETAGSTORAGE )
 #define iMOAB_GetDoubleTagStorage            IMOAB_FC_WRAPPER( imoab_getdoubletagstorage, IMOAB_GETDOUBLETAGSTORAGE )
 #define iMOAB_SynchronizeTags                IMOAB_FC_WRAPPER( imoab_synchronizetags, IMOAB_SYNCHRONIZETAGS )
+#define iMOAB_ReduceTagsMax                  IMOAB_FC_WRAPPER( imoab_reducetagsmax, IMOAB_REDUCETAGSMAX )
 #define iMOAB_GetNeighborElements            IMOAB_FC_WRAPPER( imoab_getneighborelements, IMOAB_GETNEIGHBORELEMENTS )
 #define iMOAB_GetNeighborVertices            IMOAB_FC_WRAPPER( imoab_getneighborvertices, IMOAB_GETNEIGHBORVERTICES )
 
@@ -50,5 +51,14 @@
 #define iMOAB_SetGlobalInfo                  IMOAB_FC_WRAPPER( imoab_setglobalinfo, IMOAB_SETGLOBALINFO )
 #define iMOAB_GetGlobalInfo                  IMOAB_FC_WRAPPER( imoab_getglobalinfo, IMOAB_GETGLOBALINFO )
 #define iMOAB_SendMesh                       IMOAB_FC_WRAPPER( imoab_sendmesh, IMOAB_SENDMESH )
+#define iMOAB_FreeSenderBuffers              IMOAB_FC_WRAPPER( imoab_freesenderbuffers, IMOAB_FREESENDERBUFFERS )
 #define iMOAB_ReceiveMesh                    IMOAB_FC_WRAPPER( imoab_receivemesh, IMOAB_RECEIVEMESH )
+#define iMOAB_SendElementTag                 IMOAB_FC_WRAPPER( imoab_sendelementtag, IMOAB_SENDELEMENTTAG )
+#define iMOAB_ReceiveElementTag              IMOAB_FC_WRAPPER( imoab_receiveelementtag, IMOAB_RECEIVEELEMENTTAG )
+#ifdef MOAB_HAVE_TEMPESTREMAP
+#define iMOAB_ComputeMeshIntersectionOnSphere IMOAB_FC_WRAPPER( imoab_computemeshintersectiononsphere, IMOAB_COMPUTEMESHINTERSECTIONONSPHERE)
+#define iMOAB_ComputeScalarProjectionWeights IMOAB_FC_WRAPPER(imoab_computescalarprojectionweights,IMOAB_COMPUTESCALARPROJECTIONWEIGHTS)
+#define iMOAB_ApplyScalarProjectionWeights   IMOAB_FC_WRAPPER(imoab_applyscalarprojectionweights, IMOAB_APPLYSCALARPROJECTIONWEIGHTS)
+#define iMOAB_CoverageGraph                  IMOAB_FC_WRAPPER(imoab_coveragegraph, IMOAB_COVERAGEGRAPH)
+#endif
 #endif /*IMOAB_PROTOS_H */

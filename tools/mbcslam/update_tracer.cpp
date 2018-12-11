@@ -20,9 +20,9 @@ extern "C" void update_tracer(iMesh_Instance instance,
   EntityHandle euler_set = (EntityHandle) imesh_euler_set;
 
   Intx2MeshOnSphere worker(mb);
-  worker.SetRadius(radius);
-
-  worker.SetErrorTolerance(gtol);
+  worker.set_radius_source_mesh(radius);
+  worker.set_radius_destination_mesh(radius);
+  worker.set_error_tolerance(gtol);
 
   EntityHandle covering_lagr_set;
 

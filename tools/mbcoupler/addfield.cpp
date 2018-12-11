@@ -56,6 +56,44 @@ void putElementField(Interface *mbi, const char *tagname, double factor){
 }
 
 
+void putSpectralElementField(Interface *mbi, int dim, int np, const char *tagname, double factor){
+  Range elems;
+
+  mbi->get_entities_by_dimension(0, dim, elems);
+
+  const int ndofperE = np*np;
+  double* defDouble = new double [ndofperE];
+  Tag fieldTag;
+  ErrorCode rval = mbi->tag_get_handle(tagname, ndofperE, MB_TYPE_DOUBLE, fieldTag, MB_TAG_DENSE|MB_TAG_CREAT, &defDouble);
+  std::cout << "rval = " << rval << std::endl;
+  assert(MB_SUCCESS == rval || rval == MB_ALREADY_ALLOCATED);
+#ifdef NDEBUG
+  if (MB_SUCCESS == rval || rval == MB_ALREADY_ALLOCATED) {}; // Line to avoid compiler warning about unused variable
+#endif
+
+  int numElems = elems.size();
+  std::vector<double> tData(ndofperE,0.0);
+
+  for(int i=0; i<numElems; i++){
+    EntityHandle elem = elems[i];
+
+    double xyz[3];
+    mbi->get_coords(&elem, 1, xyz);
+
+    double fieldValue =  physField(xyz[0], xyz[1], xyz[2], factor);
+    for (int j=0; j < ndofperE; ++j)
+      tData[j] = fieldValue; // same value evaluated at the center; could modify it to use GLL points ?
+
+    mbi->tag_set_data(fieldTag, &elem, 1, &tData[0]);
+  }
+
+   delete [] defDouble;
+  tData.clear();
+
+}
+
+
+
 void putVertexField(Interface *mbi, const char *tagname, double factor){
   Range verts;
 
@@ -104,6 +142,8 @@ int main(int argc, char **argv){
   
   putVertexField(mbi, "vertex_field", factor);
   putElementField(mbi, "element_field", factor);
+  // putSpectralElementField(mbi, 2, 4, "spectral_element_field", factor);
+  putSpectralElementField(mbi, 2, 4, "a2oTAG", factor);
 
   ErrorCode result = mbi->write_mesh(argv[2]);
   if (MB_SUCCESS == result) cout << "wrote " << argv[2] << endl;

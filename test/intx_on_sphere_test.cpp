@@ -38,7 +38,7 @@ int main(int argc, char* argv[])
   const char *filename_mesh2 = STRINGIFY(MESHDIR) "/mbcslam/eulerHomme.vtk";
   double R = 6. * sqrt(3.) / 2; // input
   double epsrel=1.e-8;
-  double boxeps=0.1;
+  double boxeps=1.e-4;
   const char *newFile = "intx.h5m";
   if (argc == 8)
   {
@@ -83,6 +83,10 @@ int main(int argc, char* argv[])
 
   rval = mb->create_meshset(MESHSET_SET, outputSet);MB_CHK_ERR(rval);
 
+  // fix radius of both meshes, to be consistent with input R
+  rval = ScaleToRadius(mb, sf1, R); MB_CHK_ERR(rval);
+  rval = ScaleToRadius(mb, sf2, R); MB_CHK_ERR(rval);
+
   // std::cout << "Fix orientation etc ..\n";
   //IntxUtils; those calls do nothing for a good mesh
   rval = fix_degenerate_quads(mb, sf1);MB_CHK_ERR(rval);
@@ -96,13 +100,14 @@ int main(int argc, char* argv[])
 #endif
   Intx2MeshOnSphere  worker(mb);
 
-  worker.SetErrorTolerance(R*epsrel);
+  worker.set_error_tolerance(R*epsrel);
   worker.set_box_error(boxeps);
 #ifdef MOAB_HAVE_MPI
   worker.set_parallel_comm(pcomm);
 #endif
   //worker.SetEntityType(moab::MBQUAD);
-  worker.SetRadius(R);
+  worker.set_radius_source_mesh(R);
+  worker.set_radius_destination_mesh(R);
   //worker.enable_debug();
 
   rval = worker.FindMaxEdges(sf1, sf2);MB_CHK_ERR(rval);
@@ -214,7 +219,7 @@ int main(int argc, char* argv[])
   std::cout<< "On rank : " << rank << " arrival area: " << arrival_area<<
       "  intersection area:" << intx_area << " rel error: " << fabs((intx_area-arrival_area)/arrival_area) << "\n";
 
- // rval = mb->write_file(newFile, 0, "PARALLEL=WRITE_PART", &outputSet, 1);MB_CHK_SET_ERR(rval,"failed to write intx file");
+  // rval = mb->write_file(newFile, 0, "PARALLEL=WRITE_PART", &outputSet, 1);MB_CHK_SET_ERR(rval,"failed to write intx file");
 
 #ifdef MOAB_HAVE_MPI
   MPI_Finalize();

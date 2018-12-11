@@ -17,6 +17,8 @@
 #ifndef _TEMPESTOFFLINEMAP_H_
 #define _TEMPESTOFFLINEMAP_H_
 
+#include "moab/MOABConfig.h"
+
 #include "SparseMatrix.h"
 #include "DataVector.h"
 #include "DataMatrix.h"
@@ -25,12 +27,16 @@
 #include <string>
 #include <vector>
 
+#ifdef MOAB_HAVE_EIGEN
+#include <Eigen/Sparse>
+#endif
+
 #include "moab/Remapping/TempestRemapper.hpp"
 
 ///////////////////////////////////////////////////////////////////////////////
 
 #define RECTANGULAR_TRUNCATION
-//#define TRIANGULAR_TRUNCATION
+// #define TRIANGULAR_TRUNCATION
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -59,26 +65,31 @@ public:
 	///	</summary>
 	virtual ~TempestOfflineMap();
 
-	///	<summary>
-	///		Gather the mapping matrix that was computed in different processors and accumulate the data
-	///     on the root so that OfflineMap can be generated in parallel.
-	///	</summary>
-	virtual moab::ErrorCode GatherAllToRoot();
-
 public:
+
+    // Input / Output types
+    enum DiscretizationType
+    {
+        DiscretizationType_FV,
+        DiscretizationType_CGLL,
+        DiscretizationType_DGLL
+    };
+
 	///	<summary>
 	///		Generate the offline map, given the source and target mesh and discretization details.
 	///     This method generates the mapping between the two meshes based on the overlap and stores 
 	///     the result in the SparseMatrix.
 	///	</summary>
-	moab::ErrorCode GenerateOfflineMap( std::string strInputType, std::string strOutputType,
-                                        int nPin=4, int nPout=4,
+	moab::ErrorCode GenerateOfflineMap( std::string strInputType="fv", std::string strOutputType="fv",
+                                        const int nPin=1, const int nPout=1,
                                         bool fBubble=false, int fMonotoneTypeID=0,
                                         bool fVolumetric=false, bool fNoConservation=false, bool fNoCheck=false,
-                                        std::string strVariables="", 
-                                        std::string strInputData="", std::string strOutputData="",
-                                        std::string strNColName="", bool fOutputDouble=false,
-                                        std::string strPreserveVariables="", bool fPreserveAll=false, double dFillValueOverride=0.0 );
+                                        const std::string srcDofTagName="GLOBAL_ID", const std::string tgtDofTagName="GLOBAL_ID",
+                                        const std::string strVariables="", 
+                                        const std::string strInputData="", const std::string strOutputData="",
+                                        const std::string strNColName="", const bool fOutputDouble=false,
+                                        const std::string strPreserveVariables="", const bool fPreserveAll=false, const double dFillValueOverride=0.0,
+                                        const bool fInputConcave = false, const bool fOutputConcave = false );
 
 	///	<summary>
 	///		Generate the metadata associated with the offline map.
@@ -123,11 +134,28 @@ public:
 		double dTolerance
 	);
 
+	///	<summary>
+	///		If we computed the reduction, get the vector representing the source areas for all entities in the mesh
+	///	</summary>
 	const DataVector<double>& GetGlobalSourceAreas() const;
 
+	///	<summary>
+	///		If we computed the reduction, get the vector representing the target areas for all entities in the mesh
+	///	</summary>
 	const DataVector<double>& GetGlobalTargetAreas() const;
 
+#ifdef MOAB_HAVE_EIGEN
+	void InitVectors();
+#endif
+
 private:
+
+	///	<summary>
+	///		Gather the mapping matrix that was computed in different processors and accumulate the data
+	///     on the root so that OfflineMap can be generated in parallel.
+	///	</summary>
+	moab::ErrorCode GatherAllToRoot();
+
 	///	<summary>
 	///		Compute the remapping weights for a FV field defined on the source to a 
 	///     FV field defined on the target mesh.
@@ -230,7 +258,106 @@ private:
 		bool fContinuousOut
 	);
 
-private:
+	///	<summary>
+	///		Store the tag names associated with global DoF ids for source and target meshes
+	///	</summary>
+	moab::ErrorCode SetDofMapTags(const std::string srcDofTagName, 
+								  const std::string tgtDofTagName);
+
+	///	<summary>
+	///		Compute the association between the solution tag global DoF numbering and 
+	///		the local matrix numbering so that matvec operations can be performed
+	///     consistently.
+	///	</summary>
+	moab::ErrorCode SetDofMapAssociation(DiscretizationType srcType, bool isSrcContinuous, 
+		DataMatrix3D<int>* srcdataGLLNodes, DataMatrix3D<int>* srcdataGLLNodesSrc,
+		DiscretizationType destType, bool isDestContinuous, 
+		DataMatrix3D<int>* tgtdataGLLNodes);
+
+
+	///	<summary>
+	///		Copy the local matrix from Tempest SparseMatrix representation (ELL)
+	///		to the parallel CSR Eigen Matrix for scalable application of matvec
+	///     needed for projections.
+	///	</summary>
+#ifdef MOAB_HAVE_EIGEN
+	void CopyTempestSparseMat_Eigen();
+#endif
+
+public:
+#ifdef MOAB_HAVE_EIGEN
+
+	typedef Eigen::Matrix< double, 1, Eigen::Dynamic > WeightDRowVector;
+	typedef Eigen::Matrix< double, Eigen::Dynamic, 1 > WeightDColVector;
+	typedef Eigen::SparseVector<double> WeightSVector;
+	typedef Eigen::SparseMatrix<double, Eigen::RowMajor> WeightRMatrix;
+	typedef Eigen::SparseMatrix<double, Eigen::ColMajor> WeightCMatrix;
+
+	typedef WeightDRowVector WeightRowVector;
+	typedef WeightDColVector WeightColVector;
+	typedef WeightRMatrix WeightMatrix;
+
+	///	<summary>
+	///		Get the raw reference to the Eigen weight matrix representing the projection from source to destination mesh.
+	///	</summary>
+	WeightMatrix& GetWeightMatrix();
+
+	///	<summary>
+	///		Get the row vector that is amenable for application of A*x operation.
+	///	</summary>
+	WeightRowVector& GetRowVector();
+
+	///	<summary>
+	///		Get the column vector that is amenable for application of A^T*x operation.
+	///	</summary>
+	WeightColVector& GetColVector();
+
+  ///	<summary>
+	///		Get the number of total Degrees-Of-Freedom defined on the source mesh.
+	///	</summary>
+	int GetSourceGlobalNDofs();
+
+	///	<summary>
+	///		Get the number of total Degrees-Of-Freedom defined on the destination mesh.
+	///	</summary>
+	int GetDestinationGlobalNDofs();
+
+	///	<summary>
+	///		Get the number of local Degrees-Of-Freedom defined on the source mesh.
+	///	</summary>
+	int GetSourceLocalNDofs();
+
+	///	<summary>
+	///		Get the number of local Degrees-Of-Freedom defined on the destination mesh.
+	///	</summary>
+	int GetDestinationLocalNDofs();
+
+	///	<summary>
+	///		Get the number of Degrees-Of-Freedom per element on the source mesh.
+	///	</summary>
+	int GetSourceNDofsPerElement();
+
+	///	<summary>
+	///		Get the number of Degrees-Of-Freedom per element on the destination mesh.
+	///	</summary>
+	int GetDestinationNDofsPerElement();
+
+	///	<summary>
+	///		Apply the weight matrix onto the source vector provided as input, and return the column vector (solution projection) after the application 
+	///     Compute:        \p tgtVals = A * \srcVals, or 
+	///     if (transpose)  \p tgtVals = A^T * \srcVals
+	///	</summary>
+	moab::ErrorCode ApplyWeights (std::vector<double>& srcVals, std::vector<double>& tgtVals, bool transpose=false);
+
+	///	<summary>
+	///		Parallel I/O with NetCDF to write out the SCRIP file from multiple processors.
+	///	</summary>
+	void WriteParallelWeightsToFile(std::string filename);
+
+#endif
+
+public:
+
 	///	<summary>
 	///		The fundamental remapping operator object.
 	///	</summary>
@@ -247,12 +374,18 @@ private:
 	///	</summary>
 	bool m_globalMapAvailable;
 
+#ifdef MOAB_HAVE_EIGEN
+
+	WeightMatrix m_weightMatrix;
+	WeightRowVector m_rowVector;
+	WeightColVector m_colVector;
+
+#endif
 
 	///	<summary>
 	///		The DataVector that stores the global (GID-based) areas of the source mesh.
 	///	</summary>
 	// DataVector<double> m_areasSrcGlobal;
-
 	
 	///	<summary>
 	///		The DataVector that stores the global (GID-based) areas of the target mesh.
@@ -264,37 +397,63 @@ private:
 	///	</summary>
 	moab::Interface* mbCore;
 
+#ifdef MOAB_HAVE_MPI
 	///	<summary>
 	///		The reference to the parallel communicator object used by the Core object.
 	///	</summary>
 	moab::ParallelComm* pcomm;
+#endif
+
+	///	<summary>
+	///		The original tag data and local to global DoF mapping to associate matrix values to solution
+	///	<summary>
+	moab::Tag m_dofTagSrc, m_dofTagDest;
+	std::vector<unsigned long> row_dofmap, col_dofmap, srccol_dofmap;
+	std::vector<unsigned long> row_gdofmap, col_gdofmap, srccol_gdofmap;
+	std::vector<unsigned long> row_ldofmap, col_ldofmap, srccol_ldofmap;
+
+	DataMatrix3D<int> dataGLLNodesSrc, dataGLLNodesSrcCov, dataGLLNodesDest;
+	DiscretizationType m_srcDiscType, m_destDiscType;
+	int m_nTotDofs_Src, m_nTotDofs_SrcCov, m_nTotDofs_Dest;
+	int m_nDofsPEl_Src, m_nDofsPEl_Dest;
 
 	Mesh* m_meshInput;
 	Mesh* m_meshInputCov;
 	Mesh* m_meshOutput;
 	Mesh* m_meshOverlap;
+	
+	bool is_parallel, is_root;
+	int rank, size;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 
 inline
 const DataVector<double>& TempestOfflineMap::GetGlobalSourceAreas() const {
-	if (pcomm->size() > 1) {
+#ifdef MOAB_HAVE_MPI
+  if (pcomm->size() > 1) {
         return m_weightMapGlobal->GetSourceAreas();
 	}
 	else {
 		return this->GetSourceAreas();
 	}
+#else
+  return this->GetSourceAreas();
+#endif
 }
 
 inline
 const DataVector<double>& TempestOfflineMap::GetGlobalTargetAreas() const {
-    if (pcomm->size() > 1) {
+#ifdef MOAB_HAVE_MPI
+  if (pcomm->size() > 1) {
         return m_weightMapGlobal->GetTargetAreas();
 	}
 	else {
 		return this->GetTargetAreas();
 	}
+#else
+  return this->GetTargetAreas();
+#endif
 }
 
 }

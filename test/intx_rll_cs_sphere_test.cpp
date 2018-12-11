@@ -78,9 +78,9 @@ int main(int argc, char* argv[])
 
   IntxRllCssphere  worker(mb);
 
-  worker.SetErrorTolerance(R*epsrel);
+  worker.set_error_tolerance(R*epsrel);
   //worker.SetEntityType(moab::MBQUAD);
-  worker.SetRadius(R);
+  worker.set_radius(R);
   //worker.enable_debug();
   rval = worker.FindMaxEdges(sf1, sf2);
   if (MB_SUCCESS != rval)

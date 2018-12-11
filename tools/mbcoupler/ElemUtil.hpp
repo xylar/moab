@@ -75,7 +75,7 @@ namespace ElemUtil {
       /**\brief Evaluate the map on \f$x_i\f$ (calculate \f$\vec x = F($\vec \xi)\f$ )*/
       virtual CartVect evaluate( const CartVect& xi ) const = 0;
       /**\brief Evaluate the inverse map (calculate \f$\vec \xi = F^-1($\vec x)\f$ to given tolerance)*/
-      virtual CartVect ievaluate( const CartVect& x, double tol, const CartVect& x0 = CartVect(0.0)) const ;
+      virtual CartVect ievaluate( const CartVect& x, double tol=1e-6, const CartVect& x0 = CartVect(0.0)) const ;
       /**\brief decide if within the natural param space, with a tolerance*/
       virtual bool inside_nat_space(const CartVect & xi, double & tol) const = 0;
       /* FIX: should evaluate and ievaluate return both the value and the Jacobian (first jet)? */
@@ -185,7 +185,7 @@ namespace ElemUtil {
       virtual ~LinearTet();
       /* Override the evaluation routines to take advantage of the properties of P1. */
       virtual CartVect evaluate(const CartVect& xi) const {return this->vertex[0] + this->T*xi;};
-      virtual CartVect ievaluate(const CartVect& x) const {return this->T_inverse*(x-this->vertex[0]);};
+      virtual CartVect ievaluate(const CartVect& x, double tol=1e-6, const CartVect& x0 = CartVect(0.0)) const;
       virtual Matrix3  jacobian(const CartVect& )  const {return this->T;};
       virtual Matrix3  ijacobian(const CartVect& ) const {return this->T_inverse;};
       virtual double   det_jacobian(const CartVect& )  const {return this->det_T;};
@@ -212,7 +212,7 @@ namespace ElemUtil {
       virtual ~SpectralHex();
       void set_gl_points( double * x, double * y, double *z) ;
       virtual CartVect evaluate( const CartVect& xi ) const;
-      virtual CartVect ievaluate( double abs_eps, const CartVect& x) const;
+      virtual CartVect ievaluate( const CartVect& x, double tol=1e-6, const CartVect& x0 = CartVect(0.0)) const;
       virtual Matrix3  jacobian(const CartVect& xi) const;
       double   evaluate_scalar_field(const CartVect& xi, const double *field_vertex_values) const;
       double   integrate_scalar_field(const double *field_vertex_values) const;
@@ -270,7 +270,7 @@ namespace ElemUtil {
       SphericalQuad(const std::vector<CartVect>& vertices);
       virtual ~SphericalQuad() {};
       virtual bool inside_box(const CartVect & pos, double & tol) const;
-      CartVect ievaluate( const CartVect& x, double tol, const CartVect& x0 = CartVect(0.0)) const;
+      CartVect ievaluate( const CartVect& x, double tol=1e-6, const CartVect& x0 = CartVect(0.0)) const;
     protected:
       CartVect v1;
       Matrix3 transf; // so will have a lot of stuff, including the transf to a coordinate system
@@ -287,7 +287,7 @@ namespace ElemUtil {
         /* Override the evaluation routines to take advantage of the properties of P1. */
         /* similar to tets */
         virtual CartVect evaluate(const CartVect& xi) const {return this->vertex[0] + this->T*xi;};
-        virtual CartVect ievaluate(const CartVect& x) const {return this->T_inverse*(x-this->vertex[0]);};
+        virtual CartVect ievaluate(const CartVect& x, double tol=1e-6, const CartVect& x0 = CartVect(0.0)) const;
         virtual Matrix3  jacobian(const CartVect& )  const {return this->T;};
         virtual Matrix3  ijacobian(const CartVect& ) const {return this->T_inverse;};
         virtual double   det_jacobian(const CartVect& )  const {return this->det_T;};
@@ -318,7 +318,7 @@ namespace ElemUtil {
         SphericalTri(const std::vector<CartVect>& vertices);
         virtual ~SphericalTri() {};
         virtual bool inside_box(const CartVect & pos, double & tol) const;
-        CartVect ievaluate( const CartVect& x, double tol, const CartVect& x0 = CartVect(0.0)) const;
+        CartVect ievaluate( const CartVect& x, double tol=1e-6, const CartVect& x0 = CartVect(0.0)) const;
       protected:
         CartVect v1;
         Matrix3 transf; // so will have a lot of stuff, including the transf to a coordinate system
@@ -357,7 +357,7 @@ namespace ElemUtil {
         virtual ~SpectralQuad();
         void set_gl_points( double * x, double * y, double *z) ;
         virtual CartVect evaluate( const CartVect& xi ) const;// a 2d, so 3rd component is 0, always
-        virtual CartVect ievaluate(const CartVect& x) const; //a 2d, so 3rd component is 0, always
+        virtual CartVect ievaluate(const CartVect& x, double tol=1e-6, const CartVect& x0 = CartVect(0.0)) const; //a 2d, so 3rd component is 0, always
         virtual Matrix3  jacobian(const CartVect& xi) const;
         double   evaluate_scalar_field(const CartVect& xi, const double *field_vertex_values) const;
         double   integrate_scalar_field(const double *field_vertex_values) const;

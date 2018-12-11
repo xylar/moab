@@ -96,7 +96,7 @@ public:
 
   ErrorCode DetermineOrderedNeighbors(EntityHandle inputSet, int max_edges, Tag & neighTag);
 
-  void SetErrorTolerance(double eps) { epsilon_1=eps; epsilon_area = eps*eps/2;}
+  void set_error_tolerance(double eps) { epsilon_1=eps; epsilon_area = eps*eps/2;}
 
 #ifdef MOAB_HAVE_MPI
   void set_parallel_comm(moab::ParallelComm* pcomm) { parcomm = pcomm; }
@@ -138,10 +138,10 @@ public:
    *
    * param (OUT) : the covering set in first mesh , which completely covers the second mesh set
   */
-  ErrorCode construct_covering_set(EntityHandle & initial_distributed_set, EntityHandle & covering_set);
+#ifdef MOAB_HAVE_MPI
 
-  ErrorCode build_processor_euler_boxes(EntityHandle euler_set, Range & local_verts);
-
+  virtual ErrorCode build_processor_euler_boxes(EntityHandle euler_set, Range & local_verts);
+#endif
   void correct_polygon(EntityHandle * foundIds, int & nP);
 #ifdef MOAB_HAVE_MPI
   ErrorCode correct_intersection_points_positions();
@@ -176,6 +176,8 @@ protected: // so it can be accessed in derived classes, InPlane and OnSphere
   Tag redNeighTag; // will store neighbors for navigating easily in advancing front, for second mesh (red, source, euler)
 
   Tag neighRedEdgeTag; // will store edge borders for each red cell
+
+  Tag orgSendProcTag; /// for coverage mesh, will store the original sender
 
   //EntityType type; // this will be tri, quad or MBPOLYGON...
 

@@ -176,11 +176,12 @@ int main(int argc, char **argv)
 
   double radius = CubeSide / 2 * sqrt(3.); // input
 
-  worker.SetRadius(radius);
+  worker.set_radius_source_mesh(radius);
+  worker.set_radius_destination_mesh(radius);
 
   //worker.SetEntityType(MBQUAD);
 
-  worker.SetErrorTolerance(gtol);
+  worker.set_error_tolerance(gtol);
   std::cout << "error tolerance epsilon_1=" << gtol << "\n";
 
   EntityHandle outputSet;

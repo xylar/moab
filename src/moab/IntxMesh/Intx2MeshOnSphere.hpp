@@ -18,7 +18,8 @@ public:
   Intx2MeshOnSphere(Interface * mbimpl);
   virtual ~Intx2MeshOnSphere();
 
-  void SetRadius(double radius) { R=radius ;}
+  void set_radius_source_mesh(double radius) { Rsrc=radius ;}
+  void set_radius_destination_mesh(double radius) { Rdest=radius ;}
 
   double setup_red_cell(EntityHandle red, int & nsRed);
 
@@ -32,10 +33,15 @@ public:
       double * iP, int nP);
 
   ErrorCode update_tracer_data(EntityHandle out_set, Tag & tagElem, Tag & tagArea);
+#ifdef MOAB_HAVE_MPI
+  virtual ErrorCode construct_covering_set(EntityHandle & initial_distributed_set, EntityHandle & covering_set);
+
+  virtual ErrorCode build_processor_euler_boxes(EntityHandle euler_set, Range & local_verts);
+#endif
 
 private:
   int plane; // current gnomonic plane
-  double R; // radius of the sphere
+  double Rsrc, Rdest; // radius of the sphere
 
 
 };

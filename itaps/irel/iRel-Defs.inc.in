@@ -16,6 +16,7 @@ IREL_LIBS = $(IREL_LDFLAGS) -L${MOAB_LIBDIR} -L$(IREL_LIBDIR) \
               -liRel -liMesh $(FBIGEOM_LIBS) -lMOAB \
               @NETCDF_LIBS@ @PNETCDF_LIBS@ @HDF5_LIBS@ @DAMSEL_LIBS@ \
               @CGM_LDFLAGS@ @CGM_LIBS@ @CCMIO_LIBS@ @ZOLTAN_LIBS@ @PARMETIS_LIBS@ @METIS_LIBS@ \
+              @HYPRE_LIBS@ @LAPACK_LIBS@ @BLAS_LIBS@  \
               @FCLIBS@ @LIBS@
 
 

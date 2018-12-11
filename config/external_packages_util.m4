@@ -122,6 +122,9 @@ AC_DEFUN([INITIALIZE_EXTERNAL_PACKAGES],
       AC_ERROR([No file/directory hash computation program is available. Report to moab-dev@mcs.anl.gov])
     fi
   fi
+  # repository handling programs
+  AC_CHECK_PROG(HAVE_SVN, svn, yes, no)
+  AC_CHECK_PROG(HAVE_GIT, git, yes, no)
   # other essential programs
   AC_PROG_LN_S
   AC_PATH_PROG(MKDIR_P, mkdir, "")
@@ -212,7 +215,7 @@ AC_DEFUN([DOWNLOAD_EXTERNAL_PACKAGE],
 
       if (test "$HAVE_CURL" != "no" && test "$filedownloaded" != "yes"); then
         PREFIX_PRINT([   CURL: $1 package downloading to $3 ])
-        op_downloadlog$1="`curl -R -s $2 -z $3 -o $3`"
+        op_downloadlog$1="`curl -R -L -s $2 -z $3 -o $3`"
         filedownloaded=yes
       fi
     else
@@ -240,6 +243,58 @@ AC_DEFUN([DOWNLOAD_EXTERNAL_PACKAGE],
   fi
 
 ])
+
+
+dnl -------------------------------------------------------------
+dnl Fetches an external source package:
+dnl $1 = Package Name
+dnl $2 = Repository URL
+dnl $3 = Repository source branch
+dnl $4 = Source repository location
+dnl -------------------------------------------------------------
+AC_DEFUN([CLONE_SOURCE_REPOSITORY],
+[
+  PREFIX_PRINT(Downloading repository sources from URL: $2:$gitbranch )
+  filedownloaded=no
+  remoteprotocol=yes
+  new_download=true
+
+  # Let us clone the repository directly
+  gitbranch=master
+  if (test "x$3" != "x"); then
+    gitbranch=$3
+  fi
+  currdir="$PWD"
+
+  filedownloaded=no
+  if (test "$HAVE_GIT" != "no"); then
+    if (test -f "$4/HEAD_HASH"); then
+      filedownloaded=yes # From a previous clone.
+      # Let us update the repo instead
+      PREFIX_PRINT([ *      Git: $1 package updating repository branch $gitbranch  ])
+      op_downloadlog$1="`cd $4 && git fetch -p && git pull origin $gitbranch && git reset --hard origin/$gitbranch && cd $currdir`"
+      eval "cd $4 && git rev-parse HEAD > $4/HEAD_HASH2 && cd $currdir"
+      new_download=false
+    else
+      eval "rm -rf $4" # Can't clone into an existing directory
+      PREFIX_PRINT([ *      Git: $1 package downloading to $4  ])
+      op_downloadlog$1="`git clone --quiet -b $gitbranch $2 $4`"
+      eval "cd $4 && git rev-parse HEAD > $4/HEAD_HASH && cd $currdir"
+      filedownloaded=yes
+      new_download=true
+    fi
+  else
+    AC_MSG_ERROR([Git is unavailable. Cannot clone dependencies from source repository.])
+  fi
+
+  if (test "$filedownloaded" != "yes"); then
+    AC_ERROR([ --  The Git repository URL ($2) specified could not be cloned  -- ])
+  else
+     pkg_srcdir="$4"
+     MSG_ECHO_LOG(${op_downloadlog$1})
+  fi
+])
+
 
 dnl -------------------------------------------------------------
 dnl Unpacks an external package using:
@@ -298,19 +353,44 @@ dnl -------------------------------------------------------------
 AC_DEFUN([CHECK_SOURCE_RECOMPILATION_HASH],
 [
   PREFIX_PRINTN([Checking whether $1 sources need compilation and installation... ])
-  # Compute the hash of the source directory - Recompile only if sources have changed
-  # ac_cv_sha_moabcpp="`find $moab_src_dir -name '*.cpp' \( -exec $HASHPRGM "$PWD"/{} \; -o -print \) | $HASHPRGM | cut -d ' ' -f1`"
-  # defaultshasum="`find $2 -type f -regex '.*\(hpp\|cpp\|c\|h\|f\|f90\)$' \( -exec $HASHPRGM {} \; -o -print \) | $HASHPRGM | cut -d ' ' -f1`"
-  # defaultshasum="`find $2/src $2/Source $2/SRC $2/include $2/inc $2/INC -type f -regex '.*\(hpp\|cpp\|c\|h\|f\|f90\)$' | xargs ls -al | $HASHPRGM | cut -d ' ' -f1`"
-  defaultshasum="`cd $2/..; tar -tf $3 | xargs ls -l | $HASHPRGM | cut -d ' ' -f1`"
-  AC_CACHE_VAL([ac_cv_sha_$1], [ac_cv_sha_$1="0"])
-  if (test "$defaultshasum" != "$ac_cv_sha_$1" || test $need_configuration != false); then
-    recompile_and_install=true
-    ac_cv_sha_$1="$defaultshasum"
-    AC_MSG_RESULT(yes)
+  defaultshasum="0"
+  if (test "x$pkg_download_url" != "xmaster"); then
+    # Compute the hash of the source directory - Recompile only if sources have changed
+    # ac_cv_sha_moabcpp="`find $moab_src_dir -name '*.cpp' \( -exec $HASHPRGM "$PWD"/{} \; -o -print \) | $HASHPRGM | cut -d ' ' -f1`"
+    # defaultshasum="`find $2 -type f -regex '.*\(hpp\|cpp\|c\|h\|f\|f90\)$' \( -exec $HASHPRGM {} \; -o -print \) | $HASHPRGM | cut -d ' ' -f1`"
+    # defaultshasum="`find $2/src $2/Source $2/SRC $2/include $2/inc $2/INC -type f -regex '.*\(hpp\|cpp\|c\|h\|f\|f90\)$' | xargs ls -al | $HASHPRGM | cut -d ' ' -f1`"
+    defaultshasum="`cd $2/..; tar -tf $3 | xargs ls -l | $HASHPRGM | cut -d ' ' -f1`"
+    AC_CACHE_VAL([ac_cv_sha_$1], [ac_cv_sha_$1="0"])
+    if (test "$defaultshasum" != "$ac_cv_sha_$1" || test $need_configuration); then
+      recompile_and_install=true
+      ac_cv_sha_$1="$defaultshasum"
+      AC_MSG_RESULT(yes)
+    else
+      recompile_and_install=false
+      AC_MSG_RESULT(no)
+    fi
   else
-    recompile_and_install=false
-    AC_MSG_RESULT(no)
+    if (test -f "$2/HEAD_HASH"); then
+      defaultshasum="`cat $2/HEAD_HASH`"
+    fi
+    AC_CACHE_VAL([ac_cv_sha_$1], [ac_cv_sha_$1="0"])
+    if (test -f "$2/HEAD_HASH2" || !$new_download); then
+      hashdiff="`diff $2/HEAD_HASH $2/HEAD_HASH2 | wc -l | xargs`"
+      if (test "x$hashdiff" != "x0" || test $need_configuration); then # hashes are different
+        recompile_and_install=true
+        defaultshasum="`cat $2/HEAD_HASH2`"
+        ac_cv_sha_$1="$defaultshasum"
+        AC_MSG_RESULT(yes)
+        eval "cp $2/HEAD_HASH2 $2/HEAD_HASH" # Overwrite our has file storage
+      else
+        recompile_and_install=false
+        AC_MSG_RESULT(no)
+      fi
+    else
+      recompile_and_install=true
+      ac_cv_sha_$1="$defaultshasum"
+      AC_MSG_RESULT(yes)
+    fi
   fi
 ])
 
@@ -340,6 +420,8 @@ AC_DEFUN([AUSCM_CONFIGURE_EXTERNAL_PACKAGE],
   pkg_basesrcdir="$MOAB_SANDBOX/$pkg_short_name"
   pkg_srcdir="$pkg_basesrcdir"
   download_ext_package=no
+  pkg_repo_url="[$]m4_tolower($1)[]_repository_url"
+  pkg_repo_branch="[$]m4_tolower($1)[]_repository_branch"
 
   # The default PACKAGE installation is under libraries
   pkg_install_dir="$MOAB_ARCH_DIR"
@@ -381,11 +463,16 @@ AC_DEFUN([AUSCM_CONFIGURE_EXTERNAL_PACKAGE],
 
 	  MSG_ECHO_SEPARATOR
 
-    # Check if we need to download an archive file
-    DOWNLOAD_EXTERNAL_PACKAGE([$1], [$pkg_download_url], [$MOAB_PACKAGES_DIR/$pkg_archive_name])
-    
-    # Deflate the archive file containing the sources, if needed
-    DEFLATE_EXTERNAL_PACKAGE([$1], [$MOAB_PACKAGES_DIR/$pkg_archive_name], [$pkg_srcdir])
+    if (test "x$pkg_download_url" != "xmaster"); then
+      # Check if we need to download an archive file
+      DOWNLOAD_EXTERNAL_PACKAGE([$1], [$pkg_download_url], [$MOAB_PACKAGES_DIR/$pkg_archive_name])
+      
+      # Deflate the archive file containing the sources, if needed
+      DEFLATE_EXTERNAL_PACKAGE([$1], [$MOAB_PACKAGES_DIR/$pkg_archive_name], [$pkg_srcdir])
+    else
+      # Clone the repository
+      CLONE_SOURCE_REPOSITORY([$1], [$pkg_repo_url], [$pkg_repo_branch], [$pkg_srcdir/$pkg_repo_branch])
+    fi
 
     # Invoke the package specific configuration and build commands
     
@@ -637,9 +724,8 @@ dnl   Runs configure for HDF5 and looks for header files.
 dnl   Arguments: [NEED_CONFIGURATION)
 dnl ---------------------------------------------------------------------------
 AC_DEFUN([AUSCM_AUTOMATED_CONFIGURE_HDF5],[
-if [ $1 ]; then
   # configure HDF5
-  if [ $need_configuration ]; then
+  if [ $1 ]; then
     # configure PACKAGE with a minimal build: MPI
     compiler_opts="CC=$CC CXX=$CXX FC=$FC F90=$FC F77=$F77 MPIEXEC=$MPIEXEC"
     configure_command="$hdf5_src_dir/configure --prefix=$hdf5_install_dir --libdir=$hdf5_install_dir/lib --with-pic=1 $compiler_opts"
@@ -671,7 +757,6 @@ if [ $1 ]; then
     AC_MSG_ERROR([HDF5 configuration was unsuccessful. Please refer to $hdf5_build_dir/config.log and $hdf5_src_dir/../config_hdf5.log for further details.])
   fi
   hdf5_configured=true
-fi
 ])
 
 
@@ -824,9 +909,8 @@ dnl   Arguments: [NEED_CONFIGURATION)
 dnl ---------------------------------------------------------------------------
 AC_DEFUN([AUSCM_AUTOMATED_CONFIGURE_NETCDF],
 [
-if [ $1 ]; then
   # configure NETCDF
-  if [ $need_configuration ]; then
+  if [ $1 ]; then
     # configure PACKAGE with a minimal build: MPI, HDF5, NETCDF
     compiler_opts="CC=$CC CXX=$CXX FC=$FC F90=$FC F77=$F77"
     configure_command="$netcdf_src_dir/configure --prefix=$netcdf_install_dir --libdir=$netcdf_install_dir/lib --with-pic=1 --enable-shared=$enable_shared $compiler_opts"
@@ -844,8 +928,6 @@ if [ $1 ]; then
     AC_MSG_ERROR([NetCDF configuration was unsuccessful. Please refer to $netcdf_build_dir/config.log and $netcdf_src_dir/../config_netcdf.log for further details.])
   fi
   netcdf_configured=true
-
-fi
 ])
 
 dnl ---------------------------------------------------------------------------
@@ -1001,9 +1083,8 @@ dnl   Arguments: [SOURCE_DIRECTORY, INSTALL_DIRECTORY)
 dnl ---------------------------------------------------------------------------
 AC_DEFUN([AUSCM_AUTOMATED_CONFIGURE_METIS],
 [
-if [ $1 ]; then
   # configure METIS
-  if [ $need_configuration ]; then
+  if [ $1 ]; then
     if (test "$metis_manual_install" != "yes"); then
       metis_use_cmake="no"
       # configure PACKAGE with a minimal build: MPI
@@ -1049,7 +1130,6 @@ if [ $1 ]; then
   fi
 
   metis_configured=true
-fi
 ])
 
 
@@ -1274,9 +1354,8 @@ dnl   Arguments: [SOURCE_DIRECTORY, INSTALL_DIRECTORY)
 dnl ---------------------------------------------------------------------------
 AC_DEFUN([AUSCM_AUTOMATED_CONFIGURE_PARMETIS],
 [
-if [ $1 ]; then
   # configure ParMetis
-  if [ $need_configuration ]; then
+  if [ $1 ]; then
     if (test "$parmetis_manual_install" != "yes"); then
       # configure PACKAGE with a minimal build: MPI
       export CFLAGS="$CFLAGS -fPIC -DPIC" CXXFLAGS="$CXXFLAGS -fPIC -DPIC" FCFLAGS="$FCFLAGS -fPIC" FFLAGS="$FFLAGS -fPIC" LDFLAGS="$LDFLAGS"
@@ -1308,7 +1387,6 @@ if [ $1 ]; then
 	  fi
   fi
   parmetis_configured=true
-fi
 ])
 
 
@@ -1453,9 +1531,12 @@ AC_DEFUN([AUSCM_CONFIGURE_DOWNLOAD_TEMPESTREMAP],[
   # Set the default TempestRemap download version
   m4_pushdef([TEMPESTREMAP_DOWNLOAD_VERSION],[$1])dnl
 
+  tempestremap_repository_url="https://github.com/ClimateGlobalChange/tempestremap.git"
+  tempestremap_repository_branch="master"
+
   # Invoke the download-tempestremap command
-  m4_case( TEMPESTREMAP_DOWNLOAD_VERSION, [1.0.beta], [ AUSCM_CONFIGURE_EXTERNAL_PACKAGE([TempestRemap], [https://bitbucket.org/fathomteam/tempestremap/downloads/TempestRemap-1.0-beta.tar.gz], [$2] ) ],
-                                  [ AUSCM_CONFIGURE_EXTERNAL_PACKAGE([TempestRemap], [https://bitbucket.org/fathomteam/tempestremap/downloads/TempestRemap-1.0-beta.tar.gz], [$2] ) ] )
+  m4_case( TEMPESTREMAP_DOWNLOAD_VERSION, [2.0.1], [ AUSCM_CONFIGURE_EXTERNAL_PACKAGE([TempestRemap], [https://github.com/ClimateGlobalChange/tempestremap/archive/v2.0.1.tar.gz], [$2] ) ],
+                                  [ AUSCM_CONFIGURE_EXTERNAL_PACKAGE([TempestRemap], [https://github.com/ClimateGlobalChange/tempestremap/archive/v2.0.1.tar.gz], [$2] ) ] )
 
   if (test "x$downloadtempestremap" == "xyes") ; then
     # download the latest TempestRemap sources, configure and install
@@ -1483,8 +1564,12 @@ AC_DEFUN([AUSCM_AUTOMATED_SETUP_PREPROCESS_TEMPESTREMAP],
   tempestremap_archive_name="$4"
 
   # Check if the TempestRemap directory is valid
-  if (test ! -d "$tempestremap_src_dir" || test ! -f "$tempestremap_src_dir/configure" ); then
+  if (test ! -d "$tempestremap_src_dir"); then
     AC_MSG_ERROR([Invalid source configuration for TempestRemap. Source directory $tempestremap_src_dir is invalid])
+  fi
+
+  if ( test ! -f "$tempestremap_src_dir/configure" ); then
+    eval `cd $tempestremap_src_dir && autoreconf -fi > $tempestremap_src_dir/bootstrap.log 2>&1`
   fi
 
   # Check if we need to configure, build, and/or install TEMPESTREMAP
@@ -1532,9 +1617,8 @@ dnl   Arguments: [NEED_CONFIGURATION)
 dnl ---------------------------------------------------------------------------
 AC_DEFUN([AUSCM_AUTOMATED_CONFIGURE_TEMPESTREMAP],
 [
-if [ $1 ]; then
   # configure TEMPESTREMAP
-  if [ $need_configuration ]; then
+  if [ $1 ]; then
     # configure PACKAGE with a minimal build: MPI, HDF5, TEMPESTREMAP
     compiler_opts="CC=$CC CXX=$CXX FC=$FC F90=$FC F77=$F77"
     configure_command="$tempestremap_src_dir/configure --prefix=$tempestremap_install_dir --libdir=$tempestremap_install_dir/lib --with-pic=1 --enable-shared=$enable_shared $compiler_opts"
@@ -1562,8 +1646,6 @@ if [ $1 ]; then
     AC_MSG_ERROR([TempestRemap configuration was unsuccessful. Please refer to $tempestremap_build_dir/config.log and $tempestremap_src_dir/../config_tempestremap.log for further details.])
   fi
   tempestremap_configured=true
-
-fi
 ])
 
 dnl ---------------------------------------------------------------------------
@@ -1573,11 +1655,9 @@ dnl   Arguments: [NEED_BUILD)
 dnl ---------------------------------------------------------------------------
 AC_DEFUN([AUSCM_AUTOMATED_BUILD_TEMPESTREMAP],
 [
-  if [ $1 ]; then
-    if [ $recompile_and_install || $need_build ]; then
-      PREFIX_PRINT(Building the sources in parallel)
-      tempestremap_makelog="`make --no-print-directory -C $tempestremap_build_dir all -j4 > $tempestremap_src_dir/../make_tempestremap.log 2>&1`"
-    fi
+  if [ $1 || $recompile_and_install ]; then
+    PREFIX_PRINT(Building the sources in parallel)
+    tempestremap_makelog="`make --no-print-directory -C $tempestremap_build_dir all -j4 > $tempestremap_src_dir/../make_tempestremap.log 2>&1`"
   fi
 
   if (test -f "$tempestremap_build_dir/.libs/libTempestRemap.a" || test -f "$tempestremap_build_dir/.libs/libTempestRemap.so" || test -f "$tempestremap_build_dir/.libs/libTempestRemap.dylib") ; then
@@ -1594,20 +1674,182 @@ dnl   Arguments: [NEED_INSTALLATION)
 dnl ---------------------------------------------------------------------------
 AC_DEFUN([AUSCM_AUTOMATED_INSTALL_TEMPESTREMAP],
 [
-  if [ $1 ]; then
-    if [ $recompile_and_install ]; then
-      if [ $tempestremap_installed ]; then
-        tempestremap_installlog="`make --no-print-directory -C $tempestremap_build_dir uninstall > $tempestremap_src_dir/../uninstall_tempestremap.log 2>&1`"
-      fi
-      PREFIX_PRINT(Installing the headers and libraries in to directory {$tempestremap_install_dir} )
-      tempestremap_installlog="`make --no-print-directory -C $tempestremap_build_dir install > $tempestremap_src_dir/../install_tempestremap.log 2>&1`"
+  if [ $1 || $recompile_and_install ]; then
+    if [ $tempestremap_installed ]; then
+      tempestremap_installlog="`make --no-print-directory -C $tempestremap_build_dir uninstall > $tempestremap_src_dir/../uninstall_tempestremap.log 2>&1`"
     fi
+    PREFIX_PRINT(Installing the headers and libraries in to directory {$tempestremap_install_dir} )
+    tempestremap_installlog="`make --no-print-directory -C $tempestremap_build_dir install > $tempestremap_src_dir/../install_tempestremap.log 2>&1`"
   fi
 
   if (test -f "$tempestremap_install_dir/include/GridElements.h"); then
     tempestremap_installed=true
   else
     AC_MSG_ERROR([TempestRemap installation was unsuccessful. Please refer to $tempestremap_src_dir/../install_tempestremap.log for further details.])
+  fi
+])
+
+##########################################
+### HYPRE AUTOMATED CONFIGURATION
+##########################################
+
+dnl
+dnl Arguments:
+dnl   1) Default Version Number,
+dnl   2) Download by default ?
+dnl
+AC_DEFUN([AUSCM_CONFIGURE_DOWNLOAD_HYPRE],[
+
+  # Check whether user wants to autodownload HYPRE
+  # Call package Download/Configure/Installation procedures for HYPRE, if requested by user
+  PPREFIX=HYPRE
+
+  # Set the default HYPRE download version
+  m4_pushdef([HYPRE_DOWNLOAD_VERSION],[$1])dnl
+
+  # Invoke the download-hypre command
+  m4_case( HYPRE_DOWNLOAD_VERSION, [2.13.0], [ AUSCM_CONFIGURE_EXTERNAL_PACKAGE([HYPRE], [https://github.com/LLNL/hypre/archive/v2.13.0.tar.gz], [$2] ) ],
+                                   [2.11.2], [ AUSCM_CONFIGURE_EXTERNAL_PACKAGE([HYPRE], [https://github.com/LLNL/hypre/archive/v2.11.2.tar.gz], [$2] ) ],
+                                   [2.10.1], [ AUSCM_CONFIGURE_EXTERNAL_PACKAGE([HYPRE], [https://github.com/LLNL/hypre/archive/v2.10.1.tar.gz], [$2] ) ],
+                                             [ AUSCM_CONFIGURE_EXTERNAL_PACKAGE([HYPRE], [https://github.com/LLNL/hypre/archive/v2.13.0.tar.gz], [$2] ) ] )
+
+
+  if (test "x$downloadhypre" == "xyes") ; then
+    # download the latest HYPRE sources, configure and install
+    HYPRE_SRCDIR="$hypre_src_dir"
+    AC_SUBST(HYPRE_SRCDIR)
+    # The default HYPRE installation is under libraries
+    HYPRE_DIR="$hypre_install_dir"
+    enablehypre=yes
+  fi  # if (test "$downloadhypre" != no)
+])
+
+
+dnl ---------------------------------------------------------------------------
+dnl AUSCM_AUTOMATED SETUP PREPROCESS HYPRE
+dnl   Prepares the system for an existing HYPRE install or sets flags to
+dnl   install a new copy of HYPRE
+dnl   Arguments: [PACKAGE, SRC_DIR, INSTALL_DIR, NEED_CONFIGURATION]
+dnl ---------------------------------------------------------------------------
+AC_DEFUN([AUSCM_AUTOMATED_SETUP_PREPROCESS_HYPRE],
+[
+  # configure PACKAGE
+  hypre_src_dir="$2"
+  hypre_build_dir="$2/src"
+  hypre_install_dir="$3"
+  hypre_archive_name="$4"
+
+  # Check if the HYPRE directory is valid
+  if (test ! -d "$hypre_src_dir" || test ! -f "$hypre_src_dir/src/configure" ); then
+    AC_MSG_ERROR([Invalid source configuration for HYPRE. Source directory $hypre_src_dir is invalid])
+  fi
+
+  # Check if we need to configure, build, and/or install HYPRE
+  hypre_configured=false
+  hypre_made=false
+  hypre_installed=false
+  if (test ! -d "$hypre_build_dir" ); then
+   AS_MKDIR_P( $hypre_build_dir )
+  else
+    if (test -f "$hypre_build_dir/HYPRE_config.h" ); then
+      hypre_configured=true
+      if (test -f "$hypre_build_dir/lib/libHYPRE.a" || test -f "$hypre_build_dir/lib/libHYPRE.so" || test -f "$hypre_build_dir/lib/libHYPRE.dylib") ; then
+        hypre_made=true
+        if (test -f "$hypre_install_dir/include/HYPRE.h"); then
+          hypre_installed=true
+        fi
+      fi
+    fi
+  fi
+  AS_IF([ ! $hypre_configured || $need_configuration ], [need_configuration=true], [need_configuration=false])
+  AS_IF([ ! $hypre_made || $need_configuration ], [need_build=true], [need_build=false])
+  AS_IF([ ! $hypre_installed || $need_configuration ], [need_installation=true], [need_installation=false])
+])
+
+
+dnl ---------------------------------------------------------------------------
+dnl AUSCM_AUTOMATED SETUP POSTPROCESS HYPRE
+dnl   Postprocessing for HYPRE is minimal.  Exists for standardization of all
+dnl   package macros.
+dnl   Arguments: [PACKAGE]
+dnl ---------------------------------------------------------------------------
+AC_DEFUN([AUSCM_AUTOMATED_SETUP_POSTPROCESS_HYPRE],
+[
+  # we have already checked configure/build/install logs for
+  # errors before getting here..
+  enablehypre=yes
+  DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --with-hypre=\"${hypre_install_dir}\""
+])
+
+
+dnl ---------------------------------------------------------------------------
+dnl AUSCM_AUTOMATED CONFIGURE HYPRE
+dnl   Sets up the configure command and then ensures it ran correctly.
+dnl   Arguments: [NEED_CONFIGURATION)
+dnl ---------------------------------------------------------------------------
+AC_DEFUN([AUSCM_AUTOMATED_CONFIGURE_HYPRE],
+[
+  # configure HYPRE
+  if [ $1 ]; then
+    # configure PACKAGE with a minimal build: MPI, HDF5, HYPRE
+    compiler_opts="CC=$CC CXX=$CXX FC=$FC F90=$FC F77=$F77"
+    configure_command="$hypre_src_dir/src/configure --prefix=$hypre_install_dir --libdir=$hypre_install_dir/lib --with-pic=1 --enable-shared=$enable_shared $compiler_opts"
+    configure_command="$configure_command LDFLAGS=\"$LDFLAGS\" CPPFLAGS=\"$CPPFLAGS\" LIBS=\"$LIBS\""
+
+    eval "echo 'Using configure command :==> cd $hypre_build_dir && $configure_command > $hypre_src_dir/../config_hypre.log' > $hypre_src_dir/../config_hypre.log"
+    PREFIX_PRINT([Configuring with default options  (debug=$enable_debug shared=$enable_shared) ])
+    eval "cd $hypre_build_dir && $configure_command >> $hypre_src_dir/../config_hypre.log 2>&1 && cd \"\$OLDPWD\""
+  fi
+
+  if (test ! -f "$hypre_build_dir/HYPRE_config.h" ); then
+    AC_MSG_ERROR([HYPRE configuration was unsuccessful. Please refer to $hypre_build_dir/config.log and $hypre_src_dir/../config_hypre.log for further details.])
+  fi
+  hypre_configured=true
+
+])
+
+dnl ---------------------------------------------------------------------------
+dnl AUSCM_AUTOMATED BUILD HYPRE
+dnl   Builds HYPRE and looks for libHYPRE.
+dnl   Arguments: [NEED_BUILD)
+dnl ---------------------------------------------------------------------------
+AC_DEFUN([AUSCM_AUTOMATED_BUILD_HYPRE],
+[
+  if [ $1 ]; then
+    if [ $recompile_and_install || $need_build ]; then
+      PREFIX_PRINT(Building the sources in parallel)
+      hypre_makelog="`make --no-print-directory -C $hypre_build_dir all -j4 > $hypre_src_dir/../make_hypre.log 2>&1`"
+    fi
+  fi
+
+  if (test -f "$hypre_build_dir/lib/libHYPRE.a" || test -f "$hypre_build_dir/lib/libHYPRE.so" || test -f "$hypre_build_dir/lib/libHYPRE.dylib") ; then
+    hypre_made=true
+  else
+    AC_MSG_ERROR([HYPRE build was unsuccessful. Please refer to $hypre_src_dir/../make_hypre.log for further details.])
+  fi
+])
+
+dnl ---------------------------------------------------------------------------
+dnl AUSCM_AUTOMATED INSTALL HYPRE
+dnl   Installs HYPRE and checks headers.
+dnl   Arguments: [NEED_INSTALLATION)
+dnl ---------------------------------------------------------------------------
+AC_DEFUN([AUSCM_AUTOMATED_INSTALL_HYPRE],
+[
+  if [ $1 ]; then
+    if [ $recompile_and_install ]; then
+      if [ $hypre_installed ]; then
+        hypre_installlog="`make --no-print-directory -C $hypre_build_dir uninstall > $hypre_src_dir/../uninstall_hypre.log 2>&1`"
+      fi
+      PREFIX_PRINT(Installing the headers and libraries in to directory {$hypre_install_dir} )
+      hypre_installlog="`make --no-print-directory -C $hypre_build_dir install > $hypre_src_dir/../install_hypre.log 2>&1`"
+    fi
+  fi
+
+  if (test -f "$hypre_install_dir/include/HYPRE.h"); then
+    hypre_installed=true
+  else
+    AC_MSG_ERROR([HYPRE installation was unsuccessful. Please refer to $hypre_src_dir/../install_hypre.log for further details.])
   fi
 ])
 

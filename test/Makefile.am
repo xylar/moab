@@ -119,7 +119,7 @@ MOSTLYCLEANFILES = mb_write.g \
                    tree.h5m \
                    TaskMesh_n1.0.h5m \
                    TaskMesh_n1.1.h5m \
-                   fnew.h5m fnew2.h5m out1.h5m \
+                   fIntxOverlap.h5m fIntxTarget.h5m fnew.h5m fnew2.h5m out1.h5m \
                    intx.vtk \
                    polyWithEdges.vtk \
                    intx1.vtk
@@ -226,7 +226,10 @@ if HAVE_TEMPESTREMAP
   test_remapping_SOURCES = test_remapping.cpp
   test_remapping_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/src/Remapping -I$(top_srcdir)/src/IntxMesh $(TEMPESTREMAP_INCLUDE)
   test_remapping_LDADD = $(LDADD) $(TEMPESTREMAP_LIBS)
-  TESTS += test_remapping
+  imoab_remapping_SOURCES = imoab_remap.cpp
+  imoab_remapping_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/src/Remapping -I$(top_srcdir)/src/IntxMesh $(TEMPESTREMAP_INCLUDE)
+  imoab_remapping_LDADD = $(LDADD) $(TEMPESTREMAP_LIBS)
+  TESTS += test_remapping imoab_remapping
 endif
 endif
 

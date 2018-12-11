@@ -338,7 +338,10 @@ bool boxes_overlap( const CartVect & box_min1, const CartVect & box_max1,
 // see if boxes formed by 2 lists of "CartVect"s overlap
 bool bounding_boxes_overlap (const CartVect * list1, int num1, const CartVect * list2, int num2,
       double tolerance);
-//
+
+// see if boxes from vertices in 2d overlap (used in gnomonic planes right now)
+bool bounding_boxes_overlap_2d (const double * list1, int num1, const double * list2, int num2,
+      double tolerance);
 // point_in_trilinear_hex
 // Tests if a point in xyz space is within a hex element defined with
 // its eight vertex points forming a trilinear basis function.  Computes

@@ -17,7 +17,7 @@
 namespace moab {
 
 
-Intx2MeshOnSphere::Intx2MeshOnSphere(Interface * mbimpl):Intx2Mesh(mbimpl), plane(0), R(0.0)
+Intx2MeshOnSphere::Intx2MeshOnSphere(Interface * mbimpl):Intx2Mesh(mbimpl), plane(0), Rsrc(0.0), Rdest(0.0)
 {
   // TODO Auto-generated constructor stub
 
@@ -57,7 +57,7 @@ double Intx2MeshOnSphere::setup_red_cell(EntityHandle red, int & nsRed) {
   {
     // populate coords in the plane for intersection
     // they should be oriented correctly, positively
-    rval = gnomonic_projection(redCoords[j],  R, plane, redCoords2D[2 * j],
+    rval = gnomonic_projection(redCoords[j],  Rdest, plane, redCoords2D[2 * j],
         redCoords2D[2 * j + 1]);MB_CHK_ERR_RET_VAL(rval,cellArea);
   }
 
@@ -95,8 +95,27 @@ ErrorCode Intx2MeshOnSphere::computeIntersectionBetweenRedAndBlue(EntityHandle r
     // look at the boxes formed with vertices; if they are far away, return false early
     // make sure the red is setup already
     setup_red_cell(red, nsRed); // we do not need area here
-    if (!GeomUtil::bounding_boxes_overlap(redCoords, nsRed, blueCoords, nsBlue, box_error))
+    // use here gnomonic plane (plane) to see where blue is
+    bool overlap3d = GeomUtil::bounding_boxes_overlap(redCoords, nsRed, blueCoords, nsBlue, box_error);
+    int planeb;
+    CartVect mid3 = (blueCoords[0]+blueCoords[1]+blueCoords[2])/3;
+    decide_gnomonic_plane(mid3, planeb);
+    if (!overlap3d && (plane!=planeb)) // plane was set at setup_red_cell
       return MB_SUCCESS; // no error, but no intersection, decide early to get out
+    // if same plane, still check for gnomonic plane in 2d
+    // if no overlap in 2d, get out
+    if (!overlap3d && plane==planeb) // CHECK 2D too
+    {
+      for (int j=0; j<nsBlue; j++)
+      {
+        rval = gnomonic_projection(blueCoords[j], Rsrc, plane, blueCoords2D[2 * j],
+            blueCoords2D[2 * j + 1]);MB_CHK_ERR(rval);
+      }
+      bool overlap2d = GeomUtil::bounding_boxes_overlap_2d (blueCoords2D, nsBlue, redCoords2D, nsRed, box_error);
+      if (!overlap2d)
+        return MB_SUCCESS; // we are sure they are not overlapping in 2d , either
+    }
+
   }
 #ifdef ENABLE_DEBUG
   if (dbg_1)
@@ -118,7 +137,7 @@ ErrorCode Intx2MeshOnSphere::computeIntersectionBetweenRedAndBlue(EntityHandle r
 
   for (int j=0; j<nsBlue; j++)
   {
-    rval = gnomonic_projection(blueCoords[j], R, plane, blueCoords2D[2 * j],
+    rval = gnomonic_projection(blueCoords[j], Rsrc, plane, blueCoords2D[2 * j],
         blueCoords2D[2 * j + 1]);MB_CHK_ERR(rval);
   }
 
@@ -232,7 +251,7 @@ ErrorCode Intx2MeshOnSphere::findNodes(EntityHandle red, int nsRed, EntityHandle
     double * pp = &iP[2 * i]; // iP+2*i
     // project the point back on the sphere
     CartVect pos;
-    reverse_gnomonic_projection(pp[0], pp[1], R, plane, pos);
+    reverse_gnomonic_projection(pp[0], pp[1], Rdest, plane, pos);
     int found = 0;
     // first, are they on vertices from red or blue?
     // priority is the red mesh (mb2?)
@@ -390,6 +409,12 @@ ErrorCode Intx2MeshOnSphere::findNodes(EntityHandle red, int nsRed, EntityHandle
 
     counting++;
     rval = mb->tag_set_data(countTag, &polyNew, 1, &counting);MB_CHK_ERR(rval);
+    if (orgSendProcTag)
+    {
+      int org_proc=-1;
+      rval = mb->tag_get_data(orgSendProcTag, &blue, 1, &org_proc);MB_CHK_ERR(rval);
+      rval = mb->tag_set_data(orgSendProcTag, &polyNew, 1, &org_proc);MB_CHK_ERR(rval);// yet another tag
+    }
 
 #ifdef ENABLE_DEBUG
     if (dbg_1)
@@ -490,7 +515,9 @@ ErrorCode Intx2MeshOnSphere::update_tracer_data(EntityHandle out_set, Tag & tagE
     //EntityHandle red = rs2[redIndex];
     // big assumption here, red and blue are "parallel" ;we should have an index from
     // blue to red (so a deformed blue corresponds to an arrival red)
-    double areap = area_spherical_element(mb, poly, R);
+    /// TODO: VSM: Its unclear whether we need the source or destination radius here.
+    double radius = Rsrc;
+    double areap = area_spherical_element(mb, poly, radius);
     check_intx_area+=areap;
     // so the departure cell at time t (blueIndex) covers a portion of a redCell
     // that quantity will be transported to the redCell at time t+dt
@@ -581,7 +608,7 @@ ErrorCode Intx2MeshOnSphere::update_tracer_data(EntityHandle out_set, Tag & tagE
   {
     for (int k=0; k<numTracers; k++)
       std::cout <<"total mass now tracer k=" << k+1<<" "  << total_mass[k] << "\n";
-    std::cout <<"check: total intersection area: (4 * M_PI * R^2): " << 4 * M_PI * R*R << " " << total_intx_area << "\n";
+    std::cout <<"check: total intersection area: (4 * M_PI * R^2): " << 4 * M_PI * Rsrc*Rsrc << " " << total_intx_area << "\n";
   }
 
   if (remote_cells_with_tracers)
@@ -592,9 +619,528 @@ ErrorCode Intx2MeshOnSphere::update_tracer_data(EntityHandle out_set, Tag & tagE
 #else
   for (int k=0; k<numTracers; k++)
         std::cout <<"total mass now tracer k=" << k+1<<" "  << total_mass_local[k] << "\n";
-  std::cout <<"check: total intersection area: (4 * M_PI * R^2): " << 4 * M_PI * R*R << " " << check_intx_area << "\n";
+  std::cout <<"check: total intersection area: (4 * M_PI * R^2): " << 4 * M_PI * Rsrc*Rsrc << " " << check_intx_area << "\n";
 #endif
   return MB_SUCCESS;
 }
 
+#ifdef MOAB_HAVE_MPI
+ErrorCode Intx2MeshOnSphere::build_processor_euler_boxes(EntityHandle euler_set, Range & local_verts)
+{
+  localEnts.clear();
+  ErrorCode rval = mb->get_entities_by_dimension(euler_set, 2, localEnts); MB_CHK_SET_ERR(rval, "can't get local ents");
+
+  rval = mb->get_connectivity(localEnts, local_verts); MB_CHK_SET_ERR(rval, "can't get connectivity");
+  int num_local_verts = (int) local_verts.size();
+
+  assert(parcomm != NULL);
+
+  // will use 6 gnomonic planes to decide boxes for each gnomonic plane
+  // each gnomonic box will be 2d, min, max
+  double gnom_box[24];
+  for (int i=0; i<6; i++)
+  {
+    gnom_box[4*i  ] = gnom_box[4*i+1] =  DBL_MAX;
+    gnom_box[4*i+2] = gnom_box[4*i+3] = -DBL_MAX;
+  }
+
+  // there are 6 gnomonic planes; some elements could be on the corners, and affect multiple planes
+  // decide what gnomonic planes will be affected by each cell
+  // some elements could appear in multiple gnomonic planes !
+  std::vector<double> coords(3*num_local_verts);
+  rval = mb->get_coords(local_verts, &coords[0]); MB_CHK_SET_ERR(rval, "can't get vertex coords");
+  ERRORR(rval, "can't get coords of vertices ");
+  // decide each local vertex to what gnomonic plane it belongs
+
+  std::vector<int> gnplane;
+  gnplane.resize(num_local_verts);
+  for (int i=0; i<num_local_verts; i++)
+  {
+    CartVect pos(&coords[3*i]);
+    int pl;
+    decide_gnomonic_plane(pos, pl);
+    gnplane[i] = pl;
+  }
+
+  for (Range::iterator it=localEnts.begin(); it!= localEnts.end(); it++ )
+  {
+    EntityHandle cell = *it;
+    // get coordinates, and decide gnomonic planes for it
+    int nnodes;
+    const EntityHandle * conn=NULL;
+    rval = mb->get_connectivity(cell, conn, nnodes); MB_CHK_SET_ERR(rval, "can't get connectivity");
+    // get coordinates of vertices involved with this
+    std::vector<double> elco(3*nnodes);
+    std::set<int> planes;
+    for (int i=0; i<nnodes; i++)
+    {
+      int ix = local_verts.index(conn[i]);
+      planes.insert(gnplane[ix]);
+      for (int j=0; j<3; j++)
+      {
+        elco[3*i+j] = coords[3*ix+j];
+      }
+    }
+    // now, augment the boxes for all planes involved
+    for (std::set<int>::iterator st=planes.begin(); st!=planes.end(); st++)
+    {
+      int pl = *st;
+      for (int i=0; i<nnodes; i++)
+      {
+        CartVect pos(&elco[3*i]);
+        double c2[2];
+        gnomonic_projection(pos, Rdest, pl, c2[0], c2[1]);  // 2 coordinates
+        //
+        for (int k=0; k<2; k++)
+        {
+          double val=c2[k];
+          if (val < gnom_box[4*(pl-1)+k])
+            gnom_box[4*(pl-1)+k] = val; // min in k direction
+          if (val > gnom_box[4*(pl-1)+ 2 + k])
+            gnom_box[4*(pl-1)+ 2 + k] = val; // max in k direction
+        }
+      }
+    }
+  }
+
+  int numprocs=parcomm->proc_config().proc_size();
+  allBoxes.resize(24*numprocs); // 6 gnomonic planes , 4 doubles for each for 2d box
+
+  my_rank = parcomm->proc_config().proc_rank() ;
+  for (int k=0; k<24; k++)
+    allBoxes[24*my_rank+k]=gnom_box[k];
+
+
+   // now communicate to get all boxes
+  int mpi_err;
+#if (MPI_VERSION >= 2)
+    // use "in place" option
+  mpi_err = MPI_Allgather(MPI_IN_PLACE, 0, MPI_DATATYPE_NULL,
+                          &allBoxes[0], 24, MPI_DOUBLE,
+                          parcomm->proc_config().proc_comm());
+#else
+  {
+    std::vector<double> allBoxes_tmp(24*parcomm->proc_config().proc_size());
+    mpi_err = MPI_Allgather( &allBoxes[24*my_rank], 6, MPI_DOUBLE,
+                             &allBoxes_tmp[0], 24, MPI_DOUBLE,
+                             parcomm->proc_config().proc_comm());
+    allBoxes = allBoxes_tmp;
+  }
+#endif
+  if (MPI_SUCCESS != mpi_err) return MB_FAILURE;
+
+#ifdef VERBOSE
+  if (my_rank==0)
+  {
+    std::cout << " maximum number of vertices per cell are " << max_edges_1 << " on first mesh and "
+       << max_edges_2 << " on second mesh \n";
+    for (int i=0; i<numprocs; i++)
+    {
+      std::cout<<"task: " << i << " \n";
+      for (int pl=1; pl <=6; pl++)
+      {
+        std::cout << "  plane " << pl<<" min: \t" << allBoxes[24*i +4*(pl-1)] << " \t" << allBoxes[24*i +4*(pl-1)+1] << "\n";
+        std::cout << " \t  max: \t" << allBoxes[24*i +4*(pl-1)+2] << " \t" << allBoxes[24*i +4*(pl-1)+3] << "\n";
+      }
+    }
+  }
+#endif
+
+  return MB_SUCCESS;
+}
+
+// this will use the bounding boxes for the (euler)/ fix  mesh that are already established
+// will distribute the mesh to other procs, so that on each task, the covering set covers the local bounding box
+// this means it will cover the second (local) mesh set;
+// So the covering set will cover completely the second local mesh set (in intersection)
+ErrorCode Intx2MeshOnSphere::construct_covering_set(EntityHandle & initial_distributed_set, EntityHandle & covering_set)
+{
+  assert(parcomm != NULL);
+  if ( 1==parcomm->proc_config().proc_size())
+  {
+    covering_set = initial_distributed_set; // nothing to move around, it must be serial
+    return MB_SUCCESS;
+  }
+
+  // primary element came from, in the joint communicator ; this will be forwarded by coverage mesh
+  // needed for tag migrate later on
+  int defaultInt=-1; // no processor, so it was not migrated from somewhere else
+  ErrorCode rval = mb->tag_get_handle("orig_sending_processor", 1, MB_TYPE_INTEGER, orgSendProcTag,
+      MB_TAG_DENSE | MB_TAG_CREAT, &defaultInt);MB_CHK_SET_ERR(rval, "can't create original sending processor tag");
+
+  // mark on the coverage mesh where this element came from
+  Tag sendProcTag; /// for coverage mesh, will store the sender
+  rval = mb->tag_get_handle("sending_processor", 1, MB_TYPE_INTEGER, sendProcTag,
+        MB_TAG_DENSE | MB_TAG_CREAT, &defaultInt);MB_CHK_SET_ERR(rval, "can't create sending processor tag");
+
+  // this information needs to be forwarded to coverage mesh, if this mesh was already migrated from somewhere else
+  Range meshCells;
+  rval = mb->get_entities_by_dimension(initial_distributed_set, 2, meshCells);MB_CHK_SET_ERR(rval, "can't get cells by dimension from mesh set");
+
+  // look at the value of orgSendProcTag for one mesh cell; if -1, no need to forward that; if !=-1,
+  // we know that this mesh was migrated, we need to find out more about origin of cell
+  int orig_sender =-1;
+  EntityHandle oneCell= meshCells[0];
+  rval = mb->tag_get_data(orgSendProcTag, &oneCell, 1, &orig_sender); MB_CHK_SET_ERR(rval, "can't get original sending processor value");
+
+  int migrated_mesh = 0;
+  if (orig_sender != -1) migrated_mesh = 1; //
+
+  // decide if we need to transfer global DOFs info attached to each HOMME coarse cell; first we need to decide if the mesh
+  // has that tag; will affect the size of the tuple list involved in the crystal routing
+  int size_gdofs_tag=0;
+  std::vector<int> valsDOFs;
+  Tag gdsTag;
+  rval = mb->tag_get_handle("GLOBAL_DOFS", gdsTag);
+  if (MB_SUCCESS == rval && gdsTag)
+  {
+    DataType dtype;
+    rval = mb->tag_get_data_type(gdsTag, dtype);
+    if (MB_SUCCESS == rval && MB_TYPE_INTEGER == dtype)
+    {
+      // find the values on first cell
+      int lenTag = 0;
+      rval = mb->tag_get_length(gdsTag, lenTag);
+      if (MB_SUCCESS == rval && lenTag > 0)
+      {
+        valsDOFs.resize(lenTag);
+        rval = mb->tag_get_data(gdsTag, &oneCell, 1, &valsDOFs[0]);
+        if (MB_SUCCESS == rval && valsDOFs[0]>0 )
+        {
+          // first value positive means we really need to transport this data during coverage
+          size_gdofs_tag = lenTag;
+        }
+      }
+    }
+  }
+  // if size_gdofs_tag>0, we are sure valsDOFs got resized to what we need
+
+  // get all mesh verts1
+  Range mesh_verts;
+  rval = mb->get_connectivity(meshCells, mesh_verts);MB_CHK_SET_ERR(rval, "can't get  mesh vertices");
+  int num_mesh_verts = (int) mesh_verts.size();
+
+  // now see the mesh points positions; to what boxes should we send them?
+  std::vector<double> coords_mesh(3 * num_mesh_verts);
+  rval = mb->get_coords(mesh_verts, &coords_mesh[0]);MB_CHK_SET_ERR(rval, "can't get mesh points position");
+
+  // decide gnomonic plane for each vertex, as in the compute boxes
+  std::vector<int> gnplane;
+  gnplane.resize(num_mesh_verts);
+  for (int i=0; i<num_mesh_verts; i++)
+  {
+    CartVect pos(&coords_mesh[3*i]);
+    int pl;
+    decide_gnomonic_plane(pos, pl);
+    gnplane[i] = pl;
+  }
+
+  std::vector<int> gids(num_mesh_verts);
+  rval = mb->tag_get_data(gid, mesh_verts, &gids[0]);MB_CHK_SET_ERR(rval, "can't get vertices gids");
+
+  // ranges to send to each processor; will hold vertices and elements (quads/ polygons)
+  // will look if the box of the mesh cell covers bounding box(es) (within tolerances)
+  std::map<int, Range> Rto;
+  int numprocs = parcomm->proc_config().proc_size();
+
+  for (Range::iterator eit = meshCells.begin(); eit != meshCells.end(); ++eit)
+  {
+    EntityHandle q = *eit;
+    const EntityHandle * conn;
+    int num_nodes;
+    rval = mb->get_connectivity(q, conn, num_nodes);MB_CHK_SET_ERR(rval, "can't get connectivity on cell");
+
+    // first decide what planes need to consider
+    std::set<int> planes; // if this list contains more than 3 planes, we have a very bad mesh!!!
+    std::vector<double> elco(3*num_nodes);
+    for (int i = 0; i < num_nodes; i++)
+    {
+      EntityHandle v = conn[i];
+      int index = mesh_verts.index(v);
+      planes.insert(gnplane[index]);
+      for (int j=0; j<3; j++)
+      {
+        elco[3*i+j] = coords_mesh[3*index+j]; // extract from coords
+      }
+    }
+    // now loop over all planes that need to be considered for this element
+    for (std::set<int>::iterator st=planes.begin(); st!=planes.end(); st++)
+    {
+      int pl = *st; // gnomonic plane considered
+      double qmin[2] = { DBL_MAX,  DBL_MAX};
+      double qmax[2] = {-DBL_MAX, -DBL_MAX};
+      for (int i = 0; i < num_nodes; i++)
+      {
+        CartVect dp(&elco[3 * i]); // uses constructor for CartVect that takes a pointer to double
+        // gnomonic projection
+        double c2[2];
+        gnomonic_projection(dp, Rsrc, pl, c2[0], c2[1]);  // 2 coordinates
+        for (int j = 0; j < 2; j++)
+        {
+          if (qmin[j] > c2[j])
+            qmin[j] = c2[j];
+          if (qmax[j] < c2[j])
+            qmax[j] = c2[j];
+        }
+      }
+      // now decide if processor p should be interested in this cell, by looking at plane pl 2d box
+      // this is one of the few size n loops;
+      for (int p = 0; p < numprocs; p++) // each cell q can be sent to more than one processor
+      {
+        double procMin1 = allBoxes[24 * p + 4*(pl-1)  ];  // these were determined before
+        //
+        if (procMin1>=DBL_MAX) // the processor has no targets on this plane
+          continue;
+        double procMin2 = allBoxes[24 * p + 4*(pl-1)+1];
+        double procMax1 = allBoxes[24 * p + 4*(pl-1)+2];
+        double procMax2 = allBoxes[24 * p + 4*(pl-1)+3];
+        // test overlap of 2d boxes
+        if (procMin1 > qmax[0] + box_error || procMin2 > qmax[1] + box_error )
+          continue; //
+        if (qmin[0] > procMax1 + box_error || qmin[1] > procMax2 + box_error )
+          continue;
+        // good to be inserted
+        Rto[p].insert(q);
+
+      }
+    }
+
+  }
+
+  // here, we will use crystal router to send each cell to designated tasks (mesh migration)
+
+  // a better implementation would be to use pcomm send / recv entities; a good test case
+  // pcomm send / receives uses point to point communication, not global gather / scatter
+
+  // now, build TLv and TLq  (tuple list for vertices and cells, separately sent)
+  size_t numq = 0;
+  size_t numv = 0;
+
+  // merge the list of vertices to be sent
+  for (int p = 0; p < numprocs; p++)
+  {
+    if (p == (int) my_rank)
+      continue; // do not "send" it to current task, because it is already here
+    Range & range_to_P = Rto[p];
+    // add the vertices to it
+    if (range_to_P.empty())
+      continue; // nothing to send to proc p
+    Range vertsToP;
+    rval = mb->get_connectivity(range_to_P, vertsToP);MB_CHK_SET_ERR(rval, "can't get connectivity");
+    numq = numq + range_to_P.size();
+    numv = numv + vertsToP.size();
+    range_to_P.merge(vertsToP);
+  }
+
+  TupleList TLv; // send vertices with a different tuple list
+  TupleList TLq;
+  TLv.initialize(2, 0, 0, 3, numv); // to proc, GLOBAL ID, 3 real coordinates
+  TLv.enableWriteAccess();
+
+  // add also GLOBAL_DOFS info, if found on the mesh cell; it should be found only on HOMME cells!
+  int sizeTuple = 2 + max_edges_1 + migrated_mesh + size_gdofs_tag; // max edges could be up to MAXEDGES :) for polygons
+  TLq.initialize(sizeTuple, 0, 0, 0, numq); // to proc, elem GLOBAL ID, connectivity[max_edges] (global ID v), plus original sender if set (migrated mesh case)
+  // we will not send the entity handle, global ID should be more than enough
+  // we will not need more than 2B vertices
+  // if we need more than 2B, we will need to use a different marker anyway (GLOBAL ID is not enough then)
+
+  TLq.enableWriteAccess();
+#ifdef VERBOSE
+  std::cout << "from proc " << my_rank << " send " << numv << " vertices and "
+      << numq << " elements\n";
+#endif
+
+  for (int to_proc = 0; to_proc < numprocs; to_proc++)
+  {
+    if (to_proc == (int) my_rank)
+      continue;
+    Range & range_to_P = Rto[to_proc];
+    Range V = range_to_P.subset_by_type(MBVERTEX);
+
+    for (Range::iterator it = V.begin(); it != V.end(); ++it)
+    {
+      EntityHandle v = *it;
+      int index = mesh_verts.index(v);//
+      assert(-1!=index);
+      int n = TLv.get_n(); // current size of tuple list
+      TLv.vi_wr[2 * n] = to_proc; // send to processor
+      TLv.vi_wr[2 * n + 1] = gids[index]; // global id needs index in the second_mesh_verts range
+      TLv.vr_wr[3 * n] = coords_mesh[3 * index]; // departure position, of the node local_verts[i]
+      TLv.vr_wr[3 * n + 1] = coords_mesh[3 * index + 1];
+      TLv.vr_wr[3 * n + 2] = coords_mesh[3 * index + 2];
+      TLv.inc_n(); // increment tuple list size
+    }
+    // also, prep the 2d cells for sending ...
+    Range Q = range_to_P.subset_by_dimension(2);
+    for (Range::iterator it = Q.begin(); it != Q.end(); ++it)
+    {
+      EntityHandle q = *it; // this is a second mesh cell (or blue, lagrange set)
+      int global_id;
+      rval = mb->tag_get_data(gid, &q, 1, &global_id);MB_CHK_SET_ERR(rval, "can't get gid for polygon");
+      int n = TLq.get_n(); // current size
+      TLq.vi_wr[sizeTuple * n] = to_proc; //
+      TLq.vi_wr[sizeTuple * n + 1] = global_id; // global id of element, used to identify it for debug purposes only
+      const EntityHandle * conn4;
+      int num_nodes; // could be up to MAXEDGES; max_edges?;
+      rval = mb->get_connectivity(q, conn4, num_nodes);MB_CHK_SET_ERR(rval, "can't get connectivity for cell");
+      if (num_nodes > max_edges_1) {
+        mb->list_entities(&q,1);
+        MB_CHK_SET_ERR(MB_FAILURE, "too many nodes in a cell (" << num_nodes << "," << max_edges_1 << ")");
+      }
+      for (int i = 0; i < num_nodes; i++)
+      {
+        EntityHandle v = conn4[i];
+        int index = mesh_verts.index(v);
+        assert(-1!=index);
+        TLq.vi_wr[sizeTuple * n + 2 + i] = gids[index];
+      }
+      for (int k = num_nodes; k < max_edges_1; k++)
+      {
+        TLq.vi_wr[sizeTuple * n + 2 + k] = 0; // fill the rest of node ids with 0; we know that the node ids start from 1!
+      }
+      int currentIndexIntTuple = 2+max_edges_1;
+      // is the mesh migrated before or not?
+      if (migrated_mesh)
+      {
+        rval = mb->tag_get_data(orgSendProcTag, &q, 1, &orig_sender);MB_CHK_SET_ERR(rval, "can't get original sender for polygon, in migrate scenario");
+        TLq.vi_wr[sizeTuple * n + currentIndexIntTuple] = orig_sender; // should be different than -1
+        currentIndexIntTuple ++;
+      }
+      // GLOBAL_DOFS info, if available
+      if (size_gdofs_tag)
+      {
+        rval = mb->tag_get_data(gdsTag, &q, 1, &valsDOFs[0]);MB_CHK_SET_ERR(rval, "can't get gdofs data in HOMME");
+        for (int i=0; i<size_gdofs_tag; i++)
+        {
+          TLq.vi_wr[sizeTuple * n + currentIndexIntTuple + i] = valsDOFs[i]; // should be different than 0 or -1
+        }
+      }
+
+      TLq.inc_n(); // increment tuple list size
+
+    }
+  } // end for loop over total number of processors
+
+  // now we are done populating the tuples; route them to the appropriate processors
+  // this does the communication magic
+  (parcomm->proc_config().crystal_router())->gs_transfer(1, TLv, 0);
+  (parcomm->proc_config().crystal_router())->gs_transfer(1, TLq, 0);
+
+  // the first mesh elements are in localEnts; we do not need them at all
+
+  // maps from global ids to new vertex and cell handles, that are added
+
+  std::map<int, EntityHandle> globalID_to_vertex_handle;
+  // we already have some vertices from second mesh set; they are already in the processor, even before receiving other
+  // verts from neighbors
+  // this is an inverse map from gid to vertex handle, which is local here, we do not want to duplicate vertices
+  // their identifier is the global ID!! it must be unique per mesh ! (I mean, second mesh); gid gor first mesh is not needed here
+  int k=0;
+  for (Range::iterator vit=mesh_verts.begin(); vit!=mesh_verts.end(); ++vit, k++)
+  {
+    globalID_to_vertex_handle[gids[k]] = *vit;
+  }
+  /*std::map<int, EntityHandle> globalID_to_eh;*/ // do we need this one?
+  globalID_to_eh.clear();  // we do not really need it, but we keep it for debugging mostly
+
+  // now, look at every TLv, and see if we have to create a vertex there or not
+  int n = TLv.get_n(); // the size of the points received
+  for (int i = 0; i < n; i++)
+  {
+    int globalId = TLv.vi_rd[2 * i + 1];
+    if (globalID_to_vertex_handle.find(globalId) == globalID_to_vertex_handle.end()) // we do not have locally this vertex (yet)
+      // so we have to create it, and add to the inverse map
+    {
+      EntityHandle new_vert;
+      double dp_pos[3] = { TLv.vr_wr[3 * i], TLv.vr_wr[3 * i + 1], TLv.vr_wr[3 * i + 2] };
+      rval = mb->create_vertex(dp_pos, new_vert);MB_CHK_SET_ERR(rval, "can't create new vertex ");
+      globalID_to_vertex_handle[globalId] = new_vert; // now add it to the map
+      // set the GLOBAL ID tag on the new vertex
+      rval = mb->tag_set_data(gid, &new_vert, 1, &globalId); MB_CHK_SET_ERR(rval, "can't set global ID tag on new vertex ");
+    }
+  }
+
+  // now, all necessary vertices should be created
+  // look in the local list of 2d cells for this proc, and add all those cells to covering set also
+
+  Range & local = Rto[my_rank];
+  Range local_q = local.subset_by_dimension(2);
+
+  for (Range::iterator it = local_q.begin(); it != local_q.end(); ++it)
+  {
+    EntityHandle q = *it;// these are from lagr cells, local
+    int gid_el;
+    rval = mb->tag_get_data(gid, &q, 1, &gid_el);MB_CHK_SET_ERR(rval, "can't get global id of cell ");
+    assert(gid_el >= 0);
+    globalID_to_eh[gid_el] = q; // do we need this? yes, now we do; parent tags are now using it heavily
+    rval = mb->tag_set_data(sendProcTag, &q, 1, &my_rank);MB_CHK_SET_ERR(rval, "can't set sender for cell");
+  }
+
+  // now look at all elements received through; we do not want to duplicate them
+  n = TLq.get_n(); // number of elements received by this processor
+  // a cell should be received from one proc only; so why are we so worried about duplicated elements?
+  // a vertex can be received from multiple sources, that is fine
+
+  for (int i = 0; i < n; i++)
+  {
+    int globalIdEl = TLq.vi_rd[sizeTuple * i + 1];
+    // int from_proc=TLq.vi_rd[sizeTuple * i ]; // we do not need from_proc anymore
+
+    // do we already have a quad with this global ID, represented? no way !
+    //if (globalID_to_eh.find(globalIdEl) == globalID_to_eh.end())
+    //{
+    // construct the conn triangle , quad or polygon
+    EntityHandle new_conn[MAXEDGES]; // we should use std::vector with max_edges_1
+    int nnodes = -1;
+    for (int j = 0; j < max_edges_1; j++)
+    {
+      int vgid = TLq.vi_rd[sizeTuple * i + 2 + j]; // vertex global ID
+      if (vgid == 0)
+        new_conn[j] = 0; // this can actually happen for polygon mesh (when we have less number of vertices than max_edges)
+      else
+      {
+        assert(globalID_to_vertex_handle.find(vgid)!=globalID_to_vertex_handle.end());
+        new_conn[j] = globalID_to_vertex_handle[vgid];
+        nnodes = j + 1; // nodes are at the beginning, and are variable number
+      }
+    }
+    EntityHandle new_element;
+    //
+    EntityType entType = MBQUAD;
+    if (nnodes > 4)
+      entType = MBPOLYGON;
+    if (nnodes < 4)
+      entType = MBTRI;
+    rval = mb->create_element(entType, new_conn, nnodes, new_element);MB_CHK_SET_ERR(rval, "can't create new element for second mesh ");
+
+    globalID_to_eh[globalIdEl] = new_element;
+    local_q.insert(new_element);
+    rval = mb->tag_set_data(gid, &new_element, 1, &globalIdEl);MB_CHK_SET_ERR(rval, "can't set gid for cell ");
+    int currentIndexIntTuple = 2 + max_edges_1;
+    if (migrated_mesh)
+    {
+      orig_sender = TLq.vi_wr[sizeTuple * i + currentIndexIntTuple];
+      rval = mb->tag_set_data(orgSendProcTag, &new_element, 1, &orig_sender);MB_CHK_SET_ERR(rval, "can't set original sender for cell, in migrate scenario");
+      currentIndexIntTuple ++;// add one more
+    }
+    // check if we need to retrieve and set GLOBAL_DOFS data
+    if (size_gdofs_tag)
+    {
+      for (int j=0; j<size_gdofs_tag; j++)
+      {
+        valsDOFs[j] = TLq.vi_wr[sizeTuple * i + currentIndexIntTuple + j];
+      }
+      rval = mb->tag_set_data(gdsTag, &new_element, 1, &valsDOFs[0]);MB_CHK_SET_ERR(rval, "can't set GLOBAL_DOFS data on coverage mesh");
+    }
+    // store also the processor this coverage element came from
+    int from_proc = TLq.vi_rd[sizeTuple * i];
+    rval = mb->tag_set_data(sendProcTag, &new_element, 1, &from_proc);MB_CHK_SET_ERR(rval, "can't set sender for cell");
+  }
+
+  // now, create a new set, covering_set
+  rval = mb->add_entities(covering_set, local_q);MB_CHK_SET_ERR(rval,  "can't add entities to new mesh set ");
+  return MB_SUCCESS;
+}
+
+#endif // MOAB_HAVE_MPI
 } /* namespace moab */

@@ -793,7 +793,7 @@ ErrorCode Coupler::nat_param(double xyz[3],
 
       spcHex->set_gl_points((double*)xval, (double*)yval, (double*)zval);
       try {
-        tmp_nat_coords = spcHex->ievaluate(epsilon, CartVect(xyz) ); // introduce
+        tmp_nat_coords = spcHex->ievaluate(CartVect(xyz), epsilon ); // introduce
         bool inside = spcHex->inside_nat_space(CartVect(tmp_nat_coords), epsilon);
         if (!inside) {
 #ifdef VERBOSE

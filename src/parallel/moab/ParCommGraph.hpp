@@ -14,6 +14,7 @@
  */
 #include "moab_mpi.h"
 #include "moab/Interface.hpp"
+#include "moab/ParallelComm.hpp"
 #include <map>
 
 
@@ -30,17 +31,6 @@ namespace moab {
 
 	  // collective constructor, will be called on all sender tasks and receiver tasks
 	  ParCommGraph(MPI_Comm joincomm, MPI_Group group1, MPI_Group group2, int coid1, int coid2);
-
-	  /**
-	    \brief find ranks of a group with respect to an encompassing communicator
-
-	    <B>Operations:</B> Local, usually called on root process of the group
-
-      \param[in]  joincomm (MPI_Comm)
-	    \param[in]  group (MPI_Group)
-	    \param[out] ranks ( std::vector<int>)  ranks with respect to the joint communicator
-	  */
-	  void find_group_ranks(MPI_Group group, MPI_Comm join, std::vector<int> & ranks);
 
 	  /**
 	    \brief  Based on the number of elements on each task in group 1, partition for group 2, trivially
@@ -86,33 +76,68 @@ namespace moab {
 
 	  bool is_root_receiver () { return rootReceiver;}
 
-	  int get_index_sender() { return index_sender;}
-	  int get_index_receiver() { return index_receiver;}
-
 	  int sender(int index) {return senderTasks[index];}
 
 	  int receiver(int index) {return receiverTasks[index];}
 
-	  // setter methods for private data
-	  void set_index_sender(int ix1) {index_sender=ix1;}
-	  void set_index_receiver(int ix2) {index_receiver=ix2;}
-
 	  int get_component_id1(){return compid1;}
 	  int get_component_id2(){return compid2;}
 
-	  // return local graph for a specific root
-	  ErrorCode split_owned_range (int sender_rank, Range & owned, std::map<int, Range> & split_ranges);
+	  // return local graph for a specific task
+	  ErrorCode split_owned_range (int sender_rank, Range & owned);
 
+	  ErrorCode split_owned_range (Range & owned);
+
+	  ErrorCode send_graph(MPI_Comm jcomm);
+
+	  ErrorCode send_graph_partition (ParallelComm *pco, MPI_Comm jcomm);
+
+	  ErrorCode send_mesh_parts(MPI_Comm jcomm, ParallelComm * pco, Range & owned );
+
+	  // this is called on receiver side
+	  ErrorCode receive_comm_graph(MPI_Comm jcomm, ParallelComm *pco, std::vector<int> & pack_array);
+
+    ErrorCode receive_mesh(MPI_Comm jcomm, ParallelComm *pco, EntityHandle local_set,
+        std::vector<int> &senders_local);
+
+	  ErrorCode release_send_buffers(MPI_Comm jcomm);
+
+	  ErrorCode send_tag_values (MPI_Comm jcomm, ParallelComm *pco, Range & owned,
+	      std::vector<Tag> & tag_handles );
+
+	  ErrorCode receive_tag_values (MPI_Comm jcomm, ParallelComm *pco, Range & owned,
+        std::vector<Tag> & tag_handles );
+
+	  // getter method
+	  const std::vector<int> & senders() { return senderTasks; } //reference copy; refers to sender tasks in joint comm
+	  const std::vector<int> & receivers() { return receiverTasks; }
+
+	  ErrorCode settle_send_graph(TupleList & TLcovIDs);
+
+	  // this will set after_cov_rec_sizes
+	  void SetReceivingAfterCoverage(std::map<int, std::set<int> > & idsFromProcs); // will make sense only on receivers, right now after cov
+
+	  // new partition calculation
+	  ErrorCode compute_partition (ParallelComm *pco, Range & owned, int met);
 	private:
+	  /**
+      \brief find ranks of a group with respect to an encompassing communicator
+
+      <B>Operations:</B> Local, usually called on root process of the group
+
+      \param[in]  joincomm (MPI_Comm)
+      \param[in]  group (MPI_Group)
+      \param[out] ranks ( std::vector<int>)  ranks with respect to the joint communicator
+    */
+	  void find_group_ranks(MPI_Group group, MPI_Comm join, std::vector<int> & ranks);
+
 	  MPI_Comm  comm;
-	  MPI_Group gr1, gr2;
-	  std::vector<int>  senderTasks;
-	  std::vector<int>  receiverTasks;
+	  std::vector<int>  senderTasks;  // these are the sender tasks in joint comm
+	  std::vector<int>  receiverTasks; // these are all the receiver tasks in joint comm
 	  bool rootSender;
 	  bool rootReceiver;
-	  int rankInGroup1, rankInGroup2;
+	  int rankInGroup1, rankInGroup2; // group 1 is sender, 2 is receiver
 	  int rankInJoin, joinSize;
-	  int index_sender, index_receiver; // indices in the list of local graphs referred by this application (not used yet)
 	  int compid1, compid2;
 
 	  // communication graph from group1 to group2;
@@ -122,6 +147,28 @@ namespace moab {
 	  std::map<int, std::vector<int> >  sender_graph; // to what tasks from group2 to send  (actual communication graph)
 	  std::map<int, std::vector<int> >  sender_sizes; // how many elements to actually send from a sender task to receiver tasks
 
+	  std::vector<ParallelComm::Buffer*> localSendBuffs; // this will store the pointers to the Buffers
+	  //                                    will be  released only when all mpi requests are waited for
+	  int * comm_graph; // this will store communication graph, on sender master, sent by nonblocking send to
+	                    // the master receiver
+	                    // first integer will be the size of the graph, the rest will be the packed graph, for trivial partition
+
+	  // these will be now used to store ranges to be sent from current sender to each receiver in joint comm
+	  std::map<int, Range> split_ranges;
+
+	  std::vector<MPI_Request> sendReqs; // there will be multiple requests, 2 for comm graph, 2 for each Buffer
+	  // there are as many buffers as sender_graph[rankInJoin].size()
+
+	  // active on both receiver and sender sides
+	  std::vector<int> corr_tasks; // subset of the senderTasks, in the joint comm for sender;
+	                                // subset of receiverTasks for receiver side
+	  std::vector<int> corr_sizes ; // how many primary entities corresponding to the other side
+	  // so what we know is that the local range corresponds to remote corr_sizes[i] size ranges on tasks corr_tasks[i]
+
+	  // these will be used now after coverage, quick fix; they will also be populated by iMOAB_CoverageGraph
+	  bool recomputed_send_graph; // this should be false , set to true in settle send graph, to use send_IDs_map
+	  std::map<int ,std::vector<int> > send_IDs_map; // maybe moab::Range instead of std::vector<int> // these will be on sender side
+	  std::map<int, std::vector<int> > recv_IDs_map; // receiver side, after coverage, how many elements need to be received from each sender process
 
 };
 

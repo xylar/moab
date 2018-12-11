@@ -25,6 +25,7 @@ int Intx2Mesh::dbg_1=0;
 Intx2Mesh::Intx2Mesh(Interface * mbimpl): mb(mbimpl),
   mbs1(0), mbs2(0), outSet(0),
   gid(0), RedFlagTag(0), redParentTag(0), blueParentTag(0), countTag(0), blueNeighTag(0), redNeighTag(0), neighRedEdgeTag(0),
+  orgSendProcTag(0),
   redConn(NULL), blueConn(NULL),
   epsilon_1(0.0), epsilon_area(0.0), box_error(0.0),
   localRoot(0), my_rank(0)
@@ -233,6 +234,7 @@ ErrorCode Intx2Mesh::DetermineOrderedNeighbors(EntityHandle inputSet, int max_ed
   return MB_SUCCESS;
 }
 
+
 // main interface; this will do the advancing front trick
 // some are triangles, some are quads, some are polygons ...
 ErrorCode Intx2Mesh::intersect_meshes(EntityHandle mbset1, EntityHandle mbset2,
@@ -242,7 +244,14 @@ ErrorCode Intx2Mesh::intersect_meshes(EntityHandle mbset1, EntityHandle mbset2,
   mbs1 = mbset1; // set 1 is departure, and it is completely covering the euler set on proc
   mbs2 = mbset2;
   outSet = outputSet;
+#ifdef VERBOSE
+      std::stringstream ffs, fft;
+      ffs << "source_rank0"<< my_rank << ".vtk";
+      rval = mb->write_mesh(ffs.str().c_str(), &mbset1, 1);MB_CHK_ERR(rval);
+      fft << "target_rank0"<< my_rank << ".vtk";
+      rval = mb->write_mesh(fft.str().c_str(), &mbset2, 1);MB_CHK_ERR(rval);
 
+#endif
   // really, should be something from t1 and t2; blue is 1 (lagrange), red is 2 (euler)
 
   EntityHandle startBlue=0, startRed=0;
@@ -259,7 +268,12 @@ ErrorCode Intx2Mesh::intersect_meshes(EntityHandle mbset1, EntityHandle mbset2,
   {
     if (rs22.size()<rs2.size())
     {
+#if defined(ENABLE_DEBUG) || defined(VERBOSE)
       std::cout<< " possible not connected arrival mesh; my_rank: " << my_rank << " counting: " << counting <<"\n";
+      std::stringstream ffo;
+      ffo << "file0" <<  counting<<"rank0"<< my_rank << ".vtk";
+      rval = mb->write_mesh(ffo.str().c_str(), &outSet, 1);MB_CHK_ERR(rval);
+#endif
     }
     for (Range::iterator it = rs22.begin(); it != rs22.end(); ++it)
     {
@@ -362,8 +376,9 @@ ErrorCode Intx2Mesh::intersect_meshes(EntityHandle mbset1, EntityHandle mbset2,
       //mb2->set_tag_data
       std::queue<EntityHandle> localBlue;
       localBlue.push(currentBlue);
+#ifdef VERBOSE
       int countingStart = counting;
-
+#endif
       // will advance-front search in the neighborhood of red cell, until we finish processing all
       //   possible blue cells; localBlue queue will contain all possible blue cells that cover the current red cell
       while (!localBlue.empty())
@@ -448,11 +463,17 @@ ErrorCode Intx2Mesh::intersect_meshes(EntityHandle mbset1, EntityHandle mbset2,
         }
 #endif
       } // end while (!localBlue.empty())
-      double redRecovery=fabs((recoveredArea-areaRedCell)/areaRedCell); // 0 means everything got recovered
-      if ( redRecovery > epsilon_1)
+      recoveredArea = (recoveredArea-areaRedCell)/areaRedCell; // replace now with recovery fraction
+#if defined(ENABLE_DEBUG) || defined(VERBOSE)
+      if ( fabs(recoveredArea) > epsilon_1)
       {
-        std::cout << " red area: " << areaRedCell << " recovered :" <<recoveredArea << " redID: " << mb->id_from_handle(currentRed) << " countingStart:" << countingStart <<  "\n";
+#ifdef VERBOSE
+        std::cout << " red area: " << areaRedCell << " recovered :" <<recoveredArea*(1+areaRedCell) <<
+            " fraction error recovery:" << recoveredArea <<
+            " redID: " << mb->id_from_handle(currentRed) << " countingStart:" << countingStart <<  "\n";
+#endif
       }
+#endif
       // here, we are finished with redCurrent, take it out of the rs22 range (red, arrival mesh)
       rs22.erase(currentRed);
       // also, look at its neighbors, and add to the seeds a next one
@@ -661,7 +682,7 @@ ErrorCode Intx2Mesh::create_departure_mesh_2nd_alg(EntityHandle & euler_set, Ent
   int num_local_verts = (int) local_verts.size();
   ERRORR(rval, "can't get local vertices");
 
-  rval = build_processor_euler_boxes(euler_set, local_verts);
+  rval = Intx2Mesh::build_processor_euler_boxes(euler_set, local_verts);
   ERRORR(rval, "can't build processor boxes");
 
   std::vector<int> gids(num_local_verts);
@@ -736,8 +757,9 @@ ErrorCode Intx2Mesh::create_departure_mesh_2nd_alg(EntityHandle & euler_set, Ent
   int sizeTuple = 2+max_edges_1; // determined earlier, for blue, first mesh
   TLq.initialize(2+max_edges_1, 0, 1, 0, numq); // to proc, elem GLOBAL ID, connectivity[10] (global ID v), local eh
   TLq.enableWriteAccess();
+#ifdef VERBOSE
   std::cout << "from proc " << my_rank << " send " << numv << " vertices and " << numq << " elements\n";
-
+#endif
   for (int to_proc=0; to_proc<numprocs; to_proc++)
   {
     if (to_proc==(int)my_rank)
@@ -1045,8 +1067,10 @@ ErrorCode Intx2Mesh::create_departure_mesh_3rd_alg(EntityHandle & lagr_set,
   TLq.initialize(2+max_edges_1, 0, 1, 0, numq); // to proc, elem GLOBAL ID, connectivity[max_edges] (global ID v)
   // send also the corresponding red cell it will come to
   TLq.enableWriteAccess();
+#ifdef VERBOSE
   std::cout << "from proc " << my_rank << " send " << numv << " vertices and "
       << numq << " elements\n";
+#endif
 
   for (int to_proc = 0; to_proc < numprocs; to_proc++)
   {
@@ -1218,270 +1242,7 @@ ErrorCode Intx2Mesh::create_departure_mesh_3rd_alg(EntityHandle & lagr_set,
   return MB_SUCCESS;
   //end copy
 }
-// this will use the bounding boxes for the (euler)/ fix  mesh that are already established
-// will distribute the mesh to other procs, so that on each task, the covering set covers the local bounding box
-// this means it will cover the second (local) mesh set;
-// So the covering set will cover completely the second local mesh set (in intersection)
-ErrorCode Intx2Mesh::construct_covering_set(EntityHandle & initial_distributed_set, EntityHandle & covering_set)
-{
 
-  assert(parcomm != NULL);
-  if ( 1==parcomm->proc_config().proc_size())
-  {
-    covering_set = initial_distributed_set; // nothing to communicate, it must be serial
-    return MB_SUCCESS;
-  }
-
-  Range meshCells;
-  ErrorCode rval = mb->get_entities_by_dimension(initial_distributed_set, 2, meshCells);MB_CHK_SET_ERR(rval, "can't get cells by dimension from mesh set");
-
-  // get all mesh verts
-  Range mesh_verts;
-  rval = mb->get_connectivity(meshCells, mesh_verts);MB_CHK_SET_ERR(rval, "can't get  mesh vertices");
-  int num_mesh_verts = (int) mesh_verts.size();
-
-  // now see the mesh points positions; to what boxes should we send them?
-  std::vector<double> coords_mesh(3 * num_mesh_verts);
-  rval = mb->get_coords(mesh_verts, &coords_mesh[0]);MB_CHK_SET_ERR(rval, "can't get mesh points position");
-
-  std::vector<int> gids(num_mesh_verts);
-  rval = mb->tag_get_data(gid, mesh_verts, &gids[0]);MB_CHK_SET_ERR(rval, "can't get vertices gids");
-
-  // ranges to send to each processor; will hold vertices and elements (quads/ polygons)
-  // will look if the box of the mesh cell covers bounding box(es) (within tolerances)
-  std::map<int, Range> Rto;
-  int numprocs = parcomm->proc_config().proc_size();
-
-  for (Range::iterator eit = meshCells.begin(); eit != meshCells.end(); ++eit)
-  {
-    EntityHandle q = *eit;
-    const EntityHandle * conn4;
-    int num_nodes;
-    rval = mb->get_connectivity(q, conn4, num_nodes);MB_CHK_SET_ERR(rval, "can't get connectivity on cell");
-
-    CartVect qbmin(DBL_MAX);
-    CartVect qbmax(-DBL_MAX);
-    for (int i = 0; i < num_nodes; i++)
-    {
-      EntityHandle v = conn4[i];
-      int index = mesh_verts.index(v);
-      assert(-1!=index);
-      CartVect dp(&coords_mesh[3 * index]); // uses constructor for CartVect that takes a pointer to double
-      for (int j = 0; j < 3; j++)
-      {
-        if (qbmin[j] > dp[j])
-          qbmin[j] = dp[j];
-        if (qbmax[j] < dp[j])
-          qbmax[j] = dp[j];
-      }
-    }
-    for (int p = 0; p < numprocs; p++) // each cell q can be sent to more than one processor
-    {
-      CartVect bbmin(&allBoxes[6 * p]); // these were determined before
-      CartVect bbmax(&allBoxes[6 * p + 3]);
-      if (GeomUtil::boxes_overlap(bbmin, bbmax, qbmin, qbmax, box_error))
-      {
-        Rto[p].insert(q);
-      }
-    }
-  }
-
-  // here, we will use crystal router to send each cell to designated tasks (mesh migration)
-
-  // a better implementation would be to use pcomm send / recv entities; a good test case
-  // pcomm send / receives uses point to point communication, not global gather / scatter
-
-  // now, build TLv and TLq  (tuple list for vertices and cells, separately sent)
-  size_t numq = 0;
-  size_t numv = 0;
-
-  // merge the list of vertices to be sent
-  for (int p = 0; p < numprocs; p++)
-  {
-    if (p == (int) my_rank)
-      continue; // do not "send" it to current task, because it is already here
-    Range & range_to_P = Rto[p];
-    // add the vertices to it
-    if (range_to_P.empty())
-      continue; // nothing to send to proc p
-    Range vertsToP;
-    rval = mb->get_connectivity(range_to_P, vertsToP);MB_CHK_SET_ERR(rval, "can't get connectivity");
-    numq = numq + range_to_P.size();
-    numv = numv + vertsToP.size();
-    range_to_P.merge(vertsToP);
-  }
-
-  TupleList TLv; // send vertices with a different tuple list
-  TupleList TLq;
-  TLv.initialize(2, 0, 0, 3, numv); // to proc, GLOBAL ID, 3 real coordinates
-  TLv.enableWriteAccess();
-
-  int sizeTuple = 2 + max_edges_1; // max edges could be up to MAXEDGES :) for polygons
-  TLq.initialize(2+max_edges_1, 0, 0, 0, numq); // to proc, elem GLOBAL ID, connectivity[max_edges] (global ID v)
-  // we will not send the entity handle, global ID should be more than enough
-  // we will not need more than 2B vertices
-  // if we need more than 2B, we will need to use a different marker anyway (GLOBAL ID is not enough then)
-
-  TLq.enableWriteAccess();
-#ifndef NDEBUG
-  std::cout << "from proc " << my_rank << " send " << numv << " vertices and "
-      << numq << " elements\n";
-#endif
-
-  for (int to_proc = 0; to_proc < numprocs; to_proc++)
-  {
-    if (to_proc == (int) my_rank)
-      continue;
-    Range & range_to_P = Rto[to_proc];
-    Range V = range_to_P.subset_by_type(MBVERTEX);
-
-    for (Range::iterator it = V.begin(); it != V.end(); ++it)
-    {
-      EntityHandle v = *it;
-      int index = mesh_verts.index(v);//
-      assert(-1!=index);
-      int n = TLv.get_n(); // current size of tuple list
-      TLv.vi_wr[2 * n] = to_proc; // send to processor
-      TLv.vi_wr[2 * n + 1] = gids[index]; // global id needs index in the second_mesh_verts range
-      TLv.vr_wr[3 * n] = coords_mesh[3 * index]; // departure position, of the node local_verts[i]
-      TLv.vr_wr[3 * n + 1] = coords_mesh[3 * index + 1];
-      TLv.vr_wr[3 * n + 2] = coords_mesh[3 * index + 2];
-      TLv.inc_n(); // increment tuple list size
-    }
-    // also, prep the 2d cells for sending ...
-    Range Q = range_to_P.subset_by_dimension(2);
-    for (Range::iterator it = Q.begin(); it != Q.end(); ++it)
-    {
-      EntityHandle q = *it; // this is a second mesh cell (or blue, lagrange set)
-      int global_id;
-      rval = mb->tag_get_data(gid, &q, 1, &global_id);MB_CHK_SET_ERR(rval, "can't get gid for polygon");
-      int n = TLq.get_n(); // current size
-      TLq.vi_wr[sizeTuple * n] = to_proc; //
-      TLq.vi_wr[sizeTuple * n + 1] = global_id; // global id of element, used to identify it for debug purposes only
-      const EntityHandle * conn4;
-      int num_nodes; // could be up to MAXEDGES; max_edges?;
-      rval = mb->get_connectivity(q, conn4, num_nodes);MB_CHK_SET_ERR(rval, "can't get connectivity for cell");
-      if (num_nodes > max_edges_1) {
-        mb->list_entities(&q,1);
-        MB_CHK_SET_ERR(MB_FAILURE, "too many nodes in a cell (" << num_nodes << "," << max_edges_1 << ")");
-      }
-      for (int i = 0; i < num_nodes; i++)
-      {
-        EntityHandle v = conn4[i];
-        int index = mesh_verts.index(v);
-        assert(-1!=index);
-        TLq.vi_wr[sizeTuple * n + 2 + i] = gids[index];
-      }
-      for (int k = num_nodes; k < max_edges_1; k++)
-      {
-        TLq.vi_wr[sizeTuple * n + 2 + k] = 0; // fill the rest of node ids with 0; we know that the node ids start from 1!
-      }
-
-      TLq.inc_n(); // increment tuple list size
-
-    }
-  } // end for loop over total number of processors
-
-  // now we are done populating the tuples; route them to the appropriate processors
-  // this does the communication magic
-  (parcomm->proc_config().crystal_router())->gs_transfer(1, TLv, 0);
-  (parcomm->proc_config().crystal_router())->gs_transfer(1, TLq, 0);
-
-  // the first mesh elements are in localEnts; we do not need them at all
-
-  // maps from global ids to new vertex and cell handles, that are added
-
-  std::map<int, EntityHandle> globalID_to_vertex_handle;
-  // we already have some vertices from second mesh set; they are already in the processor, even before receiving other
-  // verts from neighbors
-  // this is an inverse map from gid to vertex handle, which is local here, we do not want to duplicate vertices
-  // their identifier is the global ID!! it must be unique per mesh ! (I mean, second mesh); gid gor first mesh is not needed here
-  int k=0;
-  for (Range::iterator vit=mesh_verts.begin(); vit!=mesh_verts.end(); ++vit, k++)
-  {
-    globalID_to_vertex_handle[gids[k]] = *vit;
-  }
-  /*std::map<int, EntityHandle> globalID_to_eh;*/ // do we need this one?
-  globalID_to_eh.clear();  // we do not really need it, but we keep it for debugging mostly
-
-  // now, look at every TLv, and see if we have to create a vertex there or not
-  int n = TLv.get_n(); // the size of the points received
-  for (int i = 0; i < n; i++)
-  {
-    int globalId = TLv.vi_rd[2 * i + 1];
-    if (globalID_to_vertex_handle.find(globalId) == globalID_to_vertex_handle.end()) // we do not have locally this vertex (yet)
-      // so we have to create it, and add to the inverse map
-    {
-      EntityHandle new_vert;
-      double dp_pos[3] = { TLv.vr_wr[3 * i], TLv.vr_wr[3 * i + 1], TLv.vr_wr[3 * i + 2] };
-      rval = mb->create_vertex(dp_pos, new_vert);MB_CHK_SET_ERR(rval, "can't create new vertex ");
-      globalID_to_vertex_handle[globalId] = new_vert; // now add it to the map
-    }
-  }
-
-  // now, all necessary vertices should be created
-  // look in the local list of 2d cells for this proc, and add all those cells to covering set also
-
-  Range & local = Rto[my_rank];
-  Range local_q = local.subset_by_dimension(2);
-  // the local should have all the vertices in lagr_verts
-  for (Range::iterator it = local_q.begin(); it != local_q.end(); ++it)
-  {
-    EntityHandle q = *it;// these are from lagr cells, local
-    int gid_el;
-    rval = mb->tag_get_data(gid, &q, 1, &gid_el);MB_CHK_SET_ERR(rval, "can't get global id of cell ");
-    globalID_to_eh[gid_el] = q; // do we need this? yes, now we do; parent tags are now using it heavily
-  }
-
-  // now look at all elements received through; we do not want to duplicate them
-  n = TLq.get_n(); // number of elements received by this processor
-  // a cell should be received from one proc only; so why are we so worried about duplicated elements?
-  // a vertex can be received from multiple sources, that is fine
-
-  for (int i = 0; i < n; i++)
-  {
-    int globalIdEl = TLq.vi_rd[sizeTuple * i + 1];
-    // int from_proc=TLq.vi_rd[sizeTuple * i ]; // we do not need from_proc anymore
-
-    // do we already have a quad with this global ID, represented? no way !
-    //if (globalID_to_eh.find(globalIdEl) == globalID_to_eh.end())
-    //{
-    // construct the conn quad
-    EntityHandle new_conn[MAXEDGES]; // we should use std::vector with max_edges_1
-    int nnodes = -1;
-    for (int j = 0; j < max_edges_1; j++)
-    {
-      int vgid = TLq.vi_rd[sizeTuple * i + 2 + j]; // vertex global ID
-      if (vgid == 0)
-        new_conn[j] = 0; // this can actually happen for polygon mesh (when we have less number of vertices than max_edges)
-      else
-      {
-        assert(globalID_to_vertex_handle.find(vgid)!=globalID_to_vertex_handle.end());
-        new_conn[j] = globalID_to_vertex_handle[vgid];
-        nnodes = j + 1; // nodes are at the beginning, and are variable number
-      }
-    }
-    EntityHandle new_element;
-    //
-    EntityType entType = MBQUAD;
-    if (nnodes > 4)
-      entType = MBPOLYGON;
-    if (nnodes < 4)
-      entType = MBTRI;
-    rval = mb->create_element(entType, new_conn, nnodes, new_element);MB_CHK_SET_ERR(rval, "can't create new element for second mesh ");
-
-    globalID_to_eh[globalIdEl] = new_element;
-    local_q.insert(new_element);
-    rval = mb->tag_set_data(gid, &new_element, 1, &globalIdEl);MB_CHK_SET_ERR(rval, "can't set gid for cell ");
-
-  }
-
-  // now, create a new set, covering_set
-  // rval = mb->create_meshset(MESHSET_SET, covering_set);MB_CHK_SET_ERR(rval, "can't create the covering set");
-  rval = mb->add_entities(covering_set, local_q);MB_CHK_SET_ERR(rval,  "can't add entities to new mesh set ");
-
-  return MB_SUCCESS;
-}
 
 ErrorCode Intx2Mesh::correct_intersection_points_positions()
 {
