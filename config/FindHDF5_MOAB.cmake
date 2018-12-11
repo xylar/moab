@@ -6,13 +6,13 @@
 # HDF5_FOUND       - Do not attempt to use hdf5 if "no" or undefined.
 
 set( HDF5_ROOT "" CACHE PATH "Path to search for HDF5 header and library files" )
-set (HDF5_FOUND NO CACHE INTERNAL "Found HDF5 components successfully." )
+set( HDF5_FOUND NO CACHE INTERNAL "Found HDF5 components successfully." )
 set( SZIP_ROOT "" CACHE PATH "Path to search for SZIP header and library files" )
 
 # Try to find HDF5 with the CMake finder
 set(ENV{HDF5_ROOT} ${HDF5_ROOT})
 if (EXISTS ${HDF5_ROOT})
-   find_package(HDF5 COMPONENTS C HL NO_DEFAULT_PATH)
+   find_package(HDF5 COMPONENTS C HL NO_DEFAULT_PATH HINTS ${HDF5_ROOT})
 else()
    find_package(HDF5 COMPONENTS C HL)
 endif(EXISTS ${HDF5_ROOT})

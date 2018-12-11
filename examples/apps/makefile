@@ -1,7 +1,9 @@
 # MOAB_DIR points to top-level install dir, below which MOAB's lib/ and include/ are located
 include ../makefile.config
 
-default: build
+default: all
+
+all: build
 
 SUBDIRS = earth
 
