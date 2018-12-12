@@ -31,11 +31,10 @@ check: all-local
 	done
 
 clean-local:
-	-rm -rf build tests/*.pyc tests/outfile.h5m $(local_install_build_path) $(local_install_path) $(pre_install_build_path) $(pre_install_path) pymoab.egg-info dist
+	-rm -rf build tests/*.pyc tests/outfile.h5m $(local_install_build_path) $(local_install_path) $(pre_install_build_path) $(pre_install_path) pymoab.egg-info dist $(pythondir)
 
 uninstall:
-	cat $(DESTDIR)$(pkgpythondir)/install_files.txt | xargs rm -rf
-	-rm -rf $(DESTDIR)$(pkgpythondir)
+	-rm -rf $(pythondir) \
+	-rm -rf $(pythondir)/../
 
 CLEANFILES = tests/quads_test.vtk tests/outfile.h5m
-

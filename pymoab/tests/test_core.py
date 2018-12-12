@@ -295,12 +295,12 @@ def test_tag_shallow_copy():
     mb.tag_set_data(test_tag, vh, test_val)
 
     # some other large numpy array
-    external_data = np.ones((5,100))
-    external_data[0,:] = np.linspace(1,100,100)
-    external_data[1,:] = np.linspace(1,100,100)
-    external_data[2,:] = np.linspace(1,100,100)
-    external_data[3,:] = np.linspace(1,100,100)
-    external_data[4,:] = np.linspace(1,100,100)
+    external_data = np.ones((5, 10))
+    external_data[0,:] = np.linspace(1, 10, 10)
+    external_data[1,:] = np.linspace(1, 10, 10)
+    external_data[2,:] = np.linspace(1, 10, 10)
+    external_data[3,:] = np.linspace(1, 10, 10)
+    external_data[4,:] = np.linspace(1, 10, 10)
 
     # slice data (shallow copy, unevaluated)
     data_slice = external_data[:,0]
