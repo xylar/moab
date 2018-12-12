@@ -281,6 +281,39 @@ def test_tag_delete():
     CHECK_EQ(raised, True)
     CHECK_EQ(er_val, types.MB_TAG_NOT_FOUND)
 
+def test_tag_shallow_copy():
+    """
+    Tests that PyMOAB will handle the passing of a shallow-copy numpy expression
+    appropriately
+    """
+
+    mb = core.Core()
+    vh = vertex_handle(mb)
+    test_tag = mb.tag_get_handle(
+        "Test", 5, types.MB_TYPE_DOUBLE, True, types.MB_TAG_SPARSE)
+    test_val = np.array([1., 2., 3., 4., 5.])
+    mb.tag_set_data(test_tag, vh, test_val)
+
+    # some other large numpy array
+    external_data = np.ones((5,100))
+    external_data[0,:] = np.linspace(1,100,100)
+    external_data[1,:] = np.linspace(1,100,100)
+    external_data[2,:] = np.linspace(1,100,100)
+    external_data[3,:] = np.linspace(1,100,100)
+    external_data[4,:] = np.linspace(1,100,100)
+
+    # slice data (shallow copy, unevaluated)
+    data_slice = external_data[:,0]
+
+    # update data
+    mb.tag_set_data(test_tag, vh, data_slice)
+
+    expected_data = np.array([1., 1., 1., 1., 1.])
+    actual_data = mb.tag_get_data(test_tag, vh, flat=True)
+
+    CHECK_ITER_EQ(actual_data, expected_data)
+
+
 def test_tag_delete_single():
     mb = core.Core()
     vh = vertex_handle(mb)
@@ -314,6 +347,7 @@ def test_add_entity():
     mb.add_entity(msh, vh)
 
 def vertex_handle(core):
+
     """Convenience function for getting an arbitrary vertex element handle."""
     coord = np.array((1,1,1),dtype='float64')
     vert = core.create_vertices(coord)
@@ -1016,6 +1050,7 @@ if __name__ == "__main__":
              test_opaque_tag,
              test_tag_list,
              test_tag_delete,
+             test_tag_shallow_copy,
              test_create_meshset,
              test_create_elements,
              test_add_entity,

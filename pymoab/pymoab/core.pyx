@@ -838,6 +838,8 @@ cdef class Core(object):
         err = self.inst.tag_get_length(tag.inst,length);
         check_error(err,())
         cdef np.ndarray data_arr = np.asarray(data)
+        # protect against shallow copy, delayed evaluation problem
+        data_arr = np.copy(data_arr)
         #if the data array is not flat it must be dimension 2 and have
         #as many entries as entity handles provided
         if data_arr.ndim > 1:
