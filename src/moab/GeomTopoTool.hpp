@@ -54,8 +54,12 @@ public:
                         sets along with an EntityHandle offset for fast lookup of the root
                         sets. If set to false, then a map will be used to link geometric
                         EntitySets (keys) to the OBB Tree root sets (values).
+      \param restore_rootSets determines whether or not to restore the internal index that
+                              links geomSets to their corresponding OBB Root.  Only relevant if
+                              find_geoments is true. (default = true)
    */  
-  GeomTopoTool(Interface *impl, bool find_geoments = false, EntityHandle modelRootSet = 0, bool p_rootSets_vector = true);
+  GeomTopoTool(Interface *impl, bool find_geoments = false, EntityHandle modelRootSet = 0,
+               bool p_rootSets_vector = true, bool restore_rootSets = true);
   
   ~GeomTopoTool();
   
@@ -165,6 +169,15 @@ public:
 
   ErrorCode find_geomsets(Range *ranges = NULL);
 
+    //! Restore the internal cross-referencing of geometry sets and OBB roots
+    //  The EntityHandle of an OBB Root can be tagged onto the geoemtry EntitySet
+    //  that it represents so that this relationship can be recovered across
+    //  write to/read from file.  Since finding the OBB Root for a given geomset
+    //  is frequent, a faster lookup capability is enabled through data structures
+    //  in GeomTopoTool (i.e. rootSets or mapRootSets).  This data structure
+    //  needs to be populated upon file read.
+  ErrorCode restore_obb_index();
+  
     //! Build obb trees for all surfaces and volumes in model set.
     //  If make_one_vol true, joins trees from all surfaces in model into single
     //  volume obb tree.
@@ -178,6 +191,8 @@ public:
     //  'vol_only' is False, function will delete the volume OBB tree 
     //  along with all child surface OBB trees.
   ErrorCode delete_obb_tree(EntityHandle gset, bool vol_only = false);
+  
+  ErrorCode delete_all_obb_trees();
 
     //! Delete the root of the obb tree from the set of all roots
   ErrorCode remove_root(EntityHandle vol_or_surf);

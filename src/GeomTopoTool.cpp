@@ -43,7 +43,8 @@ const char OBB_GSET_TAG_NAME[] = "OBB_GSET";
 const char IMPLICIT_COMPLEMENT_NAME[] = "impl_complement";
 
   
-GeomTopoTool::GeomTopoTool(Interface *impl, bool find_geoments, EntityHandle modelRootSet, bool p_rootSets_vector) :
+GeomTopoTool::GeomTopoTool(Interface *impl, bool find_geoments, EntityHandle modelRootSet,
+                           bool p_rootSets_vector, bool restore_rootSets) :
   mdbImpl(impl), sense2Tag(0), senseNEntsTag(0), senseNSensesTag(0),
   geomTag(0), gidTag(0), obbRootTag(0), obbGsetTag(0),
   modelSet(modelRootSet), updated(false), 
@@ -78,8 +79,18 @@ GeomTopoTool::GeomTopoTool(Interface *impl, bool find_geoments, EntityHandle mod
   impl_compl_handle = 0;
   
   maxGlobalId[0] = maxGlobalId[1] = maxGlobalId[2] = maxGlobalId[3] =maxGlobalId[4] =0;
-  if (find_geoments)
+  if (find_geoments) {
     find_geomsets();
+    if (restore_rootSets){
+      rval = restore_obb_index();
+      if (MB_SUCCESS != rval){
+        rval = delete_all_obb_trees();
+        MB_CHK_SET_ERR_CONT(rval, "Error: Failed to delete existing obb trees");
+        rval = construct_obb_trees();
+        MB_CHK_SET_ERR_CONT(rval, "Error: Failed to rebuild obb trees");
+      }
+    }
+  }
 }
 
 GeomTopoTool::~GeomTopoTool() {
@@ -195,6 +206,30 @@ ErrorCode GeomTopoTool::other_entity(EntityHandle bounded,
   return MB_SUCCESS;
 }
 
+
+ErrorCode GeomTopoTool::restore_obb_index()
+{
+
+  if (m_rootSets_vector) resize_rootSets();
+  
+  ErrorCode rval;
+  EntityHandle root;
+
+  for (int dim = 2; dim <=3; dim++)
+    for (Range::iterator rit = geomRanges[dim].begin(); rit != geomRanges[dim].end(); ++rit) {
+      rval = mdbImpl->tag_get_data(obbRootTag, &(*rit), 1, &root);
+
+      if (MB_SUCCESS == rval)
+        set_root_set(*rit, root);
+      else{
+        return MB_TAG_NOT_FOUND;
+      }
+    }
+
+  return MB_SUCCESS;
+
+}
+  
 ErrorCode GeomTopoTool::find_geomsets(Range *ranges)
 {
   ErrorCode rval;
@@ -361,6 +396,22 @@ ErrorCode GeomTopoTool::delete_obb_tree(EntityHandle gset, bool vol_only) {
   // Delete the tree nodes from the database
   rval = mdbImpl->delete_entities(nodes_to_delete);
   MB_CHK_SET_ERR(rval, "Failed to delete node set");
+
+  return MB_SUCCESS;
+}
+
+ErrorCode GeomTopoTool::delete_all_obb_trees(){
+
+  ErrorCode rval;
+
+  for (Range::iterator rit = geomRanges[3].begin(); rit != geomRanges[3].end(); ++rit){
+    EntityHandle root;
+    rval = mdbImpl->tag_get_data(obbRootTag, &(*rit), 1, &root);
+    if (MB_SUCCESS == rval){
+      rval = delete_obb_tree(*rit, false);
+      MB_CHK_SET_ERR(rval, "Failed to delete obb tree");
+    }
+  }
 
   return MB_SUCCESS;
 }

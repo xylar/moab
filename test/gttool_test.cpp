@@ -30,6 +30,7 @@ std::string ofile;
 std::string ofile2;
 std::string ofile3;
 std::string ofile4;
+std::string ofile5;
 
 const char OBB_ROOT_TAG_NAME[] = "OBB_ROOT";
 Tag obbRootTag;
@@ -46,6 +47,8 @@ ErrorCode check_model_test(Interface * mb);
 ErrorCode test_root_sets_resize(Interface *mb);
 
 ErrorCode test_delete_obb_tree(Interface *mb);
+
+ErrorCode test_restore_obb_trees(Interface *mb, Interface *mb2, Interface *mb3);
 
 void handle_error_code(ErrorCode rv, int &number_failed, int &number_successful)
 {
@@ -66,6 +69,7 @@ int main(int argc, char *argv[])
   ofile2 = "shell.h5m";
   ofile3 = "shellCopy.h5m";
   ofile4 = "geom_w_obbs.h5m";
+  ofile5 = "geom_missing_obb.h5m";
   
   remove_output_file = true;
   bool only_check = false;
@@ -152,7 +156,18 @@ int main(int argc, char *argv[])
   handle_error_code(rval, number_tests_failed, number_tests_successful);
   delete mb3;
   std::cout << "\n";
-  
+
+  std::cout << "test_restore_obb_trees: ";
+  Interface* mb4 = new Core();
+  Interface* mb5 = new Core();
+  Interface* mb6 = new Core();
+  rval = test_restore_obb_trees(mb4, mb5, mb6);
+  handle_error_code(rval, number_tests_failed, number_tests_successful);
+  delete mb4;
+  delete mb5;
+  delete mb6;
+  std::cout << "\n";
+
   return number_tests_failed;
 }
 ErrorCode geometrize_test(Interface * mb, EntityHandle inputSet)
@@ -636,6 +651,145 @@ ErrorCode test_delete_obb_tree(Interface *mb){
   }
 
   delete gTopoTool;
+
+  return MB_SUCCESS;
+}
+
+ErrorCode test_restore_obb_trees(Interface *mb, Interface *mb2, Interface *mb3){
+  
+  // Load the test file
+  ErrorCode rval = mb->load_file(filename2.c_str());
+  MB_CHK_SET_ERR(rval, "Failed to load input file");
+ 
+  // Create a GTT with all default settings
+  moab::GeomTopoTool* gTopoTool = new GeomTopoTool(mb);
+
+  // Build all obb trees
+  rval = gTopoTool->construct_obb_trees();
+  MB_CHK_SET_ERR(rval, "Error constructing all trees");
+  // Write the file with all obbs
+  rval=mb->write_file(ofile4.c_str());
+  MB_CHK_SET_ERR(rval, "Can't write output file");
+
+  // Delete a vol obb tree  
+  Range vols;
+  rval = gTopoTool->get_gsets_by_dimension(3, vols);
+  MB_CHK_SET_ERR(rval, "Failed to get volume gsets");
+  EntityHandle test_vol = vols.front();
+  rval = gTopoTool->delete_obb_tree(test_vol, false);
+  MB_CHK_SET_ERR(rval, "Error deleting volume tree");
+  // Write the file missing an obb
+  rval=mb->write_file(ofile5.c_str());
+  MB_CHK_SET_ERR(rval, "Can't write output file");
+
+  // Load file containing obbs
+  rval = mb2->load_file(ofile4.c_str());
+  MB_CHK_SET_ERR(rval, "Failed to load file containing obbs");
+
+  // 1) Check that roots are NOT restored by default GTT settings
+  // GeomTopoTool(Interface *impl, bool find_geoments = false, EntityHandle modelRootSet = 0,
+  //             bool p_rootSets_vector = true, bool restore_rootSets = true);
+  moab::GeomTopoTool* gTopoTool2 = new GeomTopoTool(mb2, false, 0, true, true);
+
+  vols.clear();
+  Range surfs;
+  rval = gTopoTool2->get_gsets_by_dimension(3, vols);
+  MB_CHK_SET_ERR(rval, "Failed to get volume gsets");
+  rval = gTopoTool2->get_gsets_by_dimension(2, surfs);
+  MB_CHK_SET_ERR(rval, "Failed to get volume gsets");
+
+  Range gsets;
+  gsets.insert_list(surfs.begin(), surfs.end());
+  gsets.insert_list(vols.begin(), vols.end());
+  EntityHandle test_root2;
+  for (Range::iterator rit = gsets.begin(); rit != gsets.end(); ++rit) { 
+    rval = gTopoTool2->get_root(*rit, test_root2);
+    if (MB_SUCCESS == rval){
+      return MB_FAILURE;
+    }
+  }
+
+  // 2) Check that roots ARE restored by setting find_geoments and restore_rootSets to true
+  moab::GeomTopoTool* gTopoTool3 = new GeomTopoTool(mb2, true, 0, true, true);
+
+  vols.clear();
+  rval = gTopoTool3->get_gsets_by_dimension(3, vols);
+  MB_CHK_SET_ERR(rval, "Failed to get volume gsets");
+  surfs.clear();
+  rval = gTopoTool3->get_gsets_by_dimension(2, surfs);
+  MB_CHK_SET_ERR(rval, "Failed to get volume gsets");
+
+  gsets.clear();
+  gsets.insert_list(surfs.begin(), surfs.end());
+  gsets.insert_list(vols.begin(), vols.end());
+  EntityHandle test_root3;
+  for (Range::iterator rit = gsets.begin(); rit != gsets.end(); ++rit) { 
+    rval = gTopoTool3->get_root(*rit, test_root3);
+    MB_CHK_SET_ERR(rval, "Failed to get obb tree root from GTT");
+    CHECK(test_root3);
+  }
+
+  // 3) Check that roots are deleted and then rebuilt if an obb tree is missing
+
+  // Load file missing obb
+  rval = mb3->load_file(ofile5.c_str());
+  MB_CHK_SET_ERR(rval, "Failed to load file containing obbs");
+
+  // Create GTT and try to restore OBBs
+  moab::GeomTopoTool* gTopoTool4 = new GeomTopoTool(mb3, true, 0, true, true);
+  
+  // Check that roots still exist
+  vols.clear();
+  rval = gTopoTool4->get_gsets_by_dimension(3, vols);
+  MB_CHK_SET_ERR(rval, "Failed to get volume gsets");
+  surfs.clear();
+  rval = gTopoTool4->get_gsets_by_dimension(2, surfs);
+  MB_CHK_SET_ERR(rval, "Failed to get volume gsets");
+
+  gsets.clear();
+  gsets.insert_list(surfs.begin(), surfs.end());
+  gsets.insert_list(vols.begin(), vols.end());
+  EntityHandle test_root4;
+  for (Range::iterator rit = gsets.begin(); rit != gsets.end(); ++rit) { 
+    rval = gTopoTool4->get_root(*rit, test_root4);
+    MB_CHK_SET_ERR(rval, "Failed to get obb tree root from GTT");
+    CHECK(test_root4);
+  }
+
+  // 4) Check that roots exist but rootSets is NOT repopulated when find_geoments = true and restore_rootSets = false
+  moab::GeomTopoTool* gTopoTool5 = new GeomTopoTool(mb2, true, 0, true, false);
+
+  // Get the obbRootTag for vol
+  rval = mb2->tag_get_handle(OBB_ROOT_TAG_NAME, 1,
+                            MB_TYPE_HANDLE, obbRootTag, 
+                            MB_TAG_CREAT|MB_TAG_SPARSE);
+  MB_CHK_SET_ERR_CONT(rval, "Error: Failed to create obb root tag");
+
+  vols.clear();
+  rval = gTopoTool5->get_gsets_by_dimension(3, vols);
+  MB_CHK_SET_ERR(rval, "Failed to get volume gsets");
+  surfs.clear();
+  rval = gTopoTool5->get_gsets_by_dimension(2, surfs);
+  MB_CHK_SET_ERR(rval, "Failed to get volume gsets");
+
+  gsets.clear();
+  gsets.insert_list(surfs.begin(), surfs.end());
+  gsets.insert_list(vols.begin(), vols.end());
+  EntityHandle test_root5, tagged_root;
+  for (Range::iterator rit = gsets.begin(); rit != gsets.end(); ++rit) {
+    // Check that root still exits, but not in rootSet
+    rval = mb2->tag_get_data(obbRootTag, &(*rit), 1, &tagged_root);
+    MB_CHK_SET_ERR(rval, "Failed to get root from tag");
+    CHECK(tagged_root);
+    rval = gTopoTool5->get_root(*rit, test_root5);
+    if (MB_SUCCESS == rval) return MB_FAILURE;
+  }
+
+  delete gTopoTool;
+  delete gTopoTool2;
+  delete gTopoTool3;
+  delete gTopoTool4;
+  delete gTopoTool5;
 
   return MB_SUCCESS;
 }

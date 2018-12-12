@@ -200,7 +200,7 @@ ErrorCode verify_split()
 
   ErrorCode  rval = mb->load_file(filename_out.c_str());MB_CHK_SET_ERR(rval, "Loading mesh file failed\n");
 
-  moab::GeomTopoTool gTopoTool(mb, true);
+  moab::GeomTopoTool gTopoTool(mb, true, 0, true, false);
 
   if (!gTopoTool.check_model())
     return MB_FAILURE;
