@@ -628,30 +628,31 @@ ErrCode iMOAB_GetGlobalInfo ( iMOAB_AppID pid, int* num_global_verts, int* num_g
 
 #ifdef MOAB_HAVE_MPI
 /**
-  \brief migrate (send) a set of elements from one processor to another
-  <B>Operations:</B> Not Collective
+  \brief migrate (send) a set of elements from a group of tasks (senders) to another group of tasks (receivers)
+  <B>Operations:</B>  Collective on sender group
 
    \param[in]  pid (iMOAB_AppID)                      The unique pointer to the application ID source mesh
    \param[in]  join (MPI_Comm)                        communicator that overlaps both groups
    \param[in]  receivingGroup (MPI_Group *)           receiving group
    \param[in]  rcompid  (int*)                        external id of application that receives the mesh
-   \param[in]  method (int*)                          method of partitioning (0 trivial, 1 graph par, 2 geometric par)
+   \param[in]  method (int*)                          method of partitioning (0 trivial, 1 graph, 2 geometric)
  */
 
 ErrCode iMOAB_SendMesh ( iMOAB_AppID pid, MPI_Comm* join, MPI_Group* receivingGroup, int* rcompid, int* method);
 
 /**
    \brief during nonblocking send, buffers were allocated, to keep data until received
-   Free them after receive reached the point
+   Free them after requests are completed
    \param[in]  pid (iMOAB_AppID)                      The unique pointer to the application ID sender mesh
+   \param[in]  join (MPI_Comm)                        communicator that overlaps both groups (sender and receiver)
    \param[in]  rcompid  (int*)                        external id of application that receives the mesh
    */
 
 ErrCode iMOAB_FreeSenderBuffers ( iMOAB_AppID pid, MPI_Comm* join, int* rcompid );
 
 /**
-  \brief migrate (receive) a set of elements from another processor
-  <B>Operations:</B> Not Collective
+  \brief migrate (receive) a set of elements from a sender group of tasks
+  <B>Operations:</B>  Collective on receiver group
 
    \param[in]  pid (iMOAB_AppID)                      The unique pointer to the application ID  mesh (receiver)
    \param[in]  join (MPI_Comm)                        communicator that overlaps both groups
@@ -662,30 +663,30 @@ ErrCode iMOAB_FreeSenderBuffers ( iMOAB_AppID pid, MPI_Comm* join, int* rcompid 
 ErrCode iMOAB_ReceiveMesh ( iMOAB_AppID pid, MPI_Comm* join, MPI_Group* sendingGroup, int* scompid);
 
 /**
-  \brief migrate (send) a set of elements from one processor to another, using a smarter partitioning
-  <B>Operations:</B> Not Collective
+  \brief migrate (send) a list of tags, from a sender group of tasks to a receiver group of tasks
+  <B>Operations:</B> Collective over the sender group, nonblocking sends
 
    \param[in]  pid (iMOAB_AppID)                      The unique pointer to the application ID source mesh
-   \param[in]  join (MPI_Comm)                        communicator that overlaps both groups
-   \param[in]  receivingGroup (MPI_Group *)           receiving group
+   \param[in]  scompid  (int*)                        external id of application that sends the tags
    \param[in]  rcompid  (int*)                        external id of application that receives the mesh
-   \param[in]  method (int*)                          method of partitioning (0 trivial, 1 graph par, 2 geometric par)
+   \param[in]  tag_storage_name(const iMOAB_String)   name of the tags; concatenated, separated by ";"
+   \param[in]  join (MPI_Comm)                        communicator that overlaps both groups
+   \param[in]  tag_storage_name_length (int)          The length of the tag_storage_name string
  */
 
 ErrCode iMOAB_SendElementTag(iMOAB_AppID pid, int* scompid, int* rcompid, const iMOAB_String tag_storage_name,
     MPI_Comm* join, int tag_storage_name_length);
 
 /**
-  \brief migrate (receive) a tag from another component
-  <B>Operations:</B> Not Collective
+  \brief migrate (receive) a list of tags, from a sender group of tasks to a receiver group of tasks
+  <B>Operations:</B> Collective over the receiver group, blocking receives
 
    \param[in]  pid (iMOAB_AppID)                      The unique pointer to the application ID  mesh (receiver)
    \param[in]  scompid ( int *)                       external id of application that sends the tag data
    \param[in]  rcompid ( int *)                       external id of application that receives the tag data
-   \param[in]  tag_storage_name (iMOAB_String)        The tag name (to be received)
+   \param[in]  tag_storage_name (iMOAB_String)        name of the tags to be received; concatenated, separated by ";"
    \param[in]  join (MPI_Comm)                        communicator that overlaps both groups
    \param[in]  tag_storage_name_length (int)          The length of the tag_storage_name string
-
  */
 ErrCode iMOAB_ReceiveElementTag(iMOAB_AppID pid, int* scompid, int* rcompid, const iMOAB_String tag_storage_name,
     MPI_Comm* join, int tag_storage_name_length);
@@ -701,7 +702,7 @@ ErrCode iMOAB_ReceiveElementTag(iMOAB_AppID pid, int* scompid, int* rcompid, con
   to the \p pid_intx application. This intersection data can be used to compute solution projection weights between
   these meshes.
 
-  <B>Operations:</B> Collective
+  <B>Operations:</B> Collective on coupler tasks
 
   \param[in]  pid_source (iMOAB_AppID)               The unique pointer to the source application ID
   \param[in]  pid_target (iMOAB_AppID)               The unique pointer to the destination application ID
@@ -783,10 +784,12 @@ ErrCode iMOAB_ComputeScalarProjectionWeights ( iMOAB_AppID pid_intersection,
   \param[in/out] pid_intersection (iMOAB_AppID)            The unique pointer to the intersection application ID
   \param[in] solution_weights_identifier  (iMOAB_String)   The unique identifier used to store the computed projection weights locally. Typically, 
                                                            values could be identifiers such as "scalar", "flux" or "custom".
-  \param[in] source_solution_tag_name   (iMOAB_String)     The global solution field tag vector corresponding to participating degrees-of-freedom for the source discretization
-  \param[in] target_solution_tag_name   (iMOAB_String)     The global solution field tag vector corresponding to participating degrees-of-freedom for the target discretization
+  \param[in] source_solution_tag_name   (iMOAB_String)     list of tag names corresponding to participating degrees-of-freedom for the source discretization;
+                                                           names are separated by ";", the same way as for tag migration
+  \param[in] target_solution_tag_name   (iMOAB_String)     list of tag names corresponding to participating degrees-of-freedom for the target discretization;
+                                                           names are separated by ";", the same way as for tag migration
   \param[in] source_solution_tag_name_length   (int)       The length of the source solution field tag name string
-  \param[in] target_solution_tag_name_length   (int)       The length of the target solution fieldtag name string
+  \param[in] target_solution_tag_name_length   (int)       The length of the target solution field tag name string
 */
 ErrCode iMOAB_ApplyScalarProjectionWeights (   iMOAB_AppID pid_intersection, 
                                                const iMOAB_String solution_weights_identifier, /* "scalar", "flux", "custom" */
