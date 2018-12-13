@@ -1,5 +1,6 @@
 """Implements range functionality."""
 from cython.operator cimport dereference as deref
+from libc.stdlib cimport free
 # from libcpp.string cimport string as std_string
 from pymoab cimport moab
 from .types import _eh_array, _eh_py_type
@@ -37,7 +38,7 @@ cdef class Range(object):
 
     def __cinit__(self, arg = None):
         """
-        Constructor. 
+        Constructor.
 
         Accepts either a range or an iterable of EntityHandles.
 
@@ -59,8 +60,8 @@ cdef class Range(object):
                 self.inst.insert(eh)
         else:
             raise ValueError("Not a valid argument to Range constructor.")
-                
-    
+
+
     def __del__(self):
         """
         Destructor.
@@ -98,7 +99,7 @@ cdef class Range(object):
     def pop_back(self):
         """Removes the back-most EntityHandle in the Range and returns the EntityHandle."""
         return self.inst.pop_back()
-    
+
     def all_of_type(self, moab.EntityType t):
         """Returns True if all EntityHandles in the Range represent mesh entities of
         EntityType, t, and False otherwise."""
@@ -159,7 +160,7 @@ cdef class Range(object):
         # a new range though
         r.inst.merge(mbr)
         return r
-    
+
     def __iter__(self):
         """
         Iterator
@@ -209,8 +210,13 @@ cdef class Range(object):
         """
         Range as a string
         """
-        res = str(self.inst.str_rep().decode())
-        return res
+        cdef const char* c_string = self.inst.str_rep()
+        cdef bytes py_string
+        try:
+            py_string = c_string
+        except:
+            return ""
+        return str(py_string.decode())
 
     def __repr__(self):
         """
