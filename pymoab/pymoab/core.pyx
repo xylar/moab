@@ -105,6 +105,11 @@ cdef class Core(object):
             Range containing only EntitySets.
             When specified, the method will write any entities from the given
             meshsets.
+        output_tags : List of PyMOAB Tags (default None)
+            If not None, this argument must be a list of valid Tags.
+            When specified, the write_file will not write any of the tag's data
+            to the specified file. All tags handles will appear in the file, however.
+
         exceptions : tuple (default is empty tuple)
             tuple containing any error types that should
             be ignored (see pymoab.types module for more info)
