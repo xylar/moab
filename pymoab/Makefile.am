@@ -26,7 +26,7 @@ check: all-local
 	done
 
 clean-local:
-	-rm -rf build pymoab/* tests/*.pyc tests/outfile.h5m $(local_install_build_path) $(local_install_path) $(pre_install_build_path) $(pre_install_path) pymoab.egg-info dist
+	-rm -rf build pymoab/* tests/*.pyc pymoab.egg-info dist
 
 uninstall:
 	rm -rf $(DESTDIR)$(pythondir)/*
