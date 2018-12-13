@@ -5,6 +5,8 @@ EXTRA_DIST = $(srcdir)/cmake/cython_test.pyx $(srcdir)/pymoab/* $(srcdir)/tests/
 
 test_files = test_core.py test_hom.py test_scd.py test_range.py test_tag.py test_topo_util.py test_skinner.py
 
+local_install_path = local_inst
+
 all-local: local-install
 
 local-install:
@@ -26,7 +28,7 @@ check: all-local
 	done
 
 clean-local:
-	-rm -rf build pymoab/* tests/*.pyc pymoab.egg-info dist
+	-rm -rf build pymoab/*.cpp pymoab/__pycache__ pymoab/*.so tests/*.pyc pymoab.egg-info dist
 
 uninstall:
 	rm -rf $(DESTDIR)$(pythondir)/*
