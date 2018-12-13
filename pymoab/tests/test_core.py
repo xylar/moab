@@ -69,6 +69,53 @@ def test_write_ents():
         pass
 
 
+def test_write_tags():
+    """
+    Test write tag functionality
+    """
+
+    mb = core.Core()
+    vs = mb.create_vertices(np.ones(3))
+
+    # create writing tag
+    write_tag = mb.tag_get_handle("WRITE",
+                                  3,
+                                  types.MB_TYPE_DOUBLE,
+                                  types.MB_TAG_DENSE,
+                                  create_if_missing=True)
+    # set some data on that tag
+    data = [0.7071, 0.7071, 0.0]
+    mb.tag_set_data(write_tag, vs, data)
+
+    # create a no-write tag
+    no_write_tag = mb.tag_get_handle("NO_WRITE",
+                                  3,
+                                  types.MB_TYPE_DOUBLE,
+                                  types.MB_TAG_DENSE,
+                                  create_if_missing=True)
+    # set some data on that tag as well
+    mb.tag_set_data(write_tag, vs, data)
+
+    mb.write_file("write_tag_only.h5m", output_tags = [write_tag,])
+
+    mb2 = core.Core()
+    mb2.load_file("write_tag_only.h5m")
+
+    vs = mb2.get_entities_by_type(0, types.MBVERTEX)
+
+    # get the write tag
+    write_tag = mb2.tag_get_handle("WRITE")
+
+    # make sure the no-write tag isn't there
+    no_write_tag = mb2.tag_get_handle("NO_WRITE")
+
+    try:
+        d = mb.tag_get_data(no_write_tag, vs)
+        raise AssertionError("Tag get data succeeded when it should not.")
+    except(RuntimeError):
+        pass
+
+
 def test_delete_mesh():
     mb = core.Core()
     mb.create_vertices(np.ones(9))
@@ -1043,6 +1090,7 @@ if __name__ == "__main__":
     tests = [test_load_mesh,
              test_write_mesh,
              test_write_ents,
+             test_write_tags,
              test_delete_mesh,
              test_get_tag,
              test_integer_tag,

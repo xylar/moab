@@ -115,8 +115,8 @@ cdef extern from "moab/Range.hpp" namespace "moab":
 
         Range subset_by_type(EntityType t)
         Range subset_by_dimension(int dim)
-        
-        
+
+
         EntityHandle operator[](EntityID index)
 
 
@@ -170,10 +170,10 @@ cdef extern from "moab/Core.hpp" namespace "moab":
         #ErrorCode write_file(const char *file_name, const char *file_type,
         #                     const char *options, const EntityHandle *output_sets,
         #                     int num_output_sets, const Tag *tag_list)
-        #ErrorCode write_file(const char *file_name, const char *file_type,
-        #                     const char *options, const EntityHandle *output_sets,
-        #                     int num_output_sets, const Tag *tag_list,
-        #                     int num_tags)
+        ErrorCode write_file(const char *file_name, const char *file_type,
+                            const char *options, const EntityHandle *output_sets,
+                            int num_output_sets, const Tag *tag_list,
+                            int num_tags)
 
         ErrorCode load_file(const char *file_name)
         ErrorCode load_file(const char *file_name, const EntityHandle* file_set)
@@ -266,13 +266,13 @@ cdef extern from "moab/Core.hpp" namespace "moab":
                                   const bool create_if_missing,
                                   Range &adj_entities,
                                   const int operation_type)
-        
+
         ErrorCode get_adjacencies(const Range &from_entities,
                                   const int to_dimension,
                                   const bool create_if_missing,
                                   Range &adj_entities,
                                   const int operation_type)
-        
+
         EntityType type_from_handle(const EntityHandle handle)
         ErrorCode get_child_meshsets(EntityHandle meshset,
                                      Range &children,
@@ -392,9 +392,9 @@ cdef extern from "moab/ScdInterface.hpp" namespace "moab":
         ErrorCode get_boxes(vector[ScdBox*] boxes)
         ScdBox* get_scd_box(EntityHandle eh)
         Tag box_set_tag(bool create_if_missing)
-        
+
     cdef cppclass ScdBox:
-        
+
         HomCoord box_min()
         HomCoord box_max()
         HomCoord box_size()

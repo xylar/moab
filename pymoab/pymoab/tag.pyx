@@ -1,17 +1,17 @@
 """MOAB Tag Class"""
 
-from pymoab cimport moab 
+from pymoab cimport moab
 import numpy as np
 cimport numpy as np
 from libc.stdlib cimport malloc,free
 from cython.operator cimport dereference as deref
 from .types import _TAG_TYPE_STRS, _DTYPE_CONV
 
-cdef class Tag(object): 
+cdef class Tag(object):
     def __cinit__(self):
         self.inst = <moab.TagInfo*> malloc(sizeof(moab.TagInfo))
         self.ptr = &self.inst
-        
+
     def __del__(self):
         free(self.inst)
 
@@ -29,7 +29,7 @@ cdef class Tag(object):
         Returns the Tag's data type.
         """
         return self.get_type()
-    
+
     def get_type(self):
         """
         Returns the Tag's data type.
@@ -41,7 +41,7 @@ cdef class Tag(object):
         Returns the Tag's numpy data type.
         """
         return _DTYPE_CONV[self.inst.get_data_type()]
-    
+
     def get_name(self):
         """
         Returns the name of this Tag.
@@ -50,13 +50,13 @@ cdef class Tag(object):
 
     def get_default_value(self):
         """
-        Returns the default value of the tag. 
+        Returns the default value of the tag.
         If the tag does not have a default value, None is returned.
         """
         tag_size = self.get_length()
         dtype = self.get_dtype()
         cdef np.ndarray arr = np.empty((tag_size,), dtype = dtype)
-        
+
         cdef const void* data_ptr = self.inst.get_default_value()
         arr.data = <char *> data_ptr
 
@@ -64,7 +64,7 @@ cdef class Tag(object):
             return arr[0]
         else:
             return arr
-    
+
     def __str__(self):
         outstr = "Name: " + self.get_name()
         outstr += ", Type: " + _TAG_TYPE_STRS[self.get_data_type()]
@@ -73,9 +73,12 @@ cdef class Tag(object):
 
     def __repr__(self):
         return self.__str__()
-    
+
 cdef class _tagArray(object):
-    def __cinit__(self, tags):
+    def __cinit__(self, tags = None):
+        if tags == None:
+            return
+
         cdef Tag t
         cdef int num_tags
         cdef int i = 0

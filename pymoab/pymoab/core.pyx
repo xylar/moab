@@ -16,6 +16,8 @@ from libcpp.vector cimport vector
 from libcpp.string cimport string as std_string
 from libc.stdlib cimport malloc
 
+from collections import Iterable
+
 cdef void* null = NULL
 
 cdef class Core(object):
@@ -84,7 +86,7 @@ cdef class Core(object):
         cdef moab.ErrorCode err = self.inst.load_file(file_name,ptr)
         check_error(err, exceptions)
 
-    def write_file(self, str fname, output_sets = None, exceptions = ()):
+    def write_file(self, str fname, output_sets = None, output_tags = None, exceptions = ()):
         """
         Write or export a file.
 
@@ -121,6 +123,17 @@ cdef class Core(object):
         cdef bytes cfname = fname.encode('UTF-8')
         cdef const char * file_name = cfname
         cdef moab.ErrorCode err
+        cdef int num_tags
+        cdef _tagArray ta = _tagArray()
+
+        if output_tags:
+            assert isinstance(output_tags, Iterable), "Non-iterable output_tags argument."
+            for tag in output_tags:
+                assert isinstance(tag, Tag), "Non-tag type passed in output_tags."
+            num_tags = len(output_tags)
+            ta = _tagArray(output_tags)
+        else:
+            ta.ptr = NULL
 
         cdef Range r
         cdef np.ndarray[np.uint64_t, ndim=1] arr
@@ -130,7 +143,7 @@ cdef class Core(object):
           if not r.all_of_type(types.MBENTITYSET):
               raise IOError("Only EntitySets should be passed to write file.")
           err = self.inst.write_file(
-              file_name, <const char*> 0, <const char*> 0, <eh.EntityHandle*> arr.data, len(output_sets))
+              file_name, <const char*> 0, <const char*> 0, <eh.EntityHandle*> arr.data, len(output_sets), ta.ptr, num_tags)
         else:
           err = self.inst.write_file(file_name)
 
