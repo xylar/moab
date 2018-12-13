@@ -3,11 +3,6 @@ AUTOMAKE_OPTIONS=foreign
 
 EXTRA_DIST = $(srcdir)/cmake/cython_test.pyx $(srcdir)/pymoab/* $(srcdir)/tests/*
 
-local_install_path = local_inst
-local_install_build_path = build_local
-pre_install_build_path = build_preinstall
-pre_install_path = preinstall
-
 test_files = test_core.py test_hom.py test_scd.py test_range.py test_tag.py test_topo_util.py test_skinner.py
 
 all-local: local-install
@@ -31,10 +26,9 @@ check: all-local
 	done
 
 clean-local:
-	-rm -rf build tests/*.pyc tests/outfile.h5m $(local_install_build_path) $(local_install_path) $(pre_install_build_path) $(pre_install_path) pymoab.egg-info dist $(pythondir)
+	-rm -rf build pymoab/* tests/*.pyc tests/outfile.h5m $(local_install_build_path) $(local_install_path) $(pre_install_build_path) $(pre_install_path) pymoab.egg-info dist
 
 uninstall:
-	-rm -rf $(pythondir) \
-	-rm -rf $(pythondir)/../
+	rm -rf $(DESTDIR)$(pythondir)/*
 
-CLEANFILES = tests/quads_test.vtk tests/outfile.h5m
+CLEANFILES = tests/quads_test.vtk tests/outfile.h5m tests/write_tag_only.h5m
