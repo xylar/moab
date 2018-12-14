@@ -128,7 +128,7 @@ cdef class Core(object):
         cdef bytes cfname = fname.encode('UTF-8')
         cdef const char * file_name = cfname
         cdef moab.ErrorCode err
-        cdef int num_tags
+        cdef int num_tags = 0
         cdef _tagArray ta = _tagArray()
 
         if output_tags:
@@ -140,15 +140,16 @@ cdef class Core(object):
         else:
             ta.ptr = NULL
 
-        cdef Range r
+        cdef Range r = Range()
         cdef np.ndarray[np.uint64_t, ndim=1] arr
         if output_sets:
           arr = _eh_array(output_sets)
           r = Range(arr)
           if not r.all_of_type(types.MBENTITYSET):
               raise IOError("Only EntitySets should be passed to write file.")
-          err = self.inst.write_file(
-              file_name, <const char*> 0, <const char*> 0, <eh.EntityHandle*> arr.data, len(output_sets), ta.ptr, num_tags)
+        if output_sets or output_tags:
+            err = self.inst.write_file(
+                file_name, <const char*> 0, <const char*> 0, deref(r.inst), ta.ptr, num_tags)
         else:
           err = self.inst.write_file(file_name)
 

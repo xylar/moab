@@ -74,6 +74,9 @@ def test_write_tags():
     Test write tag functionality
     """
 
+    # test values
+    outfile = "write_tag_test.h5m"
+
     mb = core.Core()
     vs = mb.create_vertices(np.ones(3))
 
@@ -94,26 +97,47 @@ def test_write_tags():
                                   types.MB_TAG_DENSE,
                                   create_if_missing=True)
     # set some data on that tag as well
-    mb.tag_set_data(write_tag, vs, data)
+    mb.tag_set_data(no_write_tag, vs, data)
 
-    mb.write_file("write_tag_only.h5m", output_tags = [write_tag,])
+    mb.write_file(outfile, output_tags = [write_tag,])
 
     mb2 = core.Core()
-    mb2.load_file("write_tag_only.h5m")
+    mb2.load_file(outfile)
 
     vs = mb2.get_entities_by_type(0, types.MBVERTEX)
 
     # get the write tag
-    write_tag = mb2.tag_get_handle("WRITE")
+    new_write_tag = mb2.tag_get_handle("WRITE")
 
-    # make sure the no-write tag isn't there
-    no_write_tag = mb2.tag_get_handle("NO_WRITE")
+    # make sure we can still get data for the write tag
+    d = mb2.tag_get_data(new_write_tag, vs)
 
+    # make sure the second tag is not there
     try:
-        d = mb.tag_get_data(no_write_tag, vs)
-        raise AssertionError("Tag get data succeeded when it should not.")
+        no_write_tag = mb2.tag_get_handle("NO_WRITE")
+        raise AssertionError("Tag get handle succeeded when it should not.")
     except(RuntimeError):
         pass
+
+    # write multiple tags
+    mb.write_file(outfile, output_tags = [write_tag, no_write_tag])
+
+    mb2 = core.Core()
+    mb2.load_file(outfile)
+
+    vs = mb2.get_entities_by_type(0, types.MBVERTEX)
+
+    # get the write tag
+    new_write_tag = mb2.tag_get_handle("WRITE")
+
+    # make sure we can still get data for the write tag
+    d = mb2.tag_get_data(new_write_tag, vs)
+
+    # make sure the tag is not there
+    new_no_write_tag = mb2.tag_get_handle("NO_WRITE")
+
+    # make sure we can now get data for the "no-write" tag
+    d = mb2.tag_get_data(new_no_write_tag, vs)
 
 
 def test_delete_mesh():

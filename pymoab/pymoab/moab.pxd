@@ -167,14 +167,9 @@ cdef extern from "moab/Core.hpp" namespace "moab":
         ErrorCode write_file(const char *file_name, const char *file_type,
                              const char *options, const EntityHandle *output_sets,
                              int num_output_sets)
-        #ErrorCode write_file(const char *file_name, const char *file_type,
-        #                     const char *options, const EntityHandle *output_sets,
-        #                     int num_output_sets, const Tag *tag_list)
         ErrorCode write_file(const char *file_name, const char *file_type,
-                            const char *options, const EntityHandle *output_sets,
-                            int num_output_sets, const Tag *tag_list,
-                            int num_tags)
-
+                             const char *options, Range output_sets,
+                             const Tag *tag_list, int num_tags)
         ErrorCode load_file(const char *file_name)
         ErrorCode load_file(const char *file_name, const EntityHandle* file_set)
         ErrorCode load_file(const char *file_name, const EntityHandle* file_set,
