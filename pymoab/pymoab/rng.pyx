@@ -1,7 +1,5 @@
 """Implements range functionality."""
 from cython.operator cimport dereference as deref
-from libc.stdlib cimport free
-# from libcpp.string cimport string as std_string
 from pymoab cimport moab
 from .types import _eh_array, _eh_py_type
 
