@@ -16,15 +16,15 @@
  <h2>The MOAB Team, including: </h2>
  
  - Vijay S. Mahadevan (Argonne National Lab)
- - Timothy J. Tautges (CD-Adapco, Univ Wisconsin-Madison)
+ - Timothy J. Tautges (Siemens, Univ Wisconsin-Madison)
  - Iulian Grindeanu (Argonne National Lab) 
  - Rajeev Jain (Argonne National Lab)
  - Danqing Wu  (Argonne National Lab)
- - Navamita Ray (Argonne National Lab)
+ - Navamita Ray (Los Alamos National Lab)
  - Jane Hu (Univ Wisconsin-Madison)
  - Paul Wilson (Univ Wisconsin-Madison)
- - Patrick Shriwise (Univ Wisconsin-Madison)
- - Anthony Scopatz (Univ Wisconsin-Madison)
+ - Patrick Shriwise (Argonne National Lab)
+ - Anthony Scopatz (The University of South Carolina)
 
 
  <h2>Emeritus members:</h2>
@@ -430,17 +430,15 @@ A number of mesh-based services are often used in conjunction with a mesh librar
 
   \subsection fourone 4.1. Visualization
 
-Visualization is one of the most common needs associated with meshes.  The primary tool used to visualize MOAB meshes is VisIt [12].  Users can specify that VisIt read mesh directly out of the MOAB instance, by specifying the ITAPS_MOAB mesh format and a file readable by MOAB (see http://sigma.mcs.anl.gov/?p=429).
+Visualization is one of the most common needs associated with meshes.  The primary tool used to visualize MOAB meshes is VisIt [11].  Users can download a VisIt version that has the MOAB plugin compiled, then a file in hdf5 MOAB format (default extension h5m) can be read directly. 
 
-There are some initial capabilities in VisIt for limited viewing and manipulation of tag data and some types of entity sets.  Tag data is visualized using the same mechanisms used to view other field data in VisIt, e.g. using a pseudocolor plot; sets are viewed using VisIt’s SIL window, accessed by selecting the SIL icon in the data selection window.  xxx shows a vertex-based radiation temperature field computed by the Cooper rad-hydro code [1] for a subset of geometric volumes in a mesh.   
-
-Reorganization of VisIt’s set handling is also underway, to increase versatility and flexibility of this important mechanism.
+There are capabilities in VisIt for viewing and manipulation of tag data and some types of entity sets.  Dense tag data is visualized using the same mechanisms used to view other field data in VisIt, e.g. using a pseudocolor plot; Material sets, neumann and dirichlet sets and parallel partition sets can be visualized using the subset capability. Figure 2 shows a vertex-based radiation temperature field computed by the Cooper rad-hydro code [1] for a subset of geometric volumes in a mesh.   
 
  \ref contents
 
   \subsection fourtwo 4.2. Parallel Decomposition
 
-To support parallel simulation, applications often need to partition a mesh into parts, designed to balance the load and minimize communication between sets.  MOAB includes the MBZoltan tool for this purpose, constructed on the well-known Zoltan partitioning library [13].  After computing the partition using Zoltan, MBZoltan stores the partition as either tags on individual entities in the partition, or as tagged sets, one set per part.  Since a partition often exhibits locality similar to how the entities were created, storing it as sets (based on Range’s) is often more memory-efficient than an entity tag-based representation.  Figure below shows a couple of partitioned meshes computed with MBZoltan (and visualized in VisIt).
+To support parallel simulation, applications often need to partition a mesh into parts, designed to balance the load and minimize communication between sets.  MOAB includes the mbpart tool for this purpose, constructed on the well-known Zoltan partitioning library [12] and Metis [13].  After computing the partition using Zoltan or Metis, MOAB stores the partition as either tags on individual entities in the partition, or as tagged sets, one set per part.  Since a partition often exhibits locality similar to how the entities were created, storing it as sets (based on Range’s) is often more memory-efficient than an entity tag-based representation.  Figure below shows a couple of partitioned meshes computed with mbpart with -z option for Zoltan and visualized in VisIt.
 
 
  \image html vis_part.png
@@ -529,7 +527,7 @@ The following code fragment illustrates the use of ReadUtilIface to read a mesh 
 \code
 // get the read iface from moab
 ReadUtilIface *iface;
-ErrorCode rval = moab->get_interface("ReadUtilIface", &iface);
+ErrorCode rval = moab->query_interface(iface);
 
 // allocate a block of vertex handles and read xyz’s into them
 std::vector<double*> arrays;
@@ -562,7 +560,7 @@ The following code fragment shows how to use WriteUtilIface to write the vertex 
 using namespace moab;
 // get the write iface from moab
 WriteUtilIface *iface;
-ErrorCode rval = moab->get_interface("WriteUtilIface", &iface);
+ErrorCode rval = moab->query_interface(iface);
 
 // get all hexes the model, and choose the first 10 of those
 Range tmp_hexes, hexes, verts;
@@ -852,7 +850,7 @@ MOAB implements several specific methods for loading mesh into a parallel repres
 
 - BCAST_DELETE: the root processor reads and broadcasts the mesh; each processor then deletes the mesh not used by its part(s).
 
-The READ_DELETE and BCAST_DELETE methods are supported for all file types MOAB is able to read, while READ_PART is only implemented for MOAB’s native HDF5-based file format.
+The READ_DELETE and BCAST_DELETE methods are supported for all file types MOAB is able to read, while READ_PART is only implemented for MOAB’s native HDF5-based file format and netcdf and pnetcdf files from climate application.
 
 Various other options control the selection of part sets or other details of the parallel read process.  For example, the application can specify the tags, and optionally tag values, which identify parts, and whether those parts should be distributed according to tag value or using round-robin assignment.
 
@@ -921,7 +919,7 @@ Several example option strings controlling parallel reading and initialization a
 
 After creating the local mesh on each processor, an application can call the following functions in ParallelComm to establish information on shared mesh entities.  See the [http://ftp.mcs.anl.gov/pub/fathom/moab-docs/HelloParMOAB_8cpp-example.html example] in the MOAB source tree for a complete example of how this is done from an application.
 
-- ParallelComm::resolve_shared_entities (collective): Resolves shared entities between processors, based on GLOBAL_ID tag values of vertices.  Various forms are available, based on entities to be evaluated and maximum dimension for which entity sharing should be found.
+- ParallelComm::resolve_shared_entities (collective): Resolves shared entities between processors, based by default on GLOBAL_ID tag values of vertices. For meshes with more than 2 billion vertices, an opaque tag of size 8 should be used, in which a 64 bit integer is casted to that opaque tag.  Various forms are available, based on entities to be evaluated and maximum dimension for which entity sharing should be found.
 
 - ParallelComm::exchange_ghost_cells (collective): Exchange ghost entities with processors sharing an interface with this processor, based on specified ghost dimension (dimension of ghost entities exchanged), bridge dimension, number of layers, and type of adjacencies to ghost entities.  An entity is sent as a ghost if it is within that number of layers, across entities of the bridge dimension, with entities owned by the receiving processor, or if it is a lower-dimensional entity adjacent to a ghost entity and that option is requested.
 .
@@ -1020,7 +1018,7 @@ The second method for incorporating MOAB into an application’s build system is
 
   \section implementation  7.iMesh (ITAPS Mesh Interface) Implementation in MOAB
 
-iMesh is a common API to mesh data developed as part of the Interoperable Tools for Advanced Petascale Simulations (ITAPS) project [18].  Applications using the iMesh interface can operate on any implementation of that interface, including MOAB.  MOAB-based applications can take advantage of other services implemented on top of iMesh, including the MESQUITE mesh improvement toolkit [19] and the GRUMMP mesh improvement library [20].
+iMesh is a common API to mesh data developed as part of the Interoperable Tools for Advanced Petascale Simulations (ITAPS) project [19].  Applications using the iMesh interface can operate on any implementation of that interface, including MOAB.  MOAB-based applications can take advantage of other services implemented on top of iMesh, including the MESQUITE mesh improvement toolkit [20].
 
 MOAB’s native interface is accessed through the Interface abstract C++ base class.  Wrappers are not provided in other languages; rather, applications wanting to access MOAB from those languages should do so through iMesh.  In most cases, the data models and functionality available through MOAB and iMesh are identical.  However, there are a few differences, subtle and not-so-subtle, between the two:
 
@@ -1076,7 +1074,7 @@ Examples of PyMOAB usage can be found in the /examples/python/ directory.
 
   \section representation 9.Structured Mesh Representation
 
-A structured mesh is defined as a D-dimensional mesh whose interior vertices have 2D connected edges.   Structured mesh can be stored without connectivity, if certain information is kept about the parametric space of each structured block of mesh.  MOAB can represent structured mesh with implicit connectivity, saving approximately 57% of the storage cost compared to an unstructured representation<sup>7</sup>.  Since connectivity must be computed on the fly, these queries execute a bit slower than those for unstructured mesh.  More information on the theory behind MOAB's structured mesh representation can be found in “MOAB-SD: Integrated structured and unstructured mesh representation”[17].
+A structured mesh is defined as a D-dimensional mesh whose interior vertices have 2D connected edges.   Structured mesh can be stored without connectivity, if certain information is kept about the parametric space of each structured block of mesh.  MOAB can represent structured mesh with implicit connectivity, saving approximately 57% of the storage cost compared to an unstructured representation<sup>7</sup>.  Since connectivity must be computed on the fly, these queries execute a bit slower than those for unstructured mesh.  More information on the theory behind MOAB's structured mesh representation can be found in “MOAB-SD: Integrated structured and unstructured mesh representation”[18].
 
 Currently, MOAB's structured mesh representation can only be used by creating structured mesh at runtime; that is, structured mesh is saved/restored in an unstructured format in MOAB's HDF5-based native save format.  For more details on how to use MOAB's structured mesh representation, see the scdseq_test.cpp source file in the test/ directory.
 
@@ -1216,27 +1214,29 @@ Initial results have demonstrated that the data abstraction provided by MOAB is 
 
 [12]	K. Devine, E. Boman, R. Heaphy, B. Hendrickson, and C. Vaughan, “Zoltan Data Management Services for Parallel Dynamic Applications,” Computing in Science and Engineering,  vol. 4, 2002, pp. 90–97.
 
-[13]	T.J. Tautges, P.P.H. Wilson, J. Kraftcheck, B.F. Smith, and D.L. Henderson, “Acceleration Techniques for Direct Use of  CAD-Based Geometries in Monte Carlo Radiation Transport,” International Conference on Mathematics, Computational Methods & Reactor Physics (M&C 2009),  Saratoga Springs, NY: American Nuclear Society, 2009.
+[13]    METIS - Serial Graph Partitioning and Fill-reducing Matrix Ordering. http://glaros.dtc.umn.edu/gkhome/views/metis
 
-[14]	H. Kim and T. Tautges, “EBMesh: An Embedded Boundary Meshing Tool,” in preparation.
+[14]	T.J. Tautges, P.P.H. Wilson, J. Kraftcheck, B.F. Smith, and D.L. Henderson, “Acceleration Techniques for Direct Use of  CAD-Based Geometries in Monte Carlo Radiation Transport,” International Conference on Mathematics, Computational Methods & Reactor Physics (M&C 2009),  Saratoga Springs, NY: American Nuclear Society, 2009.
 
-[15]	G.D. Sjaardema, T.J. Tautges, T.J. Wilson, S.J. Owen, T.D. Blacker, W.J. Bohnhoff, T.L. Edwards, J.R. Hipp, R.R. Lober, and S.A. Mitchell, CUBIT mesh generation environment Volume 1: Users manual, Sandia National Laboratories, May 1994, 1994.
+[15]	H. Kim and T. Tautges, “EBMesh: An Embedded Boundary Meshing Tool,” in preparation.
 
-[16]	T.J. Tautges, “CGM: A geometry interface for mesh generation, analysis and other applications,” Engineering with Computers,  vol. 17, 2001, pp. 299-314.
+[16]	G.D. Sjaardema, T.J. Tautges, T.J. Wilson, S.J. Owen, T.D. Blacker, W.J. Bohnhoff, T.L. Edwards, J.R. Hipp, R.R. Lober, and S.A. Mitchell, CUBIT mesh generation environment Volume 1: Users manual, Sandia National Laboratories, May 1994, 1994.
 
-[17]	T. J. Tautges, MOAB-SD: Integrated structured and unstructured mesh representation, Engineering with Computers, vol. 20, no. 3, pp. 286-293, 2004.
+[17]	T.J. Tautges, “CGM: A geometry interface for mesh generation, analysis and other applications,” Engineering with Computers,  vol. 17, 2001, pp. 299-314.
 
-[18]	“Interoperable Technologies for Advanced Petascale Simulations (ITAPS),” Interoperable Technologies for Advanced Petascale Simulations (ITAPS).
+[18]	T. J. Tautges, MOAB-SD: Integrated structured and unstructured mesh representation, Engineering with Computers, vol. 20, no. 3, pp. 286-293, 2004.
 
-[19]	P. Knupp, “Mesh quality improvement for SciDAC applications,” Journal of Physics: Conference Series,  vol. 46, 2006, pp. 458-462.
+[19]	“Interoperable Technologies for Advanced Petascale Simulations (ITAPS),” Interoperable Technologies for Advanced Petascale Simulations (ITAPS).
 
-[20]	M. O. Deville, P. F. Fischer, and E. H. Mund, High-order methods for incompressible fluid flow. Cambridge, UK; New York: Cambridge University Press, 2002.
+[20]	P. Knupp, “Mesh quality improvement for SciDAC applications,” Journal of Physics: Conference Series,  vol. 46, 2006, pp. 458-462.
 
-[21]	T. J. Tautges, “MOAB Wiki.” [Online]. Available: http://sigma.mcs.anl.gov/moab-library [Accessed: 20-Oct-2016].
+[21]	M. O. Deville, P. F. Fischer, and E. H. Mund, High-order methods for incompressible fluid flow. Cambridge, UK; New York: Cambridge University Press, 2002.
 
-[22]	T. J. Tautges, “Canonical numbering systems for finite-element codes,” International Journal for Numerical Methods in Biomedical Engineering, vol. 26, no. 12, pp. 1559–1572, 2010.
+[22]	T. J. Tautges, “MOAB Wiki.” [Online]. Available: http://sigma.mcs.anl.gov/moab-library [Accessed: 20-Oct-2016].
 
-[23]    V. Dyedov, N. Ray, D.Einstein, X. Jiao, T. Tautges, “AHF: Array-based half-facet data structure for mixed-dimensional and non-manifold meshes”, In Proceedings of 22nd International Meshing Roundtable, Orlando, Florida, October 2013.
+[23]	T. J. Tautges, “Canonical numbering systems for finite-element codes,” International Journal for Numerical Methods in Biomedical Engineering, vol. 26, no. 12, pp. 1559–1572, 2010.
+
+[24]    V. Dyedov, N. Ray, D.Einstein, X. Jiao, T. Tautges, “AHF: Array-based half-facet data structure for mixed-dimensional and non-manifold meshes”, In Proceedings of 22nd International Meshing Roundtable, Orlando, Florida, October 2013.
 
 
   \ref contents
