@@ -28,9 +28,9 @@ check: all-local
 	done
 
 clean-local:
-	-rm -rf build pymoab/*.cpp pymoab/__pycache__ pymoab/*.so tests/*.pyc pymoab.egg-info dist
+	-rm -rf build pymoab/*.cpp pymoab/__pycache__ pymoab/*.so pymoab/*.pyc tests/*.pyc pymoab.egg-info dist
 
 uninstall:
 	rm -rf $(DESTDIR)$(pythondir)/*
 
-CLEANFILES = tests/quads_test.vtk tests/outfile.h5m tests/write_tag_only.h5m
+CLEANFILES = tests/quads_test.vtk tests/outfile.h5m tests/write_tag_test.h5m
