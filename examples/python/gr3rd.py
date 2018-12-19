@@ -1,6 +1,13 @@
 #!/usr/bin/env python
 # Create a moab h5m file from a gr3 file
-# See for details: http://ccrm.vims.edu/yinglong/TMP/ 
+#
+# this converter assumes the gr3 file is in latitude/longitude format, 
+#  it will be converted to MOAB hdf5 based format (h5m)
+#  example file can be downloaded from http://ccrm.vims.edu/yinglong/TMP/
+#    hgrid.ll.tri
+#  or from http://ftp.mcs.anl.gov/pub/fathom/MeshFiles/hgrid.ll.tri
+#
+# SCHISM manual downloaded from here:
 #  http://ccrm.vims.edu/schismweb/SCHISM_v5.6-Manual.pdf page 52-57
 
 import sys
