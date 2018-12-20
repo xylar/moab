@@ -1,5 +1,5 @@
 # ===========================================================================
-#         http://www.gnu.org/software/autoconf-archive/ax_lapack.html
+#        https://www.gnu.org/software/autoconf-archive/ax_lapack.html
 # ===========================================================================
 #
 # SYNOPSIS
@@ -49,7 +49,7 @@
 #   Public License for more details.
 #
 #   You should have received a copy of the GNU General Public License along
-#   with this program. If not, see <http://www.gnu.org/licenses/>.
+#   with this program. If not, see <https://www.gnu.org/licenses/>.
 #
 #   As a special exception, the respective Autoconf Macro's copyright owner
 #   gives unlimited permission to copy, distribute and modify the configure
@@ -64,11 +64,11 @@
 #   modified version of the Autoconf Macro, you may extend this special
 #   exception to the GPL to apply to your modified version as well.
 
-#serial 7
+#serial 8
 
 AU_ALIAS([ACX_LAPACK], [AX_LAPACK])
 AC_DEFUN([AX_LAPACK], [
-
+AC_REQUIRE([AX_BLAS])
 ax_lapack_ok=no
 
 AC_ARG_WITH(lapack,
@@ -84,7 +84,7 @@ esac
 if (test "x$ENABLE_FORTRAN" != "xno"); then
   AC_LANG_PUSH(Fortran)dnl
   _AC_FC_FUNC(dgeev)
-  _AC_FC_FUNC(sgeev)
+  _AC_FC_FUNC(cheev)
   AC_LANG_POP(Fortran)dnl
 else
   dgeev="dgeev$FCMANGLE_SUFFIX" # Default
@@ -93,67 +93,69 @@ fi
 
 # We cannot use LAPACK if BLAS is not found
 if test "x$ax_blas_ok" != xyes; then
-    ax_lapack_ok=noblas
-    LAPACK_LIBS=""
+        ax_lapack_ok=noblas
+        LAPACK_LIBS=""
 fi
 
 # Next see if we are using Darwin/OSX
 # LAPACK in Apple vecLib library?
 if (test "x$target_vendor" = "xapple" && test "x$LAPACK_LIBS" = "x"); then
 
-if test $ax_lapack_ok = no; then
-  AC_CHECK_LIB(lapack, [$dgeev], [ax_lapack_ok=yes], [ax_lapack_ok=no],
-   [-framework vecLib])
-fi
-if test $ax_lapack_ok = no; then
-  AC_CHECK_LIB(lapack, [$dgeev], [ax_lapack_ok=yes], [ax_lapack_ok=no],
-   [-framework accelerate])
-fi
+  if test $ax_lapack_ok = no; then
+    AC_CHECK_LIB(lapack, [$dgeev], [ax_lapack_ok=yes], [ax_lapack_ok=no],
+    [-framework vecLib])
+  fi
+  if test $ax_lapack_ok = no; then
+    AC_CHECK_LIB(lapack, [$dgeev], [ax_lapack_ok=yes], [ax_lapack_ok=no],
+    [-framework accelerate])
+  fi
 
 fi
 
 # First, check LAPACK_LIBS environment variable
 if test "x$LAPACK_LIBS" != x; then
-    save_LIBS="$LIBS"; LIBS="$LAPACK_LIBS $BLAS_LIBS $LIBS $FLIBS"
-    AC_MSG_CHECKING([for $dgeev in $LAPACK_LIBS])
-    AC_TRY_LINK_FUNC($dgeev, [ax_lapack_ok=yes], [LAPACK_LIBS=""])
-    AC_MSG_RESULT($ax_lapack_ok)
-    LIBS="$save_LIBS"
-    if test $ax_lapack_ok = no; then
-            LAPACK_LIBS=""
-    fi
+        save_LIBS="$LIBS"; LIBS="$LAPACK_LIBS $BLAS_LIBS $LIBS $FLIBS"
+        AC_MSG_CHECKING([for $cheev in $LAPACK_LIBS])
+        AC_TRY_LINK_FUNC($cheev, [ax_lapack_ok=yes], [LAPACK_LIBS=""])
+        AC_MSG_RESULT($ax_lapack_ok)
+        LIBS="$save_LIBS"
+        if test $ax_lapack_ok = no; then
+                LAPACK_LIBS=""
+        fi
 fi
 
 # LAPACK linked to by default?  (is sometimes included in BLAS lib)
 if test $ax_lapack_ok = no; then
-    save_LIBS="$LIBS"; LIBS="$LIBS $BLAS_LIBS $FLIBS"
-    AC_CHECK_FUNC($dgeev, [ax_lapack_ok=yes])
-    LIBS="$save_LIBS"
-
-    # Generic LAPACK library?
-    for lapack in lapack lapack_rs6k; do
-        if test $ax_lapack_ok = no; then
-            save_LIBS="$LIBS"; LIBS="$BLAS_LIBS $LIBS"
-            AC_CHECK_LIB($lapack, $dgeev,
-                [ax_lapack_ok=yes; LAPACK_LIBS="-l$lapack"], [], [$FLIBS])
-            LIBS="$save_LIBS"
-        fi
-    done
+        save_LIBS="$LIBS"; LIBS="$LIBS $BLAS_LIBS $FLIBS"
+        AC_CHECK_FUNC($cheev, [ax_lapack_ok=yes])
+        LIBS="$save_LIBS"
 fi
+
+# Generic LAPACK library?
+for lapack in lapack lapack_rs6k; do
+        if test $ax_lapack_ok = no; then
+                save_LIBS="$LIBS"; LIBS="$BLAS_LIBS $LIBS"
+                AC_CHECK_LIB($lapack, $cheev,
+                    [ax_lapack_ok=yes; LAPACK_LIBS="-l$lapack"], [], [$FLIBS])
+                LIBS="$save_LIBS"
+        fi
+done
 
 AC_SUBST(LAPACK_LIBS)
 
 # Finally, execute ACTION-IF-FOUND/ACTION-IF-NOT-FOUND:
 if test x"$ax_lapack_ok" = xyes; then
-  AC_DEFINE(HAVE_LAPACK,1,[Define if you have LAPACK library.])
-  $1
-  AC_MSG_NOTICE([Found LAPACK library])
+        ifelse([$1],,AC_DEFINE(HAVE_LAPACK,1,[Define if you have LAPACK library.]),[$1])
+        :
+        AC_MSG_NOTICE([Found LAPACK library])
 else
-  ax_lapack_ok=no
-  $2
-  AC_MSG_ERROR([LAPACK library not found])
+        ax_lapack_ok=no
+        $2
+        AC_MSG_ERROR([LAPACK library not found])
 fi
+
 enablelapack=$ax_lapack_ok
 AC_SUBST(enablelapack)
+
 ])dnl AX_LAPACK
 
