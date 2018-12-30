@@ -749,6 +749,7 @@ ErrCode iMOAB_CoverageGraph(MPI_Comm* join, iMOAB_AppID pid_src, int* scompid, i
   \param[in] disc_order_source   (int *)                   The discretization order for the solution field on the source grid
   \param[in] disc_method_target  (iMOAB_String)            The discretization type ("fv", "cgll", "dgll") for the solution field on the source grid
   \param[in] disc_order_target   (int *)                   The discretization order for the solution field on the source grid
+  \param[in] fMonotoneTypeID   (int *)                     The flag to indicate whether solution monotonicity is to be preserved. 0: none, 1: 
   \param[in] fVolumetric   (int *)                         The flag to indicate whether we need to compute volumetric projection weights
   \param[in] fNoConservation   (int *)                     The flag to indicate whether to ignore conservation of solution field during projection
   \param[in] fValidate   (int *)                           The flag to indicate whether to validate the consistency and conservation of solution field during projection; 
@@ -760,12 +761,11 @@ ErrCode iMOAB_CoverageGraph(MPI_Comm* join, iMOAB_AppID pid_src, int* scompid, i
   \param[in] source_solution_tag_dof_name_length   (int)   The length of the source solution DoF tag name string
   \param[in] target_solution_tag_dof_name_length   (int)   The length of the target solution DoF tag name string
 */
-
 ErrCode iMOAB_ComputeScalarProjectionWeights ( iMOAB_AppID pid_intersection,
                                                const iMOAB_String solution_weights_identifier, /* "scalar", "flux", "custom" */
                                                const iMOAB_String disc_method_source, int* disc_order_source,
                                                const iMOAB_String disc_method_target, int* disc_order_target,
-                                               int* fVolumetric, int* fNoConservation, int* fValidate,
+                                               int* fMonotoneTypeID, int* fVolumetric, int* fNoConservation, int* fValidate,
                                                const iMOAB_String source_solution_tag_dof_name,
                                                const iMOAB_String target_solution_tag_dof_name,
                                                int solution_weights_identifier_length,
