@@ -279,12 +279,12 @@ int main( int argc, char* argv[] )
   int disc_orders[2] = {4, 1};
   const char* disc_methods[2] = {"cgll", "fv"};
   const char* dof_tag_names[2] = {"GLOBAL_DOFS", "GLOBAL_ID"};
-  int fVolumetric=0, fValidate=1, fNoConserve=0;
+  int fMonotoneTypeID=0, fVolumetric=0, fValidate=1, fNoConserve=0;
   PUSH_TIMER("Compute the projection weights with TempestRemap")
   ierr = iMOAB_ComputeScalarProjectionWeights ( pid5, weights_identifiers[0],
                                                 disc_methods[0], &disc_orders[0],
                                                 disc_methods[1], &disc_orders[1],
-                                                &fVolumetric, &fNoConserve, &fValidate,
+                                                &fMonotoneTypeID, &fVolumetric, &fNoConserve, &fValidate,
                                                 dof_tag_names[0], dof_tag_names[1],
                                                 strlen(weights_identifiers[0]),
                                                 strlen(disc_methods[0]), strlen(disc_methods[1]),
