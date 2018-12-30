@@ -1,8 +1,7 @@
 """Implements range functionality."""
 from cython.operator cimport dereference as deref
-# from libcpp.string cimport string as std_string
 from pymoab cimport moab
-from .types import _eh_array, _eh_py_types
+from .types import _eh_array, _eh_py_type
 
 cdef void *null = NULL
 
@@ -37,7 +36,7 @@ cdef class Range(object):
 
     def __cinit__(self, arg = None):
         """
-        Constructor. 
+        Constructor.
 
         Accepts either a range or an iterable of EntityHandles.
 
@@ -46,7 +45,7 @@ cdef class Range(object):
         self.inst = new moab.Range()
         if arg is None:
             return
-        if isinstance(arg, _eh_py_types):
+        if isinstance(arg, _eh_py_type):
             self.inst.insert(arg)
         #hack to copy
         elif isinstance(arg, Range):
@@ -59,8 +58,8 @@ cdef class Range(object):
                 self.inst.insert(eh)
         else:
             raise ValueError("Not a valid argument to Range constructor.")
-                
-    
+
+
     def __del__(self):
         """
         Destructor.
@@ -98,7 +97,7 @@ cdef class Range(object):
     def pop_back(self):
         """Removes the back-most EntityHandle in the Range and returns the EntityHandle."""
         return self.inst.pop_back()
-    
+
     def all_of_type(self, moab.EntityType t):
         """Returns True if all EntityHandles in the Range represent mesh entities of
         EntityType, t, and False otherwise."""
@@ -135,7 +134,7 @@ cdef class Range(object):
         cdef Range r
         if isinstance(other, Range):
             r = other
-            self.inst.contains(deref(r.inst))
+            return self.inst.contains(deref(r.inst))
         else:
             raise ValueError("Operation not valid for non-Range object")
 
@@ -159,14 +158,14 @@ cdef class Range(object):
         # a new range though
         r.inst.merge(mbr)
         return r
-    
+
     def __iter__(self):
         """
         Iterator
         """
         cdef int i = 0
         for i in range(0, self.inst.size()):
-            yield self[i]
+            yield _eh_py_type(self[i])
 
     def __getitem__(self, key):
         """
@@ -177,7 +176,7 @@ cdef class Range(object):
             i = key if key >= 0 else len(self)+key
             rtn = deref(self.inst)[i]
             if i < self.size():
-                return rtn
+                return _eh_py_type(rtn)
             else:
                 raise StopIteration
         elif isinstance(key, slice):
@@ -187,7 +186,7 @@ cdef class Range(object):
             ents = list(self)[start:stop:step]
             return Range(ents)
         else:
-            raise ValueError("Invalid key provided.")
+            raise ValueError("Invalid key (type: {}) provided.".format(type(key)))
 
     def __richcmp__(self, other, op):
         cdef Range r
@@ -197,9 +196,9 @@ cdef class Range(object):
             result2 = subtract(r, self)
             result1.merge(result2)
             if op == 2: # ==
-                return not result1.empty()
-            if op == 3: # !=
                 return result1.empty()
+            if op == 3: # !=
+                return not result1.empty()
             else:
                 NotImplementedError("This comparator isn't supported for Ranges at this time.")
         else:
@@ -209,8 +208,13 @@ cdef class Range(object):
         """
         Range as a string
         """
-        res = str(self.inst.str_rep())
-        return res
+        cdef const char* c_string = self.inst.str_rep()
+        cdef bytes py_string
+        try:
+            py_string = c_string
+        except:
+            return ""
+        return str(py_string.decode())
 
     def __repr__(self):
         """

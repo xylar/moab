@@ -6,7 +6,7 @@ from pymoab cimport tag_conventions
 cimport numpy as np
 import numpy as np
 
-_eh_py_types = (long, np.uint64)
+_eh_py_type = np.uint64
 
 cdef class MOABErrorCode:
 
@@ -136,32 +136,52 @@ _DTYPE_CONV = {
 }
 
 _VALID_DTYPES= {
-    MB_TYPE_OPAQUE: frozenset(['S','U']),
-    MB_TYPE_INTEGER: frozenset(['int8','int16','int32','int64']),
-    MB_TYPE_DOUBLE: frozenset(['float64']),
-    MB_TYPE_BIT: frozenset(['int8','int16','int32','int64','S1','bool']),
-    MB_TYPE_HANDLE: frozenset(['uint64']),
-    MB_MAX_DATA_TYPE: frozenset(['uint64'])
-}
-
-_VALID_DTYPES= {
-    MB_TYPE_OPAQUE: frozenset(['S','U','O']),
-    MB_TYPE_INTEGER: frozenset(['int8','int16','int32','int64','O','object']),
-    MB_TYPE_DOUBLE: frozenset(['float64','float','O','object']),
-    MB_TYPE_BIT: frozenset(['int8','int16','int32','int64','S1','bool','O','object']),
+    MB_TYPE_OPAQUE: frozenset(['S','U','O','object']),
+    MB_TYPE_INTEGER: frozenset(['i','int8','int16','int32','int64','O','object']),
+    MB_TYPE_DOUBLE: frozenset(['float64','float','f8','f', 'O','object',]),
+    MB_TYPE_BIT: frozenset(['f','int8','int16','int32','int64','S1','bool','O','object']),
     MB_TYPE_HANDLE: frozenset(['uint64','O','object']),
     MB_MAX_DATA_TYPE: frozenset(['uint64','O','object'])
 }
 
+_VALID_NATIVE_TYPES = {
+    int: MB_TYPE_INTEGER,
+    float: MB_TYPE_DOUBLE,
+    str: MB_TYPE_OPAQUE,
+    object: MB_TYPE_OPAQUE,
+    np.uint64 : MB_TYPE_HANDLE
+}
+
+def pymoab_data_type(input_type):
+    """
+    Attempts to find a PyMOAB datatype given a Python native type or 
+    NumPy dtype
+    """
+
+    # check native types
+    try:
+        t = _VALID_NATIVE_TYPES[input_type]
+        return t
+    except KeyError:
+        print("Checking all types...")
+        pass
+
+    # check valid dtypes
+    for k in _VALID_DTYPES.keys():
+        if input_type in _VALID_DTYPES[k]:
+            return k
+
+    raise ValueError("Could not determine the PyMOAB data type.")
+    
 def _convert_array(iterable, accepted_types, return_dtype):
-    err_msg = "Incorrect datatype found in array."
+    err_msg = "Incorrect datatype found in array: {}"
     #if this is already an array of the correct type, avoid the loop
     if isinstance(iterable, np.ndarray) and iterable.dtype == return_dtype:
         return  iterable
     #if not, each entry in the iterable should be verified
     for entry in iterable:
-        assert (isinstance(entry, accepted_types)), err_msg
-    #if this is true, then create an array from the iterable
+        assert (isinstance(entry, accepted_types)), err_msg.format(type(entry))
+        #if this is true, then create an array from the iterable
     return np.fromiter(iterable, return_dtype)
 
 def _eh_array(iterable):
@@ -173,7 +193,7 @@ def _eh_array(iterable):
     EH_DTYPE = _DTYPE_CONV[MB_TYPE_HANDLE]
     # try to convert array
     try:
-        arr = _convert_array(iterable, _eh_py_types, EH_DTYPE)
+        arr = _convert_array(iterable, (_eh_py_type,), EH_DTYPE)
     except:
         raise ValueError(err_msg)
     # return array if successful
@@ -239,14 +259,14 @@ MESHSET_TRACK_OWNER = moab.MESHSET_TRACK_OWNER
 MESHSET_SET = moab.MESHSET_SET
 MESHSET_ORDERED = moab.MESHSET_ORDERED
 
-MATERIAL_SET_TAG_NAME   = tag_conventions.MATERIAL_SET_TAG_NAME
-DIRICHLET_SET_TAG_NAME  = tag_conventions.DIRICHLET_SET_TAG_NAME
-NEUMANN_SET_TAG_NAME    = tag_conventions.NEUMANN_SET_TAG_NAME
-HAS_MID_NODES_TAG_NAME  = tag_conventions.HAS_MID_NODES_TAG_NAME
-GEOM_DIMENSION_TAG_NAME = tag_conventions.GEOM_DIMENSION_TAG_NAME
-MESH_TRANSFORM_TAG_NAME = tag_conventions.MESH_TRANSFORM_TAG_NAME
-GLOBAL_ID_TAG_NAME      = tag_conventions.GLOBAL_ID_TAG_NAME
-CATEGORY_TAG_NAME       = tag_conventions.CATEGORY_TAG_NAME
+MATERIAL_SET_TAG_NAME   = str(tag_conventions.MATERIAL_SET_TAG_NAME.decode())
+DIRICHLET_SET_TAG_NAME  = str(tag_conventions.DIRICHLET_SET_TAG_NAME.decode())
+NEUMANN_SET_TAG_NAME    = str(tag_conventions.NEUMANN_SET_TAG_NAME.decode())
+HAS_MID_NODES_TAG_NAME  = str(tag_conventions.HAS_MID_NODES_TAG_NAME.decode())
+GEOM_DIMENSION_TAG_NAME = str(tag_conventions.GEOM_DIMENSION_TAG_NAME.decode())
+MESH_TRANSFORM_TAG_NAME = str(tag_conventions.MESH_TRANSFORM_TAG_NAME.decode())
+GLOBAL_ID_TAG_NAME      = str(tag_conventions.GLOBAL_ID_TAG_NAME.decode())
+CATEGORY_TAG_NAME       = str(tag_conventions.CATEGORY_TAG_NAME.decode())
 CATEGORY_TAG_SIZE       = tag_conventions.CATEGORY_TAG_SIZE
-NAME_TAG_NAME           = tag_conventions.NAME_TAG_NAME
+NAME_TAG_NAME           = str(tag_conventions.NAME_TAG_NAME.decode())
 NAME_TAG_SIZE           = tag_conventions.NAME_TAG_SIZE

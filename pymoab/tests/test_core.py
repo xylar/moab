@@ -4,9 +4,11 @@ from pymoab.rng import Range
 from pymoab.scd import ScdInterface
 from pymoab.hcoord import HomCoord
 from subprocess import call
-from driver import test_driver, CHECK, CHECK_EQ, CHECK_NOT_EQ
+from driver import test_driver, CHECK, CHECK_EQ, CHECK_NOT_EQ, CHECK_ITER_EQ
 import numpy as np
 import os
+
+bytes_per_char_ = np.array(["a"]).nbytes
 
 def test_load_mesh():
     mb = core.Core()
@@ -57,6 +59,85 @@ def test_write_mesh():
             assert os.path.isfile("outfile.vtk")
         except:
             raise(IOError, "Failed to write MOAB file.")
+
+def test_write_ents():
+    try:
+        mb = core.Core()
+        vs = mb.create_vertices(np.ones(3))
+        mb.write_file("ents.h5m", vs)
+    except(IOError):
+        pass
+
+
+def test_write_tags():
+    """
+    Test write tag functionality
+    """
+
+    # test values
+    outfile = "write_tag_test.h5m"
+
+    mb = core.Core()
+    vs = mb.create_vertices(np.ones(3))
+
+    # create writing tag
+    write_tag = mb.tag_get_handle("WRITE",
+                                  3,
+                                  types.MB_TYPE_DOUBLE,
+                                  types.MB_TAG_DENSE,
+                                  create_if_missing=True)
+    # set some data on that tag
+    data = [0.7071, 0.7071, 0.0]
+    mb.tag_set_data(write_tag, vs, data)
+
+    # create a no-write tag
+    no_write_tag = mb.tag_get_handle("NO_WRITE",
+                                  3,
+                                  types.MB_TYPE_DOUBLE,
+                                  types.MB_TAG_DENSE,
+                                  create_if_missing=True)
+    # set some data on that tag as well
+    mb.tag_set_data(no_write_tag, vs, data)
+
+    mb.write_file(outfile, output_tags = [write_tag,])
+
+    mb2 = core.Core()
+    mb2.load_file(outfile)
+
+    vs = mb2.get_entities_by_type(0, types.MBVERTEX)
+
+    # get the write tag
+    new_write_tag = mb2.tag_get_handle("WRITE")
+
+    # make sure we can still get data for the write tag
+    d = mb2.tag_get_data(new_write_tag, vs)
+
+    # make sure the second tag is not there
+    try:
+        no_write_tag = mb2.tag_get_handle("NO_WRITE")
+        raise AssertionError("Tag get handle succeeded when it should not.")
+    except(RuntimeError):
+        pass
+
+    # write multiple tags
+    mb.write_file(outfile, output_tags = [write_tag, no_write_tag])
+
+    mb2 = core.Core()
+    mb2.load_file(outfile)
+
+    vs = mb2.get_entities_by_type(0, types.MBVERTEX)
+
+    # get the write tag
+    new_write_tag = mb2.tag_get_handle("WRITE")
+
+    # make sure we can still get data for the write tag
+    d = mb2.tag_get_data(new_write_tag, vs)
+
+    # make sure the tag is not there
+    new_no_write_tag = mb2.tag_get_handle("NO_WRITE")
+
+    # make sure we can now get data for the "no-write" tag
+    d = mb2.tag_get_data(new_no_write_tag, vs)
 
 
 def test_delete_mesh():
@@ -222,11 +303,9 @@ def test_opaque_tag():
     test_tag_data = np.array((test_val,))
     mb.tag_set_data(test_tag, vh, test_tag_data)
     data = mb.tag_get_data(test_tag, vh)
-
     CHECK_EQ(len(data),1)
-    CHECK_EQ(data.nbytes,tag_length)
+    CHECK_EQ(data.nbytes,tag_length*bytes_per_char_)
     CHECK_EQ(data[0],test_val)
-    CHECK_EQ(data.dtype,'|S' + str(tag_length))
 
 def test_tag_list():
     mb = core.Core()
@@ -241,9 +320,8 @@ def test_tag_list():
     data = mb.tag_get_data(test_tag, vh)
 
     CHECK_EQ(len(data),1)
-    CHECK_EQ(data.nbytes,tag_length)
+    CHECK_EQ(data.nbytes,tag_length*bytes_per_char_)
     CHECK_EQ(data[0],test_val)
-    CHECK_EQ(data.dtype,'|S' + str(tag_length))
 
 def test_tag_delete():
     mb = core.Core()
@@ -274,13 +352,73 @@ def test_tag_delete():
     CHECK_EQ(raised, True)
     CHECK_EQ(er_val, types.MB_TAG_NOT_FOUND)
 
+def test_tag_shallow_copy():
+    """
+    Tests that PyMOAB will handle the passing of a shallow-copy numpy expression
+    appropriately
+    """
+
+    mb = core.Core()
+    vh = vertex_handle(mb)
+    test_tag = mb.tag_get_handle(
+        "Test", 5, types.MB_TYPE_DOUBLE, True, types.MB_TAG_SPARSE)
+    test_val = np.array([1., 2., 3., 4., 5.])
+    mb.tag_set_data(test_tag, vh, test_val)
+
+    # some other large numpy array
+    external_data = np.ones((5, 10))
+    external_data[0,:] = np.linspace(1, 10, 10)
+    external_data[1,:] = np.linspace(1, 10, 10)
+    external_data[2,:] = np.linspace(1, 10, 10)
+    external_data[3,:] = np.linspace(1, 10, 10)
+    external_data[4,:] = np.linspace(1, 10, 10)
+
+    # slice data (shallow copy, unevaluated)
+    data_slice = external_data[:,0]
+
+    # update data
+    mb.tag_set_data(test_tag, vh, data_slice)
+
+    expected_data = np.array([1., 1., 1., 1., 1.])
+    actual_data = mb.tag_get_data(test_tag, vh, flat=True)
+
+    CHECK_ITER_EQ(actual_data, expected_data)
+
+
+def test_tag_delete_single():
+    mb = core.Core()
+    vh = vertex_handle(mb)
+    test_tag = mb.tag_get_handle(
+        "Test", 1, types.MB_TYPE_INTEGER, True, types.MB_TAG_SPARSE)
+    test_val = 4
+    test_tag_data = np.array((test_val,))
+    mb.tag_set_data(test_tag, vh, test_tag_data)
+
+    mb.tag_delete_data(test_tag, vh[0])
+    try:
+        mb.tag_get_data(test_tag, vh[0])
+        raised = False
+    except RuntimeError as e:
+        er_val = e.args[0].error_value
+        raised = True
+    CHECK_EQ(raised, True)
+    CHECK_EQ(er_val, types.MB_TAG_NOT_FOUND)
+
+
 def test_create_meshset():
     mb = core.Core()
     msh = mb.create_meshset()
     vh = vertex_handle(mb)
     mb.add_entities(msh,vh)
 
+def test_add_entity():
+    mb = core.Core()
+    msh = mb.create_meshset()
+    vh = vertex_handle(mb)[0]
+    mb.add_entity(msh, vh)
+
 def vertex_handle(core):
+
     """Convenience function for getting an arbitrary vertex element handle."""
     coord = np.array((1,1,1),dtype='float64')
     vert = core.create_vertices(coord)
@@ -296,7 +434,7 @@ def test_create_elements():
     tris = mb.create_elements(types.MBTRI,verts)
     CHECK_EQ(len(tris),1)
     #check that the element is there via GLOBAL_ID tag
-    global_id_tag = mb.tag_get_handle("GLOBAL_ID",1,types.MB_TYPE_INTEGER,types.MB_TAG_DENSE,True)
+    global_id_tag = mb.tag_get_handle(types.GLOBAL_ID_TAG_NAME,1,types.MB_TYPE_INTEGER,types.MB_TAG_DENSE,True)
     tri_id = mb.tag_get_data(global_id_tag, tris)
     CHECK_EQ(len(tri_id),1)
     CHECK_EQ(tri_id[0],0)
@@ -307,7 +445,7 @@ def test_tag_failures():
     mb = core.Core()
 
     coord = np.array((1,1,1),dtype='float64')
-    msh = mb.create_meshset()    
+    msh = mb.create_meshset()
     msh_illicit_copy = np.array((msh,),dtype='uint32')
     test_tag = mb.tag_get_handle("Test",1,types.MB_TYPE_INTEGER,types.MB_TAG_DENSE,True)
     data = np.array((1,))
@@ -341,7 +479,7 @@ def test_tag_failures():
         raise(ValueError)
 
 
-    global_id_tag = mb.tag_get_handle("GLOBAL_ID",1,types.MB_TYPE_INTEGER,types.MB_TAG_DENSE,True)
+    global_id_tag = mb.tag_get_handle(types.GLOBAL_ID_TAG_NAME,1,types.MB_TYPE_INTEGER,types.MB_TAG_DENSE,True)
     #so should this one
     try:
         tri_id = mb.tag_get_data(global_id_tag, verts_illicit_copy)
@@ -364,7 +502,7 @@ def test_adj():
     CHECK_EQ(len(adjs),3)
     CHECK(adjs.all_of_type(types.MBVERTEX))
 
-    
+
     #check that the entities are of the correct type
     for adj in adjs:
         type = mb.type_from_handle(adj)
@@ -375,38 +513,35 @@ def test_adj():
     CHECK_EQ(len(adjs),3)
 
     CHECK(adjs.all_of_type(types.MBEDGE))
-          
+
     adjs = mb.get_adjacencies(tris[0], 0, False)
     CHECK_EQ(len(adjs),3)
 
     # create another triangle (with reverse normal)
     new_coords = np.array((2,2,2,3,5,3), dtype = 'float64')
     new_verts = mb.create_vertices(new_coords)
-    
+
     # create a new triangle that shares a vertex with the first
     new_tri_conn = np.array(((verts[2], new_verts[0], new_verts[1]),) , dtype = 'uint64')
     tris.merge(mb.create_elements(types.MBTRI, new_tri_conn))
-
     # confirm that we can get the adjacency intersection of the two triangles
     adjs = mb.get_adjacencies(tris, 0, False)
     CHECK_EQ(len(adjs), 1)
     CHECK(adjs.all_of_type(types.MBVERTEX))
-    
+
     adjs = mb.get_adjacencies(tris, 1, False)
     CHECK_EQ(len(adjs), 0)
     CHECK(adjs.all_of_type(types.MBEDGE))
 
     # now check that we can get the union of the two triangle adjacencies
     adjs = mb.get_adjacencies(tris, 0, False, types.UNION)
-    CHECK_EQ(len(adjs), 6)
+    CHECK_EQ(len(adjs), 5)
     CHECK(adjs.all_of_type(types.MBVERTEX))
 
     # sanity check for number of edges
-    adjs = mb.get_adjacencies(tris, 1, False, types.UNION)
+    adjs = mb.get_adjacencies(tris[1], 1, False, types.UNION)
     CHECK_EQ(len(adjs), 0)
-    CHECK(adjs.all_of_type(types.MBEDGE))
-    
-    
+
 def test_get_conn():
 
     mb = core.Core()
@@ -433,7 +568,7 @@ def test_get_conn():
     CHECK_EQ(conn, verts)
 
     msh = mb.create_meshset()
-    
+
     try:
         mb.get_connectivity(msh)
     except IndexError:
@@ -441,7 +576,7 @@ def test_get_conn():
     else:
         print("Shouldn't be here. Test fails.")
         raise(IndexErrorx)
-    
+
 def test_type_from_handle():
     mb = core.Core()
     # create vertices
@@ -499,6 +634,12 @@ def test_set_coords():
     ret_coords2 = mb.get_coords(verts)
     for i in range(len(coords)):
         CHECK_EQ(ret_coords[i],ret_coords2[i]-1.0)
+
+    # check that setting with a single eh is ok
+    coord = np.array((5,5,5), dtype='float64')
+    mb.set_coords(verts[0], coord)
+    ret_coords3 = mb.get_coords(verts[0])
+    CHECK_ITER_EQ(ret_coords3, coord)
 
 def test_get_ents_by_type():
     mb = core.Core()
@@ -739,8 +880,7 @@ def test_remove_ents():
     CHECK_EQ(entities[2],verts[2])
 
     #remove first vertex from meshset
-    vert_to_remove = np.array([verts[0],],dtype='uint64') #not proud of this...
-    mb.remove_entities(ms,vert_to_remove)
+    mb.remove_entity(ms, verts[0])
 
     #make sure the right one got removed from the meshset
     entities = mb.get_entities_by_type(ms, types.MBVERTEX)
@@ -757,7 +897,7 @@ def test_remove_ents():
     CHECK_EQ(entities[2],verts[2])
 
     #until it is deleted from the instance
-    mb.delete_entities(vert_to_remove)
+    mb.delete_entity(verts[0])
     entities = mb.get_entities_by_type(rs, types.MBVERTEX)
     CHECK_EQ(len(entities),2)
     CHECK_EQ(entities[0],verts[1])
@@ -771,14 +911,14 @@ def test_iterables():
     verts = mb.create_vertices(coords)
     CHECK_EQ(len(verts),3)
     # 2-D iterable w/ len 3 entries
-    coords = [[0.,0.,0.],[1.,0.,0.],[1.,1.,1.]]
+    coords = [[0.,0.,0.],[1.,0.,0.],[1.,1.,1.],[0., 1., 0.]]
     verts = mb.create_vertices(coords)
-    CHECK_EQ(len(verts),3)
+    CHECK_EQ(len(verts),4)
 
     int_tag = mb.tag_get_handle("IntTag",1,types.MB_TYPE_INTEGER,types.MB_TAG_DENSE,True)
 
     #try to set data with bad array (contains int)
-    int_data = [1,2,3.0]
+    int_data = [1, 2, 3, 4.0]
 
     try:
         mb.tag_set_data(int_tag,verts,int_data)
@@ -789,7 +929,7 @@ def test_iterables():
         raise(AssertionError)
 
     #now set with valid data and check
-    int_data = [1,2,3]
+    int_data = [1, 2, 3, 4]
 
     mb.tag_set_data(int_tag,verts,int_data)
 
@@ -798,11 +938,12 @@ def test_iterables():
     CHECK_EQ(return_data[0],int_data[0])
     CHECK_EQ(return_data[1],int_data[1])
     CHECK_EQ(return_data[2],int_data[2])
+    CHECK_EQ(return_data[3],int_data[3])
 
     #insert false vertex handle (not even correct type
     verts = [verts[0],23,verts[1]]
     try:
-        mb.tag_set_data(int_tag,verts,[1,2,3])
+        mb.tag_set_data(int_tag,verts,int_data)
     except:
         pass
     else:
@@ -812,7 +953,7 @@ def test_iterables():
     #insert correct type, but non-existant handle
     verts = [verts[0],int(23),verts[1]]
     try:
-        mb.tag_set_data(int_tag,verts,[1,2,3])
+        mb.tag_set_data(int_tag,verts,int_data)
     except:
         pass
     else:
@@ -839,15 +980,15 @@ def test_unordered_tagging():
 
     # tag ordered vertices with value
     mb.tag_set_data(int_tag, verts, int_data)
-        
+
     reordered_verts = [verts[1], verts[2], verts[0]]
     reordered_data =  [int_data[1], int_data[2], int_data[0]]
 
     # check that data array is correct for reordered vertex handles
     data = mb.tag_get_data(int_tag, reordered_verts)
     CHECK_EQ(data, reordered_data)
-    
-    
+
+
 def test_vec_tags():
     mb = core.Core()
     coords = np.array((0,0,0,1,0,0,1,1,1),dtype='float64')
@@ -874,19 +1015,19 @@ def test_vec_tags():
 
     #these values should then be able to be retrieved as a 2-D array
     returned_int_test_tag_values = mb.tag_get_data(int_vec_test_tag,verts)
-    CHECK_EQ(returned_int_test_tag_values,int_vec_test_tag_values)
+    CHECK_ITER_EQ(returned_int_test_tag_values,int_vec_test_tag_values)
     returned_dbl_test_tag_values = mb.tag_get_data(dbl_vec_test_tag,verts)
-    CHECK_EQ(returned_dbl_test_tag_values,dbl_vec_test_tag_values)
+    CHECK_ITER_EQ(returned_dbl_test_tag_values,dbl_vec_test_tag_values)
     returned_opaque_test_tag_values = mb.tag_get_data(opaque_vec_test_tag,verts)
-    CHECK_EQ(returned_opaque_test_tag_values,opaque_vec_test_tag_values)
+    CHECK_ITER_EQ(returned_opaque_test_tag_values,opaque_vec_test_tag_values)
 
     #or as a 1-D array
     returned_int_test_tag_values = mb.tag_get_data(int_vec_test_tag,verts,flat=True)
-    CHECK_EQ(returned_int_test_tag_values,int_vec_test_tag_values_flat)
+    CHECK_ITER_EQ(returned_int_test_tag_values,int_vec_test_tag_values_flat)
     returned_dbl_test_tag_values = mb.tag_get_data(dbl_vec_test_tag,verts,flat=True)
-    CHECK_EQ(returned_dbl_test_tag_values,dbl_vec_test_tag_values_flat)
+    CHECK_ITER_EQ(returned_dbl_test_tag_values,dbl_vec_test_tag_values_flat)
     returned_opaque_test_tag_values = mb.tag_get_data(opaque_vec_test_tag,verts,flat=True)
-    CHECK_EQ(returned_opaque_test_tag_values,opaque_vec_test_tag_values_flat)
+    CHECK_ITER_EQ(returned_opaque_test_tag_values,opaque_vec_test_tag_values_flat)
 
 def test_create_element_iterable():
     mb = core.Core()
@@ -947,7 +1088,7 @@ def test_entity_handle_tags():
 
     eh_tag = mb.tag_get_handle("Test", 1, types.MB_TYPE_HANDLE, types.MB_TAG_SPARSE, True)
     dbl_tag = mb.tag_get_handle("Dbl", 1, types.MB_TYPE_DOUBLE, types.MB_TAG_DENSE, True)
-    
+
     meshset_a = mb.create_meshset()
     meshset_b = mb.create_meshset()
 
@@ -966,10 +1107,14 @@ def test_entity_handle_tags():
     CHECK_EQ(eh, meshset_b)
     dbl_val = mb.tag_get_data(dbl_tag, eh, flat = True)[0]
     CHECK_EQ(dbl_val, val)
-    
+
+
+
 if __name__ == "__main__":
     tests = [test_load_mesh,
              test_write_mesh,
+             test_write_ents,
+             test_write_tags,
              test_delete_mesh,
              test_get_tag,
              test_integer_tag,
@@ -977,8 +1122,10 @@ if __name__ == "__main__":
              test_opaque_tag,
              test_tag_list,
              test_tag_delete,
+             test_tag_shallow_copy,
              test_create_meshset,
              test_create_elements,
+             test_add_entity,
              test_tag_failures,
              test_adj,
              test_type_from_handle,

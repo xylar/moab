@@ -27,7 +27,7 @@ def test_range():
     CHECK_EQ(len(new_range),len(verts))
     for eh_orig,eh_new in zip(verts,new_range):
         CHECK_EQ(eh_new,eh_orig)
-    
+
     #test slicing/indexing
     CHECK_EQ(verts[-1],verts[5])
     CHECK_EQ(verts[-2],verts[4])
@@ -47,7 +47,7 @@ def test_range():
     CHECK_EQ(len(sliced_range),len(verts))
     for eh_orig,eh_new in zip(verts,sliced_range):
         CHECK_EQ(eh_new,eh_orig)
-        
+
     sliced_range = verts[::]
     CHECK_EQ(len(sliced_range),len(verts))
     for eh_orig,eh_new in zip(verts,sliced_range):
@@ -68,11 +68,11 @@ def test_range():
     CHECK_EQ(len(verts_copy),len(verts))
     for eh_orig,eh_new in zip(verts,verts_copy):
         CHECK_EQ(eh_orig,eh_new)
-    
+
     first_handle = verts_copy.pop_front()
     CHECK_EQ(len(verts_copy),len(verts)-1)
     CHECK_EQ(first_handle,verts[0])
-             
+
     last_handle = verts_copy.pop_back()
     CHECK_EQ(len(verts_copy),len(verts)-2)
     CHECK_EQ(last_handle,verts[-1])
@@ -87,7 +87,7 @@ def test_range():
     r = Range(msh)
     msh_copy = np.array((msh,),dtype='uint64')
     r = Range(msh_copy[0])
-    
+
     verts_copy.clear()
     CHECK_EQ(len(verts_copy),0)
     try:
@@ -106,10 +106,10 @@ def test_range_methods():
     coord = np.array((2,2,2,3,3,3,4,4,4,5,5,5,6,6,6,7,7,7),dtype='float64')
     range_b = mb.create_vertices(coord)
 
-    CHECK_EQ(range_a.all_of_dimension(0),True)    
+    CHECK_EQ(range_a.all_of_dimension(0),True)
     CHECK_EQ(range_b.all_of_dimension(0),True)
 
-    CHECK_EQ(range_a.all_of_dimension(1),False)    
+    CHECK_EQ(range_a.all_of_dimension(1),False)
     CHECK_EQ(range_b.all_of_dimension(1),False)
 
     CHECK_EQ(range_a.num_of_dimension(0),range_a.size())
@@ -129,7 +129,7 @@ def test_range_methods():
 
     range_subtract = subtract(range_a,range_b)
     CHECK_EQ(range_subtract.size(),range_a.size())
-        
+
     range_a.erase(range_a[0])
     CHECK_EQ(range_a.size(),5)
 
@@ -166,8 +166,8 @@ def test_range_methods1():
     CHECK(range_a.all_of_type(types.MBVERTEX))
     CHECK_NOT(range_a.all_of_dimension(1))
     CHECK_NOT(range_a.all_of_type(types.MBTRI))
-    
-    
+
+
     coord = np.array((2,2,2,3,3,3,4,4,4,5,5,5,6,6,6,7,7,7),dtype='float64')
     range_b = mb.create_vertices(coord)
     CHECK_EQ(len(range_b), 6)
@@ -186,14 +186,14 @@ def test_range_methods1():
     # the original ranges
     CHECK(range_a_and_b.contains(range_b))
     CHECK(range_a_and_b.contains(range_a))
-    
+
     tri_range_a = mb.create_elements(types.MBTRI,[range_a[0:3],range_a[3:]])
     CHECK_EQ(len(tri_range_a), 2)
     CHECK(tri_range_a.all_of_dimension(2))
     CHECK(tri_range_a.all_of_type(types.MBTRI))
     CHECK_NOT(tri_range_a.all_of_dimension(0))
     CHECK_NOT(tri_range_a.all_of_type(types.MBVERTEX))
-    
+
     tri_range_b = mb.create_elements(types.MBTRI,[range_b[0:3],range_b[3:]])
     CHECK_EQ(len(tri_range_b), 2)
     CHECK(tri_range_b.all_of_dimension(2))
@@ -208,20 +208,30 @@ def test_range_methods1():
     all_ents.merge(tri_range_a)
     all_ents.merge(tri_range_b)
 
-    CHECK_EQ(len(all_ents), 10)
+    CHECK_EQ(len(all_ents), 16)
     CHECK_NOT(all_ents.all_of_type(types.MBVERTEX))
 
     # get vertices from all_ents range
     verts = all_ents.subset_by_type(types.MBVERTEX)
     CHECK(verts.all_of_type(types.MBVERTEX))
-    CHECK_EQ(len(verts), 6)
-    
+    CHECK_EQ(len(verts), 12)
+
     verts = all_ents.subset_by_dimension(0)
     CHECK(verts.all_of_type(types.MBVERTEX))
-    CHECK_EQ(len(verts), 6)
+    CHECK_EQ(len(verts), 12)
 
     CHECK(verts == verts)
-    
+
+    tris = all_ents.subset_by_type(types.MBTRI)
+    CHECK(tris.all_of_type(types.MBTRI))
+    CHECK_EQ(len(tris), 4)
+
+    tris = all_ents.subset_by_dimension(2)
+    CHECK(tris.all_of_type(types.MBTRI))
+    CHECK_EQ(len(tris), 4)
+
+    CHECK(tris == tris)
+
 if __name__ == "__main__":
     tests = [test_range,
              test_range_methods,

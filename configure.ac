@@ -55,12 +55,6 @@ INITIALIZE_EXTERNAL_PACKAGES
 MB_CPPFLAGS=""
 MB_DEFS=""
 
-AC_ARG_ENABLE( [devmode],
-[AS_HELP_STRING([--enable-devmode],[Enable (advanced) developer mode in the build (not recommended for users).])],
-[enable_devmode=$enableval],
-[enable_devmode=no] )
-AM_CONDITIONAL(DEVELOPER_MODE,[test "x$enable_devmode" != "xno"])
-
 ENABLE_FORTRAN=no
 AC_ARG_ENABLE([fortran],
               [AS_HELP_STRING([--disable-fortran], [Disable Fortran support and name mangling in ITAPS/MBCN C headers])])
@@ -185,7 +179,7 @@ AC_ARG_ENABLE([32bit-handles],
 ])
 if test "x$SIZEOF_MBENTITYHANDLE" = "x0"; then
   SIZEOF_MBENTITYHANDLE=$SIZEOF_VOID_P
-  AC_CHECK_TYPE([size_t], 
+  AC_CHECK_TYPE([size_t],
    [AC_DEFINE(HAVE_SIZE_T,[1],[System provides size_t typedef])],
    [AC_CHECK_SIZEOF([unsigned long])
     SIZEOF_UNSIGNGED_LONG=$ac_cv_sizeof_unsigned_long
@@ -193,7 +187,7 @@ if test "x$SIZEOF_MBENTITYHANDLE" = "x0"; then
       AC_MSG_ERROR([Cannot define handle with sizeof void*: size_t not found and long is of incorrect size.])
     fi]
   )
-  AC_CHECK_TYPE([ptrdiff_t], 
+  AC_CHECK_TYPE([ptrdiff_t],
    [AC_DEFINE(HAVE_PTRDIFF_T,[1],[System provides ptrdiff_t typedef])],
    [AC_CHECK_SIZEOF([long])
     AC_CHECK_SIZEOF([void *])
@@ -297,7 +291,7 @@ else
     filter_sources="YES"
     filter_program=$PYTHON" cython_filter.py 2>/dev/null"
     python_patterns="*.py *.pyx"
-    
+
     if (test "x$enable_devmode" != "xno"); then
       # Developers updating the PyMOAB modules need Cython (> 0.25)
       AC_PYTHON_MODULE(cython)
@@ -318,29 +312,23 @@ else
     AC_CONFIG_SRCDIR([pymoab/setup.py.in])
     # link source files to build location
     AC_CONFIG_LINKS([pymoab/pymoab/moab.pxd:pymoab/pymoab/moab.pxd
-                     pymoab/pymoab/tag.cpp:pymoab/pymoab/tag.cpp
+                     pymoab/pymoab/eh.pxd:pymoab/pymoab/eh.pxd
                      pymoab/pymoab/tag.pyx:pymoab/pymoab/tag.pyx
                      pymoab/pymoab/tag.pxd:pymoab/pymoab/tag.pxd
-                     pymoab/pymoab/core.cpp:pymoab/pymoab/core.cpp
                      pymoab/pymoab/core.pyx:pymoab/pymoab/core.pyx
 		     pymoab/pymoab/core.pxd:pymoab/pymoab/core.pxd
-		     pymoab/pymoab/rng.cpp:pymoab/pymoab/rng.cpp
 		     pymoab/pymoab/rng.pyx:pymoab/pymoab/rng.pyx
 		     pymoab/pymoab/rng.pxd:pymoab/pymoab/rng.pxd
-		     pymoab/pymoab/hcoord.cpp:pymoab/pymoab/hcoord.cpp
 		     pymoab/pymoab/hcoord.pyx:pymoab/pymoab/hcoord.pyx
 		     pymoab/pymoab/hcoord.pxd:pymoab/pymoab/hcoord.pxd
-		     pymoab/pymoab/types.cpp:pymoab/pymoab/types.cpp
 		     pymoab/pymoab/types.pyx:pymoab/pymoab/types.pyx
-		     pymoab/pymoab/topo_util.cpp:pymoab/pymoab/topo_util.cpp
 		     pymoab/pymoab/topo_util.pyx:pymoab/pymoab/topo_util.pyx
 		     pymoab/pymoab/topo_util.pxd:pymoab/pymoab/topo_util.pxd
-		     pymoab/pymoab/scd.cpp:pymoab/pymoab/scd.cpp
 		     pymoab/pymoab/scd.pyx:pymoab/pymoab/scd.pyx
 		     pymoab/pymoab/scd.pxd:pymoab/pymoab/scd.pxd
-		     pymoab/pymoab/skinner.cpp:pymoab/pymoab/skinner.cpp
 		     pymoab/pymoab/skinner.pyx:pymoab/pymoab/skinner.pyx
 		     pymoab/pymoab/skinner.pxd:pymoab/pymoab/skinner.pxd
+		     pymoab/pymoab/tag_conventions.pxd:pymoab/pymoab/tag_conventions.pxd
 		     pymoab/pymoab/__init__.pxd:pymoab/pymoab/__init__.pxd
 		     pymoab/pymoab/__init__.py:pymoab/pymoab/__init__.py])
     # link test files to build location
@@ -445,7 +433,7 @@ fi
 
 # The iMesh option must be checked before configuring the compilers
 # so that we know if we need Fortran.  This stuff has to be done
-# after configuring the compilers so that we know what size of 
+# after configuring the compilers so that we know what size of
 # various types are.
 
 AC_MSG_CHECKING([size of EntityHandle])
@@ -609,7 +597,7 @@ fi
 AM_CONDITIONAL(HAVE_MPI, [test "xno" != "x$enablempi"])
 # Used to generate moab_mpi.h
 if test "xyes" = "x$MPI_CXX_HELP_NEEDED"; then
-  AC_DEFINE( [MPI_CXX_CONFLICT], [1], 
+  AC_DEFINE( [MPI_CXX_CONFLICT], [1],
     [MPICH_IGNORE_CXX_SEEK is not sufficient to avoid conflicts] )
   AC_DEFINE_UNQUOTED([SEEK_SET],[$SEEK_SET],["Value of C SEEK_SET"])
   AC_DEFINE_UNQUOTED([SEEK_CUR],[$SEEK_CUR],["Value of C SEEK_CUR"])
@@ -784,7 +772,7 @@ ZOLTAN_DEFAULT=no
 # Some versions of Zoltan put libraries in directories such as Obj_Linux,
 # where the part after the Obj_ prefix is the zoltan architecture.  Here
 # we allow the user to specify this architecture.  We try to avoid requiring
-# this option, but we allow the user to specify it in case something is 
+# this option, but we allow the user to specify it in case something is
 # going wrong with the logic to choose one automatically.  The 'choose one
 # automatically' logic is basically to add everything that matches Obj_*
 # to the search path, with the assumption that the linker will ignore libraries
@@ -805,7 +793,7 @@ AC_ARG_WITH( [zoltan-arch],
 # Enable support for Zoltan, and optionally specify directory in which
 # to search for Zoltan libs and headers.  Specifying this also enables
 # mbzoltan unless it is explicitly disabled.
-AC_ARG_WITH( [zoltan], 
+AC_ARG_WITH( [zoltan],
              [AS_HELP_STRING([--with-zoltan=DIR],[Enable Zoltan support, and optionally specify Zoltan location])],
              [case "x$withval" in
                xyes)
@@ -927,8 +915,8 @@ VTKMOAB_DEFAULT=no
 if (test "x$WITH_VTK" != "xno" && test "x$WITH_VTK" != "x"); then
   VTKMOAB_DEFAULT=yes
 fi
-  
-AC_ARG_WITH( [vtk-lib-suffix], 
+
+AC_ARG_WITH( [vtk-lib-suffix],
              [AS_HELP_STRING([--with-vtk-lib-suffix=SUFFIX],[Specify optional suffix to VTK library names, e.g. -pv3.98])],
              [case "x$withval" in
                xyes)
@@ -1079,12 +1067,12 @@ AC_SUBST(ZOLTAN_LIBS)
 AC_SUBST(ZOLTAN_LIB_FLAGS)
 AC_SUBST(ZOLTAN_INC_FLAGS)
 EXPORT_LDFLAGS="$ZOLTAN_LIB_FLAGS $EXPORT_LDFLAGS"
- 
+
 ################################################################################
 #                           CGM
 ################################################################################
 USING_DEV_CGM=no
-AC_ARG_WITH(cgm, 
+AC_ARG_WITH(cgm,
 [AS_HELP_STRING([--with-cgm=DIR],[Specify directory containing CGM])],
 [CGM_DIR=$withval
  DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --with-cgm=\"${withval}\""
@@ -1110,7 +1098,7 @@ case "x$CGM_DIR" in
                                  [CGM_MAKE="${CGM_DIR}/cgm.make";
                                   IGEOM_DEFS="${CGM_DIR}/itaps/iGeom-Defs.inc";
                                   USING_DEV_CGM=yes],
-                                 [AC_MSG_ERROR([$CGM_DIR : not a configured CGM]); 
+                                 [AC_MSG_ERROR([$CGM_DIR : not a configured CGM]);
                                   CGM_MISSING=yes])
                   ])
     ;;
@@ -1123,10 +1111,10 @@ AC_SUBST(USING_DEV_CGM)
 if test "x$CGM_MISSING" = "xno"; then
   CGM_CONFIG_OPTIONS="include $CGM_MAKE"
 
-  FATHOM_MAKE_INC_VAR([$CGM_MAKE],[CGM_DEFINES], [CGM_CPPFLAGS="$make_val"])   
-  FATHOM_MAKE_INC_VAR([$CGM_MAKE],[CGM_INCLUDES],[CGM_CPPFLAGS="$CGM_CPPFLAGS $make_val"])   
-  FATHOM_MAKE_INC_VAR([$CGM_MAKE],[CGM_LTFLAGS], [CGM_LTFLAGS="$make_val"])   
-  FATHOM_MAKE_INC_VAR([$CGM_MAKE],[CGM_LDFLAGS], [CGM_LDFLAGS="$make_val"])   
+  FATHOM_MAKE_INC_VAR([$CGM_MAKE],[CGM_DEFINES], [CGM_CPPFLAGS="$make_val"])
+  FATHOM_MAKE_INC_VAR([$CGM_MAKE],[CGM_INCLUDES],[CGM_CPPFLAGS="$CGM_CPPFLAGS $make_val"])
+  FATHOM_MAKE_INC_VAR([$CGM_MAKE],[CGM_LTFLAGS], [CGM_LTFLAGS="$make_val"])
+  FATHOM_MAKE_INC_VAR([$CGM_MAKE],[CGM_LDFLAGS], [CGM_LDFLAGS="$make_val"])
   FATHOM_MAKE_INC_VAR([$CGM_MAKE],[CGM_LIBS],    [CGM_LIBS="$make_val"])
 
   AC_LANG_PUSH([C++])
@@ -1346,13 +1334,13 @@ fi
 if test "xyes" = "x$ENABLE_vtkMOABReader"; then
   if test "xno" = "x$WITH_VTK"; then
     AC_MSG_ERROR([vtkMOABReader requires VTK])
-  elif (test "x" = "x$WITH_VTK"); then 
+  elif (test "x" = "x$WITH_VTK"); then
     WITH_VTK=yes
   fi
 fi
 
 dnl Define a function that checks for the existence of a library
-dnl and if it exists, prepends the corresponding link flag to a 
+dnl and if it exists, prepends the corresponding link flag to a
 dnl sepecified variable
 dnl Arguments:
 dnl  - The library name
@@ -1367,9 +1355,9 @@ dnl  - Optional library path linker argument (e.g. -L/opt/foo)
 
     LIBS="$old_LIBS"
   ])
-  
+
 dnl Define a function that checks for the existence of a library
-dnl and if it exists, prepends the corresponding link flag to a 
+dnl and if it exists, prepends the corresponding link flag to a
 dnl sepecified variable
 dnl Arguments:
 dnl  - The library name
@@ -1379,12 +1367,12 @@ dnl  - Optional library path linker argument (e.g. -L/opt/foo)
   AC_DEFUN([FATHOM_CHECK_VTK_LIB_LIST],[
     old_LIBS="$LIBS"
     LIBS="$5 ${$3} $old_LIBS"
-    AC_CHECK_LIB([$1$VTK_LIB_SUFFIX], main, 
+    AC_CHECK_LIB([$1$VTK_LIB_SUFFIX], main,
        [$3="-l$1$VTK_LIB_SUFFIX ${$3}"],
        [],[$4])dnl
     LIBS="$old_LIBS"
   ])
-  
+
 
 ################################################################################
 #                    VTK for vtkMOABReader
@@ -1392,7 +1380,7 @@ dnl  - Optional library path linker argument (e.g. -L/opt/foo)
 AC_DEFUN([FATHOM_MERGE_LISTS],[
   $1="$2"
   # Reverse list two
-  for item3 in $3; do 
+  for item3 in $3; do
     found=no
     for item2 in $2; do
       if test "x$item2" = "x$item3"; then found=yes; fi
@@ -1411,7 +1399,7 @@ if  (test "x$WITH_VTK" != "xno" && test "x$WITH_VTK" != "x"); then
 
   AC_LANG_PUSH([C++])
 
-  VTK_INCLUDES=  
+  VTK_INCLUDES=
   case "x$WITH_VTK" in
     xyes|x)
       VTK_LIB_DIR=
@@ -1486,14 +1474,14 @@ if  (test "x$WITH_VTK" != "xno" && test "x$WITH_VTK" != "x"); then
   FATHOM_CHECK_LIB_LIST([m],[AC_DEFINE([HAVE_LM],[1],["Define if configured with math library support."])],      [vtk_sys_libs])
   FATHOM_CHECK_LIB_LIST([gcc],[],    [vtk_sys_libs])
   x_libs_arg="$X_EXTRA_LIBS -lX11 $X_PRE_LIBS"
-  FATHOM_CHECK_LIB_LIST([Xext],[],[vtk_x_libs],[$x_libs_arg],[-L$x_libraries]) 
-  FATHOM_CHECK_LIB_LIST([ICE],[], [vtk_x_libs],[$x_libs_arg],[-L$x_libraries]) 
-  FATHOM_CHECK_LIB_LIST([SM],[],  [vtk_x_libs],[$x_libs_arg],[-L$x_libraries]) 
-  FATHOM_CHECK_LIB_LIST([Xt],[],  [vtk_x_libs],[$x_libs_arg],[-L$x_libraries]) 
-  FATHOM_CHECK_LIB_LIST([GL],[AC_DEFINE([HAVE_GL],[1],["Define if configured with openGL library support."])],  [vtk_x_libs],[$x_libs_arg],[-L$x_libraries]) 
-  FATHOM_CHECK_LIB_LIST([GLU],[], [vtk_x_libs],[$x_libs_arg],[-L$x_libraries]) 
+  FATHOM_CHECK_LIB_LIST([Xext],[],[vtk_x_libs],[$x_libs_arg],[-L$x_libraries])
+  FATHOM_CHECK_LIB_LIST([ICE],[], [vtk_x_libs],[$x_libs_arg],[-L$x_libraries])
+  FATHOM_CHECK_LIB_LIST([SM],[],  [vtk_x_libs],[$x_libs_arg],[-L$x_libraries])
+  FATHOM_CHECK_LIB_LIST([Xt],[],  [vtk_x_libs],[$x_libs_arg],[-L$x_libraries])
+  FATHOM_CHECK_LIB_LIST([GL],[AC_DEFINE([HAVE_GL],[1],["Define if configured with openGL library support."])],  [vtk_x_libs],[$x_libs_arg],[-L$x_libraries])
+  FATHOM_CHECK_LIB_LIST([GLU],[], [vtk_x_libs],[$x_libs_arg],[-L$x_libraries])
   vtk_libs_arg="-L$x_libraries $vtk_x_libs $X_EXTRA_LIBS -lX11 $X_PRE_LIBS $vtk_sys_libs"
-  
+
   FATHOM_CHECK_VTK_LIB_LIST([vtksys],[$VTK_LIB_SUFFIX],        [vtk_libs],[$vtk_libs_arg],[-L$VTK_LIB_DIR])
   FATHOM_CHECK_VTK_LIB_LIST([vtkCommonCore],[$VTK_LIB_SUFFIX], [vtk_libs],[$vtk_libs_arg],[-L$VTK_LIB_DIR])
   FATHOM_CHECK_VTK_LIB_LIST([vtkDICOMParser],[$VTK_LIB_SUFFIX],[vtk_libs],[$vtk_libs_arg],[-L$VTK_LIB_DIR])
@@ -1515,12 +1503,12 @@ if  (test "x$WITH_VTK" != "xno" && test "x$WITH_VTK" != "x"); then
   FATHOM_CHECK_VTK_LIB_LIST([vtkRenderingCore],[$VTK_LIB_SUFFIX],  [vtk_libs],[$vtk_libs_arg],[-L$VTK_LIB_DIR])
   FATHOM_CHECK_VTK_LIB_LIST([vtkParallelCore],[$VTK_LIB_SUFFIX],   [vtk_libs],[$vtk_libs_arg],[-L$VTK_LIB_DIR])
   #FATHOM_CHECK_VTK_LIB_LIST([vtkHybrid],[$VTK_LIB_SUFFIX],     [vtk_libs],[$vtk_libs_arg],[-L$VTK_LIB_DIR])
-  
+
    # Make sure we found at least vtkCommonCore and vtkRendering
   if ! echo "x $vtk_libs" | grep lvtkCommonCore >/dev/null; then
     AC_MSG_ERROR("VTK library 'vtkCommonCore' not found.")
   fi
-  
+
   AC_LANG_POP([C++])
 
   FATHOM_MERGE_LISTS([XLIBS_tmp],[$X_EXTRA_LIBS -lX11 $X_PRE_LIBS],[$vtk_x_libs])
@@ -1545,14 +1533,14 @@ AC_DEFINE_UNQUOTED(CONFIGURE_INFO, ["$0 run on `date`"], [Configuration informat
 AC_DEFINE_UNQUOTED(CONFIGURE_COMMAND, ["$USER_CONFIGURE_CMD"], [Configuration command along with user-specified options.])
 AC_SUBST(USER_CONFIGURE_CMD)
 
-# Some old versions of autoconf don't define docdir.  
+# Some old versions of autoconf don't define docdir.
 # Define it if autoconf did not.
 if test "x" = "x$docdir"; then
   docdir='${datadir}/doc/moab'
   AC_SUBST(docdir)
 fi
 
-# Let us define examplesdir. 
+# Let us define examplesdir.
 # Define it if autoconf did not already.
 if test "x" = "x$examplesdir"; then
   examplesdir='${datadir}/examples'
@@ -1576,8 +1564,8 @@ AC_CONFIG_HEADERS([src/moab/EntityHandle.hpp
                    src/moab/MOABConfig.h:config/MOABConfig.h.in])
 AX_PREFIX_CONFIG_H([src/moab/MOABConfig.h],[MOAB],[src/moab/MOABConfig.h])
 
-AC_CONFIG_FILES([Makefile 
-                 moab.make                  
+AC_CONFIG_FILES([Makefile
+                 moab.make
                  MOABConfig.cmake:config/MOABConfig.cmake.in
                  examples/makefile.config
                  src/Makefile
@@ -1629,7 +1617,7 @@ AC_CONFIG_FILES([src/mesquite/Makefile
                  test/mesquite/igeom/Makefile
                  test/mesquite/imesh/Makefile
                  test/mesquite/unit/Makefile
-                 test/mesquite/parallel_untangle_shape/Makefile 
+                 test/mesquite/parallel_untangle_shape/Makefile
                  test/mesquite/parallel_smooth_laplace/Makefile
                  test/mesquite/wrapper_tests/Makefile
                  test/mesquite/higher_order/Makefile
@@ -1640,11 +1628,11 @@ AC_CONFIG_FILES([src/mesquite/Makefile
 
 DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --enable-static=$enable_static --enable-shared=$enable_shared"
 # DISTCHECK_CONFIGURE_FLAGS="$USER_CONFIGURE_CMD"
-# make distcheck will use this DISTCHECK_CONFIGURE_FLAGS 
+# make distcheck will use this DISTCHECK_CONFIGURE_FLAGS
 # variable to be passed to configure line
 # some people include a lot of env vars here
 # I think we need only those; only distcheck is affected by this
-## original is commented out below; we use only a few 
+## original is commented out below; we use only a few
 ## for var in CC CFLAGS CPPFLAGS CXX CXXCPP LDFLAGS LIBS F90 FC F77; do
 for var in CC CXX F90 FC F77 LDFLAGS LIBS; do
   eval isset=\${$var+set}
@@ -1703,7 +1691,7 @@ elif test "xno" = "x$NETCDF_SUFFICIENT_DIMS_VARS"; then
 *  to support reading of ExodusII with large numbers of blocks or sidesets
 *  or nodesets.  Please consider re-compiling your NetCDF library after
 *  increasing the constants NC_MAX_DIMS and NC_MAX_VARS in netcdf.h to
-*  65536 and 524288, respectively.  See: 
+*  65536 and 524288, respectively.  See:
 *  http://cubit.sandia.gov/help-version11.1/finite_element_model/export/exporting_exodus2_file.htm
 *************************************************************************])
 fi
@@ -1720,7 +1708,7 @@ fi
 if test "x$WARN_PARALLEL_HDF5_NO_COMPLEX" = "xyes"; then
   AC_MSG_WARN([
 *************************************************************************
-*     Your parallel HDF5 library is configured without 
+*     Your parallel HDF5 library is configured without
 *     H5_MPI_COMPLEX_DERIVED_DATATYPE_WORKS .  For the types of IO
 *     patterns MOAB typically does this will result in degrading
 *     collective IO calls to independent IO, which may have a very
@@ -1753,4 +1741,3 @@ fi
 
 # define([ConfigurationSuggestion], [`esyscmd(config/suggest_configure_command)'])
 # m4_echo(echo "m4_expand([ConfigurationSuggestion])")
-

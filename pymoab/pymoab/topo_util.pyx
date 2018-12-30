@@ -121,7 +121,7 @@ cdef class MeshTopoUtil(object):
         else:
             arr = _eh_array(entity_handles)
             avg_position = np.empty((3,),dtype='float64')
-            err = self.inst.get_average_position(<unsigned long*> arr.data, len(entity_handles), <double*> avg_position.data)
+            err = self.inst.get_average_position(<moab.EntityHandle*> arr.data, len(entity_handles), <double*> avg_position.data)
             check_error(err, exceptions)
 
         return avg_position

@@ -5,6 +5,13 @@ import numpy as np #needed for numpy include paths
 import glob
 import os
 import sys
+from Cython.Distutils import build_ext
+import Cython
+from distutils.version import StrictVersion
+
+# make sure cython isn't too old
+if StrictVersion(Cython.__version__) < StrictVersion('0.26'):
+    sys.exit("Cython version is too old. Please update using pip install cython --upgrade [--user]")
 
 # setup moab include paths
 moab_root = '${CMAKE_SOURCE_DIR}'
@@ -34,7 +41,7 @@ ext_modules = []
 for f in os.listdir(pymoab_src_dir):
     if f.endswith(".pyx"):
         fbase = f.split('.')[0]
-        ext = Extension( "pymoab."+fbase, ["pymoab/"+fbase+".cpp",],
+        ext = Extension( "pymoab."+fbase, ["pymoab/"+f,],
                          language = 'c++',
                          include_dirs = include_paths,
                          runtime_library_dirs = [moab_rpath,],
@@ -45,6 +52,7 @@ for f in os.listdir(pymoab_src_dir):
 # setup pymoab
 setup(
     name="pymoab",
+    cmdclass = {'build_ext': build_ext},    
     ext_modules=ext_modules,
     packages=find_packages(),
     package_data = {'pymoab': ['*.pxd',]},

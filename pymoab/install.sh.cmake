@@ -1,0 +1,11 @@
+cd @CMAKE_BINARY_DIR@/pymoab
+
+PYMOAB_INSTALL_PREFIX=@PYMOAB_INSTALL_PREFIX@
+
+export PYTHONPATH="$PYMOAB_INSTALL_PREFIX:$PYTHONPATH"
+
+if [[ ! -d $PYMOAB_INSTALL_PREFIX ]]; then
+  mkdir -p @PYMOAB_INSTALL_PREFIX@
+fi
+
+python setup.py install --prefix=@CMAKE_INSTALL_PREFIX@ --record @PYMOAB_INSTALL_PREFIX@/install_files.txt
