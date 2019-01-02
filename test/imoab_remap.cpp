@@ -132,7 +132,7 @@ int main(int argc, char * argv[])
   const char* weights_identifiers[2] = {"scalar", "scalar_conservative"};
   const char* disc_methods[2] = {"cgll", "fv"};
   const char* dof_tag_names[2] = {"GLOBAL_DOFS", "GLOBAL_ID"};
-  int fVolumetric=0, fValidate=1, fNoConserve=0;
+  int fMonotoneTypeID=0, fVolumetric=0, fValidate=1, fNoConserve=0;
   
   const char* fieldname = "a2oTbot";
   const char* fieldnameT = "a2oTbot_proj";
@@ -161,7 +161,7 @@ int main(int argc, char * argv[])
                                               weights_identifiers[0], 
                                               disc_methods[0], &disc_orders[0], 
                                               disc_methods[1], &disc_orders[1], 
-                                              &fVolumetric, &fNoConserve, &fValidate, 
+                                              &fMonotoneTypeID, &fVolumetric, &fNoConserve, &fValidate, 
                                               dof_tag_names[0], dof_tag_names[1],
                                               strlen(weights_identifiers[0]),
                                               strlen(disc_methods[0]), strlen(disc_methods[1]),
@@ -175,7 +175,7 @@ int main(int argc, char * argv[])
                                               weights_identifiers[1], 
                                               disc_methods[0], &disc_orders[0], 
                                               disc_methods[1], &disc_orders[1], 
-                                              &fVolumetric, &fNoConserve, &fValidate, 
+                                              &fMonotoneTypeID, &fVolumetric, &fNoConserve, &fValidate, 
                                               dof_tag_names[0], dof_tag_names[1],
                                               strlen(weights_identifiers[1]),
                                               strlen(disc_methods[0]), strlen(disc_methods[1]),

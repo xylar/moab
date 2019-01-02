@@ -841,167 +841,14 @@ moab::ErrorCode moab::TempestOfflineMap::ApplyWeights (std::vector<double>& srcV
 
 ///////////////////////////////////////////////////////////////////////////////
 
-
-void ForceConsistencyConservation3_MOAB(
+extern void ForceConsistencyConservation3(
     const DataVector<double> & vecSourceArea,
     const DataVector<double> & vecTargetArea,
     DataMatrix<double> & dCoeff,
-    bool fMonotone,
-    int elemID
-) {
-    // Number of conditions
-    const int nCondConservation = dCoeff.GetColumns();
-    const int nCondConsistency  = dCoeff.GetRows();
-
-    // Number of free coefficients
-    const int nCoeff = nCondConsistency * nCondConservation;
-
-    // One condition is dropped due to linear dependence
-    const int nCond = nCondConservation + nCondConsistency - 1;
-
-    // Product matrix
-    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> dCCt(nCond, nCond);
-    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> dC(nCoeff, nCond);
-    dCCt.setZero();
-    dC.setZero();
-
-    Eigen::VectorXd dRHS(nCoeff);
-    Eigen::VectorXd dRHSC(nCond);
-
-    // RHS
-    int ix = 0;
-    for ( int i = 0; i < nCondConsistency; i++ )
-    {
-        for ( int j = 0; j < nCondConservation; j++)
-        {
-            dRHS(ix++) = dCoeff[i][j];
-        }
-    }
-
-    // Consistency
-    ix = 0;
-    for ( int i = 0; i < nCondConsistency; i++ )
-    {
-        for ( int j = 0; j < nCondConservation; j++ )
-        {
-            dC(i * nCondConservation + j, ix) = 1.0;
-        }
-        dRHSC(ix++) = 1.0;
-    }
-
-    // Conservation
-    for ( int j = 0; j < nCondConservation - 1; j++ )
-    {
-        for ( int i = 0; i < nCondConsistency; i++ )
-        {
-            dC(i * nCondConservation + j, ix) = vecTargetArea[i];
-        }
-        dRHSC(ix++) = vecSourceArea[j];
-    }
-
-    // Calculate CCt
-    double dP = 0.0;
-    for ( int i = 0; i < nCondConsistency; i++ )
-        dP += vecTargetArea[i] * vecTargetArea[i];
-
-    for ( int i = 0; i < nCondConsistency; i++ )
-    {
-        dCCt(i, i) = static_cast<double> ( nCondConservation );
-        for ( int j = 0; j < nCondConservation - 1; j++ )
-        {
-            dCCt(i, nCondConsistency + j) = vecTargetArea[i];
-            dCCt(nCondConsistency + j, i) = vecTargetArea[i];
-        }
-    }
-
-    for (int i = 0; i < nCondConservation-1; i++) {
-        dCCt(nCondConsistency + i, nCondConsistency + i) = dP;
-    }
-/*
-    for (int i = 0; i < nCond; i++) {
-    for (int j = 0; j < nCond; j++) {
-        for (int k = 0; k < nCoeff; k++) {
-            dCCt[i][j] += dC[k][i] * dC[k][j];
-        }
-    }
-    }
-*/
-    
-    // // Calculate C*r1 - r2
-    Eigen::VectorXd dTmpRHS = dC.transpose() * dRHS - dRHSC;
-
-    // Solve the general system
-    Eigen::VectorXd xRHS = dCCt.llt().solve((dTmpRHS));
-
-    // Obtain coefficients
-    dRHS -= dC * xRHS;
-
-    // Store coefficients in array
-    ix = 0;
-    for ( int i = 0; i < nCondConsistency; i++ )
-    {
-        for ( int j = 0; j < nCondConservation; j++ )
-        {
-            dCoeff[i][j] = dRHS ( ix );
-            ix++;
-        }
-    }
-
-    // Force monotonicity
-    if ( fMonotone )
-    {
-        // Calculate total element Jacobian
-        double dTotalJacobian = 0.0;
-        for ( unsigned i = 0; i < vecSourceArea.GetRows(); i++ )
-        {
-            dTotalJacobian += vecSourceArea[i];
-        }
-
-        // Determine low-order remap coefficients
-        DataMatrix<double> dMonoCoeff;
-        dMonoCoeff.Initialize ( nCondConsistency, nCondConservation );
-
-        for ( int i = 0; i < nCondConsistency; i++ )
-        {
-            for ( int j = 0; j < nCondConservation; j++ )
-            {
-                dMonoCoeff[i][j] =
-                    vecSourceArea[j]
-                    / dTotalJacobian;
-            }
-        }
-
-        // Compute scaling factor
-        double dA = 0.0;
-        for ( int i = 0; i < nCondConsistency; i++ )
-        {
-            for ( int j = 0; j < nCondConservation; j++ )
-            {
-                if ( dCoeff[i][j] < 0.0 )
-                {
-                    double dNewA =
-                        - dCoeff[i][j] / fabs ( dMonoCoeff[i][j] - dCoeff[i][j] );
-
-                    if ( dNewA > dA )
-                    {
-                        dA = dNewA;
-                    }
-                }
-            }
-        }
-
-        for ( int i = 0; i < nCondConsistency; i++ )
-        {
-            for ( int j = 0; j < nCondConservation; j++ )
-            {
-                dCoeff[i][j] = ( 1.0 - dA ) * dCoeff[i][j] + dA * dMonoCoeff[i][j];
-            }
-        }
-    }
-}
+    bool fMonotone
+);
 
 ///////////////////////////////////////////////////////////////////////////////
-
 
 extern void ForceIntArrayConsistencyConservation (
     const DataVector<double> & vecSourceArea,
@@ -1009,6 +856,8 @@ extern void ForceIntArrayConsistencyConservation (
     DataMatrix<double> & dCoeff,
     bool fMonotone
 );
+
+///////////////////////////////////////////////////////////////////////////////
 
 void moab::TempestOfflineMap::LinearRemapSE4_Tempest_MOAB (
     const DataMatrix3D<int> & dataGLLNodes,
@@ -1377,12 +1226,12 @@ void moab::TempestOfflineMap::LinearRemapSE4_Tempest_MOAB (
                 _EXCEPTIONT ( "Target grid must be a subset of source grid" );
             }
 
-            ForceConsistencyConservation3_MOAB (
+            ForceConsistencyConservation3 (
                 vecSourceArea,
                 vecTargetArea,
                 dCoeff,
-                ( nMonotoneType > 0 ),
-                m_remapper->lid_to_gid_covsrc[ixFirst] );
+                ( nMonotoneType > 0 )
+                /*, m_remapper->lid_to_gid_covsrc[ixFirst]*/ );
 
             for ( int j = 0; j < nOverlapFaces; j++ )
             {
