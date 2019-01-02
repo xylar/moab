@@ -4,6 +4,13 @@ env:
   - CC="clang" CXX="clang++" CONFIGOPTS="--enable-debug --disable-optimize --enable-tools"
   - CC="gcc" CXX="g++" CONFIGOPTS="--disable-debug --enable-optimize"
 
+branches:
+  only:
+    - master
+    - develop
+    - pr-*
+    - Version*
+
 build:
 
   pre_ci:
