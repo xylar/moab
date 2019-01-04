@@ -105,7 +105,7 @@ cdef extern from "moab/Range.hpp" namespace "moab":
         unsigned num_of_type( EntityType type )
         unsigned num_of_dimension( int dim )
         void print_ "print"()
-        const char* str_rep()
+        std_string str_rep()
         void insert(EntityHandle val)
         void erase(EntityHandle val)
         void merge(Range& range)

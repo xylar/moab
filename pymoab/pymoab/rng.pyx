@@ -208,13 +208,8 @@ cdef class Range(object):
         """
         Range as a string
         """
-        cdef const char* c_string = self.inst.str_rep()
-        cdef bytes py_string
-        try:
-            py_string = c_string
-        except:
-            return ""
-        return str(py_string.decode())
+        sout = self.inst.str_rep()
+        return sout.decode()
 
     def __repr__(self):
         """
