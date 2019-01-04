@@ -65,7 +65,7 @@ public:
   //!constructor
   Core();
 
-  //! depricated constructor -- values are ignored
+  //! deprecated constructor -- values are ignored
   Core( int rank, int num_cpu );
 
   //!destructor
