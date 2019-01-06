@@ -1,3 +1,24 @@
+#Version 5.1.0:
+## Features
+  * *PR #399, #406, #408, #410: Updates for E3SM workflow to support online remapping computation for climate applications through interfaces to TempestRemap library. 
+     Major additions to expose online remapping capabilities by computing exact intersection between unstructured meshes on a sphere, and providing 
+     projection weight operator computation through interfaces to TempestRemap for both scalar and vector solution fields with conservation and/or 
+     monotonicity constraints. While the primary application target is E3SM for this particular feature addition, the bulk of the interfaces added
+     in this PR can be reused in other coupled physics simulations as well.
+  * *PR #403: Updates to Cython file generation process in PyMOAB.
+     We’ve done away with static `.cpp` files in the project and are now relying on users having a Cython installation greater than 0.26 on their machine. 
+     This helps us with python 2/3 compatibility issues as well as superfluous re-compiles of libraries.
+## Enhancements
+  * *PR #376, #365: Updates to PyMOAB to improve the Cython interaction and Python3 compatability.
+  * *PR #397: Consistent CMake configurations for downstream apps
+  * *PR #404: Update RTT reader to support v1.0.1 specs
+  * *PR #391, #401: Delete volume/surface OBB trees and restore OBBs from file
+  * *PR #370: Several improvements in the GeomTopoTool implementation
+## Fixes
+  * *PR #363, #398: PyMOAB tag and skinner test fixes
+  * *PR #364: CMake configuration updates to not always require Fortran for BLAS/LAPACK linkage
+  * *PR #362: Several semantic and memory leak fixes due to Coverity, cppcheck and valgrind
+  * *PR #364, #366, #368, #373, #374, #375, #379, #381, #382, #384, #387, #388, #389, #400, #407, #409: Several miscellaneous configuration updates for both autotools and CMake workflows
 #Version 5.0.0:
 ## Features
   * *PR #248, #290, #299*: Eigen3, BLAS/LAPACK -- Add support for the Eigen3 BLAS/LAPACK header libraries; Now BLAS/LAPACK are required dependencies for MOAB in order to support high-performance dense solver support for various algorithms
