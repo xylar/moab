@@ -1,6 +1,6 @@
 cmake_minimum_required( VERSION 3.0 )
 SET(PACKAGE_NAME "MOAB")
-SET(PACKAGE_VERSION "5.1.0")
+SET(PACKAGE_VERSION "5.1.1")
 
 if (NOT WIN32)
   #This all breaks on windows.
