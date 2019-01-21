@@ -1566,8 +1566,16 @@ ErrorCode range_to_blocked_list_templ(HandleRangeIter begin,
       if (n > ri->count)
         n = ri->count;
 
-      // See if we can append it to the previous range
+
       WriteHDF5::wid_t id = ri->value + (h - ri->begin);
+      // see if we can go to the end of the range
+      if (id + n > ri->value + ri->count) // we have to reduce n, because we cannot go over next subrange
+      {
+        if (ri->value + ri->count - id > 0)
+          n = ri->value + ri->count - id > 0;
+      }
+
+      // See if we can append it to the previous range
       if (!output_id_list.empty() &&
           output_id_list[output_id_list.size()-2] + output_id_list.back() == id) {
         output_id_list.back() += n;
