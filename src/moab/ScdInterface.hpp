@@ -965,8 +965,17 @@ inline ErrorCode ScdInterface::compute_partition_sqij(int np, int nr,
       // ideally, Px/Py = I/J
     double ijratio = ((double)(gijk[3]-gijk[0]))/((double)(gijk[4]-gijk[1]));
     
-    unsigned int ind = std::lower_bound(ppfactors.begin(), ppfactors.end(), ijratio) - ppfactors.begin();
-    if (ind && fabs(ppfactors[ind-1]-ijratio) < fabs(ppfactors[ind]-ijratio)) ind--;
+    unsigned int ind = 0;
+    std::vector<double>::iterator optimal=std::lower_bound(ppfactors.begin(), ppfactors.end(), ijratio);
+    if (optimal==ppfactors.end())
+    {
+      ind = ppfactors.size()-1;
+    }
+    else
+    {
+      ind = optimal - ppfactors.begin();
+      if (ind && fabs(ppfactors[ind-1]-ijratio) < fabs(ppfactors[ind]-ijratio)) ind--;
+    }
     
 
       // VARIABLES DESCRIBING THE MESH:
