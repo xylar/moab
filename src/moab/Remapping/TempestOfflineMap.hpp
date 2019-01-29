@@ -19,19 +19,18 @@
 
 #include "moab/MOABConfig.h"
 
-#include "SparseMatrix.h"
-#include "DataVector.h"
-#include "DataMatrix.h"
-#include "DataMatrix3D.h"
+// Tempest includes
+#ifdef MOAB_HAVE_TEMPESTREMAP
+#include "moab/Remapping/TempestRemapper.hpp"
 #include "OfflineMap.h"
+#endif
+
 #include <string>
 #include <vector>
 
 #ifdef MOAB_HAVE_EIGEN
 #include <Eigen/Sparse>
 #endif
-
-#include "moab/Remapping/TempestRemapper.hpp"
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -137,12 +136,12 @@ public:
 	///	<summary>
 	///		If we computed the reduction, get the vector representing the source areas for all entities in the mesh
 	///	</summary>
-	const DataVector<double>& GetGlobalSourceAreas() const;
+	const DataArray1D<double>& GetGlobalSourceAreas() const;
 
 	///	<summary>
 	///		If we computed the reduction, get the vector representing the target areas for all entities in the mesh
 	///	</summary>
-	const DataVector<double>& GetGlobalTargetAreas() const;
+	const DataArray1D<double>& GetGlobalTargetAreas() const;
 
 #ifdef MOAB_HAVE_EIGEN
 	void InitVectors();
@@ -167,16 +166,16 @@ private:
 	///		spectral element to element average remapping.
 	///	</summary>
 	void LinearRemapSE0_Tempest_MOAB(
-		const DataMatrix3D<int> & dataGLLNodes,
-		const DataMatrix3D<double> & dataGLLJacobian);
+		const DataArray3D<int> & dataGLLNodes,
+		const DataArray3D<double> & dataGLLJacobian);
 
 	///	<summary>
 	///		Generate the OfflineMap for cubic conserative element-average
 	///		spectral element to element average remapping.
 	///	</summary>
 	void LinearRemapSE4_Tempest_MOAB(
-	    const DataMatrix3D<int> & dataGLLNodes,
-	    const DataMatrix3D<double> & dataGLLJacobian,
+	    const DataArray3D<int> & dataGLLNodes,
+	    const DataArray3D<double> & dataGLLJacobian,
 	    int nMonotoneType,
 	    bool fContinuousIn,
 	    bool fNoConservation);
@@ -186,9 +185,9 @@ private:
 	///		elements using simple sampling of the FV reconstruction.
 	///	</summary>
 	void LinearRemapFVtoGLL_Simple_MOAB(
-		const DataMatrix3D<int> & dataGLLNodes,
-		const DataMatrix3D<double> & dataGLLJacobian,
-		const DataVector<double> & dataGLLNodalArea,
+		const DataArray3D<int> & dataGLLNodes,
+		const DataArray3D<double> & dataGLLJacobian,
+		const DataArray1D<double> & dataGLLNodalArea,
 		int nOrder,
 		int nMonotoneType,
 		bool fContinuous,
@@ -200,9 +199,9 @@ private:
 	///		elements using a new experimental method.
 	///	</summary>
 	void LinearRemapFVtoGLL_Volumetric_MOAB(
-		const DataMatrix3D<int> & dataGLLNodes,
-		const DataMatrix3D<double> & dataGLLJacobian,
-		const DataVector<double> & dataGLLNodalArea,
+		const DataArray3D<int> & dataGLLNodes,
+		const DataArray3D<double> & dataGLLJacobian,
+		const DataArray1D<double> & dataGLLNodalArea,
 		int nOrder,
 		int nMonotoneType,
 		bool fContinuous,
@@ -214,9 +213,9 @@ private:
 	///		elements.
 	///	</summary>
 	void LinearRemapFVtoGLL_MOAB(
-		const DataMatrix3D<int> & dataGLLNodes,
-		const DataMatrix3D<double> & dataGLLJacobian,
-		const DataVector<double> & dataGLLNodalArea,
+		const DataArray3D<int> & dataGLLNodes,
+		const DataArray3D<double> & dataGLLJacobian,
+		const DataArray1D<double> & dataGLLNodalArea,
 		int nOrder,
 		int nMonotoneType,
 		bool fContinuous,
@@ -228,11 +227,11 @@ private:
 	///		elements.
 	///	</summary>
 	void LinearRemapGLLtoGLL2_MOAB(
-		const DataMatrix3D<int> & dataGLLNodesIn,
-		const DataMatrix3D<double> & dataGLLJacobianIn,
-		const DataMatrix3D<int> & dataGLLNodesOut,
-		const DataMatrix3D<double> & dataGLLJacobianOut,
-		const DataVector<double> & dataNodalAreaOut,
+		const DataArray3D<int> & dataGLLNodesIn,
+		const DataArray3D<double> & dataGLLJacobianIn,
+		const DataArray3D<int> & dataGLLNodesOut,
+		const DataArray3D<double> & dataGLLJacobianOut,
+		const DataArray1D<double> & dataNodalAreaOut,
 		int nPin,
 		int nPout,
 		int nMonotoneType,
@@ -246,11 +245,11 @@ private:
 	///		elements (pointwise interpolation).
 	///	</summary>
 	void LinearRemapGLLtoGLL2_Pointwise_MOAB(
-		const DataMatrix3D<int> & dataGLLNodesIn,
-		const DataMatrix3D<double> & dataGLLJacobianIn,
-		const DataMatrix3D<int> & dataGLLNodesOut,
-		const DataMatrix3D<double> & dataGLLJacobianOut,
-		const DataVector<double> & dataNodalAreaOut,
+		const DataArray3D<int> & dataGLLNodesIn,
+		const DataArray3D<double> & dataGLLJacobianIn,
+		const DataArray3D<int> & dataGLLNodesOut,
+		const DataArray3D<double> & dataGLLJacobianOut,
+		const DataArray1D<double> & dataNodalAreaOut,
 		int nPin,
 		int nPout,
 		int nMonotoneType,
@@ -270,9 +269,9 @@ private:
 	///     consistently.
 	///	</summary>
 	moab::ErrorCode SetDofMapAssociation(DiscretizationType srcType, bool isSrcContinuous, 
-		DataMatrix3D<int>* srcdataGLLNodes, DataMatrix3D<int>* srcdataGLLNodesSrc,
+		DataArray3D<int>* srcdataGLLNodes, DataArray3D<int>* srcdataGLLNodesSrc,
 		DiscretizationType destType, bool isDestContinuous, 
-		DataMatrix3D<int>* tgtdataGLLNodes);
+		DataArray3D<int>* tgtdataGLLNodes);
 
 
 	///	<summary>
@@ -383,14 +382,14 @@ public:
 #endif
 
 	///	<summary>
-	///		The DataVector that stores the global (GID-based) areas of the source mesh.
+	///		The DataArray1D that stores the global (GID-based) areas of the source mesh.
 	///	</summary>
-	// DataVector<double> m_areasSrcGlobal;
+	// DataArray1D<double> m_areasSrcGlobal;
 	
 	///	<summary>
-	///		The DataVector that stores the global (GID-based) areas of the target mesh.
+	///		The DataArray1D that stores the global (GID-based) areas of the target mesh.
 	///	</summary>
-	// DataVector<double> m_areasTgtGlobal;
+	// DataArray1D<double> m_areasTgtGlobal;
 
 	///	<summary>
 	///		The reference to the moab::Core object that contains source/target and overlap sets.
@@ -412,7 +411,7 @@ public:
 	std::vector<unsigned long> row_gdofmap, col_gdofmap, srccol_gdofmap;
 	std::vector<unsigned long> row_ldofmap, col_ldofmap, srccol_ldofmap;
 
-	DataMatrix3D<int> dataGLLNodesSrc, dataGLLNodesSrcCov, dataGLLNodesDest;
+	DataArray3D<int> dataGLLNodesSrc, dataGLLNodesSrcCov, dataGLLNodesDest;
 	DiscretizationType m_srcDiscType, m_destDiscType;
 	int m_nTotDofs_Src, m_nTotDofs_SrcCov, m_nTotDofs_Dest;
 	int m_nDofsPEl_Src, m_nDofsPEl_Dest;
@@ -429,7 +428,7 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 
 inline
-const DataVector<double>& TempestOfflineMap::GetGlobalSourceAreas() const {
+const DataArray1D<double>& TempestOfflineMap::GetGlobalSourceAreas() const {
 #ifdef MOAB_HAVE_MPI
   if (pcomm->size() > 1) {
         return m_weightMapGlobal->GetSourceAreas();
@@ -443,7 +442,7 @@ const DataVector<double>& TempestOfflineMap::GetGlobalSourceAreas() const {
 }
 
 inline
-const DataVector<double>& TempestOfflineMap::GetGlobalTargetAreas() const {
+const DataArray1D<double>& TempestOfflineMap::GetGlobalTargetAreas() const {
 #ifdef MOAB_HAVE_MPI
   if (pcomm->size() > 1) {
         return m_weightMapGlobal->GetTargetAreas();

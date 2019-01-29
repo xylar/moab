@@ -13,7 +13,7 @@
  */
 
 #include "Announce.h"
-#include "DataMatrix3D.h"
+#include "DataArray3D.h"
 #include "FiniteElementTools.h"
 #include "SparseMatrix.h"
 #include "STLStringHelper.h"
@@ -155,8 +155,8 @@ moab::ErrorCode moab::TempestOfflineMap::SetDofMapTags(const std::string srcDofT
 
 ///////////////////////////////////////////////////////////////////////////////
 
-moab::ErrorCode moab::TempestOfflineMap::SetDofMapAssociation(DiscretizationType srcType, bool isSrcContinuous, DataMatrix3D<int>* srcdataGLLNodes, DataMatrix3D<int>* srcdataGLLNodesSrc,
-    DiscretizationType destType, bool isTgtContinuous, DataMatrix3D<int>* tgtdataGLLNodes)
+moab::ErrorCode moab::TempestOfflineMap::SetDofMapAssociation(DiscretizationType srcType, bool isSrcContinuous, DataArray3D<int>* srcdataGLLNodes, DataArray3D<int>* srcdataGLLNodesSrc,
+    DiscretizationType destType, bool isTgtContinuous, DataArray3D<int>* tgtdataGLLNodes)
 {
     moab::ErrorCode rval;
     std::vector<bool> dgll_cgll_row_ldofmap, dgll_cgll_col_ldofmap, dgll_cgll_covcol_ldofmap;
@@ -702,7 +702,7 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
         }
         else if ( eInputType == DiscretizationType_FV )
         {
-            DataMatrix3D<double> dataGLLJacobian;
+            DataArray3D<double> dataGLLJacobian;
 
             if ( is_root ) dbgprint.printf ( 0, "Generating output mesh meta data\n" );
             double dNumericalArea_loc =
@@ -780,7 +780,7 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
             ( eOutputType == DiscretizationType_FV )
         )
         {
-            DataMatrix3D<double> dataGLLJacobianSrc, dataGLLJacobian;
+            DataArray3D<double> dataGLLJacobianSrc, dataGLLJacobian;
 
             if ( is_root ) dbgprint.printf ( 0, "Generating input mesh meta data\n" );
             // double dNumericalAreaCov_loc =
@@ -871,8 +871,8 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
             ( eOutputType != DiscretizationType_FV )
         )
         {
-            DataMatrix3D<double> dataGLLJacobianIn, dataGLLJacobianSrc;
-            DataMatrix3D<double> dataGLLJacobianOut;
+            DataArray3D<double> dataGLLJacobianIn, dataGLLJacobianSrc;
+            DataArray3D<double> dataGLLJacobianOut;
 
             // Input metadata
             if ( is_root ) dbgprint.printf ( 0, "Generating input mesh meta data" );
@@ -1148,23 +1148,23 @@ bool moab::TempestOfflineMap::IsConsistent (
 )
 {
     // Get map entries
-    DataVector<int> dataRows;
-    DataVector<int> dataCols;
-    DataVector<double> dataEntries;
+    DataArray1D<int> dataRows;
+    DataArray1D<int> dataCols;
+    DataArray1D<double> dataEntries;
 
     // Calculate row sums
-    DataVector<double> dRowSums;
+    DataArray1D<double> dRowSums;
     if ( size > 1 )
     {
         if ( rank ) return true;
         SparseMatrix<double>& m_mapRemapGlobal = m_weightMapGlobal->GetSparseMatrix();
         m_mapRemapGlobal.GetEntries ( dataRows, dataCols, dataEntries );
-        dRowSums.Initialize ( m_mapRemapGlobal.GetRows() );
+        dRowSums.Allocate ( m_mapRemapGlobal.GetRows() );
     }
     else
     {
         m_mapRemap.GetEntries ( dataRows, dataCols, dataEntries );
-        dRowSums.Initialize ( m_mapRemap.GetRows() );
+        dRowSums.Allocate ( m_mapRemap.GetRows() );
     }
 
     for ( unsigned i = 0; i < dataRows.GetRows(); i++ )
@@ -1194,25 +1194,25 @@ bool moab::TempestOfflineMap::IsConservative (
 )
 {
     // Get map entries
-    DataVector<int> dataRows;
-    DataVector<int> dataCols;
-    DataVector<double> dataEntries;
-    const DataVector<double>& dTargetAreas = this->GetGlobalTargetAreas();
-    const DataVector<double>& dSourceAreas = this->GetGlobalSourceAreas();
+    DataArray1D<int> dataRows;
+    DataArray1D<int> dataCols;
+    DataArray1D<double> dataEntries;
+    const DataArray1D<double>& dTargetAreas = this->GetGlobalTargetAreas();
+    const DataArray1D<double>& dSourceAreas = this->GetGlobalSourceAreas();
 
     // Calculate column sums
-    DataVector<double> dColumnSums;
+    DataArray1D<double> dColumnSums;
     if ( size > 1 )
     {
         if ( rank ) return true;
         SparseMatrix<double>& m_mapRemapGlobal = m_weightMapGlobal->GetSparseMatrix();
         m_mapRemapGlobal.GetEntries ( dataRows, dataCols, dataEntries );
-        dColumnSums.Initialize ( m_mapRemapGlobal.GetColumns() );
+        dColumnSums.Allocate ( m_mapRemapGlobal.GetColumns() );
     }
     else
     {
         m_mapRemap.GetEntries ( dataRows, dataCols, dataEntries );
-        dColumnSums.Initialize ( m_mapRemap.GetColumns() );
+        dColumnSums.Allocate ( m_mapRemap.GetColumns() );
     }
 
     for ( unsigned i = 0; i < dataRows.GetRows(); i++ )
@@ -1244,9 +1244,9 @@ bool moab::TempestOfflineMap::IsMonotone (
 )
 {
     // Get map entries
-    DataVector<int> dataRows;
-    DataVector<int> dataCols;
-    DataVector<double> dataEntries;
+    DataArray1D<int> dataRows;
+    DataArray1D<int> dataCols;
+    DataArray1D<double> dataEntries;
 
     if ( size > 1 )
     {
@@ -1285,16 +1285,16 @@ moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot()   // Collective
     moab::ErrorCode rval;
 
     // Write SparseMatrix entries
-    DataVector<int> vecRow;
-    DataVector<int> vecCol;
-    DataVector<double> vecS;
+    DataArray1D<int> vecRow;
+    DataArray1D<int> vecCol;
+    DataArray1D<double> vecS;
 
     moab::DebugOutput dbgprint ( std::cout, ( rank ) );
 
     m_mapRemap.GetEntries ( vecRow, vecCol, vecS );
-    const DataVector<double>& dOrigSourceAreas = m_meshInput->vecFaceArea;
-    const DataVector<double>& dSourceAreas = m_meshInputCov->vecFaceArea;
-    const DataVector<double>& dTargetAreas = m_meshOutput->vecFaceArea;
+    const DataArray1D<double>& dOrigSourceAreas = m_meshInput->vecFaceArea;
+    const DataArray1D<double>& dSourceAreas = m_meshInputCov->vecFaceArea;
+    const DataArray1D<double>& dTargetAreas = m_meshOutput->vecFaceArea;
 
     // Translate the index in Row and Col to global_id and dump it out
 
@@ -1302,7 +1302,7 @@ moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot()   // Collective
     const int NDATA = 7;
     int gnnz = 0, gsrc = 0, gsrccov = 0, gtar = 0, gsrcdofs = 0, gsrccovdofs = 0, gtgtdofs = 0;
     std::vector<int> rootSizesData, rowcolsv;
-    DataVector<int> rows, cols, srcelmindx, tgtelmindx;
+    DataArray1D<int> rows, cols, srcelmindx, tgtelmindx;
     {
         // First, accumulate the sizes of rows and columns of the matrix
         if ( !rank ) rootSizesData.resize ( size * NDATA );
@@ -1333,8 +1333,8 @@ moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot()   // Collective
                 gsrccovdofs  += rootSizesData[offset + 6];
             }
             rowcolsv.resize ( 2 * gnnz + gsrc + gtar );
-            rows.Initialize ( gnnz ); // we are assuming rows = cols
-            cols.Initialize ( gnnz ); // we are assuming rows = cols
+            rows.Allocate ( gnnz ); // we are assuming rows = cols
+            cols.Allocate ( gnnz ); // we are assuming rows = cols
 
             // Let us allocate our global offline map object
             m_weightMapGlobal = new OfflineMap();
@@ -1360,10 +1360,10 @@ moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot()   // Collective
             else
                 m_weightMapGlobal->InitializeTargetCoordinatesFromMeshFE ( *m_meshOutput, m_nDofsPEl_Dest, dataGLLNodesDest );
 
-            DataVector<double>& m_areasSrcGlobal = m_weightMapGlobal->GetSourceAreas();
-            m_areasSrcGlobal.Initialize ( gsrcdofs ); srcelmindx.Initialize ( gsrc );
-            DataVector<double>& m_areasTgtGlobal = m_weightMapGlobal->GetTargetAreas();
-            m_areasTgtGlobal.Initialize ( gtgtdofs ); tgtelmindx.Initialize ( gtar );
+            DataArray1D<double>& m_areasSrcGlobal = m_weightMapGlobal->GetSourceAreas();
+            m_areasSrcGlobal.Allocate ( gsrcdofs ); srcelmindx.Allocate ( gsrc );
+            DataArray1D<double>& m_areasTgtGlobal = m_weightMapGlobal->GetTargetAreas();
+            m_areasTgtGlobal.Allocate ( gtgtdofs ); tgtelmindx.Allocate ( gtar );
 
 #ifdef VERBOSE
             dbgprint.printf ( 0, "Received global dimensions: %d, %d\n", vecRow.GetRows(), rows.GetRows() );
@@ -1512,22 +1512,24 @@ moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot()   // Collective
 
         std::cout << "[" << rank << "] " <<  m_nTotDofs_Src << ", m_dSourceCenterLon.size() = " << m_dSourceCenterLon.GetRows() << " and " << m_nTotDofs_Dest << ", m_dTargetCenterLon.size() = " << m_dTargetCenterLon.GetRows() << "\n";
 
+        // TODO: VSM: Need a way to figure out how to transfer the buffer easily from m_dSourceVertexLon/m_dSourceVertexLat variables
+#if 0
         std::copy ( ( const double* ) m_dSourceCenterLon, ( const double* ) m_dSourceCenterLon + m_dSourceCenterLon.GetRows(), sendarray.begin() + locoffset ); locoffset += m_dSourceCenterLon.GetRows();
         std::copy ( ( const double* ) m_dSourceCenterLat, ( const double* ) m_dSourceCenterLat + m_dSourceCenterLat.GetRows(), sendarray.begin() + locoffset ); locoffset += m_dSourceCenterLat.GetRows();
 
-        double** dSCLon = m_dSourceVertexLon;
-        std::copy ( &dSCLon[0][0], &dSCLon[0][0] + m_dSourceVertexLon.GetRows()*nSc, sendarray.begin() + locoffset ); locoffset += m_dSourceVertexLon.GetRows()*nSc;
-        double** dSCLat = m_dSourceVertexLat;
-        std::copy ( &dSCLat[0][0], &dSCLat[0][0] + m_dSourceVertexLat.GetRows()*nSc, sendarray.begin() + locoffset ); locoffset += m_dSourceVertexLat.GetRows()*nSc;
+        double* dSCLon = m_dSourceVertexLon();
+        std::copy ( dSCLon, dSCLon + m_dSourceVertexLon.GetRows()*nSc, sendarray.begin() + locoffset ); locoffset += m_dSourceVertexLon.GetRows()*nSc;
+        double* dSCLat = m_dSourceVertexLat();
+        std::copy ( dSCLat, dSCLat + m_dSourceVertexLat.GetRows()*nSc, sendarray.begin() + locoffset ); locoffset += m_dSourceVertexLat.GetRows()*nSc;
 
         std::copy ( ( const double* ) m_dTargetCenterLon, ( const double* ) m_dTargetCenterLon + m_dTargetCenterLon.GetRows(), sendarray.begin() + locoffset ); locoffset += m_dTargetCenterLon.GetRows();
         std::copy ( ( const double* ) m_dTargetCenterLat, ( const double* ) m_dTargetCenterLat + m_dTargetCenterLat.GetRows(), sendarray.begin() + locoffset ); locoffset += m_dTargetCenterLat.GetRows();
 
         double** dTCLon = m_dTargetVertexLon;
-        std::copy ( &dTCLon[0][0], &dTCLon[0][0] + m_dTargetVertexLon.GetRows()*nTc, sendarray.begin() + locoffset ); locoffset += m_dTargetVertexLon.GetRows()*nTc;
+        std::copy ( dTCLon, dTCLon + m_dTargetVertexLon.GetRows()*nTc, sendarray.begin() + locoffset ); locoffset += m_dTargetVertexLon.GetRows()*nTc;
         double** dTCLat = m_dTargetVertexLat;
-        std::copy ( &dTCLat[0][0], &dTCLat[0][0] + m_dTargetVertexLat.GetRows()*nTc, sendarray.begin() + locoffset ); locoffset += m_dTargetVertexLat.GetRows()*nTc;
-
+        std::copy ( dTCLat, dTCLat + m_dTargetVertexLat.GetRows()*nTc, sendarray.begin() + locoffset ); locoffset += m_dTargetVertexLat.GetRows()*nTc;
+#endif
         std::vector<int> displs, rcount;
         int gsum = 0;
         if ( !rank )
@@ -1577,8 +1579,8 @@ moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot()   // Collective
             // m_weightMapGlobal->GetSparseMatrix().AddEntries ( rows, cols, globvalues );
 
             {
-                DataVector<double>& m_areasSrcGlobal = m_weightMapGlobal->GetSourceAreas();
-                DataVector<double>& m_areasTgtGlobal = m_weightMapGlobal->GetTargetAreas();
+                DataArray1D<double>& m_areasSrcGlobal = m_weightMapGlobal->GetSourceAreas();
+                DataArray1D<double>& m_areasTgtGlobal = m_weightMapGlobal->GetTargetAreas();
                 // Store the global source and target elements areas
 #ifdef VERBOSE
                 std::ofstream output_file ( "source-target-areas.txt" );
@@ -1621,10 +1623,10 @@ moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot()   // Collective
 #endif
             }
 
-            DataVector<double>& dSourceCenterLon = m_weightMapGlobal->GetSourceCenterLon();
-            DataVector<double>& dSourceCenterLat = m_weightMapGlobal->GetSourceCenterLat();
-            dSourceCenterLon.Initialize(gsrcdofs);
-            dSourceCenterLat.Initialize(gsrcdofs);
+            DataArray1D<double>& dSourceCenterLon = m_weightMapGlobal->GetSourceCenterLon();
+            DataArray1D<double>& dSourceCenterLat = m_weightMapGlobal->GetSourceCenterLat();
+            dSourceCenterLon.Allocate(gsrcdofs);
+            dSourceCenterLat.Allocate(gsrcdofs);
             {
                 int offset = 0;
                 for ( int ip = 0; ip < nprocs; ++ip )
@@ -1653,10 +1655,10 @@ moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot()   // Collective
             }
 
 
-            DataMatrix<double>& dSourceVertexLon = m_weightMapGlobal->GetSourceVertexLon();
-            DataMatrix<double>& dSourceVertexLat = m_weightMapGlobal->GetSourceVertexLat();
-            dSourceVertexLon.Initialize(gsrcdofs, nSc);
-            dSourceVertexLat.Initialize(gsrcdofs, nSc);
+            DataArray2D<double>& dSourceVertexLon = m_weightMapGlobal->GetSourceVertexLon();
+            DataArray2D<double>& dSourceVertexLat = m_weightMapGlobal->GetSourceVertexLat();
+            dSourceVertexLon.Allocate(gsrcdofs, nSc);
+            dSourceVertexLat.Allocate(gsrcdofs, nSc);
             {
                 int ioffset = 0;
                 for ( int ip = 0; ip < nprocs; ++ip )
@@ -1685,10 +1687,10 @@ moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot()   // Collective
                 }
             }
 
-            DataVector<double>& dTargetCenterLon = m_weightMapGlobal->GetTargetCenterLon();
-            DataVector<double>& dTargetCenterLat = m_weightMapGlobal->GetTargetCenterLat();
-            dTargetCenterLon.Initialize(gtgtdofs);
-            dTargetCenterLat.Initialize(gtgtdofs);
+            DataArray1D<double>& dTargetCenterLon = m_weightMapGlobal->GetTargetCenterLon();
+            DataArray1D<double>& dTargetCenterLat = m_weightMapGlobal->GetTargetCenterLat();
+            dTargetCenterLon.Allocate(gtgtdofs);
+            dTargetCenterLat.Allocate(gtgtdofs);
             {
                 int offset = 0;
                 for ( int ip = 0; ip < nprocs; ++ip )
@@ -1716,10 +1718,10 @@ moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot()   // Collective
                 }
             }
 
-            DataMatrix<double>& dTargetVertexLon = m_weightMapGlobal->GetTargetVertexLon();
-            DataMatrix<double>& dTargetVertexLat = m_weightMapGlobal->GetTargetVertexLat();
-            dTargetVertexLon.Initialize(gtgtdofs, nTc);
-            dTargetVertexLat.Initialize(gtgtdofs, nTc);
+            DataArray2D<double>& dTargetVertexLon = m_weightMapGlobal->GetTargetVertexLon();
+            DataArray2D<double>& dTargetVertexLat = m_weightMapGlobal->GetTargetVertexLat();
+            dTargetVertexLon.Allocate(gtgtdofs, nTc);
+            dTargetVertexLat.Allocate(gtgtdofs, nTc);
             {
                 int ioffset = 0;
                 int nc = dTargetVertexLon.GetColumns();
