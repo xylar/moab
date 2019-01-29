@@ -6,7 +6,7 @@
 ///
 
 #include "Announce.h"
-#include "DataMatrix3D.h"
+#include "DataArray3D.h"
 #include "FiniteElementTools.h"
 // #include "LinearRemapFV.h"
 #include "GaussLobattoQuadrature.h"
@@ -168,14 +168,14 @@ extern void BuildIntegrationArray (
     int ixOverlapBegin,
     int ixOverlapEnd,
     int nOrder,
-    DataMatrix<double> & dIntArray
+    DataArray2D<double> & dIntArray
 );
 
 extern void InvertFitArray_Corrected (
-    const DataVector<double> & dConstraint,
-    DataMatrix<double> & dFitArray,
-    DataVector<double> & dFitWeights,
-    DataMatrix<double> & dFitArrayPlus
+    const DataArray1D<double> & dConstraint,
+    DataArray2D<double> & dFitArray,
+    DataArray1D<double> & dFitWeights,
+    DataArray2D<double> & dFitArrayPlus
 );
 
 /// <summary>
@@ -195,9 +195,9 @@ extern void BuildFitArray (
     const AdjacentFaceVector & vecAdjFaces,
     int nOrder,
     int nFitWeightsExponent,
-    const DataVector<double> & dConstraint,
-    DataMatrix<double> & dFitArray,
-    DataVector<double> & dFitWeights
+    const DataArray1D<double> & dConstraint,
+    DataArray2D<double> & dFitArray,
+    DataArray1D<double> & dFitWeights
 );
 
 extern void GetAdjacentFaceVectorByEdge (
@@ -324,7 +324,7 @@ void moab::TempestOfflineMap::LinearRemapFVtoFV_Tempest_MOAB (
         if ( nOverlapFaces == 0 ) continue;
 
         // Build integration array
-        DataMatrix<double> dIntArray;
+        DataArray2D<double> dIntArray;
 
         BuildIntegrationArray (
             *m_meshInputCov,
@@ -350,9 +350,7 @@ void moab::TempestOfflineMap::LinearRemapFVtoFV_Tempest_MOAB (
         int nAdjFaces = vecAdjFaces.size();
 
         // Determine the conservative constraint equation
-        DataVector<double> dConstraint;
-
-        dConstraint.Initialize ( nCoefficients );
+        DataArray1D<double> dConstraint( nCoefficients );
 
         double dFirstArea = m_meshInputCov->vecFaceArea[ixFirst];
 
@@ -366,9 +364,9 @@ void moab::TempestOfflineMap::LinearRemapFVtoFV_Tempest_MOAB (
         }
 
         // Build the fit array from the integration operator
-        DataMatrix<double> dFitArray;
-        DataVector<double> dFitWeights;
-        DataMatrix<double> dFitArrayPlus;
+        DataArray2D<double> dFitArray;
+        DataArray1D<double> dFitWeights;
+        DataArray2D<double> dFitArrayPlus;
 
         BuildFitArray (
             *m_meshInputCov,
@@ -391,8 +389,7 @@ void moab::TempestOfflineMap::LinearRemapFVtoFV_Tempest_MOAB (
         );
 
         // Multiply integration array and fit array
-        DataMatrix<double> dComposedArray;
-        dComposedArray.Initialize ( nAdjFaces, nOverlapFaces );
+        DataArray2D<double> dComposedArray( nAdjFaces, nOverlapFaces );
 
         for ( int i = 0; i < nAdjFaces; i++ )
         {
@@ -443,9 +440,9 @@ void moab::TempestOfflineMap::CopyTempestSparseMat_Eigen()
     // assert(m_weightMatrix.rows() == locrows && m_weightMatrix.cols() == loccols);
 #endif
 
-    DataVector<int> lrows;
-    DataVector<int> lcols;
-    DataVector<double> lvals;
+    DataArray1D<int> lrows;
+    DataArray1D<int> lcols;
+    DataArray1D<double> lvals;
     m_mapRemap.GetEntries(lrows, lcols, lvals);
     unsigned locvals = lvals.GetRows();
 
@@ -699,35 +696,33 @@ void moab::TempestOfflineMap::WriteParallelWeightsToFile(std::string strFilename
     varAreaB->put(&(m_dTargetAreas[0]), nB);
 
     // Write frac
-    DataVector<double> dFrac;
-
-    dFrac.Initialize(nA);
+    DataArray1D<double> dFracA(nA);
     for (unsigned i = 0; i < nA; i++) {
-        dFrac[i] = 1.0;
+        dFracA[i] = 1.0;
     }
 #ifdef IO_USE_PARALLEL_NETCDF
     NcmpiVar * varFracA = ncMap.addVar("frac_a", ncmpiDouble, dimNA);
 #else
     NcVar * varFracA = ncMap.add_var("frac_a", ncDouble, dimNA);
 #endif
-    varFracA->put(&(dFrac[0]), nA);
+    varFracA->put(&(dFracA[0]), nA);
 
-    dFrac.Initialize(nB);
+    DataArray1D<double> dFracB(nB);
     for (unsigned i = 0; i < nB; i++) {
-        dFrac[i] = 1.0;
+        dFracB[i] = 1.0;
     }
 #ifdef IO_USE_PARALLEL_NETCDF
     NcmpiVar * varFracB = ncMap.addVar("frac_b", ncmpiDouble, dimNB);
 #else
     NcVar * varFracB = ncMap.add_var("frac_b", ncDouble, dimNB);
 #endif
-    varFracB->put(&(dFrac[0]), nB);
+    varFracB->put(&(dFracB[0]), nB);
 
     // Write SparseMatrix entries
     int nS = m_weightMatrix.nonZeros();
-    DataVector<int> vecRow(nS);
-    DataVector<int> vecCol(nS);
-    DataVector<double> vecS(nS);
+    DataArray1D<int> vecRow(nS);
+    DataArray1D<int> vecCol(nS);
+    DataArray1D<double> vecS(nS);
 
     for (int i = 0; i < m_weightMatrix.outerSize(); i++) {
         for (WeightMatrix::InnerIterator it(m_weightMatrix,i); it; ++it) {
@@ -842,26 +837,26 @@ moab::ErrorCode moab::TempestOfflineMap::ApplyWeights (std::vector<double>& srcV
 ///////////////////////////////////////////////////////////////////////////////
 
 extern void ForceConsistencyConservation3(
-    const DataVector<double> & vecSourceArea,
-    const DataVector<double> & vecTargetArea,
-    DataMatrix<double> & dCoeff,
+    const DataArray1D<double> & vecSourceArea,
+    const DataArray1D<double> & vecTargetArea,
+    DataArray2D<double> & dCoeff,
     bool fMonotone
 );
 
 ///////////////////////////////////////////////////////////////////////////////
 
 extern void ForceIntArrayConsistencyConservation (
-    const DataVector<double> & vecSourceArea,
-    const DataVector<double> & vecTargetArea,
-    DataMatrix<double> & dCoeff,
+    const DataArray1D<double> & vecSourceArea,
+    const DataArray1D<double> & vecTargetArea,
+    DataArray2D<double> & dCoeff,
     bool fMonotone
 );
 
 ///////////////////////////////////////////////////////////////////////////////
 
 void moab::TempestOfflineMap::LinearRemapSE4_Tempest_MOAB (
-    const DataMatrix3D<int> & dataGLLNodes,
-    const DataMatrix3D<double> & dataGLLJacobian,
+    const DataArray3D<int> & dataGLLNodes,
+    const DataArray3D<double> & dataGLLJacobian,
     int nMonotoneType,
     bool fContinuousIn,
     bool fNoConservation
@@ -878,17 +873,16 @@ void moab::TempestOfflineMap::LinearRemapSE4_Tempest_MOAB (
 
     int TriQuadraturePoints = triquadrule.GetPoints();
 
-    const DataMatrix<double> & TriQuadratureG = triquadrule.GetG();
+    const DataArray2D<double> & TriQuadratureG = triquadrule.GetG();
 
-    const DataVector<double> & TriQuadratureW = triquadrule.GetW();
+    const DataArray1D<double> & TriQuadratureW = triquadrule.GetW();
 
     // Sample coefficients
-    DataMatrix<double> dSampleCoeff;
-    dSampleCoeff.Initialize ( nP, nP );
+    DataArray2D<double> dSampleCoeff( nP, nP );
 
     // GLL Quadrature nodes on quadrilateral elements
-    DataVector<double> dG;
-    DataVector<double> dW;
+    DataArray1D<double> dG;
+    DataArray1D<double> dW;
     GaussLobattoQuadrature::GetPoints ( nP, 0.0, 1.0, dG, dW );
 
     // Announcemnets
@@ -907,11 +901,10 @@ void moab::TempestOfflineMap::LinearRemapSE4_Tempest_MOAB (
     const NodeVector & nodesFirst   = m_meshInputCov->nodes;
 
     // Vector of source areas
-    DataVector<double> vecSourceArea;
-    vecSourceArea.Initialize ( nP * nP );
+    DataArray1D<double> vecSourceArea( nP * nP );
 
-    DataVector<double> vecTargetArea;
-    DataMatrix<double> dCoeff;
+    DataArray1D<double> vecTargetArea;
+    DataArray2D<double> dCoeff;
 
 #ifdef VERBOSE
     std::stringstream sstr;
@@ -967,8 +960,7 @@ void moab::TempestOfflineMap::LinearRemapSE4_Tempest_MOAB (
         }
 
         // Allocate remap coefficients array for meshFirst Face
-        DataMatrix3D<double> dRemapCoeff;
-        dRemapCoeff.Initialize ( nP, nP, nOverlapFaces );
+        DataArray3D<double> dRemapCoeff( nP, nP, nOverlapFaces );
 
         // Find the local remap coefficients
         for ( int j = 0; j < nOverlapFaces; j++ )
@@ -1136,13 +1128,13 @@ void moab::TempestOfflineMap::LinearRemapSE4_Tempest_MOAB (
             // Source elements are completely covered by target volumes
             if ( fabs ( m_meshInputCov->vecFaceArea[ixFirst] - dTargetArea ) <= areaTolerance )
             {
-                vecTargetArea.Initialize ( nOverlapFaces );
+                vecTargetArea.Allocate ( nOverlapFaces );
                 for ( int j = 0; j < nOverlapFaces; j++ )
                 {
                     vecTargetArea[j] = m_meshOverlap->vecFaceArea[ixOverlap + j];
                 }
 
-                dCoeff.Initialize ( nOverlapFaces, nP * nP );
+                dCoeff.Allocate ( nOverlapFaces, nP * nP );
 
                 for ( int j = 0; j < nOverlapFaces; j++ )
                 {
@@ -1161,7 +1153,7 @@ void moab::TempestOfflineMap::LinearRemapSE4_Tempest_MOAB (
             {
                 double dExtraneousArea = m_meshInputCov->vecFaceArea[ixFirst] - dTargetArea;
 
-                vecTargetArea.Initialize ( nOverlapFaces + 1 );
+                vecTargetArea.Allocate ( nOverlapFaces + 1 );
                 for ( int j = 0; j < nOverlapFaces; j++ )
                 {
                     vecTargetArea[j] = m_meshOverlap->vecFaceArea[ixOverlap + j];
@@ -1177,7 +1169,7 @@ void moab::TempestOfflineMap::LinearRemapSE4_Tempest_MOAB (
                     _EXCEPTIONT ( "Partial element area exceeds total element area" );
                 }
 
-                dCoeff.Initialize ( nOverlapFaces + 1, nP * nP );
+                dCoeff.Allocate ( nOverlapFaces + 1, nP * nP );
 
                 for ( int j = 0; j < nOverlapFaces; j++ )
                 {
@@ -1305,9 +1297,9 @@ void moab::TempestOfflineMap::LinearRemapSE4_Tempest_MOAB (
 ///////////////////////////////////////////////////////////////////////////////
 
 void moab::TempestOfflineMap::LinearRemapFVtoGLL_Simple_MOAB (
-    const DataMatrix3D<int> & dataGLLNodes,
-    const DataMatrix3D<double> & /*dataGLLJacobian*/,
-    const DataVector<double> & /*dataGLLNodalArea*/,
+    const DataArray3D<int> & dataGLLNodes,
+    const DataArray3D<double> & /*dataGLLJacobian*/,
+    const DataArray1D<double> & /*dataGLLNodalArea*/,
     int nOrder,
     int /*nMonotoneType*/,
     bool fContinuous,
@@ -1348,8 +1340,8 @@ void moab::TempestOfflineMap::LinearRemapFVtoGLL_Simple_MOAB (
     MeshUtilitiesFuzzy meshutil;
 
     // GLL nodes
-    DataVector<double> dG;
-    DataVector<double> dW;
+    DataArray1D<double> dG;
+    DataArray1D<double> dW;
 
     GaussLobattoQuadrature::GetPoints ( nP, 0.0, 1.0, dG, dW );
 
@@ -1397,8 +1389,7 @@ void moab::TempestOfflineMap::LinearRemapFVtoGLL_Simple_MOAB (
         Node nodeC = CrossProduct ( nodeA1, nodeA2 );
 
         // Fit matrix
-        DataMatrix<double> dFit;
-        dFit.Initialize ( 3, 3 );
+        DataArray2D<double> dFit( 3, 3 );
 
         dFit[0][0] = nodeA1.x; dFit[0][1] = nodeA1.y; dFit[0][2] = nodeA1.z;
         dFit[1][0] = nodeA2.x; dFit[1][1] = nodeA2.y; dFit[1][2] = nodeA2.z;
@@ -1415,12 +1406,12 @@ void moab::TempestOfflineMap::LinearRemapFVtoGLL_Simple_MOAB (
             vecAdjFaces );
 
         // Blank constraint
-        DataVector<double> dConstraint;
+        DataArray1D<double> dConstraint;
 
         // Least squares arrays
-        DataMatrix<double> dFitArray;
-        DataVector<double> dFitWeights;
-        DataMatrix<double> dFitArrayPlus;
+        DataArray2D<double> dFitArray;
+        DataArray1D<double> dFitWeights;
+        DataArray2D<double> dFitArrayPlus;
 
         BuildFitArray (
             *m_meshInputCov,
@@ -1550,7 +1541,7 @@ void moab::TempestOfflineMap::LinearRemapFVtoGLL_Simple_MOAB (
                     int ldb = 3;
                     int info;
 
-                    DataMatrix<double> dFitTemp;
+                    DataArray2D<double> dFitTemp;
                     dFitTemp = dFit;
                     dgesv_ (
                         &n, &nrhs, & ( dFitTemp[0][0] ), &lda, ipiv, dX, &ldb, &info );
@@ -1599,9 +1590,9 @@ void moab::TempestOfflineMap::LinearRemapFVtoGLL_Simple_MOAB (
 ///////////////////////////////////////////////////////////////////////////////
 
 void moab::TempestOfflineMap::LinearRemapFVtoGLL_Volumetric_MOAB (
-    const DataMatrix3D<int> & dataGLLNodes,
-    const DataMatrix3D<double> & dataGLLJacobian,
-    const DataVector<double> & dataGLLNodalArea,
+    const DataArray3D<int> & dataGLLNodes,
+    const DataArray3D<double> & dataGLLJacobian,
+    const DataArray1D<double> & dataGLLNodalArea,
     int nOrder,
     int nMonotoneType,
     bool /*fContinuous*/,
@@ -1635,8 +1626,8 @@ void moab::TempestOfflineMap::LinearRemapFVtoGLL_Volumetric_MOAB (
     }
 
     // Gauss-Lobatto quadrature nodes and weights
-    DataVector<double> dG;
-    DataVector<double> dW;
+    DataArray1D<double> dG;
+    DataArray1D<double> dW;
 
     GaussLobattoQuadrature::GetPoints ( nP, 0.0, 1.0, dG, dW );
 
@@ -1655,7 +1646,7 @@ void moab::TempestOfflineMap::LinearRemapFVtoGLL_Volumetric_MOAB (
     int nRequiredFaceSetSize = nCoefficients;
 
     // Accumulated weight vector
-    DataVector<double> dAccumW ( nP + 1 );
+    DataArray1D<double> dAccumW ( nP + 1 );
     dAccumW[0] = 0.0;
     for ( int i = 1; i < nP + 1; i++ )
     {
@@ -1670,9 +1661,9 @@ void moab::TempestOfflineMap::LinearRemapFVtoGLL_Volumetric_MOAB (
     Announce ( "Generating sub-element mesh" );
     Mesh meshTargetSubElement;
 
-    DataVector<double> dFiniteVolumeArea ( nP * nP );
-    DataVector<double> dQuadratureArea ( nP * nP );
-    std::vector< DataMatrix<double> > dRedistributionMaps;
+    DataArray1D<double> dFiniteVolumeArea ( nP * nP );
+    DataArray1D<double> dQuadratureArea ( nP * nP );
+    std::vector< DataArray2D<double> > dRedistributionMaps;
     dRedistributionMaps.resize ( m_meshOutput->faces.size() );
 
     for ( size_t ixSecond = 0; ixSecond < m_meshOutput->faces.size(); ixSecond++ )
@@ -1733,7 +1724,7 @@ void moab::TempestOfflineMap::LinearRemapFVtoGLL_Volumetric_MOAB (
             }
         }
 
-        dRedistributionMaps[ixSecond].Initialize ( nP * nP, nP * nP );
+        dRedistributionMaps[ixSecond].Allocate ( nP * nP, nP * nP );
         for ( int i = 0; i < nP * nP; i++ )
         {
             dRedistributionMaps[ixSecond][i][i] = 1.0;
@@ -1843,7 +1834,7 @@ void moab::TempestOfflineMap::LinearRemapFVtoGLL_Volumetric_MOAB (
                     // and finite volume
                     NodeVector nodevecOutput;
 
-                    GenerateOverlapFace<MeshUtilitiesFuzzy, Node> (
+                    GenerateOverlapFace<MeshUtilitiesExact, Node> (
                         *m_meshInputCov,
                         meshTargetSubElement,
                         ixFirst,
@@ -1892,7 +1883,7 @@ void moab::TempestOfflineMap::LinearRemapFVtoGLL_Volumetric_MOAB (
         }
 
         // Build integration array
-        DataMatrix<double> dIntArray;
+        DataArray2D<double> dIntArray;
 
         BuildIntegrationArray (
             *m_meshInputCov,
@@ -1918,9 +1909,7 @@ void moab::TempestOfflineMap::LinearRemapFVtoGLL_Volumetric_MOAB (
         int nAdjFaces = vecAdjFaces.size();
 
         // Determine the conservative constraint equation
-        DataVector<double> dConstraint;
-
-        dConstraint.Initialize ( nCoefficients );
+        DataArray1D<double> dConstraint( nCoefficients );
 
         double dFirstArea = m_meshInputCov->vecFaceArea[ixFirst];
 
@@ -1934,9 +1923,9 @@ void moab::TempestOfflineMap::LinearRemapFVtoGLL_Volumetric_MOAB (
         }
 
         // Least squares arrays
-        DataMatrix<double> dFitArray;
-        DataVector<double> dFitWeights;
-        DataMatrix<double> dFitArrayPlus;
+        DataArray2D<double> dFitArray;
+        DataArray1D<double> dFitWeights;
+        DataArray2D<double> dFitArrayPlus;
 
         BuildFitArray (
             *m_meshInputCov,
@@ -1959,8 +1948,7 @@ void moab::TempestOfflineMap::LinearRemapFVtoGLL_Volumetric_MOAB (
         );
 
         // Multiply integration array and fit array
-        DataMatrix<double> dComposedArray;
-        dComposedArray.Initialize ( nAdjFaces, meshThisElement.faces.size() );
+        DataArray2D<double> dComposedArray( nAdjFaces, meshThisElement.faces.size() );
 
         for ( int i = 0; i < nAdjFaces; i++ )
         {
@@ -1974,8 +1962,7 @@ void moab::TempestOfflineMap::LinearRemapFVtoGLL_Volumetric_MOAB (
         }
 
         // Apply redistribution operator
-        DataMatrix<double> dRedistributedArray;
-        dRedistributedArray.Initialize ( nAdjFaces, meshThisElement.faces.size() );
+        DataArray2D<double> dRedistributedArray( nAdjFaces, meshThisElement.faces.size() );
 
         for ( int i = 0; i < nAdjFaces; i++ )
         {
@@ -2024,9 +2011,9 @@ void moab::TempestOfflineMap::LinearRemapFVtoGLL_Volumetric_MOAB (
 ///////////////////////////////////////////////////////////////////////////////
 
 void moab::TempestOfflineMap::LinearRemapFVtoGLL_MOAB (
-    const DataMatrix3D<int> & dataGLLNodes,
-    const DataMatrix3D<double> & dataGLLJacobian,
-    const DataVector<double> & dataGLLNodalArea,
+    const DataArray3D<int> & dataGLLNodes,
+    const DataArray3D<double> & dataGLLJacobian,
+    const DataArray1D<double> & dataGLLNodalArea,
     int nOrder,
     int nMonotoneType,
     bool fContinuous,
@@ -2050,8 +2037,8 @@ void moab::TempestOfflineMap::LinearRemapFVtoGLL_MOAB (
     // Triangular quadrature rule
     TriangularQuadratureRule triquadrule ( TriQuadRuleOrder );
 
-    const DataMatrix<double> & dG = triquadrule.GetG();
-    const DataVector<double> & dW = triquadrule.GetW();
+    const DataArray2D<double> & dG = triquadrule.GetG();
+    const DataArray1D<double> & dW = triquadrule.GetW();
 
     // Get SparseMatrix represntation of the OfflineMap
     SparseMatrix<double> & smatMap = this->GetSparseMatrix();
@@ -2063,8 +2050,7 @@ void moab::TempestOfflineMap::LinearRemapFVtoGLL_MOAB (
     int nP = dataGLLNodes.GetRows();
 
     // Sample coefficients
-    DataMatrix<double> dSampleCoeff;
-    dSampleCoeff.Initialize ( nP, nP );
+    DataArray2D<double> dSampleCoeff( nP, nP );
 
     // Number of elements needed
 #ifdef RECTANGULAR_TRUNCATION
@@ -2091,18 +2077,15 @@ void moab::TempestOfflineMap::LinearRemapFVtoGLL_MOAB (
     int ixOverlap = 0;
 
     // Build the integration array for each element on m_meshOverlap
-    DataMatrix3D<double> dGlobalIntArray;
-    dGlobalIntArray.Initialize (
-        nCoefficients,
-        m_meshOverlap->faces.size(),
-        nP * nP );
+    DataArray3D<double> dGlobalIntArray (
+            nCoefficients,
+            m_meshOverlap->faces.size(),
+            nP * nP );
 
     // Number of overlap Faces per source Face
-    DataVector<int> nAllOverlapFaces;
-    nAllOverlapFaces.Initialize ( m_meshInputCov->faces.size() );
+    DataArray1D<int> nAllOverlapFaces( m_meshInputCov->faces.size() );
 
-    // DataVector<int> nAllTotalOverlapTriangles;
-    // nAllTotalOverlapTriangles.Initialize ( m_meshInputCov->faces.size() );
+    // DataArray1D<int> nAllTotalOverlapTriangles( m_meshInputCov->faces.size() );
 
     for ( size_t ixFirst = 0; ixFirst < m_meshInputCov->faces.size(); ixFirst++ )
     {
@@ -2155,8 +2138,7 @@ void moab::TempestOfflineMap::LinearRemapFVtoGLL_MOAB (
         Node nodeC = CrossProduct ( nodeA1, nodeA2 );
 
         // Fit matrix
-        DataMatrix<double> dFit;
-        dFit.Initialize ( 3, 3 );
+        DataArray2D<double> dFit( 3, 3 );
 
         dFit[0][0] = nodeA1.x; dFit[0][1] = nodeA1.y; dFit[0][2] = nodeA1.z;
         dFit[1][0] = nodeA2.x; dFit[1][1] = nodeA2.y; dFit[1][2] = nodeA2.z;
@@ -2202,45 +2184,43 @@ void moab::TempestOfflineMap::LinearRemapFVtoGLL_MOAB (
 
                 for ( int k = 0; k < triquadrule.GetPoints(); k++ )
                 {
-                    double * dGL = dG[k];
-
                     // Get the nodal location of this point
-                    double dX[3];
+										double dX[3];
 
-                    dX[0] = dGL[0] * node0.x + dGL[1] * node1.x + dGL[2] * node2.x;
-                    dX[1] = dGL[0] * node0.y + dGL[1] * node1.y + dGL[2] * node2.y;
-                    dX[2] = dGL[0] * node0.z + dGL[1] * node1.z + dGL[2] * node2.z;
+										dX[0] = dG(k,0) * node0.x + dG(k,1) * node1.x + dG(k,2) * node2.x;
+										dX[1] = dG(k,0) * node0.y + dG(k,1) * node1.y + dG(k,2) * node2.y;
+										dX[2] = dG(k,0) * node0.z + dG(k,1) * node1.z + dG(k,2) * node2.z;
 
-                    double dMag =
-                        sqrt ( dX[0] * dX[0] + dX[1] * dX[1] + dX[2] * dX[2] );
+										double dMag =
+											sqrt(dX[0] * dX[0] + dX[1] * dX[1] + dX[2] * dX[2]);
 
-                    dX[0] /= dMag;
-                    dX[1] /= dMag;
-                    dX[2] /= dMag;
+										dX[0] /= dMag;
+										dX[1] /= dMag;
+										dX[2] /= dMag;
 
-                    Node nodeQuadrature ( dX[0], dX[1], dX[2] );
+										Node nodeQuadrature(dX[0], dX[1], dX[2]);
 
-                    dX[0] -= nodeRef.x;
-                    dX[1] -= nodeRef.y;
-                    dX[2] -= nodeRef.z;
+										dX[0] -= nodeRef.x;
+										dX[1] -= nodeRef.y;
+										dX[2] -= nodeRef.z;
 
-                    // Find the coefficients for this point of the polynomial
-                    int n = 3;
-                    int nrhs = 1;
-                    int lda = 3;
-                    int ipiv[3];
-                    int ldb = 3;
-                    int info;
+										// Find the coefficients for this point of the polynomial
+										int n = 3; 
+										int nrhs = 1; 
+										int lda = 3; 
+										int ipiv[3];
+										int ldb = 3; 
+										int info;
 
-                    DataMatrix<double> dFitTemp;
-                    dFitTemp = dFit;
-                    dgesv_ (
-                        &n, &nrhs, & ( dFitTemp[0][0] ), &lda, ipiv, dX, &ldb, &info );
+										DataArray2D<double> dFitTemp;
+										dFitTemp = dFit;
+										dgesv_(
+											&n, &nrhs, &(dFitTemp(0,0)), &lda, ipiv, dX, &ldb, &info);
 
-                    // Find the components of this quadrature point in the basis
-                    // of the finite element.
-                    double dAlpha;
-                    double dBeta;
+										// Find the components of this quadrature point in the basis
+										// of the finite element.
+										double dAlpha;
+										double dBeta;
 
                     ApplyInverseMap (
                         faceSecond,
@@ -2320,8 +2300,7 @@ void moab::TempestOfflineMap::LinearRemapFVtoGLL_MOAB (
         if ( vecReverseFaceIx[ixSecond].size() == 0 )
             continue;
 
-        DataMatrix<double> dCoeff;
-        dCoeff.Initialize (
+        DataArray2D<double> dCoeff(
             nP * nP,
             vecReverseFaceIx[ixSecond].size() );
 
@@ -2336,8 +2315,7 @@ void moab::TempestOfflineMap::LinearRemapFVtoGLL_MOAB (
         }
 
         // Target areas
-        DataVector<double> vecTargetArea;
-        vecTargetArea.Initialize ( nP * nP );
+        DataArray1D<double> vecTargetArea( nP * nP );
 
         for ( int s = 0; s < nP * nP; s++ )
         {
@@ -2346,8 +2324,7 @@ void moab::TempestOfflineMap::LinearRemapFVtoGLL_MOAB (
         }
 
         // Source areas
-        DataVector<double> vecSourceArea;
-        vecSourceArea.Initialize ( vecReverseFaceIx[ixSecond].size() );
+        DataArray1D<double> vecSourceArea( vecReverseFaceIx[ixSecond].size() );
 
         for ( size_t i = 0; i < vecReverseFaceIx[ixSecond].size(); i++ )
         {
@@ -2397,9 +2374,7 @@ void moab::TempestOfflineMap::LinearRemapFVtoGLL_MOAB (
         int nOverlapFaces = nAllOverlapFaces[ixFirst];
 
         // Determine the conservative constraint equation
-        DataVector<double> dConstraint;
-
-        dConstraint.Initialize ( nCoefficients );
+        DataArray1D<double> dConstraint( nCoefficients );
 
         for ( int p = 0; p < nCoefficients; p++ )
         {
@@ -2438,9 +2413,9 @@ void moab::TempestOfflineMap::LinearRemapFVtoGLL_MOAB (
         }
 
         // Build the fit operator
-        DataMatrix<double> dFitArray;
-        DataVector<double> dFitWeights;
-        DataMatrix<double> dFitArrayPlus;
+        DataArray2D<double> dFitArray;
+        DataArray1D<double> dFitWeights;
+        DataArray2D<double> dFitArrayPlus;
 
         BuildFitArray (
             *m_meshInputCov,
@@ -2463,8 +2438,7 @@ void moab::TempestOfflineMap::LinearRemapFVtoGLL_MOAB (
         );
 
         // Multiply integration array and fit array
-        DataMatrix<double> dComposedArray;
-        dComposedArray.Initialize ( nAdjFaces, nOverlapFaces * nP * nP );
+        DataArray2D<double> dComposedArray( nAdjFaces, nOverlapFaces * nP * nP );
 
         for ( int j = 0; j < nOverlapFaces; j++ )
         {
@@ -2529,11 +2503,11 @@ void moab::TempestOfflineMap::LinearRemapFVtoGLL_MOAB (
 ///////////////////////////////////////////////////////////////////////////////
 
 void moab::TempestOfflineMap::LinearRemapGLLtoGLL2_MOAB (
-    const DataMatrix3D<int> & dataGLLNodesIn,
-    const DataMatrix3D<double> & dataGLLJacobianIn,
-    const DataMatrix3D<int> & dataGLLNodesOut,
-    const DataMatrix3D<double> & dataGLLJacobianOut,
-    const DataVector<double> & dataNodalAreaOut,
+    const DataArray3D<int> & dataGLLNodesIn,
+    const DataArray3D<double> & dataGLLJacobianIn,
+    const DataArray3D<int> & dataGLLNodesOut,
+    const DataArray3D<double> & dataGLLJacobianOut,
+    const DataArray1D<double> & dataNodalAreaOut,
     int nPin,
     int nPout,
     int nMonotoneType,
@@ -2545,18 +2519,16 @@ void moab::TempestOfflineMap::LinearRemapGLLtoGLL2_MOAB (
     // Triangular quadrature rule
     TriangularQuadratureRule triquadrule ( 8 );
 
-    const DataMatrix<double> & dG = triquadrule.GetG();
-    const DataVector<double> & dW = triquadrule.GetW();
+    const DataArray2D<double> & dG = triquadrule.GetG();
+    const DataArray1D<double> & dW = triquadrule.GetW();
 
     // Get SparseMatrix represntation of the OfflineMap
     SparseMatrix<double> & smatMap = this->GetSparseMatrix();
 
     // Sample coefficients
-    DataMatrix<double> dSampleCoeffIn;
-    dSampleCoeffIn.Initialize ( nPin, nPin );
+    DataArray2D<double> dSampleCoeffIn( nPin, nPin );
 
-    DataMatrix<double> dSampleCoeffOut;
-    dSampleCoeffOut.Initialize ( nPout, nPout );
+    DataArray2D<double> dSampleCoeffOut( nPout, nPout );
 
     // Announcemnets
     if ( is_root )
@@ -2567,15 +2539,13 @@ void moab::TempestOfflineMap::LinearRemapGLLtoGLL2_MOAB (
     }
 
     // Build the integration array for each element on m_meshOverlap
-    DataMatrix3D<double> dGlobalIntArray;
-    dGlobalIntArray.Initialize (
+    DataArray3D<double> dGlobalIntArray(
         nPin * nPin,
         m_meshOverlap->faces.size(),
         nPout * nPout );
 
     // Number of overlap Faces per source Face
-    DataVector<int> nAllOverlapFaces;
-    nAllOverlapFaces.Initialize ( m_meshInputCov->faces.size() );
+    DataArray1D<int> nAllOverlapFaces( m_meshInputCov->faces.size() );
 
     int ixOverlap = 0;
 
@@ -2599,13 +2569,11 @@ void moab::TempestOfflineMap::LinearRemapGLLtoGLL2_MOAB (
     }
 
     // Geometric area of each output node
-    DataMatrix<double> dGeometricOutputArea;
-    dGeometricOutputArea.Initialize (
+    DataArray2D<double> dGeometricOutputArea(
         m_meshOutput->faces.size(), nPout * nPout );
 
     // Area of each overlap element in the output basis
-    DataMatrix<double> dOverlapOutputArea;
-    dOverlapOutputArea.Initialize (
+    DataArray2D<double> dOverlapOutputArea(
         m_meshOverlap->faces.size(), nPout * nPout );
 
     // Loop through all faces on m_meshInput
@@ -2683,40 +2651,38 @@ void moab::TempestOfflineMap::LinearRemapGLLtoGLL2_MOAB (
 
                 for ( int k = 0; k < triquadrule.GetPoints(); k++ )
                 {
-                    double * dGL = dG[k];
-
                     // Get the nodal location of this point
-                    double dX[3];
+										double dX[3];
 
-                    dX[0] = dGL[0] * node0.x + dGL[1] * node1.x + dGL[2] * node2.x;
-                    dX[1] = dGL[0] * node0.y + dGL[1] * node1.y + dGL[2] * node2.y;
-                    dX[2] = dGL[0] * node0.z + dGL[1] * node1.z + dGL[2] * node2.z;
+										dX[0] = dG(k,0) * node0.x + dG(k,1) * node1.x + dG(k,2) * node2.x;
+										dX[1] = dG(k,0) * node0.y + dG(k,1) * node1.y + dG(k,2) * node2.y;
+										dX[2] = dG(k,0) * node0.z + dG(k,1) * node1.z + dG(k,2) * node2.z;
 
-                    double dMag =
-                        sqrt ( dX[0] * dX[0] + dX[1] * dX[1] + dX[2] * dX[2] );
+										double dMag =
+											sqrt(dX[0] * dX[0] + dX[1] * dX[1] + dX[2] * dX[2]);
 
-                    dX[0] /= dMag;
-                    dX[1] /= dMag;
-                    dX[2] /= dMag;
+										dX[0] /= dMag;
+										dX[1] /= dMag;
+										dX[2] /= dMag;
 
-                    Node nodeQuadrature ( dX[0], dX[1], dX[2] );
+										Node nodeQuadrature(dX[0], dX[1], dX[2]);
 
-                    // Find the components of this quadrature point in the basis
-                    // of the first Face.
-                    double dAlphaIn;
-                    double dBetaIn;
+										// Find the components of this quadrature point in the basis
+										// of the first Face.
+										double dAlphaIn;
+										double dBetaIn;
 
-                    ApplyInverseMap (
-                        faceFirst,
-                        nodesFirst,
-                        nodeQuadrature,
-                        dAlphaIn,
-                        dBetaIn );
+										ApplyInverseMap(
+											faceFirst,
+											nodesFirst,
+											nodeQuadrature,
+											dAlphaIn,
+											dBetaIn);
 
-                    // Find the components of this quadrature point in the basis
-                    // of the second Face.
-                    double dAlphaOut;
-                    double dBetaOut;
+										// Find the components of this quadrature point in the basis
+										// of the second Face.
+										double dAlphaOut;
+										double dBetaOut;
 
                     ApplyInverseMap (
                         faceSecond,
@@ -2808,8 +2774,7 @@ void moab::TempestOfflineMap::LinearRemapGLLtoGLL2_MOAB (
         }
 
         // Coefficients
-        DataMatrix<double> dCoeff;
-        dCoeff.Initialize ( nOverlapFaces * nPout * nPout, nPin * nPin );
+        DataArray2D<double> dCoeff( nOverlapFaces * nPout * nPout, nPin * nPin );
 
         for ( int i = 0; i < nOverlapFaces; i++ )
         {
@@ -2840,7 +2805,7 @@ void moab::TempestOfflineMap::LinearRemapGLLtoGLL2_MOAB (
         }
 
         // Source areas
-        DataVector<double> vecSourceArea ( nPin * nPin );
+        DataArray1D<double> vecSourceArea ( nPin * nPin );
 
         for ( int p = 0; p < nPin; p++ )
         {
@@ -2852,7 +2817,7 @@ void moab::TempestOfflineMap::LinearRemapGLLtoGLL2_MOAB (
         }
 
         // Target areas
-        DataVector<double> vecTargetArea ( nOverlapFaces * nPout * nPout );
+        DataArray1D<double> vecTargetArea ( nOverlapFaces * nPout * nPout );
 
         for ( int i = 0; i < nOverlapFaces; i++ )
         {
@@ -2935,15 +2900,14 @@ void moab::TempestOfflineMap::LinearRemapGLLtoGLL2_MOAB (
 
     // Build redistribution map within target element
     Announce ( "Building redistribution maps on target mesh" );
-    DataVector<double> dRedistSourceArea ( nPout * nPout );
-    DataVector<double> dRedistTargetArea ( nPout * nPout );
-    std::vector< DataMatrix<double> > dRedistributionMaps;
+    DataArray1D<double> dRedistSourceArea ( nPout * nPout );
+    DataArray1D<double> dRedistTargetArea ( nPout * nPout );
+    std::vector< DataArray2D<double> > dRedistributionMaps;
     dRedistributionMaps.resize ( m_meshOutput->faces.size() );
 
     for ( size_t ixSecond = 0; ixSecond < m_meshOutput->faces.size(); ixSecond++ )
     {
-        dRedistributionMaps[ixSecond].Initialize (
-            nPout * nPout, nPout * nPout );
+        dRedistributionMaps[ixSecond].Allocate ( nPout * nPout, nPout * nPout );
 
         for ( int i = 0; i < nPout * nPout; i++ )
         {
@@ -2982,7 +2946,7 @@ void moab::TempestOfflineMap::LinearRemapGLLtoGLL2_MOAB (
     }
 
     // Construct the total geometric area
-    DataVector<double> dTotalGeometricArea ( dataNodalAreaOut.GetRows() );
+    DataArray1D<double> dTotalGeometricArea ( dataNodalAreaOut.GetRows() );
     for ( size_t ixSecond = 0; ixSecond < m_meshOutput->faces.size(); ixSecond++ )
     {
         for ( int s = 0; s < nPout; s++ )
@@ -3001,7 +2965,7 @@ void moab::TempestOfflineMap::LinearRemapGLLtoGLL2_MOAB (
     Announce ( "Assembling map" );
 
     // Map from source DOFs to target DOFs with redistribution applied
-    DataMatrix<double> dRedistributedOp (
+    DataArray2D<double> dRedistributedOp (
         nPin * nPin, nPout * nPout );
 
     for ( size_t ixFirst = 0; ixFirst < m_meshInputCov->faces.size(); ixFirst++ )
@@ -3115,11 +3079,11 @@ void moab::TempestOfflineMap::LinearRemapGLLtoGLL2_MOAB (
 ///////////////////////////////////////////////////////////////////////////////
 
 void moab::TempestOfflineMap::LinearRemapGLLtoGLL2_Pointwise_MOAB (
-    const DataMatrix3D<int> & dataGLLNodesIn,
-    const DataMatrix3D<double> & /*dataGLLJacobianIn*/,
-    const DataMatrix3D<int> & dataGLLNodesOut,
-    const DataMatrix3D<double> & /*dataGLLJacobianOut*/,
-    const DataVector<double> & dataNodalAreaOut,
+    const DataArray3D<int> & dataGLLNodesIn,
+    const DataArray3D<double> & /*dataGLLJacobianIn*/,
+    const DataArray3D<int> & dataGLLNodesOut,
+    const DataArray3D<double> & /*dataGLLJacobianOut*/,
+    const DataArray1D<double> & dataNodalAreaOut,
     int nPin,
     int nPout,
     int nMonotoneType,
@@ -3128,8 +3092,8 @@ void moab::TempestOfflineMap::LinearRemapGLLtoGLL2_Pointwise_MOAB (
 )
 {
     // Gauss-Lobatto quadrature within Faces
-    DataVector<double> dGL;
-    DataVector<double> dWL;
+    DataArray1D<double> dGL;
+    DataArray1D<double> dWL;
 
     GaussLobattoQuadrature::GetPoints ( nPout, 0.0, 1.0, dGL, dWL );
 
@@ -3140,8 +3104,7 @@ void moab::TempestOfflineMap::LinearRemapGLLtoGLL2_Pointwise_MOAB (
     SparseMatrix<double> & smatMap = this->GetSparseMatrix();
 
     // Sample coefficients
-    DataMatrix<double> dSampleCoeffIn;
-    dSampleCoeffIn.Initialize ( nPin, nPin );
+    DataArray2D<double> dSampleCoeffIn( nPin, nPin );
 
     // Announcemnets
     if ( is_root )
@@ -3152,8 +3115,7 @@ void moab::TempestOfflineMap::LinearRemapGLLtoGLL2_Pointwise_MOAB (
     }
 
     // Number of overlap Faces per source Face
-    DataVector<int> nAllOverlapFaces;
-    nAllOverlapFaces.Initialize ( m_meshInputCov->faces.size() );
+    DataArray1D<int> nAllOverlapFaces( m_meshInputCov->faces.size() );
 
     int ixOverlap = 0;
 
@@ -3175,7 +3137,7 @@ void moab::TempestOfflineMap::LinearRemapGLLtoGLL2_Pointwise_MOAB (
     }
 
     // Number of times this point was found
-    DataVector<bool> fSecondNodeFound ( dataNodalAreaOut.GetRows() );
+    DataArray1D<bool> fSecondNodeFound ( dataNodalAreaOut.GetRows() );
 
     ixOverlap = 0;
 #ifdef VERBOSE
