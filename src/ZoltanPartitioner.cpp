@@ -1575,8 +1575,8 @@ void ZoltanPartitioner::SetRCB_Parameters()
   // RCB parameters:
 
   myZZ->Set_Param("RCB_OUTPUT_LEVEL", "2");
-  myZZ->Set_Param("KEEP_CUTS", "1");              // save decomposition
-  myZZ->Set_Param("RCB_RECTILINEAR_BLOCKS", "1"); // don't split point on boundary
+  //myZZ->Set_Param("KEEP_CUTS", "1");              // save decomposition
+  //myZZ->Set_Param("RCB_RECTILINEAR_BLOCKS", "1"); // don't split point on boundary
 }
 
 void ZoltanPartitioner::SetRIB_Parameters()
@@ -2009,7 +2009,8 @@ void mbGetPart(void * /* userDefinedData */, int /* numGlobalIds */, int /* numL
 }
 
 // new methods for partition in parallel, used by migrate in iMOAB
-ErrorCode ZoltanPartitioner::partition_owned_cells(Range & primary, ParallelComm * pco, std::map<int, int> & extraAdjCellsId,
+ErrorCode ZoltanPartitioner::partition_owned_cells(Range & primary, ParallelComm * pco,
+    std::multimap<int,int> & extraGraphEdges,
     std::map<int, int> procs, int & numNewPartitions, std::map<int, Range> & distribution, int met)
 {
   // start copy
@@ -2056,13 +2057,18 @@ ErrorCode ZoltanPartitioner::partition_owned_cells(Range & primary, ParallelComm
       moab_id = ids[i] ;
       for (int k=0; k<size_adjs; k++)
         neib_proc[k]= rank; // current rank
-      if (extraAdjCellsId.find(moab_id) != extraAdjCellsId.end())
+      if (extraGraphEdges.find(moab_id) != extraGraphEdges.end())
       {
-        // it means that the current cell is adjacent to a cell in another partition
-        int otherID = extraAdjCellsId[moab_id];
-        neighbors[size_adjs] = otherID; // the id of the other cell, across partition
-        neib_proc[size_adjs] = procs[otherID]; // this is how we built this map, the cell id maps to what proc it came from
-        size_adjs++;
+        // it means that the current cell is adjacent to a cell in another partition ; maybe a few
+        std::pair <std::multimap<int,int>::iterator, std::multimap<int,int>::iterator> ret;
+        ret = extraGraphEdges.equal_range(moab_id);
+        for (std::multimap<int,int>::iterator it=ret.first; it!=ret.second; ++it)
+        {
+          int otherID = it->second;
+          neighbors[size_adjs] = otherID; // the id of the other cell, across partition
+          neib_proc[size_adjs] = procs[otherID]; // this is how we built this map, the cell id maps to what proc it came from
+          size_adjs++;
+        }
       }
         // copy those into adjacencies vector
       length.push_back(size_adjs);

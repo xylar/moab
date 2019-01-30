@@ -153,12 +153,12 @@ void read_one_cell_var(bool rcbzoltan)
       CHECK_EQUAL((size_t)14, local_cell_gids.psize());
 
       if (0 == rank) {
-        CHECK_EQUAL((size_t)319, local_cells.size());
-        CHECK_EQUAL((size_t)319, local_cell_gids.size());
+        CHECK_EQUAL((size_t)321, local_cells.size());
+        CHECK_EQUAL((size_t)321, local_cell_gids.size());
 
         CHECK_EQUAL(3, (int)local_cell_gids[0]);
         CHECK_EQUAL(162, (int)local_cell_gids[159]);
-        CHECK_EQUAL(642, (int)local_cell_gids[318]);
+        CHECK_EQUAL(640, (int)local_cell_gids[318]);
 
         EntityHandle cell_ents[] = {local_cells[0], local_cells[159], local_cells[318]};
         rval = mb.tag_get_data(vorticity_tag0, cell_ents, 3, vorticity0_val);
@@ -168,11 +168,11 @@ void read_one_cell_var(bool rcbzoltan)
         // Layer 0
         CHECK_REAL_EQUAL(-0.725999, vorticity0_val[0 * layers], eps);
         CHECK_REAL_EQUAL(-1.814997, vorticity0_val[1 * layers], eps);
-        CHECK_REAL_EQUAL(-0.554888, vorticity0_val[2 * layers], eps);
+        CHECK_REAL_EQUAL( 0.131688, vorticity0_val[2 * layers], eps);
         // Layer 1
         CHECK_REAL_EQUAL(-0.725989, vorticity0_val[0 * layers + 1], eps);
         CHECK_REAL_EQUAL(-1.814972, vorticity0_val[1 * layers + 1], eps);
-        CHECK_REAL_EQUAL(-0.554881, vorticity0_val[2 * layers + 1], eps);
+        CHECK_REAL_EQUAL( 0.131686, vorticity0_val[2 * layers + 1], eps);
 
         rval = mb.tag_get_data(vorticity_tag1, cell_ents, 3, vorticity1_val);
         CHECK_ERR(rval);
@@ -181,19 +181,19 @@ void read_one_cell_var(bool rcbzoltan)
         // Layer 0
         CHECK_REAL_EQUAL(-0.706871, vorticity1_val[0 * layers], eps);
         CHECK_REAL_EQUAL(-1.767178, vorticity1_val[1 * layers], eps);
-        CHECK_REAL_EQUAL(-0.540269, vorticity1_val[2 * layers], eps);
+        CHECK_REAL_EQUAL( 0.128218, vorticity1_val[2 * layers], eps);
         // Layer 1
         CHECK_REAL_EQUAL(-0.706861, vorticity1_val[0 * layers + 1], eps);
         CHECK_REAL_EQUAL(-1.767153, vorticity1_val[1 * layers + 1], eps);
-        CHECK_REAL_EQUAL(-0.540262, vorticity1_val[2 * layers + 1], eps);
+        CHECK_REAL_EQUAL( 0.128216, vorticity1_val[2 * layers + 1], eps);
       }
       else if (1 == rank) {
-        CHECK_EQUAL((size_t)323, local_cells.size());
-        CHECK_EQUAL((size_t)323, local_cell_gids.size());
+        CHECK_EQUAL((size_t)321, local_cells.size());
+        CHECK_EQUAL((size_t)321, local_cell_gids.size());
 
         CHECK_EQUAL(1, (int)local_cell_gids[0]);
-        CHECK_EQUAL(365, (int)local_cell_gids[161]);
-        CHECK_EQUAL(557, (int)local_cell_gids[322]);
+        CHECK_EQUAL(366, (int)local_cell_gids[161]);
+        CHECK_EQUAL(1, (int)local_cell_gids[322]);
 
         EntityHandle cell_ents[] = {local_cells[0], local_cells[161], local_cells[322]};
         rval = mb.tag_get_data(vorticity_tag0, cell_ents, 3, vorticity0_val);
@@ -202,12 +202,12 @@ void read_one_cell_var(bool rcbzoltan)
         // Timestep 0
         // Layer 0
         CHECK_REAL_EQUAL(3.629994, vorticity0_val[0 * layers], eps);
-        CHECK_REAL_EQUAL(-1.173971, vorticity0_val[1 * layers], eps);
-        CHECK_REAL_EQUAL(3.526371, vorticity0_val[2 * layers], eps);
+        CHECK_REAL_EQUAL(-1.512985, vorticity0_val[1 * layers], eps);
+        CHECK_REAL_EQUAL(3.629994, vorticity0_val[2 * layers], eps);
         // Layer 1
         CHECK_REAL_EQUAL(3.629944, vorticity0_val[0 * layers + 1], eps);
-        CHECK_REAL_EQUAL(-1.173955, vorticity0_val[1 * layers + 1], eps);
-        CHECK_REAL_EQUAL(3.526322, vorticity0_val[2 * layers + 1], eps);
+        CHECK_REAL_EQUAL(-1.512964, vorticity0_val[1 * layers + 1], eps);
+        CHECK_REAL_EQUAL( 3.629944, vorticity0_val[2 * layers + 1], eps);
 
         rval = mb.tag_get_data(vorticity_tag1, cell_ents, 3, vorticity1_val);
         CHECK_ERR(rval);
@@ -215,12 +215,12 @@ void read_one_cell_var(bool rcbzoltan)
         // Timestep 1
         // Layer 0
         CHECK_REAL_EQUAL(3.534355, vorticity1_val[0 * layers], eps);
-        CHECK_REAL_EQUAL(-1.143041, vorticity1_val[1 * layers], eps);
-        CHECK_REAL_EQUAL(3.433463, vorticity1_val[2 * layers], eps);
+        CHECK_REAL_EQUAL(-1.473122, vorticity1_val[1 * layers], eps);
+        CHECK_REAL_EQUAL(3.534355, vorticity1_val[2 * layers], eps);
         // Layer 1
         CHECK_REAL_EQUAL(3.534306, vorticity1_val[0 * layers + 1], eps);
-        CHECK_REAL_EQUAL(-1.143025, vorticity1_val[1 * layers + 1], eps);
-        CHECK_REAL_EQUAL(3.433415, vorticity1_val[2 * layers + 1], eps);
+        CHECK_REAL_EQUAL(-1.473102, vorticity1_val[1 * layers + 1], eps);
+        CHECK_REAL_EQUAL(3.534306, vorticity1_val[2 * layers + 1], eps);
       }
     }
     else {
@@ -317,9 +317,9 @@ void read_mesh_parallel(bool rcbzoltan)
   if (2 == procs) {
     if (rcbzoltan) {
       if (0 == rank)
-        CHECK_EQUAL(684, verts_num);
+        CHECK_EQUAL(688, verts_num);
       else if (1 == rank)
-        CHECK_EQUAL(691, verts_num); // Not owned vertices included
+        CHECK_EQUAL(687, verts_num); // Not owned vertices included
     }
     else {
       if (0 == rank)
@@ -336,9 +336,9 @@ void read_mesh_parallel(bool rcbzoltan)
   if (2 == procs) {
     if (rcbzoltan) {
       if (0 == rank)
-        CHECK_EQUAL(684, verts_num);
+        CHECK_EQUAL(688, verts_num);
       else if (1 == rank)
-        CHECK_EQUAL(596, verts_num); // Not owned vertices excluded
+        CHECK_EQUAL(592, verts_num); // Not owned vertices excluded
     }
     else {
       if (0 == rank)
@@ -357,9 +357,9 @@ void read_mesh_parallel(bool rcbzoltan)
   if (2 == procs) {
     if (rcbzoltan) {
       if (0 == rank)
-        CHECK_EQUAL(1002, edges_num);
+        CHECK_EQUAL(1008, edges_num);
       else if (1 == rank)
-        CHECK_EQUAL(1013, edges_num); // Not owned edges included
+        CHECK_EQUAL(1007, edges_num); // Not owned edges included
     }
     else {
       if (0 == rank)
@@ -376,9 +376,9 @@ void read_mesh_parallel(bool rcbzoltan)
   if (2 == procs) {
     if (rcbzoltan) {
       if (0 == rank)
-        CHECK_EQUAL(1002, edges_num);
+        CHECK_EQUAL(1008, edges_num);
       else if (1 == rank)
-        CHECK_EQUAL(918, edges_num); // Not owned edges excluded
+        CHECK_EQUAL(912, edges_num); // Not owned edges excluded
     }
     else {
       if (0 == rank)
@@ -399,9 +399,9 @@ void read_mesh_parallel(bool rcbzoltan)
   if (2 == procs) {
     if (rcbzoltan) {
       if (0 == rank)
-        CHECK_EQUAL(319, cells_num);
+        CHECK_EQUAL(321, cells_num);
       else
-        CHECK_EQUAL(323, cells_num);
+        CHECK_EQUAL(321, cells_num);
     }
     else
       CHECK_EQUAL(321, cells_num);
@@ -414,9 +414,9 @@ void read_mesh_parallel(bool rcbzoltan)
   if (2 == procs) {
     if (rcbzoltan) {
       if (0 == rank)
-        CHECK_EQUAL(319, cells_num);
+        CHECK_EQUAL(321, cells_num);
       else
-        CHECK_EQUAL(323, cells_num);
+        CHECK_EQUAL(321, cells_num);
     }
     else
       CHECK_EQUAL(321, cells_num);
