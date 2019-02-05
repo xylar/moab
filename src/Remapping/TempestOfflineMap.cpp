@@ -30,6 +30,34 @@
 // #define VERBOSE
 // #define VVERBOSE
 
+void LinearRemapFVtoGLL(
+    const Mesh & meshInput,
+    const Mesh & meshOutput,
+    const Mesh & meshOverlap,
+    const DataArray3D<int> & dataGLLNodes,
+    const DataArray3D<double> & dataGLLJacobian,
+    const DataArray1D<double> & dataGLLNodalArea,
+    int nOrder,
+    OfflineMap & mapRemap,
+    int nMonotoneType,
+    bool fContinuous,
+    bool fNoConservation
+);
+
+void LinearRemapFVtoGLL_Volumetric(
+    const Mesh & meshInput,
+    const Mesh & meshOutput,
+    const Mesh & meshOverlap,
+    const DataArray3D<int> & dataGLLNodes,
+    const DataArray3D<double> & dataGLLJacobian,
+    const DataArray1D<double> & dataGLLNodalArea,
+    int nOrder,
+    OfflineMap & mapRemap,
+    int nMonotoneType,
+    bool fContinuous,
+    bool fNoConservation
+);
+
 ///////////////////////////////////////////////////////////////////////////////
 
 moab::TempestOfflineMap::TempestOfflineMap ( moab::TempestRemapper* remapper ) : OfflineMap(), m_remapper ( remapper )
@@ -754,22 +782,30 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
 
             if ( fVolumetric )
             {
-                LinearRemapFVtoGLL_Volumetric_MOAB (
+                LinearRemapFVtoGLL_Volumetric (
+                    *m_meshInputCov,
+                    *m_meshOutput,
+                    *m_meshOverlap,
                     dataGLLNodesDest,
                     dataGLLJacobian,
                     this->GetTargetAreas(),
                     nPin,
+                    *this,
                     nMonotoneType,
                     fContinuous,
                     fNoConservation );
             }
             else
             {
-                LinearRemapFVtoGLL_MOAB (
+                LinearRemapFVtoGLL (
+                    *m_meshInputCov,
+                    *m_meshOutput,
+                    *m_meshOverlap,
                     dataGLLNodesDest,
                     dataGLLJacobian,
                     this->GetTargetAreas(),
                     nPin,
+                    *this,
                     nMonotoneType,
                     fContinuous,
                     fNoConservation );
