@@ -575,7 +575,13 @@ ErrorCode ZoltanPartitioner::partition_mesh_and_geometry(const double part_geom_
 
   std::cout << "Computing partition using " << (zmethod ? zmethod : "RCB") <<
       " method for " << nparts << " processors..." << std::endl;
-  
+#ifndef NDEBUG
+  if (NULL == zmethod || !strcmp(zmethod, "RCB"))
+    Zoltan_Generate_Files(myZZ->Get_C_Handle(), (char*)zmethod, 1, 1, 0, 0);
+
+  if ( !strcmp(zmethod, "PHG"))
+      Zoltan_Generate_Files(myZZ->Get_C_Handle(), (char*)zmethod, 1, 0, 1, 1);
+#endif
   retval = myZZ->LB_Partition(changes, numGidEntries, numLidEntries, 
                               dumnum1, dum_global, dum_local, dum1, dum2,
                               num_assign, assign_gid, assign_lid,
@@ -2104,7 +2110,9 @@ ErrorCode ZoltanPartitioner::partition_owned_cells(Range & primary, ParallelComm
 #endif
 
 // these are static var in this file, and used in the callbacks
-  Points= &coords[0];
+  Points= NULL;
+  if (1!=met)
+    Points = &coords[0];
   GlobalIds=&ids[0];
   NumPoints=(int)ids.size();
   NumEdges=&length[0];
@@ -2168,6 +2176,22 @@ ErrorCode ZoltanPartitioner::partition_owned_cells(Range & primary, ParallelComm
     std::cout << "Computing partition using method (1-graph, 2-geom):" << met  <<
       " for " << numNewPartitions << " parts..." << std::endl;
 
+#ifndef NDEBUG
+  static int counter=0; // it may be possible to call function multiple times in a simulation
+  // give a way to not overwrite the files
+  // it should work only with a modified version of Zoltan
+  std::stringstream basename;
+  if (1==met)
+  {
+    basename << "phg_" << counter++;
+    Zoltan_Generate_Files(myZZ->Get_C_Handle(), (char*)(basename.str().c_str()), 1, 0, 1, 0);
+  }
+  else if (2==met)
+  {
+    basename << "rcb_" << counter++;
+    Zoltan_Generate_Files(myZZ->Get_C_Handle(), (char*)(basename.str().c_str()), 1, 1, 0, 0);
+  }
+#endif
   retval = myZZ->LB_Partition(changes, numGidEntries, numLidEntries,
                               num_import, import_global_ids, import_local_ids, import_procs, import_to_part,
                               num_export, export_global_ids, export_local_ids,
