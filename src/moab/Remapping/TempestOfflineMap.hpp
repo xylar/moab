@@ -180,33 +180,6 @@ private:
 	    bool fContinuousIn,
 	    bool fNoConservation);
 
-	///	<summary>
-	///		Generate the OfflineMap for remapping from finite volumes to finite
-	///		elements using simple sampling of the FV reconstruction.
-	///	</summary>
-	void LinearRemapFVtoGLL_Simple_MOAB(
-		const DataArray3D<int> & dataGLLNodes,
-		const DataArray3D<double> & dataGLLJacobian,
-		const DataArray1D<double> & dataGLLNodalArea,
-		int nOrder,
-		int nMonotoneType,
-		bool fContinuous,
-		bool fNoConservation
-	);
-
-	///	<summary>
-	///		Generate the OfflineMap for remapping from finite volumes to finite
-	///		elements using a new experimental method.
-	///	</summary>
-	void LinearRemapFVtoGLL_Volumetric_MOAB(
-		const DataArray3D<int> & dataGLLNodes,
-		const DataArray3D<double> & dataGLLJacobian,
-		const DataArray1D<double> & dataGLLNodalArea,
-		int nOrder,
-		int nMonotoneType,
-		bool fContinuous,
-		bool fNoConservation
-	);
 
 	///	<summary>
 	///		Generate the OfflineMap for remapping from finite volumes to finite
