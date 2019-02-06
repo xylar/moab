@@ -3,7 +3,7 @@ from pymoab import types
 from pymoab.scd import ScdInterface
 from pymoab.hcoord import HomCoord
 from subprocess import call
-from driver import test_driver, CHECK_EQ, CHECK_ITER_EQ
+from driver import test_driver, CHECK_EQ, CHECK_ITER_EQ, CHECK_TYPE
 import numpy as np
 import os
 from pymoab.types import _eh_py_type
@@ -12,7 +12,7 @@ def test_w_coordinates():
 
     mb = core.Core()
     scd = ScdInterface(mb)
-    
+
     xs = [-1, 3, 5]
     ys = [-1, 1]
     zs = [-1, 1]
@@ -38,12 +38,12 @@ def test_w_coordinates():
                 vert = scdbox.get_vertex([i,j,k])
                 vert_coords = mb.get_coords(vert)
                 assert(all(vert_coords == [xs[i], ys[j], zs[k]]))
-    
+
     hexes = mb.get_entities_by_type(0, types.MBHEX)
 
     hex_con_str = "Hex {} connectivity is: {}"
     vert_str = "Vert: {}"
-    
+
     assert len(hexes) == 2
 
     # expected vertex connectivity
@@ -54,9 +54,9 @@ def test_w_coordinates():
 
     for i,h in enumerate(hexes):
         CHECK_ITER_EQ(mb.get_connectivity(h), hex_connectivity[i])
-    
+
 def test_scds():
-    
+
     bounds = [0,0,0,10,0,0]
     scd_tst(bounds)
     bounds = [0,0,0,10,10,0]
@@ -76,9 +76,9 @@ def scd_tst(bnds):
         pass
 
     t = scd.box_set_tag(True)
-        
+
     boxes = scd.find_boxes()
-    assert len(boxes) == 0 
+    assert len(boxes) == 0
 
     low = HomCoord(bnds[:3])
     high = HomCoord(bnds[3:])
@@ -96,11 +96,11 @@ def scd_tst(bnds):
     blow = scdbox.box_min()
     assert high == bhigh
     assert low == blow
-    
+
     check_sequence(scdbox, *bnds)
     evaluate_sequence(scdbox)
 
-    
+
 def check_sequence(box, imin, jmin, kmin, imax, jmax, kmax):
 
     bmin = box.box_min()
@@ -116,11 +116,11 @@ def check_sequence(box, imin, jmin, kmin, imax, jmax, kmax):
     bsize = box.box_size()
 
     CHECK_EQ((bmax-bmin+HomCoord([1,1,1,0])), bsize)
-    
+
 def evaluate_sequence(box):
 
     bmin = box.box_min()
-    
+
     bmax = box.box_max()
 
     start_vert = box.start_vertex()
@@ -129,7 +129,7 @@ def evaluate_sequence(box):
         for j in range(bmin[1],bmax[1]):
             for k in range(bmin[2],bmax[2]):
                 #compute value of start vert
-                this_vert = start_vert + (i-bmin[0]) + (j-bmin[1])*(bmax[0]-bmin[0]+1) + (k-bmin[2])*(bmax[1]-bmin[1]+1)*(bmax[0]-bmin[0]+1)                
+                this_vert = start_vert + (i-bmin[0]) + (j-bmin[1])*(bmax[0]-bmin[0]+1) + (k-bmin[2])*(bmax[1]-bmin[1]+1)*(bmax[0]-bmin[0]+1)
                 temp_vert = box.get_vertex([i,j,k])
                 CHECK_EQ(temp_vert,this_vert)
 
@@ -141,17 +141,18 @@ def evaluate_sequence(box):
                 CHECK_EQ(box.contains(i,j,k),True)
 
     start_elem = box.start_element()
-    
+
     for i in range(bmin[0],bmax[0]-1):
         for j in range(bmin[1],bmax[1]-1):
             for k in range(bmin[2],bmax[2]-1):
                 #compute value of start elem
-                this_elem = start_elem + (i-bmin[0]) + (j-bmin[1])*(bmax[0]-bmin[0]) + (k-bmin[2])*(bmax[1]-bmin[1])*(bmax[0]-bmin[0])                
+                this_elem = start_elem + (i-bmin[0]) + (j-bmin[1])*(bmax[0]-bmin[0]) + (k-bmin[2])*(bmax[1]-bmin[1])*(bmax[0]-bmin[0])
                 temp_elem = box.get_element([i,j,k])
-
+                CHECK_TYPE(temp_elem, _eh_py_type)
                 CHECK_EQ(temp_elem,this_elem)
 
                 temp_elem2 = box.get_element(HomCoord([i,j,k]))
+                CHECK_TYPE(temp_elem2, _eh_py_type)
                 CHECK_EQ(temp_elem,this_elem)
 
                 CHECK_EQ(box.get_params(this_elem),[i,j,k])
