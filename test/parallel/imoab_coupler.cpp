@@ -175,10 +175,10 @@ int main( int argc, char* argv[] )
   iMOAB_AppID pid5= &appID5; // intx atm -ocn on coupler PEs
 
   if (comm3 != MPI_COMM_NULL) {
-    ierr = iMOAB_RegisterApplication("ATMX", &jcomm, &compid3, pid3); // atm on coupler pes
+    ierr = iMOAB_RegisterApplication("ATMX", &comm3, &compid3, pid3); // atm on coupler pes
     CHECKRC(ierr, "can't register atm over coupler pes ")
 
-    ierr = iMOAB_RegisterApplication("OCNX", &jcomm, &compid4, pid4); // ocn on coupler pes
+    ierr = iMOAB_RegisterApplication("OCNX", &comm3, &compid4, pid4); // ocn on coupler pes
     CHECKRC(ierr, "can't register ocn over coupler pes ")
   }
 
@@ -208,7 +208,13 @@ int main( int argc, char* argv[] )
   double t5=MPI_Wtime();
   if (!rank) std::cout << "[LOG] receive atm mesh and resolve shared entities: " << t5-t4 << "\n";
   POP_TIMER()
-
+  if (comm3 != MPI_COMM_NULL) {
+    char outputFileSrc[] = "recvAtmCoup.h5m";
+    char writeOptions3[] ="PARALLEL=WRITE_PART";
+    ierr = iMOAB_WriteMesh(pid4, outputFileSrc, writeOptions3,
+      strlen(outputFileSrc), strlen(writeOptions3) );
+    CHECKRC(ierr, "cannot write atm mesh after receiving")
+  }
   // we can now free the sender buffers
   if (comm1 != MPI_COMM_NULL) {
     ierr = iMOAB_FreeSenderBuffers(pid1, &jcomm, &compid3);
@@ -251,8 +257,6 @@ int main( int argc, char* argv[] )
     CHECKRC(ierr, "cannot free buffers used to send ocn mesh")
   }
 
-
-
   if (comm3 != MPI_COMM_NULL) {
     char outputFileTgt3[] = "recvTarget.h5m";
     char writeOptions3[] ="PARALLEL=WRITE_PART";
@@ -264,6 +268,12 @@ int main( int argc, char* argv[] )
   double t11=MPI_Wtime();
     if (!rank) std::cout << "[LOG] write received ocn mesh on coupler pes: "<< t11-t10 << "\n";
 
+  if (comm3 != MPI_COMM_NULL ){
+    char outputFileRecvd[] = "recvAtmCoup.h5m";
+    char writeOptions3[] ="PARALLEL=WRITE_PART";
+    ierr = iMOAB_WriteMesh(pid3, outputFileRecvd, writeOptions3,
+        strlen(outputFileRecvd), strlen(writeOptions3) );
+  }
 
 #ifdef MOAB_HAVE_TEMPESTREMAP
   // move them here, as we will need them more than once, after we check for comm1 or comm2
@@ -295,7 +305,7 @@ int main( int argc, char* argv[] )
     CHECKRC(ierr, "cannot compute intersection" )
     POP_TIMER()
 
-#ifdef VERBOSE
+#ifndef NDEBUG
     std::stringstream outf;
     outf<<"intx_0" << rank<<".h5m";
     std::string intxfile=outf.str(); // write in serial the intx file, for debugging
@@ -395,12 +405,6 @@ int main( int argc, char* argv[] )
   MPI_Barrier(MPI_COMM_WORLD);
   POP_TIMER()
 
-  if (comm3 != MPI_COMM_NULL ){
-    char outputFileRecvd[] = "recvAtmCoup.h5m";
-    char writeOptions3[] ="PARALLEL=WRITE_PART";
-    ierr = iMOAB_WriteMesh(pid3, outputFileRecvd, writeOptions3,
-        strlen(outputFileRecvd), strlen(writeOptions3) );
-  }
    // we can now free the sender buffers
    if (comm1 != MPI_COMM_NULL) {
      ierr = iMOAB_FreeSenderBuffers(pid1, &jcomm, &compid3);
