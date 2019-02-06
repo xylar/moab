@@ -21,10 +21,10 @@ cdef class ScdParData(object):
         self.inst = new moab.ScdParData()
 
 cdef class ScdInterface(object):
-    
+
     def __cinit__(self, Core c):
         """
-        Constructor. 
+        Constructor.
 
         Requires a moab core, c, to operate on.
         """
@@ -105,7 +105,7 @@ cdef class ScdInterface(object):
             if provided coordinates are not of the correct type.
         """
         cdef moab.ErrorCode err
-        cdef ScdBox scdb = ScdBox() 
+        cdef ScdBox scdb = ScdBox()
         cdef HomCoord hl = low
         cdef HomCoord hh = high
         cdef np.ndarray[np.float64_t, ndim=1] c
@@ -134,7 +134,7 @@ cdef class ScdInterface(object):
 
     def box_set_tag(self, create_if_missing = True):
         """
-        Retrieves an internal tag used to link EntitySets and 
+        Retrieves an internal tag used to link EntitySets and
         ScdBox instances.
 
         Example
@@ -161,7 +161,7 @@ cdef class ScdInterface(object):
             check_error(MB_FAILURE)
         else:
             return tag
-        
+
     def get_scd_box(self, eh, exceptions = ()):
         """
         Returns all structured mesh blocks in a the PyMOAB core instance
@@ -175,10 +175,10 @@ cdef class ScdInterface(object):
         ----------
         eh : MOAB EntityHAndle
             EntityHandle of the structured box set.
-            
+
         exceptions : tuple (default is empty tuple)
             A tuple containing any error types that should
-            be ignored. (see pymoab.types module for more info)        
+            be ignored. (see pymoab.types module for more info)
 
         Returns
         -------
@@ -197,7 +197,7 @@ cdef class ScdInterface(object):
             check_error(MB_FAILURE, exceptions)
         else:
             return struct_box
-            
+
     def find_boxes(self, exceptions = ()):
         """
         Returns all structured mesh blocks in a the PyMOAB core instance
@@ -261,7 +261,7 @@ cdef class ScdInterface(object):
             new_box.inst = vec_boxes[i] # replace pointer
             boxes_out.append(new_box)
         return boxes_out
-                
+
 cdef class ScdBox(object):
 
     def __cinit__(self):
@@ -305,7 +305,7 @@ cdef class ScdBox(object):
         Returns the number of vertices in the box as an integer.
         """
         return self.inst.num_vertices()
-    
+
     def num_elements(self):
         """
         Returns the number of elements in the box as an integer.
@@ -317,14 +317,14 @@ cdef class ScdBox(object):
         Returns the EntityHandle (long int) of the first vertex in the structured mesh box.
         """
         cdef moab.EntityHandle startv = self.inst.start_vertex()
-        return startv
+        return _eh_py_type(startv)
 
     def start_element(self):
         """
         Returns the EntityHandle (long int) of the first element in the structured mesh box.
         """
         cdef moab.EntityHandle startv = self.inst.start_element()
-        return startv
+        return _eh_py_type(startv)
 
     def get_vertex(self, args):
         """
@@ -372,7 +372,7 @@ cdef class ScdBox(object):
             return _eh_py_type(vert)
         else:
             check_error(MB_FAILURE)
-            
+
     def get_element(self, args):
         """
         Returns the element handle for parameter values i,j,k. These parameter
@@ -410,16 +410,16 @@ cdef class ScdBox(object):
             h = args
             mh = deref(h.inst)
             vert = self.inst.get_element(mh)
-            return vert
+            return _eh_py_type(vert)
         elif 3 == len(args):
             i = args[0]
             j = args[1]
             k = args[2]
             vert = self.inst.get_element(i,j,k)
-            return vert
+            return _eh_py_type(vert)
         else:
             check_error(MB_FAILURE)
-        
+
     def get_params(self, moab.EntityHandle entity, exceptions = ()):
         """
         Returns the parametric coordinates of the specified entity.

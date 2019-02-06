@@ -3,7 +3,8 @@ from pymoab import types
 from pymoab.rng import Range
 from pymoab.rng import intersect, subtract, unite
 from pymoab import types
-from driver import test_driver, CHECK_EQ, CHECK_NOT_EQ, CHECK, CHECK_NOT
+from pymoab.types import _eh_py_type
+from driver import test_driver, CHECK_EQ, CHECK_NOT_EQ, CHECK, CHECK_NOT, CHECK_TYPE
 import numpy as np
 
 def test_range():
@@ -70,10 +71,12 @@ def test_range():
         CHECK_EQ(eh_orig,eh_new)
 
     first_handle = verts_copy.pop_front()
+    CHECK_TYPE(first_handle, _eh_py_type)
     CHECK_EQ(len(verts_copy),len(verts)-1)
     CHECK_EQ(first_handle,verts[0])
 
     last_handle = verts_copy.pop_back()
+    CHECK_TYPE(last_handle, _eh_py_type)
     CHECK_EQ(len(verts_copy),len(verts)-2)
     CHECK_EQ(last_handle,verts[-1])
 
