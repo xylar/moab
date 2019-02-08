@@ -43,6 +43,7 @@ struct ToolContext
 #ifdef MOAB_HAVE_MPI
         moab::ParallelComm* pcomm;
 #endif
+        const int proc_id, n_procs;
         int blockSize;
         std::vector<std::string> inFilenames;
         std::vector<Mesh*> meshes;
@@ -52,7 +53,6 @@ struct ToolContext
         std::vector<std::string> doftag_names;
         std::string outFilename;
         moab::TempestRemapper::TempestMeshType meshType;
-        const int proc_id, n_procs;
         bool computeDual;
         bool computeWeights;
         int ensureMonotonicity;
