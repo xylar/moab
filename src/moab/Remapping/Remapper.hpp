@@ -71,7 +71,11 @@ public:
 
 	ErrorCode LoadNativeMesh(std::string filename, moab::EntityHandle& meshset, const char* readopts=0)
 	{
-	  const std::string opts = std::string("PARALLEL=READ_PART;PARTITION=PARALLEL_PARTITION;PARALLEL_RESOLVE_SHARED_ENTS");
+#ifdef MOAB_HAVE_MPI
+	  const std::string opts = (m_pcomm->size() > 1 ? std::string("PARALLEL=READ_PART;PARTITION=PARALLEL_PARTITION;PARALLEL_RESOLVE_SHARED_ENTS") : "" );
+#else
+	  const std::string opts = std::string("");
+#endif
 	  return m_interface->load_file(filename.c_str(), &meshset, (readopts ? readopts : opts.c_str()));
 	}
 
