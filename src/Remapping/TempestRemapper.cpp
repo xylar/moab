@@ -224,16 +224,18 @@ ErrorCode TempestRemapper::ConvertTempestMeshToMOAB_Private ( TempestMeshType me
 
     // We will assume all elements are of the same type - for now;
     // need a better way to categorize without doing a full pass first
-    const unsigned lnum_v_per_elem = faces[0].edges.size(); // Linear elements: nedges = nverts ?
+    const unsigned lnum_v_per_elem = std::max(faces[0].edges.size(), faces[faces.size()/2-1].edges.size()); // Linear elements: nedges = nverts ?
     if ( ( meshType < OVERLAP_FILES ) && lnum_v_per_elem <= 4 )
     {
         const unsigned num_v_per_elem = lnum_v_per_elem;
         EntityHandle starte; // Connectivity
-        EntityHandle* conn;
-        rval = iface->get_element_connect ( faces.size(), num_v_per_elem, MBPOLYGON, 0, starte, conn ); MB_CHK_SET_ERR ( rval, "Can't get element connectivity" );
-        for ( unsigned ifaces = 0, offset = 0; ifaces < faces.size(); ++ifaces )
+        for ( unsigned ifaces = 0; ifaces < faces.size(); ++ifaces )
         {
             const Face& face = faces[ifaces];
+            EntityHandle* conn;
+            rval = iface->get_element_connect ( 1, face.edges.size(), MBPOLYGON, 0, starte, conn ); MB_CHK_SET_ERR ( rval, "Can't get element connectivity" );
+        
+            unsigned offset = 0;
             conn[offset++] = startv + face.edges[0].node[1];
             for ( unsigned iedges = 1; iedges < face.edges.size(); ++iedges )
             {
@@ -397,7 +399,7 @@ ErrorCode TempestRemapper::ConvertMOABMeshToTempest_Private ( Mesh* mesh, Entity
 
     // Generate reverse node array and edge map
     if ( constructEdgeMap ) mesh->ConstructEdgeMap();
-    mesh->ConstructReverseNodeArray();
+    // mesh->ConstructReverseNodeArray();
 
     // moab::Range face_edges_all;
     // rval = m_interface->get_adjacencies ( elems, 1, false, face_edges_all, moab::Interface::UNION); MB_CHK_ERR ( rval );
