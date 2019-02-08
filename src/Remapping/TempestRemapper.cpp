@@ -222,30 +222,10 @@ ErrorCode TempestRemapper::ConvertTempestMeshToMOAB_Private ( TempestMeshType me
     rval = m_interface->tag_set_data ( tmp_mb_loc_tag, mbverts, &loc_id[0] ); MB_CHK_ERR ( rval );
     loc_id.clear();
 
-    // We will assume all elements are of the same type - for now;
-    // need a better way to categorize without doing a full pass first
-    const unsigned lnum_v_per_elem = std::max(faces[0].edges.size(), faces[faces.size()/2-1].edges.size()); // Linear elements: nedges = nverts ?
-    if ( ( meshType < OVERLAP_FILES ) && lnum_v_per_elem <= 4 )
-    {
-        const unsigned num_v_per_elem = lnum_v_per_elem;
-        EntityHandle starte; // Connectivity
-        for ( unsigned ifaces = 0; ifaces < faces.size(); ++ifaces )
-        {
-            const Face& face = faces[ifaces];
-            EntityHandle* conn;
-            rval = iface->get_element_connect ( 1, face.edges.size(), MBPOLYGON, 0, starte, conn ); MB_CHK_SET_ERR ( rval, "Can't get element connectivity" );
-        
-            unsigned offset = 0;
-            conn[offset++] = startv + face.edges[0].node[1];
-            for ( unsigned iedges = 1; iedges < face.edges.size(); ++iedges )
-            {
-                conn[offset++] = startv + face.edges[iedges].node[1];
-            }
-            m_interface->add_entities ( mesh_set, &starte, 1 );
-            starte++;
-        }
-    }
-    else
+    // Let us first perform a full pass assuming arbitrary polygons. This is especially true for overlap meshes.
+    //   1. We do a first pass over faces, decipher edge size and group into categories based on element type
+    //   2. Next we loop over type, and add blocks of elements into MOAB
+    //   3. For each block within the loop, also update the connectivity of elements.
     {
         if ( outputEnabled ) std::cout << "..Mesh size: Nodes [" << nodes.size() << "] Elements [" << faces.size() << "].\n";
         const int NMAXPOLYEDGES = 15;
@@ -280,6 +260,7 @@ ErrorCode TempestRemapper::ConvertTempestMeshToMOAB_Private ( TempestMeshType me
                 rval = iface->get_element_connect ( nPolys[iType], num_v_per_elem, MBPOLYGON, 0, starte, conn ); MB_CHK_SET_ERR ( rval, "Can't get element connectivity" );
                 break;
             }
+
             Range mbcells ( starte, starte + nPolys[iType] - 1 );
             m_interface->add_entities ( mesh_set, mbcells );
 
@@ -293,12 +274,15 @@ ErrorCode TempestRemapper::ConvertTempestMeshToMOAB_Private ( TempestMeshType me
                 }
             }
 
-            // Now let us update the adjacency data, because some elements are new
-            rval = iface->update_adjacencies ( starte, nPolys[iType], num_v_per_elem, conn ); MB_CHK_SET_ERR ( rval, "Can't update adjacencies" );
-            // Generate all adj entities dimension 1 and 2 (edges and faces/ tri or qua)
-            Range edges;
-            rval = m_interface->get_adjacencies ( mbcells, 1, true, edges,
-                                                  Interface::UNION ); MB_CHK_SET_ERR ( rval, "Can't get edges" );
+            if (meshType == OVERLAP_FILES)
+            {
+                // Now let us update the adjacency data, because some elements are new
+                rval = iface->update_adjacencies ( starte, nPolys[iType], num_v_per_elem, conn ); MB_CHK_SET_ERR ( rval, "Can't update adjacencies" );
+                // Generate all adj entities dimension 1 and 2 (edges and faces/ tri or qua)
+                Range edges;
+                rval = m_interface->get_adjacencies ( mbcells, 1, true, edges,
+                                                      Interface::UNION ); MB_CHK_SET_ERR ( rval, "Can't get edges" );
+            }
         }
     }
 
@@ -375,6 +359,7 @@ ErrorCode TempestRemapper::ConvertMOABMeshToTempest_Private ( Mesh* mesh, Entity
             face.SetNode ( iverts, indx );
         }
     }
+    elems.clear();
 
     unsigned nnodes = verts.size();
     nodes.resize ( nnodes );
