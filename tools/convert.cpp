@@ -164,6 +164,10 @@ int main(int argc, char* argv[])
   ErrorCode result;
   Range range;
 
+#ifdef MOAB_HAVE_MPI
+    moab::ParallelComm* pcomm = new moab::ParallelComm ( gMB, MPI_COMM_WORLD, 0 );
+#endif
+
   bool append_rank = false;
   bool percent_rank_subst = false;
   int i, dim;
@@ -346,11 +350,14 @@ int main(int argc, char* argv[])
     if (tempest)
     {
       // convert
+#ifdef MOAB_HAVE_MPI
+      TempestRemapper *remapper = new moab::TempestRemapper(gMB, pcomm);
+#else
       TempestRemapper *remapper = new moab::TempestRemapper(gMB);
+#endif
       remapper->meshValidate = true;
       //remapper->constructEdgeMap = true;
       remapper->initialize();
-
 
       result = remapper->LoadMesh(moab::Remapper::SourceMesh, *j, moab::TempestRemapper::DEFAULT);MB_CHK_ERR(result);
 
