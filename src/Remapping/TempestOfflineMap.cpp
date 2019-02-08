@@ -699,6 +699,13 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
             }
         }
 
+        // Let us alos write out the TempestRemap equivalent so that we can do some verification checks
+        if ( is_root && size == 1)
+        {
+            dbgprint.printf ( 0, "NOTE: Writing out moab_intersection mesh in TempestRemap format\n" );
+            m_meshOverlap->Write ( "moab_intersection_tempest.g");
+        }
+
         /*
             // Recalculate input mesh area from overlap mesh
             if (fabs(dTotalAreaOverlap - dTotalAreaInput) > 1.0e-10) {
