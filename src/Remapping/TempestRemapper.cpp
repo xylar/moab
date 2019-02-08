@@ -359,7 +359,6 @@ ErrorCode TempestRemapper::ConvertMOABMeshToTempest_Private ( Mesh* mesh, Entity
             face.SetNode ( iverts, indx );
         }
     }
-    elems.clear();
 
     unsigned nnodes = verts.size();
     nodes.resize ( nnodes );
