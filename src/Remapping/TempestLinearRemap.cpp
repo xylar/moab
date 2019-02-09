@@ -17,7 +17,7 @@
 #include "SparseMatrix.h"
 #include "OverlapMesh.h"
 
-#include "moab/Remapping/TempestOfflineMap.hpp"
+#include "moab/Remapping/TempestOnlineMap.hpp"
 #include "DebugOutput.hpp"
 
 #include "netcdfcpp.h"
@@ -83,7 +83,7 @@ extern void GetAdjacentFaceVectorByEdge (
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void moab::TempestOfflineMap::LinearRemapFVtoFV_Tempest_MOAB (
+void moab::TempestOnlineMap::LinearRemapFVtoFV_Tempest_MOAB (
     int nOrder
 )
 {
@@ -116,7 +116,7 @@ void moab::TempestOfflineMap::LinearRemapFVtoFV_Tempest_MOAB (
     // Announcemnets
     if ( is_root )
     {
-        Announce ( "[moab::TempestOfflineMap::LinearRemapFVtoFV_Tempest_MOAB] Finite Volume to Finite Volume Projection" );
+        Announce ( "[moab::TempestOnlineMap::LinearRemapFVtoFV_Tempest_MOAB] Finite Volume to Finite Volume Projection" );
         Announce ( "Triangular quadrature rule order %i", TriQuadRuleOrder );
         Announce ( "Number of coefficients: %i", nCoefficients );
         Announce ( "Required adjacency set size: %i", nRequiredFaceSetSize );
@@ -262,7 +262,7 @@ void moab::TempestOfflineMap::LinearRemapFVtoFV_Tempest_MOAB (
 
 
 #ifdef MOAB_HAVE_EIGEN
-void moab::TempestOfflineMap::CopyTempestSparseMat_Eigen()
+void moab::TempestOnlineMap::CopyTempestSparseMat_Eigen()
 {
     m_weightMatrix.resize(m_nTotDofs_Dest, m_nTotDofs_SrcCov);
     InitVectors();
@@ -308,7 +308,7 @@ void moab::TempestOfflineMap::CopyTempestSparseMat_Eigen()
 ///////////////////////////////////////////////////////////////////////////////
 
 // #define IO_USE_PARALLEL_NETCDF
-void moab::TempestOfflineMap::WriteParallelWeightsToFile(std::string strFilename)
+void moab::TempestOnlineMap::WriteParallelWeightsToFile(std::string strFilename)
 {
     // m_weightMatrix.Print(filename.c_str(), 0, 0);
 
@@ -605,7 +605,7 @@ void moab::TempestOfflineMap::WriteParallelWeightsToFile(std::string strFilename
 
 ///////////////////////////////////////////////////////////////////////////////
 
-moab::ErrorCode moab::TempestOfflineMap::ApplyWeights (std::vector<double>& srcVals, std::vector<double>& tgtVals, bool transpose)
+moab::ErrorCode moab::TempestOnlineMap::ApplyWeights (std::vector<double>& srcVals, std::vector<double>& tgtVals, bool transpose)
 {
     // Reset the source and target data first
     m_rowVector.setZero();
@@ -689,7 +689,7 @@ extern void ForceIntArrayConsistencyConservation (
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void moab::TempestOfflineMap::LinearRemapSE4_Tempest_MOAB (
+void moab::TempestOnlineMap::LinearRemapSE4_Tempest_MOAB (
     const DataArray3D<int> & dataGLLNodes,
     const DataArray3D<double> & dataGLLJacobian,
     int nMonotoneType,
@@ -723,7 +723,7 @@ void moab::TempestOfflineMap::LinearRemapSE4_Tempest_MOAB (
     // Announcemnets
     if ( is_root )
     {
-        Announce ( "[moab::TempestOfflineMap::LinearRemapSE4_Tempest_MOAB] Finite Element to Finite Volume Projection" );
+        Announce ( "[moab::TempestOnlineMap::LinearRemapSE4_Tempest_MOAB] Finite Element to Finite Volume Projection" );
         Announce ( "Triangular quadrature rule order %i", TriQuadRuleOrder );
         Announce ( "Order of the FE polynomial interpolant: %i", nP );
     }
@@ -1131,7 +1131,7 @@ void moab::TempestOfflineMap::LinearRemapSE4_Tempest_MOAB (
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void moab::TempestOfflineMap::LinearRemapGLLtoGLL2_MOAB (
+void moab::TempestOnlineMap::LinearRemapGLLtoGLL2_MOAB (
     const DataArray3D<int> & dataGLLNodesIn,
     const DataArray3D<double> & dataGLLJacobianIn,
     const DataArray3D<int> & dataGLLNodesOut,
@@ -1162,7 +1162,7 @@ void moab::TempestOfflineMap::LinearRemapGLLtoGLL2_MOAB (
     // Announcemnets
     if ( is_root )
     {
-        Announce ( "[moab::TempestOfflineMap::LinearRemapGLLtoGLL2_MOAB] Finite Element to Finite Element Projection" );
+        Announce ( "[moab::TempestOnlineMap::LinearRemapGLLtoGLL2_MOAB] Finite Element to Finite Element Projection" );
         Announce ( "Order of the input FE polynomial interpolant: %i", nPin );
         Announce ( "Order of the output FE polynomial interpolant: %i", nPout );
     }
@@ -1707,7 +1707,7 @@ void moab::TempestOfflineMap::LinearRemapGLLtoGLL2_MOAB (
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void moab::TempestOfflineMap::LinearRemapGLLtoGLL2_Pointwise_MOAB (
+void moab::TempestOnlineMap::LinearRemapGLLtoGLL2_Pointwise_MOAB (
     const DataArray3D<int> & dataGLLNodesIn,
     const DataArray3D<double> & /*dataGLLJacobianIn*/,
     const DataArray3D<int> & dataGLLNodesOut,
@@ -1726,9 +1726,6 @@ void moab::TempestOfflineMap::LinearRemapGLLtoGLL2_Pointwise_MOAB (
 
     GaussLobattoQuadrature::GetPoints ( nPout, 0.0, 1.0, dGL, dWL );
 
-    // Utilities
-    MeshUtilitiesFuzzy utils;
-
     // Get SparseMatrix represntation of the OfflineMap
     SparseMatrix<double> & smatMap = this->GetSparseMatrix();
 
@@ -1738,7 +1735,7 @@ void moab::TempestOfflineMap::LinearRemapGLLtoGLL2_Pointwise_MOAB (
     // Announcemnets
     if ( is_root )
     {
-        Announce ( "[moab::TempestOfflineMap::LinearRemapGLLtoGLL2_Pointwise_MOAB] Finite Element to Finite Element (Pointwise) Projection" );
+        Announce ( "[moab::TempestOnlineMap::LinearRemapGLLtoGLL2_Pointwise_MOAB] Finite Element to Finite Element (Pointwise) Projection" );
         Announce ( "Order of the input FE polynomial interpolant: %i", nPin );
         Announce ( "Order of the output FE polynomial interpolant: %i", nPout );
     }

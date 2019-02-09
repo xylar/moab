@@ -1,21 +1,12 @@
 ///////////////////////////////////////////////////////////////////////////////
 ///
-///	\file    OfflineMap.h
-///	\author  Paul Ullrich
-///	\version August 14, 2014
+///	\file    TempestOnlineMap.h
+///	\author  Vijay Mahadevan
+///	\version November 20, 2017
 ///
-///	<remarks>
-///		Copyright 2000-2014 Paul Ullrich
-///
-///		This file is distributed as part of the Tempest source code package.
-///		Permission is granted to use, copy, modify and distribute this
-///		source code and its documentation under the terms of the GNU General
-///		Public License.  This software is provided "as is" without express
-///		or implied warranty.
-///	</remarks>
 
-#ifndef _TEMPESTOFFLINEMAP_H_
-#define _TEMPESTOFFLINEMAP_H_
+#ifndef _TEMPESTONLINEMAP_H_
+#define _TEMPESTONLINEMAP_H_
 
 #include "moab/MOABConfig.h"
 
@@ -50,19 +41,19 @@ namespace moab
 ///	<summary>
 ///		An offline map between two Meshes.
 ///	</summary>
-class TempestOfflineMap : public OfflineMap {
+class TempestOnlineMap : public OfflineMap {
 
 public:
 
 	///	<summary>
 	///		Generate the metadata associated with the offline map.
 	///	</summary>
-	TempestOfflineMap(moab::TempestRemapper* remapper);
+	TempestOnlineMap(moab::TempestRemapper* remapper);
 
 	///	<summary>
 	///		Define a virtual destructor.
 	///	</summary>
-	virtual ~TempestOfflineMap();
+	virtual ~TempestOnlineMap();
 
 public:
 
@@ -105,7 +96,7 @@ public:
 	// );
 
 	///	<summary>
-	///		Write the TempestOfflineMap to a parallel NetCDF file.
+	///		Write the TempestOnlineMap to a parallel NetCDF file.
 	///	</summary>
 	// virtual void Write(
 	// 	const std::string & strTarget
@@ -401,7 +392,7 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 
 inline
-const DataArray1D<double>& TempestOfflineMap::GetGlobalSourceAreas() const {
+const DataArray1D<double>& TempestOnlineMap::GetGlobalSourceAreas() const {
 #ifdef MOAB_HAVE_MPI
   if (pcomm->size() > 1) {
         return m_weightMapGlobal->GetSourceAreas();
@@ -415,7 +406,7 @@ const DataArray1D<double>& TempestOfflineMap::GetGlobalSourceAreas() const {
 }
 
 inline
-const DataArray1D<double>& TempestOfflineMap::GetGlobalTargetAreas() const {
+const DataArray1D<double>& TempestOnlineMap::GetGlobalTargetAreas() const {
 #ifdef MOAB_HAVE_MPI
   if (pcomm->size() > 1) {
         return m_weightMapGlobal->GetTargetAreas();
@@ -431,4 +422,3 @@ const DataArray1D<double>& TempestOfflineMap::GetGlobalTargetAreas() const {
 }
 
 #endif
-

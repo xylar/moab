@@ -21,7 +21,7 @@
 #include "moab/Core.hpp"
 #include "moab/IntxMesh/IntxUtils.hpp"
 #include "moab/Remapping/TempestRemapper.hpp"
-#include "moab/Remapping/TempestOfflineMap.hpp"
+#include "moab/Remapping/TempestOnlineMap.hpp"
 #include "moab/ProgOptions.hpp"
 #include "moab/CpuTimer.hpp"
 #include "DebugOutput.hpp"
@@ -427,7 +427,7 @@ int main ( int argc, char* argv[] )
 
             ctx.timer_push ( "setup computation of weights" );
             // Call to generate an offline map with the tempest meshes
-            moab::TempestOfflineMap* weightMap = new moab::TempestOfflineMap ( &remapper );
+            moab::TempestOnlineMap* weightMap = new moab::TempestOnlineMap ( &remapper );
             ctx.timer_pop();
 
             ctx.timer_push ( "compute weights with TempestRemap" );

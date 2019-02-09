@@ -1,7 +1,7 @@
 /*
  * =====================================================================================
  *
- *       Filename:  TempestOfflineMap.hpp
+ *       Filename:  TempestOnlineMap.hpp
  *
  *    Description:  Interface to the TempestRemap library to compute the consistent,
  *                  and accurate high-order conservative remapping weights for overlap
@@ -18,7 +18,7 @@
 #include "SparseMatrix.h"
 #include "STLStringHelper.h"
 
-#include "moab/Remapping/TempestOfflineMap.hpp"
+#include "moab/Remapping/TempestOnlineMap.hpp"
 #include "DebugOutput.hpp"
 
 #include <fstream>
@@ -60,7 +60,7 @@ void LinearRemapFVtoGLL_Volumetric(
 
 ///////////////////////////////////////////////////////////////////////////////
 
-moab::TempestOfflineMap::TempestOfflineMap ( moab::TempestRemapper* remapper ) : OfflineMap(), m_remapper ( remapper )
+moab::TempestOnlineMap::TempestOnlineMap ( moab::TempestRemapper* remapper ) : OfflineMap(), m_remapper ( remapper )
 {
     // Get the references for the MOAB core objects
     mbCore = m_remapper->get_interface();
@@ -118,7 +118,7 @@ moab::TempestOfflineMap::TempestOfflineMap ( moab::TempestRemapper* remapper ) :
 
 ///////////////////////////////////////////////////////////////////////////////
 
-moab::TempestOfflineMap::~TempestOfflineMap()
+moab::TempestOnlineMap::~TempestOnlineMap()
 {
     delete m_weightMapGlobal;
     mbCore = NULL;
@@ -169,7 +169,7 @@ static void ParseVariableList (
 
 ///////////////////////////////////////////////////////////////////////////////
 
-moab::ErrorCode moab::TempestOfflineMap::SetDofMapTags(const std::string srcDofTagName, const std::string tgtDofTagName)
+moab::ErrorCode moab::TempestOnlineMap::SetDofMapTags(const std::string srcDofTagName, const std::string tgtDofTagName)
 {
     moab::ErrorCode rval;
 
@@ -183,7 +183,7 @@ moab::ErrorCode moab::TempestOfflineMap::SetDofMapTags(const std::string srcDofT
 
 ///////////////////////////////////////////////////////////////////////////////
 
-moab::ErrorCode moab::TempestOfflineMap::SetDofMapAssociation(DiscretizationType srcType, bool isSrcContinuous, DataArray3D<int>* srcdataGLLNodes, DataArray3D<int>* srcdataGLLNodesSrc,
+moab::ErrorCode moab::TempestOnlineMap::SetDofMapAssociation(DiscretizationType srcType, bool isSrcContinuous, DataArray3D<int>* srcdataGLLNodes, DataArray3D<int>* srcdataGLLNodesSrc,
     DiscretizationType destType, bool isTgtContinuous, DataArray3D<int>* tgtdataGLLNodes)
 {
     moab::ErrorCode rval;
@@ -506,7 +506,7 @@ moab::ErrorCode moab::TempestOfflineMap::SetDofMapAssociation(DiscretizationType
 
 ///////////////////////////////////////////////////////////////////////////////
 
-moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInputType, std::string strOutputType,
+moab::ErrorCode moab::TempestOnlineMap::GenerateOfflineMap ( std::string strInputType, std::string strOutputType,
         const int nPin, const int nPout,
         bool fBubble, int fMonotoneTypeID,
         bool fVolumetric, bool fNoConservation, bool fNoCheck,
@@ -1115,49 +1115,49 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
 ///////////////////////////////////////////////////////////////////////////////
 #ifdef MOAB_HAVE_EIGEN
 
-int moab::TempestOfflineMap::GetSourceGlobalNDofs()
+int moab::TempestOnlineMap::GetSourceGlobalNDofs()
 {
     return m_weightMatrix.cols(); // return the global number of rows from the weight matrix
 }
 
 // ///////////////////////////////////////////////////////////////////////////////
 
-int moab::TempestOfflineMap::GetDestinationGlobalNDofs()
+int moab::TempestOnlineMap::GetDestinationGlobalNDofs()
 {
     return m_weightMatrix.rows(); // return the global number of columns from the weight matrix
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-int moab::TempestOfflineMap::GetSourceLocalNDofs()
+int moab::TempestOnlineMap::GetSourceLocalNDofs()
 {
     return m_weightMatrix.cols(); // return the local number of rows from the weight matrix
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-int moab::TempestOfflineMap::GetDestinationLocalNDofs()
+int moab::TempestOnlineMap::GetDestinationLocalNDofs()
 {
     return m_weightMatrix.rows(); // return the local number of columns from the weight matrix
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-int moab::TempestOfflineMap::GetSourceNDofsPerElement()
+int moab::TempestOnlineMap::GetSourceNDofsPerElement()
 {
     return m_nDofsPEl_Src;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-int moab::TempestOfflineMap::GetDestinationNDofsPerElement()
+int moab::TempestOnlineMap::GetDestinationNDofsPerElement()
 {
     return m_nDofsPEl_Dest;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void moab::TempestOfflineMap::InitVectors()
+void moab::TempestOnlineMap::InitVectors()
 {
     assert(m_weightMatrix.rows() != 0 && m_weightMatrix.cols() != 0);
     m_rowVector.resize( m_weightMatrix.rows() );
@@ -1165,19 +1165,19 @@ void moab::TempestOfflineMap::InitVectors()
 }
 
 
-moab::TempestOfflineMap::WeightMatrix& moab::TempestOfflineMap::GetWeightMatrix()
+moab::TempestOnlineMap::WeightMatrix& moab::TempestOnlineMap::GetWeightMatrix()
 {
     assert(m_weightMatrix.rows() != 0 && m_weightMatrix.cols() != 0);
     return m_weightMatrix;
 }
 
-moab::TempestOfflineMap::WeightRowVector& moab::TempestOfflineMap::GetRowVector()
+moab::TempestOnlineMap::WeightRowVector& moab::TempestOnlineMap::GetRowVector()
 {
     assert(m_rowVector.size() != 0);
     return m_rowVector;
 }
 
-moab::TempestOfflineMap::WeightColVector& moab::TempestOfflineMap::GetColVector()
+moab::TempestOnlineMap::WeightColVector& moab::TempestOnlineMap::GetColVector()
 {
     assert(m_colVector.size() != 0);
     return m_colVector;
@@ -1187,7 +1187,7 @@ moab::TempestOfflineMap::WeightColVector& moab::TempestOfflineMap::GetColVector(
 
 ///////////////////////////////////////////////////////////////////////////////
 
-bool moab::TempestOfflineMap::IsConsistent (
+bool moab::TempestOnlineMap::IsConsistent (
     double dTolerance
 )
 {
@@ -1223,7 +1223,7 @@ bool moab::TempestOfflineMap::IsConsistent (
         if ( fabs ( dRowSums[i] - 1.0 ) > dTolerance )
         {
             fConsistent = false;
-            Announce ( "TempestOfflineMap is not consistent in row %i (%1.15e)",
+            Announce ( "TempestOnlineMap is not consistent in row %i (%1.15e)",
                        i, dRowSums[i] );
         }
     }
@@ -1233,7 +1233,7 @@ bool moab::TempestOfflineMap::IsConsistent (
 
 ///////////////////////////////////////////////////////////////////////////////
 
-bool moab::TempestOfflineMap::IsConservative (
+bool moab::TempestOnlineMap::IsConservative (
     double dTolerance
 )
 {
@@ -1272,7 +1272,7 @@ bool moab::TempestOfflineMap::IsConservative (
         if ( fabs ( dColumnSums[i] - dSourceAreas[i] ) > dTolerance )
         {
             fConservative = false;
-            Announce ( "TempestOfflineMap is not conservative in column "
+            Announce ( "TempestOnlineMap is not conservative in column "
                        "%i (%1.15e / %1.15e)",
                        i, dColumnSums[i], dSourceAreas[i] );
         }
@@ -1283,7 +1283,7 @@ bool moab::TempestOfflineMap::IsConservative (
 
 ///////////////////////////////////////////////////////////////////////////////
 
-bool moab::TempestOfflineMap::IsMonotone (
+bool moab::TempestOnlineMap::IsMonotone (
     double dTolerance
 )
 {
@@ -1311,7 +1311,7 @@ bool moab::TempestOfflineMap::IsMonotone (
         {
             fMonotone = false;
 
-            Announce ( "TempestOfflineMap is not monotone in entry (%i): %1.15e",
+            Announce ( "TempestOnlineMap is not monotone in entry (%i): %1.15e",
                        i, dataEntries[i] );
         }
     }
@@ -1322,7 +1322,7 @@ bool moab::TempestOfflineMap::IsMonotone (
 
 ///////////////////////////////////////////////////////////////////////////////
 #ifdef MOAB_HAVE_MPI
-moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot()   // Collective
+moab::ErrorCode moab::TempestOnlineMap::GatherAllToRoot()   // Collective
 {
     Mesh globalMesh;
     int ierr, rootProc = 0, nprocs = size;

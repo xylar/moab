@@ -32,7 +32,7 @@ using namespace moab;
     #include "moab/IntxMesh/IntxUtils.hpp"
 
     #include "moab/Remapping/TempestRemapper.hpp"
-    #include "moab/Remapping/TempestOfflineMap.hpp"
+    #include "moab/Remapping/TempestOnlineMap.hpp"
 #endif
 
 // C++ includes
@@ -81,7 +81,7 @@ struct appData
 
 #ifdef MOAB_HAVE_TEMPESTREMAP
 	moab::TempestRemapper* remapper;
-    std::map<std::string,moab::TempestOfflineMap*> weightMaps;
+    std::map<std::string,moab::TempestOnlineMap*> weightMaps;
 	iMOAB_AppID pid_src;
 	iMOAB_AppID pid_dest;
 #endif
@@ -2475,10 +2475,10 @@ ErrCode iMOAB_ComputeScalarProjectionWeights ( iMOAB_AppID pid_intx,
 
 	// Setup computation of weights
     // Set the context for the OfflineMap computation
-    data_intx.weightMaps[std::string(solution_weights_identifier)] = new moab::TempestOfflineMap ( data_intx.remapper );
+    data_intx.weightMaps[std::string(solution_weights_identifier)] = new moab::TempestOnlineMap ( data_intx.remapper );
 
 	// Call to generate an offline map with the tempest meshes
-    moab::TempestOfflineMap* weightMap = data_intx.weightMaps[std::string(solution_weights_identifier)];
+    moab::TempestOnlineMap* weightMap = data_intx.weightMaps[std::string(solution_weights_identifier)];
     assert(weightMap != NULL);
 
     // Now let us compute the local-global mapping and store it in the context
@@ -2551,7 +2551,7 @@ ErrCode iMOAB_ApplyScalarProjectionWeights (   iMOAB_AppID pid_intersection,
     
     // Now allocate and initialize the remapper object
     moab::TempestRemapper* remapper = data_intx.remapper;
-    moab::TempestOfflineMap* weightMap = data_intx.weightMaps[std::string(solution_weights_identifier)];
+    moab::TempestOnlineMap* weightMap = data_intx.weightMaps[std::string(solution_weights_identifier)];
 
 
     // we assume that there are separators ";" between the tag names

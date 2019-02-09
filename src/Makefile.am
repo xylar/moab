@@ -304,11 +304,11 @@ if HAVE_TEMPESTREMAP
   MOAB_REMAPPING_SRCS += \
      Remapping/TempestRemapper.cpp  \
      Remapping/TempestLinearRemap.cpp \
-     Remapping/TempestOfflineMap.cpp
+     Remapping/TempestOnlineMap.cpp
 
   MOAB_REMAPPING_HDRS += \
      moab/Remapping/TempestRemapper.hpp \
-     moab/Remapping/TempestOfflineMap.hpp
+     moab/Remapping/TempestOnlineMap.hpp
 
 endif # if HAVE_TEMPESTREMAP
 
