@@ -39,7 +39,7 @@
 #endif
 #include <time.h>
 #ifdef MOAB_HAVE_MPI
-#  include "moab_mpi.h"
+#include "moab/ParallelComm.hpp"
 #endif
 
 #ifdef MOAB_HAVE_TEMPESTREMAP
@@ -79,7 +79,8 @@ static void print_usage( const char* name, std::ostream& stream )
 #endif
 
 #ifdef MOAB_HAVE_TEMPESTREMAP
-    << "\t-T             - Use tempest exodus file reader" << std::endl
+    << "\t-B             - Use TempestRemap exodus file reader and convert to MOAB format" << std::endl
+    << "\t-b             - Convert MOAB mesh to TempestRemap exodus file writer" << std::endl
 #endif
     << "\t--             - treat all subsequent options as file names" << std::endl
     << "\t                 (allows file names beginning with '-')" << std::endl
@@ -156,7 +157,7 @@ int main(int argc, char* argv[])
 #endif
 
 #ifdef MOAB_HAVE_TEMPESTREMAP
-  bool tempest=false;
+  bool tempestin=false,tempestout=false;
 #endif
 
   Core core;
@@ -226,7 +227,8 @@ int main(int argc, char* argv[])
             if (argv[i][2] == '2') exchange_ghosts = true;
 #endif
 #ifdef MOAB_HAVE_TEMPESTREMAP
-        case 'T':      tempest=true;    break;
+        case 'B':      tempestin=true;    break;
+        case 'b':      tempestout=true;    break;
 #endif
         case '1': case '2': case '3':
           dims[argv[i][1] - '0'] = true; break;
@@ -335,7 +337,7 @@ int main(int argc, char* argv[])
   }
     // Read the input file.
 #ifdef MOAB_HAVE_TEMPESTREMAP
-  if (tempest && in.size()>1)
+  if (tempestin && in.size()>1)
   {
     std::cerr<<" we can read only one tempest files at a time\n";
 #ifdef MOAB_HAVE_MPI
@@ -343,27 +345,40 @@ int main(int argc, char* argv[])
 #endif
     return USAGE_ERROR;
   }
-#endif
-  for (j = in.begin(); j != in.end(); ++j) {
-    reset_times();
-#ifdef MOAB_HAVE_TEMPESTREMAP
-    if (tempest)
-    {
-      // convert
+
 #ifdef MOAB_HAVE_MPI
       TempestRemapper *remapper = new moab::TempestRemapper(gMB, pcomm);
 #else
       TempestRemapper *remapper = new moab::TempestRemapper(gMB);
 #endif
-      remapper->meshValidate = true;
-      //remapper->constructEdgeMap = true;
-      remapper->initialize();
 
+#endif
+  for (j = in.begin(); j != in.end(); ++j) {
+    reset_times();
+
+#ifdef MOAB_HAVE_TEMPESTREMAP
+    remapper->meshValidate = true;
+    //remapper->constructEdgeMap = true;
+    remapper->initialize();
+
+    if (tempestin)
+    {
+      // convert
       result = remapper->LoadMesh(moab::Remapper::SourceMesh, *j, moab::TempestRemapper::DEFAULT);MB_CHK_ERR(result);
 
-        // Load the meshes and validate
+      // Load the meshes and validate
       result = remapper->ConvertTempestMesh(moab::Remapper::SourceMesh);
       delete remapper;
+    }
+    else if (tempestout)
+    {
+      moab::EntityHandle& srcmesh = remapper->GetMeshSet ( moab::Remapper::SourceMesh );
+
+      // convert
+      result = remapper->LoadNativeMesh(*j, srcmesh, 0);MB_CHK_ERR(result);
+
+      // Load the meshes and validate
+      result = remapper->ConvertMeshToTempest ( moab::Remapper::SourceMesh ); MB_CHK_ERR ( result );
     }
     else
       result = gMB->load_file( j->c_str(), 0, read_options.c_str() );
@@ -587,6 +602,37 @@ int main(int argc, char* argv[])
   
     // Write the output file
   reset_times();
+#ifdef MOAB_HAVE_TEMPESTREMAP
+  if (tempestout) {
+    // Get the handle to TempestRemap mesh
+    Range faces,vols;
+    moab::EntityHandle& srcmesh = remapper->GetMeshSet ( moab::Remapper::SourceMesh );
+    result = gMB->get_entities_by_dimension(srcmesh, 2, faces); MB_CHK_ERR(result);
+    result = gMB->get_entities_by_dimension(srcmesh, 0, vols); MB_CHK_ERR(result);
+    
+    std::cout << "\nTotal faces = " << faces.size() << std::endl;
+    std::cout << "\nTotal vertices = " << vols.size() << std::endl;
+    Mesh* tempestMesh = remapper->GetMesh ( moab::Remapper::SourceMesh );
+    tempestMesh->vecSourceFaceIx.resize(faces.size());
+    tempestMesh->vecTargetFaceIx.resize(faces.size());
+
+    // Get tag
+    Tag btag, rtag;
+    result = gMB->tag_get_handle( "BlueParent", 1, MB_TYPE_INTEGER, btag );MB_CHK_ERR(result);
+    result = gMB->tag_get_handle( "RedParent", 1, MB_TYPE_INTEGER, rtag );MB_CHK_ERR(result);
+    
+    result = gMB->tag_get_data(btag, faces, &tempestMesh->vecSourceFaceIx[0]); MB_CHK_ERR(result);
+    result = gMB->tag_get_data(rtag, faces, &tempestMesh->vecTargetFaceIx[0]); MB_CHK_ERR(result);
+    for (unsigned i=faces.size()-1; i > faces.size()-50; --i) 
+      std::cout << i << ": src=" << tempestMesh->vecSourceFaceIx[i] << ", tgt=" << tempestMesh->vecTargetFaceIx[i] << std::endl;
+    
+    // Write out the mesh using TempestRemap
+    tempestMesh->Write(out);
+    delete remapper;
+  }
+  else {
+#else
+
   if (have_sets) 
     result = gMB->write_file( out.c_str(), format, write_options.c_str(), &set_list[0], set_list.size() );
   else
@@ -603,6 +649,10 @@ int main(int argc, char* argv[])
 #endif
     return WRITE_ERROR;
   }
+#endif
+#ifdef MOAB_HAVE_TEMPESTREMAP
+  }
+#endif
   
   if (!proc_id) std::cerr << "Wrote \"" << out << "\"" << std::endl;
   if (print_times && !proc_id) write_times( std::cout );
