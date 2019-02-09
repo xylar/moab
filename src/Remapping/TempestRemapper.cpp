@@ -565,6 +565,24 @@ ErrorCode TempestRemapper::AssociateSrcTargetInOverlap()
 
 ///////////////////////////////////////////////////////////////////////////////////
 
+#ifndef MOAB_HAVE_MPI
+static ErrorCode assign_vertex_element_IDs ( moab::Interface* mbImpl, Tag idtag, EntityHandle this_set, const int dimension=2, const int start_id=1)
+{
+    ErrorCode rval;
+    Range entities;
+    rval = mbImpl->get_entities_by_dimension(this_set, dimension, entities);MB_CHK_SET_ERR(rval, "Failed to get entities");
+
+    int idoffset = start_id;
+    std::vector<int> gid(entities.size());
+    for (unsigned i=0; i < entities.size(); ++i)
+        gid[i] = idoffset++;
+
+    rval = mbImpl->tag_set_data(idtag, entities, &gid[0] ); MB_CHK_ERR ( rval );
+
+    return moab::MB_SUCCESS;
+}
+#endif
+
 ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius_src, double radius_tgt, double boxeps, bool use_tempest )
 {
     ErrorCode rval;
@@ -626,6 +644,46 @@ ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius_
     }
     else
     {
+        {  // Let us do some sanity checking to fix ID if they have are setup incorrectly
+            Tag gidtag;
+            rval = m_interface->tag_get_handle ( "GLOBAL_ID", gidtag ); MB_CHK_ERR ( rval );
+
+            Range srcelems, tgtelems;
+            moab::EntityHandle subrange[2];
+            int gid[2];
+            rval = m_interface->get_entities_by_dimension ( m_source_set, 2, srcelems ); MB_CHK_ERR ( rval );
+            subrange[0] = srcelems[0];
+            subrange[1] = srcelems[1];
+            rval = m_interface->tag_get_data(gidtag, subrange, 2, gid ); MB_CHK_ERR ( rval );
+
+            // Check if we need to impose Global ID numbering for vertices and elements. This may be needed
+            // if we load the meshes from exodus or some other formats that may not have a numbering forced.
+            if (gid[0] + gid[1] == 0) // this implies first two elements have GID = 0
+            {
+#ifdef MOAB_HAVE_MPI
+                rval = m_pcomm->assign_global_ids( m_source_set, 2, 1, false, true, false); MB_CHK_ERR ( rval );
+#else
+                rval = assign_vertex_element_IDs( m_interface, gidtag, m_source_set, 2, 1); MB_CHK_ERR ( rval );
+#endif
+            }
+
+            rval = m_interface->get_entities_by_dimension ( m_target_set, 2, tgtelems ); MB_CHK_ERR ( rval );
+            subrange[0] = tgtelems[0];
+            subrange[1] = tgtelems[1];
+            rval = m_interface->tag_get_data(gidtag, subrange, 2, gid ); MB_CHK_ERR ( rval );
+
+            // Check if we need to impose Global ID numbering for vertices and elements. This may be needed
+            // if we load the meshes from exodus or some other formats that may not have a numbering forced.
+            if (gid[0] + gid[1] == 0) // this implies first two elements have GID = 0
+            {
+#ifdef MOAB_HAVE_MPI
+                rval = m_pcomm->assign_global_ids( m_target_set, 2, 1, false, true, false); MB_CHK_ERR ( rval );
+#else
+                rval = assign_vertex_element_IDs( m_interface, gidtag, m_target_set, 2, 1); MB_CHK_ERR ( rval );
+#endif
+            }
+        }
+
         // Now perform the actual parallel intersection between the source and the target meshes
         rval = mbintx->intersect_meshes ( m_covering_source_set, m_target_set, m_overlap_set ); MB_CHK_SET_ERR ( rval, "Can't compute the intersection of meshes on the sphere" );
 

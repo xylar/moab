@@ -612,6 +612,9 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
         if ( eInputType == DiscretizationType_FV )
         {
             this->SetSourceAreas ( m_meshInputCov->vecFaceArea );
+            if (m_meshInputCov->vecMask.IsAttached()) {
+                this->SetSourceMask(m_meshInputCov->vecMask);
+            }
         }
 
         // Calculate Face areas
@@ -627,6 +630,9 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
         if ( eOutputType == DiscretizationType_FV )
         {
             this->SetTargetAreas ( m_meshOutput->vecFaceArea );
+            if (m_meshOutput->vecMask.IsAttached()) {
+                this->SetTargetMask(m_meshOutput->vecMask);
+            }
         }
 
         // Verify that overlap mesh is in the correct order
@@ -653,31 +659,26 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
             }
         }
 
-        /*
+        
         // Check for forward correspondence in overlap mesh
-        if ( // m_meshInputCov->faces.size() - ixSourceFaceMax == 0 //&&
-            ( m_meshOutput->faces.size() - ixTargetFaceMax == 0 )
-        )
-        {
-            if ( is_root ) dbgprint.printf ( 0, "Overlap mesh forward correspondence found\n" );
-        }
-        else if (
-            // m_meshOutput->faces.size() - ixSourceFaceMax == 0 //&&
-            ( m_meshInputCov->faces.size() - ixTargetFaceMax == 0 )
-        )
-        {   // Check for reverse correspondence in overlap mesh
-            if ( is_root ) dbgprint.printf ( 0, "Overlap mesh reverse correspondence found (reversing)\n" );
+        // if ( m_meshInput->faces.size() - ixSourceFaceMax == 0 )
+        // {
+        //     if ( is_root ) dbgprint.printf ( 0, "Overlap mesh forward correspondence found\n" );
+        // }
+        // else if ( m_meshOutput->faces.size() - ixSourceFaceMax == 0 )
+        // {   // Check for reverse correspondence in overlap mesh
+        //     if ( is_root ) dbgprint.printf ( 0, "Overlap mesh reverse correspondence found (reversing)\n" );
 
-            // Reorder overlap mesh
-            m_meshOverlap->ExchangeFirstAndSecondMesh();
-        }
-        else
-        {   // No correspondence found
-            _EXCEPTION4 ( "Invalid overlap mesh:\n"
-                          "    No correspondence found with input and output meshes (%i,%i) vs (%i,%i)",
-                          m_meshInputCov->faces.size(), m_meshOutput->faces.size(), ixSourceFaceMax, ixTargetFaceMax );
-        }
-        */
+        //     // Reorder overlap mesh
+        //     m_meshOverlap->ExchangeFirstAndSecondMesh();
+        // }
+        // else
+        // {   // No correspondence found
+        //     _EXCEPTION4 ( "Invalid overlap mesh:\n"
+        //                   "    No correspondence found with input and output meshes (%i,%i) vs (%i,%i)",
+        //                   m_meshInputCov->faces.size(), m_meshOutput->faces.size(), ixSourceFaceMax, ixTargetFaceMax );
+        // }
+        
 
         // Calculate Face areas
         if ( is_root ) dbgprint.printf ( 0, "Calculating overlap mesh Face areas\n" );
@@ -697,13 +698,6 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
                                                             "and input mesh area.\n  Automatically enabling --nocheck\n" );
                 fNoCheck = true;
             }
-        }
-
-        // Let us alos write out the TempestRemap equivalent so that we can do some verification checks
-        if ( is_root && size == 1)
-        {
-            dbgprint.printf ( 0, "NOTE: Writing out moab_intersection mesh in TempestRemap format\n" );
-            m_meshOverlap->Write ( "moab_intersection_tempest.g");
         }
 
         /*
@@ -1043,6 +1037,13 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
 #ifdef MOAB_HAVE_EIGEN
         CopyTempestSparseMat_Eigen();
 #endif
+
+        // Let us alos write out the TempestRemap equivalent so that we can do some verification checks
+        if ( is_root && size == 1)
+        {
+            dbgprint.printf ( 0, "NOTE: Writing out moab_intersection mesh in TempestRemap format\n" );
+            m_meshOverlap->Write ( "moab_intersection_tempest.g");
+        }
 
         // Verify consistency, conservation and monotonicity
         // gather weights to root process to perform consistency/conservation checks
