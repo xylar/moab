@@ -128,10 +128,14 @@ int main(int argc, char * argv[])
    * The name of the tag is case sensitive.
    * This method is collective.
    */
+  // int disc_orders[2] = {1, 1};
+  // const char* disc_methods[2] = {"fv", "fv"};
+  // const char* dof_tag_names[2] = {"GLOBAL_ID", "GLOBAL_ID"};
   int disc_orders[2] = {4, 1};
-  const char* weights_identifiers[2] = {"scalar", "scalar_conservative"};
   const char* disc_methods[2] = {"cgll", "fv"};
   const char* dof_tag_names[2] = {"GLOBAL_DOFS", "GLOBAL_ID"};
+  
+  const char* weights_identifiers[2] = {"scalar", "scalar_conservative"};
   int fMonotoneTypeID=0, fVolumetric=0, fValidate=1, fNoConserve=0;
 
   const char* fieldname = "a2oTbot";

@@ -582,9 +582,6 @@ moab::ErrorCode CreateTempestMesh ( ToolContext& ctx, moab::TempestRemapper& rem
         rval = ScaleToRadius(ctx.mbcore, ctx.meshsets[1], radius_dest);MB_CHK_ERR ( rval );
         rval = remapper.ConvertMeshToTempest ( moab::Remapper::TargetMesh ); MB_CHK_ERR ( rval );
         ctx.meshes[1] = remapper.GetMesh ( moab::Remapper::TargetMesh );
-
-        // Set the references for the overlap mesh
-        // ctx.meshes[2] = remapper.GetMesh(moab::Remapper::IntersectedMesh);
     }
     else if ( ctx.meshType == moab::TempestRemapper::ICO )
     {
