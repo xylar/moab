@@ -31,7 +31,7 @@ namespace moab
 {
 
 // Forward declare our friend, the mapper
-class TempestOfflineMap;
+class TempestOnlineMap;
 
 class TempestRemapper : public Remapper
 {
@@ -63,7 +63,7 @@ public:
         OVERLAP_MOAB = 6
     };
 
-    friend class TempestOfflineMap;
+    friend class TempestOnlineMap;
 
     moab::ErrorCode GenerateMesh(Remapper::IntersectionContext ctx, TempestMeshType type);
 
