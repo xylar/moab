@@ -368,7 +368,6 @@ int main(int argc, char* argv[])
 
       // Load the meshes and validate
       result = remapper->ConvertTempestMesh(moab::Remapper::SourceMesh);
-      delete remapper;
     }
     else if (tempestout)
     {
@@ -628,10 +627,9 @@ int main(int argc, char* argv[])
     
     // Write out the mesh using TempestRemap
     tempestMesh->Write(out);
-    delete remapper;
   }
   else {
-#else
+#endif
 
   if (have_sets) 
     result = gMB->write_file( out.c_str(), format, write_options.c_str(), &set_list[0], set_list.size() );
@@ -649,9 +647,9 @@ int main(int argc, char* argv[])
 #endif
     return WRITE_ERROR;
   }
-#endif
 #ifdef MOAB_HAVE_TEMPESTREMAP
   }
+  delete remapper;
 #endif
   
   if (!proc_id) std::cerr << "Wrote \"" << out << "\"" << std::endl;
