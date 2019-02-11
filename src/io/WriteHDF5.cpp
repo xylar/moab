@@ -330,6 +330,13 @@ ErrorCode WriteHDF5::assign_ids(const Range& entities, wid_t id)
                   (unsigned long)(ID_FROM_HANDLE(pi->first) + n - 1),
                   (unsigned long)id,
                   (unsigned long)(id + n - 1));
+    if (TYPE_FROM_HANDLE(pi->first) == MBPOLYGON || TYPE_FROM_HANDLE(pi->first) == MBPOLYHEDRON )
+    {
+      int num_vertices = 0;
+      const EntityHandle *conn=0;
+      iFace->get_connectivity(pi->first, conn, num_vertices );
+      dbgOut.printf(3, "  poly with %d verts/faces \n", num_vertices);
+    }
     if (!idMap.insert(pi->first, id, n).second)
       return error(MB_FAILURE);
     id += n;
@@ -1547,6 +1554,7 @@ ErrorCode range_to_blocked_list_templ(HandleRangeIter begin,
   size_t pairs_remaining = num_handles / 2;
   for (HandleRangeIter pi = begin; pi != end; ++pi) {
     EntityHandle h = pi->first;
+    WriteHDF5::wid_t local_mapped_from_subrange = 0;
     while (h <= pi->second) {
       ri = idMap.lower_bound(ri, idMap.end(), h);
       if (ri == idMap.end() || ri->begin > h) {
@@ -1554,12 +1562,20 @@ ErrorCode range_to_blocked_list_templ(HandleRangeIter begin,
         continue;
       }
 
-      WriteHDF5::wid_t n = pi->second - pi->first + 1;
+      WriteHDF5::wid_t n = pi->second - pi->first + 1 - local_mapped_from_subrange;
       if (n > ri->count)
         n = ri->count;
 
-      // See if we can append it to the previous range
+
       WriteHDF5::wid_t id = ri->value + (h - ri->begin);
+      // see if we can go to the end of the range
+      if (id + n > ri->value + ri->count) // we have to reduce n, because we cannot go over next subrange
+      {
+        if (ri->value + ri->count - id > 0)
+          n = ri->value + ri->count - id > 0;
+      }
+
+      // See if we can append it to the previous range
       if (!output_id_list.empty() &&
           output_id_list[output_id_list.size()-2] + output_id_list.back() == id) {
         output_id_list.back() += n;
@@ -1583,6 +1599,7 @@ ErrorCode range_to_blocked_list_templ(HandleRangeIter begin,
         output_id_list.push_back(id);
         output_id_list.push_back(n);
       }
+      local_mapped_from_subrange+=n; // we already mapped so many
       h += n;
     }
   }

@@ -139,8 +139,8 @@ int main( int argc, char* argv[] )
   unsigned long max_id;
   struct mhdf_FileDesc* desc;
   
-  if (argc != 2) {
-    fprintf( stderr,"Usage: %s <filename>\n", argv[0] );
+  if (argc < 2 || argc > 3) {
+    fprintf( stderr,"Usage: %s <filename> <verbose_option> \n", argv[0] );
     return 1;
   }
   
@@ -149,7 +149,10 @@ int main( int argc, char* argv[] )
     fprintf( stderr,"%s: %s\n", argv[1], mhdf_message( &status ) );
     return 1;
   }
-  
+  if (argc == 3)
+  {
+    verbose = atoi(argv[2]);
+  }
   desc = mhdf_getFileSummary( file, H5T_NATIVE_LONG, &status, 0 ); /*no extra set info*/
   if (mhdf_isError( &status )) {
     fprintf( stderr,"%s: %s\n", argv[1], mhdf_message( &status ) );
@@ -929,7 +932,7 @@ static int check_valid_set_contents( struct mhdf_FileDesc* desc,
     if (flags[i] & mhdf_SET_RANGE_BIT) {
       if (n%2) {
         if (verbose)
-          printf("Set %ld (ID %ld) has is marked as range-compressed but has odd number of content values.\n", i, start_id+i );
+          printf("Set %ld (ID %ld) is marked as range-compressed but has odd number of content values.\n", i+1, start_id+i );
         ++invalid_len;
         continue;
       }
@@ -940,7 +943,7 @@ static int check_valid_set_contents( struct mhdf_FileDesc* desc,
     }
     if (!tmpresult) {
       if (verbose)
-        printf("Set %ld (ID %ld) has invalid content IDs.\n", i, start_id+i );
+        printf("Set %ld (ID %ld) has invalid content IDs.\n", i+1, start_id+i );
       ++invalid_handle;
       continue;
     }
@@ -954,7 +957,7 @@ static int check_valid_set_contents( struct mhdf_FileDesc* desc,
       tmpresult = contains_duplicates( contents+start, n );
     if(tmpresult) {
       if (verbose)
-        printf("Set %ld (ID %ld) is not ordered but contains duplicate handles.\n", i, start_id+i );
+        printf("Set %ld (ID %ld) is not ordered but contains duplicate handles.\n", i+1, start_id+i );
       ++invalid_dup;
     }
   }
