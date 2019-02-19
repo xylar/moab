@@ -92,11 +92,11 @@ cdef class Range(object):
 
     def pop_front(self):
         """Removes the front-most EntityHandle in the Range and returns the EntityHandle."""
-        return self.inst.pop_front()
+        return _eh_py_type(self.inst.pop_front())
 
     def pop_back(self):
         """Removes the back-most EntityHandle in the Range and returns the EntityHandle."""
-        return self.inst.pop_back()
+        return _eh_py_type(self.inst.pop_back())
 
     def all_of_type(self, moab.EntityType t):
         """Returns True if all EntityHandles in the Range represent mesh entities of
