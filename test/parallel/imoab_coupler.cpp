@@ -73,7 +73,6 @@ int main( int argc, char* argv[] )
   int nghlay=0; // number of ghost layers for loading the file
   std::vector<int> groupTasks; // at most 2 tasks
   int startG1=0, startG2=0, endG1=size/2-1, endG2=size-1; // Support launch of imoab_coupler test on any combo of 2*x processes
-  int startG3=0, endG3=size-1; // group for coupler communicator
   /* COMBOS THAT WORK */
   // int startG1=0, startG2=0, endG1=0, endG2=0; // Support launch of imoab_coupler test on any combo of 2*x processes
   // int startG1=0, startG2=0, endG1=1, endG2=0; // Support launch of imoab_coupler test on any combo of 2*x processes
@@ -84,6 +83,7 @@ int main( int argc, char* argv[] )
 
   // load atm on 2 proc, ocean on 2, migrate both to 2 procs, then compute intx
   // later, we need to compute weight matrix with tempestremap
+
   std::string filename1, filename2;
 
   filename1 = TestDir + "/wholeATM_T.h5m";
@@ -101,14 +101,9 @@ int main( int argc, char* argv[] )
   opts.addOpt<int>("endAtm,b", "end task for atmosphere layout", &endG1);
   opts.addOpt<int>("startOcn,c", "start task for ocean layout", &startG2);
   opts.addOpt<int>("endOcn,d", "end task for ocean layout", &endG2);
-
-  opts.addOpt<int>("startCoupler,e", "start task for ocean layout", &startG3);
-  opts.addOpt<int>("endCoupler,f", "end task for ocean layout", &endG3);
-
   opts.addOpt<int>("partitioning,p", "partitioning option for migration", &repartitioner_scheme);
 
   opts.parseCommandLine(argc, argv);
-
 
   if (!rank)
   {
@@ -123,12 +118,12 @@ int main( int argc, char* argv[] )
 
   groupTasks.resize(size, 0);
 
-  MPI_Group group1, group2, group3;
+  MPI_Group group1, group2;
   for (int i=startG1; i<=endG1; i++)
     groupTasks [i-startG1] = i;
 
   ierr = MPI_Group_incl(jgroup, endG1-startG1+1, &groupTasks[0], &group1);
-  CHECKRC(ierr, "can't create group1 for atmosphere")
+  CHECKRC(ierr, "can't create group1")
 
   groupTasks.clear();
   groupTasks.resize(size, 0);
@@ -136,30 +131,18 @@ int main( int argc, char* argv[] )
     groupTasks [i-startG2] = i;
 
   ierr = MPI_Group_incl(jgroup, endG2-startG2+1, &groupTasks[0], &group2);
-  CHECKRC(ierr, "can't create group2 for ocean")
-
-  groupTasks.clear();
-  groupTasks.resize(size, 0);
-  for (int i=startG3; i<=endG3; i++)
-    groupTasks [i-startG3] = i;
-
-  ierr = MPI_Group_incl(jgroup, endG3-startG3+1, &groupTasks[0], &group3);
-  CHECKRC(ierr, "can't create group3 for coupler")
+  CHECKRC(ierr, "can't create group2")
 
   // create 2 communicators, one for each group
-  int tagcomm1 = 1, tagcomm2 = 2, tagcomm3 = 3;
+  int tagcomm1 = 1, tagcomm2 = 2;
   int rankInComm1 = -1, rankInComm2 = -1;
-  MPI_Comm comm1, comm2, comm3;
+  MPI_Comm comm1, comm2;
   // comm1 is for atmosphere app;
   ierr = MPI_Comm_create_group(jcomm, group1, tagcomm1, &comm1);
   CHECKRC(ierr, "can't create comm1")
 
   // comm2 is for ocean app
   ierr = MPI_Comm_create_group(jcomm, group2, tagcomm2, &comm2);
-  CHECKRC(ierr, "can't create comm2")
-
-  // comm3 is for coupler app
-  ierr = MPI_Comm_create_group(jcomm, group3, tagcomm3, &comm3);
   CHECKRC(ierr, "can't create comm2")
 
   ierr = iMOAB_Initialize(0, 0); // not really needed anything from argc, argv, yet; maybe we should
@@ -174,13 +157,11 @@ int main( int argc, char* argv[] )
   iMOAB_AppID pid4=&appID4; // ocn on coupler PEs
   iMOAB_AppID pid5= &appID5; // intx atm -ocn on coupler PEs
 
-  if (comm3 != MPI_COMM_NULL) {
-    ierr = iMOAB_RegisterApplication("ATMX", &comm3, &compid3, pid3); // atm on coupler pes
-    CHECKRC(ierr, "can't register atm over coupler pes ")
+  ierr = iMOAB_RegisterApplication("ATMX", &jcomm, &compid3, pid3); // atm on coupler pes
+  CHECKRC(ierr, "can't register atm over coupler pes ")
 
-    ierr = iMOAB_RegisterApplication("OCNX", &comm3, &compid4, pid4); // ocn on coupler pes
-    CHECKRC(ierr, "can't register ocn over coupler pes ")
-  }
+  ierr = iMOAB_RegisterApplication("OCNX", &jcomm, &compid4, pid4); // ocn on coupler pes
+  CHECKRC(ierr, "can't register ocn over coupler pes ")
 
   PUSH_TIMER("Load source mesh")
   if (comm1 != MPI_COMM_NULL) {
@@ -194,27 +175,19 @@ int main( int argc, char* argv[] )
     double t2= MPI_Wtime();
     if (!rankInComm1) std::cout << "[LOG] load atm mesh:" << t2-t1 << "\n";
     // then send mesh to coupler pes, on pid3
-    ierr = iMOAB_SendMesh(pid1, &jcomm, &group3, &compid3, &repartitioner_scheme); // send to component 3, on coupler pes
+    ierr = iMOAB_SendMesh(pid1, &jcomm, &jgroup, &compid3, &repartitioner_scheme); // send to component 3, on coupler pes
     CHECKRC(ierr, "cannot send elements" )
     double t3= MPI_Wtime();
     if (!rankInComm1) std::cout << "[LOG] compute partition and send atm mesh: " << t3-t2 << "\n";
   }
   // now, receive meshes, on joint communicator; first mesh 1
   double t4=MPI_Wtime();
-  if (comm3 != MPI_COMM_NULL) {
-    ierr = iMOAB_ReceiveMesh(pid3, &jcomm, &group1, &compid1); // receive from component 1
-    CHECKRC(ierr, "cannot receive elements on ATMX app")
-  }
+  ierr = iMOAB_ReceiveMesh(pid3, &jcomm, &group1, &compid1); // receive from component 1
+  CHECKRC(ierr, "cannot receive elements on ATMX app")
   double t5=MPI_Wtime();
   if (!rank) std::cout << "[LOG] receive atm mesh and resolve shared entities: " << t5-t4 << "\n";
   POP_TIMER()
-  if (comm3 != MPI_COMM_NULL) {
-    char outputFileSrc[] = "recvAtmCoup.h5m";
-    char writeOptions3[] ="PARALLEL=WRITE_PART";
-    ierr = iMOAB_WriteMesh(pid4, outputFileSrc, writeOptions3,
-      strlen(outputFileSrc), strlen(writeOptions3) );
-    CHECKRC(ierr, "cannot write atm mesh after receiving")
-  }
+
   // we can now free the sender buffers
   if (comm1 != MPI_COMM_NULL) {
     ierr = iMOAB_FreeSenderBuffers(pid1, &jcomm, &compid3);
@@ -235,19 +208,15 @@ int main( int argc, char* argv[] )
     double t7 = MPI_Wtime();
     if (!rankInComm2) std::cout << "[LOG] load ocn mesh:"<< t7-t6 << "\n";
     // then send mesh to coupler pes, on pid3
-    ierr = iMOAB_SendMesh(pid2, &jcomm, &group3, &compid4, &repartitioner_scheme); // send to component 3, on coupler pes
+    ierr = iMOAB_SendMesh(pid2, &jcomm, &jgroup, &compid4, &repartitioner_scheme); // send to component 3, on coupler pes
     CHECKRC(ierr, "cannot send elements" )
     double t8 = MPI_Wtime();
     if (!rankInComm2) std::cout << "[LOG] compute partition and send ocn mesh:"<< t8-t7 << "\n";
   }
 
   double t9=MPI_Wtime();
-  if (comm3 != MPI_COMM_NULL) {
-    ierr = iMOAB_ReceiveMesh(pid4, &jcomm, &group2, &compid2); // receive from component 2, ocn, on coupler pes
-    CHECKRC(ierr, "cannot receive elements on OCNX app")
-  }
-  MPI_Barrier(MPI_COMM_WORLD);
-
+  ierr = iMOAB_ReceiveMesh(pid4, &jcomm, &group2, &compid2); // receive from component 2, ocn, on coupler pes
+  CHECKRC(ierr, "cannot receive elements on OCNX app")
   double t10=MPI_Wtime();
   if (!rank) std::cout << "[LOG] receive ocn mesh and resolve shared entities: "<< t10-t9 << "\n";
   POP_TIMER()
@@ -257,110 +226,104 @@ int main( int argc, char* argv[] )
     CHECKRC(ierr, "cannot free buffers used to send ocn mesh")
   }
 
-  if (comm3 != MPI_COMM_NULL) {
-    char outputFileTgt3[] = "recvTarget.h5m";
-    char writeOptions3[] ="PARALLEL=WRITE_PART";
-    ierr = iMOAB_WriteMesh(pid4, outputFileTgt3, writeOptions3,
-      strlen(outputFileTgt3), strlen(writeOptions3) );
-    CHECKRC(ierr, "cannot write ocn mesh after receiving")
-  }
   MPI_Barrier(MPI_COMM_WORLD);
+  char outputFileTgt3[] = "recvTarget.h5m";
+  #ifdef MOAB_HAVE_MPI
+    char writeOptions3[] ="PARALLEL=WRITE_PART";
+  #else
+    char writeOptions3[] ="";
+  #endif
+  ierr = iMOAB_WriteMesh(pid4, outputFileTgt3, writeOptions3,
+    strlen(outputFileTgt3), strlen(writeOptions3) );
+  CHECKRC(ierr, "cannot write ocn mesh after receiving")
+
   double t11=MPI_Wtime();
     if (!rank) std::cout << "[LOG] write received ocn mesh on coupler pes: "<< t11-t10 << "\n";
 
-  if (comm3 != MPI_COMM_NULL ){
-    char outputFileRecvd[] = "recvAtmCoup.h5m";
-    char writeOptions3[] ="PARALLEL=WRITE_PART";
-    ierr = iMOAB_WriteMesh(pid3, outputFileRecvd, writeOptions3,
-        strlen(outputFileRecvd), strlen(writeOptions3) );
-  }
-
 #ifdef MOAB_HAVE_TEMPESTREMAP
-  // move them here, as we will need them more than once, after we check for comm1 or comm2
+  // now compute intersection between OCNx and ATMx on coupler PEs
+  ierr = iMOAB_RegisterApplication("AO", &jcomm, &intxid, pid5);
+  CHECKRC(ierr, "can't register ocn_atm intx over coupler pes ")
+
+  PUSH_TIMER("Compute source-target mesh intersection")
+  ierr = iMOAB_ComputeMeshIntersectionOnSphere(pid3, pid4, pid5); // coverage mesh was computed here, for pid3, atm on coupler pes
+  // basically, atm was redistributed according to target (ocean) partition, to "cover" the ocean partitions
+  // check if intx valid, write some h5m intx file
+  CHECKRC(ierr, "cannot compute intersection" )
+  POP_TIMER()
+
+#ifdef VERBOSE
+  std::stringstream outf;
+  outf<<"intx_0" << rank<<".h5m";
+  std::string intxfile=outf.str(); // write in serial the intx file, for debugging
+  char writeOptions[] ="";
+  ierr = iMOAB_WriteMesh(pid5, (char*)intxfile.c_str(), writeOptions, (int)intxfile.length(), strlen(writeOptions));
+  CHECKRC(ierr, "cannot write intx file result" )
+#endif
+
+  // the new graph will be for sending data from atm comp to coverage mesh;
+  // it involves initial atm app; pid1; also migrate atm mesh on coupler pes, pid3
+  // results are in pid5, intx mesh; remapper also has some info about coverage mesh
+  // afteer this, the sending of tags from atm pes to coupler pes will use the new par comm graph, that has more precise info about
+  // what to send ; every time, we will send also the element global id, which should uniquely identify the element
+  PUSH_TIMER("Compute coverage graph")
+  ierr = iMOAB_CoverageGraph(&jcomm, pid1,  &compid1, pid3,  &compid3, pid5); // it happens over joint communicator
+  CHECKRC(ierr, "cannot recompute direct coverage graph" )
+  POP_TIMER()
+
   const char* weights_identifiers[1] = {"scalar"};
   int disc_orders[2] = {4, 1};
   const char* disc_methods[2] = {"cgll", "fv"};
   const char* dof_tag_names[2] = {"GLOBAL_DOFS", "GLOBAL_ID"};
   int fMonotoneTypeID=0, fVolumetric=0, fValidate=1, fNoConserve=0;
+  PUSH_TIMER("Compute the projection weights with TempestRemap")
+  ierr = iMOAB_ComputeScalarProjectionWeights ( pid5, weights_identifiers[0],
+                                                disc_methods[0], &disc_orders[0],
+                                                disc_methods[1], &disc_orders[1],
+                                                &fMonotoneTypeID, &fVolumetric, &fNoConserve, &fValidate,
+                                                dof_tag_names[0], dof_tag_names[1],
+                                                strlen(weights_identifiers[0]),
+                                                strlen(disc_methods[0]), strlen(disc_methods[1]),
+                                                strlen(dof_tag_names[0]), strlen(dof_tag_names[1]) );
+  CHECKRC(ierr, "cannot compute scalar projection weights" )
+  POP_TIMER()
+
   const char* fieldname = "a2oTbot";
   const char* fieldnameT = "a2oTbot_proj";
   int tagIndex[2];
   int tagTypes[2] = { DENSE_DOUBLE, DENSE_DOUBLE } ;
   int num_components1 = disc_orders[0]*disc_orders[0], num_components2 = disc_orders[1]*disc_orders[1];
+
+  ierr = iMOAB_DefineTagStorage(pid3, fieldname, &tagTypes[0], &num_components1, &tagIndex[0],  strlen(fieldname) );
+  CHECKRC(ierr, "failed to define the field tag a2oTbot");
+
+  ierr = iMOAB_DefineTagStorage(pid4, fieldnameT, &tagTypes[1], &num_components2, &tagIndex[1],  strlen(fieldnameT) );
+  CHECKRC(ierr, "failed to define the field tag a2oTbot_proj");
+
   // two more fields for testing : U, V
   const char* fieldname2 = "a2oUbot";
   const char* fieldnameT2 = "a2oUbot_proj";
+  ierr = iMOAB_DefineTagStorage(pid3, fieldname2, &tagTypes[0], &num_components1, &tagIndex[0],  strlen(fieldname2) );
+  CHECKRC(ierr, "failed to define the field tag a2oUbot");
+
+  ierr = iMOAB_DefineTagStorage(pid4, fieldnameT2, &tagTypes[1], &num_components2, &tagIndex[1],  strlen(fieldnameT2) );
+  CHECKRC(ierr, "failed to define the field tag a2oUbot_proj");
+
   const char* fieldname3 = "a2oVbot";
   const char* fieldnameT3 = "a2oVbot_proj";
+  ierr = iMOAB_DefineTagStorage(pid3, fieldname3, &tagTypes[0], &num_components1, &tagIndex[0],  strlen(fieldname3) );
+  CHECKRC(ierr, "failed to define the field tag a2oUbot");
 
-  // now compute intersection between OCNx and ATMx on coupler PEs
-  if (comm3 != MPI_COMM_NULL) {
-    ierr = iMOAB_RegisterApplication("AO", &jcomm, &intxid, pid5);
-    CHECKRC(ierr, "can't register ocn_atm intx over coupler pes ")
+  ierr = iMOAB_DefineTagStorage(pid4, fieldnameT3, &tagTypes[1], &num_components2, &tagIndex[1],  strlen(fieldnameT3) );
+  CHECKRC(ierr, "failed to define the field tag a2oUbot_proj");
 
-    PUSH_TIMER("Compute source-target mesh intersection")
-    ierr = iMOAB_ComputeMeshIntersectionOnSphere(pid3, pid4, pid5); // coverage mesh was computed here, for pid3, atm on coupler pes
-    // basically, atm was redistributed according to target (ocean) partition, to "cover" the ocean partitions
-    // check if intx valid, write some h5m intx file
-    CHECKRC(ierr, "cannot compute intersection" )
-    POP_TIMER()
+  // need to make sure that the coverage mesh (created during intx method) received the tag that need to be projected to target
+  // so far, the coverage mesh has only the ids and global dofs;
+  // need to change the migrate method to accommodate any GLL tag
+  // now send a tag from original atmosphere (pid1) towards migrated coverage mesh (pid3), using the new coverage graph communicator
 
-#ifndef NDEBUG
-    std::stringstream outf;
-    outf<<"intx_0" << rank<<".h5m";
-    std::string intxfile=outf.str(); // write in serial the intx file, for debugging
-    char writeOptions[] ="";
-    ierr = iMOAB_WriteMesh(pid5, (char*)intxfile.c_str(), writeOptions, (int)intxfile.length(), strlen(writeOptions));
-    CHECKRC(ierr, "cannot write intx file result" )
-#endif
-
-    // the new graph will be for sending data from atm comp to coverage mesh;
-    // it involves initial atm app; pid1; also migrate atm mesh on coupler pes, pid3
-    // results are in pid5, intx mesh; remapper also has some info about coverage mesh
-    // afteer this, the sending of tags from atm pes to coupler pes will use the new par comm graph, that has more precise info about
-    // what to send ; every time, we will send also the element global id, which should uniquely identify the element
-    PUSH_TIMER("Compute coverage graph")
-    ierr = iMOAB_CoverageGraph(&jcomm, pid1,  &compid1, pid3,  &compid3, pid5); // it happens over joint communicator
-    CHECKRC(ierr, "cannot recompute direct coverage graph" )
-    POP_TIMER()
-
-    PUSH_TIMER("Compute the projection weights with TempestRemap")
-    ierr = iMOAB_ComputeScalarProjectionWeights ( pid5, weights_identifiers[0],
-                                                  disc_methods[0], &disc_orders[0],
-                                                  disc_methods[1], &disc_orders[1],
-                                                  &fMonotoneTypeID, &fVolumetric, &fNoConserve, &fValidate,
-                                                  dof_tag_names[0], dof_tag_names[1],
-                                                  strlen(weights_identifiers[0]),
-                                                  strlen(disc_methods[0]), strlen(disc_methods[1]),
-                                                  strlen(dof_tag_names[0]), strlen(dof_tag_names[1]) );
-    CHECKRC(ierr, "cannot compute scalar projection weights" )
-    POP_TIMER()
-
-    ierr = iMOAB_DefineTagStorage(pid3, fieldname, &tagTypes[0], &num_components1, &tagIndex[0],  strlen(fieldname) );
-    CHECKRC(ierr, "failed to define the field tag a2oTbot");
-
-    ierr = iMOAB_DefineTagStorage(pid4, fieldnameT, &tagTypes[1], &num_components2, &tagIndex[1],  strlen(fieldnameT) );
-    CHECKRC(ierr, "failed to define the field tag a2oTbot_proj");
-
-    ierr = iMOAB_DefineTagStorage(pid3, fieldname2, &tagTypes[0], &num_components1, &tagIndex[0],  strlen(fieldname2) );
-    CHECKRC(ierr, "failed to define the field tag a2oUbot");
-
-    ierr = iMOAB_DefineTagStorage(pid4, fieldnameT2, &tagTypes[1], &num_components2, &tagIndex[1],  strlen(fieldnameT2) );
-    CHECKRC(ierr, "failed to define the field tag a2oUbot_proj");
-
-    ierr = iMOAB_DefineTagStorage(pid3, fieldname3, &tagTypes[0], &num_components1, &tagIndex[0],  strlen(fieldname3) );
-    CHECKRC(ierr, "failed to define the field tag a2oUbot");
-
-    ierr = iMOAB_DefineTagStorage(pid4, fieldnameT3, &tagTypes[1], &num_components2, &tagIndex[1],  strlen(fieldnameT3) );
-    CHECKRC(ierr, "failed to define the field tag a2oUbot_proj");
-
-    // need to make sure that the coverage mesh (created during intx method) received the tag that need to be projected to target
-    // so far, the coverage mesh has only the ids and global dofs;
-    // need to change the migrate method to accommodate any GLL tag
-    // now send a tag from original atmosphere (pid1) towards migrated coverage mesh (pid3), using the new coverage graph communicator
-
-    // make the tag 0, to check we are actually sending needed data
-
+  // make the tag 0, to check we are actually sending needed data
+  {
     if (appID3 >= 0)
     {
       int nverts[3], nelem[3], nblocks[3], nsbc[3], ndbc[3];
@@ -387,7 +350,8 @@ int main( int argc, char* argv[] )
                 CHECKRC(ierr, "cannot make tag nul")
         // set the tag to 0
     }
-  }// end if (comm3 != MPI_COMM_NULL )
+  }
+  
   PUSH_TIMER("Send/receive data from component to coupler")
   if (comm1 != MPI_COMM_NULL ){
 
@@ -397,45 +361,45 @@ int main( int argc, char* argv[] )
      ierr = iMOAB_SendElementTag(pid1, &compid1, &compid3, "a2oTbot;a2oUbot;a2oVbot;", &jcomm, strlen("a2oTbot;a2oUbot;a2oVbot;"));
      CHECKRC(ierr, "cannot send tag values")
   }
-  if (comm3 != MPI_COMM_NULL ){
-    // receive on atm on coupler pes, that was redistributed according to coverage
-    ierr = iMOAB_ReceiveElementTag(pid3, &compid3, &compid1, "a2oTbot;a2oUbot;a2oVbot;", &jcomm, strlen("a2oTbot;a2oUbot;a2oVbot;"));
-    CHECKRC(ierr, "cannot receive tag values")
-  }
-  MPI_Barrier(MPI_COMM_WORLD);
+  // receive on atm on coupler pes, that was redistributed according to coverage
+  ierr = iMOAB_ReceiveElementTag(pid3, &compid3, &compid1, "a2oTbot;a2oUbot;a2oVbot;", &jcomm, strlen("a2oTbot;a2oUbot;a2oVbot;"));
+  CHECKRC(ierr, "cannot receive tag values")
   POP_TIMER()
 
-   // we can now free the sender buffers
-   if (comm1 != MPI_COMM_NULL) {
-     ierr = iMOAB_FreeSenderBuffers(pid1, &jcomm, &compid3);
-     CHECKRC(ierr, "cannot free buffers used to resend atm mesh tag towards the coverage mesh")
-   }
+#ifdef VERBOSE
+    char outputFileRecvd[] = "recvAtmCoup.h5m";
+    ierr = iMOAB_WriteMesh(pid3, outputFileRecvd, writeOptions3,
+        strlen(outputFileRecvd), strlen(writeOptions3) );
+#endif
+    // we can now free the sender buffers
+     if (comm1 != MPI_COMM_NULL) {
+       ierr = iMOAB_FreeSenderBuffers(pid1, &jcomm, &compid3);
+       CHECKRC(ierr, "cannot free buffers used to resend atm mesh tag towards the coverage mesh")
+     }
 
   /* We have the remapping weights now. Let us apply the weights onto the tag we defined
      on the source mesh and get the projection on the target mesh */
   PUSH_TIMER("Apply Scalar projection weights")
-  if (comm3 != MPI_COMM_NULL ){
-    const char * concat_fieldname = "a2oTbot;a2oUbot;a2oVbot;";
-    const char * concat_fieldnameT = "a2oTbot_proj;a2oUbot_proj;a2oVbot_proj;";
-    ierr = iMOAB_ApplyScalarProjectionWeights ( pid5, weights_identifiers[0],
-                                              concat_fieldname,
-                                              concat_fieldnameT,
-                                              strlen(weights_identifiers[0]),
-                                              strlen(concat_fieldname),
-                                              strlen(concat_fieldnameT)
-                                              );
-    CHECKRC(ierr, "failed to compute projection weight application");
-  }
-  MPI_Barrier(MPI_COMM_WORLD);
+  const char * concat_fieldname = "a2oTbot;a2oUbot;a2oVbot;";
+  const char * concat_fieldnameT = "a2oTbot_proj;a2oUbot_proj;a2oVbot_proj;";
+  ierr = iMOAB_ApplyScalarProjectionWeights ( pid5, weights_identifiers[0],
+                                            concat_fieldname,
+                                            concat_fieldnameT,
+                                            strlen(weights_identifiers[0]),
+                                            strlen(concat_fieldname),
+                                            strlen(concat_fieldnameT)
+                                            );
+  CHECKRC(ierr, "failed to compute projection weight application");
   POP_TIMER()
-  if (comm3 != MPI_COMM_NULL ){
-    char outputFileTgt[] = "fIntxTarget.h5m";
-    char writeOptions2[] ="PARALLEL=WRITE_PART";
 
-    ierr = iMOAB_WriteMesh(pid4, outputFileTgt, writeOptions2,
-      strlen(outputFileTgt), strlen(writeOptions2) );
-    CHECKRC(ierr, "failed to write mesh with projected data");
-  }
+  char outputFileTgt[] = "fIntxTarget.h5m";
+#ifdef MOAB_HAVE_MPI
+    char writeOptions2[] ="PARALLEL=WRITE_PART";
+#else
+    char writeOptions2[] ="";
+#endif
+  ierr = iMOAB_WriteMesh(pid4, outputFileTgt, writeOptions2,
+    strlen(outputFileTgt), strlen(writeOptions2) );
 
   // send the projected tag back to ocean pes, with send/receive tag
   if (comm2 != MPI_COMM_NULL) {
@@ -448,14 +412,13 @@ int main( int argc, char* argv[] )
     CHECKRC(ierr, "failed to define the field tag for receiving back the tag a2oVbot_proj on ocn pes");
 
   }
-  if (comm3 != MPI_COMM_NULL ){
-    // send the tag to ocean pes, from ocean mesh on coupler pes
-    // first, send from compid4 to compid4, from comm2, using common joint comm
-        // as always, use nonblocking sends
-    ierr = iMOAB_SendElementTag(pid4, &compid4, &compid2, "a2oTbot_proj;a2oUbot_proj;a2oVbot_proj;", &jcomm,
-        strlen("a2oTbot_proj;a2oUbot_proj;a2oVbot_proj;"));
-    CHECKRC(ierr, "cannot send tag values back to ocean pes")
-  }
+  // send the tag to ocean pes, from ocean mesh on coupler pes
+  // first, send from compid4 to compid4, from comm2, using common joint comm
+      // as always, use nonblocking sends
+  ierr = iMOAB_SendElementTag(pid4, &compid4, &compid2, "a2oTbot_proj;a2oUbot_proj;a2oVbot_proj;", &jcomm,
+      strlen("a2oTbot_proj;a2oUbot_proj;a2oVbot_proj;"));
+  CHECKRC(ierr, "cannot send tag values back to ocean pes")
+
   // receive on component 2, ocean
   if (comm2 != MPI_COMM_NULL)
   {
@@ -463,23 +426,16 @@ int main( int argc, char* argv[] )
         &jcomm, strlen("a2oTbot_proj;a2oUbot_proj;a2oVbot_proj;"));
     CHECKRC(ierr, "cannot receive tag values from ocean mesh on coupler pes")
   }
-  if (comm3 != MPI_COMM_NULL ){
-    ierr = iMOAB_FreeSenderBuffers(pid4, &jcomm, &compid4);
-    CHECKRC(ierr, "cannot free buffers after sending back tag")
-  }
 
-  if (comm2 != MPI_COMM_NULL)
-  {
-    char outputFileOcn[] = "OcnWithProj.h5m";
-    char writeOptions2[] ="PARALLEL=WRITE_PART";
-    ierr = iMOAB_WriteMesh(pid2, outputFileOcn, writeOptions2,
-        strlen(outputFileOcn), strlen(writeOptions2) );
-    CHECKRC(ierr, "cannot write ocean mesh with projection")
-  }
-  if (comm3 != MPI_COMM_NULL ){
-    ierr = iMOAB_DeregisterApplication(pid5);
-    CHECKRC(ierr, "cannot deregister app intx AO" )
-  }
+  ierr = iMOAB_FreeSenderBuffers(pid4, &jcomm, &compid4);
+
+  char outputFileOcn[] = "OcnWithProj.h5m";
+  ierr = iMOAB_WriteMesh(pid2, outputFileOcn, writeOptions2,
+      strlen(outputFileOcn), strlen(writeOptions2) );
+
+
+  ierr = iMOAB_DeregisterApplication(pid5);
+  CHECKRC(ierr, "cannot deregister app intx AO" )
 
 
 #endif
@@ -493,24 +449,20 @@ int main( int argc, char* argv[] )
     CHECKRC(ierr, "cannot deregister app ATM1" )
   }
 
-  if (comm3 != MPI_COMM_NULL ){
-    ierr = iMOAB_DeregisterApplication(pid4);
-    CHECKRC(ierr, "cannot deregister app OCNX" )
+  ierr = iMOAB_DeregisterApplication(pid4);
+  CHECKRC(ierr, "cannot deregister app OCNX" )
 
-    ierr = iMOAB_DeregisterApplication(pid3);
-    CHECKRC(ierr, "cannot deregister app OCNX" )
-  }
+  ierr = iMOAB_DeregisterApplication(pid3);
+  CHECKRC(ierr, "cannot deregister app OCNX" )
 
   ierr = iMOAB_Finalize();
   CHECKRC(ierr, "did not finalize iMOAB" )
 
   if (MPI_COMM_NULL != comm1) MPI_Comm_free(&comm1);
   if (MPI_COMM_NULL != comm2) MPI_Comm_free(&comm2);
-  if (MPI_COMM_NULL != comm3) MPI_Comm_free(&comm3);
 
   MPI_Group_free(&group1);
   MPI_Group_free(&group2);
-  MPI_Group_free(&group3);
   MPI_Group_free(&jgroup);
   MPI_Comm_free(&jcomm);
 
