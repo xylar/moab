@@ -362,20 +362,20 @@ int main( int argc, char* argv[] )
      CHECKRC(ierr, "cannot send tag values")
   }
   // receive on atm on coupler pes, that was redistributed according to coverage
-  ierr = iMOAB_ReceiveElementTag(pid3, &compid3, &compid1, "a2oTbot;a2oUbot;a2oVbot;", &jcomm, strlen("a2oTbot;a2oUbot;a2oVbot;"));
+  ierr = iMOAB_ReceiveElementTag(pid3, &compid1, &compid3, "a2oTbot;a2oUbot;a2oVbot;", &jcomm, strlen("a2oTbot;a2oUbot;a2oVbot;"));
   CHECKRC(ierr, "cannot receive tag values")
   POP_TIMER()
-
+  // we can now free the sender buffers
+  if (comm1 != MPI_COMM_NULL) {
+    ierr = iMOAB_FreeSenderBuffers(pid1, &jcomm, &compid3);
+    CHECKRC(ierr, "cannot free buffers used to resend atm mesh tag towards the coverage mesh")
+  }
 #ifdef VERBOSE
     char outputFileRecvd[] = "recvAtmCoup.h5m";
     ierr = iMOAB_WriteMesh(pid3, outputFileRecvd, writeOptions3,
         strlen(outputFileRecvd), strlen(writeOptions3) );
 #endif
-    // we can now free the sender buffers
-     if (comm1 != MPI_COMM_NULL) {
-       ierr = iMOAB_FreeSenderBuffers(pid1, &jcomm, &compid3);
-       CHECKRC(ierr, "cannot free buffers used to resend atm mesh tag towards the coverage mesh")
-     }
+
 
   /* We have the remapping weights now. Let us apply the weights onto the tag we defined
      on the source mesh and get the projection on the target mesh */
@@ -422,16 +422,18 @@ int main( int argc, char* argv[] )
   // receive on component 2, ocean
   if (comm2 != MPI_COMM_NULL)
   {
-    ierr = iMOAB_ReceiveElementTag(pid2, &compid2, &compid4, "a2oTbot_proj;a2oUbot_proj;a2oVbot_proj;",
+    ierr = iMOAB_ReceiveElementTag(pid2, &compid4, &compid2, "a2oTbot_proj;a2oUbot_proj;a2oVbot_proj;",
         &jcomm, strlen("a2oTbot_proj;a2oUbot_proj;a2oVbot_proj;"));
     CHECKRC(ierr, "cannot receive tag values from ocean mesh on coupler pes")
   }
 
-  ierr = iMOAB_FreeSenderBuffers(pid4, &jcomm, &compid4);
-
-  char outputFileOcn[] = "OcnWithProj.h5m";
-  ierr = iMOAB_WriteMesh(pid2, outputFileOcn, writeOptions2,
-      strlen(outputFileOcn), strlen(writeOptions2) );
+  ierr = iMOAB_FreeSenderBuffers(pid4, &jcomm, &compid2);
+  if (comm2 != MPI_COMM_NULL)
+  {
+    char outputFileOcn[] = "OcnWithProj.h5m";
+    ierr = iMOAB_WriteMesh(pid2, outputFileOcn, writeOptions2,
+        strlen(outputFileOcn), strlen(writeOptions2) );
+  }
 
 
   ierr = iMOAB_DeregisterApplication(pid5);
