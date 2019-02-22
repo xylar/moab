@@ -576,11 +576,13 @@ ErrorCode ZoltanPartitioner::partition_mesh_and_geometry(const double part_geom_
   std::cout << "Computing partition using " << (zmethod ? zmethod : "RCB") <<
       " method for " << nparts << " processors..." << std::endl;
 #ifndef NDEBUG
+#if 0
   if (NULL == zmethod || !strcmp(zmethod, "RCB"))
     Zoltan_Generate_Files(myZZ->Get_C_Handle(), (char*)zmethod, 1, 1, 0, 0);
 
   if ( !strcmp(zmethod, "PHG"))
       Zoltan_Generate_Files(myZZ->Get_C_Handle(), (char*)zmethod, 1, 0, 1, 1);
+#endif
 #endif
   retval = myZZ->LB_Partition(changes, numGidEntries, numLidEntries, 
                               dumnum1, dum_global, dum_local, dum1, dum2,
@@ -2177,6 +2179,7 @@ ErrorCode ZoltanPartitioner::partition_owned_cells(Range & primary, ParallelComm
       " for " << numNewPartitions << " parts..." << std::endl;
 
 #ifndef NDEBUG
+#if 0
   static int counter=0; // it may be possible to call function multiple times in a simulation
   // give a way to not overwrite the files
   // it should work only with a modified version of Zoltan
@@ -2191,6 +2194,7 @@ ErrorCode ZoltanPartitioner::partition_owned_cells(Range & primary, ParallelComm
     basename << "rcb_" << counter++;
     Zoltan_Generate_Files(myZZ->Get_C_Handle(), (char*)(basename.str().c_str()), 1, 1, 0, 0);
   }
+#endif
 #endif
   retval = myZZ->LB_Partition(changes, numGidEntries, numLidEntries,
                               num_import, import_global_ids, import_local_ids, import_procs, import_to_part,
