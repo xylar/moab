@@ -854,6 +854,8 @@ ErrorCode ParCommGraph::compute_partition (ParallelComm *pco, Range & owned, int
     return MB_SUCCESS; // nothing to do? empty partition is not allowed, maybe we should return error?
   Core * mb = (Core*)pco->get_moab();
 
+  double t1, t2, t3;
+  t1 = MPI_Wtime();
   int primaryDim = mb->dimension_from_handle(*owned.rbegin());
   int interfaceDim = primaryDim -1; // should be 1 or 2
   Range sharedEdges;
@@ -933,6 +935,9 @@ ErrorCode ParCommGraph::compute_partition (ParallelComm *pco, Range & owned, int
 #endif
     }
   }
+  t2 = MPI_Wtime();
+  if (rootSender)
+    std::cout<<" time preparing the input for Zoltan:" << t2-t1 << " seconds. \n";
   // so adj cells ids; need to call zoltan for parallel partition
 #ifdef MOAB_HAVE_ZOLTAN
   ZoltanPartitioner * mbZTool = new ZoltanPartitioner(mb);
@@ -952,7 +957,9 @@ ErrorCode ParCommGraph::compute_partition (ParallelComm *pco, Range & owned, int
     }
   }
 #endif
-
+  t3 = MPI_Wtime();
+  if (rootSender)
+    std::cout << " time spent by Zoltan " << t3-t2 << " seconds. \n";
   return MB_SUCCESS;
 }
 // at this moment, each sender task has split_ranges formed;
