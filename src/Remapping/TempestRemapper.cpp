@@ -637,7 +637,7 @@ ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius_
         if ( m_overlap != NULL ) delete m_overlap;
         m_overlap = new Mesh();
         bool concaveMeshA=false, concaveMeshB=false;
-        int err = GenerateOverlapWithMeshes ( *m_covering_source, *m_target, *m_overlap, "" /*outFilename*/, "exact", concaveMeshA, concaveMeshB, false );
+        int err = GenerateOverlapWithMeshes ( *m_covering_source, *m_target, *m_overlap, "" /*outFilename*/, "Netcdf4", "exact", concaveMeshA, concaveMeshB, false );
         if (err) {
             MB_CHK_SET_ERR ( MB_FAILURE, "TempestRemap: Can't compute the intersection of meshes on the sphere" );
         }
