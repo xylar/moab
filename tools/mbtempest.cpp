@@ -358,8 +358,9 @@ int main ( int argc, char* argv[] )
                                                    );
             ctx.timer_pop();
 
+            std::map<std::string, std::string> mapAttributes;
             if ( err ) { rval = moab::MB_FAILURE; }
-            else { weightMap.Write ( "outWeights.nc" ); }
+            else { weightMap.Write ( "outWeights.nc", mapAttributes ); }
         }
     }
     else if ( ctx.meshType == moab::TempestRemapper::OVERLAP_MOAB )
@@ -522,7 +523,7 @@ moab::ErrorCode CreateTempestMesh ( ToolContext& ctx, moab::TempestRemapper& rem
     if ( ctx.meshType == moab::TempestRemapper::OVERLAP_FILES )
     {
         // For the overlap method, choose between: "fuzzy", "exact" or "mixed"
-        err = GenerateOverlapMesh ( ctx.inFilenames[0], ctx.inFilenames[1], *tempest_mesh, ctx.outFilename, "exact", true );
+        err = GenerateOverlapMesh ( ctx.inFilenames[0], ctx.inFilenames[1], *tempest_mesh, ctx.outFilename, "NetCDF4", "exact", true );
 
         if ( err ) { rval = moab::MB_FAILURE; }
         else
@@ -549,7 +550,7 @@ moab::ErrorCode CreateTempestMesh ( ToolContext& ctx, moab::TempestRemapper& rem
 
         // Now let us construct the overlap mesh, by calling TempestRemap interface directly
         // For the overlap method, choose between: "fuzzy", "exact" or "mixed"
-        err = GenerateOverlapWithMeshes ( *ctx.meshes[0], *ctx.meshes[1], *tempest_mesh, "" /*ctx.outFilename*/, "exact", false );
+        err = GenerateOverlapWithMeshes ( *ctx.meshes[0], *ctx.meshes[1], *tempest_mesh, "" /*ctx.outFilename*/, "NetCDF4", "exact", false );
 
         if ( err ) { rval = moab::MB_FAILURE; }
         else
@@ -585,7 +586,7 @@ moab::ErrorCode CreateTempestMesh ( ToolContext& ctx, moab::TempestRemapper& rem
     }
     else if ( ctx.meshType == moab::TempestRemapper::ICO )
     {
-        err = GenerateICOMesh ( *tempest_mesh, ctx.blockSize, ctx.computeDual, ctx.outFilename );
+        err = GenerateICOMesh ( *tempest_mesh, ctx.blockSize, ctx.computeDual, ctx.outFilename, "NetCDF4" );
 
         if ( err ) { rval = moab::MB_FAILURE; }
         else
@@ -599,8 +600,8 @@ moab::ErrorCode CreateTempestMesh ( ToolContext& ctx, moab::TempestRemapper& rem
                                 ctx.blockSize * 2, ctx.blockSize, // int nLongitudes, int nLatitudes,
                                 0.0, 360.0,                       // double dLonBegin, double dLonEnd,
                                 -90.0, 90.0,                      // double dLatBegin, double dLatEnd,
-                                false, false,                     // bool fFlipLatLon, bool fForceGlobal,
-                                "" /*ctx.inFilename*/, ctx.outFilename,  // std::string strInputFile, std::string strOutputFile,
+                                false, false, false,              // bool fGlobalCap, bool fFlipLatLon, bool fForceGlobal,
+                                "" /*ctx.inFilename*/, ctx.outFilename, "NetCDF4",  // std::string strInputFile, std::string strOutputFile, std::string strOutputFormat
                                 true                              // bool fVerbose
                               );
 
@@ -612,7 +613,7 @@ moab::ErrorCode CreateTempestMesh ( ToolContext& ctx, moab::TempestRemapper& rem
     }
     else   // default
     {
-        err = GenerateCSMesh ( *tempest_mesh, ctx.blockSize, true, ctx.outFilename );
+        err = GenerateCSMesh ( *tempest_mesh, ctx.blockSize, true, ctx.outFilename, "NetCDF4" );
 
         if ( err ) { rval = moab::MB_FAILURE; }
         else
