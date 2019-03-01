@@ -190,7 +190,7 @@ int main( int argc, char* argv[] )
   MPI_Comm_group(jcomm, &jgroup);
 
   ProgOptions opts;
-
+  int typeTest = 0;
   //std::string inputfile, outfile("out.h5m"), netcdfFile, variable_name, sefile_name;
   std::string filename;
   filename = TestDir + "/field1.h5m";
@@ -198,12 +198,15 @@ int main( int argc, char* argv[] )
   startG2=0;
   endG1 = 0;
   endG2 = 1;
+
   opts.addOpt<std::string>("file,f","source file", &filename);
 
   opts.addOpt<int>("startSender,a", "start task for source layout", &startG1);
   opts.addOpt<int>("endSender,b", "end task for source layout", &endG1);
   opts.addOpt<int>("startRecv,c", "start task for receiver layout", &startG2);
   opts.addOpt<int>("endRecv,d", "end task for receiver layout", &endG2);
+
+  opts.addOpt<int>("typeTest,t", "test types (both=0 default, 1 graph only, 2 geom only", &typeTest);
 
   opts.parseCommandLine(argc, argv);
 
@@ -217,8 +220,8 @@ int main( int argc, char* argv[] )
   int num_errors = 0;
 
 
-  num_errors += RUN_TEST_ARG2( migrate_graph, filename.c_str() );
-  num_errors += RUN_TEST_ARG2( migrate_geom, filename.c_str() );
+  if (0==typeTest || 1==typeTest) num_errors += RUN_TEST_ARG2( migrate_graph, filename.c_str() );
+  if (0==typeTest || 2==typeTest) num_errors += RUN_TEST_ARG2( migrate_geom, filename.c_str() );
 
   if (rank == 0) {
     if (!num_errors)
