@@ -79,7 +79,7 @@ void test_tempest_cs_create()
 
   std::cout << "Creating TempestRemap Cubed-Sphere Mesh ...\n";
   Mesh tempest_mesh;
-  int ierr = GenerateCSMesh(tempest_mesh, blockSize, false, outFilename);
+  int ierr = GenerateCSMesh(tempest_mesh, blockSize, false, outFilename, "NetCDF4");
   CHECK_EQUAL(ierr, 0);
 
   // Compute the surface area of CS mesh
@@ -100,8 +100,8 @@ void test_tempest_rll_create()
                              blockSize * 2, blockSize,
                              0.0, 360.0,
                              -90.0, 90.0,
-                             false, true,
-                             "", outFilename,
+                             false, false, true,
+                             "", outFilename, "NetCDF4",
                              false);
   CHECK_EQUAL(ierr, 0);
 
@@ -120,7 +120,7 @@ void test_tempest_ico_create()
 
   std::cout << "Creating TempestRemap Icosahedral Mesh ...\n";
   Mesh tempest_mesh;
-  int ierr = GenerateICOMesh(tempest_mesh, blockSize, computeDual, outFilename);
+  int ierr = GenerateICOMesh(tempest_mesh, blockSize, computeDual, outFilename, "NetCDF4");
   CHECK_EQUAL(ierr, 0);
 
   // Compute the surface area of ICO mesh
@@ -138,7 +138,7 @@ void test_tempest_mpas_create()
 
   std::cout << "Creating TempestRemap MPAS Mesh (dual of the Icosahedral) ...\n";
   Mesh tempest_mesh;
-  int ierr = GenerateICOMesh(tempest_mesh, blockSize, computeDual, outFilename);
+  int ierr = GenerateICOMesh(tempest_mesh, blockSize, computeDual, outFilename, "NetCDF4");
   CHECK_EQUAL(ierr, 0);
 
   // Compute the surface area of MPAS mesh
@@ -161,7 +161,7 @@ void test_tempest_overlap_combinations()
     for (int jsrc=0; jsrc < 4; ++jsrc) {
       std::cout << "Computing Overlap between " << outFilenames[isrc] << " and " << outFilenames[jsrc] << " ...\n";
       Mesh tempest_mesh;
-      int ierr = GenerateOverlapMesh(outFilenames[isrc], outFilenames[jsrc], tempest_mesh, outFilename, "exact", true, false, false, false);
+      int ierr = GenerateOverlapMesh(outFilenames[isrc], outFilenames[jsrc], tempest_mesh, outFilename, "NetCDF4", "exact", false, false, false, false);
       CHECK_EQUAL(ierr, 0);
       // verify overlap mesh area
       const double ovArea = tempest_mesh.CalculateFaceAreas(false);
