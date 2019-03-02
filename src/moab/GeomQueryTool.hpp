@@ -26,7 +26,7 @@ namespace moab {
    * geometric topology through a hierarchy of meshsets, this tool provides a
    * set of methods to query different geometric aspects of those geometric
    * topology sets including:
-   * 
+   *
    *   * measures of surface area and volume
    *   * distance to a bounding surface from a point within a volume
    *   * test the inclusion of a point within a volume
@@ -34,7 +34,7 @@ namespace moab {
    *
    * A feature of these queries is that there is some support for overlapping
    * geometries.
-   * 
+   *
    */
 
 class GeomQueryTool
@@ -53,7 +53,7 @@ public:
    * accommodated.
    *
    */
-  
+
   class RayHistory {
 
   public:
@@ -77,6 +77,12 @@ public:
     void rollback_last_intersection();
 
     /**
+     * Get the last intersection in the RayHistory. This will return a null
+     * EntityHandle (0) if the history is empty.
+     */
+    ErrorCode get_last_intersection(EntityHandle& last_facet_hit) const;
+
+    /**
      * @return the number of surface crossings currently represented by this ray history
      */
     int size() const { return prev_facets.size(); }
@@ -90,14 +96,14 @@ public:
      * Add entity to the RayHistory
      */
     void add_entity(EntityHandle ent);
-    
+
   private:
     std::vector<EntityHandle> prev_facets;
 
     friend class GeomQueryTool;
 
   };
-  
+
   // Constructor
   GeomQueryTool(GeomTopoTool* geomtopotool, bool trace_counting = false,
                 double overlap_thickness = 0., double numerical_precision = 0.001);
@@ -111,7 +117,7 @@ public:
    *
    * This is the primary method to enable ray tracing through a geometry.
    * Given a volume and a ray, it determines the distance to the nearest intersection
-   * with a bounding surface of that volume and returns that distance and the 
+   * with a bounding surface of that volume and returns that distance and the
    * EntityHandle indicating on which surface that intersection occurs.
    * The caller can compute the location of the intersection by adding the
    * distance to the ray.
@@ -194,7 +200,7 @@ public:
    */
   ErrorCode point_in_box(const EntityHandle volume, const double point[3], int &inside );
 
-  
+
   /** \brief Given a ray starting at a surface of a volume, check whether the ray enters or exits the volume
    *
    * This function is most useful for rays that change directions at a surface crossing.
@@ -286,13 +292,13 @@ public:
      Robustness:  increasing tolerance increases robustness
      Knowledge:   user must have intuition of overlap thickness
   */
-  
+
   /** Attempt to set a new overlap thickness tolerance, first checking for sanity */
 
   void set_overlap_thickness( double new_overlap_thickness );
-  
 
-  /*    
+
+  /*
    Numerical Precision:
    This tolerance is used for obb.intersect_ray, finding neighborhood of
    adjacent triangle for edge/node intersections, and error in advancing
@@ -303,7 +309,7 @@ public:
      Robustness:  increasing tolerance increases robustness
      Knowledge:   user should not change this tolerance
   */
-  
+
   /** Attempt to set a new numerical precision , first checking for sanity
    *  Use of this function is discouraged.
    */
@@ -316,7 +322,7 @@ public:
   GeomTopoTool* gttool() { return geomTopoTool; }
 
   Interface* moab_instance() { return MBI; }
-  
+
 private:
 
   GeomTopoTool* geomTopoTool;
