@@ -52,6 +52,7 @@ struct ToolContext
         std::vector<std::string> disc_methods;
         std::vector<std::string> doftag_names;
         std::string outFilename;
+        std::string intxFilename;
         moab::TempestRemapper::TempestMeshType meshType;
         bool computeDual;
         bool computeWeights;
@@ -68,7 +69,7 @@ struct ToolContext
             mbcore(icore),
             proc_id ( 0 ), n_procs ( 1 ),
 #endif
-            blockSize ( 5 ), outFilename ( "output.exo" ), meshType ( moab::TempestRemapper::DEFAULT ),
+            blockSize ( 5 ), outFilename ( "output.exo" ), intxFilename ( "" ), meshType ( moab::TempestRemapper::DEFAULT ),
             computeDual ( false ), computeWeights ( false ), ensureMonotonicity ( 0 ), 
             fNoConservation ( false ), fVolumetric ( false )
         {
@@ -79,13 +80,20 @@ struct ToolContext
 
         ~ToolContext()
         {
+            this->clear();
             inFilenames.clear();
+            disc_orders.clear();
+            disc_methods.clear();
+            doftag_names.clear();
             outFilename.clear();
+            intxFilename.clear();
+            meshsets.clear();
             delete timer;
         }
 
         void clear()
         {
+            for (unsigned i=0; i < meshes.size(); ++i) delete meshes[i];
             meshes.clear();
         }
 
@@ -122,9 +130,8 @@ struct ToolContext
             std::string expectedDofTagName = "GLOBAL_ID";
             int expectedOrder = 1;
 
-            opts.addOpt<int> ( "res,r", "Resolution of the mesh (default=5)", &blockSize );
             opts.addOpt<int> ( "type,t", "Type of mesh (default=CS; Choose from [CS=0, RLL=1, ICO=2, OVERLAP_FILES=3, OVERLAP_MEMORY=4, OVERLAP_MOAB=5])", &imeshType );
-            opts.addOpt<std::string> ( "file,f", "Output mesh filename (default=output.exo)", &outFilename );
+            opts.addOpt<int> ( "res,r", "Resolution of the mesh (default=5)", &blockSize );
             opts.addOpt<void> ( "dual,d", "Output the dual of the mesh (generally relevant only for ICO mesh)", &computeDual );
             opts.addOpt<void> ( "weights,w", "Compute and output the weights using the overlap mesh (generally relevant only for OVERLAP mesh)", &computeWeights );
             opts.addOpt<void> ( "noconserve,c", "Do not apply conservation to the resultant weights (relevant only when computing weights)", &fNoConservation );
@@ -133,7 +140,10 @@ struct ToolContext
             opts.addOpt<std::string> ( "load,l", "Input mesh filenames (a source and target mesh)", &expectedFName );
             opts.addOpt<int> ( "order,o", "Discretization orders for the source and target solution fields", &expectedOrder );
             opts.addOpt<std::string> ( "method,m", "Discretization method for the source and target solution fields", &expectedMethod );
-            opts.addOpt<std::string> ( "global_id,i", "Tag name that contains the global DoF IDs for source and target solution fields", &expectedDofTagName );
+            opts.addOpt<std::string> ( "global_id,g", "Tag name that contains the global DoF IDs for source and target solution fields", &expectedDofTagName );
+            opts.addOpt<std::string> ( "file,f", "Output remapping weights filename", &outFilename );
+            opts.addOpt<std::string> ( "intx,i", "Output TempestRemap intersection mesh filename", &intxFilename );
+            
 
             opts.parseCommandLine ( argc, argv );
 
@@ -422,6 +432,18 @@ int main ( int argc, char* argv[] )
             }
         }
 
+        if ( ctx.intxFilename.size() )
+        {
+            // Call to write out the intersection meshes in the TempestRemap format so that it can be used directly with GenerateOfflineMap
+            // The call arguments are as follows: 
+            //      (std::string strOutputFileName, const bool fAllParallel, const bool fInputConcave, const bool fOutputConcave);
+#ifdef MOAB_HAVE_MPI
+            rval = remapper.WriteTempestIntersectionMesh(ctx.intxFilename, true, false, false);MB_CHK_ERR ( rval ); 
+#else
+            rval = remapper.WriteTempestIntersectionMesh(ctx.intxFilename, false, false, false);MB_CHK_ERR ( rval );
+#endif
+        }
+
         if ( ctx.computeWeights )
         {
             ctx.meshes[2] = remapper.GetMesh ( moab::Remapper::IntersectedMesh );
@@ -462,7 +484,6 @@ int main ( int argc, char* argv[] )
 
             // weightMap->m_vecSourceDimSizes.resize(ctx.meshes[0]->faces.size());
             // weightMap->m_vecTargetDimSizes.resize(ctx.meshes[1]->faces.size());
-      
 #endif
 
             /*
@@ -488,12 +509,16 @@ int main ( int argc, char* argv[] )
 
             }
 
-#ifdef VERBOSE
-            sstr.str("");
-            sstr << "outWeights_" << proc_id << ".nc";
-            weightMap->Write(sstr.str().c_str());
-            sstr.str("");
-#endif
+            if ( ctx.outFilename.size() )
+            {
+                sstr.str("");
+                size_t lastindex = ctx.outFilename.find_last_of(".");
+                sstr << ctx.outFilename.substr(0, lastindex) << "_" << proc_id << ".nc";
+                std::map<std::string, std::string> mapAttributes;
+                mapAttributes["Creator"] = "MOAB mbtempest workflow";
+                weightMap->Write(sstr.str().c_str(), mapAttributes);
+                sstr.str("");
+            }
 
             // sstr << "newoutWeights_" << proc_id << ".nc";
             // weightMap->WriteParallelWeightsToFile(sstr.str().c_str());
