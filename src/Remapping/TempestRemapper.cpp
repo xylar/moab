@@ -565,6 +565,41 @@ ErrorCode TempestRemapper::AssociateSrcTargetInOverlap()
 
 ///////////////////////////////////////////////////////////////////////////////////
 
+moab::ErrorCode moab::TempestRemapper::WriteTempestIntersectionMesh (std::string strOutputFileName, const bool fAllParallel, const bool fInputConcave, const bool fOutputConcave)
+{
+    // Let us alos write out the TempestRemap equivalent so that we can do some verification checks
+    if (fAllParallel)
+    {
+        if ( is_root && size == 1 )
+        {
+            this->m_source->CalculateFaceAreas(fInputConcave);
+            this->m_target->CalculateFaceAreas(fOutputConcave);
+            this->m_overlap->Write ( strOutputFileName.c_str() );
+        }
+        else
+        {
+            // Perform reduction and write from root processor
+            if ( is_root )
+                std::cout << "--- PARALLEL IMPLEMENTATION is NOT AVAILABLE yet ---\n";
+            
+            // this->m_source->CalculateFaceAreas(fInputConcave);
+            // this->m_covering_source->CalculateFaceAreas(fInputConcave);
+            // this->m_target->CalculateFaceAreas(fOutputConcave);
+            // this->m_overlap->Write ( strOutputFileName.c_str() );
+        }
+    }
+    else
+    {
+        this->m_covering_source->CalculateFaceAreas (fInputConcave);
+        this->m_target->CalculateFaceAreas (fOutputConcave);
+        this->m_overlap->Write ( strOutputFileName.c_str() );
+    }
+
+    return moab::MB_SUCCESS;
+}
+
+///////////////////////////////////////////////////////////////////////////////////
+
 #ifndef MOAB_HAVE_MPI
 static ErrorCode assign_vertex_element_IDs ( moab::Interface* mbImpl, Tag idtag, EntityHandle this_set, const int dimension=2, const int start_id=1)
 {
@@ -582,6 +617,8 @@ static ErrorCode assign_vertex_element_IDs ( moab::Interface* mbImpl, Tag idtag,
     return moab::MB_SUCCESS;
 }
 #endif
+
+///////////////////////////////////////////////////////////////////////////////////
 
 ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius_src, double radius_tgt, double boxeps, bool use_tempest )
 {

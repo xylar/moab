@@ -100,6 +100,12 @@ public:
 
     int GetLocalID(Remapper::IntersectionContext ctx, int globalID);
 
+    /// <summary>
+    ///     Gather the overlap mesh and asssociated source/target data and write it out to disk. This information can then be used
+    ///     with the "GenerateOfflineMap" tool in TempestRemap as needed.
+    /// </summary>
+    moab::ErrorCode WriteTempestIntersectionMesh (std::string strOutputFileName, const bool fAllParallel, const bool fInputConcave, const bool fOutputConcave);
+
     // public members
     bool meshValidate;  // Validate the mesh after loading from file
 

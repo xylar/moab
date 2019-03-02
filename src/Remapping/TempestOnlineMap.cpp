@@ -504,6 +504,7 @@ moab::ErrorCode moab::TempestOnlineMap::SetDofMapAssociation(DiscretizationType 
     return moab::MB_SUCCESS;
 }
 
+
 ///////////////////////////////////////////////////////////////////////////////
 
 moab::ErrorCode moab::TempestOnlineMap::GenerateOfflineMap ( std::string strInputType, std::string strOutputType,
@@ -659,7 +660,7 @@ moab::ErrorCode moab::TempestOnlineMap::GenerateOfflineMap ( std::string strInpu
             }
         }
 
-        
+
         // Check for forward correspondence in overlap mesh
         // if ( m_meshInput->faces.size() - ixSourceFaceMax == 0 )
         // {
@@ -678,7 +679,7 @@ moab::ErrorCode moab::TempestOnlineMap::GenerateOfflineMap ( std::string strInpu
         //                   "    No correspondence found with input and output meshes (%i,%i) vs (%i,%i)",
         //                   m_meshInputCov->faces.size(), m_meshOutput->faces.size(), ixSourceFaceMax, ixTargetFaceMax );
         // }
-        
+
 
         // Calculate Face areas
         if ( is_root ) dbgprint.printf ( 0, "Calculating overlap mesh Face areas\n" );
@@ -699,6 +700,7 @@ moab::ErrorCode moab::TempestOnlineMap::GenerateOfflineMap ( std::string strInpu
                 fNoCheck = true;
             }
         }
+
 
         /*
             // Recalculate input mesh area from overlap mesh
@@ -1038,12 +1040,12 @@ moab::ErrorCode moab::TempestOnlineMap::GenerateOfflineMap ( std::string strInpu
         CopyTempestSparseMat_Eigen();
 #endif
 
-        // Let us alos write out the TempestRemap equivalent so that we can do some verification checks
-        if ( is_root && size == 1)
-        {
-            dbgprint.printf ( 0, "NOTE: Writing out moab_intersection mesh in TempestRemap format\n" );
-            m_meshOverlap->Write ( "moab_intersection_tempest.g");
-        }
+        // // Let us alos write out the TempestRemap equivalent so that we can do some verification checks
+        // if ( is_root && size == 1)
+        // {
+        //     dbgprint.printf ( 0, "NOTE: Writing out moab_intersection mesh in TempestRemap format\n" );
+        //     m_meshOverlap->Write ( "moab_intersection_tempest.g");
+        // }
 
         // Verify consistency, conservation and monotonicity
         // gather weights to root process to perform consistency/conservation checks
