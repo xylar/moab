@@ -582,15 +582,15 @@ moab::ErrorCode moab::TempestRemapper::WriteTempestIntersectionMesh (std::string
             if ( is_root )
                 std::cout << "--- PARALLEL IMPLEMENTATION is NOT AVAILABLE yet ---\n";
             
-            // this->m_source->CalculateFaceAreas(fInputConcave);
-            // this->m_covering_source->CalculateFaceAreas(fInputConcave);
-            // this->m_target->CalculateFaceAreas(fOutputConcave);
-            // this->m_overlap->Write ( strOutputFileName.c_str() );
+            this->m_source->CalculateFaceAreas(fInputConcave);
+            this->m_covering_source->CalculateFaceAreas(fInputConcave);
+            this->m_target->CalculateFaceAreas(fOutputConcave);
+            this->m_overlap->Write ( strOutputFileName.c_str() );
         }
     }
     else
     {
-        this->m_covering_source->CalculateFaceAreas (fInputConcave);
+        this->m_source->CalculateFaceAreas (fInputConcave);
         this->m_target->CalculateFaceAreas (fOutputConcave);
         this->m_overlap->Write ( strOutputFileName.c_str() );
     }

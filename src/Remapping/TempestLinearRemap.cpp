@@ -247,6 +247,9 @@ void moab::TempestOnlineMap::LinearRemapFVtoFV_Tempest_MOAB (
                 // int ixFirstFaceGlob = m_remapper->GetGlobalID(moab::Remapper::SourceMesh, ixFirstFaceLoc);
                 // int ixSecondFaceGlob = m_remapper->GetGlobalID(moab::Remapper::TargetMesh, ixSecondFaceLoc);
 
+                // signal to not participate, because it is a ghost target
+                if (ixSecondFaceLoc < 0) continue; // do not do anything
+
                 m_mapRemap ( ixSecondFaceLoc, ixFirstFaceLoc ) +=
                     dComposedArray[i][j]
                     / m_meshOutput->vecFaceArea[ixSecondFaceLoc];
@@ -264,6 +267,11 @@ void moab::TempestOnlineMap::LinearRemapFVtoFV_Tempest_MOAB (
 #ifdef MOAB_HAVE_EIGEN
 void moab::TempestOnlineMap::CopyTempestSparseMat_Eigen()
 {
+#ifndef VERBOSE
+#define VERBOSE_ACTIVATED
+// #define VERBOSE
+#endif
+    /* Should the columns be the global size of the matrix ? */
     m_weightMatrix.resize(m_nTotDofs_Dest, m_nTotDofs_SrcCov);
     InitVectors();
 
@@ -283,6 +291,8 @@ void moab::TempestOnlineMap::CopyTempestSparseMat_Eigen()
 
     m_weightMatrix.reserve(locvals);
     for (unsigned iv=0; iv < locvals; iv++) {
+        // std::cout << "Row = " << row_ldofmap[lrows[iv]] << ", Col = " << col_ldofmap[lcols[iv]] << ", DATA = " << lvals[iv] << std::endl;
+        // std::cout << "Row = " << lrows[iv] << ", Col = " << lcols[iv] << ", DATA = " << lvals[iv] << std::endl;
         m_weightMatrix.insert(lrows[iv], lcols[iv]) = lvals[iv];
     }
 
@@ -302,6 +312,10 @@ void moab::TempestOnlineMap::CopyTempestSparseMat_Eigen()
     output_file.close();
 #endif
 
+#ifdef VERBOSE_ACTIVATED
+#undef VERBOSE_ACTIVATED
+#undef VERBOSE
+#endif
     return;
 }
 
@@ -1091,8 +1105,10 @@ void moab::TempestOnlineMap::LinearRemapSE4_Tempest_MOAB (
         for ( int j = 0; j < nOverlapFaces; j++ )
         {
             int ixSecondFace = m_meshOverlap->vecTargetFaceIx[ixOverlap + j];
-            if (ixSecondFace < 0) // signal to not participate, because it is a ghost target
-              continue; // do not do anything
+
+            // signal to not participate, because it is a ghost target
+            if (ixSecondFace < 0) continue; // do not do anything
+
             for ( int p = 0; p < nP; p++ )
             {
                 for ( int q = 0; q < nP; q++ )
@@ -1615,6 +1631,9 @@ void moab::TempestOnlineMap::LinearRemapGLLtoGLL2_MOAB (
         {
             int ixSecondFace = m_meshOverlap->vecTargetFaceIx[ixOverlap + j];
 
+            // signal to not participate, because it is a ghost target
+            if (ixSecondFace < 0) continue; // do not do anything
+
             dRedistributedOp.Zero();
             for ( int p = 0; p < nPin * nPin; p++ )
             {
@@ -1801,6 +1820,9 @@ void moab::TempestOnlineMap::LinearRemapGLLtoGLL2_Pointwise_MOAB (
 
             // Quantities from the Second Mesh
             int ixSecond = m_meshOverlap->vecTargetFaceIx[ixOverlap + i];
+
+            // signal to not participate, because it is a ghost target
+            if (ixSecond < 0) continue; // do not do anything
 
             const NodeVector & nodesSecond = m_meshOutput->nodes;
 
