@@ -449,13 +449,13 @@ int main ( int argc, char* argv[] )
             ctx.meshes[2] = remapper.GetMesh ( moab::Remapper::IntersectedMesh );
 
             ctx.timer_push ( "setup computation of weights" );
-            // Call to generate an offline map with the tempest meshes
+            // Call to generate the remapping weights with the tempest meshes
             moab::TempestOnlineMap* weightMap = new moab::TempestOnlineMap ( &remapper );
             ctx.timer_pop();
 
             ctx.timer_push ( "compute weights with TempestRemap" );
 
-            rval = weightMap->GenerateOfflineMap ( ctx.disc_methods[0], ctx.disc_methods[1],        // std::string strInputType, std::string strOutputType,
+            rval = weightMap->GenerateRemappingWeights ( ctx.disc_methods[0], ctx.disc_methods[1],        // std::string strInputType, std::string strOutputType,
                                                    ctx.disc_orders[0],  ctx.disc_orders[1],  // int nPin=4, int nPout=4,
                                                    false, ctx.ensureMonotonicity,            // bool fBubble=false, int fMonotoneTypeID=0,
                                                    ctx.fVolumetric, ctx.fNoConservation, false, // bool fVolumetric=false, bool fNoConservation=false, bool fNoCheck=false,
@@ -516,6 +516,7 @@ int main ( int argc, char* argv[] )
                 sstr << ctx.outFilename.substr(0, lastindex) << "_" << proc_id << ".nc";
                 std::map<std::string, std::string> mapAttributes;
                 mapAttributes["Creator"] = "MOAB mbtempest workflow";
+                if (!ctx.proc_id) std::cout << "Writing offline map to file: " << sstr.str() << std::endl;
                 weightMap->Write(sstr.str().c_str(), mapAttributes);
                 sstr.str("");
             }
