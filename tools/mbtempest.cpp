@@ -254,7 +254,7 @@ int main ( int argc, char* argv[] )
     moab::TempestRemapper remapper ( mbCore );
 #endif
     remapper.meshValidate = true;
-    remapper.constructEdgeMap = true;
+    remapper.constructEdgeMap = false;
     remapper.initialize();
 
     Mesh* tempest_mesh = new Mesh();

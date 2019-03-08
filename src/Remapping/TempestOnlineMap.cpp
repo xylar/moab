@@ -493,7 +493,7 @@ moab::ErrorCode moab::TempestOnlineMap::SetDofMapAssociation(DiscretizationType 
     }
 
     // Let us also allocate the local representation of the sparse matrix
-#ifdef MOAB_HAVE_EIGEN
+#if defined(MOAB_HAVE_EIGEN) && defined(VERBOSE)
     // if (vprint)
     {
         std::cout << "[" << rank << "]" << "DoFs: row = " << m_nTotDofs_Dest << ", " << row_dofmap.size() << ", col = " << m_nTotDofs_Src << ", " << m_nTotDofs_SrcCov << ", " << col_dofmap.size() << "\n";
@@ -604,7 +604,7 @@ moab::ErrorCode moab::TempestOnlineMap::GenerateOfflineMap ( std::string strInpu
         double dTotalAreaInput_loc = m_meshInput->CalculateFaceAreas(fInputConcave);
         double dTotalAreaInput = dTotalAreaInput_loc;
 #ifdef MOAB_HAVE_MPI
-        if (pcomm) MPI_Allreduce ( &dTotalAreaInput_loc, &dTotalAreaInput, 1, MPI_DOUBLE, MPI_SUM, pcomm->comm() );
+        if (pcomm) MPI_Reduce ( &dTotalAreaInput_loc, &dTotalAreaInput, 1, MPI_DOUBLE, MPI_SUM, 0, pcomm->comm() );
 #endif
         if ( is_root ) dbgprint.printf ( 0, "Input Mesh Geometric Area: %1.15e\n", dTotalAreaInput );
 
@@ -623,7 +623,7 @@ moab::ErrorCode moab::TempestOnlineMap::GenerateOfflineMap ( std::string strInpu
         double dTotalAreaOutput_loc = m_meshOutput->CalculateFaceAreas(fOutputConcave);
         double dTotalAreaOutput = dTotalAreaOutput_loc;
 #ifdef MOAB_HAVE_MPI
-        if (pcomm) MPI_Allreduce ( &dTotalAreaOutput_loc, &dTotalAreaOutput, 1, MPI_DOUBLE, MPI_SUM, pcomm->comm() );
+        if (pcomm) MPI_Reduce ( &dTotalAreaOutput_loc, &dTotalAreaOutput, 1, MPI_DOUBLE, MPI_SUM, 0, pcomm->comm() );
 #endif
         if ( is_root ) dbgprint.printf ( 0, "Output Mesh Geometric Area: %1.15e\n", dTotalAreaOutput );
 
@@ -686,7 +686,7 @@ moab::ErrorCode moab::TempestOnlineMap::GenerateOfflineMap ( std::string strInpu
         double dTotalAreaOverlap_loc = m_meshOverlap->CalculateFaceAreas(false);
         double dTotalAreaOverlap = dTotalAreaOverlap_loc;
 #ifdef MOAB_HAVE_MPI
-        if (pcomm) MPI_Allreduce ( &dTotalAreaOverlap_loc, &dTotalAreaOverlap, 1, MPI_DOUBLE, MPI_SUM, pcomm->comm() );
+        if (pcomm) MPI_Reduce ( &dTotalAreaOverlap_loc, &dTotalAreaOverlap, 1, MPI_DOUBLE, MPI_SUM, 0, pcomm->comm() );
 #endif
         if ( is_root ) dbgprint.printf ( 0, "Overlap Mesh Area: %1.15e\n", dTotalAreaOverlap );
 
@@ -1326,7 +1326,7 @@ bool moab::TempestOnlineMap::IsMonotone (
 #ifdef MOAB_HAVE_MPI
 moab::ErrorCode moab::TempestOnlineMap::GatherAllToRoot()   // Collective
 {
-#define VERBOSE
+// #define VERBOSE
     Mesh globalMesh;
     int ierr, rootProc = 0, nprocs = size;
     moab::ErrorCode rval;
@@ -1557,7 +1557,9 @@ moab::ErrorCode moab::TempestOnlineMap::GatherAllToRoot()   // Collective
         std::copy ( ( const double* ) dOrigSourceAreas, ( const double* ) dOrigSourceAreas + dOrigSourceAreas.GetRows(), sendarray.begin() + locoffset ); locoffset += dOrigSourceAreas.GetRows();
         std::copy ( ( const double* ) dTargetAreas, ( const double* ) dTargetAreas + dTargetAreas.GetRows(), sendarray.begin() + locoffset ); locoffset += dTargetAreas.GetRows();
 
+#ifdef VERBOSE
         std::cout << "[" << rank << "] " <<  m_nTotDofs_Src << ", m_dSourceCenterLon.size() = " << m_dSourceCenterLon.GetRows() << " and " << m_nTotDofs_Dest << ", m_dTargetCenterLon.size() = " << m_dTargetCenterLon.GetRows() << "\n";
+#endif
 
         // TODO: VSM: Need a way to figure out how to transfer the buffer easily from m_dSourceVertexLon/m_dSourceVertexLat variables
 #if 0
@@ -1817,7 +1819,7 @@ moab::ErrorCode moab::TempestOnlineMap::GatherAllToRoot()   // Collective
         m_weightMapGlobal->Write ( "outGlobalView.nc", mapAttributes, NcFile::Netcdf4 );
     }
 // #endif
-#undef VERBOSE
+// #undef VERBOSE
     return moab::MB_SUCCESS;
 }
 
