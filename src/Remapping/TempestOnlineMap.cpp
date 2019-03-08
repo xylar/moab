@@ -507,7 +507,7 @@ moab::ErrorCode moab::TempestOnlineMap::SetDofMapAssociation(DiscretizationType 
 
 ///////////////////////////////////////////////////////////////////////////////
 
-moab::ErrorCode moab::TempestOnlineMap::GenerateOfflineMap ( std::string strInputType, std::string strOutputType,
+moab::ErrorCode moab::TempestOnlineMap::GenerateRemappingWeights ( std::string strInputType, std::string strOutputType,
         const int nPin, const int nPout,
         bool fBubble, int fMonotoneTypeID,
         bool fVolumetric, bool fNoConservation, bool fNoCheck,
@@ -727,8 +727,8 @@ moab::ErrorCode moab::TempestOnlineMap::GenerateOfflineMap ( std::string strInpu
             // Finite volume input / Finite element output
             rval = this->SetDofMapAssociation(eInputType, false, NULL, NULL, eOutputType, false, NULL);MB_CHK_ERR(rval);
 
-            // Construct OfflineMap
-            if ( is_root ) dbgprint.printf ( 0, "Calculating offline map\n" );
+            // Construct remap
+            if ( is_root ) dbgprint.printf ( 0, "Calculating remap weights\n" );
             LinearRemapFVtoFV_Tempest_MOAB ( nPin );
         }
         else if ( eInputType == DiscretizationType_FV )
@@ -781,7 +781,7 @@ moab::ErrorCode moab::TempestOnlineMap::GenerateOfflineMap ( std::string strInpu
                 eOutputType, (eOutputType == DiscretizationType_CGLL), &dataGLLNodesDest);MB_CHK_ERR(rval);
 
             // Generate remap weights
-            if ( is_root ) dbgprint.printf ( 0, "Calculating offline map\n" );
+            if ( is_root ) dbgprint.printf ( 0, "Calculating remap weights\n" );
 
             if ( fVolumetric )
             {
@@ -887,8 +887,8 @@ moab::ErrorCode moab::TempestOnlineMap::GenerateOfflineMap ( std::string strInpu
             rval = this->SetDofMapAssociation(eInputType, (eInputType == DiscretizationType_CGLL), &dataGLLNodesSrcCov, &dataGLLNodesSrc,
                 eOutputType, false, NULL);MB_CHK_ERR(rval);
 
-            // Generate offline map
-            if ( is_root ) dbgprint.printf ( 0, "Calculating offline map\n" );
+            // Generate remap
+            if ( is_root ) dbgprint.printf ( 0, "Calculating remap weights\n" );
 
             if ( fVolumetric )
             {
@@ -1013,8 +1013,8 @@ moab::ErrorCode moab::TempestOnlineMap::GenerateOfflineMap ( std::string strInpu
             rval = this->SetDofMapAssociation(eInputType, (eInputType == DiscretizationType_CGLL), &dataGLLNodesSrcCov, &dataGLLNodesSrc,
                 eOutputType, (eOutputType == DiscretizationType_CGLL), &dataGLLNodesDest);MB_CHK_ERR(rval);
 
-            // Generate offline map
-            if ( is_root ) dbgprint.printf ( 0, "Calculating offline map" );
+            // Generate remap
+            if ( is_root ) dbgprint.printf ( 0, "Calculating remap weights\n" );
 
             LinearRemapGLLtoGLL2_MOAB (
                 dataGLLNodesSrcCov,
@@ -1066,10 +1066,10 @@ moab::ErrorCode moab::TempestOnlineMap::GenerateOfflineMap ( std::string strInpu
             }
         }
 
-        // Apply Offline Map to data
+        // Apply Remapping Weights to data
         if ( strInputData != "" )
         {
-            if ( is_root ) dbgprint.printf ( 0, "Applying offline map to data\n" );
+            if ( is_root ) dbgprint.printf ( 0, "Applying remap weights to data\n" );
 
             this->SetFillValueOverride ( static_cast<float> ( dFillValueOverride ) );
             this->Apply (

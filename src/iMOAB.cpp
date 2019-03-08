@@ -2474,17 +2474,17 @@ ErrCode iMOAB_ComputeScalarProjectionWeights ( iMOAB_AppID pid_intx,
 #endif
 
 	// Setup computation of weights
-    // Set the context for the OfflineMap computation
+    // Set the context for the remapping weights computation
     data_intx.weightMaps[std::string(solution_weights_identifier)] = new moab::TempestOnlineMap ( data_intx.remapper );
 
-	// Call to generate an offline map with the tempest meshes
+	// Call to generate the remap weights with the tempest meshes
     moab::TempestOnlineMap* weightMap = data_intx.weightMaps[std::string(solution_weights_identifier)];
     assert(weightMap != NULL);
 
     // Now let us compute the local-global mapping and store it in the context
     // We need this mapping when computing matvec products and to do reductions in parallel
 	// Additionally, the call below will also compute weights with TempestRemap
-	rval = weightMap->GenerateOfflineMap ( std::string(disc_method_source), std::string(disc_method_target),        // std::string strInputType, std::string strOutputType,
+	rval = weightMap->GenerateRemappingWeights ( std::string(disc_method_source), std::string(disc_method_target),        // std::string strInputType, std::string strOutputType,
 										   (*disc_order_source), (*disc_order_target),    // const int nPin, const int nPout,
                                            true, (fMonotoneTypeID ? *fMonotoneTypeID : 0),            // bool fBubble=false, int fMonotoneTypeID=0,
 										   (fVolumetric ? *fVolumetric > 0 : false),  // bool fVolumetric=false,

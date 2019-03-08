@@ -70,7 +70,7 @@ public:
 	///     This method generates the mapping between the two meshes based on the overlap and stores
 	///     the result in the SparseMatrix.
 	///	</summary>
-	moab::ErrorCode GenerateOfflineMap( std::string strInputType="fv", std::string strOutputType="fv",
+	moab::ErrorCode GenerateRemappingWeights( std::string strInputType="fv", std::string strOutputType="fv",
                                         const int nPin=1, const int nPout=1,
                                         bool fBubble=false, int fMonotoneTypeID=0,
                                         bool fVolumetric=false, bool fNoConservation=false, bool fNoCheck=false,
