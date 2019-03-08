@@ -662,17 +662,17 @@ moab::ErrorCode moab::TempestOnlineMap::GenerateOfflineMap ( std::string strInpu
 
 
         // Check for forward correspondence in overlap mesh
-        // if ( m_meshInput->faces.size() - ixSourceFaceMax == 0 )
-        // {
-        //     if ( is_root ) dbgprint.printf ( 0, "Overlap mesh forward correspondence found\n" );
-        // }
-        // else if ( m_meshOutput->faces.size() - ixSourceFaceMax == 0 )
-        // {   // Check for reverse correspondence in overlap mesh
-        //     if ( is_root ) dbgprint.printf ( 0, "Overlap mesh reverse correspondence found (reversing)\n" );
+        if ( m_meshInput->faces.size() - ixSourceFaceMax == 0 )
+        {
+            if ( is_root ) dbgprint.printf ( 0, "Overlap mesh forward correspondence found\n" );
+        }
+        else if ( m_meshOutput->faces.size() - ixSourceFaceMax == 0 )
+        {   // Check for reverse correspondence in overlap mesh
+            if ( is_root ) dbgprint.printf ( 0, "Overlap mesh reverse correspondence found (reversing)\n" );
 
-        //     // Reorder overlap mesh
-        //     m_meshOverlap->ExchangeFirstAndSecondMesh();
-        // }
+            // Reorder overlap mesh
+            m_meshOverlap->ExchangeFirstAndSecondMesh();
+        }
         // else
         // {   // No correspondence found
         //     _EXCEPTION4 ( "Invalid overlap mesh:\n"
@@ -1047,15 +1047,15 @@ moab::ErrorCode moab::TempestOnlineMap::GenerateOfflineMap ( std::string strInpu
         //     m_meshOverlap->Write ( "moab_intersection_tempest.g");
         // }
 
+        if ( !m_globalMapAvailable && size > 1 ) {
+            // gather weights to root process to perform consistency/conservation checks
+            rval = this->GatherAllToRoot();MB_CHK_ERR(rval);
+        }
+
         // Verify consistency, conservation and monotonicity
         // gather weights to root process to perform consistency/conservation checks
-        if ( !fNoCheck && false)
+        if ( !fNoCheck )
         {
-            if ( !m_globalMapAvailable && size > 1 ) {
-                // gather weights to root process to perform consistency/conservation checks
-                rval = this->GatherAllToRoot();MB_CHK_ERR(rval);
-            }
-
             if ( is_root ) dbgprint.printf ( 0, "Verifying map" );
             this->IsConsistent ( 1.0e-8 );
             if ( !fNoConservation ) this->IsConservative ( 1.0e-8 );
@@ -1326,6 +1326,7 @@ bool moab::TempestOnlineMap::IsMonotone (
 #ifdef MOAB_HAVE_MPI
 moab::ErrorCode moab::TempestOnlineMap::GatherAllToRoot()   // Collective
 {
+#define VERBOSE
     Mesh globalMesh;
     int ierr, rootProc = 0, nprocs = size;
     moab::ErrorCode rval;
@@ -1412,7 +1413,7 @@ moab::ErrorCode moab::TempestOnlineMap::GatherAllToRoot()   // Collective
             m_areasTgtGlobal.Allocate ( gtgtdofs ); tgtelmindx.Allocate ( gtar );
 
 #ifdef VERBOSE
-            dbgprint.printf ( 0, "Received global dimensions: %d, %d\n", vecRow.GetRows(), rows.GetRows() );
+            dbgprint.printf ( 0, "Received global dimensions: %zu, %zu\n", vecRow.GetRows(), rows.GetRows() );
             dbgprint.printf ( 0, "Global: n(source) = %d, n(srccov) = %d, and n(target) = %d\n", gsrc, gsrccov, gtar );
             dbgprint.printf ( 0, "Operator size = %d X %d and NNZ = %d\n", gsrcdofs, gtgtdofs, gnnz );
 #endif
@@ -1805,13 +1806,18 @@ moab::ErrorCode moab::TempestOnlineMap::GatherAllToRoot()   // Collective
     // on the root process
     m_globalMapAvailable = true;
 
-#ifdef VERBOSE
+// #ifdef VERBOSE
     if ( !rank )
     {
         dbgprint.printf ( 0, "Writing out file outGlobalView.nc\n" );
-        m_weightMapGlobal->Write ( "outGlobalView.nc" );
+        std::map<std::string, std::string> mapAttributes;
+        std::stringstream sstr;
+        sstr << "MOAB mbtempest workflow with weights gathered on root process from " << nprocs << " processes.";
+        mapAttributes["Creator"] = sstr.str();
+        m_weightMapGlobal->Write ( "outGlobalView.nc", mapAttributes, NcFile::Netcdf4 );
     }
-#endif
+// #endif
+#undef VERBOSE
     return moab::MB_SUCCESS;
 }
 
