@@ -169,17 +169,17 @@ ErrorCode TempestRemapper::ConvertTempestMesh ( Remapper::IntersectionContext ct
     const bool outputEnabled = ( TempestRemapper::verbose && is_root );
     if ( ctx == Remapper::SourceMesh )
     {
-        if ( outputEnabled ) std::cout << "\nConverting (source) TempestRemap Mesh object to MOAB representation ...\n";
+        if ( outputEnabled ) std::cout << "Converting (source) TempestRemap Mesh object to MOAB representation ...\n";
         return ConvertTempestMeshToMOAB_Private ( m_source_type, m_source, m_source_set );
     }
     else if ( ctx == Remapper::TargetMesh )
     {
-        if ( outputEnabled ) std::cout << "\nConverting (target) TempestRemap Mesh object to MOAB representation ...\n";
+        if ( outputEnabled ) std::cout << "Converting (target) TempestRemap Mesh object to MOAB representation ...\n";
         return ConvertTempestMeshToMOAB_Private ( m_target_type, m_target, m_target_set );
     }
     else if ( ctx != Remapper::DEFAULT )
     {
-        if ( outputEnabled ) std::cout << "\nConverting (overlap) TempestRemap Mesh object to MOAB representation ...\n";
+        if ( outputEnabled ) std::cout << "Converting (overlap) TempestRemap Mesh object to MOAB representation ...\n";
         return ConvertTempestMeshToMOAB_Private ( m_overlap_type, m_overlap, m_overlap_set );
     }
     else
@@ -514,7 +514,7 @@ ErrorCode TempestRemapper::ConvertMOABMesh_WithSortedEntitiesBySource()
     // m_overlap->RemoveCoincidentNodes();
 
     // Generate reverse node array and edge map
-    // if ( constructEdgeMap ) m_overlap->ConstructEdgeMap();
+    if ( constructEdgeMap ) m_overlap->ConstructEdgeMap();
     // m_overlap->ConstructReverseNodeArray();
 
     // m_overlap->Validate();
