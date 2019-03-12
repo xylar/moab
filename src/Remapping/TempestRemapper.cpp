@@ -26,7 +26,7 @@
 #include "moab/Skinner.hpp"
 #include "MBParallelConventions.h"
 
-// #define VERBOSE
+#define VERBOSE
 
 namespace moab
 {
@@ -724,6 +724,7 @@ ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius_
         // Now perform the actual parallel intersection between the source and the target meshes
         rval = mbintx->intersect_meshes ( m_covering_source_set, m_target_set, m_overlap_set ); MB_CHK_SET_ERR ( rval, "Can't compute the intersection of meshes on the sphere" );
 
+#ifdef MOAB_HAVE_MPI
         if (is_parallel) {
 
 #ifdef VERBOSE
@@ -784,16 +785,15 @@ ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius_
                 // we will then mark the source, we will need to migrate the overlap elements that cover this to the original
                 // source for the source element; then distribute the overlap elements to all processors that have the
                 // coverage mesh used
-#ifdef MOAB_HAVE_MPI
                 if (size > 1) {
                     rval = augment_overlap_set(); MB_CHK_ERR ( rval );
                 }
-#endif
             }
 
             m_covering_source = new Mesh();
             rval = ConvertMOABMeshToTempest_Private ( m_covering_source, m_covering_source_set, m_covering_source_entities ); MB_CHK_SET_ERR ( rval, "Can't convert source Tempest mesh" );
         }
+#endif
 
         // Fix any inconsistencies in the overlap mesh
         rval = fix_degenerate_quads(m_interface, m_overlap_set);MB_CHK_ERR(rval);

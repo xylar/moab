@@ -8,6 +8,7 @@
 #ifdef MOAB_HAVE_MPI
 #include "moab/ParallelComm.hpp"
 #include "MBParallelConventions.h"
+#include "moab/ParallelMergeMesh.hpp"
 #endif /* MOAB_HAVE_MPI */
 #include "MBTagConventions.hpp"
 // this is for DBL_MAX
@@ -526,7 +527,7 @@ ErrorCode Intx2Mesh::intersect_meshes(EntityHandle mbset1, EntityHandle mbset2,
   // on the boundary edges
   // this needs to be collective, so we should maybe wait something
 #ifdef MOAB_HAVE_MPI
-  rval = correct_intersection_points_positions();MB_CHK_SET_ERR(rval, "can't correct position, Intx2Mesh.cpp \n");
+  rval = resolve_intersection_sharing();MB_CHK_SET_ERR(rval, "can't correct position, Intx2Mesh.cpp \n");
 #endif
   
   this->clean();
@@ -1244,22 +1245,13 @@ ErrorCode Intx2Mesh::create_departure_mesh_3rd_alg(EntityHandle & lagr_set,
 }
 
 
-ErrorCode Intx2Mesh::correct_intersection_points_positions()
+ErrorCode Intx2Mesh::resolve_intersection_sharing()
 {
-  if (parcomm)
+  if (parcomm && parcomm->size()>1)
   {
-    // first, find out the edges that are shared between processors, and owned by the current processor
-    Range shared_edges_owned;
-    ErrorCode rval = parcomm->get_shared_entities(-1, // all other proc
-        shared_edges_owned,
-        1,
-        true, // only on the interface
-        true); // only the edges owned by the current processor
-    ERRORR(rval, "can't get shared edges owned");
-
-    shared_edges_owned = intersect(RedEdges, shared_edges_owned);
-    rval = parcomm->settle_intersection_points(RedEdges, shared_edges_owned, extraNodesVec, epsilon_1);
-    ERRORR(rval, "can't settle intx points");
+    moab::ParallelMergeMesh pm(parcomm, epsilon_1);
+    ErrorCode rval = pm.merge(outSet, false, 1); // resolve only the output set, do not skip local merge, use dim 2
+    ERRORR(rval, "can't merge intersection ");
   }
   return MB_SUCCESS;
 }

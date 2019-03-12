@@ -27,19 +27,22 @@ namespace moab{
   
   //Have a wrapper function on the actual merge to avoid memory leaks
   //Merges elements within a proximity of epsilon
-  ErrorCode ParallelMergeMesh::merge(EntityHandle levelset, bool skip_local_merge)
+  ErrorCode ParallelMergeMesh::merge(EntityHandle levelset, bool skip_local_merge, int dim)
   {
-    ErrorCode rval = PerformMerge(levelset, skip_local_merge);MB_CHK_ERR(rval);
+    ErrorCode rval = PerformMerge(levelset, skip_local_merge, dim);MB_CHK_ERR(rval);
     CleanUp();
     return rval;
   }
 
   //Perform the merge
-  ErrorCode ParallelMergeMesh::PerformMerge(EntityHandle levelset, bool skip_local_merge)
+  ErrorCode ParallelMergeMesh::PerformMerge(EntityHandle levelset, bool skip_local_merge, int dim)
   {
     //Get the mesh dimension
-    int dim;
-    ErrorCode rval = myMB->get_dimension(dim);MB_CHK_ERR(rval);
+    ErrorCode rval ;
+    if (dim <0 )
+    {
+      rval= myMB->get_dimension(dim);MB_CHK_ERR(rval);
+    }
 
     
     //Get the local skin elements
