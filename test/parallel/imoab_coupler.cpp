@@ -264,6 +264,14 @@ int main( int argc, char* argv[] )
   CHECKRC(ierr, "cannot write intx file result" )
 #endif
 
+  // try to write intersection in parallel
+  // this is happening after some intx elements were ghosted; need to filter those out
+  char outputIntxFile[] = "intxAll.h5m";
+
+  ierr = iMOAB_WriteMesh(pid5, outputIntxFile, writeOptions3,
+    strlen(outputIntxFile), strlen(writeOptions3) );
+  CHECKRC(ierr, "cannot write intx mesh in parallel")
+
   // the new graph will be for sending data from atm comp to coverage mesh;
   // it involves initial atm app; pid1; also migrate atm mesh on coupler pes, pid3
   // results are in pid5, intx mesh; remapper also has some info about coverage mesh

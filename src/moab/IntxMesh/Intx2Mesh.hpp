@@ -144,7 +144,7 @@ public:
 #endif
   void correct_polygon(EntityHandle * foundIds, int & nP);
 #ifdef MOAB_HAVE_MPI
-  ErrorCode correct_intersection_points_positions();
+  ErrorCode resolve_intersection_sharing();
 #endif
 #ifdef ENABLE_DEBUG
   void enable_debug()  {dbg_1 = 1;}
