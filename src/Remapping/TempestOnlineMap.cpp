@@ -504,6 +504,19 @@ moab::ErrorCode moab::TempestOnlineMap::SetDofMapAssociation(DiscretizationType 
     return moab::MB_SUCCESS;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+
+int moab::TempestOnlineMap::GetRowGlobalDoF(int localID)
+{
+    return row_gdofmap[ localID ];
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+int moab::TempestOnlineMap::GetColGlobalDoF(int localID)
+{
+    return col_gdofmap[ localID ];
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 
