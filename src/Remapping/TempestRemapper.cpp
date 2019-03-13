@@ -785,7 +785,7 @@ ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius_
                 // source for the source element; then distribute the overlap elements to all processors that have the
                 // coverage mesh used
 #ifdef MOAB_HAVE_MPI
-                if (is_parallel && size > 1) {
+                if (size > 1) {
                     rval = augment_overlap_set(); MB_CHK_ERR ( rval );
                 }
 #endif
