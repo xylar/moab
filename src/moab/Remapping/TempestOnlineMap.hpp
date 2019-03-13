@@ -306,8 +306,18 @@ public:
 	int GetDestinationNDofsPerElement();
 
 	///	<summary>
-	///		Apply the weight matrix onto the source vector provided as input, and return the column vector (solution projection) after the application
-	///     Compute:        \p tgtVals = A * \srcVals, or
+	///		Get the global Degrees-Of-Freedom ID on the destination mesh.
+	///	</summary>
+    int GetRowGlobalDoF(int localID);
+
+	///	<summary>
+	///		Get the global Degrees-Of-Freedom ID on the source mesh.
+	///	</summary>
+    int GetColGlobalDoF(int localID);
+
+	///	<summary>
+	///		Apply the weight matrix onto the source vector provided as input, and return the column vector (solution projection) after the application 
+	///     Compute:        \p tgtVals = A * \srcVals, or 
 	///     if (transpose)  \p tgtVals = A^T * \srcVals
 	///	</summary>
 	moab::ErrorCode ApplyWeights (std::vector<double>& srcVals, std::vector<double>& tgtVals, bool transpose=false);

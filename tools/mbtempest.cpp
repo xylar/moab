@@ -549,8 +549,8 @@ int main ( int argc, char* argv[] )
                 {
                     for (moab::TempestOnlineMap::WeightMatrix::InnerIterator it(weightMat,k); it; ++it,++offset)
                     {
-                        smatrowvals[offset] = it.row();
-                        smatcolvals[offset] = it.col();
+                        smatrowvals[offset] = weightMap->GetRowGlobalDoF ( it.row() );
+                        smatcolvals[offset] = weightMap->GetColGlobalDoF ( it.col() );
                         // std::cout << offset << " : [" << it.row() << ", " << it.col() << "] = " << smatvals[offset] << std::endl;
                     }
                 }
