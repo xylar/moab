@@ -468,23 +468,6 @@ int main ( int argc, char* argv[] )
                                                  );MB_CHK_ERR ( rval );
             ctx.timer_pop();
 
-#if 0
-            // OfflineMap* weightMap;
-            // weightMap = GenerateOfflineMapWithMeshes( NULL, *ctx.meshes[0], *ctx.meshes[1], *ctx.meshes[2],
-            //                         "", "",              // std::string strInputMeta, std::string strOutputMeta,
-            //                         ctx.disc_methods[0], ctx.disc_methods[1],// std::string strInputType, std::string strOutputType,
-            //                         ctx.disc_orders[0], ctx.disc_orders[1],  // int nPin=4, int nPout=4,
-            //                         false, 0,            // bool fBubble=false, int fMonotoneTypeID=0,
-            //                         false, false, (nprocs>1) // bool fVolumetric=false, bool fNoConservation=false, bool fNoCheck=false,
-            //                         // std::string strVariables="", std::string strOutputMap="",
-            //                         // std::string strInputData="", std::string strOutputData="",
-            //                         // std::string strNColName="", bool fOutputDouble=false,
-            //                         // std::string strPreserveVariables="", bool fPreserveAll=false, double dFillValueOverride=0.0
-            //                                                     );
-
-            // weightMap->m_vecSourceDimSizes.resize(ctx.meshes[0]->faces.size());
-            // weightMap->m_vecTargetDimSizes.resize(ctx.meshes[1]->faces.size());
-#endif
 
             /*
                ctx.timer_push ( "apply weights onto a vector" );
@@ -499,11 +482,11 @@ int main ( int argc, char* argv[] )
             if (nprocs == 1) {
                 // free allocated data
                 char outputFileTgt[]  = "fIntxTarget.h5m";
-            #ifdef MOAB_HAVE_MPI
+#ifdef MOAB_HAVE_MPI
                 const char *writeOptions = (nprocs > 1 ? "PARALLEL=WRITE_PART" : "");
-            #else
+#else
                 const char *writeOptions = "";
-            #endif
+#endif
 
                 rval = mbCore->write_file ( outputFileTgt, NULL, writeOptions, &ctx.meshsets[2], 1 ); MB_CHK_ERR ( rval );
 
@@ -511,18 +494,88 @@ int main ( int argc, char* argv[] )
 
             if ( ctx.outFilename.size() )
             {
-                sstr.str("");
                 size_t lastindex = ctx.outFilename.find_last_of(".");
-                sstr << ctx.outFilename.substr(0, lastindex) << "_" << proc_id << ".nc";
-                std::map<std::string, std::string> mapAttributes;
-                mapAttributes["Creator"] = "MOAB mbtempest workflow";
-                if (!ctx.proc_id) std::cout << "Writing offline map to file: " << sstr.str() << std::endl;
-                weightMap->Write(sstr.str().c_str(), mapAttributes);
                 sstr.str("");
-            }
+                sstr << ctx.outFilename.substr(0, lastindex) << ".h5m";
+#ifdef MOAB_HAVE_MPI
+                const char *writeOptions = (nprocs > 1 ? "PARALLEL=WRITE_PART" : "");
+#else
+                const char *writeOptions = "";
+#endif
 
-            // sstr << "newoutWeights_" << proc_id << ".nc";
-            // weightMap->WriteParallelWeightsToFile(sstr.str().c_str());
+                if (ctx.n_procs > 1)
+                {
+                    moab::Range allents;
+                    rval = mbCore->get_entities_by_dimension(ctx.meshsets[2], 2, allents);MB_CHK_SET_ERR(rval, "Getting entities dim 2 failed");
+
+                    moab::Range sharedents;
+                    moab::Tag ghostTag;
+                    std::vector<int> ghFlags(allents.size());
+                    rval = mbCore->tag_get_handle ( "ORIG_PROC", ghostTag ); MB_CHK_ERR ( rval );
+                    rval = mbCore->tag_get_data ( ghostTag,  allents, &ghFlags[0] ); MB_CHK_ERR ( rval );
+                    for (unsigned i=0; i < allents.size(); ++i)
+                        if (ghFlags[i]>=0) // it means it is a ghost overlap element
+                            sharedents.insert(allents[i]); // this should not participate in smat!
+
+                    allents = subtract(allents,sharedents);
+
+                    // Get connectivity from all ghosted elements and filter out
+                    // the vertices that are not owned
+                    moab::Range ownedverts, sharedverts;
+                    rval = mbCore->get_connectivity(allents, ownedverts);MB_CHK_SET_ERR(rval, "Deleting entities dim 0 failed");
+                    rval = mbCore->get_connectivity(sharedents, sharedverts);MB_CHK_SET_ERR(rval, "Deleting entities dim 0 failed");
+                    sharedverts = subtract(sharedverts,ownedverts);                    
+                    rval = mbCore->remove_entities(ctx.meshsets[2], sharedents);MB_CHK_SET_ERR(rval, "Deleting entities dim 2 failed");
+                    rval = mbCore->remove_entities(ctx.meshsets[2], sharedverts);MB_CHK_SET_ERR(rval, "Deleting entities dim 2 failed");
+                    // std::cout << "Removed sharedents = " << sharedents.size() << " and sharedverts = " << sharedverts << std::endl;
+                }
+
+                const moab::TempestOnlineMap::WeightMatrix& weightMat = weightMap->GetWeightMatrix();
+
+                const int weightMatRows = weightMat.rows();
+                const int weightMatCols = weightMat.cols();
+                const int weightMatNNZ = weightMat.nonZeros();
+                moab::Tag tagMapMetaData, tagMapIndexRow, tagMapIndexCol, tagMapValues;
+                rval = mbCore->tag_get_handle("SMAT_DATA", 3, moab::MB_TYPE_INTEGER, tagMapMetaData, moab::MB_TAG_CREAT|moab::MB_TAG_SPARSE);MB_CHK_SET_ERR(rval, "Retrieving tag handles failed");
+                rval = mbCore->tag_get_handle("SMAT_ROWS", weightMatNNZ, moab::MB_TYPE_INTEGER, tagMapIndexRow, moab::MB_TAG_CREAT|moab::MB_TAG_SPARSE|moab::MB_TAG_VARLEN);MB_CHK_SET_ERR(rval, "Retrieving tag handles failed");
+                rval = mbCore->tag_get_handle("SMAT_COLS", weightMatNNZ, moab::MB_TYPE_INTEGER, tagMapIndexCol, moab::MB_TAG_CREAT|moab::MB_TAG_SPARSE|moab::MB_TAG_VARLEN);MB_CHK_SET_ERR(rval, "Retrieving tag handles failed");
+                rval = mbCore->tag_get_handle("SMAT_VALS", weightMatNNZ, moab::MB_TYPE_DOUBLE, tagMapValues, moab::MB_TAG_CREAT|moab::MB_TAG_SPARSE|moab::MB_TAG_VARLEN);MB_CHK_SET_ERR(rval, "Retrieving tag handles failed");
+
+                int loc_smatmetadata[3] = {weightMatRows, weightMatCols, weightMatNNZ};
+                int glb_smatmetadata[3] = {0,0,0};
+                std::vector<int> smatrowvals(weightMatNNZ),smatcolvals(weightMatNNZ);
+                const double* smatvals = weightMat.valuePtr();
+                for (int k=0,offset=0; k < weightMat.outerSize(); ++k)
+                {
+                    for (moab::TempestOnlineMap::WeightMatrix::InnerIterator it(weightMat,k); it; ++it,++offset)
+                    {
+                        smatrowvals[offset] = it.row();
+                        smatcolvals[offset] = it.col();
+                        // std::cout << offset << " : [" << it.row() << ", " << it.col() << "] = " << smatvals[offset] << std::endl;
+                    }
+                }
+
+                MPI_Allreduce(loc_smatmetadata, glb_smatmetadata, 3, MPI_INT, MPI_SUM, pcomm->comm());
+                rval = mbCore->tag_set_data(tagMapMetaData, &ctx.meshsets[2], 1, &glb_smatmetadata[0]);MB_CHK_SET_ERR(rval, "Setting local tag data failed");
+                const int numval = weightMatNNZ;
+                const void* smatrowvals_d = smatrowvals.data();
+                const void* smatcolvals_d = smatcolvals.data();
+                const void* smatvals_d = smatvals;
+                rval = mbCore->tag_set_by_ptr(tagMapIndexRow, &ctx.meshsets[2], 1, &smatrowvals_d, &numval);MB_CHK_SET_ERR(rval, "Setting local tag data failed");
+                rval = mbCore->tag_set_by_ptr(tagMapIndexCol, &ctx.meshsets[2], 1, &smatcolvals_d, &numval);MB_CHK_SET_ERR(rval, "Setting local tag data failed");
+                rval = mbCore->tag_set_by_ptr(tagMapValues, &ctx.meshsets[2], 1, &smatvals_d, &numval);MB_CHK_SET_ERR(rval, "Setting local tag data failed");
+
+                moab::EntityHandle settowrite[2] = {ctx.meshsets[0], ctx.meshsets[2]};
+                rval = mbCore->write_file ( sstr.str().c_str(), NULL, writeOptions, settowrite, 2 ); MB_CHK_ERR ( rval );
+
+                // sstr.str("");
+                // sstr << ctx.outFilename.substr(0, lastindex) << "_" << proc_id << ".nc";
+                // std::map<std::string, std::string> mapAttributes;
+                // mapAttributes["Creator"] = "MOAB mbtempest workflow";
+                // if (!ctx.proc_id) std::cout << "Writing offline map to file: " << sstr.str() << std::endl;
+                // weightMap->Write(sstr.str().c_str(), mapAttributes);
+                // sstr.str("");
+            }
 
             delete weightMap;
         }
