@@ -85,8 +85,7 @@ int main(int argc, char **argv)
                                       coords.size()/3,
                                       verts ); MB_CHK_SET_ERR(rval, "do not create boundary vertices");
 
-  Tag gid;
-  rval = mb->tag_get_handle("GLOBAL_ID", 1, MB_TYPE_INTEGER, gid); MB_CHK_SET_ERR(rval, "can't get global id tag");
+  Tag gid= mb->globalId_tag();
 
   int num_edges=0;
   for (size_t i=0; i<loopsindx.size()/2; i++)

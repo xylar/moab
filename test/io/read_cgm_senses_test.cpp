@@ -163,9 +163,7 @@ int geom_id_by_handle( Interface* moab, const EntityHandle set )
     
     ErrorCode rval;
     //Get the id_tag handle
-    Tag id_tag;
-    rval = moab->tag_get_handle( GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, id_tag, moab::MB_TAG_DENSE );
-    CHECK_ERR(rval);
+    Tag id_tag = moab->globalId_tag();
     //Load the ID for the EntHandle given to the function                  
     int id;
     rval = moab->tag_get_data( id_tag, &set, 1, &id );                  

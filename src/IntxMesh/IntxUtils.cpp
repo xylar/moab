@@ -1242,8 +1242,7 @@ ErrorCode fix_degenerate_quads(Interface * mb, EntityHandle set) {
   Range quads;
   ErrorCode rval = mb->get_entities_by_type(set, MBQUAD, quads); MB_CHK_ERR(rval);
   Tag gid;
-  rval = mb->tag_get_handle(GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, gid,
-        MB_TAG_DENSE); MB_CHK_ERR(rval);
+  gid = mb->globalId_tag();
   for (Range::iterator qit = quads.begin(); qit != quads.end(); ++qit) {
     EntityHandle quad = *qit;
     const EntityHandle * conn4 = NULL;
@@ -1799,10 +1798,7 @@ ErrorCode deep_copy_set(Interface * mb, EntityHandle source_set,
   CHECK_ERR(rval);
 
   // give the same global id to new verts and cells created in the lagr(departure) mesh
-  Tag gid;
-  rval = mb->tag_get_handle(GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, gid,
-      MB_TAG_DENSE);
-  CHECK_ERR(rval);
+  Tag gid =  mb->globalId_tag();
 
   Range polys;
   rval = mb->get_entities_by_dimension(source_set, 2, polys);
@@ -1887,10 +1883,7 @@ ErrorCode deep_copy_set_with_quads(Interface * mb, EntityHandle source_set,
   CHECK_ERR(rval);
 
   // give the same global id to new verts and cells created in the lagr(departure) mesh
-  Tag gid;
-  rval = mb->tag_get_handle(GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, gid,
-      MB_TAG_DENSE);
-  CHECK_ERR(rval);
+  Tag gid = mb->globalId_tag();
 
   Range quads;
   rval = mb->get_entities_by_type(source_set, MBQUAD, quads);

@@ -66,7 +66,7 @@ ErrorCode WriteGmsh::write_file(const char *file_name,
   }
 
   // Get tags
-  mbImpl->tag_get_handle(GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, global_id);
+  global_id = mbImpl->globalId_tag();
   mbImpl->tag_get_handle(MATERIAL_SET_TAG_NAME, 1, MB_TYPE_INTEGER, block_tag);
   if (global_id)
     mbImpl->tag_get_handle(GEOM_DIMENSION_TAG_NAME, 1, MB_TYPE_INTEGER, geom_tag);

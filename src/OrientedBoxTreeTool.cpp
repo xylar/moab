@@ -1540,9 +1540,8 @@ TreeNodePrinter::TreeNodePrinter( std::ostream& stream,
     }
   }
   
-  rval = instance->tag_get_handle( GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, gidTag );
-  if (MB_SUCCESS != rval)
-    gidTag = 0;
+  gidTag = instance->globalId_tag();
+
   rval = instance->tag_get_handle( GEOM_DIMENSION_TAG_NAME, 1, MB_TYPE_INTEGER, geomTag );
   if (MB_SUCCESS != rval)
     geomTag = 0;

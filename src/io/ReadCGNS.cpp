@@ -75,10 +75,7 @@ ErrorCode ReadCGNS::load_file(const char* filename,
   ErrorCode result;
 
   geomSets.clear();
-  result = mbImpl->tag_get_handle(GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER,
-                                  globalId, MB_TAG_DENSE | MB_TAG_CREAT, 0);
-  if (MB_SUCCESS != result)
-    return result;
+  globalId = mbImpl->globalId_tag();
 
   // Create set for more convenient check for material set ids
   std::set<int> blocks;

@@ -145,7 +145,7 @@ ReadNCDF::ReadNCDF(Interface* impl)
 
   //! Get and cache predefined tag handles
   ErrorCode result;
-  const int zero = 0, negone = -1;
+  const int negone = -1;
   result = impl->tag_get_handle(MATERIAL_SET_TAG_NAME, 1, MB_TYPE_INTEGER,
                                 mMaterialSetTag, MB_TAG_SPARSE | MB_TAG_CREAT, &negone);
   assert(MB_SUCCESS == result);
@@ -165,8 +165,8 @@ ReadNCDF::ReadNCDF(Interface* impl)
   result = impl->tag_get_handle("qaRecord", 0, MB_TYPE_OPAQUE, mQaRecordTag,
                                 MB_TAG_SPARSE | MB_TAG_VARLEN | MB_TAG_CREAT);
   assert(MB_SUCCESS == result);
-  result = impl->tag_get_handle(GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER,
-                                mGlobalIdTag, MB_TAG_SPARSE | MB_TAG_CREAT, &zero);
+  mGlobalIdTag = impl->globalId_tag();
+
   assert(MB_SUCCESS == result);
 #ifdef NDEBUG
   if (MB_SUCCESS == result) {}; // Line to avoid compiler warning about unused variable

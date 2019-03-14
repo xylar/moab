@@ -34,7 +34,7 @@ Intx2Mesh::Intx2Mesh(Interface * mbimpl): mb(mbimpl),
 #endif
   , max_edges_1(0), max_edges_2(0), counting(0)
 {
-  mbimpl->tag_get_handle(GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, gid);
+  gid=mbimpl->globalId_tag();
 
 }
 

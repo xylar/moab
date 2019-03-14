@@ -396,8 +396,8 @@ int main(int argc, char* argv[])
   Tag dim_tag, id_tag;
   if (have_geom) 
   {
-    result = gMB->tag_get_handle( GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, id_tag );
-    if (MB_SUCCESS != result) 
+    id_tag = gMB->globalId_tag();
+    if (id_tag == 0)
     {
       std::cerr << "No ID tag defined."  << std::endl;
       have_geom = false;

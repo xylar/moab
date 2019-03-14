@@ -61,14 +61,13 @@ ReadRTT::ReadRTT(Interface* impl)
     assert(NULL != readMeshIface);
 
     // this section copied from ReadCGM initalisation
-    int negone = -1, zero = 0;
+    int negone = -1;
+    double zero = 0.;
     ErrorCode rval;
     rval = MBI->tag_get_handle( GEOM_DIMENSION_TAG_NAME, 1, MB_TYPE_INTEGER,
 				geom_tag, MB_TAG_SPARSE|MB_TAG_CREAT, &negone);
     assert(!rval);
-    rval = MBI->tag_get_handle( GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER,
-				id_tag, MB_TAG_DENSE|MB_TAG_CREAT, &zero);
-    assert(!rval);
+    id_tag = MBI->globalId_tag();
     rval = MBI->tag_get_handle( NAME_TAG_NAME, NAME_TAG_SIZE, MB_TYPE_OPAQUE,
 				name_tag, MB_TAG_SPARSE|MB_TAG_CREAT );
     assert(!rval);

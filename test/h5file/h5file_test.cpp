@@ -226,11 +226,7 @@ EntityHandle make_set( unsigned int options,
   }
     
   ErrorCode rval;
-  Tag id_tag;
-  rval = iface->tag_get_handle( GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, id_tag,
-                                MB_TAG_CREAT|MB_TAG_DENSE );
-  if (MB_SUCCESS != rval)
-    moab_error( "tag_get_handle" );
+  Tag id_tag = iface->globalId_tag();
   
   if (MB_SUCCESS != iface->tag_set_data( id_tag, &handle, 1, &id ))
     moab_error( "tag_set_data" );
@@ -468,12 +464,7 @@ bool compare_sets( int id, const char* tag_name = 0 )
   
   // get sets
  
-  Tag id_tag;
-  if (MB_SUCCESS != iface->tag_get_handle( GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER,id_tag ))
-  {
-    fprintf(stderr, "Could not find global id tag in file.\n");
-    return false;
-  }
+  Tag id_tag = iface->globalId_tag();
   
   Range range;
   const void* tag_data[] = { &id };

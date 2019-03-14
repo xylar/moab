@@ -264,11 +264,7 @@ ErrorCode create_patch(Interface *moab, Range &verts, Range &quads,
   }
   
     // global ids
-  Tag gid_tag;
-  int dum_default = 0;
-  result = moab->tag_get_handle(GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, gid_tag,
-                                MB_TAG_DENSE|MB_TAG_CREAT, &dum_default);
-  if (MB_SUCCESS != result) return result;
+  Tag gid_tag = moab->globalId_tag();
   result = moab->tag_set_data(gid_tag, verts, gids);
   if (MB_SUCCESS != result) return result;
 
@@ -373,13 +369,9 @@ ErrorCode create_shared_grid_3d(ParallelComm **pc, Range *verts, Range *hexes)
   std::vector<double> xyz;
   ErrorCode rval;
   Tag gid_tag;
-  int dum_default = -1;
 
   for (p = 0; p < P; p++) {
-    rval = pc[p]->get_moab()->tag_get_handle(GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER,
-                                             gid_tag, MB_TAG_DENSE|MB_TAG_CREAT,
-                                             &dum_default);
-    if (MB_SUCCESS != rval) return rval;
+    gid_tag = pc[p]->get_moab()->globalId_tag();
 
       // make vertices
     int nverts = nijk[p][0] * nijk[p][1] * nijk[p][2];
@@ -1866,7 +1858,7 @@ void test_pack_shared_entities_3d()
 
   Range verts[4], hexes[4];
   ErrorCode rval = create_shared_grid_3d(pc, verts, hexes);
-  CHECK_EQUAL(MB_ALREADY_ALLOCATED, rval);
+  CHECK_ERR(rval);
 
     // exchange interface cells
   rval = ParallelComm::exchange_ghost_cells(pc, 4, -1, -1, 0, 0, true);

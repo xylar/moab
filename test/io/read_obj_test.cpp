@@ -151,8 +151,7 @@ void test_check_groups()
   // check that 11 mesh sets are created
   // 1 for global vert set + 1 for each of 10 groups
   Range ent_sets, mesh_sets;
-  rval =  mbi->tag_get_handle(GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, id_tag);
-  CHECK_ERR(rval);
+  id_tag = mbi->globalId_tag();
   rval =  mbi->get_entities_by_type_and_tag(0, MBENTITYSET, &id_tag, NULL, 1, ent_sets);
   
   CHECK_EQUAL(11, (int)ent_sets.size());

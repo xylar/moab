@@ -437,7 +437,7 @@ def test_create_elements():
     global_id_tag = mb.tag_get_handle(types.GLOBAL_ID_TAG_NAME,1,types.MB_TYPE_INTEGER,types.MB_TAG_DENSE,True)
     tri_id = mb.tag_get_data(global_id_tag, tris)
     CHECK_EQ(len(tri_id),1)
-    CHECK_EQ(tri_id[0],0)
+    CHECK_EQ(tri_id[0],-1)
 
 
 

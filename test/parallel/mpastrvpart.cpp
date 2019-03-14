@@ -157,9 +157,7 @@ void read_one_cell_var(bool rcbzoltan, bool no_mixed_elements)
   rval = mb.get_entities_by_type(0, MBPOLYGON, local_cells);
   CHECK_ERR(rval);
 
-  Tag gid_tag;
-  rval = mb.tag_get_handle(GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, gid_tag, MB_TAG_DENSE);
-  CHECK_ERR(rval);
+  Tag gid_tag = mb.globalId_tag();
 
   std::vector<int> gids(local_cells.size());
   rval = mb.tag_get_data(gid_tag, local_cells, &gids[0]);
@@ -467,8 +465,7 @@ void gather_one_cell_var(int gather_set_rank)
   rval = mb.tag_get_handle("ke0", 1, MB_TYPE_DOUBLE, ke_tag0, MB_TAG_DENSE);
   CHECK_ERR(rval);
 
-  rval = mb.tag_get_handle(GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, gid_tag, MB_TAG_DENSE);
-  CHECK_ERR(rval);
+  gid_tag = mb.globalId_tag();
 
   pcomm->gather_data(cells_owned, ke_tag0, gid_tag, gather_set, gather_set_rank);
 

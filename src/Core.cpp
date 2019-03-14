@@ -2639,10 +2639,10 @@ Tag Core::dirichletBC_tag()
 
 Tag Core::globalId_tag()
 {
-  const int zero = 0;
+  const int negone = -1;
   if (0 == globalIdTag)
     tag_get_handle(GLOBAL_ID_TAG_NAME, 1,
-                   MB_TYPE_INTEGER, globalIdTag,MB_TAG_CREAT|MB_TAG_DENSE, &zero);
+                   MB_TYPE_INTEGER, globalIdTag,MB_TAG_CREAT|MB_TAG_DENSE, &negone);
   return globalIdTag;
 }
 

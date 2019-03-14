@@ -1227,12 +1227,7 @@ static bool do_ray_fire_test( OrientedBoxTreeTool& tool,
       }
       
       
-      Tag idtag;
-      rval = tool.get_moab_instance()->tag_get_handle( GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, idtag );
-      if (MB_SUCCESS != rval) {
-        std::cout << "NO GLOBAL_ID TAG." << std::endl;
-        continue;
-      }
+      Tag idtag = tool.get_moab_instance()->globalId_tag();
       std::vector<int> ids(surfaces.size());
       rval = tool.get_moab_instance()->tag_get_data( idtag, &surfaces[0], surfaces.size(), &ids[0] );
       if (MB_SUCCESS != rval) {

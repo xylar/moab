@@ -59,9 +59,7 @@ GeomTopoTool::GeomTopoTool(Interface *impl, bool find_geoments, EntityHandle mod
   
   // global id tag is not really needed, but mbsize complains if we do not set it for
   // geometry entities
-  rval = mdbImpl->tag_get_handle(GLOBAL_ID_TAG_NAME, 1, 
-        MB_TYPE_INTEGER, gidTag, MB_TAG_CREAT|MB_TAG_DENSE);
-  MB_CHK_SET_ERR_CONT(rval,  "Error: Failed to create global id tag");
+  gidTag=mdbImpl->globalId_tag();
 
   rval = mdbImpl->tag_get_handle(NAME_TAG_NAME, NAME_TAG_SIZE,
       MB_TYPE_OPAQUE, nameTag, MB_TAG_CREAT|MB_TAG_SPARSE);
@@ -127,11 +125,7 @@ int GeomTopoTool::global_id(EntityHandle this_set)
 {
   ErrorCode result;
   if (0 == gidTag) {
-    result = mdbImpl->tag_get_handle(GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, gidTag);
-    MB_CHK_SET_ERR_CONT(result, "Failed to get the global id tag");
-    if (MB_SUCCESS != result) {
-      return -1;
-    }
+    gidTag = mdbImpl->globalId_tag();
   }
 
   // check if the geo set belongs to this model
@@ -761,8 +755,7 @@ ErrorCode GeomTopoTool::separate_by_dimension(const Range &geom_sets)
 
   // establish the max global ids so far, per dimension
   if (0 == gidTag) {
-    result = mdbImpl->tag_get_handle(GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, gidTag);
-    MB_CHK_SET_ERR(result, "Failed to get the global id tag handle");
+    gidTag = mdbImpl->globalId_tag();
   }
 
   for (int i=0; i<=4; i++)
@@ -1244,8 +1237,7 @@ ErrorCode GeomTopoTool::add_geo_set(EntityHandle set, int dim, int gid)
   }
 
   if (0 == gidTag) {
-    result = mdbImpl->tag_get_handle(GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, gidTag);
-    MB_CHK_SET_ERR(result, "Failed to get the global id tag handle");
+    gidTag = mdbImpl->globalId_tag();
   }
 
   // make sure the added set has the geom tag properly set
@@ -1553,9 +1545,7 @@ ErrorCode GeomTopoTool::duplicate_model(GeomTopoTool *& duplicate, std::vector<E
     
   }
   if (0 == gidTag) {
-    rval = mdbImpl->tag_get_handle(GLOBAL_ID_TAG_NAME, 1,MB_TYPE_INTEGER, gidTag);
-    MB_CHK_SET_ERR(rval, "Failed to get the global id tag handle");
-    
+    gidTag = mdbImpl->globalId_tag();
   }
   // extract from the geomSet the dimension, children, and grand-children
   Range depSets;// dependents of the geomSet, including the geomSet

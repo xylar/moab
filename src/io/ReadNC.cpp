@@ -41,15 +41,12 @@ ErrorCode ReadNC::load_file(const char* file_name, const EntityHandle* file_set,
   std::vector<double> tstep_vals;
 
   // Get and cache predefined tag handles
-  int dum_val = 0;
-  ErrorCode rval = mbImpl->tag_get_handle(GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, mGlobalIdTag, MB_TAG_DENSE | MB_TAG_CREAT,
-                                &dum_val);MB_CHK_SET_ERR(rval, "Trouble getting global ID tag");
-
+  mGlobalIdTag = mbImpl->globalId_tag();
   // Store the pointer to the tag; if not null, set when global id tag
   // is set too, with the same data, duplicated
   mpFileIdTag = file_id_tag;
 
-  rval = parse_options(opts, var_names, tstep_nums, tstep_vals);MB_CHK_SET_ERR(rval, "Trouble parsing option string");
+  ErrorCode rval = parse_options(opts, var_names, tstep_nums, tstep_vals);MB_CHK_SET_ERR(rval, "Trouble parsing option string");
 
   // Open the file
   dbgOut.tprintf(1, "Opening file %s\n", file_name);

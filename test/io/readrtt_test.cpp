@@ -73,11 +73,7 @@ void test_meshset_tags_1() {
   ErrorCode rval = moab.get_entities_by_type(0,moab::MBENTITYSET,entities);
   CHECK_ERR(rval);
 
-  Tag id_tag;
-  // get the tag handle
-  rval = moab.tag_get_handle(GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER,
-			     id_tag, MB_TAG_DENSE|MB_TAG_CREAT);
-  CHECK_ERR(rval);
+  Tag id_tag = moab.globalId_tag();
 
   // get the entities that are tagged
   rval = moab.get_entities_by_type_and_tag(0,moab::MBENTITYSET,&id_tag,0,1,entities);
@@ -248,11 +244,7 @@ void test_meshset_tags_2() {
   ErrorCode rval = moab.get_entities_by_type(0,moab::MBENTITYSET,entities);
   CHECK_ERR(rval);
 
-  Tag id_tag;
-  // get the tag handle
-  rval = moab.tag_get_handle(GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER,
-			     id_tag, MB_TAG_DENSE|MB_TAG_CREAT);
-  CHECK_ERR(rval);
+  Tag id_tag = moab.globalId_tag();
 
   // get the entities that are tagged
   rval = moab.get_entities_by_type_and_tag(0,moab::MBENTITYSET,&id_tag,0,1,entities);

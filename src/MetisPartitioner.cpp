@@ -396,10 +396,8 @@ ErrorCode MetisPartitioner::assemble_graph(const int dimension,
   double avg_position[3];
   int moab_id;
 
-    // get the global id tag hanlde
-  Tag gid;
-  result = mbImpl->tag_get_handle(GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER,
-                                  gid, MB_TAG_DENSE|MB_TAG_CREAT);MB_CHK_ERR(result);
+    // get the global id tag handle
+  Tag gid = mbImpl->globalId_tag();
 
   for (Range::iterator rit = elems.begin(); rit != elems.end(); rit++) {
 

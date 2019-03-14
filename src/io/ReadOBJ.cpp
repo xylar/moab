@@ -76,9 +76,7 @@ ReadOBJ::ReadOBJ(Interface* impl)
       			geom_tag, MB_TAG_SPARSE|MB_TAG_CREAT, &negone);
   MB_CHK_ERR_RET(rval);
 
-  rval = MBI->tag_get_handle( GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER,
-      			id_tag, MB_TAG_DENSE|MB_TAG_CREAT, &zero);
-  MB_CHK_ERR_RET(rval);
+  id_tag = MBI->globalId_tag();
 
   rval = MBI->tag_get_handle( NAME_TAG_NAME, NAME_TAG_SIZE, MB_TYPE_OPAQUE,
       			name_tag, MB_TAG_SPARSE|MB_TAG_CREAT );

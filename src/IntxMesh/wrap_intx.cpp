@@ -225,9 +225,8 @@ ErrorCode create_coarse_mesh(Interface * mb, ParallelComm * pcomm,
   int rank = pcomm->proc_config().proc_rank();
 
   Tag tagid; // global id at corners
-  ErrorCode rval = mb->tag_get_handle(GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER,
-      tagid, MB_TAG_DENSE | MB_TAG_CREAT);
-  ERRORR(rval, "can't create corner tag ");
+  ErrorCode rval ;
+  tagid = mb->globalId_tag();
 
   int dum_id = -1;
   Tag partitionTag;

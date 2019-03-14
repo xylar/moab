@@ -244,7 +244,7 @@ void print_partitioned_entities( Interface& moab, bool list_non_shared = false )
     // entities with
   Tag geom_tag, id_tag;
   rval = moab.tag_get_handle( GEOM_DIMENSION_TAG_NAME, 1, MB_TYPE_INTEGER, geom_tag ); CHECK_ERR(rval);
-  rval = moab.tag_get_handle( GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, id_tag ); CHECK_ERR(rval);
+  id_tag = moab.globalId_tag();
   const char* topo_names_s[] = { "Vertex", "Curve", "Surface", "Volume" };
 //  const char* topo_names_p[] = { "Vertices", "Curves", "Surfaces", "Volumes" };
   std::ostringstream buffer; // buffer output in an attempt to prevent lines from different processsors being mixed up.
@@ -1472,10 +1472,7 @@ void test_write_unbalanced()
   Core moab;
   Interface &mb = moab;
   ErrorCode rval;
-  Tag idtag;
-  
-  rval = mb.tag_get_handle( GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, idtag, MB_TAG_CREAT );
-  CHECK_ERR(rval);
+  Tag idtag = mb.globalId_tag();
   
     // create a shared set
   const int two = 2;

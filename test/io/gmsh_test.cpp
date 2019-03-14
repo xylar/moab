@@ -73,9 +73,7 @@ void test_read_nodes()
   CHECK_ERR(rval);
   CHECK_EQUAL( (size_t)6, nodes.size() );
 
-  Tag id_tag;
-  rval = mb.tag_get_handle( GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, id_tag );
-  CHECK_ERR(rval);
+  Tag id_tag = mb.globalId_tag();
 
   std::vector<int> ids(nodes.size());
   rval = mb.tag_get_data( id_tag, &nodes[0], nodes.size(), &ids[0] );
@@ -144,9 +142,7 @@ void test_read_quads()
   CHECK_ERR(rval);
   CHECK_EQUAL( (size_t)2, quads.size() );
 
-  Tag id_tag;
-  rval = mb.tag_get_handle( GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, id_tag );
-  CHECK_ERR(rval);
+  Tag id_tag = mb.globalId_tag();
 
   std::vector<int> ids(quads.size());
   rval = mb.tag_get_data( id_tag, &quads[0], quads.size(), &ids[0] );
@@ -253,8 +249,7 @@ void test_read_geom_set()
   Tag dim_tag, id_tag;
   rval = mb.tag_get_handle( GEOM_DIMENSION_TAG_NAME, 1, MB_TYPE_INTEGER, dim_tag );
   CHECK_ERR(rval);
-  rval = mb.tag_get_handle( GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, id_tag );
-  CHECK_ERR(rval);
+  id_tag = mb.globalId_tag();
 
   Range sets;
   rval = mb.get_entities_by_type_and_tag( 0, MBENTITYSET, &dim_tag, 0, 1, sets );

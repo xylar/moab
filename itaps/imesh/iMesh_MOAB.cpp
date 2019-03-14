@@ -3344,11 +3344,7 @@ void iMesh_createStructuredMesh(iMesh_Instance instance,
   Tag gid_tag = 0;
   int *v_gid_data = NULL, *e_gid_data = NULL;
   if (vert_gids || elem_gids) {
-    rval = MOABI->tag_get_handle(GLOBAL_ID_TAG_NAME,
-                                 1, MB_TYPE_INTEGER,
-                                 gid_tag,
-                                 MB_TAG_DENSE|MB_TAG_CREAT);
-    CHKERR(rval, "Couldn't get GLOBAL_ID tag.");
+    gid_tag = MOABI->globalId_tag();
   }
   
   if (vert_gids) {
