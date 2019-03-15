@@ -26,7 +26,7 @@
 #include "moab/Skinner.hpp"
 #include "MBParallelConventions.h"
 
-#define VERBOSE
+// #define VERBOSE
 
 namespace moab
 {
