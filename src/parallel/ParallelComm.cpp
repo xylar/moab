@@ -5748,7 +5748,7 @@ ErrorCode ParallelComm::get_remote_handles(EntityHandle *local_vec, EntityHandle
       }
 
       myDebug->tprintf(1, "Total number of shared entities = %lu.\n", (unsigned long)sharedEnts.size());
-      myDebug->tprintf(1, "Exiting exchange_ghost_cells\n");
+      myDebug->tprintf(1, "Exiting exchange_ghost_cells for is_iface==true \n");
 
       return MB_SUCCESS;
     }
@@ -5865,7 +5865,7 @@ ErrorCode ParallelComm::get_remote_handles(EntityHandle *local_vec, EntityHandle
     }
 
     myDebug->tprintf(1, "Total number of shared entities = %lu.\n", (unsigned long)sharedEnts.size());
-    myDebug->tprintf(1, "Exiting exchange_ghost_cells\n");
+    myDebug->tprintf(1, "Exiting exchange_ghost_cells for is_iface==false \n");
 
     return MB_SUCCESS;
   }
@@ -9078,4 +9078,8 @@ ErrorCode ParallelComm::get_remote_handles(EntityHandle *local_vec, EntityHandle
     std::cout << str.c_str() << std::endl;
   }
 
+ErrorCode ParallelComm::correct_thin_ghost_layers()
+{
+  return MB_SUCCESS;
+}
 } // namespace moab

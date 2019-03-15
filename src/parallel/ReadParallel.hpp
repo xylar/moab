@@ -74,7 +74,8 @@ public:
                         PA_RESOLVE_SHARED_SETS=8,
                         PA_AUGMENT_SETS_WITH_GHOSTS=9,
                         PA_PRINT_PARALLEL=10,
-                        PA_CREATE_TRIVIAL_PARTITION=11
+                        PA_CREATE_TRIVIAL_PARTITION=11,
+                        PA_CORRECT_THIN_GHOSTS=12
                        };
 
   static const char *ParallelActionsNames[];
