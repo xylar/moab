@@ -1252,6 +1252,67 @@ ErrorCode Intx2Mesh::resolve_intersection_sharing()
     moab::ParallelMergeMesh pm(parcomm, epsilon_1);
     ErrorCode rval = pm.merge(outSet, false, 1); // resolve only the output set, do not skip local merge, use dim 2
     ERRORR(rval, "can't merge intersection ");
+
+    // look at non-owned shared vertices, that could be part of original source set
+    // they should be removed from intx set reference, because they might not have a correspondent
+    // on the other task
+    Range nonOwnedVerts;
+    Range vertsInIntx;
+    Range intxCells;
+    rval = mb->get_entities_by_dimension(outSet, 2, intxCells); MB_CHK_ERR(rval);
+    rval = mb->get_connectivity(intxCells, vertsInIntx);MB_CHK_ERR(rval);
+
+    rval = parcomm->filter_pstatus(vertsInIntx, PSTATUS_NOT_OWNED, PSTATUS_AND, -1, &nonOwnedVerts);MB_CHK_ERR(rval);
+
+    // some of these vertices can be in original set 1, which was covered, transported;
+    // but they should not be "shared" from the intx point of view, because they are not shared with another task
+    // they might have come from coverage as a plain vertex, so losing the sharing property ?
+
+    Range coverVerts;
+    rval = mb->get_connectivity(rs1, coverVerts); MB_CHK_ERR(rval);
+    // find out those that are on the interface
+    Range vertsCovInterface;
+    rval = parcomm->filter_pstatus(coverVerts, PSTATUS_INTERFACE, PSTATUS_AND, -1, &vertsCovInterface);MB_CHK_ERR(rval);
+    // how many of these are in
+    Range nodesToDuplicate = intersect(vertsCovInterface, nonOwnedVerts);
+    // first, get all cells connected to these vertices, from intxCells
+
+    Range connectedCells;
+    rval = mb->get_adjacencies(nodesToDuplicate, 2, false, connectedCells, Interface::UNION); MB_CHK_ERR(rval);
+    // only those in intx set:
+    connectedCells = intersect(connectedCells, intxCells);
+    // first duplicate vertices in question:
+    std::map<EntityHandle, EntityHandle>  duplicatedVerticesMap;
+    for (Range::iterator vit=nodesToDuplicate.begin(); vit!=nodesToDuplicate.end(); vit++)
+    {
+      EntityHandle vertex = *vit;
+      double coords[3];
+      rval = mb->get_coords(&vertex, 1, coords); MB_CHK_ERR(rval);
+      EntityHandle newVertex;
+      rval = mb->create_vertex(coords, newVertex);  MB_CHK_ERR(rval);
+      duplicatedVerticesMap[vertex] = newVertex;
+    }
+
+    // look now at connectedCells, and change their connectivities:
+    for (Range::iterator eit=connectedCells.begin(); eit!=connectedCells.end(); eit++)
+    {
+      EntityHandle intxCell = *eit;
+      // replace connectivity
+      std::vector<EntityHandle> connectivity;
+      rval = mb->get_connectivity(&intxCell, 1, connectivity); MB_CHK_ERR(rval);
+      for (size_t i=0; i<connectivity.size(); i++)
+      {
+        EntityHandle currentVertex = connectivity[i];
+        std::map<EntityHandle, EntityHandle>::iterator mit = duplicatedVerticesMap.find(currentVertex);
+        if (mit!=duplicatedVerticesMap.end())
+        {
+          connectivity[i]=mit->second; // replace connectivity directly
+        }
+      }
+      int nnodes = (int)connectivity.size();
+      rval = mb->set_connectivity(intxCell, &connectivity[0], nnodes); MB_CHK_ERR(rval);
+
+    }
   }
   return MB_SUCCESS;
 }

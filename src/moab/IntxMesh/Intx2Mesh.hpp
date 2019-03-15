@@ -144,6 +144,7 @@ public:
 #endif
   void correct_polygon(EntityHandle * foundIds, int & nP);
 #ifdef MOAB_HAVE_MPI
+  // share vertices between the intersection target domains
   ErrorCode resolve_intersection_sharing();
 #endif
 #ifdef ENABLE_DEBUG
