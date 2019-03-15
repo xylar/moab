@@ -8374,7 +8374,7 @@ ErrorCode ParallelComm::get_remote_handles(EntityHandle *local_vec, EntityHandle
 
   ErrorCode ParallelComm::check_local_shared()
   {
-    // Do some local checks on shared entities to make sure things look
+    // Do some checks on shared entities to make sure things look
     // consistent
 
     // Check that non-vertex shared entities are shared by same procs as all
@@ -8554,7 +8554,7 @@ ErrorCode ParallelComm::get_remote_handles(EntityHandle *local_vec, EntityHandle
           bad_ents.insert(localh);
         result = get_pstatus(localh, tmp_pstat);
         if (MB_SUCCESS != result ||
-            (!tmp_pstat&PSTATUS_NOT_OWNED && (unsigned)vit->owner != rank()) ||
+            (!(tmp_pstat&PSTATUS_NOT_OWNED) && (unsigned)vit->owner != rank()) ||
             (tmp_pstat&PSTATUS_NOT_OWNED && (unsigned)vit->owner == rank()))
           bad_ents.insert(localh);
       }
@@ -9080,6 +9080,121 @@ ErrorCode ParallelComm::get_remote_handles(EntityHandle *local_vec, EntityHandle
 
 ErrorCode ParallelComm::correct_thin_ghost_layers()
 {
+
+  // Get all shared ent data from other procs
+  std::vector<std::vector<SharedEntityData> > shents(buffProcs.size()),
+    send_data(buffProcs.size());
+
+  // will work only on multi-shared tags
+  //  sharedps_tag();
+  //  sharedhs_tag();
+
+  // we will piggyback on the code from pack_shared_handles to
+  // send information about multishared ents that might not be yet available
+  // to more distant entities;
+  // this happens for thin layers when we ghost
+  /*
+   *   domain0 | domain1 | domain2 | domain3
+   *   vertices from domain 1 and 2 are visible form both 0 and 3, but
+   *   domain 0 might not have info about multi-sharing from domain 3
+   *   so we will force that domain 0 vertices owned by 1 and 2 have information
+   *   about the domain 3 sharing
+   *
+   *   SharedEntityData will have :
+   *    struct SharedEntityData {
+          EntityHandle local;  // this is same meaning, for the proc we sent to, it is local
+          EntityHandle remote; // this will be the far away handle that will need to be added
+          EntityID owner;      // this will be the remote proc
+        };
+        // so we need to add data like this:
+         a multishared entity owned by proc x will have data like
+           multishared procs:  proc x, a, b, c
+           multishared handles:     h1, h2, h3, h4
+           we will need to send data from proc x like this:
+             to proc a we will send
+               (h2, h3, b), (h2, h4, c)
+             to proc b we will send
+                (h3, h2, a), (h3, h4, c)
+             to proc c we will send
+                (h4, h2, a), (h4, h3, b)
+   *
+   */
+  //result = pack_shared_handles(send_data);
+  //MB_CHK_ERR(result);
+  //  copy from pack_shared_handles
+  // Build up send buffers
+  ErrorCode result = MB_SUCCESS;
+  int ent_procs[MAX_SHARING_PROCS];
+  EntityHandle handles[MAX_SHARING_PROCS];
+  int num_sharing;
+  SharedEntityData tmp;
+  //send_data.resize(buffProcs.size());
+  for (std::set<EntityHandle>::iterator i = sharedEnts.begin(); i != sharedEnts.end(); ++i) {
+
+    unsigned char pstat;
+    result = get_sharing_data(*i, ent_procs, handles, pstat, num_sharing);MB_CHK_SET_ERR(result, "can't get sharing data");
+    if ( !(pstat&PSTATUS_MULTISHARED) || num_sharing<=2 ) // if not multishared, skip, it should have no problems
+      continue;
+    // we should skip the ones that are not owned locally
+    // the owned ones will have the most multi-shared info, because the info comes from other
+    // remoter processors
+    if ( pstat&PSTATUS_NOT_OWNED)
+      continue;
+    for (int j = 1; j < num_sharing; j++) {
+      // we will send to proc
+      int send_to_proc = ent_procs[j]; //
+      tmp.local = handles[j];
+      int ind = get_buffers(send_to_proc);
+      assert(-1 != ind); // THIS SHOULD NEVER HAPPEN
+      for(int k=1; k< num_sharing; k++)
+      {
+        // do not send to self proc
+        if (j==k)
+          continue;
+        tmp.remote = handles[k]; // this will be the handle of entity on proc
+        tmp.owner = ent_procs[k];
+        send_data[ind].push_back(tmp);
+      }
+    }
+  }
+
+  result = exchange_all_shared_handles(send_data, shents);
+  MB_CHK_ERR(result);
+
+  // loop over all shents and add if vertex type, add if missing
+  for (size_t i=0; i<shents.size(); i++)
+  {
+    std::vector<SharedEntityData> &shEnts=shents[i];
+    for (size_t j=0; j<shEnts.size(); j++)
+    {
+      tmp = shEnts[j];
+      // basically, check the shared data for tmp.local entity
+      // it should have inside the tmp.owner and tmp.remote
+      EntityHandle eh = tmp.local;
+      unsigned char pstat;
+      result = get_sharing_data(eh, ent_procs, handles, pstat, num_sharing);MB_CHK_SET_ERR(result, "can't get sharing data");
+      // see if the proc tmp.owner is in the list of ent_procs; if not, we have to increase handles, and ent_procs; and set
+      // copy from usage in build_sharedhps_list
+      // std::find(tmp_procs, tmp_procs + tmp_ps, *sit) != tmp_procs + tmp_ps)
+      int proc_remote = tmp.owner; //
+      if( std::find(ent_procs, ent_procs + num_sharing, proc_remote) == ent_procs + num_sharing )
+      {
+        // so we did not find on proc
+        std::cout << "THIN GHOST: we did not find on proc " << rank() << " for shared ent " << eh << " the proc " << proc_remote << "\n";
+        // increase num_sharing, and set the multi-shared tags
+        if (num_sharing >= MAX_SHARING_PROCS)
+           return MB_FAILURE;
+        handles[num_sharing] = tmp.remote;
+        handles[num_sharing+1] = 0; // end of list
+        ent_procs[num_sharing]= tmp.owner;
+        ent_procs[num_sharing+1] = -1; // this should be already set
+        result = mbImpl->tag_set_data(sharedps_tag(), &eh, 1, ent_procs);MB_CHK_SET_ERR(result, "Failed to set sharedps tag data");
+        result = mbImpl->tag_set_data(sharedhs_tag(), &eh, 1, handles);MB_CHK_SET_ERR(result, "Failed to set sharedps tag data");
+      }
+
+
+    }
+  }
   return MB_SUCCESS;
 }
 } // namespace moab

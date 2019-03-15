@@ -608,7 +608,7 @@ ErrorCode ReadParallel::load_file(const char **file_names,
 //==================
       case PA_CORRECT_THIN_GHOSTS:
           myDebug.tprint(1, "correcting thin ghost layers.\n");
-          if (2 <= myPcomm->size())
+          if (2 >= myPcomm->size()) // it is a problem only for multi-shared entities
             tmp_result = MB_SUCCESS;
           else
             tmp_result = myPcomm->correct_thin_ghost_layers();

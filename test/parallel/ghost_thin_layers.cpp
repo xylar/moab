@@ -25,7 +25,7 @@ void test_correct_ghost()
   ParallelComm* pcomm = new ParallelComm(mb, MPI_COMM_WORLD);
 
 
-  char read_opts[]="PARALLEL=READ_PART;PARALLEL_RESOLVE_SHARED_ENTS;PARTITION=PARALLEL_PARTITION;PARALLEL_GHOSTS=2.0.1;";
+  char read_opts[]="PARALLEL=READ_PART;PARALLEL_RESOLVE_SHARED_ENTS;PARTITION=PARALLEL_PARTITION;PARALLEL_GHOSTS=2.0.1;DEBUG_IO=2";
   rval = mb->load_file(filename.c_str() , 0, read_opts);CHECK_ERR(rval);
 
   if (nproc >= 3)
@@ -33,11 +33,14 @@ void test_correct_ghost()
     rval = pcomm-> correct_thin_ghost_layers();
     CHECK_ERR(rval);
   }
+
+  rval = pcomm->exchange_ghost_cells(2, 0, 2, 0, true); CHECK_ERR(rval);// true to store remote handles
+
   // write in serial the database , on each rank
   std::ostringstream outfile;
   outfile <<"testReadThin_n" <<nproc<<"."<< rank<<".h5m";
 
-  rval = mb->write_file(outfile.str().c_str()); // everything on root
+  rval = mb->write_file(outfile.str().c_str()); // everything on local root
   CHECK_ERR(rval);
   delete mb;
 }
@@ -50,15 +53,19 @@ void test_read_with_thin_ghost_layer()
   moab::Core *mb = new moab::Core();
 
   ErrorCode rval = MB_SUCCESS;
+  // Get the ParallelComm instance
+  ParallelComm* pcomm = new ParallelComm(mb, MPI_COMM_WORLD);
 
   char read_opts[]="PARALLEL=READ_PART;PARALLEL_RESOLVE_SHARED_ENTS;PARTITION=PARALLEL_PARTITION;PARALLEL_GHOSTS=2.0.1;PARALLEL_THIN_GHOST_LAYER;";
   rval = mb->load_file(filename.c_str() , 0, read_opts);CHECK_ERR(rval);
+
+  rval = pcomm->exchange_ghost_cells(2, 0, 2, 0, true); CHECK_ERR(rval);// true to store remote handles
 
   // write in serial the database , on each rank
   std::ostringstream outfile;
   outfile <<"testReadGhost_n" <<nproc<<"."<< rank<<".h5m";
 
-  rval = mb->write_file(outfile.str().c_str()); // everything on root
+  rval = mb->write_file(outfile.str().c_str()); // everything on local root
   CHECK_ERR(rval);
   delete mb;
 }
