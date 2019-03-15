@@ -506,20 +506,6 @@ moab::ErrorCode moab::TempestOnlineMap::SetDofMapAssociation(DiscretizationType 
 
 ///////////////////////////////////////////////////////////////////////////////
 
-int moab::TempestOnlineMap::GetRowGlobalDoF(int localID)
-{
-    return row_gdofmap[ localID ];
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
-int moab::TempestOnlineMap::GetColGlobalDoF(int localID)
-{
-    return col_gdofmap[ localID ];
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
 moab::ErrorCode moab::TempestOnlineMap::GenerateRemappingWeights ( std::string strInputType, std::string strOutputType,
         const int nPin, const int nPout,
         bool fBubble, int fMonotoneTypeID,
@@ -1837,5 +1823,116 @@ moab::ErrorCode moab::TempestOnlineMap::GatherAllToRoot()   // Collective
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+
+moab::ErrorCode moab::TempestOnlineMap::WriteParallelMap (std::string strOutputFile)  const
+{
+    moab::ErrorCode rval;
+
+    moab::EntityHandle m_meshOverlapSet = m_remapper->GetMeshSet ( moab::Remapper::IntersectedMesh );
+
+#if 0
+#ifdef MOAB_HAVE_MPI
+    // Remove entities in the intersection mesh that are part of the ghosted overlap
+    if (ctx.n_procs > 1)
+    {
+        moab::Range allents;
+        rval = mbCore->get_entities_by_dimension(m_meshOverlapSet, 2, allents);MB_CHK_SET_ERR(rval, "Getting entities dim 2 failed");
+
+        moab::Range sharedents;
+        moab::Tag ghostTag;
+        std::vector<int> ghFlags(allents.size());
+        rval = mbCore->tag_get_handle ( "ORIG_PROC", ghostTag ); MB_CHK_ERR ( rval );
+        rval = mbCore->tag_get_data ( ghostTag,  allents, &ghFlags[0] ); MB_CHK_ERR ( rval );
+        for (unsigned i=0; i < allents.size(); ++i)
+            if (ghFlags[i]>=0) // it means it is a ghost overlap element
+                sharedents.insert(allents[i]); // this should not participate in smat!
+
+        allents = subtract(allents,sharedents);
+
+        // Get connectivity from all ghosted elements and filter out
+        // the vertices that are not owned
+        moab::Range ownedverts, sharedverts;
+        rval = mbCore->get_connectivity(allents, ownedverts);MB_CHK_SET_ERR(rval, "Deleting entities dim 0 failed");
+        rval = mbCore->get_connectivity(sharedents, sharedverts);MB_CHK_SET_ERR(rval, "Deleting entities dim 0 failed");
+        sharedverts = subtract(sharedverts,ownedverts);                    
+        rval = mbCore->remove_entities(m_meshOverlapSet, sharedents);MB_CHK_SET_ERR(rval, "Deleting entities dim 2 failed");
+        rval = mbCore->remove_entities(m_meshOverlapSet, sharedverts);MB_CHK_SET_ERR(rval, "Deleting entities dim 2 failed");
+    }
+#endif
+#endif
+
+    const int weightMatNNZ = m_weightMatrix.nonZeros();
+    moab::Tag tagMapMetaData, tagMapIndexRow, tagMapIndexCol, tagMapValues;
+    rval = mbCore->tag_get_handle("SMAT_DATA", 3, moab::MB_TYPE_INTEGER, tagMapMetaData, moab::MB_TAG_CREAT|moab::MB_TAG_SPARSE);MB_CHK_SET_ERR(rval, "Retrieving tag handles failed");
+    rval = mbCore->tag_get_handle("SMAT_ROWS", weightMatNNZ, moab::MB_TYPE_INTEGER, tagMapIndexRow, moab::MB_TAG_CREAT|moab::MB_TAG_SPARSE|moab::MB_TAG_VARLEN);MB_CHK_SET_ERR(rval, "Retrieving tag handles failed");
+    rval = mbCore->tag_get_handle("SMAT_COLS", weightMatNNZ, moab::MB_TYPE_INTEGER, tagMapIndexCol, moab::MB_TAG_CREAT|moab::MB_TAG_SPARSE|moab::MB_TAG_VARLEN);MB_CHK_SET_ERR(rval, "Retrieving tag handles failed");
+    rval = mbCore->tag_get_handle("SMAT_VALS", weightMatNNZ, moab::MB_TYPE_DOUBLE, tagMapValues, moab::MB_TAG_CREAT|moab::MB_TAG_SPARSE|moab::MB_TAG_VARLEN);MB_CHK_SET_ERR(rval, "Retrieving tag handles failed");
+
+    std::vector<int> smatrowvals(weightMatNNZ),smatcolvals(weightMatNNZ);
+    const double* smatvals = m_weightMatrix.valuePtr();
+    int maxrow=0, maxcol=0, offset=0;
+    for (int k=0; k < m_weightMatrix.outerSize(); ++k)
+    {
+        for (moab::TempestOnlineMap::WeightMatrix::InnerIterator it(m_weightMatrix,k); it; ++it)
+        {
+            smatrowvals[offset] = this->GetRowGlobalDoF ( it.row() );
+            smatcolvals[offset] = this->GetColGlobalDoF ( it.col() );
+            maxrow = (smatrowvals[offset] > maxrow) ? smatrowvals[offset] : maxrow;
+            maxcol = (smatcolvals[offset] > maxcol) ? smatcolvals[offset] : maxcol;
+            ++offset;
+        }
+    }
+
+    // const int weightMatRows = m_weightMatrix.rows();
+    // const int weightMatCols = m_weightMatrix.cols();
+    // int loc_smatmetadata[3] = {weightMatRows, weightMatCols, weightMatNNZ};
+    int loc_smatmetadata[3] = {maxrow, maxcol, weightMatNNZ};
+
+#ifdef MOAB_HAVE_MPI
+    int glb_smatmetadata[3] = {0,0,0};
+    MPI_Reduce(&loc_smatmetadata[0], &glb_smatmetadata[0], 2, MPI_INT, MPI_MAX, 0, pcomm->comm());
+    MPI_Reduce(&loc_smatmetadata[2], &glb_smatmetadata[2], 1, MPI_INT, MPI_SUM, 0, pcomm->comm());
+#else
+    int* glb_smatmetadata = loc_smatmetadata;
+#endif
+
+    if (this->is_root)
+    {
+        std::cout << "  " << this->rank << "  Writing remap weights with size [" << glb_smatmetadata[0] << " X " << glb_smatmetadata[1] << "] and NNZ = " << glb_smatmetadata[2] << std::endl;
+        rval = mbCore->tag_set_data(tagMapMetaData, &m_meshOverlapSet, 1, &glb_smatmetadata[0]);MB_CHK_SET_ERR(rval, "Setting local tag data failed");
+    }
+
+    const int numval = weightMatNNZ;
+    const void* smatrowvals_d = smatrowvals.data();
+    const void* smatcolvals_d = smatcolvals.data();
+    const void* smatvals_d = smatvals;
+    rval = mbCore->tag_set_by_ptr(tagMapIndexRow, &m_meshOverlapSet, 1, &smatrowvals_d, &numval);MB_CHK_SET_ERR(rval, "Setting local tag data failed");
+    rval = mbCore->tag_set_by_ptr(tagMapIndexCol, &m_meshOverlapSet, 1, &smatcolvals_d, &numval);MB_CHK_SET_ERR(rval, "Setting local tag data failed");
+    rval = mbCore->tag_set_by_ptr(tagMapValues, &m_meshOverlapSet, 1, &smatvals_d, &numval);MB_CHK_SET_ERR(rval, "Setting local tag data failed");
+
+
+#ifdef MOAB_HAVE_MPI
+                const char *writeOptions = (this->size > 1 ? "PARALLEL=WRITE_PART" : "");
+#else
+                const char *writeOptions = "";
+#endif
+
+    rval = mbCore->write_file ( strOutputFile.c_str(), NULL, writeOptions, &m_meshOverlapSet, 1 ); MB_CHK_ERR ( rval );
+
+#ifdef WRITE_SCRIP_FILE
+    sstr.str("");
+    sstr << ctx.outFilename.substr(0, lastindex) << "_" << proc_id << ".nc";
+    std::map<std::string, std::string> mapAttributes;
+    mapAttributes["Creator"] = "MOAB mbtempest workflow";
+    if (!ctx.proc_id) std::cout << "Writing offline map to file: " << sstr.str() << std::endl;
+    this->Write(strOutputFile.c_str(), mapAttributes);
+    sstr.str("");
+#endif
+
+    return moab::MB_SUCCESS;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 #endif
 

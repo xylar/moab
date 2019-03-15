@@ -308,12 +308,12 @@ public:
 	///	<summary>
 	///		Get the global Degrees-Of-Freedom ID on the destination mesh.
 	///	</summary>
-    int GetRowGlobalDoF(int localID);
+    int GetRowGlobalDoF(int localID) const;
 
 	///	<summary>
 	///		Get the global Degrees-Of-Freedom ID on the source mesh.
 	///	</summary>
-    int GetColGlobalDoF(int localID);
+    int GetColGlobalDoF(int localID) const;
 
 	///	<summary>
 	///		Apply the weight matrix onto the source vector provided as input, and return the column vector (solution projection) after the application 
@@ -326,6 +326,11 @@ public:
 	///		Parallel I/O with NetCDF to write out the SCRIP file from multiple processors.
 	///	</summary>
 	void WriteParallelWeightsToFile(std::string filename);
+
+	///	<summary>
+	///		Parallel I/O with HDF5 to write out the remapping weights from multiple processors.
+	///	</summary>
+	moab::ErrorCode WriteParallelMap (std::string strOutputFile) const;
 
 #endif
 
@@ -402,7 +407,8 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 
 inline
-const DataArray1D<double>& TempestOnlineMap::GetGlobalSourceAreas() const {
+const DataArray1D<double>& TempestOnlineMap::GetGlobalSourceAreas() const
+{
 #ifdef MOAB_HAVE_MPI
   if (pcomm->size() > 1) {
         return m_weightMapGlobal->GetSourceAreas();
@@ -415,8 +421,11 @@ const DataArray1D<double>& TempestOnlineMap::GetGlobalSourceAreas() const {
 #endif
 }
 
+///////////////////////////////////////////////////////////////////////////////
+
 inline
-const DataArray1D<double>& TempestOnlineMap::GetGlobalTargetAreas() const {
+const DataArray1D<double>& TempestOnlineMap::GetGlobalTargetAreas() const
+{
 #ifdef MOAB_HAVE_MPI
   if (pcomm->size() > 1) {
         return m_weightMapGlobal->GetTargetAreas();
@@ -428,6 +437,24 @@ const DataArray1D<double>& TempestOnlineMap::GetGlobalTargetAreas() const {
   return this->GetTargetAreas();
 #endif
 }
+
+
+///////////////////////////////////////////////////////////////////////////////
+
+inline
+int moab::TempestOnlineMap::GetRowGlobalDoF(int localID) const
+{
+    return row_gdofmap[ localID ];
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+inline
+int moab::TempestOnlineMap::GetColGlobalDoF(int localID) const
+{
+    return col_gdofmap[ localID ];
+}
+
 
 }
 
