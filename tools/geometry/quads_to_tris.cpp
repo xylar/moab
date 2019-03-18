@@ -93,10 +93,7 @@ ErrorCode quads_to_tris( Interface *MBI, EntityHandle input_meshset ) {
     return result;
 
   // create an id tag to find the surface id with
-  result = MBI->tag_get_handle( GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, id_tag,
-                                MB_TAG_DENSE|MB_TAG_CREAT );
-  if (MB_SUCCESS != result)
-    return result;
+  id_tag = MBI->globalId_tag();
 
   // get all surface meshsets
   Range surface_meshsets;

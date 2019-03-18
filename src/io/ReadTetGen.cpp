@@ -343,13 +343,11 @@ ErrorCode ReadTetGen::read_node_file(std::istream& file,
     if (MB_SUCCESS != rval)
       return rval;
   }
-  Tag idtag;
-  rval = mbIface->tag_get_handle(GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, idtag);
-  if (MB_SUCCESS == rval) {
-    rval = mbIface->tag_set_data(idtag, node_range, &ids[0]);
-    if (MB_SUCCESS != rval)
-      return rval;
-  }
+  Tag idtag = mbIface->globalId_tag();
+
+  rval = mbIface->tag_set_data(idtag, node_range, &ids[0]);
+  if (MB_SUCCESS != rval)
+    return rval;
 
   return MB_SUCCESS;
 }
@@ -397,9 +395,8 @@ ErrorCode ReadTetGen::read_elem_file(EntityType type,
   // Create group map
   std::map<double, EntityHandle> groups;
   Tag dim_tag, id_tag;
-  rval = mbIface->tag_get_handle(GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, id_tag);
-  if (MB_SUCCESS != rval)
-    return rval;
+  id_tag = mbIface->globalId_tag();
+
   const int negone = -1;
   rval = mbIface->tag_get_handle(GEOM_DIMENSION_TAG_NAME, 1, MB_TYPE_INTEGER,
                                  dim_tag, MB_TAG_SPARSE | MB_TAG_CREAT, &negone);

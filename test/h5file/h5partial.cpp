@@ -1536,7 +1536,7 @@ void write_id_test_file()
   Tag id = 0, gid = 0, dim = 0;
   mb.tag_get_handle( ID_TAG_NAME, 1, MB_TYPE_INTEGER, id, MB_TAG_SPARSE|MB_TAG_EXCL );
   mb.tag_get_handle( GEOM_DIMENSION_TAG_NAME, 1, MB_TYPE_INTEGER, dim, MB_TAG_SPARSE|MB_TAG_EXCL );
-  mb.tag_get_handle( GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, gid, MB_TAG_DENSE|MB_TAG_EXCL );
+  gid = mb.globalId_tag();
   
     // set ID tag on first 10 sets
   rval = mb.tag_set_data( id, sets, sizeof(expected_ids)/sizeof(int), expected_ids );

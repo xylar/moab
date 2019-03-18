@@ -179,11 +179,7 @@ ErrorCode get_all_handles(Interface *mbi)
                                 geom_tag, MB_TAG_SPARSE|MB_TAG_CREAT,&negone);
   MB_CHK_ERR(rval);
 
-  rval = mbi->tag_get_handle( GLOBAL_ID_TAG_NAME, 
-                              1, MB_TYPE_INTEGER, 
-                              id_tag,
-                              MB_TAG_DENSE|MB_TAG_CREAT );
-  MB_CHK_ERR(rval);
+  id_tag = mbi->globalId_tag();
 
   rval = mbi->tag_get_handle( CATEGORY_TAG_NAME, 
                               CATEGORY_TAG_SIZE,

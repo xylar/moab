@@ -1393,10 +1393,7 @@ int main(int argc, char* argv[])
       dimTag, MB_TAG_SPARSE | MB_TAG_CREAT);
   if (MB_SUCCESS != result)
     return result;
-  result = MBI->tag_get_handle(GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, idTag,
-      MB_TAG_DENSE | MB_TAG_CREAT);
-  if (MB_SUCCESS != result)
-    return result;
+  idTag = MBI->globalId_tag();
   result = MBI->tag_get_handle(CATEGORY_TAG_NAME, CATEGORY_TAG_SIZE,
       MB_TYPE_OPAQUE, categoryTag, MB_TAG_SPARSE | MB_TAG_CREAT);
   if (MB_SUCCESS != result)

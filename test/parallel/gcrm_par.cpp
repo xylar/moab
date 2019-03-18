@@ -122,9 +122,7 @@ void read_one_cell_var(bool rcbzoltan)
   // No mixed elements
   CHECK_EQUAL((size_t)1, local_cells.psize());
 
-  Tag gid_tag;
-  rval = mb.tag_get_handle(GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, gid_tag, MB_TAG_DENSE);
-  CHECK_ERR(rval);
+  Tag gid_tag = mb.globalId_tag();
 
   std::vector<int> gids(local_cells.size());
   rval = mb.tag_get_data(gid_tag, local_cells, &gids[0]);
@@ -510,8 +508,7 @@ void gather_one_cell_var(int gather_set_rank)
   rval = mb.tag_get_handle("vorticity0", layers, MB_TYPE_DOUBLE, vorticity_tag0, MB_TAG_DENSE);
   CHECK_ERR(rval);
 
-  rval = mb.tag_get_handle(GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, gid_tag, MB_TAG_DENSE);
-  CHECK_ERR(rval);
+  gid_tag = mb.globalId_tag();
 
   pcomm->gather_data(cells_owned, vorticity_tag0, gid_tag, gather_set, gather_set_rank);
 

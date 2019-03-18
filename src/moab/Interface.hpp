@@ -1984,6 +1984,9 @@ public:
   virtual ErrorCode remove_child_meshset(EntityHandle parent_meshset, 
                                            const EntityHandle child_meshset) = 0;
 
+  // ! Returns the global id tag; default value is -1
+  virtual Tag globalId_tag() = 0;
+
     /**@}*/
 
     /** \name Set iterators */
@@ -2007,6 +2010,7 @@ public:
      * \param chunk_size Chunk size of the iterator
      * \param check_valid If true, entities are checked for validity before being returned 
      */
+
   virtual ErrorCode create_set_iterator(EntityHandle meshset,
                                         EntityType ent_type,
                                         int ent_dim,

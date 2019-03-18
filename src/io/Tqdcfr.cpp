@@ -2344,12 +2344,7 @@ ErrorCode Tqdcfr::ModelEntry::read_header_info(Tqdcfr* instance, const double da
   feModelHeader.init(modelOffset, instance);
   int negone = -1;
   ErrorCode result;
-
-  int zero = 0;
-  result = instance->mdbImpl->tag_get_handle(GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER,
-                                             instance->globalIdTag, MB_TAG_DENSE | MB_TAG_CREAT, &zero);
-  if (MB_SUCCESS != result)
-    return result;
+  instance->globalIdTag = instance->mdbImpl->globalId_tag();
 
   if (feModelHeader.geomArray.numEntities > 0) {
     result = instance->mdbImpl->tag_get_handle(GEOM_DIMENSION_TAG_NAME, 1, MB_TYPE_INTEGER,

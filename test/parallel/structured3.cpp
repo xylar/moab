@@ -70,9 +70,7 @@ void create_parallel_mesh()
   CHECK_ERR(rval);
 
     // get global id tag
-  Tag tag;
-  rval = mbint.tag_get_handle(GLOBAL_ID_TAG_NAME, tag);
-  CHECK_ERR(rval);
+  Tag tag = mbint.globalId_tag();
   
     // resolve shared verts
   std::cout << "Resolving shared ents..." << std::endl;

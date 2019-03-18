@@ -76,17 +76,14 @@ RefinerTagManager::RefinerTagManager( Interface* in_mesh, Interface* out_mesh )
     ( opcomm ? opcomm->proc_config().proc_rank() : 0 );
 
   // Create the mesh global ID tags if they aren't already there.
-  int zero = 0;
-  ErrorCode result;
-  result = this->input_mesh->tag_get_handle(
-    GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, this->tag_igid, MB_TAG_DENSE|MB_TAG_CREAT, &zero );
-  if ( result != MB_SUCCESS )
+
+  this->tag_igid = this->input_mesh->globalId_tag();
+  if ( this->tag_igid == 0 )
     {
     throw new std::logic_error( "Unable to find input mesh global ID tag \"" GLOBAL_ID_TAG_NAME "\"" );
     }
-  result = this->output_mesh->tag_get_handle(
-    GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, this->tag_ogid, MB_TAG_DENSE|MB_TAG_CREAT, &zero );
-  if ( result != MB_SUCCESS )
+  this->tag_ogid = this->output_mesh->globalId_tag();
+  if ( this->tag_ogid == 0 )
     {
     throw new std::logic_error( "Unable to find/create output mesh global ID tag \"" GLOBAL_ID_TAG_NAME "\"" );
     }

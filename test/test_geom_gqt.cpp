@@ -111,11 +111,7 @@ ErrorCode write_geometry( const char* output_file_name )
                               dim_tag,
                               MB_TAG_SPARSE|MB_TAG_CREAT );
   CHKERR;
-  rval = moab->tag_get_handle( GLOBAL_ID_TAG_NAME, 
-                              1, MB_TYPE_INTEGER, 
-                              id_tag,
-                              MB_TAG_DENSE|MB_TAG_CREAT );
-  CHKERR;
+  id_tag = moab->globalId_tag();
   rval = moab->tag_get_handle( "GEOM_SENSE_2", 
                               2, MB_TYPE_HANDLE, 
                               sense_tag,
@@ -235,11 +231,7 @@ ErrorCode overlap_write_geometry( const char* output_file_name )
                               dim_tag,
                               MB_TAG_SPARSE|MB_TAG_CREAT );
   CHKERR;
-  rval = moab->tag_get_handle( GLOBAL_ID_TAG_NAME, 
-                              1, MB_TYPE_INTEGER, 
-                              id_tag,
-                              MB_TAG_DENSE|MB_TAG_CREAT );
-  CHKERR;
+  id_tag = moab->globalId_tag();
   rval = moab->tag_get_handle( "GEOM_SENSE_2", 
                               2, MB_TYPE_HANDLE, 
                               sense_tag,

@@ -240,12 +240,9 @@ ErrorCode ScdInterface::assign_global_ids(ScdBox *box)
   // Get a ptr to global id memory
   void* data;
   int count = 0;
-  Tag gid_tag;
-  ErrorCode rval = mbImpl->tag_get_handle(GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, gid_tag, 
-                                          MB_TAG_CREAT & MB_TAG_DENSE, &count);
-  ERRORR(rval, "Trouble getting global id tag handle.");
+  Tag gid_tag = mbImpl->globalId_tag();
   Range tmp_range(box->start_vertex(), box->start_vertex() + box->num_vertices());
-  rval = mbImpl->tag_iterate(gid_tag, tmp_range.begin(), tmp_range.end(), count, data);
+  ErrorCode rval = mbImpl->tag_iterate(gid_tag, tmp_range.begin(), tmp_range.end(), count, data);
   ERRORR(rval, "Failed to get tag iterator.");
   assert(count == box->num_vertices());
   int* gid_data = (int*) data;

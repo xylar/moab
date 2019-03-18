@@ -781,16 +781,7 @@ int main( int argc, char* argv[] )
         return 2;
       }
       
-      rval = mb.tag_get_handle( GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, id_tag );
-      if (MB_TAG_NOT_FOUND == rval) 
-      {
-        fprintf( stderr, "No ID tag defined.\n" );
-      }
-      else if (MB_SUCCESS != rval)
-      {
-        fprintf( stderr, "Error retreiving ID tag.\n");
-        return 2;
-      }
+      id_tag = mb.globalId_tag();
       
       if (dim_tag && id_tag)
       {

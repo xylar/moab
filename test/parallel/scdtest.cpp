@@ -135,8 +135,7 @@ void create_hexes_and_verts()
 
   // Set global id's:
   int gid;
-  Tag global_id_tag;
-  error(mbint->tag_get_handle(GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, global_id_tag));
+  Tag global_id_tag = mbint->globalId_tag();
   EntityHandle handle = vs;
   int i, j, k;
 

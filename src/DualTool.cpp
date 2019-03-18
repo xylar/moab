@@ -116,13 +116,8 @@ DualTool::DualTool(Interface *impl)
                                   &dum_pt);
   assert(MB_SUCCESS == result);
 
-  int dum_int = 0;
-  result = mbImpl->tag_get_handle( GLOBAL_ID_TAG_NAME, 
-                                   1, MB_TYPE_INTEGER,
-                                   globalIdTag,
-                                   MB_TAG_SPARSE|MB_TAG_CREAT, 
-                                   &dum_int);
-  assert(MB_SUCCESS == result);
+  globalIdTag=mbImpl->globalId_tag();
+
   if (MB_SUCCESS == result) {} // empty statement to get rid of warning.
   
   maxHexId = -1;
@@ -848,15 +843,7 @@ ErrorCode DualTool::construct_dual_hyperplanes(const int dim,
     return MB_FAILURE;
   
     // get tag name for this dimension hyperplane
-  Tag gid_tag;
-  int dum = 0;
-  ErrorCode result = mbImpl->tag_get_handle(GLOBAL_ID_TAG_NAME, 
-                                            1, MB_TYPE_INTEGER, 
-                                            gid_tag,
-                                            MB_TAG_CREAT|MB_TAG_DENSE,
-                                            &dum);
-  if (MB_SUCCESS != result)
-    return result;
+  Tag gid_tag = mbImpl->globalId_tag();
     
   Tag hp_tag = (1 == dim ? dualCurve_tag() : dualSurface_tag());
   
@@ -865,7 +852,7 @@ ErrorCode DualTool::construct_dual_hyperplanes(const int dim,
   std::vector<EntityHandle> tot_untreated;
   
     // put dual entities of this dimension on the untreated list
-  result = get_dual_entities(dim, entities, num_entities, tot_untreated);
+  ErrorCode result = get_dual_entities(dim, entities, num_entities, tot_untreated);
   if (MB_SUCCESS != result) 
     return result;
   

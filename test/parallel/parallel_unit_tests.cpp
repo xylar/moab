@@ -372,7 +372,7 @@ ErrorCode parallel_create_mesh( Interface& mb,
   assert(range.size() == 9);
   std::copy( range.begin(), range.end(), vtx_handles );
   range.clear();
-  rval = mb.tag_get_handle( GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, id_tag ); CHKERR(rval);
+  id_tag = mb.globalId_tag();
   rval = mb.tag_set_data( id_tag, vtx_handles, 9, &ids ); CHKERR(rval);
 
   const EntityHandle conn[4][4] = { 
@@ -447,7 +447,7 @@ ErrorCode test_elements_on_several_procs( const char* filename )
 
   Tag geom_tag, id_tag;
   rval = moab.tag_get_handle( GEOM_DIMENSION_TAG_NAME, 1, MB_TYPE_INTEGER, geom_tag ); CHKERR(rval);
-  rval = moab.tag_get_handle( GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, id_tag ); CHKERR(rval);  
+  id_tag = moab.globalId_tag();
   
     // Because we partitioned based on geometric volume sets, then for each
     // lower-dimension geometric entity set all of the contained entities of
@@ -616,7 +616,7 @@ ErrorCode get_expected_ghosts( Interface& moab,
   ErrorCode rval;
   Tag tags[2];
   rval = moab.tag_get_handle( GEOM_DIMENSION_TAG_NAME, 1, MB_TYPE_INTEGER, tags[0] ); CHKERR(rval);
-  rval = moab.tag_get_handle( GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, tags[1] ); CHKERR(rval);  
+  tags[1] = moab.globalId_tag();
 
     // get face entities defining interface
   Range skin;
@@ -684,7 +684,7 @@ ErrorCode test_ghost_elements( const char* filename,
   CHKERR(rval);
   Tag geom_tag, id_tag;
   rval = moab.tag_get_handle( GEOM_DIMENSION_TAG_NAME, 1, MB_TYPE_INTEGER, geom_tag ); CHKERR(rval);
-  rval = moab.tag_get_handle( GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, id_tag ); CHKERR(rval);  
+  id_tag = moab.globalId_tag();
   
     // Get partition sets
   Range partition_geom[4];
@@ -1181,8 +1181,7 @@ ErrorCode check_consistent_ids( Interface& mb,
   MPI_Comm_rank( MPI_COMM_WORLD, &rank );
   MPI_Comm_size( MPI_COMM_WORLD, &size );
 
-  Tag id_tag;
-  rval = mb.tag_get_handle( GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, id_tag ); CHKERR(rval);
+  Tag id_tag = mb.globalId_tag();
   std::vector<int> new_ids(num_ents);
   rval = mb.tag_get_data( id_tag, entities, num_ents, &new_ids[0] ); CHKERR(rval);
   // This test is wrong.  a) The caller can select a start ID so there's
@@ -1270,8 +1269,7 @@ ErrorCode test_assign_global_ids( const char *)
   rval = pcomm.resolve_shared_ents( 0, quad_range, 2, 1 ); PCHECK(MB_SUCCESS == rval);
   
     // get global ids for quads
-  Tag id_tag;
-  rval = mb.tag_get_handle( GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, id_tag ); CHKERR(rval);
+  Tag id_tag = mb.globalId_tag();
   assert(4u == quad_range.size());
   EntityHandle quads[4];
   std::copy( quad_range.begin(), quad_range.end(), quads );
@@ -1321,8 +1319,7 @@ ErrorCode test_shared_sets( const char* )
     set_arr[2] = set_arr[1];
   }
     
-  Tag id_tag;
-  rval = mb.tag_get_handle( GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, id_tag ); CHKERR(rval);
+  Tag id_tag = mb.globalId_tag();
   rval = pcomm.resolve_shared_sets( sets, id_tag ); PCHECK(MB_SUCCESS == rval);
   
     // check that set data is consistent
@@ -1767,8 +1764,7 @@ ErrorCode test_sequences_after_ghosting( const char* filename )
     return MB_FAILURE;
   }
   // check also global id tag, which is dense
-  Tag id_tag;
-  rval = moab.tag_get_handle( GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, id_tag ); CHKERR(rval);
+  Tag id_tag = moab.globalId_tag();
   void * globalid_data= NULL;
   rval = moab.tag_iterate( id_tag, elems.begin(), elems.end(), count, globalid_data); CHKERR(rval);
   if (count != (int) elems.size() )

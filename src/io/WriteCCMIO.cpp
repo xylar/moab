@@ -124,7 +124,7 @@ namespace moab {
 
     // Initialize in case tag_get_handle fails below
     //! Get and cache predefined tag handles
-    int zero = 0, negone = -1;
+    int negone = -1;
     impl->tag_get_handle(MATERIAL_SET_TAG_NAME, 1, MB_TYPE_INTEGER,
                          mMaterialSetTag, MB_TAG_SPARSE | MB_TAG_CREAT, &negone);
 
@@ -134,8 +134,7 @@ namespace moab {
     impl->tag_get_handle(NEUMANN_SET_TAG_NAME, 1, MB_TYPE_INTEGER,
                          mNeumannSetTag, MB_TAG_SPARSE | MB_TAG_CREAT, &negone);
 
-    impl->tag_get_handle(GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER,
-                         mGlobalIdTag, MB_TAG_SPARSE | MB_TAG_CREAT, &zero);
+    mGlobalIdTag = impl->globalId_tag();
 
 #ifdef MOAB_HAVE_MPI
     impl->tag_get_handle(PARALLEL_PARTITION_TAG_NAME,

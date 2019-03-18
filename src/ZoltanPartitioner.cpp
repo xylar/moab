@@ -708,10 +708,7 @@ ErrorCode ZoltanPartitioner::assemble_graph(const int dimension,
   int moab_id;
   
     // get the global id tag handle
-  Tag gid;
-  result = mbImpl->tag_get_handle(GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER,
-                                  gid, MB_TAG_DENSE|MB_TAG_CREAT);
-  if (MB_SUCCESS != result) return result;
+  Tag gid = mbImpl->globalId_tag();
   
   for (Range::iterator rit = elems.begin(); rit != elems.end(); ++rit) {
 
@@ -2033,11 +2030,9 @@ ErrorCode ZoltanPartitioner::partition_owned_cells(Range & primary, ParallelComm
   int moab_id;
   int primaryDim = mbImpl->dimension_from_handle(*primary.rbegin());
     // get the global id tag handle
-  Tag gid;
-  ErrorCode rval = mbImpl->tag_get_handle(GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER,
-                                  gid, MB_TAG_DENSE|MB_TAG_CREAT); MB_CHK_ERR ( rval );
+  Tag gid = mbImpl->globalId_tag();
 
-  rval = mbImpl->tag_get_data(gid, primary, &ids[0]); MB_CHK_ERR ( rval );
+  ErrorCode rval = mbImpl->tag_get_data(gid, primary, &ids[0]); MB_CHK_ERR ( rval );
 
   int rank = pco->rank(); // current rank , will be put on regular neighbors
   int i=0;
