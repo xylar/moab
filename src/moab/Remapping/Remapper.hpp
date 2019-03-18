@@ -72,9 +72,19 @@ public:
 	ErrorCode LoadNativeMesh(std::string filename, moab::EntityHandle& meshset, const char* readopts=0)
 	{
 #ifdef MOAB_HAVE_MPI
-	  const std::string opts = (m_pcomm->size() > 1 ? std::string("PARALLEL=READ_PART;PARTITION=PARALLEL_PARTITION;PARALLEL_RESOLVE_SHARED_ENTS") : "" );
+	  size_t lastindex = filename.find_last_of(".");
+	  std::string extension = filename.substr(lastindex+1, filename.size());
+	  std::string popts;
+	  if (extension != "h5m")
+	  	popts = std::string("PARALLEL=BCAST_DELETE;PARTITION=TRIVIAL;PARALLEL_RESOLVE_SHARED_ENTS");
+	  else
+	  	popts = std::string("PARALLEL=READ_PART;PARTITION=PARALLEL_PARTITION;PARALLEL_RESOLVE_SHARED_ENTS");
+
+	  const std::string opts = (m_pcomm->size() > 1 ? popts : "" );
+	  if (!m_pcomm->rank()) std::cout << "Reading file (" << filename << ") with options = [" << opts << "]\n";
 #else
 	  const std::string opts = std::string("");
+	  std::cout << "Reading file (" << filename << ") with empty options\n";
 #endif
 	  return m_interface->load_file(filename.c_str(), &meshset, (readopts ? readopts : opts.c_str()));
 	}
