@@ -401,14 +401,6 @@ int main ( int argc, char* argv[] )
         rval = remapper.ComputeOverlapMesh ( epsrel ); MB_CHK_ERR ( rval );
         ctx.timer_pop();
 
-        // Write out our computed intersection file
-        if ( ctx.n_procs == 1 )
-        {
-            printf ( "writing out the intersection mesh file to %s\n", "moab_intersection.h5m" );
-            // rval = mbCore->add_entities ( ctx.meshsets[2], &ctx.meshsets[0], 2 ); MB_CHK_ERR ( rval );
-            rval = mbCore->write_file ( "moab_intersection.h5m", NULL, "PARALLEL=WRITE_PART", &ctx.meshsets[0], 3 ); MB_CHK_ERR ( rval );
-        }
-
         {
             double local_areas[3], global_areas[3]; // Array for Initial area, and through Method 1 and Method 2
             // local_areas[0] = area_on_sphere_lHuiller ( mbCore, ctx.meshsets[1], radius_src );
@@ -442,6 +434,13 @@ int main ( int argc, char* argv[] )
 #else
             rval = remapper.WriteTempestIntersectionMesh(ctx.intxFilename, false, false, false);MB_CHK_ERR ( rval );
 #endif
+            // Write out our computed intersection file
+            size_t lastindex = ctx.outFilename.find_last_of(".");
+            sstr.str("");
+            sstr << ctx.intxFilename.substr(0, lastindex) << ".h5m";
+            printf ( "Writing out the MOAB intersection mesh file to %s\n", sstr.str().c_str() );
+            rval = mbCore->write_file ( sstr.str().c_str(), NULL, "PARALLEL=WRITE_PART", &ctx.meshsets[2], 1 ); MB_CHK_ERR ( rval );
+
         }
 
         if ( ctx.computeWeights )
