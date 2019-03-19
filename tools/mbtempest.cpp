@@ -435,10 +435,10 @@ int main ( int argc, char* argv[] )
             rval = remapper.WriteTempestIntersectionMesh(ctx.intxFilename, false, false, false);MB_CHK_ERR ( rval );
 #endif
             // Write out our computed intersection file
-            size_t lastindex = ctx.outFilename.find_last_of(".");
+            size_t lastindex = ctx.intxFilename.find_last_of(".");
             sstr.str("");
             sstr << ctx.intxFilename.substr(0, lastindex) << ".h5m";
-            printf ( "Writing out the MOAB intersection mesh file to %s\n", sstr.str().c_str() );
+            if(!ctx.proc_id) std::cout << "Writing out the MOAB intersection mesh file to " << sstr.str() << std::endl;
             rval = mbCore->write_file ( sstr.str().c_str(), NULL, "PARALLEL=WRITE_PART", &ctx.meshsets[2], 1 ); MB_CHK_ERR ( rval );
 
         }
