@@ -1152,79 +1152,6 @@ moab::ErrorCode moab::TempestOnlineMap::GenerateRemappingWeights ( std::string s
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-#ifdef MOAB_HAVE_EIGEN
-
-int moab::TempestOnlineMap::GetSourceGlobalNDofs()
-{
-    return m_weightMatrix.cols(); // return the global number of rows from the weight matrix
-}
-
-// ///////////////////////////////////////////////////////////////////////////////
-
-int moab::TempestOnlineMap::GetDestinationGlobalNDofs()
-{
-    return m_weightMatrix.rows(); // return the global number of columns from the weight matrix
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
-int moab::TempestOnlineMap::GetSourceLocalNDofs()
-{
-    return m_weightMatrix.cols(); // return the local number of rows from the weight matrix
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
-int moab::TempestOnlineMap::GetDestinationLocalNDofs()
-{
-    return m_weightMatrix.rows(); // return the local number of columns from the weight matrix
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
-int moab::TempestOnlineMap::GetSourceNDofsPerElement()
-{
-    return m_nDofsPEl_Src;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
-int moab::TempestOnlineMap::GetDestinationNDofsPerElement()
-{
-    return m_nDofsPEl_Dest;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
-void moab::TempestOnlineMap::InitVectors()
-{
-    assert(m_weightMatrix.rows() != 0 && m_weightMatrix.cols() != 0);
-    m_rowVector.resize( m_weightMatrix.rows() );
-    m_colVector.resize( m_weightMatrix.cols() );
-}
-
-
-moab::TempestOnlineMap::WeightMatrix& moab::TempestOnlineMap::GetWeightMatrix()
-{
-    assert(m_weightMatrix.rows() != 0 && m_weightMatrix.cols() != 0);
-    return m_weightMatrix;
-}
-
-moab::TempestOnlineMap::WeightRowVector& moab::TempestOnlineMap::GetRowVector()
-{
-    assert(m_rowVector.size() != 0);
-    return m_rowVector;
-}
-
-moab::TempestOnlineMap::WeightColVector& moab::TempestOnlineMap::GetColVector()
-{
-    assert(m_colVector.size() != 0);
-    return m_colVector;
-}
-
-#endif
-
-///////////////////////////////////////////////////////////////////////////////
 
 bool moab::TempestOnlineMap::IsConsistent (
     double dTolerance
@@ -1358,8 +1285,19 @@ bool moab::TempestOnlineMap::IsMonotone (
     return fMonotone;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+
+#ifdef MOAB_HAVE_EIGEN
+void moab::TempestOnlineMap::InitVectors()
+{
+    assert(m_weightMatrix.rows() != 0 && m_weightMatrix.cols() != 0);
+    m_rowVector.resize( m_weightMatrix.rows() );
+    m_colVector.resize( m_weightMatrix.cols() );
+}
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////
+
 #ifdef MOAB_HAVE_MPI
 moab::ErrorCode moab::TempestOnlineMap::GatherAllToRoot()   // Collective
 {
