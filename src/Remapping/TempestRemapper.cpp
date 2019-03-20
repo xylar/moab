@@ -22,9 +22,16 @@
 #include "moab/IntxMesh/Intx2MeshOnSphere.hpp"
 #include "moab/IntxMesh/IntxUtils.hpp"
 
+#include "moab/AdaptiveKDTree.hpp"
+#include "moab/SpatialLocator.hpp"
+
 // skinner for augmenting overlap mesh to complete coverage
 #include "moab/Skinner.hpp"
 #include "MBParallelConventions.h"
+
+#ifdef MOAB_HAVE_TEMPESTREMAP
+#include "GaussLobattoQuadrature.h"
+#endif
 
 // #define VERBOSE
 
@@ -530,8 +537,7 @@ ErrorCode TempestRemapper::AssociateSrcTargetInOverlap()
     gid_to_lid_covsrc.clear(); lid_to_gid_covsrc.clear();
     gid_to_lid_tgt.clear(); lid_to_gid_tgt.clear();
     {
-        Tag gidtag;
-        rval = m_interface->tag_get_handle ( "GLOBAL_ID", gidtag ); MB_CHK_ERR ( rval );
+        Tag gidtag = m_interface->globalId_tag();
 
         std::vector<int> gids ( m_covering_source_entities.size(), -1 );
         rval = m_interface->tag_get_data ( gidtag,  m_covering_source_entities, &gids[0] ); MB_CHK_ERR ( rval );
@@ -618,6 +624,170 @@ static ErrorCode assign_vertex_element_IDs ( moab::Interface* mbImpl, Tag idtag,
 }
 #endif
 
+///////////////////////////////////////////////////////////////////////////////
+
+// Create a custom comparator for Nodes
+bool operator <(Node const& lhs, Node const& rhs)
+{
+    return std::pow(lhs.x - rhs.x,2.0) + std::pow(lhs.y - rhs.y,2.0) + std::pow(lhs.z - rhs.z,2.0);
+}
+
+ErrorCode TempestRemapper::GenerateCSMeshMetaData(
+    const int ntot_elements,
+    moab::Range& ents,
+    moab::Range* secondary_ents,
+    const std::string dofTagName,
+    int nP
+) {
+    moab::ErrorCode rval;
+
+    Tag dofTag;
+    bool created = false;
+    rval = m_interface->tag_get_handle ( dofTagName.c_str(), nP*nP, MB_TYPE_INTEGER, dofTag, MB_TAG_DENSE | MB_TAG_CREAT, 0, &created );MB_CHK_SET_ERR(rval, "Failed creating DoF tag");
+
+    const int res = std::sqrt( ntot_elements / 6 );
+
+    // create a temporary CS mesh
+    // NOTE: This will not work for RRM grids. Need to run HOMME for that case anyway
+    Mesh csMesh;
+    int err = GenerateCSMesh ( csMesh, res, true, "", "NetCDF4" );
+    if ( err ) { MB_CHK_SET_ERR(MB_FAILURE, "Failed to generate CS mesh through TempestRemap");; }
+
+    // Number of Faces
+    int nElements = static_cast<int>(csMesh.faces.size());
+
+    assert(nElements == ntot_elements);
+
+    // Initialize data structures
+    DataArray3D<int> dataGLLnodes;
+    dataGLLnodes.Allocate(nP, nP, nElements);
+
+    std::map<Node, int> mapNodes;
+    std::map<Node, moab::EntityHandle> mapLocalMBNodes;
+
+    // GLL Quadrature nodes
+    DataArray1D<double> dG;
+    DataArray1D<double> dW;
+    GaussLobattoQuadrature::GetPoints(nP, 0.0, 1.0, dG, dW);
+
+    moab::Range entities(ents);
+    if(secondary_ents) entities.insert(secondary_ents->begin(), secondary_ents->end());
+    double elcoords[3];
+    for (unsigned iel=0; iel < entities.size(); ++iel) {
+        EntityHandle eh = entities[iel];
+        rval = m_interface->get_coords(&eh, 1, elcoords);
+        Node elCentroid(elcoords[0],elcoords[1],elcoords[2]);
+        mapLocalMBNodes.insert(std::pair<Node, moab::EntityHandle>(elCentroid, eh));
+    }
+    
+
+    // Build a Kd-tree for local mesh (nearest neighbor searches)
+    // Loop over all elements in CS-Mesh
+    // Then find if current centroid is in an element
+    //     If yes - then let us compute the DoF numbering and set to tag data
+    //     If no - then compute DoF numbering BUT DO NOT SET to tag data
+    // continue
+    int* dofIDs = new int[nP*nP];
+
+    // Write metadata
+    for (int k = 0; k < nElements; k++) {
+        const Face & face = csMesh.faces[k];
+        const NodeVector & nodes = csMesh.nodes;
+
+        if (face.edges.size() != 4) {
+            _EXCEPTIONT("Mesh must only contain quadrilateral elements");
+        }
+
+        Node centroid;
+        centroid.x = 0.25 * (nodes[face[0]].x + nodes[face[1]].x + nodes[face[2]].x + nodes[face[3]].x);
+        centroid.y = 0.25 * (nodes[face[0]].y + nodes[face[1]].y + nodes[face[2]].y + nodes[face[3]].y);
+        centroid.z = 0.25 * (nodes[face[0]].z + nodes[face[1]].z + nodes[face[2]].z + nodes[face[3]].z);
+
+        bool locElem = false;
+        EntityHandle current_eh;
+        if (mapLocalMBNodes.find(centroid) != mapLocalMBNodes.end())
+        {
+            locElem = true;
+            current_eh = mapLocalMBNodes[centroid];
+        }
+
+        for (int j = 0; j < nP; j++) {
+            for (int i = 0; i < nP; i++) {
+
+                // Get local map vectors
+                Node nodeGLL;
+                Node dDx1G;
+                Node dDx2G;
+
+                // ApplyLocalMap(
+                //     face,
+                //     nodevec,
+                //     dG[i],
+                //     dG[j],
+                //     nodeGLL,
+                //     dDx1G,
+                //     dDx2G);
+                const double& dAlpha = dG[i];
+                const double& dBeta  = dG[j];
+
+                // Calculate nodal locations on the plane
+                double dXc =
+                      nodes[face[0]].x * (1.0 - dAlpha) * (1.0 - dBeta)
+                    + nodes[face[1]].x *        dAlpha  * (1.0 - dBeta)
+                    + nodes[face[2]].x *        dAlpha  *        dBeta
+                    + nodes[face[3]].x * (1.0 - dAlpha) *        dBeta;
+
+                double dYc =
+                      nodes[face[0]].y * (1.0 - dAlpha) * (1.0 - dBeta)
+                    + nodes[face[1]].y *        dAlpha  * (1.0 - dBeta)
+                    + nodes[face[2]].y *        dAlpha  *        dBeta
+                    + nodes[face[3]].y * (1.0 - dAlpha) *        dBeta;
+
+                double dZc =
+                      nodes[face[0]].z * (1.0 - dAlpha) * (1.0 - dBeta)
+                    + nodes[face[1]].z *        dAlpha  * (1.0 - dBeta)
+                    + nodes[face[2]].z *        dAlpha  *        dBeta
+                    + nodes[face[3]].z * (1.0 - dAlpha) *        dBeta;
+
+                double dR = sqrt(dXc * dXc + dYc * dYc + dZc * dZc);
+
+                // Mapped node location
+                nodeGLL.x = dXc / dR;
+                nodeGLL.y = dYc / dR;
+                nodeGLL.z = dZc / dR;
+
+                // Determine if this is a unique Node
+                std::map<Node, int>::const_iterator iter = mapNodes.find(nodeGLL);
+                if (iter == mapNodes.end()) {
+
+                    // Insert new unique node into map
+                    int ixNode = static_cast<int>(mapNodes.size());
+                    mapNodes.insert(std::pair<Node, int>(nodeGLL, ixNode));
+                    dataGLLnodes[j][i][k] = ixNode + 1;
+
+                } else {
+                    dataGLLnodes[j][i][k] = iter->second + 1;
+                }
+
+                if (locElem) dofIDs[j*nP+i] = dataGLLnodes[j][i][k];
+
+            }
+        }
+
+        if (locElem)
+        {
+            rval = m_interface->tag_set_data(dofTag, &current_eh, 1, dofIDs);MB_CHK_SET_ERR(rval, "Failed to tag_set_data for DoFs");
+        }
+    }
+
+    // clear memory
+    delete [] dofIDs;
+    mapLocalMBNodes.clear();
+    mapNodes.clear();
+
+    return moab::MB_SUCCESS;
+}
+
 ///////////////////////////////////////////////////////////////////////////////////
 
 ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius_src, double radius_tgt, double boxeps, bool use_tempest )
@@ -682,8 +852,7 @@ ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius_
     else
     {
         {  // Let us do some sanity checking to fix ID if they have are setup incorrectly
-            Tag gidtag;
-            rval = m_interface->tag_get_handle ( "GLOBAL_ID", gidtag ); MB_CHK_ERR ( rval );
+            Tag gidtag = m_interface->globalId_tag();
 
             Range srcelems, tgtelems;
             moab::EntityHandle subrange[2];
@@ -742,8 +911,7 @@ ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius_
             {
                 Range covEnts;
                 rval = m_interface->get_entities_by_dimension ( m_covering_source_set, 2, covEnts ); MB_CHK_ERR ( rval );
-                Tag gidtag;
-                rval = m_interface->tag_get_handle ( "GLOBAL_ID", gidtag ); MB_CHK_ERR ( rval );
+                Tag gidtag = m_interface->globalId_tag();
 
                 std::map<int,int> loc_gid_to_lid_covsrc;
                 std::vector<int> gids ( covEnts.size(), -1 );
@@ -851,8 +1019,7 @@ ErrorCode TempestRemapper::augment_overlap_set()
 
   // now that we have the boundary cells, see which overlap polys have have these as parents;
   //   find the ids of the boundary cells;
-  Tag gid;
-  rval = m_interface->tag_get_handle("GLOBAL_ID", gid); MB_CHK_SET_ERR(rval, "Can't get global id tag handle");
+  Tag gid = m_interface->globalId_tag();
   std::set<int> targetBoundaryIds;
   for (Range::iterator it=boundaryCells.begin(); it!=boundaryCells.end(); it++)
   {

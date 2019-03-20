@@ -69,7 +69,10 @@ public:
 
     moab::ErrorCode LoadMesh(Remapper::IntersectionContext ctx, std::string inputFilename, TempestMeshType type);
 
-    moab::ErrorCode ComputeOverlapMesh(double tolerance=1e-8, double radius_src=1.0, double radius_tgt=1.0, double boxeps=0.1, bool use_tempest=false);
+    moab::ErrorCode ComputeOverlapMesh(double tolerance=1e-8, 
+                                        double radius_src=1.0, double radius_tgt=1.0, 
+                                        double boxeps=0.1, 
+                                        bool use_tempest=false);
 
     // Converters between MOAB and Tempest representations
     moab::ErrorCode ConvertTempestMesh(Remapper::IntersectionContext ctx);
@@ -104,7 +107,10 @@ public:
     ///     Gather the overlap mesh and asssociated source/target data and write it out to disk. This information can then be used
     ///     with the "GenerateOfflineMap" tool in TempestRemap as needed.
     /// </summary>
-    moab::ErrorCode WriteTempestIntersectionMesh (std::string strOutputFileName, const bool fAllParallel, const bool fInputConcave, const bool fOutputConcave);
+    moab::ErrorCode WriteTempestIntersectionMesh (std::string strOutputFileName, 
+                                                    const bool fAllParallel, 
+                                                    const bool fInputConcave, 
+                                                    const bool fOutputConcave);
 
     // public members
     bool meshValidate;  // Validate the mesh after loading from file
@@ -127,6 +133,9 @@ private:
     moab::ErrorCode ConvertTempestMeshToMOAB_Private(TempestMeshType type, Mesh* mesh, moab::EntityHandle& meshset);
 
     moab::ErrorCode augment_overlap_set();
+
+    moab::ErrorCode GenerateCSMeshMetaData(const int ntot_elements, moab::Range& entities, moab::Range* secondary_entities,
+                                            const std::string dofTagName, int nP);
 
     // Source, Target amd Overlap meshes
     Mesh* m_source;
