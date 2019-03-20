@@ -458,6 +458,86 @@ int moab::TempestOnlineMap::GetColGlobalDoF(int localID) const
 }
 
 
+///////////////////////////////////////////////////////////////////////////////
+#ifdef MOAB_HAVE_EIGEN
+
+inline
+int moab::TempestOnlineMap::GetSourceGlobalNDofs()
+{
+    return m_weightMatrix.cols(); // return the global number of rows from the weight matrix
+}
+
+// ///////////////////////////////////////////////////////////////////////////////
+
+inline
+int moab::TempestOnlineMap::GetDestinationGlobalNDofs()
+{
+    return m_weightMatrix.rows(); // return the global number of columns from the weight matrix
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+inline
+int moab::TempestOnlineMap::GetSourceLocalNDofs()
+{
+    return m_weightMatrix.cols(); // return the local number of rows from the weight matrix
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+inline
+int moab::TempestOnlineMap::GetDestinationLocalNDofs()
+{
+    return m_weightMatrix.rows(); // return the local number of columns from the weight matrix
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+inline
+int moab::TempestOnlineMap::GetSourceNDofsPerElement()
+{
+    return m_nDofsPEl_Src;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+inline
+int moab::TempestOnlineMap::GetDestinationNDofsPerElement()
+{
+    return m_nDofsPEl_Dest;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+inline
+moab::TempestOnlineMap::WeightMatrix& moab::TempestOnlineMap::GetWeightMatrix()
+{
+    assert(m_weightMatrix.rows() != 0 && m_weightMatrix.cols() != 0);
+    return m_weightMatrix;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+inline
+moab::TempestOnlineMap::WeightRowVector& moab::TempestOnlineMap::GetRowVector()
+{
+    assert(m_rowVector.size() != 0);
+    return m_rowVector;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+inline
+moab::TempestOnlineMap::WeightColVector& moab::TempestOnlineMap::GetColVector()
+{
+    assert(m_colVector.size() != 0);
+    return m_colVector;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+#endif
+
 }
 
 #endif
