@@ -225,7 +225,9 @@ private:
 	///		Store the tag names associated with global DoF ids for source and target meshes
 	///	</summary>
 	moab::ErrorCode SetDofMapTags(const std::string srcDofTagName, 
-								  const std::string tgtDofTagName);
+								  DiscretizationType eInputType,
+								  const std::string tgtDofTagName, 
+								  DiscretizationType eOutputType);
 
 	///	<summary>
 	///		Compute the association between the solution tag global DoF numbering and 
