@@ -144,7 +144,7 @@ private:
 	///		Gather the mapping matrix that was computed in different processors and accumulate the data
 	///     on the root so that OfflineMap can be generated in parallel.
 	///	</summary>
-	moab::ErrorCode GatherAllToRoot();
+	moab::ErrorCode gather_all_to_root();
 
 	///	<summary>
 	///		Compute the remapping weights for a FV field defined on the source to a
@@ -224,7 +224,7 @@ private:
 	///	<summary>
 	///		Store the tag names associated with global DoF ids for source and target meshes
 	///	</summary>
-	moab::ErrorCode SetDofMapTags(const std::string srcDofTagName, 
+	moab::ErrorCode set_dofmap_tags(const std::string srcDofTagName, 
 								  DiscretizationType eInputType,
 								  const std::string tgtDofTagName, 
 								  DiscretizationType eOutputType);
@@ -234,7 +234,7 @@ private:
 	///		the local matrix numbering so that matvec operations can be performed
 	///     consistently.
 	///	</summary>
-	moab::ErrorCode SetDofMapAssociation(DiscretizationType srcType, bool isSrcContinuous, 
+	moab::ErrorCode set_dofmap_association(DiscretizationType srcType, bool isSrcContinuous, 
 		DataArray3D<int>* srcdataGLLNodes, DataArray3D<int>* srcdataGLLNodesSrc,
 		DiscretizationType destType, bool isDestContinuous, 
 		DataArray3D<int>* tgtdataGLLNodes);
@@ -246,7 +246,7 @@ private:
 	///     needed for projections.
 	///	</summary>
 #ifdef MOAB_HAVE_EIGEN
-	void CopyTempestSparseMat_Eigen();
+	void copy_tempest_sparsemat_to_eigen3();
 #endif
 
 public:
