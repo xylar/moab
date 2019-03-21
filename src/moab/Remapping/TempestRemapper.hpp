@@ -112,6 +112,17 @@ public:
                                                     const bool fInputConcave, 
                                                     const bool fOutputConcave);
 
+    moab::ErrorCode GenerateCSMeshMetadata(  const int ntot_elements, 
+                                             moab::Range& entities, 
+                                             moab::Range* secondary_entities,
+                                             const std::string dofTagName, int nP);
+
+    moab::ErrorCode GenerateMeshMetadata( Mesh& mesh,
+                                          const int ntot_elements, 
+                                          moab::Range& entities,
+                                          moab::Range* secondary_entities,
+                                          const std::string dofTagName, int nP);
+
     // public members
     bool meshValidate;  // Validate the mesh after loading from file
 
@@ -121,21 +132,19 @@ public:
 
 private:
 
-    moab::ErrorCode AssociateSrcTargetInOverlap();
+    moab::ErrorCode associate_src_tgt_in_overlap_mesh();
 
-    moab::ErrorCode ConvertMOABMesh_WithSortedEntitiesBySource();
+    moab::ErrorCode convert_overlap_mesh_sorted_by_source();
 
     // private methods
-    moab::ErrorCode LoadTempestMesh_Private(std::string inputFilename, Mesh** tempest_mesh);
+    moab::ErrorCode load_tempest_mesh_private(std::string inputFilename, Mesh** tempest_mesh);
 
-    moab::ErrorCode ConvertMOABMeshToTempest_Private(Mesh* mesh, moab::EntityHandle meshset, moab::Range& entities);
+    moab::ErrorCode convert_mesh_to_tempest_private(Mesh* mesh, moab::EntityHandle meshset, moab::Range& entities);
 
-    moab::ErrorCode ConvertTempestMeshToMOAB_Private(TempestMeshType type, Mesh* mesh, moab::EntityHandle& meshset);
+    moab::ErrorCode convert_tempest_mesh_private(TempestMeshType type, Mesh* mesh, moab::EntityHandle& meshset);
 
     moab::ErrorCode augment_overlap_set();
 
-    moab::ErrorCode GenerateCSMeshMetaData(const int ntot_elements, moab::Range& entities, moab::Range* secondary_entities,
-                                            const std::string dofTagName, int nP);
 
     // Source, Target amd Overlap meshes
     Mesh* m_source;

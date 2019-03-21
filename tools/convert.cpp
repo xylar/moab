@@ -81,6 +81,8 @@ static void print_usage( const char* name, std::ostream& stream )
 #ifdef MOAB_HAVE_TEMPESTREMAP
     << "\t-B             - Use TempestRemap exodus file reader and convert to MOAB format" << std::endl
     << "\t-b             - Convert MOAB mesh to TempestRemap exodus file writer" << std::endl
+    << "\t-i             - Name of the global DoF tag to use with mbtempest" << std::endl
+    << "\t-r             - Order of field DoF (discretization) data; FV=1,SE=[1,N]" << std::endl
 #endif
     << "\t--             - treat all subsequent options as file names" << std::endl
     << "\t                 (allows file names beginning with '-')" << std::endl
@@ -182,6 +184,10 @@ int main(int argc, char* argv[])
   std::vector<EntityHandle> set_list; // list of user-specified sets to write
   std::vector<std::string> write_opts, read_opts;
   std::string metis_partition_file;
+#ifdef MOAB_HAVE_TEMPESTREMAP
+  std::string globalid_tag_name;
+  int spectral_order=1;
+#endif
 
   const char* const mesh_tag_names[] = { DIRICHLET_SET_TAG_NAME,
                                          NEUMANN_SET_TAG_NAME,
@@ -257,7 +263,11 @@ int main(int argc, char* argv[])
               break;
             case 'f': format = argv[i]; pval = true;              break;
             case 'o': write_opts.push_back(argv[i]); pval = true; break;
-            case 'O':  read_opts.push_back(argv[i]); pval = true; break;
+            case 'O': read_opts.push_back(argv[i]); pval = true;  break;
+#ifdef MOAB_HAVE_TEMPESTREMAP
+            case 'i': globalid_tag_name=std::string(argv[i]); pval = true; break;
+            case 'r': spectral_order=atoi(argv[i]); pval = true; break;
+#endif
             case 'v': pval = parse_id_list( argv[i], geom[3] ); break;
             case 's': pval = parse_id_list( argv[i], geom[2] ); break;
             case 'c': pval = parse_id_list( argv[i], geom[1] ); break;
@@ -602,29 +612,31 @@ int main(int argc, char* argv[])
     // Write the output file
   reset_times();
 #ifdef MOAB_HAVE_TEMPESTREMAP
-  if (tempestout) {
-    // Get the handle to TempestRemap mesh
-    Range faces,vols;
-    moab::EntityHandle& srcmesh = remapper->GetMeshSet ( moab::Remapper::SourceMesh );
-    result = gMB->get_entities_by_dimension(srcmesh, 2, faces); MB_CHK_ERR(result);
-    result = gMB->get_entities_by_dimension(srcmesh, 0, vols); MB_CHK_ERR(result);
-    
-    std::cout << "\nTotal faces = " << faces.size() << std::endl;
-    std::cout << "\nTotal vertices = " << vols.size() << std::endl;
-    Mesh* tempestMesh = remapper->GetMesh ( moab::Remapper::SourceMesh );
-    tempestMesh->vecSourceFaceIx.resize(faces.size());
-    tempestMesh->vecTargetFaceIx.resize(faces.size());
+  Range faces;
+  Mesh* tempestMesh = remapper->GetMesh ( moab::Remapper::SourceMesh );
+  moab::EntityHandle& srcmesh = remapper->GetMeshSet ( moab::Remapper::SourceMesh );
+  result = gMB->get_entities_by_dimension(srcmesh, 2, faces); MB_CHK_ERR(result);
+  int ntot_elements = 0, nelements = faces.size();
+#ifdef MOAB_HAVE_MPI
+  int ierr = MPI_Allreduce(&nelements, &ntot_elements, 1, MPI_INT, MPI_SUM, pcomm->comm());
+  if (ierr !=0) MB_CHK_SET_ERR(MB_FAILURE, "MPI_Allreduce failed to get total source elements");
+#else
+  ntot_elements = nelements;
+#endif
 
-    // Get tag
-    Tag btag, rtag;
-    result = gMB->tag_get_handle( "BlueParent", 1, MB_TYPE_INTEGER, btag );MB_CHK_ERR(result);
-    result = gMB->tag_get_handle( "RedParent", 1, MB_TYPE_INTEGER, rtag );MB_CHK_ERR(result);
-    
-    result = gMB->tag_get_data(btag, faces, &tempestMesh->vecSourceFaceIx[0]); MB_CHK_ERR(result);
-    result = gMB->tag_get_data(rtag, faces, &tempestMesh->vecTargetFaceIx[0]); MB_CHK_ERR(result);
-    for (unsigned i=faces.size()-1; i > faces.size()-50; --i) 
-      std::cout << i << ": src=" << tempestMesh->vecSourceFaceIx[i] << ", tgt=" << tempestMesh->vecTargetFaceIx[i] << std::endl;
-    
+  Tag gidTag = gMB->globalId_tag();
+  std::vector<int> gids(faces.size());
+  result = gMB->tag_get_data(gidTag, faces, &gids[0]);MB_CHK_ERR(result);
+
+#ifdef MOAB_HAVE_MPI
+  if (faces.size() > 1 && gids[0] == gids[1]) {
+    result = pcomm->assign_global_ids(srcmesh, 2, 1, false);MB_CHK_ERR(result);
+  }
+#endif
+
+  result = remapper->GenerateMeshMetadata(*tempestMesh, ntot_elements, faces, NULL, globalid_tag_name, spectral_order);MB_CHK_ERR(result);
+
+  if (tempestout) {
     // Write out the mesh using TempestRemap
     tempestMesh->Write(out);
   }

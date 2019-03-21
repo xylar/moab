@@ -265,7 +265,7 @@ void moab::TempestOnlineMap::LinearRemapFVtoFV_Tempest_MOAB (
 
 
 #ifdef MOAB_HAVE_EIGEN
-void moab::TempestOnlineMap::CopyTempestSparseMat_Eigen()
+void moab::TempestOnlineMap::copy_tempest_sparsemat_to_eigen3()
 {
 #ifndef VERBOSE
 #define VERBOSE_ACTIVATED

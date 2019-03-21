@@ -169,7 +169,7 @@ static void ParseVariableList (
 
 ///////////////////////////////////////////////////////////////////////////////
 
-moab::ErrorCode moab::TempestOnlineMap::SetDofMapTags(const std::string srcDofTagName, DiscretizationType eInputType,
+moab::ErrorCode moab::TempestOnlineMap::set_dofmap_tags(const std::string srcDofTagName, DiscretizationType eInputType,
         const std::string tgtDofTagName, DiscretizationType eOutputType)
 {
     moab::ErrorCode rval;
@@ -188,7 +188,8 @@ moab::ErrorCode moab::TempestOnlineMap::SetDofMapTags(const std::string srcDofTa
         ntot_elements = nelements;
 #endif
 
-        rval = m_remapper->GenerateCSMeshMetaData(ntot_elements, m_remapper->m_covering_source_entities, &m_remapper->m_source_entities, srcDofTagName, m_nDofsPEl_Src);
+        // rval = m_remapper->generate_csmesh_metadata(ntot_elements, m_remapper->m_covering_source_entities, &m_remapper->m_source_entities, srcDofTagName, m_nDofsPEl_Src);
+        rval = m_remapper->GenerateCSMeshMetadata(ntot_elements, m_remapper->m_covering_source_entities, &m_remapper->m_source_entities, srcDofTagName, m_nDofsPEl_Src);MB_CHK_ERR(rval);
 
         rval = mbCore->tag_get_handle ( srcDofTagName.c_str(), m_nDofsPEl_Src*m_nDofsPEl_Src, MB_TYPE_INTEGER,
                              this->m_dofTagSrc, MB_TAG_ANY);MB_CHK_ERR(rval);
@@ -205,12 +206,13 @@ moab::ErrorCode moab::TempestOnlineMap::SetDofMapTags(const std::string srcDofTa
         int ntot_elements = 0, nelements = m_remapper->m_target_entities.size();
 #ifdef MOAB_HAVE_MPI
         int ierr = MPI_Allreduce(&nelements, &ntot_elements, 1, MPI_INT, MPI_SUM, pcomm->comm());
-        if (ierr !=0) MB_CHK_SET_ERR(MB_FAILURE, "MPI_Allreduce failed to get total target elements");
+        if (ierr !=0) MB_CHK_SET_ERR(MB_FAILURE, "MPI_Allreduce failed to get total source elements");
 #else
         ntot_elements = nelements;
 #endif
 
-        rval = m_remapper->GenerateCSMeshMetaData(ntot_elements, m_remapper->m_target_entities, NULL, tgtDofTagName, m_nDofsPEl_Dest);
+        rval = m_remapper->GenerateCSMeshMetadata(ntot_elements, m_remapper->m_target_entities, NULL, tgtDofTagName, m_nDofsPEl_Dest);MB_CHK_ERR(rval);
+
         rval = mbCore->tag_get_handle ( tgtDofTagName.c_str(), m_nDofsPEl_Dest*m_nDofsPEl_Dest, MB_TYPE_INTEGER,
                                  this->m_dofTagDest, MB_TAG_ANY);MB_CHK_ERR(rval);
     }
@@ -221,7 +223,7 @@ moab::ErrorCode moab::TempestOnlineMap::SetDofMapTags(const std::string srcDofTa
 
 ///////////////////////////////////////////////////////////////////////////////
 
-moab::ErrorCode moab::TempestOnlineMap::SetDofMapAssociation(DiscretizationType srcType, bool isSrcContinuous, DataArray3D<int>* srcdataGLLNodes, DataArray3D<int>* srcdataGLLNodesSrc,
+moab::ErrorCode moab::TempestOnlineMap::set_dofmap_association(DiscretizationType srcType, bool isSrcContinuous, DataArray3D<int>* srcdataGLLNodes, DataArray3D<int>* srcdataGLLNodesSrc,
     DiscretizationType destType, bool isTgtContinuous, DataArray3D<int>* tgtdataGLLNodes)
 {
     moab::ErrorCode rval;
@@ -634,7 +636,7 @@ moab::ErrorCode moab::TempestOnlineMap::GenerateRemappingWeights ( std::string s
         m_nDofsPEl_Src = nPin;
         m_nDofsPEl_Dest = nPout;
 
-        rval = SetDofMapTags(srcDofTagName, eInputType, tgtDofTagName, eOutputType);
+        rval = set_dofmap_tags(srcDofTagName, eInputType, tgtDofTagName, eOutputType);
 
         // Calculate Face areas
         if ( is_root ) dbgprint.printf ( 0, "Calculating input mesh Face areas\n" );
@@ -696,7 +698,6 @@ moab::ErrorCode moab::TempestOnlineMap::GenerateRemappingWeights ( std::string s
                 ixTargetFaceMax = m_meshOverlap->vecTargetFaceIx[i] + 1;
             }
         }
-
 
         // Check for forward correspondence in overlap mesh
         if ( m_meshInput->faces.size() - ixSourceFaceMax == 0 )
@@ -762,7 +763,7 @@ moab::ErrorCode moab::TempestOnlineMap::GenerateRemappingWeights ( std::string s
             this->InitializeTargetCoordinatesFromMeshFV ( *m_meshOutput );
 
             // Finite volume input / Finite element output
-            rval = this->SetDofMapAssociation(eInputType, false, NULL, NULL, eOutputType, false, NULL);MB_CHK_ERR(rval);
+            rval = this->set_dofmap_association(eInputType, false, NULL, NULL, eOutputType, false, NULL);MB_CHK_ERR(rval);
 
             // Construct remap
             if ( is_root ) dbgprint.printf ( 0, "Calculating remap weights\n" );
@@ -814,7 +815,7 @@ moab::ErrorCode moab::TempestOnlineMap::GenerateRemappingWeights ( std::string s
             m_meshInputCov->ConstructEdgeMap();
 
             // Finite volume input / Finite element output
-            rval = this->SetDofMapAssociation(eInputType, false, NULL, NULL, 
+            rval = this->set_dofmap_association(eInputType, false, NULL, NULL, 
                 eOutputType, (eOutputType == DiscretizationType_CGLL), &dataGLLNodesDest);MB_CHK_ERR(rval);
 
             // Generate remap weights
@@ -921,7 +922,7 @@ moab::ErrorCode moab::TempestOnlineMap::GenerateRemappingWeights ( std::string s
             }
 
             // Finite element input / Finite volume output
-            rval = this->SetDofMapAssociation(eInputType, (eInputType == DiscretizationType_CGLL), &dataGLLNodesSrcCov, &dataGLLNodesSrc, 
+            rval = this->set_dofmap_association(eInputType, (eInputType == DiscretizationType_CGLL), &dataGLLNodesSrcCov, &dataGLLNodesSrc, 
                 eOutputType, false, NULL);MB_CHK_ERR(rval);
 
             // Generate remap
@@ -1047,7 +1048,7 @@ moab::ErrorCode moab::TempestOnlineMap::GenerateRemappingWeights ( std::string s
             }
 
             // Input Finite Element to Output Finite Element
-            rval = this->SetDofMapAssociation(eInputType, (eInputType == DiscretizationType_CGLL), &dataGLLNodesSrcCov, &dataGLLNodesSrc, 
+            rval = this->set_dofmap_association(eInputType, (eInputType == DiscretizationType_CGLL), &dataGLLNodesSrcCov, &dataGLLNodesSrc, 
                 eOutputType, (eOutputType == DiscretizationType_CGLL), &dataGLLNodesDest);MB_CHK_ERR(rval);
 
             // Generate remap
@@ -1074,7 +1075,7 @@ moab::ErrorCode moab::TempestOnlineMap::GenerateRemappingWeights ( std::string s
         }
 
 #ifdef MOAB_HAVE_EIGEN
-        CopyTempestSparseMat_Eigen();
+        copy_tempest_sparsemat_to_eigen3();
 #endif
 
         // // Let us alos write out the TempestRemap equivalent so that we can do some verification checks
@@ -1086,7 +1087,7 @@ moab::ErrorCode moab::TempestOnlineMap::GenerateRemappingWeights ( std::string s
 
         if ( !m_globalMapAvailable && size > 1 ) {
             // gather weights to root process to perform consistency/conservation checks
-            rval = this->GatherAllToRoot();MB_CHK_ERR(rval);
+            rval = this->gather_all_to_root();MB_CHK_ERR(rval);
         }
 
         // Verify consistency, conservation and monotonicity
@@ -1299,7 +1300,7 @@ void moab::TempestOnlineMap::InitVectors()
 ///////////////////////////////////////////////////////////////////////////////
 
 #ifdef MOAB_HAVE_MPI
-moab::ErrorCode moab::TempestOnlineMap::GatherAllToRoot()   // Collective
+moab::ErrorCode moab::TempestOnlineMap::gather_all_to_root()   // Collective
 {
 // #define VERBOSE
     Mesh globalMesh;
