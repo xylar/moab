@@ -8433,7 +8433,7 @@ ErrorCode ParallelComm::get_remote_handles(EntityHandle *local_vec, EntityHandle
       // Get vertices for this ent and intersection of sharing procs
       result = mbImpl->get_connectivity(*vit, connect, num_connect, false, &dum_connect);
       if (MB_SUCCESS != result) {
-        bad_ents.insert(*vit);
+        bad_ents.push_back(*vit);
         errors.push_back(std::string("Failed to get connectivity."));
         continue;
       }
@@ -9189,7 +9189,21 @@ ErrorCode ParallelComm::correct_thin_ghost_layers()
         ent_procs[num_sharing]= tmp.owner;
         ent_procs[num_sharing+1] = -1; // this should be already set
         result = mbImpl->tag_set_data(sharedps_tag(), &eh, 1, ent_procs);MB_CHK_SET_ERR(result, "Failed to set sharedps tag data");
-        result = mbImpl->tag_set_data(sharedhs_tag(), &eh, 1, handles);MB_CHK_SET_ERR(result, "Failed to set sharedps tag data");
+        result = mbImpl->tag_set_data(sharedhs_tag(), &eh, 1, handles);MB_CHK_SET_ERR(result, "Failed to set sharedhs tag data");
+        if (2==num_sharing) // it means the sharedp and sharedh tags were set with a value non default
+        {
+          // so entity eh was simple shared before, we need to set those dense tags back to default
+          //  values
+          EntityHandle zero=0;
+          int no_proc = -1;
+          result = mbImpl->tag_set_data(sharedp_tag(), &eh, 1, &no_proc);MB_CHK_SET_ERR(result, "Failed to set sharedp tag data");
+          result = mbImpl->tag_set_data(sharedh_tag(), &eh, 1, &zero);MB_CHK_SET_ERR(result, "Failed to set sharedh tag data");
+          // also, add multishared pstatus tag
+          //also add multishared status to pstatus
+          pstat = pstat | PSTATUS_MULTISHARED;
+          result = mbImpl->tag_set_data(pstatus_tag(), &eh, 1, &pstat);MB_CHK_SET_ERR(result, "Failed to set pstatus tag data");
+
+        }
       }
 
 
