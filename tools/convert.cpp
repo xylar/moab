@@ -376,6 +376,10 @@ int main(int argc, char* argv[])
       // convert
       result = remapper->LoadMesh(moab::Remapper::SourceMesh, *j, moab::TempestRemapper::DEFAULT);MB_CHK_ERR(result);
 
+      Mesh* tempestMesh = remapper->GetMesh ( moab::Remapper::SourceMesh );
+      tempestMesh->RemoveZeroEdges();
+      tempestMesh->RemoveCoincidentNodes();
+
       // Load the meshes and validate
       result = remapper->ConvertTempestMesh(moab::Remapper::SourceMesh);
     }
@@ -636,7 +640,9 @@ int main(int argc, char* argv[])
 #endif
 
   if (tempestout) {
-    result = remapper->GenerateMeshMetadata(*tempestMesh, ntot_elements, faces, NULL, globalid_tag_name, spectral_order);MB_CHK_ERR(result);
+    if (spectral_order > 1 && globalid_tag_name.size() > 1) {
+      result = remapper->GenerateMeshMetadata(*tempestMesh, ntot_elements, faces, NULL, globalid_tag_name, spectral_order);MB_CHK_ERR(result);
+    }
 
    // Write out the mesh using TempestRemap
     tempestMesh->Write(out);
