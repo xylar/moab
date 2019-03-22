@@ -267,15 +267,16 @@ ErrorCode Intx2Mesh::intersect_meshes(EntityHandle mbset1, EntityHandle mbset2,
                  // advance ; rs2 is needed for marking the polygon to the red parent
   while (!rs22.empty())
   {
+#if defined(ENABLE_DEBUG) || defined(VERBOSE)
     if (rs22.size()<rs2.size())
     {
-#if defined(ENABLE_DEBUG) || defined(VERBOSE)
       std::cout<< " possible not connected arrival mesh; my_rank: " << my_rank << " counting: " << counting <<"\n";
       std::stringstream ffo;
       ffo << "file0" <<  counting<<"rank0"<< my_rank << ".vtk";
       rval = mb->write_mesh(ffo.str().c_str(), &outSet, 1);MB_CHK_ERR(rval);
-#endif
     }
+#endif
+    bool seedFound = false;
     for (Range::iterator it = rs22.begin(); it != rs22.end(); ++it)
     {
       startRed = *it;
@@ -295,12 +296,22 @@ ErrorCode Intx2Mesh::intersect_meshes(EntityHandle mbset1, EntityHandle mbset2,
         if (area > 0)
         {
           found = 1;
+          seedFound = true;
           break; // found 2 elements that intersect; these will be the seeds
         }
       }
       if (found)
         break;
+      else
+      {
+#if defined(VERBOSE)
+        std::cout<< " on rank " << my_rank << " target cell " << ID_FROM_HANDLE(startRed) << " not intx with any source\n";
+#endif
+        rs22.erase(startRed);
+      }
     }
+    if (!seedFound)
+      continue; // continue while(!rs22.empty())
 
     std::queue<EntityHandle> blueQueue; // these are corresponding to Ta,
     blueQueue.push(startBlue);
