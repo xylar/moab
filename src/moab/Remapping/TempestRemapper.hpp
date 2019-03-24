@@ -72,7 +72,8 @@ public:
     moab::ErrorCode ComputeOverlapMesh(double tolerance=1e-8, 
                                         double radius_src=1.0, double radius_tgt=1.0, 
                                         double boxeps=0.1, 
-                                        bool use_tempest=false);
+                                        bool use_tempest=false,
+                                        bool regional_mesh=false);
 
     // Converters between MOAB and Tempest representations
     moab::ErrorCode ConvertTempestMesh(Remapper::IntersectionContext ctx);
@@ -173,6 +174,7 @@ private:
     std::map<int,int> gid_to_lid_src, gid_to_lid_covsrc, gid_to_lid_tgt;
     std::map<int,int> lid_to_gid_src, lid_to_gid_covsrc, lid_to_gid_tgt;
 
+    bool rrmgrids;
     bool is_parallel, is_root;
     int rank, size;
 };
