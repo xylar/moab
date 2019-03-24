@@ -174,9 +174,8 @@ moab::ErrorCode moab::TempestOnlineMap::set_dofmap_tags(const std::string srcDof
 {
     moab::ErrorCode rval;
 
-    bool creatednew = false;
     rval = mbCore->tag_get_handle ( srcDofTagName.c_str(), m_nDofsPEl_Src*m_nDofsPEl_Src, MB_TYPE_INTEGER,
-                             this->m_dofTagSrc, MB_TAG_ANY, 0, &creatednew );
+                             this->m_dofTagSrc, MB_TAG_ANY );
 
     if (rval == moab::MB_TAG_NOT_FOUND && eInputType != DiscretizationType_FV)
     {
@@ -188,19 +187,19 @@ moab::ErrorCode moab::TempestOnlineMap::set_dofmap_tags(const std::string srcDof
         ntot_elements = nelements;
 #endif
 
-        // rval = m_remapper->generate_csmesh_metadata(ntot_elements, m_remapper->m_covering_source_entities, &m_remapper->m_source_entities, srcDofTagName, m_nDofsPEl_Src);
-        rval = m_remapper->GenerateCSMeshMetadata(ntot_elements, m_remapper->m_covering_source_entities, &m_remapper->m_source_entities, srcDofTagName, m_nDofsPEl_Src);MB_CHK_ERR(rval);
+        rval = m_remapper->GenerateCSMeshMetadata(ntot_elements, 
+                                                m_remapper->m_covering_source_entities, 
+                                                &m_remapper->m_source_entities, 
+                                                srcDofTagName, m_nDofsPEl_Src);MB_CHK_ERR(rval);
 
-        rval = mbCore->tag_get_handle ( srcDofTagName.c_str(), m_nDofsPEl_Src*m_nDofsPEl_Src, MB_TYPE_INTEGER,
-                             this->m_dofTagSrc, MB_TAG_ANY);MB_CHK_ERR(rval);
-
-        rval = mbCore->write_file("test_src_with_newgdofs.h5m", NULL, "PARALLEL=WRITE_PART", &m_remapper->m_source_set, 1);MB_CHK_ERR(rval);
+        rval = mbCore->tag_get_handle ( srcDofTagName.c_str(), m_nDofsPEl_Src*m_nDofsPEl_Src, 
+                                        MB_TYPE_INTEGER,
+                                        this->m_dofTagSrc, MB_TAG_ANY);MB_CHK_ERR(rval);
     }
     else MB_CHK_ERR(rval);
 
-    creatednew = false;
     rval = mbCore->tag_get_handle ( tgtDofTagName.c_str(), m_nDofsPEl_Dest*m_nDofsPEl_Dest, MB_TYPE_INTEGER,
-                             this->m_dofTagDest, MB_TAG_ANY, 0, &creatednew );
+                             this->m_dofTagDest, MB_TAG_ANY );
     if (rval == moab::MB_TAG_NOT_FOUND && eOutputType != DiscretizationType_FV)
     {
         int ntot_elements = 0, nelements = m_remapper->m_target_entities.size();
@@ -211,10 +210,13 @@ moab::ErrorCode moab::TempestOnlineMap::set_dofmap_tags(const std::string srcDof
         ntot_elements = nelements;
 #endif
 
-        rval = m_remapper->GenerateCSMeshMetadata(ntot_elements, m_remapper->m_target_entities, NULL, tgtDofTagName, m_nDofsPEl_Dest);MB_CHK_ERR(rval);
+        rval = m_remapper->GenerateCSMeshMetadata(ntot_elements, 
+                                                    m_remapper->m_target_entities, NULL, 
+                                                    tgtDofTagName, m_nDofsPEl_Dest);MB_CHK_ERR(rval);
 
-        rval = mbCore->tag_get_handle ( tgtDofTagName.c_str(), m_nDofsPEl_Dest*m_nDofsPEl_Dest, MB_TYPE_INTEGER,
-                                 this->m_dofTagDest, MB_TAG_ANY);MB_CHK_ERR(rval);
+        rval = mbCore->tag_get_handle ( tgtDofTagName.c_str(), m_nDofsPEl_Dest*m_nDofsPEl_Dest, 
+                                        MB_TYPE_INTEGER,
+                                        this->m_dofTagDest, MB_TAG_ANY);MB_CHK_ERR(rval);
     }
     else MB_CHK_ERR(rval);
 
@@ -503,7 +505,7 @@ moab::ErrorCode moab::TempestOnlineMap::set_dofmap_association(DiscretizationTyp
             row_dofmap[i] = i;
             row_ldofmap[i] = i;
             row_gdofmap[i] = tgt_soln_gdofs[i];
-            // if (vprint) std::cout << "Row: " << m_remapper->lid_to_gid_tgt[i] << ", " <<  i << ", " << row_dofmap[i] << ", " << row_ldofmap[i] << ", " << tgt_soln_gdofs[i] << ", " << row_gdofmap[i] << "\n";
+            if (vprint) std::cout << "Row: " << m_remapper->lid_to_gid_tgt[i] << ", " <<  i << ", " << row_dofmap[i] << ", " << row_ldofmap[i] << ", " << tgt_soln_gdofs[i] << ", " << row_gdofmap[i] << "\n";
             m_nTotDofs_Dest++;
         }
     }
@@ -534,7 +536,7 @@ moab::ErrorCode moab::TempestOnlineMap::set_dofmap_association(DiscretizationTyp
 
     // Let us also allocate the local representation of the sparse matrix
 #if defined(MOAB_HAVE_EIGEN) && defined(VERBOSE)
-    // if (vprint)
+    if (vprint)
     {
         std::cout << "[" << rank << "]" << "DoFs: row = " << m_nTotDofs_Dest << ", " << row_dofmap.size() << ", col = " << m_nTotDofs_Src << ", " << m_nTotDofs_SrcCov << ", " << col_dofmap.size() << "\n";
         // std::cout << "Max col_dofmap: " << maxcol << ", Min col_dofmap" << mincol << "\n";

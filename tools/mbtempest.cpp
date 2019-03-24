@@ -59,6 +59,7 @@ struct ToolContext
         int ensureMonotonicity;
         bool fNoConservation;
         bool fVolumetric;
+        bool rrmGrids;
 
 #ifdef MOAB_HAVE_MPI
         ToolContext ( moab::Interface* icore, moab::ParallelComm* p_pcomm ) :
@@ -71,7 +72,7 @@ struct ToolContext
 #endif
             blockSize ( 5 ), outFilename ( "output.exo" ), intxFilename ( "" ), meshType ( moab::TempestRemapper::DEFAULT ),
             computeDual ( false ), computeWeights ( false ), ensureMonotonicity ( 0 ), 
-            fNoConservation ( false ), fVolumetric ( false )
+            fNoConservation ( false ), fVolumetric ( false ), rrmGrids ( false )
         {
             inFilenames.resize ( 2 );
             doftag_names.resize( 2 );
@@ -136,6 +137,7 @@ struct ToolContext
             opts.addOpt<void> ( "weights,w", "Compute and output the weights using the overlap mesh (generally relevant only for OVERLAP mesh)", &computeWeights );
             opts.addOpt<void> ( "noconserve,c", "Do not apply conservation to the resultant weights (relevant only when computing weights)", &fNoConservation );
             opts.addOpt<void> ( "volumetric,v", "Apply a volumetric projection to compute the weights (relevant only when computing weights)", &fVolumetric );
+            opts.addOpt<void> ( "rrmgrids", "At least one of the meshes is a regionally refined grid (relevant to accelerate intersection computation)", &rrmGrids );
             opts.addOpt<int> ( "monotonic,n", "Ensure monotonicity in the weight generation", &ensureMonotonicity );
             opts.addOpt<std::string> ( "load,l", "Input mesh filenames (a source and target mesh)", &expectedFName );
             opts.addOpt<int> ( "order,o", "Discretization orders for the source and target solution fields", &expectedOrder );
@@ -143,7 +145,6 @@ struct ToolContext
             opts.addOpt<std::string> ( "global_id,g", "Tag name that contains the global DoF IDs for source and target solution fields", &expectedDofTagName );
             opts.addOpt<std::string> ( "file,f", "Output remapping weights filename", &outFilename );
             opts.addOpt<std::string> ( "intx,i", "Output TempestRemap intersection mesh filename", &intxFilename );
-            
 
             opts.parseCommandLine ( argc, argv );
 
@@ -398,7 +399,7 @@ int main ( int argc, char* argv[] )
 
         // Compute intersections with MOAB
         ctx.timer_push ( "setup and compute mesh intersections" );
-        rval = remapper.ComputeOverlapMesh ( epsrel ); MB_CHK_ERR ( rval );
+        rval = remapper.ComputeOverlapMesh ( epsrel, 1.0, 1.0, 0.1, false, ctx.rrmGrids ); MB_CHK_ERR ( rval );
         ctx.timer_pop();
 
         {

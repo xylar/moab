@@ -510,7 +510,7 @@ ErrorCode TempestRemapper::convert_overlap_mesh_sorted_by_source()
     verts.clear();
 
     m_overlap->RemoveZeroEdges();
-    // m_overlap->RemoveCoincidentNodes();
+    m_overlap->RemoveCoincidentNodes();
 
     // Generate reverse node array and edge map
     if ( constructEdgeMap ) m_overlap->ConstructEdgeMap();
@@ -708,9 +708,16 @@ ErrorCode TempestRemapper::GenerateMeshMetadata(
         }
 
         Node centroid;
-        centroid.x = 0.25 * (nodes[face[0]].x + nodes[face[1]].x + nodes[face[2]].x + nodes[face[3]].x);
-        centroid.y = 0.25 * (nodes[face[0]].y + nodes[face[1]].y + nodes[face[2]].y + nodes[face[3]].y);
-        centroid.z = 0.25 * (nodes[face[0]].z + nodes[face[1]].z + nodes[face[2]].z + nodes[face[3]].z);
+        centroid.x = centroid.y = centroid.z = 0.0;
+        for (unsigned l=0; l < face.edges.size(); ++l) {
+            centroid.x += nodes[face[l]].x;
+            centroid.y += nodes[face[l]].y;
+            centroid.z += nodes[face[l]].z;
+        }
+        const double factor = 1.0/face.edges.size();
+        centroid.x *= factor;
+        centroid.y *= factor;
+        centroid.z *= factor;
 
         bool locElem = false;
         EntityHandle current_eh;
@@ -799,10 +806,11 @@ ErrorCode TempestRemapper::GenerateMeshMetadata(
 
 ///////////////////////////////////////////////////////////////////////////////////
 
-ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius_src, double radius_tgt, double boxeps, bool use_tempest )
+ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius_src, double radius_tgt, double boxeps, bool use_tempest, bool regional_mesh )
 {
     ErrorCode rval;
 
+    rrmgrids = regional_mesh;
     // const double radius = 1.0 /*2.0*acos(-1.0)*/;
     // const double boxeps = 0.1;
     // Create the intersection on the sphere object and set up necessary parameters
@@ -830,9 +838,74 @@ ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius_
     else
     {
 #endif
-        m_covering_source_set = m_source_set;
-        m_covering_source = m_source;
-        m_covering_source_entities = m_source_entities; // this is a tempest mesh object; careful about incrementing the reference?
+        if (rrmgrids)
+        {
+            rval = m_interface->create_meshset ( moab::MESHSET_SET, m_covering_source_set ); MB_CHK_SET_ERR ( rval, "Can't create new set" );
+
+            double tolerance=1e-6, btolerance=1e-3;
+            moab::AdaptiveKDTree tree(m_interface);
+            moab::Range targetVerts;
+            rval = m_interface->get_connectivity(m_target_entities, targetVerts, true);MB_CHK_ERR(rval);
+
+            rval = tree.build_tree(m_source_entities, &m_source_set);MB_CHK_ERR(rval);
+
+            for (unsigned ie=0; ie < targetVerts.size(); ++ie)
+            {
+                EntityHandle el = targetVerts[ie], leaf;
+                double point[3];
+
+                // Get the element centroid to be queried
+                rval = m_interface->get_coords(&el, 1, point);MB_CHK_ERR(rval);
+
+                // Search for the closest source element in the master mesh corresponding
+                // to the target element centroid in the slave mesh
+                rval = tree.point_search( point, leaf, tolerance, btolerance );MB_CHK_ERR(rval);
+
+                if (leaf == 0) {
+                  leaf = m_source_set; // no hint
+                }
+
+                std::vector<moab::EntityHandle> leaf_elems;
+                // We only care about the dimension that the user specified.
+                // MOAB partitions are ordered by elements anyway.
+                rval = m_interface->get_entities_by_dimension( leaf, 2, leaf_elems);MB_CHK_ERR(rval);
+
+                // Now get the master element centroids so that we can compute
+                // the minimum distance to the target point
+                std::vector<double> centroids(leaf_elems.size()*3);
+                rval = m_interface->get_coords(&leaf_elems[0], leaf_elems.size(), &centroids[0]);MB_CHK_ERR(rval);
+
+                if (!leaf_elems.size())
+                  std::cout << ie << ": " << " No leaf elements found." << std::endl;
+
+                double dist=1e5;
+                int pinelem=-1;
+                for (size_t il=0; il < leaf_elems.size(); ++il) {
+                  const double *centroid = &centroids[il*3];
+                  const double locdist = std::pow(point[0]-centroid[0],2)+std::pow(point[1]-centroid[1],2)+std::pow(point[2]-centroid[2],2);
+
+                  if (locdist < dist) {
+                    dist = locdist;
+                    pinelem = il;
+                  }
+                }
+
+                if (pinelem < 0) {
+                  std::cout << ie << ": [Error] - Could not find a minimum distance within the leaf nodes." << std::endl;
+                }
+                else {
+                    m_covering_source_entities.insert(leaf_elems[pinelem]);
+                }
+            }
+            rval = tree.reset_tree();MB_CHK_ERR(rval);
+            rval = m_interface->add_entities(m_covering_source_set, m_covering_source_entities);MB_CHK_ERR(rval);
+        }
+        else
+        {
+            m_covering_source_set = m_source_set;
+            m_covering_source = m_source;
+            m_covering_source_entities = m_source_entities; // this is a tempest mesh object; careful about incrementing the reference?
+        }
 #ifdef MOAB_HAVE_MPI
     }
 #endif
@@ -903,7 +976,8 @@ ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius_
         rval = mbintx->intersect_meshes ( m_covering_source_set, m_target_set, m_overlap_set ); MB_CHK_SET_ERR ( rval, "Can't compute the intersection of meshes on the sphere" );
 
 #ifdef MOAB_HAVE_MPI
-        if (is_parallel) {
+        if (is_parallel || rrmgrids)
+        {
 
 #ifdef VERBOSE
             std::stringstream ffc, fft, ffo;
