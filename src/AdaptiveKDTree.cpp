@@ -913,9 +913,9 @@ namespace moab {
           lo = ro = false;
           while (!lo && !ro && tol <= max_tol) {
             tree_stats().boxElemTests+= 2;
-            lo = GeomUtil::box_elem_overlap( coords, TYPE_FROM_HANDLE(*i), left_cen, left_dim+CartVect(tol));
-            ro = GeomUtil::box_elem_overlap( coords, TYPE_FROM_HANDLE(*i), right_cen, right_dim+CartVect(tol));
-
+            lo = GeomUtil::box_elem_overlap( coords, TYPE_FROM_HANDLE(*i), left_cen, left_dim+CartVect(tol), count);
+            ro = GeomUtil::box_elem_overlap( coords, TYPE_FROM_HANDLE(*i), right_cen, right_dim+CartVect(tol), count);
+            
             tol *= 10.0;
           }
         }
