@@ -498,7 +498,7 @@ bool box_tri_overlap( const CartVect  triangle_corners[3],
 bool box_elem_overlap( const CartVect *elem_corners,
                        EntityType elem_type,
                        const CartVect& center,
-                       const CartVect& dims )
+                       const CartVect& dims, int nodecount )
 {
 
   switch (elem_type) {
@@ -509,6 +509,19 @@ bool box_elem_overlap( const CartVect *elem_corners,
     case MBHEX:
       return box_hex_overlap( elem_corners, center, dims );
     case MBPOLYGON:
+    {
+      CartVect vt[3];
+      vt[0]=elem_corners[0];
+      vt[1]=elem_corners[1];
+      for (int j=2; j<nodecount; j++)
+      {
+        vt[2]=elem_corners[j];
+        if (box_tri_overlap( vt, center, dims ))
+          return true;
+      }
+      // none of the triangles overlap, then we return false
+      return false;
+    }
     case MBPOLYHEDRON:
       assert(false);
       return false;
