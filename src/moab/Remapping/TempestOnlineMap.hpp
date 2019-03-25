@@ -375,13 +375,13 @@ public:
 	///	<summary>
 	///		The reference to the moab::Core object that contains source/target and overlap sets.
 	///	</summary>
-	moab::Interface* mbCore;
+	moab::Interface* m_interface;
 
 #ifdef MOAB_HAVE_MPI
 	///	<summary>
 	///		The reference to the parallel communicator object used by the Core object.
 	///	</summary>
-	moab::ParallelComm* pcomm;
+	moab::ParallelComm* m_pcomm;
 #endif
 
 	///	<summary>
@@ -412,7 +412,7 @@ inline
 const DataArray1D<double>& TempestOnlineMap::GetGlobalSourceAreas() const
 {
 #ifdef MOAB_HAVE_MPI
-  if (pcomm->size() > 1) {
+  if (m_pcomm->size() > 1) {
         return m_weightMapGlobal->GetSourceAreas();
 	}
 	else {
@@ -429,7 +429,7 @@ inline
 const DataArray1D<double>& TempestOnlineMap::GetGlobalTargetAreas() const
 {
 #ifdef MOAB_HAVE_MPI
-  if (pcomm->size() > 1) {
+  if (m_pcomm->size() > 1) {
         return m_weightMapGlobal->GetTargetAreas();
 	}
 	else {
