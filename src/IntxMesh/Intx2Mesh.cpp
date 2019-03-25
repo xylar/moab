@@ -16,6 +16,7 @@
 #include <queue>
 #include <sstream>
 #include "moab/GeomUtil.hpp"
+#include "moab/AdaptiveKDTree.hpp"
 
 namespace moab {
 
@@ -265,6 +266,17 @@ ErrorCode Intx2Mesh::intersect_meshes(EntityHandle mbset1, EntityHandle mbset2,
 
   Range rs22=rs2; // a copy of the initial range; we will remove from it elements as we
                  // advance ; rs2 is needed for marking the polygon to the red parent
+
+  // create the local kdd tree with source elements; will use it to search
+  // more efficiently for the seeds in advancing front;
+  // some of the target cells will not be covered by source cells, and they need to be eliminated early
+  // from contention
+
+  // build a kd tree with the rs1 (source) cells
+  AdaptiveKDTree kd(mb);
+  EntityHandle tree_root = 0;
+  rval  = kd.build_tree(rs1, &tree_root);MB_CHK_ERR(rval);
+
   while (!rs22.empty())
   {
 #if defined(ENABLE_DEBUG) || defined(VERBOSE)
@@ -281,7 +293,34 @@ ErrorCode Intx2Mesh::intersect_meshes(EntityHandle mbset1, EntityHandle mbset2,
     {
       startRed = *it;
       int found = 0;
-      for (Range::iterator it2 = rs1.begin(); it2 != rs1.end() && !found; ++it2)
+      // find vertex positions
+      const EntityHandle * conn = NULL;
+      int nnodes=0;
+      rval = mb->get_connectivity(startRed, conn, nnodes); MB_CHK_ERR(rval);
+      // find leaves close to those positions
+      std::vector<double> positions;
+      positions.resize(nnodes*3);
+      rval = mb->get_coords(conn, nnodes, &positions[0]); MB_CHK_ERR(rval);
+      // find leaves within a distance from each vertex of target
+      // in those leaves, collect all cells; we will try for an intx in there, instead of
+      // looping over all rs1 cells, as before
+      Range close_source_cells;
+      std::vector<EntityHandle> leaves;
+      for (int i=0; i<nnodes; i++)
+      {
+
+        leaves.clear();
+        rval = kd.distance_search(&positions[3*i], epsilon_1, leaves, epsilon_1, epsilon_1);MB_CHK_ERR(rval);
+
+        for (std::vector<EntityHandle>::iterator j = leaves.begin(); j != leaves.end(); ++j) {
+            Range tmp;
+            rval = mb->get_entities_by_dimension( *j, 2, tmp ); MB_CHK_ERR(rval);
+
+            close_source_cells.merge( tmp.begin(), tmp.end() );
+        }
+      }
+
+      for (Range::iterator it2 = close_source_cells.begin(); it2 != close_source_cells.end() && !found; ++it2)
       {
         startBlue = *it2;
         double area = 0;
