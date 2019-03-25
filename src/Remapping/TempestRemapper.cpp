@@ -1107,7 +1107,7 @@ ErrorCode TempestRemapper::augment_overlap_set()
     int tid;
     EntityHandle targetCell = *it;
     rval = m_interface->tag_get_data(gid, &targetCell, 1, &tid); MB_CHK_SET_ERR(rval, "Can't get global id tag on target cell");
-    if (tid<=0)
+    if (tid<0)
       std::cout << " incorrect id for a target cell\n";
     targetBoundaryIds.insert(tid);
   }
