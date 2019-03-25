@@ -577,8 +577,8 @@ moab::ErrorCode moab::TempestRemapper::WriteTempestIntersectionMesh (std::string
         else
         {
             // Perform reduction and write from root processor
-            if ( is_root )
-                std::cout << "--- PARALLEL IMPLEMENTATION is NOT AVAILABLE yet ---\n";
+            // if ( is_root )
+            //     std::cout << "--- PARALLEL IMPLEMENTATION is NOT AVAILABLE yet ---\n";
             
             this->m_source->CalculateFaceAreas(fInputConcave);
             this->m_covering_source->CalculateFaceAreas(fInputConcave);
@@ -845,6 +845,7 @@ ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius_
             double tolerance=1e-6, btolerance=1e-3;
             moab::AdaptiveKDTree tree(m_interface);
             moab::Range targetVerts;
+
             rval = m_interface->get_connectivity(m_target_entities, targetVerts, true);MB_CHK_ERR(rval);
 
             rval = tree.build_tree(m_source_entities, &m_source_set);MB_CHK_ERR(rval);
@@ -897,7 +898,7 @@ ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius_
                   std::cout << ie << ": [Error] - Could not find a minimum distance within the leaf nodes. Dist = " << dist << std::endl;
                 }
             }
-            rval = tree.reset_tree();MB_CHK_ERR(rval);
+            // rval = tree.reset_tree();MB_CHK_ERR(rval);
             std::cout << "[INFO] - Total covering source entities = " << m_covering_source_entities.size() << std::endl;
             rval = m_interface->add_entities(m_covering_source_set, m_covering_source_entities);MB_CHK_ERR(rval);
         }
@@ -937,12 +938,10 @@ ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius_
         {  // Let us do some sanity checking to fix ID if they have are setup incorrectly
             Tag gidtag = m_interface->globalId_tag();
 
-            Range srcelems, tgtelems;
             moab::EntityHandle subrange[2];
             int gid[2];
-            rval = m_interface->get_entities_by_dimension ( m_source_set, 2, srcelems ); MB_CHK_ERR ( rval );
-            subrange[0] = srcelems[0];
-            subrange[1] = srcelems[1];
+            subrange[0] = m_source_entities[0];
+            subrange[1] = m_source_entities[1];
             rval = m_interface->tag_get_data(gidtag, subrange, 2, gid ); MB_CHK_ERR ( rval );
 
             // Check if we need to impose Global ID numbering for vertices and elements. This may be needed
@@ -956,9 +955,8 @@ ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius_
 #endif
             }
 
-            rval = m_interface->get_entities_by_dimension ( m_target_set, 2, tgtelems ); MB_CHK_ERR ( rval );
-            subrange[0] = tgtelems[0];
-            subrange[1] = tgtelems[1];
+            subrange[0] = m_target_entities[0];
+            subrange[1] = m_target_entities[1];
             rval = m_interface->tag_get_data(gidtag, subrange, 2, gid ); MB_CHK_ERR ( rval );
 
             // Check if we need to impose Global ID numbering for vertices and elements. This may be needed
