@@ -870,13 +870,15 @@ ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius_
                 // MOAB partitions are ordered by elements anyway.
                 rval = m_interface->get_entities_by_dimension( leaf, 2, leaf_elems);MB_CHK_ERR(rval);
 
+                if (!leaf_elems.size()) {
+                  // std::cout << ie << ": " << " No leaf elements found." << std::endl;
+                  continue;
+                }
+
                 // Now get the master element centroids so that we can compute
                 // the minimum distance to the target point
                 std::vector<double> centroids(leaf_elems.size()*3);
                 rval = m_interface->get_coords(&leaf_elems[0], leaf_elems.size(), &centroids[0]);MB_CHK_ERR(rval);
-
-                if (!leaf_elems.size())
-                  std::cout << ie << ": " << " No leaf elements found." << std::endl;
 
                 double dist=1e5;
                 int pinelem=-1;
@@ -887,17 +889,16 @@ ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius_
                   if (locdist < dist) {
                     dist = locdist;
                     pinelem = il;
+                    m_covering_source_entities.insert(leaf_elems[il]);
                   }
                 }
 
                 if (pinelem < 0) {
-                  std::cout << ie << ": [Error] - Could not find a minimum distance within the leaf nodes." << std::endl;
-                }
-                else {
-                    m_covering_source_entities.insert(leaf_elems[pinelem]);
+                  std::cout << ie << ": [Error] - Could not find a minimum distance within the leaf nodes. Dist = " << dist << std::endl;
                 }
             }
             rval = tree.reset_tree();MB_CHK_ERR(rval);
+            std::cout << "[INFO] - Total covering source entities = " << m_covering_source_entities.size() << std::endl;
             rval = m_interface->add_entities(m_covering_source_set, m_covering_source_entities);MB_CHK_ERR(rval);
         }
         else
@@ -978,7 +979,6 @@ ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius_
 #ifdef MOAB_HAVE_MPI
         if (is_parallel || rrmgrids)
         {
-
 #ifdef VERBOSE
             std::stringstream ffc, fft, ffo;
             ffc << "cover_"<< rank << ".h5m";
