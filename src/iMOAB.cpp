@@ -1919,6 +1919,7 @@ ErrCode iMOAB_ReceiveMesh ( iMOAB_AppID pid, MPI_Comm* global, MPI_Group* sendin
     Tag idtag;
     rval = context.MBI->tag_get_handle ( "GLOBAL_ID", idtag );CHKERRVAL(rval);
 
+    bool pointCloud = false;
     if ( ( int ) senders_local.size() >= 2 ) // need to remove duplicate vertices
         // that might come from different senders
     {
@@ -1926,31 +1927,41 @@ ErrCode iMOAB_ReceiveMesh ( iMOAB_AppID pid, MPI_Comm* global, MPI_Group* sendin
         rval = context.MBI->get_entities_by_handle ( local_set, local_ents );CHKERRVAL(rval);
 
         Range local_verts = local_ents.subset_by_type ( MBVERTEX );
-        Range local_elems = subtract ( local_ents, local_verts );
+        // do not do merge if point cloud
+        if ( !local_ents.all_of_type(MBVERTEX) )
+        {
+          Range local_elems = subtract ( local_ents, local_verts );
 
-        // remove from local set the vertices
-        rval = context.MBI->remove_entities ( local_set, local_verts );CHKERRVAL(rval);
-
-#ifdef VERBOSE
-        std::cout << "current_receiver " << current_receiver << " local verts: " << local_verts.size() << "\n";
-#endif
-        MergeMesh mm ( context.MBI );
-
-        rval = mm.merge_using_integer_tag ( local_verts, idtag );CHKERRVAL(rval);
-
-        Range new_verts; // local elems are local entities without vertices
-        rval = context.MBI->get_connectivity ( local_elems, new_verts );CHKERRVAL(rval);
+          // remove from local set the vertices
+          rval = context.MBI->remove_entities ( local_set, local_verts );CHKERRVAL(rval);
 
 #ifdef VERBOSE
-        std::cout << "after merging: new verts: " << new_verts.size() << "\n";
+          std::cout << "current_receiver " << current_receiver << " local verts: " << local_verts.size() << "\n";
 #endif
-        rval = context.MBI->add_entities ( local_set, new_verts );CHKERRVAL(rval);
+          MergeMesh mm ( context.MBI );
+
+          rval = mm.merge_using_integer_tag ( local_verts, idtag );CHKERRVAL(rval);
+
+          Range new_verts; // local elems are local entities without vertices
+          rval = context.MBI->get_connectivity ( local_elems, new_verts );CHKERRVAL(rval);
+
+#ifdef VERBOSE
+          std::cout << "after merging: new verts: " << new_verts.size() << "\n";
+#endif
+          rval = context.MBI->add_entities ( local_set, new_verts );CHKERRVAL(rval);
+
+        }
+        else
+          pointCloud = true;
     }
 
-    // still need to resolve shared entities (in this case, vertices )
-    rval = pco->resolve_shared_ents ( local_set, -1, -1, &idtag );
+    if (!pointCloud)
+    {
+      // still need to resolve shared entities (in this case, vertices )
+      rval = pco->resolve_shared_ents ( local_set, -1, -1, &idtag );
 
-    if ( rval != MB_SUCCESS ) { return 1; }
+      if ( rval != MB_SUCCESS ) { return 1; }
+    }
 
     // set the parallel partition tag
     Tag part_tag;

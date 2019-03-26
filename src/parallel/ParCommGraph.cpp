@@ -398,11 +398,21 @@ ErrorCode ParCommGraph::receive_mesh(MPI_Comm jcomm, ParallelComm *pco, EntityHa
       // corr_sizes is the size of primary entities received
       Range verts = entities.subset_by_dimension(0);
       Range local_primary_ents=subtract(entities, verts);
+      if (local_primary_ents.empty())
+      {
+        // it is possible that all ents sent were vertices (point cloud)
+        // then consider primary entities the vertices
+        local_primary_ents = verts;
+      }
+      else
+      {
+        // set a tag with the original sender for the primary entity
+        // will be used later for coverage mesh
+        std::vector<int> orig_senders(local_primary_ents.size(), sender1);
+        rval = pco->get_moab()->tag_set_data(orgSendProcTag, local_primary_ents, &orig_senders[0]);
+      }
       corr_sizes.push_back( (int) local_primary_ents.size());
-      // set a tag with the original sender for the primary entity
-      // will be used later for coverage mesh
-      std::vector<int> orig_senders(local_primary_ents.size(), sender1);
-      rval = pco->get_moab()->tag_set_data(orgSendProcTag, local_primary_ents, &orig_senders[0]);
+
       newEnts.merge(entities);
       // make these in split ranges
       split_ranges[sender1]=local_primary_ents;
@@ -859,12 +869,8 @@ ErrorCode ParCommGraph::compute_partition (ParallelComm *pco, Range & owned, int
   int primaryDim = mb->dimension_from_handle(*owned.rbegin());
   int interfaceDim = primaryDim -1; // should be 1 or 2
   Range sharedEdges;
-  ErrorCode rval = pco->get_shared_entities(/*int other_proc*/ -1, sharedEdges, interfaceDim, /*const bool iface*/ true);MB_CHK_ERR ( rval );
+  ErrorCode rval;
 
-#if VERBOSE
-  std::cout <<" on sender task " << pco->rank() << " number of shared interface cells " << sharedEdges.size() << "\n";
-#endif
-  // find to what processors we need to send the ghost info about the edge
   std::vector<int> shprocs(MAX_SHARING_PROCS);
   std::vector<EntityHandle> shhandles(MAX_SHARING_PROCS);
 
@@ -880,6 +886,12 @@ ErrorCode ParCommGraph::compute_partition (ParallelComm *pco, Range & owned, int
   // these maps above will be empty for method 2 (geometry)
   if (1==met)
   {
+    rval= pco->get_shared_entities(/*int other_proc*/ -1, sharedEdges, interfaceDim, /*const bool iface*/ true);MB_CHK_ERR ( rval );
+
+#if VERBOSE
+    std::cout <<" on sender task " << pco->rank() << " number of shared interface cells " << sharedEdges.size() << "\n";
+#endif
+     // find to what processors we need to send the ghost info about the edge
     // first determine the local graph; what elements are adjacent to each cell in owned range
     // cells that are sharing a partition interface edge, are identified first, and form a map
     TupleList TLe; // tuple list for cells

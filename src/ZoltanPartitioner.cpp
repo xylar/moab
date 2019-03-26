@@ -2085,7 +2085,14 @@ ErrorCode ZoltanPartitioner::partition_owned_cells(Range & primary, ParallelComm
     }
     else if (2==met)
     {
-      rval = mtu.get_average_position(cell, avg_position); MB_CHK_ERR ( rval );
+      if (TYPE_FROM_HANDLE(cell) == MBVERTEX)
+      {
+        rval = mbImpl->get_coords(&cell, 1, avg_position); MB_CHK_ERR ( rval );
+      }
+      else
+      {
+        rval = mtu.get_average_position(cell, avg_position); MB_CHK_ERR ( rval );
+      }
       std::copy(avg_position, avg_position+3, std::back_inserter(coords));
     }
   }
