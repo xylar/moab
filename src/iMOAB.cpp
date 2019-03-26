@@ -1786,7 +1786,13 @@ ErrCode iMOAB_SendMesh ( iMOAB_AppID pid, MPI_Comm* global, MPI_Group* receiving
     std::vector<int> number_elems_per_part;
     // how to distribute local elements to receiving tasks?
     // trivial partition: compute first the total number of elements need to be sent
-    Range& owned = context.appDatas[*pid].owned_elems;
+    Range owned = context.appDatas[*pid].owned_elems;
+    if (owned.size()==0)
+    {
+      // must be vertices that we want to send then
+      owned = context.appDatas[*pid].local_verts;
+      // we should have some vertices here
+    }
 
     if (*method == 0) // trivial partitioning, old method
     {
