@@ -637,7 +637,10 @@ ErrCode iMOAB_UpdateMeshInfo ( iMOAB_AppID pid )
             rval = context.MBI->get_entities_by_dimension ( fileSet, 1, data.primary_elems, true );CHKERRVAL(rval); // recursive
 
             if ( data.primary_elems.empty() )
-            { return 1; } // no elements of dimension 1 or 2 or 3
+            {
+              // no elements of dimension 1 or 2 or 3; it could happen for point clouds
+              return 0;
+            }
         }
     }
 
@@ -1665,22 +1668,32 @@ ErrCode iMOAB_ResolveSharedEntities (  iMOAB_AppID pid, int* num_verts, int* mar
 #ifdef MOAB_HAVE_MPI
     appData& data = context.appDatas[*pid];
     ParallelComm* pco = context.pcomms[*pid];
-
-    // create an integer tag for resolving ; maybe it can be a long tag in the future
-    // (more than 2 B vertices;)
-    int dum_id = 0;
-    Tag stag;
-    ErrorCode rval = context.MBI->tag_get_handle ( "__sharedmarker", 1,  MB_TYPE_INTEGER, stag,
-                     MB_TAG_CREAT | MB_TAG_DENSE, &dum_id );CHKERRVAL(rval);
-
-    if ( *num_verts > ( int ) data.local_verts.size() )
-    { return 1; } // we are not setting the size
-
-    rval = context.MBI->tag_set_data ( stag, data.local_verts, ( void* ) marker ); // assumes integer tag
     EntityHandle cset = data.file_set;
-    rval = pco->resolve_shared_ents ( cset, -1, -1, &stag );CHKERRVAL(rval);
+    int dum_id = 0;
+    ErrorCode rval;
+    if (data.primary_elems.empty())
+    {
+      // skip actual resolve, assume vertices are distributed already ,
+      // no need to share them
+    }
+    else
+    {
+      // create an integer tag for resolving ; maybe it can be a long tag in the future
+      // (more than 2 B vertices;)
 
-    rval = context.MBI->tag_delete(stag); CHKERRVAL(rval);
+      Tag stag;
+      rval = context.MBI->tag_get_handle ( "__sharedmarker", 1,  MB_TYPE_INTEGER, stag,
+                       MB_TAG_CREAT | MB_TAG_DENSE, &dum_id );CHKERRVAL(rval);
+
+      if ( *num_verts > ( int ) data.local_verts.size() )
+      { return 1; } // we are not setting the size
+
+      rval = context.MBI->tag_set_data ( stag, data.local_verts, ( void* ) marker ); CHKERRVAL(rval);// assumes integer tag
+
+      rval = pco->resolve_shared_ents ( cset, -1, -1, &stag );CHKERRVAL(rval);
+
+      rval = context.MBI->tag_delete(stag); CHKERRVAL(rval);
+    }
     // provide partition tag equal to rank
     Tag part_tag;
     dum_id = -1;
