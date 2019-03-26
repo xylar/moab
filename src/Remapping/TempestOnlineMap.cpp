@@ -1798,7 +1798,7 @@ moab::ErrorCode moab::TempestOnlineMap::gather_all_to_root()   // Collective
     // on the root process
     m_globalMapAvailable = true;
 
-// #ifdef VERBOSE
+#ifdef VERBOSE
     if ( !rank )
     {
         dbgprint.printf ( 0, "Writing out file outGlobalView.nc\n" );
@@ -1808,7 +1808,7 @@ moab::ErrorCode moab::TempestOnlineMap::gather_all_to_root()   // Collective
         mapAttributes["Creator"] = sstr.str();
         m_weightMapGlobal->Write ( "outGlobalView.nc", mapAttributes, NcFile::Netcdf4 );
     }
-// #endif
+#endif
 // #undef VERBOSE
     return moab::MB_SUCCESS;
 }
