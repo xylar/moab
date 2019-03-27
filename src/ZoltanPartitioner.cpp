@@ -2229,7 +2229,7 @@ ErrorCode ZoltanPartitioner::partition_owned_cells(Range & primary, ParallelComm
   assert (num_export == (int) primary.size());
   for (i=0; i<num_export; i++)
   {
-    EntityHandle cell=primary[i];
+    EntityHandle cell=primary[export_local_ids[i]];
     distribution[assign_parts[i]].insert(cell);
   }
 
