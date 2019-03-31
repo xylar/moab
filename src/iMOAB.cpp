@@ -1320,8 +1320,8 @@ ErrCode iMOAB_SetIntTagStorage ( iMOAB_AppID pid, const iMOAB_String tag_storage
 
     // restrict the range; everything is contiguous; or not?
 
-    Range contig_range ( * ( ents_to_set->begin() ), * ( ents_to_set->begin() + nents_to_be_set - 1 ) );
-    rval = context.MBI->tag_set_data ( tag, contig_range, tag_storage_data );CHKERRVAL(rval);
+    //Range contig_range ( * ( ents_to_set->begin() ), * ( ents_to_set->begin() + nents_to_be_set - 1 ) );
+    rval = context.MBI->tag_set_data ( tag, *ents_to_set, tag_storage_data );CHKERRVAL(rval);
 
     return 0; // no error
 }
@@ -1366,9 +1366,9 @@ ErrCode iMOAB_GetIntTagStorage ( iMOAB_AppID pid, const iMOAB_String tag_storage
     { return 1; } // to many entities to get, or too little
 
     // restrict the range; everything is contiguous; or not?
-    Range contig_range ( * ( ents_to_get->begin() ), * ( ents_to_get->begin() + nents_to_get - 1 ) );
+    //Range contig_range ( * ( ents_to_get->begin() ), * ( ents_to_get->begin() + nents_to_get - 1 ) );
 
-    rval = context.MBI->tag_get_data ( tag, contig_range, tag_storage_data );CHKERRVAL(rval);
+    rval = context.MBI->tag_get_data ( tag, *ents_to_get, tag_storage_data );CHKERRVAL(rval);
 
     return 0; // no error
 }
@@ -1414,9 +1414,9 @@ ErrCode iMOAB_SetDoubleTagStorage ( iMOAB_AppID pid, const iMOAB_String tag_stor
     { return 1; } // to many entities to be set
 
     // restrict the range; everything is contiguous; or not?
-    Range contig_range ( * ( ents_to_set->begin() ), * ( ents_to_set->begin() + nents_to_be_set - 1 ) );
+    //Range contig_range ( * ( ents_to_set->begin() ), * ( ents_to_set->begin() + nents_to_be_set - 1 ) );
 
-    rval = context.MBI->tag_set_data ( tag, contig_range, tag_storage_data );CHKERRVAL(rval);
+    rval = context.MBI->tag_set_data ( tag, *ents_to_set, tag_storage_data );CHKERRVAL(rval);
 
     return 0; // no error
 }
@@ -1463,8 +1463,8 @@ ErrCode iMOAB_GetDoubleTagStorage ( iMOAB_AppID pid, const iMOAB_String tag_stor
 
     // restrict the range; everything is contiguous; or not?
 
-    Range contig_range ( * ( ents_to_get->begin() ), * ( ents_to_get->begin() + nents_to_get - 1 ) );
-    rval = context.MBI->tag_get_data ( tag, contig_range, tag_storage_data );CHKERRVAL(rval);
+    //Range contig_range ( * ( ents_to_get->begin() ), * ( ents_to_get->begin() + nents_to_get - 1 ) );
+    rval = context.MBI->tag_get_data ( tag, *ents_to_get, tag_storage_data );CHKERRVAL(rval);
 
     return 0; // no error
 }
