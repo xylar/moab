@@ -151,6 +151,11 @@ public:
   void enable_debug()  {dbg_1 = 1;}
   void disable_debug() {dbg_1 = 0;}
 #endif
+
+#ifdef MOAB_HAVE_TEMPESTREMAP
+  friend class TempestRemapper;
+#endif
+
 protected: // so it can be accessed in derived classes, InPlane and OnSphere
   Interface * mb;
 
