@@ -387,14 +387,14 @@ int main ( int argc, char* argv[] )
             rval = mbCore->get_entities_by_dimension ( ctx.meshsets[0], 2, rintxelems ); MB_CHK_ERR ( rval );
             rval = fix_degenerate_quads ( mbCore, ctx.meshsets[0] ); MB_CHK_ERR ( rval );
             rval = positive_orientation ( mbCore, ctx.meshsets[0], radius_src ); MB_CHK_ERR ( rval );
-            printf ( "The red set contains %lu vertices and %lu elements \n", rintxverts.size(), rintxelems.size() );
+            if ( !proc_id ) printf ( "The red set contains %lu vertices and %lu elements \n", rintxverts.size(), rintxelems.size() );
 
             moab::Range bintxverts, bintxelems;
             rval = mbCore->get_entities_by_dimension ( ctx.meshsets[1], 0, bintxverts ); MB_CHK_ERR ( rval );
             rval = mbCore->get_entities_by_dimension ( ctx.meshsets[1], 2, bintxelems ); MB_CHK_ERR ( rval );
             rval = fix_degenerate_quads ( mbCore, ctx.meshsets[1] ); MB_CHK_ERR ( rval );
             rval = positive_orientation ( mbCore, ctx.meshsets[1], radius_dest ); MB_CHK_ERR ( rval );
-            printf ( "The blue set contains %lu vertices and %lu elements \n", bintxverts.size(), bintxelems.size() );
+            if ( !proc_id ) printf ( "The blue set contains %lu vertices and %lu elements \n", bintxverts.size(), bintxelems.size() );
         }
 
         // Compute intersections with MOAB
