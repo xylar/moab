@@ -148,7 +148,7 @@ ErrorCode TempestRemapper::load_tempest_mesh_private ( std::string inputFilename
             if ( constructEdgeMap )
             {
                 if ( outputEnabled ) std::cout << "Constructing edge map on mesh ...\n";
-                mesh->ConstructEdgeMap();
+                mesh->ConstructEdgeMap(false);
                 if ( outputEnabled ) std::cout << "---------------------------------\n";
             }
 
@@ -381,7 +381,7 @@ ErrorCode TempestRemapper::convert_mesh_to_tempest_private ( Mesh* mesh, EntityH
     mesh->RemoveCoincidentNodes();
 
     // Generate reverse node array and edge map
-    if ( constructEdgeMap ) mesh->ConstructEdgeMap();
+    if ( constructEdgeMap ) mesh->ConstructEdgeMap(false);
     // mesh->ConstructReverseNodeArray();
 
     // moab::Range face_edges_all;
@@ -513,7 +513,7 @@ ErrorCode TempestRemapper::convert_overlap_mesh_sorted_by_source()
     m_overlap->RemoveCoincidentNodes();
 
     // Generate reverse node array and edge map
-    if ( constructEdgeMap ) m_overlap->ConstructEdgeMap();
+    if ( constructEdgeMap ) m_overlap->ConstructEdgeMap(false);
     // m_overlap->ConstructReverseNodeArray();
 
     // m_overlap->Validate();
@@ -824,7 +824,12 @@ ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius_
 #ifdef MOAB_HAVE_MPI
     mbintx->set_parallel_comm ( m_pcomm );
 #endif
+
+    // compute the maxiumum edges in elements comprising source and target mesh
     rval = mbintx->FindMaxEdges ( m_source_set, m_target_set ); MB_CHK_ERR ( rval );
+
+    this->max_source_edges = mbintx->max_edges_1;
+    this->max_target_edges = mbintx->max_edges_2;
 
     // Note: lots of communication possible, if mesh is distributed very differently
 #ifdef MOAB_HAVE_MPI

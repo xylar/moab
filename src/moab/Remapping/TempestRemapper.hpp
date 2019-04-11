@@ -152,11 +152,13 @@ private:
     TempestMeshType m_source_type;
     moab::Range m_source_entities;
     moab::EntityHandle m_source_set;
+    int max_source_edges;
 
     Mesh* m_target;
     TempestMeshType m_target_type;
     moab::Range m_target_entities;
     moab::EntityHandle m_target_set;
+    int max_target_edges;
 
     // Overlap meshes
     Mesh* m_overlap;
