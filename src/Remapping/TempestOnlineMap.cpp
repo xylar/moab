@@ -1083,14 +1083,20 @@ moab::ErrorCode moab::TempestOnlineMap::GenerateRemappingWeights ( std::string s
         //     m_meshOverlap->Write ( "moab_intersection_tempest.g");
         // }
 
+#ifdef VERBOSE
         if ( !m_globalMapAvailable && size > 1 ) {
             // gather weights to root process to perform consistency/conservation checks
             rval = this->gather_all_to_root();MB_CHK_ERR(rval);
         }
+#endif
 
         // Verify consistency, conservation and monotonicity
         // gather weights to root process to perform consistency/conservation checks
+#ifndef VERBOSE
+        if ( !fNoCheck && size == 1)
+#else
         if ( !fNoCheck )
+#endif
         {
             if ( is_root ) dbgprint.printf ( 0, "Verifying map" );
             this->IsConsistent ( 1.0e-8 );
