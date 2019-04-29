@@ -1698,10 +1698,18 @@ ErrCode iMOAB_ResolveSharedEntities (  iMOAB_AppID pid, int* num_verts, int* mar
     Tag part_tag;
     dum_id = -1;
     rval = context.MBI->tag_get_handle ( "PARALLEL_PARTITION", 1, MB_TYPE_INTEGER,
-                                         part_tag, MB_TAG_CREAT | MB_TAG_SPARSE, &dum_id );CHKERRVAL(rval);
+                                         part_tag, MB_TAG_CREAT | MB_TAG_SPARSE, &dum_id );
+
+    if (part_tag == NULL || ( (rval!=MB_SUCCESS) && (rval!=MB_ALREADY_ALLOCATED) ) )
+    {
+      std::cout <<" can't get par part tag.\n";
+      return 1;
+    }
+
 
     int rank = pco->rank();
     rval = context.MBI->tag_set_data ( part_tag, &cset, 1, &rank );CHKERRVAL(rval);
+
 
 #endif
     return 0;
@@ -1855,130 +1863,137 @@ ErrCode iMOAB_SendMesh ( iMOAB_AppID pid, MPI_Comm* global, MPI_Group* receiving
 ErrCode iMOAB_ReceiveMesh ( iMOAB_AppID pid, MPI_Comm* global, MPI_Group* sendingGroup,
                             int* scompid )
 {
-    appData& data = context.appDatas[*pid];
-    ParallelComm* pco = context.pcomms[*pid];
-    MPI_Comm receive = pco->comm();
-    EntityHandle local_set = data.file_set;
-    ErrorCode rval;
+  appData& data = context.appDatas[*pid];
+  ParallelComm* pco = context.pcomms[*pid];
+  MPI_Comm receive = pco->comm();
+  EntityHandle local_set = data.file_set;
+  ErrorCode rval;
 
-    // first see what are the processors in each group; get the sender group too, from the sender communicator
-    MPI_Group receiverGroup;
-    int ierr = MPI_Comm_group ( receive, &receiverGroup );CHKIERRVAL(ierr);
+  // first see what are the processors in each group; get the sender group too, from the sender communicator
+  MPI_Group receiverGroup;
+  int ierr = MPI_Comm_group ( receive, &receiverGroup );CHKIERRVAL(ierr);
 
-    // instantiate the par comm graph
-    ParCommGraph* cgraph = new ParCommGraph ( *global, *sendingGroup, receiverGroup, *scompid, context.appDatas[*pid].external_id );
-    // TODO we should search if we have another pcomm with the same comp ids in the list already
-    // sort of check existing comm graphs in the list context.appDatas[*pid].pgraph
-    context.appDatas[*pid].pgraph.push_back ( cgraph );
+  // instantiate the par comm graph
+  ParCommGraph* cgraph = new ParCommGraph ( *global, *sendingGroup, receiverGroup, *scompid, context.appDatas[*pid].external_id );
+  // TODO we should search if we have another pcomm with the same comp ids in the list already
+  // sort of check existing comm graphs in the list context.appDatas[*pid].pgraph
+  context.appDatas[*pid].pgraph.push_back ( cgraph );
 
-    int receiver_rank = -1;
-    MPI_Comm_rank ( receive, &receiver_rank );
+  int receiver_rank = -1;
+  MPI_Comm_rank ( receive, &receiver_rank );
 
-    // first, receive from sender_rank 0, the communication graph (matrix), so each receiver
-    // knows what data to expect
-    std::vector<int> pack_array;
-    rval = cgraph->receive_comm_graph ( *global, pco, pack_array );CHKERRVAL(rval);
+  // first, receive from sender_rank 0, the communication graph (matrix), so each receiver
+  // knows what data to expect
+  std::vector<int> pack_array;
+  rval = cgraph->receive_comm_graph ( *global, pco, pack_array );CHKERRVAL(rval);
 
-    // senders across for the current receiver
-    int current_receiver = cgraph->receiver ( receiver_rank );
+  // senders across for the current receiver
+  int current_receiver = cgraph->receiver ( receiver_rank );
 
-    std::vector<int> senders_local;
-    size_t n = 0;
+  std::vector<int> senders_local;
+  size_t n = 0;
 
-    while ( n < pack_array.size() )
+  while ( n < pack_array.size() )
+  {
+    if ( current_receiver == pack_array[n] )
     {
-        if ( current_receiver == pack_array[n] )
-        {
-            for ( int j = 0; j < pack_array[n + 1]; j++ )
-            { senders_local.push_back ( pack_array[n + 2 + j] ); }
+      for ( int j = 0; j < pack_array[n + 1]; j++ )
+      { senders_local.push_back ( pack_array[n + 2 + j] );}
 
-            break;
-        }
-
-        n = n + 2 + pack_array[n + 1];
+      break;
     }
+
+    n = n + 2 + pack_array[n + 1];
+  }
 
 #ifdef VERBOSE
-    std:: cout << " receiver " << current_receiver << " at rank " <<
-               receiver_rank << " will receive from " << senders_local.size() << " tasks: ";
+  std:: cout << " receiver " << current_receiver << " at rank " <<
+  receiver_rank << " will receive from " << senders_local.size() << " tasks: ";
 
-    for ( int k = 0; k < ( int ) senders_local.size(); k++ )
-    { std::cout << " " << senders_local[k]; }
+  for ( int k = 0; k < ( int ) senders_local.size(); k++ )
+  { std::cout << " " << senders_local[k];}
 
-    std::cout << "\n";
+  std::cout << "\n";
 #endif
 
-    if (senders_local.empty())
+  if (senders_local.empty())
+  {
+    std::cout <<" we do not have any senders for receiver rank " << receiver_rank << "\n";
+  }
+  rval = cgraph->receive_mesh ( *global, pco, local_set, senders_local );CHKERRVAL(rval);
+
+  // after we are done, we could merge vertices that come from different senders, but
+  // have the same global id
+  Tag idtag;
+  rval = context.MBI->tag_get_handle ( "GLOBAL_ID", idtag );CHKERRVAL(rval);
+
+  bool pointCloud = false;
+  if ( ( int ) senders_local.size() >= 2 )// need to remove duplicate vertices
+  // that might come from different senders
+  {
+    Range local_ents;
+    rval = context.MBI->get_entities_by_handle ( local_set, local_ents );CHKERRVAL(rval);
+
+    Range local_verts = local_ents.subset_by_type ( MBVERTEX );
+    // do not do merge if point cloud
+    if ( !local_ents.all_of_type(MBVERTEX) )
     {
-      std::cout <<" we do not have any senders for receiver rank " << receiver_rank << "\n";
-    }
-    rval = cgraph->receive_mesh ( *global, pco, local_set, senders_local );CHKERRVAL(rval);
+      Range local_elems = subtract ( local_ents, local_verts );
 
-    // after we are done, we could merge vertices that come from different senders, but
-    // have the same global id
-    Tag idtag;
-    rval = context.MBI->tag_get_handle ( "GLOBAL_ID", idtag );CHKERRVAL(rval);
-
-    bool pointCloud = false;
-    if ( ( int ) senders_local.size() >= 2 ) // need to remove duplicate vertices
-        // that might come from different senders
-    {
-        Range local_ents;
-        rval = context.MBI->get_entities_by_handle ( local_set, local_ents );CHKERRVAL(rval);
-
-        Range local_verts = local_ents.subset_by_type ( MBVERTEX );
-        // do not do merge if point cloud
-        if ( !local_ents.all_of_type(MBVERTEX) )
-        {
-          Range local_elems = subtract ( local_ents, local_verts );
-
-          // remove from local set the vertices
-          rval = context.MBI->remove_entities ( local_set, local_verts );CHKERRVAL(rval);
+      // remove from local set the vertices
+      rval = context.MBI->remove_entities ( local_set, local_verts );CHKERRVAL(rval);
 
 #ifdef VERBOSE
-          std::cout << "current_receiver " << current_receiver << " local verts: " << local_verts.size() << "\n";
+      std::cout << "current_receiver " << current_receiver << " local verts: " << local_verts.size() << "\n";
 #endif
-          MergeMesh mm ( context.MBI );
+      MergeMesh mm ( context.MBI );
 
-          rval = mm.merge_using_integer_tag ( local_verts, idtag );CHKERRVAL(rval);
+      rval = mm.merge_using_integer_tag ( local_verts, idtag );CHKERRVAL(rval);
 
-          Range new_verts; // local elems are local entities without vertices
-          rval = context.MBI->get_connectivity ( local_elems, new_verts );CHKERRVAL(rval);
+      Range new_verts; // local elems are local entities without vertices
+      rval = context.MBI->get_connectivity ( local_elems, new_verts );CHKERRVAL(rval);
 
 #ifdef VERBOSE
-          std::cout << "after merging: new verts: " << new_verts.size() << "\n";
+      std::cout << "after merging: new verts: " << new_verts.size() << "\n";
 #endif
-          rval = context.MBI->add_entities ( local_set, new_verts );CHKERRVAL(rval);
+      rval = context.MBI->add_entities ( local_set, new_verts );CHKERRVAL(rval);
 
-        }
-        else
-          pointCloud = true;
     }
+    else
+    pointCloud = true;
+  }
 
-    if (!pointCloud)
-    {
-      // still need to resolve shared entities (in this case, vertices )
-      rval = pco->resolve_shared_ents ( local_set, -1, -1, &idtag );
+  if (!pointCloud)
+  {
+    // still need to resolve shared entities (in this case, vertices )
+    rval = pco->resolve_shared_ents ( local_set, -1, -1, &idtag );
 
-      if ( rval != MB_SUCCESS ) { return 1; }
-    }
+    if ( rval != MB_SUCCESS ) {return 1;}
+  }
 
-    // set the parallel partition tag
-    Tag part_tag;
-	int dum_id = -1;
-	rval = context.MBI->tag_get_handle ( "PARALLEL_PARTITION", 1, MB_TYPE_INTEGER,
-										 part_tag, MB_TAG_CREAT | MB_TAG_SPARSE, &dum_id );CHKERRVAL(rval);
+  // set the parallel partition tag
+  Tag part_tag;
+  int dum_id = -1;
+  rval = context.MBI->tag_get_handle ( "PARALLEL_PARTITION", 1, MB_TYPE_INTEGER,
+      part_tag, MB_TAG_CREAT | MB_TAG_SPARSE, &dum_id );
 
-	int rank = pco->rank();
-	rval = context.MBI->tag_set_data ( part_tag, &local_set, 1, &rank );CHKERRVAL(rval);
+  if (part_tag == NULL || ( (rval!=MB_SUCCESS) && (rval!=MB_ALREADY_ALLOCATED) ) )
+  {
+    std::cout <<" can't get par part tag.\n";
+    return 1;
+  }
 
-    // populate the mesh with current data info
-    ierr = iMOAB_UpdateMeshInfo ( pid );CHKIERRVAL(ierr);
 
-    // mark for deletion
-    MPI_Group_free(&receiverGroup);
+  int rank = pco->rank();
+  rval = context.MBI->tag_set_data ( part_tag, &local_set, 1, &rank );CHKERRVAL(rval);
 
-    return 0;
+  // populate the mesh with current data info
+  ierr = iMOAB_UpdateMeshInfo ( pid );CHKIERRVAL(ierr);
+
+  // mark for deletion
+  MPI_Group_free(&receiverGroup);
+
+  return 0;
 }
 
 ErrCode FindParCommGraph(iMOAB_AppID pid, int *scompid, int *rcompid, ParCommGraph *& cgraph, int * sense)
