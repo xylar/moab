@@ -253,10 +253,11 @@ ErrorCode ParCommGraph::send_graph(MPI_Comm jcomm)
       comm_graph[k+1]=packed_recv_array[k];
     // will add 2 requests
     /// use tag 10 to send size and tag 20 to send the packed array
-    sendReqs.resize(2);
-    ierr = MPI_Isend(&comm_graph[0], 1, MPI_INT, receiver(0), 10, jcomm, &sendReqs[0]); // we have to use global communicator
-    if (ierr!=0) return MB_FAILURE;
-    ierr = MPI_Isend(&comm_graph[1], size_pack_array, MPI_INT, receiver(0), 20, jcomm, &sendReqs[1]); // we have to use global communicator
+    sendReqs.resize(1);
+    // do not send the size in advance, because we use probe now
+    /*ierr = MPI_Isend(&comm_graph[0], 1, MPI_INT, receiver(0), 10, jcomm, &sendReqs[0]); // we have to use global communicator
+    if (ierr!=0) return MB_FAILURE;*/
+    ierr = MPI_Isend(&comm_graph[1], size_pack_array, MPI_INT, receiver(0), 20, jcomm, &sendReqs[0]); // we have to use global communicator
     if (ierr!=0) return MB_FAILURE;
   }
   return MB_SUCCESS;
@@ -279,8 +280,8 @@ ErrorCode ParCommGraph::send_mesh_parts(MPI_Comm jcomm, ParallelComm * pco, Rang
 
   int indexReq=0;
   int ierr; // MPI error
-  if (is_root_sender()) indexReq = 2; // for sendReqs
-  sendReqs.resize(indexReq+2*split_ranges.size());
+  if (is_root_sender()) indexReq = 1; // for sendReqs
+  sendReqs.resize(indexReq+split_ranges.size());
   for (std::map<int, Range>::iterator it=split_ranges.begin(); it!=split_ranges.end(); it++)
   {
     int receiver_proc = it->first;
@@ -289,19 +290,28 @@ ErrorCode ParCommGraph::send_mesh_parts(MPI_Comm jcomm, ParallelComm * pco, Rang
     // add necessary vertices too
     Range verts;
     rval = pco->get_moab()->get_adjacencies(ents, 0, false, verts, Interface::UNION);
-    if (rval!=MB_SUCCESS) return rval;
+    if (rval!=MB_SUCCESS)
+    {
+      std::cout << " can't get adjacencies. for entities to send\n";
+      return rval;
+    }
     ents.merge(verts);
     ParallelComm::Buffer * buffer = new ParallelComm::Buffer(ParallelComm::INITIAL_BUFF_SIZE);
     buffer->reset_ptr(sizeof(int));
     rval = pco->pack_buffer(ents, false, true, false, -1, buffer);
-    if (rval!=MB_SUCCESS) return rval;
+    if (rval!=MB_SUCCESS)
+    {
+      std::cout << " can't pack buffer for entities to send\n";
+      return rval;
+    }
     int size_pack = buffer->get_current_size();
 
     // TODO there could be an issue with endian things; check !!!!!
     // we are sending the size of the buffer first as an int!!!
-    ierr = MPI_Isend(buffer->mem_ptr, 1, MPI_INT, receiver_proc, 1, jcomm, &sendReqs[indexReq]); // we have to use global communicator
+    /// not anymore !
+   /* ierr = MPI_Isend(buffer->mem_ptr, 1, MPI_INT, receiver_proc, 1, jcomm, &sendReqs[indexReq]); // we have to use global communicator
     if (ierr!=0) return MB_FAILURE;
-    indexReq++;
+    indexReq++;*/
 
     ierr = MPI_Isend(buffer->mem_ptr, size_pack, MPI_CHAR, receiver_proc, 2, jcomm, &sendReqs[indexReq]); // we have to use global communicator
     if (ierr!=0) return MB_FAILURE;
@@ -322,8 +332,27 @@ ErrorCode ParCommGraph::receive_comm_graph(MPI_Comm jcomm, ParallelComm *pco, st
   MPI_Status status;
   if (rootReceiver)
   {
-    ierr = MPI_Recv (&size_pack_array, 1, MPI_INT, sender(0), 10, jcomm, &status);
-    if (0!=ierr) return MB_FAILURE;
+    /*
+     * MPI_Probe(
+    int source,
+    int tag,
+    MPI_Comm comm,
+    MPI_Status* status)
+     *
+     */
+    ierr = MPI_Probe (sender(0), 20, jcomm, &status);
+    if (0!=ierr)
+    {
+      std::cout <<" MPI_Probe failure: " << ierr << "\n";
+      return MB_FAILURE;
+    }
+    // get the count of data received from the MPI_Status structure
+    ierr = MPI_Get_count(&status, MPI_INT, &size_pack_array);
+    if (0!=ierr)
+    {
+      std::cout <<" MPI_Get_count failure: " << ierr << "\n";
+      return MB_FAILURE;
+    }
 #ifdef VERBOSE
     std::cout <<" receive comm graph size: " << size_pack_array << "\n";
 #endif
@@ -365,17 +394,43 @@ ErrorCode ParCommGraph::receive_mesh(MPI_Comm jcomm, ParallelComm *pco, EntityHa
   {
     for (size_t k=0; k< senders_local.size(); k++)
     {
-      int sender1 = senders_local[k]; // first receive the size of the buffer
-
+      int sender1 = senders_local[k];
+      // first receive the size of the buffer using probe
+      /*
+           * MPI_Probe(
+          int source,
+          int tag,
+          MPI_Comm comm,
+          MPI_Status* status)
+           *
+           */
+      ierr = MPI_Probe (sender1, 2, jcomm, &status);
+      if (0!=ierr)
+      {
+        std::cout <<" MPI_Probe failure in ParCommGraph::receive_mesh " << ierr << "\n";
+        return MB_FAILURE;
+      }
+      // get the count of data received from the MPI_Status structure
       int size_pack;
-      ierr = MPI_Recv (&size_pack, 1, MPI_INT, sender1, 1, jcomm, &status);
-      if (0!=ierr) return MB_FAILURE;
+      ierr = MPI_Get_count(&status, MPI_CHAR, &size_pack);
+      if (0!=ierr)
+      {
+        std::cout <<" MPI_Get_count failure in ParCommGraph::receive_mesh  " << ierr << "\n";
+        return MB_FAILURE;
+      }
+
+     /* ierr = MPI_Recv (&size_pack, 1, MPI_INT, sender1, 1, jcomm, &status);
+      if (0!=ierr) return MB_FAILURE;*/
       // now resize the buffer, then receive it
       ParallelComm::Buffer * buffer = new ParallelComm::Buffer(size_pack);
       //buffer->reserve(size_pack);
 
       ierr = MPI_Recv (buffer->mem_ptr, size_pack, MPI_CHAR, sender1, 2, jcomm, &status);
-      if (0!=ierr) return MB_FAILURE;
+      if (0!=ierr)
+      {
+        std::cout <<" MPI_Recv failure in ParCommGraph::receive_mesh " << ierr << "\n";
+        return MB_FAILURE;
+      }
       // now unpack the buffer we just received
       Range entities;
       std::vector<std::vector<EntityHandle> > L1hloc, L1hrem;
