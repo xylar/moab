@@ -572,7 +572,7 @@ moab::ErrorCode moab::TempestRemapper::WriteTempestIntersectionMesh (std::string
         {
             this->m_source->CalculateFaceAreas(fInputConcave);
             this->m_target->CalculateFaceAreas(fOutputConcave);
-            this->m_overlap->Write ( strOutputFileName.c_str() );
+            this->m_overlap->Write ( strOutputFileName.c_str(), NcFile::Netcdf4 );
         }
         else
         {
@@ -583,14 +583,14 @@ moab::ErrorCode moab::TempestRemapper::WriteTempestIntersectionMesh (std::string
             this->m_source->CalculateFaceAreas(fInputConcave);
             this->m_covering_source->CalculateFaceAreas(fInputConcave);
             this->m_target->CalculateFaceAreas(fOutputConcave);
-            this->m_overlap->Write ( strOutputFileName.c_str() );
+            this->m_overlap->Write ( strOutputFileName.c_str(), NcFile::Netcdf4 );
         }
     }
     else
     {
         this->m_source->CalculateFaceAreas (fInputConcave);
         this->m_target->CalculateFaceAreas (fOutputConcave);
-        this->m_overlap->Write ( strOutputFileName.c_str() );
+        this->m_overlap->Write ( strOutputFileName.c_str(), NcFile::Netcdf4 );
     }
 
     return moab::MB_SUCCESS;
