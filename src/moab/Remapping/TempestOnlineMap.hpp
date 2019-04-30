@@ -388,9 +388,9 @@ public:
 	///		The original tag data and local to global DoF mapping to associate matrix values to solution
 	///	<summary>
 	moab::Tag m_dofTagSrc, m_dofTagDest;
-	std::vector<unsigned long> row_dofmap, col_dofmap, srccol_dofmap;
-	std::vector<unsigned long> row_gdofmap, col_gdofmap, srccol_gdofmap;
-	std::vector<unsigned long> row_ldofmap, col_ldofmap, srccol_ldofmap;
+	std::vector<unsigned> row_dofmap, col_dofmap, srccol_dofmap;
+	std::vector<unsigned> row_gdofmap, col_gdofmap, srccol_gdofmap;
+	std::vector<unsigned> row_ldofmap, col_ldofmap, srccol_ldofmap;
 
 	DataArray3D<int> dataGLLNodesSrc, dataGLLNodesSrcCov, dataGLLNodesDest;
 	DiscretizationType m_srcDiscType, m_destDiscType;
