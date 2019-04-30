@@ -174,9 +174,11 @@ endif
 
 if ENABLE_mbtempest
   AM_CPPFLAGS += $(TEMPESTREMAP_INCLUDE) -I$(top_srcdir)/src/Remapping -I$(top_srcdir)/src/IntxMesh
-  bin_PROGRAMS += mbtempest
+  bin_PROGRAMS += mbtempest h5mtoscrip
 mbtempest_SOURCES = mbtempest.cpp
 mbtempest_LDADD = $(LDADD) $(TEMPESTREMAP_LIBS)
+h5mtoscrip_SOURCES = h5mtoscrip.cpp
+h5mtoscrip_LDADD = $(LDADD) $(TEMPESTREMAP_LIBS)
 endif
 
 if ENABLE_mbmerge
