@@ -463,12 +463,7 @@ ErrorCode ReadNASTRAN::assign_ids(const Tag* file_id_tag)
 {
   // Create tag
   ErrorCode result;
-  Tag id_tag;
-  int zero = 0;
-  result = MBI->tag_get_handle(GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER,
-                               id_tag, MB_TAG_DENSE | MB_TAG_CREAT, &zero);
-  if (MB_SUCCESS != result && MB_ALREADY_ALLOCATED != result)
-    return result;
+  Tag id_tag = MBI->globalId_tag();
 
   RangeMap<int, EntityHandle>::iterator i;
   for (int t = 0; t < 2; ++t) {

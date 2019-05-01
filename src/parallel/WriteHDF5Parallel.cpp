@@ -197,7 +197,7 @@ static void print_type_sets(Interface* iFace, DebugOutput* str, Range& sets)
     return;
 
   Tag gid, did, bid, sid, nid;
-  iFace->tag_get_handle(GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, gid);
+  gid=iFace->globalId_tag();
   iFace->tag_get_handle(GEOM_DIMENSION_TAG_NAME, 1, MB_TYPE_INTEGER, did);
   iFace->tag_get_handle(MATERIAL_SET_TAG_NAME, 1, MB_TYPE_INTEGER, bid);
   iFace->tag_get_handle(DIRICHLET_SET_TAG_NAME, 1, MB_TYPE_INTEGER, nid);
@@ -1401,8 +1401,7 @@ void WriteHDF5Parallel::print_shared_sets()
   Tag geom, id;
   if (MB_SUCCESS != iFace->tag_get_handle(GEOM_DIMENSION_TAG_NAME, 1, MB_TYPE_INTEGER, geom))
     return;
-  if (MB_SUCCESS != iFace->tag_get_handle(GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, id))
-    return;
+  id=iFace->globalId_tag();
 
   const char* geom_names[] = { "vertex", "curve", "surface", "volume" };
   for (int d = 0; d <= 3; ++d) {

@@ -112,9 +112,7 @@ ReadCCMIO::ReadCCMIO(Interface* impl)
   result = impl->tag_get_handle(HAS_MID_NODES_TAG_NAME, 4, MB_TYPE_INTEGER,
                                 mHasMidNodesTag, MB_TAG_CREAT | MB_TAG_SPARSE, negonearr);MB_CHK_SET_ERR_RET(result, "Failed to get HAS_MID_NODES tag");
 
-  const int zero = 0;
-  result = impl->tag_get_handle(GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER,
-                                mGlobalIdTag, MB_TAG_CREAT | MB_TAG_SPARSE, &zero);MB_CHK_SET_ERR_RET(result, "Failed to get GLOBAL_ID tag");
+  mGlobalIdTag=impl->globalId_tag();
 
   result = impl->tag_get_handle(NAME_TAG_NAME, NAME_TAG_SIZE, MB_TYPE_OPAQUE,
                                 mNameTag, MB_TAG_CREAT | MB_TAG_SPARSE);MB_CHK_SET_ERR_RET(result, "Failed to get NAME tag");

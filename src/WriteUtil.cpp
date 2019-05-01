@@ -680,9 +680,7 @@ ErrorCode WriteUtil::assign_ids(Range &elements,
   ErrorCode result;
   if (0 == id_tag) {
     // Get the global id tag
-    int def_val = 0;
-    result = mMB->tag_get_handle(GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, id_tag, MB_TAG_DENSE|MB_TAG_CREAT, &def_val);
-    if (MB_SUCCESS != result) return result;
+    id_tag = mMB->globalId_tag();
   }
 
   // Now assign the ids

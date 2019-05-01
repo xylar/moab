@@ -257,11 +257,10 @@ ErrorCode FBEngine::initializeSmoothing()
   // first of all, we need to retrieve all the surfaces from the (root) set
   // in icesheet_test we use iGeom, but maybe that is a stretch
   // get directly the sets with geom dim 2, and from there create the SmoothFace
-  Tag geom_tag, gid_tag;
+  Tag geom_tag;
   ErrorCode rval = MBI->tag_get_handle(GEOM_DIMENSION_TAG_NAME, 1, MB_TYPE_INTEGER, geom_tag);
   MBERRORR(rval, "can't get geom tag");
-  rval = MBI->tag_get_handle(GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, gid_tag);
-  MBERRORR(rval, "can't get id tag");
+
   int numSurfaces = _my_gsets[2].size();
   //SmoothFace ** smthFace = new SmoothFace *[numSurfaces];
   _smthFace = new SmoothFace *[numSurfaces];

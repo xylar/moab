@@ -709,14 +709,11 @@ moab::ErrorCode update_density(moab::Interface * mb, moab::EntityHandle euler_se
   mb->tag_get_handle(CORRTAGNAME, 1, MB_TYPE_HANDLE, corrTag,
                                              MB_TAG_DENSE, &dum);
 
-  moab::Tag gid;
-  ErrorCode rval = mb->tag_get_handle(GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, gid, MB_TAG_DENSE);
-    if (MB_SUCCESS != rval)
-      return rval;
+  moab::Tag gid = mb->globalId_tag();
 
   // get all polygons out of out_set; then see where are they coming from
   moab::Range polys;
-  rval = mb->get_entities_by_dimension(out_set, 2, polys);
+  ErrorCode rval = mb->get_entities_by_dimension(out_set, 2, polys);
     if (MB_SUCCESS != rval)
       return rval;
 
@@ -1038,9 +1035,7 @@ ErrorCode  create_lagr_mesh(moab::Interface * mb, moab::EntityHandle euler_set, 
 
   CHECK_ERR(rval);
   // give the same global id to new verts and cells created in the lagr(departure) mesh
-  moab::Tag gid;
-  rval = mb->tag_get_handle(GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, gid, MB_TAG_DENSE);
-  CHECK_ERR(rval);
+  moab::Tag gid = mb->globalId_tag();
 
   moab::Range polys;
   rval = mb->get_entities_by_dimension(euler_set, 2, polys);

@@ -260,10 +260,7 @@ ErrorCode generate_mesh( Interface& moab, int num_interval )
   MPI_Comm_size( MPI_COMM_WORLD, &size );
   
   ErrorCode rval;
-  Tag global_id;
-  rval = moab.tag_get_handle( GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, global_id );
-  if (MB_SUCCESS != rval)
-    return rval;
+  Tag global_id = moab.globalId_tag();
   
     // Each processor will own one cube of mesh within
     // an 3D grid of cubes.  Calculate the dimensions of

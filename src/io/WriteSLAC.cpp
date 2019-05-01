@@ -79,7 +79,7 @@ WriteSLAC::WriteSLAC(Interface* impl)
 
   // Initialize in case tag_get_handle fails below
   //! get and cache predefined tag handles
-  int negone = -1, zero = 0;
+  int negone = -1;
   impl->tag_get_handle(MATERIAL_SET_TAG_NAME, 1, MB_TYPE_INTEGER,
                        mMaterialSetTag, MB_TAG_SPARSE | MB_TAG_CREAT, &negone);
 
@@ -89,8 +89,7 @@ WriteSLAC::WriteSLAC(Interface* impl)
   impl->tag_get_handle(NEUMANN_SET_TAG_NAME, 1, MB_TYPE_INTEGER,
                        mNeumannSetTag, MB_TAG_SPARSE | MB_TAG_CREAT, &negone);
 
-  impl->tag_get_handle(GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER,
-                       mGlobalIdTag, MB_TAG_SPARSE | MB_TAG_CREAT, &zero);
+  mGlobalIdTag = impl->globalId_tag();
 
   int dum_val = -1;
   impl->tag_get_handle("__matSetIdTag", 1, MB_TYPE_INTEGER, mMatSetIdTag,

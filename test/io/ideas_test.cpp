@@ -55,9 +55,7 @@ void test_read_nodes()
   CHECK_ERR(rval);
   CHECK_EQUAL( (size_t)17, nodes.size() );
   
-  Tag id_tag;
-  rval = mb.tag_get_handle( GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, id_tag );
-  CHECK_ERR(rval);
+  Tag id_tag = mb.globalId_tag();
   
   std::vector<int> ids(nodes.size());
   rval = mb.tag_get_data( id_tag, &nodes[0], nodes.size(), &ids[0] );
@@ -208,9 +206,7 @@ void test_read_tets()
   CHECK_ERR(rval);
   CHECK_EQUAL( (size_t)2, tets.size() );
   
-  Tag id_tag;
-  rval = mb.tag_get_handle( GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, id_tag );
-  CHECK_ERR(rval);
+  Tag id_tag = mb.globalId_tag();
   
   std::vector<int> ids(tets.size());
   rval = mb.tag_get_data( id_tag, &tets[0], tets.size(), &ids[0] );
@@ -260,9 +256,7 @@ void test_read_hexes()
   CHECK_ERR(rval);
   CHECK_EQUAL( (size_t)2, hexes.size() );
   
-  Tag id_tag;
-  rval = mb.tag_get_handle( GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, id_tag );
-  CHECK_ERR(rval);
+  Tag id_tag = mb.globalId_tag();
   
   std::vector<int> ids(hexes.size());
   rval = mb.tag_get_data( id_tag, &hexes[0], hexes.size(), &ids[0] );

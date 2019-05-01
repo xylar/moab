@@ -129,8 +129,7 @@ int main( int argc, char* argv[] )
       nameTag = t;
     }
   }
-  if (MB_SUCCESS == mb.tag_get_handle( GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, t ))
-    idTag = t;
+  idTag = mb.globalId_tag();
   
   write_dot( contained, children );
   return 0;

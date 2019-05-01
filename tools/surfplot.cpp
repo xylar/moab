@@ -223,11 +223,7 @@ int main(int argc, char* argv[])
       std::cerr << "No geometry tag.\n";
       return OTHER_ERROR;
     }
-    result = moab->tag_get_handle( GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, tags[1] );
-    if (MB_SUCCESS != result) {
-      std::cerr << "No ID tag.\n";
-      return OTHER_ERROR;
-    }
+    tags[1] = moab->globalId_tag();
 
       // Find entityset for surface.
     const void* tag_values[] = { &dimension, &surface_id };

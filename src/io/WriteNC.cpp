@@ -67,9 +67,7 @@ ErrorCode WriteNC::write_file(const char* file_name,
   std::vector<double> tstep_vals;
 
   // Get and cache predefined tag handles
-  int dum_val = 0;
-  rval = mbImpl->tag_get_handle(GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, mGlobalIdTag, MB_TAG_DENSE,
-                                &dum_val);MB_CHK_SET_ERR(rval, "Trouble getting global ID tag");
+  mGlobalIdTag = mbImpl->globalId_tag();
 
   // num set has to be 1, we will write only one set, the original file set used to load
   if (num_set != 1)

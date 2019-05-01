@@ -466,11 +466,7 @@ namespace moab {
     }
 
     // Assign global ids now
-    Tag gid_tag;
-    int zero = 0;
-    result = mbImpl->tag_get_handle(GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER,
-                                    gid_tag, MB_TAG_DENSE | MB_TAG_CREAT, &zero);
-    if (MB_SUCCESS != result) return result;
+    Tag gid_tag = mbImpl->globalId_tag();
 
     for (int dim = 0; dim < 4; dim++) {
       if (entities[dim].empty())
@@ -4138,12 +4134,9 @@ ErrorCode ParallelComm::get_remote_handles(EntityHandle *local_vec, EntityHandle
     std::vector<int> gids;
     Range::iterator rit;
     Tag gid_tag;
-    int dum_default = 0;
     for (p = 0; p < np; p++) {
-      rval = pc[p]->get_moab()->tag_get_handle(GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER,
-                                               gid_tag, MB_TAG_DENSE | MB_TAG_CREAT,
-                                               &dum_default);
-      if (MB_SUCCESS != rval) return rval;
+      gid_tag = pc[p]->get_moab()->globalId_tag();
+
       gids.resize(verts[p].size());
       rval = pc[p]->get_moab()->tag_get_data(gid_tag, verts[p], &gids[0]);
       if (MB_SUCCESS != rval) return rval;
@@ -4347,8 +4340,8 @@ ErrorCode ParallelComm::get_remote_handles(EntityHandle *local_vec, EntityHandle
     // then fall back to using known tag values
     if (!idtag) {
       Tag gid, tag;
-      result = mbImpl->tag_get_handle(GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, gid);
-      if (MB_SUCCESS == result) 
+      gid=mbImpl->globalId_tag();
+      if (NULL != gid)
         result = mbImpl->tag_get_handle(GEOM_DIMENSION_TAG_NAME, 1, MB_TYPE_INTEGER, tag);
       if (MB_SUCCESS == result) {
         for (int d = 0; d < 4; d++) {
@@ -4633,9 +4626,7 @@ ErrorCode ParallelComm::get_remote_handles(EntityHandle *local_vec, EntityHandle
       }
     }
     // get the global id tag too
-    rval = mbImpl->tag_get_handle(GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER,
-        tags[num_tags], MB_TAG_ANY);
-    MB_CHK_SET_ERR(rval, "can't get global id tag");
+    tags[num_tags] = mbImpl->globalId_tag();
 
     TupleList remoteEnts;
     // processor to send to, type of tag (0-mat,) tag value,     remote handle
@@ -5342,22 +5333,18 @@ ErrorCode ParallelComm::get_remote_handles(EntityHandle *local_vec, EntityHandle
                                            const bool owned_only)
   {
     // Global id tag
-    Tag gid_tag; int def_val = -1;
-    ErrorCode result = mbImpl->tag_get_handle(GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER,
-                                              gid_tag, MB_TAG_DENSE | MB_TAG_CREAT, &def_val);
-    if (MB_ALREADY_ALLOCATED != result && MB_SUCCESS != result) {
-      MB_SET_ERR(result, "Failed to create/get gid tag handle");
-    }
-
+    Tag gid_tag = mbImpl->globalId_tag();
+    int def_val = -1;
     Range dum_range;
-    if (MB_ALREADY_ALLOCATED == result) {
-      void *tag_ptr = &def_val;
-      ErrorCode tmp_result = mbImpl->get_entities_by_type_and_tag(this_set, MBVERTEX, 
-                                                                  &gid_tag, &tag_ptr, 1,
-                                                                  dum_range);MB_CHK_SET_ERR(tmp_result, "Failed to get entities by MBVERTEX type and gid tag");
-    }
 
-    if (MB_ALREADY_ALLOCATED != result || !dum_range.empty()) {
+
+    void *tag_ptr = &def_val;
+    ErrorCode result = mbImpl->get_entities_by_type_and_tag(this_set, MBVERTEX,
+                                                                &gid_tag, &tag_ptr, 1,
+                                                                dum_range);MB_CHK_SET_ERR(result, "Failed to get entities by MBVERTEX type and gid tag");
+
+
+    if ( !dum_range.empty()) {
       // Just created it, so we need global ids
       result = assign_global_ids(this_set, dimension, start_id, largest_dim_only,
                                  parallel, owned_only);MB_CHK_SET_ERR(result, "Failed assigning global ids");

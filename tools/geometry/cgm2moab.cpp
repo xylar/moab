@@ -346,9 +346,7 @@ int main( int argc, char* argv[] ){
                              dimTag, MB_TAG_SPARSE|MB_TAG_CREAT); 
     CHECKERR( mbi, ret );
 
-    ret = mbi.tag_get_handle(GLOBAL_ID_TAG_NAME, 1, MB_TYPE_INTEGER, 
-                             idTag, MB_TAG_DENSE|MB_TAG_CREAT);
-    CHECKERR( mbi, ret );
+    idTag = mbi.globalId_tag();
 
     ret = mbi.tag_get_handle("GEOM_SENSE_2", 2, MB_TYPE_HANDLE, senseTag, 
                              MB_TAG_SPARSE|MB_TAG_CREAT );
