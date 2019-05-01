@@ -55,7 +55,7 @@ namespace moab {
    * intersections, regardless of distance from the start of the ray, if
    * 'minTolInt' is negative.
    *
-   */  
+   */
 
   class GQT_IntRegCtxt : public OrientedBoxTreeTool::IntRegCtxt {
 
@@ -67,8 +67,8 @@ namespace moab {
     const double         tol;             /* used for box.intersect_ray, radius of
                                              neighborhood for adjacent triangles,
                                              and old mode of add_intersection */
-    const int            minTolInt;      
-  
+    const int            minTolInt;
+
     // Optional Input - to screen RTIs by orientation and edge/node intersection
     const EntityHandle*  rootSet;         /* used for sphere_intersect */
     const EntityHandle*  geomVol;         /* used for determining surface sense */
@@ -78,11 +78,11 @@ namespace moab {
                                              respect to surf normal, if this feature is used.
                                              Must point to -1 (reverse) or 1 (forward).
                                              geomVol and senseTag are needed for this feature */
-  
+
     // Optional Input - to avoid returning these as RTIs
-    const std::vector<EntityHandle>* prevFacets; /* intersections on these triangles 
+    const std::vector<EntityHandle>* prevFacets; /* intersections on these triangles
                                                     will not be returned */
-  
+
     // Other Variables
     std::vector< std::vector<EntityHandle> > neighborhoods;
     std::vector<EntityHandle> neighborhood;
@@ -101,7 +101,7 @@ namespace moab {
 
     bool in_prevFacets(const EntityHandle tri);
     bool in_neighborhoods(const EntityHandle tri);
-  
+
   public:
 
     GQT_IntRegCtxt(OrientedBoxTreeTool* obbtool,
@@ -121,7 +121,7 @@ namespace moab {
 
     };
 
-    virtual ErrorCode register_intersection(EntityHandle set, EntityHandle triangle, double distance, 
+    virtual ErrorCode register_intersection(EntityHandle set, EntityHandle triangle, double distance,
                                             OrientedBoxTreeTool::IntersectSearchWindow&, GeomUtil::intersection_type int_type);
 
     virtual ErrorCode update_orient(EntityHandle set, int* surfTriOrient);
@@ -133,11 +133,11 @@ namespace moab {
 
     ErrorCode rval;
 
-    // Get desired orientation of surface wrt volume. Use this to return only 
+    // Get desired orientation of surface wrt volume. Use this to return only
     // exit or entrance intersections.
     if(geomVol && senseTag && desiredOrient && surfTriOrient) {
       if(1!=*desiredOrient && -1!=*desiredOrient) {
-        std::cerr << "error: desired orientation must be 1 (forward) or -1 (reverse)" 
+        std::cerr << "error: desired orientation must be 1 (forward) or -1 (reverse)"
                   << std::endl;
       }
       EntityHandle vols[2];
@@ -145,7 +145,7 @@ namespace moab {
       assert(MB_SUCCESS == rval);
       if(MB_SUCCESS != rval) return rval;
       if(vols[0] == vols[1]) {
-        std::cerr << "error: surface has positive and negative sense wrt same volume" 
+        std::cerr << "error: surface has positive and negative sense wrt same volume"
                   << std::endl;
         return MB_FAILURE;
       }
@@ -163,7 +163,7 @@ namespace moab {
 
     return MB_SUCCESS;
   }
-  
+
   bool GQT_IntRegCtxt::in_prevFacets(const EntityHandle tri) {
     return (prevFacets &&
             ((*prevFacets).end() != find((*prevFacets).begin(), (*prevFacets).end(), tri) ) );
@@ -172,7 +172,7 @@ namespace moab {
   bool GQT_IntRegCtxt::in_neighborhoods(const EntityHandle tri) {
     bool same_neighborhood = false;
     for(unsigned i=0; i<neighborhoods.size(); ++i) {
-      if( neighborhoods[i].end() != find(neighborhoods[i].begin(), 
+      if( neighborhoods[i].end() != find(neighborhoods[i].begin(),
                                          neighborhoods[i].end(), tri ) ) {
         same_neighborhood = true;
         continue;
@@ -202,20 +202,20 @@ namespace moab {
                                                     const std::vector<int>&           close_senses,
                                                     const Interface*                  MBI,
                                                     std::vector<EntityHandle>*        neighborhood_tris  ) {
-  
+
     // get the node of the triangle
     const EntityHandle* conn = NULL;
     int len = 0;
     ErrorCode rval = MBI->get_connectivity( tri, conn, len );
     if(MB_SUCCESS!=rval || 3!=len) return MB_FAILURE;
-  
+
     // get adjacent tris (and keep their corresponding senses)
     std::vector<EntityHandle> adj_tris;
     std::vector<int>          adj_senses;
 
     // node intersection
     if(GeomUtil::NODE0==int_type || GeomUtil::NODE1==int_type || GeomUtil::NODE2==int_type) {
- 
+
       // get the intersected node
       EntityHandle node;
       if     (GeomUtil::NODE0==int_type) node = conn[0];
@@ -244,7 +244,7 @@ namespace moab {
       EntityHandle endpts[2];
       if       (GeomUtil::EDGE0==int_type) {
         endpts[0] = conn[0];
-        endpts[1] = conn[1]; 
+        endpts[1] = conn[1];
       } else if(GeomUtil::EDGE1==int_type) {
         endpts[0] = conn[1];
         endpts[1] = conn[2];
@@ -269,10 +269,10 @@ namespace moab {
           adj_tris.push_back(   close_tris[i]   );
           adj_senses.push_back( close_senses[i] );
         }
-      }   
+      }
       // In a 2-manifold each edge is adjacent to exactly 2 tris
       if(2 != adj_tris.size() ) {
-        std::cerr << "error: edge of a manifold must be topologically adjacent to exactly 2 tris" 
+        std::cerr << "error: edge of a manifold must be topologically adjacent to exactly 2 tris"
                   << std::endl;
         MBI->list_entities( endpts, 2 );
         return true;
@@ -287,7 +287,7 @@ namespace moab {
     if(neighborhood_tris) (*neighborhood_tris).assign( adj_tris.begin(), adj_tris.end() );
 
     // determine glancing/piercing
-    // If a desired_orientation was used in this call to ray_intersect_sets, 
+    // If a desired_orientation was used in this call to ray_intersect_sets,
     // the plucker_ray_tri_intersect will have already used it. For a piercing
     // intersection, the normal of all tris must have the same orientation.
     int sign = 0;
@@ -296,7 +296,7 @@ namespace moab {
       rval = MBI->get_connectivity( adj_tris[i], con, len );
       if(MB_SUCCESS!=rval || 3!=len) return MB_FAILURE;
       CartVect coords[3];
-      rval = MBI->get_coords( con, len, coords[0].array() );      
+      rval = MBI->get_coords( con, len, coords[0].array() );
       if(MB_SUCCESS != rval) return MB_FAILURE;
 
       // get normal of triangle
@@ -323,23 +323,23 @@ namespace moab {
 
 
   ErrorCode
-  GQT_IntRegCtxt::register_intersection(EntityHandle set, EntityHandle t, double int_dist, 
+  GQT_IntRegCtxt::register_intersection(EntityHandle set, EntityHandle t, double int_dist,
                                         OrientedBoxTreeTool::IntersectSearchWindow &search_win,
                                         GeomUtil::intersection_type int_type)
   {
     ErrorCode rval;
-  
+
     // Do not accept intersections if they are in the vector of previously intersected
     // facets.
     if( in_prevFacets(t) ) return MB_SUCCESS;
-  
+
     // Do not accept intersections if they are in the neighborhood of previous
     // intersections.
     if ( in_neighborhoods(t) ) return MB_SUCCESS;
-  
+
     neighborhood.clear();
-  
-    // Handle special case of edge/node intersection. Accept piercing 
+
+    // Handle special case of edge/node intersection. Accept piercing
     // intersections and reject glancing intersections.
     // The edge_node_intersection function needs to know surface sense wrt volume.
     // A less-robust implementation could work without sense information.
@@ -348,21 +348,21 @@ namespace moab {
       // get triangles in the proximity of the intersection
       std::vector<EntityHandle> close_tris;
       std::vector<int> close_senses;
-      rval = tool->get_close_tris(ray_origin + int_dist*ray_direction, tol, rootSet, geomVol, senseTag, 
+      rval = tool->get_close_tris(ray_origin + int_dist*ray_direction, tol, rootSet, geomVol, senseTag,
                                   close_tris, close_senses);
-    
-      if(MB_SUCCESS != rval) return rval; 
-    
+
+      if(MB_SUCCESS != rval) return rval;
+
       if (!edge_node_piercing_intersect( t, ray_direction, int_type, close_tris,
                                          close_senses, tool->get_moab_instance(), &neighborhood ))
         return MB_SUCCESS;
-    
+
     } else {
       neighborhood.push_back( t );
-    }      
-  
+    }
+
     // NOTE: add_intersection may modify the 'neg_ray_len' and 'nonneg_ray_len'
-    //       members, which will affect subsequent calls to ray_tri_intersect 
+    //       members, which will affect subsequent calls to ray_tri_intersect
     //       in this loop.
     add_intersection( set, t, int_dist, search_win);
 
@@ -398,7 +398,7 @@ namespace moab {
       // must initialize this for comparison below
       intersections[0] = -std::numeric_limits<double>::max();
     }
-  
+
     // negative case
     if(0.0>dist) {
       set_intersection(0, set, facet, dist);
@@ -410,7 +410,7 @@ namespace moab {
       // if the intersection is closer than the negative one, remove the negative one
       if(dist < -*(search_win.second) ) {
         set_intersection(0, 0, 0, -intersections[1]);
-        search_win.second      = &intersections[0]; 
+        search_win.second      = &intersections[0];
       }
     }
     //    std::cout << "add_intersection: dist = " << dist << " search_win.second=" << *search_win.second
@@ -447,11 +447,11 @@ namespace moab {
     // location, an intersection greater than the tolerance away from
     // the base point of the ray.
     int len_idx = -1;
-    if (search_win.first && search_win.first >= &intersections[0] && 
+    if (search_win.first && search_win.first >= &intersections[0] &&
         search_win.first < &intersections[0] + intersections.size())
       len_idx = search_win.first - &intersections[0];
 
-    // If the intersection is within tol of the ray base point, we 
+    // If the intersection is within tol of the ray base point, we
     // always add it to the list.
     if (dist <= tol) {
       // If the list contains an intersection outside the tolerance...
@@ -499,14 +499,14 @@ namespace moab {
   }
 
 
-  
+
 GeomQueryTool::GeomQueryTool(GeomTopoTool* geomtopotool, bool trace_counting,
                              double overlap_thickness, double numerical_precision){
 
   geomTopoTool = geomtopotool;
 
   senseTag = geomTopoTool->get_sense_tag();
-  
+
   obbTreeTool = geomTopoTool->obb_tree();
   MBI = geomTopoTool->get_moab_instance();
 
@@ -533,7 +533,7 @@ ErrorCode GeomQueryTool::initialize() {
 
   rval = geomTopoTool->construct_obb_trees();
   MB_CHK_SET_ERR(rval, "Failed to construct OBB trees");
-  
+
   return MB_SUCCESS;
 }
 
@@ -552,6 +552,15 @@ void GeomQueryTool::RayHistory::reset_to_last_intersection() {
 void GeomQueryTool::RayHistory::rollback_last_intersection() {
   if( prev_facets.size() )
     prev_facets.pop_back();
+}
+
+ErrorCode GeomQueryTool::RayHistory::get_last_intersection(EntityHandle& last_facet_hit) const {
+  if (prev_facets.size() > 0) {
+    last_facet_hit = prev_facets.back();
+    return MB_SUCCESS;
+  } else {
+    return MB_ENTITY_NOT_FOUND;
+  }
 }
 
 bool GeomQueryTool::RayHistory::in_history(EntityHandle ent) {
@@ -577,28 +586,28 @@ ErrorCode GeomQueryTool::ray_fire(const EntityHandle volume,
                 << " n_pt_in_vols=" << n_pt_in_vol_calls << std::endl;
     }
   }
-  
+
   if (debug) {
     std::cout << "ray_fire:"
               << " xyz=" << point[0] << " " << point[1] << " " << point[2]
               << " uvw=" << dir[0] << " " << dir[1] << " " << dir[2]
               << " entity_handle=" << volume << std::endl;
   }
-  
+
   const double huge_val = std::numeric_limits<double>::max();
   double dist_limit = huge_val;
   if( user_dist_limit > 0 )
     dist_limit = user_dist_limit;
-  
+
   // don't recreate these every call
   std::vector<double>       dists;
   std::vector<EntityHandle> surfs;
   std::vector<EntityHandle> facets;
-  
+
   EntityHandle root;
   ErrorCode rval = geomTopoTool->get_root(volume, root);
   MB_CHK_SET_ERR(rval, "Failed to get the obb tree root of the volume");
-  
+
   // check behind the ray origin for intersections
   double neg_ray_len;
   if(0 == overlapThickness) {
@@ -606,17 +615,17 @@ ErrorCode GeomQueryTool::ray_fire(const EntityHandle volume,
   } else {
     neg_ray_len = -overlapThickness;
   }
-  
+
   // optionally, limit the nonneg_ray_len with the distance to next collision.
   double nonneg_ray_len = dist_limit;
-  
+
   // the nonneg_ray_len should not be less than -neg_ray_len, or an overlap
   // may be missed due to optimization within ray_intersect_sets
   if(nonneg_ray_len < -neg_ray_len) nonneg_ray_len = -neg_ray_len;
   if (0 > nonneg_ray_len || 0 <= neg_ray_len) {
     MB_SET_ERR(MB_FAILURE, "Incorrect ray length provided");
   }
-  
+
   // min_tolerance_intersections is passed but not used in this call
   const int min_tolerance_intersections = 0;
 
@@ -630,7 +639,7 @@ ErrorCode GeomQueryTool::ray_fire(const EntityHandle volume,
   OrientedBoxTreeTool::IntersectSearchWindow search_win(&nonneg_ray_len, &neg_ray_len);
   rval = geomTopoTool->obb_tree()->ray_intersect_sets( dists, surfs, facets, root, numericalPrecision,
                                                        point, dir, search_win, int_reg_ctxt, stats);
-  
+
   MB_CHK_SET_ERR(rval, "Ray query failed");
 
   // If no distances are returned, the particle is lost unless the physics limit
@@ -739,12 +748,12 @@ ErrorCode GeomQueryTool::point_in_volume(const EntityHandle volume,
     result = 0;
     return MB_SUCCESS;
   }
-  
+
   // get OBB Tree for volume
   EntityHandle root;
   rval = geomTopoTool->get_root(volume, root);
   MB_CHK_SET_ERR(rval, "Failed to find the volume's obb tree root");
-  
+
   // Don't recreate these every call. These cannot be the same as the ray_fire
   // vectors because both are used simultaneously.
   std::vector<double>       dists;
@@ -793,7 +802,7 @@ ErrorCode GeomQueryTool::point_in_volume(const EntityHandle volume,
                               min_tolerance_intersections, &root, &volume,
                               &senseTag, NULL,
                               history ? &(history->prev_facets) : NULL );
-  
+
   OrientedBoxTreeTool::IntersectSearchWindow search_win(&ray_length,NULL);
   rval = geomTopoTool->obb_tree()->ray_intersect_sets( dists, surfs, facets, root, numericalPrecision,
                                                        xyz, ray_direction, search_win, int_reg_ctxt);
@@ -858,7 +867,7 @@ ErrorCode GeomQueryTool::point_in_volume(const EntityHandle volume,
 /**
  *  \brief For the volume pointed to and the point wished to be tested, returns
  *   whether the point is inside or outside the bounding box of the volume.
- * inside = 0, not inside, inside = 1, inside   
+ * inside = 0, not inside, inside = 1, inside
  */
 ErrorCode GeomQueryTool::point_in_box(EntityHandle volume, const double point[3], int &inside ) {
   double minpt[3];
@@ -880,9 +889,9 @@ ErrorCode GeomQueryTool::point_in_box(EntityHandle volume, const double point[3]
     return rval;
   }
   inside = 1;
-  return rval;  
+  return rval;
 }
-  
+
 ErrorCode GeomQueryTool::test_volume_boundary(const EntityHandle volume, const EntityHandle surface,
                                               const double xyz[3], const double uvw[3], int& result,
                                               const RayHistory* history )
@@ -981,7 +990,7 @@ ErrorCode GeomQueryTool::point_in_volume_slow( EntityHandle volume, const double
   MB_CHK_SET_ERR(rval, "Failed to get the closest intersection to location");
   // calculate distance between point and nearest facet
   result = (point-nearest).length();
-  
+
   return MB_SUCCESS;
 
 }
@@ -1007,7 +1016,7 @@ ErrorCode GeomQueryTool::measure_volume( EntityHandle volume, double& result )
   std::vector<int> senses( surfaces.size() );
   rval = geomTopoTool->get_surface_senses( volume, surfaces.size(), &surfaces[0], &senses[0] );
   MB_CHK_SET_ERR(rval, "Failed to retrieve surface-volume sense data. Cannot calculate volume");
-  
+
   for (unsigned i = 0; i < surfaces.size(); ++i) {
       // skip non-manifold surfaces
     if (!senses[i])
@@ -1017,7 +1026,7 @@ ErrorCode GeomQueryTool::measure_volume( EntityHandle volume, double& result )
     Range triangles;
     rval = MBI->get_entities_by_dimension( surfaces[i], 2, triangles );
     MB_CHK_SET_ERR(rval, "Failed to get the surface triangles");
-    
+
     if (!triangles.all_of_type(MBTRI)) {
       std::cout << "WARNING: Surface " << surfaces[i]  // todo: use geomtopotool to get id by entity handle
                 << " contains non-triangle elements. Volume calculation may be incorrect."
@@ -1120,7 +1129,7 @@ ErrorCode GeomQueryTool::get_normal(EntityHandle surf, const double in_pt[3], do
     if(3 != len) {
       MB_SET_ERR(MB_FAILURE, "Incorrect connectivity length for triangle");
     }
- 
+
     rval = MBI->get_coords( conn, 3, coords[0].array() );
     MB_CHK_SET_ERR(rval, "Failed to get vertex coordinates");
 
@@ -1227,7 +1236,7 @@ ErrorCode GeomQueryTool::poly_solid_angle( EntityHandle face, const CartVect& po
   // get coordinates
   rval = MBI->get_coords( conn, len, coords->array() );
   MB_CHK_SET_ERR(rval, "Failed to get the coordinates of the polygon vertices");
-  
+
   // calculate normal
   CartVect norm(0.0), v1, v0 = coords[1] - coords[0];
   for (int i = 2; i < len; ++i) {
