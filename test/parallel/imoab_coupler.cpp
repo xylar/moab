@@ -24,7 +24,7 @@
 #include <iostream>
 #include <sstream>
 
-#define CHECKRC(rc, message)  if (0!=rc) { printf ("%s\n", message); return 1;}
+#define CHECKRC(rc, message)  if (0!=rc) { printf ("%s. ErrorCode = %d\n", message, rc); return 1;}
 #define PUSH_TIMER(operation)  { timer_ops = timer.time_since_birth(); opName = operation;}
 #define POP_TIMER() { \
   double locElapsed=timer.time_since_birth() - timer_ops, minElapsed=0, maxElapsed=0; \
