@@ -1866,12 +1866,22 @@ moab::ErrorCode moab::TempestOnlineMap::WriteParallelMap (std::string strOutputF
     std::vector<int> smatrowvals(weightMatNNZ),smatcolvals(weightMatNNZ);
     const double* smatvals = m_weightMatrix.valuePtr();
     int maxrow=0, maxcol=0, offset=0;
+#if 0
+    // Sanity check = brute force computation of max global ID for rows and columns
+    // for (unsigned idof = 0; idof < col_gdofmap.size(); ++idof) {
+    //     maxcol = (col_gdofmap[ idof ] > maxcol) ? col_gdofmap[ idof ] : maxcol;
+    // }
+    // for (unsigned idof = 0; idof < row_gdofmap.size(); ++idof)
+    //     maxrow = (row_gdofmap[ idof ] > maxrow) ? row_gdofmap[ idof ] : maxrow;
+#endif
+
+    // Loop over the matrix entries and find the max global ID for rows and columns
     for (int k=0; k < m_weightMatrix.outerSize(); ++k)
     {
         for (moab::TempestOnlineMap::WeightMatrix::InnerIterator it(m_weightMatrix,k); it; ++it)
         {
-            smatrowvals[offset] = this->GetRowGlobalDoF ( it.row() );
-            smatcolvals[offset] = this->GetColGlobalDoF ( it.col() );
+            smatrowvals[offset] = row_gdofmap [ row_ldofmap [ it.row() ] ]; // this->GetRowGlobalDoF ( it.row() );
+            smatcolvals[offset] = col_gdofmap [ col_ldofmap [ it.col() ] ]; // this->GetColGlobalDoF ( it.col() );
             maxrow = (smatrowvals[offset] > maxrow) ? smatrowvals[offset] : maxrow;
             maxcol = (smatcolvals[offset] > maxcol) ? smatcolvals[offset] : maxcol;
             ++offset;
