@@ -17,6 +17,7 @@
 
 #ifdef MOAB_HAVE_TEMPESTREMAP
 #include "OfflineMap.h"
+#include "FiniteElementTools.h"
 #include "netcdfcpp.h"
 #include "NetCDFUtilities.h"
 #endif
@@ -306,22 +307,25 @@ void WriteNetCDF4(
 #endif
 
 template<typename T>
-ErrorCode get_vartag_data(moab::Interface* mbCore, Tag tag, moab::Range sets, int data_size, std::vector<T>& data)
+ErrorCode get_vartag_data(moab::Interface* mbCore, Tag tag, moab::Range& sets, int& out_data_size, std::vector<T>& data)
 {
   int* tag_sizes = new int [ sets.size() ];
   const void** tag_data = (const void**) new void* [sets.size()];
 
   ErrorCode rval = mbCore->tag_get_by_ptr(tag, sets, tag_data, tag_sizes );MB_CHK_SET_ERR(rval, "Getting matrix rows failed");
 
-  data.reserve(data_size);
-  int ioffset = 0, index = 0;
-  for (Range::iterator it=sets.begin(); it!=sets.end(); it++, index++)
+  out_data_size = 0;
+  for (unsigned is=0; is < sets.size(); ++is)
+    out_data_size += tag_sizes[is];
+
+  data.resize(out_data_size);
+  int ioffset = 0;
+  for (unsigned index=0; index < sets.size(); index++)
   {
     T* m_vals = (T*)tag_data[index];
-    for (int k=0; k< tag_sizes[index]; k++, ioffset++)
+    for (int k=0; k < tag_sizes[index]; k++)
     {
-      assert(ioffset < data_size);
-      data[ioffset] = m_vals[k];
+      data[ioffset++] = m_vals[k];
     }
   }
 
@@ -385,11 +389,20 @@ int main(int argc, char* argv[])
     // Attributes
     ncMap.add_att("Title", "MOAB-TempestRemap (MBTR) Offline Regridding Weight Converter (h5mtoscrip)");
 
+    Tag materialSetTag;
+    rval = mbCore->tag_get_handle( "MATERIAL_SET" , 1, MB_TYPE_INTEGER, materialSetTag, MB_TAG_SPARSE);MB_CHK_ERR(rval);
+
+    // Get sets entities, by type
+    moab::Range meshsets;
+    rval = mbCore->get_entities_by_type_and_tag(0, MBENTITYSET, &materialSetTag, NULL, 1, meshsets, moab::Interface::UNION, true);MB_CHK_ERR(rval);
+    assert(meshsets.size() == 3); // we do not expect anything more than 3
+
     moab::EntityHandle rootset = 0;
     Tag smatMetadataTag;
     int smat_metadata_glb[7];
     rval = mbCore->tag_get_handle( "SMAT_DATA" , 7, MB_TYPE_INTEGER, smatMetadataTag, MB_TAG_SPARSE);MB_CHK_ERR(rval);
     rval = mbCore->tag_get_data(smatMetadataTag, &rootset, 1, smat_metadata_glb);MB_CHK_ERR(rval);
+    std::cout << "Number of mesh sets is " << meshsets.size() << std::endl;
 
     // Map dimensions
     int nA = smat_metadata_glb[0];
@@ -399,6 +412,18 @@ int main(int argc, char* argv[])
     int nDofB = smat_metadata_glb[4];
     int nDofA = smat_metadata_glb[5];
     int NNZ = smat_metadata_glb[6];
+
+    EntityHandle source_mesh=0, target_mesh=0, overlap_mesh=0;
+    for (unsigned im=0; im < meshsets.size(); ++im) {
+      moab::Range elems;
+      rval = mbCore->get_entities_by_dimension(meshsets[im], 2, elems);MB_CHK_ERR(rval);
+      if (elems.size() == nA)
+        source_mesh = meshsets[im];
+      else if (elems.size() == nB)
+        target_mesh = meshsets[im];
+      else
+        overlap_mesh = meshsets[im];
+    }
 
     Tag srcIDTag, srcAreaTag, tgtIDTag, tgtAreaTag;
     Tag smatRowdataTag, smatColdataTag, smatValsdataTag;
@@ -417,19 +442,27 @@ int main(int argc, char* argv[])
 
     std::vector<int> src_gids, tgt_gids;
     std::vector<double> src_areas, tgt_areas;
-    rval = get_vartag_data(mbCore, srcIDTag, sets, nDofA*sets.size(), src_gids);MB_CHK_SET_ERR(rval, "Getting source mesh IDs failed");
-    rval = get_vartag_data(mbCore, tgtIDTag, sets, nDofB*sets.size(), tgt_gids);MB_CHK_SET_ERR(rval, "Getting target mesh IDs failed");
-    rval = get_vartag_data(mbCore, srcAreaTag, sets, nDofA*sets.size(), src_areas);MB_CHK_SET_ERR(rval, "Getting source mesh areas failed");
-    rval = get_vartag_data(mbCore, tgtAreaTag, sets, nDofB*sets.size(), tgt_areas);MB_CHK_SET_ERR(rval, "Getting target mesh areas failed");
+    int srcID_size, tgtID_size, srcArea_size, tgtArea_size;
+    rval = get_vartag_data(mbCore, srcIDTag, sets, srcID_size, src_gids);MB_CHK_SET_ERR(rval, "Getting source mesh IDs failed");
+    rval = get_vartag_data(mbCore, tgtIDTag, sets, tgtID_size, tgt_gids);MB_CHK_SET_ERR(rval, "Getting target mesh IDs failed");
+    rval = get_vartag_data(mbCore, srcAreaTag, sets, srcArea_size, src_areas);MB_CHK_SET_ERR(rval, "Getting source mesh areas failed");
+    rval = get_vartag_data(mbCore, tgtAreaTag, sets, tgtArea_size, tgt_areas);MB_CHK_SET_ERR(rval, "Getting target mesh areas failed");
 
-    std::vector<double> src_glob_areas(nDofA), tgt_glob_areas(nDofB);
-    for (unsigned i=0; i < nDofA*sets.size(); ++i)
-      src_glob_areas[src_gids[i]] = src_areas[i];
-    for (unsigned i=0; i < nDofB*sets.size(); ++i)
-      tgt_glob_areas[tgt_gids[i]] = tgt_areas[i];
-
-    // Output the number of sets    
-    std::cout << "Number of primary sets is " << sets.size() << std::endl;
+    std::vector<double> src_glob_areas(nDofA, 0.0), tgt_glob_areas(nDofB, 0.0);
+    for (int i=0; i < srcArea_size; ++i) {
+        // std::cout << "Found ID = " << src_gids[i] << " and area = " << src_areas[i] << std::endl;
+        assert(i < srcID_size);
+        assert(src_gids[i] < nDofA);
+        if (src_areas[i] > src_glob_areas[src_gids[i]])
+          src_glob_areas[src_gids[i]] = src_areas[i];
+    }
+    for (int i=0; i < tgtArea_size; ++i) {
+        // std::cout << "Found ID = " << tgt_gids[i] << " and area = " << tgt_areas[i] << std::endl;
+        assert(i < tgtID_size);
+        assert(tgt_gids[i] < nDofB);
+        if (tgt_areas[i] > tgt_glob_areas[tgt_gids[i]])
+          tgt_glob_areas[tgt_gids[i]] = tgt_areas[i];
+    }
 
     // Write output dimensions entries
     int nSrcGridDims = 1;
@@ -469,18 +502,28 @@ int main(int argc, char* argv[])
     NcDim * dimNVA = ncMap.add_dim("nv_a", nVA);
     NcDim * dimNVB = ncMap.add_dim("nv_b", nVB);
 
+    // Source and Target verticecs per elements
+    NcDim * dimNEA = ncMap.add_dim("ne_a", nA);
+    NcDim * dimNEB = ncMap.add_dim("ne_b", nB);
+
+    // TODO: This is only true for FV source and target mesh representations
+    // For CG/DG representations, we really need the actual location of the global 
+    // GLL quadrature points in RLL notation
+    // NOTE: So when either source or target is not FV (nA != nDofA), we need to do
+    // something special. Also change the variable definition below as well.
+
     // Write coordinates
-    NcVar * varYCA = ncMap.add_var("yc_a", ncDouble, dimNA);
-    NcVar * varYCB = ncMap.add_var("yc_b", ncDouble, dimNB);
+    NcVar * varYCA = ncMap.add_var("yc_a", ncDouble, dimNEA/*dimNA*/);
+    NcVar * varYCB = ncMap.add_var("yc_b", ncDouble, dimNEB/*dimNB*/);
 
-    NcVar * varXCA = ncMap.add_var("xc_a", ncDouble, dimNA);
-    NcVar * varXCB = ncMap.add_var("xc_b", ncDouble, dimNB);
+    NcVar * varXCA = ncMap.add_var("xc_a", ncDouble, dimNEA/*dimNA*/);
+    NcVar * varXCB = ncMap.add_var("xc_b", ncDouble, dimNEB/*dimNB*/);
 
-    NcVar * varYVA = ncMap.add_var("yv_a", ncDouble, dimNA, dimNVA);
-    NcVar * varYVB = ncMap.add_var("yv_b", ncDouble, dimNB, dimNVB);
+    NcVar * varYVA = ncMap.add_var("yv_a", ncDouble, dimNEA/*dimNA*/, dimNVA);
+    NcVar * varYVB = ncMap.add_var("yv_b", ncDouble, dimNEB/*dimNB*/, dimNVB);
 
-    NcVar * varXVA = ncMap.add_var("xv_a", ncDouble, dimNA, dimNVA);
-    NcVar * varXVB = ncMap.add_var("xv_b", ncDouble, dimNB, dimNVB);
+    NcVar * varXVA = ncMap.add_var("xv_a", ncDouble, dimNEA/*dimNA*/, dimNVA);
+    NcVar * varXVB = ncMap.add_var("xv_b", ncDouble, dimNEB/*dimNB*/, dimNVB);
 
     varYCA->add_att("units", "degrees");
     varYCB->add_att("units", "degrees");
@@ -494,20 +537,135 @@ int main(int argc, char* argv[])
     varXVA->add_att("units", "degrees");
     varXVB->add_att("units", "degrees");
 
+    // TODO: This is only true for FV source and target mesh representations
+    // For CG/DG representations, we really need the actual location of the global 
+    // GLL quadrature points in RLL notation
+    moab::Range src_elems, tgt_elems;
+    moab::Range src_verts, tgt_verts;
+    rval = mbCore->get_entities_by_dimension(source_mesh, 2, src_elems);MB_CHK_ERR(rval);
+    rval = mbCore->get_entities_by_dimension(source_mesh, 0, src_verts);MB_CHK_ERR(rval);
+    rval = mbCore->get_entities_by_dimension(target_mesh, 2, tgt_elems);MB_CHK_ERR(rval);
+    rval = mbCore->get_entities_by_dimension(target_mesh, 0, tgt_verts);MB_CHK_ERR(rval);
+
+    double coords[3];
+    std::vector<double> dSourceCenterLat(src_elems.size()), dSourceCenterLon(src_elems.size());
+    std::vector<double> dSourceVertexLat(src_verts.size()), dSourceVertexLon(src_verts.size());
+    for (unsigned i=0; i < src_elems.size(); ++i)
+    {
+      const EntityHandle& elem = src_elems[i];
+      rval = mbCore->get_coords(&elem, 1, coords);MB_CHK_ERR(rval);
+      double mag = std::sqrt(coords[0]*coords[0]+coords[1]*coords[1]+coords[2]*coords[2]);
+      coords[0] /= mag;
+      coords[1] /= mag;
+      coords[2] /= mag;
+
+      XYZtoRLL_Deg(
+        coords[0], coords[1], coords[2],
+        dSourceCenterLat[i],
+        dSourceCenterLon[i]);
+    }
+    for (unsigned i=0; i < src_verts.size(); ++i)
+    {
+      const EntityHandle& vert = src_verts[i];
+      rval = mbCore->get_coords(&vert, 1, coords);MB_CHK_ERR(rval);
+      // double mag = std::sqrt(coords[0]*coords[0]+coords[1]*coords[1]+coords[2]*coords[2]);
+
+      XYZtoRLL_Deg(
+        coords[0], coords[1], coords[2],
+        dSourceVertexLat[i],
+        dSourceVertexLon[i]);
+    }
+
+    std::vector<double> dTargetCenterLat(tgt_elems.size()), dTargetCenterLon(tgt_elems.size());
+    std::vector<double> dTargetVertexLat(tgt_verts.size()), dTargetVertexLon(tgt_verts.size());
+    for (unsigned i=0; i < tgt_elems.size(); ++i)
+    {
+      const EntityHandle& elem = tgt_elems[i];
+      rval = mbCore->get_coords(&elem, 1, coords);MB_CHK_ERR(rval);
+      double mag = std::sqrt(coords[0]*coords[0]+coords[1]*coords[1]+coords[2]*coords[2]);
+      coords[0] /= mag;
+      coords[1] /= mag;
+      coords[2] /= mag;
+
+      XYZtoRLL_Deg(
+        coords[0], coords[1], coords[2],
+        dTargetCenterLat[i],
+        dTargetCenterLon[i]);
+    }
+    for (unsigned i=0; i < tgt_verts.size(); ++i)
+    {
+      const EntityHandle& vert = tgt_verts[i];
+      rval = mbCore->get_coords(&vert, 1, coords);MB_CHK_ERR(rval);
+      // double mag = std::sqrt(coords[0]*coords[0]+coords[1]*coords[1]+coords[2]*coords[2]);
+
+      XYZtoRLL_Deg(
+        coords[0], coords[1], coords[2],
+        dTargetVertexLat[i],
+        dTargetVertexLon[i]);
+    }
+
+    varYCA->put(&(dSourceCenterLat[0]), nA/*nDofA*/);
+    varYCB->put(&(dTargetCenterLat[0]), nB/*nDofB*/);
+
+    varXCA->put(&(dSourceCenterLon[0]), nA/*nDofA*/);
+    varXCB->put(&(dTargetCenterLon[0]), nB/*nDofB*/);
+
+    // varYVA->put(&(dSourceVertexLat[0][0]), nA, nVA);
+    // varYVB->put(&(dTargetVertexLat[0][0]), nB, nVB);
+
+    // varXVA->put(&(dSourceVertexLon[0][0]), nA, nVA);
+    // varXVB->put(&(dTargetVertexLon[0][0]), nB, nVB);
+
+
     // Write areas
     NcVar * varAreaA = ncMap.add_var("area_a", ncDouble, dimNA);
     varAreaA->put(&(src_glob_areas[0]), nDofA);
-    varAreaA->add_att("units", "steradians");
+    // varAreaA->add_att("units", "steradians");
 
     NcVar * varAreaB = ncMap.add_var("area_b", ncDouble, dimNB);
     varAreaB->put(&(tgt_glob_areas[0]), nDofB);
-    varAreaB->add_att("units", "steradians");
+    // varAreaB->add_att("units", "steradians");
 
     std::vector<int> mat_rows, mat_cols;
     std::vector<double> mat_vals;
-    rval = get_vartag_data(mbCore, smatRowdataTag, sets, NNZ, mat_rows);MB_CHK_SET_ERR(rval, "Getting source mesh IDs failed");
-    rval = get_vartag_data(mbCore, smatColdataTag, sets, NNZ, mat_cols);MB_CHK_SET_ERR(rval, "Getting source mesh IDs failed");
-    rval = get_vartag_data(mbCore, smatValsdataTag, sets, NNZ, mat_vals);MB_CHK_SET_ERR(rval, "Getting source mesh IDs failed");
+    int row_sizes, col_sizes, val_sizes;
+    rval = get_vartag_data(mbCore, smatRowdataTag, sets, row_sizes, mat_rows);MB_CHK_SET_ERR(rval, "Getting matrix row data failed");
+    assert(row_sizes == NNZ);
+    rval = get_vartag_data(mbCore, smatColdataTag, sets, col_sizes, mat_cols);MB_CHK_SET_ERR(rval, "Getting matrix col data failed");
+    assert(col_sizes == NNZ);
+    rval = get_vartag_data(mbCore, smatValsdataTag, sets, val_sizes, mat_vals);MB_CHK_SET_ERR(rval, "Getting matrix values failed");
+    assert(val_sizes == NNZ);
+
+    // Output the number of sets
+    std::cout << "Number of primary sets is " << sets.size() << std::endl;
+    // Print more information about what we are converting:
+    // Source elements/vertices/type (Discretization ?)
+    // Target elements/vertices/type (Discretization ?)
+    // Overlap elements/types
+    // Rmeapping weights matrix: rows/cols/NNZ
+    // std::cout << "Matrix sizes = " << mat_rows.size() << ", " << mat_cols.size() << ", " << mat_vals.size() << ", " << NNZ << std::endl;
+
+    // Calculate and write fractional coverage arrays
+    {
+      DataArray1D<double> dFracA(nDofA);
+      DataArray1D<double> dFracB(nDofB);
+    
+      for (unsigned i = 0; i < mat_vals.size(); i++) {
+        // std::cout << i << " - mat_vals = " << mat_vals[i] << " dFracA = " << mat_vals[i] / src_glob_areas[mat_cols[i]] * tgt_glob_areas[mat_rows[i]] << std::endl;
+        dFracA[mat_cols[i]] += mat_vals[i] / src_glob_areas[mat_cols[i]] * tgt_glob_areas[mat_rows[i]];
+        dFracB[mat_rows[i]] += mat_vals[i];
+      }
+
+      NcVar * varFracA = ncMap.add_var("frac_a", ncDouble, dimNA);
+      varFracA->put(&(dFracA[0]), nDofA);
+      varFracA->add_att("name", "fraction of target coverage of source dof");
+      varFracA->add_att("units", "unitless");
+
+      NcVar * varFracB = ncMap.add_var("frac_b", ncDouble, dimNB);
+      varFracB->put(&(dFracB[0]), nDofB);
+      varFracB->add_att("name", "fraction of source coverage of target dof");
+      varFracB->add_att("units", "unitless");
+    }
 
     // Write out data
     NcDim * dimNS = ncMap.add_dim("n_s", NNZ);
@@ -522,6 +680,12 @@ int main(int argc, char* argv[])
 
     NcVar * varS = ncMap.add_var("S", ncDouble, dimNS);
     varS->add_att("name", "sparse matrix coefficient");
+
+    // Increment vecRow and vecCol: make it 1-based
+    for (unsigned i = 0; i < mat_cols.size(); i++) {
+      mat_rows[i]++;
+      mat_cols[i]++;
+    }
 
     varRow->set_cur((long)0);
     varRow->put(&(mat_rows[0]), NNZ);
