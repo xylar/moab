@@ -147,6 +147,11 @@ private:
 	moab::ErrorCode gather_all_to_root();
 
 	///	<summary>
+	///		Remove all the ghosted overlap entities that were accumulated to enable conservation in parallel
+	///	</summary>
+	moab::ErrorCode remove_ghosted_overlap_entities (moab::Range& sharedGhostEntities);
+
+	///	<summary>
 	///		Compute the remapping weights for a FV field defined on the source to a 
 	///     FV field defined on the target mesh.
 	///	</summary>
