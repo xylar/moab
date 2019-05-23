@@ -369,11 +369,6 @@ int main(int argc, char* argv[])
   //Load file
   rval = mbCore->load_mesh(h5mfilename.c_str());MB_CHK_ERR(rval);
 
-  // moab::Range elems, verts;
-
-  // rval = mbCore->get_entities_by_dimension(0, 2, elems);MB_CHK_ERR(rval);
-  // rval = mbCore->get_entities_by_dimension(0, 0, verts);MB_CHK_ERR(rval);
-
   try {
 
     // Temporarily change rval reporting
@@ -389,7 +384,9 @@ int main(int argc, char* argv[])
     // Attributes
     ncMap.add_att("Title", "MOAB-TempestRemap (MBTR) Offline Regridding Weight Converter (h5mtoscrip)");
 
-    Tag materialSetTag;
+    Tag globalIDTag, materialSetTag;
+    globalIDTag = mbCore->globalId_tag();
+    // materialSetTag = mbCore->material_tag();
     rval = mbCore->tag_get_handle( "MATERIAL_SET" , 1, MB_TYPE_INTEGER, materialSetTag, MB_TAG_SPARSE);MB_CHK_ERR(rval);
 
     // Get sets entities, by type
@@ -546,6 +543,9 @@ int main(int argc, char* argv[])
     rval = mbCore->get_entities_by_dimension(source_mesh, 0, src_verts);MB_CHK_ERR(rval);
     rval = mbCore->get_entities_by_dimension(target_mesh, 2, tgt_elems);MB_CHK_ERR(rval);
     rval = mbCore->get_entities_by_dimension(target_mesh, 0, tgt_verts);MB_CHK_ERR(rval);
+    std::vector<int> src_elgid(src_elems.size()), tgt_elgid(tgt_elems.size());
+    rval = mbCore->tag_get_data(globalIDTag, src_elems, src_elgid.data());MB_CHK_ERR(rval);
+    rval = mbCore->tag_get_data(globalIDTag, tgt_elems, tgt_elgid.data());MB_CHK_ERR(rval);
 
     double coords[3];
     std::vector<double> dSourceCenterLat(src_elems.size()), dSourceCenterLon(src_elems.size());
@@ -561,8 +561,8 @@ int main(int argc, char* argv[])
 
       XYZtoRLL_Deg(
         coords[0], coords[1], coords[2],
-        dSourceCenterLat[i],
-        dSourceCenterLon[i]);
+        dSourceCenterLat[src_elgid[i]-1],
+        dSourceCenterLon[src_elgid[i]-1]);
     }
     for (unsigned i=0; i < src_verts.size(); ++i)
     {
@@ -589,8 +589,8 @@ int main(int argc, char* argv[])
 
       XYZtoRLL_Deg(
         coords[0], coords[1], coords[2],
-        dTargetCenterLat[i],
-        dTargetCenterLon[i]);
+        dTargetCenterLat[tgt_elgid[i]-1],
+        dTargetCenterLon[tgt_elgid[i]-1]);
     }
     for (unsigned i=0; i < tgt_verts.size(); ++i)
     {
