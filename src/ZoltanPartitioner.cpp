@@ -1582,7 +1582,7 @@ void ZoltanPartitioner::SetRCB_Parameters()
 
   // RCB parameters:
 
-  myZZ->Set_Param("RCB_OUTPUT_LEVEL", "2");
+  myZZ->Set_Param("RCB_OUTPUT_LEVEL", "1");
   //myZZ->Set_Param("KEEP_CUTS", "1");              // save decomposition
   //myZZ->Set_Param("RCB_RECTILINEAR_BLOCKS", "1"); // don't split point on boundary
 }
