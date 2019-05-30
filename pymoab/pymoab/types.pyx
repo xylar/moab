@@ -163,7 +163,6 @@ def pymoab_data_type(input_type):
         t = _VALID_NATIVE_TYPES[input_type]
         return t
     except KeyError:
-        print("Checking all types...")
         pass
 
     # check valid dtypes
