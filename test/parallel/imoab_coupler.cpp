@@ -427,6 +427,8 @@ int main( int argc, char* argv[] )
     CHECKRC(ierr, "cannot receive tag values from ocean mesh on coupler pes")
   }
 
+  MPI_Barrier(MPI_COMM_WORLD);
+
   ierr = iMOAB_FreeSenderBuffers(pid4, &jcomm, &compid2);
   if (comm2 != MPI_COMM_NULL)
   {
@@ -435,7 +437,7 @@ int main( int argc, char* argv[] )
         strlen(outputFileOcn), strlen(writeOptions2) );
   }
 
-
+  MPI_Barrier(MPI_COMM_WORLD);
   ierr = iMOAB_DeregisterApplication(pid5);
   CHECKRC(ierr, "cannot deregister app intx AO" )
 
