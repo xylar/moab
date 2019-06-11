@@ -1,16 +1,16 @@
 /**
  * MOAB, a Mesh-Oriented datABase, is a software component for creating,
  * storing and accessing finite element mesh data.
- * 
+ *
  * Copyright 2004 Sandia Corporation.  Under the terms of Contract
  * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
  * retains certain rights in this software.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  */
 
 //-------------------------------------------------------------------------
@@ -20,11 +20,11 @@
 //
 // Special Notes : Lots of code taken from verde implementation
 //
-// Creator       : Corey Ernst 
+// Creator       : Corey Ernst
 //
 // Date          : 8/02
 //
-// Owner         : Corey Ernst 
+// Owner         : Corey Ernst
 //-------------------------------------------------------------------------
 
 #ifndef WRITENCDF_HPP
@@ -66,7 +66,7 @@ struct DirichletSetData
   int number_nodes;
   std::vector< EntityHandle > nodes;
   std::vector< double > node_dist_factors;
-  
+
 };
 
 //! struct used to hold data for each sideset to be output in Exodus; used by
@@ -85,9 +85,9 @@ struct NeumannSetData
 //! Output Exodus File for VERDE
 class WriteNCDF : public WriterIface
 {
- 
+
 public:
-  
+
   static WriterIface* factory( Interface* );
 
    //! Constructor
@@ -102,11 +102,11 @@ public:
                          const FileOptions& opts,
                           const EntityHandle *output_list,
                           const int num_sets,
-                          const std::vector<std::string> &qa_records, 
+                          const std::vector<std::string> &qa_records,
                           const Tag* = NULL,
                           int = 0,
                           int user_dimension = 3);
-  
+
 protected:
 
     //! number of dimensions in this exo file
@@ -128,13 +128,13 @@ protected:
     Range polyhedronFaces; // they will accumulate, like nodes
     // they will be written before any other face blocks, and before polyhedra blocks
   };
-  
+
 private:
 
     //! interface instance
   Interface *mdbImpl;
   WriteUtilIface* mWriteIface;
-  
+
     //! file name
   std::string exodusFile;
   int ncFile;
@@ -215,12 +215,12 @@ private:
     //! checking for sense reversals
   ErrorCode get_sideset_elems(EntityHandle sideset, int current_sense,
                                  Range &forward_elems, Range &reverse_elems);
-  
 
-  ErrorCode get_valid_sides(Range &elems, ExodusMeshInfo &mesh_info, 
+
+  ErrorCode get_valid_sides(Range &elems, ExodusMeshInfo &mesh_info,
                                const int sense,
                                NeumannSetData &sideset_data);
-  
+
     //! get the time and date in strings
   static void time_and_date(char* time_string, char* date_string);
 };

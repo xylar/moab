@@ -7,7 +7,7 @@
 
 // to access data structures for spectral elements
 
-extern "C" 
+extern "C"
 {
 #include "moab/FindPtFuncs.h"
 }
@@ -136,7 +136,7 @@ namespace ElemUtil {
       LinearHex(const std::vector<CartVect>& vertices) : Map(vertices){};
       LinearHex();
       virtual ~LinearHex();
-      
+
       virtual CartVect evaluate( const CartVect& xi ) const;
       //virtual CartVect ievaluate(const CartVect& x, double tol) const ;
       virtual bool inside_nat_space(const CartVect & xi, double & tol) const;

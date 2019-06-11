@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2006 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
+
     (2006) kraftche@cae.wisc.edu
-   
+
   ***************************************************************** */
 
 
 /** \file IdealElements.cpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -55,7 +55,7 @@ static Vector3D unit_edge_tet[4];
 static Vector3D unit_edge_pyr[5];
 static Vector3D unit_edge_wdg[6];
 static Vector3D unit_height_pyr[5];
-                                 
+
 static Vector3D unit_tri[3];
 static Vector3D unit_tet[4];
 static Vector3D unit_pyr[5];
@@ -89,13 +89,13 @@ static const Vector3D* const* init_unit_edge( Vector3D** ptr )
 {
   for (unsigned i = 0; i < MIXED; ++i)
     ptr[i] = 0;
-  
+
   init_tri( unit_edge_tri, 1.0 );
   init_tet( unit_edge_tet, 1.0 );
   init_pyr( unit_edge_pyr, 1.0 );
   init_wdg( unit_edge_wdg, 1.0 );
   init_hex_pyr( unit_height_pyr, 1.0 );
-  
+
   ptr[TRIANGLE] = unit_edge_tri;
   ptr[QUADRILATERAL] = unit_quad;
   ptr[TETRAHEDRON] = unit_edge_tet;
@@ -110,13 +110,13 @@ static const Vector3D* const* init_unit_elem( Vector3D** ptr )
 {
   for (unsigned i = 0; i < MIXED; ++i)
     ptr[i] = 0;
-  
+
   init_tri( unit_tri, 2.0 * pow( 3.0, -0.25 ) );
   init_tet( unit_tet, MBMesquite::cbrt( 3.0 ) * sqrt(2.0) );
   init_pyr( unit_pyr, pow( 18.0, 1.0/6.0 ) );
   init_wdg( unit_wdg, MBMesquite::cbrt( 4.0 ) * pow( 3.0, -1.0/6.0 ) );
   init_hex_pyr( unit_hex_pyr, MBMesquite::cbrt( 3.0 ) );
-  
+
   ptr[TRIANGLE] = unit_tri;
   ptr[QUADRILATERAL] = unit_quad;
   ptr[TETRAHEDRON] = unit_tet;
@@ -152,7 +152,7 @@ static void init_pyr( Vector3D* coords, double side )
   coords[1] = Vector3D(  0.5*side,  0.5*side, -0.25*height );
   coords[2] = Vector3D( -0.5*side,  0.5*side, -0.25*height );
   coords[3] = Vector3D( -0.5*side, -0.5*side, -0.25*height );
-  coords[4] = Vector3D(  0.0,       0.0,       0.75*height ); 
+  coords[4] = Vector3D(  0.0,       0.0,       0.75*height );
 }
 
 static void init_wdg( Vector3D* coords, double side )
@@ -172,7 +172,7 @@ static void init_hex_pyr( Vector3D* coords, double side )
   coords[1] = Vector3D(  0.5*side,  0.5*side, -0.25*side );
   coords[2] = Vector3D( -0.5*side,  0.5*side, -0.25*side );
   coords[3] = Vector3D( -0.5*side, -0.5*side, -0.25*side );
-  coords[4] = Vector3D(  0.0,       0.0,       0.75*side ); 
+  coords[4] = Vector3D(  0.0,       0.0,       0.75*side );
 }
 
 } // namespace MBMesquite

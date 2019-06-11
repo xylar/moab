@@ -7,12 +7,12 @@
 #include <iomanip>
 #include <iostream>
 
-namespace moab { 
+namespace moab {
 
 namespace element_utility {
 
 class Linear_hex_map {
-  public: 
+  public:
     //Constructor
     Linear_hex_map() {}
     //Copy constructor
@@ -20,14 +20,14 @@ class Linear_hex_map {
 
  public:
     //Natural coordinates
-    template< typename Moab, typename Entity_handle, 
+    template< typename Moab, typename Entity_handle,
 	      typename Points, typename Point>
     std::pair< bool, CartVect> evaluate_reverse(const double *verts,
                                                 const double *eval_point,
                                                 const double tol=1.e-6) const{
       CartVect params(3, 0.0);
       solve_inverse(eval_point, params, verts);
-      bool point_found = solve_inverse(eval_point, params, verts, tol) && 
+      bool point_found = solve_inverse(eval_point, params, verts, tol) &&
           is_contained(params, tol);
       return std::make_pair(point_found, params);
     }
@@ -55,9 +55,9 @@ class Linear_hex_map {
         ( params[2]>=-1.-tol) && (params[2]<=1.+tol);
   }
 
-  bool solve_inverse(const CartVect &point, 
+  bool solve_inverse(const CartVect &point,
                      CartVect &params,
-                     const CartVect *verts, 
+                     const CartVect *verts,
                      const double tol=1.e-6) const {
     const double error_tol_sqr = tol*tol;
     CartVect delta(0.0, 0.0, 0.0);
@@ -67,7 +67,7 @@ class Linear_hex_map {
     std::size_t num_iterations=0;
 #ifdef LINEAR_HEX_DEBUG
     std::stringstream ss;
-    ss << "CartVect: "; 
+    ss << "CartVect: ";
     ss << point[0] << ", " << point[1] << ", " << point [2] << std::endl;
     ss << "Hex: ";
     for(int i = 0; i < 8; ++i)
@@ -76,7 +76,7 @@ class Linear_hex_map {
 #endif
     while ( delta.length_squared() > error_tol_sqr) {
 #ifdef LINEAR_HEX_DEBUG
-      ss << "Iter #: "  << num_iterations 
+      ss << "Iter #: "  << num_iterations
          << " Err: " << delta.length() << " Iterate: ";
       ss << params[0] << ", " << params[1] << ", " << params[2] << std::endl;
 #endif
@@ -101,7 +101,7 @@ class Linear_hex_map {
     return true;
   }
 
-  void evaluate_forward(const CartVect &p, const CartVect *verts, CartVect &f) const{ 
+  void evaluate_forward(const CartVect &p, const CartVect *verts, CartVect &f) const{
     typedef typename Points::value_type Vector;
     f.set(0.0, 0.0, 0.0);
     for (unsigned i = 0; i < 8; ++i) {
@@ -114,7 +114,7 @@ class Linear_hex_map {
     return f;
   }
 
-  double integrate_scalar_field(const CartVect *points, 
+  double integrate_scalar_field(const CartVect *points,
                                 const double *field_values) const {
   }
 

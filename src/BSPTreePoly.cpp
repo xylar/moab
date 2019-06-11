@@ -12,7 +12,7 @@ struct BSPTreePoly::Vertex : public CartVect {
   Vertex( const CartVect& v ) : CartVect(v), usePtr(0), markVal(0)
 #ifdef DEBUG_IDS
   , id(nextID++)
-#endif  
+#endif
   {}
   ~Vertex() { assert(!usePtr); }
   BSPTreePoly::VertexUse* usePtr;
@@ -26,9 +26,9 @@ struct BSPTreePoly::Vertex : public CartVect {
 struct BSPTreePoly::VertexUse {
   VertexUse( Edge* edge, Vertex* vtx );
   ~VertexUse();
-  
+
   void set_vertex( BSPTreePoly::Vertex*& vtx_ptr );
-  
+
   BSPTreePoly::VertexUse *nextPtr, *prevPtr;
   BSPTreePoly::Vertex* vtxPtr;
   BSPTreePoly::Edge* edgePtr;
@@ -43,11 +43,11 @@ struct BSPTreePoly::EdgeUse {
   BSPTreePoly::EdgeUse *prevPtr, *nextPtr;
   BSPTreePoly::Edge* edgePtr;
   BSPTreePoly::Face* facePtr;
-  
+
   inline BSPTreePoly::Vertex* start() const;
   inline BSPTreePoly::Vertex* end() const;
   int sense() const;
-  
+
   void insert_after( BSPTreePoly::EdgeUse* prev );
   void insert_before( BSPTreePoly::EdgeUse* next );
 };
@@ -59,43 +59,43 @@ struct BSPTreePoly::Edge {
   int id;
   static int nextID;
 #endif
-  
+
   Edge( Vertex* vstart, Vertex* vend )
     : forwardPtr(0), reversePtr(0)
 #ifdef DEBUG_IDS
   , id(nextID++)
-#endif  
+#endif
   {
     startPtr = new VertexUse( this, vstart );
     endPtr = new VertexUse( this, vend );
   }
-  
+
   ~Edge();
-  
-  BSPTreePoly::Vertex* start() const 
+
+  BSPTreePoly::Vertex* start() const
     { return startPtr->vtxPtr; }
-  BSPTreePoly::Vertex* end() const 
+  BSPTreePoly::Vertex* end() const
     { return endPtr->vtxPtr; }
-  
+
   BSPTreePoly::Face* forward() const
     { return forwardPtr ? forwardPtr->facePtr : 0; }
   BSPTreePoly::Face* reverse() const
     { return reversePtr ? reversePtr->facePtr : 0; }
-  
+
   BSPTreePoly::VertexUse* use( BSPTreePoly::Vertex* vtx ) const
     { return (vtx == startPtr->vtxPtr) ? startPtr : (vtx == endPtr->vtxPtr) ? endPtr : 0; }
   BSPTreePoly::Edge* next( BSPTreePoly::Vertex* about ) const
     { return use(about)->nextPtr->edgePtr; }
   BSPTreePoly::Edge* prev( BSPTreePoly::Vertex* about ) const
     { return use(about)->prevPtr->edgePtr; }
-  
+
   BSPTreePoly::EdgeUse* use( BSPTreePoly::Face* face ) const
     { return (face == forwardPtr->facePtr) ? forwardPtr : (face == reversePtr->facePtr) ? reversePtr : 0; }
   BSPTreePoly::Edge* next( BSPTreePoly::Face* about ) const
     { return use(about)->nextPtr->edgePtr; }
   BSPTreePoly::Edge* prev( BSPTreePoly::Face* about ) const
     { return use(about)->prevPtr->edgePtr; }
-  
+
   BSPTreePoly::VertexUse* other( BSPTreePoly::VertexUse* vuse ) const
     { return vuse == startPtr ? endPtr : vuse == endPtr ? startPtr : 0; }
   BSPTreePoly::EdgeUse* other( BSPTreePoly::EdgeUse* vuse ) const
@@ -106,27 +106,27 @@ struct BSPTreePoly::Edge {
   BSPTreePoly::Vertex* common( BSPTreePoly::Edge* eother ) const
     { return start() == eother->start() || start() == eother->end() ? start() :
                end() == eother->start() ||   end() == eother->end() ?   end() : 0; }
-  
+
   int sense( BSPTreePoly::Face* face ) const;
-             
+
   void remove_from_vertex( BSPTreePoly::Vertex*& vtx_ptr );
   void remove_from_face( BSPTreePoly::Face*& face_ptr );
   void add_to_vertex( BSPTreePoly::Vertex* vtx_ptr );
 };
 
-struct BSPTreePoly::Face { 
-  Face(Face* next) : usePtr(0), nextPtr(next) 
+struct BSPTreePoly::Face {
+  Face(Face* next) : usePtr(0), nextPtr(next)
 #ifdef DEBUG_IDS
     , id(nextID++)
-#endif  
+#endif
     {}
-  Face() : usePtr(0), nextPtr(0) 
+  Face() : usePtr(0), nextPtr(0)
 #ifdef DEBUG_IDS
     , id(nextID++)
-#endif  
+#endif
     {}
   ~Face();
-  BSPTreePoly::EdgeUse* usePtr; 
+  BSPTreePoly::EdgeUse* usePtr;
   BSPTreePoly::Face* nextPtr;
 #ifdef DEBUG_IDS
   int id;
@@ -161,7 +161,7 @@ BSPTreePoly::VertexUse::VertexUse( BSPTreePoly::Edge* edge, BSPTreePoly::Vertex*
     vtx->usePtr = prevPtr = nextPtr = this;
     return;
   }
-  
+
   nextPtr = vtx->usePtr;
   prevPtr = nextPtr->prevPtr;
   assert( prevPtr->nextPtr == nextPtr );
@@ -169,7 +169,7 @@ BSPTreePoly::VertexUse::VertexUse( BSPTreePoly::Edge* edge, BSPTreePoly::Vertex*
   prevPtr->nextPtr = this;
 }
 
-BSPTreePoly::VertexUse::~VertexUse() 
+BSPTreePoly::VertexUse::~VertexUse()
 {
   if (nextPtr == this) {
     assert(prevPtr == this);
@@ -179,7 +179,7 @@ BSPTreePoly::VertexUse::~VertexUse()
   }
   else if (vtxPtr->usePtr == this)
     vtxPtr->usePtr = nextPtr;
-  
+
   nextPtr->prevPtr = prevPtr;
   prevPtr->nextPtr = nextPtr;
   nextPtr = prevPtr = 0;
@@ -201,7 +201,7 @@ void BSPTreePoly::VertexUse::set_vertex( BSPTreePoly::Vertex*& vtx )
         vtxPtr->usePtr = nextPtr;
     }
   }
-  
+
   if (vtx) {
    vtxPtr = vtx;
    nextPtr = vtxPtr->usePtr->nextPtr;
@@ -210,24 +210,24 @@ void BSPTreePoly::VertexUse::set_vertex( BSPTreePoly::Vertex*& vtx )
    vtxPtr->usePtr->nextPtr = this;
   }
 }
-  
+
 
 BSPTreePoly::EdgeUse::EdgeUse( BSPTreePoly::Edge* edge )
   : prevPtr(0), nextPtr(0), edgePtr(edge), facePtr(0)
 {}
 
-BSPTreePoly::EdgeUse::EdgeUse( BSPTreePoly::Edge* edge, 
+BSPTreePoly::EdgeUse::EdgeUse( BSPTreePoly::Edge* edge,
                                 BSPTreePoly::Face* face )
   : edgePtr(edge), facePtr(face)
 {
   assert(!face->usePtr);
   face->usePtr = prevPtr = nextPtr = this;
-  
+
   if (!face->usePtr) {
     face->usePtr = prevPtr = nextPtr = this;
     return;
   }
-  
+
   nextPtr = face->usePtr;
   prevPtr = nextPtr->prevPtr;
   assert( prevPtr->nextPtr == nextPtr );
@@ -241,7 +241,7 @@ void BSPTreePoly::EdgeUse::insert_after( BSPTreePoly::EdgeUse* prev )
   assert(!facePtr);
     // adjacent edges should share vertices
   assert( start() == prev->end() );
- 
+
   facePtr = prev->facePtr;
   nextPtr = prev->nextPtr;
   prevPtr = prev;
@@ -255,7 +255,7 @@ void BSPTreePoly::EdgeUse::insert_before( BSPTreePoly::EdgeUse* next )
   assert(!facePtr);
     // adjacent edges should share vertices
   assert( end() == next->start() );
- 
+
   facePtr = next->facePtr;
   prevPtr = next->prevPtr;
   nextPtr = next;
@@ -264,19 +264,19 @@ void BSPTreePoly::EdgeUse::insert_before( BSPTreePoly::EdgeUse* next )
 }
 
 
-BSPTreePoly::EdgeUse::~EdgeUse() 
+BSPTreePoly::EdgeUse::~EdgeUse()
 {
-  if (facePtr->usePtr == this) 
+  if (facePtr->usePtr == this)
     facePtr->usePtr = (nextPtr == this) ? 0 : nextPtr;
-    
+
   if (edgePtr->forwardPtr == this)
     edgePtr->forwardPtr = 0;
   if (edgePtr->reversePtr == this)
     edgePtr->reversePtr = 0;
-  
+
   if (!edgePtr->forwardPtr && !edgePtr->reversePtr)
     delete edgePtr;
-  
+
   nextPtr->prevPtr = prevPtr;
   prevPtr->nextPtr = nextPtr;
   nextPtr = prevPtr = 0;
@@ -354,11 +354,11 @@ void BSPTreePoly::clear() {
 ErrorCode BSPTreePoly::set( const CartVect hex_corners[8] )
 {
   clear();
-  
+
   Vertex* vertices[8];
   for (int i = 0; i < 8; ++i)
     vertices[i] = new Vertex(hex_corners[i]);
-  
+
   Edge* edges[12];
 #ifdef DEBUG_IDS
   int start_id = Edge::nextID;
@@ -373,7 +373,7 @@ ErrorCode BSPTreePoly::set( const CartVect hex_corners[8] )
   for (int i = 0; i < 12; ++i)
     edges[i]->id = start_id++;
 #endif
-  
+
   static const int face_conn[6][4] = { {  0,  5,  -8, -4 },
                                        {  1,  6,  -9, -5 },
                                        {  2,  7, -10, -6 },
@@ -406,11 +406,11 @@ ErrorCode BSPTreePoly::set( const CartVect hex_corners[8] )
           edges[e]->forwardPtr = new EdgeUse( edges[e] );
           edges[e]->forwardPtr->insert_after( prev );
         }
-        prev = edges[e]->forwardPtr;          
+        prev = edges[e]->forwardPtr;
       }
     }
   }
-  
+
   return MB_SUCCESS;
 }
 
@@ -427,7 +427,7 @@ void BSPTreePoly::get_vertices( const Face* face,
   vertices.clear();
   if (!face || !face->usePtr)
     return;
-    
+
   EdgeUse* coedge = face->usePtr;
   do {
     vertices.push_back( *coedge->end() );
@@ -448,7 +448,7 @@ double BSPTreePoly::Face::signed_volume() const
   return (1.0/6.0) * (sum % *base);
 }
 
-double BSPTreePoly::volume() const 
+double BSPTreePoly::volume() const
 {
   double result = 0;
   for (Face* ptr = faceList; ptr; ptr = ptr->nextPtr)
@@ -483,10 +483,10 @@ static void merge_edges( BSPTreePoly::Edge* keep_edge,
   assert(keep_vtxuse->nextPtr == dead_vtxuse);
   assert(keep_vtxuse->prevPtr == dead_vtxuse);
   assert(dead_vtxuse->prevPtr == keep_vtxuse);
-  
+
   // kept edge now ends with the kept vertex on the dead edge
   keep_vtxuse->set_vertex( dead_edge->other(dead_vtx) );
-  
+
   // destructors should take care of everything else
   // (including removing dead edge from face loops)
   delete dead_edge;
@@ -498,7 +498,7 @@ static BSPTreePoly::Edge* split_edge( BSPTreePoly::Vertex*& new_vtx,
     // split edge, creating new edge
   BSPTreePoly::Edge* new_edge = new BSPTreePoly::Edge( new_vtx, into_edge->end() );
   into_edge->endPtr->set_vertex( new_vtx ); // This call might delete new_vtx
-  
+
     // update coedge loops in faces
   if (into_edge->forwardPtr) {
     new_edge->forwardPtr = new BSPTreePoly::EdgeUse( new_edge );
@@ -508,7 +508,7 @@ static BSPTreePoly::Edge* split_edge( BSPTreePoly::Vertex*& new_vtx,
     new_edge->reversePtr = new BSPTreePoly::EdgeUse( new_edge );
     new_edge->reversePtr->insert_before( into_edge->reversePtr );
   }
-  
+
   return new_edge;
 }
 
@@ -535,14 +535,14 @@ static BSPTreePoly::Face* split_face( BSPTreePoly::EdgeUse* start,
   keep_start->nextPtr = edge->forwardPtr;
   edge->forwardPtr->nextPtr = keep_end;
   keep_end->prevPtr = edge->forwardPtr;
-  
+
   edge->reversePtr->facePtr = new_face;
   edge->reversePtr->nextPtr = start;
   start->prevPtr = edge->reversePtr;
   edge->reversePtr->prevPtr = end;
   end->nextPtr = edge->reversePtr;
-  
-  return new_face;  
+
+  return new_face;
 }
 
 
@@ -562,19 +562,19 @@ bool BSPTreePoly::cut_polyhedron( const CartVect& plane_normal,
   const int BELOW = 3;
   int num_above = 0;
   set_vertex_marks( UNKNOWN );
-  
-    // Classify all points above/below plane and 
+
+    // Classify all points above/below plane and
     // split any edge that intersect the plane.
   for (Face* face = faceList; face; face = face->nextPtr) {
     EdgeUse* edge = face->usePtr;
-    
+
     do {
       Vertex* start = edge->edgePtr->start();
       Vertex* end = edge->edgePtr->end();
 
       if (!start->markVal) {
         double d = plane_normal % *start + plane_coeff;
-        if (d*d <= epsilon) 
+        if (d*d <= epsilon)
           start->markVal = ON;
         else if (d < 0.0)
           start->markVal = BELOW;
@@ -586,7 +586,7 @@ bool BSPTreePoly::cut_polyhedron( const CartVect& plane_normal,
 
       if (!end->markVal) {
         double d = plane_normal % *end + plane_coeff;
-        if (d*d <= epsilon) 
+        if (d*d <= epsilon)
           end->markVal = ON;
         else if (d < 0.0)
           end->markVal = BELOW;
@@ -609,14 +609,14 @@ bool BSPTreePoly::cut_polyhedron( const CartVect& plane_normal,
       edge = edge->nextPtr;
     } while (edge && edge != face->usePtr);
   }
-  
+
   if (!num_above)
     return false;
-  
+
     // Split faces
   for (Face* face = faceList; face; face = face->nextPtr) {
     EdgeUse* edge = face->usePtr;
-    
+
     EdgeUse *split_start = 0, *split_end = 0, *other_split = 0;
     do {
       if (edge->end()->markVal == ON && edge->start()->markVal != ON) {
@@ -640,7 +640,7 @@ bool BSPTreePoly::cut_polyhedron( const CartVect& plane_normal,
       faceList = new_face;
     }
   }
-  
+
     // Destroy all faces that are above the plane
   Face** lptr = &faceList;
   while (*lptr) {
@@ -653,7 +653,7 @@ bool BSPTreePoly::cut_polyhedron( const CartVect& plane_normal,
       }
       edge = edge->nextPtr;
     } while (edge && edge != (*lptr)->usePtr);
-    
+
     if (some_above) {
       Face* dead = *lptr;
       *lptr = (*lptr)->nextPtr;
@@ -663,9 +663,9 @@ bool BSPTreePoly::cut_polyhedron( const CartVect& plane_normal,
       lptr = &((*lptr)->nextPtr);
     }
   }
-  
+
     // Construct a new face in the cut plane
-    
+
     // First find an edge to start at
   Edge* edge_ptr = 0;
   for (Face* face = faceList; face && !edge_ptr; face = face->nextPtr) {
@@ -679,7 +679,7 @@ bool BSPTreePoly::cut_polyhedron( const CartVect& plane_normal,
     } while (co_edge && co_edge != face->usePtr);
   }
   if (!edge_ptr) return false;
-  
+
     // Constuct new face and first CoEdge
   faceList = new Face( faceList );
   Vertex *next_vtx, *start_vtx;
@@ -695,7 +695,7 @@ bool BSPTreePoly::cut_polyhedron( const CartVect& plane_normal,
     start_vtx = edge_ptr->start();
     prev_coedge = edge_ptr->forwardPtr = new EdgeUse( edge_ptr, faceList );
   }
-  
+
     // Construct coedges until loop is closed
   while (next_vtx != start_vtx) {
       // find next edge adjacent to vertex with only one adjacent face
@@ -720,19 +720,19 @@ bool BSPTreePoly::cut_polyhedron( const CartVect& plane_normal,
         prev_coedge = edge_ptr->reversePtr;
         break;
       }
-      
+
       use = use->nextPtr;
       assert( use != this_use ); // failed to close loop!
     }
   }
-  
+
   return true;
 }
 
 bool BSPTreePoly::is_valid() const
 {
   std::set<Face*> list_faces;
-  
+
   int i = 0;
   for (Face* ptr = faceList; ptr; ptr = ptr->nextPtr) {
     if (++i > 10000)
@@ -740,25 +740,25 @@ bool BSPTreePoly::is_valid() const
     if (!list_faces.insert(ptr).second)
       return false;
   }
-  
+
   std::set<Vertex*> vertices;
   for (Face* face = faceList; face; face = face->nextPtr) {
     i = 0;
-    EdgeUse* coedge = face->usePtr;    
+    EdgeUse* coedge = face->usePtr;
     do {
       if (++i > 10000)
         return false;
-      
+
       if (coedge->facePtr != face)
         return false;
-      
+
       Edge* edge = coedge->edgePtr;
       if (!edge->startPtr || !edge->endPtr)
         return false;
-      
+
       vertices.insert( edge->start() );
       vertices.insert( edge->end() );
-      
+
       EdgeUse* other;
       if (edge->forwardPtr == coedge)
         other = edge->reversePtr;
@@ -770,43 +770,43 @@ bool BSPTreePoly::is_valid() const
         return false;
       if (list_faces.find( other->facePtr ) == list_faces.end())
         return false;
-      
+
       EdgeUse* next = coedge->nextPtr;
       if (next->prevPtr != coedge)
         return false;
       if (coedge->end() != next->start())
         return false;
-      
+
       coedge = next;
     } while (coedge != face->usePtr);
   }
-  
+
   for (std::set<Vertex*>::iterator j = vertices.begin(); j != vertices.end(); ++j) {
     Vertex* vtx = *j;
 
     i = 0;
-    VertexUse* use = vtx->usePtr;    
+    VertexUse* use = vtx->usePtr;
     do {
       if (++i > 10000)
         return false;
-    
+
       if (use->vtxPtr != vtx)
         return false;
-      
+
       Edge* edge = use->edgePtr;
       if (!edge)
         return false;
       if (edge->startPtr != use && edge->endPtr != use)
         return false;
-        
+
       VertexUse* next = use->nextPtr;
       if (next->prevPtr != use)
         return false;
-      
+
       use = next;
     } while (use != vtx->usePtr);
   }
-  
+
   return true;
 }
 
@@ -814,7 +814,7 @@ bool BSPTreePoly::is_point_contained( const CartVect& point ) const
 {
   if (!faceList) // empty (zero-dimension) polyhedron
     return false;
-  
+
   const double EPSILON = 1e-6;
     // Test that point is below the plane of each face
     // NOTE: This will NOT work for polyhedra w/ concavities
@@ -823,7 +823,7 @@ bool BSPTreePoly::is_point_contained( const CartVect& point ) const
     pt1 = face->usePtr->start();
     pt2 = face->usePtr->end();
     pt3 = face->usePtr->nextPtr->end();
-    
+
     if (pt3 == pt1) // degenerate
       continue;
 
@@ -832,8 +832,8 @@ bool BSPTreePoly::is_point_contained( const CartVect& point ) const
     if ( (norm % point + coeff) > EPSILON) // if above plane, with some -epsilon
       return false;
   }
-  
+
   return true;
 }
-  
+
 } // namespace moab

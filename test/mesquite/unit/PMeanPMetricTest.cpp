@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2006 Sandia National Laboratories.  Developed at the
@@ -16,12 +16,12 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
+
     (2006) kraftche@cae.wisc.edu
-   
+
   ***************************************************************** */
 
 
@@ -68,7 +68,7 @@ public:
   void test_gradient();
   void test_hessian();
   void test_hessian_diagonal();
-  
+
 };
 
 
@@ -81,8 +81,8 @@ void PMeanPMetricTest::setUp() {
   CPPUNIT_ASSERT(!err);
 }
 
-// bogus metric for testing.  
-// returns vertex index value for metric value, {vertex index, 0, 1} 
+// bogus metric for testing.
+// returns vertex index value for metric value, {vertex index, 0, 1}
 // for gradint wrt vertex , and { (h1, h2, h1+j2), {h1, 1, h1+h2}, {2*h1, 2*h2, h2} }
 // for hessin where h1 and h2 are vertex indices.
 class FauxMetric : public ElemSampleQM
@@ -94,14 +94,14 @@ public:
   void get_evaluations( PatchData& pd, std::vector<size_t>& h, bool free, MsqError& );
   void get_element_evaluations( PatchData&, size_t, std::vector<size_t>&, MsqError& );
   bool evaluate( PatchData& pd, size_t h, double& v, MsqError& err );
-  bool evaluate_with_indices( PatchData& pd, size_t h, double& v, 
+  bool evaluate_with_indices( PatchData& pd, size_t h, double& v,
                               std::vector<size_t>& indices, MsqError& err );
-  bool evaluate_with_gradient( PatchData& pd, size_t h, double& v, 
-                              std::vector<size_t>& indices, 
+  bool evaluate_with_gradient( PatchData& pd, size_t h, double& v,
+                              std::vector<size_t>& indices,
                               std::vector<Vector3D>& grads,
                               MsqError& err );
-  bool evaluate_with_Hessian( PatchData& pd, size_t h, double& v, 
-                              std::vector<size_t>& indices, 
+  bool evaluate_with_Hessian( PatchData& pd, size_t h, double& v,
+                              std::vector<size_t>& indices,
                               std::vector<Vector3D>& grad,
                               std::vector<Matrix3D>& Hess,
                               MsqError& err );
@@ -131,7 +131,7 @@ bool FauxMetric::evaluate( PatchData& pd, size_t h, double& v, MsqError&  )
   return true;
 }
 
-bool FauxMetric::evaluate_with_indices( PatchData& pd, size_t h, double& v, 
+bool FauxMetric::evaluate_with_indices( PatchData& pd, size_t h, double& v,
                               std::vector<size_t>& indices, MsqError& err )
 {
   evaluate( pd, h, v, err );
@@ -147,8 +147,8 @@ bool FauxMetric::evaluate_with_indices( PatchData& pd, size_t h, double& v,
   return true;
 }
 
-bool FauxMetric::evaluate_with_gradient( PatchData& pd, size_t h, double& v, 
-                              std::vector<size_t>& indices, 
+bool FauxMetric::evaluate_with_gradient( PatchData& pd, size_t h, double& v,
+                              std::vector<size_t>& indices,
                               std::vector<Vector3D>& grads,
                               MsqError& err )
 {
@@ -159,8 +159,8 @@ bool FauxMetric::evaluate_with_gradient( PatchData& pd, size_t h, double& v,
   return true;
 }
 
-bool FauxMetric::evaluate_with_Hessian( PatchData& pd, size_t h, double& v, 
-                              std::vector<size_t>& indices, 
+bool FauxMetric::evaluate_with_Hessian( PatchData& pd, size_t h, double& v,
+                              std::vector<size_t>& indices,
                               std::vector<Vector3D>& grad,
                               std::vector<Matrix3D>& hess,
                               MsqError& err )
@@ -204,7 +204,7 @@ void PMeanPMetricTest::test_get_element_evaluations()
   for (unsigned i = 1; i < handles.size(); ++i)
     CPPUNIT_ASSERT_EQUAL( handles[i-1]+1, handles[i] );
 }
-  
+
 
 void PMeanPMetricTest::test_get_vertex_evaluations()
 {
@@ -232,7 +232,7 @@ void PMeanPMetricTest::test_vertex_evaluate()
   FauxMetric m;
   VertexPMeanP m1( 1.0, &m );
   VertexPMeanP m2( 2.0, &m );
-  
+
     // evaluate average around vertex
   double v1, v2;
   m1.evaluate( pd, 0, v1, err );
@@ -244,7 +244,7 @@ void PMeanPMetricTest::test_vertex_evaluate()
   size_t num_elem;
   const size_t* elems = pd.get_vertex_element_adjacencies( 0, num_elem, err );
   CPPUNIT_ASSERT(!err);
-  
+
     // calculate expected values from underyling metric
   double ev1 = 0.0, ev2 = 0.0;
   for (unsigned i = 0; i < num_elem; ++i) {
@@ -254,17 +254,17 @@ void PMeanPMetricTest::test_vertex_evaluate()
     const size_t* p = std::find( verts, end, (size_t)0 );
     CPPUNIT_ASSERT( p < end );
     size_t h = ElemSampleQM::handle( Sample(0,p - verts), elems[i] );
-  
+
     double v;
     m.evaluate( pd, h, v, err );
     CPPUNIT_ASSERT(!err);
     ev1 += v;
     ev2 += v*v;
   }
-  
+
   ev1 /= num_elem;
   ev2 /= num_elem;
-  
+
   CPPUNIT_ASSERT_DOUBLES_EQUAL( ev1, v1, 1e-6 );
   CPPUNIT_ASSERT_DOUBLES_EQUAL( ev2, v2, 1e-6 );
 }
@@ -275,19 +275,19 @@ void PMeanPMetricTest::test_element_evaluate()
   FauxMetric m;
   ElementPMeanP m1( 1.0, &m );
   ElementPMeanP m2( 2.0, &m );
-  
+
     // evaluate average over element
   double v1, v2;
   m1.evaluate( pd, 0, v1, err );
   CPPUNIT_ASSERT(!err);
   m2.evaluate( pd, 0, v2, err );
   CPPUNIT_ASSERT(!err);
-  
+
     // get sample points within element
   std::vector<size_t> handles;
   m.get_element_evaluations( pd, 0, handles, err );
   CPPUNIT_ASSERT(!err);
-  
+
     // calculate expected values from underyling metric
   double ev1 = 0.0, ev2 = 0.0;
   for (unsigned i = 0; i < handles.size(); ++i) {
@@ -299,18 +299,18 @@ void PMeanPMetricTest::test_element_evaluate()
   }
   ev1 /= handles.size();
   ev2 /= handles.size();
-  
+
   CPPUNIT_ASSERT_DOUBLES_EQUAL( ev1, v1, 1e-6 );
   CPPUNIT_ASSERT_DOUBLES_EQUAL( ev2, v2, 1e-6 );
 }
 
 
-void PMeanPMetricTest::test_indices() 
+void PMeanPMetricTest::test_indices()
 {
   MsqError err;
   FauxMetric m;
   ElementPMeanP m2( 2.0, &m );
-  
+
   double v1, v2;
   std::vector<size_t> indices;
   m2.evaluate_with_indices( pd, 0, v1, indices, err );
@@ -318,10 +318,10 @@ void PMeanPMetricTest::test_indices()
   m2.evaluate( pd, 0, v2, err );
   CPPUNIT_ASSERT(!err);
   CPPUNIT_ASSERT_DOUBLES_EQUAL( v2, v1, 1e-6 );
-  
+
   std::vector<size_t> vertices;
   pd.element_by_index(0).get_vertex_indices( vertices );
-  
+
   std::sort( vertices.begin(), vertices.end() );
   std::sort( indices.begin(), indices.end() );
   CPPUNIT_ASSERT( vertices == indices );
@@ -339,11 +339,11 @@ void PMeanPMetricTest::test_gradient()
   FauxMetric m;
   ElementPMeanP m1( 1.0, &m );
   ElementPMeanP m2( 2.0, &m );
-  
+
     // get vertices for later
   std::vector<size_t> vertices;
   pd.element_by_index(0).get_vertex_indices( vertices );
-  
+
     // evaluate without gradients
   double v1, v2, v3, v4;
   std::vector<size_t> indices1, indices2, indices3, indices4;
@@ -352,13 +352,13 @@ void PMeanPMetricTest::test_gradient()
   CPPUNIT_ASSERT(!err);
   m2.evaluate_with_indices( pd, 0, v2, indices2, err );
   CPPUNIT_ASSERT(!err);
-  
+
     // evaluate with gradients
   m1.evaluate_with_gradient( pd, 0, v3, indices3, grads1, err );
   CPPUNIT_ASSERT(!err);
   m2.evaluate_with_gradient( pd, 0, v4, indices4, grads2, err );
   CPPUNIT_ASSERT(!err);
-  
+
     // compare value and indices to eval w/out gradient
   CPPUNIT_ASSERT_DOUBLES_EQUAL( v1, v3, 1e-6 );
   CPPUNIT_ASSERT_DOUBLES_EQUAL( v2, v4, 1e-6 );
@@ -370,12 +370,12 @@ void PMeanPMetricTest::test_gradient()
   tm = indices4 ;
   std::sort( tm.begin(), tm.end() );
   CPPUNIT_ASSERT( tm == indices2 );
-  
+
     // setup evaluation of underying metric
   std::vector<size_t> handles;
   m.get_element_evaluations( pd, 0, handles, err );
   CPPUNIT_ASSERT(!err);
-  
+
     // calculate expected gradients
   std::vector<Vector3D> expected1, expected2, temp;
   expected1.resize( vertices.size(), Vector3D(0,0,0) );
@@ -395,7 +395,7 @@ void PMeanPMetricTest::test_gradient()
     expected1[i] /= handles.size();
     expected2[i] /= handles.size();
   }
-  
+
     // compare gradients
   for (unsigned i = 0; i < indices1.size(); ++i) {
     unsigned k = index_of( vertices, indices1[i] );
@@ -411,11 +411,11 @@ void PMeanPMetricTest::test_hessian()
   FauxMetric m;
   ElementPMeanP m1( 1.0, &m );
   ElementPMeanP m2( 2.0, &m );
-  
+
     // get vertices for later
   std::vector<size_t> vertices;
   pd.element_by_index(0).get_vertex_indices( vertices );
-  
+
     // evaluate gradient
   double v1, v2, v3, v4;
   std::vector<size_t> indices1, indices2, indices3, indices4, tmpi;
@@ -425,38 +425,38 @@ void PMeanPMetricTest::test_hessian()
   CPPUNIT_ASSERT(!err);
   m2.evaluate_with_gradient( pd, 0, v2, indices2, grad2, err );
   CPPUNIT_ASSERT(!err);
-  
+
     // evaluate with Hessian
   m1.evaluate_with_Hessian( pd, 0, v3, indices3, grad3, hess3, err );
   CPPUNIT_ASSERT(!err);
   m2.evaluate_with_Hessian( pd, 0, v4, indices4, grad4, hess4, err );
   CPPUNIT_ASSERT(!err);
-  
+
     // compare value and indices to eval w/out gradient
   CPPUNIT_ASSERT_DOUBLES_EQUAL( v1, v3, 1e-6 );
   CPPUNIT_ASSERT_DOUBLES_EQUAL( v2, v4, 1e-6 );
     // It isn't a requirement that the index order remain the same
-    // for both eval_with_grad and eval_with_Hess, but assuming it 
-    // does simplifies a lot of stuff in this test.  Check that the 
+    // for both eval_with_grad and eval_with_Hess, but assuming it
+    // does simplifies a lot of stuff in this test.  Check that the
     // assumption remains valid.
   CPPUNIT_ASSERT( indices3 == indices1 );
   CPPUNIT_ASSERT( indices4 == indices2 );
     // It isn't a requirement that the index order remain the same
     // for any value of P, but assuming it does simplifies a lot
     // of stuff in this test, so check that the assumption is valid.
-  CPPUNIT_ASSERT( indices1 == indices2 ); 
-  
+  CPPUNIT_ASSERT( indices1 == indices2 );
+
     // check that gradient values match
   for (size_t i = 0; i < indices1.size(); ++i) {
     CPPUNIT_ASSERT_VECTORS_EQUAL( grad1[i], grad3[i], 1e-5 );
     CPPUNIT_ASSERT_VECTORS_EQUAL( grad2[i], grad4[i], 1e-5 );
   }
-  
+
     // setup evaluation of underying metric
   std::vector<size_t> handles;
   m.get_element_evaluations( pd, 0, handles, err );
   CPPUNIT_ASSERT(!err);
-  
+
     // calculate expected Hessians
   std::vector<Vector3D> g;
   std::vector<Matrix3D> expected1, expected2, h;
@@ -493,7 +493,7 @@ void PMeanPMetricTest::test_hessian()
       }
     }
   }
-  
+
     // compare Hessians
   unsigned H_idx = 0;
   for (unsigned R = 0; R < vertices.size(); ++R) {
@@ -526,8 +526,8 @@ void PMeanPMetricTest::test_hessian_diagonal()
   FauxMetric m;
   ElementPMeanP m1( 1.0, &m );
   ElementPMeanP m2( 2.0, &m );
-  
-    // we've already validated the Hessian results in the 
+
+    // we've already validated the Hessian results in the
     // previous test, so just check that the diagonal terms
     // match the terms for the full Hessian.
   std::vector<size_t> m1_indices_h, m1_indices_d, m2_indices_h, m2_indices_d;
@@ -543,16 +543,16 @@ void PMeanPMetricTest::test_hessian_diagonal()
   ASSERT_NO_ERROR(err);
   m2.evaluate_with_Hessian_diagonal( pd, 0, m2_v_d, m2_indices_d, m2_g_d, m2_h_d, err );
   ASSERT_NO_ERROR(err);
-  
+
     // compare values
   CPPUNIT_ASSERT_DOUBLES_EQUAL( m1_v_h, m1_v_d, 1e-6 );
   CPPUNIT_ASSERT_DOUBLES_EQUAL( m2_v_h, m2_v_d, 1e-6 );
-  
+
     // Assume indices in same order because
     // it simplifiers later code in test
   CPPUNIT_ASSERT( m1_indices_h == m1_indices_d );
   CPPUNIT_ASSERT( m2_indices_h == m1_indices_d );
-  
+
     // compare gradient values
   CPPUNIT_ASSERT_EQUAL(m1_indices_h.size(), m1_g_h.size() );
   CPPUNIT_ASSERT_EQUAL(m2_indices_h.size(), m2_g_h.size() );
@@ -562,7 +562,7 @@ void PMeanPMetricTest::test_hessian_diagonal()
     CPPUNIT_ASSERT_VECTORS_EQUAL( m1_g_h[i], m1_g_d[i], 1e-6 );
     CPPUNIT_ASSERT_VECTORS_EQUAL( m2_g_h[i], m2_g_d[i], 1e-6 );
   }
-  
+
     // compare hessian diagonal terms
   CPPUNIT_ASSERT_EQUAL(m1_indices_h.size()*(m1_indices_h.size()+1)/2, m1_h_h.size() );
   CPPUNIT_ASSERT_EQUAL(m2_indices_h.size()*(m2_indices_h.size()+1)/2, m2_h_h.size() );

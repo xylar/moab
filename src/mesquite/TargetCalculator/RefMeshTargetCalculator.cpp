@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2006 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
+
     (2006) kraftche@cae.wisc.edu
-   
+
   ***************************************************************** */
 
 
 /** \file RefMeshTargetCalculator.cpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -41,7 +41,7 @@ namespace MBMesquite {
 
 RefMeshTargetCalculator::~RefMeshTargetCalculator() {}
 
-bool RefMeshTargetCalculator::get_3D_target( PatchData& pd, 
+bool RefMeshTargetCalculator::get_3D_target( PatchData& pd,
                                              size_t element,
                                              Sample sample,
                                              MsqMatrix<3,3>& W_out,
@@ -51,7 +51,7 @@ bool RefMeshTargetCalculator::get_3D_target( PatchData& pd,
   return !MSQ_CHKERR(err);
 }
 
-bool RefMeshTargetCalculator::get_surface_target( PatchData& pd, 
+bool RefMeshTargetCalculator::get_surface_target( PatchData& pd,
                                                     size_t element,
                                                     Sample sample,
                                                     MsqMatrix<3,2>& W_out,
@@ -61,7 +61,7 @@ bool RefMeshTargetCalculator::get_surface_target( PatchData& pd,
   return !MSQ_CHKERR(err);
 }
 
-bool RefMeshTargetCalculator::get_2D_target( PatchData& pd, 
+bool RefMeshTargetCalculator::get_2D_target( PatchData& pd,
                                              size_t element,
                                              Sample sample,
                                              MsqMatrix<2,2>& W_out,
@@ -70,7 +70,7 @@ bool RefMeshTargetCalculator::get_2D_target( PatchData& pd,
   MsqMatrix<3,2> W_orient;
   bool valid = get_surface_target( pd, element, sample, W_orient, err );
   if (MSQ_CHKERR(err) || !valid) return false;
-  
+
   MsqMatrix<3,2> V;
   MsqMatrix<2,2> Q, delta;
   double lambda;

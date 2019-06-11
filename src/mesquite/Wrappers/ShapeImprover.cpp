@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2010 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2010) kraftche@cae.wisc.edu    
+    (2010) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file ShapeImprover.cpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  *  \author Boyd Tidwell
  *  \date   10-23-12
  */
@@ -54,8 +54,8 @@ namespace MBMesquite {
 const double DEFAULT_BETA = 0.0;
 const int DEFUALT_PARALLEL_ITERATIONS = 10;
 
-ShapeImprover::ShapeImprover() 
- : maxTime(300.0), 
+ShapeImprover::ShapeImprover()
+ : maxTime(300.0),
    mBeta(DEFAULT_BETA),
    parallelIterations(DEFUALT_PARALLEL_ITERATIONS)
 {}
@@ -95,7 +95,7 @@ void ShapeImprover::run_wrapper( MeshDomainAssoc* mesh_and_domain,
 
   // only calc min edge length if user hasn't set the vertex_movement_limit_factor
   if (!mBeta)
-  {  
+  {
     // Calculate minimum edge length in mesh
 
       // create a temp global patch to get min edge len from
@@ -118,7 +118,7 @@ void ShapeImprover::run_wrapper( MeshDomainAssoc* mesh_and_domain,
 
   TerminationCriterion inner_b;
 
-  // check for inverted elements 
+  // check for inverted elements
 
     // create QualityAssessor instance without a Quality Metric
   QualityAssessor check_inverted(false, false);
@@ -134,16 +134,16 @@ void ShapeImprover::run_wrapper( MeshDomainAssoc* mesh_and_domain,
     TShapeNB1 mu_no;
     TQualityMetric metric_no_0( &target, &mu_no );
     ElementPMeanP metric_no( 1.0, &metric_no_0 );
-    
+
     // QualityAssessor
     qa->add_quality_assessment( &metric_no );
-   
+
     PMeanPTemplate obj_func_no( 1.0, &metric_no );
     ConjugateGradient improver_no( &obj_func_no );
     improver_no.use_global_patch();
     TerminationCriterion inner_no;
     if (maxTime > 0.0)
-      inner_no.add_cpu_time( maxTime ); 
+      inner_no.add_cpu_time( maxTime );
     inner_no.add_absolute_vertex_movement_edge_length( mBeta );
     improver_no.set_inner_termination_criterion( &inner_no );
     InstructionQueue q_no;
@@ -166,7 +166,7 @@ void ShapeImprover::run_wrapper( MeshDomainAssoc* mesh_and_domain,
     improver_b.use_global_patch();
 
     if (maxTime > 0.0)
-      inner_b.add_cpu_time( maxTime ); 
+      inner_b.add_cpu_time( maxTime );
     inner_b.add_absolute_vertex_movement_edge_length( mBeta );
 
     improver_b.set_inner_termination_criterion( &inner_b );

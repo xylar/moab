@@ -27,29 +27,29 @@ void test_three_cubes();
 void test_four_cubes();
 
 ErrorCode build_cube( Interface *mbi,
-                      std::vector<double> scale_vec, 
-                      std::vector<double> trans_vec, 
+                      std::vector<double> scale_vec,
+                      std::vector<double> trans_vec,
                       int    object_id,
 			          EntityHandle &volume	)
 {
   GeomTopoTool *GTT = new GeomTopoTool(mbi);
 
   ErrorCode rval;
-  
+
   // Define a 1x1x1 cube centered at orgin
 
   // coordinates of each corner
   const double coords[] = {
-    0.5, -0.5, -0.5, 
+    0.5, -0.5, -0.5,
     0.5,  0.5, -0.5,
    -0.5,  0.5, -0.5,
    -0.5, -0.5, -0.5,
-    0.5, -0.5,  0.5, 
+    0.5, -0.5,  0.5,
     0.5,  0.5,  0.5,
    -0.5,  0.5,  0.5,
    -0.5, -0.5,  0.5 };
 
-  // connectivity of 2 triangles per 
+  // connectivity of 2 triangles per
   //  each face of the cube
   const int connectivity[] = {
     0, 3, 1,  3, 2, 1, // -Z
@@ -60,10 +60,10 @@ ErrorCode build_cube( Interface *mbi,
     4, 5, 7,  5, 6, 7 // +Z
   };
 
-  
+
   // Create the geometry
-  const int num_verts = 8; 
-  const int num_tris = 12; 
+  const int num_verts = 8;
+  const int num_tris = 12;
   EntityHandle verts[num_verts], tris[num_tris], surf;
 
   rval = mbi->create_meshset( MESHSET_SET, surf ); MB_CHK_ERR(rval);
@@ -71,8 +71,8 @@ ErrorCode build_cube( Interface *mbi,
   // scale coords
   int i;
   double scaled_coords[24];
-  for ( i = 0; i < num_verts; i++ ) 
-    { 
+  for ( i = 0; i < num_verts; i++ )
+    {
       scaled_coords[3*i]   = coords[3*i]*scale_vec[0];
       scaled_coords[3*i+1] = coords[3*i+1]*scale_vec[1];
       scaled_coords[3*i+2] = coords[3*i+2]*scale_vec[2];
@@ -80,7 +80,7 @@ ErrorCode build_cube( Interface *mbi,
 
   // translate coords
   double trans_coords[24];
-  for ( i = 0; i < num_verts; i++ ) 
+  for ( i = 0; i < num_verts; i++ )
     {
       trans_coords[3*i]   = scaled_coords[3*i] + trans_vec[0];
       trans_coords[3*i+1] = scaled_coords[3*i+1] + trans_vec[1];
@@ -89,7 +89,7 @@ ErrorCode build_cube( Interface *mbi,
 */
   // transform coords-- scale and translate
   double trans_coords[24];
-  for ( int i = 0; i < num_verts; i++ ) 
+  for ( int i = 0; i < num_verts; i++ )
     {
       trans_coords[3*i]   = coords[3*i]*scale_vec[0]   + trans_vec[0];
       trans_coords[3*i+1] = coords[3*i+1]*scale_vec[1] + trans_vec[1];
@@ -97,19 +97,19 @@ ErrorCode build_cube( Interface *mbi,
     }
 
   // create vertices and add to meshset
-  for ( int i = 0; i < num_verts; ++i) 
+  for ( int i = 0; i < num_verts; ++i)
     {
       rval = mbi->create_vertex( trans_coords + 3*i, verts[i] ); MB_CHK_ERR(rval);
 
       rval = mbi->add_entities( surf, &verts[i], 1 ); MB_CHK_ERR(rval);
-      
+
     }
 
   // create triangles and add to meshset
-  for ( int i = 0; i < num_tris; ++i) 
+  for ( int i = 0; i < num_tris; ++i)
     {
-      const EntityHandle conn[] = { verts[connectivity[3*i  ]], 
-                                    verts[connectivity[3*i+1]], 
+      const EntityHandle conn[] = { verts[connectivity[3*i  ]],
+                                    verts[connectivity[3*i+1]],
                                     verts[connectivity[3*i+2]] };
       rval = mbi->create_element( MBTRI, conn, 3, tris[i] ); MB_CHK_ERR(rval);
 
@@ -118,20 +118,20 @@ ErrorCode build_cube( Interface *mbi,
 
 
   // set name, id, geom, and category tags for SURFACE
-  rval = mbi->tag_set_data( name_tag, &surf, 1, "Surface\0" ); MB_CHK_ERR(rval);   
+  rval = mbi->tag_set_data( name_tag, &surf, 1, "Surface\0" ); MB_CHK_ERR(rval);
   std::string object_name;
   rval = mbi->tag_set_data( obj_name_tag, &surf, 1, object_name.c_str() ); MB_CHK_ERR(rval);
   rval = mbi->tag_set_data( id_tag, &surf, 1, &object_id ); MB_CHK_ERR(rval);
   int two = 2;
   rval = mbi->tag_set_data( geom_tag, &surf, 1, &(two) ); MB_CHK_ERR(rval);
   rval = mbi->tag_set_data( category_tag, &surf, 1, "Surface\0" ); MB_CHK_ERR(rval);
-  
+
   // create volume meshset associated with surface meshset
   // EntityHandle volume;
   rval = mbi->create_meshset( MESHSET_SET, volume ); MB_CHK_ERR(rval);
- 
+
   // set name, id, geom, and category tags for VOLUME
-  rval = mbi->tag_set_data( name_tag, &volume, 1, "Volume\0" ); MB_CHK_ERR(rval);  
+  rval = mbi->tag_set_data( name_tag, &volume, 1, "Volume\0" ); MB_CHK_ERR(rval);
   rval = mbi->tag_set_data( obj_name_tag, &surf, 1, object_name.c_str() ); MB_CHK_ERR(rval);
   rval = mbi->tag_set_data( id_tag, &volume, 1, &(object_id) ); MB_CHK_ERR(rval);
   int three = 3;
@@ -139,25 +139,25 @@ ErrorCode build_cube( Interface *mbi,
   rval = mbi->tag_set_data( category_tag, &volume, 1, "Volume\0" ); MB_CHK_ERR(rval);
 
 
-  // set surface as child of volume 
+  // set surface as child of volume
   rval = mbi->add_parent_child( volume, surf ); MB_CHK_ERR(rval);
-  
-  // set sense tag    
-  rval = GTT->set_sense(surf, volume, SENSE_FORWARD); MB_CHK_ERR(rval); 
+
+  // set sense tag
+  rval = GTT->set_sense(surf, volume, SENSE_FORWARD); MB_CHK_ERR(rval);
 
   delete GTT;
-  
+
   return MB_SUCCESS;
 }
 
 int main()
 {
-  int result = 0; 
+  int result = 0;
 
   result += RUN_TEST(test_two_cubes);
   result += RUN_TEST(test_three_cubes);
   result += RUN_TEST(test_four_cubes);
-  
+
   return result;
 
 }
@@ -181,7 +181,7 @@ ErrorCode get_all_handles(Interface *mbi)
 
   id_tag = mbi->globalId_tag();
 
-  rval = mbi->tag_get_handle( CATEGORY_TAG_NAME, 
+  rval = mbi->tag_get_handle( CATEGORY_TAG_NAME,
                               CATEGORY_TAG_SIZE,
                               MB_TYPE_OPAQUE,
                               category_tag,
@@ -222,13 +222,13 @@ bool check_tree ( Interface *mbi, GeomTopoTool *GTT, std::map< int, std::set<int
 
       //put range of child surfaces into set
       Range child_surfs;
-      test_set.clear(); 
+      test_set.clear();
       child_surfs = get_children_by_dimension( mbi, *it, 2);
 
       for (Range::iterator j = child_surfs.begin() ; j != child_surfs.end() ; ++j )
         {
             int child_id;
-            
+
             rval = mbi->tag_get_data(id_tag, &(*j), 1, &child_id ); MB_CHK_ERR(rval);
             test_set.insert(child_id);
         }
@@ -265,17 +265,17 @@ Range get_children_by_dimension(Interface *mbi, EntityHandle parent, int desired
     }
 
   return desired_children;
-  
+
 }
 
 /* This function contains info for the scale and translation vectors of
    four different cubes that will be used in the hierarchy testing
-*/ 
+*/
 void get_cube_info( int cube_id, std::vector<double> &scale, std::vector<double> &trans )
 {
   scale.clear();
   trans.clear();
- 
+
   if ( cube_id == 1 )
     {
       scale.push_back(1);
@@ -320,15 +320,15 @@ void get_cube_info( int cube_id, std::vector<double> &scale, std::vector<double>
  */
 void test_two_cubes()
 {
-  ErrorCode rval; 
+  ErrorCode rval;
 
-  Interface *mbi = new Core(); 
- 
+  Interface *mbi = new Core();
+
   // get all handles (dimension, id, sense)
   rval = get_all_handles(mbi);
   MB_CHK_ERR_RET(rval);
-  
-  int len = 2; 
+
+  int len = 2;
   int num[2] = {1, 2};
 
   //build reference map
@@ -336,9 +336,9 @@ void test_two_cubes()
   ref_map[1].insert(1);
   ref_map[2].insert(2);
   ref_map[2].insert(1);
-  
+
   heappermute(mbi, num, len, ref_map, len);
-  
+
   delete mbi;
 
 }
@@ -349,15 +349,15 @@ void test_two_cubes()
  */
 void test_three_cubes()
 {
-  ErrorCode rval; 
+  ErrorCode rval;
 
   Interface *mbi = new Core();
 
   // get all handles (dimension, id, sense)
   rval = get_all_handles(mbi);
   MB_CHK_ERR_RET(rval);
-  
-  int len = 3; 
+
+  int len = 3;
   int num[3] = {1, 2, 3};
 
   //build reference map
@@ -367,7 +367,7 @@ void test_three_cubes()
   ref_map[2].insert(1);
   ref_map[3].insert(3);
   ref_map[3].insert(2);
-  
+
   heappermute(mbi, num, len, ref_map, len);
 
   delete mbi;
@@ -378,15 +378,15 @@ void test_three_cubes()
  */
 void test_four_cubes()
 {
-  ErrorCode rval; 
+  ErrorCode rval;
 
-  Interface *mbi = new Core(); 
+  Interface *mbi = new Core();
 
   // get all handles (dimension, id, sense)
   rval = get_all_handles(mbi);
   MB_CHK_ERR_RET(rval);
-  
-  int len = 4; 
+
+  int len = 4;
   int num[4] = {1, 2, 3, 4};
 
   //build reference map
@@ -398,7 +398,7 @@ void test_four_cubes()
   ref_map[3].insert(2);
   ref_map[4].insert(4);
   ref_map[4].insert(3);
-  
+
   heappermute(mbi, num, len, ref_map, len);
 
   delete mbi;
@@ -412,7 +412,7 @@ void test_four_cubes()
 void heappermute(Interface *mbi, int v[], int n, std::map< int, std::set<int> > ref_map, int len)
 {
 
-  ErrorCode rval; 
+  ErrorCode rval;
   std::vector<double> scale, trans;
   EntityHandle vol;
   Range flat_vols;
@@ -436,25 +436,25 @@ void heappermute(Interface *mbi, int v[], int n, std::map< int, std::set<int> > 
       MB_CHK_ERR_RET(rval);
 	  rval = GTT->restore_topology_from_geometric_inclusion(flat_vols);
       MB_CHK_ERR_RET(rval);
-      
+
       //test the topology
       bool result = check_tree(mbi, GTT, ref_map );
-      CHECK_EQUAL(1, result); 
+      CHECK_EQUAL(1, result);
       delete GTT;
- 
+
       // delete the geometry so new one can be built;
       rval = mbi->delete_mesh();
       MB_CHK_ERR_RET(rval);
-            
+
     }
-  
+
   else
     {
       for (int i = 0; i < n; i++)
         {
           heappermute(mbi, v, n-1, ref_map, len);
           if (n % 2 == 1)
-            { 
+            {
               swap(&v[0], &v[n-1]);
             }
 
@@ -462,7 +462,7 @@ void heappermute(Interface *mbi, int v[], int n, std::map< int, std::set<int> > 
             {
               swap(&v[i], &v[n-1]);
             }
-        } 
+        }
     }
 
 }
@@ -471,7 +471,7 @@ void swap(int *x, int *y)
 {
   int temp;
 
-  temp = *x; 
+  temp = *x;
   *x = *y;
   *y = temp;
 }

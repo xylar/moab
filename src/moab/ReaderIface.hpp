@@ -1,16 +1,16 @@
 /**
  * MOAB, a Mesh-Oriented datABase, is a software component for creating,
  * storing and accessing finite element mesh data.
- * 
+ *
  * Copyright 2004 Sandia Corporation.  Under the terms of Contract
  * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
  * retains certain rights in this software.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  */
 
 
@@ -34,9 +34,9 @@ class FileOptions;
 class ReaderIface
 {
   public:
-  
+
     virtual ~ReaderIface() {}
-    
+
       /** Struct used to specify subset of file to read */
     struct IDTag {
       const char* tag_name;  //!< Name of tag containing integer IDs
@@ -56,7 +56,7 @@ class ReaderIface
       int part_number;       //!< If num_parts is non-zero, load part_number-th fraction of the sets
     };
 
-    
+
     /**
      *\brief Load mesh from a file.
      *
@@ -102,8 +102,8 @@ class ReaderIface
                                          const SubsetList* subset_list = 0 ) = 0;
 };
 
-} // namespace moab 
+} // namespace moab
 
 #endif
 
-    
+

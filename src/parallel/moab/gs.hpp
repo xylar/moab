@@ -27,17 +27,17 @@ namespace moab {
       MPI_Request *_reqs; /* pre-allocated for MPI calls                       */
       realType *_buf;         /* pre-allocated buffer to receive data              */
       uint _maxv;         /* maximum vector size                               */
-    
-      /**Constructor for nonlocal_info; takes all arguments and initializes 
+
+      /**Constructor for nonlocal_info; takes all arguments and initializes
        * nonlocal_info
        *
        * param np        number of processors to communicate with
        * param count     number of partner processors
        * param nlabels   number of signed long labels (not including gid)
        * param nulabels  number of unsigned long labels
-       * param maxv      maximum vector size  
+       * param maxv      maximum vector size
        */
-      nonlocal_info (uint tmp_np, uint count, uint nlabels, 
+      nonlocal_info (uint tmp_np, uint count, uint nlabels,
 		     uint nulabels, uint tmp_maxv) {
 	this->initialize(tmp_np, count, nlabels, nulabels, tmp_maxv);
       }
@@ -79,8 +79,8 @@ namespace moab {
       Usage:
 
       MPI_Comm comm = ... ;
-      moab_crystal_data crystal; 
-      //moab_crystal_data crystal(comm);  //or this to initialize on 
+      moab_crystal_data crystal;
+      //moab_crystal_data crystal(comm);  //or this to initialize on
       //instantiation
 
       crystal.initialize(comm);  // initialize the data structure
@@ -144,7 +144,7 @@ namespace moab {
        * Sends out tuples accordingly, using the crystal router.
        * Target proc member overwritten with source proc.
        *
-       * param dynamic   non-zero if the TupleList should grow to accomodate  
+       * param dynamic   non-zero if the TupleList should grow to accomodate
        *                 arrivals
        * param tl        the TupleList
        * param pf        which tuple member specifies target proc
@@ -171,7 +171,7 @@ namespace moab {
 #endif
 
     /**Constructor for moab_gs_data:  takes all arguments and initializes
-     * moab_gs_data.  If needs_reset is false after calling constructor, 
+     * moab_gs_data.  If needs_reset is false after calling constructor,
      * initialization has failed.
      *
      * param n         number of tuples in tuple list
@@ -180,7 +180,7 @@ namespace moab {
      * param maxv      max vector size
      * param nlabels   number of signed long labels (not including gid)
      * param nulabels  number of unsigned long labels
-     * param crystal   moab_crystal_data contains MPI_Comm and is used for 
+     * param crystal   moab_crystal_data contains MPI_Comm and is used for
      *                 message passing
      */
     gs_data (uint n, const long *label, const Ulong *ulabel,
@@ -190,11 +190,11 @@ namespace moab {
       Init_Result = this->initialize (n, label, ulabel, maxv, nlabels,
 				      nulabels, crystal);
     };
-  
-  
+
+
     /**Default constructor (Note:  moab_gs_data must be initialized
      * before use!)
-     */  
+     */
     gs_data () {
     };
 

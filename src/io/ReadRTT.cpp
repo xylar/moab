@@ -216,7 +216,7 @@ ErrorCode ReadRTT::generate_topology(std::vector<side> side_data,
       if (MB_SUCCESS != rval)	return rval;
     }
   }
-  
+
   // generate parent child links
   // best to loop over the surfaces and assign them to volumes, we can then assign facets to
   // to each surface
@@ -343,16 +343,16 @@ ErrorCode ReadRTT::read_header(const char* filename) {
     std::cout << "Problems reading file = " << filename << std::endl;
     return MB_FAILURE;
   }
-  
+
   // if it works
   std::string line;
   moab::ErrorCode rval = MB_FAILURE;
   if( input_file.is_open() ) {
     while ( std::getline (input_file,line) ) {
-      if ( line.compare("header") == 0 ) { 
+      if ( line.compare("header") == 0 ) {
 	rval = get_header_data(input_file);
       }
-    }  
+    }
     input_file.close();
   }
   return rval;
@@ -427,7 +427,7 @@ ErrorCode ReadRTT::read_nodes(const char* filename, std::vector<node> &node_data
     std::cout << "Problems reading file = " << filename << std::endl;
     return MB_FAILURE;
   }
-  
+
   // if it works
   if (input_file.is_open()) {
     while ( std::getline (input_file,line) ) {
@@ -457,7 +457,7 @@ ErrorCode ReadRTT::read_facets(const char* filename, std::vector<facet> &facet_d
     std::cout << "Problems reading file = " << filename << std::endl;
       return MB_FAILURE;
   }
-  
+
   // if it works
   if (input_file.is_open()) {
     while ( std::getline (input_file,line) ) {
@@ -509,7 +509,7 @@ ErrorCode ReadRTT::read_tets(const char* filename, std::vector<tet> &tet_data ){
  * given the open file handle read until we find
  */
 ErrorCode ReadRTT::get_header_data(std::ifstream &input_file) {
-  std::string line; 
+  std::string line;
   while ( std::getline(input_file,line)) {
 
     // tokenize the line
@@ -523,16 +523,16 @@ ErrorCode ReadRTT::get_header_data(std::ifstream &input_file) {
 
     // if we find version
     if ( line.find("version") != std::string::npos ) {
-      if ( split_string[1].find("v") != std::string::npos && split_string[0].find("version") != std::string::npos ) { 
+      if ( split_string[1].find("v") != std::string::npos && split_string[0].find("version") != std::string::npos ) {
 	header_data.version = split_string[1];
       }
     }
-    
+
     if ( line.find("title") != std::string::npos ) { header_data.title = split_string[1];}
     if ( line.find("date") != std::string::npos ) { header_data.date = split_string[1];}
-    if ( line.find("end_header") != std::string::npos ) { return MB_SUCCESS; } 
+    if ( line.find("end_header") != std::string::npos ) { return MB_SUCCESS; }
   }
-  
+
   // otherwise we never found the end_header keyword
   return  MB_FAILURE;
 }
@@ -581,7 +581,7 @@ ReadRTT::cell ReadRTT::get_cell_data(std::string celldata) {
   tokens = ReadRTT::split_string(celldata,' ');
 
   std::vector<std::string>::iterator it;
-  
+
   // set the side id
   if(tokens.size() != 2 ) {
     MB_SET_ERR_RET_VAL("Error, too many tokens found from cell_data",new_cell);
@@ -600,7 +600,7 @@ ReadRTT::node ReadRTT::get_node_data(std::string nodedata) {
   node new_node;
   std::vector<std::string> tokens;
   tokens = ReadRTT::split_string(nodedata,' ');
-  
+
   // set the side id
   if(tokens.size() != 5 ) {
     MB_SET_ERR_RET_VAL("Error, too many tokens found from get_node_data",new_node);
@@ -625,7 +625,7 @@ ReadRTT::facet ReadRTT::get_facet_data(std::string facetdata) {
   if(tokens.size() != 7 ) {
     MB_SET_ERR_RET_VAL("Error, too many tokens found from get_facet_data",new_facet);
   }
-  
+
   new_facet.id = std::atoi(tokens[0].c_str());
   // branch on the rtt version number
   if( header_data.version == "v1.0.0" ) {
@@ -722,7 +722,7 @@ ReadRTT::boundary ReadRTT::split_name(std::string atilla_cellname) {
   std::vector<std::string>::iterator it;
   for ( it = tokens.begin() ; it != tokens.end() ; ) {
     std::string string = *it;
-    if(string.compare("\0") == 0 ) 
+    if(string.compare("\0") == 0 )
       it = tokens.erase(it);
     else
       ++it;

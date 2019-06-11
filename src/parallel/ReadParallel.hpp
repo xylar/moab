@@ -15,7 +15,7 @@ class Error;
 
 class ReadParallel
 {
-   
+
 public:
 
   static ReaderIface* factory( Interface* );
@@ -26,7 +26,7 @@ public:
                         const FileOptions &opts,
                         const ReaderIface::SubsetList* subset_list = 0,
                         const Tag* file_id_tag = 0 );
-  
+
     //! load multiple files
   ErrorCode load_file(const char **file_names,
                         const int num_files,
@@ -34,13 +34,13 @@ public:
                         const FileOptions &opts,
                         const ReaderIface::SubsetList* subset_list = 0,
                         const Tag* file_id_tag = 0 );
-  
+
   ErrorCode load_file(const char **file_names,
                         const int num_files,
                         const EntityHandle* file_set,
-                        int parallel_mode, 
-                        std::string &partition_tag_name, 
-                        std::vector<int> &partition_tag_vals, 
+                        int parallel_mode,
+                        std::string &partition_tag_name,
+                        std::vector<int> &partition_tag_vals,
                         bool distrib,
                         bool partition_by_rank,
                         std::vector<int> &pa_vec,
@@ -62,8 +62,8 @@ public:
   virtual ~ReadParallel() {}
 
   static const char *parallelOptsNames[];
-  
-  enum ParallelActions {PA_READ=0, 
+
+  enum ParallelActions {PA_READ=0,
                         PA_READ_PART=1,
                         PA_BROADCAST=2,
                         PA_DELETE_NONLOCAL=3,
@@ -78,12 +78,12 @@ public:
                        };
 
   static const char *ParallelActionsNames[];
-  
-  enum ParallelOpts { POPT_NONE=0, 
-                      POPT_BCAST, 
-                      POPT_BCAST_DELETE, 
-                      POPT_READ_DELETE, 
-                      POPT_READ_PART, 
+
+  enum ParallelOpts { POPT_NONE=0,
+                      POPT_BCAST,
+                      POPT_BCAST_DELETE,
+                      POPT_READ_DELETE,
+                      POPT_READ_PART,
                       POPT_DEFAULT};
 
     //! PUBLIC TO ALLOW TESTING
@@ -91,7 +91,7 @@ public:
                                        std::vector<int> &ptag_vals,
                                        bool distribute,
                                        EntityHandle file_set);
-  
+
   ErrorCode delete_nonlocal_entities(EntityHandle file_set);
 
 protected:
@@ -104,7 +104,7 @@ private:
 
     // each reader can keep track of its own pcomm
   ParallelComm *myPcomm;
-  
+
   DebugOutput myDebug;
 
   Error *mError;
@@ -116,7 +116,7 @@ inline ErrorCode ReadParallel::load_file(const char *file_name,
                                          const ReaderIface::SubsetList* subset_list,
                                          const Tag* file_id_tag )
 {
-  return load_file(&file_name, 1, file_set, opts, 
+  return load_file(&file_name, 1, file_set, opts,
                    subset_list, file_id_tag);
 }
 

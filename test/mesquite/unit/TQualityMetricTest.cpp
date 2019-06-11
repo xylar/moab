@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2010 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2010) kraftche@cae.wisc.edu    
+    (2010) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file TQualityMetricTest.cpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -46,19 +46,19 @@ public:
 class TQualityMetricTest : public TMPQualityMetricTest<TQualityMetric>
 {
   CPPUNIT_TEST_SUITE(TQualityMetricTest);
-  
+
   REGISTER_TMP_TESTS
-  
+
   CPPUNIT_TEST (test_inverse_mean_ratio_grad);
   CPPUNIT_TEST (test_inverse_mean_ratio_hess);
   CPPUNIT_TEST (test_inverse_mean_ratio_hess_diag);
   CPPUNIT_TEST (regression_inverse_mean_ratio_grad);
   CPPUNIT_TEST (regression_inverse_mean_ratio_hess);
-  
+
   CPPUNIT_TEST_SUITE_END();
-  
+
 public:
-  
+
   void test_inverse_mean_ratio_grad();
   void test_inverse_mean_ratio_hess();
   void test_inverse_mean_ratio_hess_diag();
@@ -71,14 +71,14 @@ public:
 CPPUNIT_TEST_SUITE_NAMED_REGISTRATION(TQualityMetricTest, "TQualityMetricTest");
 CPPUNIT_TEST_SUITE_NAMED_REGISTRATION(TQualityMetricTest, "Unit");
 
-  
+
 void TQualityMetricTest::test_inverse_mean_ratio_grad()
 {
   TInverseMeanRatio tm;
   IdealShapeTarget target;
   TQualityMetric metric( &target, &tm );
   ElementPMeanP avg( 1.0, &metric );
-  
+
   tester.test_gradient_reflects_quality( &metric );
   compare_analytical_and_numerical_gradients( &metric );
   tester.test_gradient_with_fixed_vertex( &avg );
@@ -91,7 +91,7 @@ void TQualityMetricTest::test_inverse_mean_ratio_hess()
   IdealShapeTarget target;
   TQualityMetric metric( &target, &tm );
   ElementPMeanP avg( 1.0, &metric );
- 
+
   compare_analytical_and_numerical_hessians( &metric );
   tester.test_symmetric_Hessian_diagonal_blocks( &metric );
   tester.test_hessian_with_fixed_vertex( &avg );
@@ -102,11 +102,11 @@ void TQualityMetricTest::test_inverse_mean_ratio_hess_diag()
   TInverseMeanRatio tm;
   IdealShapeTarget target;
   TQualityMetric metric( &target, &tm );
-  
+
   compare_analytical_and_numerical_diagonals( &metric );
   tester.compare_eval_with_diag_and_eval_with_hessian( &metric );
 }
-  
+
 void TQualityMetricTest::regression_inverse_mean_ratio_grad()
 {
   MsqError err;
@@ -122,13 +122,13 @@ void TQualityMetricTest::regression_inverse_mean_ratio_grad()
   pd.attach_settings( &settings );
   PlanarDomain dom( PlanarDomain::XY, coords[0] );
   pd.set_domain( &dom );
-  
+
   IdealWeightInverseMeanRatio ref_metric;
-  
+
   double exp_val, act_val;
   std::vector<size_t> exp_idx, act_idx, handles;
   std::vector<Vector3D> exp_grad, act_grad;
-  
+
   handles.clear();
   ref_metric.get_evaluations( pd, handles, false, err ); ASSERT_NO_ERROR(err);
   CPPUNIT_ASSERT_EQUAL( (size_t)1, handles.size() );
@@ -137,32 +137,32 @@ void TQualityMetricTest::regression_inverse_mean_ratio_grad()
   metric.get_evaluations( pd, handles, false, err ); ASSERT_NO_ERROR(err);
   CPPUNIT_ASSERT_EQUAL( (size_t)1, handles.size() );
   const size_t hand2 = handles.front();
-  
+
   bool exp_rval, act_rval;
   exp_rval = ref_metric.evaluate_with_gradient( pd, hand1, exp_val, exp_idx, exp_grad, err );
   ASSERT_NO_ERROR(err);
   act_rval = metric.evaluate_with_gradient( pd, hand2, act_val, act_idx, act_grad, err );
   ASSERT_NO_ERROR(err);
-  
+
   CPPUNIT_ASSERT( exp_rval );
   CPPUNIT_ASSERT( act_rval );
   CPPUNIT_ASSERT_DOUBLES_EQUAL( exp_val - 1.0, act_val, 1e-5 );
   CPPUNIT_ASSERT_EQUAL( (size_t)3, exp_idx.size() );
   CPPUNIT_ASSERT_EQUAL( (size_t)3, act_idx.size() );
-  
+
   std::vector<size_t> sorted(exp_idx);
   std::sort( sorted.begin(), sorted.end() );
   CPPUNIT_ASSERT_EQUAL( (size_t)0, sorted[0] );
   CPPUNIT_ASSERT_EQUAL( (size_t)1, sorted[1] );
   CPPUNIT_ASSERT_EQUAL( (size_t)2, sorted[2] );
-  
+
   sorted = act_idx;
   std::sort( sorted.begin(), sorted.end() );
   CPPUNIT_ASSERT_EQUAL( (size_t)0, sorted[0] );
   CPPUNIT_ASSERT_EQUAL( (size_t)1, sorted[1] );
   CPPUNIT_ASSERT_EQUAL( (size_t)2, sorted[2] );
-  
-  const size_t idx_map[] = { 
+
+  const size_t idx_map[] = {
     std::find(act_idx.begin(),act_idx.end(),exp_idx[0]) - act_idx.begin(),
     std::find(act_idx.begin(),act_idx.end(),exp_idx[1]) - act_idx.begin(),
     std::find(act_idx.begin(),act_idx.end(),exp_idx[2]) - act_idx.begin() };
@@ -171,7 +171,7 @@ void TQualityMetricTest::regression_inverse_mean_ratio_grad()
   CPPUNIT_ASSERT_VECTORS_EQUAL( exp_grad[2], act_grad[idx_map[2]], 1e-5 );
 }
 
-  
+
 void TQualityMetricTest::regression_inverse_mean_ratio_hess()
 {
   MsqError err;
@@ -188,14 +188,14 @@ void TQualityMetricTest::regression_inverse_mean_ratio_hess()
   pd.attach_settings( &settings );
   PlanarDomain dom( PlanarDomain::XY, coords[2] );
   pd.set_domain( &dom );
-  
+
   IdealWeightInverseMeanRatio ref_metric;
-  
+
   double exp_val, act_val;
   std::vector<size_t> exp_idx, act_idx, handles;
   std::vector<Vector3D> exp_grad, act_grad;
   std::vector<Matrix3D> exp_hess, act_hess;
-  
+
   handles.clear();
   ref_metric.get_evaluations( pd, handles, false, err ); ASSERT_NO_ERROR(err);
   CPPUNIT_ASSERT_EQUAL( (size_t)1, handles.size() );
@@ -204,7 +204,7 @@ void TQualityMetricTest::regression_inverse_mean_ratio_hess()
   metric.get_evaluations( pd, handles, false, err ); ASSERT_NO_ERROR(err);
   CPPUNIT_ASSERT_EQUAL( (size_t)1, handles.size() );
   const size_t hand2 = handles.front();
-  
+
     // first make sure that non-TMP IMR metric works correctly
   bool exp_rval, act_rval;
   exp_rval = ref_metric.evaluate_with_Hessian( pd, hand1, exp_val, exp_idx, exp_grad, exp_hess, err );
@@ -233,7 +233,7 @@ void TQualityMetricTest::regression_inverse_mean_ratio_hess()
     CPPUNIT_ASSERT_MATRICES_EQUAL( exp_hess[1], transpose(act_hess[1]), 5e-3 );
     CPPUNIT_ASSERT_MATRICES_EQUAL( exp_hess[2], act_hess[0], 5e-3 );
   }
-  
+
     // now compare TMP metric with non-TMP metric
   act_rval = metric.evaluate_with_Hessian( pd, hand2, act_val, act_idx, act_grad, act_hess, err );
   ASSERT_NO_ERROR(err);
@@ -243,10 +243,10 @@ void TQualityMetricTest::regression_inverse_mean_ratio_hess()
 
 #ifdef PLANAR_HESSIAN
   // zero derivatives with respect to Z
-  for (int i = 0; i < 2; ++i) 
+  for (int i = 0; i < 2; ++i)
     exp_grad[i][2] = 0.0;
   for (int i = 0; i < 3; ++i) {
-    for (int j = 0; j < 3; ++j) 
+    for (int j = 0; j < 3; ++j)
       exp_hess[i][j][2] = exp_hess[i][2][j] = 0.0;
   }
 #else
@@ -255,7 +255,7 @@ void TQualityMetricTest::regression_inverse_mean_ratio_hess()
   for (int i = 0; i < 3; ++i)
     exp_hess[i][2][2] = act_hess[i][2][2] = 0.0;
 #endif
-  
+
   if (act_idx[0] == exp_idx[0]) {
     CPPUNIT_ASSERT_EQUAL( exp_idx[1], act_idx[1] );
     CPPUNIT_ASSERT_VECTORS_EQUAL( exp_grad[0], act_grad[0], 1e-5 );

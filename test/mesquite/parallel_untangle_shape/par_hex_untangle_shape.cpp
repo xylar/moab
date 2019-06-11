@@ -1,9 +1,9 @@
-/* ***************************************************************** 
+/* *****************************************************************
    MESQUITE -- The Mesh Quality Improvement Toolkit
 
    Copyright 2004 Sandia Corporation and Argonne National
-   Laboratory.  Under the terms of Contract DE-AC04-94AL85000 
-   with Sandia Corporation, the U.S. Government retains certain 
+   Laboratory.  Under the terms of Contract DE-AC04-94AL85000
+   with Sandia Corporation, the U.S. Government retains certain
    rights in this software.
 
    This library is free software; you can redistribute it and/or
@@ -16,17 +16,17 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Lesser General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public License 
+   You should have received a copy of the GNU Lesser General Public License
    (lgpl.txt) along with this library; if not, write to the Free Software
    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
-   diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov, 
-   pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov      
-   
+
+   diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov,
+   pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov
+
    ***************************************************************** */
 // -*- Mode : c++; tab-width: 2; c-tab-always-indent: t; indent-tabs-mode: nil; c-basic-offset: 2 -*-
 //
-//   SUMMARY: 
+//   SUMMARY:
 //     USAGE:
 //
 // ORIG-DATE: 24-Jan-12
@@ -70,7 +70,7 @@ example code shown therein.
 //#include "ShapeImprovementWrapper.hpp"
 //#include "UntangleWrapper.hpp"
 
-#include "IdealWeightInverseMeanRatio.hpp" 
+#include "IdealWeightInverseMeanRatio.hpp"
 
 #include "UntangleBetaQualityMetric.hpp"
 #include "LPtoPTemplate.hpp"
@@ -103,7 +103,7 @@ using namespace MBMesquite;
 #define VTK_2D_DIR TestDir + "/2D/vtk/quads/tangled/"
 
 using namespace std;
-  
+
 const double DEF_UNT_BETA = 1e-8;
 const double DEF_SUC_EPS = 1e-4;
 
@@ -116,16 +116,16 @@ public:
   ParShapeImprover(int inner_iterations=100, double grad_norm=1.e-8) : innerIter(inner_iterations),gradNorm(grad_norm) {}
 
   class ParShapeImprovementWrapper : public Wrapper {
-     
-  public:  
-        
+
+  public:
+
     //Constructor sets the instructions in the queue.
     ParShapeImprovementWrapper(int inner_iterations = 100,
-                               double cpu_time = 0.0, 
+                               double cpu_time = 0.0,
                                double grad_norm =1.e-8,
                                int parallel_iterations = 10)
       : innerIter(inner_iterations),
-        maxTime(cpu_time), 
+        maxTime(cpu_time),
         gradNorm(grad_norm),
         untBeta(DEF_UNT_BETA),
         successiveEps(DEF_SUC_EPS),
@@ -141,7 +141,7 @@ public:
 			      Settings* settings,
 			      QualityAssessor* qa,
 			      MsqError& err );
-	      
+	
 	  private:
 
 	    int innerIter;
@@ -181,7 +181,7 @@ public:
 	      InstructionQueue q1;
 	      QualityAssessor qa_untangle(&untangle_metric);
 	      q1.add_quality_assessor(&qa_untangle, err); MSQ_ERRRTN(err);
-	      q1.run_common( mesh_and_domain, pmesh, settings, err ); 
+	      q1.run_common( mesh_and_domain, pmesh, settings, err );
 	      std::cout << "\nP[" << rank << "]  ParShapeImprover.... running QA with untangle_metric... before... done " << std::endl;
 	    }
 
@@ -242,7 +242,7 @@ public:
 	  // Apply CPU time limit to untangler
 	  if (maxTime > 0.0)
 	    untangle_inner.add_cpu_time( maxTime );
-	  
+	
 	  Timer totalTimer;
 
 	  // Run untangler
@@ -261,7 +261,7 @@ public:
 	      q1.add_quality_assessor(&qa_untangle, err); MSQ_ERRRTN(err);
 	      q1.set_master_quality_improver( &untangle_solver, err ); MSQ_ERRRTN(err);
 	      q1.add_quality_assessor(&qa_untangle, err); MSQ_ERRRTN(err);
-	      q1.run_common( mesh_and_domain, pmesh, settings, err ); 
+	      q1.run_common( mesh_and_domain, pmesh, settings, err );
 	    }
 	  std::cout << "\nP[" << rank << "] " << " ParShapeImprovementWrapper: running untangler... done\n " << std::endl;
 	  std::cout << "\nP[" << rank << "] " << " ParShapeImprovementWrapper: MsqError after untangler: " << err << std::endl;
@@ -272,8 +272,8 @@ public:
               Mesh* mesh = mesh_and_domain->get_mesh();
               MeshDomain* domain = mesh_and_domain->get_domain();
 	      int num_invalid = count_invalid_elements(*mesh, domain);
-	      std::cout << "\nP[" << rank << "] " << " ParShapeImprover num_invalid after untangler= " << num_invalid << " " 
-			<< (num_invalid ? " ERROR still have invalid elements after MBMesquite untangle" : 
+	      std::cout << "\nP[" << rank << "] " << " ParShapeImprover num_invalid after untangler= " << num_invalid << " "
+			<< (num_invalid ? " ERROR still have invalid elements after MBMesquite untangle" :
 			    " SUCCESS: untangled invalid elements ")
 			<< std::endl;
 
@@ -283,7 +283,7 @@ public:
 		  InstructionQueue q1;
 		  QualityAssessor qa_untangle(&untangle_metric);
 		  q1.add_quality_assessor(&qa_untangle, err); MSQ_ERRRTN(err);
-		  q1.run_common( mesh_and_domain, pmesh, settings, err ); 
+		  q1.run_common( mesh_and_domain, pmesh, settings, err );
 		  std::cout << "\nP[" << rank << "]  ParShapeImprover.... running QA with untangle_metric... done " << std::endl;
 		}
 
@@ -301,14 +301,14 @@ public:
 	    }
 	    term_inner.add_cpu_time( remaining );
 	  }
-	  
+	
 	  // Run shape improver
 	  InstructionQueue q2;
 	  std::cout << "\nP[" << rank << "] " << " ParShapeImprovementWrapper: running shape improver... \n" << std::endl;
 	  q2.add_quality_assessor( qa, err ); MSQ_ERRRTN(err);
 	  q2.set_master_quality_improver( &shape_solver, err ); MSQ_ERRRTN(err);
 	  q2.add_quality_assessor( qa, err ); MSQ_ERRRTN(err);
-	  q2.run_common( mesh_and_domain, pmesh, settings, err ); 
+	  q2.run_common( mesh_and_domain, pmesh, settings, err );
 	  std::cout << "\nP[" << rank << "] " << " ParShapeImprovementWrapper: running shape improver... done \n" << std::endl;
 	  MSQ_ERRRTN(err);
 	}
@@ -318,7 +318,7 @@ public:
 	{
 	  MsqError err;
 	  InstructionQueue q;
-	  
+	
 	  IdealWeightInverseMeanRatio metric;
 	  metric.set_averaging_method( QualityMetric::LINEAR );
 
@@ -328,7 +328,7 @@ public:
 	  q.add_quality_assessor( &inv_check, err );  MSQ_ERRZERO(err);
 	  Settings settings;
 	  // bug?  should we pass in pmesh?
-          Mesh* mesh_ptr = &mesh; 
+          Mesh* mesh_ptr = &mesh;
           MeshDomainAssoc mesh_and_domain = MeshDomainAssoc(mesh_ptr, domain);
 	  q.run_common( &mesh_and_domain, 0, &settings, err ); MSQ_ERRZERO(err);
 	  const QualityAssessor::Assessor* inv_b = inv_check.get_results( &metric );
@@ -358,8 +358,8 @@ public:
 	  if (check_quality)
 	    {
 	      num_invalid = count_invalid_elements(mesh, domain);
-	      std::cout << "\nP[" << rank << "] " << " ParShapeImprover num_invalid before= " << num_invalid 
-			<< (num_invalid ? " WARNING: invalid elements exist before MBMesquite smoothing" : 
+	      std::cout << "\nP[" << rank << "] " << " ParShapeImprover num_invalid before= " << num_invalid
+			<< (num_invalid ? " WARNING: invalid elements exist before MBMesquite smoothing" :
 			    (!always_smooth ? "WARNING: no smoothing requested since always_smooth=false" : " "))
 			<< std::endl;
 	    }
@@ -401,8 +401,8 @@ public:
 	      if (check_quality)
 		{
 		  num_invalid = count_invalid_elements(mesh, domain);
-		  std::cout << "\nP[" << rank << "] " << " ParShapeImprover num_invalid after= " << num_invalid << " " 
-			    << (num_invalid ? " ERROR still have invalid elements after MBMesquite smoothing" : 
+		  std::cout << "\nP[" << rank << "] " << " ParShapeImprover num_invalid after= " << num_invalid << " "
+			    << (num_invalid ? " ERROR still have invalid elements after MBMesquite smoothing" :
 				" SUCCESS: smoothed and removed invalid elements ")
 			    << std::endl;
 		}
@@ -434,7 +434,7 @@ public:
   mesh.read_vtk(in_name.str().c_str(), err);
   if (err) {cerr << err << endl; return 1;}
 
-  /* create parallel mesh instance, specifying tags 
+  /* create parallel mesh instance, specifying tags
    * containing parallel data */
   ParallelMeshImpl parallel_mesh(&mesh, "GLOBAL_ID", "PROCESSOR_ID");
   ParallelHelperImpl helper;
@@ -475,7 +475,7 @@ public:
   //std::cout << "P[ " << rank <<"] read gold, checking mesh diff...done" << std::endl;
 
   if (diff) {cerr << "Error, computed mesh different from gold copy" << std::endl; return 1;}
-  
+
   print_timing_diagnostics(cout);
 
   return 0;
@@ -493,7 +493,7 @@ int main( int argc, char* argv[] )
   Vector3D s_norm(0,0,1);
   PlanarDomain msq_geom(s_norm, pnt);
 
-  int t1 = test(VTK_2D_DIR, "quad", &msq_geom); 
+  int t1 = test(VTK_2D_DIR, "quad", &msq_geom);
   if (t1) return t1;
   t1 = test(VTK_3D_DIR, "hex");
   if (t1) return t1;

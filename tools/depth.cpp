@@ -52,7 +52,7 @@ int main( int argc, char* argv[] )
       usage(argv[0]);
     }
   }
-  
+
   if (expect_tag_name) {
     std::cerr << "Expected argument following '-t'" << std::endl;
     usage(argv[0]);
@@ -68,7 +68,7 @@ int main( int argc, char* argv[] )
 
   Core moab;
   Interface& mb = moab;
-  
+
   EntityHandle file;
   ErrorCode rval;
   rval = mb.create_meshset( MESHSET_SET, file ); check(rval);
@@ -77,7 +77,7 @@ int main( int argc, char* argv[] )
     std::cerr << "Failed to load file: " << input << std::endl;
     return FILE_IO_ERROR;
   }
-  
+
   int init_val = -1;
   Tag tag;
   bool created;
@@ -87,9 +87,9 @@ int main( int argc, char* argv[] )
     rval = mb.tag_get_handle( tagname, 1, MB_TYPE_INTEGER, tag, MB_TAG_DENSE|MB_TAG_CREAT, &init_val, &created );
     check(rval);
   }
-  
+
   tag_depth( mb, tag );
-  
+
   rval = mb.write_file( output, 0, 0, &file, 1 );
   if (rval == MB_SUCCESS)
     std::cout << "Wrote file: " << output << std::endl;
@@ -97,7 +97,7 @@ int main( int argc, char* argv[] )
     std::cerr << "Failed to write file: " << output << std::endl;
     return FILE_IO_ERROR;
   }
-  
+
   return NO_ERROR;
 }
 
@@ -117,7 +117,7 @@ void tag_depth( Interface& mb, Tag tag )
 {
   ErrorCode rval;
   int dim;
-  
+
   Skinner tool(&mb);
   Range verts, elems;
   dim = 3;
@@ -128,18 +128,18 @@ void tag_depth( Interface& mb, Tag tag )
   }
   rval = tool.find_skin( 0, elems, 0, verts ); check(rval);
   rval = get_adjacent_elems( mb, verts, elems ); check(rval);
-  
+
   std::vector<int> data;
   int val, depth = 0;
   while (!elems.empty()) {
     data.clear();
     data.resize( elems.size(), depth++ );
     rval = mb.tag_set_data( tag, elems, &data[0] ); check(rval);
-    
+
     verts.clear();
     rval = mb.get_adjacencies( elems, 0, false, verts, Interface::UNION );
     check(rval);
-    
+
     Range tmp;
     rval = get_adjacent_elems( mb, verts, tmp ); check(rval);
     elems.clear();
@@ -149,6 +149,6 @@ void tag_depth( Interface& mb, Tag tag )
         elems.insert( *i );
     }
   }
-  
+
   std::cout << "Maximum depth: " << depth << std::endl;
 }

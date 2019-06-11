@@ -329,7 +329,7 @@ ErrorCode SmoothFace::init_bezier_edge(EntityHandle edge, double )
   ErrorCode rval = _mb->get_connectivity(edge, conn2, nnodes);
   assert(rval == MB_SUCCESS);
   if (MB_SUCCESS != rval) return rval;
-  
+
   assert(2 == nnodes);
   //double coords[6]; // store the coordinates for the nodes
   CartVect P[2];

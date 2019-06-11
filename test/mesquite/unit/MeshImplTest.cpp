@@ -1,9 +1,9 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2004 Sandia Corporation and Argonne National
-    Laboratory.  Under the terms of Contract DE-AC04-94AL85000 
-    with Sandia Corporation, the U.S. Government retains certain 
+    Laboratory.  Under the terms of Contract DE-AC04-94AL85000
+    with Sandia Corporation, the U.S. Government retains certain
     rights in this software.
 
     This library is free software; you can redistribute it and/or
@@ -16,22 +16,22 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
-    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov, 
+
+    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov,
     pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov,
     kraftche@cae.wisc.edu
-   
+
   ***************************************************************** */
 /**
  *\file   MeshImplTest.hpp
  *\brief  Test MeshImpl class
  *
- * Test MeshImpl functionality.  
+ * Test MeshImpl functionality.
  *
- * Note: there are additional tests for MeshImpl in the mis-named 
+ * Note: there are additional tests for MeshImpl in the mis-named
  *       MeshInterfaceTest.cpp, VtkTest.cpp, and presumably ExodusTest.cpp.
  *
  *\author Jason Kraftcheck
@@ -69,7 +69,7 @@ public:
   void skin_mesh_3D();
   void skin_mesh_mixed();
   void skin_mesh_higher_order();
-  
+
   static void load_vtk( const char* file_data, MeshImpl& mesh, MsqError& err );
   static void dump_mesh( const char* filename, MeshImpl& data, MsqError& err );
 };
@@ -86,18 +86,18 @@ void MeshImplTest::load_vtk( const char* file_data, MeshImpl& mesh, MsqError& er
     MSQ_SETERR(err)(MsqError::FILE_ACCESS, "Cannot create temp file: %s\n", fname);
     return;
   }
-  
+
   if (!fwrite(file_data, strlen(file_data), 1, f)) {
     MSQ_SETERR(err)("I/O error while writing temporary file\n", MsqError::IO_ERROR);
     fclose( f );
     remove( fname );
     return;
   }
-  
+
   fclose( f );
   mesh.read_vtk( fname, err ); MSQ_CHKERR(err);
-  remove( fname );  
-  
+  remove( fname );
+
   mesh.mark_skin_fixed( err );
   MSQ_CHKERR(err);
 }
@@ -162,7 +162,7 @@ void MeshImplTest::test_zero_length_data()
   no_elem4.get_all_elements( elems, err );
   ASSERT_NO_ERROR( err );
   CPPUNIT_ASSERT_EQUAL( zero, elems.size() );
-  
+
   MeshImpl no_vert1( 0, 0, TRIANGLE, 0, 0, 0 );
   verts.clear();
   no_vert1.get_all_vertices( verts, err );
@@ -182,7 +182,7 @@ void MeshImplTest::test_zero_length_data()
   no_vert2.get_all_elements( elems, err );
   ASSERT_NO_ERROR( err );
   CPPUNIT_ASSERT_EQUAL( zero, elems.size() );
-  
+
   MeshImpl no_vert3( 0, 0, TRIANGLE, fixed, coords, 0 );
   verts.clear();
   no_vert3.get_all_vertices( verts, err );
@@ -207,7 +207,7 @@ void MeshImplTest::test_zero_length_data()
 void MeshImplTest::skin_mesh_2D()
 {
   MsqPrintError err(std::cerr);
-  const char vtk_file[] = 
+  const char vtk_file[] =
     "#vtk DataFile Version 2.0\n"
     "test data for MeshImplTest::skin_mesh_2D\n"
     "ASCII\n"
@@ -215,33 +215,33 @@ void MeshImplTest::skin_mesh_2D()
     "DIMENSIONS 10 10 1\n"
     "ORIGIN 0 0 0\n"
     "SPACING 1 1 1\n";
-  
+
   MeshImpl mesh;
   load_vtk( vtk_file, mesh, err );
   CPPUNIT_ASSERT(!err);
   dump_mesh( "MeshSkin2D.vtk", mesh, err );
-  
+
   std::vector<Mesh::VertexHandle> verts;
   mesh.get_all_vertices( verts, err );
   CPPUNIT_ASSERT(!err);
-  
+
   std::vector<Mesh::VertexHandle> elems;
   std::vector<size_t> offsets;
   std::vector<bool> fixed;
-  
-  
+
+
   for (unsigned i = 0; i < verts.size(); ++i) {
     elems.clear();
     offsets.clear();
     mesh.vertices_get_attached_elements( &verts[i], 1, elems, offsets, err );
     CPPUNIT_ASSERT(!err);
-    
+
     mesh.vertices_get_fixed_flag( &verts[i], fixed, 1, err );
     CPPUNIT_ASSERT(!err);
-    
+
     if (elems.size() == 4)
       CPPUNIT_ASSERT(!fixed[0]);
-    else 
+    else
       CPPUNIT_ASSERT(fixed[0]);
   }
 }
@@ -249,7 +249,7 @@ void MeshImplTest::skin_mesh_2D()
 void MeshImplTest::skin_mesh_3D()
 {
   MsqPrintError err(std::cerr);
-  const char vtk_file[] = 
+  const char vtk_file[] =
     "#vtk DataFile Version 2.0\n"
     "test data for MeshImplTest::skin_mesh_3D\n"
     "ASCII\n"
@@ -257,32 +257,32 @@ void MeshImplTest::skin_mesh_3D()
     "DIMENSIONS 10 10 10\n"
     "ORIGIN 0 0 0\n"
     "SPACING 1 1 1\n";
-  
+
   MeshImpl mesh;
   load_vtk( vtk_file, mesh, err );
   CPPUNIT_ASSERT(!err);
   dump_mesh( "MeshSkin3D.vtk", mesh, err );
-  
+
   std::vector<Mesh::VertexHandle> verts;
   mesh.get_all_vertices( verts, err );
   CPPUNIT_ASSERT(!err);
-  
+
   std::vector<Mesh::VertexHandle> elems;
   std::vector<size_t> offsets;
   std::vector<bool> fixed;
-  
+
   for (unsigned i = 0; i < verts.size(); ++i) {
     elems.clear();
     offsets.clear();
     mesh.vertices_get_attached_elements( &verts[i], 1, elems, offsets, err );
     CPPUNIT_ASSERT(!err);
-    
+
     mesh.vertices_get_fixed_flag( &verts[i], fixed, 1, err );
     CPPUNIT_ASSERT(!err);
-    
+
     if (elems.size() == 8)
       CPPUNIT_ASSERT(!fixed[0]);
-    else 
+    else
       CPPUNIT_ASSERT(fixed[0]);
   }
 }
@@ -298,14 +298,14 @@ void MeshImplTest::skin_mesh_mixed()
     // define the mesh of a tetrahedron centered
     // at the origin as four tetrahedral elements
     // sharing a vertex at the origin.
-  const char vtk_file[] = 
+  const char vtk_file[] =
     "#vtk DataFile Version 2.0\n"
     "test data for MeshImplTest::skin_mesh_mixed\n"
     "ASCII\n"
     "DATASET UNSTRUCTURED_GRID\n"
     "POINTS 5 float\n"
     " 0  0  0\n"  // center vertex
-    " 2 -1 -1\n"  
+    " 2 -1 -1\n"
     " 0  2 -1\n"
     "-2 -1 -1\n"
     " 0  0  2\n"
@@ -317,12 +317,12 @@ void MeshImplTest::skin_mesh_mixed()
     "3 0 1 2\n"   // iterior triangle
     "CELL_TYPES 5\n"
     "10 10 10 10 5\n";
-  
+
   MeshImpl mesh;
   load_vtk( vtk_file, mesh, err );
   CPPUNIT_ASSERT(!err);
   dump_mesh( "MeshSkinMixed.vtk", mesh, err );
-  
+
   std::vector<Mesh::VertexHandle> verts;
   mesh.get_all_vertices( verts, err );
   CPPUNIT_ASSERT(!err);
@@ -334,7 +334,7 @@ void MeshImplTest::skin_mesh_mixed()
   mesh.vertices_get_fixed_flag( arrptr(verts), fixed, 5, err );
   CPPUNIT_ASSERT(!err);
   CPPUNIT_ASSERT_EQUAL( (size_t)5, fixed.size() );
-  
+
   int free_idx = -1;
   for (int i = 0; i < 5; ++i) {
     if (!fixed[i]) {
@@ -343,7 +343,7 @@ void MeshImplTest::skin_mesh_mixed()
     }
   }
   CPPUNIT_ASSERT( -1 != free_idx ); // at least one free vertex
-  
+
   // free vertex must be at origin
   CPPUNIT_ASSERT_VECTORS_EQUAL( Vector3D(0,0,0), coords[free_idx], DBL_EPSILON );
 }
@@ -357,17 +357,17 @@ void MeshImplTest::skin_mesh_higher_order()
     //  0    1    2    3    4
     //  o----o----o----o----o
     //  |         |         |
-    //  |         |         | 
+    //  |         |         |
     //  o5        o6        o7
     //  |         |         |
-    //  |         |         | 
+    //  |         |         |
     //  o----o----o----o----o
     //  8    9    10   11   12
     //
     // Expect all vertices but 6 to be fixed.
     // Position mesh such that vertex 6 is at the origin.
-    
-  const char vtk_file[] = 
+
+  const char vtk_file[] =
     "#vtk DataFile Version 2.0\n"
     "test data for MeshImplTest::skin_mesh_mixed\n"
     "ASCII\n"
@@ -391,12 +391,12 @@ void MeshImplTest::skin_mesh_higher_order()
     "8 2 10 12 4 6 11 7 3\n"
     "CELL_TYPES 2\n"
     "23 23\n";
-  
+
   MeshImpl mesh;
   load_vtk( vtk_file, mesh, err );
   CPPUNIT_ASSERT(!err);
   dump_mesh( "MeshSkinHO.vtk", mesh, err );
-  
+
   std::vector<Mesh::VertexHandle> verts;
   mesh.get_all_vertices( verts, err );
   CPPUNIT_ASSERT(!err);
@@ -408,7 +408,7 @@ void MeshImplTest::skin_mesh_higher_order()
   mesh.vertices_get_fixed_flag( arrptr(verts), fixed, 13, err );
   CPPUNIT_ASSERT(!err);
   CPPUNIT_ASSERT_EQUAL( (size_t)13, fixed.size() );
-  
+
   int free_idx = -1;
   for (int i = 0; i < 13; ++i) {
     if (!fixed[i]) {
@@ -417,7 +417,7 @@ void MeshImplTest::skin_mesh_higher_order()
     }
   }
   CPPUNIT_ASSERT( -1 != free_idx ); // at least one free vertex
-  
+
   // free vertex must be at origin
   CPPUNIT_ASSERT_VECTORS_EQUAL( Vector3D(0,0,0), coords[free_idx], DBL_EPSILON );
 }

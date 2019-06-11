@@ -20,34 +20,34 @@ double find_angle(const moab::CartVect& A, const moab::CartVect& B)
   return ACOS( dot / ( lA * lB ) ) * 180.0 / dPI;
 }
 
-#define CHECK_EIGVECREAL_EQUAL( EXP, ACT, EPS ) check_equal_eigvect( (EXP), (ACT), (EPS), #EXP, #ACT, __LINE__, __FILE__ ) 
+#define CHECK_EIGVECREAL_EQUAL( EXP, ACT, EPS ) check_equal_eigvect( (EXP), (ACT), (EPS), #EXP, #ACT, __LINE__, __FILE__ )
 void check_equal_eigvect( const moab::CartVect& A,
                         const moab::CartVect& B, double eps,
-                        const char* sA, const char* sB, 
+                        const char* sA, const char* sB,
                         int line, const char* file )
 {
   check_equal( A.length(), B.length(), eps, sA, sB, line, file);
 
   double angle = find_angle(A, B);
 
-  if (  (fabs(A[0] - B[0]) <= eps || fabs(A[0] + B[0]) <= eps) && 
+  if (  (fabs(A[0] - B[0]) <= eps || fabs(A[0] + B[0]) <= eps) &&
         (fabs(A[1] - B[1]) <= eps || fabs(A[1] + B[1]) <= eps) &&
-        (fabs(A[2] - B[2]) <= eps || fabs(A[2] + B[2]) <= eps) && 
+        (fabs(A[2] - B[2]) <= eps || fabs(A[2] + B[2]) <= eps) &&
         (angle <= eps || fabs(angle - 180.0) <= eps) )
     return;
-  
+
   std::cout << "Equality Test Failed: " << sA << " == " << sB << std::endl;
   std::cout << "  at line " << line << " of '" << file << "'" << std::endl;
-   
+
   std::cout << "  Expected: ";
   std::cout << A << std::endl;
-  
+
   std::cout << "  Actual:   ";
   std::cout << B << std::endl;
 
   std::cout << "Angle between vectors := " << angle << std::endl;
-  
-  flag_error(); 
+
+  flag_error();
 }
 
 
@@ -59,8 +59,8 @@ int main ()
   int result = 0;
 
   result += RUN_TEST(test_EigenDecomp);
-  
-  return result; 
+
+  return result;
 
 }
 
@@ -83,7 +83,7 @@ void test_EigenDecomp()
 
   //now do the Eigen Decomposition of this Matrix
 
-  CartVect lamda; 
+  CartVect lamda;
   Matrix3 vectors;
   moab::ErrorCode rval = mat.eigen_decomposition(lamda, vectors);CHECK_ERR(rval);
   for (int i=0; i < 3; ++i)
@@ -116,7 +116,7 @@ void test_EigenDecomp()
   //check the Eigenvector values (order should correspond to the Eigenvalues)
   //first vector
   CHECK_EIGVECREAL_EQUAL( vectors.col(0), vec0_check, tol );
-  
+
   //sceond vector
   CHECK_EIGVECREAL_EQUAL( vectors.col(1), vec1_check, tol );
 
@@ -132,7 +132,7 @@ void test_EigenDecomp()
   //for a real, symmetric matrix the Eigenvectors should be orthogonal
   CHECK_REAL_EQUAL( vectors.col(0)%vectors.col(1), 0 , tol );
   CHECK_REAL_EQUAL( vectors.col(0)%vectors.col(2), 0 , tol );
-  
+
   return;
 }
 

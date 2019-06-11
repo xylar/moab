@@ -8,7 +8,7 @@
 /***************************************************************************************
  * Begin test runner implementation.
  * This is a higher-level API that can be used to register tests,
- * test dependencies, and to run-time select a subset of tests to 
+ * test dependencies, and to run-time select a subset of tests to
  * run.
  ***************************************************************************************/
 
@@ -25,7 +25,7 @@
 #define REGISTER_DEP_TEST( TEST_FUNC, REQUIRED_FUNC ) \
   runner_register_test( __FILE__, __LINE__, #TEST_FUNC, (TEST_FUNC), (REQUIRED_FUNC) )
 
-/* Run registered tests.  
+/* Run registered tests.
  * Arguments should be argc and argv passed to main.
  * If ARGC is less than or equal to 1 then all tests are run.
  * Otherwise only tests specified in the argument list are run.
@@ -44,7 +44,7 @@
 
 
 static void runner_register_test( const char* filename, int line_number,
-                                  const char* name, test_func function, 
+                                  const char* name, test_func function,
                                   test_func requisite = 0 );
 static int runner_run_tests( int argc, char* argv[] );
 
@@ -126,7 +126,7 @@ static void free_test_list()
 
 void runner_register_test( const char* filename,
                            int line_number,
-                           const char* name, 
+                           const char* name,
                            test_func test,
                            test_func req )
 {
@@ -150,7 +150,7 @@ void runner_usage( FILE* str, int /*argc*/, char* argv[] )
   fprintf( str, "%s [-l|-L] [-h] [-r] [<test_name> [<test_name> ...]]\n", argv[0] );
 }
 
-void runner_help( int argc, char* argv[] ) 
+void runner_help( int argc, char* argv[] )
 {
   runner_usage( stdout, argc, argv );
   fprintf( stdout, "-l : List test names and exit\n"
@@ -160,7 +160,7 @@ void runner_help( int argc, char* argv[] )
                    "\n");
 }
 
-void runner_list_tests( int long_format ) 
+void runner_list_tests( int long_format )
 {
   size_t i, j;
   printf("Test List:\n");
@@ -168,7 +168,7 @@ void runner_list_tests( int long_format )
     if (RunnerTestList[i].testStatus == DESELECTED)
       continue;
     printf( " o %s\n", RunnerTestList[i].testName );
-    if (!long_format || ! RunnerTestList[i].numRequisites) 
+    if (!long_format || ! RunnerTestList[i].numRequisites)
       continue;
     if (RunnerTestList[i].numRequisites == 1)
       printf( "  Requires : %s\n", RunnerTestList[RunnerTestList[i].testRequisites[0]].testName );
@@ -192,13 +192,13 @@ int runner_run_tests( int argc, char* argv[] )
   int run_requisites = 0;
   int list_tests = 0;
   int first_selected = 1;
-  
+
     /* Misc iterator vars and such */
   int changed_some, ran_some, can_run, fail;
   int k;
   const char* c;
   size_t i, j;
-  
+
     /* Process command line arguments */
   for (k = 1; k < argc; ++k) {
     if (argv[k][0] == '-') {
@@ -234,7 +234,7 @@ int runner_run_tests( int argc, char* argv[] )
       }
     }
   }
-  
+
     /* If recursively running requisite tests, select those also. */
   if (run_requisites) {
     do {
@@ -242,7 +242,7 @@ int runner_run_tests( int argc, char* argv[] )
       for (i = 0; i < RunnerTestCount; ++i) {
         if (RunnerTestList[i].testStatus == DESELECTED)
           continue;
-        
+
         for (j = 0; j < RunnerTestList[i].numRequisites; ++j) {
           if (RunnerTestList[ RunnerTestList[i].testRequisites[j] ].testStatus == DESELECTED) {
             RunnerTestList[ RunnerTestList[i].testRequisites[j] ].testStatus = SELECTED;
@@ -252,18 +252,18 @@ int runner_run_tests( int argc, char* argv[] )
       }
     } while(changed_some);
   }
-  
+
     // Count number of selected tests
   num_selected = 0;
-  for (i = 0; i < RunnerTestCount; ++i) 
+  for (i = 0; i < RunnerTestCount; ++i)
     if (RunnerTestList[i].testStatus == SELECTED)
       ++num_selected;
-  
+
   if (list_tests) {
     runner_list_tests( list_tests - 1 );
     return error_count;
   }
-  
+
     // Now run the tests
   num_run = 0;
   do {
@@ -282,7 +282,7 @@ int runner_run_tests( int argc, char* argv[] )
       }
       if (!can_run)
         continue;
-      
+
       ran_some = 1;
       ++num_run;
       fail = run_test( RunnerTestList[i].testFunc, RunnerTestList[i].testName );
@@ -296,7 +296,7 @@ int runner_run_tests( int argc, char* argv[] )
       }
     }
   } while (ran_some);
-  
+
     // Print brief summary
   if (num_run == (int)RunnerTestCount && !fail_count) {
     printf("All %d tests passed.\n", num_run);
@@ -307,18 +307,18 @@ int runner_run_tests( int argc, char* argv[] )
   }
   else {
     printf( "%2d tests registered\n", (int)RunnerTestCount );
-    if (num_selected == num_run) 
+    if (num_selected == num_run)
       printf( "%2d tests selected\n", num_selected );
     else
       printf( "%2d of %2d tests ran\n", num_run, num_selected );
     if (num_run < (int)RunnerTestCount)
-      printf( "%2d of %2d tests skipped\n", 
+      printf( "%2d of %2d tests skipped\n",
         (int)RunnerTestCount - num_run, (int)RunnerTestCount );
     printf( "%2d of %2d tests passed\n", num_run - fail_count, num_run );
-    if (fail_count) 
+    if (fail_count)
       printf( "%2d of %2d tests FAILED\n", fail_count, num_run );
   }
-  
+
   return error_count;
 }
 

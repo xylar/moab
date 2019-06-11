@@ -44,7 +44,7 @@ int TestMeshRefiner( int argc, char* argv[] )
       output_filename = std::string(argv[2]);
     }
   }
-  
+
   Interface* imesh = new Core; // ( rank, nprocs );
   Interface* omesh = input_is_output ? imesh : new Core; // ( rank, nprocs );
 
@@ -78,7 +78,7 @@ int TestMeshRefiner( int argc, char* argv[] )
     std::cout << "Trouble reading mesh file " << ifname << ", exiting." << std::endl;
     return 1;
   }
-  
+
   // Print out what we have so far, one process at a time
   for ( int i = 0; i < nprocs; ++ i )
   {
@@ -118,7 +118,7 @@ int TestMeshRefiner( int argc, char* argv[] )
       parallel_options << "PARALLEL=WRITE_PART";
     omesh->write_file( output_filename.c_str(), NULL, parallel_options.str().c_str() );
   }
-  
+
   // Print out the results, one process at a time
 #ifdef MOAB_HAVE_MPI
   for ( int i = 0; i < nprocs; ++ i )

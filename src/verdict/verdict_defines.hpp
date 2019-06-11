@@ -37,7 +37,7 @@ inline double  determinant(double a,
     double b,
     double c,
     double d)
-{ 
+{
   return ((a)*(d) - (b)*(c));
 }
 
@@ -75,7 +75,7 @@ inline double normalize_jacobian( double jacobi,
 
   if ( jacobi != 0.0 )
   {
-    
+
     double l1, l2, l3, length_product;
     // Note: there may be numerical problems if one is a lot shorter
     // than the others this way. But scaling each vector before the
@@ -85,22 +85,22 @@ inline double normalize_jacobian( double jacobi,
     l2 = v2.length_squared();
     l3 = v3.length_squared();
     length_product = sqrt( l1 * l2 * l3 );
-    
+
     // if some numerical scaling problem, or just plain roundoff,
     // then push back into range [-1,1].
     if ( length_product < fabs(jacobi) )
     {
       length_product = fabs(jacobi);
     }
-    
+
     if( tet_flag == 1)
       return_value = verdictSqrt2 * jacobi / length_product;
     else
       return_value = jacobi / length_product;
-    
+
   }
   return return_value;
-  
+
 }
 
 
@@ -122,7 +122,7 @@ inline int skew_matrix(double gm11, double gm12, double gm22, double det, double
 {
   double tmp = sqrt(gm11*gm22);
   if( tmp == 0 ) {return false;}
-  
+
   qm11=1;
   qm21=0;
   qm12=gm12/tmp;
@@ -137,22 +137,22 @@ inline void inverse(VerdictVector x1,
     VerdictVector& u1,
     VerdictVector& u2,
     VerdictVector& u3 )
-{ 
+{
   double  detx = determinant(x1, x2, x3);
   VerdictVector rx1, rx2, rx3;
-  
+
   rx1.set(x1.x(), x2.x(), x3.x());
   rx2.set(x1.y(), x2.y(), x3.y());
   rx3.set(x1.z(), x2.z(), x3.z());
-  
+
   u1 = rx2 * rx3;
   u2 = rx3 * rx1;
   u3 = rx1 * rx2;
-  
+
   u1 /= detx;
   u2 /= detx;
   u3 /= detx;
-} 
+}
 
 /*
 inline void form_T(double a1[3],
@@ -168,21 +168,21 @@ inline void form_T(double a1[3],
 
   double x1[3], x2[3], x3[3];
   double ra1[3], ra2[3], ra3[3];
-  
+
   x1[0] = a1[0];
   x1[1] = a2[0];
   x1[2] = a3[0];
-  
+
   x2[0] = a1[1];
   x2[1] = a2[1];
   x2[2] = a3[1];
-  
+
   x3[0] = a1[2];
   x3[1] = a2[2];
   x3[2] = a3[2];
-  
+
   inverse(w1,w2,w3,x1,x2,x3);
-  
+
   t1[0] = dot_product(ra1, x1);
   t1[1] = dot_product(ra1, x2);
   t1[2] = dot_product(ra1, x3);
@@ -190,7 +190,7 @@ inline void form_T(double a1[3],
   t2[0] = dot_product(ra2, x1);
   t2[0] = dot_product(ra2, x2);
   t2[0] = dot_product(ra2, x3);
-  
+
   t3[0] = dot_product(ra3, x1);
   t3[0] = dot_product(ra3, x2);
   t3[0] = dot_product(ra3, x3);
@@ -205,46 +205,46 @@ inline void form_Q( const VerdictVector& v1,
     VerdictVector& q2,
     VerdictVector& q3 )
 {
-  
+
   double g11, g12, g13, g22, g23, g33;
-  
+
   g11 = v1 % v1;
   g12 = v1 % v2;
   g13 = v1 % v3;
   g22 = v2 % v2;
   g23 = v2 % v3;
   g33 = v3 % v3;
-  
+
   double rtg11 = sqrt(g11);
   double rtg22 = sqrt(g22);
   double rtg33 = sqrt(g33);
   VerdictVector temp1;
-  
+
   temp1 = v1 * v2;
-  
+
   double cross = sqrt( temp1 % temp1 );
-  
+
   double q11,q21,q31;
   double q12,q22,q32;
   double q13,q23,q33;
-  
+
   q11=1;
   q21=0;
   q31=0;
-  
+
   q12 = g12 / rtg11 / rtg22;
   q22 = cross / rtg11 / rtg22;
   q32 = 0;
-  
+
   q13 = g13 / rtg11 / rtg33;
   q23 = ( g11*g23-g12*g13 )/ rtg11 / rtg33 / cross;
   temp1 = v2 * v3;
   q33 = ( v1 % temp1  ) / rtg33 / cross;
-  
+
   q1.set( q11, q21, q31 );
   q2.set( q12, q22, q32 );
   q3.set( q13, q23, q33 );
-  
+
 }
 
 inline void product( VerdictVector& a1,
@@ -257,13 +257,13 @@ inline void product( VerdictVector& a1,
     VerdictVector& c2,
     VerdictVector& c3 )
 {
-  
+
   VerdictVector x1, x2, x3;
-  
+
   x1.set( a1.x(), a2.x(), a3.x() );
   x2.set( a1.y(), a2.y(), a3.y() );
   x3.set( a1.z(), a2.z(), a3.z() );
-  
+
   c1.set( x1 % b1, x2 % b1, x3 % b1 );
   c2.set( x1 % b2, x2 % b2, x3 % b2 );
   c3.set( x1 % b3, x2 % b3, x3 % b3 );
@@ -289,18 +289,18 @@ inline double skew_x( VerdictVector& q1,
   double normsq1, normsq2, kappa;
   VerdictVector u1, u2, u3;
   VerdictVector x1, x2, x3;
-  
+
   inverse(qw1,qw2,qw3,u1,u2,u3);
   product(q1,q2,q3,u1,u2,u3,x1,x2,x3);
   inverse(x1,x2,x3,u1,u2,u3);
   normsq1 = norm_squared(x1,x2,x3);
   normsq2 = norm_squared(u1,u2,u3);
   kappa = sqrt( normsq1 * normsq2 );
-  
+
   double skew = 0;
   if ( kappa > VERDICT_DBL_MIN )
     skew = 3/kappa;
-  
+
   return skew;
 }
 

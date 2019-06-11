@@ -1,16 +1,16 @@
 /**
  * MOAB, a Mesh-Oriented datABase, is a software component for creating,
  * storing and accessing finite element mesh data.
- * 
+ *
  * Copyright 2004 Sandia Corporation.  Under the terms of Contract
  * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
  * retains certain rights in this software.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  */
 
 #ifdef __MFC_VER
@@ -58,7 +58,7 @@ ErrorCode Skinner::initialize()
 
   void* null_ptr = NULL;
 
-  ErrorCode result = thisMB->tag_get_handle("skinner adj", sizeof(void*), MB_TYPE_OPAQUE, mAdjTag, 
+  ErrorCode result = thisMB->tag_get_handle("skinner adj", sizeof(void*), MB_TYPE_OPAQUE, mAdjTag,
                                             MB_TAG_DENSE|MB_TAG_CREAT, &null_ptr);
  MB_CHK_ERR(result);
 
@@ -66,10 +66,10 @@ ErrorCode Skinner::initialize()
     result = thisMB->tag_get_handle("skinner deletable", 1, MB_TYPE_BIT, mDeletableMBTag, MB_TAG_BIT|MB_TAG_CREAT);
    MB_CHK_ERR(result);
   }
-  
+
   Range entities;
 
-    // go through each type at this dimension 
+    // go through each type at this dimension
   for(type = target_ent_types.first; type <= target_ent_types.second; ++type)
   {
       // get the entities of this type in the MB
@@ -114,7 +114,7 @@ ErrorCode Skinner::deinitialize()
       for (i = adj_arr.begin(); i != adj_arr.end(); ++i)
         delete *i;
     }
-  
+
     result = thisMB->tag_delete(mAdjTag);
     mAdjTag = 0;
     MB_CHK_ERR(result);
@@ -139,7 +139,7 @@ ErrorCode Skinner::add_adjacency(EntityHandle entity)
   // add this entity to the node
   if(thisMB->tag_get_data(mAdjTag, iter, 1, &adj) == MB_SUCCESS && adj != NULL)
   {
-    adj->push_back(entity);    
+    adj->push_back(entity);
   }
   // create a new vector and add it
   else
@@ -152,25 +152,25 @@ ErrorCode Skinner::add_adjacency(EntityHandle entity)
   return MB_SUCCESS;
 }
 
-void Skinner::add_adjacency(EntityHandle entity, 
+void Skinner::add_adjacency(EntityHandle entity,
                                const EntityHandle *nodes,
                                const int num_nodes)
 {
   std::vector<EntityHandle> *adj = NULL;
-  const EntityHandle *iter = 
+  const EntityHandle *iter =
     std::min_element(nodes, nodes+num_nodes);
 
   if(iter == nodes+num_nodes)
     return;
 
     // should not be setting adjacency lists in ho-nodes
-  assert(TYPE_FROM_HANDLE(entity) == MBPOLYGON || 
+  assert(TYPE_FROM_HANDLE(entity) == MBPOLYGON ||
          num_nodes == CN::VerticesPerEntity(TYPE_FROM_HANDLE(entity)));
 
   // add this entity to the node
   if(thisMB->tag_get_data(mAdjTag, iter, 1, &adj) == MB_SUCCESS && adj != NULL)
   {
-    adj->push_back(entity);    
+    adj->push_back(entity);
   }
   // create a new vector and add it
   else
@@ -189,12 +189,12 @@ ErrorCode Skinner::find_geometric_skin(const EntityHandle meshset, Range &forwar
 
     // look for geom topo sets
   Tag geom_tag;
-  ErrorCode result = thisMB->tag_get_handle(GEOM_DIMENSION_TAG_NAME, 1, MB_TYPE_INTEGER, 
+  ErrorCode result = thisMB->tag_get_handle(GEOM_DIMENSION_TAG_NAME, 1, MB_TYPE_INTEGER,
                                         geom_tag, MB_TAG_SPARSE|MB_TAG_CREAT);
 
   if (MB_SUCCESS != result)
     return result;
-  
+
     // get face sets (dimension = 2)
   Range face_sets;
   int two = 2;
@@ -211,7 +211,7 @@ ErrorCode Skinner::find_geometric_skin(const EntityHandle meshset, Range &forwar
     // ok, we have face sets; use those to determine skin
   Range skin_sets;
   if (debug) std::cout << "Found " << face_sets.size() << " face sets total..." << std::endl;
-  
+
   for (it = face_sets.begin(); it != face_sets.end(); ++it) {
     int num_parents;
     result = thisMB->num_parent_meshsets(*it, &num_parents);
@@ -225,14 +225,14 @@ ErrorCode Skinner::find_geometric_skin(const EntityHandle meshset, Range &forwar
 
   if (skin_sets.empty())
     return MB_FAILURE;
-      
+
     // ok, we have the shell; gather up the elements, putting them all in forward for now
   for (it = skin_sets.begin(); it != skin_sets.end(); ++it) {
     result = thisMB->get_entities_by_handle(*it, forward_target_entities, true);
     if (MB_SUCCESS != result)
       return result;
   }
-        
+
   return result;
 }
 
@@ -242,7 +242,7 @@ ErrorCode Skinner::find_skin( const EntityHandle meshset,
                               Range& output_handles,
                               Range* output_reverse_handles,
                               bool create_vert_elem_adjs,
-                              bool create_skin_elements, 
+                              bool create_skin_elements,
                               bool look_for_scd)
 {
   if (source_entities.empty())
@@ -255,29 +255,29 @@ ErrorCode Skinner::find_skin( const EntityHandle meshset,
   }
 
   Core* this_core = dynamic_cast<Core*>(thisMB);
-  if (this_core && create_vert_elem_adjs && 
+  if (this_core && create_vert_elem_adjs &&
       !this_core->a_entity_factory()->vert_elem_adjacencies())
     this_core->a_entity_factory()->create_vert_elem_adjacencies();
-    
+
   return find_skin_vertices( meshset,
                              source_entities,
                              get_vertices ? &output_handles : 0,
                              get_vertices ? 0 : &output_handles,
                              output_reverse_handles,
                              create_skin_elements );
-  
+
 }
 
 ErrorCode Skinner::find_skin_scd(const Range& source_entities,
                                  bool get_vertices,
                                  Range& output_handles,
-                                 bool create_skin_elements) 
+                                 bool create_skin_elements)
 {
     // get the scd interface and check if it's been initialized
   ScdInterface *scdi = NULL;
   ErrorCode rval = thisMB->query_interface(scdi);
   if (!scdi) return MB_FAILURE;
-  
+
     // ok, there's scd mesh; see if the entities passed in are all in a scd box
     // a box needs to be wholly included in entities for this to work
   std::vector<ScdBox*> boxes, myboxes;
@@ -298,20 +298,20 @@ ErrorCode Skinner::find_skin_scd(const Range& source_entities,
     rval = skin_box(*bit, get_vertices, output_handles, create_skin_elements);
     if (MB_SUCCESS != rval) return rval;
   }
-  
+
   return MB_SUCCESS;
 }
 
-ErrorCode Skinner::skin_box(ScdBox *box, bool get_vertices, Range &output_handles, 
-                            bool create_skin_elements) 
+ErrorCode Skinner::skin_box(ScdBox *box, bool get_vertices, Range &output_handles,
+                            bool create_skin_elements)
 {
   HomCoord bmin = box->box_min(), bmax = box->box_max();
 
     // don't support 1d boxes
   if (bmin.j() == bmax.j() && bmin.k() == bmax.k()) return MB_FAILURE;
-  
+
   int dim = (bmin.k() == bmax.k() ? 1 : 2);
-  
+
   ErrorCode rval;
   EntityHandle ent;
 
@@ -376,7 +376,7 @@ ErrorCode Skinner::skin_box(ScdBox *box, bool get_vertices, Range &output_handle
     if (MB_SUCCESS != rval) return rval;
     output_handles.merge(verts);
   }
-  
+
   return MB_SUCCESS;
 }
 
@@ -387,7 +387,7 @@ ErrorCode Skinner::find_skin_noadj(const Range &source_entities,
 {
   if(source_entities.empty())
     return MB_FAILURE;
-  
+
   // get our working dimensions
   EntityType type = thisMB->type_from_handle(*(source_entities.begin()));
   const int source_dim = CN::Dimension(type);
@@ -423,10 +423,10 @@ ErrorCode Skinner::find_skin_noadj(const Range &source_entities,
     result = thisMB->get_connectivity(*iter, conn, num_nodes, false, &tmp_conn_vec);
     if (MB_SUCCESS != result)
       return result;
-    
+
     type = thisMB->type_from_handle(*iter);
     Range::iterator seek_iter;
-    
+
     // treat separately polygons (also, polyhedra will need special handling)
     if (MBPOLYGON == type)
     {
@@ -458,7 +458,7 @@ ErrorCode Skinner::find_skin_noadj(const Range &source_entities,
         for(int j=0; j<num_sub_nodes; j++)
           sub_conn[j] = conn[sub_indices[j]];
       }
-        
+
         // see if we can match this connectivity with
         // an existing entity
       find_match( sub_type, sub_conn, num_sub_nodes, match, direct );
@@ -532,7 +532,7 @@ ErrorCode Skinner::find_skin_noadj(const Range &source_entities,
 }
 
 
-void Skinner::find_match( EntityType type, 
+void Skinner::find_match( EntityType type,
                              const EntityHandle *conn,
                              const int num_nodes,
                              EntityHandle& match,
@@ -578,7 +578,7 @@ void Skinner::find_match( EntityType type,
     {
       match = *jter;
       break;
-    }        
+    }
   }
 }
 
@@ -596,7 +596,7 @@ bool Skinner::connectivity_match( const EntityHandle *conn1,
 
   int i;
   unsigned int j = iter - conn2;
-    
+
   // first compare forward
   for(i = 1; i<num_verts; ++i)
   {
@@ -606,16 +606,16 @@ bool Skinner::connectivity_match( const EntityHandle *conn1,
       break;
     }
   }
-  
+
   if(they_match == true)
   {
     // need to check for reversed edges here
     direct = (num_verts == 2 && j) ? REVERSE : FORWARD;
     return true;
   }
-  
+
   they_match = true;
-  
+
   // then compare reverse
   j += num_verts;
   for(i = 1; i < num_verts; )
@@ -634,12 +634,12 @@ bool Skinner::connectivity_match( const EntityHandle *conn1,
   return they_match;
 }
 
-  
+
 ErrorCode Skinner::remove_adjacency(EntityHandle entity)
 {
   std::vector<EntityHandle> nodes, *adj = NULL;
   ErrorCode result = thisMB->get_connectivity(&entity, 1, nodes); MB_CHK_ERR(result);
-  std::vector<EntityHandle>::iterator iter = 
+  std::vector<EntityHandle>::iterator iter =
     std::min_element(nodes.begin(), nodes.end());
 
   if(iter == nodes.end())
@@ -678,7 +678,7 @@ ErrorCode Skinner::classify_2d_boundary( const Range &boundary,
   ErrorCode result = classify_2d_boundary(boundary, bar_elements,
                                              bedges, iedges, nmedges, oedges,
                                              number_boundary_nodes);MB_CHK_ERR(result);
-  
+
     // now set the input meshsets to the output ranges
   result = thisMB->clear_meshset(&boundary_edges, 1);MB_CHK_ERR(result);
   result = thisMB->add_entities(boundary_edges, bedges); MB_CHK_ERR(result);
@@ -718,7 +718,7 @@ ErrorCode Skinner::classify_2d_boundary( const Range &boundary,
   {
     return MB_FAILURE;
   }
-  
+
   // get our working dimensions
   EntityType type = thisMB->type_from_handle(*(boundary.begin()));
   const int source_dim = CN::Dimension(type);
@@ -742,7 +742,7 @@ ErrorCode Skinner::classify_2d_boundary( const Range &boundary,
   ErrorCode result = thisMB->tag_get_handle(0, 1, MB_TYPE_INTEGER,
                                         count_tag, MB_TAG_DENSE|MB_TAG_CREAT, &default_count); MB_CHK_ERR(result);
 
- 
+
   Range::const_iterator iter, end_iter;
   end_iter = boundary.end();
 
@@ -753,11 +753,11 @@ ErrorCode Skinner::classify_2d_boundary( const Range &boundary,
   Range edge_list;
   Range boundary_nodes;
   Skinner::direction direct;
-  
+
   EntityType sub_type;
   int num_edge, num_sub_ent_vert;
   const short* edge_verts;
-  
+
   // now, process each entity in the boundary
 
   for(iter = boundary.begin(); iter != end_iter; ++iter)
@@ -768,11 +768,11 @@ ErrorCode Skinner::classify_2d_boundary( const Range &boundary,
     assert(MB_SUCCESS == result);
 
     // add node handles to boundary_node range
-    std::copy(conn.begin(), conn.begin()+CN::VerticesPerEntity(type), 
+    std::copy(conn.begin(), conn.begin()+CN::VerticesPerEntity(type),
               range_inserter(boundary_nodes));
 
     type = thisMB->type_from_handle(*iter);
-    
+
     // get connectivity of each n-1 dimension entity (edge in this case)
     const struct CN::ConnMap* conn_map = &(CN::mConnectivityMap[type][0]);
     num_edge = CN::NumSubEntities( type, 1 );
@@ -783,11 +783,11 @@ ErrorCode Skinner::classify_2d_boundary( const Range &boundary,
       sub_conn[0] = conn[edge_verts[0]];
       sub_conn[1] = conn[edge_verts[1]];
       int num_sub_nodes = conn_map->num_corners_per_sub_element[i];
-      
+
       // see if we can match this connectivity with
       // an existing entity
       find_match( MBEDGE, sub_conn, num_sub_nodes, match, direct );
-  
+
       // if there is no match, create a new entity
       if(match == 0)
       {
@@ -798,8 +798,8 @@ ErrorCode Skinner::classify_2d_boundary( const Range &boundary,
         CN::SubEntityNodeIndices( type, conn.size(), 1, i, new_type, num_new_nodes, indices );
         for(int j=0; j<num_new_nodes; j++)
           sub_conn[j] = conn[indices[j]];
-        
-        result = thisMB->create_element(new_type, sub_conn,  
+
+        result = thisMB->create_element(new_type, sub_conn,
                                         num_new_nodes, tmphndl);
         assert(MB_SUCCESS == result);
         add_adjacency(tmphndl, sub_conn, num_sub_nodes);
@@ -894,7 +894,7 @@ ErrorCode Skinner::classify_2d_boundary( const Range &boundary,
   // we now want to remove the inferred_edges from the other_edges
 
   Range temp_range;
- 
+
   std::set_difference(other_edges.begin(), other_edges.end(),
                       inferred_edges.begin(), inferred_edges.end(),
                       range_inserter(temp_range),
@@ -912,7 +912,7 @@ ErrorCode Skinner::classify_2d_boundary( const Range &boundary,
   number_boundary_nodes = boundary_nodes.size();
 
   return MB_SUCCESS;
-} 
+}
 
 void Skinner::find_inferred_edges(Range &skin_boundary,
                                      Range &candidate_edges,
@@ -931,7 +931,7 @@ void Skinner::find_inferred_edges(Range &skin_boundary,
   // find the cosine of the reference angle
 
   double reference_cosine = cos(reference_angle_degrees*SKINNER_PI/180.0);
-  
+
   // check all candidate edges for an angle greater than the minimum
 
   Range::iterator iter, end_iter = candidate_edges.end();
@@ -945,7 +945,7 @@ void Skinner::find_inferred_edges(Range &skin_boundary,
     // get the 2D elements connected to this edge
     adjacencies.clear();
     result = thisMB->get_adjacencies(&(*iter), 1, 2, false, adjacencies);
-    if (MB_SUCCESS != result) 
+    if (MB_SUCCESS != result)
       continue;
 
     // there should be exactly two, that is why the edge is classified as nonBoundary
@@ -962,11 +962,11 @@ void Skinner::find_inferred_edges(Range &skin_boundary,
       {
         face[faces_found] = *adj_iter;
         faces_found++;
-      } 
+      }
     }
 
 //    assert(faces_found == 2 || faces_found == 0);
-    if (2 != faces_found) 
+    if (2 != faces_found)
       continue;
 
     // see if the two entities have a sufficient angle
@@ -976,7 +976,7 @@ void Skinner::find_inferred_edges(Range &skin_boundary,
        inferred_edges.insert(*iter);
     }
   }
-  
+
   result = thisMB->tag_delete(mark_tag);
   assert(MB_SUCCESS == result);
 }
@@ -1015,7 +1015,7 @@ ErrorCode Skinner::find_skin(const EntityHandle this_set,
   ErrorCode result = find_skin(this_set, entities, (dim==0), tmp_skin, 0,
                                  create_vert_elem_adjs, create_skin_elements);
   if (MB_SUCCESS != result || tmp_skin.empty()) return result;
-  
+
   if (tmp_skin.all_of_dimension(dim)) {
     if (skin_entities.empty())
       skin_entities.swap(tmp_skin);
@@ -1028,7 +1028,7 @@ ErrorCode Skinner::find_skin(const EntityHandle this_set,
     if (this_set)
       result = thisMB->add_entities(this_set, skin_entities);
   }
-  
+
   return result;
 }
 
@@ -1043,11 +1043,11 @@ ErrorCode Skinner::find_skin_vertices( const EntityHandle this_set,
   ErrorCode rval;
   if (entities.empty())
     return MB_SUCCESS;
-  
+
   const int dim = CN::Dimension(TYPE_FROM_HANDLE(entities.front()));
   if (dim < 1 || dim > 3 || !entities.all_of_dimension(dim))
     return MB_TYPE_OUT_OF_RANGE;
-  
+
     // are we skinning all entities
   size_t count = entities.size();
   int num_total;
@@ -1055,18 +1055,18 @@ ErrorCode Skinner::find_skin_vertices( const EntityHandle this_set,
   if (MB_SUCCESS != rval)
     return rval;
   bool all = (count == (size_t)num_total);
-  
-    // Create a bit tag for fast intersection with input entities range. 
+
+    // Create a bit tag for fast intersection with input entities range.
     // If we're skinning all the entities in the mesh, we really don't
     // need the tag.  To save memory, just create it with a default value
-    // of one and don't set it.  That way MOAB will return 1 for all 
+    // of one and don't set it.  That way MOAB will return 1 for all
     // entities.
   Tag tag;
   char bit = all ? 1 : 0;
   rval = thisMB->tag_get_handle( NULL, 1, MB_TYPE_BIT, tag, MB_TAG_CREAT, &bit );
   if (MB_SUCCESS != rval)
     return rval;
-  
+
     // tag all entities in input range
   if (!all) {
     std::vector<unsigned char> vect(count, 1);
@@ -1076,7 +1076,7 @@ ErrorCode Skinner::find_skin_vertices( const EntityHandle this_set,
       return rval;
     }
   }
-  
+
   switch (dim) {
     case 1:
       if (skin_verts)
@@ -1088,19 +1088,19 @@ ErrorCode Skinner::find_skin_vertices( const EntityHandle this_set,
       break;
     case 2:
       rval = find_skin_vertices_2D(this_set, tag, entities, skin_verts,
-                                    skin_elems, skin_rev_elems, 
+                                    skin_elems, skin_rev_elems,
                                     create_skin_elems, corners_only );
       break;
     case 3:
       rval = find_skin_vertices_3D( this_set, tag, entities, skin_verts,
-                                    skin_elems, skin_rev_elems, 
+                                    skin_elems, skin_rev_elems,
                                     create_skin_elems, corners_only );
       break;
     default:
       rval = MB_TYPE_OUT_OF_RANGE;
       break;
   }
-  
+
   thisMB->tag_delete(tag);
   return rval;
 }
@@ -1114,7 +1114,7 @@ ErrorCode Skinner::find_skin_vertices_1D( Tag tag,
   // or tangle of edges.)
   //
   // A vertex is on the skin of the edges if it is contained in exactly
-  // one of the edges *in the input range*.  
+  // one of the edges *in the input range*.
   //
   // This function expects the caller to have tagged all edges in the
   // input range with a value of one for the passed bit tag, and all
@@ -1123,17 +1123,17 @@ ErrorCode Skinner::find_skin_vertices_1D( Tag tag,
 
   ErrorCode rval;
   Range::iterator hint = skin_verts.begin();
-  
+
   // All input entities must be edges.
   if (!edges.all_of_dimension(1))
     return MB_TYPE_OUT_OF_RANGE;
-  
+
     // get all the vertices
   Range verts;
   rval = thisMB->get_connectivity( edges, verts, true );
   if (MB_SUCCESS != rval)
     return rval;
-  
+
     // Test how many edges each input vertex is adjacent to.
   std::vector<char> tag_vals;
   std::vector<EntityHandle> adj;
@@ -1155,38 +1155,38 @@ ErrorCode Skinner::find_skin_vertices_1D( Tag tag,
     std::count( tag_vals.begin(), tag_vals.end(), '\001', n );
 #else
     n = std::count( tag_vals.begin(), tag_vals.end(), '\001' );
-#endif    
+#endif
       // If adjacent to only one input edge, then vertex is on skin
     if (n == 1) {
       hint = skin_verts.insert( hint, *it );
     }
   }
-  
+
   return MB_SUCCESS;
 }
 
 
 // A Container for storing a list of element sides adjacent
-// to a vertex.  The template parameter is the number of 
+// to a vertex.  The template parameter is the number of
 // corners for the side.
-template <unsigned CORNERS> 
-class AdjSides 
+template <unsigned CORNERS>
+class AdjSides
 {
 public:
-  
+
   /**
    * This struct is used to for a reduced representation of element
-   * "sides" adjacent to a give vertex.  As such, it 
+   * "sides" adjacent to a give vertex.  As such, it
    * a) does not store the initial vertex that all sides are adjacent to
    * b) orders the remaining vertices in a specific way for fast comparison.
-   * 
+   *
    * For edge elements, only the opposite vertex is stored.
    * For triangle elements, only the other two vertices are stored,
    *   and they are stored with the smaller of those two handles first.
    * For quad elements, only the other three vertices are stored.
    *  They are stored such that the vertex opposite the implicit (not
-   *  stored) vertex is always in slot 1.  The other two vertices 
-   *  (in slots 0 and 2) are ordered such that the handle of the one in 
+   *  stored) vertex is always in slot 1.  The other two vertices
+   *  (in slots 0 and 2) are ordered such that the handle of the one in
    *  slot 0 is smaller than the handle in slot 2.
    *
    * For each side, the adj_elem field is used to store the element that
@@ -1199,7 +1199,7 @@ public:
     EntityHandle handles[CORNERS-1]; //!< side vertices, except for implicit one
     EntityHandle adj_elem;           //!< element that this is a side of, or zero
     bool skin() const { return 0 != adj_elem; }
-    
+
     /** construct from connectivity of side
      *\param array The connectivity of the element side.
      *\param idx   The index of the implicit vertex (contained
@@ -1207,8 +1207,8 @@ public:
      *\param adj   The element that this is a side of.
      */
     Side( const EntityHandle* array, int idx,
-          EntityHandle adj, unsigned short  ) 
-      : adj_elem(adj) 
+          EntityHandle adj, unsigned short  )
+      : adj_elem(adj)
     {
       switch (CORNERS) {
         case 3: handles[1] = array[(idx+2)%CORNERS];
@@ -1220,7 +1220,7 @@ public:
       if (CORNERS == 3 && handles[1] > handles[0])
         std::swap( handles[0], handles[1] );
     }
-    
+
     /** construct from connectivity of parent element
      *\param array The connectivity of the parent element
      *\param idx   The index of the implicit vertex (contained
@@ -1232,7 +1232,7 @@ public:
      */
     Side( const EntityHandle* array,  int idx,
           EntityHandle adj, unsigned short ,
-          const short* indices ) 
+          const short* indices )
       : adj_elem(adj)
     {
       switch (CORNERS) {
@@ -1245,14 +1245,14 @@ public:
       if (CORNERS == 3 && handles[1] > handles[0])
         std::swap( handles[0], handles[1] );
     }
-   
-    // Compare two side instances.  Relies in the ordering of 
+
+    // Compare two side instances.  Relies in the ordering of
     // vertex handles as described above.
-    bool operator==( const Side& other ) const 
+    bool operator==( const Side& other ) const
     {
       switch (CORNERS) {
         case 3:
-          return handles[0] == other.handles[0] 
+          return handles[0] == other.handles[0]
               && handles[1] == other.handles[1];
         case 2:
           return handles[0] == other.handles[0];
@@ -1268,21 +1268,21 @@ private:
 
   std::vector<Side> data; //!< List of sides
   size_t skin_count;      //!< Cached count of sides that are skin
-  
+
 public:
 
   typedef typename std::vector<Side>::iterator iterator;
   typedef typename std::vector<Side>::const_iterator const_iterator;
   const_iterator begin() const { return data.begin(); }
   const_iterator end() const { return data.end(); }
-  
+
   void clear() { data.clear(); skin_count = 0; }
   bool empty() const { return data.empty(); }
-  
+
   AdjSides() : skin_count(0) {}
-  
+
   size_t num_skin() const { return skin_count; }
-  
+
     /** \brief insert side, specifying side connectivity
      *
      * Either insert a new side, or if the side is already in the
@@ -1309,7 +1309,7 @@ public:
       --skin_count; // decrement cached count of skin elements
     }
   }
-  
+
     /** \brief insert side, specifying list of indices into parent element
      * connectivity.
      *
@@ -1341,7 +1341,7 @@ public:
       --skin_count; // decrement cached count of skin elements
     }
   }
-  
+
   /**\brief Search list for a given side, and if found, mark as not skin.
    *
    *\param other   Connectivity of side
@@ -1354,7 +1354,7 @@ public:
    * in the list.  If it does, clear the "is skin" state of the side so
    * that we know that we don't need to later create the side element.
    */
-  bool find_and_unmark( const EntityHandle* other, int skip_index, EntityHandle& elem_out ) 
+  bool find_and_unmark( const EntityHandle* other, int skip_index, EntityHandle& elem_out )
   {
     Side s( other, skip_index, 0, 0 );
     iterator p = std::find( data.begin(), data.end(), s );
@@ -1377,7 +1377,7 @@ public:
   */
 template<>
 AdjSides<4>::Side::Side( const EntityHandle* array, int idx,
-      EntityHandle adj, unsigned short  ) 
+      EntityHandle adj, unsigned short  )
   : adj_elem(adj)
 {
   const unsigned int CORNERS=4;
@@ -1400,7 +1400,7 @@ AdjSides<4>::Side::Side( const EntityHandle* array, int idx,
 template<>
 AdjSides<4>::Side::Side( const EntityHandle* array,  int idx,
       EntityHandle adj, unsigned short ,
-      const short* indices ) 
+      const short* indices )
   : adj_elem(adj)
 {
   const unsigned int CORNERS=4;
@@ -1411,12 +1411,12 @@ AdjSides<4>::Side::Side( const EntityHandle* array,  int idx,
     std::swap( handles[0], handles[2] );
 }
 
-// Compare two side instances.  Relies in the ordering of 
+// Compare two side instances.  Relies in the ordering of
 // vertex handles as described above.
 template<>
-bool AdjSides<4>::Side::operator==( const Side& other ) const 
+bool AdjSides<4>::Side::operator==( const Side& other ) const
 {
-  return handles[0] == other.handles[0] 
+  return handles[0] == other.handles[0]
       && handles[1] == other.handles[1]
       && handles[2] == other.handles[2];
 }
@@ -1425,7 +1425,7 @@ bool AdjSides<4>::Side::operator==( const Side& other ) const
 // Utility function used by find_skin_vertices_2D and
 // find_skin_vertices_3D to create elements representing
 // the skin side of a higher-dimension element if one
-// does not already exist.  
+// does not already exist.
 //
 // Some arguments may seem redundant, but they are used
 // to create the correct order of element when the input
@@ -1452,11 +1452,11 @@ ErrorCode Skinner::create_side( const EntityHandle this_set, EntityHandle elem,
   const int ncorner = CN::VerticesPerEntity( side_type );
   const int d = CN::Dimension(side_type);
   std::vector<EntityHandle> storage;
-  
+
   // Get the connectivity of the parent element
   rval = thisMB->get_connectivity( elem, conn, len, false, &storage );
   if (MB_SUCCESS != rval) return rval;
- 
+
   // treat separately MBPOLYGON; we want to create the edge in the
   // forward sense always ; so figure out the sense first, then get out
   if (MBPOLYGON==type && 1==d && MBEDGE==side_type)
@@ -1505,14 +1505,14 @@ ErrorCode Skinner::create_side( const EntityHandle this_set, EntityHandle elem,
   CN::SubEntityNodeIndices( type, len, d, side, tmp_type, side_len, indices );
   assert(side_len <= max_side);
   assert(side_type == tmp_type);
-  
+
   //NOTE: re-create conn array even when no higher-order nodes
   //      because we want it to always be forward with respect
   //      to the side ordering.
   EntityHandle side_conn_full[max_side];
   for (int i = 0; i < side_len; ++i)
     side_conn_full[i] = conn[indices[i]];
-  
+
   rval = thisMB->create_element( side_type, side_conn_full, side_len, side_elem );MB_CHK_ERR(rval);
   if (this_set)
     {
@@ -1555,7 +1555,7 @@ bool Skinner::face_reversed( EntityHandle region,
     assert(false);
     return false;
   }
-  short r = CN::SideNumber( TYPE_FROM_HANDLE(region), conn, face_corners, 
+  short r = CN::SideNumber( TYPE_FROM_HANDLE(region), conn, face_corners,
                               CN::VerticesPerEntity(face_type),
                               CN::Dimension(face_type),
                               side, sense, offset );
@@ -1575,14 +1575,14 @@ ErrorCode Skinner::find_skin_vertices_2D( const EntityHandle this_set, Tag tag,
   // input face list.  For each such vertex, it then iterates over
   // all of the sides of the face elements adjacent to the vertex.
   // If an adjacent side is the side of only one of the input
-  // faces, then that side is on the skin.  
+  // faces, then that side is on the skin.
   //
   // This algorithm will visit each skin vertex exactly once.  It
   // will visit each skin side once for each vertex in the side.
   //
   // This function expects the caller to have created the passed bit
   // tag and set it to one only for the faces in the passed range.  This
-  // tag is used to do a fast intersection of the faces adjacent to a 
+  // tag is used to do a fast intersection of the faces adjacent to a
   // vertex with the faces in the input range (discard any for which the
   // tag is not set to one.)
 
@@ -1597,22 +1597,22 @@ ErrorCode Skinner::find_skin_vertices_2D( const EntityHandle this_set, Tag tag,
   bool find_edges = skin_edges || create_edges;
   bool printed_nonconformal_ho_warning = false;
   EntityHandle face;
-  
+
   if (!faces.all_of_dimension(2))
     return MB_TYPE_OUT_OF_RANGE;
-  
+
     // get all the vertices
   Range verts;
   rval = thisMB->get_connectivity( faces, verts, true );
   if (MB_SUCCESS != rval)
     return rval;
-  
+
   std::vector<char> tag_vals;
   std::vector<EntityHandle> adj;
   AdjSides<2> adj_edges;
   for (Range::const_iterator it = verts.begin(); it != verts.end(); ++it) {
     bool higher_order = false;
-  
+
       // get all adjacent faces
     adj.clear();
     rval = thisMB->get_adjacencies( &*it, 1, 2, false, adj );
@@ -1627,21 +1627,21 @@ ErrorCode Skinner::find_skin_vertices_2D( const EntityHandle this_set, Tag tag,
     if (MB_SUCCESS != rval) return rval;
       // remove non-tagged entries
     i = j = adj.begin();
-    for (; i != adj.end(); ++i) 
+    for (; i != adj.end(); ++i)
       if (tag_vals[i - adj.begin()])
         *(j++) = *i;
     adj.erase( j, adj.end() );
-    
+
       // For each adjacent face, check the edges adjacent to the current vertex
     adj_edges.clear();    // other vertex for adjacent edges
     for (i = adj.begin(); i != adj.end(); ++i) {
       rval = thisMB->get_connectivity( *i, conn, len, false, &storage );
       if (MB_SUCCESS != rval) return rval;
-      
+
         // For a single face element adjacent to this vertex, there
         // will be exactly two sides (edges) adjacent to the vertex.
         // Find the other vertex for each of the two edges.
-        
+
       EntityHandle prev, next; // vertices of two adjacent edge-sides
       const int idx = std::find(conn, conn+len, *it) - conn;
       assert(idx != len);
@@ -1654,7 +1654,7 @@ ErrorCode Skinner::find_skin_vertices_2D( const EntityHandle this_set, Tag tag,
             printed_nonconformal_ho_warning = true;
             std::cerr << "Non-conformal higher-order mesh detected in skinner: "
                       << "vertex " << ID_FROM_HANDLE(*it) << " is a corner in "
-                      << "some elements and a higher-order node in others" 
+                      << "some elements and a higher-order node in others"
                       << std::endl;
           }
           continue;
@@ -1668,7 +1668,7 @@ ErrorCode Skinner::find_skin_vertices_2D( const EntityHandle this_set, Tag tag,
             printed_nonconformal_ho_warning = true;
             std::cerr << "Non-conformal higher-order mesh detected in skinner: "
                       << "vertex " << ID_FROM_HANDLE(*it) << " is a corner in "
-                      << "some elements and a higher-order node in others" 
+                      << "some elements and a higher-order node in others"
                       << std::endl;
           }
           continue;
@@ -1681,24 +1681,24 @@ ErrorCode Skinner::find_skin_vertices_2D( const EntityHandle this_set, Tag tag,
       next = conn[(idx+1)%len];
       if (next == conn[idx]) // it must be the padded case, so roll to the beginning
         next = conn[0];
-      
+
         // Insert sides (edges) in our list of candidate skin sides
       adj_edges.insert( &prev, 1, *i, prev_idx );
       adj_edges.insert( &next, 1, *i, idx );
     }
-    
+
       // If vertex is not on skin, advance to next vertex.
       // adj_edges handled checking for duplicates on insertion.
       // If every candidate skin edge occurred more than once (was
       // not in fact on the skin), then we're done with this vertex.
     if (0 == adj_edges.num_skin())
       continue;
-    
+
       // If user requested Range of *vertices* on the skin...
     if (skin_verts) {
         // Put skin vertex in output list
       hint = skin_verts->insert( hint, *it );
- 
+
         // Add mid edge nodes to vertex list
       if (!corners_only && higher_order) {
         for (AdjSides<2>::const_iterator p = adj_edges.begin(); p != adj_edges.end(); ++p) {
@@ -1721,7 +1721,7 @@ ErrorCode Skinner::find_skin_vertices_2D( const EntityHandle this_set, Tag tag,
         }
       }
     }
- 
+
       // If user requested Range of *edges* on the skin...
     if (find_edges) {
         // Search list of existing adjacent edges for any that are on the skin
@@ -1733,11 +1733,11 @@ ErrorCode Skinner::find_skin_vertices_2D( const EntityHandle this_set, Tag tag,
         if (MB_SUCCESS != rval) return rval;
 
           // bool equality expression within find_and_unmark call
-          // will be evaluate to the index of *it in the conn array. 
+          // will be evaluate to the index of *it in the conn array.
           //
           // Note that the order of the terms in the if statement is important.
-          // We want to unmark any existing skin edges even if we aren't 
-          // returning them.  Otherwise we'll end up creating duplicates 
+          // We want to unmark any existing skin edges even if we aren't
+          // returning them.  Otherwise we'll end up creating duplicates
           // if create_edges is true and skin_edges is not.
         if (adj_edges.find_and_unmark( conn, (conn[1] == *it), face ) && skin_edges) {
           if (reversed_edges && edge_reversed( face, conn ))
@@ -1747,7 +1747,7 @@ ErrorCode Skinner::find_skin_vertices_2D( const EntityHandle this_set, Tag tag,
         }
       }
     }
-    
+
       // If the user requested that we create new edges for sides
       // on the skin for which there is no existing edge, and there
       // are still skin sides for which no corresponding edge was found...
@@ -1765,10 +1765,10 @@ ErrorCode Skinner::find_skin_vertices_2D( const EntityHandle this_set, Tag tag,
     }
 
   } // end for each vertex
-  
+
   return MB_SUCCESS;
 }
-  
+
 
 ErrorCode Skinner::find_skin_vertices_3D(const EntityHandle this_set, Tag tag,
                                               const Range& entities,
@@ -1782,14 +1782,14 @@ ErrorCode Skinner::find_skin_vertices_3D(const EntityHandle this_set, Tag tag,
   // input vol elem list.  For each such vertex, it then iterates over
   // all of the sides of the vol elements adjacent to the vertex.
   // If an adjacent side is the side of only one of the input
-  // elements, then that side is on the skin.  
+  // elements, then that side is on the skin.
   //
   // This algorithm will visit each skin vertex exactly once.  It
   // will visit each skin side once for each vertex in the side.
   //
   // This function expects the caller to have created the passed bit
   // tag and set it to one only for the elements in the passed range.  This
-  // tag is used to do a fast intersection of the elements adjacent to a 
+  // tag is used to do a fast intersection of the elements adjacent to a
   // vertex with the elements in the input range (discard any for which the
   // tag is not set to one.)
   //
@@ -1822,10 +1822,10 @@ ErrorCode Skinner::find_skin_vertices_3D(const EntityHandle this_set, Tag tag,
   EntityType face_type;
   EntityHandle elem;
   bool printed_nonconformal_ho_warning = false;
-  
+
   if (!entities.all_of_dimension(3))
     return MB_TYPE_OUT_OF_RANGE;
-  
+
   // get all the vertices
   Range verts;
   rval = thisMB->get_connectivity( entities, verts, true );
@@ -1843,8 +1843,8 @@ ErrorCode Skinner::find_skin_vertices_3D(const EntityHandle this_set, Tag tag,
       return rval;
     assert(verts.all_of_dimension(0));
   }
-    
-  
+
+
   AdjSides<4> adj_quads; // 4-node sides adjacent to a vertex
   AdjSides<3> adj_tris;  // 3-node sides adjacent to a vertex
   AdjSides<2> adj_poly;  // n-node sides (n>5) adjacent to vertex
@@ -1854,24 +1854,24 @@ ErrorCode Skinner::find_skin_vertices_3D(const EntityHandle this_set, Tag tag,
   std::vector<EntityHandle> adj;
   for (Range::const_iterator it = verts.begin(); it != verts.end(); ++it) {
     bool higher_order = false;
-  
+
       // get all adjacent elements
     adj.clear();
     rval = thisMB->get_adjacencies( &*it, 1, 3, false, adj );
     if (MB_SUCCESS != rval) return rval;
     if (adj.empty())
       continue;
-      
+
       // remove those not tagged (intersect with input range)
     i = j = adj.begin();
     tag_vals.resize( adj.size() );
     rval = thisMB->tag_get_data( tag, &adj[0], adj.size(), &tag_vals[0] );
     if (MB_SUCCESS != rval) return rval;
-    for (; i != adj.end(); ++i) 
+    for (; i != adj.end(); ++i)
       if (tag_vals[i - adj.begin()])
         *(j++) = *i;
     adj.erase( j, adj.end() );
-      
+
       // Build lists of sides of 3D element adjacent to the current vertex
     adj_quads.clear(); // store three other vertices for each adjacent quad face
     adj_tris.clear();  // store two other vertices for each adjacent tri face
@@ -1879,7 +1879,7 @@ ErrorCode Skinner::find_skin_vertices_3D(const EntityHandle this_set, Tag tag,
     int idx;
     for (i = adj.begin(); i != adj.end(); ++i) {
       const EntityType type = TYPE_FROM_HANDLE(*i);
-      
+
         // Special case for POLYHEDRA
       if (type == MBPOLYHEDRON) {
         rval = thisMB->get_connectivity( *i, conn, len );
@@ -1890,7 +1890,7 @@ ErrorCode Skinner::find_skin_vertices_3D(const EntityHandle this_set, Tag tag,
           idx = std::find( conn2, conn2+len2, *it) - conn2;
           if (idx == len2) // vertex not in this face
             continue;
-          
+
             // Treat 3- and 4-vertex faces specially, so that
             // if the mesh contains both elements and polyhedra,
             // we don't miss one type adjacent to the other.
@@ -1913,7 +1913,7 @@ ErrorCode Skinner::find_skin_vertices_3D(const EntityHandle this_set, Tag tag,
 
         idx = std::find(conn, conn+len, *it) - conn;
         assert(idx != len);
-        
+
         if (len > CN::VerticesPerEntity( type )) {
           higher_order =true;
             // skip higher-order nodes for now
@@ -1922,7 +1922,7 @@ ErrorCode Skinner::find_skin_vertices_3D(const EntityHandle this_set, Tag tag,
               printed_nonconformal_ho_warning = true;
               std::cerr << "Non-conformal higher-order mesh detected in skinner: "
                         << "vertex " << ID_FROM_HANDLE(*it) << " is a corner in "
-                        << "some elements and a higher-order node in others" 
+                        << "some elements and a higher-order node in others"
                         << std::endl;
             }
             continue;
@@ -1953,16 +1953,16 @@ ErrorCode Skinner::find_skin_vertices_3D(const EntityHandle this_set, Tag tag,
         }
       }
     } // end for (adj[3])
-    
+
       // If vertex is not on skin, advance to next vertex
     if (0 == (adj_tris.num_skin() + adj_quads.num_skin() + adj_poly.num_skin()))
       continue;
-    
+
       // If user requested that skin *vertices* be passed back...
     if (skin_verts) {
         // Put skin vertex in output list
       hint = skin_verts->insert( hint, *it );
- 
+
         // Add mid-edge and mid-face nodes to vertex list
       if (!corners_only && higher_order) {
         for (AdjSides<3>::const_iterator t = adj_tris.begin(); t != adj_tris.end(); ++t) {
@@ -2022,8 +2022,8 @@ ErrorCode Skinner::find_skin_vertices_3D(const EntityHandle this_set, Tag tag,
         }
 
           // Note that the order of the terms in the if statements below
-          // is important.  We want to unmark any existing skin faces even 
-          // if we aren't returning them.  Otherwise we'll end up creating 
+          // is important.  We want to unmark any existing skin faces even
+          // if we aren't returning them.  Otherwise we'll end up creating
           // duplicates if create_faces is true.
         if (3 == len) {
           if (adj_tris.find_and_unmark( conn, idx2, elem ) && skin_faces) {
@@ -2049,8 +2049,8 @@ ErrorCode Skinner::find_skin_vertices_3D(const EntityHandle this_set, Tag tag,
     }
 
       // If user does not want use to create new faces representing
-      // sides for which there is currently no explicit element, 
-      // skip the remaining code and advance the outer loop to the 
+      // sides for which there is currently no explicit element,
+      // skip the remaining code and advance the outer loop to the
       // next vertex.
     if (!create_faces)
       continue;
@@ -2058,7 +2058,7 @@ ErrorCode Skinner::find_skin_vertices_3D(const EntityHandle this_set, Tag tag,
       // Polyhedra always have explicitly defined faces, so
       // there is no way we could need to create such a face.
     assert(0 == adj_poly.num_skin());
-    
+
       // Create any skin tris that don't exist
     if (adj_tris.num_skin()) {
       for (AdjSides<3>::const_iterator t = adj_tris.begin(); t != adj_tris.end(); ++t) {
@@ -2071,7 +2071,7 @@ ErrorCode Skinner::find_skin_vertices_3D(const EntityHandle this_set, Tag tag,
         }
       }
     }
-    
+
       // Create any skin quads that don't exist
     if (adj_quads.num_skin()) {
       for (AdjSides<4>::const_iterator q = adj_quads.begin(); q != adj_quads.end(); ++q) {
@@ -2085,7 +2085,7 @@ ErrorCode Skinner::find_skin_vertices_3D(const EntityHandle this_set, Tag tag,
       }
     }
   } // end for each vertex
-  
+
   return MB_SUCCESS;
 }
 

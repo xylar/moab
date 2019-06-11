@@ -23,7 +23,7 @@ GeomQueryTool* GQT;
 
 const std::string input_file = TestDir + "/test_geom.h5m";
 
-void gqt_setup_test() 
+void gqt_setup_test()
 {
   MBI = new Core();
   ErrorCode rval = MBI->load_file(input_file.c_str());
@@ -93,7 +93,7 @@ void gqt_point_in_vol_2()
   int vol_idx = 1;
   double dir[3] = {1.0, 0.0, 0.0};
   double origin[3] = {0.0, 0.0, 0.0};
-  
+
   int result = gqt_point_in_vol_dir(origin, dir, vol_idx);
 
   CHECK_EQUAL(expected_result, result);
@@ -122,7 +122,7 @@ void gqt_point_in_vol_4()
 
   CHECK_EQUAL(expected_result, result);
 }
-  
+
 void gqt_point_in_vol_5()
 {
   int expected_result = 1;
@@ -246,10 +246,10 @@ void gqt_point_on_corner_8()
 int main(int /* argc */, char** /* argv */)
 {
   int result = 0;
-  
+
   result += RUN_TEST(gqt_setup_test); // setup problem
   result += RUN_TEST(gqt_point_in); // point in centre
-  // rays fired along cardinal directions 
+  // rays fired along cardinal directions
   result += RUN_TEST(gqt_point_in_vol_1); // point in centre
   result += RUN_TEST(gqt_point_in_vol_2); // point in centre
   result += RUN_TEST(gqt_point_in_vol_3); // point in centre
@@ -272,6 +272,6 @@ int main(int /* argc */, char** /* argv */)
   delete GQT;
   delete GTT;
   delete MBI;
-  
+
   return result;
 }

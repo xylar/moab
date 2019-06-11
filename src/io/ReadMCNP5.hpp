@@ -1,5 +1,5 @@
 /**
- * MOAB, a Mesh-Oriented datABase, is a software component for creating,  
+ * MOAB, a Mesh-Oriented datABase, is a software component for creating,
  * storing and accessing finite element mesh data.
  *
  * Copyright 2004 Sandia Corporation.  Under the terms of Contract
@@ -8,13 +8,13 @@
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either 
+ * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- *                                 
- */ 
+ *
+ */
 
 //----------------------------------------------------------------------
-// Filename : ReadMCNP5.hpp    
+// Filename : ReadMCNP5.hpp
 // Purpose  : Read a meshtal file created by MCNP5 into MOAB
 // Creator  : Brandon Smith
 // Date     : 07/2009
@@ -54,7 +54,7 @@ class ReadMCNP5 : public ReaderIface
 public:
   // factory method
   static ReaderIface* factory( Interface* );
-  
+
   ErrorCode load_file( const char* file_name,
                        const EntityHandle* file_set,
                        const FileOptions& opts,
@@ -72,9 +72,9 @@ public:
 
   // destructor
   virtual ~ReadMCNP5();
-  
+
 protected:
-  
+
 private:
   // constants
   static const double PI;
@@ -88,13 +88,13 @@ private:
   enum particle { NEUTRON,
                   PHOTON,
                   ELECTRON };
-  
+
   // read mesh interface
   ReadUtilIface* readMeshIface;
-  
+
   // MOAB Interface
   Interface* MBI;
-  
+
   const Tag* fileIDTag;
   int nodeId, elemId;
 
@@ -103,24 +103,24 @@ private:
                              const EntityHandle *input_meshset,
                              const FileOptions    &options,
                              const bool           average );
-  
-  ErrorCode create_tags( Tag &date_and_time_tag,  
+
+  ErrorCode create_tags( Tag &date_and_time_tag,
                            Tag &title_tag,
-                           Tag &nps_tag, 
-                           Tag &tally_number_tag,   
+                           Tag &nps_tag,
+                           Tag &tally_number_tag,
                            Tag &tally_comment_tag,
-                           Tag &tally_particle_tag, 
+                           Tag &tally_particle_tag,
                            Tag &tally_coord_sys_tag,
-                           Tag &tally_tag,          
+                           Tag &tally_tag,
                            Tag &error_tag );
 
   ErrorCode read_file_header( std::fstream      &file,
                                 bool              debug,
-                                char              date_and_time[100], 
-                                char              title[100], 
+                                char              date_and_time[100],
+                                char              title[100],
                                 unsigned long int &nps );
 
-  ErrorCode set_header_tags( EntityHandle             output_meshset, 
+  ErrorCode set_header_tags( EntityHandle             output_meshset,
                                         char              date_and_time[100],
                                         char              title[100],
                                         unsigned long int nps,
@@ -138,13 +138,13 @@ private:
                                   bool        debug,
                                   particle    &tally_particle );
 
-  ErrorCode read_mesh_planes( std::fstream         &file, 
-                                bool                 debug, 
-                                std::vector<double>  planes[3], 
+  ErrorCode read_mesh_planes( std::fstream         &file,
+                                bool                 debug,
+                                std::vector<double>  planes[3],
                                 coordinate_system    &coord_sys);
 
-  ErrorCode get_mesh_plane( std::istringstream  &ss, 
-                              bool                debug, 
+  ErrorCode get_mesh_plane( std::istringstream  &ss,
+                              bool                debug,
                               std::vector<double> &plane);
 
   ErrorCode read_element_values_and_errors( std::fstream        &file,
@@ -161,7 +161,7 @@ private:
                               char              tally_comment[100],
                               particle          tally_particle,
                               coordinate_system tally_coord_sys,
-                              Tag             tally_number_tag, 
+                              Tag             tally_number_tag,
                               Tag             tally_comment_tag,
                               Tag             tally_particle_tag,
                               Tag             tally_coord_sys_tag );
@@ -171,8 +171,8 @@ private:
                                EntityHandle      &start_vert,
                                coordinate_system   coord_sys,
                                EntityHandle      tally_meshset );
- 
-  ErrorCode create_elements( bool                debug, 
+
+  ErrorCode create_elements( bool                debug,
                                std::vector<double> planes[3],
                                unsigned int        n_chopped_x0_planes,
                                unsigned int        n_chopped_x2_planes,
@@ -195,12 +195,12 @@ private:
                                            double            values[],
                                            double            errors[],
                                            unsigned int      n_elements );
-  
-  ErrorCode transform_point_to_cartesian(double *in, 
-                                           double *out, 
+
+  ErrorCode transform_point_to_cartesian(double *in,
+                                           double *out,
                                            coordinate_system coord_sys);
 
-  ErrorCode average_tally_values(const unsigned long int nps0, 
+  ErrorCode average_tally_values(const unsigned long int nps0,
                                    const unsigned long int nps1,
                                    double                  *values0,
                                    const double            *values1,

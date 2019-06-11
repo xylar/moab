@@ -19,15 +19,15 @@ namespace moab {
 
   class ParallelComm;
   class TupleList;
-  
+
   class ParallelMergeMesh {
   public:
-    ParallelMergeMesh(ParallelComm *pc, 
+    ParallelMergeMesh(ParallelComm *pc,
 		      const double epsilon);
-    
+
     //Public Function to identify shared elements
     ErrorCode merge(EntityHandle levelset=0, bool skip_local_merge=false);
-    
+
   private:
     ParallelComm *myPcomm;
     Interface *myMB;
@@ -35,7 +35,7 @@ namespace moab {
     double myEps;
     TupleList myTup, myMatches;
     gs_data::crystal_data myCD;
-    
+
     //Wrapper of merge() that performs the merge
     ErrorCode PerformMerge(EntityHandle levelset=0, bool skip_local_merge=false);
     //Determine the local skin entities (fills mySkinEnts)
@@ -57,31 +57,31 @@ namespace moab {
     ErrorCode PartitionGlobalBox(double *gbox, double *lengths, int *parts);
     //A function for determining how many parts a side should be split into
     static int PartitionSide(double sideLeng, double restLen, unsigned numProcs, bool altRatio);
-    
+
     //Swap 2 tuples
-    static void SwapTuples(TupleList &tup, 
-			   unsigned long a, 
+    static void SwapTuples(TupleList &tup,
+			   unsigned long a,
 			   unsigned long b);
-    
+
     //Sort a tuple list by its real values
     static void SortTuplesByReal(TupleList &tup,
 				 double eps2=0);
-    
+
     //The recursive sorting function
-    static void PerformRealSort(TupleList &tup, 
-				unsigned long left, 
+    static void PerformRealSort(TupleList &tup,
+				unsigned long left,
 				unsigned long right,
 				double eps2,
 				uint tup_mr);
-    
+
     //Determines whether tuple i is greater than tuple j
-    static bool TupleGreaterThan(TupleList &tup, 
-				 unsigned long vrI, 
-				 unsigned long vrJ, 
-				 double eps2, 
+    static bool TupleGreaterThan(TupleList &tup,
+				 unsigned long vrI,
+				 unsigned long vrJ,
+				 double eps2,
 				 uint tup_mr);
   };
-  
+
 } // namespace moab
 
 #endif

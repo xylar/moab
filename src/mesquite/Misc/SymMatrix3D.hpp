@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2007 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2008) kraftche@cae.wisc.edu    
+    (2008) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file SymMatrix3D.hpp
  *  \brief Symetric 3x3 Matrix
- *  \author Jason Kraftcheck 
+ *  \author Jason Kraftcheck
  */
 
 #ifndef MSQ_SYM_MATRIX_3D_HPP
@@ -54,20 +54,20 @@ public:
     T21 = T12,
     T22 = 5
   };
-  
+
   inline static Term term( unsigned r, unsigned c )
     { return (Term)(r <= c ? 3*r - r*(r+1)/2 + c : 3*c - c*(c+1)/2 + r); }
-  
+
   SymMatrix3D() {}
-  
+
   SymMatrix3D( double diagonal_value ) {
     d_[T00] = d_[T11] = d_[T22] = diagonal_value;
     d_[T01] = d_[T02] = d_[T12] = 0.0;
   }
-  
+
   SymMatrix3D( double t00, double t01, double t02,
                            double t11, double t12,
-                                       double t22 ) 
+                                       double t22 )
   {
     d_[T00] = t00;
     d_[T01] = t01;
@@ -76,7 +76,7 @@ public:
     d_[T12] = t12;
     d_[T22] = t22;
   }
-    
+
     /**\brief Outer product */
   SymMatrix3D( const Vector3D& u )
   {
@@ -87,16 +87,16 @@ public:
     d_[T12] = u[1] * u[2];
     d_[T22] = u[2] * u[2];
   }
-    
- 
+
+
   double& operator[]( unsigned t )       { return d_[t]; }
   double  operator[]( unsigned t ) const { return d_[t]; }
-  
+
   double& operator()( unsigned short r, unsigned short c )
     { return d_[term(r,c)]; }
   double  operator()( unsigned short r, unsigned short c ) const
     { return d_[term(r,c)]; }
-  
+
   inline SymMatrix3D& operator+=( const SymMatrix3D& other );
   inline SymMatrix3D& operator-=( const SymMatrix3D& other );
   inline SymMatrix3D& operator*=( double scalar );
@@ -105,7 +105,7 @@ public:
 
 inline SymMatrix3D operator-( const SymMatrix3D& m )
 {
-  return SymMatrix3D( 
+  return SymMatrix3D(
     -m[SymMatrix3D::T00], -m[SymMatrix3D::T01], -m[SymMatrix3D::T02],
                           -m[SymMatrix3D::T11], -m[SymMatrix3D::T12],
                                                 -m[SymMatrix3D::T22] );

@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2006 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
+
     (2006) kraftche@cae.wisc.edu
-   
+
   ***************************************************************** */
 
 
 /** \file MsqMatrix.hpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #ifndef MSQ_MSQ_MATRIX_HPP
@@ -47,7 +47,7 @@ namespace MBMesquite {
  * This class implements a fixed-size 2-dimensional matrix.
  * The actual size is specified with template parameters.
  */
-template <unsigned R, unsigned C> 
+template <unsigned R, unsigned C>
 class MsqMatrix
 {
 protected:
@@ -55,7 +55,7 @@ protected:
 
 public:
   typedef MsqMatrix<R,C> my_type;
-  
+
   enum { ROWS = R, COLS = C };
 
     /** Constructor for uninitialized matrix */
@@ -75,22 +75,22 @@ public:
     /** Parse initial values from string */
   MsqMatrix( const std::string& s )               { set(s); }
     /** Initialize to the minor of a larger matrix
-     *  This matrix is the passed matrix with the 
+     *  This matrix is the passed matrix with the
      *  specified row and column removed.
      */
   MsqMatrix( const MsqMatrix<R+1,C+1>& p_m, unsigned p_r, unsigned p_c )
                                                       { make_minor(p_m,p_r,p_c); }
-  
+
   MsqMatrix<R,C>& operator=( double v )                 { set(v); return *this; }
   MsqMatrix<R,C>& operator=( const double* v )          { set(v); return *this; }
   MsqMatrix<R,C>& operator=( const char* s )            { set(s); return *this; }
   MsqMatrix<R,C>& operator=( const std::string& s ) { set(s); return *this; }
-  
+
   double& operator()( unsigned r, unsigned c )        { return m[r*C+c]; }
   double  operator()( unsigned r, unsigned c ) const  { return m[r*C+c]; }
   double* data()                                      { return m; }
   const double* data() const                          { return m; }
-  
+
   void zero()                                         { set(0.0);  }
   void identity()                                     { diag(1.0); }
   void set( double v )        { for (unsigned i = 0; i < R*C; ++i) m[i] = v; }
@@ -104,7 +104,7 @@ public:
   inline void diag( const double* v );
     /** Set this matrix to the minor of a larger matrix */
   inline void make_minor( const MsqMatrix<R+1,C+1>& m, unsigned r, unsigned c );
-  
+
     /** *this += transpose(other) */
   inline MsqMatrix<R,C>& assign_add_transpose( const MsqMatrix<C,R>& other );
     /** *this = s*m */
@@ -113,20 +113,20 @@ public:
   inline MsqMatrix<R,C>& assign_add_product( double s, const MsqMatrix<R,C>& m );
     /** multiply each element by the cooresponding element in m */
   inline MsqMatrix<R,C>& assign_multiply_elements( const MsqMatrix<R,C>& m );
-  
+
   inline MsqMatrix<R,C>& operator+=( const MsqMatrix<R,C>& other );
   inline MsqMatrix<R,C>& operator-=( const MsqMatrix<R,C>& other );
   inline MsqMatrix<R,C>& operator+=( double scalar );
   inline MsqMatrix<R,C>& operator-=( double scalar );
   inline MsqMatrix<R,C>& operator*=( double scalar );
   inline MsqMatrix<R,C>& operator/=( double scalar );
-  
+
   //      MsqMatrix<1,C>& row( unsigned r )       { return *(MsqMatrix<1,C>*)(m+C*r); }
   //const MsqMatrix<1,C>& row( unsigned r ) const { return *(MsqMatrix<1,C>*)(m+C*r); }
   MsqMatrix<1,C> row( unsigned r ) const { return MsqMatrix<1,C>(m+C*r); }
   MsqMatrix<R,1> column( unsigned c ) const;
   MsqMatrix<1,R> column_transpose( unsigned c ) const;
-  
+
   void set_row( unsigned r, const MsqMatrix<1,C>& v );
   void add_row( unsigned r, const MsqMatrix<1,C>& v );
   void set_row_transpose( unsigned r, const MsqMatrix<C,1>& v );
@@ -137,7 +137,7 @@ public:
   void set_columns( const MsqMatrix<R,1>* v );
 };
 
-template <> 
+template <>
 class MsqMatrix<1,1>
 {
 protected:
@@ -145,7 +145,7 @@ protected:
 
 public:
   typedef MsqMatrix<1,1> my_type;
-  
+
   enum { ROWS = 1, COLS = 1 };
 
     /** Constructor for uninitialized matrix */
@@ -159,21 +159,21 @@ public:
     /** Parse initial values from string */
   MsqMatrix( const std::string& s )               { set(s); }
     /** Initialize to the minor of a larger matrix
-     *  This matrix is the passed matrix with the 
+     *  This matrix is the passed matrix with the
      *  specified row and column removed.
      */
   MsqMatrix( const MsqMatrix<2,2>& M, unsigned r, unsigned c ) :  m(M(r,c)) {}
-  
+
   MsqMatrix<1,1>& operator=( double v )                 { m = v; return *this; }
   MsqMatrix<1,1>& operator=( const double* v )          { m = *v; return *this; }
   MsqMatrix<1,1>& operator=( const char* s )            { set(s); return *this; }
   MsqMatrix<1,1>& operator=( const std::string& s ) { set(s); return *this; }
-  
+
   double& operator()( unsigned, unsigned )        { return m; }
   double  operator()( unsigned, unsigned ) const  { return m; }
   double* data()                                      { return &m; }
   const double* data() const                          { return &m; }
-  
+
   void zero()                                         { m = 0.0; }
   void identity()                                     { m = 1.0; }
   void set( double v )        { m = v; }
@@ -187,7 +187,7 @@ public:
     /** Set this matrix to the minor of a larger matrix */
   inline void make_minor( const MsqMatrix<2,2>& M, unsigned r, unsigned c )
     { m = M(r,c); }
-  
+
     /** *this += transpose(other) */
   inline MsqMatrix<1,1>& assign_add_transpose( const MsqMatrix<1,1>& other )
     { m += other.m; return *this; }
@@ -200,17 +200,17 @@ public:
     /** multiply each element by the cooresponding element in m */
   inline MsqMatrix<1,1>& assign_multiply_elements( const MsqMatrix<1,1>& other )
     { m *= other.m; return *this; }
-    
+
   operator double () const
     { return m; }
 };
 
-/** \brief Vector is a 1xL Matrix 
+/** \brief Vector is a 1xL Matrix
  *
  * Define a Vector as a 1xL Matrix
  * Add single-index access operators
  */
-template <unsigned L> 
+template <unsigned L>
 class MsqVector : public MsqMatrix<L,1>
 {
 public:
@@ -220,7 +220,7 @@ public:
   MsqVector( const char* s )                          { MsqMatrix<L,1>::set(s); }
   MsqVector( const std::string& s )               { MsqMatrix<L,1>::set(s); }
   MsqVector( const MsqMatrix<L,1>& pm) : MsqMatrix<L,1>(pm) {}
-  
+
   double& operator[](unsigned idx)                    { return MsqMatrix<L,1>::operator()(idx,0); }
   double  operator[](unsigned idx) const              { return MsqMatrix<L,1>::operator()(idx,0); }
   double& operator()(unsigned idx)                    { return MsqMatrix<L,1>::operator()(idx,0); }
@@ -250,7 +250,7 @@ public:
   MsqMatrixA( const MsqMatrix<R,C>& m) : MsqMatrix<R,C>(m) {}
   MsqMatrixA( const MsqMatrix<R+1,C+1>& m, unsigned r, unsigned c )
                                                        { MsqMatrix<R,C>::make_minor(m,r,c); }
-  
+
   double* operator[]( unsigned idx )                  { return MsqMatrix<R,C>::m+C*idx;  }
   const double* operator[]( unsigned idx ) const      { return MsqMatrix<R,C>::m+C*idx;  }
 
@@ -378,7 +378,7 @@ void MsqMatrix<R,C>::diag( const double* v ) {
 
 /**\brief Extract minor of a matrix and assign to *this
  *
- * Given a matrix m, a row r and an column c, set *this to 
+ * Given a matrix m, a row r and an column c, set *this to
  * the matrix that is m with row r and column c deleted.
  */
 template <unsigned R, unsigned C> inline
@@ -423,7 +423,7 @@ void MsqMatrix<R,C>::set_column_transpose( unsigned c, const MsqMatrix<1,R>& v )
 template <unsigned R, unsigned C> inline
 void MsqMatrix<R,C>::set_columns( const MsqMatrix<R,1>* v )
   { for( unsigned c = 0; c < C; ++c) set_column( c, v[c] ); }
-  
+
 
 template <unsigned R, unsigned C> inline
 MsqMatrix<R,1> MsqMatrix<R,C>::column( unsigned c ) const
@@ -446,7 +446,7 @@ MsqMatrix<1,R> MsqMatrix<R,C>::column_transpose( unsigned c ) const
 /**\brief Set a subset of this matrix to some other matrix */
 template <unsigned R1, unsigned C1, unsigned R2, unsigned C2> inline
 void set_region( MsqMatrix<R1,C1>& d,
-                 unsigned r, unsigned c, 
+                 unsigned r, unsigned c,
                  MsqMatrix<R2,C2>& s )
 {
   const unsigned rmax = r+R2 > R1 ? R1 : r+R2;
@@ -464,43 +464,43 @@ MsqMatrix<R,C>& MsqMatrix<R,C>::assign_add_transpose( const MsqMatrix<C,R>& othe
     for (unsigned c = 0; c < C; ++c)
       operator()(r,c) += other(c,r);
   return *this;
-}  
+}
 
 template <unsigned R, unsigned C> inline
 MsqMatrix<R,C>& MsqMatrix<R,C>::assign_multiply_elements( const MsqMatrix<R,C>& other )
-  { for (unsigned i = 0; i < R*C; ++i)  m[i] *= other.data()[i]; return *this; }  
+  { for (unsigned i = 0; i < R*C; ++i)  m[i] *= other.data()[i]; return *this; }
 
 template <unsigned R, unsigned C> inline
 MsqMatrix<R,C>& MsqMatrix<R,C>::assign_product( double s, const MsqMatrix<R,C>& other )
-  { for (unsigned i = 0; i < R*C; ++i)  m[i] = s * other.data()[i]; return *this; }  
+  { for (unsigned i = 0; i < R*C; ++i)  m[i] = s * other.data()[i]; return *this; }
 
 template <unsigned R, unsigned C> inline
 MsqMatrix<R,C>& MsqMatrix<R,C>::assign_add_product( double s, const MsqMatrix<R,C>& other )
-  { for (unsigned i = 0; i < R*C; ++i) m[i] += s * other.data()[i]; return *this; }  
+  { for (unsigned i = 0; i < R*C; ++i) m[i] += s * other.data()[i]; return *this; }
 
 template <unsigned R, unsigned C> inline
 MsqMatrix<R,C>& MsqMatrix<R,C>::operator+=( const MsqMatrix<R,C>& other )
-  { for (unsigned i = 0; i < R*C; ++i)  m[i] += other.data()[i]; return *this; }  
-  
+  { for (unsigned i = 0; i < R*C; ++i)  m[i] += other.data()[i]; return *this; }
+
 template <unsigned R, unsigned C> inline
 MsqMatrix<R,C>& MsqMatrix<R,C>::operator-=( const MsqMatrix<R,C>& other )
-  { for (unsigned i = 0; i < R*C; ++i)  m[i] -= other.data()[i]; return *this; }  
-  
+  { for (unsigned i = 0; i < R*C; ++i)  m[i] -= other.data()[i]; return *this; }
+
 template <unsigned R, unsigned C> inline
 MsqMatrix<R,C>& MsqMatrix<R,C>::operator+=( double s )
-  { for (unsigned i = 0; i < R*C; ++i)  m[i] += s; return *this; }  
-  
+  { for (unsigned i = 0; i < R*C; ++i)  m[i] += s; return *this; }
+
 template <unsigned R, unsigned C> inline
 MsqMatrix<R,C>& MsqMatrix<R,C>::operator-=( double s )
-  { for (unsigned i = 0; i < R*C; ++i)  m[i] -= s; return *this; }  
-  
+  { for (unsigned i = 0; i < R*C; ++i)  m[i] -= s; return *this; }
+
 template <unsigned R, unsigned C> inline
 MsqMatrix<R,C>& MsqMatrix<R,C>::operator*=( double s )
-  { for (unsigned i = 0; i < R*C; ++i)  m[i] *= s; return *this; }  
-  
+  { for (unsigned i = 0; i < R*C; ++i)  m[i] *= s; return *this; }
+
 template <unsigned R, unsigned C> inline
 MsqMatrix<R,C>& MsqMatrix<R,C>::operator/=( double s )
-  { for (unsigned i = 0; i < R*C; ++i)  m[i] /= s; return *this; }  
+  { for (unsigned i = 0; i < R*C; ++i)  m[i] /= s; return *this; }
 
 
 template <unsigned R, unsigned C> inline
@@ -573,12 +573,12 @@ MsqMatrix<R,C> operator*( const MsqMatrix<R,RC>& A, const MsqMatrix<RC,C>& B )
   //  for (unsigned j = 0; j < C; ++j)
   //    for (unsigned k = 0; k < RC; ++k)
   //      result(i,j) += A(i,k) * B(k,j);
- 
+
   MsqMatrix<R,C> result;
   for (unsigned r = 0; r < R; ++r)
     for (unsigned c = 0; c < C; ++c)
       result(r,c) = multiply_helper_result_val( r, c, A, B );
-  
+
   return result;
 }
 
@@ -598,16 +598,16 @@ template <unsigned RC> inline
 double det( const MsqMatrix<RC,RC>& m )
 {
   double result = 0.0;
-  for (unsigned i = 0; i < RC; ++i) 
+  for (unsigned i = 0; i < RC; ++i)
     result += m(0,i) * cofactor<RC>( m, 0, i );
   return result;
 }
 
-//inline 
+//inline
 //double det( const MsqMatrix<1,1>& m )
 //  { return m(0,0); }
 
-inline 
+inline
 double det( const MsqMatrix<2,2>& m )
   { return m(0,0)*m(1,1) - m(0,1)*m(1,0); }
 
@@ -643,19 +643,19 @@ inline
 MsqMatrix<3,3> adj( const MsqMatrix<3,3>& m )
 {
   MsqMatrix<3,3> result;
-  
+
   result(0,0) = m(1,1)*m(2,2) - m(1,2)*m(2,1);
   result(0,1) = m(0,2)*m(2,1) - m(0,1)*m(2,2);
   result(0,2) = m(0,1)*m(1,2) - m(0,2)*m(1,1);
-  
+
   result(1,0) = m(1,2)*m(2,0) - m(1,0)*m(2,2);
   result(1,1) = m(0,0)*m(2,2) - m(0,2)*m(2,0);
   result(1,2) = m(0,2)*m(1,0) - m(0,0)*m(1,2);
-  
+
   result(2,0) = m(1,0)*m(2,1) - m(1,1)*m(2,0);
   result(2,1) = m(0,1)*m(2,0) - m(0,0)*m(2,1);
   result(2,2) = m(0,0)*m(1,1) - m(0,1)*m(1,0);
-  
+
   return result;
 }
 
@@ -663,19 +663,19 @@ inline
 MsqMatrix<3,3> transpose_adj( const MsqMatrix<3,3>& m )
 {
   MsqMatrix<3,3> result;
-  
+
   result(0,0) = m(1,1)*m(2,2) - m(1,2)*m(2,1);
   result(0,1) = m(1,2)*m(2,0) - m(1,0)*m(2,2);
   result(0,2) = m(1,0)*m(2,1) - m(1,1)*m(2,0);
-  
+
   result(1,0) = m(0,2)*m(2,1) - m(0,1)*m(2,2);
   result(1,1) = m(0,0)*m(2,2) - m(0,2)*m(2,0);
   result(1,2) = m(0,1)*m(2,0) - m(0,0)*m(2,1);
-  
+
   result(2,0) = m(0,1)*m(1,2) - m(0,2)*m(1,1);
   result(2,1) = m(0,2)*m(1,0) - m(0,0)*m(1,2);
   result(2,2) = m(0,0)*m(1,1) - m(0,1)*m(1,0);
-  
+
   return result;
 }
 
@@ -726,7 +726,7 @@ double Frobenius( const MsqMatrix<R,C>& m )
   { return std::sqrt( sqr_Frobenius<R,C>( m ) ); }
 
 template <unsigned R, unsigned C> inline
-bool operator==( const MsqMatrix<R,C>& A, const MsqMatrix<R,C>& B ) 
+bool operator==( const MsqMatrix<R,C>& A, const MsqMatrix<R,C>& B )
 {
   for (unsigned i = 0; i < R*C; ++i)
     if (A.data()[i] != B.data()[i])
@@ -735,7 +735,7 @@ bool operator==( const MsqMatrix<R,C>& A, const MsqMatrix<R,C>& B )
 }
 
 template <unsigned R, unsigned C> inline
-bool operator!=( const MsqMatrix<R,C>& A, const MsqMatrix<R,C>& B ) 
+bool operator!=( const MsqMatrix<R,C>& A, const MsqMatrix<R,C>& B )
   { return !(A == B); }
 
 template <unsigned R, unsigned C> inline
@@ -862,7 +862,7 @@ void QR( const MsqMatrix<3,3>& A, MsqMatrix<3,3>& Q, MsqMatrix<3,3>& R )
     Q(0,0) *= temp_dbl;
     Q(1,0) *= temp_dbl;
     Q(2,0) *= temp_dbl;
-    
+
 
     R(0,1)  = Q(0,0)*Q(0,1) + Q(1,0)*Q(1,1) + Q(2,0)*Q(2,1);
     Q(0,1) -= Q(0,0)*R(0,1);
@@ -881,12 +881,12 @@ void QR( const MsqMatrix<3,3>& A, MsqMatrix<3,3>& Q, MsqMatrix<3,3>& R )
     Q(1,1) *= temp_dbl;
     Q(2,1) *= temp_dbl;
 
-    
+
     R(1,2)  = Q(0,1)*Q(0,2) + Q(1,1)*Q(1,2) + Q(2,1)*Q(2,2);
     Q(0,2) -= Q(0,1)*R(1,2);
     Q(1,2) -= Q(1,1)*R(1,2);
     Q(2,2) -= Q(2,1)*R(1,2);
-  
+
     R(2,2) = sqrt(Q(0,2)*Q(0,2) + Q(1,2)*Q(1,2) + Q(2,2)*Q(2,2));
     temp_dbl = 1.0 / R(2,2);
     Q(0,2) *= temp_dbl;

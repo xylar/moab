@@ -1,7 +1,7 @@
 /// \file moabuse4.cpp
-/// 
+///
 /// \author Milad Fatenejad
-/// 
+///
 /// \brief moabuse tutorial, example 3: Create a 2D structured mesh
 ///        and set some tag data on it
 ///
@@ -65,10 +65,10 @@ int main()
 
   // Create the mesh:
   moab::ScdBox *scdbox = NULL;
-  rval = scdint->construct_box(moab::HomCoord(0,0,0), 
+  rval = scdint->construct_box(moab::HomCoord(0,0,0),
 			       moab::HomCoord(NI,NJ,0),
-			       NULL, 
-			       0, 
+			       NULL,
+			       0,
 			       scdbox);MB_CHK_SET_ERR(rval, "scdint->construct_box failed");
 
   // MOAB knows to make quads instead of hexes because the last start
@@ -88,7 +88,7 @@ int main()
   const double DX = 0.1;
   const double DY = 0.1;
 
-  for(unsigned i = 0; i < NI+1; i++) 
+  for(unsigned i = 0; i < NI+1; i++)
     for(unsigned j = 0; j < NJ+1; j++) {
       // First, get the entity handle:
       moab::EntityHandle handle = scdbox->get_vertex(i,j);
@@ -104,7 +104,7 @@ int main()
   // *******************
   // *   Attach Tags   *
   // *******************
-  
+
   // The vertex coordinates have been defined, now let's attach some
   // data to the mesh. In MOAB this is done using "tags". Tags are
   // little bits of information that can be attached to any mesh
@@ -118,14 +118,14 @@ int main()
   // Create the tags:
   moab::Tag temp_tag;
   double temp_default_value = 0.0;
-  rval = mbint.tag_get_handle("temperature", 1, moab::MB_TYPE_DOUBLE, temp_tag, 
-                              moab::MB_TAG_DENSE | moab::MB_TAG_CREAT, 
+  rval = mbint.tag_get_handle("temperature", 1, moab::MB_TYPE_DOUBLE, temp_tag,
+                              moab::MB_TAG_DENSE | moab::MB_TAG_CREAT,
 			      &temp_default_value);MB_CHK_SET_ERR(rval, "mbint.tag_get_handle(temperature) failed");
 
   moab::Tag vel_tag;
   double vel_default_value[2] = {0.0,0.0};
-  rval = mbint.tag_get_handle("velocity", 2, moab::MB_TYPE_DOUBLE, vel_tag, 
-                              moab::MB_TAG_DENSE | moab::MB_TAG_CREAT, 
+  rval = mbint.tag_get_handle("velocity", 2, moab::MB_TYPE_DOUBLE, vel_tag,
+                              moab::MB_TAG_DENSE | moab::MB_TAG_CREAT,
 			      vel_default_value);MB_CHK_SET_ERR(rval, "mbint.tag_get_handle(velocity) failed");
 
   // Note that when we created each tag, we specified two flags:
@@ -139,7 +139,7 @@ int main()
   // lots of entities. If you only want to assign a tag to a few
   // entities, it is more efficient to use sparse tags
   // (moab::MB_TAG_SPARSE).
-  // 
+  //
   // The moab::MB_TAG_CREAT flag tells MOAB to create the tag if it
   // doesn't already exist.
 
@@ -153,7 +153,7 @@ int main()
     for (unsigned j = 0; j < NJ; j++) {
       // Get the handle for this quad:
       moab::EntityHandle handle = scdbox->get_element(i,j);
-      
+
       // Compute the temperature...
       double xc = DX*(i+0.5);
       double yc = DY*(j+0.5);
@@ -161,7 +161,7 @@ int main()
       double temperature = std::exp(-0.5*r);
 
       // Set the temperature on a single quad:
-      rval = mbint.tag_set_data(temp_tag, 
+      rval = mbint.tag_set_data(temp_tag,
 				&handle,
 				1,
 				&temperature);MB_CHK_SET_ERR(rval, "mbint.tag_set_data(temp_tag) failed");
@@ -176,7 +176,7 @@ int main()
       double velocity[2] = {i, j};
 
       // Set the velocity on a vertex:
-      rval = mbint.tag_set_data(vel_tag, 
+      rval = mbint.tag_set_data(vel_tag,
 				&handle,
 				1,
 				velocity);MB_CHK_SET_ERR(rval, "mbint.tag_set_data(vel_tag) failed");

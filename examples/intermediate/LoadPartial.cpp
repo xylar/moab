@@ -16,7 +16,7 @@
 #include <vector>
 
 // Include header for MOAB instance and tag conventions for
-#include "moab/Core.hpp" 
+#include "moab/Core.hpp"
 #include "MBTagConventions.hpp"
 
 #define NTAGVALS 3

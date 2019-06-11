@@ -21,7 +21,7 @@ namespace moab {
 
 //!  struct that handles universally unique id's for the Mesh Database
 
-// note: this MBuuid is compliant with the windows GUID.  
+// note: this MBuuid is compliant with the windows GUID.
 // It is possible to do a memcpy() to copy the data from a MBuuid to a GUID
 // if we want to support dll registration
 struct MBuuid
@@ -32,9 +32,9 @@ struct MBuuid
       memset( this, 0, sizeof(MBuuid) );
    }
    //! constructor that takes initialization arguments
-   MBuuid( unsigned l, unsigned short w1, unsigned short w2, 
-         unsigned char b1, unsigned char b2, unsigned char b3, 
-         unsigned char b4, unsigned char b5, unsigned char b6, 
+   MBuuid( unsigned l, unsigned short w1, unsigned short w2,
+         unsigned char b1, unsigned char b2, unsigned char b3,
+         unsigned char b4, unsigned char b5, unsigned char b6,
          unsigned char b7, unsigned char b8 )
    {
       data1 = l;
@@ -77,11 +77,11 @@ struct MBuuid
    unsigned short data3;
    unsigned char  data4[8];
 };
-  
+
 //! uuid for an unknown interface
 //! this can be used to either return a default interface
 //! or a NULL interface
-static const MBuuid IDD_MBUnknown = MBuuid( 0xf4f6605e, 0x2a7e, 0x4760, 
+static const MBuuid IDD_MBUnknown = MBuuid( 0xf4f6605e, 0x2a7e, 0x4760,
    0xbb, 0x06, 0xb9, 0xed, 0x27, 0xe9, 0x4a, 0xec );
 
 
@@ -94,7 +94,7 @@ public:
    virtual ~UnknownInterface() {}
 };
 
-} // namespace moab 
+} // namespace moab
 
 #endif  // MOAB_UNKNOWN_INTERFACE_HPP
 

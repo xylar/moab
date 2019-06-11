@@ -1,8 +1,8 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
-    Copyright 2006 Lawrence Livermore National Laboratory.  Under 
-    the terms of Contract B545069 with the University of Wisconsin -- 
+    Copyright 2006 Lawrence Livermore National Laboratory.  Under
+    the terms of Contract B545069 with the University of Wisconsin --
     Madison, Lawrence Livermore National Laboratory retains certain
     rights in this software.
 
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2006) kraftche@cae.wisc.edu    
+    (2006) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file PMeanPTemplateTest.cpp
  *  \brief previous name: PowerMeanPTest.cpp
- *  \author Jason Kraftcheck 
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -54,8 +54,8 @@ private:
   void test_gradient( double power );
   void test_diagonal( double power );
   void test_Hessian( double power );
-  
-  void check_result( PatchData& pd, double power, double value, 
+
+  void check_result( PatchData& pd, double power, double value,
                      Vector3D* gradient = 0, Matrix3D* Hessian = 0 );
 
   CPPUNIT_TEST_SUITE( PMeanPTemplateTest );
@@ -80,46 +80,46 @@ private:
   CPPUNIT_TEST( test_Hess_save );
   CPPUNIT_TEST( test_Hess_update );
   CPPUNIT_TEST( test_Hess_temp );
-  
+
   CPPUNIT_TEST( test_clone );
-  
+
   CPPUNIT_TEST( test_failed_metric_in_eval );
   CPPUNIT_TEST( test_failed_metric_in_grad );
   CPPUNIT_TEST( test_failed_metric_in_diag );
   CPPUNIT_TEST( test_failed_metric_in_Hess );
-  
+
   CPPUNIT_TEST( test_false_metric_in_eval );
   CPPUNIT_TEST( test_false_metric_in_grad );
   CPPUNIT_TEST( test_false_metric_in_diag );
   CPPUNIT_TEST( test_false_metric_in_Hess );
-  
+
   CPPUNIT_TEST( test_evaluate_arithmatic );
   CPPUNIT_TEST( test_evaluate_rms );
-  
+
   CPPUNIT_TEST( test_gradient_arithmatic );
   CPPUNIT_TEST( test_gradient_rms );
 
   CPPUNIT_TEST( test_Hessian_arithmatic );
   CPPUNIT_TEST( test_Hessian_rms );
-  
+
   CPPUNIT_TEST( compare_gradient_arithmatic );
   CPPUNIT_TEST( compare_gradient_rms );
- 
+
   CPPUNIT_TEST( compare_diagonal_gradient_arithmatic );
   CPPUNIT_TEST( compare_diagonal_gradient_rms );
- 
+
   CPPUNIT_TEST( compare_hessian_gradient_arithmatic );
   CPPUNIT_TEST( compare_hessian_gradient_rms );
- 
+
   CPPUNIT_TEST( compare_hessian_diagonal_arithmatic );
   CPPUNIT_TEST( compare_hessian_diagonal_rms );
-  
+
   CPPUNIT_TEST( compare_hessian_arithmatic );
   CPPUNIT_TEST( compare_hessian_rms );
-  
+
   CPPUNIT_TEST( compare_hessian_diag_arithmatic );
   CPPUNIT_TEST( compare_hessian_diag_rms );
-  
+
   CPPUNIT_TEST( test_negate_eval );
   CPPUNIT_TEST( test_negate_grad );
   CPPUNIT_TEST( test_negate_diag );
@@ -153,69 +153,69 @@ public:
   void test_Hess_update() { test_eval_type( HESS, ObjectiveFunction::UPDATE ); }
   void test_Hess_temp()   { test_eval_type( HESS, ObjectiveFunction::TEMPORARY ); }
 
-  void test_clone() { PMeanPTemplate of( 1, NULL ); 
+  void test_clone() { PMeanPTemplate of( 1, NULL );
                       ObjectiveFunctionTests::test_clone(&of); }
-  
-  void test_failed_metric_in_eval() 
+
+  void test_failed_metric_in_eval()
     { PMeanPTemplate of( 1, NULL ); test_handles_qm_error( EVAL, &of); }
-  void test_failed_metric_in_grad() 
+  void test_failed_metric_in_grad()
     { PMeanPTemplate of( 1, NULL ); test_handles_qm_error( GRAD, &of); }
-  void test_failed_metric_in_diag() 
+  void test_failed_metric_in_diag()
     { PMeanPTemplate of( 1, NULL ); test_handles_qm_error( DIAG, &of); }
-  void test_failed_metric_in_Hess() 
+  void test_failed_metric_in_Hess()
     { PMeanPTemplate of( 1, NULL ); test_handles_qm_error( HESS, &of); }
-  
-  void test_false_metric_in_eval() 
+
+  void test_false_metric_in_eval()
     { PMeanPTemplate of( 1, NULL ); test_handles_invalid_qm( EVAL, &of); }
-  void test_false_metric_in_grad() 
+  void test_false_metric_in_grad()
     { PMeanPTemplate of( 1, NULL ); test_handles_invalid_qm( GRAD, &of); }
-  void test_false_metric_in_diag() 
+  void test_false_metric_in_diag()
     { PMeanPTemplate of( 1, NULL ); test_handles_invalid_qm( DIAG, &of); }
-  void test_false_metric_in_Hess() 
+  void test_false_metric_in_Hess()
     { PMeanPTemplate of( 1, NULL ); test_handles_invalid_qm( HESS, &of); }
-  
+
   void test_evaluate_arithmatic() { test_evaluate( 1 ); }
   void test_evaluate_rms()        { test_evaluate( 2 ); }
-  
+
   void test_gradient_arithmatic() { test_gradient( 1 ); }
   void test_gradient_rms()        { test_gradient( 2 ); }
-  
+
   void test_diagonal_arithmatic() { test_diagonal( 1 ); }
   void test_diagonal_rms()        { test_diagonal( 2 ); }
 
   void test_Hessian_arithmatic()  { test_Hessian( 1 ); }
   void test_Hessian_rms()         { test_Hessian( 2 ); }
-  
-  void compare_gradient_arithmatic() 
+
+  void compare_gradient_arithmatic()
     { PMeanPTemplate of( 1, NULL ); compare_numerical_gradient( &of ); }
   void compare_gradient_rms()
     { PMeanPTemplate of( 2, NULL ); compare_numerical_gradient( &of ); }
-  
-  void compare_diagonal_gradient_arithmatic() 
+
+  void compare_diagonal_gradient_arithmatic()
     { PMeanPTemplate of( 1, NULL ); compare_diagonal_gradient( &of ); }
   void compare_diagonal_gradient_rms()
     { PMeanPTemplate of( 2, NULL ); compare_diagonal_gradient( &of ); }
-  
-  void compare_hessian_gradient_arithmatic() 
+
+  void compare_hessian_gradient_arithmatic()
     { PMeanPTemplate of( 1, NULL ); compare_hessian_gradient( &of ); }
   void compare_hessian_gradient_rms()
     { PMeanPTemplate of( 2, NULL ); compare_hessian_gradient( &of ); }
-  
-  void compare_hessian_diagonal_arithmatic() 
+
+  void compare_hessian_diagonal_arithmatic()
     { PMeanPTemplate of( 1, NULL ); compare_hessian_diagonal( &of ); }
   void compare_hessian_diagonal_rms()
     { PMeanPTemplate of( 2, NULL ); compare_hessian_diagonal( &of ); }
-  
-  void compare_hessian_arithmatic() 
+
+  void compare_hessian_arithmatic()
     { PMeanPTemplate of( 1, NULL ); compare_numerical_hessian( &of ); }
   void compare_hessian_rms()
     { PMeanPTemplate of( 2, NULL ); compare_numerical_hessian( &of ); }
-  
-  void compare_hessian_diag_arithmatic() 
+
+  void compare_hessian_diag_arithmatic()
     { PMeanPTemplate of( 1, NULL ); compare_numerical_hessian_diagonal( &of ); }
   void compare_hessian_diag_rms()
     { PMeanPTemplate of( 2, NULL ); compare_numerical_hessian_diagonal( &of ); }
-    
+
   void test_negate_eval()
     { PMeanPTemplate of( 2, NULL ); test_negate_flag( EVAL, &of ); }
   void test_negate_grad()
@@ -232,7 +232,7 @@ CPPUNIT_TEST_SUITE_NAMED_REGISTRATION(PMeanPTemplateTest, "Unit");
 void PMeanPTemplateTest::setUp()
 {
   MsqPrintError err(std::cout);
-  
+
   // Create a triangle mesh with three free vertices
   const double coords[] = { 1, 1, 0,
                             2, 1, 0,
@@ -250,7 +250,7 @@ void PMeanPTemplateTest::setUp()
                               1, 2, 3,
                               3, 4, 5,
                               1, 3, 5 };
-  mPatch.fill( 6, coords, 
+  mPatch.fill( 6, coords,
                4, TRIANGLE, tri_conn,
                fixed_vtx, err );
   CPPUNIT_ASSERT(!MSQ_CHKERR(err));
@@ -276,7 +276,7 @@ public:
   bool failEval;
 };
 
-bool DistTestMetric::evaluate( PatchData& pd, size_t vtx_idx, 
+bool DistTestMetric::evaluate( PatchData& pd, size_t vtx_idx,
                                double &value, MsqError& err )
 {
   if (failEval) {
@@ -289,8 +289,8 @@ bool DistTestMetric::evaluate( PatchData& pd, size_t vtx_idx,
   return !falseEval;
 }
 
-bool DistTestMetric::evaluate_with_indices( PatchData& pd, size_t vtx_idx, 
-                               double &value, vector<size_t>& indices, 
+bool DistTestMetric::evaluate_with_indices( PatchData& pd, size_t vtx_idx,
+                               double &value, vector<size_t>& indices,
                                MsqError& err )
 {
   if (failEval) {
@@ -301,7 +301,7 @@ bool DistTestMetric::evaluate_with_indices( PatchData& pd, size_t vtx_idx,
   indices.clear();
   if (vtx_idx < pd.num_free_vertices())
     indices.push_back( vtx_idx );
-  
+
   const MsqVertex& vtx = pd.vertex_by_index( vtx_idx );
   value = vtx.length_squared();
   return !falseEval;
@@ -320,13 +320,13 @@ void PMeanPTemplateTest::test_evaluate( double power )
   MsqPrintError err(cout);
   double value;
   bool rval;
-  
+
   DistTestMetric metric;
   PMeanPTemplate func( power, &metric );
   rval = func.evaluate( ObjectiveFunction::CALCULATE, mPatch, value, OF_FREE_EVALS_ONLY, err );
   CPPUNIT_ASSERT(!MSQ_CHKERR(err));
   CPPUNIT_ASSERT(rval);
-  
+
   check_result( mPatch, power, value );
 }
 
@@ -336,14 +336,14 @@ void PMeanPTemplateTest::test_gradient( double power )
   double value;
   bool rval;
   vector<Vector3D> grad;
-  
+
   DistTestMetric metric;
   PMeanPTemplate func( power, &metric );
   rval = func.evaluate_with_gradient( ObjectiveFunction::CALCULATE, mPatch, value, grad, err );
   CPPUNIT_ASSERT(!MSQ_CHKERR(err));
   CPPUNIT_ASSERT(rval);
   CPPUNIT_ASSERT_EQUAL(mPatch.num_free_vertices(), grad.size());
-  
+
   if (!grad.empty())
     check_result( mPatch, power, value, arrptr(grad) );
 }
@@ -356,7 +356,7 @@ void PMeanPTemplateTest::test_diagonal( double power )
   vector<Vector3D> grad;
   vector<SymMatrix3D> Hess;
   CPPUNIT_ASSERT(!MSQ_CHKERR(err));
-  
+
   DistTestMetric metric;
   PMeanPTemplate func( power, &metric );
   rval = func.evaluate_with_Hessian_diagonal( ObjectiveFunction::CALCULATE, mPatch, value, grad, Hess, err );
@@ -365,11 +365,11 @@ void PMeanPTemplateTest::test_diagonal( double power )
   size_t n = mPatch.num_free_vertices();
   CPPUNIT_ASSERT_EQUAL( n, grad.size() );
   CPPUNIT_ASSERT_EQUAL( n, Hess.size() );
-  
+
   vector<Matrix3D> Hessians(n);
-  for (size_t r = 0; r < n; ++r) 
+  for (size_t r = 0; r < n; ++r)
     Hessians[r] = Hess[r];
- 
+
   if (!grad.empty())
     check_result( mPatch, power, value, arrptr(grad), arrptr(Hessians) );
 }
@@ -384,7 +384,7 @@ void PMeanPTemplateTest::test_Hessian( double power )
   MsqHessian Hess;
   Hess.initialize( mPatch, err );
   CPPUNIT_ASSERT(!MSQ_CHKERR(err));
-  
+
   DistTestMetric metric;
   PMeanPTemplate func( power, &metric );
   rval = func.evaluate_with_Hessian( ObjectiveFunction::CALCULATE, mPatch, value, grad, Hess, err );
@@ -393,26 +393,26 @@ void PMeanPTemplateTest::test_Hessian( double power )
   size_t n = mPatch.num_free_vertices();
   CPPUNIT_ASSERT_EQUAL( n, grad.size() );
   CPPUNIT_ASSERT_EQUAL( n, Hess.size() );
-  
+
   Matrix3D zero( 0, 0, 0, 0, 0, 0, 0, 0, 0 );
   vector<Matrix3D> Hessians(n);
   for (size_t r = 0; r < n; ++r) {
     Matrix3D* mat = Hess.get_block( r, r );
     CPPUNIT_ASSERT( mat != 0 );
     Hessians[r] = *mat;
-    
+
     for (size_t c = r+1; c < n; ++c) {
       mat = Hess.get_block( r, c );
       if (mat)
         CPPUNIT_ASSERT_MATRICES_EQUAL( zero, *mat, EPSILON );
     }
   }
- 
+
   if (!grad.empty())
     check_result( mPatch, power, value, arrptr(grad), arrptr(Hessians) );
 }
 
-void PMeanPTemplateTest::check_result( PatchData& pd, double power, double value, 
+void PMeanPTemplateTest::check_result( PatchData& pd, double power, double value,
                                    Vector3D* gradient, Matrix3D* Hessian )
 {
   MsqPrintError err(cout);
@@ -421,27 +421,27 @@ void PMeanPTemplateTest::check_result( PatchData& pd, double power, double value
   vector<Vector3D> grads;
   vector<Matrix3D> Hess;
   vector<size_t> indices;
-  
-  
+
+
   DistTestMetric metric;
   vector<size_t> handles;
   metric.get_evaluations( pd, handles, OF_FREE_EVALS_ONLY, err );
   ASSERT_NO_ERROR(err);
-  
+
   for (size_t i = 0; i < handles.size(); ++i)
   {
     rval = metric.evaluate_with_Hessian( pd, handles[i], mvalue, indices, grads, Hess, err );
     CPPUNIT_ASSERT( !MSQ_CHKERR(err) && rval );
     sum += pow( mvalue, power );
-    
+
     //if (!OF_FREE_EVALS_ONLY && indices.empty())
     //  continue;
-      
+
     CPPUNIT_ASSERT_EQUAL( (size_t)1, indices.size() );
     CPPUNIT_ASSERT_EQUAL( handles[i], indices[0] );
     CPPUNIT_ASSERT_EQUAL( (size_t)1, grads.size() );
     CPPUNIT_ASSERT_EQUAL( (size_t)1, Hess.size() );
-    
+
     if (gradient)
     {
       double f = power * pow( mvalue, power - 1 ) / handles.size();
@@ -458,9 +458,9 @@ void PMeanPTemplateTest::check_result( PatchData& pd, double power, double value
       m += p1 * Hess[0];
       m *= f;
       CPPUNIT_ASSERT_MATRICES_EQUAL( m, Hessian[i], EPSILON );
-    }  
+    }
   }
-  
+
   CPPUNIT_ASSERT_DOUBLES_EQUAL( sum / handles.size(), value, EPSILON );
 }
 

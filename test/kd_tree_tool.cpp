@@ -16,7 +16,7 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#endif 
+#endif
 
 using namespace moab;
 
@@ -98,13 +98,13 @@ static int parseint( int& i, int argc, char* argv[] )
     std::cerr << "Expected value following '" << argv[i-1] << "'" << std::endl;
     usage();
   }
-  
+
   int result = strtol( argv[i], &end, 0 );
   if (result < 0 || *end) {
     std::cerr << "Expected positive integer following '" << argv[i-1] << "'" << std::endl;
     usage();
   }
-  
+
   return result;
 }
 
@@ -116,7 +116,7 @@ static void parsedims( int& i, int argc, char* argv[], double dims[3] )
     std::cerr << "Expected value following '" << argv[i-1] << "'" << std::endl;
     usage();
   }
-  
+
   dims[0] = strtod( argv[i], &end );
   if (*end == '\0') {
     dims[2] = dims[1] = dims[0];
@@ -124,7 +124,7 @@ static void parsedims( int& i, int argc, char* argv[], double dims[3] )
   }
   else if (*end != 'x' && *end != 'X')
     goto error;
-  
+
   ++end;
   dims[1] = strtod( end, &end );
   if (*end == '\0') {
@@ -133,18 +133,18 @@ static void parsedims( int& i, int argc, char* argv[], double dims[3] )
   }
   else if (*end != 'x' && *end != 'X')
     goto error;
-  
+
   ++end;
   dims[2] = strtod( end, &end );
   if (*end != '\0')
     goto error;
-  
+
   return;
 error:
   std::cerr << "Invaild dimension specification." << std::endl;
   usage();
 }
-    
+
 
 int main( int argc, char* argv[] )
 {
@@ -157,21 +157,21 @@ int main( int argc, char* argv[] )
   clock_t load_time, build_time, stat_time, tag_time, write_time, block_time;
   bool make_grid = false;
   double dims[3];
-  
+
   for (int i = 1; i < argc; ++i) {
     if (argv[i][0] != '-') {
       if (!input_file)
         input_file = argv[i];
       else if (!output_file)
         output_file = argv[i];
-      else 
+      else
         usage();
       continue;
     }
-    
+
     if (!argv[i][1] || argv[i][2])
       usage();
-    
+
     switch (argv[i][1]) {
       case '2': surf_elems = true;                                  break;
       case '3':  vol_elems = true;                                  break;
@@ -194,19 +194,19 @@ int main( int argc, char* argv[] )
 
     // this test relies on not cleaning up trees
   options << "CLEAN_UP=false;";
-  
+
   if (make_grid != !output_file)
     usage();
-  
+
     // default to both
   if (!surf_elems && !vol_elems)
     surf_elems = vol_elems = true;
-  
+
   ErrorCode rval;
   Core moab_core;
   Interface* interface = &moab_core;
   FileOptions opts(options.str().c_str());
-  
+
   if (make_grid) {
     load_time = 0;
     output_file = input_file;
@@ -241,11 +241,11 @@ int main( int argc, char* argv[] )
         elems.merge( tmp );
       }
     }
-    
+
     build_tree( interface, elems, opts);
     build_time = clock() - build_time;
   }
-  
+
   std::cout << "Calculating stats..." << std::endl;
   AdaptiveKDTree tool(interface);
   Range range;
@@ -260,32 +260,32 @@ int main( int argc, char* argv[] )
   tool.print();
 
   stat_time = clock() - build_time;
-  
+
   if (tag_elems) {
     std::cout << "Tagging tree..." << std::endl;
     tag_elements( interface );
     tag_vertices( interface );
   }
   tag_time = clock() - stat_time;
-  
+
   std::cout << "Writing file... "; std::cout.flush();
   rval = interface->write_mesh( output_file );
   if (MB_SUCCESS != rval) {
     std::cerr << "Error writing file: " << output_file << std::endl;
     exit(3);
   }
-  write_time = clock() - tag_time; 
+  write_time = clock() - tag_time;
   std::cout << "Wrote " << output_file << std::endl;
-  
+
   if (tree_file) {
     std::cout << "Writing tree block rep..."; std::cout.flush();
     write_tree_blocks( interface, tree_file );
     std::cout << "Wrote " << tree_file << std::endl;
   }
   block_time = clock() - write_time;
-  
-  std::cout   << "Times:  " 
-              << "    Load" 
+
+  std::cout   << "Times:  "
+              << "    Load"
               << "   Build"
               << "   Stats"
               << "   Write";
@@ -294,7 +294,7 @@ int main( int argc, char* argv[] )
   if (tree_file)
     std::cout << "Block   ";
   std::cout   << std::endl;
-  
+
   std::cout   << "        "
               << std::setw(8) << clock_to_string(load_time)
               << std::setw(8) << clock_to_string(build_time)
@@ -309,7 +309,7 @@ int main( int argc, char* argv[] )
   return 0;
 }
 
-  
+
 void delete_existing_tree( Interface* interface )
 {
   Range trees;
@@ -320,7 +320,7 @@ void delete_existing_tree( Interface* interface )
     std::cout << "Destroying existing tree(s) contained in file" << std::endl;
   for (Range::iterator i = trees.begin(); i != trees.end(); ++i)
     tool.reset_tree();
-  
+
   trees.clear();
   tool.find_all_trees( trees );
   if (!trees.empty()) {
@@ -328,19 +328,19 @@ void delete_existing_tree( Interface* interface )
     exit( 5 );
   }
 }
-  
+
 void build_tree( Interface* interface, const Range& elems, FileOptions &opts)
 {
   EntityHandle root = 0;
-  
+
   if (elems.empty()) {
     std::cerr << "No elements from which to build tree." << std::endl;
     exit(4);
   }
-  
+
   AdaptiveKDTree tool(interface, elems, &root, &opts);
-}  
-  
+}
+
 void build_grid( Interface* interface, const double dims[3] )
 {
   ErrorCode rval;
@@ -356,12 +356,12 @@ void build_grid( Interface* interface, const double dims[3] )
     std::cerr << "Failed to create tree root." << std::endl;
     exit(4);
   }
-  
+
   rval = tool.get_tree_iterator( root, iter );
   if (MB_SUCCESS != rval) {
     std::cerr << "Failed to get tree iterator." << std::endl;
   }
-  
+
   do {
     while (iter.depth() < tool.get_max_depth()) {
       plane.norm = iter.depth() % 3;
@@ -373,12 +373,12 @@ void build_grid( Interface* interface, const double dims[3] )
       }
     }
   } while ((rval = iter.step()) == MB_SUCCESS);
-  
+
   if (rval != MB_ENTITY_NOT_FOUND) {
     std::cerr << "Error stepping KDTree iterator." << std::endl;
     exit(4);
   }
-}  
+}
 
 std::string clock_to_string( clock_t t )
 {
@@ -405,14 +405,14 @@ static int hash_handle( EntityHandle handle )
 {
   EntityID h = ID_FROM_HANDLE(handle);
   return (int)((h * 13 + 7) % MAX_TAG_VALUE) + 1;
-}   
+}
 
 void tag_elements( Interface* moab )
 {
   EntityHandle root;
   Range range;
   AdaptiveKDTree tool(moab);
-  
+
   tool.find_all_trees( range );
   if (range.size() != 1) {
     if (range.empty())
@@ -421,17 +421,17 @@ void tag_elements( Interface* moab )
       std::cerr << "Internal error: Multiple tree roots." << std::endl;
     exit(5);
   }
-  
+
   root = *range.begin();
   range.clear();
-  
+
   Tag tag;
   int zero = 0;
   moab->tag_get_handle( TAG_NAME, 1, MB_TYPE_INTEGER, tag, MB_TAG_DENSE|MB_TAG_CREAT, &zero );
-  
+
   AdaptiveKDTreeIter iter;
   tool.get_tree_iterator( root, iter );
-  
+
   std::vector<int> tag_vals;
   do {
     range.clear();
@@ -447,7 +447,7 @@ void tag_vertices( Interface* moab )
   EntityHandle root;
   Range range;
   AdaptiveKDTree tool(moab);
-  
+
   tool.find_all_trees( range );
   if (range.size() != 1) {
     if (range.empty())
@@ -456,21 +456,21 @@ void tag_vertices( Interface* moab )
       std::cerr << "Internal error: Multiple tree roots." << std::endl;
     exit(5);
   }
-  
+
   root = *range.begin();
   range.clear();
-  
+
   Tag tag;
   int zero = 0;
   moab->tag_get_handle( TAG_NAME, 1, MB_TYPE_INTEGER, tag, MB_TAG_DENSE|MB_TAG_CREAT, &zero );
-  
+
   AdaptiveKDTreeIter iter;
   tool.get_tree_iterator( root, iter );
-  
+
   do {
     range.clear();
     moab->get_entities_by_handle( iter.handle(), range );
-    
+
     int tag_val = hash_handle(iter.handle());
     Range verts;
     moab->get_adjacencies( range, 0, false, verts, Interface::UNION );
@@ -479,7 +479,7 @@ void tag_vertices( Interface* moab )
       moab->get_coords( &*i, 1, coords.array() );
       if (GeomUtil::box_point_overlap( CartVect(iter.box_min()),
                                          CartVect(iter.box_max()),
-                                         coords, 1e-7 )) 
+                                         coords, 1e-7 ))
         moab->tag_set_data( tag, &*i, 1, &tag_val );
     }
   } while (MB_SUCCESS == iter.step());
@@ -490,7 +490,7 @@ void write_tree_blocks( Interface* interface, const char* file )
   EntityHandle root;
   Range range;
   AdaptiveKDTree tool(interface);
-  
+
   tool.find_all_trees( range );
   if (range.size() != 1) {
     if (range.empty())
@@ -499,19 +499,19 @@ void write_tree_blocks( Interface* interface, const char* file )
       std::cerr << "Internal error: Multiple tree roots." << std::endl;
     exit(5);
   }
-  
+
   root = *range.begin();
   range.clear();
-  
+
   Core moab2;
   Tag tag;
   int zero = 0;
   moab2.tag_get_handle( TAG_NAME, 1, MB_TYPE_INTEGER, tag, MB_TAG_DENSE|MB_TAG_CREAT, &zero );
-  
-  
+
+
   AdaptiveKDTreeIter iter;
   tool.get_tree_iterator( root, iter );
-  
+
   do {
     double x1 = iter.box_min()[0];
     double y1 = iter.box_min()[1];
@@ -537,4 +537,4 @@ void write_tree_blocks( Interface* interface, const char* file )
 
   moab2.write_mesh( file );
 }
- 
+

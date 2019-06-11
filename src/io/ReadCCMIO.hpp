@@ -25,7 +25,7 @@ class ReadUtilIface;
 
 class ReadCCMIO : public ReaderIface
 {
- 
+
 public:
 
   typedef std::map<int, std::vector<EntityHandle> > TupleList;
@@ -36,7 +36,7 @@ public:
 
    //! Destructor
   virtual ~ReadCCMIO();
-  
+
   static ReaderIface* factory( Interface* );
 
   ErrorCode load_file( const char* file_name,
@@ -46,7 +46,7 @@ public:
                        const Tag* file_id_tag = 0 );
 
 private:
-  
+
   ErrorCode read_processor(CCMIOID rootID, CCMIOID problemID,
                            CCMIOID processorID, CCMIOID verticesID,
                            CCMIOID topologyID, CCMIOSize_t proc,
@@ -57,11 +57,11 @@ private:
                          TupleList &vert_map, Range *new_cells);
 
 
-  ErrorCode construct_cells(TupleList &face_map, 
+  ErrorCode construct_cells(TupleList &face_map,
 #ifndef READCCMIO_USE_TUPLE_LIST
                             SenseList &sense_map,
 #endif
-                            TupleList &vert_map, 
+                            TupleList &vert_map,
                             std::map<int,int> &cell_topo_types,
                             std::vector<EntityHandle> &new_cells);
 
@@ -77,7 +77,7 @@ private:
                                   CCMIOID topologyID,
                                   std::vector<EntityHandle> &cells);
 
-  ErrorCode read_all_faces(CCMIOID topologyID, TupleList &vert_map, 
+  ErrorCode read_all_faces(CCMIOID topologyID, TupleList &vert_map,
                              TupleList &face_map
 #ifndef READCCMIO_USE_TUPLE_LIST
                              ,SenseList &sense_map
@@ -85,7 +85,7 @@ private:
                              , Range *new_faces);
 
 
-  ErrorCode read_faces(CCMIOID faceID, 
+  ErrorCode read_faces(CCMIOID faceID,
                        CCMIOEntity bdy_or_int,
                          TupleList &vert_map,
                          TupleList &face_map
@@ -94,20 +94,20 @@ private:
 #endif
                          , Range *new_faces);
 
-  ErrorCode make_faces(int *farray, 
+  ErrorCode make_faces(int *farray,
                        TupleList &vert_map,
                        std::vector<EntityHandle> &new_faces,
                        int num_faces);
 
   ErrorCode read_vertices(CCMIOSize_t proc, CCMIOID processorID, CCMIOID verticesID,
-                            CCMIOID topologyID, 
+                            CCMIOID topologyID,
                             Range *verts, TupleList &vert_map);
 
 
   ErrorCode get_processors(CCMIOID stateID, CCMIOID &processorID,
                            CCMIOID &verticesID, CCMIOID &topologyID,
-                           CCMIOID &solutionID, 
-                           std::vector<CCMIOSize_t> &procs, 
+                           CCMIOID &solutionID,
+                           std::vector<CCMIOSize_t> &procs,
                            bool &has_solution);
 
   ErrorCode get_state(CCMIOID rootID, CCMIOID &problemID, CCMIOID &stateID);
@@ -118,27 +118,27 @@ private:
                              const FileOptions& opts,
                              std::vector<int>& tag_values_out,
                              const SubsetList* subset_list = 0 );
-  
+
   ErrorCode load_matset_data(CCMIOID problemID);
-  
+
   ErrorCode load_neuset_data(CCMIOID problemID);
-  
-  ErrorCode load_metadata(CCMIOID rootID, CCMIOID problemID, 
+
+  ErrorCode load_metadata(CCMIOID rootID, CCMIOID problemID,
                           CCMIOID stateID, CCMIOID processorID,
                             const EntityHandle *file_set);
-  
-  ErrorCode read_topology_types(CCMIOID &topologyID, 
+
+  ErrorCode read_topology_types(CCMIOID &topologyID,
                                 std::map<int,int> &cell_topo_types);
 
   ErrorCode get_int_option(const char *opt_str, EntityHandle seth,
                            Tag &tag, CCMIOID node);
-  
+
   ErrorCode get_dbl_option(const char *opt_str, EntityHandle seth,
                            Tag &tag, CCMIOID node);
-  
-  ErrorCode get_str_option(const char *opt_str, EntityHandle seth, Tag &tag, 
+
+  ErrorCode get_str_option(const char *opt_str, EntityHandle seth, Tag &tag,
                            CCMIOID node, const char *tag_name = NULL);
-  
+
     //! Cached tags for reading.  Note that all these tags are defined when the
     //! core is initialized.
   Tag mMaterialSetTag;
@@ -151,13 +151,13 @@ private:
   Tag mRadiationTag, mPorosityIdTag, mSpinIdTag, mGroupIdTag, mColorIdxTag,
       mProcessorIdTag, mLightMaterialTag, mFreeSurfaceMaterialTag;
   Tag mThicknessTag, mProstarRegionNumberTag, mBoundaryTypeTag, mCreatingProgramTag;
-  
+
   Interface *mbImpl;
 
   ReadUtilIface* readMeshIface;
 
   std::map<int,EntityHandle> newMatsets, newNeusets;
-  
+
   bool hasSolution;
 };
 

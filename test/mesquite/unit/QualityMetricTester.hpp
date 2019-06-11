@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2006 Sandia National Laboratories.  Developed at the
@@ -16,12 +16,12 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
+
     (2006) kraftche@cae.wisc.edu
-   
+
   ***************************************************************** */
 
 #ifndef QUALITY_METRIC_TESTER_HPP
@@ -47,12 +47,12 @@ public:
   void get_ideal_tris ( PatchData& pd, bool unit_area );
   void get_ideal_quads( PatchData& pd );
   void get_ideal_hexes( PatchData& pd );
-  void get_ideal_element( EntityTopology type, 
-                          bool unit_area, 
+  void get_ideal_element( EntityTopology type,
+                          bool unit_area,
                           PatchData& pd,
                           bool first_vertex_fixed = false );
-  void get_ideal_element( EntityTopology type, 
-                          bool unit_area, 
+  void get_ideal_element( EntityTopology type,
+                          bool unit_area,
                           PatchData& pd,
                           int free_vertex_index );
   void get_nonideal_element  ( EntityTopology type, PatchData& pd, bool first_vertex_fixed = false );
@@ -60,20 +60,20 @@ public:
   void get_degenerate_element( EntityTopology type, PatchData& pd );
   void get_zero_element      ( EntityTopology type, PatchData& pd );
   void get_inverted_element  ( EntityTopology type, PatchData& pd );
-                              
+
   enum ElemTypeGroup { SIMPLICIES, // triangle and tetrahedron
                        NON_MIXED_FE, // tri, quad, tet, hex
                        TWO_D,        // tri, quad, polygon
                        TWO_D_FE,     // tri, quad
                        THREE_D,      // tet, hex, pyr, wedge, septahedron, polyhedron
                        THREE_D_FE,   // tet, hex, pyr, wedge, septahedron
-                       THREE_D_NON_MIXED_FE,   // tet, hex, 
+                       THREE_D_NON_MIXED_FE,   // tet, hex,
                        THREE_D_FE_EXCEPT_SEPTAHEDRON, // tet, hex, pyr, wedge
                        ALL_FE_EXCEPT_SEPTAHEDRON, // tri, quad, tet, hex, pyr, wedge
                        ALL_FE, // everything except polygon and polyhedron
                        ALL }; // everything (including polyhedron)
 
-  QualityMetricTester( ElemTypeGroup group, 
+  QualityMetricTester( ElemTypeGroup group,
                        const Settings* set = 0 );
 
   QualityMetricTester( const EntityTopology* supported_elem_types,
@@ -84,13 +84,13 @@ public:
      *  equal to the length of a side, rather than the default which
      *  is equilateral triangle faces.
      */
-  inline void ideal_pyramid_base_equals_height( bool flag ) 
+  inline void ideal_pyramid_base_equals_height( bool flag )
     { degenHexPyramid = flag; }
 
     /** Test that metric evaluation succeeds for all supported element
      *  types and fails for all unsupported types */
   void test_supported_element_types( QualityMetric* qm );
-  
+
     /** Test that metric value increases (or decreases if negate_flag is -1)
      *  as the quality of an element worsens.  Compares metric values for
      *  ideal element with unit edge length to the value for the same
@@ -99,7 +99,7 @@ public:
      *  metrics.
      */
   void test_measures_quality( QualityMetric* qm );
-  
+
     /** Test that metric value increases (or decreases if negate_flag is -1)
      *  as the quality of the element worsen.  Compares metric values for
      *  ideal elements with unit edge length to the value for the same
@@ -108,10 +108,10 @@ public:
      *  and HEXAHEDRAL element types.
      */
   void test_measures_vertex_quality( QualityMetric* qm );
-  
+
     /** Test measures deviation from domain */
   void test_domain_deviation_quality( QualityMetric* qm );
-  
+
     /** Test that metric value increases (or decreases if negate_flag is -1)
      *  as the quality of an element worsens.  Compares gradient values for
      *  ideal element with unit edge length to the value for the same
@@ -120,7 +120,7 @@ public:
      *  metrics.
      */
   void test_gradient_reflects_quality( QualityMetric* qm );
-  
+
     /** Test that metric value increases (or decreases if negate_flag is -1)
      *  as the quality of the element worsen.  Compares gradient values for
      *  ideal elements with unit edge length to the value for the same
@@ -129,7 +129,7 @@ public:
      *  and HEXAHEDRAL element types.
      */
   void test_vertex_gradient_reflects_quality( QualityMetric* qm );
-  
+
     /** Test gradient reflects deviation from domain */
   void test_domain_deviation_gradient( QualityMetric* qm );
 
@@ -137,16 +137,16 @@ public:
   void test_evaluate_unit_element( QualityMetric* qm, EntityTopology type, double value );
     /** Test evaluation of a single ideal element with unit edge length */
   void test_evaluate_unit_edge_element( QualityMetric* qm, EntityTopology type, double value );
-    /** Test evaluation of metric over patch with one free vertex surrounded 
+    /** Test evaluation of metric over patch with one free vertex surrounded
      *  by 6 ideal unit-area tris */
   void test_evaluate_unit_tris_about_vertex( QualityMetric* qm, double expected_val );
-    /** Test evaluation of metric over patch with one free vertex surrounded 
+    /** Test evaluation of metric over patch with one free vertex surrounded
      *  by 4 unit-area quads */
   void test_evaluate_unit_quads_about_vertex( QualityMetric* qm, double expected_val );
-    /** Test evaluation of metric over patch with one free vertex surrounded 
+    /** Test evaluation of metric over patch with one free vertex surrounded
      *  by 8 unit-volume hexes */
   void test_evaluate_unit_hexes_about_vertex( QualityMetric* qm, double expected_val );
-    /** Test evaluation of metric over patch with one free vertex surrounded 
+    /** Test evaluation of metric over patch with one free vertex surrounded
      *  by 6 ideal unit-edge-length tris */
   void test_evaluate_unit_edge_tris_about_vertex( QualityMetric* qm, double expected_val );
 
@@ -182,7 +182,7 @@ public:
     /** Test indices from evaluate_with_indices() method */
   void test_get_element_indices( QualityMetric* qm );
     /** Test indices from evaluate_with_indices() method, assuming
-     *  quality at a vertex depends only on edge-connected vertices. 
+     *  quality at a vertex depends only on edge-connected vertices.
      */
   void test_get_vertex_indices( QualityMetric* qm );
   void test_get_edge_indices( EdgeQM* qm );
@@ -280,25 +280,25 @@ public:
     /** test that metric value increases as element orientation changes from ideal */
   void test_measures_out_of_plane_orientation( QualityMetric* qm );
 
-  class PatchXform { 
-    public: 
+  class PatchXform {
+    public:
       virtual ~PatchXform() {}
-      virtual void xform(PatchData& pd, PlanarDomain* dom ) = 0; 
+      virtual void xform(PatchData& pd, PlanarDomain* dom ) = 0;
       virtual void xform_grad(std::vector<Vector3D>& grads) = 0;
   };
-  
-  void test_transform_invariant( QualityMetric* qm, 
+
+  void test_transform_invariant( QualityMetric* qm,
                                  PatchXform& transform,
                                  bool untangler );
-  
-  void test_grad_transform_invariant( QualityMetric* qm, 
+
+  void test_grad_transform_invariant( QualityMetric* qm,
                                       PatchXform& transform,
                                       bool untangler );
-  
-  void test_hessian_transform_invariant( QualityMetric* qm, 
+
+  void test_hessian_transform_invariant( QualityMetric* qm,
                                          PatchXform& transform,
                                          bool untangler );
-                                 
+
   void test_measures_transform( QualityMetric* qm,
                                 PatchXform& transform,
                                 bool unit_area );

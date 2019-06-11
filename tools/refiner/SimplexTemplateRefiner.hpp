@@ -1,16 +1,16 @@
 /*
  * MOAB, a Mesh-Oriented datABase, is a software component for creating,
  * storing and accessing finite element mesh data.
- * 
+ *
  * Copyright 2007 Sandia Corporation.  Under the terms of Contract
  * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
  * retains certain rights in this software.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  */
 
 /**\class moab::SimplexTemplateRefiner
@@ -34,7 +34,7 @@
 
 #include "moab/Types.hpp" // for MB_DLL_EXPORT
 
-namespace moab { 
+namespace moab {
 
 class RefinerTagManager;
 
@@ -83,7 +83,7 @@ protected:
   static bool compare_Hopf_cross_string_dist( const double* v00, const double* v01, const double* v10, const double* v11 );
 };
 
-} // namespace moab 
+} // namespace moab
 
 #endif // MB_SIMPLEX_TEMPLATE_REFINER_HPP
 

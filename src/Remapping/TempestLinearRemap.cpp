@@ -464,7 +464,7 @@ void moab::TempestOfflineMap::CopyTempestSparseMat_Eigen()
     for (unsigned iv=0; iv < locvals; iv++) {
         // output_file << lrows[iv] << " " << row_ldofmap[lrows[iv]] << " " << row_gdofmap[row_ldofmap[lrows[iv]]] << " " << col_gdofmap[col_ldofmap[lcols[iv]]] << " " << lvals[iv] << "\n";
         output_file << row_gdofmap[row_ldofmap[lrows[iv]]] << " " << col_gdofmap[col_ldofmap[lcols[iv]]] << " " << lvals[iv] << "\n";
-        
+
     }
     output_file.flush(); // required here
     output_file.close();
@@ -792,7 +792,7 @@ moab::ErrorCode moab::TempestOfflineMap::ApplyWeights (std::vector<double>& srcV
         for (unsigned i=0; i < srcVals.size(); ++i) {
             m_rowVector(row_dofmap[i]) = srcVals[i]; // permute and set the row (source) vector properly
         }
-        
+
         m_colVector = m_weightMatrix.adjoint() * m_rowVector;
 
         // Permute the resulting target data back
@@ -812,7 +812,7 @@ moab::ErrorCode moab::TempestOfflineMap::ApplyWeights (std::vector<double>& srcV
             output_file << "Col: " << i << ", " << col_dofmap[i] << ", GID: " << col_gdofmap[i] << ", Data = " << srcVals[i]  << ", " << m_colVector(col_dofmap[i]) << "\n";
 #endif
         }
-        
+
         m_rowVector = m_weightMatrix * m_colVector;
 
         // Permute the resulting target data back

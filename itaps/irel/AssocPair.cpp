@@ -449,7 +449,7 @@ int AssocPair::change_status(int iface_no, iRel_RelationStatus status)
               CHK_ERRORR( set_relation(entities[i], related_sets[i]) );
         }
       }
-    
+
       free(entities);
     }
     else {
@@ -486,7 +486,7 @@ int AssocPair::change_status(int iface_no, iRel_RelationStatus status)
               CHK_ERRORR( set_relation(sets[i], related_sets[i]) );
         }
       }
-    
+
       free(sets);
     }
   }

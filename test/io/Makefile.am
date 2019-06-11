@@ -18,31 +18,31 @@ if HAVE_NETCDF
   NC_TEST = read_nc read_ucd_nc read_mpas_nc write_nc read_gcrm_nc
   LDADD += $(NETCDF_LIBS) $(PNETCDF_LIBS) $(HDF5_LIBS)
 else
-  EXODUS_TEST = 
-  NC_TEST = 
+  EXODUS_TEST =
+  NC_TEST =
 endif
 
 if HAVE_CCMIO
   CCMIO_TEST = ccmio_test
   LDADD += $(CCMIO_LIBS)
 else
-  CCMIO_TEST = 
+  CCMIO_TEST =
 endif
 
 if HAVE_CGM
 if HAVE_OCC
   CGM_TEST = read_cgm_load_test read_cgm_basic_test read_cgm_senses_test read_cgm_connectivity_test \
              read_cgm_group_test read_cgm_facet_test
-endif 
+endif
 else
-  CGM_TEST = 
+  CGM_TEST =
 endif
 
 if HAVE_CGNS
   CGNS_TEST = cgns_test
   LDADD += $(CGNS_LIBS)
 else
-  CGNS_TEST = 
+  CGNS_TEST =
 endif
 
 TESTS = readutil_test \

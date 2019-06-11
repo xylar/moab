@@ -51,7 +51,7 @@ int main(int /* argc */, char** /* argv */)
   int result = 0;
 
   result+=RUN_TEST(read_cylcube_groups_test);
- 
+
   return result;
 }
 
@@ -66,9 +66,9 @@ void read_file( Interface* moab, const char* input_file )
   CHECK_ERR(rval);
 }
 
-// Checks that group information is being read correctly if MOAB is 
+// Checks that group information is being read correctly if MOAB is
 // being build with CGM. If MOAB is built with OCC, it makes sure
-// no erroneous group data is loaded as STEP files do not hold 
+// no erroneous group data is loaded as STEP files do not hold
 // information about groups.
 void read_cylcube_groups_test()
 {
@@ -93,7 +93,7 @@ void read_cylcube_groups_test()
 
   //Get the group entity handles
   Range group_sets;
-  char query[CATEGORY_TAG_SIZE] = "Group\0";   
+  char query[CATEGORY_TAG_SIZE] = "Group\0";
   //Has to be this way because of the way tags are created
   void* val[] = {&query};
   rval = mb->get_entities_by_type_and_tag( 0, MBENTITYSET, &category_tag, val, 1, group_sets);
@@ -121,7 +121,7 @@ void read_cylcube_groups_test()
       if( group_ents.size() != 1) CHECK(false);
       int grp_ent_id = geom_id_by_handle( mb, group_ents[0] );
       g_ent_ids.push_back(grp_ent_id);
-  
+
     }
   check_group_data( g_ids, g_names, g_ent_ids );
 }
@@ -152,7 +152,7 @@ void check_group_data(std::vector<int>& group_ids, std::vector<std::string>& gro
 
   // check that the correct number of entities were found
   CHECK_EQUAL ( group_ref_ids.size(), group_ids.size() );
-  CHECK_EQUAL ( group_ref_names.size(), group_names.size() );  
+  CHECK_EQUAL ( group_ref_names.size(), group_names.size() );
   CHECK_EQUAL ( group_ref_ent_ids.size(), group_ent_ids.size() );
 
   //now make sure that each group has a matching group
@@ -187,19 +187,19 @@ void load_group_references( std::vector<int>& ids, std::vector<std::string>& nam
 {
   //First set of group info
   names.push_back("Group 3"); ids.push_back(3); ent_ids.push_back(2);
-  
+
   //Second set of group info
   names.push_back("Group 2"); ids.push_back(2); ent_ids.push_back(1);
 }
 
 int geom_id_by_handle( Interface* moab, const EntityHandle set )
-{  
+{
     ErrorCode rval;
     //Get the id_tag handle
     Tag id_tag = moab->globalId_tag();
-    //Load the ID for the EntHandle given to the function                  
+    //Load the ID for the EntHandle given to the function
     int id;
-    rval = moab->tag_get_data( id_tag, &set, 1, &id );                  
-    CHECK_ERR(rval);                        
+    rval = moab->tag_get_data( id_tag, &set, 1, &id );
+    CHECK_ERR(rval);
     return id;
  }

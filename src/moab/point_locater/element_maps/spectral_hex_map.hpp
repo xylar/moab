@@ -8,7 +8,7 @@
 #include <iomanip>
 #include <iostream>
 
-namespace moab { 
+namespace moab {
 
 namespace element_utility {
 
@@ -20,7 +20,7 @@ class Spectral_hex_map {
 	typedef _Matrix Matrix;
   private:
 	typedef Spectral_hex_map< Matrix> Self;
-  public: 
+  public:
     //Constructor
     Spectral_hex_map() {};
     Spectral_hex_map( int order){ initialize_spectral_hex( order); }
@@ -52,12 +52,12 @@ class Spectral_hex_map {
 
  public:
     //Natural coordinates
-    template< typename Moab, typename Entity_handle, 
+    template< typename Moab, typename Entity_handle,
 	      typename Points, typename Point>
     std::pair< bool, Point> operator()( const Moab & /* moab */,
 					const Entity_handle & /* h */,
-					const Points & v, 
-					const Point & p, 
+					const Points & v,
+					const Point & p,
 					const double tol = 1.e-6) {
         Point result(3, 0.0);
         /*
@@ -83,9 +83,9 @@ class Spectral_hex_map {
     }
 
     template< typename Point, typename Points>
-    bool solve_inverse( const Point & x, 
+    bool solve_inverse( const Point & x,
 			Point & xi,
-			const Points & points, 
+			const Points & points,
 			const double tol=1.e-6) {
       const double error_tol_sqr = tol*tol;
       Point delta(3,0.0);
@@ -95,8 +95,8 @@ class Spectral_hex_map {
       std::size_t num_iterations=0;
       #ifdef SPECTRAL_HEX_DEBUG
  	std::stringstream ss;
-	ss << "Point: "; 
-       ss << x[ 0 ] << ", " << x[ 1] 
+	ss << "Point: ";
+       ss << x[ 0 ] << ", " << x[ 1]
           << ", " << x [ 2] << std::endl;
 	ss << "Hex: ";
 	for(int i = 0; i < 8; ++i){
@@ -107,9 +107,9 @@ class Spectral_hex_map {
       #endif
       while ( normsq( delta) > error_tol_sqr) {
 	#ifdef SPECTRAL_HEX_DEBUG
-	ss << "Iter #: "  << num_iterations 
+	ss << "Iter #: "  << num_iterations
 	   << " Err: " << sqrt( normsq( delta)) << " Iterate: ";
-	ss << xi[ 0 ] << ", " << xi[ 1] 
+	ss << xi[ 0 ] << ", " << xi[ 1]
 		<< ", " << xi[ 2] << std::endl;
 	#endif
 	if( ++num_iterations >= 5){ return false; }
@@ -121,7 +121,7 @@ class Spectral_hex_map {
 			std::cerr << ss.str();
 		#endif
 		#ifndef SPECTRAL_HEX_DEBUG
-		std::cerr << x[ 0 ] << ", " << x[ 1] 
+		std::cerr << x[ 0 ] << ", " << x[ 1]
 			  << ", " << x [ 2] << std::endl;
 		#endif
 		std::cerr << "inverse solve failure: det: " << det << std::endl;
@@ -157,8 +157,8 @@ class Spectral_hex_map {
            	       field, _odwork);
    }
    template< typename Points, typename Field>
-   double   integrate_scalar_field(const Points & p, 
-				   const Field & field) const {  
+   double   integrate_scalar_field(const Points & p,
+				   const Field & field) const {
    // set the position of GL points
    // set the positions of GL nodes, before evaluations
    _data.elx[0]=_xyz[0];

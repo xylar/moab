@@ -7,7 +7,7 @@ AM_CPPFLAGS  = -DSRCDIR=$(srcdir) \
                $(MSQ_INCLUDES) \
                -I$(top_srcdir)/src \
                -I$(top_builddir)/src \
-               -I$(top_srcdir)/test 
+               -I$(top_srcdir)/test
 
 LDADD = $(top_builddir)/src/mesquite/libmbmesquite.la
 check_PROGRAMS = par_hex_smooth_laplace

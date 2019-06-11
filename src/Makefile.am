@@ -2,13 +2,13 @@
 AUTOMAKE_OPTIONS = foreign subdir-objects
 
 # Things to build
-lib_LTLIBRARIES = libMOAB.la 
-AM_CPPFLAGS = 
+lib_LTLIBRARIES = libMOAB.la
+AM_CPPFLAGS =
 
 # Subdirectories to build
 SUBDIRS = io .
 libMOAB_la_LIBADD = io/libmoabio.la
-EXTRA_DIST = 
+EXTRA_DIST =
 
 if ENABLE_mesquite
 SUBDIRS += mesquite
@@ -248,7 +248,7 @@ nobase_libMOAB_la_include_HEADERS = \
   MBEntityType.h \
   MBCN.h \
   MBCN_protos.h \
-  MBTagConventions.hpp 
+  MBTagConventions.hpp
 
 verdictincludedir = $(includedir)/moab/verdict
 verdictinclude_HEADERS = \
@@ -286,11 +286,11 @@ intxmeshinclude_HEADERS = \
 	moab/IntxMesh/IntxUtils.hpp \
   moab/IntxMesh/Intx2MeshInPlane.hpp \
   moab/IntxMesh/Intx2MeshOnSphere.hpp \
-  moab/IntxMesh/IntxRllCssphere.hpp   
+  moab/IntxMesh/IntxRllCssphere.hpp
 
 # Conditional sources
 if ENABLE_mbtempest
-MOAB_REMAPPING_SRCS = 
+MOAB_REMAPPING_SRCS =
 
 MOAB_REMAPPING_HDRS = \
 	moab/Remapping/Remapper.hpp
@@ -356,7 +356,7 @@ moabparallelinclude_HEADERS = \
      parallel/moab/ParallelMergeMesh.hpp \
      parallel/moab/ProcConfig.hpp \
      parallel/moab/ParallelData.hpp \
-     parallel/moab/ParCommGraph.hpp 
+     parallel/moab/ParCommGraph.hpp
 
 AM_CPPFLAGS += -I$(srcdir)/parallel
 
@@ -390,7 +390,7 @@ if ENABLE_metis
   nobase_libMOAB_la_include_HEADERS += moab/MetisPartitioner.hpp
   AM_CPPFLAGS += $(METIS_INCLUDES)
   # not sure yet if this is needed; will see when linking io reader (MPAS so far)
-  # the tool mbpart needed it, and it just includes MetisPartitioner.hpp; 
+  # the tool mbpart needed it, and it just includes MetisPartitioner.hpp;
   # so it needs ways to find the libraries zoltan depends on
   libMOAB_la_LIBADD += $(METIS_LIBS)
 endif
@@ -400,13 +400,13 @@ if HAVE_ZOLTAN
   nobase_libMOAB_la_include_HEADERS += moab/ZoltanPartitioner.hpp
   AM_CPPFLAGS += $(ZOLTAN_INC_FLAGS)
   # not sure yet if this is needed; will see when linking io reader (MPAS so far)
-  # the tool mbpart needed it, and it just includes ZoltanPartitioner.hpp; 
+  # the tool mbpart needed it, and it just includes ZoltanPartitioner.hpp;
   # so it needs ways to find the libraries zoltan depends on
   libMOAB_la_LIBADD += $(ZOLTAN_LIBS) $(ZOLTAN_LIB_FLAGS)
 endif
 
 if HAVE_CGM
-  AM_CPPFLAGS += @CGM_CPPFLAGS@ 
+  AM_CPPFLAGS += @CGM_CPPFLAGS@
 endif
 
 EXTRA_DIST += CMakeLists.txt

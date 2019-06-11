@@ -2,10 +2,10 @@
  * \brief tool for visualizing multi level tags  \n
  * <b>To run</b>: VisTags  <inp_file>  <outfile> -O <read_opts> -t <tags> -l <levels>  -d <dim> \n
  *
- * In this example, it is shown how to create some simple tags for those tags that come from 
+ * In this example, it is shown how to create some simple tags for those tags that come from
  *  climate data, multiple levels.
  *  you can read directly nc data, or *.h5m file that will have the tag with multi levels
- *   output will be a vtk file with dense tags of form tag_name_<level> 
+ *   output will be a vtk file with dense tags of form tag_name_<level>
  * the tag name might contain a time index too, like T0 or U0
  * <tag> is a list of tags, separated by commas, no spaces
  * <levels> is a list of levels, separated by commas, no spaces
@@ -30,7 +30,7 @@
 #include <string>
 
 // Include header for MOAB instance and tag conventions
-#include "moab/Core.hpp" 
+#include "moab/Core.hpp"
 #include "MBTagConventions.hpp"
 #include "moab/FileOptions.hpp"
 #ifdef MOAB_HAVE_MPI

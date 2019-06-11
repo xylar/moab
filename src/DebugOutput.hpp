@@ -40,7 +40,7 @@ class DebugOutputStream;
  *       be done even when output is disabled.
  */
 class DebugOutput {
-  
+
 public:
 
   /**
@@ -125,7 +125,7 @@ public:
    * by a newline character.
    */
   ~DebugOutput();
-  
+
   //!\brief Check if MPI rank has been set.
   bool have_rank() const    { return mpiRank >= 0; }
   //!\brief Get MPI rank.
@@ -135,11 +135,11 @@ public:
   //!\brief Set MPI rank to the rank of this proccess in MPI_COMM_WORLD,
   //!       or zero if MOAB is build w/out MPI.
   void use_world_rank();
-  
+
   //!\brief Only print debug output from N processes
   void limit_output_to_first_N_procs( int N )
     { if (mpiRank >= N) verbosityLimit = 0; }
-  
+
   //!\brief Get verbosity limit
   unsigned get_verbosity() const      { return verbosityLimit; }
   //!\brief Set verbosity limit
@@ -151,34 +151,34 @@ public:
   void set_prefix(const std::string& str) { linePfx = str; }
 
   //!\brief Output the specified string iff output is enabled.
-  void print( int verbosity, const char* str ) 
+  void print( int verbosity, const char* str )
     { if (check(verbosity)) print_real(str); }
-  
+
   //!\brief Output the specified string iff output is enabled.
   void print( int verbosity, const std::string& str )
     { if (check(verbosity)) print_real(str); }
-    
+
   //!\brief Output the specified printf-formatted output iff output is enabled
   inline void printf( int verbosity, const char* fmt, ... ) MB_PRINTF(2);
 
   //!\brief Output the specified string iff output is enabled.
-  //! 
+  //!
   //! Include current CPU time (as returned by clock()) in output.
-  void tprint( int verbosity, const char* str ) 
+  void tprint( int verbosity, const char* str )
     { if (check(verbosity)) tprint_real(str); }
-  
+
   //!\brief Output the specified string iff output is enabled.
-  //! 
+  //!
   //! Include current CPU time (as returned by clock()) in output.
   void tprint( int verbosity, const std::string& str )
     { if (check(verbosity)) tprint_real(str); }
-    
+
   //!\brief Output the specified printf-formatted output iff output is enabled
-  //! 
+  //!
   //! Include current CPU time (as returned by clock()) in output.
   inline void tprintf( int verbosity, const char* fmt, ... ) MB_PRINTF(2);
 
-   
+
   //!\brief Print the contents of a moab::Range
   //!\param pfx String to print after default class prefix and before range contents
   void print( int verbosity, const char* pfx, const Range& range )
@@ -186,7 +186,7 @@ public:
   //!\brief Print the contents of a moab::Range
   void print( int verbosity, const Range& range )
     { if (check(verbosity)) list_range_real( 0, range ); }
-   
+
   //!\brief Print the contents of a moab::Range as numerical values only
   //!\param pfx String to print after default class prefix and before range contents
   void print_ints( int verbosity, const char* pfx, const Range& range )
@@ -196,7 +196,7 @@ public:
     { if (check(verbosity)) list_ints_real( 0, range ); }
 
 private:
-  
+
   std::string linePfx;
   DebugOutputStream *outputImpl;
   int mpiRank;
@@ -211,7 +211,7 @@ private:
   void print_real( const std::string& str );
   void tprint_real( const char* buffer );
   void tprint_real( const std::string& str );
-  
+
   // Function must be passed to copies of the same va_list because
   // a) it might have to call vs(n)printf twice, b) vs(n)printf modifies
   // the va_list such that it cannot be reused, and c) va_copy is not
@@ -219,10 +219,10 @@ private:
   void print_real( const char* buffer, va_list args1, va_list args2 );
   void tprint_real( const char* buffer, va_list args1, va_list args2 );
   void process_line_buffer();
-  
+
   std::vector<char> lineBuffer;
-  
-  inline bool check(unsigned verbosity) 
+
+  inline bool check(unsigned verbosity)
     { return verbosity <= verbosityLimit; }
 };
 
@@ -237,7 +237,7 @@ public:
   virtual void println( const char* pfx, const char* str ) = 0;
   virtual void println( int rank, const char* pfx, const char* str ) = 0;
 };
-  
+
 void DebugOutput::printf( int verbosity, const char* fmt, ... )
 {
   if (check(verbosity)) {

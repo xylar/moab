@@ -1,11 +1,11 @@
 /*
  * MOAB, a Mesh-Oriented datABase, is a software component for creating,
  * storing and accessing finite element mesh data.
- * 
+ *
  * Copyright 2004 Sandia Corporation.  Under the terms of Contract
  * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
  * retains certain rights in this software.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
@@ -90,22 +90,22 @@ void MOAB_dsyevr ( char *jobz, char *range, char *uplo, int *n,
 
 // Computes for an N-by-N real nonsymmetric matrix A, the
 // eigenvalues and, optionally, the left and/or right eigenvectors.
-void MOAB_dgeev  ( char *jobvl, char *jobvr, int *n, double * a, 
-                   int *lda, double *wr, double *wi, double *vl, 
-                   int *ldvl, double *vr, int *ldvr, double *work, 
+void MOAB_dgeev  ( char *jobvl, char *jobvr, int *n, double * a,
+                   int *lda, double *wr, double *wi, double *vl,
+                   int *ldvl, double *vr, int *ldvr, double *work,
                    int *lwork, int *info);
 
 // Computes an LU factorization of a general M-by-N matrix A
 // using partial pivoting with row interchanges.
-void MOAB_dgetrf ( int* M, int *N, double* A, 
-                   int* lda, int* IPIV, 
+void MOAB_dgetrf ( int* M, int *N, double* A,
+                   int* lda, int* IPIV,
                    int* INFO);
 
 // Computes the inverse of a matrix using the LU factorization
 // computed by DGETRF.
-void MOAB_dgetri ( int* N, double* A, 
-                   int* lda, int* IPIV, 
-                   double* WORK, int* lwork, 
+void MOAB_dgetri ( int* N, double* A,
+                   int* lda, int* IPIV,
+                   double* WORK, int* lwork,
                    int* INFO);
 
 }
@@ -152,7 +152,7 @@ namespace Matrix{
 	   res[ 1] = v[0] * m(1,0) + v[1] * m(1,1) + v[2] * m(1,2);
 	   res[ 2] = v[0] * m(2,0) + v[1] * m(2,1) + v[2] * m(2,2);
 	   return res;
-	} 
+	}
 
 } //namespace Matrix
 
@@ -186,7 +186,7 @@ public:
 #endif
 
   //TODO: Deprecate this.
-  //Then we can go from three Constructors to one. 
+  //Then we can go from three Constructors to one.
   inline Matrix3( double diagonal ) {
 #ifdef MOAB_HAVE_EIGEN
     _mat << diagonal, 0.0, 0.0,
@@ -213,10 +213,10 @@ public:
 
   //TODO: not strictly correct as the Matrix3 object
   //is a double d[ 9] so the only valid model of T is
-  //double, or any refinement (int, float) 
+  //double, or any refinement (int, float)
   //*but* it doesn't really matter anything else
   //will fail to compile.
-  inline Matrix3( const std::vector<double> & diagonal ) { 
+  inline Matrix3( const std::vector<double> & diagonal ) {
 #ifdef MOAB_HAVE_EIGEN
     _mat << diagonal[0], 0.0, 0.0,
             0.0, diagonal[1], 0.0,
@@ -244,7 +244,7 @@ public:
 #endif
   }
 
-  //Copy constructor 
+  //Copy constructor
   Matrix3 ( const Matrix3 & f)
   {
 #ifdef MOAB_HAVE_EIGEN
@@ -254,8 +254,8 @@ public:
 #endif
   }
 
-  //Weird constructors 
-  template< typename Vector> 
+  //Weird constructors
+  template< typename Vector>
   inline Matrix3( const Vector & row0,
                   const Vector & row1,
                   const Vector & row2,
@@ -316,7 +316,7 @@ public:
     memcpy(v, _mat, size*sizeof(double));
 #endif
   }
-  
+
   inline Matrix3& operator=( const Matrix3& m ){
 #ifdef MOAB_HAVE_EIGEN
     _mat = m._mat;
@@ -325,8 +325,8 @@ public:
 #endif
     return *this;
   }
-  
-  inline Matrix3& operator=( const double v[size] ){ 
+
+  inline Matrix3& operator=( const double v[size] ){
 #ifdef MOAB_HAVE_EIGEN
     _mat << v[0], v[1], v[2],
             v[3], v[4], v[5],
@@ -390,7 +390,7 @@ public:
     return _mat[i];
 #endif
   }
-  
+
   // get pointer to array of nine doubles
   inline double* array()
   {
@@ -400,7 +400,7 @@ public:
     return _mat;
 #endif
   }
-  
+
   inline const double* array() const
   {
 #ifdef MOAB_HAVE_EIGEN
@@ -418,7 +418,7 @@ public:
 #endif
     return *this;
   }
-  
+
   inline Matrix3& operator-=( const Matrix3& m ){
 #ifdef MOAB_HAVE_EIGEN
     _mat -= m._mat;
@@ -427,7 +427,7 @@ public:
 #endif
     return *this;
   }
-  
+
   inline Matrix3& operator*=( double s ){
 #ifdef MOAB_HAVE_EIGEN
     _mat *= s;
@@ -530,14 +530,14 @@ public:
       char dgeev_opts[2] = {'N', 'V'};
       int N=3,LWORK=102,NL=1,NR=N;
       std::vector<double> devmat; devmat.assign(_mat, _mat+size);
-      MOAB_dgeev (&dgeev_opts[0], &dgeev_opts[1], 
-                  &N, &devmat[0], 
-                  &N, devreal, devimag, 
-                  dlevecs, &NL, 
-                  drevecs, &NR, 
-                  dwork, &LWORK, 
+      MOAB_dgeev (&dgeev_opts[0], &dgeev_opts[1],
+                  &N, &devmat[0],
+                  &N, devreal, devimag,
+                  dlevecs, &NL,
+                  drevecs, &NR,
+                  dwork, &LWORK,
                   &info);
-      // The result eigenvalues are ordered as high-->low 
+      // The result eigenvalues are ordered as high-->low
       evals[0]=devreal[2]; evals[1]=devreal[1]; evals[2]=devreal[0];
       evecs._mat[0]=drevecs[6]; evecs._mat[1]=drevecs[3]; evecs._mat[2]=drevecs[0];
       evecs._mat[3]=drevecs[7]; evecs._mat[4]=drevecs[4]; evecs._mat[5]=drevecs[1];
@@ -561,7 +561,7 @@ public:
         int query_iwork_size = 0;
         // Make an empty call to find the optimal work vector size
         MOAB_dsyevd ( &dgeev_opts[0], &dgeev_opts[1], &N,
-                      NULL, &N, NULL, 
+                      NULL, &N, NULL,
                       &query_work_size, &_lwork,
                       &query_iwork_size, &_liwork,
                       &info);
@@ -573,7 +573,7 @@ public:
       }
 
       MOAB_dsyevd ( &dgeev_opts[0], &dgeev_opts[1], &N,
-                    &devmat[0], &N, devreal, 
+                    &devmat[0], &N, devreal,
                     &dwork[0], &lwork,
                     &iwork[0], &liwork,
                     &info);
@@ -787,7 +787,7 @@ public:
           - _mat[2] * _mat[4] * _mat[6]);
 #endif
   }
- 
+
   inline Matrix3 inverse() const {
 #ifdef MOAB_HAVE_EIGEN
     return Matrix3(_mat.inverse());
@@ -807,7 +807,7 @@ public:
     return m;
 #endif
   }
- 
+
   inline bool invert() {
     bool invertible=false;
     double d_determinant;
@@ -887,7 +887,7 @@ inline Matrix3 operator+( const Matrix3& a, const Matrix3& b ) {
 #endif
 }
 
-inline Matrix3 operator-( const Matrix3& a, const Matrix3& b ){ 
+inline Matrix3 operator-( const Matrix3& a, const Matrix3& b ){
 #ifdef MOAB_HAVE_EIGEN
   return Matrix3(a._mat - b._mat);
 #else
@@ -933,9 +933,9 @@ inline CartVect operator*( const CartVect& v, const Matrix3& m){
 #ifndef MOAB_MATRIX3_OPERATORLESS
 #define MOAB_MATRIX3_OPERATORLESS
 inline std::ostream& operator<<( std::ostream& s, const moab::Matrix3& m ){
-  return s <<  "| " << m(0,0) << " " << m(0,1) << " " << m(0,2) 
-           << " | " << m(1,0) << " " << m(1,1) << " " << m(1,2) 
-           << " | " << m(2,0) << " " << m(2,1) << " " << m(2,2) 
+  return s <<  "| " << m(0,0) << " " << m(0,1) << " " << m(0,2)
+           << " | " << m(1,0) << " " << m(1,1) << " " << m(1,2)
+           << " | " << m(2,0) << " " << m(2,1) << " " << m(2,2)
            << " |" ;
 }
 #endif//MOAB_MATRIX3_OPERATORLESS

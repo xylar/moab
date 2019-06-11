@@ -129,7 +129,7 @@ ErrorCode ReadTemplate::read_vertices(int num_verts, EntityHandle &start_vertex,
                                                     coord_arrays);MB_CHK_SET_ERR(result, fileName << ": Trouble reading vertices");
 
   // Fill in vertex coordinate arrays
-  double *x = coord_arrays[0], 
+  double *x = coord_arrays[0],
          *y = coord_arrays[1],
          *z = coord_arrays[2];
   for (long i = 0; i < num_verts; ++i) {

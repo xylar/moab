@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2009 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2009) kraftche@cae.wisc.edu    
+    (2009) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file EdgeQM.cpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -42,17 +42,17 @@ EdgeQM::~EdgeQM()
 {}
 
 
-void EdgeQM::get_evaluations( PatchData& pd, 
+void EdgeQM::get_evaluations( PatchData& pd,
                               std::vector<size_t>& handles,
-                              bool free_vertices_only, 
+                              bool free_vertices_only,
                               MsqError& err )
 {
   get_edge_evaluations( pd, handles, free_vertices_only, false, err );
 }
 
-void EdgeQM::get_single_pass( PatchData& pd, 
+void EdgeQM::get_single_pass( PatchData& pd,
                               std::vector<size_t>& handles,
-                              bool free_vertices_only, 
+                              bool free_vertices_only,
                               MsqError& err )
 {
   get_edge_evaluations( pd, handles, free_vertices_only, true, err );
@@ -71,9 +71,9 @@ inline bool operator==( const EdgeData& e1, const EdgeData& e2 )
   { return e1.endVtx == e2.endVtx; }
 
 
-void EdgeQM::get_edge_evaluations( PatchData& pd, 
+void EdgeQM::get_edge_evaluations( PatchData& pd,
                                    std::vector<size_t>& handles,
-                                   bool free_vertices_only, 
+                                   bool free_vertices_only,
                                    bool single_pass_evaluate,
                                    MsqError& err )
 {
@@ -109,12 +109,12 @@ void EdgeQM::get_edge_evaluations( PatchData& pd,
           other = vtx1;
         else
           continue;
-        
-          // If !free_vertices_only, we'll visit every edge twice.  
+
+          // If !free_vertices_only, we'll visit every edge twice.
           // The first check below ensures that we only add each edge
           // once.  The second check is never true unless free_vertices_only
-          // is true and single_pass_evaluate is false.  In that case, it 
-          // serves as an exception to the first rule for those cases in which 
+          // is true and single_pass_evaluate is false.  In that case, it
+          // serves as an exception to the first rule for those cases in which
           // we visit an edge only once.  For single_pass_evaluate (e.g.
           // BCD initialization or QualityAssessor) we want to avoid visiting
           // and edge more than once for every patch rather than just within
@@ -125,11 +125,11 @@ void EdgeQM::get_edge_evaluations( PatchData& pd,
         }
       } // end for each edge in element
     } // end for each element adjacent to vertex
-    
+
     std::sort( vtx_edges.begin(), vtx_edges.end() );
     std::vector<EdgeData>::iterator it, end;
     end = std::unique( vtx_edges.begin(), vtx_edges.end() );
-    for (it = vtx_edges.begin(); it != end; ++it) 
+    for (it = vtx_edges.begin(); it != end; ++it)
       handles.push_back( handle( it->elemEdge, it->adjElem ) );
   } // end for each (free) vertex
 }
@@ -141,7 +141,7 @@ bool EdgeQM::evaluate_with_indices( PatchData& pd,
                                     MsqError& err )
 {
   const MsqMeshEntity& element = pd.element_by_index( elem(p_handle) );
-  EntityTopology type = element.get_element_type(); 
+  EntityTopology type = element.get_element_type();
   const unsigned* verts = TopologyInfo::edge_vertices( type, edge(p_handle) );
   const size_t* conn = element.get_vertex_index_array();
   indices.clear();

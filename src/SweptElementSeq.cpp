@@ -1,16 +1,16 @@
 /**
  * MOAB, a Mesh-Oriented datABase, is a software component for creating,
  * storing and accessing finite element mesh data.
- * 
+ *
  * Copyright 2008 Sandia Corporation.  Under the terms of Contract
  * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
  * retains certain rights in this software.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  */
 
 #include "SweptElementSeq.hpp"
@@ -26,25 +26,25 @@ namespace moab {
 SweptElementSeq::SweptElementSeq(EntityHandle shandle,
                                  const int imin, const int jmin, const int kmin,
 				 const int imax, const int jmax, const int kmax,
-                                 const int* Cq ) 
-  : ElementSequence( shandle, 
+                                 const int* Cq )
+  : ElementSequence( shandle,
                      ScdElementData::calc_num_entities( shandle,
                                                         imax-imin,
                                                         jmax-jmin,
                                                         kmax-kmin ),
                      CN::VerticesPerEntity(TYPE_FROM_HANDLE(shandle)),
-                     new SweptElementData( shandle, 
+                     new SweptElementData( shandle,
 					   imin, jmin, kmin,
 					   imax, jmax, kmax,
 					   Cq ) )
 {
 }
 
-SweptElementSeq::~SweptElementSeq() 
+SweptElementSeq::~SweptElementSeq()
 {
 }
 
-ErrorCode SweptElementSeq::get_connectivity( 
+ErrorCode SweptElementSeq::get_connectivity(
                                         EntityHandle handle,
                                         std::vector<EntityHandle>& connect,
                                         bool /*topological*/ ) const
@@ -56,7 +56,7 @@ ErrorCode SweptElementSeq::get_connectivity(
   return rval;
 }
 
-ErrorCode SweptElementSeq::get_connectivity( 
+ErrorCode SweptElementSeq::get_connectivity(
                                         EntityHandle handle,
                                         EntityHandle const*& connect,
                                         int &connect_length,
@@ -69,7 +69,7 @@ ErrorCode SweptElementSeq::get_connectivity(
     connect_length = 0;
     return MB_NOT_IMPLEMENTED;
   }
-  
+
   storage->clear();
   ErrorCode rval = get_connectivity( handle, *storage, topo );
   connect = &(*storage)[0];
@@ -77,7 +77,7 @@ ErrorCode SweptElementSeq::get_connectivity(
   return rval;
 }
 
-ErrorCode SweptElementSeq::set_connectivity( 
+ErrorCode SweptElementSeq::set_connectivity(
                                         EntityHandle,
                                         EntityHandle const*,
                                         int )
@@ -89,7 +89,7 @@ EntityHandle* SweptElementSeq::get_connectivity_array()
   { return 0; }
 
 int SweptElementSeq::values_per_entity() const
-  { return -1; } // never reuse freed handles for swept elements 
+  { return -1; } // never reuse freed handles for swept elements
 
 EntitySequence* SweptElementSeq::split( EntityHandle here )
   { return new SweptElementSeq( *this, here ); }

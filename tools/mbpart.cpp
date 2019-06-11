@@ -69,8 +69,8 @@ int main(int argc, char* argv[])
   LONG_DESC << "This utility invokes the ZoltanPartitioner or MetisPartitioner component of MOAB/CGM "
             "to partition a mesh/geometry." << std::endl
             << "If no partitioning method is specified, the defaults are: "
-            << "for Zoltan=\"" << DEFAULT_ZOLTAN_METHOD 
-            << "\" and Metis=\"" << METIS_DEFAULT_METHOD 
+            << "for Zoltan=\"" << DEFAULT_ZOLTAN_METHOD
+            << "\" and Metis=\"" << METIS_DEFAULT_METHOD
             << " method" << std::endl;
 
   ProgOptions opts(LONG_DESC.str(), BRIEF_DESC);

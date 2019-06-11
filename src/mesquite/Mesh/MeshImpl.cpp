@@ -1,9 +1,9 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2004 Sandia Corporation and Argonne National
-    Laboratory.  Under the terms of Contract DE-AC04-94AL85000 
-    with Sandia Corporation, the U.S. Government retains certain 
+    Laboratory.  Under the terms of Contract DE-AC04-94AL85000
+    with Sandia Corporation, the U.S. Government retains certain
     rights in this software.
 
     This library is free software; you can redistribute it and/or
@@ -16,17 +16,17 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
-    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov, 
+
+    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov,
     pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov,
     kraftche@cae.wisc.edu
-   
+
   ***************************************************************** */
 //
-//   SUMMARY: 
+//   SUMMARY:
 //     USAGE:
 //
 // ORIG-DATE: 16-May-02 at 10:26:21
@@ -36,7 +36,7 @@
 
 \brief This files contains a mesh database implementation that can be used
 to run mesquite by default.
-  
+
     \author Thomas Leurent
     \author Darryl Melander
     \author Jason Kraftcheck
@@ -77,19 +77,19 @@ namespace MBMesquite
 
 const char* MESQUITE_FIELD_TAG = "MesquiteTags";
 
-MeshImpl::MeshImpl() 
+MeshImpl::MeshImpl()
     : numCoords(0),
       myMesh( new MeshImplData ),
       myTags( new MeshImplTags )
 {}
 
-MeshImpl::~MeshImpl() 
+MeshImpl::~MeshImpl()
 {
   delete myMesh;
   delete myTags;
 }
 
-MeshImpl::MeshImpl(int num_nodes, int num_elem, EntityTopology entity_topology, 
+MeshImpl::MeshImpl(int num_nodes, int num_elem, EntityTopology entity_topology,
                    const bool *fixed, const double *coords, const int *connectivity)
     : numCoords(3),
       myMesh( new MeshImplData ),
@@ -98,7 +98,7 @@ MeshImpl::MeshImpl(int num_nodes, int num_elem, EntityTopology entity_topology,
   MsqError err;
   myMesh->allocate_vertices( num_nodes, err ); MSQ_ERRRTN(err);
   myMesh->allocate_elements( num_elem, err ); MSQ_ERRRTN(err);
-  
+
   // Fill in the data
   if (fixed) {
     for (int i = 0; i < num_nodes; ++i) {
@@ -121,7 +121,7 @@ MeshImpl::MeshImpl(int num_nodes, int num_elem, EntityTopology entity_topology,
   }
 }
 
-MeshImpl::MeshImpl(int num_nodes, int num_elem, const EntityTopology *element_topologies, 
+MeshImpl::MeshImpl(int num_nodes, int num_elem, const EntityTopology *element_topologies,
                    const bool *fixed, const double *coords, const int *connectivity)
     : numCoords(3),
       myMesh( new MeshImplData ),
@@ -177,14 +177,14 @@ void MeshImpl::set_all_slaved_flags( bool , MsqError& err )
   for (size_t e = 0; e < myMesh->max_element_index(); ++e) {
     if (!myMesh->is_element_valid(e))
       continue;
-    
+
       // Get element connectivity
     const std::vector<size_t>& verts = myMesh->element_connectivity( e, err ); MSQ_ERRRTN(err);
-    
+
       // Get element properties
     EntityTopology type = myMesh->element_topology( e, err ); MSQ_ERRRTN(err);
     unsigned ncorner = TopologyInfo::corners(type);
-    
+
     for (unsigned i = 0; i < ncorner; ++i) {
       myMesh->slave_vertex( verts[i], false, err ); MSQ_ERRRTN(err);
     }
@@ -204,13 +204,13 @@ static bool is_side_boundary( MeshImplData* myMesh,
     // Get the vertices of the side as indices into the above 'verts' list.
   const EntityTopology type = myMesh->element_topology( elem, err );
   MSQ_ERRZERO(err);
-  unsigned n; // number of vertices 
+  unsigned n; // number of vertices
   const unsigned* conn = TopologyInfo::side_vertices( type, side_dim, side_num, n, err );
   MSQ_ERRZERO(err);
 
     // start with the assumption that the side is on the bounary
   bool boundary = true;
-  
+
     // get vertices in element connectivity
   const std::vector<size_t>& verts = myMesh->element_connectivity( elem, err );
   MSQ_ERRZERO(err);
@@ -235,19 +235,19 @@ static bool is_side_boundary( MeshImplData* myMesh,
     MSQ_ERRZERO(err);
     int sides2 = TopologyInfo::adjacent( type2, side_dim );
     for (int j = 0; j < sides2; ++j) {
-      if (TopologyInfo::compare_sides( (const size_t*)arrptr(verts),  type,  side_num, 
-                                       (const size_t*)arrptr(verts2), type2, j, 
+      if (TopologyInfo::compare_sides( (const size_t*)arrptr(verts),  type,  side_num,
+                                       (const size_t*)arrptr(verts2), type2, j,
                                        side_dim, err))
         boundary = false;
       MSQ_ERRZERO(err);
     }
   }
-  
+
   return boundary;
 }
-  
 
-void MeshImpl::set_skin_flags( bool corner_fixed_flag, 
+
+void MeshImpl::set_skin_flags( bool corner_fixed_flag,
                                bool midnode_fixed_flag,
                                bool midnode_slaved_flag,
                                MsqError& err )
@@ -257,10 +257,10 @@ void MeshImpl::set_skin_flags( bool corner_fixed_flag,
   for (size_t i = 0; i < myMesh->max_element_index(); ++i) {
     if (!myMesh->is_element_valid(i))
       continue;
-    
+
       // Get element connectivity
     const std::vector<size_t>& verts = myMesh->element_connectivity( i, err );
-    
+
       // Get element properties
     EntityTopology type = myMesh->element_topology( i, err );
     unsigned dim = TopologyInfo::dimension( type );
@@ -270,15 +270,15 @@ void MeshImpl::set_skin_flags( bool corner_fixed_flag,
     MSQ_ERRRTN(err);
     const bool midside = (dim == 2 && midedge) || (dim == 3 && midface);
     const bool midsubside = dim == 3 && midedge;
-    
-      // For each side of the element (each edge for surface elems, 
+
+      // For each side of the element (each edge for surface elems,
       // each face for volume elements)..
     for (int j = 0; j < sides; ++j) {
         // Get the vertices of the side as indices into the above 'verts' list.
-      unsigned n; // number of vertices 
+      unsigned n; // number of vertices
       const unsigned* conn = TopologyInfo::side_vertices( type, dim-1, j, n, err );
       MSQ_ERRRTN(err);
-     
+
         // if side is on boundary, mark side vertices appropriately
       bool boundary = is_side_boundary( myMesh, i, dim-1, j, err );
       MSQ_ERRRTN(err);
@@ -288,7 +288,7 @@ void MeshImpl::set_skin_flags( bool corner_fixed_flag,
           myMesh->fix_vertex( verts[conn[k]], corner_fixed_flag, err );
           MSQ_ERRRTN(err);
         }
-        
+
           // mark higher-order node in center of side as fixed
         if (midside) {
           unsigned idx = TopologyInfo::higher_order_from_side( type, verts.size(), dim-1, j, err );
@@ -298,7 +298,7 @@ void MeshImpl::set_skin_flags( bool corner_fixed_flag,
           myMesh->slave_vertex( verts[idx], midnode_slaved_flag, err );
           MSQ_ERRRTN(err);
         }
-        
+
           // if side is a face, mark nodes on edges of face as fixed
         if (midsubside) {
           for (unsigned k = 0; k < n; ++k) {
@@ -306,7 +306,7 @@ void MeshImpl::set_skin_flags( bool corner_fixed_flag,
             bool r;
             unsigned edge_num = TopologyInfo::find_edge( type, edge, r, err );
             MSQ_ERRRTN(err);
-            
+
             unsigned idx = TopologyInfo::higher_order_from_side( type, verts.size(), 1, edge_num, err );
             MSQ_ERRRTN(err);
             myMesh->fix_vertex( verts[idx], midnode_fixed_flag, err );
@@ -315,27 +315,27 @@ void MeshImpl::set_skin_flags( bool corner_fixed_flag,
             MSQ_ERRRTN(err);
           }
         }
-      }    
+      }
     } // for (j in sides)
   } // for (i in elems)
 }
-      
+
 void MeshImpl::mark_skin_fixed( MsqError& err, bool clear_existing )
 {
   if (clear_existing) {
     set_all_fixed_flags( false, err ); MSQ_ERRRTN(err);
   }
-  
+
   set_skin_flags( true, true, false, err ); MSQ_ERRRTN(err);
 }
-      
+
 static void get_field_names( const TagDescription& tag,
                              std::string& field_out,
                              std::string& member_out,
                              MsqError& err )
 {
   std::string::size_type idx;
-  
+
   if (tag.vtkType != TagDescription::FIELD)
   {
     field_out = tag.name;
@@ -348,7 +348,7 @@ static void get_field_names( const TagDescription& tag,
   }
     // If field is a struct, then the Mesquite tag name is a contcatenation
     // of the field name and the struct member name.  Extract them.
-  else 
+  else
   {
     idx = tag.name.find(" ");
     if (idx == std::string::npos)
@@ -362,13 +362,13 @@ static void get_field_names( const TagDescription& tag,
       member_out= tag.name.substr(idx+1);
     }
   }
-  
+
   idx = field_out.find(" ");
   if (idx != std::string::npos)
     MSQ_SETERR(err)(MsqError::FILE_FORMAT,
        "Cannot write tag name \"%s\" containing spaces to VTK file.",
        field_out.c_str());
-  
+
   idx = member_out.find(" ");
   if (idx != std::string::npos)
     MSQ_SETERR(err)(MsqError::FILE_FORMAT,
@@ -385,15 +385,15 @@ void MeshImpl::write_vtk(const char* out_filename, MsqError &err)
     MSQ_SETERR(err)( MsqError::FILE_ACCESS );
     return;
   }
-  
+
   file.precision( 10 );
-  
+
     // Write a header
   file << "# vtk DataFile Version 3.0\n";
   file << "Mesquite Mesh\n";
   file << "ASCII\n";
   file << "DATASET UNSTRUCTURED_GRID\n";
-  
+
     // Write vertex coordinates
   file << "POINTS " << myMesh->num_vertices() << " double\n";
 
@@ -412,7 +412,7 @@ void MeshImpl::write_vtk(const char* out_filename, MsqError &err)
       vertex_indices[i] = myMesh->max_vertex_index();
     }
   }
-  
+
     // Write out the connectivity table
   size_t elem_idx;
   size_t connectivity_size = myMesh->num_elements() + myMesh->num_vertex_uses();
@@ -421,34 +421,34 @@ void MeshImpl::write_vtk(const char* out_filename, MsqError &err)
   {
     if (!myMesh->is_element_valid(elem_idx))
       continue;
-    
+
     std::vector<size_t> conn = myMesh->element_connectivity( elem_idx, err ); MSQ_ERRRTN(err);
     EntityTopology topo = myMesh->element_topology( elem_idx, err ); MSQ_ERRRTN(err);
-   
+
       // If necessary, convert from Exodus to VTK node-ordering.
     const VtkTypeInfo* info = VtkTypeInfo::find_type( topo, conn.size(), err ); MSQ_ERRRTN(err);
     if (info->msqType != POLYGON)
       info->mesquiteToVtkOrder( conn );
-    
+
     file << conn.size();
     for (i = 0; i < conn.size(); ++i)
       file << ' ' << vertex_indices[(size_t)conn[i]];
     file << '\n';
   }
-  
+
     // Write out the element types
   file << "CELL_TYPES " << myMesh->num_elements() << '\n';
   for (elem_idx = 0; elem_idx < myMesh->max_element_index(); ++elem_idx)
   {
     if (!myMesh->is_element_valid(elem_idx))
       continue;
-    
+
     EntityTopology topo = myMesh->element_topology( elem_idx, err ); MSQ_ERRRTN(err);
     count = myMesh->element_connectivity( elem_idx, err ).size(); MSQ_ERRRTN(err);
-    const VtkTypeInfo* info = VtkTypeInfo::find_type( topo, count, err ); MSQ_ERRRTN(err); 
+    const VtkTypeInfo* info = VtkTypeInfo::find_type( topo, count, err ); MSQ_ERRRTN(err);
     file << info->vtkType << '\n';
   }
-  
+
     // Write out which points are fixed.
   file << "POINT_DATA " << myMesh->num_vertices()
        << "\nSCALARS fixed int\nLOOKUP_TABLE default\n";
@@ -473,15 +473,15 @@ void MeshImpl::write_vtk(const char* out_filename, MsqError &err)
   for (tagiter = myTags->tag_begin(); tagiter != myTags->tag_end(); ++tagiter)
   {
     bool haveelem = myTags->tag_has_element_data( *tagiter, err ); MSQ_ERRRTN(err);
-    if (haveelem) 
+    if (haveelem)
       have_elem_data = true;
-    
+
     const TagDescription& desc = myTags->properties( *tagiter, err );
     std::string field, member;
     get_field_names( desc, field, member, err ); MSQ_ERRRTN(err);
     fields.insert( std::multimap<std::string,size_t>::value_type( field, *tagiter ) );
   }
-  
+
     // Write vertex tag data to vtk attributes, group by field.
     // We already wrote the header line for the POINT_DATA block
     // with the fixed flag, so just write the rest of the tags now.
@@ -491,14 +491,14 @@ void MeshImpl::write_vtk(const char* out_filename, MsqError &err)
   {
     if (!myTags->tag_has_vertex_data( f->second, err ))
       { ++f; continue; }
-    
+
     int pcount = 0;
     for (e = f; e != fields.end() && e->first == f->first; ++e)
       if (myTags->tag_has_vertex_data( e->second, err ))
         ++pcount;
     if (!pcount)
       continue;
-    
+
     if (myTags->properties(f->second, err).vtkType == TagDescription::FIELD)
       file << "FIELD " << f->first << " " << pcount << std::endl;
     else if (pcount > 1)
@@ -508,12 +508,12 @@ void MeshImpl::write_vtk(const char* out_filename, MsqError &err)
         f->first.c_str(), myTags->properties((++f)->second,err).name.c_str());
       return;
     }
-    
+
     for (; f != e; ++f)
     {
       if (!myTags->tag_has_vertex_data(f->second, err))
         continue;
-      
+
       const TagDescription& desc = myTags->properties(f->second,err); MSQ_ERRRTN(err);
       std::vector<char> tagdata( myMesh->num_vertices() * desc.size );
       std::vector<char>::iterator iter = tagdata.begin();
@@ -529,23 +529,23 @@ void MeshImpl::write_vtk(const char* out_filename, MsqError &err)
           else if (MSQ_CHKERR(err))
             return;
           iter += desc.size;
-        }  
+        }
       }
-      vtk_write_attrib_data( file, 
-                             desc, 
+      vtk_write_attrib_data( file,
+                             desc,
                              arrptr(tagdata),
                              myMesh->num_vertices(),
                              err ); MSQ_ERRRTN(err);
     }
   }
-  
+
     // If no element tags, then done
-  if (!have_elem_data) 
+  if (!have_elem_data)
   {
     file.close();
     return;
   }
-  
+
     // Begin element data section
   file << "\nCELL_DATA " << myMesh->num_elements() << "\n";
     // Write element tag data to vtk attributes, group by field.
@@ -554,14 +554,14 @@ void MeshImpl::write_vtk(const char* out_filename, MsqError &err)
   {
     if (!myTags->tag_has_element_data( f->second, err ))
       { ++f; continue; }
-    
+
     int pcount = 0;
     for (e = f; e != fields.end() && e->first == f->first; ++e)
       if (myTags->tag_has_element_data( e->second, err ))
         ++pcount;
     if (!pcount)
       continue;
-    
+
     if (myTags->properties( f->second, err ).vtkType == TagDescription::FIELD)
       file << "FIELD " << f->first << " " << pcount << std::endl;
     else if (pcount > 1)
@@ -571,12 +571,12 @@ void MeshImpl::write_vtk(const char* out_filename, MsqError &err)
         f->first.c_str(), myTags->properties((++f)->second,err).name.c_str());
       return;
     }
-    
+
     for (; f != e; ++f)
     {
       if (!myTags->tag_has_element_data(f->second, err))
         continue;
-      
+
       const TagDescription& desc = myTags->properties(f->second,err); MSQ_ERRRTN(err);
       std::vector<char> tagdata( myMesh->num_elements() * desc.size );
       std::vector<char>::iterator iter = tagdata.begin();
@@ -592,16 +592,16 @@ void MeshImpl::write_vtk(const char* out_filename, MsqError &err)
           else if (MSQ_CHKERR(err))
             return;
           iter += desc.size;
-        }  
+        }
       }
-      vtk_write_attrib_data( file, 
-                             desc, 
+      vtk_write_attrib_data( file,
+                             desc,
                              arrptr(tagdata),
                              myMesh->num_elements(),
                              err ); MSQ_ERRRTN(err);
     }
   }
-  
+
     // Close the file
   file.close();
 }
@@ -613,14 +613,14 @@ void MeshImpl::read_exodus(const char* in_filename , MsqError &err)
   MSQ_DBGOUT(1) << "Cannot read ExodusII file: " << in_filename << "\n";
   return;
 #else
-  
+
   clear();
-  
+
   int app_float_size = sizeof(double);
   int file_float_size = 0;
   float exo_version = 0;
   int exo_err = 0;
-  
+
     // Open the file
   int file_id = ex_open(in_filename, EX_READ, &app_float_size,
                     &file_float_size, &exo_version);
@@ -631,7 +631,7 @@ void MeshImpl::read_exodus(const char* in_filename , MsqError &err)
     MSQ_SETERR(err)( MsqError::FILE_ACCESS );
     return;
   }
-  
+
     // make sure the file is saved as doubles
   if (file_float_size != sizeof(double))
   {
@@ -642,22 +642,22 @@ void MeshImpl::read_exodus(const char* in_filename , MsqError &err)
 
   char title[MAX_LINE_LENGTH];
   int dim, vert_count, elem_count, block_count, ns_count, ss_count;
-  
+
     // get info about the file
   exo_err = ex_get_init(file_id, title, &dim, &vert_count,
                         &elem_count, &block_count, &ns_count, &ss_count);
   if (exo_err < 0)
   {
-    MSQ_SETERR(err)("Unable to get entity counts from file.", 
+    MSQ_SETERR(err)("Unable to get entity counts from file.",
                     MsqError::PARSE_ERROR);
     return;
   }
-  
+
   myMesh->allocate_vertices( vert_count, err ); MSQ_ERRRTN(err);
   myMesh->allocate_elements( elem_count, err ); MSQ_ERRRTN(err);
-  
+
     // Now fill in the data
-  
+
     // Get the vertex coordinates
   std::vector<double> coords(vert_count * 3);
   double* x_iter = arrptr(coords);
@@ -680,14 +680,14 @@ void MeshImpl::read_exodus(const char* in_filename , MsqError &err)
                     MsqError::PARSE_ERROR);
     return;
   }
-  
+
     // Store vertex coordinates in vertex array
   int i;
   for (i = 0; i < vert_count; ++i)
     myMesh->reset_vertex( i, Vector3D(*(x_iter++), *(y_iter++), *(z_iter)++), false, err );
   coords.clear();
-  
-  
+
+
     // Get block list
   std::vector<int> block_ids(block_count);
   exo_err = ex_get_elem_blk_ids(file_id, arrptr(block_ids));
@@ -713,7 +713,7 @@ void MeshImpl::read_exodus(const char* in_filename , MsqError &err)
       MSQ_SETERR(err)("Unable to read parameters for block.",MsqError::PARSE_ERROR);
       return;
     }
-    
+
       // Figure out which type of element we're working with
     EntityTopology elem_type;
     for (int j = 0; elem_type_str[j]; j++)
@@ -749,7 +749,7 @@ void MeshImpl::read_exodus(const char* in_filename , MsqError &err)
                       MsqError::UNSUPPORTED_ELEMENT);
       continue;
     }
-    
+
     if (conn.size() < (unsigned)(num_block_elems*verts_per_elem))
       conn.resize( num_block_elems*verts_per_elem );
     exo_err = ex_get_elem_conn( file_id, block_ids[i], arrptr(conn) );
@@ -759,7 +759,7 @@ void MeshImpl::read_exodus(const char* in_filename , MsqError &err)
                       MsqError::PARSE_ERROR);
       return;
     }
-    
+
     std::vector<size_t> vertices(verts_per_elem);
     std::vector<int>::iterator conn_iter = conn.begin();
     for (const size_t end = index + num_block_elems; index < end; ++index)
@@ -767,11 +767,11 @@ void MeshImpl::read_exodus(const char* in_filename , MsqError &err)
       for (std::vector<size_t>::iterator iter = vertices.begin();
            iter != vertices.end(); ++iter, ++conn_iter)
         *iter = *conn_iter - 1;
-        
+
       myMesh->reset_element( index, vertices, elem_type, err ); MSQ_CHKERR(err);
     }
   }
-  
+
     // Finally, mark boundary nodes
   int num_fixed_nodes=0;
   int num_dist_in_set=0;
@@ -790,7 +790,7 @@ void MeshImpl::read_exodus(const char* in_filename , MsqError &err)
       MSQ_SETERR(err)("Error retrieving fixed nodes.", MsqError::PARSE_ERROR);
     }
   }
-  
+
     // See if this vertex is marked as a boundary vertex
   for (i=0; i < num_fixed_nodes; ++i)
   {
@@ -804,7 +804,7 @@ void MeshImpl::read_exodus(const char* in_filename , MsqError &err)
 #endif
 }
 //!Writes an exodus file of the mesh.
-void MeshImpl::write_exodus(const char* out_filename, 
+void MeshImpl::write_exodus(const char* out_filename,
                                       MsqError &err)
 {
     //just return an error if we don't have access to exodus
@@ -817,7 +817,7 @@ void MeshImpl::write_exodus(const char* out_filename,
   size_t i, j, k;
   if (!myMesh || !myMesh->num_vertices())
   {
-    MSQ_SETERR(err)("No vertices in MeshImpl.  Nothing written to file.", 
+    MSQ_SETERR(err)("No vertices in MeshImpl.  Nothing written to file.",
                     MsqError::PARSE_ERROR);
     return;
   }
@@ -830,12 +830,12 @@ void MeshImpl::write_exodus(const char* out_filename,
   const unsigned MIN_NODES = 2;
   int counts[MIXED][MAX_NODES+1];
   memset( counts, 0, sizeof(counts) );
-  
+
   for (i = 0; i < myMesh->max_element_index(); ++i)
   {
     if (!myMesh->is_element_valid(i))
       continue;
-    
+
     EntityTopology type = myMesh->element_topology(i, err); MSQ_ERRRTN(err);
     unsigned nodes = myMesh->element_connectivity(i, err).size(); MSQ_ERRRTN(err);
     if ((unsigned)type >= MIXED || nodes < MIN_NODES || nodes > MAX_NODES)
@@ -845,7 +845,7 @@ void MeshImpl::write_exodus(const char* out_filename,
     }
     ++counts[type][nodes];
   }
-  
+
     // Count number of required element blocks
   int block_count = 0;
   for (i = 0; i < MIXED; ++i)
@@ -861,13 +861,13 @@ void MeshImpl::write_exodus(const char* out_filename,
                  myMesh->vertex_is_fixed(i, err); MSQ_ERRRTN(err);
     num_fixed_nodes += fixed;
   }
-  
-  
+
+
     //write doubles instead of floats
   int app_float_size = sizeof(double);
   int file_float_size = sizeof(double);
   int exo_err = 0;
-  
+
     // Create the file.  If it exists, clobber it.  This could be dangerous.
   int file_id = ex_create(out_filename, EX_CLOBBER, &app_float_size,
                           &file_float_size);
@@ -878,17 +878,17 @@ void MeshImpl::write_exodus(const char* out_filename,
     MSQ_SETERR(err)(MsqError::FILE_ACCESS);
     return;
   }
-  
+
   char title[MAX_LINE_LENGTH]="Mesquite Export";
-  
+
   size_t vert_count = myMesh->num_vertices();
   size_t elem_count = myMesh->num_elements();
-  
+
   int ns_count=0;
   if(num_fixed_nodes>0)
     ns_count=1;
   int ss_count=0;
-  
+
     // put the initial info about the file
   exo_err = ex_put_init(file_id, title, numCoords, vert_count,
                         elem_count, block_count, ns_count, ss_count);
@@ -897,8 +897,8 @@ void MeshImpl::write_exodus(const char* out_filename,
     MSQ_SETERR(err)("Unable to initialize file data.", MsqError::IO_ERROR);
     return;
   }
-  
-  
+
+
     // Gather vertex coordinate data and write to file.
   std::vector<double> coords(vert_count * 3);
   std::vector<double>::iterator x, y, z;
@@ -909,13 +909,13 @@ void MeshImpl::write_exodus(const char* out_filename,
   {
     if (!myMesh->is_vertex_valid(i))
       continue;
-    
+
     if (z == coords.end())
     {
       MSQ_SETERR(err)("Array overflow", MsqError::INTERNAL_ERROR);
       return;
     }
-    
+
     Vector3D coords = myMesh->get_vertex_coords(i, err); MSQ_ERRRTN(err);
     *x = coords.x(); ++x;
     *y = coords.y(); ++y;
@@ -932,12 +932,12 @@ void MeshImpl::write_exodus(const char* out_filename,
   {
     MSQ_SETERR(err)("Unable to put vertex coordinates in file.",MsqError::IO_ERROR);
     return;
-  } 
+  }
 
     //put the names of the coordinates
   char* coord_names[] = { "x", "y", "z" };
   exo_err = ex_put_coord_names(file_id, coord_names);
-  
+
     // Create element-type arrays indexed by EntityTopology
   const char* tri_name = "TRI";
   const char* quad_name = "SHELL";
@@ -961,7 +961,7 @@ void MeshImpl::write_exodus(const char* out_filename,
   min_nodes[HEXAHEDRON]    = 8;
   min_nodes[PRISM]         = 6;
   min_nodes[PYRAMID]       = 5;
-  
+
     // For each element type (topology and num nodes)
   int block_id = 0;
   char name_buf[16];
@@ -974,7 +974,7 @@ void MeshImpl::write_exodus(const char* out_filename,
         // Have any of this topo & count combination?
       if (!counts[i][j])
         continue;
-      
+
         // Is a supported ExodusII type?
       if (!exo_names[i])
       {
@@ -982,23 +982,23 @@ void MeshImpl::write_exodus(const char* out_filename,
           "Element topology %d not supported by ExodusII", (int)i );
         return;
       }
-      
+
         // Construct ExodusII element name from topo & num nodes
       if (j == min_nodes[i])
         strcpy( name_buf, exo_names[i] );
       else
         sprintf( name_buf, "%s%d", exo_names[i], (int)j );
-      
+
         // Create element block
       ++block_id;
-      exo_err = ex_put_elem_block( file_id, block_id, name_buf, 
+      exo_err = ex_put_elem_block( file_id, block_id, name_buf,
                                    counts[i][j], j, num_atts );
       if(exo_err<0)
       {
         MSQ_SETERR(err)("Error creating the tri block.", MsqError::IO_ERROR);
         return;
       }
-      
+
         // For each element
       conn.resize( counts[i][j] * j );
       std::vector<int>::iterator iter = conn.begin();
@@ -1009,13 +1009,13 @@ void MeshImpl::write_exodus(const char* out_filename,
              (unsigned)(myMesh->element_topology(k, err)) != i)
           continue;
         MSQ_ERRRTN(err);
-        
+
           // If not correct number nodes, skip it
         const std::vector<size_t>& elem_conn = myMesh->element_connectivity(k, err);
         MSQ_ERRRTN(err);
         if (elem_conn.size() != j)
           continue;
-        
+
           // Append element connectivity to list
         for (std::vector<size_t>::const_iterator citer = elem_conn.begin();
              citer != elem_conn.end(); ++citer, ++iter)
@@ -1040,17 +1040,17 @@ void MeshImpl::write_exodus(const char* out_filename,
         return;
       }
     }
-  }  
- 
+  }
+
     // Finally, mark boundary nodes
-  
+
   if(num_fixed_nodes>0){
     exo_err=ex_put_node_set_param(file_id, 111, num_fixed_nodes, 0);
     if(exo_err<0) {
       MSQ_SETERR(err)("Error while initializing node set.", MsqError::IO_ERROR);
       return;
     }
-    
+
     int node_id = 0;
     std::vector<int> fixed_nodes( num_fixed_nodes );
     std::vector<int>::iterator iter = fixed_nodes.begin();
@@ -1059,7 +1059,7 @@ void MeshImpl::write_exodus(const char* out_filename,
       if (!myMesh->is_vertex_valid(i))
         continue;
       ++node_id;
-      
+
       if (myMesh->vertex_is_fixed( i, err ))
       {
         if (iter == fixed_nodes.end())
@@ -1071,7 +1071,7 @@ void MeshImpl::write_exodus(const char* out_filename,
         ++iter;
       }
     }
-    
+
     if (iter != fixed_nodes.end())
     {
       MSQ_SETERR(err)(MsqError::INTERNAL_ERROR);
@@ -1087,7 +1087,7 @@ void MeshImpl::write_exodus(const char* out_filename,
   exo_err=ex_close(file_id);
   if(exo_err<0)
     MSQ_SETERR(err)("Error closing Exodus file.", MsqError::IO_ERROR);
-  
+
 #endif
 }
 
@@ -1130,7 +1130,7 @@ VertexIterator* MeshImpl::vertex_iterator(MsqError &/*err*/)
 {
   return new MeshImplVertIter( myMesh );
 }
-    
+
 // Returns a pointer to an iterator that iterates over the
 // set of all top-level elements in this mesh.  The calling code should
 // delete the returned iterator when it is finished with it.
@@ -1148,39 +1148,39 @@ ElementIterator* MeshImpl::element_iterator(MsqError &/*err*/)
 // property; this flag can't be modified by users of the
 // Mesh interface.
 void MeshImpl::vertices_get_fixed_flag(
- const VertexHandle vert_array[], 
+ const VertexHandle vert_array[],
  std::vector<bool>& on_bnd,
  size_t num_vtx, MsqError& err)
 {
   on_bnd.resize(num_vtx);
   for (size_t i=0; i<num_vtx; ++i)
   {
-    on_bnd[i] = myMesh->vertex_is_fixed( (size_t)vert_array[i], err ); 
+    on_bnd[i] = myMesh->vertex_is_fixed( (size_t)vert_array[i], err );
     MSQ_ERRRTN(err);
   }
 }
 
 void MeshImpl::vertices_set_fixed_flag(
- const VertexHandle vert_array[], 
+ const VertexHandle vert_array[],
  const std::vector<bool>& on_bnd,
  size_t num_vtx, MsqError& err)
 {
   assert(on_bnd.size() >= num_vtx);
   for (size_t i=0; i<num_vtx; ++i)
   {
-    myMesh->fix_vertex( (size_t)vert_array[i], on_bnd[i],  err ); 
+    myMesh->fix_vertex( (size_t)vert_array[i], on_bnd[i],  err );
     MSQ_ERRRTN(err);
   }
 }
 void MeshImpl::vertices_get_slaved_flag(
- const VertexHandle vert_array[], 
+ const VertexHandle vert_array[],
  std::vector<bool>& flags,
  size_t num_vtx, MsqError& err)
 {
   flags.resize(num_vtx);
   for (size_t i=0; i<num_vtx; ++i)
   {
-    flags[i] = myMesh->vertex_is_slaved( (size_t)vert_array[i], err ); 
+    flags[i] = myMesh->vertex_is_slaved( (size_t)vert_array[i], err );
     MSQ_ERRRTN(err);
   }
 }
@@ -1227,7 +1227,7 @@ void MeshImpl::vertices_get_byte ( const VertexHandle *vert_array,
 {
   for (size_t i = 0; i < array_size; i++)
   {
-    byte_array[i] = myMesh->get_vertex_byte( (size_t)vert_array[i], err ); 
+    byte_array[i] = myMesh->get_vertex_byte( (size_t)vert_array[i], err );
     MSQ_ERRRTN(err);
   }
 }
@@ -1255,11 +1255,11 @@ void MeshImpl::vertices_set_byte( const VertexHandle *vertex,
 }
 
 template <typename T> struct cast_handle : public std::unary_function<size_t, T>
-{ 
-T operator()( size_t idx ) const 
-{ 
-  return reinterpret_cast<T>(idx); 
-} 
+{
+T operator()( size_t idx ) const
+{
+  return reinterpret_cast<T>(idx);
+}
 
 };
 
@@ -1276,13 +1276,13 @@ void MeshImpl::vertices_get_attached_elements( const VertexHandle* vertices,
   offsets.push_back( prev_offset );
   const VertexHandle *const vtx_end = vertices + num_vertices;
   for (; vertices < vtx_end; ++vertices) {
-    const std::vector<size_t>& adj 
+    const std::vector<size_t>& adj
       = myMesh->vertex_adjacencies( (size_t)*vertices, err );
     MSQ_ERRRTN(err);
-    
+
     prev_offset = prev_offset + adj.size();
     offsets.push_back( prev_offset );
-    
+
     std::transform( adj.begin(), adj.end(), std::back_inserter( elements ), cast_handle<ElementHandle>() );
   }
 }
@@ -1293,7 +1293,7 @@ void MeshImpl::elements_get_attached_vertices( const ElementHandle *elements,
                                                size_t num_elems,
                                                std::vector<VertexHandle>& vertices,
                                                std::vector<size_t>& offsets,
-                                               MsqError &err) 
+                                               MsqError &err)
 {
   vertices.clear();
   offsets.clear();
@@ -1302,13 +1302,13 @@ void MeshImpl::elements_get_attached_vertices( const ElementHandle *elements,
   offsets.push_back( prev_offset );
   const ElementHandle *const elem_end = elements + num_elems;
   for (; elements < elem_end; ++elements) {
-    const std::vector<size_t>& conn 
+    const std::vector<size_t>& conn
       = myMesh->element_connectivity( (size_t)*elements, err );
     MSQ_ERRRTN(err);
-    
+
     prev_offset = prev_offset + conn.size();
     offsets.push_back( prev_offset );
-    
+
     std::transform( conn.begin(), conn.end(), std::back_inserter( vertices ), cast_handle<VertexHandle>() );
   }
 }
@@ -1334,7 +1334,7 @@ void MeshImpl::elements_get_topologies( const ElementHandle *element_handle_arra
 
 //**************** Memory Management ****************
 // Tells the mesh that the client is finished with a given
-// entity handle.  
+// entity handle.
 void MeshImpl::release_entity_handles(
   const EntityHandle* /*handle_array*/,
   size_t /*num_handles*/,
@@ -1373,23 +1373,23 @@ void MeshImpl::read_vtk( const char* filename, MsqError &err )
   int major, minor;
   char vendor_string[257];
   size_t i;
-  
+
   FILE* file = fopen( filename, "r" );
   if (!file)
   {
     MSQ_SETERR(err)(MsqError::FILE_ACCESS);
     return;
   }
-  
+
     // Read file header
-    
+
   if (!fgets( vendor_string, sizeof(vendor_string), file ))
   {
     MSQ_SETERR(err)( MsqError::IO_ERROR );
     fclose( file );
     return;
   }
-  
+
   if (!strchr( vendor_string, '\n' ) ||
       2 != sscanf( vendor_string, "# vtk DataFile Version %d.%d", &major, &minor ))
   {
@@ -1397,14 +1397,14 @@ void MeshImpl::read_vtk( const char* filename, MsqError &err )
     fclose( file );
     return;
   }
-  
-  if (!fgets( vendor_string, sizeof(vendor_string), file )) 
+
+  if (!fgets( vendor_string, sizeof(vendor_string), file ))
   {
     MSQ_SETERR(err)( MsqError::IO_ERROR );
     fclose( file );
     return;
   }
-  
+
     // VTK spec says this should not exceed 256 chars.
   if (!strchr( vendor_string, '\n' ))
   {
@@ -1413,10 +1413,10 @@ void MeshImpl::read_vtk( const char* filename, MsqError &err )
     fclose( file );
     return;
   }
-  
-  
+
+
     // Check file type
-  
+
   FileTokenizer tokens( file );
   const char* const file_type_names[] = { "ASCII", "BINARY", 0 };
   int filetype = tokens.match_token( file_type_names, err ); MSQ_ERRRTN(err);
@@ -1431,13 +1431,13 @@ void MeshImpl::read_vtk( const char* filename, MsqError &err )
 
   const char* outer_block_names[] = { "DATASET", "FIELD", 0 };
     // Read the mesh
-    // VTK docs are inconsistant with regard to whether or not 
+    // VTK docs are inconsistant with regard to whether or not
     // a field block should be specified as "FIELD" or "DATASET FIELD",
     // so allow both.
-  while (!tokens.eof()) 
+  while (!tokens.eof())
   {
-    int blocktype = tokens.match_token( outer_block_names, err ); 
-    if (MSQ_CHKERR(err)) 
+    int blocktype = tokens.match_token( outer_block_names, err );
+    if (MSQ_CHKERR(err))
     {
       if (tokens.eof())
       {
@@ -1447,7 +1447,7 @@ void MeshImpl::read_vtk( const char* filename, MsqError &err )
       else
         return;
     }
-    
+
     if (blocktype == 1)
     {
       vtk_read_dataset( tokens, err ); MSQ_ERRRTN(err);
@@ -1457,14 +1457,14 @@ void MeshImpl::read_vtk( const char* filename, MsqError &err )
       vtk_read_field( tokens, err ); MSQ_ERRRTN(err);
     }
   }
-  
+
     // Make sure file actually contained some mesh
   if (myMesh->num_elements() == 0)
   {
     MSQ_SETERR(err)("File contained no mesh.", MsqError::PARSE_ERROR);
     return;
   }
-  
+
     // There is no option for a 2-D mesh in VTK files.  Always 3
   numCoords = 3;
 
@@ -1475,7 +1475,7 @@ void MeshImpl::read_vtk( const char* filename, MsqError &err )
     for (i = 0; i < myMesh->max_vertex_index(); ++i)
       myMesh->fix_vertex( i, flags[i], err ); MSQ_ERRRTN(err);
   }
-  
+
   flags.clear();
   tag_to_bool( "slaved", flags, err ); MSQ_ERRRTN(err);
   if (!flags.empty()) {
@@ -1484,7 +1484,7 @@ void MeshImpl::read_vtk( const char* filename, MsqError &err )
   }
 }
 
-void MeshImpl::tag_to_bool( const char* tag_name, 
+void MeshImpl::tag_to_bool( const char* tag_name,
                             std::vector<bool>& values,
                             MsqError& err )
 {
@@ -1495,7 +1495,7 @@ void MeshImpl::tag_to_bool( const char* tag_name,
     values.clear();
     return;
   }
-  
+
   size_t i;
   values.resize( myMesh->max_vertex_index(), false );
   const TagDescription& tag_desc = myTags->properties( (size_t)handle, err ); MSQ_ERRRTN(err);
@@ -1562,7 +1562,7 @@ void MeshImpl::tag_to_bool( const char* tag_name,
       MSQ_SETERR(err)(MsqError::PARSE_ERROR, "'%s' attribute has invalid type", tag_name);
       return;
   }
-  
+
   tag_delete( handle, err );
 }
 
@@ -1576,8 +1576,8 @@ void MeshImpl::vtk_read_dataset( FileTokenizer& tokens, MsqError& err )
                                           "FIELD",
                                           0 };
   int datatype = tokens.match_token( data_type_names, err ); MSQ_ERRRTN(err);
-  
-  
+
+
     // Ignore FIELD data at beginning of DATASET. As far as I (J.Kraftcheck)
     // understand the VTK documentation, there should never be a FIELD block
     // inside a dataset, except in attribute data.  However, some app somewhere
@@ -1585,7 +1585,7 @@ void MeshImpl::vtk_read_dataset( FileTokenizer& tokens, MsqError& err )
   for (;;)
   {
     tokens.match_token( "FIELD", err );
-    if (err) 
+    if (err)
     {
       tokens.unget_token();
       err.clear();
@@ -1593,8 +1593,8 @@ void MeshImpl::vtk_read_dataset( FileTokenizer& tokens, MsqError& err )
     }
     vtk_read_field( tokens, err ); MSQ_ERRRTN(err);
   }
-    
-  
+
+
   switch( datatype )
   {
     case 1: vtk_read_structured_points( tokens, err ); break;
@@ -1605,8 +1605,8 @@ void MeshImpl::vtk_read_dataset( FileTokenizer& tokens, MsqError& err )
     case 6: vtk_read_field            ( tokens, err ); break;
   }
 
-  
-    // Read attribute data 
+
+    // Read attribute data
   const char* const block_type_names[] = { "POINT_DATA", "CELL_DATA", "DATASET", 0 };
   int blocktype = 0;
   while (!tokens.eof())
@@ -1618,7 +1618,7 @@ void MeshImpl::vtk_read_dataset( FileTokenizer& tokens, MsqError& err )
       tokens.unget_token();
       return;
     }
-    
+
     if (err)
     {
       if (tokens.eof())
@@ -1643,24 +1643,24 @@ void MeshImpl::vtk_read_dataset( FileTokenizer& tokens, MsqError& err )
       blocktype = new_block_type;
       long count;
       tokens.get_long_ints( 1, &count, err); MSQ_ERRRTN(err);
-      
+
       if (blocktype == 1 && (unsigned long)count != myMesh->num_vertices())
       {
         MSQ_SETERR(err)( MsqError::PARSE_ERROR,
-                         "Count inconsistent with number of vertices" 
+                         "Count inconsistent with number of vertices"
                          " at line %d.", tokens.line_number());
         return;
       }
       else if (blocktype == 2 && (unsigned long)count != myMesh->num_elements())
       {
          MSQ_SETERR(err)( MsqError::PARSE_ERROR,
-                         "Count inconsistent with number of elements" 
+                         "Count inconsistent with number of elements"
                          " at line %d.", tokens.line_number());
         return;
       }
     }
-      
-   
+
+
     if (blocktype == 1)
       vtk_read_point_data( tokens, err );
     else
@@ -1675,28 +1675,28 @@ void MeshImpl::vtk_read_structured_points( FileTokenizer& tokens, MsqError& err 
   long i, j, k;
   long dims[3];
   double origin[3], space[3];
- 
+
   tokens.match_token( "DIMENSIONS", err ); MSQ_ERRRTN(err);
   tokens.get_long_ints( 3, dims, err );    MSQ_ERRRTN(err);
   tokens.get_newline( err );               MSQ_ERRRTN(err);
-  
+
   if (dims[0] < 1 || dims[1] < 1 || dims[2] < 1)
   {
     MSQ_SETERR(err)(MsqError::PARSE_ERROR,
-                   "Invalid dimension at line %d", 
+                   "Invalid dimension at line %d",
                    tokens.line_number());
     return;
   }
-  
+
   tokens.match_token( "ORIGIN", err );     MSQ_ERRRTN(err);
   tokens.get_doubles( 3, origin, err );    MSQ_ERRRTN(err);
   tokens.get_newline( err );               MSQ_ERRRTN(err);
-  
+
   const char* const spacing_names[] = { "SPACING", "ASPECT_RATIO", 0 };
   tokens.match_token( spacing_names, err );MSQ_ERRRTN(err);
   tokens.get_doubles( 3, space, err );     MSQ_ERRRTN(err);
   tokens.get_newline( err );               MSQ_ERRRTN(err);
-  
+
   myMesh->allocate_vertices( dims[0]*dims[1]*dims[2], err ); MSQ_ERRRTN(err);
   size_t vtx = 0;
   Vector3D off( origin[0], origin[1], origin[2] );
@@ -1704,7 +1704,7 @@ void MeshImpl::vtk_read_structured_points( FileTokenizer& tokens, MsqError& err 
     for (j = 0; j < dims[1]; ++j)
       for (i = 0; i < dims[0]; ++i)
       {
-        myMesh->reset_vertex( vtx++, off + Vector3D( i*space[0], j*space[1], k*space[2] ), false, err ); 
+        myMesh->reset_vertex( vtx++, off + Vector3D( i*space[0], j*space[1], k*space[2] ), false, err );
         MSQ_ERRRTN(err);
       }
 
@@ -1714,24 +1714,24 @@ void MeshImpl::vtk_read_structured_points( FileTokenizer& tokens, MsqError& err 
 void MeshImpl::vtk_read_structured_grid( FileTokenizer& tokens, MsqError& err )
 {
   long num_verts, dims[3];
- 
+
   tokens.match_token( "DIMENSIONS", err );   MSQ_ERRRTN(err);
   tokens.get_long_ints( 3, dims, err );      MSQ_ERRRTN(err);
-  tokens.get_newline( err );                 MSQ_ERRRTN(err); 
-  
+  tokens.get_newline( err );                 MSQ_ERRRTN(err);
+
   if (dims[0] < 1 || dims[1] < 1 || dims[2] < 1)
   {
     MSQ_SETERR(err)(MsqError::PARSE_ERROR,
-                   "Invalid dimension at line %d", 
+                   "Invalid dimension at line %d",
                    tokens.line_number());
     return;
   }
-  
-  tokens.match_token( "POINTS", err );        MSQ_ERRRTN(err); 
-  tokens.get_long_ints( 1, &num_verts, err ); MSQ_ERRRTN(err); 
-  tokens.match_token( vtk_type_names, err );  MSQ_ERRRTN(err); 
-  tokens.get_newline( err );                  MSQ_ERRRTN(err); 
-  
+
+  tokens.match_token( "POINTS", err );        MSQ_ERRRTN(err);
+  tokens.get_long_ints( 1, &num_verts, err ); MSQ_ERRRTN(err);
+  tokens.match_token( vtk_type_names, err );  MSQ_ERRRTN(err);
+  tokens.get_newline( err );                  MSQ_ERRRTN(err);
+
   if (num_verts != (dims[0] * dims[1] * dims[2]))
   {
     MSQ_SETERR(err)( MsqError::PARSE_ERROR,
@@ -1739,7 +1739,7 @@ void MeshImpl::vtk_read_structured_grid( FileTokenizer& tokens, MsqError& err )
                     "at line %d", tokens.line_number() );
     return;
   }
-  
+
   myMesh->allocate_vertices( num_verts, err ); MSQ_ERRRTN(err);
   for (size_t vtx = 0; vtx < (size_t)num_verts; ++vtx)
   {
@@ -1747,7 +1747,7 @@ void MeshImpl::vtk_read_structured_grid( FileTokenizer& tokens, MsqError& err )
     tokens.get_doubles( 3, const_cast<double*>(pos.to_array()), err ); MSQ_ERRRTN(err);
     myMesh->reset_vertex( vtx, pos, false, err );  MSQ_ERRRTN(err);
   }
- 
+
   vtk_create_structured_elems( dims, err ); MSQ_ERRRTN(err);
 }
 
@@ -1757,15 +1757,15 @@ void MeshImpl::vtk_read_rectilinear_grid( FileTokenizer& tokens, MsqError& err )
   long dims[3];
   const char* labels[] = { "X_COORDINATES", "Y_COORDINATES", "Z_COORDINATES" };
   vector<double> coords[3];
-  
+
   tokens.match_token( "DIMENSIONS", err );                   MSQ_ERRRTN(err);
   tokens.get_long_ints( 3, dims, err );                     MSQ_ERRRTN(err);
   tokens.get_newline( err );                                MSQ_ERRRTN(err);
-  
+
   if (dims[0] < 1 || dims[1] < 1 || dims[2] < 1)
   {
      MSQ_SETERR(err)(MsqError::PARSE_ERROR,
-                   "Invalid dimension at line %d", 
+                   "Invalid dimension at line %d",
                    tokens.line_number());
     return;
   }
@@ -1777,7 +1777,7 @@ void MeshImpl::vtk_read_rectilinear_grid( FileTokenizer& tokens, MsqError& err )
     tokens.get_long_ints( 1, &count, err );                 MSQ_ERRRTN(err);
     tokens.match_token( vtk_type_names, err );              MSQ_ERRRTN(err);
     tokens.get_newline( err );                              MSQ_ERRRTN(err);
-    
+
     if (count != dims[i])
     {
       MSQ_SETERR(err)( MsqError::PARSE_ERROR,
@@ -1785,11 +1785,11 @@ void MeshImpl::vtk_read_rectilinear_grid( FileTokenizer& tokens, MsqError& err )
                        " at line %d", tokens.line_number());
       return;
     }
-    
+
     coords[i].resize(count);
     tokens.get_doubles( count, &coords[i][0], err );   MSQ_ERRRTN(err);
   }
-  
+
   myMesh->allocate_vertices( dims[0]*dims[1]*dims[2], err ); MSQ_ERRRTN(err);
   size_t vtx = 0;
   for (k = 0; k < dims[2]; ++k)
@@ -1799,8 +1799,8 @@ void MeshImpl::vtk_read_rectilinear_grid( FileTokenizer& tokens, MsqError& err )
         myMesh->reset_vertex( vtx++, Vector3D( coords[0][i], coords[1][j], coords[2][k] ), false, err );
         MSQ_ERRRTN(err);
       }
-  
-  
+
+
   vtk_create_structured_elems( dims, err );                 MSQ_ERRRTN(err);
 }
 
@@ -1811,21 +1811,21 @@ void MeshImpl::vtk_read_polydata( FileTokenizer& tokens, MsqError& err )
   const char* const poly_data_names[] = { "VERTICES",
                                           "LINES",
                                           "POLYGONS",
-                                          "TRIANGLE_STRIPS", 
+                                          "TRIANGLE_STRIPS",
                                           0 };
-  
+
   tokens.match_token( "POINTS", err );                      MSQ_ERRRTN(err);
   tokens.get_long_ints( 1, &num_verts, err );               MSQ_ERRRTN(err);
   tokens.match_token( vtk_type_names, err );                MSQ_ERRRTN(err);
   tokens.get_newline( err );                                MSQ_ERRRTN(err);
-  
+
   if (num_verts < 1)
   {
     MSQ_SETERR(err)( MsqError::PARSE_ERROR,
                      "Invalid point count at line %d", tokens.line_number());
     return;
   }
-  
+
   myMesh->allocate_vertices( num_verts, err );              MSQ_ERRRTN(err);
   for (size_t vtx = 0; vtx < (size_t)num_verts; ++vtx)
   {
@@ -1841,13 +1841,13 @@ void MeshImpl::vtk_read_polydata( FileTokenizer& tokens, MsqError& err )
       vtk_read_polygons( tokens, err );                     MSQ_ERRRTN(err);
       break;
     case 4:
-      MSQ_SETERR(err)( MsqError::NOT_IMPLEMENTED, 
+      MSQ_SETERR(err)( MsqError::NOT_IMPLEMENTED,
                        "Unsupported type: triangle strips at line %d",
                        tokens.line_number() );
       return;
     case 1:
     case 2:
-      MSQ_SETERR(err)( MsqError::NOT_IMPLEMENTED, 
+      MSQ_SETERR(err)( MsqError::NOT_IMPLEMENTED,
                        "Entities of dimension < 2 at line %d",
                        tokens.line_number() );
       return;
@@ -1857,7 +1857,7 @@ void MeshImpl::vtk_read_polydata( FileTokenizer& tokens, MsqError& err )
 void MeshImpl::vtk_read_polygons( FileTokenizer& tokens, MsqError& err )
 {
   long size[2];
-  
+
   tokens.get_long_ints( 2, size, err );                     MSQ_ERRRTN(err);
   tokens.get_newline( err );                                MSQ_ERRRTN(err);
   myMesh->allocate_elements( size[0], err );                MSQ_ERRRTN(err);
@@ -1870,7 +1870,7 @@ void MeshImpl::vtk_read_polygons( FileTokenizer& tokens, MsqError& err )
     conn.resize( count );
     tokens.get_long_ints( count, arrptr(conn), err );    MSQ_ERRRTN(err);
     myMesh->reset_element( i, conn, POLYGON, err );         MSQ_ERRRTN(err);
-  } 
+  }
 }
 
 
@@ -1878,19 +1878,19 @@ void MeshImpl::vtk_read_polygons( FileTokenizer& tokens, MsqError& err )
 void MeshImpl::vtk_read_unstructured_grid( FileTokenizer& tokens, MsqError& err )
 {
   long i, num_verts, num_elems[2];
-  
+
   tokens.match_token( "POINTS", err );                      MSQ_ERRRTN(err);
   tokens.get_long_ints( 1, &num_verts, err );               MSQ_ERRRTN(err);
   tokens.match_token( vtk_type_names, err );                MSQ_ERRRTN(err);
   tokens.get_newline( err );                                MSQ_ERRRTN(err);
-  
+
   if (num_verts < 1)
   {
     MSQ_SETERR(err)( MsqError::PARSE_ERROR,
                      "Invalid point count at line %d", tokens.line_number());
     return;
   }
-  
+
   myMesh->allocate_vertices( num_verts, err );              MSQ_ERRRTN(err);
   for (size_t vtx = 0; vtx < (size_t)num_verts; ++vtx)
   {
@@ -1898,7 +1898,7 @@ void MeshImpl::vtk_read_unstructured_grid( FileTokenizer& tokens, MsqError& err 
     tokens.get_doubles( 3, const_cast<double*>(pos.to_array()), err ); MSQ_ERRRTN(err);
     myMesh->reset_vertex( vtx, pos, false, err );           MSQ_ERRRTN(err);
   }
-  
+
   tokens.match_token( "CELLS", err );                       MSQ_ERRRTN(err);
   tokens.get_long_ints( 2, num_elems, err );                MSQ_ERRRTN(err);
   tokens.get_newline( err );                                MSQ_ERRRTN(err);
@@ -1913,11 +1913,11 @@ void MeshImpl::vtk_read_unstructured_grid( FileTokenizer& tokens, MsqError& err 
     tokens.get_long_ints( count, arrptr(conn), err );    MSQ_ERRRTN(err);
     myMesh->reset_element( i, conn, MIXED, err );           MSQ_ERRRTN(err);
   }
- 
+
   tokens.match_token( "CELL_TYPES", err );                  MSQ_ERRRTN(err);
   tokens.get_long_ints( 1, &num_elems[1], err );            MSQ_ERRRTN(err);
   tokens.get_newline( err );                                MSQ_ERRRTN(err);
-  
+
   if (num_elems[0] != num_elems[1])
   {
     MSQ_SETERR(err)( MsqError::PARSE_ERROR,
@@ -1925,7 +1925,7 @@ void MeshImpl::vtk_read_unstructured_grid( FileTokenizer& tokens, MsqError& err 
                     "at line %d", tokens.line_number() );
     return;
   }
-  
+
   std::vector<size_t> tconn;
   for (i = 0; i < num_elems[0]; ++i)
   {
@@ -1934,7 +1934,7 @@ void MeshImpl::vtk_read_unstructured_grid( FileTokenizer& tokens, MsqError& err 
     tokens.get_long_ints( 1, &type, err );                      MSQ_ERRRTN(err);
 
       // Check if type is a valid value
-    const VtkTypeInfo* info = VtkTypeInfo::find_type( type, err );   
+    const VtkTypeInfo* info = VtkTypeInfo::find_type( type, err );
     if (err || !info || (!info->numNodes && type != POLYGON) )
     {
       MSQ_SETERR(err)( MsqError::PARSE_ERROR,
@@ -1950,7 +1950,7 @@ void MeshImpl::vtk_read_unstructured_grid( FileTokenizer& tokens, MsqError& err 
                        type, info->name, tokens.line_number() );
       return;
     }
-    
+
       // If node-ordering is not the same as exodus...
     if (info->vtkConnOrder)
     {
@@ -1959,17 +1959,17 @@ void MeshImpl::vtk_read_unstructured_grid( FileTokenizer& tokens, MsqError& err 
       {
         MSQ_SETERR(err)(MsqError::UNSUPPORTED_ELEMENT,
           "Cell type %ld (%s) for element with %d nodes at Line %d",
-          type, info->name, (int)size, tokens.line_number() ); 
+          type, info->name, (int)size, tokens.line_number() );
         return;
       }
-      
+
       tconn.resize( size );
       const std::vector<size_t>& pconn = myMesh->element_connectivity( i, err ); MSQ_ERRRTN(err);
       for (size_t j = 0; j < size; ++j)
       {
         tconn[j] = pconn[info->vtkConnOrder[j]];
       }
-        
+
       myMesh->reset_element( i, tconn, info->msqType, err );MSQ_ERRRTN(err);
     }
       // Othewise (if node ordering is the same), just set the type.
@@ -1980,21 +1980,21 @@ void MeshImpl::vtk_read_unstructured_grid( FileTokenizer& tokens, MsqError& err 
   } // for(i)
 }
 
-void MeshImpl::vtk_create_structured_elems( const long* dims, 
+void MeshImpl::vtk_create_structured_elems( const long* dims,
                                             MsqError& err )
 {
-    //NOTE: this should be work fine for edges also if 
+    //NOTE: this should be work fine for edges also if
     //      Mesquite ever supports them.  Just add the
     //      type for dimension 1 to the switch statement.
-    
+
   //int non_zero[3] = {0,0,0};  // True if dim > 0 for x, y, z respectively
   long elem_dim = 0;          // Element dimension (2->quad, 3->hex)
   long num_elems = 1;         // Total number of elements
   long vert_per_elem;         // Element connectivity length
   long edims[3] = { 1, 1, 1 };// Number of elements in each grid direction
-  
+
     // Populate above data
-  for (int d = 0; d < 3; d++) 
+  for (int d = 0; d < 3; d++)
     if (dims[d] > 1)
     {
       //non_zero[elem_dim] = d;
@@ -2003,7 +2003,7 @@ void MeshImpl::vtk_create_structured_elems( const long* dims,
       elem_dim++;
     }
   vert_per_elem = 1 << elem_dim;
-  
+
     // Get element type from element dimension
   EntityTopology type;
   switch( elem_dim )
@@ -2020,11 +2020,11 @@ void MeshImpl::vtk_create_structured_elems( const long* dims,
 
     // Allocate storage for elements
   myMesh->allocate_elements( num_elems, err ); MSQ_ERRRTN(err);
-  
-    // Offsets of element vertices in grid relative to corner closest to origin 
+
+    // Offsets of element vertices in grid relative to corner closest to origin
   long k = dims[0]*dims[1];
   const long corners[8] = { 0, 1, 1+dims[0], dims[0], k, k+1, k+1+dims[0], k+dims[0] };
-                             
+
     // Populate element list
   std::vector<size_t> conn( vert_per_elem );
   size_t elem_idx = 0;
@@ -2039,11 +2039,11 @@ void MeshImpl::vtk_create_structured_elems( const long* dims,
       }
 }
 
-void* MeshImpl::vtk_read_field_data( FileTokenizer& tokens, 
-                                     size_t count, 
+void* MeshImpl::vtk_read_field_data( FileTokenizer& tokens,
+                                     size_t count,
                                      size_t num_fields,
                                      const std::string& field_name,
-                                     TagDescription& tag, 
+                                     TagDescription& tag,
                                      MsqError& err )
 {
   tag.member = tokens.get_string(err);                  MSQ_ERRZERO(err);
@@ -2058,7 +2058,7 @@ void* MeshImpl::vtk_read_field_data( FileTokenizer& tokens,
     tag.member.clear();
   }
     // If field contains only one member, then make the tag
-    // name be the field name, and store the member name to 
+    // name be the field name, and store the member name to
     // preserve it for subsequent writes.
   else
   {
@@ -2078,12 +2078,12 @@ void* MeshImpl::vtk_read_field_data( FileTokenizer& tokens,
   if (sizes[1] < 0 || (count && (size_t)sizes[1] != count)) {
     MSQ_SETERR(err)( MsqError::PARSE_ERROR,
                      "Invalid field data length at line %d.  "
-                     "Cannot map %lu tuples to  %ld entities.\n", 
+                     "Cannot map %lu tuples to  %ld entities.\n",
                      tokens.line_number(),
                      (unsigned long)count, sizes[1] );
     return 0;
   }
-  
+
   int type = tokens.match_token( vtk_type_names, err ); MSQ_ERRZERO(err);
   void* result = vtk_read_typed_data( tokens, type, sizes[0], sizes[1], tag, err );
   MSQ_CHKERR(err);
@@ -2095,11 +2095,11 @@ void MeshImpl::vtk_read_field( FileTokenizer& tokens, MsqError& err )
     // This is not supported yet.
     // Parse the data but throw it away because
     // Mesquite has no internal representation for it.
-  
+
   std::string name = tokens.get_string(err); MSQ_ERRRTN(err);
   int count;
   tokens.get_integers( 1, &count, err ); MSQ_ERRRTN(err);
-  
+
   for (int i = 0; i < count; i++)
   {
     TagDescription tag;
@@ -2110,7 +2110,7 @@ void MeshImpl::vtk_read_field( FileTokenizer& tokens, MsqError& err )
   }
 }
 
-void* MeshImpl::vtk_read_attrib_data( FileTokenizer& tokens, 
+void* MeshImpl::vtk_read_attrib_data( FileTokenizer& tokens,
                                       long count,
                                       TagDescription& tag,
                                       MsqError& err )
@@ -2134,32 +2134,32 @@ void* MeshImpl::vtk_read_attrib_data( FileTokenizer& tokens,
   if (type > 7) // empty CELL_DATA/POINT_DATA block.
   {
     tag.vtkType = TagDescription::NONE;
-    tokens.unget_token();  
+    tokens.unget_token();
     return 0;
   }
-  
+
   const char* name = tokens.get_string( err );       MSQ_ERRZERO(err);
   tag.name = name;
-  
+
   void* data = 0;
   switch( type )
   {
-    case 1: data = vtk_read_scalar_attrib ( tokens, count, tag, err ); 
-            tag.vtkType = TagDescription::SCALAR; 
+    case 1: data = vtk_read_scalar_attrib ( tokens, count, tag, err );
+            tag.vtkType = TagDescription::SCALAR;
             break;
-    case 2: data = vtk_read_color_attrib  ( tokens, count, tag, err ); 
+    case 2: data = vtk_read_color_attrib  ( tokens, count, tag, err );
             tag.vtkType = TagDescription::COLOR;
             break;
     case 3: data = vtk_read_vector_attrib ( tokens, count, tag, err );
             tag.vtkType = TagDescription::VECTOR;
             break;
-    case 4: data = vtk_read_vector_attrib ( tokens, count, tag, err ); 
+    case 4: data = vtk_read_vector_attrib ( tokens, count, tag, err );
             tag.vtkType = TagDescription::NORMAL;
             break;
-    case 5: data = vtk_read_texture_attrib( tokens, count, tag, err ); 
+    case 5: data = vtk_read_texture_attrib( tokens, count, tag, err );
             tag.vtkType = TagDescription::TEXTURE;
             break;
-    case 6: data = vtk_read_tensor_attrib ( tokens, count, tag, err ); 
+    case 6: data = vtk_read_tensor_attrib ( tokens, count, tag, err );
             tag.vtkType = TagDescription::TENSOR;
             break;
     case 7: data = 0;
@@ -2170,7 +2170,7 @@ void* MeshImpl::vtk_read_attrib_data( FileTokenizer& tokens,
   return data;
 }
 
-void MeshImpl::vtk_read_point_data( FileTokenizer& tokens, 
+void MeshImpl::vtk_read_point_data( FileTokenizer& tokens,
                                     MsqError& err )
 {
   TagDescription tag;
@@ -2197,15 +2197,15 @@ void MeshImpl::vtk_read_point_data( FileTokenizer& tokens,
     }
   }
 }
-  
+
 void MeshImpl::vtk_store_point_data( const void* data, TagDescription& tag, MsqError& err )
-{  
+{
   size_t tag_handle = myTags->handle( tag.name, err ); MSQ_ERRRTN(err);
   if (!tag_handle)
   {
     tag_handle = myTags->create( tag, 0, err ); MSQ_ERRRTN(err);
   }
-  else 
+  else
   {
     const TagDescription& desc = myTags->properties( tag_handle, err );  MSQ_ERRRTN(err);
     if (desc != tag)
@@ -2217,11 +2217,11 @@ void MeshImpl::vtk_store_point_data( const void* data, TagDescription& tag, MsqE
       return;
     }
   }
-  
+
   std::vector<size_t> vertex_handles;
   myMesh->all_vertices( vertex_handles, err ); MSQ_ERRRTN(err);
-  if (!vertex_handles.empty()) 
-    myTags->set_vertex_data( tag_handle, 
+  if (!vertex_handles.empty())
+    myTags->set_vertex_data( tag_handle,
                              vertex_handles.size(),
                              arrptr(vertex_handles),
                              data,
@@ -2229,7 +2229,7 @@ void MeshImpl::vtk_store_point_data( const void* data, TagDescription& tag, MsqE
 }
 
 
-void MeshImpl::vtk_read_cell_data( FileTokenizer& tokens, 
+void MeshImpl::vtk_read_cell_data( FileTokenizer& tokens,
                                    MsqError& err )
 {
   TagDescription tag;
@@ -2258,13 +2258,13 @@ void MeshImpl::vtk_read_cell_data( FileTokenizer& tokens,
 }
 
 void MeshImpl::vtk_store_cell_data( const void* data, TagDescription& tag, MsqError& err )
-{  
+{
   size_t tag_handle = myTags->handle( tag.name, err );  MSQ_ERRRTN(err);
   if (!tag_handle)
   {
     tag_handle = myTags->create( tag, 0, err ); MSQ_ERRRTN(err);
   }
-  else 
+  else
   {
     const TagDescription& desc = myTags->properties( tag_handle, err ); MSQ_ERRRTN(err);
     if (desc != tag)
@@ -2276,20 +2276,20 @@ void MeshImpl::vtk_store_cell_data( const void* data, TagDescription& tag, MsqEr
       return;
     }
   }
-  
+
   std::vector<size_t> element_handles;
   myMesh->all_elements( element_handles, err ); MSQ_ERRRTN(err);
-  if (!element_handles.empty()) 
-    myTags->set_element_data( tag_handle, 
+  if (!element_handles.empty())
+    myTags->set_element_data( tag_handle,
                               element_handles.size(),
                               arrptr(element_handles),
                               data,
                               err ); MSQ_ERRRTN(err);
 }
 
-void* MeshImpl::vtk_read_typed_data( FileTokenizer& tokens, 
-                                     int type, 
-                                     size_t per_elem, 
+void* MeshImpl::vtk_read_typed_data( FileTokenizer& tokens,
+                                     int type,
+                                     size_t per_elem,
                                      size_t num_elem,
                                      TagDescription& tag,
                                      MsqError &err )
@@ -2336,18 +2336,18 @@ void* MeshImpl::vtk_read_typed_data( FileTokenizer& tokens,
       MSQ_SETERR(err)( "Invalid data type", MsqError::INVALID_ARG );
       return 0;
   }
-  
+
   if (MSQ_CHKERR(err))
   {
     free( data_ptr );
     return 0;
   }
-  
+
   return data_ptr;
 }
-  
-      
-      
+
+
+
 
 void* MeshImpl::vtk_read_scalar_attrib( FileTokenizer& tokens,
                                         long count,
@@ -2358,7 +2358,7 @@ void* MeshImpl::vtk_read_scalar_attrib( FileTokenizer& tokens,
     return 0;
 
   int type = tokens.match_token( vtk_type_names, err );      MSQ_ERRZERO(err);
-    
+
   long size;
   const char* tok = tokens.get_string( err );                MSQ_ERRZERO(err);
   const char* end = 0;
@@ -2368,19 +2368,19 @@ void* MeshImpl::vtk_read_scalar_attrib( FileTokenizer& tokens,
     size = 1;
     tokens.unget_token();
   }
-  
+
     // VTK spec says cannot be greater than 4--do we care?
   if (size < 1 || size > 4)
   {
     MSQ_SETERR(err)( MsqError::PARSE_ERROR,
-                    "Scalar count out of range [1,4]" 
+                    "Scalar count out of range [1,4]"
                     " at line %d", tokens.line_number());
     return 0;
   }
-  
+
   tokens.match_token("LOOKUP_TABLE",err);                     MSQ_ERRZERO(err);
   tok = tokens.get_string(err);                               MSQ_ERRZERO(err);
-  
+
     // If no lookup table, just read and return the data
   if (!strcmp( tok, "default" ))
   {
@@ -2388,7 +2388,7 @@ void* MeshImpl::vtk_read_scalar_attrib( FileTokenizer& tokens,
     MSQ_ERRZERO(err);
     return ptr;
   }
-  
+
     // If we got this far, then the data has a lookup
     // table.  First read the lookup table and convert
     // to integers.
@@ -2396,7 +2396,7 @@ void* MeshImpl::vtk_read_scalar_attrib( FileTokenizer& tokens,
   vector<long> table( size*count );
   if (type > 0 && type < 10)  // Is an integer type
   {
-    tokens.get_long_ints( table.size(), arrptr(table), err );   
+    tokens.get_long_ints( table.size(), arrptr(table), err );
     MSQ_ERRZERO(err);
   }
   else // Is a real-number type
@@ -2417,19 +2417,19 @@ void* MeshImpl::vtk_read_scalar_attrib( FileTokenizer& tokens,
       }
     }
   }
-  
+
     // Now read the data - must be float RGBA color triples
-  
+
   long table_count;
   tokens.match_token( "LOOKUP_TABLE", err );                  MSQ_ERRZERO(err);
   tokens.match_token( name.c_str(), err );                    MSQ_ERRZERO(err);
   tokens.get_long_ints( 1, &table_count, err );               MSQ_ERRZERO(err);
- 
+
   vector<float> table_data(table_count*4);
   tokens.get_floats( table_data.size(), arrptr(table_data), err );MSQ_ERRZERO(err);
-  
+
     // Create list from indexed data
-  
+
   float* data = (float*)malloc( sizeof(float)*count*size*4 );
   float* data_iter = data;
   for (std::vector<long>::iterator idx = table.begin(); idx != table.end(); ++idx)
@@ -2442,35 +2442,35 @@ void* MeshImpl::vtk_read_scalar_attrib( FileTokenizer& tokens,
       free( data );
       return  0;
     }
-    
+
     for (int i = 0; i < 4; i++)
     {
       *data_iter = table_data[4 * *idx + i];
       ++data_iter;
     }
   }
-  
+
   desc.size = size * 4 * sizeof(float);
   desc.type = DOUBLE;
   return data;
 }
 
-void* MeshImpl::vtk_read_color_attrib( FileTokenizer& tokens, 
-                                       long count, 
+void* MeshImpl::vtk_read_color_attrib( FileTokenizer& tokens,
+                                       long count,
                                        TagDescription& tag,
                                        MsqError& err )
 {
   long size;
   tokens.get_long_ints( 1, &size, err );                    MSQ_ERRZERO(err);
-  
+
   if (size < 1)
   {
-    MSQ_SETERR(err)( MsqError::PARSE_ERROR, 
+    MSQ_SETERR(err)( MsqError::PARSE_ERROR,
                      "Invalid size (%ld) at line %d",
                      size, tokens.line_number() );
     return 0;
   }
-  
+
   float* data = (float*)malloc( sizeof(float)*count*size );
   tokens.get_floats( count*size, data, err );
   if (MSQ_CHKERR(err))
@@ -2478,20 +2478,20 @@ void* MeshImpl::vtk_read_color_attrib( FileTokenizer& tokens,
     free( data );
     return 0;
   }
-  
+
   tag.size = size*sizeof(float);
   tag.type = DOUBLE;
   return data;
 }
 
-void* MeshImpl::vtk_read_vector_attrib( FileTokenizer& tokens, 
-                                        long count, 
+void* MeshImpl::vtk_read_vector_attrib( FileTokenizer& tokens,
+                                        long count,
                                         TagDescription& tag,
                                         MsqError& err )
 {
   int type = tokens.match_token( vtk_type_names, err );
   MSQ_ERRZERO(err);
-    
+
   void* result = vtk_read_typed_data( tokens, type, 3, count, tag, err );
   MSQ_ERRZERO(err);
   return result;
@@ -2507,7 +2507,7 @@ void* MeshImpl::vtk_read_texture_attrib( FileTokenizer& tokens,
   MSQ_ERRZERO(err);
   type = tokens.match_token( vtk_type_names, err );
   MSQ_ERRZERO(err);
-    
+
   if (dim < 1 || dim > 3)
   {
     MSQ_SETERR(err)( MsqError::PARSE_ERROR,
@@ -2515,24 +2515,24 @@ void* MeshImpl::vtk_read_texture_attrib( FileTokenizer& tokens,
                      dim, tokens.line_number() );
     return 0;
   }
-  
+
   void* result = vtk_read_typed_data( tokens, type, dim, count, tag, err );
   MSQ_ERRZERO(err);
   return result;
 }
 
 void* MeshImpl::vtk_read_tensor_attrib( FileTokenizer& tokens,
-                                        long count, 
+                                        long count,
                                         TagDescription& tag,
                                         MsqError& err )
 {
   int type = tokens.match_token( vtk_type_names, err );
   MSQ_ERRZERO(err);
-    
+
   void* result = vtk_read_typed_data( tokens, type, 9, count, tag, err );
   MSQ_ERRZERO(err);
   return result;
-}  
+}
 
 
 void MeshImpl::vtk_write_attrib_data( std::ostream& file,
@@ -2548,7 +2548,7 @@ void MeshImpl::vtk_write_attrib_data( std::ostream& file,
                     MsqError::FILE_FORMAT);
     return;
     }*/
-  
+
   TagDescription::VtkType vtk_type = desc.vtkType;
   unsigned vlen = desc.size / MeshImplTags::size_from_tag_type(desc.type);
     // guess one from data length if not set
@@ -2568,16 +2568,16 @@ void MeshImpl::vtk_write_attrib_data( std::ostream& file,
 
   const char* const typenames[] = { "unsigned_char", "bit", "int", "double", "unsigned_long" };
   std::string field, member;
-  
+
   int num_per_line;
   switch (vtk_type)
   {
-    case TagDescription::SCALAR: 
-      num_per_line = vlen; 
+    case TagDescription::SCALAR:
+      num_per_line = vlen;
       file << "SCALARS " << desc.name << " " << typenames[desc.type] << " " << vlen << "\n";
       file << "LOOKUP_TABLE default\n";
       break;
-    case TagDescription::COLOR : 
+    case TagDescription::COLOR :
       num_per_line = vlen;
       file << "COLOR_SCALARS " << desc.name << " " << vlen << "\n";
       break;
@@ -2627,7 +2627,7 @@ void MeshImpl::vtk_write_attrib_data( std::ostream& file,
       MSQ_SETERR(err)("Unknown VTK attribute type for tag.", MsqError::INTERNAL_ERROR );
       return;
   }
-  
+
   size_t i, total = count*vlen;
   char* space = new char[num_per_line];
   memset( space, ' ', num_per_line );
@@ -2664,10 +2664,10 @@ void MeshImpl::vtk_write_attrib_data( std::ostream& file,
   }
   delete [] space;
 }
-      
-        
-          
-  
+
+
+
+
 
 
 /**************************************************************************
@@ -2683,7 +2683,7 @@ TagHandle MeshImpl::tag_create( const std::string& name,
 {
   TagDescription::VtkType vtype;
   std::string field;
-  switch( length ) 
+  switch( length )
   {
     case 1:  vtype = TagDescription::SCALAR; break;
     case 3:  vtype = TagDescription::VECTOR; break;
@@ -2691,13 +2691,13 @@ TagHandle MeshImpl::tag_create( const std::string& name,
     default: vtype = TagDescription::FIELD;
              field = MESQUITE_FIELD_TAG;     break;
   }
-  
+
     // If tag name contains a space, assume the tag name
     // is a concatenation of the VTK field and member names.
   if (vtype != TagDescription::FIELD &&
       name.find(" ") != std::string::npos)
     vtype = TagDescription::FIELD;
-  
+
   size_t size = MeshImplTags::size_from_tag_type( type );
   TagDescription desc( name, type, vtype, length*size, field );
   size_t index = myTags->create( desc, defval, err ); MSQ_ERRZERO(err);
@@ -2712,7 +2712,7 @@ void MeshImpl::tag_delete( TagHandle handle, MsqError& err )
 TagHandle MeshImpl::tag_get( const std::string& name, MsqError& err )
 {
   size_t index = myTags->handle( name, err ); MSQ_ERRZERO(err);
-  if (!index) 
+  if (!index)
     MSQ_SETERR(err)( MsqError::TAG_NOT_FOUND, "could not find tag \"%s\"", name.c_str() );
   return (TagHandle)index;
 }
@@ -2723,9 +2723,9 @@ void MeshImpl::tag_properties( TagHandle handle,
                                unsigned& length,
                                MsqError& err )
 {
-  const TagDescription& desc 
+  const TagDescription& desc
     = myTags->properties( (size_t)handle, err ); MSQ_ERRRTN(err);
-  
+
   name = desc.name;
   type = desc.type;
   length = (unsigned)(desc.size / MeshImplTags::size_from_tag_type( desc.type ));
@@ -2738,8 +2738,8 @@ void MeshImpl::tag_set_element_data( TagHandle handle,
                                      const void* values,
                                      MsqError& err )
 {
-  myTags->set_element_data( (size_t)handle, 
-                            num_elems, 
+  myTags->set_element_data( (size_t)handle,
+                            num_elems,
                             (const size_t*)elem_array,
                             values,
                             err );  MSQ_CHKERR(err);
@@ -2751,8 +2751,8 @@ void MeshImpl::tag_get_element_data( TagHandle handle,
                                      void* values,
                                      MsqError& err )
 {
-  myTags->get_element_data( (size_t)handle, 
-                            num_elems, 
+  myTags->get_element_data( (size_t)handle,
+                            num_elems,
                             (const size_t*)elem_array,
                             values,
                             err );  MSQ_CHKERR(err);
@@ -2764,8 +2764,8 @@ void MeshImpl::tag_set_vertex_data(  TagHandle handle,
                                      const void* values,
                                      MsqError& err )
 {
-  myTags->set_vertex_data( (size_t)handle, 
-                            num_elems, 
+  myTags->set_vertex_data( (size_t)handle,
+                            num_elems,
                             (const size_t*)elem_array,
                             values,
                             err );  MSQ_CHKERR(err);
@@ -2777,8 +2777,8 @@ void MeshImpl::tag_get_vertex_data(  TagHandle handle,
                                      void* values,
                                      MsqError& err )
 {
-  myTags->get_vertex_data( (size_t)handle, 
-                            num_elems, 
+  myTags->get_vertex_data( (size_t)handle,
+                            num_elems,
                             (const size_t*)elem_array,
                             values,
                             err );  MSQ_CHKERR(err);

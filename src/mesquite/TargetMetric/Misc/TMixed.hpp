@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2009 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2009) kraftche@cae.wisc.edu    
+    (2009) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file TMixed.hpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #ifndef MSQ_T_MIXED_HPP
@@ -38,9 +38,9 @@
 
 namespace MBMesquite {
 
-/** \brief Use different target metrics for surface and volume elements 
+/** \brief Use different target metrics for surface and volume elements
  *
- * This class can be used to set up a quality metric for which the 
+ * This class can be used to set up a quality metric for which the
  * target metric is different for surface elements than the one used
  * for volume elements.  It is typicallly used to set up an optimization
  * using target metrics that aren't implemented for both topological
@@ -53,18 +53,18 @@ class TMixed : public TMetric
 
 public:
 
-  TMixed( TMetric* mu_2d, TMetric* mu_3d ) 
+  TMixed( TMetric* mu_2d, TMetric* mu_3d )
     : mu2D(mu_2d), mu3D(mu_3d) {}
 
   MESQUITE_EXPORT virtual
   ~TMixed();
-  
+
   MESQUITE_EXPORT virtual
   std::string get_name() const;
 
   MESQUITE_EXPORT virtual
-  bool evaluate( const MsqMatrix<2,2>& T, 
-                 double& result, 
+  bool evaluate( const MsqMatrix<2,2>& T,
+                 double& result,
                  MsqError& err );
 
   MESQUITE_EXPORT virtual
@@ -72,7 +72,7 @@ public:
                            double& result,
                            MsqMatrix<2,2>& deriv_wrt_T,
                            MsqError& err );
-  
+
   MESQUITE_EXPORT virtual
   bool evaluate_with_hess( const MsqMatrix<2,2>& T,
                            double& result,
@@ -81,8 +81,8 @@ public:
                            MsqError& err );
 
   MESQUITE_EXPORT virtual
-  bool evaluate( const MsqMatrix<3,3>& T, 
-                 double& result, 
+  bool evaluate( const MsqMatrix<3,3>& T,
+                 double& result,
                  MsqError& err );
 
   MESQUITE_EXPORT virtual
@@ -90,7 +90,7 @@ public:
                            double& result,
                            MsqMatrix<3,3>& deriv_wrt_T,
                            MsqError& err );
-  
+
   MESQUITE_EXPORT virtual
   bool evaluate_with_hess( const MsqMatrix<3,3>& T,
                            double& result,

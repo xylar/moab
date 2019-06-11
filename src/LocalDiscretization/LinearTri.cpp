@@ -4,15 +4,15 @@
 #include <math.h>
 #include <limits>
 
-namespace moab 
+namespace moab
 {
-    
+
     const double LinearTri::corner[3][2] = { {0,0},
                                              {1,0},
                                              {0,1}};
 
     ErrorCode LinearTri::initFcn(const double *verts, const int nverts, double *&work) {
-        // allocate work array as: 
+        // allocate work array as:
         // work[0..8] = T
         // work[9..17] = Tinv
         // work[18] = detT
@@ -33,14 +33,14 @@ namespace moab
       return MB_SUCCESS;
     }
 
-    ErrorCode LinearTri::evalFcn(const double *params, const double *field, const int /*ndim*/, const int num_tuples, 
+    ErrorCode LinearTri::evalFcn(const double *params, const double *field, const int /*ndim*/, const int num_tuples,
                                  double */*work*/, double *result) {
       assert(params && field && num_tuples > 0);
         // convert to [0,1]
       double p1 = 0.5 * (1.0 + params[0]),
           p2 = 0.5 * (1.0 + params[1]),
           p0 = 1.0 - p1 - p2;
-      
+
       for (int j = 0; j < num_tuples; j++)
         result[j] = p0 * field[0*num_tuples+j] + p1 * field[1*num_tuples+j] + p2 * field[2*num_tuples+j];
 
@@ -48,7 +48,7 @@ namespace moab
     }
 
     ErrorCode LinearTri::integrateFcn(const double *field, const double */*verts*/, const int nverts, const int /*ndim*/, const int num_tuples,
-                                      double *work, double *result) 
+                                      double *work, double *result)
     {
       assert(field && num_tuples > 0);
       std::fill(result, result+num_tuples, 0.0);
@@ -62,34 +62,34 @@ namespace moab
       return MB_SUCCESS;
     }
 
-    ErrorCode LinearTri::jacobianFcn(const double *, const double *, const int, const int , 
-                                     double *work, double *result) 
+    ErrorCode LinearTri::jacobianFcn(const double *, const double *, const int, const int ,
+                                     double *work, double *result)
     {
         // jacobian is cached in work array
       assert(work);
       std::copy(work, work+9, result);
       return MB_SUCCESS;
     }
-    
-    ErrorCode LinearTri::reverseEvalFcn(EvalFcn eval, JacobianFcn jacob, InsideFcn ins, 
+
+    ErrorCode LinearTri::reverseEvalFcn(EvalFcn eval, JacobianFcn jacob, InsideFcn ins,
                                         const double *posn, const double *verts, const int nverts, const int ndim,
-                                        const double iter_tol, const double inside_tol, double *work, 
-                                        double *params, int *is_inside) 
+                                        const double iter_tol, const double inside_tol, double *work,
+                                        double *params, int *is_inside)
     {
       assert(posn && verts);
-      return evaluate_reverse(eval, jacob, ins, posn, verts, nverts, ndim, iter_tol, inside_tol, work, 
+      return evaluate_reverse(eval, jacob, ins, posn, verts, nverts, ndim, iter_tol, inside_tol, work,
                               params, is_inside);
-    } 
+    }
 
-    int LinearTri::insideFcn(const double *params, const int , const double tol) 
+    int LinearTri::insideFcn(const double *params, const int , const double tol)
     {
       return (params[0] >= -1.0-tol && params[1] >= -1.0-tol &&
               params[0] + params[1] <= 1.0+tol);
-      
+
     }
-    
+
     ErrorCode LinearTri::evaluate_reverse(EvalFcn eval, JacobianFcn jacob, InsideFcn inside_f,
-                                          const double *posn, const double *verts, const int nverts, 
+                                          const double *posn, const double *verts, const int nverts,
                                           const int ndim, const double iter_tol, const double inside_tol,
                                           double *work, double *params, int *inside) {
         // TODO: should differentiate between epsilons used for
@@ -112,7 +112,7 @@ namespace moab
           *cvparams = tmp_params[i];
           new_pos = tmp_pos;
           resl = tmp_resl;
-        }        
+        }
       }
 
         // residual is diff between old and new pos; need to minimize that

@@ -30,8 +30,8 @@
  * of the Attila manual. The format is defined by xml like, block/end block
  * type syntax. The implementation at the time of writing supports a subset
  * of the whole format, and even Attila does not support the entireity of
- * its own mesh format. 
- * 
+ * its own mesh format.
+ *
  * The mesh contains several features, that as a whole allow the conversion
  * from the RTT format, to a DAGMC geometry and a Tet Mesh for tallying.
  *
@@ -40,18 +40,18 @@
  *---------------------------------------------------------------------
  * Faces - Logically equivalent to surfaces in DAGMC, containers for triangles, includes
  *         the definition of the sense of the faces with respect to the Cells (volumes)
- *         which bound it. 
- * 
+ *         which bound it.
+ *
  *         The face syntax looks like
  *
  *         1 (+)Pyrex@14
- *         
+ *
  *         This means Face (surface) 1 is used to define the insde of the Pyrex cell only
- *          
+ *
  *         75 (+)Pyrex/(-)Fuel30@25
  *
- *         This means Face (surface) 75 is used by both Cell Pyrex and Cell Fuel 30, 
- *         the + and - signs refer to the sense, i.e. the inside sense defines the Pyrex and 
+ *         This means Face (surface) 75 is used by both Cell Pyrex and Cell Fuel 30,
+ *         the + and - signs refer to the sense, i.e. the inside sense defines the Pyrex and
  *         the outside sense defines the Fuel.
  *---------------------------------------------------------------------
  * Cells - Entityset like coillections of tetrahedra which define contiguous material properties
@@ -60,7 +60,7 @@
  *          1 REGIONS
  *            1 Pyrex
  *        end_cell_flags
- * 
+ *
  * Defines that there is 1 region called Pyrex
  *---------------------------------------------------------------------
  * Nodes - Defines the vertices for facets and tets, the syntax of which is shown below
@@ -73,14 +73,14 @@
  *
  *  1 3 874 132 154 3 6365
  *
- * Defines that this is side element 1, it has 3 nodes, 874, 132 and 154, 
+ * Defines that this is side element 1, it has 3 nodes, 874, 132 and 154,
  * side ID 3 and surface number 6365
  *---------------------------------------------------------------------
  * Cells (element) - Tetrahedra
  *
  *   691 4 599 556 1218 1216 2
  *
- * Defines that this is tet 691, it has 4 connections to nodes 599, 556, 
+ * Defines that this is tet 691, it has 4 connections to nodes 599, 556,
  * 1218, 1216 and belongs to cell number 2.
  *
  */
@@ -145,13 +145,13 @@ private:
     std::string title;
     std::string date;
   };
-  
+
   // structure to hold sense & vol data
   struct boundary {
     int sense;
     std::string name;
   };
-  
+
   // structure to hold side data
   struct side {
     int id;
@@ -162,21 +162,21 @@ private:
       names[0]=names[1]="";
     }
   };
-  
+
   // structure to hold cell data
   struct cell {
     int id;
     std::string name;
     cell() : id(0), name("") {}
   };
-  
+
   // structure to hold node data
   struct node {
     int id;
     double x,y,z;
     node() : id(0), x(0.), y(0.), z(0.) {}
   };
-  
+
   // structure to hold facet data
   struct facet {
     int id;
@@ -189,7 +189,7 @@ private:
         connectivity[k]=0;
     }
   };
-  
+
   // structure to hold tet data
   struct tet {
     int id;
@@ -202,7 +202,7 @@ private:
         connectivity[k]=0;
     }
   };
-  
+
 
   /**
    * generates the topology of the problem from the already read input data, loops over the 2 and 3 dimension macrodata that
@@ -221,7 +221,7 @@ private:
 			      std::map <int,EntityHandle> &surface_map);
   /**
    * Generate parent child links to create DAGMC like structure of surface meshsets being children
-   * of parent cell meshsets. By looping over the surfaces (1->N), look in the description of the 
+   * of parent cell meshsets. By looping over the surfaces (1->N), look in the description of the
    * cells that are shared by that surface, and then make the surface the child of the parent volume.
    * The appropriate sense data will be set later
    *
@@ -234,7 +234,7 @@ private:
   void generate_parent_child_links(int num_ents[4],std::vector<EntityHandle> entity_map[4],
 				   std::vector<side> side_data, std::vector<cell> cell_data);
   /**
-   * Sets the appropriate surface senses for each surface in the problem. By looping through all the 
+   * Sets the appropriate surface senses for each surface in the problem. By looping through all the
    * surfaces, we determine from the side_data vector, the volume id's that are shared, then using 1 to mean
    * +ve sense and -1 to mean -ve sense wrt the volume.
    *
@@ -243,7 +243,7 @@ private:
    * @param side_data, vector of all the side data in the problem
    * @param cell_data, vector of the cell data in the problem
    *
-   */  
+   */
   void set_surface_senses(int num_ents[4], std::vector<EntityHandle> entity_map[4],
 			  std::vector<side> side_data, std::vector<cell> cell_data);
 
@@ -267,14 +267,14 @@ private:
 
   /**
    * Builds the full MOAB representation of the data, making vertices from coordinates, triangles from vertices
-   * and tets from the same vertices. Tags appropriate to each dataset collection are applied, triangles are 
+   * and tets from the same vertices. Tags appropriate to each dataset collection are applied, triangles are
    * tagged with the surface id and side id they belong to, as well as tagging the surface with the same data. Tets
    * are similarly tagged only with the Material number
    *
    * @param node_data the node data
    * @param facet_data, the triangles in the problem
    * @param tet_data, the tets in the problem
-   * @param surface_map, the map of surface meshset and id numbers 
+   * @param surface_map, the map of surface meshset and id numbers
    *
    * @return moab::ErrorCode
    */
@@ -285,7 +285,7 @@ private:
 
   /**
    * reads the full set of header data
-   * 
+   *
    * @param filename, the file to read the data from
    *
    * @return moab::Error code
@@ -321,7 +321,7 @@ private:
    * @return moab::ErrorCode
    */
   ErrorCode read_nodes(const char* filename, std::vector<node> &node_data);
-  
+
   /**
    * Reads the full set of facet data from the file
    *
@@ -331,7 +331,7 @@ private:
    * @return moab::ErrorCode
    */
   ErrorCode read_facets(const char* filename, std::vector<facet> &facet_data);
-  
+
   /**
    * Reads the full set of tet data from the file
    *
@@ -353,58 +353,58 @@ private:
   ErrorCode get_header_data(std::ifstream &input_file);
 
   /**
-   * Reads a single atomic cell data string and populates a cell struct 
+   * Reads a single atomic cell data string and populates a cell struct
    *
-   * @param celldata, a string of read data and 
+   * @param celldata, a string of read data and
    *
    * @return cell, the propulated cell struct
    */
   cell get_cell_data(std::string celldata);
 
   /**
-   * Reads a single atomic side data string and populates a side struct 
+   * Reads a single atomic side data string and populates a side struct
    *
-   * @param sidedata, a string of read data and 
+   * @param sidedata, a string of read data and
    *
    * @return side, the propulated side struct
-   */  
+   */
   side get_side_data(std::string sidedata);
-  
+
   /**
-   * Reads a single atomic node data string and populates a node struct 
+   * Reads a single atomic node data string and populates a node struct
    *
-   * @param sidedata, a string of read data and 
+   * @param sidedata, a string of read data and
    *
    * @return node, the propulated node struct
-   */  
+   */
   node get_node_data(std::string nodedata);
 
   /**
-   * Reads a single atomic facet data string and populates a facet struct 
+   * Reads a single atomic facet data string and populates a facet struct
    *
-   * @param facetdata, a string of facet data and 
+   * @param facetdata, a string of facet data and
    *
    * @return facet, the propulated facet struct
-   */  
+   */
   facet get_facet_data(std::string facetdata);
 
   /**
-   * Reads a single atomic tet data string and populates a tet struct 
+   * Reads a single atomic tet data string and populates a tet struct
    *
-   * @param tetdata, a string of tet data and 
+   * @param tetdata, a string of tet data and
    *
    * @return tet, the propulated tet struct
-   */  
+   */
   tet get_tet_data(std::string tetdata);
 
   /**
    * Splits a string into a vector of substrings delimited by split_char
    *
-   * @param string_to_split, the string that needs splitting into chunks 
+   * @param string_to_split, the string that needs splitting into chunks
    * @param split_char, the character to split the string with
    *
    * @return a vector of strings that are delimited by split_char
-   */  
+   */
   std::vector<std::string> split_string(std::string string_to_split, char split_char);
 
   /**
@@ -413,7 +413,7 @@ private:
    * @param attila_cellname, string containing the boundary information
    *
    * @return a boundary object
-   */ 
+   */
   boundary split_name(std::string atilla_cellname);
 
   /**

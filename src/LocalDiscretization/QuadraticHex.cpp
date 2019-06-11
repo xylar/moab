@@ -1,9 +1,9 @@
 #include "moab/LocalDiscretization/QuadraticHex.hpp"
 #include "moab/Forward.hpp"
 
-namespace moab 
+namespace moab
 {
-    
+
       // those are not just the corners, but for simplicity, keep this name
       //
     const int QuadraticHex::corner[27][3] = {
@@ -57,7 +57,7 @@ namespace moab
       }
     }
 
-    ErrorCode QuadraticHex::evalFcn(const double *params, const double *field, const int /*ndim*/, const int num_tuples, 
+    ErrorCode QuadraticHex::evalFcn(const double *params, const double *field, const int /*ndim*/, const int num_tuples,
                                     double */*work*/, double *result)
     {
       assert(params && field && num_tuples > 0);
@@ -65,14 +65,14 @@ namespace moab
       for (int i=0; i<27; i++)
       {
         const double sh = SH(corner[i][0], params[0]) * SH(corner[i][1], params[1]) * SH(corner[i][2], params[2]);
-        for (int j = 0; j < num_tuples; j++) 
+        for (int j = 0; j < num_tuples; j++)
           result[j] += sh * field[num_tuples*i+j];
       }
 
       return MB_SUCCESS;
     }
 
-    ErrorCode QuadraticHex::jacobianFcn(const double *params, const double *verts, const int nverts, const int ndim, 
+    ErrorCode QuadraticHex::jacobianFcn(const double *params, const double *verts, const int nverts, const int ndim,
                                         double */*work*/, double *result)
     {
       assert(27 == nverts && params && verts);
@@ -95,7 +95,7 @@ namespace moab
           (*J)(j,2)+=sh[0]*sh[1]*dsh[2]*verts[ndim*i+j]; // dxj/dt
         }
       }
-      
+
       return MB_SUCCESS;
     }
 
@@ -105,17 +105,17 @@ namespace moab
       return MB_NOT_IMPLEMENTED;
     }
 
-    ErrorCode QuadraticHex::reverseEvalFcn(EvalFcn eval, JacobianFcn jacob, InsideFcn ins, 
+    ErrorCode QuadraticHex::reverseEvalFcn(EvalFcn eval, JacobianFcn jacob, InsideFcn ins,
                                            const double *posn, const double *verts, const int nverts, const int ndim,
-                                           const double iter_tol, const double inside_tol, double *work, 
-                                           double *params, int *is_inside) 
+                                           const double iter_tol, const double inside_tol, double *work,
+                                           double *params, int *is_inside)
     {
       assert(posn && verts);
-      return EvalSet::evaluate_reverse(eval, jacob, ins, posn, verts, nverts, ndim, iter_tol, inside_tol, 
+      return EvalSet::evaluate_reverse(eval, jacob, ins, posn, verts, nverts, ndim, iter_tol, inside_tol,
                                        work, params, is_inside);
-    } 
+    }
 
-    int QuadraticHex::insideFcn(const double *params, const int ndim, const double tol) 
+    int QuadraticHex::insideFcn(const double *params, const int ndim, const double tol)
     {
       return EvalSet::inside_function(params, ndim, tol);
     }

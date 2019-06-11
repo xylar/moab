@@ -156,7 +156,7 @@ void MeshOutputFunctor::assign_global_ids( ParallelComm* comm )
       this->proc_partition_counts[pset] = part_sizes[j];
       }
     }
-  
+
   std::map<ProcessSet,int> gids;
   std::map<ProcessSet,int>::iterator pcit;
   EntityHandle start_gid = 100; // FIXME: Get actual maximum GID across all processes and add 1

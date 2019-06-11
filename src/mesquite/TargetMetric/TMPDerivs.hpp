@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2009 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2009) kraftche@cae.wisc.edu    
+    (2009) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file TMPDerivs.hpp
  *  \brief Utility methods for calculating derivatives of TMP metrics
- *  \author Jason Kraftcheck 
+ *  \author Jason Kraftcheck
  */
 
 #ifndef MSQ_TMP_DERIVS_HPP
@@ -109,7 +109,7 @@ void pluseq_scaled_I( MsqMatrix<2,2>& R, double alpha );
  *         symmetric matrix.
  */
 inline
-void pluseq_scaled_2nd_deriv_of_det( MsqMatrix<3,3> R[6], 
+void pluseq_scaled_2nd_deriv_of_det( MsqMatrix<3,3> R[6],
                                      double alpha,
                                      const MsqMatrix<3,3>& T );
 
@@ -149,27 +149,27 @@ void set_scaled_2nd_deriv_of_det( MsqMatrix<2,2> R[3], double alpha, const MsqMa
  *
  * Note: 2nd deriv is a constant, so T is not passed as an argument.
  */
-inline 
+inline
 void pluseq_scaled_2nd_deriv_tr_adj( MsqMatrix<2,2> R[3], double alpha );
 
 /**\brief \f$ R += \alpha \frac{\partial^2}{\partial T^2}tr(adj T) \f$
  *
  * Note: 2nd deriv is a constant, so T is not passed as an argument.
  */
-inline 
+inline
 void pluseq_scaled_2nd_deriv_tr_adj( MsqMatrix<3,3> R[6], double alpha );
 
 /**\brief \f$ R += \alpha \frac{\partial^2}{\partial T^2}|adj T|^2 \f$
   */
-inline 
-void set_scaled_2nd_deriv_norm_sqr_adj( MsqMatrix<2,2> R[3], 
+inline
+void set_scaled_2nd_deriv_norm_sqr_adj( MsqMatrix<2,2> R[3],
                                         double alpha,
                                         const MsqMatrix<2,2>& T );
 
 /**\brief \f$ R += \alpha \frac{\partial^2}{\partial T^2}|adj T|^2 \f$
   */
-inline 
-void set_scaled_2nd_deriv_norm_sqr_adj( MsqMatrix<3,3> R[6], 
+inline
+void set_scaled_2nd_deriv_norm_sqr_adj( MsqMatrix<3,3> R[6],
                                         double alpha,
                                         const MsqMatrix<3,3>& T );
 
@@ -183,13 +183,13 @@ void pluseq_scaled_outer_product_t( MsqMatrix<D,D> R[D*(D+1)/2],
                                     double alpha,
                                     const MsqMatrix<D,D>& M );
 inline
-void pluseq_scaled_outer_product( MsqMatrix<3,3> R[6], 
+void pluseq_scaled_outer_product( MsqMatrix<3,3> R[6],
                                   double alpha,
                                   const MsqMatrix<3,3>& M )
 { pluseq_scaled_outer_product_t<3>(R,alpha,M); }
 
 inline
-void pluseq_scaled_outer_product( MsqMatrix<2,2> R[3], 
+void pluseq_scaled_outer_product( MsqMatrix<2,2> R[3],
                                   double alpha,
                                   const MsqMatrix<2,2>& M )
 { pluseq_scaled_outer_product_t<2>(R,alpha,M); }
@@ -265,7 +265,7 @@ void set_scaled_sum_outer_product( MsqMatrix<2,2> R[3],
  *\param R The 6 blocks of the upper triangular portion of a 9x9
  *         symmetric matrix.
  */
-inline 
+inline
 void pluseq_scaled_outer_product_I_I( MsqMatrix<3,3> R[6], double alpha );
 
 /**\brief \f$ R += \alpha (I \otimes I) \f$
@@ -273,7 +273,7 @@ void pluseq_scaled_outer_product_I_I( MsqMatrix<3,3> R[6], double alpha );
  *\param R The 3 blocks of the upper triangular portion of a 4x4
  *         symmetric matrix.
  */
-inline 
+inline
 void pluseq_scaled_outer_product_I_I( MsqMatrix<2,2> R[3], double alpha );
 
 /**\brief \f$ R += I \otimes A \f$
@@ -281,7 +281,7 @@ void pluseq_scaled_outer_product_I_I( MsqMatrix<2,2> R[3], double alpha );
  *\param R The 6 blocks of the upper triangular portion of a 9x9
  *         symmetric matrix.
  */
-inline 
+inline
 void pluseq_I_outer_product( MsqMatrix<3,3> R[6], const MsqMatrix<3,3>& A );
 
 /**\brief \f$ R += A \otimes I \f$
@@ -289,7 +289,7 @@ void pluseq_I_outer_product( MsqMatrix<3,3> R[6], const MsqMatrix<3,3>& A );
  *\param R The 6 blocks of the upper triangular portion of a 9x9
  *         symmetric matrix.
  */
-inline 
+inline
 void pluseq_outer_product_I( MsqMatrix<3,3> R[6], const MsqMatrix<3,3>& A );
 
 /**\brief \f$ R += \alpha \left( I \otimes A + A \otimes I \right) \f$
@@ -403,14 +403,14 @@ void pluseq_scaled_2nd_deriv_of_det( MsqMatrix<3,3> R[6],
   R[1](2,0) += A(2,1);
   R[1](1,2) += A(2,0);
   R[1](2,1) -= A(2,0);
-  
+
   R[2](0,1) -= A(1,2);
   R[2](1,0) += A(1,2);
   R[2](0,2) += A(1,1);
   R[2](2,0) -= A(1,1);
   R[2](1,2) -= A(1,0);
   R[2](2,1) += A(1,0);
- 
+
   R[4](0,1) += A(0,2);
   R[4](1,0) -= A(0,2);
   R[4](0,2) -= A(0,1);
@@ -435,7 +435,7 @@ void set_scaled_2nd_deriv_of_det( MsqMatrix<3,3> R[6],
   R[1](2,0) =  A(2,1);
   R[1](1,2) =  A(2,0);
   R[1](2,1) = -A(2,0);
-  
+
   R[2](0,0) = R[2](1,1) = R[2](2,2) = 0;
   R[2](0,1) = -A(1,2);
   R[2](1,0) =  A(1,2);
@@ -443,7 +443,7 @@ void set_scaled_2nd_deriv_of_det( MsqMatrix<3,3> R[6],
   R[2](2,0) = -A(1,1);
   R[2](1,2) = -A(1,0);
   R[2](2,1) =  A(1,0);
- 
+
   R[4](0,0) = R[4](1,1) = R[4](2,2) = 0;
   R[4](0,1) =  A(0,2);
   R[4](1,0) = -A(0,2);
@@ -466,7 +466,7 @@ void set_scaled_2nd_deriv_of_det( MsqMatrix<2,2> R[3], double alpha )
   R[1](0,1) =  alpha;
   R[1](1,0) = -alpha;
   R[1](1,1) =  0.0;
-  
+
 }
 
 void pluseq_scaled_2nd_deriv_tr_adj( MsqMatrix<2,2>*, double  )
@@ -484,14 +484,14 @@ void pluseq_scaled_2nd_deriv_tr_adj( MsqMatrix<3,3> R[6], double alpha )
   R[4](2,1) -= alpha;
 }
 
-void set_scaled_2nd_deriv_norm_sqr_adj( MsqMatrix<2,2> R[3], 
+void set_scaled_2nd_deriv_norm_sqr_adj( MsqMatrix<2,2> R[3],
                                         double alpha,
                                         const MsqMatrix<2,2>&  )
 {
   set_scaled_I( R, 2*alpha );
 }
 
-void set_scaled_2nd_deriv_norm_sqr_adj( MsqMatrix<3,3> R[6], 
+void set_scaled_2nd_deriv_norm_sqr_adj( MsqMatrix<3,3> R[6],
                                         double alpha,
                                         const MsqMatrix<3,3>& T )
 {
@@ -527,12 +527,12 @@ void set_scaled_2nd_deriv_norm_sqr_adj( MsqMatrix<3,3> R[6],
   R[4](1,0) = 2 * R[4](1,0) - tmp01;
   R[4](2,0) = 2 * R[4](2,0) - tmp02;
   R[4](2,1) = 2 * R[4](2,1) - tmp12;
-  
+
   const MsqMatrix<3,3> TpT = transpose(T) * T;
   R[0] -= TpT;
   R[3] -= TpT;
   R[5] -= TpT;
-  
+
   const MsqMatrix<3,3> TTp = T * transpose(T);
   const double ns = sqr_Frobenius(T);
   R[0](0,0) += ns - TTp(0,0);
@@ -553,7 +553,7 @@ void set_scaled_2nd_deriv_norm_sqr_adj( MsqMatrix<3,3> R[6],
   R[5](0,0) += ns - TTp(2,2);
   R[5](1,1) += ns - TTp(2,2);
   R[5](2,2) += ns - TTp(2,2);
-  
+
   alpha *= 2;
   R[0] *= alpha;
   R[1] *= alpha;
@@ -634,25 +634,25 @@ void pluseq_scaled_sum_outer_product( MsqMatrix<3,3> R[6],
   tmp = transpose(A.row(0)) * B.row(0);
   R[0] += tmp;
   R[0] += transpose(tmp);
-  
+
     // block 1,1
   tmp = transpose(A.row(1)) * B.row(1);
   R[3] += tmp;
   R[3] += transpose(tmp);
-  
+
     // block 2,2
   tmp = transpose(A.row(2)) * B.row(2);
   R[5] += tmp;
   R[5] += transpose(tmp);
-   
+
     // block 0,1
   R[1] += transpose(A.row(0)) * B.row(1) +
           transpose(B.row(0)) * A.row(1);
-  
+
     // block 0,2
   R[2] += transpose(A.row(0)) * B.row(2) +
           transpose(B.row(0)) * A.row(2);
-  
+
     // block 1,2
   R[4] += transpose(A.row(1)) * B.row(2) +
           transpose(B.row(1)) * A.row(2);
@@ -669,23 +669,23 @@ void set_scaled_sum_outer_product( MsqMatrix<3,3> R[6],
     // block 0,0
   R[0] =  transpose(A.row(0)) * B.row(0);
   R[0] += transpose(R[0]);
-  
+
     // block 1,1
   R[3] =  transpose(A.row(1)) * B.row(1);
   R[3] += transpose(R[3]);
-  
+
     // block 2,2
   R[5] =  transpose(A.row(2)) * B.row(2);
   R[5] += transpose(R[5]);
-   
+
     // block 0,1
   R[1] =  transpose(A.row(0)) * B.row(1);
   R[1] += transpose(B.row(0)) * A.row(1);
-  
+
     // block 0,2
   R[2] =  transpose(A.row(0)) * B.row(2);
   R[2] += transpose(B.row(0)) * A.row(2);
-  
+
     // block 1,2
   R[4] =  transpose(A.row(1)) * B.row(2);
   R[4] += transpose(B.row(1)) * A.row(2);
@@ -704,25 +704,25 @@ void pluseq_scaled_sum_outer_product( MsqMatrix<3,3> R[6],
   tmp = A.column(0) * transpose(B.column(0));
   R[0] += tmp;
   R[0] += transpose(tmp);
-  
+
     // block 1,1
   tmp = A.column(1) * transpose(B.column(1));
   R[3] += tmp;
   R[3] += transpose(tmp);
-  
+
     // block 2,2
   tmp = A.column(2) * transpose(B.column(2));
   R[5] += tmp;
   R[5] += transpose(tmp);
-   
+
     // block 0,1
   R[1] += A.column(0) * transpose(B.column(1)) +
           B.column(0) * transpose(A.column(1));
-  
+
     // block 0,2
   R[2] += A.column(0) * transpose(B.column(2)) +
           B.column(0) * transpose(A.column(2));
-  
+
     // block 1,2
   R[4] += A.column(1) * transpose(B.column(2)) +
           B.column(1) * transpose(A.column(2));
@@ -739,23 +739,23 @@ void set_scaled_sum_outer_product( MsqMatrix<3,3> R[6],
     // block 0,0
   R[0] = A.column(0) * transpose(B.column(0));
   R[0] += transpose(R[0]);
-  
+
     // block 1,1
   R[3] = A.column(1) * transpose(B.column(1));
   R[3] += transpose(R[3]);
-  
+
     // block 2,2
   R[5] = A.column(2) * transpose(B.column(2));
   R[5] += transpose(R[5]);
-   
+
     // block 0,1
   R[1] =  A.column(0) * transpose(B.column(1));
   R[1] += B.column(0) * transpose(A.column(1));
-  
+
     // block 0,2
   R[2] =  A.column(0) * transpose(B.column(2));
   R[2] += B.column(0) * transpose(A.column(2));
-  
+
     // block 1,2
   R[4] =  A.column(1) * transpose(B.column(2));
   R[4] += B.column(1) * transpose(A.column(2));
@@ -776,12 +776,12 @@ void pluseq_scaled_sum_outer_product( MsqMatrix<2,2> R[3],
   tmp = transpose(A.row(0)) * B.row(0);
   R[0] += tmp;
   R[0] += transpose(tmp);
-  
+
     // block 1,1
   tmp = transpose(A.row(1)) * B.row(1);
   R[2] += tmp;
   R[2] += transpose(tmp);
-   
+
     // block 0,1
   R[1] += transpose(A.row(0)) * B.row(1) +
           transpose(B.row(0)) * A.row(1);
@@ -798,11 +798,11 @@ void set_scaled_sum_outer_product( MsqMatrix<2,2> R[3],
     // block 0,0
   R[0] =  transpose(A.row(0)) * B.row(0);
   R[0] += transpose(R[0]);
-  
+
     // block 1,1
   R[2] =  transpose(A.row(1)) * B.row(1);
   R[2] += transpose(R[2]);
-   
+
     // block 0,1
   R[1] =  transpose(A.row(0)) * B.row(1);
   R[1] += transpose(B.row(0)) * A.row(1);
@@ -821,12 +821,12 @@ void pluseq_scaled_sum_outer_product( MsqMatrix<2,2> R[3],
   tmp = A.column(0) * transpose(B.column(0));
   R[0] += tmp;
   R[0] += transpose(tmp);
-  
+
     // block 1,1
   tmp = A.column(1) * transpose(B.column(1));
   R[2] += tmp;
   R[2] += transpose(tmp);
-   
+
     // block 0,1
   R[1] += A.column(0) * transpose(B.column(1)) +
           B.column(0) * transpose(A.column(1));
@@ -843,11 +843,11 @@ void set_scaled_sum_outer_product( MsqMatrix<2,2> R[3],
     // block 0,0
   R[0] =  A.column(0) * transpose(B.column(0));
   R[0] += transpose(R[0]);
-  
+
     // block 1,1
   R[2] =  A.column(1) * transpose(B.column(1));
   R[2] += transpose(R[2]);
-   
+
     // block 0,1
   R[1] =  A.column(0) * transpose(B.column(1));
   R[1] += B.column(0) * transpose(A.column(1));

@@ -49,37 +49,37 @@ void chkerr( GeomTopoTool& gtt, ErrorCode code, int line, const char* file ){
  *
  * @param offset Offset to apply to surface to avoid a zero result.
  */
-static ErrorCode get_signed_volume( Interface *MBI, 
+static ErrorCode get_signed_volume( Interface *MBI,
                                     const EntityHandle surf_set,
                                     const CartVect &offset,
-                                    double &signed_volume) 
+                                    double &signed_volume)
 {
   ErrorCode rval;
   Range tris;
-  rval = MBI->get_entities_by_type( surf_set, MBTRI, tris ); 
+  rval = MBI->get_entities_by_type( surf_set, MBTRI, tris );
   if(MB_SUCCESS != rval) return rval;
 
-  signed_volume = 0.0;                                                                 
-  const EntityHandle *conn;                                                            
-  int len;                                                                               
-  CartVect coords[3];                                                                  
-  for (Range::iterator j = tris.begin(); j != tris.end(); ++j) {             
-    rval = MBI->get_connectivity( *j, conn, len, true );                                 
-    if(MB_SUCCESS != rval) return rval;                                                 
-    if(3 != len) return MB_INVALID_SIZE;                                                                    
-    rval = MBI->get_coords( conn, 3, coords[0].array() );                                
-    if(MB_SUCCESS != rval) return rval;                                                 
+  signed_volume = 0.0;
+  const EntityHandle *conn;
+  int len;
+  CartVect coords[3];
+  for (Range::iterator j = tris.begin(); j != tris.end(); ++j) {
+    rval = MBI->get_connectivity( *j, conn, len, true );
+    if(MB_SUCCESS != rval) return rval;
+    if(3 != len) return MB_INVALID_SIZE;
+    rval = MBI->get_coords( conn, 3, coords[0].array() );
+    if(MB_SUCCESS != rval) return rval;
 
     // Apply offset to avoid calculating 0 for cases when the origin is in the
     // plane of the surface.
     for(unsigned int k=0; k<3; ++k) {
-      coords[k] += offset;        
+      coords[k] += offset;
     }
-                                                                             
-    coords[1] -= coords[0];                                                              
-    coords[2] -= coords[0];                                                              
-    signed_volume += (coords[0] % (coords[1] * coords[2]));                                   
-  }                                                                                      
+
+    coords[1] -= coords[0];
+    coords[2] -= coords[0];
+    signed_volume += (coords[0] % (coords[1] * coords[2]));
+  }
   return MB_SUCCESS;
 }
 
@@ -87,15 +87,15 @@ static ErrorCode get_signed_volume( Interface *MBI,
  * Replace the triangles in an old surface with those in a new surface, ensuring
  * that their surfaces senses match before the replacement
  */
-static ErrorCode replace_surface( Interface *mbi, EntityHandle old_surf, EntityHandle old_file_set, 
+static ErrorCode replace_surface( Interface *mbi, EntityHandle old_surf, EntityHandle old_file_set,
                                   EntityHandle new_surf, const Tag& senseTag )
 {
 
   ErrorCode rval;
 
-  // Get the signed volume for each surface representation. If a volume comes 
+  // Get the signed volume for each surface representation. If a volume comes
   // back as zero, it's probably because a planar surface passes through the
-  // origin.  In that case, try applying random offsets until reasonable 
+  // origin.  In that case, try applying random offsets until reasonable
   // values are returned.
 
   CartVect offset; // start with no offset
@@ -107,10 +107,10 @@ static ErrorCode replace_surface( Interface *mbi, EntityHandle old_surf, EntityH
   int num_attempts = 100;
 
   while( num_attempts-- > 0 ){
-    
+
     rval = get_signed_volume( mbi, old_surf, offset, old_vol );
     if( MB_SUCCESS != rval ) return rval;
-    
+
     rval = get_signed_volume( mbi, new_surf, offset, new_vol );
     if( MB_SUCCESS != rval ) return rval;
 
@@ -118,53 +118,53 @@ static ErrorCode replace_surface( Interface *mbi, EntityHandle old_surf, EntityH
       success = true; break;
     }
 
-    // haven't succeeded yet: randomize the offset vector 
+    // haven't succeeded yet: randomize the offset vector
     const int max_random = 10;
     for( int i = 0; i < 3; ++i ){ offset[i] = std::rand() % max_random; }
-    
-  } 
+
+  }
 
   if( !success ){
     std::cerr << "Error: could not calculate a surface volume" << std::endl;
     return MB_FAILURE;
   }
-  
+
   // If the sign is different, reverse the old surf senses so that both
   // representations have the same signed volume.
   if( (old_vol<0 && new_vol>0) || (old_vol>0 && new_vol<0) ) {
 
     EntityHandle old_surf_volumes[2];
     rval = mbi->tag_get_data( senseTag, &old_surf, 1, old_surf_volumes );
-    if(MB_SUCCESS != rval) return rval;  
-    
+    if(MB_SUCCESS != rval) return rval;
+
     std::swap( old_surf_volumes[0], old_surf_volumes[1] );
-    
+
     rval = mbi->tag_set_data( senseTag, &old_surf, 1, old_surf_volumes );
     if(MB_SUCCESS != rval) return rval;
   }
-  
+
   int num_old_tris, num_new_tris;
 
   // Remove the tris from the old surf. Also remove them from the
   // old_file_set because it is not TRACKING.
   Range old_tris;
   rval = mbi->get_entities_by_type( old_surf, MBTRI, old_tris );
-  if(MB_SUCCESS != rval) return rval;                              
+  if(MB_SUCCESS != rval) return rval;
   num_old_tris = old_tris.size();
-  rval = mbi->remove_entities( old_surf, old_tris );                     
-  if(MB_SUCCESS != rval) return rval;                              
-  rval = mbi->remove_entities( old_file_set, old_tris );                     
-  if(MB_SUCCESS != rval) return rval;                              
+  rval = mbi->remove_entities( old_surf, old_tris );
+  if(MB_SUCCESS != rval) return rval;
+  rval = mbi->remove_entities( old_file_set, old_tris );
+  if(MB_SUCCESS != rval) return rval;
   rval = mbi->delete_entities( old_tris );
-  if(MB_SUCCESS != rval) return rval;                                      
+  if(MB_SUCCESS != rval) return rval;
 
-  // Add the new_surf's triangles to the old_surf  
+  // Add the new_surf's triangles to the old_surf
   Range new_tris;
   rval = mbi->get_entities_by_type( new_surf, MBTRI, new_tris );
   if( MB_SUCCESS != rval) return rval;
   num_new_tris = new_tris.size();
   rval = mbi->add_entities( old_surf, new_tris );
-  if(MB_SUCCESS != rval) return rval;     
+  if(MB_SUCCESS != rval) return rval;
 
   if( verbose ){ std::cout << num_old_tris << " tris -> " << num_new_tris << " tris"  << std::endl; }
 
@@ -174,9 +174,9 @@ static ErrorCode replace_surface( Interface *mbi, EntityHandle old_surf, EntityH
 
 /**
  * Given an "old" file and a "new" file, replace the facets in any surface of the old
- * file with facets from the new file.  
- */ 
-static ErrorCode merge_input_surfs( Interface *mbi, 
+ * file with facets from the new file.
+ */
+static ErrorCode merge_input_surfs( Interface *mbi,
                                     const EntityHandle old_file_set, const EntityHandle new_file_set,
                                     const Tag& idTag, const Tag& dimTag, const Tag& senseTag )
 {
@@ -184,14 +184,14 @@ static ErrorCode merge_input_surfs( Interface *mbi,
 
   const int two = 2;
   const Tag tags[2] = {dimTag, idTag};
-  const void* tag_vals[2] = {&two, NULL};  
+  const void* tag_vals[2] = {&two, NULL};
 
   Range old_surfs;
-  rval = mbi->get_entities_by_type_and_tag( old_file_set, MBENTITYSET, &dimTag, 
+  rval = mbi->get_entities_by_type_and_tag( old_file_set, MBENTITYSET, &dimTag,
                                             tag_vals, 1, old_surfs );
   if( MB_SUCCESS != rval ) return rval;
 
-  int count = 0; 
+  int count = 0;
 
   for( Range::iterator i = old_surfs.begin(); i!=old_surfs.end(); ++i ){
     EntityHandle old_surf = *i;
@@ -202,25 +202,25 @@ static ErrorCode merge_input_surfs( Interface *mbi,
 
     Range new_surf_range;
     tag_vals[1] = &surf_id;
-    rval = mbi->get_entities_by_type_and_tag( new_file_set, MBENTITYSET, 
+    rval = mbi->get_entities_by_type_and_tag( new_file_set, MBENTITYSET,
                                               tags, tag_vals, 2, new_surf_range );
     if( MB_SUCCESS != rval ) return rval;
 
     if( new_surf_range.size() != 1 ){
       if( new_surf_range.size() > 1 ){
-        std::cerr << "Warning: surface " << surf_id 
+        std::cerr << "Warning: surface " << surf_id
                   << " has more than one representation in new file" << std::endl;
       }
       continue;
     }
-    
+
     // Now we have found a surf in new_file_set to replace an old surf
     EntityHandle new_surf = new_surf_range[0];
-    
+
 
     // TODO: check for quads and convert to triangles
 
-    if( verbose ){ std::cout << "Surface " << surf_id << ": " << std::flush; } 
+    if( verbose ){ std::cout << "Surface " << surf_id << ": " << std::flush; }
     rval = replace_surface( mbi, old_surf, old_file_set, new_surf, senseTag );
     if( MB_SUCCESS != rval ) return rval;
     count++;
@@ -283,7 +283,7 @@ int main( int argc, char* argv[] ){
   }
 
   // This is more roundabout than necessary, but we don't want *any* of the CGM-specific options
-  //   to appear in the option string unless they were explicitly requested 
+  //   to appear in the option string unless they were explicitly requested
   double tol;
   static const int tol_prec = 12;
   if( po.getOpt( "ftol", &tol ) ){
@@ -325,7 +325,7 @@ int main( int argc, char* argv[] ){
   if( ret == MB_UNHANDLED_OPTION ){
     std::cerr << "Warning: unhandled option while loading input_file, will proceed anyway" << std::endl;
   }
-  else{ 
+  else{
     CHECKERR( mbi, ret );
   }
 
@@ -342,40 +342,40 @@ int main( int argc, char* argv[] ){
 
     // Create tags
     Tag dimTag, idTag, senseTag;
-    ret = mbi.tag_get_handle(GEOM_DIMENSION_TAG_NAME, 1, MB_TYPE_INTEGER, 
-                             dimTag, MB_TAG_SPARSE|MB_TAG_CREAT); 
+    ret = mbi.tag_get_handle(GEOM_DIMENSION_TAG_NAME, 1, MB_TYPE_INTEGER,
+                             dimTag, MB_TAG_SPARSE|MB_TAG_CREAT);
     CHECKERR( mbi, ret );
 
     idTag = mbi.globalId_tag();
 
-    ret = mbi.tag_get_handle("GEOM_SENSE_2", 2, MB_TYPE_HANDLE, senseTag, 
+    ret = mbi.tag_get_handle("GEOM_SENSE_2", 2, MB_TYPE_HANDLE, senseTag,
                              MB_TAG_SPARSE|MB_TAG_CREAT );
     CHECKERR( mbi, ret );
-  
+
     for( std::vector<std::string>::iterator i = m_list.begin(); i!=m_list.end(); ++i){
       std::cout << "Loading alternate mesh file " << *i << std::endl;
-      
+
       EntityHandle alt_file_set;
       ret = mbi.create_meshset( 0, alt_file_set );
       CHECKERR( mbi, ret );
-      
+
       ret = mbi.load_file( (*i).c_str(), &alt_file_set );
       CHECKERR( mbi, ret );
-      
+
       if( verbose ) std::cout << "Merging input surfaces..." << std::flush;
 
       ret = merge_input_surfs( &mbi, input_file_set, alt_file_set, idTag, dimTag, senseTag );
       CHECKERR( mbi, ret );
-      
+
       if( verbose ) std::cout << "done." << std::endl;
 
     }
   }
 
   /* Write output file */
-  
+
   if( !po.numOptSet( "no-outmesh" ) ){
-    if( verbose ){ std::cout << "Writing " << output_file << std::endl; } 
+    if( verbose ){ std::cout << "Writing " << output_file << std::endl; }
     ret= mbi.write_file( output_file.c_str(), NULL, NULL, &input_file_set, 1 );
     CHECKERR( mbi, ret );
   }
@@ -383,14 +383,14 @@ int main( int argc, char* argv[] ){
   /* OBB statistics and visualization */
   if( obb_task ){
 
-   if( verbose ){ std::cout << "Loading data into GeomTopoTool" << std::endl; } 
+   if( verbose ){ std::cout << "Loading data into GeomTopoTool" << std::endl; }
    GeomTopoTool *gtt = new GeomTopoTool(&mbi,false);
    ret = gtt->find_geomsets();
    CHECKERR( *gtt,ret);
    ret = gtt->construct_obb_trees();
    CHECKERR( *gtt, ret );
 
-  }     
-  return 0; 
+  }
+  return 0;
 
 }

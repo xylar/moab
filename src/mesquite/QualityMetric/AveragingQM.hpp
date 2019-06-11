@@ -1,9 +1,9 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2004 Sandia Corporation and Argonne National
-    Laboratory.  Under the terms of Contract DE-AC04-94AL85000 
-    with Sandia Corporation, the U.S. Government retains certain 
+    Laboratory.  Under the terms of Contract DE-AC04-94AL85000
+    with Sandia Corporation, the U.S. Government retains certain
     rights in this software.
 
     This library is free software; you can redistribute it and/or
@@ -16,13 +16,13 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
-    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov, 
-    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov      
-   
+
+    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov,
+    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov
+
   ***************************************************************** */
 
 /*! \file AveragingQM.hpp
@@ -42,7 +42,7 @@ Header file for the MBMesquite::AveragingQM class
 
 namespace MBMesquite
 {
-   
+
      /*! \class AveragingQM
        \brief Averaging functionality for use in quality metrics
      */
@@ -51,7 +51,7 @@ namespace MBMesquite
    class Vector3D;
    class Matrix3D;
    class MsqError;
-   
+
    class AveragingQM
    {
    public:
@@ -61,35 +61,35 @@ namespace MBMesquite
      {}
 
      virtual ~AveragingQM() {}
-     
+
        /*!Set the averaging method for the quality metric. */
-     MESQUITE_EXPORT inline 
+     MESQUITE_EXPORT inline
      void set_averaging_method( QualityMetric::AveragingMethod method )
       { avgMethod = method; }
-      
+
      MESQUITE_EXPORT inline
      void set_averaging_method( QualityMetric::AveragingMethod method, MsqError& )
       { set_averaging_method(method); }
-    
-     MESQUITE_EXPORT inline 
+
+     MESQUITE_EXPORT inline
      QualityMetric::AveragingMethod get_averaging_method() const
       { return avgMethod; }
-     
+
      //! Return true if the requested averaging scheme is supported
-     //! for analytical calculation of gradients.  
-     inline bool analytical_average_gradient() 
+     //! for analytical calculation of gradients.
+     inline bool analytical_average_gradient()
       { return avgMethod <= QualityMetric::LAST_WITH_GRADIENT; }
 
      //! Return true if the requested averaging scheme is supported
-     //! for analytical calculation of Hessians.  
-     inline bool analytical_average_hessian() 
+     //! for analytical calculation of Hessians.
+     inline bool analytical_average_hessian()
       { return avgMethod <= QualityMetric::LAST_WITH_HESSIAN; }
 
      //! average_metrics takes an array of length num_values and averages the
      //! contents using averaging method data member avgMethod .
      double average_metrics(const double metric_values[], int num_values,
                             MsqError &err);
-                            
+
      //! Given a list of metric values, calculate the average metric
      //! valude according to the current avgMethod and write into
      //! the passed metric_values array the the value weight/count to
@@ -102,7 +102,7 @@ namespace MBMesquite
      double average_metric_and_weights( double metric_values[],
                                         int num_metric_values,
                                         MsqError& err );
-     
+
      /** \brief Average metric values and gradients for per-corner evaluation
       *
       *\param element_type   The element type
@@ -120,8 +120,8 @@ namespace MBMesquite
                                   const Vector3D corner_grads[],
                                   Vector3D vertex_grads[],
                                   MsqError& err );
-     
-     /** \brief Average metric values, gradients, and Hessian diagonal 
+
+     /** \brief Average metric values, gradients, and Hessian diagonal
       *         blocks for per-corner evaluation
       *
       *\param element_type   The element type
@@ -143,8 +143,8 @@ namespace MBMesquite
                                                Vector3D vertex_grads[],
                                                SymMatrix3D vertex_hessians[],
                                                MsqError& err );
-     
-     /** \brief Average metric values, gradients, and Hessian diagonal 
+
+     /** \brief Average metric values, gradients, and Hessian diagonal
       *         blocks for per-corner evaluation
       *
       *\param element_type   The element type
@@ -166,8 +166,8 @@ namespace MBMesquite
                                                Vector3D vertex_grads[],
                                                SymMatrix3D vertex_hessians[],
                                                MsqError& err );
-     
-     /** \brief Average metric values, gradients, and Hessians for 
+
+     /** \brief Average metric values, gradients, and Hessians for
       *         per-corner evaluation
       *
       *\param element_type   The element type
@@ -194,7 +194,7 @@ namespace MBMesquite
   private:
      QualityMetric::AveragingMethod avgMethod;
    };
-   
+
 } //namespace
 
 

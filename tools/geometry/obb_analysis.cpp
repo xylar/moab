@@ -13,10 +13,10 @@
 
 using namespace moab;
 
-class TriCounter : public OrientedBoxTreeTool::Op { 
+class TriCounter : public OrientedBoxTreeTool::Op {
 
 
-public:   
+public:
   int count;
   Interface* mbi;
   OrientedBoxTreeTool* tool;
@@ -29,12 +29,12 @@ public:
   virtual ErrorCode visit( EntityHandle node,int , bool& descend ){
     OrientedBox box;
     ErrorCode rval = tool->box( node, box );
-    
+
     descend = box.contained( pt, 1e-6 );
 
     return rval;
   }
-  
+
   virtual ErrorCode leaf( EntityHandle node ){
 
     int numtris;
@@ -47,7 +47,7 @@ public:
 
 ErrorCode obbvis_create( GeomTopoTool& gtt, std::vector<int> &volumes, int grid, std::string& filename ){
   OrientedBoxTreeTool& obbtool = *gtt.obb_tree();
-  
+
   CartVect min, max;
   EntityHandle vol = gtt.entity_by_id( 3, volumes.front() );
   double middle[3];
@@ -64,7 +64,7 @@ ErrorCode obbvis_create( GeomTopoTool& gtt, std::vector<int> &volumes, int grid,
 
   /* Compute an axis-aligned bounding box of all the requested volumes */
   for( std::vector<int>::iterator i = volumes.begin()+1; i!=volumes.end(); ++i ){
-    CartVect i_min, i_max; 
+    CartVect i_min, i_max;
     vol = gtt.entity_by_id( 3, *i );
     rval = gtt.get_obb( vol, middle, axis1, axis2, axis3 );
     // compute min and max verticies
@@ -74,7 +74,7 @@ ErrorCode obbvis_create( GeomTopoTool& gtt, std::vector<int> &volumes, int grid,
       maxPt[j] = middle[j] + sum;
     }
 
-    for( int j = 0; j < 3; ++j ){ 
+    for( int j = 0; j < 3; ++j ){
       min[j] = std::min( min[j], i_min[j] );
       max[j] = std::max( max[j], i_max[j] );
     }
@@ -85,8 +85,8 @@ ErrorCode obbvis_create( GeomTopoTool& gtt, std::vector<int> &volumes, int grid,
   CartVect v1(axis1);
   CartVect v2(axis2);
   CartVect v3(axis3);
-  
-  /* Compute the vertices of the visualization grid.  Calculation points are at the center 
+
+  /* Compute the vertices of the visualization grid.  Calculation points are at the center
      of each cell in this grid, so make grid+1 vertices in each direction. */
   int numpoints = pow((double)(grid+1),3);
   double* pgrid = new double[ numpoints * 3 ];
@@ -101,9 +101,9 @@ ErrorCode obbvis_create( GeomTopoTool& gtt, std::vector<int> &volumes, int grid,
     for( int j = 0; j <= grid; ++j ){
       CartVect y = -v2 + ((v2*2.0) * (j/(double)grid));
 
-      for( int k = 0; k <= grid; ++k ){        
+      for( int k = 0; k <= grid; ++k ){
         CartVect z = -v3 + ((v3*2.0) * (k/(double)grid));
-        
+
         CartVect p = center + x + y + z;
         for( int d = 0; d<3; ++d ){ pgrid[idx++] = p[d]; }
       }
@@ -115,7 +115,7 @@ ErrorCode obbvis_create( GeomTopoTool& gtt, std::vector<int> &volumes, int grid,
   Range r;
   rval = mb2.create_vertices( pgrid, numpoints, r);
   CHECKERR( mb2, rval );
-  
+
   Tag lttag;
   rval = mb2.tag_get_handle( "LEAFTRIS", sizeof(int), MB_TYPE_INTEGER, lttag,
                              MB_TAG_EXCL|MB_TAG_CREAT|MB_TAG_BYTES|MB_TAG_DENSE, 0);
@@ -126,7 +126,7 @@ ErrorCode obbvis_create( GeomTopoTool& gtt, std::vector<int> &volumes, int grid,
   EntityHandle connect[8];
   EntityHandle hex;
 
-  // offset from grid corner to grid center 
+  // offset from grid corner to grid center
   CartVect grid_hex_center_offset = (v1+v2+v3) * 2 * (1.0 / grid);
 
 
@@ -134,7 +134,7 @@ ErrorCode obbvis_create( GeomTopoTool& gtt, std::vector<int> &volumes, int grid,
   // this prevents checking a shared surface more than once.
   Range surfs;
   for(  std::vector<int>::iterator it = volumes.begin(); it!=volumes.end(); ++it ){
-    
+
     vol = gtt.entity_by_id(3,*it);
     Range it_surfs;
     rval = gtt.get_moab_instance()->get_child_meshsets( vol, it_surfs );
@@ -156,7 +156,7 @@ ErrorCode obbvis_create( GeomTopoTool& gtt, std::vector<int> &volumes, int grid,
         TriCounter tc(gtt.get_moab_instance(), &obbtool, loc );
 
 	for( Range::iterator it = surfs.begin(); it!=surfs.end(); ++it ){
-	  
+	
 	  EntityHandle surf_tree;
 	  rval = gtt.get_root( *it, surf_tree );
 	  CHECKERR(gtt,rval);
@@ -166,7 +166,7 @@ ErrorCode obbvis_create( GeomTopoTool& gtt, std::vector<int> &volumes, int grid,
 
 	}
 
-	if( tc.count == 0 ) continue; 
+	if( tc.count == 0 ) continue;
 
         connect[0] = r[ idx ];
         connect[1] = r[ idx + 1       ];
@@ -202,10 +202,10 @@ static inline double std_dev( double sqr, double sum, double count )
   return sqrt( sqr - sum*sum );
 }
 
-class TriStats : public OrientedBoxTreeTool::Op { 
+class TriStats : public OrientedBoxTreeTool::Op {
 
 
-public:   
+public:
   unsigned min, max, sum, leaves;
   double sqr;
 
@@ -216,16 +216,16 @@ public:
   Interface* mbi;
   OrientedBoxTreeTool* tool;
 
-  double tot_vol; 
-  
+  double tot_vol;
+
   TriStats( Interface* mbi_p, OrientedBoxTreeTool *tool_p, EntityHandle root):
     OrientedBoxTreeTool::Op(), sum(0), leaves(0), sqr(0), mbi(mbi_p), tool(tool_p)
   {
     min = std::numeric_limits<unsigned>::max();
     max = std::numeric_limits<unsigned>::min();
-    
-    for( unsigned i = 0; i < ten_buckets_max; ++i ){ 
-      ten_buckets[i] = 0; 
+
+    for( unsigned i = 0; i < ten_buckets_max; ++i ){
+      ten_buckets[i] = 0;
       ten_buckets_vol[i] = 0.;
     }
 
@@ -237,12 +237,12 @@ public:
   }
 
   virtual ErrorCode visit( EntityHandle ,int , bool& descend ){
-    
+
     descend = true;
     return MB_SUCCESS;
 
   }
-  
+
   virtual ErrorCode leaf( EntityHandle node ){
 
      Range tris;
@@ -253,15 +253,15 @@ public:
      sqr += (count * count);
      if( min > count ) min = count;
      if( max < count ) max = count;
-     
+
      for( unsigned i = 0; i < ten_buckets_max; ++i ){
-       if( count > std::pow((double)10,(int)(i+1)) ){ 
-	 ten_buckets[i] += 1; 
+       if( count > std::pow((double)10,(int)(i+1)) ){
+	 ten_buckets[i] += 1;
 	 OrientedBox box;
 	 rval = tool->box( node, box );
 	 CHECKERR( mbi, rval );
 	 ten_buckets_vol[i] += box.volume();
-       } 
+       }
      }
 
      leaves++;
@@ -273,7 +273,7 @@ public:
     std::stringstream str;
     str << num;
     std::string s = str.str();
-    
+
     int n = s.size();
     for( int i = n-3; i >= 1; i -= 3 ){
       s.insert(i, 1, ',');
@@ -283,12 +283,12 @@ public:
     return s;
 
   }
-  
+
   void write_results( std::ostream& out ){
 
     out << commafy(sum) << " triangles in " << commafy(leaves) << " leaves." << std::endl;
 
-    double avg = sum / (double)leaves; 
+    double avg = sum / (double)leaves;
     double stddev = std_dev( sqr, sum, leaves );
 
     out << "Tris per leaf: Min " << min << ", Max " << max << ", avg " << avg << ", stddev " << stddev << std::endl;
@@ -346,7 +346,7 @@ static std::string make_property_string( DagMC& dag, EntityHandle eh, std::vecto
 }
 */
 
-ErrorCode obbstat_write( GeomTopoTool& gtt, std::vector<int> &volumes, 
+ErrorCode obbstat_write( GeomTopoTool& gtt, std::vector<int> &volumes,
                          std::vector<std::string> &properties, std::ostream& out ){
 
   ErrorCode ret = MB_SUCCESS;
@@ -377,7 +377,7 @@ ErrorCode obbstat_write( GeomTopoTool& gtt, std::vector<int> &volumes,
     CHECKERR(gtt,ret);
 
     out << "   with " << surfs.size() << " surfaces" << std::endl;
-    
+
     TriStats ts( gtt.get_moab_instance(), &obbtool, vol_root );
     ret = obbtool.preorder_traverse( vol_root, ts );
     CHECKERR(gtt,ret);
@@ -390,7 +390,7 @@ ErrorCode obbstat_write( GeomTopoTool& gtt, std::vector<int> &volumes,
         if( j+1 != surfs.end() ) out << ",";
       }
       out << std::endl;
-      ret = obbtool.stats( vol_root, out ); 
+      ret = obbtool.stats( vol_root, out );
       CHECKERR(gtt,ret);
     }
 

@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2006 Sandia National Laboratories.  Developed at the
@@ -16,12 +16,12 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
+
     (2006) kraftche@cae.wisc.edu
-   
+
   ***************************************************************** */
 
 #include "Mesquite.hpp"
@@ -52,7 +52,7 @@ using std::auto_ptr;
 #include "TQualityMetric.hpp"
 #include "ElementPMeanP.hpp"
 #include "VertexPMeanP.hpp"
-  
+
 #include "TSquared.hpp"
 #include "TShapeNB1.hpp"
 #include "TShapeB1.hpp"
@@ -97,15 +97,15 @@ std::string DEFAULT_OUTPUT_FILE = "./out.vtk";
 
 static PlanarDomain make_domain( Mesh* mesh, MsqError& );
 
-static int do_smoother( const char* input_file, 
-                        const char* output_file, 
+static int do_smoother( const char* input_file,
+                        const char* output_file,
                         const char* ref_mesh_file,
-                        double of_power, 
+                        double of_power,
                         unsigned metric_idx,
                         AveragingScheme avg_scheme )
 {
   MsqPrintError err(cerr);
-  
+
   TMetric *const target_metric = metrics[metric_idx].u;
   cout << "Input file:  " << input_file << endl;
   cout << "Metric:      ";
@@ -113,8 +113,8 @@ static int do_smoother( const char* input_file,
     cout << averaging_names[avg_scheme] << " average of ";
   cout << metrics[metric_idx].n << endl;
   cout << "Of Power:    " << of_power << endl;
-  
-  
+
+
   auto_ptr<TargetCalculator> tc;
   auto_ptr<MeshImpl> ref_mesh_impl;
   auto_ptr<ReferenceMesh> ref_mesh;
@@ -128,7 +128,7 @@ static int do_smoother( const char* input_file,
   else {
     tc.reset( new IdealShapeTarget( ) );
   }
-    
+
   TQualityMetric jacobian_metric( tc.get(), target_metric );
   ElementPMeanP elem_avg( of_power, &jacobian_metric );
   VertexPMeanP vtx_avg( of_power, &jacobian_metric );
@@ -139,17 +139,17 @@ static int do_smoother( const char* input_file,
   outer.add_iteration_limit( 1 );
   inner.add_absolute_vertex_movement( 1e-4 );
   inner.add_iteration_limit( 100 );
-  
+
   PMeanPTemplate obj1( of_power, metric );
   PatchPowerMeanP obj2( of_power, metric );
   ObjectiveFunction& objective = *((avg_scheme == PATCH) ? (ObjectiveFunction*)&obj2 : (ObjectiveFunction*)&obj1);
-  
+
   ConjugateGradient solver( &objective, err );
   if (MSQ_CHKERR(err)) return 1;
   solver.set_inner_termination_criterion( &inner );
   solver.set_outer_termination_criterion( &outer );
   solver.use_global_patch();
-  
+
   ConditionNumberQualityMetric qm_metric;
   QualityAssessor before_assessor;
   QualityAssessor after_assessor;
@@ -161,7 +161,7 @@ static int do_smoother( const char* input_file,
   q.add_quality_assessor( &before_assessor, err );
   q.set_master_quality_improver( &solver, err );
   q.add_quality_assessor( &after_assessor, err );
-  
+
   MeshImpl mesh;
   mesh.read_vtk( input_file, err );
   if (MSQ_CHKERR(err)) return 2;
@@ -175,7 +175,7 @@ static int do_smoother( const char* input_file,
   cout << "Wrote: " << output_file << endl;
 
   before_assessor.scale_histograms(&after_assessor);
-  
+
   return 0;
 }
 
@@ -185,7 +185,7 @@ static PlanarDomain make_domain( Mesh* mesh, MsqError& err )
   Vector3D minimum(  HUGE_VAL,  HUGE_VAL,  HUGE_VAL );
   Vector3D maximum( -HUGE_VAL, -HUGE_VAL, -HUGE_VAL );
   std::vector<Mesh::VertexHandle> vertices;
-  mesh->get_all_vertices( vertices, err ); 
+  mesh->get_all_vertices( vertices, err );
   if (MSQ_CHKERR(err)) { return PlanarDomain( minimum, maximum ); }
   if (vertices.empty()) {
     std::cerr << "Mesh contains no vertices" << std::endl;
@@ -204,16 +204,16 @@ static PlanarDomain make_domain( Mesh* mesh, MsqError& err )
         maximum[j] = v[j];
     }
   }
-  
+
     // Look for a "zero" plane
   int k;
   maximum -= minimum;
   for (k = 2; k >= 0 && maximum[k] > 1e-6; --k);
   if (k < 0) {
     MSQ_SETERR(err)("Cannot determine plane of mesh.", MsqError::INVALID_STATE );
-    return PlanarDomain( minimum, maximum ); 
+    return PlanarDomain( minimum, maximum );
   }
-    
+
   Vector3D point( 0.0, 0.0, 0.0 ), normal( 0.0, 0.0, 0.0 );
   normal[k] = 1.0;
   point[k] = minimum[k];
@@ -266,7 +266,7 @@ static double parse_double( int argc, char* argv[], int& i )
 
 static int comp_string_start( const char* p, const char* s ) {
   int i;
-  for (i = 0; p[i]; ++i) 
+  for (i = 0; p[i]; ++i)
     if (tolower(p[i]) != tolower(s[i]))
       return 0;
   return s[i] ? -1 : 1;
@@ -275,7 +275,7 @@ static int comp_string_start( const char* p, const char* s ) {
 static AveragingScheme parse_averaging( int argc, char* argv[], int& i )
 {
   check_next_arg( argc, argv, i );
-  for (unsigned j = 0; j < 4; ++j) 
+  for (unsigned j = 0; j < 4; ++j)
     if (comp_string_start( argv[i], averaging_names[j]))
       return (AveragingScheme)j;
   cerr << "Expected one of { ";
@@ -302,17 +302,17 @@ static unsigned parse_metric( int argc, char* argv[], int& i )
       }
     }
   }
-  
+
   if (have_all)
     return all;
-  
+
   if (count) {
     if (count == 1)
       return part;
     cerr << "Ambiguous metric name: \"" << argv[i] << '"' << endl;
     usage( argv[0] );
   }
-  
+
   cerr << "Invalid metric name following \"" << argv[i-1] << "\" option" << endl;
   usage( argv[0] );
   return (unsigned)-1;
@@ -321,7 +321,7 @@ static unsigned parse_metric( int argc, char* argv[], int& i )
 static void list_metrics( )
 {
   cout << "Available metrics:" << endl;
-  for (unsigned j = 0; metrics[j].u; ++j) 
+  for (unsigned j = 0; metrics[j].u; ++j)
     cout << "\t" << metrics[j].n << endl;
   exit(0);
 }
@@ -329,7 +329,7 @@ static void list_metrics( )
 int main( int argc, char* argv[] )
 {
   MsqPrintError err(cout);
-  
+
     // CL settings
   double of_power = DEFAULT_OF_POWER;
   unsigned metric_idx = DEFAULT_METRIC_IDX;
@@ -337,7 +337,7 @@ int main( int argc, char* argv[] )
   const char* input_file = 0;
   const char* output_file = 0;
   const char* ref_mesh_file = 0;
-  
+
   bool proc_opts = true;
   for (int i = 1; i < argc; ++i) {
     if (!proc_opts || argv[i][0] != '-') {
@@ -345,18 +345,18 @@ int main( int argc, char* argv[] )
         cerr << "Unexpected file name: \"" << argv[i] << '"' << endl;
         usage(argv[0]);
       }
-      else if (input_file) 
+      else if (input_file)
         output_file = argv[i];
       else
         input_file = argv[i];
       continue;
     }
-    
+
     if (!argv[i][1] || argv[i][2]) {
       cerr << "Invalid option: \"" << argv[i] << '"' << endl;
       usage(argv[0]);
     }
-    
+
     switch( argv[i][1] ) {
       case 'p': of_power     = parse_double   ( argc, argv, i );    break;
       case 'm': metric_idx   = parse_metric   ( argc, argv, i );    break;
@@ -370,16 +370,16 @@ int main( int argc, char* argv[] )
         usage(argv[0]);
     }
   }
-  
+
   if (!input_file)
     input_file = DEFAULT_INPUT_FILE.c_str();
   if (!output_file)
     output_file = DEFAULT_OUTPUT_FILE.c_str();
-  
-  return do_smoother( input_file, 
-                      output_file, 
+
+  return do_smoother( input_file,
+                      output_file,
                       ref_mesh_file,
-                      of_power, 
+                      of_power,
                       metric_idx,
                       avg_scheme );
 }

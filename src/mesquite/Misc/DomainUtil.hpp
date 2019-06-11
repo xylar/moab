@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2010 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2010) kraftche@cae.wisc.edu    
+    (2010) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file DomainUtil.hpp
  *  \brief Utility functions for use in build-in geometric domains
- *  \author Jason Kraftcheck 
+ *  \author Jason Kraftcheck
  */
 
 #ifndef MSQ_DOMAIN_UTIL_HPP
@@ -53,7 +53,7 @@ void bounding_box( const MsqVertex* vertex_array,
 
 double max_box_extent( const MsqVertex* vertex_array, size_t num_vertices );
 
-inline double 
+inline double
 default_tolerance( const MsqVertex* vertex_array, size_t num_vertices )
   { return 1e-3 * max_box_extent( vertex_array, num_vertices ); }
 

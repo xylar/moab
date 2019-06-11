@@ -29,7 +29,7 @@ public:
   TSizeNB1 mBase;
   TUntangleSz() : TUntangleMu(&mBase) {}
 };
-  
+
 
 //                               NAME                   !SHAPE !SIZE !ORIENT BARRIER
 TEST_METRIC_WITH_GRAD   ( AWUntangleBeta,                 true,  true,  true, false, 0.0 );

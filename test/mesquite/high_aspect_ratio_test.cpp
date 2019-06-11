@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2007 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2007) kraftche@cae.wisc.edu    
+    (2007) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file main.cpp
  *  \brief Test high aspect ratio case
- *  \author Jason Kraftcheck 
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -81,8 +81,8 @@ enum ExitCodes {
 void usage( const char* argv0, bool brief = true )
 {
   std::ostream& str = brief ? std::cerr : std::cout;
-  
-  str << "Usage: " << argv0 
+
+  str << "Usage: " << argv0
       << " [-o <output_file>]"
       << " [-f|-F] [-t|-T] [-n|-c] [-i <n>]"
       << " [-m <x>,<y>[,<w>,<h>]]"
@@ -92,7 +92,7 @@ void usage( const char* argv0, bool brief = true )
     str << "       " << argv0 << " -h" << std::endl;
     std::exit(USAGE_ERROR);
   }
-  
+
   str << "  -o  Specify output file (default is \"" << default_out_file << "\")" << std::endl
       << "  -f  Fixed boundary vertices" << std::endl
       << "  -F  Free boundary vertices (default)" << std::endl
@@ -104,7 +104,7 @@ void usage( const char* argv0, bool brief = true )
       << "  -c  Use ConjugateGradient solver (default)" << std::endl
       << "  -i  Specify number of iterations (default:" << OUTER_ITERATES << ")" << std::endl
       << std::endl;
-  
+
   std::exit(NO_ERROR);
 }
 
@@ -113,7 +113,7 @@ void usage( const char* argv0, bool brief = true )
     std::cerr << "Internal error at line " << __LINE__ << ":" << std::endl \
                     << (err) << std::endl; \
     std::exit( LAST_EXIT_CODE + (err).error_code() );  \
-  } 
+  }
 
 
 /*    |<----- x ----->|
@@ -136,10 +136,10 @@ void usage( const char* argv0, bool brief = true )
  */
 void create_input_mesh( const MeshParams& params,
                         bool all_fixed,
-                        MeshImpl& mesh, 
+                        MeshImpl& mesh,
                         MsqError& err );
 
-void parse_options( char* argv[], 
+void parse_options( char* argv[],
                     int argc,
                     MeshParams& mesh,
                     MeshParams& ref,
@@ -158,7 +158,7 @@ int main( int argc, char* argv[] )
   TerminationCriterion::TimeStepFileType write_timestep_files;
   std::string output_file_name;
   int num_iterations;
-  
+
   parse_options( argv, argc,
                  input_params, reference_params,
                  output_file_name,
@@ -166,7 +166,7 @@ int main( int argc, char* argv[] )
                  write_timestep_files,
                  feas_newt_solver,
                  num_iterations );
-  
+
   MsqError err;
   MeshImpl mesh, refmesh;
   XYRectangle domain( input_params.w, input_params.h );
@@ -178,33 +178,33 @@ int main( int argc, char* argv[] )
   RefMeshTargetCalculator tc( &rmesh );
   TShapeB1 tm;
   TQualityMetric qm( &tc, &tm );
-  
+
   PMeanPTemplate of( 1.0, &qm );
   ConjugateGradient cg( &of );
   cg.use_element_on_vertex_patch();
   FeasibleNewton fn( &of );
   fn.use_element_on_vertex_patch();
   VertexMover* solver = feas_newt_solver ? (VertexMover*)&fn : (VertexMover*)&cg;
-  
+
   TerminationCriterion inner, outer;
   inner.add_iteration_limit( INNER_ITERATES );
   outer.add_iteration_limit( num_iterations );
-  if (write_timestep_files != TerminationCriterion::NOTYPE) 
+  if (write_timestep_files != TerminationCriterion::NOTYPE)
     outer.write_mesh_steps( base_name( output_file_name ).c_str(), write_timestep_files );
   solver->set_inner_termination_criterion( &inner );
   solver->set_outer_termination_criterion( &outer );
-  
+
   QualityAssessor qa( &qm );
   InstructionQueue q;
   q.add_quality_assessor( &qa, err );
   q.set_master_quality_improver( solver, err );
   q.add_quality_assessor( &qa, err );
-  
+
   MeshDomainAssoc mesh_and_domain = MeshDomainAssoc(&mesh, &domain);
   q.run_instructions( &mesh_and_domain, err ); CHECKERR
-  
+
   mesh.write_vtk( output_file_name.c_str(), err ); CHECKERR
-  
+
     // check for inverted elements
   int inv, unk;
   qa.get_inverted_element_count( inv, unk, err );
@@ -216,7 +216,7 @@ int main( int argc, char* argv[] )
     std::cerr << unk << " degenerate elements in final mesh" << std::endl;
     return DEGENERATE_ELEMENT;
   }
-    
+
     // find the free vertex
   std::vector<Mesh::VertexHandle> vertices;
   mesh.get_all_vertices( vertices, err );
@@ -230,21 +230,21 @@ int main( int argc, char* argv[] )
   const Mesh::VertexHandle free_vertex = vertices[idx];
   MsqVertex coords;
   mesh.vertices_get_coordinates( &free_vertex, &coords,1, err ); CHECKERR
-  
+
     // calculate optimal position for vertex
   const double xf = reference_params.x / reference_params.w;
   const double yf = reference_params.y / reference_params.h;
   Vector3D expect( xf * input_params.w, yf * input_params.h, 0 );
 
   // Test that we aren't further from the expected location
-  // than when we started. 
+  // than when we started.
   const Vector3D init( input_params.x, input_params.y, 0 );
   if ((coords - expect).length() > (init - expect).length()) {
     std::cerr << "Vertex moved away from expected optimal position: "
                     << "(" << coords[0] << ", " << coords[1] << std::endl;
     return WRONG_DIRECTION;
   }
-  
+
     // check if vertex moved MIN_FRACT of the way from the original position
     // to the desired one in the allowed iterations
   const double MIN_FRACT = 0.2; // 20% of the way in 10 iterations
@@ -255,7 +255,7 @@ int main( int argc, char* argv[] )
                     << "  Actual:   (" << coords[0] << ", " << coords[1] << ", " << coords[2] << ")" << std::endl;
     return FAR_FROM_TARGET;
   }
-  
+
     // check if vertex is at destired location
   const double EPS = 5e-2; // allow a little leway
   if (fabs(coords[0] - expect[0]) > EPS * input_params.w ||
@@ -266,7 +266,7 @@ int main( int argc, char* argv[] )
                     << "  Actual:   (" << coords[0] << ", " << coords[1] << ", " << coords[2] << ")" << std::endl;
     return NOT_AT_TARGET;
   }
-  
+
   return 0;
 }
 
@@ -279,10 +279,10 @@ void parse_mesh_params( const char* argv, const char* arg, MeshParams& result )
     usage(argv);
   }
 }
-  
+
 
 enum ParseState { OPEN, EXPECTING_M, EXPECTING_R, EXPECTING_O, EXPECTING_I };
-void parse_options( char* argv[], 
+void parse_options( char* argv[],
                     int argc,
                     MeshParams& mesh,
                     MeshParams& ref,
@@ -305,7 +305,7 @@ void parse_options( char* argv[],
   ParseState state = OPEN;
   for (int i = 1; i < argc; ++i) {
     switch (state) {
-      case EXPECTING_M: 
+      case EXPECTING_M:
         parse_mesh_params( argv[0], argv[i], mesh );
         state = OPEN;
         break;
@@ -326,7 +326,7 @@ void parse_options( char* argv[],
           std::cerr << "Unexpected argument: \"" << argv[i] << '"' << std::endl;
           usage(argv[0]);
         }
-        
+
         switch (argv[i][1]) {
           default : usage(argv[0], true );   break;
           case 'h': usage(argv[0], false);   break;
@@ -347,7 +347,7 @@ void parse_options( char* argv[],
 }
 
 const char* temp_file = "high_aspect_input.vtk";
-void create_input_mesh( const MeshParams& p, 
+void create_input_mesh( const MeshParams& p,
                         bool all_fixed,
                         MeshImpl& mesh, MsqError& err )
 {
@@ -389,7 +389,7 @@ void create_input_mesh( const MeshParams& p,
   std::remove( temp_file );
   MSQ_CHKERR(err);
 }
-  
+
 std::string base_name( std::string filename )
 {
   std::string::size_type i = filename.rfind(".");

@@ -37,7 +37,7 @@ const char* TestDir = STRINGIFY(MESHDIR);
 /** Check that two arrays contain the same values in the same order */
 #define CHECK_ARRAYS_EQUAL( EXP, EXP_LEN, ACT, ACT_LEN ) check_array_equal( (EXP), (EXP_LEN), (ACT), (ACT_LEN), #EXP, #ACT, __LINE__, __FILE__ )
 /** Check that two CartVect objects contain same values */
-#define CHECK_VECREAL_EQUAL( EXP, ACT, EPS ) check_equal_cartvect( (EXP), (ACT), (EPS), #EXP, #ACT, __LINE__, __FILE__ ) 
+#define CHECK_VECREAL_EQUAL( EXP, ACT, EPS ) check_equal_cartvect( (EXP), (ACT), (EPS), #EXP, #ACT, __LINE__, __FILE__ )
 /** Run a test
  *  Argument should be a function with the signature:  void func(void)
  *  Evaluates to zero if test is successful, one otherwise.
@@ -47,21 +47,21 @@ const char* TestDir = STRINGIFY(MESHDIR);
 
 // Use C++ exceptions to return error state to test runner
 // Portable, but whole test suite stops if any test segfaults, asserts, etc.
-#define EXCEPTION_MODE 1   
+#define EXCEPTION_MODE 1
 
 // Test runner forks separate process for each test.
-// Difficult to debug tests (with debugger).  Not portable to Windows.  
+// Difficult to debug tests (with debugger).  Not portable to Windows.
 // Very robust (no test can distrub test running code)
 #define FORK_MODE 2
 
 // Use signal handler and long jumps to return error state to test runner.
-// Might be portable to Windows (not sure).  Possibly undefined behavior (e.g. continuing 
+// Might be portable to Windows (not sure).  Possibly undefined behavior (e.g. continuing
 // with next test after catching segfault is technically undefined behavior.)
 // Also, tests can corrupt heap memory management, interferring with later tests.
 // Leaks memory on test failure (no stack unwind).  This is actually a feature, as
 // we don't care too much about tests leaking memory and trying to reconver memory
 // might make things worse, depending on why the test failed.
-#define LONGJMP_MODE 3      
+#define LONGJMP_MODE 3
 
 // If test application hasn't set MODE, set to default
 #ifndef MODE
@@ -94,7 +94,7 @@ const char* TestDir = STRINGIFY(MESHDIR);
  ***************************************************************************************/
 
 // For EXCEPTION_MODE, throw an exception when a test fails.
-// This will unwind stack, recover memory, etc. 
+// This will unwind stack, recover memory, etc.
 #if MODE == EXCEPTION_MODE
    struct ErrorExcept{};
 #  define FLAG_ERROR throw ErrorExcept()
@@ -129,7 +129,7 @@ const char* TestDir = STRINGIFY(MESHDIR);
 sigjmp_buf jmpenv;
 
 // Define signal handler used to catch errors such as segfaults.
-// Signal handler does longjmp with the signal number as the 
+// Signal handler does longjmp with the signal number as the
 // return value.
 extern "C" {
   void sighandler( int sig ) {
@@ -141,7 +141,7 @@ extern "C" {
   typedef void (*sigfunc_t)(int);
 } // extern "C"
 
-// Helper function to register signal handlers.  
+// Helper function to register signal handlers.
 int sethandler( int sig ) {
   sigfunc_t h = signal( sig, &sighandler );
   if (h == SIG_ERR)
@@ -158,12 +158,12 @@ int sethandler( int sig ) {
 int init_signal_handlers()
 {
   int result = 0;
-/* Don't trap these.  It is unlikely that a test would ever generate such 
-   a signal on its own and trapping them interfers with a user's ability 
-   to stop a test.  SIGHUP implies that the controlling terminal was closed.  
+/* Don't trap these.  It is unlikely that a test would ever generate such
+   a signal on its own and trapping them interfers with a user's ability
+   to stop a test.  SIGHUP implies that the controlling terminal was closed.
    If the user does ctrl-C or ctrl-\ (SIGINT and SIGQUIT, respectively) and
    we trap these then just the current test stops.  If we leave the default
-   behavior for them then the whole test suite stops.  The latter is likely 
+   behavior for them then the whole test suite stops.  The latter is likely
    the desired behavior.  SIGTERM is the default signal sent by the 'kill'
    command.
 #ifdef SIGHUP
@@ -231,7 +231,7 @@ int init_signal_handlers()
 }
 
 // Declare a garbage global variable.  Use variable initialization to
-// force call to init_signal_handlers().  
+// force call to init_signal_handlers().
 int junk_init_var = init_signal_handlers();
 
 #endif // LONGJMP_MODE
@@ -243,7 +243,7 @@ int junk_init_var = init_signal_handlers();
 
 // use a function rather than substituting FLAG_ERROR directly
 // so we have a convenient place to set a break point
-inline void flag_error() 
+inline void flag_error()
   { FLAG_ERROR; }
 
 
@@ -271,7 +271,7 @@ int run_test( test_func_err test, const char* func_name )
 #endif
 {
   printf("Running %s ...\n", func_name );
-  
+
 #if MODE == EXCEPTION_MODE
   /* On Windows, run all tests in same process.
      Flag errors by throwing an exception.
@@ -288,29 +288,29 @@ int run_test( test_func_err test, const char* func_name )
     printf( "  %s: UNCAUGHT EXCEPTION\n", func_name );
     return 1;
   }
-    
+
 #elif MODE == FORK_MODE
     /* For non-Windows OSs, fork() and run test in child process. */
   pid_t pid = fork();
   int status;
-  
+
     /* Fork failed? */
-  if (pid == -1) {  
+  if (pid == -1) {
     perror( "fork()" );
     abort(); /* abort all tests (can't fork child processes) */
   }
-  
+
     /* If child process*/
   if (pid == 0) {
     (*test)();  /* call test function */
     exit(0);    /* if function returned, then it succeeded */
   }
-  
+
     /* If here, then parent process */
-    
+
     /* Wait until child process exits */
   waitpid( pid, &status, 0 );
-  
+
     /* Check child exit status */
   if (WIFSIGNALED(status)) {
     if (WTERMSIG(status))
@@ -326,16 +326,16 @@ int run_test( test_func_err test, const char* func_name )
   else {
     return 0;
   }
-  
+
 #elif MODE == LONGJMP_MODE
     // Save stack state at this location.
   int rval = sigsetjmp( jmpenv, 1 );
-    // If rval is zero, then we haven't run the test yet. 
+    // If rval is zero, then we haven't run the test yet.
     // If rval is non-zero then
     // a) we ran the test
     // b) the test failed
     // c) we did a longjmp back to the location where we called setsigjmp.
-    
+
     // run test
   if (!rval) {
     (*test)();
@@ -430,19 +430,19 @@ const char* mb_error_str( moab::ErrorCode err )
 }
 
 
-// Special case for MBErrorCode, use mb_error_str() to print the 
+// Special case for MBErrorCode, use mb_error_str() to print the
 // string name of the error code.
 void check_equal( moab::ErrorCode A, moab::ErrorCode B, const char* sA, const char* sB, int line, const char* file )
 {
   if (A == B)
     return;
-  
-  printf( "ErrorCode Test Failed: %s == %s\n", sA, sB ); 
-  printf( "  at line %d of '%s'\n", line, file ); 
-  printf( "  Expected value: %s (%d)\n", mb_error_str(A), (int)A ); 
-  printf( "  Actual value:   %s (%d)\n", mb_error_str(B), (int)B ); 
-  printf( "\n" ); 
-  flag_error(); 
+
+  printf( "ErrorCode Test Failed: %s == %s\n", sA, sB );
+  printf( "  at line %d of '%s'\n", line, file );
+  printf( "  Expected value: %s (%d)\n", mb_error_str(A), (int)A );
+  printf( "  Actual value:   %s (%d)\n", mb_error_str(B), (int)B );
+  printf( "\n" );
+  flag_error();
 }
 
 const char* mb_type_str( moab::EntityType type )
@@ -472,29 +472,29 @@ void check_equal( moab::EntityHandle A, moab::EntityHandle B, const char* sA, co
 {
   if (A == B)
     return;
-  
+
   printf( "Entity handles not equal: %s == %s\n", sA, sB );
-  printf( "  at line %d of '%s'\n", line, file ); 
-  if (A) 
-    printf( "  Expected value: %lx (%s %ld)\n", (unsigned long)A, mb_type_str( A ), (long)ID_FROM_HANDLE(A) ); 
-  else 
-    printf( "  Expected value: 0\n" ); 
+  printf( "  at line %d of '%s'\n", line, file );
+  if (A)
+    printf( "  Expected value: %lx (%s %ld)\n", (unsigned long)A, mb_type_str( A ), (long)ID_FROM_HANDLE(A) );
+  else
+    printf( "  Expected value: 0\n" );
   if (B)
-    printf( "  Actual value:   %lx (%s %ld)\n", (unsigned long)B, mb_type_str( B ), (long)ID_FROM_HANDLE(B) ); 
-  else 
-    printf( "  Actual value: 0\n" ); 
-  printf( "\n" ); 
-  flag_error(); 
-}  
+    printf( "  Actual value:   %lx (%s %ld)\n", (unsigned long)B, mb_type_str( B ), (long)ID_FROM_HANDLE(B) );
+  else
+    printf( "  Actual value: 0\n" );
+  printf( "\n" );
+  flag_error();
+}
 */
 
 void check_true( bool cond, const char* str, int line, const char* file )
 {
-  if( !cond ) { 
-    printf( "Test Failed: %s\n", str ); 
-    printf( "  at line %d of '%s'\n", line, file ); 
-    printf( "\n" ); 
-    flag_error(); 
+  if( !cond ) {
+    printf( "Test Failed: %s\n", str );
+    printf( "  at line %d of '%s'\n", line, file );
+    printf( "\n" );
+    flag_error();
   }
 }
 
@@ -502,24 +502,24 @@ void check_true( bool cond, const char* str, int line, const char* file )
 
 void check_equal_cartvect( const moab::CartVect& A,
                         const moab::CartVect& B, double eps,
-                        const char* sA, const char* sB, 
+                        const char* sA, const char* sB,
                         int line, const char* file )
 {
   check_equal( A.length(), B.length(), eps, sA, sB, line, file);
 
   if( fabs(A[0] - B[0]) <= eps && fabs(A[1] - B[1]) <= eps && fabs(A[2] - B[2]) <= eps )
     return;
-  
+
   std::cout << "Equality Test Failed: " << sA << " == " << sB << std::endl;
   std::cout << "  at line " << line << " of '" << file << "'" << std::endl;
-   
+
   std::cout << "  Expected: ";
   std::cout << A << std::endl;
-  
+
   std::cout << "  Actual:   ";
   std::cout << B << std::endl;
-  
-  flag_error(); 
+
+  flag_error();
 }
 
 #endif // #ifdef MB_CART_VECT_HPP
@@ -528,8 +528,8 @@ void check_equal_cartvect( const moab::CartVect& A,
 
 template <typename T>
 void check_array_equal( const T* A, size_t A_size,
-                        const T* B, size_t B_size, 
-                        const char* sA, const char* sB, 
+                        const T* B, size_t B_size,
+                        const char* sA, const char* sB,
                         int line, const char* file )
 {
   size_t i = 0;
@@ -542,11 +542,11 @@ void check_array_equal( const T* A, size_t A_size,
       break;
     ++i;
   }
-  
+
   std::cout << "Equality Test Failed: " << sA << " == " << sB << std::endl;
   std::cout << "  at line " << line << " of '" << file << "'" << std::endl;
   std::cout << "  Vectors differ at position " << i << std::endl;
-  
+
     // print at most 10 values, roughly centered on the unequal one
   size_t count = 10, num_front_values = std::min(count/2,i);
   size_t max_len = std::max(A_size,B_size);
@@ -559,7 +559,7 @@ void check_array_equal( const T* A, size_t A_size,
       num_front_values = count - (max_len - i);
     }
   }
-  
+
   std::cout << "  Expected: ";
   if (!A_size) {
     std::cout << "(empty)" << std::endl;
@@ -567,7 +567,7 @@ void check_array_equal( const T* A, size_t A_size,
   else {
     size_t j = i - num_front_values;
     size_t end = std::min(j + count, A_size);
-    if (j) 
+    if (j)
       std::cout << "... ";
     for (; j < end; ++j) {
       if (j == i)
@@ -579,7 +579,7 @@ void check_array_equal( const T* A, size_t A_size,
       std::cout << "...";
     std::cout << std::endl;
   }
-  
+
   std::cout << "  Actual:   ";
   if (!B_size) {
     std::cout << "(empty)" << std::endl;
@@ -587,7 +587,7 @@ void check_array_equal( const T* A, size_t A_size,
   else {
     size_t j = i - num_front_values;
     size_t end = std::min(j + count, B_size);
-    if (j) 
+    if (j)
       std::cout << "... ";
     for (; j < end; ++j) {
       if (j == i)
@@ -599,14 +599,14 @@ void check_array_equal( const T* A, size_t A_size,
       std::cout << ", ...";
     std::cout << std::endl;
   }
-  
-  flag_error(); 
+
+  flag_error();
 }
-  
- 
+
+
 template <typename T>
-void check_equal( const std::vector<T>& A, const std::vector<T>& B, 
-                  const char* sA, const char* sB, 
+void check_equal( const std::vector<T>& A, const std::vector<T>& B,
+                  const char* sA, const char* sB,
                   int line, const char* file )
 {
    if(A.empty() || B.empty()) {
@@ -626,7 +626,7 @@ void check_equal( const moab::Range& A, const moab::Range& B, const char* sA, co
 {
   if (A == B)
     return;
-    
+
   std::cout << "moab::ErrorCode Test Failed: " << sA << " == " << sB << std::endl;
   std::cout << "  at line " << line << " of '" << file << "'" << std::endl;
   std::cout << "   Expected: " << A << std::endl;

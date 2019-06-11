@@ -25,11 +25,11 @@ public:
 void FILEDebugStream::println( int rank, const char* pfx, const char* str )
   { fprintf(filePtr, "%3d  %s%s\n", rank, pfx, str); fflush(filePtr); }
 void FILEDebugStream::println( const char* pfx, const char* str )
-  { 
-    fputs( pfx, filePtr ); 
-    fputs( str, filePtr ); 
-    fputc( '\n', filePtr ); 
-    fflush(filePtr); 
+  {
+    fputs( pfx, filePtr );
+    fputs( str, filePtr );
+    fputc( '\n', filePtr );
+    fflush(filePtr);
   }
 
 
@@ -43,10 +43,10 @@ public:
   void println( const char* pfx, const char* str );
 };
 void CxxDebugStream::println( int rank, const char* pfx, const char* str )
-  { 
+  {
     outStr.width(3);
-    outStr << rank << "  "  << pfx << str << std::endl; 
-    outStr.flush(); 
+    outStr << rank << "  "  << pfx << str << std::endl;
+    outStr.flush();
   }
 void CxxDebugStream::println( const char* pfx, const char* str )
   { outStr << pfx << str << std::endl; outStr.flush(); }
@@ -90,13 +90,13 @@ DebugOutput::DebugOutput( const char* pfx, std::ostream& str, int rank, unsigned
     mpiRank(rank), verbosityLimit(verbosity)  { }
 
 DebugOutput::DebugOutput( const DebugOutput& copy )
-  : linePfx(copy.linePfx), 
+  : linePfx(copy.linePfx),
     outputImpl(copy.outputImpl),
     mpiRank(copy.mpiRank),
     verbosityLimit(copy.verbosityLimit)
 {
-  outputImpl->referenceCount++; 
-  assert(outputImpl->referenceCount > 1); 
+  outputImpl->referenceCount++;
+  assert(outputImpl->referenceCount > 1);
 }
 
 DebugOutput& DebugOutput::operator=( const DebugOutput& copy )
@@ -105,13 +105,13 @@ DebugOutput& DebugOutput::operator=( const DebugOutput& copy )
   outputImpl = copy.outputImpl;
   mpiRank = copy.mpiRank;
   verbosityLimit = copy.verbosityLimit;
-  outputImpl->referenceCount++; 
-  assert(outputImpl->referenceCount > 1); 
+  outputImpl->referenceCount++;
+  assert(outputImpl->referenceCount > 1);
   return *this;
 }
 
 DebugOutput::~DebugOutput()
-{ 
+{
   if (!lineBuffer.empty()) {
     lineBuffer.push_back('\n');
     process_line_buffer();
@@ -123,8 +123,8 @@ DebugOutput::~DebugOutput()
     outputImpl = 0;
   }
 }
-  
-void DebugOutput::use_world_rank() 
+
+void DebugOutput::use_world_rank()
 {
   mpiRank = 0;
 #ifdef MOAB_HAVE_MPI
@@ -132,7 +132,7 @@ void DebugOutput::use_world_rank()
   if (MPI_SUCCESS==MPI_Initialized(&flag) && flag)
       MPI_Comm_rank( MPI_COMM_WORLD, &mpiRank );
 #endif
-}   
+}
 
 void DebugOutput::print_real( const char* buffer )
 {
@@ -145,13 +145,13 @@ void DebugOutput::tprint_real( const char* buffer )
   tprint();
   print_real( buffer );
 }
-  
+
 void DebugOutput::print_real( const std::string& str )
 {
   lineBuffer.insert( lineBuffer.end(), str.begin(), str.end() );
   process_line_buffer();
 }
-  
+
 void DebugOutput::tprint_real( const std::string& str )
 {
   tprint();
@@ -227,7 +227,7 @@ static void print_range( char* buffer, unsigned long begin, unsigned long end )
         *b2 = *p;
         ++b2;
         ++p;
-      } 
+      }
       e2 = b2;
     }
   }
@@ -258,7 +258,7 @@ void DebugOutput::list_range_real( const char* pfx, const Range& range )
       const char* name = CN::EntityTypeName(type);
       lineBuffer.insert( lineBuffer.end(), name, name+strlen(name) );
     }
-    if (i->first == i->second) 
+    if (i->first == i->second)
       sprintf(numbuf, " %lu,", (unsigned long)(ID_FROM_HANDLE(i->first)));
     else
       print_range(numbuf, ID_FROM_HANDLE(i->first), ID_FROM_HANDLE(i->second) );
@@ -268,7 +268,7 @@ void DebugOutput::list_range_real( const char* pfx, const Range& range )
   lineBuffer.push_back('\n');
   process_line_buffer();
 }
- 
+
 void DebugOutput::list_ints_real( const char* pfx, const Range& range )
 {
   if (range.empty()) {
@@ -284,7 +284,7 @@ void DebugOutput::list_ints_real( const char* pfx, const Range& range )
   char numbuf[48]; // unsigned 64 bit integer can't have more than 20 decimal digits
   Range::const_pair_iterator i;
   for (i = range.const_pair_begin(); i != range.const_pair_end(); ++i) {
-    if (i->first == i->second) 
+    if (i->first == i->second)
       sprintf(numbuf, " %lu,", (unsigned long)(i->first));
     else
       print_range(numbuf, (unsigned long)(i->first), (unsigned long)(i->second));
@@ -294,7 +294,7 @@ void DebugOutput::list_ints_real( const char* pfx, const Range& range )
   lineBuffer.push_back('\n');
   process_line_buffer();
 }
-   
+
 void DebugOutput::process_line_buffer()
 {
   size_t last_idx = 0;
@@ -302,14 +302,14 @@ void DebugOutput::process_line_buffer()
   for (i = std::find(lineBuffer.begin(), lineBuffer.end(), '\n');
        i != lineBuffer.end();  i = std::find(i, lineBuffer.end(), '\n')) {
     *i = '\0';
-    if (have_rank()) 
+    if (have_rank())
       outputImpl->println( get_rank(), linePfx.c_str(), &lineBuffer[last_idx] );
     else
       outputImpl->println( linePfx.c_str(), &lineBuffer[last_idx] );
     ++i;
     last_idx = i - lineBuffer.begin();
   }
-  
+
   if (last_idx) {
     i = std::copy( lineBuffer.begin()+last_idx, lineBuffer.end(), lineBuffer.begin() );
     lineBuffer.erase( i, lineBuffer.end() );

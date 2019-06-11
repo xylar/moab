@@ -1,9 +1,9 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2004 Sandia Corporation and Argonne National
-    Laboratory.  Under the terms of Contract DE-AC04-94AL85000 
-    with Sandia Corporation, the U.S. Government retains certain 
+    Laboratory.  Under the terms of Contract DE-AC04-94AL85000
+    with Sandia Corporation, the U.S. Government retains certain
     rights in this software.
 
     This library is free software; you can redistribute it and/or
@@ -16,13 +16,13 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
-    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov, 
-    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov      
-   
+
+    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov,
+    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov
+
   ***************************************************************** */
 // -*- Mode : c++; tab-width: 3; c-tab-always-indent: t; indent-tabs-mode: nil; c-basic-offset: 3 -*-
 //
@@ -51,8 +51,8 @@
 namespace MBMesquite {
 
 MsqHessian::MsqHessian() :
-  mEntries(0), mRowStart(0), mColIndex(0), 
-  mSize(0), 
+  mEntries(0), mRowStart(0), mColIndex(0),
+  mSize(0),
   mPreconditioner(0), precondArraySize(0),
   mR(0), mZ(0), mP(0), mW(0), cgArraySizes(0), maxCGiter(50)
 { }
@@ -79,7 +79,7 @@ void MsqHessian::clear()
   delete[] mW; mW = 0;
 }
 
-  
+
 /*! \brief creates a sparse structure for a Hessian, based on the
   connectivity information contained in the PatchData.
   Only the upper triangular part of the Hessian is stored. */
@@ -89,7 +89,7 @@ void MsqHessian::initialize(PatchData &pd, MsqError &err)
   delete[] mEntries;
   delete[] mRowStart;
   delete[] mColIndex;
-  
+
   size_t num_vertices = pd.num_free_vertices();
   size_t num_elements = pd.num_elements();
   size_t const * vtx_list;
@@ -109,7 +109,7 @@ void MsqHessian::initialize(PatchData &pd, MsqError &err)
   size_t* col_start = new size_t[num_vertices + 1];
   //mAccumElemStart = new size_t[num_elements+1];
   //mAccumElemStart[0] = 0;
-  
+
   for (i = 0; i < num_vertices; ++i) {
     col_start[i] = 0;
   }
@@ -118,12 +118,12 @@ void MsqHessian::initialize(PatchData &pd, MsqError &err)
     nve = patchElemArray[e].node_count();
     vtx_list = patchElemArray[e].get_vertex_index_array();
     int nfe = 0;
-    
+
     for (i = 0; i < nve; ++i) {
       r = vtx_list[i];
       if (r < num_vertices)
         ++nfe;
-      
+
       for (j = i; j < nve; ++j) {
         c = vtx_list[j];
 
@@ -202,13 +202,13 @@ void MsqHessian::initialize(PatchData &pd, MsqError &err)
   //   for (int t=0; t<nz; ++t)
   //     cout << row_instr[t] << " ";
   //   cout << endl;
-  
-  
+
+
   // Convert CSC to CSR
   // First calculate the offsets in the row
 
   size_t* row_start = new size_t[num_vertices + 1];
-    
+
   for (i = 0; i < num_vertices; ++i) {
     row_start[i] = 0;
   }
@@ -224,7 +224,7 @@ void MsqHessian::initialize(PatchData &pd, MsqError &err)
     nz += j;
   }
   row_start[i] = nz;
-    
+
   // Now calculate the pattern
 
   size_t* col_index = new size_t[nz];
@@ -286,7 +286,7 @@ void MsqHessian::initialize(PatchData &pd, MsqError &err)
       //else {
       //  mAccumulation[-col_instr[rs]] = 1 - nnz;
       //}
-      
+
       ++rs;
     }
   }
@@ -327,12 +327,12 @@ void MsqHessian::initialize(PatchData &pd, MsqError &err)
   }
   mRowStart[1] = mRowStart[0];
   mRowStart[0] = 0;
-  
+
   delete [] row_start;
   delete [] col_index;
 
-  mEntries = new Matrix3D[nnz]; // On Solaris, no initializer allowed for new of an array 
-  for (i=0;i<nnz;++i) mEntries[i] = 0.; // so we initialize all entries manually. 
+  mEntries = new Matrix3D[nnz]; // On Solaris, no initializer allowed for new of an array
+  for (i=0;i<nnz;++i) mEntries[i] = 0.; // so we initialize all entries manually.
 
   //origin_pd = &pd;
 
@@ -341,7 +341,7 @@ void MsqHessian::initialize(PatchData &pd, MsqError &err)
 
 void MsqHessian::initialize( const MsqHessian& other )
 {
-  if (!other.mSize) 
+  if (!other.mSize)
   {
     delete[] mEntries;
     delete[] mRowStart;
@@ -352,20 +352,20 @@ void MsqHessian::initialize( const MsqHessian& other )
     mSize = 0;
     return;
   }
-    
+
   if (mSize != other.mSize || mRowStart[mSize] != other.mRowStart[mSize])
   {
     delete[] mEntries;
     delete[] mRowStart;
     delete[] mColIndex;
-    
+
     mSize = other.mSize;
-    
+
     mRowStart = new size_t[mSize + 1];
     mEntries = new Matrix3D[other.mRowStart[mSize]];
     mColIndex = new size_t[other.mRowStart[mSize]];
   }
-    
+
   memcpy( mRowStart, other.mRowStart, sizeof(size_t)*(mSize+1) );
   memcpy( mColIndex, other.mColIndex, sizeof(size_t)*mRowStart[mSize] );
 }
@@ -379,7 +379,7 @@ void MsqHessian::add( const MsqHessian& other )
   for (unsigned i = 0; i < mRowStart[mSize]; ++i)
     mEntries[i] += other.mEntries[i];
 }
-  
+
 
 /*! \param diag is an STL vector of size MsqHessian::size() . */
 void MsqHessian::get_diagonal_blocks(std::vector<Matrix3D> &diag,
@@ -427,7 +427,7 @@ void MsqHessian::compute_preconditioner(MsqError &/*err*/)
     //If the first method of calculating a preconditioner fails,
     // use the diagonal method.
     bool use_diag = false;
-    
+
     if (fabs((*diag_block)[0][0]) < DBL_EPSILON) {
       use_diag = true;
     }
@@ -443,37 +443,37 @@ void MsqHessian::compute_preconditioner(MsqError &/*err*/)
         use_diag = true;
       else{
         mPreconditioner[m][1][1] = 1.0 / sum;
-        
-        tmp = (*diag_block)[1][2] - 
+
+        tmp = (*diag_block)[1][2] -
             (*diag_block)[0][2] * mPreconditioner[m][0][1];
 
         mPreconditioner[m][1][2] = mPreconditioner[m][1][1] * tmp;
 
-        sum =  ((*diag_block)[2][2] - 
-                (*diag_block)[0][2]*mPreconditioner[m][0][2] - 
+        sum =  ((*diag_block)[2][2] -
+                (*diag_block)[0][2]*mPreconditioner[m][0][2] -
                 mPreconditioner[m][1][2]*tmp);
 
         if(fabs(sum)<= DBL_EPSILON)
           use_diag = true;
         else
           mPreconditioner[m][2][2] = 1.0 / sum;
-      
+
       }
-      
+
     }
     if(use_diag)
 #endif
-    {    
+    {
         // Either this is a fixed vertex or the diagonal block is not
         // invertible.  Switch to the diagonal preconditioner in this
         // case.
 
       sum = (*diag_block)[0][0] + (*diag_block)[1][1] + (*diag_block)[2][2];
-      if (fabs(sum) > DBL_EPSILON) 
+      if (fabs(sum) > DBL_EPSILON)
         sum = 1 / sum;
       else
         sum = 0.0;
-      
+
       mPreconditioner[m][0][0] = sum;
       mPreconditioner[m][0][1] = 0.0;
       mPreconditioner[m][0][2] = 0.0;
@@ -493,7 +493,7 @@ void MsqHessian::compute_preconditioner(MsqError &/*err*/)
 void MsqHessian::cg_solver(Vector3D x[], Vector3D b[], MsqError &err)
 {
   MSQ_FUNCTION_TIMER( "MsqHessian::cg_solver" );
-  
+
   // reallocates arrays if size of the Hessian has changed too much.
   if (mSize > cgArraySizes || mSize < cgArraySizes/10 ) {
     delete[] mR;
@@ -508,8 +508,8 @@ void MsqHessian::cg_solver(Vector3D x[], Vector3D b[], MsqError &err)
   }
 
   size_t i;
-  double alpha_, alpha, beta; 
-  double cg_tol = 1e-2; // 1e-2 will give a reasonably good solution (~1%). 
+  double alpha_, alpha, beta;
+  double cg_tol = 1e-2; // 1e-2 will give a reasonably good solution (~1%).
   double norm_g = length(b, mSize);
   double norm_r = norm_g;
   double rzm1; // r^T_{k-1} z_{k-1}
@@ -517,38 +517,38 @@ void MsqHessian::cg_solver(Vector3D x[], Vector3D b[], MsqError &err)
 
   this->compute_preconditioner(err); MSQ_CHKERR(err); // get M^{-1} for diagonal blocks
 
-  for (i=0; i<mSize; ++i)  x[i] = 0. ;  
+  for (i=0; i<mSize; ++i)  x[i] = 0. ;
   for (i=0; i<mSize; ++i)  mR[i] = -b[i] ;  // r = -b because x_0 = 0 and we solve H*x = -b
   norm_g *= cg_tol;
 
   this->apply_preconditioner(mZ, mR, err); // solve Mz = r (computes z = M^-1 r)
-  for (i=0; i<mSize; ++i)  mP[i] = mZ[i] ; // p_1 = z_0  
-  rzm1 = inner(mZ,mR,mSize); // inner product r_{k-1}^T z_{k-1} 
-    
+  for (i=0; i<mSize; ++i)  mP[i] = mZ[i] ; // p_1 = z_0
+  rzm1 = inner(mZ,mR,mSize); // inner product r_{k-1}^T z_{k-1}
+
   size_t cg_iter = 0;
   while ((norm_r > norm_g) && (cg_iter < maxCGiter)) {
     ++cg_iter;
-      
+
     axpy(mW, mSize, *this, mP, mSize, 0,0,err); // w = A * p_k
-      
+
     alpha_ = inner(mP,mW,mSize); // alpha_ = p_k^T A p_k
     if (alpha_ <= 0.0) {
       if (1 == cg_iter) {
-        for (i=0; i<mSize; ++i)  x[i] += mP[i]; // x_{k+1} = x_k + p_{k+1} 
+        for (i=0; i<mSize; ++i)  x[i] += mP[i]; // x_{k+1} = x_k + p_{k+1}
       }
-      break; // Newton goes on with this direction of negative curvature 
+      break; // Newton goes on with this direction of negative curvature
     }
 
     alpha = rzm1 / alpha_;
-      
-    for (i=0; i<mSize; ++i)  x[i] += alpha*mP[i]; // x_{k+1} = x_k + alpha_{k+1} p_{k+1} 
-    for (i=0; i<mSize; ++i)  mR[i] -= alpha*mW[i]; // r_{k+1} = r_k - alpha_{k+1} A p_{k+1} 
+
+    for (i=0; i<mSize; ++i)  x[i] += alpha*mP[i]; // x_{k+1} = x_k + alpha_{k+1} p_{k+1}
+    for (i=0; i<mSize; ++i)  mR[i] -= alpha*mW[i]; // r_{k+1} = r_k - alpha_{k+1} A p_{k+1}
     norm_r = length(mR, mSize);
- 
+
     this->apply_preconditioner(mZ, mR, err); // solve Mz = r (computes z = M^-1 r)
-      
+
     rzm2 = rzm1;
-    rzm1 = inner(mZ,mR,mSize); // inner product r_{k-1}^T z_{k-1} 
+    rzm1 = inner(mZ,mR,mSize); // inner product r_{k-1}^T z_{k-1}
     beta = rzm1 / rzm2;
     for (i=0; i<mSize; ++i)  mP[i] = mZ[i] + beta*mP[i]; // p_k = z_{k-1} + Beta_k * p_{k-1}
   }
@@ -558,17 +558,17 @@ void MsqHessian::product( Vector3D* v, const Vector3D* x ) const
 {
     // zero output array
   memset( v, 0, size() * sizeof(*v) );
-  
+
     // for each row
   const Matrix3D* m_iter = mEntries;
   const size_t* c_iter = mColIndex;
   for (size_t r = 0; r < size(); ++r) {
-    
+
       // diagonal entry
-    plusEqAx( v[r], *m_iter, x[r] ); 
-    ++m_iter; 
+    plusEqAx( v[r], *m_iter, x[r] );
+    ++m_iter;
     ++c_iter;
-    
+
       // off-diagonal entires
     for (size_t c = mRowStart[r] + 1; c != mRowStart[r+1]; ++c) {
       plusEqAx( v[r], *m_iter, x[*c_iter] );
@@ -590,8 +590,8 @@ std::ostream& operator<<(std::ostream &s, const MsqHessian &h)
     s << " ROW " << i << " ------------------------\n";
     for (j=h.mRowStart[i]; j<h.mRowStart[i+1]; ++j) {
       s << "   column " << h.mColIndex[j] << " ----\n";
-      s << h.mEntries[j]; 
-    } 
+      s << h.mEntries[j];
+    }
   }
   return s;
 }

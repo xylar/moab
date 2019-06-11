@@ -69,7 +69,7 @@ set(MOAB_LIB_SOURCES
         HalfFacetRep.cpp
         HigherOrderFactory.cpp
         HomXform.cpp
-        iMOAB.cpp 
+        iMOAB.cpp
         Internals.hpp
         LloydSmoother.cpp
         MBCNArrays.hpp
@@ -126,7 +126,7 @@ set(MOAB_LIB_SOURCES
         Util.cpp
         VarLenDenseTag.hpp        VarLenDenseTag.cpp
         VarLenSparseTag.hpp       VarLenSparseTag.cpp
-        VarLenTag.hpp      
+        VarLenTag.hpp
         VertexSequence.hpp        VertexSequence.cpp
         WriteUtil.hpp             WriteUtil.cpp
         verdict/v_vector.h
@@ -182,11 +182,11 @@ set( MOAB_INSTALL_HEADERS
         moab/point_locater/tree/common_tree.hpp
         moab/point_locater/tree/element_tree.hpp
         moab/point_locater/tree/bvh_tree.hpp
-        moab/point_locater/io.hpp 
-        moab/point_locater/element_maps/linear_hex_map.hpp 
-        moab/point_locater/element_maps/linear_tet_map.hpp 
-        moab/point_locater/element_maps/spectral_hex_map.hpp 
-        moab/point_locater/element_maps/quadratic_hex_map.hpp 
+        moab/point_locater/io.hpp
+        moab/point_locater/element_maps/linear_hex_map.hpp
+        moab/point_locater/element_maps/linear_tet_map.hpp
+        moab/point_locater/element_maps/spectral_hex_map.hpp
+        moab/point_locater/element_maps/quadratic_hex_map.hpp
         moab/point_locater/point_locater.hpp
         moab/point_locater/parametrizer.hpp
         moab/ElemEvaluator.hpp

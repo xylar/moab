@@ -1,9 +1,9 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2004 Sandia Corporation and Argonne National
-    Laboratory.  Under the terms of Contract DE-AC04-94AL85000 
-    with Sandia Corporation, the U.S. Government retains certain 
+    Laboratory.  Under the terms of Contract DE-AC04-94AL85000
+    with Sandia Corporation, the U.S. Government retains certain
     rights in this software.
 
     This library is free software; you can redistribute it and/or
@@ -16,13 +16,13 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
-    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov, 
-    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov      
-   
+
+    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov,
+    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov
+
   ***************************************************************** */
 #include "moab/MOABConfig.h"
 #include "MsqTimer.hpp"
@@ -63,13 +63,13 @@ MBMesquite::StopWatchCollection MBMesquite::GlobalStopWatches;
 #  include <ctime>
    static inline double now()
    {
-     return (double)std::clock() / CLOCKS_PER_SEC; 
+     return (double)std::clock() / CLOCKS_PER_SEC;
    }
 #endif
 
 
 
-MBMesquite::Timer::Timer() 
+MBMesquite::Timer::Timer()
     : atBirth(now())
 {
   atLastCheck = atBirth;
@@ -135,9 +135,9 @@ MBMesquite::StopWatchCollection::Key MBMesquite::StopWatchCollection::add(
     // Don't allow empty name
   if (name == "")
     return 0;
-  
+
   Key key = get_key(name);
-  
+
     // If the named stopwatch doesn't exist...
   if (!key)
   {
@@ -162,7 +162,7 @@ MBMesquite::StopWatchCollection::Key MBMesquite::StopWatchCollection::add(
     // If it already existed...
   else if (fail_if_exists)
     key = 0;
-  
+
   return key;
 }
 
@@ -171,7 +171,7 @@ MBMesquite::StopWatchCollection::Key MBMesquite::StopWatchCollection::get_key(
   const std::string &name) const
 {
   Key key = 0;
-  
+
   for (size_t i = 0; i < mEntries.size(); i++)
   {
     if (mEntries[i].first == name)
@@ -196,7 +196,7 @@ void MBMesquite::StopWatchCollection::remove(
       mEntries.pop_back();
     }
   }
-  
+
   else if (key > 0 && key < mEntries.size())
   {
       // If in the middle of the list, set its name to ""
@@ -298,7 +298,7 @@ void MBMesquite::StopWatchCollection::get_keys_sorted_by_time(
 }
 
 // Originally in MsqMessage.cpp
-// Moved here and converted to an ostream operator 
+// Moved here and converted to an ostream operator
 // by J.Kraftcheck, 2004-10-18
 std::ostream& MBMesquite::operator<<( std::ostream& str,
                                           MBMesquite::StopWatchCollection&  )

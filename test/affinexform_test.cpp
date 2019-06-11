@@ -1,16 +1,16 @@
 /**
  * MOAB, a Mesh-Oriented datABase, is a software component for creating,
  * storing and accessing finite element mesh data.
- * 
+ *
  * Copyright 2004 Sandia Corporation.  Under the terms of Contract
  * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
  * retains certain rights in this software.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  */
 
 /**
@@ -37,36 +37,36 @@ AffineXform AffineXform::rotation( const double* from_vec, const double* to_vec 
   CartVect to(to_vec);
   CartVect a = from * to;
   double len = a.length();
-  
+
   // If input vectors are not parallel (the normal case)
   if (len >= std::numeric_limits<double>::epsilon()) {
     from.normalize();
     to.normalize();
     return rotation( from % to, (from * to).length(), a/len );
   }
-  
+
   // Vectors are parallel:
   //
   // If vectors are in same direction then rotation is identity (no transform)
   if (from % to >= 0.0)
-    return AffineXform(); 
-    
+    return AffineXform();
+
   // Parallel vectors in opposite directions:
   //
   // NOTE:  This case is ill-defined.  There are infinitely
   // many rotations that can align the two vectors.  The angle
-  // of rotation is 180 degrees, but the axis of rotation may 
+  // of rotation is 180 degrees, but the axis of rotation may
   // be any unit vector orthogonal to the input vectors.
   //
   from.normalize();
   double lenxy = std::sqrt( from[0]*from[0] + from[1]*from[1] );
-  CartVect axis( -from[0]*from[2]/lenxy, 
+  CartVect axis( -from[0]*from[2]/lenxy,
                  -from[1]*from[2]/lenxy,
                                   lenxy );
   return rotation( -1, 0, axis );
 }
 
-  
+
 } // namespace moab
 */
 
@@ -96,7 +96,7 @@ void assert_vectors_equal( const double* a, const double* b,
   }
 }
 
-void assert_vectors_equal( const CartVect& a, const CartVect& b, 
+void assert_vectors_equal( const CartVect& a, const CartVect& b,
                            const char* sa, const char* sb,
                            int lineno )
 {
@@ -146,15 +146,15 @@ void test_translation()
 {
   CartVect offset( 1.0, 2.0, 3.0 );
   CartVect output;
-  
+
   AffineXform move = AffineXform::translation( offset.array() );
-  
+
   // test that points are moved by offset
   move.xform_point( point1.array(), output.array() );
   ASSERT_VECTORS_EQUAL( output, point1 + offset );
   move.xform_point( point2.array(), output.array() );
   ASSERT_VECTORS_EQUAL( output, point2 + offset );
-  
+
   // vectors should not be changed by a translation
   move.xform_vector( vect1.array(), output.array() );
   ASSERT_VECTORS_EQUAL( output, vect1 );
@@ -165,86 +165,86 @@ void test_translation()
 void test_rotation()
 {
   CartVect output;
-  
+
   // rotate 90 degress about Z axis
-  
+
   AffineXform rot = AffineXform::rotation( M_PI/2.0, CartVect(0,0,1).array() );
   ASSERT_DOUBLES_EQUAL( rot.matrix().determinant(), 1.0 );
-  
+
   rot.xform_point( point1.array(), output.array() );
   ASSERT_VECTORS_EQUAL( output, point1 ); // origin not affected by transform
-  
+
   CartVect expectedz( -point2[1], point2[0], point2[2] ); // in first quadrant
   rot.xform_point( point2.array(), output.array() );
   ASSERT_DOUBLES_EQUAL( output.length(), point2.length() );
   ASSERT_VECTORS_EQUAL( output, expectedz );
-  
+
   rot.xform_vector( vect1.array(), output.array() );
   ASSERT_DOUBLES_EQUAL( output.length(), vect1.length() );
   ASSERT_VECTORS_EQUAL( output, vect1 );
-  
+
   rot.xform_vector( vect2.array(), output.array() );
   ASSERT_DOUBLES_EQUAL( output.length(), vect2.length() );
   ASSERT_VECTORS_EQUAL( output, CartVect( 0, 1, 1 ) );
-  
+
   // rotate 90 degress about Y axis
-  
+
   rot = AffineXform::rotation( M_PI/2.0, CartVect(0,1,0).array() );
   ASSERT_DOUBLES_EQUAL( rot.matrix().determinant(), 1.0 );
-  
+
   rot.xform_point( point1.array(), output.array() );
   ASSERT_VECTORS_EQUAL( output, point1 ); // origin not affected by transform
-  
+
   CartVect expectedy( point2[2], point2[1], -point2[0] ); // in second quadrant
   rot.xform_point( point2.array(), output.array() );
   ASSERT_DOUBLES_EQUAL( output.length(), point2.length() );
   ASSERT_VECTORS_EQUAL( output, expectedy );
-  
+
   rot.xform_vector( vect1.array(), output.array() );
   ASSERT_DOUBLES_EQUAL( output.length(), vect1.length() );
   ASSERT_VECTORS_EQUAL( output, CartVect(-100,0,0) );
-  
+
   rot.xform_vector( vect2.array(), output.array() );
   ASSERT_DOUBLES_EQUAL( output.length(), vect2.length() );
   ASSERT_VECTORS_EQUAL( output, CartVect( 1, 0, -1 ) );
-  
+
   // rotate 90 degress about X axis
-  
+
   rot = AffineXform::rotation( M_PI/2.0, CartVect(1,0,0).array() );
   ASSERT_DOUBLES_EQUAL( rot.matrix().determinant(), 1.0 );
-  
+
   rot.xform_point( point1.array(), output.array() );
   ASSERT_VECTORS_EQUAL( output, point1 ); // origin not affected by transform
-  
+
   CartVect expectedx( point2[0], -point2[2], point2[1] ); // in third quadrant
   rot.xform_point( point2.array(), output.array() );
   ASSERT_DOUBLES_EQUAL( output.length(), point2.length() );
   ASSERT_VECTORS_EQUAL( output, expectedx );
-  
+
   rot.xform_vector( vect1.array(), output.array() );
   ASSERT_DOUBLES_EQUAL( output.length(), vect1.length() );
   ASSERT_VECTORS_EQUAL( output, CartVect(0,100,0) );
-  
+
   rot.xform_vector( vect2.array(), output.array() );
   ASSERT_DOUBLES_EQUAL( output.length(), vect2.length() );
   ASSERT_VECTORS_EQUAL( output, CartVect( 1, -1, 0 ) );
-  
+
   // rotate 180 degrees about vector in XY plane
-  
+
   rot = AffineXform::rotation( M_PI, CartVect( 1, 1, 0 ).array() );
   ASSERT_DOUBLES_EQUAL( rot.matrix().determinant(), 1.0 );
-  
+
   rot.xform_point( point1.array(), output.array() );
   ASSERT_VECTORS_EQUAL( output, point1 ); // origin not affected by transform
-  
+
   rot.xform_point( point2.array(), output.array() );
   ASSERT_DOUBLES_EQUAL( output.length(), point2.length() );
   ASSERT_VECTORS_EQUAL( output, CartVect( point2[1], point2[0], -point2[2] ) );
-  
+
   rot.xform_vector( vect1.array(), output.array() );
   ASSERT_DOUBLES_EQUAL( output.length(), vect1.length() );
   ASSERT_VECTORS_EQUAL( output, -vect1 ); // vector is in xy plane
-  
+
   rot.xform_vector( vect2.array(), output.array() );
   ASSERT_DOUBLES_EQUAL( output.length(), vect2.length() );
   ASSERT_VECTORS_EQUAL( output, CartVect( 0, 1, -1 ) );
@@ -261,7 +261,7 @@ void test_rotation_from_vec( )
   ASSERT_DOUBLES_EQUAL( result.length(), v1.length() );
   result.normalize();
   ASSERT_VECTORS_EQUAL( result, v2 );
-  
+
   double v3[] = { -1, 0, 0 };
   rot = AffineXform::rotation( v3, v2.array() );
   rot.xform_vector( v3, result.array() );
@@ -279,7 +279,7 @@ CartVect refl( const CartVect& vect, const CartVect& norm )
 void test_reflection()
 {
   CartVect output;
-  
+
   // reflect about XY plane
   AffineXform ref = AffineXform::reflection( CartVect( 0, 0, 1 ).array() );
   ASSERT_DOUBLES_EQUAL( ref.matrix().determinant(), -1.0 );
@@ -294,7 +294,7 @@ void test_reflection()
   ref.xform_vector( vect2.array(), output.array() );
   ASSERT_DOUBLES_EQUAL( output.length(), vect2.length() );
   ASSERT_VECTORS_EQUAL( output, CartVect(1,0,-1) );
-  
+
   // reflect about arbitrary palne
   CartVect norm( 3, 2, 1 );
   ref = AffineXform::reflection( norm.array() );
@@ -315,12 +315,12 @@ void test_reflection()
 void test_scale()
 {
   CartVect output;
-  
+
   AffineXform scale = AffineXform::scale( 1.0 );
   ASSERT(!scale.scale());
   scale = AffineXform::scale( -1.0 );
   ASSERT(!scale.scale());
-  
+
   //scale in X only
   scale = AffineXform::scale( CartVect(2,1,1).array() );
   ASSERT(scale.scale());
@@ -332,7 +332,7 @@ void test_scale()
   ASSERT_VECTORS_EQUAL( output, CartVect(2*vect1[0],vect1[1],vect1[2]) );
   scale.xform_vector( vect2.array(), output.array() );
   ASSERT_VECTORS_EQUAL( output, CartVect(2*vect2[0],vect2[1],vect2[2]) );
-  
+
   // scale in all
   scale = AffineXform::scale( CartVect(0.5,0.5,0.5).array() );
   ASSERT(scale.scale());
@@ -354,14 +354,14 @@ void test_scale_point()
   AffineXform scale = AffineXform::scale( f, point );
   scale.xform_point( point, result );
   ASSERT_VECTORS_EQUAL( result, point );
-  
+
   const double delta[3] = { 1, 0, 2 };
   const double pt2[] = { point[0]+delta[0],
                          point[1]+delta[1],
                          point[2]+delta[2] };
   scale = AffineXform::scale( f, point );
   scale.xform_point( pt2, result );
-  
+
   const double expected[] = { point[0] + f[0]*delta[0],
                               point[1] + f[1]*delta[1],
                               point[2] + f[2]*delta[2] };
@@ -371,7 +371,7 @@ void test_scale_point()
 void test_accumulate()
 {
   CartVect indiv, accum;
-  
+
   // build an group of transforms.  make sure translation is somewhere in the middle
   AffineXform move, scal, rot1, rot2, refl;
   move = AffineXform::translation( CartVect( 5, -5, 1 ).array() );
@@ -385,7 +385,7 @@ void test_accumulate()
   accu.accumulate( move );
   accu.accumulate( refl );
   accu.accumulate( rot2 );
-  
+
   accu.xform_point( point1.array(), accum.array() );
   scal.xform_point( point1.array(), indiv.array() );
   rot1.xform_point( indiv.array() );
@@ -393,7 +393,7 @@ void test_accumulate()
   refl.xform_point( indiv.array() );
   rot2.xform_point( indiv.array() );
   ASSERT_VECTORS_EQUAL( accum, indiv );
-  
+
   accu.xform_point( point2.array(), accum.array() );
   scal.xform_point( point2.array(), indiv.array() );
   rot1.xform_point( indiv.array() );
@@ -401,7 +401,7 @@ void test_accumulate()
   refl.xform_point( indiv.array() );
   rot2.xform_point( indiv.array() );
   ASSERT_VECTORS_EQUAL( accum, indiv );
-  
+
   accu.xform_vector( vect1.array(), accum.array() );
   scal.xform_vector( vect1.array(), indiv.array() );
   rot1.xform_vector( indiv.array() );
@@ -409,7 +409,7 @@ void test_accumulate()
   refl.xform_vector( indiv.array() );
   rot2.xform_vector( indiv.array() );
   ASSERT_VECTORS_EQUAL( accum, indiv );
-  
+
   accu.xform_vector( vect2.array(), accum.array() );
   scal.xform_vector( vect2.array(), indiv.array() );
   rot1.xform_vector( indiv.array() );
@@ -421,7 +421,7 @@ void test_accumulate()
 
 void test_inversion() {
   CartVect result;
-  
+
   // build an group of transforms.  make sure translation is somewhere in the middle
   AffineXform move, scal, rot1, rot2, refl;
   move = AffineXform::translation( CartVect( 5, -5, 1 ).array() );
@@ -435,51 +435,51 @@ void test_inversion() {
   acc.accumulate( move );
   acc.accumulate( refl );
   acc.accumulate( rot2 );
-  
+
   AffineXform inv = acc.inverse();
-  
+
   acc.xform_point( point1.array(), result.array() );
   inv.xform_point( result.array() );
   ASSERT_VECTORS_EQUAL( point1, result );
-  
+
   acc.xform_point( point2.array(), result.array() );
   inv.xform_point( result.array() );
   ASSERT_VECTORS_EQUAL( point2, result );
-  
+
   acc.xform_vector( vect1.array(), result.array() );
   inv.xform_vector( result.array() );
   ASSERT_VECTORS_EQUAL( vect1, result );
-  
+
   acc.xform_vector( vect2.array(), result.array() );
   inv.xform_vector( result.array() );
   ASSERT_VECTORS_EQUAL( vect2, result );
 }
-  
+
 void test_is_reflection()
 {
   AffineXform refl1, refl2, scale;
   refl1 = AffineXform::reflection( CartVect( -1, -1, 0).array() );
   refl2 = AffineXform::reflection( CartVect(  1,  0, 0).array() );
   scale = AffineXform::scale( CartVect( -1, 1, 1 ).array() );
-  
+
   ASSERT( refl1.reflection() );
   ASSERT( refl2.reflection() );
   ASSERT( scale.reflection() );
-  
+
   AffineXform inv1, inv2, inv3;
   inv1 = refl1.inverse();
   inv2 = refl2.inverse();
   inv3 = scale.inverse();
-  
+
   ASSERT( inv1.reflection() );
   ASSERT( inv2.reflection() );
   ASSERT( inv3.reflection() );
-  
+
   refl1.accumulate( refl2 );
   refl2.accumulate( scale );
   ASSERT( ! refl1.reflection() );
   ASSERT( ! refl2.reflection() );
-  
+
   AffineXform rot, mov;
   rot = AffineXform::rotation( M_PI/4, CartVect(1,1,1).array() );
   mov = AffineXform::translation( CartVect(-5,6,7).array() );

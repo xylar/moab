@@ -10,7 +10,7 @@ namespace moab
     DGMSolver() {};
     ~DGMSolver() {};
 public:
-    
+
     //! \brief compute combinational number, n choose k, maximum output is std::numeric_limits<unsigned int>::max();
     //If overflows, return 0
     static unsigned int nchoosek(unsigned int n, unsigned int k);
@@ -30,7 +30,7 @@ public:
         * \param kvars Integer, number of variables
         * \param vars Pointer to array of doubles, size = kvars, variable values
         * \param degree Integer, maximum degree
-        * \param basis Reference to vector, user input container to hold output which is appended to existing data; users don't have to preallocate for basis, this function will allocate interally 
+        * \param basis Reference to vector, user input container to hold output which is appended to existing data; users don't have to preallocate for basis, this function will allocate interally
     */
     static void gen_multivar_monomial_basis(const int kvars,const double* vars, const int degree, std::vector<double>& basis);
 
@@ -42,10 +42,10 @@ public:
         * \param kvars Integer, number of variables
         * \param us Pointer to array of doubles, size = mrow*kvars, variable values for all points. Stored in row-wise, like {u1 v1 u2 v2 ...}
         * \param degree Integer, maximum degree
-        * \param basis Reference to vector, user input container to hold Vandermonde matrix which is appended to existing data; 
-                 users don't have to preallocate for basis, this function will allocate interally; 
+        * \param basis Reference to vector, user input container to hold Vandermonde matrix which is appended to existing data;
+                 users don't have to preallocate for basis, this function will allocate interally;
                  the Vandermonde matrix is stored in an array, columnwise, like {1 ... 1 u1 ...um u1^2 ... um^2 ...}
-    */ 
+    */
     static void gen_vander_multivar(const int mrows,const int kvars, const double* us, const int degree, std::vector<double>& V);
 
     static void rescale_matrix(int mrows, int ncols, double *V, double *ts);

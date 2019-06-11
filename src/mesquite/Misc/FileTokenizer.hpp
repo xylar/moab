@@ -1,8 +1,8 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
-    Copyright 2004 Lawrence Livermore National Laboratory.  Under 
-    the terms of Contract B545069 with the University of Wisconsin -- 
+    Copyright 2004 Lawrence Livermore National Laboratory.  Under
+    the terms of Contract B545069 with the University of Wisconsin --
     Madison, Lawrence Livermore National Laboratory retains certain
     rights in this software.
 
@@ -16,12 +16,12 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
-    kraftche@cae.wisc.edu    
-   
+
+    kraftche@cae.wisc.edu
+
   ***************************************************************** */
 
 #ifndef FILE_TOKENIZER_HPP
@@ -36,7 +36,7 @@ namespace MBMesquite
 
   class MsqError;
 
-/** 
+/**
  * \class  FileTokenizer
  * \brief  Parse a file as space-separated tokens
  * \author Jason Kraftcheck
@@ -46,23 +46,23 @@ namespace MBMesquite
  * This is provided in place of using the standard C or C++
  * file parsing routines because it counts lines, which is
  * useful for error reporting.  Also provides some useful
- * utility methods for parsing VTK files (which is the 
+ * utility methods for parsing VTK files (which is the
  * intended use of this implementation.)
  *
  * Uses raw reads/writes, implementing internal buffering.
  * Token size may not exceed buffer size.
  */
 
-class FileTokenizer 
+class FileTokenizer
 {
   public:
-  
-      /** \brief constructor 
-       * 
+
+      /** \brief constructor
+       *
        * \param file_ptr The file to read from.
        */
     FileTokenizer( std::FILE* file_ptr );
-    
+
       /** \brief destructor : closes file.
        *
        * The destructor closes the passed file handle.   This
@@ -72,7 +72,7 @@ class FileTokenizer
        * returns.
        */
     ~FileTokenizer();
-    
+
       /** \brief get next token
        *
        * Get the next whitesapce-deliminated token from the file.
@@ -84,20 +84,20 @@ class FileTokenizer
        *         or NULL if an error occured.
        */
     const char* get_string( MsqError& err );
-    
+
       /** \brief check for newline
        *
        * Consume whitespace upto and including the next newline.
-       * If a non-space character is found before a newline, 
+       * If a non-space character is found before a newline,
        * the function will stop, set the error message, and
        * return false.
-       * 
+       *
        * \return True if a newline was found before any non-space
        *         character.  False otherwise.
        */
     bool get_newline( MsqError& err );
-    
-    
+
+
       /** \brief Parse a sequence of double values.
        *
        * Read the specified number of space-deliminated doubles.
@@ -107,8 +107,8 @@ class FileTokenizer
        * \return true if successful, false otherwise.
        */
     bool get_doubles( size_t count, double* array, MsqError& err );
-     
-    
+
+
       /** \brief Parse a sequence of float values.
        *
        * Read the specified number of space-deliminated doubles.
@@ -118,7 +118,7 @@ class FileTokenizer
        * \return true if successful, false otherwise.
        */
     bool get_floats( size_t count, float* array, MsqError& err );
-   
+
       /** \brief Parse a sequence of integer values.
        *
        * Read the specified number of space-deliminated ints.
@@ -128,7 +128,7 @@ class FileTokenizer
        * \return true if successful, false otherwise.
        */
     bool get_integers( size_t count, int* array, MsqError& err );
-   
+
       /** \brief Parse a sequence of integer values.
        *
        * Read the specified number of space-deliminated ints.
@@ -138,7 +138,7 @@ class FileTokenizer
        * \return true if successful, false otherwise.
        */
     bool get_long_ints( size_t count, long* array, MsqError& err );
-   
+
       /** \brief Parse a sequence of integer values.
        *
        * Read the specified number of space-deliminated ints.
@@ -148,7 +148,7 @@ class FileTokenizer
        * \return true if successful, false otherwise.
        */
     bool get_short_ints( size_t count, short* array, MsqError& err );
-   
+
       /** \brief Parse a sequence of integer values.
        *
        * Read the specified number of space-deliminated ints.
@@ -158,7 +158,7 @@ class FileTokenizer
        * \return true if successful, false otherwise.
        */
     bool get_bytes( size_t count, unsigned char* array, MsqError& err );
-    
+
       /** \brief Parse a sequence of bit or boolean values.
        *
        * Read the specified number of space-deliminated values.
@@ -168,30 +168,30 @@ class FileTokenizer
        * \return true if successful, false otherwise.
        */
     bool get_booleans( size_t count, bool* array, MsqError& err );
-  
-      /** 
+
+      /**
        * Check for end-of-file condition.
        */
     bool eof() const;
-    
-      /** 
+
+      /**
        * Get the line number the last token was read from.
        */
     int line_number() const { return lineNumber; }
-    
-      /** 
+
+      /**
        * Put current token back in buffer.  Can only unget one token.
        */
     void unget_token();
-    
+
       /**
        * Match current token to passed string.  If token
        * doesn't match, set error message.
        */
     bool match_token( const char* string, MsqError& err );
-    
+
       /**
-       * Match the current token to one of an array of strings.  
+       * Match the current token to one of an array of strings.
        * Sets the error message if the current token doesn't
        * match any of the input strings.
        *
@@ -200,16 +200,16 @@ class FileTokenizer
        *         string, or zero if no match.
        */
     int match_token( const char* const* string_list, MsqError& err );
-  
+
   private:
-  
+
       /** Internal implementation of get_doubles() */
     bool get_double_internal( double& result, MsqError& err );
       /** Internal implementation of get_long_ints() */
     bool get_long_int_internal( long& result, MsqError& err );
       /** Internal implementation of get_Booleans() */
     bool get_boolean_internal( bool& result, MsqError& err );
-  
+
       /** Internal implementation of get_floats() */
     bool get_float_internal( float& result, MsqError& err );
       /** Internal implementation of get_integers() */
@@ -218,22 +218,22 @@ class FileTokenizer
     bool get_short_int_internal( short& result, MsqError& err );
       /** Internal implementation of get_bytes() */
     bool get_byte_internal( unsigned char& result, MsqError& err );
-  
+
       /** Pointer to standard C FILE struct */
     std::FILE* filePtr;
-    
+
       /** Input buffer */
     char buffer[512];
-    
+
       /** One past the end of the last token returned */
     char *nextToken;
       /** One past the last used byte of the buffer */
     char *bufferEnd;
-    
+
       /** Line number of last returned token */
     int lineNumber;
-    
-      /** The whitespace character marking the end of the 
+
+      /** The whitespace character marking the end of the
        *  last returned token.  Saved here because if it
        *  is a newline, the line count will need to be
        *  incremented when the next token is returned.

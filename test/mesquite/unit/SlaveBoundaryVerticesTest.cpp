@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2007 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2009) kraftche@cae.wisc.edu    
+    (2009) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file SlaveBoundaryVerticesTest.cpp
  *  \brief Test SlaveBoundaryVertices class
- *  \author Jason Kraftcheck 
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -66,7 +66,7 @@ private:
   CPPUNIT_TEST(test_two_depth_from_curve);
   CPPUNIT_TEST_SUITE_END();
 
-  void test_slaved_common( unsigned depth, unsigned boundary ); 
+  void test_slaved_common( unsigned depth, unsigned boundary );
 
   void make_mesh( MeshImpl& mesh,
                   DomainClassifier& domain,
@@ -95,11 +95,11 @@ void SlaveBoundaryVerticesTest::test_fail_if_slaves_not_calculated()
   Settings settings;
   settings.set_slaved_ho_node_mode( Settings::SLAVE_ALL );
   SlaveBoundaryVertices tool( 1 );
-  
+
   MeshImpl mesh;
   DomainClassifier domain;
   make_mesh( mesh, domain, 2 );
-    
+
   MeshDomainAssoc mesh_and_domain = MeshDomainAssoc(&mesh, &domain);
   tool.loop_over_mesh( &mesh_and_domain, &settings, err );
   CPPUNIT_ASSERT(err);
@@ -112,15 +112,15 @@ void SlaveBoundaryVerticesTest::make_mesh( MeshImpl& mesh,
 {
   MsqPrintError err(std::cerr);
   const char input_file[] = MESH_FILES_DIR "3D/vtk/quadratic/6x6x6-hex20.vtk";
-  
+
   const Vector3D min( -3, -3, -3 );
   const Vector3D max(  3,  3,  3 );
   const Vector3D space = (max - min) * 1.0/(intervals);
-  
+
   mesh.clear();
   mesh.read_vtk( input_file, err );
   ASSERT_NO_ERROR(err);
-  
+
   const Vector3D corners[8] = { Vector3D(min[0],min[1],min[2]),
                                 Vector3D(max[0],min[1],min[2]),
                                 Vector3D(max[0],max[1],min[2]),
@@ -129,8 +129,8 @@ void SlaveBoundaryVerticesTest::make_mesh( MeshImpl& mesh,
                                 Vector3D(max[0],min[1],max[2]),
                                 Vector3D(max[0],max[1],max[2]),
                                 Vector3D(min[0],max[1],max[2]) };
-  
-  MeshDomain* subdomains[26] = { 
+
+  MeshDomain* subdomains[26] = {
                     new PlanarDomain( PlanarDomain::XZ, min[1] ),
                     new PlanarDomain( PlanarDomain::YZ, max[0] ),
                     new PlanarDomain( PlanarDomain::XZ, max[1] ),
@@ -158,7 +158,7 @@ void SlaveBoundaryVerticesTest::make_mesh( MeshImpl& mesh,
                     new PointDomain( corners[6] ),
                     new PointDomain( corners[7] ) };
   const int subdims[26] = { 2, 2, 2, 2, 2, 2,
-                            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 
+                            1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
                             0, 0, 0, 0, 0, 0, 0, 0 };
   DomainClassifier::classify_skin_geometrically( domain, &mesh, 1e-6,
                                                  subdomains, subdims, 26,
@@ -202,10 +202,10 @@ void SlaveBoundaryVerticesTest::test_slaved_common( unsigned depth, unsigned bou
         non_slave.insert( verts[i] );
       }
   }
-  
+
     // check that our input is usable for this test
   CPPUNIT_ASSERT( !verts.empty() );
-  
+
     // find all vertices up to specified depth
   for (unsigned d = 0; d < depth; ++d) {
     for (size_t i = 0; i < depths[d].size(); ++i) {
@@ -228,16 +228,16 @@ void SlaveBoundaryVerticesTest::test_slaved_common( unsigned depth, unsigned bou
       }
     }
   }
-  
+
     // Check that our input is usable for this test:
-    // Should have some vertices that are not within the specified depth of 
+    // Should have some vertices that are not within the specified depth of
     // the boundary.
   CPPUNIT_ASSERT( non_slave.size() < verts.size() );
-  
+
     // Now build a map of all higher-order nodes in the mesh
   std::set<Mesh::VertexHandle> higher_order;
   std::vector<Mesh::ElementHandle> elems;
-  mesh.get_all_elements( elems, err ); 
+  mesh.get_all_elements( elems, err );
   ASSERT_NO_ERROR(err);
   CPPUNIT_ASSERT(!elems.empty());
   std::vector<EntityTopology> types(elems.size());
@@ -251,11 +251,11 @@ void SlaveBoundaryVerticesTest::test_slaved_common( unsigned depth, unsigned bou
     for (size_t j = TopologyInfo::corners( types[i] ); j < conn.size(); ++j)
       higher_order.insert( conn[j] );
   }
-  
+
     // Check that our input is usable for this test:
     // Should have some higher-order vertices
   CPPUNIT_ASSERT( !higher_order.empty() );
-  
+
     // Now build a map of all fixed vertices
   std::set<Mesh::VertexHandle> fixed_vertices;
   std::vector<bool> fixed;
@@ -272,7 +272,7 @@ void SlaveBoundaryVerticesTest::test_slaved_common( unsigned depth, unsigned bou
   MeshDomainAssoc mesh_and_domain = MeshDomainAssoc(&mesh, &domain);
   tool.loop_over_mesh( &mesh_and_domain, &settings, err );
   ASSERT_NO_ERROR(err);
-  
+
     // Now verify the results
   std::vector<unsigned char> bytes( verts.size() );
   mesh.vertices_get_byte( arrptr(verts), arrptr(bytes), verts.size(), err );

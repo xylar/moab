@@ -2,14 +2,14 @@
 if ENABLE_imesh
   imesh_DIR = imesh
 else
-  imesh_DIR = 
-endif 
+  imesh_DIR =
+endif
 
 if ENABLE_fbigeom
   fbigeom_DIR = fbigeom
 else
-  fbigeom_DIR = 
-endif 
+  fbigeom_DIR =
+endif
 
 if ENABLE_irel
   irel_DIR = irel

@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2009 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2009) kraftche@cae.wisc.edu    
+    (2009) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file main.cpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 #include "TestUtil.hpp"
 
@@ -68,7 +68,7 @@ void find_z10_extreme_elements( Mesh& mesh,
                                 MsqError& err );
 
 // Get areas of quads and tris
-void elem_areas( Mesh& mesh, const elem_vec_t& elems, 
+void elem_areas( Mesh& mesh, const elem_vec_t& elems,
                  double& min, double& mean, double& max,
                  MsqError& err );
 
@@ -95,24 +95,24 @@ int main(int argc, char* argv[])
     std::cerr << input_file << ": file read failed" << endl;
     return 1;
   }
-  
+
   elem_vec_t polar, equatorial;
-  find_z10_extreme_elements( mesh, polar, equatorial, err ); 
+  find_z10_extreme_elements( mesh, polar, equatorial, err );
   if (err) return 1;
-  
+
   double eq_min, eq_max, eq_mean, pol_min, pol_max, pol_mean;
-  elem_areas( mesh, polar, pol_min, pol_mean, pol_max, err ); 
+  elem_areas( mesh, polar, pol_min, pol_mean, pol_max, err );
   if (err) return 1;
-  elem_areas( mesh, equatorial, eq_min, eq_mean, eq_max, err ); 
+  elem_areas( mesh, equatorial, eq_min, eq_mean, eq_max, err );
   if (err) return 1;
-  
+
     /* Run optimizer */
   SphericalDomain geom( Vector3D(0,0,0), 10.0 );
   SizeAdaptShapeWrapper smoother(1e-2);
   MeshDomainAssoc mesh_and_domain = MeshDomainAssoc(&mesh, &geom);
   smoother.run_instructions( &mesh_and_domain, err);
   if (err) return 1;
-  
+
   if (output_file) {
     mesh.write_vtk( output_file, err );
     if (err) {
@@ -123,20 +123,20 @@ int main(int argc, char* argv[])
       std::cout << "Wrote file: " << output_file << endl;
     }
   }
-  
+
   double eq2_min, eq2_max, eq2_mean, pol2_min, pol2_max, pol2_mean;
-  elem_areas( mesh, polar, pol2_min, pol2_mean, pol2_max, err ); 
+  elem_areas( mesh, polar, pol2_min, pol2_mean, pol2_max, err );
   if (err) return 1;
-  elem_areas( mesh, equatorial, eq2_min, eq2_mean, eq2_max, err ); 
+  elem_areas( mesh, equatorial, eq2_min, eq2_mean, eq2_max, err );
   if (err) return 1;
-  
+
   double eq_min_pct = 100*fabs(eq_min - eq2_min)/eq_min;
   double eq_max_pct = 100*fabs(eq_max - eq2_max)/eq_max;
   double eq_mean_pct = 100*fabs(eq_mean - eq2_mean)/eq_mean;
   double pol_min_pct = 100*fabs(pol_min - pol2_min)/pol_min;
   double pol_max_pct = 100*fabs(pol_max - pol2_max)/pol_max;
   double pol_mean_pct = 100*fabs(pol_mean - pol2_mean)/pol_mean;
-  
+
   std::printf("\n\n");
   std::printf( "AREAS:      Initial     Final       Difference  Change\n" );
   std::printf( "Polar:\n");
@@ -147,7 +147,7 @@ int main(int argc, char* argv[])
   std::printf( "  Minimum:  %10f  %10f  %10f  %10f%%\n", eq_min, eq2_min, fabs(eq_min - eq2_min), eq_min_pct );
   std::printf( "  Average:  %10f  %10f  %10f  %10f%%\n", eq_mean, eq2_mean, fabs(eq_mean - eq2_mean), eq_mean_pct );
   std::printf( "  Maximum:  %10f  %10f  %10f  %10f%%\n", eq_max, eq2_max, fabs(eq_max - eq2_max), eq_max_pct );
-  
+
   bool success = pol_min_pct < 6.0 && pol_max_pct < 6.5 && eq_min_pct < 25.0 && eq_max_pct < 6.5;
   return !success;
 }
@@ -159,7 +159,7 @@ void find_z10_extreme_elements( Mesh& mesh,
 {
   elem_vec_t elems;
   mesh.get_all_elements( elems, err ); MSQ_ERRRTN(err);
-  
+
   std::vector<Mesh::VertexHandle> verts;
   std::vector<MsqVertex> coords;
   std::vector<size_t> junk;
@@ -168,7 +168,7 @@ void find_z10_extreme_elements( Mesh& mesh,
     mesh.elements_get_attached_vertices( &*i, 1, verts, junk, err ); MSQ_ERRRTN(err);
     coords.resize(verts.size());
     mesh.vertices_get_coordinates( arrptr(verts), arrptr(coords), verts.size(), err ); MSQ_ERRRTN(err);
-    
+
     for (std::vector<MsqVertex>::iterator j = coords.begin(); j != coords.end(); ++j) {
       double z = (*j)[2];
       if (fabs(z) < 1e-6) {
@@ -183,17 +183,17 @@ void find_z10_extreme_elements( Mesh& mesh,
   }
 }
 
-void elem_areas( Mesh& mesh, const elem_vec_t& elems, 
+void elem_areas( Mesh& mesh, const elem_vec_t& elems,
                  double& min, double& mean, double& max,
                  MsqError& err )
 {
   min = HUGE_VAL;
   max = -1;
   mean = 0.0;
-  
+
   std::vector<EntityTopology> types(elems.size());
   mesh.elements_get_topologies( arrptr(elems), arrptr(types), elems.size(), err ); MSQ_ERRRTN(err);
-  
+
   std::vector<Mesh::VertexHandle> verts;
   std::vector<MsqVertex> coords;
   std::vector<size_t> junk;
@@ -202,7 +202,7 @@ void elem_areas( Mesh& mesh, const elem_vec_t& elems,
     mesh.elements_get_attached_vertices( &elems[i], 1, verts, junk, err ); MSQ_ERRRTN(err);
     coords.resize(verts.size());
     mesh.vertices_get_coordinates( arrptr(verts), arrptr(coords), verts.size(), err ); MSQ_ERRRTN(err);
-    
+
     Vector3D v1, v2;
     double area;
     if (types[i] == TRIANGLE) {
@@ -221,13 +221,13 @@ void elem_areas( Mesh& mesh, const elem_vec_t& elems,
       MSQ_SETERR(err)("Input file contains volume elements", MsqError::UNSUPPORTED_ELEMENT);
       return;
     }
-    
+
     if (min > area)
       min = area;
     if (max < area)
       max = area;
     mean += area;
   }
-  
+
   mean /= elems.size();
 }

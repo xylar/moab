@@ -1,9 +1,9 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2004 Sandia Corporation and Argonne National
-    Laboratory.  Under the terms of Contract DE-AC04-94AL85000 
-    with Sandia Corporation, the U.S. Government retains certain 
+    Laboratory.  Under the terms of Contract DE-AC04-94AL85000
+    with Sandia Corporation, the U.S. Government retains certain
     rights in this software.
 
     This library is free software; you can redistribute it and/or
@@ -16,20 +16,20 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
-    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov, 
-    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov      
-   
+
+    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov,
+    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov
+
   ***************************************************************** */
 // -*- Mode : c++; tab-width: 3; c-tab-always-indent: t; indent-tabs-mode: nil; c-basic-offset: 3 -*-
 
 /*!  \File NonSmoothDescent.cpp \brief
-  
+
   Implements the NonSmoothDescent class member functions.
-  
+
   \author Lori Freitag
   \date 2002-07-20 */
 
@@ -56,14 +56,14 @@ NonSmoothDescent::NonSmoothDescent(QualityMetric* qm)
 {
 
   MSQ_DBGOUT(1) << "- Executed NonSmoothDescent::NonSmoothDescent()\n";
-}  
+}
 
 std::string NonSmoothDescent::get_name() const
   { return "NonSmoothDescent"; }
 
 PatchSet* NonSmoothDescent::get_patch_set()
   { return &patchSet; }
-  
+
 void NonSmoothDescent::initialize(PatchData &/*pd*/, MsqError &/*err*/)
 {
   minStepSize = 1e-6;
@@ -74,7 +74,7 @@ void NonSmoothDescent::initialize_mesh_iteration(PatchData &/*pd*/,
                                                          MsqError &/*err*/)
 {
 }
-void NonSmoothDescent::optimize_vertex_positions(PatchData &pd, 
+void NonSmoothDescent::optimize_vertex_positions(PatchData &pd,
                                                 MsqError &err)
 {
   MSQ_FUNCTION_TIMER( "NonSmoothDescent" );
@@ -95,13 +95,13 @@ void NonSmoothDescent::optimize_vertex_positions(PatchData &pd,
 
   MsqFreeVertexIndexIterator free_iter(pd, err); MSQ_ERRRTN(err);
   free_iter.reset();
-  free_iter.next(); 
+  free_iter.next();
   freeVertexIndex = free_iter.value();
   MSQ_PRINT(3)("Free Vertex Index = %lu\n",(unsigned long)freeVertexIndex);
 
   // TODO - need to switch to validity via metric evaluations should
   // be associated with the compute_function somehow
-  /* check for an invalid mesh; if it's invalid return and ask the user 
+  /* check for an invalid mesh; if it's invalid return and ask the user
      to use untangle */
   if (!this->validity_check(pd,err)) {
       MSQ_PRINT(1)("ERROR: Invalid mesh\n");
@@ -118,7 +118,7 @@ void NonSmoothDescent::optimize_vertex_positions(PatchData &pd,
   /* compute the initial function values */
   //TODO this should return a bool with the validity
   this->compute_function(&pd, originalFunction, err);  MSQ_ERRRTN(err);
- 
+
   // find the initial active set
   this->find_active_set(originalFunction, mActive);
 
@@ -130,7 +130,7 @@ void NonSmoothDescent::terminate_mesh_iteration( PatchData &/*pd*/,
                                                  MsqError &/*err*/)
 {
 }
-  
+
 void NonSmoothDescent::cleanup()
 {
   MSQ_DBGOUT(1) << "- Executing NonSmoothDescent::cleanup()\n";
@@ -141,7 +141,7 @@ void NonSmoothDescent::cleanup()
 
 
 
-void NonSmoothDescent::find_plane_points( Direction dir1, 
+void NonSmoothDescent::find_plane_points( Direction dir1,
                                           Direction dir2,
                                           const std::vector<Vector3D>& vec,
                                           Vector3D& pt1,
@@ -157,7 +157,7 @@ void NonSmoothDescent::find_plane_points( Direction dir1,
     double pt_1, pt_2;
     double min, inv_slope;
     double min_inv_slope=0.;
-    double max; 
+    double max;
     double max_inv_slope=0;
     double inv_origin_slope=0;
     const int num_vec = vec.size();
@@ -183,7 +183,7 @@ void NonSmoothDescent::find_plane_points( Direction dir1,
       }
     }
     if (min >= 0) status = MSQ_NO_EQUIL;
- 
+
     if (status != MSQ_NO_EQUIL) {
       switch(num_min) {
       case 1: /* rotate to find the next point */
@@ -196,7 +196,7 @@ void NonSmoothDescent::find_plane_points( Direction dir1,
 	  for (i=0;i<num_vec;i++) {
 	    if (i!=ind[0]) {
 	      inv_slope = (vec[i][dir2] - pt_2)/(vec[i][dir1]-pt_1);
-	      if ((inv_slope>max_inv_slope) &&  
+	      if ((inv_slope>max_inv_slope) &&
 		  (fabs(inv_slope - max_inv_slope) > EPSILON)) {
 		ind[1] = i; max_inv_slope=inv_slope; num_rotated = 1;
 	      } else if (fabs(inv_slope - max_inv_slope) < EPSILON) {
@@ -209,7 +209,7 @@ void NonSmoothDescent::find_plane_points( Direction dir1,
 	  for (i=0;i<num_vec;i++) {
 	    if (i!=ind[0]) {
 	      inv_slope = (vec[i][dir2] - pt_2)/(vec[i][dir1]-pt_1);
-	      if ((inv_slope<min_inv_slope) && 
+	      if ((inv_slope<min_inv_slope) &&
 		  (fabs(inv_slope - max_inv_slope) > EPSILON)){
 		ind[1] = i; min_inv_slope=inv_slope; num_rotated = 1;
 	      } else if (fabs(inv_slope - min_inv_slope) < EPSILON) {
@@ -270,7 +270,7 @@ void NonSmoothDescent::find_plane_points( Direction dir1,
       }
     }
     if (max <= 0) status = MSQ_NO_EQUIL;
- 
+
     if (status != MSQ_NO_EQUIL) {
       switch(num_max) {
       case 1: /* rotate to find the next point */
@@ -371,14 +371,14 @@ void NonSmoothDescent::search_direction( PatchData &/*pd*/,
 
    MSQ_PRINT(2)("\nIn Search Direction\n");
    this->print_active_set(mActive, mFunction);
-   
+
    if (num_active==0) {
        MSQ_SETERR(err)("No active values in search",MsqError::INVALID_STATE);
        return;
     }
 
     switch(num_active) {
-    case 1: 
+    case 1:
         mSearch = mGradient[mActive.active_ind[0]];
         mSteepest = mActive.active_ind[0];
         break;
@@ -386,7 +386,7 @@ void NonSmoothDescent::search_direction( PatchData &/*pd*/,
         /* if there are two active points, move in the direction of the
 	   intersection of the planes.  This is the steepest descent
            direction found by analytically solving the QP */
-        
+
         /* set up the active gradient directions */
         this->get_active_directions(mGradient,dir,err); MSQ_ERRRTN(err);
 
@@ -398,7 +398,7 @@ void NonSmoothDescent::search_direction( PatchData &/*pd*/,
         viable = true;
         if (fabs(denom) > EPSILON) {
 	  /* gradients are LI, move along their intersection */
-           b = (mG(0,0) - mG(0,1))/denom;  
+           b = (mG(0,0) - mG(0,1))/denom;
            a = 1 - b;
            if ((b < 0) || (b > 1)) viable=false;  /* 0 < b < 1 */
            if (viable) {
@@ -417,7 +417,7 @@ void NonSmoothDescent::search_direction( PatchData &/*pd*/,
     default:
         /* as in case 2: solve the QP problem to find the steepest
            descent direction.  This can be done analytically - as
-           is done in Gill, Murray and Wright 
+           is done in Gill, Murray and Wright
              for 3 active points in 3 directions - test PD of G
              otherwise we know it's SP SD so search edges and faces */
 
@@ -431,7 +431,7 @@ void NonSmoothDescent::search_direction( PatchData &/*pd*/,
         if (num_active == 3) {
           if (mG.condition3x3() < 1e14) { // if not singular
             /* form the entries of P=Z^T G Z where Z = [-1...-1; I ] */
-            this->form_reduced_matrix(P); 
+            this->form_reduced_matrix(P);
               /* form  the RHS and solve the system for the coeffs */
             R0 = mG(0,0) - mG(1,0);  R1 = mG(0,0) - mG(2,0);
             bool ok = this->solve2x2(P(0,0),P(0,1),P(1,0),P(1,1),R0,R1,x,err); MSQ_ERRRTN(err);
@@ -439,15 +439,15 @@ void NonSmoothDescent::search_direction( PatchData &/*pd*/,
               a = 1 - x[0] - x[1];  b = x[0];  c = x[1];
               mSearch = a*dir[0] + b*dir[1] + c*dir[2];
               mSteepest = mActive.active_ind[0];
-            } 
-            else { 
+            }
+            else {
               this->search_edges_faces(&dir[0], mSearch, err); MSQ_ERRRTN(err);
             }
-          } 
+          }
           else {
             this->search_edges_faces(&dir[0], mSearch, err);  MSQ_ERRRTN(err);
           }
-        } 
+        }
         else {
           this->search_edges_faces(&dir[0], mSearch, err); MSQ_ERRRTN(err);
         }
@@ -457,9 +457,9 @@ void NonSmoothDescent::search_direction( PatchData &/*pd*/,
     search_mag = mSearch % mSearch;
     MSQ_PRINT(3)("  Search Magnitude %g \n",search_mag);
 
-    if (fabs(search_mag)<1E-13) 
+    if (fabs(search_mag)<1E-13)
       optStatus = MSQ_ZERO_SEARCH;
-    else 
+    else
       mSearch /= std::sqrt(search_mag);
     MSQ_PRINT(3)("  Search Direction %g %g  Steepest %lu\n",mSearch[0],mSearch[1],(unsigned long)mSteepest);
 }
@@ -488,18 +488,18 @@ void NonSmoothDescent::minmax_opt(PatchData &pd, MsqError &err)
      /* check for equilibrium point */
      /* compute the gradient */
      this->compute_gradient(&pd, mGradient, err); MSQ_ERRRTN(err);
-     
+
      if (mActive.active_ind.size() >= 2) {
 	MSQ_PRINT(3)("Testing for an equilibrium point \n");
 	equilibriumPt = this->check_equilibrium( optStatus, err); MSQ_ERRRTN(err);
 
-	if (MSQ_DBG(2) && equilibriumPt ) 
+	if (MSQ_DBG(2) && equilibriumPt )
 	  MSQ_PRINT(2)("Optimization Exiting: An equilibrium point \n");
      }
 
     /* terminate if we have found an equilibrium point or if the step is
        too small to be worthwhile continuing */
-    while ((optStatus != MSQ_EQUILIBRIUM) && 
+    while ((optStatus != MSQ_EQUILIBRIUM) &&
 	   (optStatus != MSQ_STEP_TOO_SMALL) &&
 	   (optStatus != MSQ_IMP_TOO_SMALL) &&
 	   (optStatus != MSQ_FLAT_NO_IMP) &&
@@ -513,10 +513,10 @@ void NonSmoothDescent::minmax_opt(PatchData &pd, MsqError &err)
         if (iterCount > MSQ_MAX_OPT_ITER) optStatus = MSQ_MAX_ITER_EXCEEDED;
 
 	MSQ_PRINT(3)("\nITERATION %d \n",iterCount);
-	    
+	
 	/* compute the gradient */
 	this->compute_gradient(&pd, mGradient, err); MSQ_ERRRTN(err);
-        
+
 	MSQ_PRINT(3)("Computing the search direction \n");
 	this->search_direction(pd, mSearch, err); MSQ_ERRRTN(err);
 
@@ -545,7 +545,7 @@ void NonSmoothDescent::minmax_opt(PatchData &pd, MsqError &err)
 		MSQ_PRINT(3)("Testing for an equilibrium point \n");
                 equilibriumPt = this->check_equilibrium(optStatus, err); MSQ_ERRRTN(err);
 
-		if (MSQ_DBG(2) && equilibriumPt) 
+		if (MSQ_DBG(2) && equilibriumPt)
 		    MSQ_PRINT(2)("Optimization Exiting: An equilibrium point \n");
 	    }
 
@@ -569,7 +569,7 @@ void NonSmoothDescent::minmax_opt(PatchData &pd, MsqError &err)
       MSQ_ERRRTN(err);
 
       MSQ_PRINT(2)("Number of optimization iterations %d\n", iterCount);
- 
+
       switch(optStatus) {
         default:
           MSQ_PRINT(2)("Optimization Termination OptStatus: Invalid early termination\n"); break;
@@ -589,9 +589,9 @@ void NonSmoothDescent::minmax_opt(PatchData &pd, MsqError &err)
 }
 
 
-void NonSmoothDescent::step_acceptance( PatchData &pd, 
-                                        int iterCount, 
-                                        const Vector3D& mSearch, 
+void NonSmoothDescent::step_acceptance( PatchData &pd,
+                                        int iterCount,
+                                        const Vector3D& mSearch,
                                         MsqError &err )
 {
   const double minAcceptableImprovement = 1e-6;
@@ -629,13 +629,13 @@ void NonSmoothDescent::step_acceptance( PatchData &pd,
     accept_alpha = false;
 
     while (!accept_alpha && mAlpha>minStepSize) {
- 
+
       /* make the step */
       pd.move_vertex( -mAlpha*mSearch, freeVertexIndex, err );
         //pd.set_coords_array_element(coords[freeVertexIndex],0,err);
 
-      MSQ_PRINT(2)("search direction %f %f \n",mSearch[0],mSearch[1]); 
-      MSQ_PRINT(2)("new vertex position %f %f \n",coords[freeVertexIndex][0],coords[freeVertexIndex][1]); 
+      MSQ_PRINT(2)("search direction %f %f \n",mSearch[0],mSearch[1]);
+      MSQ_PRINT(2)("new vertex position %f %f \n",coords[freeVertexIndex][0],coords[freeVertexIndex][1]);
 
       /* assume alpha is acceptable */
       accept_alpha=true;
@@ -652,7 +652,7 @@ void NonSmoothDescent::step_acceptance( PatchData &pd,
           pd.move_vertex( mAlpha * mSearch, freeVertexIndex, err );
             //pd.set_coords_array_element(coords[freeVertexIndex],0,err);
           mAlpha = mAlpha/2;
-          MSQ_PRINT(2)("Step not accepted, the new alpha %f\n",mAlpha); 
+          MSQ_PRINT(2)("Step not accepted, the new alpha %f\n",mAlpha);
 
           if (mAlpha < minStepSize) {
  	        optStatus = MSQ_STEP_TOO_SMALL;
@@ -664,8 +664,8 @@ void NonSmoothDescent::step_acceptance( PatchData &pd,
                 mActive = originalActive;
 	  }
        }
-    } 
-         
+    }
+
     if (valid  && (mAlpha > minStepSize)) {
       /* compute the new function and active set */
       this->compute_function(&pd, mFunction, err); MSQ_ERRRTN(err);
@@ -674,7 +674,7 @@ void NonSmoothDescent::step_acceptance( PatchData &pd,
       /* estimate the minimum improvement by taking this step */
       this->get_min_estimate(&estimated_improvement, err); MSQ_ERRRTN(err);
       MSQ_PRINT(2)("The estimated improvement for this step: %f\n",
-		   estimated_improvement); 
+		   estimated_improvement);
 	
       /* calculate the actual increase */
       current_improvement = mActive.true_active_value - prevActiveValues[iterCount-1];
@@ -686,11 +686,11 @@ void NonSmoothDescent::step_acceptance( PatchData &pd,
 	fabs(estimated_improvement);
 
       /* determine whether to accept a step */
-      if ((fabs(previous_improvement) > fabs(current_improvement)) && 
+      if ((fabs(previous_improvement) > fabs(current_improvement)) &&
 	  (previous_improvement < 0)) {
 	/* accept the previous step - it was better */
 	     MSQ_PRINT(2)("Accepting the previous step\n");
- 
+
 	/* subtract alpha in again (previous step) */
         pd.move_vertex( -mAlpha * mSearch, freeVertexIndex, err );
             //pd.set_coords_array_element(coords[freeVertexIndex],0,err);
@@ -703,9 +703,9 @@ void NonSmoothDescent::step_acceptance( PatchData &pd,
 	/* copy test function and active set */
         mFunction = testFunction;
         mActive = testActive;
- 
+
 	optStatus = MSQ_STEP_ACCEPTED;  step_done = true;
-            
+
 	/* check to see that we're still making good improvements */
 	if (fabs(previous_improvement) < minAcceptableImprovement) {
 	  optStatus = MSQ_IMP_TOO_SMALL; step_done = true;
@@ -730,7 +730,7 @@ void NonSmoothDescent::step_acceptance( PatchData &pd,
 	/* we are making no progress, quit */
 	optStatus = MSQ_FLAT_NO_IMP; step_done = true;
 	MSQ_PRINT(2)("Opimization Exiting: Flat no improvement\n");
-           
+
 	/* get back the original point, function, and active set */
         pd.set_vertex_coordinates( original_point, freeVertexIndex, err ); MSQ_ERRRTN(err);
         mFunction = originalFunction;
@@ -744,7 +744,7 @@ void NonSmoothDescent::step_acceptance( PatchData &pd,
             //pd.set_coords_array_element(coords[freeVertexIndex],0,err);
 
 	/* halve step size */
-	mAlpha = mAlpha/2; 
+	mAlpha = mAlpha/2;
 	MSQ_PRINT(3)("Step not accepted, the new alpha %f\n",mAlpha);
 
 	if (mAlpha < minStepSize)
@@ -787,7 +787,7 @@ bool NonSmoothDescent::compute_function(PatchData *patch_data, std::vector<doubl
 }
 
 
-bool NonSmoothDescent::compute_gradient(PatchData *patch_data, 
+bool NonSmoothDescent::compute_gradient(PatchData *patch_data,
                                         std::vector<Vector3D>& gradient_out,
                                         MsqError &err)
 {
@@ -810,8 +810,8 @@ bool NonSmoothDescent::compute_gradient(PatchData *patch_data,
     Vector3D delta_3( 0, 0, 0 );
     Vector3D orig_pos = patch_data->vertex_by_index(freeVertexIndex);
     delta_3[j] = delta;
-    patch_data->move_vertex( delta_3, freeVertexIndex, err ); 
- 
+    patch_data->move_vertex( delta_3, freeVertexIndex, err );
+
     //compute the function at the perturbed point location
     valid = valid && this->compute_function(patch_data, fdelta, err);  MSQ_ERRZERO(err);
 
@@ -841,7 +841,7 @@ bool NonSmoothDescent::compute_gradient(PatchData *patch_data,
 
 void NonSmoothDescent::find_active_set( const std::vector<double>& function,
                                         ActiveSet& active_set )
-{ 
+{
   // local parameter initialization
   const double activeEpsilon = .3e-4;
   //  activeEpsilon = .3e-8;
@@ -855,10 +855,10 @@ void NonSmoothDescent::find_active_set( const std::vector<double>& function,
 
     /* the first function value is our initial active value */
     active_set.set( 0 );
-    active_set.true_active_value = function[0]; 
+    active_set.true_active_value = function[0];
     //    MSQ_DEBUG_ACTION(3,{fprintf(stdout,"  function value[0]: %g\n",function[0]);});
 
-    /* first sort out the active set... 
+    /* first sort out the active set...
        all vals within active_epsilon of largest val */
 
     for (size_t i = 1; i < qmHandles.size(); i++) {
@@ -871,7 +871,7 @@ void NonSmoothDescent::find_active_set( const std::vector<double>& function,
 	if ( function_val > active_value0 ) {  // seek max_i function[i]
 	    if ( temp >= activeEpsilon) {
                 active_set.set( i );   // new max
-	    } 
+	    }
             else {
                 active_set.add( i, fabs(function_val - active_value0) < EPSILON );
 	    }
@@ -886,14 +886,14 @@ void NonSmoothDescent::find_active_set( const std::vector<double>& function,
 
 
 bool NonSmoothDescent::validity_check(PatchData& pd, MsqError &err)
-        
+
 {
 //  FUNCTION_TIMER_START("Validity Check");
 
   // ONLY FOR SIMPLICIAL MESHES - THERE SHOULD BE A VALIDITY CHECKER ASSOCIATED
   // WITH MSQ ELEMENTS
-  
-  /* check that the simplicial mesh is still valid, based on right handedness. 
+
+  /* check that the simplicial mesh is still valid, based on right handedness.
        Returns a 1 or a 0 */
 
   // TODO as a first step we can switch this over to the function
@@ -966,15 +966,15 @@ bool NonSmoothDescent::validity_check(PatchData& pd, MsqError &err)
       return false;
     }
   }  // end for i=1,numElements
-  
+
   //  MSQ_DEBUG_ACTION(2,{fprintf(stdout,"Mesh Validity is: %d \n",valid);});
-  
+
 //  FUNCTION_TIMER_END();
   return(valid);
 }
 
 
-void NonSmoothDescent::get_active_directions( const std::vector<Vector3D>& pGradient, 
+void NonSmoothDescent::get_active_directions( const std::vector<Vector3D>& pGradient,
                                               std::vector<Vector3D>& dir,
                                               MsqError &/*err*/)
 {
@@ -996,7 +996,7 @@ bool NonSmoothDescent::check_vector_dots( const std::vector<Vector3D>& vec,
       test_dot = vec[ind] % normal;
       ind++;
     }
-      
+
     for (unsigned i=ind;i<vec.size();i++) {
        double dot = vec[i] % normal;
        if ( ((dot>0 && test_dot<0) || (dot<0 && test_dot>0)) &&
@@ -1022,20 +1022,20 @@ bool NonSmoothDescent::convex_hull_test(const std::vector<Vector3D>& vec, MsqErr
 
     if (vec.size() <= 2) status = MSQ_NO_EQUIL;
 
-    while ((status != MSQ_EQUIL) && (status != MSQ_NO_EQUIL) && 
+    while ((status != MSQ_EQUIL) && (status != MSQ_NO_EQUIL) &&
            (status != MSQ_HULL_TEST_ERROR)) {
        if (status == MSQ_CHECK_Z_COORD_DIRECTION) {
-          this->find_plane_points(MSQ_ZDIR, MSQ_YDIR, 
+          this->find_plane_points(MSQ_ZDIR, MSQ_YDIR,
                           vec, pt1, pt2, pt3, status, err);
           dir_done = MSQ_ZDIR;
        }
        if (status == MSQ_CHECK_Y_COORD_DIRECTION) {
-          this->find_plane_points(MSQ_YDIR, MSQ_XDIR, 
+          this->find_plane_points(MSQ_YDIR, MSQ_XDIR,
                           vec, pt1, pt2, pt3, status, err);
           dir_done = MSQ_YDIR;
        }
        if (status == MSQ_CHECK_X_COORD_DIRECTION) {
-          this->find_plane_points(MSQ_XDIR, MSQ_ZDIR, 
+          this->find_plane_points(MSQ_XDIR, MSQ_ZDIR,
                           vec, pt1, pt2, pt3, status, err);
           dir_done = MSQ_XDIR;
        }
@@ -1043,8 +1043,8 @@ bool NonSmoothDescent::convex_hull_test(const std::vector<Vector3D>& vec, MsqErr
           pt3 = Vector3D(0,0,0);
        }
        if ((status == MSQ_TWO_PT_PLANE) || (status == MSQ_THREE_PT_PLANE)){
-           this->find_plane_normal(pt1,pt2,pt3,normal,err); 
-           equil = this->check_vector_dots(vec,normal,err); 
+           this->find_plane_normal(pt1,pt2,pt3,normal,err);
+           equil = this->check_vector_dots(vec,normal,err);
            if (equil) {
              switch(dir_done){
              case MSQ_ZDIR:
@@ -1066,7 +1066,7 @@ bool NonSmoothDescent::convex_hull_test(const std::vector<Vector3D>& vec, MsqErr
     switch (status){
     case MSQ_NO_EQUIL:
       MSQ_PRINT(3)("Not an equilibrium point\n");
-      equil = false; 
+      equil = false;
       break;
     case MSQ_EQUIL:
       MSQ_PRINT(3)("An equilibrium point\n");
@@ -1084,15 +1084,15 @@ void NonSmoothDescent::form_grammian(const std::vector<Vector3D>& vec, MsqError 
    /* form the grammian with the dot products of the gradients */
    const size_t num_active = mActive.active_ind.size();
    mG.resize( num_active );
-   for (size_t i = 0; i < num_active; i++) 
-      for (size_t j = i; j < num_active; j++) 
+   for (size_t i = 0; i < num_active; i++)
+      for (size_t j = i; j < num_active; j++)
          mG(i,j) = vec[i] % vec[j];
 }
 
 bool NonSmoothDescent::check_equilibrium(OptStatus& status, MsqError &err)
 {
     std::vector<Vector3D> dir;
- 
+
     //TODO - this subroutine is no longer clear to me... is it still
     // appropriate for quads and hexes?  I think it might be in 2D, but
     // 3D is less clear.  Is there a more general algorithm to use?
@@ -1103,9 +1103,9 @@ bool NonSmoothDescent::check_equilibrium(OptStatus& status, MsqError &err)
 
     if (num_active == qmHandles.size())
     {
-         equil = true; 
+         equil = true;
          status = MSQ_EQUILIBRIUM;
-         MSQ_PRINT(3)("All the function values are in the active set\n"); 
+         MSQ_PRINT(3)("All the function values are in the active set\n");
     }
 
     /* set up the active mGradient directions */
@@ -1114,16 +1114,16 @@ bool NonSmoothDescent::check_equilibrium(OptStatus& status, MsqError &err)
     /* normalize the active directions */
     for (size_t j=0;j<num_active;j++)
       dir[j] /= dir[j].length();
- 
+
     equil = this->convex_hull_test(dir,err);
-    if (equil) 
+    if (equil)
       status = MSQ_EQUILIBRIUM;
-    
+
     return equil;
 }
 
 
-static double condition3x3(const double A[9]) 
+static double condition3x3(const double A[9])
 {
 //   int ierr;
    double a11, a12, a13;
@@ -1144,25 +1144,25 @@ static double condition3x3(const double A[9])
    denom = -a11*a22*a33+a11*a23*a32+a21*a12*a33-a21*a13*a32-
             a31*a12*a23+a31*a13*a22;
 
-   if ( (fabs(a11) > EPSILON) && 
+   if ( (fabs(a11) > EPSILON) &&
         (fabs(denom/a11) > EPSILON)) {
          zero_denom = false;
    }
-   if ( (fabs(a22) > EPSILON) && 
+   if ( (fabs(a22) > EPSILON) &&
         (fabs(denom/a22) > EPSILON)) {
          zero_denom = false;
-   }       
-   if ( (fabs(a33) > EPSILON) && 
+   }
+   if ( (fabs(a33) > EPSILON) &&
         (fabs(denom/a33) > EPSILON)) {
          zero_denom = false;
    }
 
    if (zero_denom) {
      return HUGE_VAL;
-   } 
+   }
    else {
-     s1 = sqrt(a11*a11 + a12*a12 + a13*a13 + 
-               a21*a21 + a22*a22 + a23*a23 + 
+     s1 = sqrt(a11*a11 + a12*a12 + a13*a13 +
+               a21*a21 + a22*a22 + a23*a23 +
                a31*a31 + a32*a32 + a33*a33);
 
 
@@ -1193,7 +1193,7 @@ static double condition3x3(const double A[9])
 
 double NonSmoothDescent::SymmetricMatrix::condition3x3() const
 {
-  double values[9] = { 
+  double values[9] = {
     operator()(0,0), operator()(0,1), operator()(0,2),
     operator()(1,0), operator()(1,1), operator()(1,2),
     operator()(2,0), operator()(2,1), operator()(2,2)
@@ -1201,7 +1201,7 @@ double NonSmoothDescent::SymmetricMatrix::condition3x3() const
   return MBMesquite::condition3x3( values );
 }
 
-void NonSmoothDescent::singular_test(int n, const Matrix3D&  A, bool& singular, MsqError &err) 
+void NonSmoothDescent::singular_test(int n, const Matrix3D&  A, bool& singular, MsqError &err)
 {
 //    int test;
 //    double determinant;
@@ -1218,12 +1218,12 @@ void NonSmoothDescent::singular_test(int n, const Matrix3D&  A, bool& singular, 
         if (A[0][0] > 0) singular = false;
         break;
     case 2:
-        if (fabs(A[0][0]*A[1][1] - A[0][1]*A[1][0]) > EPSILON)           
+        if (fabs(A[0][0]*A[1][1] - A[0][1]*A[1][0]) > EPSILON)
             singular = false;
         break;
     case 3:
        /* calculate the condition number */
-        cond = condition3x3(A[0]); 
+        cond = condition3x3(A[0]);
         if (cond < 1E14) singular=false;
         break;
     }
@@ -1237,7 +1237,7 @@ void NonSmoothDescent::form_PD_grammian(MsqError &err)
     bool  singular = false;
 
     const int num_active = mActive.active_ind.size();
-        
+
     /* this assumes the grammian has been formed */
     for (i=0;i<num_active;i++) {
       for (j=i;j<num_active;j++) {
@@ -1290,22 +1290,22 @@ void NonSmoothDescent::search_edges_faces( const Vector3D* dir, Vector3D& mSearc
 
         /* test the viability */
         for (size_t j=0;j<num_active;j++) {       /* lagrange multipliers>0 */
-             if (mG(j,i) < 0) 
+             if (mG(j,i) < 0)
                   viable = false;
         }
-       
+
         /* find the minimum of viable directions */
         if ((viable) && (mG(i,i) < min_projection)) {
             min_projection = mG(i,i);
             temp_search = dir[i];
             mSteepest = mActive.active_ind[i];
         }
-    
+
        /* INTERSECTION IJ */
        for (size_t j=i+1; j<num_active; j++) {
           viable = true;
 
-          /* find the coefficients of the intersection 
+          /* find the coefficients of the intersection
              and test the viability */
           denom = 2*mG(i,j) - mG(i,i) - mG(j,j);
           a = b = 0;
@@ -1313,9 +1313,9 @@ void NonSmoothDescent::search_edges_faces( const Vector3D* dir, Vector3D& mSearc
              b = (mG(i,j) - mG(i,i))/denom;
              a = 1 - b;
              if ((b < 0) || (b > 1)) /* 0 < b < 1 */
-                 viable = false;  
+                 viable = false;
 	     for (size_t k=0;k<num_active;k++) {       /* lagrange multipliers>0 */
-                 if ((a*mG(k,i) + b*mG(k,j)) <= 0) 
+                 if ((a*mG(k,i) + b*mG(k,j)) <= 0)
                      viable = false;
              }
           } else {
@@ -1337,11 +1337,11 @@ void NonSmoothDescent::search_edges_faces( const Vector3D* dir, Vector3D& mSearc
     if (optStatus != MSQ_EQUILIBRIUM) {
         mSearch = temp_search;
     }
-}         
+}
 
 
  bool NonSmoothDescent::solve2x2( double a11, double a12,
-                                  double a21, double a22, 
+                                  double a21, double a22,
                                   double b1, double b2,
                                   double x[2], MsqError &/*err*/)
 {
@@ -1401,7 +1401,7 @@ void  NonSmoothDescent::get_min_estimate( double *final_est, MsqError &/*err*/)
 
 void NonSmoothDescent::get_gradient_projections(const Vector3D& mSearch, MsqError &/*err*/)
 {
-    for (size_t i=0;i<qmHandles.size();i++) 
+    for (size_t i=0;i<qmHandles.size();i++)
 	mGS[i] = mGradient[i] % mSearch;
 
     MSQ_PRINT(3)("steepest in get_gradient_projections %lu\n",(unsigned long)mSteepest);
@@ -1429,7 +1429,7 @@ void NonSmoothDescent::compute_alpha(MsqError &/*err*/)
       if (i!=mSteepest)
       {
 	  alpha_i = steepest_function - mFunction[i];
-	   
+	
 	  if (fabs(mGS[mSteepest] - mGS[i])>1E-13) {
 	     /* compute line intersection */
 	     alpha_i = alpha_i/(steepest_grad - mGS[i]);
@@ -1438,7 +1438,7 @@ void NonSmoothDescent::compute_alpha(MsqError &/*err*/)
 	     alpha_i = 0;
 	  }
 	  if ((alpha_i > minStepSize ) && (fabs(alpha_i) < fabs(mAlpha))) {
-	    mAlpha = fabs(alpha_i); 
+	    mAlpha = fabs(alpha_i);
             MSQ_PRINT(3)("Setting alpha %lu %g\n",(unsigned long)i,alpha_i);
 	  }
           if ((alpha_i > 0) && (alpha_i < min_positive_value)) {
@@ -1491,11 +1491,11 @@ void NonSmoothDescent::init_opt(PatchData& pd, MsqError &err)
     mPDG = Matrix3D(0.0);
 
     MSQ_PRINT(3)("  Initialized search and PDG \n");
-    mFunction.clear(); 
+    mFunction.clear();
     mFunction.resize( qmHandles.size(), 0.0 );
-    testFunction.clear(); 
+    testFunction.clear();
     testFunction.resize( qmHandles.size(), 0.0 );
-    originalFunction.clear(); 
+    originalFunction.clear();
     originalFunction.resize( qmHandles.size(), 0.0 );
     mGradient.clear();
     mGradient.resize( qmHandles.size(), Vector3D(0.0) );
@@ -1505,7 +1505,7 @@ void NonSmoothDescent::init_opt(PatchData& pd, MsqError &err)
     mG.resize( qmHandles.size() );
     mG.fill(-1);
     MSQ_PRINT(3)("  Initialized G\n");
- 
+
     prevActiveValues.clear();
     prevActiveValues.reserve(32);
     MSQ_PRINT(3)("  Initialized prevActiveValues\n");
@@ -1532,7 +1532,7 @@ void NonSmoothDescent::init_max_step_length( PatchData& pd, MsqError &err )
     for (j=i;j<pd.num_nodes();j++) {
       diff = (coords[i]-coords[j]).length_squared();
       if (max_diff < diff) max_diff=diff;
-    } 
+    }
   }
   max_diff = sqrt(max_diff);
   if (max_diff==0) {

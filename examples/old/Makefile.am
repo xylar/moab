@@ -10,7 +10,7 @@ check_PROGRAMS = FileRead \
 		 ObbTree \
                  SetsNTags \
                  SkinMesh \
-                 SurfArea 
+                 SurfArea
 
 SRCDIR = $(top_srcdir)/examples
 
@@ -39,13 +39,13 @@ nobase_example_DATA = \
 	       ObbTree.cpp \
                SetsNTags.cpp \
                SkinMesh.cpp \
-               SurfArea.cpp 
-               
+               SurfArea.cpp
+
 if ENABLE_imesh
   imesh_DIR = itaps
 else
-  imesh_DIR = 
-endif 
+  imesh_DIR =
+endif
 
 SUBDIRS = $(imesh_DIR)
 

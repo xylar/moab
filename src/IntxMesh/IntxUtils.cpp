@@ -771,7 +771,7 @@ double area_on_sphere(Interface * mb, EntityHandle set, double R) {
     if (MB_SUCCESS != rval)
       return -1;
   }
-  
+
   // compare total area with 4*M_PI * R^2
   int ie = 0;
   double total_area = 0.;

@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2006 Sandia National Laboratories.  Developed at the
@@ -16,19 +16,19 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
+
     (2006) kraftche@cae.wisc.edu
     (2010) kraftche@cae.wisc.edu
-   
+
   ***************************************************************** */
 
 
 /** \file TShapeOrientB1.cpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -45,8 +45,8 @@ std::string TShapeOrientB1::get_name() const
 
 TShapeOrientB1::~TShapeOrientB1() {}
 
-bool TShapeOrientB1::evaluate( const MsqMatrix<2,2>& T, 
-                               double& result, 
+bool TShapeOrientB1::evaluate( const MsqMatrix<2,2>& T,
+                               double& result,
                                MsqError& err )
 {
   const double tau = det(T);
@@ -72,7 +72,7 @@ bool TShapeOrientB1::evaluate_with_grad( const MsqMatrix<2,2>& T,
   }
   const double inv_tau = 1.0/tau;
   const double invnorm = 1.0/norm;
-  
+
   result = 0.5*inv_tau*(norm - invroot * trace(T));
 
   deriv_wrt_T = invnorm * T;
@@ -98,7 +98,7 @@ bool TShapeOrientB1::evaluate_with_hess( const MsqMatrix<2,2>& T,
   }
   const double inv_tau = 1.0/tau;
   const double invnorm = 1.0/norm;
-  
+
   const double f = norm - invroot * trace(T);
   result = 0.5 * inv_tau * f;
 
@@ -108,7 +108,7 @@ bool TShapeOrientB1::evaluate_with_hess( const MsqMatrix<2,2>& T,
   deriv_wrt_T *= 0.5;
   deriv_wrt_T -= result * adjt;
   deriv_wrt_T *= inv_tau;
-  
+
   const double a = 0.5 * inv_tau * invnorm;
   set_scaled_outer_product( second_wrt_T, -a*invnorm*invnorm, T );
   pluseq_scaled_I( second_wrt_T, a );
@@ -119,8 +119,8 @@ bool TShapeOrientB1::evaluate_with_hess( const MsqMatrix<2,2>& T,
   return true;
 }
 
-bool TShapeOrientB1::evaluate( const MsqMatrix<3,3>& T, 
-                               double& result, 
+bool TShapeOrientB1::evaluate( const MsqMatrix<3,3>& T,
+                               double& result,
                                MsqError& err )
 {
   const double tau = det(T);
@@ -147,7 +147,7 @@ bool TShapeOrientB1::evaluate( const MsqMatrix<3,3>& T,
   }
   const double inv_tau = 1.0/tau;
   const double invnorm = 1.0/norm;
-  
+
   result = 0.5*inv_tau*(norm - invroot * trace(T));
 
   deriv_wrt_T = invnorm * T;
@@ -173,7 +173,7 @@ bool TShapeOrientB1::evaluate( const MsqMatrix<3,3>& T,
   }
   const double inv_tau = 1.0/tau;
   const double invnorm = 1.0/norm;
-  
+
   const double f = norm - invroot * trace(T);
   result = 0.5 * inv_tau * f;
 
@@ -183,7 +183,7 @@ bool TShapeOrientB1::evaluate( const MsqMatrix<3,3>& T,
   deriv_wrt_T *= 0.5;
   deriv_wrt_T -= result * adjt;
   deriv_wrt_T *= inv_tau;
-  
+
   const double a = 0.5 * inv_tau * invnorm;
   set_scaled_outer_product( second_wrt_T, -a*invnorm*invnorm, T );
   pluseq_scaled_I( second_wrt_T, a );

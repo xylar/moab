@@ -34,7 +34,7 @@ void test_check_groups();
 int main()
 {
   int result = 0;
-  
+
   result += RUN_TEST(test_check_num_entities);
   result += RUN_TEST(test_check_meshsets);
   result += RUN_TEST(test_check_groups);
@@ -57,7 +57,7 @@ void test_check_num_entities()
   Interface *mbi = &core;
   read_file(core, test.c_str());
 
-  // check that number of verts created is 7 
+  // check that number of verts created is 7
   Range verts;
   int vert_dim = 0;
   rval =  mbi->get_entities_by_dimension(0, vert_dim, verts);
@@ -79,9 +79,9 @@ void test_check_meshsets()
   Core core;
   Interface *mbi = &core;
   read_file(core, test.c_str());
- 
+
   myGeomTool = new GeomTopoTool(mbi);
-  
+
   Range ent_sets;
   rval =  mbi->tag_get_handle(GEOM_DIMENSION_TAG_NAME, 1, MB_TYPE_INTEGER, geom_tag);
   CHECK_ERR(rval);
@@ -89,18 +89,18 @@ void test_check_meshsets()
   CHECK_ERR(rval);
 
   Range::iterator it;
-  Range parents, children; 
+  Range parents, children;
   int sense;
   int dim, num_surfs = 0, num_vols = 0;
 
   for (it = ent_sets.begin(); it != ent_sets.end(); ++it)
     {
       rval =  mbi->tag_get_data(geom_tag, &(*it), 1, &dim);
-      
+
       if (dim == 2)
-        { 
+        {
           num_surfs++;
-          
+
           // check that one parent is created for each surface
           parents.clear();
           rval =  mbi->get_parent_meshsets(*it, parents);
@@ -114,9 +114,9 @@ void test_check_meshsets()
 
         }
       else if (dim == 3)
-        { 
+        {
           num_vols++;
-     
+
           // check that one child is created for each volume
           children.clear();
           rval =  mbi->get_child_meshsets(*it, children);
@@ -124,8 +124,8 @@ void test_check_meshsets()
           CHECK_EQUAL(1, (int)children.size());
         }
     }
-  
-  // check that two surfaces and two volumes are created 
+
+  // check that two surfaces and two volumes are created
   CHECK_EQUAL(2, num_surfs);
   CHECK_EQUAL(2, num_vols);
 
@@ -141,18 +141,18 @@ void test_check_groups()
   read_file(core, shuttle.c_str());
 
   // check that number of tris created is 616
-  //  170 tris + 223 quads split into 2 tris = 616 
+  //  170 tris + 223 quads split into 2 tris = 616
   Range tris;
   int tri_dim = 2;
   rval =  mbi->get_entities_by_dimension(0, tri_dim, tris);
   CHECK_ERR(rval);
   CHECK_EQUAL(616, (int)tris.size());
-  
+
   // check that 11 mesh sets are created
   // 1 for global vert set + 1 for each of 10 groups
   Range ent_sets, mesh_sets;
   id_tag = mbi->globalId_tag();
   rval =  mbi->get_entities_by_type_and_tag(0, MBENTITYSET, &id_tag, NULL, 1, ent_sets);
-  
+
   CHECK_EQUAL(11, (int)ent_sets.size());
 }

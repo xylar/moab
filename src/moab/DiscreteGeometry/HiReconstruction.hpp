@@ -1,10 +1,10 @@
 /*! \file HiReconstruction.hpp
- * This class implements a high order surface/curve reconstruction method which takes a surface/curve mesh as input 
- * and compute local polynomial fittings (in monomial basis) around user specified vertices. Little noise is allowed and least square 
- * will be used in such case. 
+ * This class implements a high order surface/curve reconstruction method which takes a surface/curve mesh as input
+ * and compute local polynomial fittings (in monomial basis) around user specified vertices. Little noise is allowed and least square
+ * will be used in such case.
  * This method assumes the underlying geometry of input mesh is smooth.
- * The local fitting results could be used for estimate the exact geometry of the surface. For instance, if mesh 
- *  refinement is perform on the input mesh, then the position of new vertices introduced by refinement could be 
+ * The local fitting results could be used for estimate the exact geometry of the surface. For instance, if mesh
+ *  refinement is perform on the input mesh, then the position of new vertices introduced by refinement could be
  * estimated by the local fitting, rather than using linear interpolation.
  * Implementations are based on the WALF method in paper:
  * Jiao, Xiangmin, and Duo Wang. "Reconstructing high-order surfaces for meshing." Engineering with Computers 28.4 (2012): 361-373.
@@ -42,7 +42,7 @@ namespace moab
 			ErrorCode initialize(bool recwhole);
 
 			//! \brief Reconstruct a high order surface on given surface mesh
-			/** Given a mesh, compute vertex based polynomial fittings for all vertices hosted by current processor. 
+			/** Given a mesh, compute vertex based polynomial fittings for all vertices hosted by current processor.
 				* The result will be stored interally for later usage of evalution. The inputs are: a) degree, which
 				* is the order of polynomial used for vertex based fitting. b) interp, if it's true, then interpolation
 				* will be applied for local fitting, otherwise it's least square fitting. c) safeguard, specifies whether
@@ -56,11 +56,11 @@ namespace moab
 			ErrorCode reconstruct3D_surf_geom(int degree, bool interp, bool safeguard, bool reset=false);
 
 			//! \brief Reconstruct a high order surface on given surface mesh
-			/** Given a mesh, compute vertex based polynomial fittings for all vertices hosted by current processor. 
-				* User could specify various degrees for different vertices. It assumes that the input degrees for 
-				* vertices stored in the same order as that this class stores vertices: 1) reconstruction will be 
-				* only performed at vertices hosted by current processor, thus input npts should match the number of 
-				* hosted vertices. 2) all hosted vertices will be stored in a MOAB::Range object, degrees for all these 
+			/** Given a mesh, compute vertex based polynomial fittings for all vertices hosted by current processor.
+				* User could specify various degrees for different vertices. It assumes that the input degrees for
+				* vertices stored in the same order as that this class stores vertices: 1) reconstruction will be
+				* only performed at vertices hosted by current processor, thus input npts should match the number of
+				* hosted vertices. 2) all hosted vertices will be stored in a MOAB::Range object, degrees for all these
 				* vertices should be stored in degrees as the same order in the MOAB::Range object
 				* The result will be stored interally for later usage of evalution.
 				* \param npts Integer size of array pointed by degrees, used for check
@@ -85,10 +85,10 @@ namespace moab
 			//! \brief Reconstruct a high order curve on given curve mesh
 			/** Given a curve mesh, compute vertex based polynomail fittings for all vertices hosted by current processor.
 				* The vertex based fitting is done by perfoming three one-parameter fittings along each axis, i.e. x,y,z.
-				* User could specify various degrees for different vertices. It assumes that the input degrees for 
-				* vertices stored in the same order as that this class stores vertices: 1) reconstruction will be 
-				* only performed at vertices hosted by current processor, thus input npts should match the number of 
-				* hosted vertices. 2) all hosted vertices will be stored in a MOAB::Range object, degrees for all these 
+				* User could specify various degrees for different vertices. It assumes that the input degrees for
+				* vertices stored in the same order as that this class stores vertices: 1) reconstruction will be
+				* only performed at vertices hosted by current processor, thus input npts should match the number of
+				* hosted vertices. 2) all hosted vertices will be stored in a MOAB::Range object, degrees for all these
 				* vertices should be stored in degrees as the same order in the MOAB::Range object
 				* The result will be stored interally for later usage of evalution.
 				* \param npts Integer size of array pointed by degrees, used for check
@@ -100,7 +100,7 @@ namespace moab
 			ErrorCode reconstruct3D_curve_geom(size_t npts, int* degrees, bool* interps, bool safeguard, bool reset=false);
 
 			//! \brief Construct vertex based polynomial fitting on a surface mesh
-			/** Given a vertex on a surface mesh, construct a local fitting around this vertex. Stencils around this vertex will 
+			/** Given a vertex on a surface mesh, construct a local fitting around this vertex. Stencils around this vertex will
 				* be selected according to input degree and if data is noise. Local uv-plane will be the estimated tangent plane
 				* at this vertex. minpnts will be used to specify the minimum number allowed in the local stencil.
 				* The result will be returned to user by preallocated memory coords, degree_out, coeffs.
@@ -117,9 +117,9 @@ namespace moab
 
 			//! \brief Construct vertex based polynomial fitting on a curve mesh
 			/** Given a vertex on a curve mesh, construct three one-parameter local fittings for each coordinates axis around
-				* this vertex. Stencils around this vertex will be selected according to input degree and if data is noise. 
+				* this vertex. Stencils around this vertex will be selected according to input degree and if data is noise.
 				* Local u-line, or the single parameter will be the estimated tangent line at this vertex. On each axis of xyz,
-				* a polynomial fitting will be performed according to user input. 
+				* a polynomial fitting will be performed according to user input.
 				* minpnts will be used to specify the minimum number allowed in the local stencil.
 				* The result will be returned to user by preallocated memory coords, degree_out, coeffs.
 				* \param vid EntityHandle, the fittings will be performed around this vertex.
@@ -134,8 +134,8 @@ namespace moab
 			ErrorCode polyfit3d_walf_curve_vertex(const EntityHandle vid, const bool interp, int degree, int minpnts, const bool safeguard, const int ncoords, double* coords, int* degree_out, const int ncoeffs, double* coeffs);
 
 			//! \brief Perform high order projection of points in an element, using estimated geometry by reconstruction class
-			/** Given an element on the input mesh, and new points in this element, represented as natural coordinates in element, 
-				* estimate their position in surface. This is done by weighted averaging of local fittings: for each vertex of this 
+			/** Given an element on the input mesh, and new points in this element, represented as natural coordinates in element,
+				* estimate their position in surface. This is done by weighted averaging of local fittings: for each vertex of this
 				* elment, a fitting has been computed and the new points could be projected by this fitting. The final result of projection
 				* is the weighted average of these projections, weights are chosen as the barycentric coordinates of the point in this element.
 				* The result will be returned to the user preallocated memory
@@ -148,9 +148,9 @@ namespace moab
 			ErrorCode hiproj_walf_in_element(EntityHandle elem, const int nvpe, const int npts2fit, const double* naturalcoords2fit, double* newcoords);
 
 			//! \brief Perform high order projection of points around a vertex, using estimated geometry by reconstruction class
-			/** Given an vertex on the input mesh, and new points around this vertex, estimate their position in surface. 
+			/** Given an vertex on the input mesh, and new points around this vertex, estimate their position in surface.
 				* This is done by first projecting input points onto the local uv-plane around this vertex and use the precomputed local
-				* fitting to estimate the ideal position of input points. 
+				* fitting to estimate the ideal position of input points.
 				* The result will be returned to the user preallocated memory
 				* \param vid EntityHandle, the vertex around which to perform high order projection.
 				* \param npts2fit Integer, number of points lying around vid to be fitted.
@@ -161,7 +161,7 @@ namespace moab
 
 			//! \brief Perform high order projection of points around a center vertex, assume geometry is surface
 			/** Given a vertex position and the local fitting parameter around this vertex, estimate the ideal position of input position
-				* according to the local fitting. This is done by first projecting input points onto the local uv-plane around this vertex 
+				* according to the local fitting. This is done by first projecting input points onto the local uv-plane around this vertex
 				* and use the given fitting to estimate the ideal position of input points.
 				* The result will be returned to user preallocated memory
 				* \param local_origin Pointer to 3 doubles, coordinates of the center vertex
@@ -177,8 +177,8 @@ namespace moab
 
 			//! \brief Perform high order projection of points around a center vertex, assume geometry is curve
 			/** Given a vertex position and the local one-parameter fittings parameter around this vertex, estimate the ideal position of input position
-				* according to the local fittings. This is done by first projecting input points onto the local u-direction at this vertex 
-				* and then use the value u as parameter for the three fittings, one for each coordinates axis of xyz. 
+				* according to the local fittings. This is done by first projecting input points onto the local u-direction at this vertex
+				* and then use the value u as parameter for the three fittings, one for each coordinates axis of xyz.
 				* The result will be returned to user preallocated memory
 				* \param local_origin Pointer to 3 doubles, coordinates of the center vertex
 				* \param local_coords Pointer to 3 doubles, global coordinates of direction of local u coordinate axis at center vertex
@@ -251,7 +251,7 @@ namespace moab
 			ErrorCode vertex_get_incident_elements(const EntityHandle& vid, const int elemdim, std::vector<EntityHandle>& adjents);
 
 			//! \brief Get n-ring neighbor vertices, assuming curve/surface mesh, not volume mesh
-			/** Given a vertex, find its n-ring neighbor vertices including itself in _mesrh2rec. 
+			/** Given a vertex, find its n-ring neighbor vertices including itself in _mesrh2rec.
 				* 1-ring neighbor vertices of a vertex are the vertices connected with this vertex with an edge
 				* n-ring vertices are obtained first get the 1-ring vertices and then get the 1-ring of these vertices, and so on
 				* \param vid EntityHandle, vertex around which to get n-ring vertices
@@ -281,7 +281,7 @@ namespace moab
 			//ErrorCode set_geom_data_3Dcurve(const EntityHandle vid, const double* coords, const double degree_out, const double* coeffs, bool interp);
 
 			/** Compute area weighted average vertex normals for given vertex, assuming surface mesh
-				* For arbitrary polygon mesh, use incident two edges of each incident polygon of this vertex to form a triangle, then use 
+				* For arbitrary polygon mesh, use incident two edges of each incident polygon of this vertex to form a triangle, then use
 				* these incident "triangles" to compute area weighted average vertex normals
 				* \param vid EntityHandle, vertex in _mesh2rec, might be ghost vertex
 				* \param nrm Pointer to 3-doubles array, preallocated by user
@@ -340,12 +340,12 @@ namespace moab
 				* \param degree_qr Pointer to integer, polynomial fitting order determined by Vandermonde system condition number
 			*/
 			void polyfit3d_surf_get_coeff(const int nverts, const double* ngbcors, const double* ngbnrms, int degree, const bool interp, const bool safeguard, const int ncoords, double* coords, const int ncoeffs, double* coeffs, int* degree_out, int* degree_pnt, int* degree_qr);
-			//! \brief Form and solve Vandermonde system of bi-variables 
+			//! \brief Form and solve Vandermonde system of bi-variables
 			void eval_vander_bivar_cmf(const int npts2fit, const double* us, const int ndim, double* bs, int degree, const double* ws, const bool interp, const bool safeguard, int* degree_out, int* degree_pnt, int* degree_qr);
 
 			//! \brief Compute local single variable coordinate system of a vertex, and perform vertex based polynomial fittings of three global coordinates axis
 			/** This function take the first vertex of input as center, and build local u-line by estimating tangent vector
-				* Then other vertices form vectors originating from center and vectors then are projectd onto this u-plane to form three local height functions, 
+				* Then other vertices form vectors originating from center and vectors then are projectd onto this u-plane to form three local height functions,
 				* one for each coordinates axis. Local fitting of these local height functions are performed in WLS sense, according if interpolation required or not.
 				* \param nverts Integer, number of vertices of input
 				* \param ngbcors Pointer to array of doubles, size = 3*nverts, coordinates of input vertices, first will be center

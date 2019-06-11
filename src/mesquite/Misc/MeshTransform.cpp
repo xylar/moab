@@ -1,9 +1,9 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2004 Sandia Corporation and Argonne National
-    Laboratory.  Under the terms of Contract DE-AC04-94AL85000 
-    with Sandia Corporation, the U.S. Government retains certain 
+    Laboratory.  Under the terms of Contract DE-AC04-94AL85000
+    with Sandia Corporation, the U.S. Government retains certain
     rights in this software.
 
     This library is free software; you can redistribute it and/or
@@ -16,19 +16,19 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
-    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov, 
-    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov      
-   
+
+    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov,
+    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov
+
   ***************************************************************** */
 /*!
   \file   MeshTransform.cpp
-  \brief  
+  \brief
 
-  The MeshTransform Class is the base class for all the smoothing algorythms 
+  The MeshTransform Class is the base class for all the smoothing algorythms
 
   \author Michael Brewer
   \date   2004-11-06
@@ -41,10 +41,10 @@
 #include "MsqError.hpp"
 
 namespace MBMesquite {
-  
+
   MeshTransform::~MeshTransform() {}
-  
-/*! 
+
+/*!
   Actually apply the affine transformation
   */
   double MeshTransform::loop_over_mesh( MeshDomainAssoc* mesh_and_domain,
@@ -57,7 +57,7 @@ namespace MBMesquite {
     mesh->get_all_vertices( handle_list, err );
     if (MSQ_CHKERR(err))
       return 1.0;
-    
+
     std::vector<bool> fixed(1);
     MsqVertex vertex;
     std::vector<Mesh::VertexHandle>::const_iterator iter;
@@ -66,7 +66,7 @@ namespace MBMesquite {
       mesh->vertices_get_coordinates( &*iter, &vertex, 1, err );
       if (MSQ_CHKERR(err))
         return 1.0;
-      
+
       if (skipFixed) {
         mesh->vertices_get_fixed_flag( &*iter, fixed, 1, err );
         if (MSQ_CHKERR(err))
@@ -74,9 +74,9 @@ namespace MBMesquite {
         if (fixed.front())
           continue;
       }
-      
+
       vertex = mMat * vertex + mVec;
-      
+
       mesh->vertex_set_coordinates( *iter, vertex, err );
       if (MSQ_CHKERR(err))
         return 1.0;
@@ -84,11 +84,11 @@ namespace MBMesquite {
 
     return 0.0;
   }
-  
-  
+
+
   void MeshTransform::add_translation( const Vector3D& offset )
     { mVec += offset; }
-  
+
   void MeshTransform::add_rotation( const Vector3D& axis, double radians )
     {
       const double c = cos(radians);
@@ -103,10 +103,10 @@ namespace MBMesquite {
       mMat = rot * mMat;
       mVec = rot * mVec;
     }
-  
+
   void MeshTransform::add_scale( double factor )
-    { add_scale( Vector3D(factor) ); } 
-  
+    { add_scale( Vector3D(factor) ); }
+
   void MeshTransform::add_scale( const Vector3D& f )
     {
       for (int i = 0; i < 3; ++i) {
@@ -115,12 +115,12 @@ namespace MBMesquite {
         mMat[i][1] *= f[i];
         mMat[i][2] *= f[i];
       }
-    }      
+    }
 
   void MeshTransform::initialize_queue( MeshDomainAssoc* ,
                                         const Settings* ,
                                         MsqError&  )
     {
     }
-  
+
 } // namespace MBMesquite

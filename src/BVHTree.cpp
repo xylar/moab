@@ -4,13 +4,13 @@
 #include "moab/ReadUtilIface.hpp"
 #include "moab/CpuTimer.hpp"
 
-namespace moab 
+namespace moab
 {
     const char *BVHTree::treeName = "BVHTree";
 
     ErrorCode BVHTree::build_tree(const Range& entities,
                                   EntityHandle *tree_root_set,
-                                  FileOptions *options) 
+                                  FileOptions *options)
     {
       ErrorCode rval;
       CpuTimer cp;
@@ -21,13 +21,13 @@ namespace moab
 
         if (!options->all_seen()) return MB_FAILURE;
       }
-      
+
         // calculate bounding box of elements
       BoundBox box;
       rval = box.update(*moab(), entities);
       if (MB_SUCCESS != rval)
         return rval;
-  
+
         // create tree root
       EntityHandle tmp_root;
       if (!tree_root_set) tree_root_set = &tmp_root;
@@ -37,7 +37,7 @@ namespace moab
       rval = mbImpl->add_entities( *tree_root_set, entities );
       if (MB_SUCCESS != rval)
         return rval;
-  
+
         //a fully balanced tree will have 2*_entities.size()
         //which is one doubling away..
       std::vector<Node> tree_nodes;
@@ -55,7 +55,7 @@ namespace moab
       }
 #endif
         //We only build nonempty trees
-      if(!handle_data_vec.empty()){ 
+      if(!handle_data_vec.empty()){
           //initially all bits are set
         tree_nodes.push_back(Node());
         const int depth = local_build_tree(tree_nodes, handle_data_vec.begin(), handle_data_vec.end(), 0, boundBox);
@@ -67,13 +67,13 @@ namespace moab
           }			
         }
         if(entity_handles.size() != entities.size()){
-          std::cout << "Entity Handle Size Mismatch!" 
+          std::cout << "Entity Handle Size Mismatch!"
                     << std::endl;
         }
         for(Range::iterator i = entities.begin(); i != entities.end(); ++i) {
           if (entity_handles.find(*i) == entity_handles.end())
             std::cout << "Tree is missing an entity! " << std::endl;
-        } 
+        }
 #endif
         treeDepth = std::max(depth, treeDepth);
       }
@@ -85,11 +85,11 @@ namespace moab
       treeStats.reset();
       rval = treeStats.compute_stats(mbImpl, startSetHandle);
       treeStats.initTime = cp.time_elapsed();
-      
+
       return rval;
     }
 
-    ErrorCode BVHTree::convert_tree(std::vector<Node> &tree_nodes) 
+    ErrorCode BVHTree::convert_tree(std::vector<Node> &tree_nodes)
     {
         // first construct the proper number of entity sets
       ReadUtilIface *read_util;
@@ -103,7 +103,7 @@ namespace moab
         rval = mbImpl->release_interface(read_util);
         if (MB_SUCCESS != rval) return rval;
       }
-      
+
         // populate the sets and the TreeNode vector
       EntityHandle set_handle = startSetHandle;
       std::vector<Node>::iterator it;
@@ -129,11 +129,11 @@ namespace moab
       return MB_SUCCESS;
     }
 
-    ErrorCode BVHTree::parse_options(FileOptions &opts) 
+    ErrorCode BVHTree::parse_options(FileOptions &opts)
     {
       ErrorCode rval = parse_common_options(opts);
       if (MB_SUCCESS != rval) return rval;
-      
+
         //  SPLITS_PER_DIR: number of candidate splits considered per direction; default = 3
       int tmp_int;
       rval = opts.get_int_option("SPLITS_PER_DIR", tmp_int);
@@ -141,10 +141,10 @@ namespace moab
 
       return MB_SUCCESS;
     }
-    
-    void BVHTree::establish_buckets(HandleDataVec::const_iterator begin, 
-                                    HandleDataVec::const_iterator end, 
-                                    const BoundBox &interval, std::vector<std::vector<Bucket> > &buckets) const 
+
+    void BVHTree::establish_buckets(HandleDataVec::const_iterator begin,
+                                    HandleDataVec::const_iterator end,
+                                    const BoundBox &interval, std::vector<std::vector<Bucket> > &buckets) const
     {
         //put each element into its bucket
       for(HandleDataVec::const_iterator i = begin; i != end; ++i){
@@ -156,7 +156,7 @@ namespace moab
           if (bucket.mySize > 0)
             bucket.boundingBox.update(box);
           else
-            bucket.boundingBox = box; 
+            bucket.boundingBox = box;
           bucket.mySize++;
         }
       }
@@ -174,7 +174,7 @@ namespace moab
         }
       }
       if(!elt_union.intersects_box(interval) ){
-        std::cout << "element union: " << std::endl << elt_union; 
+        std::cout << "element union: " << std::endl << elt_union;
         std::cout << "intervals: " << std::endl << interval;
         std::cout << "union of elts does not contain original box!" << std::endl;
       }
@@ -186,7 +186,7 @@ namespace moab
         std::vector<unsigned int> nonempty;
         const std::vector<Bucket> &buckets_ = buckets[d];
         unsigned int j = 0;
-        for( std::vector<Bucket>::const_iterator i = buckets_.begin(); 
+        for( std::vector<Bucket>::const_iterator i = buckets_.begin();
              i != buckets_.end(); ++i, ++j){
           if(i->mySize > 0){ nonempty.push_back(j); }
         }
@@ -197,7 +197,7 @@ namespace moab
         if(!test_box.intersects_box(interval) )
           std::cout << "union of buckets in dimension: " << d << "does not contain original box!" << std::endl;
         if (!interval.intersects_box(test_box) ) {
-          std::cout << "original box does " << "not contain union of buckets" 
+          std::cout << "original box does " << "not contain union of buckets"
                     << "in dimension: " << d << std::endl;
           std::cout << interval << std::endl << test_box << std::endl;
         }
@@ -205,8 +205,8 @@ namespace moab
 #endif
     }
 
-    void BVHTree::initialize_splits(std::vector<std::vector<SplitData> > &splits, 
-                                    const std::vector<std::vector<Bucket> > &buckets, 
+    void BVHTree::initialize_splits(std::vector<std::vector<SplitData> > &splits,
+                                    const std::vector<std::vector<Bucket> > &buckets,
                                     const SplitData &data) const {
       for(unsigned int d = 0; d < 3; ++d){
         std::vector<SplitData>::iterator splits_begin = splits[d].begin();
@@ -216,12 +216,12 @@ namespace moab
         std::vector<Bucket>::const_iterator left_end = buckets[d].begin()+1;
         for(std::vector<SplitData>::iterator s = splits_begin; s != splits_end; ++s, ++left_end) {
           s->nl = set_interval(s->leftBox, left_begin, left_end);
-          if(s->nl == 0) { 
+          if(s->nl == 0) {
             s->leftBox = data.boundingBox;
             s->leftBox.bMax[d] = s->leftBox.bMin[d];
           }
           s->nr = set_interval(s->rightBox, left_end,  _end);
-          if(s->nr == 0) { 
+          if(s->nr == 0) {
             s->rightBox = data.boundingBox;
             s->rightBox.bMin[d] = s->rightBox.bMax[d];
           }
@@ -231,38 +231,38 @@ namespace moab
           s->dim = d;
         }
 #ifndef NDEBUG
-        for(std::vector<SplitData>::iterator s = splits_begin; 
+        for(std::vector<SplitData>::iterator s = splits_begin;
             s != splits_end; ++s) {
           BoundBox test_box = s->leftBox;
           test_box.update(s->rightBox);
           if(!data.boundingBox.intersects_box(test_box)) {
             std::cout << "nr: " << s->nr << std::endl;
-            std::cout << "Test box: " << std::endl << 
+            std::cout << "Test box: " << std::endl <<
                 test_box;
-            std::cout << "Left box: " << std::endl << 
+            std::cout << "Left box: " << std::endl <<
                 s->leftBox;
-            std::cout << "Right box: " << std::endl << 
+            std::cout << "Right box: " << std::endl <<
                 s->rightBox;
-            std::cout << "Interval: " << std::endl << 
+            std::cout << "Interval: " << std::endl <<
                 data.boundingBox;
-            std::cout << "Split boxes larger than bb" 
+            std::cout << "Split boxes larger than bb"
                       << std::endl;
           }
           if(!test_box.intersects_box(data.boundingBox)) {
             std::cout << "bb larger than union of split boxes" << std::endl;
           }         	
         }
-#endif 
+#endif
       }
     }
 
-    void BVHTree::median_order(HandleDataVec::iterator &begin, 
-                               HandleDataVec::iterator &end, 
+    void BVHTree::median_order(HandleDataVec::iterator &begin,
+                               HandleDataVec::iterator &end,
                                SplitData &data) const
     {
       int dim = data.dim;
       for(HandleDataVec::iterator i = begin; i != end; ++i) {
-        i->myDim = 
+        i->myDim =
             0.5 * (i->myBox.bMin[dim], i->myBox.bMax[dim]);
       }
       std::sort(begin, end, BVHTree::HandleData_comparator());
@@ -297,7 +297,7 @@ namespace moab
 #endif
     }
 
-    void BVHTree::find_split(HandleDataVec::iterator &begin, 
+    void BVHTree::find_split(HandleDataVec::iterator &begin,
                              HandleDataVec::iterator &end,
                              SplitData &data) const
     {
@@ -338,7 +338,7 @@ namespace moab
           }
           if(!right_box.intersects_box(i->myBox)) {
             if(!issue) {
-              std::cerr << "Bounding right box issue!" 
+              std::cerr << "Bounding right box issue!"
                         << std::endl;
             }
             issue=true;
@@ -355,22 +355,22 @@ namespace moab
           }
           if(!data.leftBox.intersects_box(i->myBox)) {
             if(!issue) {
-              std::cerr << "Bounding left box issue!" 
+              std::cerr << "Bounding left box issue!"
                         << std::endl;
             }
             issue=true;
           }
           if(seen_one) {
             std::cerr << "Invalid ordering!" << std::endl;
-            std::cout << (i-1)->myDim 
+            std::cout << (i-1)->myDim
                       << order << std::endl;
             exit(-1);
           }
         }
       }
-      if(!left_box.intersects_box(data.leftBox)) 
+      if(!left_box.intersects_box(data.leftBox))
         std::cout << "left elts do not contain left box" << std::endl;
-      if(!data.leftBox.intersects_box(left_box)) 
+      if(!data.leftBox.intersects_box(left_box))
         std::cout << "left box does not contain left elts" << std::endl;
       if(!right_box.intersects_box(data.rightBox))
         std::cout << "right elts do not contain right box" << std::endl;
@@ -379,15 +379,15 @@ namespace moab
 
       if(count_left != data.nl || count_right != data.nr) {
         std::cerr << "counts are off!" << std::endl;
-        std::cerr << "total: " 
+        std::cerr << "total: "
                   << std::distance(begin, end) << std::endl;
         std::cerr << "Dim: " << data.dim << std::endl;
         std::cerr << data.Lmax << " , " << data.Rmin << std::endl;
-        std::cerr << "Right box: " << std::endl << data.rightBox 
+        std::cerr << "Right box: " << std::endl << data.rightBox
                   << "Left box: " << std::endl << data.leftBox ;
-        std::cerr << "supposed to be: " << 
+        std::cerr << "supposed to be: " <<
             data.nl << " " << data.nr << std::endl;
-        std::cerr << "accountant says: " << 
+        std::cerr << "accountant says: " <<
             count_left << " " << count_right << std::endl;
         std::exit(-1);
       }
@@ -395,7 +395,7 @@ namespace moab
     }
 
     int BVHTree::local_build_tree(std::vector<Node> &tree_nodes,
-                                  HandleDataVec::iterator begin, 
+                                  HandleDataVec::iterator begin,
                                   HandleDataVec::iterator end,
                                   const int index, const BoundBox &box, const int depth)
     {
@@ -411,7 +411,7 @@ namespace moab
 
       const unsigned int total_num_elements = std::distance(begin, end);
       tree_nodes[index].box = box;
-      
+
         //logic for splitting conditions
       if((int)total_num_elements > maxPerLeaf && depth < maxDepth){
         SplitData data;
@@ -422,9 +422,9 @@ namespace moab
         tree_nodes[index].dim = data.dim; tree_nodes[index].child = tree_nodes.size();
           //insert left, right children;
         tree_nodes.push_back(Node()); tree_nodes.push_back(Node());
-        const int left_depth = local_build_tree(tree_nodes, begin, begin+data.nl, tree_nodes[index].child, 
+        const int left_depth = local_build_tree(tree_nodes, begin, begin+data.nl, tree_nodes[index].child,
                                                 data.leftBox, depth+1);
-        const int right_depth = local_build_tree(tree_nodes, begin+data.nl, end, tree_nodes[index].child+1, 
+        const int right_depth = local_build_tree(tree_nodes, begin+data.nl, end, tree_nodes[index].child+1,
                                                  data.rightBox, depth+1);
         return std::max(left_depth, right_depth);
       }
@@ -434,7 +434,7 @@ namespace moab
       return depth;
     }
 
-    ErrorCode BVHTree::find_point(const std::vector<double> &point, 
+    ErrorCode BVHTree::find_point(const std::vector<double> &point,
                                   const unsigned int &index,
                                   const double iter_tol,
                                   const double inside_tol,
@@ -451,7 +451,7 @@ namespace moab
         Range entities;
         rval = mbImpl->get_entities_by_handle(startSetHandle+index, entities);
         if (MB_SUCCESS != rval) return rval;
-        
+
         for(Range::iterator i = entities.begin(); i != entities.end(); ++i) {
           treeStats.traversalLeafObjectTests++;
           myEval->set_ent_handle(*i);
@@ -470,7 +470,7 @@ namespace moab
       std::vector<EntityHandle> children;
       rval = mbImpl->get_child_meshsets(startSetHandle+index, children);
       if (MB_SUCCESS != rval || children.size() != 2) return rval;
-      
+
       if((node.Lmax+iter_tol) < (node.Rmin-iter_tol)){
         if(point[node.dim] <= (node.Lmax + iter_tol))
           return find_point(point, children[0]-startSetHandle, iter_tol, inside_tol, result);
@@ -492,8 +492,8 @@ namespace moab
 
         /* pg5 of paper
          * However, instead of always traversing either subtree
-         * first (e.g. left always before right), we first traverse 
-         * the subtree whose bounding plane has the larger distance to the 
+         * first (e.g. left always before right), we first traverse
+         * the subtree whose bounding plane has the larger distance to the
          * sought point. This results in less overall traversal, and the correct
          * cell is identified more quickly.
          */
@@ -501,10 +501,10 @@ namespace moab
         //significantly slower.
         //I conjecture this is because it gets improperly
         //branch predicted..
-        //bool dir = (point[ node.dim] - node.Rmin) <= 
+        //bool dir = (point[ node.dim] - node.Rmin) <=
         //				(node.Lmax - point[ node.dim]);
       find_point(point, children[0]-startSetHandle, iter_tol, inside_tol, result);
-      if(result.first == 0){ 
+      if(result.first == 0){
         return find_point(point, children[1]-startSetHandle, iter_tol, inside_tol, result);
       }
       return MB_SUCCESS;
@@ -528,14 +528,14 @@ namespace moab
       return 0;
     }
 
-    ErrorCode BVHTree::get_bounding_box(BoundBox &box, EntityHandle *tree_node) const 
+    ErrorCode BVHTree::get_bounding_box(BoundBox &box, EntityHandle *tree_node) const
     {
       if (!tree_node || *tree_node == startSetHandle) {
         box = boundBox;
         return MB_SUCCESS;
       }
       else if ((tree_node && !startSetHandle) ||
-               *tree_node < startSetHandle || *tree_node - startSetHandle > myTree.size()) 
+               *tree_node < startSetHandle || *tree_node - startSetHandle > myTree.size())
         return MB_FAILURE;
 
       box = myTree[*tree_node - startSetHandle].box;
@@ -548,20 +548,20 @@ namespace moab
                                     const double inside_tol,
                                     bool *multiple_leaves,
                                     EntityHandle *start_node,
-                                    CartVect *params) 
+                                    CartVect *params)
     {
       treeStats.numTraversals++;
 
       EntityHandle this_set = (start_node ? *start_node : startSetHandle);
         // convoluted check because the root is different from startSetHandle
       if (this_set != myRoot &&
-          (this_set < startSetHandle || this_set >= startSetHandle+myTree.size())) 
+          (this_set < startSetHandle || this_set >= startSetHandle+myTree.size()))
         return MB_FAILURE;
       else if (this_set == myRoot) this_set = startSetHandle;
-      
-      std::vector<EntityHandle> candidates, result_list;     // list of subtrees to traverse, and results 
+
+      std::vector<EntityHandle> candidates, result_list;     // list of subtrees to traverse, and results
       candidates.push_back(this_set-startSetHandle);
-  
+
       BoundBox box;
       while( !candidates.empty() ) {
         EntityHandle ind = candidates.back();
@@ -610,7 +610,7 @@ namespace moab
         // convoluted check because the root is different from startSetHandle
       EntityHandle this_set = (tree_root ? *tree_root : startSetHandle);
       if (this_set != myRoot &&
-          (this_set < startSetHandle || this_set >= startSetHandle+myTree.size())) 
+          (this_set < startSetHandle || this_set >= startSetHandle+myTree.size()))
         return MB_FAILURE;
       else if (this_set == myRoot) this_set = startSetHandle;
 
@@ -625,9 +625,9 @@ namespace moab
         // misc temporary values
       ErrorCode rval;
       BoundBox box;
-  
+
       candidates.push_back(this_set-startSetHandle);
-  
+
       while( !candidates.empty() ) {
 
         EntityHandle ind = candidates.back();
@@ -669,11 +669,11 @@ namespace moab
           if (result_dists) result_dists->push_back(sqrt(d_sqr));
         }
       }
-      
+
       return MB_SUCCESS;
     }
 
-    ErrorCode BVHTree::print_nodes(std::vector<Node> &nodes) 
+    ErrorCode BVHTree::print_nodes(std::vector<Node> &nodes)
     {
       int i;
       std::vector<Node>::iterator it;
@@ -683,7 +683,7 @@ namespace moab
       }
       return MB_SUCCESS;
     }
-      
+
     ErrorCode BVHTree::print()
     {
       int i;
@@ -694,7 +694,7 @@ namespace moab
       }
       return MB_SUCCESS;
     }
-      
-      
+
+
 } // namespace moab
 

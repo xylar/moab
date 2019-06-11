@@ -4,16 +4,16 @@
 
 namespace moab {
 
-UnstructuredElemSeq::UnstructuredElemSeq( EntityHandle shandle, 
-                                          EntityID entity_count, 
+UnstructuredElemSeq::UnstructuredElemSeq( EntityHandle shandle,
+                                          EntityID entity_count,
                                           unsigned nodes_per_entity,
                                           SequenceData* dat )
   : ElementSequence( shandle, entity_count, nodes_per_entity, dat )
   {}
-  
 
-UnstructuredElemSeq::UnstructuredElemSeq( EntityHandle shandle, 
-                                          EntityID entity_count, 
+
+UnstructuredElemSeq::UnstructuredElemSeq( EntityHandle shandle,
+                                          EntityID entity_count,
                                           unsigned nodes_per_entity,
                                           EntityID data_size )
   : ElementSequence( shandle, entity_count, nodes_per_entity,
@@ -36,7 +36,7 @@ UnstructuredElemSeq::split( EntityHandle here )
 {
   if (here <= start_handle() || here > end_handle())
     return 0;
-  
+
   return new UnstructuredElemSeq( *this, here );
 }
 

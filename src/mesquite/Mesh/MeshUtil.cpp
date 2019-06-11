@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2010 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2010) kraftche@cae.wisc.edu    
+    (2010) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file MeshUtil.cpp
  *  \brief Implement MeshUtil class
- *  \author Jason Kraftcheck 
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -49,7 +49,7 @@ namespace MBMesquite {
 
 MeshUtil::~MeshUtil() { delete globalPatch; }
 
-PatchData* MeshUtil::get_global_patch( MsqError& err ) 
+PatchData* MeshUtil::get_global_patch( MsqError& err )
 {
   if (!globalPatch) {
     globalPatch = new PatchData;
@@ -74,7 +74,7 @@ void MeshUtil::edge_length_distribution( SimpleStats& results, MsqError& err )
     results.add_squared( diff % diff );
     iter.step( err ); MSQ_ERRRTN(err);
   }
- 
+
   if (results.empty()) { // no mesh
     MSQ_SETERR(err)("Mesh contains no elements", MsqError::INVALID_MESH);
   }
@@ -83,16 +83,16 @@ void MeshUtil::edge_length_distribution( SimpleStats& results, MsqError& err )
 void MeshUtil::lambda_distribution( SimpleStats& results, MsqError& err )
 {
   PatchData& pd = *get_global_patch(err); MSQ_ERRRTN(err);
-  
+
   std::vector<size_t> handles;
   TMPQualityMetric::get_patch_evaluations( pd, handles, false, err );
-  
+
   const size_t N = 64;
   size_t count;
   size_t indices[N];
   MsqVector<2> derivs2D[N];
   MsqVector<3> derivs3D[N];
-  
+
   for (size_t i = 0; i < handles.size(); ++i) {
     double lambda;
     const Sample s = ElemSampleQM::sample( handles[i] );
@@ -107,13 +107,13 @@ void MeshUtil::lambda_distribution( SimpleStats& results, MsqError& err )
         MSQ_SETERR(err)( "No mapping function for element type", MsqError::UNSUPPORTED_ELEMENT );
         return;
       }
-      
+
       MsqMatrix<3,3> W;
       mf->jacobian( pd, e, bits, s, indices, derivs3D, count, W, err ); MSQ_ERRRTN(err);
       assert(N >= count);
       lambda = TargetCalculator::size( W );
     }
-    else 
+    else
     {
       assert( TopologyInfo::dimension( type ) == 2 );
       const MappingFunction2D* mf = pd.get_mapping_function_2D( type );
@@ -121,7 +121,7 @@ void MeshUtil::lambda_distribution( SimpleStats& results, MsqError& err )
         MSQ_SETERR(err)( "No mapping function for element type", MsqError::UNSUPPORTED_ELEMENT );
         return;
       }
-      
+
       MsqMatrix<3,2> W;
       mf->jacobian( pd, e, bits, s, indices, derivs2D, count, W, err ); MSQ_ERRRTN(err);
       assert(N >= count);
@@ -130,7 +130,7 @@ void MeshUtil::lambda_distribution( SimpleStats& results, MsqError& err )
 
     results.add_value( lambda );
   }
-  
+
   if (results.empty()) { // no mesh
     MSQ_SETERR(err)("Mesh contains no elements", MsqError::INVALID_MESH);
   }
@@ -139,12 +139,12 @@ void MeshUtil::lambda_distribution( SimpleStats& results, MsqError& err )
 bool MeshUtil::meshes_are_different(Mesh& mesh1, Mesh& mesh2, MsqError& err, double tol, bool do_print )
 {
   //MsqError& err = (do_print ? MsqPrintError(cout) : MsqError());
-    
+
   // mesh 1
   std::vector<Mesh::ElementHandle> elements1;
   std::vector<Mesh::VertexHandle> vertices1;
   std::vector<Mesh::VertexHandle> connectivity1;
-  std::vector<size_t> offsets1;                                                                                      
+  std::vector<size_t> offsets1;
 
   mesh1.get_all_elements(elements1, err);  MSQ_ERRZERO(err);
   mesh1.get_all_vertices(vertices1, err);  MSQ_ERRZERO(err);
@@ -157,7 +157,7 @@ bool MeshUtil::meshes_are_different(Mesh& mesh1, Mesh& mesh2, MsqError& err, dou
   std::vector<Mesh::ElementHandle> elements2;
   std::vector<Mesh::VertexHandle> vertices2;
   std::vector<Mesh::VertexHandle> connectivity2;
-  std::vector<size_t> offsets2;                                                                                      
+  std::vector<size_t> offsets2;
 
   mesh2.get_all_elements(elements2, err);  MSQ_ERRZERO(err);
   mesh2.get_all_vertices(vertices2, err);  MSQ_ERRZERO(err);

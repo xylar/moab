@@ -36,7 +36,7 @@ using namespace std;
 #define MESH_DIR "."
 #endif
 
-ErrorCode read_file(string &fname, EntityHandle &seth, 
+ErrorCode read_file(string &fname, EntityHandle &seth,
                     Range &solids, Range &solid_elems, Range &fluids, Range &fluid_elems);
 void deform_func(const BoundBox &bbox, double *xold, double *xnew);
 ErrorCode deform_master(Range &fluid_elems, Range &solid_elems, Tag &xnew);
@@ -49,7 +49,7 @@ Interface *mb;
 
 const bool debug = true;
 
-class DeformMeshRemap 
+class DeformMeshRemap
 {
 public:
   //! Enumerator for solid/fluid, master/slave
@@ -155,7 +155,7 @@ private:
 };
 
 //! Add a set number
-inline ErrorCode DeformMeshRemap::add_set_no(int m_or_s, int f_or_s, int set_no) 
+inline ErrorCode DeformMeshRemap::add_set_no(int m_or_s, int f_or_s, int set_no)
 {
   set<int> *this_set;
   assert((m_or_s == MASTER || m_or_s == SLAVE) && "m_or_s should be MASTER or SLAVE.");
@@ -175,9 +175,9 @@ inline ErrorCode DeformMeshRemap::add_set_no(int m_or_s, int f_or_s, int set_no)
 
   return MB_SUCCESS;
 }
-  
+
 //! Remove a set number
-inline ErrorCode DeformMeshRemap::remove_set_no(int m_or_s, int f_or_s, int set_no) 
+inline ErrorCode DeformMeshRemap::remove_set_no(int m_or_s, int f_or_s, int set_no)
 {
   set<int> *this_set;
   assert((m_or_s == MASTER || m_or_s == SLAVE) && "m_or_s should be MASTER or SLAVE.");
@@ -199,7 +199,7 @@ inline ErrorCode DeformMeshRemap::remove_set_no(int m_or_s, int f_or_s, int set_
 
   return MB_FAILURE;
 }
-  
+
 //! Get the set numbers
 inline ErrorCode DeformMeshRemap::get_set_nos(int m_or_s, int f_or_s, set<int> &set_nos) const
 {
@@ -231,7 +231,7 @@ void DeformMeshRemap::xdisp_name(const string &nm, int idx)
   xDispNames[idx] = nm;
 }
 
-ErrorCode DeformMeshRemap::execute() 
+ErrorCode DeformMeshRemap::execute()
 {
   // Read master/slave files and get fluid/solid material sets
   ErrorCode rval = read_file(MASTER, masterFileName, masterSet);MB_CHK_ERR(rval);
@@ -323,7 +323,7 @@ ErrorCode DeformMeshRemap::execute()
   if (debug) {
     string str;
 #ifdef USE_MPI
-    if (pcMaster && pcMaster->size() > 1) 
+    if (pcMaster && pcMaster->size() > 1)
       str = "PARALLEL=WRITE_PART";
 #endif
     if (debug) cout << "Writing smoothed_master.h5m..." << endl;
@@ -332,7 +332,7 @@ ErrorCode DeformMeshRemap::execute()
     if (have_slave) {
 #ifdef USE_MPI
       str.clear();
-      if (pcSlave && pcSlave->size() > 1) 
+      if (pcSlave && pcSlave->size() > 1)
         str = "PARALLEL=WRITE_PART";
 #endif
       if (debug) cout << "Writing slave_interp.h5m..." << endl;
@@ -340,7 +340,7 @@ ErrorCode DeformMeshRemap::execute()
     } // if have_slave
   } // if debug
 
-  if (debug) 
+  if (debug)
     dc_master.spatial_locator()->get_tree()->tree_stats().print();
 
   return MB_SUCCESS;
@@ -371,8 +371,8 @@ void DeformMeshRemap::set_file_name(int m_or_s, const string &name)
   }
 }
 
-DeformMeshRemap::DeformMeshRemap(Interface *impl, ParallelComm *master, ParallelComm *slave)  
-        : mbImpl(impl), pcMaster(master), pcSlave(slave), masterSet(0), slaveSet(0), xNew(0), xNewName("xnew") 
+DeformMeshRemap::DeformMeshRemap(Interface *impl, ParallelComm *master, ParallelComm *slave)
+        : mbImpl(impl), pcMaster(master), pcSlave(slave), masterSet(0), slaveSet(0), xNew(0), xNewName("xnew")
 {
   xDisp[0] = xDisp[1] = xDisp[2] = 0;
 
@@ -380,7 +380,7 @@ DeformMeshRemap::DeformMeshRemap(Interface *impl, ParallelComm *master, Parallel
     pcSlave = pcMaster;
 }
 
-DeformMeshRemap::~DeformMeshRemap() 
+DeformMeshRemap::~DeformMeshRemap()
 {
 }
 
@@ -407,7 +407,7 @@ int main(int argc, char **argv)
 #ifdef USE_MPI
   ParallelComm *pc = new ParallelComm(mb, MPI_COMM_WORLD);
   dfr = new DeformMeshRemap(mb, pc);
-#else  
+#else
   dfr = new DeformMeshRemap(mb);
 #endif
 
@@ -447,7 +447,7 @@ int main(int argc, char **argv)
   po.getOpt("d1", &tnames[0]);
   po.getOpt("d2", &tnames[1]);
   po.getOpt("d3", &tnames[2]);
-  for (int i = 0; i < 3; i++) 
+  for (int i = 0; i < 3; i++)
     if (!tnames[i].empty()) dfr->xdisp_name(tnames[i], i);
 
   rval = dfr->execute();
@@ -459,7 +459,7 @@ int main(int argc, char **argv)
 }
 
 ErrorCode DeformMeshRemap::write_and_save(Range &ents, EntityHandle seth, Tag tagh, const char *filename,
-                                          bool restore_coords) 
+                                          bool restore_coords)
 {
   Tag tmp_tag = 0;
   ErrorCode rval;
@@ -475,8 +475,8 @@ ErrorCode DeformMeshRemap::write_and_save(Range &ents, EntityHandle seth, Tag ta
 
   return rval;
 }
-  
-ErrorCode DeformMeshRemap::write_to_coords(Range &elems, Tag tagh, Tag tmp_tag) 
+
+ErrorCode DeformMeshRemap::write_to_coords(Range &elems, Tag tagh, Tag tmp_tag)
 {
   // Write the tag to coordinates
   Range verts;
@@ -494,14 +494,14 @@ ErrorCode DeformMeshRemap::write_to_coords(Range &elems, Tag tagh, Tag tmp_tag)
   return MB_SUCCESS;
 }
 
-void deform_func(const BoundBox &bbox, double *xold, double *xnew) 
+void deform_func(const BoundBox &bbox, double *xold, double *xnew)
 {
 /*  Deformation function based on max delx and dely at top of rod
     const double RODWIDTH = 0.2, RODHEIGHT = 0.5;
     // function: origin is at middle base of rod, and is .5 high
     // top of rod is (0,.55) on left and (.2,.6) on right
   double delx = 0.5*RODWIDTH;
-  
+
   double xfrac = (xold[0] + .5*RODWIDTH)/RODWIDTH, yfrac = xold[1]/RODHEIGHT;
   xnew[0] = xold[0] + yfrac * delx;
   xnew[1] = xold[1] + yfrac * (1.0 + xfrac) * 0.05;
@@ -513,7 +513,7 @@ void deform_func(const BoundBox &bbox, double *xold, double *xnew)
   *xn = *xo + disp;
 }
 
-ErrorCode DeformMeshRemap::deform_master(Range &fluid_elems, Range &solid_elems, const char *tag_name) 
+ErrorCode DeformMeshRemap::deform_master(Range &fluid_elems, Range &solid_elems, const char *tag_name)
 {
   // Deform elements with an analytic function
   ErrorCode rval;
@@ -550,7 +550,7 @@ ErrorCode DeformMeshRemap::deform_master(Range &fluid_elems, Range &solid_elems,
     // Get the bounding box of the solid mesh
     BoundBox bbox;
     bbox.update(*mbImpl, solid_elems);
-  
+
     for (unsigned int j = 0; j < num_verts; j++)
       deform_func(bbox, &coords[3*j], &new_coords[3*j]);
   }
@@ -572,7 +572,7 @@ ErrorCode DeformMeshRemap::deform_master(Range &fluid_elems, Range &solid_elems,
   }
 
   if (!xNew) {
-    rval = mbImpl->tag_get_handle((tag_name ? tag_name : ""), 3, MB_TYPE_DOUBLE, 
+    rval = mbImpl->tag_get_handle((tag_name ? tag_name : ""), 3, MB_TYPE_DOUBLE,
                                   xDisp[0], MB_TAG_CREAT|MB_TAG_DENSE);MB_CHK_SET_ERR(rval, "Failed to get xNew tag");
     xNew = xDisp[0];
   }
@@ -610,7 +610,7 @@ ErrorCode DeformMeshRemap::read_file(int m_or_s, string &fname, EntityHandle &se
     options << "PARALLEL=READ_PART;PARTITION=PARALLEL_PARTITION;PARALLEL_RESOLVE_SHARED_ENTS;"
             << "PARALLEL_GHOSTS=2.0.1;PARALLEL_COMM=" << pc->get_id();
   }
-#endif  
+#endif
   rval = mbImpl->load_file(fname.c_str(), &seth, options.str().c_str());MB_CHK_SET_ERR(rval, "Couldn't load master/slave mesh");
 
   if (*solidSetNos[m_or_s].begin() == -1 || *fluidSetNos[m_or_s].begin() == -1) return MB_SUCCESS;
@@ -675,7 +675,7 @@ ErrorCode DeformMeshRemap::read_file(int m_or_s, string &fname, EntityHandle &se
   return rval;
 }
 
-ErrorCode DeformMeshRemap::find_other_sets(int m_or_s, EntityHandle file_set) 
+ErrorCode DeformMeshRemap::find_other_sets(int m_or_s, EntityHandle file_set)
 {
   // Solid or fluid sets are missing; find the other
   Range *filled_sets = NULL, *unfilled_sets = NULL, *unfilled_elems = NULL;
@@ -712,13 +712,13 @@ ErrorCode DeformMeshRemap::find_other_sets(int m_or_s, EntityHandle file_set)
     rval = mbImpl->get_entities_by_handle(*rit, tmp_range, true);MB_CHK_SET_ERR(rval, "Failed to get entities in unfilled set");
   }
   int dim = mbImpl->dimension_from_handle(*tmp_range.rbegin());
-  assert(dim > 0 && dim < 4);  
+  assert(dim > 0 && dim < 4);
   *unfilled_elems = tmp_range.subset_by_dimension(dim);
   if (unfilled_elems->empty()) {
     MB_SET_ERR(MB_FAILURE, "Failed to find any unfilled set entities");
   }
 
-  if (debug) 
+  if (debug)
     cout << "found " << unfilled_sets->size() << " sets and " << unfilled_elems->size() << " elements." << endl;
 
   return MB_SUCCESS;

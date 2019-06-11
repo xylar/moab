@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2006 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
+
     (2006) kraftche@cae.wisc.edu
-   
+
   ***************************************************************** */
 
 
 /** \file PMeanPMetric.cpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -44,7 +44,7 @@ namespace MBMesquite {
 bool PMeanPMetric::average( PatchData& pd,
                             QualityMetric* metric,
                             const std::vector<size_t>& qm_handles,
-                            double& value, 
+                            double& value,
                             MsqError& err )
 {
   bool rval = true;
@@ -52,7 +52,7 @@ bool PMeanPMetric::average( PatchData& pd,
   for (std::vector<size_t>::const_iterator i= qm_handles.begin();
        i != qm_handles.end(); ++i) {
     double mval;
-    if (!metric->evaluate( pd, *i, mval, err )) 
+    if (!metric->evaluate( pd, *i, mval, err ))
       rval = false;
     MSQ_ERRZERO(err);
     value += P.raise(mval);
@@ -62,39 +62,39 @@ bool PMeanPMetric::average( PatchData& pd,
 }
 
 
-bool PMeanPMetric::average_with_indices( PatchData& pd, 
+bool PMeanPMetric::average_with_indices( PatchData& pd,
                                          QualityMetric* metric,
                                          const std::vector<size_t>& qm_handles,
-                                         double& value, 
+                                         double& value,
                                          std::vector<size_t>& indices,
                                          MsqError& err )
 {
   indices.clear();
-  
+
   bool rval = true;
   value = 0;
   for (std::vector<size_t>::const_iterator i = qm_handles.begin();
        i != qm_handles.end(); ++i) {
     double mval;
     mIndices.clear();
-    if (!metric->evaluate_with_indices( pd, *i, mval, mIndices, err )) 
+    if (!metric->evaluate_with_indices( pd, *i, mval, mIndices, err ))
       rval = false;
     MSQ_ERRZERO(err);
     value += P.raise(mval);
-    
+
     std::copy( mIndices.begin(), mIndices.end(), std::back_inserter(indices) );
   }
   std::sort( indices.begin(), indices.end() );
   indices.erase( std::unique( indices.begin(), indices.end() ), indices.end() );
-  
+
   value /= qm_handles.size();
   return rval;
 }
 
-bool PMeanPMetric::average_with_gradient( PatchData& pd, 
+bool PMeanPMetric::average_with_gradient( PatchData& pd,
                                           QualityMetric* metric,
                                           const std::vector<size_t>& qm_handles,
-                                          double& value, 
+                                          double& value,
                                           std::vector<size_t>& indices,
                                           std::vector<Vector3D>& gradient,
                                           MsqError& err )
@@ -105,22 +105,22 @@ bool PMeanPMetric::average_with_gradient( PatchData& pd,
   std::vector<Vector3D>::iterator  g;
   std::vector<size_t>::iterator j, k;
   std::vector<size_t>::const_iterator i;
-  
+
   bool rval = true;
   value = 0;
   for (i = qm_handles.begin(); i != qm_handles.end(); ++i) {
-    
+
     double mval;
     mIndices.clear();
     mGrad.clear();
-    if (!metric->evaluate_with_gradient( pd, *i, mval, mIndices, mGrad, err )) 
+    if (!metric->evaluate_with_gradient( pd, *i, mval, mIndices, mGrad, err ))
       rval = false;
     MSQ_ERRZERO(err);
     value += P.raise(mval);
-    
+
     double p1val = P.value() * P1.raise( mval );
     for (j = mIndices.begin(), g = mGrad.begin(); j != mIndices.end(); ++j, ++g) {
-      
+
       *g *= p1val;
       k = std::lower_bound( indices.begin(), indices.end(), *j );
       if (k == indices.end() || *k != *j) {
@@ -134,16 +134,16 @@ bool PMeanPMetric::average_with_gradient( PatchData& pd,
       }
     }
   }
-  
+
   double inv_n = 1.0 / qm_handles.size();
   value *= inv_n;
   for (g = gradient.begin(); g != gradient.end(); ++g)
     *g *= inv_n;
-  
-  return rval;
-}  
 
-   
+  return rval;
+}
+
+
 bool PMeanPMetric::average_with_Hessian_diagonal( PatchData& pd,
                                         QualityMetric* metric,
                                         const std::vector<size_t>& qm_handles,
@@ -159,7 +159,7 @@ bool PMeanPMetric::average_with_Hessian_diagonal( PatchData& pd,
   mDiag.clear();
   mOffsets.clear();
   mValues.clear();
-  
+
     // Evaluate metric for all sample points,
     // accumulating indices, gradients, and Hessians
   bool rval = true;
@@ -169,10 +169,10 @@ bool PMeanPMetric::average_with_Hessian_diagonal( PatchData& pd,
     indices.clear();
     gradient.clear();
     diagonal.clear();
-    if (!metric->evaluate_with_Hessian_diagonal( pd, *q, mval, indices, gradient, diagonal, err )) 
+    if (!metric->evaluate_with_Hessian_diagonal( pd, *q, mval, indices, gradient, diagonal, err ))
       rval = false;
     MSQ_ERRZERO(err);
-    
+
     mValues.push_back( mval );
     mOffsets.push_back( mIndices.size() );
     std::copy( indices.begin(), indices.end(), std::back_inserter(mIndices) );
@@ -180,7 +180,7 @@ bool PMeanPMetric::average_with_Hessian_diagonal( PatchData& pd,
     std::copy(diagonal.begin(),diagonal.end(), std::back_inserter(mDiag) );
   }
   mOffsets.push_back( mIndices.size() );
-  
+
     // Combine lists of free vertex indices, and update indices
     // in per-evaluation lists to point into the combined gradient
     // and Hessian lists.
@@ -193,7 +193,7 @@ bool PMeanPMetric::average_with_Hessian_diagonal( PatchData& pd,
     assert( *j == *i );
     *i = j - indices.begin();
   }
-  
+
     // Allocate space and zero output gradient and Hessian lists
   const size_t n = indices.size();
   const size_t m = mValues.size();
@@ -203,7 +203,7 @@ bool PMeanPMetric::average_with_Hessian_diagonal( PatchData& pd,
   gradient.resize( n, Vector3D(0,0,0) );
   diagonal.clear();
   diagonal.resize( n, SymMatrix3D(0.0) );
-  
+
     // Average values, gradients, Hessians
   value = 0.0;
   for (size_t k = 0; k < m; ++k) { // for each metric evaluate
@@ -224,7 +224,7 @@ bool PMeanPMetric::average_with_Hessian_diagonal( PatchData& pd,
       const double r1 = r2 * mValues[k];
       v = r1 * mValues[k];
       const double h = r2 * P.value() * (P.value() - 1) * inv_n;
-      const double g = r1 * P.value() * inv_n; 
+      const double g = r1 * P.value() * inv_n;
         // for each gradient (or Hessian) for the local metric evaluation
       for (size_t r = mOffsets[k]; r < mOffsets[k+1]; ++r) {
         const size_t nr = mIndices[r];
@@ -238,16 +238,16 @@ bool PMeanPMetric::average_with_Hessian_diagonal( PatchData& pd,
     }
     value += v;
   }
-  
+
   value *= inv_n;
-  
+
   return rval;
 }
 
-bool PMeanPMetric::average_with_Hessian( PatchData& pd, 
+bool PMeanPMetric::average_with_Hessian( PatchData& pd,
                                          QualityMetric* metric,
                                          const std::vector<size_t>& qm_handles,
-                                         double& value, 
+                                         double& value,
                                          std::vector<size_t>& indices,
                                          std::vector<Vector3D>& gradient,
                                          std::vector<Matrix3D>& Hessian,
@@ -259,7 +259,7 @@ bool PMeanPMetric::average_with_Hessian( PatchData& pd,
   mHess.clear();
   mOffsets.clear();
   mValues.clear();
-  
+
     // Evaluate metric for all sample points,
     // accumulating indices, gradients, and Hessians
   bool rval = true;
@@ -269,10 +269,10 @@ bool PMeanPMetric::average_with_Hessian( PatchData& pd,
     indices.clear();
     gradient.clear();
     Hessian.clear();
-    if (!metric->evaluate_with_Hessian( pd, *q, mval, indices, gradient, Hessian, err )) 
+    if (!metric->evaluate_with_Hessian( pd, *q, mval, indices, gradient, Hessian, err ))
       rval = false;
     MSQ_ERRZERO(err);
-    
+
     mValues.push_back( mval );
     mOffsets.push_back( mIndices.size() );
     std::copy( indices.begin(), indices.end(), std::back_inserter(mIndices) );
@@ -280,7 +280,7 @@ bool PMeanPMetric::average_with_Hessian( PatchData& pd,
     std::copy( Hessian.begin(), Hessian.end(), std::back_inserter(mHess) );
   }
   mOffsets.push_back( mIndices.size() );
-  
+
     // Combine lists of free vertex indices, and update indices
     // in per-evaluation lists to point into the combined gradient
     // and Hessian lists.
@@ -293,7 +293,7 @@ bool PMeanPMetric::average_with_Hessian( PatchData& pd,
     assert( *j == *i );
     *i = j - indices.begin();
   }
-  
+
     // Allocate space and zero output gradient and Hessian lists
   const size_t N = indices.size();
   const size_t m = mValues.size();
@@ -303,7 +303,7 @@ bool PMeanPMetric::average_with_Hessian( PatchData& pd,
   gradient.resize( N, Vector3D(0,0,0) );
   Hessian.clear();
   Hessian.resize( N*(N+1)/2, Matrix3D(0.0) );
-  
+
     // Average values, gradients, Hessians
   Matrix3D outer;
   value = 0.0;
@@ -333,7 +333,7 @@ bool PMeanPMetric::average_with_Hessian( PatchData& pd,
       const double r1 = r2 * mValues[k];
       v = r1 * mValues[k];
       const double h = r2 * P.value() * (P.value() - 1) * inv_n;
-      const double g = r1 * P.value() * inv_n; 
+      const double g = r1 * P.value() * inv_n;
         // for each gradient (or Hessian row) for the local metric evaluation
       for (size_t r = mOffsets[k]; r < mOffsets[k+1]; ++r) {
         const size_t nr = mIndices[r];
@@ -356,10 +356,10 @@ bool PMeanPMetric::average_with_Hessian( PatchData& pd,
     }
     value += v;
   }
-  
+
   value *= inv_n;
-  
+
   return rval;
-}  
+}
 
 } // namespace MBMesquite

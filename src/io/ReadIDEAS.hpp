@@ -1,6 +1,6 @@
 #ifndef READIDEAS_HPP
 #define READIDEAS_HPP
-                  
+
 #ifndef IS_BUILDING_MB
   #error "ReadIDEAS.hpp isn't supposed to be included into an application"
 #endif
@@ -38,34 +38,34 @@ public:
                              const FileOptions& opts,
                              std::vector<int>& tag_values_out,
                              const SubsetList* subset_list = 0 );
-  
+
   //! Constructor
   ReadIDEAS(Interface* impl = NULL);
-  
+
   //! Destructor
   virtual ~ReadIDEAS() {}
 
 protected:
-  
+
   ErrorCode skip_header();
   ErrorCode create_vertices(EntityHandle& first_vertex, const Tag* file_id_tag);
   ErrorCode create_elements(EntityHandle first_vertex, const Tag* file_id_tag);
-  
+
 private:
-  
+
   std::ifstream file;
   RangeMap<int, EntityHandle> nodeIdMap;
-  
+
   // Read mesh interface
   ReadUtilIface* readMeshIface;
-  
+
   // MOAB Interface
   Interface* MBI;
 
 
   /* Universal dataset numbers
      An integer describes a chunk of information. These chunks include headers,
-     units, nodes, elements, patches, etc... described in the OpenFOAM IDEAS 
+     units, nodes, elements, patches, etc... described in the OpenFOAM IDEAS
      reader.
 
      1) http://amira.zib.de/usersguide31/hxideas/HxFileFormat_IDEAS.html
@@ -74,7 +74,7 @@ private:
      2) http://www.sdrl.uc.edu/universal-file-formats-for-modal-analysis-testing-1
      /file-format-storehouse/unv_0015.htm/
      15 nodes with single precision coordinates
-     line1 (4I10,1P3E13.5): node_label coord_sys_num displacement_sys_num 
+     line1 (4I10,1P3E13.5): node_label coord_sys_num displacement_sys_num
      color x y z */
   static const unsigned SINGLE_PRECISION_NODES = 15;
 
@@ -88,14 +88,14 @@ private:
   /* 4) http://www.sdrl.uc.edu/universal-file-formats-for-modal-analysis-testing-1
      /file-format-storehouse/unv_0780.htm/
      71, 780, 2412 element definitions
-     line1 (8I10): element_label fe_id phys_prop_bin_num phys_prop_num 
+     line1 (8I10): element_label fe_id phys_prop_bin_num phys_prop_num
      mat_prop_bin_num mat_prop_num color num_of_nodes
      line2 (8I10): connectivity_node_labels */
   static const unsigned ELEMENTS0 = 71;
   static const unsigned ELEMENTS1 = 780;
   static const unsigned ELEMENTS2 = 2412;
 
-  /* Mesh elements exist inside chunks 71, 780, and 2412. Each element definition 
+  /* Mesh elements exist inside chunks 71, 780, and 2412. Each element definition
      includes the finite element id that describes the element type. These are
      used in the OpenFOAM IDEAS reader. The canonical node ordering matches that
      of MBCN, as suggested by the Gmsh 2.2.3 source code.*/
@@ -106,7 +106,7 @@ private:
   static const int QUAD0 = 44;
   static const int QUAD1 = 94;
   static const int TET   = 111;
-  static const int WEDGE = 112;     
+  static const int WEDGE = 112;
   static const int HEX   = 115;
 
 };

@@ -53,7 +53,7 @@ int main(int argc, char **argv)
 
   RUN_TEST(test_kd_tree);
   RUN_TEST(test_bvh_tree);
-  
+
 #ifdef MOAB_HAVE_MPI
   fail = MPI_Finalize();
   if (fail) return fail;
@@ -62,11 +62,11 @@ int main(int argc, char **argv)
   return 0;
 }
 
-void test_kd_tree() 
+void test_kd_tree()
 {
   ErrorCode rval;
   Core mb;
-  
+
     // create a simple mesh to test
   Range elems;
   rval = create_hex_mesh(mb, elems, ints, 3); CHECK_ERR(rval);
@@ -90,11 +90,11 @@ void test_kd_tree()
   delete sl;
 }
 
-void test_bvh_tree() 
+void test_bvh_tree()
 {
   ErrorCode rval;
   Core mb;
-  
+
     // create a simple mesh to test
   Range elems;
   rval = create_hex_mesh(mb, elems, ints, 3); CHECK_ERR(rval);
@@ -107,7 +107,7 @@ void test_bvh_tree()
   rval = bvh.parse_options(fo);
   SpatialLocator *sl = new SpatialLocator(&mb, elems, &bvh);
   test_locator(sl);
-  
+
     // test with an evaluator
   ElemEvaluator eval(&mb);
   bvh.set_eval(&eval);
@@ -117,7 +117,7 @@ void test_bvh_tree()
   delete sl;
 }
 
-void test_locator(SpatialLocator *sl) 
+void test_locator(SpatialLocator *sl)
 {
   CartVect box_del, test_pt, test_res;
   BoundBox box = sl->local_box();
@@ -127,7 +127,7 @@ void test_locator(SpatialLocator *sl)
   int is_in;
   EntityHandle ent = 0;
   ErrorCode rval;
-  for (int i = 0; i < npoints; i++) {    
+  for (int i = 0; i < npoints; i++) {
       // generate a small number of random point to test
     double rx = (double)rand() * denom, ry = (double)rand() * denom, rz = (double)rand() * denom;
     test_pt = box.bMin + CartVect(rx*box_del[0], ry*box_del[1], rz*box_del[2]);
@@ -149,7 +149,7 @@ void test_locator(SpatialLocator *sl)
   }
 }
 
-ErrorCode create_hex_mesh(Interface &mb, Range &elems, int n, int dim) 
+ErrorCode create_hex_mesh(Interface &mb, Range &elems, int n, int dim)
 {
   ScdInterface *scdi;
   ErrorCode rval = mb.query_interface(scdi); CHECK_ERR(rval);

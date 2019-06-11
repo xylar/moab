@@ -1,9 +1,9 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2004 Sandia Corporation and Argonne National
-    Laboratory.  Under the terms of Contract DE-AC04-94AL85000 
-    with Sandia Corporation, the U.S. Government retains certain 
+    Laboratory.  Under the terms of Contract DE-AC04-94AL85000
+    with Sandia Corporation, the U.S. Government retains certain
     rights in this software.
 
     This library is free software; you can redistribute it and/or
@@ -16,13 +16,13 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
-    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov, 
-    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov      
-   
+
+    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov,
+    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov
+
   ***************************************************************** */
 // -*- Mode : c++; tab-width: 3; c-tab-always-indent: t; indent-tabs-mode: nil; c-basic-offset: 3 -*-
 
@@ -87,12 +87,12 @@ void InstructionQueue::remove_vertex_slaver( VertexSlaver* vs, MsqError& err)
       instructions.erase(i);
       if (isMasterSet && masterInstrIndex > idx)
         --masterInstrIndex;
-      if (--vertexSlaverCount == 0) 
+      if (--vertexSlaverCount == 0)
         set_slaved_ho_node_mode( Settings::SLAVE_ALL );
       return;
     }
   }
-  
+
   MSQ_SETERR(err)("Not found", MsqError::INVALID_ARG );
 }
 
@@ -115,7 +115,7 @@ void InstructionQueue::remove_tag_vertex_mesh( TagVertexMesh* vs, MsqError& err)
       return;
     }
   }
-  
+
   MSQ_SETERR(err)("Not found", MsqError::INVALID_ARG );
 }
 
@@ -124,7 +124,7 @@ void InstructionQueue::remove_tag_vertex_mesh( TagVertexMesh* vs, MsqError& err)
 
     This function cannot be used once the set_master_quality_improver()
     function has been used.
-    
+
     See also insert_preconditioner().
   */
 void InstructionQueue::add_preconditioner(QualityImprover* instr,
@@ -135,7 +135,7 @@ void InstructionQueue::add_preconditioner(QualityImprover* instr,
                     "QualityImprover has been set.", MsqError::INVALID_STATE);
     return;
   }
-  
+
   instructions.push_back(instr);
   nbPreConditionners++;
 }
@@ -157,23 +157,23 @@ void InstructionQueue::remove_preconditioner(size_t index, MsqError &err)
     MSQ_SETERR(err)("Index points beyond end of list.",MsqError::INVALID_ARG);
     return;
   }
-  
+
   // position the instruction iterator over the preconditioner to delete
   std::list<Instruction*>::iterator pos;
   pos = instructions.begin();
   std::advance(pos, index);
 
-  if (!dynamic_cast<QualityImprover*>(*pos)) 
+  if (!dynamic_cast<QualityImprover*>(*pos))
   {
     MSQ_SETERR(err)("Index does not point to a QualityImprover.",
                     MsqError::INVALID_ARG);
     return;
   }
-  
+
   std::string name = (*pos)->get_name();
   instructions.erase(pos);
   nbPreConditionners--;
-}  
+}
 
 
 /*! \fn InstructionQueue::insert_preconditioner(QualityImprover* instr, size_t index, MsqError &err)
@@ -233,22 +233,22 @@ void InstructionQueue::remove_quality_assessor(size_t index, MsqError &err)
     MSQ_SETERR(err)("index", MsqError::INVALID_ARG);
     return;
   }
-  
+
   // position the instruction iterator over the QualityAssessor to delete
   std::list<Instruction*>::iterator pos;
   pos = instructions.begin();
   std::advance(pos, index);
 
-  if ( !dynamic_cast<QualityAssessor*>(*pos) ) 
+  if ( !dynamic_cast<QualityAssessor*>(*pos) )
   {
     MSQ_SETERR(err)("Index does not point to a QualityImprover.",
                     MsqError::INVALID_ARG);
     return;
   }
-  
+
   std::string name = (*pos)->get_name();
   instructions.erase(pos);
-}  
+}
 
 
 /*! \fn InstructionQueue::insert_quality_assessor(QualityAssessor* instr, size_t index, MsqError &err)
@@ -296,12 +296,12 @@ void InstructionQueue::set_master_quality_improver(QualityImprover* instr,
   }
 }
 
-  
+
 void InstructionQueue::run_common( MeshDomainAssoc* mesh_and_domain,
-                                   ParallelMesh* pmesh, 
+                                   ParallelMesh* pmesh,
                                    Settings* settings,
                                    MsqError &err)
-{ 
+{
   MSQ_DBGOUT(1) << version_string(false) << "\n";
 
   if (nbPreConditionners != 0 && isMasterSet == false ) {
@@ -309,7 +309,7 @@ void InstructionQueue::run_common( MeshDomainAssoc* mesh_and_domain,
                     "is not set.", MsqError::INVALID_STATE);
     return;
   }
-  
+
 #ifdef ENABLE_INTERRUPT
    // Register SIGINT handler
   MsqInterrupt msq_interrupt;
@@ -320,37 +320,37 @@ void InstructionQueue::run_common( MeshDomainAssoc* mesh_and_domain,
 
     // Generate SIGFPE on floating point errors
   MsqFPE fpe_trap( settings->trap_floating_point_exception() );
-  
+
   std::list<Instruction*>::const_iterator instr;
-  
+
     // Initialize each instruction
-  for (instr = instructions.begin(); instr != instructions.end(); ++instr) 
+  for (instr = instructions.begin(); instr != instructions.end(); ++instr)
   {
     if (MsqInterrupt::interrupt())
     {
       MSQ_SETERR(err)(MsqError::INTERRUPTED);
       return;
     }
-    
-    (*instr)->initialize_queue( mesh_and_domain, settings, err ); 
+
+    (*instr)->initialize_queue( mesh_and_domain, settings, err );
     MSQ_ERRRTN(err);
   }
-  
+
     // Run each instruction
-  for (instr = instructions.begin(); instr != instructions.end(); ++instr) 
+  for (instr = instructions.begin(); instr != instructions.end(); ++instr)
   {
     if (MsqInterrupt::interrupt())
     {
       MSQ_SETERR(err)(MsqError::INTERRUPTED);
       return;
     }
-    
+
     if (pmesh) {
       assert(!mesh || pmesh == mesh);
-      (*instr)->loop_over_mesh( pmesh, domain, settings, err ); 
+      (*instr)->loop_over_mesh( pmesh, domain, settings, err );
     }
     else {
-      (*instr)->loop_over_mesh( mesh_and_domain, settings, err ); 
+      (*instr)->loop_over_mesh( mesh_and_domain, settings, err );
     }
     MSQ_ERRRTN(err);
   }
@@ -369,20 +369,20 @@ std::list<Instruction*>::iterator InstructionQueue::clear_master(MsqError &err)
 {
   std::list<Instruction*>::iterator instr_iter;
   std::list<Instruction*>::iterator master_pos;
-  
+
   if (!isMasterSet) {
     MSQ_SETERR(err)("No master quality improver to clear.", MsqError::INVALID_STATE);
     return instr_iter;
   }
-  
+
     // position the instruction iterator over the master quality improver
   master_pos = instructions.begin();
   std::advance(master_pos, masterInstrIndex);
-  
+
     // erases the master quality improver
   instr_iter = instructions.erase(master_pos);
   isMasterSet = false;
-  
+
     // returns the position where the Master was
   return instr_iter;
 }

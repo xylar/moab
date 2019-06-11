@@ -27,39 +27,39 @@ static void usage_error( const char* name )
     << "  This utility plots the mesh of a single geometric surface "
     << "projected to a plane.  The output file is written to stdout."
     << std::endl;
-  
+
   exit(USAGE_ERROR);
 }
 
 struct CartVect3D {
 
     double x, y, z;
-    
+
     CartVect3D() : x(0.0), y(0.0), z(0.0) {}
-    
+
     CartVect3D( double x_, double y_, double z_ )
       : x(x_), y(y_), z(z_) {}
 
     CartVect3D& operator+=( const CartVect3D& o )
       { x += o.x; y += o.y; z += o.z; return *this; }
-  
+
     CartVect3D& operator-=( const CartVect3D& o )
       { x -= o.x; y -= o.y; z -= o.z; return *this; }
-      
+
     CartVect3D& operator*=( const CartVect3D& );
-      
+
     CartVect3D& operator+=( double v )
       { x += v; y += v; z += v; return *this; }
-      
+
     CartVect3D& operator-=( double v )
       { x -= v; y -= v; z -= v; return *this; }
-      
+
     CartVect3D& operator*=( double v )
       { x *= v; y *= v; z *= v; return *this; }
-      
+
     CartVect3D& operator/=( double v )
       { x /= v; y /= v; z /= v; return *this; }
-    
+
     double len() const
       { return sqrt( x*x + y*y + z*z ); }
 };
@@ -99,12 +99,12 @@ static void find_rotation( CartVect3D plane_normal,
     plane_normal.y = 0.0;
   if (fabs(plane_normal.z) < 0.1)
     plane_normal.z = 0.0;
-  
+
     // calculate vector to rotate about
   const CartVect3D Z(0,0,1);
   CartVect3D vector = plane_normal * Z;
   const double len = vector.len();
-  
+
     // If vector is zero, no rotation
   if (len < 1e-2) {
     matrix[0][0] = matrix[1][1] = matrix[2][2] = 1.0;
@@ -117,42 +117,42 @@ static void find_rotation( CartVect3D plane_normal,
 
   const double cosine = plane_normal % Z;
   const double sine = sqrt( 1 - cosine*cosine );
-  
+
   std::cerr << "Rotation: " << acos(cosine) << " [" << vector.x << ' ' << vector.y << ' ' << vector.z << ']' << std::endl;
-  
+
   const double x = vector.x;
   const double y = vector.y;
   const double z = vector.z;
   const double c = cosine;
   const double s = sine;
   const double o = 1.0 - cosine;
-  
+
   matrix[0][0] =    c + x*x*o;
   matrix[0][1] = -z*s + x*y*o;
   matrix[0][2] =  y*s + x*z*o;
-  
+
   matrix[1][0] =  z*s + x*z*o;
   matrix[1][1] =    c + y*y*o;
   matrix[1][2] = -x*s + y*z*o;
-  
+
   matrix[2][0] = -y*s + x*z*o;
   matrix[2][1] =  x*s + y*z*o;
   matrix[2][2] =    c + z*z*o;
 }
-  
+
 static void transform_point( CartVect3D& point, double matrix[3][3] )
 {
   const double x = point.x;
   const double y = point.y;
   const double z = point.z;
-  
+
   point.x = x*matrix[0][0] + y*matrix[0][1] + z*matrix[0][2];
   point.y = x*matrix[1][0] + y*matrix[1][1] + z*matrix[1][2];
   point.z = x*matrix[2][0] + y*matrix[2][1] + z*matrix[2][2];
 }
-  
 
-static void write_gnuplot( std::ostream& stream, 
+
+static void write_gnuplot( std::ostream& stream,
                            const std::vector<CartVect3D>& list );
 
 static void write_svg( std::ostream& stream,
@@ -190,8 +190,8 @@ int main(int argc, char* argv[])
       usage_error(argv[0]);
     ++idx;
   }
-  
-    
+
+
 
     // scan CL args
   int surface_id;
@@ -202,7 +202,7 @@ int main(int argc, char* argv[])
   if (!endptr || *endptr)
     usage_error(argv[0]);
   ++idx;
-  
+
     // Load mesh
   result = moab->load_mesh( argv[idx] );
   if (MB_SUCCESS != result) {
@@ -212,7 +212,7 @@ int main(int argc, char* argv[])
       std::cerr << argv[idx] << " : error reading file.\n";
     return READ_ERROR;
   }
-  
+
     // Get tag handles
   EntityHandle surface;
   const int dimension = 2; // surface
@@ -232,7 +232,7 @@ int main(int argc, char* argv[])
                                         tags, tag_values,
                                         2, surfaces );
     if (surfaces.size() != 1) {
-      std::cerr << "Found " << surfaces.size() 
+      std::cerr << "Found " << surfaces.size()
                 << " surfaces with ID " << surface_id
                 << std::endl;
       return SURFACE_NOT_FOUND;
@@ -242,7 +242,7 @@ int main(int argc, char* argv[])
   else {
     surface = 0;
   }
-  
+
     // Get surface mesh
   Range elements;
   result = moab->get_entities_by_dimension( surface, dimension, elements );
@@ -250,7 +250,7 @@ int main(int argc, char* argv[])
     std::cerr << "Internal error\n";
     return OTHER_ERROR;
   }
-  
+
     // Calculate average corner normal in surface mesh
   CartVect3D normal(0,0,0);
   std::vector<EntityHandle> vertices;
@@ -271,7 +271,7 @@ int main(int argc, char* argv[])
       std::cerr << "Internal error\n";
       return OTHER_ERROR;
     }
-    
+
     for (size_t j = 0; j < coords.size(); ++j) {
       CartVect3D v1 = coords[(j+1)%coords.size()] - coords[j];
       CartVect3D v2 = coords[(j+1)%coords.size()] - coords[(j+2)%coords.size()];
@@ -280,7 +280,7 @@ int main(int argc, char* argv[])
   }
   normal /= normal.len();
 
-  
+
     // Get edges from elements
   Range edge_range;
   result = moab->get_adjacencies( elements, 1, true, edge_range, Interface::UNION );
@@ -288,7 +288,7 @@ int main(int argc, char* argv[])
     std::cerr << "Internal error\n";
     return OTHER_ERROR;
   }
-  
+
     // Get vertex coordinates for each edge
   std::vector<EntityHandle> edges( edge_range.size() );
   std::copy( edge_range.begin(), edge_range.end(), edges.begin() );
@@ -300,26 +300,26 @@ int main(int argc, char* argv[])
   }
   coords.clear();
   coords.resize( vertices.size() );
-  result = moab->get_coords( &vertices[0], vertices.size(), 
+  result = moab->get_coords( &vertices[0], vertices.size(),
                              reinterpret_cast<double*>(&coords[0]) );
   if (MB_SUCCESS != result) {
     std::cerr << "Internal error\n";
     return OTHER_ERROR;
   }
-  
+
     // Rotate points such that the projection into the view plane
     // can be accomplished by discarding the 'z' coordinate of each
     // point.
-  
+
   std::cerr << "Plane normal: [" << normal.x << ' ' << normal.y << ' ' << normal.z << ']' << std::endl;
   double transform[3][3];
   find_rotation( normal, transform );
-  
+
   for (iter = coords.begin(); iter != coords.end(); ++iter)
     transform_point( *iter, transform );
-  
+
     // Write the file.
-  
+
   switch (type) {
     case POSTSCRIPT:
       write_eps( std::cout, coords, surface_id );
@@ -333,10 +333,10 @@ int main(int argc, char* argv[])
   }
   return 0;
 }
-    
-void  write_gnuplot( std::ostream& stream, 
+
+void  write_gnuplot( std::ostream& stream,
                      const std::vector<CartVect3D>& coords )
-{ 
+{
   std::vector<CartVect3D>::const_iterator iter;
 
   stream << std::endl;
@@ -350,7 +350,7 @@ void  write_gnuplot( std::ostream& stream,
     stream << iter->x << ' ' << iter->y << std::endl;
     stream << std::endl;
   }
-  std::cerr << "Display with gnuplot command \"plot with lines\"\n"; 
+  std::cerr << "Display with gnuplot command \"plot with lines\"\n";
 }
 
 static void box_max( CartVect3D& cur_max, const CartVect3D& pt )
@@ -378,10 +378,10 @@ void write_eps( std::ostream& s, const std::vector<CartVect3D>& coords, int id )
 {
     // Coordinate range to use within EPS file
   const int X_MAX = 540;  // 540 pts / 72 pts/inch = 7.5 inches
-  const int Y_MAX = 720;  // 720 pts / 72 pts/inch = 10 inches 
-  
+  const int Y_MAX = 720;  // 720 pts / 72 pts/inch = 10 inches
+
   std::vector<CartVect3D>::const_iterator iter;
- 
+
     // Get bounding box
   const double D_MAX = std::numeric_limits<double>::max();
   CartVect3D min(  D_MAX,  D_MAX, 0 );
@@ -391,7 +391,7 @@ void write_eps( std::ostream& s, const std::vector<CartVect3D>& coords, int id )
     box_max( max, *iter );
     box_min( min, *iter );
   }
-  
+
     // Calculate translation to page coordinates
   CartVect3D offset = CartVect3D(0,0,0) - min;
   CartVect3D scale  = max - min;
@@ -401,12 +401,12 @@ void write_eps( std::ostream& s, const std::vector<CartVect3D>& coords, int id )
     scale.x = scale.y;
   else
     scale.y = scale.x;
-  
-  //std::cerr << "Min: " << min.x << ' ' << min.y << 
+
+  //std::cerr << "Min: " << min.x << ' ' << min.y <<
   //           "  Max: " << max.x << ' ' << max.y << std::endl
   //          << "Offset: " << offset.x << ' ' << offset.y <<
   //           "  Scale: " << scale.x << ' ' << scale.y << std::endl;
-  
+
     // Write header stuff
   s << "%!PS-Adobe-2.0 EPSF-2.0"                      << std::endl;
   s << "%%Creator: MOAB surfplot"                     << std::endl;
@@ -417,7 +417,7 @@ void write_eps( std::ostream& s, const std::vector<CartVect3D>& coords, int id )
   int max_y = (int)((max.y + offset.y) * scale.y);
   s << "%%BoundingBox: 0 0 " << max_x << ' ' << max_y << std::endl;
   s << "%%Pages: 1"                                   << std::endl;
-  
+
   s << "%%BeginProlog"                                << std::endl;
   s << "save"                                         << std::endl;
   s << "countdictstack"                               << std::endl;
@@ -426,11 +426,11 @@ void write_eps( std::ostream& s, const std::vector<CartVect3D>& coords, int id )
   s << "/showpage {} def"                             << std::endl;
   s << "/setpagedevice {pop} def"                     << std::endl;
   s << "%%EndProlog"                                  << std::endl;
-  
+
   s << "%%Page: 1 1"                                  << std::endl;
   s << "1 setlinewidth"                               << std::endl;
   s << "0.0 setgray"                                  << std::endl;
-  
+
   for (iter = coords.begin(); iter != coords.end(); ++iter)
   {
     double x1 = (iter->x + offset.x) * scale.x;
@@ -439,18 +439,18 @@ void write_eps( std::ostream& s, const std::vector<CartVect3D>& coords, int id )
       break;
     double x2 = (iter->x + offset.x) * scale.x;
     double y2 = (iter->y + offset.y) * scale.y;
-    
+
     s << "newpath"                                    << std::endl;
     s << x1 << ' ' << y1 << " moveto"                 << std::endl;
     s << x2 << ' ' << y2 << " lineto"                 << std::endl;
     s << "stroke"                                     << std::endl;
   }
-  
+
   s << "%%Trailer"                                    << std::endl;
   s << "cleartomark"                                  << std::endl;
   s << "countdictstack"                               << std::endl;
   s << "exch sub { end } repeat"                      << std::endl;
-  s << "restore"                                      << std::endl;  
+  s << "restore"                                      << std::endl;
   s << "%%EOF"                                        << std::endl;
 
 }
@@ -459,9 +459,9 @@ void write_eps( std::ostream& s, const std::vector<CartVect3D>& coords, int id )
 void write_svg( std::ostream& file,
                 const std::vector<CartVect3D>& coords )
 {
-  
+
   std::vector<CartVect3D>::const_iterator iter;
- 
+
     // Get bounding box
   const double D_MAX = std::numeric_limits<double>::max();
   CartVect3D min(  D_MAX,  D_MAX, 0 );
@@ -472,24 +472,24 @@ void write_svg( std::ostream& file,
     box_min( min, *iter );
   }
   CartVect3D size = max - min;
-  
+
     // scale to 640 pixels on a side
   double scale = 640.0 / (size.x > size.y ? size.x : size.y);
   size *= scale;
-  
-  
+
+
 
   file << "<?xml version=\"1.0\" standalone=\"no\"?>"                << std::endl;
-  file << "<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" " 
+  file << "<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" "
        << "\"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">"    << std::endl;
   file <<                                                               std::endl;
   file << "<svg width=\"" << (int)size.x
        << "\" height=\"" << (int)size.y
        << "\" version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\">" << std::endl;
-  
+
   int left = (int)(min.x * scale);
   int top = (int)(min.y * scale);
-  iter = coords.begin(); 
+  iter = coords.begin();
   while (iter != coords.end()) {
     file << "<line "
          << "x1=\"" << (int)(scale * iter->x) - left << "\" "
@@ -501,13 +501,13 @@ void write_svg( std::ostream& file,
          << "/>" << std::endl;
     ++iter;
   }
-  
+
     // Write footer
   file << "</svg>" << std::endl;
 }
-    
 
-    
-  
 
-    
+
+
+
+

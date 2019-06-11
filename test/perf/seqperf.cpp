@@ -38,7 +38,7 @@ int queryCount;                      //!< number of times to do each query set
 Core mb_core;                         //!< moab instance
 Interface& mb = mb_core;              //!< moab instance
 EntityHandle vertStart, elemStart; //!< first handle
-ReadUtilIface *readTool = 0;       
+ReadUtilIface *readTool = 0;
 long* queryVertPermutation = 0;      //!< pupulated by init(): "random" order for vertices
 long* queryElemPermutation = 0;      //!< pupulated by init(): "random" order for elements
 
@@ -49,7 +49,7 @@ long* permutation( long count )
   long* array = new long[count];
   for (long i = 0; i < count; ++i)
     array[i] = i;
-  
+
   for (long i = 0; i < count; ++i) {
     long r = rand();
     if (count > RAND_MAX) {
@@ -61,19 +61,19 @@ long* permutation( long count )
     }
     std::swap( array[i], array[r%count] );
   }
-  
+
   return array;
 }
 
 //! Initialize global variables
-void init() 
+void init()
 {
   ErrorCode rval = mb.query_interface( readTool );
   if (rval || !readTool) {
     assert(false);
     abort();
   }
- 
+
   queryVertPermutation = permutation( numVert );
   queryElemPermutation = permutation( numElem );
 }
@@ -83,7 +83,7 @@ void create_vertices_single( ); //!< create vertices one at a time
 void create_vertices_block( );  //!< create vertices in block using ReadUtilIface
 void create_elements_single( ); //!< create elements one at a time
 void create_elements_block( );  //!< create elements in block using ReadUtilIface
- 
+
 void forward_order_query_vertices(int percent); //!< calculate mean of all vertex coordinates
 void reverse_order_query_vertices(int percent); //!< calculate mean of all vertex coordinates
 void  random_order_query_vertices(int percent); //!< calculate mean of all vertex coordinates
@@ -174,29 +174,29 @@ std::string ts( clock_t t )
   return s.str();
 }
 
-//! run function, printing time spent 
+//! run function, printing time spent
 void TIME( const char* str, void (*func)() )
-{ 
-  std::cout << str << "... " << std::flush; 
+{
+  std::cout << str << "... " << std::flush;
   clock_t t = clock();
   (*func)();
   std::cout << ts(clock() - t) << std::endl;
 }
 
-//! run function query_repeat times, printing time spent 
+//! run function query_repeat times, printing time spent
 void TIME_QRY( const char* str, void (*func)(int percent), int percent )
-{ 
-  std::cout << str << "... " << std::flush; 
+{
+  std::cout << str << "... " << std::flush;
   clock_t t = clock();
   for (int i = 0; i < queryCount; ++i)
     (*func)(percent);
   std::cout << ts(clock() - t) << std::endl;
 }
 
-//! run function with integer argument, printing time spent 
+//! run function with integer argument, printing time spent
 void TIME_DEL( const char* str, void (*func)(int), int percent )
-{ 
-  std::cout << str << "... " << std::flush; 
+{
+  std::cout << str << "... " << std::flush;
   clock_t t = clock();
   (*func)(percent);
   std::cout << ts(clock() - t) << std::endl;
@@ -218,7 +218,7 @@ void do_test( int create_mode, //!< 0 == single, 1 == block
     std::cout << "Block Entity Creation (all entities in single block of memory)" << std::endl;
     TIME ( "  Creating initial vertices", create_vertices_block );
     TIME ( "  Creating initial elements", create_elements_block );
-    if (dump_mesh && !percent && mb.write_file( "seqperf.vtk" ) == MB_SUCCESS) 
+    if (dump_mesh && !percent && mb.write_file( "seqperf.vtk" ) == MB_SUCCESS)
       std::cout << "Wrote mesh to file: seqperf.vtk" << std::endl;
   }
   else {
@@ -226,13 +226,13 @@ void do_test( int create_mode, //!< 0 == single, 1 == block
     TIME ( "  Creating initial vertices", create_vertices_single );
     TIME ( "  Creating initial elements", create_elements_single );
   }
-  
+
   std::cout << order_strs[order] <<
     " order with deletion of " << percent << "% of vertices and elements" << std::endl;
 
   TIME_DEL( "  Deleting elements", delete_elems[order], percent );
   TIME_DEL( "  Deleting vertices", delete_verts[order], percent );
-  
+
   int num_vert = 0;
   int num_elem = 0;
   mb.get_number_entities_by_type( 0, MBVERTEX, num_vert );
@@ -251,7 +251,7 @@ void do_test( int create_mode, //!< 0 == single, 1 == block
   TIME_DEL( "  Re-creating elements", create_missing_elements, percent );
 
   TIME( "  Clearing mesh instance", delete_mesh );
-  
+
   std::cout << "Total time for test: " << ts(clock()-t) << std::endl << std::endl;
 }
 
@@ -262,7 +262,7 @@ void parse_order( const char* str, std::vector<int>& list )
       usage();
     list.push_back( 0 );
   }
-  else if (str[0] != 'r') 
+  else if (str[0] != 'r')
     usage();
   else if (str[1] == 'e') {
     if (strncmp( str, "reverse", strlen(str) ))
@@ -282,7 +282,7 @@ void parse_percent( const char* str, std::vector<int>& list )
   long p = strtol( str, &endptr, 0 );
   if (!endptr || *endptr || p < 0 || p > 100)
     usage();
-  
+
   list.push_back((int)p);
 }
 
@@ -295,7 +295,7 @@ int parse_positive_int( const char* str )
   int result = p;
   if (p != (long)result) // overflow
     usage();
-  
+
   return result;
 }
 
@@ -304,8 +304,8 @@ void check_default( std::vector<int>& list, const int* array, size_t array_len )
   if (list.empty())
     std::copy( array, array+array_len, std::back_inserter(list) );
 }
-    
-  
+
+
 
 int main( int argc, char* argv[] )
 {
@@ -313,21 +313,21 @@ int main( int argc, char* argv[] )
   std::vector<int> createList, orderList, deleteList;
   numSideInt = default_intervals;
   queryCount = default_query_count;
-  
+
   for (int i = 1; i < argc; ++i) {
       // check that arg is a '-' followed by a single character
     if (argv[i][0] != '-' || argv[i][1] == '\0' || argv[i][2] != '\0')
       usage();
-  
+
     const char flag = argv[i][1];
     switch (flag) {
       case 'b': createList.push_back( 1 ); break;
       case 's': createList.push_back( 0 ); break;
-      default: 
+      default:
         if (++i == argc)
           usage();
         switch (flag) {
-          case 'i': 
+          case 'i':
             numSideInt = parse_positive_int( argv[i] );
             break;
           case 'o':
@@ -347,23 +347,23 @@ int main( int argc, char* argv[] )
   check_default( createList, default_create, ARRSIZE(default_create) );
   check_default( orderList, default_order, ARRSIZE(default_order) );
   check_default( deleteList, default_delete, ARRSIZE(default_delete) );
-  
+
     // Do some initialization.
-  
+
   int numSideVert = numSideInt + 1;
   numVert = numSideVert * numSideVert * numSideVert;
   numElem = numSideInt * numSideInt * numSideInt;
   if (numVert / numSideVert / numSideVert != numSideVert) // overflow
     usage();
   init();
-  
+
     // Echo input args
-  
-  std::cout << numSideInt << "x" << numSideInt << "x" << numSideInt << " hex grid: " 
+
+  std::cout << numSideInt << "x" << numSideInt << "x" << numSideInt << " hex grid: "
             << numElem << " elements and " << numVert << " vertices" << std::endl;
-  
+
     // Run tests
-  
+
   std::vector<int>::const_iterator i,j,k;
   clock_t t = clock();
   for ( i = createList.begin(); i != createList.end(); ++i) {
@@ -373,9 +373,9 @@ int main( int argc, char* argv[] )
       }
     }
   }
-  
+
     // Clean up
-  
+
   std::cout << "TOTAL: " << ts(clock() - t) << std::endl << std::endl;
   delete [] queryVertPermutation;
   delete [] queryElemPermutation;
@@ -429,8 +429,8 @@ void create_vertices_single( )
   vertex_coords( 0, coords[0], coords[1], coords[2] );
   ErrorCode rval = mb.create_vertex( coords, vertStart );
   assert(!rval);
-  if (rval){} // empty line to remove compiler warning  
-  
+  if (rval){} // empty line to remove compiler warning
+
   EntityHandle h;
   for (long i = 1; i < numVert; ++i) {
     vertex_coords( i, coords[0], coords[1], coords[2] );
@@ -450,8 +450,8 @@ void create_vertices_block( )
   }
   double *x = arrays[0], *y = arrays[1], *z = arrays[2];
   assert( x && y && z );
-  
-  for (long i = 0; i < numVert; ++i) 
+
+  for (long i = 0; i < numVert; ++i)
     vertex_coords( i, *x++, *y++, *z++ );
 }
 
@@ -464,7 +464,7 @@ void create_elements_single( )
     assert(false);
     abort();
   }
-  
+
   EntityHandle h;
   for (long i = 1; i < numElem; ++i) {
     element_conn( i, conn );
@@ -483,11 +483,11 @@ void create_elements_block( )
     assert(false);
     abort();
   }
-  
-  for (long i = 0; i < numElem; ++i) 
+
+  for (long i = 0; i < numElem; ++i)
     element_conn( i, conn + 8*i );
 }
- 
+
 void forward_order_query_vertices(int percent)
 {
   ErrorCode r;
@@ -524,7 +524,7 @@ void reverse_order_query_vertices(int percent)
       for (x = deleted_x-1; x >= 0; --x, --h) {
         r = mb.get_coords( &h, 1, coords );
         assert(MB_SUCCESS == r);
-        if (r){} // empty line to remove compiler warning  
+        if (r){} // empty line to remove compiler warning
       }
     }
   }
@@ -540,7 +540,7 @@ void random_order_query_vertices(int percent)
       h = vertStart + queryVertPermutation[i];
       r = mb.get_coords( &h, 1, coords );
       assert(MB_SUCCESS == r);
-      if (r){} // empty line to remove compiler warning  
+      if (r){} // empty line to remove compiler warning
     }
   }
 }
@@ -559,7 +559,7 @@ void forward_order_query_elements(int percent)
       for (x = 0; x < deleted_x; ++x, ++h) {
         r = mb.get_connectivity( h, conn, len );
         assert(MB_SUCCESS == r);
-        if (r){} // empty line to remove compiler warning  
+        if (r){} // empty line to remove compiler warning
         assert(conn && 8 == len);
       }
       h += (elem_per_edge - deleted_x);
@@ -582,7 +582,7 @@ void reverse_order_query_elements(int percent)
       for (x = deleted_x-1; x >= 0; --x, --h) {
         r = mb.get_connectivity( h, conn, len );
         assert(MB_SUCCESS == r);
-        if (r){} // empty line to remove compiler warning  
+        if (r){} // empty line to remove compiler warning
         assert(conn && 8 == len);
       }
     }
@@ -598,7 +598,7 @@ void  random_order_query_elements(int percent)
     if (!deleted_elem( queryElemPermutation[i], percent )) {
       r = mb.get_connectivity( elemStart + queryElemPermutation[i], conn, len );
       assert(MB_SUCCESS == r);
-      if (r){} // empty line to remove compiler warning  
+      if (r){} // empty line to remove compiler warning
       assert(conn && 8 == len);
     }
   }
@@ -628,7 +628,7 @@ static double hex_centroid( double coords[24], double cent[3] )
 void forward_order_query_element_verts(int percent)
 {
   ErrorCode r=MB_SUCCESS;
-  if (r){} // empty line to remove compiler warning  
+  if (r){} // empty line to remove compiler warning
   const EntityHandle* conn;
   int len;
   long x, y, z;
@@ -654,7 +654,7 @@ void reverse_order_query_element_verts(int percent)
 {
   ErrorCode r=MB_SUCCESS;
   if (r) {} // empty statement to remove compiler warning
-  
+
   const EntityHandle* conn;
   int len;
   long x, y, z;
@@ -679,7 +679,7 @@ void reverse_order_query_element_verts(int percent)
 void  random_order_query_element_verts(int percent)
 {
   ErrorCode r=MB_SUCCESS;
-  if (r){} // empty line to remove compiler warning  
+  if (r){} // empty line to remove compiler warning
   const EntityHandle* conn;
   int len;
   double coords[24];
@@ -735,7 +735,7 @@ void create_missing_vertices( int percent )
 {
   EntityHandle h;
   ErrorCode rval=MB_SUCCESS;
-  if (rval){} // empty line to remove compiler warning  
+  if (rval){} // empty line to remove compiler warning
   double coords[3];
   for (long i = 0; i < numVert; ++i)
     if (deleted_vert( i, percent )) {

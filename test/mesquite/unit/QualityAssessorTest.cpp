@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2007 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2007) kraftche@cae.wisc.edu    
+    (2007) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file QualityAssessorTest.cpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -79,21 +79,21 @@ private:
   CPPUNIT_TEST (test_modify_metric);
   CPPUNIT_TEST (test_free_only);
   CPPUNIT_TEST_SUITE_END();
-  
+
   vector<double> vertCoords,invertCoords;
   vector<int> fixedFlags;
   vector<unsigned long> triConn, invertConn;
-  
+
   MeshImpl myMesh, invertedMesh;
   PlanarDomain myDomain;
   Settings mySettings;
-  
+
 public:
   void setUp();
   void tearDown();
-  
+
 public:
-  
+
   QualityAssessorTest() : myDomain(PlanarDomain::XY) {}
 
   void test_basic_stats_element();
@@ -140,7 +140,7 @@ void QualityAssessorTest::setUp()
    *  (0)------------------(1)
    *0.0     1.0      2.0   3.0
    */
-  const char vtk_file[] = 
+  const char vtk_file[] =
   "# vtk DataFile Version 3.0\n"
   "QualityAssessorTest input 1\n"
   "ASCII\n"
@@ -165,9 +165,9 @@ void QualityAssessorTest::setUp()
   "SCALARS fixed int\n"
   "LOOKUP_TABLE default\n"
   "1 1 1 1 0 0\n";
-  
+
   // define a mesh with two triangles, one of which is inverted wrt the other
-  const char invert_file[] = 
+  const char invert_file[] =
   "# vtk DataFile Version 3.0\n"
   "QualityAssessorTest input 2\n"
   "ASCII\n"
@@ -185,10 +185,10 @@ void QualityAssessorTest::setUp()
   "SCALARS fixed int\n"
   "LOOKUP_TABLE default\n"
   "1 1 1\n";
-  
+
   myMesh.clear();
   invertedMesh.clear();
-  
+
   const char* tmpname = "QualityAssessorTest.vtk";
   FILE* filp = fopen( tmpname, "w" );
   CPPUNIT_ASSERT( NULL != filp );
@@ -216,7 +216,7 @@ void QualityAssessorTest::tearDown()
 }
 
 // Define a decorator (wrapper) for a QualityMetric
-// instance that records each metric value.  
+// instance that records each metric value.
 class MetricLogger : public QualityMetric
 {
 public:
@@ -225,11 +225,11 @@ public:
   vector<double> mValues;
   vector<Mesh::EntityHandle> mHandles;
   int invalidCount;
-  
+
   double min() const { return *min_element(mValues.begin(), mValues.end()); }
   double max() const { return *max_element(mValues.begin(), mValues.end()); }
   double avg() const { double x=0; return accumulate(mValues.begin(), mValues.end(), x)/mValues.size(); }
-  double sqrsum() const { 
+  double sqrsum() const {
     double result = 0.0;
     for (unsigned i = 0; i < mValues.size(); ++i)
       result += mValues[i]*mValues[i];
@@ -243,15 +243,15 @@ public:
       result += pow(mValues[i], p);
     return pow( result/mValues.size(), 1./p );
   }
-  
-  bool no_duplicate_evals() const 
+
+  bool no_duplicate_evals() const
     {
       vector<Mesh::EntityHandle> handles(mHandles);
       sort( handles.begin(), handles.end() );
       return handles.end() == unique( handles.begin(), handles.end() );
     }
-  
-  MetricType get_metric_type() const 
+
+  MetricType get_metric_type() const
     { return mMetric->get_metric_type(); }
 
   std::string get_name() const
@@ -264,7 +264,7 @@ public:
     { return mMetric->get_evaluations( pd, handles, free, err ); }
 
   bool evaluate( PatchData& pd, size_t handle, double& value, MsqError& err )
-    { 
+    {
       bool rval = mMetric->evaluate( pd, handle, value, err );
       mValues.push_back( value );
       if (get_metric_type() == QualityMetric::VERTEX_BASED)
@@ -275,23 +275,23 @@ public:
         ++invalidCount;
       return rval;
     }
-  
+
   bool evaluate_with_indices( PatchData&, size_t, double&, vector<size_t>&, MsqError& err)
     { // shouldn't be called by QualityAssessor
       CPPUNIT_ASSERT(false);
-      MSQ_SETERR(err)(MsqError::NOT_IMPLEMENTED); 
+      MSQ_SETERR(err)(MsqError::NOT_IMPLEMENTED);
       return false;
     }
   bool evaluate_with_gradient( PatchData&, size_t, double&, vector<size_t>&, vector<Vector3D>&, MsqError& err )
     { // shouldn't be called by QualityAssessor
       CPPUNIT_ASSERT(false);
-      MSQ_SETERR(err)(MsqError::NOT_IMPLEMENTED); 
+      MSQ_SETERR(err)(MsqError::NOT_IMPLEMENTED);
       return false;
     }
   bool evaluate_with_Hessian( PatchData&, size_t, double&, vector<size_t>&, vector<Vector3D>&, vector<Matrix3D>&, MsqError& err )
     { // shouldn't be called by QualityAssessor
       CPPUNIT_ASSERT(false);
-      MSQ_SETERR(err)(MsqError::NOT_IMPLEMENTED); 
+      MSQ_SETERR(err)(MsqError::NOT_IMPLEMENTED);
       return false;
     }
 private:
@@ -304,21 +304,21 @@ void QualityAssessorTest::test_basic_stats_element()
   MetricLogger logger(&metric);
   QualityAssessor qa(&logger);
   qa.disable_printing_results();
-  
+
   MsqError err;
   MeshDomainAssoc mesh_and_domain = MeshDomainAssoc(&myMesh, &myDomain);
   qa.loop_over_mesh( &mesh_and_domain, &mySettings, err  );
   ASSERT_NO_ERROR( err );
-  
+
     // check didn't evaluate any element more than once
   CPPUNIT_ASSERT( logger.no_duplicate_evals() );
-  
+
     // check one eval for each element
   vector<Mesh::ElementHandle> elems;
   myMesh.get_all_elements( elems, err );
   ASSERT_NO_ERROR( err );
   CPPUNIT_ASSERT_EQUAL( elems.size(), logger.mValues.size() );
-  
+
     // check values
   const QualityAssessor::Assessor* results = qa.get_results(&logger);
   CPPUNIT_ASSERT(results != NULL);
@@ -337,21 +337,21 @@ void QualityAssessorTest::test_basic_stats_vertex()
   QualityAssessor qa(&logger);
   qa.measure_free_samples_only( false );
   qa.disable_printing_results();
-  
+
   MsqError err;
   MeshDomainAssoc mesh_and_domain = MeshDomainAssoc(&myMesh, &myDomain);
   qa.loop_over_mesh( &mesh_and_domain, &mySettings, err  );
   ASSERT_NO_ERROR( err );
-  
+
     // check didn't evaluate any vertex more than once
   CPPUNIT_ASSERT( logger.no_duplicate_evals() );
-  
+
     // check one eval for each element
   vector<Mesh::VertexHandle> verts;
   myMesh.get_all_vertices( verts, err );
   ASSERT_NO_ERROR( err );
   CPPUNIT_ASSERT_EQUAL( verts.size(), logger.mValues.size() );
-  
+
     // check values
   const QualityAssessor::Assessor* results = qa.get_results(&logger);
   CPPUNIT_ASSERT(results != NULL);
@@ -371,20 +371,20 @@ void QualityAssessorTest::test_basic_stats_sample()
   MetricLogger logger(&metric);
   QualityAssessor qa(&logger);
   qa.disable_printing_results();
- 
+
   MsqError err;
   MeshDomainAssoc mesh_and_domain = MeshDomainAssoc(&myMesh, &myDomain);
   qa.loop_over_mesh( &mesh_and_domain, &mySettings, err  );
   ASSERT_NO_ERROR( err );
-  
+
     // check didn't evaluate any sample more than once
   CPPUNIT_ASSERT( logger.no_duplicate_evals() );
-  
+
     // count total number of sample points in mesh
   vector<Mesh::ElementHandle> elems;
   myMesh.get_all_elements( elems, err );
   ASSERT_NO_ERROR( err );
-  
+
   vector<Mesh::VertexHandle> free_verts;
   PatchData global_patch;
   global_patch.set_mesh( &myMesh );
@@ -392,14 +392,14 @@ void QualityAssessorTest::test_basic_stats_sample()
   global_patch.attach_settings( &mySettings );
   global_patch.set_mesh_entities( elems, free_verts, err );
   ASSERT_NO_ERROR(err);
-  
+
   size_t num_samples = 0;
   for (size_t i = 0; i < global_patch.num_elements(); ++i)
     num_samples += global_patch.get_samples(i).num_nodes();
-  
+
     // check correct number of metric evaluations
   CPPUNIT_ASSERT_EQUAL( num_samples, logger.mValues.size() );
-  
+
     // check values
   const QualityAssessor::Assessor* results = qa.get_results(&logger);
   CPPUNIT_ASSERT(results != NULL);
@@ -421,12 +421,12 @@ void QualityAssessorTest::test_histogram_known_range()
   QualityAssessor qa;
   qa.add_histogram_assessment( &logger, lower, upper, intervals );
   qa.disable_printing_results();
-  
+
   MsqError err;
   MeshDomainAssoc mesh_and_domain = MeshDomainAssoc(&myMesh, &myDomain);
   qa.loop_over_mesh( &mesh_and_domain, &mySettings, err  );
   ASSERT_NO_ERROR( err );
-  
+
     // calculate expected histogram
   std::vector<int> counts(intervals+2, 0);
   for (vector<double>::iterator i = logger.mValues.begin(); i != logger.mValues.end(); ++i)
@@ -439,12 +439,12 @@ void QualityAssessorTest::test_histogram_known_range()
     else
       ++counts[bucket+1];
   }
-  
+
     // check values
   const QualityAssessor::Assessor* results = qa.get_results(&logger);
   CPPUNIT_ASSERT(results != NULL);
   CPPUNIT_ASSERT(results->have_histogram());
-  
+
   double r_lower, r_upper;
   vector<int> r_counts;
   results->get_histogram( r_lower, r_upper, r_counts, err );
@@ -452,7 +452,7 @@ void QualityAssessorTest::test_histogram_known_range()
   CPPUNIT_ASSERT_DOUBLES_EQUAL( lower, r_lower, DBL_EPSILON );
   CPPUNIT_ASSERT_DOUBLES_EQUAL( upper, r_upper, DBL_EPSILON );
   CPPUNIT_ASSERT_EQUAL( intervals+2, (int)r_counts.size() );
-  
+
   CPPUNIT_ASSERT_EQUAL( counts.front(), r_counts.front() );
   CPPUNIT_ASSERT_EQUAL( counts.back(), r_counts.back() );
   switch (intervals) {
@@ -480,12 +480,12 @@ void QualityAssessorTest::test_histogram_unknown_range()
   MetricLogger logger(&metric);
   QualityAssessor qa( &logger, intervals );
   qa.disable_printing_results();
-  
+
   MsqError err;
   MeshDomainAssoc mesh_and_domain = MeshDomainAssoc(&myMesh, &myDomain);
   qa.loop_over_mesh( &mesh_and_domain, &mySettings, err  );
   ASSERT_NO_ERROR( err );
-  
+
     // check values
   const QualityAssessor::Assessor* results = qa.get_results(&logger);
   CPPUNIT_ASSERT(results != NULL);
@@ -503,7 +503,7 @@ void QualityAssessorTest::test_histogram_unknown_range()
   CPPUNIT_ASSERT_EQUAL( 0, r_counts.front() );
   CPPUNIT_ASSERT_EQUAL( 0, r_counts.back() );
   CPPUNIT_ASSERT_EQUAL( intervals+2, (int)r_counts.size() );
-  
+
     // calculate expected histogram
   std::vector<int> counts(intervals, 0);
   for (vector<double>::iterator i = logger.mValues.begin(); i != logger.mValues.end(); ++i)
@@ -518,12 +518,12 @@ void QualityAssessorTest::test_histogram_unknown_range()
     CPPUNIT_ASSERT( bucket < intervals );
     ++counts[bucket];
   }
-  
+
     // QA should have evaluated metric twice, so adjust values
   CPPUNIT_ASSERT_EQUAL( 12, (int)logger.mValues.size() );
   for (vector<int>::iterator j = counts.begin(); j != counts.end(); ++j)
     *j /= 2;
-  
+
   switch (intervals) {
     default: for (int i = 10; i < intervals; ++i)
              CPPUNIT_ASSERT_EQUAL( counts[ i], r_counts[i+1]);
@@ -552,12 +552,12 @@ void QualityAssessorTest::test_power_mean()
   qa.add_quality_assessment( &logger1, 0, P1 );
   qa.add_quality_assessment( &logger2, 0, P2 );
   qa.disable_printing_results();
-  
+
   MsqError err;
   MeshDomainAssoc mesh_and_domain = MeshDomainAssoc(&myMesh, &myDomain);
   qa.loop_over_mesh( &mesh_and_domain, &mySettings, err  );
   ASSERT_NO_ERROR( err );
-  
+
     // get results
   const QualityAssessor::Assessor *result1, *result2, *result3;
   result1 = qa.get_results(&logger1);
@@ -566,12 +566,12 @@ void QualityAssessorTest::test_power_mean()
   CPPUNIT_ASSERT(NULL != result1);
   CPPUNIT_ASSERT(NULL != result2);
   CPPUNIT_ASSERT(NULL != result3);
-  
+
     // check flags
   CPPUNIT_ASSERT( result1->have_power_mean() );
   CPPUNIT_ASSERT( result2->have_power_mean() );
   CPPUNIT_ASSERT(!result3->have_power_mean() );
-  
+
     // check values
   CPPUNIT_ASSERT_DOUBLES_EQUAL( P1, result1->get_power(), DBL_EPSILON );
   CPPUNIT_ASSERT_DOUBLES_EQUAL( P2, result2->get_power(), DBL_EPSILON );
@@ -588,13 +588,13 @@ void QualityAssessorTest::test_invalid_count()
   qa.disable_printing_results();
   const QualityAssessor::Assessor* results = qa.get_results( &metric );
   CPPUNIT_ASSERT(NULL != results);
-  
+
     // try mesh with only valid elements
   MeshDomainAssoc mesh_and_domain = MeshDomainAssoc(&myMesh, &myDomain);
   qa.loop_over_mesh( &mesh_and_domain, &mySettings, err  );
   ASSERT_NO_ERROR( err );
   CPPUNIT_ASSERT_EQUAL( 0, results->get_invalid_element_count() );
-  
+
     // try mesh with one inverted element
   MeshDomainAssoc mesh_and_domain2 = MeshDomainAssoc(&invertedMesh, &myDomain);
   qa.loop_over_mesh( &mesh_and_domain2, &mySettings, err  );
@@ -609,7 +609,7 @@ void QualityAssessorTest::test_inverted_count()
   QualityAssessor qa;
   qa.measure_free_samples_only( false );
   qa.disable_printing_results();
-  
+
     // try mesh with only valid elements
   MeshDomainAssoc mesh_and_domain = MeshDomainAssoc(&myMesh, &myDomain);
   qa.loop_over_mesh( &mesh_and_domain, &mySettings, err  );
@@ -619,7 +619,7 @@ void QualityAssessorTest::test_inverted_count()
   ASSERT_NO_ERROR( err );
   CPPUNIT_ASSERT_EQUAL( 0, inverted );
   CPPUNIT_ASSERT_EQUAL( 0, samples );
-  
+
     // try mesh with one inverted element
   MeshDomainAssoc mesh_and_domain2 = MeshDomainAssoc(&invertedMesh, &myDomain);
   qa.loop_over_mesh( &mesh_and_domain2, &mySettings, err  );
@@ -645,7 +645,7 @@ public:
     errbuf = cerr.rdbuf();
     logbuf = clog.rdbuf();
   }
-  
+
   ~StreamRedirector() { restore(); }
 
   void redirect() {
@@ -654,7 +654,7 @@ public:
     cerr.rdbuf( errstr.rdbuf() );
     clog.rdbuf( logstr.rdbuf() );
   }
-  
+
   void restore() {
     cout.rdbuf( outbuf );
     cerr.rdbuf( errbuf );
@@ -685,7 +685,7 @@ public:
         case '\f': cout << "\\f"; break;
         case '\r': cout << "\\r"; break;
         case '\0': cout << "\\0"; break;
-        default: 
+        default:
           cout << '\\' << setw(3) << setfill('0') << oct << *i;
           break;
       }
@@ -693,7 +693,7 @@ public:
       // restore cout to incomming state
     cout.rdbuf(sbuf);
   }
-  
+
   void check_stream( const char* name, ostringstream& str, bool& result )
   {
     string s = str.str();
@@ -718,10 +718,10 @@ void QualityAssessorTest::test_output_control()
   // Redirect std::cout, std:cerr, and std::clog
   // so we know when they're written to.
   StreamRedirector redir;
-  
+
   MsqError err;
   ConditionNumberQualityMetric metric;
-  
+
     // disable output from constructor
   QualityAssessor qa1( &metric, 0, 0, false, 0, false );
   redir.redirect();
@@ -730,7 +730,7 @@ void QualityAssessorTest::test_output_control()
   redir.restore();
     // make sure nothing was written to output streams
   CPPUNIT_ASSERT( !redir.have_data() );
-  
+
     // disable output from function
   QualityAssessor qa2( &metric );
   qa2.disable_printing_results();
@@ -749,8 +749,8 @@ void QualityAssessorTest::test_output_control()
     // make sure nothing was written to output streams
   CPPUNIT_ASSERT( !redir.have_data() );
     // check that some data was written to specified stream
-  CPPUNIT_ASSERT( !deststr.str().empty() );  
-  
+  CPPUNIT_ASSERT( !deststr.str().empty() );
+
     // redir destructor should now restore normal output streams
 }
 
@@ -761,16 +761,16 @@ void QualityAssessorTest::test_tag_element()
   MetricLogger logger(&metric);
   QualityAssessor qa(&logger,0,0,false,tag_name);
   qa.disable_printing_results();
-  
+
   MsqError err;
   MeshDomainAssoc mesh_and_domain = MeshDomainAssoc(&myMesh, &myDomain);
   qa.loop_over_mesh( &mesh_and_domain, &mySettings, err  );
   ASSERT_NO_ERROR( err );
-  
+
   TagHandle tag;
   tag = myMesh.tag_get( tag_name, err );
   ASSERT_NO_ERROR( err );
-  
+
   string name;
   Mesh::TagType type;
   unsigned length;
@@ -779,14 +779,14 @@ void QualityAssessorTest::test_tag_element()
   CPPUNIT_ASSERT_EQUAL( name, string(tag_name) );
   CPPUNIT_ASSERT_EQUAL( Mesh::DOUBLE, type );
   CPPUNIT_ASSERT_EQUAL( 1u, length );
-  
+
   CPPUNIT_ASSERT_EQUAL( logger.mValues.size(), logger.mHandles.size() );
   CPPUNIT_ASSERT(!logger.mValues.empty());
   vector<double> tag_values( logger.mValues.size() );
   myMesh.tag_get_element_data( tag, logger.mHandles.size(),
                       &logger.mHandles[0], arrptr(tag_values), err );
   ASSERT_NO_ERROR( err );
-  
+
   for (unsigned i = 0; i < logger.mValues.size(); ++i)
     CPPUNIT_ASSERT_DOUBLES_EQUAL( logger.mValues[1], tag_values[1], DBL_EPSILON );
 }
@@ -798,16 +798,16 @@ void QualityAssessorTest::test_tag_vertex()
   MetricLogger logger(&metric);
   QualityAssessor qa(&logger,0,0,false,tag_name);
   qa.disable_printing_results();
-  
+
   MsqError err;
   MeshDomainAssoc mesh_and_domain = MeshDomainAssoc(&myMesh, &myDomain);
   qa.loop_over_mesh( &mesh_and_domain, &mySettings, err  );
   ASSERT_NO_ERROR( err );
-  
+
   TagHandle tag;
   tag = myMesh.tag_get( tag_name, err );
   ASSERT_NO_ERROR( err );
-  
+
   string name;
   Mesh::TagType type;
   unsigned length;
@@ -816,13 +816,13 @@ void QualityAssessorTest::test_tag_vertex()
   CPPUNIT_ASSERT_EQUAL( name, string(tag_name) );
   CPPUNIT_ASSERT_EQUAL( Mesh::DOUBLE, type );
   CPPUNIT_ASSERT_EQUAL( 1u, length );
-  
+
   CPPUNIT_ASSERT_EQUAL( logger.mValues.size(), logger.mHandles.size() );
   vector<double> tag_values( logger.mValues.size() );
   myMesh.tag_get_vertex_data( tag, logger.mHandles.size(),
                       &logger.mHandles[0], arrptr(tag_values), err );
   ASSERT_NO_ERROR( err );
-  
+
   for (unsigned i = 0; i < logger.mValues.size(); ++i)
     CPPUNIT_ASSERT_DOUBLES_EQUAL( logger.mValues[1], tag_values[1], DBL_EPSILON );
 }
@@ -832,16 +832,16 @@ void QualityAssessorTest::test_tag_inverted()
 {
   const char* tag_name = "123INVERT456";
   QualityAssessor qa( false, false, tag_name );
-  
+
   MsqError err;
   MeshDomainAssoc mesh_and_domain = MeshDomainAssoc(&invertedMesh, &myDomain);
   qa.loop_over_mesh( &mesh_and_domain, &mySettings, err  );
   ASSERT_NO_ERROR( err );
-  
+
   TagHandle tag;
   tag = invertedMesh.tag_get( tag_name, err );
   ASSERT_NO_ERROR( err );
-  
+
   string name;
   Mesh::TagType type;
   unsigned length;
@@ -850,17 +850,17 @@ void QualityAssessorTest::test_tag_inverted()
   CPPUNIT_ASSERT_EQUAL( name, string(tag_name) );
   CPPUNIT_ASSERT_EQUAL( Mesh::INT, type );
   CPPUNIT_ASSERT_EQUAL( 1u, length );
-  
+
   vector<Mesh::ElementHandle> elements;
   invertedMesh.get_all_elements( elements, err );
   ASSERT_NO_ERROR( err );
-  
+
   // expect two elements, one inverted
   CPPUNIT_ASSERT_EQUAL( (size_t)2, elements.size() );
   int data[2];
   invertedMesh.tag_get_element_data( tag, 2, arrptr(elements), data, err );
   ASSERT_NO_ERROR( err );
-  
+
   if (data[0]) {
     CPPUNIT_ASSERT_EQUAL( 0, data[1] );
   }
@@ -892,7 +892,7 @@ void QualityAssessorTest::test_print_inverted()
   for (; str >> curr && curr != "INVERTED"; prev = curr);
   str.str(prev);
   str >> value;
-  
+
   CPPUNIT_ASSERT_EQUAL( expected, value );
 }
 
@@ -912,7 +912,7 @@ void QualityAssessorTest::test_print_stats()
 
     // Expect metric name followed by 5 numerical values for statistics,
     // at some point in output.
-  
+
     // Find occurance of metric name in output
   for (;;) {
     stringstream name( metric.get_name() );
@@ -924,15 +924,15 @@ void QualityAssessorTest::test_print_stats()
     if (!name)
       break;
   }
-  
+
     // Read stats
   double min_s, max_s, avg_s, rms_s, dev_s;
   str >> min_s >> avg_s >> rms_s >> max_s >> dev_s;
-  
+
 
     // The following commented out because they no longer pass due to a change
     //  in the QA Summary format
- 
+
     // compare results
 //  CPPUNIT_ASSERT_DOUBLES_EQUAL( results->get_minimum(), min_s, min_s * 0.01 );
 //  CPPUNIT_ASSERT_DOUBLES_EQUAL( results->get_average(), avg_s, avg_s * 0.01 );
@@ -957,10 +957,10 @@ void QualityAssessorTest::test_print_name()
     // seach output for first occurance of name
   string s;
   while (str >> s && s != NAME);
-  CPPUNIT_ASSERT_EQUAL( s, string(NAME) ); 
+  CPPUNIT_ASSERT_EQUAL( s, string(NAME) );
 }
 
-// Test that adding a metric more than once changes 
+// Test that adding a metric more than once changes
 // properties for a single occurance of the metric,
 // rather than introducing multiple copies.
 void QualityAssessorTest::test_modify_metric()
@@ -970,11 +970,11 @@ void QualityAssessorTest::test_modify_metric()
   QualityAssessor qa( &metric );
   const QualityAssessor::Assessor* results = qa.get_results( &metric );
   CPPUNIT_ASSERT(NULL != results);
- 
+
   CPPUNIT_ASSERT( !results->have_histogram() );
   qa.add_histogram_assessment( &metric, 0.0, 1.0, 10 );
   CPPUNIT_ASSERT( results->have_histogram() );
- 
+
   CPPUNIT_ASSERT( !results->have_power_mean() );
   qa.add_quality_assessment( &metric, 0, 3.0 );
   CPPUNIT_ASSERT( results->have_power_mean() );
@@ -1001,7 +1001,7 @@ void QualityAssessorTest::test_free_only()
   unsigned long conn[] = { 0, 1, 2, 3,
                            1, 4, 7, 2,
                            4, 5, 6, 7 };
-  
+
   MsqError err;
   ArrayMesh mesh( 3, 8, coords, fixed, 3, QUADRILATERAL, conn );
   ConditionNumberQualityMetric metric;
@@ -1014,7 +1014,7 @@ void QualityAssessorTest::test_free_only()
   MeshDomainAssoc mesh_and_domain = MeshDomainAssoc(&mesh, &xy);
   q.run_instructions( &mesh_and_domain, err );
   ASSERT_NO_ERROR(err);
-  
+
   const QualityAssessor::Assessor* data;
   data = qa_all.get_results( &metric );
   CPPUNIT_ASSERT( 0 != data );
@@ -1025,8 +1025,8 @@ void QualityAssessorTest::test_free_only()
   CPPUNIT_ASSERT_EQUAL( 2, data->get_count() );
 }
 
-  
-  
-  
-  
+
+
+
+
 

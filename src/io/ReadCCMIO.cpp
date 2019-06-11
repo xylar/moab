@@ -48,7 +48,7 @@
  *      (CCMIOReadRestartInfo, kCCMIORestartData), reference data?
  * phase:
  *   field: char name[], dims, CCMIODataType datatype, char units[]
- *       dims = kCCMIOScalar (CCMIOReadFieldDataf), 
+ *       dims = kCCMIOScalar (CCMIOReadFieldDataf),
  *              kCCMIOVector (CCMIOReadMultiDimensionalFieldData),
  *              kCCMIOTensor
  * MonitoringSets: num, name (CellSet, VertexSet, BoundarySet, BlockSet, SplineSet, CoupleSet)
@@ -260,9 +260,9 @@ ErrorCode ReadCCMIO::load_matset_data(CCMIOID problemID)
 
     // Material id
     rval = get_int_option("MaterialId", dum_ent, mMaterialIdTag, next);MB_CHK_SET_ERR(rval, "Trouble getting MaterialId tag");
-    
+
     rval = get_str_option("MaterialType", dum_ent, mMaterialTypeTag, next);MB_CHK_SET_ERR(rval, "Trouble getting MaterialType tag");
-    
+
     rval = get_int_option("Radiation", dum_ent, mRadiationTag, next);MB_CHK_SET_ERR(rval, "Trouble getting Radiation option");
 
     rval = get_int_option("PorosityId", dum_ent, mPorosityIdTag, next);MB_CHK_SET_ERR(rval, "Trouble getting PorosityId option");
@@ -309,7 +309,7 @@ ErrorCode ReadCCMIO::get_dbl_option(const char *opt_str, EntityHandle seth,
   if (kCCMIONoErr == CCMIOReadOptf(NULL, node, opt_str, &fdum)) {
     ErrorCode rval;
     if (!tag) {
-      rval = mbImpl->tag_get_handle(opt_str, 1, MB_TYPE_DOUBLE, 
+      rval = mbImpl->tag_get_handle(opt_str, 1, MB_TYPE_DOUBLE,
                                     tag, MB_TAG_SPARSE | MB_TAG_CREAT);MB_CHK_SET_ERR(rval, "Failed to get tag handle");
     }
 
@@ -426,7 +426,7 @@ ErrorCode ReadCCMIO::read_cells(CCMIOSize_t /* proc */, CCMIOID problemID,
   rval = read_topology_types(topologyID, cell_topo_types);MB_CHK_SET_ERR(rval, "Problem reading cell topo types");
 
   // Now construct the cells; sort the face map by cell ids first
-#ifdef TUPLE_LIST  
+#ifdef TUPLE_LIST
   rval = face_map.sort(1);MB_CHK_SET_ERR(rval, "Couldn't sort face map by cell id");
 #endif
   std::vector<EntityHandle> new_cells;
@@ -507,10 +507,10 @@ ErrorCode ReadCCMIO::read_gids_and_types(CCMIOID /* problemID */,
   std::vector<int> cell_gids(num_cells);
   CCMIOReadCells(&error, cellsID, &mapID, NULL,
                  CCMIOINDEXC(kCCMIOStart), CCMIOINDEXC(kCCMIOEnd));CHK_SET_CCMERR(error, "Couldn't read cells");
-  CCMIOReadMap(&error, mapID, &cell_gids[0], 
+  CCMIOReadMap(&error, mapID, &cell_gids[0],
                CCMIOINDEXC(kCCMIOStart), CCMIOINDEXC(kCCMIOEnd));CHK_SET_CCMERR(error, "Couldn't read cell id map");
 
-  ErrorCode rval = mbImpl->tag_set_data(mGlobalIdTag, &cells[0], 
+  ErrorCode rval = mbImpl->tag_set_data(mGlobalIdTag, &cells[0],
                                           cells.size(), &cell_gids[0]);MB_CHK_SET_ERR(rval, "Couldn't set gids tag");
 
   // Now read cell material types; reuse cell_gids
@@ -1124,7 +1124,7 @@ ErrorCode ReadCCMIO::read_vertices(CCMIOSize_t /* proc */, CCMIOID /* processorI
 
   return MB_SUCCESS;
 }
-  
+
 ErrorCode ReadCCMIO::get_processors(CCMIOID stateID,
                                     CCMIOID &processorID, CCMIOID &verticesID,
                                     CCMIOID &topologyID, CCMIOID &solutionID,

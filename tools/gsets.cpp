@@ -63,7 +63,7 @@ int main( int argc, char* argv[] )
   bool no_more_flags = false;
   for (int i = 1; i < argc; ++i) {
     if (no_more_flags || argv[i][0] != '-') {
-      if (input_file) 
+      if (input_file)
         usage(argv[0]);
       input_file = argv[i];
       continue;
@@ -87,12 +87,12 @@ int main( int argc, char* argv[] )
       }
     }
   }
-  
+
   if (!input_file) {
     std::cerr << "No input file specified." << std::endl;
     usage(argv[0]);
   }
-  
+
   if (all_flag) {
     printGeomSets = printMeshSets = printNamedSets = printAnonSets = true;
   }
@@ -101,7 +101,7 @@ int main( int argc, char* argv[] )
     printMeshSets = mesh_flag;
     printNamedSets = name_flag;
   }
-  
+
   if (MB_SUCCESS != mb.load_mesh( input_file )) {
     std::cerr << input_file << ": file read failed." << std::endl;
     return 1;
@@ -130,12 +130,12 @@ int main( int argc, char* argv[] )
     }
   }
   idTag = mb.globalId_tag();
-  
+
   write_dot( contained, children );
   return 0;
 }
-      
-  
+
+
 void write_dot( Link contained, Link children )
 {
   Range sets;
@@ -149,19 +149,19 @@ void write_dot( Link contained, Link children )
   std::cout << "}" << std::endl;
 }
 
-static void dot_get_sets( Range& curr_sets, Range& result_sets, 
+static void dot_get_sets( Range& curr_sets, Range& result_sets,
                           Tag tag, void* tag_val = 0 )
 {
   if (!tag)
     return;
-    
+
   result_sets.clear();
   mb.get_entities_by_type_and_tag( 0, MBENTITYSET, &tag, &tag_val, 1, result_sets );
   result_sets = subtract( result_sets,  curr_sets );
   curr_sets.merge( result_sets );
 }
 
-static void dot_write_node( std::ostream& s, EntityHandle h, 
+static void dot_write_node( std::ostream& s, EntityHandle h,
                             const char* label, int* id = 0 )
 {
   s << 's' << mb.id_from_handle(h) << " [label = \"" << label;
@@ -177,7 +177,7 @@ static void dot_write_id_nodes( std::ostream& s,
 {
   int id;
   for (Range::iterator i = entites.begin(); i != entites.end(); ++i)
-    if (MB_SUCCESS == mb.tag_get_data( id_tag, &*i, 1, &id )) 
+    if (MB_SUCCESS == mb.tag_get_data( id_tag, &*i, 1, &id ))
       dot_write_node( s, *i, type_name, &id );
 }
 
@@ -188,7 +188,7 @@ void dot_nodes( std::ostream& s, Range& sets )
   Range named_sets, other_sets;
 
   dot_get_sets( sets, named_sets, nameTag );
-    
+
   int dim = 3;
   dot_get_sets( sets, vol_sets, geomTag, &dim );
   dim = 2;
@@ -197,7 +197,7 @@ void dot_nodes( std::ostream& s, Range& sets )
   dot_get_sets( sets, curv_sets, geomTag, &dim );
   dim = 0;
   dot_get_sets( sets, vert_sets, geomTag, &dim );
-  
+
   dot_get_sets( sets, block_sets, blockTag );
   dot_get_sets( sets, side_sets, sideTag );
   dot_get_sets( sets, node_sets, nodeTag );
@@ -208,7 +208,7 @@ void dot_nodes( std::ostream& s, Range& sets )
     sets.swap(other_sets);
     other_sets.swap(xsect);
   }
-  
+
   dot_write_id_nodes( s, vol_sets , idTag, "Volume"  );
   dot_write_id_nodes( s, surf_sets, idTag, "Surface" );
   dot_write_id_nodes( s, curv_sets, idTag, "Curve"   );
@@ -216,7 +216,7 @@ void dot_nodes( std::ostream& s, Range& sets )
   dot_write_id_nodes( s, block_sets, blockTag, "Block" );
   dot_write_id_nodes( s, side_sets, sideTag, "Neumann Set" );
   dot_write_id_nodes( s, node_sets, nodeTag, "Dirichlet Set" );
-  
+
   Range::iterator i;
   char name[NAME_TAG_SIZE+1];
   for (i = named_sets.begin(); i != named_sets.end(); ++i) {
@@ -239,7 +239,7 @@ static void dot_down_link( std::ostream& s,
 {
   s << 's' << mb.id_from_handle(parent) << " -> "
     << 's' << mb.id_from_handle(child);
-  if (dashed && label) 
+  if (dashed && label)
     s << " [style = dashed label = \"" << label << "\"]";
   else if (dashed)
     s << " [style = dashed]";
@@ -249,7 +249,7 @@ static void dot_down_link( std::ostream& s,
 }
 
 
-void dot_children( std::ostream& s, 
+void dot_children( std::ostream& s,
                    const Range& sets,
                    bool dashed )
 {
@@ -259,7 +259,7 @@ void dot_children( std::ostream& s,
     Range parents;
     mb.get_parent_meshsets( *i, parents );
     parents = intersect( parents,  sets );
-    
+
     for (Range::iterator j = parents.begin(); j != parents.end(); ++j) {
       const char* linklabel = 0;
       if (printSVSense && MB_SUCCESS == geomTool.get_sense( *i, *j, sense ))
@@ -273,7 +273,7 @@ void dot_children( std::ostream& s,
 }
 
 
-void dot_contained( std::ostream& s, 
+void dot_contained( std::ostream& s,
                     const Range& sets,
                     bool dashed )
 {
@@ -281,7 +281,7 @@ void dot_contained( std::ostream& s,
     Range contained;
     mb.get_entities_by_type(*i, MBENTITYSET, contained );
     contained = intersect( contained,  sets );
-    
+
     for (Range::iterator j = contained.begin(); j != contained.end(); ++j)
       dot_down_link( s, *i, *j, dashed );
   }

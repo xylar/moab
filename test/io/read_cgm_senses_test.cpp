@@ -14,7 +14,7 @@
 #include "CGMConfig.h"
 
 #define SENSE_FORWARD 1
-#define SENSE_REVERSE -1 
+#define SENSE_REVERSE -1
 #define SENSE_UNKNOWN 0
 using namespace moab;
 
@@ -41,9 +41,9 @@ ErrorCode load_sat_surf_sense_data( Interface* moab, EntityHandle surf, std::vec
 ErrorCode load_stp_surf_sense_data( Interface* moab, EntityHandle surf, std::vector<int>& vol_ids_out, std::vector<int>& senses_out );
 ErrorCode load_precgm14_stp_surf_sense_data( Interface* moab, EntityHandle surf, std::vector<int>& vol_ids_out, std::vector<int>& senses_out );
 
-// Functions used to compare sense information found in 
+// Functions used to compare sense information found in
 // the model to reference information
-void check_sense_data( Interface* moab, std::vector<EntityHandle> wrt_ents, std::vector<int> senses, 
+void check_sense_data( Interface* moab, std::vector<EntityHandle> wrt_ents, std::vector<int> senses,
                              std::vector<int> known_wrt_ids, std::vector<int> known_senses );
 
 //Function used to get id's from entity handles
@@ -59,9 +59,9 @@ int main(int /* argc */, char** /* argv */)
 {
   int result = 0;
 
-  result += RUN_TEST(read_cylcube_surf_senses_test);  
-  result += RUN_TEST(read_cylcube_curve_senses_test);  
- 
+  result += RUN_TEST(read_cylcube_surf_senses_test);
+  result += RUN_TEST(read_cylcube_curve_senses_test);
+
   return result;
 }
 
@@ -75,7 +75,7 @@ void read_file( Interface* moab, const char* input_file )
   CHECK_ERR(rval);
 }
 
-// Gets the sense data for each curve from a file 
+// Gets the sense data for each curve from a file
 // containing a cube and a cylinder. It then checks
 // that this sense data matches the reference
 // sense data from prior file reads.
@@ -86,13 +86,13 @@ void read_cylcube_curve_senses_test()
   Core moab;
   Interface* mb = &moab;
   read_file( mb, input_cylcube.c_str() );
-  
+
   //Get all curve handles
   Tag geom_tag;
   rval = mb->tag_get_handle( GEOM_DIMENSION_TAG_NAME, 1,
 			MB_TYPE_INTEGER, geom_tag, moab::MB_TAG_DENSE|moab::MB_TAG_CREAT );
   CHECK_ERR(rval);
-  
+
   // Check that the proper number of curves exist
   int dim = 1;
   void *val[] = {&dim};
@@ -101,7 +101,7 @@ void read_cylcube_curve_senses_test()
     					          val, 1, number_of_curves );
   CHECK_ERR(rval);
   //Step format adds a surface on the barrel of the cylinder.
-  //This created 4 extra surfaces in comparison to the .sat format from Cubit. 
+  //This created 4 extra surfaces in comparison to the .sat format from Cubit.
   //(New surface breaks the barrel of the cylinder into two half-pipes)
 #ifdef HAVE_OCC_STEP
   CHECK_EQUAL( 18, number_of_curves );
@@ -115,11 +115,11 @@ void read_cylcube_curve_senses_test()
 	  					    val, 1, curves );
   CHECK_ERR(rval);
 
-  // Establish GeomTopoTool instance needed to get curve data 
-  moab::GeomTopoTool gt( mb, false );  
+  // Establish GeomTopoTool instance needed to get curve data
+  moab::GeomTopoTool gt( mb, false );
   // Initialize vectors for sense checking
   std::vector<EntityHandle> surfs;
-  std::vector<int> senses;  
+  std::vector<int> senses;
   std::vector<int> known_surf_ids;
   std::vector<int> known_senses;
 
@@ -160,21 +160,21 @@ for(unsigned int i = 0; i < curves.size() ; i++)
 
 int geom_id_by_handle( Interface* moab, const EntityHandle set )
 {
-    
+
     ErrorCode rval;
     //Get the id_tag handle
     Tag id_tag = moab->globalId_tag();
-    //Load the ID for the EntHandle given to the function                  
+    //Load the ID for the EntHandle given to the function
     int id;
-    rval = moab->tag_get_data( id_tag, &set, 1, &id );                  
-    CHECK_ERR(rval);                        
+    rval = moab->tag_get_data( id_tag, &set, 1, &id );
+    CHECK_ERR(rval);
     return id;
  }
 
-void check_sense_data( Interface* moab, std::vector<EntityHandle> wrt_ents, std::vector<int> senses, 
+void check_sense_data( Interface* moab, std::vector<EntityHandle> wrt_ents, std::vector<int> senses,
                              std::vector<int> known_wrt_ids, std::vector<int> known_senses )
 {
-  
+
   //Get ID's of the wrt entities
   std::vector<int> wrt_ent_ids;
   for(unsigned int i=0 ; i<wrt_ents.size() ; i++)
@@ -201,7 +201,7 @@ void check_sense_data( Interface* moab, std::vector<EntityHandle> wrt_ents, std:
      }
   }
 
-  // After both loops are complete, known_wrt_ents should be empty 
+  // After both loops are complete, known_wrt_ents should be empty
   int leftovers = wrt_ent_ids.size();
   CHECK_EQUAL( leftovers, 0 );
 
@@ -286,7 +286,7 @@ ErrorCode load_sat_curve_sense_data( Interface* moab, EntityHandle curve, std::v
     default:
           return MB_FAILURE;
 
-  } 
+  }
   return MB_SUCCESS;
 }
 
@@ -385,7 +385,7 @@ ErrorCode load_stp_curve_sense_data( Interface* moab, EntityHandle curve, std::v
     default:
           return MB_FAILURE;
 
-  } 
+  }
   return MB_SUCCESS;
 }
 
@@ -483,12 +483,12 @@ ErrorCode load_precgm14_stp_curve_sense_data( Interface* moab, EntityHandle curv
     default:
           return MB_FAILURE;
 
-  } 
+  }
   return MB_SUCCESS;
 }
 
 // SURFACE SENSE CHECKING
-// Gets the sense data for each surface from a file 
+// Gets the sense data for each surface from a file
 // containing a cube and a cylinder. It then checks
 // that this sense data matches the reference
 // sense data from prior file reads.
@@ -499,13 +499,13 @@ void read_cylcube_surf_senses_test()
   Core moab;
   Interface* mb = &moab;
   read_file( mb, input_cylcube.c_str() );
-  
+
   //Get geometry tag for gathering surface information from the mesh
   Tag geom_tag;
-  rval = mb->tag_get_handle( GEOM_DIMENSION_TAG_NAME, 1, MB_TYPE_INTEGER, 
+  rval = mb->tag_get_handle( GEOM_DIMENSION_TAG_NAME, 1, MB_TYPE_INTEGER,
                              geom_tag, moab::MB_TAG_DENSE|moab::MB_TAG_CREAT );
   CHECK_ERR(rval);
-  
+
   // Check that the proper number of surfaces exist
   int dim = 2;
   void *val[] = {&dim};
@@ -526,10 +526,10 @@ void read_cylcube_surf_senses_test()
 	  					    val, 1, surfs );
   CHECK_ERR(rval);
 
-  // Establish GeomTopoTool instance needed to get surf data 
-  moab::GeomTopoTool gt( mb, false );  
+  // Establish GeomTopoTool instance needed to get surf data
+  moab::GeomTopoTool gt( mb, false );
   std::vector<EntityHandle> vols;
-  std::vector<int> senses;  
+  std::vector<int> senses;
   std::vector<int> known_vol_ids;
   std::vector<int> known_senses;
 
@@ -545,7 +545,7 @@ for(unsigned int i = 0; i < surfs.size(); i++)
    //Clear previous reverence data
    known_vol_ids.clear();
    known_senses.clear();
-   // Load known surface-volume data 
+   // Load known surface-volume data
    // for this surface and check that it's correct
 #ifdef HAVE_OCC_STEP
    if (CGM_MAJOR_VERSION >= 14)
@@ -561,7 +561,7 @@ for(unsigned int i = 0; i < surfs.size(); i++)
    rval = load_sat_surf_sense_data( mb, surfs[i], known_vol_ids, known_senses );
    CHECK_ERR(rval);
 #endif
-   // Check sense information from the loaded mesh against 
+   // Check sense information from the loaded mesh against
    // reference sense information
    check_sense_data( mb, vols, senses, known_vol_ids, known_senses );
 
@@ -577,39 +577,39 @@ ErrorCode load_sat_surf_sense_data( Interface* moab, EntityHandle surf, std::vec
   {
     case 1:
           vol_ids_out.push_back(1);
-          senses_out.push_back(SENSE_FORWARD); 
+          senses_out.push_back(SENSE_FORWARD);
           break;
 
     case 2:
           vol_ids_out.push_back(1);
-          senses_out.push_back(SENSE_FORWARD); 
+          senses_out.push_back(SENSE_FORWARD);
           break;
 
     case 3:
           vol_ids_out.push_back(1);
-          senses_out.push_back(SENSE_FORWARD); 
+          senses_out.push_back(SENSE_FORWARD);
           break;
 
     case 4:
           vol_ids_out.push_back(1);
-          senses_out.push_back(SENSE_FORWARD); 
+          senses_out.push_back(SENSE_FORWARD);
           break;
 
     case 5:
           vol_ids_out.push_back(1);
-          senses_out.push_back(SENSE_FORWARD); 
+          senses_out.push_back(SENSE_FORWARD);
           break;
 
     case 6:
           vol_ids_out.push_back(1);
-          senses_out.push_back(SENSE_FORWARD); 
+          senses_out.push_back(SENSE_FORWARD);
           break;
 
     case 7:
           vol_ids_out.push_back(2);
           senses_out.push_back(SENSE_FORWARD);
           break;
-  
+
     case 8:
           vol_ids_out.push_back(2);
           senses_out.push_back(SENSE_FORWARD);
@@ -634,39 +634,39 @@ ErrorCode load_stp_surf_sense_data( Interface* moab, EntityHandle surf, std::vec
   {
     case 1:
           vol_ids_out.push_back(1);
-          senses_out.push_back(SENSE_FORWARD); 
+          senses_out.push_back(SENSE_FORWARD);
           break;
 
     case 2:
           vol_ids_out.push_back(1);
-          senses_out.push_back(SENSE_REVERSE); 
+          senses_out.push_back(SENSE_REVERSE);
           break;
 
     case 3:
           vol_ids_out.push_back(1);
-          senses_out.push_back(SENSE_REVERSE); 
+          senses_out.push_back(SENSE_REVERSE);
           break;
 
     case 4:
           vol_ids_out.push_back(1);
-          senses_out.push_back(SENSE_REVERSE); 
+          senses_out.push_back(SENSE_REVERSE);
           break;
 
     case 5:
           vol_ids_out.push_back(1);
-          senses_out.push_back(SENSE_REVERSE); 
+          senses_out.push_back(SENSE_REVERSE);
           break;
 
     case 6:
           vol_ids_out.push_back(1);
-          senses_out.push_back(SENSE_REVERSE); 
+          senses_out.push_back(SENSE_REVERSE);
           break;
 
     case 7:
           vol_ids_out.push_back(2);
           senses_out.push_back(SENSE_FORWARD);
           break;
-  
+
     case 8:
           vol_ids_out.push_back(2);
           senses_out.push_back(SENSE_FORWARD);
@@ -701,7 +701,7 @@ ErrorCode load_precgm14_stp_surf_sense_data( Interface* moab, EntityHandle surf,
     case 5:
     case 6:
           vol_ids_out.push_back(1);
-          senses_out.push_back(SENSE_FORWARD); 
+          senses_out.push_back(SENSE_FORWARD);
           break;
 
     case 7:
@@ -711,7 +711,7 @@ ErrorCode load_precgm14_stp_surf_sense_data( Interface* moab, EntityHandle surf,
           vol_ids_out.push_back(2);
           senses_out.push_back(SENSE_FORWARD);
           break;
-  
+
     default:
       std::cout << "Failure to find surface sense reference data. Returning failure..." << std::endl;
           return MB_FAILURE;

@@ -21,10 +21,10 @@ class Interface;
  */
 class ReadTemplate : public ReaderIface
 {
-   
+
 public:
 
-    //! factory method 
+    //! factory method
   static ReaderIface* factory( Interface* );
 
   ErrorCode load_file( const char* file_name,
@@ -38,7 +38,7 @@ public:
                              const FileOptions& opts,
                              std::vector<int>& tag_values_out,
                              const SubsetList* subset_list = 0 );
-  
+
     //! Constructor
   ReadTemplate(Interface* impl = NULL);
 
@@ -53,7 +53,7 @@ private:
      * \param read_ents Range storing all entities read from this file
      */
   ErrorCode read_vertices(int num_verts, EntityHandle &start_vertex, Range &read_ents);
-  
+
     /** \brief Read element data and create elements in MOAB database
      * \param num_elems Number of elements to be read
      * \param start_vertex Starting vertex handle; used to offset connectivity indices
@@ -71,22 +71,22 @@ private:
      * \param num_elems Total number of elements read from file
      * \param read_ents Range storing all entities read from this file
      */
-  ErrorCode create_sets(int num_sets, EntityHandle start_vertex, int num_verts, 
+  ErrorCode create_sets(int num_sets, EntityHandle start_vertex, int num_verts,
                         EntityHandle start_elem, int num_elems, Range &read_ents);
-  
-  
+
+
     /** \brief Process options passed into the reader
      * \param opts Options passed into this read
      */
   ErrorCode process_options(const FileOptions &opts);
-  
+
   ReadUtilIface* readMeshIface;
 
     //! interface instance
   Interface* mbImpl;
 
   const char *fileName;
-  
+
 };
 
 } // namespace moab

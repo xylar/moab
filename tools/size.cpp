@@ -42,7 +42,7 @@ using namespace moab;
 
 static void print_usage( const char* name, std::ostream& stream )
 {
-  stream << "Usage: " << name 
+  stream << "Usage: " << name
          << " <options> <input_file> [<input_file2> ...]" << std::endl
          << "Options: " << std::endl
          << "\t-f             - List available file formats and exit." << std::endl
@@ -65,16 +65,16 @@ static void print_usage( const char* name, std::ostream& stream )
 Core mb;
 
 
-struct stat_set 
+struct stat_set
 {
   double sum;
   double sqr;
-  double min; 
+  double min;
   double max;
   long count;
-  
+
   inline stat_set() : sum(0), sqr(0), min(HUGE_VAL), max(0), count (0) {}
-  
+
   inline void add( double val )
   {
     if (val < min)
@@ -85,7 +85,7 @@ struct stat_set
     sqr += val*val;
     ++count;
   }
-  
+
   inline void add( const stat_set& stats )
   {
     if (stats.min < min)
@@ -96,7 +96,7 @@ struct stat_set
     sqr += stats.sqr;
     count += stats.count;
   }
-  
+
   inline void clear()
   {
     sum = sqr = 0.0;
@@ -109,21 +109,21 @@ struct set_stats {
   stat_set stats[MBMAXTYPE];
   stat_set edge_uses;
   size_t nodes;
-  
+
   void add( const set_stats& other )
   {
     for (int i = 0; i < MBMAXTYPE; ++i)
       stats[i].add( other.stats[i] );
     edge_uses.add( other.edge_uses );
   }
-  
+
   void clear()
   {
     for (int i = 0; i < MBMAXTYPE; ++i)
       stats[i].clear();
     edge_uses.clear();
   }
-    
+
 };
 
 
@@ -133,14 +133,14 @@ static ErrorCode gather_set_stats( EntityHandle set, set_stats& stats )
   ErrorCode rval = mb.get_number_entities_by_type( set, MBVERTEX, count );
   if (MB_SUCCESS != rval) return rval;
   stats.nodes = count;
-  
+
   int edge_vtx_idx[2];
   std::vector<EntityHandle> conn;
   std::vector<double> coords;
   for (EntityType type = MBEDGE; type < MBENTITYSET; ++type)
   {
     int num_edges = CN::NumSubEntities( type, 1 );
-    
+
     Range range;
     rval = mb.get_entities_by_type( set, type, range, true );
     if (MB_SUCCESS != rval) return rval;
@@ -158,7 +158,7 @@ static ErrorCode gather_set_stats( EntityHandle set, set_stats& stats )
       rval = mb.get_coords( &conn[0], conn.size(), &coords[0] );
       if (MB_SUCCESS != rval) return rval;
       stats.stats[type].add( measure( type, conn.size(), &coords[0] ) );
-      
+
       if (type != MBEDGE)
       {
         if (type == MBPOLYGON)
@@ -182,13 +182,13 @@ static ErrorCode gather_set_stats( EntityHandle set, set_stats& stats )
 }
 
 struct TagCounts {
-  TagCounts(std::string n) : name(n) 
+  TagCounts(std::string n) : name(n)
     { std::fill(counts, counts+MBMAXTYPE, 0); }
   std::string name;
   int counts[MBMAXTYPE];
 };
 
-static ErrorCode gather_tag_counts( EntityHandle set, 
+static ErrorCode gather_tag_counts( EntityHandle set,
                                     std::vector<TagCounts>& counts )
 {
   std::vector<Tag> tags;
@@ -198,12 +198,12 @@ static ErrorCode gather_tag_counts( EntityHandle set,
     ErrorCode rval = mb.tag_get_name( tags[i], name );
     if (MB_SUCCESS != rval || name.empty())
       continue;
-    
+
     counts.push_back( name );
-    for (EntityType t = MBVERTEX; t != MBMAXTYPE; ++t) 
+    for (EntityType t = MBVERTEX; t != MBMAXTYPE; ++t)
       mb.get_number_entities_by_type_and_tag( set, t, &tags[i], 0, 1, counts.back().counts[t] );
   }
-  
+
   return MB_SUCCESS;
 }
 
@@ -219,7 +219,7 @@ void add_tag_counts( std::vector<TagCounts>& counts,
       counts.push_back( add[i] );
       continue;
     }
-    for (EntityType t = MBVERTEX; t != MBMAXTYPE; ++t) 
+    for (EntityType t = MBVERTEX; t != MBMAXTYPE; ++t)
       counts[j].counts[t] += add[i].counts[t];
   }
 }
@@ -245,34 +245,34 @@ static void print_tag_counts( const std::vector<TagCounts>& counts )
   for (size_t i = 0; i < counts.size(); ++i) {
     if (counts[i].name.length() > (unsigned)name_width)
       name_width = counts[i].name.length();
-    for (EntityType t = MBVERTEX; t != MBMAXTYPE; ++t) 
+    for (EntityType t = MBVERTEX; t != MBMAXTYPE; ++t)
       if (counts[i].counts[t] != 0)
         widths[t] = std::max(8,(int)strlen(CN::EntityTypeName(t)));
   }
-  
+
   if (0 == std::min_element(widths, widths+MBMAXTYPE)) {
     printf( "<No Tagged Entities>\n");
     return;
   }
-  
+
     // Print header line
   const char* name_title = "Tag Name";
   if ((unsigned)name_width < strlen(name_title))
     name_width = strlen(name_title);
   printf( "%*s", name_width, name_title );
-  for (EntityType t = MBVERTEX; t != MBMAXTYPE; ++t) 
+  for (EntityType t = MBVERTEX; t != MBMAXTYPE; ++t)
     if (widths[t])
       printf( " %*s", widths[t], CN::EntityTypeName(t) );
   printf("\n%s", dashes(name_width));
-  for (EntityType t = MBVERTEX; t != MBMAXTYPE; ++t) 
+  for (EntityType t = MBVERTEX; t != MBMAXTYPE; ++t)
     if (widths[t])
       printf( " %s", dashes(widths[t]) );
   printf("\n");
-    
+
     // print data
   for (size_t i = 0; i < counts.size(); ++i) {
     printf( "%*s", name_width, counts[i].name.c_str() );
-    for (EntityType t = MBVERTEX; t != MBMAXTYPE; ++t) 
+    for (EntityType t = MBVERTEX; t != MBMAXTYPE; ++t)
       if (widths[t])
         printf( " %*d", widths[t], counts[i].counts[t] );
     printf("\n");
@@ -283,18 +283,18 @@ static void print_stats( set_stats& stats )
 {
   const char* edge_use_name = "1D Side";
   const char* vertex_name = "Vertex";
-  
+
   bool have_some = stats.edge_uses.count > 0 || stats.nodes > 0;
   for (int i = 0; i < MBMAXTYPE; ++i)
     if (stats.stats[i].count > 0)
       have_some = true;
-  
+
   if (!have_some)
   {
     std::cout << "NO MESH" << std::endl;
     return;
   }
-  
+
     // get field widths
   unsigned type_width = std::max( strlen(vertex_name), strlen( edge_use_name ) );
   unsigned count_width = 5;
@@ -302,31 +302,31 @@ static void print_stats( set_stats& stats )
   unsigned total_prec = 2;
   unsigned precision = 5;
   int total_log = -10000;
-  
+
   unsigned node_count_width = (unsigned)(ceil(log10((double)stats.nodes))) + 1;
   if (count_width < node_count_width)
     count_width = node_count_width;
-  
+
   for (EntityType i = MBEDGE; i < MBMAXTYPE; ++i)
   {
     stat_set& s = stats.stats[i];
 
     if (s.count == 0)
       continue;
-    
+
     unsigned len = strlen(CN::EntityTypeName(i));
     if (len > type_width)
       type_width = len;
-    
+
     unsigned cw = (unsigned)(ceil(log10((double)s.count))) + 1;
     if (cw > count_width)
       count_width = cw;
-    
+
     int tl = (unsigned)(ceil(log10(fabs(s.sum)))) + 1;
     if (tl > total_log)
       total_log = tl;
   }
-  
+
   if (total_log > (int)total_width || total_log == -10000)
   {
     total_width = 8;
@@ -346,8 +346,8 @@ static void print_stats( set_stats& stats )
   {
     total_width += 2;
   }
-    
-  
+
+
   // get terminal width
   unsigned term_width = 80;
 #if !defined(_MSC_VER) && !defined(__MINGW32__)
@@ -357,7 +357,7 @@ static void print_stats( set_stats& stats )
   if (!term_width) term_width = 80;
 #endif
   assert(term_width > 7 + type_width + count_width + total_width);
-  
+
   term_width -= 7; // spaces
   term_width -= type_width;
   term_width -= count_width;
@@ -365,7 +365,7 @@ static void print_stats( set_stats& stats )
   unsigned val_width = term_width / 5;
   if (val_width < 8)
     val_width = 8;
-  
+
   printf( "%*s %*s %*s %*s %*s %*s %*s %*s\n",
           type_width, "type",
           count_width, "count",
@@ -375,7 +375,7 @@ static void print_stats( set_stats& stats )
           val_width, "rms",
           val_width, "maximum",
           val_width, "std.dev." );
-  
+
   printf( "%*s ", type_width, dashes(type_width) );
   printf( "%*s ", count_width, dashes(count_width) );
   printf( "%*s ", total_width, dashes(total_width) );
@@ -384,11 +384,11 @@ static void print_stats( set_stats& stats )
   printf( "%*s ", val_width, dashes(val_width) );
   printf( "%*s ", val_width, dashes(val_width) );
   printf( "%*s\n", val_width, dashes(val_width) );
-  
+
   for (EntityType i = MBEDGE; i <= MBMAXTYPE; ++i)
   {
     stat_set& s = (i == MBMAXTYPE) ? stats.edge_uses : stats.stats[i];
-    
+
     if (s.count == 0)
       continue;
 
@@ -398,7 +398,7 @@ static void print_stats( set_stats& stats )
         std::cout << "WARNING: stat values dubious, s^2 - sig_s = " << tmp_dbl << std::endl;
       tmp_dbl = 0.0;
     }
-    
+
     printf( "%*s %*ld %*.*g %*.*g %*.*g %*.*g %*.*g %*.*g\n",
             type_width, i == MBMAXTYPE ? edge_use_name : CN::EntityTypeName(i),
             count_width, s.count,
@@ -407,12 +407,12 @@ static void print_stats( set_stats& stats )
             val_width, precision, s.sum / s.count,
             val_width, precision, sqrt( s.sqr / s.count ),
             val_width, precision, s.max,
-            val_width, precision,  
+            val_width, precision,
             sqrt(tmp_dbl)
           );
   }
   printf( "%*s %*lu\n", type_width, vertex_name, count_width, (unsigned long)stats.nodes );
-  
+
   puts("");
 }
 
@@ -429,7 +429,7 @@ bool parse_id_list( const char* string, std::set<int>& results )
       okay = false;
       break;
     }
-    
+
     long val2 = val;
     if (*endptr == '-') {
       const char* sptr = endptr+1;
@@ -445,21 +445,21 @@ bool parse_id_list( const char* string, std::set<int>& results )
         break;
       }
     }
-    
+
     if (*endptr) {
       std::cerr << "Unexpected character: " << *endptr << std::endl;
       okay = false;
       break;
     }
-    
+
     for (; val <= val2; ++val)
-      if (!results.insert( (int)val ).second) 
+      if (!results.insert( (int)val ).second)
         std::cerr << "Warning: duplicate Id: " << val << std::endl;
 
   }
-  
+
   free( mystr );
-  return okay;    
+  return okay;
 }
 
 bool make_opts_string( std::vector<std::string> options, std::string& opts )
@@ -492,7 +492,7 @@ bool make_opts_string( std::vector<std::string> options, std::string& opts )
     opts = ";";
     opts += separator;
   }
-  
+
     // concatenate options
   i = options.begin();
   opts += *i;
@@ -512,33 +512,33 @@ void list_formats( Interface* gMB )
   ReaderWriterSet* set = 0;
   ReaderWriterSet::iterator i;
   std::ostream& str = std::cout;
-    
+
     // get ReaderWriterSet
   err = gMB->query_interface( set );
   if (err != MB_SUCCESS || !set) {
-    std::cerr << "Internal error:  Interface \"" << iface_name 
+    std::cerr << "Internal error:  Interface \"" << iface_name
               << "\" not available.\n";
     exit(OTHER_ERROR);
   }
-  
+
     // get field width for format description
   size_t w = 0;
   for (i = set->begin(); i != set->end(); ++i)
     if (i->description().length() > w)
       w = i->description().length();
-  
+
     // write table header
   str << "Format  " << std::setw(w) << std::left << "Description"
       << "  Read  Write  File Name Suffixes\n"
       << "------  " << std::setw(w) << std::setfill('-') << "" << std::setfill(' ')
       << "  ----  -----  ------------------\n";
-      
+
     // write table data
   for (i = set->begin(); i != set->end(); ++i)
   {
     std::vector<std::string> ext;
     i->get_extensions( ext );
-    str << std::setw(6) << i->name() << "  " 
+    str << std::setw(6) << i->name() << "  "
         << std::setw(w) << std::left << i->description() << "  "
         << (i->have_reader() ?  " yes" :  "  no") << "  "
         << (i->have_writer() ? "  yes" : "   no") << " ";
@@ -547,7 +547,7 @@ void list_formats( Interface* gMB )
     str << std::endl;
   }
   str << std::endl;
-  
+
   gMB->release_interface( set );
   exit(0);
 }
@@ -559,7 +559,7 @@ static void usage_error( const char* name )
   MPI_Finalize();
 #endif
   exit(USAGE_ERROR);
-} 
+}
 
 static void print_time( int clk_per_sec, const char* prefix, clock_t ticks, std::ostream& stream )
 {
@@ -590,13 +590,13 @@ clock_t usr_time, sys_time, abs_time;
 
 #ifdef WIN32
 
-void reset_times() 
+void reset_times()
 {
   abs_time = clock();
 }
 
 
-void write_times( std::ostream& stream ) 
+void write_times( std::ostream& stream )
 {
   clock_t abs_tm = clock();
   print_time( CLOCKS_PER_SEC, "  ", abs_tm - abs_time, stream );
@@ -645,12 +645,12 @@ int main( int argc, char* argv[] )
   set_stats total_stats, file_stats;
   std::vector<TagCounts> total_counts, file_counts;
   ErrorCode rval;
-  
+
   Range range;
 
   int i;
   std::vector<std::string> read_opts;
-  
+
   int proc_id = 0;
 #ifdef MOAB_HAVE_MPI
   MPI_Init(&argc,&argv);
@@ -666,7 +666,7 @@ int main( int argc, char* argv[] )
   {
     if (!argv[i][0])
       usage_error(argv[0]);
-      
+
     if (do_flag && argv[i][0] == '-')
     {
       switch ( argv[i][1] )
@@ -674,10 +674,10 @@ int main( int argc, char* argv[] )
           // do flag arguments:
         case '-': do_flag = false;       break;
         case 'T': print_times = true;    break;
-        case 'h': 
+        case 'h':
         case 'H': print_usage( argv[0], std::cerr ); printed_usage = true; break;
         case 'f': list_formats( &mb );   break;
-        case 'l': 
+        case 'l':
             if (strlen(argv[i]) == 2)
               just_list_basic = true;
             else if (strlen(argv[i]) == 3 && argv[i][2] == 'l')
@@ -693,14 +693,14 @@ int main( int argc, char* argv[] )
         case 'g': geom_owners = true; break;
         case 'm': mesh_owners = true; break;
         case 't': tag_count = true; break;
-        default: 
+        default:
             ++i;
             switch ( argv[i-1][1] )
             {
               case 'O':  read_opts.push_back(argv[i]); break;
               default: std::cerr << "Invalid option: " << argv[i] << std::endl;
             }
-          
+
       }
     }
       // do file names
@@ -708,7 +708,7 @@ int main( int argc, char* argv[] )
       file_list.push_back( argv[i] );
     }
   }
-    
+
     // construct options string from individual options
   std::string read_options;
   if (parallel) {
@@ -717,18 +717,18 @@ int main( int argc, char* argv[] )
   }
   if (resolve_shared) read_opts.push_back("PARALLEL_RESOLVE_SHARED_ENTS");
   if (exchange_ghosts) read_opts.push_back("PARALLEL_GHOSTS=3.0.1");
-  
-  if (!make_opts_string(  read_opts,  read_options )) 
+
+  if (!make_opts_string(  read_opts,  read_options ))
   {
 #ifdef MOAB_HAVE_MPI
     MPI_Finalize();
 #endif
     return USAGE_ERROR;
   }
-  
+
   if (file_list.empty() && !printed_usage)
     print_usage(argv[0], std::cerr);
-  
+
   for (std::vector<std::string>::iterator f = file_list.begin(); f != file_list.end(); ++f)
   {
     reset_times();
@@ -738,7 +738,7 @@ int main( int argc, char* argv[] )
       fprintf(stderr, "Error reading file: %s\n", f->c_str() );
       return 1;
     }
-    
+
     if (tag_count)
       rval = gather_tag_counts( 0, file_counts );
     else if (!just_list)
@@ -751,7 +751,7 @@ int main( int argc, char* argv[] )
       fprintf(stderr, "Error processing mesh from file: %s\n", f->c_str());
       return 1;
     }
-    
+
     if (tag_count) {
       add_tag_counts( total_counts, file_counts );
       print_tag_counts( file_counts );
@@ -765,13 +765,13 @@ int main( int argc, char* argv[] )
       print_stats( file_stats );
       file_stats.clear();
     }
-    
+
     if (geom_owners)
     {
       Range entities;
       Tag dim_tag = 0, id_tag = 0;
       rval = mb.tag_get_handle( GEOM_DIMENSION_TAG_NAME, 1, MB_TYPE_INTEGER, dim_tag );
-      if (MB_TAG_NOT_FOUND == rval) 
+      if (MB_TAG_NOT_FOUND == rval)
       {
         fprintf( stderr, "No geometry tag defined.\n" );
       }
@@ -780,13 +780,13 @@ int main( int argc, char* argv[] )
         fprintf( stderr, "Error retreiving geometry tag.\n");
         return 2;
       }
-      
+
       id_tag = mb.globalId_tag();
-      
+
       if (dim_tag && id_tag)
       {
-        if (MB_SUCCESS != mb.get_entities_by_type_and_tag( 0, 
-                                                        MBENTITYSET, 
+        if (MB_SUCCESS != mb.get_entities_by_type_and_tag( 0,
+                                                        MBENTITYSET,
                                                         &dim_tag,
                                                         0,
                                                         1,
@@ -795,12 +795,12 @@ int main( int argc, char* argv[] )
           fprintf( stderr, "Error retreiving geometry entitities.\n" );
         }
       }
-      
+
       if (entities.empty())
       {
         fprintf( stderr, "No geometry entities defined in file.\n" );
       }
-      
+
       for (Range::iterator rit = entities.begin(); rit != entities.end(); ++rit)
       {
         int id = 0, dim = 0;
@@ -810,13 +810,13 @@ int main( int argc, char* argv[] )
           fprintf( stderr, "Error retreiving tag data for geometry entity.\n");
           continue;
         }
-        
+
         printf( "%s %d:\n", geom_type_names[dim], id );
         if (tag_count)
           rval = gather_tag_counts( *rit, file_counts );
         else if (!just_list && !just_list_basic)
           rval = gather_set_stats( *rit, file_stats );
-        
+
         if (MB_SUCCESS != rval)
           fprintf(stderr, "Error processing mesh from file: %s\n", f->c_str());
         else if (tag_count)
@@ -841,7 +841,7 @@ int main( int argc, char* argv[] )
         Range entities;
         Tag tag = 0;
         rval = mb.tag_get_handle( mesh_type_tags[t], 1, MB_TYPE_INTEGER, tag );
-        if (MB_TAG_NOT_FOUND == rval) 
+        if (MB_TAG_NOT_FOUND == rval)
         {
           continue;
         }
@@ -850,9 +850,9 @@ int main( int argc, char* argv[] )
           fprintf( stderr, "Error retreiving %s tag.\n", mesh_type_tags[t]);
           return 2;
         }
-      
-        if (MB_SUCCESS != mb.get_entities_by_type_and_tag( 0, 
-                                                        MBENTITYSET, 
+
+        if (MB_SUCCESS != mb.get_entities_by_type_and_tag( 0,
+                                                        MBENTITYSET,
                                                         &tag,
                                                         0,
                                                         1,
@@ -861,7 +861,7 @@ int main( int argc, char* argv[] )
           fprintf( stderr, "Error retreiving %s entitities.\n", mesh_type_names[t] );
           continue;
         }
-      
+
         for (Range::iterator rit = entities.begin(); rit != entities.end(); ++rit)
         {
           int id = 0;
@@ -874,7 +874,7 @@ int main( int argc, char* argv[] )
           printf( "%s %d:\n", mesh_type_names[t], id );
           if (tag_count) {
             rval = gather_tag_counts( *rit, file_counts );
-            if (MB_SUCCESS != rval) 
+            if (MB_SUCCESS != rval)
               fprintf(stderr, "Error processing tags from file: %s\n", f->c_str());
             else
               print_tag_counts( file_counts );
@@ -896,11 +896,11 @@ int main( int argc, char* argv[] )
         }
       }
     }
-    
+
     if (print_times && !proc_id) write_times( std::cout );
     mb.delete_mesh();
   }
-  
+
   if (file_list.size() > 1 && !just_list && !just_list_basic)
   {
     printf("Total for all files:\n");
@@ -915,4 +915,4 @@ int main( int argc, char* argv[] )
   return 0;
 }
 
-  
+

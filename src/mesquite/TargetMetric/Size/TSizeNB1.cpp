@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2006 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
+
     (2006) kraftche@cae.wisc.edu
-   
+
   ***************************************************************** */
 
 
 /** \file TSizeNB1.cpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -48,24 +48,24 @@ bool eval( const MsqMatrix<DIM,DIM>& T, double& result)
 {
   double d1 = det(T) - 1;
   result = d1*d1;
-  return true;  
+  return true;
 }
 
 template <unsigned DIM> static inline
-bool grad( const MsqMatrix<DIM,DIM>& T, 
-           double& result, 
+bool grad( const MsqMatrix<DIM,DIM>& T,
+           double& result,
            MsqMatrix<DIM,DIM>& deriv )
 {
   double d1 = det(T) - 1;
   result = d1*d1;
   deriv = 2 * d1 * transpose_adj(T);
-  return true;  
+  return true;
 }
 
 template <unsigned DIM> static inline
-bool hess( const MsqMatrix<DIM,DIM>& T, 
-           double& result, 
-           MsqMatrix<DIM,DIM>& deriv, 
+bool hess( const MsqMatrix<DIM,DIM>& T,
+           double& result,
+           MsqMatrix<DIM,DIM>& deriv,
            MsqMatrix<DIM,DIM>* second )
 {
   double d1 = det(T) - 1;
@@ -74,7 +74,7 @@ bool hess( const MsqMatrix<DIM,DIM>& T,
   deriv = 2 * d1 * adjt;
   set_scaled_outer_product( second, 2, adjt );
   pluseq_scaled_2nd_deriv_of_det( second, 2 * d1, T );
-  return true;  
+  return true;
 }
 
 TMP_T_TEMPL_IMPL_COMMON(TSizeNB1)

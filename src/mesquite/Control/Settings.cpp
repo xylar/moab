@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2007 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2009) kraftche@cae.wisc.edu    
+    (2009) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file Settings.cpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -57,14 +57,14 @@ struct SettingData {
   std::vector<const MappingFunction*> mapArray;
   std::vector<const MappingFunction2D*> mapArray2D;
   std::vector<const MappingFunction3D*> mapArray3D;
-  
+
   TriLagrangeShape  defTriFunc;
   QuadLagrangeShape defQuadFunc;
   TetLagrangeShape  defTetFunc;
   LinearPyramid     defPyrFunc;
   LinearPrism       defPriFunc;
   LinearHexahedron  defHexFunc;
-  
+
 private:
   void fix_copy( const SettingData& other);
 };
@@ -143,19 +143,19 @@ void SettingData::fix_copy( const SettingData& other )
     mapArray3D[HEXAHEDRON] = &defHexFunc;
 }
 
-Settings::Settings() 
-  : mData( new SettingData ) 
+Settings::Settings()
+  : mData( new SettingData )
   { }
 Settings::Settings( const Settings& other )
-  : mData( new SettingData(*other.mData) ) 
+  : mData( new SettingData(*other.mData) )
   { }
-Settings::~Settings() 
+Settings::~Settings()
   { delete mData; }
 Settings& Settings::operator=( const Settings& other )
   { *mData = *(other.mData); return *this; }
 
 void Settings::set_mapping_function( const MappingFunction* func )
-{ 
+{
   EntityTopology type = func->element_topology();
   if (mData->mapArray.size() <= (size_t)type)
     mData->mapArray.resize( type+1, 0 );
@@ -167,7 +167,7 @@ void Settings::set_mapping_function( const MappingFunction* func )
 }
 
 void Settings::set_mapping_function( const MappingFunction2D* func )
-{ 
+{
   unsigned type = func->element_topology();
   if (mData->mapArray.size() <= type)
     mData->mapArray.resize(type+1, 0);
@@ -178,7 +178,7 @@ void Settings::set_mapping_function( const MappingFunction2D* func )
 }
 
 void Settings::set_mapping_function( const MappingFunction3D* func )
-{ 
+{
   unsigned type = func->element_topology();
   if (mData->mapArray.size() <= type)
     mData->mapArray.resize(type+1, 0);
@@ -222,8 +222,8 @@ void Settings::set_fixed_vertex_mode( Settings::FixedVertexMode mode )
 Settings::FixedVertexMode Settings::get_fixed_vertex_mode() const
   { return mData->fixedMode; }
 
-void Settings::set_slaved_ho_node_mode( Settings::HigherOrderSlaveMode mode ) 
-  { mData->slaveMode = mode; } 
+void Settings::set_slaved_ho_node_mode( Settings::HigherOrderSlaveMode mode )
+  { mData->slaveMode = mode; }
 
 Settings::HigherOrderSlaveMode Settings::get_slaved_ho_node_mode() const
   { return mData->slaveMode; }

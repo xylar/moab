@@ -136,7 +136,7 @@ void test_spectral_hex()
     return;
   }
   std::cout << "Found " << ents.size() << " " << 3 << "-dimensional entities:" << std::endl;
-  
+
   if (sem_dims[0]!=sem_dims[1] || sem_dims[0] != sem_dims[2])
   {
     std::cout << " dimensions are different. bail out\n";
@@ -144,34 +144,34 @@ void test_spectral_hex()
     return;
   }
 
-  // get the SEM_X ...tags  
+  // get the SEM_X ...tags
   moab::Tag xm1Tag, ym1Tag, zm1Tag;
   int ntot = sem_dims[0]*sem_dims[1]*sem_dims[2];
-  rval = mb->tag_get_handle("SEM_X", ntot, moab::MB_TYPE_DOUBLE, xm1Tag); 
-  if (moab::MB_SUCCESS != rval) 
+  rval = mb->tag_get_handle("SEM_X", ntot, moab::MB_TYPE_DOUBLE, xm1Tag);
+  if (moab::MB_SUCCESS != rval)
   {
      std::cout << "can't get xm1tag \n";
      delete mb;
      return;
   }
-  rval = mb->tag_get_handle("SEM_Y", ntot, moab::MB_TYPE_DOUBLE, ym1Tag); 
-  if (moab::MB_SUCCESS != rval) 
+  rval = mb->tag_get_handle("SEM_Y", ntot, moab::MB_TYPE_DOUBLE, ym1Tag);
+  if (moab::MB_SUCCESS != rval)
   {
      std::cout << "can't get ym1tag \n";
      delete mb;
      return;
   }
-  rval = mb->tag_get_handle("SEM_Z", ntot, moab::MB_TYPE_DOUBLE, zm1Tag); 
-  if (moab::MB_SUCCESS != rval) 
+  rval = mb->tag_get_handle("SEM_Z", ntot, moab::MB_TYPE_DOUBLE, zm1Tag);
+  if (moab::MB_SUCCESS != rval)
   {
      std::cout << "can't get zm1tag \n";
      delete mb;
      return;
   }
   moab::Tag velTag;
-  
-  rval = mb->tag_get_handle("VX", ntot, moab::MB_TYPE_DOUBLE, velTag); 
-  if (moab::MB_SUCCESS != rval) 
+
+  rval = mb->tag_get_handle("VX", ntot, moab::MB_TYPE_DOUBLE, velTag);
+  if (moab::MB_SUCCESS != rval)
   {
      std::cout << "can't get veltag \n";
      delete mb;
@@ -179,9 +179,9 @@ void test_spectral_hex()
   }
   moab::Element::SpectralHex specHex(sem_dims[0] );
 
- // compute the data for some elements 
+ // compute the data for some elements
   for (moab::Range::iterator rit=ents.begin(); rit!=ents.end(); ++rit)
-  { 
+  {
   // get the tag pointers to the internal storage for xm1, to not copy the values
      moab::EntityHandle eh= *rit;
      const double * xval;
@@ -212,7 +212,7 @@ void test_spectral_hex()
      {
         std::cout << " xm1 for first element: \n";
         for (int i=0; i< ntot; i++)
-          std::cout << " " << xval[i] ; 
+          std::cout << " " << xval[i] ;
         std::cout << "\n";
      }
      specHex.set_gl_points((double*)xval, (double*)yval, (double*)zval);
@@ -240,7 +240,7 @@ void test_spectral_hex()
 
   }
   std::cout << "success...\n";
-  
+
   delete mb;
 }
 

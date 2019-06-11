@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2007 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2009) kraftche@cae.wisc.edu    
+    (2009) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file Settings.hpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #ifndef MSQ_SETTINGS_HPP
@@ -52,7 +52,7 @@ class MESQUITE_EXPORT Settings {
     ~Settings();
       //! Copy existing settings.
     Settings& operator=( const Settings& other );
-  
+
       //! Set the mapping function for a single element topology.
     void set_mapping_function( const MappingFunction* func );
     void set_mapping_function( const MappingFunction2D* func );
@@ -65,8 +65,8 @@ class MESQUITE_EXPORT Settings {
     const MappingFunction* get_mapping_function( EntityTopology element_type ) const;
     const MappingFunction2D* get_mapping_function_2D( EntityTopology element_type ) const;
     const MappingFunction3D* get_mapping_function_3D( EntityTopology element_type ) const;
-    
-    enum FixedVertexMode { 
+
+    enum FixedVertexMode {
       FIXED_FLAG = 4,   //!< Ask application which vertices are fixed by
                         //!< calling Mesh::vertices_get_fixed_flag
       FIXED_VERTEX = 0, //!< Treat all vertices for which the mesh domain
@@ -81,28 +81,28 @@ class MESQUITE_EXPORT Settings {
     void set_fixed_vertex_mode( FixedVertexMode mode );
       //! Get the setting for how Mesquite determines which vertices are fixed.
     FixedVertexMode get_fixed_vertex_mode() const;
-    
-    enum HigherOrderSlaveMode { 
+
+    enum HigherOrderSlaveMode {
       SLAVE_NONE,       //!< All higher-order nodes are treated either
                         //!< as fixed or as free variables in the optimization.
- 
-      SLAVE_ALL,        //!< Treat all non-fixed higher-order nodes as slave 
-                        //!< vertices.  The node location will be updated 
-                        //!< automatically to the position of the mapping 
-                        //!< function evaluated at the logical location of 
-                        //!< the node evaluated as if the element did not 
+
+      SLAVE_ALL,        //!< Treat all non-fixed higher-order nodes as slave
+                        //!< vertices.  The node location will be updated
+                        //!< automatically to the position of the mapping
+                        //!< function evaluated at the logical location of
+                        //!< the node evaluated as if the element did not
                         //!< contain the node.
 
-      SLAVE_CALCULATED, //!< A utility (e.g. SlaveBoundaryVertices) will be 
-                        //!< inserted into the instruction queue that will 
-                        //!< determine which vertices are slaved and store 
+      SLAVE_CALCULATED, //!< A utility (e.g. SlaveBoundaryVertices) will be
+                        //!< inserted into the instruction queue that will
+                        //!< determine which vertices are slaved and store
                         //!< that state as the appropriate bit in the vertex
                         //!< byte.
 
       SLAVE_FLAG        //!< The results of a call to Mesh::vertices_get_slaved_flag
                         //!< will be used to establish free vs. slaved.
     };
-    
+
       //! Set the slaved higher-order node setting.
     void set_slaved_ho_node_mode( HigherOrderSlaveMode mode );
       //! Get the slaved higher-order node setting.
@@ -112,10 +112,10 @@ class MESQUITE_EXPORT Settings {
        *
        * Generate a FPE signal when overflow, divbyzero, etc. occur
        * during floating-point arithmatic.  This is intended for debugging
-       * purposes only, as enabling this will typically result in a 
+       * purposes only, as enabling this will typically result in a
        * crash when such arithmatic errors occur.
        *
-       * If this option is enabled, Mesquite will attempt to set 
+       * If this option is enabled, Mesquite will attempt to set
        * platform-specific flags such that a SIGFPE is generated for
        * floating point errors while the instruction queue is running.
        * If this option ins disabled, Mesquite will not change the
@@ -131,7 +131,7 @@ class MESQUITE_EXPORT Settings {
     bool trap_floating_point_exception() const;
 
   private:
-  
+
     SettingData* mData;
 };
 

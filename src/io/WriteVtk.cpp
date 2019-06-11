@@ -1,16 +1,16 @@
 /**
  * MOAB, a Mesh-Oriented datABase, is a software component for creating,
  * storing and accessing finite element mesh data.
- * 
+ *
  * Copyright 2004 Sandia Corporation.  Under the terms of Contract
  * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
  * retains certain rights in this software.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  */
 
 #ifdef WIN32
@@ -496,7 +496,7 @@ void WriteVtk::write_data(std::ostream& stream,
 //{
 //  std::vector<unsigned char>::const_iterator d = data.begin();
 //  const unsigned long n = data.size() / vals_per_tag;
-//  
+//
 //  for (unsigned long i = 0; i < n; ++i) {
 //    for (unsigned j = 0; j < vals_per_tag; ++j, ++d)
 //      stream << (unsigned int)*d << ' ';

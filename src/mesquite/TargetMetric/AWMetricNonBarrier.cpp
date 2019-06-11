@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2008 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
+
     (2008) kraftche@cae.wisc.edu
-   
+
   ***************************************************************** */
 
 
 /** \file AWMetricNonBarrier.hpp
- *  \brief 
- *  \author Boyd Tidwell 
+ *  \brief
+ *  \author Boyd Tidwell
  */
 
 #include "AWMetricNonBarrier.hpp"
@@ -38,7 +38,7 @@
 namespace MBMesquite {
 
 AWMetricNonBarrier::~AWMetricNonBarrier() {}
-     
+
 AWMetricNonBarrier2D::~AWMetricNonBarrier2D() {}
 AWMetricNonBarrier3D::~AWMetricNonBarrier3D() {}
 

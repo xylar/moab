@@ -28,7 +28,7 @@ void test_normal_linear_tet();
 void test_normal_linear_hex();
 ErrorCode create_mesh(Core &mb, EntityType type);
 
-CartVect hex_verts[] = { 
+CartVect hex_verts[] = {
       // corners
     CartVect( -1, -1, -1 ), CartVect( 1, -1, -1 ), CartVect( 1, 1, -1 ), CartVect( -1, 1, -1 ),
     CartVect( -1, -1, 1 ), CartVect( 1, -1, 1 ), CartVect( 1, 1, 1 ), CartVect( -1, 1, 1 ),
@@ -38,29 +38,29 @@ CartVect hex_verts[] = {
     CartVect( 0, -1, 1 ), CartVect( 1, 0, 1 ), CartVect( 0, 1, 1 ), CartVect( -1, 0, 1 ),
       // mid-face (middle, bottom, top)
     CartVect( 0, -1, 0 ), CartVect( 1, 0, 0 ), CartVect( 0, 1, 0 ), CartVect( -1, 0, 0 ),
-    CartVect( 0, 0, -1 ), CartVect( 0, 0, 1 ), 
+    CartVect( 0, 0, -1 ), CartVect( 0, 0, 1 ),
       // mid-element
     CartVect( 0, 0, 0 )
 };
 
 const double EPS1 = 1.0e-6;
 
-void test_eval(ElemEvaluator &ee, bool test_integrate) 
+void test_eval(ElemEvaluator &ee, bool test_integrate)
 {
-  
+
   CartVect params, posn, params2;
   int is_inside;
   Matrix3 jacob;
   ErrorCode rval;
   int ent_dim = ee.get_moab()->dimension_from_handle(ee.get_ent_handle());
-  
+
   for (params[0] = -1; params[0] <= 1; params[0] += 0.2) {
     for (params[1] = -1; params[1] <= 1; params[1] += 0.2) {
       for (params[2] = -1; params[2] <= 1; params[2] += 0.2) {
 
           // forward/reverse evaluation should get back to the same point, within tol
         if (!ee.inside(params.array(), EPS1)) continue;
-        
+
         rval = ee.eval(params.array(), posn.array()); CHECK_ERR(rval);
         rval = ee.reverse_eval(posn.array(), EPS1, EPS1, params2.array(), &is_inside); CHECK_ERR(rval);
         CHECK_REAL_EQUAL(0.0, params[0] - params2[0], 3*EPS1);
@@ -72,13 +72,13 @@ void test_eval(ElemEvaluator &ee, bool test_integrate)
           // jacobian should be >= 0
         rval = ee.jacobian(params.array(), jacob.array()); CHECK_ERR(rval);
         CHECK(jacob.determinant() >= 0.0);
-        
+
       }
     }
   }
 
   if (!test_integrate) return;
-  
+
     // tag equal to coordinates should integrate to avg position, test that
   Tag tag;
     // make a temporary tag and set it on vertices to the vertex positions
@@ -111,18 +111,18 @@ void test_eval(ElemEvaluator &ee, bool test_integrate)
   rval = ee.set_tag_handle(0, 0); CHECK_ERR(rval);
 }
 
-void test_evals(ElemEvaluator &ee, bool test_integrate, EntityHandle *ents, int num_ents, Tag onetag, double total_vol) 
+void test_evals(ElemEvaluator &ee, bool test_integrate, EntityHandle *ents, int num_ents, Tag onetag, double total_vol)
 {
   for (int i = 0; i < num_ents; i++) {
     ee.set_ent_handle(ents[i]);
     test_eval(ee, false);
   }
-    
+
   if (!test_integrate) return;
   if (!num_ents || !ents) CHECK_ERR(MB_FAILURE);
 
   ErrorCode rval = ee.set_tag_handle(onetag, 0); CHECK_ERR(rval);
-  
+
   double tot_vol = 0.0;
   for (int i = 0; i < num_ents; i++) {
     double tmp_vol;
@@ -136,7 +136,7 @@ void test_evals(ElemEvaluator &ee, bool test_integrate, EntityHandle *ents, int 
 int main()
 {
   int failures = 0;
-  
+
   failures += RUN_TEST(test_linear_tri); // currently failing linear tri, bad formulation, working on it...
   failures += RUN_TEST(test_linear_quad);
   failures += RUN_TEST(test_linear_hex);
@@ -150,21 +150,21 @@ int main()
   return failures;
 }
 
-void test_linear_tri() 
+void test_linear_tri()
 {
   Core mb;
   Range verts;
   double tri_verts[] = {-1.0, -1.0, -1.0,
                          1.0, -1.0, -1.0,
                         -1.0,  1.0, -1.0};
-  
-          
+
+
   ErrorCode rval = mb.create_vertices(tri_verts, 3, verts); CHECK_ERR(rval);
   EntityHandle tri;
   std::vector<EntityHandle> connect;
   std::copy(verts.begin(), verts.end(), std::back_inserter(connect));
   rval = mb.create_element(MBTRI, &connect[0], 3, tri); CHECK_ERR(rval);
-  
+
   ElemEvaluator ee(&mb, tri, 0);
   ee.set_tag_handle(0, 0);
   ee.set_eval_set(MBTRI, LinearTri::eval_set());
@@ -172,7 +172,7 @@ void test_linear_tri()
   test_eval(ee, true);
 }
 
-void test_linear_quad() 
+void test_linear_quad()
 {
   Core mb;
   Range verts;
@@ -181,7 +181,7 @@ void test_linear_quad()
   std::vector<EntityHandle> connect;
   std::copy(verts.begin(), verts.end(), std::back_inserter(connect));
   rval = mb.create_element(MBQUAD, &connect[0], 4, quad); CHECK_ERR(rval);
-  
+
   ElemEvaluator ee(&mb, quad, 0);
   ee.set_tag_handle(0, 0);
   ee.set_eval_set(MBQUAD, LinearQuad::eval_set());
@@ -189,7 +189,7 @@ void test_linear_quad()
   test_eval(ee, true);
 }
 
-void test_linear_hex() 
+void test_linear_hex()
 {
   Core mb;
   Range verts;
@@ -198,7 +198,7 @@ void test_linear_hex()
   std::vector<EntityHandle> connect;
   std::copy(verts.begin(), verts.end(), std::back_inserter(connect));
   rval = mb.create_element(MBHEX, &connect[0], 8, hex); CHECK_ERR(rval);
-  
+
   ElemEvaluator ee(&mb, hex, 0);
   ee.set_tag_handle(0, 0);
   ee.set_eval_set(MBHEX, LinearHex::eval_set());
@@ -206,7 +206,7 @@ void test_linear_hex()
   test_eval(ee, true);
 }
 
-void test_quadratic_hex() 
+void test_quadratic_hex()
 {
   Core mb;
   Range verts;
@@ -215,7 +215,7 @@ void test_quadratic_hex()
   std::vector<EntityHandle> connect;
   std::copy(verts.begin(), verts.end(), std::back_inserter(connect));
   rval = mb.create_element(MBHEX, &connect[0], 27, hex); CHECK_ERR(rval);
-  
+
   ElemEvaluator ee(&mb, hex, 0);
   ee.set_tag_handle(0, 0);
   ee.set_eval_set(MBHEX, QuadraticHex::eval_set());
@@ -223,7 +223,7 @@ void test_quadratic_hex()
   test_eval(ee, false);
 }
 
-void test_linear_tet() 
+void test_linear_tet()
 {
   Core mb;
   Range verts;

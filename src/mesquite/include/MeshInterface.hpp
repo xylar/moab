@@ -1,9 +1,9 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2004 Sandia Corporation and Argonne National
-    Laboratory.  Under the terms of Contract DE-AC04-94AL85000 
-    with Sandia Corporation, the U.S. Government retains certain 
+    Laboratory.  Under the terms of Contract DE-AC04-94AL85000
+    with Sandia Corporation, the U.S. Government retains certain
     rights in this software.
 
     This library is free software; you can redistribute it and/or
@@ -16,14 +16,14 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
-    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov, 
+
+    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov,
     pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov,
     kraftche@cae.wisc.edu
-   
+
   ***************************************************************** */
 /*!
   \file   MeshInterface.hpp
@@ -61,7 +61,7 @@ namespace MBMesquite
   class SphericalDomain;
   typedef EntityIterator VertexIterator;
   typedef EntityIterator ElementIterator;
-    
+
     /** Type used to refer to a tag defintion */
   typedef void* TagHandle;
 
@@ -80,8 +80,8 @@ namespace MBMesquite
       //! Opaque EntityHandle type and tag type.
     typedef void* EntityHandle;
     // typedef moab::EntityHandle EntityHandle;
-    
-    
+
+
       // We typedef specific types of EntityHandles just
       // to make it clear what kind of entity is to be
       // returned or used as a function parameter, but the
@@ -92,28 +92,28 @@ namespace MBMesquite
 //************ Operations on entire mesh ****************
       //! Returns whether this mesh lies in a 2D or 3D coordinate system.
     virtual int get_geometric_dimension(MsqError &err) = 0;
-    
+
     /** \brief Get all elements in mesh
      *
      * Get the handles of every element in the active mesh.
-     */ 
+     */
     virtual void get_all_elements( std::vector<ElementHandle>& elements,
                                    MsqError& err ) = 0;
-    
+
     /** \brief Get all vertices in mesh
      *
      * Get the handles of every vertex in the active mesh
      */
     virtual void get_all_vertices( std::vector<VertexHandle>& vertices,
                                    MsqError& err ) = 0;
-    
+
       //! Returns a pointer to an iterator that iterates over the
       //! set of all vertices in this mesh.  The calling code should
       //! delete the returned iterator when it is finished with it.
       //! If vertices are added or removed from the Mesh after obtaining
       //! an iterator, the behavior of that iterator is undefined.
 //    virtual VertexIterator* vertex_iterator(MsqError &err) = 0;
-    
+
       //! Returns a pointer to an iterator that iterates over the
       //! set of all top-level elements in this mesh.  The calling code should
       //! delete the returned iterator when it is finished with it.
@@ -127,21 +127,21 @@ namespace MBMesquite
       //! is fixed and cannot be moved.  Note that this is a read-only
       //! property; this flag can't be modified by users of the
       //! MBMesquite::Mesh interface.
-    virtual void vertices_get_fixed_flag( const VertexHandle vert_array[], 
+    virtual void vertices_get_fixed_flag( const VertexHandle vert_array[],
                                           std::vector<bool>& fixed_flag_array,
-                                          size_t num_vtx, 
+                                          size_t num_vtx,
                                           MsqError &err ) = 0;
 
       //! Returns true or false, indicating whether the vertex
       //! is a higher-order node that should be slaved to the logical
-      //! mid-point of the element side it lies on or not, respectively.  
+      //! mid-point of the element side it lies on or not, respectively.
       //!
       //! Note: This function will never be called unless this behavior is
       //! requested by calling:
       //! InstructionQueue::set_slaved_ho_node_mode( Settings::SLAVE_FLAG )
-    virtual void vertices_get_slaved_flag( const VertexHandle vert_array[], 
+    virtual void vertices_get_slaved_flag( const VertexHandle vert_array[],
                                            std::vector<bool>& slaved_flag_array,
-                                           size_t num_vtx, 
+                                           size_t num_vtx,
                                            MsqError &err ) = 0;
 
       //! Get/set location of a vertex
@@ -152,31 +152,31 @@ namespace MBMesquite
     virtual void vertex_set_coordinates( VertexHandle vertex,
                                          const Vector3D &coordinates,
                                          MsqError &err ) = 0;
-    
+
       //! Each vertex has a byte-sized flag that can be used to store
       //! flags.  This byte's value is neither set nor used by the mesh
       //! implementation.  It is intended to be used by Mesquite algorithms.
       //! Until a vertex's byte has been explicitly set, its value is 0.
     virtual void vertex_set_byte( VertexHandle vertex,
-                                  unsigned char byte, 
+                                  unsigned char byte,
                                   MsqError &err) = 0;
     virtual void vertices_set_byte( const VertexHandle *vert_array,
                                     const unsigned char *byte_array,
-                                    size_t array_size, 
+                                    size_t array_size,
                                     MsqError &err ) = 0;
-    
+
       //! Retrieve the byte value for the specified vertex or vertices.
       //! The byte value is 0 if it has not yet been set via one of the
       //! *_set_byte() functions.
     virtual void vertex_get_byte( const VertexHandle vertex,
-                                  unsigned char *byte, 
+                                  unsigned char *byte,
                                   MsqError &err ) = 0;
     virtual void vertices_get_byte( const VertexHandle *vertex,
                                     unsigned char *byte_array,
-                                    size_t array_size, 
+                                    size_t array_size,
                                     MsqError &err ) = 0;
-    
-//**************** Vertex Topology *****************    
+
+//**************** Vertex Topology *****************
       /** \brief get elements adjacent to vertices
        *
        * Get adjacency data for vertices
@@ -193,15 +193,15 @@ namespace MBMesquite
        *                       which the adjacency list begins for that
        *                       vertex.
        */
-    virtual void vertices_get_attached_elements( 
+    virtual void vertices_get_attached_elements(
                          const VertexHandle* vertex_array,
                          size_t num_vertex,
                          std::vector<ElementHandle>& elements,
                          std::vector<size_t>& offsets,
                          MsqError& err ) = 0;
-    
+
 //*************** Element Topology *************
-    
+
       /** \brief Get element connectivity
        *
        * Get the connectivity (ordered list of vertex handles) for
@@ -221,19 +221,19 @@ namespace MBMesquite
                                    const ElementHandle *elem_handles,
                                    size_t num_elems,
                                    std::vector<VertexHandle>& vert_handles,
-                                   std::vector<size_t>& offsets, 
+                                   std::vector<size_t>& offsets,
                                    MsqError &err) = 0;
-    
-    
+
+
       //! Returns the topologies of the given entities.  The "entity_topologies"
       //! array must be at least "num_elements" in size.
     virtual void elements_get_topologies(const ElementHandle *element_handle_array,
                                          EntityTopology *element_topologies,
                                          size_t num_elements, MsqError &err) = 0;
 
-    
+
 //***************  Tags  ***********
-    
+
       /** The type of a tag */
     enum TagType { BYTE, BOOL, INT, DOUBLE, HANDLE };
 
@@ -247,30 +247,30 @@ namespace MBMesquite
        * \param type      The type of the data
        * \param length    Number of values per entity (1->scalar, >1 ->vector)
        * \param default_value Default value to assign to all entities - may be NULL
-       * \return - Handle for tag definition 
+       * \return - Handle for tag definition
        */
     virtual TagHandle tag_create( const std::string& tag_name,
                                   TagType type, unsigned length,
                                   const void* default_value,
                                   MsqError &err) = 0;
-    
+
       /** \brief Remove a tag and all corresponding data
        *
        * Delete a tag.
        */
     virtual void tag_delete( TagHandle handle, MsqError& err ) = 0;
-    
-    
-      /** \brief Get handle for existing tag, by name. 
+
+
+      /** \brief Get handle for existing tag, by name.
         *
         * Check for the existance of a tag given it's name and
         * if it exists return a handle for it.  If the specified
-        * tag does not exist, zero should be returned WITHOUT 
+        * tag does not exist, zero should be returned WITHOUT
         * flagging an error.
         */
-    virtual TagHandle tag_get( const std::string& name, 
+    virtual TagHandle tag_get( const std::string& name,
                                MsqError& err ) = 0;
-     
+
       /** \brief Get properites of tag
        *
        * Get data type and number of values per entity for tag.
@@ -284,15 +284,15 @@ namespace MBMesquite
                                  TagType& type_out,
                                  unsigned& length_out,
                                  MsqError& err ) = 0;
-    
+
       /** \brief Set tag values on elements
-       * 
+       *
        * Set the value of a tag for a list of mesh elements.
-       * \param handle     The tag 
+       * \param handle     The tag
        * \param num_elems  Length of elem_array
        * \param elem_array Array of elements for which to set the tag value.
        * \param tag_data   Tag data for each element, contiguous in memory.
-       *                   This data is expected to be 
+       *                   This data is expected to be
        *                   num_elems*tag_length*sizeof(tag_type) bytes.
        */
     virtual void tag_set_element_data( TagHandle handle,
@@ -302,13 +302,13 @@ namespace MBMesquite
                                        MsqError& err ) = 0;
 
       /** \brief Set tag values on vertices
-       * 
+       *
        * Set the value of a tag for a list of mesh vertices.
-       * \param handle     The tag 
+       * \param handle     The tag
        * \param num_elems  Length of node_array
        * \param node_array Array of vertices for which to set the tag value.
        * \param tag_data   Tag data for each element, contiguous in memory.
-       *                   This data is expected to be 
+       *                   This data is expected to be
        *                   num_elems*tag_length*sizeof(tag_type) bytes.
        */
     virtual void tag_set_vertex_data ( TagHandle handle,
@@ -316,16 +316,16 @@ namespace MBMesquite
                                        const VertexHandle* node_array,
                                        const void* tag_data,
                                        MsqError& err ) = 0;
-    
-    
+
+
       /** \brief Get tag values on elements
-       * 
+       *
        * Get the value of a tag for a list of mesh elements.
-       * \param handle     The tag 
+       * \param handle     The tag
        * \param num_elems  Length of elem_array
        * \param elem_array Array of elements for which to get the tag value.
-       * \param tag_data   Return buffer in which to copy tag data, contiguous 
-       *                   in memory.  This data is expected to be 
+       * \param tag_data   Return buffer in which to copy tag data, contiguous
+       *                   in memory.  This data is expected to be
        *                   num_elems*tag_length*sizeof(tag_type) bytes.
        */
     virtual void tag_get_element_data( TagHandle handle,
@@ -333,15 +333,15 @@ namespace MBMesquite
                                        const ElementHandle* elem_array,
                                        void* tag_data,
                                        MsqError& err ) = 0;
-    
+
       /** \brief Get tag values on vertices.
-       * 
+       *
        * Get the value of a tag for a list of mesh vertices.
-       * \param handle     The tag 
+       * \param handle     The tag
        * \param num_elems  Length of elem_array
        * \param elem_array Array of vertices for which to get the tag value.
-       * \param tag_data   Return buffer in which to copy tag data, contiguous 
-       *                   in memory.  This data is expected to be 
+       * \param tag_data   Return buffer in which to copy tag data, contiguous
+       *                   in memory.  This data is expected to be
        *                   num_elems*tag_length*sizeof(tag_type) bytes.
        */
     virtual void tag_get_vertex_data ( TagHandle handle,
@@ -350,29 +350,29 @@ namespace MBMesquite
                                        void* tag_data,
                                        MsqError& err ) = 0;
 
-    
-    
+
+
 //**************** Memory Management ****************
       //! Tells the mesh that the client is finished with a given
-      //! entity handle.  
+      //! entity handle.
     virtual void release_entity_handles( const EntityHandle *handle_array,
-                                         size_t num_handles, 
+                                         size_t num_handles,
                                          MsqError &err) = 0;
-    
+
       //! Instead of deleting a Mesh when you think you are done,
       //! call release().  In simple cases, the implementation could
       //! just call the destructor.  More sophisticated implementations
       //! may want to keep the Mesh object to live longer than Mesquite
       //! is using it.
     virtual void release() = 0;
-    
+
     virtual ~Mesh()
       {}
   protected:
   };
-  
-  /*! \class EntityIterator 
-  \brief   Iterates through a set of entities.  An EntityIterator 
+
+  /*! \class EntityIterator
+  \brief   Iterates through a set of entities.  An EntityIterator
   is typically obtained via Mesh::vertex_iterator() or
   Mesh::element_iterator().  An iterator obtained in this
   way iterates over the set of all vertices/elements in
@@ -386,40 +386,40 @@ namespace MBMesquite
       //! Moves the iterator back to the first
       //! entity in the list.
     virtual void restart() = 0;
-    
+
       //! *iterator.  Return the handle currently
       //! being pointed at by the iterator.
     virtual Mesh::EntityHandle operator*() const = 0;
-    
+
       //! ++iterator
     virtual void operator++() = 0;
-    
+
       //! Returns false until the iterator has
       //! been advanced PAST the last entity.
       //! Once is_at_end() returns true, *iterator
       //! returns 0.
     virtual bool is_at_end() const = 0;
   };
-  
+
 
   /*! \class MeshDomain
       The MeshDomain class provides geometrical information concerning the Mesh.
       It is called during surface meshes optimization to figure out the surface normal,
-      how to snap vertices back to the surface, etc... . 
+      how to snap vertices back to the surface, etc... .
     */
   class MESQUITE_EXPORT MeshDomain
   {
   public:
     virtual ~MeshDomain()
       {}
-      
+
       //! Modifies "coordinate" so that it lies on the
       //! domain to which "entity_handle" is constrained.
       //! The handle determines the domain.  The coordinate
       //! is the proposed new position on that domain.
     virtual void snap_to(Mesh::VertexHandle entity_handle,
                          Vector3D &coordinate) const = 0;
-    
+
       //! Returns the normal of the domain to which
       //! "entity_handle" is constrained.  For non-planar surfaces,
       //! the normal is calculated at the point on the domain that
@@ -437,7 +437,7 @@ namespace MBMesquite
                                   Vector3D &coordinate) const = 0;
     virtual void element_normal_at(Mesh::ElementHandle entity_handle,
                                   Vector3D &coordinate) const = 0;
-                          
+
       /**\brief evaluate surface normals
        *
        * Returns normals for a domain.
@@ -453,10 +453,10 @@ namespace MBMesquite
                                    Vector3D coordinates[],
                                    unsigned count,
                                    MsqError& err ) const = 0;
-                            
+
       /**\brief evaluate closest point and normal
        *
-       * Given a position in space, return the closest 
+       * Given a position in space, return the closest
        * position in the domain and the domain normal
        * at that point.
        *
@@ -471,7 +471,7 @@ namespace MBMesquite
                                 Vector3D& closest,
                                 Vector3D& normal,
                                 MsqError& err ) const = 0;
-                                
+
       /**\brief Get degrees of freedom in vertex movement.
        *
        * Given a vertex, return how the domain constrains the
@@ -486,15 +486,15 @@ namespace MBMesquite
                              unsigned short* dof_array,
                              size_t num_handles,
                              MsqError& err ) const = 0;
-                             
-       
+
+
   };
 
   /*! \class MeshDomainAssoc
       The MeshDomainAssoc class provides an association of a Mesh instance
       with a MeshDomain instance.  The mesh is checked to verify that
       it is compatibile with the associated MeshDomain.  If the two are
-      not compatible, the MeshDomainAssoc instace is not created. 
+      not compatible, the MeshDomainAssoc instace is not created.
     */
   class MESQUITE_EXPORT MeshDomainAssoc
   {
@@ -503,7 +503,7 @@ namespace MBMesquite
       /**\brief Constructor
        *\param mesh                       The mesh instance being associated
        * param domain                     The domain being associated
-       * param full_compatibility_check   Controls how many vertices will be checked for 
+       * param full_compatibility_check   Controls how many vertices will be checked for
        *                                  compatibility with the associated domain.
        *                                  When false, only the first vertex of the mesh
        *                                  is checked for compatibility.  When true, all
@@ -511,17 +511,17 @@ namespace MBMesquite
        * param proceed                    Controls what Mesquite will do if the compatibility
        *                                  check fails.  When false, mesquite terminates i
        *                                  execution.  When true, execution continues.
-       * param skip_compatibility_checki  when true, does not perform the compatibility check. 
+       * param skip_compatibility_checki  when true, does not perform the compatibility check.
        *                                  When false, the check is performed.
        */
-    MeshDomainAssoc(MBMesquite::Mesh* mesh, 
-                    MBMesquite::MeshDomain* domain, 
+    MeshDomainAssoc(MBMesquite::Mesh* mesh,
+                    MBMesquite::MeshDomain* domain,
                     bool full_compatibility_check=false,
                     bool proceed=false,
                     bool skip_compatibility_check=false)
        : mMesh(mesh), mMeshDomain(domain), mesh_and_domain_are_compatible(false)
     {
-        // check for real instance.  If either value is NULL then it's just an 
+        // check for real instance.  If either value is NULL then it's just an
         // instance created to facilitate passing of just a mesh or domain
         // also, check if skipping the compatibility check was requested
       if (mesh && domain && !skip_compatibility_check)
@@ -530,29 +530,29 @@ namespace MBMesquite
         double tolerance = 1.0e-3;
 
         std::vector<Mesh::VertexHandle> vert_handles;
-        mMesh->get_all_vertices( vert_handles, err );     
+        mMesh->get_all_vertices( vert_handles, err );
 
         MsqVertex mesh_vertex, domain_vertex;
         Vector3D normal;
 
-        double distance; 
+        double distance;
         std::vector<int>::size_type i, times_to_loop;
         if (full_compatibility_check)
           times_to_loop = vert_handles.size();
         else
           times_to_loop = 1;
         mesh_and_domain_are_compatible = true;
-        for (i = 0; i < times_to_loop; ++i) 
+        for (i = 0; i < times_to_loop; ++i)
         {
-          mMesh->vertices_get_coordinates(&vert_handles[i], 
+          mMesh->vertices_get_coordinates(&vert_handles[i],
                                           &mesh_vertex,
                                           1,
-                                          err);     
+                                          err);
           mMeshDomain->closest_point( vert_handles[i],
                                       Vector3D(mesh_vertex),
                                       domain_vertex,
                                       normal,
-                                      err ); 
+                                      err );
 
         distance = Vector3D::distance_between(mesh_vertex, domain_vertex);
         if ( distance > tolerance )
@@ -572,8 +572,8 @@ namespace MBMesquite
 
 
     ~MeshDomainAssoc() {};
-   
-  
+
+
        /**\brief get associated mesh
        *
        * Return the mesh associated with this instance.
@@ -582,7 +582,7 @@ namespace MBMesquite
     {
       return mMesh;
     };
-   
+
 
       /**\brief get associated domain
        *

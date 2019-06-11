@@ -1,9 +1,9 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2004 Sandia Corporation and Argonne National
-    Laboratory.  Under the terms of Contract DE-AC04-94AL85000 
-    with Sandia Corporation, the U.S. Government retains certain 
+    Laboratory.  Under the terms of Contract DE-AC04-94AL85000
+    with Sandia Corporation, the U.S. Government retains certain
     rights in this software.
 
     This library is free software; you can redistribute it and/or
@@ -16,14 +16,14 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
-    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov, 
+
+    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov,
     pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov,
-    kraftche@cae.wisc.edu         
-   
+    kraftche@cae.wisc.edu
+
   ***************************************************************** */
 #include "Mesquite.hpp"
 #include "SphericalDomain.hpp"
@@ -78,7 +78,7 @@ void MBMesquite::SphericalDomain::element_normal_at(Mesh::ElementHandle h,
   SphericalDomain::vertex_normal_at( h, coordinate );
 }
 
-void MBMesquite::SphericalDomain::vertex_normal_at( 
+void MBMesquite::SphericalDomain::vertex_normal_at(
                                 const MBMesquite::Mesh::VertexHandle* handle,
                                 MBMesquite::Vector3D coords[],
                                 unsigned count,
@@ -110,7 +110,7 @@ void MBMesquite::SphericalDomain::domain_DoF( const Mesh::VertexHandle* ,
   std::fill( dof_array, dof_array + num_vertices, 2 );
 }
 
-      
+
 void MBMesquite::SphericalDomain::fit_vertices( Mesh* mesh, MsqError& err, double epsilon )
 {
   std::vector<Mesh::VertexHandle> verts;
@@ -119,31 +119,31 @@ void MBMesquite::SphericalDomain::fit_vertices( Mesh* mesh, MsqError& err, doubl
     fit_vertices( mesh, arrptr(verts), verts.size(), err, epsilon );
 }
 
-void MBMesquite::SphericalDomain::fit_vertices( Mesh* mesh, 
+void MBMesquite::SphericalDomain::fit_vertices( Mesh* mesh,
                                               const Mesh::VertexHandle* verts,
                                               size_t num_verts,
-                                              MsqError& err, 
+                                              MsqError& err,
                                               double epsilon )
 {
   std::vector<MsqVertex> coords(num_verts);
   mesh->vertices_get_coordinates( verts, arrptr(coords), num_verts, err );
   MSQ_ERRRTN(err);
-  
+
   if (epsilon <= 0.0)
     epsilon = DomainUtil::default_tolerance( arrptr(coords), num_verts );
-  
+
   Vector3D pts[4];
   if (!DomainUtil::non_coplanar_vertices( arrptr(coords), num_verts, pts, epsilon )) {
     MSQ_SETERR(err)("All vertices are co-planar", MsqError::INVALID_MESH);
     return;
   }
-  
+
     // solve deterinant form of four-point sphere
-    
+
     // Define the bottom 4 rows of a 5x5 matrix.  The top
     // row contains the variables we are solving for, so just
     // fill it with ones.
-  const double M_vals[25] = { 
+  const double M_vals[25] = {
     1,               1,         1,         1,         1,
     pts[0] % pts[0], pts[0][0], pts[0][1], pts[0][2], 1,
     pts[1] % pts[1], pts[1][0], pts[1][1], pts[1][2], 1,

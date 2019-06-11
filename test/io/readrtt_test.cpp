@@ -78,7 +78,7 @@ void test_meshset_tags_1() {
   // get the entities that are tagged
   rval = moab.get_entities_by_type_and_tag(0,moab::MBENTITYSET,&id_tag,0,1,entities);
   CHECK_ERR(rval);
-  
+
   // each tet should have the material tag
   int num_vols = 10;
   int num_surfaces = 129;
@@ -141,7 +141,7 @@ void test_tet_tags_1() {
   int num_tets = 26710;
   int num_tet_in_moab = entities.size();
   CHECK_EQUAL(num_tet_in_moab, num_tets);
-  
+
   // get the number of tets tagged with
   entities.clear();
   Tag material_number;
@@ -249,7 +249,7 @@ void test_meshset_tags_2() {
   // get the entities that are tagged
   rval = moab.get_entities_by_type_and_tag(0,moab::MBENTITYSET,&id_tag,0,1,entities);
   CHECK_ERR(rval);
-  
+
   // each tet should have the material tag
   int num_vols = 3;
   int num_surfaces = 24;
@@ -312,7 +312,7 @@ void test_tet_tags_2() {
   int num_tets = 84;
   int num_tet_in_moab = entities.size();
   CHECK_EQUAL(num_tet_in_moab, num_tets);
-  
+
   // get the number of tets tagged with
   entities.clear();
   Tag material_number;

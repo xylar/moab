@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2007 Sandia National Laboratories.  Developed at the
@@ -16,11 +16,11 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2008) kraftche@cae.wisc.edu    
+    (2008) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
@@ -80,7 +80,7 @@ void TrustRegion::terminate_mesh_iteration( PatchData& /*pd*/, MsqError& /*err*/
 { }
 
 void TrustRegion::cleanup()
-{ 
+{
     // release Memento
   delete mMemento;
   mMemento = 0;
@@ -119,7 +119,7 @@ static inline void times_eq_minus( Vector3D* v, double s, const Vector3D* x, siz
   }
 }
 
-void TrustRegion::compute_preconditioner( MsqError& 
+void TrustRegion::compute_preconditioner( MsqError&
 #ifndef USE_FN_PC1
                                             err
 #endif
@@ -138,7 +138,7 @@ void TrustRegion::compute_preconditioner( MsqError&
 #endif
 }
 
-void TrustRegion::apply_preconditioner( Vector3D* z, Vector3D* r, MsqError& 
+void TrustRegion::apply_preconditioner( Vector3D* z, Vector3D* r, MsqError&
 #ifndef USE_FN_PC1
                                             err
 #endif
@@ -147,7 +147,7 @@ void TrustRegion::apply_preconditioner( Vector3D* z, Vector3D* r, MsqError&
 #ifndef USE_FN_PC1
   mHessian.apply_preconditioner( z, r, err );
 #else
-  for (size_t i = 0; i < preCond.size(); ++i) 
+  for (size_t i = 0; i < preCond.size(); ++i)
     z[i] = preCond[i] * r[i];
 #endif
 }
@@ -156,7 +156,7 @@ void TrustRegion::optimize_vertex_positions( PatchData& pd, MsqError& err )
 {
   TerminationCriterion& term = *get_inner_termination_criterion();
   OFEvaluator& func = get_objective_function_evaluator();
-  
+
   const double cg_tol = 1e-2;
   const double eta_1  = 0.01;
   const double eta_2  = 0.90;
@@ -165,7 +165,7 @@ void TrustRegion::optimize_vertex_positions( PatchData& pd, MsqError& err )
   const double tr_decr_undef = 0.25;
   const double tr_num_tol = 1e-6;
   const int max_cg_iter = 10000;
-  
+
   double radius = 1000;		/* delta*delta */
 
  const int nn = pd.num_free_vertices();
@@ -211,11 +211,11 @@ void TrustRegion::optimize_vertex_positions( PatchData& pd, MsqError& err )
     norm_d = 0;
 
     cg_iter = 0;
-    while ((sqrt(norm_r) > norm_g) && 
+    while ((sqrt(norm_r) > norm_g) &&
 #ifdef DO_STEEP_DESC
-         (norm_d > tr_num_tol) && 
+         (norm_d > tr_num_tol) &&
 #endif
-         (cg_iter < max_cg_iter)) 
+         (cg_iter < max_cg_iter))
     {
       ++cg_iter;
 
@@ -255,7 +255,7 @@ void TrustRegion::optimize_vertex_positions( PatchData& pd, MsqError& err )
       norm_d = norm_dp1;
     }
 
-#ifdef DO_STEEP_DESC    
+#ifdef DO_STEEP_DESC
     if (norm_d <= tr_num_tol) {
       norm_g = length(arrptr(mGrad), nn);
       double ll = 1.0;
@@ -279,7 +279,7 @@ void TrustRegion::optimize_vertex_positions( PatchData& pd, MsqError& err )
     /* Put the new point into the locations */
     pd.move_free_vertices_constrained( d, nn, 1.0, err ); MSQ_ERRRTN(err);
 
-    valid = func.evaluate( pd, objn, err ); 
+    valid = func.evaluate( pd, objn, err );
     if (err.error_code() == err.BARRIER_VIOLATED)
       err.clear();  // barrier violated does not represent an actual error here
     MSQ_ERRRTN(err);
@@ -287,10 +287,10 @@ void TrustRegion::optimize_vertex_positions( PatchData& pd, MsqError& err )
     if (!valid) {
       /* Function not defined at trial point */
       radius *= tr_decr_undef;
-      pd.set_to_vertices_memento( mMemento, err ); MSQ_ERRRTN(err); 
+      pd.set_to_vertices_memento( mMemento, err ); MSQ_ERRRTN(err);
       continue;
     }
-      
+
 
     if ((fabs(kappa) <= tr_num_tol) && (fabs(objn - obj) <= tr_num_tol)) {
       kappa = 1;
@@ -298,11 +298,11 @@ void TrustRegion::optimize_vertex_positions( PatchData& pd, MsqError& err )
     else {
       kappa = (objn - obj) / kappa;
     }
-    
+
     if (kappa < eta_1) {
       /* Iterate is unacceptable */
       radius *= tr_decr_def;
-      pd.set_to_vertices_memento( mMemento, err ); MSQ_ERRRTN(err); 
+      pd.set_to_vertices_memento( mMemento, err ); MSQ_ERRRTN(err);
       continue;
     }
 
@@ -319,10 +319,10 @@ void TrustRegion::optimize_vertex_positions( PatchData& pd, MsqError& err )
     compute_preconditioner( err ); MSQ_ERRRTN(err);
     pd.recreate_vertices_memento( mMemento, err ); MSQ_ERRRTN(err);
 
-    // checks stopping criterion 
+    // checks stopping criterion
     term.accumulate_patch( pd, err ); MSQ_ERRRTN(err);
     term.accumulate_inner( pd, objn, arrptr(mGrad), err ); MSQ_ERRRTN(err);
   }
-}    
+}
 
 } // namespace MBMesquite

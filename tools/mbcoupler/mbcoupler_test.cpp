@@ -208,7 +208,7 @@ int main(int argc, char **argv)
     delete pcs[i];
 
   delete mbImpl;
-  
+
   ierr = MPI_Finalize();
   assert(MPI_SUCCESS == ierr);
   return 0;
@@ -598,19 +598,19 @@ ErrorCode test_interpolation(Interface *mbImpl,
   if (!ssNormTag.empty()) {
 
     result = mbc.normalize_subset(roots[0],
-                               ssNormTag.c_str(), 
-                               &ssTagNames[0], 
-                               ssTagNames.size(), 
-                               &ssTagValues[0], 
-                               Coupler::VOLUME, 
+                               ssNormTag.c_str(),
+                               &ssTagNames[0],
+                               ssTagNames.size(),
+                               &ssTagValues[0],
+                               Coupler::VOLUME,
                                4);MB_CHK_ERR(result);
 
     result = mbc.normalize_subset(roots[1],
-                               ssNormTag.c_str(), 
-                               &ssTagNames[0], 
-                               ssTagNames.size(), 
-                               &ssTagValues[0], 
-                               Coupler::VOLUME, 
+                               ssNormTag.c_str(),
+                               &ssTagNames[0],
+                               ssTagNames.size(),
+                               &ssTagValues[0],
+                               Coupler::VOLUME,
                                4);MB_CHK_ERR(result);
   }
 

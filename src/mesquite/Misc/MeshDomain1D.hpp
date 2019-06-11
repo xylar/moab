@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2008 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2008) kraftche@cae.wisc.edu    
+    (2008) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file MeshDomain1D.hpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #ifndef MSQ_MESH_DOMAIN1D_HPP
@@ -46,33 +46,33 @@ class MESQUITE_EXPORT PointDomain : public MeshDomain
 {
   private:
     Vector3D mGeom;
-  
+
   public:
-    
+
     PointDomain( const Vector3D& location ) : mGeom(location) {}
 
     const Vector3D& geom() const { return mGeom; }
-    
-     
+
+
     virtual void snap_to(Mesh::VertexHandle entity_handle,
                          Vector3D &coordinate) const;
-    
+
     virtual void vertex_normal_at(Mesh::VertexHandle entity_handle,
                                   Vector3D &coordinate) const;
     virtual void element_normal_at(Mesh::ElementHandle entity_handle,
                                   Vector3D &coordinate) const;
-                          
+
     virtual void vertex_normal_at( const Mesh::VertexHandle* handles,
                                    Vector3D coordinates[],
                                    unsigned count,
                                    MsqError& err ) const;
-                            
+
     virtual void closest_point( Mesh::VertexHandle handle,
                                 const Vector3D& position,
                                 Vector3D& closest,
                                 Vector3D& normal,
                                 MsqError& err ) const;
-                                
+
     virtual void domain_DoF( const Mesh::VertexHandle* handle_array,
                              unsigned short* dof_array,
                              size_t num_handles,
@@ -83,44 +83,44 @@ class MESQUITE_EXPORT LineDomain : public MeshDomain, public CurveDomain
 {
   private:
     MsqLine mGeom;
-  
+
   public:
-    
+
     LineDomain( const Vector3D& point, const Vector3D& dir )
       : mGeom( point, dir )
     {}
-    
+
     LineDomain( const MsqLine& line )
       : mGeom( line )
     {}
-    
+
     const MsqLine& geom() const { return mGeom; }
-    
-     
+
+
     virtual void snap_to(Mesh::VertexHandle entity_handle,
                          Vector3D &coordinate) const;
-    
+
     virtual void vertex_normal_at(Mesh::VertexHandle entity_handle,
                                   Vector3D &coordinate) const;
     virtual void element_normal_at(Mesh::ElementHandle entity_handle,
                                   Vector3D &coordinate) const;
-                          
+
     virtual void vertex_normal_at( const Mesh::VertexHandle* handles,
                                    Vector3D coordinates[],
                                    unsigned count,
                                    MsqError& err ) const;
-                            
+
     virtual void closest_point( Mesh::VertexHandle handle,
                                 const Vector3D& position,
                                 Vector3D& closest,
                                 Vector3D& normal,
                                 MsqError& err ) const;
-                                
+
     virtual void domain_DoF( const Mesh::VertexHandle* handle_array,
                              unsigned short* dof_array,
                              size_t num_handles,
                              MsqError& err ) const;
-   
+
   virtual double arc_length( const double position1[3],
                              const double position2[3],
                              MsqError& err );
@@ -137,42 +137,42 @@ class MESQUITE_EXPORT CircleDomain : public MeshDomain, CurveDomain
     MsqCircle mGeom;
 
   public:
-  
+
     CircleDomain( const Vector3D& center, const Vector3D& normal, double radius )
       : mGeom( center, normal, radius )
       {}
-  
+
     CircleDomain( const MsqCircle& circle )
       : mGeom( circle )
       {}
-     
+
     const MsqCircle& geom() const { return mGeom; }
-   
-    
+
+
     virtual void snap_to(Mesh::VertexHandle entity_handle,
                          Vector3D &coordinate) const;
-    
+
     virtual void vertex_normal_at(Mesh::VertexHandle entity_handle,
                                   Vector3D &coordinate) const;
     virtual void element_normal_at(Mesh::ElementHandle entity_handle,
                                   Vector3D &coordinate) const;
-                          
+
     virtual void vertex_normal_at( const Mesh::VertexHandle* handles,
                                    Vector3D coordinates[],
                                    unsigned count,
                                    MsqError& err ) const;
-                            
+
     virtual void closest_point( Mesh::VertexHandle handle,
                                 const Vector3D& position,
                                 Vector3D& closest,
                                 Vector3D& normal,
                                 MsqError& err ) const;
-                                
+
     virtual void domain_DoF( const Mesh::VertexHandle* handle_array,
                              unsigned short* dof_array,
                              size_t num_handles,
                              MsqError& err ) const;
-    
+
   virtual double arc_length( const double position1[3],
                              const double position2[3],
                              MsqError& err );

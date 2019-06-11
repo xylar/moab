@@ -1,9 +1,9 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2004 Sandia Corporation and Argonne National
-    Laboratory.  Under the terms of Contract DE-AC04-94AL85000 
-    with Sandia Corporation, the U.S. Government retains certain 
+    Laboratory.  Under the terms of Contract DE-AC04-94AL85000
+    with Sandia Corporation, the U.S. Government retains certain
     rights in this software.
 
     This library is free software; you can redistribute it and/or
@@ -16,25 +16,25 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
-    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov, 
-    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov      
-   
+
+    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov,
+    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov
+
   ***************************************************************** */
 /*!
   \file   ParallelHelper.hpp
-  \brief  
+  \brief
 
-  Implements ParallelHelper Class 
+  Implements ParallelHelper Class
 
   \author Martin Isenburg
   \date   2008-03-04
 */
 
-#ifndef Mesquite_ParallelHelper_hpp 
+#ifndef Mesquite_ParallelHelper_hpp
 #define Mesquite_ParallelHelper_hpp
 
 #include "ParallelHelperInterface.hpp"
@@ -48,14 +48,14 @@ namespace MBMesquite
     size_t glob_id;
     int proc_id;
   } VertexIdMapKey;
-  
+
   struct VertexIdLessFunc {
     bool operator()( const VertexIdMapKey &that1, const VertexIdMapKey& that2 ) const
     {
       return ( (that1.proc_id < that2.proc_id) || ((that1.proc_id==that2.proc_id)&&(that1.glob_id<that2.glob_id)) );
     }
   };
-  
+
   typedef std::map<VertexIdMapKey,int,VertexIdLessFunc> VertexIdMap;
 
   int get_parallel_rank();
@@ -77,7 +77,7 @@ namespace MBMesquite
     // function called by application during set-up
     void set_parallel_mesh(ParallelMesh* mesh);
     void set_communicator(size_t comm);
-    void set_communicator(const void* comm) 
+    void set_communicator(const void* comm)
       { set_communicator( reinterpret_cast<size_t>(comm) ); }
     void set_communication_model(int model, MsqError& err);
     void set_generate_random_numbers(int grn, MsqError& err);
@@ -172,6 +172,6 @@ namespace MBMesquite
     int comm_smoothed_vtx_tnb(MsqError& err);
     int comm_smoothed_vtx_tnb_no_all(MsqError& err);
   };
-  
+
 } // namespace
 #endif // Mesquite_ParallelHelper_hpp

@@ -1,5 +1,5 @@
 /** \file   SharedSetData.hpp
- *  \author Jason Kraftcheck 
+ *  \author Jason Kraftcheck
  *  \date   2011-06-23
  */
 
@@ -30,50 +30,50 @@ class SharedSetData
 {
 public:
   SharedSetData(Interface& moab, int pcID,  unsigned rank);
-  
+
   ~SharedSetData();
-  
-    /**\brief Get ranks of sharing procs 
+
+    /**\brief Get ranks of sharing procs
      *
      * Get list of all process ranks that own at least one set that
      * is shared with this process.
      */
   ErrorCode get_owning_procs( std::vector<unsigned>& ranks_out ) const;
-  
-    /**\brief Get ranks of sharing procs 
+
+    /**\brief Get ranks of sharing procs
      *
      * Get list of all process ranks with which this process the passed set.
      * Returns an empty list for non-shared sets.
      */
   ErrorCode get_sharing_procs( EntityHandle entity_set,
                                std::vector<unsigned>& ranks_out ) const;
-  
+
     /**\brief Get handles for all shared sets */
   ErrorCode get_shared_sets( Range& sets_out ) const;
-                               
+
     /**\brief Get handles for all sets shared with specified process */
   ErrorCode get_shared_sets( unsigned rank, Range& sets_out ) const;
 
-    /**\brief Get owner and owner's handle for shared set */ 
+    /**\brief Get owner and owner's handle for shared set */
   ErrorCode get_owner( EntityHandle set,
-                       unsigned& rank_out, 
+                       unsigned& rank_out,
                        EntityHandle& remote_handle_out ) const;
-  
-    /**\brief Get owner of shared set */ 
+
+    /**\brief Get owner of shared set */
   ErrorCode get_owner( EntityHandle set, unsigned& rank_out ) const
     { EntityHandle h; return get_owner( set, rank_out, h ); }
-  
-    /**\brief Get owner's handle for shared set */ 
+
+    /**\brief Get owner's handle for shared set */
   ErrorCode get_owner_handle( EntityHandle set, EntityHandle& handle_out ) const
-    { unsigned rank; return get_owner( set, rank, handle_out); } 
-  
+    { unsigned rank; return get_owner( set, rank, handle_out); }
+
     /**\brief Get local handle for shared set */
   ErrorCode get_local_handle( unsigned owner_rank,
                               EntityHandle remote_handle,
                               EntityHandle& local_handle_out ) const;
-  
+
   ErrorCode set_owner( EntityHandle set, unsigned owner_rank, EntityHandle owner_handle );
-  
+
     /**\brief set/update sharing list for a set
      *
      *\NOTE sorts \c ranks vector
@@ -82,23 +82,23 @@ public:
                                std::vector<unsigned>& ranks );
 
 private:
-  
+
   Interface& mb;
 
   /**\brief per-set tag data */
-  struct SharedSetTagData 
-  { 
-    unsigned ownerRank; 
-    EntityHandle ownerHandle; 
+  struct SharedSetTagData
+  {
+    unsigned ownerRank;
+    EntityHandle ownerHandle;
     const std::vector<unsigned>* sharingProcs;
   };
 
     /** Shared set data: opaque tag containing struct SharedSetTagData */
   Tag sharedSetTag;
- 
+
     /** Map type for lookup of local handle given remote handle */
   typedef RangeMap<EntityHandle,EntityHandle> ProcHandleMapType;
-  
+
   static void append_local_handles( const ProcHandleMapType& map,
                                     Range& append_to_this );
 
@@ -134,7 +134,7 @@ private:
   typedef std::map<unsigned,ProcHandleMapType> RHMap;
   typedef std::set<std::vector<unsigned>,less_vect> RProcMap;
 #endif
-  
+
     /** Map for lookup of ProcHandleMapType instance by rank */
   RHMap handleMap;
 

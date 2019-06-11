@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2010 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2010) kraftche@cae.wisc.edu    
+    (2010) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file DeformingDomainWrapper.cpp
  *  \brief Implement DeformingDomainWrapper class
- *  \author Jason Kraftcheck 
+ *  \author Jason Kraftcheck
  */
 
 #include "DeformingDomainWrapper.hpp"
@@ -57,7 +57,7 @@
 
 namespace MBMesquite {
 
-const DeformingDomainWrapper::MeshCharacteristic DEFAULT_METRIC_TYPE = 
+const DeformingDomainWrapper::MeshCharacteristic DEFAULT_METRIC_TYPE =
   DeformingDomainWrapper::SHAPE;
 
 const bool DEFAULT_CULLING = true;
@@ -65,7 +65,7 @@ const double DEFAULT_CPU_TIME = 0.0;
 const double DEFAULT_MOVEMENT_FACTOR = 0.01;
 const int DEFAULT_INNER_ITERATIONS = 2;
 const char DEFAULT_CURVE_TAG[] = "MesquiteCurveFraction";
-const DeformingCurveSmoother::Scheme DEFAULT_CURVE_TYPE = 
+const DeformingCurveSmoother::Scheme DEFAULT_CURVE_TYPE =
   DeformingCurveSmoother::PROPORTIONAL;
 
 DeformingDomainWrapper::DeformingDomainWrapper()
@@ -117,7 +117,7 @@ void DeformingDomainWrapper::run_wrapper( MeshDomainAssoc* mesh_and_domain,
   TagVertexMesh init_mesh( err, mesh ); MSQ_ERRRTN(err);
   ReferenceMesh ref_mesh( &init_mesh );
   RefMeshTargetCalculator W( &ref_mesh );
-  
+
   TShapeNB1 mu_s;
   TShapeSize2DNB1 mu_2d_ss;
   TShapeSize3DNB1 mu_3d_ss;
@@ -133,7 +133,7 @@ void DeformingDomainWrapper::run_wrapper( MeshDomainAssoc* mesh_and_domain,
   TQualityMetric sample_metric( &W, mu );
   ElementPMeanP elem_metric( P, &sample_metric );
   PMeanPTemplate obj_func( P, &elem_metric );
-  
+
   TerminationCriterion inner, outer;
   SteepestDescent improver( &obj_func );
   improver.use_element_on_vertex_patch(); // Nash optimization
@@ -146,7 +146,7 @@ void DeformingDomainWrapper::run_wrapper( MeshDomainAssoc* mesh_and_domain,
     outer.add_cpu_time( cpuTime );
   improver.set_inner_termination_criterion( &inner );
   improver.set_outer_termination_criterion( &outer );
-  
+
   qa->add_quality_assessment(&elem_metric);
   InstructionQueue q;
   q.add_quality_assessor( qa, err ); MSQ_ERRRTN(err);
@@ -155,13 +155,13 @@ void DeformingDomainWrapper::run_wrapper( MeshDomainAssoc* mesh_and_domain,
   q.run_common( mesh_and_domain, pmesh, settings, err ); MSQ_ERRRTN(err);
 }
 
-void DeformingDomainWrapper::move_to_domain( Mesh* mesh, 
-                                             MeshDomain* geom, 
+void DeformingDomainWrapper::move_to_domain( Mesh* mesh,
+                                             MeshDomain* geom,
                                              MsqError& err )
 {
   std::vector<Mesh::VertexHandle> verts;
   mesh->get_all_vertices( verts, err ); MSQ_ERRRTN(err);
-  
+
   MsqVertex coords;
   std::vector<Mesh::VertexHandle>::const_iterator i;
   for (i = verts.begin(); i != verts.end(); ++i) {
@@ -201,22 +201,22 @@ void DeformingCurveSmoother::store_initial_mesh( Mesh* mesh,
     vals[i-1] = (coords[0] - coords[1]).length();
     prev = next;
   }
-  
+
   // convert to length fraction before each iterior vertex
   // (sum of lengths of adjacent edges over total curve length)
   const double total = std::accumulate( vals.begin(), vals.end(), 0.0 );
   for (int i = 1; i < nverts-1; ++i)
     vals[i-1] = vals[i-1]/total;
   vals.resize(nverts-2);
-  
+
   // create tag
   TagHandle tag = mesh->tag_create( initFractTag, Mesh::DOUBLE, 1, 0, err );
   if (err.error_code() == MsqError::TAG_ALREADY_EXISTS) {
     err.clear();
-    tag = get_tag( mesh, err ); 
+    tag = get_tag( mesh, err );
   }
   MSQ_ERRRTN(err);
-  
+
   // store tag data on interior vertices
   mesh->tag_set_vertex_data( tag, nverts-2, verts+1, &vals[0], err ); MSQ_ERRRTN(err);
 }
@@ -250,7 +250,7 @@ void DeformingCurveSmoother::smooth_curve( Mesh* mesh,
     }
   }
   const double total = geom->arc_length( coords[0].to_array(), coords[1].to_array(), err ); MSQ_ERRRTN(err);
-  
+
   std::vector<double> vals(nverts-1);
   if (metricType == EQUAL) {
     std::fill( vals.begin(), vals.end(), 1.0/(nverts-1) );
@@ -259,7 +259,7 @@ void DeformingCurveSmoother::smooth_curve( Mesh* mesh,
   else { // metricType == PROPORTIONAL
     TagHandle tag = get_tag( mesh, err ); MSQ_ERRRTN(err);
     mesh->tag_get_vertex_data( tag, nverts-2, verts+1, &vals[0], err ); MSQ_ERRRTN(err);
-    double sum = std::accumulate( vals.begin(), vals.end()-1, 0.0 ); 
+    double sum = std::accumulate( vals.begin(), vals.end()-1, 0.0 );
     if (1.0 - sum > 1e-8)
       vals.back() = 1.0 - sum;
     else {
@@ -269,7 +269,7 @@ void DeformingCurveSmoother::smooth_curve( Mesh* mesh,
         vals[i] /= sum;
     }
   }
-  
+
   double frac_sum = 0.0;
   for (int i = 1; i < nverts-1; ++i) {
     frac_sum += vals[i-1];

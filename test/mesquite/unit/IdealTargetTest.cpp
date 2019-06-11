@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2006 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
+
     (2006) kraftche@cae.wisc.edu
-   
+
   ***************************************************************** */
 
 
 /** \file IdealTargetTest.cpp
  *  \brief Test the IdealShapeTarget
- *  \author Jason Kraftcheck 
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -67,21 +67,21 @@ public:
   void test_hex_edge();
   void test_hex_face();
   void test_hex_center();
-  
+
 private:
 
-  void get_calc_target( EntityTopology type, 
+  void get_calc_target( EntityTopology type,
                         Sample sample,
-                        MsqMatrix<3,3>&, 
+                        MsqMatrix<3,3>&,
                         MsqMatrix<2,2>& );
-                        
-  void get_ideal_target( EntityTopology type, 
+
+  void get_ideal_target( EntityTopology type,
                          Sample sample,
-                         MsqMatrix<3,3>&, 
+                         MsqMatrix<3,3>&,
                          MsqMatrix<2,2>& );
-                        
+
   void do_test( EntityTopology type, Sample location );
-  
+
   Settings settings;
 };
 
@@ -137,14 +137,14 @@ void IdealTargetTest::test_hex_center()
   do_test( HEXAHEDRON, Sample(3, 0) );
 }
 
-void IdealTargetTest::get_calc_target( EntityTopology type, 
+void IdealTargetTest::get_calc_target( EntityTopology type,
                                        Sample location,
-                                       MsqMatrix<3,3>& w3, 
+                                       MsqMatrix<3,3>& w3,
                                        MsqMatrix<2,2>& w2 )
 {
   MsqPrintError err( std::cout );
   const int elem_dim = TopologyInfo::dimension(type);
-  
+
     // create a patch -- actual coords and such don't really matter
   std::vector<double> coords( 24, 0.0 );
   const size_t conn[] = { 0, 1, 2, 3, 4, 5, 6, 7 };
@@ -152,7 +152,7 @@ void IdealTargetTest::get_calc_target( EntityTopology type,
   pd.fill( 8, arrptr(coords), 1, type, conn, 0, err );
   CPPUNIT_ASSERT(!MSQ_CHKERR(err));
   pd.attach_settings( &settings );
-  
+
   IdealShapeTarget tc;
   if (elem_dim == 2)
     tc.get_2D_target( pd, 0, location, w2, err );
@@ -163,12 +163,12 @@ void IdealTargetTest::get_calc_target( EntityTopology type,
 
 void IdealTargetTest::get_ideal_target( EntityTopology type,
                                         Sample location,
-                                        MsqMatrix<3,3>& w3, 
+                                        MsqMatrix<3,3>& w3,
                                         MsqMatrix<2,2>& w2 )
 {
   MsqPrintError err( std::cout );
   const unsigned elem_dim = TopologyInfo::dimension(type);
-  
+
     // get the target matrix for an ideal element
   size_t indices[100];
   size_t num_vtx;
@@ -181,14 +181,14 @@ void IdealTargetTest::get_ideal_target( EntityTopology type,
     CPPUNIT_ASSERT(!MSQ_CHKERR(err));
 
     MsqMatrix<3,2> J;
-    for (size_t i = 0; i < num_vtx; ++i) 
+    for (size_t i = 0; i < num_vtx; ++i)
       for (unsigned j = 0; j < 2; ++j)
         c[j] += derivs[i][j] * coords[indices[i]];
 
     for (unsigned i = 0; i < 3; ++i)
       for (unsigned j = 0; j < 2; ++j)
         J(i,j) = c[j][i];
-    
+
     w2 = TargetCalculator::skew(J);
   }
   else {
@@ -197,7 +197,7 @@ void IdealTargetTest::get_ideal_target( EntityTopology type,
     func->derivatives( location, NodeSet(), indices, derivs, num_vtx, err );
     CPPUNIT_ASSERT(!MSQ_CHKERR(err));
 
-    for (size_t i = 0; i < num_vtx; ++i) 
+    for (size_t i = 0; i < num_vtx; ++i)
       for (unsigned j = 0; j < 3; ++j)
         c[j] += derivs[i][j] * coords[indices[i]];
 
@@ -207,7 +207,7 @@ void IdealTargetTest::get_ideal_target( EntityTopology type,
 
     w3 = TargetCalculator::skew(w3);
   }
-  
+
 }
 
 void IdealTargetTest::do_test( EntityTopology type, Sample location )
@@ -229,4 +229,4 @@ void IdealTargetTest::do_test( EntityTopology type, Sample location )
   }
 }
 
- 
+

@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2007 Sandia National Laboratories.  Developed at the
@@ -16,11 +16,11 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2008) kraftche@cae.wisc.edu    
+    (2008) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
@@ -77,21 +77,21 @@ void QuasiNewton::terminate_mesh_iteration( PatchData& /*pd*/, MsqError& /*err*/
 { }
 
 void QuasiNewton::cleanup()
-{ 
+{
     // release memento
   delete mMemento;
   mMemento = 0;
 
     // release coordinates
-  for (size_t i = 0; i < (sizeof(w)/sizeof(w[0])); ++i)   
+  for (size_t i = 0; i < (sizeof(w)/sizeof(w[0])); ++i)
     free_vector(w[i]);
     // release gradients
-  for (size_t i = 0; i < (sizeof(v)/sizeof(v[0])); ++i) 
+  for (size_t i = 0; i < (sizeof(v)/sizeof(v[0])); ++i)
     free_vector(v[i]);
-  
+
     // release Hessian memory
   free_vector(mHess);
-  
+
     // release temporary array memory
   free_vector(x);
   free_vector(d);
@@ -108,7 +108,7 @@ static inline void plus_eq_scaled( Vector3D* v, double s, const Vector3D* x, siz
 void QuasiNewton::solve( Vector3D* z_arr, const Vector3D* v_arr ) const
 {
   SymMatrix3D pd;
-  
+
   const double small = DBL_EPSILON;
   const size_t nn = mHess.size();
   for (size_t i = 0; i < nn; ++i) {
@@ -123,12 +123,12 @@ void QuasiNewton::solve( Vector3D* z_arr, const Vector3D* v_arr ) const
     pd[0] = 1.0 / dd[0];
     pd[1] = dd[1] * pd[0];
     pd[2] = dd[2] * pd[0];
-    
+
     pd[3] = 1.0 / (dd[3] - dd[1]*pd[1]);
     pd[5] = dd[4] - dd[2]*pd[1];
     pd[4] = pd[3] * pd[5];
     pd[5] = 1.0 / (dd[5] - dd[2]*pd[2] - pd[4]*pd[5]);
-    
+
     if (pd[0] <= 0.0 || pd[3] <= 0.0 || pd[5] <= 0.0) {
       if (dd[0] + dd[3] + dd[5] <= 0) {
           // switch to diagonal
@@ -161,13 +161,13 @@ void QuasiNewton::solve( Vector3D* z_arr, const Vector3D* v_arr ) const
     z[0] -= pd[1]*z[1] + pd[2]*z[2];
   }
 }
-    
+
 
 void QuasiNewton::optimize_vertex_positions( PatchData& pd, MsqError& err )
 {
   TerminationCriterion& term = *get_inner_termination_criterion();
   OFEvaluator& func = get_objective_function_evaluator();
-  
+
   const double sigma = 1e-4;
   const double beta0 = 0.25;
   const double beta1 = 0.80;
@@ -179,7 +179,7 @@ void QuasiNewton::optimize_vertex_positions( PatchData& pd, MsqError& err )
   double obj, objn;
 
   size_t i;
-  
+
     // Initialize stuff
   const size_t nn = pd.num_free_vertices();
   double a[QNVEC], b[QNVEC], r[QNVEC];
@@ -209,47 +209,47 @@ void QuasiNewton::optimize_vertex_positions( PatchData& pd, MsqError& err )
       a[i] = r[i] * inner( &(w[i][0]), arrptr(x), nn );
       plus_eq_scaled( arrptr(x), -a[i], &v[i][0], nn );
     }
-     
+
     solve( arrptr(d), arrptr(x) );
-  
+
     for (i = QNVEC; i--; ) {
       b[i] = r[i] * inner( &(v[i][0]), arrptr(d), nn );
       plus_eq_scaled( arrptr(d), a[i]-b[i], &(w[i][0]), nn );
     }
-    
+
     alpha = -inner( &(v[QNVEC][0]), arrptr(d), nn );  /* direction is negated */
     if (alpha > 0.0) {
       MSQ_SETERR(err)("No descent.", MsqError::INVALID_MESH);
       return;
     }
-   
+
     alpha *= sigma;
     beta = 1.0;
-    
+
     pd.move_free_vertices_constrained( arrptr(d), nn, -beta, err ); MSQ_ERRRTN(err);
-    valid = func.evaluate( pd, objn, v[QNVEC], err ); 
-    if (err.error_code() == err.BARRIER_VIOLATED)             
+    valid = func.evaluate( pd, objn, v[QNVEC], err );
+    if (err.error_code() == err.BARRIER_VIOLATED)
       err.clear();  // barrier violated does not represent an actual error here
     MSQ_ERRRTN(err);
     if (!valid ||
         (obj - objn < -alpha*beta - epsilon &&
          length( &(v[QNVEC][0]), nn ) >= tol1)) {
-      
+
       if (!valid)  // function not defined at trial point
         beta *= beta0;
       else  // unacceptable iterate
         beta *= beta1;
-      
+
       for (;;) {
         if (beta < tol1) {
           pd.set_to_vertices_memento( mMemento, err ); MSQ_ERRRTN(err);
           MSQ_SETERR(err)("Newton step not good", MsqError::INTERNAL_ERROR);
           return;
         }
-      
+
         pd.set_free_vertices_constrained( mMemento, arrptr(d), nn, -beta, err ); MSQ_ERRRTN(err);
         valid = func.evaluate( pd, objn, err );
-        if (err.error_code() == err.BARRIER_VIOLATED)             
+        if (err.error_code() == err.BARRIER_VIOLATED)
           err.clear();  // barrier violated does not represent an actual error here
         MSQ_ERRRTN(err);
         if (!valid) // function undefined at trial point
@@ -260,7 +260,7 @@ void QuasiNewton::optimize_vertex_positions( PatchData& pd, MsqError& err )
           break;
       }
     }
-    
+
     for (i = 0; i < QNVEC-1; ++i) {
       r[i] = r[i+1];
       w[i].swap( w[i+1] );
@@ -268,12 +268,12 @@ void QuasiNewton::optimize_vertex_positions( PatchData& pd, MsqError& err )
     }
     w[QNVEC-1].swap( w[0] );
     v[QNVEC-1].swap( v[0] );
-    
+
     func.update( pd, obj, v[QNVEC], mHess, err ); MSQ_ERRRTN(err);
     // norm_r = length_squared( &(v[QNVEC][0]), nn );
     //norm_g = sqrt(norm_r);
 
-    // checks stopping criterion 
+    // checks stopping criterion
     term.accumulate_patch( pd, err ); MSQ_ERRRTN(err);
     term.accumulate_inner( pd, objn, &v[QNVEC][0], err ); MSQ_ERRRTN(err);
   }

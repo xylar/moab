@@ -1,9 +1,9 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2004 Sandia Corporation and Argonne National
-    Laboratory.  Under the terms of Contract DE-AC04-94AL85000 
-    with Sandia Corporation, the U.S. Government retains certain 
+    Laboratory.  Under the terms of Contract DE-AC04-94AL85000
+    with Sandia Corporation, the U.S. Government retains certain
     rights in this software.
 
     This library is free software; you can redistribute it and/or
@@ -16,10 +16,10 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-   
+
   ***************************************************************** */
 
 #ifndef MSQ_ERROR_HPP
@@ -47,7 +47,7 @@ namespace MBMesquite
  *
  * Check the status of an MsqError.  Returns true as pushes the current
  * file/line onto the stack trace if the error flag is true.  Returns
- * false otherwise.  
+ * false otherwise.
  */
 #define MSQ_CHKERR(err)  (err.error() && err.push(MSQ_FUNCTION,__FILE__,__LINE__))
 
@@ -68,7 +68,7 @@ namespace MBMesquite
 /**\brief Macro to set error - use err.clear() to clear.
  *
  * Set the error object to the specified error code and optional error message,
- * and push the current file/line onto the stack trace.  
+ * and push the current file/line onto the stack trace.
  * Examples:
  *  - MSQ_SETERR( err )( MsqError::INVALID_ARG );
  *  - MSQ_SETERR( err )( "foo cannot be zero", MsqError::INVALID_ARG );
@@ -85,12 +85,12 @@ MBMesquite::MsqError::setter(err, MSQ_FUNCTION,__FILE__,__LINE__).set
  *
  * Used to hold error state and related information.
  * Internal Mesquite code should access this object via
- * the MSQ_SETERR() and MSQ_CHKERR() macros. 
+ * the MSQ_SETERR() and MSQ_CHKERR() macros.
  *
  * For applications, the cast-to-bool operator and << operator
  * are provided for convenient, if simple access to this data.
  * E.g.:  if (err) cout << err << endl;
- * 
+ *
  * There are two options for an application to gain more detailed
  * access to the error data.  The application may either access
  * the data stored in this class via the provided methods or
@@ -129,24 +129,24 @@ public:
     BARRIER_VIOLATED,      /**< barruer violated when processing barrier Target Metric */
     LAST_ERROR_CODE
   };
-  
+
   //! \brief resets error object to non-active state (no error).
-  MESQUITE_EXPORT void clear(); 
-  
+  MESQUITE_EXPORT void clear();
+
   //! \brief Check if an error has occured
   inline bool error() const       { return NO_ERROR != errorCode; }
   //! \brief Check if an error has occured
   inline operator bool() const    { return NO_ERROR != errorCode; }
 
   //! \brief Initialize to cleared state.
-  MESQUITE_EXPORT MsqError() : errorCode(NO_ERROR) { } 
-  
+  MESQUITE_EXPORT MsqError() : errorCode(NO_ERROR) { }
+
   //! Destructor - empty but must declar virtual destrucor if virtual functions.
   MESQUITE_EXPORT virtual ~MsqError();
 
  /* ************************************************************ *
   *            Low-level access to error data
-  * ************************************************************ */  
+  * ************************************************************ */
 
   //! Get error code
   inline ErrorCode error_code() const    { return errorCode; }
@@ -157,14 +157,14 @@ public:
     std::string function;
     std::string file;
     int line;
-    
+
     Trace( const char* fun, const char* fil, int lin )
      : function(fun), file(fil), line(lin) {}
   };
-  
+
   //! Get error message
   MESQUITE_EXPORT const char* error_message() const;
-  
+
   //! Container type used to store stack trace.
   //! Return type for stack()
   typedef std::list<Trace> StackTrace;
@@ -175,23 +175,23 @@ public:
 
  /* ************************************************************ *
   *                        Set error data
-  * ************************************************************ */  
-  
+  * ************************************************************ */
+
   //! Add to back-trace of call stack.  Called by MSQ_CHKERR.
   //! Must always return true.
   MESQUITE_EXPORT virtual bool push( const char* function, const char* file, int line );
-  
+
   //! Initialize the error object with the passed data.
   MESQUITE_EXPORT virtual bool set_error( ErrorCode num, const char* msg = 0 );
-  
+
   //!\class setter
   //! Used for implementing pre-processor macros for internal use
   //! in Mesquite.
   class MESQUITE_EXPORT Setter {
     public:
-      Setter(MsqError& err, const char* function, const char* file, int line) 
+      Setter(MsqError& err, const char* function, const char* file, int line)
         : mErr(err), functionName(function), fileName(file), lineNumber(line) {}
-      
+
       bool set( ErrorCode num );
       bool set( const char* message, ErrorCode num );
       bool set( const std::string& message, ErrorCode num );
@@ -231,7 +231,7 @@ MESQUITE_EXPORT std::ostream& operator<<( std::ostream&, const MsqError::Trace& 
  *
  * A subclass of MsqError.  Behaves the same as MsqError, except that
  * it will automatically print itself to the specified ostream upon
- * destruction if an error occured.  For objections of this type 
+ * destruction if an error occured.  For objections of this type
  * declared on the stack (not new'd), this means that the error will
  * be printed when the function returns (if an error occured.)
 */
@@ -241,12 +241,12 @@ class MsqPrintError : public MsqError
       //!\brief Initialize with ostream to print error data to.
     MESQUITE_EXPORT MsqPrintError( std::ostream& stream )
       : outputStream(stream) {}
-    
+
       //!\brief On destruction, conditionally prints error data.
     MESQUITE_EXPORT virtual ~MsqPrintError( );
-    
+
   private:
-      
+
     std::ostream& outputStream;
 };
 

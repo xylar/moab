@@ -38,7 +38,7 @@ void generate_ray( const CartVect& sphere_center,
   point[1] = (double)rand()/H - 1;
   point[2] = (double)rand()/H - 1;
   point *= sphere_radius;
-  
+
   dir[0] = (double)rand() * -point[0];
   dir[1] = (double)rand() * -point[1];
   dir[2] = (double)rand() * -point[2];
@@ -54,12 +54,12 @@ ErrorCode read_tree( Interface* instance,
   ErrorCode rval = instance->load_mesh( filename );
   if (MB_SUCCESS != rval)
     return rval;
-  
+
   Tag tag;
   rval = instance->tag_get_handle( "OBB_ROOT", 1, MB_TYPE_HANDLE, tag );
   if (MB_SUCCESS != rval)
     return rval;
-  
+
   const EntityHandle root = 0;
   return instance->tag_get_data( tag, &root, 1, &tree_root_out );
 }
@@ -90,7 +90,7 @@ extern "C" {
 int main( int argc, char* argv[] )
 {
   signal( SIGINT, &signal_handler );
-  
+
   for (int i = 1; i < argc; ++i)
   {
     if (!strcmp( argv[i], "-r")) {
@@ -139,7 +139,7 @@ int main( int argc, char* argv[] )
     std::cerr << "No file name specified." << std::endl;
     usage();
   }
-    
+
   Core instance;
   Interface* iface = &instance;
   EntityHandle root;
@@ -148,7 +148,7 @@ int main( int argc, char* argv[] )
     std::cerr << "Failed to read \"" <<filename<<'"'<<std::endl;
     return 2;
   }
-  
+
   OrientedBoxTreeTool tool(iface);
   OrientedBox box;
   rval = tool.box( root, box );
@@ -161,7 +161,7 @@ int main( int argc, char* argv[] )
   if( do_trv_stats ){
     stats = new OrientedBoxTreeTool::TrvStats;
   }
-  
+
   const unsigned cached = 1000;
   std::vector<double> intersections;
   std::vector<EntityHandle> sets, facets;
@@ -169,7 +169,7 @@ int main( int argc, char* argv[] )
   std::vector<CartVect> randrays;
   randrays.reserve( cached );
   int cached_idx = 0;
-  
+
   ttimer = clock();
   for (;;) {
     if (!num_rays) {
@@ -182,7 +182,7 @@ int main( int argc, char* argv[] )
     }
     else if (rays >= num_rays && xsct >= num_xsct)
       break;
-    
+
     ++rays;
     if (randrays.size() < cached) {
       generate_ray( box.center, box.outer_radius(), point, dir );
@@ -193,7 +193,7 @@ int main( int argc, char* argv[] )
       dir   = randrays[cached_idx++];
       cached_idx = cached_idx % randrays.size();
     }
-    
+
     intersections.clear();
     if (do_sets) {
       sets.clear();
@@ -211,12 +211,12 @@ int main( int argc, char* argv[] )
       std::cerr << "Rayfire #" << rays << " failed." << std::endl;
       return 4;
     }
-    
+
     if (!intersections.empty()) {
       ++xsct;
     }
-    
-    if (randrays.size() < cached && 
+
+    if (randrays.size() < cached &&
         (!intersections.empty() || !num_xsct || xsct >= num_xsct)) {
       randrays.push_back( point );
       randrays.push_back( dir );
@@ -228,7 +228,7 @@ int main( int argc, char* argv[] )
             << gen  << " unique rays used" << std::endl
             << xsct << " intersecting fires" << std::endl
             << (double)ttimer/CLOCKS_PER_SEC << " seconds" << std::endl;
-  
+
   if( do_trv_stats ){
     std::cout << "Traversal statistics: " << std::endl;
     stats->print( std::cout );
@@ -240,5 +240,5 @@ int main( int argc, char* argv[] )
 
 
 
-  
+
 

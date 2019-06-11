@@ -18,7 +18,7 @@ void error( const char* argv0 )
 void help( const char* argv0 ) {
   std::cout << argv0 << " " << usage << std::endl
             << "-P <rank>  Specified processor will wait for debugger to attach." << std::endl
-            << "-p <name>  Tag identifying partition sets (default: \"" << 
+            << "-p <name>  Tag identifying partition sets (default: \"" <<
                   DEFAULT_PARTITION_TAG << "\")" << std::endl
             << "-a         Assign partitions to processes by matching part number to rank" << std::endl
             << "-R         Do not resolve shared entities" << std::endl
@@ -32,7 +32,7 @@ void help( const char* argv0 ) {
 int main( int argc, char* argv[] )
 {
   MPI_Init( &argc, &argv );
-  
+
   const char BCAST_MODE[] = "BCAST_DELETE";
   const char DELETE_MODE[] = "READ_DELETE";
   const char PART_MODE[] = "READ_PART";
@@ -48,7 +48,7 @@ int main( int argc, char* argv[] )
 
   int rank;
   MPI_Comm_rank( MPI_COMM_WORLD, &rank );
-  
+
   int expect_tag = 0;
   int expect_level = 0;
   int expect_opt = 0;
@@ -110,7 +110,7 @@ int main( int argc, char* argv[] )
       filename = argv[i];
     }
   }
-  
+
   if (expect_tag) {
     std::cerr << "Expected value following -p flag" << std::endl;
     error(argv[0]);
@@ -131,7 +131,7 @@ int main( int argc, char* argv[] )
     std::cerr << "No file name specified" << std::endl;
     error(argv[0]);
   }
-  
+
   options << ";PARTITION=" << partition_tag_name
           << ";PARALLEL=" << read_mode;
   if (resolve_shared)
@@ -140,53 +140,53 @@ int main( int argc, char* argv[] )
     options << ";PARTITION_BY_RANK";
   if (debug_level)
     options << ";DEBUG_IO=" << debug_level;
-  
+
   moab::Core core;
   moab::Interface& mb = core;
-  
+
   if (pause_rank >= 0) {
     if (pause_rank == rank) {
       std::cout << "Process " << rank << " with PID " << getpid() << " waiting for debugger" << std::endl
                 << "Set local variable 'do_wait' to zero to continue" << std::endl;
-    
+
       volatile int do_wait = 1;
       while (do_wait) {
         sleep(1);
-      } 
+      }
     }
     MPI_Barrier( MPI_COMM_WORLD );
   }
-  
+
   std::string opts = options.str();
-  if (rank == 0) 
+  if (rank == 0)
     std::cout << "Reading \"" << filename << "\" with options=\""
               << opts << "\"." << std::endl;
-              
+
   double init_time = MPI_Wtime();
   moab::ErrorCode rval = mb.load_file( filename, 0, opts.c_str() );
   double fini_time = MPI_Wtime();
-  
+
   long send_data[2] = { (long)(100*(fini_time-init_time)), rval };
   long recv_data[2];
   MPI_Allreduce( send_data, recv_data, 2, MPI_LONG, MPI_MAX, MPI_COMM_WORLD );
   double time = recv_data[0]/100.0;
-  
+
   if (moab::MB_SUCCESS != rval) {
     std::string estr = mb.get_error_string(rval);
     std::string msg;
     mb.get_last_error( msg );
-    std::cout << "Read failed for proccess " << rank << " with error code " 
+    std::cout << "Read failed for proccess " << rank << " with error code "
               << rval << " (" << estr << ")" << std::endl;
-    if (!msg.empty()) 
+    if (!msg.empty())
       std::cerr << '"' << msg << '"' << std::endl;
   }
-  
+
   if (rank == 0) {
     if (recv_data[1] == moab::MB_SUCCESS)
       std::cout << "Success!" << std::endl;
     std::cout << "Read returned in " << time << " seconds" << std::endl;
   }
-  
+
   MPI_Finalize();
   return (moab::MB_SUCCESS != rval);
 }

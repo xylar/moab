@@ -102,7 +102,7 @@ void putVertexField(Interface *mbi, const char *tagname, double factor){
   const double defVal = 0.;
   Tag fieldTag;
   mbi->tag_get_handle(tagname, 1, MB_TYPE_DOUBLE, fieldTag, MB_TAG_DENSE|MB_TAG_CREAT, &defVal);
- 
+
   int numVerts = verts.size();
   for(int i=0; i<numVerts; i++){
     EntityHandle vert = verts[i]; //?
@@ -126,7 +126,7 @@ void putVertexField(Interface *mbi, const char *tagname, double factor){
 int main(int argc, char **argv){
 
   using namespace moab;
-  
+
   Interface *mbi = new Core();
 
   if (argc < 3){
@@ -139,7 +139,7 @@ int main(int argc, char **argv){
 
   double factor = 1.0;
   if (argc == 4) factor = atof(argv[3]);
-  
+
   putVertexField(mbi, "vertex_field", factor);
   putElementField(mbi, "element_field", factor);
   // putSpectralElementField(mbi, 2, 4, "spectral_element_field", factor);
@@ -149,9 +149,9 @@ int main(int argc, char **argv){
   if (MB_SUCCESS == result) cout << "wrote " << argv[2] << endl;
   else cout << "Failed to write " << argv[2] << endl;
 
-    //  vector<double> coords;                                                                                                                               
-    //  mbi->get_vertex_coordinates(coords);                                                                   
-    //  double xavg = 0;                                                                                                                                           
+    //  vector<double> coords;
+    //  mbi->get_vertex_coordinates(coords);
+    //  double xavg = 0;
     //  for (int i = 0; i < coords.size()/3; i++) xavg += coords[i];
     //  cout << xavg << endl;
 

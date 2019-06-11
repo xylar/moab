@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2010 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2010) kraftche@cae.wisc.edu    
+    (2010) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file LineDomainTest.cpp
  *  \brief UnitTests for LineDomain class
- *  \author Jason Kraftcheck 
+ *  \author Jason Kraftcheck
  */
 
 #include "UnitUtil.hpp"
@@ -42,7 +42,7 @@ class LineDomainTest: public CppUnit::TestFixture
   CPPUNIT_TEST (test_arc_length);
   CPPUNIT_TEST (test_position_from_length);
   CPPUNIT_TEST_SUITE_END();
- 
+
 public:
 
   void test_snap_to();
@@ -63,7 +63,7 @@ void LineDomainTest::test_snap_to()
   dom1.snap_to( 0, result );
   CPPUNIT_ASSERT_DOUBLES_EQUAL( 0.0, ((result - base1) * dir1).length(), 1e-6 ); // on the line
   CPPUNIT_ASSERT_DOUBLES_EQUAL( 0.0, ((point - result) % dir1), 1e-6 ); // moved perp to line
-  
+
   point = Vector3D(10,11,12);
   result = point;
   dom1.snap_to( 0, result );
@@ -74,7 +74,7 @@ void LineDomainTest::test_snap_to()
 void LineDomainTest::test_arc_length()
 {
   MsqPrintError err(std::cerr);
-  
+
   const Vector3D base1(1,1,1);
   const Vector3D dir1(-1,-2,-3);
   LineDomain dom1( base1, dir1 );
@@ -93,7 +93,7 @@ void LineDomainTest::test_arc_length()
 void LineDomainTest::test_position_from_length()
 {
   MsqPrintError err(std::cerr);
-  
+
   const Vector3D base1(1,1,1);
   const Vector3D dir1(-1,-2,-3);
   LineDomain dom1( base1, dir1 );
@@ -103,7 +103,7 @@ void LineDomainTest::test_position_from_length()
   dom1.position_from_length( base1.to_array(), l1, result.to_array(), err );
   ASSERT_NO_ERROR(err);
   CPPUNIT_ASSERT_VECTORS_EQUAL( base1 + l1 * unit, result, 1e-6 );
-  
+
   double l2 = 3.333;
   Vector3D result2;
   dom1.position_from_length( result.to_array(), l2, result2.to_array(), err );

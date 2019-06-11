@@ -1,8 +1,8 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
-    Copyright 2006 Lawrence Livermore National Laboratory.  Under 
-    the terms of Contract B545069 with the University of Wisconsin -- 
+    Copyright 2006 Lawrence Livermore National Laboratory.  Under
+    the terms of Contract B545069 with the University of Wisconsin --
     Madison, Lawrence Livermore National Laboratory retains certain
     rights in this software.
 
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2006) kraftche@cae.wisc.edu    
+    (2006) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file CachingTargetCalculator.cpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -39,7 +39,7 @@
 
 namespace MBMesquite {
 
-CachingTargetCalculator::~CachingTargetCalculator() 
+CachingTargetCalculator::~CachingTargetCalculator()
 { }
 
 void CachingTargetCalculator::notify_new_patch( PatchData&, CachedTargetData& data )
@@ -50,7 +50,7 @@ void CachingTargetCalculator::notify_patch_destroyed( CachedTargetData& data )
 
 void CachingTargetCalculator::notify_sub_patch( PatchData& ,
                                                 CachedTargetData& data,
-                                                PatchData& subpatch, 
+                                                PatchData& subpatch,
                                                 const size_t* ,
                                                 const size_t* element_map,
                                                 MsqError& /*err*/ )
@@ -58,11 +58,11 @@ void CachingTargetCalculator::notify_sub_patch( PatchData& ,
     // If no cached data for this patch, just return
   if (data.has_data())
     return;
-  
+
     // Create a new cached data object on the subpatch
   CachedTargetData& sub_data = get_data( subpatch );
   sub_data.clear();
-  
+
     // populate the element offset list, and count the total
     // number of cached target matrices.
   sub_data.elementOffsets.resize( subpatch.num_elements() );
@@ -74,10 +74,10 @@ void CachingTargetCalculator::notify_sub_patch( PatchData& ,
     NodeSet samples = subpatch.get_samples( i );
     count += samples.num_nodes();
   }
-  
+
   const bool orient = have_surface_orient();
   sub_data.targets3D.resize( count_3D );
-  if (orient) 
+  if (orient)
     sub_data.targetsSurface.resize( count_2D );
   else
     sub_data.targets2D.resize( count_2D );
@@ -88,8 +88,8 @@ void CachingTargetCalculator::notify_sub_patch( PatchData& ,
     size_t old_off = data.elementOffsets[element_map[i]];
     NodeSet samples = subpatch.get_samples( i );
     size_t count = samples.num_nodes();
-   
-    if (TopologyInfo::dimension( type ) == 3) 
+
+    if (TopologyInfo::dimension( type ) == 3)
       memcpy( &sub_data.targets3D[off], &data.targets3D[old_off], count*sizeof(MsqMatrix<3,3>) );
     else if (orient)
       memcpy( &sub_data.targetsSurface[off], &data.targetsSurface[old_off], count*sizeof(MsqMatrix<3,2>) );
@@ -104,7 +104,7 @@ static void populate_data( PatchData& pd,
                            MsqError& err )
 {
   size_t i, j;
-  
+
   const bool orient = calc->have_surface_orient();
   if (data->elementOffsets.empty()) {
     size_t count_3d = 0, count_2d = 0;
@@ -122,7 +122,7 @@ static void populate_data( PatchData& pd,
     else
       data->targets2D.resize( count_2d );
   }
-  
+
   size_t off2 = 0, off3 = 0;
   for (i = 0; i < pd.num_elements(); ++i) {
     EntityTopology type = pd.element_by_index(i).get_element_type();
@@ -203,8 +203,8 @@ static void populate_data( PatchData& pd,
   }
 }
 
-  
-bool CachingTargetCalculator::get_3D_target( PatchData& pd, 
+
+bool CachingTargetCalculator::get_3D_target( PatchData& pd,
                                              size_t element,
                                              Sample sample,
                                              MsqMatrix<3,3>& W_out,
@@ -215,16 +215,16 @@ bool CachingTargetCalculator::get_3D_target( PatchData& pd,
     populate_data( pd, &data, cachedCalculator, err );
     MSQ_ERRZERO(err);
   }
-  
-    // calculate index of sample in array 
+
+    // calculate index of sample in array
   NodeSet all_samples = pd.get_samples( element );
   unsigned offset = all_samples.num_before( sample );
 
   W_out = data.targets3D[ data.elementOffsets[element] + offset ];
   return true;
 }
-  
-bool CachingTargetCalculator::get_2D_target( PatchData& pd, 
+
+bool CachingTargetCalculator::get_2D_target( PatchData& pd,
                                              size_t element,
                                              Sample sample,
                                              MsqMatrix<2,2>& W_out,
@@ -236,7 +236,7 @@ bool CachingTargetCalculator::get_2D_target( PatchData& pd,
       MSQ_SETERR(err)("Incorrect surface mesh target type", MsqError::INTERNAL_ERROR );
       return false;
     }
-  
+
     populate_data( pd, &data, cachedCalculator, err );
     MSQ_ERRZERO(err);
     if (data.targets2D.empty()) {
@@ -244,16 +244,16 @@ bool CachingTargetCalculator::get_2D_target( PatchData& pd,
       return false;
     }
   }
-  
-    // calculate index of sample in array 
+
+    // calculate index of sample in array
   NodeSet all_samples = pd.get_samples( element );
   unsigned offset = all_samples.num_before( sample );
 
   W_out = data.targets2D[ data.elementOffsets[element] + offset ];
   return true;
 }
-  
-bool CachingTargetCalculator::get_surface_target( PatchData& pd, 
+
+bool CachingTargetCalculator::get_surface_target( PatchData& pd,
                                              size_t element,
                                              Sample sample,
                                              MsqMatrix<3,2>& W_out,
@@ -265,7 +265,7 @@ bool CachingTargetCalculator::get_surface_target( PatchData& pd,
       MSQ_SETERR(err)("Incorrect surface mesh target type", MsqError::INTERNAL_ERROR );
       return false;
     }
-  
+
     populate_data( pd, &data, cachedCalculator, err );
     MSQ_ERRZERO(err);
     if (data.targetsSurface.empty()) {
@@ -273,8 +273,8 @@ bool CachingTargetCalculator::get_surface_target( PatchData& pd,
       return false;
     }
   }
-  
-    // calculate index of sample in array 
+
+    // calculate index of sample in array
   NodeSet all_samples = pd.get_samples( element );
   unsigned offset = all_samples.num_before( sample );
 

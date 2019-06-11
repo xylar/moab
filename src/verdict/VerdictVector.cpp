@@ -51,7 +51,7 @@ double VerdictVector::distance_between(const VerdictVector& test_vector)
   double xv = xVal - test_vector.x();
   double yv = yVal - test_vector.y();
   double zv = zVal - test_vector.z();
-  
+
   return( sqrt( xv * xv + yv * yv + zv * zv ) );
 }
 
@@ -61,14 +61,14 @@ void VerdictVector::print_me()
   PRINT_INFO("X: %f\n",xVal);
   PRINT_INFO("Y: %f\n",yVal);
   PRINT_INFO("Z: %f\n",zVal);
-  
+
 }
 */
 
 double VerdictVector::interior_angle(const VerdictVector &otherVector)
 {
   double cosAngle=0., angleRad=0., len1, len2=0.;
-  
+
   if (((len1 = this->length()) > 0) && ((len2 = otherVector.length()) > 0))
     cosAngle = (*this % otherVector)/(len1 * len2);
   else
@@ -76,7 +76,7 @@ double VerdictVector::interior_angle(const VerdictVector &otherVector)
     assert(len1 > 0);
     assert(len2 > 0);
   }
-  
+
   if ((cosAngle > 1.0) && (cosAngle < 1.0001))
   {
     cosAngle = 1.0;
@@ -93,7 +93,7 @@ double VerdictVector::interior_angle(const VerdictVector &otherVector)
   {
     assert(cosAngle < 1.0001 && cosAngle > -1.0001);
   }
-  
+
   return( (angleRad * 180.) / VERDICT_PI );
 }
 
@@ -113,9 +113,9 @@ void VerdictVector::xy_to_rtheta()
     //careful about overwriting
   double r_ = length();
   double theta_ = atan2( y(), x() );
-  if (theta_ < 0.0) 
+  if (theta_ < 0.0)
     theta_ += TWO_VERDICT_PI;
-  
+
   r( r_ );
   theta( theta_ );
 }
@@ -125,7 +125,7 @@ void VerdictVector::rtheta_to_xy()
     //careful about overwriting
   double x_ =  r() * cos( theta() );
   double y_ =  r() * sin( theta() );
-  
+
   x( x_ );
   y( y_ );
 }
@@ -139,7 +139,7 @@ void VerdictVector::rotate(double angle, double )
 
 void VerdictVector::blow_out(double gamma, double rmin)
 {
-    // if gamma == 1, then 
+    // if gamma == 1, then
     // map on a circle : r'^2 = sqrt( 1 - (1-r)^2 )
     // if gamma ==0, then map back to itself
     // in between, linearly interpolate
@@ -162,24 +162,24 @@ void VerdictVector::scale_angle(double gamma, double )
 {
   const double r_factor = 0.3;
   const double theta_factor = 0.6;
-  
+
   xy_to_rtheta();
-  
+
     // if neary 2pi, treat as zero
     // some near zero stuff strays due to roundoff
   if (theta() > TWO_VERDICT_PI - 0.02)
     theta() = 0;
     // the above screws up on big sheets - need to overhaul at the sheet level
-  
+
   if ( gamma < 1 )
   {
       //squeeze together points of short radius so that
       //long chords won't cross them
     theta() += (VERDICT_PI-theta())*(1-gamma)*theta_factor*(1-r());
-    
+
       //push away from center of circle, again so long chords won't cross
     r( (r_factor + r()) / (1 + r_factor) );
-    
+
       //scale angle by gamma
     theta() *= gamma;
   }
@@ -187,7 +187,7 @@ void VerdictVector::scale_angle(double gamma, double )
   {
       //scale angle by gamma, making sure points nearly 2pi are treated as zero
     double new_theta = theta() * gamma;
-    if ( new_theta < 2.5 * VERDICT_PI || r() < 0.2) 
+    if ( new_theta < 2.5 * VERDICT_PI || r() < 0.2)
       theta( new_theta );
   }
   rtheta_to_xy();
@@ -241,19 +241,19 @@ VerdictVector vectorRotate(const double angle,
     // constructed along the local x axis and then rotated by the given
     // ccw angle to form the new point.  The new point, then is a unit
     // distance from the global origin in the tangent plane.
-  
+
   double x, y;
-  
+
     // project a unit distance from root along reference axis
-  
+
   VerdictVector yAxis = normalAxis * referenceAxis;
   VerdictVector xAxis = yAxis * normalAxis;
   yAxis.normalize();
   xAxis.normalize();
-  
+
   x = cos(angle);
   y = sin(angle);
-  
+
   xAxis *= x;
   yAxis *= y;
   return VerdictVector(xAxis + yAxis);
@@ -272,7 +272,7 @@ double VerdictVector::vector_angle(const VerdictVector &vector1,
     //     If the normal is colinear with either (or both) vectors
     //         a new one is computed with the cross products
     //         (and checked again).
-  
+
     // Check for zero length normal vector
   VerdictVector normal = *this;
   double normal_lensq = normal.length_squared();
@@ -291,7 +291,7 @@ double VerdictVector::vector_angle(const VerdictVector &vector1,
       else               return VERDICT_PI;
     }
   }
-  
+
     //Trap for normal vector colinear to one of the other vectors. If so,
     //use a normal defined by the two vectors.
   double dot_tol = 0.985;
@@ -300,7 +300,7 @@ double VerdictVector::vector_angle(const VerdictVector &vector1,
   {
     normal = vector1 * vector2;
     normal_lensq = normal.length_squared();
-    
+
       //Still problems if all three vectors were colinear
     if( normal_lensq <= len_tol )
     {
@@ -318,13 +318,13 @@ double VerdictVector::vector_angle(const VerdictVector &vector1,
       normal = vector1 * vector2;
     }
   }
-  
+
     // Assume a plane such that the normal vector is the plane's normal.
     // Create yAxis perpendicular to both the normal and vector1. yAxis is
     // now in the plane. Create xAxis as the perpendicular to both yAxis and
     // the normal. xAxis is in the plane and is the projection of vector1
     // into the plane.
-  
+
   normal.normalize();
   VerdictVector yAxis = normal;
   yAxis *= vector1;
@@ -332,15 +332,15 @@ double VerdictVector::vector_angle(const VerdictVector &vector1,
     //  yAxis memory slot will now be used for xAxis
   yAxis *= normal;
   double xv = vector2 % yAxis;
-  
-  
+
+
     //  assert(x != 0.0 || y != 0.0);
   if( xv == 0.0 && yv == 0.0 )
   {
     return 0.0;
   }
   double angle = atan2( yv, xv );
-  
+
   if (angle < 0.0)
   {
     angle += TWO_VERDICT_PI;
@@ -358,11 +358,11 @@ bool VerdictVector::within_tolerance( const VerdictVector &vectorPtr2,
   {
     return true;
   }
-  
+
   return false;
 }
 
-void VerdictVector::orthogonal_vectors( VerdictVector &vector2, 
+void VerdictVector::orthogonal_vectors( VerdictVector &vector2,
                                       VerdictVector &vector3 )
 {
   double xv[3];
@@ -374,18 +374,18 @@ void VerdictVector::orthogonal_vectors( VerdictVector &vector2,
   unsigned short cont_flag = 1;
   double vec1[3], vec2[3];
   double rmag;
-  
+
     // Copy the input vector and normalize it
   VerdictVector vector1 = *this;
   vector1.normalize();
-  
+
     // Initialize perm flags
   iperm1[0] = 1; iperm1[1] = 2; iperm1[2] = 0;
   iperm2[0] = 2; iperm2[1] = 0; iperm2[2] = 1;
-  
+
     // Get into the array format we can work with
   vector1.get_xyz( vec1 );
-  
+
   while (i<3 && cont_flag )
   {
     if (fabs(vec1[i]) < 1e-6)
@@ -395,7 +395,7 @@ void VerdictVector::orthogonal_vectors( VerdictVector &vector2,
       vec2[iperm2[i]] = 0.0;
       cont_flag = 0;
     }
-    
+
     if (fabs(vec1[i]) < rmin)
     {
       imin = i;
@@ -403,28 +403,28 @@ void VerdictVector::orthogonal_vectors( VerdictVector &vector2,
     }
     ++i;
   }
-  
+
   if (cont_flag)
   {
     xv[imin] = 1.0;
     xv[iperm1[imin]] = 0.0;
     xv[iperm2[imin]] = 0.0;
-    
+
       // Determine cross product
     vec2[0] = vec1[1] * xv[2] - vec1[2] * xv[1];
     vec2[1] = vec1[2] * xv[0] - vec1[0] * xv[2];
     vec2[2] = vec1[0] * xv[1] - vec1[1] * xv[0];
-    
+
       // Unitize
     rmag = sqrt(vec2[0]*vec2[0] + vec2[1]*vec2[1] + vec2[2]*vec2[2]);
     vec2[0] /= rmag;
     vec2[1] /= rmag;
     vec2[2] /= rmag;
   }
-  
+
     // Copy 1st orthogonal vector into VerdictVector vector2
   vector2.set( vec2 );
-  
+
     // Cross vectors to determine last orthogonal vector
   vector3 = vector1 * vector2;
 }
@@ -435,15 +435,15 @@ void VerdictVector::next_point( const VerdictVector &direction,
 {
   VerdictVector my_direction = direction;
   my_direction.normalize();
-  
+
     // Determine next point in space
-  out_point.x( xVal + (distance * my_direction.x()) );     
-  out_point.y( yVal + (distance * my_direction.y()) );     
-  out_point.z( zVal + (distance * my_direction.z()) ); 
-  
+  out_point.x( xVal + (distance * my_direction.x()) );
+  out_point.y( yVal + (distance * my_direction.y()) );
+  out_point.z( zVal + (distance * my_direction.z()) );
+
   return;
 }
 
-VerdictVector::VerdictVector(const double xyz[3]) 
+VerdictVector::VerdictVector(const double xyz[3])
   : xVal(xyz[0]), yVal(xyz[1]), zVal(xyz[2])
 {}

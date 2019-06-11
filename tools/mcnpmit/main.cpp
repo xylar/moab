@@ -53,8 +53,8 @@ int main(int argc, char **argv) {
       std::cout << "Failure reading MCNP file!" << std::endl;
       return 1;
     }
-  } 
-    
+  }
+
 
   load_time = clock() - start_time;
 
@@ -85,7 +85,7 @@ int main(int argc, char **argv) {
     moab::Range tmprange;
     kdtree.find_all_trees( tmprange );
     root = tmprange[0];
-    
+
   }
   else {
     std::cout << "Building KD-Tree..." << std::endl;
@@ -138,7 +138,7 @@ int main(int argc, char **argv) {
   moab::Range::iterator cfd_iter;
   moab::EntityHandle meshset;
 
-  if (read_qnv) {      
+  if (read_qnv) {
     cadfile.open( CAD_filename.c_str() );
     cadfile.getline(line, 10000);
     cadfile.getline(line, 10000);
@@ -164,7 +164,7 @@ int main(int argc, char **argv) {
     std::cout << std::endl << "Read in mesh with query points." << std::endl << std::endl;
 
   }
-  
+
 
   double     testpt[3];
   double     transformed_pt[3];
@@ -198,7 +198,7 @@ int main(int argc, char **argv) {
     //	std::cerr << "Completed " << i/status_freq << "%" << std::endl;
 	
     // Grab the coordinates to query
-    if (read_qnv) { 
+    if (read_qnv) {
       cadfile.getline(line, 10000);
 
       nl = std::strtol(line, &ctmp, 10); n  = (unsigned int) nl;
@@ -206,17 +206,17 @@ int main(int argc, char **argv) {
       testpt[1] = std::strtod( ctmp+1, &ctmp );
       testpt[2] = std::strtod( ctmp+1, NULL );
     }
-    else {    
+    else {
       testpt[0] = cfd_coords[3*i  ];
       testpt[1] = cfd_coords[3*i+1];
-      testpt[2] = cfd_coords[3*i+2];      
+      testpt[2] = cfd_coords[3*i+2];
       n = i+1;
     }
 
     result = MCNP->transform_point( testpt, transformed_pt, coord_sys, rmatrix );
 
-    testvc[0] = transformed_pt[0]; 
-    testvc[1] = transformed_pt[1]; 
+    testvc[0] = transformed_pt[0];
+    testvc[1] = transformed_pt[1];
     testvc[2] = transformed_pt[2];
 
     // Find the leaf containing the point
@@ -233,9 +233,9 @@ int main(int argc, char **argv) {
         x = testvc[0]*cos(2*M_PI*testvc[2]);
         y = testvc[0]*sin(2*M_PI*testvc[2]);
         z = testvc[1];
-      } 
+      }
       else {
-        std::cout << "MOAB WARNING: Unhandled error code during point search in KdTree, ErrorCode = " << MBresult 
+        std::cout << "MOAB WARNING: Unhandled error code during point search in KdTree, ErrorCode = " << MBresult
                   << " and Coord xyz=" << x << " " << y << " " << z << std::endl;
       }
       std::cout << "No leaf found, MCNP coord xyz=" << x << " " << y << " " << z << std::endl;
@@ -396,7 +396,7 @@ MCNPError next_double(std::string s, double &d, int &p) {
 
       return MCNP_SUCCESS;
     }
-  }   
+  }
 
   return DONE;
 }
@@ -419,7 +419,7 @@ MCNPError next_int(std::string s, int &k, int &p) {
 
       return MCNP_SUCCESS;
     }
-  }   
+  }
 
   return DONE;
 }

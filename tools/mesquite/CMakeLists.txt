@@ -84,12 +84,12 @@ IF(${PACKAGE_NAME}_ENABLE_SHARED)
 ELSE()
   SET( MESQUITE_UTIL_DEFINES "${MESQUITE_DEFINES} -DMESQUITE_STATIC_LIB" )
 ENDIF()
-SET( UTIL_SOURCES 
-     CLArgFlag.cpp 
-     CLArgs.cpp 
-     domain.cpp 
-     ManPage.cpp 
-     quality.cpp 
+SET( UTIL_SOURCES
+     CLArgFlag.cpp
+     CLArgs.cpp
+     domain.cpp
+     ManPage.cpp
+     quality.cpp
      randomize.cpp
      shape-improve.cpp
      transform.cpp )

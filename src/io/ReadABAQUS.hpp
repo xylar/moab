@@ -1,16 +1,16 @@
 /**
  * MOAB, a Mesh-Oriented datABase, is a software component for creating,
  * storing and accessing finite element mesh data.
- * 
+ *
  * Copyright 2004 Sandia Corporation.  Under the terms of Contract
  * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
  * retains certain rights in this software.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  */
 
 //-------------------------------------------------------------------------
@@ -35,7 +35,7 @@ front-end.  While that tool writes binary files in its own proprietary format,
 it also writes an ASCII input file that is the fundamental input to the
 ABAQUS solver itself.  A published syntax for this format is available from Simulia.
 
-This reader only supports a subset of the mesh syntax necessary to support 
+This reader only supports a subset of the mesh syntax necessary to support
 a basic thermal analysis of solid systems.
 
 An ABAQUS mesh makes use of the common paradigms of building a
@@ -53,14 +53,14 @@ Overview of supported structure
 * File:
    * Heading
    * Part
-      * Nodes 
+      * Nodes
       * Elements
       * Node Sets
       * Element Sets
       * Solid Sections
    * Assembly
       * Instance
-        * Nodes 
+        * Nodes
         * Elements
         * Node Sets
         * Element Sets
@@ -117,7 +117,7 @@ the following data model is used:
    • members
       • instance_sets
       • instance element_sets
-      • instance node_sets  
+      • instance node_sets
       • instance nodes
       • instance elements
 • EntitySet instance_set
@@ -135,7 +135,7 @@ the following data model is used:
    • members
       • instance nodes
       • instance elements
-      • instance node_sets  
+      • instance node_sets
       • instance element_sets
 • EntitySet node_set
    • tags
@@ -143,7 +143,7 @@ the following data model is used:
          name of entity set
        • mPartHandleTag (handle)
          pointer to part in which this node set exists
-	 (only defined for node sets that are in an instance and 
+	 (only defined for node sets that are in an instance and
           derive from a part)
        • mInstanceHandleTag (handle)
          pointer back to instance set in which this node set exists
@@ -159,7 +159,7 @@ the following data model is used:
          name of entity set
        • mPartHandleTag (handle)
          pointer to part in which this element set exists
-	 (only defined for node sets that are in an instance and 
+	 (only defined for node sets that are in an instance and
           derive from a part)
        • mInstanceHandleTag (handle)
          pointer back to instance set in which this element set exists
@@ -328,7 +328,7 @@ public:
                       const FileOptions& opts,
                       const SubsetList* subset_list = 0,
                       const Tag* file_id_tag = 0);
-  
+
   ErrorCode read_tag_values(const char* file_name,
                             const char* tag_name,
                             const FileOptions& opts,
@@ -337,7 +337,7 @@ public:
 
   //! Constructor
   ReadABAQUS(Interface* impl = NULL);
-  
+
   //! Destructor
   virtual ~ReadABAQUS();
 
@@ -370,7 +370,7 @@ private:
   ErrorCode get_nodes_by_id(EntityHandle parent_set,
                             std::vector<int> node_ids_subset,
                             Range &node_range);
-    
+
   ErrorCode get_set_by_name(EntityHandle parent_set,
                             int ABQ_set_type,
                             const std::string &set_name,

@@ -1,16 +1,16 @@
 /**
  * MOAB, a Mesh-Oriented datABase, is a software component for creating,
  * storing and accessing finite element mesh data.
- * 
+ *
  * Copyright 2004 Sandia Corporation.  Under the terms of Contract
  * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
  * retains certain rights in this software.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  */
 
 // Cubit performance tests building mapped mesh with CubitNodes
@@ -37,15 +37,15 @@ using namespace moab;
 
 const double LENGTH = 1.0;
 
-extern "C" 
+extern "C"
 {
-  void __ctype_toupper() 
+  void __ctype_toupper()
   {}
 }
 
 void print_time(const bool print_em, double &tot_time, double &utime, double &stime);
 
-void build_coords(const int nelem, double *&coords) 
+void build_coords(const int nelem, double *&coords)
 {
     // allocate the memory
   int numv = nelem+1;
@@ -71,7 +71,7 @@ void build_coords(const int nelem, double *&coords)
   }
 }
 
-void build_connect(const int nelem, int *&connect) 
+void build_connect(const int nelem, int *&connect)
 {
     // allocate the memory
   int nume_tot = nelem*nelem*nelem;
@@ -117,10 +117,10 @@ int main(int argc, char* argv[])
 
     // build the coordinates
   build_coords(nelem, coords);
-  
+
     // build the connectivity
   build_connect(nelem, connect);
-  
+
   assert(NULL != connect && NULL != coords);
 
   double ttime0, ttime1, ttime2, ttime3, utime, stime;
@@ -145,7 +145,7 @@ int main(int argc, char* argv[])
     conn[6] = node_array[connect[j+6]];
     conn[7] = node_array[connect[j+7]];
     j += 8;
-    
+
     hex_array[i] = new NodeHex(conn);
   }
 
@@ -153,17 +153,17 @@ int main(int argc, char* argv[])
 
     // query element to vertex
 
-  
+
   for (i = 0; i < nelem_tot; i++) {
     double centroid[3] = {0.0, 0.0, 0.0};
-    hex_array[i]->hex_nodes(conn[0], conn[1], conn[2], conn[3], 
+    hex_array[i]->hex_nodes(conn[0], conn[1], conn[2], conn[3],
                             conn[4], conn[5], conn[6], conn[7]);
     for (j = 0; j < 8; j++) {
       centroid[0] += conn[j]->node_x();
       centroid[1] += conn[j]->node_y();
       centroid[2] += conn[j]->node_z();
     }
-    
+
   }
 
   print_time(false, ttime2, utime, stime);
@@ -171,24 +171,24 @@ int main(int argc, char* argv[])
     // need to allocate & populate TDHexKnowing for these
   for (i = 0; i < nelem_tot; i++)
     hex_array[i]->add_hex_to_nodes();
-    
+
   DLIList<CubitHex*> hexes;
   for (i = 0; i < nodes_tot; i++) {
     node_array[i]->all_hexes(hexes);
   }
-    
+
   print_time(false, ttime3, utime, stime);
 
-  std::cout << "CUBIT: nelem, construct, e_to_v query, v_to_e query = " 
-            << nelem << ", " 
-            << ttime1-ttime0 << ", " 
-            << ttime2-ttime1 << ", " 
-            << ttime3-ttime2 << " seconds" 
+  std::cout << "CUBIT: nelem, construct, e_to_v query, v_to_e query = "
+            << nelem << ", "
+            << ttime1-ttime0 << ", "
+            << ttime2-ttime1 << ", "
+            << ttime3-ttime2 << " seconds"
             << std::endl;
   return 0;
 }
 
-void print_time(const bool print_em, double &tot_time, double &utime, double &stime) 
+void print_time(const bool print_em, double &tot_time, double &utime, double &stime)
 {
   struct rusage r_usage;
   getrusage(RUSAGE_SELF, &r_usage);
@@ -198,12 +198,12 @@ void print_time(const bool print_em, double &tot_time, double &utime, double &st
      ((double)r_usage.ru_stime.tv_usec/1.e6);
   tot_time = utime + stime;
   if (print_em)
-    std::cout << "User, system, total time = " << utime << ", " << stime 
+    std::cout << "User, system, total time = " << utime << ", " << stime
               << ", " << tot_time << std::endl;
 #ifndef LINUX
  std::cout << "Max resident set size = " << r_usage.ru_maxrss*4096 << " bytes" << std::endl;
  std::cout << "Int resident set size = " << r_usage.ru_idrss << std::endl;
 #else
-  system("ps o args,drs,rss | grep perf | grep -v grep");  // RedHat 9.0 doesnt fill in actual memory data 
+  system("ps o args,drs,rss | grep perf | grep -v grep");  // RedHat 9.0 doesnt fill in actual memory data
 #endif
 }

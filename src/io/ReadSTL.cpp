@@ -1,16 +1,16 @@
 /**
  * MOAB, a Mesh-Oriented datABase, is a software component for creating,
  * storing and accessing finite element mesh data.
- * 
+ *
  * Copyright 2004 Sandia Corporation.  Under the terms of Contract
  * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
  * retains certain rights in this software.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  */
 
 /**
@@ -110,7 +110,7 @@ ErrorCode ReadSTL::load_file(const char* filename,
   else {
     // Try ASCII first
     result = ascii_read_triangles(filename, triangles);
-    if (MB_SUCCESS != result) 
+    if (MB_SUCCESS != result)
       // ASCII failed, try binary
       result = binary_read_triangles(filename, byte_order, triangles);
   }

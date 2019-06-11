@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2006 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
+
     (2006) kraftche@cae.wisc.edu
-   
+
   ***************************************************************** */
 
 
 /** \file TShapeSize2DNB1.cpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -48,8 +48,8 @@ TShapeSize2DNB1::~TShapeSize2DNB1() {}
  *  \f$ \psi(T) = \sqrt{|T|^2 + 2 \tau} \f$
  *  \f$ \tau = det(T) \f$
  */
-bool TShapeSize2DNB1::evaluate( const MsqMatrix<2,2>& T, 
-                                double& result, 
+bool TShapeSize2DNB1::evaluate( const MsqMatrix<2,2>& T,
+                                double& result,
                                 MsqError& /*err*/ )
 {
   double frob_sqr = sqr_Frobenius(T);
@@ -68,8 +68,8 @@ bool TShapeSize2DNB1::evaluate( const MsqMatrix<2,2>& T,
 }
 
 
-bool TShapeSize2DNB1::evaluate_with_grad( const MsqMatrix<2,2>& T, 
-                                          double& result, 
+bool TShapeSize2DNB1::evaluate_with_grad( const MsqMatrix<2,2>& T,
+                                          double& result,
                                           MsqMatrix<2,2>& deriv_wrt_T,
                                           MsqError& /*err*/ )
 {
@@ -101,8 +101,8 @@ bool TShapeSize2DNB1::evaluate_with_grad( const MsqMatrix<2,2>& T,
   return true;
 }
 
-bool TShapeSize2DNB1::evaluate_with_hess( const MsqMatrix<2,2>& T, 
-                                          double& result, 
+bool TShapeSize2DNB1::evaluate_with_hess( const MsqMatrix<2,2>& T,
+                                          double& result,
                                           MsqMatrix<2,2>& deriv_wrt_T,
                                           MsqMatrix<2,2> second[3],
                                           MsqError& /*err*/ )
@@ -134,7 +134,7 @@ bool TShapeSize2DNB1::evaluate_with_hess( const MsqMatrix<2,2>& T,
 
   set_scaled_2nd_deriv_wrt_psi( second, -2.0, psi, T );
   pluseq_scaled_I( second, 2 );
-  
+
   return true;
 }
 

@@ -1,9 +1,9 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2004 Sandia Corporation and Argonne National
-    Laboratory.  Under the terms of Contract DE-AC04-94AL85000 
-    with Sandia Corporation, the U.S. Government retains certain 
+    Laboratory.  Under the terms of Contract DE-AC04-94AL85000
+    with Sandia Corporation, the U.S. Government retains certain
     rights in this software.
 
     This library is free software; you can redistribute it and/or
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
-    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov, 
-    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov, 
-    kraftche@cae.wisc.edu     
-   
+
+    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov,
+    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov,
+    kraftche@cae.wisc.edu
+
   ***************************************************************** */
 /*!
   \file   Exponent.hpp
-  \brief 
+  \brief
 
   \author Jason Kraftcheck
   \date   2005-5-2
@@ -43,31 +43,31 @@ namespace MBMesquite {
 class Exponent
 {
   public:
-    
+
     typedef double (Exponent::*constMemberPtr)(double) const;
     static constMemberPtr get_func_ptr( double exponent );
-  
-    Exponent( ) : funcPointer( 0 ) 
+
+    Exponent( ) : funcPointer( 0 )
       {}
-  
-    explicit Exponent( double exponent ) 
-      : mExponent(exponent), 
+
+    explicit Exponent( double exponent )
+      : mExponent(exponent),
         funcPointer( get_func_ptr( exponent ) )
       {}
-    
+
     inline double raise( double p_value ) const
       { return (this->*funcPointer)( p_value ); }
-    
+
     void set_exponent( double exponent );
-    
+
     inline Exponent& operator=( double d )
       { set_exponent(d); return *this; }
-    
+
     //inline operator double () const
     //  { return mExponent; }
     inline double value() const
       { return mExponent; }
-    
+
     double pow0( double x ) const;
     double pow1( double x ) const;
     double squareRoot( double x ) const;
@@ -85,7 +85,7 @@ class Exponent
     double powNegativeInt( double x ) const;
 
   private:
-  
+
     double mExponent;
     constMemberPtr funcPointer;
 };

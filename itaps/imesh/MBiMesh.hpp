@@ -35,7 +35,7 @@ public:
   moab::Interface *mbImpl;
   int lastErrorType;
   char lastErrorDescription[120];
-  
+
   inline void note_set_handle_tag( Tag );
   inline void note_ent_handle_tag( Tag );
   inline void note_tag_destroyed( Tag );
@@ -70,7 +70,7 @@ inline MBiMesh::MBiMesh(Interface *impl)
   }
 }
 
-inline MBiMesh::~MBiMesh() 
+inline MBiMesh::~MBiMesh()
 {
   if (iCreatedInterface) delete mbImpl;
 }

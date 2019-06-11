@@ -1,9 +1,9 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2004 Sandia Corporation and Argonne National
-    Laboratory.  Under the terms of Contract DE-AC04-94AL85000 
-    with Sandia Corporation, the U.S. Government retains certain 
+    Laboratory.  Under the terms of Contract DE-AC04-94AL85000
+    with Sandia Corporation, the U.S. Government retains certain
     rights in this software.
 
     This library is free software; you can redistribute it and/or
@@ -16,13 +16,13 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
-    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov, 
-    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov      
-   
+
+    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov,
+    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov
+
   ***************************************************************** */
 // -*- Mode : c++; tab-width: 3; c-tab-always-indent: t; indent-tabs-mode: nil; c-basic-offset: 3 -*-
 
@@ -50,7 +50,7 @@ namespace MBMesquite
                                            PatchData &pd,
                                            double &fval,
                                            MsqError &err)
-   {   
+   {
        //norm squared of J
      double term1=temp_vec[0]%temp_vec[0]+temp_vec[1]%temp_vec[1];
 
@@ -60,25 +60,25 @@ namespace MBMesquite
 
      // det J
      double temp_var=unit_surf_norm%(temp_vec[0]*temp_vec[1]);
-     
+
      // revert to old, non-barrier form
      if (temp_var <= 0.0)
        return false;
      fval = term1 / (2.0*temp_var);
      return true;
-     
+
      /*
      double h;
      double delta=pd.get_barrier_delta(err); MSQ_ERRZERO(err);
 
      // Note: technically, we want delta=eta*tau-max
      //       whereas the function above gives delta=eta*alpha-max
-     //      
+     //
      //       Because the only requirement on eta is eta << 1,
      //       and because tau-max = alpha-max/0.707 we can
      //       ignore the discrepancy
 
-     if (delta==0) { 
+     if (delta==0) {
         if (temp_var < MSQ_DBL_MIN ) {
            return false;
         }
@@ -88,7 +88,7 @@ namespace MBMesquite
 
      // Note: when delta=0, the vertex_barrier_function
      //       formally gives h=temp_var as well.
-     //       We just do it this way to avoid any 
+     //       We just do it this way to avoid any
      //       roundoff issues.
      // Also: when delta=0, this metric is identical
      //       to the original condition number with
@@ -97,11 +97,11 @@ namespace MBMesquite
      else {
         h = QualityMetric::vertex_barrier_function(temp_var,delta);
 
-        if (h<MSQ_DBL_MIN && fabs(temp_var) > MSQ_DBL_MIN ) { 
+        if (h<MSQ_DBL_MIN && fabs(temp_var) > MSQ_DBL_MIN ) {
           h = delta*delta/fabs(temp_var); }
         // Note: Analytically, h is strictly positive, but
         //       it can be zero numerically if temp_var
-        //       is a large negative number 
+        //       is a large negative number
         //       In the case h=0, we use a different analytic
         //       approximation to compute h.
      }
@@ -121,7 +121,7 @@ namespace MBMesquite
      return true;
      */
    }
-   
+
 
    //} //namespace
 
@@ -129,7 +129,7 @@ namespace MBMesquite
                                            PatchData &/*pd*/,
                                            double &fval,
                                            MsqError &/*err*/)
-   {   
+   {
        //norm squared of J
      double term1=temp_vec[0]%temp_vec[0]+
         temp_vec[1]%temp_vec[1]+
@@ -143,25 +143,25 @@ namespace MBMesquite
         (temp_vec[2]*temp_vec[0]);
        //det of J
      double temp_var=temp_vec[0]%(temp_vec[1]*temp_vec[2]);
-     
+
       // revert to old, non-barrier formulation
      if (temp_var <= 0.0)
        return false;
      fval = sqrt( term1 * term2 ) / (3.0*temp_var);
      return true;
-     
+
      /*
      double h;
      double delta=pd.get_barrier_delta(err); MSQ_ERRZERO(err);
 
      // Note: technically, we want delta=eta*tau-max
      //       whereas the function above gives delta=eta*alpha-max
-     //      
+     //
      //       Because the only requirement on eta is eta << 1,
      //       and because tau-max = alpha-max/0.707 we can
      //       ignore the discrepancy
 
-     if (delta==0) { 
+     if (delta==0) {
         if (temp_var < MSQ_DBL_MIN ) {
            return false;
         }
@@ -171,7 +171,7 @@ namespace MBMesquite
 
      // Note: when delta=0, the vertex_barrier_function
      //       formally gives h=temp_var as well.
-     //       We just do it this way to avoid any 
+     //       We just do it this way to avoid any
      //       roundoff issues.
      // Also: when delta=0, this metric is identical
      //       to the original condition number with
@@ -180,13 +180,13 @@ namespace MBMesquite
      }
      else {
         h = QualityMetric::vertex_barrier_function(temp_var,delta);
- 
-        if (h<MSQ_DBL_MIN && fabs(temp_var) > MSQ_DBL_MIN ) { 
+
+        if (h<MSQ_DBL_MIN && fabs(temp_var) > MSQ_DBL_MIN ) {
           h = delta*delta/fabs(temp_var); }
- 
+
         // Note: Analytically, h is strictly positive, but
         //       it can be zero numerically if temp_var
-        //       is a large negative number 
+        //       is a large negative number
         //       In the h=0, we use a different analytic
         //       approximation to compute h.
      }
@@ -205,7 +205,7 @@ namespace MBMesquite
      return true;
      */
    }
-   
+
 
 } //namespace
 

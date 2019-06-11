@@ -7,13 +7,13 @@ std::string filename = TestDir + "/surfrandomtris-4part.h5m";
 
 using namespace moab;
 
-int main(int argc, char**argv) 
+int main(int argc, char**argv)
 {
   if (argc > 1) filename = std::string(argv[1]);
   Core mb;
   ErrorCode rval = mb.load_file(filename.c_str());
   CHECK_ERR(rval);
-  
+
   Range elems;
   rval = mb.get_entities_by_dimension(0, 3, elems);
   CHECK_ERR(rval);

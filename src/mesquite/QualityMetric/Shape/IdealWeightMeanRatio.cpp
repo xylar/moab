@@ -1,9 +1,9 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2004 Sandia Corporation and Argonne National
-    Laboratory.  Under the terms of Contract DE-AC04-94AL85000 
-    with Sandia Corporation, the U.S. Government retains certain 
+    Laboratory.  Under the terms of Contract DE-AC04-94AL85000
+    with Sandia Corporation, the U.S. Government retains certain
     rights in this software.
 
     This library is free software; you can redistribute it and/or
@@ -16,17 +16,17 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
-    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov, 
-    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov      
-   
+
+    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov,
+    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov
+
   ***************************************************************** */
 /*!
   \file   IdealWeightMeanRatio.cpp
-  \brief  
+  \brief
 
   \author Michael Brewer
   \date   2002-11-11
@@ -51,9 +51,9 @@ std::string IdealWeightMeanRatio::get_name() const
 int IdealWeightMeanRatio::get_negate_flag() const
   { return -1; }
 
-bool IdealWeightMeanRatio::evaluate( PatchData& pd, 
-                                     size_t handle, 
-                                     double& m, 
+bool IdealWeightMeanRatio::evaluate( PatchData& pd,
+                                     size_t handle,
+                                     double& m,
                                      MsqError& err )
 {
   const MsqMeshEntity* e = &pd.element_by_index(handle);
@@ -89,7 +89,7 @@ bool IdealWeightMeanRatio::evaluate( PatchData& pd,
     metric_valid = m_fcn_2e(m, mCoords, n, a2Con, b2Con, c2Con);
     if (!metric_valid) return false;
     break;
-    
+
   case QUADRILATERAL:
     pd.get_domain_normal_at_element(e, n, err); MSQ_ERRZERO(err);
     for (i = 0; i < 4; ++i) {
@@ -97,7 +97,7 @@ bool IdealWeightMeanRatio::evaluate( PatchData& pd,
       mCoords[0] = vertices[v_i[locs_hex[i][0]]];
       mCoords[1] = vertices[v_i[locs_hex[i][1]]];
       mCoords[2] = vertices[v_i[locs_hex[i][2]]];
-      metric_valid = m_fcn_2i(mMetrics[i], mCoords, n, 
+      metric_valid = m_fcn_2i(mMetrics[i], mCoords, n,
 			      a2Con, b2Con, c2Con, d_con);
       if (!metric_valid) return false;
     }
@@ -143,7 +143,7 @@ bool IdealWeightMeanRatio::evaluate( PatchData& pd,
       mCoords[1] = vertices[v_i[locs_hex[i][1]]];
       mCoords[2] = vertices[v_i[locs_hex[i][2]]];
       mCoords[3] = vertices[v_i[locs_hex[i][3]]];
-      metric_valid = m_fcn_3i(mMetrics[i], mCoords, 
+      metric_valid = m_fcn_3i(mMetrics[i], mCoords,
 			      a3Con, b3Con, c3Con, d_con);
       if (!metric_valid) return false;
     }
@@ -229,10 +229,10 @@ bool IdealWeightMeanRatio::evaluate_with_gradient( PatchData& pd,
       if (!g_fcn_2i(mMetrics[i], mGradients+3*i, mCoords, n,
 		    a2Con, b2Con, c2Con, d_con)) return false;
     }
-    
+
     g.resize(4);
     m = average_corner_gradients( QUADRILATERAL, fm, 4,
-                                  mMetrics, mGradients, 
+                                  mMetrics, mGradients,
                                   arrptr(g), err ); MSQ_ERRZERO(err);
     break;
 
@@ -260,14 +260,14 @@ bool IdealWeightMeanRatio::evaluate_with_gradient( PatchData& pd,
                                   mMetrics, mGradients,
                                   arrptr(g), err ); MSQ_ERRZERO(err);
     break;
-    
+
   case PRISM:
     for (i = 0; i < 6; ++i) {
       mCoords[0] = vertices[v_i[locs_pri[i][0]]];
       mCoords[1] = vertices[v_i[locs_pri[i][1]]];
       mCoords[2] = vertices[v_i[locs_pri[i][2]]];
       mCoords[3] = vertices[v_i[locs_pri[i][3]]];
-      if (!g_fcn_3w(mMetrics[i], mGradients+4*i, mCoords, 
+      if (!g_fcn_3w(mMetrics[i], mGradients+4*i, mCoords,
 		    a3Con, b3Con, c3Con)) return false;
     }
     g.resize(6);
@@ -282,7 +282,7 @@ bool IdealWeightMeanRatio::evaluate_with_gradient( PatchData& pd,
       mCoords[1] = vertices[v_i[locs_hex[i][1]]];
       mCoords[2] = vertices[v_i[locs_hex[i][2]]];
       mCoords[3] = vertices[v_i[locs_hex[i][3]]];
-      if (!g_fcn_3i(mMetrics[i], mGradients+4*i, mCoords, 
+      if (!g_fcn_3i(mMetrics[i], mGradients+4*i, mCoords,
 		    a3Con, b3Con, c3Con, d_con)) return false;
     }
     g.resize(8);
@@ -402,7 +402,7 @@ bool IdealWeightMeanRatio::evaluate_with_Hessian_diagonal( PatchData& pd,
       mCoords[1] = vertices[v_i[(i+1)%4]];
       mCoords[2] = vertices[v_i[(i+3)%4]];
       mCoords[3] = vertices[v_i[ 4     ]];
-      metric_valid = h_fcn_3p(mMetrics[i], mGradients+4*i, 
+      metric_valid = h_fcn_3p(mMetrics[i], mGradients+4*i,
                               mHessians+10*i, mCoords, a3Con, b3Con, c3Con);
       if (!metric_valid) return false;
     }
@@ -554,7 +554,7 @@ bool IdealWeightMeanRatio::evaluate_with_Hessian( PatchData& pd,
       mCoords[1] = vertices[v_i[(i+1)%4]];
       mCoords[2] = vertices[v_i[(i+3)%4]];
       mCoords[3] = vertices[v_i[ 4     ]];
-      metric_valid = h_fcn_3p(mMetrics[i], mGradients+4*i, 
+      metric_valid = h_fcn_3p(mMetrics[i], mGradients+4*i,
                               mHessians+10*i, mCoords, a3Con, b3Con, c3Con);
       if (!metric_valid) return false;
     }

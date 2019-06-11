@@ -1,16 +1,16 @@
 /**
  * MOAB, a Mesh-Oriented datABase, is a software component for creating,
  * storing and accessing finite element mesh data.
- * 
+ *
  * Copyright 2004 Sandia Corporation.  Under the terms of Contract
  * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
  * retains certain rights in this software.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  */
 
 #ifndef STRUCTURED_ELEMENT_SEQUENCE
@@ -42,30 +42,30 @@ public:
                 const int imin, const int jmin, const int kmin,
                 const int imax, const int jmax, const int kmax,
                 int *is_periodic = NULL);
-  
+
   virtual ~StructuredElementSeq();
 
-  ScdElementData* sdata() 
+  ScdElementData* sdata()
     { return reinterpret_cast<ScdElementData*>(data()); }
-  ScdElementData const* sdata() const 
+  ScdElementData const* sdata() const
     { return reinterpret_cast<const ScdElementData*>(data()); }
 
     //! get handle of vertex at i, j, k
   EntityHandle get_vertex(const int i, const int j, const int k) const
     { return get_vertex( HomCoord(i,j,k) ); }
-  
+
     //! get handle of vertex at homogeneous coords
   inline EntityHandle get_vertex(const HomCoord &coords) const
     { return sdata()->get_vertex(coords); }
-  
+
     //! get handle of element at i, j, k
   EntityHandle get_element(const int i, const int j, const int k) const
     { return sdata()->get_element( i, j, k ); }
-  
+
     //! get handle of element at homogeneous coords
   EntityHandle get_element(const HomCoord &coords) const
     { return sdata()->get_element( coords.i(), coords.j(), coords.k() ); }
-  
+
     //! get min params for this element
   const HomCoord &min_params() const
     { return sdata()->min_params(); }
@@ -81,7 +81,7 @@ public:
     { coords = max_params(); }
   void max_params(int &i, int &j, int &k) const
     { i = max_params().i(); j = max_params().j(); k = max_params().k(); }
-  
+
     //! get the number of vertices in each direction, inclusive
   void param_extents(int &di, int &dj, int &dk) const
     { sdata()->param_extents( di, dj, dk ); }
@@ -90,7 +90,7 @@ public:
   ErrorCode get_params(const EntityHandle ehandle,
                           int &i, int &j, int &k) const
     { return sdata()->get_params( ehandle, i, j, k ); }
-  
+
     //! convenience functions for parameter extents
   int i_min() const {return min_params().i();}
   int j_min() const {return min_params().j();}
@@ -114,32 +114,32 @@ public:
   ErrorCode get_params_connectivity(const int i, const int j, const int k,
                                 std::vector<EntityHandle>& connectivity) const
     { return sdata()->get_params_connectivity( i, j, k, connectivity ); }
-  
+
     //! Return whether box is periodic in i
     /** Return whether box is periodic in i
      * \return True if box is periodic in i direction
      */
   int is_periodic_i() const {return sdata()->is_periodic_i();};
-  
+
     //! Return whether box is periodic in j
     /** Return whether box is periodic in j
      * \return True if box is periodic in j direction
      */
   int is_periodic_j() const {return sdata()->is_periodic_j();};
-  
+
     //! Return whether box is periodic in i and j
     /** Return whether box is periodic in i and j
      * \param is_periodic_ij Non-zero if periodic in i [0] or j [1]
      */
   void is_periodic(int is_periodic_ij[2]) const {sdata()->is_periodic(is_periodic_ij);};
-  
-  
+
+
     /***************** Methods from ElementSequence *****************/
 
   virtual ErrorCode get_connectivity( EntityHandle handle,
                                         std::vector<EntityHandle>& connect,
                                         bool topological = false ) const;
-  
+
   virtual ErrorCode get_connectivity( EntityHandle handle,
                                         EntityHandle const*& connect,
                                         int &connect_length,
@@ -150,10 +150,10 @@ public:
   virtual ErrorCode set_connectivity( EntityHandle handle,
                                         EntityHandle const* connect,
                                         int connect_length );
-  
+
   virtual EntityHandle* get_connectivity_array();
-  
-  
+
+
     /***************** Methods from EntitySequence *****************/
 
     /* Replace the ElementSequence implementation of this method with

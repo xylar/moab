@@ -33,7 +33,7 @@ int main(int argc, char **argv)
 
   int npoints = 100, dim = 3;
   int dints = 1, dleafs = 1, ddeps = 1, csints = 0;
-  
+
   ProgOptions po;
   po.addOpt<int>( "candidateplaneset,c", "Candidate plane set (0=SUBDIVISION,1=SUBDIV_SNAP,2=VERTEX_MEDIAN,3=VERTEX_SAMPLE", &csints);
   po.addOpt<int>( "ints,i", "Number of doublings of intervals on each side of scd mesh", &dints);
@@ -72,13 +72,13 @@ int main(int argc, char **argv)
     Range elems;
     rval = create_hex_mesh(mb, elems, *int_it, dim);
     if (MB_SUCCESS != rval) return rval;
-    
+
       // iteration: tree depth
     for (std::vector<int>::iterator dep_it = deps.begin(); dep_it != deps.end(); ++dep_it) {
-  
+
         // iteration: tree max elems/leaf
       for (std::vector<int>::iterator leafs_it = leafs.begin(); leafs_it != leafs.end(); ++leafs_it) {
-  
+
           // iteration: tree type
         for (int tree_tp = 0; tree_tp < 2; tree_tp++) {
             // create tree
@@ -91,7 +91,7 @@ int main(int argc, char **argv)
           std::ostringstream opts;
           opts << "MAX_DEPTH=" << *dep_it << ";MAX_PER_LEAF=" << *leafs_it;
           if (csints) {
-            if (opts.str().length() > 0) 
+            if (opts.str().length() > 0)
               opts << ";";
             opts << "PLANE_SET=" << csints;
           }
@@ -123,7 +123,7 @@ int main(int argc, char **argv)
 
   } // # elements
 
-  
+
 #ifdef MOAB_HAVE_MPI
   fail = MPI_Finalize();
   if (fail) return fail;
@@ -132,7 +132,7 @@ int main(int argc, char **argv)
   return 0;
 }
 
-ErrorCode test_locator(SpatialLocator &sl, int npoints, double &cpu_time, double &percent_outside) 
+ErrorCode test_locator(SpatialLocator &sl, int npoints, double &cpu_time, double &percent_outside)
 {
   BoundBox box = sl.local_box();
   CartVect box_del = box.bMax - box.bMin;
@@ -142,14 +142,14 @@ ErrorCode test_locator(SpatialLocator &sl, int npoints, double &cpu_time, double
   int *is_in = new int[npoints];
 
   double denom = 1.0 / (double)RAND_MAX;
-  for (int i = 0; i < npoints; i++) {    
+  for (int i = 0; i < npoints; i++) {
       // generate a small number of random point to test
     double rx = (double)rand() * denom, ry = (double)rand() * denom, rz = (double)rand() * denom;
     test_pts[i] = box.bMin + CartVect(rx*box_del[0], ry*box_del[1], rz*box_del[2]);
   }
-  
+
   CpuTimer ct;
-  
+
     // call spatial locator to locate points
   ErrorCode rval = sl.locate_points(test_pts[0].array(), npoints, &ents[0], test_res[0].array(), &is_in[0]);
   if (MB_SUCCESS != rval) {
@@ -162,16 +162,16 @@ ErrorCode test_locator(SpatialLocator &sl, int npoints, double &cpu_time, double
   int num_out = std::count(is_in, is_in+npoints, false);
   percent_outside = ((double)num_out)/npoints;
   delete [] is_in;
-  
+
   return rval;
 }
 
-ErrorCode create_hex_mesh(Interface &mb, Range &elems, int n, int dim) 
+ErrorCode create_hex_mesh(Interface &mb, Range &elems, int n, int dim)
 {
   ScdInterface *scdi;
   ErrorCode rval = mb.query_interface(scdi);
   if (MB_SUCCESS != rval) return rval;
-  
+
   HomCoord high(n-1, -1, -1);
   if (dim > 1) high[1] = n-1;
   if (dim > 2) high[2] = n-1;

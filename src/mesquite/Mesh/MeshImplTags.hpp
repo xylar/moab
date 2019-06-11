@@ -1,8 +1,8 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
-    Copyright 2004 Lawrence Livermore National Laboratory.  Under 
-    the terms of Contract B545069 with the University of Wisconsin -- 
+    Copyright 2004 Lawrence Livermore National Laboratory.  Under
+    the terms of Contract B545069 with the University of Wisconsin --
     Madison, Lawrence Livermore National Laboratory retains certain
     rights in this software.
 
@@ -16,12 +16,12 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
-    kraftche@cae.wisc.edu    
-   
+
+    kraftche@cae.wisc.edu
+
   ***************************************************************** */
 
 #ifndef MESQUITE_MESH_IMPL_TAGS_HPP
@@ -41,15 +41,15 @@ namespace MBMesquite {
       // about it.
     enum VtkType { NONE = 0, SCALAR, COLOR, VECTOR, NORMAL, TEXTURE, TENSOR, FIELD };
 
-    std::string name;   //!< Tag name 
+    std::string name;   //!< Tag name
     Mesh::TagType type;     //!< Tag data type
     VtkType vtkType;        //!< Attribute type from VTK file
     size_t size;            //!< Size of tag data (sizeof(type)*array_length)
     std::string member; //!< Field member name for 1-member fields.
 
-    inline TagDescription( std::string n, 
-                           Mesh::TagType t, 
-                           VtkType v, 
+    inline TagDescription( std::string n,
+                           Mesh::TagType t,
+                           VtkType v,
                            size_t s,
                            std::string m )
       : name(n), type(t), vtkType(v), size(s), member(m) {}
@@ -91,7 +91,7 @@ class MeshImplTags {
 
       //! per-vertex data, or NULL if none has been set.
     void* vertexData;
-    
+
       //! number of entries in vertexData
     size_t vertexCount;
 
@@ -105,14 +105,14 @@ class MeshImplTags {
        *\param default_val Default value for tag
        *\param vtk_type Attribute type in VTK file
        */
-    inline TagData( const std::string& name, 
+    inline TagData( const std::string& name,
              Mesh::TagType type, unsigned length,
              void* default_val = 0,
              TagDescription::VtkType vtk_type = TagDescription::NONE,
              const std::string& field_member = "")
       : desc(name, type, vtk_type, length*size_from_tag_type(type), field_member),
         elementData(0), elementCount(0),
-        vertexData(0), vertexCount(0), 
+        vertexData(0), vertexCount(0),
         defaultValue(default_val) {}
 
       /** \brief Construct tag
@@ -125,7 +125,7 @@ class MeshImplTags {
 
     ~TagData();
   };
-  
+
     /** \brief Get the size of the passed data type */
   static size_t size_from_tag_type( Mesh::TagType type );
 
@@ -134,12 +134,12 @@ class MeshImplTags {
 
     /** \brief Get tag index from name */
   size_t handle( const std::string& name, MsqError& err ) const;
-  
+
     /** \brief Get tag properties */
   const TagDescription& properties( size_t tag_handle, MsqError& err ) const;
-  
-    /** \brief Create a new tag 
-     * 
+
+    /** \brief Create a new tag
+     *
      * Create a new tag with the passed properties
      *\param name Tag name (must be unique)
      *\param type Tag data type
@@ -151,9 +151,9 @@ class MeshImplTags {
                  unsigned length,
                  const void* defval,
                  MsqError& err );
-                 
-    /** \brief Create a new tag 
-     * 
+
+    /** \brief Create a new tag
+     *
      * Create a new tag with the passed properties
      */
   size_t create( const TagDescription& desc,
@@ -162,14 +162,14 @@ class MeshImplTags {
 
     /**\brief Remove a tag */
   void destroy( size_t tag_index, MsqError& err );
-  
+
     /**\brief Set tag data on elements */
   void set_element_data( size_t tag_handle,
                          size_t num_indices,
                          const size_t* elem_indices,
                          const void* tag_data,
                          MsqError& err );
-  
+
     /**\brief Set tag data on vertices */
   void set_vertex_data( size_t tag_handle,
                         size_t num_indices,
@@ -183,19 +183,19 @@ class MeshImplTags {
                          const size_t* elem_indices,
                          void* tag_data,
                          MsqError& err ) const;
-  
+
     /**\brief Get tag data on vertices */
   void get_vertex_data( size_t tag_handle,
                         size_t num_indices,
                         const size_t* elem_indices,
                         void* tag_data,
                         MsqError& err ) const;
-  
+
   /**\class TagIterator
    *
-   * Iterate over list of valid tag handles 
+   * Iterate over list of valid tag handles
    */
-  class TagIterator 
+  class TagIterator
   {
     public:
       TagIterator() : tags(0), index(0) {}
@@ -218,11 +218,11 @@ class MeshImplTags {
   bool tag_has_vertex_data( size_t index, MsqError& err ) ;
     /**\brief Check if any elements have tag */
   bool tag_has_element_data( size_t index, MsqError& err ) ;
-  
+
   private:
 
-  friend class MeshImplTags::TagIterator;  
-  
+  friend class MeshImplTags::TagIterator;
+
     std::vector<TagData*> tagList;
 }; // class MeshImplTags
 
@@ -230,4 +230,4 @@ class MeshImplTags {
 
 #endif
 
-    
+

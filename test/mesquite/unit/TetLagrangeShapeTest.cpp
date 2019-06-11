@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2006 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
+
     (2006) kraftche@cae.wisc.edu
-   
+
   ***************************************************************** */
 
 
 /** \file TetLagrangeShapeTest.cpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -67,7 +67,7 @@ static inline CppUnit::Message value_message( unsigned location, NodeSet bits, d
 
   std::ostringstream buffer3;
   buffer3 << "Location : ";
-  if (location < 4) 
+  if (location < 4)
     buffer3 << "Corner " << location;
   else if (location < 10)
     buffer3 << "Edge " << location-4;
@@ -104,26 +104,26 @@ class TetLagrangeShapeTest : public CppUnit::TestFixture
     CPPUNIT_TEST(test_mid_elem_node_deriv);
     CPPUNIT_TEST(test_mid_face_node_coeff);
     CPPUNIT_TEST(test_mid_face_node_deriv);
-    
+
     CPPUNIT_TEST(test_ideal_jacobian);
-    
+
     CPPUNIT_TEST_SUITE_END();
-  
+
     TetLagrangeShape sf;
-    
+
     void test_corner_coeff( int corner, NodeSet nodeset );
     void test_edge_coeff( int edge, NodeSet nodeset );
     void test_face_coeff( int face, NodeSet nodeset );
     void test_mid_coeff( NodeSet nodebits );
-    
+
     void test_corner_derivs( int corner, NodeSet nodeset );
     void test_edge_derivs( int edge, NodeSet nodeset );
     void test_face_derivs( int face, NodeSet nodeset );
     void test_mid_derivs( NodeSet nodeset );
-    
+
     void test_invalid_nodebits_coeff( NodeSet nodeset );
     void test_invalid_nodebits_deriv( NodeSet nodeset );
-    
+
   public:
 
     void test_coeff_corners();
@@ -135,12 +135,12 @@ class TetLagrangeShapeTest : public CppUnit::TestFixture
     void test_deriv_edges();
     void test_deriv_faces();
     void test_deriv_center();
-    
+
     void test_mid_elem_node_coeff();
     void test_mid_elem_node_deriv();
     void test_mid_face_node_coeff();
     void test_mid_face_node_deriv();
-    
+
     void test_ideal_jacobian();
 };
 
@@ -202,17 +202,17 @@ static double dN9dt( double  , double s, double   ) { return 4*s; }
 
 typedef double (*N_t)(double,double,double);
 static const N_t N[] = { &N0, &N1, &N2, &N3, &N4, &N5, &N6, &N7, &N8, &N9 };
-static const N_t dNdr[] = { &dN0dr, &dN1dr, &dN2dr, &dN3dr, &dN4dr, 
+static const N_t dNdr[] = { &dN0dr, &dN1dr, &dN2dr, &dN3dr, &dN4dr,
                      &dN5dr, &dN6dr, &dN7dr, &dN8dr, &dN9dr };
-static const N_t dNds[] = { &dN0ds, &dN1ds, &dN2ds, &dN3ds, &dN4ds, 
+static const N_t dNds[] = { &dN0ds, &dN1ds, &dN2ds, &dN3ds, &dN4ds,
                      &dN5ds, &dN6ds, &dN7ds, &dN8ds, &dN9ds };
-static const N_t dNdt[] = { &dN0dt, &dN1dt, &dN2dt, &dN3dt, &dN4dt, 
+static const N_t dNdt[] = { &dN0dt, &dN1dt, &dN2dt, &dN3dt, &dN4dt,
                      &dN5dt, &dN6dt, &dN7dt, &dN8dt, &dN9dt };
 
 static const double rst_corner[][3] = { {0, 0, 0}, {1, 0, 0}, {0, 1, 0}, {0, 0, 1} };
 static const double rst_edge[][3] = { {0.5, 0.0, 0.0}, {0.5, 0.5, 0.0}, {0.0, 0.5, 0.0},
                                       {0.0, 0.0, 0.5}, {0.5, 0.0, 0.5}, {0.0, 0.5, 0.5} };
-static const double rst_face[][3] = { {1./3, 0.00, 1./3}, {1./3, 1./3, 1./3}, 
+static const double rst_face[][3] = { {1./3, 0.00, 1./3}, {1./3, 1./3, 1./3},
                                       {0.00, 1./3, 1./3}, {1./3, 1./3, 0.00} };
 static const double rst_mid[3] = { 0.25, 0.25, 0.25 };
 
@@ -221,9 +221,9 @@ static unsigned edges[][2] = { { 0, 1 }, { 1, 2 }, { 2, 0 },
 
 static void get_coeff( NodeSet nodeset, const double* rst, double* coeffs )
 {
-  for (int i = 0; i < 10; ++i) 
+  for (int i = 0; i < 10; ++i)
     coeffs[i] = (*N[i])(rst[0], rst[1], rst[2]);
-  for (int i = 0; i < 6; ++i) 
+  for (int i = 0; i < 6; ++i)
     if (!nodeset.mid_edge_node(i)) {
       coeffs[edges[i][0]] += 0.5 * coeffs[i+4];
       coeffs[edges[i][1]] += 0.5 * coeffs[i+4];
@@ -238,7 +238,7 @@ static void get_derivs( NodeSet nodeset, const double* rst, MsqVector<3>* derivs
     derivs[i][1] = (*dNds[i])(rst[0], rst[1], rst[2]);
     derivs[i][2] = (*dNdt[i])(rst[0], rst[1], rst[2]);
   }
-  for (int i = 0; i < 6; ++i) 
+  for (int i = 0; i < 6; ++i)
     if (!nodeset.mid_edge_node(i)) {
       int j = edges[i][0];
       derivs[j][0] += 0.5 * derivs[i+4][0];
@@ -271,7 +271,7 @@ static void check_no_zeros( const MsqVector<3>* derivs, size_t num_vtx )
 {
   for (unsigned i = 0; i < num_vtx; ++i) {
     double dr = derivs[i][0];
-    double ds = derivs[i][1]; 
+    double ds = derivs[i][1];
     double dt = derivs[i][2];
     CPPUNIT_ASSERT( (fabs(dr) > 1e-6) || (fabs(ds) > 1e-6) || (fabs(dt) > 1e-6) );
   }
@@ -299,7 +299,7 @@ static void compare_coefficients( const double* coeffs,
   CPPUNIT_ASSERT( bits.mid_edge_node(3) || (revidx[7] == num_coeff) );
   CPPUNIT_ASSERT( bits.mid_edge_node(4) || (revidx[8] == num_coeff) );
   CPPUNIT_ASSERT( bits.mid_edge_node(5) || (revidx[9] == num_coeff) );
-    
+
     // compare expected and actual coefficient values
   ASSERT_VALUES_EQUAL( expected_coeffs[0], test_vals[0], loc, bits );
   ASSERT_VALUES_EQUAL( expected_coeffs[1], test_vals[1], loc, bits );
@@ -323,45 +323,45 @@ static void compare_derivatives( const size_t* vertices,
   check_no_zeros( derivs, num_vtx );
   MsqVector<3> expanded_derivs[30];
   memset( expanded_derivs, 0, sizeof(expanded_derivs) );
-  for (unsigned i = 0; i < num_vtx; ++i) 
+  for (unsigned i = 0; i < num_vtx; ++i)
     expanded_derivs[vertices[i]] = derivs[i];
-  
+
   ASSERT_VALUES_EQUAL( expected_derivs[0][0], expanded_derivs[0][0], loc, bits );
   ASSERT_VALUES_EQUAL( expected_derivs[0][1], expanded_derivs[0][1], loc, bits );
   ASSERT_VALUES_EQUAL( expected_derivs[0][2], expanded_derivs[0][2], loc, bits );
-  
+
   ASSERT_VALUES_EQUAL( expected_derivs[1][0], expanded_derivs[1][0], loc, bits );
   ASSERT_VALUES_EQUAL( expected_derivs[1][1], expanded_derivs[1][1], loc, bits );
   ASSERT_VALUES_EQUAL( expected_derivs[1][2], expanded_derivs[1][2], loc, bits );
-  
+
   ASSERT_VALUES_EQUAL( expected_derivs[2][0], expanded_derivs[2][0], loc, bits );
   ASSERT_VALUES_EQUAL( expected_derivs[2][1], expanded_derivs[2][1], loc, bits );
   ASSERT_VALUES_EQUAL( expected_derivs[2][2], expanded_derivs[2][2], loc, bits );
-  
+
   ASSERT_VALUES_EQUAL( expected_derivs[3][0], expanded_derivs[3][0], loc, bits );
   ASSERT_VALUES_EQUAL( expected_derivs[3][1], expanded_derivs[3][1], loc, bits );
   ASSERT_VALUES_EQUAL( expected_derivs[3][2], expanded_derivs[3][2], loc, bits );
-  
+
   ASSERT_VALUES_EQUAL( expected_derivs[4][0], expanded_derivs[4][0], loc, bits );
   ASSERT_VALUES_EQUAL( expected_derivs[4][1], expanded_derivs[4][1], loc, bits );
   ASSERT_VALUES_EQUAL( expected_derivs[4][2], expanded_derivs[4][2], loc, bits );
-  
+
   ASSERT_VALUES_EQUAL( expected_derivs[5][0], expanded_derivs[5][0], loc, bits );
   ASSERT_VALUES_EQUAL( expected_derivs[5][1], expanded_derivs[5][1], loc, bits );
   ASSERT_VALUES_EQUAL( expected_derivs[5][2], expanded_derivs[5][2], loc, bits );
-  
+
   ASSERT_VALUES_EQUAL( expected_derivs[6][0], expanded_derivs[6][0], loc, bits );
   ASSERT_VALUES_EQUAL( expected_derivs[6][1], expanded_derivs[6][1], loc, bits );
   ASSERT_VALUES_EQUAL( expected_derivs[6][2], expanded_derivs[6][2], loc, bits );
-  
+
   ASSERT_VALUES_EQUAL( expected_derivs[7][0], expanded_derivs[7][0], loc, bits );
   ASSERT_VALUES_EQUAL( expected_derivs[7][1], expanded_derivs[7][1], loc, bits );
   ASSERT_VALUES_EQUAL( expected_derivs[7][2], expanded_derivs[7][2], loc, bits );
-  
+
   ASSERT_VALUES_EQUAL( expected_derivs[8][0], expanded_derivs[8][0], loc, bits );
   ASSERT_VALUES_EQUAL( expected_derivs[8][1], expanded_derivs[8][1], loc, bits );
   ASSERT_VALUES_EQUAL( expected_derivs[8][2], expanded_derivs[8][2], loc, bits );
-  
+
   ASSERT_VALUES_EQUAL( expected_derivs[9][0], expanded_derivs[9][0], loc, bits );
   ASSERT_VALUES_EQUAL( expected_derivs[9][1], expanded_derivs[9][1], loc, bits );
   ASSERT_VALUES_EQUAL( expected_derivs[9][2], expanded_derivs[9][2], loc, bits );
@@ -370,120 +370,120 @@ static void compare_derivatives( const size_t* vertices,
 void TetLagrangeShapeTest::test_corner_coeff( int corner, NodeSet nodebits )
 {
   MsqPrintError err(std::cout);
-  
+
   double expected[10];
   get_coeff( nodebits, rst_corner[corner], expected );
-  
+
   double coeff[100];
   size_t n = 29, indices[100];
   sf.coefficients( Sample(0, corner), nodebits, coeff, indices, n, err );
   CPPUNIT_ASSERT( !err );
-  
+
   compare_coefficients( coeff, indices, expected, n, corner, nodebits );
 }
 
 void TetLagrangeShapeTest::test_edge_coeff( int edge, NodeSet nodebits )
 {
   MsqPrintError err(std::cout);
-  
+
   double expected[10];
   get_coeff( nodebits, rst_edge[edge], expected );
-  
+
   double coeff[100];
   size_t n = 29, indices[100];
   sf.coefficients( Sample(1, edge), nodebits, coeff, indices, n, err );
   CPPUNIT_ASSERT( !err );
-  
+
   compare_coefficients( coeff, indices, expected, n, edge+4, nodebits );
 }
 
 void TetLagrangeShapeTest::test_face_coeff( int face, NodeSet nodebits )
 {
   MsqPrintError err(std::cout);
-  
+
   double expected[10];
   get_coeff( nodebits, rst_face[face], expected );
-  
+
   double coeff[100];
   size_t n = 29, indices[100];
   sf.coefficients( Sample(2, face), nodebits, coeff, indices, n, err );
   CPPUNIT_ASSERT( !err );
-  
+
   compare_coefficients( coeff, indices, expected, n, face+10, nodebits );
 }
 
 void TetLagrangeShapeTest::test_mid_coeff( NodeSet nodebits )
 {
   MsqPrintError err(std::cout);
-  
+
   double expected[10];
   get_coeff( nodebits, rst_mid, expected );
-  
+
   double coeff[100];
   size_t n = 29, indices[100];
   sf.coefficients( Sample(3, 0), nodebits, coeff, indices, n, err );
   CPPUNIT_ASSERT( !err );
-  
+
   compare_coefficients( coeff, indices, expected, n, 14, nodebits );
 }
 
 void TetLagrangeShapeTest::test_corner_derivs( int corner, NodeSet nodebits )
 {
   MsqPrintError err(std::cout);
-  
+
   MsqVector<3> expected[10];
   get_derivs( nodebits, rst_corner[corner], expected );
-  
+
   MsqVector<3> derivs[100];
   size_t vertices[100], n = 29;
   sf.derivatives( Sample(0, corner), nodebits, vertices, derivs, n, err );
   CPPUNIT_ASSERT( !err );
-  
+
   compare_derivatives( vertices, n, derivs, expected, corner, nodebits );
 }
 
 void TetLagrangeShapeTest::test_edge_derivs( int edge, NodeSet nodebits )
 {
   MsqPrintError err(std::cout);
-  
+
   MsqVector<3> expected[10];
   get_derivs( nodebits, rst_edge[edge], expected );
-  
+
   MsqVector<3> derivs[100];
   size_t vertices[100], n = 29;
   sf.derivatives( Sample(1, edge), nodebits, vertices, derivs, n, err );
   CPPUNIT_ASSERT( !err );
-  
+
   compare_derivatives( vertices, n, derivs, expected, edge+4, nodebits );
 }
 
 void TetLagrangeShapeTest::test_face_derivs( int face, NodeSet nodebits )
 {
   MsqPrintError err(std::cout);
-  
+
   MsqVector<3> expected[10];
   get_derivs( nodebits, rst_face[face], expected );
-  
+
   MsqVector<3> derivs[100];
   size_t vertices[100], n = 29;
   sf.derivatives( Sample(2, face), nodebits, vertices, derivs, n, err );
   CPPUNIT_ASSERT( !err );
-  
+
   compare_derivatives( vertices, n, derivs, expected, face+10, nodebits );
 }
 
 void TetLagrangeShapeTest::test_mid_derivs( NodeSet nodebits )
 {
   MsqPrintError err(std::cout);
-  
+
   MsqVector<3> expected[10];
   get_derivs( nodebits, rst_mid, expected );
-  
+
   MsqVector<3> derivs[100];
   size_t vertices[100], n = 29;
   sf.derivatives( Sample(3, 0), nodebits, vertices, derivs, n, err );
   CPPUNIT_ASSERT( !err );
-  
+
   compare_derivatives( vertices, n, derivs, expected, 14, nodebits );
 }
 
@@ -585,7 +585,7 @@ void TetLagrangeShapeTest::test_invalid_nodebits_coeff( NodeSet bits )
   MsqError err;
   double coeff[100];
   size_t n, indices[100];
-  
+
   sf.coefficients( Sample( 0, 0 ), bits, coeff, indices, n, err );
   CPPUNIT_ASSERT( err );
   sf.coefficients( Sample( 0, 1 ), bits, coeff, indices, n, err );
@@ -594,7 +594,7 @@ void TetLagrangeShapeTest::test_invalid_nodebits_coeff( NodeSet bits )
   CPPUNIT_ASSERT( err );
   sf.coefficients( Sample( 0, 3 ), bits, coeff, indices, n, err );
   CPPUNIT_ASSERT( err );
-  
+
   sf.coefficients( Sample( 1, 0 ), bits, coeff, indices, n, err );
   CPPUNIT_ASSERT( err );
   sf.coefficients( Sample( 1, 1 ), bits, coeff, indices, n, err );
@@ -607,7 +607,7 @@ void TetLagrangeShapeTest::test_invalid_nodebits_coeff( NodeSet bits )
   CPPUNIT_ASSERT( err );
   sf.coefficients( Sample( 1, 5 ), bits, coeff, indices, n, err );
   CPPUNIT_ASSERT( err );
-  
+
   sf.coefficients( Sample( 2, 0 ), bits, coeff, indices, n, err );
   CPPUNIT_ASSERT( err );
   sf.coefficients( Sample( 2, 1 ), bits, coeff, indices, n, err );
@@ -616,7 +616,7 @@ void TetLagrangeShapeTest::test_invalid_nodebits_coeff( NodeSet bits )
   CPPUNIT_ASSERT( err );
   sf.coefficients( Sample( 2, 3 ), bits, coeff, indices, n, err );
   CPPUNIT_ASSERT( err );
-  
+
   sf.coefficients( Sample( 3, 0 ), bits, coeff, indices, n, err );
   CPPUNIT_ASSERT( err );
 }
@@ -626,7 +626,7 @@ void TetLagrangeShapeTest::test_invalid_nodebits_deriv( NodeSet bits )
   MsqError err;
   size_t verts[100], n;
   MsqVector<3> derivs[100];
-  
+
   sf.derivatives( Sample( 0, 0 ), bits, verts, derivs, n, err );
   CPPUNIT_ASSERT( err );
   sf.derivatives( Sample( 0, 1 ), bits, verts, derivs, n, err );
@@ -635,7 +635,7 @@ void TetLagrangeShapeTest::test_invalid_nodebits_deriv( NodeSet bits )
   CPPUNIT_ASSERT( err );
   sf.derivatives( Sample( 0, 3 ), bits, verts, derivs, n, err );
   CPPUNIT_ASSERT( err );
-  
+
   sf.derivatives( Sample( 1, 0 ), bits, verts, derivs, n, err );
   CPPUNIT_ASSERT( err );
   sf.derivatives( Sample( 1, 1 ), bits, verts, derivs, n, err );
@@ -648,7 +648,7 @@ void TetLagrangeShapeTest::test_invalid_nodebits_deriv( NodeSet bits )
   CPPUNIT_ASSERT( err );
   sf.derivatives( Sample( 1, 5 ), bits, verts, derivs, n, err );
   CPPUNIT_ASSERT( err );
-  
+
   sf.derivatives( Sample( 2, 0 ), bits, verts, derivs, n, err );
   CPPUNIT_ASSERT( err );
   sf.derivatives( Sample( 2, 1 ), bits, verts, derivs, n, err );
@@ -657,7 +657,7 @@ void TetLagrangeShapeTest::test_invalid_nodebits_deriv( NodeSet bits )
   CPPUNIT_ASSERT( err );
   sf.derivatives( Sample( 2, 3 ), bits, verts, derivs, n, err );
   CPPUNIT_ASSERT( err );
-  
+
   sf.derivatives( Sample( 3, 0 ), bits, verts, derivs, n, err );
   CPPUNIT_ASSERT( err );
 }
@@ -706,12 +706,12 @@ void TetLagrangeShapeTest::test_ideal_jacobian()
 
   const Vector3D* verts = unit_edge_element( TETRAHEDRON );
   CPPUNIT_ASSERT(verts);
-  
+
   JacobianCalculator jc;
   jc.get_Jacobian_3D( &sf, NodeSet(), Sample(2,0), verts, 4, J_exp, err );
   ASSERT_NO_ERROR(err);
   J_exp /= MBMesquite::cbrt(det(J_exp));
-  
+
     // Matrices should be a rotation of each other.
     // First, calculate tentative rotation matrix
   MsqMatrix<3,3> R = inverse(J_exp) * J_act;

@@ -13,7 +13,7 @@
 using namespace moab;
 
 /* Input test file: ho_test.g
- * 
+ *
  * File is expected to contain at least one block for every
  * supported higher-order element type.  The coordinates of
  * every higher-order node are expected to be the mean of the
@@ -37,13 +37,13 @@ static const char rpolyg[] = "polyg.exo";
 static const char rpolyh[] = "polyh.exo";
 #endif
 
-void read_file( Interface& moab, 
+void read_file( Interface& moab,
                 const char* input_file );
 
 // Check that element has expected higher-order nodes
 // and that each higher-order node is at the center
 // of the sub-entity it is on.
-void check_ho_element( Interface& moab, 
+void check_ho_element( Interface& moab,
                        EntityHandle entity,
                        int mid_nodes[4] );
 
@@ -157,7 +157,7 @@ void load_file_one( Interface* iface )
 }
 
   /*!
-    @test 
+    @test
     Vertex Coordinates
     @li Get coordinates of vertex 1 correctly
     @li Get coordinates of vertex 8 correctly
@@ -196,7 +196,7 @@ void mb_vertex_coordinate_test()
   CHECK_ERR(error);
   const double exp7[] = {0.5, -2, 3.5};
   CHECK_ARRAYS_EQUAL( exp7, 3, coords, 3 );
-  
+
   int node_count = 0;
   error = MB->get_number_entities_by_type( 0, MBVERTEX, node_count );
   CHECK_ERR(error);
@@ -232,10 +232,10 @@ void mb_bar_connectivity_test()
   CHECK_EQUAL( (size_t)2, conn.size() );
 
     // from ncdump the connectivity of bar 2 (0 based) is
-    //  14, 13 
+    //  14, 13
   CHECK_EQUAL( (EntityHandle)14, conn[0] );
   CHECK_EQUAL( (EntityHandle)13, conn[1] );
-  
+
     // Now try getting the connectivity of one of the vertices for fun.
     // just return the vertex in the connectivity
   handle = conn[0];
@@ -249,7 +249,7 @@ void mb_tri_connectivity_test()
   Interface* MB = &moab;
   load_file_one( MB );
 
-  std::vector<EntityHandle> conn; 
+  std::vector<EntityHandle> conn;
   Range tris;
   ErrorCode error = MB->get_entities_by_type(0, MBTRI, tris);
   CHECK_ERR(error);
@@ -338,7 +338,7 @@ void mb_tet_connectivity_test()
   Interface* MB = &moab;
   load_file_one( MB );
 
-  std::vector<EntityHandle> conn; 
+  std::vector<EntityHandle> conn;
   Range tets;
   ErrorCode error = MB->get_entities_by_type(0, MBTET, tets);
   CHECK_ERR(error);
@@ -351,8 +351,8 @@ void mb_tet_connectivity_test()
 
   CHECK_EQUAL( (size_t)4, conn.size() );
 
-    // from ncdump the connectivity of tet 2 (0 based) is: 
-    // 35, 34, 32, 43 
+    // from ncdump the connectivity of tet 2 (0 based) is:
+    // 35, 34, 32, 43
 
   CHECK_EQUAL( (EntityHandle)35, conn[0] );
   CHECK_EQUAL( (EntityHandle)34, conn[1] );
@@ -382,7 +382,7 @@ void mb_write_mesh_test()
 
     //make another meshset to put quads in, so SHELLs can be written out
   EntityHandle block_of_shells;
-  result = MB->create_meshset(MESHSET_ORDERED | MESHSET_TRACK_OWNER, block_of_shells); 
+  result = MB->create_meshset(MESHSET_ORDERED | MESHSET_TRACK_OWNER, block_of_shells);
   CHECK_ERR(result);
 
     //tag the meshset so it's a block, with id 100
@@ -404,7 +404,7 @@ void mb_write_mesh_test()
   result = MB->tag_set_data( tag_handle, &block_of_shells, 1, &id ) ;
   CHECK_ERR(result);
 
-    //get some entities (tets) 
+    //get some entities (tets)
   Range temp_range;
   result = MB->get_entities_by_type(0,  MBHEX, temp_range ) ;
   CHECK_ERR(result);
@@ -414,13 +414,13 @@ void mb_write_mesh_test()
   end_iter = temp_range.end();
 
     //add evens to 'block_ms'
-  std::vector<EntityHandle> temp_vec; 
+  std::vector<EntityHandle> temp_vec;
   for(; iter != end_iter; ++iter)
   {
-    if( ID_FROM_HANDLE( *iter ) % 2 == 0 ) 
+    if( ID_FROM_HANDLE( *iter ) % 2 == 0 )
       temp_vec.push_back( *iter );
   }
-  result = MB->add_entities( block_ms, &temp_vec[0], temp_vec.size()); 
+  result = MB->add_entities( block_ms, &temp_vec[0], temp_vec.size());
   CHECK_ERR(result);
 
 
@@ -437,7 +437,7 @@ void mb_write_mesh_test()
     if( ID_FROM_HANDLE( *iter ) % 2 )  //add all odds
       temp_vec.push_back( *iter );
   }
-  result = MB->add_entities( ms_of_block_ms, &temp_vec[0], temp_vec.size() ); 
+  result = MB->add_entities( ms_of_block_ms, &temp_vec[0], temp_vec.size() );
   CHECK_ERR(result);
 
     //add the other meshset to the block's meshset
@@ -460,7 +460,7 @@ void mb_write_mesh_test()
   result = MB->tag_set_data( tag_handle, &sideset_ms, 1, &id ) ;
   CHECK_ERR(result);
 
-    //get some entities (tris) 
+    //get some entities (tris)
   temp_range.clear();
   result = MB->get_entities_by_type(0,  MBQUAD, temp_range ) ;
   CHECK_ERR(result);
@@ -469,13 +469,13 @@ void mb_write_mesh_test()
   end_iter = temp_range.end();
 
     //add evens to 'sideset_ms'
-  temp_vec.clear(); 
+  temp_vec.clear();
   for(; iter != end_iter; ++iter)
   {
-    if( ID_FROM_HANDLE( *iter ) % 2 == 0 ) 
+    if( ID_FROM_HANDLE( *iter ) % 2 == 0 )
       temp_vec.push_back( *iter );
   }
-  result = MB->add_entities( sideset_ms, &temp_vec[0], temp_vec.size() ); 
+  result = MB->add_entities( sideset_ms, &temp_vec[0], temp_vec.size() );
   CHECK_ERR(result);
 
     //make another meshset
@@ -491,7 +491,7 @@ void mb_write_mesh_test()
     if( ID_FROM_HANDLE( *iter ) % 2 )  //add all odds
       temp_vec.push_back( *iter );
   }
-  result = MB->add_entities( ms_of_sideset_ms, &temp_vec[0], temp_vec.size() ); 
+  result = MB->add_entities( ms_of_sideset_ms, &temp_vec[0], temp_vec.size() );
   CHECK_ERR(result);
 
     //add the other meshset to the sideset's meshset
@@ -500,7 +500,7 @@ void mb_write_mesh_test()
 
     //---------test sense on meshsets (reverse/foward)-------//
 
-    //get all quads whose x-coord = 2.5 and put them into a meshset_a 
+    //get all quads whose x-coord = 2.5 and put them into a meshset_a
   EntityHandle meshset_a;
   result = MB->create_meshset(MESHSET_ORDERED | MESHSET_TRACK_OWNER, meshset_a );
   CHECK_ERR(result);
@@ -514,11 +514,11 @@ void mb_write_mesh_test()
   result = MB->get_connectivity(&entity_vec[0], entity_vec.size(), nodes1);
   CHECK_ERR(result);
   assert( nodes1.size() == 4 * temp_range.size() );
-  temp_vec.clear(); 
+  temp_vec.clear();
   std::vector<double> coords(3*nodes1.size());
   result = MB->get_coords(&nodes1[0], nodes1.size(), &coords[0]);
   CHECK_ERR(result);
-  
+
   unsigned int k = 0;
   for(Range::iterator it = temp_range.begin(); it != temp_range.end(); ++it) {
     if( coords[12*k] == 2.5 && coords[12*k+3] == 2.5 &&
@@ -544,7 +544,7 @@ void mb_write_mesh_test()
   CHECK_ERR(result);
 
   int reverse_value = -1;
-  result = MB->tag_set_data( tag_handle, &meshset_b, 1, &reverse_value ) ; 
+  result = MB->tag_set_data( tag_handle, &meshset_b, 1, &reverse_value ) ;
   CHECK_ERR(result);
 
 
@@ -561,7 +561,7 @@ void mb_write_mesh_test()
     result = MB->get_connectivity( &(*iter), 1, nodes );
     CHECK_ERR(result);
 
-    bool not_equal_2_5 = true; 
+    bool not_equal_2_5 = true;
     for(unsigned int ku=0; ku<nodes.size(); ku++ )
     {
       double coords2[3] = {0};
@@ -585,20 +585,20 @@ void mb_write_mesh_test()
 
   EntityHandle meshset_c;
   MB->create_meshset(MESHSET_ORDERED | MESHSET_TRACK_OWNER, meshset_c );
-    
-  
-  result = MB->tag_get_handle( "SENSE", 1, MB_TYPE_INTEGER, tag_handle ); 
+
+
+  result = MB->tag_get_handle( "SENSE", 1, MB_TYPE_INTEGER, tag_handle );
   CHECK_ERR(result);
 
   reverse_value = -1;
-  result = MB->tag_set_data( tag_handle, &meshset_c, 1, &reverse_value ) ; 
+  result = MB->tag_set_data( tag_handle, &meshset_c, 1, &reverse_value ) ;
   CHECK_ERR(result);
 
   MB->add_entities( meshset_c, &temp_vec[0], temp_vec.size() );
   MB->add_entities( block_of_shells, &temp_vec[0], temp_vec.size());
 
 
-    //create another meshset_abc, adding meshset_a, meshset_b, meshset_c 
+    //create another meshset_abc, adding meshset_a, meshset_b, meshset_c
   EntityHandle meshset_abc;
   MB->create_meshset(MESHSET_ORDERED | MESHSET_TRACK_OWNER, meshset_abc );
 
@@ -635,7 +635,7 @@ void mb_write_mesh_test()
   result = MB->tag_set_data( tag_handle, &nodeset_ms, 1, &id ) ;
   CHECK_ERR(result);
 
-    //get all Quads 
+    //get all Quads
   temp_range.clear();
   result = MB->get_entities_by_type(0,  MBQUAD, temp_range ) ;
   CHECK_ERR(result);
@@ -662,13 +662,13 @@ void mb_write_mesh_test()
   end_iter = nodes_of_quads.end();
 
     //add evens to 'nodeset_ms'
-  temp_vec.clear(); 
+  temp_vec.clear();
   for(; iter != end_iter; ++iter)
   {
-    if( ID_FROM_HANDLE( *iter ) % 2 == 0 ) 
+    if( ID_FROM_HANDLE( *iter ) % 2 == 0 )
       temp_vec.push_back( *iter );
   }
-  MB->add_entities( nodeset_ms, &temp_vec[0], temp_vec.size() ); 
+  MB->add_entities( nodeset_ms, &temp_vec[0], temp_vec.size() );
 
 
     //make another meshset
@@ -684,7 +684,7 @@ void mb_write_mesh_test()
     if( ID_FROM_HANDLE( *iter ) % 2 )  //add all odds
       temp_vec.push_back( *iter );
   }
-  MB->add_entities( ms_of_nodeset_ms, &temp_vec[0], temp_vec.size() ); 
+  MB->add_entities( ms_of_nodeset_ms, &temp_vec[0], temp_vec.size() );
 
     //add the other meshset to the nodeset's meshset
   MB->add_entities( nodeset_ms, &ms_of_nodeset_ms, 1);
@@ -714,7 +714,7 @@ void check_type( const TestType& type )
 {
   int has_mid_nodes[4];
   CN::HasMidNodes( type.moab_type, type.num_nodes, has_mid_nodes );
-  
+
   CHECK_EQUAL( type.moab_type, ExoIIUtil::ExoIIElementMBEntity[type.exo_type] );
   CHECK_EQUAL( type.name, std::string( ExoIIUtil::ElementTypeNames[type.exo_type] ) );
   CHECK_EQUAL( type.num_nodes, ExoIIUtil::VerticesPerElement[type.exo_type] );
@@ -723,13 +723,13 @@ void check_type( const TestType& type )
     case 2: CHECK_EQUAL( has_mid_nodes[2], ExoIIUtil::HasMidNodes[type.exo_type][2] );
     case 1: CHECK_EQUAL( has_mid_nodes[1], ExoIIUtil::HasMidNodes[type.exo_type][1] );
   }
-  
+
   Core moab;
   ExoIIUtil tool(&moab);
   CHECK_EQUAL( type.exo_type, tool.element_name_to_type( type.name.c_str() ) );
   CHECK_EQUAL( type.name, std::string(tool.element_type_name( type.exo_type ) ) );
 }
-  
+
 void test_types()
 {
   const TestType types[] = {
@@ -778,11 +778,11 @@ void test_types()
     { MBHEX,     EXOII_HEX27,     27, "HEX27" },
     { MBHEX,     EXOII_HEXSHELL,  12, "HEXSHELL" } };
   const int num_types = sizeof(types)/sizeof(types[0]);
-  for (int i = 0; i < num_types; ++i) 
+  for (int i = 0; i < num_types; ++i)
     check_type( types[i] );
 }
 
-void read_file( Interface& moab, 
+void read_file( Interface& moab,
                 const char* input_file )
 {
   ErrorCode rval = moab.load_file( input_file );
@@ -795,21 +795,21 @@ void write_and_read( Interface& write_mb,
 {
   const char* tmp_file = "exodus_test_tmp.g";
   ErrorCode rval;
-  
+
   EntityHandle* write_set_list = &block;
   int write_set_list_len = 0;//(block != 0);
-  rval = write_mb.write_file( tmp_file, "EXODUS", 0, 
+  rval = write_mb.write_file( tmp_file, "EXODUS", 0,
                             write_set_list, write_set_list_len );
-  if (MB_SUCCESS != rval) 
+  if (MB_SUCCESS != rval)
     remove(tmp_file);
   CHECK_ERR(rval);
-  
+
   rval = read_mb.load_file( tmp_file );
   remove( tmp_file );
   CHECK_ERR(rval);
 }
 
-void check_ho_elements( Interface& moab, 
+void check_ho_elements( Interface& moab,
                         EntityHandle block,
                         EntityType type,
                         int mid_nodes[4] )
@@ -827,7 +827,7 @@ void check_ho_elements( Interface& moab,
 // Check that element has expected higher-order nodes
 // and that each higher-order node is at the center
 // of the sub-entity it is on.
-void check_ho_element( Interface& moab, 
+void check_ho_element( Interface& moab,
                        EntityHandle entity,
                        int mid_nodes[4] )
 {
@@ -840,18 +840,18 @@ void check_ho_element( Interface& moab,
   std::vector<double> coords(3*conn_len);
   rval = moab.get_coords( conn, conn_len, &coords[0] );
   CHECK_ERR(rval);
-  
+
     // calculate and verify expected number of mid nodes
   int num_nodes = CN::VerticesPerEntity(type);
   for (int d = 1; d <= CN::Dimension(type); ++d)
     if (mid_nodes[d])
       num_nodes += CN::NumSubEntities(type, d);
   CHECK_EQUAL( num_nodes, conn_len );
-  
+
     // verify that each higher-order node is at the center
     // of its respective sub-entity.
   for (int i = CN::VerticesPerEntity(type); i < num_nodes; ++i) {
-      // get sub-entity owning ho-node  
+      // get sub-entity owning ho-node
     int sub_dim, sub_num;
     CN::HONodeParent( type, num_nodes, i, sub_dim, sub_num );
       // get corner vertex indices
@@ -896,14 +896,14 @@ EntityHandle find_block( Interface& mb, EntityType type, const int has_mid_nodes
   const int mids[] = {-1, -1, -1, -1};
   rval = mb.tag_get_handle( HAS_MID_NODES_TAG_NAME, 4, MB_TYPE_INTEGER, ho_tag, 0, mids);
   CHECK_ERR(rval);
-  
+
   // get material sets with expected higher-order nodes
   Range blocks;
   Tag tags[2] = {ho_tag, block_tag};
   const void* vals[2] = {has_mid_nodes, NULL};
   rval = mb.get_entities_by_type_and_tag( 0, MBENTITYSET, tags, vals, 2, blocks );
   CHECK_ERR(rval);
-  
+
   for (Range::iterator i = blocks.begin(); i != blocks.end(); ++i) {
     int n;
     rval = mb.get_number_entities_by_type( *i, type, n );
@@ -911,12 +911,12 @@ EntityHandle find_block( Interface& mb, EntityType type, const int has_mid_nodes
     if (n > 0)
       return *i;
   }
-  
+
   CHECK(false); // no block matching element type description
   return 0;
 }
 
-EntityHandle find_sideset( Interface& mb, 
+EntityHandle find_sideset( Interface& mb,
                              int sideset_id,
                              EntityType /*side_type*/ )
 {
@@ -925,7 +925,7 @@ EntityHandle find_sideset( Interface& mb,
   const int negone = -1;
   rval = mb.tag_get_handle( NEUMANN_SET_TAG_NAME, 1, MB_TYPE_INTEGER, ss_tag, 0, &negone);
   CHECK_ERR(rval);
-  
+
   const void* tag_vals[] = { &sideset_id };
   Range side_sets;
   rval = mb.get_entities_by_type_and_tag( 0, MBENTITYSET, &ss_tag, tag_vals, 1, side_sets );
@@ -945,13 +945,13 @@ void test_ho_elements( EntityType type, int num_nodes )
   int ho_flags[4];
   CN::HasMidNodes( type, num_nodes, ho_flags );
 
-    // read file 
+    // read file
   read_file( mb1, ho_file );
     // test element connectivity order
   EntityHandle block = find_block( mb1, type, ho_flags );
   CHECK(block != 0);
   check_ho_elements( mb1, block, type, ho_flags );
-  
+
     // write block and read it back in
   write_and_read( mb1, mb2, block );
     // test element connectivity order on re-read data
@@ -969,24 +969,24 @@ void test_read_side( int id,
   Core mb_impl;
   Interface& moab = mb_impl;
   read_file( moab, ho_file );
-  
-  // get side set 
+
+  // get side set
   EntityHandle set = find_sideset( moab, id, sideset_type );
   CHECK(set != 0);
-  
+
   // check expected element connectivity
   int ho_flags[4];
   CN::HasMidNodes( sideset_type, sideset_nodes_per_elem, ho_flags );
   check_ho_elements( moab, set, sideset_type, ho_flags );
-  
+
   if (shell_side)
     return;
-  
+
   // check that each element is on the boundary of the mesh
   Range elems;
   ErrorCode rval = mb_impl.get_entities_by_handle( set, elems );
   CHECK_ERR(rval);
-  
+
   int dim = CN::Dimension( sideset_type );
   for (Range::iterator i= elems.begin(); i != elems.end(); ++i) {
     Range adj;
@@ -994,7 +994,7 @@ void test_read_side( int id,
     CHECK_ERR(rval);
     CHECK_EQUAL( 1, (int)adj.size() );
   }
-    
+
 }
 
 void test_read_ids_common( const char* file_name,
@@ -1004,12 +1004,12 @@ void test_read_ids_common( const char* file_name,
 {
   Core mb;
   ReadNCDF reader(&mb);
-  
+
   FileOptions opts("");
   std::vector<int> values;
   ErrorCode rval = reader.read_tag_values( file_name, tag_name, opts, values );
   CHECK_ERR(rval);
-  
+
   std::vector<int> expected( expected_vals, expected_vals+num_expected );
   std::sort( values.begin(), values.end() );
   std::sort( expected.begin(), expected.end() );
@@ -1036,7 +1036,7 @@ void test_read_alternate_coord_format()
   Interface& mb = moab;
   ErrorCode rval = mb.load_file( alt_file );
   CHECK_ERR(rval);
-  
+
   const double exp[] = { 0, 0, 0,
                          1, 0, 0,
                          1, 1, 0,
@@ -1045,7 +1045,7 @@ void test_read_alternate_coord_format()
                          1, 0, 1,
                          1, 1, 1,
                          0, 1, 1 };
-  
+
   Range hexes;
   rval = mb.get_entities_by_type( 0, MBHEX, hexes );
   CHECK_ERR(rval);

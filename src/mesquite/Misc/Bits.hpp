@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2007 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2009) kraftche@cae.wisc.edu    
+    (2009) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file Bits.hpp
  *  \brief Functions implementing misc. bit-wise algorithms
- *  \author Jason Kraftcheck 
+ *  \author Jason Kraftcheck
  */
 
 #ifndef MSQ_BITS_HPP
@@ -61,7 +61,7 @@ inline int popcount( unsigned int x ) {
 //    x = (x & 0x3333333333333333ULL) + ((x >> 2) & 0x3333333333333333ULL);
 //    x = (x & 0x0F0F0F0F0F0F0F0FULL) + ((x >> 4) & 0x0F0F0F0F0F0F0F0FULL);
 //    return (x * 0x0101010101010101ULL) >> 56;
-//  }    
+//  }
 #endif
 }
 

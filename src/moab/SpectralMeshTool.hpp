@@ -13,10 +13,10 @@ namespace moab {
  * mesh handling in doc/metadata_info.doc and in the MOAB user's guide.
  *
  * There are two primary representations of spectral meshes:
- * a) coarse elements: with SPECTRAL_VERTICES lexicographically-ordered array of fine vertices 
+ * a) coarse elements: with SPECTRAL_VERTICES lexicographically-ordered array of fine vertices
  *    on each element, and tags on vertices or on elements (with _LEX suffix)
  * b) fine elements: as linear elements made from fine vertices, with tags on vertices
- * 
+ *
  */
 class SpectralMeshTool
 {
@@ -39,20 +39,20 @@ public:
      * \param create_if_missing If true, will create this tag if it doesn't exist already
      */
   Tag spectral_vertices_tag(const bool create_if_missing = false);
-  
+
     /** \brief Return tag used to store spectral order
      * \param so_tag Spectral order tag
      * \param create_if_missing If true, will create this tag if it doesn't exist already
      */
   Tag spectral_order_tag(const bool create_if_missing = false);
-  
+
     /** \brief Convert representation from coarse to fine
      * Each element in set, or in interface if set is not input, is converted to fine elements, using
      * vertices in SPECTRAL_VERTICES tagged array
      * \param spectral_set Set containing spectral elements
      */
   ErrorCode convert_to_fine(EntityHandle spectral_set);
-  
+
     /** \brief Convert representation from fine to coarse
      * Each element in set, or in interface if set is not input, is converted to coarse elements, with
      * fine vertices put into SPECTRAL_VERTICES tagged array.  NOTE: This function assumes that each
@@ -75,28 +75,28 @@ public:
      * \param local_gids If non-null, will insert all fine vertices into this range
      */
   template <class T>
-  ErrorCode create_spectral_elems(const T *conn, int num_fine_elems, int dim, 
+  ErrorCode create_spectral_elems(const T *conn, int num_fine_elems, int dim,
                                   Range &output_range, int start_idx = 0, Range *local_gids = NULL);
-  
+
     /** \brief Set spectral order for this instance
      * \param order Order set on this instance
      */
   void spectral_order(int order) {spectralOrder = order; spectralOrderp1 = order+1;}
-  
+
     /** \brief Get spectral order for this instance
      * \return order Order set on this instance
      */
   int spectral_order() {return spectralOrder;}
 /*
-  struct ConnMap 
+  struct ConnMap
   {
     const short a[16];
   };
   */
   static const short int permute_array[];
-  
+
   static const short int lin_permute_array[];
-  
+
 private:
 
   //! the MB instance that this works with
@@ -104,10 +104,10 @@ private:
 
     //! error object for this tool
   Error *mError;
-  
+
     //! SPECTRAL_VERTICES tag
   Tag svTag;
-  
+
     //! SPECTRAL_ORDER tag
   Tag soTag;
 
@@ -118,16 +118,16 @@ private:
   int spectralOrderp1;
 };
 
-inline SpectralMeshTool::SpectralMeshTool(Interface *impl, int order) 
+inline SpectralMeshTool::SpectralMeshTool(Interface *impl, int order)
         : mbImpl(impl), svTag(0), soTag(0), spectralOrder(order), spectralOrderp1(order+1)
 {
   impl->query_interface(mError);
 }
-    
-inline SpectralMeshTool::~SpectralMeshTool() 
+
+inline SpectralMeshTool::~SpectralMeshTool()
 {}
 
-} // namespace moab 
+} // namespace moab
 
 #endif
 

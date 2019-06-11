@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2008 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2008) kraftche@cae.wisc.edu    
+    (2008) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file CLArgFlag.hpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #ifndef MSQ_CLARG_FLAG_HPP
@@ -39,34 +39,34 @@
 #include <vector>
 #include <iosfwd>
 
-class CLArgFlag 
+class CLArgFlag
 {
   private:
     char mFlag;
     std::string mDesc;
-  
-  protected:  
+
+  protected:
     CLArgFlag( char pflag, const char* pdesc )
       : mFlag(pflag), mDesc(pdesc)
       {}
 
   public:
     virtual ~CLArgFlag();
-  
+
     char flag() const { return mFlag; }
     const char* desc() const { return mDesc.c_str(); }
     virtual const CLArgs::ArgIBase* callback() const = 0;
-  
+
     virtual bool is_toggle() const;
     virtual bool parse( const char* string_value ) const = 0;
-    
+
       /** Get brief format of option */
     virtual std::string brief() const = 0;
       /** Get UNIX man-page formated synposis of flag */
     virtual std::string manstr() const = 0;
 
     virtual bool add_set( int size, const char* const* names );
-    
+
     std::string make_man_string( int count, const char* names[] ) const;
     std::string make_man_string( const char* arg_name ) const
       { return make_man_string( 1, &arg_name ); }
@@ -84,7 +84,7 @@ class CLArgToggle : public CLArgFlag
     CLArgs::ToggleArgI* mCallback;
     CLArgToggle* mOpposite;
   public:
-    CLArgToggle( char pflag, 
+    CLArgToggle( char pflag,
                  const char* pdesc,
                  bool value,
                  CLArgs::ToggleArgI* pcallback )
@@ -93,7 +93,7 @@ class CLArgToggle : public CLArgFlag
         mCallback( pcallback ),
         mOpposite( 0 )
       { }
-    CLArgToggle( char pflag, 
+    CLArgToggle( char pflag,
                  const char* pdesc,
                  CLArgToggle* opposite )
       : CLArgFlag( pflag, pdesc ),
@@ -105,11 +105,11 @@ class CLArgToggle : public CLArgFlag
       }
 
     virtual const CLArgs::ArgIBase* callback() const { return mCallback; }
-    
+
     virtual bool is_toggle() const
       { return true; }
     virtual bool parse( const char* option ) const;
-      
+
     virtual std::string brief() const;
     virtual std::string manstr() const;
 };
@@ -119,7 +119,7 @@ class CLArgString : public CLArgFlag
   private:
     std::string mName;
     CLArgs::StringArgI* mCallback;
-  
+
   public:
     CLArgString( char fl, const char* name, const char* pdesc,
                  CLArgs::StringArgI* pcallback )
@@ -129,9 +129,9 @@ class CLArgString : public CLArgFlag
                   {}
 
     virtual const CLArgs::ArgIBase* callback() const { return mCallback; }
-    
+
     virtual bool parse( const char* option ) const;
-      
+
 
     virtual std::string brief() const;
     virtual std::string manstr() const;
@@ -142,7 +142,7 @@ class CLArgLong : public CLArgFlag
   private:
     CLArgs::LongArgI* mCallback;
     std::string mName;
-  
+
   public:
     CLArgLong( char fl, const char* name, const char* pdesc,
                CLArgs::LongArgI* pcallback )
@@ -152,7 +152,7 @@ class CLArgLong : public CLArgFlag
     {}
 
     virtual const CLArgs::ArgIBase* callback() const { return mCallback; }
-    
+
     virtual bool parse( const char* option ) const;
 
     virtual std::string brief() const;
@@ -164,7 +164,7 @@ class CLArgInt : public CLArgFlag
   private:
     CLArgs::IntArgI* mCallback;
     std::string mName;
-  
+
   public:
     CLArgInt(  char fl, const char* name, const char* pdesc,
                CLArgs::IntArgI* pcallback )
@@ -174,7 +174,7 @@ class CLArgInt : public CLArgFlag
     {}
 
     virtual const CLArgs::ArgIBase* callback() const { return mCallback; }
-    
+
     virtual bool parse( const char* option ) const;
 
     virtual std::string brief() const;
@@ -186,7 +186,7 @@ class CLArgDouble : public CLArgFlag
   private:
     CLArgs::DoubleArgI* mCallback;
     std::string mName;
-  
+
   public:
     CLArgDouble( char fl, const char* name, const char* pdesc,
                  CLArgs::DoubleArgI* pcallback )
@@ -196,43 +196,43 @@ class CLArgDouble : public CLArgFlag
     {}
 
     virtual const CLArgs::ArgIBase* callback() const { return mCallback; }
-    
+
     virtual bool parse( const char* option ) const;
 
     virtual std::string brief() const;
     virtual std::string manstr() const;
 };
 
-  
+
 class CLArgIDList : public CLArgFlag
 {
   public:
     CLArgs::IntListArgI* mCallback;
-    
+
   public:
     CLArgIDList( char fl, const char* pdesc, CLArgs::IntListArgI* pcallback )
       : CLArgFlag( fl, pdesc ), mCallback( pcallback )
       {}
 
     virtual const CLArgs::ArgIBase* callback() const { return mCallback; }
-    
+
     virtual bool parse( const char* str ) const;
 
     virtual std::string brief() const;
     virtual std::string manstr() const;
 };
 
-class CLArgListData 
+class CLArgListData
 {
   std::vector< std::vector< std::string > > mSets;
 
   public:
-  
+
     bool add_set( int size, const char* const* names );
     bool acceptable_length( unsigned len ) const;
     bool accept_any_length() const
       { return mSets.empty(); }
-    
+
     std::string set_string( int set ) const;
     std::string brief() const;
     std::string manstr( char type_char, const CLArgFlag& f ) const;
@@ -243,16 +243,16 @@ class CLArgIntList : public CLArgFlag
   private:
     CLArgListData listData;
     CLArgs::IntListArgI* mCallback;
-  
+
   public:
     CLArgIntList( char fl, const char* pdesc, CLArgs::IntListArgI* pcallback )
       : CLArgFlag( fl, pdesc ), mCallback( pcallback )
     {}
 
     virtual const CLArgs::ArgIBase* callback() const { return mCallback; }
-    
+
     virtual bool parse( const char* option ) const;
-      
+
     virtual std::string brief() const;
     virtual std::string manstr() const;
     virtual bool add_set( int size, const char* const* names )
@@ -265,9 +265,9 @@ class CLArgDoubleList : public CLArgFlag
     CLArgListData listData;
     std::string mName;
     CLArgs::DoubleListArgI* mCallback;
-  
+
   public:
-    CLArgDoubleList( char fl, 
+    CLArgDoubleList( char fl,
                      const char* pdesc,
                      CLArgs::DoubleListArgI* pcallback )
       : CLArgFlag( fl, pdesc ),
@@ -275,7 +275,7 @@ class CLArgDoubleList : public CLArgFlag
         {}
 
     virtual const CLArgs::ArgIBase* callback() const { return mCallback; }
-    
+
     virtual bool parse( const char* option ) const;
 
     virtual std::string brief() const;

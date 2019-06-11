@@ -10,7 +10,7 @@ using namespace moab;
 void tag_syntax( std::ostream& s )
 {
   s << "Tags are specified as <name>=[value], where the tag value " << std::endl
-    << "is optional." << std::endl 
+    << "is optional." << std::endl
     << std::endl
     << "Values of integral types (INTEGER, BIT, and HANDLE) are " << std::endl
     << "specified using standard C integer notation (a 0x prefix " << std::endl
@@ -33,7 +33,7 @@ void tag_syntax( std::ostream& s )
     << "where type is one of {int,double,opaque,handle,bit} and size is " << std::endl
     << "the number of values of the specified type, or the number of " << std::endl
     << "bytes if the type is 'opaque',  A default value for the tag may " << std::endl
-    << "be specified." 
+    << "be specified."
     << std::endl;
 }
 
@@ -78,16 +78,16 @@ template<typename T> int parse_value( const char*& iter, T& value )
   long parsed_val = strtol( iter, &endptr, 0 );
   if (endptr == iter)
     return 1;
-  iter = endptr; 
-  
+  iter = endptr;
+
   value = (T)parsed_val;
   if ((long)value != parsed_val)
   {
     std::cerr << "Value too large: " << iter << std::endl;
     return 2;
   }
-  
-  return 0;  
+
+  return 0;
 }
 
 
@@ -137,7 +137,7 @@ unsigned char* parse_opaque_value( const char* vals, int size )
       end = data - 1;
       step = -1;
     }
-    
+
     const char* vals_end = vals + 1;
     const char* vals_iter = vals + strlen(vals) - 1;
     for ( ; iter != end; iter += step )
@@ -146,7 +146,7 @@ unsigned char* parse_opaque_value( const char* vals, int size )
       int most = 0;
       if (vals_iter != vals_end)
       {
-        less = hexdigit( *vals_iter); 
+        less = hexdigit( *vals_iter);
         --vals_iter;
       }
       if (vals_iter != vals_end)
@@ -160,7 +160,7 @@ unsigned char* parse_opaque_value( const char* vals, int size )
         free (data);
         return 0;
       }
-      
+
       *iter = 16 * most + less;
     }
   }
@@ -169,7 +169,7 @@ unsigned char* parse_opaque_value( const char* vals, int size )
     memset( data, 0, size );
     strcpy( (char*)data, vals + 2 );
   }
-  
+
   return data;
 }
 
@@ -179,7 +179,7 @@ template<typename T> T* parse_values_typed( const char* vals, int count )
 {
   if (!count)
     return 0;
-    
+
   T* data = (T*)malloc( count * sizeof(T) );
   T* end = data + count;
   if (parse_value<T>( vals, *data ))
@@ -202,7 +202,7 @@ template<typename T> T* parse_values_typed( const char* vals, int count )
       return 0;
     }
   }
-  
+
   return data;
 }
 
@@ -239,8 +239,8 @@ int parse_tag_spec( char* name, TagSpec& result, Interface* iface )
     *val = '\0';
     if (!*++val) // if name ends with an '=', set val to NULL.
       val = 0;
-  } 
-  
+  }
+
     // Get tag
   ErrorCode rval = iface->tag_get_handle( name, 0, MB_TYPE_OPAQUE, result.handle, MB_TAG_ANY );
   if (MB_TAG_NOT_FOUND == rval)
@@ -253,7 +253,7 @@ int parse_tag_spec( char* name, TagSpec& result, Interface* iface )
     std::cerr << "Error retrieving tag handle: " << name << std::endl;
     return 3;
   }
-  
+
     // Parse tag value
   result.value = 0;
   if (val)
@@ -265,7 +265,7 @@ int parse_tag_spec( char* name, TagSpec& result, Interface* iface )
       std::cerr << "Error retrieving type for tag: " << name << std::endl;
       return 3;
     }
-    
+
     int size;
     rval = iface->tag_get_length( result.handle, size );
     if (MB_SUCCESS != rval)
@@ -273,22 +273,22 @@ int parse_tag_spec( char* name, TagSpec& result, Interface* iface )
       std::cerr << "Error retrieving size for tag: " << name << std::endl;
       return 3;
     }
-    
+
     result.value = parse_values( val, type, size );
     if (!result.value)
       return 1;
   }
-  
+
   return 0;
 }
 
-  
-  
+
+
 
 int parse_tag_create( char* name, TagSpec& result, Interface* iface )
 {
     // split at '=' signs
-  
+
   char* eq1 = strrchr( name, '=' );
   if (!eq1)
   {
@@ -307,7 +307,7 @@ int parse_tag_create( char* name, TagSpec& result, Interface* iface )
     val = ('\0' == eq1[0]) ? 0 : eq1;
     type_str = eq2;
   }
-  
+
     // parse type data
   char* size_str = strchr( type_str, ':' );
   if (!size_str)
@@ -350,7 +350,7 @@ int parse_tag_create( char* name, TagSpec& result, Interface* iface )
     std::cerr << "Invalid tag size specification: " << size_str << std::endl;
     return 1;
   }
-  
+
     // parse default value
   result.value = 0;
   if (val)
@@ -359,7 +359,7 @@ int parse_tag_create( char* name, TagSpec& result, Interface* iface )
     if (!result.value)
       return 1;
   }
-  
+
     // check if tag exists
   if (MB_SUCCESS == iface->tag_get_handle( name, 0, MB_TYPE_OPAQUE, result.handle, MB_TAG_ANY ))
   {
@@ -372,13 +372,13 @@ int parse_tag_create( char* name, TagSpec& result, Interface* iface )
       std::cerr << "Error accessing properties of tag: " << name << std::endl;
       return 3;
     }
-    
+
     if (etype != type || esize != count)
     {
       std::cerr << "Tag already exists with different type: " << name << std::endl;
       return 1;
     }
-    
+
     std::vector<unsigned char> value(esize);
     if (result.value)
     {
@@ -397,7 +397,7 @@ int parse_tag_create( char* name, TagSpec& result, Interface* iface )
   }
   else
   {
-    ErrorCode rval = iface->tag_get_handle( name, 
+    ErrorCode rval = iface->tag_get_handle( name,
                                    count, type,
                                    result.handle,
                                    MB_TAG_SPARSE|MB_TAG_CREAT,
@@ -408,11 +408,11 @@ int parse_tag_create( char* name, TagSpec& result, Interface* iface )
       return 3;
     }
   }
-  
+
   return 0;
 }
 
-     
-  
-    
-  
+
+
+
+

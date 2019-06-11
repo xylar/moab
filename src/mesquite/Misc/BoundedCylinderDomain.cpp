@@ -1,8 +1,8 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
-    Copyright 2005 Lawrence Livermore National Laboratory.  Under 
-    the terms of Contract B545069 with the University of Wisconsin -- 
+    Copyright 2005 Lawrence Livermore National Laboratory.  Under
+    the terms of Contract B545069 with the University of Wisconsin --
     Madison, Lawrence Livermore National Laboratory retains certain
     rights in this software.
 
@@ -16,11 +16,11 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    kraftche@cae.wisc.edu    
+    kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
@@ -49,7 +49,7 @@ void BoundedCylinderDomain::domain_DoF( const Mesh::VertexHandle* handle_array,
       dof_array[i] = 2;
 }
 
-void BoundedCylinderDomain::create_curve( double distance, 
+void BoundedCylinderDomain::create_curve( double distance,
                        const std::vector<Mesh::VertexHandle>& handles )
 {
   Curve c;
@@ -70,11 +70,11 @@ void BoundedCylinderDomain::create_curve( double distance,
     MSQ_SETERR(err)("No vertices in mesh.\n", MsqError::INVALID_ARG );
     return;
   }
-  
+
   std::vector<MsqVertex> coords(handles.size());
   mesh->vertices_get_coordinates( arrptr(handles), arrptr(coords), handles.size(), err );
   MSQ_ERRRTN(err);
-  
+
   std::vector<Mesh::EntityHandle> list;
   Vector3D close, normal;
   for (size_t i = 0; i < handles.size(); ++i)
@@ -83,17 +83,17 @@ void BoundedCylinderDomain::create_curve( double distance,
     if ((coords[i] - close).length() < tolerance)
       list.push_back( handles[i] );
   }
-  
+
   if (list.empty())
   {
     MSQ_SETERR(err)("No vertices within specified tolerance.\n", MsqError::INVALID_ARG );
     return;
   }
-  
+
   create_curve( distance, list );
 }
 
-void BoundedCylinderDomain::evaluate( double t, 
+void BoundedCylinderDomain::evaluate( double t,
                                       const Vector3D& point,
                                       Vector3D& closest,
                                       Vector3D& normal ) const
@@ -102,7 +102,7 @@ void BoundedCylinderDomain::evaluate( double t,
   double t2 = axis() % (point - center());
   const Vector3D circ_center = center() + t * axis();
   const Vector3D axis_point = center() + t2 * axis();
-  
+
   normal = point - axis_point;
   const double len = normal.length();
   if (len < EPSILON)
@@ -136,7 +136,7 @@ bool BoundedCylinderDomain::find_curve( Mesh::VertexHandle handle, double& t ) c
       t = i->t;
       return true;
     }
-    
+
   return false;
 }
 

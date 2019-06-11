@@ -1,5 +1,5 @@
 /** \file   ReadHDF5Dataset.cpp
- *  \author Jason Kraftcheck 
+ *  \author Jason Kraftcheck
  *  \date   2010-07-09
  */
 
@@ -77,20 +77,20 @@ ReadHDF5Dataset::ReadHDF5Dataset( const char* debug_desc,
     mpeReadEvent   = allocate_mpe_state( "ReadHDF5Dataset::read", "yellow" );
     mpeReduceEvent = allocate_mpe_state( "ReadHDF5Dataset::all_reduce", "yellow" );
   }
-  
+
 #ifndef MOAB_HAVE_HDF5_PARALLEL
-  if (nativeParallel) 
+  if (nativeParallel)
     throw Exception(__LINE__);
 #else
   if (nativeParallel && !mpiComm)
     throw Exception(__LINE__);
-  
+
   if (mpiComm) {
     ioProp = H5Pcreate(H5P_DATASET_XFER);
     H5Pset_dxpl_mpio(ioProp, H5FD_MPIO_COLLECTIVE);
   }
 #endif
-}    
+}
 
 ReadHDF5Dataset::ReadHDF5Dataset( const char* debug_desc,
                                   hid_t data_set_handle,
@@ -111,7 +111,7 @@ ReadHDF5Dataset::ReadHDF5Dataset( const char* debug_desc,
     bufferSize(0),
     mpiComm(communicator),
     mpeDesc( debug_desc )
-{ 
+{
   if (!haveMPEEvents) {
     haveMPEEvents = true;
     mpeReadEvent   = allocate_mpe_state( "ReadHDF5Dataset::read", "yellow" );
@@ -119,14 +119,14 @@ ReadHDF5Dataset::ReadHDF5Dataset( const char* debug_desc,
   }
 
   init( data_set_handle, close_data_set );
-  
+
 #ifndef MOAB_HAVE_HDF5_PARALLEL
-  if (nativeParallel) 
+  if (nativeParallel)
     throw Exception(__LINE__);
 #else
   if (nativeParallel && !mpiComm)
     throw Exception(__LINE__);
-  
+
   if (mpiComm) {
     ioProp = H5Pcreate(H5P_DATASET_XFER);
     H5Pset_dxpl_mpio(ioProp, H5FD_MPIO_COLLECTIVE);
@@ -138,7 +138,7 @@ void ReadHDF5Dataset::init( hid_t data_set_handle, bool close_data_set )
 {
   closeDataSet = close_data_set;
   dataSet = data_set_handle;
-  
+
   fileType = H5Dget_type( data_set_handle );
   if (fileType < 0)
     throw Exception(__LINE__);
@@ -146,12 +146,12 @@ void ReadHDF5Dataset::init( hid_t data_set_handle, bool close_data_set )
   dataSpace = H5Dget_space( dataSet );
   if (dataSpace < 0)
     throw Exception(__LINE__);
-  
+
   dataSpaceRank = H5Sget_simple_extent_dims( dataSpace, dataSetCount, dataSetOffset );
-  if (dataSpaceRank < 0) 
+  if (dataSpaceRank < 0)
     throw Exception(__LINE__);
   rowsInTable = dataSetCount[0];
-  
+
   for (int i = 0; i < dataSpaceRank; ++i)
     dataSetOffset[i] = 0;
 
@@ -164,7 +164,7 @@ unsigned ReadHDF5Dataset::columns() const
     return 1;
   else if (dataSpaceRank == 2)
     return dataSetCount[1];
-  
+
   throw Exception(__LINE__);
 }
 
@@ -195,7 +195,7 @@ Range::const_iterator ReadHDF5Dataset::next_end( Range::const_iterator iter )
 }
 
 
-void ReadHDF5Dataset::set_file_ids( const Range& file_ids, 
+void ReadHDF5Dataset::set_file_ids( const Range& file_ids,
                                     EntityHandle start_id,
                                     hsize_t row_count,
                                     hid_t data_type )
@@ -205,7 +205,7 @@ void ReadHDF5Dataset::set_file_ids( const Range& file_ids,
   rangeEnd = file_ids.end();
   readCount = 0;
   bufferSize = row_count;
-  
+
   // if a) user specified buffer size and b) we're doing a true
   // parallel partial read and c) we're doing collective I/O, then
   // we need to know the maximum number of reads that will be done.
@@ -216,7 +216,7 @@ void ReadHDF5Dataset::set_file_ids( const Range& file_ids,
       ++readCount;
       iter = next_end( iter );
     }
-    
+
     MPE_Log_event(mpeReduceEvent.first, (int)readCount, mpeDesc.c_str());
     unsigned long recv = readCount, send = readCount;
     MPI_Allreduce( &send, &recv, 1, MPI_UNSIGNED_LONG, MPI_MAX, *mpiComm );
@@ -254,7 +254,7 @@ void ReadHDF5Dataset::set_all_file_ids( hsize_t row_count, hid_t data_type )
   set_file_ids( internalRange, 1, row_count, data_type );
 }
 
-ReadHDF5Dataset::~ReadHDF5Dataset() 
+ReadHDF5Dataset::~ReadHDF5Dataset()
 {
   if (fileType >= 0)
     H5Tclose( fileType );
@@ -308,15 +308,15 @@ void ReadHDF5Dataset::read( void* buffer,
     H5Sclose( mem_id );
     if (err < 0)
       throw Exception(__LINE__);
-      
+
     if (readCount)
       --readCount;
-  
+
     if (doConversion) {
       err = H5Tconvert( fileType, dataType, rows_read*columns(), buffer, 0, H5P_DEFAULT);
       if (err < 0)
         throw Exception(__LINE__);
-    }  
+    }
   }
   else if (readCount) {
     null_read();
@@ -331,7 +331,7 @@ void ReadHDF5Dataset::null_read()
   err = H5Sselect_none( dataSpace );
   if (err < 0)
     throw Exception(__LINE__);
-  
+
 //#if HDF5_16API
   hsize_t one = 1;
   hid_t mem_id = H5Screate_simple( 1, &one, NULL );

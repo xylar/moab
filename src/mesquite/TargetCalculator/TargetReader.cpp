@@ -1,8 +1,8 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
-    Copyright 2006 Lawrence Livermore National Laboratory.  Under 
-    the terms of Contract B545069 with the University of Wisconsin -- 
+    Copyright 2006 Lawrence Livermore National Laboratory.  Under
+    the terms of Contract B545069 with the University of Wisconsin --
     Madison, Lawrence Livermore National Laboratory retains certain
     rights in this software.
 
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2006) kraftche@cae.wisc.edu    
+    (2006) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file TargetReader.cpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -50,14 +50,14 @@ static TagHandle get_tag( Mesh* mesh,
   unsigned matrix_size;
   if (dimension == 2 && !orient_surface)
     matrix_size = 4;
-  else 
+  else
     matrix_size = dimension*3;
   unsigned num_doubles = num_matrices * matrix_size;
   std::ostringstream str;
   str << base_name << num_doubles;
-  
+
   TagHandle handle = mesh->tag_get( str.str().c_str(), err ); MSQ_ERRZERO(err);
-  
+
     // check tag type
   std::string temp_name;
   Mesh::TagType temp_type;
@@ -71,12 +71,12 @@ static TagHandle get_tag( Mesh* mesh,
                     "Mismatched type or length for existing tag \"%s\"",
                      str.str().c_str() );
   }
-  
+
   return handle;
 }
-   
-  
-  
+
+
+
 
 TargetReader::TargetReader( bool orient2d, std::string name )
   : tagBaseName(name),
@@ -92,7 +92,7 @@ bool TargetReader::get_3D_target( PatchData &pd,
                                   MsqMatrix<3,3>& W_out,
                                   MsqError& err )
 {
-    // calculate index of sample in array 
+    // calculate index of sample in array
   NodeSet all_samples = pd.get_samples( element );
   unsigned offset = all_samples.num_before( sample );
 
@@ -101,7 +101,7 @@ bool TargetReader::get_3D_target( PatchData &pd,
     MSQ_SETERR(err)("Attempt to read 3D target for surface element", MsqError::INVALID_STATE );
     return false;
   }
-  
+
   TargetReaderData& data = get_data( pd );
   if (!data.targets3D.empty() && data.elementIndex == element) {
     assert(offset < data.targets3D.size());
@@ -110,7 +110,7 @@ bool TargetReader::get_3D_target( PatchData &pd,
   }
   const unsigned num_samples = all_samples.num_nodes();
   const unsigned handle_idx = num_samples - 1;
-  
+
     // get the tag handle
   const size_t INVALID_HANDLE = (size_t)-1;
   if (data.handles3D.size() <= handle_idx)
@@ -125,10 +125,10 @@ bool TargetReader::get_3D_target( PatchData &pd,
     MSQ_ERRZERO(err);
     assert(tag_handle != (TagHandle)INVALID_HANDLE);
   }
-  
+
     // get the tag data
   data.targets3D.resize( num_samples );
-  pd.get_mesh()->tag_get_element_data( tag_handle, 1, 
+  pd.get_mesh()->tag_get_element_data( tag_handle, 1,
                                        pd.get_element_handles_array() + element,
                                        &data.targets3D[0],
                                        err );
@@ -153,8 +153,8 @@ bool TargetReader::get_2D_target( PatchData &pd,
     MSQ_SETERR(err)("Incorrect surface mesh target type", MsqError::INTERNAL_ERROR );
     return false;
   }
-  
-    // calculate index of sample in array 
+
+    // calculate index of sample in array
   NodeSet all_samples = pd.get_samples( element );
   unsigned offset = all_samples.num_before( sample );
 
@@ -163,7 +163,7 @@ bool TargetReader::get_2D_target( PatchData &pd,
     MSQ_SETERR(err)("Attempt to read surface target for region element", MsqError::INVALID_STATE );
     return false;
   }
-  
+
   TargetReaderData& data = get_data( pd );
   if (!data.targets2D.empty() && data.elementIndex == element) {
     assert(offset < data.targets2D.size());
@@ -172,7 +172,7 @@ bool TargetReader::get_2D_target( PatchData &pd,
   }
   const unsigned num_samples = all_samples.num_nodes();
   const unsigned handle_idx = num_samples - 1;
-  
+
     // get the tag handle
   const size_t INVALID_HANDLE = (size_t)-1;
   if (data.handles2D.size() <= handle_idx)
@@ -187,10 +187,10 @@ bool TargetReader::get_2D_target( PatchData &pd,
     MSQ_ERRZERO(err);
     assert(tag_handle != (TagHandle)INVALID_HANDLE);
   }
-  
+
     // get the tag data
   data.targets2D.resize( num_samples );
-  pd.get_mesh()->tag_get_element_data( tag_handle, 1, 
+  pd.get_mesh()->tag_get_element_data( tag_handle, 1,
                                        pd.get_element_handles_array() + element,
                                        &data.targets2D[0],
                                        err );
@@ -198,7 +198,7 @@ bool TargetReader::get_2D_target( PatchData &pd,
     data.targets2D.clear();
     return false;
   }
-  
+
   data.elementIndex = element;
   W_out = data.targets2D[offset];
   return true;
@@ -215,8 +215,8 @@ bool TargetReader::get_surface_target( PatchData &pd,
     MSQ_SETERR(err)("Incorrect surface mesh target type", MsqError::INTERNAL_ERROR );
     return false;
   }
-  
-    // calculate index of sample in array 
+
+    // calculate index of sample in array
   NodeSet all_samples = pd.get_samples( element );
   unsigned offset = all_samples.num_before( sample );
 
@@ -225,7 +225,7 @@ bool TargetReader::get_surface_target( PatchData &pd,
     MSQ_SETERR(err)("Attempt to read surface target for region element", MsqError::INVALID_STATE );
     return false;
   }
-  
+
   TargetReaderData& data = get_data( pd );
   if (!data.targetsSurface.empty() && data.elementIndex == element) {
     assert(offset < data.targetsSurface.size());
@@ -234,7 +234,7 @@ bool TargetReader::get_surface_target( PatchData &pd,
   }
   const unsigned num_samples = all_samples.num_nodes();
   const unsigned handle_idx = num_samples - 1;
-  
+
     // get the tag handle
   const size_t INVALID_HANDLE = (size_t)-1;
   if (data.handles2D.size() <= handle_idx)
@@ -249,10 +249,10 @@ bool TargetReader::get_surface_target( PatchData &pd,
     MSQ_ERRZERO(err);
     assert(tag_handle != (TagHandle)INVALID_HANDLE);
   }
-  
+
     // get the tag data
   data.targetsSurface.resize( num_samples );
-  pd.get_mesh()->tag_get_element_data( tag_handle, 1, 
+  pd.get_mesh()->tag_get_element_data( tag_handle, 1,
                                        pd.get_element_handles_array() + element,
                                        &data.targetsSurface[0],
                                        err );
@@ -260,12 +260,12 @@ bool TargetReader::get_surface_target( PatchData &pd,
     data.targetsSurface.clear();
     return false;
   }
-  
+
   data.elementIndex = element;
   W_out = data.targetsSurface[offset];
   return true;
 }
-  
+
 void TargetReader::notify_patch_destroyed( TargetReaderData& data )
 {
   data.handles2D.clear();
@@ -282,7 +282,7 @@ void TargetReader::notify_new_patch( PatchData&, TargetReaderData& data )
   data.targetsSurface.clear();
 }
 
-void TargetReader::notify_sub_patch( PatchData& /*pd*/, 
+void TargetReader::notify_sub_patch( PatchData& /*pd*/,
                                      TargetReaderData& data,
                                      PatchData& subpatch,
                                      const size_t*,

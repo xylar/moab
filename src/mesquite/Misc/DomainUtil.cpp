@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2010 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2010) kraftche@cae.wisc.edu    
+    (2010) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file DomainUtil.cpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -36,8 +36,8 @@
 #include "MsqVertex.hpp"
 #include "MsqError.hpp"
 
-namespace MBMesquite { 
-namespace DomainUtil { 
+namespace MBMesquite {
+namespace DomainUtil {
 
 void bounding_box( const MsqVertex* coords,
                    size_t num_coords,
@@ -60,7 +60,7 @@ double max_box_extent( const MsqVertex* vertex_array, size_t num_vertices )
   Vector3D min, max;
   bounding_box( vertex_array, num_vertices, min, max );
   max -= min;
-  return (max[0] >= max[1] && max[0] >= max[2]) ? max[0] : 
+  return (max[0] >= max[1] && max[0] >= max[2]) ? max[0] :
          (max[1] >= max[2]) ? max[1] : max[2];
 }
 
@@ -73,7 +73,7 @@ void get_fixed_vertices( Mesh* mesh,
   std::vector<bool> fixed( num_verts );
   mesh->vertices_get_fixed_flag( verts, fixed, num_verts, err );
   MSQ_ERRRTN(err);
-  for (size_t i = 0; i < num_verts; ++i) 
+  for (size_t i = 0; i < num_verts; ++i)
     if (fixed[i])
       fixed_verts.push_back(verts[i]);
 }
@@ -83,8 +83,8 @@ bool non_colinear_vertices( const MsqVertex* verts,
                             Vector3D coords_out[3],
                             double epsilon )
 {
-    // This function will attempt to find trhee non-colinear 
-    // vertices from the input list.  Further, it will attempt 
+    // This function will attempt to find trhee non-colinear
+    // vertices from the input list.  Further, it will attempt
     // to select three such vertices that are relatively far
     // apart so as to minimize rounding error in any calculation
     // using the results of this function.
@@ -107,9 +107,9 @@ bool non_colinear_vertices( const MsqVertex* verts,
     }
   }
     // fail if all vertices are coincident
-  if (dist_sqr <= epsilon*epsilon) 
+  if (dist_sqr <= epsilon*epsilon)
     return false;
-  
+
     // re-select the first vertex as the one furthest from the second
   for (size_t i = 1; i < num_verts; ++i) {
     double ds = (verts[second_idx] - verts[i]).length_squared();
@@ -118,7 +118,7 @@ bool non_colinear_vertices( const MsqVertex* verts,
       first_idx = i;
     }
   }
-  
+
     // select the third vertex as the one furthest from the line formed
     // by the first two vertices
   Vector3D b = verts[first_idx];
@@ -135,23 +135,23 @@ bool non_colinear_vertices( const MsqVertex* verts,
     }
   }
     // fail if all vertices are colinear
-  if (dist_sqr <= epsilon*epsilon) 
+  if (dist_sqr <= epsilon*epsilon)
     return false;
-  
+
   coords_out[0] = verts[first_idx];
   coords_out[1] = verts[second_idx];
   coords_out[2] = verts[third_idx];
   return true;
 }
-    
+
 
 bool non_coplanar_vertices( const MsqVertex* verts,
                             size_t num_verts,
                             Vector3D coords_out[4],
                             double epsilon )
 {
-    // This function will attempt to find four non-coplanar 
-    // vertices from the input list.  Further, it will attempt 
+    // This function will attempt to find four non-coplanar
+    // vertices from the input list.  Further, it will attempt
     // to select four such vertices that are relatively far
     // apart so as to minimize rounding error in any calculation
     // using the results of this function.
@@ -168,7 +168,7 @@ bool non_coplanar_vertices( const MsqVertex* verts,
   Vector3D norm = (coords_out[1] - coords_out[0]) * (coords_out[2] - coords_out[0]);
   norm /= norm.length();
   double d = -(norm % coords_out[0]);
-  
+
     // Search for the fourth vertex that is furthest from the plane
     // of the first three
   double dist = -1.0;
@@ -184,5 +184,5 @@ bool non_coplanar_vertices( const MsqVertex* verts,
   return (dist > epsilon);
 }
 
-} // namespace DomainUtil  
+} // namespace DomainUtil
 } // namespace MBMesquite

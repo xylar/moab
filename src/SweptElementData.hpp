@@ -1,16 +1,16 @@
 /**
  * MOAB, a Mesh-Oriented datABase, is a software component for creating,
  * storing and accessing finite element mesh data.
- * 
+ *
  * Copyright 2004 Sandia Corporation.  Under the terms of Contract
  * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
  * retains certain rights in this software.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  */
 
 #ifndef SWEPT_ELEMENT_DATA_HPP
@@ -51,10 +51,10 @@ private:
   SweptVertexData *srcSeq;
 public:
   friend class SweptElementData;
-  
+
   VertexDataRef(const HomCoord &min, const HomCoord &max,
                 const HomXform &tmp_xform, SweptVertexData *this_seq);
-    
+
   bool contains(const HomCoord &coords) const;
 };
 
@@ -66,7 +66,7 @@ private:
     //! difference between max and min params plus one (i.e. # VERTICES in
     //! each parametric direction)
   int dIJK[3];
-  
+
     //! difference between max and min params (i.e. # ELEMENTS in
     //! each parametric direction)
   int dIJKm1[3];
@@ -84,30 +84,30 @@ public:
                   const int imin, const int jmin, const int kmin,
 		    const int imax, const int jmax, const int kmax,
 		  const int* Cq );
-  
+
   virtual ~SweptElementData();
-  
+
     //! get handle of vertex at homogeneous coords
   inline EntityHandle get_vertex(const HomCoord &coords) const;
   inline EntityHandle get_vertex(int i, int j, int k) const
     { return get_vertex(HomCoord(i,j,k)); }
-  
+
     //! get handle of element at i, j, k
   EntityHandle get_element(const int i, const int j, const int k) const;
-  
+
     //! get min params for this element
   const HomCoord &min_params() const;
 
     //! get max params for this element
   const HomCoord &max_params() const;
-  
+
     //! get the number of vertices in each direction, inclusive
   void param_extents(int &di, int &dj, int &dk) const;
 
     //! given a handle, get the corresponding parameters
   ErrorCode get_params(const EntityHandle ehandle,
                           int &i, int &j, int &k) const;
-  
+
     //! convenience functions for parameter extents
   int i_min() const {return (elementParams[0].hom_coord())[0];}
   int j_min() const {return (elementParams[0].hom_coord())[1];}
@@ -126,13 +126,13 @@ public:
     //! get connectivity of an entity given entity's parameters
   inline ErrorCode get_params_connectivity(const int i, const int j, const int k,
                                        std::vector<EntityHandle>& connectivity) const;
-  
+
     //! add a vertex seq ref to this element sequence;
-    //! if bb_input is true, bounding box (in eseq-local coords) of vseq being added 
+    //! if bb_input is true, bounding box (in eseq-local coords) of vseq being added
     //! is input in bb_min and bb_max (allows partial sharing of vseq rather than the whole
     //! vseq); if it's false, the whole vseq is referenced and the eseq-local coordinates
     //! is computed from the transformed bounding box of the vseq
-  ErrorCode add_vsequence(SweptVertexData *vseq, 
+  ErrorCode add_vsequence(SweptVertexData *vseq,
                              const HomCoord &p1, const HomCoord &q1,
                              const HomCoord &p2, const HomCoord &q2,
                              const HomCoord &p3, const HomCoord &q3,
@@ -141,11 +141,11 @@ public:
                              const HomCoord &bb_max = HomCoord::unitv[0]);
 
 
-  SequenceData* subset( EntityHandle start, 
+  SequenceData* subset( EntityHandle start,
                         EntityHandle end,
                         const int* sequence_data_sizes,
                         const int* tag_data_sizes ) const;
-  
+
   static EntityID calc_num_entities( EntityHandle start_handle,
                                        int irange,
                                        int jrange,
@@ -201,14 +201,14 @@ inline ErrorCode SweptElementData::get_params(const EntityHandle ehandle,
           k >= k_min() && k <= k_max()) ? MB_SUCCESS : MB_FAILURE;
 }
 
-inline bool SweptElementData::contains(const HomCoord &temp) const 
+inline bool SweptElementData::contains(const HomCoord &temp) const
 {
     // upper bound is < instead of <= because element params max is one less
     // than vertex params max
   return (temp >= elementParams[0] && temp < elementParams[1]);
 }
-  
-inline bool SweptElementData::VertexDataRef::contains(const HomCoord &coords) const 
+
+inline bool SweptElementData::VertexDataRef::contains(const HomCoord &coords) const
 {
   return (minmax[0] <= coords && minmax[1] >= coords);
 }
@@ -218,7 +218,7 @@ inline SweptElementData::VertexDataRef::VertexDataRef(const HomCoord &this_min, 
     : xform(tmp_xform), invXform(tmp_xform.inverse()), srcSeq(this_seq)
 {
   minmax[0] = HomCoord(this_min);
-  minmax[1] = HomCoord(this_max); 
+  minmax[1] = HomCoord(this_max);
 }
 
 inline EntityHandle SweptElementData::get_vertex(const HomCoord &coords) const
@@ -229,19 +229,19 @@ inline EntityHandle SweptElementData::get_vertex(const HomCoord &coords) const
      if ((*it).minmax[0] <= coords && (*it).minmax[1] >= coords) {
          // first get the vertex block-local parameters
        HomCoord local_coords = coords / (*it).xform;
-    
+
       // now get the vertex handle for those coords
        return (*it).srcSeq->get_vertex(local_coords);
      }
    }
-   
+
      // got here, it's an error
    return 0;
 }
 
-inline ErrorCode SweptElementData::add_vsequence(SweptVertexData *vseq, 
+inline ErrorCode SweptElementData::add_vsequence(SweptVertexData *vseq,
                                                  const HomCoord &p1, const HomCoord &q1,
-                                                 const HomCoord &p2, const HomCoord &q2, 
+                                                 const HomCoord &p2, const HomCoord &q2,
                                                  const HomCoord &p3, const HomCoord &q3,
                                                  bool bb_input,
                                                  const HomCoord &bb_min,
@@ -251,8 +251,8 @@ inline ErrorCode SweptElementData::add_vsequence(SweptVertexData *vseq,
     // this element sequence's parameters passed in minmax
   HomXform M;
   M.three_pt_xform(p1, q1, p2, q2, p3, q3);
-  
-    // min and max in element seq's parameter system may not be same as those in 
+
+    // min and max in element seq's parameter system may not be same as those in
     // vseq's system, so need to take min/max
 
   HomCoord minmax[2];
@@ -264,27 +264,27 @@ inline ErrorCode SweptElementData::add_vsequence(SweptVertexData *vseq,
     minmax[0] = vseq->min_params() * M;
     minmax[1] = vseq->max_params() * M;
   }
-  
+
     // check against other vseq's to make sure they don't overlap
   for (std::vector<VertexDataRef>::const_iterator vsit = vertexSeqRefs.begin();
        vsit != vertexSeqRefs.end(); ++vsit)
-    if ((*vsit).contains(minmax[0]) || (*vsit).contains(minmax[1])) 
+    if ((*vsit).contains(minmax[0]) || (*vsit).contains(minmax[1]))
       return MB_FAILURE;
-    
-  HomCoord tmp_min(std::min(minmax[0].i(), minmax[1].i()), 
-                   std::min(minmax[0].j(), minmax[1].j()), 
+
+  HomCoord tmp_min(std::min(minmax[0].i(), minmax[1].i()),
+                   std::min(minmax[0].j(), minmax[1].j()),
                    std::min(minmax[0].k(), minmax[1].k()));
-  HomCoord tmp_max(std::max(minmax[0].i(), minmax[1].i()), 
-                   std::max(minmax[0].j(), minmax[1].j()), 
+  HomCoord tmp_max(std::max(minmax[0].i(), minmax[1].i()),
+                   std::max(minmax[0].j(), minmax[1].j()),
                    std::max(minmax[0].k(), minmax[1].k()));
 
-  
+
     // set up a new vertex sequence reference
   VertexDataRef tmp_seq_ref(tmp_min, tmp_max, M, vseq);
 
     // add to the list
   vertexSeqRefs.push_back(tmp_seq_ref);
-  
+
   return MB_SUCCESS;
 }
 
@@ -292,7 +292,7 @@ inline ErrorCode SweptElementData::get_params_connectivity(const int i, const in
                                                            std::vector<EntityHandle>& connectivity) const
 {
   if (contains(HomCoord(i, j, k)) == false) return MB_FAILURE;
-  
+
   connectivity.push_back(get_vertex(i, j, k));
   connectivity.push_back(get_vertex(i+1, j, k));
   if (CN::Dimension(TYPE_FROM_HANDLE(start_handle())) < 2) return MB_SUCCESS;

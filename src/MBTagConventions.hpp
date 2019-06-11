@@ -1,18 +1,18 @@
 /**
  * MOAB, a Mesh-Oriented datABase, is a software component for creating,
  * storing and accessing finite element mesh data.
- * 
+ *
  * Copyright 2004 Sandia Corporation.  Under the terms of Contract
  * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
  * retains certain rights in this software.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  */
- 
+
 #ifndef MB_TAG_CONVENTIONS_HPP
 #define MB_TAG_CONVENTIONS_HPP
 
@@ -60,11 +60,11 @@
  */
 #define HAS_MID_NODES_TAG_NAME "HAS_MID_NODES"
 
-/* GEOM_DIMENSION tag: 
+/* GEOM_DIMENSION tag:
  * Represents entities "owned" by a given topological entity in a geometric model
  * size = sizeof(int)
  * type = int
- * value = dimension of geom entity 
+ * value = dimension of geom entity
  * default value = -1
  */
 #define GEOM_DIMENSION_TAG_NAME "GEOM_DIMENSION"
@@ -90,7 +90,7 @@
 
 /* CATEGORY tag:
  * String name indicating generic "category" if the entity to which it is assigned (usually
- * sets); used e.g. to indicate a set represents geometric vertex/edge/face/region, 
+ * sets); used e.g. to indicate a set represents geometric vertex/edge/face/region,
  * dual surface/curve, etc.
  * size = CATEGORY_TAG_NAME_LENGTH (defined below)
  * type = char[CATEGORY_TAG_NAME_LENGTH]
@@ -164,7 +164,7 @@
  * This single-valued tag implies an entity is shared with one other proc
  */
 #define PARALLEL_SHARED_PROC_TAG_NAME "__PARALLEL_SHARED_PROC"
- 
+
 /** \brief Tag storing which other processorS a given entity is shared with
  *
  * This multiple-valued tag implies an entity is shared with multiple
@@ -172,13 +172,13 @@
  * what the maximum number of processors is which share an entity
  */
 #define PARALLEL_SHARED_PROCS_TAG_NAME "__PARALLEL_SHARED_PROCS"
- 
+
 /** \brief Tag storing the handle of a shared entity on the other proc
  *
  * This single-valued tag implies an entity is shared with one other proc
  */
 #define PARALLEL_SHARED_HANDLE_TAG_NAME "__PARALLEL_SHARED_HANDLE"
- 
+
 /** \brief Tag storing handles of a shared entity on other processors
  *
  * This multiple-valued tag implies an entity is shared with multiple
@@ -186,10 +186,10 @@
  * what the maximum number of processors is which share an entity
  */
 #define PARALLEL_SHARED_HANDLES_TAG_NAME "__PARALLEL_SHARED_HANDLES"
- 
+
 /** \brief Tag storing parallel status (as bits in this tag)
  *
- * This tag stores various aspects of parallel status in bits; see also 
+ * This tag stores various aspects of parallel status in bits; see also
  * #define's following, to be used in bit mask operations.  If an entity is
  * not shared with any other processors, the pstatus is 0, otherwise it's > 0
  *

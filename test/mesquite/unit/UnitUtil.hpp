@@ -1,8 +1,8 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
-    Copyright 2006 Lawrence Livermore National Laboratory.  Under 
-    the terms of Contract B545069 with the University of Wisconsin -- 
+    Copyright 2006 Lawrence Livermore National Laboratory.  Under
+    the terms of Contract B545069 with the University of Wisconsin --
     Madison, Lawrence Livermore National Laboratory retains certain
     rights in this software.
 
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2006) kraftche@cae.wisc.edu    
+    (2006) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file UnitUtil.hpp
  *  \brief Utility functions for use in unit tests
- *  \author Jason Kraftcheck 
+ *  \author Jason Kraftcheck
  */
 
 #ifndef MSQ_UNIT_UTIL_HPP
@@ -54,7 +54,7 @@
 /**\brief compare two vectors (Vector3D)
  *
  * Ensure that the test result Vector3D \a v2 is within \a eps of the
- * expected vector \a v1 .  
+ * expected vector \a v1 .
  */
 #define CPPUNIT_ASSERT_VECTORS_EQUAL( v1, v2, eps ) \
   ASSERT_MESSAGE( utest_vect_message((v1),(v2)), \
@@ -102,7 +102,7 @@ inline std::string utest_vect_str( const MBMesquite::Vector3D& v )
 inline std::string utest_mat_str( const MBMesquite::Matrix3D& m )
 {
   char buffer[256];
-  sprintf(buffer, "[%f, %f, %f] [%f, %f, %f] [%f, %f, %f]", 
+  sprintf(buffer, "[%f, %f, %f] [%f, %f, %f] [%f, %f, %f]",
           m[0][0], m[0][1], m[0][2],
           m[1][0], m[1][1], m[1][2],
           m[2][0], m[2][1], m[2][2] );
@@ -113,7 +113,7 @@ inline std::string utest_mat_str( const MBMesquite::Matrix3D& m )
 inline std::string utest_mat_str( const MBMesquite::SymMatrix3D& m )
 {
   char buffer[256];
-  sprintf(buffer, "[%f, %f, %f] [%f, %f, %f] [%f, %f, %f]", 
+  sprintf(buffer, "[%f, %f, %f] [%f, %f, %f] [%f, %f, %f]",
           m(0,0), m(0,1), m(0,2),
           m(1,0), m(1,1), m(1,2),
           m(2,0), m(2,1), m(2,2) );
@@ -237,8 +237,8 @@ inline CppUnit::Message mat_not_equal_check_msg( const MBMesquite::MsqMatrix<R,C
 }
 
 template <unsigned R, unsigned C>
-inline bool mat_equal_check( const MBMesquite::MsqMatrix<R,C>& A, 
-                             const MBMesquite::MsqMatrix<R,C>& B, 
+inline bool mat_equal_check( const MBMesquite::MsqMatrix<R,C>& A,
+                             const MBMesquite::MsqMatrix<R,C>& B,
                              double eps  )
 {
   for (unsigned i = 0; i < R; ++i)
@@ -262,7 +262,7 @@ inline CppUnit::Message arrays_not_equal_msg( const T1* A, size_t A_len,
                                               const T2* B, size_t B_len )
 {
   CppUnit::Message mes( "Equality Assertion Failed for Arrays" );
-  
+
   std::ostringstream strA;
   if (A_len == 0)
     strA << "(empty)";
@@ -273,7 +273,7 @@ inline CppUnit::Message arrays_not_equal_msg( const T1* A, size_t A_len,
     strA << ']';
   }
   mes.addDetail( std::string( "Expected: ") + strA.str() );
-  
+
   std::ostringstream strB;
   if (B_len == 0)
     strB << "(empty)";
@@ -284,7 +284,7 @@ inline CppUnit::Message arrays_not_equal_msg( const T1* A, size_t A_len,
     strB << ']';
   }
   mes.addDetail( std::string( "Actual: ") + strB.str() );
-  
+
   return mes;
 }
 

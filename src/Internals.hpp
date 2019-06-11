@@ -1,16 +1,16 @@
 /**
  * MOAB, a Mesh-Oriented datABase, is a software component for creating,
  * storing and accessing finite element mesh data.
- * 
+ *
  * Copyright 2004 Sandia Corporation.  Under the terms of Contract
  * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
  * retains certain rights in this software.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  */
 
 
@@ -51,8 +51,8 @@ namespace moab {
 #define MB_END_ID ((EntityID)MB_ID_MASK) //!< Last id is the complement of the MASK
 #define MB_ID_MASK (~MB_TYPE_MASK)
 
-//! Given a type and an id create a handle.  
-inline EntityHandle CREATE_HANDLE(const unsigned type, const EntityID id, int& err) 
+//! Given a type and an id create a handle.
+inline EntityHandle CREATE_HANDLE(const unsigned type, const EntityID id, int& err)
 {
   err = 0; //< Assume that there is a real error value defined somewhere
 
@@ -61,7 +61,7 @@ inline EntityHandle CREATE_HANDLE(const unsigned type, const EntityID id, int& e
     err = 1;   //< Assume that there is a real error value defined somewhere
     return 1;  //<You've got to return something.  What do you return?
   }
-  
+
   return (((EntityHandle)type) << MB_ID_WIDTH)|id;
 }
 
@@ -85,7 +85,7 @@ inline EntityID ID_FROM_HANDLE (EntityHandle handle)
 
 //! Get the type out of the handle.  Can do a simple shift because
 //! handles are unsigned (therefore shifting fills with zero's)
-inline EntityType TYPE_FROM_HANDLE(EntityHandle handle) 
+inline EntityType TYPE_FROM_HANDLE(EntityHandle handle)
 {
   return static_cast<EntityType> (handle >> MB_ID_WIDTH);
 }

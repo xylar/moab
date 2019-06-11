@@ -146,7 +146,7 @@ int main(int argc, char **argv)
 
   int nprocs = 1, rank = 0;
 
-#ifdef MOAB_HAVE_MPI  
+#ifdef MOAB_HAVE_MPI
   err = MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
   err = MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   std::vector<ParallelComm*> pcs(meshFiles.size());
@@ -577,7 +577,7 @@ ErrorCode test_interpolation(Interface *mbImpl,
                                      Interface::UNION);
   PRINT_LAST_ERROR;
 
-#ifdef MOAB_HAVE_MPI  
+#ifdef MOAB_HAVE_MPI
   // Then get non-owned verts and subtract
   Range tmp_verts;
   result = pcs[1]->get_pstatus_entities(0, PSTATUS_NOT_OWNED, tmp_verts);

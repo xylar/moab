@@ -13,7 +13,7 @@ int main(int argc, char **argv) {
     std::cout << "Usage: " << argv[0] << " <filename>" << std::endl;
     return 0;
   }
-  
+
     // instantiate & load a file
   moab::Interface *mb = new moab::Core();
   moab::ErrorCode rval = mb->load_file(argv[1]);
@@ -35,12 +35,12 @@ int main(int argc, char **argv) {
   int sense;
 
   moab::GeomTopoTool gt(mb, true);
-  
+
   for (dim = 3; dim >= 0; dim--) {
       // get parents at this dimension
     chsets.clear();
-    rval = mb->get_entities_by_type_and_tag(0, MBENTITYSET, 
-                                            &geom_tag, &dim_ptr, 1, 
+    rval = mb->get_entities_by_type_and_tag(0, MBENTITYSET,
+                                            &geom_tag, &dim_ptr, 1,
                                             chsets, 1, false);
     assert(moab::MB_SUCCESS == rval);
 
@@ -54,9 +54,9 @@ int main(int argc, char **argv) {
 
       rval = mb->tag_get_data(gid_tag, &(*ch_it), 1, &chgid);
       assert(moab::MB_SUCCESS == rval);
-      
+
         // print # parents
-      std::cout << ent_names[dim] << " " << chgid << " has " << psets.size() 
+      std::cout << ent_names[dim] << " " << chgid << " has " << psets.size()
                 << " parents." << std::endl;
 
       if (2 == dim) {
@@ -65,7 +65,7 @@ int main(int argc, char **argv) {
           assert(moab::MB_SUCCESS == rval);
           rval = gt.get_sense(*ch_it, *p_it, sense);
           if (moab::MB_SUCCESS != rval) continue;
-          std::cout << ent_names[dim+1] << " "   << pgid << ", " 
+          std::cout << ent_names[dim+1] << " "   << pgid << ", "
                     << ent_names[dim] << " " << chgid << " sense is: ";
           if (1==sense) std::cout << "FORWARD" << std::endl;
           else std::cout << "REVERSE" << std::endl;
@@ -79,7 +79,7 @@ int main(int argc, char **argv) {
         for (unsigned int i = 0; i < sense_ents.size(); i++) {
           rval = mb->tag_get_data(gid_tag, &sense_ents[i], 1, &pgid);
           assert(moab::MB_SUCCESS == rval);
-          std::cout << ent_names[dim+1] << " "   << pgid << ", " 
+          std::cout << ent_names[dim+1] << " "   << pgid << ", "
                     << ent_names[dim] << " " << chgid << " sense is: ";
           if (-1 == senses[i]) std::cout << "REVERSED" << std::endl;
           else if (0 == senses[i]) std::cout << "BOTH" << std::endl;

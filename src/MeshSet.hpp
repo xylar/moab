@@ -19,7 +19,7 @@ namespace moab {
 
 class AEntityFactory;
 
-/** \brief Class to implement entity set functionality 
+/** \brief Class to implement entity set functionality
   * \author Jason Kraftcheck <kraftche@cae.wisc.edu>
   */
 class MeshSet
@@ -32,9 +32,9 @@ public:
 
   //! destructor
   inline ~MeshSet();
-  
+
   inline ErrorCode set_flags( unsigned flags, EntityHandle my_handle, AEntityFactory* adjacencies );
-    
+
 
     //! get all children pointed to by this meshset
   inline const EntityHandle* get_children( int& count_out ) const ;
@@ -44,28 +44,28 @@ public:
 
     //! return the number of children pointed to by this meshset
   inline int num_children() const ;
-    
+
     //! return the number of parents pointed to by this meshset
   inline int num_parents() const;
 
     //! add a parent to this meshset; returns true if parent was added, 0 if it was
     //! already a parent of this meshset
   int add_parent(EntityHandle parent);
-    
+
     //! add a child to this meshset; returns true if child was added, 0 if it was
     //! already a child of this meshset
   int add_child(EntityHandle child);
-    
+
     //! remove a parent from this meshset; returns true if parent was removed, 0 if it was
     //! not a parent of this meshset
   int remove_parent(EntityHandle parent);
-    
+
     //! remove a child from this meshset; returns true if child was removed, 0 if it was
     //! not a child of this meshset
   int remove_child(EntityHandle child);
 
   unsigned flags() const { return mFlags; }
-  //! returns whether entities of meshsets know this meshset 
+  //! returns whether entities of meshsets know this meshset
   int tracking()     const { return mFlags & MESHSET_TRACK_OWNER; }
   int set()          const { return mFlags & MESHSET_SET; }
   int ordered()      const { return mFlags & MESHSET_ORDERED; }
@@ -73,15 +73,15 @@ public:
 
     //! replace one entity with another in the set (contents and parent/child
     //! lists); returns whether it was replaced or not
-  ErrorCode replace_entities(EntityHandle my_handle, 
-                               const EntityHandle *old_entities, 
+  ErrorCode replace_entities(EntityHandle my_handle,
+                               const EntityHandle *old_entities,
                                const EntityHandle *new_entities,
                                size_t num_entities,
                                AEntityFactory* mAdjFact);
-  
+
     /** Clear *contents* of set (not parents or children) */
   inline ErrorCode clear( EntityHandle myhandle, AEntityFactory* adjacencies );
-  
+
     /** Clear all set lists (contents, parents, and children) */
   inline ErrorCode clear_all( EntityHandle myhandle, AEntityFactory* adjacencies );
 
@@ -95,22 +95,22 @@ public:
 
     /** Get entities contained in set */
   inline ErrorCode get_entities( Range& entities ) const;
-  
+
     //! get all entities in this MeshSet with the specified type
   inline ErrorCode get_entities_by_type(EntityType entity_type, std::vector<EntityHandle> &entity_list) const;
-  
+
   inline ErrorCode get_entities_by_type( EntityType type, Range& entity_list) const;
-    
+
     //! return the number of entities with the given type contained in this meshset
   inline unsigned int num_entities_by_type(EntityType type) const;
-      
+
   inline ErrorCode get_entities_by_dimension( int dimension, std::vector<EntityHandle> &entity_list) const;
 
   inline ErrorCode get_entities_by_dimension( int dimension, Range& entity_list) const;
-  
+
     //! return the number of entities with the given type contained in this meshset
   inline unsigned int num_entities_by_dimension(int dimension) const;
-      
+
   inline ErrorCode get_non_set_entities( Range& range ) const;
 
   /** Test of meshset contains some or all of passed entities
@@ -122,7 +122,7 @@ public:
    */
   inline bool contains_entities(const EntityHandle *entities, int num_entities, const int op) const;
 
-  
+
   //! subtract/intersect/unite meshset_2 from/with/into meshset_1; modifies meshset_1
   inline ErrorCode subtract(const MeshSet *meshset_2,
                                EntityHandle my_handle,
@@ -141,18 +141,18 @@ public:
                                    const int num_entities,
                                    EntityHandle my_handle,
                                    AEntityFactory* adjacencies);
-    
+
     //! add these entities to this meshset
   inline ErrorCode add_entities(const Range &entities,
                                    EntityHandle my_handle,
                                    AEntityFactory* adjacencies);
-    
+
     //! add these entities to this meshset
   inline ErrorCode remove_entities(const Range& entities,
                                       EntityHandle my_handle,
                                       AEntityFactory* adjacencies);
-    
-   
+
+
     //! remove these entities from this meshset
   inline ErrorCode remove_entities(const EntityHandle *entities,
                                       const int num_entities,
@@ -161,13 +161,13 @@ public:
 
     //! return the number of entities contained in this meshset
   inline unsigned int num_entities() const;
-  
+
   inline bool empty() const { return mContentCount == ZERO; }
-  
+
   unsigned long get_memory_use() const;
 
 protected:
-  
+
   /** Convert for changing flag values */
   ErrorCode convert( unsigned flags, EntityHandle my_handle, AEntityFactory* adj );
 
@@ -179,7 +179,7 @@ protected:
 
   /** Insert vector of handles into MeshSet */
   ErrorCode insert_entity_vector( const EntityHandle* vect, size_t len, EntityHandle my_h, AEntityFactory* adj );
- 
+
   /** Insert vector of handle range pairs into MeshSet */
   ErrorCode insert_entity_ranges( const EntityHandle* range_vect, size_t len, EntityHandle my_h, AEntityFactory* adj );
 
@@ -195,7 +195,7 @@ protected:
   /** Remove Range of handles from MeshSet */
   ErrorCode remove_entity_ranges( const Range& range, EntityHandle my_h, AEntityFactory* adj );
 
-public:  
+public:
     //! Possible values of mParentCount and mChildCount
   enum Count { ZERO=0, ONE=1, TWO=2, MANY=3 };
     //! If the number of entities is less than 3, store
@@ -231,11 +231,11 @@ public:
     /** get dimension of enity */
   static inline int DIM_FROM_HANDLE( EntityHandle h )
     { return CN::Dimension( TYPE_FROM_HANDLE( h ) ); }
-  
+
     /** Get smallest possible handle with specified dimension (first handle for first type of dimension) */
   static inline EntityHandle FIRST_OF_DIM( int dim )
     { return FIRST_HANDLE( CN::TypeDimensionMap[dim].first ); }
-  
+
     /** Get largest possible handle with specified dimension (largest handle for last type of dimension) */
   static inline EntityHandle LAST_OF_DIM( int dim )
     { return LAST_HANDLE( CN::TypeDimensionMap[dim].second ); }
@@ -271,7 +271,7 @@ public:
         { return DIM_FROM_HANDLE(handle) == mDim; }
       int mDim;
   };
-  
+
     /** Iterate over range of handles.  That is, given [first_handle,last_handle],
      *  step through all contained values.
      */
@@ -291,19 +291,19 @@ public:
     bool operator> (hdl_iter other) const { return h >  other.h; }
     bool operator<=(hdl_iter other) const { return h <= other.h; }
     bool operator>=(hdl_iter other) const { return h >= other.h; }
-    
+
     struct iterator_category : public std::random_access_iterator_tag { };
     typedef EntityID difference_type;
     typedef EntityHandle value_type;
     typedef EntityHandle* pointer;
     typedef EntityHandle& reference;
   };
-  
+
 };
 
 inline MeshSet::hdl_iter::difference_type
  operator-( const MeshSet::hdl_iter &a, const MeshSet::hdl_iter &b )
-  { return (MeshSet::hdl_iter::difference_type)a.h 
+  { return (MeshSet::hdl_iter::difference_type)a.h
          - (MeshSet::hdl_iter::difference_type)b.h; }
 
 
@@ -318,7 +318,7 @@ MeshSet::MeshSet(unsigned flg)
 { }
 
   //! destructor
-MeshSet::~MeshSet() 
+MeshSet::~MeshSet()
 {
   if (mChildCount == MANY)
     free( childMeshSets.ptr[0] );
@@ -328,8 +328,8 @@ MeshSet::~MeshSet()
     free( contentList.ptr[0] );
   mChildCount = mParentCount = mContentCount = ZERO;
 }
-  
-ErrorCode MeshSet::set_flags( unsigned flg, EntityHandle my_handle, AEntityFactory* adjacencies ) 
+
+ErrorCode MeshSet::set_flags( unsigned flg, EntityHandle my_handle, AEntityFactory* adjacencies )
 {
   if(ZERO != mContentCount) {
     ErrorCode result = convert(flg, my_handle, adjacencies);
@@ -338,11 +338,11 @@ ErrorCode MeshSet::set_flags( unsigned flg, EntityHandle my_handle, AEntityFacto
   mFlags = (unsigned char)flg;
   return MB_SUCCESS;
 }
-    
+
 
 //! get all children pointed to by this meshset
-const EntityHandle* MeshSet::get_children( int& count_out ) const 
-{ 
+const EntityHandle* MeshSet::get_children( int& count_out ) const
+{
   count_out = mChildCount;
   if (count_out < MANY)
     return childMeshSets.hnd;
@@ -353,7 +353,7 @@ const EntityHandle* MeshSet::get_children( int& count_out ) const
 
 //! get all parents pointed to by this meshset
 const EntityHandle* MeshSet::get_parents( int& count_out ) const
-{ 
+{
   count_out = mParentCount;
   if (count_out < MANY)
     return parentMeshSets.hnd;
@@ -363,7 +363,7 @@ const EntityHandle* MeshSet::get_parents( int& count_out ) const
 }
 
 //! return the number of children pointed to by this meshset
-int MeshSet::num_children() const 
+int MeshSet::num_children() const
 {
   if (mChildCount < MANY)
     return mChildCount;
@@ -379,9 +379,9 @@ int MeshSet::num_parents() const
   else
     return parentMeshSets.ptr[1] - parentMeshSets.ptr[0];
 }
-  
+
 inline ErrorCode MeshSet::clear( EntityHandle myhandle, AEntityFactory* adjacencies )
-{ 
+{
   if (tracking())
     remove_adjacencies( myhandle, adjacencies );
   if (mContentCount == MANY)
@@ -389,9 +389,9 @@ inline ErrorCode MeshSet::clear( EntityHandle myhandle, AEntityFactory* adjacenc
   mContentCount = ZERO;
   return MB_SUCCESS;
 }
-  
+
 inline ErrorCode MeshSet::clear_all( EntityHandle myhandle, AEntityFactory* adjacencies )
-{ 
+{
   ErrorCode rval = clear( myhandle, adjacencies );
   if (mChildCount == MANY)
     free( childMeshSets.ptr[0] );
@@ -437,11 +437,11 @@ inline ErrorCode MeshSet::get_entities(std::vector<EntityHandle>& entities) cons
   }
   else {
     assert(count%2 == 0);
-    for (size_t i = 0; i < count; i += 2) 
+    for (size_t i = 0; i < count; i += 2)
       std::copy( hdl_iter(ptr[i]), hdl_iter(ptr[i+1]+1), std::back_inserter(entities) );
   }
   return MB_SUCCESS;
-} 
+}
 
 inline ErrorCode MeshSet::get_entities(Range& entities) const
 {
@@ -453,11 +453,11 @@ inline ErrorCode MeshSet::get_entities(Range& entities) const
   else {
     assert(count%2 == 0);
     Range::iterator in = entities.begin();
-    for (size_t i = 0; i < count; i += 2) 
+    for (size_t i = 0; i < count; i += 2)
       in = entities.insert( in, ptr[i], ptr[i+1] );
   }
   return MB_SUCCESS;
-} 
+}
 
 
   //! get all entities in this MeshSet with the specified type
@@ -471,7 +471,7 @@ inline ErrorCode MeshSet::get_entities_by_type(EntityType type,
     return get_entities( entity_list);
   }
   else if (vector_based()) {
-    std::remove_copy_if( ptr, ptr+count, 
+    std::remove_copy_if( ptr, ptr+count,
                          std::back_inserter( entity_list ),
                          not_type_test(type) );
   }
@@ -507,7 +507,7 @@ inline ErrorCode MeshSet::get_entities_by_type( EntityType type,
     return get_entities( entity_list );
   }
   else if (vector_based()) {
-    std::remove_copy_if( ptr, ptr+count, 
+    std::remove_copy_if( ptr, ptr+count,
                          range_inserter( entity_list ),
                          not_type_test(type) );
   }
@@ -580,7 +580,7 @@ inline ErrorCode MeshSet::get_entities_by_dimension( int dimension,
   size_t count;
   const EntityHandle* ptr = get_contents( count );
   if (vector_based()) {
-    std::remove_copy_if( ptr, ptr+count, 
+    std::remove_copy_if( ptr, ptr+count,
                          std::back_inserter( entity_list ),
                          not_dim_test(dimension) );
   }
@@ -613,7 +613,7 @@ inline ErrorCode MeshSet::get_entities_by_dimension( int dimension,
   size_t count;
   const EntityHandle* ptr = get_contents( count );
   if (vector_based()) {
-    std::remove_copy_if( ptr, ptr+count, 
+    std::remove_copy_if( ptr, ptr+count,
                          range_inserter( entity_list ),
                          not_dim_test(dimension) );
   }
@@ -681,7 +681,7 @@ inline ErrorCode MeshSet::get_non_set_entities( Range& range ) const
   size_t count;
   const EntityHandle* ptr = get_contents( count );
   if (vector_based()) {
-    std::remove_copy_if( ptr, ptr+count, 
+    std::remove_copy_if( ptr, ptr+count,
                          range_inserter( range ),
                          type_test(MBENTITYSET) );
   }
@@ -701,7 +701,7 @@ inline ErrorCode MeshSet::get_non_set_entities( Range& range ) const
   return MB_SUCCESS;
 }
 
-inline bool MeshSet::contains_entities(const EntityHandle *entities, 
+inline bool MeshSet::contains_entities(const EntityHandle *entities,
                                          int num_ents,
                                          const int op) const
 {
@@ -712,7 +712,7 @@ inline bool MeshSet::contains_entities(const EntityHandle *entities,
   if (vector_based()) {
     for (int i = 0; i < num_ents; ++i)
       if (std::find( ptr, end, entities[i] ) < end)
-        ++found_count; 
+        ++found_count;
   }
   else {
     assert(0 == count % 2);
@@ -735,7 +735,7 @@ inline ErrorCode MeshSet::subtract(const MeshSet *meshset_2,
 {
   size_t count;
   const EntityHandle* const ptr = meshset_2->get_contents( count );
-  if (meshset_2->vector_based()) 
+  if (meshset_2->vector_based())
     return remove_entity_vector( ptr, count, my_handle, adjacencies );
   else
     return remove_entity_ranges( ptr, count, my_handle, adjacencies );
@@ -747,7 +747,7 @@ inline ErrorCode MeshSet::unite(const MeshSet *meshset_2,
 {
   size_t count;
   const EntityHandle* const ptr = meshset_2->get_contents( count );
-  if (meshset_2->vector_based()) 
+  if (meshset_2->vector_based())
     return insert_entity_vector( ptr, count, my_handle, adjacencies );
   else
     return insert_entity_ranges( ptr, count, my_handle, adjacencies );
@@ -795,14 +795,14 @@ unsigned int MeshSet::num_entities() const
   const EntityHandle* list = get_contents( count );
   if (vector_based())
     return count;
-  
+
   int result = 0;
   const EntityHandle *const end = list + count;
   for (; list < end; list += 2)
     result += list[1] - list[0] + 1;
   return result;
 }
-  
+
 } // namespace moab
 
 #endif

@@ -91,9 +91,9 @@ ErrorCode WriteCGNS::write_file(const char *file_name,
   IndexFile = 0;
 
   // open the cgns file
-  // filename:      (input) Name of the CGNS file, including path name if necessary. There is no limit on the 
-  //                length of this character variable. 
-  // CG_MODE_WRITE: (input) Mode used for opening the file. The modes currently supported are CG_MODE_READ, 
+  // filename:      (input) Name of the CGNS file, including path name if necessary. There is no limit on the
+  //                length of this character variable.
+  // CG_MODE_WRITE: (input) Mode used for opening the file. The modes currently supported are CG_MODE_READ,
   //                CG_MODE_WRITE, and CG_MODE_MODIFY.
   // filePtr:       (output) CGNS file index number.
   if ( cg_open(fileName, CG_MODE_WRITE, &IndexFile) ){
@@ -107,18 +107,18 @@ ErrorCode WriteCGNS::write_file(const char *file_name,
   }
   // Give a zone name
   ZoneName = "Cgns Zone";
-  // isize array contains the total vertex size, cell size, and boundary 
+  // isize array contains the total vertex size, cell size, and boundary
   // vertex size for the zone
   // Note that for unstructured zones, the index dimension is always 1
   isize[0] = VrtSize;      // isize[0] contains the total vertex size
   isize[1] = CellSize;     // isize[1] contains the total cell size
-  isize[2] = 0;            // isize[2] = 0 for unsorted elements 
+  isize[2] = 0;            // isize[2] = 0 for unsorted elements
   // Create zone */
   // ZoneType_t: Unstructured
   if ( cg_zone_write(IndexFile,IndexBase,ZoneName,isize,Unstructured,&IndexZone) ){
     std::cout << "Error creating CGNS zone\n";
     cg_error_exit();
-  }  
+  }
   // Write the vertex coordinates
   rval = write_coord_cgns( Nodes );
   if (rval != MB_SUCCESS){
@@ -171,7 +171,7 @@ ErrorCode WriteCGNS::write_file(const char *file_name,
           // Write the section in CGNS file
           if ( cg_section_write( IndexFile, IndexBase, IndexBase, SectionName, Sets[i].CGNSType,
                                  BeginSetsIndex, EndSetsIndex, 0, &ConnTable[i][0],&IndexSection) ){
-            std::cout << "Issue on writing connectivity - 3-D\n"; 
+            std::cout << "Issue on writing connectivity - 3-D\n";
             cg_error_exit();
           }
           BeginSetsIndex = EndSetsIndex+1;
@@ -194,9 +194,9 @@ ErrorCode WriteCGNS::write_file(const char *file_name,
             const char * SectionName = Sets[i].TagName.c_str();
             EndSetsIndex = BeginSetsIndex + Sets[i].NbEdges + Sets[i].NbFaces - 1;
             // Write the section in CGNS file
-            if ( cg_section_write( IndexFile, IndexBase, IndexBase, SectionName, Sets[i].CGNSType, 
+            if ( cg_section_write( IndexFile, IndexBase, IndexBase, SectionName, Sets[i].CGNSType,
                                    BeginSetsIndex, EndSetsIndex, 0, &ConnTable[i][0],&IndexSection) ){
-            std::cout << "Issue on writing connectivity -- 2-D\n"; 
+            std::cout << "Issue on writing connectivity -- 2-D\n";
             cg_error_exit();
           }
             BeginSetsIndex = EndSetsIndex+1;
@@ -222,7 +222,7 @@ ErrorCode WriteCGNS::write_file(const char *file_name,
           // Write the section in CGNS file
           if ( cg_section_write( IndexFile, IndexBase, IndexBase, SectionName, Sets[i].CGNSType,
                                  BeginSetsIndex, EndSetsIndex, 0, &ConnTable[i][0],&IndexSection) ){
-            std::cout << "Issue on writing connectivity -- 3-D\n"; 
+            std::cout << "Issue on writing connectivity -- 3-D\n";
             cg_error_exit();
           }
           BeginSetsIndex = EndSetsIndex+1;
@@ -230,7 +230,7 @@ ErrorCode WriteCGNS::write_file(const char *file_name,
       }
       break;
     default:
-      std::cout << "Issue on Physical dimension\n"; 
+      std::cout << "Issue on Physical dimension\n";
       return MB_FAILURE;
   }
 
@@ -316,9 +316,9 @@ ErrorCode WriteCGNS::get_cell_entities(cgsize_t &CellSize_, std::vector< moab::E
 ErrorCode WriteCGNS::write_coord_cgns(std::vector< moab::EntityHandle > &Nodes_)
 {
   ErrorCode rval;
-  
+
   const int num_entities = (int)Nodes_.size();
-  
+
   // Moab works with one vector for the threee coordinates
   std::vector<double> Coords ( 3*num_entities );
   std::vector<double>::iterator c = Coords.begin();
@@ -328,11 +328,11 @@ ErrorCode WriteCGNS::write_coord_cgns(std::vector< moab::EntityHandle > &Nodes_)
   std::vector<double> CoordY;
   std::vector<double> CoordZ;
 
-  // Summ the values of all coordinates to be sure if it is not zero  
+  // Summ the values of all coordinates to be sure if it is not zero
   double SumX=0;
   double SumY=0;
   double SumZ=0;
- 
+
   // Get the moab coordinates - Coords is the output
   rval = mbImpl->get_coords( &Nodes_[0], num_entities, &Coords[0] );
   if (MB_SUCCESS != rval){
@@ -355,7 +355,7 @@ ErrorCode WriteCGNS::write_coord_cgns(std::vector< moab::EntityHandle > &Nodes_)
     CoordZ.push_back(*c);  // Put the Z coordinate in CoordZ vector
     SumZ += abs(*c);       // Sum all Z coordinates
     ++c;                   // Move to X coordinate
-  }       
+  }
 
   // If X coordinate is not empty then write CoordX (user must use SIDS-standard names here)
   if ( SumX != 0 ){
@@ -384,9 +384,9 @@ ErrorCode WriteCGNS::write_coord_cgns(std::vector< moab::EntityHandle > &Nodes_)
   CoordX.clear();
   CoordY.clear();
   CoordZ.clear();
-  
+
   // done
-  return MB_SUCCESS;  
+  return MB_SUCCESS;
 }
 
 ErrorCode WriteCGNS::set_tag_values( std::vector< Tag >& TagHandles,
@@ -472,11 +472,11 @@ ErrorCode WriteCGNS::set_tag_values( std::vector< Tag >& TagHandles,
 }
 
 // Get Entities in the set
-ErrorCode WriteCGNS::get_set_entities(int i, std::vector< Tag >& TagHandles, 
+ErrorCode WriteCGNS::get_set_entities(int i, std::vector< Tag >& TagHandles,
 				      std::vector< WriteCGNS::SetStruct >& Sets)
 {
   ErrorCode rval;
-  
+
   // Get the number of MBEDGE entities
   // NbEntities[0] holds the number of MBEDGE in the "Sets"
   int Number=0;
@@ -560,11 +560,11 @@ ErrorCode WriteCGNS::get_set_entities(int i, std::vector< Tag >& TagHandles,
   Sets[i].NbEntities.push_back(Number);  // MBHEX == Sets[i].NbEntities[6]
   Sets[i].NbCells += Number;
   std::cout << "\tNumber of MBHEX = " << Number << "\n";
-  
+
   std::cout << "\tTotal number of Edges = " << Sets[i].NbEdges << "\n";
   std::cout << "\tTotal number of Faces = " << Sets[i].NbFaces << "\n";
   std::cout << "\tTotal number of Cells = " << Sets[i].NbCells << "\n";
-  
+
   return MB_SUCCESS;
 }
 
@@ -579,7 +579,7 @@ ErrorCode WriteCGNS::get_cgns_type ( int i, std::vector<WriteCGNS::SetStruct> &S
   // if NbEntities[i]>0 then Test[i]=1
   // else then Test[i]=0
   for ( int j=0; j< (int)Sets[i].NbEntities.size(); ++j){
-    if ( Sets[i].NbEntities[j] > 0 ){ 
+    if ( Sets[i].NbEntities[j] > 0 ){
       Test.push_back(1);
       Sum++;
     }
@@ -591,7 +591,7 @@ ErrorCode WriteCGNS::get_cgns_type ( int i, std::vector<WriteCGNS::SetStruct> &S
   // if Sum = 0 then the Set is Homogeneous
   // else then the Set is empty
   if ( Sum>1 ){ Sets[i].CGNSType = MIXED; }
-  else if ( Sum==1 ){ 
+  else if ( Sum==1 ){
     int j=0;
     std::cout << "Homogeneous Type\n";
     while (j < (int)Sets[i].NbEntities.size() && Sets[i].NbEntities[j] != 1){ ++j; }
@@ -622,13 +622,13 @@ ErrorCode WriteCGNS::get_cgns_type ( int i, std::vector<WriteCGNS::SetStruct> &S
         return MB_FAILURE;
     }
   }
-  else { Sets[i].CGNSType = ElementTypeNull; } // NOT SURE IF THAT'S THE RIGHT WAY....... 
+  else { Sets[i].CGNSType = ElementTypeNull; } // NOT SURE IF THAT'S THE RIGHT WAY.......
 
   // Clear the test vector
   Test.clear();
 
-  return MB_SUCCESS;  
-  
+  return MB_SUCCESS;
+
 }
 
 // Fill the connectivity table
@@ -640,14 +640,14 @@ ErrorCode WriteCGNS::get_conn_table( std::vector< moab::EntityHandle > &Elements
 				     std::vector < std::vector<cgsize_t> > &ConnTable )
 {
   ErrorCode rval;
-  
+
 //   int Begin = 0; // GOT TO WORK ON THIS
 //   int End;
 
   // Get the number of Tags in the mesh
   int NbTags = TagHandles.size();
 
-  // Test all Elements, get their ids and connectivity 
+  // Test all Elements, get their ids and connectivity
   // to fill ConnTable
   for (std::vector<moab::EntityHandle>::iterator i=Elements.begin(); i != Elements.end(); ++i){
     int id;
@@ -674,7 +674,7 @@ ErrorCode WriteCGNS::get_conn_table( std::vector< moab::EntityHandle > &Elements
           // push CGNS ENUM type of the entity
           // before the connectivity
           if ( Sets[j].CGNSType == MIXED ){
-            ConnTable[j].push_back( moab_cgns_conv(*i) );   // moab_cgns_conv return an int which 
+            ConnTable[j].push_back( moab_cgns_conv(*i) );   // moab_cgns_conv return an int which
                                                             // represents the CGNS type
             Begin[j]++;
           }

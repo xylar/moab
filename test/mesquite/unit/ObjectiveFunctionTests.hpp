@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2006 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2006) kraftche@cae.wisc.edu    
+    (2006) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file ObjectiveFunctionTests.hpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #ifndef MSQ_OBJECTIVE_FUNCTION_TESTS_HPP
@@ -53,8 +53,8 @@ public:
 enum OFTestMode { EVAL, GRAD, DIAG, HESS };
 
 /** Test eval type support for OF templates that provide
- *  block coordinate descent functionality.  
- *  
+ *  block coordinate descent functionality.
+ *
  *  Note: If OF does not support BCD, this test will fail,
  *        even for the ObjectiveFunction::CALCULATE eval type.
  */
@@ -65,7 +65,7 @@ static void test_eval_type( ObjectiveFunction::EvalType,
 /** Verify that if QualityMetric returns invalid but not error
  *  from evaluate, that the ObjectiveFunction does the same */
 static void test_handles_invalid_qm( OFTestMode test_mode, ObjectiveFunctionTemplate* of );
-                                     
+
 /** Verify that OF correctly handles error in QM::evaluate() */
 static void test_handles_qm_error( OFTestMode test_mode, ObjectiveFunctionTemplate* of );
 
@@ -81,7 +81,7 @@ static void test_value( const double* input_values,
                         double expected_value,
                         OFTestMode test_mode,
                         ObjectiveFunctionTemplate* of );
-                        
+
 /** Compare numerical and analytical gradient values */
 static inline void compare_numerical_gradient( ObjectiveFunctionTemplate* of );
 static void compare_numerical_gradient( ObjectiveFunction* of );
@@ -112,48 +112,48 @@ static PatchData& patch();
 
 private:
 
-static double evaluate_internal( ObjectiveFunction::EvalType type, 
+static double evaluate_internal( ObjectiveFunction::EvalType type,
                                  OFTestMode test_mode,
                                  ObjectiveFunction* of );
 };
 
 /** The QualityMetric to use for testing purposes
  *
- *  Just pass a specified list of values to the OF 
+ *  Just pass a specified list of values to the OF
  */
 class OFTestQM : public QualityMetric {
   public:
-    
+
     OFTestQM( ) : negateFlag(1) {}
-  
+
     OFTestQM( const double* values, unsigned num_values )
       : mValues(num_values), negateFlag(1)
       { copy( values, values+num_values, mValues.begin() ); }
-    
+
     void set_values( const double* values, unsigned num_values )
-      { 
+      {
         mValues.resize(num_values);
         copy( values, values+num_values, mValues.begin() );
       }
-      
+
     void append_values( const double* values, unsigned num_values )
       { copy( values, values+num_values, back_inserter(mValues) ); }
-     
+
     virtual MetricType get_metric_type() const  { return ELEMENT_BASED; }
-    
+
     virtual string get_name() const { return "ObjectiveFunctionTests"; }
-    
+
     virtual int get_negate_flag() const { return negateFlag; }
-    
+
     void set_negate_flag( int value ) { negateFlag = value; }
-    
+
     virtual void get_evaluations( PatchData&, vector<size_t>& h, bool, MsqError& )
       {
         h.resize( mValues.size() );
         for (unsigned i = 0; i < mValues.size(); ++i)
           h[i] = i;
       }
-    
+
     virtual bool evaluate( PatchData&, size_t h, double& v, MsqError& err )
       {
         if (h >= mValues.size()) {
@@ -163,7 +163,7 @@ class OFTestQM : public QualityMetric {
         v = mValues[h];
         return true;
       }
-    
+
     virtual bool evaluate_with_indices( PatchData& pd, size_t h, double& v, vector<size_t>& i, MsqError& err )
       {
         i.clear();
@@ -171,7 +171,7 @@ class OFTestQM : public QualityMetric {
           i.push_back(j);
         return evaluate( pd, h, v, err );
       }
-    
+
     virtual bool evaluate_with_gradient( PatchData& pd, size_t h, double& v, vector<size_t>& i, vector<Vector3D>& g, MsqError& err )
       {
         g.clear();
@@ -188,15 +188,15 @@ class OFTestQM : public QualityMetric {
         H.clear();
         bool rval = evaluate_with_gradient( pd, h, v, i, g, err );
         // Hessian values are just used to test negate flag, so
-        // pass back arbirary values.  
+        // pass back arbirary values.
         for (unsigned r = 0; r < i.size(); ++r)
           for (unsigned c = r; c < i.size(); ++c)
             H.push_back( Matrix3D(1.0) );
         return rval;
       }
-  
+
   private:
-    
+
     vector<double> mValues;
     int negateFlag;
 };

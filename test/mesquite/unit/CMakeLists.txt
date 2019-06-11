@@ -1,8 +1,8 @@
 
 
 SET( unit_tests
-     ArrayMeshTest 
-     AspectRatioGammaTest 
+     ArrayMeshTest
+     AspectRatioGammaTest
      AveragingQMTest
      AWMetricTest
      AWQualityMetricTest
@@ -95,14 +95,14 @@ IF (${PACKAGE_NAME}_ENABLE_ExodusII)
 ENDIF()
 
 SET( unit_srcs
-     msq_test_main.cpp 
-     QualityMetricTester.cpp 
-     MBMesquiteTestRunner.hpp 
-     ObjectiveFunctionTests.hpp 
-     ObjectiveFunctionTests.cpp 
-     PatchDataInstances.hpp 
-     QualityMetricTester.hpp 
-     UnitUtil.hpp 
+     msq_test_main.cpp
+     QualityMetricTester.cpp
+     MBMesquiteTestRunner.hpp
+     ObjectiveFunctionTests.hpp
+     ObjectiveFunctionTests.cpp
+     PatchDataInstances.hpp
+     QualityMetricTester.hpp
+     UnitUtil.hpp
      TargetMetricTest.hpp
      TMPQualityMetricTest.hpp )
 

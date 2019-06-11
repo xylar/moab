@@ -1,8 +1,8 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
-    Copyright 2006 Lawrence Livermore National Laboratory.  Under 
-    the terms of Contract B545069 with the University of Wisconsin -- 
+    Copyright 2006 Lawrence Livermore National Laboratory.  Under
+    the terms of Contract B545069 with the University of Wisconsin --
     Madison, Lawrence Livermore National Laboratory retains certain
     rights in this software.
 
@@ -16,17 +16,17 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    kraftche@cae.wisc.edu    
+    kraftche@cae.wisc.edu
 
   ***************************************************************** */
 /** \file HexLagrangeShape.cpp
  *  \author Nicholas Voshell
  */
- 
+
 #include "HexLagrangeShape.hpp"
 #include "MsqError.hpp"
 
@@ -34,7 +34,7 @@ namespace MBMesquite {
 
 EntityTopology HexLagrangeShape::element_topology() const
 { return HEXAHEDRON; }
-  
+
 int HexLagrangeShape::num_nodes() const
 { return 27; }
 
@@ -67,7 +67,7 @@ void HexLagrangeShape::coefficients( Sample loc,
       indices_out[0] = loc.number+20;
       coeff_out[0] = 1.0;
       break;
-    case 3: //Center sample point - check if it is there, 
+    case 3: //Center sample point - check if it is there,
       num_coeff = 1;
       indices_out[0] = 26;
       coeff_out[0] = 1.0;
@@ -79,7 +79,7 @@ void HexLagrangeShape::coefficients( Sample loc,
   }
 
 }
-     
+
 
 void HexLagrangeShape::derivatives( Sample loc,
                                     NodeSet nodeset,
@@ -133,15 +133,15 @@ void HexLagrangeShape::derivatives( Sample loc,
   }
 
   num_vtx=0;
-  
+
   if (location != 26) {
     vertices[num_vtx]=location;
     derivs[num_vtx][0]=entries[HLS1[location]];
-    derivs[num_vtx][1]=entries[HLS2[location]]; 
-    derivs[num_vtx][2]=entries[HLS3[location]];  
+    derivs[num_vtx][1]=entries[HLS2[location]];
+    derivs[num_vtx][2]=entries[HLS3[location]];
     num_vtx++;
   }
-  
+
   if(HLSup1[location]!=-1){
     vertices[num_vtx]=HLSup1[location];
     if(HLS3[location]==2) {
@@ -151,7 +151,7 @@ void HexLagrangeShape::derivatives( Sample loc,
     }
     num_vtx++;
   }
-  
+
   if(HLSdn1[location]!=-1){
     vertices[num_vtx]=HLSdn1[location];
     if(HLS3[location]==2) {
@@ -161,7 +161,7 @@ void HexLagrangeShape::derivatives( Sample loc,
     }
     num_vtx++;
   }
-  
+
   if(HLSup2[location]!=-1){
   vertices[num_vtx]=HLSup2[location];
   derivs[num_vtx][0]=0; derivs[num_vtx][1]=0; derivs[num_vtx][2]=-1;
@@ -173,7 +173,7 @@ void HexLagrangeShape::derivatives( Sample loc,
   derivs[num_vtx][0]=0; derivs[num_vtx][1]=0; derivs[num_vtx][2]=1;
   num_vtx++;
   }
-  
+
   if(HLSlt1[location]!=-1){
     vertices[num_vtx]=HLSlt1[location];
     if(HLS1[location]==2) {
@@ -183,7 +183,7 @@ void HexLagrangeShape::derivatives( Sample loc,
     }
     num_vtx++;
   }
-  
+
   if(HLSrt1[location]!=-1){
     vertices[num_vtx]=HLSrt1[location];
     if(HLS1[location]==2) {
@@ -193,7 +193,7 @@ void HexLagrangeShape::derivatives( Sample loc,
     }
     num_vtx++;
   }
-  
+
   if(HLSlt2[location]!=-1){
   vertices[num_vtx]=HLSlt2[location];
   derivs[num_vtx][0]=1; derivs[num_vtx][1]=0; derivs[num_vtx][2]=0;
@@ -215,7 +215,7 @@ void HexLagrangeShape::derivatives( Sample loc,
     }
     num_vtx++;
   }
-  
+
   if(HLSbk1[location]!=-1){
     vertices[num_vtx]=HLSbk1[location];
     if(HLS2[location]==2) {
@@ -241,7 +241,7 @@ void HexLagrangeShape::derivatives( Sample loc,
 }
 
 
-void HexLagrangeShape::ideal( Sample , 
+void HexLagrangeShape::ideal( Sample ,
                               MsqMatrix<3,3>& J,
                               MsqError&  ) const
 {

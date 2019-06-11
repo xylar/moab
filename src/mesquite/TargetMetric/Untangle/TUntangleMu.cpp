@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2010 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2010) kraftche@cae.wisc.edu    
+    (2010) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file TRel2DUntangle.cpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -48,14 +48,14 @@ std::string TUntangleMu::get_name() const
 
 
 template <unsigned DIM> inline
-bool TUntangleMu::eval( const MsqMatrix<DIM,DIM>& T, 
+bool TUntangleMu::eval( const MsqMatrix<DIM,DIM>& T,
                         double& result,
                         MsqError& err )
 {
   bool valid = mBaseMetric->evaluate( T, result, err );
   if (MSQ_CHKERR(err) || !valid)
     return false;
-  
+
   const double d = mConstant - result;
   const double s = fabs(d) - d;
   result = 0.125*s*s*s;
@@ -63,15 +63,15 @@ bool TUntangleMu::eval( const MsqMatrix<DIM,DIM>& T,
 }
 
 template <unsigned DIM> inline
-bool TUntangleMu::grad( const MsqMatrix<DIM,DIM>& T, 
-                        double& result, 
+bool TUntangleMu::grad( const MsqMatrix<DIM,DIM>& T,
+                        double& result,
                         MsqMatrix<DIM,DIM>& deriv_wrt_T,
                         MsqError& err )
 {
   bool valid = mBaseMetric->evaluate_with_grad( T, result, deriv_wrt_T, err );
   if (MSQ_CHKERR(err) || !valid)
     return false;
-  
+
   if (mConstant < result) {
     const double s = result - mConstant;
     result = s*s*s;
@@ -81,21 +81,21 @@ bool TUntangleMu::grad( const MsqMatrix<DIM,DIM>& T,
     result = 0;
     deriv_wrt_T = MsqMatrix<DIM,DIM>(0.0);
   }
-  
+
   return true;
 }
 
 template <unsigned DIM> inline
-bool TUntangleMu::hess( const MsqMatrix<DIM,DIM>& T, 
-                        double& result, 
-                        MsqMatrix<DIM,DIM>& deriv_wrt_T, 
+bool TUntangleMu::hess( const MsqMatrix<DIM,DIM>& T,
+                        double& result,
+                        MsqMatrix<DIM,DIM>& deriv_wrt_T,
                         MsqMatrix<DIM,DIM>* second_wrt_T,
                         MsqError& err )
 {
   bool valid = mBaseMetric->evaluate_with_hess( T, result, deriv_wrt_T, second_wrt_T, err );
   if (MSQ_CHKERR(err) || !valid)
     return false;
-  
+
   if (mConstant < result) {
     const double s = result - mConstant;
     result = s*s*s;
@@ -108,7 +108,7 @@ bool TUntangleMu::hess( const MsqMatrix<DIM,DIM>& T,
     deriv_wrt_T = MsqMatrix<DIM,DIM>(0.0);
     set_scaled_I( second_wrt_T, 0.0 ); // zero everything
   }
-  
+
   return true;
 }
 

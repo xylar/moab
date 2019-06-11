@@ -244,20 +244,20 @@ moab::ErrorCode moab::TempestOfflineMap::SetDofMapAssociation(DiscretizationType
                 output_file << "I, GDOF\n";
                 for (unsigned i=0; i < tgt_soln_gdofs.size(); ++i)
                     output_file << i << ", " << tgt_soln_gdofs[i] << "\n";
-        
+
                 output_file << "ELEMID, IDOF, GDOF, NDOF\n";
                 m_nTotDofs_Dest=0;
-                
+
                 for (unsigned i=0; i < tgt_soln_gdofs.size(); ++i) {
                     output_file << m_remapper->lid_to_gid_tgt[i] << ", " <<  i << ", " << tgt_soln_gdofs[i] << ", " << m_nTotDofs_Dest << "\n";
                     m_nTotDofs_Dest++;
                 }
-        
+
                 output_file.flush(); // required here
                 output_file.close();
             }
         }
-        else 
+        else
         {
             {
                 std::ofstream output_file ( "sourcecov-gids-1.txt" );
@@ -324,15 +324,15 @@ moab::ErrorCode moab::TempestOfflineMap::SetDofMapAssociation(DiscretizationType
                 output_file << "I, GDOF\n";
                 for (unsigned i=0; i < tgt_soln_gdofs.size(); ++i)
                     output_file << i << ", " << tgt_soln_gdofs[i] << "\n";
-        
+
                 output_file << "ELEMID, IDOF, GDOF, NDOF\n";
                 m_nTotDofs_Dest=0;
-                
+
                 for (unsigned i=0; i < tgt_soln_gdofs.size(); ++i) {
                     output_file << m_remapper->lid_to_gid_tgt[i] << ", " <<  i << ", " << tgt_soln_gdofs[i] << ", " << m_nTotDofs_Dest << "\n";
                     m_nTotDofs_Dest++;
                 }
-        
+
                 output_file.flush(); // required here
                 output_file.close();
             }
@@ -387,7 +387,7 @@ moab::ErrorCode moab::TempestOfflineMap::SetDofMapAssociation(DiscretizationType
     srccol_gdofmap.resize (m_remapper->m_source_entities.size() * m_nDofsPEl_Src * m_nDofsPEl_Src, ULONG_MAX);
     locsrc_soln_gdofs.resize(m_remapper->m_source_entities.size()*m_nDofsPEl_Src*m_nDofsPEl_Src, INT_MAX);
     rval = mbCore->tag_get_data ( m_dofTagSrc, m_remapper->m_source_entities, &locsrc_soln_gdofs[0] );MB_CHK_ERR(rval);
-    
+
     // Now compute the mapping and store it for the original source mesh
     m_nTotDofs_Src = 0;
     if (srcdataGLLNodesSrc == NULL || srcType == DiscretizationType_FV) { /* we only have a mapping for elements as DoFs */
@@ -746,7 +746,7 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
             m_meshInputCov->ConstructEdgeMap();
 
             // Finite volume input / Finite element output
-            rval = this->SetDofMapAssociation(eInputType, false, NULL, NULL, 
+            rval = this->SetDofMapAssociation(eInputType, false, NULL, NULL,
                 eOutputType, (eOutputType == DiscretizationType_CGLL), &dataGLLNodesDest);MB_CHK_ERR(rval);
 
             // Generate remap weights
@@ -845,7 +845,7 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
             }
 
             // Finite element input / Finite volume output
-            rval = this->SetDofMapAssociation(eInputType, (eInputType == DiscretizationType_CGLL), &dataGLLNodesSrcCov, &dataGLLNodesSrc, 
+            rval = this->SetDofMapAssociation(eInputType, (eInputType == DiscretizationType_CGLL), &dataGLLNodesSrcCov, &dataGLLNodesSrc,
                 eOutputType, false, NULL);MB_CHK_ERR(rval);
 
             // Generate offline map
@@ -971,7 +971,7 @@ moab::ErrorCode moab::TempestOfflineMap::GenerateOfflineMap ( std::string strInp
             }
 
             // Input Finite Element to Output Finite Element
-            rval = this->SetDofMapAssociation(eInputType, (eInputType == DiscretizationType_CGLL), &dataGLLNodesSrcCov, &dataGLLNodesSrc, 
+            rval = this->SetDofMapAssociation(eInputType, (eInputType == DiscretizationType_CGLL), &dataGLLNodesSrcCov, &dataGLLNodesSrc,
                 eOutputType, (eOutputType == DiscretizationType_CGLL), &dataGLLNodesDest);MB_CHK_ERR(rval);
 
             // Generate offline map
@@ -1315,7 +1315,7 @@ moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot()   // Collective
         sendarray[4] = m_nTotDofs_Src;
         sendarray[5] = m_nTotDofs_Dest;
         sendarray[6] = m_nTotDofs_SrcCov;
-        
+
         ierr = MPI_Gather ( sendarray, NDATA, MPI_INTEGER, rootSizesData.data(), NDATA, MPI_INTEGER, rootProc, pcomm->comm() );
         if ( ierr != MPI_SUCCESS ) return moab::MB_FAILURE;
 
@@ -1346,12 +1346,12 @@ moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot()   // Collective
             dimSizes[0] = gtar;
             m_weightMapGlobal->InitializeTargetDimensions(dimNames, dimSizes);
 
-            /* 
-                VSM: do we need to gather the entire mesh ?!?! 
+            /*
+                VSM: do we need to gather the entire mesh ?!?!
                 The following initialization can't work correctly without the mesh on the root process
             */
             if (m_srcDiscType == DiscretizationType_FV) /* unsure if we actually care about the type for this */
-                m_weightMapGlobal->InitializeSourceCoordinatesFromMeshFV ( *m_meshInput ); 
+                m_weightMapGlobal->InitializeSourceCoordinatesFromMeshFV ( *m_meshInput );
             else
                 m_weightMapGlobal->InitializeSourceCoordinatesFromMeshFE ( *m_meshInput, m_nDofsPEl_Src, dataGLLNodesSrc );
 
@@ -1393,8 +1393,8 @@ moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot()   // Collective
         // Next, accumulate the row and column values for the matrices (in local indexing)
         // Let's gather the data in the following order:
         //      1) row indices,
-        //      2) column indices, 
-        //      3) GID for source elements, 
+        //      2) column indices,
+        //      3) GID for source elements,
         //      4) GID for target elements
         //
         const int nR = 2 * vecS.GetRows() + dOrigSourceAreas.GetRows() + dTargetAreas.GetRows();
@@ -1495,8 +1495,8 @@ moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot()   // Collective
         // Next, accumulate the row and column values for the matrices (in local indexing)
         // Let's gather the data in the following order:
         //      1) matrix weights,
-        //      2) source element areas, 
-        //      3) target element areas, 
+        //      2) source element areas,
+        //      3) target element areas,
         //      4) source element: m_dSourceCenterLon
         //      5) source element: m_dSourceCenterLat
         //      6) target element: m_dTargetCenterLon
@@ -1537,7 +1537,7 @@ moab::ErrorCode moab::TempestOfflineMap::GatherAllToRoot()   // Collective
             for ( int i = 0; i < nprocs; ++i )
             {
                 displs[i] = gsum;
-                rcount[i] = rootSizesData[NDATA * i] + rootSizesData[NDATA * i + 1] + rootSizesData[NDATA * i + 2] + 
+                rcount[i] = rootSizesData[NDATA * i] + rootSizesData[NDATA * i + 1] + rootSizesData[NDATA * i + 2] +
                             2 * rootSizesData[NDATA * i + 4] * (1 + nSc) +
                             2 * rootSizesData[NDATA * i + 5] * (1 + nTc);
                 gsum += rcount[i];

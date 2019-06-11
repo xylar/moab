@@ -6,7 +6,7 @@ AM_CPPFLAGS  = -DSRCDIR=$(srcdir) \
                -DMESHDIR=$(MESHDIR) \
                $(MSQ_INCLUDES) \
                -I$(top_srcdir)/src \
-               -I$(top_srcdir)/test 
+               -I$(top_srcdir)/test
 
 LDADD = $(top_builddir)/src/mesquite/libmbmesquite.la
 
@@ -18,9 +18,9 @@ if HAVE_CPPUNIT
   CPPUNIT_LDFLAGS_SET = @CPPUNIT_LDFLAGS@
 else
   TESTS = no_cpp_unit
-  msq_test_DEPENDENCIES = 
-  CPPUNIT_CPPFLAGS_SET = 
-  CPPUNIT_LDFLAGS_SET = 
+  msq_test_DEPENDENCIES =
+  CPPUNIT_CPPFLAGS_SET =
+  CPPUNIT_LDFLAGS_SET =
 endif
 AM_CPPFLAGS += $(CPPUNIT_CPPFLAGS_SET)
 AM_LDFLAGS += $(CPPUNIT_LDFLAGS_SET)
@@ -39,7 +39,7 @@ if ENABLE_imesh
   IMESH_DEP = $(top_builddir)/itaps/mesquite/libmsqimesh.la
 else
   IMESH_TEST_SRC =
-  IMESH_LDADD = 
+  IMESH_LDADD =
   IMESH_DEP =
 endif
 LDADD += $(IMESH_LDADD)
@@ -48,9 +48,9 @@ msq_test_DEPENDENCIES += $(IMESH_DEP)
 if HAVE_NETCDF
   EXODUS_TEST_SRC = ExodusTest.cpp
 else
-  EXODUS_TEST_SRC = 
+  EXODUS_TEST_SRC =
 endif
-  
+
 msq_test_SOURCES = msq_test_main.cpp \
 	MesquiteTestRunner.hpp \
 	ObjectiveFunctionTests.hpp \

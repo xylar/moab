@@ -23,9 +23,9 @@ void setmem( void* mem, const void* value, unsigned value_size, size_t num_elem 
 
 /**\brief Get size of file (if it is a regular file)
  *
- * Get size of regular file.  
+ * Get size of regular file.
  *\return - file size if known
- *        - -1 if file size cannot be determined (e.g. a pipe) 
+ *        - -1 if file size cannot be determined (e.g. a pipe)
  *        - -2 if an unexpected failure occured (may indicate change
  *           in file position.)
  */
@@ -33,16 +33,16 @@ long filesize( FILE* filp );
 
 /**\brief Get size of file (if it is a regular file)
  *
- * Get size of regular file.  
+ * Get size of regular file.
  *\return - file size if known
- *        - -1 if file size cannot be determined (e.g. a pipe) 
+ *        - -1 if file size cannot be determined (e.g. a pipe)
  *        - -2 if an unexpected failure occured (may indicate change
  *           in file position.)
  */
 long filesize( std::ifstream& str );
 
 /**\brief Check if platform is little-endian
- * 
+ *
  * Check if platform is little-endian (least significant
  * byte at highest memory address.)
  */
@@ -53,7 +53,7 @@ inline bool little_endian()
 }
 
 /**\brief Check if platform is big-endian
- * 
+ *
  * Check if platform is big-endian (least significant
  * byte at lowest memory address.)
  */
@@ -80,23 +80,23 @@ void byteswap4( void* data, size_t num_elem );
 void byteswap8( void* data, size_t num_elem );
 
 /**\brief Type-specific byte swap */
-template <typename T> 
+template <typename T>
 inline void byteswap( T* data, size_t num_elem )
 {
   switch (sizeof(T)) {
     case 1:
       break;
-    case 2:  
-      byteswap2( data, num_elem ); 
+    case 2:
+      byteswap2( data, num_elem );
       break;
-    case 4:  
-      byteswap4( data, num_elem ); 
+    case 4:
+      byteswap4( data, num_elem );
       break;
-    case 8: 
-      byteswap8( data, num_elem ); 
+    case 8:
+      byteswap8( data, num_elem );
       break;
-    default: 
-      byteswap( data, sizeof(T), num_elem ); 
+    default:
+      byteswap( data, sizeof(T), num_elem );
       break;
   }
 }

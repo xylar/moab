@@ -1,9 +1,9 @@
 #include "moab/LocalDiscretization/SpectralQuad.hpp"
 #include "moab/Forward.hpp"
 
-namespace moab 
+namespace moab
 {
-    
+
   // filescope for static member data that is cached
 int SpectralQuad::_n;
 real *SpectralQuad::_z[2];
@@ -75,8 +75,8 @@ void SpectralQuad::set_gl_points( double * x, double * y, double *z)
   _xyz[1] = y;
   _xyz[2] = z;
 }
-CartVect SpectralQuad::evalFcn(const double *params, const double *field, const int ndim, const int num_tuples, 
-                               double *work, double *result) 
+CartVect SpectralQuad::evalFcn(const double *params, const double *field, const int ndim, const int num_tuples,
+                               double *work, double *result)
 {
     //piece that we shouldn't want to cache
   int d=0;
@@ -95,7 +95,7 @@ CartVect SpectralQuad::evalFcn(const double *params, const double *field, const 
 }
   // replicate the functionality of hex_findpt
 bool SpectralQuad::reverseEvalFcn(const double *posn, const double *verts, const int nverts, const int ndim,
-                                  const double iter_tol, const double inside_tol, double *work, 
+                                  const double iter_tol, const double inside_tol, double *work,
                                   double *params, int *is_inside)
 {
   params = init;
@@ -122,7 +122,7 @@ bool SpectralQuad::reverseEvalFcn(const double *posn, const double *verts, const
 }
 
 
-Matrix3  SpectralQuad::jacobian(const double *params, const double *verts, const int nverts, const int ndim, 
+Matrix3  SpectralQuad::jacobian(const double *params, const double *verts, const int nverts, const int ndim,
                                      double *work, double *result)
 {
     // not implemented
@@ -150,7 +150,7 @@ void SpectralQuad:: integrate_vector(const double *field, const double *verts, c
     // not implemented
 }
 
-int SpectralQuad::insideFcn(const double *params, const int ndim, const double tol) 
+int SpectralQuad::insideFcn(const double *params, const int ndim, const double tol)
 {
   return EvalSet::inside(params, ndim, tol);
 }
@@ -201,5 +201,5 @@ void SpectralQuad::get_gl_points( double *& x, double *& y, double *& z, int & s
   z = (double *)_xyz[2] ;
   size = _n*_n;
 }
-    
+
 } // namespace moab

@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2009 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2009) kraftche@cae.wisc.edu    
+    (2009) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file EdgeLengthMetric.cpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #include "EdgeLengthMetric.hpp"
@@ -48,9 +48,9 @@ std::string EdgeLengthMetric::get_name() const
 int EdgeLengthMetric::get_negate_flag() const
   { return 1; }
 
-bool EdgeLengthMetric::evaluate( PatchData& pd, 
-                 size_t p_handle, 
-                 double& value, 
+bool EdgeLengthMetric::evaluate( PatchData& pd,
+                 size_t p_handle,
+                 double& value,
                  MsqError& err )
 {
   MsqMeshEntity& e = pd.element_by_index( elem(p_handle) );
@@ -63,7 +63,7 @@ bool EdgeLengthMetric::evaluate( PatchData& pd,
   double len_sqr = diff % diff - mGamma;
   if (len_sqr <= 0.0) {
     value = 0.0;
-    return false; 
+    return false;
   }
   value = sqrt(len_sqr);
   return true;
@@ -86,10 +86,10 @@ bool EdgeLengthMetric::evaluate_with_gradient( PatchData& pd,
   double val_sqr = diff % diff - mGamma;
   if (val_sqr <= 0.0) {
     value = 0.0;
-    return false; 
+    return false;
   }
   value = sqrt(val_sqr);
-  
+
   diff *= 1.0/value;
   indices.clear();
   gradient.clear();
@@ -98,10 +98,10 @@ bool EdgeLengthMetric::evaluate_with_gradient( PatchData& pd,
     gradient.push_back( diff );
   }
   if (evi < pd.num_free_vertices()) {
-    indices.push_back( evi ); 
+    indices.push_back( evi );
     gradient.push_back( -diff );
   }
-  
+
   return true;
 }
 

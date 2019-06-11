@@ -22,7 +22,7 @@ int main(int argc, char *argv[])
 
   NestedRefine uref(&mb);
 
-  // Usage: The level degrees array controls number of refinemetns and 
+  // Usage: The level degrees array controls number of refinemetns and
   // the degree of refinement at each level.
   // Example: int level_degrees[4] = {2,3,2,3};
   std::vector<int> level_degrees;

@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2006 Sandia National Laboratories.  Developed at the
@@ -16,16 +16,16 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
+
   ***************************************************************** */
 
 
 /** \file ElementAvgQM.cpp
- *  \brief 
- *  \author Boyd Tidwell 
+ *  \brief
+ *  \author Boyd Tidwell
  */
 
 #include "Mesquite.hpp"
@@ -40,7 +40,7 @@ namespace MBMesquite {
 ElementAvgQM::ElementAvgQM( ElemSampleQM* metric )
     : mMetric(metric)
     {}
-    
+
 ElementAvgQM::~ElementAvgQM() {}
 
 std::string ElementAvgQM::get_name() const
@@ -57,9 +57,9 @@ int ElementAvgQM::get_negate_flag() const
   return get_quality_metric()->get_negate_flag();
 }
 
-bool ElementAvgQM::evaluate( PatchData& pd, 
-                              size_t handle, 
-                              double& value, 
+bool ElementAvgQM::evaluate( PatchData& pd,
+                              size_t handle,
+                              double& value,
                               MsqError& err )
 {
   ElemSampleQM* qm = get_quality_metric();
@@ -73,23 +73,23 @@ bool ElementAvgQM::evaluate( PatchData& pd,
   bool tmpvalid;
 
   value = -std::numeric_limits<double>::infinity();
-  for (std::vector<size_t>::iterator h = mHandles.begin(); h != mHandles.end(); ++h) 
+  for (std::vector<size_t>::iterator h = mHandles.begin(); h != mHandles.end(); ++h)
   {
     tmpvalid = qm->evaluate( pd, *h, tmpval, err ); MSQ_ERRZERO(err);
-    if (!tmpvalid) 
+    if (!tmpvalid)
     {
       valid = false;
       break;
     }
     else
-    { 
-      accumulate += tmpval;    
+    {
+      accumulate += tmpval;
       num_values++;
     }
   }
   if (valid)
     value = accumulate/num_values;
-    
+
   return valid;
 }
 

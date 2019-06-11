@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2009 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2009) kraftche@cae.wisc.edu    
+    (2009) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file NumericalQM.hpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #ifndef MSQ_NUMERICAL_QM_HPP
@@ -40,7 +40,7 @@ namespace MBMesquite {
 
 /**\brief Use finite difference rather than analytical derivative calculations.
  *
- * This class acts as a decorator for (wrapper around) an existing 
+ * This class acts as a decorator for (wrapper around) an existing
  * QualityMetric.  It bypasses any code provided by the underlying
  * metric for calculation of derivatives, forcing the use of finite
  * difference approximation of the derivatives.
@@ -48,7 +48,7 @@ namespace MBMesquite {
 class NumericalQM : public QualityMetric
 {
   public:
-    
+
     /**
      *\param real_metric  The actual quality metric.
      *\param numerical_gradient Use finite difference to calculate first derivatives
@@ -64,14 +64,14 @@ class NumericalQM : public QualityMetric
 
     int get_negate_flag() const;
 
-    void get_evaluations( PatchData& pd, 
-                          std::vector<size_t>& handles, 
+    void get_evaluations( PatchData& pd,
+                          std::vector<size_t>& handles,
                           bool free_vertices_only,
                           MsqError& err );
 
-    bool evaluate( PatchData& pd, 
-                   size_t handle, 
-                   double& value, 
+    bool evaluate( PatchData& pd,
+                   size_t handle,
+                   double& value,
                    MsqError& err );
 
     bool evaluate_with_indices( PatchData& pd,

@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2006 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
+
     (2010) kraftche@cae.wisc.edu
-   
+
   ***************************************************************** */
 
 
 /** \file AWUntangleBeta.cpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -46,8 +46,8 @@ AWUntangleBeta::~AWUntangleBeta() {}
 const int P = 3;
 
 template <unsigned DIM> inline
-bool AWUntangleBeta::eval( const MsqMatrix<DIM,DIM>& A, 
-                           const MsqMatrix<DIM,DIM>& W, 
+bool AWUntangleBeta::eval( const MsqMatrix<DIM,DIM>& A,
+                           const MsqMatrix<DIM,DIM>& W,
                            double& result)
 {
   const double alpha = det(A);
@@ -57,14 +57,14 @@ bool AWUntangleBeta::eval( const MsqMatrix<DIM,DIM>& A,
   result = tmp;
   for (int i = 1; i < P; ++i)
     result *= tmp;
-  
+
   return true;
 }
 
 template <unsigned DIM> inline
-bool AWUntangleBeta::grad( const MsqMatrix<DIM,DIM>& A, 
-                           const MsqMatrix<DIM,DIM>& W, 
-                           double& result, 
+bool AWUntangleBeta::grad( const MsqMatrix<DIM,DIM>& A,
+                           const MsqMatrix<DIM,DIM>& W,
+                           double& result,
                            MsqMatrix<DIM,DIM>& deriv )
 {
   const double alpha = det(A);
@@ -75,21 +75,21 @@ bool AWUntangleBeta::grad( const MsqMatrix<DIM,DIM>& A,
     deriv = MsqMatrix<DIM,DIM>(0.0);
     return true;
   }
-  
+
   double prod = 1.0;
   for (int i = 1; i < P; ++i)
     prod *= tmp;
   result = prod * tmp;
-  
+
   deriv = -2 *P * prod * transpose_adj(A);
-  return true;  
+  return true;
 }
 /*
 template <unsigned DIM> inline
-bool AWUntangleBeta::hess( const MsqMatrix<DIM,DIM>& A, 
-                           const MsqMatrix<DIM,DIM>& W, 
-                           double& result, 
-                           MsqMatrix<DIM,DIM>& deriv, 
+bool AWUntangleBeta::hess( const MsqMatrix<DIM,DIM>& A,
+                           const MsqMatrix<DIM,DIM>& W,
+                           double& result,
+                           MsqMatrix<DIM,DIM>& deriv,
                            MsqMatrix<DIM,DIM>* second )
 {
   result = det(A) - det(W);

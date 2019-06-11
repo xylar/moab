@@ -172,15 +172,15 @@ ErrorCode adj_perf(const char* filename)
   qtime.vertex_to_edges_total = time_total;
   qtime.vertex_to_edges_avg = time_avg;
 
-  //NQ1:  For every edge, obtain neighbor edges  
+  //NQ1:  For every edge, obtain neighbor edges
 #ifdef MOAB_HAVE_AHF
   time_start = mt->time_elapsed();
-  for (Range::iterator i = edges.begin(); i != edges.end(); ++i) {    
+  for (Range::iterator i = edges.begin(); i != edges.end(); ++i) {
     adjents.clear();
     error = mbImpl->get_adjacencies( &*i, 1, 1, false, adjents);
   }
   time_total = mt->time_elapsed()-time_start;
-  time_avg = time_total/(double)edges.size();  
+  time_avg = time_total/(double)edges.size();
 #else
   error = mtu.get_bridge_adjacencies( *edges.begin(), 0, 1, ngbents);
   time_start = mt->time_elapsed();
@@ -215,7 +215,7 @@ ErrorCode adj_perf(const char* filename)
 
   //IQ22: For every edge, obtain incident faces
   time_start = mt->time_elapsed();
-  for (Range::iterator i = edges.begin(); i != edges.end(); ++i) {   
+  for (Range::iterator i = edges.begin(); i != edges.end(); ++i) {
     adjents.clear();
     error = mbImpl->get_adjacencies( &*i, 1, 2, false, adjents);
   }
@@ -225,7 +225,7 @@ ErrorCode adj_perf(const char* filename)
   qtime.edge_to_faces_total = time_total;
   qtime.edge_to_faces_avg = time_avg;
 
-  //NQ2: For every face, obtain neighbor faces 
+  //NQ2: For every face, obtain neighbor faces
 #ifdef MOAB_HAVE_AHF
   time_start = mt->time_elapsed();
   for (Range::iterator i = faces.begin(); i != faces.end(); ++i) {
@@ -305,7 +305,7 @@ ErrorCode adj_perf(const char* filename)
   //NQ3: For every cell, obtain neighbor cells
 #ifdef MOAB_HAVE_AHF
   time_start = mt->time_elapsed();
-  for (Range::iterator i = cells.begin(); i != cells.end(); ++i) {   
+  for (Range::iterator i = cells.begin(); i != cells.end(); ++i) {
       adjents.clear();
       error = mbImpl->get_adjacencies(&*i, 1, 3, false, adjents);
   }

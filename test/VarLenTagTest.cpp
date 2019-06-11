@@ -22,17 +22,17 @@ int main()
               << "Structure is not valid" << std::endl;
     return count;
   }
-  
+
   count += RUN_TEST( test_inline );
   count += RUN_TEST( test_non_inline );
   count += RUN_TEST( test_resize_ii );
   count += RUN_TEST( test_resize_in );
   count += RUN_TEST( test_resize_ni );
   count += RUN_TEST( test_resize_nn );
-  
+
   return count;
 }
-  
+
 
 #define OFFSET( A ) ((char*)(&(A)) - (char*)this)
 class GetOffsets : public VarLenTag
@@ -104,7 +104,7 @@ void test_resize_ni()
   CHECK_EQUAL( (unsigned char*)&tag, tag.data() );
   CHECK( !memcmp( tag.data(), "12345678901234567890", sizeof(void*) ) );
 }
-  
+
 void test_resize_nn()
 {
   VarLenTag tag( 2*sizeof(void*) );
@@ -114,5 +114,5 @@ void test_resize_nn()
   CHECK( (unsigned char*)&tag != tag.data() );
   CHECK( !memcmp( tag.data(), "TSRQPONMLKJIHGFEDCBA", sizeof(void*) ) );
 }
- 
+
 

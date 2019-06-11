@@ -1,7 +1,7 @@
-/** \brief This test shows how to perform local point-in-element searches with MOAB's new tree searching functionality.  
+/** \brief This test shows how to perform local point-in-element searches with MOAB's new tree searching functionality.
  *
  * MOAB's SpatialLocator functionality performs point-in-element searches over a local or parallel mesh.
- * SpatialLocator is flexible as to what kind of tree is used and what kind of element basis functions are 
+ * SpatialLocator is flexible as to what kind of tree is used and what kind of element basis functions are
  * used to localize elements and interpolate local fields.
  */
 
@@ -59,7 +59,7 @@ int main(int argc, char **argv)
 
   // Build the SpatialLocator
   SpatialLocator sl(&mb, elems, &tree);
-  
+
   // Get the box extents
   CartVect box_extents, pos;
   BoundBox box = sl.local_box();

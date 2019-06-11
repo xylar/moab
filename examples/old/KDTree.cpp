@@ -1,5 +1,5 @@
 /* Simple example of use of moab::AdaptiveKDTree class.
-   
+
    Given a hexahedral mesh, find the hexahedron containing each
    input position.
  */
@@ -53,7 +53,7 @@ int main( )
   std::string filename;
   std::cout << "Hex mesh file name: ";
   std::cin >> filename;
-  
+
     // Read file into MOAB instance
   moab::ErrorCode rval;
   moab::Core moab;
@@ -64,7 +64,7 @@ int main( )
     std::cerr << filename << ": file load failed" << std::endl;
     return 1;
   }
-  
+
     // Get all hex elemeents
   moab::Range elems;
   rval = mb.get_entities_by_type( 0, moab::MBHEX, elems ); CHKERR(rval);
@@ -72,12 +72,12 @@ int main( )
     std::cerr << filename << ": file containd no hexahedra" << std::endl;
     return 1;
   }
-  
+
     // Build a kD-tree from hex elements
   moab::EntityHandle tree_root;
   moab::AdaptiveKDTree tool( &mb );
   rval = tool.build_tree( elems, tree_root ); CHKERR(rval);
-  
+
     // Loop forever (or until EOF), asking user for a point
     // to query and printing the hex element containing that
     // point.
@@ -86,16 +86,16 @@ int main( )
     std::cout << "Point coordinates: ";
     if (!(std::cin >> point[0] >> point[1] >> point[2]))
       break;
-  
+
     moab::EntityHandle leaf;
     rval = tool.leaf_containing_point( tree_root, point, leaf ); CHKERR(rval);
     moab::EntityHandle hex = hex_containing_point( mb, leaf, point );
-    if (0 == hex) 
+    if (0 == hex)
       std::cout << "Point is not contained in any hexahedron." << std::endl;
     else
       print_hex( mb, hex );
   }
-  
+
   return 0;
 }
 
@@ -108,7 +108,7 @@ moab::EntityHandle hex_containing_point( moab::Interface& mb,
   moab::CartVect coords[8]; // coordinates of corners of hexahedron
   const moab::EntityHandle* conn; // hex connectivity
   int conn_len;
-  
+
     // Get hexes in leaf
   std::vector<moab::EntityHandle> hexes;
   rval = mb.get_entities_by_type( set, moab::MBHEX, hexes ); CHKERR(rval);
@@ -121,34 +121,34 @@ moab::EntityHandle hex_containing_point( moab::Interface& mb,
     if (moab::GeomUtil::point_in_trilinear_hex( coords, pt, EPSILON ))
       return *i;
   }
-  
+
     // Return 0 if no hex contains point.
-  return 0;  
+  return 0;
 }
 
 void print_hex( moab::Interface& mb, moab::EntityHandle hex )
 {
     // Get MOAB's internal ID for hex element
   int id = mb.id_from_handle(hex);
-  
+
     // Get vertex handles for hex corners
   const moab::EntityHandle* conn; // hex connectivity
   int conn_len;
   mb.get_connectivity( hex, conn, conn_len );
-  
+
     // Get coordinates of vertices
-  double coords[3*8]; 
+  double coords[3*8];
   mb.get_coords( conn, 8, coords );
-  
+
     // Print
   std::cout << " Point is in hex " << id << " with corners: " << std::endl;
   for (int i = 0; i < 8; ++i) {
-    std::cout << " (" << coords[3*i] 
-              << ", " << coords[3*i+1] 
-              << ", " << coords[3*i+2] 
+    std::cout << " (" << coords[3*i]
+              << ", " << coords[3*i+1]
+              << ", " << coords[3*i+2]
               << ")" << std::endl;
   }
 }
 
 
-  
+

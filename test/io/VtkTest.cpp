@@ -139,12 +139,12 @@ int main( int argc, char* argv[] )
     // otherwise run only specified tests
   else {
     test_count = 0;
-    for (int i = 1; i < argc; ++i) 
+    for (int i = 1; i < argc; ++i)
       for (unsigned j = 0; j < num_tests; ++j)
         if (!strcmp( test_array[j].name, argv[i]))
           test_indices[test_count++] = j;
   }
-  
+
   int fail_count = 0;
   for (int i = 0; i < test_count; ++i) {
     test_data& test = test_array[test_indices[i]];
@@ -152,7 +152,7 @@ int main( int argc, char* argv[] )
     if (!(test.result = test.test()))
       ++fail_count;
   }
-  
+
   printf("\n\n");
   if (fail_count) {
     printf("FAILED TESTS:\n");
@@ -190,7 +190,7 @@ static inline bool is_error( bool b )
 //static bool do_error( ErrorCode err, int line )
 //{
 //  Core tmp_core;
-//  fprintf(stderr, "API failed at line %d: %s (%d)\n", 
+//  fprintf(stderr, "API failed at line %d: %s (%d)\n",
 //    line, tmp_core.get_error_string(err).c_str(), (int)err );
 //  return false;
 //}
@@ -217,10 +217,10 @@ bool test_edge2()
   const int conn[] =
     { 0, 1,
       1, 2,
-      2, 3, 
-      3, 4, 
+      2, 3,
+      3, 4,
       0, 4 };
-      
+
   return test_read_write_element( coords, 5, conn, conn, 10, 5, 3, MBEDGE );
 }
 
@@ -235,36 +235,36 @@ bool test_edge3()
        0.707,  0.000, 2,
        0.000,  0.707, 2,
       -0.707,  0.000, 2 };
-  const int conn[] = 
+  const int conn[] =
     { 0, 1, 4,
       1, 2, 5,
       2, 3, 6,
       3, 0, 7 };
-  
+
   return test_read_write_element( coords, 8, conn, conn, 12, 4, 21, MBEDGE );
 }
 
 
 bool test_tri3()
 {
-  const double coords[] = 
+  const double coords[] =
     {  0,  0,  0,
        5,  0,  0,
        0,  5,  0,
       -5,  0,  0,
        0, -5,  0 };
-  const int conn[] = 
+  const int conn[] =
     { 0, 1, 2,
       0, 2, 3,
       0, 3, 4,
       0, 4, 1 };
-  
+
   return test_read_write_element( coords, 5, conn, conn, 12, 4, 5, MBTRI );
 }
 
 bool test_tri6()
 {
-  const double coords[] = 
+  const double coords[] =
     {  0,  2,  0,
        0,  0,  2,
        0, -2,  0,
@@ -274,10 +274,10 @@ bool test_tri6()
        0, -1, -1,
        0,  1, -1,
        0,  0,  0 };
-  const int conn[] = 
-    { 0, 1, 3, 4, 5, 8, 
+  const int conn[] =
+    { 0, 1, 3, 4, 5, 8,
       1, 2, 3, 6, 7, 8 };
-  
+
   return test_read_write_element( coords, 9, conn, conn, 12, 2, 22, MBTRI );
 }
 
@@ -298,7 +298,7 @@ const double grid_3x3[] =
     1, 3, 0,
     2, 3, 0,
     3, 3, 0 };
-    
+
 const int quad_structured_conn[] =
   { 0, 1, 5, 4,
     1, 2, 6, 5,
@@ -314,11 +314,11 @@ bool test_quad4()
 {
   // test read as quads
   bool rval1 = test_read_write_element( grid_3x3, 16, quad_structured_conn, quad_structured_conn, 36, 9, 9, MBQUAD );
-  
+
   // test read as pixels
-  const int conn2[] = 
+  const int conn2[] =
     { 0, 1, 4, 5,
-      1, 2, 5, 6, 
+      1, 2, 5, 6,
       2, 3, 6, 7,
       4, 5, 8, 9,
       5, 6, 9, 10,
@@ -327,18 +327,18 @@ bool test_quad4()
       9, 10, 13, 14,
       10, 11, 14, 15 };
   bool rval2 = test_read_write_element( grid_3x3, 16, conn2, quad_structured_conn, 36, 9, 8, MBQUAD );
-  
+
   return rval1 && rval2;
 }
 
 bool test_quad8()
 {
-  const double coords[] = 
+  const double coords[] =
     { 0, 0, 0,
       0, 2, 0,
       0, 4, 0,
       0, 0, 4,
-      0, 2, 4, 
+      0, 2, 4,
       0, 4, 4,
       4, 0, 0,
       4, 2, 0,
@@ -348,21 +348,21 @@ bool test_quad8()
       0, 0, 2,
       0, 4, 2
     };
-  const int conn[] = 
+  const int conn[] =
     { 0, 2, 5, 3, 1, 12, 4, 11,
       2, 0, 6, 8, 1, 9, 7, 10 };
-  
+
   return test_read_write_element( coords, 13, conn, conn, 16, 2, 23, MBQUAD );
 }
 
 bool test_quad9()
 {
-  const double coords[] = 
+  const double coords[] =
     { 0, 0, 0,
       0, 2, 0,
       0, 4, 0,
       0, 0, 4,
-      0, 2, 4, 
+      0, 2, 4,
       0, 4, 4,
       4, 0, 0,
       4, 2, 0,
@@ -374,21 +374,21 @@ bool test_quad9()
       0, 2, 2,
       0, 4, 2
     };
-  const int conn[] = 
+  const int conn[] =
     { 0, 2, 5, 3, 1, 14, 4, 12, 12,
       2, 0, 6, 8, 1, 9, 7, 11, 10 };
-  
+
   return test_read_write_element( coords, 15, conn, conn, 18, 2, 28, MBQUAD );
 }
 
 bool test_polygon()
 {
-  const double coords[] = 
+  const double coords[] =
     { 0, 0, 0,
       0, 2, 0,
       0, 4, 0,
       0, 0, 4,
-      0, 2, 4, 
+      0, 2, 4,
       0, 4, 4,
       4, 0, 0,
       4, 2, 0,
@@ -398,10 +398,10 @@ bool test_polygon()
       0, 0, 2,
       0, 4, 2
     };
-  const int conn[] = 
+  const int conn[] =
     { 0, 1, 2, 12, 5, 4, 3, 11,
       2, 1, 0, 9, 6, 7, 8, 10 };
-  
+
   return test_read_write_element( coords, 13, conn, conn, 16, 2, 7, MBPOLYGON );
 }
 
@@ -439,19 +439,19 @@ bool test_polyhedra()
 }
 bool test_tet4()
 {
-  const double coords[] = 
+  const double coords[] =
     {  1, -1,  0,
        1,  1,  0,
       -1,  1,  0,
       -1, -1,  0,
        0,  0, -1,
        0,  0,  1 };
-  const int conn[] = 
+  const int conn[] =
     { 0, 1, 3, 5,
       1, 2, 3, 5,
-      0, 1, 4, 3, 
+      0, 1, 4, 3,
       1, 2, 4, 3 };
-  
+
   return test_read_write_element( coords, 6, conn, conn, 16, 4, 10, MBTET );
 }
 
@@ -472,10 +472,10 @@ bool test_tet10()
       2, 0,-1,
       0,-1,-1,
       0, 1,-1 };
-  const int conn[] = 
+  const int conn[] =
     { 0, 1, 2, 4,  9, 8, 10, 6, 5, 7,
       2, 1, 0, 3,  8, 9, 10, 12, 13, 11 };
-  
+
   return test_read_write_element( coords, 14, conn, conn, 20, 2, 24, MBTET );
 }
 
@@ -523,8 +523,8 @@ bool test_hex8()
     // check vtk hexes
   bool rval1 = test_read_write_element( grid_2x2x2, 27, hex_structured_conn, hex_structured_conn, 64, 8, 12, MBHEX );
   CHECK(rval1);
-  
-  const int conn2[] = 
+
+  const int conn2[] =
     { 0, 1, 3, 4, 9,10,12,13,
       1, 2, 4, 5,10,11,13,14,
       3, 4, 6, 7,12,13,15,16,
@@ -533,52 +533,52 @@ bool test_hex8()
      10,11,13,14,19,20,22,23,
      12,13,15,16,21,22,24,25,
      13,14,16,17,22,23,25,26 };
-  
+
     // check with vtk voxels
   bool rval2 = test_read_write_element( grid_2x2x2, 27, conn2, hex_structured_conn, 64, 8, 11, MBHEX );
   CHECK(rval2);
-  
+
   return true;
 }
 
 bool test_hex20()
 {
-  const int vtk_conn[] = 
-    {  0,  2,  8,  6, 
-      18, 20, 26, 24, 
-       1,  5,  7,  3, 
+  const int vtk_conn[] =
+    {  0,  2,  8,  6,
+      18, 20, 26, 24,
+       1,  5,  7,  3,
       19, 23, 25, 21,
        9, 11, 17, 15 };
   const int exo_conn[] =
-    {  0,  2,  8,  6, 
-      18, 20, 26, 24, 
-       1,  5,  7,  3, 
+    {  0,  2,  8,  6,
+      18, 20, 26, 24,
+       1,  5,  7,  3,
        9, 11, 17, 15,
       19, 23, 25, 21 };
-  
-  return test_read_write_element( grid_2x2x2, 27, vtk_conn, exo_conn, 20, 1, 25, MBHEX );       
+
+  return test_read_write_element( grid_2x2x2, 27, vtk_conn, exo_conn, 20, 1, 25, MBHEX );
 }
 
 bool test_hex27()
 {
-  const int vtk_conn[] = 
-    {  0,  2,  8,  6, 
-      18, 20, 26, 24, 
-       1,  5,  7,  3, 
+  const int vtk_conn[] =
+    {  0,  2,  8,  6,
+      18, 20, 26, 24,
+       1,  5,  7,  3,
       19, 23, 25, 21,
        9, 11, 17, 15,
       10, 16, 14, 12,
        4, 22, 13 };
   const int moab_conn[] =
-    {  0,  2,  8,  6, 
-      18, 20, 26, 24, 
-       1,  5,  7,  3, 
+    {  0,  2,  8,  6,
+      18, 20, 26, 24,
+       1,  5,  7,  3,
        9, 11, 17, 15,
       19, 23, 25, 21,
       14, 16, 12, 10,
        4, 22, 13 };
-  
-  return test_read_write_element( grid_2x2x2, 27, vtk_conn, moab_conn, 27, 1, 29, MBHEX );       
+
+  return test_read_write_element( grid_2x2x2, 27, vtk_conn, moab_conn, 27, 1, 29, MBHEX );
 }
 
 bool test_wedge()
@@ -592,13 +592,13 @@ bool test_wedge()
       1, 1, 1,
       0, 1, 1,
       0, 0, 1 };
-  const int exo_conn[] = 
+  const int exo_conn[] =
     { 0, 1, 3, 4, 5, 7,
       1, 2, 3, 5, 6, 7 };
   const int vtk_conn[] =
     { 0, 3, 1, 4, 7, 5,
       1, 3, 2, 5, 7, 6 };
-  return test_read_write_element( coords, 8, vtk_conn, exo_conn, 12, 2, 13, MBPRISM ); 
+  return test_read_write_element( coords, 8, vtk_conn, exo_conn, 12, 2, 13, MBPRISM );
 }
 
 bool test_wedge15()
@@ -626,34 +626,34 @@ bool test_wedge15()
       2, 2, 1,
       0, 2, 1,
       0, 0, 1 };
-  const int exo_conn[] = 
+  const int exo_conn[] =
     { 0, 1, 3, 4, 5, 7, 8, 12, 11, 18, 19, 21, 13, 17, 16,
       1, 2, 3, 5, 6, 7, 9, 10, 12, 19, 20, 21, 14, 15, 17 };
   const int vtk_conn[] =
     { 0, 3, 1, 4, 7, 5, 11, 12, 8, 16, 17, 13, 18, 21, 19,
       1, 3, 2, 5, 7, 6, 12, 10, 9, 17, 15, 14, 19, 21, 20 };
-  return test_read_write_element( coords, 22, vtk_conn, exo_conn, 30, 2, 26, MBPRISM ); 
+  return test_read_write_element( coords, 22, vtk_conn, exo_conn, 30, 2, 26, MBPRISM );
 }
 
 bool test_pyramid()
 {
-  const double coords[] = 
+  const double coords[] =
     {  1, -1,  0,
        1,  1,  0,
       -1,  1,  0,
       -1, -1,  0,
        0,  0, -1,
        0,  0,  1 };
-  const int conn[] = 
+  const int conn[] =
     { 0, 1, 2, 3, 5,
       3, 2, 1, 0, 4 };
-  
+
   return test_read_write_element( coords, 6, conn, conn, 10, 2, 14, MBPYRAMID );
 }
 
 bool test_pyramid13()
 {
-  const double coords[] = 
+  const double coords[] =
     {  2, -2,  0,
        2,  2,  0,
       -2,  2,  0,
@@ -672,10 +672,10 @@ bool test_pyramid13()
        1,  1,  1,
       -1,  1,  1,
       -1, -1,  1 };
-  const int conn[] = 
+  const int conn[] =
     { 0, 1, 2, 3, 5, 6, 7, 8, 9, 14, 15, 16, 17,
       3, 2, 1, 0, 4, 8, 7, 6, 9, 13, 12, 11, 10 };
-  
+
   return test_read_write_element( coords, 18, conn, conn, 26, 2, 27, MBPYRAMID );
 }
 
@@ -684,7 +684,7 @@ bool test_structured_3d( const char* file );
 
 bool test_structured_points_2d()
 {
-  const char file[] = 
+  const char file[] =
    "# vtk DataFile Version 3.0\n"
    "MOAB Version 1.00\n"
    "ASCII\n"
@@ -693,9 +693,9 @@ bool test_structured_points_2d()
    "ORIGIN 0 0 0\n"
    "SPACING 1 1 1\n";
   bool rval1 = test_structured_2d( file );
-  
+
     // test again w/ old 1.0 ASPECT_RATIO keyword
-  const char file2[] = 
+  const char file2[] =
    "# vtk DataFile Version 3.0\n"
    "MOAB Version 1.00\n"
    "ASCII\n"
@@ -704,7 +704,7 @@ bool test_structured_points_2d()
    "ORIGIN 0 0 0\n"
    "ASPECT_RATIO 1 1 1\n";
   bool rval2 = test_structured_2d( file2 );
-  
+
   return rval1 && rval2;
 }
 bool test_free_vertices (const  char * file)
@@ -770,7 +770,7 @@ bool test_structured_grid_2d()
   int len = strlen(file);
   for (unsigned i = 0; i < 16; ++i)
     len += sprintf(file+len, "%f %f %f\n", grid_3x3[3*i], grid_3x3[3*i+1], grid_3x3[3*i+2]);
-   
+
   return test_structured_2d( file );
 }
 
@@ -785,13 +785,13 @@ bool test_rectilinear_grid_2d()
    "X_COORDINATES 4 float 0 1 2 3\n"
    "Y_COORDINATES 4 float 0 1 2 3\n"
    "Z_COORDINATES 1 float 0\n";
-   
+
   return test_structured_2d( file );
 }
 
 bool test_structured_points_3d()
 {
-  const char file[] = 
+  const char file[] =
    "# vtk DataFile Version 3.0\n"
    "MOAB Version 1.00\n"
    "ASCII\n"
@@ -811,11 +811,11 @@ bool test_structured_grid_3d()
    "DATASET STRUCTURED_GRID\n"
    "DIMENSIONS 3 3 3\n"
    "POINTS 27 double\n";
-   
+
   int len = strlen(file);
   for (unsigned i = 0; i < 27; ++i)
     len += sprintf(file+len, "%f %f %f\n", grid_2x2x2[3*i], grid_2x2x2[3*i+1], grid_2x2x2[3*i+2]);
-   
+
   return test_structured_3d( file );
 }
 
@@ -830,7 +830,7 @@ bool test_rectilinear_grid_3d()
    "X_COORDINATES 3 float 0 1 2\n"
    "Y_COORDINATES 3 float 0 1 2\n"
    "Z_COORDINATES 3 float 0 1 2\n";
-   
+
   return test_structured_3d( file );
 }
 
@@ -1057,9 +1057,9 @@ bool read_file( Interface* iface, const char* file )
 {
   char fname[] = "tmp_file.vtk";
   FILE* fptr = fopen( fname, "w" );
-  fputs( file, fptr ); 
+  fputs( file, fptr );
   fclose( fptr );
-  
+
   ErrorCode rval = iface->load_mesh( fname );
   remove( fname );
   CHECK(rval);
@@ -1099,27 +1099,27 @@ bool match_vertices_and_elements( Interface* iface,
                                   EntityHandle* elem_handles )
 {
   ErrorCode rval;
-  
+
     // get vertices and check count
   Range verts;
   rval = iface->get_entities_by_type( 0, MBVERTEX, verts );
   CHECK(rval);
   CHECK(verts.size() == num_vert);
-  
+
     // get elements and check count
   Range elems;
   rval = iface->get_entities_by_type( 0, moab_type, elems );
   CHECK(rval);
   CHECK(elems.size() == num_elem);
-  
+
     // get vertex coordinates
   std::vector<EntityHandle> vert_array(num_vert);
   std::copy(verts.begin(), verts.end(), vert_array.begin());
   std::vector<double> mb_coords(3*num_vert);
   rval = iface->get_coords( &vert_array[0], num_vert, &mb_coords[0] );
   CHECK(rval);
-  
-    // compare vertex coordinates to construct map from 
+
+    // compare vertex coordinates to construct map from
     // EntityHandle to index in input coordinate list
   std::map<EntityHandle,int> vert_map;
   std::vector<bool> seen(num_vert, false);
@@ -1143,7 +1143,7 @@ bool match_vertices_and_elements( Interface* iface,
     }
     CHECK(found); // not found?
   }
-  
+
     // check element connectivity
   seen.clear(); seen.resize( num_elem, false );
   Range::iterator iter = elems.begin();
@@ -1154,7 +1154,7 @@ bool match_vertices_and_elements( Interface* iface,
     rval = iface->get_connectivity( &elem, 1, elem_conn );
     CHECK(rval);
     CHECK( elem_conn.size() == vert_per_elem );
-    
+
       // convert to input vertex ordering
     std::vector<int> elem_conn2(vert_per_elem);
     for (unsigned j = 0; j < vert_per_elem; ++j) {
@@ -1162,7 +1162,7 @@ bool match_vertices_and_elements( Interface* iface,
       CHECK( k != vert_map.end() );
       elem_conn2[j] = k->second;
     }
-    
+
       // search input list for matching element
     bool found = false;
     for (unsigned j = 0; j < num_elem; ++j) {
@@ -1177,17 +1177,17 @@ bool match_vertices_and_elements( Interface* iface,
     }
     CHECK(found);
   }
-  
+
   return true;
 }
 
 bool check_elements( Interface* iface,
                      EntityType moab_type, unsigned num_elem, unsigned vert_per_elem,
-                     const double* coords, unsigned num_vert, 
+                     const double* coords, unsigned num_vert,
                      const int* connectivity )
 {
   std::vector<EntityHandle> junk1(num_vert), junk2(num_elem);
-  bool rval = match_vertices_and_elements( iface, moab_type, num_vert, num_elem, 
+  bool rval = match_vertices_and_elements( iface, moab_type, num_vert, num_elem,
                                          vert_per_elem, coords, connectivity,
                                          &junk1[0], &junk2[0] );
   CHECK(rval);
@@ -1199,10 +1199,10 @@ bool test_read_write_element( const double* coords, unsigned num_verts,
                               unsigned num_conn,
                               unsigned num_elem, unsigned vtk_type,
                               EntityType moab_type )
-      
+
 {
     // construct VTK file
-  char file[4096] = 
+  char file[4096] =
    "# vtk DataFile Version 3.0\n"
    "MOAB Version 1.00\n"
    "ASCII\n"
@@ -1218,29 +1218,29 @@ bool test_read_write_element( const double* coords, unsigned num_verts,
   unsigned conn_len = num_conn / num_elem;
   for (unsigned i = 0; i < num_elem; ++i) {
     len += sprintf(file+len, "%u", conn_len );
-    for (unsigned j = 0; j < conn_len; ++j) 
+    for (unsigned j = 0; j < conn_len; ++j)
       len += sprintf(file+len, " %u", vtk_conn[conn_len*i+j]);
     len += sprintf(file+len,"\n");
   }
-  
+
   len += sprintf(file+len,"CELL_TYPES %u\n", num_elem);
   for (unsigned i =0; i < num_elem; ++i)
     len += sprintf(file+len, "%u\n", vtk_type);
-  
+
     // read VTK file and check results
   Core instance1, instance2;
   bool bval = read_file( &instance1, file ); CHECK(bval);
   bval = check_elements( &instance1, moab_type, num_elem, conn_len, coords, num_verts, moab_conn );
   CHECK(bval);
-  
+
     // write, re-read, and check results
   bval = write_and_read( &instance1, &instance2 ); CHECK(bval);
   bval = check_elements( &instance2, moab_type, num_elem, conn_len, coords, num_verts, moab_conn );
   CHECK(bval);
-  
+
   return true;
 }
-  
+
 bool test_structured_2d( const char* file )
 {
     // read VTK file and check results
@@ -1248,7 +1248,7 @@ bool test_structured_2d( const char* file )
   bool bval = read_file( &instance, file ); CHECK(bval);
   bval = check_elements( &instance, MBQUAD, 9, 4, grid_3x3, 16, quad_structured_conn );
   CHECK(bval);
-  
+
   return true;
 }
 
@@ -1259,7 +1259,7 @@ bool test_structured_3d( const char* file )
   bool bval = read_file( &instance, file ); CHECK(bval);
   bval = check_elements( &instance, MBHEX, 8, 8, grid_2x2x2, 27, hex_structured_conn );
   CHECK(bval);
-  
+
   return true;
 }
 
@@ -1280,7 +1280,7 @@ const char two_quad_mesh[] =
    "4 1 2 5 4\n"
    "CELL_TYPES 2\n"
    "9 9\n";
-   
+
 const double two_quad_mesh_coords[] = {
   -1, 0, 0,
    0, 0, 0,
@@ -1292,7 +1292,7 @@ const int two_quad_mesh_conn[] = {
   0, 1, 4, 3,
   1, 2, 5, 4 };
 
-const int vertex_values[] = { 9, 3, 8, 2, 0, 6, 
+const int vertex_values[] = { 9, 3, 8, 2, 0, 6,
                               4, 1, 4, 1, 0, 3,
                               8, 6, 6, 4, 0, 2,
                               1, 2, 3, 4, 5, 6,
@@ -1302,7 +1302,7 @@ const int vertex_values[] = { 9, 3, 8, 2, 0, 6,
                               1, 3, 5, 7, 1, 3,
                               5, 8, 1, 9, 7, 4 };
 const int element_values[] = { 1001, 1002, 1004, 1003, 50, 60, 51, 61,
-                               1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 
+                               1, 2, 3, 4, 5, 6, 7, 8, 9, 0,
                                0, 9, 8, 7, 6, 5, 4, 3, 2, 1 };
 
 void write_data( char* file, size_t& len, DataType type, unsigned count, const int* vals )
@@ -1312,11 +1312,11 @@ void write_data( char* file, size_t& len, DataType type, unsigned count, const i
       for (unsigned i = 0; i < count; ++i)
         len += sprintf(file+len, "%d\n", abs(vals[i])%2);
       break;
-    case MB_TYPE_INTEGER: 
+    case MB_TYPE_INTEGER:
       for (unsigned i = 0; i < count; ++i)
         len += sprintf(file+len, "%d\n", vals[i]);
       break;
-    case MB_TYPE_DOUBLE: 
+    case MB_TYPE_DOUBLE:
       for (unsigned i = 0; i < count; ++i)
         len += sprintf(file+len, "%f\n", (double)vals[i]);
       break;
@@ -1336,12 +1336,12 @@ bool check_tag_values( Interface* iface,
 {
   Tag tag;
   ErrorCode rval = iface->tag_get_handle( "data", tag_length, tag_type, tag ); CHECK(rval);
-  
+
   int size, *intptr;
   double* dblptr;
   rval = iface->tag_get_bytes( tag, size ); CHECK(rval);
   std::vector<unsigned char> data( size * num_entities );
-  
+
   switch (tag_type) {
     case MB_TYPE_BIT:
       rval = iface->tag_get_length( tag, size ); CHECK(rval);
@@ -1360,24 +1360,24 @@ bool check_tag_values( Interface* iface,
     case MB_TYPE_OPAQUE:
       rval = iface->tag_get_data( tag, entities, num_entities, &data[0] ); CHECK(rval);
       CHECK( tag_length == size );
-      for (int i = 0; i < num_entities; ++i) 
-        for (int j = 0; j < tag_length; ++j, ++values) 
+      for (int i = 0; i < num_entities; ++i)
+        for (int j = 0; j < tag_length; ++j, ++values)
           CHECK( (unsigned)(*values % 256) == data[i*tag_length+j] );
       break;
     case MB_TYPE_INTEGER:
       rval = iface->tag_get_data( tag, entities, num_entities, &data[0] ); CHECK(rval);
       CHECK( tag_length*sizeof(int) == (unsigned)size );
       intptr = reinterpret_cast<int*>(&data[0]);
-      for (int i = 0; i < num_entities; ++i) 
-        for (int j = 0; j < tag_length; ++j, ++values) 
+      for (int i = 0; i < num_entities; ++i)
+        for (int j = 0; j < tag_length; ++j, ++values)
           CHECK( *values == intptr[i*tag_length+j] );
       break;
     case MB_TYPE_DOUBLE:
       rval = iface->tag_get_data( tag, entities, num_entities, &data[0] ); CHECK(rval);
       CHECK( tag_length*sizeof(double) == (unsigned)size );
       dblptr = reinterpret_cast<double*>(&data[0]);
-      for (int i = 0; i < num_entities; ++i) 
-        for (int j = 0; j < tag_length; ++j, ++values) 
+      for (int i = 0; i < num_entities; ++i)
+        for (int j = 0; j < tag_length; ++j, ++values)
           CHECK( *values == dblptr[i*tag_length+j] );
       break;
     default:
@@ -1390,10 +1390,10 @@ bool check_tag_values( Interface* iface,
 bool check_tag_values( Interface* iface, DataType type, int vals_per_ent )
 {
   EntityHandle vert_handles[6], elem_handles[2];
-  bool rval = match_vertices_and_elements( iface, MBQUAD, 6, 2, 4, 
+  bool rval = match_vertices_and_elements( iface, MBQUAD, 6, 2, 4,
                            two_quad_mesh_coords, two_quad_mesh_conn,
                            vert_handles, elem_handles ); CHECK(rval);
-  
+
   rval = check_tag_values( iface, type, vals_per_ent, 6, vert_handles, vertex_values );
   CHECK(rval);
   rval = check_tag_values( iface, type, vals_per_ent, 2, elem_handles, element_values );
@@ -1405,7 +1405,7 @@ bool check_tag_data( const char* file, DataType type, int vals_per_ent )
 {
   bool bval;
   Core instance1, instance2;
-  
+
   bval = read_file( &instance1, file ); CHECK(bval);
   bval = check_tag_values( &instance1, type, vals_per_ent ); CHECK(bval);
   bval = write_and_read( &instance1, &instance2 ); CHECK(bval);
@@ -1426,9 +1426,9 @@ bool test_scalar_attrib(const char* vtk_type, DataType mb_type, int count)
   len += sprintf(file+len, "SCALARS data %s %d\n", vtk_type, count );
   len += sprintf(file+len, "LOOKUP_TABLE default\n");
   write_data( file, len, mb_type, 2*count, element_values );
-  
+
   return check_tag_data( file, mb_type, count );
-} 
+}
 
 bool test_vector_attrib( const char* vtk_type, DataType mb_type )
 {
@@ -1441,9 +1441,9 @@ bool test_vector_attrib( const char* vtk_type, DataType mb_type )
   len += sprintf(file+len, "CELL_DATA 2\n");
   len += sprintf(file+len, "VECTORS data %s\n", vtk_type );
   write_data( file, len, mb_type, 2*3, element_values );
-  
+
   return check_tag_data( file, mb_type, 3 );
-} 
+}
 
 bool test_tensor_attrib( const char* vtk_type, DataType mb_type )
 {
@@ -1456,16 +1456,16 @@ bool test_tensor_attrib( const char* vtk_type, DataType mb_type )
   len += sprintf(file+len, "CELL_DATA 2\n");
   len += sprintf(file+len, "TENSORS data %s\n", vtk_type );
   write_data( file, len, mb_type, 2*9, element_values );
-  
+
   return check_tag_data( file, mb_type, 9 );
-} 
+}
 
 bool test_subset()
 {
   Core moab_inst;
   Interface& moab = moab_inst;
   ErrorCode rval;
-  
+
     // create 9 nodes in grid pattern
   EntityHandle verts[9];
   const double coords[][3] = { { 0, 0, 0 },
@@ -1481,7 +1481,7 @@ bool test_subset()
     rval = moab.create_vertex(coords[i], verts[i]);
     assert(MB_SUCCESS == rval);
   }
-  
+
     // create 4 quad elements in grid pattern
   const int conn[][4] = { { 0, 1, 4, 3 },
                           { 1, 2, 5, 4 },
@@ -1494,14 +1494,14 @@ bool test_subset()
     rval = moab.create_element( MBQUAD, econn, 4, elems[i] );
     assert(MB_SUCCESS == rval);
   }
-  
+
     // create 3 meshsets
   EntityHandle sets[3];
   for (unsigned i = 0;i < 3; ++i) {
     rval = moab.create_meshset( 0, sets[i] );
     assert(MB_SUCCESS == rval);
   }
-  
+
     // add element 3 to set 0
   rval = moab.add_entities( sets[0], elems+3, 1 );
   assert(MB_SUCCESS == rval);
@@ -1511,26 +1511,26 @@ bool test_subset()
     // add element 2 and 3 to set 2
   rval = moab.add_entities( sets[2], elems+2, 2 );
   assert(MB_SUCCESS == rval);
-  
+
     // make set 2 a child of set 1
   rval = moab.add_child_meshset( sets[1], sets[2] );
   assert(MB_SUCCESS == rval);
     // put set 1 in set 0
   rval = moab.add_entities( sets[0], sets+1, 1 );
   assert(MB_SUCCESS == rval);
-  
+
     // write sets[0] to vtk file
   rval = moab.write_mesh(  "tmp_file.vtk", sets, 1 );
   CHECK(rval);
-   
+
     // read data back in
   moab.delete_mesh();
   rval = moab.load_mesh( "tmp_file.vtk" );
   remove( "tmp_file.vtk" );
   CHECK(rval);
-  
+
     // writer should have written all three sets,
-    // so the resulting mesh should be elems[2], elems[3], 
+    // so the resulting mesh should be elems[2], elems[3],
     // and verts[2]
   Range new_elems, new_verts;
   rval = moab.get_entities_by_type( 0, MBQUAD, new_elems );
@@ -1539,7 +1539,7 @@ bool test_subset()
   rval = moab.get_entities_by_type( 0, MBVERTEX, new_verts );
   CHECK(rval);
   CHECK( new_verts.size() == 7 );
-  
+
     // vertex not in element closure should have coords of 2,0,0
   Range elem_verts;
   rval = moab.get_adjacencies( new_elems, 0, false, elem_verts, Interface::UNION );
@@ -1552,7 +1552,7 @@ bool test_subset()
   CHECK( vcoords[0] == 2 );
   CHECK( vcoords[1] == 0 );
   CHECK( vcoords[2] == 0 );
-  
+
   return true;
 }
 
@@ -1642,17 +1642,17 @@ bool test_unstructured_field()
     }
     file_data << line << std::endl;
   }
-  
+
   Core core;
   Interface& mb = core;
   bool rval = read_file(&mb, file_data.str().c_str());
   CHECK(rval);
 
   EntityHandle vert_handles[6], elem_handles[2];
-  rval = match_vertices_and_elements( &mb, MBQUAD, 6, 2, 4, 
+  rval = match_vertices_and_elements( &mb, MBQUAD, 6, 2, 4,
                        two_quad_mesh_coords, two_quad_mesh_conn,
-                       vert_handles, elem_handles ); 
+                       vert_handles, elem_handles );
   CHECK(rval);
-  
+
   return true;
 }

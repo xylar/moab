@@ -553,7 +553,7 @@ void iRel_rmvSetRelation(
 
 void iRel_rmvEntArrRelation(
   iRel_Instance instance,
-  /*in*/ iRel_PairHandle pair,    
+  /*in*/ iRel_PairHandle pair,
   /*in*/ iBase_EntityHandle *ent_array,
   /*in*/ int num_ent,
   /*in*/ int switch_order,
@@ -567,7 +567,7 @@ void iRel_rmvEntArrRelation(
 
 void iRel_rmvSetArrRelation(
   iRel_Instance instance,
-  /*in*/ iRel_PairHandle pair,    
+  /*in*/ iRel_PairHandle pair,
   /*in*/ iBase_EntitySetHandle *entset_array,
   /*in*/ int num_ent,
   /*in*/ int switch_order,

@@ -1,9 +1,9 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2004 Sandia Corporation and Argonne National
-    Laboratory.  Under the terms of Contract DE-AC04-94AL85000 
-    with Sandia Corporation, the U.S. Government retains certain 
+    Laboratory.  Under the terms of Contract DE-AC04-94AL85000
+    with Sandia Corporation, the U.S. Government retains certain
     rights in this software.
 
     This library is free software; you can redistribute it and/or
@@ -16,19 +16,19 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
-    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov, 
-    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov      
-   
+
+    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov,
+    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov
+
   ***************************************************************** */
 // -*- Mode : c++; tab-width: 2; c-tab-always-indent: t; indent-tabs-mode: nil; c-basic-offset: 2 -*-
 //
 /*!
   \file   MeshInterface.hpp
-  \brief  
+  \brief
 
   \author Thomas Leurent
   \date   2003-04-17
@@ -72,17 +72,17 @@ private:
   CPPUNIT_TEST_SUITE_END();
 
 private:
-  MBMesquite::MeshImpl *mMesh; 
+  MBMesquite::MeshImpl *mMesh;
   std::vector<MBMesquite::Mesh::VertexHandle> mConnectivity;
   std::vector<MBMesquite::Mesh::VertexHandle> mVertices;
   std::vector<MBMesquite::Mesh::ElementHandle> mElements;
   std::vector<size_t> mOffsets;
   MBMesquite::MsqError mErr;
-  
+
 public:
 
-  MeshInterfaceTest() 
-    : mMesh(0) 
+  MeshInterfaceTest()
+    : mMesh(0)
     {}
 
    /* Automatically called by CppUnit before each test function. */
@@ -102,7 +102,7 @@ public:
                                            mOffsets,
                                            mErr );
     CPPUNIT_ASSERT(!mErr);
-    
+
       // Construct list of vertices w/out duplicates from
       // connectivity list.
     std::vector<MBMesquite::Mesh::VertexHandle>::iterator new_end;
@@ -111,7 +111,7 @@ public:
     new_end = std::unique( mVertices.begin(), mVertices.end() );
     mVertices.resize( new_end - mVertices.begin() );
   }
-  
+
     // Automatically called by CppUnit after each test function.
   void tearDown()
   {
@@ -120,16 +120,16 @@ public:
     if(mErr) cout << mErr << endl;
     mErr.clear();
   }
-  
+
 public:
-  
+
   void test_get_geometric_dimension()
   {
     int d = mMesh->get_geometric_dimension(mErr);
     CPPUNIT_ASSERT_EQUAL(d,3);
   }
 
-  
+
   void test_vertices()
   {
     size_t nbVert = mVertices.size();
@@ -192,18 +192,18 @@ public:
     size_t nbVert = mVertices.size();
     size_t i;
 	unsigned char* bytes = new unsigned char[nbVert];
-    mMesh->vertices_get_byte(arrptr(mVertices), bytes, nbVert, mErr); 
+    mMesh->vertices_get_byte(arrptr(mVertices), bytes, nbVert, mErr);
     CPPUNIT_ASSERT(!mErr);
 
-    // Asserts all vertex bytes are initialised to 0. 
+    // Asserts all vertex bytes are initialised to 0.
     for (i=0; i<nbVert; ++i)
       CPPUNIT_ASSERT(bytes[i] == 0);
 
     // Test various vertex byte read / write routines.
     bytes[3] |= 4;
-    mMesh->vertices_set_byte(arrptr(mVertices), bytes, nbVert, mErr); 
+    mMesh->vertices_set_byte(arrptr(mVertices), bytes, nbVert, mErr);
     CPPUNIT_ASSERT(!mErr);
-    mMesh->vertex_set_byte(mVertices[5], 8, mErr); 
+    mMesh->vertex_set_byte(mVertices[5], 8, mErr);
     CPPUNIT_ASSERT(!mErr);
     unsigned char byte;
     mMesh->vertex_get_byte(mVertices[3], &byte, mErr);
@@ -223,7 +223,7 @@ public:
     delete [] bytes;
   }
 
-  
+
   void test_vertex_get_attached_elements()
   {
 	  size_t i;
@@ -240,7 +240,7 @@ public:
     CPPUNIT_ASSERT_EQUAL(offsets.size(), mVertices.size() + 1);
 
     // checks we have 6 vertices contained in 1 element only
-    // and 3 vertices contained in 3 elements. 
+    // and 3 vertices contained in 3 elements.
     int n1=0;
     int n3=0;
     for (i = 1; i <= mVertices.size(); ++i)
@@ -250,7 +250,7 @@ public:
         ++n1;
       else if (nev==3)
         ++n3;
-      else // failure. 
+      else // failure.
         CPPUNIT_ASSERT(false);
     }
     CPPUNIT_ASSERT(n1==6);
@@ -277,21 +277,21 @@ public:
     //CPPUNIT_ASSERT(elem!=0);
 
   }
-  
+
   void test_elements()
   {
     CPPUNIT_ASSERT_EQUAL(4,(int)mElements.size());
 
-    
+
   }
 
 
   void test_elements_get_attached_vertices()
   {
     const size_t nbElem = mElements.size();
-     
-    // checks we have 3 elements containing 4 vertices 
-    // and 1 element containing 3 vertices. 
+
+    // checks we have 3 elements containing 4 vertices
+    // and 1 element containing 3 vertices.
     int n3=0;
     int n4=0;
 	size_t i;
@@ -301,13 +301,13 @@ public:
         ++n3;
       else if (nve==4)
         ++n4;
-      else // failure. 
+      else // failure.
         CPPUNIT_ASSERT(false);
     }
     CPPUNIT_ASSERT(n3==1); // 1 triangle
     CPPUNIT_ASSERT(n4==3); // 3 quads
 
-    
+
     // Make sure CSR data is valid
     std::map<MBMesquite::Mesh::VertexHandle,int> vtx_repeated_occurence;
     for (i = 0; i < mVertices.size(); ++i)
@@ -326,7 +326,7 @@ public:
     CPPUNIT_ASSERT( mOffsets[4] == 15 );
   }
 
-  
+
   void test_elements_get_topology()
   {
     const size_t nbElem = mElements.size();
@@ -384,17 +384,17 @@ public:
     std::vector<MBMesquite::MsqVertex>::iterator tri_iter;
     for (tri_iter = tri_coords.begin(); tri_iter != tri_coords.end(); ++tri_iter)
     {
-      for (correct_iter = correct_coords.begin(); 
-           correct_iter != correct_coords.end(); 
+      for (correct_iter = correct_coords.begin();
+           correct_iter != correct_coords.end();
            ++correct_iter)
       {
-        if (Mesquite::Vector3D::distance_between(*tri_iter, *correct_iter) < 10e-4)   
+        if (Mesquite::Vector3D::distance_between(*tri_iter, *correct_iter) < 10e-4)
           break;
       }
-      
+
       // check if a match was found
       CPPUNIT_ASSERT( correct_iter != correct_coords.end() );
-      
+
       // remove match from list
       correct_coords.erase( correct_iter );
     }

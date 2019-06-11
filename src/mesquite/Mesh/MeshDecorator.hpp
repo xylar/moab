@@ -1,8 +1,8 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
-    Copyright 2006 Lawrence Livermore National Laboratory.  Under 
-    the terms of Contract B545069 with the University of Wisconsin -- 
+    Copyright 2006 Lawrence Livermore National Laboratory.  Under
+    the terms of Contract B545069 with the University of Wisconsin --
     Madison, Lawrence Livermore National Laboratory retains certain
     rights in this software.
 
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2006) kraftche@cae.wisc.edu    
+    (2006) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file MeshDecorator.hpp
  *  \brief Definition of MBMesquite::MeshDecorator class
- *  \author Jason Kraftcheck 
+ *  \author Jason Kraftcheck
  */
 
 #ifndef MSQ_MESH_DECORATOR_HPP
@@ -43,31 +43,31 @@ namespace MBMesquite {
  * This is a utility class that to assist with implementing decorators
  * for the MBMesquite::Mesh interface.  This class implements a "dumb"
  * decorator that passes all operations to its underlying (decorated)
- * Mesh instance unchanged.  The intention is that useful decorators 
+ * Mesh instance unchanged.  The intention is that useful decorators
  * subclass this class, overriding only those functions for which they
  * modify the behavioir.
  */
 class MESQUITE_EXPORT MeshDecorator : public Mesh
 {
   private:
-  
+
     Mesh* myMesh;          //< The actual Mesh this instance decorates
-  
+
   protected:
-  
+
     void set_mesh( Mesh* mesh );
-  
+
   public:
-  
+
     MeshDecorator();
     MeshDecorator( Mesh* real_mesh );
-    
+
     virtual ~MeshDecorator();
-    
+
     /**\brief Get the real Mesh instance */
     Mesh* get_mesh( ) const { return myMesh; }
-    
-    
+
+
 //************ Operations on entire mesh ****************
 
     virtual int get_geometric_dimension(MsqError &err);
@@ -80,14 +80,14 @@ class MESQUITE_EXPORT MeshDecorator : public Mesh
 
 //************ Vertex Properties ********************
 
-    virtual void vertices_get_fixed_flag( const VertexHandle vert_array[], 
+    virtual void vertices_get_fixed_flag( const VertexHandle vert_array[],
                                           std::vector<bool>& fixed_flag_array,
-                                          size_t num_vtx, 
+                                          size_t num_vtx,
                                           MsqError &err );
 
-    virtual void vertices_get_slaved_flag( const VertexHandle vert_array[], 
+    virtual void vertices_get_slaved_flag( const VertexHandle vert_array[],
                                            std::vector<bool>& slaved_flag_array,
-                                           size_t num_vtx, 
+                                           size_t num_vtx,
                                            MsqError &err );
 
     virtual void vertices_get_coordinates( const VertexHandle vert_array[],
@@ -100,41 +100,41 @@ class MESQUITE_EXPORT MeshDecorator : public Mesh
                                          MsqError &err );
 
     virtual void vertex_set_byte( VertexHandle vertex,
-                                  unsigned char byte, 
+                                  unsigned char byte,
                                   MsqError &err);
 
     virtual void vertices_set_byte( const VertexHandle *vert_array,
                                     const unsigned char *byte_array,
-                                    size_t array_size, 
+                                    size_t array_size,
                                     MsqError &err );
 
     virtual void vertex_get_byte( const VertexHandle vertex,
-                                  unsigned char *byte, 
+                                  unsigned char *byte,
                                   MsqError &err );
 
     virtual void vertices_get_byte( const VertexHandle *vertex,
                                     unsigned char *byte_array,
-                                    size_t array_size, 
+                                    size_t array_size,
                                     MsqError &err );
-    
-//**************** Vertex Topology *****************    
 
-    virtual void vertices_get_attached_elements( 
+//**************** Vertex Topology *****************
+
+    virtual void vertices_get_attached_elements(
                          const VertexHandle* vertex_array,
                          size_t num_vertex,
                          std::vector<ElementHandle>& elements,
                          std::vector<size_t>& offsets,
                          MsqError& err );
-    
+
 //*************** Element Topology *************
 
     virtual void elements_get_attached_vertices(
                                    const ElementHandle *elem_handles,
                                    size_t num_elems,
                                    std::vector<VertexHandle>& vert_handles,
-                                   std::vector<size_t>& offsets, 
+                                   std::vector<size_t>& offsets,
                                    MsqError &err);
-    
+
 
     virtual void elements_get_topologies(const ElementHandle *element_handle_array,
                                          EntityTopology *element_topologies,
@@ -149,7 +149,7 @@ class MESQUITE_EXPORT MeshDecorator : public Mesh
 
     virtual void tag_delete( TagHandle handle, MsqError& err );
 
-    virtual TagHandle tag_get( const std::string& name, 
+    virtual TagHandle tag_get( const std::string& name,
                                MsqError& err );
 
     virtual void tag_properties( TagHandle handle,
@@ -182,11 +182,11 @@ class MESQUITE_EXPORT MeshDecorator : public Mesh
                                        void* tag_data,
                                        MsqError& err );
 
-    
+
 //**************** Memory Management ****************
 
     virtual void release_entity_handles( const EntityHandle *handle_array,
-                                         size_t num_handles, 
+                                         size_t num_handles,
                                          MsqError &err);
 
     virtual void release();

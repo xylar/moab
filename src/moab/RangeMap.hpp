@@ -1,16 +1,16 @@
 /*
  * MOAB, a Mesh-Oriented datABase, is a software component for creating,
  * storing and accessing finite element mesh data.
- * 
+ *
  * Copyright 2004 Sandia Corporation.  Under the terms of Contract
  * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
  * retains certain rights in this software.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  */
 
 /**\file RangeMap.hpp
@@ -26,7 +26,7 @@
 
 namespace moab {
 
-/**\brief Map ranges of values 
+/**\brief Map ranges of values
  *
  * This class provides a map between ranges of values, such as
  * a map between file IDs and EntityHandles.  It is intended
@@ -34,7 +34,7 @@ namespace moab {
  * of large contiguous ranges of values.
  */
 template <typename KeyType, typename ValType, ValType NullVal = 0>
-class RangeMap 
+class RangeMap
 {
 public:
   typedef KeyType key_type;
@@ -49,18 +49,18 @@ public:
   typedef typename std::vector<Range> RangeList;
   typedef typename RangeList::const_iterator iterator;
   typedef typename RangeList::const_iterator const_iterator;
-  
+
   inline bool empty() const
     { return data.empty(); }
-    
+
   inline const Range& back() const
     { return data.back(); }
   inline const Range& front() const
     { return data.front(); }
-  
+
   /**\brief Insert mapping between range of keys and range of values
-   * 
-   * Insert mapping from [first_key, first_key+count) to [first_val, first_val+count) 
+   *
+   * Insert mapping from [first_key, first_key+count) to [first_val, first_val+count)
    *
    * Input range of keys many not overlap any other input range.  If it does overlap
    * an existing range, the second value of the pair will be returned as false
@@ -68,26 +68,26 @@ public:
    */
   inline std::pair<iterator,bool>
   insert( KeyType first_key, ValType first_val, KeyType count );
-  
+
   /**\brief Insert mapping between range of keys and range of values
-   * 
-   * Insert mapping from [first_key, first_key+count) to [first_val, first_val+count) 
+   *
+   * Insert mapping from [first_key, first_key+count) to [first_val, first_val+count)
    *
    * Input range of keys many not overlap any other input range.  If it does overlap
    * an existing range, the second value of the pair will be returned as false
    * and the iterator will point to (one of) the overlapping ranges.
    */
   inline bool merge( const RangeMap<KeyType,ValType,NullVal>& other );
-  
+
   /** Find the value corresponding to the specified key.  Returns NullVal if not found */
   inline ValType find( KeyType key ) const;
-  
+
   /** Find the value corresponding to the specified key.  Returns false if not found */
   inline bool find( KeyType key, ValType& val_out ) const;
-  
+
   /** Check if range contains key */
   inline bool exists( KeyType key ) const;
-  
+
   /** Check if range contains key */
   inline bool intersects( KeyType start, KeyType count ) const;
 
@@ -95,53 +95,53 @@ public:
   inline iterator erase( KeyType beg, KeyType count );
 
   inline unsigned num_ranges() const { return data.size(); }
-  
+
   inline iterator begin() const { return data.begin(); }
   inline iterator end() const { return data.end(); }
-  inline iterator lower_bound( KeyType key ) const 
-    { 
-      Range b = { key, 1, NullVal }; 
+  inline iterator lower_bound( KeyType key ) const
+    {
+      Range b = { key, 1, NullVal };
       return std::lower_bound( begin(), end(), b );
     }
   static inline iterator lower_bound( iterator s, iterator e, KeyType key )
-    { 
-      Range b = { key, 1, NullVal }; 
+    {
+      Range b = { key, 1, NullVal };
       return std::lower_bound( s, e, b );
     }
   inline iterator upper_bound( KeyType key ) const
-    { 
-      Range b = { key, 1, NullVal }; 
+    {
+      Range b = { key, 1, NullVal };
       return std::upper_bound( begin(), end(), b );
     }
   static inline iterator upper_bound( iterator s, iterator e, KeyType key )
-    { 
-      Range b = { key, 1, NullVal }; 
+    {
+      Range b = { key, 1, NullVal };
       return std::upper_bound( s, e, b );
     }
   inline std::pair<iterator,iterator>
     equal_range( KeyType key ) const
-    { 
-      Range b = { key, 1, NullVal }; 
+    {
+      Range b = { key, 1, NullVal };
       return std::equal_range( begin(), end(), b );
     }
-    
+
   inline void clear() { data.clear(); }
 
 protected:
   RangeList data;
 };
 
-template <typename KeyType, typename ValType, ValType NullVal> 
+template <typename KeyType, typename ValType, ValType NullVal>
 inline std::pair<typename RangeMap<KeyType,ValType,NullVal>::iterator,bool>
 RangeMap<KeyType,ValType,NullVal>::insert( KeyType first_key, ValType first_val, KeyType count )
 {
   Range block = { first_key, count, first_val };
   typename RangeList::iterator i = std::lower_bound( data.begin(), data.end(), block );
-  
+
   if (i == data.end()) {
     if (i != data.begin()) {
       --i;
-      if (i->begin + i->count == first_key && 
+      if (i->begin + i->count == first_key &&
           i->value + i->count == first_val) {
         i->count += count;
         return std::pair<iterator,bool>(i,true);
@@ -150,10 +150,10 @@ RangeMap<KeyType,ValType,NullVal>::insert( KeyType first_key, ValType first_val,
     data.push_back( block );
     return std::pair<iterator,bool>(data.end() - 1,true);
   }
-  
+
   if (i->begin < first_key + count)
     return std::pair<iterator,bool>(i,false);
-  
+
   if (i->begin == first_key + count &&
       i->value == first_val + count) {
     i->begin = first_key;
@@ -172,7 +172,7 @@ RangeMap<KeyType,ValType,NullVal>::insert( KeyType first_key, ValType first_val,
     }
     return std::pair<iterator,bool>(i,true);
   }
-  
+
   if (i != data.begin()) {
     --i;
     if (i->begin + i->count == first_key &&
@@ -182,7 +182,7 @@ RangeMap<KeyType,ValType,NullVal>::insert( KeyType first_key, ValType first_val,
     }
     ++i;
   }
-  
+
   return std::pair<iterator,bool>(data.insert( i, block ),true);
 }
 
@@ -194,23 +194,23 @@ RangeMap<KeyType,ValType,NullVal>::merge( const RangeMap<KeyType,ValType,NullVal
     // grow map sufficiently to hold new ranges
   RangeList new_data;
   new_data.reserve( other.data.size() + data.size() );
-  
+
     // merge
   typename RangeList::const_iterator i = other.data.begin();
   typename RangeList::const_iterator j = data.begin();
   typename RangeList::const_iterator k;
   while (i != other.data.end() || j != data.end()) {
     if (j != data.end() && (i == other.data.end() || j->begin < i->begin)) {
-      k = j; 
+      k = j;
       ++j;
     }
     else if (i != other.data.end()) {
-      k = i; 
+      k = i;
       ++i;
     }
-      
+
       // check if we need to merge with the end of the previous block
-    if (new_data.empty()) 
+    if (new_data.empty())
       new_data.push_back(*k);
     else if (new_data.back().begin + new_data.back().count > k->begin)
       return false;
@@ -220,9 +220,9 @@ RangeMap<KeyType,ValType,NullVal>::merge( const RangeMap<KeyType,ValType,NullVal
     else
       new_data.push_back( *k );
   }
-  
+
   data.swap( new_data );
-  return true;    
+  return true;
 }
 
 template <typename KeyType, typename ValType, ValType NullVal> inline
@@ -232,7 +232,7 @@ ValType RangeMap<KeyType,ValType,NullVal>::find( KeyType key ) const
   typename RangeList::const_iterator i = std::lower_bound( data.begin(), data.end(), search );
   if (i == data.end() || i->begin > key)
     return NullVal;
-  
+
   return i->value + key - i->begin;
 }
 
@@ -245,7 +245,7 @@ bool RangeMap<KeyType,ValType,NullVal>::find( KeyType key, ValType& val ) const
     val = NullVal;
     return false;
   }
-  
+
   val = i->value + key - i->begin;
   return true;
 }
@@ -258,7 +258,7 @@ bool RangeMap<KeyType,ValType,NullVal>::exists( KeyType key ) const
   return i != data.end() && key >= i->begin;
 }
 
-template <typename KeyType, typename ValType, ValType NullVal> inline 
+template <typename KeyType, typename ValType, ValType NullVal> inline
 bool RangeMap<KeyType,ValType,NullVal>::intersects( KeyType start, KeyType count ) const
 {
   Range search = { start, count, NullVal };
@@ -273,10 +273,10 @@ RangeMap<KeyType,ValType,NullVal>::erase( KeyType key, KeyType count )
   Range search = { key, 1, NullVal };
   typename RangeList::iterator i, j;
   i = std::lower_bound( data.begin(), data.end(), search );
-  
+
   if (i == data.end())
     return i;
-  
+
   if (key > i->begin) {
     KeyType offset = key - i->begin;
       // special case - split existing entry
@@ -292,11 +292,11 @@ RangeMap<KeyType,ValType,NullVal>::erase( KeyType key, KeyType count )
     i->count = offset;
     ++i;
   }
-  
+
     // remove any entries entirely convered by the input range
   for (j = i; j != data.end() && (j->begin + j->count) <= (key + count); ++j);
   i = data.erase(i,j);
-  
+
     // remove beginning of last block
   if (i != data.end() && (key + count) >= i->begin) {
     KeyType offset = key + count - i->begin;
@@ -304,10 +304,10 @@ RangeMap<KeyType,ValType,NullVal>::erase( KeyType key, KeyType count )
     i->value += offset;
     i->count -= offset;
   }
-  
+
   return i;
 }
 
-} // namespace moab 
+} // namespace moab
 
 #endif

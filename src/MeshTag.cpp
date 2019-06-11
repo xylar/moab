@@ -1,5 +1,5 @@
 /** \file   MeshTag.cpp
- *  \author Jason Kraftcheck 
+ *  \author Jason Kraftcheck
  *  \date   2010-12-14
  */
 
@@ -175,7 +175,7 @@ ErrorCode MeshTag::set_data(SequenceManager*,
 
   return MB_SUCCESS;
 }
- 
+
 ErrorCode MeshTag::set_data(SequenceManager*,
                             Error* /* error */,
                             const Range& range,

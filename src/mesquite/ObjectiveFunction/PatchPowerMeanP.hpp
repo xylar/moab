@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2006 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
+
     (2006) kraftche@cae.wisc.edu
-   
+
   ***************************************************************** */
 
 
 /** \file PatchPowerMeanP.hpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #ifndef MSQ_PATCH_POWER_MEAN_P_HPP
@@ -45,57 +45,57 @@ namespace MBMesquite {
 class PatchPowerMeanP : public PMeanPTemplate
 {
   public:
-  
+
       /**
        *\param power   The exponent to use for the power-mean
        *\param qm      The quality metric.
        */
-    MESQUITE_EXPORT 
-    PatchPowerMeanP( double power, QualityMetric* qm = 0 ) 
+    MESQUITE_EXPORT
+    PatchPowerMeanP( double power, QualityMetric* qm = 0 )
       : PMeanPTemplate(power, qm) {}
-    
-      /**\brief copy constructor 
+
+      /**\brief copy constructor
        *
-       * Define a copy constructor because the compiler-provided 
+       * Define a copy constructor because the compiler-provided
        * default one would also copy the temporary arrays, which
        * would be a waste of time.
        */
     MESQUITE_EXPORT
     PatchPowerMeanP( const PatchPowerMeanP& copy )
       : PMeanPTemplate( copy ) {}
-    
+
     MESQUITE_EXPORT
-    virtual ~PatchPowerMeanP() 
+    virtual ~PatchPowerMeanP()
       {}
 
-    MESQUITE_EXPORT virtual 
-    bool initialize_block_coordinate_descent( Mesh* mesh, 
-                                              MeshDomain* domain, 
+    MESQUITE_EXPORT virtual
+    bool initialize_block_coordinate_descent( Mesh* mesh,
+                                              MeshDomain* domain,
                                               const Settings* settings,
                                               PatchSet* user_set,
                                               MsqError& err );
-    
-    MESQUITE_EXPORT virtual 
-    bool evaluate( EvalType type, 
+
+    MESQUITE_EXPORT virtual
+    bool evaluate( EvalType type,
                    PatchData& pd,
                    double& value_out,
                    bool free,
-                   MsqError& err ); 
+                   MsqError& err );
 
     MESQUITE_EXPORT virtual
-    bool evaluate_with_gradient( EvalType type, 
+    bool evaluate_with_gradient( EvalType type,
                                  PatchData& pd,
                                  double& value_out,
                                  std::vector<Vector3D>& grad_out,
-                                 MsqError& err ); 
-    
-    MESQUITE_EXPORT virtual 
-    bool evaluate_with_Hessian( EvalType type, 
+                                 MsqError& err );
+
+    MESQUITE_EXPORT virtual
+    bool evaluate_with_Hessian( EvalType type,
                                 PatchData& pd,
                                 double& value_out,
                                 std::vector<Vector3D>& grad_out,
                                 MsqHessian& Hessian_out,
-                                MsqError& err ); 
+                                MsqError& err );
 
     MESQUITE_EXPORT virtual ObjectiveFunction* clone() const;
 };

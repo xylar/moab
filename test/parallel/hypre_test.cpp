@@ -30,14 +30,14 @@ int main ( int argc, char *argv[] )
   int rank = 0;
 #endif
   MPI_Comm comm = MPI_COMM_WORLD;
-  
+
   moab::Core mbCore;
   moab::Interface& mb = mbCore;
 
   // rval = mb.load_file(example.c_str(), &euler_set, opts.c_str());
 
   moab::ParallelComm* pcomm = new moab::ParallelComm(&mb, comm);
-  
+
   moab::HypreParMatrix A ( pcomm );
   moab::HypreParVector x ( pcomm ), b ( pcomm ), xexact ( pcomm );
 #ifdef DEBUG

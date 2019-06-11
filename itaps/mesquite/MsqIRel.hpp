@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2009 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2009) kraftche@cae.wisc.edu    
+    (2009) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file MsqIRel.hpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #ifndef MSQ_MSQ_IREL_HPP
@@ -60,7 +60,7 @@ public:
 
   void element_normal_at( Mesh::ElementHandle entity_handle,
                           Vector3D& coordinate ) const;
-  
+
   void vertex_normal_at( const Mesh::VertexHandle* handles,
                          Vector3D coordinates[],
                          unsigned count,
@@ -76,14 +76,14 @@ public:
                    unsigned short* dof_array,
                    size_t num_vertices,
                    MsqError& err ) const;
-                      
+
 protected:
 
     /** Get geometric entity owning a mesh entity */
   int geom_from_mesh( Mesh::EntityHandle  mesh_handle_in,
                       iBase_EntityHandle& geom_handle_out,
                       int& geom_dimension_out ) const;
-  
+
   int geom_from_mesh( Mesh::EntityHandle const* mesh_handles_in,
                       iBase_EntityHandle      * geom_handles_out,
                       unsigned short* geom_dimensions_out,
@@ -94,7 +94,7 @@ private:
     /** ITAPS interface implementation for mesh->geometry association */
   iRel_Instance  relateIface;
   iRel_PairHandle relateInstance;
-  
+
     /** temporary storage of geometry entity handles */
   mutable std::vector<iBase_EntityHandle> geomHandles;
 };

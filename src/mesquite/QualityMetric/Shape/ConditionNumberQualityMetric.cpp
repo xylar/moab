@@ -1,9 +1,9 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2004 Sandia Corporation and Argonne National
-    Laboratory.  Under the terms of Contract DE-AC04-94AL85000 
-    with Sandia Corporation, the U.S. Government retains certain 
+    Laboratory.  Under the terms of Contract DE-AC04-94AL85000
+    with Sandia Corporation, the U.S. Government retains certain
     rights in this software.
 
     This library is free software; you can redistribute it and/or
@@ -16,17 +16,17 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
-    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov, 
-    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov      
-   
+
+    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov,
+    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov
+
   ***************************************************************** */
 /*!
   \file   ConditionNumberQualityMetric.cpp
-  \brief  
+  \brief
 
   \author Michael Brewer
   \date   2002-06-9
@@ -49,9 +49,9 @@ std::string ConditionNumberQualityMetric::get_name() const
 int ConditionNumberQualityMetric::get_negate_flag() const
   { return 1; }
 
-bool ConditionNumberQualityMetric::evaluate( PatchData& pd, 
-                                     size_t handle, 
-                                     double& fval, 
+bool ConditionNumberQualityMetric::evaluate( PatchData& pd,
+                                     size_t handle,
+                                     double& fval,
                                      MsqError& err )
 {
   const MsqMeshEntity *const element = &pd.element_by_index(handle);
@@ -164,30 +164,30 @@ bool ConditionNumberQualityMetric::evaluate( PatchData& pd,
       {
         adj_idx = TopologyInfo::adjacent_vertices( type, j, num_adj );
         assert( num_adj == 3 );
-        
+
         temp_vec[0] = vertices[v_i[adj_idx[0]]] - vertices[v_i[j]];
         temp_vec[1] = vertices[v_i[adj_idx[1]]] - vertices[v_i[j]];
           // calculate last vect map to right tetrahedron
         temp_vec[3] = vertices[v_i[adj_idx[2]]] - vertices[v_i[adj_idx[0]]];
         temp_vec[4] = vertices[v_i[adj_idx[2]]] - vertices[v_i[adj_idx[1]]];
         temp_vec[2] = 0.5 * (temp_vec[3] + temp_vec[4]);
-        
+
         return_flag = return_flag && condition_number_3d( temp_vec, pd, met_vals[j], err );
       }
       fval = average_metrics( met_vals, 4, err ); MSQ_ERRZERO(err);
       return return_flag;
     }
-    
+
     case PRISM:
     {
       unsigned num_adj;
       const unsigned* adj_idx;
       return_flag = true;
-      for (size_t j = 0; j < 6; ++j) 
+      for (size_t j = 0; j < 6; ++j)
       {
         adj_idx = TopologyInfo::adjacent_vertices( type, j, num_adj );
         assert( num_adj == 3 );
-        
+
         temp_vec[0] = vertices[v_i[adj_idx[0]]] - vertices[v_i[j]];
         temp_vec[1] = vertices[v_i[adj_idx[1]]] - vertices[v_i[j]];
         temp_vec[2] = vertices[v_i[adj_idx[2]]] - vertices[v_i[j]];
@@ -195,13 +195,13 @@ bool ConditionNumberQualityMetric::evaluate( PatchData& pd,
         temp_vec[1] += vertices[v_i[adj_idx[1]]];
         temp_vec[1] -= vertices[v_i[adj_idx[0]]];
         temp_vec[1] *= MSQ_SQRT_THREE_INV;
-        
+
         return_flag = return_flag && condition_number_3d( temp_vec, pd, met_vals[j], err );
       }
       fval = average_metrics( met_vals, 6, err ); MSQ_ERRZERO(err);
       return return_flag;
     }
-        
+
     default:
        MSQ_SETERR(err)( MsqError::UNSUPPORTED_ELEMENT,
                       "Unsupported cell type (%d) for Condition Number quality metric.",

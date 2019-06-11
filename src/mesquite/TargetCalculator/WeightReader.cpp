@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2006 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
+
     (2006) kraftche@cae.wisc.edu
-   
+
   ***************************************************************** */
 
 
 /** \file WeightReader.cpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -46,9 +46,9 @@ static TagHandle get_tag( Mesh* mesh,
 {
   std::ostringstream str;
   str << base_name << num_doubles;
-  
+
   TagHandle handle = mesh->tag_get( str.str().c_str(), err ); MSQ_ERRZERO(err);
-  
+
     // double check tag type
   std::string temp_name;
   Mesh::TagType temp_type;
@@ -62,12 +62,12 @@ static TagHandle get_tag( Mesh* mesh,
                     "Mismatched type or length for existing tag \"%s\"",
                      str.str().c_str() );
   }
-  
+
   return handle;
 }
-   
-  
-  
+
+
+
 
 WeightReader::WeightReader( std::string name )
   : tagBaseName(name) {}
@@ -82,8 +82,8 @@ double WeightReader::get_weight( PatchData &pd,
                                  MsqError& err )
 {
   WeightReaderData& data = get_data( pd );
-  
-    // calculate index of sample in array 
+
+    // calculate index of sample in array
   NodeSet all_samples = pd.get_samples( element );
   unsigned offset = all_samples.num_before( sample );
 
@@ -93,7 +93,7 @@ double WeightReader::get_weight( PatchData &pd,
   }
   const unsigned num_samples = all_samples.num_nodes();
   const unsigned handle_idx = num_samples - 1;
-  
+
     // get the tag handle
   const TagHandle INVALID_HANDLE = (TagHandle)-1;
   if (data.handles.size() <= handle_idx)
@@ -107,10 +107,10 @@ double WeightReader::get_weight( PatchData &pd,
     MSQ_ERRZERO(err);
     assert(tag_handle != INVALID_HANDLE);
   }
-  
+
     // get the tag data
   data.weights.resize( num_samples );
-  pd.get_mesh()->tag_get_element_data( tag_handle, 1, 
+  pd.get_mesh()->tag_get_element_data( tag_handle, 1,
                                        pd.get_element_handles_array() + element,
                                        &data.weights[0],
                                        err );
@@ -118,16 +118,16 @@ double WeightReader::get_weight( PatchData &pd,
     data.weights.clear();
     return false;
   }
-  
+
   data.elementIndex = element;
-  
+
   assert(offset < num_samples);
   return data.weights[offset];
 }
 
-  
-  
-  
+
+
+
 void WeightReader::notify_patch_destroyed( WeightReaderData& data )
 {
   data.handles.clear();
@@ -139,7 +139,7 @@ void WeightReader::notify_new_patch( PatchData&, WeightReaderData& data )
   data.weights.clear();
 }
 
-void WeightReader::notify_sub_patch( PatchData& /*pd*/, 
+void WeightReader::notify_sub_patch( PatchData& /*pd*/,
                                      WeightReaderData& data,
                                      PatchData& subpatch,
                                      const size_t* ,
@@ -147,7 +147,7 @@ void WeightReader::notify_sub_patch( PatchData& /*pd*/,
                                      MsqError& /*err*/ )
 {
   WeightReaderData& other = get_data(subpatch);
-  if (other.handles.empty()) 
+  if (other.handles.empty())
     other.handles = data.handles;
 }
 

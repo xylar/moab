@@ -1,16 +1,16 @@
 /**
  * MOAB, a Mesh-Oriented datABase, is a software component for creating,
  * storing and accessing finite element mesh data.
- * 
+ *
  * Copyright 2004 Sandia Corporation.  Under the terms of Contract
  * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
  * retains certain rights in this software.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  */
 
 /**
@@ -317,7 +317,7 @@ ErrorCode WriteSTL::binary_write_triangles(FILE* file,
   const bool swap_bytes = (want_big_endian == am_big_endian);
 
   if (triangles.size() > INT_MAX) // Can't write that many triangles
-    return MB_FAILURE;  
+    return MB_FAILURE;
 
   uint32_t count = (uint32_t)triangles.size();
   if (swap_bytes)

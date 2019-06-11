@@ -1,9 +1,9 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2004 Sandia Corporation and Argonne National
-    Laboratory.  Under the terms of Contract DE-AC04-94AL85000 
-    with Sandia Corporation, the U.S. Government retains certain 
+    Laboratory.  Under the terms of Contract DE-AC04-94AL85000
+    with Sandia Corporation, the U.S. Government retains certain
     rights in this software.
 
     This library is free software; you can redistribute it and/or
@@ -16,17 +16,17 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
-    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov, 
-    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov      
-   
+
+    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov,
+    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov
+
   ***************************************************************** */
 // -*- Mode : c++; tab-width: 3; c-tab-always-indent: t; indent-tabs-mode: nil; c-basic-offset: 3 -*-
 //
-//   SUMMARY: 
+//   SUMMARY:
 //     USAGE:
 //
 // ORIG-DATE: 19-Feb-02 at 10:57:52
@@ -68,23 +68,23 @@ int main()
   std::string file_name = TestDir + "/2D/vtk/quads/untangled/square_quad_2.vtk";
   mesh.read_vtk(file_name.c_str(), err);
   if (err) return 1;
-  
+
      //create geometry: plane z=0, normal (0,0,1)
   Vector3D pnt(0,0,5);
   Vector3D s_norm(0,0,1);
   MBMesquite::PlanarDomain msq_geom(s_norm, pnt);
-  
+
     // creates an intruction queue
   LaplaceWrapper laplacian_smoother;
-  
-  mesh.write_vtk("original_mesh.vtk", err); 
+
+  mesh.write_vtk("original_mesh.vtk", err);
   if (err) return 1;
-  
+
     // launches optimization on mesh_set1
   MeshDomainAssoc mesh_and_domain = MeshDomainAssoc(&mesh, &msq_geom);
-  laplacian_smoother.run_instructions(&mesh_and_domain, err); 
+  laplacian_smoother.run_instructions(&mesh_and_domain, err);
   if (err) return 1;
- 
-  mesh.write_vtk("smoothed_mesh.vtk", err); 
+
+  mesh.write_vtk("smoothed_mesh.vtk", err);
   if (err) return 1;
 }

@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2010 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2010) kraftche@cae.wisc.edu    
+    (2010) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file TMetricNonBarrier.hpp
- *  \brief 
- *  \author Boyd Tidwell 
+ *  \brief
+ *  \author Boyd Tidwell
  */
 
 #ifndef MSQ_T_METRIC_NON_BARRIER_HPP
@@ -41,8 +41,8 @@ namespace MBMesquite {
 
 class MsqError;
 template <unsigned R, unsigned C> class MsqMatrix;
-  
-class TMetricNonBarrier : public TMetric 
+
+class TMetricNonBarrier : public TMetric
 {
 public:
 
@@ -68,8 +68,8 @@ public:
      * This method always returns an error for 2D-only metrics
      */
   MESQUITE_EXPORT virtual
-  bool evaluate( const MsqMatrix<3,3>& T, 
-                 double& result, 
+  bool evaluate( const MsqMatrix<3,3>& T,
+                 double& result,
                  MsqError& err );
 };
 
@@ -85,8 +85,8 @@ public:
      * This method always returns an error for 3D-only metrics
      */
   MESQUITE_EXPORT virtual
-  bool evaluate( const MsqMatrix<2,2>& T, 
-                 double& result, 
+  bool evaluate( const MsqMatrix<2,2>& T,
+                 double& result,
                  MsqError& err );
 };
 

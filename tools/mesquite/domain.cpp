@@ -23,7 +23,7 @@ class SphereDomainArg : public CLArgs::DoubleListArgI
   std::vector<int>& dimList;
   public:
   SphereDomainArg( std::vector<MeshDomain*>& domlist,
-                   std::vector<int>& dims ) 
+                   std::vector<int>& dims )
     : domList(domlist), dimList( dims ) {}
   virtual bool value( const std::vector<double>& list );
 };
@@ -47,7 +47,7 @@ class ConicDomainArg : public CLArgs::DoubleListArgI
   std::vector<int>& dimList;
   public:
   ConicDomainArg( std::vector<MeshDomain*>& domlist,
-                     std::vector<int>& dims ) 
+                     std::vector<int>& dims )
     : domList(domlist), dimList( dims ) {}
   virtual bool value( const std::vector<double>& list );
 };
@@ -67,7 +67,7 @@ bool ConicDomainArg::value( const std::vector<double>& vals )
     axis[1] = vals[6];
     axis[2] = vals[7];
   }
-    
+
   domList.push_back( new ConicDomain( base_rad, height, axis, point ) );
   dimList.push_back( 2 );
   return true;
@@ -80,7 +80,7 @@ class CylinderDomainArg : public CLArgs::DoubleListArgI
   std::vector<int>& dimList;
   public:
   CylinderDomainArg( std::vector<MeshDomain*>& domlist,
-                     std::vector<int>& dims ) 
+                     std::vector<int>& dims )
     : domList(domlist), dimList( dims ) {}
   virtual bool value( const std::vector<double>& list );
 };
@@ -103,7 +103,7 @@ class PlanarDomainArg : public CLArgs::DoubleListArgI
   std::vector<int>& dimList;
   public:
   PlanarDomainArg( std::vector<MeshDomain*>& domlist,
-                   std::vector<int>& dims ) 
+                   std::vector<int>& dims )
     : domList(domlist), dimList( dims ) {}
   virtual bool value( const std::vector<double>& list );
 };
@@ -125,7 +125,7 @@ class LineDomainArg : public CLArgs::DoubleListArgI
   std::vector<int>& dimList;
   public:
   LineDomainArg( std::vector<MeshDomain*>& domlist,
-                   std::vector<int>& dims ) 
+                   std::vector<int>& dims )
     : domList(domlist), dimList( dims ) {}
   virtual bool value( const std::vector<double>& list );
 };
@@ -148,7 +148,7 @@ class CircleDomainArg : public CLArgs::DoubleListArgI
   std::vector<int>& dimList;
   public:
   CircleDomainArg( std::vector<MeshDomain*>& domlist,
-                   std::vector<int>& dims ) 
+                   std::vector<int>& dims )
     : domList(domlist), dimList( dims ) {}
   virtual bool value( const std::vector<double>& list );
 };
@@ -172,7 +172,7 @@ class PointDomainArg : public CLArgs::DoubleListArgI
   std::vector<int>& dimList;
   public:
   PointDomainArg( std::vector<MeshDomain*>& domlist,
-                  std::vector<int>& dims ) 
+                  std::vector<int>& dims )
     : domList(domlist), dimList( dims ) {}
   virtual bool value( const std::vector<double>& list );
 };
@@ -230,7 +230,7 @@ MeshDomain* process_domain_args( MeshImpl* mesh )
 {
   MsqPrintError err(std::cerr);
   MeshDomain* rval = 0;
-  
+
   if (!domains.empty()) {
     int max_domain_dim = *std::max_element( domain_dims.begin(), domain_dims.end() );
     std::vector<Mesh::ElementHandle> elems;
@@ -239,7 +239,7 @@ MeshDomain* process_domain_args( MeshImpl* mesh )
     mesh->elements_get_topologies( arrptr(elems), arrptr(types), elems.size(), err );
     EntityTopology max_type = *std::max_element( types.begin(), types.end() );
     int max_elem_dim = TopologyInfo::dimension( max_type );
-  
+
     if (max_domain_dim == max_elem_dim && domains.size() == 1) {
       rval = domains.front();
     }
@@ -273,6 +273,6 @@ MeshDomain* process_domain_args( MeshImpl* mesh )
     std::cerr << err << std::endl;
     exit( 3 );
   }
-  
+
   return rval;
 }

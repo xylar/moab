@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2009 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2009) kraftche@cae.wisc.edu    
+    (2009) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file TUntangle1.cpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -48,7 +48,7 @@ std::string TUntangle1::get_name() const
 
 
 template <unsigned DIM> inline
-bool TUntangle1::eval( const MsqMatrix<DIM,DIM>& T, 
+bool TUntangle1::eval( const MsqMatrix<DIM,DIM>& T,
                        double& result )
 {
   double tau = det(T);
@@ -57,8 +57,8 @@ bool TUntangle1::eval( const MsqMatrix<DIM,DIM>& T,
 }
 
 template <unsigned DIM> inline
-bool TUntangle1::grad( const MsqMatrix<DIM,DIM>& T, 
-                       double& result, 
+bool TUntangle1::grad( const MsqMatrix<DIM,DIM>& T,
+                       double& result,
                        MsqMatrix<DIM,DIM>& deriv_wrt_T )
 {
   double tau = det(T);
@@ -79,9 +79,9 @@ bool TUntangle1::grad( const MsqMatrix<DIM,DIM>& T,
 }
 
 template <unsigned DIM> inline
-bool TUntangle1::hess( const MsqMatrix<DIM,DIM>& T, 
-                       double& result, 
-                       MsqMatrix<DIM,DIM>& deriv_wrt_T, 
+bool TUntangle1::hess( const MsqMatrix<DIM,DIM>& T,
+                       double& result,
+                       MsqMatrix<DIM,DIM>& deriv_wrt_T,
                        MsqMatrix<DIM,DIM>* second_wrt_T )
 {
   const MsqMatrix<DIM,DIM> adjt = transpose_adj(T);
@@ -91,13 +91,13 @@ bool TUntangle1::hess( const MsqMatrix<DIM,DIM>& T,
     return false;
   double f = 0.5 * (tau/g - 1);
   result = 0.5 * (g - tau);
-  
+
   deriv_wrt_T = adjt;
   deriv_wrt_T *= f;
-  
+
   set_scaled_outer_product( second_wrt_T, 0.5*mFactor/(g*g*g), adjt );
   pluseq_scaled_2nd_deriv_of_det( second_wrt_T, f, T );
-  
+
   return true;
 }
 

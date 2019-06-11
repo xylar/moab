@@ -1,16 +1,16 @@
 /**
  * MOAB, a Mesh-Oriented datABase, is a software component for creating,
  * storing and accessing finite element mesh data.
- * 
+ *
  * Copyright 2004 Sandia Corporation.  Under the terms of Contract
  * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
  * retains certain rights in this software.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  */
 
 #ifndef AENTITY_FACTORY_HPP
@@ -29,7 +29,7 @@ typedef std::vector<EntityHandle> AdjacencyVector;
 class Core;
 
 //! class AEntityFactory
-class AEntityFactory 
+class AEntityFactory
 {
 public:
 
@@ -38,7 +38,7 @@ public:
 
   //! destructor
   ~AEntityFactory();
-  
+
 //! add an adjacency from from_ent to to_ent; if both_ways is true, add one
 //! in reverse too
 //! NOTE: this function is defined even though we may only be implementing
@@ -65,14 +65,14 @@ public:
  *\param target_entities  Requested adjacent entities will be appended to this list.
  *\param create_if_missing If true, adjacent elements of the specified dimension will
  *                        be created if they do not already exist.  If the target dimension
- *                        is less than the dimension of the input entity and greater than zero, the 
+ *                        is less than the dimension of the input entity and greater than zero, the
  *                        elements will be created as required to represent the "sides" of
  *                        the source element.  If the target dimension is greater than that
  *                        of the source entity and less than 3, then sides of the specified
  *                        dimension on that are a) of greater dimension and b) adjacent to
  *                        the input entity will be created.
- * \param create_adjacency_option If create_adjacency_option is >= 0, adjacencies from 
- *                        entities of that dimension to each target_entity are created 
+ * \param create_adjacency_option If create_adjacency_option is >= 0, adjacencies from
+ *                        entities of that dimension to each target_entity are created
  *                        (this function uses AEntityFactory::get_element for each element)
  */
   ErrorCode get_elements(EntityHandle source_entity,
@@ -83,11 +83,11 @@ public:
 
     //! get the vertices for a polyhedron (special implementation because for polyhedra
     //! connectivity array stores faces)
-  ErrorCode get_polyhedron_vertices(const EntityHandle source_entity, 
+  ErrorCode get_polyhedron_vertices(const EntityHandle source_entity,
                                       std::vector<EntityHandle> &target_entities);
-  
+
 //! get the meshsets that are in source_entitiy's adjacency vector
-  ErrorCode get_associated_meshsets( EntityHandle source_entity, 
+  ErrorCode get_associated_meshsets( EntityHandle source_entity,
                                         std::vector<EntityHandle> &target_entities );
 
 //! get the element defined by the vertices in vertex_list, of the
@@ -111,7 +111,7 @@ public:
    *\param entity            The source entity for which to retrieve adjacent entities.
    *\param to_dimension      The adjacent entities to retrieve, specified by dimension.
    *\param create_if_missing Create adjacent entities that do not already exist.
-   *\param adjacent_entities The resulting adjacent entities are appended to this 
+   *\param adjacent_entities The resulting adjacent entities are appended to this
    *                         list.
    */
   ErrorCode get_adjacencies(const EntityHandle entity,
@@ -123,15 +123,15 @@ public:
   ErrorCode get_adjacencies(EntityHandle entity,
                                const EntityHandle *&adjacent_entities,
                                int &num_entities) const;
-                               
+
   ErrorCode get_adjacencies( EntityHandle entity,
                                std::vector<EntityHandle>*& adj_vec_ptr_out,
                                bool create_if_missing = false );
-  
+
   //! returns the entities in sorted order
   ErrorCode get_adjacencies(EntityHandle entity,
                                std::vector<EntityHandle>& adjacent_entities) const;
-  
+
 
   //! creates vertex to element adjacency information
   ErrorCode create_vert_elem_adjacencies();
@@ -142,13 +142,13 @@ public:
   //! calling code notifying this that an entity is getting deleted
   ErrorCode notify_delete_entity(EntityHandle entity);
 
-  //! calling code notifying this that to update connectivity of 'entity' 
-  ErrorCode notify_create_entity(const EntityHandle entity, 
+  //! calling code notifying this that to update connectivity of 'entity'
+  ErrorCode notify_create_entity(const EntityHandle entity,
                                     const EntityHandle *node_array,
                                     const int number_nodes);
 
   //! calling code notifying that an entity changed its connectivity
-  ErrorCode notify_change_connectivity(EntityHandle entity, 
+  ErrorCode notify_change_connectivity(EntityHandle entity,
                                           const EntityHandle* old_array,
                                           const EntityHandle* new_array, int number_nodes);
 
@@ -158,23 +158,23 @@ public:
 
     //! in preparation for merging two entities, adjust adjacencies so that
     //! entity_to_keep will be adjacent to the "right" entities after merge
-    //! (also checks for potential formation of equivalent entities and 
+    //! (also checks for potential formation of equivalent entities and
     //! creates explicit adjacencies accordingly)
   ErrorCode merge_adjust_adjacencies(EntityHandle entity_to_keep,
                                        EntityHandle entity_to_remove);
-  
+
   void get_memory_use( unsigned long long& total_entity_storage,
                        unsigned long long& total_storage );
   ErrorCode get_memory_use( const Range& entities,
                               unsigned long long& total_entity_storage,
                               unsigned long long& total_amortized_storage );
-  
+
 private:
 
   ErrorCode get_adjacency_ptr( EntityHandle, std::vector<EntityHandle>*& );
   ErrorCode get_adjacency_ptr( EntityHandle, const std::vector<EntityHandle>*& ) const;
   ErrorCode set_adjacency_ptr( EntityHandle, std::vector<EntityHandle>* );
-  
+
   ErrorCode get_vertices( EntityHandle h,
                             const EntityHandle*& vect_out,
                             int& count_out,
@@ -188,11 +188,11 @@ private:
 
   //! whether vertex to element adjacencies are begin done
   bool mVertElemAdj;
-  
-  //! compare vertex_list to the vertices in this_entity, 
+
+  //! compare vertex_list to the vertices in this_entity,
   //!  and return true if they contain the same vertices
-  bool entities_equivalent(const EntityHandle this_entity, 
-                           const EntityHandle *vertex_list, 
+  bool entities_equivalent(const EntityHandle this_entity,
+                           const EntityHandle *vertex_list,
                            const int vertex_list_size,
                            const EntityType target_type);
 
@@ -224,13 +224,13 @@ private:
     //! create explicit adjacencies accordingly
   ErrorCode check_equiv_entities(EntityHandle entity_to_keep,
                                    EntityHandle entity_to_remove);
-  
+
     //! create explicit adjacencies between this_ent and all adjacent entities of higher
     //! dimension
   ErrorCode create_explicit_adjs(EntityHandle this_ent);
-  
+
 };
- 
+
 } // namespace moab
 
 #endif

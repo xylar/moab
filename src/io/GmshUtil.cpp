@@ -1,16 +1,16 @@
 /**
  * MOAB, a Mesh-Oriented datABase, is a software component for creating,
  * storing and accessing finite element mesh data.
- * 
+ *
  * Copyright 2004 Sandia Corporation.  Under the terms of Contract
  * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
  * retains certain rights in this software.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  */
 
 #include "GmshUtil.hpp"
@@ -19,24 +19,24 @@ namespace moab {
 
 // Indexed by position in Gmsh order, containing cooresponding
 // position in MOAB order.
-const int hex_27_node_order[] =  {  
+const int hex_27_node_order[] =  {
     0,  1,  2,  3,  4,  5,  6,  7,                 // corners
     8, 11, 12,  9, 13, 10, 14, 15, 16, 19, 17, 18, // edges
    24, 20, 23, 21, 22, 25,                         // faces
    26 };                                           // volume
-   
+
 const int tet_10_node_order[] = {
     0, 1, 2, 3,
     4, 5, 6,
     7, 9, 8 };
-    
+
 // Indexed by position in MOAB order, containing cooresponding
 // position in Gmsh order.
-const int pri_15_node_order[] = { 
+const int pri_15_node_order[] = {
     0,  1,  2,  3,  4,  5,            // corners
     6,  8,  9,  7, 10, 11, 12, 14, 13 // edges
     };
-const int pyr_13_node_order[] = { 
+const int pyr_13_node_order[] = {
     0,  1,  2,  3,  4,                // corners
     5,  8,  9,  6, 10,  7, 11, 12     // edges
     };
@@ -53,10 +53,10 @@ const GmshElemType GmshUtil::gmshElemTypes[] = {
       { "prism",                  6, MBPRISM,    6, 0 },
       { "pyramid",                7, MBPYRAMID,  5, 0 },
       { "2nd order line",         8, MBEDGE,     3, 0 },
-      { "2nd order triangle",     9, MBTRI,      6, 0 }, 
-      { "2nd order quadrangle",  10, MBQUAD,     9, 0 }, 
-      { "2nd order tetrahedron", 11, MBTET,     10, tet_10_node_order }, 
-      { "2nd order hexahedron",  12, MBHEX,     27, hex_27_node_order }, 
+      { "2nd order triangle",     9, MBTRI,      6, 0 },
+      { "2nd order quadrangle",  10, MBQUAD,     9, 0 },
+      { "2nd order tetrahedron", 11, MBTET,     10, tet_10_node_order },
+      { "2nd order hexahedron",  12, MBHEX,     27, hex_27_node_order },
       { "2nd order prism",       13, MBMAXTYPE,  0, 0 }, // prism w/ mid-face nodes on quads but not tris
       { "2nd order pyramid",     14, MBMAXTYPE,  0, 0 }, // pyramid w/ mid-face nodes on quad but not tris
       { "point",                 15, MBVERTEX,   1, 0 }, // point element (0-rad sphere element?) // will be skipped
@@ -81,7 +81,7 @@ const GmshElemType GmshUtil::gmshElemTypes[] = {
 
 const unsigned GmshUtil::numGmshElemType = sizeof(GmshUtil::gmshElemTypes) / sizeof(GmshUtil::gmshElemTypes[0]);
 
-// Define an array, indexed by EntityType and number of nodes, 
+// Define an array, indexed by EntityType and number of nodes,
 // containing the corresponding Gmsh element type.
 #define TWENTYEIGHT_ZEROS { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 const int MAX_NODES = 28;
@@ -109,7 +109,7 @@ int GmshUtil::get_gmsh_type( EntityType type, unsigned num_nodes )
   int idx = mb_to_gmsh_type[type][num_nodes];
   if (!idx)
     return -1;
-  
+
   return gmshElemTypes[idx].mb_type == MBMAXTYPE ? -1 : idx;
 }
 

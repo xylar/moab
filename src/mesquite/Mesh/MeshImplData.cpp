@@ -1,8 +1,8 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
-    Copyright 2004 Lawrence Livermore National Laboratory.  Under 
-    the terms of Contract B545069 with the University of Wisconsin -- 
+    Copyright 2004 Lawrence Livermore National Laboratory.  Under
+    the terms of Contract B545069 with the University of Wisconsin --
     Madison, Lawrence Livermore National Laboratory retains certain
     rights in this software.
 
@@ -16,12 +16,12 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
-    kraftche@cae.wisc.edu    
-   
+
+    kraftche@cae.wisc.edu
+
   ***************************************************************** */
 
 #include "MeshImplData.hpp"
@@ -37,7 +37,7 @@ namespace MBMesquite {
 const std::vector<size_t> dummy_list;
 const Vector3D dummy_vtx;
 
-size_t MeshImplData::num_vertices() const 
+size_t MeshImplData::num_vertices() const
 {
   size_t count = 0;
   for (std::vector<Vertex>::const_iterator iter = vertexList.begin();
@@ -77,7 +77,7 @@ const Vector3D& MeshImplData::get_vertex_coords( size_t index, MsqError& err ) c
     MSQ_SETERR(err)("Invalid vertex handle", MsqError::INVALID_ARG);
     return dummy_vtx;
   }
-  
+
   return vertexList[index].coords;
 }
 
@@ -88,7 +88,7 @@ bool MeshImplData::vertex_is_fixed( size_t index, MsqError& err ) const
     MSQ_SETERR(err)("Invalid vertex handle", MsqError::INVALID_ARG);
     return false;
   }
-  
+
   return vertexList[index].fixed;
 }
 
@@ -104,7 +104,7 @@ bool MeshImplData::vertex_is_slaved( size_t index, MsqError& err ) const
     MSQ_SETERR(err)("Slave flags not set", MsqError::INVALID_STATE);
     return false;
   }
-  
+
   return vertexList[index].slaved;
 }
 
@@ -115,7 +115,7 @@ void MeshImplData::fix_vertex( size_t index, bool flag, MsqError& err )
     MSQ_SETERR(err)("Invalid vertex handle", MsqError::INVALID_ARG);
     return;
   }
-  
+
   vertexList[index].fixed = flag;
 }
 
@@ -126,7 +126,7 @@ void MeshImplData::slave_vertex( size_t index, bool flag, MsqError& err )
     MSQ_SETERR(err)("Invalid vertex handle", MsqError::INVALID_ARG);
     return;
   }
-  
+
   vertexList[index].slaved = flag;
   haveSlavedFlags = true;
 }
@@ -139,7 +139,7 @@ unsigned char MeshImplData::get_vertex_byte( size_t index, MsqError& err ) const
     MSQ_SETERR(err)("Invalid vertex handle", MsqError::INVALID_ARG);
     return 0;
   }
-  
+
   return vertexList[index].byte;
 }
 
@@ -150,7 +150,7 @@ void MeshImplData::set_vertex_byte( size_t index, unsigned char value, MsqError&
     MSQ_SETERR(err)("Invalid vertex handle", MsqError::INVALID_ARG);
     return;
   }
-  
+
   vertexList[index].byte = value;
 }
 
@@ -172,18 +172,18 @@ void MeshImplData::element_topology( size_t index, EntityTopology type, MsqError
     MSQ_SETERR(err)("Invalid element handle", MsqError::INVALID_ARG);
     return ;
   }
-  
+
   unsigned i, numvert;
-  
+
   numvert = TopologyInfo::corners( elementList[index].topology );
-  if (numvert) 
+  if (numvert)
     for (i = numvert; i < elementList[index].connectivity.size(); ++i)
       --vertexList[elementList[index].connectivity[i]].midcount;
 
   elementList[index].topology = type;
-  
+
   numvert = TopologyInfo::corners( elementList[index].topology );
-  if (numvert) 
+  if (numvert)
     for (i = numvert; i < elementList[index].connectivity.size(); ++i)
       ++vertexList[elementList[index].connectivity[i]].midcount;
 }
@@ -207,7 +207,7 @@ const std::vector<size_t>& MeshImplData::vertex_adjacencies( size_t index, MsqEr
     MSQ_SETERR(err)("Invalid vertex handle", MsqError::INVALID_ARG);
     return dummy_list;
   }
-  
+
   return vertexList[index].adjacencies;
 }
 
@@ -227,7 +227,7 @@ void MeshImplData::allocate_vertices( size_t count, MsqError& err )
     MSQ_SETERR(err)(MsqError::INVALID_STATE);
     return;
   }
-  
+
   vertexList.resize(count);
 }
 
@@ -238,11 +238,11 @@ void MeshImplData::allocate_elements( size_t count, MsqError& err )
     MSQ_SETERR(err)(MsqError::INVALID_STATE);
     return;
   }
-  
+
   elementList.resize( count );
 }
 
-void MeshImplData::set_vertex_coords( size_t index, 
+void MeshImplData::set_vertex_coords( size_t index,
                                       const Vector3D& coords,
                                       MsqError& err )
 {
@@ -251,13 +251,13 @@ void MeshImplData::set_vertex_coords( size_t index,
     MSQ_SETERR(err)("Invalid vertex handle", MsqError::INVALID_ARG);
     return;
   }
-  
+
   vertexList[index].coords = coords;
 }
 
-void MeshImplData::reset_vertex( size_t index, 
+void MeshImplData::reset_vertex( size_t index,
                                  const Vector3D& coords,
-                                 bool fixed, 
+                                 bool fixed,
                                  MsqError& err )
 {
   if (index >= vertexList.size())
@@ -265,15 +265,15 @@ void MeshImplData::reset_vertex( size_t index,
     MSQ_SETERR(err)("Invalid vertex handle", MsqError::INVALID_ARG);
     return;
   }
-  
+
   Vertex& vert = vertexList[index];
-  
+
   if (!vert.adjacencies.empty())
   {
     MSQ_SETERR(err)("Cannot overwrite referenced vertex", MsqError::INVALID_STATE);
     return;
   }
-  
+
   vert.coords = coords;
   vert.fixed = fixed;
   vert.valid = true;
@@ -299,15 +299,15 @@ void MeshImplData::reset_element( size_t index,
 
 
 void MeshImplData::clear_element( size_t index, MsqError& err )
-{  
+{
   if (index >= elementList.size())
   {
     MSQ_SETERR(err)("Invalid element handle", MsqError::INVALID_ARG);
     return;
   }
-  
+
   unsigned numvert = TopologyInfo::corners( elementList[index].topology );
-  if (numvert) 
+  if (numvert)
     for (unsigned i = numvert; i < elementList[index].connectivity.size(); ++i)
       --vertexList[elementList[index].connectivity[i]].midcount;
 
@@ -334,7 +334,7 @@ void MeshImplData::set_element( size_t index,
                                 EntityTopology topology,
                                 MsqError& err )
 {
-  if (sizeof(long) == sizeof(size_t)) 
+  if (sizeof(long) == sizeof(size_t))
     set_element( index, *reinterpret_cast<const std::vector<size_t>*>(&vertices), topology, err );
   else {
     std::vector<size_t> conn(vertices.size());
@@ -356,7 +356,7 @@ void MeshImplData::set_element( size_t index,
 
   elementList[index].connectivity = vertices;
   elementList[index].topology = topology;
-  
+
   for (std::vector<size_t>::const_iterator iter = vertices.begin();
        iter != vertices.end(); ++iter)
   {
@@ -365,18 +365,18 @@ void MeshImplData::set_element( size_t index,
       MSQ_SETERR(err)("Invalid vertex handle", MsqError::INVALID_ARG);
       return;
     }
-    
+
     std::vector<size_t>& adj = vertexList[*iter].adjacencies;
     for (std::vector<size_t>::iterator iter2 = adj.begin();
          iter2 != adj.end(); ++iter2)
       if (*iter2 == index)
         return;
-    
+
     adj.push_back( index );
   }
-  
+
   unsigned numvert = TopologyInfo::corners( elementList[index].topology );
-  if (numvert) 
+  if (numvert)
     for (unsigned i = numvert; i < elementList[index].connectivity.size(); ++i)
       ++vertexList[elementList[index].connectivity[i]].midcount;
 }
@@ -384,7 +384,7 @@ void MeshImplData::set_element( size_t index,
 size_t MeshImplData::add_vertex( const Vector3D& coords, bool fixed, MsqError& err )
 {
   size_t index;
-  
+
   if (!deletedVertexList.empty())
   {
     index = deletedVertexList[deletedVertexList.size()-1];
@@ -396,7 +396,7 @@ size_t MeshImplData::add_vertex( const Vector3D& coords, bool fixed, MsqError& e
     index = vertexList.size();
     vertexList.push_back( Vertex(coords, fixed ) );
   }
-  
+
   return index;
 }
 
@@ -447,7 +447,7 @@ void MeshImplData::delete_vertex( size_t index, MsqError& err )
     MSQ_SETERR(err)("Invalid vertex handle", MsqError::INVALID_ARG);
     return;
   }
-  
+
   vertexList[index].valid = false;
   deletedVertexList.push_back( index );
 }
@@ -482,7 +482,7 @@ void MeshImplData::copy_mesh( size_t* vertex_handle_array,
       vertex_map[v] = vertexList.size();
     }
   }
-  
+
   size_t offset = 0;
   for (size_t e = 0; e < elementList.size(); ++e)
   {
@@ -497,11 +497,11 @@ void MeshImplData::copy_mesh( size_t* vertex_handle_array,
     {
       *element_handle_array = e;
       ++element_handle_array;
-      
+
       *element_conn_offsets = offset;
       ++element_conn_offsets;
       offset += cl;
-    
+
       std::vector<size_t>::iterator conn = elem.connectivity.begin();
       std::vector<size_t>::iterator end = conn + cl;
       while (conn != end)
@@ -525,7 +525,7 @@ void MeshImplData::copy_higher_order( std::vector<size_t>& mid_nodes,
   vertices.clear();
   vertex_indices.clear();
   index_offsets.clear();
- 
+
     // Create a map of from vertex handle to index in "vertices"
     // Use vertexList.size() to mean uninitialized.
   size_t v;
@@ -537,16 +537,16 @@ void MeshImplData::copy_higher_order( std::vector<size_t>& mid_nodes,
   for (v = 0; v < vertexList.size(); ++v)
   {
     const Vertex& vert = vertexList[v];
-    
+
       // Not a mid-side vertex, skip it
     if (!vert.valid || !vert.midcount)
       continue;
-      
+
       // Populate "verts" with the handles of all adjacent corner vertices
     assert( vert.adjacencies.size() ); // shouldn't be able to fail if vert.midcount > 0
     int elem_indx = vert.adjacencies[0];
     Element& elem = elementList[elem_indx];
-    
+
       // Find index of node in elem's connectivity list
     unsigned index;
     for (index = 0; index < elem.connectivity.size(); ++index)
@@ -572,13 +572,13 @@ void MeshImplData::copy_higher_order( std::vector<size_t>& mid_nodes,
 
       // Get the adjacent corner vertices from the element side.
     unsigned num_corners;
-    const unsigned* corner_indices = TopologyInfo::side_vertices( 
+    const unsigned* corner_indices = TopologyInfo::side_vertices(
       elem.topology, side_dim, side_num, num_corners, err ); MSQ_ERRRTN(err);
 
       // Add the mid-side node to the output list
     mid_nodes.push_back( v );
       // Store offset at which the indices of the corner
-      // vertices adjacent to this mid-side node will be 
+      // vertices adjacent to this mid-side node will be
       // stored in "vertex_indices".
     index_offsets.push_back( vertex_indices.size() );
       // For each adjacent corner vertex, if the vertex is not
@@ -588,7 +588,7 @@ void MeshImplData::copy_higher_order( std::vector<size_t>& mid_nodes,
     {
       size_t vert_idx = elem.connectivity[corner_indices[i]];
       assert( is_vertex_valid(vert_idx) );
-      
+
       if (vert_map[vert_idx] == vertexList.size())
       {
         vert_map[vert_idx] = vertices.size();
@@ -628,7 +628,7 @@ void MeshImplData::all_elements( std::vector<size_t>& list, MsqError&  ) const
       list.push_back( idx );
 }
 
-void MeshImplData::get_adjacent_elements( 
+void MeshImplData::get_adjacent_elements(
                         std::vector<size_t>::const_iterator node_iter,
                         std::vector<size_t>::const_iterator node_end,
                         std::vector<size_t>& elems, MsqError& err )
@@ -638,10 +638,10 @@ void MeshImplData::get_adjacent_elements(
     MSQ_SETERR(err)(MsqError::INVALID_ARG);
     return;
   }
-  
+
     // Get list of elements adjacent to first node
   elems = vertexList[*node_iter].adjacencies;
-  
+
     // For each aditional node, intersect elems with elements adjacent to node
   for (++node_iter; node_iter != node_end; ++node_iter)
   {
@@ -653,7 +653,7 @@ void MeshImplData::get_adjacent_elements(
       for (; adj_iter != adj_end; ++adj_iter)
         if (*elem_iter == *adj_iter)
           break;
-      
+
       if (adj_iter == adj_end)
       {
         *elem_iter = elems[elems.size()-1];
@@ -667,7 +667,7 @@ void MeshImplData::get_adjacent_elements(
   }
 }
 
-bool MeshImplData::has_adjacent_elements( 
+bool MeshImplData::has_adjacent_elements(
                         size_t elem,
                         const std::vector<size_t>& nodes,
                         MsqError& err )
@@ -675,26 +675,26 @@ bool MeshImplData::has_adjacent_elements(
   std::vector<size_t> adj_elems;
   const unsigned dim = TopologyInfo::dimension( elementList[elem].topology );
   get_adjacent_elements( nodes.begin(), nodes.end(), adj_elems, err );
-  
+
   std::vector<size_t>::iterator iter;
   for (iter = adj_elems.begin(); iter != adj_elems.end(); ++iter)
-    if (*iter != elem && 
+    if (*iter != elem &&
         TopologyInfo::dimension( elementList[*iter].topology ) == dim )
       break;
 
   return iter != adj_elems.end();
-}                 
+}
 
-void MeshImplData::skin( std::vector<size_t>& sides, MsqError& err ) 
+void MeshImplData::skin( std::vector<size_t>& sides, MsqError& err )
 {
   std::vector<size_t> side_nodes;
-  
+
     // For each element in mesh
   for (size_t elem = 0; elem < elementList.size(); ++elem)
   {
     if (!is_element_valid(elem))
       continue;
-    
+
       // For each side of the element, check if there
       // are any adjacent elements.
     const EntityTopology topo = elementList[elem].topology;
@@ -716,7 +716,7 @@ void MeshImplData::skin( std::vector<size_t>& sides, MsqError& err )
           side_nodes.clear();
           for (unsigned k = 0; k < count; ++k)
             side_nodes.push_back( conn[indices[k]] );
-          
+
             // If no adjacent element, add side to output list
           bool adj = has_adjacent_elements( elem, side_nodes, err );
           MSQ_ERRRTN(err);
@@ -728,7 +728,7 @@ void MeshImplData::skin( std::vector<size_t>& sides, MsqError& err )
         }
       }
       break;
-      
+
       case POLYGON:
       {
         for (unsigned side = 0, next = 1; next < conn.size(); ++side, ++next)
@@ -736,7 +736,7 @@ void MeshImplData::skin( std::vector<size_t>& sides, MsqError& err )
           side_nodes.clear();
           side_nodes.push_back( conn[side] );
           side_nodes.push_back( conn[next] );
-          
+
             // If no adjacent element, add side to output list
           bool adj = has_adjacent_elements( elem, side_nodes, err );
           MSQ_ERRRTN(err);
@@ -748,13 +748,13 @@ void MeshImplData::skin( std::vector<size_t>& sides, MsqError& err )
         }
       }
       break;
-      
+
       case POLYHEDRON:
       {
         for (unsigned side = 0; side < conn.size(); ++side)
         {
           side_nodes = elementList[conn[side]].connectivity;
-          
+
             // If no adjacent element, add side to output list
           bool adj = has_adjacent_elements( elem, side_nodes, err );
           MSQ_ERRRTN(err);
@@ -768,7 +768,7 @@ void MeshImplData::skin( std::vector<size_t>& sides, MsqError& err )
       break;
     } // switch(topo)
   } // for (elementList)
-}          
+}
 
 
 MeshImplVertIter::~MeshImplVertIter()
@@ -784,7 +784,7 @@ void MeshImplVertIter::restart()
 void MeshImplVertIter::operator++()
 {
   ++index;
-  while (index < mesh->max_vertex_index() && 
+  while (index < mesh->max_vertex_index() &&
          (!mesh->is_vertex_valid(index) ||
           !mesh->is_corner_node(index)))
     ++index;
@@ -796,7 +796,7 @@ Mesh::VertexHandle MeshImplVertIter::operator*() const
 }
 
 bool MeshImplVertIter::is_at_end() const
-{ 
+{
   return index >= mesh->max_vertex_index();
 }
 
@@ -825,7 +825,7 @@ Mesh::ElementHandle MeshImplElemIter::operator*() const
 }
 
 bool MeshImplElemIter::is_at_end() const
-{ 
+{
   return index >= mesh->max_element_index();
 }
 
@@ -833,4 +833,4 @@ bool MeshImplElemIter::is_at_end() const
 
 } // namespace MBMesquite
 
-      
+

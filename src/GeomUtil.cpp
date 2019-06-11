@@ -1,16 +1,16 @@
 /*
  * MOAB, a Mesh-Oriented datABase, is a software component for creating,
  * storing and accessing finite element mesh data.
- * 
+ *
  * Copyright 2004 Sandia Corporation.  Under the terms of Contract
  * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
  * retains certain rights in this software.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  */
 
 /**\file Geometry.cpp
@@ -33,7 +33,7 @@ namespace moab {
 
 namespace GeomUtil {
 
-static inline 
+static inline
 void min_max_3( double a, double b, double c, double& min, double& max )
 {
   if (a < b) {
@@ -69,29 +69,29 @@ bool segment_box_intersect( CartVect box_min,
     // translate so that seg_pt is at origin
   box_min -= seg_pt;
   box_max -= seg_pt;
-  
+
   for (unsigned i = 0; i < 3; ++i) {  // X, Y, and Z slabs
 
       // intersect line with slab planes
     const double t_min = box_min[i] / seg_unit_dir[i];
     const double t_max = box_max[i] / seg_unit_dir[i];
-    
+
       // check if line is parallel to planes
     if (!Util::is_finite(t_min)) {
       if (box_min[i] > 0.0 || box_max[i] < 0.0)
-        return false; 
+        return false;
       continue;
     }
 
     if (seg_unit_dir[i] < 0) {
-      if (t_min < seg_end) 
+      if (t_min < seg_end)
         seg_end = t_min;
       if (t_max > seg_start)
         seg_start = t_max;
     }
     else { // seg_unit_dir[i] > 0
       if (t_min > seg_start)
-        seg_start = t_min; 
+        seg_start = t_min;
       if (t_max < seg_end)
         seg_end = t_max;
     }
@@ -101,8 +101,8 @@ bool segment_box_intersect( CartVect box_min,
 }
 
 /* Function to return the vertex with the lowest coordinates. To force the same
-   ray-edge computation, the Plücker test needs to use consistent edge 
-   representation. This would be more simple with MOAB handles instead of 
+   ray-edge computation, the Plücker test needs to use consistent edge
+   representation. This would be more simple with MOAB handles instead of
    coordinates... */
 inline bool first( const CartVect& a, const CartVect& b) {
   if(a[0] < b[0]) {
@@ -129,7 +129,7 @@ double plucker_edge_test(const CartVect& vertexa, const CartVect& vertexb,
 
   double pip;
   const double near_zero = 10*std::numeric_limits<double>::epsilon();
-  
+
   if(first(vertexa,vertexb)) {
     const CartVect edge = vertexb-vertexa;
     const CartVect edge_normal = edge*vertexa;
@@ -145,13 +145,13 @@ double plucker_edge_test(const CartVect& vertexa, const CartVect& vertexb,
 
   return pip;
 }
-  
+
 #define EXIT_EARLY if(type) *type = NONE; return false;
 
 /* This test uses the same edge-ray computation for adjacent triangles so that
    rays passing close to edges/nodes are handled consistently.
 
-   Reports intersection type for post processing of special cases. Optionally 
+   Reports intersection type for post processing of special cases. Optionally
    screen by orientation and negative/nonnegative distance limits.
 
    If screening by orientation, substantial pruning can occur. Indicate
@@ -221,7 +221,7 @@ bool plucker_ray_tri_intersect( const CartVect vertices[3],
   // get the distance to intersection
   const double inverse_sum = 1.0/(plucker_coord0+plucker_coord1+plucker_coord2);
   assert(0.0 != inverse_sum);
-  const CartVect intersection(plucker_coord0*inverse_sum*vertices[2]+ 
+  const CartVect intersection(plucker_coord0*inverse_sum*vertices[2]+
                               plucker_coord1*inverse_sum*vertices[0]+
                               plucker_coord2*inverse_sum*vertices[1]);
 
@@ -233,7 +233,7 @@ bool plucker_ray_tri_intersect( const CartVect vertices[3],
       idx = i;
       max_abs_dir = fabs(direction[i]);
     }
-  } 
+  }
   const double dist = (intersection[idx]-origin[idx])/direction[idx];
 
   // is the intersection within distance limits?
@@ -277,7 +277,7 @@ bool ray_tri_intersect( const CartVect vertices[3],
   else {
     return false;
   }
-  
+
   const CartVect d = p0 * p; // jcMinusal,blMinuskc,akMinusjb
   double gammaP = v % d;
   if (mP > 0) {
@@ -286,7 +286,7 @@ bool ray_tri_intersect( const CartVect vertices[3],
   }
   else if (betaP + gammaP < mP || gammaP > 0)
     return false;
-  
+
   const double tP = p1 % d;
   const double m = 1.0 / mP;
   const double beta = betaP * m;
@@ -294,12 +294,12 @@ bool ray_tri_intersect( const CartVect vertices[3],
   const double t = -tP * m;
   if (ray_length && t > *ray_length)
     return false;
-  
+
   if (beta < 0 || gamma < 0 ||
       beta + gamma > 1 ||
       t < 0.0)
     return false;
-  
+
   t_out = t;
   return true;
 }
@@ -316,7 +316,7 @@ bool ray_box_intersect( const CartVect& box_min,
   // Use 'slabs' method from 13.6.1 of Akenine-Moller
   t_enter = 0.0;
   t_exit  = std::numeric_limits<double>::infinity();
-  
+
   // Intersect with each pair of axis-aligned planes bounding
   // opposite faces of the leaf box
   bool ray_is_valid = false; // is ray direction vector zero?
@@ -328,12 +328,12 @@ bool ray_box_intersect( const CartVect& box_min,
       else
         return false;
     }
-      
+
       // find t values at which ray intersects each plane
     ray_is_valid = true;
     t1 = (box_min[axis] - ray_pt[axis]) / ray_dir[axis];
     t2 = (box_max[axis] - ray_pt[axis]) / ray_dir[axis];
-    
+
       // t_enter = max( t_enter_x, t_enter_y, t_enter_z )
       // t_exit  = min( t_exit_x, t_exit_y, t_exit_z )
       //   where
@@ -352,7 +352,7 @@ bool ray_box_intersect( const CartVect& box_min,
         t_exit = t1;
     }
   }
-  
+
   return ray_is_valid && (t_enter <= t_exit);
 }
 
@@ -368,7 +368,7 @@ bool box_plane_overlap( const CartVect& normal,
     std::swap( min[1], max[1] );
   if (normal[2] < 0.0)
     std::swap( min[2], max[2] );
-  
+
   return (normal % min <= -d) && (normal % max >= -d);
 }
 
@@ -386,7 +386,7 @@ bool box_plane_overlap( const CartVect& normal,
  * and axis-aligned box.
  *
  * Test for overlap in these directions:
- * 1) {x,y,z}-directions 
+ * 1) {x,y,z}-directions
  * 2) normal of triangle
  * 3) crossprod of triangle edge with {x,y,z}-direction
  */
@@ -412,76 +412,76 @@ bool box_tri_overlap( const CartVect vertices[3],
     return false;
   if (v0[2] < -box_dims[2] && v1[2] < -box_dims[2] && v2[2] < -box_dims[2])
     return false;
-  
+
     // compute triangle edge vectors
   const CartVect e0( vertices[1] - vertices[0] );
   const CartVect e1( vertices[2] - vertices[1] );
   const CartVect e2( vertices[0] - vertices[2] );
-  
-    // do case 3) tests 
+
+    // do case 3) tests
   double fex, fey, fez, p0, p1, p2, rad;
   fex = fabs(e0[0]);
   fey = fabs(e0[1]);
   fez = fabs(e0[2]);
-  
+
   p0 = e0[2]*v0[1] - e0[1]*v0[2];
   p2 = e0[2]*v2[1] - e0[1]*v2[2];
   rad = fez * box_dims[1] + fey * box_dims[2];
   CHECK_RANGE( p0, p2, rad );
-  
+
   p0 = -e0[2]*v0[0] + e0[0]*v0[2];
   p2 = -e0[2]*v2[0] + e0[0]*v2[2];
   rad = fez * box_dims[0] + fex * box_dims[2];
   CHECK_RANGE( p0, p2, rad );
-    
+
   p1 = e0[1]*v1[0] - e0[0]*v1[1];
   p2 = e0[1]*v2[0] - e0[0]*v2[1];
   rad = fey * box_dims[0] + fex * box_dims[1];
   CHECK_RANGE( p1, p2, rad );
-  
+
   fex = fabs(e1[0]);
   fey = fabs(e1[1]);
   fez = fabs(e1[2]);
-  
+
   p0 = e1[2]*v0[1] - e1[1]*v0[2];
   p2 = e1[2]*v2[1] - e1[1]*v2[2];
   rad = fez * box_dims[1] + fey * box_dims[2];
   CHECK_RANGE( p0, p2, rad );
-  
+
   p0 = -e1[2]*v0[0] + e1[0]*v0[2];
   p2 = -e1[2]*v2[0] + e1[0]*v2[2];
   rad = fez * box_dims[0] + fex * box_dims[2];
   CHECK_RANGE( p0, p2, rad );
-  
+
   p0 = e1[1]*v0[0] - e1[0]*v0[1];
   p1 = e1[1]*v1[0] - e1[0]*v1[1];
   rad = fey * box_dims[0] + fex * box_dims[1];
   CHECK_RANGE( p0, p1, rad );
-  
+
   fex = fabs(e2[0]);
   fey = fabs(e2[1]);
   fez = fabs(e2[2]);
-  
+
   p0 = e2[2]*v0[1] - e2[1]*v0[2];
   p1 = e2[2]*v1[1] - e2[1]*v1[2];
   rad = fez * box_dims[1] + fey * box_dims[2];
   CHECK_RANGE( p0, p1, rad );
-  
+
   p0 = -e2[2]*v0[0] + e2[0]*v0[2];
   p1 = -e2[2]*v1[0] + e2[0]*v1[2];
   rad = fez * box_dims[0] + fex * box_dims[2];
   CHECK_RANGE( p0, p1, rad );
-  
+
   p1 = e2[1]*v1[0] - e2[0]*v1[1];
   p2 = e2[1]*v2[0] - e2[0]*v2[1];
   rad = fey * box_dims[0] + fex * box_dims[1];
   CHECK_RANGE( p1, p2, rad );
-  
+
   // do case 2) test
   CartVect n = e0 * e1;
   return box_plane_overlap( n, -(n % v0), -box_dims, box_dims );
 }
-  
+
 
 bool box_tri_overlap( const CartVect  triangle_corners[3],
                       const CartVect& box_min_corner,
@@ -493,7 +493,7 @@ bool box_tri_overlap( const CartVect  triangle_corners[3],
   return box_tri_overlap( triangle_corners,
                           box_center,
                           box_hf_dim + CartVect(tolerance) );
-} 
+}
 
 bool box_elem_overlap( const CartVect *elem_corners,
                        EntityType elem_type,
@@ -541,7 +541,7 @@ bool box_linear_elem_overlap( const CartVect *elem_corners,
     corners[i] = elem_corners[i] - box_center;
   return box_linear_elem_overlap( corners, type, box_halfdims );
 }
-        
+
 
 bool box_linear_elem_overlap( const CartVect *elem_corners,
                               EntityType type,
@@ -561,49 +561,49 @@ bool box_linear_elem_overlap( const CartVect *elem_corners,
   double dot, cross[2], tmp;
   CartVect norm;
   int indices[4]; // element edge/face vertex indices
-  
+
     // test box face normals (principal axes)
   const int num_corner = CN::VerticesPerEntity( type );
-  int not_less[3] = { num_corner, num_corner, num_corner }; 
+  int not_less[3] = { num_corner, num_corner, num_corner };
   int not_greater[3] = { num_corner, num_corner, num_corner };
   int not_inside;
   for (i = 0; i < num_corner; ++i) { // for each element corner
     not_inside = 3;
-    
+
     if (elem_corners[i][0] < -dims[0])
       --not_less[0];
     else if (elem_corners[i][0] > dims[0])
       --not_greater[0];
     else
       --not_inside;
-      
+
     if (elem_corners[i][1] < -dims[1])
       --not_less[1];
     else if (elem_corners[i][1] > dims[1])
       --not_greater[1];
     else
       --not_inside;
-      
+
     if (elem_corners[i][2] < -dims[2])
       --not_less[2];
     else if (elem_corners[i][2] > dims[2])
       --not_greater[2];
     else
       --not_inside;
-    
+
     if (!not_inside)
       return true;
   }
     // If all points less than min_x of box, then
     // not_less[0] == 0, and therefore
     // the following product is zero.
-  if (not_greater[0] * not_greater[1] * not_greater[2] * 
+  if (not_greater[0] * not_greater[1] * not_greater[2] *
          not_less[0] *    not_less[1] *    not_less[2] == 0)
     return false;
- 
+
     // Test edge-edge crossproducts
-    
-    // Edge directions for box are principal axis, so 
+
+    // Edge directions for box are principal axis, so
     // for each element edge, check along the cross-product
     // of that edge with each of the tree principal axes.
   const int num_edge = CN::NumSubEntities( type, 1 );
@@ -671,34 +671,34 @@ bool box_linear_elem_overlap( const CartVect *elem_corners,
         return false;
     }
   }
-  
-  
+
+
     // test element face normals
   const int num_face = CN::NumSubEntities( type, 2 );
   for (f = 0; f < num_face; ++f) {
     CN::SubEntityVertexIndices( type, 2, f, indices );
     switch (CN::SubEntityType( type, 2, f )) {
       case MBTRI:
-        norm = tri_norm( elem_corners[indices[0]], 
-                         elem_corners[indices[1]], 
+        norm = tri_norm( elem_corners[indices[0]],
+                         elem_corners[indices[1]],
                          elem_corners[indices[2]] );
         break;
       case MBQUAD:
-        norm = quad_norm( elem_corners[indices[0]], 
-                          elem_corners[indices[1]], 
-                          elem_corners[indices[2]], 
+        norm = quad_norm( elem_corners[indices[0]],
+                          elem_corners[indices[1]],
+                          elem_corners[indices[2]],
                           elem_corners[indices[3]] );
         break;
       default:
         assert(false);
         continue;
     }
-    
+
     dot = dot_abs(norm, dims);
-    
+
     // for each element vertex
     not_less[0] = not_greater[0] = num_corner;
-    for (i = 0; i < num_corner; ++i) { 
+    for (i = 0; i < num_corner; ++i) {
       tmp = norm % elem_corners[i];
       not_less[0] -= (tmp < -dot);
       not_greater[0] -= (tmp > dot);
@@ -711,7 +711,7 @@ bool box_linear_elem_overlap( const CartVect *elem_corners,
     // Overlap on all tested axes.
   return true;
 }
- 
+
 
 bool box_hex_overlap( const CartVect *elem_corners,
                       const CartVect& center,
@@ -737,52 +737,52 @@ bool box_hex_overlap( const CartVect *elem_corners,
                                   elem_corners[5] - center,
                                   elem_corners[6] - center,
                                   elem_corners[7] - center };
-  
+
     // test box face normals (principal axes)
-  int not_less[3] = { 8, 8, 8 }; 
+  int not_less[3] = { 8, 8, 8 };
   int not_greater[3] = { 8, 8, 8 };
   int not_inside;
   for (i = 0; i < 8; ++i) { // for each element corner
     not_inside = 3;
-    
+
     if (corners[i][0] < -dims[0])
       --not_less[0];
     else if (corners[i][0] > dims[0])
       --not_greater[0];
     else
       --not_inside;
-      
+
     if (corners[i][1] < -dims[1])
       --not_less[1];
     else if (corners[i][1] > dims[1])
       --not_greater[1];
     else
       --not_inside;
-      
+
     if (corners[i][2] < -dims[2])
       --not_less[2];
     else if (corners[i][2] > dims[2])
       --not_greater[2];
     else
       --not_inside;
-    
+
     if (!not_inside)
       return true;
   }
     // If all points less than min_x of box, then
     // not_less[0] == 0, and therefore
     // the following product is zero.
-  if (not_greater[0] * not_greater[1] * not_greater[2] * 
+  if (not_greater[0] * not_greater[1] * not_greater[2] *
          not_less[0] *    not_less[1] *    not_less[2] == 0)
     return false;
- 
+
     // Test edge-edge crossproducts
   const unsigned edges[12][2] = { { 0, 1 }, { 0, 4 }, { 0, 3 },
                                   { 2, 3 }, { 2, 1 }, { 2, 6 },
                                   { 5, 6 }, { 5, 1 }, { 5, 4 },
                                   { 7, 4 }, { 7, 3 }, { 7, 6 } };
-                             
-    // Edge directions for box are principal axis, so 
+
+    // Edge directions for box are principal axis, so
     // for each element edge, check along the cross-product
     // of that edge with each of the tree principal axes.
   for (e = 0; e < 12; ++e) { // for each element edge
@@ -850,8 +850,8 @@ bool box_hex_overlap( const CartVect *elem_corners,
         return false;
     }
   }
-  
-  
+
+
     // test element face normals
   const unsigned faces[6][4] = { { 0, 1, 2, 3 },
                                  { 0, 1, 5, 4 },
@@ -860,16 +860,16 @@ bool box_hex_overlap( const CartVect *elem_corners,
                                  { 3, 7, 4, 0 },
                                  { 7, 4, 5, 6 } };
   for (f = 0; f < 6; ++f) {
-    norm = quad_norm( corners[faces[f][0]], 
-                      corners[faces[f][1]], 
-                      corners[faces[f][2]], 
+    norm = quad_norm( corners[faces[f][0]],
+                      corners[faces[f][1]],
+                      corners[faces[f][2]],
                       corners[faces[f][3]] );
-    
+
     dot = dot_abs(norm, dims);
-   
+
     // for each element vertex
     not_less[0] = not_greater[0] = 8;
-    for (i = 0; i < 8; ++i) { 
+    for (i = 0; i < 8; ++i) {
       tmp = norm % corners[i];
       not_less[0] -= (tmp < -dot);
       not_greater[0] -= (tmp > dot);
@@ -883,7 +883,7 @@ bool box_hex_overlap( const CartVect *elem_corners,
   return true;
 }
 
-static inline 
+static inline
 bool box_tet_overlap_edge( const CartVect& dims,
                            const CartVect& edge,
                            const CartVect& ve,
@@ -891,7 +891,7 @@ bool box_tet_overlap_edge( const CartVect& dims,
                            const CartVect& v2 )
 {
   double dot, dot1, dot2, dot3, min, max;
-  
+
     // edge x X
   if (fabs(edge[1]*edge[2]) > std::numeric_limits<double>::epsilon()) {
     dot = fabs(edge[2]) * dims[1] + fabs(edge[1]) * dims[2];
@@ -902,7 +902,7 @@ bool box_tet_overlap_edge( const CartVect& dims,
     if (max < -dot || min > dot)
       return false;
   }
-  
+
     // edge x Y
   if (fabs(edge[1]*edge[2]) > std::numeric_limits<double>::epsilon()) {
     dot = fabs(edge[2]) * dims[0] + fabs(edge[0]) * dims[2];
@@ -913,7 +913,7 @@ bool box_tet_overlap_edge( const CartVect& dims,
     if (max < -dot || min > dot)
       return false;
   }
-  
+
     // edge x Z
   if (fabs(edge[1]*edge[2]) > std::numeric_limits<double>::epsilon()) {
     dot = fabs(edge[1]) * dims[0] + fabs(edge[0]) * dims[1];
@@ -964,7 +964,7 @@ bool box_tet_overlap( const CartVect *corners_in,
       fabs(corners[3][1]) <= dims[1] &&
       fabs(corners[3][2]) <= dims[2])
     return true;
-  
+
 
     // 1) Check for overlap on each principal axis (box face normal)
     // X
@@ -1000,11 +1000,11 @@ bool box_tet_overlap( const CartVect *corners_in,
       corners[2][2] >  dims[2] &&
       corners[3][2] >  dims[2])
     return false;
- 
+
     // 3) test element face normals
   CartVect norm;
   double dot, dot1, dot2;
-  
+
   const CartVect v01 = corners[1] - corners[0];
   const CartVect v02 = corners[2] - corners[0];
   norm = v01 * v02;
@@ -1015,7 +1015,7 @@ bool box_tet_overlap( const CartVect *corners_in,
     std::swap(dot1, dot2);
   if (dot2 < -dot || dot1 > dot)
     return false;
-  
+
   const CartVect v03 = corners[3] - corners[0];
   norm = v03 * v01;
   dot = dot_abs(norm, dims);
@@ -1025,7 +1025,7 @@ bool box_tet_overlap( const CartVect *corners_in,
     std::swap(dot1, dot2);
   if (dot2 < -dot || dot1 > dot)
     return false;
-  
+
   norm = v02 * v03;
   dot = dot_abs(norm, dims);
   dot1 = norm % corners[0];
@@ -1034,7 +1034,7 @@ bool box_tet_overlap( const CartVect *corners_in,
     std::swap(dot1, dot2);
   if (dot2 < -dot || dot1 > dot)
     return false;
-  
+
   const CartVect v12 = corners[2] - corners[1];
   const CartVect v13 = corners[3] - corners[1];
   norm = v13 * v12;
@@ -1045,10 +1045,10 @@ bool box_tet_overlap( const CartVect *corners_in,
     std::swap(dot1, dot2);
   if (dot2 < -dot || dot1 > dot)
     return false;
-  
+
 
     // 2) test edge-edge cross products
-    
+
   const CartVect v23 = corners[3] - corners[2];
   return box_tet_overlap_edge( dims, v01, corners[0], corners[2], corners[3] )
       && box_tet_overlap_edge( dims, v02, corners[0], corners[1], corners[3] )
@@ -1057,7 +1057,7 @@ bool box_tet_overlap( const CartVect *corners_in,
       && box_tet_overlap_edge( dims, v13, corners[1], corners[0], corners[2] )
       && box_tet_overlap_edge( dims, v23, corners[2], corners[0], corners[1] );
 }
-    
+
 
 
 
@@ -1141,7 +1141,7 @@ void closest_location_on_tri( const CartVect& location,
       const double inv_det = 1.0 / det;               // +1 = 45
       s *= inv_det;                                   // +1 = 46
       t *= inv_det;                                   // +1 = 47
-      closest_out = vertices[0] + s*sv + t*tv;        //+12 = 59,      3  
+      closest_out = vertices[0] + s*sv + t*tv;        //+12 = 59,      3
     }
   }
   else {
@@ -1221,7 +1221,7 @@ void closest_location_on_tri( const CartVect& location,
   double t;
 
   closest_location_on_tri( location, vertices, closest_out );
-  
+
   for (i = 0; i < 3; ++i) {
     pv[i] = vertices[i] - closest_out;
     if ((pv[i] % pv[i]) <= tsqr) {
@@ -1229,7 +1229,7 @@ void closest_location_on_tri( const CartVect& location,
       return;
     }
   }
-  
+
   for (i = 0; i < 3; ++i) {
     ev = vertices[(i+1)%3] - vertices[i];
     t = (ev % pv[i]) / (ev % ev);
@@ -1239,11 +1239,11 @@ void closest_location_on_tri( const CartVect& location,
       return;
     }
   }
-  
+
   closest_topo = 6;
 }
- 
-    
+
+
 // We assume polygon is *convex*, but *not* planar.
 void closest_location_on_polygon( const CartVect& location,
                                   const CartVect* vertices,
@@ -1254,7 +1254,7 @@ void closest_location_on_polygon( const CartVect& location,
   CartVect d, p, v;
   double shortest_sqr, dist_sqr, t_closest, t;
   int i, e;
-  
+
     // Find closest edge of polygon.
   e = n - 1;
   v = vertices[0] - vertices[e];
@@ -1263,7 +1263,7 @@ void closest_location_on_polygon( const CartVect& location,
     d = location - vertices[e];
   else if (t_closest > 1.0)
     d = location - vertices[0];
-  else 
+  else
     d = location - vertices[e] - t_closest * v;
   shortest_sqr = d % d;
   for (i = 0; i < n - 1; ++i) {
@@ -1282,7 +1282,7 @@ void closest_location_on_polygon( const CartVect& location,
       t_closest = t;
     }
   }
-  
+
     // If we are beyond the bounds of the edge, then
     // the point is outside and closest to a vertex
   if (t_closest <= 0.0) {
@@ -1293,18 +1293,18 @@ void closest_location_on_polygon( const CartVect& location,
     closest_out = vertices[(e+1)%n];
     return;
   }
-  
+
     // Now check which side of the edge we are one
   const CartVect v0 = vertices[e] - vertices[(e+n-1)%n];
   const CartVect v1 = vertices[(e+1)%n] - vertices[e];
   const CartVect v2 = vertices[(e+2)%n] - vertices[(e+1)%n];
   const CartVect norm = (1.0 - t_closest) * (v0 * v1) + t_closest * (v1 * v2);
     // if on outside of edge, result is closest point on edge
-  if ((norm % ((vertices[e] - location) * v1)) <= 0.0) { 
+  if ((norm % ((vertices[e] - location) * v1)) <= 0.0) {
     closest_out = vertices[e] + t_closest * v1;
     return;
   }
-  
+
     // Inside.  Project to plane defined by point and normal at
     // closest edge
   const double D = -(norm % (vertices[e] + t_closest * v1));
@@ -1539,20 +1539,20 @@ bool nat_coords_trilinear_hex( const CartVect* corner_coords,
 }
 
 
-bool point_in_trilinear_hex(const CartVect *hex, 
+bool point_in_trilinear_hex(const CartVect *hex,
                             const CartVect& xyz,
-                            double etol) 
+                            double etol)
 {
   CartVect xi;
   return nat_coords_trilinear_hex( hex, xyz, xi, etol )
-      && fabs(xi[0])-1 < etol 
-      && fabs(xi[1])-1 < etol 
+      && fabs(xi[0])-1 < etol
+      && fabs(xi[1])-1 < etol
       && fabs(xi[2])-1 < etol;
 }
 
 
 
 } // namespace GeomUtil
-  
+
 } // namespace moab
 

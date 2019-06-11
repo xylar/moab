@@ -1,8 +1,8 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
-    Copyright 2006 Lawrence Livermore National Laboratory.  Under 
-    the terms of Contract B545069 with the University of Wisconsin -- 
+    Copyright 2006 Lawrence Livermore National Laboratory.  Under
+    the terms of Contract B545069 with the University of Wisconsin --
     Madison, Lawrence Livermore National Laboratory retains certain
     rights in this software.
 
@@ -16,17 +16,17 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    kraftche@cae.wisc.edu    
+    kraftche@cae.wisc.edu
 
   ***************************************************************** */
 /** \file QuadLagrangeShape.cpp
  *  \author Jason Kraftcheck
  */
- 
+
 #include "QuadLagrangeShape.hpp"
 #include "LinearQuadrilateral.hpp"
 #include "MsqError.hpp"
@@ -35,7 +35,7 @@ namespace MBMesquite {
 
 EntityTopology QuadLagrangeShape::element_topology() const
   { return QUADRILATERAL; }
-  
+
 int QuadLagrangeShape::num_nodes() const
   { return 9; }
 
@@ -59,9 +59,9 @@ void QuadLagrangeShape::coefficients( Sample loc,
       break;
     case 1:
       coeff_out[0] = coeff_out[1] = coeff_out[2] =
-      coeff_out[3] = coeff_out[4] = coeff_out[5] = 
+      coeff_out[3] = coeff_out[4] = coeff_out[5] =
       coeff_out[6] = coeff_out[7] = coeff_out[8] = 0.0;
-      if (nodeset.mid_edge_node(loc.number)) {  
+      if (nodeset.mid_edge_node(loc.number)) {
           // if mid-edge node is present
         num_coeff = 1;
         indices_out[0] = loc.number+4;
@@ -82,7 +82,7 @@ void QuadLagrangeShape::coefficients( Sample loc,
         num_coeff = 1;
         indices_out[0] = 8;
         coeff_out[0] = 1.0;
-      } 
+      }
       else {
           // for linear element, (no mid-edge nodes), all corners contribute 1/4.
         num_coeff = 4;
@@ -113,9 +113,9 @@ void QuadLagrangeShape::coefficients( Sample loc,
                   "for a quadrilateral element", loc.dimension);
   }
 }
-     
 
-static void derivatives_at_corner( unsigned corner, 
+
+static void derivatives_at_corner( unsigned corner,
                                    NodeSet nodeset,
                                    size_t* vertices,
                                    MsqVector<2>* derivs,
@@ -125,14 +125,14 @@ static void derivatives_at_corner( unsigned corner,
   static const unsigned xi_adj_edges[]    = { 0, 0, 2, 2 };
   static const unsigned eta_adj_corners[] = { 3, 2, 1, 0 };
   static const unsigned eta_adj_edges[]   = { 3, 1, 1, 3 };
-  
+
   static const double corner_xi[]  = { -1,  1,  1, -1 }; // xi values by corner
   static const double corner_eta[] = { -1, -1,  1,  1 }; // eta values by corner
   static const double other_xi[]   = {  1, -1, -1,  1 }; // xi values for adjacent corner in xi direction
   static const double other_eta[]  = {  1,  1, -1, -1 }; // eta values for adjcent corner in eta direction
   static const double mid_xi[]     = {  2, -2, -2,  2 }; // xi values for mid-node in xi direction
   static const double mid_eta[]    = {  2,  2, -2, -2 }; // eta values for mid-node in eta direction
-  
+
   num_vtx = 3;
   vertices[0] = corner;
   vertices[1] = xi_adj_corners[corner];
@@ -164,7 +164,7 @@ static void derivatives_at_corner( unsigned corner,
   }
 }
 
-static void derivatives_at_mid_edge( unsigned edge, 
+static void derivatives_at_mid_edge( unsigned edge,
                                      NodeSet nodeset,
                                      size_t* vertices,
                                      MsqVector<2>* derivs,
@@ -177,7 +177,7 @@ static void derivatives_at_mid_edge( unsigned edge,
   static const double edge_values[][2] = { {-1,  1},
                                            {-1,  1},
                                            { 1, -1},
-                                           { 1, -1} }; 
+                                           { 1, -1} };
   const unsigned prev_corner = edge;           // index of start vertex of edge
   const unsigned next_corner = (edge+1)%4;     // index of end vertex of edge
   const unsigned is_eta_edge = edge % 2;       // edge is xi = +/- 0
@@ -185,7 +185,7 @@ static void derivatives_at_mid_edge( unsigned edge,
   //const unsigned mid_edge_node = edge + 4;     // mid-edge node index
   const unsigned prev_opposite = (prev_corner+3)%4; // index of corner adjacent to prev_corner
   const unsigned next_opposite = (next_corner+1)%4; // index of corner adjacent to next_corner;
- 
+
     // First do derivatives along edge (e.g. wrt xi if edge is eta = +/-1)
   num_vtx = 2;
   vertices[0] = prev_corner;
@@ -195,7 +195,7 @@ static void derivatives_at_mid_edge( unsigned edge,
   derivs[1][is_eta_edge] = edge_values[edge][1];
   derivs[1][is_xi_edge]  = 0.0;
     // That's it for the edge-direction derivatives.  No other vertices contribute.
-    
+
     // Next handle the linear element case.  Handle this as a special case first,
     // so the generalized solution doesn't impact performance for linear elements
     // too much.
@@ -211,11 +211,11 @@ static void derivatives_at_mid_edge( unsigned edge,
     derivs[3][is_eta_edge] = 0.0;
     return;
   }
-  
+
     // Initial (linear) contribution for each corner
-  double v[4] = { values[edge][0], 
-                  values[edge][1], 
-                  values[edge][2], 
+  double v[4] = { values[edge][0],
+                  values[edge][1],
+                  values[edge][2],
                   values[edge][3] };
 
     // If mid-face node is present
@@ -283,9 +283,9 @@ static void derivatives_at_mid_elem( NodeSet nodeset,
     vertices[3] = 3; derivs[3][0] = -0.5; derivs[3][1] =  0.5;
     return;
   }
-  
+
   num_vtx = 0;
-  
+
     // N_0
   if (!nodeset.both_edge_nodes(0,3)) {  // if eiter adjacent mid-edge node is missing
     vertices[num_vtx] = 0;
@@ -293,7 +293,7 @@ static void derivatives_at_mid_elem( NodeSet nodeset,
     derivs[num_vtx][1] = nodeset.mid_edge_node(0) ? 0.0 : -0.5;
     ++num_vtx;
   }
-  
+
     // N_1
   if (!nodeset.both_edge_nodes(0,1)) {  // if eiter adjacent mid-edge node is missing
     vertices[num_vtx] = 1;
@@ -301,7 +301,7 @@ static void derivatives_at_mid_elem( NodeSet nodeset,
     derivs[num_vtx][1] = nodeset.mid_edge_node(0) ? 0.0 : -0.5;
     ++num_vtx;
   }
-  
+
     // N_2
   if (!nodeset.both_edge_nodes(1,2)) {  // if eiter adjacent mid-edge node is missing
     vertices[num_vtx] = 2;
@@ -309,7 +309,7 @@ static void derivatives_at_mid_elem( NodeSet nodeset,
     derivs[num_vtx][1] = nodeset.mid_edge_node(2) ? 0.0 :  0.5;
     ++num_vtx;
   }
-  
+
     // N_3
   if (!nodeset.both_edge_nodes(2,3)) {  // if eiter adjacent mid-edge node is missing
     vertices[num_vtx] = 3;
@@ -317,7 +317,7 @@ static void derivatives_at_mid_elem( NodeSet nodeset,
     derivs[num_vtx][1] = nodeset.mid_edge_node(2) ? 0.0 :  0.5;
     ++num_vtx;
   }
-  
+
     // N_4
   if (nodeset.mid_edge_node(0)) {
     vertices[num_vtx] = 4;
@@ -325,7 +325,7 @@ static void derivatives_at_mid_elem( NodeSet nodeset,
     derivs[num_vtx][1] = -1.0;
     ++num_vtx;
   }
-  
+
     // N_5
   if (nodeset.mid_edge_node(1)) {
     vertices[num_vtx] = 5;
@@ -333,7 +333,7 @@ static void derivatives_at_mid_elem( NodeSet nodeset,
     derivs[num_vtx][1] =  0.0;
     ++num_vtx;
   }
-  
+
     // N_6
   if (nodeset.mid_edge_node(2)) {
     vertices[num_vtx] = 6;
@@ -341,7 +341,7 @@ static void derivatives_at_mid_elem( NodeSet nodeset,
     derivs[num_vtx][1] =  1.0;
     ++num_vtx;
   }
-  
+
     // N_7
   if (nodeset.mid_edge_node(3)) {
     vertices[num_vtx] = 7;
@@ -349,7 +349,7 @@ static void derivatives_at_mid_elem( NodeSet nodeset,
     derivs[num_vtx][1] =  0.0;
     ++num_vtx;
   }
-  
+
     // N_8 (mid-quad node) never contributes to Jacobian at element center!!!
 }
 
@@ -381,7 +381,7 @@ void QuadLagrangeShape::derivatives( Sample loc,
 }
 
 
-void QuadLagrangeShape::ideal( Sample , 
+void QuadLagrangeShape::ideal( Sample ,
                                MsqMatrix<3,2>& J,
                                MsqError&  ) const
 {

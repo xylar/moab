@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2006 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
+
     (2006) kraftche@cae.wisc.edu
-   
+
   ***************************************************************** */
 
 
 /** \file QuadLagrangeShapeTest.cpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -65,7 +65,7 @@ static inline CppUnit::Message value_message( unsigned location, NodeSet bits, d
 
   std::ostringstream buffer3;
   buffer3 << "Location : ";
-  if (location < 4) 
+  if (location < 4)
     buffer3 << "Corner " << location;
   else if (location < 8)
     buffer3 << "Edge " << location-4;
@@ -93,21 +93,21 @@ class QuadLagrangeShapeTest : public CppUnit::TestFixture
     CPPUNIT_TEST(test_deriv_corners);
     CPPUNIT_TEST(test_deriv_edges);
     CPPUNIT_TEST(test_deriv_center);
-    
+
     CPPUNIT_TEST(test_ideal_jacobian);
-    
+
     CPPUNIT_TEST_SUITE_END();
-  
+
     QuadLagrangeShape sf;
-    
+
     void test_corner_coeff( int corner, NodeSet nodeset );
     void test_edge_coeff( int edge, NodeSet nodeset );
     void test_mid_coeff( NodeSet nodeset );
-    
+
     void test_corner_derivs( int corner, NodeSet nodeset );
     void test_edge_derivs( int edge, NodeSet nodeset );
     void test_mid_derivs( NodeSet nodeset );
-    
+
   public:
 
     void test_coeff_corners();
@@ -117,7 +117,7 @@ class QuadLagrangeShapeTest : public CppUnit::TestFixture
     void test_deriv_corners();
     void test_deriv_edges();
     void test_deriv_center();
-    
+
     void test_ideal_jacobian();
 };
 
@@ -209,9 +209,9 @@ static double dNdeta( unsigned i, double xi, double eta )
 
 // Evaluate one of N, dNdxi or dNdeta for each vertex
 typedef double (*f_t)(unsigned, double, double);
-static void eval( f_t function, 
-                  NodeSet nodeset, 
-                  double xi, double eta, 
+static void eval( f_t function,
+                  NodeSet nodeset,
+                  double xi, double eta,
                   double results[9] )
 {
     // Initial values are a) linear values for corners,
@@ -219,7 +219,7 @@ static void eval( f_t function,
     // and c) the mid-face value for a fully quadratic element.
   for (unsigned i = 0; i < 9; ++i)
     results[i] = function( i, xi, eta );
-  
+
     // if center node is present, adjust mid-edge coefficients
   if (!nodeset.mid_face_node(0)) {
     results[8] = 0;
@@ -230,7 +230,7 @@ static void eval( f_t function,
     for (unsigned i = 4; i < 8; ++i)
       results[i] -= 0.5 * results[8];
   }
-  
+
     // if mid-edge nodes are present, adjust values for adjacent corners
   for (unsigned i = 0; i < 4; ++i) {
     if (!nodeset.mid_edge_node(i)) {
@@ -246,15 +246,15 @@ static void eval( f_t function,
 // Finally, what all the above stuff was building up to:
 // functions to query mapping function.
 
-static void get_coeffs( NodeSet nodebits, double xi, double eta, 
+static void get_coeffs( NodeSet nodebits, double xi, double eta,
                         double coeffs_out[9] )
   { eval( &N, nodebits, xi, eta, coeffs_out ); }
 
-static void get_partial_wrt_xi( NodeSet nodebits, double xi, double eta, 
+static void get_partial_wrt_xi( NodeSet nodebits, double xi, double eta,
                                 double derivs_out[9] )
   { eval( &dNdxi, nodebits, xi, eta, derivs_out ); }
 
-static void get_partial_wrt_eta( NodeSet nodebits, double xi, double eta, 
+static void get_partial_wrt_eta( NodeSet nodebits, double xi, double eta,
                                 double derivs_out[9] )
   { eval( &dNdeta, nodebits, xi, eta, derivs_out ); }
 
@@ -323,7 +323,7 @@ static void compare_coefficients( const double* coeffs,
   CPPUNIT_ASSERT( bits.mid_edge_node(2) || (revidx[6] == num_coeff) );
   CPPUNIT_ASSERT( bits.mid_edge_node(3) || (revidx[7] == num_coeff) );
   CPPUNIT_ASSERT( bits.mid_face_node(0) || (revidx[8] == num_coeff) );
-    
+
     // compare expected and actual coefficient values
   ASSERT_VALUES_EQUAL( expected_coeffs[0], test_vals[0], loc, bits );
   ASSERT_VALUES_EQUAL( expected_coeffs[1], test_vals[1], loc, bits );
@@ -345,7 +345,7 @@ static void compare_derivatives( const size_t* vertices,
 {
   check_valid_indices( vertices, num_vtx, bits );
   check_no_zeros( derivs, num_vtx );
-  
+
     // Input has values in dxi & deta only for nodes in 'vertices'
     // Convert to values for every possible node, with zero's for
     // nodes that are not present.
@@ -358,7 +358,7 @@ static void compare_derivatives( const size_t* vertices,
     expanded_dxi [vertices[i]] = derivs[i][0];
     expanded_deta[vertices[i]] = derivs[i][1];
   }
-  
+
   ASSERT_VALUES_EQUAL( expected_dxi[0], expanded_dxi[0], loc, bits );
   ASSERT_VALUES_EQUAL( expected_dxi[1], expanded_dxi[1], loc, bits );
   ASSERT_VALUES_EQUAL( expected_dxi[2], expanded_dxi[2], loc, bits );
@@ -368,7 +368,7 @@ static void compare_derivatives( const size_t* vertices,
   ASSERT_VALUES_EQUAL( expected_dxi[6], expanded_dxi[6], loc, bits );
   ASSERT_VALUES_EQUAL( expected_dxi[7], expanded_dxi[7], loc, bits );
   ASSERT_VALUES_EQUAL( expected_dxi[8], expanded_dxi[8], loc, bits );
-  
+
   ASSERT_VALUES_EQUAL( expected_deta[0], expanded_deta[0], loc, bits );
   ASSERT_VALUES_EQUAL( expected_deta[1], expanded_deta[1], loc, bits );
   ASSERT_VALUES_EQUAL( expected_deta[2], expanded_deta[2], loc, bits );
@@ -383,93 +383,93 @@ static void compare_derivatives( const size_t* vertices,
 void QuadLagrangeShapeTest::test_corner_coeff( int corner, NodeSet nodebits )
 {
   MsqPrintError err(std::cout);
-  
+
   double expected[9];
   get_coeffs( nodebits, corners[corner][XI], corners[corner][ETA], expected );
-  
+
   double coeff[100];
   size_t num_coeff = 11, indices[100];
   sf.coefficients( Sample(0, corner), nodebits, coeff, indices, num_coeff, err );
   CPPUNIT_ASSERT( !err );
-  
+
   compare_coefficients( coeff, indices, num_coeff, expected, corner, nodebits );
 }
 
 void QuadLagrangeShapeTest::test_edge_coeff( int edge, NodeSet nodebits )
 {
   MsqPrintError err(std::cout);
-  
+
   double expected[9];
   get_coeffs( nodebits, midedge[edge][XI], midedge[edge][ETA], expected );
-  
+
   double coeff[100];
   size_t num_coeff = 11, indices[100];
   sf.coefficients( Sample(1, edge), nodebits, coeff, indices, num_coeff, err );
   CPPUNIT_ASSERT( !err );
-  
+
   compare_coefficients( coeff, indices, num_coeff, expected, edge+4, nodebits );
 }
 
 void QuadLagrangeShapeTest::test_mid_coeff( NodeSet nodebits )
 {
   MsqPrintError err(std::cout);
-  
+
   double expected[9];
   get_coeffs( nodebits, midelem[XI], midelem[ETA], expected );
-  
+
   double coeff[100];
   size_t num_coeff = 11, indices[100];
   sf.coefficients( Sample(2, 0), nodebits, coeff, indices, num_coeff, err );
   CPPUNIT_ASSERT( !err );
-  
+
   compare_coefficients( coeff, indices, num_coeff, expected, 8, nodebits );
 }
 
 void QuadLagrangeShapeTest::test_corner_derivs( int corner, NodeSet nodebits )
 {
   MsqPrintError err(std::cout);
-  
+
   double expected_dxi[9], expected_deta[9];
   get_partial_wrt_xi ( nodebits, corners[corner][XI], corners[corner][ETA], expected_dxi );
   get_partial_wrt_eta( nodebits, corners[corner][XI], corners[corner][ETA], expected_deta);
-  
+
   size_t vertices[100], num_vtx = 23;
   MsqVector<2> derivs[100];
   sf.derivatives( Sample(0, corner), nodebits, vertices, derivs, num_vtx, err );
   CPPUNIT_ASSERT( !err );
-  
+
   compare_derivatives( vertices, num_vtx, derivs, expected_dxi, expected_deta, corner, nodebits );
 }
 
 void QuadLagrangeShapeTest::test_edge_derivs( int edge, NodeSet nodebits )
 {
   MsqPrintError err(std::cout);
-  
+
   double expected_dxi[9], expected_deta[9];
   get_partial_wrt_xi ( nodebits, midedge[edge][XI], midedge[edge][ETA], expected_dxi );
   get_partial_wrt_eta( nodebits, midedge[edge][XI], midedge[edge][ETA], expected_deta);
-  
+
   size_t vertices[100], num_vtx = 23;
   MsqVector<2> derivs[100];
   sf.derivatives( Sample(1, edge), nodebits, vertices, derivs, num_vtx, err );
   CPPUNIT_ASSERT( !err );
-  
+
   compare_derivatives( vertices, num_vtx, derivs, expected_dxi, expected_deta, edge+4, nodebits );
 }
 
 void QuadLagrangeShapeTest::test_mid_derivs( NodeSet nodebits )
 {
   MsqPrintError err(std::cout);
-  
+
   double expected_dxi[9], expected_deta[9];
   get_partial_wrt_xi ( nodebits, midelem[XI], midelem[ETA], expected_dxi );
   get_partial_wrt_eta( nodebits, midelem[XI], midelem[ETA], expected_deta);
-  
+
   size_t vertices[100], num_vtx = 23;
   MsqVector<2> derivs[100];
   sf.derivatives( Sample(2, 0), nodebits, vertices, derivs, num_vtx, err );
   CPPUNIT_ASSERT( !err );
-  
+
   compare_derivatives( vertices, num_vtx, derivs, expected_dxi, expected_deta, 8, nodebits );
 }
 
@@ -490,7 +490,7 @@ void QuadLagrangeShapeTest::test_coeff_corners()
     // (0x1F = 11111 : five possible higher-order nodes in quad)
   for (unsigned j = 0; j <= 0x1Fu; ++j)
       // for every corner
-    for (unsigned i = 0; i < 4; ++i) 
+    for (unsigned i = 0; i < 4; ++i)
       test_corner_coeff( i, nodeset_from_bits(j) );
 }
 
@@ -500,7 +500,7 @@ void QuadLagrangeShapeTest::test_coeff_edges()
     // (0x1F = 11111 : five possible higher-order nodes in quad)
   for (unsigned j = 0; j <= 0x1Fu; ++j)
       // for every edge
-    for (unsigned i = 0; i < 4; ++i) 
+    for (unsigned i = 0; i < 4; ++i)
       test_edge_coeff( i, nodeset_from_bits(j) );
 }
 
@@ -518,7 +518,7 @@ void QuadLagrangeShapeTest::test_deriv_corners()
     // (0x1F = 11111 : five possible higher-order nodes in quad)
   for (unsigned j = 0; j <= 0x1Fu; ++j)
       // for every corner
-    for (unsigned i = 0; i < 4; ++i) 
+    for (unsigned i = 0; i < 4; ++i)
       test_corner_derivs( i, nodeset_from_bits(j));
 }
 
@@ -528,7 +528,7 @@ void QuadLagrangeShapeTest::test_deriv_edges()
     // (0x1F = 11111 : five possible higher-order nodes in quad)
   for (unsigned j = 0; j <= 0x1Fu; ++j)
       // for every edge
-    for (unsigned i = 0; i < 4; ++i) 
+    for (unsigned i = 0; i < 4; ++i)
       test_edge_derivs( i, nodeset_from_bits(j) );
 }
 
@@ -547,7 +547,7 @@ void QuadLagrangeShapeTest::test_ideal_jacobian()
   MsqMatrix<3,2> J_prime;
   sf.ideal( Sample(2,0), J_prime, err );
   ASSERT_NO_ERROR(err);
-  
+
     // for this test that everything is in the xy-plane
   CPPUNIT_ASSERT_DOUBLES_EQUAL( 0.0, J_prime(2,0), 1e-12 );
   CPPUNIT_ASSERT_DOUBLES_EQUAL( 0.0, J_prime(2,1), 1e-12 );
@@ -556,17 +556,17 @@ void QuadLagrangeShapeTest::test_ideal_jacobian()
 
   const Vector3D* verts = unit_edge_element( QUADRILATERAL );
   CPPUNIT_ASSERT(verts);
-  
+
   JacobianCalculator jc;
   jc.get_Jacobian_2D( &sf, NodeSet(), Sample(2,0), verts, 4, J_prime, err );
   ASSERT_NO_ERROR(err);
-  
+
     // for this test that everything is in the xy-plane
   CPPUNIT_ASSERT_DOUBLES_EQUAL( 0.0, J_prime(2,0), 1e-12 );
   CPPUNIT_ASSERT_DOUBLES_EQUAL( 0.0, J_prime(2,1), 1e-12 );
   MsqMatrix<2,2> J_exp( J_prime.data() );
   J_exp /= sqrt(det(J_exp));
-  
+
     // Matrices should be a rotation of each other.
     // First, calculate tentative rotation matrix
   MsqMatrix<2,2> R = inverse(J_exp) * J_act;

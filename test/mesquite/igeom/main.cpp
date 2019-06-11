@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2009 Sandia National Laboratories.  Developed at the
@@ -16,11 +16,11 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2010) kraftche@cae.wisc.edu    
+    (2010) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
@@ -48,7 +48,7 @@ const Vector3D SPHERE_CENTER( 2.0, 2.0, 0.0 );
 
 #define CHKIGEOM \
   if (chk_igeom_error(ierr, __FILE__, __LINE__)) return 0
-  
+
 bool chk_igeom_error( int ierr, const char* file, int line )
 {
   if (iBase_SUCCESS == ierr) return false;
@@ -63,7 +63,7 @@ void usage()
 {
   std::cout << "main [-N] [filename] [-o <output_file>]" << std::endl;
   std::cout << "  -N : Use native representation instead of iGeom implementation\n" << std::endl;
-  std::cout << "  If no file name is specified, will use \"" 
+  std::cout << "  If no file name is specified, will use \""
        << default_file_name << '"' << std::endl;
   exit (1);
 }
@@ -85,7 +85,7 @@ int main(int argc, char* argv[])
     {
       if (!strcmp( argv[arg], "-N"))
         use_native = true;
-      else if (!strcmp( argv[arg], "-o")) 
+      else if (!strcmp( argv[arg], "-o"))
         output_file = argv[arg++];
       else if (!strcmp( argv[arg], "--"))
         opts_done = true;
@@ -101,9 +101,9 @@ int main(int argc, char* argv[])
   {
     file_name = default_file_name.c_str();
     std::cout << "No file specified: using default: " << default_file_name << std::endl;
-  }  
-  
-  
+  }
+
+
   MsqError err;
   MeshImpl mesh;
   mesh.read_vtk( file_name, err );
@@ -113,7 +113,7 @@ int main(int argc, char* argv[])
     return 1;
   }
 
-  std::auto_ptr<MeshDomain> dom(use_native ? 
+  std::auto_ptr<MeshDomain> dom(use_native ?
                                 get_mesquite_domain() :
                                 get_itaps_domain());
 
@@ -122,14 +122,14 @@ int main(int argc, char* argv[])
     std::cerr << err << std::endl;
     return 1;
   }
-  
+
   run_smoother( mesh, dom.get(), err );
   if (MSQ_CHKERR(err)) {
     std::cerr << err << std::endl;
     std::cerr << "Smoother failed." << std::endl;
     return 1;
   }
-  
+
   if (output_file) {
     mesh.write_vtk( output_file, err );
     if (MSQ_CHKERR(err)) {
@@ -138,14 +138,14 @@ int main(int argc, char* argv[])
       return 1;
     }
   }
-  
+
   bool valid = check_results( mesh, dom.get(), err );
   if (MSQ_CHKERR(err)) {
     std::cerr << err << std::endl;
     std::cerr << "Error while validating results." << std::endl;
     return 1;
   }
-  
+
   return !valid;
 }
 
@@ -155,7 +155,7 @@ void run_smoother( Mesh& mesh, MeshDomain* dom, MsqError& err )
   MeshDomainAssoc mesh_and_domain = MeshDomainAssoc(&mesh, dom);
   smoother.run_instructions( &mesh_and_domain, err );
   MSQ_CHKERR(err);
-  
+
   if (smoother.quality_assessor().invalid_elements()) {
     MSQ_SETERR(err)("Smoothing produced invalid elements", MsqError::INVALID_MESH);
     return;
@@ -172,26 +172,26 @@ bool check_results( Mesh& mesh, MeshDomain* dom, MsqError& err )
   std::vector<MsqVertex> coords(handles.size());
   mesh.vertices_get_coordinates( arrptr(handles), arrptr(coords), handles.size(), err );
   MSQ_ERRZERO(err);
-  
+
   bool valid = true;
   size_t c = 0;
   for (size_t i = 0; i < coords.size(); ++i) {
     double d = (coords[i] - SPHERE_CENTER).length();
-    if (fabs(d - SPHERE_RADIUS) > EPS) 
+    if (fabs(d - SPHERE_RADIUS) > EPS)
       ++c;
   }
   if (c) {
     std::cerr << c << " vertices not on domain" << std::endl;
     valid = false;
   }
-  
+
   std::vector<unsigned short> dof(handles.size()), exp_dof(handles.size(),2);
   dom->domain_DoF( arrptr(handles), arrptr(dof), handles.size(), err ); MSQ_ERRZERO(err);
   if (dof != exp_dof) {
     std::cerr << "Invalid domain dimension for one or more vertices" << std::endl;
     valid = false;
   }
-  
+
   c = 0;
   std::vector<Vector3D> normals( coords.begin(), coords.end() );
   dom->vertex_normal_at( arrptr(handles), arrptr(normals), handles.size(), err );
@@ -200,14 +200,14 @@ bool check_results( Mesh& mesh, MeshDomain* dom, MsqError& err )
     Vector3D exp_norm = ~(coords[i] - SPHERE_CENTER);
     Vector3D act_norm = ~normals[i];
     Vector3D diff = exp_norm - act_norm;
-    if (diff.length() > EPS) 
+    if (diff.length() > EPS)
       ++c;
   }
   if (c) {
     std::cerr << c << " invalid vertex normals" << std::endl;
     valid = false;
   }
-  
+
   return valid;
 }
 
@@ -225,10 +225,10 @@ MeshDomain* get_itaps_domain()
 
   iBase_EntityHandle sphere_vol;
   iGeom_createSphere( igeom, SPHERE_RADIUS, &sphere_vol, &ierr ); CHKIGEOM;
-  iGeom_moveEnt( igeom, sphere_vol, 
+  iGeom_moveEnt( igeom, sphere_vol,
                  SPHERE_CENTER[0], SPHERE_CENTER[1], SPHERE_CENTER[2],
                  &ierr ); CHKIGEOM;
-  
+
   iBase_EntityHandle sphere_surf;
   iBase_EntityHandle* ptr = &sphere_surf;
   int size = 0, alloc = 1;
@@ -238,7 +238,7 @@ MeshDomain* get_itaps_domain()
     std::cerr << "Failed to get spherical surface from iGeom instance" << std::endl;
     return 0;
   }
-  
+
   Vector3D bmin, bmax;
   iGeom_getEntBoundBox( igeom, sphere_surf, &bmin[0], &bmin[1], &bmin[2],
                         &bmax[0], &bmax[1], &bmax[2], &ierr ); CHKIGEOM;
@@ -255,7 +255,7 @@ MeshDomain* get_itaps_domain()
               << "  Actual Box Maximum    : " << bmax << std::endl;
     return 0;
   }
-  
+
   return new MsqIGeom( igeom, sphere_surf );
 }
 

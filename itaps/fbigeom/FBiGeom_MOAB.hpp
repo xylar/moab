@@ -49,7 +49,7 @@ public:
   MBiMesh * mbimesh() { return _mbimesh; }
 };
 /* Define macro for quick reference to MBInterface instance */
-static inline moab::Interface* MBI_cast( FBiGeom_Instance i )  
+static inline moab::Interface* MBI_cast( FBiGeom_Instance i )
   { return reinterpret_cast<MBiGeom*>(i)->moabItf(); }
 
 #define MBI MBI_cast(instance)
@@ -58,8 +58,8 @@ static inline moab::FBEngine* FBE_cast( FBiGeom_Instance i )
   { return reinterpret_cast<MBiGeom*>(i) -> FBItf(); }
 
 /* Define macro for quick reference to moab::Interface instance */
-static inline moab::EntityHandle MBH_cast( iBase_EntityHandle h )  
-  { return reinterpret_cast<moab::EntityHandle>(h); }         
+static inline moab::EntityHandle MBH_cast( iBase_EntityHandle h )
+  { return reinterpret_cast<moab::EntityHandle>(h); }
 
 #define GETGTT(a) (reinterpret_cast<MBiGeom*>(a)->FBItf()->get_gtt())
 

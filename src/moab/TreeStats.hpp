@@ -21,25 +21,25 @@
 #include <iostream>
 #include <string>
 
-namespace moab 
+namespace moab
 {
     class TreeStats{
   public:
         //! constructor
       TreeStats() {reset();}
 
-        /** \brief Given a root node, compute the stats for a tree 
+        /** \brief Given a root node, compute the stats for a tree
          * \param impl MOAB instance pointer
          * \param root_node Root entity set for the tree
          */
       ErrorCode compute_stats(Interface *impl, EntityHandle root_node);
-      
+
         //! reset traversal counters
       void reset_trav_stats();
-              
+
         //! reset all counters
       void reset();
-              
+
         //! print the contents of this structure
       void print() const ;
 
@@ -59,7 +59,7 @@ namespace moab
       double avgObjPerLeaf;
       unsigned int minObjPerLeaf;
       unsigned int maxObjPerLeaf;
-      
+
 
         // traversal statistics
       unsigned int nodesVisited; // number of tree nodes visited since last reset
@@ -71,10 +71,10 @@ namespace moab
 
   private:
       ErrorCode traverse(Interface *impl, EntityHandle node, unsigned int &depth);
-      
+
     };
 
-    inline ErrorCode TreeStats::compute_stats(Interface *impl, EntityHandle root_node) 
+    inline ErrorCode TreeStats::compute_stats(Interface *impl, EntityHandle root_node)
     {
       maxDepth = 0;
       numNodes = 0;
@@ -82,13 +82,13 @@ namespace moab
       avgObjPerLeaf = 0.0;
       minObjPerLeaf = 0;
       maxObjPerLeaf = 0;
-      
+
       ErrorCode rval = traverse(impl, root_node, maxDepth);
       avgObjPerLeaf = (avgObjPerLeaf > 0 ? avgObjPerLeaf/(double)numLeaves : 0.0);
       return rval;
     }
-      
-    inline ErrorCode TreeStats::traverse(Interface *impl, EntityHandle node, unsigned int &depth) 
+
+    inline ErrorCode TreeStats::traverse(Interface *impl, EntityHandle node, unsigned int &depth)
     {
       depth++;
       numNodes++;
@@ -119,7 +119,7 @@ namespace moab
     inline void TreeStats::reset()
     {
       initTime = 0.0;
-      
+
       maxDepth = 0;
       numNodes = 0;
       numLeaves = 0;
@@ -128,21 +128,21 @@ namespace moab
       avgObjPerLeaf = 0.0;
       minObjPerLeaf = 0.0;
       maxObjPerLeaf = 0.0;
-      
+
       reset_trav_stats();
     }
-    
-    inline void TreeStats::reset_trav_stats() 
+
+    inline void TreeStats::reset_trav_stats()
     {
       nodesVisited = 0;
       leavesVisited = 0;
       numTraversals = 0;
       traversalLeafObjectTests = 0;
     }
-    
+
     inline void TreeStats::print() const {
       std::cout << "Tree initialization time = " << initTime << " seconds" << std::endl;
-      
+
       std::cout << "Num nodes         = " << numNodes << std::endl;
       std::cout << "Num leaves        = " << numLeaves << std::endl;
       std::cout << "Max depth         = " << maxDepth << std::endl << std::endl;
@@ -160,24 +160,24 @@ namespace moab
       std::cout << "Traversal Leaf Object Tests = " << traversalLeafObjectTests << std::endl;
     }
 
-    inline void TreeStats::output_all_stats(const bool with_endl) const 
+    inline void TreeStats::output_all_stats(const bool with_endl) const
     {
-      std::cout << initTime << " " << numNodes << " " << numLeaves << " " << maxDepth << " " 
+      std::cout << initTime << " " << numNodes << " " << numLeaves << " " << maxDepth << " "
                 << avgObjPerLeaf << " " << minObjPerLeaf << " " << maxObjPerLeaf << " "
                 << constructLeafObjectTests << " " << boxElemTests << " "
                 << nodesVisited << " " << leavesVisited << " " << numTraversals << " " << traversalLeafObjectTests << " ";
       if (with_endl) std::cout << std::endl;
     }
 
-    inline void TreeStats::output_trav_stats(const bool with_endl) const 
+    inline void TreeStats::output_trav_stats(const bool with_endl) const
     {
       std::cout << nodesVisited << " " << leavesVisited << " " << numTraversals << " " << traversalLeafObjectTests << " ";
       if (with_endl) std::cout << std::endl;
     }
 }
 
-    
-      
+
+
 
 
 #endif

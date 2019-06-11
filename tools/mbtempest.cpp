@@ -69,7 +69,7 @@ struct ToolContext
             proc_id ( 0 ), n_procs ( 1 ),
 #endif
             blockSize ( 5 ), outFilename ( "output.exo" ), meshType ( moab::TempestRemapper::DEFAULT ),
-            computeDual ( false ), computeWeights ( false ), ensureMonotonicity ( 0 ), 
+            computeDual ( false ), computeWeights ( false ), ensureMonotonicity ( 0 ),
             fNoConservation ( false ), fVolumetric ( false )
         {
             inFilenames.resize ( 2 );
@@ -461,7 +461,7 @@ int main ( int argc, char* argv[] )
 
             // weightMap->m_vecSourceDimSizes.resize(ctx.meshes[0]->faces.size());
             // weightMap->m_vecTargetDimSizes.resize(ctx.meshes[1]->faces.size());
-      
+
 #endif
 
             /*
@@ -569,7 +569,7 @@ moab::ErrorCode CreateTempestMesh ( ToolContext& ctx, moab::TempestRemapper& rem
 
         const double radius_src = 1.0 /*2.0*acos(-1.0)*/;
         const double radius_dest = 1.0 /*2.0*acos(-1.0)*/;
-  
+
         // Load the source mesh and validate
         rval = remapper.LoadNativeMesh ( ctx.inFilenames[0], ctx.meshsets[0], 0 ); MB_CHK_ERR ( rval );
         // Rescale the radius of both to compute the intersection

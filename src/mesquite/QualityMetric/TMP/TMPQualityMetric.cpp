@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2006 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
+
     (2006) kraftche@cae.wisc.edu
-   
+
   ***************************************************************** */
 
 
 /** \file TMPQualityMetric.cpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #undef PRINT_INFO
@@ -86,7 +86,7 @@ bool TMPQualityMetric::evaluate( PatchData& pd, size_t p_handle, double& value, 
   bool valid = evaluate_internal( pd, p_handle, value, mIndices, num_idx, err );
   if (MSQ_CHKERR(err) || !valid)
     return false;
-  
+
     // apply target weight to value
   if (weightCalc) {
     const Sample s = ElemSampleQM::sample( p_handle );
@@ -111,7 +111,7 @@ bool TMPQualityMetric::evaluate_with_indices( PatchData& pd,
     return false;
 
   indices.resize( num_idx );
-  
+
     // apply target weight to value
   if (weightCalc) {
     const Sample s = ElemSampleQM::sample( p_handle );
@@ -173,14 +173,14 @@ project_to_perp_plane(  MsqMatrix<3,2> J,
     MsqVector<3> m = sigma * cross;
     MsqVector<3> n = (1/sinphi) * m;
     MsqVector<3> p = (1-cosphi) * n;
-    double s_a[] = 
+    double s_a[] =
       { p[0]*n[0] + cosphi, p[0]*n[1] - m[2],   p[0]*n[2] + m[1],
         p[1]*n[0] + m[2],   p[1]*n[1] + cosphi, p[1]*n[2] - m[0],
         p[2]*n[0] - m[1],   p[2]*n[1] + m[0],   p[2]*n[2] + cosphi };
     MsqMatrix<3,3> S_a(s_a);
     J = S_a * J;
     S_a_transpose_Theta = transpose(S_a) * Theta;
-  } 
+  }
   else {
     S_a_transpose_Theta = Theta;
 //    J *= sigma;
@@ -194,7 +194,7 @@ project_to_perp_plane(  MsqMatrix<3,2> J,
 /* Do transform M_hat = S_a M_{3x2}, M_{2x2} Theta^-1 M_hat
  * where the plane into which we are projecting is the cross
  * product of the columns of M, such that S_a is I.  Use the
- * first column of M as u_perp.  
+ * first column of M as u_perp.
  *
  * Also pass back the cross product of the columns of M as u,
  * and the first column of M as u_perp, both normalized.
@@ -267,12 +267,12 @@ TMPQualityMetric::evaluate_surface_common( PatchData& pd,
   MsqMatrix<3,2> J;
   mf->jacobian( pd, e, bits, s, indices, derivs, num_indices, J, err );
 
-    // If we have a 3x2 target matrix 
+    // If we have a 3x2 target matrix
   if (targetCalc->have_surface_orient()) {
     MsqVector<3> u, u_perp;
     MsqMatrix<3,2> W_hat;
     targetCalc->get_surface_target( pd, e, s, W_hat, err ); MSQ_ERRZERO(err);
-      // Use the cross product of the columns of W as the normal of the 
+      // Use the cross product of the columns of W as the normal of the
       // plane to work in (i.e. u.).  W should have been constructed such
       // that said cross product is in the direction of (n_s)_init.  And if
       // for some reason it as not, then using something other than said
@@ -311,9 +311,9 @@ TMPQualityMetric::evaluate_surface_common( PatchData& pd,
       }
     }
   }
-  
+
   return true;
-}                    
+}
 
 void TMPQualityMetric::weight( PatchData& pd,
                                Sample p_sample,
@@ -327,7 +327,7 @@ void TMPQualityMetric::weight( PatchData& pd,
 {
   if (!weightCalc)
     return;
-  
+
   double ck = weightCalc->get_weight( pd, p_elem, p_sample, err ); MSQ_ERRRTN(err);
   value *= ck;
   if (grad) {
@@ -351,7 +351,7 @@ void TMPQualityMetric::initialize_queue( MeshDomainAssoc* mesh_and_domain,
 {
   targetCalc->initialize_queue( mesh_and_domain, settings, err ); MSQ_ERRRTN(err);
   if (weightCalc) {
-    weightCalc->initialize_queue( mesh_and_domain, settings, err ); 
+    weightCalc->initialize_queue( mesh_and_domain, settings, err );
     MSQ_ERRRTN(err);
   }
 }

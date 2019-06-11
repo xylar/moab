@@ -72,7 +72,7 @@ typedef sint slong;
 typedef moab::EntityHandle Ulong;
 
 
-namespace moab 
+namespace moab
 {
   void fail(const char *fmt, ...);
 
@@ -82,9 +82,9 @@ namespace moab
     /*---------------------------------------------------------------------------
 
       buffer: a simple class which can be used to store data
-  
-      The ptr points to the chunk of memory allocated for the buffer's use.  The 
-      size denotes the size of the allocated memory; the user must take care to 
+
+      The ptr points to the chunk of memory allocated for the buffer's use.  The
+      size denotes the size of the allocated memory; the user must take care to
       note how much of the buffer they are using.
 
       ---------------------------------------------------------------------------*/
@@ -93,7 +93,7 @@ namespace moab
     public:
       size_t buffSize;
       char *ptr;
-  
+
       /**Constructor which sets an initial capacity of the buffer
        */
       buffer(size_t sz);
@@ -101,9 +101,9 @@ namespace moab
       /**Default constructor (Note:  buffer must be initialized before use!)
        */
       buffer();
-  
+
       ~buffer () { this->reset(); };
-  
+
       /**Initializes the buffer to have a capacity of size
        */
       void buffer_init_(size_t sz, const char *file);
@@ -111,11 +111,11 @@ namespace moab
       /**Ensures that the buffer has at least a capacity of min
        */
       void buffer_reserve_(size_t min, const char *file);
-    
+
       /**Frees any allocated memory used by the buffer
        */
       void reset ();
-  
+
       //Aliases for using the buffer methods
 #define buffer_init(sz) buffer_init_(sz,__FILE__)
 #define buffer_reserve(min) buffer_reserve_(min,__FILE__)
@@ -162,20 +162,20 @@ namespace moab
      * param *buf  buffer space used for sorting
      */
     /*------------------------------------------------------------------------------
-  
+
       Hybrid Stable Sort
-  
+
       low-overhead merge sort when n is small,
       otherwise asymptotically superior radix sort
 
       result = O(n) sort with good performance for all n
-  
+
       A, n, stride : specifices the input
-  
+
       sort:
       uint out[n] : the sorted values (output)
       uint work[n]: scratch area
-  
+
       index_sort:
       uint idx[n]  : the sorted indices (output)
       sort_data work[2*n]: scratch area
@@ -191,7 +191,7 @@ namespace moab
      */
     void reserve();
 
-    /**Finds index of the tuple containing 'value' at the key_numth index of 
+    /**Finds index of the tuple containing 'value' at the key_numth index of
      * said tuple; return -1 if key_num is out of bounds or if 'value' not found
      * Uses binary search if TupleList is sorted by the key_numth field, seqential
      * otherwise (very slow for large TupleLists; please sort before you search)
@@ -223,7 +223,7 @@ namespace moab
      * param index     index of the tuple needed
      * param *&sp, *&ip, *&lp, *&dp   pointers to each piece of the tuple
      */
-    ErrorCode get(unsigned int index, const sint *&sp, 
+    ErrorCode get(unsigned int index, const sint *&sp,
 		  const slong *&ip, const Ulong *&lp, const realType *&dp);
 
     /**push back a new tuple on the TupleList;
@@ -252,7 +252,7 @@ namespace moab
      * param &mul_out Count of uints in a tuple
      * param &mr_out  Count of uints in a tuple
      */
-    void getTupleSize(uint &mi_out, uint &ml_out, 
+    void getTupleSize(uint &mi_out, uint &ml_out,
 		      uint &mul_out, uint &mr_out) const;
 
     /*Set the count of Tuples in the Tuple List
@@ -260,10 +260,10 @@ namespace moab
      * param n_in     New count of Tuples
      */
     void set_n(uint n_in);
-  
+
     /* Get the count of Tuples in the Tuple List */
     uint get_n() const;
-    
+
     /*Get the maximum number of Tuples currently allocated for*/
     uint get_max() const;
 
@@ -273,7 +273,7 @@ namespace moab
      * Warning, automatically calls enableWriteAccess()
      * returns current TupleList.n after the increment */
     uint inc_n();
-    
+
     void print(const char *) const;
     void print_to_file(const char *) const;
 
@@ -282,10 +282,10 @@ namespace moab
 
     //Variables to allow for direct read access
     const sint *vi_rd; slong *vl_rd; Ulong *vul_rd; realType *vr_rd;
-    
+
   private:
-    /* storage layed out as: vi[max][mi], vl[max][ml], vul[max][mul], 
-     * vr[max][mr] where "tuple" i is given by 
+    /* storage layed out as: vi[max][mi], vl[max][ml], vul[max][mul],
+     * vr[max][mr] where "tuple" i is given by
      * (vi[i][0:mi-1],vl[i][0:ml-1],vul[i][0:mul-1],vr[i][0:mr-1]).
      * only the first n tuples are in use */
     uint mi,ml,mul,mr;
@@ -295,7 +295,7 @@ namespace moab
     // Used by sort:  see .cpp for more details
     //void sort_bits(uint *work, uint key);
     void permute(uint *perm, void *work);
-    
+
     /* last_sorted = the last sorted position in the tuple (if the
      * TupleList has not been sorted, or has become unsorted--i.e.
      * by adding a tuple--last_sorted = -1) */
@@ -317,38 +317,38 @@ namespace moab
 #define VALUE_BITS   (DIGIT_BITS*DIGITS)
 #define COUNT_SIZE   (DIGITS*DIGIT_VALUES)
 
-    template<class Value> 
+    template<class Value>
     static Value radix_count(const Value *A, const Value *end, Index stride,
 			     Index count[DIGITS][DIGIT_VALUES]);
-    
+
     static void radix_offsets(Index *c);
 
     template<class Value>
     static unsigned radix_zeros(Value bitorkey, Index count[DIGITS][DIGIT_VALUES],
 				unsigned *shift, Index **offsets);
 
-    template<class Value> 
+    template<class Value>
     static void radix_index_pass_b(const Value *A, Index n, Index stride,
 				   unsigned sh, Index *off, SortData<Value> *out);
 
-    template<class Value>     
+    template<class Value>
     static void radix_index_pass_m(const SortData<Value> *src, const SortData<Value> *end,
 				   unsigned sh, Index *off, SortData<Value> *out);
 
-    template<class Value> 
+    template<class Value>
     static void radix_index_pass_e(const SortData<Value> *src, const SortData<Value> *end,
 				   unsigned sh, Index *off, Index *out);
 
     template<class Value>
     static void radix_index_pass_be(const Value *A, Index n, Index stride,
 				    unsigned sh, Index *off, Index *out);
-    
+
 
     /*------------------------------------------------------------------------------
 
-  
+
       Radix Sort
-  
+
       stable; O(n) time
 
       ----------------------------------------------------------------------------*/
@@ -358,9 +358,9 @@ namespace moab
 
     /*------------------------------------------------------------------------------
 
-  
+
       Merge Sort
-  
+
       stable; O(n log n) time
 
       ----------------------------------------------------------------------------*/

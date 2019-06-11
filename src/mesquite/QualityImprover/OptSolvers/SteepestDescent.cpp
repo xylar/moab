@@ -1,9 +1,9 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2004 Sandia Corporation and Argonne National
-    Laboratory.  Under the terms of Contract DE-AC04-94AL85000 
-    with Sandia Corporation, the U.S. Government retains certain 
+    Laboratory.  Under the terms of Contract DE-AC04-94AL85000
+    with Sandia Corporation, the U.S. Government retains certain
     rights in this software.
 
     This library is free software; you can redistribute it and/or
@@ -16,20 +16,20 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
-    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov, 
-    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov      
-   
+
+    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov,
+    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov
+
   ***************************************************************** */
 /*!
   \file   SteepestDescent.cpp
-  \brief  
+  \brief
 
   Implements the SteepestDescent class member functions.
-  
+
   \author Thomas Leurent
   \date   2002-06-13
 */
@@ -45,18 +45,18 @@ namespace MBMesquite {
 
 std::string SteepestDescent::get_name() const
   { return "SteepestDescent"; }
-  
+
 PatchSet* SteepestDescent::get_patch_set()
   { return PatchSetUser::get_patch_set(); }
 
-SteepestDescent::SteepestDescent(ObjectiveFunction* of) 
+SteepestDescent::SteepestDescent(ObjectiveFunction* of)
   : VertexMover(of),
     PatchSetUser(true),
     projectGradient(false) //,
     //cosineStep(false)
 {
-}  
-  
+}
+
 
 void SteepestDescent::initialize(PatchData &/*pd*/, MsqError &/*err*/)
 {
@@ -66,15 +66,15 @@ void SteepestDescent::initialize_mesh_iteration(PatchData &/*pd*/, MsqError &/*e
 {
 }
 
-void SteepestDescent::optimize_vertex_positions(PatchData &pd, 
+void SteepestDescent::optimize_vertex_positions(PatchData &pd,
                                                 MsqError &err)
 {
   MSQ_FUNCTION_TIMER( "SteepestDescent::optimize_vertex_positions" );
 
   const int SEARCH_MAX = 100;
   const double c1 = 1e-4;
-  //std::vector<Vector3D> unprojected(pd.num_free_vertices()); 
-  std::vector<Vector3D> gradient(pd.num_free_vertices()); 
+  //std::vector<Vector3D> unprojected(pd.num_free_vertices());
+  std::vector<Vector3D> gradient(pd.num_free_vertices());
   bool feasible=true;//bool for OF values
   double min_edge_len, max_edge_len;
   double step_size=0, original_value=0, new_value=0;
@@ -82,7 +82,7 @@ void SteepestDescent::optimize_vertex_positions(PatchData &pd,
   PatchDataVerticesMemento* pd_previous_coords;
   TerminationCriterion* term_crit=get_inner_termination_criterion();
   OFEvaluator& obj_func = get_objective_function_evaluator();
-  
+
     // get vertex memento so we can restore vertex coordinates for bad steps.
   pd_previous_coords = pd.create_vertices_memento( err ); MSQ_ERRRTN(err);
     // use auto_ptr to automatically delete memento when we exit this function
@@ -100,7 +100,7 @@ void SteepestDescent::optimize_vertex_positions(PatchData &pd,
   feasible = obj_func.update( pd, original_value, gradient, err ); MSQ_ERRRTN(err);
     // calculate gradient dotted with itself
   norm_squared = length_squared( gradient );
-  
+
     //set an error if initial patch is invalid.
   if(!feasible){
     MSQ_SETERR(err)("SteepestDescent passed invalid initial patch.",
@@ -136,9 +136,9 @@ void SteepestDescent::optimize_vertex_positions(PatchData &pd,
         MSQ_DBGOUT(3) << "    o  No valid step found.  Giving Up." << std::endl;
         return;
       }
-      
+
       // Move vertices to new positions.
-      // Note: step direction is -gradient so we pass +gradient and 
+      // Note: step direction is -gradient so we pass +gradient and
       //       -step_size to achieve the same thing.
       pd.move_free_vertices_constrained( arrptr(gradient), gradient.size(), -step_size, err ); MSQ_ERRRTN(err);
       // Evaluate objective function for new vertices.  We call the
@@ -148,8 +148,8 @@ void SteepestDescent::optimize_vertex_positions(PatchData &pd,
       // to that of the initial vertex coordinates.  However, for block
       // coordinate decent to work correctly, we will need to call an
       // 'update' form if we decide to keep the new vertex coordinates.
-      feasible = obj_func.evaluate( pd, new_value, err ); 
-      if (err.error_code() == err.BARRIER_VIOLATED) 
+      feasible = obj_func.evaluate( pd, new_value, err );
+      if (err.error_code() == err.BARRIER_VIOLATED)
         err.clear();  // barrier violated does not represent an actual error here
       MSQ_ERRRTN(err);
       MSQ_DBGOUT(3) << "    o  step_size: " << step_size << std::endl;
@@ -167,14 +167,14 @@ void SteepestDescent::optimize_vertex_positions(PatchData &pd,
         // Armijo condition met, stop
         break;
       }
-      
+
       // undo previous step : restore vertex coordinates
       pd.set_to_vertices_memento( pd_previous_coords, err );  MSQ_ERRRTN(err);
     }
-   
+
       // Re-evaluate objective function to get gradient.
-      // Calling the 'update' form here incorporates the new vertex 
-      // positions into the 'accumulated' value if we are doing a 
+      // Calling the 'update' form here incorporates the new vertex
+      // positions into the 'accumulated' value if we are doing a
       // block coordinate descent optimization.
     obj_func.update(pd, original_value, gradient, err ); MSQ_ERRRTN(err);
     if (projectGradient) {
@@ -189,17 +189,17 @@ void SteepestDescent::optimize_vertex_positions(PatchData &pd,
       //}
       //else {
         pd.project_gradient( gradient, err ); MSQ_ERRRTN(err);
-      //}      
+      //}
     }
-      
+
       // Update terination criterion for next iteration.
       // This is necessary for efficiency.  Some values can be adjusted
       // for each iteration so we don't need to re-caculate the value
       // over the entire mesh.
     term_crit->accumulate_patch( pd, err );  MSQ_ERRRTN(err);
-    term_crit->accumulate_inner( pd, original_value, arrptr(gradient), err ); MSQ_ERRRTN(err); 
-      
-      // Calculate initial step size for next iteration using step size 
+    term_crit->accumulate_inner( pd, original_value, arrptr(gradient), err ); MSQ_ERRRTN(err);
+
+      // Calculate initial step size for next iteration using step size
       // from this iteration
     step_size *= norm_squared;
     norm_squared = length_squared( gradient );
@@ -214,10 +214,10 @@ void SteepestDescent::terminate_mesh_iteration(PatchData &/*pd*/, MsqError &/*er
 {
   //  cout << "- Executing SteepestDescent::iteration_complete()\n";
 }
-  
+
 void SteepestDescent::cleanup()
 {
   //  cout << "- Executing SteepestDescent::iteration_end()\n";
 }
-  
+
 } // namespace MBMesquite

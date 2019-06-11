@@ -1,8 +1,8 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
-    Copyright 2006 Lawrence Livermore National Laboratory.  Under 
-    the terms of Contract B545069 with the University of Wisconsin -- 
+    Copyright 2006 Lawrence Livermore National Laboratory.  Under
+    the terms of Contract B545069 with the University of Wisconsin --
     Madison, Lawrence Livermore National Laboratory retains certain
     rights in this software.
 
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2006) kraftche@cae.wisc.edu    
+    (2006) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file LinearPyramid.cpp
  *  \brief LinearPyramid implementation
- *  \author Jason Kraftcheck 
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -36,10 +36,10 @@
 
 namespace MBMesquite {
 
-static const char* nonlinear_error 
+static const char* nonlinear_error
  = "Attempt to use LinearTriangle mapping function for a nonlinear element\n";
 
-static inline void set_equal_derivatives( double value, 
+static inline void set_equal_derivatives( double value,
                                           size_t* indices,
                                           MsqVector<3>* derivs,
                                           size_t& num_vtx )
@@ -50,23 +50,23 @@ static inline void set_equal_derivatives( double value,
   indices[2] = 2;
   indices[3] = 3;
   indices[4] = 4;
-    
+
   derivs[0][0] = -value;
   derivs[0][1] = -value;
   derivs[0][2] = -0.25;
-  
+
   derivs[1][0] =  value;
   derivs[1][1] = -value;
   derivs[1][2] = -0.25;
-  
+
   derivs[2][0] =  value;
   derivs[2][1] =  value;
   derivs[2][2] = -0.25;
-  
+
   derivs[3][0] = -value;
   derivs[3][1] =  value;
   derivs[3][2] = -0.25;
-  
+
   derivs[4][0] =  0.0;
   derivs[4][1] =  0.0;
   derivs[4][2] =  1.0;
@@ -153,7 +153,7 @@ static inline void set_corner_derivatives( unsigned corner,
 
 EntityTopology LinearPyramid::element_topology() const
   { return PYRAMID; }
-  
+
 int LinearPyramid::num_nodes() const
   { return 5; }
 
@@ -184,7 +184,7 @@ static void coefficients_at_mid_edge( unsigned edge,
   num_coeff = 2;
   coeff_out[0] = 0.5;
   coeff_out[1] = 0.5;
-  
+
   if (edge < 4) {
     indices_out[0] = edge;
     indices_out[1] = (edge+1)%4;
@@ -250,7 +250,7 @@ void LinearPyramid::coefficients( Sample loc,
     MSQ_SETERR(err)(nonlinear_error, MsqError::UNSUPPORTED_ELEMENT );
     return;
   }
-  
+
   switch (loc.dimension) {
     case 0:
       coefficients_at_corner( loc.number, coeff_out, indices_out, num_coeff );
@@ -280,7 +280,7 @@ void LinearPyramid::derivatives( Sample loc,
     MSQ_SETERR(err)(nonlinear_error, MsqError::UNSUPPORTED_ELEMENT );
     return;
   }
-  
+
   switch (loc.dimension) {
     case 0:
       if (loc.number == 4) {
@@ -296,7 +296,7 @@ void LinearPyramid::derivatives( Sample loc,
       }
       else {
         set_corner_derivatives( loc.number-4, 0.50, vertex_indices_out, d_coeff_d_xi_out, num_vtx );
-      }    
+      }
       break;
     case 2:
       if (loc.number == 4) {
@@ -325,8 +325,8 @@ void LinearPyramid::ideal( Sample location,
   // |  0        0       1        |
   //
   // The coefficient to produce a unit determinant
-  // is therefore (1-zeta)^(-2/3).  
-  // 
+  // is therefore (1-zeta)^(-2/3).
+  //
   // Thus the unit-determinate ideal element Jacobian
   // is, given alpha = (1-zeta)^(-1/3):
   //
@@ -338,13 +338,13 @@ void LinearPyramid::ideal( Sample location,
   //  zeta = 1 : the degenerate case
   //  zeta = 0 : both 1/alpha and alpha^2 are 1.0
   //  zeta = 1/2 : 1/alpha = 1/cbrt(2.0) and alpha^2 = 2*(1/alpha)
-  
+
     // special case for apex
   if (location.dimension == 0 && location.number == 4) {
     J = MsqMatrix<3,3>(0.0);
     return;
   }
-    
+
     // These are always zero
   J(0,1) = J(1,0) = J(2,0) = J(2,1) = 0.0;
 
@@ -352,7 +352,7 @@ void LinearPyramid::ideal( Sample location,
 
     // All of the zeta=0 locations
   double f;
-  if ( location.dimension == 0 || 
+  if ( location.dimension == 0 ||
       (location.dimension == 1 && location.number < 4) ||
       (location.dimension == 2 && location.number == 4)) {
       J(0,0) = J(1,1) = J(2,2) = 1.0;
@@ -365,14 +365,14 @@ void LinearPyramid::ideal( Sample location,
   }
 
     // Set terms in 3rd column based on xi,eta
-  
+
     // The xi = eta = 0.5 locations (mid-element in xi and eta)
   if ( location.dimension == 3 ||
       (location.dimension == 2 && location.number == 4)) {
         J(0,2) = J(1,2) = 0.0;
   }
     // The corner locations
-  else if ( location.dimension == 0 ||  
+  else if ( location.dimension == 0 ||
            (location.dimension == 1 && location.number >= 4)) {
     switch (location.number % 4) {
       case 0: J(0,2) =  f; J(1,2) =  f; break;
@@ -389,7 +389,7 @@ void LinearPyramid::ideal( Sample location,
       case 2: J(0,2) =  0; J(1,2) = -f; break;
       case 3: J(0,2) =  f; J(1,2) =  0; break;
     }
-  }  
+  }
 }
 
 } // namespace MBMesquite

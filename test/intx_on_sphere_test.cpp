@@ -68,7 +68,7 @@ int main(int argc, char* argv[])
   Core moab;
   Interface * mb = &moab; // global
   EntityHandle sf1, sf2, outputSet;
-   
+
   // create meshsets and load files
   if (0==rank)
     std::cout << "Creating mesh sets\n";

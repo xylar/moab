@@ -1,8 +1,8 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
-    Copyright 2005 Lawrence Livermore National Laboratory.  Under 
-    the terms of Contract B545069 with the University of Wisconsin -- 
+    Copyright 2005 Lawrence Livermore National Laboratory.  Under
+    the terms of Contract B545069 with the University of Wisconsin --
     Madison, Lawrence Livermore National Laboratory retains certain
     rights in this software.
 
@@ -16,11 +16,11 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    kraftche@cae.wisc.edu    
+    kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
@@ -43,9 +43,9 @@ enum Axis {
   X = 0, Y = 1, Z = 2
 };
 
-/**\brief Specify a projection to use for output 
- * 
- * This class defines a projection used to transform 
+/**\brief Specify a projection to use for output
+ *
+ * This class defines a projection used to transform
  * R^3 vertex positions to 2D positions to use in graphics
  * file formats.
  */
@@ -59,22 +59,22 @@ class MESQUITE_EXPORT Projection {
        *  projection such that the projection of the #up vector into
        *  the plane is parallel with the vertical direction in the output.
        */
-    Projection( const Vector3D& view, const Vector3D& up ); 
-      /** Specify which principal axes should be aligned with the 
-       *  horizontal and vertical in the output 
+    Projection( const Vector3D& view, const Vector3D& up );
+      /** Specify which principal axes should be aligned with the
+       *  horizontal and vertical in the output
        */
     Projection( Axis horizontal, Axis vertical );
-  
+
       /** Project a point into the plane */
     void project( const Vector3D& point, float& horiz, float& vert );
-    
+
     static Matrix3D rotation( const Vector3D& axis, double angle );
-  
+
   private:
     void init( const Vector3D& view );
     void init( const Vector3D& view, const Vector3D& up );
-  
-    Matrix3D myTransform;  
+
+    Matrix3D myTransform;
 };
 
 /** \brief Write mesh as gnuplot data
@@ -126,20 +126,20 @@ void write_vtk( PatchData& pd, const char* filename, MsqError& err,
 /** Convert inches to points */
 inline int in2pt( float inches ) { return (int)(inches * 72.0f); }
 /** Convert centimeters to points */
-inline int cm2pt( float cm     ) { return (int)(cm * 72.0f / 2.54f); } 
+inline int cm2pt( float cm     ) { return (int)(cm * 72.0f / 2.54f); }
 
 /**\brief Write an Encapsulate PostScript file.
  *
- * Write encapsulated postscript.  
+ * Write encapsulated postscript.
  *\param proj - PostScript is a 2-D drawing format.  This argument
  *              specifies which 2-D projection of the 3-D mesh to write.
  *\param width - The width of the output image, in points.
  *\param height - The height of the output image, in points.
  */
 MESQUITE_EXPORT
-void write_eps( Mesh* mesh, 
-                const char* filename, 
-                Projection proj, 
+void write_eps( Mesh* mesh,
+                const char* filename,
+                Projection proj,
                 MsqError& err,
                 int width = in2pt( 6.5 ),
                 int height = in2pt( 9 ) );
@@ -152,38 +152,38 @@ void write_eps( Mesh* mesh,
  *              specifies which 2-D projection of the 3-D mesh to write.
  */
 MESQUITE_EXPORT
-void write_svg( Mesh* mesh, 
-                const char* filename, 
+void write_svg( Mesh* mesh,
+                const char* filename,
                 Projection proj,
                 MsqError& err );
 
 /**\brief Write STL
  *
- * Write the mesh as an ASCII STL (Stereo Lithography) file. 
- * The STL format only supports writing triangles.  
+ * Write the mesh as an ASCII STL (Stereo Lithography) file.
+ * The STL format only supports writing triangles.
  * This writer will write only the triangles contained in the
  * passed mesh.  Any non-triangle elements will be ignored.
  */
 MESQUITE_EXPORT
-void write_stl( Mesh* mesh, const char* filename, MsqError& err ); 
+void write_stl( Mesh* mesh, const char* filename, MsqError& err );
 
 /**\brief Write EPS file containing single triangle in XY plane.
  */
 MESQUITE_EXPORT
-void write_eps_triangle( Mesh* mesh, 
+void write_eps_triangle( Mesh* mesh,
                          Mesh::ElementHandle elem,
-                         const char* filename, 
-                         bool draw_iso_lines, 
+                         const char* filename,
+                         bool draw_iso_lines,
                          bool draw_nodes,
                          MsqError& err,
                          int width = in2pt( 6.5 ),
                          int height = in2pt( 9 ) );
 MESQUITE_EXPORT
-void write_eps_triangle( const Vector3D* coords, 
+void write_eps_triangle( const Vector3D* coords,
                          size_t num_vtx,
-                         const char* filename, 
-                         bool draw_iso_lines, 
-                         bool draw_nodes, 
+                         const char* filename,
+                         bool draw_iso_lines,
+                         bool draw_nodes,
                          MsqError& err,
                          const std::vector<bool>& fixed_flags,
                          int width = in2pt( 6.5 ),

@@ -1,8 +1,8 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
-    Copyright 2004 Lawrence Livermore National Laboratory.  Under 
-    the terms of Contract B545069 with the University of Wisconsin -- 
+    Copyright 2004 Lawrence Livermore National Laboratory.  Under
+    the terms of Contract B545069 with the University of Wisconsin --
     Madison, Lawrence Livermore National Laboratory retains certain
     rights in this software.
 
@@ -16,12 +16,12 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
-    kraftche@cae.wisc.edu    
-   
+
+    kraftche@cae.wisc.edu
+
   ***************************************************************** */
 
 #include "MeshImplTags.hpp"
@@ -32,9 +32,9 @@
 namespace MBMesquite {
 
 
-MeshImplTags::TagData::~TagData() 
+MeshImplTags::TagData::~TagData()
 {
-  if (elementData) 
+  if (elementData)
     free(elementData);
   if (vertexData)
     free(vertexData);
@@ -49,7 +49,7 @@ void MeshImplTags::clear()
        iter != tagList.end(); ++iter)
     if (*iter)
       delete *iter;
-  
+
   tagList.clear();
 }
 
@@ -77,23 +77,23 @@ size_t MeshImplTags::create( const std::string& name,
     MSQ_SETERR(err)(name, MsqError::TAG_ALREADY_EXISTS);
     return 0;
   }
-  
+
   if (length == 0 || size_from_tag_type(type) == 0)
   {
     MSQ_SETERR(err)(MsqError::INVALID_ARG);
     return 0;
   }
-  
+
   TagData* tag = new TagData( name, type, length );
   h = tagList.size();
   tagList.push_back(tag);
-  
+
   if (defval)
   {
     tag->defaultValue = malloc( tag->desc.size );
     memcpy( tag->defaultValue, defval, tag->desc.size );
   }
-  
+
   return h+1;
 }
 
@@ -107,24 +107,24 @@ size_t MeshImplTags::create( const TagDescription& desc,
     MSQ_SETERR(err)(desc.name.c_str(), MsqError::TAG_ALREADY_EXISTS);
     return 0;
   }
-  
+
   err.clear();
   if (desc.size == 0 || (desc.size % size_from_tag_type(desc.type)) != 0)
   {
     MSQ_SETERR(err)(MsqError::INVALID_ARG);
     return 0;
   }
-  
+
   TagData* tag = new TagData( desc );
   h = tagList.size();
   tagList.push_back(tag);
-  
+
   if (defval)
   {
     tag->defaultValue = malloc( tag->desc.size );
     memcpy( tag->defaultValue, defval, tag->desc.size );
   }
-  
+
   return h+1;
 }
 
@@ -136,7 +136,7 @@ void MeshImplTags::destroy( size_t tag_index, MsqError& err )
     MSQ_SETERR(err)(MsqError::TAG_NOT_FOUND);
     return ;
   }
-  
+
   delete tagList[tag_index];
   tagList[tag_index] = 0;
 }
@@ -146,7 +146,7 @@ size_t MeshImplTags::handle( const std::string& name, MsqError&  ) const
   for (size_t i = 0; i < tagList.size(); ++i)
     if (tagList[i] && tagList[i]->desc.name == name)
       return i+1;
-      
+
   return 0;
 }
 
@@ -154,13 +154,13 @@ const TagDescription& MeshImplTags::properties( size_t tag_index, MsqError& err 
 {
   static TagDescription dummy_desc;
   --tag_index;
-  
+
   if (tag_index >= tagList.size() || !tagList[tag_index])
   {
     MSQ_SETERR(err)("Invalid tag handle", MsqError::INVALID_ARG);
     return dummy_desc;
   }
-  
+
   return tagList[tag_index]->desc;
 }
 
@@ -179,15 +179,15 @@ void MeshImplTags::set_element_data( size_t tag_index,
     MSQ_SETERR(err)("Invalid tag handle", MsqError::INVALID_ARG);
     return;
   }
-  
+
   TagData* tag = tagList[tag_index];
-  
+
     // Get highest element index
   size_t total = tag->elementCount;
   for (i = 0; i < num_indices; ++i)
     if (index_array[i] >= total)
       total = index_array[i] + 1;
-  
+
     // If need more space
   if (total > tag->elementCount)
   {
@@ -205,12 +205,12 @@ void MeshImplTags::set_element_data( size_t tag_index,
     }
     else
     {
-      memset( (char*)tag->elementData + tag->elementCount * tag->desc.size, 0, 
+      memset( (char*)tag->elementData + tag->elementCount * tag->desc.size, 0,
               (total - tag->elementCount) * tag->desc.size );
     }
     tag->elementCount = total;
   }
-  
+
     // Store passed tag values
   data = (char*)tag->elementData;
   const char* iter = (const char*)values;
@@ -233,12 +233,12 @@ void MeshImplTags::get_element_data( size_t tag_index,
     MSQ_SETERR(err)("Invalid tag handle", MsqError::INVALID_ARG);
     return;
   }
-  
+
   TagData* tag = tagList[tag_index];
-  
+
   char* iter = (char*)values;
   const char* data = (const char*)tag->elementData;
-  
+
   for (size_t i = 0; i < num_indices; ++i)
   {
     const void* ptr;
@@ -256,7 +256,7 @@ void MeshImplTags::get_element_data( size_t tag_index,
     {
       ptr = data + index * tag->desc.size;
     }
-    
+
     memcpy( iter, ptr, tag->desc.size );
     iter += tag->desc.size;
   }
@@ -276,15 +276,15 @@ void MeshImplTags::set_vertex_data( size_t tag_index,
     MSQ_SETERR(err)("Invalid tag handle", MsqError::INVALID_ARG);
     return;
   }
-  
+
   TagData* tag = tagList[tag_index];
-  
+
     // Get highest element index
   size_t total = tag->vertexCount;
   for (i = 0; i < num_indices; ++i)
     if (index_array[i] >= total)
       total = index_array[i] + 1;
-  
+
     // If need more space
   if (total > tag->vertexCount)
   {
@@ -302,12 +302,12 @@ void MeshImplTags::set_vertex_data( size_t tag_index,
     }
     else
     {
-      memset( (char*)tag->vertexData + tag->vertexCount * tag->desc.size, 0, 
+      memset( (char*)tag->vertexData + tag->vertexCount * tag->desc.size, 0,
               (total - tag->vertexCount) * tag->desc.size );
     }
     tag->vertexCount = total;
   }
-  
+
     // Store passed tag values
   data = (char*)tag->vertexData;
   const char* iter = (const char*)values;
@@ -330,12 +330,12 @@ void MeshImplTags::get_vertex_data( size_t tag_index,
     MSQ_SETERR(err)("Invalid tag handle", MsqError::INVALID_ARG);
     return;
   }
-  
+
   TagData* tag = tagList[tag_index];
-  
+
   char* iter = (char*)values;
   const char* data = (const char*)tag->vertexData;
-  
+
   for (size_t i = 0; i < num_indices; ++i)
   {
     const void* ptr;
@@ -353,13 +353,13 @@ void MeshImplTags::get_vertex_data( size_t tag_index,
     {
       ptr = data + index * tag->desc.size;
     }
-    
+
     memcpy( iter, ptr, tag->desc.size );
     iter += tag->desc.size;
   }
 }
 
-bool MeshImplTags::tag_has_vertex_data( size_t tag_index, MsqError& err ) 
+bool MeshImplTags::tag_has_vertex_data( size_t tag_index, MsqError& err )
 {
   --tag_index;
   if (tag_index >= tagList.size() || !tagList[tag_index])
@@ -367,12 +367,12 @@ bool MeshImplTags::tag_has_vertex_data( size_t tag_index, MsqError& err )
     MSQ_SETERR(err)("Invalid tag handle", MsqError::INVALID_ARG);
     return false;
   }
-  
+
   TagData* tag = tagList[tag_index];
   return 0 != tag->vertexData || tag->defaultValue;
-}  
+}
 
-bool MeshImplTags::tag_has_element_data( size_t tag_index, MsqError& err ) 
+bool MeshImplTags::tag_has_element_data( size_t tag_index, MsqError& err )
 {
   --tag_index;
   if (tag_index >= tagList.size() || !tagList[tag_index])
@@ -380,7 +380,7 @@ bool MeshImplTags::tag_has_element_data( size_t tag_index, MsqError& err )
     MSQ_SETERR(err)("Invalid tag handle", MsqError::INVALID_ARG);
     return false;
   }
-  
+
   TagData* tag = tagList[tag_index];
   return 0 != tag->elementData || tag->defaultValue;
 }

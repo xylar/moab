@@ -1,9 +1,9 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2004 Sandia Corporation and Argonne National
-    Laboratory.  Under the terms of Contract DE-AC04-94AL85000 
-    with Sandia Corporation, the U.S. Government retains certain 
+    Laboratory.  Under the terms of Contract DE-AC04-94AL85000
+    with Sandia Corporation, the U.S. Government retains certain
     rights in this software.
 
     This library is free software; you can redistribute it and/or
@@ -16,13 +16,13 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
-    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov, 
-    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov      
-   
+
+    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov,
+    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov
+
   ***************************************************************** */
 #ifndef __VECTOR3DTEST_H__
 #define __VECTOR3DTEST_H__
@@ -43,7 +43,7 @@ class Vector3DTest : public CppUnit::TestFixture
 public:
   Vector3DTest()
     {}
-  
+
   void test_default_constructor()
     {
       MBMesquite::Vector3D v;
@@ -62,7 +62,7 @@ public:
     {
       MBMesquite::Vector3D v2(3, 2, 1);
       MBMesquite::Vector3D v(v2);
-      
+
       CPPUNIT_ASSERT(v.x() == 3);
       CPPUNIT_ASSERT(v.y() == 2);
       CPPUNIT_ASSERT(v.z() == 1);
@@ -83,7 +83,7 @@ class Vector3DTest2 : public CppUnit::TestFixture
 public:
   Vector3DTest2()
     {}
-  
+
 };
 
 CPPUNIT_TEST_SUITE_NAMED_REGISTRATION(Vector3DTest, "Unit");

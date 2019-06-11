@@ -47,23 +47,23 @@ public:
 
   EntityHandle start_handle() const
     { return startHandle; }
-  
+
   EntityHandle end_handle() const
     { return endHandle; }
-  
+
   SequenceData* data() const
     { return sequenceData; }
-    
+
   void data( SequenceData* ptr )
     { sequenceData = ptr; }
-  
+
   EntityID size() const
     { return endHandle - startHandle + 1; }
-    
-    /**\brief True if SequenceData has no holes and is used only 
+
+    /**\brief True if SequenceData has no holes and is used only
      *        by this EntitySequence */
   bool using_entire_data() const;
-  
+
     /**\brief Integer value used in finding appropriate SequenceData
      *
      * This value is matched to input values by TypeSequenceManager to
@@ -73,7 +73,7 @@ public:
      * per element when allocating elements.  The default value is zero.
      */
   virtual int values_per_entity() const;
-  
+
     /**\brief Split this sequence into two consecutive sequences
      *
      * Split this sequence into two sequences.
@@ -88,17 +88,17 @@ public:
      * consective and sequences must share a common SequenceData.
      */
   virtual ErrorCode merge( EntitySequence& other );
-  
+
     /**\brief Erase entities in range: (end_handle()-count, end_handle()] */
   virtual ErrorCode pop_back( EntityID count );
-  
+
     /**\brief Erase entities in range: [start_handle(), start_handle()+count) */
   virtual ErrorCode pop_front( EntityID count );
-  
-    /**\brief Create a new SequenceData that is a copy of a subset of 
+
+    /**\brief Create a new SequenceData that is a copy of a subset of
     *         the one referenced by this sequence.
     *
-    * Create a new SequenceData that is a copy of a subset of the 
+    * Create a new SequenceData that is a copy of a subset of the
     * SequenceData referenced by this EntitySequence.  Do not make any
     * changes to this EntitySequence or the current SequenceData.
     */
@@ -124,7 +124,7 @@ public:
   virtual unsigned long get_per_entity_memory_use( EntityHandle first,
                                                    EntityHandle last ) const;
 };
-  
+
 } // namespace moab
 
 #endif

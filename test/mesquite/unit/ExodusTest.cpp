@@ -1,9 +1,9 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2004 Sandia Corporation and Argonne National
-    Laboratory.  Under the terms of Contract DE-AC04-94AL85000 
-    with Sandia Corporation, the U.S. Government retains certain 
+    Laboratory.  Under the terms of Contract DE-AC04-94AL85000
+    with Sandia Corporation, the U.S. Government retains certain
     rights in this software.
 
     This library is free software; you can redistribute it and/or
@@ -16,13 +16,13 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
-    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov, 
-    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov      
-   
+
+    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov,
+    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov
+
   ***************************************************************** */
 // -*- Mode : c++; tab-width: 2; c-tab-always-indent: t; indent-tabs-mode: nil; c-basic-offset: 2 -*-
 //
@@ -60,39 +60,39 @@ private:
    CPPUNIT_TEST (test_read);
    CPPUNIT_TEST (test_write);
    CPPUNIT_TEST_SUITE_END();
-    
+
 public:
    /* Automatically called by CppUnit before each test function. */
   void setUp()
   {
   }
-  
+
     // Automatically called by CppUnit after each test function.
   void tearDown()
   {
   }
-  
+
   ExodusTest()
     {}
-  
+
   void test_read();
-  
+
   void test_write();
-  
+
   void check_mesh( const char* filaname );
 };
 
-  
+
   void ExodusTest::test_read()
   {
       // Create a mesh file to read
     char filename[] = "MsqExoTestTemp.g";
     bool havefile = create_exodus_file( filename );
     CPPUNIT_ASSERT(havefile);
-    
+
     check_mesh( filename );
   }
-  
+
   void ExodusTest::test_write()
   {
     MBMesquite::MeshImpl *mMesh;
@@ -102,23 +102,23 @@ public:
     char filename[] = "MsqExoTestTemp.g";
     bool havefile = create_exodus_file( filename );
     CPPUNIT_ASSERT(havefile);
-    
+
       // Read in test file
     mMesh = new MBMesquite::MeshImpl;
     mMesh->read_exodus(filename, err);
     remove( filename );
     CPPUNIT_ASSERT(!err);
-    
+
       // Write the test file back out
     mMesh->write_exodus( filename, err );
     if (err) remove( filename );
     CPPUNIT_ASSERT(!err);
     delete mMesh;
-    
+
       // Read back in the file we just wrote and check it
     check_mesh( filename );
   }
-  
+
   void ExodusTest::check_mesh( const char* filename )
   {
     MBMesquite::MeshImpl *mMesh;
@@ -133,7 +133,7 @@ public:
     mMesh->read_exodus(filename, err);
     remove( filename );
     CPPUNIT_ASSERT(!err);
-    
+
       // Check overall counts
     std::vector<MBMesquite::Mesh::ElementHandle> elem_handle_vect;
     mMesh->get_all_elements( elem_handle_vect, err );
@@ -148,11 +148,11 @@ public:
     CPPUNIT_ASSERT(!err);
     CPPUNIT_ASSERT(vert_handle_vect.size() == 8 * NUM_HEXES + 4 * NUM_QUADS );
     std::sort( vert_handle_vect.begin(), vert_handle_vect.end() );
-    std::vector<MBMesquite::Mesh::VertexHandle>::iterator new_end = 
+    std::vector<MBMesquite::Mesh::VertexHandle>::iterator new_end =
       std::unique( vert_handle_vect.begin(), vert_handle_vect.end() );
     vert_handle_vect.resize( new_end - vert_handle_vect.begin() );
     CPPUNIT_ASSERT(vert_handle_vect.size() == NUM_NODES);
-    
+
       // Array of names of expected element types
     const char* names[Mesquite::MIXED];
     memset( names, 0, sizeof(names) );
@@ -162,7 +162,7 @@ public:
     names[Mesquite::HEXAHEDRON] = "hex";
     names[Mesquite::PRISM] = "wedge";
     names[Mesquite::PYRAMID] = "pyr";
-    
+
       // Count elements by type
     unsigned counts[Mesquite::MIXED];
     memset( counts, 0, sizeof(counts) );
@@ -178,26 +178,26 @@ public:
       ++counts[type];
       iter->operator++();
     }
-    
+
       // Print counts
     printf( "TYPE   COUNT\n-----  -----\n");
     for (i = 0; i < MBMesquite::MIXED; ++i)
       if (counts[i])
         printf("%5s  %5d\n", names[i], counts[i]);
-        
-    
+
+
     CPPUNIT_ASSERT( counts[Mesquite::TRIANGLE] == 0 );
     CPPUNIT_ASSERT( counts[Mesquite::QUADRILATERAL] == NUM_QUADS );
     CPPUNIT_ASSERT( counts[Mesquite::TETRAHEDRON] == 0 );
     CPPUNIT_ASSERT( counts[Mesquite::HEXAHEDRON] = NUM_HEXES );
     CPPUNIT_ASSERT( counts[Mesquite::PRISM] == 0 );
     CPPUNIT_ASSERT( counts[Mesquite::PYRAMID] == 0 );
-    
+
       // Check a few hexes and nodes for correctness
     const unsigned num_to_check = 6;
     unsigned j;
     char buffer[64];
-    
+
       // Check connectivity of first six hexes
     static const unsigned expected_hex_connectivity[num_to_check][8] = {
       { 64,  63, 168, 167, 4,  5, 28, 27 },
@@ -222,7 +222,7 @@ public:
         CPPUNIT_ASSERT_MESSAGE( buffer, mesh == exp );
       }
     }
-    
+
       // Check locations of first six vertices
     static const double expected_node_coords[num_to_check][3] = {
       {  2.000000,     0.000000,     5.000000 },
@@ -244,7 +244,7 @@ public:
           fabs( expected_node_coords[j][i] - vert[i] ) < 1e-6 );
       }
     }
-          
+
   }
 
 CPPUNIT_TEST_SUITE_NAMED_REGISTRATION(ExodusTest, "ExodusTest");
@@ -257,23 +257,23 @@ int main( int argc, char* argv[] )
   const char* filename = "dump.g";
   if (argc > 1)
     filename = argv[1];
-  
+
   bool result = create_exodus_file( filename );
   if (result)
     printf("Wrote \"%s\"\n", filename );
   else
     printf("Failed to write \"%s\"\n", filename );
-  
+
   return !result;
 }
 
 #endif  /* #ifndef DEBUG */
-  
+
 
 bool create_exodus_file( const char* filename )
 {
-    // This is the binary data composing an ExodusII mesh.  
-    // This mesh was generated using the following commands 
+    // This is the binary data composing an ExodusII mesh.
+    // This mesh was generated using the following commands
     // in Cubit 9.2b Build 113:
     //  CUBIT> brick x 10
     //  CUBIT> cylinder radius 2 z 10
@@ -284,7 +284,7 @@ bool create_exodus_file( const char* filename )
     // To extract this data into a file for debugging, do
     //  $ CC -DDEBUG ExodusTest.cpp -o exodump
     //  $ ./exodump mesh.g
-  static const unsigned char binary_data[] = { 
+  static const unsigned char binary_data[] = {
   0x43, 0x44, 0x46, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0a, 0x00,
   0x00, 0x00, 0x0b, 0x00, 0x00, 0x00, 0x0a, 0x6c, 0x65, 0x6e, 0x5f, 0x73, 0x74,
   0x72, 0x69, 0x6e, 0x67, 0x00, 0x00, 0x00, 0x00, 0x00, 0x21, 0x00, 0x00, 0x00,
@@ -1438,11 +1438,11 @@ bool create_exodus_file( const char* filename )
   0x00, 0xd0, 0x00, 0x00, 0x00, 0xd1, 0x00, 0x00, 0x00, 0xd2, 0x00, 0x00, 0x00,
   0xd3, 0x00, 0x00, 0x00, 0xd4, 0x00, 0x00, 0x00, 0xd5, 0x00, 0x00, 0x00, 0xd6,
   0x00, 0x00, 0x00, 0xd7, 0x00, 0x00, 0x00, 0xd8 };
-  
+
   FILE* file = fopen( filename, "w" );
   if (!file)
     return false;
-  
+
   size_t rval = fwrite( binary_data, sizeof(binary_data), 1, file );
   fclose( file );
   return rval == 1;

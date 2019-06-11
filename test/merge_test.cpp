@@ -116,7 +116,7 @@ ErrorCode EntityCount::create_adjacencies(Range &entities, int adj_dim)
   ErrorCode result;
   Range::iterator iter;
   std::vector<EntityHandle> adjacencies;
-  
+
   for (iter = entities.begin(); iter != entities.end(); ++iter)
   {
     result = gMB->get_adjacencies(&*iter, 1, adj_dim, true, adjacencies);

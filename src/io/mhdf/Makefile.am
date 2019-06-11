@@ -23,7 +23,7 @@ libmhdf_la_SOURCES = include/mhdf.h \
 if ENABLE_h5mtools
   h5mtools = h5minfo h5mvalidate
 else
-  h5mtools = 
+  h5mtools =
 endif
 
 bin_PROGRAMS = $(h5mtools)

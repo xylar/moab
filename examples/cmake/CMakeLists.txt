@@ -32,7 +32,7 @@ message ( "++ Found MOAB configuration details at: ${MOAB_DIR}" )
 
 ####################################################################################
 ##                      MODIFY BELOW AS NECESSARY                                 ##
-##     (Replace `ExampleMOABProgram` with your source file name)                  ## 
+##     (Replace `ExampleMOABProgram` with your source file name)                  ##
 ####################################################################################
 
 project (MOAB_CMAKE_TEMPLATE_EXAMPLE)

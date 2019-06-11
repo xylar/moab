@@ -1,8 +1,8 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
-    Copyright 2006 Lawrence Livermore National Laboratory.  Under 
-    the terms of Contract B545069 with the University of Wisconsin -- 
+    Copyright 2006 Lawrence Livermore National Laboratory.  Under
+    the terms of Contract B545069 with the University of Wisconsin --
     Madison, Lawrence Livermore National Laboratory retains certain
     rights in this software.
 
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2006) kraftche@cae.wisc.edu    
+    (2006) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file LinearPrism.cpp
  *  \brief mapping function for linear prism
- *  \author Jason Kraftcheck 
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -36,16 +36,16 @@
 
 namespace MBMesquite {
 
-static const char* nonlinear_error 
+static const char* nonlinear_error
  = "Attempt to use LinearPrism mapping function for a nonlinear element\n";
 
 
 EntityTopology LinearPrism::element_topology() const
   { return PRISM; }
-  
+
 int LinearPrism::num_nodes() const
   { return 6; }
-  
+
 static const int edge_beg[] = { 0, 1, 2, 0, 1, 2, 3, 4, 5 };
 static const int edge_end[] = { 1, 2, 0, 3, 4, 5, 4, 5, 3 };
 static const int faces[5][5] = { { 4, 0, 1, 4, 3 },
@@ -90,9 +90,9 @@ static void coefficients_at_mid_face( unsigned face,
   }
   else {
     num_coeff = 3;
-    f = MSQ_ONE_THIRD; 
+    f = MSQ_ONE_THIRD;
   }
-  
+
   coeff_out[0] = f;
   coeff_out[1] = f;
   coeff_out[2] = f;
@@ -132,7 +132,7 @@ void LinearPrism::coefficients( Sample loc,
     MSQ_SETERR(err)(nonlinear_error, MsqError::UNSUPPORTED_ELEMENT );
     return;
   }
-  
+
   switch (loc.dimension) {
     case 0:
       coefficients_at_corner( loc.number, coeff_out, indices_out, num_coeff );
@@ -151,9 +151,9 @@ void LinearPrism::coefficients( Sample loc,
   }
 }
 
-                                
 
-static void derivatives_at_corner( unsigned corner, 
+
+static void derivatives_at_corner( unsigned corner,
                                    size_t* vertex_indices_out,
                                    MsqVector<3>* d_coeff_d_xi_out,
                                    size_t& num_vtx )
@@ -168,7 +168,7 @@ static void derivatives_at_corner( unsigned corner,
   vertex_indices_out[2] = 3*tri+2;
     // vertex adjacent to corner in other triangle
   vertex_indices_out[3] = 3 - 6*tri + corner;
-  
+
     // three vertices within the xi=constant triangle
   d_coeff_d_xi_out[0][0] =  0.0;
   d_coeff_d_xi_out[0][1] = -1.0;
@@ -180,7 +180,7 @@ static void derivatives_at_corner( unsigned corner,
   d_coeff_d_xi_out[2][1] =  0.0;
   d_coeff_d_xi_out[2][2] =  1.0;
     // fix dxi value for input corner
-  d_coeff_d_xi_out[tv][0] = 2*tri - 1; 
+  d_coeff_d_xi_out[tv][0] = 2*tri - 1;
     // vertex adjacent to corner in other triangle
   d_coeff_d_xi_out[3][0] =  1 - 2*tri;
   d_coeff_d_xi_out[3][1] =  0.0;
@@ -188,13 +188,13 @@ static void derivatives_at_corner( unsigned corner,
 }
 
 
-static void derivatives_at_mid_edge( unsigned edge, 
+static void derivatives_at_mid_edge( unsigned edge,
                                      size_t* vertex_indices_out,
                                      MsqVector<3>* d_coeff_d_xi_out,
                                      size_t& num_vtx )
 {
   int opp; // vertex opposite edge in same triagle
-  
+
   switch (edge/3) {
     case 0:  // triangle at xi = 0
       opp = (edge+2)%3;
@@ -237,7 +237,7 @@ static void derivatives_at_mid_edge( unsigned edge,
       vertex_indices_out[3] = 3;
       vertex_indices_out[4] = 4;
       vertex_indices_out[5] = 5;
-      
+
         // set all deta & dzeta values, zero all dxi values
       d_coeff_d_xi_out[0][0] =  0.0;
       d_coeff_d_xi_out[0][1] = -0.5;
@@ -257,12 +257,12 @@ static void derivatives_at_mid_edge( unsigned edge,
       d_coeff_d_xi_out[5][0] =  0.0;
       d_coeff_d_xi_out[5][1] =  0.0;
       d_coeff_d_xi_out[5][2] =  0.5;
-      
+
         // set dxi values for end points of edge
       d_coeff_d_xi_out[(edge-3)][0] = -1;
       d_coeff_d_xi_out[ edge   ][0] =  1;
       break;
-    
+
     case 2:  // triangle at xi = 1
       opp = (edge+2)%3;
 
@@ -297,7 +297,7 @@ static void derivatives_at_mid_edge( unsigned edge,
       break;
   }
 }
-static void derivatives_at_mid_face( unsigned face, 
+static void derivatives_at_mid_face( unsigned face,
                                      size_t* vertex_indices_out,
                                      MsqVector<3>* d_coeff_d_xi_out,
                                      size_t& num_vtx )
@@ -309,10 +309,10 @@ static void derivatives_at_mid_face( unsigned face,
   vertex_indices_out[3] = 3;
   vertex_indices_out[4] = 4;
   vertex_indices_out[5] = 5;
-  
+
   int opp; // start vtx of edge opposite from quad face
   int tri_offset; // offset in d_coeff_d_xi_out for triangle containing edge
-  
+
   if (face < 3) { // quad face
       // set all values
     d_coeff_d_xi_out[0][0] = -0.5;
@@ -372,7 +372,7 @@ static void derivatives_at_mid_elem( size_t* vertex_indices_out,
                                      size_t& num_vtx )
 {
   const double third = 1./3;
-  
+
   num_vtx = 6;;
   vertex_indices_out[0] = 0;
   vertex_indices_out[1] = 1;
@@ -380,7 +380,7 @@ static void derivatives_at_mid_elem( size_t* vertex_indices_out,
   vertex_indices_out[3] = 3;
   vertex_indices_out[4] = 4;
   vertex_indices_out[5] = 5;
-  
+
   d_coeff_d_xi_out[0][0] = -third;
   d_coeff_d_xi_out[0][1] = -0.5;
   d_coeff_d_xi_out[0][2] = -0.5;
@@ -400,7 +400,7 @@ static void derivatives_at_mid_elem( size_t* vertex_indices_out,
   d_coeff_d_xi_out[5][1] =  0.0;
   d_coeff_d_xi_out[5][2] =  0.5;
 }
-  
+
 void LinearPrism::derivatives( Sample loc,
                                NodeSet nodeset,
                                size_t* vertex_indices_out,
@@ -412,7 +412,7 @@ void LinearPrism::derivatives( Sample loc,
     MSQ_SETERR(err)(nonlinear_error, MsqError::UNSUPPORTED_ELEMENT );
     return;
   }
-  
+
   switch (loc.dimension) {
     case 0:
       derivatives_at_corner( loc.number, vertex_indices_out, d_coeff_d_xi_out, num_vtx );
@@ -432,7 +432,7 @@ void LinearPrism::derivatives( Sample loc,
 }
 
 
-void LinearPrism::ideal( Sample , 
+void LinearPrism::ideal( Sample ,
                          MsqMatrix<3,3>& J,
                          MsqError&  ) const
 {

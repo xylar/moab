@@ -9,9 +9,9 @@
 #include <iomanip>
 #include <iostream>
 #include <cassert>
- 
+
 using namespace moab;
- 
+
   // Number of cells in each direction:
 int NC;
 
@@ -21,10 +21,10 @@ int NC;
  * then ghost exchange is done.
  */
 const int ITERS = 50;
- 
+
 void create_parallel_mesh();
- 
-int main(int argc, char *argv[]) 
+
+int main(int argc, char *argv[])
 {
   MPI_Init(&argc, &argv);
 
@@ -32,14 +32,14 @@ int main(int argc, char *argv[])
   po.addOpt<int>( "int,i", "Number of intervals on a side" );
   po.parseCommandLine( argc, argv );
   if(!po.getOpt( "int", &NC )) NC = 4;
-  
+
   int err = RUN_TEST(create_parallel_mesh);
- 
+
   MPI_Finalize();
   return err;
 }
- 
-void create_parallel_mesh() 
+
+void create_parallel_mesh()
 {
   Core mbint;
   ParallelComm pc(&mbint, MPI_COMM_WORLD);
@@ -47,7 +47,7 @@ void create_parallel_mesh()
   ErrorCode rval = mbint.query_interface(scdi);
   CHECK_ERR(rval);
     //pc.set_debug_verbosity(2);
-  
+
     // create a structured mesh in parallel
   ScdBox *new_box;
   ScdParData par_data;
@@ -58,7 +58,7 @@ void create_parallel_mesh()
     std::cerr << "Too few processors for this number of elements." << std::endl;
     CHECK_ERR(MB_FAILURE);
   }
-    
+
   par_data.partMethod = ScdParData::SQIJK;
 
     // timing data
@@ -71,20 +71,20 @@ void create_parallel_mesh()
 
     // get global id tag
   Tag tag = mbint.globalId_tag();
-  
+
     // resolve shared verts
   std::cout << "Resolving shared ents..." << std::endl;
   rval = pc.resolve_shared_ents(new_box->box_set(), -1, 0, &tag);
   CHECK_ERR(rval);
   times[1] = MPI_Wtime();
-  
+
   std::cout << "Exchanging ghost cells..." << std::endl;
   rval = pc.exchange_ghost_cells(-1, -1, 0, 0, true, true);
   CHECK_ERR(rval);
   times[2] = MPI_Wtime();
 
 //  pc.list_entities(0,-1);
-  
+
   rval = pc.exchange_ghost_cells(-1, 0, 1, 0, true);
   if (MB_SUCCESS != rval) {
     std::string err;
@@ -95,7 +95,7 @@ void create_parallel_mesh()
   times[3] = MPI_Wtime();
 
 //  pc.list_entities(0,-1);
-  
+
     // Create a tag, used in exchange_tags
   int def_val = 1.0;
   rval = mbint.tag_get_handle("test_tag", 1, MB_TYPE_DOUBLE, tag, MB_TAG_DENSE|MB_TAG_EXCL, &def_val);
@@ -115,8 +115,8 @@ void create_parallel_mesh()
 
   double tottimes[5] = {0.0};
   MPI_Reduce(times+1, tottimes+1, 4, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
-  
-  if (!pc.rank()) 
+
+  if (!pc.rank())
     std::cout << "Times:             " << std::endl
               << "Create:            " << times[1] << std::endl
               << "Resolve verts:     " << times[2] << std::endl

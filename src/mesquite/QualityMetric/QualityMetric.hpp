@@ -1,9 +1,9 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2004 Sandia Corporation and Argonne National
-    Laboratory.  Under the terms of Contract DE-AC04-94AL85000 
-    with Sandia Corporation, the U.S. Government retains certain 
+    Laboratory.  Under the terms of Contract DE-AC04-94AL85000
+    with Sandia Corporation, the U.S. Government retains certain
     rights in this software.
 
     This library is free software; you can redistribute it and/or
@@ -16,15 +16,15 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
-    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov, 
-    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov      
 
-    (2006) kraftche@cae.wisc.edu    
-   
+    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov,
+    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov
+
+    (2006) kraftche@cae.wisc.edu
+
   ***************************************************************** */
 
 /*! \file QualityMetric.hpp
@@ -57,7 +57,7 @@ Header file for the MBMesquite::QualityMetric class
 
 namespace MBMesquite
 {
-   
+
      /*! \class QualityMetric
        \brief Base class for concrete quality metrics.
      */
@@ -67,14 +67,14 @@ namespace MBMesquite
    class MeshDomain;
    class MeshDomainAssoc;
    class Settings;
-   
+
    class QualityMetric
    {
    protected:
 
-     QualityMetric( ) : 
-      keepFiniteDiffEps(false), 
-      haveFiniteDiffEps(false) 
+     QualityMetric( ) :
+      keepFiniteDiffEps(false),
+      haveFiniteDiffEps(false)
       {}
 
    public:
@@ -87,20 +87,20 @@ namespace MBMesquite
 
      MESQUITE_EXPORT virtual ~QualityMetric()
       {}
-     
+
      MESQUITE_EXPORT virtual MetricType get_metric_type() const = 0;
-     
+
      MESQUITE_EXPORT virtual std::string get_name() const = 0;
 
       //! 1 if metric should be minimized, -1 if metric should be maximized.
      MESQUITE_EXPORT virtual int get_negate_flag() const = 0;
-     
+
       /**\brief Get locations at which metric can be evaluated
        *
        * Different metrics are evaluated for different things within
        * a patch.  For example, an element-based metric will be evaluated
-       * once for each element in patch, a vertex-based metric once for 
-       * each veretx, and a target/sample-point based metric will be 
+       * once for each element in patch, a vertex-based metric once for
+       * each veretx, and a target/sample-point based metric will be
        * evaluated once for each samle point in each element.  This method
        * returns a list of handles, one for each location in the patch
        * at which the metric can be evaluated.  The handle values are used
@@ -111,12 +111,12 @@ namespace MBMesquite
        *         that depend on at least one free vertex.
        */
      MESQUITE_EXPORT virtual
-     void get_evaluations( PatchData& pd, 
-                           std::vector<size_t>& handles, 
+     void get_evaluations( PatchData& pd,
+                           std::vector<size_t>& handles,
                            bool free_vertices_only,
                            MsqError& err ) = 0;
-     
-     
+
+
       /**\brief Get locations at which metric can be evaluated for
        *        use in BCD intialization and QualityAssessor.
        *
@@ -135,10 +135,10 @@ namespace MBMesquite
        */
      MESQUITE_EXPORT virtual
      void get_single_pass( PatchData& pd,
-                           std::vector<size_t>& handles, 
+                           std::vector<size_t>& handles,
                            bool free_vertices_only,
                            MsqError& err );
-     
+
      /**\brief Get metric value at a logical location in the patch.
       *
       * Evaluate the metric at one location in the PatchData.
@@ -147,11 +147,11 @@ namespace MBMesquite
       *\param value  The output metric value.
       */
      MESQUITE_EXPORT virtual
-     bool evaluate( PatchData& pd, 
-                    size_t handle, 
-                    double& value, 
+     bool evaluate( PatchData& pd,
+                    size_t handle,
+                    double& value,
                     MsqError& err ) = 0;
-     
+
      /**\brief Get metric value at a logical location in the patch.
       *
       * Evaluate the metric at one location in the PatchData.
@@ -167,7 +167,7 @@ namespace MBMesquite
                     double& value,
                     std::vector<size_t>& indices,
                     MsqError& err ) = 0;
-     
+
      /**\brief Get metric value and gradient at a logical location in the patch.
       *
       * Evaluate the metric at one location in the PatchData.
@@ -187,7 +187,7 @@ namespace MBMesquite
                     std::vector<size_t>& indices,
                     std::vector<Vector3D>& gradient,
                     MsqError& err );
-     
+
      /**\brief Get metric value and gradient at a logical location in the patch.
       *
       * Evaluate the metric at one location in the PatchData.
@@ -210,7 +210,7 @@ namespace MBMesquite
                     std::vector<Vector3D>& gradient,
                     std::vector<SymMatrix3D>& Hessian_diagonal,
                     MsqError& err );
-     
+
      /**\brief Get metric value and deravitives at a logical location in the patch.
       *
       * Evaluate the metric at one location in the PatchData.
@@ -222,7 +222,7 @@ namespace MBMesquite
       *\param gradient The gradient of the metric as a function of the
       *               coordinates of the free vertices passed back in
       *               the indices list.
-      *\param Hessian The Hessian of the metric as a function of the 
+      *\param Hessian The Hessian of the metric as a function of the
       *               coordinates. The Hessian is passed back as the
       *               upper-triangular portion of the matrix in row-major
       *               order, where each Matrix3D is the portion of the
@@ -241,11 +241,11 @@ namespace MBMesquite
        //!Escobar Barrier Function for Shape and Other Metrics
        // det = signed determinant of Jacobian Matrix at a Vertex
        // delta = scaling parameter
-     static inline double vertex_barrier_function(double det, double delta) 
+     static inline double vertex_barrier_function(double det, double delta)
             { return 0.5*(det+sqrt(det*det+4*delta*delta)); }
   //protected:
 
-      /** \brief Remove from vector any gradient terms corresponding 
+      /** \brief Remove from vector any gradient terms corresponding
        *         to a fixed vertex.
        *
        * Remove terms from vector that correspond to fixed vertices.
@@ -254,9 +254,9 @@ namespace MBMesquite
        *                       vertex is fixed.
        *\param gradients       Array of gradients
        */
-     MESQUITE_EXPORT  
-	 static void remove_fixed_gradients( EntityTopology type, 
-                                          uint32_t fixed_vertices, 
+     MESQUITE_EXPORT
+	 static void remove_fixed_gradients( EntityTopology type,
+                                          uint32_t fixed_vertices,
                                           std::vector<Vector3D>& gradients );
 
       /** \brief Remove from vectors any gradient terms and hessian
@@ -269,13 +269,13 @@ namespace MBMesquite
        *\param gradients       Array of gradients
        *\param hess_diagonal_blocks   Array of diagonal blocks of Hessian matrix.
        */
-     MESQUITE_EXPORT  
-	 static void remove_fixed_diagonals( EntityTopology type, 
-                                          uint32_t fixed_vertices, 
+     MESQUITE_EXPORT
+	 static void remove_fixed_diagonals( EntityTopology type,
+                                          uint32_t fixed_vertices,
                                           std::vector<Vector3D>& gradients,
                                           std::vector<SymMatrix3D>& hess_diagonal_blocks );
 
-      /** \brief Remove from vector any Hessian blocks corresponding 
+      /** \brief Remove from vector any Hessian blocks corresponding
        *         to a fixed vertex.
        *
        * Remove blocks from vector that correspond to fixed vertices.
@@ -284,11 +284,11 @@ namespace MBMesquite
        *                       vertex is fixed.
        *\param hessians        Array of Hessian blocks (upper trianguler, row-major)
        */
-     MESQUITE_EXPORT  
-	 static void remove_fixed_hessians ( EntityTopology type, 
-                                          uint32_t fixed_vertices, 
+     MESQUITE_EXPORT
+	 static void remove_fixed_hessians ( EntityTopology type,
+                                          uint32_t fixed_vertices,
                                           std::vector<Matrix3D>& hessians );
-     
+
      /** \brief Convert fixed vertex format from list to bit flags
       *
       * Given list of pointers to fixed vertices as passed to
@@ -298,15 +298,15 @@ namespace MBMesquite
       * the least-significant bit.  The bit is cleared for free
       * vertices and set (1) for fixed vertices.
       */
-     MESQUITE_EXPORT  
-	 static uint32_t fixed_vertex_bitmap( PatchData& pd, 
+     MESQUITE_EXPORT
+	 static uint32_t fixed_vertex_bitmap( PatchData& pd,
                                            const MsqMeshEntity* elem,
                                            std::vector<size_t>& free_indices );
-      
-     
+
+
      //! takes an array of coefficients and an array of metrics (both of length num_value)
      //! and averages the contents using averaging method 'method'.
-     MESQUITE_EXPORT 
+     MESQUITE_EXPORT
 	 double weighted_average_metrics(const double coef[],
                                     const double metric_values[],
                                     const int& num_values, MsqError &err);
@@ -333,24 +333,24 @@ namespace MBMesquite
         MAX_MINUS_MIN,          //!< the maximum value divided by the minimum value
         SUM_OF_RATIOS_SQUARED   //!< (1/(N^2))*(SUM (SUM (v_i/v_j)^2))
      };
-     
+
       //!\brief Called at start of instruction queue processing
       //!
       //! Do any preliminary global initialization, consistency checking,
       //! etc.  Default implementation does nothing.
-     MESQUITE_EXPORT virtual 
+     MESQUITE_EXPORT virtual
      void initialize_queue( MeshDomainAssoc* mesh_and_domain,
                             const Settings* settings,
                             MsqError& err );
 
   private:
      int feasible;
-     
+
      std::vector<Matrix3D> tmpHess;
      bool keepFiniteDiffEps; //!< True if gradient finite difference
                              //!< calculation should set \c finiteDiffEps
      bool haveFiniteDiffEps; //!< True if finite difference Hessian code
-                             //!< has calculated \c finiteDiffEps 
+                             //!< has calculated \c finiteDiffEps
      double finiteDiffEps; //!< Location for finite difference Hessian code
                            //!< to store this value so that it doesn't need
                            //!< to be recalculated if the gradient calculation

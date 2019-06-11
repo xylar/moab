@@ -36,7 +36,7 @@ static void usage( char* argv0, bool help = false )
     std::cerr << "     : " << argv0 << " -h" << std::endl;
     exit(1);
   }
-  
+
   std::cout << "Usage: " << argv0 << " " << usage_str << std::endl
             << "  -k : Use kD Tree " << is_default_tree(UseKDTree) << std::endl
             << "  -v : Use no tree" << is_default_tree(UseNoTree) << std::endl
@@ -71,9 +71,9 @@ int main( int argc, char* argv[] )
   long num_points = DEFAULT_NUM_TEST;
   TreeType type = UseDefaultTree;
   char* endptr;
-  
+
     // PARSE ARGUMENTS
-    
+
   long* valptr = 0;
   for (int i = 1; i < argc; ++i) {
     if (valptr) {
@@ -91,7 +91,7 @@ int main( int argc, char* argv[] )
         case 'v': type = UseNoTree; break;
         case 'd': valptr = &tree_depth; break;
         case 'e': valptr = &elem_per_leaf; break;
-        case 'n': valptr = &num_points; break; 
+        case 'n': valptr = &num_points; break;
         default:
           std::cerr << "Invalid flag: " << argv[i] << std::endl;
           usage(argv[0]);
@@ -114,9 +114,9 @@ int main( int argc, char* argv[] )
     std::cerr << "No input file specified." << std::endl;
     usage(argv[0]);
   }
-  
+
     // LOAD MESH
-    
+
   Core moab;
   Interface& mb = moab;
   ErrorCode rval;
@@ -126,12 +126,12 @@ int main( int argc, char* argv[] )
   if (MB_SUCCESS != rval) {
     std::cerr << input_file << " : failed to read file." << std::endl;
     mb.get_last_error( msg );
-    if (msg != init_msg) 
+    if (msg != init_msg)
       std::cerr << "message : " << msg << std::endl;
   }
-  
+
     // GENERATE TEST POINTS
-  
+
   int num_unique = num_points / FRACTION_UNIQUE_POINTS;
   if (num_unique > HARD_MAX_UNIQUE_POINTS)
     num_unique = HARD_MAX_UNIQUE_POINTS;
@@ -140,36 +140,36 @@ int main( int argc, char* argv[] )
   std::vector<CartVect> points;
   std::vector<EntityHandle> elems;
   generate_random_points( mb, num_unique, points, elems );
-  
+
     // GET MEMORY USE BEFORE BUILDING TREE
-  
+
   unsigned long long init_total_storage;
   mb.estimated_memory_use( 0, 0, &init_total_storage );
-  
+
     // RUN TIMING TEST
   clock_t build_time, test_time;
   size_t actual_depth=0;
   std::vector<EntityHandle> results(points.size());
   switch (type) {
    default:
-    case UseKDTree: 
+    case UseKDTree:
       do_kdtree_test( mb, tree_depth, elem_per_leaf, num_points, points, results, build_time, test_time, actual_depth );
       break;
-    case UseNoTree: 
+    case UseNoTree:
       do_linear_test( mb, tree_depth, elem_per_leaf, num_points, points, results, build_time, test_time, actual_depth );
       break;
   }
-  
+
   unsigned long long fini_total_storage;
   mb.estimated_memory_use( 0, 0, &fini_total_storage );
-  
+
     // VALIDATE RESULTS
   int fail = 0;
   if (results != elems) {
     std::cout << "WARNING:  Test produced invalid results" << std::endl;
     fail = 1;
   }
-  
+
     // SUMMARIZE RESULTS
   std::cout << "Number of test queries: " << num_points << std::endl;
   std::cout << "Tree build time: " << ((double)build_time)/CLOCKS_PER_SEC << " seconds" << std::endl;
@@ -204,8 +204,8 @@ const int HexSign[8][3] = { { -1, -1, -1 },
 static CartVect random_point_in_hex( Interface& mb, EntityHandle hex )
 {
   const double f = RAND_MAX/2;
-  CartVect xi( ((double)rand() - f)/f, 
-                 ((double)rand() - f)/f, 
+  CartVect xi( ((double)rand() - f)/f,
+                 ((double)rand() - f)/f,
                  ((double)rand() - f)/f );
   CartVect coords[8];
   const EntityHandle* conn;
@@ -218,7 +218,7 @@ static CartVect random_point_in_hex( Interface& mb, EntityHandle hex )
   }
   rval = mb.get_coords( conn, 8, reinterpret_cast<double*>(coords) );
   CHK(rval);
-  
+
   CartVect point(0,0,0);
   for (unsigned i = 0; i < 8; ++i) {
     double coeff = 0.125;
@@ -226,7 +226,7 @@ static CartVect random_point_in_hex( Interface& mb, EntityHandle hex )
       coeff *= 1 + HexSign[i][j] * xi[j];
     point += coeff * coords[i];
   }
-  
+
   return point;
 }
 
@@ -248,7 +248,7 @@ void generate_random_points( Interface& mb, size_t num_points,
     std::cerr << "Input file contains no hexahedral elements." << std::endl;
     exit(1);
   }
-  
+
   points.resize( num_points );
   point_elems.resize( num_points );
   const size_t num_elem = elems.size();
@@ -282,7 +282,7 @@ void do_kdtree_test( Interface& mb, int tree_depth, int elem_per_leaf,
   CHK(rval);
   all_hexes.clear();
   build_time = clock() - init;
-  
+
   EntityHandle leaf;
   std::vector<EntityHandle> hexes;
   std::vector<EntityHandle>::iterator j;
@@ -305,7 +305,7 @@ void do_kdtree_test( Interface& mb, int tree_depth, int elem_per_leaf,
     if (j == hexes.end())
       point_elems[idx] = 0;
   }
-  
+
   test_time = clock() - build_time;
   double tmp_box[3];
   unsigned max_d;
@@ -325,7 +325,7 @@ void do_linear_test( Interface& mb, int , int ,
   depth = 0;
   point_elems.resize( points.size() );
   build_time = clock() - init;
-  
+
   CartVect coords[8];
   const EntityHandle* conn;
   int len;
@@ -340,9 +340,9 @@ void do_linear_test( Interface& mb, int , int ,
       }
     }
   }
-  
+
   test_time = clock() - build_time;
 }
 
 
-  
+

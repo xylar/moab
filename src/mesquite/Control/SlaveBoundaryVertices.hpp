@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2007 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2009) kraftche@cae.wisc.edu    
+    (2009) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file SlaveBoundaryVertices.hpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #ifndef MSQ_SLAVE_BOUNDARY_VERTICES_HPP
@@ -43,7 +43,7 @@ namespace MBMesquite {
  * This class can be inserted in the instruction queue before any
  * optimization to determine which higher-order nodes are slaved
  * as a function of their distance from the bounary of the mesh.
- * 
+ *
  * This implementation assumes that the boundary of the mesh can
  * be identified either by dimension of the associated geometric
  * domain or by fixed vertices.
@@ -58,11 +58,11 @@ class MESQUITE_EXPORT SlaveBoundaryVertices : public VertexSlaver
      * If the second parameter is not specified, the boundary will
      * be assumed to be indicated by fixed vertices.  If it is specified,
      * the boundary will be assumed to be those vertices constrained to
-     * a domain less than or equal to the specified dimension (I.e. 
+     * a domain less than or equal to the specified dimension (I.e.
      * vertices constrained such that the number of degrees of freedom
      * in their motion is less than or equal to the specified number.)
      *
-     *\param depth The number of elements inwards from the boundary for 
+     *\param depth The number of elements inwards from the boundary for
      *             which all contained higher-order nodes will be free
      *             variables in the optimization.  Any vertex for further
      *             from the boundary will be slaved.  Specifying zero
@@ -79,22 +79,22 @@ class MESQUITE_EXPORT SlaveBoundaryVertices : public VertexSlaver
      */
     SlaveBoundaryVertices( unsigned depth,
                            unsigned max_boundary_domain_dimension = 4 );
-    
+
     virtual double loop_over_mesh( MeshDomainAssoc* mesh_and_domain,
                                    const Settings* settings,
                                    MsqError& err );
-   
+
     virtual std::string get_name() const;
 
     virtual void initialize_queue( MeshDomainAssoc* mesh_and_domain,
                                    const Settings* settings,
                                    MsqError& err );
-    
+
     unsigned get_num_boundary_layers() const { return elemDepth; }
     bool boundary_is_fixed_vertices() const { return domainDoF >= 4; }
     bool boundary_is_mesh_domain() const { return domainDoF < 4; }
     unsigned boundary_mesh_domain_dimension() const { return domainDoF; }
-    
+
    private:
     unsigned elemDepth;
     unsigned domainDoF;

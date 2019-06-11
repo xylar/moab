@@ -38,10 +38,10 @@ class TagVarBytesEqual {
     TagVarBytesEqual( const void* v, int s ) : value(v), size(s) {}
     bool operator()( const void* data ) const {
       const VarLenTag* vdata = reinterpret_cast<const VarLenTag*>(data);
-      return (int)vdata->size() == size && !memcmp(value, vdata->data(), size); 
+      return (int)vdata->size() == size && !memcmp(value, vdata->data(), size);
     }
     bool operator()( const VarLenTag& vdata ) const {
-      return (int)vdata.size() == size && !memcmp(value, vdata.data(), size); 
+      return (int)vdata.size() == size && !memcmp(value, vdata.data(), size);
     }
 };
 /** Test if variable-length opaque tag values are less than a value */
@@ -53,13 +53,13 @@ class TagVarBytesLess {
     TagVarBytesLess( const void* v, int s ) : value(v), size(s) {}
     bool operator()( const void* data ) const {
       const VarLenTag* vdata = reinterpret_cast<const VarLenTag*>(data);
-      if ((int)vdata->size() < size) 
+      if ((int)vdata->size() < size)
         return 0 <= memcmp( vdata->data(), value, vdata->size() );
       else
         return 0 < memcmp( vdata->data(), value, size );
     }
     bool operator()( const VarLenTag& vdata ) const {
-      if ((int)vdata.size() < size) 
+      if ((int)vdata.size() < size)
         return 0 <= memcmp( vdata.data(), value, vdata.size() );
       else
         return 0 < memcmp( vdata.data(), value, size );
@@ -77,12 +77,12 @@ class TagTypeEqual {
     const T* value;
     int size;
   public:
-    TagTypeEqual( const void* v, int s ) 
-      : value(reinterpret_cast<const T*>(v)), 
-        size(s/sizeof(T)) 
+    TagTypeEqual( const void* v, int s )
+      : value(reinterpret_cast<const T*>(v)),
+        size(s/sizeof(T))
         {}
-        
-    bool operator()( const void* data ) const { 
+
+    bool operator()( const void* data ) const {
       const T* ddata = reinterpret_cast<const T*>(data);
       for (int i = 0; i < size; ++i)
         if (value[i] != ddata[i])
@@ -98,11 +98,11 @@ class TagTypeLess {
     const T* value;
     int size;
   public:
-    TagTypeLess( const void* v, int s ) 
-      : value(reinterpret_cast<const T*>(v)), 
-        size(s/sizeof(T)) 
+    TagTypeLess( const void* v, int s )
+      : value(reinterpret_cast<const T*>(v)),
+        size(s/sizeof(T))
         {}
-    
+
     bool operator()( const void* data ) const {
       const T* ddata = reinterpret_cast<const T*>(data);
       for (int i = 0; i < size; ++i)
@@ -113,7 +113,7 @@ class TagTypeLess {
 };
 
 /** Compare single-value tags containing a known data type
- * Optimization of TagTypeEqual for 1-value case. 
+ * Optimization of TagTypeEqual for 1-value case.
  */
 template <typename T>
 class TagOneTypeEqual {
@@ -121,18 +121,18 @@ class TagOneTypeEqual {
     T value;
     int size;
   public:
-    TagOneTypeEqual( const void* v ) 
+    TagOneTypeEqual( const void* v )
       : value(*reinterpret_cast<const T*>(v)), size(0)
         {}
-        
-    bool operator()( const void* data ) const { 
+
+    bool operator()( const void* data ) const {
       const T* ddata = reinterpret_cast<const T*>(data);
       return *ddata == value;
     }
 };
 
 /** Compare single-value tags containing a known data type
- * Optimization of TagTypeLess for 1-value case. 
+ * Optimization of TagTypeLess for 1-value case.
  */
 template <typename T>
 class TagOneTypeLess {
@@ -140,10 +140,10 @@ class TagOneTypeLess {
     T value;
     int size;
   public:
-    TagOneTypeLess( const void* v ) 
+    TagOneTypeLess( const void* v )
       : value(*reinterpret_cast<const T*>(v)), size(0)
         {}
-    
+
     bool operator()( const void* data ) const {
       const T* ddata = reinterpret_cast<const T*>(data);
       return *ddata < value;
@@ -158,11 +158,11 @@ class TagVarTypeEqual
     const T* value;
     int size;
   public:
-    TagVarTypeEqual( const void* v, int s ) 
-      : value(reinterpret_cast<const T*>(v)), 
-        size(s/sizeof(T)) 
+    TagVarTypeEqual( const void* v, int s )
+      : value(reinterpret_cast<const T*>(v)),
+        size(s/sizeof(T))
         {}
-        
+
     bool operator()( const void* data ) const {
       const VarLenTag* vdata = reinterpret_cast<const VarLenTag*>(data);
       if (vdata->size() != size * sizeof(T))
@@ -173,7 +173,7 @@ class TagVarTypeEqual
           return false;
       return true;
     }
-        
+
     bool operator()( const VarLenTag& vdata ) const {
       if (vdata.size() != size * sizeof(T))
         return false;
@@ -193,9 +193,9 @@ class TagVarTypeLess
     const T* value;
     int size;
   public:
-    TagVarTypeLess( const void* v, int s ) 
-      : value(reinterpret_cast<const T*>(v)), 
-        size(s/sizeof(T)) 
+    TagVarTypeLess( const void* v, int s )
+      : value(reinterpret_cast<const T*>(v)),
+        size(s/sizeof(T))
         {}
     bool operator()( const void* data ) const {
       const VarLenTag* vdata = reinterpret_cast<const VarLenTag*>(data);
@@ -262,7 +262,7 @@ void find_tag_values( Functor compare,
                       Range& results )
 {
   Range::iterator insert = results.begin();
-  for (IteratorType i = begin; i != end; ++i) 
+  for (IteratorType i = begin; i != end; ++i)
     if (compare( i->second ))
       insert = results.insert( insert, i->first );
 }
@@ -275,7 +275,7 @@ void find_tag_values( Functor compare,
                       IteratorType end,
                       std::vector<EntityHandle>& results )
 {
-  for (IteratorType i = begin; i != end; ++i) 
+  for (IteratorType i = begin; i != end; ++i)
     if (compare( i->second ))
       results.push_back( i->first );
 }
@@ -319,21 +319,21 @@ void find_tag_values_equal( const TagInfo& tag_info,
       else
         find_tag_values<TagIntsEqual,IteratorType>( TagIntsEqual( value, size ), begin, end, results );
       break;
-        
+
     case MB_TYPE_DOUBLE:
       if (size == sizeof(double))
         find_tag_values<TagOneDoubleEqual,IteratorType>( TagOneDoubleEqual( value ), begin, end, results );
       else
         find_tag_values<TagDoublesEqual,IteratorType>( TagDoublesEqual( value, size ), begin, end, results );
       break;
-        
+
     case MB_TYPE_HANDLE:
       if (size == sizeof(EntityHandle))
         find_tag_values<TagOneHandleEqual,IteratorType>( TagOneHandleEqual( value ), begin, end, results );
       else
         find_tag_values<TagHandlesEqual,IteratorType>( TagHandlesEqual( value, size ), begin, end, results );
       break;
-        
+
     default:
       find_tag_values<TagBytesEqual,IteratorType>( TagBytesEqual( value, size ), begin, end, results );
       break;
@@ -387,21 +387,21 @@ void find_map_values_equal( const TagInfo& tag_info,
        else
         find_map_values<TagIntsEqual,TagMap>( TagIntsEqual( value, size ), begin, end, tag_map, results );
       break;
-        
+
     case MB_TYPE_DOUBLE:
       if (size == sizeof(double))
         find_map_values<TagOneDoubleEqual,TagMap>( TagOneDoubleEqual( value ), begin, end, tag_map, results );
       else
         find_map_values<TagDoublesEqual,TagMap>( TagDoublesEqual( value, size ), begin, end, tag_map, results );
       break;
-        
+
     case MB_TYPE_HANDLE:
       if (size == sizeof(EntityHandle))
         find_map_values<TagOneHandleEqual,TagMap>( TagOneHandleEqual( value ), begin, end, tag_map, results );
       else
         find_map_values<TagHandlesEqual,TagMap>( TagHandlesEqual( value, size ), begin, end, tag_map, results );
       break;
-        
+
     default:
       find_map_values<TagBytesEqual,TagMap>( TagBytesEqual( value, size ), begin, end, tag_map, results );
       break;
@@ -434,7 +434,7 @@ void find_map_varlen_values_equal( const TagInfo& tag_info,
 }
 
 /** Iterator to use in find_tag_values_equal for arrays of data */
-class ByteArrayIterator 
+class ByteArrayIterator
 {
   public:
     typedef std::pair<EntityHandle, const char*> data_type;
@@ -447,7 +447,7 @@ class ByteArrayIterator
                        size_t tag_size )
       : step(tag_size),
         data(start_handle, reinterpret_cast<const char*>(data_array))
-        
+
       {}
     ByteArrayIterator( EntityHandle start_handle,
                        const void* data_array,
@@ -473,9 +473,9 @@ class ByteArrayIterator
       { data.first -= amt; data.second -= amt*step; return *this; }
     EntityHandle operator-( const ByteArrayIterator& other ) const
       { return data.first - other.data.first; }
-    const data_type& operator*() const 
+    const data_type& operator*() const
       { return data; }
-    const data_type* operator->() const 
+    const data_type* operator->() const
       { return &data; }
 };
 
@@ -495,7 +495,7 @@ std::pair<EntityType,EntityType> type_range( EntityType type )
 class InsertCount {
 private:
   size_t mCount;
-  
+
 public:
   InsertCount( size_t initial_count = 0 ) : mCount(initial_count) {}
 

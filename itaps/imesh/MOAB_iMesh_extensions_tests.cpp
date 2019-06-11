@@ -13,7 +13,7 @@ int main( int argc, char* argv[] )
   REGISTER_TEST( test_tag_iterate );
   REGISTER_TEST( test_step_iter );
 
-  return RUN_TESTS( argc, argv ); 
+  return RUN_TESTS( argc, argv );
 }
 
 void test_tag_iterate()
@@ -41,7 +41,7 @@ void test_tag_iterate()
   CHECK_EQUAL( iBase_SUCCESS, err );
   iMesh_addEntArrToSet( mesh, &verts[3], 3, entset, &err );
   CHECK_EQUAL( iBase_SUCCESS, err );
-    
+
     /* create a dbl tag and set vertices */
   iBase_TagHandle tagh;
   iMesh_createTagWithOptions(mesh, "dum", "moab:TAG_STORAGE_TYPE=DENSE", 1, iBase_DOUBLE, &tagh, &err, 3, 27);
@@ -59,14 +59,14 @@ void test_tag_iterate()
   iMesh_tagIterate(mesh, tagh, iter, &data, &count, &err);
   CHECK_EQUAL( iBase_SUCCESS, err );
   if (count != 6) CHECK_EQUAL( iBase_SUCCESS, iBase_FAILURE );
-  
+
   for (int i = 0; i < 6; i++) {
     if (data[i] != coords[i+3]) CHECK_EQUAL( iBase_SUCCESS, iBase_FAILURE );
   }
   iMesh_endEntArrIter(mesh, iter, &err);
   CHECK_EQUAL( iBase_SUCCESS, err );
   iter = 0; // iMesh_endEntArrIter frees iter
-  
+
     /* get an iterator over the set with two subranges, and check tag iterator for that */
   iMesh_initEntArrIter( mesh, entset, iBase_ALL_TYPES, iMesh_ALL_TOPOLOGIES, 6,
                         0, &iter, &err );
@@ -78,7 +78,7 @@ void test_tag_iterate()
   CHECK_EQUAL( iBase_SUCCESS, err );
     /* shouldn't be at end yet */
   if (atend) CHECK_EQUAL( iBase_SUCCESS, iBase_FAILURE );
-  
+
   iMesh_tagIterate(mesh, tagh, iter, &data, &count, &err);
   CHECK_EQUAL( iBase_SUCCESS, err );
   if (count != 3 || data[0] != coords[6] || data[1] != coords[7]) CHECK_EQUAL( iBase_SUCCESS, iBase_FAILURE );
@@ -123,7 +123,7 @@ void test_step_iter()
   CHECK_EQUAL( iBase_SUCCESS, err );
     /* shouldn't be at end yet */
   if (atend) CHECK_EQUAL( iBase_SUCCESS, iBase_FAILURE );
-  
+
   iMesh_stepEntIter(mesh, iter, 4, &atend, &err);
   CHECK_EQUAL( iBase_SUCCESS, err );
     /* should be at end now */
@@ -140,7 +140,7 @@ void test_step_iter()
   CHECK_EQUAL( iBase_SUCCESS, err );
     /* shouldn't be at end yet */
   if (atend) CHECK_EQUAL( iBase_SUCCESS, iBase_FAILURE );
-  
+
   iMesh_stepEntArrIter(mesh, arr_iter, 4, &atend, &err);
   CHECK_EQUAL( iBase_SUCCESS, err );
     /* should be at end now */

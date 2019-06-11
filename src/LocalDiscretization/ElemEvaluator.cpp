@@ -14,10 +14,10 @@
 //#include "moab/SpectralQuad.hpp"
 //#include "moab/SpectralHex.hpp"
 
-namespace moab { 
+namespace moab {
     ErrorCode EvalSet::evaluate_reverse(EvalFcn eval, JacobianFcn jacob, InsideFcn inside_f,
-                                        const double *posn, const double *verts, const int nverts, 
-                                        const int ndim, const double iter_tol, const double inside_tol, 
+                                        const double *posn, const double *verts, const int nverts,
+                                        const int ndim, const double iter_tol, const double inside_tol,
                                         double *work, double *params, int *inside) {
         // TODO: should differentiate between epsilons used for
         // Newton Raphson iteration, and epsilons used for curved boundary geometry errors
@@ -28,14 +28,14 @@ namespace moab {
 
         // initialize to center of element
       *cvparams = CartVect(-.4);
-  
+
       CartVect new_pos;
         // evaluate that first guess to get a new position
-      ErrorCode rval = (*eval)(cvparams->array(), verts, ndim, 
+      ErrorCode rval = (*eval)(cvparams->array(), verts, ndim,
                                3, // hardwire to num_tuples to 3 since the field is coords
                                work, new_pos.array());
       if (MB_SUCCESS != rval) return rval;
-      
+
         // residual is diff between old and new pos; need to minimize that
       CartVect res = new_pos - *cvposn;
       Matrix3 J;
@@ -64,7 +64,7 @@ namespace moab {
         *cvparams -= J.inverse() * res;
 
           // get the new forward-evaluated position, and its difference from the target pt
-        rval = (*eval)(params, verts, ndim, 
+        rval = (*eval)(params, verts, ndim,
                        3, // hardwire to num_tuples to 3 since the field is coords
                        work, new_pos.array());
         if (MB_SUCCESS != rval) return rval;
@@ -77,17 +77,17 @@ namespace moab {
       return MB_SUCCESS;
     }// Map::evaluate_reverse()
 
-    int EvalSet::inside_function(const double *params, const int ndims, const double tol) 
+    int EvalSet::inside_function(const double *params, const int ndims, const double tol)
     {
       if (params[0] >= -1-tol && params[0] <= 1+tol &&
           (ndims < 2 || (params[1] >= -1-tol && params[1] <= 1+tol)) &&
-          (ndims < 3 || (params[2] >= -1-tol && params[2] <= 1+tol))) 
+          (ndims < 3 || (params[2] >= -1-tol && params[2] <= 1+tol)))
         return true;
       else return false;
     }
 
         /** \brief Given type & #vertices, get an appropriate eval set */
-    ErrorCode EvalSet::get_eval_set(EntityType tp, unsigned int num_vertices, EvalSet &eval_set) 
+    ErrorCode EvalSet::get_eval_set(EntityType tp, unsigned int num_vertices, EvalSet &eval_set)
     {
       switch (tp) {
         case MBEDGE:
@@ -113,10 +113,10 @@ namespace moab {
 
       return MB_NOT_IMPLEMENTED;
     }
-      
-    ErrorCode ElemEvaluator::find_containing_entity(Range &entities, const double *point, const double iter_tol, 
-                                                    const double inside_tol, EntityHandle &containing_ent, 
-                                                    double *params, unsigned int *num_evals) 
+
+    ErrorCode ElemEvaluator::find_containing_entity(Range &entities, const double *point, const double iter_tol,
+                                                    const double inside_tol, EntityHandle &containing_ent,
+                                                    double *params, unsigned int *num_evals)
     {
       int is_inside;
       ErrorCode rval = MB_SUCCESS;

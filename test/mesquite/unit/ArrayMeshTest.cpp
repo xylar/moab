@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2007 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2007) kraftche@cae.wisc.edu    
+    (2007) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file ArrayMeshTest.cpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -42,7 +42,7 @@ class ArrayMeshTest : public CppUnit::TestFixture
 {
 private:
   CPPUNIT_TEST_SUITE( ArrayMeshTest );
-  
+
   CPPUNIT_TEST( test_get_geometric_dimension );
   CPPUNIT_TEST( test_get_all_elements );
   CPPUNIT_TEST( test_get_all_vertices );
@@ -69,7 +69,7 @@ private:
   CPPUNIT_TEST( test_elements_get_attached_vertices_mixed );
   CPPUNIT_TEST( test_elements_get_attached_vertices_mixed_one_based );
   CPPUNIT_TEST( test_elements_get_topologies_mixed );
-  
+
   CPPUNIT_TEST( test_vertex_readonly_tag_data );
   CPPUNIT_TEST( test_vertex_readonly_tag_data_one_based );
   CPPUNIT_TEST( test_element_readonly_tag_data );
@@ -80,14 +80,14 @@ private:
   CPPUNIT_TEST( test_vertex_owned_tag_data_one_based );
   CPPUNIT_TEST( test_element_owned_tag_data );
   CPPUNIT_TEST( test_delete_tag );
-  
+
   CPPUNIT_TEST_SUITE_END();
 
   ArrayMesh *zeroBased3D, *oneBased3D, *zeroBased2D, *oneBased2D;
   ArrayMesh *mixedZeroBased, *mixedOneBased;
   double *zeroBased3Dcoords, *oneBased3Dcoords, *zeroBased2Dcoords, *oneBased2Dcoords;
   double *mixedZeroBasedCoords, *mixedOneBasedCoords;
-  
+
 public:
 
   void setUp();
@@ -159,7 +159,7 @@ CPPUNIT_TEST_SUITE_NAMED_REGISTRATION(ArrayMeshTest, "Unit");
    6-->X-----7----------8
 
  Z = -2
-   
+
 */
 const double coords_2d[] = { 0, 2,
                              1, 2,
@@ -181,11 +181,11 @@ const double coords_3d[] = { 0, 2, -2,
                              2, 0, -2};
 const unsigned long conn_zero_based[] = { 3, 4, 1, 0,
                                           4, 5, 2, 1,
-                                          6, 7, 4, 3, 
+                                          6, 7, 4, 3,
                                           7, 8, 5, 4 };
 const unsigned long conn_one_based[] = {  4, 5, 2, 1,
                                           5, 6, 3, 2,
-                                          7, 8, 5, 4, 
+                                          7, 8, 5, 4,
                                           8, 9, 6, 5 };
 
 const int fixed[] = { 1, 1, 1,
@@ -325,7 +325,7 @@ void ArrayMeshTest::test_vertex_iterator()
   VertexIterator* iter = zeroBased3D->vertex_iterator( err );
   CPPUNIT_ASSERT( !err );
   std::auto_ptr<VertexIterator> deleter(iter);
-  
+
   CPPUNIT_ASSERT(!iter->is_at_end());
   CPPUNIT_ASSERT_EQUAL( (size_t)0, (size_t)iter->operator*() );
   iter->operator++();
@@ -352,7 +352,7 @@ void ArrayMeshTest::test_vertex_iterator()
   iter->operator++();
   CPPUNIT_ASSERT(iter->is_at_end());
   CPPUNIT_ASSERT_EQUAL( (size_t)8, (size_t)iter->operator*() );
-  
+
   iter->restart();
   CPPUNIT_ASSERT_EQUAL( (size_t)0, (size_t)iter->operator*() );
 }
@@ -363,7 +363,7 @@ void ArrayMeshTest::test_vertex_iterator_one_based()
   VertexIterator* iter = oneBased3D->vertex_iterator( err );
   CPPUNIT_ASSERT( !err );
   std::auto_ptr<VertexIterator> deleter(iter);
-  
+
   CPPUNIT_ASSERT(!iter->is_at_end());
   CPPUNIT_ASSERT_EQUAL( (size_t)1, (size_t)iter->operator*() );
   iter->operator++();
@@ -390,7 +390,7 @@ void ArrayMeshTest::test_vertex_iterator_one_based()
   iter->operator++();
   CPPUNIT_ASSERT(iter->is_at_end());
   CPPUNIT_ASSERT_EQUAL( (size_t)9, (size_t)iter->operator*() );
-  
+
   iter->restart();
   CPPUNIT_ASSERT_EQUAL( (size_t)1, (size_t)iter->operator*() );
 }
@@ -401,7 +401,7 @@ void ArrayMeshTest::test_element_iterator()
   ElementIterator* iter = zeroBased3D->element_iterator( err );
   CPPUNIT_ASSERT( !err );
   std::auto_ptr<ElementIterator> deleter(iter);
-  
+
   CPPUNIT_ASSERT(!iter->is_at_end());
   CPPUNIT_ASSERT_EQUAL( (size_t)0, (size_t)iter->operator*() );
   iter->operator++();
@@ -413,7 +413,7 @@ void ArrayMeshTest::test_element_iterator()
   iter->operator++();
   CPPUNIT_ASSERT(iter->is_at_end());
   CPPUNIT_ASSERT_EQUAL( (size_t)3, (size_t)iter->operator*() );
-  
+
   iter->restart();
   CPPUNIT_ASSERT_EQUAL( (size_t)0, (size_t)iter->operator*() );
 }
@@ -690,35 +690,35 @@ void ArrayMeshTest::test_elements_get_attached_vertices()
   CPPUNIT_ASSERT( offsets.size() == 4 || offsets.size() == 5 );
   if (offsets.size() == 5)
     CPPUNIT_ASSERT_EQUAL( (size_t)16, offsets[4] );
-  
+
     // elem 3
   CPPUNIT_ASSERT_EQUAL( (size_t) 0, offsets[0] );
   CPPUNIT_ASSERT_EQUAL( (size_t) 7, (size_t)verts[ 0] );
   CPPUNIT_ASSERT_EQUAL( (size_t) 8, (size_t)verts[ 1] );
   CPPUNIT_ASSERT_EQUAL( (size_t) 5, (size_t)verts[ 2] );
   CPPUNIT_ASSERT_EQUAL( (size_t) 4, (size_t)verts[ 3] );
-  
+
     // elem 2
   CPPUNIT_ASSERT_EQUAL( (size_t) 4, offsets[1] );
   CPPUNIT_ASSERT_EQUAL( (size_t) 6, (size_t)verts[ 4] );
   CPPUNIT_ASSERT_EQUAL( (size_t) 7, (size_t)verts[ 5] );
   CPPUNIT_ASSERT_EQUAL( (size_t) 4, (size_t)verts[ 6] );
   CPPUNIT_ASSERT_EQUAL( (size_t) 3, (size_t)verts[ 7] );
-   
+
     // elem 1
   CPPUNIT_ASSERT_EQUAL( (size_t) 8, offsets[2] );
   CPPUNIT_ASSERT_EQUAL( (size_t) 4, (size_t)verts[ 8] );
   CPPUNIT_ASSERT_EQUAL( (size_t) 5, (size_t)verts[ 9] );
   CPPUNIT_ASSERT_EQUAL( (size_t) 2, (size_t)verts[10] );
   CPPUNIT_ASSERT_EQUAL( (size_t) 1, (size_t)verts[11] );
-   
+
     // elem 0
   CPPUNIT_ASSERT_EQUAL( (size_t)12, offsets[3] );
   CPPUNIT_ASSERT_EQUAL( (size_t) 3, (size_t)verts[12] );
   CPPUNIT_ASSERT_EQUAL( (size_t) 4, (size_t)verts[13] );
   CPPUNIT_ASSERT_EQUAL( (size_t) 1, (size_t)verts[14] );
   CPPUNIT_ASSERT_EQUAL( (size_t) 0, (size_t)verts[15] );
-} 
+}
 
 
 void ArrayMeshTest::test_elements_get_topologies()
@@ -728,7 +728,7 @@ void ArrayMeshTest::test_elements_get_topologies()
   const size_t num_elem = sizeof(elems)/sizeof(elems[0]);
   EntityTopology topo[num_elem];
   memset( topo, 0, sizeof(topo) );
-  zeroBased3D->elements_get_topologies( (const Mesh::ElementHandle*)elems, 
+  zeroBased3D->elements_get_topologies( (const Mesh::ElementHandle*)elems,
                                          topo, num_elem, err );
   CPPUNIT_ASSERT(!err);
   for (size_t i = 0; i < num_elem; ++i)
@@ -843,33 +843,33 @@ void ArrayMeshTest::test_elements_get_attached_vertices_mixed()
   CPPUNIT_ASSERT( offsets.size() == 4 || offsets.size() == 5 );
   if (offsets.size() == 5)
     CPPUNIT_ASSERT_EQUAL( verts.size(), offsets[4] );
-  
+
     // elem 3
   CPPUNIT_ASSERT_EQUAL( (size_t) 0, offsets[0] );
   CPPUNIT_ASSERT_EQUAL( (size_t) 5, (size_t)verts[ 0] );
   CPPUNIT_ASSERT_EQUAL( (size_t) 4, (size_t)verts[ 1] );
   CPPUNIT_ASSERT_EQUAL( (size_t) 3, (size_t)verts[ 2] );
   CPPUNIT_ASSERT_EQUAL( (size_t) 2, (size_t)verts[ 3] );
-  
+
     // elem 2
   CPPUNIT_ASSERT_EQUAL( (size_t) 4, offsets[1] );
   CPPUNIT_ASSERT_EQUAL( (size_t) 2, (size_t)verts[ 4] );
   CPPUNIT_ASSERT_EQUAL( (size_t) 1, (size_t)verts[ 5] );
   CPPUNIT_ASSERT_EQUAL( (size_t) 5, (size_t)verts[ 6] );
-   
+
     // elem 1
   CPPUNIT_ASSERT_EQUAL( (size_t) 7, offsets[2] );
   CPPUNIT_ASSERT_EQUAL( (size_t) 6, (size_t)verts[ 7] );
   CPPUNIT_ASSERT_EQUAL( (size_t) 5, (size_t)verts[ 8] );
   CPPUNIT_ASSERT_EQUAL( (size_t) 1, (size_t)verts[ 9] );
-   
+
     // elem 0
   CPPUNIT_ASSERT_EQUAL( (size_t)10, offsets[3] );
   CPPUNIT_ASSERT_EQUAL( (size_t) 7, (size_t)verts[10] );
   CPPUNIT_ASSERT_EQUAL( (size_t) 6, (size_t)verts[11] );
   CPPUNIT_ASSERT_EQUAL( (size_t) 1, (size_t)verts[12] );
   CPPUNIT_ASSERT_EQUAL( (size_t) 0, (size_t)verts[13] );
-} 
+}
 
 void ArrayMeshTest::test_elements_get_attached_vertices_mixed_one_based()
 {
@@ -884,33 +884,33 @@ void ArrayMeshTest::test_elements_get_attached_vertices_mixed_one_based()
   CPPUNIT_ASSERT( offsets.size() == 4 || offsets.size() == 5 );
   if (offsets.size() == 5)
     CPPUNIT_ASSERT_EQUAL( verts.size(), offsets[4] );
-  
+
     // elem 3
   CPPUNIT_ASSERT_EQUAL( (size_t) 0, offsets[0] );
   CPPUNIT_ASSERT_EQUAL( (size_t) 6, (size_t)verts[ 0] );
   CPPUNIT_ASSERT_EQUAL( (size_t) 5, (size_t)verts[ 1] );
   CPPUNIT_ASSERT_EQUAL( (size_t) 4, (size_t)verts[ 2] );
   CPPUNIT_ASSERT_EQUAL( (size_t) 3, (size_t)verts[ 3] );
-  
+
     // elem 2
   CPPUNIT_ASSERT_EQUAL( (size_t) 4, offsets[1] );
   CPPUNIT_ASSERT_EQUAL( (size_t) 3, (size_t)verts[ 4] );
   CPPUNIT_ASSERT_EQUAL( (size_t) 2, (size_t)verts[ 5] );
   CPPUNIT_ASSERT_EQUAL( (size_t) 6, (size_t)verts[ 6] );
-   
+
     // elem 1
   CPPUNIT_ASSERT_EQUAL( (size_t) 7, offsets[2] );
   CPPUNIT_ASSERT_EQUAL( (size_t) 7, (size_t)verts[ 7] );
   CPPUNIT_ASSERT_EQUAL( (size_t) 6, (size_t)verts[ 8] );
   CPPUNIT_ASSERT_EQUAL( (size_t) 2, (size_t)verts[ 9] );
-   
+
     // elem 0
   CPPUNIT_ASSERT_EQUAL( (size_t)10, offsets[3] );
   CPPUNIT_ASSERT_EQUAL( (size_t) 8, (size_t)verts[10] );
   CPPUNIT_ASSERT_EQUAL( (size_t) 7, (size_t)verts[11] );
   CPPUNIT_ASSERT_EQUAL( (size_t) 2, (size_t)verts[12] );
   CPPUNIT_ASSERT_EQUAL( (size_t) 1, (size_t)verts[13] );
-} 
+}
 
 
 void ArrayMeshTest::test_elements_get_topologies_mixed()
@@ -920,7 +920,7 @@ void ArrayMeshTest::test_elements_get_topologies_mixed()
   const size_t num_elem = sizeof(elems)/sizeof(elems[0]);
   EntityTopology topo[num_elem];
   memset( topo, 0, sizeof(topo) );
-  mixedZeroBased->elements_get_topologies( (const Mesh::ElementHandle*)elems, 
+  mixedZeroBased->elements_get_topologies( (const Mesh::ElementHandle*)elems,
                                          topo, num_elem, err );
   CPPUNIT_ASSERT(!err);
   for (size_t i = 0; i < num_elem; ++i)
@@ -939,7 +939,7 @@ void ArrayMeshTest::test_tag_data( TagEntType type, TagStorage storage )
     mesh->get_all_vertices( entities, err );
   ASSERT_NO_ERROR(err);
 
-    // Create a tag 
+    // Create a tag
   char name1[] = "  _double_3"; name1[0] = 'A' + type; name1[1] = 'A' + storage;
   TagHandle tag;
   std::vector<double> values(3*entities.size());
@@ -956,7 +956,7 @@ void ArrayMeshTest::test_tag_data( TagEntType type, TagStorage storage )
     tag = mesh->add_writable_tag_data( name1, Mesh::DOUBLE, 3, vtx_ptr, ele_ptr, 0, err );
     ASSERT_NO_ERROR(err);
   }
-  else { 
+  else {
     assert(OWNED == storage);
     tag = mesh->tag_create( name1, Mesh::DOUBLE, 3, 0, err );
     ASSERT_NO_ERROR(err);
@@ -966,7 +966,7 @@ void ArrayMeshTest::test_tag_data( TagEntType type, TagStorage storage )
       mesh->tag_set_vertex_data( tag, entities.size(), arrptr(entities), arrptr(values), err );
     ASSERT_NO_ERROR(err);
   }
-  
+
     // Check tag properties
   TagHandle tag2 = mesh->tag_get( name1, err );
   ASSERT_NO_ERROR(err);
@@ -979,30 +979,30 @@ void ArrayMeshTest::test_tag_data( TagEntType type, TagStorage storage )
   CPPUNIT_ASSERT_EQUAL( std::string(name1), n );
   CPPUNIT_ASSERT_EQUAL( Mesh::DOUBLE, t );
   CPPUNIT_ASSERT_EQUAL( 3u, s );
-  
+
     // Check values returned from tag_get_*_data
   std::vector<double> values2(3*entities.size());
-  if (ELEMENT == type) 
+  if (ELEMENT == type)
     mesh->tag_get_element_data( tag, entities.size(), arrptr(entities), arrptr(values2), err );
   else
     mesh->tag_get_vertex_data( tag, entities.size(), arrptr(entities), arrptr(values2), err );
   ASSERT_NO_ERROR(err);
   ASSERT_STD_VECTORS_EQUAL( values, values2 );
-  
+
     // check that we get an error for other type, because no default
-  if (ELEMENT != type) 
+  if (ELEMENT != type)
     mesh->tag_get_element_data( tag, entities.size(), arrptr(entities), arrptr(values2), err );
   else
     mesh->tag_get_vertex_data( tag, entities.size(), arrptr(entities), arrptr(values2), err );
   CPPUNIT_ASSERT_EQUAL( MsqError::TAG_NOT_FOUND, err.error_code() );
   err.clear();
-  
+
     // check that we can or cannot modify the values as expected
   dval = entities.size() + 1;
   std::vector<double> values5(values.size());
   for (std::vector<double>::iterator i = values5.begin(); i != values5.end(); ++i)
     *i = dval++;
-  if (ELEMENT == type) 
+  if (ELEMENT == type)
     mesh->tag_set_element_data( tag, entities.size(), arrptr(entities), arrptr(values5), err );
   else
     mesh->tag_set_vertex_data( tag, entities.size(), arrptr(entities), arrptr(values5), err );
@@ -1016,19 +1016,19 @@ void ArrayMeshTest::test_tag_data( TagEntType type, TagStorage storage )
 
     // check that the values are as expected
   if (READONLY != storage) {
-    if (ELEMENT == type) 
+    if (ELEMENT == type)
       mesh->tag_get_element_data( tag, entities.size(), arrptr(entities), arrptr(values2), err );
     else
       mesh->tag_get_vertex_data( tag, entities.size(), arrptr(entities), arrptr(values2), err );
     ASSERT_NO_ERROR(err);
     ASSERT_STD_VECTORS_EQUAL( values5, values2 );
-    
+
       // if WRITABLE storeage, original input array should have changed also
     if (WRITABLE == storage) {
       ASSERT_STD_VECTORS_EQUAL( values, values5 );
     }
   }
-  
+
     // create a new tag with a default value
   char name2[] = "  _int_2"; name2[0] = 'A' + type; name2[1] = 'A' + storage;
   const int default_val[] = { 'J', 'K' };
@@ -1039,7 +1039,7 @@ void ArrayMeshTest::test_tag_data( TagEntType type, TagStorage storage )
   else // OWNED == storage
     tag = mesh->tag_create( name2, Mesh::INT, 2, default_val, err );
   ASSERT_NO_ERROR(err);
-  
+
     // Check tag properties
   tag2 = mesh->tag_get( name2, err );
   ASSERT_NO_ERROR(err);
@@ -1049,25 +1049,25 @@ void ArrayMeshTest::test_tag_data( TagEntType type, TagStorage storage )
   CPPUNIT_ASSERT_EQUAL( std::string(name2), n );
   CPPUNIT_ASSERT_EQUAL( Mesh::INT, t );
   CPPUNIT_ASSERT_EQUAL( 2u, s );
-  
+
     // should get default value for each entity
   std::vector<int> values3(2*entities.size());
-  if (ELEMENT == type) 
+  if (ELEMENT == type)
     mesh->tag_get_element_data( tag, entities.size(), arrptr(entities), arrptr(values3), err );
   else
     mesh->tag_get_vertex_data( tag, entities.size(), arrptr(entities), arrptr(values3), err );
   ASSERT_NO_ERROR(err);
-  
+
     // check that we got the default value for every entity
   for (size_t i = 0; i < entities.size(); ++i) {
     CPPUNIT_ASSERT_EQUAL( default_val[0], values3[2*i  ] );
     CPPUNIT_ASSERT_EQUAL( default_val[1], values3[2*i+1] );
   }
-  
+
     // check that we cannot modify the values
   for (size_t i = 0; i < values3.size(); ++i)
     values[i] = i;
-  if (ELEMENT == type) 
+  if (ELEMENT == type)
     mesh->tag_set_element_data( tag, entities.size(), arrptr(entities), arrptr(values3), err );
   else
     mesh->tag_set_vertex_data( tag, entities.size(), arrptr(entities), arrptr(values3), err );
@@ -1082,14 +1082,14 @@ void ArrayMeshTest::test_tag_data( TagEntType type, TagStorage storage )
     // check that we did set the values as expected
   if (OWNED != storage) {
     std::vector<int> values4(values3.size());
-    if (ELEMENT == type) 
+    if (ELEMENT == type)
       mesh->tag_get_element_data( tag, entities.size(), arrptr(entities), arrptr(values4), err );
     else
       mesh->tag_get_vertex_data( tag, entities.size(), arrptr(entities), arrptr(values4), err );
     ASSERT_NO_ERROR(err);
     ASSERT_STD_VECTORS_EQUAL( values3, values4 );
   }
-}  
+}
 
 void ArrayMeshTest::test_delete_tag( )
 {
@@ -1102,45 +1102,45 @@ void ArrayMeshTest::test_delete_tag( )
   ASSERT_NO_ERROR(err);
   tag3 = mesh->tag_create( "name3", Mesh::HANDLE, 2, 0, err );
   ASSERT_NO_ERROR(err);
-  
+
   tag = mesh->tag_get( "name2", err );
   ASSERT_NO_ERROR(err);
   CPPUNIT_ASSERT_EQUAL( tag2, tag );
-  
+
   mesh->tag_delete( tag2, err );
   ASSERT_NO_ERROR(err);
   tag = mesh->tag_get( "name2", err );
   CPPUNIT_ASSERT_EQUAL( MsqError::TAG_NOT_FOUND, err.error_code() );
-  err.clear();  
+  err.clear();
   tag = mesh->tag_get( "name1", err );
   ASSERT_NO_ERROR(err);
   CPPUNIT_ASSERT_EQUAL( tag1, tag );
   tag = mesh->tag_get( "name3", err );
   ASSERT_NO_ERROR(err);
   CPPUNIT_ASSERT_EQUAL( tag3, tag );
-  
+
   mesh->tag_delete( tag1, err );
   ASSERT_NO_ERROR(err);
   tag = mesh->tag_get( "name2", err );
   CPPUNIT_ASSERT_EQUAL( MsqError::TAG_NOT_FOUND, err.error_code() );
-  err.clear();  
+  err.clear();
   tag = mesh->tag_get( "name1", err );
   CPPUNIT_ASSERT_EQUAL( MsqError::TAG_NOT_FOUND, err.error_code() );
-  err.clear();  
+  err.clear();
   tag = mesh->tag_get( "name3", err );
   ASSERT_NO_ERROR(err);
   CPPUNIT_ASSERT_EQUAL( tag3, tag );
-  
+
   mesh->tag_delete( tag3, err );
   ASSERT_NO_ERROR(err);
   tag = mesh->tag_get( "name2", err );
   CPPUNIT_ASSERT_EQUAL( MsqError::TAG_NOT_FOUND, err.error_code() );
-  err.clear();  
+  err.clear();
   tag = mesh->tag_get( "name1", err );
   CPPUNIT_ASSERT_EQUAL( MsqError::TAG_NOT_FOUND, err.error_code() );
-  err.clear();  
+  err.clear();
   tag = mesh->tag_get( "name3", err );
   CPPUNIT_ASSERT_EQUAL( MsqError::TAG_NOT_FOUND, err.error_code() );
-  err.clear();  
+  err.clear();
 }
 

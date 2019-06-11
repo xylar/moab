@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2007 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2007) kraftche@cae.wisc.edu    
+    (2007) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file XYRectangle.hpp
  *  \brief Define simple domain for 2D test problems
- *  \author Jason Kraftcheck 
+ *  \author Jason Kraftcheck
  */
 
 #ifndef MSQ_XY_RECTANGLE_HPP
@@ -51,10 +51,10 @@ namespace MBMesquite {
 class XYRectangle : public MBMesquite::MeshDomain
 {
   public:
-    
+
     enum Plane { XY = 2, YZ = 0, ZX = 1 };
-    
-    
+
+
       /**\brief Define rectangular domain
        *
        *\param w Width of rectangle (X-range)
@@ -69,11 +69,11 @@ class XYRectangle : public MBMesquite::MeshDomain
        */
     MESQUITE_EXPORT
     XYRectangle( double w, double h, double x = 0, double y = 0, double z = 0, Plane plane = XY );
-  
+
       /**\brief Classify mesh vertices against domain
        *
        * Figure out which input mesh vertices like on corners
-       * or edges of the domain.  Will fail if any vertex is outside 
+       * or edges of the domain.  Will fail if any vertex is outside
        * of the rectangle.
        */
     MESQUITE_EXPORT
@@ -82,7 +82,7 @@ class XYRectangle : public MBMesquite::MeshDomain
     MESQUITE_EXPORT
     void snap_to( MBMesquite::Mesh::VertexHandle entity_handle,
                   MBMesquite::Vector3D &coordinate) const;
-  
+
     MESQUITE_EXPORT
     void vertex_normal_at( MBMesquite::Mesh::VertexHandle entity_handle,
                            MBMesquite::Vector3D &coordinate) const;
@@ -96,24 +96,24 @@ class XYRectangle : public MBMesquite::MeshDomain
                            MBMesquite::Vector3D coordinates[],
                            unsigned count,
                            MBMesquite::MsqError& err ) const;
-    
+
     MESQUITE_EXPORT
     void closest_point( MBMesquite:: Mesh::VertexHandle handle,
                         const MBMesquite::Vector3D& position,
                         MBMesquite::Vector3D& closest,
                         MBMesquite::Vector3D& normal,
                         MBMesquite::MsqError& err ) const;
-    
+
     MESQUITE_EXPORT
     void domain_DoF( const MBMesquite::Mesh::VertexHandle* handle_array,
                      unsigned short* dof_array,
                      size_t num_handles,
                      MBMesquite::MsqError& err ) const;
- 
+
   private:
     double minCoords[3], maxCoords[3]; //!< corner coords
     const int normalDir, widthDir, heightDir;
-  
+
     //! Single constraint on a vertex (reduces degrees of freedom by 1)
     struct VertexConstraint {
       enum Constraint { XC = 0, YC = 1, ZC = 2 };
@@ -121,7 +121,7 @@ class XYRectangle : public MBMesquite::MeshDomain
       Constraint axis;
       double coord;
     };
-    
+
     //! Map vertex handles to constraints
     typedef std::multimap<Mesh::VertexHandle,VertexConstraint> constraint_t;
     constraint_t mConstraints;

@@ -1,16 +1,16 @@
 /**
  * MOAB, a Mesh-Oriented datABase, is a software component for creating,
  * storing and accessing finite element mesh data.
- * 
+ *
  * Copyright 2004 Sandia Corporation.  Under the terms of Contract
  * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
  * retains certain rights in this software.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  */
 
 #ifdef WIN32
@@ -177,7 +177,7 @@ ReadNCDF::ReadNCDF(Interface* impl)
 void ReadNCDF::reset()
 {
   mCurrentMeshHandle = 0;
-  vertexOffset = 0; 
+  vertexOffset = 0;
 
   numberNodes_loading = 0;
   numberElements_loading = 0;
@@ -201,7 +201,7 @@ ReadNCDF::~ReadNCDF()
 {
   mdbImpl->release_interface(readMeshIface);
 }
-  
+
 ErrorCode ReadNCDF::read_tag_values(const char* file_name,
                                     const char* tag_name,
                                     const FileOptions& /* opts */,
@@ -220,7 +220,7 @@ ErrorCode ReadNCDF::read_tag_values(const char* file_name,
 
   // 1. Read the header
   ErrorCode rval = read_exodus_header();
-  if (MB_FAILURE == rval) 
+  if (MB_FAILURE == rval)
     return rval;
 
   int count = 0;
@@ -228,7 +228,7 @@ ErrorCode ReadNCDF::read_tag_values(const char* file_name,
   const char* blocks   = "eb_prop1";
   const char* nodesets = "ns_prop1";
   const char* sidesets = "ss_prop1";
-  
+
   if (!strcmp(tag_name, MATERIAL_SET_TAG_NAME)) {
     count = numberElementBlocks_loading;
     prop = blocks;
@@ -553,7 +553,7 @@ ErrorCode ReadNCDF::read_block_headers(const int *blocks_to_load,
   std::vector<char> temp_string_storage(max_str_length + 1);
   char *temp_string = &temp_string_storage[0];
   int block_seq_id = 1;
-  
+
   for ( ; iter != end_iter; ++iter, block_seq_id++) {
     int num_elements;
 
@@ -569,7 +569,7 @@ ErrorCode ReadNCDF::read_block_headers(const int *blocks_to_load,
     ReadBlockData block_data;
     block_data.elemType = EXOII_MAX_ELEM_TYPE;
     block_data.blockId = *iter;
-    block_data.startExoId = exodus_id; 
+    block_data.startExoId = exodus_id;
     block_data.numElements = num_elements;
 
     // If block is in 'blocks_to_load'----load it!
@@ -746,7 +746,7 @@ ErrorCode ReadNCDF::read_elements(const Tag* file_id_tag)
     if (NC_NOERR != fail) {
       MB_SET_ERR(MB_FAILURE, "ReadNCDF:: Problem getting elem type");
     }
-    ExoIIElementType elem_type = 
+    ExoIIElementType elem_type =
       ExoIIUtil::static_element_name_to_type(&dum_str[0]);
     (*this_it).elemType = elem_type;
 
@@ -965,7 +965,7 @@ ErrorCode ReadNCDF::read_elements(const Tag* file_id_tag)
 
   return MB_SUCCESS;
 }
-  
+
 ErrorCode ReadNCDF::read_global_ids()
 {
   // Read in the map from the exodus file
@@ -1126,7 +1126,7 @@ ErrorCode ReadNCDF::read_nodesets()
 
     // No nodes to add
     if (nodes.empty())
-      continue; 
+      continue;
 
     // If there was no meshset found --> create one
     if (ns_handle == 0) {
@@ -1247,21 +1247,21 @@ ErrorCode ReadNCDF::read_sidesets()
       for ( ; iter != end_iter; ++iter) {
         int sideset_id;
         if (mdbImpl->tag_get_data(mNeumannSetTag, &(*iter), 1, &sideset_id) != MB_SUCCESS)
-          continue; 
+          continue;
 
         if (id_array[i] == sideset_id) {
           // Found the meshset
           ss_handle = *iter;
           break;
         }
-      } 
+      }
 
       // If we didn't find a sideset already
       if (ss_handle == 0) {
         if (mdbImpl->create_meshset(MESHSET_ORDERED | MESHSET_TRACK_OWNER, ss_handle) != MB_SUCCESS)
           return MB_FAILURE;
 
-        if (ss_handle == 0) 
+        if (ss_handle == 0)
           return MB_FAILURE;
 
         int sideset_id = id_array[i];
@@ -1288,7 +1288,7 @@ ErrorCode ReadNCDF::read_sidesets()
           // Set the reverse tag
           Tag sense_tag;
           int dum_sense = 0;
-          result = mdbImpl->tag_get_handle("NEUSET_SENSE", 1, MB_TYPE_INTEGER, sense_tag, 
+          result = mdbImpl->tag_get_handle("NEUSET_SENSE", 1, MB_TYPE_INTEGER, sense_tag,
                                            MB_TAG_SPARSE | MB_TAG_CREAT, &dum_sense);
           if (result != MB_SUCCESS)
             return result;
@@ -1489,7 +1489,7 @@ ErrorCode ReadNCDF::create_ss_elements(int *element_ids,
       CN::SubEntityNodeIndices(type, num_elem_nodes, 1, side_num, subtype, num_side_nodes, side_node_idx);
       if (num_side_nodes <= 0)
         return MB_FAILURE;
-      
+
       connectivity.resize(num_side_nodes);
       for (int k = 0; k < num_side_nodes; ++k)
         connectivity[k] = nodes[side_node_idx[k]];
@@ -1552,7 +1552,7 @@ ErrorCode ReadNCDF::create_ss_elements(int *element_ids,
     }
   }
 
-  return MB_SUCCESS; 
+  return MB_SUCCESS;
 }
 
 ErrorCode ReadNCDF::create_sideset_element(const std::vector<EntityHandle>& connectivity,
@@ -1707,7 +1707,7 @@ ErrorCode ReadNCDF::read_qa_information(std::vector<std::string> &qa_record_list
   int temp_dim;
   GET_DIM(temp_dim, "num_qa_rec", number_records);
   std::vector<char> data(max_str_length + 1);
-  
+
   for (int i = 0; i < number_records; i++) {
     for (int j = 0; j < 4; j++) {
       data[max_str_length] = '\0';
@@ -1779,7 +1779,7 @@ ErrorCode ReadNCDF::update(const char *exodus_file_name,
 
   // *******************************************************************
   // Move nodes to their deformed locations.
-  // *******************************************************************  
+  // *******************************************************************
   ErrorCode rval;
   std::string s;
   rval = opts.get_str_option("tdata", s);
@@ -2193,7 +2193,7 @@ ErrorCode ReadNCDF::update(const char *exodus_file_name,
 
     // Get the number of nodes per element
     unsigned int nodes_per_element = ExoIIUtil::VerticesPerElement[(*i).elemType];
-    
+
     // Read the connectivity into that memory.
     //int exo_conn[i->numElements][nodes_per_element];
     int *exo_conn = new int [i->numElements*nodes_per_element];
@@ -2210,7 +2210,7 @@ ErrorCode ReadNCDF::update(const char *exodus_file_name,
     // Get the death_status at the correct time step.
     std::vector<double> death_status(i->numElements); // It seems wrong, but it uses doubles
     std::string array_name("vals_elem_var");
-    temp_ss.str(""); // stringstream won't clear by temp.clear() 
+    temp_ss.str(""); // stringstream won't clear by temp.clear()
     temp_ss << death_index;
     array_name += temp_ss.str();
     array_name += "eb";
@@ -2252,7 +2252,7 @@ ErrorCode ReadNCDF::update(const char *exodus_file_name,
             elem_conn_node_ids[k] = ptr[elem_conn[k] - 1];
           }
           // Get the cub_file_set nodes by id
-          // The map is a log search and takes almost no time. 
+          // The map is a log search and takes almost no time.
           // MOAB's linear tag search takes 5-10 minutes.
           for (unsigned int k = 0; k < nodes_per_element; ++k) {
             std::map<int, EntityHandle>::iterator k_iter;
@@ -2332,7 +2332,7 @@ ErrorCode ReadNCDF::update(const char *exodus_file_name,
     std::cout << "  Block " << temp_ss.str() << " has " << dead_elem_counter << "/"
               << i->numElements << " dead elements." << std::endl;
     if (0 != missing_elem_counter) {
-      std::cout << "    " << missing_elem_counter 
+      std::cout << "    " << missing_elem_counter
                 << " dead elements in this block were not found in the cub_file_set."
                 << std::endl;
     }

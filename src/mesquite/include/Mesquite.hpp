@@ -1,9 +1,9 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2004 Sandia Corporation and Argonne National
-    Laboratory.  Under the terms of Contract DE-AC04-94AL85000 
-    with Sandia Corporation, the U.S. Government retains certain 
+    Laboratory.  Under the terms of Contract DE-AC04-94AL85000
+    with Sandia Corporation, the U.S. Government retains certain
     rights in this software.
 
     This library is free software; you can redistribute it and/or
@@ -16,13 +16,13 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
-    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov, 
-    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov      
-   
+
+    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov,
+    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov
+
   ***************************************************************** */
 #ifndef MESQUITE_HPP
 #define MESQUITE_HPP
@@ -102,10 +102,10 @@ namespace MBMesquite
   };
 
   enum AssessSchemes
-  { 
+  {
     NO_SCHEME = 0,
     ELEMENT_AVG_QM = 1,
-    ELEMENT_MAX_QM = 2, 
+    ELEMENT_MAX_QM = 2,
     TMP_QUALITY_METRIC = 3,
     QUALITY_METRIC = 4 } ;
 
@@ -122,9 +122,9 @@ namespace MBMesquite
     ALPHA
   };
    MESQUITE_EXPORT MBMesquite::ReleaseType release_type();
-  
+
   const bool OF_FREE_EVALS_ONLY=true;
-  
+
     //GLOBAL variables
   const int MSQ_MAX_NUM_VERT_PER_ENT=8;
   const int MSQ_HIST_SIZE=7;//number of division in histogram
@@ -146,7 +146,7 @@ namespace MBMesquite
 
 #ifdef INT_MAX
   const int MSQ_INT_MAX = INT_MAX;
-#else     
+#else
   const int MSQ_INT_MAX = MSQ_UINT_MAX >> 1;
 #endif
 
@@ -159,7 +159,7 @@ namespace MBMesquite
 #ifdef DBL_MIN
   const double MSQ_DBL_MIN = DBL_MIN;
 #else
-  /* This value is rather large - DBL_MIN is normally about 2e-308 
+  /* This value is rather large - DBL_MIN is normally about 2e-308
      Put an error here to see if any platform really doesn't
      have DBL_MIN or DBL_MAX defined, and evaluate what to do then.
   */
@@ -167,17 +167,17 @@ namespace MBMesquite
   const double MSQ_DBL_MIN = 1.0E-30;
 #endif
   const double MSQ_MIN = MSQ_DBL_MIN;
-  
+
 #ifdef DBL_MAX
   const double MSQ_DBL_MAX = DBL_MAX;
 #else
-  /* This value is rather small - DBL_MAX is normally about 2e308 
+  /* This value is rather small - DBL_MAX is normally about 2e308
      Put an error here to see if any platform really doesn't
      have DBL_MIN or DBL_MAX defined, and evaluate what to do then.
   */
   #error DBL_MAX not defined
   const double MSQ_DBL_MAX = 1.0E30;
-#endif    
+#endif
   const double MSQ_MAX = MSQ_DBL_MAX;
   const double MSQ_MAX_CAP = 1.e6;
 
@@ -188,7 +188,7 @@ template <class T> inline T MSQ_MAX_2(T a, T b) { return a > b ? a : b; }
 
 
   // Utility functions
-inline double cbrt( double d ) 
+inline double cbrt( double d )
 {
 #ifdef MOAB_HAVE_CBRT
   return ::cbrt( d );
@@ -214,7 +214,7 @@ inline double cbrt_sqr( double d )
  *\param result The result of the division if valid, zero otherwise.
  *\return false if the result of the division would be invalid (inf or nan),
  *        true otherwise.
- */ 
+ */
 inline bool divide( double num, double den, double& result )
 {
   const double fden = fabs(den);
@@ -230,16 +230,16 @@ inline bool divide( double num, double den, double& result )
     return false;
   }
 }
-  
+
 /**\brief get array pointer from std::vector */
-template <typename T> inline 
+template <typename T> inline
 T* arrptr( std::vector< T >& v, bool check_zero_size=false )
 {
   if (check_zero_size && !v.size()) return 0;
   assert(!v.empty());
   return &v[0];
 }
-template <typename T> inline 
+template <typename T> inline
 const T* arrptr( const std::vector< T >& v, bool check_zero_size=false )
 {
   if (check_zero_size && !v.size()) return 0;
@@ -247,7 +247,7 @@ const T* arrptr( const std::vector< T >& v, bool check_zero_size=false )
   return &v[0];
 }
 
-  
+
 } // namespace MBMesquite
 
 

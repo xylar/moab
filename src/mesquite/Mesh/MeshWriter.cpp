@@ -1,8 +1,8 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
-    Copyright 2005 Lawrence Livermore National Laboratory.  Under 
-    the terms of Contract B545069 with the University of Wisconsin -- 
+    Copyright 2005 Lawrence Livermore National Laboratory.  Under
+    the terms of Contract B545069 with the University of Wisconsin --
     Madison, Lawrence Livermore National Laboratory retains certain
     rights in this software.
 
@@ -16,11 +16,11 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    kraftche@cae.wisc.edu    
+    kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
@@ -51,46 +51,46 @@ namespace MBMesquite {
 
 namespace MeshWriter {
 
-/**\brief Transform from coordinates in the XY-plane 
+/**\brief Transform from coordinates in the XY-plane
  *        to graphics coordinates.
  */
 class Transform2D
 {
   public:
-  
+
     Transform2D( PatchData* pd,
                  Projection& proj,
-                 unsigned width, 
+                 unsigned width,
                  unsigned height,
                  bool flip_about_horizontal );
 
     Transform2D( const Vector3D* verts,
                  size_t num_vert,
                  Projection& projection,
-                 unsigned width, 
+                 unsigned width,
                  unsigned height );
-    
+
     void transform( const Vector3D& coords,
                     int& horizontal,
                     int& vertical ) const;
-    
+
     int max_horizontal() const { return horizMax; }
-    int max_vertical() const   { return vertMax; } 
-    
+    int max_vertical() const   { return vertMax; }
+
   private:
-  
+
     Projection& myProj;
     float myScale;
     int horizOffset, vertOffset;
     int horizMax, vertMax;
     int vertSign;
 };
-                             
+
 
 
 /* Write VTK file
  *
- * Copied from src/Mesh/MeshSet.cpp and adapted for removal of 
+ * Copied from src/Mesh/MeshSet.cpp and adapted for removal of
  * MeshSet class by J.Kraftcheck on 2005-7-28.
  *
  * This code is provided mainly for debugging.  A more efficient
@@ -109,7 +109,7 @@ void write_vtk( Mesh* mesh, const char* out_filename, MsqError &err )
   PatchData pd;
   pd.set_mesh( mesh );
   pd.fill_global_patch( err ); MSQ_ERRRTN(err);
-  
+
     // write mesh
   write_vtk( pd, out_filename, err ); MSQ_CHKERR(err);
 }
@@ -125,13 +125,13 @@ void write_vtk( PatchData& pd, const char* out_filename, MsqError &err,
     MSQ_SETERR(err)(MsqError::FILE_ACCESS);
     return;
   }
-    
+
     // Write a header
   file << "# vtk DataFile Version 2.0\n";
   file << "Mesquite Mesh " << out_filename << " .\n";
   file << "ASCII\n";
   file << "DATASET UNSTRUCTURED_GRID\n";
-  
+
     // Write vertex coordinates
   file << "POINTS " << pd.num_nodes() << " float\n";
   size_t i;
@@ -141,24 +141,24 @@ void write_vtk( PatchData& pd, const char* out_filename, MsqError &err,
          << pd.vertex_by_index(i)[1] << ' '
          << pd.vertex_by_index(i)[2] << '\n';
   }
-  
+
     // Write out the connectivity table
   size_t connectivity_size = 0;
   for (i = 0; i < pd.num_elements(); ++i)
     connectivity_size += pd.element_by_index(i).node_count()+1;
-    
+
   file << "CELLS " << pd.num_elements() << ' ' << connectivity_size << '\n';
   for (i = 0; i < pd.num_elements(); i++)
   {
     std::vector<size_t> vtx_indices;
     pd.element_by_index(i).get_node_indices(vtx_indices);
-    
+
       // Convert native to VTK node order, if not the same
     const VtkTypeInfo* info = VtkTypeInfo::find_type( pd.element_by_index(i).get_element_type(),
                                                       vtx_indices.size(),
                                                       err ); MSQ_ERRRTN(err);
     info->mesquiteToVtkOrder( vtx_indices );
-     
+
     file << vtx_indices.size();
     for (std::size_t j = 0; j < vtx_indices.size(); ++j)
     {
@@ -166,18 +166,18 @@ void write_vtk( PatchData& pd, const char* out_filename, MsqError &err,
     }
     file << '\n';
   }
-  
+
     // Write out the element types
   file << "CELL_TYPES " << pd.num_elements() << '\n';
   for (i = 0; i < pd.num_elements(); i++)
   {
-    const VtkTypeInfo* info = VtkTypeInfo::find_type( 
+    const VtkTypeInfo* info = VtkTypeInfo::find_type(
                                pd.element_by_index(i).get_element_type(),
                                pd.element_by_index(i).node_count(),
                                err ); MSQ_ERRRTN(err);
     file << info->vtkType << '\n';
   }
-  
+
     // Write out which points are fixed.
   file << "POINT_DATA " << pd.num_nodes()
        << "\nSCALARS fixed int\nLOOKUP_TABLE default\n";
@@ -196,18 +196,18 @@ void write_vtk( PatchData& pd, const char* out_filename, MsqError &err,
     else
       file << "1\n";
   }
-  
-  
+
+
   if (OF_gradient) {
     file << "VECTORS gradient double\n";
-    for (i = 0; i < pd.num_free_vertices(); ++i) 
+    for (i = 0; i < pd.num_free_vertices(); ++i)
       file << OF_gradient[i].x() << " " << OF_gradient[i].y() << " " << OF_gradient[i].z() << "\n";
     for (i = pd.num_free_vertices(); i < pd.num_nodes(); ++i)
       file << "0.0 0.0 0.0\n";
   }
-  
-  
-  
+
+
+
     // Close the file
   file.close();
 }
@@ -238,14 +238,14 @@ void write_gnuplot( Mesh* mesh, std::vector<Mesh::ElementHandle>& elems,
  *  This means that any mesh imported successfully into Mesquite
  *  can be outputed in gnuplot format.
  *
- *  Within gnuplot, use \b plot 'file1.gpt' w l, 'file2.gpt' w l  
- *   
- *  This is not geared for performance, since it has to load a global Patch from
- *  the mesh to write a mesh file. 
+ *  Within gnuplot, use \b plot 'file1.gpt' w l, 'file2.gpt' w l
  *
- * Copied from src/Mesh/MeshSet.cpp and adapted for removal of 
+ *  This is not geared for performance, since it has to load a global Patch from
+ *  the mesh to write a mesh file.
+ *
+ * Copied from src/Mesh/MeshSet.cpp and adapted for removal of
  * MeshSet class by J.Kraftcheck on 2005-7-28.
- * 
+ *
  * Re-written to use EdgeIterator by J.Kraftcheck on 2009-6-11
 */
 void write_gnuplot( PatchData& pd, const char* out_filebase, MsqError& err )
@@ -261,25 +261,25 @@ void write_gnuplot( PatchData& pd, const char* out_filebase, MsqError& err )
   }
 
   EdgeIterator edges( &pd, err ); MSQ_ERRRTN(err);
-   
+
     // Write a header
   file << "\n";
-  
+
   while (!edges.is_at_end())
   {
     const Vector3D& s = edges.start();
     const Vector3D& e = edges.end();
     const Vector3D* m = edges.mid();
-    
+
     file << s[0] << ' ' << s[1] << ' ' << s[2] << std::endl;
-    if (m) 
+    if (m)
       file << (*m)[0] << ' ' << (*m)[1] << ' ' << (*m)[2] << std::endl;
     file << e[0] << ' ' << e[1] << ' ' << e[2] << std::endl;
     file << std::endl << std::endl;
-    
+
     edges.step(err); MSQ_ERRRTN(err);
   }
-  
+
     // Close the file
   file.close();
 }
@@ -317,9 +317,9 @@ static void find_gnuplot_agregate_range( int count,
     }
   }
 }
-  
-/** Write a GNU Plot script to produce an animation from a 
- *  sequence of data files 
+
+/** Write a GNU Plot script to produce an animation from a
+ *  sequence of data files
  */
 void write_gnuplot_animator( int count, const char* basename, MsqError& err )
 {
@@ -329,7 +329,7 @@ void write_gnuplot_animator( int count, const char* basename, MsqError& err )
   const int DELAY = 10;
   const int WIDTH = 640;
   const int HEIGHT = 480;
-  
+
     // read all input files to determine extents
   Vector3D min, max;
   find_gnuplot_agregate_range( count, basename, min, max, err ); MSQ_ERRRTN(err);
@@ -344,7 +344,7 @@ void write_gnuplot_animator( int count, const char* basename, MsqError& err )
   else if (range[1] < range[2]) {
     vaxis = 2;
   }
-  
+
     // open output file
   string base(basename);
   ofstream file( (string(basename) + ".gnuplot").c_str() );
@@ -353,23 +353,23 @@ void write_gnuplot_animator( int count, const char* basename, MsqError& err )
     MSQ_SETERR(err)(MsqError::FILE_ACCESS);
     return;
   }
-  
+
     // write header
   file << "#!gnuplot" << endl;
   file << "#" << endl;
   file << "# Mesquite Animation of " << basename << ".0 to " << basename << '.' << count << endl;
   file << "#" << endl;
-  
+
     // write plot settings
   file << "set term gif animate transparent opt delay " << DELAY << " size " << WIDTH << "," << HEIGHT << endl;
   file << "set xrange [" << min[haxis] - 0.05 * range[haxis] << ":" << max[haxis] + 0.05 * range[haxis] << "]" << endl;
   file << "set yrange [" << min[vaxis] - 0.05 * range[vaxis] << ":" << max[vaxis] + 0.05 * range[vaxis] << "]" << endl;
   file << "set title '" << basename << "'" << endl;
   file << "set output '" << basename << ".gif'" << endl;
-  
+
     // plot data
-  for (int i = 0; i <= count; ++i) 
-    file << "plot '" << basename << '.' << i << ".gpt'" 
+  for (int i = 0; i <= count; ++i)
+    file << "plot '" << basename << '.' << i << ".gpt'"
          << " using " << haxis+1 << ":" << vaxis+1 << " w l" << endl;
 }
 
@@ -405,8 +405,8 @@ static unsigned blue( int i, int c )
     return i * 511 / c - 127;
 }
 
-/** Write a GNU Plot script to produce a single plot from a 
- *  sequence of data files 
+/** Write a GNU Plot script to produce a single plot from a
+ *  sequence of data files
  */
 void write_gnuplot_overlay( int count, const char* basename, MsqError& err )
 {
@@ -415,7 +415,7 @@ void write_gnuplot_overlay( int count, const char* basename, MsqError& err )
 
   const int WIDTH = 640;
   const int HEIGHT = 480;
-  
+
     // read all input files to determine extents
   Vector3D min, max;
   find_gnuplot_agregate_range( count, basename, min, max, err ); MSQ_ERRRTN(err);
@@ -430,7 +430,7 @@ void write_gnuplot_overlay( int count, const char* basename, MsqError& err )
   else if (range[1] < range[2]) {
     vaxis = 2;
   }
-  
+
     // open output file
   string base(basename);
   FILE* file = fopen( (string(basename) + ".gnuplot").c_str(), "w" );
@@ -439,20 +439,20 @@ void write_gnuplot_overlay( int count, const char* basename, MsqError& err )
     MSQ_SETERR(err)(MsqError::FILE_ACCESS);
     return;
   }
-  
+
     // write header
   fprintf( file, "#!gnuplot\n" );
   fprintf( file, "#\n" );
   fprintf( file, "# Mesquite Overlay of %s.0 to %s.%d\n", basename, basename, count );
   fprintf( file, "#\n" );
-  
+
     // write plot settings
   fprintf( file, "set term gif size %d,%d\n", WIDTH, HEIGHT );
   fprintf( file, "set xrange [%f:%f]\n", min[haxis] - 0.05 * range[haxis], max[haxis] + 0.05 * range[haxis] );
   fprintf( file, "set yrange [%f:%f]\n", min[vaxis] - 0.05 * range[vaxis], max[vaxis] + 0.05 * range[vaxis] );
   fprintf( file, "set title '%s'\n", basename );
   fprintf( file, "set output '%s.gif'\n", basename );
-  
+
     // plot data
   fprintf( file, "plot '%s.0.gpt' using %d:%d w l lc rgb '#%02x%02x%02x' title 't0'",
            basename, haxis+1, vaxis+1, red(0,count), green(0,count), blue(0,count) );
@@ -461,10 +461,10 @@ void write_gnuplot_overlay( int count, const char* basename, MsqError& err )
              basename, i, haxis+1, vaxis+1, red(i,count), green(i,count), blue(i,count), i);
   }
   fprintf( file, "\n" );
-  
+
   fclose(file);
 }
-  
+
 
 void write_stl( Mesh* mesh, const char* filename, MsqError& err )
 {
@@ -475,16 +475,16 @@ void write_stl( Mesh* mesh, const char* filename, MsqError& err )
     MSQ_SETERR(err)(MsqError::FILE_ACCESS);
     return;
   }
-  
+
     // Write header
   char header[70];
   sprintf( header, "Mesquite%d", rand() );
   file << "solid " << header << endl;
-  
+
   MsqVertex coords[3];
   std::vector<Mesh::VertexHandle> verts(3);
   std::vector<size_t> offsets(2);
-  
+
     // Iterate over all elements
   size_t count = 0;
   std::vector<Mesh::ElementHandle> elems;
@@ -496,31 +496,31 @@ void write_stl( Mesh* mesh, const char* filename, MsqError& err )
     Mesh::ElementHandle elem = *iter;
     EntityTopology type;
     mesh->elements_get_topologies( &elem, &type, 1, err ); MSQ_ERRRTN(err);
-    if (type != TRIANGLE) 
+    if (type != TRIANGLE)
       continue;
     ++count;
-    
+
       // Get vertex coordinates
     mesh->elements_get_attached_vertices( &elem, 1, verts, offsets, err ); MSQ_ERRRTN(err);
     mesh->vertices_get_coordinates( arrptr(verts), coords, 3, err ); MSQ_ERRRTN(err);
-    
+
       // Get triagnle normal
     Vector3D n = (coords[0] - coords[1]) * (coords[0] - coords[2]);
     n.normalize();
-    
+
       // Write triangle
     file << "facet normal " << n.x() << " " << n.y() << " " << n.z() << endl;
     file << "outer loop" << endl;
     for (unsigned i = 0; i < 3; ++i)
-      file << "vertex " << coords[i].x() << " " 
-                        << coords[i].y() << " " 
+      file << "vertex " << coords[i].x() << " "
+                        << coords[i].y() << " "
                         << coords[i].z() << endl;
     file << "endloop" << endl;
     file << "endfacet" << endl;
   }
-  
+
   file << "endsolid " << header << endl;
-  
+
   file.close();
   if (count == 0)
   {
@@ -528,8 +528,8 @@ void write_stl( Mesh* mesh, const char* filename, MsqError& err )
     MSQ_SETERR(err)("Mesh contains no triangles", MsqError::INVALID_STATE);
   }
 }
-  
-  
+
+
 
 Projection::Projection( PlanarDomain* domain )
 {
@@ -560,38 +560,38 @@ void Projection::init( const Vector3D& n )
   for (Axis i = Y; i <= Z; i = (Axis)(i+1))
     if (fabs(n[i]) > fabs(n[max]))
       max = i;
-  
+
   Axis up;
   if (max == Y)
     up = Z;
-  else 
+  else
     up = Y;
-  
+
     // Initialize rotation matrix
-  
+
   Vector3D up_vect(0,0,0);
   up_vect[up] = 1.0;
   init( n, up_vect );
-}  
+}
 
 void Projection::init(  const Vector3D& n1, const Vector3D& up1 )
 {
   MsqError err;
   const Vector3D n = n1/n1.length();
   const Vector3D u = up1/up1.length();
-  
+
   // Rotate for projection
   const Vector3D z( 0., 0., 1. );
   Vector3D r = n * z;
   double angle = r.interior_angle( n, z, err );
   Matrix3D rot1 = rotation( r, angle );
-   
+
   // In-plane rotation for up vector
   Vector3D pu = u - n * (n % u);
   Vector3D y( 0., 1., 0. );
   angle = z.interior_angle( pu, y, err );
   Matrix3D rot2 = rotation( z, angle );
-  
+
   this->myTransform = rot1 * rot2;
 }
 
@@ -601,9 +601,9 @@ Matrix3D Projection::rotation( const Vector3D& axis, double angle )
   const double s = sin( angle );
   const double x = axis.x();
   const double y = axis.y();
-  const double z = axis.z(); 
-  
-  const double xform[9] = 
+  const double z = axis.z();
+
+  const double xform[9] =
     {    c + x*x*(1-c),  -z*s + x*y*(1-c),  y*s + x*z*(1-c),
        z*s + x*y*(1-c),     c + y*y*(1-c), -x*s + y*z*(1-c),
       -y*s + x*z*(1-c),   x*s + y*z*(1-c),    c + z*z*(1-c) };
@@ -619,7 +619,7 @@ void Projection::project( const Vector3D& p, float& h, float& v )
 
 Transform2D::Transform2D( PatchData* pd,
                           Projection& projection,
-                          unsigned width, 
+                          unsigned width,
                           unsigned height,
                           bool flip )
   : myProj(projection),
@@ -641,26 +641,26 @@ Transform2D::Transform2D( PatchData* pd,
     if (h > h_max) h_max = h;
     if (h < h_min) h_min = h;
   }
-  
+
     // Determine the scale factor
   const float w_scale = (float)width  / (w_max - w_min);
   const float h_scale = (float)height / (h_max - h_min);
   myScale = w_scale > h_scale ? h_scale : w_scale;
-  
+
     // Determine offset
   horizOffset = -(int)(myScale * w_min);
   vertOffset  = -(int)(myScale * (flip ? -h_max : h_min));
-  
+
     // Determine bounding box
   horizMax = (int)(                 w_max  * myScale) + horizOffset;
-  vertMax  = (int)((flip ? -h_min : h_max) * myScale) +  vertOffset; 
-    
+  vertMax  = (int)((flip ? -h_min : h_max) * myScale) +  vertOffset;
+
 }
- 
+
 Transform2D::Transform2D( const Vector3D* verts,
                           size_t num_vert,
                           Projection& projection,
-                          unsigned width, 
+                          unsigned width,
                           unsigned height )
   : myProj(projection),
     vertSign(1)
@@ -678,22 +678,22 @@ Transform2D::Transform2D( const Vector3D* verts,
     if (h > h_max) h_max = h;
     if (h < h_min) h_min = h;
   }
-  
+
     // Determine the scale factor
   const float w_scale = (float)width  / (w_max - w_min);
   const float h_scale = (float)height / (h_max - h_min);
   myScale = w_scale > h_scale ? h_scale : w_scale;
-  
+
     // Determine offset
   horizOffset = -(int)(myScale * w_min);
   vertOffset  = -(int)(myScale * h_min);
-  
+
     // Determine bounding box
   horizMax = (int)(w_max * myScale) + horizOffset;
-  vertMax  = (int)(h_max * myScale) +  vertOffset; 
-    
+  vertMax  = (int)(h_max * myScale) +  vertOffset;
+
 }
-   
+
 void Transform2D::transform( const Vector3D& coords,
                              int& horizontal,
                              int& vertical ) const
@@ -707,11 +707,11 @@ void Transform2D::transform( const Vector3D& coords,
 /** Write quadratic edge shape in PostScript format.
  *
  * Given the three points composing a quadratic mesh edge,
- * write the cubic Bezier curve of the same shape in 
- * PostScript format.  The formulas for P1 and P2 
+ * write the cubic Bezier curve of the same shape in
+ * PostScript format.  The formulas for P1 and P2
  * at the start of this function will result in the cubic
  * terms of the Bezier curve dropping out, leaving the
- * quadratic curve matching the edge shape function as 
+ * quadratic curve matching the edge shape function as
  * described in Section 3.6 of Hughes.  (If you're attempting
  * to verify this, don't forget to adjust for the different
  * parameter ranges: \f$ \xi = 2 t - 1 \f$).
@@ -719,7 +719,7 @@ void Transform2D::transform( const Vector3D& coords,
 static void write_eps_quadratic_edge( ostream &s,
                                       Transform2D& xform,
                                       Vector3D start,
-                                      Vector3D mid, 
+                                      Vector3D mid,
                                       Vector3D end )
 {
   Vector3D P1 = 1./3 * (4 * mid - end);
@@ -736,9 +736,9 @@ static void write_eps_quadratic_edge( ostream &s,
   s << x << ' ' << y << " curveto" << endl;
 }
 
-void write_eps( Mesh* mesh, 
-                const char* filename, 
-                Projection proj, 
+void write_eps( Mesh* mesh,
+                const char* filename,
+                Projection proj,
                 MsqError& err,
                 int width, int height )
 {
@@ -746,9 +746,9 @@ void write_eps( Mesh* mesh,
   PatchData pd;
   pd.set_mesh( mesh );
   pd.fill_global_patch( err ); MSQ_ERRRTN(err);
-  
+
   Transform2D transf( &pd, proj, width, height, false );
-    
+
     // Open the file
   ofstream s(filename);
   if (!s)
@@ -763,11 +763,11 @@ void write_eps( Mesh* mesh,
   s << "%%Title: Mesquite "                           << endl;
   s << "%%DocumentData: Clean7Bit"                    << endl;
   s << "%%Origin: 0 0"                                << endl;
-  s << "%%BoundingBox: 0 0 " 
-    << transf.max_horizontal() <<  ' ' 
+  s << "%%BoundingBox: 0 0 "
+    << transf.max_horizontal() <<  ' '
     << transf.max_vertical()                          << endl;
   s << "%%Pages: 1"                                   << endl;
-  
+
   s << "%%BeginProlog"                                << endl;
   s << "save"                                         << endl;
   s << "countdictstack"                               << endl;
@@ -776,11 +776,11 @@ void write_eps( Mesh* mesh,
   s << "/showpage {} def"                             << endl;
   s << "/setpagedevice {pop} def"                     << endl;
   s << "%%EndProlog"                                  << endl;
-  
+
   s << "%%Page: 1 1"                                  << endl;
   s << "1 setlinewidth"                               << endl;
   s << "0.0 setgray"                                  << endl;
-  
+
     // Write mesh edges
   EdgeIterator iter( &pd, err );  MSQ_ERRRTN(err);
   while( !iter.is_at_end() )
@@ -788,10 +788,10 @@ void write_eps( Mesh* mesh,
     int s_w, s_h, e_w, e_h;
     transf.transform( iter.start(), s_w, s_h );
     transf.transform( iter.end  (), e_w, e_h );
-    
+
     s << "newpath"                                    << endl;
     s << s_w << ' ' << s_h << " moveto"               << endl;
-    
+
     if (!iter.mid()) {
       s << e_w << ' ' << e_h << " lineto"               << endl;
     }
@@ -803,16 +803,16 @@ void write_eps( Mesh* mesh,
       //s << w1 << ' ' << h1 <<  " 2 0 360 arc"         << endl;
     }
     s << "stroke"                                       << endl;
-    
+
     iter.step(err); MSQ_ERRRTN(err);
   }
-  
+
     // Write footer
   s << "%%Trailer"                                    << endl;
   s << "cleartomark"                                  << endl;
   s << "countdictstack"                               << endl;
   s << "exch sub { end } repeat"                      << endl;
-  s << "restore"                                      << endl;  
+  s << "restore"                                      << endl;
   s << "%%EOF"                                        << endl;
 }
 
@@ -835,10 +835,10 @@ static Vector3D quad_tri_pt( double r, double s, const Vector3D* coords )
   return result;
 }
 
-void write_eps_triangle( Mesh* mesh, 
+void write_eps_triangle( Mesh* mesh,
                          Mesh::ElementHandle elem,
-                         const char* filename, 
-                         bool draw_iso_lines, 
+                         const char* filename,
+                         bool draw_iso_lines,
                          bool draw_nodes,
                          MsqError& err,
                          int width, int height )
@@ -859,10 +859,10 @@ void write_eps_triangle( Mesh* mesh,
     return;
   }
   mesh->vertices_get_coordinates( arrptr(verts), coords, verts.size(), err ); MSQ_ERRRTN(err);
-  
+
   Vector3D coords2[6];
   std::copy( coords, coords+verts.size(), coords2 );
-  
+
   std::vector<bool> fixed(verts.size(), false);
   if (draw_nodes) {
     mesh->vertices_get_fixed_flag( arrptr(verts), fixed, verts.size(), err ); MSQ_ERRRTN(err);
@@ -872,8 +872,8 @@ void write_eps_triangle( Mesh* mesh,
 
 void write_eps_triangle( const Vector3D* coords,
                          size_t num_vtx,
-                         const char* filename, 
-                         bool draw_iso_lines, 
+                         const char* filename,
+                         bool draw_iso_lines,
                          bool draw_nodes,
                          MsqError& err,
                          const std::vector<bool>& fixed,
@@ -883,13 +883,13 @@ void write_eps_triangle( const Vector3D* coords,
   const int PAD = PT_RAD + 2; // margin in points
   const double EDGE_GRAY  = 0.0; // color for triangle edges, 0.0 => black
   const double ISO_GRAY   = 0.7; // color for parameter iso-lines
-  const double NODE_GRAY  = 0.0; // color for node circle 
+  const double NODE_GRAY  = 0.0; // color for node circle
   const double FIXED_GRAY = 1.0; // color to fill fixed nodes with, 1.0 => white
   const double FREE_GRAY  = 0.0; // color to fill free nodes with
 
   Projection proj( X, Y );
   Transform2D transf( coords, num_vtx, proj, width, height );
-    
+
     // Open the file
   ofstream str(filename);
   if (!str)
@@ -904,11 +904,11 @@ void write_eps_triangle( const Vector3D* coords,
   str << "%%Title: Mesquite "                           << endl;
   str << "%%DocumentData: Clean7Bit"                    << endl;
   str << "%%Origin: 0 0"                                << endl;
-  str << "%%BoundingBox: " << -PAD << ' ' << -PAD << ' ' 
-      << transf.max_horizontal() + PAD <<  ' ' 
+  str << "%%BoundingBox: " << -PAD << ' ' << -PAD << ' '
+      << transf.max_horizontal() + PAD <<  ' '
       << transf.max_vertical()   + PAD                  << endl;
   str << "%%Pages: 1"                                   << endl;
-  
+
   str << "%%BeginProlog"                                << endl;
   str << "save"                                         << endl;
   str << "countdictstack"                               << endl;
@@ -917,14 +917,14 @@ void write_eps_triangle( const Vector3D* coords,
   str << "/showpage {} def"                             << endl;
   str << "/setpagedevice {pop} def"                     << endl;
   str << "%%EndProlog"                                  << endl;
-  
+
   str << "%%Page: 1 1"                                  << endl;
   str << "1 setlinewidth"                               << endl;
   str << EDGE_GRAY << " setgray"                        << endl;
 
   const double h = 0.5, t = 1.0/3.0, w = 2.0/3.0, s = 1./6, f = 5./6;
   const int NUM_ISO = 15;
-  const double iso_params[NUM_ISO][2][2] = 
+  const double iso_params[NUM_ISO][2][2] =
     { { { h, 0 }, { h, h } },  // r = 1/2
       { { t, 0 }, { t, w } },  // r = 1/3
       { { w, 0 }, { w, t } },  // r = 2/3
@@ -944,16 +944,16 @@ void write_eps_triangle( const Vector3D* coords,
 
   if (num_vtx == 3) {
     int x[3], y[3];
-    for (size_t i = 0; i < 3; ++i) 
+    for (size_t i = 0; i < 3; ++i)
       transf.transform( coords[i], x[i], y[i] );
-    
+
     str << "newpath"                                      << endl;
     str << x[0] << ' ' << y[0] << " moveto"               << endl;
     str << x[1] << ' ' << y[1] << " lineto"               << endl;
     str << x[2] << ' ' << y[2] << " lineto"               << endl;
     str << x[0] << ' ' << y[0] << " lineto"               << endl;
     str << "stroke"                                       << endl;
-    
+
     if (draw_iso_lines) {
       str << ISO_GRAY << " setgray"                       << endl;
       str << "newpath"                                    << endl;
@@ -967,7 +967,7 @@ void write_eps_triangle( const Vector3D* coords,
         transf.transform( p[1], x[1], y[1] );
         str << x[0] << ' ' << y[0] << " moveto"           << endl;
         str << x[1] << ' ' << y[1] << " lineto"           << endl;
-        
+
       }
       str << "    stroke"                                 << endl;
     }
@@ -978,7 +978,7 @@ void write_eps_triangle( const Vector3D* coords,
     write_eps_quadratic_edge( str, transf, coords[1], coords[4], coords[2] );
     write_eps_quadratic_edge( str, transf, coords[2], coords[5], coords[0] );
     str << "stroke"                                       << endl;
-    
+
     if (draw_iso_lines) {
       str << ISO_GRAY << " setgray"                       << endl;
       str << "newpath"                                    << endl;
@@ -995,13 +995,13 @@ void write_eps_triangle( const Vector3D* coords,
       str << "    stroke"                                 << endl;
     }
   }
-  
+
   if (draw_nodes) {
     for (size_t i = 0; i < num_vtx; ++i) {
       int iw, ih;
         // fill interior with either white or black depending
         // on whether or not the vertex is fixed.
-      if (fixed[i]) 
+      if (fixed[i])
         str << FIXED_GRAY << " setgray"                     << endl;
       else
         str << FREE_GRAY << " setgray"                      << endl;
@@ -1015,28 +1015,28 @@ void write_eps_triangle( const Vector3D* coords,
       str << "stroke"                                       << endl;
     }
   }
-  
+
     // Write footer
   str << "%%Trailer"                                    << endl;
   str << "cleartomark"                                  << endl;
   str << "countdictstack"                               << endl;
   str << "exch sub { end } repeat"                      << endl;
-  str << "restore"                                      << endl;  
+  str << "restore"                                      << endl;
   str << "%%EOF"                                        << endl;
 }
 
-void write_svg( Mesh* mesh, 
-                const char* filename, 
-                Projection proj, 
+void write_svg( Mesh* mesh,
+                const char* filename,
+                Projection proj,
                 MsqError& err )
 {
     // Get a global patch
   PatchData pd;
   pd.set_mesh( mesh );
   pd.fill_global_patch( err ); MSQ_ERRRTN(err);
-  
+
   Transform2D transf( &pd, proj, 400, 400, true );
-    
+
     // Open the file
   ofstream file(filename);
   if (!file)
@@ -1047,13 +1047,13 @@ void write_svg( Mesh* mesh,
 
     // Write header
   file << "<?xml version=\"1.0\" standalone=\"no\"?>"                << endl;
-  file << "<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" " 
+  file << "<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" "
        << "\"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">"    << endl;
   file <<                                                               endl;
-  file << "<svg width=\"" << transf.max_horizontal() 
+  file << "<svg width=\"" << transf.max_horizontal()
        << "\" height=\"" << transf.max_vertical()
        << "\" version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\">" << endl;
-  
+
     // Write mesh edges
   EdgeIterator iter( &pd, err );  MSQ_ERRRTN(err);
   while( !iter.is_at_end() )
@@ -1061,7 +1061,7 @@ void write_svg( Mesh* mesh,
     int s_w, s_h, e_w, e_h;
     transf.transform( iter.start(), s_w, s_h );
     transf.transform( iter.end  (), e_w, e_h );
-    
+
     file << "<line "
          << "x1=\"" << s_w << "\" "
          << "y1=\"" << s_h << "\" "
@@ -1069,10 +1069,10 @@ void write_svg( Mesh* mesh,
          << "y2=\"" << e_h << "\" "
          << " style=\"stroke:rgb(99,99,99);stroke-width:2\""
          << "/>" << endl;
-    
+
     iter.step( err ); MSQ_ERRRTN(err);
   }
-  
+
     // Write footer
   file << "</svg>" << endl;
 }

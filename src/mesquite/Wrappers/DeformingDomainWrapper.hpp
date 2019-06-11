@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2010 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2010) kraftche@cae.wisc.edu    
+    (2010) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file DeformingDomainWrapper.hpp
  *  \brief Define DeformingDomainWrapper class
- *  \author Jason Kraftcheck 
+ *  \author Jason Kraftcheck
  */
 
 #ifndef MSQ_DEFORMING_DOMAIN_WRAPPER_HPP
@@ -45,11 +45,11 @@ class CurveDomain;
  *
  * This wrapper stores the initial mesh on/in an undeformed domain
  * and uses the characteristics of that mesh to guide the optimization
- * of the mesh after deformation of the domain.  
+ * of the mesh after deformation of the domain.
  *
- * The caller must ensure that the wrapper has the initial mesh 
+ * The caller must ensure that the wrapper has the initial mesh
  * description.  The simplest way to do this is to call \c store_initial_mesh
- * prior to the deformation of the geometric domain. 
+ * prior to the deformation of the geometric domain.
  *
  * Application using this wrapper should preform the following steps.
  * -# Change any wrapper settings
@@ -70,12 +70,12 @@ class CurveDomain;
  *      elements than the input mesh.
  *
  *\NOTE Mesquite does not do edge/curve smoothing.  The caller may either
- *      set up a "free" smooth where vertices on geometric curves are 
+ *      set up a "free" smooth where vertices on geometric curves are
  *      smoothed as a part of teh surface or volume optimization or simply
  *      redistribute the vertices along the curves outside of mesquite.
  *      The DeformingCurveSmoother class is provided below to facilitate
  *      redistributing nodes on a curve such that fractional arc length
- *      is preserved for edges.  However, this it is as a stand-alone utility 
+ *      is preserved for edges.  However, this it is as a stand-alone utility
  *      that must be invoked independently for each curve.
  */
 class DeformingDomainWrapper : public Wrapper
@@ -84,18 +84,18 @@ public:
 
   MESQUITE_EXPORT
   DeformingDomainWrapper();
-  
+
   MESQUITE_EXPORT virtual
   ~DeformingDomainWrapper();
-  
+
   /**\brief Specify tag used to get/set cached initial mesh vertex coordinates
    *
-   * This optimizer uses the initial mesh (prior to deformation of the 
+   * This optimizer uses the initial mesh (prior to deformation of the
    * domain) as a reference when smoothing the mesh on the deformed domain.
    * The initial mesh is stored/accessed as alternate vertex coordinates
    * stored in a Tag on the mesh.  This function can be used to specify
    * the tag used to store those initial coordinates.  If the named tag
-   * already exists then it must have a type of DOUBLE and a size of three values.  
+   * already exists then it must have a type of DOUBLE and a size of three values.
    *
    * If the application already has the initial coordinates stored in some
    * tag, then calling this function with the tag handle is sufficient to
@@ -108,7 +108,7 @@ public:
   inline
   void set_initial_coord_tag( const std::string& tag_name )
     { initVertexCoords = tag_name; }
-  
+
   /**\brief Get tag used to store vertex coordinates of initial mesh
    *
    * Return the tag passed to \c set_initial_coord_tag or if
@@ -118,31 +118,31 @@ public:
   inline
   std::string get_initial_coord_tag() const
     { return initVertexCoords; }
-  
+
   /**\brief Store the initial mesh before deformation as a reference
    *
    * Store the initial mesh for use as a reference when smoothing
    * mesh on deformed geometry.
    *\param mesh The mesh instance to be operated on.  Initial mesh
-   *      data is stored by copying vertex coordinates to 
+   *      data is stored by copying vertex coordinates to
    *\Note This must be called prior to the optimization with the
-   *      mesh in its undeformed state.  
+   *      mesh in its undeformed state.
    *\Note This function need not be called if the application cal
    *      provide access to the coordinates of vertices of the initial
-   *      mesh through the tag mechanism already.  
+   *      mesh through the tag mechanism already.
    *      See \c set_initial_coord_tag
    */
   MESQUITE_EXPORT
   void store_initial_mesh( Mesh* mesh, MsqError& err );
-  
+
   /**\brief Mesh characteristics to attempt to preserve */
-  enum MeshCharacteristic { 
+  enum MeshCharacteristic {
     SHAPE,              //!< Attempt to preserve element shape (TShapeNB1 metric)
     SHAPE_SIZE,         //!< Attempt to preserve element shape and size (TShapeSize2DNB1 & TShapeSize3DNB1)
     SHAPE_SIZE_ORIENT   //!< Attempt to preserve element shape, size, and orientation (TShapeSizeOrientNB1)
-  }; 
-  
-  /**\brief Specify which mesh characteristics to preserve 
+  };
+
+  /**\brief Specify which mesh characteristics to preserve
    *
    * It typically works the best to preserve whichever quantities can
    * be preserved.  For example, if the overall area/volume of the domain
@@ -155,17 +155,17 @@ public:
   inline
   void set_mesh_characteristic( MeshCharacteristic t )
     { metricType = t; }
-  
+
   inline
   MeshCharacteristic get_mesh_characteristic() const
     { return metricType; }
-  
+
   /**\brief Check if vertex culling will be used */
   inline bool is_culling_enabled() const
     { return doCulling; }
-  
+
   /**\brief Enable vertex culling.
-   * 
+   *
    * Culling will be enabled by default.
    */
   inline void enable_culling( bool yesno )
@@ -180,14 +180,14 @@ public:
   inline
   void clear_cpu_time_limit()
     { cpuTime = 0.0; }
-  
+
   /**\brief Get timeout after which optimization will exit
    *\return false if no timeout specified, true otherwise */
-  inline 
-  bool get_cpu_time_limit( double& seconds ) const 
+  inline
+  bool get_cpu_time_limit( double& seconds ) const
     { seconds = cpuTime; return cpuTime > 0.0; }
 
-  /**\brief Specify factor by which to minimum distance a vertex must 
+  /**\brief Specify factor by which to minimum distance a vertex must
    *        move in an iteration to avoid termination of the optimization.
    *
    * Value must be greater than zero, and should be less 1.0
@@ -198,10 +198,10 @@ public:
    */
   MESQUITE_EXPORT
   void set_vertex_movement_limit_factor( double f );
-  
-  inline 
-  double get_vertex_movement_limit_factor( ) const 
-    { return movementFactor; }  
+
+  inline
+  double get_vertex_movement_limit_factor( ) const
+    { return movementFactor; }
 
 protected:
 
@@ -214,7 +214,7 @@ protected:
 
   MESQUITE_EXPORT
   void move_to_domain( Mesh* mesh, MeshDomain* geom, MsqError& err );
-                    
+
 
 private:
 
@@ -227,44 +227,44 @@ private:
 /**\brief Utility to do curve smoothing
  *
  * This class implements a simple utility to redistribute vertices
- * on a curve (1D domain).  It can operate in two modes.  If the 
+ * on a curve (1D domain).  It can operate in two modes.  If the
  * charactristic is \c EQUAL, it will redistribute the vertices such
- * that the arc length between each vertex is equal. In the 
+ * that the arc length between each vertex is equal. In the
  * \c PROPORTIONAL mode the application must call \c store_initial_mesh
  * for each curve before the domain is deformed.  \c store_initial_mesh
  * will record the fractional arc length between vertices so that
  * \c smooth_curve can redistribute the vertices such that the space
  * between the vertices is the same fractional arc length.
  */
-class DeformingCurveSmoother 
+class DeformingCurveSmoother
 {
 public:
 
   MESQUITE_EXPORT
   DeformingCurveSmoother();
-  
+
   MESQUITE_EXPORT
   ~DeformingCurveSmoother();
-  
+
   /**\brief Mesh characteristics to attempt to preserve */
-  enum Scheme { 
+  enum Scheme {
      EQUAL,       //!< space curve vertices equally
      PROPORTIONAL //!< preserve relative spacing from initial mesh
   };
-  
+
   /**\brief Specify tag used to get/set cached initial mesh data
    *
-   * This optimizer uses the initial mesh (prior to deformation of the 
+   * This optimizer uses the initial mesh (prior to deformation of the
    * domain) as a reference when smoothing the mesh on the deformed domain.
-   * This function can be used to store initial mesh data.  If the tag 
+   * This function can be used to store initial mesh data.  If the tag
    * already exists then t must have a type of DOUBLE and a size of one value.
    * the tag used to store those initial coordinates.  It must have a type
-   * of DOUBLE and a size of one value.  
+   * of DOUBLE and a size of one value.
    */
   inline
   void set_initial_fraction_tag( const std::string& tag_name )
     { initFractTag = tag_name; }
-  
+
   /**\brief Get tag used to store initial mesh characteristics
    *
    * Return the tag handle passed to \c set_initial_fraction_tag or if
@@ -273,16 +273,16 @@ public:
   inline
   std::string get_initial_fraction_tag() const
     { return initFractTag; }
-  
+
   /**\brief Specify which mesh characteristics to preserve */
   inline
   void set_mesh_characteristic( Scheme t )
     { metricType = t; }
-  
+
   inline
   Scheme get_mesh_characteristic() const
     { return metricType; }
-  
+
   /**\brief Record relative edge length from initial mesh
    *
    * Record the necessary characteristics of the initial mesh required
@@ -291,12 +291,12 @@ public:
    *               vertices of this curve, but it must preserve tag data
    *               on the curve vertices for use in \c smooth_curve.
    *\param vertex_array   The array of handles corresponding to vertices
-   *               on the curve and its end points.  Vertices must be 
+   *               on the curve and its end points.  Vertices must be
    *               ordered and in the forward direction along the curve,
    *               where the forward direction is whichever direction
    *               the \c CurveDomain instance considers a positive arc
    *               length for the \c position_from_length call.  The array
-   *               must also contain both the start and end vertex for 
+   *               must also contain both the start and end vertex for
    *               the curve, and if the curve is closed, the single start/end
    *               vertex must occur at both the start and end of the list.
    *\param vertex_array_length The number of handles in \c vertex_array.
@@ -308,23 +308,23 @@ public:
                            int vertex_array_length,
                            CurveDomain* geometry,
                            MsqError& err );
-  
+
   /**\brief Redistribute vertices along a curve or 1D domain.
    *
    * Smooth the curve mesh by redistributing the vertices using one of
    * the schemes defined in \c Scheme.
    *
    *\param mesh_instance  This mesh instance need not contain only the
-   *               vertices of this curve, but if using the 
+   *               vertices of this curve, but if using the
    *               \c PROPORTIONAL scheme it must have the tag data
    *               defined by the earlier call to \c store_initial_mesh.
    *\param vertex_array   The array of handles corresponding to vertices
-   *               on the curve and its end points.  Vertices must be 
+   *               on the curve and its end points.  Vertices must be
    *               ordered and in the forward direction along the curve,
    *               where the forward direction is whichever direction
    *               the \c CurveDomain instance considers a positive arc
    *               length for the \c position_from_length call.  The array
-   *               must also contain both the start and end vertex for 
+   *               must also contain both the start and end vertex for
    *               the curve, and if the curve is closed, the single start/end
    *               vertex must occur at both the start and end of the list.
    *               The first and last vertex in the array will *not* be moved.
@@ -333,7 +333,7 @@ public:
    *               new locations before calling this function.
    *\param vertex_array_length The number of handles in \c vertex_array.
    *\param geometry The curve or 1D domain geometry.
-   *\param type    The scheme to use.  If using \c PROPORTIONAL, 
+   *\param type    The scheme to use.  If using \c PROPORTIONAL,
    *               then \c store_initial_mesh must be called for the same
    *               vertices and mesh instance before any deformation.
    */

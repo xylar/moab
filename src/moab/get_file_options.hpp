@@ -15,7 +15,7 @@ bool check_for_flag(const char *str) {
 }
 
 // New get_file_options() function with added possibilities for mbcoupler_test.
-ErrorCode get_file_options(int argc, char **argv, 
+ErrorCode get_file_options(int argc, char **argv,
                            std::vector<std::string> &meshFiles,
                            std::string &interpTag,
                            std::string &gNormTag,
@@ -191,10 +191,10 @@ ErrorCode get_file_options(int argc, char **argv,
     meshFiles.resize(2);
     meshFiles[0] = std::string(TestDir + "/64bricks_1khex.h5m");
     meshFiles[1] = std::string(TestDir + "/64bricks_12ktet.h5m");
-    std::cout << "Mesh files not entered; using default files " 
+    std::cout << "Mesh files not entered; using default files "
               << meshFiles[0] << " and " << meshFiles[1] << std::endl;
   }
-  
+
   if (!haveInterpTag) {
     interpTag = "vertex_field";
     std::cout << "Interpolation field name not given, using default of " << interpTag << std::endl;
@@ -206,7 +206,7 @@ ErrorCode get_file_options(int argc, char **argv,
     outFile = "dum.h5m";
   }
 #endif
-    
+
   return MB_SUCCESS;
 }
 }

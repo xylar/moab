@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2007 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2010) kraftche@cae.wisc.edu    
+    (2010) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file ConicDomain.hpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #ifndef MSQ_CONIC_DOMAIN_HPP
@@ -47,7 +47,7 @@ class MESQUITE_EXPORT ConicDomain : public MBMesquite::MeshDomain
 public:
     /**
      *\param radius_at_point    The radius of the cone at axis_point
-     *\param height_to_apex     The distance in the direction of 
+     *\param height_to_apex     The distance in the direction of
      *                          axis_direction from axis_point to the apex
      *\param axis_direction     Vector defining the direction of the axis
      *\param axis_point         A point through which the axis passes.
@@ -56,7 +56,7 @@ public:
      */
   inline ConicDomain( double radius_at_point,
                       double height_to_apex,
-                      Vector3D axis_direction = Vector3D(0,0,1), 
+                      Vector3D axis_direction = Vector3D(0,0,1),
                       Vector3D axis_point = Vector3D(0,0,0),
                       bool outward_normal = true)
     : mAxis( axis_direction / axis_direction.length() ),
@@ -65,7 +65,7 @@ public:
       mHeight( height_to_apex ),
       outwardSign( outward_normal ? 1.0 : -1.0 )
     { }
-    
+
   inline ConicDomain() {}
 
   virtual ~ConicDomain();

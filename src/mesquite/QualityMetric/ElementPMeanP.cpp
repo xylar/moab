@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2006 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
+
     (2006) kraftche@cae.wisc.edu
-   
+
   ***************************************************************** */
 
 
 /** \file ElementPMeanP.cpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -39,10 +39,10 @@
 namespace MBMesquite {
 
 ElementPMeanP::ElementPMeanP( double p, ElemSampleQM* metric )
-    : PMeanPMetric( p ), 
+    : PMeanPMetric( p ),
       mMetric(metric)
     {}
-    
+
 ElementPMeanP::~ElementPMeanP() {}
 
 std::string ElementPMeanP::get_name() const
@@ -59,9 +59,9 @@ int ElementPMeanP::get_negate_flag() const
   return get_quality_metric()->get_negate_flag();
 }
 
-bool ElementPMeanP::evaluate( PatchData& pd, 
-                              size_t handle, 
-                              double& value, 
+bool ElementPMeanP::evaluate( PatchData& pd,
+                              size_t handle,
+                              double& value,
                               MsqError& err )
 {
   ElemSampleQM* qm = get_quality_metric();
@@ -71,9 +71,9 @@ bool ElementPMeanP::evaluate( PatchData& pd,
   return !MSQ_CHKERR(err) && result;
 }
 
-bool ElementPMeanP::evaluate_with_gradient( PatchData& pd, 
-                                            size_t handle, 
-                                            double& value, 
+bool ElementPMeanP::evaluate_with_gradient( PatchData& pd,
+                                            size_t handle,
+                                            double& value,
                                             std::vector<size_t>& indices,
                                             std::vector<Vector3D>& gradient,
                                             MsqError& err )
@@ -85,9 +85,9 @@ bool ElementPMeanP::evaluate_with_gradient( PatchData& pd,
   return !MSQ_CHKERR(err) && result;
 }
 
-bool ElementPMeanP::evaluate_with_Hessian( PatchData& pd, 
-                          size_t handle, 
-                          double& value, 
+bool ElementPMeanP::evaluate_with_Hessian( PatchData& pd,
+                          size_t handle,
+                          double& value,
                           std::vector<size_t>& indices,
                           std::vector<Vector3D>& gradient,
                           std::vector<Matrix3D>& Hessian,
@@ -100,9 +100,9 @@ bool ElementPMeanP::evaluate_with_Hessian( PatchData& pd,
   return !MSQ_CHKERR(err) && result;
 }
 
-bool ElementPMeanP::evaluate_with_Hessian_diagonal( PatchData& pd, 
-                          size_t handle, 
-                          double& value, 
+bool ElementPMeanP::evaluate_with_Hessian_diagonal( PatchData& pd,
+                          size_t handle,
+                          double& value,
                           std::vector<size_t>& indices,
                           std::vector<Vector3D>& gradient,
                           std::vector<SymMatrix3D>& diagonal,

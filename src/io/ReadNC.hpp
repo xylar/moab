@@ -25,7 +25,7 @@
 #ifdef MOAB_HAVE_MPI
 #include "moab_mpi.h"
 #include "moab/ParallelComm.hpp"
-#endif 
+#endif
 
 #ifdef MOAB_HAVE_PNETCDF
 #include "pnetcdf.h"

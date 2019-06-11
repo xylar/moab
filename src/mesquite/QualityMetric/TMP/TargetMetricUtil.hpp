@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2007 Sandia National Laboratories.  Developed at the
@@ -16,11 +16,11 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2007) kraftche@cae.wisc.edu    
+    (2007) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
@@ -28,7 +28,7 @@
 /** \file TargetMetricUtil.hpp
  *  \brief A collection of utility code used by QualtiyMetrics
  *         composed of TMP Target Metrics
- *  \author Jason Kraftcheck 
+ *  \author Jason Kraftcheck
  */
 
 #ifndef MSQ_TARGET_METRIC_UTIL_HPP
@@ -49,7 +49,7 @@ class Vector3D;
 class Matrix3D;
 
 
-/**\brief Calculate R and Z such that \f$W\prime = Z^{-1} W\f$ and 
+/**\brief Calculate R and Z such that \f$W\prime = Z^{-1} W\f$ and
  *        \f$A\prime = (RZ)^{-1} A\f$
  *
  * Calculate the matrices required to transform the active and target
@@ -57,10 +57,10 @@ class Matrix3D;
  *\param A    Input: Element Jacobian matrix.
  *\param W_32 Input: Target Jacobian matrix.
  *\param W_22 Output: 2D Target matrix.
- *\param RZ   Output: Product of R and Z needed to calculate the 2D 
+ *\param RZ   Output: Product of R and Z needed to calculate the 2D
  *            element matrix.
  */
-void surface_to_2d( const MsqMatrix<3,2>& A, 
+void surface_to_2d( const MsqMatrix<3,2>& A,
                     const MsqMatrix<3,2>& W_32,
                     MsqMatrix<2,2>& W_22,
                     MsqMatrix<3,2>& RZ );
@@ -74,7 +74,7 @@ void get_sample_pt_evaluations( PatchData& pd,
                                 std::vector<size_t>& handles,
                                 bool free,
                                 MsqError& err );
-                    
+
 void get_elem_sample_points( PatchData& pd,
                              size_t elem,
                              std::vector<size_t>& handles,
@@ -107,7 +107,7 @@ void hessian( size_t num_free_verts,
   size_t h = 0; // index of current Hessian block
 
   for (size_t i = 0; i < num_free_verts; ++i) {
-  
+
       // Populate TMP with vector-matrix procucts common
       // to terms of this Hessian row.
     const MsqMatrix<1,DIM>& gi = transpose(dNdxi[i]);
@@ -124,7 +124,7 @@ void hessian( size_t num_free_verts,
         tmp[1][1] = gi * d2mdA2[DIM];
       case 1:
         tmp[0][0] = gi * d2mdA2[0];
-      case 0: 
+      case 0:
         break;
       default: assert(false);
     }
@@ -141,11 +141,11 @@ void hessian( size_t num_free_verts,
         H(1,1) =          tmp[1][1] * transpose(gi);
       case 1:
         H(0,0) =          tmp[0][0] * transpose(gi);
-      case 0: 
+      case 0:
         break;
       default: assert(false);
     }
-    
+
       // Calculate remainder of Hessian row
     for (size_t j = i+1; j < num_free_verts; ++j) {
       MAT& HH = hess[h++];
@@ -163,7 +163,7 @@ void hessian( size_t num_free_verts,
           HH(1,1) = tmp[1][1] * gj;
         case 1:
           HH(0,0) = tmp[0][0] * gj;
-        case 0: 
+        case 0:
           break;
         default: assert(false);
       }
@@ -188,7 +188,7 @@ void hessian_diagonal( size_t num_free_verts,
 
 
 #ifdef PRINT_INFO
-template <int R, int C> inline 
+template <int R, int C> inline
 void write_vect( char n, const MsqMatrix<R,C>& M )
 {
   std::cout << "  " << n << ':';
@@ -214,7 +214,7 @@ void print_info( size_t elem, Sample sample,
 }
 #endif
 
-                    
+
 } // namespace MBMesquite
 
 #endif

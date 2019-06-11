@@ -508,7 +508,7 @@ ErrorCode Intx2MeshOnSphere::update_tracer_data(EntityHandle out_set, Tag & tagE
     EntityHandle poly=*it;
     int blueIndex, redIndex;
     rval =  mb->tag_get_data(blueParentTag, &poly, 1, &blueIndex);MB_CHK_SET_ERR(rval, "can't get blue tag");
-    
+
     EntityHandle blue = rs1[blueIndex-1]; // big assumption, it should work for meshes where global id is the same
     // as element handle (ordered from 1 to number of elements); should be OK for Homme meshes
     rval =  mb->tag_get_data(redParentTag, &poly, 1, &redIndex);MB_CHK_SET_ERR(rval, "can't get red tag");

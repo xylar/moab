@@ -7,7 +7,7 @@ namespace moab {
 
 /// Construct an entity refiner.
 EntityRefiner::EntityRefiner()
-{  
+{
   this->mesh_in = 0;
   this->edge_size_evaluator = 0;
   this->output_functor = 0;
@@ -93,7 +93,7 @@ bool EntityRefiner::set_edge_size_evaluator( EdgeSizeEvaluator* ese )
 /**\brief Set the functor through which output entities are streamed.
   *
   * Any previously assigned functor will be deleted when a new functor is set.
-  * 
+  *
   * @retvalReturns true if the value was changed and false otherwise.
   */
 bool EntityRefiner::set_output_functor( EntityRefinerOutputFunctor* func_obj )

@@ -1,9 +1,9 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2004 Sandia Corporation and Argonne National
-    Laboratory.  Under the terms of Contract DE-AC04-94AL85000 
-    with Sandia Corporation, the U.S. Government retains certain 
+    Laboratory.  Under the terms of Contract DE-AC04-94AL85000
+    with Sandia Corporation, the U.S. Government retains certain
     rights in this software.
 
     This library is free software; you can redistribute it and/or
@@ -16,13 +16,13 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
-    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov, 
-    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov      
-   
+
+    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov,
+    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov
+
   ***************************************************************** */
 // -*- Mode : c++; tab-width: 3; c-tab-always-indent: t; indent-tabs-mode: nil; c-basic-offset: 3 -*-
 
@@ -44,7 +44,7 @@ evaluations.
 #include "Matrix3D.hpp"
 #include "Exponent.hpp"
 
-namespace MBMesquite 
+namespace MBMesquite
 {
   /***************************************************************************/
   /* Gradient calculation courtesy of Paul Hovland.  The code was modified   */
@@ -167,7 +167,7 @@ inline bool m_fcn_2e(double &obj, const Vector3D x[3], const Vector3D &n,
 /* Gradient evaluation requires 88 flops.                                    */
 /*   Reductions possible when b == 1 or c == 1                               */
 /*****************************************************************************/
-inline bool g_fcn_2e(double &obj, Vector3D g_obj[3], 
+inline bool g_fcn_2e(double &obj, Vector3D g_obj[3],
                      const Vector3D x[3], const Vector3D &n,
 		     const double a, const Exponent& b, const Exponent& c)
 {
@@ -581,7 +581,7 @@ inline bool m_fcn_2i(double &obj, const Vector3D x[3], const Vector3D &n,
 /* Gradient requires 82 flops.                                               */
 /*   Reductions possible when b == 1, c == 1, or d == 1                      */
 /*****************************************************************************/
-inline bool g_fcn_2i(double &obj, Vector3D g_obj[3], 
+inline bool g_fcn_2i(double &obj, Vector3D g_obj[3],
                      const Vector3D x[3], const Vector3D &n,
 		     const double a, const Exponent& b, const Exponent& c,
 		     const Vector3D &d)
@@ -1059,7 +1059,7 @@ inline bool g_fcn_3e(double &obj, Vector3D g_obj[4], const Vector3D x[4],
 /* Hessian evaluation requires 634 flops.                                    */
 /*   Reductions possible when b == 1 or c == 1                               */
 /*****************************************************************************/
-inline bool h_fcn_3e(double &obj, Vector3D g_obj[4], Matrix3D h_obj[10], 
+inline bool h_fcn_3e(double &obj, Vector3D g_obj[4], Matrix3D h_obj[10],
 		     const Vector3D x[4],
 		     const double a, const Exponent& b, const Exponent& c)
 {
@@ -1092,7 +1092,7 @@ inline bool h_fcn_3e(double &obj, Vector3D g_obj[4], Matrix3D h_obj[10],
   if (g < MSQ_MIN) { obj = g; return false; }
 
   /* Calculate norm(M). */
-  f = matr[0]*matr[0] + matr[1]*matr[1] + matr[2]*matr[2] + 
+  f = matr[0]*matr[0] + matr[1]*matr[1] + matr[2]*matr[2] +
       matr[3]*matr[3] + matr[4]*matr[4] + matr[5]*matr[5] +
       matr[6]*matr[6] + matr[7]*matr[7] + matr[8]*matr[8];
 
@@ -1743,7 +1743,7 @@ inline bool h_fcn_3e_v3(double &obj, Vector3D &g_obj, Matrix3D &h_obj,
   if (g < MSQ_MIN) { obj = g; return false; }
 
   /* Calculate norm(M). */
-  f = matr[0]*matr[0] + matr[1]*matr[1] + matr[2]*matr[2] + 
+  f = matr[0]*matr[0] + matr[1]*matr[1] + matr[2]*matr[2] +
       matr[3]*matr[3] + matr[4]*matr[4] + matr[5]*matr[5] +
       matr[6]*matr[6] + matr[7]*matr[7] + matr[8]*matr[8];
 
@@ -1849,7 +1849,7 @@ inline bool h_fcn_3e_v2(double &obj, Vector3D &g_obj, Matrix3D &h_obj,
 /* Function evaluation requires 53 flops.                                    */
 /*   Reductions possible when b == 1, c == 1, or d == 1                      */
 /*****************************************************************************/
-inline bool m_fcn_3i(double &obj, const Vector3D x[4], 
+inline bool m_fcn_3i(double &obj, const Vector3D x[4],
 		     const double a, const Exponent& b, const Exponent& c,
 		     const Vector3D &d)
 {
@@ -1889,7 +1889,7 @@ inline bool m_fcn_3i(double &obj, const Vector3D x[4],
 /* Gradient evaluation requires 115 flops.                                   */
 /*   Reductions possible when b == 1, c == 1, or d == 1                      */
 /*****************************************************************************/
-inline bool g_fcn_3i(double &obj, Vector3D g_obj[4], const Vector3D x[4], 
+inline bool g_fcn_3i(double &obj, Vector3D g_obj[4], const Vector3D x[4],
 		     const double a, const Exponent& b, const Exponent& c,
 		     const Vector3D &d)
 {
@@ -1918,10 +1918,10 @@ inline bool g_fcn_3i(double &obj, Vector3D g_obj[4], const Vector3D x[4],
   if (g < MSQ_MIN) { obj = g; return false; }
 
   /* Calculate norm(M). */
-  f = matr[0]*matr[0] + matr[1]*matr[1] + matr[2]*matr[2] + 
+  f = matr[0]*matr[0] + matr[1]*matr[1] + matr[2]*matr[2] +
       matr[3]*matr[3] + matr[4]*matr[4] + matr[5]*matr[5] +
       matr[6]*matr[6] + matr[7]*matr[7] + matr[8]*matr[8];
- 
+
   /* Calculate objective function. */
   obj  = a * b.raise(f) * c.raise(g);
 
@@ -1967,8 +1967,8 @@ inline bool g_fcn_3i(double &obj, Vector3D g_obj[4], const Vector3D x[4],
 /* Hessian evaluation requires 469 flops.                                    */
 /*   Reductions possible when b == 1, c == 1, or d == 1                      */
 /*****************************************************************************/
-inline int h_fcn_3i(double &obj, Vector3D g_obj[4], Matrix3D h_obj[10], 
-		    const Vector3D x[4], 
+inline int h_fcn_3i(double &obj, Vector3D g_obj[4], Matrix3D h_obj[10],
+		    const Vector3D x[4],
 		    const double a, const Exponent& b, const Exponent& c,
 		    const Vector3D &d)
 {
@@ -2004,7 +2004,7 @@ inline int h_fcn_3i(double &obj, Vector3D g_obj[4], Matrix3D h_obj[10],
   if (g < MSQ_MIN) { obj = g; return false; }
 
   /* Calculate norm(M). */
-  f = matr[0]*matr[0] + matr[1]*matr[1] + matr[2]*matr[2] + 
+  f = matr[0]*matr[0] + matr[1]*matr[1] + matr[2]*matr[2] +
     matr[3]*matr[3] + matr[4]*matr[4] + matr[5]*matr[5] +
     matr[6]*matr[6] + matr[7]*matr[7] + matr[8]*matr[8];
 
@@ -2370,7 +2370,7 @@ inline int h_fcn_3i(double &obj, Vector3D g_obj[4], Matrix3D h_obj[10],
   return true;
 }
 
-/********************************************************************* 
+/*********************************************************************
  * Reference tetrahedral elements to halves of an ideal pyramid.
  * Vertices should be ordered such that the edge between the 2nd and
  * 3rd vertices is the one longer edge in the reference tetrahedron
@@ -2393,11 +2393,11 @@ inline bool m_fcn_3p(double &obj, const Vector3D x[4],
   matr[0] = x[1][0] - x[0][0];
   matr[1] = x[2][0] - x[0][0];
   matr[2] = (2.0*x[3][0] - x[1][0] - x[2][0])*h;
-  
+
   matr[3] = x[1][1] - x[0][1];
   matr[4] = x[2][1] - x[0][1];
   matr[5] = (2.0*x[3][1] - x[1][1] - x[2][1])*h;
-  
+
   matr[6] = x[1][2] - x[0][2];
   matr[7] = x[2][2] - x[0][2];
   matr[8] = (2.0*x[3][2] - x[1][2] - x[2][2])*h;
@@ -2432,11 +2432,11 @@ inline bool g_fcn_3p(double &obj, Vector3D g_obj[4], const Vector3D x[4],
   matr[0] = x[1][0] - x[0][0];
   matr[1] = x[2][0] - x[0][0];
   matr[2] = (2.0*x[3][0] - x[1][0] - x[2][0])*h;
-  
+
   matr[3] = x[1][1] - x[0][1];
   matr[4] = x[2][1] - x[0][1];
   matr[5] = (2.0*x[3][1] - x[1][1] - x[2][1])*h;
-  
+
   matr[6] = x[1][2] - x[0][2];
   matr[7] = x[2][2] - x[0][2];
   matr[8] = (2.0*x[3][2] - x[1][2] - x[2][2])*h;
@@ -2495,7 +2495,7 @@ inline bool g_fcn_3p(double &obj, Vector3D g_obj[4], const Vector3D x[4],
 }
 
 
-inline bool h_fcn_3p(double &obj, Vector3D g_obj[4], Matrix3D h_obj[10], 
+inline bool h_fcn_3p(double &obj, Vector3D g_obj[4], Matrix3D h_obj[10],
 		     const Vector3D x[4],
 		     const double a, const Exponent& b, const Exponent& c)
 {
@@ -2535,7 +2535,7 @@ inline bool h_fcn_3p(double &obj, Vector3D g_obj[4], Matrix3D h_obj[10],
   dg[8] = matr[0]*matr[4] - matr[1]*matr[3];
 
   /* Calculate norm(M). */
-  f = matr[0]*matr[0] + matr[1]*matr[1] + matr[2]*matr[2] + 
+  f = matr[0]*matr[0] + matr[1]*matr[1] + matr[2]*matr[2] +
       matr[3]*matr[3] + matr[4]*matr[4] + matr[5]*matr[5] +
       matr[6]*matr[6] + matr[7]*matr[7] + matr[8]*matr[8];
 
@@ -2625,7 +2625,7 @@ inline bool h_fcn_3p(double &obj, Vector3D g_obj[4], Matrix3D h_obj[10],
   A[1] =  J_A[0] -  h*J_A[2];
   A[2] =  J_A[1] -  h*J_A[2];
   A[3] =           th*J_A[2];
-  
+
   A[4] = -J_A[1] -    J_A[3];
   A[5] =  J_A[1] -  h*J_A[4];
   A[6] =  J_A[3] -  h*J_A[4];
@@ -2644,7 +2644,7 @@ inline bool h_fcn_3p(double &obj, Vector3D g_obj[4], Matrix3D h_obj[10],
   h_obj[4][0][0] =  A[1] -  h*A[9];
   h_obj[5][0][0] =  A[5] -  h*A[9];
   h_obj[6][0][0] =         th*A[9];
-  
+
   h_obj[7][0][0] =  A[6] -  h*A[10];
   h_obj[8][0][0] =         th*A[10];
 
@@ -2667,7 +2667,7 @@ inline bool h_fcn_3p(double &obj, Vector3D g_obj[4], Matrix3D h_obj[10],
   A[1] =  J_B[0] -  h*J_B[2];
   A[2] =  J_B[1] -  h*J_B[2];
   A[3] =           th*J_B[2];
-  
+
   A[4] = -J_B[3] -    J_B[4];
   A[5] =  J_B[3] -  h*J_B[5];
   A[6] =  J_B[4] -  h*J_B[5];
@@ -2715,7 +2715,7 @@ inline bool h_fcn_3p(double &obj, Vector3D g_obj[4], Matrix3D h_obj[10],
   A[1] =  J_C[0] -  h*J_C[2];
   A[2] =  J_C[1] -  h*J_C[2];
   A[3] =           th*J_C[2];
-  
+
   A[4] = -J_C[3] -    J_C[4];
   A[5] =  J_C[3] -  h*J_C[5];
   A[6] =  J_C[4] -  h*J_C[5];
@@ -2779,7 +2779,7 @@ inline bool h_fcn_3p(double &obj, Vector3D g_obj[4], Matrix3D h_obj[10],
   A[1] =  J_A[0] -  h*J_A[2];
   A[2] =  J_A[1] -  h*J_A[2];
   A[3] =           th*J_A[2];
-  
+
   A[4] = -J_A[1] -    J_A[3];
   A[5] =  J_A[1] -  h*J_A[4];
   A[6] =  J_A[3] -  h*J_A[4];
@@ -2798,7 +2798,7 @@ inline bool h_fcn_3p(double &obj, Vector3D g_obj[4], Matrix3D h_obj[10],
   h_obj[4][1][1] =  A[1] -  h*A[9];
   h_obj[5][1][1] =  A[5] -  h*A[9];
   h_obj[6][1][1] =         th*A[9];
-  
+
   h_obj[7][1][1] =  A[6] -  h*A[10];
   h_obj[8][1][1] =         th*A[10];
 
@@ -2821,7 +2821,7 @@ inline bool h_fcn_3p(double &obj, Vector3D g_obj[4], Matrix3D h_obj[10],
   A[1] =  J_B[0] -  h*J_B[2];
   A[2] =  J_B[1] -  h*J_B[2];
   A[3] =           th*J_B[2];
-  
+
   A[4] = -J_B[3] -    J_B[4];
   A[5] =  J_B[3] -  h*J_B[5];
   A[6] =  J_B[4] -  h*J_B[5];
@@ -2876,7 +2876,7 @@ inline bool h_fcn_3p(double &obj, Vector3D g_obj[4], Matrix3D h_obj[10],
   A[1] =  J_A[0] -  h*J_A[2];
   A[2] =  J_A[1] -  h*J_A[2];
   A[3] =           th*J_A[2];
-  
+
   A[4] = -J_A[1] -    J_A[3];
   A[5] =  J_A[1] -  h*J_A[4];
   A[6] =  J_A[3] -  h*J_A[4];
@@ -2895,7 +2895,7 @@ inline bool h_fcn_3p(double &obj, Vector3D g_obj[4], Matrix3D h_obj[10],
   h_obj[4][2][2] =  A[1] -  h*A[9];
   h_obj[5][2][2] =  A[5] -  h*A[9];
   h_obj[6][2][2] =         th*A[9];
-  
+
   h_obj[7][2][2] =  A[6] -  h*A[10];
   h_obj[8][2][2] =         th*A[10];
 
@@ -2955,7 +2955,7 @@ inline bool h_fcn_3p(double &obj, Vector3D g_obj[4], Matrix3D h_obj[10],
 }
 
 
-/********************************************************************* 
+/*********************************************************************
  * Reference tetrahedral elements to corners of an ideal wedge element.
  * Vertices should be ordered such that the first three vertices form
  * the ideally-equaliteral face of the tetrahedron (the end of the
@@ -2977,11 +2977,11 @@ inline bool m_fcn_3w(double &obj, const Vector3D x[4],
   matr[0] = x[1][0] - x[0][0];
   matr[1] = isqrt3 * (2 * x[2][0] - x[1][0] - x[0][0]);
   matr[2] = x[3][0] - x[0][0];
-  
+
   matr[3] = x[1][1] - x[0][1];
   matr[4] = isqrt3 * (2 * x[2][1] - x[1][1] - x[0][1]);
   matr[5] = x[3][1] - x[0][1];
-  
+
   matr[6] = x[1][2] - x[0][2];
   matr[7] = isqrt3 * (2 * x[2][2] - x[1][2] - x[0][2]);
   matr[8] = x[3][2] - x[0][2];
@@ -3015,11 +3015,11 @@ inline bool g_fcn_3w(double &obj, Vector3D g_obj[4], const Vector3D x[4],
   matr[0] = x[1][0] - x[0][0];
   matr[1] = isqrt3 * (2 * x[2][0] - x[1][0] - x[0][0]);
   matr[2] = x[3][0] - x[0][0];
-  
+
   matr[3] = x[1][1] - x[0][1];
   matr[4] = isqrt3 * (2 * x[2][1] - x[1][1] - x[0][1]);
   matr[5] = x[3][1] - x[0][1];
-  
+
   matr[6] = x[1][2] - x[0][2];
   matr[7] = isqrt3 * (2 * x[2][2] - x[1][2] - x[0][2]);
   matr[8] = x[3][2] - x[0][2];
@@ -3079,7 +3079,7 @@ inline bool g_fcn_3w(double &obj, Vector3D g_obj[4], const Vector3D x[4],
 }
 
 
-inline bool h_fcn_3w(double &obj, Vector3D g_obj[4], Matrix3D h_obj[10], 
+inline bool h_fcn_3w(double &obj, Vector3D g_obj[4], Matrix3D h_obj[10],
 		     const Vector3D x[4],
 		     const double a, const Exponent& b, const Exponent& c)
 {
@@ -3092,11 +3092,11 @@ inline bool h_fcn_3w(double &obj, Vector3D g_obj[4], Matrix3D h_obj[10],
   matr[0] = x[1][0] - x[0][0];
   matr[1] = isqrt3 * (2 * x[2][0] - x[1][0] - x[0][0]);
   matr[2] = x[3][0] - x[0][0];
-  
+
   matr[3] = x[1][1] - x[0][1];
   matr[4] = isqrt3 * (2 * x[2][1] - x[1][1] - x[0][1]);
   matr[5] = x[3][1] - x[0][1];
-  
+
   matr[6] = x[1][2] - x[0][2];
   matr[7] = isqrt3 * (2 * x[2][2] - x[1][2] - x[0][2]);
   matr[8] = x[3][2] - x[0][2];
@@ -3116,7 +3116,7 @@ inline bool h_fcn_3w(double &obj, Vector3D g_obj[4], Matrix3D h_obj[10],
   dg[8] = matr[0]*matr[4] - matr[1]*matr[3];
 
   /* Calculate norm(M). */
-  f = matr[0]*matr[0] + matr[1]*matr[1] + matr[2]*matr[2] + 
+  f = matr[0]*matr[0] + matr[1]*matr[1] + matr[2]*matr[2] +
       matr[3]*matr[3] + matr[4]*matr[4] + matr[5]*matr[5] +
       matr[6]*matr[6] + matr[7]*matr[7] + matr[8]*matr[8];
 
@@ -3206,7 +3206,7 @@ inline bool h_fcn_3w(double &obj, Vector3D g_obj[4], Matrix3D h_obj[10],
   A[1]  =  J_A[0] - isqrt3*J_A[1];
 //A[2]  =          tisqrt3*J_A[1];
 //A[3]  =                           J_A[2];
-  
+
   A[4]  = -J_A[1] - isqrt3*J_A[3] - J_A[4];
   A[5]  =  J_A[1] - isqrt3*J_A[3];
   A[6]  =          tisqrt3*J_A[3];
@@ -3225,7 +3225,7 @@ inline bool h_fcn_3w(double &obj, Vector3D g_obj[4], Matrix3D h_obj[10],
   h_obj[4][0][0] =  A[1] - isqrt3*A[5];
   h_obj[5][0][0] =        tisqrt3*A[5];
   h_obj[6][0][0] =                       A[9];
-  
+
   h_obj[7][0][0] =        tisqrt3*A[6];
   h_obj[8][0][0] =                       A[10];
 
@@ -3248,7 +3248,7 @@ inline bool h_fcn_3w(double &obj, Vector3D g_obj[4], Matrix3D h_obj[10],
   A[1]  =  J_B[0] - isqrt3*J_B[1];
   A[2]  =          tisqrt3*J_B[1];
   A[3]  =                           J_B[2];
-  
+
   A[4]  = -J_B[3] - isqrt3*J_B[4] - J_B[5];
   A[5]  =  J_B[3] - isqrt3*J_B[4];
   A[6]  =          tisqrt3*J_B[4];
@@ -3296,7 +3296,7 @@ inline bool h_fcn_3w(double &obj, Vector3D g_obj[4], Matrix3D h_obj[10],
   A[1]  =  J_C[0] - isqrt3*J_C[1];
   A[2]  =          tisqrt3*J_C[1];
   A[3]  =                           J_C[2];
-  
+
   A[4]  = -J_C[3] - isqrt3*J_C[4] - J_C[5];
   A[5]  =  J_C[3] - isqrt3*J_C[4];
   A[6]  =          tisqrt3*J_C[4];
@@ -3360,7 +3360,7 @@ inline bool h_fcn_3w(double &obj, Vector3D g_obj[4], Matrix3D h_obj[10],
   A[1]  =  J_A[0] - isqrt3*J_A[1];
 //A[2]  =          tisqrt3*J_A[1];
 //A[3]  =                           J_A[2];
-  
+
   A[4]  = -J_A[1] - isqrt3*J_A[3] - J_A[4];
   A[5]  =  J_A[1] - isqrt3*J_A[3];
   A[6]  =          tisqrt3*J_A[3];
@@ -3379,7 +3379,7 @@ inline bool h_fcn_3w(double &obj, Vector3D g_obj[4], Matrix3D h_obj[10],
   h_obj[4][1][1] =   A[1] - isqrt3*A[5];
   h_obj[5][1][1] =         tisqrt3*A[5];
   h_obj[6][1][1] =                        A[9];
-  
+
   h_obj[7][1][1] =         tisqrt3*A[6];
   h_obj[8][1][1] =                        A[10];
 
@@ -3402,7 +3402,7 @@ inline bool h_fcn_3w(double &obj, Vector3D g_obj[4], Matrix3D h_obj[10],
   A[1]  =  J_B[0] - isqrt3*J_B[1];
   A[2]  =          tisqrt3*J_B[1];
   A[3]  =                           J_B[2];
-  
+
   A[4]  = -J_B[3] - isqrt3*J_B[4] - J_B[5];
   A[5]  =  J_B[3] - isqrt3*J_B[4];
   A[6]  =          tisqrt3*J_B[4];
@@ -3457,7 +3457,7 @@ inline bool h_fcn_3w(double &obj, Vector3D g_obj[4], Matrix3D h_obj[10],
   A[1]  =  J_A[0] - isqrt3*J_A[1];
 //A[2]  =          tisqrt3*J_A[1];
 //A[3]  =                           J_A[2];
-  
+
   A[4]  = -J_A[1] - isqrt3*J_A[3] - J_A[4];
   A[5]  =  J_A[1] - isqrt3*J_A[3];
   A[6]  =          tisqrt3*J_A[3];
@@ -3476,7 +3476,7 @@ inline bool h_fcn_3w(double &obj, Vector3D g_obj[4], Matrix3D h_obj[10],
   h_obj[4][2][2] =  A[1] - isqrt3*A[5];
   h_obj[5][2][2] =        tisqrt3*A[5];
   h_obj[6][2][2] =                       A[9];
-  
+
   h_obj[7][2][2] =        tisqrt3*A[6];
   h_obj[8][2][2] =                       A[10];
 
@@ -3487,7 +3487,7 @@ inline bool h_fcn_3w(double &obj, Vector3D g_obj[4], Matrix3D h_obj[10],
   h_obj[4].fill_lower_triangle();
   h_obj[7].fill_lower_triangle();
   h_obj[9].fill_lower_triangle();
-  
+
   return true;
 }
 

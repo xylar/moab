@@ -22,11 +22,11 @@ int main(int argc, char* argv[])
 {
   MPI_Init(&argc, &argv);
   int result = 0;
-  
+
   result += RUN_TEST(test_read_parallel_ucd_trivial);
   result += RUN_TEST(test_read_parallel_ucd_trivial_spectral);
   result += RUN_TEST(test_multiple_loads_of_same_file);
-  
+
   MPI_Finalize();
   return result;
 }
@@ -36,7 +36,7 @@ void test_read_parallel_ucd_trivial()
   partition_method = std::string(";PARTITION_METHOD=TRIVIAL;PARALLEL_RESOLVE_SHARED_ENTS");
   test_read_parallel(3458, true);
 }
-  
+
 void test_read_parallel_ucd_trivial_spectral()
 {
   partition_method = std::string(";PARTITION_METHOD=TRIVIAL;SPECTRAL_MESH;PARALLEL_RESOLVE_SHARED_ENTS");

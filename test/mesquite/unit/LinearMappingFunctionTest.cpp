@@ -1,8 +1,8 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
-    Copyright 2006 Lawrence Livermore National Laboratory.  Under 
-    the terms of Contract B545069 with the University of Wisconsin -- 
+    Copyright 2006 Lawrence Livermore National Laboratory.  Under
+    the terms of Contract B545069 with the University of Wisconsin --
     Madison, Lawrence Livermore National Laboratory retains certain
     rights in this software.
 
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2006) kraftche@cae.wisc.edu    
+    (2006) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file LinearMappingFunctionTest.cpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -121,65 +121,65 @@ class LinearMappingFunctionTest : public CppUnit::TestFixture
     CPPUNIT_TEST(test_linear_tet_ideal);
     CPPUNIT_TEST(test_linear_tri_ideal);
     CPPUNIT_TEST(test_linear_prism_ideal);
-   
+
     CPPUNIT_TEST_SUITE_END();
-  
+
     LinearHexahedron hex;
     LinearQuadrilateral quad;
     LinearTetrahedron tet;
     LinearTriangle tri;
     LinearPrism prism;
     LinearPyramid pyr;
-    
+
     static void hex_coeff( double xi[3], double coeff[8] );
     static void tet_coeff( double xi[3], double coeff[4] );
     static void quad_coeff( double xi[2], double coeff[4] );
     static void tri_coeff( double xi[2], double coeff[3] );
     static void prism_coeff( double xi[3], double coeff[6] );
     static void pyr_coeff( double xi[3], double coeff[5] );
-    
+
     static void hex_deriv( double xi[3], double coeff_deriv[24] );
     static void tet_deriv( double xi[3], double coeff_deriv[12] );
     static void quad_deriv( double xi[2], double coeff_deriv[8] );
     static void tri_deriv( double xi[2], double coeff_deriv[6] );
     static void prism_deriv( double xi[3], double coeff_deriv[18] );
     static void pyr_deriv( double xi[3], double coeff_deriv[15] );
-    
+
     typedef void (*map_func)(double*, double* );
-    
-    void do_coeff_test( MappingFunction& mf, 
+
+    void do_coeff_test( MappingFunction& mf,
                         unsigned subdim,
                         map_func mf2,
                         unsigned count,
                         double* xi );
-    void do_deriv_test( MappingFunction2D& mf, 
+    void do_deriv_test( MappingFunction2D& mf,
                         unsigned subdim,
                         map_func mf2,
                         unsigned count,
                         double* xi );
-    void do_deriv_test( MappingFunction3D& mf, 
+    void do_deriv_test( MappingFunction3D& mf,
                         unsigned subdim,
                         map_func mf2,
                         unsigned count,
                         double* xi );
     void do_ideal_test( MappingFunction2D& mf );
     void do_ideal_test( MappingFunction3D& mf );
-                 
-                 
+
+
     void test_coeff_fail( MappingFunction& mf, unsigned subdim );
     void test_deriv_fail( MappingFunction2D& mf, unsigned subdim );
     void test_deriv_fail( MappingFunction3D& mf, unsigned subdim );
-    
-    
+
+
     void xi_at_corners( EntityTopology type, double* xi, const int* corners );
     void xi_at_edges( EntityTopology type, double* xi, const int* corners );
     void xi_at_faces( EntityTopology type, double* xi, const int* corners );
-    
+
   public:
-  
+
     void setUp();
     void tearDown();
-    
+
 
     void test_linear_hex_coeff_corners();
     void test_linear_hex_coeff_edges();
@@ -277,13 +277,13 @@ const int QuadCorners[4][2] = { {  0,  0 },
                                 {  0,  1 } };
 
 
-const int TetCorners[12] = { 0, 0, 0, 
-                             1, 0, 0, 
+const int TetCorners[12] = { 0, 0, 0,
+                             1, 0, 0,
                              0, 1, 0,
                              0, 0, 1 };
-  
+
 const int TriCorners[6] = { 0, 0,
-                            1, 0, 
+                            1, 0,
                             0, 1 };
 
 const int PrismCorners[18] = {  0, 0, 0,
@@ -292,7 +292,7 @@ const int PrismCorners[18] = {  0, 0, 0,
                                 1, 0, 0,
                                 1, 1, 0,
                                 1, 0, 1 };
-                                
+
 /*******************************************************************************
  * Functions to calculate element xi at different locations, given the xi
  * at the corners.
@@ -349,12 +349,12 @@ void LinearMappingFunctionTest::xi_at_faces( EntityTopology type, double* xi, co
  *******************************************************************************/
 
 void LinearMappingFunctionTest::test_linear_hex_coeff_corners()
-{ 
+{
   double xi[24];
   xi_at_corners( HEXAHEDRON, xi, &HexCorners[0][0] );
   do_coeff_test( hex, 0, hex_coeff, 8, xi );
 }
-  
+
 void LinearMappingFunctionTest::test_linear_hex_coeff_edges()
 {
   double xi[36];
@@ -376,7 +376,7 @@ void LinearMappingFunctionTest::test_linear_hex_coeff_center()
 }
 
 void LinearMappingFunctionTest::test_linear_quad_coeff_corners()
-{ 
+{
   double xi[8];
   xi_at_corners( QUADRILATERAL, xi, &QuadCorners[0][0] );
   do_coeff_test( quad, 0, quad_coeff, 4, xi );
@@ -525,12 +525,12 @@ void LinearMappingFunctionTest::test_linear_pyr_coeff_center()
  *******************************************************************************/
 
 void LinearMappingFunctionTest::test_linear_hex_deriv_corners()
-{ 
+{
   double xi[24];
   xi_at_corners( HEXAHEDRON, xi, &HexCorners[0][0] );
   do_deriv_test( hex, 0, hex_deriv, 8, xi );
 }
-  
+
 void LinearMappingFunctionTest::test_linear_hex_deriv_edges()
 {
   double xi[36];
@@ -552,7 +552,7 @@ void LinearMappingFunctionTest::test_linear_hex_deriv_center()
 }
 
 void LinearMappingFunctionTest::test_linear_quad_deriv_corners()
-{ 
+{
   double xi[8];
   xi_at_corners( QUADRILATERAL, xi, &QuadCorners[0][0] );
   do_deriv_test( quad, 0, quad_deriv, 4, xi );
@@ -602,7 +602,7 @@ void LinearMappingFunctionTest::test_linear_tet_deriv_center()
   double xi[3] = { 0.25, 0.25, 0.25 };
   do_deriv_test( tet, 3, tet_deriv, 1, xi );
 }
-  
+
 void LinearMappingFunctionTest::test_linear_tri_deriv_corners()
 {
   double xi[12];
@@ -627,7 +627,7 @@ void LinearMappingFunctionTest::test_linear_tri_deriv_center()
   double xi[2] = { 1./3, 1./3 };
   do_deriv_test( tri, 2, tri_deriv, 1, xi );
 }
-   
+
 void LinearMappingFunctionTest::test_linear_prism_deriv_corners()
 {
   double xi[18];
@@ -654,7 +654,7 @@ void LinearMappingFunctionTest::test_linear_prism_deriv_center()
   double xi[3] = { 0.5, 1./3, 1./3 };
   do_deriv_test( prism, 3, prism_deriv, 1, xi );
 }
-  
+
 
 
 void LinearMappingFunctionTest::test_linear_pyr_deriv_corners()
@@ -700,7 +700,7 @@ void LinearMappingFunctionTest::test_linear_pyr_deriv_center()
 /*******************************************************************************
  *        Mapping function implementations to compare with
  *******************************************************************************/
-    
+
 void LinearMappingFunctionTest::hex_coeff( double xi[3], double coeff[8] )
 {
   coeff[0] = (1-xi[0]) * (1-xi[1]) * (1-xi[2]);
@@ -797,7 +797,7 @@ void LinearMappingFunctionTest::hex_deriv( double xi[3], double coeff[24] )
 void LinearMappingFunctionTest::tet_deriv( double*, double coeff[12] )
 {
   static const double derivs[] = {-1,-1,-1,
-                                   1, 0, 0, 
+                                   1, 0, 0,
                                    0, 1, 0,
                                    0, 0, 1 };
   memcpy( coeff, derivs, sizeof(derivs) );
@@ -807,13 +807,13 @@ void LinearMappingFunctionTest::quad_deriv( double xi[2], double coeff[8] )
 {
   coeff[2*0+0] = xi[1] - 1;
   coeff[2*0+1] = xi[0] - 1;
-  
+
   coeff[2*1+0] = 1 - xi[1];
   coeff[2*1+1] = -xi[0];
-  
+
   coeff[2*2+0] = xi[1];
   coeff[2*2+1] = xi[0];
-  
+
   coeff[2*3+0] = -xi[1];
   coeff[2*3+1] = 1 - xi[0];
 }
@@ -821,7 +821,7 @@ void LinearMappingFunctionTest::quad_deriv( double xi[2], double coeff[8] )
 void LinearMappingFunctionTest::tri_deriv( double*, double coeff[6] )
 {
   static const double derivs[] = {-1,-1,
-                                   1, 0, 
+                                   1, 0,
                                    0, 1 };
   memcpy( coeff, derivs, sizeof(derivs) );
 }
@@ -831,23 +831,23 @@ void LinearMappingFunctionTest::prism_deriv( double xi[3], double coeff[18] )
   coeff[ 0] = xi[1] + xi[2] - 1.0;;
   coeff[ 1] = xi[0] - 1.0;
   coeff[ 2] = xi[0] - 1.0;
-  
+
   coeff[ 3] = -xi[1];
   coeff[ 4] = 1.0 - xi[0];
   coeff[ 5] = 0.0;
-  
+
   coeff[ 6] = -xi[2];
   coeff[ 7] = 0.0;
   coeff[ 8] = 1.0 - xi[0];
-  
+
   coeff[ 9] =  1.0 - xi[1] - xi[2];
   coeff[10] = -xi[0];
   coeff[11] = -xi[0];
-  
+
   coeff[12] =  xi[1];
   coeff[13] =  xi[0];
   coeff[14] =  0.0;
-  
+
   coeff[15] =  xi[2];
   coeff[16] =  0.0;
   coeff[17] =  xi[0];
@@ -858,19 +858,19 @@ void LinearMappingFunctionTest::pyr_deriv( double xi[3], double coeff[15] )
   coeff[3*0+0] = -(1-xi[1])*(1-xi[2]);
   coeff[3*0+1] = -(1-xi[0])*(1-xi[2]);
   coeff[3*0+2] = -(1-xi[0])*(1-xi[1]);
-  
+
   coeff[3*1+0] =  (1-xi[1])*(1-xi[2]);
   coeff[3*1+1] =    -xi[0] *(1-xi[2]);
   coeff[3*1+2] =    -xi[0] *(1-xi[1]);
-  
+
   coeff[3*2+0] =     xi[1] *(1-xi[2]);
   coeff[3*2+1] =     xi[0] *(1-xi[2]);
   coeff[3*2+2] =    -xi[0] *   xi[1] ;
-  
+
   coeff[3*3+0] =    -xi[1] *(1-xi[2]);
   coeff[3*3+1] =  (1-xi[0])*(1-xi[2]);
   coeff[3*3+2] =    -xi[1] *(1-xi[0]);
-  
+
   coeff[3*4+0] = 0.0;
   coeff[3*4+1] = 0.0;
   coeff[3*4+2] = 1.0;
@@ -899,8 +899,8 @@ static string dtostr( double i )
 /*******************************************************************************
  *         Actual test imlplementation (common code for many tests)
  *******************************************************************************/
-    
-void LinearMappingFunctionTest::do_coeff_test( MappingFunction& mf, 
+
+void LinearMappingFunctionTest::do_coeff_test( MappingFunction& mf,
                                                unsigned subdim,
                                                map_func mf2,
                                                unsigned count,
@@ -916,11 +916,11 @@ void LinearMappingFunctionTest::do_coeff_test( MappingFunction& mf,
   mf.coefficients( Sample(0, 1), tmp_set, coeff, indices, num_coeff, err );
   CPPUNIT_ASSERT(err);
   err.clear();
-  
+
     // get number of vertices in element
   const unsigned n = TopologyInfo::corners( mf.element_topology() );
   const unsigned d = TopologyInfo::dimension( mf.element_topology() );
-  
+
     // compare coefficients at each location
   vector<double> comp(n);
   for (unsigned i = 0; i < count; ++i)
@@ -928,7 +928,7 @@ void LinearMappingFunctionTest::do_coeff_test( MappingFunction& mf,
     num_coeff = 101;
     mf.coefficients( Sample(subdim, i), NodeSet(), coeff, indices, num_coeff, err );
     CPPUNIT_ASSERT(!err);
-    
+
     mf2( xi, &comp[0] );
     string xi_str;
     for (unsigned j = 0; j < d; ++j) {
@@ -937,7 +937,7 @@ void LinearMappingFunctionTest::do_coeff_test( MappingFunction& mf,
     }
     xi_str += ")";
     xi += d;
-    
+
     for (unsigned j = 0; j < n; ++j)
     {
       double mf_val = 0.0;
@@ -957,7 +957,7 @@ void LinearMappingFunctionTest::do_coeff_test( MappingFunction& mf,
 }
 
 
-void LinearMappingFunctionTest::do_deriv_test( MappingFunction2D& mf, 
+void LinearMappingFunctionTest::do_deriv_test( MappingFunction2D& mf,
                                                unsigned subdim,
                                                map_func mf2,
                                                unsigned count,
@@ -972,10 +972,10 @@ void LinearMappingFunctionTest::do_deriv_test( MappingFunction2D& mf,
   mf.derivatives( Sample(subdim, 0), tmp_set, verts, derivs, num_vtx, err );
   CPPUNIT_ASSERT(err);
   err.clear();
-  
+
     // get number of vertices in element
   const unsigned n = TopologyInfo::corners( mf.element_topology() );
-  
+
     // compare coefficients at each location
   vector<double> comp(2*n);
   for (unsigned i = 0; i < count; ++i)
@@ -985,7 +985,7 @@ void LinearMappingFunctionTest::do_deriv_test( MappingFunction2D& mf,
     CPPUNIT_ASSERT(!err);
     CPPUNIT_ASSERT( num_vtx > 0 );
     CPPUNIT_ASSERT( num_vtx <= n );
-    
+
     mf2( xi, &comp[0] );
     string xi_str;
     for (unsigned j = 0; j < 2; ++j) {
@@ -994,7 +994,7 @@ void LinearMappingFunctionTest::do_deriv_test( MappingFunction2D& mf,
     }
     xi_str += ")";
     xi += 2;
-    
+
     for (unsigned j = 0; j < num_vtx; ++j)
     {
       bool all_zero = true;
@@ -1016,7 +1016,7 @@ void LinearMappingFunctionTest::do_deriv_test( MappingFunction2D& mf,
         // vertex list at all, as the Jacobian will not depend on that vertex.
       CPPUNIT_ASSERT( !all_zero );
     }
-    
+
       // If any vertex is not in the list, then its values must be zero.
     sort( verts, verts + num_vtx );
     for (unsigned j = 0; j < num_vtx; ++j) {
@@ -1035,7 +1035,7 @@ void LinearMappingFunctionTest::do_deriv_test( MappingFunction2D& mf,
   }
 }
 
-void LinearMappingFunctionTest::do_deriv_test( MappingFunction3D& mf, 
+void LinearMappingFunctionTest::do_deriv_test( MappingFunction3D& mf,
                                                unsigned subdim,
                                                map_func mf2,
                                                unsigned count,
@@ -1050,10 +1050,10 @@ void LinearMappingFunctionTest::do_deriv_test( MappingFunction3D& mf,
   mf.derivatives( Sample(subdim, 0), tmp_set, verts, derivs, num_vtx, err );
   CPPUNIT_ASSERT(err);
   err.clear();
-  
+
     // get number of vertices in element
   const unsigned n = TopologyInfo::corners( mf.element_topology() );
-  
+
     // compare coefficients at each location
   vector<double> comp(3*n);
   for (unsigned i = 0; i < count; ++i)
@@ -1063,7 +1063,7 @@ void LinearMappingFunctionTest::do_deriv_test( MappingFunction3D& mf,
     CPPUNIT_ASSERT(!err);
     CPPUNIT_ASSERT( num_vtx > 0 );
     CPPUNIT_ASSERT( num_vtx <= n );
-    
+
     mf2( xi, &comp[0] );
     string xi_str;
     for (unsigned j = 0; j < 3; ++j) {
@@ -1072,7 +1072,7 @@ void LinearMappingFunctionTest::do_deriv_test( MappingFunction3D& mf,
     }
     xi_str += ")";
     xi += 3;
-    
+
     for (unsigned j = 0; j < num_vtx; ++j)
     {
       bool all_zero = true;
@@ -1094,7 +1094,7 @@ void LinearMappingFunctionTest::do_deriv_test( MappingFunction3D& mf,
         // vertex list at all, as the Jacobian will not depend on that vertex.
       CPPUNIT_ASSERT( !all_zero );
     }
-    
+
       // If any vertex is not in the list, then its values must be zero.
     sort( verts, verts + num_vtx );
     for (unsigned j = 0; j < num_vtx; ++j) {
@@ -1113,14 +1113,14 @@ void LinearMappingFunctionTest::do_deriv_test( MappingFunction3D& mf,
   }
 }
 
- 
+
 void LinearMappingFunctionTest::do_ideal_test( MappingFunction2D& mf )
 {
   MsqError err;
   MsqMatrix<3,2> W_prime;
   mf.ideal( Sample(2,0), W_prime, err );
   ASSERT_NO_ERROR(err);
-  
+
     // for this test that everything is in the xy-plane
   CPPUNIT_ASSERT_DOUBLES_EQUAL( 0.0, W_prime(2,0), 1e-12 );
   CPPUNIT_ASSERT_DOUBLES_EQUAL( 0.0, W_prime(2,1), 1e-12 );
@@ -1129,17 +1129,17 @@ void LinearMappingFunctionTest::do_ideal_test( MappingFunction2D& mf )
 
   const Vector3D* verts = unit_edge_element( mf.element_topology() );
   CPPUNIT_ASSERT(verts);
-  
+
   JacobianCalculator jc;
   jc.get_Jacobian_2D( &mf, NodeSet(), Sample(2,0), verts, TopologyInfo::corners(mf.element_topology()), W_prime, err );
   ASSERT_NO_ERROR(err);
-  
+
     // for this test that everything is in the xy-plane
   CPPUNIT_ASSERT_DOUBLES_EQUAL( 0.0, W_prime(2,0), 1e-12 );
   CPPUNIT_ASSERT_DOUBLES_EQUAL( 0.0, W_prime(2,1), 1e-12 );
   MsqMatrix<2,2> W_exp( W_prime.data() );
   W_exp /= sqrt(det(W_exp));
-  
+
     // Matrices should be a rotation of each other.
     // First, calculate tentative rotation matrix
   MsqMatrix<2,2> R = inverse(W_exp) * W;
@@ -1158,13 +1158,13 @@ void LinearMappingFunctionTest::do_ideal_test( MappingFunction3D& mf )
 
   const Vector3D* verts = unit_edge_element( mf.element_topology() );
   CPPUNIT_ASSERT(verts);
-  
+
   JacobianCalculator jc;
   MsqMatrix<3,3> W_exp;
   jc.get_Jacobian_3D( &mf, NodeSet(), Sample(3,0), verts, TopologyInfo::corners(mf.element_topology()), W_exp, err );
   ASSERT_NO_ERROR(err);
   W_exp /= MBMesquite::cbrt(det(W_exp));
-  
+
     // Matrices should be a rotation of each other.
     // First, calculate tentative rotation matrix
   MsqMatrix<3,3> R = W * inverse(W_exp);
@@ -1173,7 +1173,7 @@ void LinearMappingFunctionTest::do_ideal_test( MappingFunction3D& mf )
   ASSERT_MATRICES_EQUAL( I, transpose(R) * R, 1e-6 ); // orthogonal
 }
 
-                 
+
 void LinearMappingFunctionTest::test_coeff_fail( MappingFunction& mf, unsigned subdim )
 {
     // make sure it fails if called
@@ -1183,7 +1183,7 @@ void LinearMappingFunctionTest::test_coeff_fail( MappingFunction& mf, unsigned s
   mf.coefficients( Sample(subdim, 0), NodeSet(), coeff, indices, num_coeff, err );
   CPPUNIT_ASSERT(err);
   err.clear();
-}  
+}
 
 void LinearMappingFunctionTest::test_deriv_fail( MappingFunction2D& mf, unsigned subdim )
 {

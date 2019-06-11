@@ -1,5 +1,5 @@
 /** \file   SharedSetData.cpp
- *  \author Jason Kraftcheck 
+ *  \author Jason Kraftcheck
  *  \date   2011-06-23
  */
 
@@ -42,7 +42,7 @@ SharedSetData::~SharedSetData()
   mb.tag_delete( sharedSetTag );
 }
 
-ErrorCode 
+ErrorCode
 SharedSetData::get_owning_procs( std::vector<unsigned>& ranks_out ) const
 {
   ranks_out.clear();
@@ -52,7 +52,7 @@ SharedSetData::get_owning_procs( std::vector<unsigned>& ranks_out ) const
   return MB_SUCCESS;
 }
 
-ErrorCode 
+ErrorCode
 SharedSetData::get_sharing_procs( EntityHandle entity_set,
                                   std::vector<unsigned>& ranks_out ) const
 {
@@ -60,7 +60,7 @@ SharedSetData::get_sharing_procs( EntityHandle entity_set,
   SharedSetTagData data;
   rval = mb.tag_get_data( sharedSetTag, &entity_set, 1, &data );
   if (MB_SUCCESS != rval) return rval;
-  
+
   ranks_out.clear();
   if (data.sharingProcs)
     ranks_out = *data.sharingProcs;
@@ -81,12 +81,12 @@ SharedSetData::get_shared_sets( Range& sets_out ) const
 
 
 ErrorCode
-SharedSetData::get_shared_sets( unsigned rank, 
+SharedSetData::get_shared_sets( unsigned rank,
                                 Range& sets_out ) const
 {
   sets_out.clear();
 //  if (rank == myRank) {
-//    return mb.get_entities_by_type_and_tag( 0, MBENTITYSET, 
+//    return mb.get_entities_by_type_and_tag( 0, MBENTITYSET,
 //  }
 //  else {
     RHMap::const_iterator i = handleMap.find( rank );
@@ -98,24 +98,24 @@ SharedSetData::get_shared_sets( unsigned rank,
 
 ErrorCode
 SharedSetData::get_owner( EntityHandle entity_set,
-                          unsigned& rank_out, 
+                          unsigned& rank_out,
                           EntityHandle& remote_handle_out ) const
 {
   ErrorCode rval;
   SharedSetTagData data;
   rval = mb.tag_get_data( sharedSetTag, &entity_set, 1, &data );
   if (MB_SUCCESS != rval) return rval;
-  
+
   if (!data.ownerHandle) { // not shared
     assert(!data.sharingProcs); // really not shared
     data.ownerHandle = entity_set;
   }
-  
+
   rank_out = data.ownerRank;
   remote_handle_out = data.ownerHandle;
   return MB_SUCCESS;
 }
-  
+
 ErrorCode
 SharedSetData::get_local_handle( unsigned owner_rank,
                                  EntityHandle remote_handle,
@@ -127,13 +127,13 @@ SharedSetData::get_local_handle( unsigned owner_rank,
     local_handle = ~(EntityHandle)0;
     return MB_FAILURE;
   }
-  
+
   if (!i->second.find( remote_handle, local_handle )) {
     assert(false);
     local_handle = ~(EntityHandle)0;
     return MB_FAILURE;
   }
-  
+
   return MB_SUCCESS;
 }
 
@@ -144,25 +144,25 @@ SharedSetData::set_owner( EntityHandle set, unsigned owner_rank, EntityHandle ow
   SharedSetTagData data;
   rval = mb.tag_get_data( sharedSetTag, &set, 1, &data );
   if (MB_SUCCESS != rval) return rval;
-  
+
   if (data.ownerHandle) {
     RHMap::iterator i = handleMap.find( data.ownerRank );
     if (i != handleMap.end()) {
       i->second.erase( data.ownerHandle, 1 );
     }
   }
-  
+
   data.ownerRank = owner_rank;
   data.ownerHandle = owner_handle;
   rval = mb.tag_set_data( sharedSetTag, &set, 1, &data );
   if (MB_SUCCESS != rval) return rval;
-  
+
   if (!handleMap[owner_rank].insert( owner_handle, set, 1 ).second) {
     assert(false);
     return MB_FAILURE;
   }
-  
-  return MB_SUCCESS;  
+
+  return MB_SUCCESS;
 }
 
 ErrorCode
@@ -171,20 +171,20 @@ SharedSetData::set_sharing_procs( EntityHandle entity_set,
 {
   std::sort( ranks.begin(), ranks.end() );
   RProcMap::iterator it = procListMap.insert( ranks ).first;
-  
+
   ErrorCode rval;
   SharedSetTagData data;
   rval = mb.tag_get_data( sharedSetTag, &entity_set, 1, &data );
   if (MB_SUCCESS != rval) return rval;
-  
+
   data.sharingProcs = &*it;
   rval = mb.tag_set_data( sharedSetTag, &entity_set, 1, &data );
   if (MB_SUCCESS != rval) return rval;
-  
+
   return MB_SUCCESS;
 }
 
-void 
+void
 SharedSetData::append_local_handles( const ProcHandleMapType& map,
                                      Range& range )
 {

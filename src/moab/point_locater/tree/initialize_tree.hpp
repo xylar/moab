@@ -13,7 +13,7 @@ ErrorCode initialize_tree(){
   else local_ents = range;
 
   if (MB_SUCCESS != result || local_ents.empty()) {
-    std::cout << "Problems getting source entities" 
+    std::cout << "Problems getting source entities"
 	      << std::endl;
     return result;
   }
@@ -26,7 +26,7 @@ ErrorCode initialize_tree(){
       std::cout << "Problems building tree";
       if (num_iterations != i) {
      	settings.maxEntPerLeaf *= 2;
-        std::cout << "; increasing elements/leaf to " 
+        std::cout << "; increasing elements/leaf to "
                   << settings.maxEntPerLeaf << std::endl;;
       }
       else {
@@ -37,20 +37,20 @@ ErrorCode initialize_tree(){
     else
       break; // get out of tree building
   }
-  
+
   boxes.resize(6*pc.proc_config().proc_size());
 
   unsigned int rank = (pc ? pc.proc_config().proc_rank() : 0);
-  result = tree.get_tree_box( local_root, 
-		  		 &boxes[6*rank], 
+  result = tree.get_tree_box( local_root,
+		  		 &boxes[6*rank],
 				 &boxes[6*rank+3]);
   if (MB_SUCCESS != result) return result;
-  
+
     // now communicate to get all boxes
     // use "in place" option
   if (pc) {
     int mpi_err = MPI_Allgather(MPI_IN_PLACE, 0, MPI_DATATYPE_NULL,
-                                &boxes[0], 6, MPI_DOUBLE, 
+                                &boxes[0], 6, MPI_DOUBLE,
                                 pc.proc_config().proc_comm());
     if (MPI_SUCCESS != mpi_err) return MB_FAILURE;
   }
@@ -64,7 +64,7 @@ ErrorCode initialize_tree(){
             << min[0] << "," << min[1] << "," << min[2] << "), ("
             << max[0] << "," << max[1] << "," << max[2] << "), "
             << dep << std::endl;
-#endif  
+#endif
 
   return result;
 }

@@ -1,20 +1,20 @@
-/** 
+/**
  * \class moab::DataCoupler
  *
  * \brief This class couples data between meshes.
  *
  * The coupler interpolates solution data at a set of points.  Data being interpolated resides on a "source"
- * mesh, in a tag or in vertex coords.  Applications calling this coupler send in entities, and receive back 
- * data interpolated at those points.  Entities in the source mesh containing those points do not have to reside 
+ * mesh, in a tag or in vertex coords.  Applications calling this coupler send in entities, and receive back
+ * data interpolated at those points.  Entities in the source mesh containing those points do not have to reside
  * on the same processor.
  *
  * To use, an application should:
  * - instantiate this DataCoupler by calling the constructor collectively on all processors in the communicator
- * - call locate_points, which locates the points to be interpolated and (optionally) caches the results in 
+ * - call locate_points, which locates the points to be interpolated and (optionally) caches the results in
  *   this class and SpatialLocator
  * - call interpolate, which does the interpolation
  *
- * Multiple interpolations (of multiple tags, or element-average vs. true interpolation) can be done after 
+ * Multiple interpolations (of multiple tags, or element-average vs. true interpolation) can be done after
  * locating the points.
  *
  * SpatialLocator is used for the spatial location portion of this work.
@@ -103,14 +103,14 @@ public:
      * All entities/points or, if tuple_list is input, only those points
      * are interpolated from the source mesh.  Application should
      * allocate enough memory in interp_vals to hold interpolation results.
-     * 
+     *
      * If normalization is requested, technique used depends on the coupling
      * method.
      *
      * \param method Interpolation/normalization method
      * \param tag Tag on source mesh holding data to be interpolated
      * \param interp_vals Memory holding interpolated data; if NULL, data is written to same tag on target ents
-     * \param point_indices If non-NULL, a set of indices of points input to 
+     * \param point_indices If non-NULL, a set of indices of points input to
      *        locate_points at which to interpolate; if NULL, interpolates at all points
      *        input to locate_points
      * \param normalize If true, normalization is done according to method
@@ -125,14 +125,14 @@ public:
      * All entities/points or, if tuple_list is input, only those points
      * are interpolated from the source mesh.  Application should
      * allocate enough memory in interp_vals to hold interpolation results.
-     * 
+     *
      * If normalization is requested, technique used depends on the coupling
      * method.
      *
      * \param method Interpolation/normalization method
      * \param tag_name Tag name on source mesh holding data to be interpolated
      * \param interp_vals Memory holding interpolated data; if NULL, data is written to same tag on target ents
-     * \param point_indices If non-NULL, a set of indices of points input to 
+     * \param point_indices If non-NULL, a set of indices of points input to
      *        locate_points at which to interpolate; if NULL, interpolates at all points
      *        input to locate_points
      * \param normalize If true, normalization is done according to method
@@ -147,7 +147,7 @@ public:
      * All entities/points or, if tuple_list is input, only those points
      * are interpolated from the source mesh.  Application should
      * allocate enough memory in interp_vals to hold interpolation results.
-     * 
+     *
      * In this variant, multiple tags, possibly with multiple interpolation
      * methods, are specified.  Sum of values in points_per_method should be
      * the number of points in tl or, if NULL, targetPts.
@@ -160,7 +160,7 @@ public:
      * \param points_per_method Number of points for each method
      * \param num_methods Length of vectors in previous 3 arguments
      * \param interp_vals Memory holding interpolated data; if NULL, data is written to same tag on target ents
-     * \param point_indices If non-NULL, a set of indices of points input to 
+     * \param point_indices If non-NULL, a set of indices of points input to
      *        locate_points at which to interpolate; if NULL, interpolates at all points
      *        input to locate_points
      * \param normalize If true, normalization is done according to method
@@ -177,7 +177,7 @@ public:
      * All entities/points or, if tuple_list is input, only those points
      * are interpolated from the source mesh.  Application should
      * allocate enough memory in interp_vals to hold interpolation results.
-     * 
+     *
      * In this variant, multiple tags, possibly with multiple interpolation
      * methods, are specified.  Sum of values in points_per_method should be
      * the number of points in tl or, if NULL, targetPts.
@@ -190,7 +190,7 @@ public:
      * \param points_per_method Number of points for each method
      * \param num_methods Length of vectors in previous 3 arguments
      * \param interp_vals Memory holding interpolated data; if NULL, data is written to same tag on target ents
-     * \param point_indices If non-NULL, a set of indices of points input to 
+     * \param point_indices If non-NULL, a set of indices of points input to
      *        locate_points at which to interpolate; if NULL, interpolates at all points
      *        input to locate_points
      * \param normalize If true, normalization is done according to method

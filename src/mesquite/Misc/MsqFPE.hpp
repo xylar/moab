@@ -1,8 +1,8 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
-    Copyright 2005 Lawrence Livermore National Laboratory.  Under 
-    the terms of Contract B545069 with the University of Wisconsin -- 
+    Copyright 2005 Lawrence Livermore National Laboratory.  Under
+    the terms of Contract B545069 with the University of Wisconsin --
     Madison, Lawrence Livermore National Laboratory retains certain
     rights in this software.
 
@@ -16,12 +16,12 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
-    kraftche@cae.wisc.edu    
-   
+
+    kraftche@cae.wisc.edu
+
   ***************************************************************** */
 
 #ifndef MSQ_FPE_HPP
@@ -40,7 +40,7 @@ namespace MBMesquite {
  * mechanism for modifying the the FPE state.  The second,
  * implemented in the constructor/destructor, is a utlity for
  * setting and resetting the FPE state.  The FPE state is set
- * when the object is created and reset when the object is 
+ * when the object is created and reset when the object is
  * destroted.  The intention is that an instance of this object
  * be declared on the stack such that when the instantiating function
  * returns, the destructor is automatically invoked, restoring the
@@ -57,10 +57,10 @@ public:
      * If <code>enabled == false</code>, nothing is done.
      */
   MsqFPE( bool enabled );
-  
+
     /**\brief Restore FPE state */
   ~MsqFPE();
-  
+
     /**\brief Check if FPE state manipulation is supported on this platform */
   static bool fpe_trap_supported();
     /**\return An integer representing the current FPE flags */
@@ -69,7 +69,7 @@ public:
   static void set_current_fpe_state(int state);
     /**\return Enable trapping of INVALID, DIVBYZERO, and OVERFLOW */
   static void enable_trap_fpe();
-  
+
 private:
 
     /**\brief dummy declaration preventing heap allocation */

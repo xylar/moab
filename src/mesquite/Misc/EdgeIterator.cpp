@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2010 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2010) kraftche@cae.wisc.edu    
+    (2010) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file EdgeIterator.cpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -57,12 +57,12 @@ EdgeIterator::EdgeIterator( PatchData* p, MsqError& err )
 void EdgeIterator::get_adjacent_vertices( MsqError& err )
 {
   adjList.clear();
-  
+
     // Get all adjacent elements
   size_t num_elem;
   const size_t* elems = patchPtr->get_vertex_element_adjacencies( vertIdx, num_elem, err );
   MSQ_ERRRTN(err);
-  
+
     // Get all adjacent vertices from elements
   std::vector<size_t> elem_verts;
   for (size_t e = 0; e < num_elem; ++e)
@@ -70,11 +70,11 @@ void EdgeIterator::get_adjacent_vertices( MsqError& err )
     MsqMeshEntity& elem = patchPtr->element_by_index(elems[e]);
     EntityTopology type = elem.get_element_type();
     size_t num_edges = TopologyInfo::edges( type );
-    
+
     bool mid_edge, mid_face, mid_vol;
     TopologyInfo::higher_order( type, elem.node_count(), mid_edge, mid_face, mid_vol, err );
     MSQ_ERRRTN(err);
-    
+
       // For each edge
     for (size_t d = 0; d < num_edges; ++d)
     {
@@ -91,22 +91,22 @@ void EdgeIterator::get_adjacent_vertices( MsqError& err )
       }
 
         // If this edge contains the input vertex (vert_idx)
-        // AND the input vertex index is less than the 
+        // AND the input vertex index is less than the
         // other vertex (avoids iterating over this edge twice)
         // add it to the list.
       if (vert1 > vert2)
       {
         if (vert2 == vertIdx)
           adjList.push_back( Edge(vert1,pmid) );
-      } 
-      else 
+      }
+      else
       {
         if (vert1 == vertIdx)
           adjList.push_back( Edge(vert2,pmid) );
       }
     }
   }
-  
+
     // Remove duplicates
   std::sort( adjList.begin(), adjList.end() );
   adjIter = std::unique( adjList.begin(), adjList.end() );

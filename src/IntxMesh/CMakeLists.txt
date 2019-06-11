@@ -18,7 +18,7 @@ set(MOAB_INTX_LIB_SRCS Intx2Mesh.cpp Intx2MeshInPlane.cpp Intx2MeshOnSphere.cpp 
 #endif()
 
 add_library( moab_intx_mesh OBJECT ${MOAB_INTX_LIB_SRCS} ${MOAB_INTX_INC_HDRS} )
-set_target_properties( moab_intx_mesh 
+set_target_properties( moab_intx_mesh
                        PROPERTIES COMPILE_FLAGS "-DIS_BUILDING_MB ${MOAB_DEFINES}")
 
 include(AutoconfHeader)

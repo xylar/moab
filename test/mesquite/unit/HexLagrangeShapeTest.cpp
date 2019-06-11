@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2006 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
+
     (2010) kraftche@cae.wisc.edu
-   
+
   ***************************************************************** */
 
 
 /** \file HexLagrangeShapeTest.cpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -67,7 +67,7 @@ static inline CppUnit::Message value_message( unsigned location, double v1, doub
 
   std::ostringstream buffer3;
   buffer3 << "Location : ";
-  if (location < 9) 
+  if (location < 9)
     buffer3 << "Corner " << location;
   else if (location < 20)
     buffer3 << "Edge " << location-8;
@@ -84,8 +84,8 @@ static inline CppUnit::Message value_message( unsigned location, double v1, doub
 static bool test_value( MsqVector<3> v1, MsqVector<3> v2 )
   { return length(v1 - v2) < epsilon; }
 
-static inline CppUnit::Message value_message( unsigned location, 
-                                              MsqVector<3> v1, 
+static inline CppUnit::Message value_message( unsigned location,
+                                              MsqVector<3> v1,
                                               MsqVector<3> v2 )
 {
   CppUnit::Message m( "equality assertion failed" );
@@ -100,7 +100,7 @@ static inline CppUnit::Message value_message( unsigned location,
 
   std::ostringstream buffer3;
   buffer3 << "Location : ";
-  if (location < 9) 
+  if (location < 9)
     buffer3 << "Corner " << location;
   else if (location < 20)
     buffer3 << "Edge " << location-8;
@@ -128,20 +128,20 @@ class HexLagrangeShapeTest : public CppUnit::TestFixture
     CPPUNIT_TEST(test_edges_derivs);
     CPPUNIT_TEST(test_faces_derivs);
     CPPUNIT_TEST(test_mid_derivs);
-    
+
     CPPUNIT_TEST(test_ideal_jacobian);
-    
+
     CPPUNIT_TEST_SUITE_END();
-  
+
     HexLagrangeShape sf;
-    
+
   public:
-    
+
     void test_corner_coeff( int corner );
     void test_edge_coeff( int edge );
     void test_face_coeff( int face );
     void test_mid_coeff();
-    
+
     void test_corner_derivs( int corner );
     void test_edge_derivs( int edge );
     void test_face_derivs( int face );
@@ -157,7 +157,7 @@ class HexLagrangeShapeTest : public CppUnit::TestFixture
     void test_corners_derivs();
     void test_edges_derivs();
     void test_faces_derivs();
-    
+
     void test_ideal_jacobian();
 };
 
@@ -186,39 +186,39 @@ typedef double (*f_t)(double);
 f_t l[4] = { 0, &l21, &l22, &l23 };
 f_t dl[4] = { 0, &dl21, &dl22, &dl23 };
 const int C[][3] = {
-   { 1, 1, 1 }, //   0 
-   { 3, 1, 1 }, //   1 
-   { 3, 3, 1 }, //   2 
-   { 1, 3, 1 }, //   3 
-   
-   { 1, 1, 3 }, //   4 
-   { 3, 1, 3 }, //   5 
-   { 3, 3, 3 }, //   6 
-   { 1, 3, 3 }, //   7 
-   
-   { 2, 1, 1 }, //   8 
-   { 3, 2, 1 }, //   9 
+   { 1, 1, 1 }, //   0
+   { 3, 1, 1 }, //   1
+   { 3, 3, 1 }, //   2
+   { 1, 3, 1 }, //   3
+
+   { 1, 1, 3 }, //   4
+   { 3, 1, 3 }, //   5
+   { 3, 3, 3 }, //   6
+   { 1, 3, 3 }, //   7
+
+   { 2, 1, 1 }, //   8
+   { 3, 2, 1 }, //   9
    { 2, 3, 1 }, //  10
    { 1, 2, 1 }, //  11
-   
+
    { 1, 1, 2 }, //  12
    { 3, 1, 2 }, //  13
    { 3, 3, 2 }, //  14
    { 1, 3, 2 }, //  15
-   
+
    { 2, 1, 3 }, //  16
    { 3, 2, 3 }, //  17
    { 2, 3, 3 }, //  18
    { 1, 2, 3 }, //  19
-   
+
    { 2, 1, 2 }, //  20
    { 3, 2, 2 }, //  21
    { 2, 3, 2 }, //  22
    { 1, 2, 2 }, //  23
-   
+
    { 2, 2, 1 }, //  24
    { 2, 2, 3 }, //  25
-   
+
    { 2, 2, 2 }  //  26
 };
 
@@ -231,18 +231,18 @@ const double corners[8][3] = {
   { max_xi, min_xi, max_xi },
   { max_xi, max_xi, max_xi },
   { min_xi, max_xi, max_xi } };
-  
+
 static MsqVector<3> XI_corner( int i )
   { return MsqVector<3>(corners[i]); }
 
 static MsqVector<3> XI_edge( int i )
-  { 
+  {
     const unsigned* idx = TopologyInfo::edge_vertices( HEXAHEDRON, i );
     return 0.5 * (XI_corner(idx[0]) + XI_corner(idx[1]));
   }
 
 static MsqVector<3> XI_face( int i )
-  { 
+  {
     unsigned n;
     const unsigned* idx = TopologyInfo::face_vertices( HEXAHEDRON, i, n );
     MsqVector<3> result = XI_corner(idx[0]);
@@ -253,18 +253,18 @@ static MsqVector<3> XI_face( int i )
   }
 
 static MsqVector<3> XI_elem()
-  { 
+  {
     const double vals[] = { mid_xi, mid_xi, mid_xi };
     return MsqVector<3>(vals);
   }
 
-static double N( int i, MsqVector<3> xi ) 
+static double N( int i, MsqVector<3> xi )
 {
   const int* c = C[i];
   return l[c[XI]](xi[XI]) * l[c[ETA]](xi[ETA]) * l[c[ZETA]](xi[ZETA]);
 }
 
-static MsqVector<3> dN( int i, MsqVector<3> xi ) 
+static MsqVector<3> dN( int i, MsqVector<3> xi )
 {
   MsqVector<3> result;
   const int* c = C[i];
@@ -323,7 +323,7 @@ static void compare_coefficients( const double* coeffs,
     revidx[i] = std::find( indices, indices+num_coeff, i ) - indices;
     test_vals[i] = (revidx[i] == num_coeff) ? 0.0 : coeffs[revidx[i]];
   }
-    
+
     // compare expected and actual coefficient values
   ASSERT_VALUES_EQUAL( expected_coeffs[0], test_vals[0], loc );
   ASSERT_VALUES_EQUAL( expected_coeffs[1], test_vals[1], loc );
@@ -362,7 +362,7 @@ static void compare_derivatives( const size_t* vertices,
 {
   check_valid_indices( vertices, num_vtx );
   check_no_zeros( actual, num_vtx );
-  
+
     // Input has values in dxi & deta & dzeta only for nodes in 'vertices'
     // Convert to values for every possible node, with zero's for
     // nodes that are not present.
@@ -373,7 +373,7 @@ static void compare_derivatives( const size_t* vertices,
     CPPUNIT_ASSERT(vertices[i] <= 26);
     expanded[vertices[i]] = actual[i];
   }
-  
+
   ASSERT_VALUES_EQUAL( expected[0], expanded[0], loc );
   ASSERT_VALUES_EQUAL( expected[1], expanded[1], loc );
   ASSERT_VALUES_EQUAL( expected[2], expanded[2], loc );
@@ -406,156 +406,156 @@ static void compare_derivatives( const size_t* vertices,
 void HexLagrangeShapeTest::test_corner_coeff( int corner )
 {
   MsqPrintError err(std::cout);
-  
+
   double expected[27];
   get_coeffs( XI_corner(corner), expected );
-  
+
   double coeff[100];
   size_t num_coeff = 11, indices[100];
   sf.coefficients( Sample(0, corner), allNodes, coeff, indices, num_coeff, err );
   CPPUNIT_ASSERT( !err );
-  
+
   compare_coefficients( coeff, indices, num_coeff, expected, corner );
 }
 
 void HexLagrangeShapeTest::test_edge_coeff( int edge )
 {
   MsqPrintError err(std::cout);
-  
+
   double expected[27];
   get_coeffs( XI_edge(edge), expected );
-  
+
   double coeff[100];
   size_t num_coeff = 11, indices[100];
   sf.coefficients( Sample(1, edge), allNodes, coeff, indices, num_coeff, err );
   CPPUNIT_ASSERT( !err );
-  
+
   compare_coefficients( coeff, indices, num_coeff, expected, edge+8 );
 }
 
 void HexLagrangeShapeTest::test_face_coeff( int face )
 {
   MsqPrintError err(std::cout);
-  
+
   double expected[27];
   get_coeffs( XI_face(face), expected );
-  
+
   double coeff[100];
   size_t num_coeff = 11, indices[100];
   sf.coefficients( Sample(2, face), allNodes, coeff, indices, num_coeff, err );
   CPPUNIT_ASSERT( !err );
-  
+
   compare_coefficients( coeff, indices, num_coeff, expected, face+20 );
 }
 
 void HexLagrangeShapeTest::test_mid_coeff()
 {
   MsqPrintError err(std::cout);
-  
+
   double expected[27];
   get_coeffs( XI_elem(), expected );
-  
+
   double coeff[100];
   size_t num_coeff = 11, indices[100];
   sf.coefficients( Sample(3, 0), allNodes, coeff, indices, num_coeff, err );
   CPPUNIT_ASSERT( !err );
-  
+
   compare_coefficients( coeff, indices, num_coeff, expected, 26 );
 }
 
 void HexLagrangeShapeTest::test_corner_derivs( int corner )
 {
   MsqPrintError err(std::cout);
-  
+
   MsqVector<3> expected[27];
   get_derivs( XI_corner(corner), expected );
-  
+
   size_t vertices[100], num_vtx = 23;
   MsqVector<3> derivs[100];
   sf.derivatives( Sample(0, corner), allNodes, vertices, derivs, num_vtx, err );
   CPPUNIT_ASSERT( !err );
-  
+
   compare_derivatives( vertices, num_vtx, derivs, expected, corner );
 }
 
 void HexLagrangeShapeTest::test_edge_derivs( int edge )
 {
   MsqPrintError err(std::cout);
-  
+
   MsqVector<3> expected[27];
   get_derivs( XI_edge(edge), expected );
-  
+
   size_t vertices[100], num_vtx = 23;
   MsqVector<3> derivs[100];
   sf.derivatives( Sample(1, edge), allNodes, vertices, derivs, num_vtx, err );
   CPPUNIT_ASSERT( !err );
-  
+
   compare_derivatives( vertices, num_vtx, derivs, expected, edge+8 );
 }
 
 void HexLagrangeShapeTest::test_face_derivs( int face )
 {
   MsqPrintError err(std::cout);
-  
+
   MsqVector<3> expected[27];
   get_derivs( XI_face(face), expected );
-  
+
   size_t vertices[100], num_vtx = 23;
   MsqVector<3> derivs[100];
   sf.derivatives( Sample(2, face), allNodes, vertices, derivs, num_vtx, err );
   CPPUNIT_ASSERT( !err );
-  
+
   compare_derivatives( vertices, num_vtx, derivs, expected, face+20 );
 }
 
 void HexLagrangeShapeTest::test_mid_derivs( )
 {
   MsqPrintError err(std::cout);
-  
+
   MsqVector<3> expected[27];
   get_derivs( XI_elem(), expected );
-  
+
   size_t vertices[100], num_vtx = 23;
   MsqVector<3> derivs[100];
   sf.derivatives( Sample(3, 0), allNodes, vertices, derivs, num_vtx, err );
   CPPUNIT_ASSERT( !err );
-  
+
   compare_derivatives( vertices, num_vtx, derivs, expected, 26 );
 }
 
 void HexLagrangeShapeTest::test_corners_coeff()
 {
-  for (unsigned i = 0; i < 8; ++i) 
+  for (unsigned i = 0; i < 8; ++i)
     test_corner_coeff( i );
 }
 
 void HexLagrangeShapeTest::test_edges_coeff()
 {
-  for (unsigned i = 0; i < 12; ++i) 
+  for (unsigned i = 0; i < 12; ++i)
     test_edge_coeff( i );
 }
 
 void HexLagrangeShapeTest::test_faces_coeff()
 {
-  for (unsigned i = 0; i < 6; ++i) 
+  for (unsigned i = 0; i < 6; ++i)
     test_face_coeff( i );
 }
 
 void HexLagrangeShapeTest::test_corners_derivs()
 {
-  for (unsigned i = 0; i < 8; ++i) 
+  for (unsigned i = 0; i < 8; ++i)
     test_corner_derivs( i );
 }
 
 void HexLagrangeShapeTest::test_edges_derivs()
 {
-  for (unsigned i = 0; i < 12; ++i) 
+  for (unsigned i = 0; i < 12; ++i)
     test_edge_derivs( i );
 }
 
 void HexLagrangeShapeTest::test_faces_derivs()
 {
-  for (unsigned i = 0; i < 6; ++i) 
+  for (unsigned i = 0; i < 6; ++i)
     test_face_derivs( i );
 }
 

@@ -39,81 +39,81 @@ typedef void ( VerdictVector::*transform_function )( double gamma,
 class VerdictVector
 {
 public:
-  
+
     //- Heading: Constructors and Destructor
   VerdictVector();  //- Default constructor.
-  
+
   VerdictVector(const double x, const double y, const double z);
     //- Constructor: create vector from three components
-  
+
   VerdictVector( const double xyz[3] );
     //- Constructor: create vector from tuple
 
   VerdictVector (const VerdictVector& tail, const VerdictVector& head);
     //- Constructor for a VerdictVector starting at tail and pointing
     //- to head.
-  
+
   VerdictVector(const VerdictVector& copy_from);  //- Copy Constructor
-  
+
     //- Heading: Set and Inquire Functions
   void set( const double xv, const double yv, const double zv );
     //- Change vector components to {x}, {y}, and {z}
-  
+
   void set( const double xyz[3] );
     //- Change vector components to xyz[0], xyz[1], xyz[2]
 
   void set(const VerdictVector& tail, const VerdictVector& head);
     //- Change vector to go from tail to head.
-  
+
   void set(const VerdictVector& to_copy);
     //- Same as operator=(const VerdictVector&)
-  
+
   double x() const; //- Return x component of vector
-  
+
   double y() const; //- Return y component of vector
-  
+
   double z() const; //- Return z component of vector
-  
+
   void get_xyz( double &x, double &y, double &z ); //- Get x, y, z components
   void get_xyz( double xyz[3] ); //- Get xyz tuple
-  
+
   double &r(); //- Return r component of vector, if (r,theta) format
-  
+
   double &theta();  //- Return theta component of vector, if (r,theta) format
-  
+
   void x( const double xv ); //- Set x component of vector
-  
+
   void y( const double yv ); //- Set y component of vector
-  
+
   void z( const double zv ); //- Set z component of vector
-  
+
   void r( const double xv ); //- Set r component of vector, if (r,theta) format
-  
+
   void theta( const double yv ); //- Set theta component of vector, if (r,theta) format
-  
+
   void xy_to_rtheta();
     //- convert from cartesian to polar coordinates, just 2d for now
     //- theta is in [0,2 PI)
-  
+
   void rtheta_to_xy();
     //- convert from  polar to cartesian coordinates, just 2d for now
-  
+
   void scale_angle(double gamma, double );
     //- tranform_function.
     //- transform  (x,y) to (r,theta) to (r,gamma*theta) to (x',y')
     //- plus some additional scaling so long chords won't cross short ones
-  
+
   void blow_out(double gamma, double gamma2 = 0.0);
     //- transform_function
-    //- blow points radially away from the origin, 
-  
+    //- blow points radially away from the origin,
+
   void rotate(double angle, double );
     //- transform function.
     //- transform  (x,y) to (r,theta) to (r,theta+angle) to (x',y')
-  
+
   void reflect_about_xaxis(double dummy, double );
     //- dummy argument to make it a transform function
-  
+
   double normalize();
     //- Normalize (set magnitude equal to 1) vector - return the magnitude
 
@@ -121,127 +121,127 @@ public:
     //- Change length of vector to {new_length}. Can be used to move a
     //- location a specified distance from the origin in the current
     //- orientation.
-  
+
   double length() const;
     //- Calculate the length of the vector.
     //- Use {length_squared()} if only comparing lengths, not adding.
-  
+
   double distance_between(const VerdictVector& test_vector);
     //- Calculate the distance from the head of one vector
     //  to the head of the test_vector.
-  
+
   double length_squared() const;
     //- Calculate the squared length of the vector.
     //- Faster than {length()} since it eliminates the square root if
     //- only comparing other lengths.
-  
+
   double interior_angle(const VerdictVector &otherVector);
     //- Calculate the interior angle: acos((a%b)/(|a||b|))
     //- Returns angle in degrees.
-  
+
   double vector_angle_quick(const VerdictVector& vec1, const VerdictVector& vec2);
     //- Calculate the interior angle between the projections of
     //- {vec1} and {vec2} onto the plane defined by the {this} vector.
     //- The angle returned is the right-handed angle around the {this}
     //- vector from {vec1} to {vec2}. Angle is in radians.
-  
+
   double vector_angle( const VerdictVector &vector1,
                        const VerdictVector &vector2) const;
     //- Compute the angle between the projections of {vector1} and {vector2}
     //- onto the plane defined by *this. The angle is the
     //- right-hand angle, in radians, about *this from {vector1} to {vector2}.
-  
+
   void perpendicular_z();
     //- Transform this vector to a perpendicular one, leaving
     //- z-component alone. Rotates clockwise about the z-axis by pi/2.
 
   void print_me();
     //- Prints out the coordinates of this vector.
-  
+
   void orthogonal_vectors( VerdictVector &vector2, VerdictVector &vector3 );
     //- Finds 2 (arbitrary) vectors that are orthogonal to this one
-  
-  void next_point( const VerdictVector &direction, double distance, 
+
+  void next_point( const VerdictVector &direction, double distance,
                    VerdictVector& out_point );
-    //- Finds the next point in space based on *this* point (starting point), 
+    //- Finds the next point in space based on *this* point (starting point),
     //- a direction and the distance to extend in the direction. The
     //- direction vector need not be a unit vector.  The out_point can be
     //- "*this" (i.e., modify point in place).
-  
+
   bool within_tolerance( const VerdictVector &vectorPtr2,
                                 double tolerance) const;
     //- Compare two vectors to see if they are spatially equal.  They
     //- compare if x, y, and z are all within tolerance.
-  
+
     //- Heading: Operator Overloads  *****************************
   VerdictVector&  operator+=(const VerdictVector &vec);
     //- Compound Assignment: addition: {this = this + vec}
-  
+
   VerdictVector& operator-=(const VerdictVector &vec);
     //- Compound Assignment: subtraction: {this = this - vec}
-  
+
   VerdictVector& operator*=(const VerdictVector &vec);
     //- Compound Assignment: cross product: {this = this * vec},
     //- non-commutative
-  
+
   VerdictVector& operator*=(const double scalar);
     //- Compound Assignment: multiplication: {this = this * scalar}
-  
+
   VerdictVector& operator/=(const double scalar);
     //- Compound Assignment: division: {this = this / scalar}
-  
+
   VerdictVector operator-() const;
     //- unary negation.
-  
+
   friend VerdictVector operator~(const VerdictVector &vec);
     //- normalize. Returns a new vector which is a copy of {vec},
     //- scaled such that {|vec|=1}. Uses overloaded bitwise NOT operator.
-  
-  friend VerdictVector operator+(const VerdictVector &v1, 
+
+  friend VerdictVector operator+(const VerdictVector &v1,
                                const VerdictVector &v2);
     //- vector addition
-  
-  friend VerdictVector operator-(const VerdictVector &v1, 
+
+  friend VerdictVector operator-(const VerdictVector &v1,
                                const VerdictVector &v2);
     //- vector subtraction
-  
-  friend VerdictVector operator*(const VerdictVector &v1, 
+
+  friend VerdictVector operator*(const VerdictVector &v1,
                                const VerdictVector &v2);
     //- vector cross product, non-commutative
-  
+
   friend VerdictVector operator*(const VerdictVector &v1, const double sclr);
     //- vector * scalar
-  
+
   friend VerdictVector operator*(const double sclr, const VerdictVector &v1);
     //- scalar * vector
-  
+
   friend double operator%(const VerdictVector &v1, const VerdictVector &v2);
     //- dot product
-  
+
   friend VerdictVector operator/(const VerdictVector &v1, const double sclr);
     //- vector / scalar
-  
+
   friend int operator==(const VerdictVector &v1, const VerdictVector &v2);
     //- Equality operator
-  
+
   friend int operator!=(const VerdictVector &v1, const VerdictVector &v2);
     //- Inequality operator
-  
+
   friend VerdictVector interpolate(const double param, const VerdictVector &v1,
                                  const VerdictVector &v2);
     //- Interpolate between two vectors. Returns (1-param)*v1 + param*v2
 
 
   VerdictVector &operator=(const VerdictVector& from);
-  
+
 private:
-  
+
   double xVal;  //- x component of vector.
   double yVal;  //- y component of vector.
   double zVal;  //- z component of vector.
 };
 
-VerdictVector vectorRotate(const double angle, 
+VerdictVector vectorRotate(const double angle,
                          const VerdictVector &normalAxis,
                          const VerdictVector &referenceAxis);
   //- A new coordinate system is created with the xy plane corresponding
@@ -267,8 +267,8 @@ inline void VerdictVector::get_xyz(double xyz[3])
 }
 inline void VerdictVector::get_xyz( double& xv, double& yv, double& zv )
 {
-  xv = xVal; 
-  yv = yVal; 
+  xv = xVal;
+  yv = yVal;
   zv = zVal;
 }
 inline double &VerdictVector::r()
@@ -368,11 +368,11 @@ inline void VerdictVector::set(const VerdictVector& tail,
   zVal = head.zVal - tail.zVal;
 }
 
-inline VerdictVector& VerdictVector::operator=(const VerdictVector &from)  
+inline VerdictVector& VerdictVector::operator=(const VerdictVector &from)
 {
-  xVal = from.xVal; 
-  yVal = from.yVal; 
-  zVal = from.zVal; 
+  xVal = from.xVal;
+  yVal = from.yVal;
+  zVal = from.zVal;
   return *this;
 }
 
@@ -406,7 +406,7 @@ inline VerdictVector operator~(const VerdictVector &vec)
   double mag = sqrt(vec.xVal*vec.xVal +
                     vec.yVal*vec.yVal +
                     vec.zVal*vec.zVal);
-  
+
   VerdictVector temp = vec;
   if (mag != 0.0)
   {

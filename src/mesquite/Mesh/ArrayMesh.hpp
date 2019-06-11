@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2007 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2007) kraftche@cae.wisc.edu    
+    (2007) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file ArrayMesh.hpp
  *  \brief Access mesh stored in arrays
- *  \author Jason Kraftcheck 
+ *  \author Jason Kraftcheck
  */
 
 #ifndef MSQ_ARRAY_MESH_HPP
@@ -41,12 +41,12 @@ namespace MBMesquite {
 class ArrayMesh : public Mesh
 {
   public:
-  
+
       /** Create a MBMesquite::Mesh instance that wraps application-provided
-       *  arrays.  
+       *  arrays.
        *
-       * Note:  An instance of this class will reference the passed in 
-       *        arrays.  It will not copy them.  
+       * Note:  An instance of this class will reference the passed in
+       *        arrays.  It will not copy them.
        *
        *\param coords_per_vertex Dimension of the mesh (2 or 3)
        *\param num_vertices      Number of vertices in the mesh
@@ -80,12 +80,12 @@ class ArrayMesh : public Mesh
                bool one_based_conn_indices = false,
                unsigned nodes_per_element = 0,
                const int* vertex_slaved_flags = 0 );
-               
+
       /** Create a MBMesquite::Mesh instance that wraps application-provided
-       *  arrays.  
+       *  arrays.
        *
-       * Note:  An instance of this class will reference the passed in 
-       *        arrays.  It will not copy them.  
+       * Note:  An instance of this class will reference the passed in
+       *        arrays.  It will not copy them.
        *
        *\param coords_per_vertex Dimension of the mesh (2 or 3)
        *\param num_vertices      Number of vertices in the mesh
@@ -103,7 +103,7 @@ class ArrayMesh : public Mesh
        *                         than num_elements.  Each entry other than
        *                         the last should contain the value of the
        *                         index into element_connectivity_array at
-       *                         which the connectivity data for the 
+       *                         which the connectivity data for the
        *                         corresponding element begins.  The last
        *                         entry in the array must be the next-to-last
        *                         entry plus the length of the connectivity
@@ -137,9 +137,9 @@ class ArrayMesh : public Mesh
 
 
     ArrayMesh();
-    
+
     ~ArrayMesh();
-    
+
     void clear_mesh();
     void set_mesh( int coords_per_vertex,
                unsigned long num_vertices,
@@ -151,12 +151,12 @@ class ArrayMesh : public Mesh
                bool one_based_conn_indices = false,
                unsigned nodes_per_element = 0,
                const int* vertex_slaved_flags = 0 );
-    
+
     /**\brief Give mesquite access to per-entity application data via a tag
      *
      * Allow mesquite to access application-owned per-element and/or per-vertex
      * data by assigning a tag name to said data.  Mesquite will be allowed
-     * to read application-owned data.  Any attempt by Mesquite to modify 
+     * to read application-owned data.  Any attempt by Mesquite to modify
      * the data will result in an internal error condition.
      *
      *\param tag_name  Tag name through which Mesquite can access the data
@@ -166,12 +166,12 @@ class ArrayMesh : public Mesh
      *                       associated with a a single entity are adjacent in memory
      *\param vertex_data     A pointer to the region of memory in which per-vertex
      *                       values are stored.  May be NULL if per-vertex data is
-     *                       not available.  Values are assumed to be in the same 
+     *                       not available.  Values are assumed to be in the same
      *                       order as the vertex coordinates passed to the constructor
      *                       or \c set_mesh.
      *\param vertex_data     A pointer to the region of memory in which per-element
      *                       values are stored.  May be NULL if per-element data is
-     *                       not available.  Values are assumed to be in the same 
+     *                       not available.  Values are assumed to be in the same
      *                       order as the element connetivity passed to the constructor
      *                       or \c set_mesh.
      *\param default_value   Value to return for all vertices and/or all elements
@@ -185,11 +185,11 @@ class ArrayMesh : public Mesh
                                       const void* element_data,
                                       const void* default_value,
                                       MsqError& err );
-    
+
     /**\brief Give mesquite access to per-entity application data via a tag
      *
-     * Allow mesquite to access and/or set application-owned per-element 
-     * and/or per-vertex data by assigning a tag name to said data.  
+     * Allow mesquite to access and/or set application-owned per-element
+     * and/or per-vertex data by assigning a tag name to said data.
      *
      *\param tag_name  Tag name through which Mesquite can access the data
      *\param data_type The type of the data
@@ -198,12 +198,12 @@ class ArrayMesh : public Mesh
      *                       associated with a a single entity are adjacent in memory
      *\param vertex_data     A pointer to the region of memory in which per-vertex
      *                       values are stored.  May be NULL if per-vertex data is
-     *                       not available.  Values are assumed to be in the same 
+     *                       not available.  Values are assumed to be in the same
      *                       order as the vertex coordinates passed to the constructor
      *                       or \c set_mesh.
      *\param vertex_data     A pointer to the region of memory in which per-element
      *                       values are stored.  May be NULL if per-element data is
-     *                       not available.  Values are assumed to be in the same 
+     *                       not available.  Values are assumed to be in the same
      *                       order as the element connetivity passed to the constructor
      *                       or \c set_mesh.
      *\param default_value   Value to return for all vertices and/or all elements
@@ -217,25 +217,25 @@ class ArrayMesh : public Mesh
                                      void* element_data,
                                      const void* default_value,
                                      MsqError& err );
-    
-    
+
+
     virtual int get_geometric_dimension( MsqError& err );
 
     virtual void get_all_elements( std::vector<ElementHandle>& elements,
                                    MsqError& err );
     virtual void get_all_vertices( std::vector<VertexHandle>& vertices,
                                    MsqError& err );
-    
+
     virtual VertexIterator* vertex_iterator(MsqError &err);
     virtual ElementIterator* element_iterator(MsqError &err);
 
-    virtual void vertices_get_fixed_flag( const VertexHandle vert_array[], 
+    virtual void vertices_get_fixed_flag( const VertexHandle vert_array[],
                                           std::vector<bool>& fixed_flag_array,
-                                          size_t num_vtx, 
+                                          size_t num_vtx,
                                           MsqError &err );
-    virtual void vertices_get_slaved_flag( const VertexHandle vert_array[], 
+    virtual void vertices_get_slaved_flag( const VertexHandle vert_array[],
                                            std::vector<bool>& slaved_flag_array,
-                                           size_t num_vtx, 
+                                           size_t num_vtx,
                                            MsqError &err );
    virtual void vertices_get_coordinates( const VertexHandle vert_array[],
                                            MsqVertex* coordinates,
@@ -244,59 +244,59 @@ class ArrayMesh : public Mesh
     virtual void vertex_set_coordinates( VertexHandle vertex,
                                          const Vector3D &coordinates,
                                          MsqError &err );
-    
+
     virtual void vertex_set_byte( VertexHandle vertex,
-                                  unsigned char byte, 
+                                  unsigned char byte,
                                   MsqError &err);
     virtual void vertices_set_byte( const VertexHandle *vert_array,
                                     const unsigned char *byte_array,
-                                    size_t array_size, 
+                                    size_t array_size,
                                     MsqError &err );
-    
+
     virtual void vertex_get_byte( const VertexHandle vertex,
-                                  unsigned char *byte, 
+                                  unsigned char *byte,
                                   MsqError &err );
     virtual void vertices_get_byte( const VertexHandle *vertex,
                                     unsigned char *byte_array,
-                                    size_t array_size, 
+                                    size_t array_size,
                                     MsqError &err );
-    
-    virtual void vertices_get_attached_elements( 
+
+    virtual void vertices_get_attached_elements(
                          const VertexHandle* vertex_array,
                          size_t num_vertex,
                          std::vector<ElementHandle>& elements,
                          std::vector<size_t>& offsets,
                          MsqError& err );
-    
+
     virtual void elements_get_attached_vertices(
                                    const ElementHandle *elem_handles,
                                    size_t num_elems,
                                    std::vector<VertexHandle>& vert_handles,
-                                   std::vector<size_t>& offsets, 
+                                   std::vector<size_t>& offsets,
                                    MsqError &err);
-    
+
     virtual void elements_get_topologies(const ElementHandle *element_handle_array,
                                          EntityTopology *element_topologies,
                                          size_t num_elements, MsqError &err);
 
-    
+
     virtual TagHandle tag_create( const std::string& tag_name,
                                   TagType type, unsigned length,
                                   const void* default_value,
                                   MsqError &err);
-    
+
     virtual void tag_delete( TagHandle handle, MsqError& err );
-    
-    
-    virtual TagHandle tag_get( const std::string& name, 
+
+
+    virtual TagHandle tag_get( const std::string& name,
                                MsqError& err );
-     
+
     virtual void tag_properties( TagHandle handle,
                                  std::string& name_out,
                                  TagType& type_out,
                                  unsigned& length_out,
                                  MsqError& err );
-    
+
     virtual void tag_set_element_data( TagHandle handle,
                                        size_t num_elems,
                                        const ElementHandle* elem_array,
@@ -308,41 +308,41 @@ class ArrayMesh : public Mesh
                                        const VertexHandle* node_array,
                                        const void* tag_data,
                                        MsqError& err );
-    
-    
+
+
     virtual void tag_get_element_data( TagHandle handle,
                                        size_t num_elems,
                                        const ElementHandle* elem_array,
                                        void* tag_data,
                                        MsqError& err );
-    
+
     virtual void tag_get_vertex_data ( TagHandle handle,
                                        size_t num_elems,
                                        const VertexHandle* node_array,
                                        void* tag_data,
                                        MsqError& err );
 
-    
-    
+
+
     virtual void release_entity_handles( const EntityHandle *handle_array,
-                                         size_t num_handles, 
+                                         size_t num_handles,
                                          MsqError &err);
-    
+
     virtual void release();
 
   private:
-    
+
     inline const unsigned long* elem_verts( size_t elem_index, int& num_vertex ) const;
-    
+
     void build_vertex_adjacency_list();
-    
+
     int mDimension;                  //!< Coordinates per vertex
     unsigned long vertexCount;       //!< Number of vertices
     double* coordArray;              //!< Interleaved vertex coordinates
     const int* fixedFlags;           //!< Vertex fixed flags
     const int* slavedFlags;          //!< Vertex slaved flags
     unsigned char* vertexByteArray;  //!< Vertex bytes
-    
+
     unsigned long elementCount;      //!< Number of elements
     const unsigned long* connArray;  //!< Element connectivity
     const unsigned long* connOffsets;//!< Offsets into connectivity array
@@ -357,14 +357,14 @@ class ArrayMesh : public Mesh
     const EntityTopology* elementTypes; //!< Type for each element type if connOffsets is not NULL
     unsigned nodesPerElement;        //!< Nodes per element if connOffsets is NULL
     bool oneBasedArrays;             //!< FORTRAN-style array indexing
-    
+
     unsigned long* vertexAdjacencyList;
     unsigned long* vertexAdjacencyOffsets;
-    
+
     static unsigned bytes( TagType type );
-    
+
     static void fill( unsigned char* buffer, const unsigned char* value, size_t size, size_t count );
-    
+
     struct Tag {
       char* name;             //!< Tag name (null-terminated string)
       TagType type;          //!< tag data type
@@ -377,20 +377,20 @@ class ArrayMesh : public Mesh
       unsigned char* defaultValue;    //!< Default value
       Tag* next;             //!< Linked-list next pointer
     };
-    
-    Tag* allocate_tag( const char* name, 
+
+    Tag* allocate_tag( const char* name,
                        bool owned,
-                       TagType type, 
-                       unsigned size, 
+                       TagType type,
+                       unsigned size,
                        const void* vertex_ro_data,
                        void* vertex_rw_data,
                        const void* element_ro_data,
                        void* element_rw_data,
                        const void* default_value,
                        MsqError& err );
-    
+
     Tag* tagList;
-    
+
     bool valid() const;
 };
 

@@ -87,7 +87,7 @@ int main(int argc, char **argv)
 
   delete mb;
 #else
-  cout<< " This test needs moab configured with netcdf \n"; 
+  cout<< " This test needs moab configured with netcdf \n";
 #endif
 
   return 0;

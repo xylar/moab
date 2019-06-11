@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2009 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2009) kraftche@cae.wisc.edu    
+    (2009) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file PaverMinEdgeLengthWrapper.cpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -65,7 +65,7 @@ void PaverMinEdgeLengthWrapper::run_wrapper( MeshDomainAssoc* mesh_and_domain,
 {
   InstructionQueue q;
   Mesh* mesh = mesh_and_domain->get_mesh();
- 
+
     // calculate average lambda for mesh
   ReferenceMesh ref_mesh( mesh );
   RefMeshTargetCalculator W_0( &ref_mesh );
@@ -73,7 +73,7 @@ void PaverMinEdgeLengthWrapper::run_wrapper( MeshDomainAssoc* mesh_and_domain,
   MeshUtil tool(mesh, settings);
   tool.lambda_distribution( lambda_stats, err ); MSQ_ERRRTN(err);
   double lambda = lambda_stats.average();
-  
+
     // create objective function
   IdealShapeTarget W_i;
   LambdaConstant W( lambda, &W_i );
@@ -81,13 +81,13 @@ void PaverMinEdgeLengthWrapper::run_wrapper( MeshDomainAssoc* mesh_and_domain,
   TQualityMetric mu_0( &W, &tm );
   ElementPMeanP mu( 1.0, &mu_0 );
   PMeanPTemplate of( 1.0, &mu );
-  
+
     // create quality assessor
   EdgeLengthMetric len(0.0);
   qa->add_quality_assessment( &mu );
   qa->add_quality_assessment( &len );
   q.add_quality_assessor( qa, err );
-  
+
     // create solver
   TrustRegion solver( &of );
   TerminationCriterion tc, ptc;
@@ -100,7 +100,7 @@ void PaverMinEdgeLengthWrapper::run_wrapper( MeshDomainAssoc* mesh_and_domain,
   q.add_quality_assessor( qa, err );
 
   // Optimize mesh
-  q.run_common( mesh_and_domain, pmesh, settings, err ); MSQ_CHKERR(err);  
+  q.run_common( mesh_and_domain, pmesh, settings, err ); MSQ_CHKERR(err);
 }
 
 } // namespace MBMesquite

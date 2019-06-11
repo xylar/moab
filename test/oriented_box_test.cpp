@@ -11,8 +11,8 @@ const double TOL = 1e-6;
 int error_count = 0;
 
 static void test_basic();         // test basic properties (volume(), etc.)
-static void test_contained();     
-static void test_ray_intersect(); 
+static void test_contained();
+static void test_ray_intersect();
 static void test_closest_point();
 static void test_build_from_tri();
 static void test_build_from_pts();
@@ -85,7 +85,7 @@ static CartVect scaled_corner( const OrientedBox& box, int corner, double factor
                                   {-1, 1, 1},
                                   {-1,-1, 1},
                                   { 1,-1, 1} };
-  return box.center 
+  return box.center
        + signs[corner][0]*factor*box.scaled_axis(0)
        + signs[corner][1]*factor*box.scaled_axis(1)
        + signs[corner][2]*factor*box.scaled_axis(2);
@@ -103,21 +103,21 @@ static CartVect scaled_face( const OrientedBox& box, int face, double factor )
 static void axis_dims( const Matrix3 axis, CartVect& dims )
 {
   dims = CartVect(axis.col(0).length(), axis.col(1).length(), axis.col(2).length());
-  if (dims[0] > dims[1]) 
+  if (dims[0] > dims[1])
     std::swap(dims[0], dims[1]);
   if (dims[1] > dims[2])
     std::swap(dims[1], dims[2]);
-  if (dims[0] > dims[1]) 
+  if (dims[0] > dims[1])
     std::swap(dims[0], dims[1]);
-} 
-  
+}
+
 
 /********************* The Actual Tests ***************************/
 // \test Check all basic Oriented Box tests
 static void test_basic()
 {
   CartVect dims;
- 
+
   axis_dims( unitaxes, dims );
   ASSERT_VECTORS_EQUAL( unitbox.center, origin );
   ASSERT_VECTOR_ELEMENT( unitbox.scaled_axis(0), unitaxes );
@@ -127,7 +127,7 @@ static void test_basic()
   ASSERT_DOUBLES_EQUAL( unitbox.outer_radius(), dims.length() );
   ASSERT_DOUBLES_EQUAL( unitbox.volume(), 8.0*dims[0]*dims[1]*dims[2] );
   ASSERT_VECTORS_EQUAL( unitbox.dimensions(), 2*dims );
-  
+
   axis_dims( unitaxes, dims );
   ASSERT_VECTORS_EQUAL( offsetbox.center, unitcenter );
   ASSERT_VECTOR_ELEMENT( offsetbox.scaled_axis(0), unitaxes );
@@ -137,7 +137,7 @@ static void test_basic()
   ASSERT_DOUBLES_EQUAL( offsetbox.outer_radius(), dims.length() );
   ASSERT_DOUBLES_EQUAL( offsetbox.volume(), 8.0*dims[0]*dims[1]*dims[2] );
   ASSERT_VECTORS_EQUAL( offsetbox.dimensions(), 2*dims );
-  
+
   axis_dims( origaxes, dims );
   ASSERT_VECTORS_EQUAL( oblongbox.center, origin );
   ASSERT_VECTOR_ELEMENT( oblongbox.scaled_axis(0), origaxes );
@@ -168,14 +168,14 @@ static void test_basic()
   ASSERT_DOUBLES_EQUAL( rotbox_cv.outer_radius(), dims.length() );
   ASSERT_DOUBLES_EQUAL( rotbox_cv.volume(), 8.0*dims[0]*dims[1]*dims[2] );
   ASSERT_VECTORS_EQUAL( rotbox_cv.dimensions(), 2*dims );
-  
+
 }
 
 // \test Check all is_contained Oriented Box tests
-static void test_contained() 
+static void test_contained()
 {
     // first do tests of unit box
-    
+
     // test points inside box
   ASSERT( unitbox.contained( unitbox.center, TOL ) );
   ASSERT( unitbox.contained( scaled_corner( unitbox, 0, 0.6 ), TOL ) );
@@ -186,7 +186,7 @@ static void test_contained()
   ASSERT( unitbox.contained( scaled_corner( unitbox, 5, 0.6 ), TOL ) );
   ASSERT( unitbox.contained( scaled_corner( unitbox, 6, 0.6 ), TOL ) );
   ASSERT( unitbox.contained( scaled_corner( unitbox, 7, 0.6 ), TOL ) );
-    
+
     // test points at box corners
   ASSERT( unitbox.contained( scaled_corner( unitbox, 0, 1.0 ), TOL ) );
   ASSERT( unitbox.contained( scaled_corner( unitbox, 1, 1.0 ), TOL ) );
@@ -196,7 +196,7 @@ static void test_contained()
   ASSERT( unitbox.contained( scaled_corner( unitbox, 5, 1.0 ), TOL ) );
   ASSERT( unitbox.contained( scaled_corner( unitbox, 6, 1.0 ), TOL ) );
   ASSERT( unitbox.contained( scaled_corner( unitbox, 7, 1.0 ), TOL ) );
-    
+
     // test points at center of each face
   ASSERT( unitbox.contained( scaled_face( unitbox, 0, 1.0), TOL ) );
   ASSERT( unitbox.contained( scaled_face( unitbox, 1, 1.0), TOL ) );
@@ -214,7 +214,7 @@ static void test_contained()
   ASSERT( ! unitbox.contained( scaled_corner( unitbox, 5, 1.2 ), TOL ) );
   ASSERT( ! unitbox.contained( scaled_corner( unitbox, 6, 1.2 ), TOL ) );
   ASSERT( ! unitbox.contained( scaled_corner( unitbox, 7, 1.2 ), TOL ) );
-   
+
     // test points beyond the center of each face
   ASSERT( ! unitbox.contained( scaled_face( unitbox, 0, 1.3), TOL ) );
   ASSERT( ! unitbox.contained( scaled_face( unitbox, 1, 1.3), TOL ) );
@@ -223,8 +223,8 @@ static void test_contained()
   ASSERT( ! unitbox.contained( scaled_face( unitbox, 4, 1.3), TOL ) );
   ASSERT( ! unitbox.contained( scaled_face( unitbox, 5, 1.3), TOL ) );
 
-    // now do offset box 
-    
+    // now do offset box
+
     // test points inside box
   ASSERT( offsetbox.contained( offsetbox.center, TOL ) );
   ASSERT( offsetbox.contained( scaled_corner( offsetbox, 0, 0.6 ), TOL ) );
@@ -235,7 +235,7 @@ static void test_contained()
   ASSERT( offsetbox.contained( scaled_corner( offsetbox, 5, 0.6 ), TOL ) );
   ASSERT( offsetbox.contained( scaled_corner( offsetbox, 6, 0.6 ), TOL ) );
   ASSERT( offsetbox.contained( scaled_corner( offsetbox, 7, 0.6 ), TOL ) );
-    
+
     // test points at box corners
   ASSERT( offsetbox.contained( scaled_corner( offsetbox, 0, 1.0 ), TOL ) );
   ASSERT( offsetbox.contained( scaled_corner( offsetbox, 1, 1.0 ), TOL ) );
@@ -245,7 +245,7 @@ static void test_contained()
   ASSERT( offsetbox.contained( scaled_corner( offsetbox, 5, 1.0 ), TOL ) );
   ASSERT( offsetbox.contained( scaled_corner( offsetbox, 6, 1.0 ), TOL ) );
   ASSERT( offsetbox.contained( scaled_corner( offsetbox, 7, 1.0 ), TOL ) );
-    
+
     // test points at center of each face
   ASSERT( offsetbox.contained( scaled_face( offsetbox, 0, 1.0), TOL ) );
   ASSERT( offsetbox.contained( scaled_face( offsetbox, 1, 1.0), TOL ) );
@@ -263,7 +263,7 @@ static void test_contained()
   ASSERT( ! offsetbox.contained( scaled_corner( offsetbox, 5, 1.2 ), TOL ) );
   ASSERT( ! offsetbox.contained( scaled_corner( offsetbox, 6, 1.2 ), TOL ) );
   ASSERT( ! offsetbox.contained( scaled_corner( offsetbox, 7, 1.2 ), TOL ) );
-   
+
     // test points beyond the center of each face
   ASSERT( ! offsetbox.contained( scaled_face( offsetbox, 0, 1.3), TOL ) );
   ASSERT( ! offsetbox.contained( scaled_face( offsetbox, 1, 1.3), TOL ) );
@@ -272,8 +272,8 @@ static void test_contained()
   ASSERT( ! offsetbox.contained( scaled_face( offsetbox, 4, 1.3), TOL ) );
   ASSERT( ! offsetbox.contained( scaled_face( offsetbox, 5, 1.3), TOL ) );
 
-    // now do oblong box 
-    
+    // now do oblong box
+
     // test points inside box
   ASSERT( oblongbox.contained( oblongbox.center, TOL ) );
   ASSERT( oblongbox.contained( scaled_corner( oblongbox, 0, 0.6 ), TOL ) );
@@ -284,7 +284,7 @@ static void test_contained()
   ASSERT( oblongbox.contained( scaled_corner( oblongbox, 5, 0.6 ), TOL ) );
   ASSERT( oblongbox.contained( scaled_corner( oblongbox, 6, 0.6 ), TOL ) );
   ASSERT( oblongbox.contained( scaled_corner( oblongbox, 7, 0.6 ), TOL ) );
-    
+
     // test points at box corners
   ASSERT( oblongbox.contained( scaled_corner( oblongbox, 0, 1.0 ), TOL ) );
   ASSERT( oblongbox.contained( scaled_corner( oblongbox, 1, 1.0 ), TOL ) );
@@ -294,7 +294,7 @@ static void test_contained()
   ASSERT( oblongbox.contained( scaled_corner( oblongbox, 5, 1.0 ), TOL ) );
   ASSERT( oblongbox.contained( scaled_corner( oblongbox, 6, 1.0 ), TOL ) );
   ASSERT( oblongbox.contained( scaled_corner( oblongbox, 7, 1.0 ), TOL ) );
-    
+
     // test points at center of each face
   ASSERT( oblongbox.contained( scaled_face( oblongbox, 0, 1.0), TOL ) );
   ASSERT( oblongbox.contained( scaled_face( oblongbox, 1, 1.0), TOL ) );
@@ -312,7 +312,7 @@ static void test_contained()
   ASSERT( ! oblongbox.contained( scaled_corner( oblongbox, 5, 1.2 ), TOL ) );
   ASSERT( ! oblongbox.contained( scaled_corner( oblongbox, 6, 1.2 ), TOL ) );
   ASSERT( ! oblongbox.contained( scaled_corner( oblongbox, 7, 1.2 ), TOL ) );
-   
+
     // test points beyond the center of each face
   ASSERT( ! oblongbox.contained( scaled_face( oblongbox, 0, 1.3), TOL ) );
   ASSERT( ! oblongbox.contained( scaled_face( oblongbox, 1, 1.3), TOL ) );
@@ -321,8 +321,8 @@ static void test_contained()
   ASSERT( ! oblongbox.contained( scaled_face( oblongbox, 4, 1.3), TOL ) );
   ASSERT( ! oblongbox.contained( scaled_face( oblongbox, 5, 1.3), TOL ) );
 
-    // now do offset box 
-    
+    // now do offset box
+
     // test points inside box
   ASSERT( offsetbox.contained( offsetbox.center, TOL ) );
   ASSERT( offsetbox.contained( scaled_corner( offsetbox, 0, 0.6 ), TOL ) );
@@ -333,7 +333,7 @@ static void test_contained()
   ASSERT( offsetbox.contained( scaled_corner( offsetbox, 5, 0.6 ), TOL ) );
   ASSERT( offsetbox.contained( scaled_corner( offsetbox, 6, 0.6 ), TOL ) );
   ASSERT( offsetbox.contained( scaled_corner( offsetbox, 7, 0.6 ), TOL ) );
-    
+
     // test points at box corners
   ASSERT( offsetbox.contained( scaled_corner( offsetbox, 0, 1.0 ), TOL ) );
   ASSERT( offsetbox.contained( scaled_corner( offsetbox, 1, 1.0 ), TOL ) );
@@ -343,7 +343,7 @@ static void test_contained()
   ASSERT( offsetbox.contained( scaled_corner( offsetbox, 5, 1.0 ), TOL ) );
   ASSERT( offsetbox.contained( scaled_corner( offsetbox, 6, 1.0 ), TOL ) );
   ASSERT( offsetbox.contained( scaled_corner( offsetbox, 7, 1.0 ), TOL ) );
-    
+
     // test points at center of each face
   ASSERT( offsetbox.contained( scaled_face( offsetbox, 0, 1.0), TOL ) );
   ASSERT( offsetbox.contained( scaled_face( offsetbox, 1, 1.0), TOL ) );
@@ -361,7 +361,7 @@ static void test_contained()
   ASSERT( ! offsetbox.contained( scaled_corner( offsetbox, 5, 1.2 ), TOL ) );
   ASSERT( ! offsetbox.contained( scaled_corner( offsetbox, 6, 1.2 ), TOL ) );
   ASSERT( ! offsetbox.contained( scaled_corner( offsetbox, 7, 1.2 ), TOL ) );
-   
+
     // test points beyond the center of each face
   ASSERT( ! offsetbox.contained( scaled_face( offsetbox, 0, 1.3), TOL ) );
   ASSERT( ! offsetbox.contained( scaled_face( offsetbox, 1, 1.3), TOL ) );
@@ -370,8 +370,8 @@ static void test_contained()
   ASSERT( ! offsetbox.contained( scaled_face( offsetbox, 4, 1.3), TOL ) );
   ASSERT( ! offsetbox.contained( scaled_face( offsetbox, 5, 1.3), TOL ) );
 
-    // now do rotated box 
-    
+    // now do rotated box
+
     // test points inside box
   ASSERT( rotbox.contained( rotbox.center, TOL ) );
   ASSERT( rotbox.contained( scaled_corner( rotbox, 0, 0.6 ), TOL ) );
@@ -382,7 +382,7 @@ static void test_contained()
   ASSERT( rotbox.contained( scaled_corner( rotbox, 5, 0.6 ), TOL ) );
   ASSERT( rotbox.contained( scaled_corner( rotbox, 6, 0.6 ), TOL ) );
   ASSERT( rotbox.contained( scaled_corner( rotbox, 7, 0.6 ), TOL ) );
-    
+
     // test points at box corners
   ASSERT( rotbox.contained( scaled_corner( rotbox, 0, 1.0 ), TOL ) );
   ASSERT( rotbox.contained( scaled_corner( rotbox, 1, 1.0 ), TOL ) );
@@ -392,7 +392,7 @@ static void test_contained()
   ASSERT( rotbox.contained( scaled_corner( rotbox, 5, 1.0 ), TOL ) );
   ASSERT( rotbox.contained( scaled_corner( rotbox, 6, 1.0 ), TOL ) );
   ASSERT( rotbox.contained( scaled_corner( rotbox, 7, 1.0 ), TOL ) );
-    
+
     // test points at center of each face
   ASSERT( rotbox.contained( scaled_face( rotbox, 0, 1.0), TOL ) );
   ASSERT( rotbox.contained( scaled_face( rotbox, 1, 1.0), TOL ) );
@@ -410,7 +410,7 @@ static void test_contained()
   ASSERT( ! rotbox.contained( scaled_corner( rotbox, 5, 1.2 ), TOL ) );
   ASSERT( ! rotbox.contained( scaled_corner( rotbox, 6, 1.2 ), TOL ) );
   ASSERT( ! rotbox.contained( scaled_corner( rotbox, 7, 1.2 ), TOL ) );
-   
+
     // test points beyond the center of each face
   ASSERT( ! rotbox.contained( scaled_face( rotbox, 0, 1.3), TOL ) );
   ASSERT( ! rotbox.contained( scaled_face( rotbox, 1, 1.3), TOL ) );
@@ -424,9 +424,9 @@ static void test_contained()
 static void test_closest_point()
 {
   CartVect result;
-  
+
     // start with unit box
-    
+
     // test locations inside box
   unitbox.closest_location_in_box( unitbox.center, result );
   ASSERT_VECTORS_EQUAL( result, unitbox.center );
@@ -447,7 +447,7 @@ static void test_closest_point()
   ASSERT_VECTORS_EQUAL( result, scaled_corner(unitbox,6,f) );
   unitbox.closest_location_in_box( scaled_corner(unitbox,7,f), result );
   ASSERT_VECTORS_EQUAL( result, scaled_corner(unitbox,7,f) );
-    
+
     // test each corner
   f = 1.0;
   unitbox.closest_location_in_box( scaled_corner(unitbox,0,f), result );
@@ -485,7 +485,7 @@ static void test_closest_point()
   ASSERT_VECTORS_EQUAL( result, scaled_corner(unitbox,6,1) );
   unitbox.closest_location_in_box( scaled_corner(unitbox,7,f), result );
   ASSERT_VECTORS_EQUAL( result, scaled_corner(unitbox,7,1) );
-  
+
     // test on each face
   f = 1.0;
   unitbox.closest_location_in_box( scaled_face(unitbox,0,f), result );
@@ -500,7 +500,7 @@ static void test_closest_point()
   ASSERT_VECTORS_EQUAL( result, scaled_face(unitbox,4,f) );
   unitbox.closest_location_in_box( scaled_face(unitbox,5,f), result );
   ASSERT_VECTORS_EQUAL( result, scaled_face(unitbox,5,f) );
-  
+
     // test outside each face
   f = 1.5;
   unitbox.closest_location_in_box( scaled_face(unitbox,0,f), result );
@@ -515,9 +515,9 @@ static void test_closest_point()
   ASSERT_VECTORS_EQUAL( result, scaled_face(unitbox,4,1) );
   unitbox.closest_location_in_box( scaled_face(unitbox,5,f), result );
   ASSERT_VECTORS_EQUAL( result, scaled_face(unitbox,5,1) );
-  
+
     // next offset box
-    
+
     // test locations inside box
   offsetbox.closest_location_in_box( offsetbox.center, result );
   ASSERT_VECTORS_EQUAL( result, offsetbox.center );
@@ -538,7 +538,7 @@ static void test_closest_point()
   ASSERT_VECTORS_EQUAL( result, scaled_corner(offsetbox,6,f) );
   offsetbox.closest_location_in_box( scaled_corner(offsetbox,7,f), result );
   ASSERT_VECTORS_EQUAL( result, scaled_corner(offsetbox,7,f) );
-    
+
     // test each corner
   f = 1.0;
   offsetbox.closest_location_in_box( scaled_corner(offsetbox,0,f), result );
@@ -576,7 +576,7 @@ static void test_closest_point()
   ASSERT_VECTORS_EQUAL( result, scaled_corner(offsetbox,6,1) );
   offsetbox.closest_location_in_box( scaled_corner(offsetbox,7,f), result );
   ASSERT_VECTORS_EQUAL( result, scaled_corner(offsetbox,7,1) );
-  
+
     // test on each face
   f = 1.0;
   offsetbox.closest_location_in_box( scaled_face(offsetbox,0,f), result );
@@ -591,7 +591,7 @@ static void test_closest_point()
   ASSERT_VECTORS_EQUAL( result, scaled_face(offsetbox,4,f) );
   offsetbox.closest_location_in_box( scaled_face(offsetbox,5,f), result );
   ASSERT_VECTORS_EQUAL( result, scaled_face(offsetbox,5,f) );
-  
+
     // test outside each face
   f = 1.5;
   offsetbox.closest_location_in_box( scaled_face(offsetbox,0,f), result );
@@ -606,9 +606,9 @@ static void test_closest_point()
   ASSERT_VECTORS_EQUAL( result, scaled_face(offsetbox,4,1) );
   offsetbox.closest_location_in_box( scaled_face(offsetbox,5,f), result );
   ASSERT_VECTORS_EQUAL( result, scaled_face(offsetbox,5,1) );
-  
+
     // next oblong box
-    
+
     // test locations inside box
   oblongbox.closest_location_in_box( oblongbox.center, result );
   ASSERT_VECTORS_EQUAL( result, oblongbox.center );
@@ -629,7 +629,7 @@ static void test_closest_point()
   ASSERT_VECTORS_EQUAL( result, scaled_corner(oblongbox,6,f) );
   oblongbox.closest_location_in_box( scaled_corner(oblongbox,7,f), result );
   ASSERT_VECTORS_EQUAL( result, scaled_corner(oblongbox,7,f) );
-    
+
     // test each corner
   f = 1.0;
   oblongbox.closest_location_in_box( scaled_corner(oblongbox,0,f), result );
@@ -667,7 +667,7 @@ static void test_closest_point()
   ASSERT_VECTORS_EQUAL( result, scaled_corner(oblongbox,6,1) );
   oblongbox.closest_location_in_box( scaled_corner(oblongbox,7,f), result );
   ASSERT_VECTORS_EQUAL( result, scaled_corner(oblongbox,7,1) );
-  
+
     // test on each face
   f = 1.0;
   oblongbox.closest_location_in_box( scaled_face(oblongbox,0,f), result );
@@ -682,7 +682,7 @@ static void test_closest_point()
   ASSERT_VECTORS_EQUAL( result, scaled_face(oblongbox,4,f) );
   oblongbox.closest_location_in_box( scaled_face(oblongbox,5,f), result );
   ASSERT_VECTORS_EQUAL( result, scaled_face(oblongbox,5,f) );
-  
+
     // test outside each face
   f = 1.5;
   oblongbox.closest_location_in_box( scaled_face(oblongbox,0,f), result );
@@ -697,9 +697,9 @@ static void test_closest_point()
   ASSERT_VECTORS_EQUAL( result, scaled_face(oblongbox,4,1) );
   oblongbox.closest_location_in_box( scaled_face(oblongbox,5,f), result );
   ASSERT_VECTORS_EQUAL( result, scaled_face(oblongbox,5,1) );
-  
+
     // next rotated box
-    
+
     // test locations inside box
   rotbox.closest_location_in_box( rotbox.center, result );
   ASSERT_VECTORS_EQUAL( result, rotbox.center );
@@ -720,7 +720,7 @@ static void test_closest_point()
   ASSERT_VECTORS_EQUAL( result, scaled_corner(rotbox,6,f) );
   rotbox.closest_location_in_box( scaled_corner(rotbox,7,f), result );
   ASSERT_VECTORS_EQUAL( result, scaled_corner(rotbox,7,f) );
-    
+
     // test each corner
   f = 1.0;
   rotbox.closest_location_in_box( scaled_corner(rotbox,0,f), result );
@@ -758,7 +758,7 @@ static void test_closest_point()
   ASSERT_VECTORS_EQUAL( result, scaled_corner(rotbox,6,1) );
   rotbox.closest_location_in_box( scaled_corner(rotbox,7,f), result );
   ASSERT_VECTORS_EQUAL( result, scaled_corner(rotbox,7,1) );
-  
+
     // test on each face
   f = 1.0;
   rotbox.closest_location_in_box( scaled_face(rotbox,0,f), result );
@@ -773,7 +773,7 @@ static void test_closest_point()
   ASSERT_VECTORS_EQUAL( result, scaled_face(rotbox,4,f) );
   rotbox.closest_location_in_box( scaled_face(rotbox,5,f), result );
   ASSERT_VECTORS_EQUAL( result, scaled_face(rotbox,5,f) );
-  
+
     // test outside each face
   f = 1.5;
   rotbox.closest_location_in_box( scaled_face(rotbox,0,f), result );
@@ -794,9 +794,9 @@ static void test_closest_point()
 void test_ray_intersect()
 {
   CartVect dir, pt;
-  
+
   // start with unit box
-  
+
     // test ray from box center towards each face
   dir = scaled_face( unitbox, 0, 1.0 ) - unitbox.center; dir.normalize();
   ASSERT( unitbox.intersect_ray( unitbox.center, dir, TOL ) );
@@ -810,7 +810,7 @@ void test_ray_intersect()
   ASSERT( unitbox.intersect_ray( unitbox.center, dir, TOL ) );
   dir = scaled_face( unitbox, 5, 1.0 ) - unitbox.center; dir.normalize();
   ASSERT( unitbox.intersect_ray( unitbox.center, dir, TOL ) );
-  
+
     // test ray starting outside each face and pointing towards box center
   pt = scaled_face( unitbox, 0, 3.0 ); dir = unitbox.center - pt; dir.normalize();
   ASSERT( unitbox.intersect_ray( pt, dir, TOL ) );
@@ -824,7 +824,7 @@ void test_ray_intersect()
   ASSERT( unitbox.intersect_ray( pt, dir, TOL ) );
   pt = scaled_face( unitbox, 5, 3.0 ); dir = unitbox.center - pt; dir.normalize();
   ASSERT( unitbox.intersect_ray( pt, dir, TOL ) );
-  
+
     // test ray from outside first face toward box center, with nonnegative ray length
   pt = scaled_face( unitbox, 0, 3.0 ); dir = unitbox.center - pt; dir.normalize();
   const double short_pos =  0.99;
@@ -862,7 +862,7 @@ void test_ray_intersect()
   ASSERT( unitbox.intersect_ray( pt, dir, TOL ) );
   pt = scaled_corner( unitbox, 7, 0.3 ); dir = pt - unitbox.center; dir.normalize();
   ASSERT( unitbox.intersect_ray( pt, dir, TOL ) );
-  
+
     // test ray starting outside box and passing through opposite corners
   pt = scaled_corner( unitbox, 0, 3.0 ); dir = unitbox.center - pt; dir.normalize();
   ASSERT( unitbox.intersect_ray( pt, dir, TOL ) );
@@ -880,7 +880,7 @@ void test_ray_intersect()
   ASSERT( unitbox.intersect_ray( pt, dir, TOL ) );
   pt = scaled_corner( unitbox, 7, 3.0 ); dir = unitbox.center - pt; dir.normalize();
   ASSERT( unitbox.intersect_ray( pt, dir, TOL ) );
-  
+
     // test ray starting outside face and pointing away from box
   pt = scaled_face( unitbox, 0, 3.0 ); dir = pt - unitbox.center; dir.normalize();
   ASSERT( ! unitbox.intersect_ray( pt, dir, TOL ) );
@@ -894,7 +894,7 @@ void test_ray_intersect()
   ASSERT( ! unitbox.intersect_ray( pt, dir, TOL ) );
   pt = scaled_face( unitbox, 5, 3.0 ); dir = pt - unitbox.center; dir.normalize();
   ASSERT( ! unitbox.intersect_ray( pt, dir, TOL ) );
-  
+
     // test ray starting outside face and parallel to face
   pt = scaled_face( unitbox, 0, 3.0 ); dir = unitbox.scaled_axis(1); dir.normalize();
   ASSERT( ! unitbox.intersect_ray( pt, dir, TOL ) );
@@ -908,9 +908,9 @@ void test_ray_intersect()
   ASSERT( ! unitbox.intersect_ray( pt, dir, TOL ) );
   pt = scaled_face( unitbox, 5, 3.0 ); dir = unitbox.scaled_axis(1); dir.normalize();
   ASSERT( ! unitbox.intersect_ray( pt, dir, TOL ) );
-  
+
   // next do offset box
-  
+
     // test ray from box center towards each face
   dir = scaled_face( offsetbox, 0, 1.0 ) - offsetbox.center; dir.normalize();
   ASSERT( offsetbox.intersect_ray( offsetbox.center, dir, TOL ) );
@@ -924,7 +924,7 @@ void test_ray_intersect()
   ASSERT( offsetbox.intersect_ray( offsetbox.center, dir, TOL ) );
   dir = scaled_face( offsetbox, 5, 1.0 ) - offsetbox.center; dir.normalize();
   ASSERT( offsetbox.intersect_ray( offsetbox.center, dir, TOL ) );
-  
+
     // test ray starting outside each face and pointing towards box center
   pt = scaled_face( offsetbox, 0, 3.0 ); dir = offsetbox.center - pt; dir.normalize();
   ASSERT( offsetbox.intersect_ray( pt, dir, TOL ) );
@@ -938,7 +938,7 @@ void test_ray_intersect()
   ASSERT( offsetbox.intersect_ray( pt, dir, TOL ) );
   pt = scaled_face( offsetbox, 5, 3.0 ); dir = offsetbox.center - pt; dir.normalize();
   ASSERT( offsetbox.intersect_ray( pt, dir, TOL ) );
-  
+
     // test ray starting inside box and passing through a corner
   pt = scaled_corner( offsetbox, 0, 0.3 ); dir = pt - offsetbox.center; dir.normalize();
   ASSERT( offsetbox.intersect_ray( pt, dir, TOL ) );
@@ -956,7 +956,7 @@ void test_ray_intersect()
   ASSERT( offsetbox.intersect_ray( pt, dir, TOL ) );
   pt = scaled_corner( offsetbox, 7, 0.3 ); dir = pt - offsetbox.center; dir.normalize();
   ASSERT( offsetbox.intersect_ray( pt, dir, TOL ) );
-  
+
     // test ray starting outside box and passing through opposite corners
   pt = scaled_corner( offsetbox, 0, 3.0 ); dir = offsetbox.center - pt; dir.normalize();
   ASSERT( offsetbox.intersect_ray( pt, dir, TOL ) );
@@ -974,7 +974,7 @@ void test_ray_intersect()
   ASSERT( offsetbox.intersect_ray( pt, dir, TOL ) );
   pt = scaled_corner( offsetbox, 7, 3.0 ); dir = offsetbox.center - pt; dir.normalize();
   ASSERT( offsetbox.intersect_ray( pt, dir, TOL ) );
-  
+
     // test ray starting outside face and pointing away from box
   pt = scaled_face( offsetbox, 0, 3.0 ); dir = pt - offsetbox.center; dir.normalize();
   ASSERT( ! offsetbox.intersect_ray( pt, dir, TOL ) );
@@ -988,7 +988,7 @@ void test_ray_intersect()
   ASSERT( ! offsetbox.intersect_ray( pt, dir, TOL ) );
   pt = scaled_face( offsetbox, 5, 3.0 ); dir = pt - offsetbox.center; dir.normalize();
   ASSERT( ! offsetbox.intersect_ray( pt, dir, TOL ) );
-  
+
     // test ray starting outside face and parallel to face
   pt = scaled_face( offsetbox, 0, 3.0 ); dir = offsetbox.scaled_axis(1); dir.normalize();
   ASSERT( ! offsetbox.intersect_ray( pt, dir, TOL ) );
@@ -1002,9 +1002,9 @@ void test_ray_intersect()
   ASSERT( ! offsetbox.intersect_ray( pt, dir, TOL ) );
   pt = scaled_face( offsetbox, 5, 3.0 ); dir = offsetbox.scaled_axis(1); dir.normalize();
   ASSERT( ! offsetbox.intersect_ray( pt, dir, TOL ) );
-  
+
   // next do oblong box
-  
+
     // test ray from box center towards each face
   dir = scaled_face( oblongbox, 0, 1.0 ) - oblongbox.center; dir.normalize();
   ASSERT( oblongbox.intersect_ray( oblongbox.center, dir, TOL ) );
@@ -1018,7 +1018,7 @@ void test_ray_intersect()
   ASSERT( oblongbox.intersect_ray( oblongbox.center, dir, TOL ) );
   dir = scaled_face( oblongbox, 5, 1.0 ) - oblongbox.center; dir.normalize();
   ASSERT( oblongbox.intersect_ray( oblongbox.center, dir, TOL ) );
-  
+
     // test ray starting outside each face and pointing towards box center
   pt = scaled_face( oblongbox, 0, 3.0 ); dir = oblongbox.center - pt; dir.normalize();
   ASSERT( oblongbox.intersect_ray( pt, dir, TOL ) );
@@ -1032,7 +1032,7 @@ void test_ray_intersect()
   ASSERT( oblongbox.intersect_ray( pt, dir, TOL ) );
   pt = scaled_face( oblongbox, 5, 3.0 ); dir = oblongbox.center - pt; dir.normalize();
   ASSERT( oblongbox.intersect_ray( pt, dir, TOL ) );
-  
+
     // test ray starting inside box and passing through a corner
   pt = scaled_corner( oblongbox, 0, 0.3 ); dir = pt - oblongbox.center; dir.normalize();
   ASSERT( oblongbox.intersect_ray( pt, dir, TOL ) );
@@ -1050,7 +1050,7 @@ void test_ray_intersect()
   ASSERT( oblongbox.intersect_ray( pt, dir, TOL ) );
   pt = scaled_corner( oblongbox, 7, 0.3 ); dir = pt - oblongbox.center; dir.normalize();
   ASSERT( oblongbox.intersect_ray( pt, dir, TOL ) );
-  
+
     // test ray starting outside box and passing through opposite corners
   pt = scaled_corner( oblongbox, 0, 3.0 ); dir = oblongbox.center - pt; dir.normalize();
   ASSERT( oblongbox.intersect_ray( pt, dir, TOL ) );
@@ -1068,7 +1068,7 @@ void test_ray_intersect()
   ASSERT( oblongbox.intersect_ray( pt, dir, TOL ) );
   pt = scaled_corner( oblongbox, 7, 3.0 ); dir = oblongbox.center - pt; dir.normalize();
   ASSERT( oblongbox.intersect_ray( pt, dir, TOL ) );
-  
+
     // test ray starting outside face and pointing away from box
   pt = scaled_face( oblongbox, 0, 3.0 ); dir = pt - oblongbox.center; dir.normalize();
   ASSERT( ! oblongbox.intersect_ray( pt, dir, TOL ) );
@@ -1082,7 +1082,7 @@ void test_ray_intersect()
   ASSERT( ! oblongbox.intersect_ray( pt, dir, TOL ) );
   pt = scaled_face( oblongbox, 5, 3.0 ); dir = pt - oblongbox.center; dir.normalize();
   ASSERT( ! oblongbox.intersect_ray( pt, dir, TOL ) );
-  
+
     // test ray starting outside face and parallel to face
   pt = scaled_face( oblongbox, 0, 3.0 ); dir = oblongbox.scaled_axis(1); dir.normalize();
   ASSERT( ! oblongbox.intersect_ray( pt, dir, TOL ) );
@@ -1096,9 +1096,9 @@ void test_ray_intersect()
   ASSERT( ! oblongbox.intersect_ray( pt, dir, TOL ) );
   pt = scaled_face( oblongbox, 5, 3.0 ); dir = oblongbox.scaled_axis(1); dir.normalize();
   ASSERT( ! oblongbox.intersect_ray( pt, dir, TOL ) );
-  
+
   // next do rotated box
-  
+
     // test ray from box center towards each face
   dir = scaled_face( rotbox, 0, 1.0 ) - rotbox.center; dir.normalize();
   ASSERT( rotbox.intersect_ray( rotbox.center, dir, TOL ) );
@@ -1112,7 +1112,7 @@ void test_ray_intersect()
   ASSERT( rotbox.intersect_ray( rotbox.center, dir, TOL ) );
   dir = scaled_face( rotbox, 5, 1.0 ) - rotbox.center; dir.normalize();
   ASSERT( rotbox.intersect_ray( rotbox.center, dir, TOL ) );
-  
+
     // test ray starting outside each face and pointing towards box center
   pt = scaled_face( rotbox, 0, 3.0 ); dir = rotbox.center - pt; dir.normalize();
   ASSERT( rotbox.intersect_ray( pt, dir, TOL ) );
@@ -1126,7 +1126,7 @@ void test_ray_intersect()
   ASSERT( rotbox.intersect_ray( pt, dir, TOL ) );
   pt = scaled_face( rotbox, 5, 3.0 ); dir = rotbox.center - pt; dir.normalize();
   ASSERT( rotbox.intersect_ray( pt, dir, TOL ) );
-  
+
     // test ray starting inside box and passing through a corner
   pt = scaled_corner( rotbox, 0, 0.3 ); dir = pt - rotbox.center; dir.normalize();
   ASSERT( rotbox.intersect_ray( pt, dir, TOL ) );
@@ -1144,7 +1144,7 @@ void test_ray_intersect()
   ASSERT( rotbox.intersect_ray( pt, dir, TOL ) );
   pt = scaled_corner( rotbox, 7, 0.3 ); dir = pt - rotbox.center; dir.normalize();
   ASSERT( rotbox.intersect_ray( pt, dir, TOL ) );
-  
+
     // test ray starting outside box and passing through opposite corners
   pt = scaled_corner( rotbox, 0, 3.0 ); dir = rotbox.center - pt; dir.normalize();
   ASSERT( rotbox.intersect_ray( pt, dir, TOL ) );
@@ -1162,7 +1162,7 @@ void test_ray_intersect()
   ASSERT( rotbox.intersect_ray( pt, dir, TOL ) );
   pt = scaled_corner( rotbox, 7, 3.0 ); dir = rotbox.center - pt; dir.normalize();
   ASSERT( rotbox.intersect_ray( pt, dir, TOL ) );
-  
+
     // test ray starting outside face and pointing away from box
   pt = scaled_face( rotbox, 0, 3.0 ); dir = pt - rotbox.center; dir.normalize();
   ASSERT( ! rotbox.intersect_ray( pt, dir, TOL ) );
@@ -1176,7 +1176,7 @@ void test_ray_intersect()
   ASSERT( ! rotbox.intersect_ray( pt, dir, TOL ) );
   pt = scaled_face( rotbox, 5, 3.0 ); dir = pt - rotbox.center; dir.normalize();
   ASSERT( ! rotbox.intersect_ray( pt, dir, TOL ) );
-  
+
     // test ray starting outside face and parallel to face
   pt = scaled_face( rotbox, 0, 3.0 ); dir = rotbox.scaled_axis(1); dir.normalize();
   ASSERT( ! rotbox.intersect_ray( pt, dir, TOL ) );
@@ -1193,7 +1193,7 @@ void test_ray_intersect()
 }
 
 /*!
-  @test 
+  @test
   Construct OBB Box from triangles
   @li Check building OBB box from triangles
 */
@@ -1202,7 +1202,7 @@ void test_build_from_tri()
   ErrorCode rval;
   Core moab;
   int i;
-  
+
   // define a planar patch of triangles
   const double coords[] = { 0, 0, 0,
                             5, 0, 0,
@@ -1231,16 +1231,16 @@ void test_build_from_tri()
                       4, 3,13,
                       3, 2,11,
                       2,10,11,
-                      
+
                       5,14,15,
                       5, 4,14,
                       3, 4, 5,
                       0, 3, 5,
                       0, 1, 3,
-                      1, 2, 3, 
+                      1, 2, 3,
                       2, 1,10,
                       1, 9,10,
-                      
+
                       5,15,16,
                       6, 5,16,
                       5, 6, 7,
@@ -1249,14 +1249,14 @@ void test_build_from_tri()
                       1, 7, 8,
                       1, 8,20,
                       9, 1,20,
-                      
+
                       6,16,17,
                       7, 6,17,
                       7,17,18,
                       7,18,19,
                       8, 7,19,
                       8,19,20 };
-  
+
     // build triangle mesh
   std::vector<EntityHandle> vertices(21);
   for (i = 0; i < 21; ++i) {
@@ -1273,12 +1273,12 @@ void test_build_from_tri()
     ASSERT(MB_SUCCESS == rval);
     tris.insert( tri );
   }
-  
+
     // create box from triangles
   OrientedBox box;
   rval = OrientedBox::compute_from_2d_cells( box, &moab, tris );
   ASSERT( MB_SUCCESS == rval );
-  
+
     // compute range along each box axis for input vertices
   const Matrix3 axis ( box.scaled_axis(0),
                        box.scaled_axis(1),
@@ -1299,8 +1299,8 @@ void test_build_from_tri()
         max[j] = d;
     }
   }
-  
-    // Vrify that all points are contained in box 
+
+    // Vrify that all points are contained in box
     // and that box fits points tightly.
     // Triangles line in xy plane, so assuming axes are
     // sorted by length, first axis should be zero.
@@ -1308,7 +1308,7 @@ void test_build_from_tri()
   ASSERT_DOUBLES_EQUAL( min[2], -1 );
   ASSERT_DOUBLES_EQUAL( max[1],  1 );
   ASSERT_DOUBLES_EQUAL( max[2],  1 );
-    
+
     // verify that the box is flat along first axis
   ASSERT( box.dimensions()[0] <= TOL );
     // verify that other two axes are in XY plane
@@ -1316,15 +1316,15 @@ void test_build_from_tri()
   ASSERT( fabs(box.axis(1) % z_axis) <= TOL );
   ASSERT( fabs(box.axis(2) % z_axis) <= TOL );
 }
-                         
-    
+
+
 
 void test_build_from_pts()
 {
   ErrorCode rval;
   Core moab;
   Interface* const gMB = &moab;
-  
+
   const double vertex_coords[] =
     { 0, 0, 0,
       1, 0, 0,
@@ -1337,7 +1337,7 @@ void test_build_from_pts()
   const int num_double = sizeof(vertex_coords) / (sizeof(double));
   const int num_vertex = num_double / 3;
   assert (0 == num_double%3);
-  
+
     // create some vertices
   Range vertices;
   double min[3] = { HUGE_VAL,  HUGE_VAL,  HUGE_VAL};
@@ -1353,16 +1353,16 @@ void test_build_from_pts()
       if (c > max[j]) max[j] = c;
     }
   }
-  
+
     // create box containing vertices
   OrientedBox box;
   rval = OrientedBox::compute_from_vertices( box, gMB, vertices );
   ASSERT( MB_SUCCESS == rval );
-  
+
   for (int i = 0; i < num_vertex; ++i) {
     ASSERT( box.contained( CartVect(vertex_coords[3*i]), 1e-6 ) );
   }
-  
+
     // define a set of points otside of the box to test
   double center[3] = { 0.5 * (max[0] + min[0]),
                        0.5 * (max[1] + min[1]),
@@ -1383,7 +1383,7 @@ void test_build_from_pts()
     // test 'contained' method for all points
   for (int i = 0; i < 3; ++i) {
     ASSERT( ! box.contained( CartVect(outside[i]), 1e-6 ) );
-  } 
+  }
 }
 
 static void test_save()
@@ -1391,12 +1391,12 @@ static void test_save()
   ErrorCode rval;
   Core moab;
   OrientedBox box;
-  
+
     // create a tag to store the data in
   Tag tag;
   rval = OrientedBox::tag_handle( tag, &moab, "FOO" );
   ASSERT( MB_SUCCESS == rval );
-  
+
     // check tag size
   int size;
   rval= moab.tag_get_bytes( tag, size );
@@ -1407,10 +1407,10 @@ static void test_save()
 
 /********************* Error Checking Code ***************************/
 
-static void assert_vector_element( const CartVect& a, 
-                                   const Matrix3& b, 
-                                   const char* sa, 
-                                   const char* sb, 
+static void assert_vector_element( const CartVect& a,
+                                   const Matrix3& b,
+                                   const char* sa,
+                                   const char* sb,
                                    int lineno )
 {
   int i;
@@ -1433,7 +1433,7 @@ static void assert_vector_element( const CartVect& a,
   return;
 }
 
-void assert_vectors_equal( const CartVect& a, const CartVect& b, 
+void assert_vectors_equal( const CartVect& a, const CartVect& b,
                            const char* sa, const char* sb,
                            int lineno )
 {

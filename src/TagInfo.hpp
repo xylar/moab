@@ -20,17 +20,17 @@ public:
               mMeshValue(NULL),
               mDefaultValueSize(0),
               mMeshValueSize(0),
-              mDataSize(0), 
+              mDataSize(0),
               dataType(MB_TYPE_OPAQUE)
               {}
 
   //! constructor that takes all parameters
-  TagInfo( const char * name, 
-           int size, 
-           DataType type, 
+  TagInfo( const char * name,
+           int size,
+           DataType type,
            const void * default_value,
            int default_value_size);
-  
+
   virtual ~TagInfo();
 
   /**\brief Remove/clear tag data for all entities
@@ -41,7 +41,7 @@ public:
    *          data associated with the tag in preparation for deleting
    *          the tag itself.
    *
-   *\Note Invalidates tag if \c tag_delete_pending is true.  The only 
+   *\Note Invalidates tag if \c tag_delete_pending is true.  The only
    *        valid method that can be invoked that is is the destructor.
    *
    *\param seqman    Pointer to mesh entity database
@@ -49,7 +49,7 @@ public:
   virtual ErrorCode release_all_data( SequenceManager* seqman,
                                       Error* error_handler,
                                       bool tag_delete_pending ) = 0;
-  
+
   //! set the name of the tag
   void set_name( const std::string& name) { mTagName = name; }
 
@@ -61,21 +61,21 @@ public:
 
     //! get the default data
   const void *get_default_value() const { return mDefaultValue; }
-  
+
     //! compare the passed value to the default value.
     //! returns false if no default value.
   bool equals_default_value( const void* data, int size = -1 ) const;
-  
+
   inline DataType get_data_type() const     { return dataType; }
 
   //! get the size of the data in bytes
   int get_size() const { return mDataSize; }
-  
+
   //! Check if variable-length tag
   bool variable_length() const { return get_size() == MB_VARIABLE_LENGTH; }
 
   static int size_from_data_type( DataType t );
-  
+
     // Check that all lengths are valid multiples of the type size.
     // Returns true if all lengths are valid, false otherwise.
   bool check_valid_sizes( const int* sizes, int num_sizes ) const;
@@ -89,14 +89,14 @@ public:
      *         MB_SUCCESS              Otherwise.
      */
   ErrorCode validate_lengths( Error* error_handler,
-                              const int* lengths, 
+                              const int* lengths,
                               size_t num_lengths ) const;
 
   virtual
   TagType get_storage_type() const = 0;
 
   /**\brief Get tag value for passed entities
-   * 
+   *
    * Get tag values for specified entities.
    *
    *\Note Will fail for variable-length data.
@@ -112,9 +112,9 @@ public:
                       const EntityHandle* entities,
                       size_t num_entities,
                       void* data ) const = 0;
-  
+
   /**\brief Get tag value for passed entities
-   * 
+   *
    * Get tag values for specified entities.
    *
    *\Note Will fail for variable-length data.
@@ -128,9 +128,9 @@ public:
                       Error* error_handler,
                       const Range& entities,
                       void* data ) const = 0;
-                      
+
   /**\brief Get tag value for passed entities
-   * 
+   *
    * Get tag values for specified entities.
    *
    *\param seqman    Pointer to mesh entity database
@@ -140,7 +140,7 @@ public:
    *                 for each passed entity.
    *\param data_lengths One value for each entity specifying the
    *                length of the tag value for the corresponding
-   *                entity. 
+   *                entity.
    */
   virtual
   ErrorCode get_data( const SequenceManager* seqman,
@@ -149,10 +149,10 @@ public:
                       size_t num_entities,
                       const void** data_ptrs,
                       int* data_lengths ) const = 0;
-                      
-                      
+
+
   /**\brief Get tag value for passed entities
-   * 
+   *
    * Get tag values for specified entities.
    *
    *\param seqman    Pointer to mesh entity database
@@ -161,7 +161,7 @@ public:
    *                 for each passed entity.
    *\param data_lengths One value for each entity specifying the
    *                length of the tag value for the corresponding
-   *                entity. 
+   *                entity.
    */
   virtual
   ErrorCode get_data( const SequenceManager* seqman,
@@ -169,9 +169,9 @@ public:
                       const Range& entities,
                       const void** data_ptrs,
                       int* data_lengths ) const = 0;
-  
+
   /**\brief Set tag value for passed entities
-   * 
+   *
    * Store tag data or update stored tag values
    *\Note Will fail for variable-length data.
    *\param seqman Pointer to mesh entity database
@@ -186,9 +186,9 @@ public:
                       const EntityHandle* entities,
                       size_t num_entities,
                       const void* data ) = 0;
-  
+
   /**\brief Set tag value for passed entities
-   * 
+   *
    * Store tag data or update stored tag values
    *\Note Will fail for variable-length data.
    *\param seqman Pointer to mesh entity database
@@ -201,9 +201,9 @@ public:
                       Error* error_handler,
                       const Range& entities,
                       const void* data ) = 0;
-                      
+
   /**\brief Set tag value for passed entities
-   * 
+   *
    * Store tag data or update stored tag values
    *
    *\param seqman    Pointer to mesh entity database
@@ -223,10 +223,10 @@ public:
                       size_t num_entities,
                       void const* const* data_ptrs,
                       const int* data_lengths ) = 0;
-                      
-                      
+
+
   /**\brief Set tag value for passed entities
-   * 
+   *
    * Store tag data or update stored tag values
    *
    *\param seqman    Pointer to mesh entity database
@@ -244,9 +244,9 @@ public:
                       const Range& entities,
                       void const* const* data_ptrs,
                       const int* data_lengths ) = 0;
-                      
+
   /**\brief Set tag value for passed entities
-   * 
+   *
    * Store tag data or update stored tag values.
    *
    *\param seqman    Pointer to mesh entity database
@@ -265,9 +265,9 @@ public:
                         size_t num_entities,
                         const void* value_ptr,
                         int value_len = 0 ) = 0;
-                      
+
   /**\brief Set tag value for passed entities
-   * 
+   *
    * Store tag data or update stored tag values.
    *
    *\param seqman    Pointer to mesh entity database
@@ -317,7 +317,7 @@ public:
    * with variable length tags because it does not provide a mechanism
    * to determine the length of the value for each entity.  This
    * function may be used with sparse tags, but if it is used, it
-   * will return data for a single entity at a time.  
+   * will return data for a single entity at a time.
    *
    *\param iter        As input, the first entity for which to return
    *                   data.  As output, one past the last entity for
@@ -325,9 +325,9 @@ public:
    *\param end         One past the last entity for which data is desired
    *\param data_ptr    Output: pointer to tag storage.
    *\param allocate    If true, space for this tag will be allocated, if not it wont
-   *  
+   *
    *\Note If this function is called for entities for which no tag value
-   *      has been set, but for which a default value exists, it will 
+   *      has been set, but for which a default value exists, it will
    *      force the allocation of explicit storage for each such entity
    *      even though MOAB would normally not explicitly store tag values
    *      for such entities.
@@ -343,7 +343,7 @@ public:
   /**\brief Get all tagged entities
    *
    * Get the list of entities for which the a tag value has been set,
-   * or a close approximation if the tag storage scheme cannot 
+   * or a close approximation if the tag storage scheme cannot
    * accurately determine exactly which entities have explicit values.
    *
    *\param seqman   Pointer to entity storage database
@@ -362,7 +362,7 @@ public:
   /**\brief Count all tagged entities
    *
    * Count the entities for which the a tag value has been set,
-   * or a close approximation if the tag storage scheme cannot 
+   * or a close approximation if the tag storage scheme cannot
    * accurately determine exactly which entities have explicit values.
    *
    *\param seqman   Pointer to entity storage database
@@ -377,7 +377,7 @@ public:
                                  size_t& output_count,
                                  EntityType type = MBMAXTYPE,
                                  const Range* intersect = 0 ) const = 0;
-  
+
   /**\brief Get all tagged entities with tag value
    *
    * Get the list of entities which have the specified tag value.
@@ -399,11 +399,11 @@ public:
                                       int value_bytes = 0,
                                       EntityType type = MBMAXTYPE,
                                       const Range* intersect_entities = 0 ) const = 0;
-  
+
   /**\brief Check if entity is tagged */
   virtual
   bool is_tagged( const SequenceManager* seqman, EntityHandle entity ) const = 0;
-  
+
   /**\brief Get memory use for tag data.
    *
    */
@@ -412,7 +412,7 @@ public:
                             unsigned long& total,
                             unsigned long& per_entity ) const = 0;
 
-protected:    
+protected:
 
   unsigned long get_memory_use() const
   {
@@ -420,17 +420,17 @@ protected:
   }
 
 private:
-  
+
   TagInfo( const TagInfo& copy );
-  
+
   TagInfo& operator=( const TagInfo& copy );
 
   //! stores the default data, if any
   void* mDefaultValue;
-  
+
   //! store the mesh value, if any
   void* mMeshValue;
-  
+
   //! Size of mDefaultValue and mMeshValue, in bytes
   //! NOTE: These sizes differ from mDataSize in two cases:
   //!    a) Variable-length tags
@@ -439,7 +439,7 @@ private:
 
   //! stores the size of the data for this tag
   int mDataSize;
-  
+
   //! type of tag data
   DataType dataType;
 

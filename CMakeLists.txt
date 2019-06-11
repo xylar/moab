@@ -202,7 +202,7 @@ if ( ENABLE_BLASLAPACK  )
   endif(LAPACK_FOUND)
 
   SET (ENABLE_FORTRAN ON)
-  
+
   # Find Eigen3 is optional
   FIND_PACKAGE(Eigen3 OPTIONAL_COMPONENTS)
 else (ENABLE_BLASLAPACK)
@@ -283,7 +283,7 @@ if ( ENABLE_NETCDF )
   set (MOAB_HAVE_NETCDF_H 1)
   include_directories( ${NETCDF_INCLUDES} )
   set( MOAB_LIBS ${NETCDF_LIBRARIES} ${MOAB_LIBS} )
-  # 
+  #
   if ( PNETCDF_FOUND )
     # find_package( PNetCDF REQUIRED )
     set (MOAB_HAVE_PNETCDF ON)
@@ -397,10 +397,10 @@ CONFIGURE_FILE(
 
 if (ENABLE_FORTRAN)
   enable_language(Fortran)
-  
+
   # Include CMake's Fortran mangling evaluation macros
   include(FortranCInterface)
-  
+
   if ("${FortranCInterface_GLOBAL_CASE}" MATCHES "UPPER")
     set(FC_CASE "NAME")
   else ("${FortranCInterface_GLOBAL_CASE}" MATCHES "UPPER")
@@ -412,13 +412,13 @@ if (ENABLE_FORTRAN)
   if (NOT "${FortranCInterface_GLOBAL__SUFFIX}" STREQUAL "")
     set(FortranCInterface_GLOBAL__SUFFIX "## ${FortranCInterface_GLOBAL__SUFFIX}")
   endif (NOT "${FortranCInterface_GLOBAL__SUFFIX}" STREQUAL "")
-  
+
   set(MOAB_F77_FUNC  "${FortranCInterface_GLOBAL_PREFIX} ${FC_CASE} ${FortranCInterface_GLOBAL_SUFFIX}")
   set(MOAB_F77_FUNC_ "${FortranCInterface_GLOBAL__PREFIX} ${FC_CASE} ${FortranCInterface_GLOBAL__SUFFIX}")
   set(MOAB_FC_FUNC   "${FortranCInterface_GLOBAL_PREFIX} ${FC_CASE} ${FortranCInterface_GLOBAL_SUFFIX}")
   set(MOAB_FC_FUNC_  "${FortranCInterface_GLOBAL__PREFIX} ${FC_CASE} ${FortranCInterface_GLOBAL__SUFFIX}")
 endif (ENABLE_FORTRAN)
-  
+
 # Generate the CMake input header file and then pass it through configuration
 ## execute_process( COMMAND cat MOABConfig.h.in COMMAND sed -e "s/#undef /#cmakedefine MOAB_/g"
 #execute_process( COMMAND cat MOABConfig.h.in COMMAND sed -r "s/#undef ([A-Z].*)/#cmakedefine MOAB_\\1 @MOAB_\\1@/"

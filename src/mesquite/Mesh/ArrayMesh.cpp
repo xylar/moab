@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2007 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2007) kraftche@cae.wisc.edu    
+    (2007) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file ArrayMesh.cpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -84,7 +84,7 @@ ArrayMesh::ArrayMesh( int coords_per_vertex,
                       const unsigned long* element_connectivity_array,
                       bool one_based_conn_indices,
                       unsigned nodes_per_element,
-                      const int* vertex_slaved_flags ) 
+                      const int* vertex_slaved_flags )
   : mDimension( coords_per_vertex ),
     vertexCount( num_vertices ),
     coordArray( interleaved_vertex_coords ),
@@ -107,10 +107,10 @@ ArrayMesh::ArrayMesh( int coords_per_vertex,
     coordArray -= mDimension;
     --fixedFlags;
   }
-  
+
   if (nodesPerElement < 2)
     nodesPerElement = TopologyInfo::corners( element_type );
-    
+
   assert(valid());
   memset( vertexByteArray, 0, num_vertices + one_based_conn_indices );
 }
@@ -124,7 +124,7 @@ ArrayMesh::ArrayMesh( int coords_per_vertex,
                       const unsigned long* element_connectivity_array,
                       const unsigned long* element_connectivity_offsets,
                       bool one_based_conn_indices,
-                      const int* vertex_slaved_flags ) 
+                      const int* vertex_slaved_flags )
   : mDimension( coords_per_vertex ),
     vertexCount( num_vertices ),
     coordArray( interleaved_vertex_coords ),
@@ -149,14 +149,14 @@ ArrayMesh::ArrayMesh( int coords_per_vertex,
     if (element_connectivity_offsets)
       --connArray;
   }
-  
+
   if (!element_connectivity_offsets) {
     connOffsets = allocConnOffsets = new unsigned long[num_elements+1];
     allocConnOffsets[0] = 0;
     for (unsigned long i = 1; i <= num_elements; ++i)
       allocConnOffsets[i] = allocConnOffsets[i-1] + TopologyInfo::corners( elementTypes[i-1] );
   }
-  
+
   assert(valid());
   memset( vertexByteArray, 0, num_vertices + one_based_conn_indices );
 }
@@ -170,17 +170,17 @@ bool ArrayMesh::valid() const
       return false;
     }
   }
-  
+
   for (unsigned long i = 0; i < elementCount * nodesPerElement; ++i) {
     unsigned long j = connArray[i] - oneBasedArrays;
     if (j >= vertexCount) {
-      std::cerr << "Invalid connectivity index at index " << j 
-                << "(element " << j/elementCount << " node " << j%elementCount 
+      std::cerr << "Invalid connectivity index at index " << j
+                << "(element " << j/elementCount << " node " << j%elementCount
                 << ')' << std::endl;
       return false;
     }
   }
-  
+
   return true;
 }
 
@@ -226,7 +226,7 @@ void ArrayMesh::set_mesh( int coords_per_vertex,
                           const unsigned long* element_connectivity_array,
                           bool one_based_conn_indices,
                           unsigned nodes_per_element,
-                          const int* vertex_slaved_flags ) 
+                          const int* vertex_slaved_flags )
 {
   clear_mesh();
   mDimension = coords_per_vertex;
@@ -238,23 +238,23 @@ void ArrayMesh::set_mesh( int coords_per_vertex,
   connArray = element_connectivity_array;
   elementType = element_type;
   oneBasedArrays = one_based_conn_indices;
-  
+
   if (oneBasedArrays) {
     coordArray -= mDimension;
     --fixedFlags;
   }
-  
+
   if (nodes_per_element < 2)
     nodesPerElement = TopologyInfo::corners( element_type );
   else
     nodesPerElement = nodes_per_element;
-    
+
   vertexByteArray = new unsigned char[num_vertices + one_based_conn_indices];
   assert(valid());
   memset( vertexByteArray, 0, num_vertices + one_based_conn_indices );
 }
-  
-  
+
+
 
 ArrayMesh::~ArrayMesh()
 {
@@ -297,9 +297,9 @@ VertexIterator* ArrayMesh::vertex_iterator( MsqError& )
 ElementIterator* ArrayMesh::element_iterator( MsqError&  )
   { return new IndexIterator( 0, elementCount ); }
 
-void ArrayMesh::vertices_get_fixed_flag( const VertexHandle vert_array[], 
+void ArrayMesh::vertices_get_fixed_flag( const VertexHandle vert_array[],
                                          std::vector<bool>& fixed_flag_array,
-                                         size_t num_vtx, 
+                                         size_t num_vtx,
                                          MsqError & )
 {
   fixed_flag_array.resize( num_vtx );
@@ -310,17 +310,17 @@ void ArrayMesh::vertices_get_fixed_flag( const VertexHandle vert_array[],
   }
 }
 
-void ArrayMesh::vertices_get_slaved_flag( const VertexHandle* vert_array, 
+void ArrayMesh::vertices_get_slaved_flag( const VertexHandle* vert_array,
                                           std::vector<bool>& slaved_flags,
-                                          size_t num_vtx, 
+                                          size_t num_vtx,
                                           MsqError &err )
 {
   if (!slavedFlags) {
-    MSQ_SETERR(err)("No data provided to ArrayMesh for Settings::SLAVE_FLAG", 
+    MSQ_SETERR(err)("No data provided to ArrayMesh for Settings::SLAVE_FLAG",
                     MsqError::INVALID_STATE);
     return ;
   }
-  
+
   slaved_flags.resize( num_vtx );
   const size_t* indices = (const size_t*)vert_array;
   for (size_t i = 0; i < num_vtx; ++i) {
@@ -335,12 +335,12 @@ void ArrayMesh::vertices_get_coordinates( const VertexHandle vert_array[],
                                            MsqError &err )
 {
   const size_t* indices = (const size_t*)vert_array;
-  if (mDimension == 3) 
+  if (mDimension == 3)
     for (size_t i = 0; i < num_vtx; ++i) {
       assert( indices[i] < vertexCount+oneBasedArrays );
       coordinates[i].set( coordArray+3*indices[i] );
     }
-  else if (mDimension == 2) 
+  else if (mDimension == 2)
     for (size_t i =0; i < num_vtx; ++i) {
       assert( indices[i] < vertexCount+oneBasedArrays );
       coordinates[i].set( coordArray[2*indices[i]], coordArray[2*indices[i]+1], 0.0 );
@@ -355,7 +355,7 @@ void ArrayMesh::vertex_set_coordinates( VertexHandle vert,
 {
   size_t i = (size_t)vert;
   assert( i < vertexCount+oneBasedArrays );
-  if (mDimension == 3) 
+  if (mDimension == 3)
     coordinates.get_coordinates(coordArray+3*i);
   else if (mDimension == 2) {
     coordArray[2*i] = coordinates[0];
@@ -373,7 +373,7 @@ void ArrayMesh::vertex_set_byte( VertexHandle vertex, unsigned char byte, MsqErr
 
 void ArrayMesh::vertices_set_byte( const VertexHandle *vert_array,
                                    const unsigned char *byte_array,
-                                   size_t array_size, 
+                                   size_t array_size,
                                    MsqError & )
 {
   const size_t* indices = (const size_t*)vert_array;
@@ -391,7 +391,7 @@ void ArrayMesh::vertex_get_byte( VertexHandle vertex, unsigned char* byte, MsqEr
 
 void ArrayMesh::vertices_get_byte( const VertexHandle *vert_array,
                                    unsigned char *byte_array,
-                                   size_t array_size, 
+                                   size_t array_size,
                                    MsqError & )
 {
   const size_t* indices = (const size_t*)vert_array;
@@ -401,7 +401,7 @@ void ArrayMesh::vertices_get_byte( const VertexHandle *vert_array,
   }
 }
 
-void ArrayMesh::vertices_get_attached_elements( 
+void ArrayMesh::vertices_get_attached_elements(
                          const VertexHandle* vertex_array,
                          size_t num_vertex,
                          std::vector<ElementHandle>& elements,
@@ -411,7 +411,7 @@ void ArrayMesh::vertices_get_attached_elements(
   const size_t* indices = (const size_t*)vertex_array;
   if (!vertexAdjacencyList)
     build_vertex_adjacency_list();
-  
+
   elements.clear();
   offsets.resize( num_vertex + 1 );
   for (size_t i = 0; i < num_vertex; ++i) {
@@ -428,7 +428,7 @@ void ArrayMesh::elements_get_attached_vertices(
                                    const ElementHandle *elem_handles,
                                    size_t num_elems,
                                    std::vector<VertexHandle>& vert_handles,
-                                   std::vector<size_t>& offsets, 
+                                   std::vector<size_t>& offsets,
                                    MsqError &)
 {
   const size_t* indices = (const size_t*)elem_handles;
@@ -451,12 +451,12 @@ void ArrayMesh::elements_get_topologies( const ElementHandle *handles,
                                          size_t num_elements, MsqError& )
 {
   const size_t* indices = (const size_t*)handles;
-  if (elementType == MIXED) 
+  if (elementType == MIXED)
     for (size_t i = 0; i < num_elements; ++i) {
       assert( indices[i] < elementCount );
       element_topologies[i] = elementTypes[indices[i]];
     }
-  else 
+  else
     for (size_t i = 0; i < num_elements; ++i) {
       assert( indices[i] < elementCount );
       element_topologies[i] = elementType;
@@ -475,7 +475,7 @@ void ArrayMesh::build_vertex_adjacency_list()
   delete [] vertexAdjacencyList;
   delete [] vertexAdjacencyOffsets;
   vertexAdjacencyOffsets = new unsigned long[vertexCount+oneBasedArrays+1];
-  
+
     // for each vertex, store the number of elements the previous
     // vertex occurs in.
   memset( vertexAdjacencyOffsets, 0, sizeof(unsigned long)*(vertexCount+oneBasedArrays+1) );
@@ -485,12 +485,12 @@ void ArrayMesh::build_vertex_adjacency_list()
     for (int j = 0; j < n; ++j)
       ++vertexAdjacencyOffsets[conn[j]+1];
   }
-  
+
     // convert vertexAdjacencyOffsets from a shifted list of counts
     // to a list of offsts
   for (size_t i = 1; i <= vertexCount+oneBasedArrays; ++i)
     vertexAdjacencyOffsets[i] += vertexAdjacencyOffsets[i-1];
-    
+
     // allocate space and populate with reverse connectivity
   vertexAdjacencyList = new unsigned long[vertexAdjacencyOffsets[vertexCount+oneBasedArrays]];
   for (size_t i = 0; i < elementCount; ++i) {
@@ -499,10 +499,10 @@ void ArrayMesh::build_vertex_adjacency_list()
     for (int j = 0; j < n; ++j)
       vertexAdjacencyList[vertexAdjacencyOffsets[conn[j]]++] = i;
   }
-  
+
   for (size_t i = vertexCount+oneBasedArrays; i > 0; --i)
     vertexAdjacencyOffsets[i] = vertexAdjacencyOffsets[i-1];
-  vertexAdjacencyOffsets[0] = 0; 
+  vertexAdjacencyOffsets[0] = 0;
 }
 
 unsigned ArrayMesh::bytes( TagType type ) {
@@ -524,15 +524,15 @@ void ArrayMesh::fill( unsigned char* buffer,
     memset( buffer, 0, size*count );
     return;
   }
-  
+
   unsigned char* const end = buffer + size*count;
   for (unsigned char* iter = buffer; iter != end; iter += size)
     memcpy( iter, value, size );
 }
 
-ArrayMesh::Tag* ArrayMesh::allocate_tag( const char* name, 
+ArrayMesh::Tag* ArrayMesh::allocate_tag( const char* name,
                                          bool owned,
-                                         TagType type, 
+                                         TagType type,
                                          unsigned size,
                                          const void* vertex_ro_data,
                                          void* vertex_rw_data,
@@ -548,10 +548,10 @@ ArrayMesh::Tag* ArrayMesh::allocate_tag( const char* name,
       return 0;
     }
   }
-    
+
     // allocate object
   Tag* result = new Tag;
-  
+
     // initialize members
   result->type = type;
   result->size = size*bytes(type);
@@ -560,17 +560,17 @@ ArrayMesh::Tag* ArrayMesh::allocate_tag( const char* name,
   strcpy( result->name, name );
 
   result->vtxWritePtr = reinterpret_cast<unsigned char*>(vertex_rw_data);
-  if (vertex_rw_data) 
+  if (vertex_rw_data)
     result->vtxReadPtr = reinterpret_cast<unsigned char*>(vertex_rw_data);
   else
     result->vtxReadPtr = reinterpret_cast<const unsigned char*>(vertex_ro_data);
 
   result->eleWritePtr = reinterpret_cast<unsigned char*>(element_rw_data);
-  if (element_rw_data) 
+  if (element_rw_data)
     result->eleReadPtr = reinterpret_cast<unsigned char*>(element_rw_data);
   else
     result->eleReadPtr = reinterpret_cast<const unsigned char*>(element_ro_data);
-  
+
   if (default_value) {
     result->defaultValue = new unsigned char[result->size];
     memcpy( result->defaultValue, default_value, result->size );
@@ -578,11 +578,11 @@ ArrayMesh::Tag* ArrayMesh::allocate_tag( const char* name,
   else {
     result->defaultValue = 0;
   }
-  
+
     // prepend to tag list
   result->next = tagList;
   tagList = result;
-  
+
   return result;
 }
 
@@ -595,7 +595,7 @@ TagHandle ArrayMesh::add_read_only_tag_data( const char* tag_name,
                                              MsqError& err )
 {
   Tag* tag = allocate_tag( tag_name, false,
-                           data_type, vals_per_entity, 
+                           data_type, vals_per_entity,
                            vertex_data, 0,
                            element_data, 0,
                            default_value, err );
@@ -612,22 +612,22 @@ TagHandle ArrayMesh::add_writable_tag_data( const char* tag_name,
                                             MsqError& err )
 {
   Tag* tag = allocate_tag( tag_name, false,
-                           data_type, vals_per_entity, 
+                           data_type, vals_per_entity,
                            0, vertex_data,
                            0, element_data,
                            default_value, err );
   MSQ_ERRZERO(err);
   return reinterpret_cast<TagHandle>(tag);
 }
-  
-TagHandle ArrayMesh::tag_create( const std::string& tag_name, 
-                                 TagType data_type, 
-                                 unsigned size, 
-                                 const void* default_value, 
+
+TagHandle ArrayMesh::tag_create( const std::string& tag_name,
+                                 TagType data_type,
+                                 unsigned size,
+                                 const void* default_value,
                                  MsqError &err)
 {
   Tag* tag = allocate_tag( tag_name.c_str(), true,
-                           data_type, size, 
+                           data_type, size,
                            0, 0,
                            0, 0,
                            default_value, err );
@@ -672,10 +672,10 @@ TagHandle ArrayMesh::tag_get( const std::string& name, MsqError& err )
   return 0;
 }
 
-void ArrayMesh::tag_properties( TagHandle handle, 
-                                std::string& name, 
-                                TagType& type, 
-                                unsigned& size, 
+void ArrayMesh::tag_properties( TagHandle handle,
+                                std::string& name,
+                                TagType& type,
+                                unsigned& size,
                                 MsqError&  )
 {
   const Tag* ptr = reinterpret_cast<const Tag*>(handle);
@@ -684,16 +684,16 @@ void ArrayMesh::tag_properties( TagHandle handle,
   size = ptr->size/bytes(ptr->type);
 }
 
-void ArrayMesh::tag_set_element_data( TagHandle handle, 
-                                      size_t count, 
-                                      const ElementHandle* entities, 
-                                      const void* data, 
+void ArrayMesh::tag_set_element_data( TagHandle handle,
+                                      size_t count,
+                                      const ElementHandle* entities,
+                                      const void* data,
                                       MsqError& err )
 {
   Tag* tag = reinterpret_cast<Tag*>(handle);
   if (!tag->eleWritePtr) {
     if (!tag->owned) {
-      MSQ_SETERR(err)("Attempt to set non-writeable (application owned) tag data", 
+      MSQ_SETERR(err)("Attempt to set non-writeable (application owned) tag data",
                       MsqError::TAG_ALREADY_EXISTS);
       return;
     }
@@ -715,17 +715,17 @@ void ArrayMesh::tag_set_element_data( TagHandle handle,
             tag->size );
   }
 }
-  
-void ArrayMesh::tag_set_vertex_data ( TagHandle handle, 
-                                      size_t count, 
-                                      const VertexHandle* entities, 
-                                      const void* data, 
+
+void ArrayMesh::tag_set_vertex_data ( TagHandle handle,
+                                      size_t count,
+                                      const VertexHandle* entities,
+                                      const void* data,
                                       MsqError& err )
 {
   Tag* tag = reinterpret_cast<Tag*>(handle);
   if (!tag->vtxWritePtr) {
     if (!tag->owned) {
-      MSQ_SETERR(err)("Attempt to set non-writeable (application owned) tag data", 
+      MSQ_SETERR(err)("Attempt to set non-writeable (application owned) tag data",
                       MsqError::TAG_ALREADY_EXISTS);
       return;
     }
@@ -748,10 +748,10 @@ void ArrayMesh::tag_set_vertex_data ( TagHandle handle,
   }
 }
 
-void ArrayMesh::tag_get_element_data( TagHandle handle, 
-                                      size_t count, 
-                                      const ElementHandle* entities, 
-                                      void* data, 
+void ArrayMesh::tag_get_element_data( TagHandle handle,
+                                      size_t count,
+                                      const ElementHandle* entities,
+                                      void* data,
                                       MsqError& err )
 {
   unsigned char* ptr = reinterpret_cast<unsigned char*>(data);
@@ -770,12 +770,12 @@ void ArrayMesh::tag_get_element_data( TagHandle handle,
   else {
     MSQ_SETERR(err)(MsqError::TAG_NOT_FOUND);
   }
-}    
+}
 
-void ArrayMesh::tag_get_vertex_data ( TagHandle handle, 
-                                      size_t count, 
-                                      const VertexHandle* entities, 
-                                      void* data, 
+void ArrayMesh::tag_get_vertex_data ( TagHandle handle,
+                                      size_t count,
+                                      const VertexHandle* entities,
+                                      void* data,
                                       MsqError& err )
 {
   unsigned char* ptr = reinterpret_cast<unsigned char*>(data);
@@ -796,5 +796,5 @@ void ArrayMesh::tag_get_vertex_data ( TagHandle handle,
   }
 }
 
-  
+
 } // namespace MBMesquite

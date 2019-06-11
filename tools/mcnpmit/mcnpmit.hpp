@@ -13,7 +13,7 @@ enum MCNPError { MCNP_SUCCESS, MCNP_FAILURE, DONE };
 enum { NOSYS, CARTESIAN, CYLINDRICAL, SPHERICAL };
 
 class McnpData {
-      
+
       public:
             // Constructor and Destructor
             McnpData ();
@@ -42,7 +42,7 @@ class McnpData {
             int get_coord_system();
 
             // Setting and retrieving roation matrix
-            MCNPError set_rotation_matrix(double[16]); 
+            MCNPError set_rotation_matrix(double[16]);
             double* get_rotation_matrix();
 
             // Set the filename

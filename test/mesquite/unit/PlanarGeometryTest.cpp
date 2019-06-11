@@ -1,9 +1,9 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2004 Sandia Corporation and Argonne National
-    Laboratory.  Under the terms of Contract DE-AC04-94AL85000 
-    with Sandia Corporation, the U.S. Government retains certain 
+    Laboratory.  Under the terms of Contract DE-AC04-94AL85000
+    with Sandia Corporation, the U.S. Government retains certain
     rights in this software.
 
     This library is free software; you can redistribute it and/or
@@ -16,17 +16,17 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
-    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov, 
-    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov      
-   
+
+    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov,
+    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov
+
   ***************************************************************** */
 // -*- Mode : c++; tab-width: 2; c-tab-always-indent: t; indent-tabs-mode: nil; c-basic-offset: 2 -*-
 //
-//   SUMMARY: 
+//   SUMMARY:
 //     USAGE:
 //
 //    AUTHOR: Michael Brewer
@@ -95,7 +95,7 @@ private:
     // test fit plane
   CPPUNIT_TEST (test_fit_plane);
   CPPUNIT_TEST_SUITE_END();
-  
+
 private:
   double qualTol;//double used for double comparisons
   int pF;//PRINT_FLAG
@@ -111,36 +111,36 @@ public:
   void tearDown()
   {
   }
-  
+
 public:
   PlanarGeometryTest()
     {}
-  
+
    void test_plane_tri_tangled()
    {
-     MBMesquite::MsqPrintError err(cout); 
+     MBMesquite::MsqPrintError err(cout);
      MBMesquite::MeshImpl mesh;
-     
-      // This test doesn't use InstructionQueue, so 
+
+      // This test doesn't use InstructionQueue, so
       // we need to set up trapping of floating-point
       // exceptions ourself.
      MsqFPE fpe_trap( true );
-     
+
      mesh.read_vtk(MESH_FILES_DIR "2D/vtk/tris/tangled/tangled_tri.vtk", err);
      CPPUNIT_ASSERT(!err);
-     
+
        //create geometry: plane z=5, normal (0,0,1)
      Vector3D pnt(0,0,5);
      Vector3D s_norm(0,0,1);
      MBMesquite::PlanarDomain msq_geom(s_norm, pnt);
-     
+
        // creates an intruction queue
      InstructionQueue queue1, queue2;
-     
+
        // creates a mean ratio quality metric ...
      ConditionNumberQualityMetric shape;
      UntangleBetaQualityMetric untan(.1);
-     
+
        // ... and builds an objective function with it (untangle)
      LInfTemplate untan_func(&untan);
      LPtoPTemplate shape_func(&shape,2,err);
@@ -158,7 +158,7 @@ public:
      if(pF==0){
        stop_qa.disable_printing_results();
        qa.disable_printing_results();
-     }  
+     }
        //**********Set stopping criterion  untangle ver small ********
        //StoppingCriterion sc_qa(&stop_qa,-100,MSQ_MIN);
        //pass1->set_stopping_criterion(&sc_qa);
@@ -168,7 +168,7 @@ public:
      sc_inner.add_iteration_limit( 6 );
      //sc_inner.add_absolute_gradient_L2_norm( 0.01 );
      pass1.set_inner_termination_criterion(&sc_inner);
-    
+
        //**********Set stopping criterion  5 iterates ****************
        //StoppingCriterion sc5(StoppingCriterion::NUMBER_OF_PASSES,5);
        //pass2->set_stopping_criterion(&sc5);
@@ -179,7 +179,7 @@ public:
        //sc_inner.add_iteration_limit( 5 );
        //pass2->set_inner_termination_criterion(&sc_inner);
        //pass2->set_maximum_iteration(5);
-  
+
      queue1.set_master_quality_improver(&pass1, err); CPPUNIT_ASSERT(!err);
      queue2.set_master_quality_improver(&pass2, err); CPPUNIT_ASSERT(!err);
        //********************UNTANGLE*******************************
@@ -218,11 +218,11 @@ public:
      CPPUNIT_ASSERT( (fin_qa_val-orig_qa_val) <= 0.0 );
      print_timing_diagnostics(cout);
    }
-  
+
   void test_plane_quad_tangled()
      {
        MBMesquite::MeshImpl mesh;
-       MsqPrintError err(cout); 
+       MsqPrintError err(cout);
        mesh.read_vtk(MESH_FILES_DIR "2D/vtk/quads/tangled/tangled_quad.vtk", err);
        CPPUNIT_ASSERT(!err);
 
@@ -230,14 +230,14 @@ public:
        Vector3D pnt(0,0,5);
        Vector3D s_norm(0,0,1);
        MBMesquite::PlanarDomain msq_geom(s_norm, pnt);
-       
+
          // creates an intruction queue
        InstructionQueue queue1, queue2;
 
          //creates a mean ratio quality metric ...
        ConditionNumberQualityMetric shape;
        UntangleBetaQualityMetric untan(.1);
-  
+
          // ... and builds an objective function with it (untangle)
        LInfTemplate untan_func(&untan);
        LPtoPTemplate shape_func(&shape,2,err);
@@ -263,7 +263,7 @@ public:
        TerminationCriterion sc_of;
        sc_of.add_iteration_limit( 10 );
        pass1.set_outer_termination_criterion(&sc_of);
-       
+
          //**********Set stopping criterion  5 iterates ****************
          //StoppingCriterion sc5(StoppingCriterion::NUMBER_OF_PASSES,5);
          //pass2->set_stopping_criterion(&sc5);
@@ -294,7 +294,7 @@ public:
        CPPUNIT_ASSERT( (fin_qa_val-orig_qa_val) <= 0.0 );
          //make sure sc_qa really was satisfied
        CPPUNIT_ASSERT( fin_qa_val <= MSQ_MIN );
-       
+
          //********************SMOOTH*******************************
          //Make sure no errors
        CPPUNIT_ASSERT(!err);
@@ -312,10 +312,10 @@ public:
        CPPUNIT_ASSERT( (fin_qa_val-orig_qa_val) <= 0.0 );
        print_timing_diagnostics(cout);
      }
-  
+
   void test_plane_tri_xz()
      {
-       MsqPrintError err(cout); 
+       MsqPrintError err(cout);
        MBMesquite::MeshImpl mesh;
        mesh.read_vtk(MESH_FILES_DIR "2D/vtk/tris/untangled/tri_5_xz.vtk", err);
        CPPUNIT_ASSERT(!err);
@@ -324,13 +324,13 @@ public:
        Vector3D pnt(0,-5,0);
        Vector3D s_norm(0,-1,0);
        MBMesquite::PlanarDomain msq_geom(s_norm, pnt);
-       
+
          // creates an intruction queue
        InstructionQueue queue1;
-       
+
          //creates a asm quality metric ...
        ConditionNumberQualityMetric smooth;
-       
+
          // ... and builds an objective function with it (untangle)
        LPtoPTemplate smooth_func(&smooth,1,err);
          //Make sure no errors
@@ -343,7 +343,7 @@ public:
          //Make sure no errors
        CPPUNIT_ASSERT(!err);
        QualityAssessor qa=QualityAssessor( &smooth );
-       
+
          //**********Set stopping criterion  5 iterates ****************
        TerminationCriterion sc5;
        sc5.add_iteration_limit( 5 );
@@ -354,7 +354,7 @@ public:
        sc_inner.add_iteration_limit( 5 );
        pass1.set_inner_termination_criterion(&sc_inner);
          //pass1->set_maximum_iteration(5);
-       
+
        queue1.set_master_quality_improver(&pass1, err); CPPUNIT_ASSERT(!err);
          //********************UNTANGLE*******************************
          //Make sure no errors
@@ -374,7 +374,7 @@ public:
        CPPUNIT_ASSERT( (fin_qa_val-orig_qa_val) <= 0.0 );
        print_timing_diagnostics(cout);
      }
-  
+
    void test_fit_plane();
 };
 
@@ -387,7 +387,7 @@ void PlanarGeometryTest::test_fit_plane()
   MsqPrintError err(std::cerr);
   PlanarDomain plane(PlanarDomain::XY,-1);
   const double epsilon = 1e-8;
-  
+
   MeshImpl mesh1;
   mesh1.read_vtk(MESH_FILES_DIR "2D/vtk/tris/untangled/bad_circle_tri.vtk", err);
   ASSERT_NO_ERROR(err);
@@ -395,7 +395,7 @@ void PlanarGeometryTest::test_fit_plane()
   ASSERT_NO_ERROR(err);
   CPPUNIT_ASSERT_VECTORS_EQUAL( Vector3D(0,0,1), plane.get_normal(), epsilon );
   CPPUNIT_ASSERT_DOUBLES_EQUAL( 5, plane.get_coeff(), epsilon );
-  
+
   MeshImpl mesh2;
   mesh2.read_vtk(MESH_FILES_DIR "2D/vtk/tris/untangled/equil_tri.vtk", err);
   ASSERT_NO_ERROR(err);
@@ -403,7 +403,7 @@ void PlanarGeometryTest::test_fit_plane()
   ASSERT_NO_ERROR(err);
   CPPUNIT_ASSERT_VECTORS_EQUAL( Vector3D(0,0,1), plane.get_normal(), epsilon );
   CPPUNIT_ASSERT_DOUBLES_EQUAL( 0, plane.get_coeff(), epsilon );
-  
+
   MeshImpl mesh3;
   mesh3.read_vtk(MESH_FILES_DIR "2D/vtk/quads/untangled/quads_4by2.vtk", err);
   ASSERT_NO_ERROR(err);
@@ -411,7 +411,7 @@ void PlanarGeometryTest::test_fit_plane()
   ASSERT_NO_ERROR(err);
   CPPUNIT_ASSERT_VECTORS_EQUAL( Vector3D(0,0,1), plane.get_normal(), epsilon );
   CPPUNIT_ASSERT_DOUBLES_EQUAL( -2, plane.get_coeff(), epsilon );
-  
+
   MeshImpl mesh4;
   mesh4.read_vtk(MESH_FILES_DIR "2D/vtk/tris/untangled/tri_5_xz.vtk", err);
   ASSERT_NO_ERROR(err);

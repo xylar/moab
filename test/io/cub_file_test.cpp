@@ -71,7 +71,7 @@ using namespace moab;
 */
 
 /* Input test file: ho_test.cub
- * 
+ *
  * File is expected to contain at least one block for every
  * supported higher-order element type.  The coordinates of
  * every higher-order node are expected to be the mean of the
@@ -93,7 +93,7 @@ void check_adj_ho_nodes( Interface& moab,
 // Check that element has expected higher-order nodes
 // and that each higher-order node is at the center
 // of the sub-entity it is on.
-void check_ho_element( Interface& moab, 
+void check_ho_element( Interface& moab,
                        EntityHandle entity,
                        int mid_nodes[4] );
 
@@ -136,7 +136,7 @@ void test_hex9 () { test_ho_elements(MBHEX,  9); }
 void test_hex20() { test_ho_elements(MBHEX, 20); }
 void test_hex27() { test_ho_elements(MBHEX, 27); }
 
-void test_multiple_files();                    
+void test_multiple_files();
 
 void test_cubit12();
 void test_cubit14();
@@ -144,7 +144,7 @@ void test_cubit14();
 int main()
 {
   int result = 0;
-  
+
   result += RUN_TEST(test_vertices);
   result += RUN_TEST(test_edges);
   result += RUN_TEST(test_quads);
@@ -180,7 +180,7 @@ void test_vertices()
 {
   /* Node coordinates, in order of node ID, beginning with 1. */
   const double node_coords[] = { 5, -5,  5, // 1
-                                 5,  5,  5, 
+                                 5,  5,  5,
                                  5,  0,  5,
                                 -5,  5,  5,
                                  0,  5,  5, // 5
@@ -209,7 +209,7 @@ void test_vertices()
                                 15, -5,  5,
                                 15,  5,  5,
                                 15,  0,  5, // 30
-                                10,  5,  5, 
+                                10,  5,  5,
                                 10, -5,  5,
                                 10,  0,  5,
                                 15,  5, -5,
@@ -230,13 +230,13 @@ void test_vertices()
   Core mb_impl;
   Interface& mb = mb_impl;
   read_file( mb, input_file_1 );
-  
+
     // get vertex handles and check correct number of vertices
   const size_t num_nodes = sizeof(node_coords)/(3*sizeof(double));
   Range verts;
   rval = mb.get_entities_by_type( 0, MBVERTEX, verts ); CHECK_ERR(rval);
   CHECK_EQUAL( num_nodes, (size_t)verts.size() );
-  
+
     // check global ids (should be 1 to 45 for vertices.)
   Tag gid_tag;
   rval = mb.tag_get_handle( "GLOBAL_ID", 1, MB_TYPE_INTEGER, gid_tag ); CHECK_ERR(rval);
@@ -246,7 +246,7 @@ void test_vertices()
   std::sort( sorted.begin(), sorted.end() );
   for (size_t i = 0; i < num_nodes; ++i)
     CHECK_EQUAL( (int)(i+1), sorted[i] );
-    
+
     // check coordinates of each vertex
   std::vector<double> coords(3*num_nodes);
   rval = mb.get_coords( verts, &coords[0] ); CHECK_ERR(rval);
@@ -261,7 +261,7 @@ void test_vertices()
 
 
 void test_element( const std::string& filename,
-                   EntityType type, 
+                   EntityType type,
                    int num_elem,
                    int node_per_elem,
                    const int* conn_list )
@@ -270,23 +270,23 @@ void test_element( const std::string& filename,
   Core mb_impl;
   Interface& mb = mb_impl;
   read_file( mb, filename );
-  
+
   Range elems;
   rval = mb.get_entities_by_type( 0, type, elems ); CHECK_ERR(rval);
   CHECK_EQUAL( num_elem, (int)elems.size() );
-  
+
     // get global ids
   Tag gid_tag;
   rval = mb.tag_get_handle( "GLOBAL_ID", 1, MB_TYPE_INTEGER, gid_tag ); CHECK_ERR(rval);
   std::vector<int> ids(num_elem);
   rval = mb.tag_get_data( gid_tag, elems, &ids[0] ); CHECK_ERR(rval);
-  
+
     // check that global ids are consecutive, beginning with 1
   std::vector<int> sorted(ids);
   std::sort( sorted.begin(), sorted.end() );
   for (int i = 0; i < num_elem; ++i)
     CHECK_EQUAL( i+1, sorted[i] );
-  
+
     // check connectivity of each element
   std::vector<int> conn_ids(node_per_elem);
   std::vector<EntityHandle> conn_h;
@@ -302,22 +302,22 @@ void test_element( const std::string& filename,
       CHECK_EQUAL( exp[k], conn_ids[k] );
   }
 }
-    
+
 
 void test_edges()
 {
   const int edge_conn[] = { 1, 3, // 1
                             3, 2,
-                            2, 5, 
+                            2, 5,
                             5, 4,
-                            4, 7, 
+                            4, 7,
                             7, 6,
                             6, 8,
                             8, 1,
-                            3, 9, 
+                            3, 9,
                             9, 8, // 10
                             5, 9,
-                            9, 7, 
+                            9, 7,
                             10, 12,
                             12, 11,
                             11, 14,
@@ -478,13 +478,13 @@ std::vector<int> find_parents( const int parent_conn[][L], int num_parent, int i
 }
 
 int check_geometric_set( Interface& moab,
-                         int dim, int id, 
-                         const int* children, int num_children, 
+                         int dim, int id,
+                         const int* children, int num_children,
                          std::vector<int> parents )
 {
   ErrorCode rval;
   Tag gid_tag, dim_tag;
-  
+
   rval = moab.tag_get_handle( "GLOBAL_ID", 1, MB_TYPE_INTEGER, gid_tag ); CHECK_ERR(rval);
   rval = moab.tag_get_handle( "GEOM_DIMENSION", 1, MB_TYPE_INTEGER, dim_tag ); CHECK_ERR(rval);
   void* tag_vals[] = { &dim, &id };
@@ -493,11 +493,11 @@ int check_geometric_set( Interface& moab,
   rval = moab.get_entities_by_type_and_tag( 0, MBENTITYSET, tags, tag_vals, 2, ents );
   CHECK_ERR(rval);
   CHECK_EQUAL( 1u, (unsigned)ents.size() );
-  
+
   const EntityHandle geom = ents.front();
   std::vector<int> exp_rel, act_rel;
   std::vector<EntityHandle> rel;
-  
+
   if (num_children) {
     exp_rel.resize( num_children );
     std::copy( children, children+num_children, exp_rel.begin() );
@@ -506,12 +506,12 @@ int check_geometric_set( Interface& moab,
     rval = moab.get_child_meshsets( geom, rel ); CHECK_ERR(rval);
     CHECK_EQUAL( num_children, (int)rel.size() );
     act_rel.resize( rel.size() );
-    rval = moab.tag_get_data( gid_tag, &rel[0], rel.size(), &act_rel[0] ); 
+    rval = moab.tag_get_data( gid_tag, &rel[0], rel.size(), &act_rel[0] );
     CHECK_ERR(rval);
     std::sort( act_rel.begin(), act_rel.end() );
     CHECK( exp_rel == act_rel );
   }
-  
+
   if (!parents.empty()) {
     exp_rel = parents;
     std::sort( exp_rel.begin(), exp_rel.end() );
@@ -519,12 +519,12 @@ int check_geometric_set( Interface& moab,
     rval = moab.get_parent_meshsets( geom, rel ); CHECK_ERR(rval);
     CHECK_EQUAL( parents.size(), rel.size() );
     act_rel.resize( rel.size() );
-    rval = moab.tag_get_data( gid_tag, &rel[0], rel.size(), &act_rel[0] ); 
+    rval = moab.tag_get_data( gid_tag, &rel[0], rel.size(), &act_rel[0] );
     CHECK_ERR(rval);
     std::sort( act_rel.begin(), act_rel.end() );
     CHECK( exp_rel == act_rel );
   }
-  
+
   return 0;
 }
 
@@ -535,10 +535,10 @@ void test_geometric_topology()
   read_file( mb, input_file_1 );
   // expected geometric vertices, specified by global ID
   const int vertex_ids[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 13, 14 };
-  // List of global IDs of surfacs in geometric volumes, indexed by ID-1  
+  // List of global IDs of surfacs in geometric volumes, indexed by ID-1
   const int volume_surfs[2][6] = { { 1, 2, 3, 4, 5, 6 },
                                    { 7, 8, 9, 6,11,12 } };
-  // List of global IDs of curves in geometric surfaces, indexed by ID-1  
+  // List of global IDs of curves in geometric surfaces, indexed by ID-1
   // Curve IDs of zero indicates that corresponding surface doesn't exist.
   const int surf_curves[12][4] = { { 1, 2, 3, 4 },
                                    { 5, 6, 7, 8 },
@@ -552,7 +552,7 @@ void test_geometric_topology()
                                    { 0, 0, 0, 0 }, // no surf 10
                                    {24,20,12,14 },
                                    {22,17,24,13 } };
-  // List of global IDs of vertices in geometric curves, indexed by ID-1  
+  // List of global IDs of vertices in geometric curves, indexed by ID-1
   // Vertex IDs of zero indicates that corresponding curve doesn't exist.
   const int curve_verts[24][2] =  { { 1, 2 },
                                     { 2, 3 },
@@ -571,31 +571,31 @@ void test_geometric_topology()
                                     { 0, 0 }, // no curve 15
                                     { 1, 9 },
                                     {13,14 },
-                                    {14, 6 }, 
+                                    {14, 6 },
                                     { 0, 0 }, // no curve 19
-                                    { 5,13 }, 
+                                    { 5,13 },
                                     { 0, 0 }, // no curve 21
-                                    { 9,14 }, 
+                                    { 9,14 },
                                     { 0, 0 }, // no curve 23
                                     {10,13 } };
-  
+
     // check all vertices
   for (unsigned i = 0; i < (sizeof(vertex_ids)/sizeof(vertex_ids[0])); ++i)
-    check_geometric_set( mb, 0, vertex_ids[i], 0, 0, 
+    check_geometric_set( mb, 0, vertex_ids[i], 0, 0,
                          find_parents<2>(curve_verts,24,vertex_ids[i]) );
-  
+
     // check all curves
   for (int i = 1; i <= 24; ++i)
     if (curve_verts[i-1][0])
-      check_geometric_set( mb, 1, i, curve_verts[i-1], 2, 
+      check_geometric_set( mb, 1, i, curve_verts[i-1], 2,
                            find_parents<4>(surf_curves,12,i) );
-   
+
     // check all surfs
   for (int i = 1; i <= 12; ++i)
     if (surf_curves[i-1][0])
-      check_geometric_set( mb, 2, i, surf_curves[i-1], 4, 
+      check_geometric_set( mb, 2, i, surf_curves[i-1], 4,
                           find_parents<6>(volume_surfs,2,i) );
-    
+
     // check all volumes
   std::vector<int> empty;
   for (int i = 1; i <= 2; ++i)
@@ -629,13 +629,13 @@ void test_geometric_sets()
   dim = 3;
   rval = mb.get_entities_by_type_and_tag( 0, MBENTITYSET, &dim_tag, vals, 1, vols );
   CHECK_ERR(rval);
-  
+
   CHECK_EQUAL( 12u, (unsigned)verts.size() );
   CHECK_EQUAL( 20u, (unsigned)curves.size() );
   CHECK_EQUAL( 11u, (unsigned)surfs.size() );
   CHECK_EQUAL( 2u,  (unsigned)vols.size() );
-  
-    // check that each vertex has a single node, and that the 
+
+    // check that each vertex has a single node, and that the
     // node is also contained in any parent curve
   Range ents;
   Range::iterator i;
@@ -673,7 +673,7 @@ void test_geometric_sets()
     CHECK_EQUAL( 8u, (unsigned)ents.num_of_type(MBHEX) );
     CHECK_EQUAL( 9u, (unsigned)ents.size() );
   }
-  
+
     // Check that for each geometric entity, any contained vertices
     // are adjacent to some entity in one of its parents.
   Range parents, geom, nodes, tmp;
@@ -681,7 +681,7 @@ void test_geometric_sets()
     const void* vals1[] = {&d};
     rval = mb.get_entities_by_type_and_tag( 0, MBENTITYSET, &dim_tag, vals1, 1, geom );
     CHECK_ERR(rval);
-    
+
     for (i = geom.begin(); i != geom.end(); ++i) {
       nodes.clear();
       ents.clear();
@@ -721,11 +721,11 @@ void test_blocks()
   rval = mb.tag_get_data( mat_tag, &block, 1, &id );
   CHECK_ERR(rval);
   CHECK_EQUAL( 1, id );
-  
+
   Range block_hexes, mesh_hexes;
   rval = mb.get_entities_by_dimension( 0, 3, mesh_hexes ); CHECK_ERR(rval);
   rval = mb.get_entities_by_dimension( block, 3, block_hexes, true ); CHECK_ERR(rval);
-  CHECK( mesh_hexes == block_hexes );  
+  CHECK( mesh_hexes == block_hexes );
 }
 
 // Common code for test_side_sets and test_node sets
@@ -735,7 +735,7 @@ void test_blocks()
 //\param set_surfs One list for each id in "ids" containing the
 //                 ids of the geometric surfaces expected to be
 //                 contained in the boundary condition set.
-void test_bc_sets( const char* tag_name, unsigned count, 
+void test_bc_sets( const char* tag_name, unsigned count,
                    const int* ids,
                    const std::vector<int> set_surfs[] )
 {
@@ -758,7 +758,7 @@ void test_bc_sets( const char* tag_name, unsigned count,
     int id;
     rval = mb.tag_get_data( ss_tag, &*i, 1, &id ); CHECK_ERR(rval);
     unsigned idx;
-    for (idx = 0; idx < count; ++idx) 
+    for (idx = 0; idx < count; ++idx)
       if (ids[idx] == id)
         break;
     CHECK( idx != count );
@@ -766,7 +766,7 @@ void test_bc_sets( const char* tag_name, unsigned count,
     handles[idx] = *i;
   }
 
-    
+
     // get surface faces
   std::vector<Range> exp(count);
   Range surfs, tmp;
@@ -786,7 +786,7 @@ void test_bc_sets( const char* tag_name, unsigned count,
       exp[i].merge( tmp );
     }
   }
-  
+
     // check each bc set
   Range act;
   for (unsigned i = 0; i < count; ++i) {
@@ -822,43 +822,43 @@ void test_node_sets()
   test_bc_sets( DIRICHLET_SET_TAG_NAME, 2, ids, surfs );
 }
 
-static EntityHandle find_side( Interface& moab, 
+static EntityHandle find_side( Interface& moab,
                                  EntityHandle entity,
                                  int side_dim,
                                  int side_num )
 {
   ErrorCode rval;
-  
+
   std::vector<EntityHandle> adj;
   rval = moab.get_adjacencies( &entity, 1, side_dim, false, adj );
   CHECK_ERR(rval);
-  
+
   int sub_ent_indices[4];
-  CN::SubEntityVertexIndices( TYPE_FROM_HANDLE(entity), side_dim, side_num, 
+  CN::SubEntityVertexIndices( TYPE_FROM_HANDLE(entity), side_dim, side_num,
                                 sub_ent_indices );
   EntityType subtype = CN::SubEntityType( TYPE_FROM_HANDLE(entity),
                                               side_dim, side_num );
   int sub_ent_corners = CN::VerticesPerEntity(subtype);
-  
+
   const EntityHandle* conn;
   int conn_len;
   rval = moab.get_connectivity( entity, conn, conn_len );
   CHECK_ERR(rval);
-  
+
   for (size_t i = 0; i < adj.size(); ++i) {
     if (TYPE_FROM_HANDLE(adj[i]) != subtype)
       continue;
-  
+
     const EntityHandle* sub_conn;
     int sub_len;
     rval = moab.get_connectivity( adj[i], sub_conn, sub_len );
     CHECK_ERR(rval);
-    
-    int n = std::find( sub_conn, sub_conn+sub_len, conn[sub_ent_indices[0]] ) 
+
+    int n = std::find( sub_conn, sub_conn+sub_len, conn[sub_ent_indices[0]] )
                 - sub_conn;
     if (n == sub_len) // no vertex in common
       continue;
-  
+
       // check forward direction
     int j;
     for (j = 1; j < sub_ent_corners; ++j)
@@ -866,7 +866,7 @@ static EntityHandle find_side( Interface& moab,
         break;
     if (j == sub_ent_corners)
       return adj[i];
-  
+
       // check reverse direction
     for (j = 1; j < sub_ent_corners; ++j)
       if (conn[sub_ent_indices[j]] != sub_conn[(n+sub_ent_corners-j)%sub_ent_corners])
@@ -874,12 +874,12 @@ static EntityHandle find_side( Interface& moab,
     if (j == sub_ent_corners)
       return adj[i];
   }
-  
+
   // no match
   return 0;
 }
-      
-  
+
+
 void check_adj_ho_nodes( Interface& moab,
                          EntityHandle entity )
 {
@@ -888,23 +888,23 @@ void check_adj_ho_nodes( Interface& moab,
     int conn_len;
     ErrorCode rval = moab.get_connectivity( entity, conn, conn_len );
     CHECK_ERR(rval);
-    
+
     int ho[4];
     CN::HasMidNodes( type, conn_len, ho );
     for (int dim = CN::Dimension(type)-1; dim > 0; --dim) {
       if (!ho[dim])
         continue;
-        
+
       for (int j = 0; j < CN::NumSubEntities( type, dim ); ++j) {
         EntityHandle side = find_side( moab, entity, dim, j );
         if (!side)
           continue;
-        
+
         const EntityHandle* side_conn;
         int side_len;
         rval = moab.get_connectivity( side, side_conn, side_len );
         CHECK_ERR(rval);
-        
+
         int this_idx = CN::HONodeIndex( type, conn_len, dim, j );
         int side_idx = CN::HONodeIndex( TYPE_FROM_HANDLE(side), side_len, dim, 0 );
         CHECK_EQUAL( side_conn[side_idx], conn[this_idx] );
@@ -915,7 +915,7 @@ void check_adj_ho_nodes( Interface& moab,
 // Check that element has expected higher-order nodes
 // and that each higher-order node is at the center
 // of the sub-entity it is on.
-void check_ho_element( Interface& moab, 
+void check_ho_element( Interface& moab,
                        EntityHandle entity,
                        int mid_nodes[4] )
 {
@@ -928,18 +928,18 @@ void check_ho_element( Interface& moab,
   std::vector<double> coords(3*conn_len);
   rval = moab.get_coords( conn, conn_len, &coords[0] );
   CHECK_ERR(rval);
-  
+
     // calculate and verify expected number of mid nodes
   int num_nodes = CN::VerticesPerEntity(type);
   for (int d = 1; d <= CN::Dimension(type); ++d)
     if (mid_nodes[d])
       num_nodes += CN::NumSubEntities(type, d);
   CHECK_EQUAL( num_nodes, conn_len );
-  
+
     // verify that each higher-order node is at the center
     // of its respective sub-entity.
   for (int i = CN::VerticesPerEntity(type); i < num_nodes; ++i) {
-      // get sub-entity owning ho-node  
+      // get sub-entity owning ho-node
     int sub_dim, sub_num;
     CN::HONodeParent( type, num_nodes, i, sub_dim, sub_num );
       // get corner vertex indices
@@ -988,7 +988,7 @@ void test_ho_elements( EntityType type, int num_nodes )
   CHECK_ERR(rval);
   rval = mb.tag_get_handle( HAS_MID_NODES_TAG_NAME, 4, MB_TYPE_INTEGER, ho_tag );
   CHECK_ERR(rval);
-  
+
   // get material sets with expected higher-order nodes
   Range blocks;
   int ho_flags[4];
@@ -997,7 +997,7 @@ void test_ho_elements( EntityType type, int num_nodes )
   void* vals[2] = {ho_flags, NULL};
   rval = mb.get_entities_by_type_and_tag( 0, MBENTITYSET, tags, vals, 2, blocks );
   CHECK_ERR(rval);
-  
+
   Range::iterator i;
   Range entities;
   for (i = blocks.begin(); i != blocks.end(); ++i) {
@@ -1031,8 +1031,8 @@ void test_multiple_files()
   mb.create_meshset( MESHSET_SET, file2 );
   mb.add_entities( file1, file1_ents );
   mb.add_entities( file2, file2_ents );
-  
-    // first check that we get the same number of verts from 
+
+    // first check that we get the same number of verts from
     // each file and that they are distinct vertices
   Range file1_verts, file2_verts;
   rval = mb.get_entities_by_type( file1, MBVERTEX, file1_verts );
@@ -1043,8 +1043,8 @@ void test_multiple_files()
   CHECK( !file2_verts.empty() );
   CHECK_EQUAL( file1_verts.size(), file2_verts.size() );
   CHECK( intersect( file1_verts,  file2_verts ).empty() );
-  
-    // now check that we get the same number of elements from 
+
+    // now check that we get the same number of elements from
     // each file and that they are distinct
   Range file1_elems, file2_elems;
   rval = mb.get_entities_by_dimension( file1, 3, file1_elems );
@@ -1068,7 +1068,7 @@ void test_multiple_files()
   CHECK( intersect( file2_elem_verts,  file2_verts ) == file2_elem_verts );
 }
 
-void test_cubit12() 
+void test_cubit12()
 {
   Core mb_impl;
   Interface& mb = mb_impl;

@@ -23,15 +23,15 @@ endif
 if HAVE_CGM
   geometry_DIR = geometry
 else
-  geometry_DIR = 
+  geometry_DIR =
 endif
 
 # For old (pre 1.10.x) versions of Automake
 docdir = @docdir@
 
 bin_PROGRAMS =
-dist_man1_MANS = 
-doc_DATA = 
+dist_man1_MANS =
+doc_DATA =
 
 EXTRA_DIST = README.hexmodops \
              README.mbconvert \
@@ -43,9 +43,9 @@ EXTRA_DIST = README.hexmodops \
              CMakeLists.txt
 
 if HAVE_HDF5
-  bin_PROGRAMS += compareFiles 
+  bin_PROGRAMS += compareFiles
 if HAVE_NETCDF
-  bin_PROGRAMS += mbaddnc mbaddchunk 
+  bin_PROGRAMS += mbaddnc mbaddchunk
 endif
 endif
 
@@ -95,7 +95,7 @@ endif
 
 if ENABLE_gsets
   bin_PROGRAMS += mbgsets
-endif 
+endif
 
 if ENABLE_refiner
   refiner_DIR = refiner
@@ -117,7 +117,7 @@ if ENABLE_mbpart
   mbpart_LDADD = $(top_builddir)/src/libMOAB.la $(ZOLTAN_LIBS)
 if HAVE_CGM
   mbpart_LDADD += $(CGM_LIBS)
-endif 
+endif
 else
 if ENABLE_metis
   bin_PROGRAMS += mbpart
@@ -138,7 +138,7 @@ endif
 if ENABLE_mesquite
   mesquite_DIR = mesquite
 else
-  mesquite_DIR = 
+  mesquite_DIR =
 endif
 
 if PARALLEL
@@ -150,7 +150,7 @@ endif
 if ENABLE_mbcslam
   mbcslam_DIR = mbcslam
 else
-  mbcslam_DIR = 
+  mbcslam_DIR =
 endif
 
 if ENABLE_mbquality
@@ -197,7 +197,7 @@ SUBDIRS = . \
           $(mcnpmit_DIR) \
           $(vtkMOABReader_DIR) \
           $(mesquite_DIR) \
-          $(geometry_DIR) 
+          $(geometry_DIR)
 
 mbconvert_SOURCES = convert.cpp
 mbgsets_SOURCES = gsets.cpp

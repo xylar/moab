@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2006 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
+
     (2006) kraftche@cae.wisc.edu
-   
+
   ***************************************************************** */
 
 
 /** \file TargetWriter.cpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -49,9 +49,9 @@ TargetWriter::TargetWriter(  TargetCalculator* tc,
                              WeightCalculator* wc,
                              std::string target_base_name,
                              std::string weight_base_name )
-  : targetCalc(tc), 
-    weightCalc(wc), 
-    targetName(target_base_name), 
+  : targetCalc(tc),
+    weightCalc(wc),
+    targetName(target_base_name),
     weightName(weight_base_name)
     {}
 
@@ -66,22 +66,22 @@ double TargetWriter::loop_over_mesh( MeshDomainAssoc* mesh_and_domain,
 {
   Mesh* mesh = mesh_and_domain->get_mesh();
   MeshDomain* domain = mesh_and_domain->get_domain();
- 
+
   PatchData patch;
   patch.set_mesh( mesh );
   patch.set_domain( domain );
   if (settings)
     patch.attach_settings( settings );
-  
+
   ElementPatches patch_set;
   patch_set.set_mesh( mesh );
   std::vector<PatchSet::PatchHandle> patches;
   std::vector<PatchSet::PatchHandle>::iterator p;
   std::vector<Mesh::VertexHandle> patch_verts;
   std::vector<Mesh::ElementHandle> patch_elems;
-  
+
   patch_set.get_patch_handles( patches, err ); MSQ_ERRZERO(err);
-  
+
   std::vector< MsqMatrix<3,3> > targets3d;
   std::vector< MsqMatrix<3,2> > targets2dorient;
   std::vector< MsqMatrix<2,2> > targets2d;
@@ -94,13 +94,13 @@ double TargetWriter::loop_over_mesh( MeshDomainAssoc* mesh_and_domain,
     patch_set.get_patch( *p, patch_elems, patch_verts, err ); MSQ_ERRZERO(err);
     patch.set_mesh_entities( patch_elems, patch_verts, err ); MSQ_ERRZERO(err);
     assert(patch.num_elements() == 1);
-    
+
     MsqMeshEntity& elem = patch.element_by_index(0);
     EntityTopology type = elem.get_element_type();
     patch.get_samples( 0, samples, err ); MSQ_ERRZERO(err);
     if (samples.empty())
-      continue;    
-    
+      continue;
+
     if (targetCalc) {
       const unsigned dim = TopologyInfo::dimension(type);
       if (dim == 3) {
@@ -113,10 +113,10 @@ double TargetWriter::loop_over_mesh( MeshDomainAssoc* mesh_and_domain,
             return 0.0;
           }
         }
-        
+
         TagHandle tag = get_target_tag( 3, samples.size(), mesh,  err ); MSQ_ERRZERO(err);
-        mesh->tag_set_element_data( tag, 1, 
-                                    patch.get_element_handles_array(), 
+        mesh->tag_set_element_data( tag, 1,
+                                    patch.get_element_handles_array(),
                                     arrptr(targets3d), err ); MSQ_ERRZERO(err);
       }
       else if(targetCalc->have_surface_orient()) {
@@ -130,10 +130,10 @@ double TargetWriter::loop_over_mesh( MeshDomainAssoc* mesh_and_domain,
             return 0.0;
           }
         }
-        
+
         TagHandle tag = get_target_tag( 2, samples.size(), mesh, err ); MSQ_ERRZERO(err);
-        mesh->tag_set_element_data( tag, 1, 
-                                    patch.get_element_handles_array(), 
+        mesh->tag_set_element_data( tag, 1,
+                                    patch.get_element_handles_array(),
                                     arrptr(targets2dorient), err ); MSQ_ERRZERO(err);
       }
       else {
@@ -146,21 +146,21 @@ double TargetWriter::loop_over_mesh( MeshDomainAssoc* mesh_and_domain,
             return 0.0;
           }
         }
-        
+
         TagHandle tag = get_target_tag( 2, samples.size(), mesh, err ); MSQ_ERRZERO(err);
-        mesh->tag_set_element_data( tag, 1, 
-                                    patch.get_element_handles_array(), 
+        mesh->tag_set_element_data( tag, 1,
+                                    patch.get_element_handles_array(),
                                     arrptr(targets2d), err ); MSQ_ERRZERO(err);
       }
     }
-      
+
     if (weightCalc) {
       weights.resize( samples.size() );
       for (unsigned i = 0; i < samples.size(); ++i) {
         weights[i] = weightCalc->get_weight( patch, 0, samples[i], err ); MSQ_ERRZERO(err);
       }
       TagHandle tag = get_weight_tag( samples.size(), mesh, err ); MSQ_ERRZERO(err);
-      mesh->tag_set_element_data( tag, 1, 
+      mesh->tag_set_element_data( tag, 1,
                                   patch.get_element_handles_array(),
                                   arrptr(weights), err ); MSQ_ERRZERO(err);
     }
@@ -206,7 +206,7 @@ TagHandle TargetWriter::get_tag_handle( const std::string& base_name,
 {
   std::ostringstream sstr;
   sstr << base_name << num_dbl;
-  
+
   TagHandle handle = mesh->tag_get( sstr.str().c_str(), err );
   if (!MSQ_CHKERR(err))
   {
@@ -215,7 +215,7 @@ TagHandle TargetWriter::get_tag_handle( const std::string& base_name,
     unsigned temp_length;
     mesh->tag_properties( handle, temp_name, temp_type, temp_length, err );
     MSQ_ERRZERO(err);
-    
+
     if (temp_type != Mesh::DOUBLE || temp_length != num_dbl)
     {
       MSQ_SETERR(err)( MsqError::TAG_ALREADY_EXISTS,

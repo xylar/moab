@@ -28,13 +28,13 @@ class ReadUtilIface;
  *                                     is repeated multiple times, multiple
  *                                     attribute values will be stored in the
  *                                     same tag as array values in the order
- *                                     they are read from the file.  If a 
+ *                                     they are read from the file.  If a
  *                                     name is zero-length, the attribute data
- *                                     will be disgarded.  
+ *                                     will be disgarded.
  */
 class ReadTetGen : public ReaderIface
 {
-   
+
 public:
 
   static ReaderIface* factory( Interface* );
@@ -51,7 +51,7 @@ public:
                              const FileOptions& opts,
                              std::vector<int>& tag_values_out,
                              const SubsetList* subset_list = 0 );
-  
+
     //! Constructor
   ReadTetGen(Interface* impl = NULL);
 
@@ -87,7 +87,7 @@ private:
                          bool file_required = false );
 
   /**\brief Read a line from a file
-   * 
+   *
    * Read the next non-empty line.  Strips comments.
    *\param file   The stream to read from
    *\param line   Output: the line read from the stream
@@ -98,11 +98,11 @@ private:
 
   /**\brief Read a line of double values from a file.
    */
-  ErrorCode read_line( std::istream& file, 
+  ErrorCode read_line( std::istream& file,
                          double* values_out, int num_values,
                          int& lineno );
 
-  /**\brief Parse option string specifying mapping from 
+  /**\brief Parse option string specifying mapping from
    *        attributes to tags.
    *
    * Given a file option string describing the mapping from tetgen
@@ -123,14 +123,14 @@ private:
                                std::vector<int>& index_list,
                                const char* group_designator = 0 );
 
-  ErrorCode read_node_file( std::istream& file, 
+  ErrorCode read_node_file( std::istream& file,
                               const Tag* attr_tag_list,
                               const int* attr_tag_index,
                               int attr_tag_list_len,
                               std::vector<EntityHandle>& nodes );
 
   ErrorCode read_elem_file( EntityType type,
-                              std::istream& file, 
+                              std::istream& file,
                               const std::vector<EntityHandle>& nodes,
                               Range& elems );
 };

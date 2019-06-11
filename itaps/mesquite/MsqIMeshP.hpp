@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2007 Sandia National Laboratories.  Developed at the
@@ -16,17 +16,17 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2009) kraftche@cae.wisc.edu   isenburg@cs.unc.edu 
+    (2009) kraftche@cae.wisc.edu   isenburg@cs.unc.edu
 
   ***************************************************************** */
 
 /** \file MsqIMeshP.hpp
  *  \brief Adaptor for ITAPS iMesh interface
- *  \author Jason Kraftcheck 
+ *  \author Jason Kraftcheck
  *  \author Martin Isenburg
  */
 
@@ -59,13 +59,13 @@ public:
            MsqError& err,
 	   const iBase_TagHandle* fixed_tag = 0,
 	   const iBase_TagHandle* slaved_tag= 0 );
-  
+
   MsqIMeshP(iMesh_Instance imesh, iMeshP_PartitionHandle partition,
-            iBase_EntityType element_dimension, 
+            iBase_EntityType element_dimension,
             MsqError& err,
 	    const iBase_TagHandle* fixed_tag = 0,
 	    const iBase_TagHandle* slaved_tag= 0 );
-  
+
 //********** Inherited Functions from ParallelMesh ****************
 
   /*! Get global ids for given vertices.
@@ -74,14 +74,14 @@ public:
 				      size_t gid[],
 				      size_t num_vtx,
 				      MsqError& err);
-         
+
   /*! Get processor ids for given vertices.
    */
   virtual void vertices_get_processor_id(const VertexHandle vert_array[],
 					 int pid[],
 					 size_t num_vtx,
 					 MsqError& err);
-     
+
 protected:
 
   iMeshP_PartitionHandle partitionInstance;

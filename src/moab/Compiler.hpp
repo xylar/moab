@@ -1,5 +1,5 @@
 /** \file   Compiler.hpp
- *  \author Jason Kraftcheck 
+ *  \author Jason Kraftcheck
  *  \date   2010-12-16
  *
  * Provide pre-processor macros for compiler-specific features.  All
@@ -61,7 +61,7 @@
  *             the first argument is 1.
  *\NOTE This macro is designed to be used with member functions of C++ classes,
  *      and therefore explicitly accounts for the implicit \c this pointer
- *      in the argument list.  It will not work correctly with static or 
+ *      in the argument list.  It will not work correctly with static or
  *      non-member functions.
  *\NOTE This macro assumes that the arguments referenced in the format string
  *      begin immediately after the format string itself.
@@ -71,7 +71,7 @@
 #else
   #define MB_PRINTF(START)
 #endif
- 
+
 /**\def MB_DLL_EXPORT
  *\brief Declare a function or class to be visible in shared library.
  */

@@ -1,16 +1,16 @@
 /**
  * MOAB, a Mesh-Oriented datABase, is a software component for creating,
  * storing and accessing finite element mesh data.
- * 
+ *
  * Copyright 2004 Sandia Corporation.  Under the terms of Contract
  * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
  * retains certain rights in this software.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  */
 
 #include "ScdVertexSeq.hpp"
@@ -49,7 +49,7 @@ void print_time();
 
 
 
-int main(int argc, char**argv) 
+int main(int argc, char**argv)
 {
   int errors = 0;
 
@@ -62,14 +62,14 @@ int main(int argc, char**argv)
               << " where #intervals is the number of intervals on each side of each cube." << std::endl;
     return 0;
   }
-  
+
   int intervals;
   sscanf(argv[1], "%d", &intervals);
 
   char do_option[8];
-  
+
   bool do_scd = true, do_ucd = true;
-  
+
   if (argc > 2) {
     sscanf(argv[2], "%s", do_option);
     if (do_option[0] == 'u') do_scd = false;
@@ -78,7 +78,7 @@ int main(int argc, char**argv)
       std::cout << "Didn't understand input; doing both scd and ucd." << std::endl;
     }
   }
-  
+
   EntityHandle estart[3], vstart[3];
   int total_elements = intervals*intervals*intervals;
   std::vector<EntityHandle> connect;
@@ -93,7 +93,7 @@ int main(int argc, char**argv)
   std::cout << std::endl;
 
   if (do_scd) {
-    
+
       // create structured mesh
     errors = create_3dtri_3_sequences(gMB, intervals, vstart, estart);
     if (errors != 0) {
@@ -114,7 +114,7 @@ int main(int argc, char**argv)
     stop = clock();
     time = static_cast<float>(stop - start)/CLOCKS_PER_SEC;
 
-    std::cout << "Time to get connectivity for scd mesh of " << 3*total_elements << " elements: " 
+    std::cout << "Time to get connectivity for scd mesh of " << 3*total_elements << " elements: "
               << time << " seconds." << std::endl;
 
     print_time();
@@ -122,11 +122,11 @@ int main(int argc, char**argv)
     std::cout << "Hit any key and return to continue...";
     std::cin >> inp;
     std::cout << std::endl;
-  
+
       // destroy this mesh
     delete gMB;
   }
-  
+
   if (do_ucd) {
 
       // now do the same thing, only unstructured
@@ -152,7 +152,7 @@ int main(int argc, char**argv)
     stop = clock();
     time = static_cast<float>(stop - start)/CLOCKS_PER_SEC;
 
-    std::cout << "Time to get connectivity for ucd mesh of " << 3*total_elements << " elements: " 
+    std::cout << "Time to get connectivity for ucd mesh of " << 3*total_elements << " elements: "
               << time << " seconds." << std::endl;
 
     print_time();
@@ -163,16 +163,16 @@ int main(int argc, char**argv)
 
       // destroy this mesh
     delete gMB;
-    
+
   }
 }
 
 int create_3dtri_3_sequences(Core *gMB,
                              const int intervals,
-                             EntityHandle *vstart, EntityHandle *estart) 
+                             EntityHandle *vstart, EntityHandle *estart)
 {
     // create 3 brick esequences arranged such that the all share a common (tri-valent) edge;
-    // orient each region similarly to the 2dtri_3_esequences test problem, swept into 3d in the 
+    // orient each region similarly to the 2dtri_3_esequences test problem, swept into 3d in the
     // positive k direction.  This direction is divided into intervals intervals
     //
     // intervals and intervals controls the i and j intervals in region 0, intervals follows from that; intervals
@@ -181,10 +181,10 @@ int create_3dtri_3_sequences(Core *gMB,
     // input is 4 interval settings controlling the 4 degrees of freedom on the interfacesp
   int errors = 0;
 
-    
+
   ScdVertexSeq *vseq[3];
   ScdElementSeq *eseq[3];
-  
+
     // set vseq parametric spaces directly from intervals-4
     // use 0-based parameterization on vseq's just for fun, which means we'll have to transform into
     // eseq system
@@ -199,21 +199,21 @@ int create_3dtri_3_sequences(Core *gMB,
   EntitySequence *dum_seq;
   vseq[0] = vseq[1] = vseq[2] = NULL;
 
-    // first vertex sequence 
+    // first vertex sequence
   ErrorCode result = seq_mgr->create_scd_sequence(vseq0_minmax[0], vseq0_minmax[1],
                                                      MBVERTEX, 1,
                                                      vstart[0], dum_seq);
   if (NULL != dum_seq) vseq[0] = dynamic_cast<ScdVertexSeq*>(dum_seq);
   assert (MB_FAILURE != result && vstart[0] != 0 && dum_seq != NULL && vseq[0] != NULL);
 
-    // second vertex sequence 
+    // second vertex sequence
   result = seq_mgr->create_scd_sequence(vseq1_minmax[0], vseq1_minmax[1],
                                         MBVERTEX, 1,
                                         vstart[1], dum_seq);
   if (NULL != dum_seq) vseq[1] = dynamic_cast<ScdVertexSeq*>(dum_seq);
   assert (MB_FAILURE != result && vstart[1] != 0 && dum_seq != NULL && vseq[1] != NULL);
 
-    // third vertex sequence 
+    // third vertex sequence
   result = seq_mgr->create_scd_sequence(vseq2_minmax[0], vseq2_minmax[1],
                                         MBVERTEX, 1,
                                         vstart[2], dum_seq);
@@ -231,14 +231,14 @@ int create_3dtri_3_sequences(Core *gMB,
   HomCoord eseq2_minmax[2] = {HomCoord(0,0,0), HomCoord(intervals,intervals,intervals)};
 
   eseq[0] = eseq[1] = eseq[2] = NULL;
-  
+
     // create the first element sequence
-  result = seq_mgr->create_scd_sequence(eseq0_minmax[0], eseq0_minmax[1], 
+  result = seq_mgr->create_scd_sequence(eseq0_minmax[0], eseq0_minmax[1],
                                         MBHEX, 1,
                                         estart[0], dum_seq);
   if (NULL != dum_seq) eseq[0] = dynamic_cast<ScdElementSeq*>(dum_seq);
   assert (MB_FAILURE != result && estart[0] != 0 && dum_seq != NULL && eseq[0] != NULL);
-  
+
     // only need to add one vseq to this, unity transform
   result = eseq[0]->add_vsequence(vseq[0],
                                     // trick: if I know it's going to be unity, just input
@@ -246,19 +246,19 @@ int create_3dtri_3_sequences(Core *gMB,
                                   vseq0_minmax[0], vseq0_minmax[0],
                                   vseq0_minmax[0], vseq0_minmax[0],
                                   vseq0_minmax[0], vseq0_minmax[0]);
-  
+
   if (MB_SUCCESS != result) {
     std::cout << "Couldn't add first vsequence to first element sequence in tri-composite 3d eseq." << std::endl;
     errors++;
   }
-  
+
     // create the second element sequence
   result = seq_mgr->create_scd_sequence(eseq1_minmax[0], eseq1_minmax[1],
                                         MBHEX, 1,
                                         estart[1], dum_seq);
   if (NULL != dum_seq) eseq[1] = dynamic_cast<ScdElementSeq*>(dum_seq);
   assert (MB_FAILURE != result && estart[1] != 0 && dum_seq != NULL && eseq[1] != NULL);
-  
+
     // add shared side from first vseq to this eseq, with bb to get just the face
   result = eseq[1]->add_vsequence(vseq[0],
                                     // p1: origin in both systems
@@ -276,29 +276,29 @@ int create_3dtri_3_sequences(Core *gMB,
     std::cout << "Couldn't add shared vsequence to second element sequence in tri-composite 3d eseq." << std::endl;
     errors++;
   }
-  
+
     // add second vseq to this eseq, with different orientation but all of it (no bb input)
   result = eseq[1]->add_vsequence(vseq[1],
                                     // p1: origin/i+1 (vseq/eseq)
                                   vseq1_minmax[0], eseq1_minmax[0]+HomCoord::unitv[0],
                                     // p2: j+1 from p1
-                                  vseq1_minmax[0]+HomCoord::unitv[1], 
+                                  vseq1_minmax[0]+HomCoord::unitv[1],
                                   eseq1_minmax[0]+HomCoord::unitv[0]+HomCoord::unitv[1],
                                     // p3: i+1 from p1
-                                  vseq1_minmax[0]+HomCoord::unitv[0], 
+                                  vseq1_minmax[0]+HomCoord::unitv[0],
                                   eseq[1]->min_params()+HomCoord::unitv[0]*2);
   if (MB_SUCCESS != result) {
     std::cout << "Couldn't add second vseq to second element sequence in tri-composite 3d eseq." << std::endl;
     errors++;
   }
-  
+
     // create the third element sequence
   result = seq_mgr->create_scd_sequence(eseq2_minmax[0], eseq2_minmax[1],
                                         MBHEX, 1,
                                         estart[2], dum_seq);
   if (NULL != dum_seq) eseq[2] = dynamic_cast<ScdElementSeq*>(dum_seq);
   assert (MB_FAILURE != result && estart[2] != 0 && dum_seq != NULL && eseq[2] != NULL);
-  
+
     // add shared side from second vseq to this eseq
   result = eseq[2]->add_vsequence(vseq[1],
                                     // p1: origin/j+1 (vseq/eseq)
@@ -311,20 +311,20 @@ int create_3dtri_3_sequences(Core *gMB,
                                     // bb input such that we only get one side of eseq parameter space
                                   true,
                                   eseq[2]->min_params()+HomCoord::unitv[1],
-                                  HomCoord(eseq[2]->min_params().i(), eseq[2]->max_params().j(), 
+                                  HomCoord(eseq[2]->min_params().i(), eseq[2]->max_params().j(),
                                            eseq[2]->max_params().k()));
   if (MB_SUCCESS != result) {
     std::cout << "Couldn't add shared vsequence to third element sequence in tri-composite 3d eseq." << std::endl;
     errors++;
   }
-  
+
     // add shared side from first vseq to this eseq
   result = eseq[2]->add_vsequence(vseq[0],
                                     // p1: origin/origin
                                   vseq1_minmax[0], eseq2_minmax[0],
                                     // p2: j+1/i+1
-                                  vseq1_minmax[0]+HomCoord::unitv[1], 
-                                  eseq2_minmax[0]+HomCoord::unitv[0], 
+                                  vseq1_minmax[0]+HomCoord::unitv[1],
+                                  eseq2_minmax[0]+HomCoord::unitv[0],
                                     // p3: arbitrary
                                   vseq1_minmax[0], eseq2_minmax[0],
                                     // bb input such that we only get one side of eseq parameter space
@@ -353,16 +353,16 @@ int create_3dtri_3_sequences(Core *gMB,
   return errors;
 }
 
-int create_3dtri_ucd_sequences(Core *gMB, const int intervals, 
-                               EntityHandle *vstart, EntityHandle *estart) 
+int create_3dtri_ucd_sequences(Core *gMB, const int intervals,
+                               EntityHandle *vstart, EntityHandle *estart)
 {
-  
+
   ReadUtilIface* readMeshIface;
   gMB->query_interface(readMeshIface);
-  
+
   int num_elements = intervals*intervals*intervals;
   int num_verts = (intervals+1)*(intervals+1)*(intervals+1);
-  
+
   std::vector<double*> arrays;
   for (int i = 0; i < 3; i++) {
     readMeshIface->get_node_coords(3, num_verts,
@@ -384,7 +384,7 @@ int create_3dtri_ucd_sequences(Core *gMB, const int intervals,
   return 0;
 }
 
-void print_time() 
+void print_time()
 {
 /*
   struct rusage r_usage;
@@ -405,7 +405,7 @@ void print_time()
     int dum_int;
     unsigned int dum_uint, vm_size, rss;
     static int page_size = getpagesize();
-    int num_fields = sscanf(file_str, 
+    int num_fields = sscanf(file_str,
                             "%d " // pid
                             "%s " // comm
                             "%c " // state
@@ -415,13 +415,13 @@ void print_time()
                             "%u %u " // timeout, itrealvalue
                             "%d " // starttime
                             "%u %u", // vsize, rss
-                            &dum_int, 
-                            dum_str, 
-                            dum_str, 
-                            &dum_int, &dum_int, &dum_int, &dum_int, &dum_int, 
+                            &dum_int,
+                            dum_str,
+                            dum_str,
+                            &dum_int, &dum_int, &dum_int, &dum_int, &dum_int,
                             &dum_uint, &dum_uint, &dum_uint, &dum_uint, &dum_uint,
-                            &dum_int, &dum_int, &dum_int, &dum_int, &dum_int, &dum_int, 
-                            &dum_uint, &dum_uint, 
+                            &dum_int, &dum_int, &dum_int, &dum_int, &dum_int, &dum_int,
+                            &dum_uint, &dum_uint,
                             &dum_int,
                             &vm_size, &rss);
     if (num_fields == 24) {
@@ -435,9 +435,9 @@ void print_time()
     ((float)r_usage.ru_stime.tv_usec/1.e6);
   static int pagesize = getpagesize();
 
-  std::cout << "Execution time = " << utime+stime << ", max RSS = " 
+  std::cout << "Execution time = " << utime+stime << ", max RSS = "
             << r_usage.ru_maxrss*pagesize << " bytes." << std::endl;
-  
+
 */
 
 }

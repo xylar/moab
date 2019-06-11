@@ -564,7 +564,7 @@ int main( int argc, char *argv[] )
   iMesh_Instance mesh;
   iRel_Instance assoc;
   iRel_PairHandle pair;
-  
+
   printf("Usage: %s %s\n", geom_filename, mesh_filename);
 
   if (argc == 2 && !strcmp(argv[1], "-h")) {

@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2006 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
+
     (2006) kraftche@cae.wisc.edu
-   
+
   ***************************************************************** */
 
 
 /** \file IdealElementTest.cpp
  *  \brief Test the ExtraData functionality of the PatchData class
- *  \author Jason Kraftcheck 
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -88,7 +88,7 @@ void IdealElementTest::test_unit_tri()
   const Vector3D* coords = unit_element( TRIANGLE );
   CPPUNIT_ASSERT_DOUBLES_EQUAL( 0.0, distance_from_origin(3, coords), 1e-6);
   CPPUNIT_ASSERT( equal_edge_lengths( TRIANGLE, coords ) );
-  
+
   Vector3D v1 = coords[1] - coords[0];
   Vector3D v2 = coords[2] - coords[0];
   double area = 0.5 * (v1 * v2).length();
@@ -100,7 +100,7 @@ void IdealElementTest::test_unit_quad()
   const Vector3D* coords = unit_element( QUADRILATERAL );
   CPPUNIT_ASSERT_DOUBLES_EQUAL( 0.0, distance_from_origin(4, coords), 1e-6);
   CPPUNIT_ASSERT( equal_edge_lengths( QUADRILATERAL, coords ) );
-  
+
   Vector3D p1 = 0.5 * (coords[0] + coords[1]);
   Vector3D p2 = 0.5 * (coords[1] + coords[2]);
   Vector3D p3 = 0.5 * (coords[2] + coords[3]);
@@ -116,7 +116,7 @@ void IdealElementTest::test_unit_tet()
   const Vector3D* coords = unit_element( TETRAHEDRON );
   CPPUNIT_ASSERT_DOUBLES_EQUAL( 0.0, distance_from_origin(4, coords), 1e-6);
   CPPUNIT_ASSERT( equal_edge_lengths( TETRAHEDRON, coords ) );
-  
+
   Vector3D v1 = coords[1] - coords[0];
   Vector3D v2 = coords[2] - coords[0];
   Vector3D v3 = coords[3] - coords[0];
@@ -129,7 +129,7 @@ void IdealElementTest::test_unit_pyr()
   const Vector3D* coords = unit_element( PYRAMID );
   CPPUNIT_ASSERT_DOUBLES_EQUAL( 0.0, distance_from_origin(5, coords), 1e-6);
   CPPUNIT_ASSERT( equal_edge_lengths( PYRAMID, coords ) );
-  
+
   Vector3D p1 = 0.5 * (coords[0] + coords[1]);
   Vector3D p2 = 0.5 * (coords[1] + coords[2]);
   Vector3D p3 = 0.5 * (coords[2] + coords[3]);
@@ -137,7 +137,7 @@ void IdealElementTest::test_unit_pyr()
   Vector3D v1 = p1 - p3;
   Vector3D v2 = p2 - p4;
   double area = (v1 * v2).length();
-  
+
   Vector3D n = (v1 * v2);
   n.normalize();
   Vector3D c = 0.25*(coords[0]+coords[1]+coords[2]+coords[3]);
@@ -151,7 +151,7 @@ void IdealElementTest::test_unit_wdg()
   const Vector3D* coords = unit_element( PRISM );
   CPPUNIT_ASSERT_DOUBLES_EQUAL( 0.0, distance_from_origin(6, coords), 1e-6);
   CPPUNIT_ASSERT( equal_edge_lengths( PRISM, coords ) );
-  
+
   Vector3D v1 = coords[1] - coords[0];
   Vector3D v2 = coords[2] - coords[0];
   Vector3D v3 = coords[3] - coords[0];
@@ -164,7 +164,7 @@ void IdealElementTest::test_unit_hex()
   const Vector3D* coords = unit_element( HEXAHEDRON );
   CPPUNIT_ASSERT_DOUBLES_EQUAL( 0.0, distance_from_origin(8, coords), 1e-6);
   CPPUNIT_ASSERT( equal_edge_lengths( HEXAHEDRON, coords ) );
-  
+
   Vector3D p1 = 0.25*(coords[0]+coords[1]+coords[2]+coords[3]);
   Vector3D p2 = 0.25*(coords[4]+coords[5]+coords[6]+coords[7]);
   Vector3D p3 = 0.25*(coords[0]+coords[1]+coords[5]+coords[4]);
@@ -183,7 +183,7 @@ void IdealElementTest::test_side_height_pyr()
   const Vector3D* coords = unit_element( PYRAMID, true );
   CPPUNIT_ASSERT_DOUBLES_EQUAL( 0.0, distance_from_origin(5, coords), 1e-6);
   CPPUNIT_ASSERT( equal_edge_lengths( QUADRILATERAL, coords ) );
-  
+
   Vector3D p1 = 0.5 * (coords[0] + coords[1]);
   Vector3D p2 = 0.5 * (coords[1] + coords[2]);
   Vector3D p3 = 0.5 * (coords[2] + coords[3]);
@@ -191,7 +191,7 @@ void IdealElementTest::test_side_height_pyr()
   Vector3D v1 = p1 - p3;
   Vector3D v2 = p2 - p4;
   double area = (v1 * v2).length();
-  
+
   Vector3D n = (v1 * v2);
   n.normalize();
   Vector3D c = 0.25*(coords[0]+coords[1]+coords[2]+coords[3]);
@@ -248,14 +248,14 @@ void IdealElementTest::test_unit_height_pyr()
   const Vector3D* coords = unit_edge_element( PYRAMID, true );
   CPPUNIT_ASSERT_DOUBLES_EQUAL( 0.0, distance_from_origin(5, coords), 1e-6);
   CPPUNIT_ASSERT( unit_edge_lengths( QUADRILATERAL, coords ) );
-  
+
   Vector3D p1 = 0.5 * (coords[0] + coords[1]);
   Vector3D p2 = 0.5 * (coords[1] + coords[2]);
   Vector3D p3 = 0.5 * (coords[2] + coords[3]);
   Vector3D p4 = 0.5 * (coords[3] + coords[0]);
   Vector3D v1 = p1 - p3;
   Vector3D v2 = p2 - p4;
- 
+
   Vector3D n = (v1 * v2);
   n.normalize();
   Vector3D c = 0.25*(coords[0]+coords[1]+coords[2]+coords[3]);
@@ -263,7 +263,7 @@ void IdealElementTest::test_unit_height_pyr()
   CPPUNIT_ASSERT_DOUBLES_EQUAL( height, (coords[0] - coords[1]).length(), 1e-6 );
 }
 
-static void get_edge_lengths( EntityTopology type, 
+static void get_edge_lengths( EntityTopology type,
                               const Vector3D* coords,
                               double& min, double& max )
 {

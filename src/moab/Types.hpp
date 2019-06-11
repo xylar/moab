@@ -1,16 +1,16 @@
 /**
  * MOAB, a Mesh-Oriented datABase, is a software component for creating,
  * storing and accessing finite element mesh data.
- * 
+ *
  * Copyright 2004 Sandia Corporation.  Under the terms of Contract
  * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
  * retains certain rights in this software.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  */
 
 #ifndef MOAB_TYPES_HPP
@@ -55,7 +55,7 @@ extern const char* const ErrorCodeStr[];
 
 /** Misc. integer constants, declared in enum for portability */
 enum Constants {
-  MB_VARIABLE_LENGTH = -1 /**< Length value for variable-length tags */ 
+  MB_VARIABLE_LENGTH = -1 /**< Length value for variable-length tags */
 };
 
 /** Specify storage type for tags.  See MOAB users guide for more information. */
@@ -90,7 +90,7 @@ extern const char* const DataTypeStr[];
 #endif
 
 /** Used to reference tags; since they're so different from entities, we
- *  use void** instead of a uint to prevent them from being confused as 
+ *  use void** instead of a uint to prevent them from being confused as
  *  entity handles.
  */
 #ifdef __cplusplus

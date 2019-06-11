@@ -1,16 +1,16 @@
 /**
  * MOAB, a Mesh-Oriented datABase, is a software component for creating,
  * storing and accessing finite element mesh data.
- * 
+ *
  * Copyright 2004 Sandia Corporation.  Under the terms of Contract
  * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
  * retains certain rights in this software.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  */
 
 #ifndef SCD_VERTEX_DATA_HPP
@@ -40,7 +40,7 @@ private:
     //! difference between max and min params plus one (i.e. # VERTICES in
     //! each parametric direction)
   int dIJK[3];
-  
+
     //! difference between max and min params (i.e. # VERTEXS in
     //! each parametric direction)
   int dIJKm1[3];
@@ -48,10 +48,10 @@ private:
 public:
 
     //! constructor
-  ScdVertexData(const EntityHandle start_vertex, 
+  ScdVertexData(const EntityHandle start_vertex,
                 const int imin, const int jmin, const int kmin,
                 const int imax, const int jmax, const int kmax) ;
-  
+
   virtual ~ScdVertexData() {}
 
     //! get handle of vertex at i, j, k
@@ -64,10 +64,10 @@ public:
     //! sequence
   ErrorCode get_params(const EntityHandle vhandle,
                           int &i, int &j, int &k) const;
-  
+
     //! get min params for this vertex
   void min_params(int &i, int &j, int &k) const;
-  
+
     //! get max params for this vertex
   void max_params(int &i, int &j, int &k) const;
 
@@ -76,7 +76,7 @@ public:
 
     //! get the max params
   const HomCoord &max_params() const;
-  
+
     //! get the number of vertices in each direction, inclusive
   void param_extents(int &di, int &dj, int &dk) const;
 
@@ -92,16 +92,16 @@ public:
   bool contains(const HomCoord &coords) const;
   bool contains(const int i, const int j, const int k) const;
 
-  SequenceData* subset( EntityHandle start, 
+  SequenceData* subset( EntityHandle start,
                         EntityHandle end,
                         const int* sequence_data_sizes,
                         const int* tag_data_sizes ) const;
 };
 
-inline EntityHandle ScdVertexData::get_vertex(const int i, const int j, 
+inline EntityHandle ScdVertexData::get_vertex(const int i, const int j,
                                                 const int k) const
 {
-  return start_handle() + (i-i_min()) + (j-j_min())*dIJK[0] + 
+  return start_handle() + (i-i_min()) + (j-j_min())*dIJK[0] +
     (k-k_min())*dIJK[0]*dIJK[1];
 }
 
@@ -130,7 +130,7 @@ inline ErrorCode ScdVertexData::get_params(const EntityHandle vhandle,
           j >= j_min() && j <= j_max() &&
           k >= k_min() && k <= k_max()) ? MB_SUCCESS : MB_FAILURE;
 }
-  
+
   //! get min params for this vertex
 inline void ScdVertexData::min_params(int &i, int &j, int &k) const
 {
@@ -147,12 +147,12 @@ inline void ScdVertexData::max_params(int &i, int &j, int &k) const
   k = k_max();
 }
 
-inline const HomCoord &ScdVertexData::min_params() const 
+inline const HomCoord &ScdVertexData::min_params() const
 {
   return vertexParams[0];
 }
 
-inline const HomCoord &ScdVertexData::max_params() const 
+inline const HomCoord &ScdVertexData::max_params() const
 {
   return vertexParams[1];
 }
@@ -174,7 +174,7 @@ inline bool ScdVertexData::contains(const int i, const int j, const int k) const
 {
   return contains(HomCoord(i, j, k));
 }
-  
+
 } // namespace moab
 
 #endif

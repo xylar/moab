@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2006 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
+
     (2006) kraftche@cae.wisc.edu
-   
+
   ***************************************************************** */
 
 
 /** \file RefMeshTargetCalculator.hpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #ifndef MSQ_REF_MESH_TARGET_CALCULATOR_HPP
@@ -61,8 +61,8 @@ public:
    *\param sample  The sample point in the element.
    *\param W_out   The resulting target matrix.
    */
-  MESQUITE_EXPORT virtual 
-  bool get_3D_target( PatchData& pd, 
+  MESQUITE_EXPORT virtual
+  bool get_3D_target( PatchData& pd,
                       size_t element,
                       Sample sample,
                       MsqMatrix<3,3>& W_out,
@@ -75,8 +75,8 @@ public:
    *\param sample  The sample point in the element.
    *\param W_out   The resulting target matrix.
    */
-  MESQUITE_EXPORT virtual 
-  bool get_2D_target( PatchData& pd, 
+  MESQUITE_EXPORT virtual
+  bool get_2D_target( PatchData& pd,
                       size_t element,
                       Sample sample,
                       MsqMatrix<2,2>& W_out,
@@ -89,8 +89,8 @@ public:
    *\param sample  The sample point in the element.
    *\param W_out   The resulting target matrix.
    */
-  MESQUITE_EXPORT virtual 
-  bool get_surface_target( PatchData& pd, 
+  MESQUITE_EXPORT virtual
+  bool get_surface_target( PatchData& pd,
                            size_t element,
                            Sample sample,
                            MsqMatrix<3,2>& W_out,

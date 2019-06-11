@@ -3,7 +3,7 @@ AUTOMAKE_OPTIONS = foreign subdir-objects no-dependencies
 
 SUBDIRS = . io dual obb perf
 if HAVE_HDF5
-  SUBDIRS += h5file 
+  SUBDIRS += h5file
 endif
 if PARALLEL
   SUBDIRS += parallel
@@ -71,7 +71,7 @@ TESTS = range_test \
         mgen_test
 
 if HAVE_NETCDF
-   TESTS += intx_rll_cs_sphere_test 
+   TESTS += intx_rll_cs_sphere_test
 endif
 
 if HAVE_HDF5
@@ -94,7 +94,7 @@ if PARALLEL
 if ENABLE_FORTRAN
   TESTS += imoab_testF
 endif
-endif 
+endif
 endif
 
 #       merge_test \         # input files no longer exist?
@@ -152,9 +152,9 @@ scd_test_partn_SOURCES = scd_test_partn.cpp
 #test_tag_server_CPPFLAGS = -DTEST $(CPPFLAGS)
 test_adj_SOURCES = test_adj.cpp
 test_determinism_SOURCES = test_determinism.cpp
-seq_man_test_SOURCES = TestUtil.hpp TestTypeSequenceManager.cpp 
+seq_man_test_SOURCES = TestUtil.hpp TestTypeSequenceManager.cpp
 mesh_set_test_SOURCES = Test_MBMeshSet.cpp TestUtil.hpp
-geom_util_test_SOURCES = TestUtil.hpp GeomUtilTests.cpp 
+geom_util_test_SOURCES = TestUtil.hpp GeomUtilTests.cpp
 xform_test_SOURCES = affinexform_test.cpp
 oriented_box_test_SOURCES = oriented_box_test.cpp
 adaptive_kd_tree_tests_SOURCES = adaptive_kd_tree_tests.cpp

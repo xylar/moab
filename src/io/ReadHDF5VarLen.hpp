@@ -1,5 +1,5 @@
 /** \file   ReadHDF5VarLen.hpp
- *  \author Jason Kraftcheck 
+ *  \author Jason Kraftcheck
  *  \date   2010-09-04
  */
 
@@ -21,7 +21,7 @@ class ReadHDF5Dataset;
 /**\brief Read variable-length data from 1-D array dataset
  *
  * Utility class for reading variable-length data from an HDF5 dataset.
- * Used for reading set contents, set parents, set children, 
+ * Used for reading set contents, set parents, set children,
  * polygon and polyhedron connectivity, and variable-length tag
  * data.
  *
@@ -34,22 +34,22 @@ class ReadHDF5VarLen {
   private:
     void* const dataBuffer;
     const size_t bufferSize;
-    
+
       /**\brief Test if passed file_id is value pointed to by ranged_iter,
-       *        and if so, incremenet ranged_iter 
+       *        and if so, incremenet ranged_iter
        */
-    static bool is_ranged( EntityHandle file_id, 
+    static bool is_ranged( EntityHandle file_id,
                            Range::const_iterator& ranged_iter,
                            Range::const_iterator ranged_end );
   protected:
-  
+
       /**\brief Store data list for a single entity
        *
        * The is the pure virtual method that must be provided.
        * It is responsible for storing the data read for a single
        * entity.
        *
-       * This function will always be called in the order of the 
+       * This function will always be called in the order of the
        * file_ids in the range passed to the \c read method.
        *
        *\param file_id  The file ID for the entity
@@ -61,7 +61,7 @@ class ReadHDF5VarLen {
                                   void* data,
                                   long num_data,
                                   bool ranged ) = 0;
-    
+
   public:
       /**\brief Constructor
        *\param buffer      A temporary buffer to use during read
@@ -74,17 +74,17 @@ class ReadHDF5VarLen {
         dataBuffer( buffer ),
         bufferSize( buffer_size )
     {}
-    
+
     virtual ~ReadHDF5VarLen() {}
-    
+
       /**\brief Do actual read of data set
-       *\param data_set         The data set to read.  
+       *\param data_set         The data set to read.
        *\param file_ids         The file ids of the entities to read.
        *\param start_file_id    The file id corresponding to the first row of the dataset
        *\param data_type        The desired, in-memory data type for values
        *\param vals_per_ent     The number of values for each entity
        *\param ranged_file_ids  Those file ids for which the 'ranged'
-       *                        argument to \c storedata should be passed 
+       *                        argument to \c storedata should be passed
        *                        as \c true.
        */
     ErrorCode read_data( ReadHDF5Dataset& data_set,
@@ -94,16 +94,16 @@ class ReadHDF5VarLen {
                          const Range& file_ids,
                          const std::vector<unsigned>& vals_per_ent,
                          const Range& ranged_file_ids );
-    
+
       /**\brief Read set description table or offset vector for
        *        var-len tags or old-format poly(gon|hedra) connectivity.
-       *\param data_set         The data set to read.  
+       *\param data_set         The data set to read.
        *\param file_ids         The file ids of the entities to read.
        *\param start_file_id    The file id corresponding to the first row of the dataset
        *\param num_columns      The number of columns of offsets in the dataset
        *\param indices          Array of length \c num_columns contaning the
        *                        indices of the columns to read.
-       *\param nudge            Amount by which to offset values in 
+       *\param nudge            Amount by which to offset values in
        *                        \c offset_out to avoid putting zeros in
        *                        Range.  Must be greater than 0.  Probably 1.
        *\param offsets_out      An array of length \c num_columns which will
@@ -136,7 +136,7 @@ class ReadHDF5VarLen {
                             EntityHandle nudge,
                             Range& offsets_out,
                             std::vector<unsigned>& counts_out );
-                            
+
     ErrorCode read( ReadHDF5Dataset& offset_data,
                     ReadHDF5Dataset& value_data,
                     const Range& file_ids,
@@ -148,14 +148,14 @@ class ReadHDF5VarLen {
       const EntityHandle nudge = 1;
       Range offsets;
       std::vector<unsigned> counts;
-      rval = read_offsets( offset_data, file_ids, 
+      rval = read_offsets( offset_data, file_ids,
                            start_file_id, nudge,
                            offsets, counts );
       if (MB_SUCCESS != rval)
         return rval;
       Range empty;
-      rval = read_data( value_data, 
-                        offsets, nudge, data_type, 
+      rval = read_data( value_data,
+                        offsets, nudge, data_type,
                         file_ids, counts, ranged ? *ranged : empty );
       return rval;
     }

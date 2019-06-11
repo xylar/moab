@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2007 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2008) kraftche@cae.wisc.edu    
+    (2008) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file TInverseMeanRatio.cpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -42,8 +42,8 @@ std::string TInverseMeanRatio::get_name() const
 
 TInverseMeanRatio::~TInverseMeanRatio() {}
 
-bool TInverseMeanRatio::evaluate( const MsqMatrix<2,2>& T, 
-                                   double& result, 
+bool TInverseMeanRatio::evaluate( const MsqMatrix<2,2>& T,
+                                   double& result,
                                    MsqError& err )
 {
   const double d = det( T );
@@ -96,13 +96,13 @@ bool TInverseMeanRatio::evaluate_with_hess( const MsqMatrix<2,2>& T,
   else {
     const double inv_det = 1.0/d;
     result = sqr_Frobenius(T) * 0.5 * inv_det;
-    
+
     const MsqMatrix<2,2> AT = transpose_adj(T);
     dA = AT;
     dA *= -result;
     dA += T;
     dA *= inv_det;
-    
+
     const double p3 = -result * inv_det;
     const double p1 = -2.0 * p3 * inv_det;
     const double p2 = -inv_det * inv_det;
@@ -110,10 +110,10 @@ bool TInverseMeanRatio::evaluate_with_hess( const MsqMatrix<2,2>& T,
     const MsqMatrix<2,2> AT_T_op_11 = outer( AT.row(1), T.row(1));
     d2A[0] = p1 * outer( AT.row(0), AT.row(0))
            + p2 * (AT_T_op_00 + transpose(AT_T_op_00));
-    d2A[1] = p1 * outer( AT.row(0), AT.row(1)) 
+    d2A[1] = p1 * outer( AT.row(0), AT.row(1))
            + p2 * (outer( AT.row(0), T.row(1))
 	     + outer( T.row(0), AT.row(1) ));
-    d2A[2] = p1 * outer( AT.row(1), AT.row(1)) 
+    d2A[2] = p1 * outer( AT.row(1), AT.row(1))
            + p2 * (AT_T_op_11 + transpose(AT_T_op_11));
 
     d2A[0](0,0) += inv_det;
@@ -122,15 +122,15 @@ bool TInverseMeanRatio::evaluate_with_hess( const MsqMatrix<2,2>& T,
     d2A[1](1,0) -= p3;
     d2A[2](0,0) += inv_det;
     d2A[2](1,1) += inv_det;
-    
+
     result -= 1.0;
     return true;
   }
 }
 
 
-bool TInverseMeanRatio::evaluate( const MsqMatrix<3,3>& T, 
-                                   double& result, 
+bool TInverseMeanRatio::evaluate( const MsqMatrix<3,3>& T,
+                                   double& result,
                                    MsqError& err )
 {
   const double d = det( T );
@@ -150,7 +150,7 @@ bool TInverseMeanRatio::evaluate_with_grad( const MsqMatrix<3,3>& T,
                                              double& result,
                                              MsqMatrix<3,3>& deriv_wrt_T,
                                              MsqError& err )
-{  
+{
   const double d = det( T );
   if (invalid_determinant(d)) {
     MSQ_SETERR(err)( barrier_violated_msg, MsqError::BARRIER_VIOLATED );
@@ -212,11 +212,11 @@ bool TInverseMeanRatio::evaluate_with_hess( const MsqMatrix<3,3>& T,
     op += transpose(op);
     op *= f6;
     d2A[i] -= op;
-    
+
     d2A[i](0,0) += f3;
     d2A[i](1,1) += f3;
     d2A[i](2,2) += f3;
-    
+
     ++i;
 
     for (int cc = r+1; cc < 3; ++cc) {

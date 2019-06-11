@@ -878,7 +878,7 @@ ErrorCode ScdNCHelper::create_mesh(Range& faces)
   Range tmp_range;
   ScdBox* scd_box;
 
-  ErrorCode rval = scdi->construct_box(HomCoord(lDims[0], lDims[1], lDims[2], 1), HomCoord(lDims[3], lDims[4], lDims[5], 1), 
+  ErrorCode rval = scdi->construct_box(HomCoord(lDims[0], lDims[1], lDims[2], 1), HomCoord(lDims[3], lDims[4], lDims[5], 1),
                                        NULL, 0, scd_box, locallyPeriodic, &parData, true);MB_CHK_SET_ERR(rval, "Trouble creating scd vertex sequence");
 
   // Add verts to tmp_range first, so we can duplicate global ids in vertex ids

@@ -135,21 +135,21 @@ public:
     else {
       array_size = count;
       if (array_allocated_space < count) {
-        ERROR(iBase_BAD_ARRAY_SIZE, 
+        ERROR(iBase_BAD_ARRAY_SIZE,
           "Allocated array not large enough to hold returned contents.");
       }
     }
     RETURN(iBase_SUCCESS);
   }
-  
-  ~iMeshArrayManager() 
+
+  ~iMeshArrayManager()
   {
     if (arrayPtr) {
       std::free(*arrayPtr);
       *arrayPtr = 0;
     }
   }
-  
+
   void keep_array()
     { arrayPtr = 0; }
 };

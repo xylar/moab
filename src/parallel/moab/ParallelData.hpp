@@ -13,7 +13,7 @@ class ParallelComm;
  * \brief Parallel data in MOAB
  * \author Tim Tautges
  *
- *  This class implements methods to retrieve information about 
+ *  This class implements methods to retrieve information about
  * the parallel mesh from MOAB.  Most of this data can be retrieved
  * directly from MOAB as sets and tags; this class provides convenience
  * methods implemented on top of other MOAB functions.
@@ -36,7 +36,7 @@ public:
     //! this processor communicates; sets are sorted by processor
   ErrorCode get_interface_sets(std::vector<EntityHandle> &iface_sets,
                                  std::vector<int> &iface_procs);
-  
+
 
 private:
 
@@ -45,12 +45,12 @@ private:
 
     //! ParallelComm object to which this is bound
   ParallelComm *parallelComm;
-  
+
 };
 
-inline ParallelData::ParallelData(Interface *impl, 
-                                      ParallelComm *pcomm) 
-    : mbImpl(impl), parallelComm(pcomm) 
+inline ParallelData::ParallelData(Interface *impl,
+                                      ParallelComm *pcomm)
+    : mbImpl(impl), parallelComm(pcomm)
 {}
 
 }

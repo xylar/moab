@@ -4,10 +4,10 @@ AUTOMAKE_OPTIONS = foreign
 BUILT_SOURCES = include/Mesquite_all_headers.hpp
 lib_LTLIBRARIES = libmbmesquite.la
 libmbmesquite_la_DEPENDENCIES=
-# Tell libtool that there are no undefined symbols when linking 
+# Tell libtool that there are no undefined symbols when linking
 # the library.  This means that either the symbol is defined in
-# the library or we include a -lname argument to specify which 
-# other library provides the symbol.  Libtool requires this 
+# the library or we include a -lname argument to specify which
+# other library provides the symbol.  Libtool requires this
 # guarantee to generate libraries on platforms for which shared
 # libs cannot have any unmet depenendencies (windows, and maybe AIX)
 libmbmesquite_la_LDFLAGS = $(AM_LDFLAGS) -no-undefined
@@ -17,7 +17,7 @@ include make.inc
 libmbmesquite_la_includedir = $(includedir)/moab/mesquite
 libmbmesquite_la_nodist_includedir = $(includedir)/moab
 
-libmbmesquite_la_SOURCES = $(MSQ_SRCS) 
+libmbmesquite_la_SOURCES = $(MSQ_SRCS)
 
 libmbmesquite_la_include_HEADERS = \
 																	 include/Mesquite.hpp \
@@ -49,15 +49,15 @@ include/Mesquite_all_headers.hpp: $(MSQ_HDRS)
 	@echo '#ifndef MESQUITE_ALL_HEADERS_HPP'        >> $@
 	@echo '#define MESQUITE_ALL_HEADERS_HPP'        >> $@
 	@echo '#include "Mesquite.hpp"'                 >> $@
-	@echo '#include "MeshInterface.hpp"'            >> $@ 
+	@echo '#include "MeshInterface.hpp"'            >> $@
 	@echo '#include "ParallelMeshInterface.hpp"'    >> $@
-	@echo '#include "ParallelHelperInterface.hpp"'  >> $@ 
-	@echo '#include "CurveDomain.hpp"'  >> $@ 
+	@echo '#include "ParallelHelperInterface.hpp"'  >> $@
+	@echo '#include "CurveDomain.hpp"'  >> $@
 	@for file in $(MSQ_HDRS); do \
 	   n=`expr X"$$file" : X".*/\([^/]*\)"`;\
 	   test -z "$$n" || echo "#include \"$$n\"" >> $@; \
 	done
-	@echo '#endif'                                  >> $@ 
+	@echo '#endif'                                  >> $@
 
 MOSTLYCLEANFILES = $(BUILT_SOURCES)
 DISTCLEANFILES = $(OLD_AM_GENERATED_HDRS)

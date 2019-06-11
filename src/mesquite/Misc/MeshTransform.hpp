@@ -1,9 +1,9 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2004 Sandia Corporation and Argonne National
-    Laboratory.  Under the terms of Contract DE-AC04-94AL85000 
-    with Sandia Corporation, the U.S. Government retains certain 
+    Laboratory.  Under the terms of Contract DE-AC04-94AL85000
+    with Sandia Corporation, the U.S. Government retains certain
     rights in this software.
 
     This library is free software; you can redistribute it and/or
@@ -16,25 +16,25 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
-    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov, 
-    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov      
-   
+
+    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov,
+    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov
+
   ***************************************************************** */
 /*!
   \file   MeshTransform.hpp
-  \brief  
+  \brief
 
   Class for performing an affine transformation on the mesh.
 
-  \author Michael Brewer      
+  \author Michael Brewer
   \date   2004-11-06
 */
 
-#ifndef Mesquite_MeshTransform_hpp 
+#ifndef Mesquite_MeshTransform_hpp
 #define Mesquite_MeshTransform_hpp
 
 
@@ -52,11 +52,11 @@ namespace MBMesquite
     vertex position, v_old, s.t.
     v_new = (mMat * v_old) + mVec,
     where mMat is a constant matrix and mVec is a constant vector.
-   */  
-  class MESQUITE_EXPORT MeshTransform : public Instruction 
+   */
+  class MESQUITE_EXPORT MeshTransform : public Instruction
   {
   public:
-    MeshTransform(bool skip_fixed = false) 
+    MeshTransform(bool skip_fixed = false)
       : mMat(1,0,0,0,1,0,0,0,1), mVec(0.0), skipFixed(skip_fixed)
        {}
     MeshTransform(Matrix3D &in_mat, Vector3D &in_vec,
@@ -66,7 +66,7 @@ namespace MBMesquite
 
       // virtual destructor ensures use of polymorphism during destruction
     virtual ~MeshTransform();
-    
+
       //virtual functions from PatchDataUser...
       //!Loop over the mesh and perform the affine transformation
     virtual double loop_over_mesh( MeshDomainAssoc* mesh_and_domain,
@@ -74,25 +74,25 @@ namespace MBMesquite
                                    MsqError &err);
       //! Return the name of this PatchDataUser:  Mesh Transform
     virtual std::string get_name() const { return "Mesh Transform";}
-    
+
     virtual void initialize_queue( MeshDomainAssoc* mesh_and_domain,
                                    const Settings* settings,
                                    MsqError& err );
-    
+
     void add_translation( const Vector3D& offset );
     void add_rotation( const Vector3D& axis, double radians );
     void add_scale( double factor );
     void add_scale( const Vector3D& factors );
-    
+
     bool skipping_fixed_vertices() const { return skipFixed; }
     void skip_fixed_vertices(bool yesno) { skipFixed = yesno; }
-    
+
   private:
     Matrix3D mMat;//!Matrix for the affine transformation
     Vector3D mVec;//!Vector for the affine transformation
     bool skipFixed;
   };
 
-  
+
 } // namespace
 #endif // Mesquite_MeshTransform_hpp

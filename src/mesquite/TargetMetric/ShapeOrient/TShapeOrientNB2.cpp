@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2006 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
+
     (2006) kraftche@cae.wisc.edu
-   
+
   ***************************************************************** */
 
 
 /** \file TShapeOrientNB2.cpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -53,8 +53,8 @@ bool eval( const MsqMatrix<DIM,DIM>& T, double& result )
 
 
 template <unsigned DIM> static inline
-bool grad( const MsqMatrix<DIM,DIM>& T, 
-           double& result, 
+bool grad( const MsqMatrix<DIM,DIM>& T,
+           double& result,
            MsqMatrix<DIM,DIM>& deriv_wrt_T )
 {
   const double tr = trace(T);
@@ -67,9 +67,9 @@ bool grad( const MsqMatrix<DIM,DIM>& T,
 }
 
 template <unsigned DIM> static inline
-bool hess( const MsqMatrix<DIM,DIM>& T, 
-           double& result, 
-           MsqMatrix<DIM,DIM>& deriv_wrt_T, 
+bool hess( const MsqMatrix<DIM,DIM>& T,
+           double& result,
+           MsqMatrix<DIM,DIM>& deriv_wrt_T,
            MsqMatrix<DIM,DIM>* second_wrt_T )
 {
   const double tr = trace(T);

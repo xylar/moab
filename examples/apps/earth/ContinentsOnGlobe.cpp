@@ -1,10 +1,10 @@
 /** @example ContinentsOnGlobe
- * Description: read a mesh on a sphere and boundaries of continents and major islands, 
+ * Description: read a mesh on a sphere and boundaries of continents and major islands,
  *   and write a boundaries mesh file (bound.vtk) and a file with sets for major continents (map.h5m).
- *  Boundaries exist as 2 files, a list of boundary points and a list of loops, representing 
- *  each continent and major islands; there are 796 loops (islands). The first one has 1239 
+ *  Boundaries exist as 2 files, a list of boundary points and a list of loops, representing
+ *  each continent and major islands; there are 796 loops (islands). The first one has 1239
  *  edges/segments (Asia+Europe), while the last one has only 3. It must be a small island :)
- *    ContinentsOnGlobe  <input.h5m> 
+ *    ContinentsOnGlobe  <input.h5m>
  *  default values: poly2000.h5m : a mesh with 2000 polygons on a sphere of radius 1
  */
 
@@ -42,7 +42,7 @@ double getLon(CartVect p)  {
 }
 
 // we project sphere points on a 2d map. We decide if a point is in interior of a loop
-// with the span angle test; it will work for any island except Antarctica 
+// with the span angle test; it will work for any island except Antarctica
 
 bool interior_point(vector<double> & coords, int& startLoop, int & endLoop, double lat, double lon)
 {
@@ -160,10 +160,10 @@ int main(int argc, char **argv)
     rval = mb->add_entities(islandSets[loop_index], &interiorCells[0], interiorCells.size()); MB_CHK_SET_ERR(rval, "Can't add entities to set");
   }
 
-  
+
 
   std::stringstream islandFile;
- 
+
   islandFile<<"map.h5m";
 
   rval = mb-> write_file(islandFile.str().c_str()); MB_CHK_SET_ERR(rval, "Can't write island file");

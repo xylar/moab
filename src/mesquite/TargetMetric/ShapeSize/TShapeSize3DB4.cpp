@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2009 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
+
     (2009) kraftche@cae.wisc.edu
-   
+
   ***************************************************************** */
 
 
 /** \file TShapeSize3DB4.cpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -44,8 +44,8 @@ std::string TShapeSize3DB4::get_name() const
 
 TShapeSize3DB4::~TShapeSize3DB4() {}
 
-bool TShapeSize3DB4::evaluate( const MsqMatrix<3,3>& T, 
-                               double& result, 
+bool TShapeSize3DB4::evaluate( const MsqMatrix<3,3>& T,
+                               double& result,
                                MsqError& err )
 {
   const double tau = det(T);
@@ -53,9 +53,9 @@ bool TShapeSize3DB4::evaluate( const MsqMatrix<3,3>& T,
     MSQ_SETERR(err)( barrier_violated_msg, MsqError::BARRIER_VIOLATED );
     return false;
   }
-  
+
   const double norm = Frobenius(T);
-  result = norm*norm*norm / (3*MSQ_SQRT_THREE*tau) - 1 
+  result = norm*norm*norm / (3*MSQ_SQRT_THREE*tau) - 1
          + mGamma * (tau + 1/tau - 2);
   return true;
 }
@@ -70,16 +70,16 @@ bool TShapeSize3DB4::evaluate_with_grad( const MsqMatrix<3,3>& T,
     MSQ_SETERR(err)( barrier_violated_msg, MsqError::BARRIER_VIOLATED );
     return false;
   }
-  
+
   const double norm = Frobenius(T);
   const double f = norm*norm/3.0;
   const double g = norm / (MSQ_SQRT_THREE * tau);
   const double inv_tau = 1.0/tau;
   result = f * g - 1 + mGamma * (tau + inv_tau - 2);
-  
+
   deriv = g*T;
   deriv += (mGamma * (1 - inv_tau*inv_tau) - f*g*inv_tau) * transpose_adj(T);
-  
+
   return true;
 }
 
@@ -95,20 +95,20 @@ bool TShapeSize3DB4::evaluate_with_hess( const MsqMatrix<3,3>& T,
     MSQ_SETERR(err)( barrier_violated_msg, MsqError::BARRIER_VIOLATED );
     return false;
   }
-  
+
   const double norm = Frobenius(T);
   const double f = norm*norm/3.0;
   const double h = 1/(MSQ_SQRT_THREE * tau);
   const double g = norm * h;
   const double inv_tau = 1.0/tau;
   result = f * g - 1 + mGamma * (tau + inv_tau - 2);
-  
+
   const double g1 = mGamma * (1 - inv_tau*inv_tau);
   const MsqMatrix<3,3> adjt = transpose_adj(T);
   deriv = g*T;
   deriv += (g1 - f*g*inv_tau) * adjt;
-  
-  if (norm > 1e-50) 
+
+  if (norm > 1e-50)
   {
     const double inv_norm = 1/norm;
     set_scaled_outer_product( second, h*inv_norm, T );
@@ -122,7 +122,7 @@ bool TShapeSize3DB4::evaluate_with_hess( const MsqMatrix<3,3>& T,
     std::cout << "Warning: Division by zero avoided in TShapeSize3DB4::evaluate_with_hess()" << std::endl;
   }
 
-  
+
   return true;
 }
 

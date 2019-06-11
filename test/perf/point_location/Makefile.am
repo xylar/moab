@@ -16,13 +16,13 @@ if PARALLEL
   AM_CPPFLAGS += -I$(top_srcdir)/src/parallel
 endif
 
-LDADD = $(top_builddir)/src/libMOAB.la 
+LDADD = $(top_builddir)/src/libMOAB.la
 
 check_PROGRAMS = point_location tree_searching_perf sploc_searching_perf
 noinst_PROGRAMS =
 
 if ENABLE_mbcoupler
-  check_PROGRAMS += elem_eval_time 
+  check_PROGRAMS += elem_eval_time
   LDADD += $(top_builddir)/tools/mbcoupler/libmbcoupler.la
 endif
 

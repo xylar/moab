@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2007 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2009) kraftche@cae.wisc.edu    
+    (2009) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file SlaveBoundaryVertices.cpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #include "SlaveBoundaryVertices.hpp"
@@ -61,7 +61,7 @@ double SlaveBoundaryVertices::loop_over_mesh( MeshDomainAssoc* mesh_and_domain,
                     "!= SLAVE_CALCUALTED", MsqError::INVALID_STATE);
     return 0.0;
   }
-  
+
     // If user said that we should treat fixed vertices as the
     // boundary, but specified that fixed vertices are defined
     // by the dimension of their geometric domain, then just
@@ -69,8 +69,8 @@ double SlaveBoundaryVertices::loop_over_mesh( MeshDomainAssoc* mesh_and_domain,
   int dim = this->domainDoF;
   if (dim >= 4 && settings->get_fixed_vertex_mode() != Settings::FIXED_FLAG)
     dim = settings->get_fixed_vertex_mode();
-  
-    // Create a map to contain vertex depth.  Intiliaze all to 
+
+    // Create a map to contain vertex depth.  Intiliaze all to
     // elemDepth+1.
   std::vector<Mesh::VertexHandle> vertices;
   mesh->get_all_vertices( vertices, err );  MSQ_ERRZERO(err);
@@ -81,7 +81,7 @@ double SlaveBoundaryVertices::loop_over_mesh( MeshDomainAssoc* mesh_and_domain,
   std::vector<bool> fixed;
   mesh->vertices_get_fixed_flag( arrptr(vertices), fixed, vertices.size(), err );
   MSQ_ERRZERO(err);
-  
+
     // Initialize map with boundary vertices.
   if (dim >= 4) {
     for(size_t i = 0; i < vertices.size(); ++i)
@@ -95,17 +95,17 @@ double SlaveBoundaryVertices::loop_over_mesh( MeshDomainAssoc* mesh_and_domain,
                       MsqError::INVALID_STATE);
       return 0.0;
     }
-    
+
     std::vector<unsigned short> dof( vertices.size() );
     domain->domain_DoF( arrptr(vertices), arrptr(dof), vertices.size(), err ); MSQ_ERRZERO(err);
     for (size_t i = 0; i < vertices.size(); ++i)
       if (dof[i] <= dim)
         depth[i] = 0;
   }
-  
-    // Now iterate over elements repeatedly until we've found all of the 
+
+    // Now iterate over elements repeatedly until we've found all of the
     // elements near the boundary.  This could be done much more efficiently
-    // using vertex-to-element adjacencies, but it is to common for 
+    // using vertex-to-element adjacencies, but it is to common for
     // applications not to implement that unless doing relaxation smoothing.
     // This is O(elemDepth * elements.size() * ln(vertices.size()));
   std::vector<Mesh::ElementHandle> elements;
@@ -125,7 +125,7 @@ double SlaveBoundaryVertices::loop_over_mesh( MeshDomainAssoc* mesh_and_domain,
       for (k = conn.begin(); k != conn.end(); ++k) {
         size_t i = std::lower_bound( vertices.begin(), vertices.end(), *k ) - vertices.begin();
         if (i == vertices.size()) {
-          MSQ_SETERR(err)("Invalid vertex handle in element connectivity list.", 
+          MSQ_SETERR(err)("Invalid vertex handle in element connectivity list.",
                           MsqError::INVALID_MESH);
           return 0.0;
         }
@@ -134,7 +134,7 @@ double SlaveBoundaryVertices::loop_over_mesh( MeshDomainAssoc* mesh_and_domain,
       }
       if (elem_depth == elemDepth+1)
         continue;
-      
+
       ++elem_depth;
       for (k = conn.begin(); k != conn.end(); ++k) {
         size_t i = std::lower_bound( vertices.begin(), vertices.end(), *k ) - vertices.begin();
@@ -145,7 +145,7 @@ double SlaveBoundaryVertices::loop_over_mesh( MeshDomainAssoc* mesh_and_domain,
       }
     } // for(elements)
   } while (some_changed);
-  
+
     // Now remove any corner vertices from the slaved set
   std::vector<Mesh::VertexHandle>::iterator p;
   std::vector<EntityTopology> types(elements.size());
@@ -159,7 +159,7 @@ double SlaveBoundaryVertices::loop_over_mesh( MeshDomainAssoc* mesh_and_domain,
       depth[p-vertices.begin()] = 0;
     }
   }
-  
+
     // Now mark all vertices *not* within specified depth as slave vertices.
   std::vector<unsigned char> bytes( vertices.size() );
   mesh->vertices_get_byte( arrptr(vertices), arrptr(bytes), vertices.size(), err ); MSQ_ERRZERO(err);
@@ -169,7 +169,7 @@ double SlaveBoundaryVertices::loop_over_mesh( MeshDomainAssoc* mesh_and_domain,
     else
       bytes[i] |= MsqVertex::MSQ_DEPENDENT;
   }
-  
+
   mesh->vertices_set_byte( arrptr(vertices), arrptr(bytes), vertices.size(), err ); MSQ_ERRZERO(err);
   return 0.0;
 }

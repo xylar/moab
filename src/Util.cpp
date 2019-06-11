@@ -1,16 +1,16 @@
 /**
  * MOAB, a Mesh-Oriented datABase, is a software component for creating,
  * storing and accessing finite element mesh data.
- * 
+ *
  * Copyright 2004 Sandia Corporation.  Under the terms of Contract
  * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
  * retains certain rights in this software.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  */
 
 //-------------------------------------------------------------------------
@@ -89,12 +89,12 @@ void Util::centroid(Interface *MB, EntityHandle handle, CartVect &coord)
    {
       double node_coords[3];
       MB->get_coords(&(connectivity[i]), 1, node_coords);
-     
+
       coord[0]+=node_coords[0];
       coord[1]+=node_coords[1];
       coord[2]+=node_coords[2];
    }
-   
+
    coord[0]/=(double)number_nodes;
    coord[1]/=(double)number_nodes;
    coord[2]/=(double)number_nodes;
@@ -111,16 +111,16 @@ void Util::edge_centers(Interface *MB, EntityHandle handle, std::vector<Coord> &
   const EntityHandle *connectivity;
 
   MB->get_connectivity(handle, connectivity, number_nodes,true);
-  
+
   MB->type_from_handle(handle,type);
-  
+
   const struct MBCN::ConnMap* conn_map = &(canon_tool.mConnectivityMap[type][0]); //get edge sub_elements
 
   coords_list.resize(conn_map->num_sub_elements);
 
   for(i = 0; i<conn_map->num_sub_elements; i++)
   {
-    
+
     MB->get_coords(connectivity[conn_map->conn[i][0]], coords[0]);
     MB->get_coords(connectivity[conn_map->conn[i][1]], coords[1]);
 
@@ -129,7 +129,7 @@ void Util::edge_centers(Interface *MB, EntityHandle handle, std::vector<Coord> &
     coords_list[i].z = (coords[0][2] + coords[1][2])/2.0;
   }
 }
-*/  
+*/
 
 /*
 void Util::face_centers(Interface *MB, EntityHandle handle, std::vector<Coord> &coords_list)
@@ -142,9 +142,9 @@ void Util::face_centers(Interface *MB, EntityHandle handle, std::vector<Coord> &
   const EntityHandle *connectivity;
 
   MB->get_connectivity(handle, connectivity, number_nodes,true);
-  
+
   MB->type_from_handle(handle,type);
-  
+
   const struct MBCN::ConnMap* conn_map = &(canon_tool.mConnectivityMap[type][1]); //get face sub_elements
 
   coords_list.resize(conn_map->num_sub_elements);
@@ -156,12 +156,12 @@ void Util::face_centers(Interface *MB, EntityHandle handle, std::vector<Coord> &
     for(int j = 0; j<number_nodes_per_element; j++)
     {
       MB->get_coords(connectivity[conn_map->conn[i][j]], node_coords);
-     
+
       coords_list[i].x+=node_coords[0];
       coords_list[i].y+=node_coords[1];
       coords_list[i].z+=node_coords[2];
     }
-   
+
     coords_list[i].x/=(double)number_nodes_per_element;
     coords_list[i].y/=(double)number_nodes_per_element;
     coords_list[i].z/=(double)number_nodes_per_element;
