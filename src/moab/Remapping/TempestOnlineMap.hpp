@@ -230,9 +230,7 @@ private:
 	///		Store the tag names associated with global DoF ids for source and target meshes
 	///	</summary>
 	moab::ErrorCode set_dofmap_tags(const std::string srcDofTagName, 
-								  DiscretizationType eInputType,
-								  const std::string tgtDofTagName, 
-								  DiscretizationType eOutputType);
+								  const std::string tgtDofTagName);
 
 	///	<summary>
 	///		Compute the association between the solution tag global DoF numbering and
@@ -400,7 +398,11 @@ public:
 	DataArray3D<int> dataGLLNodesSrc, dataGLLNodesSrcCov, dataGLLNodesDest;
 	DiscretizationType m_srcDiscType, m_destDiscType;
 	int m_nTotDofs_Src, m_nTotDofs_SrcCov, m_nTotDofs_Dest;
+	// Key details about the current map
 	int m_nDofsPEl_Src, m_nDofsPEl_Dest;
+	DiscretizationType m_eInputType, m_eOutputType;
+	bool m_bConserved;
+	int m_iMonotonicity;
 
 	Mesh* m_meshInput;
 	Mesh* m_meshInputCov;

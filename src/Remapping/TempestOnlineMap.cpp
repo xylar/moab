@@ -164,15 +164,14 @@ static void ParseVariableList (
 
 ///////////////////////////////////////////////////////////////////////////////
 
-moab::ErrorCode moab::TempestOnlineMap::set_dofmap_tags(const std::string srcDofTagName, DiscretizationType eInputType,
-        const std::string tgtDofTagName, DiscretizationType eOutputType)
+moab::ErrorCode moab::TempestOnlineMap::set_dofmap_tags(const std::string srcDofTagName, const std::string tgtDofTagName)
 {
     moab::ErrorCode rval;
 
     rval = m_interface->tag_get_handle ( srcDofTagName.c_str(), m_nDofsPEl_Src*m_nDofsPEl_Src, MB_TYPE_INTEGER,
                              this->m_dofTagSrc, MB_TAG_ANY );
 
-    if (rval == moab::MB_TAG_NOT_FOUND && eInputType != DiscretizationType_FV)
+    if (rval == moab::MB_TAG_NOT_FOUND && m_eInputType != DiscretizationType_FV)
     {
         int ntot_elements = 0, nelements = m_remapper->m_source_entities.size();
 #ifdef MOAB_HAVE_MPI
@@ -195,7 +194,7 @@ moab::ErrorCode moab::TempestOnlineMap::set_dofmap_tags(const std::string srcDof
 
     rval = m_interface->tag_get_handle ( tgtDofTagName.c_str(), m_nDofsPEl_Dest*m_nDofsPEl_Dest, MB_TYPE_INTEGER,
                              this->m_dofTagDest, MB_TAG_ANY );
-    if (rval == moab::MB_TAG_NOT_FOUND && eOutputType != DiscretizationType_FV)
+    if (rval == moab::MB_TAG_NOT_FOUND && m_eOutputType != DiscretizationType_FV)
     {
         int ntot_elements = 0, nelements = m_remapper->m_target_entities.size();
 #ifdef MOAB_HAVE_MPI
@@ -635,7 +634,12 @@ moab::ErrorCode moab::TempestOnlineMap::GenerateRemappingWeights ( std::string s
         m_nDofsPEl_Src = nPin;
         m_nDofsPEl_Dest = nPout;
 
-        rval = set_dofmap_tags(srcDofTagName, eInputType, tgtDofTagName, eOutputType);
+        m_bConserved = !fNoConservation;
+        m_iMonotonicity = fMonotoneTypeID;
+        m_eInputType = eInputType;
+        m_eOutputType = eOutputType;
+
+        rval = set_dofmap_tags(srcDofTagName, tgtDofTagName);MB_CHK_ERR(rval);
 
         // Calculate Face areas
         if ( is_root ) dbgprint.printf ( 0, "Calculating input mesh Face areas\n" );
@@ -1865,7 +1869,7 @@ moab::ErrorCode moab::TempestOnlineMap::WriteParallelMap (std::string strOutputF
 
     const int weightMatNNZ = m_weightMatrix.nonZeros();
     moab::Tag tagMapMetaData, tagMapIndexRow, tagMapIndexCol, tagMapValues, srcEleIDs, tgtEleIDs, srcAreaValues, tgtAreaValues, srcMaskValues, tgtMaskValues;
-    rval = m_interface->tag_get_handle("SMAT_DATA", 7, moab::MB_TYPE_INTEGER, tagMapMetaData, moab::MB_TAG_CREAT|moab::MB_TAG_SPARSE);MB_CHK_SET_ERR(rval, "Retrieving tag handles failed");
+    rval = m_interface->tag_get_handle("SMAT_DATA", 13, moab::MB_TYPE_INTEGER, tagMapMetaData, moab::MB_TAG_CREAT|moab::MB_TAG_SPARSE);MB_CHK_SET_ERR(rval, "Retrieving tag handles failed");
     rval = m_interface->tag_get_handle("SMAT_ROWS", weightMatNNZ, moab::MB_TYPE_INTEGER, tagMapIndexRow, moab::MB_TAG_CREAT|moab::MB_TAG_SPARSE|moab::MB_TAG_VARLEN);MB_CHK_SET_ERR(rval, "Retrieving tag handles failed");
     rval = m_interface->tag_get_handle("SMAT_COLS", weightMatNNZ, moab::MB_TYPE_INTEGER, tagMapIndexCol, moab::MB_TAG_CREAT|moab::MB_TAG_SPARSE|moab::MB_TAG_VARLEN);MB_CHK_SET_ERR(rval, "Retrieving tag handles failed");
     rval = m_interface->tag_get_handle("SMAT_VALS", weightMatNNZ, moab::MB_TYPE_DOUBLE, tagMapValues, moab::MB_TAG_CREAT|moab::MB_TAG_SPARSE|moab::MB_TAG_VARLEN);MB_CHK_SET_ERR(rval, "Retrieving tag handles failed");
@@ -1915,12 +1919,28 @@ moab::ErrorCode moab::TempestOnlineMap::WriteParallelMap (std::string strOutputF
     //   5. maxrows: Number of rows in remap weight matrix
     //   6. maxcols: Number of cols in remap weight matrix
     //   7. nnz: Number of total nnz in sparse remap weight matrix
+    //   8. np_a: The order of the field description on the source mesh: >= 1 
+    //   9. np_b: The order of the field description on the target mesh: >= 1
+    //   10. method_a: The type of discretization for field on source mesh: [0 = FV, 1 = cGLL, 2 = dGLL]
+    //   11. method_b: The type of discretization for field on target mesh: [0 = FV, 1 = cGLL, 2 = dGLL]
+    //   12. conserved: Flag to specify whether the remap operator has conservation constraints: [0, 1]
+    //   13. monotonicity: Flags to specify whether the remap operator has monotonicity constraints: [0, 1, 2]
     //
     ///////////////////////////////////////////////////////////////////////////
+    int map_disc_details[6];
+    map_disc_details[0] = m_nDofsPEl_Src;
+    map_disc_details[1] = m_nDofsPEl_Dest;
+    map_disc_details[2] = (m_srcDiscType == DiscretizationType_FV ? 0 : (m_srcDiscType == DiscretizationType_CGLL ? 1 : 2));
+    map_disc_details[3] = (m_destDiscType == DiscretizationType_FV ? 0 : (m_destDiscType == DiscretizationType_CGLL ? 1 : 2));
+    map_disc_details[4] = (m_bConserved ? 1 : 0);
+    map_disc_details[5] = m_iMonotonicity;
+
 #ifdef MOAB_HAVE_MPI
-    int loc_smatmetadata[7] = {tot_src_ents, tot_tgt_ents, m_remapper->max_source_edges, m_remapper->max_target_edges, maxrow+1, maxcol+1, weightMatNNZ};
+    int loc_smatmetadata[13] = {tot_src_ents, tot_tgt_ents, m_remapper->max_source_edges, m_remapper->max_target_edges, maxrow+1, maxcol+1, weightMatNNZ,
+                                map_disc_details[0], map_disc_details[1], map_disc_details[2], map_disc_details[3], map_disc_details[4], map_disc_details[5]};
     rval = m_interface->tag_set_data(tagMapMetaData, &m_meshOverlapSet, 1, &loc_smatmetadata[0]);MB_CHK_SET_ERR(rval, "Setting local tag data failed");
-    int glb_smatmetadata[7] = {0,0,0,0,0,0,0};
+    int glb_smatmetadata[13] = {0, 0, 0, 0, 0, 0, 0,
+                                map_disc_details[0], map_disc_details[1], map_disc_details[2], map_disc_details[3], map_disc_details[4], map_disc_details[5]};
     int loc_buf[7] = {tot_src_ents, tot_tgt_ents, weightMatNNZ, m_remapper->max_source_edges, m_remapper->max_target_edges, maxrow, maxcol};
     int glb_buf[4] = {0,0,0,0};
     MPI_Reduce(&loc_buf[0], &glb_buf[0], 3, MPI_INT, MPI_SUM, 0, m_pcomm->comm());
@@ -1933,7 +1953,8 @@ moab::ErrorCode moab::TempestOnlineMap::WriteParallelMap (std::string strOutputF
     glb_smatmetadata[4] = glb_buf[2];
     glb_smatmetadata[5] = glb_buf[3];
 #else
-    int glb_smatmetadata[7] = {tot_src_ents, tot_tgt_ents, m_remapper->max_source_edges, m_remapper->max_target_edges, maxrow, maxcol, weightMatNNZ};
+    int glb_smatmetadata[13] = {tot_src_ents, tot_tgt_ents, m_remapper->max_source_edges, m_remapper->max_target_edges, maxrow, maxcol, weightMatNNZ,
+                                map_disc_details[0], map_disc_details[1], map_disc_details[2], map_disc_details[3], map_disc_details[4], map_disc_details[5]};
 #endif
     // These values represent number of rows and columns. So should be 1-based.
     glb_smatmetadata[4]++;

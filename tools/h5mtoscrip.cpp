@@ -7,6 +7,7 @@
 #include <cmath>
 #include <vector>
 #include <string>
+#include <iomanip>
 
 #include "moab/ProgOptions.hpp"
 #include "moab/Core.hpp"
@@ -395,12 +396,31 @@ int main(int argc, char* argv[])
     assert(meshsets.size() == 3); // we do not expect anything more than 3
 
     moab::EntityHandle rootset = 0;
+    ///////////////////////////////////////////////////////////////////////////
+    // The metadata in H5M file contains the following data:
+    //
+    //   1. n_a: Total source entities: (number of elements in source mesh)
+    //   2. n_b: Total target entities: (number of elements in target mesh)
+    //   3. nv_a: Max edge size of elements in source mesh
+    //   4. nv_b: Max edge size of elements in target mesh
+    //   5. maxrows: Number of rows in remap weight matrix
+    //   6. maxcols: Number of cols in remap weight matrix
+    //   7. nnz: Number of total nnz in sparse remap weight matrix
+    //   8. np_a: The order of the field description on the source mesh: >= 1 
+    //   9. np_b: The order of the field description on the target mesh: >= 1
+    //   10. method_a: The type of discretization for field on source mesh: [0 = FV, 1 = cGLL, 2 = dGLL]
+    //   11. method_b: The type of discretization for field on target mesh: [0 = FV, 1 = cGLL, 2 = dGLL]
+    //   12. conserved: Flag to specify whether the remap operator has conservation constraints: [0, 1]
+    //   13. monotonicity: Flags to specify whether the remap operator has monotonicity constraints: [0, 1, 2]
+    //
+    ///////////////////////////////////////////////////////////////////////////    
     Tag smatMetadataTag;
-    int smat_metadata_glb[7];
-    rval = mbCore->tag_get_handle( "SMAT_DATA" , 7, MB_TYPE_INTEGER, smatMetadataTag, MB_TAG_SPARSE);MB_CHK_ERR(rval);
+    int smat_metadata_glb[13];
+    rval = mbCore->tag_get_handle( "SMAT_DATA" , 13, MB_TYPE_INTEGER, smatMetadataTag, MB_TAG_SPARSE);MB_CHK_ERR(rval);
     rval = mbCore->tag_get_data(smatMetadataTag, &rootset, 1, smat_metadata_glb);MB_CHK_ERR(rval);
     std::cout << "Number of mesh sets is " << meshsets.size() << std::endl;
 
+#define DTYPE(a) { ((a == 0) ? "FV" : ((a == 1) ? "cGLL" : "dGLL")) }
     // Map dimensions
     int nA = smat_metadata_glb[0];
     int nB = smat_metadata_glb[1];
@@ -409,6 +429,14 @@ int main(int argc, char* argv[])
     int nDofB = smat_metadata_glb[4];
     int nDofA = smat_metadata_glb[5];
     int NNZ = smat_metadata_glb[6];
+    int nOrdA = smat_metadata_glb[7];
+    int nOrdB = smat_metadata_glb[8];
+    int nBasA = smat_metadata_glb[9];
+    std::string methodA = DTYPE(nBasA);
+    int nBasB = smat_metadata_glb[10];
+    std::string methodB = DTYPE(nBasB);
+    int bConserved = smat_metadata_glb[11];
+    int bMonotonicity = smat_metadata_glb[12];
 
     EntityHandle source_mesh=0, target_mesh=0, overlap_mesh=0;
     for (unsigned im=0; im < meshsets.size(); ++im) {
@@ -637,7 +665,21 @@ int main(int argc, char* argv[])
     assert(val_sizes == NNZ);
 
     // Output the number of sets
-    std::cout << "Number of primary sets is " << sets.size() << std::endl;
+    std::cout << "Number of primary sets: " << std::setw(10) << sets.size() << std::endl;
+    std::cout << "Total NNZ: " << std::setw(14) << NNZ << std::endl;
+    std::cout << "Conservative weights ? " << std::setw(5) << (bConserved > 0) << std::endl;
+    std::cout << "Monotone weights ? " << std::setw(8) << (bMonotonicity > 0) << std::endl;
+
+    std::cout << std::setfill('-') << std::setw(45) << std::endl;
+    std::cout << std::setfill(' ') << std::setw(25) << "Description" << std::setw(15) << "Source" << std::setw(15) << "Target" << std::endl;
+    std::cout << std::setfill('-') << std::setw(45) << std::setfill(' ') << std::endl;
+
+    std::cout << std::setw(0) << "Number of elements: " << std::setw(25) << nA  << std::setw(10) << nB << std::endl;
+    std::cout << "Number of DoFs: " << std::setw(25) << nDofA  << std::setw(10) << nDofB << std::endl;
+    std::cout << "Maximum vertex/element: " << std::setw(20) << nVA  << std::setw(10)  << nVB << std::endl;
+    std::cout << "Discretization type: " << std::setw(20) << methodA  << std::setw(10)  << methodB << std::endl;
+    std::cout << "Discretization order: " << std::setw(20) << nOrdA  << std::setw(10)  << nOrdB << std::endl;
+    
     // Print more information about what we are converting:
     // Source elements/vertices/type (Discretization ?)
     // Target elements/vertices/type (Discretization ?)
