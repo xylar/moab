@@ -341,7 +341,8 @@ int main(int argc, char* argv[])
   std::stringstream sstr;
   ProgOptions opts;
   std::string h5mfilename, scripfile;
-  bool noMap=false;
+  bool noMap = false;
+  bool writeXYCoords = false;
 
 #ifdef MOAB_HAVE_MPI
     MPI_Init ( &argc, &argv );
@@ -351,6 +352,8 @@ int main(int argc, char* argv[])
   opts.addOpt<std::string>("scrip,s", "Output SCRIP map filename", &scripfile);
   opts.addOpt<int>("dim,d", "Dimension of entities to use for partitioning", &dimension);
   opts.addOpt<void>("mesh,m", "Only convert the mesh and exclude the remap weight details", &noMap);
+  opts.addOpt<void>("coords,c", "Write the center and vertex coordinates in lat/lon format", &writeXYCoords);
+  
   opts.parseCommandLine(argc, argv);
 
   if (h5mfilename.empty() || scripfile.empty())
@@ -392,8 +395,8 @@ int main(int argc, char* argv[])
 
     // Get sets entities, by type
     moab::Range meshsets;
-    rval = mbCore->get_entities_by_type_and_tag(0, MBENTITYSET, &materialSetTag, NULL, 1, meshsets, moab::Interface::UNION, true);MB_CHK_ERR(rval);
-    assert(meshsets.size() == 3); // we do not expect anything more than 3
+    rval = mbCore->get_entities_by_type_and_tag(0, MBENTITYSET, &globalIDTag, NULL, 1, meshsets, moab::Interface::UNION, true);MB_CHK_ERR(rval);
+    // assert(meshsets.size() == 3); // we do not expect anything more than 3
 
     moab::EntityHandle rootset = 0;
     ///////////////////////////////////////////////////////////////////////////
@@ -418,7 +421,7 @@ int main(int argc, char* argv[])
     int smat_metadata_glb[13];
     rval = mbCore->tag_get_handle( "SMAT_DATA" , 13, MB_TYPE_INTEGER, smatMetadataTag, MB_TAG_SPARSE);MB_CHK_ERR(rval);
     rval = mbCore->tag_get_data(smatMetadataTag, &rootset, 1, smat_metadata_glb);MB_CHK_ERR(rval);
-    std::cout << "Number of mesh sets is " << meshsets.size() << std::endl;
+    // std::cout << "Number of mesh sets is " << meshsets.size() << std::endl;
 
 #define DTYPE(a) { ((a == 0) ? "FV" : ((a == 1) ? "cGLL" : "dGLL")) }
     // Map dimensions
@@ -442,12 +445,13 @@ int main(int argc, char* argv[])
     for (unsigned im=0; im < meshsets.size(); ++im) {
       moab::Range elems;
       rval = mbCore->get_entities_by_dimension(meshsets[im], 2, elems);MB_CHK_ERR(rval);
-      if (elems.size() == nA)
+      if (elems.size() - nA == 0 && source_mesh == 0)
         source_mesh = meshsets[im];
-      else if (elems.size() == nB)
+      else if (elems.size() - nB == 0 && target_mesh == 0)
         target_mesh = meshsets[im];
-      else
+      else if (overlap_mesh == 0)
         overlap_mesh = meshsets[im];
+      else continue;
     }
 
     Tag srcIDTag, srcAreaTag, tgtIDTag, tgtAreaTag;
@@ -575,74 +579,122 @@ int main(int argc, char* argv[])
     rval = mbCore->tag_get_data(globalIDTag, src_elems, src_elgid.data());MB_CHK_ERR(rval);
     rval = mbCore->tag_get_data(globalIDTag, tgt_elems, tgt_elgid.data());MB_CHK_ERR(rval);
 
-    double coords[3];
-    std::vector<double> dSourceCenterLat(src_elems.size()), dSourceCenterLon(src_elems.size());
-    std::vector<double> dSourceVertexLat(src_verts.size()), dSourceVertexLon(src_verts.size());
-    for (unsigned i=0; i < src_elems.size(); ++i)
+    bool writeXYCoords = false;
+    if (writeXYCoords)
     {
-      const EntityHandle& elem = src_elems[i];
-      rval = mbCore->get_coords(&elem, 1, coords);MB_CHK_ERR(rval);
-      double mag = std::sqrt(coords[0]*coords[0]+coords[1]*coords[1]+coords[2]*coords[2]);
-      coords[0] /= mag;
-      coords[1] /= mag;
-      coords[2] /= mag;
+      double coords[3];
+      DataArray1D<double> dSourceCenterLat, dSourceCenterLon;
+      DataArray2D<double> dSourceVertexLat, dSourceVertexLon;
+      dSourceCenterLat.Allocate(nDofA);
+      dSourceCenterLon.Allocate(nDofA);
+      dSourceVertexLat.Allocate(nA, nVA);
+      dSourceVertexLon.Allocate(nA, nVA);
 
-      XYZtoRLL_Deg(
-        coords[0], coords[1], coords[2],
-        dSourceCenterLat[src_elgid[i]-1],
-        dSourceCenterLon[src_elgid[i]-1]);
+      {
+        for (unsigned i=0; i < src_elems.size(); ++i)
+        {
+          const EntityHandle& elem = src_elems[i];
+          rval = mbCore->get_coords(&elem, 1, coords);MB_CHK_ERR(rval);
+          double mag = std::sqrt(coords[0]*coords[0]+coords[1]*coords[1]+coords[2]*coords[2]);
+          coords[0] /= mag;
+          coords[1] /= mag;
+          coords[2] /= mag;
+
+          XYZtoRLL_Deg(
+            coords[0], coords[1], coords[2],
+            dSourceCenterLat[src_elgid[i]-1],
+            dSourceCenterLon[src_elgid[i]-1]);
+
+          const EntityHandle* conn;
+          int nnodes=0;
+          rval = mbCore->get_connectivity(elem, conn, nnodes);MB_CHK_ERR(rval);
+          std::cout << "nVA = " << nVA << " and nnodes = " << nnodes << std::endl;
+          assert(nVA >= nnodes);
+          std::vector<double> vcoords(nnodes*3);
+          rval = mbCore->get_coords(conn, nnodes, &vcoords[0]);MB_CHK_ERR(rval);
+
+          for (int iv=0; iv < nnodes; ++iv)
+          {
+            const int offset = iv*3;
+            double magc = std::sqrt(coords[0]*coords[0]+coords[1]*coords[1]+coords[2]*coords[2]);
+            vcoords[offset+0] /= magc;
+            vcoords[offset+1] /= magc;
+            vcoords[offset+2] /= magc;
+            XYZtoRLL_Deg(vcoords[offset+0], vcoords[offset+1], vcoords[offset+2],
+                        dSourceVertexLat[i][iv], dSourceVertexLon[i][iv]);
+          }
+
+          // If we have less nodes than nVA - copy the last node over
+          for (int iv=nnodes; iv < nVA; ++iv)
+          {
+            dSourceVertexLat[i][iv] = dSourceVertexLat[i][nnodes-1];
+            dSourceVertexLon[i][iv] = dSourceVertexLon[i][nnodes-1];
+          }
+        }
+      }
+
+      DataArray1D<double> dTargetCenterLat, dTargetCenterLon;
+      DataArray2D<double> dTargetVertexLat, dTargetVertexLon;
+      dTargetCenterLat.Allocate(nDofB);
+      dTargetCenterLon.Allocate(nDofB);
+      dTargetVertexLat.Allocate(nB, nVB);
+      dTargetVertexLon.Allocate(nB, nVB);
+
+      {
+        for (unsigned i=0; i < tgt_elems.size(); ++i)
+        {
+          const EntityHandle& elem = tgt_elems[i];
+          rval = mbCore->get_coords(&elem, 1, coords);MB_CHK_ERR(rval);
+          double mag = std::sqrt(coords[0]*coords[0]+coords[1]*coords[1]+coords[2]*coords[2]);
+          coords[0] /= mag;
+          coords[1] /= mag;
+          coords[2] /= mag;
+
+          XYZtoRLL_Deg(
+            coords[0], coords[1], coords[2],
+            dTargetCenterLat[tgt_elgid[i]-1],
+            dTargetCenterLon[tgt_elgid[i]-1]);
+
+          const EntityHandle* conn;
+          int nnodes=0;
+          rval = mbCore->get_connectivity(elem, conn, nnodes);MB_CHK_ERR(rval);
+          assert(nVB >= nnodes);
+          std::vector<double> vcoords(nnodes*3);
+          rval = mbCore->get_coords(conn, nnodes, &vcoords[0]);MB_CHK_ERR(rval);
+
+          for (int iv=0; iv < nnodes; ++iv)
+          {
+            const int offset = iv*3;
+            double magc = std::sqrt(coords[0]*coords[0]+coords[1]*coords[1]+coords[2]*coords[2]);
+            vcoords[offset+0] /= magc;
+            vcoords[offset+1] /= magc;
+            vcoords[offset+2] /= magc;
+            XYZtoRLL_Deg(vcoords[offset+0], vcoords[offset+1], vcoords[offset+2],
+                        dTargetVertexLat[i][iv], dTargetVertexLon[i][iv]);
+          }
+          // If we have less nodes than nVA - copy the last node over
+          for (int iv=nnodes; iv < nVA; ++iv)
+          {
+            dTargetVertexLat[i][iv] = dTargetVertexLat[i][nnodes-1];
+            dTargetVertexLon[i][iv] = dTargetVertexLon[i][nnodes-1];
+          }
+        }
+      }
+
+      varYCA->put(&(dSourceCenterLat[0]), nA/*DofA*/);
+      varYCB->put(&(dTargetCenterLat[0]), nB/*nDofB*/);
+
+      varXCA->put(&(dSourceCenterLon[0]), nA/*nDofA*/);
+      varXCB->put(&(dTargetCenterLon[0]), nB/*nDofB*/);
+
+      std::cout << "Source mesh = " << source_mesh << " and target_mesh = " << target_mesh << " and overlap_mesh = " << overlap_mesh << std::endl;
+
+      varYVA->put(&(dSourceVertexLat[0][0]), nA, nVA);
+      varYVB->put(&(dTargetVertexLat[0][0]), nB, nVB);
+
+      varXVA->put(&(dSourceVertexLon[0][0]), nA, nVA);
+      varXVB->put(&(dTargetVertexLon[0][0]), nB, nVB);
     }
-    for (unsigned i=0; i < src_verts.size(); ++i)
-    {
-      const EntityHandle& vert = src_verts[i];
-      rval = mbCore->get_coords(&vert, 1, coords);MB_CHK_ERR(rval);
-      // double mag = std::sqrt(coords[0]*coords[0]+coords[1]*coords[1]+coords[2]*coords[2]);
-
-      XYZtoRLL_Deg(
-        coords[0], coords[1], coords[2],
-        dSourceVertexLat[i],
-        dSourceVertexLon[i]);
-    }
-
-    std::vector<double> dTargetCenterLat(tgt_elems.size()), dTargetCenterLon(tgt_elems.size());
-    std::vector<double> dTargetVertexLat(tgt_verts.size()), dTargetVertexLon(tgt_verts.size());
-    for (unsigned i=0; i < tgt_elems.size(); ++i)
-    {
-      const EntityHandle& elem = tgt_elems[i];
-      rval = mbCore->get_coords(&elem, 1, coords);MB_CHK_ERR(rval);
-      double mag = std::sqrt(coords[0]*coords[0]+coords[1]*coords[1]+coords[2]*coords[2]);
-      coords[0] /= mag;
-      coords[1] /= mag;
-      coords[2] /= mag;
-
-      XYZtoRLL_Deg(
-        coords[0], coords[1], coords[2],
-        dTargetCenterLat[tgt_elgid[i]-1],
-        dTargetCenterLon[tgt_elgid[i]-1]);
-    }
-    for (unsigned i=0; i < tgt_verts.size(); ++i)
-    {
-      const EntityHandle& vert = tgt_verts[i];
-      rval = mbCore->get_coords(&vert, 1, coords);MB_CHK_ERR(rval);
-      // double mag = std::sqrt(coords[0]*coords[0]+coords[1]*coords[1]+coords[2]*coords[2]);
-
-      XYZtoRLL_Deg(
-        coords[0], coords[1], coords[2],
-        dTargetVertexLat[i],
-        dTargetVertexLon[i]);
-    }
-
-    varYCA->put(&(dSourceCenterLat[0]), nA/*nDofA*/);
-    varYCB->put(&(dTargetCenterLat[0]), nB/*nDofB*/);
-
-    varXCA->put(&(dSourceCenterLon[0]), nA/*nDofA*/);
-    varXCB->put(&(dTargetCenterLon[0]), nB/*nDofB*/);
-
-    // varYVA->put(&(dSourceVertexLat[0][0]), nA, nVA);
-    // varYVB->put(&(dTargetVertexLat[0][0]), nB, nVB);
-
-    // varXVA->put(&(dSourceVertexLon[0][0]), nA, nVA);
-    // varXVB->put(&(dTargetVertexLon[0][0]), nB, nVB);
 
 
     // Write areas
@@ -665,20 +717,31 @@ int main(int argc, char* argv[])
     assert(val_sizes == NNZ);
 
     // Output the number of sets
-    std::cout << "Number of primary sets: " << std::setw(10) << sets.size() << std::endl;
-    std::cout << "Total NNZ: " << std::setw(14) << NNZ << std::endl;
-    std::cout << "Conservative weights ? " << std::setw(5) << (bConserved > 0) << std::endl;
-    std::cout << "Monotone weights ? " << std::setw(8) << (bMonotonicity > 0) << std::endl;
+    printf("Primary sets: %15zu\n", sets.size());
+    printf("Total NNZ: %18d\n", NNZ);
+    printf("Conservative weights ? %6d\n", (bConserved > 0));
+    printf("Monotone weights ? %10d\n", (bMonotonicity > 0));
+    // std::cout << "Number of primary sets: " << std::setw(10) << sets.size() << std::endl;
+    // std::cout << "Total NNZ: " << std::setw(14) << NNZ << std::endl;
+    // std::cout << "Conservative weights ? " << std::setw(5) << (bConserved > 0) << std::endl;
+    // std::cout << "Monotone weights ? " << std::setw(8) << (bMonotonicity > 0) << std::endl;
 
-    std::cout << std::setfill('-') << std::setw(45) << std::endl;
-    std::cout << std::setfill(' ') << std::setw(25) << "Description" << std::setw(15) << "Source" << std::setw(15) << "Target" << std::endl;
-    std::cout << std::setfill('-') << std::setw(45) << std::setfill(' ') << std::endl;
+    // std::cout << std::setfill('-') << std::setw(45) << std::endl;
+    // std::cout << std::setfill(' ') << std::setw(25) << "Description" << std::setw(15) << "Source" << std::setw(15) << "Target" << std::endl;
+    printf("\n--------------------------------------------------------------\n");
+    printf("%20s %21s %15s\n", "Description", "Source", "Target");
+    printf("--------------------------------------------------------------\n");
 
-    std::cout << std::setw(0) << "Number of elements: " << std::setw(25) << nA  << std::setw(10) << nB << std::endl;
-    std::cout << "Number of DoFs: " << std::setw(25) << nDofA  << std::setw(10) << nDofB << std::endl;
-    std::cout << "Maximum vertex/element: " << std::setw(20) << nVA  << std::setw(10)  << nVB << std::endl;
-    std::cout << "Discretization type: " << std::setw(20) << methodA  << std::setw(10)  << methodB << std::endl;
-    std::cout << "Discretization order: " << std::setw(20) << nOrdA  << std::setw(10)  << nOrdB << std::endl;
+    printf("%25s %15d %15d\n", "Number of elements:", nA, nB);
+    printf("%25s %15d %15d\n", "Number of DoFs:", nDofA, nDofB);
+    printf("%25s %15d %15d\n", "Maximum vertex/element:", nVA, nVB);
+    printf("%25s %15s %15s\n", "Discretization type:", methodA.c_str(), methodB.c_str());
+    printf("%25s %15d %15d\n", "Discretization order:", nOrdA, nOrdB);
+    // std::cout << std::setw(0) << "Number of elements: " << std::setw(25) << nA  << std::setw(10) << nB << std::endl;
+    // std::cout << "Number of DoFs: " << std::setw(25) << nDofA  << std::setw(10) << nDofB << std::endl;
+    // std::cout << "Maximum vertex/element: " << std::setw(20) << nVA  << std::setw(10)  << nVB << std::endl;
+    // std::cout << "Discretization type: " << std::setw(20) << methodA  << std::setw(10)  << methodB << std::endl;
+    // std::cout << "Discretization order: " << std::setw(20) << nOrdA  << std::setw(10)  << nOrdB << std::endl;
     
     // Print more information about what we are converting:
     // Source elements/vertices/type (Discretization ?)

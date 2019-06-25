@@ -1863,7 +1863,7 @@ moab::ErrorCode moab::TempestOnlineMap::WriteParallelMap (std::string strOutputF
 {
     moab::ErrorCode rval;
 
-    moab::EntityHandle m_meshOverlapSet = m_remapper->GetMeshSet ( moab::Remapper::IntersectedMesh );
+    moab::EntityHandle& m_meshOverlapSet = m_remapper->m_overlap_set;
     int tot_src_ents = m_remapper->m_source_entities.size();
     int tot_tgt_ents = m_remapper->m_target_entities.size();
 
@@ -2021,8 +2021,9 @@ moab::ErrorCode moab::TempestOnlineMap::WriteParallelMap (std::string strOutputF
     const char *writeOptions = "";
 #endif
 
-    EntityHandle sets[3] = {m_remapper->m_source_set, m_remapper->m_target_set, m_meshOverlapSet};
-    rval = m_interface->write_file ( strOutputFile.c_str(), NULL, writeOptions, sets, 3 ); MB_CHK_ERR ( rval );
+    EntityHandle sets[3] = {m_remapper->m_source_set, m_remapper->m_target_set, m_remapper->m_overlap_set};
+    // rval = m_interface->write_file ( strOutputFile.c_str(), NULL, writeOptions, sets, 3 ); MB_CHK_ERR ( rval );
+    rval = m_interface->write_file ( strOutputFile.c_str(), NULL, writeOptions ); MB_CHK_ERR ( rval );
 
 #ifdef WRITE_SCRIP_FILE
     sstr.str("");
