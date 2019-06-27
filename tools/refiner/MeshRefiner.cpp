@@ -22,7 +22,7 @@ namespace moab {
   * strange after refinement.
   */
 MeshRefiner::MeshRefiner( Interface* imesh, Interface* omesh )
-{  
+{
   this->mesh_in = imesh;
   this->mesh_out = omesh;
   this->tag_manager = new RefinerTagManager( this->mesh_in, this->mesh_out );
@@ -140,4 +140,4 @@ bool MeshRefiner::refine( Range& range )
   return true;
 }
 
-} // namespace moab 
+} // namespace moab

@@ -1,9 +1,9 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2004 Sandia Corporation and Argonne National
-    Laboratory.  Under the terms of Contract DE-AC04-94AL85000 
-    with Sandia Corporation, the U.S. Government retains certain 
+    Laboratory.  Under the terms of Contract DE-AC04-94AL85000
+    with Sandia Corporation, the U.S. Government retains certain
     rights in this software.
 
     This library is free software; you can redistribute it and/or
@@ -16,10 +16,10 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-   
+
   ***************************************************************** */
 
 #include "MsqDebug.hpp"
@@ -48,7 +48,7 @@ static void parse_flag_string( const char* str, bool flag_val )
     switch (sscanf( p, "%u - %u", &beg, &end )) {
       case 1:
         end = beg;
-        // fall through 
+        // fall through
       case 2:
         for ( ; beg <= end; ++beg)
           MsqDebug::set( beg, flag_val );
@@ -64,12 +64,12 @@ MsqDebug::InitializeFlags::InitializeFlags( )
   size_t length = sizeof(flag_array) / sizeof(unsigned) - 1;
   while (length > 0)
     MsqDebug::set( flag_array[--length], true );
-  
+
   const char* envstr = getenv( "MESQUITE_DEBUG" );
-  if (envstr) 
+  if (envstr)
     parse_flag_string( envstr, true );
   envstr = getenv( "MESQUITE_NO_DEBUG" );
-  if (envstr) 
+  if (envstr)
     parse_flag_string( envstr, false );
 }
 #else
@@ -131,9 +131,9 @@ void MsqDebug::FormatPrinter::print( const char* format, ... ) const
 {
   if (!MsqDebug::get( myFlag ))
     return;
-  
+
   char buffer[512];
-  
+
 #if defined(HAVE_VSNPRINTF)
   va_list args;
   va_start( args, format );
@@ -144,7 +144,7 @@ void MsqDebug::FormatPrinter::print( const char* format, ... ) const
   va_start( args, format );
   _vsnprintf( buffer, sizeof(buffer), format, args );
   va_end( args );
-#elif defined(HAVE_VSPRINTF) 
+#elif defined(HAVE_VSPRINTF)
   va_list args;
   va_start( args, format );
   vsprintf( buffer, format, args );

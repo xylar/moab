@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2007 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2008) kraftche@cae.wisc.edu    
+    (2008) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file CLArgFlag.cpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -74,7 +74,7 @@ std::string CLArgFlag::make_literal_man_string( int count, const char* args[] ) 
       ManPage::bold( ss, args[i] );
   }
   return ss.str();
-}  
+}
 
 bool CLArgFlag::is_toggle() const
   { return false; }
@@ -127,7 +127,7 @@ std::string CLArgToggle::manstr() const
     return std::string();
   }
 }
-    
+
 
 /************************* CLArgString ***********************************/
 
@@ -254,21 +254,21 @@ bool CLArgIDList::parse( const char* str ) const
       ++str;
     if (!*str)
       break;
-      
+
     v = strtol( str, &endptr, 10 );
     if (endptr == str || v <= 0)
       return false;
-    
+
     i = (int)v;
     if ((long)i != v)
       return false;
-    
+
     list.push_back(i);
     str = endptr;
-    
+
     while (isspace(*str))
       ++str;
-    
+
     if (*str == '-') {
       do { ++str; } while (isspace(*str));
       v = strtol( str, &endptr, 10 );
@@ -279,22 +279,22 @@ bool CLArgIDList::parse( const char* str ) const
         return false;
       for (++i; i < j; ++j)
         list.push_back(i);
-      
+
       str = endptr;
       while (isspace(*str))
         ++str;
-    } 
-      
+    }
+
     if (!*str)
       break;
     if (*str != ',')
       return false;
     ++str;
   }
-  
+
   if (list.empty())
     return false;
-  
+
   if (!mCallback->value( list ))
     return false;
   mCallback->set_seen();
@@ -308,9 +308,9 @@ bool CLArgListData::add_set( int size, const char* const* names )
 {
   if (size < 0 || (!mSets.empty() && acceptable_length(size)))
     return false;
-  
+
   mSets.resize( mSets.size() + 1 );
-  for (int i = 0; i < size; ++i) 
+  for (int i = 0; i < size; ++i)
     mSets.back().push_back( names[i] );
   return true;
 }
@@ -327,7 +327,7 @@ std::string CLArgListData::set_string( int i ) const
 {
   if (mSets[i].empty())
     return std::string();
-    
+
   std::ostringstream result;
   result << mSets[i][0];
   for (unsigned j = 1; j < mSets[i].size(); ++j)
@@ -339,7 +339,7 @@ std::string CLArgListData::brief() const
 {
   if (mSets.empty())
     return std::string();
-  
+
   std::ostringstream result;
   for (unsigned i = 0; i < mSets.size(); ++i) {
     if (i)
@@ -377,12 +377,12 @@ std::string CLArgIntList::brief() const
 {
   const char str[] = { '-', flag(), ' ', '\0' };
   std::string result( str );
-  
-  if (listData.accept_any_length()) 
+
+  if (listData.accept_any_length())
     result += "<n1,n2,...>";
   else
     result += listData.brief();
-  
+
   return result;
 }
 
@@ -397,32 +397,32 @@ bool CLArgIntList::parse( const char* str ) const
   for (;;) {
     while (isspace(*str))
       ++str;
-    
+
     if (!*str)
       break;
-    
+
     i = strtol( str, &endptr, 0 );
     list.push_back(i);
-    
+
     while (isspace(*str))
       ++str;
 
     if (!*str)
       break;
-    
+
     if (*str != ',')
       return false;
-    
+
     ++str;
   }
-  
+
   if (!listData.acceptable_length( list.size() ) || !mCallback->value( list ))
     return false;
-  
+
   mCallback->set_seen();
   return true;
 }
-    
+
 
 /************************* CLArgDoubleList ********************************/
 
@@ -430,12 +430,12 @@ std::string CLArgDoubleList::brief() const
 {
   const char str[] = { '-', flag(), ' ', '\0' };
   std::string result( str );
-  
-  if (listData.accept_any_length()) 
+
+  if (listData.accept_any_length())
     result += "<r1,r2,...>";
   else
     result += listData.brief();
-  
+
   return result;
 }
 
@@ -465,10 +465,10 @@ bool CLArgDoubleList::parse( const char* str ) const
       return false;
     ++str;
   }
-  
+
   if (!listData.acceptable_length( list.size() ) || !mCallback->value( list ))
     return false;
-  
+
   mCallback->set_seen();
   return true;
 }

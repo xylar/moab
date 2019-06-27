@@ -171,11 +171,11 @@ bool SimplexTemplateRefiner::refine_entity( EntityType etyp, EntityHandle entity
   * @retval True if the tag assigner was changed and false otherwise.
   */
 bool SimplexTemplateRefiner::set_tag_assigner( SimplexTemplateTagAssigner* ta )
-{ 
+{
   if ( ! ta || ta == this->tag_assigner )
     return false;
 
-  this->tag_assigner = ta; 
+  this->tag_assigner = ta;
   return true;
 }
 
@@ -183,7 +183,7 @@ bool SimplexTemplateRefiner::set_tag_assigner( SimplexTemplateTagAssigner* ta )
 /**\brief Set the function object used to decide whether an edge is subdivided or not.
   */
 bool SimplexTemplateRefiner::prepare( RefinerTagManager* tmgr, EntityRefinerOutputFunctor* ofunc )
-{ 
+{
   this->tag_manager = tmgr;
   this->tag_assigner->set_tag_manager( tmgr );
   this->input_is_output = ( this->tag_manager->get_input_mesh() == this->tag_manager->get_output_mesh() );
@@ -359,7 +359,7 @@ bool SimplexTemplateRefiner::refine_2_simplex(
       this->refine_2_simplex( max_depth, move | 5, midpt0c, midpt0t, midpt0h, midpt1c, midpt1t, midpt1h,   v2,      t2,      h2   );
       this->refine_2_simplex( max_depth, move | 2,   v0,      t0,      h0,    midpt0c, midpt0t, midpt0h,   v2,      t2,      h2   );
       }
-    else                                         
+    else
       {
       this->refine_2_simplex( max_depth, move | 6,   v0,      t0,      h0,   midpt0c, midpt0t, midpt0h, midpt1c, midpt1t, midpt1h );
       this->refine_2_simplex( max_depth, move | 1,   v0,      t0,      h0,   midpt1c, midpt1t, midpt1h,   v2,      t2,      h2    );
@@ -543,8 +543,8 @@ bool SimplexTemplateRefiner::refine_3_simplex(
   facept2c = this->heap_coord_storage();
   facept3c = this->heap_coord_storage();
   double* vertex_coords[14] = {
-    v0, v1, v2, v3, 
-    midpt0c, midpt1c, midpt2c, 
+    v0, v1, v2, v3,
+    midpt0c, midpt1c, midpt2c,
     midpt3c, midpt4c, midpt5c,
     facept0c, facept1c, facept2c, facept3c
   };
@@ -554,8 +554,8 @@ bool SimplexTemplateRefiner::refine_3_simplex(
   void* facept2t = this->heap_tag_storage();
   void* facept3t = this->heap_tag_storage();
   void* vertex_tags[14] = {
-    t0, t1, t2, t3, 
-    midpt0t, midpt1t, midpt2t, 
+    t0, t1, t2, t3,
+    midpt0t, midpt1t, midpt2t,
     midpt3t, midpt4t, midpt5t,
     facept0t, facept1t, facept2t, facept3t
   };
@@ -575,7 +575,7 @@ bool SimplexTemplateRefiner::refine_3_simplex(
   double permlen[6]; // permuted edge lengths
   int C = SimplexTemplateRefiner::template_index[edge_code][0];
   int P = SimplexTemplateRefiner::template_index[edge_code][1];
-  
+
   // 1. Permute the tetrahedron into our canonical configuration
   for ( int i = 0; i < 14; ++ i )
     {
@@ -598,7 +598,7 @@ bool SimplexTemplateRefiner::refine_3_simplex(
   // cout << "Case " << C << "  Permutation " << P << endl;
   // 2. Generate tetrahedra based on the configuration.
   //    Note that case 0 is handled above (edgeCode == 0).
-  
+
   switch ( C )
     {
     case 1: // Ruprecht-Müller Case 1
@@ -609,7 +609,7 @@ bool SimplexTemplateRefiner::refine_3_simplex(
       MB_TESSELLATOR_INCR_SUBCASE_COUNT(0,0);
       break;
     case 2: // Ruprecht-Müller Case 2a
-      comparison_bits = 
+      comparison_bits =
         ( permlen[0] <= permlen[1] ? 1 : 0 ) | ( permlen[0] >= permlen[1] ? 2 : 0 ) |
         0;
       if ( ( comparison_bits & 3 ) == 3 )
@@ -658,7 +658,7 @@ bool SimplexTemplateRefiner::refine_3_simplex(
       MB_TESSELLATOR_INCR_SUBCASE_COUNT(2,0);
       break;
     case 4: // Ruprecht-Müller Case 3a
-      comparison_bits = 
+      comparison_bits =
         ( permlen[0] <= permlen[3] ? 1 : 0 ) | ( permlen[0] >= permlen[3] ? 2 : 0 ) |
         ( permlen[2] <= permlen[3] ? 4 : 0 ) | ( permlen[2] >= permlen[3] ? 8 : 0 ) |
         ( permlen[0] <= permlen[2] ? 16 : 0 ) | ( permlen[0] >= permlen[2] ? 32 : 0 ) |
@@ -791,7 +791,7 @@ bool SimplexTemplateRefiner::refine_3_simplex(
       MB_TESSELLATOR_INCR_SUBCASE_COUNT(4,0);
       break;
     case 6: // Ruprecht-Müller Case 3c
-      comparison_bits = 
+      comparison_bits =
         ( permlen[0] <= permlen[1] ? 1 : 0 ) | ( permlen[0] >= permlen[1] ? 2 : 0 ) |
         ( permlen[0] <= permlen[3] ? 4 : 0 ) | ( permlen[0] >= permlen[3] ? 8 : 0 ) |
         0;
@@ -877,7 +877,7 @@ bool SimplexTemplateRefiner::refine_3_simplex(
         }
       break;
     case 7: // Ruprecht-Müller Case 3d
-      comparison_bits = 
+      comparison_bits =
         ( permlen[0] <= permlen[2] ? 1 : 0 ) | ( permlen[0] >= permlen[2] ? 2 : 0 ) |
         ( permlen[0] <= permlen[4] ? 4 : 0 ) | ( permlen[0] >= permlen[4] ? 8 : 0 ) |
         0;
@@ -963,7 +963,7 @@ bool SimplexTemplateRefiner::refine_3_simplex(
         }
       break;
     case 8: // Ruprecht-Müller Case 4a
-      comparison_bits = 
+      comparison_bits =
         ( permlen[4] <= permlen[5] ? 1 : 0 ) | ( permlen[4] >= permlen[5] ? 2 : 0 ) |
         ( permlen[3] <= permlen[4] ? 4 : 0 ) | ( permlen[3] >= permlen[4] ? 8 : 0 ) |
         0;
@@ -1053,7 +1053,7 @@ bool SimplexTemplateRefiner::refine_3_simplex(
         }
       break;
     case 9: // Ruprecht-Müller Case 4b
-      comparison_bits = 
+      comparison_bits =
         ( permlen[1] <= permlen[2] ? 1 : 0 ) | ( permlen[1] >= permlen[2] ? 2 : 0 ) |
         ( permlen[2] <= permlen[3] ? 4 : 0 ) | ( permlen[2] >= permlen[3] ? 8 : 0 ) |
         ( permlen[3] <= permlen[4] ? 16 : 0 ) | ( permlen[3] >= permlen[4] ? 32 : 0 ) |
@@ -1427,7 +1427,7 @@ bool SimplexTemplateRefiner::refine_3_simplex(
         }
       break;
     case 10: // Ruprecht-Müller Case 5
-      comparison_bits = 
+      comparison_bits =
         ( permlen[1] <= permlen[2] ? 1 : 0 ) | ( permlen[1] >= permlen[2] ? 2 : 0 ) |
         ( permlen[3] <= permlen[4] ? 4 : 0 ) | ( permlen[3] >= permlen[4] ? 8 : 0 ) |
         0;
@@ -1622,7 +1622,7 @@ void SimplexTemplateRefiner::assign_parametric_coordinates( int num_nodes, const
   */
 bool SimplexTemplateRefiner::compare_Hopf_cross_string_dist(
   const double* a0, const double* a1, const double* b0, const double* b1 )
-{   
+{
   double sq_mag_a = 0.;
   double sq_mag_b = 0.;
   for ( int i = 0; i < 3; ++ i )
@@ -1632,14 +1632,14 @@ bool SimplexTemplateRefiner::compare_Hopf_cross_string_dist(
     sq_mag_a += tmp*tmp;
     tmp = b0[i] - b1[i];
     sq_mag_b += tmp*tmp;
-    } 
+    }
   return sq_mag_a < sq_mag_b;
 }
 
 /*
  * The array below is indexed by the edge code for a tetrahedron.
  * Looking up a row with a tet's edge code will return C and P.
- * C is a configuration number and P is a permutation index. 
+ * C is a configuration number and P is a permutation index.
  *
  * C is based on the case number from Ruprecht and
  * Müller's (1998) paper on adaptive tetrahedra. (The case
@@ -1742,7 +1742,7 @@ int SimplexTemplateRefiner::template_index[64][2] =
 };
 
 
-/* Does this mean anything? If so, then you are either 
+/* Does this mean anything? If so, then you are either
  * superstitious or much more clever than I (or both?).
  */
 /* permutation index, P:  0  1  2  3  4  5  6  7  8  9 10 11 */
@@ -1819,7 +1819,7 @@ int SimplexTemplateRefiner::permutations_from_index[24][14] =
  * input tetrahedron.
  */
 
-int SimplexTemplateRefiner::templates[] = 
+int SimplexTemplateRefiner::templates[] =
 {
 // case 1_0
    2,
@@ -2321,5 +2321,5 @@ int SimplexTemplateRefiner::templates[] =
 
 };
 
-} // namespace moab 
+} // namespace moab
 

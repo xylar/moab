@@ -4,7 +4,7 @@
 // this is used for spherical elements, bounding box needs to be updated due to curvature
 #include "moab/IntxMesh/IntxUtils.hpp"
 
-namespace moab 
+namespace moab
 {
     ErrorCode BoundBox::update(Interface &iface, const Range& elems, bool spherical,
         double radius)
@@ -12,13 +12,13 @@ namespace moab
       ErrorCode rval;
       bMin = CartVect(HUGE_VAL);
       bMax = CartVect(-HUGE_VAL);
-      
+
       CartVect coords;
       EntityHandle const *conn = NULL, *conn2 = NULL;
       int len = 0, len2 = 0;
       Range::const_iterator i;
       CartVect coordverts[27];// maximum nodes per element supported by MOAB
-  
+
         // vertices
       const Range::const_iterator elem_begin = elems.lower_bound( MBEDGE );
       for (i = elems.begin(); i != elem_begin; ++i) {
@@ -49,7 +49,7 @@ namespace moab
         if (spherical)
           update_box_spherical_elem(coordverts, len, radius);
       }
-  
+
         // polyhedra
       const Range::const_iterator set_begin  = elems.lower_bound( MBENTITYSET, poly_begin );
       for (i = poly_begin; i != set_begin; ++i) {
@@ -70,7 +70,7 @@ namespace moab
           }
         }
       }
-  
+
         // sets
       BoundBox box;
       for (i = set_begin; i != elems.end(); ++i) {
@@ -82,7 +82,7 @@ namespace moab
 
         update(box);
       }
-  
+
       return MB_SUCCESS;
     }
     void BoundBox::update_box_spherical_elem(const CartVect * verts, int len, double R)

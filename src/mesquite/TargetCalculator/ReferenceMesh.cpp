@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2006 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
+
     (2006) kraftche@cae.wisc.edu
-   
+
   ***************************************************************** */
 
 
 /** \file ReferenceMesh.cpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -42,7 +42,7 @@ ReferenceMeshInterface::~ReferenceMeshInterface() {}
 
 ReferenceMesh::~ReferenceMesh() {}
 
-void ReferenceMesh::get_reference_vertex_coordinates( 
+void ReferenceMesh::get_reference_vertex_coordinates(
                            const Mesh::VertexHandle* vertices,
                            size_t num_vertices,
                            Vector3D* coordinates_out,
@@ -53,6 +53,6 @@ void ReferenceMesh::get_reference_vertex_coordinates(
   MSQ_ERRRTN(err);
   std::copy( tmpStorage.begin(), tmpStorage.end(), coordinates_out );
 }
-    
+
 
 } // namespace MBMesquite

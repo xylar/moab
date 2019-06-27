@@ -22,7 +22,7 @@ const bool debug = false;
 const char *ReadParallel::ParallelActionsNames[] = {
     "PARALLEL READ",
     "PARALLEL READ PART",
-    "PARALLEL BROADCAST", 
+    "PARALLEL BROADCAST",
     "PARALLEL DELETE NONLOCAL",
     "PARALLEL CHECK_GIDS_SERIAL",
     "PARALLEL GET_FILESET_ENTS",
@@ -43,7 +43,7 @@ const char* ReadParallel::parallelOptsNames[] = { "NONE",
                                                   0 };
 
 ReadParallel::ReadParallel(Interface* impl,
-                           ParallelComm *pc) 
+                           ParallelComm *pc)
   : mbImpl(impl), myPcomm(pc), myDebug("ReadPara", std::cerr)
 {
   if (!myPcomm) {
@@ -92,7 +92,7 @@ ErrorCode ReadParallel::load_file(const char **file_names,
   }
   else {
     distrib = true;
-    if (partition_tag_name.empty()) 
+    if (partition_tag_name.empty())
       partition_tag_name = PARALLEL_PARTITION_TAG_NAME;
 
     // Also get deprecated PARTITION_DISTRIBUTE option
@@ -253,7 +253,7 @@ ErrorCode ReadParallel::load_file(const char **file_names,
   if (print_parallel)
     pa_vec.push_back(PA_PRINT_PARALLEL);
 
-  result = load_file(file_names, num_files, file_set, parallel_mode, 
+  result = load_file(file_names, num_files, file_set, parallel_mode,
                      partition_tag_name,
                      partition_tag_vals, distrib,
                      partition_by_rank, pa_vec, opts,
@@ -267,11 +267,11 @@ ErrorCode ReadParallel::load_file(const char **file_names,
 
   return MB_SUCCESS;
 }
-    
+
 ErrorCode ReadParallel::load_file(const char **file_names,
                                   const int num_files,
                                   const EntityHandle* file_set_ptr,
-                                  int /*parallel_mode*/, 
+                                  int /*parallel_mode*/,
                                   std::string &partition_tag_name,
                                   std::vector<int> &partition_tag_vals,
                                   bool distrib,
@@ -287,13 +287,13 @@ ErrorCode ReadParallel::load_file(const char **file_names,
                                   const int ghost_dim,
                                   const int bridge_dim,
                                   const int num_layers,
-                                  const int addl_ents) 
+                                  const int addl_ents)
 {
   ErrorCode result = MB_SUCCESS;
   if (myPcomm == NULL)
     myPcomm = new ParallelComm(mbImpl, MPI_COMM_WORLD);
 
-  Range entities; 
+  Range entities;
   Tag file_set_tag = 0;
   int other_sets = 0;
   ReaderWriterSet::iterator iter;
@@ -359,7 +359,7 @@ ErrorCode ReadParallel::load_file(const char **file_names,
           if (MB_SUCCESS != tmp_result)
             break;
 
-          tmp_result = mbImpl->tag_set_data(file_set_tag, &file_set, 1, 
+          tmp_result = mbImpl->tag_set_data(file_set_tag, &file_set, 1,
                                             &other_sets);
           break;
 
@@ -525,8 +525,8 @@ ErrorCode ReadParallel::load_file(const char **file_names,
       case PA_DELETE_NONLOCAL:
           myDebug.tprint(1, "Deleting nonlocal entities.\n");
 
-          tmp_result = delete_nonlocal_entities(partition_tag_name, 
-                                                partition_tag_vals, 
+          tmp_result = delete_nonlocal_entities(partition_tag_name,
+                                                partition_tag_vals,
                                                 distrib,
                                                 file_set);
           if (debug) {
@@ -534,7 +534,7 @@ ErrorCode ReadParallel::load_file(const char **file_names,
             mbImpl->list_entities(0, 0);
           }
 
-          if (MB_SUCCESS == tmp_result) 
+          if (MB_SUCCESS == tmp_result)
             tmp_result = create_partition_sets(partition_tag_name, file_set);
 
           break;
@@ -558,7 +558,7 @@ ErrorCode ReadParallel::load_file(const char **file_names,
           if (MB_SUCCESS != tmp_result)
             break;
 
-#ifndef NDEBUG            
+#ifndef NDEBUG
           // check number of owned vertices through pcomm's public interface
           tmp_result = mbImpl->get_entities_by_type(0, MBVERTEX, ents);
           if (MB_SUCCESS == tmp_result)
@@ -573,7 +573,7 @@ ErrorCode ReadParallel::load_file(const char **file_names,
       case PA_EXCHANGE_GHOSTS:
           myDebug.tprint(1, "Exchanging ghost entities.\n");
 
-          tmp_result = myPcomm->exchange_ghost_cells(ghost_dim, bridge_dim, 
+          tmp_result = myPcomm->exchange_ghost_cells(ghost_dim, bridge_dim,
                                                      num_layers, addl_ents, true, true, &file_set);
           break;
 
@@ -679,7 +679,7 @@ ErrorCode ReadParallel::delete_nonlocal_entities(std::string &ptag_name,
          pit != tag_vals.end(); ++pit) {
       std::vector<int>::iterator pit2 = std::find(ptag_vals.begin(),
                                                   ptag_vals.end(), *pit);
-      if (pit2 != ptag_vals.end()) 
+      if (pit2 != ptag_vals.end())
         tmp_sets.insert(myPcomm->partition_sets()[pit - tag_vals.begin()]);
     }
 
@@ -758,7 +758,7 @@ ErrorCode ReadParallel::create_partition_sets(std::string &ptag_name,
   return MB_SUCCESS;
 }
 
-ErrorCode ReadParallel::delete_nonlocal_entities(EntityHandle file_set) 
+ErrorCode ReadParallel::delete_nonlocal_entities(EntityHandle file_set)
 {
   // Get partition entities and ents related to/used by those
   // get ents in the partition

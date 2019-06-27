@@ -1,9 +1,9 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2004 Sandia Corporation and Argonne National
-    Laboratory.  Under the terms of Contract DE-AC04-94AL85000 
-    with Sandia Corporation, the U.S. Government retains certain 
+    Laboratory.  Under the terms of Contract DE-AC04-94AL85000
+    with Sandia Corporation, the U.S. Government retains certain
     rights in this software.
 
     This library is free software; you can redistribute it and/or
@@ -16,13 +16,13 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
-    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov, 
-    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov      
-   
+
+    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov,
+    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov
+
   ***************************************************************** */
 //
 //    AUTHOR: Thomas Leurent <tleurent@mcs.anl.gov>
@@ -36,7 +36,7 @@
 // ============
 /*! \file Matrix3DTest.cpp
 
-Unit testing of various functions in the Matrix3D class. 
+Unit testing of various functions in the Matrix3D class.
 
 */
 // DESCRIP-END.
@@ -81,7 +81,7 @@ private:
   CPPUNIT_TEST_SUITE_END();
 
 private:
-   
+
   Vector3D e1, e2, e3;
   Matrix3D mIdentity;
   Matrix3D mMat1;
@@ -100,7 +100,7 @@ public:
     e1.set(1,0,0);
     e2.set(0,1,0);
     e3.set(0,0,1);
-    
+
     mIdentity =       " 1    0    0 "
                       " 0    1    0 "
                       " 0    0    1";
@@ -108,19 +108,19 @@ public:
     mMat1 =           " 1    4.2  2 "
                       " 5.2  3    4 "
                       " 1    7    0.4";
-   
+
     mMat1sym =        " 1    4.2  2 "
                       " 4.2  3    4 "
                       " 2    4    0.4";
-   
+
     mMat2 =           " 2    4    5 "
                       " 2    1    3 "
                       " 0    7    8 ";
-    
+
     mMat2trans =      " 2    2    0 "
                       " 4    1    7 "
                       " 5    3    8 ";
-    
+
     mMat1plus2 =      " 3    8.2   7 "
                       " 7.2  4     7 "
                       " 1    14    8.4";
@@ -140,11 +140,11 @@ public:
 
     tolEps = 1e-12;
   }
-  
+
   void tearDown()
   {
   }
-  
+
 public:
   Matrix3DTest()
   {}
@@ -154,11 +154,11 @@ public:
     CPPUNIT_ASSERT( mMat1==mMat1 );
     CPPUNIT_ASSERT( mMat1!=mMat2 );
   }
-   
+
   void test_plus()
   {
     Matrix3D sum;
-    sum = mMat1 + mMat2; 
+    sum = mMat1 + mMat2;
     CPPUNIT_ASSERT( sum==mMat1plus2 );
   }
 
@@ -171,25 +171,25 @@ public:
                      " 1    7    -0.6 ");
     CPPUNIT_ASSERT( res==correct );
   }
-  
+
   void test_Frobenius_2()
   {
     double fro = Frobenius_2(mMat1);
     CPPUNIT_ASSERT_DOUBLES_EQUAL( 124.84, fro, tolEps );
   }
-   
+
   void test_transpose()
   {
     Matrix3D trans = transpose(mMat2);
     CPPUNIT_ASSERT( trans==mMat2trans );
   }
-   
+
   void test_plus_equal()
   {
     mMat1 += mMat2;
     CPPUNIT_ASSERT( mMat1==mMat1plus2 );
   }
-   
+
   void test_times_equal_scalar()
   {
     mMat2 *= 3;
@@ -214,13 +214,13 @@ public:
     Matrix3D plus_trans = plus_transpose( mMat1, mMat2 );
     CPPUNIT_ASSERT( plus_trans==mMat1plus2trans );
   }
-   
+
   void test_plus_transpose_equal()
   {
     mMat1.plus_transpose_equal(mMat2);
     CPPUNIT_ASSERT( mMat1==mMat1plus2trans );
   }
-   
+
     void test_outer_product()
   {
     Matrix3D mat;
@@ -239,7 +239,7 @@ public:
     mMat1.fill_lower_triangle();
     CPPUNIT_ASSERT( mMat1==mMat1sym );
   }
-   
+
   void test_times()
   {
     Matrix3D mult = mMat1*mMat2;
@@ -275,7 +275,7 @@ public:
     Vector3D vec = e1*mMat1;
     Vector3D correct(1, 4.2, 2);
     CPPUNIT_ASSERT( vec==correct );
-    
+
     Vector3D vec2(2.1, 3, 8);
     vec = vec2*mMat1;
     correct.set(25.7, 73.82, 19.4);
@@ -291,7 +291,7 @@ public:
     CPPUNIT_ASSERT_DOUBLES_EQUAL(48.064, d  , tolEps);
   }
 
-    
+
   void test_B_times_invA()
   {
     Matrix3D orig1(mMat1);
@@ -299,8 +299,8 @@ public:
 
     // Checks mMat1 is unchanged
     CPPUNIT_ASSERT( mMat1 == orig1 );
-     
-    // Checks mMat2 now contains the correct result 
+
+    // Checks mMat2 now contains the correct result
     for (int i=0; i<3; ++i)
       for (int j=0; j<3; ++j)
         CPPUNIT_ASSERT_DOUBLES_EQUAL( mMat2[i][j], mMat1times2inv[i][j], 0.0001 );

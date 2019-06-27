@@ -1,8 +1,8 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
-    Copyright 2006 Lawrence Livermore National Laboratory.  Under 
-    the terms of Contract B545069 with the University of Wisconsin -- 
+    Copyright 2006 Lawrence Livermore National Laboratory.  Under
+    the terms of Contract B545069 with the University of Wisconsin --
     Madison, Lawrence Livermore National Laboratory retains certain
     rights in this software.
 
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2006) kraftche@cae.wisc.edu    
+    (2006) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file ElementQM.cpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -38,17 +38,17 @@ namespace MBMesquite {
 
 ElementQM::~ElementQM() {}
 
-void ElementQM::get_evaluations( PatchData& pd, 
+void ElementQM::get_evaluations( PatchData& pd,
                         std::vector<size_t>& handles,
-                        bool free_vertices_only, 
+                        bool free_vertices_only,
                         MsqError& err )
 {
   get_element_evaluations( pd, handles, free_vertices_only, err );
 }
 
-void ElementQM::get_element_evaluations( PatchData& pd, 
+void ElementQM::get_element_evaluations( PatchData& pd,
                         std::vector<size_t>& handles,
-                        bool free_vertices_only, 
+                        bool free_vertices_only,
                         MsqError& /*err*/ )
 {
   size_t num_elem = pd.num_elements();
@@ -58,7 +58,7 @@ void ElementQM::get_element_evaluations( PatchData& pd,
       handles[i] = i;
     return;
   }
-  
+
   handles.clear();
   for (size_t i = 0; i < num_elem; ++i) {
       // check if element has any free vertices
@@ -85,7 +85,7 @@ bool ElementQM::evaluate_with_indices( PatchData& pd,
   for (unsigned i = 0; i < n; ++i)
     if (vtx[i] < pd.num_free_vertices())
       indices.push_back( vtx[i] );
-  
+
   bool rval = evaluate( pd, handle, value, err );
   return !MSQ_CHKERR(err) && rval;
 }

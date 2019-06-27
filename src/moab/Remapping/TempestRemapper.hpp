@@ -52,7 +52,7 @@ public:
     virtual ErrorCode initialize(bool initialize_fsets=true);
 
     // Mesh type with a correspondence to Tempest/Climate formats
-    enum TempestMeshType { 
+    enum TempestMeshType {
         DEFAULT = -1,
         CS = 0,
         RLL = 1,

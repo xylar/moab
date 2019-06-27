@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
   return 0;
 }
 
-void set_local_domain_bounds() 
+void set_local_domain_bounds()
 {
   switch (size) {
     case 2:
@@ -83,7 +83,7 @@ void set_local_domain_bounds()
               break;
         }
         break;
-        
+
     case 4:
         switch (rank) {
           case 0:

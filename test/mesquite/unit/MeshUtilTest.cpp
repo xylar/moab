@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2010 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2010) kraftche@cae.wisc.edu    
+    (2010) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file MeshUtilTest.cpp
  *  \brief Test MeshUtil class
- *  \author Jason Kraftcheck 
+ *  \author Jason Kraftcheck
  */
 
 #include "ArrayMesh.hpp"
@@ -54,23 +54,23 @@ public:
     // test that edge_length_distribution function works
     // for all supported element types
   void test_edge_length_distribution_types();
-  
+
     // test that edge_length_distribution function works
     // counts each implicit edge only once
   void test_edge_length_distribution_unique();
-  
-    // test that edge_length_distribution function 
+
+    // test that edge_length_distribution function
     // handles the case of an empty mesh
   void test_edge_length_distribution_empty();
-    
+
     // test numerical results of lambda_distribution
   void test_lambda_distribution();
 
     // test that lambda_distribution function works
     // for all supported element types
   void test_lambda_distribution_mixed();
-  
-    // test that lambda_distribution function 
+
+    // test that lambda_distribution function
     // handles the case of an empty mesh
   void test_lambda_distribution_empty();
 };
@@ -128,7 +128,7 @@ void MeshUtilTest::test_edge_length_distribution_types()
   const int hex_offset = wedge_offset + 6;
   const int num_vtx = hex_offset + 8;
   const int fixed[num_vtx] = { 0 };
-  EntityTopology types[] = { TRIANGLE, 
+  EntityTopology types[] = { TRIANGLE,
                              QUADRILATERAL,
                              TETRAHEDRON,
                              PYRAMID,
@@ -139,14 +139,14 @@ void MeshUtilTest::test_edge_length_distribution_types()
                                  7, 8, 9, 10, // tetrahedron
                                  11, 12, 13, 14, 15,            // pyramid
                                  16, 17, 18, 19, 20, 21,        // prism,
-                                 22, 23, 24, 25, 26, 27, 28, 29 // hex 
+                                 22, 23, 24, 25, 26, 27, 28, 29 // hex
                                 };
   ArrayMesh mesh( 3, num_vtx, coords, fixed, 6, types, conn );
 
 
     // calculate expected value
   const int edges[][2] = { // triangle
-                           { 0, 1 }, 
+                           { 0, 1 },
                            { 1, 2 },
                            { 2, 0 },
                            // quad
@@ -211,13 +211,13 @@ void MeshUtilTest::test_edge_length_distribution_types()
     exp_avg += len;
     exp_rms += diff%diff;
   }
-  
+
   exp_avg /= num_edges;
   exp_rms /= num_edges;
   double exp_std_dev = sqrt( exp_rms - exp_avg*exp_avg );
   exp_rms = sqrt(exp_rms);
-  
-  
+
+
   SimpleStats act_results;
   MsqError err;
   MeshUtil tool(&mesh);
@@ -242,7 +242,7 @@ void MeshUtilTest::test_edge_length_distribution_unique()
                                  2, 3, 4, 1 };
   int fixed[5] = {0};
   ArrayMesh mesh( 3, 5, coords, fixed, 2, TETRAHEDRON, conn );
-  
+
   const int edges[][2] = { { 0, 2 },
                            { 0, 3 },
                            { 0, 4 },
@@ -270,13 +270,13 @@ void MeshUtilTest::test_edge_length_distribution_unique()
     exp_avg += len;
     exp_rms += diff%diff;
   }
-  
+
   exp_avg /= num_edges;
   exp_rms /= num_edges;
   double exp_std_dev = sqrt( exp_rms - exp_avg*exp_avg );
   exp_rms = sqrt(exp_rms);
-  
-  
+
+
   SimpleStats act_results;
   MsqError err;
   MeshUtil tool(&mesh);
@@ -310,14 +310,14 @@ void MeshUtilTest::test_lambda_distribution()
     3,4,1,0,  4,5,2,1,
     6,7,4,3,  7,8,5,4 };
   const int fixed[9] = {0};
-  
+
     // first mesh doesn't contain deformed element
   SimpleStats results;
   MsqError err;
   ArrayMesh mesh3(3, 8, coords, fixed, 3, QUADRILATERAL, conn );
   MeshUtil tool3(&mesh3);
   tool3.lambda_distribution( results, err );
-  
+
     // lambda should be one everywhere
   ASSERT_NO_ERROR(err);
   CPPUNIT_ASSERT_DOUBLES_EQUAL( 1.0, results.minimum(), 1e-12 );
@@ -325,13 +325,13 @@ void MeshUtilTest::test_lambda_distribution()
   CPPUNIT_ASSERT_DOUBLES_EQUAL( 1.0, results.average(), 1e-12 );
   CPPUNIT_ASSERT_DOUBLES_EQUAL( 1.0, results.rms(), 1e-12 );
   CPPUNIT_ASSERT_DOUBLES_EQUAL( 0.0, results.variance(), 1e-12 );
-   
+
     // now try with deformed element
   ArrayMesh mesh4(3, 9, coords, fixed, 4, QUADRILATERAL, conn );
   MeshUtil tool4(&mesh4);
   results.clear();
   tool4.lambda_distribution( results, err );
-  
+
     // expect 13 values of 1 and a few other values
   Vector3D v4( coords + 3*4 );
   Vector3D v5( coords + 3*5 );
@@ -399,7 +399,7 @@ void MeshUtilTest::test_lambda_distribution_mixed()
   const int hex_offset = wedge_offset + 6;
   const int num_vtx = hex_offset + 8;
   const int fixed[num_vtx] = { 0 };
-  EntityTopology types[] = { TRIANGLE, 
+  EntityTopology types[] = { TRIANGLE,
                              QUADRILATERAL,
                              TETRAHEDRON,
                              PYRAMID,
@@ -410,7 +410,7 @@ void MeshUtilTest::test_lambda_distribution_mixed()
                                  7, 8, 9, 10, // tetrahedron
                                  11, 12, 13, 14, 15,            // pyramid
                                  16, 17, 18, 19, 20, 21,        // prism,
-                                 22, 23, 24, 25, 26, 27, 28, 29 // hex 
+                                 22, 23, 24, 25, 26, 27, 28, 29 // hex
                                 };
   ArrayMesh mesh( 3, num_vtx, coords, fixed, 6, types, conn );
 

@@ -1,9 +1,9 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2004 Sandia Corporation and Argonne National
-    Laboratory.  Under the terms of Contract DE-AC04-94AL85000 
-    with Sandia Corporation, the U.S. Government retains certain 
+    Laboratory.  Under the terms of Contract DE-AC04-94AL85000
+    with Sandia Corporation, the U.S. Government retains certain
     rights in this software.
 
     This library is free software; you can redistribute it and/or
@@ -16,13 +16,13 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
-    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov, 
-    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov      
-   
+
+    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov,
+    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov
+
   ***************************************************************** */
 //
 // ORIG-DATE: 16-May-02 at 10:26:21
@@ -31,12 +31,12 @@
 /*! \file MsqMeshEntity.cpp
 
 \brief All elements in Mesquite are of type MsqMeshEntity. Their associated
-functionality is implemented in this file. 
-  
+functionality is implemented in this file.
+
     \author Thomas Leurent
     \author Michael Brewer
     \author Darryl Melander
-    \date 2002-05-16  
+    \date 2002-05-16
  */
 
 #include "Mesquite.hpp"
@@ -102,7 +102,7 @@ void MsqMeshEntity::get_centroid(Vector3D &centroid, const PatchData &pd, MsqErr
     centroid += vtces[vertexIndices[i]];
   centroid /= nve;
 }
-  
+
 
 static inline double corner_volume( const Vector3D& v0,
                                     const Vector3D& v1,
@@ -121,41 +121,41 @@ double MsqMeshEntity::compute_unsigned_area(PatchData &pd, MsqError &err) {
   double tem=0.0;
   switch (mType)
   {
-   
+
     case TRIANGLE:
       tem =  ((verts[vertexIndices[1]]-verts[vertexIndices[0]])*
               (verts[vertexIndices[2]]-verts[vertexIndices[0]])).length();
       return 0.5*tem;
-      
+
     case QUADRILATERAL:
       tem = ((verts[vertexIndices[1]]-verts[vertexIndices[0]])*
              (verts[vertexIndices[3]]-verts[vertexIndices[0]])).length();
       tem += ((verts[vertexIndices[3]]-verts[vertexIndices[2]])*
               (verts[vertexIndices[1]]-verts[vertexIndices[2]])).length();
       return (tem/2.0);
-    
-    case POLYGON: 
+
+    case POLYGON:
         // assume convex
       for (unsigned i = 1; i < numVertexIndices-1; ++i)
         tem += ((verts[vertexIndices[i]] - verts[vertexIndices[0]]) *
                 (verts[vertexIndices[i+1]] - verts[vertexIndices[0]])).length();
       return 0.5 * tem;
-    
+
     case TETRAHEDRON:
       return 1.0/6.0 * fabs( corner_volume( verts[vertexIndices[0]],
                                             verts[vertexIndices[1]],
                                             verts[vertexIndices[2]],
                                             verts[vertexIndices[3]] ) );
-    
+
     case PYRAMID: {
-      Vector3D m = verts[vertexIndices[0]] + verts[vertexIndices[1]] 
+      Vector3D m = verts[vertexIndices[0]] + verts[vertexIndices[1]]
                  + verts[vertexIndices[2]] + verts[vertexIndices[3]];
       Vector3D t1 = verts[vertexIndices[0]] - verts[vertexIndices[2]];
       Vector3D t2 = verts[vertexIndices[1]] - verts[vertexIndices[3]];
       tem = ((t1 + t2) * (t1 - t2)) % (verts[vertexIndices[4]] - 0.25 * m);
       return (1.0/12.0) * fabs(tem);
     }
-    
+
     case PRISM: {
       tem  = corner_volume( verts[vertexIndices[0]],
                             verts[vertexIndices[1]],
@@ -171,32 +171,32 @@ double MsqMeshEntity::compute_unsigned_area(PatchData &pd, MsqError &err) {
                             verts[vertexIndices[3]],
                             verts[vertexIndices[4]],
                             verts[vertexIndices[5]] );
-                        
+
       return 1.0/6.0 * fabs(tem);
     }
-    
+
     case HEXAHEDRON: {
-    
+
       tem  = corner_volume( verts[vertexIndices[1]],
                             verts[vertexIndices[2]],
                             verts[vertexIndices[0]],
                             verts[vertexIndices[5]] );
-                            
+
       tem += corner_volume( verts[vertexIndices[3]],
                             verts[vertexIndices[0]],
                             verts[vertexIndices[2]],
                             verts[vertexIndices[7]] );
-                            
+
       tem += corner_volume( verts[vertexIndices[4]],
                             verts[vertexIndices[7]],
                             verts[vertexIndices[5]],
                             verts[vertexIndices[0]] );
-                            
+
       tem += corner_volume( verts[vertexIndices[6]],
                             verts[vertexIndices[5]],
                             verts[vertexIndices[7]],
                             verts[vertexIndices[2]] );
-                            
+
       tem += corner_volume( verts[vertexIndices[5]],
                             verts[vertexIndices[2]],
                             verts[vertexIndices[0]],
@@ -204,7 +204,7 @@ double MsqMeshEntity::compute_unsigned_area(PatchData &pd, MsqError &err) {
 
       return (1.0/6.0) * fabs(tem);
     }
-    
+
     default:
       MSQ_SETERR(err)("Invalid type of element passed to compute unsigned area.",
                       MsqError::UNSUPPORTED_ELEMENT);
@@ -212,7 +212,7 @@ double MsqMeshEntity::compute_unsigned_area(PatchData &pd, MsqError &err) {
   }
   return 0;
 }
-                                            
+
 /*!
   \brief Computes the area of the given element.  Returned value can be
   negative.  If the entity passed is not a two-dimensional element, an
@@ -224,10 +224,10 @@ double MsqMeshEntity::compute_signed_area(PatchData &pd, MsqError &err) {
   Vector3D surface_normal;
   Vector3D cross_vec;
   size_t element_index=pd.get_element_index(this);
-  
+
   switch (mType)
   {
-    
+
     case TRIANGLE:
       cross_vec=((verts[vertexIndices[1]]-verts[vertexIndices[0]])*
       (verts[vertexIndices[2]]-verts[vertexIndices[0]]));
@@ -235,12 +235,12 @@ double MsqMeshEntity::compute_signed_area(PatchData &pd, MsqError &err) {
       MSQ_ERRZERO(err);
       tem =  (cross_vec.length()/2.0);
         //if normals do not point in same general direction, negate area
-      if(cross_vec%surface_normal<0){ 
+      if(cross_vec%surface_normal<0){
         tem *= -1;
       }
-      
+
       return tem;
-      
+
     case QUADRILATERAL:
       cross_vec=((verts[vertexIndices[1]]-verts[vertexIndices[0]])*
                  (verts[vertexIndices[3]]-verts[vertexIndices[0]]));
@@ -248,22 +248,22 @@ double MsqMeshEntity::compute_signed_area(PatchData &pd, MsqError &err) {
       MSQ_ERRZERO(err);
       tem =  (cross_vec.length()/2.0);
         //if normals do not point in same general direction, negate area
-      if(cross_vec%surface_normal<0){ 
+      if(cross_vec%surface_normal<0){
         tem *= -1;
       }
       cross_vec=((verts[vertexIndices[3]]-verts[vertexIndices[2]])*
                  (verts[vertexIndices[1]]-verts[vertexIndices[2]]));
       tem2 =  (cross_vec.length()/2.0);
         //if normals do not point in same general direction, negate area
-      if(cross_vec%surface_normal<0){ 
+      if(cross_vec%surface_normal<0){
         tem2 *= -1;
           //test to make sure surface normal existed
           //if(surface_normal.length_squared()<.5){
           //err.set_msg("compute_signed_area called without surface_normal available.");
-          //}  
+          //}
       }
       return (tem + tem2);
-      
+
     default:
       MSQ_SETERR(err)("Invalid type of element passed to compute unsigned area.",
                        MsqError::UNSUPPORTED_ELEMENT);
@@ -271,14 +271,14 @@ double MsqMeshEntity::compute_signed_area(PatchData &pd, MsqError &err) {
   };
   return 0.0;
 }
-    
+
 /*!Appends the indices (in the vertex array) of the vertices to connected
   to vertex_array[vertex_index] to the end of the vector vert_indices.
   The connected vertices are right-hand ordered as defined by the
   entity.
-  
+
 */
-void MsqMeshEntity::get_connected_vertices( 
+void MsqMeshEntity::get_connected_vertices(
                                     std::size_t vertex_index,
                                     std::vector<std::size_t> &vert_indices,
                                     MsqError &err)
@@ -294,7 +294,7 @@ void MsqMeshEntity::get_connected_vertices(
     MSQ_SETERR(err)("Invalid vertex index.", MsqError::INVALID_ARG);
     return;
   }
-  
+
   unsigned n;
   const unsigned* indices = TopologyInfo::adjacent_vertices( mType, index, n );
   if (!indices)
@@ -304,33 +304,33 @@ void MsqMeshEntity::get_connected_vertices(
 }
 
 /*! Gives the normal at the surface point corner_pt ... but if not available,
-    gives the normalized cross product of corner_vec1 and corner_vec2. 
+    gives the normalized cross product of corner_vec1 and corner_vec2.
   */
 /*
 void MsqMeshEntity::compute_corner_normal(size_t corner,
                                           Vector3D &normal,
-                                          PatchData &pd, 
+                                          PatchData &pd,
                                           MsqError &err)
 {
-  if ( get_element_type()==TRIANGLE || get_element_type()==QUADRILATERAL ) 
+  if ( get_element_type()==TRIANGLE || get_element_type()==QUADRILATERAL )
   {
-      // There are two cases where we cannot get a normal from the 
+      // There are two cases where we cannot get a normal from the
       // geometry that are not errors:
       // 1) There is no domain set
-      // 2) The vertex is at a degenerate point on the geometry (e.g. 
+      // 2) The vertex is at a degenerate point on the geometry (e.g.
       //     tip of a cone.)
-    
+
     bool have_normal = false;
 
       // Get normal from domain
-    if (pd.domain_set()) 
+    if (pd.domain_set())
     {
       size_t index = pd.get_element_index(this);
       pd.get_domain_normal_at_corner( index, corner, normal, err );
       MSQ_ERRRTN(err);
-      
+
       double length = normal.length();
-      if (length > DBL_EPSILON) 
+      if (length > DBL_EPSILON)
       {
         have_normal = true;
         normal /= length;
@@ -359,7 +359,7 @@ void MsqMeshEntity::compute_corner_normal(size_t corner,
 */
 
 void MsqMeshEntity::compute_corner_normals( Vector3D normals[],
-                                            PatchData &pd, 
+                                            PatchData &pd,
                                             MsqError &err)
 {
   EntityTopology type = get_element_type();
@@ -369,16 +369,16 @@ void MsqMeshEntity::compute_corner_normals( Vector3D normals[],
                     MsqError::INVALID_ARG);
       return;
   }
-  
-  
-    // There are two cases where we cannot get a normal from the 
+
+
+    // There are two cases where we cannot get a normal from the
     // geometry that are not errors:
     // 1) There is no domain set
-    // 2) The vertex is at a degenerate point on the geometry (e.g. 
+    // 2) The vertex is at a degenerate point on the geometry (e.g.
     //     tip of a cone.)
 
     // Get normal from domain
-  if (pd.domain_set()) 
+  if (pd.domain_set())
   {
     size_t index = pd.get_element_index(this);
     pd.get_domain_normals_at_corners( index, normals, err );
@@ -389,9 +389,9 @@ void MsqMeshEntity::compute_corner_normals( Vector3D normals[],
   const unsigned count = vertex_count();
   for (unsigned i = 0; i < count; ++i)
   {
-      // If got valid normal from domain, 
+      // If got valid normal from domain,
       // make it a unit vector and continue.
-    if (pd.domain_set()) 
+    if (pd.domain_set())
     {
       double length = normals[i].length();
       if (length > DBL_EPSILON)
@@ -400,7 +400,7 @@ void MsqMeshEntity::compute_corner_normals( Vector3D normals[],
         continue;
       }
     }
-    
+
     const size_t prev_idx = vertexIndices[(i + count - 1) % count];
     const size_t this_idx = vertexIndices[i];
     const size_t next_idx = vertexIndices[(i + 1) % count];
@@ -428,7 +428,7 @@ ostream& operator<<( ostream& stream, const MsqMeshEntity& entity )
 /*! Get a array of indices that specifies for the given vertex
   the correct matrix map.  This is used by the I_DFT point
   relaxation methods in the laplacian smoothers.
-  
+
 */
 size_t MsqMeshEntity::get_local_matrix_map_about_vertex(
   PatchData &pd, MsqVertex* vert, size_t local_map_size,
@@ -443,21 +443,21 @@ size_t MsqMeshEntity::get_local_matrix_map_about_vertex(
   const MsqVertex* vertex_array = pd.get_vertex_array(err);
   if(err)
     return return_val;
-  
+
   switch (mType)
   {
     case TRIANGLE:
       MSQ_SETERR(err)("Requested function not yet supported for Triangles.",
                       MsqError::NOT_IMPLEMENTED);
-      
+
       break;
-      
+
     case QUADRILATERAL:
       MSQ_SETERR(err)("Requested function not yet supported for Quadrilaterals.",
                       MsqError::NOT_IMPLEMENTED);
-       
+
       break;
-      
+
     case TETRAHEDRON:
       if(local_map_size<4){
         MSQ_SETERR(err)("Array of incorrect length sent to function.",
@@ -505,20 +505,20 @@ size_t MsqMeshEntity::get_local_matrix_map_about_vertex(
           local_map[2]=-1;
           local_map[3]=-1;
       };
-      
+
       break;
-      
+
     case HEXAHEDRON:
       MSQ_SETERR(err)("Requested function not yet supported for Hexahedrons.",
                       MsqError::NOT_IMPLEMENTED);
-      
+
       break;
     default:
       MSQ_SETERR(err)("Element type not available", MsqError::UNSUPPORTED_ELEMENT);
       break;
   }
   return return_val;
-  
+
 }
 
 
@@ -534,27 +534,27 @@ void MsqMeshEntity::check_element_orientation(
       inverted = 0;
       return;
     }
-  
+
     const MappingFunction2D* mf = pd.get_mapping_function_2D( mType );
     if (!mf) {
       check_element_orientation_corners( pd, inverted, total, err );
       return;
     }
-   
+
     NodeSet sample = mf->sample_points( all );
     total = sample.num_nodes();
     inverted = 0;
-    
+
     if (sample.have_any_corner_node()) {
       for (i = 0; i < TopologyInfo::corners(mType); ++i)
-        if (sample.corner_node(i)) 
+        if (sample.corner_node(i))
           inverted += inverted_jacobian_2d( pd, all, Sample(0,i), err );
     }
     if (sample.have_any_mid_edge_node()) {
       for (i = 0; i < TopologyInfo::edges(mType); ++i)
         if (sample.mid_edge_node(i))
           inverted += inverted_jacobian_2d( pd, all, Sample(1,i), err );
-    } 
+    }
     if (sample.have_any_mid_face_node())
       inverted += inverted_jacobian_2d( pd, all, Sample(2,0), err );
   }
@@ -564,11 +564,11 @@ void MsqMeshEntity::check_element_orientation(
       check_element_orientation_corners( pd, inverted, total, err );
       return;
     }
-    
+
     NodeSet sample = mf->sample_points( all );
     total = sample.num_nodes();
     inverted = 0;
-    
+
     if (sample.have_any_corner_node()) {
       for (i = 0; i < TopologyInfo::corners(mType); ++i)
         if (sample.corner_node(i))
@@ -578,12 +578,12 @@ void MsqMeshEntity::check_element_orientation(
       for (i = 0; i < TopologyInfo::edges(mType); ++i)
         if (sample.mid_edge_node(i))
           inverted += inverted_jacobian_3d( pd, all, Sample(1,i), err );
-    } 
+    }
     if (sample.have_any_mid_face_node()) {
       for (i = 0; i < TopologyInfo::faces(mType); ++i)
         if (sample.mid_face_node(i))
           inverted += inverted_jacobian_3d( pd, all, Sample(2,i), err );
-    } 
+    }
     if (sample.have_any_mid_region_node()) {
       inverted += inverted_jacobian_3d( pd, all, Sample(3,0), err );
     }
@@ -599,7 +599,7 @@ MsqMeshEntity::inverted_jacobian_3d( PatchData& pd, NodeSet nodes, Sample sample
   assert(node_count() <= 27);
 
   const MappingFunction3D* mf = pd.get_mapping_function_3D( mType );
-  mf->jacobian( pd, pd.get_element_index(this), nodes, 
+  mf->jacobian( pd, pd.get_element_index(this), nodes,
                 sample, junk2, junk, junk3, J, err );
   MSQ_ERRZERO(err);
   //const double size_eps_sqr = sqr_Frobenius( J ) * DBL_EPSILON;
@@ -610,7 +610,7 @@ MsqMeshEntity::inverted_jacobian_3d( PatchData& pd, NodeSet nodes, Sample sample
   return d < 0 || d*d < DBL_EPSILON*DBL_EPSILON * l1*l2*l3;
 }
 
-bool 
+bool
 MsqMeshEntity::inverted_jacobian_2d( PatchData& pd, NodeSet nodes, Sample sample, MsqError& err )
 {
   MsqMatrix<3,2> J;
@@ -628,12 +628,12 @@ MsqMeshEntity::inverted_jacobian_2d( PatchData& pd, NodeSet nodes, Sample sample
     Vector3D norm;
     pd.get_domain_normal_at_sample( pd.get_element_index(this), sample, norm, err );
     MSQ_ERRZERO(err);
-  
+
     const MsqVector<3> N(&norm[0]);
     if (cross % N < 0.0)
       return true;
   }
-  
+
   const double l1 = J.column(0) % J.column(0);
   const double l2 = J.column(1) % J.column(1);
   return cross % cross < DBL_EPSILON*DBL_EPSILON * l1*l2;
@@ -656,7 +656,7 @@ MsqMeshEntity::all_nodes( MsqError& err ) const
 }
 
 void MsqMeshEntity::check_element_orientation_corners(
-  PatchData &pd, 
+  PatchData &pd,
   int& inverted,
   int& total,
   MsqError &err)
@@ -677,13 +677,13 @@ void MsqMeshEntity::check_element_orientation_corners(
   int i;
   Vector3D coord_vectors[3];
   Vector3D center_vector;
-  
+
   switch(mType) {
     case TRIANGLE:
-      
+
       if (!pd.domain_set())
         return;
-      
+
       pd.get_domain_normal_at_element(this, coord_vectors[2], err); MSQ_ERRRTN(err);
       coord_vectors[2] = coord_vectors[2] / coord_vectors[2].length();// Need unit normal
       center_vector = vertices[vertexIndices[0]];
@@ -692,9 +692,9 @@ void MsqMeshEntity::check_element_orientation_corners(
       total = 1;
       inverted = (coord_vectors[2]%(coord_vectors[0]*coord_vectors[1] ) <= 0.0);
       break;
-    
+
     case QUADRILATERAL:
-      
+
       if (!pd.domain_set())
         return;
 
@@ -720,7 +720,7 @@ void MsqMeshEntity::check_element_orientation_corners(
       break;
 
     case POLYGON:
-      
+
       if (!pd.domain_set())
         return;
 
@@ -749,7 +749,7 @@ void MsqMeshEntity::check_element_orientation_corners(
           MSQ_SETERR(err)("Unsupported element type.", MsqError::INVALID_ARG);
           return;
         }
-        
+
         center_vector = vertices[vertexIndices[j]];
         coord_vectors[0] = vertices[vertexIndices[adj_idx[0]]] - center_vector;
         coord_vectors[1] = vertices[vertexIndices[adj_idx[1]]] - center_vector;

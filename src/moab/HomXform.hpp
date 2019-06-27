@@ -1,16 +1,16 @@
 /**
  * MOAB, a Mesh-Oriented datABase, is a software component for creating,
  * storing and accessing finite element mesh data.
- * 
+ *
  * Copyright 2004 Sandia Corporation.  Under the terms of Contract
  * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
  * retains certain rights in this software.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  */
 
 #ifndef MOAB_HOMXFORM
@@ -40,7 +40,7 @@ class HomXform;
 /** \class HomCoord
  * \brief Homogeneous coordinate vector
  */
-class HomCoord 
+class HomCoord
 {
 private:
 
@@ -61,15 +61,15 @@ public:
     //! constructors
   HomCoord();
   HomCoord(const int coords[], const int num_coords = 4);
-  HomCoord(const int coord0, const int coord1, 
+  HomCoord(const int coord0, const int coord1,
            const int coord2, const int coord3);
-  HomCoord(const int coord0, const int coord1, 
+  HomCoord(const int coord0, const int coord1,
            const int coord2);
   HomCoord(const HomCoord &coord);
 
     //! set function
   void set(const int coords[]);
-  void set(const int i, const int j, const int k, 
+  void set(const int i, const int j, const int k,
            const int h = 1);
 
     //! get function
@@ -107,11 +107,11 @@ public:
 
     // dot product
   int operator%(const HomCoord &rhs) const;
-  
+
     // cross product
   HomCoord operator*(const HomCoord &rhs) const;
   HomCoord &operator*=(const HomCoord &rhs);
-  
+
   bool operator==(const HomCoord &rhs1) const;
   bool operator!=(const HomCoord &rhs1) const;
   bool operator>=(const HomCoord &rhs1) const;
@@ -122,7 +122,7 @@ public:
   int &operator[](const int &param);
 
 };
-  
+
 /** \class HomXform
  * \brief Homogeneous coordinate transformation matrix
  */
@@ -146,7 +146,7 @@ public:
 
     //! bare constructor
   HomXform();
-  
+
     //! constructor from rotation, scaling, translation
   HomXform(const int rotate[9], const int scale[3], const int translate[3]);
 
@@ -175,31 +175,31 @@ public:
   HomXform operator*(const HomXform &rhs2) const;
 };
 
-inline HomCoord::HomCoord() 
+inline HomCoord::HomCoord()
 {
   homCoord[0] = 0;
   homCoord[1] = 0;
   homCoord[2] = 0;
   homCoord[3] = 0;
 }
-  
-inline HomCoord::HomCoord(const int coords[], const int num_coords) 
+
+inline HomCoord::HomCoord(const int coords[], const int num_coords)
 {
   for (int tmpj = 0; tmpj < num_coords; tmpj++) homCoord[tmpj] = coords[tmpj];
   if (num_coords != 4) homCoord[3] = 1;
 }
 
-inline HomCoord::HomCoord(const int coord0, const int coord1, 
-                          const int coord2, const int coord3) 
+inline HomCoord::HomCoord(const int coord0, const int coord1,
+                          const int coord2, const int coord3)
 {
   homCoord[0] = coord0;
   homCoord[1] = coord1;
   homCoord[2] = coord2;
   homCoord[3] = coord3;
 }
-  
-inline HomCoord::HomCoord(const int coord0, const int coord1, 
-                          const int coord2) 
+
+inline HomCoord::HomCoord(const int coord0, const int coord1,
+                          const int coord2)
 {
   homCoord[0] = coord0;
   homCoord[1] = coord1;
@@ -207,7 +207,7 @@ inline HomCoord::HomCoord(const int coord0, const int coord1,
   homCoord[3] = 1;
 }
 
-inline HomCoord::HomCoord(const HomCoord &coords) 
+inline HomCoord::HomCoord(const HomCoord &coords)
 {
 #if defined(__INTEL_COMPILER) && (__INTEL_COMPILER < 1310)
   // Hack Intel compiler 12 issues with -O2 optimization
@@ -226,15 +226,15 @@ inline HomCoord::HomCoord(const HomCoord &coords)
   homCoord[3] = coords[3];
 #endif
 }
-  
-inline void HomCoord::set(const int coords[]) 
+
+inline void HomCoord::set(const int coords[])
 {
     homCoord[0] = coords[0];
     homCoord[1] = coords[1];
     homCoord[2] = coords[2];
     homCoord[3] = coords[3];
 }
-  
+
 inline void HomCoord::set(const int ip, const int jp, const int kp,
                           const int hp)
 {
@@ -243,7 +243,7 @@ inline void HomCoord::set(const int ip, const int jp, const int kp,
     homCoord[2] = kp;
     homCoord[3] = hp;
 }
-  
+
 inline HomCoord &HomCoord::operator=(const HomCoord &rhs1)
 {
   homCoord[0] = rhs1.homCoord[0];
@@ -254,7 +254,7 @@ inline HomCoord &HomCoord::operator=(const HomCoord &rhs1)
 }
 
     //! squared length
-inline int HomCoord::length_squared() const 
+inline int HomCoord::length_squared() const
 {
   return homCoord[0]*homCoord[0] +
     homCoord[1]*homCoord[1] +
@@ -263,7 +263,7 @@ inline int HomCoord::length_squared() const
 
 
     //! length
-inline int HomCoord::length() const 
+inline int HomCoord::length() const
 {
   return (int) sqrt((float)length_squared());
 }
@@ -275,7 +275,7 @@ inline void HomCoord::normalize()
 }
 
     // dot product
-inline int HomCoord::operator%(const HomCoord &rhs) const 
+inline int HomCoord::operator%(const HomCoord &rhs) const
 {
   return homCoord[0]*rhs.homCoord[0] +
     homCoord[1]*rhs.homCoord[1] +
@@ -283,7 +283,7 @@ inline int HomCoord::operator%(const HomCoord &rhs) const
 }
 
     // cross product
-inline HomCoord HomCoord::operator*(const HomCoord &rhs) const 
+inline HomCoord HomCoord::operator*(const HomCoord &rhs) const
 {
   return HomCoord(
     homCoord[1]*rhs.homCoord[2] - homCoord[2]*rhs.homCoord[1],
@@ -291,17 +291,17 @@ inline HomCoord HomCoord::operator*(const HomCoord &rhs) const
     homCoord[0]*rhs.homCoord[1] - homCoord[1]*rhs.homCoord[0]);
 }
 
-inline HomCoord &HomCoord::operator*=(const HomCoord &rhs) 
+inline HomCoord &HomCoord::operator*=(const HomCoord &rhs)
 {
   *this = HomCoord(
     homCoord[1]*rhs.homCoord[2] - homCoord[2]*rhs.homCoord[1],
     homCoord[2]*rhs.homCoord[0] - homCoord[0]*rhs.homCoord[2],
     homCoord[0]*rhs.homCoord[1] - homCoord[1]*rhs.homCoord[0]);
-  
+
   return *this;
 }
-  
-inline bool HomCoord::operator==(const HomCoord &rhs1) const 
+
+inline bool HomCoord::operator==(const HomCoord &rhs1) const
 {
   return (homCoord[0] == rhs1.homCoord[0] &&
           homCoord[1] == rhs1.homCoord[1] &&
@@ -309,7 +309,7 @@ inline bool HomCoord::operator==(const HomCoord &rhs1) const
           homCoord[3] == rhs1.homCoord[3]);
 }
 
-inline bool HomCoord::operator!=(const HomCoord &rhs1) const 
+inline bool HomCoord::operator!=(const HomCoord &rhs1) const
 {
   return (homCoord[0] != rhs1.homCoord[0] ||
           homCoord[1] != rhs1.homCoord[1] ||
@@ -317,7 +317,7 @@ inline bool HomCoord::operator!=(const HomCoord &rhs1) const
           homCoord[3] != rhs1.homCoord[3]);
 }
 
-inline bool HomCoord::operator>=(const HomCoord &rhs1) const 
+inline bool HomCoord::operator>=(const HomCoord &rhs1) const
 {
   return (homCoord[0] >= rhs1.homCoord[0] &&
           homCoord[1] >= rhs1.homCoord[1] &&
@@ -325,7 +325,7 @@ inline bool HomCoord::operator>=(const HomCoord &rhs1) const
           homCoord[3] == rhs1.homCoord[3]);
 }
 
-inline bool HomCoord::operator<=(const HomCoord &rhs1) const 
+inline bool HomCoord::operator<=(const HomCoord &rhs1) const
 {
   return (homCoord[0] <= rhs1.homCoord[0] &&
           homCoord[1] <= rhs1.homCoord[1] &&
@@ -333,7 +333,7 @@ inline bool HomCoord::operator<=(const HomCoord &rhs1) const
           homCoord[3] == rhs1.homCoord[3]);
 }
 
-inline bool HomCoord::operator<(const HomCoord &rhs1) const 
+inline bool HomCoord::operator<(const HomCoord &rhs1) const
 {
   return (homCoord[0] < rhs1.homCoord[0] &&
           homCoord[1] < rhs1.homCoord[1] &&
@@ -341,7 +341,7 @@ inline bool HomCoord::operator<(const HomCoord &rhs1) const
           homCoord[3] == rhs1.homCoord[3]);
 }
 
-inline bool HomCoord::operator>(const HomCoord &rhs1) const 
+inline bool HomCoord::operator>(const HomCoord &rhs1) const
 {
   return (homCoord[0] > rhs1.homCoord[0] &&
           homCoord[1] > rhs1.homCoord[1] &&
@@ -349,27 +349,27 @@ inline bool HomCoord::operator>(const HomCoord &rhs1) const
           homCoord[3] == rhs1.homCoord[3]);
 }
 
-inline HomCoord HomCoord::operator*(const HomXform &rhs2) const 
+inline HomCoord HomCoord::operator*(const HomXform &rhs2) const
 {
   return HomCoord(
-//    homCoord[0]*rhs2[4*0+0] + homCoord[1]*rhs2[4*1+0] + 
+//    homCoord[0]*rhs2[4*0+0] + homCoord[1]*rhs2[4*1+0] +
 //    homCoord[2]*rhs2[4*2+0] + homCoord[3]*rhs2[4*3+0],
-    homCoord[0]*rhs2.xForm[0] + homCoord[1]*rhs2.xForm[4] + 
+    homCoord[0]*rhs2.xForm[0] + homCoord[1]*rhs2.xForm[4] +
     homCoord[2]*rhs2.xForm[8] + homCoord[3]*rhs2.xForm[12],
 
-//    homCoord[0]*rhs2.xForm[4*0+1] + homCoord[1]*rhs2.xForm[4*1+1] + 
+//    homCoord[0]*rhs2.xForm[4*0+1] + homCoord[1]*rhs2.xForm[4*1+1] +
 //    homCoord[2]*rhs2.xForm[4*2+1] + homCoord[3]*rhs2.xForm[4*3+1],
-    homCoord[0]*rhs2.xForm[1] + homCoord[1]*rhs2.xForm[5] + 
+    homCoord[0]*rhs2.xForm[1] + homCoord[1]*rhs2.xForm[5] +
     homCoord[2]*rhs2.xForm[9] + homCoord[3]*rhs2.xForm[13],
 
-//    homCoord[0]*rhs2.xForm[4*0+2] + homCoord[1]*rhs2.xForm[4*1+2] + 
+//    homCoord[0]*rhs2.xForm[4*0+2] + homCoord[1]*rhs2.xForm[4*1+2] +
 //    homCoord[2]*rhs2.xForm[4*2+2] + homCoord[3]*rhs2.xForm[4*3+2],
-    homCoord[0]*rhs2.xForm[2] + homCoord[1]*rhs2.xForm[6] + 
+    homCoord[0]*rhs2.xForm[2] + homCoord[1]*rhs2.xForm[6] +
     homCoord[2]*rhs2.xForm[10] + homCoord[3]*rhs2.xForm[14],
 
-//    homCoord[0]*rhs2.xForm[4*0+3] + homCoord[1]*rhs2.xForm[4*1+3] + 
+//    homCoord[0]*rhs2.xForm[4*0+3] + homCoord[1]*rhs2.xForm[4*1+3] +
 //    homCoord[2]*rhs2.xForm[4*2+3] + homCoord[3]*rhs2.xForm[4*3+3]
-    homCoord[0]*rhs2.xForm[3] + homCoord[1]*rhs2.xForm[7] + 
+    homCoord[0]*rhs2.xForm[3] + homCoord[1]*rhs2.xForm[7] +
     homCoord[2]*rhs2.xForm[11] + homCoord[3]*rhs2.xForm[15]
     );
 }
@@ -377,30 +377,30 @@ inline HomCoord HomCoord::operator*(const HomXform &rhs2) const
 inline HomCoord &HomCoord::operator*=(const HomXform &rhs2)
 {
   *this = HomCoord(
-//    homCoord[0]*rhs2.xForm[4*0+0] + homCoord[1]*rhs2.xForm[4*1+0] + 
+//    homCoord[0]*rhs2.xForm[4*0+0] + homCoord[1]*rhs2.xForm[4*1+0] +
 //    homCoord[2]*rhs2.xForm[4*2+0] + homCoord[3]*rhs2.xForm[4*3+0],
-    homCoord[0]*rhs2.xForm[0] + homCoord[1]*rhs2.xForm[4] + 
+    homCoord[0]*rhs2.xForm[0] + homCoord[1]*rhs2.xForm[4] +
     homCoord[2]*rhs2.xForm[8] + homCoord[3]*rhs2.xForm[12],
 
-//    homCoord[0]*rhs2.xForm[4*0+1] + homCoord[1]*rhs2.xForm[4*1+1] + 
+//    homCoord[0]*rhs2.xForm[4*0+1] + homCoord[1]*rhs2.xForm[4*1+1] +
 //    homCoord[2]*rhs2.xForm[4*2+1] + homCoord[3]*rhs2.xForm[4*3+1],
-    homCoord[0]*rhs2.xForm[1] + homCoord[1]*rhs2.xForm[5] + 
+    homCoord[0]*rhs2.xForm[1] + homCoord[1]*rhs2.xForm[5] +
     homCoord[2]*rhs2.xForm[9] + homCoord[3]*rhs2.xForm[13],
 
-//    homCoord[0]*rhs2.xForm[4*0+2] + homCoord[1]*rhs2.xForm[4*1+2] + 
+//    homCoord[0]*rhs2.xForm[4*0+2] + homCoord[1]*rhs2.xForm[4*1+2] +
 //    homCoord[2]*rhs2.xForm[4*2+2] + homCoord[3]*rhs2.xForm[4*3+2],
-    homCoord[0]*rhs2.xForm[2] + homCoord[1]*rhs2.xForm[6] + 
+    homCoord[0]*rhs2.xForm[2] + homCoord[1]*rhs2.xForm[6] +
     homCoord[2]*rhs2.xForm[10] + homCoord[3]*rhs2.xForm[14],
 
-//    homCoord[0]*rhs2.xForm[4*0+3] + homCoord[1]*rhs2.xForm[4*1+3] + 
+//    homCoord[0]*rhs2.xForm[4*0+3] + homCoord[1]*rhs2.xForm[4*1+3] +
 //    homCoord[2]*rhs2.xForm[4*2+3] + homCoord[3]*rhs2.xForm[4*3+3]
-    homCoord[0]*rhs2.xForm[3] + homCoord[1]*rhs2.xForm[7] + 
+    homCoord[0]*rhs2.xForm[3] + homCoord[1]*rhs2.xForm[7] +
     homCoord[2]*rhs2.xForm[11] + homCoord[3]*rhs2.xForm[15]
     );
   return *this;
 }
 
-inline HomCoord HomCoord::operator*(const int mult) const 
+inline HomCoord HomCoord::operator*(const int mult) const
 {
   return HomCoord(mult*homCoord[0], mult*homCoord[1], mult*homCoord[2]);
 }
@@ -413,7 +413,7 @@ inline HomCoord &HomCoord::operator*=(const int mult)
   return *this;
 }
 
-inline HomCoord HomCoord::operator/(const int div) const 
+inline HomCoord HomCoord::operator/(const int div) const
 {
   return HomCoord(homCoord[0]/div, homCoord[1]/div, homCoord[2]/div);
 }
@@ -426,7 +426,7 @@ inline HomCoord &HomCoord::operator/=(const int div)
   return *this;
 }
 
-inline HomCoord HomCoord::operator-(const HomCoord &rhs2) const 
+inline HomCoord HomCoord::operator-(const HomCoord &rhs2) const
 {
   return HomCoord(*this) -= rhs2;
 }
@@ -439,7 +439,7 @@ inline HomCoord &HomCoord::operator-=(const HomCoord &rhs2)
   return *this;
 }
 
-inline HomCoord HomCoord::operator+(const HomCoord &rhs2) const 
+inline HomCoord HomCoord::operator+(const HomCoord &rhs2) const
 {
   return HomCoord(*this) += rhs2;
 }
@@ -452,7 +452,7 @@ inline HomCoord &HomCoord::operator+=(const HomCoord &rhs2)
   return *this;
 }
 
-inline HomCoord HomCoord::operator/(const HomXform &rhs2) const 
+inline HomCoord HomCoord::operator/(const HomXform &rhs2) const
 {
   return HomCoord(*this) /= rhs2;
 }
@@ -480,18 +480,18 @@ inline std::ostream &operator<<(std::ostream &str, const HomCoord &hc)
   return str;
 }
 
-inline HomXform::HomXform(const int matrix[16]) 
+inline HomXform::HomXform(const int matrix[16])
 {
   for (int i = 0; i < 16; i++)
     xForm[i] = matrix[i];
 }
 
-inline HomXform::HomXform() 
+inline HomXform::HomXform()
 {
 }
 
-inline HomXform::HomXform(const int rotate[9], const int scale[3], 
-                          const int translate[3]) 
+inline HomXform::HomXform(const int rotate[9], const int scale[3],
+                          const int translate[3])
 {
   int i, j;
   for (i = 0; i < 3; i++) {
@@ -504,13 +504,13 @@ inline HomXform::HomXform(const int rotate[9], const int scale[3],
   xForm[7] = 0;
   xForm[11] = 0;
   xForm[15] = 1;
-  
+
 }
 
 inline HomXform::HomXform(int i1, int i2, int i3, int i4,
                           int i5, int i6, int i7, int i8,
                           int i9, int i10, int i11, int i12,
-                          int i13, int i14, int i15, int i16) 
+                          int i13, int i14, int i15, int i16)
 {
   xForm[0] = i1; xForm[1] = i2; xForm[2] = i3; xForm[3] = i4;
   xForm[4] = i5; xForm[5] = i6; xForm[6] = i7; xForm[7] = i8;
@@ -518,7 +518,7 @@ inline HomXform::HomXform(int i1, int i2, int i3, int i4,
   xForm[12] = i13; xForm[13] = i14; xForm[14] = i15; xForm[15] = i16;
 }
 
-inline HomXform &HomXform::operator=(const HomXform &rhs) 
+inline HomXform &HomXform::operator=(const HomXform &rhs)
 {
   for (int i = 0; i < 16; i++)
     xForm[i] = rhs.xForm[i];
@@ -530,59 +530,59 @@ inline HomXform HomXform::operator*(const HomXform &rhs2) const
 {
   return HomXform(
 //  temp.XFORM(0,0)
-    XFORM(0,0)*rhs2.XFORM(0,0) + XFORM(0,1)*rhs2.XFORM(1,0) + 
+    XFORM(0,0)*rhs2.XFORM(0,0) + XFORM(0,1)*rhs2.XFORM(1,0) +
     XFORM(0,2)*rhs2.XFORM(2,0) + XFORM(0,3)*rhs2.XFORM(3,0),
-//  temp.XFORM(0,1)  
-    XFORM(0,0)*rhs2.XFORM(0,1) + XFORM(0,1)*rhs2.XFORM(1,1) + 
+//  temp.XFORM(0,1)
+    XFORM(0,0)*rhs2.XFORM(0,1) + XFORM(0,1)*rhs2.XFORM(1,1) +
     XFORM(0,2)*rhs2.XFORM(2,1) + XFORM(0,3)*rhs2.XFORM(3,1),
-//  temp.XFORM(0,2)  
-    XFORM(0,0)*rhs2.XFORM(0,2) + XFORM(0,1)*rhs2.XFORM(1,2) + 
+//  temp.XFORM(0,2)
+    XFORM(0,0)*rhs2.XFORM(0,2) + XFORM(0,1)*rhs2.XFORM(1,2) +
     XFORM(0,2)*rhs2.XFORM(2,2) + XFORM(0,3)*rhs2.XFORM(3,2),
-//  temp.XFORM(0,3)  
-    XFORM(0,0)*rhs2.XFORM(0,3) + XFORM(0,1)*rhs2.XFORM(1,3) + 
+//  temp.XFORM(0,3)
+    XFORM(0,0)*rhs2.XFORM(0,3) + XFORM(0,1)*rhs2.XFORM(1,3) +
     XFORM(0,2)*rhs2.XFORM(2,3) + XFORM(0,3)*rhs2.XFORM(3,3),
 
-//  temp.XFORM(1,0)  
-    XFORM(1,0)*rhs2.XFORM(0,0) + XFORM(1,1)*rhs2.XFORM(1,0) + 
+//  temp.XFORM(1,0)
+    XFORM(1,0)*rhs2.XFORM(0,0) + XFORM(1,1)*rhs2.XFORM(1,0) +
     XFORM(1,2)*rhs2.XFORM(2,0) + XFORM(1,3)*rhs2.XFORM(3,0),
-//  temp.XFORM(1,1)  
-    XFORM(1,0)*rhs2.XFORM(0,1) + XFORM(1,1)*rhs2.XFORM(1,1) + 
+//  temp.XFORM(1,1)
+    XFORM(1,0)*rhs2.XFORM(0,1) + XFORM(1,1)*rhs2.XFORM(1,1) +
     XFORM(1,2)*rhs2.XFORM(2,1) + XFORM(1,3)*rhs2.XFORM(3,1),
-//  temp.XFORM(1,2)  
-    XFORM(1,0)*rhs2.XFORM(0,2) + XFORM(1,1)*rhs2.XFORM(1,2) + 
+//  temp.XFORM(1,2)
+    XFORM(1,0)*rhs2.XFORM(0,2) + XFORM(1,1)*rhs2.XFORM(1,2) +
     XFORM(1,2)*rhs2.XFORM(2,2) + XFORM(1,3)*rhs2.XFORM(3,2),
-//  temp.XFORM(1,3)  
-    XFORM(1,0)*rhs2.XFORM(0,3) + XFORM(1,1)*rhs2.XFORM(1,3) + 
+//  temp.XFORM(1,3)
+    XFORM(1,0)*rhs2.XFORM(0,3) + XFORM(1,1)*rhs2.XFORM(1,3) +
     XFORM(1,2)*rhs2.XFORM(2,3) + XFORM(1,3)*rhs2.XFORM(3,3),
 
-//  temp.XFORM(2,0)  
-    XFORM(2,0)*rhs2.XFORM(0,0) + XFORM(2,1)*rhs2.XFORM(1,0) + 
+//  temp.XFORM(2,0)
+    XFORM(2,0)*rhs2.XFORM(0,0) + XFORM(2,1)*rhs2.XFORM(1,0) +
     XFORM(2,2)*rhs2.XFORM(2,0) + XFORM(2,3)*rhs2.XFORM(3,0),
-//  temp.XFORM(2,1)  
-    XFORM(2,0)*rhs2.XFORM(0,1) + XFORM(2,1)*rhs2.XFORM(1,1) + 
+//  temp.XFORM(2,1)
+    XFORM(2,0)*rhs2.XFORM(0,1) + XFORM(2,1)*rhs2.XFORM(1,1) +
     XFORM(2,2)*rhs2.XFORM(2,1) + XFORM(2,3)*rhs2.XFORM(3,1),
-//  temp.XFORM(2,2)  
-    XFORM(2,0)*rhs2.XFORM(0,2) + XFORM(2,1)*rhs2.XFORM(1,2) + 
+//  temp.XFORM(2,2)
+    XFORM(2,0)*rhs2.XFORM(0,2) + XFORM(2,1)*rhs2.XFORM(1,2) +
     XFORM(2,2)*rhs2.XFORM(2,2) + XFORM(2,3)*rhs2.XFORM(3,2),
-//  temp.XFORM(2,3)  
-    XFORM(2,0)*rhs2.XFORM(0,3) + XFORM(2,1)*rhs2.XFORM(1,3) + 
+//  temp.XFORM(2,3)
+    XFORM(2,0)*rhs2.XFORM(0,3) + XFORM(2,1)*rhs2.XFORM(1,3) +
     XFORM(2,2)*rhs2.XFORM(2,3) + XFORM(2,3)*rhs2.XFORM(3,3),
 
-//  temp.XFORM(3,0)  
+//  temp.XFORM(3,0)
 //  xForm[12]*rhs2.xForm[0] + xForm[13]*rhs2.xForm[4] + xForm[14]*rhs2.xForm[8] + xForm[15]*rhs2.xForm[12]
-    XFORM(3,0)*rhs2.XFORM(0,0) + XFORM(3,1)*rhs2.XFORM(1,0) + 
+    XFORM(3,0)*rhs2.XFORM(0,0) + XFORM(3,1)*rhs2.XFORM(1,0) +
     XFORM(3,2)*rhs2.XFORM(2,0) + XFORM(3,3)*rhs2.XFORM(3,0),
-//  temp.XFORM(3,1)  
+//  temp.XFORM(3,1)
 //  xForm[12]*rhs2.xForm[1] + xForm[13]*rhs2.xForm[5] + xForm[14]*rhs2.xForm[9] + xForm[15]*rhs2.xForm[13]
-    XFORM(3,0)*rhs2.XFORM(0,1) + XFORM(3,1)*rhs2.XFORM(1,1) + 
+    XFORM(3,0)*rhs2.XFORM(0,1) + XFORM(3,1)*rhs2.XFORM(1,1) +
     XFORM(3,2)*rhs2.XFORM(2,1) + XFORM(3,3)*rhs2.XFORM(3,1),
-//  temp.XFORM(3,2)  
+//  temp.XFORM(3,2)
 //  xForm[12]*rhs2.xForm[2] + xForm[13]*rhs2.xForm[6] + xForm[14]*rhs2.xForm[10] + xForm[15]*rhs2.xForm[14]
-    XFORM(3,0)*rhs2.XFORM(0,2) + XFORM(3,1)*rhs2.XFORM(1,2) + 
+    XFORM(3,0)*rhs2.XFORM(0,2) + XFORM(3,1)*rhs2.XFORM(1,2) +
     XFORM(3,2)*rhs2.XFORM(2,2) + XFORM(3,3)*rhs2.XFORM(3,2),
-//  temp.XFORM(3,3)  
+//  temp.XFORM(3,3)
 //  xForm[12]*rhs2.xForm[3] + xForm[13]*rhs2.xForm[7] + xForm[14]*rhs2.xForm[11] + xForm[15]*rhs2.xForm[15]
-    XFORM(3,0)*rhs2.XFORM(0,3) + XFORM(3,1)*rhs2.XFORM(1,3) + 
+    XFORM(3,0)*rhs2.XFORM(0,3) + XFORM(3,1)*rhs2.XFORM(1,3) +
     XFORM(3,2)*rhs2.XFORM(2,3) + XFORM(3,3)*rhs2.XFORM(3,3));
 }
 
@@ -590,55 +590,55 @@ inline HomXform &HomXform::operator*=(const HomXform &rhs2)
 {
   *this =  HomXform(
 //  temp.XFORM(0,0)
-    XFORM(0,0)*rhs2.XFORM(0,0) + XFORM(0,1)*rhs2.XFORM(1,0) + 
+    XFORM(0,0)*rhs2.XFORM(0,0) + XFORM(0,1)*rhs2.XFORM(1,0) +
     XFORM(0,2)*rhs2.XFORM(2,0) + XFORM(0,3)*rhs2.XFORM(3,0),
-//  temp.XFORM(0,1)  
-    XFORM(0,0)*rhs2.XFORM(0,1) + XFORM(0,1)*rhs2.XFORM(1,1) + 
+//  temp.XFORM(0,1)
+    XFORM(0,0)*rhs2.XFORM(0,1) + XFORM(0,1)*rhs2.XFORM(1,1) +
     XFORM(0,2)*rhs2.XFORM(2,1) + XFORM(0,3)*rhs2.XFORM(3,1),
-//  temp.XFORM(0,2)  
-    XFORM(0,0)*rhs2.XFORM(0,2) + XFORM(0,1)*rhs2.XFORM(1,2) + 
+//  temp.XFORM(0,2)
+    XFORM(0,0)*rhs2.XFORM(0,2) + XFORM(0,1)*rhs2.XFORM(1,2) +
     XFORM(0,2)*rhs2.XFORM(2,2) + XFORM(0,3)*rhs2.XFORM(3,2),
-//  temp.XFORM(0,3)  
-    XFORM(0,0)*rhs2.XFORM(0,3) + XFORM(0,1)*rhs2.XFORM(1,3) + 
+//  temp.XFORM(0,3)
+    XFORM(0,0)*rhs2.XFORM(0,3) + XFORM(0,1)*rhs2.XFORM(1,3) +
     XFORM(0,2)*rhs2.XFORM(2,3) + XFORM(0,3)*rhs2.XFORM(3,3),
 
-//  temp.XFORM(1,0)  
-    XFORM(1,0)*rhs2.XFORM(0,0) + XFORM(1,1)*rhs2.XFORM(1,0) + 
+//  temp.XFORM(1,0)
+    XFORM(1,0)*rhs2.XFORM(0,0) + XFORM(1,1)*rhs2.XFORM(1,0) +
     XFORM(1,2)*rhs2.XFORM(2,0) + XFORM(1,3)*rhs2.XFORM(3,0),
-//  temp.XFORM(1,1)  
-    XFORM(1,0)*rhs2.XFORM(0,1) + XFORM(1,1)*rhs2.XFORM(1,1) + 
+//  temp.XFORM(1,1)
+    XFORM(1,0)*rhs2.XFORM(0,1) + XFORM(1,1)*rhs2.XFORM(1,1) +
     XFORM(1,2)*rhs2.XFORM(2,1) + XFORM(1,3)*rhs2.XFORM(3,1),
-//  temp.XFORM(1,2)  
-    XFORM(1,0)*rhs2.XFORM(0,2) + XFORM(1,1)*rhs2.XFORM(1,2) + 
+//  temp.XFORM(1,2)
+    XFORM(1,0)*rhs2.XFORM(0,2) + XFORM(1,1)*rhs2.XFORM(1,2) +
     XFORM(1,2)*rhs2.XFORM(2,2) + XFORM(1,3)*rhs2.XFORM(3,2),
-//  temp.XFORM(1,3)  
-    XFORM(1,0)*rhs2.XFORM(0,3) + XFORM(1,1)*rhs2.XFORM(1,3) + 
+//  temp.XFORM(1,3)
+    XFORM(1,0)*rhs2.XFORM(0,3) + XFORM(1,1)*rhs2.XFORM(1,3) +
     XFORM(1,2)*rhs2.XFORM(2,3) + XFORM(1,3)*rhs2.XFORM(3,3),
 
-//  temp.XFORM(2,0)  
-    XFORM(2,0)*rhs2.XFORM(0,0) + XFORM(2,1)*rhs2.XFORM(1,0) + 
+//  temp.XFORM(2,0)
+    XFORM(2,0)*rhs2.XFORM(0,0) + XFORM(2,1)*rhs2.XFORM(1,0) +
     XFORM(2,2)*rhs2.XFORM(2,0) + XFORM(2,3)*rhs2.XFORM(3,0),
-//  temp.XFORM(2,1)  
-    XFORM(2,0)*rhs2.XFORM(0,1) + XFORM(2,1)*rhs2.XFORM(1,1) + 
+//  temp.XFORM(2,1)
+    XFORM(2,0)*rhs2.XFORM(0,1) + XFORM(2,1)*rhs2.XFORM(1,1) +
     XFORM(2,2)*rhs2.XFORM(2,1) + XFORM(2,3)*rhs2.XFORM(3,1),
-//  temp.XFORM(2,2)  
-    XFORM(2,0)*rhs2.XFORM(0,2) + XFORM(2,1)*rhs2.XFORM(1,2) + 
+//  temp.XFORM(2,2)
+    XFORM(2,0)*rhs2.XFORM(0,2) + XFORM(2,1)*rhs2.XFORM(1,2) +
     XFORM(2,2)*rhs2.XFORM(2,2) + XFORM(2,3)*rhs2.XFORM(3,2),
-//  temp.XFORM(2,3)  
-    XFORM(2,0)*rhs2.XFORM(0,3) + XFORM(2,1)*rhs2.XFORM(1,3) + 
+//  temp.XFORM(2,3)
+    XFORM(2,0)*rhs2.XFORM(0,3) + XFORM(2,1)*rhs2.XFORM(1,3) +
     XFORM(2,2)*rhs2.XFORM(2,3) + XFORM(2,3)*rhs2.XFORM(3,3),
 
-//  temp.XFORM(3,0)  
-    XFORM(3,0)*rhs2.XFORM(0,0) + XFORM(3,1)*rhs2.XFORM(1,0) + 
+//  temp.XFORM(3,0)
+    XFORM(3,0)*rhs2.XFORM(0,0) + XFORM(3,1)*rhs2.XFORM(1,0) +
     XFORM(3,2)*rhs2.XFORM(2,0) + XFORM(3,3)*rhs2.XFORM(3,0),
-//  temp.XFORM(3,1)  
-    XFORM(3,0)*rhs2.XFORM(0,1) + XFORM(3,1)*rhs2.XFORM(1,1) + 
+//  temp.XFORM(3,1)
+    XFORM(3,0)*rhs2.XFORM(0,1) + XFORM(3,1)*rhs2.XFORM(1,1) +
     XFORM(3,2)*rhs2.XFORM(2,1) + XFORM(3,3)*rhs2.XFORM(3,1),
-//  temp.XFORM(3,2)  
-    XFORM(3,0)*rhs2.XFORM(0,2) + XFORM(3,1)*rhs2.XFORM(1,2) + 
+//  temp.XFORM(3,2)
+    XFORM(3,0)*rhs2.XFORM(0,2) + XFORM(3,1)*rhs2.XFORM(1,2) +
     XFORM(3,2)*rhs2.XFORM(2,2) + XFORM(3,3)*rhs2.XFORM(3,2),
-//  temp.XFORM(3,3)  
-    XFORM(3,0)*rhs2.XFORM(0,3) + XFORM(3,1)*rhs2.XFORM(1,3) + 
+//  temp.XFORM(3,3)
+    XFORM(3,0)*rhs2.XFORM(0,3) + XFORM(3,1)*rhs2.XFORM(1,3) +
     XFORM(3,2)*rhs2.XFORM(2,3) + XFORM(3,3)*rhs2.XFORM(3,3));
 
   return *this;
@@ -654,7 +654,7 @@ inline int &HomXform::operator[](const int &count)
   return xForm[count];
 }
 
-inline bool HomXform::operator==(const HomXform &rhs) const 
+inline bool HomXform::operator==(const HomXform &rhs) const
 {
   return (
     xForm[0] == rhs.xForm[0] && xForm[1] == rhs.xForm[1] &&
@@ -667,7 +667,7 @@ inline bool HomXform::operator==(const HomXform &rhs) const
     xForm[14] == rhs.xForm[14] && xForm[15] == rhs.xForm[15]);
 }
 
-inline bool HomXform::operator!=(const HomXform &rhs) const 
+inline bool HomXform::operator!=(const HomXform &rhs) const
 {
   return (
     xForm[0] != rhs.xForm[0] || xForm[1] != rhs.xForm[1] ||
@@ -680,20 +680,20 @@ inline bool HomXform::operator!=(const HomXform &rhs) const
     xForm[14] != rhs.xForm[14] || xForm[15] != rhs.xForm[15]);
 }
 
-inline HomXform HomXform::inverse() const 
+inline HomXform HomXform::inverse() const
 {
 
 /*
 // original code:
 
   HomXform tmp;
-  
+
     // assign the diagonal
   tmp[0] = xForm[0];
   tmp[5] = xForm[5];
   tmp[10] = xForm[10];
   tmp[15] = xForm[15];
-  
+
     // invert the rotation matrix
   tmp[XFORM_INDEX(0,1)] = XFORM(1,0);
   tmp[XFORM_INDEX(0,2)] = XFORM(2,0);
@@ -706,7 +706,7 @@ inline HomXform HomXform::inverse() const
   tmp[XFORM_INDEX(3,0)] = -(XFORM(3,0)*tmp.XFORM(0,0) + XFORM(3,1)*tmp.XFORM(1,0) + XFORM(3,2)*tmp.XFORM(2,0));
   tmp[XFORM_INDEX(3,1)] = -(XFORM(3,0)*tmp.XFORM(0,1) + XFORM(3,1)*tmp.XFORM(1,1) + XFORM(3,2)*tmp.XFORM(2,1));
   tmp[XFORM_INDEX(3,2)] = -(XFORM(3,0)*tmp.XFORM(0,2) + XFORM(3,1)*tmp.XFORM(1,2) + XFORM(3,2)*tmp.XFORM(2,2));
-  
+
     // zero last column
   tmp[XFORM_INDEX(0,3)] = 0;
   tmp[XFORM_INDEX(1,3)] = 0;
@@ -734,6 +734,6 @@ inline HomXform HomXform::inverse() const
     1);
 }
 
-} // namespace moab 
+} // namespace moab
 
 #endif

@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2006 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
+
     (2006) kraftche@cae.wisc.edu
-   
+
   ***************************************************************** */
 
 
 /** \file NodeSetTest.cpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -53,7 +53,7 @@ class NodeSetTest : public CppUnit::TestFixture
     CPPUNIT_TEST(test_clear_all);
     CPPUNIT_TEST(test_num_before);
     CPPUNIT_TEST_SUITE_END();
-    
+
   public:
 
     void test_init();
@@ -249,7 +249,7 @@ void NodeSetTest::test_have_any()
 {
   NodeSet set;
   set.clear();
-  
+
   CPPUNIT_ASSERT( !set.have_any_corner_node() );
   set.set_corner_node(0);
   CPPUNIT_ASSERT( set.have_any_corner_node() );
@@ -309,23 +309,23 @@ static bool check_range_set( EntityTopology type, NodeSet set, unsigned dim, boo
 {
   const unsigned max_count[] = { NodeSet::NUM_CORNER_BITS, NodeSet::NUM_EDGE_BITS,
                                  NodeSet::NUM_FACE_BITS, NodeSet::NUM_REGION_BITS };
-  
+
     // test that any bits corresponding to some other dimension are not set.
   for (unsigned d = 0; d <= 3; ++d) {
     if (d == dim)
       continue;
-    
+
     for (unsigned i = 0; i < max_count[d]; ++i)
       if (!set.node( Sample(d,i) ) != value)
         return false;
   }
-  
+
     // test that any bits for this dimension beyond the number for this
     // type are not set
   for (unsigned i = TopologyInfo::adjacent( type, dim ); i < max_count[dim]; ++i)
     if (!set.node( Sample(dim,i) ) != value)
       return false;
-  
+
     // test that any bits for the type and dimension are set
   for (unsigned i = 0; i < TopologyInfo::adjacent( type, dim ); ++i)
     if (set.node( Sample(dim,i) ) == value)
@@ -333,7 +333,7 @@ static bool check_range_set( EntityTopology type, NodeSet set, unsigned dim, boo
 
   return true;
 }
-    
+
 
 void NodeSetTest::test_set_all()
 {
@@ -409,7 +409,7 @@ void NodeSetTest::test_num_before()
   CPPUNIT_ASSERT_EQUAL( 2u, set.num_before_corner(2) );
   CPPUNIT_ASSERT_EQUAL( 3u, set.num_before_corner(3) );
   CPPUNIT_ASSERT_EQUAL( 4u, set.num_before_corner(4) );
-  
+
   const unsigned total_nodes = 27;
   set.set_all_nodes( type );
   CPPUNIT_ASSERT_EQUAL( total_nodes - 1, set.num_before_mid_region( 0 ) );

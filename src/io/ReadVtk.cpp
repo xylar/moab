@@ -1,16 +1,16 @@
 /**
  * MOAB, a Mesh-Oriented datABase, is a software component for creating,
  * storing and accessing finite element mesh data.
- * 
+ *
  * Copyright 2004 Sandia Corporation.  Under the terms of Contract
  * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
  * retains certain rights in this software.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  */
 
 /**
@@ -254,7 +254,7 @@ ErrorCode ReadVtk::load_file(const char *filename,
   switch (filetype) {
     case 2:  // BINARY
       MB_SET_ERR(MB_FAILURE, "Cannot read BINARY VTK files");
-    default: // ERROR 
+    default: // ERROR
       return MB_FAILURE;
     case 1:  // ASCII
       break;
@@ -264,7 +264,7 @@ ErrorCode ReadVtk::load_file(const char *filename,
   if (!tokens.match_token("DATASET"))
     return MB_FAILURE;
   result = vtk_read_dataset(tokens, vertices, element_list);
-  if (MB_SUCCESS != result) 
+  if (MB_SUCCESS != result)
     return result;
 
   if (file_id_tag) {
@@ -427,7 +427,7 @@ ErrorCode ReadVtk::vtk_read_structured_points(FileTokenizer& tokens,
   if (!tokens.match_token("DIMENSIONS") ||
       !tokens.get_long_ints(3, dims) ||
       !tokens.get_newline())
-    return MB_FAILURE; 
+    return MB_FAILURE;
 
   if (dims[0] < 1 || dims[1] < 1 || dims[2] < 1) {
     MB_SET_ERR(MB_FAILURE, "Invalid dimension at line " << tokens.line_number());
@@ -452,7 +452,7 @@ ErrorCode ReadVtk::vtk_read_structured_points(FileTokenizer& tokens,
   if (MB_SUCCESS != result)
     return result;
   vertex_list.insert(start_handle, start_handle + num_verts - 1);
-  
+
   for (k = 0; k < dims[2]; ++k)
     for (j = 0; j < dims[1]; ++j)
       for (i = 0; i < dims[0]; ++i) {
@@ -632,10 +632,10 @@ ErrorCode ReadVtk::vtk_read_polygons(FileTokenizer& tokens,
     conn_hdl.resize(count);
     if (!tokens.get_long_ints(count, &conn_idx[0]))
       return MB_FAILURE;
-    
+
     for (long j = 0; j < count; ++j)
       conn_hdl[j] = first_vtx + conn_idx[j];
-    
+
     result = mdbImpl->create_element(MBPOLYGON, &conn_hdl[0], count, handle);
     if (MB_SUCCESS != result)
       return result;
@@ -752,7 +752,7 @@ ErrorCode ReadVtk::vtk_read_unstructured_grid(FileTokenizer& tokens,
     // Find any subsequent elements of the same type
     // if polyhedra, need to look at the number of faces to put in the same range
     std::vector<long>::iterator conn_iter2 = conn_iter + num_vtx + 1;
-    long end_id = id + 1; 
+    long end_id = id + 1;
     if (MBPOLYHEDRON != type)
     {
       while (end_id < num_elems[0] &&

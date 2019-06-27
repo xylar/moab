@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2006 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
+
     (2006) kraftche@cae.wisc.edu
-   
+
   ***************************************************************** */
 
 
 /** \file ElementMaxQM.cpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -42,7 +42,7 @@ namespace MBMesquite {
 ElementMaxQM::ElementMaxQM( ElemSampleQM* metric )
     : mMetric(metric)
     {}
-    
+
 ElementMaxQM::~ElementMaxQM() {}
 
 std::string ElementMaxQM::get_name() const
@@ -59,9 +59,9 @@ int ElementMaxQM::get_negate_flag() const
   return get_quality_metric()->get_negate_flag();
 }
 
-bool ElementMaxQM::evaluate( PatchData& pd, 
-                              size_t handle, 
-                              double& value, 
+bool ElementMaxQM::evaluate( PatchData& pd,
+                              size_t handle,
+                              double& value,
                               MsqError& err )
 {
   ElemSampleQM* qm = get_quality_metric();
@@ -73,7 +73,7 @@ bool ElementMaxQM::evaluate( PatchData& pd,
   bool tmpvalid;
 
   value = -1.e+100; // initialize max computation
-  for (std::vector<size_t>::iterator h = mHandles.begin(); h != mHandles.end(); ++h) { 
+  for (std::vector<size_t>::iterator h = mHandles.begin(); h != mHandles.end(); ++h) {
     tmpvalid = qm->evaluate( pd, *h, tmpval, err );  // MSQ_ERRZERO(err);
     if (!tmpvalid)
     {
@@ -87,9 +87,9 @@ bool ElementMaxQM::evaluate( PatchData& pd,
   return valid;
 }
 /*
-bool ElementMaxQM::evaluate_with_gradient( PatchData& pd, 
-                                            size_t handle, 
-                                            double& value, 
+bool ElementMaxQM::evaluate_with_gradient( PatchData& pd,
+                                            size_t handle,
+                                            double& value,
                                             std::vector<size_t>& indices,
                                             std::vector<Vector3D>& gradient,
                                             MsqError& err )
@@ -140,7 +140,7 @@ bool ElementMaxQM::evaluate_with_gradient( PatchData& pd,
     for (std::vector<Vector3D>::iterator g = gradient.begin(); g != gradient.end(); ++g)
       *g *= inv_count;
   }
-    
+
   return valid;
 }
 */

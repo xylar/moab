@@ -34,7 +34,7 @@
 using namespace moab;
 using namespace std;
 
-int main(int argc, char **argv) 
+int main(int argc, char **argv)
 {
   int N = 10, dim = 3;
 
@@ -64,7 +64,7 @@ int main(int argc, char **argv)
 #else
   int rank = 0;
   int ilow = 0, ihigh = N;
-#endif  
+#endif
 
   // 2. Create a N^d structured mesh, which includes (N+1)^d vertices and N^d elements.
   ScdBox *box;
@@ -85,7 +85,7 @@ int main(int argc, char **argv)
 #ifdef MOAB_HAVE_MPI
     MYSTREAM("Proc 0: ");
 #endif
-    MYSTREAM("Created " << elems.size() << " " << CN::EntityTypeName(mb->type_from_handle(*elems.begin())) 
+    MYSTREAM("Created " << elems.size() << " " << CN::EntityTypeName(mb->type_from_handle(*elems.begin()))
              << " elements and " << verts.size() << " vertices." << endl);
   }
   else

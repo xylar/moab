@@ -10,12 +10,12 @@
 
 namespace moab {
 
-    typedef ErrorCode (*EvalFcn)(const double *params, const double *field, const int ndim, const int num_tuples, 
+    typedef ErrorCode (*EvalFcn)(const double *params, const double *field, const int ndim, const int num_tuples,
                           double *work, double *result);
 
-    typedef ErrorCode (*JacobianFcn)(const double *params, const double *verts, const int nverts, const int ndim, 
+    typedef ErrorCode (*JacobianFcn)(const double *params, const double *verts, const int nverts, const int ndim,
                                      double *work, double *result);
-        
+
     typedef ErrorCode (*IntegrateFcn)(const double *field, const double *verts, const int nverts, const int ndim,
                                       const int num_tuples, double *work, double *result);
 
@@ -23,11 +23,11 @@ namespace moab {
 
     typedef int (*InsideFcn)(const double *verts, const int ndims, const double tol);
 
-    typedef ErrorCode (*ReverseEvalFcn)(EvalFcn eval, JacobianFcn jacob, InsideFcn ins, 
+    typedef ErrorCode (*ReverseEvalFcn)(EvalFcn eval, JacobianFcn jacob, InsideFcn ins,
                                         const double *posn, const double *verts, const int nverts, const int ndim,
-                                        const double iter_tol, const double inside_tol, 
+                                        const double iter_tol, const double inside_tol,
                                         double *work, double *params, int *is_inside);
-        
+
   typedef ErrorCode (*NormalFcn)(const int ientDim, const int facet, const int nverts, const double *verts,  double normal[3]);
 
     class EvalSet
@@ -35,16 +35,16 @@ namespace moab {
   public:
         /** \brief Forward-evaluation of field at parametric coordinates */
       EvalFcn evalFcn;
-        
+
         /** \brief Reverse-evaluation of parametric coordinates at physical space position */
       ReverseEvalFcn reverseEvalFcn;
-        
+
       /** \brief Evaluate the normal at a local facet (edge/face for 2D/3D) */
       NormalFcn normalFcn;
 
         /** \brief Evaluate the jacobian at a specified parametric position */
       JacobianFcn jacobianFcn;
-        
+
         /** \brief Forward-evaluation of field at parametric coordinates */
       IntegrateFcn integrateFcn;
 
@@ -64,10 +64,10 @@ namespace moab {
 
         /** \brief Given an entity handle, get an appropriate eval set, based on type & #vertices */
       static ErrorCode get_eval_set(Interface *mb, EntityHandle eh, EvalSet &eval_set);
-      
+
         /** \brief Given type & #vertices, get an appropriate eval set */
       static ErrorCode get_eval_set(EntityType tp, unsigned int num_vertices, EvalSet &eval_set);
-      
+
         /** \brief Operator= */
       EvalSet &operator=(const EvalSet &eval) {
         evalFcn = eval.evalFcn;
@@ -82,15 +82,15 @@ namespace moab {
 
         /** \brief Common function to do reverse evaluation based on evaluation and jacobian functions */
       static ErrorCode evaluate_reverse(EvalFcn eval, JacobianFcn jacob, InsideFcn inside_f,
-                                        const double *posn, const double *verts, const int nverts, 
-                                        const int ndim, const double iter_tol, const double inside_tol, 
+                                        const double *posn, const double *verts, const int nverts,
+                                        const int ndim, const double iter_tol, const double inside_tol,
                                         double *work, double *params, int *inside);
         /** \brief Common function that returns true if params is in [-1,1]^ndims */
       static int inside_function(const double *params, const int ndims, const double tol);
     };
 
         /** \brief Given an entity handle, get an appropriate eval set, based on type & #vertices */
-    inline ErrorCode EvalSet::get_eval_set(Interface *mb, EntityHandle eh, EvalSet &eval_set) 
+    inline ErrorCode EvalSet::get_eval_set(Interface *mb, EntityHandle eh, EvalSet &eval_set)
     {
       int nv;
       EntityType tp = mb->type_from_handle(eh);
@@ -98,10 +98,10 @@ namespace moab {
       std::vector<EntityHandle> dum_vec;
       ErrorCode rval = mb->get_connectivity(eh, connect, nv, false, &dum_vec);
       if (MB_SUCCESS != rval) return rval;
-      
+
       return get_eval_set(tp, nv, eval_set);
     }
-      
+
 /**\brief Class facilitating local discretization-related functions
  * \class ElemEvaluator
  * This class implements discretization-related functionality operating
@@ -122,7 +122,7 @@ namespace moab {
 
     class ElemEvaluator {
   public:
-        /** \brief Constructor 
+        /** \brief Constructor
          * \param impl MOAB instance
          * \param ent Entity handle to cache on the evaluator; if non-zero, calls set_ent_handle, which does some other stuff.
          * \param tag Tag to cache on the evaluator; if non-zero, calls set_tag_handle, which does some other stuff too.
@@ -131,14 +131,14 @@ namespace moab {
       ElemEvaluator(Interface *impl, EntityHandle ent = 0, Tag tag = 0, int tagged_ent_dim = -1);
       ~ElemEvaluator();
 
-        /** \brief Evaluate cached tag at a given parametric location within the cached entity 
+        /** \brief Evaluate cached tag at a given parametric location within the cached entity
          * If evaluating coordinates, call set_tag(0, 0), which indicates coords instead of a tag.
          * \param params Parameters at which to evaluate field
          * \param result Result of evaluation
          * \param num_tuples Size of evaluated field, in number of values
          */
       ErrorCode eval(const double *params, double *result, int num_tuples = -1) const;
-        
+
         /** \brief Reverse-evaluate the cached entity at a given physical position
          * \param posn Position at which to evaluate parameters
          * \param iter_tol Tolerance of reverse evaluation non-linear iteration, usually 10^-10 or so
@@ -147,7 +147,7 @@ namespace moab {
          * \param is_inside If non-NULL, returns true of resulting parameters place the point inside the element
          *                  (in most cases, within [-1]*(dim)
          */
-      ErrorCode reverse_eval(const double *posn, double iter_tol, double inside_tol, double *params, 
+      ErrorCode reverse_eval(const double *posn, double iter_tol, double inside_tol, double *params,
                              int *is_inside = NULL) const;
 
       /**
@@ -157,18 +157,18 @@ namespace moab {
        * \param normal Returns the normal.
        */
       ErrorCode get_normal(const int ientDim, const int facet, double normal[3]) const;
-        
+
         /** \brief Evaluate the jacobian of the cached entity at a given parametric location
          * \param params Parameters at which to evaluate jacobian
          * \param result Result of evaluation, in the form of a 3x3 matrix, stored in column-major order
          */
       ErrorCode jacobian(const double *params, double *result) const;
-        
+
         /** \brief Integrate the cached tag over the cached entity
          * \param result Result of the integration
          */
       ErrorCode integrate(double *result) const;
-      
+
         /** \brief Return whether a physical position is inside the cached entity to within a tolerance
          * \param params Parameters at which to query the element
          * \param tol Tolerance, usually 10^-6 or so
@@ -192,11 +192,11 @@ namespace moab {
          * \return Returns non-success only if evaulation failed for some reason (point not in element is NOT a
          * reason for failure)
          */
-      ErrorCode find_containing_entity(Range &entities, const double *point, 
-                                       const double iter_tol, const double inside_tol, 
-                                       EntityHandle &containing_ent, double *params, 
+      ErrorCode find_containing_entity(Range &entities, const double *point,
+                                       const double iter_tol, const double inside_tol,
+                                       EntityHandle &containing_ent, double *params,
                                        unsigned int *num_evals = NULL);
-      
+
         /** \brief Given an entity set, return the contained entity the point is in, or none
          * This function reverse-evaluates the entities, returning the first entity containing the point.
          * If no entity contains the point, containing_ent is returned as 0 and params are unchanged.
@@ -214,17 +214,17 @@ namespace moab {
          * \return Returns non-success only if evaulation failed for some reason (point not in element is NOT a
          * reason for failure)
          */
-      ErrorCode find_containing_entity(EntityHandle ent_set, const double *point, 
+      ErrorCode find_containing_entity(EntityHandle ent_set, const double *point,
                                        const double iter_tol, const double inside_tol,
-                                       EntityHandle &containing_ent, double *params, 
+                                       EntityHandle &containing_ent, double *params,
                                        unsigned int *num_evals = NULL);
-      
+
         /** \brief Set the eval set for a given type entity
          * \param tp Entity type for which to set the eval set
          * \param eval_set Eval set object to use
          */
       ErrorCode set_eval_set(EntityType tp, const EvalSet &eval_set);
-      
+
         /** \brief Set the eval set using a given entity handle
         * This function queries the entity type and number of vertices on the entity to decide which type
         * of shape function to use.
@@ -232,7 +232,7 @@ namespace moab {
         * \param eh Entity handle whose type and #vertices are queried
         */
       ErrorCode set_eval_set(const EntityHandle eh);
-      
+
         /** \brief Get the eval set for a given type entity */
       inline EvalSet get_eval_set(EntityType tp) {return evalSets[tp];}
 
@@ -245,7 +245,7 @@ namespace moab {
         /* \brief Get vertex positions cached on this EE
          */
       inline double *get_vert_pos() {return vertPos[0].array();}
-      
+
         /* \brief Get the vertex handles cached here */
       inline const EntityHandle *get_vert_handles() const {return vertHandles;}
 
@@ -270,7 +270,7 @@ namespace moab {
          * \param tagged_ent_dim Dimension of entities tagged with this tag
          */
       inline ErrorCode set_tag(const char *tag_name, int tagged_ent_dim = -1);
-      
+
         /* \brief Get the dimension of the entities on which tag is set */
       inline int get_tagged_ent_dim() const {return taggedEntDim;};
 
@@ -281,15 +281,15 @@ namespace moab {
          * Can't be const because most of the functions (evaluate, integrate, etc.) take non-const work space *'s
          */
       inline double *get_work_space() {return workSpace;}
-            
+
         /* \brief MOAB interface cached on this evaluator */
       inline Interface *get_moab() {return mbImpl;}
-      
+
   private:
 
         /** \brief Interface */
       Interface *mbImpl;
-      
+
         /** \brief Entity handle being evaluated */
       EntityHandle entHandle;
 
@@ -298,22 +298,22 @@ namespace moab {
 
         /** \brief Entity dimension */
       int entDim;
-            
+
         /** \brief Number of vertices cached here */
       int numVerts;
 
         /** \brief Cached copy of vertex handle ptr */
       const EntityHandle *vertHandles;
-      
+
         /** \brief Cached copy of vertex positions */
       CartVect vertPos[CN::MAX_NODES_PER_ELEMENT];
-      
+
         /** \brief Tag being evaluated */
       Tag tagHandle;
 
         /** \brief Whether tag is coordinates or something else */
       bool tagCoords;
-      
+
         /** \brief Number of values in this tag */
       int numTuples;
 
@@ -322,7 +322,7 @@ namespace moab {
 
         /** \brief Tag space */
       std::vector<unsigned char> tagSpace;
-      
+
         /** \brief Evaluation methods for elements of various topologies */
       EvalSet evalSets[MBMAXTYPE];
 
@@ -331,9 +331,9 @@ namespace moab {
 
     }; // class ElemEvaluator
 
-    inline ElemEvaluator::ElemEvaluator(Interface *impl, EntityHandle ent, Tag tag, int tagged_ent_dim) 
-            : mbImpl(impl), entHandle(0), entType(MBMAXTYPE), entDim(-1), numVerts(0), 
-              vertHandles(NULL), tagHandle(0), tagCoords(false), numTuples(0), 
+    inline ElemEvaluator::ElemEvaluator(Interface *impl, EntityHandle ent, Tag tag, int tagged_ent_dim)
+            : mbImpl(impl), entHandle(0), entType(MBMAXTYPE), entDim(-1), numVerts(0),
+              vertHandles(NULL), tagHandle(0), tagCoords(false), numTuples(0),
               taggedEntDim(0), workSpace(NULL)
     {
       if (ent) set_ent_handle(ent);
@@ -346,7 +346,7 @@ namespace moab {
         delete [] workSpace;
     }
 
-    inline ErrorCode ElemEvaluator::set_ent_handle(EntityHandle ent) 
+    inline ErrorCode ElemEvaluator::set_ent_handle(EntityHandle ent)
     {
       entHandle = ent;
       if (workSpace) {
@@ -374,8 +374,8 @@ namespace moab {
       if (evalSets[entType].initFcn) return (*evalSets[entType].initFcn)(vertPos[0].array(), numVerts, workSpace);
       return MB_SUCCESS;
     }
-    
-    inline ErrorCode ElemEvaluator::set_tag_handle(Tag tag, int tagged_ent_dim) 
+
+    inline ErrorCode ElemEvaluator::set_tag_handle(Tag tag, int tagged_ent_dim)
     {
       ErrorCode rval = MB_SUCCESS;
       if (!tag && !tagged_ent_dim) {
@@ -397,7 +397,7 @@ namespace moab {
       }
 
       taggedEntDim = (-1 == tagged_ent_dim ? 0 : tagged_ent_dim);
-      
+
       if (entHandle) {
         if (0 == taggedEntDim) {
           rval = mbImpl->tag_get_data(tagHandle, vertHandles, numVerts, &tagSpace[0]);
@@ -412,7 +412,7 @@ namespace moab {
       return rval;
     }
 
-    inline ErrorCode ElemEvaluator::set_tag(const char *tag_name, int tagged_ent_dim) 
+    inline ErrorCode ElemEvaluator::set_tag(const char *tag_name, int tagged_ent_dim)
     {
       ErrorCode rval = MB_SUCCESS;
       if (!tag_name || strlen(tag_name) == 0) return MB_FAILURE;
@@ -428,7 +428,7 @@ namespace moab {
       else {
         rval = mbImpl->tag_get_handle(tag_name, tag);
         if (MB_SUCCESS != rval) return rval;
-      
+
         if (tagHandle != tag) {
           tagHandle = tag;
           rval = mbImpl->tag_get_length(tagHandle, numTuples);
@@ -442,7 +442,7 @@ namespace moab {
 
         taggedEntDim = (-1 == tagged_ent_dim ? entDim : tagged_ent_dim);
       }
-      
+
       if (entHandle) {
         if (0 == taggedEntDim) {
           rval = mbImpl->tag_get_data(tagHandle, vertHandles, numVerts, &tagSpace[0]);
@@ -457,7 +457,7 @@ namespace moab {
       return rval;
     }
 
-    inline ErrorCode ElemEvaluator::set_eval_set(EntityType tp, const EvalSet &eval_set) 
+    inline ErrorCode ElemEvaluator::set_eval_set(EntityType tp, const EvalSet &eval_set)
     {
       evalSets[tp] = eval_set;
       if (entHandle && evalSets[entType].initFcn) {
@@ -466,22 +466,22 @@ namespace moab {
       }
       return MB_SUCCESS;
     }
-    
-    inline ErrorCode ElemEvaluator::eval(const double *params, double *result, int num_tuples) const 
+
+    inline ErrorCode ElemEvaluator::eval(const double *params, double *result, int num_tuples) const
     {
       assert(entHandle && MBMAXTYPE != entType);
-      return (*evalSets[entType].evalFcn)(params, 
-                                          (tagCoords ? (const double*) vertPos[0].array(): (const double*)&tagSpace[0]), 
-                                          entDim, 
+      return (*evalSets[entType].evalFcn)(params,
+                                          (tagCoords ? (const double*) vertPos[0].array(): (const double*)&tagSpace[0]),
+                                          entDim,
                                           (-1 == num_tuples ? numTuples : num_tuples), workSpace, result);
     }
-        
+
     inline ErrorCode ElemEvaluator::reverse_eval(const double *posn, const double iter_tol, const double inside_tol,
                                                  double *params, int *ins) const
     {
       assert(entHandle && MBMAXTYPE != entType);
       return (*evalSets[entType].reverseEvalFcn)(evalSets[entType].evalFcn, evalSets[entType].jacobianFcn, evalSets[entType].insideFcn,
-                                                 posn, vertPos[0].array(), numVerts, 
+                                                 posn, vertPos[0].array(), numVerts,
                                                  entDim, iter_tol, inside_tol, workSpace, params, ins);
     }
 
@@ -491,14 +491,14 @@ namespace moab {
       assert(entHandle && MBMAXTYPE != entType);
       return (*evalSets[entType].normalFcn)( ientDim, facet, numVerts, vertPos[0].array(), normal);
     }
-        
+
       /** \brief Evaluate the jacobian of the cached entity at a given parametric location */
     inline ErrorCode ElemEvaluator::jacobian(const double *params, double *result) const
     {
       assert(entHandle && MBMAXTYPE != entType);
       return (*evalSets[entType].jacobianFcn)(params, vertPos[0].array(), numVerts, entDim, workSpace, result);
     }
-        
+
       /** \brief Integrate the cached tag over the cached entity */
     inline ErrorCode ElemEvaluator::integrate(double *result) const
     {
@@ -509,15 +509,15 @@ namespace moab {
         else rval = mbImpl->tag_get_data(tagHandle, &entHandle, 1, (void*)&tagSpace[0]);
         if (MB_SUCCESS != rval) return rval;
       }
-      return (*evalSets[entType].integrateFcn)((tagCoords ? vertPos[0].array() : (const double *)&tagSpace[0]), 
-                                               vertPos[0].array(), numVerts, entDim, numTuples, 
+      return (*evalSets[entType].integrateFcn)((tagCoords ? vertPos[0].array() : (const double *)&tagSpace[0]),
+                                               vertPos[0].array(), numVerts, entDim, numTuples,
                                                workSpace, result);
     }
 
-    inline ErrorCode ElemEvaluator::find_containing_entity(EntityHandle ent_set, const double *point, 
+    inline ErrorCode ElemEvaluator::find_containing_entity(EntityHandle ent_set, const double *point,
                                                            const double iter_tol, const double inside_tol,
-                                                           EntityHandle &containing_ent, double *params, 
-                                                           unsigned int *num_evals) 
+                                                           EntityHandle &containing_ent, double *params,
+                                                           unsigned int *num_evals)
     {
       assert(mbImpl->type_from_handle(ent_set) == MBENTITYSET);
       Range entities;
@@ -525,16 +525,16 @@ namespace moab {
       if (MB_SUCCESS != rval) return rval;
       else return find_containing_entity(entities, point, iter_tol, inside_tol, containing_ent, params, num_evals);
     }
-        
-    inline int ElemEvaluator::inside(const double *params, const double tol) const 
+
+    inline int ElemEvaluator::inside(const double *params, const double tol) const
     {
       return (*evalSets[entType].insideFcn)(params, entDim, tol);
     }
 
-    inline ErrorCode ElemEvaluator::set_eval_set(const EntityHandle eh) 
+    inline ErrorCode ElemEvaluator::set_eval_set(const EntityHandle eh)
     {
       EvalSet eset;
-      ErrorCode rval = EvalSet::get_eval_set(mbImpl, eh, evalSets[mbImpl->type_from_handle(eh)]); 
+      ErrorCode rval = EvalSet::get_eval_set(mbImpl, eh, evalSets[mbImpl->type_from_handle(eh)]);
       return rval;
     }
 

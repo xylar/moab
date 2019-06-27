@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2006 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
+
     (2006) kraftche@cae.wisc.edu
-   
+
   ***************************************************************** */
 
 
 /** \file WeightReader.hpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #ifndef MSQ_WEIGHT_READER_HPP
@@ -55,34 +55,34 @@ struct WeightReaderData {
   std::vector< double > weights;  //< cached values for last element
   size_t elementIndex;                //< element for which values are cached.
 };
-  
+
 
 /**\brief Read targets from tag data */
-class WeightReader 
- : public WeightCalculator, 
+class WeightReader
+ : public WeightCalculator,
    private ExtraDataUser<WeightReaderData>
 {
   public:
-  
+
     MESQUITE_EXPORT
     WeightReader( std::string tag_base_name = "MSQ_TARGET_WEIGHT"  );
-    
-    MESQUITE_EXPORT virtual 
+
+    MESQUITE_EXPORT virtual
     ~WeightReader();
-    
-    MESQUITE_EXPORT virtual 
+
+    MESQUITE_EXPORT virtual
     double get_weight( PatchData &pd,
                        size_t element,
                        Sample Sample,
                        MsqError& err );
-    
+
   private:
-  
+
     virtual void notify_patch_destroyed( WeightReaderData& data );
     virtual void notify_new_patch( PatchData& pd, WeightReaderData& data );
-    virtual void notify_sub_patch( PatchData& pd, 
+    virtual void notify_sub_patch( PatchData& pd,
                                    WeightReaderData& data,
-                                   PatchData& subpatch, 
+                                   PatchData& subpatch,
                                    const size_t* vertex_map,
                                    const size_t* element_map,
                                    MsqError& err );

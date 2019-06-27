@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2007 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2009) kraftche@cae.wisc.edu    
+    (2009) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file Sample.hpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #ifndef MSQ_SAMPLE_HPP
@@ -48,7 +48,7 @@ namespace MBMesquite {
 //! Logical sample points are currently limited to corners, mid-sides
 //! (region elements have both face and edge "sides") and mid-element.
 struct MESQUITE_EXPORT Sample {
-  //!\brief The "dimension" of the sub-entity.  
+  //!\brief The "dimension" of the sub-entity.
   //!
   //! Possible values are [0-3]:
   //! - 0 : sample at the location of a corner vertex
@@ -57,7 +57,7 @@ struct MESQUITE_EXPORT Sample {
   //!       of one face of a volume element
   //! - 3 : sample at the center of a volume element
   unsigned short dimension;
-  
+
   //!\brief Canonical number in ITAPS ordering for element corners/sides.
   //!
   //! The dimension specifies which set of sub-entities that the sample
@@ -70,7 +70,7 @@ struct MESQUITE_EXPORT Sample {
   //! For mid-region or mid-face of a surface element, the number
   //! should be zero.
   unsigned short number;
-  
+
   //! Constants used for a packed (minimum number of bits) representation
   //! of a sample.
   enum {
@@ -90,7 +90,7 @@ struct MESQUITE_EXPORT Sample {
     /** Mask to remove side dimension bits from sample number */
     SIDE_DIMENSON_MASK = NUM_SAMPLE_SIDE_DIM - 1
   };
-  
+
   //! Return packed representation of this sample.
   inline size_t pack() const
     { return (((size_t)dimension) << SIDE_NUMBER_BITS) | number; }
@@ -108,18 +108,18 @@ struct MESQUITE_EXPORT Sample {
   //! be able to catch the use of uninitialized values using a memory checker
   //! anyway if I make such a mistake.)
   Sample() {}
-  
-  bool operator==( const Sample& other ) const 
+
+  bool operator==( const Sample& other ) const
     { return pack() == other.pack(); }
-  bool operator!=( const Sample& other ) const 
+  bool operator!=( const Sample& other ) const
     { return pack() != other.pack(); }
-  bool operator<( const Sample& other ) const 
+  bool operator<( const Sample& other ) const
     { return pack() < other.pack(); }
-  bool operator>( const Sample& other ) const 
+  bool operator>( const Sample& other ) const
     { return pack() > other.pack(); }
-  bool operator<=( const Sample& other ) const 
+  bool operator<=( const Sample& other ) const
     { return pack() <= other.pack(); }
-  bool operator>=( const Sample& other ) const 
+  bool operator>=( const Sample& other ) const
     { return pack() >= other.pack(); }
 };
 

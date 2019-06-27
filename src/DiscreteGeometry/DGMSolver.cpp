@@ -555,7 +555,7 @@ namespace moab {
         for(int i=0;i<len;++i){
           c[i] = a[i];
         }
-        return; 
+        return;
     }
     double innerp = vec_innerprod(len,a,b)/bnrm;
 
@@ -601,8 +601,8 @@ namespace moab {
         naturalcoords[ipt*3+1] = (e*d-b*f)/det; naturalcoords[ipt*3+2] = (a*f-b*e)/det; naturalcoords[ipt*3] = 1-naturalcoords[ipt*3+1]-naturalcoords[ipt*3+2];
         if(naturalcoords[ipt*3]<-tol||naturalcoords[ipt*3+1]<-tol||naturalcoords[ipt*3+2]<-tol){
           std::cout << "Corners: \n";
-          std::cout << cornercoords[0] << "\t" << cornercoords[1] << "\t" << cornercoords[3] << std::endl; 
-          std::cout << cornercoords[3] << "\t" << cornercoords[4] << "\t" << cornercoords[5] << std::endl; 
+          std::cout << cornercoords[0] << "\t" << cornercoords[1] << "\t" << cornercoords[3] << std::endl;
+          std::cout << cornercoords[3] << "\t" << cornercoords[4] << "\t" << cornercoords[5] << std::endl;
           std::cout << cornercoords[6] << "\t" << cornercoords[7] << "\t" << cornercoords[8] << std::endl;
           std::cout << "Candidate: \n";
           std::cout << currcoords[ipt*dim] << "\t" << currcoords[ipt*dim+1] << "\t" << currcoords[ipt*dim+2] << std::endl;

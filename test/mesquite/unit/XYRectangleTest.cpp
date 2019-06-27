@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2007 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2007) kraftche@cae.wisc.edu    
+    (2007) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file XYRectangleTest.cpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -55,22 +55,22 @@ private:
   CPPUNIT_TEST (test_closest_point);
   CPPUNIT_TEST (test_domain_DoF);
   CPPUNIT_TEST_SUITE_END();
-  
+
   vector<double> vertCoords,invertCoords;
   vector<int> fixedFlags;
   vector<unsigned long> triConn, invertConn;
-  
+
   ArrayMesh myMesh;
   XYRectangle myDomain;
   std::vector<double> mCoords;
   std::vector<int> mFlags;
-  
+
 public:
   void setUp();
   void tearDown();
-  
+
 public:
-  
+
   XYRectangleTest() : myDomain( WIDTH, HEIGHT, XMIN, YMIN ) {}
 
   void test_snap_to();
@@ -94,7 +94,7 @@ CPPUNIT_TEST_SUITE_NAMED_REGISTRATION(XYRectangleTest, "XYRectangleTest");
  *    |/       \ /       \|
  *   (0)-------(1)-------(2)
  */
-double TEST_MESH_COORDS[] = { 
+double TEST_MESH_COORDS[] = {
   XMIN            , YMIN             , 0,
   XMIN + 0.5*WIDTH, YMIN             , 0,
   XMIN +     WIDTH, YMIN             , 0,
@@ -111,7 +111,7 @@ const unsigned long TEST_MESH_CONN[] = {
   1, 2, 5,
   0, 4, 3,
   1, 5, 4,
-  2, 6, 5, 
+  2, 6, 5,
   3, 4, 7,
   4, 5, 8,
   5, 6, 9,
@@ -140,21 +140,21 @@ Vector3D snap_to( const Vector3D& vertex, const Vector3D& point )
 {
   Vector3D result;
   result[2] = 0.0;
-  
+
   if (fabs(vertex[0] - XMIN) < 1e-6)
     result[0] = XMIN;
   else if (fabs(vertex[0] - XMIN - WIDTH) < 1e-6)
     result[0] = XMIN + WIDTH;
   else
     result[0] = point[0];
-  
+
   if (fabs(vertex[1] - YMIN) < 1e-6)
     result[1] = YMIN;
   else if (fabs(vertex[1] - YMIN - HEIGHT) < 1e-6)
     result[1] = YMIN + HEIGHT;
   else
     result[1] = point[1];
-  
+
   return result;
 }
 
@@ -176,7 +176,7 @@ void XYRectangleTest::test_snap_to()
   std::vector<MsqVertex> coords( verts.size() );
   myMesh.vertices_get_coordinates( arrptr(verts), arrptr(coords), verts.size(), err );
   ASSERT_NO_ERROR(err);
-  
+
   for (size_t i = 0; i < coords.size(); ++i) {
 
     off = coords[i] + d1;
@@ -217,19 +217,19 @@ void XYRectangleTest::test_normal_at()
   std::vector<Mesh::VertexHandle> vertices;
   myMesh.get_all_vertices( vertices, err );
   ASSERT_NO_ERROR(err);
-  
+
   std::vector<MsqVertex> coords(vertices.size());
   myMesh.vertices_get_coordinates( arrptr(vertices), arrptr(coords), vertices.size(), err );
   ASSERT_NO_ERROR(err);
-  
+
   std::vector<Vector3D> normals(vertices.size());
   std::copy( coords.begin(), coords.end(), normals.begin() );
   myDomain.vertex_normal_at( arrptr(vertices), arrptr(normals), vertices.size(), err );
   ASSERT_NO_ERROR(err);
-  
+
   for (size_t i = 0; i < normals.size(); ++i) {
     CPPUNIT_ASSERT_VECTORS_EQUAL( Vector3D(0,0,1), normals[i], 1e-6 );
-  }    
+  }
 }
 
 void XYRectangleTest::test_closest_point()
@@ -238,7 +238,7 @@ void XYRectangleTest::test_closest_point()
   std::vector<Mesh::ElementHandle> elems;
   myMesh.get_all_elements( elems, err );
   ASSERT_NO_ERROR(err);
-  
+
   for (size_t i = 0; i < elems.size(); ++i) {
     std::vector<Mesh::VertexHandle> verts;
     std::vector<size_t> junk;
@@ -247,13 +247,13 @@ void XYRectangleTest::test_closest_point()
     ASSERT_NO_ERROR(err);
     myMesh.vertices_get_coordinates( arrptr(verts), &coords, 1, err );
     ASSERT_NO_ERROR(err);
-    
+
     Vector3D offset(coords + Vector3D(0,0,3)), closest, norm;
     myDomain.closest_point( elems[i], offset, closest, norm, err );
     ASSERT_NO_ERROR(err);
     CPPUNIT_ASSERT_VECTORS_EQUAL( coords, closest, 1e-6 );
     CPPUNIT_ASSERT_VECTORS_EQUAL( Vector3D(0,0,1), norm, 1e-6 );
-  }    
+  }
 }
 
 unsigned short dof( const Vector3D& point )
@@ -276,7 +276,7 @@ void XYRectangleTest::test_domain_DoF()
   std::vector<MsqVertex> coords( verts.size() );
   myMesh.vertices_get_coordinates( arrptr(verts), arrptr(coords), verts.size(), err );
   ASSERT_NO_ERROR(err);
-  
+
   for (size_t i = 0; i < coords.size(); ++i) {
     unsigned short exp = dof( coords[i] );
     unsigned short act = 100;

@@ -1,16 +1,16 @@
 /**
  * MOAB, a Mesh-Oriented datABase, is a software component for creating,
  * storing and accessing finite element mesh data.
- * 
+ *
  * Copyright 2004 Sandia Corporation.  Under the terms of Contract
  * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
  * retains certain rights in this software.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  */
 
 #ifdef WIN32
@@ -101,7 +101,7 @@ ErrorCode WriteUtil::get_node_coords(const int num_arrays,
   // There should be some entities
   //if (entities.empty())
   //  return MB_FAILURE;
-  // The above necessitates annoying special cases for files 
+  // The above necessitates annoying special cases for files
   // w/out vertices (e.g. a kD-tree).  Return NULL array
   // pointers instead. - kraftcheck, 3-14-08
   if (entities.empty()) {
@@ -331,7 +331,7 @@ ErrorCode WriteUtil::get_element_connect(Range::const_iterator iter,
 
   // Sequence iterators
   TypeSequenceManager::const_iterator seq_iter, seq_end;
-  
+
   // loop over range, getting coordinate value
   EntityType current_type = MBMAXTYPE;
   int* output_iter = element_array;
@@ -547,7 +547,7 @@ ErrorCode WriteUtil::gather_nodes_from_elements(const Range& elements,
   if (node_bit_mark_tag)
     exporting_nodes_tag = node_bit_mark_tag;
   else {
-    mMB->tag_get_handle("__MBWriteUtil::exporting_nodes", 1, MB_TYPE_BIT, 
+    mMB->tag_get_handle("__MBWriteUtil::exporting_nodes", 1, MB_TYPE_BIT,
                      exporting_nodes_tag, MB_TAG_CREAT);
   }
 

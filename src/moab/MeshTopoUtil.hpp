@@ -1,16 +1,16 @@
 /**
  * MOAB, a Mesh-Oriented datABase, is a software component for creating,
  * storing and accessing finite element mesh data.
- * 
+ *
  * Copyright 2004 Sandia Corporation.  Under the terms of Contract
  * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
  * retains certain rights in this software.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  */
 
 
@@ -24,14 +24,14 @@ namespace moab {
 /*!
  *  \authors Tim Tautges
  *  \date    2/04
- *  \brief   MeshTopoUtil contains general mesh utility functions 
- *          
- */ 
+ *  \brief   MeshTopoUtil contains general mesh utility functions
+ *
+ */
 class MeshTopoUtil
 {
 public:
   MeshTopoUtil(Interface *impl) : mbImpl(impl) {}
-  
+
   ~MeshTopoUtil() {}
 
     //! generate all the AEntities bounding the vertices
@@ -57,10 +57,10 @@ public:
   ErrorCode get_manifold(const EntityHandle star_entity,
                            const int target_dim,
                            Range &manifold);
-  
+
   //! given an entity, find the entities of next higher dimension around
-  //! that entity, ordered by connection through next higher dimension entities; 
-  //! if any of the star entities is in only entity of next higher dimension, 
+  //! that entity, ordered by connection through next higher dimension entities;
+  //! if any of the star entities is in only entity of next higher dimension,
   //! on_boundary is returned true
   ErrorCode star_entities(const EntityHandle star_center,
                             std::vector<EntityHandle> &star_entities,
@@ -88,14 +88,14 @@ public:
                                Range *star_candidates_dp1,
                                EntityHandle &next_entity,
                                EntityHandle &next_dp1);
-  
+
     //! get "bridge" or "2nd order" adjacencies, going through dimension bridge_dim
   ErrorCode get_bridge_adjacencies(Range &from_entities,
                                      int bridge_dim,
-                                     int to_dim, 
+                                     int to_dim,
                                      Range &to_ents,
                                      int num_layers = 1);
-  
+
     //! get "bridge" or "2nd order" adjacencies, going through dimension bridge_dim
   ErrorCode get_bridge_adjacencies(const EntityHandle from_entity,
                                      const int bridge_dim,
@@ -106,7 +106,7 @@ public:
   EntityHandle common_entity(const EntityHandle ent1,
                                const EntityHandle ent2,
                                const int dim);
-  
+
   //! return the opposite side entity given a parent and bounding entity.
   //! This function is only defined for certain types of parent/child types;
   //! See MBCN.hpp::OppositeSide for details.
@@ -126,7 +126,7 @@ public:
                                        Range &old_adjs,
                                        Range &new_adjs,
                                        EntityHandle &new_entity);
-  
+
     //! split entities that are manifold (shared by two or less entities of each higher dimension),
     //! optionally creating an entity of next higher dimension to fill the gap
     /**
@@ -138,7 +138,7 @@ public:
   ErrorCode split_entities_manifold(Range &entities,
                                       Range &new_entities,
                                       Range *fill_entities);
-  
+
     //! split entities that are manifold (shared by two or less entities of each higher dimension),
     //! optionally creating an entity of next higher dimension to fill the gap
     /**
@@ -149,7 +149,7 @@ public:
        \param gowith_ents If non-NULL, each of the new entities will adj to the
                        corresponding gowith entities after the split; this parameter is
                        ignored for boundary split entities; in that case, the split entity
-                       remains on the boundary (i.e. not adj to any entity of higher 
+                       remains on the boundary (i.e. not adj to any entity of higher
                        dimension).  Dimension of gowith_ents must be the same as entities.
     */
   ErrorCode split_entities_manifold(EntityHandle *entities,
@@ -163,14 +163,14 @@ public:
     //! false otherwise.
   bool equivalent_entities(const EntityHandle entity,
                            Range *equiv_ents = NULL);
-  
-                                  
+
+
 private:
   Interface *mbImpl;
-  
+
 };
 
-} // namespace moab 
+} // namespace moab
 
 #endif
 

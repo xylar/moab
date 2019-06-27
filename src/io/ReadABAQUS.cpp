@@ -1,16 +1,16 @@
 /**
  * MOAB, a Mesh-Oriented datABase, is a software component for creating,
  * storing and accessing finite element mesh data.
- * 
+ *
  * Copyright 2004 Sandia Corporation.  Under the terms of Contract
  * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
  * retains certain rights in this software.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  */
 
 #ifdef WIN32
@@ -94,7 +94,7 @@ void ReadABAQUS::reset()
 {
 }
 
-ReadABAQUS::~ReadABAQUS() 
+ReadABAQUS::~ReadABAQUS()
 {
   mdbImpl->release_interface(readMeshIface);
   if (abFile.fail())
@@ -1203,7 +1203,7 @@ ErrorCode ReadABAQUS::read_element_list(EntityHandle parent_set, EntityHandle as
 
   return MB_SUCCESS;
 }
- 
+
 ErrorCode ReadABAQUS::read_node_list(EntityHandle parent_set, EntityHandle assembly_set)
 {
   ErrorCode status;
@@ -1275,7 +1275,7 @@ ErrorCode ReadABAQUS::read_node_list(EntityHandle parent_set, EntityHandle assem
   }
 
   unsigned int num_nodes = node_ids.size();
-  
+
   // Transform coordinate systems
   switch (coord_system) {
     case 'R':
@@ -1468,11 +1468,11 @@ ErrorCode ReadABAQUS::get_set_elements_by_name(EntityHandle parent_set,
                                                Range &element_range)
 {
   ErrorCode status;
-  
+
   EntityHandle set_handle;
   status = get_set_by_name(parent_set, ABQ_set_type, set_name, set_handle);
   MB_RETURN_IF_FAIL;
-  
+
   status = get_set_elements(set_handle, element_range);
   MB_RETURN_IF_FAIL;
 
@@ -1562,7 +1562,7 @@ ErrorCode ReadABAQUS::create_instance_of_part(const EntityHandle file_set,
   // Create maps to cross-reference the part and instance versions of each entity
   std::map<EntityHandle, EntityHandle> p2i_nodes, p2i_elements;
 
-  // ---- NODES ---- 
+  // ---- NODES ----
 
   // Get all nodes and IDs
   Range part_node_list;
@@ -1970,7 +1970,7 @@ abaqus_keyword_type ReadABAQUS::get_keyword()
   std::map<std::string, abaqus_keyword_type> keywords;
 
   // Set up list of supported keywords
-  // Note: any attempt to match something not in the keyword list 
+  // Note: any attempt to match something not in the keyword list
   //       using the [] operator will create a new entry in the map
   //       but that entry will have value abq_undefined based on the
   //       definition of the abaqus_keyword_type enum.

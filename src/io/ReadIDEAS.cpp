@@ -89,7 +89,7 @@ ErrorCode ReadIDEAS::load_file(const char* fname,
     }
     // Skip everything else
     else {
-      rval = skip_header(); 
+      rval = skip_header();
       if (MB_SUCCESS != rval)
         return MB_FAILURE;
     }
@@ -229,7 +229,7 @@ ErrorCode ReadIDEAS::create_elements(EntityHandle vstart,
   if (MB_SUCCESS != rval && MB_ALREADY_ALLOCATED != rval)
     return rval;
   id_tag = MBI->globalId_tag();
- 
+
   for (;;) {
     if (!file.getline(line1, 10000) || !file.getline(line2, 10000))
       return MB_FAILURE;
@@ -240,8 +240,8 @@ ErrorCode ReadIDEAS::create_elements(EntityHandle vstart,
     if ((il1 == -1) && (il2 == -1)) {
       s1 = ctmp1;
       s2 = ctmp2;
-      if ((s1.empty()) && (s2.empty())) 
-        return MB_SUCCESS;     
+      if ((s1.empty()) && (s2.empty()))
+        return MB_SUCCESS;
     }
 
     // The first line describes attributes of the element other than connectivity.

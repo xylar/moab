@@ -1,9 +1,9 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2004 Sandia Corporation and Argonne National
-    Laboratory.  Under the terms of Contract DE-AC04-94AL85000 
-    with Sandia Corporation, the U.S. Government retains certain 
+    Laboratory.  Under the terms of Contract DE-AC04-94AL85000
+    with Sandia Corporation, the U.S. Government retains certain
     rights in this software.
 
     This library is free software; you can redistribute it and/or
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
-    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov, 
-    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov      
+
+    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov,
+    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov
     kraftche@cae.wisc.edu
-   
+
   ***************************************************************** */
 /*!
   \file   QualityMetric.cpp
-  \brief  
+  \brief
 
   \author Michael Brewer
   \author Thomas Leurent
@@ -46,17 +46,17 @@ void QualityMetric::initialize_queue( MeshDomainAssoc* ,
                                       const Settings* ,
                                       MsqError&  )
 {}
-  
-void QualityMetric::get_single_pass( PatchData& pd, 
+
+void QualityMetric::get_single_pass( PatchData& pd,
                         std::vector<size_t>& handles,
-                        bool free_vertices_only, 
+                        bool free_vertices_only,
                         MsqError& err )
 {
   get_evaluations( pd, handles, free_vertices_only, err );
 }
 
 
-static inline 
+static inline
 double get_delta_C( const PatchData& pd,
                     const std::vector<size_t>& indices,
                     MsqError& err )
@@ -67,7 +67,7 @@ double get_delta_C( const PatchData& pd,
   }
 
   std::vector<size_t>::const_iterator beg, iter, iter2, end;
-  
+
   std::vector<size_t> tmp_vect;
   if (indices.size() == 1u) {
     pd.get_adjacent_vertex_indices( indices.front(), tmp_vect, err );
@@ -81,7 +81,7 @@ double get_delta_C( const PatchData& pd,
     beg = indices.begin();
     end = indices.end();
   }
-  
+
   double min_dist_sqr = HUGE_VAL, sum_dist_sqr = 0.0;
   for (iter = beg; iter != end; ++iter) {
     for (iter2 = iter+1; iter2 != end; ++iter2) {
@@ -93,10 +93,10 @@ double get_delta_C( const PatchData& pd,
       sum_dist_sqr += dist_sqr;
     }
   }
-  
+
   return 3e-6*sqrt(min_dist_sqr) + 5e-7*sqrt(sum_dist_sqr/(end-beg));
 }
-    
+
 
 bool QualityMetric::evaluate_with_gradient( PatchData& pd,
                               size_t handle,
@@ -125,39 +125,39 @@ bool QualityMetric::evaluate_with_gradient( PatchData& pd,
   const int reduction_limit = 15;
 
   gradient.resize( indices.size() );
-  for (size_t v=0; v<indices.size(); ++v) 
+  for (size_t v=0; v<indices.size(); ++v)
   {
     const Vector3D pos = pd.vertex_by_index(indices[v]);
-    
+
     /* gradient in the x, y, z direction */
-    for (int j=0;j<3;++j) 
+    for (int j=0;j<3;++j)
     {
       double delta = delta_C;
       double delta_inv = delta_inv_C;
       double metric_value;
       Vector3D delta_v( 0, 0, 0 );
-      
+
         //perturb the node and calculate gradient.  The while loop is a
         //safety net to make sure the epsilon perturbation does not take
         //the element out of the feasible region.
       int counter = 0;
       for (;;) {
           // perturb the coordinates of the free vertex in the j direction
-          // by delta       
+          // by delta
         delta_v[j] = delta;
         pd.set_vertex_coordinates( pos+delta_v, indices[v], err ); MSQ_ERRZERO(err);
 
           //compute the function at the perturbed point location
         valid = evaluate( pd, handle, metric_value, err);
-        if (!MSQ_CHKERR(err) && valid) 
+        if (!MSQ_CHKERR(err) && valid)
           break;
-          
+
         if (++counter >= reduction_limit) {
           MSQ_SETERR(err)("Perturbing vertex by delta caused an inverted element.",
                           MsqError::INTERNAL_ERROR);
           return false;
         }
-        
+
         delta*=0.1;
         delta_inv*=10.;
       }
@@ -169,7 +169,7 @@ bool QualityMetric::evaluate_with_gradient( PatchData& pd,
   } // for(indices)
   return true;
 }
-   
+
 
 bool QualityMetric::evaluate_with_Hessian( PatchData& pd,
                               size_t handle,
@@ -208,7 +208,7 @@ bool QualityMetric::evaluate_with_Hessian( PatchData& pd,
   std::vector<Vector3D> temp_gradient( indices.size() );
   const int num_hess = indices.size() * (indices.size() + 1) / 2;
   Hessian.resize( num_hess );
-  
+
   for (unsigned v = 0; v < indices.size(); ++v) {
     const Vector3D pos = pd.vertex_by_index(indices[v]);
     for (int j = 0; j < 3; ++j ) { // x, y, and z
@@ -216,28 +216,28 @@ bool QualityMetric::evaluate_with_Hessian( PatchData& pd,
       double delta_inv = delta_inv_C;
       double metric_value;
       Vector3D delta_v(0,0,0);
-      
+
         // find finite difference for gradient
       int counter = 0;
       for (;;) {
         delta_v[j] = delta;
         pd.set_vertex_coordinates( pos+delta_v, indices[v], err ); MSQ_ERRZERO(err);
         valid = evaluate_with_gradient( pd, handle, metric_value, indices, temp_gradient, err );
-        if (!MSQ_CHKERR(err) && valid) 
+        if (!MSQ_CHKERR(err) && valid)
           break;
-        
+
         if (++counter >= reduction_limit) {
           MSQ_SETERR(err)("Algorithm did not successfully compute element's "
                            "Hessian.\n",MsqError::INTERNAL_ERROR);
           haveFiniteDiffEps = false;
           return false;
         }
-        
+
         delta *= 0.1;
         delta_inv *= 10.0;
       }
       pd.set_vertex_coordinates( pos, indices[v], err ); MSQ_ERRZERO(err);
-      
+
         //compute the numerical Hessian
       for (unsigned w = 0; w <= v; ++w) {
           //finite difference to get some entries of the Hessian
@@ -297,7 +297,7 @@ uint32_t QualityMetric::fixed_vertex_bitmap( PatchData& pd,
   }
   return result;
 }
-  
+
 
 void QualityMetric::remove_fixed_gradients( EntityTopology elem_type,
                                           uint32_t fixed,
@@ -315,8 +315,8 @@ void QualityMetric::remove_fixed_gradients( EntityTopology elem_type,
   grads.resize(w);
 }
 
-void QualityMetric::remove_fixed_diagonals( EntityTopology type, 
-                                          uint32_t fixed, 
+void QualityMetric::remove_fixed_diagonals( EntityTopology type,
+                                          uint32_t fixed,
                                           std::vector<Vector3D>& grads,
                                           std::vector<SymMatrix3D>& diags )
 {
@@ -354,11 +354,11 @@ void QualityMetric::remove_fixed_hessians( EntityTopology elem_type,
     }
   }
   hessians.resize(w);
-}      
+}
 
 double QualityMetric::weighted_average_metrics(const double coef[],
                                              const double metric_values[],
-                                             const int& num_values, 
+                                             const int& num_values,
                                              MsqError &/*err*/)
 {
   //MSQ_MAX needs to be made global?
@@ -377,5 +377,5 @@ double QualityMetric::weighted_average_metrics(const double coef[],
 
   return total_value;
 }
-   
+
 } // namespace MBMesquite

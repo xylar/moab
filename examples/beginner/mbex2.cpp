@@ -1,7 +1,7 @@
 /// \file moabuse2.cpp
-/// 
+///
 /// \author Milad Fatenejad
-/// 
+///
 /// \brief moabuse tutorial, example 2: Demonstrates loading a mesh
 ///        from a file, finding coordinate locations, connectivity
 ///        information...
@@ -61,8 +61,8 @@ int main()
   double coord[3];
   moab::Range::iterator iter;
 
-  std::cout << std::setw(6)  << "Handle" 
-	    << std::setw(10) << "X" 
+  std::cout << std::setw(6)  << "Handle"
+	    << std::setw(10) << "X"
 	    << std::setw(10) << "Y"
 	    << std::setw(10) << "Z" << std::endl;
 
@@ -86,7 +86,7 @@ int main()
 
   // Start by getting a range containing all of the vertex handles:
   moab::Range vertex_range;
-  rval = mbint.get_entities_by_type(0, moab::MBVERTEX, 
+  rval = mbint.get_entities_by_type(0, moab::MBVERTEX,
                                     vertex_range);MB_CHK_SET_ERR(rval, "get_entities_by_type(VERTEX) failed");
 
   // Get the coordinates of all of the vertexes:

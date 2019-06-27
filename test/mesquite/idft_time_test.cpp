@@ -1,9 +1,9 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2004 Sandia Corporation and Argonne National
-    Laboratory.  Under the terms of Contract DE-AC04-94AL85000 
-    with Sandia Corporation, the U.S. Government retains certain 
+    Laboratory.  Under the terms of Contract DE-AC04-94AL85000
+    with Sandia Corporation, the U.S. Government retains certain
     rights in this software.
 
     This library is free software; you can redistribute it and/or
@@ -16,12 +16,12 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
-    kraftche@cae.wisc.edu     
-   
+
+    kraftche@cae.wisc.edu
+
   ***************************************************************** */
 #include <iostream>
 #include <sstream>
@@ -67,10 +67,10 @@ void usage( const char* argv0 = 0, bool err = true )
   const char* defname = "main";
   if (!argv0)
     argv0 = defname;
-  
+
   s << "Usage: " << defname << " [-n|-c|-q] [-e] [-t] [-a] [-N] [{-v|-g|-p} <output_file>] [<input_file>]" << endl
     << "       " << defname << " -h" << std::endl;
-  
+
   if (err)
     exit(1);
 
@@ -98,13 +98,13 @@ const char* plot_file = 0; /* Time-dependent plot of solver data */
 enum Solver { STEEP_DESCENT, CONJ_GRAD, QUASI_NEWT };
 
 /* Run an optimization: returns average quality of final mesh */
-double run( QualityMetric* metric, 
+double run( QualityMetric* metric,
             Solver solver,
             const char* input_file,
             double& seconds_out,
             int& iterations_out );
 
-/* Force finite difference approximation of derivatives for 
+/* Force finite difference approximation of derivatives for
  * an existing quality metric */
 class NumericQM : public QualityMetric {
   private:
@@ -115,12 +115,12 @@ class NumericQM : public QualityMetric {
     virtual std::string get_name() const;
     virtual int get_negate_flag() const;
     virtual void get_evaluations( PatchData& pd,
-                          std::vector<size_t>& handles, 
+                          std::vector<size_t>& handles,
                           bool free_vertices_only,
                           MsqError& err );
-    virtual bool evaluate( PatchData& pd, 
-                    size_t handle, 
-                    double& value, 
+    virtual bool evaluate( PatchData& pd,
+                    size_t handle,
+                    double& value,
                     MsqError& err );
     virtual bool evaluate_with_indices( PatchData& pd,
                    size_t handle,
@@ -139,7 +139,7 @@ std::string NumericQM::get_name() const{
 /* At each evaluation of this metric, compare the values resulting
  * from the evaluation of two other metrics: flag an error if they
  * differ or return the common result if the same */
-class CompareMetric : public QualityMetric 
+class CompareMetric : public QualityMetric
 {
 private:
   QualityMetric *metric1, *metric2;
@@ -151,41 +151,41 @@ private:
   std::vector<Matrix3D> m2Hess;
   static const double epsilon;
 public:
-  CompareMetric( QualityMetric* qm1, 
+  CompareMetric( QualityMetric* qm1,
                  QualityMetric* qm2,
                  bool mask_qm2_coord = false )
     : metric1(qm1), metric2(qm2), maskPlane(mask_qm2_coord), maskAxis(-1)
     {}
-  
+
   MetricType get_metric_type() const;
-  
+
   std::string get_name() const;
-  
+
   int get_negate_flag() const;
-  
-  void get_evaluations( PatchData& pd, 
-                        std::vector<size_t>& handles, 
+
+  void get_evaluations( PatchData& pd,
+                        std::vector<size_t>& handles,
                         bool free_vertices_only,
                         MsqError& err );
-                        
-  bool evaluate( PatchData& pd, 
-                 size_t handle, 
-                 double& value, 
+
+  bool evaluate( PatchData& pd,
+                 size_t handle,
+                 double& value,
                  MsqError& err );
-                 
+
   bool evaluate_with_indices( PatchData& pd,
                  size_t handle,
                  double& value,
                  std::vector<size_t>& indices,
                  MsqError& err );
-                 
+
   bool evaluate_with_gradient( PatchData& pd,
                  size_t handle,
                  double& value,
                  std::vector<size_t>& indices,
                  std::vector<Vector3D>& gradient,
                  MsqError& err );
-                 
+
   bool evaluate_with_Hessian_diagonal( PatchData& pd,
                  size_t handle,
                  double& value,
@@ -193,7 +193,7 @@ public:
                  std::vector<Vector3D>& gradient,
                  std::vector<SymMatrix3D>& Hessian_diagonal,
                  MsqError& err );
-                 
+
   bool evaluate_with_Hessian( PatchData& pd,
                  size_t handle,
                  double& value,
@@ -201,14 +201,14 @@ public:
                  std::vector<Vector3D>& gradient,
                  std::vector<Matrix3D>& Hessian,
                  MsqError& err );
-                 
+
   void get_mask_axis( PatchData& pd );
   bool equal(    Vector3D grad1, const    Vector3D& grad2 ) const;
   bool equal( SymMatrix3D hess1, const SymMatrix3D& hess2 ) const;
   bool equal(    Matrix3D hess1, const    Matrix3D& hess2 ) const;
 };
 const double CompareMetric::epsilon = 5e-2;
-  
+
 /* Parse command line options and call 'run' */
 int main( int argc, char* argv[] )
 {
@@ -220,7 +220,7 @@ int main( int argc, char* argv[] )
   bool do_compare_metric = false;
   const char* input_file = DEFAULT_INPUT.c_str();
   bool no_more_flags = false;
-  
+
   std::list<const char**> exp_list;
   for (int i = 1; i < argc; ++i) {
     if (argv[i][0] == '-' && !no_more_flags) {
@@ -259,7 +259,7 @@ int main( int argc, char* argv[] )
       input_file = argv[i];
     }
   }
-  
+
   int count = 0;
   if (do_non_target_metric)
     ++count;
@@ -271,17 +271,17 @@ int main( int argc, char* argv[] )
     ++count;
   if (do_compare_metric)
     ++count;
-  
+
   if (!count) {
     do_compare_metric = true;
     count = 1;
   }
-  
+
   if ((vtk_file || gpt_file || eps_file) && count != 1) {
     cerr << "Error: Cannot write output file if running multiple tests" << endl;
     return 2;
   }
-  
+
   IdealWeightInverseMeanRatio non_target_metric;
   IdealShapeTarget new_target;
   TInverseMeanRatio tmp;
@@ -290,7 +290,7 @@ int main( int argc, char* argv[] )
   ElementPMeanP new_target_average( 1.0, &new_target_metric );
   NumericQM new_target_numeric( &new_target_metric );
   CompareMetric comp_metric( &non_target_metric, &new_target_average, true );
-  
+
   std::ostringstream os;
   double secs,qual;
   if (do_non_target_metric) {
@@ -313,14 +313,14 @@ int main( int argc, char* argv[] )
     qual = run( &comp_metric, solver, input_file, secs, count );
     os << "Metric comparison      : " << qual << " after " << count << " iterations in " << secs << " seconds" << endl;
   }
-  
+
   cout << endl << os.str() << endl;
   return 0;
 }
 
 
 
-double run( QualityMetric* metric, 
+double run( QualityMetric* metric,
             Solver solver_type,
             const char* input_file,
             double& seconds_out,
@@ -349,18 +349,18 @@ double run( QualityMetric* metric,
   q.add_quality_assessor( &qa, err );
   solver->set_inner_termination_criterion(&inner);
   solver->set_outer_termination_criterion(&outer);
-  
-  
+
+
   if (plot_file)
     inner.write_iterations( plot_file, err );
-  
+
   MeshImpl mesh;
   mesh.read_vtk( input_file, err );
   if (err) {
     cerr << "Failed to read input file: \"" << input_file << '"' << endl;
     exit(1);
   }
-  
+
   std::vector<Mesh::VertexHandle> handles;
   mesh.get_all_vertices( handles, err );
   if (handles.empty()) {
@@ -378,16 +378,16 @@ double run( QualityMetric* metric,
         max[j] = coords[i][j];
     }
   }
-  
+
   Vector3D size = max - min;
   PlanarDomain* domain = 0;
-  if (size[0] < 1e-4) 
+  if (size[0] < 1e-4)
     domain = new PlanarDomain( PlanarDomain::YZ, min[0] );
   else if (size[1] < 1e-4)
     domain = new PlanarDomain( PlanarDomain::XZ, min[1] );
   else if (size[2] < 1e-4)
     domain = new PlanarDomain( PlanarDomain::XY, min[2] );
-  
+
   Timer timer;
   MeshDomainAssoc mesh_and_domain = MeshDomainAssoc(&mesh, domain);
   q.run_instructions( &mesh_and_domain, err );
@@ -399,41 +399,41 @@ double run( QualityMetric* metric,
 
   if (vtk_file) {
     MeshWriter::write_vtk( &mesh, vtk_file, err );
-    if (err) 
+    if (err)
       cerr << vtk_file << ": failed to write file." << endl;
   }
   if (gpt_file) {
     MeshWriter::write_gnuplot( &mesh, gpt_file, err );
-    if (err) 
+    if (err)
       cerr << gpt_file << ": failed to write file." << endl;
   }
   if (eps_file) {
     PlanarDomain xy(PlanarDomain::XY);
     MeshWriter::Projection proj( domain ? domain : &xy );
     MeshWriter::write_eps( &mesh, eps_file, proj, err );
-    if (err) 
+    if (err)
       cerr << eps_file << ": failed to write file." << endl;
   }
   delete domain;
-  
+
   iterations_out = inner.get_iteration_count();
-  
+
   const QualityAssessor::Assessor* a = qa.get_results( &qa_metric );
   return a->get_average();
 }
-  
+
 int NumericQM::get_negate_flag() const
 { return realMetric->get_negate_flag(); }
 
 void NumericQM::get_evaluations( PatchData& pd,
-                      std::vector<size_t>& handles, 
+                      std::vector<size_t>& handles,
                       bool free_vertices_only,
                       MsqError& err )
 { realMetric->get_evaluations( pd, handles, free_vertices_only, err ); }
 
-bool NumericQM::evaluate( PatchData& pd, 
-                size_t handle, 
-                double& value, 
+bool NumericQM::evaluate( PatchData& pd,
+                size_t handle,
+                double& value,
                 MsqError& err )
 { return realMetric->evaluate( pd, handle, value, err ); }
 
@@ -451,7 +451,7 @@ QualityMetric::MetricType CompareMetric::get_metric_type() const
   assert(metric2->get_metric_type() == t1);
   return t1;
 }
-  
+
 std::string CompareMetric::get_name() const
 {
   std::string n = metric1->get_name();
@@ -459,15 +459,15 @@ std::string CompareMetric::get_name() const
   n += metric2->get_name();
   return n;
 }
-  
+
 int CompareMetric::get_negate_flag() const
 {
   assert(metric1->get_negate_flag() == metric2->get_negate_flag());
   return metric1->get_negate_flag();
 }
-  
-void CompareMetric::get_evaluations( PatchData& pd, 
-                                     std::vector<size_t>& handles, 
+
+void CompareMetric::get_evaluations( PatchData& pd,
+                                     std::vector<size_t>& handles,
                                      bool free_vertices_only,
                                      MsqError& err )
 {
@@ -479,7 +479,7 @@ void CompareMetric::get_evaluations( PatchData& pd,
   metric2->get_evaluations( pd, m2Handles, free_vertices_only, err ); MSQ_ERRRTN(err);
   bool same = (handles.size() == m2Handles.size());
   std::sort( m2Handles.begin(), m2Handles.end() );
-  for (std::vector<size_t>::iterator i = handles.begin(); i != handles.end(); ++i) 
+  for (std::vector<size_t>::iterator i = handles.begin(); i != handles.end(); ++i)
     if (!std::binary_search( m2Handles.begin(), m2Handles.end(), *i ))
       same = false;
   if (!same) {
@@ -489,9 +489,9 @@ void CompareMetric::get_evaluations( PatchData& pd,
 }
 
 
-bool CompareMetric::evaluate( PatchData& pd, 
-                 size_t handle, 
-                 double& value, 
+bool CompareMetric::evaluate( PatchData& pd,
+                 size_t handle,
+                 double& value,
                  MsqError& err )
 {
   double m2val;
@@ -505,7 +505,7 @@ bool CompareMetric::evaluate( PatchData& pd,
                     "\t%s %f vs. %s %f\n", (unsigned long)handle,
                     r1?"true":"false",value,r2?"true":"false",m2val);
   }
-  
+
   return r1 && !err;
 }
 
@@ -531,17 +531,17 @@ bool CompareMetric::evaluate_with_indices( PatchData& pd,
   else {
     bool same = (indices.size() == m2Handles.size());
     std::sort( m2Handles.begin(), m2Handles.end() );
-    for (std::vector<size_t>::iterator i = indices.begin(); i != indices.end(); ++i) 
+    for (std::vector<size_t>::iterator i = indices.begin(); i != indices.end(); ++i)
       if (!std::binary_search( m2Handles.begin(), m2Handles.end(), *i ))
         same = false;
     if (!same) {
       MSQ_SETERR(err)(MsqError::INVALID_STATE,
                       "Metrics returned incompatible lists of vertex indices"
-                      " for handle %lu in evaluate_with_indices\n.", 
+                      " for handle %lu in evaluate_with_indices\n.",
                       (unsigned long)handle );
     }
   }
-  
+
   return r1 && !err;
 }
 
@@ -578,29 +578,29 @@ bool CompareMetric::evaluate_with_gradient( PatchData& pd,
         same = false;
         continue;
       }
-      
+
       r = gradient.begin() + (i - indices.begin());
       s = m2Grad.begin() + (j - m2Handles.begin());
       if (!equal(*r,*s))
         ++grad_diff;
     }
-      
+
     if (!same) {
       MSQ_SETERR(err)(MsqError::INVALID_STATE,
                       "Metrics returned incompatible lists of vertex indices"
-                      " for handle %lu in evaluate_with_gradient\n.", 
+                      " for handle %lu in evaluate_with_gradient\n.",
                       (unsigned long)handle );
     }
     else if (grad_diff) {
       MSQ_SETERR(err)(MsqError::INVALID_STATE,
                       "Metrics returned different gradient vectors for "
                       " %d of %u vertices for handle %lu in "
-                      "evaluate_with_gradient\n.", 
-                      grad_diff, (unsigned)gradient.size(), 
+                      "evaluate_with_gradient\n.",
+                      grad_diff, (unsigned)gradient.size(),
                       (unsigned long)handle );
     }
   }
-  
+
   return r1 && !err;
 }
 
@@ -639,45 +639,45 @@ bool CompareMetric::evaluate_with_Hessian_diagonal( PatchData& pd,
         same = false;
         continue;
       }
-      
+
       r = gradient.begin() + (i - indices.begin());
       s = m2Grad.begin() + (j - m2Handles.begin());
       if (!equal(*r,*s))
         ++grad_diff;
-      
+
       u = diagonal.begin() + (i - indices.begin());
       v = m2Diag.begin() + (j - m2Handles.begin());
       if (!equal(*u,*v))
         ++hess_diff;
     }
-      
+
     if (!same) {
       MSQ_SETERR(err)(MsqError::INVALID_STATE,
                       "Metrics returned incompatible lists of vertex indices"
-                      " for handle %lu in evaluate_with_Hessian_diagonal\n.", 
+                      " for handle %lu in evaluate_with_Hessian_diagonal\n.",
                       (unsigned long)handle );
     }
     else if (grad_diff) {
       MSQ_SETERR(err)(MsqError::INVALID_STATE,
                       "Metrics returned different gradient vectors for "
                       " %d of %u vertices for handle %lu in "
-                      "evaluate_with_Hessian_diagonal\n.", 
-                      grad_diff, (unsigned)gradient.size(), 
+                      "evaluate_with_Hessian_diagonal\n.",
+                      grad_diff, (unsigned)gradient.size(),
                       (unsigned long)handle );
     }
     else if (hess_diff) {
       MSQ_SETERR(err)(MsqError::INVALID_STATE,
                       "Metrics returned different Hessian blocks for "
                       " %d of %u vertices for handle %lu in "
-                      "evaluate_with_Hessian_diagonal\n.", 
-                      hess_diff, (unsigned)diagonal.size(), 
+                      "evaluate_with_Hessian_diagonal\n.",
+                      hess_diff, (unsigned)diagonal.size(),
                       (unsigned long)handle );
     }
   }
-  
+
   return r1 && !err;
 }
-                 
+
 bool CompareMetric::evaluate_with_Hessian( PatchData& pd,
                  size_t handle,
                  double& value,
@@ -712,7 +712,7 @@ bool CompareMetric::evaluate_with_Hessian( PatchData& pd,
         same = false;
         continue;
       }
-      
+
       r = gradient.begin() + (i - indices.begin());
       s = m2Grad.begin() + (j - m2Handles.begin());
       if (!equal(*r,*s)) {
@@ -723,20 +723,20 @@ bool CompareMetric::evaluate_with_Hessian( PatchData& pd,
         std::vector<Matrix3D> h2;
         metric2->evaluate_with_Hessian(pd, handle, m2val, i2, g2, h2, err );
       }
-    }  
-     
+    }
+
     if (!same) {
       MSQ_SETERR(err)(MsqError::INVALID_STATE,
                       "Metrics returned incompatible lists of vertex indices"
-                      " for handle %lu in evaluate_with_Hessian\n.", 
+                      " for handle %lu in evaluate_with_Hessian\n.",
                       (unsigned long)handle );
     }
     else if (grad_diff) {
       MSQ_SETERR(err)(MsqError::INVALID_STATE,
                       "Metrics returned different gradient vectors for "
                       " %d of %u vertices for handle %lu in "
-                      "evaluate_with_Hessian\n.", 
-                      grad_diff, (unsigned)gradient.size(), 
+                      "evaluate_with_Hessian\n.",
+                      grad_diff, (unsigned)gradient.size(),
                       (unsigned long)handle );
     }
     else {
@@ -762,13 +762,13 @@ bool CompareMetric::evaluate_with_Hessian( PatchData& pd,
         MSQ_SETERR(err)(MsqError::INVALID_STATE,
                         "Metrics returned different Hessian blocks for "
                         " %d of %u vertices for handle %lu in "
-                        "evaluate_with_Hessian\n.", 
-                        hess_diff, (unsigned)Hessian.size(), 
+                        "evaluate_with_Hessian\n.",
+                        hess_diff, (unsigned)Hessian.size(),
                         (unsigned long)handle );
       }
     }
   }
-  
+
   return r1 && !err;
 }
 

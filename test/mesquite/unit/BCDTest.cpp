@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2006 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2006) kraftche@cae.wisc.edu    
+    (2006) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file BCDTest.cpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -70,14 +70,14 @@ private:
   IdealWeightInverseMeanRatio mMetric;
 
   void compare_bcd( ObjectiveFunction* of, string name, const char* file );
-  
+
 public:
 
   void test_lp_to_p_hex() {
     LPtoPTemplate OF( 1, &mMetric );
     compare_bcd( &OF, "LPtoP-hex", HEX_MESH );
   }
-  
+
   void test_p_mean_p_hex() {
     PMeanPTemplate OF( 1.0, &mMetric );
     compare_bcd( &OF, "PMeanP-hex", HEX_MESH );
@@ -87,12 +87,12 @@ public:
     LPtoPTemplate OF( 1, &mMetric );
     compare_bcd( &OF, "LPtoP-tet", TET_MESH );
   }
-  
+
   void test_p_mean_p_tet() {
     PMeanPTemplate OF( 1.0, &mMetric );
     compare_bcd( &OF, "PMeanP-tet", TET_MESH );
   }
-  
+
 };
 
 CPPUNIT_TEST_SUITE_NAMED_REGISTRATION(BCDTest, "BCDTest");
@@ -104,7 +104,7 @@ void BCDTest::compare_bcd( ObjectiveFunction* OF, string name, const char* mesh_
   size_t i;
   vector<MsqVertex> initial_coords, global_coords, bcd_coords;
   vector<Mesh::VertexHandle> vertex_list;
-  
+
     // set up a smoother
   TerminationCriterion iterations, vertex_movement;
   iterations.add_iteration_limit( 2 );
@@ -128,7 +128,7 @@ void BCDTest::compare_bcd( ObjectiveFunction* OF, string name, const char* mesh_
   global_q.add_quality_assessor( &qa, err );
   bcd_q.set_master_quality_improver( &bcd_solver, err );
   bcd_q.add_quality_assessor( &qa, err );
-  
+
     // read mesh
   MeshImpl mesh;
   mesh.read_vtk( mesh_file, err ); ASSERT_NO_ERROR(err);
@@ -137,21 +137,21 @@ void BCDTest::compare_bcd( ObjectiveFunction* OF, string name, const char* mesh_
   initial_coords.resize( vertex_list.size() );
   mesh.vertices_get_coordinates( arrptr(vertex_list), arrptr(initial_coords), vertex_list.size(), err );
   ASSERT_NO_ERROR(err);
-  
+
     // run global smoother
-  global_q.run_instructions( &mesh, err ); 
+  global_q.run_instructions( &mesh, err );
   ASSERT_NO_ERROR(err);
   mesh.write_vtk( (name + "-gbl.vtk").c_str(), err );
   global_coords.resize( vertex_list.size() );
   mesh.vertices_get_coordinates( arrptr(vertex_list), arrptr(global_coords), vertex_list.size(), err );
   ASSERT_NO_ERROR(err);
-  
+
     // restore initial vertex positions
   for (i = 0; i < vertex_list.size(); ++i) {
     mesh.vertex_set_coordinates( vertex_list[i], initial_coords[i], err );
     ASSERT_NO_ERROR(err);
   }
-  
+
     // run local smoother
   bcd_q.run_instructions( &mesh, err );
   ASSERT_NO_ERROR(err);
@@ -159,7 +159,7 @@ void BCDTest::compare_bcd( ObjectiveFunction* OF, string name, const char* mesh_
   bcd_coords.resize( vertex_list.size() );
   mesh.vertices_get_coordinates( arrptr(vertex_list), arrptr(bcd_coords), vertex_list.size(), err );
   ASSERT_NO_ERROR(err);
-  
+
     // compare results
   for (i = 0; i < bcd_coords.size(); ++i)
     CPPUNIT_ASSERT_VECTORS_EQUAL( global_coords[i], bcd_coords[i], 1e-2 );

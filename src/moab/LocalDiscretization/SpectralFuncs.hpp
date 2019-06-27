@@ -82,7 +82,7 @@ typedef unsigned INTEGER uint;
 // from poly.h
 //======================================================
 
-/* 
+/*
   For brevity's sake, some names have been shortened
   Quadrature rules
     Gauss   -> Gauss-Legendre quadrature (open)
@@ -118,7 +118,7 @@ void legendre_row(real x, real *P, int n);
 
 /*--------------------------------------------------------------------------
    Quadrature Nodes and Weights Calculation
-   
+
    call the _nodes function before calling the _weights function
   --------------------------------------------------------------------------*/
 
@@ -135,12 +135,12 @@ void lobatto_weights(const real *z, real *w, int n);
 /* precondition: n >= 2
    given the Gauss quadrature rule (z,w,n), compute the square matrix J
    for transforming from the Gauss basis to the Legendre basis:
-   
+
       u_legendre(i) = sum_j J(i,j) u_gauss(j)
 
    computes J   = .5 (2i+1) w  P (z )
              ij              j  i  j
-             
+
    in column major format (inner index is i, the Legendre index)
  */
 void gauss_to_legendre(const real *z, const real *w, int n, real *J);
@@ -154,7 +154,7 @@ void gauss_to_legendre_t(const real *z, const real *w, int n, real *J);
 /* precondition: n >= 3
    given the Lobatto quadrature rule (z,w,n), compute the square matrix J
    for transforming from the Lobatto basis to the Legendre basis:
-   
+
       u_legendre(i) = sum_j J(i,j) u_lobatto(j)
 
    in column major format (inner index is i, the Legendre index)
@@ -167,7 +167,7 @@ void lobatto_to_legendre(const real *z, const real *w, int n, real *J);
 
 /* given the Lagrangian nodes (z,n) and evaluation points (x,m)
    evaluate all Lagrangian basis functions at all points x
-   
+
    inner index of output J is the basis function index (row-major format)
    provide work array with space for 4*n doubles
  */
@@ -177,7 +177,7 @@ void lagrange_weights(const real *z, unsigned n,
 
 /* given the Lagrangian nodes (z,n) and evaluation points (x,m)
    evaluate all Lagrangian basis functions and their derivatives
-   
+
    inner index of outputs J,D is the basis function index (row-major format)
    provide work array with space for 6*n doubles
  */
@@ -187,12 +187,12 @@ void lagrange_weights_deriv(const real *z, unsigned n,
 
 /*--------------------------------------------------------------------------
    Speedy Lagrangian Interpolation
-   
+
    Usage:
-   
+
      lagrange_data p;
      lagrange_setup(&p,z,n);    *  setup for nodes z[0 ... n-1] *
-     
+
      the weights
        p->J [0 ... n-1]     interpolation weights
        p->D [0 ... n-1]     1st derivative weights
@@ -233,7 +233,7 @@ void lagrange_2u(lagrange_data *p) ;
 
 /*--------------------------------------------------------------------------
    1-,2-,3-d Tensor Application
-   
+
    the 3d case:
    tensor_f3(R,mr,nr, S,ms,ns, T,mt,nt, u,v, work1,work2)
      gives v = [ R (x) S (x) T ] u
@@ -243,9 +243,9 @@ void lagrange_2u(lagrange_data *p) ;
      v is mr x ms x mt in column-major format (inner index is r)
   --------------------------------------------------------------------------*/
 
-void tensor_c1(const real *R, unsigned mr, unsigned nr, 
+void tensor_c1(const real *R, unsigned mr, unsigned nr,
                const real *u, real *v);
-void tensor_r1(const real *R, unsigned mr, unsigned nr, 
+void tensor_r1(const real *R, unsigned mr, unsigned nr,
                const real *u, real *v);
 
 /* work holds mr*ns reals */
@@ -269,7 +269,7 @@ void tensor_r3(const real *R, unsigned mr, unsigned nr,
 
 /*--------------------------------------------------------------------------
    1-,2-,3-d Tensor Application of Row Vectors (for Interpolation)
-   
+
    the 3d case:
    v = tensor_i3(Jr,nr, Js,ns, Jt,nt, u, work)
    same effect as tensor_r3(Jr,1,nr, Js,1,ns, Jt,1,nt, u,&v, work1,work2):
@@ -295,7 +295,7 @@ real tensor_i3(const real *Jr, unsigned nr,
 /*--------------------------------------------------------------------------
    1-,2-,3-d Tensor Application of Row Vectors
              for simultaneous Interpolation and Gradient computation
-   
+
    the 3d case:
    v = tensor_ig3(Jr,Dr,nr, Js,Ds,ns, Jt,Dt,nt, u,g, work)
      gives v   = [ Jr (x) Js (x) Jt ] u

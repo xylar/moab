@@ -1,9 +1,9 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2004 Sandia Corporation and Argonne National
-    Laboratory.  Under the terms of Contract DE-AC04-94AL85000 
-    with Sandia Corporation, the U.S. Government retains certain 
+    Laboratory.  Under the terms of Contract DE-AC04-94AL85000
+    with Sandia Corporation, the U.S. Government retains certain
     rights in this software.
 
     This library is free software; you can redistribute it and/or
@@ -16,10 +16,10 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-   
+
   ***************************************************************** */
 
 #ifndef MSQ_DEBUG_HPP
@@ -48,8 +48,8 @@ namespace MBMesquite {
  *
  *If MSQ_ENABLE_DEBUG is defined, it may optionally be set to a
  *comma-separated list of positive, non-zero integers.  This list
- *will be interpreted as a list of debug flags that should be 
- *activated automatically.  
+ *will be interpreted as a list of debug flags that should be
+ *activated automatically.
  *
  *To enable debug output but leave all debug flags deactivated:
  *#define  MSQ_ENABLE_DEBUG
@@ -65,7 +65,7 @@ namespace MBMesquite {
  *\date 2004-10-18
  *
  *Wrap static functions for managing debug flags and associated
- *output streams.  Output is expected do be done using the 
+ *output streams.  Output is expected do be done using the
  *provided macros MSQ_DBGOUT(), MSQ_PRINT(), and MSQ_DBG().
  *
  *The default output stream for all flags is cout.
@@ -73,13 +73,13 @@ namespace MBMesquite {
 class MsqDebug
 {
   public:
-    
+
       // some pre-defined meanings of debug flags
     enum {
       WARN = 1,
       INFO = 2
     };
-  
+
       /**\brief Enable a debug flag */
     static void enable( unsigned flag )          { set( flag, true );  }
       /**\brief Disable a debug flag */
@@ -88,15 +88,15 @@ class MsqDebug
     static void set( unsigned flag, bool state );
       /**\brief Check a debug flag */
     static bool get( unsigned flag );
-    
+
       /**\brief Disable all debug streams */
     static void disable_all();
-  
+
       /**\brief Get the output stream to be used for a given debug flag */
     static std::ostream& get_stream( unsigned flag );
       /**\brief Set the output stream to be used for a given debug flag */
     static void set_stream( unsigned flag, std::ostream& stream );
-    
+
       // Work around limitations of preprocessor macros.
       // You probably don't want to use this directly.  See
       // MSQ_PRINT macro below.
@@ -110,7 +110,7 @@ class MsqDebug
           ;
         const unsigned myFlag;
     };
-    
+
       // Static initialize function (declare a static instance of this
       // such that the constructor can be used as a function to initialize
       // static data.)
@@ -118,9 +118,9 @@ class MsqDebug
       public:
         InitializeFlags();
     };
-      
+
   private:
-  
+
     static std::vector<std::ostream*> streams;
     static std::vector<bool> flags;
     static InitializeFlags init;
@@ -137,7 +137,7 @@ class MsqDebug
 /**
  *\brief Check debug flag and return ostream associated with flag.
  *
- * Evaluates to a conditional calling of an ostream depending on the 
+ * Evaluates to a conditional calling of an ostream depending on the
  * debug flag.  Example:
  *   MSQ_DBGOUT(f) << "Debug flag " << f << " is activated" << endl;
  */

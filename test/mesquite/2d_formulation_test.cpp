@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2007 Sandia National Laboratories.  Developed at the
@@ -16,11 +16,11 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2007) kraftche@cae.wisc.edu    
+    (2007) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
@@ -28,9 +28,9 @@
 /** \file main.cpp
  *  \brief Try examples from "Formulation of a Target-Matrix Paradigm
  *         for Mesh Optimization", Patrick Knupp.
- *  \author Jason Kraftcheck 
+ *  \author Jason Kraftcheck
  */
- 
+
 #define USE_GLOBAL_PATCH
 
 #include "TestUtil.hpp"
@@ -69,21 +69,21 @@ enum Weight { UNIT, METRIC, INV_METRIC };
 
 class IdentityTarget : public TargetCalculator {
 public:
- bool get_3D_target( PatchData& , 
+ bool get_3D_target( PatchData& ,
                      size_t ,
                      Sample ,
                      MsqMatrix<3,3>& W_out,
                      MsqError&  )
   { W_out = MsqMatrix<3,3>(1.0); return true; }
 
- bool get_surface_target( PatchData& , 
+ bool get_surface_target( PatchData& ,
                           size_t ,
                           Sample ,
                           MsqMatrix<3,2>& W_out,
                           MsqError&  )
   { W_out = MsqMatrix<3,2>(1.0); return true; }
 
- bool get_2D_target( PatchData& , 
+ bool get_2D_target( PatchData& ,
                      size_t ,
                      Sample ,
                      MsqMatrix<2,2>& W_out,
@@ -92,13 +92,13 @@ public:
 
  bool have_surface_orient() const
   { return false; }
- 
+
 };
 
 void run_test( Grouping grouping, int of_power, Weight w, const string filename )
 {
   MsqError err;
-  
+
   IdentityTarget target;
   TSquared target_metric;
   AffineMapMetric qual_metric( &target, &target_metric );
@@ -119,12 +119,12 @@ void run_test( Grouping grouping, int of_power, Weight w, const string filename 
   solver.set_inner_termination_criterion( &itc );
   solver.set_outer_termination_criterion( &tc );
 #endif
-  
+
   MeshImpl mesh, expected_mesh;
   std::string initfname = std::string ( STRINGIFY(SRCDIR) ) + "/2d_formulation_initial.vtk";
   mesh.read_vtk( initfname.c_str(), err ); CHKERR(err)
 //  expected_mesh.read_vtk( (filename + ".vtk").c_str(), err ); CHKERR(err)
-  
+
   PlanarDomain plane( PlanarDomain::XY );
 
   MeshDomainAssoc mesh_and_domain = MeshDomainAssoc(&mesh, &plane);
@@ -150,7 +150,7 @@ void run_test( Grouping grouping, int of_power, Weight w, const string filename 
   InstructionQueue q;
   q.set_master_quality_improver( &solver, err );
   q.run_instructions( &mesh_and_domain, err ); CHKERR(err)
-/*  
+/*
   vector<Mesh::VertexHandle> vemain.cpprts;
   vector<MsqVertex> mesh_coords, expected_coords;
   mesh.get_all_vertices( verts, err ); CHKERR(err)
@@ -163,16 +163,16 @@ void run_test( Grouping grouping, int of_power, Weight w, const string filename 
     cerr << "Invlid expected mesh.  Vertex count doesn't match" << endl;
     exit(1);
   }
-  
+
   unsigned error_count = 0;
-  for (size_t i = 0; i < mesh_coords.size(); ++i) 
+  for (size_t i = 0; i < mesh_coords.size(); ++i)
     if ((expected_coords[i] - mesh_coords[i]).length_squared() > epsilon*epsilon)
       ++error_count;
 
-  if (!error_count) 
+  if (!error_count)
     cout << filename << " : SUCCESS" << endl;
   else
-    cout << filename << " : FAILURE (" << error_count 
+    cout << filename << " : FAILURE (" << error_count
          << " vertices differ by more than " << epsilon << ")" << endl;
 */
   if (write_results)
@@ -185,10 +185,10 @@ int main()
   run_test( SAMPLE, 2, UNIT, "1-2" );
   run_test( SAMPLE, 4, UNIT, "1-4" );
   run_test( SAMPLE, 8, UNIT, "1-8" );
-  
+
   run_test(  SAMPLE, 1, UNIT, "2-NW" );
   run_test( ELEMENT, 1, UNIT, "2-NE" );
-  
+
   run_test( SAMPLE, 1,       UNIT, "3-Left"  );
   run_test( SAMPLE, 1,     METRIC, "3-Mid"   );
   run_test( SAMPLE, 1, INV_METRIC, "3-Right" );

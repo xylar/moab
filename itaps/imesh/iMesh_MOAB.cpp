@@ -544,7 +544,7 @@ extern "C" {
                              /*out*/ iBase_EntityArrIterator* entArr_iterator,
                              int *err)
   {
-    iMesh_initEntArrIterRec(instance, entity_set_handle, requested_entity_type, 
+    iMesh_initEntArrIterRec(instance, entity_set_handle, requested_entity_type,
                             requested_entity_topology, requested_array_size, resilient, false,
                             entArr_iterator, err);
   }
@@ -561,7 +561,7 @@ extern "C" {
   {
       // check the size of the destination array
     ALLOC_CHECK_ARRAY_NOFAIL(entity_handles, entArr_iterator->array_size());
-    entArr_iterator->get_entities( dynamic_cast<Core*>(MOABI), 
+    entArr_iterator->get_entities( dynamic_cast<Core*>(MOABI),
              (EntityHandle*)*entity_handles, *entity_handles_size );
     *has_data = (*entity_handles_size != 0);
     RETURN(iBase_SUCCESS);
@@ -2935,21 +2935,21 @@ extern "C" {
 
   void iMesh_tagIterate(iMesh_Instance instance,
                         /*in*/ const iBase_TagHandle tag_handle,
-                        iBase_EntityArrIterator entArr_iterator, 
+                        iBase_EntityArrIterator entArr_iterator,
                           /**< [in] Iterator being queried */
-                        void* data, 
+                        void* data,
                           /**< [out] Pointer to pointer that will be set to tag data memory
                              \ref trio) */
                         int* count,
                           /**< [out] Number of contiguous entities in this subrange */
-                        int* err  
+                        int* err
                           /**< [out] Returned Error status (see iBase_ErrorType) */
-                        ) 
+                        )
   {
     MBRangeIter *ri = dynamic_cast<MBRangeIter*>(entArr_iterator);
     if (!ri) CHKERR(MB_FAILURE,"Wrong type of iterator, need a range-based iterator for iMesh_tagIterate.");
-  
-    ErrorCode result = MOABI->tag_iterate(TAG_HANDLE(tag_handle), 
+
+    ErrorCode result = MOABI->tag_iterate(TAG_HANDLE(tag_handle),
                                           ri->position(), ri->end(), *count, *static_cast<void**>(data));
     CHKERR(result, "Problem getting tag iterator.");
 
@@ -2957,7 +2957,7 @@ extern "C" {
   }
 
   void iMesh_connectIterate(iMesh_Instance instance,
-                            iBase_EntityArrIterator entArr_iterator, 
+                            iBase_EntityArrIterator entArr_iterator,
                               /**< [in] Iterator being queried */
                             iBase_EntityHandle **connect,
                               /**< [out] Pointer to pointer that will be set to connectivity data memory */
@@ -2965,14 +2965,14 @@ extern "C" {
                               /**< [out] Pointer to integer set to number of vertices per entity */
                             int* count,
                               /**< [out] Number of contiguous entities in this subrange */
-                            int* err  
+                            int* err
                               /**< [out] Returned Error status (see iBase_ErrorType) */
-                            ) 
+                            )
   {
     MBRangeIter *ri = dynamic_cast<MBRangeIter*>(entArr_iterator);
     if (!ri) CHKERR(MB_FAILURE,"Wrong type of iterator, need a range-based iterator for iMesh_connectIterate.");
-  
-    ErrorCode result = MOABI->connect_iterate(ri->position(), ri->end(), 
+
+    ErrorCode result = MOABI->connect_iterate(ri->position(), ri->end(),
                                               reinterpret_cast<EntityHandle*&>(*connect), *verts_per_entity, *count);
     CHKERR(result, "Problem getting connect iterator.");
 
@@ -2980,7 +2980,7 @@ extern "C" {
   }
 
   void iMesh_coordsIterate(iMesh_Instance instance,
-                           iBase_EntityArrIterator entArr_iterator, 
+                           iBase_EntityArrIterator entArr_iterator,
                               /**< [in] Iterator being queried */
                            double **xcoords_ptr,
                               /**< [out] Pointer to pointer that will be set to x coordinate data memory */
@@ -2990,14 +2990,14 @@ extern "C" {
                               /**< [out] Pointer to pointer that will be set to z coordinate data memory */
                             int* count,
                               /**< [out] Number of contiguous entities in this subrange */
-                            int* err  
+                            int* err
                               /**< [out] Returned Error status (see iBase_ErrorType) */
-                            ) 
+                            )
   {
     MBRangeIter *ri = dynamic_cast<MBRangeIter*>(entArr_iterator);
     if (!ri) CHKERR(MB_FAILURE,"Wrong type of iterator, need a range-based iterator for iMesh_coordsIterate.");
-  
-    ErrorCode result = MOABI->coords_iterate(ri->position(), ri->end(), 
+
+    ErrorCode result = MOABI->coords_iterate(ri->position(), ri->end(),
                                              *xcoords_ptr, *ycoords_ptr, *zcoords_ptr, *count);
     CHKERR(result, "Problem getting coords iterator.");
 
@@ -3005,34 +3005,34 @@ extern "C" {
   }
 
   void iMesh_stepEntIter(
-      iMesh_Instance instance, 
+      iMesh_Instance instance,
         /**< [in] iMesh instance handle */
-      iBase_EntityIterator ent_iterator, 
+      iBase_EntityIterator ent_iterator,
         /**< [in] Iterator being queried */
-      int step_length, 
+      int step_length,
         /**< [in] Number of entities to step the iterator */
-      int* at_end, 
+      int* at_end,
         /**< [out] Non-zero if iterator is at the end of the iteration */
-      int* err  
+      int* err
         /**< [out] Returned Error status (see iBase_ErrorType) */
-                      ) 
+                      )
   {
     iMesh_stepEntArrIter(instance, reinterpret_cast<iBase_EntityArrIterator>(ent_iterator),
                          step_length, at_end, err);
   }
 
   void iMesh_stepEntArrIter(
-      iMesh_Instance instance, 
+      iMesh_Instance instance,
         /**< [in] iMesh instance handle */
-      iBase_EntityArrIterator entArr_iterator, 
+      iBase_EntityArrIterator entArr_iterator,
         /**< [in] Iterator being queried */
-      int step_length, 
+      int step_length,
         /**< [in] Number of entities to step the iterator */
-      int* at_end, 
+      int* at_end,
         /**< [out] Non-zero if iterator is at the end of the iteration */
-      int* err  
+      int* err
         /**< [out] Returned Error status (see iBase_ErrorType) */
-                      ) 
+                      )
   {
     bool tmp;
     ErrorCode result = entArr_iterator->step(step_length, tmp);
@@ -3079,16 +3079,16 @@ extern "C" {
     unsigned flags;
     result = MOABI->get_meshset_options( ENTITY_HANDLE(entity_set_handle), flags );
     CHKERR(result,"Invalid entity set handle");
-    
-    if (flags & MESHSET_ORDERED) 
-      *entArr_iterator = new MBListIter( (iBase_EntityType)requested_entity_type, 
-                                         (iMesh_EntityTopology)requested_entity_topology, 
-                                         ENTITY_HANDLE(entity_set_handle), 
+
+    if (flags & MESHSET_ORDERED)
+      *entArr_iterator = new MBListIter( (iBase_EntityType)requested_entity_type,
+                                         (iMesh_EntityTopology)requested_entity_topology,
+                                         ENTITY_HANDLE(entity_set_handle),
                                          requested_array_size, recursive );
     else
-      *entArr_iterator = new MBRangeIter( (iBase_EntityType)requested_entity_type, 
-                                          (iMesh_EntityTopology)requested_entity_topology, 
-                                          ENTITY_HANDLE(entity_set_handle), 
+      *entArr_iterator = new MBRangeIter( (iBase_EntityType)requested_entity_type,
+                                          (iMesh_EntityTopology)requested_entity_topology,
+                                          ENTITY_HANDLE(entity_set_handle),
                                           requested_array_size, recursive );
     result = (*entArr_iterator)->reset( MOABI );
     if (MB_SUCCESS != result)
@@ -3102,10 +3102,10 @@ extern "C" {
                                   /*in*/ const char* tmp_tag_options,
                                   /*in*/ const int tag_size,
                                   /*in*/ const int tag_type,
-                                  /*out*/ iBase_TagHandle* tag_handle, 
+                                  /*out*/ iBase_TagHandle* tag_handle,
                                   /*out*/ int *err,
                                   /*in*/ const int tag_name_len,
-                                  /*in*/ const int tag_options_len) 
+                                  /*in*/ const int tag_options_len)
   {
     if (tag_size < 0)
       ERROR(iBase_INVALID_ARGUMENT, "iMesh_createTag: invalid tag size");
@@ -3125,7 +3125,7 @@ extern "C" {
     std::vector<moab::EntityHandle> def_handles;
     int dum_int;
     double dum_dbl;
-  
+
     if (0 != tag_options_len) {
       std::string tag_options = filter_options(tmp_tag_options, tmp_tag_options+tag_options_len);
       FileOptions opts(tag_options.c_str());
@@ -3169,7 +3169,7 @@ extern "C" {
               def_val = &def_handles[0];
               break;
           case iBase_BYTES:
-              if ((int)storage_type.length() < tag_size) 
+              if ((int)storage_type.length() < tag_size)
                 ERROR(result, "iMesh_createTagWithOptions: default value for byte-type tag must be large enough to store tag value.");
               def_val = storage_type.c_str();
               break;
@@ -3178,7 +3178,7 @@ extern "C" {
     }
 
     moab::Tag new_tag;
-    result = MOABI->tag_get_handle(tmp_tagname.c_str(), 
+    result = MOABI->tag_get_handle(tmp_tagname.c_str(),
                                    tag_size,
                                    mb_data_type_table[tag_type],
                                    new_tag,
@@ -3210,7 +3210,7 @@ extern "C" {
    Tag new_tag;
    int this_size = tag_size;
 
-   ErrorCode result = MOABI->tag_get_handle(tmp_tagname.c_str(), 
+   ErrorCode result = MOABI->tag_get_handle(tmp_tagname.c_str(),
    this_size,
    mb_data_type_table[tag_type],
    new_tag,
@@ -3300,13 +3300,13 @@ void iMesh_createStructuredMesh(iMesh_Instance instance,
                                 /*in*/ int addl_ents,
                                 /*in*/ int vert_gids,
                                 /*in*/ int elem_gids,
-                                /*inout*/ iBase_EntitySetHandle* set_handle, 
-                                /*out*/ int *err) 
+                                /*inout*/ iBase_EntitySetHandle* set_handle,
+                                /*out*/ int *err)
 {
   ScdInterface *scdi = NULL;
   ErrorCode rval = MOABI->query_interface(scdi);
   CHKERR(rval, "Couldn't get structured mesh interface.");
-  
+
   Range tmp_range;
   ScdBox *scd_box;
   rval = scdi->construct_box(HomCoord(local_dims[0], local_dims[1], (-1 != local_dims[2] ? local_dims[2] : 0), 1),
@@ -3335,7 +3335,7 @@ void iMesh_createStructuredMesh(iMesh_Instance instance,
       CHKERR(rval, "Couldn't add box set to file set.");
     }
   }
-  
+
     // get a ptr to global id memory
   void *data;
   int count;
@@ -3346,7 +3346,7 @@ void iMesh_createStructuredMesh(iMesh_Instance instance,
   if (vert_gids || elem_gids) {
     gid_tag = MOABI->globalId_tag();
   }
-  
+
   if (vert_gids) {
     topv = tmp_range.upper_bound(tmp_range.begin(), tmp_range.end(),
                                  scd_box->start_vertex() + scd_box->num_vertices());
@@ -3356,7 +3356,7 @@ void iMesh_createStructuredMesh(iMesh_Instance instance,
     assert(count == scd_box->num_vertices());
     v_gid_data = (int*)data;
   }
-  
+
   if (elem_gids) {
     bote = tmp_range.lower_bound(tmp_range.begin(), tmp_range.end(),
                                  scd_box->start_element());
@@ -3368,9 +3368,9 @@ void iMesh_createStructuredMesh(iMesh_Instance instance,
     assert(count == scd_box->num_elements());
     e_gid_data = (int*)data;
   }
-  
+
   if (i_vals || j_vals || k_vals || v_gid_data || e_gid_data) {
-    
+
       // set the vertex coordinates
     double *xc, *yc, *zc;
     rval = scd_box->get_coordinate_arrays(xc, yc, zc);
@@ -3404,7 +3404,7 @@ void iMesh_createStructuredMesh(iMesh_Instance instance,
     }
   }
 
-#ifdef MOAB_HAVE_MPI  
+#ifdef MOAB_HAVE_MPI
     // do parallel stuff, if requested
   if (resolve_shared) {
     ParallelComm *pcomm = ParallelComm::get_pcomm(MOABI, 0);
@@ -3412,18 +3412,18 @@ void iMesh_createStructuredMesh(iMesh_Instance instance,
 
       rval = pcomm->resolve_shared_ents(0, MOABI->dimension_from_handle(scd_box->start_element()), 0, &gid_tag);
       CHKERR(rval, "Trouble resolving shared vertices.");
-    
+
       if (-1 != ghost_dim) {
         rval = pcomm->exchange_ghost_cells(ghost_dim, bridge_dim, num_layers, addl_ents, true);
         CHKERR(rval, "Trouble exchanging ghosts.");
       }
-    }    
+    }
   }
 #else
     // empty statement to remove compiler warning
   if (resolve_shared || ghost_dim || bridge_dim || num_layers || addl_ents) {}
 #endif
-  
+
   RETURN(iBase_SUCCESS);
 }
 

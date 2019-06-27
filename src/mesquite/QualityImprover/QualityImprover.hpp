@@ -1,9 +1,9 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2004 Sandia Corporation and Argonne National
-    Laboratory.  Under the terms of Contract DE-AC04-94AL85000 
-    with Sandia Corporation, the U.S. Government retains certain 
+    Laboratory.  Under the terms of Contract DE-AC04-94AL85000
+    with Sandia Corporation, the U.S. Government retains certain
     rights in this software.
 
     This library is free software; you can redistribute it and/or
@@ -16,25 +16,25 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
-    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov, 
-    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov      
-   
+
+    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov,
+    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov
+
   ***************************************************************** */
 /*!
   \file   QualityImprover.hpp
-  \brief  
+  \brief
 
-  The Quality Improver Class is the base class for all the algorythms 
+  The Quality Improver Class is the base class for all the algorythms
 
   \author Thomas Leurent
   \date   2002-01-17
 */
 
-#ifndef Mesquite_QualityImprover_hpp 
+#ifndef Mesquite_QualityImprover_hpp
 #define Mesquite_QualityImprover_hpp
 
 #include <string>
@@ -51,18 +51,18 @@ namespace MBMesquite
   class MeshDomain;
   class Settings;
 
-  
+
   /*! \class QualityImprover
     \brief Base class for all quality improvers.
-    Mote that the PatchData settings are inherited from the PathDataUser class. 
+    Mote that the PatchData settings are inherited from the PathDataUser class.
 
-  */ 
+  */
   class MESQUITE_EXPORT QualityImprover : public Instruction
   {
   public:
 
     // Constructor is protected ... see below.
-    
+
      // virtual destructor ensures use of polymorphism during destruction
     virtual ~QualityImprover();
 
@@ -72,15 +72,15 @@ namespace MBMesquite
       {
         innerTerminationCriterion=crit;
       }
-      //!Sets in the termination criterion for the outer loop over 
+      //!Sets in the termination criterion for the outer loop over
       //! patches.
     void set_outer_termination_criterion(TerminationCriterion* crit)
       {
         outerTerminationCriterion=crit;
       }
-      
+
     virtual PatchSet* get_patch_set() = 0;
-    
+
     virtual void initialize_queue( MeshDomainAssoc* mesh_and_domain,
                                    const Settings* settings,
                                    MsqError& err );
@@ -89,18 +89,18 @@ namespace MBMesquite
 
     /*! The default constructor initialises a few member variables
         to default values.
-        This can be reused by concrete class constructor. */    
+        This can be reused by concrete class constructor. */
     QualityImprover();
-    
-      //!return the outer termination criterion pointer 
+
+      //!return the outer termination criterion pointer
     TerminationCriterion* get_outer_termination_criterion()
       { return outerTerminationCriterion; }
-      //!return the inner termination criterion pointer       
+      //!return the inner termination criterion pointer
     TerminationCriterion* get_inner_termination_criterion()
-      { return innerTerminationCriterion; } 
-    
+      { return innerTerminationCriterion; }
+
   private:
-  
+
     TerminationCriterion* innerTerminationCriterion;
     TerminationCriterion* outerTerminationCriterion;
       //default TerminationCriterion for outer loop will be set in constructor

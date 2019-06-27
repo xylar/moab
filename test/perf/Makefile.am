@@ -7,7 +7,7 @@ AM_CPPFLAGS  = -I$(top_srcdir)/src \
                -I$(top_builddir)/src \
                -DMESHDIR=$(MESHDIR) \
                -DIS_BUILDING_MB
-            
+
 LDADD = $(top_builddir)/src/libMOAB.la
 
 check_PROGRAMS = perf seqperf adj_time perftool adj_mem_time umr_perf

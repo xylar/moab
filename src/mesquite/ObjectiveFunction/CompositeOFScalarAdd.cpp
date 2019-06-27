@@ -1,9 +1,9 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2004 Sandia Corporation and Argonne National
-    Laboratory.  Under the terms of Contract DE-AC04-94AL85000 
-    with Sandia Corporation, the U.S. Government retains certain 
+    Laboratory.  Under the terms of Contract DE-AC04-94AL85000
+    with Sandia Corporation, the U.S. Government retains certain
     rights in this software.
 
     This library is free software; you can redistribute it and/or
@@ -16,17 +16,17 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
-    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov, 
-    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov      
-   
+
+    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov,
+    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov
+
   ***************************************************************** */
 /*!
   \file    CompositeOFScalarAdd.cpp
-  \brief  
+  \brief
 
   This Objective Function combines two Objective Functions by addition
   \author Michael Brewer
@@ -40,14 +40,14 @@ using namespace MBMesquite;
 
 
 /*!
-Sets the QualityMetric pointer to the metric associated with Obj1.  
+Sets the QualityMetric pointer to the metric associated with Obj1.
 The new ObjectiveFunction's negateFlag is also the
 same as that of Obj1.  This objective function defaults to the analytical
 gradient which essentially just calls Obj1's gradient function.
   \param alp (double)
   \param Obj1 (ObjectiveFunction*)
  */
-CompositeOFScalarAdd::CompositeOFScalarAdd( double alp, 
+CompositeOFScalarAdd::CompositeOFScalarAdd( double alp,
                                             ObjectiveFunction* Obj1,
                                             bool delete_OF)
   : deleteObjFunc(delete_OF)
@@ -65,7 +65,7 @@ CompositeOFScalarAdd::~CompositeOFScalarAdd(){
 
 ObjectiveFunction* CompositeOFScalarAdd::clone() const
   { return new CompositeOFScalarAdd( mAlpha, objFunc->clone(), true ); }
-  
+
 void CompositeOFScalarAdd::clear()
 {
   objFunc->clear();
@@ -79,7 +79,7 @@ void CompositeOFScalarAdd::initialize_queue( MeshDomainAssoc* mesh_and_domain,
   objFunc->initialize_queue( mesh_and_domain, settings, err ); MSQ_ERRRTN(err);
 }
 
-bool CompositeOFScalarAdd::initialize_block_coordinate_descent( 
+bool CompositeOFScalarAdd::initialize_block_coordinate_descent(
                                                        MeshDomainAssoc* mesh_and_domain,
                                                        const Settings* settings,
                                                        PatchSet* user_set,
@@ -89,7 +89,7 @@ bool CompositeOFScalarAdd::initialize_block_coordinate_descent(
   return !MSQ_CHKERR(err) && rval;
 }
 
-bool CompositeOFScalarAdd::evaluate( EvalType type, 
+bool CompositeOFScalarAdd::evaluate( EvalType type,
                                      PatchData& pd,
                                      double& value_out,
                                      bool free,
@@ -100,7 +100,7 @@ bool CompositeOFScalarAdd::evaluate( EvalType type,
   return !MSQ_CHKERR(err) && ok;
 }
 
-bool CompositeOFScalarAdd::evaluate_with_gradient( EvalType type, 
+bool CompositeOFScalarAdd::evaluate_with_gradient( EvalType type,
                                              PatchData& pd,
                                              double& value_out,
                                              std::vector<Vector3D>& grad_out,
@@ -111,7 +111,7 @@ bool CompositeOFScalarAdd::evaluate_with_gradient( EvalType type,
   return !MSQ_CHKERR(err) && ok;
 }
 
-bool CompositeOFScalarAdd::evaluate_with_Hessian_diagonal( EvalType type, 
+bool CompositeOFScalarAdd::evaluate_with_Hessian_diagonal( EvalType type,
                                             PatchData& pd,
                                             double& value_out,
                                             std::vector<Vector3D>& grad_out,
@@ -123,7 +123,7 @@ bool CompositeOFScalarAdd::evaluate_with_Hessian_diagonal( EvalType type,
   return !MSQ_CHKERR(err) && ok;
 }
 
-bool CompositeOFScalarAdd::evaluate_with_Hessian( EvalType type, 
+bool CompositeOFScalarAdd::evaluate_with_Hessian( EvalType type,
                                             PatchData& pd,
                                             double& value_out,
                                             std::vector<Vector3D>& grad_out,

@@ -127,8 +127,8 @@ int run_quality_optimizer( MeshDomainAssoc& mesh_and_domain, MsqError& err );
 int run_solution_mesh_optimizer( MeshDomainAssoc& mesh_and_domain, MsqError& err );
 
 bool file_exists (const std::string& name) {
-  struct stat buffer;   
-  return (stat (name.c_str(), &buffer) == 0); 
+  struct stat buffer;
+  return (stat (name.c_str(), &buffer) == 0);
 }
 
 int main(int argc, char* argv[])
@@ -208,7 +208,7 @@ int main(int argc, char* argv[])
 //  }
 
 //  MeshDomainAssoc mesh_and_domain_local(meshl, plane);
-  
+
   // run_solution_mesh_optimizer( mesh_and_domain, err );
   // if (err) return 1;
 
@@ -216,8 +216,8 @@ int main(int argc, char* argv[])
   if (err) return 1;
 
   double reps = 5e-2;
-  for (int iter=0; iter < 5; iter++) {    
-    
+  for (int iter=0; iter < 5; iter++) {
+
     if (!(iter % 2)) {
       run_local_smoother2( mesh_and_domain, err, reps*10 );//CHECK_IMESH("local smoother2 failed");
       if (err) return 1;
@@ -520,7 +520,7 @@ int run_solution_mesh_optimizer( MeshDomainAssoc& mesh_and_domain, MsqError& err
   ConditionNumberQualityMetric* mean_ratio = new ConditionNumberQualityMetric();
   // VertexConditionNumberQualityMetric* mean_ratio = new VertexConditionNumberQualityMetric();
   // AspectRatioGammaQualityMetric* mean_ratio = new AspectRatioGammaQualityMetric();
-  
+
   //ElementSolIndQM* solindqm = new ElementSolIndQM(solution_indicator);
   //MultiplyQualityMetric* mean_ratio = new MultiplyQualityMetric(new VertexConditionNumberQualityMetric(), solindqm, err);
   // ElementSolIndQM* mean_ratio = solindqm;
@@ -644,9 +644,9 @@ int get_imesh_mesh( MBMesquite::Mesh** mesh, const char* file_name, int dimensio
       solution_indicator[i]=0.5;
     for (unsigned i=3*cells.size()/4; i < cells.size(); i++)
       solution_indicator[i]=0.5;
-    
+
     rval = mbi->tag_set_data(solindTag, cells, &solution_indicator[0]); MB_CHK_SET_ERR(rval, "Setting tag data failed");
-    
+
   }
 
 

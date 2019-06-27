@@ -1,9 +1,9 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2004 Sandia Corporation and Argonne National
-    Laboratory.  Under the terms of Contract DE-AC04-94AL85000 
-    with Sandia Corporation, the U.S. Government retains certain 
+    Laboratory.  Under the terms of Contract DE-AC04-94AL85000
+    with Sandia Corporation, the U.S. Government retains certain
     rights in this software.
 
     This library is free software; you can redistribute it and/or
@@ -16,13 +16,13 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
-    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov, 
-    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov      
-   
+
+    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov,
+    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov
+
   ***************************************************************** */
 // -*- Mode : c++; tab-width: 3; c-tab-always-indent: t; indent-tabs-mode: nil; c-basic-offset: 3 -*-
 
@@ -46,8 +46,8 @@ using namespace MBMesquite;
 Instruction::~Instruction()
 {}
 
-double Instruction::loop_over_mesh( ParallelMesh* mesh, 
-				                            MeshDomain* domain, 
+double Instruction::loop_over_mesh( ParallelMesh* mesh,
+				                            MeshDomain* domain,
 			                         	    const Settings* settings,
 				                            MsqError& err )
 {
@@ -68,7 +68,7 @@ void Instruction::initialize_vertex_byte( MeshDomainAssoc* mesh_and_domain,
 
     // Handle SLAVE_ALL first because we want to work with vertices
     // in element connectivity lists rather than one big array of
-    // vertex handles. 
+    // vertex handles.
   bool use_existing_slaved_flag = false;
   if (!settings || settings->get_slaved_ho_node_mode() == Settings::SLAVE_ALL) {
     std::vector<Mesh::ElementHandle> elems;
@@ -78,13 +78,13 @@ void Instruction::initialize_vertex_byte( MeshDomainAssoc* mesh_and_domain,
       EntityTopology type;
       mesh->elements_get_topologies( &elems[i], &type, 1, err ); MSQ_ERRRTN(err);
       unsigned ncorner = TopologyInfo::corners( type );
-      
+
       verts.clear();
       junk.clear();
       mesh->elements_get_attached_vertices( &elems[i], 1, verts, junk, err ); MSQ_ERRRTN(err);
       if (ncorner < verts.size() && type != POLYGON)
         use_existing_slaved_flag = true;
-      
+
       bytes.clear();
       bytes.resize( verts.size(), 0 );
       std::fill( bytes.begin() + TopologyInfo::corners(type), bytes.end(), MsqVertex::MSQ_DEPENDENT );
@@ -98,8 +98,8 @@ void Instruction::initialize_vertex_byte( MeshDomainAssoc* mesh_and_domain,
   verts.clear();
   mesh->get_all_vertices( verts, err ); MSQ_ERRRTN(err);
   bytes.clear();
-  bytes.resize( verts.size(), 0 );  
-  
+  bytes.resize( verts.size(), 0 );
+
     // Normally we start out with all bits cleared.  However, if
     // we're doing SLAVE_CALCULATED mode then we need to perserve
     // the exinsting value of that bit because it was presumably
@@ -142,9 +142,9 @@ void Instruction::initialize_vertex_byte( MeshDomainAssoc* mesh_and_domain,
       if (dof[i] <= dim)
         bytes[i] |= (unsigned char)MsqVertex::MSQ_HARD_FIXED;
   }
-  
+
     // Copy flag values back to mesh instance
   mesh->vertices_set_byte( arrptr(verts), arrptr(bytes), verts.size(), err ); MSQ_ERRRTN(err);
 }
 
-  
+

@@ -1,8 +1,8 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
-    Copyright 2006 Lawrence Livermore National Laboratory.  Under 
-    the terms of Contract B545069 with the University of Wisconsin -- 
+    Copyright 2006 Lawrence Livermore National Laboratory.  Under
+    the terms of Contract B545069 with the University of Wisconsin --
     Madison, Lawrence Livermore National Laboratory retains certain
     rights in this software.
 
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2006) kraftche@cae.wisc.edu    
+    (2006) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file AddQualityMetric.hpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #ifndef MSQ_ADD_QUALITY_METRIC_HPP
@@ -41,30 +41,30 @@ namespace MBMesquite {
 class AddQualityMetric : public QualityMetric
 {
 public:
-  
+
   AddQualityMetric( QualityMetric* qm1, QualityMetric* qm2, MsqError& err );
-  
+
   ~AddQualityMetric();
-  
+
   MetricType get_metric_type() const;
-  
+
   std::string get_name() const;
-  
+
   int get_negate_flag() const;
-  
+
   QualityMetric* get_first_metric() const { return &metric1; }
   QualityMetric* get_second_metric() const { return &metric2; }
-  
+
   virtual
-  void get_evaluations( PatchData& pd, 
-                        std::vector<size_t>& handles, 
+  void get_evaluations( PatchData& pd,
+                        std::vector<size_t>& handles,
                         bool free_vertices_only,
                         MsqError& err );
 
   virtual
-  bool evaluate( PatchData& pd, 
-                 size_t handle, 
-                 double& value, 
+  bool evaluate( PatchData& pd,
+                 size_t handle,
+                 double& value,
                  MsqError& err );
 
 
@@ -93,14 +93,14 @@ public:
                  std::vector<Vector3D>& gradient,
                  std::vector<Matrix3D>& Hessian,
                  MsqError& err );
-                 
+
 private:
   QualityMetric &metric1, &metric2;
   mutable std::vector<size_t> mHandles;
   mutable std::vector<size_t> indices1, indices2;
   mutable std::vector<Vector3D> grad1, grad2;
   mutable std::vector<Matrix3D> Hess1, Hess2;
-  
+
 };
 
 

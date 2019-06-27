@@ -2,7 +2,7 @@
 #include <fstream>
 #include <vector>
 #include <string>
-#include <sstream> 
+#include <sstream>
 
 #include "moab/Core.hpp"
 #include "moab/ReadUtilIface.hpp"
@@ -22,8 +22,8 @@ int comment(string & line)
     return 0; // a line with some data in it, then
 
 }
-ErrorCode ReadTriangleOutput( Interface *mb, string fileBase ) {    
-  
+ErrorCode ReadTriangleOutput( Interface *mb, string fileBase ) {
+
   //
   // get the read interface from moab
   ReadUtilIface *iface;
@@ -43,7 +43,7 @@ ErrorCode ReadTriangleOutput( Interface *mb, string fileBase ) {
      return MB_FILE_DOES_NOT_EXIST;
   }
   cout << "reading nodes from file " << nodeFileName.c_str() << endl;
-  
+
   string eleFileName = fileBase+".ele";
   ifstream eleFile (eleFileName.c_str());
   if (!eleFile.is_open())
@@ -54,9 +54,9 @@ ErrorCode ReadTriangleOutput( Interface *mb, string fileBase ) {
   cout << "reading elements from file " << eleFileName.c_str() << endl;
 
   string line;
-  
+
   // ignore comment lines that start with #
-  
+
   int num_nodes=0, num_triangles=0;
   while(num_nodes==0)
     {
@@ -66,11 +66,11 @@ ErrorCode ReadTriangleOutput( Interface *mb, string fileBase ) {
       stringstream tks(line);
       tks >> num_nodes; // ignore the rest of the first line
                         // maybe will read attributes some other time
-      cout << "num nodes:" << num_nodes << endl; 
+      cout << "num nodes:" << num_nodes << endl;
     }
-  
+
   //  allocate a block of vertex handles and read xyz’s into them
-  //  we know the size of the node arrays, and this call will allocate 
+  //  we know the size of the node arrays, and this call will allocate
   //   needed arrays, coordinate arrays
   //   also, it will return a starting handle for the node sequence
   vector<double*> arrays;
@@ -88,7 +88,7 @@ ErrorCode ReadTriangleOutput( Interface *mb, string fileBase ) {
       int nodeId;
       tokens >> nodeId >> arrays[0][i] >> arrays[1][i] ;
     }
-  
+
   // now read the element data from a different file
   // first, find out how many elements are out there
   // first line with data should have it
@@ -99,7 +99,7 @@ ErrorCode ReadTriangleOutput( Interface *mb, string fileBase ) {
 	continue;
       stringstream tks(line);
       tks >> num_triangles; // ignore the rest of the line
-      cout << "num triangles:" << num_triangles << endl; 
+      cout << "num triangles:" << num_triangles << endl;
     }
 
   EntityHandle starte;
@@ -107,7 +107,7 @@ ErrorCode ReadTriangleOutput( Interface *mb, string fileBase ) {
                           // with triangle data
   // allocate block of triangle handles and read connectivity into them
   rval = iface->get_element_connect(num_triangles, 3, MBTRI, 0, starte, starth);
-  
+
   for (int j = 0; j < num_triangles; j++)
     {
       getline(eleFile, line);
@@ -129,13 +129,13 @@ ErrorCode ReadTriangleOutput( Interface *mb, string fileBase ) {
     }
 
   mb->release_interface(iface);
-  //       
+  //
   return MB_SUCCESS;
 }
 
 
 // .
-//  Read Triangle output files 
+//  Read Triangle output files
 //  Assume that the format is <filename>.node and <filename>.ele
 //   see  http://www.cs.cmu.edu/~quake/triangle.html for details
 //
@@ -144,13 +144,13 @@ int main(int argc, char **argv) {
     cout << "Usage: " << argv[0] << " <filename>  <outFile> " << endl;
     cout << "       <filename>  is the base file name; *.ele and *.node file are read; outFile is a file with an extension recognized by MOAB " << endl;
     return 0;
-  }     
+  }
 
   string filename = argv[1];
   char * outfile = argv[2];
-  
 
-  // get MOAB instance and read the file                                                                                                  
+
+  // get MOAB instance and read the file
   Core *mb = new Core();
 
    ErrorCode rval = ReadTriangleOutput(mb, filename);
@@ -158,10 +158,10 @@ int main(int argc, char **argv) {
    if (rval==MB_SUCCESS)
    {
      cout << "Writing output file " << outfile << endl;
-     mb->write_file(outfile); 
+     mb->write_file(outfile);
    }
 
    delete mb;
 
    return 0;
-}  
+}

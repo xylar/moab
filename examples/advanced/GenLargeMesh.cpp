@@ -274,7 +274,7 @@ int main(int argc, char **argv)
     // delete the mesh that we already have in-memory
     mb2.delete_mesh();
   }
-#endif 
+#endif
 
 #ifdef MOAB_HAVE_MPI
   MPI_Finalize();

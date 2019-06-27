@@ -22,15 +22,15 @@
  * Conventions
  * ===========
  * There are parts of MOAB data structures that need to be stored to Damsel that aren't represented in the Damsel data model,
- * e.g. dense vs. sparse storage type, set tracking flags.  
- * - We need to store these as tags in Damsel.  
- * - Since Damsel tags need to have a MOAB counterpart, we have to create those as tag data in MOAB too 
+ * e.g. dense vs. sparse storage type, set tracking flags.
+ * - We need to store these as tags in Damsel.
+ * - Since Damsel tags need to have a MOAB counterpart, we have to create those as tag data in MOAB too
  *   (duplicating the data in the data structures, bummer).
  * - Because we may want to use these tags for multiple Damsel writes/models, we create the MOAB-side tags in the WriteDamsel
  *   constructor, not in the init_tags function that's called for every write
  * - Conventional tags have names prefixed with mbdmsl_ to avoid name conflicts with other MOAB tags.
  * Here we list the conventional tags used by MOAB's Damsel reader/writer.
- * 
+ *
  * Tag name                   Tag char's (storage type, data type, length, def val)       Values, used for what
  * --------                   -----------------------------------------------------       --------------------
  * mbdmsl_XCOORDS             dense; double[1]; 0.0                                       MOAB vertex x coordinate
@@ -41,8 +41,8 @@
  * mbdmsl_PARENTS      sparse; handle; var;                                        (list of parent sets)
  * mbdmsl_CHILDS       sparse; handle; var;                                        (list of child sets)
  *
- * 
- * 
+ *
+ *
  */
 
 #include "WriteDamsel.hpp"
@@ -201,7 +201,7 @@ ErrorCode WriteDamsel::init_tag_info()
         mbImpl->tag_get_length(*vit, dum_size) == MB_VARIABLE_DATA_LENGTH ||
         dum_size != 1) {
       std::cerr << "Warning: tag " << (*vit)->get_name()
-                << "is not of type dense or sparse, and is not currently supported by the damsel writer." 
+                << "is not of type dense or sparse, and is not currently supported by the damsel writer."
                 << std::endl;
       continue;
     }
@@ -209,7 +209,7 @@ ErrorCode WriteDamsel::init_tag_info()
     std::vector<DamselUtil::tinfo>::iterator vit2 =
         std::find_if(dU.tagMap.begin(), dU.tagMap.end(), DamselUtil::MtagP<DamselUtil::tinfo>(*vit));
 
-    if (vit2 != dU.tagMap.end() && (*vit2).tagType == MB_TAG_ANY) 
+    if (vit2 != dU.tagMap.end() && (*vit2).tagType == MB_TAG_ANY)
       // Conventional tag - skip
       continue;
 
@@ -256,14 +256,14 @@ ErrorCode WriteDamsel::init_tag_info()
   SKIP PARENTS/CHILDREN FOR NOW, UNTIL WE HAVE VAR LENGTH TAGS IN DAMSEL
 
   // PARENTS
-  dU.parentsTagPair.second = DMSLtag_define(dU.dmslModel, (damsel_handle_ptr)&(dU.collFlagsTagPair.first), 
+  dU.parentsTagPair.second = DMSLtag_define(dU.dmslModel, (damsel_handle_ptr)&(dU.collFlagsTagPair.first),
                                            DamselUtil::mtod_data_type[(dU.collFlagsTagPair.first)->get_data_type()],
                                            (dU.parentsTagPair.first)->get_name().c_str());
   if (DAMSEL_TAG_INVALID == dtag)
     MB_SET_ERR(MB_FAILURE, "Failure to get Damsel tag for MOAB tag " << (dU.parentsTagPair.first)->get_name());
 
   // CHILDREN
-  dU.childrenTagPair.second = DMSLtag_define(dU.dmslModel, (damsel_handle_ptr)&(dU.collFlagsTagPair.first), 
+  dU.childrenTagPair.second = DMSLtag_define(dU.dmslModel, (damsel_handle_ptr)&(dU.collFlagsTagPair.first),
                                            DamselUtil::mtod_data_type[(dU.collFlagsTagPair.first)->get_data_type()],
                                            (dU.childrenTagPair.first)->get_name().c_str());
   if (DAMSEL_TAG_INVALID == dtag)

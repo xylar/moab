@@ -10,16 +10,16 @@
 #include "moab/CN.hpp"
 #include "moab/Error.hpp"
 
-namespace moab 
+namespace moab
 {
-    
-SetIterator::~SetIterator() 
+
+SetIterator::~SetIterator()
 {
   myCore->remove_set_iterator(this);
 }
 
-RangeSetIterator::RangeSetIterator(Core *core, EntityHandle eset, int chunk_sz, 
-                          EntityType ent_tp, int ent_dim, bool check_valid) 
+RangeSetIterator::RangeSetIterator(Core *core, EntityHandle eset, int chunk_sz,
+                          EntityType ent_tp, int ent_dim, bool check_valid)
         : SetIterator(core, eset, chunk_sz, ent_tp, ent_dim, check_valid),
           iterPos(0), pairPtr(NULL), numPairs(0)
 {
@@ -33,17 +33,17 @@ RangeSetIterator::RangeSetIterator(Core *core, EntityHandle eset, int chunk_sz,
   }
 }
 
-RangeSetIterator::~RangeSetIterator() 
+RangeSetIterator::~RangeSetIterator()
 {
   if (pairPtr) delete [] pairPtr;
   numPairs = 0;
 }
 
-ErrorCode RangeSetIterator::build_pair_vec() 
+ErrorCode RangeSetIterator::build_pair_vec()
 {
     // shouldn't be here unless we're iterating the root set
   assert(!entSet);
-  
+
   Range all_ents;
   ErrorCode rval = myCore->get_entities_by_handle(0, all_ents);
   if (MB_SUCCESS != rval) return rval;
@@ -61,11 +61,11 @@ ErrorCode RangeSetIterator::build_pair_vec()
 
   return MB_SUCCESS;
 }
-    
+
 ErrorCode RangeSetIterator::get_next_arr(std::vector<EntityHandle> &arr,
-                                         bool &atend) 
+                                         bool &atend)
 {
-  atend = false;  
+  atend = false;
 
   int count;
   const EntityHandle *ptr;
@@ -78,7 +78,7 @@ ErrorCode RangeSetIterator::get_next_arr(std::vector<EntityHandle> &arr,
     Interface *mbImpl = dynamic_cast<Interface*>(myCore);
     rval = mbImpl->query_interface(iface);
     if (MB_SUCCESS != rval) return rval;
-  
+
     rval = iface->get_entity_list_pointers( &entSet, 1, &ptr, WriteUtilIface::CONTENTS, &count);
     if (MB_SUCCESS != rval) return rval;
     mbImpl->release_interface(iface);
@@ -100,13 +100,13 @@ ErrorCode RangeSetIterator::get_next_arr(std::vector<EntityHandle> &arr,
   if (-1 == entDimension) rval = get_next_by_type(ptr, count, *tmp_ptr, atend);
   else rval = get_next_by_dimension(ptr, count, *tmp_ptr, atend);
   if (MB_SUCCESS != rval) return rval;
-  
+
   if (checkValid) {
     for (std::vector<EntityHandle>::iterator vit = tmp_ptr->begin(); vit != tmp_ptr->end(); ++vit) {
       if (myCore->is_valid(*vit)) arr.push_back(*vit);
     }
   }
-    
+
   return MB_SUCCESS;
 }
 
@@ -126,12 +126,12 @@ ErrorCode RangeSetIterator::get_next_by_type(const EntityHandle *&ptr, int count
     return MB_SUCCESS;
   }
   if (!iterPos && max_type) iterPos = ptr[idx];
-  else if (!iterPos && 
+  else if (!iterPos &&
            TYPE_FROM_HANDLE(ptr[idx]) <= entType &&
            TYPE_FROM_HANDLE(ptr[idx+1]) >= entType) {
     iterPos = std::max(CREATE_HANDLE(entType,1), ptr[idx]);
   }
-  
+
     // idx points to start of subrange, iterPos in that subrange
   do {
     EntityHandle next = ptr[idx+1];
@@ -149,7 +149,7 @@ ErrorCode RangeSetIterator::get_next_by_type(const EntityHandle *&ptr, int count
 
     num_ret += this_ret;
   }
-  while ((int)idx < count && num_ret < chunkSize && 
+  while ((int)idx < count && num_ret < chunkSize &&
          iterPos && (max_type || TYPE_FROM_HANDLE(iterPos) == entType));
 
   if (!iterPos || (!max_type && TYPE_FROM_HANDLE(iterPos) != entType)) atend = true;
@@ -158,13 +158,13 @@ ErrorCode RangeSetIterator::get_next_by_type(const EntityHandle *&ptr, int count
 }
 
 ErrorCode RangeSetIterator::get_next_by_dimension(const EntityHandle *&ptr, int count,
-                                                  std::vector<EntityHandle> &arr, bool &atend) 
+                                                  std::vector<EntityHandle> &arr, bool &atend)
 {
     // iterating by dimension - type should be maxtype
   if (entType != MBMAXTYPE) {
     MB_SET_ERR(MB_FAILURE, "Both dimension and type should not be set on an iterator");
   }
-    
+
   unsigned int num_ret = 0;
   size_t idx = 0;
     // initialize to first relevant handle
@@ -179,11 +179,11 @@ ErrorCode RangeSetIterator::get_next_by_dimension(const EntityHandle *&ptr, int 
   if (!iterPos) iterPos = ptr[idx];
   else if (CN::Dimension(TYPE_FROM_HANDLE(ptr[idx])) < entDimension)
     iterPos = CREATE_HANDLE(CN::TypeDimensionMap[entDimension].first,1);
-  
+
     // idx points to start of subrange, iterPos in that subrange
   do {
     EntityHandle next = ptr[idx+1];
-    if (CN::Dimension(TYPE_FROM_HANDLE(next)) != entDimension) 
+    if (CN::Dimension(TYPE_FROM_HANDLE(next)) != entDimension)
       next = LAST_HANDLE(CN::TypeDimensionMap[entDimension].second);
     unsigned int this_ret = chunkSize-num_ret;
     unsigned int to_end = next - iterPos + 1;
@@ -198,7 +198,7 @@ ErrorCode RangeSetIterator::get_next_by_dimension(const EntityHandle *&ptr, int 
 
     num_ret += this_ret;
   }
-  while ((int)idx < count && num_ret < chunkSize && 
+  while ((int)idx < count && num_ret < chunkSize &&
          iterPos && CN::Dimension(TYPE_FROM_HANDLE(iterPos)) == entDimension);
 
   if (!iterPos || CN::Dimension(TYPE_FROM_HANDLE(iterPos)) != entDimension) atend = true;
@@ -206,12 +206,12 @@ ErrorCode RangeSetIterator::get_next_by_dimension(const EntityHandle *&ptr, int 
   return MB_SUCCESS;
 }
 
-ErrorCode RangeSetIterator::reset() 
+ErrorCode RangeSetIterator::reset()
 {
-  iterPos = 0; 
+  iterPos = 0;
   return MB_SUCCESS;
 }
-  
+
 ErrorCode VectorSetIterator::get_next_arr(std::vector<EntityHandle> &arr,
                                           bool &atend)
 {
@@ -221,16 +221,16 @@ ErrorCode VectorSetIterator::get_next_arr(std::vector<EntityHandle> &arr,
   Interface *mbImpl = dynamic_cast<Interface*>(myCore);
   ErrorCode rval = mbImpl->query_interface(iface);
   if (MB_SUCCESS != rval) return rval;
-  
+
   rval = iface->get_entity_list_pointers( &entSet, 1, &ptr, WriteUtilIface::CONTENTS, &count);
   if (MB_SUCCESS != rval) return rval;
   mbImpl->release_interface(iface);
-  
+
   if (!count || iterPos >= count) {
     atend = true;
     return MB_SUCCESS;
   }
-  
+
   std::vector<EntityHandle> tmp_arr;
   std::vector<EntityHandle> *tmp_ptr = &arr;
   if (checkValid) tmp_ptr = &tmp_arr;
@@ -245,7 +245,7 @@ ErrorCode VectorSetIterator::get_next_arr(std::vector<EntityHandle> &arr,
     }
     iterPos++;
   }
-  
+
   atend = (iterPos == count);
 
   if (checkValid) {
@@ -258,10 +258,10 @@ ErrorCode VectorSetIterator::get_next_arr(std::vector<EntityHandle> &arr,
   return MB_SUCCESS;
 }
 
-ErrorCode VectorSetIterator::reset() 
+ErrorCode VectorSetIterator::reset()
 {
-  iterPos = 0; 
+  iterPos = 0;
   return MB_SUCCESS;
 }
-  
+
 }

@@ -8,9 +8,9 @@
 
 #include <time.h>
 
-namespace moab 
+namespace moab
 {
-    
+
 class CpuTimer {
 private:
 #ifdef MOAB_HAVE_MPI
@@ -19,7 +19,7 @@ private:
   double tAtBirth, tAtLast;
   double runtime();
 public:
-  CpuTimer() 
+  CpuTimer()
 #ifdef MOAB_HAVE_MPI
     : mpi_initialized(0)
 #endif

@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2006 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
+
     (2006) kraftche@cae.wisc.edu
-   
+
   ***************************************************************** */
 
 
 /** \file ElementPMeanP.hpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #ifndef MSQ_ELEMENT_PMEAN_P_HPP
@@ -46,20 +46,20 @@ class ElementPMeanP : public ElementQM, public PMeanPMetric
 public:
 
   MESQUITE_EXPORT ElementPMeanP( double p, ElemSampleQM* metric );
-  
+
   MESQUITE_EXPORT virtual ~ElementPMeanP();
-  
-  MESQUITE_EXPORT ElemSampleQM* get_quality_metric() const 
+
+  MESQUITE_EXPORT ElemSampleQM* get_quality_metric() const
     { return mMetric; }
-  
+
   MESQUITE_EXPORT virtual std::string get_name() const;
 
   MESQUITE_EXPORT virtual int get_negate_flag() const;
 
   MESQUITE_EXPORT virtual
-  bool evaluate( PatchData& pd, 
-                 size_t handle, 
-                 double& value, 
+  bool evaluate( PatchData& pd,
+                 size_t handle,
+                 double& value,
                  MsqError& err );
 
   MESQUITE_EXPORT virtual
@@ -78,7 +78,7 @@ public:
                  std::vector<Vector3D>& gradient,
                  std::vector<Matrix3D>& Hessian,
                  MsqError& err );
-     
+
   MESQUITE_EXPORT virtual
   bool evaluate_with_Hessian_diagonal( PatchData& pd,
                  size_t handle,
@@ -91,7 +91,7 @@ private:
 
   ElemSampleQM* mMetric;
   mutable std::vector<size_t> mHandles;
-};  
+};
 
 
 } // namespace MBMesquite

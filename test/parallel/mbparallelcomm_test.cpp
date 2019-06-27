@@ -35,7 +35,7 @@ using namespace moab;
         }
 #define RRA(a) if (MB_SUCCESS != result) {\
     std::cerr << a; return result;}
-    
+
 
 ErrorCode create_linear_mesh(Interface *mbImpl,
                                int N, int M, int &nshared);
@@ -45,7 +45,7 @@ ErrorCode create_scd_mesh(Interface *mbImpl,
 
 ErrorCode read_file(Interface *mbImpl, std::vector<std::string> &filenames,
                       const char *tag_name, int tag_val, int distrib,
-                      int parallel_option, int resolve_shared, int with_ghosts, 
+                      int parallel_option, int resolve_shared, int with_ghosts,
                       int use_mpio, bool print_parallel);
 
 ErrorCode test_packing(Interface *mbImpl, const char *filename);
@@ -57,7 +57,7 @@ ErrorCode report_iface_ents(Interface *mbImpl,
 
 void print_usage(const char *);
 
-int main(int argc, char **argv) 
+int main(int argc, char **argv)
 {
     // need to init MPI first, to tell how many procs and rank
   MPI_Init(&argc, &argv);
@@ -73,7 +73,7 @@ int main(int argc, char **argv)
     // create MOAB instance based on that
   Interface *mbImpl = new Core;
   if (NULL == mbImpl) return 1;
-  
+
   ErrorCode result = MB_SUCCESS;
 
     // each interior proc has a vector of N+M vertices, sharing
@@ -87,7 +87,7 @@ int main(int argc, char **argv)
     return 1;
   }
 
-  int npos = 1, tag_val, distrib, with_ghosts = 1, resolve_shared = 1, 
+  int npos = 1, tag_val, distrib, with_ghosts = 1, resolve_shared = 1,
       use_mpio = 0;
   bool print_parallel = false;
   const char *tag_name;
@@ -97,7 +97,7 @@ int main(int argc, char **argv)
 
   if (!strcmp(argv[npos], "-p")) print_parallel = true;
 
-  while (npos != argc) {    
+  while (npos != argc) {
     ErrorCode tmp_result;
     int this_opt = strtol(argv[npos++], NULL, 0);
     switch (this_opt) {
@@ -107,7 +107,7 @@ int main(int argc, char **argv)
       case -3:
           parallel_option = this_opt;
           continue;
-        
+
       case 3:
             // read a file in parallel from the filename on the command line
           tag_name = "MATERIAL_SET";
@@ -129,7 +129,7 @@ int main(int argc, char **argv)
           if (npos < argc) use_mpio = strtol(argv[npos++], NULL, 0);
 
           tmp_result = read_file(mbImpl, filenames, tag_name, tag_val,
-                                 distrib, parallel_option, 
+                                 distrib, parallel_option,
                                  resolve_shared, with_ghosts, use_mpio,
                                  print_parallel);
           if (MB_SUCCESS != tmp_result) {
@@ -175,11 +175,11 @@ int main(int argc, char **argv)
                     << "\"; skipping." << std::endl;
           tmp_result = MB_FAILURE;
     }
-    
+
 
     if (0 == rank) rtime = MPI_Wtime();
   }
-  
+
   if (0 == rank) dtime = MPI_Wtime();
 
   result = mbImpl->delete_mesh();
@@ -192,8 +192,8 @@ int main(int argc, char **argv)
 
   if (MB_SUCCESS == result)
     std::cerr << "Proc " << rank << ": Success." << std::endl;
-    
-  if (0 == rank) std::cout << "Times: " 
+
+  if (0 == rank) std::cout << "Times: "
                            << dtime-stime << " "
                            << rtime-stime << " "
                            << ltime - dtime
@@ -203,13 +203,13 @@ int main(int argc, char **argv)
   MPI_Finalize();
 
   delete mbImpl;
-  
+
   return (MB_SUCCESS == result ? 0 : 1);
 }
 
-void print_usage(const char *command) 
+void print_usage(const char *command)
 {
-  std::cerr 
+  std::cerr
       << "Usage: " << command
       << " [readpar_option] <opt> <input> [...] where:" << std::endl
       << " readpar_option = 0 (BCAST_DELETE) (default), -1 (READ_DELETE), " << std::endl
@@ -223,12 +223,12 @@ void print_usage(const char *command)
       << "*Note: if opt 3 is used, it must be the last one." << std::endl;
 }
 
-ErrorCode report_nsets(Interface *mbImpl) 
+ErrorCode report_nsets(Interface *mbImpl)
 {
     // get and report various numbers...
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  
+
   Range matsets, geomsets, parsets;
   int nsets;
   Tag mtag = 0, gtag = 0, ptag = 0, gidtag;
@@ -259,7 +259,7 @@ ErrorCode report_nsets(Interface *mbImpl)
   }
   std::cout << "Proc " << rank << ": Total of " << nsets
             << " entity sets." << std::endl;
-  
+
 #define PRINTSETS(a, b, c, p) \
   if (a) {\
     result = mbImpl->get_entities_by_type_and_tag(0, MBENTITYSET, & a,\
@@ -275,12 +275,12 @@ ErrorCode report_nsets(Interface *mbImpl)
           std::cout << ", " << ids[i]; \
         std::cout << std::endl; \
       } } }
-  
+
   PRINTSETS(mtag, matsets, "material sets", NULL);
-  
+
   int tval = 3;
   void *pval = &tval;
-  
+
   PRINTSETS(gtag, geomsets, "geom sets (vols)", &pval);
   tval = 2;
   geomsets.clear();
@@ -291,7 +291,7 @@ ErrorCode report_nsets(Interface *mbImpl)
   tval = 0;
   geomsets.clear();
   PRINTSETS(gtag, geomsets, "geom sets (verts)", &pval);
-  
+
   PRINTSETS(ptag, parsets, "partition sets", NULL);
 
   if (debug) {
@@ -304,15 +304,15 @@ ErrorCode report_nsets(Interface *mbImpl)
       mbImpl->list_entities(parsets);
     }
   }
-  
+
   return MB_SUCCESS;
 }
 
-ErrorCode read_file(Interface *mbImpl, 
+ErrorCode read_file(Interface *mbImpl,
                       std::vector<std::string> &filenames,
                       const char *tag_name, int tag_val,
                       int distrib, int parallel_option, int resolve_shared,
-                      int with_ghosts, int use_mpio, bool print_parallel) 
+                      int with_ghosts, int use_mpio, bool print_parallel)
 {
   std::ostringstream options;
   switch (parallel_option) {
@@ -331,7 +331,7 @@ ErrorCode read_file(Interface *mbImpl,
     default:
       return MB_FAILURE;
   }
-  
+
   if (-1 != tag_val)
     options << ";PARTITION_VAL=" << tag_val;
 
@@ -349,7 +349,7 @@ ErrorCode read_file(Interface *mbImpl,
 
   options << ";CPUTIME";
 
-  if (print_parallel) 
+  if (print_parallel)
     options << ";PRINT_PARALLEL";
 
   std::vector<ParallelComm*> pcs(filenames.size());
@@ -364,7 +364,7 @@ ErrorCode read_file(Interface *mbImpl,
       newopts << ";PARALLEL_COMM="<<index;
       result = mbImpl->load_file( filenames[i].c_str(), 0, newopts.str().c_str());
 
-      if (MB_SUCCESS != result) 
+      if (MB_SUCCESS != result)
         PRINT_LAST_ERROR;
 
       if (MB_SUCCESS != result) {
@@ -383,19 +383,19 @@ ErrorCode read_file(Interface *mbImpl,
     }
   }
   else {
-    result = mbImpl->load_file(filenames[0].c_str(), 0, 
+    result = mbImpl->load_file(filenames[0].c_str(), 0,
                                options.str().c_str());
     RRA("Failed to load file.");
     pcs[0] = ParallelComm::get_pcomm(mbImpl, 0);
     assert(pcs[0]);
   }
-    
+
   if (MB_SUCCESS == result) report_iface_ents(mbImpl, pcs);
-  
+
   return result;
 }
 
-ErrorCode test_packing(Interface *mbImpl, const char *filename) 
+ErrorCode test_packing(Interface *mbImpl, const char *filename)
 {
     // read the mesh
   EntityHandle file_set;
@@ -408,15 +408,15 @@ ErrorCode test_packing(Interface *mbImpl, const char *filename)
     PRINT_LAST_ERROR;
     return result;
   }
-  
+
     // get 3d entities and pack a buffer with them
   Range ents, whole_range;
   std::vector<EntityHandle> new_ents;
   result = mbImpl->get_entities_by_handle(file_set, ents);
   RRA("Getting 3d ents failed.");
-  
+
   ents.insert(file_set);
-  
+
   ParallelComm *pcomm = new ParallelComm(mbImpl, MPI_COMM_WORLD);
 
   ParallelComm::Buffer buff;
@@ -427,9 +427,9 @@ ErrorCode test_packing(Interface *mbImpl, const char *filename)
   std::vector<std::vector<int> > L1p;
   std::vector<EntityHandle> L2hloc, L2hrem;
   std::vector<unsigned int> L2p;
-  
+
   buff.reset_ptr();
-  result = pcomm->unpack_buffer(buff.buff_ptr, false, -1, -1, L1hloc, L1hrem, L1p, L2hloc, 
+  result = pcomm->unpack_buffer(buff.buff_ptr, false, -1, -1, L1hloc, L1hrem, L1p, L2hloc,
                          L2hrem, L2p, new_ents);
   RRA("Unpacking buffer (non-stored handles) failed.");
 
@@ -437,11 +437,11 @@ ErrorCode test_packing(Interface *mbImpl, const char *filename)
 }
 
 ErrorCode report_iface_ents(Interface *mbImpl,
-                              std::vector<ParallelComm *> &pcs) 
+                              std::vector<ParallelComm *> &pcs)
 {
   Range iface_ents[6];
   ErrorCode result = MB_SUCCESS, tmp_result;
-  
+
     // now figure out which vertices are shared
   Range part_ents, part_verts;
   for (unsigned int p = 0; p < pcs.size(); p++) {
@@ -454,9 +454,9 @@ ErrorCode report_iface_ents(Interface *mbImpl,
 
     for (int i = 0; i < 4; i++) {
       tmp_result = pcs[p]->get_iface_entities(-1, i, iface_ents[i]);
-      
+
       if (MB_SUCCESS != tmp_result) {
-        std::cerr << "get_iface_entities returned error on proc " 
+        std::cerr << "get_iface_entities returned error on proc "
                   << pcs[p]->proc_config().proc_rank() << "; message: " << std::endl;
         std::string last_error;
         result = mbImpl->get_last_error(last_error);
@@ -483,31 +483,31 @@ ErrorCode report_iface_ents(Interface *mbImpl,
   tot_verts -= part_verts.size();
 
     // report # iface entities
-  result = mbImpl->get_adjacencies(iface_ents[4], 0, false, iface_ents[5], 
+  result = mbImpl->get_adjacencies(iface_ents[4], 0, false, iface_ents[5],
                                    Interface::UNION);
 
   int rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  
+
   std::cerr << "Proc " << rank << " iface entities: " << std::endl;
   for (int i = 0; i < 4; i++)
     std::cerr << "    " << iface_ents[i].size() << " "
               << i << "d iface entities." << std::endl;
-  std::cerr << "    (" << iface_ents[5].size() 
+  std::cerr << "    (" << iface_ents[5].size()
             << " verts adj to other iface ents)" << std::endl;
   if (iface_ents[0].size() != iface_ents[5].size())
     std::cerr << "WARNING: number of interface vertices don't agree with "
 	      << "vertex adjacencies on interface entities." << std::endl;
 
   // report # regions owned by this proc
-  std::cout << "Proc " << rank << " owns " << part_ents.size() 
+  std::cout << "Proc " << rank << " owns " << part_ents.size()
 	    << " 3d entities." << std::endl;
 
     // get total # regions over all procs
   int num_local[2], num_total[2];
   num_local[0] = tot_verts;
   num_local[1] = part_ents.size();
-  
+
   int failure = MPI_Reduce(num_local, num_total, 2,
                            MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
   if (failure) result = MB_FAILURE;
@@ -516,7 +516,7 @@ ErrorCode report_iface_ents(Interface *mbImpl,
     std::cout << "Total # owned vertices = " << num_total[0] << std::endl;
     std::cout << "Total # owned regions = " << num_total[1] << std::endl;
   }
-  
+
   return result;
 }
 

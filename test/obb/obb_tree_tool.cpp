@@ -29,7 +29,7 @@ const char* const TREE_TAG = "OBB_ROOT";
 const char* root_tag = TREE_TAG;
 
 ErrorCode get_root( Interface* moab, EntityHandle& root );
-EntityHandle build_tree( Interface* interface, 
+EntityHandle build_tree( Interface* interface,
                            OrientedBoxTreeTool::Settings settings );
 void delete_existing_tree( Interface* interface );
 void print_stats( Interface* interface );
@@ -96,13 +96,13 @@ static int parseint( int& i, int argc, char* argv[] )
     std::cerr << "Expected value following '" << argv[i-1] << "'" << std::endl;
     usage();
   }
-  
+
   int result = strtol( argv[i], &end, 0 );
   if (result < 0 || *end) {
     std::cerr << "Expected positive integer following '" << argv[i-1] << "'" << std::endl;
     usage();
   }
-  
+
   return result;
 }
 
@@ -114,16 +114,16 @@ static double parsedouble( int& i, int argc, char* argv[] )
     std::cerr << "Expected value following '" << argv[i-1] << "'" << std::endl;
     usage();
   }
-  
+
   double result = strtod( argv[i], &end );
   if (result < 0 || *end) {
     std::cerr << "Expected positive real number following '" << argv[i-1] << "'" << std::endl;
     usage();
   }
-  
+
   return result;
 }
-    
+
 
 int main( int argc, char* argv[] )
 {
@@ -133,21 +133,21 @@ int main( int argc, char* argv[] )
   OrientedBoxTreeTool::Settings settings;
   bool tag_tris = false;
   clock_t load_time, build_time, stat_time, tag_time, write_time, block_time;
-  
+
   for (int i = 1; i < argc; ++i) {
     if (argv[i][0] != '-') {
       if (!input_file)
         input_file = argv[i];
       else if (!output_file)
         output_file = argv[i];
-      else 
+      else
         usage();
       continue;
     }
-    
+
     if (!argv[i][1] || argv[i][2])
       usage();
-    
+
     switch (argv[i][1]) {
       case 's': settings.set_options = MESHSET_SET;                        break;
       case 'S': settings.set_options = MESHSET_ORDERED;                    break;
@@ -162,14 +162,14 @@ int main( int argc, char* argv[] )
       default: usage();
     }
   }
-  
+
   if (!output_file)
     usage();
-  
+
   ErrorCode rval;
   Core moab_core;
   Interface* interface = &moab_core;
-  
+
   load_time = clock();
   rval = interface->load_mesh( input_file );
   if (MB_SUCCESS != rval) {
@@ -185,37 +185,37 @@ int main( int argc, char* argv[] )
   build_time = clock();
   build_tree( interface, settings );
   build_time = clock() - build_time;
-  
+
   std::cout << "Calculating stats..." << std::endl;
   print_stats( interface );
   stat_time = clock() - build_time;
-  
+
   if (tag_tris) {
     std::cout << "Tagging tree..." << std::endl;
     tag_triangles( interface );
     tag_vertices( interface );
   }
   tag_time = clock() - stat_time;
-  
-  
+
+
   std::cout << "Writing file... "; std::cout.flush();
   rval = interface->write_mesh( output_file );
   if (MB_SUCCESS != rval) {
     std::cerr << "Error writing file: " << output_file << std::endl;
     exit(3);
   }
-  write_time = clock() - tag_time; 
+  write_time = clock() - tag_time;
   std::cout << "Wrote " << output_file << std::endl;
-  
+
   if (tree_file) {
     std::cout << "Writing tree block rep..."; std::cout.flush();
     write_tree_blocks( interface, tree_file );
     std::cout << "Wrote " << tree_file << std::endl;
   }
   block_time = clock() - write_time;
-  
-  std::cout   << "Times:  " 
-              << "    Load" 
+
+  std::cout   << "Times:  "
+              << "    Load"
               << "   Build"
               << "   Stats"
               << "   Write";
@@ -224,7 +224,7 @@ int main( int argc, char* argv[] )
   if (tree_file)
     std::cout << "Block   ";
   std::cout   << std::endl;
-  
+
   std::cout   << "        "
               << std::setw(8) << clock_to_string(load_time)
               << std::setw(8) << clock_to_string(build_time)
@@ -247,12 +247,12 @@ ErrorCode get_root( Interface* moab, EntityHandle& root )
   rval = moab->tag_get_handle( root_tag, 1, MB_TYPE_HANDLE, tag );
   if (MB_SUCCESS != rval)
     return rval;
- 
+
   const EntityHandle mesh = 0;
   return moab->tag_get_data( tag, &mesh, 1, &root );
 }
 
-  
+
 void delete_existing_tree( Interface* interface )
 {
   EntityHandle root;
@@ -266,26 +266,26 @@ void delete_existing_tree( Interface* interface )
     }
   }
 }
-  
+
 EntityHandle build_tree( Interface* interface, OrientedBoxTreeTool::Settings settings )
 {
   ErrorCode rval;
   EntityHandle root = 0;
   Range triangles;
-  
+
   rval = interface->get_entities_by_type( 0, MBTRI, triangles );
   if (MB_SUCCESS != rval || triangles.empty()) {
     std::cerr << "No triangles from which to build tree." << std::endl;
     exit(4);
   }
-  
+
   OrientedBoxTreeTool tool( interface );
   rval = tool.build( triangles, root, &settings );
   if (MB_SUCCESS != rval || !root) {
     std::cerr << "Tree construction failed." << std::endl;
     exit(4);
   }
-  
+
     // store tree root
   Tag roottag;
   rval = interface->tag_get_handle( root_tag, 1, MB_TYPE_HANDLE, roottag, MB_TAG_CREAT|MB_TAG_SPARSE );
@@ -299,9 +299,9 @@ EntityHandle build_tree( Interface* interface, OrientedBoxTreeTool::Settings set
     std::cout << "Failed to set root tag: \"" << root_tag << '"' << std::endl;
     exit(2);
   }
-  
+
   return root;
-}  
+}
 
 std::string clock_to_string( clock_t t )
 {
@@ -344,8 +344,8 @@ std::string mem_to_string( unsigned long mem )
   return buffer;
 }
 
-template <typename T> 
-struct SimpleStat 
+template <typename T>
+struct SimpleStat
 {
   T min, max, sum, sqr;
   size_t count;
@@ -384,21 +384,21 @@ void print_stats( Interface* interface )
   tree_sets.insert( root );
   unsigned long long set_used, set_amortized, set_store_used, set_store_amortized,
                 set_tag_used, set_tag_amortized, tri_used, tri_amortized;
-  interface->estimated_memory_use( tree_sets, 
-                                   &set_used, &set_amortized, 
+  interface->estimated_memory_use( tree_sets,
+                                   &set_used, &set_amortized,
                                    &set_store_used, &set_store_amortized,
                                    0, 0, 0, 0,
                                    &set_tag_used, &set_tag_amortized );
   interface->estimated_memory_use( triangles,  &tri_used, &tri_amortized );
-  
+
   int num_tri = 0;
   interface->get_number_entities_by_type( 0, MBTRI, num_tri );
-  
+
   tool.stats( root, std::cout );
-  
+
   unsigned long long real_rss, real_vsize;
   memory_use( real_vsize, real_rss );
-  
+
   printf("------------------------------------------------------------------\n");
   printf("\nmemory:           used  amortized\n");
   printf("            ---------- ----------\n");
@@ -415,7 +415,7 @@ static int hash_handle( EntityHandle handle )
 {
   EntityID h = ID_FROM_HANDLE(handle);
   return (int)((h * 13 + 7) % MAX_TAG_VALUE) + 1;
-}   
+}
 
 class TriTagger : public OrientedBoxTreeTool::Op
 {
@@ -430,7 +430,7 @@ public:
 
   ErrorCode visit( EntityHandle, int, bool& descent )
     { descent = true; return MB_SUCCESS; }
-  
+
   ErrorCode leaf( EntityHandle node ) {
     mHandles.clear();
     mMB->get_entities_by_handle( node, mHandles );
@@ -440,7 +440,7 @@ public:
     return MB_SUCCESS;
   }
 };
-    
+
 
 void tag_triangles( Interface* moab )
 {
@@ -455,7 +455,7 @@ void tag_triangles( Interface* moab )
   int zero = 0;
   moab->tag_get_handle( TAG_NAME, 1, MB_TYPE_INTEGER, tag, MB_TAG_DENSE|MB_TAG_CREAT, &zero );
   TriTagger op( tag, moab );
-  
+
   OrientedBoxTreeTool tool(moab);
   rval = tool.preorder_traverse( root, op );
   if (MB_SUCCESS != rval) {
@@ -479,7 +479,7 @@ public:
 
   ErrorCode visit( EntityHandle, int, bool& descent )
     { descent = true; return MB_SUCCESS; }
-  
+
   ErrorCode leaf( EntityHandle node ) {
     mHandles.clear();
     mMB->get_entities_by_handle( node, mHandles );
@@ -491,7 +491,7 @@ public:
     return MB_SUCCESS;
   }
 };
-    
+
 
 void tag_vertices( Interface* moab )
 {
@@ -506,7 +506,7 @@ void tag_vertices( Interface* moab )
   int zero = 0;
   moab->tag_get_handle( TAG_NAME, 1, MB_TYPE_INTEGER, tag, MB_TAG_DENSE|MB_TAG_CREAT, &zero );
   VtxTagger op( tag, moab );
-  
+
   OrientedBoxTreeTool tool(moab);
   rval = tool.preorder_traverse( root, op );
   if (MB_SUCCESS != rval) {
@@ -531,7 +531,7 @@ public:
 
   ErrorCode visit( EntityHandle, int, bool& descent )
     { descent = true; return MB_SUCCESS; }
-  
+
   ErrorCode leaf( EntityHandle node ) {
     OrientedBox box;
     ErrorCode rval = mTool->box( node, box );
@@ -552,7 +552,7 @@ void write_tree_blocks( Interface* interface, const char* file )
     std::cerr << "Internal error: Failed to retrieve tree." << std::endl;
     exit(5);
   }
-  
+
   Core moab2;
   Tag tag;
   int zero = 0;
@@ -568,4 +568,4 @@ void write_tree_blocks( Interface* interface, const char* file )
 
   moab2.write_mesh( file );
 }
- 
+

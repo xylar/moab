@@ -1,9 +1,9 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2004 Sandia Corporation and Argonne National
-    Laboratory.  Under the terms of Contract DE-AC04-94AL85000 
-    with Sandia Corporation, the U.S. Government retains certain 
+    Laboratory.  Under the terms of Contract DE-AC04-94AL85000
+    with Sandia Corporation, the U.S. Government retains certain
     rights in this software.
 
     This library is free software; you can redistribute it and/or
@@ -16,17 +16,17 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
-    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov, 
+
+    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov,
     pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov,
     kraftche@cae.wisc.edu
-   
+
   ***************************************************************** */
 //
-//   SUMMARY: 
+//   SUMMARY:
 //     USAGE:
 //
 // ORIG-DATE: 26-March-08 at 10:26:21
@@ -119,7 +119,7 @@ void ParallelMeshImpl::vertices_set_global_id(const VertexHandle vert_array[],
   tag_set_vertex_data( gid_tag, num_vtx, vert_array, gid, err );
   MSQ_CHKERR(err);
 }
-     
+
 void ParallelMeshImpl::vertices_get_processor_id(const VertexHandle vert_array[],
 						 int pid[],
 						 size_t num_vtx,
@@ -156,7 +156,7 @@ void ParallelMeshImpl::vertices_set_processor_id(const VertexHandle vert_array[]
   }
 
   tag_set_vertex_data( pid_tag, num_vtx, vert_array, pid, err );
-  MSQ_CHKERR(err); 
+  MSQ_CHKERR(err);
 }
 
 int ParallelMeshImpl::get_geometric_dimension(MsqError& err)
@@ -275,7 +275,7 @@ void ParallelMeshImpl::elements_get_attached_vertices(const ElementHandle *eleme
 						      size_t num_elems,
 						      std::vector<VertexHandle>& vertices,
 						      std::vector<size_t>& offsets,
-						      MsqError &err) 
+						      MsqError &err)
 {
   myMesh->elements_get_attached_vertices(elements,
 					 num_elems,

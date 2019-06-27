@@ -106,7 +106,7 @@ void test_read_eul_all()
   CHECK_ERR(rval);
 }
 
-void test_read_eul_onevar() 
+void test_read_eul_onevar()
 {
   Core moab;
   Interface& mb = moab;
@@ -203,7 +203,7 @@ void test_read_eul_onetimestep()
   CHECK_ERR(rval);
 }
 
-void test_read_eul_nomesh() 
+void test_read_eul_nomesh()
 {
   Core moab;
   Interface& mb = moab;
@@ -239,7 +239,7 @@ void test_read_eul_nomesh()
   CHECK_ERR(rval);
 }
 
-void test_read_eul_novars() 
+void test_read_eul_novars()
 {
   Core moab;
   Interface& mb = moab;
@@ -310,7 +310,7 @@ void test_read_fv_all()
   CHECK_ERR(rval);
 }
 
-void test_read_fv_onevar() 
+void test_read_fv_onevar()
 {
   Core moab;
   Interface& mb = moab;
@@ -418,7 +418,7 @@ void test_read_fv_onetimestep()
   CHECK_ERR(rval);
 }
 
-void test_read_fv_nomesh() 
+void test_read_fv_nomesh()
 {
   Core moab;
   Interface& mb = moab;
@@ -454,7 +454,7 @@ void test_read_fv_nomesh()
   CHECK_ERR(rval);
 }
 
-void test_read_fv_novars() 
+void test_read_fv_novars()
 {
   Core moab;
   Interface& mb = moab;
@@ -530,7 +530,7 @@ void test_read_fv_ghosting()
 }
 #endif
 
-ErrorCode get_options(std::string& opts) 
+ErrorCode get_options(std::string& opts)
 {
 #ifdef MOAB_HAVE_MPI
   // Use parallel options

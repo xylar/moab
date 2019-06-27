@@ -1,20 +1,20 @@
 /**
  * MOAB, a Mesh-Oriented datABase, is a software component for creating,
  * storing and accessing finite element mesh data.
- * 
+ *
  * Copyright 2004 Sandia Corporation.  Under the terms of Contract
  * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
  * retains certain rights in this software.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  */
 
 /** TSTT Mesh Interface brick mesh performance test
- * 
+ *
  * This program tests TSTT mesh interface functions used to create a square structured
  * mesh.  Boilerplate taken from tstt mesh interface test in MOAB and performance test in MOAB
  *
@@ -86,7 +86,7 @@ void query_vert_to_elem(TSTTM::Mesh &mesh);
 void query_elem_to_vert(TSTTM::Mesh &mesh);
 void print_time(const bool print_em, double &tot_time, double &utime, double &stime);
 void build_connect(const int nelem, const int vstart, int *&connect);
-void testB(TSTTM::Mesh &mesh, 
+void testB(TSTTM::Mesh &mesh,
            const int nelem, sidl::array<double> &coords,
            const int *connect);
 void testC(TSTTM::Mesh &mesh, const int nelem, sidl::array<double> &coords);
@@ -104,9 +104,9 @@ int main( int argc, char *argv[] )
     std::cout << "Usage: " << argv[0] << " <ints_per_side> <A|B|C>" << std::endl;
     return 1;
   }
-  
+
   char which_test = '\0';
-  
+
   sscanf(argv[1], "%d", &nelem);
   sscanf(argv[2], "%c", &which_test);
 
@@ -114,8 +114,8 @@ int main( int argc, char *argv[] )
       std::cout << "Must indicate B or C for test." << std::endl;
       return 1;
   }
-  
-  std::cout << "number of elements: " << nelem << "; test " 
+
+  std::cout << "number of elements: " << nelem << "; test "
             << which_test << std::endl;
 
     // pre-build the coords array
@@ -128,38 +128,38 @@ int main( int argc, char *argv[] )
 
     // create an implementation
   TSTTM::Mesh mesh = IMPLEMENTATION_CLASS::_create();
-  
+
   switch (which_test) {
     case 'B':
         // test B: create mesh using bulk interface
       testB(mesh, nelem, coords, connect);
       break;
-      
+
     case 'C':
     // test C: create mesh using individual interface
       testC(mesh, nelem, coords);
       break;
   }
-  
+
   return 0;
 }
 
-void testB(TSTTM::Mesh &mesh, 
+void testB(TSTTM::Mesh &mesh,
            const int nelem, sidl::array<double> &coords,
-           const int *connect) 
+           const int *connect)
 {
   double utime, stime, ttime0, ttime1, ttime2, ttime3;
-  
+
   print_time(false, ttime0, utime, stime);
   int num_verts = (nelem + 1)*(nelem + 1)*(nelem + 1);
   int num_elems = nelem*nelem*nelem;
-  
+
     // create vertices as a block
   CAST_MINTERFACE(mesh, mesh_arrmod, ArrMod);
   sidl::array<Entity_Handle> sidl_vertices, dum_handles;
   CHECK_SIZE(dum_handles, num_verts);
   int sidl_vertices_size;
-  
+
   try {
     mesh_arrmod.createVtxArr(num_verts, TSTTM::StorageOrder_BLOCKED,
                              coords, 3*num_verts,
@@ -182,15 +182,15 @@ void testB(TSTTM::Mesh &mesh,
     assert(connect[i]-1 < num_verts);
     sidl_connect_ptr[i] = sidl_vertices_ptr[connect[i]-1];
   }
-  
+
     // create the entities
   sidl::array<Entity_Handle> new_hexes;
   int new_hexes_size;
   sidl::array<TSTTM::CreationStatus> status;
   int status_size;
-  
+
   try {
-    mesh_arrmod.createEntArr(TSTTM::EntityTopology_HEXAHEDRON, sidl_connect, 
+    mesh_arrmod.createEntArr(TSTTM::EntityTopology_HEXAHEDRON, sidl_connect,
                              sidl_connect_size, new_hexes, new_hexes_size,
                              status, status_size);
   } catch (TSTT::Error& /* err */) {
@@ -206,19 +206,19 @@ void testB(TSTTM::Mesh &mesh,
   print_time(false, ttime2, utime, stime);
 
   query_vert_to_elem(mesh);
-  
+
   print_time(false, ttime3, utime, stime);
 
-  std::cout << "TSTT/MOAB ucd blocked: nelem, construct, e_to_v query, v_to_e query = " 
+  std::cout << "TSTT/MOAB ucd blocked: nelem, construct, e_to_v query, v_to_e query = "
             << nelem << ", "
-            << ttime1-ttime0 << ", " 
-            << ttime2-ttime1 << ", " 
-            << ttime3-ttime2 << " seconds" 
+            << ttime1-ttime0 << ", "
+            << ttime2-ttime1 << ", "
+            << ttime3-ttime2 << " seconds"
             << std::endl;
 }
 
-void testC(TSTTM::Mesh &mesh, 
-           const int nelem, sidl::array<double> &coords) 
+void testC(TSTTM::Mesh &mesh,
+           const int nelem, sidl::array<double> &coords)
 {
   double utime, stime, ttime0, ttime1, ttime2, ttime3;
   print_time(false, ttime0, utime, stime);
@@ -244,7 +244,7 @@ void testC(TSTTM::Mesh &mesh,
 
     // get direct pointer to coordinate array
   double *coords_ptr = ARRAY_PTR(coords, double);
-  
+
   for (int i = 0; i < num_verts; i++) {
 
       // temporary array to hold (single) vertices
@@ -252,12 +252,12 @@ void testC(TSTTM::Mesh &mesh,
     int tmp_vertices_size = 0;
 
       // create the vertex
-    dum_coords[0] = coords_ptr[i]; 
-    dum_coords[1] = coords_ptr[num_verts+i]; 
+    dum_coords[0] = coords_ptr[i];
+    dum_coords[1] = coords_ptr[num_verts+i];
     dum_coords[2] = coords_ptr[2*num_verts+i];
     try {
       mesh_arrmod.createVtxArr(1, TSTTM::StorageOrder_BLOCKED,
-                               tmp_coords, tmp_coords_size, 
+                               tmp_coords, tmp_coords_size,
                                tmp_vertices, tmp_vertices_size);
     } catch (TSTT::Error& /* err */) {
       cerr << "Couldn't create vertex in individual call" << endl;
@@ -267,10 +267,10 @@ void testC(TSTTM::Mesh &mesh,
       // assign into permanent vertex array
     sidl_vertices.set(i, tmp_vertices.get(0));
   }
-  
+
     // get vertex array pointer for reading into tmp_conn
   Entity_Handle *tmp_sidl_vertices = HANDLE_ARRAY_PTR(sidl_vertices);
-  
+
   for (int i=0; i < nelem; i++) {
     for (int j=0; j < nelem; j++) {
       for (int k=0; k < nelem; k++) {
@@ -288,16 +288,16 @@ void testC(TSTTM::Mesh &mesh,
         tmp_conn.set(5, tmp_sidl_vertices[vijk+1+numv*numv]);
         tmp_conn.set(6, tmp_sidl_vertices[vijk+1+numv+numv*numv]);
         tmp_conn.set(7, tmp_sidl_vertices[vijk+numv+numv*numv]);
-        
+
           // create the entity
-  
+
         sidl::array<Entity_Handle> new_hex;
         int new_hex_size = 0;
         sidl::array<TSTTM::CreationStatus> status;
         int status_size = 0;
 
         try {
-          mesh_arrmod.createEntArr(TSTTM::EntityTopology_HEXAHEDRON, 
+          mesh_arrmod.createEntArr(TSTTM::EntityTopology_HEXAHEDRON,
                                    tmp_conn, tmp_conn_size,
                                    new_hex, new_hex_size,
                                    status, status_size);
@@ -317,14 +317,14 @@ void testC(TSTTM::Mesh &mesh,
   print_time(false, ttime2, utime, stime);
 
   query_vert_to_elem(mesh);
-  
+
   print_time(false, ttime3, utime, stime);
 
-  std::cout << "TSTT/MOAB ucd indiv: nelem, construct, e_to_v query, v_to_e query = " 
+  std::cout << "TSTT/MOAB ucd indiv: nelem, construct, e_to_v query, v_to_e query = "
             << nelem << ", "
-            << ttime1-ttime0 << ", " 
-            << ttime2-ttime1 << ", " 
-            << ttime3-ttime2 << " seconds" 
+            << ttime1-ttime0 << ", "
+            << ttime2-ttime1 << ", "
+            << ttime3-ttime2 << " seconds"
             << std::endl;
 }
 
@@ -336,7 +336,7 @@ void query_elem_to_vert(TSTTM::Mesh &mesh)
 
     // get all the hex elements
   try {
-    mesh.getEntities(0, TSTTM::EntityType_REGION, TSTTM::EntityTopology_HEXAHEDRON, 
+    mesh.getEntities(0, TSTTM::EntityType_REGION, TSTTM::EntityTopology_HEXAHEDRON,
                      all_hexes, all_hexes_size);
   } catch (TSTT::Error& /* err */) {
     cerr << "Couldn't get all hex elements in query_mesh" << endl;
@@ -345,7 +345,7 @@ void query_elem_to_vert(TSTTM::Mesh &mesh)
 
   try {
       // set up some tmp arrays and array ptrs
-    Entity_Handle *all_hexes_ptr = HANDLE_ARRAY_PTR(all_hexes);  
+    Entity_Handle *all_hexes_ptr = HANDLE_ARRAY_PTR(all_hexes);
 
 
       // now loop over elements
@@ -357,7 +357,7 @@ void query_elem_to_vert(TSTTM::Mesh &mesh)
         // but will have correct size on subsequent ones
       mesh_ent.getEntAdj(all_hexes_ptr[i], TSTTM::EntityType_VERTEX,
                      dum_connect, dum_connect_size);
-                                          
+
 
         // get vertex coordinates; ; will allocate space on 1st iteration,
         // but will have correct size on subsequent ones
@@ -402,7 +402,7 @@ void query_vert_to_elem(TSTTM::Mesh &mesh)
 
     // get all the vertices elements
   try {
-    mesh.getEntities(0, TSTTM::EntityType_VERTEX, 
+    mesh.getEntities(0, TSTTM::EntityType_VERTEX,
                      TSTTM::EntityTopology_POINT, all_verts, all_verts_size);
   } catch (TSTT::Error& /* err */) {
     cerr << "Couldn't get all vertices in query_vert_to_elem" << endl;
@@ -411,7 +411,7 @@ void query_vert_to_elem(TSTTM::Mesh &mesh)
 
   try {
       // set up some tmp arrays and array ptrs
-    Entity_Handle *all_verts_ptr = HANDLE_ARRAY_PTR(all_verts);  
+    Entity_Handle *all_verts_ptr = HANDLE_ARRAY_PTR(all_verts);
 
       // now loop over vertices
     for (int i = 0; i < all_verts_size; i++) {
@@ -429,7 +429,7 @@ void query_vert_to_elem(TSTTM::Mesh &mesh)
   }
 }
 
-void print_time(const bool print_em, double &tot_time, double &utime, double &stime) 
+void print_time(const bool print_em, double &tot_time, double &utime, double &stime)
 {
   struct rusage r_usage;
   getrusage(RUSAGE_SELF, &r_usage);
@@ -439,18 +439,18 @@ void print_time(const bool print_em, double &tot_time, double &utime, double &st
      ((double)r_usage.ru_stime.tv_usec/1.e6);
   tot_time = utime + stime;
   if (print_em)
-    std::cout << "User, system, total time = " << utime << ", " << stime 
+    std::cout << "User, system, total time = " << utime << ", " << stime
               << ", " << tot_time << std::endl;
 #ifndef LINUX
  std::cout << "Max resident set size = " << r_usage.ru_maxrss*4096 << " bytes" << std::endl;
  std::cout << "Int resident set size = " << r_usage.ru_idrss << std::endl;
 #else
-  system("ps o args,drs,rss | grep perf | grep -v grep");  // RedHat 9.0 doesnt fill in actual memory data 
+  system("ps o args,drs,rss | grep perf | grep -v grep");  // RedHat 9.0 doesnt fill in actual memory data
 #endif
 }
 
 void compute_edge(double *start, const int nelem,  const double xint,
-                  const int stride) 
+                  const int stride)
 {
   for (int i = 1; i < nelem; i++) {
     start[i*stride] = start[0]+i*xint;
@@ -460,14 +460,14 @@ void compute_edge(double *start, const int nelem,  const double xint,
 }
 
 void compute_face(double *a, const int nelem,  const double xint,
-                  const int stride1, const int stride2) 
+                  const int stride1, const int stride2)
 {
     // 2D TFI on a face starting at a, with strides stride1 in ada and stride2 in tse
   for (int j = 1; j < nelem; j++) {
     double tse = j * xint;
     for (int i = 1; i < nelem; i++) {
       double ada = i * xint;
-      
+
       a[i*stride1+j*stride2] = (1.0 - ada)*a[i*stride1]
         + ada*a[i*stride1+nelem*stride2]
         + (1.0 - tse)*a[j*stride2]
@@ -496,7 +496,7 @@ void compute_face(double *a, const int nelem,  const double xint,
   }
 }
 
-void build_coords(const int nelem, sidl::array<double> &coords) 
+void build_coords(const int nelem, sidl::array<double> &coords)
 {
   double ttime0, ttime1, utime1, stime1;
   print_time(false, ttime0, utime1, stime1);
@@ -571,8 +571,8 @@ void build_coords(const int nelem, sidl::array<double> &coords)
   int adaInts = nelem;
   int tseInts = nelem;
   int gammaInts = nelem;
-  
-  
+
+
   for (int i=1; i < nelem; i++) {
     for (int j=1; j < nelem; j++) {
       for (int k=1; k < nelem; k++) {
@@ -605,31 +605,31 @@ void build_coords(const int nelem, sidl::array<double> &coords)
         double *atjk = &coords_ptr[VINDEX(k,j,tseInts)];
         double *aij0 = &coords_ptr[VINDEX(0,j,i)];
         double *aijg = &coords_ptr[VINDEX(gammaInts,j,i)];
-  
-        coords_ptr[VINDEX(i,j,k)] = (   am1*ai0k[0] 
-                                    + ada*aiak[0] 
-                                    + tm1*a0jk[0] 
+
+        coords_ptr[VINDEX(i,j,k)] = (   am1*ai0k[0]
+                                    + ada*aiak[0]
+                                    + tm1*a0jk[0]
                                     + tse*atjk[0]
-                                    + gm1*aij0[0] 
+                                    + gm1*aij0[0]
                                     + gamma*aijg[0] )/2.0 - cX/2.0;
 
-        coords_ptr[nelem+1+VINDEX(i,j,k)] = (   am1*ai0k[nelem+1] 
-                                            + ada*aiak[nelem+1] 
-                                            + tm1*a0jk[nelem+1] 
+        coords_ptr[nelem+1+VINDEX(i,j,k)] = (   am1*ai0k[nelem+1]
+                                            + ada*aiak[nelem+1]
+                                            + tm1*a0jk[nelem+1]
                                             + tse*atjk[nelem+1]
-                                            + gm1*aij0[nelem+1] 
+                                            + gm1*aij0[nelem+1]
                                             + gamma*aijg[nelem+1] )/2.0 - cY/2.0;
 
-        coords_ptr[2*(nelem+1)+VINDEX(i,j,k)] = (   am1*ai0k[2*(nelem+1)] 
-                                                + ada*aiak[2*(nelem+1)] 
-                                                + tm1*a0jk[2*(nelem+1)] 
+        coords_ptr[2*(nelem+1)+VINDEX(i,j,k)] = (   am1*ai0k[2*(nelem+1)]
+                                                + ada*aiak[2*(nelem+1)]
+                                                + tm1*a0jk[2*(nelem+1)]
                                                 + tse*atjk[2*(nelem+1)]
-                                                + gm1*aij0[2*(nelem+1)] 
+                                                + gm1*aij0[2*(nelem+1)]
                                                 + gamma*aijg[2*(nelem+1)] )/2.0 - cZ/2.0;
       }
     }
   }
-  
+
 
 #else
   for (int i=0; i < numv; i++) {
@@ -645,11 +645,11 @@ void build_coords(const int nelem, sidl::array<double> &coords)
   }
 #endif
   print_time(false, ttime1, utime1, stime1);
-  std::cout << "TSTT/MOAB: TFI time = " << ttime1-ttime0 << " sec" 
+  std::cout << "TSTT/MOAB: TFI time = " << ttime1-ttime0 << " sec"
             << std::endl;
 }
 
-void build_connect(const int nelem, const int vstart, int *&connect) 
+void build_connect(const int nelem, const int vstart, int *&connect)
 {
     // allocate the memory
   int nume_tot = nelem*nelem*nelem;

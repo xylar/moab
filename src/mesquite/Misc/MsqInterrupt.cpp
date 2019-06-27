@@ -1,9 +1,9 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2004 Sandia Corporation and Argonne National
-    Laboratory.  Under the terms of Contract DE-AC04-94AL85000 
-    with Sandia Corporation, the U.S. Government retains certain 
+    Laboratory.  Under the terms of Contract DE-AC04-94AL85000
+    with Sandia Corporation, the U.S. Government retains certain
     rights in this software.
 
     This library is free software; you can redistribute it and/or
@@ -16,10 +16,10 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
+
   ***************************************************************** */
 
 #include "MsqInterrupt.hpp"
@@ -35,14 +35,14 @@ extern "C" { typedef void (*msq_sig_handler_t)(int); }
 msq_sig_handler_t oldHandler = SIG_ERR;
 
 
-extern "C" void msq_sigint_handler( int ) 
-{  
-  MsqInterrupt::set_interrupt(); 
+extern "C" void msq_sigint_handler( int )
+{
+  MsqInterrupt::set_interrupt();
   if (oldHandler != SIG_DFL && oldHandler != SIG_IGN)
     oldHandler( SIGINT );
   MsqInterrupt::set_handler();
 }
-   
+
 
 void MsqInterrupt::set_handler()
 {
@@ -52,7 +52,7 @@ void MsqInterrupt::set_handler()
   {
     signal( SIGINT, oldHandler );
     oldHandler = SIG_ERR;
-  }  
+  }
 }
 
 void MsqInterrupt::disable( MsqError& /*err*/ )
@@ -89,7 +89,7 @@ MsqInterrupt::MsqInterrupt()
     if (IGNORE != interruptMode)
       set_handler();
     sawInterrupt = false;
-  }  
+  }
   ++instanceCount;
 }
 

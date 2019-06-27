@@ -6,8 +6,8 @@ else
 endif
 
 # Things to build
-noinst_LTLIBRARIES = libmoabio.la 
-libmoabio_la_LIBADD = $(NETCDF_LIBS) $(PNETCDF_LIBS) $(CGNS_LIBS) $(HDF5_LIBS) 
+noinst_LTLIBRARIES = libmoabio.la
+libmoabio_la_LIBADD = $(NETCDF_LIBS) $(PNETCDF_LIBS) $(CGNS_LIBS) $(HDF5_LIBS)
 
 AM_CPPFLAGS  = -DIS_BUILDING_MB \
                -DLOCDIR=src/io/ \
@@ -31,7 +31,7 @@ if HAVE_NETCDF
                      NCWriteFV.cpp NCWriteFV.hpp \
                      NCWriteHOMME.cpp NCWriteHOMME.hpp \
                      NCWriteMPAS.cpp NCWriteMPAS.hpp \
-                     NCWriteGCRM.cpp NCWriteGCRM.hpp 
+                     NCWriteGCRM.cpp NCWriteGCRM.hpp
 else
   MOAB_NETCDF_SRCS =
 endif
@@ -51,12 +51,12 @@ if !HAVE_NETCDF
                      NCWriteFV.cpp NCWriteFV.hpp \
                      NCWriteHOMME.cpp NCWriteHOMME.hpp \
                      NCWriteMPAS.cpp NCWriteMPAS.hpp \
-                     NCWriteGCRM.cpp NCWriteGCRM.hpp 
+                     NCWriteGCRM.cpp NCWriteGCRM.hpp
 endif
 endif
 
 if ENABLE_mbpart
-  AM_CPPFLAGS += $(ZOLTAN_INC_FLAGS) 
+  AM_CPPFLAGS += $(ZOLTAN_INC_FLAGS)
 endif
 
 if HAVE_CGNS
@@ -80,14 +80,14 @@ if HAVE_HDF5
                    WriteHDF5.hpp
   AM_CPPFLAGS += -I$(srcdir)/mhdf/include
 else
-  MOAB_HDF5_SRCS = 
+  MOAB_HDF5_SRCS =
 endif
 
 if HAVE_CCMIO
   MOAB_CCMIO_SRCS = WriteCCMIO.cpp WriteCCMIO.hpp ReadCCMIO.cpp ReadCCMIO.hpp
   libmoabio_la_LIBADD += $(CCMIO_LIBS)
 else
-  MOAB_CCMIO_SRCS = 
+  MOAB_CCMIO_SRCS =
 endif
 
 if HAVE_DAMSEL
@@ -105,7 +105,7 @@ endif
   MOAB_CGM_SRCS =  ReadCGM.cpp  ReadCGM.hpp
   libmoabio_la_LIBADD += @CGM_LIBS@
 else
-  MOAB_CGM_SRCS = 
+  MOAB_CGM_SRCS =
 endif
 
 # The list of source files, and any header files that do not need to be installed

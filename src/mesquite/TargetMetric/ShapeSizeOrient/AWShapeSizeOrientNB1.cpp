@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2006 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
+
     (2006) kraftche@cae.wisc.edu
-   
+
   ***************************************************************** */
 
 
 /** \file AWShapeSizeOrientNB1.cpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -44,8 +44,8 @@ std::string AWShapeSizeOrientNB1::get_name() const
 AWShapeSizeOrientNB1::~AWShapeSizeOrientNB1() {}
 
 template <unsigned DIM> static inline
-bool eval( const MsqMatrix<DIM,DIM>& A, 
-           const MsqMatrix<DIM,DIM>& W, 
+bool eval( const MsqMatrix<DIM,DIM>& A,
+           const MsqMatrix<DIM,DIM>& W,
            double& result)
 {
   result = sqr_Frobenius( A - W );
@@ -53,9 +53,9 @@ bool eval( const MsqMatrix<DIM,DIM>& A,
 }
 
 template <unsigned DIM> static inline
-bool grad( const MsqMatrix<DIM,DIM>& A, 
-           const MsqMatrix<DIM,DIM>& W, 
-           double& result, 
+bool grad( const MsqMatrix<DIM,DIM>& A,
+           const MsqMatrix<DIM,DIM>& W,
+           double& result,
            MsqMatrix<DIM,DIM>& deriv )
 {
   deriv = A - W;
@@ -65,10 +65,10 @@ bool grad( const MsqMatrix<DIM,DIM>& A,
 }
 
 template <unsigned DIM> static inline
-bool hess( const MsqMatrix<DIM,DIM>& A, 
-           const MsqMatrix<DIM,DIM>& W, 
-           double& result, 
-           MsqMatrix<DIM,DIM>& deriv, 
+bool hess( const MsqMatrix<DIM,DIM>& A,
+           const MsqMatrix<DIM,DIM>& W,
+           double& result,
+           MsqMatrix<DIM,DIM>& deriv,
            MsqMatrix<DIM,DIM>* second )
 {
   deriv = A - W;

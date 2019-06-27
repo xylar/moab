@@ -16,14 +16,14 @@ using namespace moab;
 int main()
 {
   int failures = 0;
-  
+
   failures += RUN_TEST(test_coords_connect_iterate);
   failures += RUN_TEST(test_scd_invalid);
   failures += RUN_TEST(test_iterates);
-  
-  if (failures) 
+
+  if (failures)
     std::cerr << "<<<< " << failures << " TESTS FAILED >>>>" << std::endl;
-    
+
   return failures;
 }
 
@@ -36,7 +36,7 @@ void test_coords_connect_iterate()
   std::vector<double> coords(3*NUM_VTX);
   for (unsigned int i = 0; i < NUM_VTX; i++)
     coords[3*i] = coords[3*i+1] = coords[3*i+2] = i;
-    
+
   Range verts, hexes, faces, edges, dead;
   ErrorCode rval = mb.create_vertices( &coords[0], NUM_VTX, verts );
   CHECK_ERR(rval);
@@ -66,13 +66,13 @@ void test_coords_connect_iterate()
     vit += step-1;
     hexes.erase(start_hex + j/8);
   }
-  
-  // Remove some additional values from the range 
+
+  // Remove some additional values from the range
   // so that our handle blocks don't always align with
   // sequences
   verts.erase( verts.begin() + (step-5), verts.begin() + (step+5) );
   hexes.erase( hexes.begin() + (step/8-5), hexes.begin() + (step/8+5) );
-  
+
   // Check that we get back expected values
   double *xcoord, *ycoord, *zcoord;
   vit = verts.begin();
@@ -81,7 +81,7 @@ void test_coords_connect_iterate()
     rval = mb.coords_iterate(vit, verts.end(), xcoord, ycoord, zcoord, count);
     if (MB_SUCCESS && (!xcoord || !ycoord || !zcoord)) rval = MB_FAILURE;
     CHECK_ERR(rval);
-    
+
     assert(total + count <= (int)verts.size());
     for (int i = 0; i < count; i++) {
         // vertex handles start at 1, so need to subtract one
@@ -90,14 +90,14 @@ void test_coords_connect_iterate()
       CHECK_REAL_EQUAL(val, ycoord[i], 1.0e-10);
       CHECK_REAL_EQUAL(val, zcoord[i], 1.0e-10);
     }
-    
+
   // Check that we can set values and get the right values back
     for (int i = 0; i < count; i++) {
       xcoord[i] *= 2.0;
       ycoord[i] *= 2.0;
       zcoord[i] *= 2.0;
     }
-    
+
     std::vector<double> dum(3*count);
     Range dum_verts(*vit, *vit + count - 1);
     rval = mb.get_coords(dum_verts, &dum[0]);
@@ -111,9 +111,9 @@ void test_coords_connect_iterate()
     }
 
     vit += count;
-    total += count;  
+    total += count;
   }
-  
+
     // now check connectivity
   Range::iterator hit = hexes.begin();
   EntityHandle *connect = NULL;
@@ -124,7 +124,7 @@ void test_coords_connect_iterate()
     if (MB_SUCCESS && !connect) rval = MB_FAILURE;
     CHECK_ERR(rval);
     CHECK_EQUAL(num_connect, 8);
-    
+
       // should be equal to initial connectivity
     for (int i = 0; i < count; i++) {
       EntityHandle first = 8*(*hit - start_hex + i) + 1;
@@ -133,14 +133,14 @@ void test_coords_connect_iterate()
       CHECK_ARRAYS_EQUAL(connect, 8, &dum_connect[0], 8);
       connect += 8;
     }
-    
+
     hit += count;
     //total += count;
   }
 
     // ok, done
 }
-  
+
 void test_scd_invalid()
 {
     // check that we get errors from structured mesh
@@ -149,7 +149,7 @@ void test_scd_invalid()
   ScdInterface *scdi;
   ErrorCode rval = mb.query_interface(scdi);
   CHECK_ERR(rval);
-  
+
     // make an arbitrary structured mesh
   const int NUM_DIMS = 10;
   HomCoord low(0, 0, 0), high(NUM_DIMS, NUM_DIMS, NUM_DIMS);
@@ -157,16 +157,16 @@ void test_scd_invalid()
   rval = scdi->construct_box(low, high, NULL, 0, new_box);
   CHECK_ERR(rval);
   CHECK(new_box != NULL);
-  
+
   EntityHandle start_hex = new_box->start_element();
   Range hexes(start_hex, start_hex + NUM_DIMS*NUM_DIMS*NUM_DIMS - 1);
-  
+
     // should be able to get vertices used by this box
   Range verts;
   rval = mb.get_adjacencies(hexes, 0, false, verts, Interface::UNION);
   CHECK_ERR(rval);
   CHECK_EQUAL((int)verts.size(), (int)((NUM_DIMS+1)*(NUM_DIMS+1)*(NUM_DIMS+1)));
-  
+
     // should NOT be able to get connect iterator
   EntityHandle *connect;
   int count, num_connect;

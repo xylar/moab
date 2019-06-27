@@ -1,17 +1,17 @@
-/**                                     
+/**
  * MOAB, a Mesh-Oriented datABase, is a software component for creating,
- * storing and accessing finite element mesh data.       
- *                                                                          
- * Copyright 2004 Sandia Corporation.  Under the terms of Contract   
+ * storing and accessing finite element mesh data.
+ *
+ * Copyright 2004 Sandia Corporation.  Under the terms of Contract
  * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
  * retains certain rights in this software.
- *                                 
- * This library is free software; you can redistribute it and/or       
- * modify it under the terms of the GNU Lesser General Public           
- * License as published by the Free Software Foundation; either  
- * version 2.1 of the License, or (at your option) any later version.       
- *          
- */ 
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ */
 
 #include "ReadMCNP5.hpp"
 #include "moab/Interface.hpp"
@@ -221,7 +221,7 @@ ErrorCode ReadMCNP5::load_one_file(const char *fname,
     particle            tally_particle;
     coordinate_system   tally_coord_sys;
     std::vector<double> planes[3];
-    unsigned int        n_chopped_x0_planes; 
+    unsigned int        n_chopped_x0_planes;
     unsigned int        n_chopped_x2_planes;
 
     // Read tally header
@@ -240,7 +240,7 @@ ErrorCode ReadMCNP5::load_one_file(const char *fname,
     if(std::string::npos != l.find("This mesh tally is modified by a dose response function.")) {
       file.getline(line, 10000);
     }
-    
+
     // Read mesh planes
     result = read_mesh_planes(file,
                               debug,
@@ -265,7 +265,7 @@ ErrorCode ReadMCNP5::load_one_file(const char *fname,
     // We chop off the last theta plane because the elements will be wrong and skew up
     // the tree building code. This is
     // because the hex elements are a linear approximation to the cylindrical elements.
-    // Chopping off the last plane is problem-dependent, and due to MCNP5's mandate 
+    // Chopping off the last plane is problem-dependent, and due to MCNP5's mandate
     // that the cylindrical mesh must span 360 degrees.
     if (CYLINDRICAL == tally_coord_sys &&
         MB_SUCCESS == options.get_null_option("REMOVE_LAST_AZIMUTHAL_PLANE")) {
@@ -429,7 +429,7 @@ ErrorCode ReadMCNP5::create_tags(Tag &date_and_time_tag,
                                  Tag &error_tag)
 {
   ErrorCode result;
-  result = MBI->tag_get_handle("DATE_AND_TIME_TAG", 100, MB_TYPE_OPAQUE, 
+  result = MBI->tag_get_handle("DATE_AND_TIME_TAG", 100, MB_TYPE_OPAQUE,
                                date_and_time_tag, MB_TAG_SPARSE | MB_TAG_CREAT);
   if (MB_SUCCESS != result)
     return result;
@@ -441,11 +441,11 @@ ErrorCode ReadMCNP5::create_tags(Tag &date_and_time_tag,
                                nps_tag, MB_TAG_SPARSE | MB_TAG_CREAT);
   if (MB_SUCCESS != result)
     return result;
-  result = MBI->tag_get_handle("TALLY_NUMBER_TAG", 1, MB_TYPE_INTEGER, 
+  result = MBI->tag_get_handle("TALLY_NUMBER_TAG", 1, MB_TYPE_INTEGER,
                                tally_number_tag, MB_TAG_SPARSE | MB_TAG_CREAT);
   if (MB_SUCCESS != result)
     return result;
-  result = MBI->tag_get_handle("TALLY_COMMENT_TAG", 100, MB_TYPE_OPAQUE, 
+  result = MBI->tag_get_handle("TALLY_COMMENT_TAG", 100, MB_TYPE_OPAQUE,
                                tally_comment_tag, MB_TAG_SPARSE | MB_TAG_CREAT);
   if (MB_SUCCESS != result)
     return result;
@@ -484,7 +484,7 @@ ErrorCode ReadMCNP5::read_file_header(std::fstream &file,
     std::cout << "date_and_time=| " << date_and_time << std::endl;
 
   // Get simulation title
-  // iter Module 4                                                                   
+  // iter Module 4
   file.getline(line, 100);
   title = line;
   if (debug)
@@ -558,7 +558,7 @@ ErrorCode ReadMCNP5::read_tally_header(std::fstream &file,
   // 3mm neutron heating in Be (W/cc)
   // This is a neutron mesh tally.
   // std::string tally_comment;
-  
+
   // Get tally particle
   file.getline(line, 100);
   a = line;
@@ -627,7 +627,7 @@ ErrorCode ReadMCNP5::read_mesh_planes(std::fstream &file,
     // the particle. Although origin, axs, and vec is needed only origin and
     // axs appear in the meshtal file. Why was vec omitted?.
     // get origin (not used)
-    // Cylinder origin at   0.00E+00  0.00E+00  0.00E+00, 
+    // Cylinder origin at   0.00E+00  0.00E+00  0.00E+00,
     // axis in  0.000E+00 0.000E+00 1.000E+00 direction
     double origin[3];
     if (debug)
@@ -894,7 +894,7 @@ ErrorCode ReadMCNP5::create_vertices(std::vector<double> planes[3],
   result = MBI->add_entities(tally_meshset, vert_range);
   if (MB_SUCCESS != result)
     return result;
-  
+
   if (fileIDTag) {
     result = readMeshIface->assign_ids(*fileIDTag, vert_range, nodeId);
     if (MB_SUCCESS != result)
@@ -1018,7 +1018,7 @@ ErrorCode ReadMCNP5::average_with_existing_tally(bool debug,
   Range matching_tally_number_sets;
   const void* const tally_number_val[] = {&tally_number};
   result = MBI->get_entities_by_type_and_tag(0, MBENTITYSET, &tally_number_tag,
-                                              tally_number_val, 1, 
+                                              tally_number_val, 1,
                                               matching_tally_number_sets);
   if (MB_SUCCESS != result)
     return result;

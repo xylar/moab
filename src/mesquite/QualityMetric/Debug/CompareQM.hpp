@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2010 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2010) kraftche@cae.wisc.edu    
+    (2010) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file CompareQM.hpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #ifndef MSQ_COMPARE_QM_HPP
@@ -48,8 +48,8 @@ namespace MBMesquite {
  * Both metrics must be of the same "type", meaning that they must be
  * evaluated at the same sample locations in the mesh.  For example,
  * an error will be generated if one of the metrics is vertex based
- * and one is element based.  Further, both metrics must use the 
- * same handle values to indicate their list of sample locations 
+ * and one is element based.  Further, both metrics must use the
+ * same handle values to indicate their list of sample locations
  * such that the evaluation for a given same handle dependes on the
  * same vertices for both metrics.
  */
@@ -70,32 +70,32 @@ public:
 
   MESQUITE_EXPORT
   bool will_abort_on_mismatch() const;
-  
+
   MESQUITE_EXPORT
   void print_stats() const;
-  
+
   MESQUITE_EXPORT virtual
   ~CompareQM();
-     
-  MESQUITE_EXPORT virtual 
+
+  MESQUITE_EXPORT virtual
   MetricType get_metric_type() const;
-  
+
   MESQUITE_EXPORT virtual
   std::string get_name() const;
-  
+
   MESQUITE_EXPORT virtual
   int get_negate_flag() const;
-  
+
   MESQUITE_EXPORT virtual
-  void get_evaluations( PatchData& pd, 
-                        std::vector<size_t>& handles, 
+  void get_evaluations( PatchData& pd,
+                        std::vector<size_t>& handles,
                         bool free_vertices_only,
                         MsqError& err );
 
   MESQUITE_EXPORT virtual
-  bool evaluate( PatchData& pd, 
-                 size_t handle, 
-                 double& value, 
+  bool evaluate( PatchData& pd,
+                 size_t handle,
+                 double& value,
                  MsqError& err );
 
 
@@ -132,38 +132,38 @@ public:
                  std::vector<Matrix3D>& Hessian,
                  MsqError& err );
 private:
-  
+
   double epsilon( double val1, double val2 );
-  
+
   bool check_valid( size_t handle, bool valid1, bool valid2 );
 
 
     /** Compare values, add to stats, etc. */
   void check_value( size_t handle, double value1, double value2 );
-  
+
     /** Check that two index lists are equivalent and return
      *  in \c map_out for each index in \c idx1 the position
      *  of the same index in \c idx2.
      */
-  void check_indices( size_t handle, 
+  void check_indices( size_t handle,
                       const std::vector<size_t>& idx1,
-                      const std::vector<size_t>& idx2, 
+                      const std::vector<size_t>& idx2,
                       std::vector<size_t>& map_out,
                       MsqError& err );
-                      
-  void check_grad( size_t handle, 
+
+  void check_grad( size_t handle,
                    const std::vector<size_t>& indices,
                    const std::vector<size_t>& index_map,
                    const std::vector<Vector3D>& grad1,
                    const std::vector<Vector3D>& grad2 );
-                   
-  void check_hess_diag( size_t handle, 
+
+  void check_hess_diag( size_t handle,
                         const std::vector<size_t>& indices,
                         const std::vector<size_t>& index_map,
                         const std::vector<SymMatrix3D>& hess1,
                         const std::vector<SymMatrix3D>& hess2 );
-                   
-  void check_hess( size_t handle, 
+
+  void check_hess( size_t handle,
                    const std::vector<size_t>& indices,
                    const std::vector<size_t>& index_map,
                    const std::vector<Matrix3D>& hess1,

@@ -1,9 +1,9 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2004 Sandia Corporation and Argonne National
-    Laboratory.  Under the terms of Contract DE-AC04-94AL85000 
-    with Sandia Corporation, the U.S. Government retains certain 
+    Laboratory.  Under the terms of Contract DE-AC04-94AL85000
+    with Sandia Corporation, the U.S. Government retains certain
     rights in this software.
 
     This library is free software; you can redistribute it and/or
@@ -16,17 +16,17 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
-    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov, 
-    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov      
-   
+
+    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov,
+    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov
+
   ***************************************************************** */
 /*!
   \file   ConjugateGradient.cpp
-  \brief  
+  \brief
 
   The Conjugate Gradient class is a concrete vertex mover
   which performs conjugate gradient minimizaiton.
@@ -46,9 +46,9 @@ namespace MBMesquite {
 extern int get_parallel_rank();
 extern int get_parallel_size();
 
-std::string ConjugateGradient::get_name() const 
+std::string ConjugateGradient::get_name() const
   { return "ConjugateGradient"; }
-  
+
 PatchSet* ConjugateGradient::get_patch_set()
   { return PatchSetUser::get_patch_set(); }
 
@@ -57,7 +57,7 @@ ConjugateGradient::ConjugateGradient(ObjectiveFunction* objective) :
   PatchSetUser(true),
   pMemento(NULL),
   conjGradDebug(0)
-{ }  
+{ }
 
 ConjugateGradient::ConjugateGradient(ObjectiveFunction* objective,
                                      MsqError &err) :
@@ -79,16 +79,16 @@ ConjugateGradient::ConjugateGradient(ObjectiveFunction* objective,
     default_crit->add_iteration_limit( 5 );
     MSQ_ERRRTN(err);
   }
-  
-}  
+
+}
 
 
 ConjugateGradient::~ConjugateGradient()
 {
-  // Checks that cleanup() has been called. 
+  // Checks that cleanup() has been called.
   assert(pMemento==NULL);
 }
-  
+
 void ConjugateGradient::initialize(PatchData &pd, MsqError &err)
 {
   if (get_parallel_size()) {
@@ -104,11 +104,11 @@ void ConjugateGradient::initialize(PatchData &pd, MsqError &err)
 void ConjugateGradient::initialize_mesh_iteration(PatchData &/*pd*/,
                                                   MsqError &/*err*/)
 {
-  
+
 }
 
 /*!Performs Conjugate gradient minimization on the PatchData, pd.*/
-void ConjugateGradient::optimize_vertex_positions(PatchData &pd, 
+void ConjugateGradient::optimize_vertex_positions(PatchData &pd,
                                                 MsqError &err){
   // pd.reorder();
 
@@ -120,7 +120,7 @@ void ConjugateGradient::optimize_vertex_positions(PatchData &pd,
      MSQ_DBGOUT(1) << "\nEmpty free vertex list in ConjugateGradient\n";
      return;
   }
-/*  
+/*
     //zero out arrays
   int zero_loop=0;
   while(zero_loop<arraySize){
@@ -130,16 +130,16 @@ void ConjugateGradient::optimize_vertex_positions(PatchData &pd,
     ++zero_loop;
   }
 */
-  
+
   // get OF evaluator
   OFEvaluator& objFunc = get_objective_function_evaluator();
-  
+
   size_t ind;
     //Michael cull list:  possibly set soft_fixed flags here
-  
+
    //MsqFreeVertexIndexIterator free_iter(pd, err);  MSQ_ERRRTN(err);
-  
-      
+
+
    double f=0;
    //Michael, this isn't equivalent to CUBIT because we only want to check
    //the objective function value of the 'bad' elements
@@ -150,12 +150,12 @@ void ConjugateGradient::optimize_vertex_positions(PatchData &pd,
       return;
   if( ! temp_bool){
     MSQ_SETERR(err)("Conjugate Gradient not able to get valid gradient "
-                    "and function values on intial patch.", 
+                    "and function values on intial patch.",
                     MsqError::INVALID_MESH);
     return;
   }
   double grad_norm=MSQ_MAX_CAP;
-  
+
   if(conjGradDebug>0){
     MSQ_PRINT(2)("\nCG's DEGUB LEVEL = %i \n",conjGradDebug);
     grad_norm=Linf(arrptr(fGrad),fGrad.size());
@@ -164,19 +164,19 @@ void ConjugateGradient::optimize_vertex_positions(PatchData &pd,
     grad_norm=MSQ_MAX_CAP;
   }
 
-    //Initializing pGrad (search direction).  
+    //Initializing pGrad (search direction).
   pGrad.resize(fGrad.size());
   for (ind = 0; ind < num_vert; ++ind)
     pGrad[ind]=(-fGrad[ind]);
 
   int j=0; // total nb of step size changes ... not used much
   int i=0; // iteration counter
-  unsigned m=0; // 
+  unsigned m=0; //
   double alp=MSQ_MAX_CAP; // alp: scale factor of search direction
     //we know inner_criterion is false because it was checked in
     //loop_over_mesh before being sent here.
   TerminationCriterion* term_crit=get_inner_termination_criterion();
-  
+
     //while ((i<maxIteration && alp>stepBound && grad_norm>normGradientBound)
     //     && !inner_criterion){
   while(!term_crit->terminate()){
@@ -201,20 +201,20 @@ void ConjugateGradient::optimize_vertex_positions(PatchData &pd,
         if(conjGradDebug>2)
           MSQ_PRINT(2)("\n  Alp was zero, alp = %20.18f",alp);
       }
-      
+
     }
     if(alp!=0){
       pd.move_free_vertices_constrained( arrptr(pGrad), num_vert, alp, err );
       MSQ_ERRRTN(err);
-      
+
       if (! objFunc.update(pd, f, fNewGrad, err)){
         MSQ_SETERR(err)("Error inside Conjugate Gradient, vertices moved "
-                        "making function value invalid.", 
+                        "making function value invalid.",
                         MsqError::INVALID_MESH);
         return;
       }
       assert(fNewGrad.size() == (unsigned)num_vert);
-      
+
       if(conjGradDebug>0){
         grad_norm=Linf(arrptr(fNewGrad),num_vert);
         MSQ_PRINT(2)("\nCG's VALUE = %f,  iter. = %i,  grad_norm = %f,  alp = %f",f,i,grad_norm,alp);
@@ -231,17 +231,17 @@ void ConjugateGradient::optimize_vertex_positions(PatchData &pd,
         s12+=fGrad[m]%fNewGrad[m];
         s22+=fNewGrad[m]%fNewGrad[m];
       }
-      
+
         // Steepest Descent (takes 2-3 times as long as P-R)
         //double bet=0;
-      
+
         // Fletcher-Reeves (takes twice as long as P-R)
         //double bet = s22/s11;
 
-        // Polack-Ribiere  
-      double bet;  
+        // Polack-Ribiere
+      double bet;
       if (!divide( s22-s12, s11, bet ))
-        return; // gradient is zero    
+        return; // gradient is zero
       //free_iter.reset();
       //while (free_iter.next()) {
       //  m=free_iter.value();
@@ -253,7 +253,7 @@ void ConjugateGradient::optimize_vertex_positions(PatchData &pd,
         MSQ_PRINT(2)(" \nSEARCH DIRECTION INFINITY NORM = %e",
                    Linf(arrptr(fNewGrad),num_vert));
       }
-      
+
     }//end if on alp == 0
 
     term_crit->accumulate_patch( pd, err ); MSQ_ERRRTN(err);
@@ -328,7 +328,7 @@ double ConjugateGradient::get_step(PatchData &pd,double f0,int &j,
       alp*=rho;
     }
   }//end while ...
-  
+
     //if above while ended due to j>=jmax, no valid step was found.
   if(j>=jmax){
     MSQ_PRINT(2)("\nFeasible Point Not Found");
@@ -358,14 +358,14 @@ double ConjugateGradient::get_step(PatchData &pd,double f0,int &j,
       //if above ended because of j>=jmax, take no step
     if(found==0){
         //Message::print_info("alp = %10.8f, but returning zero\n",alp);
-      alp=0.0; 
+      alp=0.0;
       return alp;
     }
 
     j=0;
       //while shrinking the step improves the objFunc value further,
       //scale alp down.  Return alp, when scaling once more would
-      //no longer improve the objFunc value.  
+      //no longer improve the objFunc value.
     while(j<jmax){
       ++j;
       alp*=rho;
@@ -411,8 +411,8 @@ double ConjugateGradient::get_step(PatchData &pd,double f0,int &j,
         pd.set_to_vertices_memento(pMemento,err);MSQ_ERRZERO(err);
         return alp;
       }
-      if (fnew<f) { 
-          f = fnew; 
+      if (fnew<f) {
+          f = fnew;
        }
        else {
          found=1;
@@ -494,7 +494,7 @@ double ConjugateGradient::get_step(PatchData &pd,double f0,int &j,
         }
       }
     }
-    
+
     else{
       d=CGOLD*(e=(x>=xm?a-x:b-x));
     }
@@ -536,7 +536,7 @@ double ConjugateGradient::get_step(PatchData &pd,double f0,int &j,
       }
     }
   }
-  for(m=0;m<n;++m){   
+  for(m=0;m<n;++m){
     vertices[m]=(mCoord[m]);
   }
     //PRINT_WARNING("TOO MANY ITERATIONS IN QUADRATIC LINE SEARCH");
@@ -545,7 +545,7 @@ double ConjugateGradient::get_step(PatchData &pd,double f0,int &j,
 */
 
 } //namespace Mesquite
-    
+
 
 
 

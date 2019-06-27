@@ -5,11 +5,11 @@
 //
 // Special Notes : Lots of code taken from verde implementation
 //
-// Creator       : Corey Ernst 
+// Creator       : Corey Ernst
 //
 // Date          : 8/02
 //
-// Owner         : Corey Ernst 
+// Owner         : Corey Ernst
 //-------------------------------------------------------------------------
 
 #ifndef WRITEDAMSEL_HPP

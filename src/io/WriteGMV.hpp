@@ -1,16 +1,16 @@
 /**
  * MOAB, a Mesh-Oriented datABase, is a software component for creating,
  * storing and accessing finite element mesh data.
- * 
+ *
  * Copyright 2004 Sandia Corporation.  Under the terms of Contract
  * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
  * retains certain rights in this software.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  */
 
 //-------------------------------------------------------------------------
@@ -18,7 +18,7 @@
 //
 // Purpose       : Writer template
 //
-// Special Notes : 
+// Special Notes :
 //
 // Creator       : Tim Tautges
 //
@@ -39,7 +39,7 @@ class WriteUtilIface;
 //! Output Exodus File for VERDE
 class WriteGMV : public WriterIface
 {
- 
+
 public:
 
    //! Constructor
@@ -66,7 +66,7 @@ public:
                          const int user_dimension = 3,
                          const bool mesh = true,
                          const bool poly_mesh = true);
-  
+
 protected:
 
 private:
@@ -74,7 +74,7 @@ private:
     //! interface instance
   Interface *mbImpl;
   WriteUtilIface* mWriteIface;
-  
+
   //! Cached tags for reading.  Note that all these tags are defined when the
   //! core is initialized.
   Tag mMaterialSetTag;
@@ -85,7 +85,7 @@ private:
   Tag mGlobalIdTag;
 
   static const char *gmvTypeNames[MBMAXTYPE];
-  
+
   ErrorCode local_write_mesh(const char *file_name,
                                const EntityHandle output_set,
                                const int user_dimension,

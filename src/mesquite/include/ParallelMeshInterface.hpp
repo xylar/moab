@@ -1,9 +1,9 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2004 Sandia Corporation and Argonne National
-    Laboratory.  Under the terms of Contract DE-AC04-94AL85000 
-    with Sandia Corporation, the U.S. Government retains certain 
+    Laboratory.  Under the terms of Contract DE-AC04-94AL85000
+    with Sandia Corporation, the U.S. Government retains certain
     rights in this software.
 
     This library is free software; you can redistribute it and/or
@@ -16,14 +16,14 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
-    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov, 
+
+    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov,
     pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov,
     kraftche@cae.wisc.edu
-   
+
   ***************************************************************** */
 /*!
   \file   ParallelMeshInterface.hpp
@@ -40,7 +40,7 @@
 namespace MBMesquite
 {
   class ParallelHelper;
-    
+
   /*! \class ParallelMesh \brief MBMesquite::ParallelMesh is an abstract class
    *  which defines required methods required for using Mesquite in parallel.
    *  It derives from the MBMesquite::Mesh interface so the user must provide
@@ -56,12 +56,12 @@ namespace MBMesquite
     virtual void vertices_get_global_id ( const VertexHandle vert_array[],
                                           size_t global_id[],
 					  size_t num_vtx,
-					  MsqError& err) = 0;     
-     
+					  MsqError& err) = 0;
+
     /*! Get processor ids for given vertices.
      */
     virtual void vertices_get_processor_id ( const VertexHandle vert_array[],
-                                             int proc_id[],                                          
+                                             int proc_id[],
 					     size_t num_vtx,
 					     MsqError& err) = 0;
 

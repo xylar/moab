@@ -1,16 +1,16 @@
 /**
  * MOAB, a Mesh-Oriented datABase, is a software component for creating,
  * storing and accessing finite element mesh data.
- * 
+ *
  * Copyright 2004 Sandia Corporation.  Under the terms of Contract
  * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
  * retains certain rights in this software.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  */
 
 #ifdef WIN32
@@ -100,7 +100,7 @@ ErrorCode ReadUtil::get_element_connect(const int num_elements,
 
   // Make an entity sequence to hold these elements
   error = mMB->sequence_manager()->create_entity_sequence(
-      mdb_type, num_elements, verts_per_element, preferred_start_id, 
+      mdb_type, num_elements, verts_per_element, preferred_start_id,
       actual_start_handle, seq, sequence_size);
   if (MB_SUCCESS != error)
     return error;
@@ -114,7 +114,7 @@ ErrorCode ReadUtil::get_element_connect(const int num_elements,
   array = static_cast<ElementSequence*>(seq)->get_connectivity_array();
   if (!array)
     return MB_FAILURE;
-  array += (actual_start_handle - seq->start_handle()) 
+  array += (actual_start_handle - seq->start_handle())
          * static_cast<ElementSequence*>(seq)->nodes_per_element();
 
   return error;
@@ -180,7 +180,7 @@ ErrorCode ReadUtil::gather_related_ents(Range &partition,
   ErrorCode result = MB_SUCCESS;
   for (Range::const_iterator rit = pair_it.first;
        rit != pair_it.second; ++rit) {
-    ErrorCode tmp_result = 
+    ErrorCode tmp_result =
       mMB->get_entities_by_handle(*rit, related_ents,
                                   Interface::UNION);
     if (MB_SUCCESS != tmp_result) result = tmp_result;
@@ -212,7 +212,7 @@ ErrorCode ReadUtil::gather_related_ents(Range &partition,
 
   while (related_ents.size() != last_related.size()) {
     last_related = related_ents;
-    for (Range::iterator rit = tmp_ents3.begin(); 
+    for (Range::iterator rit = tmp_ents3.begin();
          rit != tmp_ents3.end(); ++rit) {
       if (related_ents.find(*rit) != related_ents.end()) continue;
 
@@ -229,7 +229,7 @@ ErrorCode ReadUtil::gather_related_ents(Range &partition,
   last_related.clear();
   while (related_ents.size() != last_related.size()) {
     last_related = related_ents;
-    std::pair<Range::const_iterator, Range::const_iterator> it_pair = 
+    std::pair<Range::const_iterator, Range::const_iterator> it_pair =
       last_related.equal_range(MBENTITYSET);
 
     for (Range::const_iterator rit = it_pair.first;
@@ -289,7 +289,7 @@ ErrorCode ReadUtil::get_ordered_vertices(EntityHandle *bound_ents,
                                      false, &tmp_connect);
       if (MB_SUCCESS != result)
         return result;
-      
+
       CN::SubEntityVertexIndices(t, bound_dim, index, indices);
 
       for (int c = 0; c < num_connect; c++) {

@@ -1,7 +1,7 @@
 /// \file moabuse1.cpp
-/// 
+///
 /// \author Milad Fatenejad
-/// 
+///
 /// \brief moabuse tutorial, example 1: Demonstrates
 ///        constructing/saving a simple 2x2x2 hex mesh
 ///
@@ -33,7 +33,7 @@ int main()
   // ***************************
   // *   Create the vertexes   *
   // ***************************
-  
+
   // We are going to create 27 vertexes which will be used to define 8
   // hexahedron cells. First, we have to create an array to store the
   // coordinates of each vertex.
@@ -42,16 +42,16 @@ int main()
   const unsigned NUMHEX = 8;  // The number of hexahedrons
 
   // This double array stores the x, y, z coordinate of each vertex.
-  const double vertex_coords[3*NUMVTX] = 
-          { 
+  const double vertex_coords[3*NUMVTX] =
+          {
              0, 0, 0,  1, 0, 0,  2, 0, 0,
 					   0, 1, 0,  1, 1, 0,  2, 1, 0,
 					   0, 2, 0,  1, 2, 0,  2, 2, 0,
-					   
+					
 					   0, 0, 1,  1, 0, 1,  2, 0, 1,
 					   0, 1, 1,  1, 1, 1,  2, 1, 1,
 					   0, 2, 1,  1, 2, 1,  2, 2, 1,
-					   
+					
 					   0, 0, 2,  1, 0, 2,  2, 0, 2,
 					   0, 1, 2,  1, 1, 2,  2, 1, 2,
 					   0, 2, 2,  1, 2, 2,  2, 2, 2
@@ -71,13 +71,13 @@ int main()
   // can also be stored in vectors or arrays, but ranges are much more
   // memory efficient, so use them when possible!
   moab::Range vertex_handles;
-  rval = mbcore.create_vertices( vertex_coords, 
-                                  NUMVTX, 
+  rval = mbcore.create_vertices( vertex_coords,
+                                  NUMVTX,
                                   vertex_handles );MB_CHK_SET_ERR(rval, "create_vertices failed");
 
   // You can print out a range to see what elements it contains:
   std::cout << "Created 27 vertex entities:" << vertex_handles;
-  
+
   // ******************************
   // *   Create the Hexahedrons   *
   // ******************************
@@ -89,9 +89,9 @@ int main()
   // conn are actual entity handles. This only works because MOAB
   // guarentees that entities (such as our vertexes) created at once
   // have adjacent entity handles.
-  moab::EntityHandle conn[NUMHEX][8] = { 
+  moab::EntityHandle conn[NUMHEX][8] = {
            {  0,  1,  4,  3,   9, 10, 13, 12 },
-					 {  1,  2,  5,  4,  10, 11, 14, 13 }, 
+					 {  1,  2,  5,  4,  10, 11, 14, 13 },
 					 {  3,  4,  7,  6,  12, 13, 16, 15 },
 					 {  4,  5,  8,  7,  13, 14, 17, 16 },
 					 {  9, 10, 13, 12,  18, 19, 22, 21 },
@@ -122,8 +122,8 @@ int main()
   moab::Range hexahedron_handles;
   moab::EntityHandle element;
   for (unsigned i = 0; i < NUMHEX; ++i) {
-    rval = mbcore.create_element( moab::MBHEX, 
-                                  conn[i], 8, 
+    rval = mbcore.create_element( moab::MBHEX,
+                                  conn[i], 8,
                                   element );MB_CHK_SET_ERR(rval, "create_element failed");
 
     hexahedron_handles.insert(element);
@@ -144,7 +144,7 @@ int main()
   // In these examples, we will stick to using the VTK file format
   // because it is text based and will work whether or not you've got
   // HDF5, NETCDF, etc... installed and is a fairly standard file
-  // format so a lot of tools work with it out of the box. 
+  // format so a lot of tools work with it out of the box.
   rval = mbcore.write_file("moabuse1.vtk");MB_CHK_SET_ERR(rval, "write_file(moabuse1.vtk) failed");
 
   return 0;

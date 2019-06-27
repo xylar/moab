@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2009 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2009) kraftche@cae.wisc.edu    
+    (2009) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file ViscousCFDTetShapeWrapper.cpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -63,12 +63,12 @@ void ViscousCFDTetShapeWrapper::run_wrapper( MeshDomainAssoc* mesh_and_domain,
                                              MsqError& err )
 {
   InstructionQueue q;
-  
+
   // Set up barrier metric to see if mesh contains inverted elements
   TShapeB1 mu_b;
   IdealShapeTarget w_ideal;
   TQualityMetric barrier( &w_ideal, &mu_b );
-  
+
   // Check for inverted elements in the mesh
   QualityAssessor inv_check( &barrier );
   inv_check.disable_printing_results();
@@ -77,12 +77,12 @@ void ViscousCFDTetShapeWrapper::run_wrapper( MeshDomainAssoc* mesh_and_domain,
   q.remove_quality_assessor( 0, err ); MSQ_ERRRTN(err);
   const QualityAssessor::Assessor* inv_b = inv_check.get_results( &barrier );
   const bool use_barrier = (0 == inv_b->get_invalid_element_count());
-  
+
   // Create remaining metric instances
   TShapeNB1 mu;
   TShapeSizeOrientNB1 mu_o;
   TShapeSizeOrientB1 mu_ob;
-  
+
   // Select which target metrics to use
   TMetric *mu_p, *mu_op;
   if (use_barrier) {
@@ -93,7 +93,7 @@ void ViscousCFDTetShapeWrapper::run_wrapper( MeshDomainAssoc* mesh_and_domain,
     mu_p = &mu;
     mu_op = &mu_o;
   }
-  
+
 
   // Set up target and weight calculators
   Mesh* mesh = mesh_and_domain->get_mesh();
@@ -102,13 +102,13 @@ void ViscousCFDTetShapeWrapper::run_wrapper( MeshDomainAssoc* mesh_and_domain,
   RefMeshTargetCalculator w_init( &ref_mesh );
   TetDihedralWeight c_dihedral( &ref_mesh, dCutoff, aVal );
   RemainingWeight c_remaining( &c_dihedral );
-  
+
   // Create objective function
   TQualityMetric metric1( &w_ideal, &c_dihedral,  mu_p  );
   TQualityMetric metric2( &w_init,  &c_remaining, mu_op );
   AddQualityMetric of_metric( &metric1, &metric2, err );  MSQ_ERRRTN(err);
   PMeanPTemplate obj_func( 1.0, &of_metric );
-  
+
   // Create optimizer
   TrustRegion solver( &obj_func );
   TerminationCriterion term, ptc;
@@ -117,7 +117,7 @@ void ViscousCFDTetShapeWrapper::run_wrapper( MeshDomainAssoc* mesh_and_domain,
   ptc.add_iteration_limit( pmesh ? parallelIterations : 1 );
   solver.set_inner_termination_criterion( &term );
   solver.set_outer_termination_criterion( &ptc );
-  
+
   // Create instruction queue
   qa->add_quality_assessment( &metric1 );
   qa->add_quality_assessment( &metric2 );
@@ -127,7 +127,7 @@ void ViscousCFDTetShapeWrapper::run_wrapper( MeshDomainAssoc* mesh_and_domain,
   q.add_quality_assessor( qa, err ); MSQ_ERRRTN(err);
 
   // Optimize mesh
-  q.run_common( mesh_and_domain, pmesh, settings, err ); MSQ_CHKERR(err);  
+  q.run_common( mesh_and_domain, pmesh, settings, err ); MSQ_CHKERR(err);
 }
 
 } // namespace MBMesquite

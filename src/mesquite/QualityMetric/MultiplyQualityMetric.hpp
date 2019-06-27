@@ -1,9 +1,9 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2004 Sandia Corporation and Argonne National
-    Laboratory.  Under the terms of Contract DE-AC04-94AL85000 
-    with Sandia Corporation, the U.S. Government retains certain 
+    Laboratory.  Under the terms of Contract DE-AC04-94AL85000
+    with Sandia Corporation, the U.S. Government retains certain
     rights in this software.
 
     This library is free software; you can redistribute it and/or
@@ -16,13 +16,13 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
-    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov, 
-    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov      
-   
+
+    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov,
+    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov
+
   ***************************************************************** */
 // -*- Mode : c++; tab-width: 3; c-tab-always-indent: t; indent-tabs-mode: nil; c-basic-offset: 3 -*-
 
@@ -48,13 +48,13 @@ namespace MBMesquite
    class PatchData;
    class MsqMeshEntity;
    class MsqVertex;
-   
+
      /*! \class MultiplyQualityMetric
        \brief Combines two quality metrics (qMetric1 and qMetric2 defined
        in the parent class CompositeQualityMetric) by multiplication for two-
        and three-diminsional elements.  Note:  This function should not
        be used to combine a node-based metric with an element-based
-       metric.  
+       metric.
      */
    class MultiplyQualityMetric : public QualityMetric
    {
@@ -65,14 +65,14 @@ namespace MBMesquite
          different negateFlags, then a warning is printed, and the composite
          metric's negate flag is set to one.  Otherwise, the composite
          metric's negateFlag is set to qm1's negateFlag (and, thus, qm2's
-         negateFlag).  
+         negateFlag).
        */
      MultiplyQualityMetric(QualityMetric* qm1, QualityMetric* qm2,
                            MsqError &err);
-     
+
        // virtual destructor ensures use of polymorphism during destruction
      virtual ~MultiplyQualityMetric();
-     
+
      MetricType get_metric_type() const;
 
      std::string get_name() const;
@@ -83,15 +83,15 @@ namespace MBMesquite
      QualityMetric* get_second_metric() const { return &metric2; }
 
      virtual
-     void get_evaluations( PatchData& pd, 
-                           std::vector<size_t>& handles, 
+     void get_evaluations( PatchData& pd,
+                           std::vector<size_t>& handles,
                            bool free_vertices_only,
                            MsqError& err );
 
      virtual
-     bool evaluate( PatchData& pd, 
-                    size_t handle, 
-                    double& value, 
+     bool evaluate( PatchData& pd,
+                    size_t handle,
+                    double& value,
                     MsqError& err );
 
 
@@ -119,7 +119,7 @@ namespace MBMesquite
                     std::vector<Vector3D>& gradient,
                     std::vector<Matrix3D>& Hessian,
                     MsqError& err );
-     
+
   private:
 
      QualityMetric& metric1;
@@ -129,7 +129,7 @@ namespace MBMesquite
      mutable std::vector<Vector3D> grad1, grad2;
      mutable std::vector<Matrix3D> Hess1, Hess2;
   };
-   
+
 
 } //namespace
 

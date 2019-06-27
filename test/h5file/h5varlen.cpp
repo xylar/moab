@@ -61,7 +61,7 @@ int main(int argc, char* argv[])
       abort();
     }
     keep_files = true;
-  } 
+  }
 
   int err_count = 0;
   err_count += RUN_TEST( test_var_length_no_data );
@@ -89,11 +89,11 @@ void test_var_length_no_data()
   Core moab1, moab2;
   Interface &mb1 = moab1, &mb2 = moab2;
   Tag tag;
-  
+
   create_mesh( mb1 );
   rval = mb1.tag_get_handle( "test_tag", 0, MB_TYPE_DOUBLE, tag, MB_TAG_EXCL|MB_TAG_VARLEN|MB_TAG_DENSE );
   CHECK_ERR( rval );
-  
+
   read_write( "test_var_length_no_data.h5m", mb1, mb2 );
   compare_tags( "test_tag", mb1, mb2 );
 }
@@ -106,12 +106,12 @@ void test_var_length_data_common( const char* filename, Interface& mb1, bool opa
   DataType type = opaque ? MB_TYPE_OPAQUE : MB_TYPE_INTEGER;
   rval = mb1.tag_get_handle( "test_tag", 0, type, tag, MB_TAG_EXCL|MB_TAG_VARLEN|MB_TAG_SPARSE );
   CHECK_ERR( rval );
-  
+
     // get all entities
   Range entities;
   rval = mb1.get_entities_by_handle( 0, entities );
   CHECK_ERR(rval);
-  
+
     // Set tag data.
     // Tag data will be list of integer data as follows:
     //   number of values (counting this value)
@@ -131,18 +131,18 @@ void test_var_length_data_common( const char* filename, Interface& mb1, bool opa
     rval = mb1.tag_set_by_ptr(tag, &h,1, ptrarr, &num_values );
     CHECK_ERR(rval);
   }
-  
+
     // write and read tag data
   Core moab;
   Interface &mb2 = moab;
   read_write( filename, mb1, mb2 );
   compare_tags( "test_tag", mb1, mb2 );
-  
+
     // get new tag handle
   tag = 0;
   rval = mb2.tag_get_handle( "test_tag", 0, type, tag );
   CHECK_ERR(rval);
-  
+
     // check consistency of tag values
   entities.clear();
   mb2.get_entities_by_handle( 0, entities );
@@ -162,7 +162,7 @@ void test_var_length_data_common( const char* filename, Interface& mb1, bool opa
     }
     const int* dataptr = reinterpret_cast<const int*>(ptrarr[0]);
     CHECK( NULL != dataptr );
-      // check size 
+      // check size
     CHECK( size > 0 );
     CHECK_EQUAL( size, dataptr[0] );
       // check other values
@@ -210,19 +210,19 @@ void test_var_length_big_data()
   Core moab1, moab2;
   Interface &mb1 = moab1, &mb2 = moab2;
   Tag tag;
-  
+
   create_mesh( mb1 );
   rval = mb1.tag_get_handle( "test_tag", 0, MB_TYPE_DOUBLE, tag, MB_TAG_SPARSE|MB_TAG_VARLEN|MB_TAG_EXCL );
   CHECK_ERR( rval );
-  
+
     // choose 3 vertices upon which to set data
   Range range;
   rval = mb1.get_entities_by_type( 0, MBVERTEX, range );
   CHECK_ERR(rval);
-  EntityHandle verts[3] = { range.front(), 
-                              *(range.begin() += range.size()/3), 
+  EntityHandle verts[3] = { range.front(),
+                              *(range.begin() += range.size()/3),
                               *(range.begin() += 2*range.size()/3) };
-  
+
     // set 1-millon value tag data on three vertices
   std::vector<double> data(1000000);
   for (int i = 0; i < 3; ++i) {
@@ -232,10 +232,10 @@ void test_var_length_big_data()
     rval = mb1.tag_set_by_ptr( tag, verts + i, 1, &ptr, &size );
     CHECK_ERR(rval);
   }
-  
+
   read_write( "test_var_length_big_data.h5m", mb1, mb2 );
   compare_tags( "test_tag", mb1, mb2 );
-  
+
     // check 3 tagged vertices
   rval = mb2.tag_get_handle( "test_tag", 0, MB_TYPE_DOUBLE, tag );
   CHECK_ERR(rval);
@@ -243,20 +243,20 @@ void test_var_length_big_data()
   rval = mb2.get_entities_by_type_and_tag( 0, MBVERTEX, &tag, 0, 1, range, Interface::UNION );
   CHECK_ERR(rval);
   CHECK_EQUAL( (size_t)3, range.size() );
-  
+
     // check tag values
   for (Range::const_iterator i = range.begin(); i != range.end(); ++i) {
       // calculate expected value
     const EntityHandle h = *i;
     calculate_big_value( mb2, h, data.size(), &data[0] );
-    
+
       // get actual value
     const void* ptr;
     int size;
     rval = mb2.tag_get_by_ptr( tag, &h, 1, &ptr, &size );
     CHECK_ERR(rval);
     CHECK_EQUAL( data.size(), (size_t)size );
-    
+
       // compare values
     const double* act_data = reinterpret_cast<const double*>(ptr);
     int wrong_count = 0;
@@ -264,16 +264,16 @@ void test_var_length_big_data()
       if (act_data[j] != data[j])
         ++wrong_count;
     CHECK_EQUAL( 0, wrong_count );
-  }    
-}  
-  
+  }
+}
+
 
 
 void test_var_length_opaque()
 {
   Core moab;
   create_mesh( moab );
-  test_var_length_data_common( "test_var_length_opaque.h5m", moab, true );  
+  test_var_length_data_common( "test_var_length_opaque.h5m", moab, true );
 }
 
 void test_global_value_common( bool mesh_value )
@@ -281,7 +281,7 @@ void test_global_value_common( bool mesh_value )
   Core moab;
   Interface &mb = moab;
   create_mesh( mb );
-  
+
   // get three vertices
   Range vertices;
   ErrorCode rval = mb.get_entities_by_type( 0, MBVERTEX, vertices );
@@ -297,26 +297,26 @@ void test_global_value_common( bool mesh_value )
   double coords[9];
   rval = mb.get_coords( handles, 3, coords );
   CHECK_ERR( rval );
-  
+
   // create tag to hold vertex data
   Tag handle_tag = 0;
   void* default_val = mesh_value ? 0 : handles;
   int default_val_size = mesh_value ? 0 : 3;
-  rval = mb.tag_get_handle( "handle_tag", default_val_size, MB_TYPE_HANDLE, 
+  rval = mb.tag_get_handle( "handle_tag", default_val_size, MB_TYPE_HANDLE,
                             handle_tag, MB_TAG_DENSE|MB_TAG_VARLEN|MB_TAG_EXCL,
                             default_val );
   CHECK_ERR( rval );
-  
+
   // create tag to hold vertex coordinates
   Tag coord_tag = 0;
   default_val = mesh_value ? 0 : coords;
   default_val_size = mesh_value ? 0 : 9;
-  rval = mb.tag_get_handle( "coord_tag", default_val_size, MB_TYPE_DOUBLE, 
+  rval = mb.tag_get_handle( "coord_tag", default_val_size, MB_TYPE_DOUBLE,
                              coord_tag, MB_TAG_SPARSE|MB_TAG_VARLEN|MB_TAG_EXCL,
                             default_val );
   CHECK_ERR( rval );
-  
-  
+
+
   // if doing mesh tag, set it
   if (mesh_value) {
     int size = 3;
@@ -324,27 +324,27 @@ void test_global_value_common( bool mesh_value )
     const EntityHandle root = 0;
     rval = mb.tag_set_by_ptr( handle_tag, &root, 1, ptrarr, &size );
     CHECK_ERR(rval);
-    
+
     size = 9;
     ptrarr[0] = coords;
     rval = mb.tag_set_by_ptr( coord_tag, &root, 1, ptrarr, &size );
     CHECK_ERR(rval);
   }
-  
+
     // write and read file
   Core moab2;
   Interface &mb2 = moab2;
   read_write( mesh_value ? "test_var_length_mesh_data.h5m" : "test_var_length_default_data.h5m", mb, mb2 );
   compare_tags( "handle_tag", mb, mb2 );
   compare_tags( "coord_tag", mb, mb2 );
-  
+
     // get tag handles
   handle_tag = coord_tag = 0;
   rval = mb2.tag_get_handle( "handle_tag", 0, MB_TYPE_HANDLE, handle_tag );
   CHECK_ERR(rval);
   rval = mb2.tag_get_handle( "coord_tag", 0, MB_TYPE_DOUBLE, coord_tag );
   CHECK_ERR(rval);
-  
+
     // get tag data
   int handle_tag_size = 0, coord_tag_size = 0;
   const void* ptrs[2];
@@ -361,13 +361,13 @@ void test_global_value_common( bool mesh_value )
     rval = mb2.tag_get_default_value( coord_tag, ptrs[1], coord_tag_size );
     CHECK_ERR(rval);
   }
-  
+
     // check expected sizes
   CHECK_EQUAL( 3, handle_tag_size );
   CHECK_EQUAL( 9, coord_tag_size );
   CHECK( ptrs[0] != NULL );
   CHECK( ptrs[1] != NULL );
-  
+
     // check valid handles
   const EntityHandle* handle_vals = reinterpret_cast<const EntityHandle*>(ptrs[0]);
   CHECK( handle_vals[0] != 0 );
@@ -376,7 +376,7 @@ void test_global_value_common( bool mesh_value )
   CHECK_EQUAL( MBVERTEX, mb2.type_from_handle( handle_vals[0] ) );
   CHECK_EQUAL( MBVERTEX, mb2.type_from_handle( handle_vals[1] ) );
   CHECK_EQUAL( MBVERTEX, mb2.type_from_handle( handle_vals[2] ) );
-  
+
     // check correct coordinate values
   const double* coord_vals = reinterpret_cast<const double*>(ptrs[1]);
   rval = mb2.get_coords( handle_vals, 3, coords );
@@ -408,19 +408,19 @@ void test_global_opaque_common( bool mesh_value )
   Core moab;
   Interface &mb = moab;
   create_mesh( mb );
-  
+
   const char data[] = { 'J', 'A', 'S', 'O', 'N' };
   const int datalen = sizeof(data);
   CHECK_EQUAL( 5, datalen );
-  
-  // create tag 
+
+  // create tag
   Tag tag = 0;
   const void* default_val = mesh_value ? 0 : data;
   int default_val_size = mesh_value ? 0 : datalen;
-  rval = mb.tag_get_handle( "opaque_tag", default_val_size, MB_TYPE_OPAQUE, tag, 
+  rval = mb.tag_get_handle( "opaque_tag", default_val_size, MB_TYPE_OPAQUE, tag,
                             MB_TAG_DENSE|MB_TAG_VARLEN|MB_TAG_EXCL, default_val );
   CHECK_ERR( rval );
-  
+
   // if doing mesh tag, set it
   if (mesh_value) {
     const void* ptrarr[] = { data };
@@ -428,18 +428,18 @@ void test_global_opaque_common( bool mesh_value )
     rval = mb.tag_set_by_ptr( tag, &root, 1, ptrarr, &datalen );
     CHECK_ERR(rval);
   }
-  
+
     // write and read file
   Core moab2;
   Interface &mb2 = moab2;
   read_write( mesh_value ? "test_var_length_mesh_opaque.h5m" : "test_var_length_default_opaque.h5m", mb, mb2 );
   compare_tags( "opaque_tag", mb, mb2 );
-  
+
     // get tag handles
   tag = 0;
   rval = mb2.tag_get_handle( "opaque_tag", 0, MB_TYPE_OPAQUE, tag );
   CHECK_ERR(rval);
-  
+
     // get tag data
   int tag_size = 0;
   const void* ptrs[1];
@@ -452,11 +452,11 @@ void test_global_opaque_common( bool mesh_value )
     rval = mb2.tag_get_default_value( tag, ptrs[0], tag_size );
     CHECK_ERR(rval);
   }
-  
+
     // check size
   CHECK_EQUAL( datalen, tag_size );
   CHECK( ptrs[0] != NULL );
-  
+
     // check values
   const char* tag_data = reinterpret_cast<const char*>(ptrs[0]);
   for (int i = 0; i < datalen; ++i)
@@ -473,7 +473,7 @@ void test_var_length_default_opaque()
   test_global_opaque_common( false );
 }
 
-  
+
 void test_var_length_handle_tag()
 {
   ErrorCode rval;
@@ -481,12 +481,12 @@ void test_var_length_handle_tag()
   Interface &mb1 = moab1, &mb2 = moab2;
   Tag tag;
   Range::const_iterator  i;
-  
+
   create_mesh( mb1 );
-  rval = mb1.tag_get_handle( "test_tag", 0, MB_TYPE_HANDLE, tag, 
+  rval = mb1.tag_get_handle( "test_tag", 0, MB_TYPE_HANDLE, tag,
                              MB_TAG_SPARSE|MB_TAG_VARLEN|MB_TAG_EXCL );
   CHECK_ERR( rval );
-  
+
     // Get all entities
   Range range;
   rval = mb1.get_entities_by_handle( 0, range );
@@ -517,10 +517,10 @@ void test_var_length_handle_tag()
       ++num_tagged_entities;
    }
   }
-  
+
   read_write( "test_var_length_handle_tag.h5m", mb1, mb2 );
   compare_tags( "test_tag", mb1, mb2 );
-  
+
     // check number of tagged entities
   rval = mb2.tag_get_handle( "test_tag", 0, MB_TYPE_HANDLE, tag );
   CHECK_ERR(rval);
@@ -530,18 +530,18 @@ void test_var_length_handle_tag()
     CHECK_ERR(rval);
   }
   CHECK_EQUAL( num_tagged_entities, range.size() );
-  
+
     // check tag values
   for (i = range.begin(); i != range.end(); ++i) {
     EntityHandle h = *i;
-    
+
     const void* ptr;
     int size;
     rval = mb2.tag_get_by_ptr( tag, &h, 1, &ptr, &size );
     CHECK_ERR(rval);
-    
+
     const EntityHandle* handles = reinterpret_cast<const EntityHandle*>(ptr);
-    
+
     if (mb2.type_from_handle(h) == MBVERTEX) {
       CHECK_EQUAL( 1, size );
       CHECK_EQUAL( h, *handles );
@@ -561,7 +561,7 @@ void test_var_length_handle_tag()
 void create_structured_quad_mesh( Interface& mb, int x, int y )
 {
   ErrorCode rval;
-  
+
   const double z = 2.1;
   std::vector<EntityHandle> verts((x+1)*(y+1));
   for (int i = 0; i <= x; ++i) {
@@ -571,7 +571,7 @@ void create_structured_quad_mesh( Interface& mb, int x, int y )
       CHECK_ERR( rval );
     }
   }
-  
+
   std::vector<EntityHandle> elems(x*y);
   for (int i = 0; i < x; ++i) {
     for (int j = 0; j < y; ++j ) {
@@ -603,39 +603,39 @@ void compare_tags( const char* name, Interface& mb1, Interface& mb2 )
   CHECK_ERR(rval);
   rval = mb2.tag_get_handle( name, 0, MB_TYPE_OPAQUE, tag2, MB_TAG_ANY );
   CHECK_ERR(rval);
-  
+
   int size;
   CHECK_EQUAL( MB_VARIABLE_DATA_LENGTH, mb1.tag_get_length( tag1, size ) );
   CHECK_EQUAL( MB_VARIABLE_DATA_LENGTH, mb2.tag_get_length( tag2, size ) );
-  
+
   TagType storage1, storage2;
   rval = mb1.tag_get_type( tag1, storage1 );
   CHECK_ERR(rval);
   rval = mb2.tag_get_type( tag2, storage2 );
   CHECK_ERR(rval);
   CHECK_EQUAL( storage1, storage2 );
-  
+
   DataType type1, type2;
   rval = mb1.tag_get_data_type( tag1, type1 );
   CHECK_ERR(rval);
   rval = mb2.tag_get_data_type( tag2, type2 );
   CHECK_ERR(rval);
-  
+
   const void *defval1, *defval2;
   int defsize1, defsize2;
   ErrorCode rval1 = mb1.tag_get_default_value( tag1, defval1, defsize1 );
   ErrorCode rval2 = mb2.tag_get_default_value( tag2, defval2, defsize2 );
   if (MB_SUCCESS == rval1) {
     CHECK_ERR(rval2);
- 
+
     CHECK_EQUAL( defsize1, defsize2 );
     CHECK( !memcmp( defval1, defval2, defsize1 ) );
   }
-  else if (MB_ENTITY_NOT_FOUND == rval1 || MB_TAG_NOT_FOUND == rval1) 
+  else if (MB_ENTITY_NOT_FOUND == rval1 || MB_TAG_NOT_FOUND == rval1)
     CHECK_EQUAL( rval1, rval2 );
-  else 
+  else
     CHECK_ERR( rval1 );
-  
+
 }
 
 void read_write( const char* filename, Interface& writer, Interface& reader )

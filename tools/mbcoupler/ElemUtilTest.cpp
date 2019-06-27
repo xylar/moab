@@ -21,7 +21,7 @@ const CartVect cube_corners[8] = { CartVect( 0, 0, 0 ),
                                      CartVect( 1, 0, 1 ),
                                      CartVect( 1, 1, 1 ),
                                      CartVect( 0, 1, 1 ) };
-                                    
+
 
 const CartVect hex_corners[8] = { CartVect( 1.0e0, 0.0e0, 0.0e0 ),
                                     CartVect( 1.0e0, 1.0e0, 0.3e0 ),
@@ -59,10 +59,10 @@ static void hex_bounding_box( const CartVect* corners, CartVect& min, CartVect& 
 }
 
 static bool in_range( const CartVect& xi )
-  { return fabs(xi[0]) <= 1 
-        && fabs(xi[1]) <= 1 
-        && fabs(xi[2]) <= 1; 
-  }        
+  { return fabs(xi[0]) <= 1
+        && fabs(xi[1]) <= 1
+        && fabs(xi[2]) <= 1;
+  }
 
 void test_hex_nat_coords()
 {
@@ -71,7 +71,7 @@ void test_hex_nat_coords()
   // rename EPS to EPS1 because of conflict with definition of EPS in types.h
   // types.h is now included in the header.
   const double EPS1 = 1e-6;
-  
+
     // first test with cube because it's easier to debug failures
   std::vector<CartVect> cube_corners2;
   std::copy(cube_corners, cube_corners+8, std::back_inserter(cube_corners2));
@@ -90,7 +90,7 @@ void test_hex_nat_coords()
       }
     }
   }
-  
+
     // now test with distorted hex
   std::vector<CartVect> hex_corners2;
   std::copy(hex_corners, hex_corners+8, std::back_inserter(hex_corners2));
@@ -109,14 +109,14 @@ void test_hex_nat_coords()
       }
     }
   }
-  
+
     // test points outside of element
   CartVect x, min, max;
   hex_bounding_box( cube_corners, min, max );
   for (x[0] = -1; x[0] <= 2; x[0] += 0.4) {
     for (x[1] = -1; x[1] <= 2; x[1] += 0.4) {
       for (x[2] = -1; x[2] <= 2; x[2] += 0.4) {
-        bool in_box = x[0] >= min[0] && x[0] <= max[0] 
+        bool in_box = x[0] >= min[0] && x[0] <= max[0]
                    && x[1] >= min[1] && x[1] <= max[1]
                    && x[2] >= min[2] && x[2] <= max[2];
         if (in_box)
@@ -124,7 +124,7 @@ void test_hex_nat_coords()
         result_xi = hex.ievaluate(x, EPS1/10);
         double dum = EPS1/10;
         valid = hex.inside_nat_space(result_xi, dum);
-        
+
 //std::cout << (valid ? 'y' : 'n');
         CHECK(!valid || !in_range(result_xi));
       }
@@ -136,7 +136,7 @@ void test_hex_nat_coords()
   for (x[0] = -1; x[0] <= 3; x[0] += 0.5) {
     for (x[1] = -2; x[1] <= 4; x[1] += 0.5) {
       for (x[2] = -1; x[2] <= 2; x[2] += 0.4) {
-        bool in_box = x[0] >= min[0] && x[0] <= max[0] 
+        bool in_box = x[0] >= min[0] && x[0] <= max[0]
                    && x[1] >= min[1] && x[1] <= max[1]
                    && x[2] >= min[2] && x[2] <= max[2];
         if (in_box)
@@ -154,4 +154,4 @@ void test_hex_nat_coords()
   }
 //std::cout << std::endl;
 }
-  
+

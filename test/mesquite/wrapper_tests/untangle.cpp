@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2010 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2010) kraftche@cae.wisc.edu    
+    (2010) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file untangle.cpp
  *  \brief tast untangle wrapper
- *  \author Jason Kraftcheck 
+ *  \author Jason Kraftcheck
  */
 #include "TestUtil.hpp"
 
@@ -132,7 +132,7 @@ int main( int argc, char* argv[] )
   }
 
   int result = 0;
-  
+
   result += uwt( skip_beta||skip_horse, UntangleWrapper::BETA, "quads/tangled/tangled_horse1.vtk", 0 );
   result += uwt( skip_beta||skip_hole , UntangleWrapper::BETA, "quads/tangled/hole_in_square_tanglap.vtk", 0, true );
   result += uwt( skip_beta||skip_invrt, UntangleWrapper::BETA, "quads/tangled/inverted-hole-2.vtk", 0 );
@@ -147,7 +147,7 @@ int main( int argc, char* argv[] )
   result += uwt( skip_shape||skip_hole , UntangleWrapper::SHAPESIZE, "quads/tangled/hole_in_square_tanglap.vtk", 0, true );
   result += uwt( skip_shape||skip_invrt, UntangleWrapper::SHAPESIZE, "quads/tangled/inverted-hole-2.vtk", 8  );
   result += uwt( skip_shape||skip_shest, UntangleWrapper::SHAPESIZE, "quads/untangled/shest_grid32.vtk", 0 );
-  
+
   return result;
 }
 
@@ -229,26 +229,26 @@ int uwt( bool skip,
       std::cerr << "Wrote file: " << result_file << std::endl;
     }
   }
-  
+
     // test number of inverted elements
   int count, junk;
   wrapper.quality_assessor().get_inverted_element_count( count, junk, err );
   if (err) abort();
   if (count < expected) {
-    std::cout << "WARNING: expected " << expected 
-              << " inverted elements but finished with only " 
+    std::cout << "WARNING: expected " << expected
+              << " inverted elements but finished with only "
               << count << std::endl
               << "Test needs to be updated?" << std::endl << std::endl;
     return 0;
   }
   else if (count == expected) {
-    std::cout << "Completed with " << count << " inverted elements remaining" 
+    std::cout << "Completed with " << count << " inverted elements remaining"
               << std::endl << std::endl;
     return 0;
   }
   else {
-    std::cerr << "ERROR: expected " << expected 
-              << " inverted elements but finished with " 
+    std::cerr << "ERROR: expected " << expected
+              << " inverted elements but finished with "
               << count << std::endl << std::endl;
     return 1;
   }

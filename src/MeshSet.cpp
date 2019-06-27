@@ -17,15 +17,15 @@ namespace moab {
  *****************************************************************************************/
 
 /**\brief Insert into parent/child list */
-static inline 
-MeshSet::Count insert_in_vector( const MeshSet::Count count, 
+static inline
+MeshSet::Count insert_in_vector( const MeshSet::Count count,
                                    MeshSet::CompactList& list,
                                    const EntityHandle h,
                                    int &result );
 
 /**\brief Remvoe from parent/child list */
 static inline
-MeshSet::Count remove_from_vector( const MeshSet::Count count, 
+MeshSet::Count remove_from_vector( const MeshSet::Count count,
                                      MeshSet::CompactList& list,
                                      const EntityHandle h,
                                      int &result );
@@ -42,59 +42,59 @@ template <typename pair_iter_t> class range_tool
 {
 public:
   /** Insert range-based data into range-based MeshSet */
-  inline static ErrorCode ranged_insert_entities( MeshSet::Count& count, 
-                                                    MeshSet::CompactList& clist, 
-                                                    pair_iter_t begin, 
-                                                    pair_iter_t end, 
-                                                    EntityHandle my_handle, 
+  inline static ErrorCode ranged_insert_entities( MeshSet::Count& count,
+                                                    MeshSet::CompactList& clist,
+                                                    pair_iter_t begin,
+                                                    pair_iter_t end,
+                                                    EntityHandle my_handle,
                                                     AEntityFactory* adj );
-  
+
   /** Remove range-based data from range-based MeshSet */
-  inline static ErrorCode ranged_remove_entities( MeshSet::Count& count, 
-                                                    MeshSet::CompactList& clist, 
-                                                    pair_iter_t begin, 
-                                                    pair_iter_t end, 
-                                                    EntityHandle my_handle, 
+  inline static ErrorCode ranged_remove_entities( MeshSet::Count& count,
+                                                    MeshSet::CompactList& clist,
+                                                    pair_iter_t begin,
+                                                    pair_iter_t end,
+                                                    EntityHandle my_handle,
                                                     AEntityFactory* adj );
 
   /** Insert range-based data into list-based MeshSet */
-  inline static ErrorCode vector_insert_entities( MeshSet::Count& count, 
-                                                    MeshSet::CompactList& clist, 
-                                                    pair_iter_t begin, 
-                                                    pair_iter_t end, 
-                                                    EntityHandle my_handle, 
+  inline static ErrorCode vector_insert_entities( MeshSet::Count& count,
+                                                    MeshSet::CompactList& clist,
+                                                    pair_iter_t begin,
+                                                    pair_iter_t end,
+                                                    EntityHandle my_handle,
                                                     AEntityFactory* adj );
 };
 
 /** Remove Range of handles fromr vector-based MeshSet */
-static ErrorCode vector_remove_range( MeshSet::Count& count, 
-                                        MeshSet::CompactList& clist, 
-                                        const Range& range, 
-                                        EntityHandle my_handle, 
+static ErrorCode vector_remove_range( MeshSet::Count& count,
+                                        MeshSet::CompactList& clist,
+                                        const Range& range,
+                                        EntityHandle my_handle,
                                         AEntityFactory* adj );
 
 /** Remove range-based MeshSet contents from vector-based MeshSet */
-static ErrorCode vector_remove_ranges( MeshSet::Count& count, 
-                                         MeshSet::CompactList& clist, 
+static ErrorCode vector_remove_ranges( MeshSet::Count& count,
+                                         MeshSet::CompactList& clist,
                                          const EntityHandle* pair_list,
                                          size_t num_pairs,
-                                         EntityHandle my_handle, 
+                                         EntityHandle my_handle,
                                          AEntityFactory* adj );
 
 /** Remove unsorted array of handles from vector-based MeshSet */
-static ErrorCode vector_remove_vector( MeshSet::Count& count, 
-                                         MeshSet::CompactList& clist, 
+static ErrorCode vector_remove_vector( MeshSet::Count& count,
+                                         MeshSet::CompactList& clist,
                                          const EntityHandle* vect,
                                          size_t vect_size,
-                                         EntityHandle my_handle, 
+                                         EntityHandle my_handle,
                                          AEntityFactory* adj );
 
 /** Insert unsorted array of handles into vector-based MeshSet */
-static ErrorCode vector_insert_vector( MeshSet::Count& count, 
-                                         MeshSet::CompactList& clist, 
+static ErrorCode vector_insert_vector( MeshSet::Count& count,
+                                         MeshSet::CompactList& clist,
                                          const EntityHandle* vect,
                                          size_t vect_size,
-                                         EntityHandle my_handle, 
+                                         EntityHandle my_handle,
                                          AEntityFactory* adj );
 
 /** Convert unsorted array of handles into array of ranged [begin,end] pairs */
@@ -106,8 +106,8 @@ static void convert_to_ranges( const EntityHandle* vect_in, size_t vect_in_len,
  *                             Parent/Child Operations                                   *
  *****************************************************************************************/
 
-static inline 
-MeshSet::Count insert_in_vector( const MeshSet::Count count, 
+static inline
+MeshSet::Count insert_in_vector( const MeshSet::Count count,
                                 MeshSet::CompactList& list,
                                 const EntityHandle h,
                                 int &result )
@@ -160,7 +160,7 @@ MeshSet::Count insert_in_vector( const MeshSet::Count count,
 }
 
 static inline
-MeshSet::Count remove_from_vector( const MeshSet::Count count, 
+MeshSet::Count remove_from_vector( const MeshSet::Count count,
                                   MeshSet::CompactList& list,
                                   const EntityHandle h,
                                   int &result )
@@ -183,7 +183,7 @@ MeshSet::Count remove_from_vector( const MeshSet::Count count,
         list.hnd[0] = list.hnd[1];
         result = true;
         return MeshSet::ONE;
-      } 
+      }
       else if (h == list.hnd[1]) {
         result = true;
         return MeshSet::ONE;
@@ -199,7 +199,7 @@ MeshSet::Count remove_from_vector( const MeshSet::Count count,
         result = false;
         return MeshSet::MANY;
       }
-      
+
       result = true;
       p = list.ptr[1] - 1;
       while (i != p) {
@@ -228,26 +228,26 @@ MeshSet::Count remove_from_vector( const MeshSet::Count count,
 
 
 int MeshSet::add_parent( EntityHandle parent )
-{ 
+{
   int result = 0;
   mParentCount = insert_in_vector( (Count)mParentCount, parentMeshSets, parent, result );
   return result;
 }
 int MeshSet::add_child( EntityHandle child )
-{ 
+{
   int result = 0;
   mChildCount = insert_in_vector( (Count)mChildCount, childMeshSets, child, result );
   return result;
 }
 
 int MeshSet::remove_parent( EntityHandle parent )
-{ 
+{
   int result = 0;
   mParentCount = remove_from_vector( (Count)mParentCount, parentMeshSets, parent, result );
   return result;
 }
 int MeshSet::remove_child( EntityHandle child )
-{ 
+{
   int result = 0;
   mChildCount = remove_from_vector( (Count)mChildCount, childMeshSets, child, result );
   return result;
@@ -284,7 +284,7 @@ ErrorCode MeshSet::convert( unsigned flg, EntityHandle my_handle, AEntityFactory
         EntityHandle h = *i; ++i;
         EntityHandle e = *i; ++i;
         for (; h <= e; ++h) {
-          *data = h; 
+          *data = h;
           ++data;
         }
       }
@@ -302,7 +302,7 @@ ErrorCode MeshSet::convert( unsigned flg, EntityHandle my_handle, AEntityFactory
       memcpy( data, &ranges[0], ranges.size()*sizeof(EntityHandle) );
     }
   }
-  
+
   return MB_SUCCESS;
 }
 
@@ -316,7 +316,7 @@ ErrorCode MeshSet::create_adjacencies( EntityHandle my_handle, AEntityFactory* a
     for (const EntityHandle* i = ptr; i != end; ++i) {
       rval = adj->add_adjacency( *i, my_handle, false );
       if (MB_SUCCESS != rval) {
-        for (const EntityHandle* j = ptr; j != i; ++j) 
+        for (const EntityHandle* j = ptr; j != i; ++j)
           adj->remove_adjacency( *j, my_handle );
         return rval;
       }
@@ -408,15 +408,15 @@ class MeshSetRComp {
 };
 
 template <typename pair_iter_t> inline ErrorCode
-range_tool<pair_iter_t>::ranged_insert_entities( MeshSet::Count& count, 
-                                                 MeshSet::CompactList& clist, 
-                                                 pair_iter_t begin, 
-                                                 pair_iter_t end, 
-                                                 EntityHandle my_handle, 
+range_tool<pair_iter_t>::ranged_insert_entities( MeshSet::Count& count,
+                                                 MeshSet::CompactList& clist,
+                                                 pair_iter_t begin,
+                                                 pair_iter_t end,
+                                                 EntityHandle my_handle,
                                                  AEntityFactory* adj )
 {
      //first pass:
-    // 1) merge existing ranges 
+    // 1) merge existing ranges
     // 2) count number of new ranges that must be inserted
   EntityHandle *list_ptr;
   size_t list_size;
@@ -428,7 +428,7 @@ range_tool<pair_iter_t>::ranged_insert_entities( MeshSet::Count& count,
     list_ptr = clist.ptr[0];
     list_size = clist.ptr[1] - clist.ptr[0];
   }
-  
+
   MeshSetRange* list = reinterpret_cast<MeshSetRange*>(list_ptr);
   assert(0 == list_size % 2);
   assert(2*sizeof(EntityHandle) == sizeof(MeshSetRange));
@@ -436,16 +436,16 @@ range_tool<pair_iter_t>::ranged_insert_entities( MeshSet::Count& count,
   MeshSetRange *const list_end = list + list_size;
   MeshSetRange *list_read = list, *list_write = list;
   pair_iter_t i = begin;
-  
+
     // count number of range pairs that are straight insertions
-    // (don't overlap any range pair in the current set) that 
+    // (don't overlap any range pair in the current set) that
     // could not be inserted during the first pass.
   size_t insert_count = 0;
-  
+
    // merge lists
   while(i != end) {
     // find first range that intersects the current input range
-    
+
     // do binary search if no holes in current set contents
     if (list_read == list_write) {
         // subtract one from i->first because if it is one greater
@@ -464,7 +464,7 @@ range_tool<pair_iter_t>::ranged_insert_entities( MeshSet::Count& count,
       ++list_write;
       ++list_read;
     }
-    
+
       // handle any straight insertions of range blocks
     for ( ; i != end && (list_read == list_end || i->second+1 < list_read->first); ++i) {
         // If we haven't removed any range pairs, we don't have space to
@@ -473,7 +473,7 @@ range_tool<pair_iter_t>::ranged_insert_entities( MeshSet::Count& count,
         ++insert_count;
       }
       else {
-        if (adj) 
+        if (adj)
           for (EntityHandle j = i->first; j <= i->second; ++j)
             adj->add_adjacency( j, my_handle, false );
 
@@ -482,13 +482,13 @@ range_tool<pair_iter_t>::ranged_insert_entities( MeshSet::Count& count,
         ++list_write;
       }
     }
-    
+
       // merge all the stuff that gets merged into a single range pair
       // from both the input list and the existing set data
     if (list_read != list_end) {
       MeshSetRange working = *list_read; // copy because might be the same as list_write
       ++list_read;
-      
+
         // Check if we need to prepend to the existing block.
         // We only need to check this for the first input range because
         // after this working.first will always be the first possible handle
@@ -499,7 +499,7 @@ range_tool<pair_iter_t>::ranged_insert_entities( MeshSet::Count& count,
             adj->add_adjacency( h, my_handle, false );
         working.first = i->first;
       }
-      
+
         // Now append from the input list and the remaining set contents
         // until we've consolidated all overlapping/touching ranges.
       bool done = false;
@@ -508,7 +508,7 @@ range_tool<pair_iter_t>::ranged_insert_entities( MeshSet::Count& count,
         bool set_overlap = list_read != list_end && list_read->first <= working.second+1;
           // does next input range touch working range?
         bool inp_overlap = i != end && i->first <= working.second+1;
-        
+
           // if both ranges touch...
         if (inp_overlap && set_overlap) {
             // if next set range is contained in working, skip it
@@ -517,7 +517,7 @@ range_tool<pair_iter_t>::ranged_insert_entities( MeshSet::Count& count,
             // if next input range is contained in working, skip it
           else if (i->second <= working.second)
             ++i;
-            // Otherwise set the working end to the smaller of the two 
+            // Otherwise set the working end to the smaller of the two
             // ends: either the next set end or the next input end.
             // We want the smaller of the two because the larger might
             // intersect additional ranges in the other list.
@@ -532,7 +532,7 @@ range_tool<pair_iter_t>::ranged_insert_entities( MeshSet::Count& count,
         }
           // If only the input range intersect the current working range...
         else if (inp_overlap) {
-            // Would it be more efficient to just extent 'working' to 
+            // Would it be more efficient to just extent 'working' to
             // the end of the current input range?  We'd end up adding
             // adjacencies for for entities that are already in the tracking
             // set and therefore already have the adjacency.
@@ -541,7 +541,7 @@ range_tool<pair_iter_t>::ranged_insert_entities( MeshSet::Count& count,
             last = list_read->first-1;
           else
             ++i;
-          
+
           if (last > working.second) {
             if (adj)
               for (EntityHandle h = working.second + 1; h <= last; ++h)
@@ -559,16 +559,16 @@ range_tool<pair_iter_t>::ranged_insert_entities( MeshSet::Count& count,
           done = true;
         }
       }
-      
+
       assert(list_write < list_read);
       *list_write = working;
       ++list_write;
     }
   }
-  
+
 
     // shuffle down entries to fill holes
-  if (list_read == list_write) 
+  if (list_read == list_write)
     list_read = list_write = list_end;
   else while(list_read < list_end) {
     *list_write = *list_read;
@@ -599,17 +599,17 @@ range_tool<pair_iter_t>::ranged_insert_entities( MeshSet::Count& count,
         assert(ri != begin);
         --ri;
       }
-    
+
       if (list_read->first > ri->second) {
         *list_write = *list_read;
         --list_read;
         continue;
       }
     }
-    
+
     assert( insert_count > 0 );
-    if (adj) 
-      for (EntityHandle h = ri->first; h <= ri->second; ++h) 
+    if (adj)
+      for (EntityHandle h = ri->first; h <= ri->second; ++h)
         adj->add_adjacency( h, my_handle, false );
     list_write->first = ri->first;
     list_write->second = ri->second;
@@ -628,17 +628,17 @@ range_tool<pair_iter_t>::ranged_insert_entities( MeshSet::Count& count,
   assert(!insert_count);
   return MB_SUCCESS;
 }
- 
+
 template <typename pair_iter_t> inline ErrorCode
-range_tool<pair_iter_t>::ranged_remove_entities( MeshSet::Count& count, 
-                                                 MeshSet::CompactList& clist, 
-                                                 pair_iter_t begin, 
-                                                 pair_iter_t end, 
-                                                 EntityHandle my_handle, 
+range_tool<pair_iter_t>::ranged_remove_entities( MeshSet::Count& count,
+                                                 MeshSet::CompactList& clist,
+                                                 pair_iter_t begin,
+                                                 pair_iter_t end,
+                                                 EntityHandle my_handle,
                                                  AEntityFactory* adj )
 {
     //first pass:
-    // 1) remove (from) existing ranges 
+    // 1) remove (from) existing ranges
     // 2) count number of ranges that must be split
   ptrdiff_t split_count = 0;
   EntityHandle *list;
@@ -655,15 +655,15 @@ range_tool<pair_iter_t>::ranged_remove_entities( MeshSet::Count& count,
   EntityHandle* list_write = list;
   EntityHandle *const list_end = list + list_size, *list_read = list;
   pair_iter_t i = begin;
-  
+
   while(list_read != list_end && i != end) {
-    
+
     while (i != end && i->second < list_read[0])
       ++i;
     if (i == end)
       break;
-    
-      // if there are holes in the current array, shuffle blocks 
+
+      // if there are holes in the current array, shuffle blocks
       // down until we find the next block to remove
     if (list_read != list_write) {
       while (list_read != list_end && i->second < list_read[0]) {
@@ -680,22 +680,22 @@ range_tool<pair_iter_t>::ranged_remove_entities( MeshSet::Count& count,
       list_write -= (list_write - list)%2;
       list_read = list_write;
     }
-    
+
       // if everything remaning is past end of set contents...
-    if (list_read == list_end) 
+    if (list_read == list_end)
       break;
-      
+
       // skip any remove pairs that aren't in the list
     if (i->second < list_read[0]) {
       ++i;
       continue;
     }
-    
+
       // Begin by assuming that we will keep the entire block
     list_write[0] = list_read[0];
     list_write[1] = list_read[1];
     list_read += 2;
-    
+
     for (; i != end && i->first <= list_write[1]; ++i) {
       if (i->first <= list_write[0]) {
           // remove whole block
@@ -747,9 +747,9 @@ range_tool<pair_iter_t>::ranged_remove_entities( MeshSet::Count& count,
   }
 
     // shuffle down entries to fill holes
-  if (list_read == list_write) 
+  if (list_read == list_write)
     list_read = list_write = list_end;
-  else 
+  else
     while(list_read < list_end) {
       list_write[0] = list_read[0];
       list_write[1] = list_read[1];
@@ -778,7 +778,7 @@ range_tool<pair_iter_t>::ranged_remove_entities( MeshSet::Count& count,
         assert(ri != begin);
         --ri;
       }
-    
+
       if (list_read[0] > ri->second) {
         list_write[0] = list_read[0];
         list_write[1] = list_read[1];
@@ -786,7 +786,7 @@ range_tool<pair_iter_t>::ranged_remove_entities( MeshSet::Count& count,
         continue;
       }
     }
-    
+
     assert( split_count > 0 );
     list_write[0] = ri->second + 1;
     list_write[1] = list_read[1];
@@ -809,11 +809,11 @@ range_tool<pair_iter_t>::ranged_remove_entities( MeshSet::Count& count,
 
 
 template <typename pair_iter_t> inline ErrorCode
-range_tool<pair_iter_t>::vector_insert_entities( MeshSet::Count& count, 
-                                                 MeshSet::CompactList& clist, 
-                                                 pair_iter_t begin, 
-                                                 pair_iter_t end, 
-                                                 EntityHandle my_handle, 
+range_tool<pair_iter_t>::vector_insert_entities( MeshSet::Count& count,
+                                                 MeshSet::CompactList& clist,
+                                                 pair_iter_t begin,
+                                                 pair_iter_t end,
+                                                 EntityHandle my_handle,
                                                  AEntityFactory* adj )
 {
   const size_t init_size = count < MeshSet::MANY ? (int)count : clist.ptr[1] - clist.ptr[0];
@@ -835,10 +835,10 @@ range_tool<pair_iter_t>::vector_insert_entities( MeshSet::Count& count,
   return MB_SUCCESS;
 }
 
-static ErrorCode vector_remove_range( MeshSet::Count& count, 
-                                        MeshSet::CompactList& clist, 
-                                        const Range& range, 
-                                        EntityHandle my_handle, 
+static ErrorCode vector_remove_range( MeshSet::Count& count,
+                                        MeshSet::CompactList& clist,
+                                        const Range& range,
+                                        EntityHandle my_handle,
                                         AEntityFactory* adj )
 {
   EntityHandle *list;
@@ -859,7 +859,7 @@ static ErrorCode vector_remove_range( MeshSet::Count& count,
       *list_write = *list_read;
       ++list_write;
     }
-    else if (adj) {    
+    else if (adj) {
       adj->remove_adjacency( *list_read, my_handle );
     }
   }
@@ -868,11 +868,11 @@ static ErrorCode vector_remove_range( MeshSet::Count& count,
   return MB_SUCCESS;
 }
 
-static ErrorCode vector_remove_ranges( MeshSet::Count& count, 
-                                         MeshSet::CompactList& clist, 
+static ErrorCode vector_remove_ranges( MeshSet::Count& count,
+                                         MeshSet::CompactList& clist,
                                          const EntityHandle* pair_list,
                                          size_t num_pairs,
-                                         EntityHandle my_handle, 
+                                         EntityHandle my_handle,
                                          AEntityFactory* adj )
 {
   EntityHandle *list;
@@ -886,13 +886,13 @@ static ErrorCode vector_remove_ranges( MeshSet::Count& count,
     list_size = clist.ptr[1] - clist.ptr[0];
   }
 
-  const EntityHandle *const list_end = list + list_size, 
+  const EntityHandle *const list_end = list + list_size,
                        *const input_end = pair_list + 2*num_pairs;
   EntityHandle* list_write = list;
   for (const EntityHandle* list_read = list; list_read != list_end; ++list_read) {
     const EntityHandle* ptr = std::lower_bound( pair_list, input_end, *list_read );
     if ((ptr != input_end && (*ptr == *list_read || (ptr - pair_list)%2)) && // if in delete list
-        std::find(list_read+1, list_end, *list_read) == list_end) { // and is last occurance in list 
+        std::find(list_read+1, list_end, *list_read) == list_end) { // and is last occurance in list
         // only remove adj if no previous occurance
       if (adj && std::find(list, list_write, *list_read) == list_write)
         adj->remove_adjacency( *list_read, my_handle );
@@ -907,11 +907,11 @@ static ErrorCode vector_remove_ranges( MeshSet::Count& count,
   return MB_SUCCESS;
 }
 
-static ErrorCode vector_remove_vector( MeshSet::Count& count, 
-                                         MeshSet::CompactList& clist, 
+static ErrorCode vector_remove_vector( MeshSet::Count& count,
+                                         MeshSet::CompactList& clist,
                                          const EntityHandle* vect,
                                          size_t vect_size,
-                                         EntityHandle my_handle, 
+                                         EntityHandle my_handle,
                                          AEntityFactory* adj )
 {
   EntityHandle *list;
@@ -925,12 +925,12 @@ static ErrorCode vector_remove_vector( MeshSet::Count& count,
     list_size = clist.ptr[1] - clist.ptr[0];
   }
 
-  const EntityHandle *const list_end = list + list_size, 
+  const EntityHandle *const list_end = list + list_size,
                        *const input_end = vect + vect_size;
   EntityHandle* list_write = list;
   for (const EntityHandle* list_read = list; list_read != list_end; ++list_read) {
     if (std::find(vect, input_end, *list_read) != input_end && // if in delete list
-        std::find(list_read+1, list_end, *list_read) == list_end) { // and is last occurance in list 
+        std::find(list_read+1, list_end, *list_read) == list_end) { // and is last occurance in list
         // only remove adj if no previous occurance?
       if (adj ) // && std::find(list, list_write, *list_read) == list_write)
         adj->remove_adjacency( *list_read, my_handle );
@@ -945,16 +945,16 @@ static ErrorCode vector_remove_vector( MeshSet::Count& count,
   return MB_SUCCESS;
 }
 
-static ErrorCode vector_insert_vector( MeshSet::Count& count, 
-                                         MeshSet::CompactList& clist, 
+static ErrorCode vector_insert_vector( MeshSet::Count& count,
+                                         MeshSet::CompactList& clist,
                                          const EntityHandle* vect,
                                          size_t vect_size,
-                                         EntityHandle my_handle, 
+                                         EntityHandle my_handle,
                                          AEntityFactory* adj )
 {
   const size_t orig_size = count < MeshSet::MANY ? (int)count : clist.ptr[1] - clist.ptr[0];
   EntityHandle* list = resize_compact_list( count, clist, orig_size + vect_size );
-  if (adj) 
+  if (adj)
     for (size_t i = 0; i < vect_size; ++i)
       adj->add_adjacency( vect[i], my_handle, false );
   memcpy( list+orig_size, vect, sizeof(EntityHandle)*vect_size );
@@ -968,10 +968,10 @@ ErrorCode MeshSet::insert_entity_ranges( const EntityHandle* range_vect, size_t 
   MeshSet::Count count = static_cast<MeshSet::Count>(mContentCount);
   ErrorCode rval;
   if (!vector_based())
-    rval = range_tool<pair_vect_t>::ranged_insert_entities( count, contentList,  pair_vect, 
+    rval = range_tool<pair_vect_t>::ranged_insert_entities( count, contentList,  pair_vect,
                                              pair_vect + len/2, my_h, tracking() ? adj : 0 );
   else
-    rval = range_tool<pair_vect_t>::vector_insert_entities( count, contentList,  pair_vect, 
+    rval = range_tool<pair_vect_t>::vector_insert_entities( count, contentList,  pair_vect,
                                              pair_vect + len/2, my_h, tracking() ? adj : 0 );
   mContentCount = count;
   return rval;
@@ -982,12 +982,12 @@ ErrorCode MeshSet::insert_entity_ranges( const Range& range, EntityHandle my_h, 
   ErrorCode rval;
   MeshSet::Count count = static_cast<MeshSet::Count>(mContentCount);
   if (!vector_based())
-    rval = range_tool<Range::const_pair_iterator>::ranged_insert_entities( count, 
-                             contentList, range.const_pair_begin(), range.const_pair_end(), 
+    rval = range_tool<Range::const_pair_iterator>::ranged_insert_entities( count,
+                             contentList, range.const_pair_begin(), range.const_pair_end(),
                              my_h, tracking() ? adj : 0 );
   else
-    rval = range_tool<Range::const_pair_iterator>::vector_insert_entities( count, 
-                             contentList, range.const_pair_begin(), range.const_pair_end(), 
+    rval = range_tool<Range::const_pair_iterator>::vector_insert_entities( count,
+                             contentList, range.const_pair_begin(), range.const_pair_end(),
                              my_h, tracking() ? adj : 0 );
   mContentCount = count;
   return rval;
@@ -997,13 +997,13 @@ ErrorCode MeshSet::remove_entity_ranges( const EntityHandle* range_vect, size_t 
 {
   ErrorCode rval;
   MeshSet::Count count = static_cast<MeshSet::Count>(mContentCount);
-  if (vector_based()) 
-    rval = vector_remove_ranges( count, contentList, range_vect, len/2, my_h, 
+  if (vector_based())
+    rval = vector_remove_ranges( count, contentList, range_vect, len/2, my_h,
                                  tracking() ? adj : 0 );
   else {
     typedef const std::pair<EntityHandle,EntityHandle>* pair_vect_t;
     pair_vect_t pair_vect = reinterpret_cast<pair_vect_t>(range_vect);
-    rval = range_tool<pair_vect_t>::ranged_remove_entities( count, contentList, pair_vect, 
+    rval = range_tool<pair_vect_t>::ranged_remove_entities( count, contentList, pair_vect,
                                            pair_vect + len/2, my_h, tracking() ? adj : 0 );
   }
   mContentCount = count;
@@ -1014,11 +1014,11 @@ ErrorCode MeshSet::remove_entity_ranges( const Range& range, EntityHandle my_h, 
 {
   ErrorCode rval;
   MeshSet::Count count = static_cast<MeshSet::Count>(mContentCount);
-  if (vector_based()) 
+  if (vector_based())
     rval = vector_remove_range( count, contentList, range, my_h, tracking() ? adj : 0 );
-  else 
-    rval = range_tool<Range::const_pair_iterator>::ranged_remove_entities( count, 
-                         contentList, range.const_pair_begin(), range.const_pair_end(), 
+  else
+    rval = range_tool<Range::const_pair_iterator>::ranged_remove_entities( count,
+                         contentList, range.const_pair_begin(), range.const_pair_end(),
                          my_h, tracking() ? adj : 0 );
   mContentCount = count;
   return rval;
@@ -1034,7 +1034,7 @@ ErrorCode MeshSet::intersect( const MeshSet* other, EntityHandle my_handle, AEnt
     if (!other_count)
       return clear( my_handle, adj );
     assert(0 == other_count%2);
-    
+
     std::vector<EntityHandle> compliment;
     compliment.reserve( other_count + 4 );
     if (*other_vect > 0) {
@@ -1051,7 +1051,7 @@ ErrorCode MeshSet::intersect( const MeshSet* other, EntityHandle my_handle, AEnt
       compliment.push_back( *other_vect + 1 );
       compliment.push_back( ~(EntityHandle)0 );
     }
-    
+
     return remove_entity_ranges( &compliment[0], compliment.size(), my_handle, adj );
   }
   else {
@@ -1075,18 +1075,18 @@ static void convert_to_ranges( const EntityHandle* vect_in, size_t vect_in_len,
 
     // duplicate all entries
   vect_out.resize( vect_out.size() * 2 );
-  for (long i = vect_out.size() - 1; i >= 0; --i) 
+  for (long i = vect_out.size() - 1; i >= 0; --i)
     vect_out[i] = vect_out[i/2];
-   
+
     // compact adjacent ranges
   std::vector<EntityHandle>::iterator r = vect_out.begin(), w = vect_out.begin();
   while (r != vect_out.end()) {
     *w = *r;
-    ++w; 
+    ++w;
     ++r;
     *w = *r;
     ++r;
-    
+
     while (r != vect_out.end() && *w + 1 == *r) {
       ++r;
       *w = *r;
@@ -1094,7 +1094,7 @@ static void convert_to_ranges( const EntityHandle* vect_in, size_t vect_in_len,
     }
     ++w;
   }
-  
+
     // remove extra space
   vect_out.erase( w, vect_out.end() );
 }
@@ -1110,7 +1110,7 @@ ErrorCode MeshSet::insert_entity_vector( const EntityHandle* vect, size_t len, E
     convert_to_ranges( vect, len, rangevect );
     typedef const std::pair<EntityHandle,EntityHandle>* pair_vect_t;
     pair_vect_t pair_vect = (rangevect.empty())?NULL:reinterpret_cast<pair_vect_t>(&rangevect[0]);
-    rval = range_tool<pair_vect_t>::ranged_insert_entities( count, contentList, pair_vect, 
+    rval = range_tool<pair_vect_t>::ranged_insert_entities( count, contentList, pair_vect,
                                  pair_vect + rangevect.size()/2, my_h, tracking() ? adj : 0 );
   }
   mContentCount = count;
@@ -1128,7 +1128,7 @@ ErrorCode MeshSet::remove_entity_vector( const EntityHandle* vect, size_t len, E
     convert_to_ranges( vect, len, rangevect );
     typedef const std::pair<EntityHandle,EntityHandle>* pair_vect_t;
     pair_vect_t pair_vect = (rangevect.empty())?NULL:reinterpret_cast<pair_vect_t>(&rangevect[0]);
-    rval = range_tool<pair_vect_t>::ranged_remove_entities( count, contentList, pair_vect, 
+    rval = range_tool<pair_vect_t>::ranged_remove_entities( count, contentList, pair_vect,
                                 pair_vect + rangevect.size()/2, my_h, tracking() ? adj : 0 );
   }
   mContentCount = count;
@@ -1187,5 +1187,5 @@ unsigned long MeshSet::get_memory_use() const
     result += contentList.ptr[1] - contentList.ptr[0];
   return sizeof(EntityHandle)*result;
 }
-  
+
 } // namespace moab

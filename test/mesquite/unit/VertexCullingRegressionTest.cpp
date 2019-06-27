@@ -1,9 +1,9 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2004 Sandia Corporation and Argonne National
-    Laboratory.  Under the terms of Contract DE-AC04-94AL85000 
-    with Sandia Corporation, the U.S. Government retains certain 
+    Laboratory.  Under the terms of Contract DE-AC04-94AL85000
+    with Sandia Corporation, the U.S. Government retains certain
     rights in this software.
 
     This library is free software; you can redistribute it and/or
@@ -16,17 +16,17 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
-    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov, 
-    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov      
-   
+
+    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov,
+    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov
+
   ***************************************************************** */
 // -*- Mode : c++; tab-width: 2; c-tab-always-indent: t; indent-tabs-mode: nil; c-basic-offset: 2 -*-
 //
-//   SUMMARY: 
+//   SUMMARY:
 //     USAGE:
 //
 //    AUTHOR: Michael Brewer
@@ -40,7 +40,7 @@
 // ============
 /*! \file VertexCullingRegressionTest.cpp
 
-Regression testing using the vertex culling algorithms. 
+Regression testing using the vertex culling algorithms.
  */
 // DESCRIP-END.
 //
@@ -79,7 +79,7 @@ private:
   CPPUNIT_TEST_SUITE(VertexCullingRegressionTest);
   CPPUNIT_TEST (test_laplacian_smoothing_with_cull);
   CPPUNIT_TEST_SUITE_END();
-  
+
 private:
   int pF;//PRINT_FLAG
 public:
@@ -92,7 +92,7 @@ public:
   void tearDown()
   {
   }
-  
+
 public:
   VertexCullingRegressionTest()
     {}
@@ -104,29 +104,29 @@ public:
       MBMesquite::MeshImpl mesh;
       mesh.read_vtk(MESH_FILES_DIR "2D/vtk/quads/untangled/square_quad_10_rand.vtk", err);
       CPPUNIT_ASSERT(!err);
-      
+
       Vector3D pnt(0,0,5);
       Vector3D s_norm(0,0,1);
       MBMesquite::PlanarDomain msq_geom(s_norm, pnt);
-     
+
         // create an objective function for use in termination criteria
       IdealWeightInverseMeanRatio metric;
       LPtoPTemplate of(2, &metric);
-     
+
         // creates an intruction queue
       InstructionQueue queue1;
-      
+
         // creates a mean ratio quality metric ...
       ConditionNumberQualityMetric shape_metric;
       EdgeLengthQualityMetric lapl_met;
       lapl_met.set_averaging_method(QualityMetric::RMS);
-      
+
         // creates the laplacian smoother  procedures
       LaplacianSmoother lapl1(&of);
       LaplacianSmoother lapl2(&of);
       QualityAssessor stop_qa=QualityAssessor( &shape_metric );
       stop_qa.add_quality_assessment( &lapl_met );
-      
+
         //**************Set termination criterion****************
       TerminationCriterion sc2;
       sc2.add_iteration_limit( 1000 );
@@ -161,7 +161,7 @@ public:
       queue1.run_instructions(&mesh_and_domain, err);
       CPPUNIT_ASSERT(!err);
     }
-  
+
 };
 
 

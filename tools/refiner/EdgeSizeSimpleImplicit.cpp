@@ -1,6 +1,6 @@
 #include "EdgeSizeSimpleImplicit.hpp"
 
-namespace moab { 
+namespace moab {
 
 EdgeSizeSimpleImplicit::EdgeSizeSimpleImplicit()
 {

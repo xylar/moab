@@ -1,16 +1,16 @@
 /**
  * MOAB, a Mesh-Oriented datABase, is a software component for creating,
  * storing and accessing finite element mesh data.
- * 
+ *
  * Copyright 2004 Sandia Corporation.  Under the terms of Contract
  * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
  * retains certain rights in this software.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  */
 
 #include "ReadOBJ.hpp"
@@ -56,7 +56,7 @@ const char* face_start_token = "f";
 const char* const geom_name[] = { "Vertex\0", "Curve\0", "Surface\0", "Volume\0"};
 
 // Geometric Categories
-const char geom_category[][CATEGORY_TAG_SIZE] = 
+const char geom_category[][CATEGORY_TAG_SIZE] =
                   { "Vertex\0","Curve\0","Surface\0","Volume\0","Group\0"};
 
 // Constructor
@@ -68,8 +68,8 @@ ReadOBJ::ReadOBJ(Interface* impl)
   MBI->query_interface(readMeshIface);
   myGeomTool = new GeomTopoTool(impl);
   assert(NULL != readMeshIface);
-  
-  // Get all handles 
+
+  // Get all handles
   int negone = -1, zero = 0;
   ErrorCode rval;
   rval = MBI->tag_get_handle( GEOM_DIMENSION_TAG_NAME, 1, MB_TYPE_INTEGER,
@@ -85,7 +85,7 @@ ReadOBJ::ReadOBJ(Interface* impl)
   rval = MBI->tag_get_handle( CATEGORY_TAG_NAME, CATEGORY_TAG_SIZE, MB_TYPE_OPAQUE,
       			category_tag, MB_TAG_SPARSE|MB_TAG_CREAT );
   MB_CHK_ERR_RET(rval);
-  
+
   rval = MBI->tag_get_handle( "OBJECT_NAME", 32, MB_TYPE_OPAQUE,
       			obj_name_tag, MB_TAG_SPARSE|MB_TAG_CREAT );
   MB_CHK_ERR_RET(rval);
@@ -94,16 +94,16 @@ ReadOBJ::ReadOBJ(Interface* impl)
                                MB_TAG_SPARSE|MB_TAG_CREAT );
   MB_CHK_ERR_RET(rval);
 
-  rval = MBI->tag_get_handle("GEOMETRY_RESABS", 1, MB_TYPE_DOUBLE, 
+  rval = MBI->tag_get_handle("GEOMETRY_RESABS", 1, MB_TYPE_DOUBLE,
                                geometry_resabs_tag, MB_TAG_SPARSE|MB_TAG_CREAT);
   MB_CHK_ERR_RET(rval);
-    
+
 }
 
 // Destructor
-ReadOBJ::~ReadOBJ() 
+ReadOBJ::~ReadOBJ()
 {
-  if (readMeshIface) 
+  if (readMeshIface)
     {
       MBI->release_interface(readMeshIface);
       readMeshIface = 0;
@@ -122,47 +122,47 @@ ErrorCode ReadOBJ::read_tag_values( const char*        /*file_name*/,
 }
 
 // Load the file as called by the Interface function
-ErrorCode ReadOBJ::load_file(const char *filename, 
-                             const EntityHandle *, 
+ErrorCode ReadOBJ::load_file(const char *filename,
+                             const EntityHandle *,
                              const FileOptions &,
                              const ReaderIface::SubsetList *subset_list,
-                             const Tag* /*file_id_tag*/) 
+                             const Tag* /*file_id_tag*/)
 {
   ErrorCode rval;
   int ignored = 0; // Number of lines not beginning with o, v, or f
   std::string line; // The current line being read
   EntityHandle vert_meshset;
   EntityHandle curr_meshset; // Current object meshset
-  std::string object_name;     
+  std::string object_name;
   std::vector<EntityHandle> vertex_list;
   int object_id = 0, group_id = 0;// ID number for each volume/surface
   int num_groups;
 
   // At this time, there is no support for reading a subset of the file
-  if (subset_list) 
+  if (subset_list)
     {
       MB_SET_ERR(MB_UNSUPPORTED_OPERATION, "Reading subset of files not supported for OBJ.");
     }
- 
+
   std::ifstream input_file(filename); // Filestream for OBJ file
 
   // Check that the file can be read
-  if ( !input_file.good() )  
+  if ( !input_file.good() )
     {
       std::cout << "Problems reading file = " << filename <<  std::endl;
       return MB_FILE_DOES_NOT_EXIST;
     }
-   
+
 
   // If the file can be read
-  if (input_file.is_open()) 
+  if (input_file.is_open())
     {
 
       //create meshset for global vertices
       rval = MBI->create_meshset( MESHSET_SET, vert_meshset );
       MB_CHK_SET_ERR(rval, "Failed to create global vert meshset.");
-      
-      while ( std::getline (input_file,line) ) 
+
+      while ( std::getline (input_file,line) )
         {
           // Skip blank lines in file
 	  if (line.length() == 0 ) continue;
@@ -173,12 +173,12 @@ ErrorCode ReadOBJ::load_file(const char *filename,
 
           // Each group and object line must have a name, token size is at least 2
           // Each vertex and face line should have token size of at least 4
-          if (tokens.size() < 2) continue; 
+          if (tokens.size() < 2) continue;
 
           switch (get_keyword(tokens))
-            { 
+            {
               // Object line
-              case object_start:         
+              case object_start:
                 {
                    object_id++;
                    object_name = tokens[1]; // Get name of object
@@ -189,31 +189,31 @@ ErrorCode ReadOBJ::load_file(const char *filename,
                 }
 
               // Group line
-              case group_start: 
+              case group_start:
                 {
                   group_id++;
                   num_groups = tokens.size()-1;
-                  std::string group_name = "Group";  
+                  std::string group_name = "Group";
                   for ( int i = 0; i < num_groups; i++)
                     {
                       group_name = group_name + '_' + tokens[i+1];
                     }
-               
-                  // Create new meshset for group 
+
+                  // Create new meshset for group
                   rval = create_new_group(group_name, group_id, curr_meshset); MB_CHK_ERR(rval);
-                  break;             
+                  break;
                 }
 
-              // Vertex line 
+              // Vertex line
               case vertex_start:
                 {
                    // Read vertex and return EH
                    EntityHandle new_vertex_eh;
                    rval = create_new_vertex(tokens, new_vertex_eh); MB_CHK_ERR(rval);
-                   
-                   // Add new vertex EH to list 
+
+                   // Add new vertex EH to list
                    vertex_list.push_back(new_vertex_eh);
-                   
+
                    // Add new vertex EH to the meshset
                    MBI->add_entities( vert_meshset, &new_vertex_eh, 1);
                    MB_CHK_SET_ERR(rval, "Failed to add vertex to global meshset.");
@@ -227,65 +227,65 @@ ErrorCode ReadOBJ::load_file(const char *filename,
                   // 3 vertices, the EH will be immediately added to the meshset.
                   // If 4, face is split into triangles.  Anything else is ignored.
                   EntityHandle new_face_eh;
-                  
+
                   if ( tokens.size() == 4 )
-                    {  
+                    {
                       rval = create_new_face(tokens, vertex_list, new_face_eh); MB_CHK_ERR(rval);
-               
+
                       if (rval == MB_SUCCESS)
                         {
                           // Add new face EH to the meshset
                           MBI->add_entities(curr_meshset, &new_face_eh, 1);
-                        }   
+                        }
                     }
-                  
-                  else if( tokens.size() == 5 )  
+
+                  else if( tokens.size() == 5 )
                     {
                       // Split_quad fxn will create 2 new triangles from 1 quad
                       Range new_faces_eh;
                       rval = split_quad(tokens, vertex_list, new_faces_eh); MB_CHK_ERR(rval);
-                     
-                      // Add new faces created by split quad to meshset 
+
+                      // Add new faces created by split quad to meshset
                       if (rval == MB_SUCCESS)
                         {
                           MBI->add_entities(curr_meshset, new_faces_eh);
                         }
-                    } 
-               
+                    }
+
                   else
                     {
                       std::cout << "Neither tri nor a quad: " << line <<  std::endl;
                     }
-                  
-                  break;            
+
+                  break;
                 }
-         
+
               case valid_unsupported:
                 {
                   // First token is not recognized as a supported character
                   ++ignored;
                   break;
                 }
-           
+
               default:
                 {
                   MB_SET_ERR(MB_FAILURE, "Invalid/unrecognized line");
                 }
            }
         }
-      
+
     }
 
   // If no object lines are read (those beginning w/ 'o'), file is not obj type
   if (object_id == 0 && group_id == 0)
     {
-      MB_SET_ERR(MB_FAILURE, "This is not an obj file. ");  
+      MB_SET_ERR(MB_FAILURE, "This is not an obj file. ");
     }
 
   std::cout << "There were " << ignored << " ignored lines in this file." << std::endl;
 
-  input_file.close(); 
-  
+  input_file.close();
+
   return MB_SUCCESS;
 }
 
@@ -293,7 +293,7 @@ ErrorCode ReadOBJ::load_file(const char *filename,
 /* The tokenize function will split an input line
  * into a vector of strings based upon the delimiter
  */
-void ReadOBJ::tokenize( const std::string& str, 
+void ReadOBJ::tokenize( const std::string& str,
                          std::vector<std::string>& tokens,
                          const char* delimiters2)
 {
@@ -322,12 +322,12 @@ void ReadOBJ::tokenize( const std::string& str,
 keyword_type ReadOBJ::get_keyword(std::vector<std::string> tokens)
 {
   std::map<std::string, keyword_type> keywords;
- 
+
   // currently supported
-  keywords["o"] = object_start; 
-  keywords["g"] = group_start; 
-  keywords["f"] = face_start; 
-  keywords["v"] = vertex_start; 
+  keywords["o"] = object_start;
+  keywords["g"] = group_start;
+  keywords["f"] = face_start;
+  keywords["v"] = vertex_start;
 
   // not currently supported, will be ignored
   keywords["vn"] = valid_unsupported;
@@ -376,10 +376,10 @@ std::string ReadOBJ::match(const std::string &token,
   // Search the map
   for (typename std::map<std::string, T>::iterator thisToken = tokenList.begin();
        thisToken != tokenList.end();
-       ++thisToken) 
+       ++thisToken)
     {
       // If a perfect match break the loop (assume keyword list is unambiguous)
-      if (token == (*thisToken).first) 
+      if (token == (*thisToken).first)
         {
           best_match = token;
           break;
@@ -396,11 +396,11 @@ std::string ReadOBJ::match(const std::string &token,
  * that will contain all faces that make up the object.
  */
 ErrorCode ReadOBJ::create_new_object ( std::string object_name,
-                                       int curr_object, 
+                                       int curr_object,
                                        EntityHandle &object_meshset )
 {
   ErrorCode rval;
-  
+
   // Create meshset to store object
   // This is also referred to as the surface meshset
   rval = MBI->create_meshset( MESHSET_SET, object_meshset );
@@ -423,7 +423,7 @@ ErrorCode ReadOBJ::create_new_object ( std::string object_name,
 
   /* Create volume entity set corresponding to surface
      The volume meshset will have one child--
-     the meshset of the surface that bounds the object. 
+     the meshset of the surface that bounds the object.
    */
   EntityHandle vol_meshset;
   rval = MBI->create_meshset( MESHSET_SET, vol_meshset );
@@ -431,7 +431,7 @@ ErrorCode ReadOBJ::create_new_object ( std::string object_name,
 
   rval = MBI->add_parent_child( vol_meshset, object_meshset );
   MB_CHK_SET_ERR(rval,"Failed to add object mesh set as child of volume mesh set.");
-  
+
   /* Set volume meshset tags
      The volume meshset is tagged with the same name as the surface meshset
      for each object because of the direct relation between these entities.
@@ -451,10 +451,10 @@ ErrorCode ReadOBJ::create_new_object ( std::string object_name,
 
   rval = MBI->tag_set_data( category_tag, &vol_meshset, 1, geom_category[3]);
   MB_CHK_SET_ERR(rval,"Failed to set mesh set category tag.");
-  
+
   rval = myGeomTool->set_sense(object_meshset, vol_meshset, SENSE_FORWARD);
-  MB_CHK_SET_ERR(rval, "Failed to set surface sense."); 
-  
+  MB_CHK_SET_ERR(rval, "Failed to set surface sense.");
+
   return rval;
 }
 
@@ -463,11 +463,11 @@ ErrorCode ReadOBJ::create_new_object ( std::string object_name,
  * that will contain all faces that make up the group
  */
 ErrorCode ReadOBJ::create_new_group ( std::string group_name,
-                                       int curr_group, 
+                                       int curr_group,
                                        EntityHandle &group_meshset )
 {
   ErrorCode rval;
-  
+
   // Create meshset to store group
   rval = MBI->create_meshset( MESHSET_SET, group_meshset );
   MB_CHK_SET_ERR(rval,"Failed to generate group mesh set.");
@@ -485,13 +485,13 @@ ErrorCode ReadOBJ::create_new_group ( std::string group_name,
 }
 
 
-/* The create_new_vertex function converts a vector 
-   of tokens (v x y z) to 
+/* The create_new_vertex function converts a vector
+   of tokens (v x y z) to
    the vertex format; a structure that has the three
    coordinates as members.
  */
 ErrorCode ReadOBJ::create_new_vertex (std::vector<std::string> v_tokens,
-                                      EntityHandle &vertex_eh) 
+                                      EntityHandle &vertex_eh)
 {
   ErrorCode rval;
   vertex next_vertex;
@@ -499,7 +499,7 @@ ErrorCode ReadOBJ::create_new_vertex (std::vector<std::string> v_tokens,
   for (int i = 1; i < 4; i++)
     next_vertex.coord[i-1] = atof(v_tokens[i].c_str());
 
-  rval = MBI->create_vertex( next_vertex.coord, vertex_eh ); 
+  rval = MBI->create_vertex( next_vertex.coord, vertex_eh );
   MB_CHK_SET_ERR(rval,"Unbale to create vertex.");
 
   return rval;
@@ -507,13 +507,13 @@ ErrorCode ReadOBJ::create_new_vertex (std::vector<std::string> v_tokens,
 
 
 /* The create_new_face function converts a vector
-   of tokens ( f v1 v2 v3) ) to the face format; 
+   of tokens ( f v1 v2 v3) ) to the face format;
    a structure that has the three
-   connectivity points as members.  
+   connectivity points as members.
  */
 ErrorCode ReadOBJ::create_new_face (std::vector<std::string> f_tokens,
                                        const std::vector<EntityHandle>&vertex_list,
-                                       EntityHandle &face_eh) 
+                                       EntityHandle &face_eh)
 {
   face next_face;
   ErrorCode rval;
@@ -550,7 +550,7 @@ ErrorCode ReadOBJ::split_quad(std::vector<std::string> f_tokens,
   ErrorCode rval;
   std::vector<EntityHandle> quad_vert_eh;
 
-  // Loop over quad connectivity getting vertex EHs 
+  // Loop over quad connectivity getting vertex EHs
   for (int i = 1; i < 5; i++)
     {
       int vertex_id = atoi(f_tokens[i].c_str());
@@ -560,19 +560,19 @@ ErrorCode ReadOBJ::split_quad(std::vector<std::string> f_tokens,
           std::string face = f_tokens[i].substr(0, slash);
           vertex_id = atoi(face.c_str());
         }
- 
+
       quad_vert_eh.push_back(vertex_list[vertex_id-1]);
     }
 
   // Create new tri faces
   rval = create_tri_faces( quad_vert_eh, face_eh);
   MB_CHK_SET_ERR(rval,"Failed to create triangles when splitting quad.");
-  
- 
+
+
   return rval;
 }
 
-ErrorCode ReadOBJ::create_tri_faces( std::vector<EntityHandle> quad_vert_eh, 
+ErrorCode ReadOBJ::create_tri_faces( std::vector<EntityHandle> quad_vert_eh,
 //				       EntityHandle center_vertex_eh,
 				       Range &face_eh )
 {
@@ -597,4 +597,4 @@ ErrorCode ReadOBJ::create_tri_faces( std::vector<EntityHandle> quad_vert_eh,
 
 
 } // namespace moab
-  
+

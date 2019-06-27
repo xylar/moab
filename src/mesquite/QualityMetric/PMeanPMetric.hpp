@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2006 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
+
     (2006) kraftche@cae.wisc.edu
-   
+
   ***************************************************************** */
 
 
 /** \file PMeanPMetric.hpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #ifndef MSQ_PMEAN_PMETRIC_HPP
@@ -50,35 +50,35 @@ class QualityMetric;
 class PMeanPMetric
 {
   public:
-    
+
     PMeanPMetric( double p )
       : P(p), P1(p-1.0), P2(p-2.0) {}
 
     const Exponent& get_power() const { return P; }
 
   protected:
-      
-    bool average( PatchData& pd, 
+
+    bool average( PatchData& pd,
                   QualityMetric* qm,
-                  const std::vector<size_t>& qm_handles, 
-                  double& value, 
+                  const std::vector<size_t>& qm_handles,
+                  double& value,
                   MsqError& );
-    
-    bool average_with_indices( PatchData& pd, 
+
+    bool average_with_indices( PatchData& pd,
                                QualityMetric* qm,
                                const std::vector<size_t>& qm_handles,
-                               double& value, 
+                               double& value,
                                std::vector<size_t>& indices,
                                MsqError& err );
-    
-    bool average_with_gradient( PatchData& pd, 
+
+    bool average_with_gradient( PatchData& pd,
                                 QualityMetric* qm,
                                 const std::vector<size_t>& qm_handles,
-                                double& value, 
+                                double& value,
                                 std::vector<size_t>& indices,
                                 std::vector<Vector3D>& gradient,
                                 MsqError& err );
-   
+
     bool average_with_Hessian_diagonal( PatchData& pd,
                                         QualityMetric* metric,
                                         const std::vector<size_t>& qm_handles,
@@ -88,16 +88,16 @@ class PMeanPMetric
                                         std::vector<SymMatrix3D>& Hessian_diagonal,
                                         MsqError& err );
 
-    bool average_with_Hessian( PatchData& pd, 
+    bool average_with_Hessian( PatchData& pd,
                                QualityMetric* metric,
                                const std::vector<size_t>& qm_handles,
-                               double& value, 
+                               double& value,
                                std::vector<size_t>& indices,
                                std::vector<Vector3D>& gradient,
                                std::vector<Matrix3D>& Hessian,
                                MsqError& err );
   private:
-  
+
     Exponent P;
     Exponent P1;
     Exponent P2;

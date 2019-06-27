@@ -76,7 +76,7 @@ int main( int argc, char* argv[] )
   // int startG1=0, startG2=0, endG1=0, endG2=0; // Support launch of imoab_coupler test on any combo of 2*x processes
   // int startG1=0, startG2=0, endG1=1, endG2=0; // Support launch of imoab_coupler test on any combo of 2*x processes
   // int startG1=0, startG2=0, endG1=size-1, endG2=0; // Support launch of imoab_coupler test on any combo of 2*x processes
-  
+
   /* COMBOS THAT **DO NOT** WORK */
   // int startG1=0, startG2=0, endG1=0, endG2=1; // Support launch of imoab_coupler test on any combo of 2*x processes
   // int startG1=0, startG2=0, endG1=1, endG2=1; // Support launch of imoab_coupler test on any combo of 2*x processes
@@ -355,7 +355,7 @@ int main( int argc, char* argv[] )
         // set the tag to 0
     }
   }
-  
+
   PUSH_TIMER("Send/receive data from component to coupler")
   if (comm1 != MPI_COMM_NULL ){
 
@@ -381,7 +381,7 @@ int main( int argc, char* argv[] )
        CHECKRC(ierr, "cannot free buffers used to resend atm mesh tag towards the coverage mesh")
      }
 
-  /* We have the remapping weights now. Let us apply the weights onto the tag we defined 
+  /* We have the remapping weights now. Let us apply the weights onto the tag we defined
      on the source mesh and get the projection on the target mesh */
   PUSH_TIMER("Apply Scalar projection weights")
   const char * concat_fieldname = "a2oTbot;a2oUbot;a2oVbot;";

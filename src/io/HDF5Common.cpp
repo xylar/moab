@@ -20,7 +20,7 @@ bool HDF5_can_append_hyperslabs()
     H5Eset_auto( 0, 0 );
 #endif
 
-  
+
   hsize_t start = 1, count = 5;
   H5Sselect_hyperslab( space, H5S_SELECT_SET, &start, 0, &count, 0 );
   start = 20;
@@ -35,7 +35,7 @@ bool HDF5_can_append_hyperslabs()
 #endif
   }
   H5Sclose( space );
-  
+
   return result;
 }
 

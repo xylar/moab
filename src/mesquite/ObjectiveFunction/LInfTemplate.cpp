@@ -1,9 +1,9 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2004 Sandia Corporation and Argonne National
-    Laboratory.  Under the terms of Contract DE-AC04-94AL85000 
-    with Sandia Corporation, the U.S. Government retains certain 
+    Laboratory.  Under the terms of Contract DE-AC04-94AL85000
+    with Sandia Corporation, the U.S. Government retains certain
     rights in this software.
 
     This library is free software; you can redistribute it and/or
@@ -16,17 +16,17 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
-    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov, 
-    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov      
-   
+
+    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov,
+    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov
+
   ***************************************************************** */
 /*!
   \file   LInfTemplate.cpp
-  \brief  
+  \brief
 
   This Objective Function is evaluated using an L-infinity norm.
   total=max (abs(x))
@@ -52,11 +52,11 @@ LInfTemplate::~LInfTemplate(){
 
 ObjectiveFunction* LInfTemplate::clone() const
   { return new LInfTemplate(get_quality_metric()); }
-  
+
 void LInfTemplate::clear()
   { }
 
-bool LInfTemplate::evaluate( EvalType type, 
+bool LInfTemplate::evaluate( EvalType type,
                              PatchData& pd,
                              double& value_out,
                              bool free,
@@ -72,7 +72,7 @@ bool LInfTemplate::evaluate( EvalType type,
   QualityMetric* qm = get_quality_metric();
   qm->get_evaluations( pd, qmHandles, free, err );  MSQ_ERRFALSE(err);
   const double negate = qm->get_negate_flag();
-  
+
     // calculate OF value for just the patch
   std::vector<size_t>::const_iterator i;
   double value;
@@ -87,10 +87,10 @@ bool LInfTemplate::evaluate( EvalType type,
     if (value > value_out)
       value_out = value;
   }
-  
+
   return true;
 }
- 
+
 
 } // namespace MBMesquite
 

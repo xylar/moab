@@ -1,8 +1,8 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
-    Copyright 2006 Lawrence Livermore National Laboratory.  Under 
-    the terms of Contract B545069 with the University of Wisconsin -- 
+    Copyright 2006 Lawrence Livermore National Laboratory.  Under
+    the terms of Contract B545069 with the University of Wisconsin --
     Madison, Lawrence Livermore National Laboratory retains certain
     rights in this software.
 
@@ -16,29 +16,29 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2006) kraftche@cae.wisc.edu    
+    (2006) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 /** \file LinearQuadrilateral.cpp
  *  \author Jason Kraftcheck
  */
- 
+
 #include "Mesquite.hpp"
 #include "MsqError.hpp"
 #include "LinearQuadrilateral.hpp"
 
 namespace MBMesquite {
 
-static const char* nonlinear_error 
+static const char* nonlinear_error
  = "Attempt to use LinearQuadrilateral mapping function for a nonlinear element\n";
 
 EntityTopology LinearQuadrilateral::element_topology() const
   { return QUADRILATERAL; }
-  
+
 int LinearQuadrilateral::num_nodes() const
   { return 4; }
 
@@ -53,7 +53,7 @@ void LinearQuadrilateral::coefficients( Sample location,
     MSQ_SETERR(err)(nonlinear_error, MsqError::UNSUPPORTED_ELEMENT );
     return;
   }
-  
+
   coefficients( location, nodeset, coeff_out, indices_out, num_coeff );
 }
 
@@ -61,7 +61,7 @@ void LinearQuadrilateral::coefficients( Sample location,
                                         NodeSet ,
                                         double* coeff_out,
                                         size_t* indices_out,
-                                        size_t& num_coeff ) 
+                                        size_t& num_coeff )
 {
   switch (location.dimension) {
     case 0:
@@ -97,19 +97,19 @@ const unsigned eta = 1;
 const int sign[2][4] = {{ -1,  1,  1, -1 },  // xi
                         { -1, -1,  1,  1 }}; // eta
 
-static void derivatives_at_corner( unsigned corner, 
+static void derivatives_at_corner( unsigned corner,
                                    size_t* vertex_indices,
                                    MsqVector<2>* derivs,
                                    size_t& num_vtx )
 {
   const unsigned adj_in_xi = (5 - corner) % 4;
   const unsigned adj_in_eta = 3 - corner;
-  
+
   num_vtx = 3;
   vertex_indices[0] = corner;
   vertex_indices[1] = adj_in_xi;
   vertex_indices[2] = adj_in_eta;
-  
+
   derivs[0][0] = sign[ xi][corner];
   derivs[0][1] = sign[eta][corner];
   derivs[1][0] = sign[ xi][adj_in_xi ];
@@ -118,7 +118,7 @@ static void derivatives_at_corner( unsigned corner,
   derivs[2][1] = sign[eta][adj_in_eta];
 }
 
-static void derivatives_at_mid_edge( unsigned edge, 
+static void derivatives_at_mid_edge( unsigned edge,
                                      size_t* vertices,
                                      MsqVector<2>* derivs,
                                      size_t& num_vtx )
@@ -129,18 +129,18 @@ static void derivatives_at_mid_edge( unsigned edge,
   const unsigned othr2_vtx = (edge+3) % 4;
   const unsigned direction = edge % 2;
   const unsigned orthogonal = 1 - direction;
-  
+
   num_vtx = 4;
   vertices[0] = 0;
   vertices[1] = 1;
   vertices[2] = 2;
   vertices[3] = 3;
-  
+
   derivs[start_vtx][direction] = sign[direction][start_vtx];
   derivs[  end_vtx][direction] = sign[direction][  end_vtx];
   derivs[othr1_vtx][direction] = 0.0;
   derivs[othr2_vtx][direction] = 0.0;
- 
+
   derivs[0][orthogonal] = 0.5 * sign[orthogonal][0];
   derivs[1][orthogonal] = 0.5 * sign[orthogonal][1];
   derivs[2][orthogonal] = 0.5 * sign[orthogonal][2];
@@ -170,7 +170,7 @@ void LinearQuadrilateral::derivatives( Sample loc,
     MSQ_SETERR(err)(nonlinear_error, MsqError::UNSUPPORTED_ELEMENT );
     return;
   }
-  
+
   derivatives( loc, nodeset, vertex_indices_out, d_coeff_d_xi_out, num_vtx );
 }
 
@@ -195,7 +195,7 @@ void LinearQuadrilateral::derivatives( Sample loc,
   }
 }
 
-void LinearQuadrilateral::ideal( Sample , 
+void LinearQuadrilateral::ideal( Sample ,
                                  MsqMatrix<3,2>& J,
                                  MsqError&  ) const
 {

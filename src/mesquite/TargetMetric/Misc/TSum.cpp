@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2009 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2009) kraftche@cae.wisc.edu    
+    (2009) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file TSum.cpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -45,8 +45,8 @@ std::string TSum::get_name() const
 TSum::~TSum() {}
 
 template <unsigned DIM> inline
-bool TSum::eval( const MsqMatrix<DIM,DIM>& T, 
-                 double& result, 
+bool TSum::eval( const MsqMatrix<DIM,DIM>& T,
+                 double& result,
                  MsqError& err )
 {
   double val2;
@@ -59,9 +59,9 @@ bool TSum::eval( const MsqMatrix<DIM,DIM>& T,
 }
 
 template <unsigned DIM> inline
-bool TSum::grad( const MsqMatrix<DIM,DIM>& T, 
-                 double& result, 
-                 MsqMatrix<DIM,DIM>& deriv, 
+bool TSum::grad( const MsqMatrix<DIM,DIM>& T,
+                 double& result,
+                 MsqMatrix<DIM,DIM>& deriv,
                  MsqError& err )
 {
   double val2;
@@ -76,9 +76,9 @@ bool TSum::grad( const MsqMatrix<DIM,DIM>& T,
 }
 
 template <unsigned DIM> inline
-bool TSum::hess( const MsqMatrix<DIM,DIM>& T, 
-                 double& result, 
-                 MsqMatrix<DIM,DIM>& deriv_wrt_T, 
+bool TSum::hess( const MsqMatrix<DIM,DIM>& T,
+                 double& result,
+                 MsqMatrix<DIM,DIM>& deriv_wrt_T,
                  MsqMatrix<DIM,DIM>* second_wrt_T,
                  MsqError& err )
 {

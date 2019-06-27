@@ -1,4 +1,4 @@
-/** 
+/**
  * \class moab::Coupler
  * \author Tim Tautges
  *
@@ -8,7 +8,7 @@
  * being interpolated resides on a source mesh, in a tag.
  * Applications calling this coupler send in entities, usually points
  * or vertices, and receive back the tag value interpolated at those
- * points.  Entities in the source mesh containing those points 
+ * points.  Entities in the source mesh containing those points
  * do not have to reside on the same processor.
  *
  * To use, an application should:
@@ -73,8 +73,8 @@ public:
 
     /* \brief Locate points on the source mesh
      * This function finds the element/processor/natural coordinates for the
-     * source mesh element containing each point, optionally storing the results 
-     * on the target mesh processor.  Relative tolerance is compared to bounding 
+     * source mesh element containing each point, optionally storing the results
+     * on the target mesh processor.  Relative tolerance is compared to bounding
      * box diagonal length.  Tolerance is compared to [-1,1] parametric extent
      * in the reference element.
      * \param xyz Point locations (interleaved) being located
@@ -86,17 +86,17 @@ public:
      * \param store_local If true, stores the tuple list in targetPts
      */
   ErrorCode locate_points(double *xyz, unsigned int num_points,
-                          double rel_eps = 0.0, 
+                          double rel_eps = 0.0,
                           double abs_eps = 0.0,
                           TupleList *tl = NULL,
                           bool store_local = true);
 
     /* \brief Locate entities on the source mesh
      * This function finds the element/processor/natural coordinates for the
-     * source mesh element containing each entity, optionally storing the results 
+     * source mesh element containing each entity, optionally storing the results
      * on the target mesh processor.  Location of each target mesh entity passed in
-     * is its centroid (for non-vertices, the avg of its vertex positions).  
-     * Relative tolerance is compared to bounding 
+     * is its centroid (for non-vertices, the avg of its vertex positions).
+     * Relative tolerance is compared to bounding
      * box diagonal length.  Tolerance is compared to [-1,1] parametric extent
      * in the reference element.
      * \param ents Entities being located
@@ -117,7 +117,7 @@ public:
      * All entities/points or, if tuple_list is input, only those points
      * are interpolated from the source mesh.  Application should
      * allocate enough memory in interp_vals to hold interpolation results.
-     * 
+     *
      * If normalization is requested, technique used depends on the coupling
      * method.
      *
@@ -139,7 +139,7 @@ public:
      * All entities/points or, if tuple_list is input, only those points
      * are interpolated from the source mesh.  Application should
      * allocate enough memory in interp_vals to hold interpolation results.
-     * 
+     *
      * If normalization is requested, technique used depends on the coupling
      * method.
      *
@@ -161,7 +161,7 @@ public:
      * All entities/points or, if tuple_list is input, only those points
      * are interpolated from the source mesh.  Application should
      * allocate enough memory in interp_vals to hold interpolation results.
-     * 
+     *
      * In this variant, multiple tags, possibly with multiple interpolation
      * methods, are specified.  Sum of values in points_per_method should be
      * the number of points in tl or, if NULL, targetPts.
@@ -190,7 +190,7 @@ public:
      * All entities/points or, if tuple_list is input, only those points
      * are interpolated from the source mesh.  Application should
      * allocate enough memory in interp_vals to hold interpolation results.
-     * 
+     *
      * In this variant, multiple tags, possibly with multiple interpolation
      * methods, are specified.  Sum of values in points_per_method should be
      * the number of points in tl or, if NULL, targetPts.
@@ -217,10 +217,10 @@ public:
 
     /* \brief Normalize a field over an entire mesh
      * A field existing on the vertices of elements of a mesh is integrated
-     * over all elements in the mesh.  The integrated value is normalized 
+     * over all elements in the mesh.  The integrated value is normalized
      * and the normalization factor is saved to a new tag
      * on the mesh entity set.
-     * 
+     *
      * \param root_set Entity Set representing the entire mesh
      * \param norm_tag Tag containing field data to integrate
      * \param integ_type Type of integration to perform
@@ -233,16 +233,16 @@ public:
 
     /* \brief Normalize a field over subsets of entities
      * A field existing on the vertices of elements of a mesh is integrated
-     * over subsets of elements identified by the tags and values.  The integrated 
+     * over subsets of elements identified by the tags and values.  The integrated
      * values are normalized and the normalization factor is saved to a new tag
      * on the entity sets which contain the elements of a subset.
-     * 
+     *
      * \param root_set Entity Set from the mesh from which to select subsets
      * \param norm_tag Tag containing field data to integrate
      * \param tag_names Array of tag names used for selecting element subsets
      * \param num_tags Number of tag names
      * \param tag_values Array of tag values passed as strings; the array will be
-     *       the same length as that for tag names however some entries may be 
+     *       the same length as that for tag names however some entries may be
      *       NULL indicating that tag should be matched for existence and not value
      * \param integ_type Type of integration to perform
      * \param num_integ_pts The number of Gaussian integration points to use in each dimension
@@ -257,16 +257,16 @@ public:
 
     /* \brief Normalize a field over subsets of entities
      * A field existing on the vertices of elements of a mesh is integrated
-     * over subsets of elements identified by the tags and values.  The integrated 
+     * over subsets of elements identified by the tags and values.  The integrated
      * values are normalized and the normalization factor is saved to a new tag
      * on the entity sets which contain the elements of a subset.
-     * 
+     *
      * \param root_set Entity Set from the mesh from which to select subsets
      * \param norm_tag Tag containing field data to integrate
      * \param tag_handles Array of tag handles used for selecting element subsets
      * \param num_tags Number of tag handles
      * \param tag_values Array of tag values passed as strings; the array will be
-     *       the same length as that for tag handles however some entries may be 
+     *       the same length as that for tag handles however some entries may be
      *       NULL indicating that tag should be matched for existence and not value
      * \param integ_type Type of integration to perform
      * \param num_integ_pts The number of Gaussian integration points to use in each dimension
@@ -280,9 +280,9 @@ public:
                               int                   num_integ_pts);
 
     /* \brief Retrieve groups of entities matching tags and values(if present)
-     * Retrieve a vector of vectors of entity handles matching the 
+     * Retrieve a vector of vectors of entity handles matching the
      * tags and values.  The entity set passed is used as the search domain.
-     * 
+     *
      * \param norm_tag Tag containing field data to integrate
      * \param entity_sets Pointer to vector of vectors of entity set handles
      * \param entity_groups Pointer to vector of vectors of entity handles from each entity set
@@ -296,9 +296,9 @@ public:
                               int                                        num_integ_pts);
 
     /* \brief Retrieve groups of entities matching tags and values(if present)
-     * Retrieve a vector of vectors of entity handles matching the 
+     * Retrieve a vector of vectors of entity handles matching the
      * tags and values.  The entity set passed is used as the search domain.
-     * 
+     *
      * \param root_set Set from which to search for matching entities
      * \param tag_names Array of tag names used to select entities
      * \param tag_values Array of tag values used to select entities
@@ -314,9 +314,9 @@ public:
                                    std::vector< std::vector<EntityHandle> > *entity_groups);
 
     /* \brief Retrieve groups of entities matching tags and values(if present)
-     * Retrieve a vector of vectors of entity handles matching the 
+     * Retrieve a vector of vectors of entity handles matching the
      * tags and values.  The entity set passed is used as the search domain.
-     * 
+     *
      * \param root_set Set from which to search for matching entities
      * \param tag_handles Array of tag handles used to select entities
      * \param tag_values Array of tag values used to select entities
@@ -335,7 +335,7 @@ public:
      * A list of n-tuples will be constructed with 1 n-tuple for each Entity Set.
      * The n-tuple will have an component for each tag given.  It is assumed all
      * of the tags are integer tags.
-     * 
+     *
      * \param ent_sets Array of Entity Set handles to use for retrieving tag data
      * \param num_sets Number of Entity Sets
      * \param tag_names Array of tag names
@@ -343,7 +343,7 @@ public:
      * \param tuples The returned tuple_list structure
      */
   ErrorCode create_tuples( Range         &ent_sets,
-                           const char    **tag_names, 
+                           const char    **tag_names,
                            unsigned int  num_tags,
                            TupleList     **tuples);
 
@@ -351,7 +351,7 @@ public:
      * A list of n-tuples will be constructed with 1 n-tuple for each Entity Set.
      * The n-tuple will have an component for each tag given.  It is assumed all
      * of the tags are integer tags.
-     * 
+     *
      * \param ent_sets Array of Entity Set handles to use for retrieving tag data
      * \param num_sets Number of Entity Sets
      * \param tag_handles Array of tag handles
@@ -365,7 +365,7 @@ public:
 
     /* \brief Consolidate an array of n-tuples lists into one n-tuple list with no duplicates
      * An array of list of n-tuples are consolidated into a single list of n-tuples
-     * with all duplicates removed.  Only integer columns in the tuple_list are assumed to 
+     * with all duplicates removed.  Only integer columns in the tuple_list are assumed to
      * be used.
      *
      * \param all_tuples Array of tuple_lists to consolidate to one
@@ -377,9 +377,9 @@ public:
                                 TupleList     **unique_tuples);
 
     /* \brief Calculate integrated field values for groups of entities
-     * An integrated field value, as defined by the field function, 
+     * An integrated field value, as defined by the field function,
      * is calculated for each group of entities passed in.
-     * 
+     *
      * \param groups The vector contains vectors of entity handles, each representing a group
      * \param integ_vals The integrated field values for each group
      * \param norm_tag The tag name of the vertex-based field to be integrated
@@ -387,7 +387,7 @@ public:
      * \param integ_type Type of integration to perform
      */
   ErrorCode get_group_integ_vals( std::vector<std::vector<EntityHandle> > &groups,
-                                  std::vector<double> &integ_vals, 
+                                  std::vector<double> &integ_vals,
                                   const char *norm_tag,
                                   int num_integ_pts,
                                   Coupler::IntegType integ_type);
@@ -402,7 +402,7 @@ public:
      * \param integ_type Type of integration to perform
      */
   ErrorCode apply_group_norm_factor( std::vector<std::vector<EntityHandle> > &entity_sets,
-                                     std::vector<double> &norm_factors, 
+                                     std::vector<double> &norm_factors,
                                      const char *norm_tag,
                                      Coupler::IntegType integ_type);
 
@@ -442,7 +442,7 @@ private:
                       std::vector<EntityHandle> &entities,
                       std::vector<CartVect> &nat_coords,
                       double epsilon = 0.0);
-  
+
   ErrorCode interp_field(EntityHandle elem,
                          CartVect nat_coord,
                          Tag tag,
@@ -483,7 +483,7 @@ private:
      */
   int myId;
 
-    /* \brief Range of source elements 
+    /* \brief Range of source elements
      */
   Range myRange;
 

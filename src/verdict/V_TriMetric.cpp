@@ -35,7 +35,7 @@
 static double verdict_tri_size = 0;
 static ComputeNormal compute_normal = NULL;
 
-/*! 
+/*!
   get weights based on the average area of a set of
   tris
 */
@@ -50,12 +50,12 @@ static int v_tri_get_weight ( double &m11,
   m12=0.5;
   m22=0.5*rootOf3;
   double scale = sqrt(2.0*verdict_tri_size/(m11*m22-m21*m12));
-  
+
   m11 *= scale;
   m21 *= scale;
   m12 *= scale;
   m22 *= scale;
-  
+
   return 1;
 }
 
@@ -74,7 +74,7 @@ C_FUNC_DEF void v_set_tri_normal_func( ComputeNormal func )
 /*!
    the edge ratio of a triangle
 
-   NB (P. Pebay 01/14/07): 
+   NB (P. Pebay 01/14/07):
      Hmax / Hmin where Hmax and Hmin are respectively the maximum and the
      minimum edge lengths
 
@@ -82,15 +82,15 @@ C_FUNC_DEF void v_set_tri_normal_func( ComputeNormal func )
 C_FUNC_DEF double v_tri_edge_ratio( int /*num_nodes*/, double coordinates[][3] )
 {
 
-  // three vectors for each side 
+  // three vectors for each side
   VerdictVector a( coordinates[1][0] - coordinates[0][0],
                    coordinates[1][1] - coordinates[0][1],
                    coordinates[1][2] - coordinates[0][2] );
-  
+
   VerdictVector b( coordinates[2][0] - coordinates[1][0],
                    coordinates[2][1] - coordinates[1][1],
                    coordinates[2][2] - coordinates[1][2] );
-  
+
   VerdictVector c( coordinates[0][0] - coordinates[2][0],
                    coordinates[0][1] - coordinates[2][1],
                    coordinates[0][2] - coordinates[2][2] );
@@ -98,7 +98,7 @@ C_FUNC_DEF double v_tri_edge_ratio( int /*num_nodes*/, double coordinates[][3] )
   double a2 = a.length_squared();
   double b2 = b.length_squared();
   double c2 = c.length_squared();
- 
+
   double m2, M2;
   if ( a2 < b2 )
     {
@@ -143,13 +143,13 @@ C_FUNC_DEF double v_tri_edge_ratio( int /*num_nodes*/, double coordinates[][3] )
         }
     }
 
-  if( m2 < VERDICT_DBL_MIN ) 
+  if( m2 < VERDICT_DBL_MIN )
     return (double)VERDICT_DBL_MAX;
   else
   {
     double edge_ratio;
     edge_ratio = sqrt(M2 / m2);
-    
+
     if( edge_ratio > 0 )
       return (double) VERDICT_MIN( edge_ratio, VERDICT_DBL_MAX );
     return (double) VERDICT_MAX( edge_ratio, -VERDICT_DBL_MAX );
@@ -160,27 +160,27 @@ C_FUNC_DEF double v_tri_edge_ratio( int /*num_nodes*/, double coordinates[][3] )
 /*!
    the aspect ratio of a triangle
 
-   NB (P. Pebay 01/14/07): 
-     Hmax / ( 2.0 * sqrt(3.0) * IR) where Hmax is the maximum edge length 
+   NB (P. Pebay 01/14/07):
+     Hmax / ( 2.0 * sqrt(3.0) * IR) where Hmax is the maximum edge length
      and IR is the inradius
 
      note that previous incarnations of verdict used "v_tri_aspect_ratio" to denote
      what is now called "v_tri_aspect_frobenius"
-   
+
 */
 C_FUNC_DEF double v_tri_aspect_ratio( int /*num_nodes*/, double coordinates[][3] )
 {
   static const double normal_coeff = sqrt( 3. ) / 6.;
 
-  // three vectors for each side 
+  // three vectors for each side
   VerdictVector a( coordinates[1][0] - coordinates[0][0],
                    coordinates[1][1] - coordinates[0][1],
                    coordinates[1][2] - coordinates[0][2] );
-  
+
   VerdictVector b( coordinates[2][0] - coordinates[1][0],
                    coordinates[2][1] - coordinates[1][1],
                    coordinates[2][2] - coordinates[1][2] );
-  
+
   VerdictVector c( coordinates[0][0] - coordinates[2][0],
                    coordinates[0][1] - coordinates[2][1],
                    coordinates[0][2] - coordinates[2][2] );
@@ -188,20 +188,20 @@ C_FUNC_DEF double v_tri_aspect_ratio( int /*num_nodes*/, double coordinates[][3]
   double a1 = a.length();
   double b1 = b.length();
   double c1 = c.length();
- 
+
   double hm = a1 > b1 ? a1 : b1;
   hm = hm > c1 ? hm : c1;
 
   VerdictVector ab = a * b;
   double denominator = ab.length();
 
-  if( denominator < VERDICT_DBL_MIN ) 
+  if( denominator < VERDICT_DBL_MIN )
     return (double)VERDICT_DBL_MAX;
   else
   {
     double aspect_ratio;
     aspect_ratio = normal_coeff * hm * (a1 + b1 + c1) / denominator;
-    
+
     if( aspect_ratio > 0 )
       return (double) VERDICT_MIN( aspect_ratio, VERDICT_DBL_MAX );
     return (double) VERDICT_MAX( aspect_ratio, -VERDICT_DBL_MAX );
@@ -212,25 +212,25 @@ C_FUNC_DEF double v_tri_aspect_ratio( int /*num_nodes*/, double coordinates[][3]
 /*!
    the radius ratio of a triangle
 
-   NB (P. Pebay 01/13/07): 
+   NB (P. Pebay 01/13/07):
      CR / (3.0*IR) where CR is the circumradius and IR is the inradius
 
      this quality metric is also known to VERDICT, for tetrahedral elements only,
      a the "aspect beta"
-   
+
 */
 C_FUNC_DEF double v_tri_radius_ratio( int /*num_nodes*/, double coordinates[][3] )
 {
 
-  // three vectors for each side 
+  // three vectors for each side
   VerdictVector a( coordinates[1][0] - coordinates[0][0],
                    coordinates[1][1] - coordinates[0][1],
                    coordinates[1][2] - coordinates[0][2] );
-  
+
   VerdictVector b( coordinates[2][0] - coordinates[1][0],
                    coordinates[2][1] - coordinates[1][1],
                    coordinates[2][2] - coordinates[1][2] );
-  
+
   VerdictVector c( coordinates[0][0] - coordinates[2][0],
                    coordinates[0][1] - coordinates[2][1],
                    coordinates[0][2] - coordinates[2][2] );
@@ -238,16 +238,16 @@ C_FUNC_DEF double v_tri_radius_ratio( int /*num_nodes*/, double coordinates[][3]
   double a2 = a.length_squared();
   double b2 = b.length_squared();
   double c2 = c.length_squared();
- 
+
   VerdictVector ab = a * b;
   double denominator = ab.length_squared();
 
-  if( denominator < VERDICT_DBL_MIN ) 
+  if( denominator < VERDICT_DBL_MIN )
     return (double)VERDICT_DBL_MAX;
 
   double radius_ratio;
   radius_ratio = .25 * a2 * b2 * c2 * ( a2 + b2 + c2 ) / denominator;
-  
+
   if( radius_ratio > 0 )
     return (double) VERDICT_MIN( radius_ratio, VERDICT_DBL_MAX );
   return (double) VERDICT_MAX( radius_ratio, -VERDICT_DBL_MAX );
@@ -259,38 +259,38 @@ C_FUNC_DEF double v_tri_radius_ratio( int /*num_nodes*/, double coordinates[][3]
    srms^2/(2 * sqrt(3.0) * area)
    where srms^2 is sum of the lengths squared
 
-   NB (P. Pebay 01/14/07): 
+   NB (P. Pebay 01/14/07):
      this method was called "aspect ratio" in earlier incarnations of VERDICT
-   
+
 */
 
 C_FUNC_DEF double v_tri_aspect_frobenius( int /*num_nodes*/, double coordinates[][3] )
 {
   static const double two_times_root_of_3 = 2*sqrt(3.0);
 
-  // three vectors for each side 
+  // three vectors for each side
   VerdictVector side1( coordinates[1][0] - coordinates[0][0],
                        coordinates[1][1] - coordinates[0][1],
                        coordinates[1][2] - coordinates[0][2] );
-  
+
   VerdictVector side2( coordinates[2][0] - coordinates[1][0],
                        coordinates[2][1] - coordinates[1][1],
                        coordinates[2][2] - coordinates[1][2] );
-  
+
   VerdictVector side3( coordinates[0][0] - coordinates[2][0],
                        coordinates[0][1] - coordinates[2][1],
                        coordinates[0][2] - coordinates[2][2] );
- 
+
   //sum the lengths squared of each side
-  double srms = (side1.length_squared() + side2.length_squared() 
+  double srms = (side1.length_squared() + side2.length_squared()
       + side3.length_squared());
-  
+
   // find two times the area of the triangle by cross product
   double areaX2 = ((side1 * (-side3)).length());
 
   if(areaX2 == 0.0)
     return (double)VERDICT_DBL_MAX;
- 
+
   double aspect = (double)(srms / (two_times_root_of_3 * (areaX2)));
   if( aspect > 0 )
     return (double) VERDICT_MIN( aspect, VERDICT_DBL_MAX );
@@ -308,28 +308,28 @@ C_FUNC_DEF double v_tri_area( int /*num_nodes*/, double coordinates[][3] )
   VerdictVector side1( coordinates[1][0] - coordinates[0][0],
                        coordinates[1][1] - coordinates[0][1],
                        coordinates[1][2] - coordinates[0][2] );
-  
+
   VerdictVector side3( coordinates[2][0] - coordinates[0][0],
                        coordinates[2][1] - coordinates[0][1],
                        coordinates[2][2] - coordinates[0][2] );
- 
+
   // the cross product of the two vectors representing two sides of the
-  // triangle 
+  // triangle
   VerdictVector tmp = side1 * side3;
-  
+
   // return the magnitude of the vector divided by two
   double area = 0.5 * tmp.length();
   if( area > 0 )
     return (double) VERDICT_MIN( area, VERDICT_DBL_MAX );
   return (double) VERDICT_MAX( area, -VERDICT_DBL_MAX );
-  
+
 }
 
 
 /*!
   The minimum angle of a tri
 
-  The minimum angle of a tri is the minimum angle between 
+  The minimum angle of a tri is the minimum angle between
   two adjacents sides out of all three corners of the triangle.
 */
 C_FUNC_DEF double v_tri_minimum_angle( int /*num_nodes*/, double coordinates[][3] )
@@ -366,7 +366,7 @@ C_FUNC_DEF double v_tri_minimum_angle( int /*num_nodes*/, double coordinates[][3
   if(sides_lengths[0] == 0.0 || sides_lengths[1] == 0.0 ||
      sides_lengths[2] == 0.0)
      return 0.0;
-  
+
   // using the law of sines, we know that the minimum
   // angle is opposite of the shortest side
 
@@ -377,7 +377,7 @@ C_FUNC_DEF double v_tri_minimum_angle( int /*num_nodes*/, double coordinates[][3
   if(sides_lengths[2] < sides_lengths[short_side])
     short_side = 2;
 
-  // from the shortest side, calculate the angle of the 
+  // from the shortest side, calculate the angle of the
   // opposite angle
   double min_angle;
   if(short_side == 0)
@@ -396,13 +396,13 @@ C_FUNC_DEF double v_tri_minimum_angle( int /*num_nodes*/, double coordinates[][3
   if( min_angle > 0 )
     return (double) VERDICT_MIN( min_angle, VERDICT_DBL_MAX );
   return (double) VERDICT_MAX( min_angle, -VERDICT_DBL_MAX );
-  
+
 }
 
 /*!
   The maximum angle of a tri
 
-  The maximum angle of a tri is the maximum angle between 
+  The maximum angle of a tri is the maximum angle between
   two adjacents sides out of all three corners of the triangle.
 */
 C_FUNC_DEF double v_tri_maximum_angle( int /*num_nodes*/, double coordinates[][3] )
@@ -436,13 +436,13 @@ C_FUNC_DEF double v_tri_maximum_angle( int /*num_nodes*/, double coordinates[][3
   sides_lengths[1] = sides[1].length_squared();
   sides_lengths[2] = sides[2].length_squared();
 
-  if(sides_lengths[0] == 0.0 || 
+  if(sides_lengths[0] == 0.0 ||
     sides_lengths[1] == 0.0 ||
     sides_lengths[2] == 0.0)
   {
     return 0.0;
-  }      
-  
+  }
+
   // using the law of sines, we know that the maximum
   // angle is opposite of the longest side
 
@@ -453,7 +453,7 @@ C_FUNC_DEF double v_tri_maximum_angle( int /*num_nodes*/, double coordinates[][3
   if(sides_lengths[2] > sides_lengths[short_side])
     short_side = 2;
 
-  // from the longest side, calculate the angle of the 
+  // from the longest side, calculate the angle of the
   // opposite angle
   double max_angle;
   if(short_side == 0)
@@ -472,7 +472,7 @@ C_FUNC_DEF double v_tri_maximum_angle( int /*num_nodes*/, double coordinates[][3
   if( max_angle > 0 )
     return (double) VERDICT_MIN( max_angle, VERDICT_DBL_MAX );
   return (double) VERDICT_MAX( max_angle, -VERDICT_DBL_MAX );
-  
+
 }
 
 
@@ -485,19 +485,19 @@ C_FUNC_DEF double v_tri_maximum_angle( int /*num_nodes*/, double coordinates[][3
 C_FUNC_DEF double v_tri_condition( int /*num_nodes*/, double coordinates[][3] )
 {
   static const double rt3 = sqrt(3.0);
-  
+
   VerdictVector v1(coordinates[1][0] - coordinates[0][0],
                    coordinates[1][1] - coordinates[0][1],
                    coordinates[1][2] - coordinates[0][2] );
-  
+
   VerdictVector v2(coordinates[2][0] - coordinates[0][0],
                    coordinates[2][1] - coordinates[0][1],
                    coordinates[2][2] - coordinates[0][2] );
-  
-  VerdictVector tri_normal = v1 * v2;  
+
+  VerdictVector tri_normal = v1 * v2;
   double areax2= tri_normal.length();
-  
-  if (areax2 == 0.0 ) 
+
+  if (areax2 == 0.0 )
     return (double)VERDICT_DBL_MAX;
 
   double condition = (double)( ((v1%v1) + (v2%v2) - (v1%v2)) / (areax2*rt3) );
@@ -512,8 +512,8 @@ C_FUNC_DEF double v_tri_condition( int /*num_nodes*/, double coordinates[][3] )
     point[2] =  (coordinates[0][2] + coordinates[1][2] + coordinates[2][2]) / 3;
 
     //dot product
-    compute_normal( point, surf_normal ); 
-    if( (tri_normal.x()*surf_normal[0] + 
+    compute_normal( point, surf_normal );
+    if( (tri_normal.x()*surf_normal[0] +
          tri_normal.y()*surf_normal[1] +
          tri_normal.z()*surf_normal[2] ) < 0 )
       return (double)VERDICT_DBL_MAX;
@@ -530,8 +530,8 @@ C_FUNC_DEF double v_tri_scaled_jacobian( int /*num_nodes*/, double coordinates[]
 {
   static const double detw = 2./sqrt(3.0);
   VerdictVector first, second;
-  double jacobian; 
-  
+  double jacobian;
+
   VerdictVector edge[3];
   edge[0].set(coordinates[1][0] - coordinates[0][0],
               coordinates[1][1] - coordinates[0][1],
@@ -552,14 +552,14 @@ C_FUNC_DEF double v_tri_scaled_jacobian( int /*num_nodes*/, double coordinates[]
 
   double max_edge_length_product;
   max_edge_length_product = VERDICT_MAX( edge[0].length()*edge[1].length(),
-                            VERDICT_MAX( edge[1].length()*edge[2].length(), 
-                                         edge[0].length()*edge[2].length() ) ); 
+                            VERDICT_MAX( edge[1].length()*edge[2].length(),
+                                         edge[0].length()*edge[2].length() ) );
 
   if( max_edge_length_product < VERDICT_DBL_MIN )
     return (double)0.0;
 
   jacobian *= detw;
-  jacobian /= max_edge_length_product; 
+  jacobian /= max_edge_length_product;
 
   if( compute_normal )
   {
@@ -570,11 +570,11 @@ C_FUNC_DEF double v_tri_scaled_jacobian( int /*num_nodes*/, double coordinates[]
     point[2] =  (coordinates[0][2] + coordinates[1][2] + coordinates[2][2]) / 3;
 
     //dot product
-    compute_normal( point, surf_normal ); 
-    if( (cross.x()*surf_normal[0] + 
+    compute_normal( point, surf_normal );
+    if( (cross.x()*surf_normal[0] +
          cross.y()*surf_normal[1] +
          cross.z()*surf_normal[2] ) < 0 )
-      jacobian *= -1; 
+      jacobian *= -1;
   }
 
   if( jacobian > 0 )
@@ -614,7 +614,7 @@ C_FUNC_DEF double v_tri_relative_size_squared( int /*num_nodes*/, double coordin
   double w11, w21, w12, w22;
 
   VerdictVector xxi, xet, tri_normal;
-  
+
   v_tri_get_weight(w11,w21,w12,w22);
 
   double detw = determinant(w11,w21,w12,w22);
@@ -635,29 +635,29 @@ C_FUNC_DEF double v_tri_relative_size_squared( int /*num_nodes*/, double coordin
   double deta = tri_normal.length();
   if( deta == 0.0  || detw == 0.0 )
     return 0.0;
-    
+
   double size = pow( deta/detw, 2 );
-  
-  double rel_size = VERDICT_MIN(size, 1.0/size );  
+
+  double rel_size = VERDICT_MIN(size, 1.0/size );
 
   if( rel_size > 0 )
     return (double) VERDICT_MIN( rel_size, VERDICT_DBL_MAX );
   return (double) VERDICT_MAX( rel_size, -VERDICT_DBL_MAX );
-  
+
 }
 
 /*!
   The shape and size of a tri
-  
+
   Product of the Shape and Relative Size
 */
 C_FUNC_DEF double v_tri_shape_and_size( int num_nodes, double coordinates[][3] )
 {
-  double size, shape;  
+  double size, shape;
 
   size = v_tri_relative_size_squared( num_nodes, coordinates );
   shape = v_tri_shape( num_nodes, coordinates );
-  
+
   double shape_and_size = size * shape;
 
   if( shape_and_size > 0 )
@@ -680,24 +680,24 @@ C_FUNC_DEF double v_tri_distortion( int num_nodes, double coordinates[][3] )
    VerdictVector  aa, bb, cc,normal_at_point, xin;
    double element_area = 0.;
 
-   aa.set(coordinates[1][0] - coordinates[0][0], 
+   aa.set(coordinates[1][0] - coordinates[0][0],
     coordinates[1][1] - coordinates[0][1],
     coordinates[1][2] - coordinates[0][2] );
-  
-   bb.set(coordinates[2][0] - coordinates[0][0], 
+
+   bb.set(coordinates[2][0] - coordinates[0][0],
     coordinates[2][1] - coordinates[0][1],
     coordinates[2][2] - coordinates[0][2] );
-  
+
 
    VerdictVector tri_normal = aa * bb;
- 
+
    int number_of_gauss_points=0;
    if (num_nodes ==3)
    {
       distortion = 1.0;
       return (double)distortion;
    }
-   
+
    else if (num_nodes ==6)
    {
       total_number_of_gauss_points = 6;
@@ -850,27 +850,27 @@ C_FUNC_DEF double v_tri_distortion( int num_nodes, double coordinates[][3] )
       distrt = sign_jacobian  * (cc%normal_at_point);
 
       if (distrt < distortion) distortion = distrt;
-   }     
+   }
    if (element_area*thickness !=0)
       distortion *=1./( element_area*thickness);
    else
       distortion *=1.;
-   
+
   if( distortion > 0 )
     return (double) VERDICT_MIN( distortion, VERDICT_DBL_MAX );
   return (double) VERDICT_MAX( distortion, -VERDICT_DBL_MAX );
 }
 
 
-/*! 
+/*!
   tri_quality for calculating multiple tri metrics at once
 
-  using this method is generally faster than using the individual 
+  using this method is generally faster than using the individual
   method multiple times.
 
 */
-C_FUNC_DEF void v_tri_quality( int num_nodes, double coordinates[][3], 
-    unsigned int metrics_request_flag, TriMetricVals *metric_vals ) 
+C_FUNC_DEF void v_tri_quality( int num_nodes, double coordinates[][3],
+    unsigned int metrics_request_flag, TriMetricVals *metric_vals )
 {
 
   memset( metric_vals, 0, sizeof(TriMetricVals) );
@@ -888,7 +888,7 @@ C_FUNC_DEF void v_tri_quality( int num_nodes, double coordinates[][3],
        0 ---------+ 1
              0
   */
-  
+
   // vectors for each side
   VerdictVector sides[3];
   sides[0].set(
@@ -921,19 +921,19 @@ C_FUNC_DEF void v_tri_quality( int num_nodes, double coordinates[][3],
     point[1] =  (coordinates[0][1] + coordinates[1][1] + coordinates[2][1]) / 3;
     point[2] =  (coordinates[0][2] + coordinates[1][2] + coordinates[2][2]) / 3;
       //dot product
-    compute_normal( point, surf_normal ); 
-    if( (tri_normal.x()*surf_normal[0] + 
+    compute_normal( point, surf_normal );
+    if( (tri_normal.x()*surf_normal[0] +
          tri_normal.y()*surf_normal[1] +
          tri_normal.z()*surf_normal[2] ) < 0 )
-      is_inverted=true; 
+      is_inverted=true;
   }
-  
+
   // lengths squared of each side
   double sides_lengths_squared[3];
   sides_lengths_squared[0] = sides[0].length_squared();
   sides_lengths_squared[1] = sides[1].length_squared();
   sides_lengths_squared[2] = sides[2].length_squared();
- 
+
 
   // if we are doing angle calcuations
   if( metrics_request_flag & (V_TRI_MINIMUM_ANGLE | V_TRI_MAXIMUM_ANGLE) )
@@ -945,7 +945,7 @@ C_FUNC_DEF void v_tri_quality( int num_nodes, double coordinates[][3],
       short_side = 1;
     if(sides_lengths_squared[2] < sides_lengths_squared[short_side])
       short_side = 2;
-  
+
     if(sides_lengths_squared[1] > sides_lengths_squared[0])
       long_side = 1;
     if(sides_lengths_squared[2] > sides_lengths_squared[long_side])
@@ -955,12 +955,12 @@ C_FUNC_DEF void v_tri_quality( int num_nodes, double coordinates[][3],
     // calculate the minimum angle of the tri
     if( metrics_request_flag & V_TRI_MINIMUM_ANGLE )
     {
-      if(sides_lengths_squared[0] == 0.0 || 
+      if(sides_lengths_squared[0] == 0.0 ||
         sides_lengths_squared[1] == 0.0 ||
         sides_lengths_squared[2] == 0.0)
       {
         metric_vals->minimum_angle = 0.0;
-      }        
+      }
       else if(short_side == 0)
         metric_vals->minimum_angle = (double)sides[2].interior_angle(sides[1]);
       else if(short_side == 1)
@@ -968,16 +968,16 @@ C_FUNC_DEF void v_tri_quality( int num_nodes, double coordinates[][3],
       else
         metric_vals->minimum_angle = (double)sides[0].interior_angle(-sides[1]);
     }
-    
+
     // calculate the maximum angle of the tri
     if( metrics_request_flag & V_TRI_MAXIMUM_ANGLE )
     {
-      if(sides_lengths_squared[0] == 0.0 || 
+      if(sides_lengths_squared[0] == 0.0 ||
         sides_lengths_squared[1] == 0.0 ||
         sides_lengths_squared[2] == 0.0)
       {
         metric_vals->maximum_angle = 0.0;
-      }        
+      }
       else if(long_side == 0)
         metric_vals->maximum_angle = (double)sides[2].interior_angle(sides[1]);
       else if(long_side == 1)
@@ -990,7 +990,7 @@ C_FUNC_DEF void v_tri_quality( int num_nodes, double coordinates[][3],
 
   // calculate the area of the tri
   // the following metrics depend on area
-  if( metrics_request_flag & (V_TRI_AREA | V_TRI_SCALED_JACOBIAN | 
+  if( metrics_request_flag & (V_TRI_AREA | V_TRI_SCALED_JACOBIAN |
     V_TRI_SHAPE | V_TRI_RELATIVE_SIZE_SQUARED | V_TRI_SHAPE_AND_SIZE ) )
   {
     metric_vals->area = (double)((sides[0] * sides[2]).length() * 0.5);
@@ -1000,7 +1000,7 @@ C_FUNC_DEF void v_tri_quality( int num_nodes, double coordinates[][3],
   if(metrics_request_flag & V_TRI_ASPECT_FROBENIUS)
   {
     // sum the lengths squared
-    double srms = 
+    double srms =
       sides_lengths_squared[0] +
       sides_lengths_squared[1] +
       sides_lengths_squared[2] ;
@@ -1008,7 +1008,7 @@ C_FUNC_DEF void v_tri_quality( int num_nodes, double coordinates[][3],
     // calculate once and reuse
     static const double twoTimesRootOf3 = 2*sqrt(3.0);
 
-    double div = (twoTimesRootOf3 * 
+    double div = (twoTimesRootOf3 *
       ( (sides[0] * sides[2]).length() ));
 
     if(div == 0.0)
@@ -1023,9 +1023,9 @@ C_FUNC_DEF void v_tri_quality( int num_nodes, double coordinates[][3],
     // calculate once and reuse
     static const double twoOverRootOf3 = 2/sqrt(3.0);
     // use the area from above
-    
+
     double tmp = tri_normal.length() * twoOverRootOf3;
-      
+
     // now scale it by the lengths of the sides
     double min_scaled_jac = VERDICT_DBL_MAX;
     double temp_scaled_jac;
@@ -1041,7 +1041,7 @@ C_FUNC_DEF void v_tri_quality( int num_nodes, double coordinates[][3],
       //multiply by -1 if the normals are in opposite directions
     if( is_inverted )
     {
-      min_scaled_jac *= -1; 
+      min_scaled_jac *= -1;
     }
     metric_vals->scaled_jacobian = (double)min_scaled_jac;
 
@@ -1058,7 +1058,7 @@ C_FUNC_DEF void v_tri_quality( int num_nodes, double coordinates[][3],
     }
     else{
       double area2x = (sides[0] * sides[2]).length();
-      if(area2x == 0.0 ) 
+      if(area2x == 0.0 )
         metric_vals->condition = (double)(VERDICT_DBL_MAX);
       else
         metric_vals->condition = (double) ( (sides[0]%sides[0] +
@@ -1066,7 +1066,7 @@ C_FUNC_DEF void v_tri_quality( int num_nodes, double coordinates[][3],
                                                    sides[0]%sides[2])  /
                                                   (area2x*rootOf3) );
     }
-    
+
   }
 
   // calculate the shape
@@ -1083,7 +1083,7 @@ C_FUNC_DEF void v_tri_quality( int num_nodes, double coordinates[][3],
         // reuse area from before
       double area2x = metric_vals->area * 2;
         // dot products
-      double dots[3] = { 
+      double dots[3] = {
         sides[0] % sides[0],
           sides[2] % sides[2],
           sides[0] % sides[2]
@@ -1093,12 +1093,12 @@ C_FUNC_DEF void v_tri_quality( int num_nodes, double coordinates[][3],
       double sum_dots = dots[0] + dots[1] - dots[2];
 
         // then the finale
-      if( sum_dots == 0.0 ) 
+      if( sum_dots == 0.0 )
         metric_vals->shape = 0.0;
       else
         metric_vals->shape = (double)(rootOf3 * area2x / sum_dots);
     }
-    
+
   }
 
   // calculate relative size squared
@@ -1125,7 +1125,7 @@ C_FUNC_DEF void v_tri_quality( int num_nodes, double coordinates[][3],
   // calculate shape and size
   if(metrics_request_flag & V_TRI_SHAPE_AND_SIZE)
   {
-    metric_vals->shape_and_size = 
+    metric_vals->shape_and_size =
       metric_vals->relative_size_squared * metric_vals->shape;
   }
 

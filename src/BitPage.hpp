@@ -11,7 +11,7 @@ class Range;
 /**\brief bit tag data
  *
  * This class represents a fixed-size block of memory in which bit tag
- * values are stored.  
+ * values are stored.
  */
 class BitPage
 {
@@ -24,7 +24,7 @@ public:
    *                     used to initialize each tag value.
    */
   BitPage( int bits_per_ent, unsigned char init_val );
-  
+
   /**\brief Get tag values
    *
    * Get 'count' tag values, beginning with the one at 'offset'.
@@ -33,14 +33,14 @@ public:
    *              tag value, etc.  NOTE:  This is the value offset, not the
    *              bit offset.
    *\param count  Number of consecutive tag values to get.
-   *\param bits_per_ent  Number of bits composing each tag value.  
+   *\param bits_per_ent  Number of bits composing each tag value.
    *                     NOTE: Must be a power of two.
    *\param data   Memory into which to copy tag values.  Each value is copied
    *              into a separate byte, such that the lower bits of the bit
    *              contain the tag value and any unused higher bits are zero.
    */
   void get_bits( int offset, int count, int bits_per_ent, unsigned char* data ) const;
-  
+
   /**\brief Set tag values
    *
    * Set 'count' tag values, beginning with the one at 'offset'.
@@ -49,7 +49,7 @@ public:
    *              tag value, etc.  NOTE:  This is the value offset, not the
    *              bit offset.
    *\param count  Number of consecutive tag values to set.
-   *\param bits_per_ent  Number of bits composing each tag value.  
+   *\param bits_per_ent  Number of bits composing each tag value.
    *                     NOTE: Must be a power of two.
    *\param data   Memory from which to copy tag values.  Each value is copied
    *              from a separate byte.  The lower 'bits_per_ent' of each
@@ -57,7 +57,7 @@ public:
    *              are ignored.
    */
   void set_bits( int offset, int count, int bits_per_ent, const unsigned char* data );
-  
+
   /**\brief Set several tag values to the same value.
    *
    * Set 'count' tag values to specified value.
@@ -66,7 +66,7 @@ public:
    *              tag value, etc.  NOTE:  This is the value offset, not the
    *              bit offset.
    *\param count  Number of consecutive tag values to set.
-   *\param bits_per_ent  Number of bits composing each tag value.  
+   *\param bits_per_ent  Number of bits composing each tag value.
    *                     NOTE: Must be a power of two.
    *\param value  The lower 'bits_per_ent' of this
    *              byte are used as the tag value.  Any additional higher bits
@@ -81,13 +81,13 @@ public:
    *              the first tag value, a value of one indicates the second
    *              tag value, etc.  NOTE:  This is the value offset, not the
    *              bit offset.
-   *\param bits_per_ent  Number of bits composing each tag value.  
+   *\param bits_per_ent  Number of bits composing each tag value.
    *                     NOTE: Must be a power of two.
    *\return       A byte containing the tag value in the lower bits with
    *              any unused higher bits zeroed.
    */
   unsigned char get_bits( int offset, int bits_per_ent ) const;
-  
+
   /**\brief Set tag value
    *
    * Set tag value.
@@ -95,14 +95,14 @@ public:
    *              the first tag value, a value of one indicates the second
    *              tag value, etc.  NOTE:  This is the value offset, not the
    *              bit offset.
-   *\param bits_per_ent  Number of bits composing each tag value.  
+   *\param bits_per_ent  Number of bits composing each tag value.
    *                     NOTE: Must be a power of two.
    *\param value  The lower 'bits_per_ent' of this
    *              byte are used as the tag value.  Any additional higher bits
    *              are ignored.
    */
   void set_bits( int offset, int bits_per_ent, unsigned char data );
-  
+
   /**\brief Search stored values for specified value.
    *
    * Find the offsets n in the data at which the specified value occurs,
@@ -112,10 +112,10 @@ public:
    *\param count   The number of values to search
    *\param bits_per_ent Number of bits composing each tag value.
    *\param results Result list.
-   *\param start   The handle of the entity corresponding to the 
+   *\param start   The handle of the entity corresponding to the
    *               tag value stored at 'offset'
    */
-  void search( unsigned char value, int offset, int count, 
+  void search( unsigned char value, int offset, int count,
                int bits_per_ent, Range& results, EntityHandle start ) const;
 
 private:
@@ -133,7 +133,7 @@ inline unsigned char BitPage::get_bits( int offset, int per_ent ) const
   int bit =  (offset * per_ent) & 7;  // masking with 7 is modulo eight
   assert(byte < BitTag::PageSize);
   return (unsigned char)(byteArray[byte] >> bit) & mask;
-} 
+}
 
 inline void BitPage::set_bits( int offset, int per_ent, unsigned char bits )
 {
@@ -144,7 +144,7 @@ inline void BitPage::set_bits( int offset, int per_ent, unsigned char bits )
     // by higher-level code.
   unsigned char mask = (unsigned char)((1<<per_ent)-1) << bit;
   byteArray[byte] = (char)((byteArray[byte] & ~mask) | ((bits << bit) & mask));
-} 
+}
 
 inline void BitPage::get_bits( int offset, int count, int per_ent, unsigned char* data ) const
 {
@@ -166,7 +166,7 @@ inline void BitPage::set_bits( int offset, int count, int per_ent, unsigned char
   while (offset < end)
     set_bits( offset++, per_ent, value );
 }
-  
+
 } // namespace moab
 
 #endif

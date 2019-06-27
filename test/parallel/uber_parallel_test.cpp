@@ -23,7 +23,7 @@ using namespace moab;
     std::cerr << "Error code  " << val << " at " << __FILE__ << ":" << __LINE__ << std::endl;\
     return val; \
   } \
-} while (false) 
+} while (false)
 
 #define PCHECK(A) if (is_any_proc_error(!(A))) return report_error(__FILE__,__LINE__)
 
@@ -44,7 +44,7 @@ int is_any_proc_error( int is_my_error )
   return err || result;
 }
 
-int run_test( ErrorCode (*func)(const char*, const char*), 
+int run_test( ErrorCode (*func)(const char*, const char*),
               const char* func_name,
               const std::string file_name,
               const char *option)
@@ -54,12 +54,12 @@ int run_test( ErrorCode (*func)(const char*, const char*),
   int rank;
   MPI_Comm_rank( MPI_COMM_WORLD, &rank );
   if (rank == 0) {
-    if (is_err) 
+    if (is_err)
       std::cout << func_name << " : FAILED!!" << std::endl;
     else
       std::cout << func_name << " : success" << std::endl;
   }
-  
+
   return is_err;
 }
 
@@ -73,7 +73,7 @@ int main( int argc, char* argv[] )
 
   const char* option;
   std::string filename, filename2;
-  if (1 < argc) 
+  if (1 < argc)
     filename = std::string(argv[1]);
   else {
     filename = TestDir + "/64bricks_512hex.h5m";
@@ -126,7 +126,7 @@ int main( int argc, char* argv[] )
   return num_errors;
 }
 
-ErrorCode test_read(const char *filename, const char *option) 
+ErrorCode test_read(const char *filename, const char *option)
 {
   Core mb_instance;
   Interface& moab = mb_instance;

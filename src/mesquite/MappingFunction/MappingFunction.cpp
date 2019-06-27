@@ -1,5 +1,5 @@
 // test comment, remove when done
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2007 Sandia National Laboratories.  Developed at the
@@ -17,18 +17,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2008) kraftche@cae.wisc.edu    
+    (2008) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file MappingFunction.cpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -56,17 +56,17 @@ MappingFunction::convert_connectivity_indices_impl( EntityTopology topo,
                                                MsqError& err )
 {
   bool in_edges, in_faces, in_region, out_edges, out_faces, out_region;
-  TopologyInfo::higher_order( topo, input_type, in_edges, in_faces, 
+  TopologyInfo::higher_order( topo, input_type, in_edges, in_faces,
                               in_region, err ); MSQ_ERRRTN(err);
-  TopologyInfo::higher_order( topo, output_type, out_edges, out_faces, 
+  TopologyInfo::higher_order( topo, output_type, out_edges, out_faces,
                               out_region, err ); MSQ_ERRRTN(err);
 
     // We could probably use TopologyInfo to do this more forward-compatible,
     // but for efficiency assume the current ITAPS node ordering, where
     // all mid-edge nodes occur before mid-face nodes and the mid-region
     // node is always last.
-    
-    // If both have mid-region nodes and they don't have the same stuff 
+
+    // If both have mid-region nodes and they don't have the same stuff
     // preceeding the mid-region node, then we need to change that index.
   bool region_diff = in_region && out_region && (in_faces != out_faces || in_edges != out_edges);
     // If both have mid-face nodes and one has mid-edge nodes and the other
@@ -83,7 +83,7 @@ MappingFunction::convert_connectivity_indices_impl( EntityTopology topo,
   const unsigned in_regn_offset = in_faces ? in_face_offset+faces : in_face_offset;
   const unsigned out_face_offset = out_edges ? corners+edges : corners;
   const unsigned out_regn_offset = out_faces ? out_face_offset+faces : out_face_offset;
-  
+
     // In the code below, assertions are used to validate the input
     // connectivity data as we assume it is an internal mesquite coding
     // error for it to be inconsistent.  True error checking is used
@@ -95,7 +95,7 @@ MappingFunction::convert_connectivity_indices_impl( EntityTopology topo,
     // compatible with the mapping function.)  The latter should probably
     // have been caught by the mapping function, but to be safe we check
     // again here.
-  
+
   for (size_t i = 0; i < num_indices; ++i) {
     if (index_list[i] < in_face_offset) { // corner or mid-edge node
       // nothing to change for these, but check that if it is a mid-edge
@@ -141,13 +141,13 @@ void MappingFunction2D::jacobian( const PatchData& pd,
 {
   const MsqMeshEntity& elem = pd.element_by_index( element_number );
   const size_t* conn = elem.get_vertex_index_array();
-  
+
   derivatives( location, nodeset, vertex_patch_indices_out,
                d_coeff_d_xi_out, num_vtx_out, err ); MSQ_ERRRTN(err);
- 
-  convert_connectivity_indices( elem.node_count(), vertex_patch_indices_out, 
+
+  convert_connectivity_indices( elem.node_count(), vertex_patch_indices_out,
                                 num_vtx_out, err );  MSQ_ERRRTN(err);
- 
+
   jacobian_out.zero();
   size_t w = 0;
   for (size_t r = 0; r < num_vtx_out; ++r) {
@@ -172,20 +172,20 @@ void MappingFunction2D::ideal( Sample location,
     MSQ_SETERR(err)(MsqError::UNSUPPORTED_ELEMENT);
     return;
   }
-  
+
   const unsigned MAX_VERTS = 4;
   MsqVector<2> d_coeff_d_xi[MAX_VERTS];
   size_t indices[MAX_VERTS], num_vtx = 0;
   derivatives( location, NodeSet(), indices,
                d_coeff_d_xi, num_vtx, err ); MSQ_ERRRTN(err);
   assert(num_vtx > 0 && num_vtx <= MAX_VERTS);
-  
+
   J.zero();
   for (size_t r = 0; r < num_vtx; ++r) {
     MsqMatrix<3,1> c( coords[indices[r]].to_array() );
     J += c * transpose(d_coeff_d_xi[r]);
   }
-  
+
   double size = sqrt(sqrt(fabs(det(transpose(J) * J))));
   assert(size > -1e-15); // no negative jacobians for ideal elements!
   divide( 1.0, size, size );
@@ -204,13 +204,13 @@ void MappingFunction3D::jacobian( const PatchData& pd,
 {
   const MsqMeshEntity& elem = pd.element_by_index( element_number );
   const size_t* conn = elem.get_vertex_index_array();
-  
+
   derivatives( location, nodeset, vertex_patch_indices_out,
                d_coeff_d_xi_out, num_vtx_out, err ); MSQ_ERRRTN(err);
- 
-  convert_connectivity_indices( elem.node_count(), vertex_patch_indices_out, 
+
+  convert_connectivity_indices( elem.node_count(), vertex_patch_indices_out,
                                 num_vtx_out, err );  MSQ_ERRRTN(err);
- 
+
   jacobian_out.zero();
   size_t w = 0;
   for (size_t r = 0; r < num_vtx_out; ++r) {
@@ -243,13 +243,13 @@ void MappingFunction3D::ideal( Sample location,
   derivatives( location, NodeSet(), indices,
                d_coeff_d_xi, num_vtx, err ); MSQ_ERRRTN(err);
   assert(num_vtx > 0 && num_vtx <= MAX_VERTS);
-  
+
   J.zero();
   for (size_t r = 0; r < num_vtx; ++r) {
     MsqMatrix<3,1> c( coords[indices[r]].to_array() );
     J += c * transpose(d_coeff_d_xi[r]);
   }
-  
+
   double size = MBMesquite::cbrt(fabs(det(J)));
   assert(size > -1e-15); // no negative jacobians for ideal elements!
   divide( 1.0, size, size );

@@ -1,9 +1,9 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2004 Sandia Corporation and Argonne National
-    Laboratory.  Under the terms of Contract DE-AC04-94AL85000 
-    with Sandia Corporation, the U.S. Government retains certain 
+    Laboratory.  Under the terms of Contract DE-AC04-94AL85000
+    with Sandia Corporation, the U.S. Government retains certain
     rights in this software.
 
     This library is free software; you can redistribute it and/or
@@ -16,13 +16,13 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
-    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov, 
-    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov      
-   
+
+    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov,
+    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov
+
   ***************************************************************** */
 // -*- Mode : c++; tab-width: 3; c-tab-always-indent: t; indent-tabs-mode: nil; c-basic-offset: 3 -*-
 
@@ -65,7 +65,7 @@ namespace MBMesquite {
 
            The user can instantiate several InstructionQueue objects to be used
            with various MeshSet objects.
-           
+
            The most commonly used functions are:
            -# add_preconditioner(...)
            -# add_quality_assessor(...)
@@ -78,16 +78,16 @@ namespace MBMesquite {
   public:
     MESQUITE_EXPORT
     InstructionQueue();
-    
+
     MESQUITE_EXPORT
     InstructionQueue( const Settings& settings );
 
     MESQUITE_EXPORT
     virtual ~InstructionQueue();
-    
+
     MESQUITE_EXPORT
     void add_target_calculator( TargetWriter* tc, MsqError& err );
-    
+
       //! Add a tool mark higher-order nodes as slaved.
       //! Note:  Implies set_slaved_ho_node_mode( Settings::SLAVE_CALCULATED )
     MESQUITE_EXPORT
@@ -96,29 +96,29 @@ namespace MBMesquite {
       //! Note:  Implies set_slaved_ho_node_mode( Settings::SLAVE_ALL )
     MESQUITE_EXPORT
     void remove_vertex_slaver( VertexSlaver* slaver, MsqError& err );
-    
+
     MESQUITE_EXPORT
     void add_tag_vertex_mesh( TagVertexMesh* m, MsqError& err );
     MESQUITE_EXPORT
     void remove_tag_vertex_mesh( TagVertexMesh* m, MsqError& err );
-    
+
     MESQUITE_EXPORT
     void add_preconditioner(QualityImprover* instr, MsqError &err);
     MESQUITE_EXPORT
     void remove_preconditioner(size_t index, MsqError &err);
     MESQUITE_EXPORT
     void insert_preconditioner(QualityImprover* instr, size_t index, MsqError &err);
-    
+
     MESQUITE_EXPORT
     void add_quality_assessor(QualityAssessor* instr, MsqError &err);
     MESQUITE_EXPORT
     void remove_quality_assessor(size_t index, MsqError &err);
     MESQUITE_EXPORT
     void insert_quality_assessor(QualityAssessor* instr, size_t index, MsqError &err);
-    
+
     MESQUITE_EXPORT
     void set_master_quality_improver(QualityImprover* instr, MsqError &err);
-    
+
     MESQUITE_EXPORT
     void disable_automatic_quality_assessment()
        { autoQualAssess = false; }
@@ -138,20 +138,20 @@ namespace MBMesquite {
                              ParallelMesh* pmesh,
                              Settings* settings,
                              MsqError& err );
-    
+
 
     MESQUITE_EXPORT
-    void clear();  
-    
+    void clear();
+
   protected:
-    
+
   private:
     std::list<Instruction*>::iterator clear_master(MsqError &err);
 
     std::list<Instruction*> instructions;
 
     bool autoQualAssess;
-    
+
     int vertexSlaverCount;
     size_t nbPreConditionners;
     bool isMasterSet;

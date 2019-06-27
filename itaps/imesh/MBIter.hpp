@@ -8,7 +8,7 @@
 #include <vector>
 #include <algorithm>
 
-struct iBase_EntityArrIterator_Private 
+struct iBase_EntityArrIterator_Private
 {
   protected:
     iBase_EntityType entType;
@@ -16,7 +16,7 @@ struct iBase_EntityArrIterator_Private
     EntityHandle entSet;
     int arrSize;
     bool isRecursive;
-    
+
   public:
     iBase_EntityArrIterator_Private( iBase_EntityType type,
                                      iMesh_EntityTopology topology,
@@ -33,13 +33,13 @@ struct iBase_EntityArrIterator_Private
   virtual ErrorCode step(int num_steps, bool &at_end)=0;
 
     // NOTE: input array must be at least arrLen long
-    virtual void get_entities( Core* mb, 
+    virtual void get_entities( Core* mb,
                                EntityHandle* array,
                                int& count_out ) = 0;
-    
+
     virtual ErrorCode reset( Interface* mb ) = 0;
-    
-    class IsType { 
+
+    class IsType {
       private: EntityType type;
       public:  IsType( EntityType t ) : type(t) {}
                bool operator()( EntityHandle h )
@@ -49,7 +49,7 @@ struct iBase_EntityArrIterator_Private
     void remove_type( std::vector<EntityHandle>& vect, EntityType t ) {
       vect.erase( std::remove_if( vect.begin(), vect.end(), IsType(t) ), vect.end() );
     }
-    
+
     void remove_type( Range& range, EntityType t ) {
       std::pair<Range::iterator,Range::iterator> p = range.equal_range(t);
       range.erase( p.first, p.second );
@@ -61,7 +61,7 @@ struct iBase_EntityArrIterator_Private
 
 template <typename T>
 inline
-ErrorCode step_iterator(T &curr, const T &end, int num_steps, bool &at_end) 
+ErrorCode step_iterator(T &curr, const T &end, int num_steps, bool &at_end)
 {
   if (0 > num_steps) return MB_FAILURE;
 
@@ -77,7 +77,7 @@ template <typename T>
 inline
 ErrorCode step_iterator(typename std::vector<T>::const_iterator &curr,
                         const typename std::vector<T>::const_iterator &end,
-                        int num_steps, bool &at_end) 
+                        int num_steps, bool &at_end)
 {
   if (0 > num_steps) return MB_FAILURE;
 
@@ -92,9 +92,9 @@ ErrorCode step_iterator(typename std::vector<T>::const_iterator &curr,
 }
 
 inline
-ErrorCode step_iterator(Range::const_iterator &curr, 
+ErrorCode step_iterator(Range::const_iterator &curr,
                         const Range::const_iterator &end, int num_steps,
-                        bool &at_end) 
+                        bool &at_end)
 {
   if (0 > num_steps) return MB_FAILURE;
 
@@ -107,12 +107,12 @@ ErrorCode step_iterator(Range::const_iterator &curr,
   return MB_SUCCESS;
 }
 
-template <class Container> class MBIter : public iBase_EntityArrIterator_Private 
+template <class Container> class MBIter : public iBase_EntityArrIterator_Private
 {
   protected:
     Container iterData;
     typename Container::const_iterator iterPos;
-      
+
   public:
     MBIter( iBase_EntityType type,
             iMesh_EntityTopology topology,
@@ -121,7 +121,7 @@ template <class Container> class MBIter : public iBase_EntityArrIterator_Private
             bool recursive = false)
             : iBase_EntityArrIterator_Private( type, topology, set, arr_size, recursive ),
         iterPos(iterData.end()) {}
-      
+
     ~MBIter() {}
 
     typename Container::const_iterator position() const {return iterPos;};
@@ -132,14 +132,14 @@ template <class Container> class MBIter : public iBase_EntityArrIterator_Private
     {
       return step_iterator(iterPos, end(), num_steps, at_end);
     }
-    
+
     void get_entities( Core* mb, EntityHandle* array, int& count )
     {
       for (count = 0; count < arrSize && iterPos != iterData.end(); ++iterPos)
         if (mb->is_valid(*iterPos))
           array[count++] = *iterPos;
     }
-      
+
     virtual ErrorCode reset( Interface* mb ) {
       ErrorCode result;
       iterData.clear();
@@ -161,7 +161,7 @@ template <class Container> class MBIter : public iBase_EntityArrIterator_Private
       }
       iterPos = iterData.begin();
       return result;
-    }  
+    }
 };
 
 typedef MBIter< std::vector<EntityHandle> > MBListIter;

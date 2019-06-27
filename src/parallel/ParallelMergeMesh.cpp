@@ -16,7 +16,7 @@ namespace moab{
 
   //Constructor
   /*Get Merge Data and tolerance*/
-  ParallelMergeMesh::ParallelMergeMesh(ParallelComm *pc, 
+  ParallelMergeMesh::ParallelMergeMesh(ParallelComm *pc,
 				       const double epsilon) :
     myPcomm(pc), myEps(epsilon)
   {
@@ -24,7 +24,7 @@ namespace moab{
     mySkinEnts.resize(4);
   }
 
-  
+
   //Have a wrapper function on the actual merge to avoid memory leaks
   //Merges elements within a proximity of epsilon
   ErrorCode ParallelMergeMesh::merge(EntityHandle levelset, bool skip_local_merge)
@@ -41,7 +41,7 @@ namespace moab{
     int dim;
     ErrorCode rval = myMB->get_dimension(dim);MB_CHK_ERR(rval);
 
-    
+
     //Get the local skin elements
     rval = PopulateMySkinEnts(levelset,dim, skip_local_merge);
     //If there is only 1 proc, we can return now
@@ -126,7 +126,7 @@ namespace moab{
 
     /*Get Skin
       -Get Range of all dimensional entities
-      -skinEnts[i] is the skin entities of dimension i*/  
+      -skinEnts[i] is the skin entities of dimension i*/
     Skinner skinner(myMB);
     for(int skin_dim = dim; skin_dim >= 0; skin_dim--){
       rval = skinner.find_skin(meshset,ents,skin_dim,mySkinEnts[skin_dim]);MB_CHK_ERR(rval);
@@ -168,15 +168,15 @@ namespace moab{
     ErrorCode rval = PartitionGlobalBox(gbox, lengths, parts);MB_CHK_ERR(rval);
 
     /* Get Skin Coordinates, Vertices */
-    double *x = new double[mySkinEnts[0].size()]; 
-    double *y = new double[mySkinEnts[0].size()]; 
+    double *x = new double[mySkinEnts[0].size()];
+    double *y = new double[mySkinEnts[0].size()];
     double *z = new double[mySkinEnts[0].size()];
     rval = myMB->get_coords(mySkinEnts[0],x,y,z);
     if(rval != MB_SUCCESS){
       //Prevent Memory Leak
       delete []x; delete []y; delete []z;
       return rval;
-    }    
+    }
 
     //Initialize variable to be used in the loops
     std::vector<int> toProcs;
@@ -210,7 +210,7 @@ namespace moab{
       zDup = (zPart != zEps && zEps < parts[2]);
 
       //Add appropriate processors to the vector
-      baseProc = xPart+ yPart * parts[0] + zPart * parts[0] * parts[1]; 
+      baseProc = xPart+ yPart * parts[0] + zPart * parts[0] * parts[1];
       toProcs.push_back(baseProc);
       if(xDup){
 	toProcs.push_back(baseProc + 1);//Get partition to the right
@@ -241,8 +241,8 @@ namespace moab{
       }
       //Grow the tuple list if necessary
       while(myTup.get_n() + toProcs.size() >= myTup.get_max()){
-	myTup.resize(myTup.get_max() ? 
-		     myTup.get_max() + myTup.get_max()/2 + 1 
+	myTup.resize(myTup.get_max() ?
+		     myTup.get_max() + myTup.get_max()/2 + 1
 		     : 2);
       }
 
@@ -275,7 +275,7 @@ namespace moab{
     double yLen = gbox[4]-gbox[1];
     double zLen = gbox[5]-gbox[2];
     unsigned numProcs = myPcomm->size();
-    
+
     //Partition sides from the longest to shortest lengths
     //If x is the longest side
     if(xLen >= yLen && xLen >= zLen){
@@ -322,14 +322,14 @@ namespace moab{
 	parts[0] = numProcs/parts[1];
       }
     }
-    
+
     //Divide up each side to give the lengths
     lengths[0] = xLen/(double)parts[0];
     lengths[1] = yLen/(double)parts[1];
     lengths[2] = zLen/(double)parts[2];
     return MB_SUCCESS;
   }
-  
+
   //Partition a side based on the length ratios
   int ParallelMergeMesh::PartitionSide(double sideLen, double restLen, unsigned numProcs, bool altRatio)
   {
@@ -343,7 +343,7 @@ namespace moab{
     //We need to be able to save the last ratio and factor (for comparison)
     double oldRatio = ratio;
     double oldFactor = 1;
-    
+
     //This is the ratio were shooting for
     double goalRatio = sideLen/restLen;
 
@@ -358,7 +358,7 @@ namespace moab{
       divisor = (double)numProcs;
       p = 2;
     }
-    
+
     //Find each possible factor
     for (unsigned i = 2; i <= numProcs/2; i++){
       //If it is a factor...
@@ -388,7 +388,7 @@ namespace moab{
       factor = numProcs;
       ratio = pow((double)numProcs, p)/divisor;
     }
-    
+
     //Figure out if our oldRatio is better than ratio
     if(fabs(ratio - goalRatio) > fabs(oldRatio-goalRatio)){
       factor = oldFactor;
@@ -396,7 +396,7 @@ namespace moab{
     //Return our findings
     return factor;
   }
-  
+
   //Id the tuples that are matching
   ErrorCode ParallelMergeMesh::PopulateMyMatches()
   {
@@ -412,7 +412,7 @@ namespace moab{
 
     while((i+1)<myTup.get_n()){
       //Proximity Comparison
-      double xi = myTup.vr_rd[tup_r], 
+      double xi = myTup.vr_rd[tup_r],
 	yi = myTup.vr_rd[tup_r+1],
 	zi = myTup.vr_rd[tup_r+2];
 
@@ -431,12 +431,12 @@ namespace moab{
       }
       //Allocate the tuple list before adding matches
       while(myMatches.get_n()+(j-i)*(j-i-1) >= myMatches.get_max()){
-	myMatches.resize(myMatches.get_max() ? 
-			 myMatches.get_max() + myMatches.get_max()/2 + 1 : 
+	myMatches.resize(myMatches.get_max() ?
+			 myMatches.get_max() + myMatches.get_max()/2 + 1 :
 			 2);
       }
- 
-      //We now know that tuples [i to j) exclusive match.  
+
+      //We now know that tuples [i to j) exclusive match.
       //If n tuples match, n*(n-1) match tuples will be made
       //tuples are of the form (proc1,proc2,handle1,handle2)
       if(i+1 < j){
@@ -451,7 +451,7 @@ namespace moab{
 	    myMatches.vul_wr[mat_ul++]=myTup.vul_rd[khand];//handle1
 	    myMatches.vul_wr[mat_ul++]=myTup.vul_rd[lhand];//handle2
 	    myMatches.inc_n();
-	    
+	
 	    myMatches.vi_wr[mat_i++]=myTup.vi_rd[lproc];//proc1
 	    myMatches.vi_wr[mat_i++]=myTup.vi_rd[kproc];//proc2
 	    myMatches.vul_wr[mat_ul++]=myTup.vul_rd[lhand];//handle1
@@ -509,7 +509,7 @@ namespace moab{
 	upper = proc_ents.upper_bound(CN::TypeDimensionMap[dim-1].second);
       proc_ents.erase(lower, upper);
     }
-    
+
 
     //This vector doesn't appear to be used but its in resolve_shared_ents
     int maxp = -1;
@@ -529,13 +529,13 @@ namespace moab{
     if(rval != MB_SUCCESS){
       return rval;
     }
-    
+
     // get entities shared by 1 or n procs
     rval = myPcomm->get_proc_nvecs(dim,dim-1, &mySkinEnts[0],proc_nranges);
     if(rval != MB_SUCCESS){
       return rval;
     }
-    
+
     // create the sets for each interface; store them as tags on
     // the interface instance
     Range iface_sets;
@@ -599,7 +599,7 @@ namespace moab{
     for(unsigned long i=0; i< mi;i++){
       sint t =tup.vi_rd[a_val];
       tup.vi_wr[a_val] = tup.vi_rd[b_val];
-      tup.vi_wr[b_val] = t; 
+      tup.vi_wr[b_val] = t;
       a_val++;
       b_val++;
     }
@@ -619,7 +619,7 @@ namespace moab{
     for(unsigned long i=0; i< mul;i++){
       Ulong t =tup.vul_rd[a_val];
       tup.vul_wr[a_val] = tup.vul_rd[b_val];
-      tup.vul_wr[b_val] = t; 
+      tup.vul_wr[b_val] = t;
       a_val++;
       b_val++;
     }
@@ -629,25 +629,25 @@ namespace moab{
     for(unsigned long i=0; i< mr;i++){
       realType t =tup.vr_rd[a_val];
       tup.vr_wr[a_val] = tup.vr_rd[b_val];
-      tup.vr_wr[b_val] = t; 
+      tup.vr_wr[b_val] = t;
       a_val++;
       b_val++;
     }
   }
 
   //Perform the sorting of a tuple by real
-  //To sort an entire tuple_list, call (tup,0,tup.n,epsilon) 
+  //To sort an entire tuple_list, call (tup,0,tup.n,epsilon)
   void ParallelMergeMesh::PerformRealSort(TupleList &tup,
 					  unsigned long left,
-					  unsigned long right, 
+					  unsigned long right,
 					  double eps,
 					  uint tup_mr)
-  {  
+  {
     //If list size is only 1 or 0 return
     if(left+1 >= right){
       return;
     }
-    unsigned long swap = left, tup_l = left*tup_mr, 
+    unsigned long swap = left, tup_l = left*tup_mr,
       tup_t = tup_l + tup_mr;
 
     //Swap the median with the left position for a (hopefully) better split
@@ -673,8 +673,8 @@ namespace moab{
 
   //Note, this takes the actual tup.vr[] index (aka i*tup.mr)
   bool ParallelMergeMesh::TupleGreaterThan(TupleList &tup,
-					   unsigned long vrI, 
-					   unsigned long vrJ, 
+					   unsigned long vrI,
+					   unsigned long vrJ,
 					   double eps,
 					   uint tup_mr){
     unsigned check=0;
@@ -684,7 +684,7 @@ namespace moab{
 	check++;
 	continue;
       }
-      //If I greater than J 
+      //If I greater than J
       else if(tup.vr_rd[vrI+check] > tup.vr_rd[vrJ+check]){
 	return true;
       }

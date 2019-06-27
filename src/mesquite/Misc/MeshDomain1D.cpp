@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2008 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2008) kraftche@cae.wisc.edu    
+    (2008) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file MeshDomain1D.cpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -36,11 +36,11 @@
 
 namespace MBMesquite {
 
-    
+
 void PointDomain::snap_to( Mesh::VertexHandle,
                            Vector3D &coordinate) const
   { coordinate = geom(); }
-  
+
 void PointDomain::vertex_normal_at( Mesh::VertexHandle ,
                                     Vector3D &coordinate) const
   { coordinate.set(0,0,0); }
@@ -48,16 +48,16 @@ void PointDomain::vertex_normal_at( Mesh::VertexHandle ,
 void PointDomain::element_normal_at( Mesh::ElementHandle ,
                                      Vector3D &coordinate) const
   { coordinate.set(0,0,0); }
-              
+
 void PointDomain::vertex_normal_at( const Mesh::VertexHandle* ,
                                     Vector3D coordinates[],
                                     unsigned count,
                                     MsqError& err ) const
-{ 
+{
   std::fill( coordinates, coordinates+count, Vector3D(0,0,0) );
   MSQ_SETERR(err)( "Cannot get normal for PointDomain", MsqError::INTERNAL_ERROR );
 }
-                
+
 void PointDomain::closest_point( Mesh::VertexHandle ,
                                  const Vector3D& ,
                                  Vector3D& closest,
@@ -74,7 +74,7 @@ void PointDomain::domain_DoF( const Mesh::VertexHandle* ,
                               size_t num_handles,
                               MsqError&  ) const
   { std::fill( dof_array, dof_array+num_handles, 0 ); }
-    
+
 void LineDomain::snap_to( Mesh::VertexHandle ,
                           Vector3D &coordinate) const
   { coordinate = geom().point(geom().closest( coordinate )); }
@@ -88,7 +88,7 @@ void LineDomain::element_normal_at( Mesh::ElementHandle ,
                                     Vector3D &coordinate) const
     // no normal, return tangent instead.
   { coordinate = geom().direction(); }
-              
+
 void LineDomain::vertex_normal_at( const Mesh::VertexHandle* ,
                                    Vector3D coordinates[],
                                    unsigned count,
@@ -97,7 +97,7 @@ void LineDomain::vertex_normal_at( const Mesh::VertexHandle* ,
   std::fill( coordinates, coordinates+count, geom().direction() );
   MSQ_SETERR(err)( "Cannot get normal for LineDomain", MsqError::INTERNAL_ERROR );
 }
-                
+
 void LineDomain::closest_point( Mesh::VertexHandle ,
                                 const Vector3D& position,
                                 Vector3D& closest,
@@ -108,8 +108,8 @@ void LineDomain::closest_point( Mesh::VertexHandle ,
   normal = geom().direction();
   MSQ_SETERR(err)( "Cannot get normal for LineDomain", MsqError::INTERNAL_ERROR );
 }
-            
-                    
+
+
 void LineDomain::domain_DoF( const Mesh::VertexHandle* ,
                              unsigned short* dof_array,
                              size_t num_handles,
@@ -147,12 +147,12 @@ void CircleDomain::vertex_normal_at( Mesh::VertexHandle ,
   if (!geom().closest( copy, junk, coordinate )) // at center?
     coordinate = geom().radial_vector();
 }
-  
+
 
 void CircleDomain::element_normal_at( Mesh::ElementHandle h,
                                       Vector3D &coordinate) const
   { CircleDomain::vertex_normal_at( h, coordinate ); }
-  
+
 void CircleDomain::vertex_normal_at( const Mesh::VertexHandle* handles,
                                      Vector3D coordinates[],
                                      unsigned count,
@@ -162,7 +162,7 @@ void CircleDomain::vertex_normal_at( const Mesh::VertexHandle* handles,
     vertex_normal_at( handles[i], coordinates[i] );
   MSQ_SETERR(err)( "Cannot get normal for CircleDomain", MsqError::INTERNAL_ERROR );
 }
-  
+
 void CircleDomain::closest_point( Mesh::VertexHandle ,
                                   const Vector3D& position,
                                   Vector3D& closest,
@@ -176,7 +176,7 @@ void CircleDomain::closest_point( Mesh::VertexHandle ,
   }
   MSQ_SETERR(err)( "Cannot get normal for CircleDomain", MsqError::INTERNAL_ERROR );
 }
-  
+
 void CircleDomain::domain_DoF( const Mesh::VertexHandle* ,
                                unsigned short* dof_array,
                                size_t num_handles,

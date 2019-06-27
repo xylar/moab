@@ -1,4 +1,4 @@
-BUILT_SOURCES = 
+BUILT_SOURCES =
 
 MESHDIR = $(abs_top_srcdir)/MeshFiles/unittest/fbigeom
 
@@ -8,7 +8,7 @@ AM_CPPFLAGS = -DSRCDIR=$(srcdir) \
               -I$(top_builddir)/src \
               -I.. -I$(srcdir)/.. \
               -I$(top_srcdir)/itaps/imesh \
-              -I$(top_builddir)/itaps/imesh 
+              -I$(top_builddir)/itaps/imesh
 
 
 lib_LTLIBRARIES = libFBiGeomMOAB.la
@@ -19,7 +19,7 @@ libFBiGeomMOAB_la_LIBADD = $(top_builddir)/src/libMOAB.la
 
 libFBiGeomMOAB_la_SOURCES = \
 	FBiGeom_MOAB.hpp \
-	FBiGeom_MOAB.cpp 
+	FBiGeom_MOAB.cpp
 
 libFBiGeomMOAB_la_include_HEADERS = \
 	FBiGeom.h \
@@ -34,7 +34,7 @@ if HAVE_HDF5
 testgeom_SOURCES = testgeom.cpp
 testgeom_DEPENDENCIES = libFBiGeomMOAB.la \
                         $(top_builddir)/itaps/imesh/libiMesh.la \
-                        $(top_builddir)/src/libMOAB.la 
+                        $(top_builddir)/src/libMOAB.la
 testgeom_LDADD = libFBiGeomMOAB.la \
                  $(top_builddir)/itaps/imesh/libiMesh.la \
                  $(top_builddir)/src/libMOAB.la \
@@ -43,27 +43,27 @@ testgeom_LDADD = libFBiGeomMOAB.la \
 testSmoothGeom_SOURCES = testSmooth.cpp
 testSmoothGeom_DEPENDENCIES = libFBiGeomMOAB.la \
                         $(top_builddir)/itaps/imesh/libiMesh.la \
-                        $(top_builddir)/src/libMOAB.la 
+                        $(top_builddir)/src/libMOAB.la
 testSmoothGeom_LDADD = libFBiGeomMOAB.la \
                  $(top_builddir)/itaps/imesh/libiMesh.la \
                  $(top_builddir)/src/libMOAB.la \
                  ${MOAB_CXX_LINKFLAGS} ${MOAB_CXX_LIBS}
-                 
+
 testSmooth2_SOURCES = testSmooth2.cpp
 testSmooth2_DEPENDENCIES = libFBiGeomMOAB.la \
                         $(top_builddir)/itaps/imesh/libiMesh.la \
-                        $(top_builddir)/src/libMOAB.la 
+                        $(top_builddir)/src/libMOAB.la
 testSmooth2_LDADD = libFBiGeomMOAB.la \
                  $(top_builddir)/itaps/imesh/libiMesh.la \
                  $(top_builddir)/src/libMOAB.la \
                  ${MOAB_CXX_LINKFLAGS} ${MOAB_CXX_LIBS}
 
-endif 
-               
+endif
+
 TESTS = $(check_PROGRAMS)
 
 # Automake doesn't seem to have a directory defined for
-# platform-dependent data (or include) files. So put 
+# platform-dependent data (or include) files. So put
 # in $(libdir).  Define a $(cfgdir) to get around automake's
 # check that only libraries are going in $(libdir)
 cfgdir = $(libdir)
@@ -71,7 +71,7 @@ cfg_DATA = FBiGeom-Defs.inc
 
 # By default, moab.make will define these to $(srcdir).  We
 # want to override that during the INSTALL of the file so
-# that the correct values are set (e.g. if someone does 
+# that the correct values are set (e.g. if someone does
 # 'make prefix=/foo install', we don't know the correct install
 # directory until we're doing the install.
 install-data-hook:

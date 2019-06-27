@@ -14,14 +14,14 @@ int main()
   ErrorCode rval;
   Core moab;
   Interface& mb = moab;
-  
+
     // load test file
   rval = mb.load_file( default_input_file.c_str() );
   if (MB_SUCCESS != rval) {
     std::cerr << default_input_file <<": failed to load file." << std::endl;
     return 1;
   }
-  
+
     // get all region elements
   Range vols;
   rval = mb.get_entities_by_dimension( 0, 3, vols );
@@ -29,14 +29,14 @@ int main()
     return 2;
   if (vols.empty())
     return 1;
-  
+
     // create internal face elements
   Range faces;
   rval = mb.get_adjacencies( vols, 2, true, faces, Interface::UNION );
   if (MB_SUCCESS != rval)
     return 2;
   assert(faces.size() > vols.size());
-  
+
     // time query of all adjacent volumes
   std::vector<EntityHandle> adj;
   clock_t t_0 = clock();
@@ -50,7 +50,7 @@ int main()
   clock_t t_up = clock() - t_0;
   std::cout << "Querying of volumes for " << faces.size() << " faces: "
             << t_up/(double)CLOCKS_PER_SEC << " seconds" << std::endl;
-  
+
     // time downward adjacency query from volumes to faces
   t_0 = clock();
   for (Range::iterator i = vols.begin(); i != vols.end(); ++i) {
@@ -63,7 +63,7 @@ int main()
   clock_t t_down = clock() - t_0;
   std::cout << "Querying of faces for " << vols.size() << " volumes: "
             << t_down/(double)CLOCKS_PER_SEC << " seconds" << std::endl;
-  
+
   return 0;
 }
 

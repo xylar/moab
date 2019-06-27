@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
   ofile3 = "shellCopy.h5m";
   ofile4 = "geom_w_obbs.h5m";
   ofile5 = "geom_missing_obb.h5m";
-  
+
   remove_output_file = true;
   bool only_check = false;
   bool only_geometrize = false;
@@ -306,7 +306,7 @@ ErrorCode create_shell_test(Interface * mb)
 
   // first 3 mesh edges...
   rval = mb->add_entities(edge[0], &edgs[0], 3);MB_CHK_ERR(rval);
-  rval = mb->add_entities(edge[1], &edgs[3], 2);MB_CHK_ERR(rval); 
+  rval = mb->add_entities(edge[1], &edgs[3], 2);MB_CHK_ERR(rval);
   rval = mb->add_entities(edge[2], &edgs[5], 3);MB_CHK_ERR(rval);
   rval = mb->add_entities(edge[3], &edgs[8], 2);MB_CHK_ERR(rval);
   rval = mb->add_entities(edge[4], &edgs[10], 2);MB_CHK_ERR(rval);
@@ -463,7 +463,7 @@ ErrorCode duplicate_model_test(Interface * mb)
 ErrorCode check_model_test(Interface * mb)
 {
   ErrorCode rval = mb->delete_mesh();MB_CHK_SET_ERR(rval, "Can't delete existing mesh\n");
-  
+
   rval = mb->load_file(ofile3.c_str());MB_CHK_ERR(rval);
 
   // do some tests on geometry
@@ -496,9 +496,9 @@ ErrorCode test_root_sets_resize(Interface *mb) {
   rval = mb->tag_get_handle(GEOM_DIMENSION_TAG_NAME, 1,
 					   MB_TYPE_INTEGER, geomTag, MB_TAG_CREAT|MB_TAG_SPARSE);
   MB_CHK_SET_ERR(rval, "Error: Failed to create geometry dimension tag");
-  
+
   Range surfs;
-  
+
   const int dim = 2;
   const void* const dim_val[] = { &dim };
   rval = mb->get_entities_by_type_and_tag(0, MBENTITYSET, &geomTag,
@@ -542,7 +542,7 @@ ErrorCode test_root_sets_resize(Interface *mb) {
     MB_CHK_SET_ERR(rval, "Failed to construct obb tree for surf " << *rit);
 
   }
-  
+
   for(Range::iterator it = surfs.begin(); it != surfs.end(); it++ ) {
     EntityHandle obb_root_set;
     rval = gTopoTool->get_root(*it, obb_root_set);
@@ -556,11 +556,11 @@ ErrorCode test_root_sets_resize(Interface *mb) {
 
   rval = mb->delete_mesh();
   MB_CHK_SET_ERR(rval, "Failed to delete mesh in MOAB instance.");
-  
+
   return MB_SUCCESS;
 
 }
-				 
+				
 ErrorCode test_delete_obb_tree(Interface *mb){
 
   // Load the test file
@@ -576,7 +576,7 @@ ErrorCode test_delete_obb_tree(Interface *mb){
   MB_CHK_SET_ERR(rval, "Failed to get volume gsets");
   rval = gTopoTool->get_gsets_by_dimension(2, surfs);
   MB_CHK_SET_ERR(rval, "Failed to get surface gsets");
-  
+
   // Build obb tree for volume
   EntityHandle test_vol = vols.front();
   rval = gTopoTool->construct_obb_tree(test_vol);
@@ -585,7 +585,7 @@ ErrorCode test_delete_obb_tree(Interface *mb){
 
   // Get the obbRootTag for vol
   rval = mb->tag_get_handle(OBB_ROOT_TAG_NAME, 1,
-                            MB_TYPE_HANDLE, obbRootTag, 
+                            MB_TYPE_HANDLE, obbRootTag,
                             MB_TAG_CREAT|MB_TAG_SPARSE);
   MB_CHK_SET_ERR_CONT(rval, "Error: Failed to create obb root tag");
   EntityHandle gbroot;
@@ -617,7 +617,7 @@ ErrorCode test_delete_obb_tree(Interface *mb){
       return MB_FAILURE;
     }
   }
-  
+
   // Rebuild vol tree
   rval = gTopoTool->construct_obb_tree(test_vol);
   MB_CHK_SET_ERR(rval, "Error constructing all trees.");
@@ -639,7 +639,7 @@ ErrorCode test_delete_obb_tree(Interface *mb){
     MB_CHK_SET_ERR(rval, "Problem getting obb root of surface.");
   }
 
-  // CASE 3: Delete surf tree 
+  // CASE 3: Delete surf tree
   EntityHandle test_surf = surfs.front();
   rval = gTopoTool->delete_obb_tree(test_surf, false);
   MB_CHK_SET_ERR(rval, "Error deleting surface tree.");
@@ -656,11 +656,11 @@ ErrorCode test_delete_obb_tree(Interface *mb){
 }
 
 ErrorCode test_restore_obb_trees(Interface *mb, Interface *mb2, Interface *mb3){
-  
+
   // Load the test file
   ErrorCode rval = mb->load_file(filename2.c_str());
   MB_CHK_SET_ERR(rval, "Failed to load input file");
- 
+
   // Create a GTT with all default settings
   moab::GeomTopoTool* gTopoTool = new GeomTopoTool(mb);
 
@@ -671,7 +671,7 @@ ErrorCode test_restore_obb_trees(Interface *mb, Interface *mb2, Interface *mb3){
   rval=mb->write_file(ofile4.c_str());
   MB_CHK_SET_ERR(rval, "Can't write output file");
 
-  // Delete a vol obb tree  
+  // Delete a vol obb tree
   Range vols;
   rval = gTopoTool->get_gsets_by_dimension(3, vols);
   MB_CHK_SET_ERR(rval, "Failed to get volume gsets");
@@ -702,7 +702,7 @@ ErrorCode test_restore_obb_trees(Interface *mb, Interface *mb2, Interface *mb3){
   gsets.insert_list(surfs.begin(), surfs.end());
   gsets.insert_list(vols.begin(), vols.end());
   EntityHandle test_root2;
-  for (Range::iterator rit = gsets.begin(); rit != gsets.end(); ++rit) { 
+  for (Range::iterator rit = gsets.begin(); rit != gsets.end(); ++rit) {
     rval = gTopoTool2->get_root(*rit, test_root2);
     if (MB_SUCCESS == rval){
       return MB_FAILURE;
@@ -723,7 +723,7 @@ ErrorCode test_restore_obb_trees(Interface *mb, Interface *mb2, Interface *mb3){
   gsets.insert_list(surfs.begin(), surfs.end());
   gsets.insert_list(vols.begin(), vols.end());
   EntityHandle test_root3;
-  for (Range::iterator rit = gsets.begin(); rit != gsets.end(); ++rit) { 
+  for (Range::iterator rit = gsets.begin(); rit != gsets.end(); ++rit) {
     rval = gTopoTool3->get_root(*rit, test_root3);
     MB_CHK_SET_ERR(rval, "Failed to get obb tree root from GTT");
     CHECK(test_root3);
@@ -737,7 +737,7 @@ ErrorCode test_restore_obb_trees(Interface *mb, Interface *mb2, Interface *mb3){
 
   // Create GTT and try to restore OBBs
   moab::GeomTopoTool* gTopoTool4 = new GeomTopoTool(mb3, true, 0, true, true);
-  
+
   // Check that roots still exist
   vols.clear();
   rval = gTopoTool4->get_gsets_by_dimension(3, vols);
@@ -750,7 +750,7 @@ ErrorCode test_restore_obb_trees(Interface *mb, Interface *mb2, Interface *mb3){
   gsets.insert_list(surfs.begin(), surfs.end());
   gsets.insert_list(vols.begin(), vols.end());
   EntityHandle test_root4;
-  for (Range::iterator rit = gsets.begin(); rit != gsets.end(); ++rit) { 
+  for (Range::iterator rit = gsets.begin(); rit != gsets.end(); ++rit) {
     rval = gTopoTool4->get_root(*rit, test_root4);
     MB_CHK_SET_ERR(rval, "Failed to get obb tree root from GTT");
     CHECK(test_root4);
@@ -761,7 +761,7 @@ ErrorCode test_restore_obb_trees(Interface *mb, Interface *mb2, Interface *mb3){
 
   // Get the obbRootTag for vol
   rval = mb2->tag_get_handle(OBB_ROOT_TAG_NAME, 1,
-                            MB_TYPE_HANDLE, obbRootTag, 
+                            MB_TYPE_HANDLE, obbRootTag,
                             MB_TAG_CREAT|MB_TAG_SPARSE);
   MB_CHK_SET_ERR_CONT(rval, "Error: Failed to create obb root tag");
 

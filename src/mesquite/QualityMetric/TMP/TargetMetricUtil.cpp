@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2007 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2007) kraftche@cae.wisc.edu    
+    (2007) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file TargetMetricUtil.cpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -70,7 +70,7 @@ void surface_to_2d( const MsqMatrix<3,2>& A,
     MsqMatrix<3,3> R1( r1 ), R2( r2 );
     RZ = R1 * transpose(R2) * Z;
   }
-  
+
   W_22 = transpose(Z) * W;
 }
 /*
@@ -130,8 +130,8 @@ static inline void append_elem_samples( PatchData& pd,
       *(i++) = ElemSampleQM::handle( Sample(2,j), e );
   if (TopologyInfo::dimension(type) == 3 && samples.mid_region_node())
     *(i++) = ElemSampleQM::handle( Sample(3,0), e );
-}  
-                                        
+}
+
 
 void get_sample_pt_evaluations( PatchData& pd,
                                 std::vector<size_t>& handles,
@@ -144,7 +144,7 @@ void get_sample_pt_evaluations( PatchData& pd,
   for (std::vector<size_t>::iterator i = elems.begin(); i != elems.end(); ++i)
     append_elem_samples( pd, *i, handles );
 }
-                   
+
 void get_elem_sample_points( PatchData& pd,
                              size_t elem,
                              std::vector<size_t>& handles,

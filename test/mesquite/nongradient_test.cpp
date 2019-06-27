@@ -1,9 +1,9 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2004 Sandia Corporation and Argonne National
-    Laboratory.  Under the terms of Contract DE-AC04-94AL85000 
-    with Sandia Corporation, the U.S. Government retains certain 
+    Laboratory.  Under the terms of Contract DE-AC04-94AL85000
+    with Sandia Corporation, the U.S. Government retains certain
     rights in this software.
 
     This library is free software; you can redistribute it and/or
@@ -16,16 +16,16 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
-    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov, 
-    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov      
-   
+
+    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov,
+    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov
+
   ***************************************************************** */
 
-/** \file main.cpp 
+/** \file main.cpp
  * \brief test NonGradient Solver (barrier and non-barrier).
  * \author Boyd Tidwell
  */
@@ -39,9 +39,9 @@
 #include "XYPlanarDomain.hpp"
 #include "MeshInterface.hpp"
 
-#include "TShapeNB1.hpp"   
+#include "TShapeNB1.hpp"
 #include "TShapeB1.hpp"
-#include "TQualityMetric.hpp"    
+#include "TQualityMetric.hpp"
 #include "IdealShapeTarget.hpp"
 #include "MaxTemplate.hpp"
 #include "PMeanPTemplate.hpp"
@@ -49,7 +49,7 @@
 #include "ElementAvgQM.hpp"
 #include "ElementPMeanP.hpp"
 #include "ElemSampleQM.hpp"
-#include "TargetCalculator.hpp"   
+#include "TargetCalculator.hpp"
 #include "PMeanPTemplate.hpp"
 #include "LPtoPTemplate.hpp"
 #include "ElementPMeanP.hpp"
@@ -87,7 +87,7 @@ int main()
   ElementPMeanP meanpMetric( 1.0, sampleMetric);
 
   MaxTemplate maxObjFunction(&maxMetric);  // max(max)
-  NonGradient max_opt( &maxObjFunction ); // optimization procedure 
+  NonGradient max_opt( &maxObjFunction ); // optimization procedure
 
   PMeanPTemplate pmeanpObjFunction(1.0, sampleMetric);
   NonGradient pmeanp_opt (&pmeanpObjFunction);
@@ -96,14 +96,14 @@ int main()
 
   // Processing for Max Objective Function
 
-  max_opt.setSimplexDiameterScale(0); 
+  max_opt.setSimplexDiameterScale(0);
   max_opt.use_element_on_vertex_patch(); // local patch
   max_opt.set_debugging_level(0);
 
   // Construct and register the Quality Assessor instances
   QualityAssessor max_initial_qa=QualityAssessor(&maxMetric, 10);
   QualityAssessor maxObj_max_optimal_qa=QualityAssessor(&maxMetric, 10);
-   
+
   //**************Set stopping criterion****************
   TerminationCriterion innerTC, outerTC;
 
@@ -122,7 +122,7 @@ int main()
     return 1;
   }
 
-  InstructionQueue queue1; 
+  InstructionQueue queue1;
   queue1.add_quality_assessor(&max_initial_qa,err);
   if (err) return 1;
 
@@ -148,17 +148,17 @@ int main()
 
   TShapeNB1 nonBarrier;
   TargetCalculator* target;
-  IdealShapeTarget ident_target; 
+  IdealShapeTarget ident_target;
 
   target = &ident_target;
 
   TQualityMetric tqMetric( target, &nonBarrier );
- 
+
   ElementPMeanP mean_metric( 1.0, &tqMetric );
   PMeanPTemplate meanObjfunction( 1.0, &mean_metric );  // ave(ave)
- 
+
   // Processing for Mean Objective Function
-  NonGradient mean_opt( &meanObjfunction ); // optimization procedure 
+  NonGradient mean_opt( &meanObjfunction ); // optimization procedure
   mean_opt.setExactPenaltyFunction(false); // allow infeasible
   mean_opt.use_element_on_vertex_patch(); // local patch
 
@@ -173,10 +173,10 @@ int main()
   // Construct and register the meanObj Quality Assessor instance
   QualityAssessor mean_qa=QualityAssessor(&mean_metric, 10);
 
-  InstructionQueue queue2; 
+  InstructionQueue queue2;
   queue2.add_quality_assessor(&mean_qa, err);
   if (err) return 1;
-  queue2.set_master_quality_improver(&mean_opt, err); 
+  queue2.set_master_quality_improver(&mean_opt, err);
   if (err) return 1;
   queue2.add_quality_assessor(&mean_qa, err);
   if (err) return 1;
@@ -187,10 +187,10 @@ int main()
 
 
     // Test barrier target metric using objective function MaxTemplate with inverted mesh
-  InstructionQueue queue3; 
+  InstructionQueue queue3;
   queue3.add_quality_assessor(&max_initial_qa,err);
   if (err) return 1;
-  queue3.set_master_quality_improver(&max_opt, err); 
+  queue3.set_master_quality_improver(&max_opt, err);
   if (err) return 1;
   MBMesquite::MeshDomainAssoc mesh_and_domain2 = MeshDomainAssoc(&mesh_bv, &xyPlane2);
   queue3.run_instructions(&mesh_and_domain2, err);
@@ -204,8 +204,8 @@ int main()
 
 
     // Test barrier target metric using objective function PMeanPTemplate with inverted mesh
-  InstructionQueue queue4; 
-  queue4.set_master_quality_improver(&pmeanp_opt, err); 
+  InstructionQueue queue4;
+  queue4.set_master_quality_improver(&pmeanp_opt, err);
   if (err) return 1;
   queue4.run_instructions(&mesh_and_domain2, err);
   if (err.error_code() == err.BARRIER_VIOLATED)

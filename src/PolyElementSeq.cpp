@@ -3,10 +3,10 @@
 namespace moab {
 
 PolyElementSeq::~PolyElementSeq() {}
-  
+
 EntitySequence* PolyElementSeq::split( EntityHandle here )
   { return new PolyElementSeq( *this, here ); }
-                       
+
 
 ErrorCode
 PolyElementSeq::get_connectivity( EntityHandle handle,
@@ -32,5 +32,5 @@ PolyElementSeq::get_connectivity( EntityHandle handle,
   len = nodes_per_element();
   return MB_SUCCESS;
 }
-  
+
 } // namespace moab

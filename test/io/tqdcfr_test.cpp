@@ -1,16 +1,16 @@
 /**
  * MOAB, a Mesh-Oriented datABase, is a software component for creating,
  * storing and accessing finite element mesh data.
- * 
+ *
  * Copyright 2004 Sandia Corporation.  Under the terms of Contract
  * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
  * retains certain rights in this software.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  */
 
 #include "Tqdcfr.hpp"
@@ -46,7 +46,7 @@ int main(int argc, char* argv[])
   Core *my_impl = new Core();
   Tqdcfr *my_tqd = new Tqdcfr(my_impl);
   FileOptions opts(NULL);
-  
+
   ErrorCode result = my_tqd->load_file(file, 0, opts, 0, 0);
 
   if (MB_SUCCESS == result)
@@ -61,11 +61,11 @@ int main(int argc, char* argv[])
 
   delete my_tqd;
   delete my_impl;
-  
+
     // now check for multiple procs
   my_impl = new Core;
   my_tqd = new Tqdcfr(my_impl);
-  
+
   result = my_tqd->load_file(file, 0, opts, 0, 0);
 
   if (MB_SUCCESS == result)
@@ -89,11 +89,11 @@ int main(int argc, char* argv[])
     // create MOAB instance based on that
   my_impl = new Core ;//(rank, nprocs);
   if (NULL == my_impl) return 1;
-  
+
   std::string options = "PARALLEL=READ_DELETE;PARTITION=MATERIAL_SET;PARTITION_DISTRIBUTE";
   std::cout << "Testing parallel..." << std::endl;
-  
-  result = my_impl->load_file(file, 0, 
+
+  result = my_impl->load_file(file, 0,
                               options.c_str());
 
   if (MB_SUCCESS == result)

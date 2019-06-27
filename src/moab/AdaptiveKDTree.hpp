@@ -28,12 +28,12 @@ namespace moab {
         /** \brief Constructor (build the tree on construction)
          * Construct a tree object, and build the tree with entities input.  See comments
          * for build_tree() for detailed description of arguments.
-         * \param iface MOAB instance 
+         * \param iface MOAB instance
          * \param entities Entities to build tree around
          * \param tree_root Root set for tree (see function description)
          * \param opts Options for tree (see function description)
          */
-      AdaptiveKDTree(Interface* iface, const Range &entities, 
+      AdaptiveKDTree(Interface* iface, const Range &entities,
                      EntityHandle *tree_root_set = NULL, FileOptions *opts = NULL);
 
       ~AdaptiveKDTree();
@@ -46,8 +46,8 @@ namespace moab {
       ErrorCode parse_options(FileOptions &options);
 
         /** Build the tree
-         * Build a tree with the entities input.  If a non-NULL tree_root_set pointer is input, 
-         * use the pointed-to set as the root of this tree (*tree_root_set!=0) otherwise construct 
+         * Build a tree with the entities input.  If a non-NULL tree_root_set pointer is input,
+         * use the pointed-to set as the root of this tree (*tree_root_set!=0) otherwise construct
          * a new root set and pass its handle back in *tree_root_set.  Options vary by tree type;
          * see Tree.hpp for common options; options specific to AdaptiveKDTree:
          * SPLITS_PER_DIR: number of candidate splits considered per direction; default = 3
@@ -115,7 +115,7 @@ namespace moab {
                              const double inside_tol = 1.0e-6,
                              bool *multiple_leaves = NULL,
                              EntityHandle *start_node = NULL);
-      
+
         /** \brief Find all leaves within a given distance from point
          * If dists_out input non-NULL, also returns distances from each leaf; if
          * point i is inside leaf, 0 is given as dists_out[i].
@@ -139,19 +139,19 @@ namespace moab {
                                         std::vector<double> *dists_out = NULL,
                                         std::vector<CartVect> *params_out = NULL,
                                         EntityHandle *start_node = NULL);
-      
+
       ErrorCode get_info(EntityHandle root,
-                         double min[3], double max[3], 
+                         double min[3], double max[3],
                          unsigned int &dep);
-  
+
         //! Enumeriate split plane directions
       enum Axis { X = 0, Y = 1, Z = 2 };
-  
-        //! Split plane 
+
+        //! Split plane
       struct Plane {
         double coord;  //!< Location of plane as coordinate on normal axis
         int norm; //!< The principal axis that is the normal of the plane;
-    
+
           /** return true if point is below/to the left of the split plane */
         bool left_side( const double point[3] ) {
           return point[norm] < coord;
@@ -165,24 +165,24 @@ namespace moab {
           return fabs(point[norm] - coord);
         }
       };
-  
+
         //! Get split plane for tree node
       ErrorCode get_split_plane( EntityHandle node, Plane& plane );
-  
+
         //! Set split plane for tree node
       ErrorCode set_split_plane( EntityHandle node, const Plane& plane );
-  
+
         //! Get iterator for tree
       ErrorCode get_tree_iterator( EntityHandle tree_root,
                                    AdaptiveKDTreeIter& result );
-  
+
         //! Get iterator at right-most ('last') leaf.
       ErrorCode get_last_iterator( EntityHandle tree_root,
                                    AdaptiveKDTreeIter& result );
 
         //! Get iterator for tree or subtree
       ErrorCode get_sub_tree_iterator( EntityHandle tree_root,
-                                       const double box_min[3], 
+                                       const double box_min[3],
                                        const double box_max[3],
                                        AdaptiveKDTreeIter& result );
 
@@ -192,30 +192,30 @@ namespace moab {
 
         //! Split leaf of tree
         //! Updates iterator location to point to first new leaf node.
-      ErrorCode split_leaf( AdaptiveKDTreeIter& leaf, 
+      ErrorCode split_leaf( AdaptiveKDTreeIter& leaf,
                             Plane plane,
                             EntityHandle& left_child,
                             EntityHandle& right_child );
         //! Split leaf of tree
         //! Updates iterator location to point to first new leaf node.
-      ErrorCode split_leaf( AdaptiveKDTreeIter& leaf, 
+      ErrorCode split_leaf( AdaptiveKDTreeIter& leaf,
                             Plane plane,
                             const Range& left_entities,
                             const Range& right_entities );
 
         //! Split leaf of tree
         //! Updates iterator location to point to first new leaf node.
-      ErrorCode split_leaf( AdaptiveKDTreeIter& leaf, 
+      ErrorCode split_leaf( AdaptiveKDTreeIter& leaf,
                             Plane plane,
                             const std::vector<EntityHandle>& left_entities,
                             const std::vector<EntityHandle>& right_entities );
-  
+
         //! Merge the leaf pointed to by the current iterator with it's
         //! sibling.  If the sibling is not a leaf, multiple merges may
         //! be done.
       ErrorCode merge_leaf( AdaptiveKDTreeIter& iter );
-  
-        //! Find triangle closest to input position. 
+
+        //! Find triangle closest to input position.
         //!\param from_coords  The input position to test against
         //!\param closest_point_out  The closest point on the set of triangles in the tree
         //!\param triangle_out The triangle closest to the input position
@@ -238,13 +238,13 @@ namespace moab {
                                          int result_count_limit = 0,
                                          double distance_limit = -1.0);
 
-      ErrorCode compute_depth( EntityHandle root, 
+      ErrorCode compute_depth( EntityHandle root,
                                unsigned int& min_depth,
                                unsigned int& max_depth );
-  
+
         //! methods for selecting candidate split planes
       enum CandidatePlaneSet {
-            //! Candidiate planes at evenly spaced intervals 
+            //! Candidiate planes at evenly spaced intervals
           SUBDIVISION=0,
             //! Like SUBDIVISION, except snap to closest vertex coordinate
           SUBDIVISION_SNAP, // = 1
@@ -253,25 +253,25 @@ namespace moab {
             //! Random sampling of vertex coordinate values
           VERTEX_SAMPLE // = 3
       };
-  
+
         //! print various things about this tree
       virtual ErrorCode print();
-      
+
   private:
       friend class AdaptiveKDTreeIter;
 
       ErrorCode init();
-  
+
         /**\brief find a triangle near the input point */
       ErrorCode find_close_triangle( EntityHandle root,
                                      const double from_point[3],
                                      double pt[3],
                                      EntityHandle& triangle );
 
-      ErrorCode make_tag( Interface* iface, std::string name, TagType storage, 
+      ErrorCode make_tag( Interface* iface, std::string name, TagType storage,
                           DataType type, int count, void* default_val, Tag& tag_handle,
                           std::vector<Tag>& created_tags );
-  
+
       ErrorCode intersect_children_with_elems(
           const Range& elems,
           AdaptiveKDTree::Plane plane,
@@ -291,7 +291,7 @@ namespace moab {
                                                     AdaptiveKDTree::Plane& best_plane,
                                                     std::vector<double>& tmp_data,
                                                     double eps );
-  
+
       ErrorCode best_subdivision_plane( int num_planes,
                                                const AdaptiveKDTreeIter& iter,
                                                Range& best_left,
@@ -299,7 +299,7 @@ namespace moab {
                                                Range& best_both,
                                                AdaptiveKDTree::Plane& best_plane,
                                                double eps );
-  
+
       ErrorCode best_vertex_median_plane( int num_planes,
                                                  const AdaptiveKDTreeIter& iter,
                                                  Range& best_left,
@@ -308,7 +308,7 @@ namespace moab {
                                                  AdaptiveKDTree::Plane& best_plane,
                                                  std::vector<double>& coords,
                                                  double eps);
-  
+
       ErrorCode best_vertex_sample_plane( int num_planes,
                                                  const AdaptiveKDTreeIter& iter,
                                                  Range& best_left,
@@ -320,17 +320,17 @@ namespace moab {
                                                  double eps );
 
       static const char *treeName;
-      
+
       Tag planeTag, axisTag;
 
       unsigned splitsPerDir;
-  
+
       CandidatePlaneSet planeSet;
 
       bool spherical;
       double radius;
     };
-                    
+
 
 //! Iterate over leaves of an adaptive kD-tree
     class AdaptiveKDTreeIter
@@ -340,21 +340,21 @@ namespace moab {
       enum Direction { LEFT = 0, RIGHT = 1 };
 
   private:
-  
+
       struct StackObj {
         StackObj( EntityHandle e, double c ) : entity(e), coord(c) {}
         StackObj() : entity(0), coord(0.0) {}
         EntityHandle entity; //!< handle for tree node
         double coord;          //!< box coordinate of parent
       };
-  
+
       enum { BMIN = 0, BMAX = 1 };  //!< indices into mBox and child list
-  
+
       CartVect mBox[2];                //!< min and max corners of bounding box
       AdaptiveKDTree* treeTool;       //!< tool for tree
       std::vector<StackObj> mStack;     //!< stack storing path through tree
       mutable std::vector<EntityHandle> childVect; //!< temporary storage of child handles
-  
+
         //! Descend tree to left most leaf from current position
         //! No-op if at leaf.
       ErrorCode step_to_first_leaf( Direction direction );
@@ -363,7 +363,7 @@ namespace moab {
   public:
 
       AdaptiveKDTreeIter() : treeTool(0), childVect(2) {}
-  
+
       ErrorCode initialize( AdaptiveKDTree* tool,
                             EntityHandle root,
                             const double box_min[3],
@@ -376,29 +376,29 @@ namespace moab {
         //! Get handle for current leaf
       EntityHandle handle() const
           { return mStack.back().entity; }
-  
+
         //! Get min corner of axis-aligned box for current leaf
-      const double* box_min() const 
+      const double* box_min() const
           { return mBox[BMIN].array(); }
-    
+
         //! Get max corner of axis-aligned box for current leaf
-      const double* box_max() const 
+      const double* box_max() const
           { return mBox[BMAX].array(); }
-  
+
       double volume() const
-          { return (mBox[BMAX][0] - mBox[BMIN][0]) * 
-                (mBox[BMAX][1] - mBox[BMIN][1]) * 
+          { return (mBox[BMAX][0] - mBox[BMIN][0]) *
+                (mBox[BMAX][1] - mBox[BMIN][1]) *
                 (mBox[BMAX][2] - mBox[BMIN][2]); }
-  
+
         //! test if a plane intersects the leaf box
       bool intersects( const AdaptiveKDTree::Plane& plane ) const
           { return mBox[BMIN][plane.norm] <= plane.coord &&
                 mBox[BMAX][plane.norm] >= plane.coord; }
-  
+
         //! Get depth in tree. root is at depth of 1.
       unsigned depth() const
           { return mStack.size(); }
-  
+
         //! Advance the iterator either left or right in the tree
         //! Note:  stepping past the end of the tree will invalidate
         //!        the iterator.  It will *not* be work step the
@@ -416,8 +416,8 @@ namespace moab {
         //! Note: steping past the start of the tree will invalidate
         //!       the iterator. Calling step() will not work.
       ErrorCode back() { return step(LEFT); }
-  
-  
+
+
         //! Return the side of the box bounding this tree node
         //! that is shared with the immediately adjacent sibling
         //! (the tree node that shares a common parent node with
@@ -436,14 +436,14 @@ namespace moab {
         //!
         //! E.g. if norm == X and neg == true, then get neighbor(s)
         //! adjacent to the side of the box contained in the plane
-        //! with normal to the X axis and with the x coordinate equal 
+        //! with normal to the X axis and with the x coordinate equal
         //! to the minimum x of the bounding box.
         //!
         //! E.g. if norm == Y and neg == false, then get neighbor(s)
         //! adjacent to the side of the box with y = maximum y of bounding box.
         //!
         //!\param norm  Normal vector for box side (X, Y, or Z)
-        //!\param neg   Which of two planes with norm (true->smaller coord, 
+        //!\param neg   Which of two planes with norm (true->smaller coord,
         //!             false->larger coord)
         //!\param results List to which to append results.  This function does
         //!             *not* clear existing values in list.
@@ -451,31 +451,31 @@ namespace moab {
         //!              result in nodes that are separated by as much as E
         //!              to be considered touching.  A negative value -E will
         //!              cause leaves that do not overlap by at least E to be
-        //!              considered non-overlapping.  Amongst other things, 
+        //!              considered non-overlapping.  Amongst other things,
         //!              this value can be used to control whether or not
         //!              leaves adjacent at only their edges or corners are
         //!              returned.
       ErrorCode get_neighbors( AdaptiveKDTree::Axis norm, bool neg,
                                std::vector<AdaptiveKDTreeIter>& results,
                                double epsilon = 0.0 ) const;
-  
+
         //! Get split plane that separates this node from its immediate sibling.
       ErrorCode get_parent_split_plane( AdaptiveKDTree::Plane& plane ) const;
-  
+
         //! Return true if thos node and the passed node share the
         //! same immediate parent.
       bool is_sibling( const AdaptiveKDTreeIter& other_leaf ) const;
-  
+
         //! Return true if thos node and the passed node share the
         //! same immediate parent.
       bool is_sibling( EntityHandle other_leaf ) const;
-  
+
         //! Returns true if calling step() will advance to the
         //! immediate sibling of the current node.  Returns false
-        //! if current node is root or back() will move to the 
+        //! if current node is root or back() will move to the
         //! immediate sibling.
       bool sibling_is_forward( ) const;
-  
+
         //! Find range of overlap between ray and leaf.
         //!
         //!\param ray_point Coordinates of start point of ray
@@ -501,6 +501,6 @@ namespace moab {
       return delete_tree_sets();
     }
 
-} // namespace moab 
+} // namespace moab
 
 #endif

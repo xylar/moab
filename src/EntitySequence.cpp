@@ -3,7 +3,7 @@
 
 namespace moab {
 
-bool EntitySequence::using_entire_data() const 
+bool EntitySequence::using_entire_data() const
 {
   return start_handle() == data()->start_handle()
         && end_handle() == data()->  end_handle();
@@ -17,7 +17,7 @@ ErrorCode EntitySequence::pop_back( EntityID count )
   EntityHandle new_end = endHandle - count;
   if (new_end < startHandle)
     return MB_FAILURE;
-  
+
   endHandle = new_end;
   return MB_SUCCESS;
 }
@@ -27,7 +27,7 @@ ErrorCode EntitySequence::pop_front( EntityID count )
   EntityHandle new_start = startHandle + count;
   if (new_start > endHandle)
     return MB_FAILURE;
-  
+
   startHandle = new_start;
   return MB_SUCCESS;
 }
@@ -38,17 +38,17 @@ ErrorCode EntitySequence::prepend_entities( EntityID count )
   EntityHandle new_start = startHandle - count;
   if (new_start < data()->start_handle())
     return MB_FAILURE;
-  
+
   startHandle = new_start;
   return MB_SUCCESS;
 }
- 
+
 ErrorCode EntitySequence::append_entities( EntityID count )
 {
   EntityHandle new_end = endHandle + count;
   if (new_end > data()->end_handle())
     return MB_FAILURE;
-  
+
   endHandle = new_end;
   return MB_SUCCESS;
 }
@@ -73,5 +73,5 @@ ErrorCode EntitySequence::merge( EntitySequence& other )
 unsigned long EntitySequence::get_per_entity_memory_use( EntityHandle,
                                                          EntityHandle ) const
   { return 0; }
-  
+
 } // namespace moab

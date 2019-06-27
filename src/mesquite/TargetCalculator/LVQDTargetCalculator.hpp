@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2006 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
+
     (2006) kraftche@cae.wisc.edu
-   
+
   ***************************************************************** */
 
 
 /** \file LVQDTargetCalculator.hpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #ifndef MSQ_LVQD_TARGET_CALCULATOR_HPP
@@ -58,35 +58,35 @@ public:
                         TargetCalculator* delta_source );
 
   ~LVQDTargetCalculator();
-  
-  bool get_3D_target( PatchData& pd, 
+
+  bool get_3D_target( PatchData& pd,
                       size_t element,
                       Sample sample,
                       MsqMatrix<3,3>& W_out,
                       MsqError& err );
 
-  bool get_surface_target( PatchData& pd, 
+  bool get_surface_target( PatchData& pd,
                       size_t element,
                       Sample sample,
                       MsqMatrix<3,2>& W_out,
                       MsqError& err );
 
-  bool get_2D_target( PatchData& pd, 
+  bool get_2D_target( PatchData& pd,
                       size_t element,
                       Sample sample,
                       MsqMatrix<2,2>& W_out,
                       MsqError& err );
-  
+
   bool have_surface_orient() const;
-  
+
 private:
   int add_source( TargetCalculator* source );
-  
-  bool evaluate_guide_2D( PatchData& pd, 
+
+  bool evaluate_guide_2D( PatchData& pd,
                           size_t element,
                           Sample sample,
                           int idx,
-                          double& lambda, 
+                          double& lambda,
                           MsqMatrix<3,2>& V,
                           MsqMatrix<2,2>& Q,
                           MsqMatrix<2,2>& delta,

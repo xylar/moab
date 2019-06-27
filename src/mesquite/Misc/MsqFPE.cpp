@@ -1,8 +1,8 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
-    Copyright 2005 Lawrence Livermore National Laboratory.  Under 
-    the terms of Contract B545069 with the University of Wisconsin -- 
+    Copyright 2005 Lawrence Livermore National Laboratory.  Under
+    the terms of Contract B545069 with the University of Wisconsin --
     Madison, Lawrence Livermore National Laboratory retains certain
     rights in this software.
 
@@ -16,12 +16,12 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
-    kraftche@cae.wisc.edu    
-   
+
+    kraftche@cae.wisc.edu
+
   ***************************************************************** */
 
 #include "MsqFPE.hpp"
@@ -67,7 +67,7 @@ void MBMesquite::MsqFPE::enable_trap_fpe()
 #endif
 
 
-bool MBMesquite::MsqFPE::fpe_trap_supported() 
+bool MBMesquite::MsqFPE::fpe_trap_supported()
   { return true; }
 
 int MBMesquite::MsqFPE::get_current_fpe_state()
@@ -77,7 +77,7 @@ void MBMesquite::MsqFPE::set_current_fpe_state(int state)
   { feenableexcept( state ); }
 
 void MBMesquite::MsqFPE::enable_trap_fpe()
-{ 
+{
   const int flags = FE_DIVBYZERO|FE_INVALID|FE_OVERFLOW;
   feclearexcept( flags );
   feenableexcept( flags );
@@ -93,7 +93,7 @@ void MBMesquite::MsqFPE::enable_trap_fpe()
 
 #include <float.h>
 
-bool MBMesquite::MsqFPE::fpe_trap_supported() 
+bool MBMesquite::MsqFPE::fpe_trap_supported()
   { return true; }
 
 int MBMesquite::MsqFPE::get_current_fpe_state()
@@ -103,7 +103,7 @@ void MBMesquite::MsqFPE::set_current_fpe_state(int state)
   { _controlfp( state, _MCW_EM ); }
 
 void MBMesquite::MsqFPE::enable_trap_fpe()
-{ 
+{
   const int flags = _EM_ZERODIVIDE|_EM_INVALID|_EM_OVERFLOW;
   _controlfp( ~flags, _MCW_EM );
 }
@@ -113,7 +113,7 @@ void MBMesquite::MsqFPE::enable_trap_fpe()
 /* Unsupported platform */
 #else
 
-bool MBMesquite::MsqFPE::fpe_trap_supported() 
+bool MBMesquite::MsqFPE::fpe_trap_supported()
   { return false; }
 
 int MBMesquite::MsqFPE::get_current_fpe_state()
@@ -132,7 +132,7 @@ void MBMesquite::MsqFPE::enable_trap_fpe()
 
 MBMesquite::MsqFPE::MsqFPE( bool enabled ) : isEnabled( enabled )
 {
-  if (isEnabled) 
+  if (isEnabled)
   {
     prevState = get_current_fpe_state();
     enable_trap_fpe();

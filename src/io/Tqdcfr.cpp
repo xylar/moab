@@ -1,16 +1,16 @@
 /**
  * MOAB, a Mesh-Oriented datABase, is a software component for creating,
  * storing and accessing finite element mesh data.
- * 
+ *
  * Copyright 2004 Sandia Corporation.  Under the terms of Contract
  * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
  * retains certain rights in this software.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  */
 
 #include "Tqdcfr.hpp"
@@ -72,11 +72,11 @@ const EntityType Tqdcfr::block_type_to_mb_type[] = {
 
 // Mapping from mesh packet type to moab type
 const EntityType Tqdcfr::mp_type_to_mb_type[] = {
-  MBHEX, MBHEX, MBHEX, MBHEX, MBHEX, MBHEX, MBHEX, MBHEX, 
-  MBTET, MBTET, MBTET, MBTET, MBTET, MBTET, MBTET, MBTET, 
-  MBPYRAMID, MBPYRAMID, MBPYRAMID, MBPYRAMID, 
-  MBQUAD, MBQUAD, MBQUAD, MBQUAD, 
-  MBTRI, MBTRI, MBTRI, MBTRI, 
+  MBHEX, MBHEX, MBHEX, MBHEX, MBHEX, MBHEX, MBHEX, MBHEX,
+  MBTET, MBTET, MBTET, MBTET, MBTET, MBTET, MBTET, MBTET,
+  MBPYRAMID, MBPYRAMID, MBPYRAMID, MBPYRAMID,
+  MBQUAD, MBQUAD, MBQUAD, MBQUAD,
+  MBTRI, MBTRI, MBTRI, MBTRI,
   MBEDGE, MBEDGE, MBVERTEX
 };
 
@@ -113,7 +113,7 @@ const char *const BLOCK_SIDESET_OFFSET_TAG_NAME = "BLOCK_SIDESET_OFFSET";
 #define RR if (MB_SUCCESS != result) return result
 
 // acis dimensions for each entity type, to match
-// enum {BODY, LUMP, SHELL, FACE, LOOP, COEDGE, EDGE, VERTEX, ATTRIB, UNKNOWN} 
+// enum {BODY, LUMP, SHELL, FACE, LOOP, COEDGE, EDGE, VERTEX, ATTRIB, UNKNOWN}
 
 #define IO_ASSERT(C) INT_IO_ERROR(C, __LINE__)
 
@@ -248,7 +248,7 @@ Tqdcfr::Tqdcfr(Interface *impl)
   cubMOABVertexMap = NULL;
 }
 
-Tqdcfr::~Tqdcfr() 
+Tqdcfr::~Tqdcfr()
 {
   mdbImpl->release_interface(readUtilIface);
 
@@ -313,7 +313,7 @@ ErrorCode Tqdcfr::load_file(const char *file_name,
 
   // Verify magic string
   FREADC(4);
-  if (!(char_buf[0] == 'C' && char_buf[1] == 'U' && 
+  if (!(char_buf[0] == 'C' && char_buf[1] == 'U' &&
         char_buf[2] == 'B' && char_buf[3] == 'E')) {
     fclose(cubFile);
     MB_SET_ERR(MB_FAILURE, "This doesn't appear to be a .cub file");
@@ -355,7 +355,7 @@ ErrorCode Tqdcfr::load_file(const char *file_name,
   // ***********************
   // Read mesh...
   // ***********************
-  int index = find_model(mesh); 
+  int index = find_model(mesh);
   if (-1 == index)
     return MB_FAILURE;
   ModelEntry *mesh_model = &modelEntries[index];
@@ -382,13 +382,13 @@ ErrorCode Tqdcfr::load_file(const char *file_name,
 
       // Read nodes
       if (debug) std::cout << "Reading geom index " << gindex << " mesh: nodes... ";
-      result = read_nodes(gindex, mesh_model, geom_header); 
+      result = read_nodes(gindex, mesh_model, geom_header);
       if (MB_SUCCESS != result)
         return result;
 
       // Read elements
       if (debug) std::cout << "elements... ";
-      result = read_elements(mesh_model, geom_header); 
+      result = read_elements(mesh_model, geom_header);
       if (MB_SUCCESS != result)
         return result;
       if (debug)
@@ -408,11 +408,11 @@ ErrorCode Tqdcfr::load_file(const char *file_name,
   // Read groups...
   // ***********************
   if (debug) std::cout << "Reading groups... ";
-  for (unsigned int grindex = 0; 
+  for (unsigned int grindex = 0;
        grindex < mesh_model->feModelHeader.groupArray.numEntities;
        grindex++) {
     GroupHeader *group_header = &mesh_model->feGroupH[grindex];
-    result = read_group(grindex, mesh_model, group_header); 
+    result = read_group(grindex, mesh_model, group_header);
     if (MB_SUCCESS != result)
       return result;
   }
@@ -425,7 +425,7 @@ ErrorCode Tqdcfr::load_file(const char *file_name,
   // ***********************
   if (debug) std::cout << "Reading blocks... ";
   Range ho_entities;
-  for (unsigned int blindex = 0; 
+  for (unsigned int blindex = 0;
        blindex < mesh_model->feModelHeader.blockArray.numEntities;
        blindex++) {
     BlockHeader *block_header = &mesh_model->feBlockH[blindex];
@@ -441,11 +441,11 @@ ErrorCode Tqdcfr::load_file(const char *file_name,
   // Read nodesets...
   // ***********************
   if (debug) std::cout << "Reading nodesets... ";
-  for (unsigned int nsindex = 0; 
+  for (unsigned int nsindex = 0;
        nsindex < mesh_model->feModelHeader.nodesetArray.numEntities;
        nsindex++) {
     NodesetHeader *nodeset_header = &mesh_model->feNodeSetH[nsindex];
-    result = read_nodeset(nsindex, mesh_model, nodeset_header); 
+    result = read_nodeset(nsindex, mesh_model, nodeset_header);
     if (MB_SUCCESS != result)
       return result;
   }
@@ -488,7 +488,7 @@ ErrorCode Tqdcfr::load_file(const char *file_name,
 
   Range after_ents;
   result = mdbImpl->get_entities_by_handle(0, after_ents);
-  if (MB_SUCCESS != result) 
+  if (MB_SUCCESS != result)
     return result;
 
   after_ents = subtract(after_ents, beforeEnts);
@@ -497,11 +497,11 @@ ErrorCode Tqdcfr::load_file(const char *file_name,
     readUtilIface->assign_ids(*file_id_tag, after_ents);
 
   // done with the cubit file
-  fclose(cubFile); 
+  fclose(cubFile);
   return result;
 }
 
-ErrorCode Tqdcfr::convert_nodesets_sidesets() 
+ErrorCode Tqdcfr::convert_nodesets_sidesets()
 {
   // Look first for the nodeset and sideset offset flags; if they're not
   // set, we don't need to convert
@@ -574,7 +574,7 @@ ErrorCode Tqdcfr::convert_nodesets_sidesets()
         result = tmp_result;
     }
     if (MB_SUCCESS == tmp_result)
-      tmp_result = mdbImpl->tag_set_data(nsTag, new_nodesets, 
+      tmp_result = mdbImpl->tag_set_data(nsTag, new_nodesets,
                                          &new_nodeset_ids[0]);
     if (MB_SUCCESS != tmp_result)
       result = tmp_result;
@@ -590,7 +590,7 @@ ErrorCode Tqdcfr::convert_nodesets_sidesets()
       if (MB_SUCCESS != tmp_result)
         result = tmp_result;
     }
-    if (MB_SUCCESS == tmp_result) 
+    if (MB_SUCCESS == tmp_result)
       tmp_result = mdbImpl->tag_set_data(ssTag, new_sidesets,
                                          &new_sideset_ids[0]);
     if (MB_SUCCESS != tmp_result)
@@ -722,7 +722,7 @@ ErrorCode Tqdcfr::read_sideset(const unsigned int ssindex,
       // Now get the ids
       FREADI(num_ents); num_read += sizeof(int);
       CONVERT_TO_INTS(num_ents);
-    
+
       result = get_entities(this_type + 2, &int_buf[0], num_ents,
                             ss_entities, excl_entities);
       if (MB_SUCCESS != result)
@@ -734,7 +734,7 @@ ErrorCode Tqdcfr::read_sideset(const unsigned int ssindex,
         if (read_length < num_ents)
           read_length += 8;
         FREADC(read_length); num_read += read_length;
-      
+
       }
       else if (sense_size == 2) {
         // Int-size sense flags
@@ -813,7 +813,7 @@ ErrorCode Tqdcfr::read_sideset(const unsigned int ssindex,
   }
 
   if (debug) {
-    sideseth->print(); 
+    sideseth->print();
     if (!bc_data.empty()) {
       std::cout << "bc_data = ";
       std::vector<char>::iterator vit = bc_data.begin();
@@ -1053,7 +1053,7 @@ ErrorCode Tqdcfr::read_block(const unsigned int blindex,
   result = get_names(model->blockMD, blindex, blockh->setHandle);
   if (MB_SUCCESS != result)
     return result;
-  
+
   // Put additional higher-order nodes into element connectivity list.
   // Cubit saves full connectivity list only for NodeHex and NodeTet
   // elements. Other element types will only have the corners and
@@ -1364,7 +1364,7 @@ ErrorCode Tqdcfr::get_mesh_entities(const unsigned int this_type,
 
     // Now go through id list, finding each entity by id
     for (unsigned int i = 0; i < id_buf_size; i++) {
-      std::vector<int>::iterator vit = 
+      std::vector<int>::iterator vit =
         std::find(cub_ids.begin(), cub_ids.end(), id_buf[i]);
       if (vit != cub_ids.end()) {
         EntityHandle this_ent = tmp_ents[vit - cub_ids.begin()];
@@ -1483,7 +1483,7 @@ ErrorCode Tqdcfr::read_nodes(const unsigned int gindex,
       for (unsigned int j = 0; j < 3; j++) {
         // Permute the coords into new order
         for (unsigned int i = 0; i < entity->nodeCt; i++) {
-          assert(uint_buf[i] >= min_cid && 
+          assert(uint_buf[i] >= min_cid &&
                  max_cid-uint_buf[i] < entity->nodeCt);
           tmp_coords[uint_buf[i]-min_cid] = arrays[j][i];
         }
@@ -1752,7 +1752,7 @@ void Tqdcfr::FEModelHeader::init(const unsigned int offset, Tqdcfr* instance)
   instance->FREADI(1);
 }
 
-ErrorCode Tqdcfr::read_file_header() 
+ErrorCode Tqdcfr::read_file_header()
 {
   // Read file header
   FSEEK(4);
@@ -1782,7 +1782,7 @@ ErrorCode Tqdcfr::read_file_header()
   return MB_SUCCESS;
 }
 
-ErrorCode Tqdcfr::read_model_entries() 
+ErrorCode Tqdcfr::read_model_entries()
 {
   // Read model entries
   FSEEK(fileTOC.modelTableOffset);
@@ -1857,7 +1857,7 @@ ErrorCode Tqdcfr::read_meta_data(const unsigned int metadata_offset,
       FREADI(1);
       mc.metadataEntries[i].mdIntArrayValue.resize(uint_buf[0]);
       FREADI(mc.metadataEntries[i].mdIntArrayValue.size());
-      std::copy(uint_buf.begin(), 
+      std::copy(uint_buf.begin(),
                 uint_buf.begin() + mc.metadataEntries[i].mdIntArrayValue.size(),
                 mc.metadataEntries[i].mdIntArrayValue.begin());
     }
@@ -2083,7 +2083,7 @@ ErrorCode Tqdcfr::BlockHeader::read_info_header(const double data_version,
                                                  &def_uint_zero[0]);
       if (MB_SUCCESS != result)
         return result;
-      int block_header_data[] = { static_cast<int>(block_headers[i].blockCol), static_cast<int>(block_headers[i].blockMat), 
+      int block_header_data[] = { static_cast<int>(block_headers[i].blockCol), static_cast<int>(block_headers[i].blockMat),
                                   static_cast<int>(block_headers[i].blockDim) };
       result = instance->mdbImpl->tag_set_data(bhTag_header, &(block_headers[i].setHandle), 1,
                                                block_header_data);
@@ -2096,7 +2096,7 @@ ErrorCode Tqdcfr::BlockHeader::read_info_header(const double data_version,
     // 4 new trishell element types
     if (data_version <= 1.0 && block_headers[i].blockElemType >= 15)
       block_headers[i].blockElemType += 4;
-    
+
     if (block_headers[i].blockElemType >= (unsigned)cub_elem_num_verts_len) {
       // Block element type unassigned, will have to infer from verts/element; make sure it's
       // the expected value of 52
@@ -2133,7 +2133,7 @@ ErrorCode Tqdcfr::BlockHeader::read_info_header(const double data_version,
 
     // Check the number of vertices in the element type, and set the has mid nodes tag
     // accordingly; if element type wasn't set, they're unlikely to have mid nodes
-    // 52 is for CUBIT versions below 14.1, 55 for CUBIT version 14.9 and above 
+    // 52 is for CUBIT versions below 14.1, 55 for CUBIT version 14.9 and above
     if (52 != block_headers[i].blockElemType && 55 != block_headers[i].blockElemType) {
       int num_verts = cub_elem_num_verts[block_headers[i].blockElemType];
       block_headers[i].blockEntityType = block_type_to_mb_type[block_headers[i].blockElemType];
@@ -2357,7 +2357,7 @@ ErrorCode Tqdcfr::ModelEntry::read_header_info(Tqdcfr* instance, const double da
                                                MB_TAG_SPARSE | MB_TAG_CREAT, &negone);
     if (MB_SUCCESS != result)
       return result;
-    
+
     result = Tqdcfr::GeomHeader::read_info_header(modelOffset,
                                                   feModelHeader.geomArray,
                                                   instance,
@@ -2567,7 +2567,7 @@ ErrorCode Tqdcfr::interpret_acis_records(std::vector<AcisRecord> &records)
 {
   // Make a tag for the vector holding unrecognized attributes
   void *default_val = NULL;
-  ErrorCode result = 
+  ErrorCode result =
     mdbImpl->tag_get_handle("ATTRIB_VECTOR", sizeof(void*), MB_TYPE_OPAQUE,
                             attribVectorTag, MB_TAG_CREAT | MB_TAG_SPARSE, &default_val);
   if (MB_SUCCESS != result)
@@ -2620,7 +2620,7 @@ ErrorCode Tqdcfr::parse_acis_attribs(const unsigned int entity_rec_num,
 
   if (NULL != acisDumpFile) {
     fwrite("-----------------------------------------------------------------------\n", 1, 72, acisDumpFile);
-    fwrite(records[entity_rec_num].att_string.c_str(), sizeof(char), 
+    fwrite(records[entity_rec_num].att_string.c_str(), sizeof(char),
            records[entity_rec_num].att_string.length(), acisDumpFile);
   }
 
@@ -2655,8 +2655,8 @@ ErrorCode Tqdcfr::parse_acis_attribs(const unsigned int entity_rec_num,
       if (3 != num_read) {
         // Try reading updated entity_id format, which has coordinate triple embedded in it too
         float dumx, dumy, dumz;
-        num_read = sscanf(records[current_attrib].att_string.c_str(), 
-                          "ENTITY_ID 3 %f %f %f 3 %d %d %d", 
+        num_read = sscanf(records[current_attrib].att_string.c_str(),
+                          "ENTITY_ID 3 %f %f %f 3 %d %d %d",
                           &dumx, &dumy, &dumz, &id, &bounding_uid, &bounding_sense);
         num_read -= 3;
       }
@@ -2894,7 +2894,7 @@ ErrorCode Tqdcfr::process_record(AcisRecord &this_record)
              type_substr-this_record.att_string.c_str() < 20) {
       this_record.rec_type = Tqdcfr::aVERTEX;
     }
-    else 
+    else
       this_record.rec_type = Tqdcfr::UNKNOWN;
 
     if (this_record.rec_type != Tqdcfr::UNKNOWN) {
@@ -2928,7 +2928,7 @@ void Tqdcfr::FileTOC::print()
   std::cout << "FileTOC:End, Sch, #Mdl, TabOff, "
             << "MdlMDOff, actFEMdl = ";
   std::cout << fileEndian << ", " << fileSchema << ", " << numModels
-            << ", " << modelTableOffset << ", " 
+            << ", " << modelTableOffset << ", "
             << modelMetaDataOffset << ", " << activeFEModel << std::endl;
 }
 
@@ -2965,7 +2965,7 @@ Tqdcfr::GeomHeader::GeomHeader()
     elemTypeCt(0), elemLength(0), maxDim(0), setHandle(0)
 {}
 
-void Tqdcfr::GeomHeader::print() 
+void Tqdcfr::GeomHeader::print()
 {
   std::cout << "geomID = " << geomID << std::endl;
   std::cout << "nodeCt = " << nodeCt << std::endl;
@@ -2982,7 +2982,7 @@ Tqdcfr::GroupHeader::GroupHeader()
     setHandle(0)
 {}
 
-void Tqdcfr::GroupHeader::print() 
+void Tqdcfr::GroupHeader::print()
 {
   std::cout << "grpID = " << grpID << std::endl;
   std::cout << "grpType = " << grpType << std::endl;
@@ -2999,7 +2999,7 @@ Tqdcfr::BlockHeader::BlockHeader()
     setHandle(0), blockEntityType(MBMAXTYPE)
 {}
 
-void Tqdcfr::BlockHeader::print() 
+void Tqdcfr::BlockHeader::print()
 {
   std::cout << "blockID = " << blockID << std::endl;
   std::cout << "blockElemType = " << blockElemType << std::endl;
@@ -3022,7 +3022,7 @@ Tqdcfr::NodesetHeader::NodesetHeader()
     setHandle(0)
 {}
 
-void Tqdcfr::NodesetHeader::print() 
+void Tqdcfr::NodesetHeader::print()
 {
   std::cout << "nsID = " << nsID << std::endl;
   std::cout << "memCt = " << memCt << std::endl;
@@ -3039,7 +3039,7 @@ Tqdcfr::SidesetHeader::SidesetHeader()
     setHandle(0)
 {}
 
-void Tqdcfr::SidesetHeader::print() 
+void Tqdcfr::SidesetHeader::print()
 {
   std::cout << "ssID = " << ssID << std::endl;
   std::cout << "memCt = " << memCt << std::endl;

@@ -17,11 +17,11 @@ void calc_centroid( Interface* iface, EntityHandle pent, double result[3] )
   rval = iface->get_connectivity( pent, conn, len );
   CHECK_ERR(rval);
   CHECK_EQUAL( 5, len );
-  
+
   double coords[15];
   rval = iface->get_coords( conn, len, coords );
   CHECK_ERR(rval);
-  
+
   for (int d = 0; d < 3; ++d) {
     result[d] = 0;
     for (int i = 0; i < 5; ++i)
@@ -35,11 +35,11 @@ void test_moab_v3_poly_format()
   Core moab;
   Interface& mb = moab;
   ErrorCode rval;
-  
+
     // load file containing a dodecahedron
   rval = mb.load_mesh( std::string( TestDir + "/h5file/v3_dodec.h5m").c_str() );
   CHECK_ERR(rval);
-  
+
     // get entities from file
   Range verts, faces, polyhedrons;
   rval = mb.get_entities_by_type( 0, MBVERTEX, verts );
@@ -48,13 +48,13 @@ void test_moab_v3_poly_format()
   CHECK_ERR(rval);
   rval = mb.get_entities_by_type( 0, MBPOLYHEDRON, polyhedrons );
   CHECK_ERR(rval);
-  
+
     // check expected number of entities
   CHECK_EQUAL( (size_t)20, verts.size() );
   CHECK_EQUAL( (size_t)12, faces.size() );
   CHECK_EQUAL( (size_t)1,  polyhedrons.size() );
   const EntityHandle polyhedron = polyhedrons.front();
-  
+
     // check the polyhedron connectivity list
   std::vector<EntityHandle> faces1, faces2;
   std::copy( faces.begin(), faces.end(), std::back_inserter(faces1) );
@@ -62,16 +62,16 @@ void test_moab_v3_poly_format()
   CHECK_ERR(rval);
   std::sort( faces2.begin(), faces2.end() );
   CHECK( faces1 == faces2 );
-  
+
     // each polygonshould have a tag value storing its centroid.
     // compare this value against the centroid calculated from
     // the vertex coords.
-  
+
     // get tag for saved values
   Tag centroid;
   rval = mb.tag_get_handle( "CENTROID", 3, MB_TYPE_DOUBLE, centroid );
   CHECK_ERR(rval);
-  
+
     // for each face...
   for (Range::iterator i = faces.begin(); i != faces.end(); ++i) {
     double saved[3], calc[3];
@@ -84,7 +84,7 @@ void test_moab_v3_poly_format()
   }
 }
 
-  
+
 
 
 int main()
@@ -94,4 +94,4 @@ int main()
   return RUN_TEST( test_moab_v3_poly_format );
 }
 
-  
+

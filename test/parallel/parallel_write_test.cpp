@@ -14,13 +14,13 @@
 using namespace moab;
 
 #define TPRINT(A) tprint( (A) )
-static void tprint(const char* A) 
+static void tprint(const char* A)
 {
   int rank;
   MPI_Comm_rank( MPI_COMM_WORLD, &rank );
-  char buffer[128]; 
+  char buffer[128];
   sprintf(buffer,"%02d: %6.2f: %s\n", rank, (double)clock()/CLOCKS_PER_SEC, A);
-  fputs( buffer, stderr ); 
+  fputs( buffer, stderr );
 }
 
 const int DEFAULT_INTERVALS  = 2;
@@ -51,7 +51,7 @@ void help() {
                "write that mesh using MOAB's parallel HDF5 writer.  The mesh size "
                "will scale with the number of processors and the number of elements "
                "per processor (the latter is a function of the value specified "
-               "with the '-i' flag.)" << std::endl 
+               "with the '-i' flag.)" << std::endl
             << std::endl
             << "Let N = ceil(cbrt(P)), where P is the number of processes.  "
                "The mesh will be some subset of a cube with one corner at the "
@@ -69,7 +69,7 @@ void help() {
                "N^3 hex elements." << std::endl
             << std::endl;
 }
- 
+
 int main( int argc, char* argv[] )
 {
   int ierr = MPI_Init( &argc, &argv );
@@ -166,7 +166,7 @@ int main( int argc, char* argv[] )
     output_file_name = DEFAULT_FILE_NAME;
     keep_output_file = false;
   }
-  
+
     // Create mesh
 TPRINT("Generating mesh");
   double gen_time = MPI_Wtime();
@@ -208,7 +208,7 @@ TPRINT("Resolving shared entities");
     }
   }
   res_time = MPI_Wtime() - res_time;
-  
+
 TPRINT("Beginning parallel write");
   double write_time = MPI_Wtime();
     // Do parallel write
@@ -227,11 +227,11 @@ TPRINT("Beginning parallel write");
     return (int)rval;
   }
   write_time = MPI_Wtime() - write_time;
-  
+
   double times[3] = { gen_time, res_time, write_time };
   double max[3] = { 0, 0, 0 };
   MPI_Reduce( times, max, 3, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD );
-  
+
     // Clean up and summarize
   if (0 == rank) {
     double sec = (double)t / CLOCKS_PER_SEC;
@@ -241,12 +241,12 @@ TPRINT("Beginning parallel write");
 TPRINT("Removing written file");
       remove( output_file_name );
     }
-    
-    std::cout << "Wall time: generate: " << max[0] 
+
+    std::cout << "Wall time: generate: " << max[0]
               << ", resovle shared: " << max[1]
               << ", write_file: " << max[2] << std::endl;
   }
-  
+
 TPRINT("Finalizing MPI");
   return MPI_Finalize();
 }
@@ -258,10 +258,10 @@ ErrorCode generate_mesh( Interface& moab, int num_interval )
   int rank, size;
   MPI_Comm_rank( MPI_COMM_WORLD, &rank );
   MPI_Comm_size( MPI_COMM_WORLD, &size );
-  
+
   ErrorCode rval;
   Tag global_id = moab.globalId_tag();
-  
+
     // Each processor will own one cube of mesh within
     // an 3D grid of cubes.  Calculate the dimensions of
     // that grid in numbers of cubes.
@@ -275,16 +275,16 @@ ErrorCode generate_mesh( Interface& moab, int num_interval )
     ++num_y_blocks;
   if (num_x_blocks * num_y_blocks * num_z_blocks < size)
     ++num_z_blocks;
-  
+
     // calculate position of this processor in grid
   int my_z_block = rank / (num_x_blocks * num_y_blocks);
   int rem = rank % (num_x_blocks * num_y_blocks);
   int my_y_block = rem / num_x_blocks;
-  int my_x_block = rem % num_x_blocks;  
-  
+  int my_x_block = rem % num_x_blocks;
+
     // Each processor's cube of mesh will be num_iterval^3 elements
     // and will be 1.0 units on a side
-  
+
     // create vertices
   const int num_x_vtx = num_interval * num_x_blocks + 1;
   const int num_y_vtx = num_interval * num_y_blocks + 1;
@@ -304,20 +304,20 @@ ErrorCode generate_mesh( Interface& moab, int num_interval )
         rval = moab.create_vertex( coords, h );
         if (MB_SUCCESS != rval)
           return rval;
-        
-        int id = 1 +  x_offset + i 
+
+        int id = 1 +  x_offset + i
                    + (y_offset + j) * num_x_vtx
                    + (z_offset + k) * num_x_vtx * num_y_vtx;
         rval = moab.tag_set_data( global_id, &h, 1, &id );
         if (MB_SUCCESS != rval)
           return rval;
-        
+
         assert(v != vertices.end());
         *v++ = h;
       }
     }
   }
-  
+
     // create hexes
   for (int k = 0; k < num_interval; ++k) {
     for (int j = 0; j < num_interval; ++j) {
@@ -339,7 +339,7 @@ ErrorCode generate_mesh( Interface& moab, int num_interval )
     }
   }
   /*
-    // create interface quads 
+    // create interface quads
   for (int j = 0; j < num_interval; ++j) {
     for (int i = 0; i < num_interval; ++i) {
       EntityHandle h;
@@ -408,4 +408,4 @@ ErrorCode generate_mesh( Interface& moab, int num_interval )
 }
 
 
-    
+

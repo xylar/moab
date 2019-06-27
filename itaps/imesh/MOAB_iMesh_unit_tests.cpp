@@ -90,24 +90,24 @@ static void QUAD_VERTS( int f, int i, int j, iBase_EntityHandle conn[4] ) {
 }
 
 
-iMesh_Instance create_mesh() 
+iMesh_Instance create_mesh()
 {
   static iMesh_Instance instance = 0;
   if (instance)
     return instance;
-  
+
   int err;
   iMesh_Instance tmp;
   iMesh_newMesh( 0, &tmp, &err, 0 );
   CHECK_EQUAL( iBase_SUCCESS, err );
-  
+
   for (int i = 0; i < INTERVALS+1; ++i)
     for (int j = 0; j < INTERVALS+1; ++j)
       for (int k = 0; k < INTERVALS+1; ++k) {
         iMesh_createVtx( tmp, i, j, k, &VERTS[i][j][k], &err );
         CHECK_EQUAL( iBase_SUCCESS, err );
       }
-  
+
   int status;
   iBase_EntityHandle conn[8];
   for (int i = 0; i < INTERVALS; ++i)
@@ -118,16 +118,16 @@ iMesh_Instance create_mesh()
         CHECK_EQUAL( iBase_SUCCESS, err );
         CHECK_EQUAL( iBase_NEW, status );
       }
-  
-  
-  for (int f = 0; f < 6; ++f) 
-    for (int i = 0; i < INTERVALS; ++i) 
+
+
+  for (int f = 0; f < 6; ++f)
+    for (int i = 0; i < INTERVALS; ++i)
       for (int j = 0; j < INTERVALS; ++j) {
         QUAD_VERTS(f,i,j,conn);
         iMesh_createEnt( tmp, iMesh_QUADRILATERAL, conn, 4, &FACES[f][i][j], &status, &err );
         CHECK_EQUAL( iBase_SUCCESS, err );
       }
-  
+
   return (instance = tmp);
 }
 
@@ -135,7 +135,7 @@ void test_getEntArrAdj_conn()
 {
   iMesh_Instance mesh = create_mesh();
   int err;
-  
+
     // test hex vertices
   for (int i = 0; i < INTERVALS; ++i) {
     for (int j = 0; j < INTERVALS; ++j) {
@@ -147,7 +147,7 @@ void test_getEntArrAdj_conn()
       iBase_EntityHandle* adj_ptr = adj;
       int* off_ptr = off;
       iMesh_getEntArrAdj( mesh, HEXES[i][j], INTERVALS, iBase_VERTEX,
-                          &adj_ptr, &adj_alloc, &adj_size, 
+                          &adj_ptr, &adj_alloc, &adj_size,
                           &off_ptr, &off_alloc, &off_size,
                           &err );
       CHECK_EQUAL( &adj[0], adj_ptr );
@@ -165,7 +165,7 @@ void test_getEntArrAdj_conn()
       }
     }
   }
-  
+
     // test quad vertices for one side of mesh
   const int f = 0;
   for (int i = 0; i < INTERVALS; ++i) {
@@ -177,7 +177,7 @@ void test_getEntArrAdj_conn()
       iBase_EntityHandle* adj_ptr = adj;
       int* off_ptr = off;
     iMesh_getEntArrAdj( mesh, FACES[f][i], INTERVALS, iBase_VERTEX,
-                        &adj_ptr, &adj_alloc, &adj_size, 
+                        &adj_ptr, &adj_alloc, &adj_size,
                         &off_ptr, &off_alloc, &off_size,
                         &err );
     CHECK_EQUAL( &adj[0], adj_ptr );
@@ -200,7 +200,7 @@ void test_getEntArrAdj_vertex()
 {
   iMesh_Instance mesh = create_mesh();
   int err;
-  
+
   // get hexes adjacent to row of vertices at x=0,y=0;
   iBase_EntityHandle *adj = 0;
   int *off = 0;
@@ -217,7 +217,7 @@ void test_getEntArrAdj_vertex()
   CHECK_EQUAL( INTERVALS+2, off_size ); // one more than number of input handles
   CHECK( adj_alloc >= adj_size );
   CHECK( off_alloc >= off_size );
-  
+
     // first and last vertices should have one adjacent hex
   CHECK_EQUAL( 1, off[1] - off[0] );
   CHECK_EQUAL( HEXES[0][0][0], adj[off[0]] );
@@ -229,7 +229,7 @@ void test_getEntArrAdj_vertex()
     CHECK_EQUAL( HEXES[0][0][i-1], adj[off[i]  ] );
     CHECK_EQUAL( HEXES[0][0][i  ], adj[off[i]+1] );
   }
-  
+
   free(adj);
   free(off);
 }
@@ -238,7 +238,7 @@ void test_getEntArrAdj_up()
 {
   iMesh_Instance mesh = create_mesh();
   int err;
-  
+
   // get hexes adjacent to a row of faces in the z=0 plane
   iBase_EntityHandle *adj = 0;
   int *off = 0;
@@ -255,12 +255,12 @@ void test_getEntArrAdj_up()
   CHECK_EQUAL( INTERVALS+1, off_size ); // one more than number of input handles
   CHECK( adj_alloc >= adj_size );
   CHECK( off_alloc >= off_size );
-  
+
   for (int i = 0; i < INTERVALS; ++i) {
     CHECK_EQUAL( 1, off[i+1] - off[i] );
     CHECK_EQUAL( HEXES[0][i][0], adj[off[i]] );
   }
-  
+
   free(adj);
   free(off);
 }
@@ -269,7 +269,7 @@ void test_getEntArrAdj_down()
 {
   iMesh_Instance mesh = create_mesh();
   int err;
-  
+
   // get quads adjacent to a edge-row of hexes
   iBase_EntityHandle *adj = 0;
   int *off = 0;
@@ -286,7 +286,7 @@ void test_getEntArrAdj_down()
   CHECK_EQUAL( INTERVALS+1, off_size ); // one more than number of input handles
   CHECK( adj_alloc >= adj_size );
   CHECK( off_alloc >= off_size );
-  
+
     // first (corner) hex should have three adjacent faces
   CHECK_EQUAL( 3, off[1] - off[0] );
   iBase_EntityHandle exp[3] = { FACES[0][0][0],
@@ -297,7 +297,7 @@ void test_getEntArrAdj_down()
   std::sort( exp, exp+3 );
   std::sort( act, act+3 );
   CHECK_ARRAYS_EQUAL( exp, 3, act, 3 );
-  
+
     // last (corner) hex should have three adjacent faces
   CHECK_EQUAL( 3, off[INTERVALS] - off[INTERVALS-1] );
   iBase_EntityHandle exp2[3] = { FACES[0][0][INTERVALS-1],
@@ -307,7 +307,7 @@ void test_getEntArrAdj_down()
   std::sort( exp2, exp2+3 );
   std::sort( act, act+3 );
   CHECK_ARRAYS_EQUAL( exp2, 3, act, 3 );
-  
+
     // all middle hexes should have two adjacent faces
   // FixME: This loop is never executed (INTERVALS is 2)
   /*
@@ -316,17 +316,17 @@ void test_getEntArrAdj_down()
     e1 = FACES[0][0][i];
     e2 = FACES[3][0][i];
     if (e1 > e2) std::swap(e1,e2);
-    
+
     CHECK_EQUAL( 2, off[i+1] - off[i] );
     a1 = adj[off[i]  ];
     a2 = adj[off[i]+1];
     if (a1 > a2) std::swap(a1,a2);
-    
+
     CHECK_EQUAL( e1, a1 );
     CHECK_EQUAL( e2, a2 );
   }
   */
-  
+
   free(adj);
   free(off);
 }
@@ -335,11 +335,11 @@ void test_getEntArrAdj_invalid_size()
 {
   iMesh_Instance mesh = create_mesh();
   int err = -1;
-  
+
   const int SPECIAL1 = 0xDeadBeef;
   const int SPECIAL2 = 0xCafe5;
   const int SPECIAL3 = 0xbabb1e;
-  
+
     // test a downward query
   volatile int marker1 = SPECIAL1;
   iBase_EntityHandle adj1[8*INTERVALS-1]; // one too small
@@ -351,7 +351,7 @@ void test_getEntArrAdj_invalid_size()
   iBase_EntityHandle* adj_ptr = adj1;
   int* off_ptr = off1;
   iMesh_getEntArrAdj( mesh, HEXES[0][0], INTERVALS, iBase_VERTEX,
-                      &adj_ptr, &adj1_alloc, &adj_size, 
+                      &adj_ptr, &adj1_alloc, &adj_size,
                       &off_ptr, &off1_alloc, &off_size,
                       &err );
   CHECK_EQUAL( &adj1[0], adj_ptr );
@@ -361,7 +361,7 @@ void test_getEntArrAdj_invalid_size()
   CHECK_EQUAL( SPECIAL2, marker2 );
     // now verify that it correctly failed
   CHECK_EQUAL( iBase_BAD_ARRAY_SIZE, err );
-  
+
     // now test an upwards query
   volatile int marker3 = SPECIAL3;
   int off2[INTERVALS];
@@ -371,7 +371,7 @@ void test_getEntArrAdj_invalid_size()
   adj_ptr = adj1;
   off_ptr = off2;
   iMesh_getEntArrAdj( mesh, VERTS[0][0], INTERVALS+1, iBase_REGION,
-                      &adj_ptr, &adj1_alloc, &adj_size, 
+                      &adj_ptr, &adj1_alloc, &adj_size,
                       &off_ptr, &off2_alloc, &off_size,
                       &err );
     // first ensure no stack corruption from writing off end of array
@@ -392,7 +392,7 @@ void test_getEntArrAdj_none()
   int* off = 0;
   int adj_alloc = 0, off_alloc = 0;
   int adj_size = -1, off_size = -1;
-  iMesh_getEntArrAdj( mesh, NULL, 0, iBase_REGION, 
+  iMesh_getEntArrAdj( mesh, NULL, 0, iBase_REGION,
                       &adj, &adj_alloc, &adj_size,
                       &off, &off_alloc, &off_size,
                       &err );
@@ -401,8 +401,8 @@ void test_getEntArrAdj_none()
   CHECK_EQUAL( 0, adj_size );
   CHECK_EQUAL( 1, off_size );
   CHECK( off_alloc >= 1 );
-  CHECK_EQUAL( 0, off[0] );  
-  
+  CHECK_EQUAL( 0, off[0] );
+
   free(off);
 }
 
@@ -412,7 +412,7 @@ void test_existinterface()
   moab::Core *core = new moab::Core();
   MBiMesh *mesh = new MBiMesh(core);
   iMesh_Instance imesh = reinterpret_cast<iMesh_Instance>(mesh);
-  
+
     // make sure we can call imesh functions
   int dim, err;
   iMesh_getGeometricDimension(imesh, &dim, &err);
@@ -421,7 +421,7 @@ void test_existinterface()
     // now make sure we can delete the instance without it deleting the MOAB instance
   iMesh_dtor(imesh, &err);
   CHECK_EQUAL(err, iBase_SUCCESS);
-  
+
   ErrorCode rval = core->get_number_entities_by_dimension(0, 0, dim);
   CHECK_EQUAL(moab::MB_SUCCESS, rval);
 

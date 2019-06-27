@@ -11,9 +11,9 @@ else
 endif
 
 if HAVE_NETCDF
-  EXO_TEST = convert 
+  EXO_TEST = convert
 else
-  EXO_TEST = 
+  EXO_TEST =
 endif
 
 if HAVE_CPPUNIT
@@ -26,8 +26,8 @@ if HAVE_MPI
   PARALLEL_UNTANGLE_SHAPE = parallel_untangle_shape
   PARALLEL_SMOOTH_LAPLACE = parallel_smooth_laplace
 else
-  PARALLEL_UNTANGLE_SHAPE = 
-  PARALLEL_SMOOTH_LAPLACE = 
+  PARALLEL_UNTANGLE_SHAPE =
+  PARALLEL_SMOOTH_LAPLACE =
 endif
 
 MESHDIR = $(abs_top_srcdir)/MeshFiles/mesquite
@@ -42,9 +42,9 @@ AM_CPPFLAGS  = -DSRCDIR=$(srcdir) \
 LDADD = $(top_builddir)/src/mesquite/libmbmesquite.la
 check_PROGRAMS = algorithm_test activeset analytical_grad3D paraboloid_domain high_aspect_ratio idft_time jacobi
 check_PROGRAMS += laplacian laplacian_polygon nongradient pyramid wedge simple_hybrid synchronous transform untangle
-check_PROGRAMS += headers_basic_test feasible_newton 2d_target 2d_metrics 2d_formulation 
+check_PROGRAMS += headers_basic_test feasible_newton 2d_target 2d_metrics 2d_formulation
 TESTS = $(check_PROGRAMS)
-check_PROGRAMS += benchmark_tests 
+check_PROGRAMS += benchmark_tests
 
 headers_basic_test_SOURCES = headers_basic_test.cpp
 2d_target_SOURCES = 2d_target_test.cpp

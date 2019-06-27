@@ -267,7 +267,7 @@ ErrorCode ReadNC::parse_options(const FileOptions& opts, std::vector<std::string
 
   if (!isParallel)
   // Return success here, since rval still has _NOT_FOUND from not finding option
-  // in this case, myPcomm will be NULL, so it can never be used; always check for isParallel 
+  // in this case, myPcomm will be NULL, so it can never be used; always check for isParallel
   // before any use for myPcomm
     return MB_SUCCESS;
 

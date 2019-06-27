@@ -24,7 +24,7 @@ const double ROOT2 = 1.4142135623730951;
 
 using namespace moab;
 
-// Create file containing geometry for 2x2x2 cube 
+// Create file containing geometry for 2x2x2 cube
 // centered at origin and having a convex +Z face
 // (center of face at origin).
 ErrorCode write_geometry( const char* output_file_name );
@@ -54,15 +54,15 @@ ErrorCode write_geometry( const char* output_file_name )
   ErrorCode rval;
 
   Interface *moab = new Core();
-  
+
   // Define a 2x2x2 cube centered at orgin
   // with concavity in +Z face.
   const double coords[] = {
-    1, -1, -1, 
+    1, -1, -1,
     1,  1, -1,
    -1,  1, -1,
    -1, -1, -1,
-    1, -1,  1, 
+    1, -1,  1,
     1,  1,  1,
    -1,  1,  1,
    -1, -1,  1,
@@ -77,24 +77,24 @@ ErrorCode write_geometry( const char* output_file_name )
     6, 7, 8,  7, 4, 8  // +Z
   };
   const unsigned tris_per_surf[] = { 2, 2, 2, 2, 2, 4 };
-  
+
     // Create the geometry
   const unsigned num_verts = sizeof(coords) / (3*sizeof(double));
   const unsigned num_tris = sizeof(connectivity) / (3*sizeof(int));
   const unsigned num_surfs = sizeof(tris_per_surf) / sizeof(unsigned);
   EntityHandle verts[num_verts], tris[num_tris], surfs[num_surfs];
   for (unsigned i = 0; i < num_verts; ++i) {
-    rval = moab->create_vertex( coords + 3*i, verts[i] ); 
+    rval = moab->create_vertex( coords + 3*i, verts[i] );
     CHKERR;
   }
   for (unsigned i = 0; i < num_tris; ++i) {
-    const EntityHandle conn[] = { verts[connectivity[3*i  ]], 
-                                    verts[connectivity[3*i+1]], 
+    const EntityHandle conn[] = { verts[connectivity[3*i  ]],
+                                    verts[connectivity[3*i+1]],
                                     verts[connectivity[3*i+2]] };
     rval = moab->create_element( MBTRI, conn, 3, tris[i] );
     CHKERR;
   }
-  
+
     // create CAD topology
   EntityHandle* tri_iter = tris;
   for (unsigned i = 0; i < num_surfs; ++i) {
@@ -104,16 +104,16 @@ ErrorCode write_geometry( const char* output_file_name )
     CHKERR;
     tri_iter += tris_per_surf[i];
   }
-  
+
   Tag dim_tag, id_tag, sense_tag;
-  rval = moab->tag_get_handle( GEOM_DIMENSION_TAG_NAME, 
-                              1, MB_TYPE_INTEGER, 
+  rval = moab->tag_get_handle( GEOM_DIMENSION_TAG_NAME,
+                              1, MB_TYPE_INTEGER,
                               dim_tag,
                               MB_TAG_SPARSE|MB_TAG_CREAT );
   CHKERR;
   id_tag = moab->globalId_tag();
-  rval = moab->tag_get_handle( "GEOM_SENSE_2", 
-                              2, MB_TYPE_HANDLE, 
+  rval = moab->tag_get_handle( "GEOM_SENSE_2",
+                              2, MB_TYPE_HANDLE,
                               sense_tag,
                               MB_TAG_SPARSE|MB_TAG_CREAT );
   CHKERR;
@@ -133,20 +133,20 @@ ErrorCode write_geometry( const char* output_file_name )
     rval = moab->add_parent_child( volume, surfs[i] );
     CHKERR;
   }
-  
+
   std::vector<EntityHandle> senses( 2*num_surfs, 0 );
   for (size_t i = 0; i < senses.size(); i += 2)
     senses[i] = volume;
   rval = moab->tag_set_data( sense_tag, surfs, num_surfs, &senses[0] );
   CHKERR;
-  
+
   const int three = 3;
   const int one = 1;
   rval = moab->tag_set_data( dim_tag, &volume, 1, &three );
   CHKERR;
   rval = moab->tag_set_data( id_tag, &volume, 1, &one );
   CHKERR;
-  
+
   rval = moab->write_mesh( output_file_name );
   CHKERR;
   delete moab;
@@ -157,24 +157,24 @@ ErrorCode overlap_write_geometry( const char* output_file_name )
 {
   ErrorCode rval;
   Interface *moab = new Core();
-  
+
   // Define two 1x2x2 cubes that overlap from 0 <= x <= 0.01
   // cube 0 centered at (0.5,0,0)
   const double coords[] = {
-    1, -1, -1, 
+    1, -1, -1,
     1,  1, -1,
     0,  1, -1,
     0, -1, -1,
-    1, -1,  1, 
+    1, -1,  1,
     1,  1,  1,
     0,  1,  1,
     0, -1,  1,
   // cube 1 centered near (-0.5,0,0)
-    0.01, -1, -1, 
+    0.01, -1, -1,
     0.01,  1, -1,
    -1,     1, -1,
    -1,    -1, -1,
-    0.01, -1,  1, 
+    0.01, -1,  1,
     0.01,  1,  1,
    -1,     1,  1,
    -1,    -1,  1 };
@@ -185,7 +185,7 @@ ErrorCode overlap_write_geometry( const char* output_file_name )
     6, 2, 3,  7, 6, 3, // -X
     0, 4, 3,  7, 3, 4, // -Y
     4, 5, 6,  6, 7, 4};// +Z
-  
+
   // Create the geometry
   const unsigned tris_per_surf = 2;
   const unsigned num_cubes     = 2;
@@ -195,26 +195,26 @@ ErrorCode overlap_write_geometry( const char* output_file_name )
   EntityHandle verts[num_verts], tris[num_tris], surfs[num_surfs];
 
   for (unsigned i = 0; i < num_verts; ++i) {
-    rval = moab->create_vertex( coords + 3*i, verts[i] ); 
+    rval = moab->create_vertex( coords + 3*i, verts[i] );
     CHKERR;
   }
   // cube0
   for (unsigned i = 0; i < num_tris/2; ++i) {
-    const EntityHandle conn[] = { verts[connectivity[3*i  ]], 
-                                  verts[connectivity[3*i+1]], 
+    const EntityHandle conn[] = { verts[connectivity[3*i  ]],
+                                  verts[connectivity[3*i+1]],
                                   verts[connectivity[3*i+2]] };
     rval = moab->create_element( MBTRI, conn, 3, tris[i] );
     CHKERR;
   }
   // cube1
   for (unsigned i = 0; i < num_tris/2; ++i) {
-    const EntityHandle conn[] = { verts[8 + connectivity[3*i  ]], 
-                                  verts[8 + connectivity[3*i+1]], 
+    const EntityHandle conn[] = { verts[8 + connectivity[3*i  ]],
+                                  verts[8 + connectivity[3*i+1]],
                                   verts[8 + connectivity[3*i+2]] };
     rval = moab->create_element( MBTRI, conn, 3, tris[num_tris/2 + i] );
     CHKERR;
   }
-  
+
   // create CAD topology
   EntityHandle* tri_iter = tris;
   for (unsigned i = 0; i < num_surfs; ++i) {
@@ -224,16 +224,16 @@ ErrorCode overlap_write_geometry( const char* output_file_name )
     CHKERR;
     tri_iter += tris_per_surf;
   }
-  
+
   Tag dim_tag, id_tag, sense_tag;
-  rval = moab->tag_get_handle( GEOM_DIMENSION_TAG_NAME, 
-                              1, MB_TYPE_INTEGER, 
+  rval = moab->tag_get_handle( GEOM_DIMENSION_TAG_NAME,
+                              1, MB_TYPE_INTEGER,
                               dim_tag,
                               MB_TAG_SPARSE|MB_TAG_CREAT );
   CHKERR;
   id_tag = moab->globalId_tag();
-  rval = moab->tag_get_handle( "GEOM_SENSE_2", 
-                              2, MB_TYPE_HANDLE, 
+  rval = moab->tag_get_handle( "GEOM_SENSE_2",
+                              2, MB_TYPE_HANDLE,
                               sense_tag,
                               MB_TAG_SPARSE|MB_TAG_CREAT );
   CHKERR;
@@ -253,20 +253,20 @@ ErrorCode overlap_write_geometry( const char* output_file_name )
     rval = moab->add_parent_child( volume, surfs[i] );
     CHKERR;
   }
-  
+
   std::vector<EntityHandle> senses( 2*num_surfs, 0 );
   for (size_t i = 0; i < senses.size(); i += 2)
     senses[i] = volume;
   rval = moab->tag_set_data( sense_tag, surfs, num_surfs, &senses[0] );
   CHKERR;
-  
+
   const int three = 3;
   const int one   = 1;
   rval = moab->tag_set_data( dim_tag, &volume, 1, &three );
   CHKERR;
   rval = moab->tag_set_data( id_tag, &volume, 1, &one );
   CHKERR;
-  
+
   rval = moab->write_mesh( output_file_name );
   CHKERR;
   delete moab;
@@ -296,7 +296,7 @@ int main( int argc, char* argv[] )
 {
   ErrorCode rval;
   const char* filename = "test_geom.h5m";
-  
+
 #ifdef MOAB_HAVE_MPI
   int fail = MPI_Init(&argc, &argv);
   if (fail) return fail;
@@ -310,7 +310,7 @@ int main( int argc, char* argv[] )
   }
 
   Interface *MBI = new Core();
-  
+
   int errors = 0;
   rval = MBI->load_file( filename );
   remove( filename );
@@ -327,14 +327,14 @@ int main( int argc, char* argv[] )
     std::cerr << "Failed to initialize the GeometryQueryTool." << std::endl;
     return 2;
   }
-  
+
   RUN_TEST( test_ray_fire );
   RUN_TEST( test_closest_to_location );
   RUN_TEST( test_point_in_volume );
   RUN_TEST( test_measure_volume );
   RUN_TEST( test_measure_area );
   RUN_TEST( test_surface_sense );
- 
+
   // change settings to use overlap-tolerant mode (arbitrary thickness)
   double overlap_thickness = 0.1;
   gqt->set_overlap_thickness( overlap_thickness );
@@ -355,8 +355,8 @@ int main( int argc, char* argv[] )
     std::cerr << "Failed to create input file: " << filename << std::endl;
     return 1;
   }
-  
-  delete gtt;  
+
+  delete gtt;
   delete gqt;
 
   rval = MBI->load_file( filename );
@@ -368,7 +368,7 @@ int main( int argc, char* argv[] )
 
   gtt = new GeomTopoTool(MBI);
   gqt = new GeomQueryTool(gtt);
-  
+
   rval = gqt->initialize();
   if (MB_SUCCESS != rval) {
     std::cerr << "Failed to initialize the GeometryQueryTool." << std::endl;
@@ -394,7 +394,7 @@ int main( int argc, char* argv[] )
   delete gqt;
 
   delete MBI;
-  
+
   return errors;
 }
 
@@ -411,7 +411,7 @@ ErrorCode test_surface_sense( GeomQueryTool * gqt )
   CHKERR;
   rval = moab->get_entities_by_type_and_tag( 0, MBENTITYSET, &dim_tag, ptrs+1, 1, vols );
   CHKERR;
-  
+
   if (vols.size() != 2) {
     std::cerr << "ERROR: Expected 2 volumes in input, found " << vols.size() << std::endl;
     return MB_FAILURE;
@@ -420,7 +420,7 @@ ErrorCode test_surface_sense( GeomQueryTool * gqt )
     std::cerr << "ERROR: Expected 6 surfaces in input, found " << surfs.size() << std::endl;
     return MB_FAILURE;
   }
-  
+
   for (Range::iterator i = surfs.begin(); i != surfs.end(); ++i) {
     int sense = 0;
     rval = gqt->gttool()->get_sense(*i, vols.front(), sense);
@@ -429,9 +429,9 @@ ErrorCode test_surface_sense( GeomQueryTool * gqt )
       return MB_FAILURE;
     }
   }
-  
+
   return MB_SUCCESS;
-}  
+}
 
 ErrorCode overlap_test_surface_sense( GeomQueryTool * gqt )
 {
@@ -442,24 +442,24 @@ ErrorCode overlap_test_surface_sense( GeomQueryTool * gqt )
   Range surfs, vols;
   const int two = 2, three = 3;
   const void* ptrs[] = { &two, &three };
-  rval = moab->get_entities_by_type_and_tag( 0, MBENTITYSET, &dim_tag, 
+  rval = moab->get_entities_by_type_and_tag( 0, MBENTITYSET, &dim_tag,
                                             ptrs, 1, surfs );
   CHKERR;
-  rval = moab->get_entities_by_type_and_tag( 0, MBENTITYSET, &dim_tag, 
+  rval = moab->get_entities_by_type_and_tag( 0, MBENTITYSET, &dim_tag,
                                             ptrs+1, 1, vols );
   CHKERR;
-  
+
   if (vols.size() != 2) {
-    std::cerr << "ERROR: Expected 2 volumes in input, found " << vols.size() 
+    std::cerr << "ERROR: Expected 2 volumes in input, found " << vols.size()
               << std::endl;
     return MB_FAILURE;
   }
   if (surfs.size() != 12) {
-    std::cerr << "ERROR: Expected 12 surfaces in input, found " << surfs.size() 
+    std::cerr << "ERROR: Expected 12 surfaces in input, found " << surfs.size()
               << std::endl;
     return MB_FAILURE;
   }
-  
+
   for (Range::iterator i = surfs.begin(); i != surfs.end(); ++i) {
     int sense = 0;
     rval = gqt->gttool()->get_sense(*i, vols.front(), sense);
@@ -468,26 +468,26 @@ ErrorCode overlap_test_surface_sense( GeomQueryTool * gqt )
       return MB_FAILURE;
     }
   }
-  
+
   return MB_SUCCESS;
-}  
+}
 ErrorCode test_measure_volume( GeomQueryTool * gqt )
 {
   ErrorCode rval;
   Interface *moab = gqt->moab_instance();
-  
+
   Tag dim_tag = gqt->gttool()->get_geom_tag();
   Range vols;
   const int three = 3;
   const void* ptr = &three;
   rval = moab->get_entities_by_type_and_tag( 0, MBENTITYSET, &dim_tag, &ptr, 1, vols );
   CHKERR;
-  
+
   if (vols.size() != 2) {
     std::cerr << "ERROR: Expected 2 volumes in input, found " << vols.size() << std::endl;
     return MB_FAILURE;
   }
-  
+
     // input file is 2x2x2 cube with convexity in +Z face that touches the origin.
     // expected volume is 8 (2x2x2) less the volume of the pyrimid concavity
   double result;
@@ -499,28 +499,28 @@ ErrorCode test_measure_volume( GeomQueryTool * gqt )
     std::cerr << "ERROR: Expected " << vol << " as measure of volume, got " << result << std::endl;
     return MB_FAILURE;
   }
-  
+
   return MB_SUCCESS;
 }
 ErrorCode overlap_test_measure_volume( GeomQueryTool * gqt )
 {
   ErrorCode rval;
   Interface *moab = gqt->moab_instance();
-  
+
   Tag dim_tag = gqt->gttool()->get_geom_tag();
   Range vols;
   const int three = 3;
   const void* ptr = &three;
-  rval = moab->get_entities_by_type_and_tag( 0, MBENTITYSET, &dim_tag, 
+  rval = moab->get_entities_by_type_and_tag( 0, MBENTITYSET, &dim_tag,
                                             &ptr, 1, vols );
   CHKERR;
-  
+
   if (vols.size() != 2) {
-    std::cerr << "ERROR: Expected 2 volumes in input, found " << vols.size() 
+    std::cerr << "ERROR: Expected 2 volumes in input, found " << vols.size()
               << std::endl;
     return MB_FAILURE;
   }
-  
+
   // The volume has two regions that overlap.
   double result;
   const double vol = (1+1.01)*2*2;
@@ -528,11 +528,11 @@ ErrorCode overlap_test_measure_volume( GeomQueryTool * gqt )
   rval = gqt->measure_volume( vols.front(), result );
   CHKERR;
   if (fabs(result - vol) > 2*std::numeric_limits<double>::epsilon()) {
-    std::cerr << "ERROR: Expected " << vol << " as measure of volume, got " 
+    std::cerr << "ERROR: Expected " << vol << " as measure of volume, got "
               << result << std::endl;
     return MB_FAILURE;
   }
-  
+
   return MB_SUCCESS;
 }
 
@@ -549,15 +549,15 @@ ErrorCode test_measure_area( GeomQueryTool * gqt )
   CHKERR;
 
   if (surfs.size() != 6) {
-    std::cerr << "ERROR: Expected 6 surfaces in input, found " << surfs.size() 
+    std::cerr << "ERROR: Expected 6 surfaces in input, found " << surfs.size()
               << std::endl;
     return MB_FAILURE;
   }
-  
+
   int ids[6];
   rval = moab->tag_get_data( gqt->gttool()->get_gid_tag(), surfs, ids );
   CHKERR;
-  
+
     // expect area of 4 for all faces except face 6.
     // face 6 should have area == 4*sqrt(2)
   Range::iterator iter = surfs.begin();
@@ -565,18 +565,18 @@ ErrorCode test_measure_area( GeomQueryTool * gqt )
     double expected = 4.0;
     if (ids[i] == 6)
       expected *= ROOT2;
-    
+
     double result;
-    
+
     rval = gqt->measure_area( *iter, result );
     CHKERR;
     if (fabs(result - expected) > std::numeric_limits<double>::epsilon()) {
-      std::cerr << "ERROR: Expected area of surface " << ids[i] << " to be " 
+      std::cerr << "ERROR: Expected area of surface " << ids[i] << " to be "
                 << expected << ".  Got " << result << std::endl;
       return MB_FAILURE;
     }
   }
-  
+
   return MB_SUCCESS;
 }
 
@@ -589,21 +589,21 @@ ErrorCode overlap_test_measure_area( GeomQueryTool * gqt )
   Range surfs;
   const int two = 2;
   const void* ptr = &two;
-  rval = moab->get_entities_by_type_and_tag( 0, MBENTITYSET, &dim_tag, 
+  rval = moab->get_entities_by_type_and_tag( 0, MBENTITYSET, &dim_tag,
                                             &ptr, 1, surfs );
   CHKERR;
 
   const unsigned num_surfs = 12;
   if (surfs.size() != num_surfs) {
-    std::cerr << "ERROR: Expected " << num_surfs << " surfaces in input, found " 
+    std::cerr << "ERROR: Expected " << num_surfs << " surfaces in input, found "
               << surfs.size() << std::endl;
     return MB_FAILURE;
   }
-  
+
   int ids[num_surfs];
   rval = moab->tag_get_data( gqt->gttool()->get_gid_tag(), surfs, ids );
   CHKERR;
-  
+
   const double x_area   = 2*2;
   const double yz_area0 = 2*1;
   const double yz_area1 = 2*1.01;
@@ -613,16 +613,16 @@ ErrorCode overlap_test_measure_area( GeomQueryTool * gqt )
     if      (0==i || 2==i || 4 ==i || 5 ==i) expected = yz_area0;
     else if (1==i || 3==i || 7 ==i || 9 ==i) expected = x_area;
     else if (6==i || 8==i || 10==i || 11==i) expected = yz_area1;
-    
+
     rval = gqt->measure_area( *iter, result );
     CHKERR;
     if (fabs(result - expected) > std::numeric_limits<double>::epsilon()) {
-      std::cerr << "ERROR: Expected area of surface " << ids[i] << " to be " 
+      std::cerr << "ERROR: Expected area of surface " << ids[i] << " to be "
                 << expected << ".  Got " << result << std::endl;
       return MB_FAILURE;
     }
   }
-  
+
   return MB_SUCCESS;
 }
 
@@ -635,7 +635,7 @@ struct ray_fire {
 
 ErrorCode test_ray_fire( GeomQueryTool * gqt )
 {
-  // Glancing ray-triangle intersections are not valid exit intersections. 
+  // Glancing ray-triangle intersections are not valid exit intersections.
   // Piercing ray-triangle intersections are valid exit intersections.
   // "0" destination surface implies that it is ambiguous.
   const struct ray_fire tests[] = {
@@ -668,7 +668,7 @@ ErrorCode test_ray_fire( GeomQueryTool * gqt )
   CHKERR;
   rval = moab->get_entities_by_type_and_tag( 0, MBENTITYSET, &dim_tag, ptrs+1, 1, vols );
   CHKERR;
-  
+
   if (vols.size() != 2) {
     std::cerr << "ERROR: Expected 2 volumes in input, found " << vols.size() << std::endl;
     return MB_FAILURE;
@@ -677,13 +677,13 @@ ErrorCode test_ray_fire( GeomQueryTool * gqt )
     std::cerr << "ERROR: Expected 6 surfaces in input, found " << surfs.size() << std::endl;
     return MB_FAILURE;
   }
-  
+
   int ids[6];
   rval = moab->tag_get_data( gqt->gttool()->get_gid_tag(), surfs, ids );
   CHKERR;
   EntityHandle surf[6];
   std::copy( surfs.begin(), surfs.end(), surf );
-  
+
   const int num_test = sizeof(tests) / sizeof(tests[0]);
   for (int i = 0; i < num_test; ++i) {
     int* ptr = std::find( ids, ids+6, tests[i].prev_surf );
@@ -693,7 +693,7 @@ ErrorCode test_ray_fire( GeomQueryTool * gqt )
       return MB_FAILURE;
     }
     //const EntityHandle src_surf = surf[idx];
-    
+
     ptr = std::find( ids, ids+6, tests[i].hit_surf );
     idx = ptr - ids;
     if (idx >= 6) {
@@ -705,24 +705,24 @@ ErrorCode test_ray_fire( GeomQueryTool * gqt )
     double dist;
     EntityHandle result;
     GeomQueryTool::RayHistory history;
-    rval = gqt->ray_fire( vols.front(), 
+    rval = gqt->ray_fire( vols.front(),
                            tests[i].origin, tests[i].direction,
                            result, dist, &history );
-    
+
     if (result != hit_surf || fabs(dist - tests[i].distance) > 1e-6) {
       EntityHandle *p = std::find( surf, surf+6, result );
       idx = p - surf;
       int id = idx > 5 ? 0 : ids[idx];
-      
+
       std::cerr << "Rayfire test failed for " << std::endl
-                << "\t ray from (" << tests[i].origin[0] 
+                << "\t ray from (" << tests[i].origin[0]
                 << ", " << tests[i].origin[1] << ", "
                 << tests[i].origin[2] << ") going ["
-                << tests[i].direction[0] << ", " 
+                << tests[i].direction[0] << ", "
                 << tests[i].direction[1] << ", "
                 << tests[i].direction[2] << "]" << std::endl
                 << "\t Beginning on surface " << tests[i].prev_surf << std::endl
-                << "\t Expected to hit surface " << tests[i].hit_surf << " after " 
+                << "\t Expected to hit surface " << tests[i].hit_surf << " after "
                 << tests[i].distance << " units." << std::endl
                 << "\t Actually hit surface " << id << " after " << dist << " units."
                 << std::endl;
@@ -730,7 +730,7 @@ ErrorCode test_ray_fire( GeomQueryTool * gqt )
     }
 
     CartVect loc = CartVect(tests[i].origin) + (dist * CartVect(tests[i].direction));
-    
+
     std::vector< std::pair<int,GeomQueryTool::RayHistory*> > boundary_tests;
     boundary_tests.push_back( std::make_pair( 1, &history ) );
     boundary_tests.push_back( std::make_pair( 0, &history ) );
@@ -739,39 +739,39 @@ ErrorCode test_ray_fire( GeomQueryTool * gqt )
 
 
     for( unsigned int bt = 0; bt < boundary_tests.size(); ++bt ) {
-      
+
       int expected = boundary_tests[bt].first;
       GeomQueryTool::RayHistory* h = boundary_tests[bt].second;
-      
+
       // pick the direction based on expected result of test. Either reuse the ray_fire
       // vector, or reverse it to check for a vector that enters the cell
       CartVect uvw( tests[i].direction );
       if( expected == 1 )
-        uvw = -uvw; 
+        uvw = -uvw;
 
       int boundary_result = -1;
-      
-      rval = gqt->test_volume_boundary( vols.front(), result, loc.array(), 
+
+      rval = gqt->test_volume_boundary( vols.front(), result, loc.array(),
                                          uvw.array(), boundary_result, h );
-      
-      
+
+
       if( boundary_result != expected ){
         std::cerr << "DagMC::test_volume_boundary failed (" << ( (expected==0)?"+":"-" )
                   << " dir," << ( (h)?"+":"-" ) << " history, i=" << i << ")" <<  std::endl;
         return MB_FAILURE;
       }
-      
+
     }
-    
- 
+
+
   }
-  
+
   return MB_SUCCESS;
 }
 
 ErrorCode overlap_test_ray_fire( GeomQueryTool * gqt )
 {
-  // Glancing ray-triangle intersections are not valid exit intersections. 
+  // Glancing ray-triangle intersections are not valid exit intersections.
   // Piercing ray-triangle intersections are valid exit intersections.
   // "0" destination surface implies that it is ambiguous.
   const struct ray_fire tests[] = {
@@ -816,31 +816,31 @@ ErrorCode overlap_test_ray_fire( GeomQueryTool * gqt )
   Range surfs, vols;
   const int two = 2, three = 3;
   const void* ptrs[] = { &two, &three };
-  rval = moab->get_entities_by_type_and_tag( 0, MBENTITYSET, &dim_tag, 
+  rval = moab->get_entities_by_type_and_tag( 0, MBENTITYSET, &dim_tag,
                                             ptrs, 1, surfs );
   CHKERR;
-  rval = moab->get_entities_by_type_and_tag( 0, MBENTITYSET, &dim_tag, 
+  rval = moab->get_entities_by_type_and_tag( 0, MBENTITYSET, &dim_tag,
                                             ptrs+1, 1, vols );
   CHKERR;
-  
+
   if (vols.size() != 2) {
-    std::cerr << "ERROR: Expected 2 volumes in input, found " << vols.size() 
+    std::cerr << "ERROR: Expected 2 volumes in input, found " << vols.size()
               << std::endl;
     return MB_FAILURE;
   }
   const unsigned num_surf = 12;
   if (surfs.size() != num_surf) {
-    std::cerr << "ERROR: Expected " << num_surf << " surfaces in input, found " 
+    std::cerr << "ERROR: Expected " << num_surf << " surfaces in input, found "
               << surfs.size() << std::endl;
     return MB_FAILURE;
   }
-  
+
   int ids[num_surf];
   rval = moab->tag_get_data( gqt->gttool()->get_gid_tag(), surfs, ids );
   CHKERR;
   EntityHandle surf[num_surf];
   std::copy( surfs.begin(), surfs.end(), surf );
-  
+
   const int num_test = sizeof(tests) / sizeof(tests[0]);
   for (int i = 0; i < num_test; ++i) {
     int* ptr = std::find( ids, ids+num_surf, tests[i].prev_surf );
@@ -850,7 +850,7 @@ ErrorCode overlap_test_ray_fire( GeomQueryTool * gqt )
       return MB_FAILURE;
     }
     //const EntityHandle src_surf = surf[idx];
-    
+
     ptr = std::find( ids, ids+num_surf, tests[i].hit_surf );
     idx = ptr - ids;
     if (idx >= num_surf) {
@@ -861,31 +861,31 @@ ErrorCode overlap_test_ray_fire( GeomQueryTool * gqt )
 
     double dist;
     EntityHandle result;
-    rval = gqt->ray_fire( vols.front(), 
+    rval = gqt->ray_fire( vols.front(),
                            tests[i].origin, tests[i].direction,
                            result, dist );
-    
+
     if (result != hit_surf || fabs(dist - tests[i].distance) > 1e-6) {
       EntityHandle *p = std::find( surf, surf+6, result );
       idx = p - surf;
       int id = idx > num_surf-1 ? 0 : ids[idx];
-      
+
       std::cerr << "Rayfire test failed for " << std::endl
-                << "\t ray from (" << tests[i].origin[0] 
+                << "\t ray from (" << tests[i].origin[0]
                 << ", " << tests[i].origin[1] << ", "
                 << tests[i].origin[2] << ") going ["
-                << tests[i].direction[0] << ", " 
+                << tests[i].direction[0] << ", "
                 << tests[i].direction[1] << ", "
                 << tests[i].direction[2] << "]" << std::endl
                 << "\t Beginning on surface " << tests[i].prev_surf << std::endl
-                << "\t Expected to hit surface " << tests[i].hit_surf << " after " 
+                << "\t Expected to hit surface " << tests[i].hit_surf << " after "
                 << tests[i].distance << " units." << std::endl
                 << "\t Actually hit surface " << id << " after " << dist << " units."
                 << std::endl;
       return MB_FAILURE;
     }
   }
-  
+
   return MB_SUCCESS;
 }
 
@@ -949,30 +949,30 @@ ErrorCode test_point_in_volume( GeomQueryTool * gqt )
     CHKERR;
     if (result != tests[i].result) {
       std::cerr << "ERROR testing point_in_volume[" << i << "]:" << std::endl
-                << "\tExpected " << names[tests[i].result] 
+                << "\tExpected " << names[tests[i].result]
                 << " for (" << tests[i].coords[0] << ", "
                 << tests[i].coords[1] << ", " << tests[i].coords[2]
                 << ").  Got " << names[result] << std::endl;
       return MB_FAILURE;
     }
-    
+
       // point_in_volume_slow doesn't to boundary.
     if (tests[i].result == BOUNDARY)
       continue;
-     
+
     rval = gqt->point_in_volume_slow( vol, tests[i].coords, result );
     CHKERR;
-      
+
     if (result != tests[i].result) {
       std::cerr << "ERROR testing point_in_volume_slow[" << i << "]:" << std::endl
-                << "\tExpected " << names[tests[i].result] 
+                << "\tExpected " << names[tests[i].result]
                 << " for (" << tests[i].coords[0] << ", "
                 << tests[i].coords[1] << ", " << tests[i].coords[2]
                 << ").  Got " << names[result] << std::endl;
       return MB_FAILURE;
     }
   }
-  
+
   return MB_SUCCESS;
 }
 
@@ -1053,7 +1053,7 @@ ErrorCode overlap_test_point_in_volume( GeomQueryTool * gqt )
                                             &ptr, 1, vols );
   CHKERR;
   if (vols.size() != 2) {
-    std::cerr << "ERROR: Expected 2 volumes in input, found " << vols.size() 
+    std::cerr << "ERROR: Expected 2 volumes in input, found " << vols.size()
               << std::endl;
     return MB_FAILURE;
   }
@@ -1065,30 +1065,30 @@ ErrorCode overlap_test_point_in_volume( GeomQueryTool * gqt )
     CHKERR;
     if (result != tests[i].result) {
       std::cerr << "ERROR testing point_in_volume[" << i << "]:" << std::endl
-                << "\tExpected " << names[tests[i].result] 
+                << "\tExpected " << names[tests[i].result]
                 << " for (" << tests[i].coords[0] << ", "
                 << tests[i].coords[1] << ", " << tests[i].coords[2]
                 << ").  Got " << names[result] << std::endl;
       return MB_FAILURE;
     }
-    
+
       // point_in_volume_slow doesn't to boundary.
     if (tests[i].result == BOUNDARY)
       continue;
-     
-    rval = gqt->point_in_volume_slow( vol, tests[i].coords, result ); 
+
+    rval = gqt->point_in_volume_slow( vol, tests[i].coords, result );
     CHKERR;
-      
+
     if (result != tests[i].result) {
       std::cerr << "ERROR testing point_in_volume_slow[" << i << "]:" << std::endl
-                << "\tExpected " << names[tests[i].result] 
+                << "\tExpected " << names[tests[i].result]
                 << " for (" << tests[i].coords[0] << ", "
                 << tests[i].coords[1] << ", " << tests[i].coords[2]
                 << ").  Got " << names[result] << std::endl;
       return MB_FAILURE;
     }
   }
-  
+
   return MB_SUCCESS;
 }
 
@@ -1110,21 +1110,21 @@ ErrorCode overlap_test_tracking( GeomQueryTool * gqt )
   const void* ptrs[] = { &two, &three };
   ErrorCode rval;
   Interface *moab = gqt->moab_instance();
-  rval = moab->get_entities_by_type_and_tag( 0, MBENTITYSET, &dim_tag, 
+  rval = moab->get_entities_by_type_and_tag( 0, MBENTITYSET, &dim_tag,
                                             ptrs, 1, surfs );
   CHKERR;
-  rval = moab->get_entities_by_type_and_tag( 0, MBENTITYSET, &dim_tag, 
+  rval = moab->get_entities_by_type_and_tag( 0, MBENTITYSET, &dim_tag,
                                             ptrs+1, 1, explicit_vols );
   CHKERR;
-  
+
   if (explicit_vols.size() != 2) {
-    std::cerr << "ERROR: Expected 2 explicit volumes in input, found " 
+    std::cerr << "ERROR: Expected 2 explicit volumes in input, found "
               << explicit_vols.size() << std::endl;
     return MB_FAILURE;
   }
   const unsigned num_surf = 12;
   if (surfs.size() != num_surf) {
-    std::cerr << "ERROR: Expected " << num_surf << " surfaces in input, found " 
+    std::cerr << "ERROR: Expected " << num_surf << " surfaces in input, found "
               << surfs.size() << std::endl;
     return MB_FAILURE;
   }
@@ -1148,7 +1148,7 @@ ErrorCode overlap_test_tracking( GeomQueryTool * gqt )
   EntityHandle next_surf;
   GeomQueryTool::RayHistory history;
   rval = gqt->ray_fire( vol, point, dir, next_surf, dist, &history );
-  CHKERR;    
+  CHKERR;
   if (next_surf != surfs[7] || fabs(dist - 0.91) > 1e-6) {
     std::cerr << "ERROR: failed on advance 1" << std::endl;
     return MB_FAILURE;
@@ -1157,13 +1157,13 @@ ErrorCode overlap_test_tracking( GeomQueryTool * gqt )
 
   // get the next volume (implicit complement)
   EntityHandle next_vol;
-  rval = gqt->gttool()->next_vol( next_surf, vol, next_vol ); 
+  rval = gqt->gttool()->next_vol( next_surf, vol, next_vol );
   CHKERR;
 
   // get the next surface (behind numerical location)
   vol       = next_vol;
   rval = gqt->ray_fire( vol, point, dir, next_surf, dist, &history );
-  CHKERR;    
+  CHKERR;
   if (next_surf != surfs[3] || fabs(dist - 0.0) > 1e-6) {
     std::cerr << "ERROR: failed on advance 2" << std::endl;
     return MB_FAILURE;
@@ -1177,7 +1177,7 @@ ErrorCode overlap_test_tracking( GeomQueryTool * gqt )
   // get the next surface
   vol       = next_vol;
   rval = gqt->ray_fire( vol, point, dir, next_surf, dist, &history );
-  CHKERR;    
+  CHKERR;
   if (next_surf != surfs[1] || fabs(dist - 0.99) > 1e-6) {
     std::cerr << "ERROR: failed on advance 3" << std::endl;
     return MB_FAILURE;

@@ -4,16 +4,16 @@
 
 #include <limits>
 
-namespace moab 
+namespace moab
 {
-    ErrorCode Tree::parse_common_options(FileOptions &options) 
+    ErrorCode Tree::parse_common_options(FileOptions &options)
     {
       double tmp_dbl;
       int tmp_int;
         // MAX_PER_LEAF: max entities per leaf; default = 6
       ErrorCode rval = options.get_int_option("MAX_PER_LEAF", tmp_int);
       if (MB_SUCCESS == rval) maxPerLeaf = std::max(tmp_int, 1);
-      
+
         // MAX_DEPTH: max depth of the tree; default = 30
       rval = options.get_int_option("MAX_DEPTH", tmp_int);
       if (MB_SUCCESS == rval) maxDepth = tmp_int;
@@ -54,7 +54,7 @@ namespace moab
         boundBox.update(*vit);
 
       if (results.size() == 1) myRoot = *results.begin();
-      
+
       return MB_SUCCESS;
     }
 
@@ -67,7 +67,7 @@ namespace moab
         return rval;
 
       myRoot = root_handle;
-      
+
       double box_tag[6];
       for (int i = 0; i < 3; i++) {
         box_tag[i] = box_min[i];
@@ -79,14 +79,14 @@ namespace moab
 
       boundBox.bMin = box_min;
       boundBox.bMax = box_max;
-      
+
       return MB_SUCCESS;
     }
 
-    ErrorCode Tree::delete_tree_sets() 
+    ErrorCode Tree::delete_tree_sets()
     {
       if (!myRoot) return MB_SUCCESS;
-      
+
       ErrorCode rval;
       std::vector<EntityHandle> children, dead_sets, current_sets;
       current_sets.push_back(myRoot);
@@ -100,11 +100,11 @@ namespace moab
         std::copy( children.begin(), children.end(), std::back_inserter(current_sets) );
         children.clear();
       }
-  
+
       rval = mbImpl->tag_delete_data( boxTag, &myRoot, 1 );
       if (MB_SUCCESS != rval)
         return rval;
-  
+
       rval = mbImpl->delete_entities( &dead_sets[0], dead_sets.size() );
       if (MB_SUCCESS != rval) return rval;
 
@@ -112,5 +112,5 @@ namespace moab
 
       return MB_SUCCESS;
     }
-    
+
 }

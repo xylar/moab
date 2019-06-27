@@ -14,17 +14,17 @@ namespace MBMesquite
     /**
      * \param OF  For many relaxation solvers (e.g. Laplacian)
      * this ObjectiveFunction is used only to evaluate user-specified
-     * termination criteria that require an objective function.  
+     * termination criteria that require an objective function.
      */
 	MESQUITE_EXPORT
     RelaxationSmoother( ObjectiveFunction* OF = NULL ) : VertexMover(OF) {}
-    
+
 	MESQUITE_EXPORT
     virtual ~RelaxationSmoother();
 
 	MESQUITE_EXPORT
     PatchSet* get_patch_set() { return &patchSet; }
-    
+
   protected:
 	MESQUITE_EXPORT
     virtual void initialize(PatchData &pd, MsqError &err);
@@ -32,7 +32,7 @@ namespace MBMesquite
 	MESQUITE_EXPORT
     virtual void optimize_vertex_positions( PatchData &pd,
                                             MsqError &err) = 0;
-					 
+					
 	MESQUITE_EXPORT
     virtual void initialize_mesh_iteration(PatchData &pd, MsqError &err);
 
@@ -41,11 +41,11 @@ namespace MBMesquite
 
 	MESQUITE_EXPORT
     virtual void cleanup();
-    
+
   private:
     VertexPatches patchSet;
   };
-  
+
 }
 
 #endif

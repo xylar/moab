@@ -1,16 +1,16 @@
 /**
  * MOAB, a Mesh-Oriented datABase, is a software component for creating,
  * storing and accessing finite element mesh data.
- * 
+ *
  * Copyright 2004 Sandia Corporation.  Under the terms of Contract
  * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
  * retains certain rights in this software.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  */
 
 #include "ExoIIUtil.hpp"
@@ -94,35 +94,35 @@ const char* ExoIIUtil::ElementTypeNames[] =
   "TRI",     // 11
   "TRI3",    // 12
   "SHELL3",  // 13  really the same as TRI3; for sure in 3d?
-  "TRI6", 
+  "TRI6",
   "TRI7",
-  "QUAD", 
-  "QUAD4", 
-  "QUAD5", 
-  "QUAD8", 
+  "QUAD",
+  "QUAD4",
+  "QUAD5",
+  "QUAD8",
   "QUAD9",
-  "SHELL", 
-  "SHELL4", 
-  "SHELL5", 
-  "SHELL8", 
+  "SHELL",
+  "SHELL4",
+  "SHELL5",
+  "SHELL8",
   "SHELL9",
-  "TETRA", 
+  "TETRA",
   "TETRA4",
   "TET4",
-  "TETRA8", 
-  "TETRA10", 
+  "TETRA8",
+  "TETRA10",
   "TETRA14",
-  "PYRAMID", 
-  "PYRAMID5", 
-  "PYRAMID10", 
-  "PYRAMID13", 
+  "PYRAMID",
+  "PYRAMID5",
+  "PYRAMID10",
+  "PYRAMID13",
   "PYRAMID18",
   "WEDGE",
   "KNIFE",
-  "HEX", 
-  "HEX8", 
-  "HEX9", 
-  "HEX20", 
+  "HEX",
+  "HEX8",
+  "HEX9",
+  "HEX20",
   "HEX27",
   "HEXSHELL",
   "nsided", // polygons, described differently
@@ -132,49 +132,49 @@ const char* ExoIIUtil::ElementTypeNames[] =
 
 const int ExoIIUtil::VerticesPerElement[] =
 {
-  1,             // SPHERE 
+  1,             // SPHERE
   1,             // SPRING
-  2, 
-  2,  
+  2,
+  2,
   3,      // BAR
-  2, 
-  2,  
+  2,
+  2,
   3,      // BEAM
-  2, 
-  2,  
+  2,
+  2,
   3,      // TRUSS
   3,      // TRI
   3,      // TRI3
   3,      // SHELL3 this is new
-  6,  
+  6,
   7,      // TRI
-  4, 
-  4,  
-  5,  
-  8,  
+  4,
+  4,
+  5,
+  8,
   9,  // QUAD
-  4, 
-  4, 
-  5, 
-  8,  
+  4,
+  4,
+  5,
+  8,
   9,  // SHELL
-  4, 
-  4,  
+  4,
+  4,
   4,  // TET4
-  8, 
-  10, 
+  8,
+  10,
   14,  // TETRA
-  5, 
-  5,  
-  10, 
-  13, 
+  5,
+  5,
+  10,
+  13,
   18,  // PYRAMID
   6,  // WEDGE
   7,  // KNIFE
-  8, 
-  8,  
-  9, 
-  20, 
+  8,
+  8,
+  9,
+  20,
   27,  // HEX
   12,            // HEXSHELL
   0,             //POLYGON
@@ -182,7 +182,7 @@ const int ExoIIUtil::VerticesPerElement[] =
   0              // UNKNOWN
 };
 
-const int ExoIIUtil::HasMidNodes[][4] = 
+const int ExoIIUtil::HasMidNodes[][4] =
 {
   {0, 0, 0, 0}, // SPHERE - no mid nodes
   {0, 0, 0, 0}, // SPRING - no mid nodes
@@ -234,51 +234,51 @@ const int ExoIIUtil::HasMidNodes[][4] =
   {0, 0, 0, 0} // UNKNOWN - no mid nodes
 };
 
-const int ExoIIUtil::ElementGeometricDimension[] =  
-{ 
-  3,          // SPHERE  
+const int ExoIIUtil::ElementGeometricDimension[] =
+{
+  3,          // SPHERE
   3,          // SPRING
-  2, 
-  2, 
+  2,
+  2,
   2,    // BAR
-  3, 
-  3, 
+  3,
+  3,
   3,    // BEAM
-  3, 
-  3, 
+  3,
+  3,
   3,    // TRUSS
-  3, 
-  3, 
-  3, 
+  3,
+  3,
+  3,
   3,
   3, // TRI
-  2, 
-  2, 
-  2, 
-  2, 
+  2,
+  2,
+  2,
+  2,
   2, // QUAD
-  3, 
-  3, 
-  3, 
+  3,
+  3,
+  3,
   3,
   3, // SHELL
-  3, 
-  3, 
-  3, 
-  3, 
+  3,
+  3,
+  3,
+  3,
   3, // TETRA
   3,
-  3, 
-  3, 
-  3, 
-  3, 
+  3,
+  3,
+  3,
+  3,
   3,// PYRAMID
   3, // WEDGE
   3, // KNIFE
-  3, 
-  3, 
-  3, 
-  3, 
+  3,
+  3,
+  3,
+  3,
   3, // HEX
   3,          // HEXSHELL
   2,  // POLYGON
@@ -286,7 +286,7 @@ const int ExoIIUtil::ElementGeometricDimension[] =
   0 // UNKNOWN
 };
 
-ExoIIElementType ExoIIUtil::static_element_name_to_type(const char *name) 
+ExoIIElementType ExoIIUtil::static_element_name_to_type(const char *name)
 {
   int i;
   for (i = 0; i < EXOII_MAX_ELEM_TYPE; i++)
@@ -296,16 +296,16 @@ ExoIIElementType ExoIIUtil::static_element_name_to_type(const char *name)
   return EXOII_MAX_ELEM_TYPE;
 }
 
-ExoIIElementType ExoIIUtil::static_get_element_type(Interface *mdbImpl, 
-                                             const EntityHandle entity, 
-                                             const Tag mid_nodes_tag, 
+ExoIIElementType ExoIIUtil::static_get_element_type(Interface *mdbImpl,
+                                             const EntityHandle entity,
+                                             const Tag mid_nodes_tag,
                                                     const Tag geom_dimension_tag,
-                                             const EntityType indiv_entity_type) 
+                                             const EntityType indiv_entity_type)
 {
     // branch based on what kind of entity we're looking at
   EntityType handle_type = mdbImpl->type_from_handle(entity);
-  
-  if (handle_type == MBENTITYSET) 
+
+  if (handle_type == MBENTITYSET)
   {
 
       // it's a meshset - assume it's a block (check this?) and work off the midnodes tag
@@ -313,22 +313,22 @@ ExoIIElementType ExoIIUtil::static_get_element_type(Interface *mdbImpl,
       //get the element type of the block; first, get the hasMidNodes tag, then convert to an exo element type
     int has_mid_nodes[4];
     int dimension = -1;
-    if(mdbImpl->tag_get_data(mid_nodes_tag, &entity, 1, has_mid_nodes) != MB_SUCCESS) 
+    if(mdbImpl->tag_get_data(mid_nodes_tag, &entity, 1, has_mid_nodes) != MB_SUCCESS)
     {
         // no mid nodes tag - look for indiv entity type, and if it was input, output the default
         // number of vertices
       if (MBMAXTYPE != indiv_entity_type)
       {
         //get dimension
-        if( indiv_entity_type == MBQUAD || 
+        if( indiv_entity_type == MBQUAD ||
             indiv_entity_type == MBTRI )
           dimension = 3; //want to ouput shells by default
         else if( indiv_entity_type == MBEDGE )
           dimension = 2;
         else
           dimension = CN::Dimension(indiv_entity_type);
-          
-        return get_element_type_from_num_verts(CN::VerticesPerEntity(indiv_entity_type), 
+
+        return get_element_type_from_num_verts(CN::VerticesPerEntity(indiv_entity_type),
                                                indiv_entity_type, dimension);
       }
       else return EXOII_MAX_ELEM_TYPE;
@@ -347,7 +347,7 @@ ExoIIElementType ExoIIUtil::static_get_element_type(Interface *mdbImpl,
           (-1 == dimension || ElementGeometricDimension[i] == dimension))
         return (ExoIIElementType) i;
     }
-  
+
     return EXOII_MAX_ELEM_TYPE;
   }
 
@@ -367,9 +367,9 @@ ExoIIElementType ExoIIUtil::static_get_element_type(Interface *mdbImpl,
   //return EXOII_MAX_ELEM_TYPE;
 }
 
-ExoIIElementType ExoIIUtil::get_element_type_from_num_verts(const int num_verts, 
+ExoIIElementType ExoIIUtil::get_element_type_from_num_verts(const int num_verts,
                                                             const EntityType entity_type,
-                                                            const int dimension) 
+                                                            const int dimension)
 {
   if (MBPOLYGON==entity_type && 2==dimension) return EXOII_POLYGON;
   if (MBPOLYHEDRON==entity_type && 3 == dimension) return EXOII_POLYHEDRON;
@@ -379,7 +379,7 @@ ExoIIElementType ExoIIUtil::get_element_type_from_num_verts(const int num_verts,
         ElementGeometricDimension[i] >= dimension)
       return (ExoIIElementType) i;
   }
-  
+
   return EXOII_MAX_ELEM_TYPE;
 }
 

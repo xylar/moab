@@ -1,16 +1,16 @@
 /**
  * MOAB, a Mesh-Oriented datABase, is a software component for creating,
  * storing and accessing finite element mesh data.
- * 
+ *
  * Copyright 2004 Sandia Corporation.  Under the terms of Contract
  * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
  * retains certain rights in this software.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  */
 
 #include "TSTT_MB_QueryInterface.h"
@@ -19,50 +19,50 @@
 using namespace moab;
 
 int compare_coords(double *xval, double *yval, double *zval,
-                   double *nodex, double *nodey, double *nodez, 
+                   double *nodex, double *nodey, double *nodez,
                    const int num_nodes);
 int compare_connect(int *connect1, int *connect2, const int num_comps);
 
 #include <iostream>
 
-int main() 
+int main()
 {
     // very basic test of RMBSet
     // The test: instantiate a mesh with 2 tet elements sharing a face;
     // represent just the 5 nodes (1-5) and 2 elements (1234 & 3215)
-    // 
+    //
 
     // nodal coordinates: shared tri in x-y plane with edges on x and y
     // axes and a node at the origin, plus nodes at z = +- 1
     //
-    //  x4                
-    //  . .              
+    //  x4
+    //  . .
     //  .  x1               z
     //   . .\               /\  /\y
     //   . .  \ E1            . |
     //    ..    \              .|
     //    2x------x3            .---->x
-    //      .     .      
-    //       .E2 .       
-    //        . .        
-    //         x5         
-    //         . .               
-    //         .  x6             
-    //          . .\ 
+    //      .     .
+    //       .E2 .
+    //        . .
+    //         x5
+    //         . .
+    //         .  x6
+    //          . .\
     //          . .  \ E3
-    //           ..    \         
-    //           7x------x8      
-    //             .     .       
+    //           ..    \
+    //           7x------x8
+    //             .     .
     //              .   .  E4
-    //               . .         
+    //               . .
     //                x9
-    //      
-    //      
-  double nodex[] = {0.0, 0.0, 1.0, 0.0, 0.0, 
+    //
+    //
+  double nodex[] = {0.0, 0.0, 1.0, 0.0, 0.0,
                     0.0, 0.0, 1.0, 0.0};
-  double nodey[] = {1.0, 0.0, 0.0, 0.0, 0.0, 
+  double nodey[] = {1.0, 0.0, 0.0, 0.0, 0.0,
                     1.0, 0.0, 0.0, 0.0};
-  double nodez[] = {0.0, 0.0, 0.0, 1.0, -1.0, 
+  double nodez[] = {0.0, 0.0, 0.0, 1.0, -1.0,
                     -2.0, -2.0, -2.0, -3.0};
   int connect[] = {
     1, 2, 3, 4,
@@ -70,17 +70,17 @@ int main()
     6, 7, 8, 5,
     8, 7, 6, 9
   };
-  
+
   const int NUM_NODES = 9;
 
     // construct the RMS holding the nodes
   MB_RMBSet node_rms(NUM_NODES, nodex, nodey, nodez, 1, 0);
-  
+
     // construct two RMS's holding each pair of elements
   MB_RMBSet elem_rms1(2, connect, 1, TSTT_REGION, TSTT_TETRAHEDRON);
   MB_RMBSet elem_rms2(2, &connect[8], 3, TSTT_REGION, TSTT_TETRAHEDRON);
-  
-  
+
+
     // now do some querying on this mesh
 
     // INFO FUNCTIONS
@@ -89,23 +89,23 @@ int main()
   if (entity_type1 != TSTT_VERTEX ||
       entity_type2 != TSTT_REGION)
     std::cout << "entity_type() function failed." << std::endl;
-  
+
   int entity_topo = elem_rms1.entity_topology();
   if (entity_topo != TSTT_TETRAHEDRON)
     std::cout << "entity_topology() function failed." << std::endl;
-  
+
   int num_ents1 = node_rms.num_entities();
   int num_ents2 = elem_rms1.num_entities();
   if (num_ents1 != NUM_NODES || num_ents2 != 2)
-    std::cout << "num_entities() function failed for" << 
+    std::cout << "num_entities() function failed for" <<
       (num_ents1 != NUM_NODES ? "(nodes)" : "") <<
       (num_ents2 != 2 ? "(elems)" : "") <<
       std::endl;
-  
+
   int vpe = elem_rms1.vertices_per_element();
   if (vpe != 4)
     std::cout << "vertices_per_element() failed." << std::endl;
-  
+
     // NODES
 /*
     // get_coordinates
@@ -127,7 +127,7 @@ int main()
   node_rms.node_y(1, NUM_NODES, &yvalp, &num_nodes);
   node_rms.node_z(1, NUM_NODES, &zvalp, &num_nodes);
   int result = compare_coords(xval, yval, zval, nodex, nodey, nodez, NUM_NODES);
-  if (result != 0) 
+  if (result != 0)
     std::cout << "node_[xyz] didn't work; result = " << result << "." << std::endl;
 
     // set_node_x, set_node_y, set_node_z
@@ -144,7 +144,7 @@ int main()
   node_rms.node_y(1, NUM_NODES, &yvalp, &num_nodes);
   node_rms.node_z(1, NUM_NODES, &zvalp, &num_nodes);
   result = compare_coords(xval, yval, zval, nodex, nodey, nodez, NUM_NODES);
-  if (result != 0) 
+  if (result != 0)
     std::cout << "node_[xyz] didn't work; result = " << result << "." << std::endl;
 
     // ELEMENTS
@@ -156,7 +156,7 @@ int main()
     std::cout << "elem_connectivity() RETURN VALUE failed." << std::endl;
   if (8 != size_connect2)
     std::cout << "re-sizing of connect2 vector failed." << std::endl;
-  
+
   result = compare_connect(connect2, connect, 8);
   if (result != 0)
     std::cout << "elem_connectivity() VALUES failed." << std::endl;
@@ -169,7 +169,7 @@ int main()
   status = elem_rms1.elem_connectivity(1, 2, &connect2, &size_connect2);
   if (status != true)
     std::cout << "set_elem_connectivity() RETURN VALUE failed." << std::endl;
-  
+
   result = compare_connect(connect2, connect, 8);
   if (result != 0)
     std::cout << "elem_connectivity() VALUES failed." << std::endl;
@@ -177,25 +177,25 @@ int main()
     // RMESHSET FIND FUNCTIONS
     // find the rmeshsets for a node, and an element in each set
   MB_RMBSet *new_rms1, *new_rms2, *new_rms3;
-  new_rms1 = MB_RMBSet::find_rmeshset(TSTT_VERTEX, TSTT_LAST_TOPOLOGY, 
+  new_rms1 = MB_RMBSet::find_rmeshset(TSTT_VERTEX, TSTT_LAST_TOPOLOGY,
                                          reinterpret_cast<const void*>(2));
-  new_rms2 = MB_RMBSet::find_rmeshset(TSTT_REGION, TSTT_TETRAHEDRON, 
+  new_rms2 = MB_RMBSet::find_rmeshset(TSTT_REGION, TSTT_TETRAHEDRON,
                                          reinterpret_cast<const void*>(2));
-  new_rms3 = MB_RMBSet::find_rmeshset(TSTT_REGION, TSTT_TETRAHEDRON, 
+  new_rms3 = MB_RMBSet::find_rmeshset(TSTT_REGION, TSTT_TETRAHEDRON,
                                          reinterpret_cast<const void*>(4));
   if (new_rms1 != &node_rms || new_rms2 != &elem_rms1 || new_rms3 != &elem_rms2)
     std::cout << "find_rmeshset() function failed." << std::endl;
 
     // now test NULL returns
-  new_rms1 = MB_RMBSet::find_rmeshset(TSTT_VERTEX, TSTT_LAST_TOPOLOGY, 
+  new_rms1 = MB_RMBSet::find_rmeshset(TSTT_VERTEX, TSTT_LAST_TOPOLOGY,
                                          reinterpret_cast<const void*>(10));
-  new_rms2 = MB_RMBSet::find_rmeshset(TSTT_REGION, TSTT_TETRAHEDRON, 
+  new_rms2 = MB_RMBSet::find_rmeshset(TSTT_REGION, TSTT_TETRAHEDRON,
                                          reinterpret_cast<const void*>(0));
-  new_rms3 = MB_RMBSet::find_rmeshset(TSTT_REGION, TSTT_TETRAHEDRON, 
+  new_rms3 = MB_RMBSet::find_rmeshset(TSTT_REGION, TSTT_TETRAHEDRON,
                                          reinterpret_cast<const void*>(5));
   if (NULL != new_rms1 || NULL != new_rms2 || NULL != new_rms3)
     std::cout << "find_rmeshset() for NULL RETURN failed." << std::endl;
-  
+
     // test is_in_rmeshset
   bool result1, result2, result3;
   result1 = node_rms.is_in_rmeshset(reinterpret_cast<const void*>(6));
@@ -203,7 +203,7 @@ int main()
   result3 = elem_rms2.is_in_rmeshset(reinterpret_cast<const void*>(4));
   if (false == result1 || false == result2 || false == result3)
     std::cout << "is_in_rmeshset() failed." << std::endl;
-  
+
     // test is_in_rmeshset
   result1 = node_rms.is_in_rmeshset(reinterpret_cast<const void*>(10));
   result2 = elem_rms1.is_in_rmeshset(reinterpret_cast<const void*>(4));
@@ -215,9 +215,9 @@ int main()
 }
 
 
-int compare_coords(double *xval, double *yval, double *zval, 
-                   double *nodex, double *nodey, double *nodez, 
-                   const int num_nodes) 
+int compare_coords(double *xval, double *yval, double *zval,
+                   double *nodex, double *nodey, double *nodez,
+                   const int num_nodes)
 {
   int i, result = 0;
   for (i = 0; i < num_nodes; i++) {
@@ -229,7 +229,7 @@ int compare_coords(double *xval, double *yval, double *zval,
   return result;
 }
 
-int compare_connect(int *connect1, int *connect2, const int num_comps) 
+int compare_connect(int *connect1, int *connect2, const int num_comps)
 {
   int i, result = 0;
   for (i = 0; i < num_comps; i++) {

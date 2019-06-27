@@ -1,9 +1,9 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2004 Sandia Corporation and Argonne National
-    Laboratory.  Under the terms of Contract DE-AC04-94AL85000 
-    with Sandia Corporation, the U.S. Government retains certain 
+    Laboratory.  Under the terms of Contract DE-AC04-94AL85000
+    with Sandia Corporation, the U.S. Government retains certain
     rights in this software.
 
     This library is free software; you can redistribute it and/or
@@ -16,17 +16,17 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
-    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov, 
-    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov      
-   
+
+    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov,
+    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov
+
   ***************************************************************** */
 // -*- Mode : c++; tab-width: 3; c-tab-always-indent: t; indent-tabs-mode: nil; c-basic-offset: 3 -*-
 //
-//   SUMMARY: 
+//   SUMMARY:
 //     USAGE:
 //
 // ORIG-DATE: 19-Feb-02 at 10:57:52
@@ -77,7 +77,7 @@ void usage()
 {
   cout << "main [-N] [filename]" << endl;
   cout << "  -N : Use native representation instead of TSTT implementation\n";
-  cout << "  If no file name is specified, will use \"" 
+  cout << "  If no file name is specified, will use \""
        << default_file_name << '"' << endl;
   exit (1);
 }
@@ -121,35 +121,35 @@ int main(int argc, char* argv[])
   {
     file_name = default_file_name.c_str();
     cout << "No file specified: using default: " << default_file_name << endl;
-  }  
-  
+  }
+
     // Try running a global smoother on the mesh
-  Mesh* mesh = use_native ? 
-               get_native_mesh(file_name) : 
+  Mesh* mesh = use_native ?
+               get_native_mesh(file_name) :
                get_imesh_mesh(file_name);
   if (!mesh) {
     std::cerr << "Failed to load input file.  Aborting." << std::endl;
     return 1;
   }
-  
-  MeshWriter::write_vtk(mesh, "original.vtk", err); 
+
+  MeshWriter::write_vtk(mesh, "original.vtk", err);
   if (err) return 1;
   cout << "Wrote \"original.vtk\"" << endl;
   run_global_smoother( mesh, err );
   if (err) return 1;
-  
+
     // Try running a local smoother on the mesh
-  mesh = use_native ? 
-         get_native_mesh(file_name) : 
+  mesh = use_native ?
+         get_native_mesh(file_name) :
          get_imesh_mesh(file_name);
   if (!mesh) {
     std::cerr << "Failed to load input file.  Aborting." << std::endl;
     return 1;
   }
-  
+
   run_local_smoother( mesh, err );
   if (err) return 1;
-  
+
   return 0;
 }
 
@@ -164,20 +164,20 @@ int run_global_smoother( Mesh* mesh, MsqError& err )
   // creates a mean ratio quality metric ...
   IdealWeightInverseMeanRatio* mean_ratio = new IdealWeightInverseMeanRatio(err);
   if (err) return 1;
-  mean_ratio->set_averaging_method(QualityMetric::SUM, err); 
+  mean_ratio->set_averaging_method(QualityMetric::SUM, err);
   if (err) return 1;
-  
+
   // ... and builds an objective function with it
   LPtoPTemplate* obj_func = new LPtoPTemplate(mean_ratio, 1, err);
   if (err) return 1;
-  
+
   // creates the feas newt optimization procedures
   FeasibleNewton* pass1 = new FeasibleNewton( obj_func );
   pass1->use_global_patch();
   if (err) return 1;
-  
+
   QualityAssessor stop_qa( mean_ratio );
-  
+
   // **************Set stopping criterion****************
   TerminationCriterion tc_inner;
   tc_inner.add_absolute_vertex_movement( OF_value );
@@ -189,19 +189,19 @@ int run_global_smoother( Mesh* mesh, MsqError& err )
 
   queue1.add_quality_assessor(&stop_qa, err);
   if (err) return 1;
-   
+
   // adds 1 pass of pass1 to mesh_set1
   queue1.set_master_quality_improver(pass1, err);
   if (err) return 1;
-  
-  queue1.add_quality_assessor(&stop_qa, err); 
+
+  queue1.add_quality_assessor(&stop_qa, err);
   if (err) return 1;
 
   // launches optimization on mesh_set
   queue1.run_instructions(mesh, err);
   if (err) return 1;
 
-  MeshWriter::write_vtk(mesh, "feasible-newton-result.vtk", err); 
+  MeshWriter::write_vtk(mesh, "feasible-newton-result.vtk", err);
   if (err) return 1;
   cout << "Wrote \"feasible-newton-result.vtk\"" << endl;
 
@@ -219,18 +219,18 @@ int run_local_smoother( Mesh* mesh, MsqError& err )
   // creates a mean ratio quality metric ...
   IdealWeightInverseMeanRatio* mean_ratio = new IdealWeightInverseMeanRatio(err);
   if (err) return 1;
-  mean_ratio->set_averaging_method(QualityMetric::SUM, err); 
+  mean_ratio->set_averaging_method(QualityMetric::SUM, err);
   if (err) return 1;
-  
+
   // ... and builds an objective function with it
   LPtoPTemplate* obj_func = new LPtoPTemplate(mean_ratio, 1, err);
   if (err) return 1;
-  
+
   // creates the smart laplacian optimization procedures
   SmartLaplacianSmoother* pass1 = new SmartLaplacianSmoother( obj_func );
-  
+
   QualityAssessor stop_qa( mean_ratio );
-  
+
   // **************Set stopping criterion****************
   TerminationCriterion tc_inner;
   tc_inner.add_absolute_vertex_movement( OF_value );
@@ -241,26 +241,26 @@ int run_local_smoother( Mesh* mesh, MsqError& err )
 
   queue1.add_quality_assessor(&stop_qa, err);
   if (err) return 1;
-   
+
   // adds 1 pass of pass1 to mesh_set
   queue1.set_master_quality_improver(pass1, err);
   if (err) return 1;
-  
-  queue1.add_quality_assessor(&stop_qa, err); 
+
+  queue1.add_quality_assessor(&stop_qa, err);
   if (err) return 1;
 
   // launches optimization on mesh_set
   queue1.run_instructions(mesh, err);
   if (err) return 1;
 
-  MeshWriter::write_vtk(mesh, "smart-laplacian-result.vtk", err); 
+  MeshWriter::write_vtk(mesh, "smart-laplacian-result.vtk", err);
   if (err) return 1;
   cout << "Wrote \"smart-laplacian-result.vtk\"" << endl;
 
   //print_timing_diagnostics( cout );
   return 0;
 }
- 
+
 
 
 Mesh* get_imesh_mesh( const char* file_name )
@@ -271,14 +271,14 @@ Mesh* get_imesh_mesh( const char* file_name )
   if (iBase_SUCCESS != ierr) {
     return 0;
   }
-  
+
   iBase_EntitySetHandle root_set;
   iMesh_getRootSet( imesh_mesh, &root_set, &ierr );
   if (iBase_SUCCESS != ierr) {
     iMesh_dtor( imesh_mesh, &ierr );
     return 0;
   }
-  
+
   iMesh_load( imesh_mesh, root_set, file_name, 0, &ierr, strlen(file_name), 0 );
   if (iBase_SUCCESS != ierr) {
     std::cerr << file_name << ": failed to load file." << std::endl;
@@ -300,10 +300,10 @@ Mesh* get_imesh_mesh( const char* file_name )
     cerr << err << endl;
     return 0;
   }
-  
+
   return result;
 }
-  
+
 
 
 Mesh* get_native_mesh( const char* file_name )
@@ -316,7 +316,7 @@ Mesh* get_native_mesh( const char* file_name )
     cerr << err << endl;
     exit(3);
   }
-  
+
   return mesh;
 }
 

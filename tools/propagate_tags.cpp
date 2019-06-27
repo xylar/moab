@@ -53,7 +53,7 @@ const char* exe_name = 0;
 static void usage( bool error = true )
 {
   std::ostream& s = error ? std::cerr : std::cout;
-  
+
   s << "Usage: " << exe_name << " <options> <input_file> <output_file>" << std::endl
     << "       " << exe_name << " -h" << std::endl
     << "Options: " << std::endl
@@ -67,7 +67,7 @@ static void usage( bool error = true )
     s << "Try '-h' for verbose help." << std::endl;
     exit(1);
   }
-  
+
   s << "This utility will write tag data to a subset of the mesh entities " << std::endl
     << "contained in a file.  The behavior is controlled by three main " << std::endl
     << "properties:" << std::endl
@@ -107,7 +107,7 @@ static void usage( bool error = true )
     << " -e : Write tag data only on elements." << std::endl
     << " -E : Tag value on each node is that of one of its adjacent elements." << std::endl
     << std::endl
-    << "The syntax for specifying tag values is as follows: " 
+    << "The syntax for specifying tag values is as follows: "
     << std::endl << std::endl;
   tag_syntax(s);
   s << std::endl;
@@ -122,7 +122,7 @@ static void about( bool error = true )
        "those sets." << std::endl << std::endl;
   usage(error);
 }
-  
+
 static void parse_error( const char* msg, const char* val = 0 )
 {
   std::cerr << msg;
@@ -141,8 +141,8 @@ int main( int argc, char* argv[] )
 
   if (argc == 1)
     about();
-    
-    // find file names 
+
+    // find file names
     // load input file before processing other options so
     // tags are defined
   const char* input_name = 0;
@@ -151,12 +151,12 @@ int main( int argc, char* argv[] )
   {
     if (argv[i][0] == '-')
     {
-      switch (argv[i][1]) { 
-        case 't': case 'c': case 'd': case 'w': 
-          ++i; 
+      switch (argv[i][1]) {
+        case 't': case 'c': case 'd': case 'w':
+          ++i;
         case 'n': case 'e': case 'E':
           break;
-        case 'h': 
+        case 'h':
           usage(false);
           break;
         default:
@@ -168,15 +168,15 @@ int main( int argc, char* argv[] )
       input_name = argv[i];
     else if (!output_name)
       output_name = argv[i];
-    else 
+    else
       parse_error( "Unexpected argument", argv[i] );
   }
-  
+
   if (!input_name)
     parse_error( "No input file specified." );
   if (!output_name)
     parse_error( "No output file specified." );
-  
+
     // Read the input file
   if (MB_SUCCESS != iface->load_mesh( input_name ))
   {
@@ -187,8 +187,8 @@ int main( int argc, char* argv[] )
     return 2;
   }
 
-    
-    
+
+
   bool nodes_spec = false;
   bool elems_spec = false;
   bool node_from_elem_spec = false;
@@ -199,7 +199,7 @@ int main( int argc, char* argv[] )
   typedef std::vector<TagSpec> TagVect;
   TagVect ident_tags;
   int data_size = 0;
-  
+
   for (int i = 1; i < argc; ++i)
   {
     if (argv[i] == input_name || argv[i] == output_name)
@@ -220,11 +220,11 @@ int main( int argc, char* argv[] )
       char flag = argv[i][1];
       if ((flag != 't' && flag != 'd' && flag != 'w' && flag != 'c') || argv[i][2])
         parse_error( "Invalid argument", argv[i] );
-      
+
       ++i;
       if (i == argc)
         parse_error( "Expected tag spec following option", argv[i-1] );
-    
+
       if (flag == 'w')
       {
         if (write_tag_name)
@@ -236,24 +236,24 @@ int main( int argc, char* argv[] )
         TagSpec spec;
         if (parse_tag_create( argv[i], spec, iface ))
           parse_error( "Failed to parse tag spec", argv[i] );
-        
+
         if (have_data_tag)
           parse_error( "Invalid argument", argv[i] );
-        
+
         data_tag = spec;
         have_data_tag = true;
-      }         
+      }
       else
       {
         TagSpec spec;
         if (parse_tag_spec( argv[i], spec, iface))
           parse_error("Failed to parse tag spec", argv[i] );
-        
+
         if (flag == 'd')
         {
           if (have_data_tag)
             parse_error( "Invalid argument", argv[i] );
-         
+
           data_tag = spec;
           have_data_tag = true;
         }
@@ -264,15 +264,15 @@ int main( int argc, char* argv[] )
       }
     }
   } // for(args)
-  
+
     // if neither, default to both
   if (!nodes_spec && !elems_spec)
     nodes_spec = elems_spec = true;
-  
+
     // must have at least one identifying tag
   if (ident_tags.empty())
     parse_error ("At least one identifying tag must be specified.");
-  
+
     // If data tag wasn't specified, use identifying tag for data
   if (!have_data_tag)
   {
@@ -282,8 +282,8 @@ int main( int argc, char* argv[] )
     data_tag.handle = ident_tags[0].handle;
   }
   CALL( tag_get_bytes, (data_tag.handle, data_size) );
-  
-    // If write dat wasn't specified, use data tag 
+
+    // If write dat wasn't specified, use data tag
   if (!write_tag_name)
   {
     write_tag = data_tag.handle;
@@ -295,13 +295,13 @@ int main( int argc, char* argv[] )
   {
     DataType data_type;
     CALL( tag_get_data_type, (data_tag.handle, data_type) );
-    
+
     CALL( tag_get_handle, (write_tag_name, data_size, data_type, write_tag, MB_TAG_SPARSE|MB_TAG_BYTES|MB_TAG_CREAT) );
   }
-  
-  
+
+
   /**************** Done processing input -- do actual work ****************/
- 
+
     // Get list of sets with identifying tags
   Range sets, temp;
   for (TagVect::iterator i = ident_tags.begin(); i != ident_tags.end(); ++i)
@@ -311,7 +311,7 @@ int main( int argc, char* argv[] )
           (0, MBENTITYSET, &i->handle, i->value ? value : 0, 1, temp) );
     sets.merge( temp );
   }
-  
+
     // For each set, set tag on contained entities
   std::vector<unsigned char> tag_data(data_size);
   for (Range::iterator i = sets.begin(); i != sets.end(); ++i)
@@ -322,7 +322,7 @@ int main( int argc, char* argv[] )
     {
       if (!data_tag.value)
       {
-        std::cerr << "Data tag not set for entityset " 
+        std::cerr << "Data tag not set for entityset "
                   << iface->id_from_handle(*i) << std::endl;
         continue;
       }
@@ -332,15 +332,15 @@ int main( int argc, char* argv[] )
     {
       CALL( tag_get_data, (data_tag.handle, &*i, 1, &tag_data[0]) );
     }
-    
+
       // Get entities
     Range entities;
     CALL( get_entities_by_handle, (*i, entities, true) );
     int junk;
-    Range::iterator eb = entities.lower_bound( entities.begin(), 
+    Range::iterator eb = entities.lower_bound( entities.begin(),
                                                  entities.end(),
                                                  CREATE_HANDLE(MBEDGE,0,junk) );
-    if (elems_spec) 
+    if (elems_spec)
       for (Range::iterator j = eb; j != entities.end(); ++j)
         CALL( tag_set_data, (write_tag, &*j, 1, &tag_data[0]) );
     if (nodes_spec)
@@ -355,7 +355,7 @@ int main( int argc, char* argv[] )
         CALL( tag_set_data, (write_tag, &*j, 1, &tag_data[0]) );
     }
   }
-  
+
     // Write the output file
   if (MB_SUCCESS != iface->write_mesh( output_name ))
   {
@@ -365,15 +365,15 @@ int main( int argc, char* argv[] )
       std::cerr << message << std::endl;
     return 2;
   }
-  
+
   return 0;
 }
 
-  
-  
-    
-    
-      
-  
-  
-  
+
+
+
+
+
+
+
+

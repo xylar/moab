@@ -29,7 +29,7 @@
 
 namespace moab {
 
-class DamselUtil 
+class DamselUtil
 {
 public:
   friend class WriteDamsel;

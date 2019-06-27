@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2006 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
+
     (2006) kraftche@cae.wisc.edu
-   
+
   ***************************************************************** */
 
 
 /** \file TriLagrangeShape.cpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -39,7 +39,7 @@ namespace MBMesquite {
 
 EntityTopology TriLagrangeShape::element_topology() const
   { return TRIANGLE; }
-  
+
 int TriLagrangeShape::num_nodes() const
   { return 6; }
 
@@ -67,7 +67,7 @@ void TriLagrangeShape::coefficients( Sample loc,
                     MsqError::UNSUPPORTED_ELEMENT);
     return;
   }
-  
+
   switch (loc.dimension) {
     case 0:
       num_coeff = 1;
@@ -128,7 +128,7 @@ static inline void get_linear_derivatives( size_t* vertices,
   derivs[1][1] =  0.0;
   derivs[2][0] =  0.0;
   derivs[2][1] =  1.0;
-}  
+}
 
 static void derivatives_at_corner( unsigned corner,
                                    NodeSet nodeset,
@@ -157,7 +157,7 @@ static void derivatives_at_corner( unsigned corner,
         derivs[2][1] -= 2.0;
       }
       break;
-    
+
     case 1:
       if (nodeset.mid_edge_node(0)) {
         vertices[num_vtx] = 3;
@@ -178,7 +178,7 @@ static void derivatives_at_corner( unsigned corner,
         derivs[2][1] -= 2.0;
       }
       break;
-    
+
     case 2:
       if (nodeset.mid_edge_node(1)) {
         vertices[num_vtx] = 4;
@@ -209,7 +209,7 @@ static const double eds[3][3] = { {-2.0,-2.0, 0.0 },
                                   { 2.0, 2.0, 0.0 },
                                   { 2.0,-2.0, 0.0 } };
 
-static void derivatives_at_mid_edge( unsigned edge, 
+static void derivatives_at_mid_edge( unsigned edge,
                                      NodeSet nodeset,
                                      size_t* vertices,
                                      MsqVector<2>* derivs,
@@ -220,20 +220,20 @@ static void derivatives_at_mid_edge( unsigned edge,
     // at the mid-point of the opposite edge unless
     // one, but *not* both of the adjacent mid-edge
     // nodes is present.
-    
-    // The value for each corner is incremented when 
+
+    // The value for each corner is incremented when
     // a mid-side node is present.  If the value is
     // 0 when finished, the corner doesn't contribute.
     // Initialize values to 0 for corners adjacent to
     // edge so they are never zero.
   int corner_count[3] = { 1, 1, 1 };
   corner_count[(edge+2)%3] = -1;
-  
+
     // begin with derivatives for linear tri
   double corner_derivs[3][2] = { {-1.0,-1.0 },
                                  { 1.0, 0.0 },
                                  { 0.0, 1.0 } };
-  
+
     // do mid-side nodes first
   num_vtx = 0;
   for (unsigned i = 0; i < 3; ++i) {
@@ -252,7 +252,7 @@ static void derivatives_at_mid_edge( unsigned edge,
       ++corner_count[a];
     }
   }
-  
+
     // now add corner nodes to list
   for (unsigned i = 0; i < 3; ++i) {
     if (corner_count[i]) {
@@ -266,7 +266,7 @@ static void derivatives_at_mid_edge( unsigned edge,
 
 static const double fdr[] = { 0.0,     4.0/3.0, -4.0/3.0 };
 static const double fds[] = {-4.0/3.0, 4.0/3.0,  0.0     };
-       
+
 static void derivatives_at_mid_elem( NodeSet nodeset,
                                      size_t* vertices,
                                      MsqVector<2>* derivs,
@@ -280,7 +280,7 @@ static void derivatives_at_mid_elem( NodeSet nodeset,
       derivs[num_vtx][0] = fdr[i];
       derivs[num_vtx][1] = fds[i];
       ++num_vtx;
-       
+
       int a = (i+1)%3;
       derivs[i][0] -= 0.5 * fdr[i];
       derivs[i][1] -= 0.5 * fds[i];
@@ -308,7 +308,7 @@ void TriLagrangeShape::derivatives( Sample loc,
                     MsqError::UNSUPPORTED_ELEMENT);
     return;
   }
-  
+
   switch (loc.dimension) {
     case 0:
       derivatives_at_corner( loc.number, nodeset, vertex_indices_out, d_coeff_d_xi_out, num_vtx );
@@ -325,7 +325,7 @@ void TriLagrangeShape::derivatives( Sample loc,
 }
 
 
-void TriLagrangeShape::ideal( Sample , 
+void TriLagrangeShape::ideal( Sample ,
                               MsqMatrix<3,2>& J,
                               MsqError&  ) const
 {

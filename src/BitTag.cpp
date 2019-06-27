@@ -81,7 +81,7 @@ ErrorCode BitTag::get_data(const SequenceManager*,
   unsigned char* data = reinterpret_cast<unsigned char*>(gen_data);
   for (size_t i = 0; i < num_handles; ++i) {
     unpack(handles[i], type, page, offset);
-    if (pageList[type].size() <= page || !pageList[type][page]) 
+    if (pageList[type].size() <= page || !pageList[type][page])
       data[i] = def;
     else
       data[i] = pageList[type][page]->get_bits(offset, storedBitsPerEntity);
@@ -265,7 +265,7 @@ ErrorCode BitTag::clear_data(SequenceManager* seqman,
 
       size_t pcount = std::min((EntityID)(per_page - offset), count);
       pageList[type][page]->set_bits(offset, pcount, storedBitsPerEntity, value);
-      count -= pcount; 
+      count -= pcount;
       offset = 0;
       ++page;
     }
@@ -291,7 +291,7 @@ ErrorCode BitTag::remove_data(SequenceManager*, Error*, const Range& handles)
       size_t pcount = std::min((EntityID)(per_page - offset), count);
       if (page < pageList[type].size() && pageList[type][page])
         pageList[type][page]->set_bits(offset, pcount, storedBitsPerEntity, val);
-      count -= pcount; 
+      count -= pcount;
       offset = 0;
       ++page;
     }
@@ -391,7 +391,7 @@ void BitTag::get_tagged(Range::const_iterator begin,
     ++i;
     while (count > 0) {
       EntityID pcount = std::min(count, (EntityID)(per_page - offset));
-      if (page < pageList[type].size() && pageList[type][page]) 
+      if (page < pageList[type].size() && pageList[type][page])
         hint = entities.insert(hint, h, h + pcount - 1);
 
       count -= pcount;

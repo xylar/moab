@@ -1,5 +1,5 @@
 /** ListSetsNTags: list sets & tags from a mesh
- * 
+ *
  * This program shows how to read and list sets and tags from a mesh
  *
  * Usage: SetsNTags <mesh_file_name>
@@ -28,18 +28,18 @@ int main( int argc, char *argv[] )
 
     if (argc > 2 && !strcmp(argv[2], "-p")) read_par = true;
   }
-  
+
     // create the Mesh instance
   iMesh_Instance mesh;
   int err;
   iMesh_newMesh(NULL, &mesh, &err, 0);
   ERRORR("Error creating new mesh.\n");
-  
-  
+
+
   iBase_EntitySetHandle root_set;
   iMesh_getRootSet(mesh, &root_set, &err);
   ERRORR("Couldn't get root set.");
-  
+
     // load the mesh
   if (read_par) {
     const char *opt = " moab:PARALLEL=READ_PART moab:PARTITION=PARALLEL_PARTITION moab:PARTITION_DISTRIBUTE moab:PARALLEL_RESOLVE_SHARED_ENTS moab:DEBUG_PIO=2 moab:DEBUG_IO=2 moab:SETS=SETS ";
@@ -66,7 +66,7 @@ int main( int argc, char *argv[] )
 
     if (0 != tags_size) {
       std::cout << "Set " << sets[i] << "; Tags:" << std::endl;
-      
+
         // list tag names on this set
       for (j = 0; j < tags_size; j++) {
         char tname[128];
@@ -84,7 +84,7 @@ int main( int argc, char *argv[] )
           iMesh_getEntSetIntData(mesh, sets[i], tags[j], &int_val[0], &err);
           ERRORR("Failed to get int data type.");
           std::cout << tname << " = " << int_val[0] ;
-          if (tag_size > 1) 
+          if (tag_size > 1)
             for (int k = 1; k < tag_size; i++) std::cout << ", " << int_val[k];
           std::cout << std::endl;
         }
@@ -92,7 +92,7 @@ int main( int argc, char *argv[] )
           dbl_val.resize(tag_size);
           iMesh_getEntSetDblData(mesh, sets[i], tags[j], &dbl_val[0], &err);
           std::cout << tname << " = " << dbl_val[0] ;
-          if (tag_size > 1) 
+          if (tag_size > 1)
             for (int k = 1; k < tag_size; i++) std::cout << ", " << dbl_val[k];
           std::cout << std::endl;
         }
@@ -100,16 +100,16 @@ int main( int argc, char *argv[] )
       }
     }
     std::cout << std::endl;
-    
+
     free(tags);
     tags = NULL;
     tags_alloc = 0;
   }
-  
+
   free(sets);
 
   iMesh_dtor(mesh, &err);
   ERRORR("Failed to destruct interface.");
-  
+
   return 0;
 }

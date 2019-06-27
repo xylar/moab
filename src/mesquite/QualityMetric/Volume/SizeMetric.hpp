@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2009 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2009) kraftche@cae.wisc.edu    
+    (2009) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file SizeMetric.hpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #ifndef MSQ_SIZE_METRIC_HPP
@@ -51,11 +51,11 @@ public:
      MESQUITE_EXPORT virtual std::string get_name() const;
 
      MESQUITE_EXPORT virtual int get_negate_flag() const;
-  
+
      MESQUITE_EXPORT virtual
-     bool evaluate( PatchData& pd, 
-                    size_t handle, 
-                    double& value, 
+     bool evaluate( PatchData& pd,
+                    size_t handle,
+                    double& value,
                     MsqError& err );
 };
 

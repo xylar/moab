@@ -1,8 +1,8 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
-    Copyright 2004 Lawrence Livermore National Laboratory.  Under 
-    the terms of Contract B545069 with the University of Wisconsin -- 
+    Copyright 2004 Lawrence Livermore National Laboratory.  Under
+    the terms of Contract B545069 with the University of Wisconsin --
     Madison, Lawrence Livermore National Laboratory retains certain
     rights in this software.
 
@@ -16,12 +16,12 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
-    kraftche@cae.wisc.edu    
-   
+
+    kraftche@cae.wisc.edu
+
   ***************************************************************** */
 
 #include <iostream>
@@ -53,29 +53,29 @@ using namespace MBMesquite;
  * should work with any mesh composed entirely of triangle
  * elements.  The mesh used for the test can be changed by modifying
  * the two arrays below.
- *                                             
- *            3-------------------2            
- *           / \                 / \           
- *          /   \               /   \          
- *         /     \             /     \         
- *        /       \    (1)    /       \        
- *       /         \         /         \       
- *      /    (2)    \       /    (0)    \      
- *     /             \     /             \     
- *    /               \   /               \    
- *   /                 \ /                 \   
- *  4-------------------0-------------------1  
- *   \                 / \                 /   
- *    \               /   \               /    
- *     \             /     \             /     
- *      \    (3)    /       \    (5)    /      
- *       \         /         \         /       
- *        \       /    (4)    \       /        
- *         \     /             \     /         
- *          \   /               \   /          
- *           \ /                 \ /           
- *            5-------------------6            
- *                                             
+ *
+ *            3-------------------2
+ *           / \                 / \
+ *          /   \               /   \
+ *         /     \             /     \
+ *        /       \    (1)    /       \
+ *       /         \         /         \
+ *      /    (2)    \       /    (0)    \
+ *     /             \     /             \
+ *    /               \   /               \
+ *   /                 \ /                 \
+ *  4-------------------0-------------------1
+ *   \                 / \                 /
+ *    \               /   \               /
+ *     \             /     \             /
+ *      \    (3)    /       \    (5)    /
+ *       \         /         \         /
+ *        \       /    (4)    \       /
+ *         \     /             \     /
+ *          \   /               \   /
+ *           \ /                 \ /
+ *            5-------------------6
+ *
  */
 
 extern const double vertexCoords[] = {
@@ -102,7 +102,7 @@ extern const int triangleConnectivity[] = {
 class iMeshTest : public CppUnit::TestFixture
 {
   private:
-    
+
     CPPUNIT_TEST_SUITE( iMeshTest );
 //    CPPUNIT_TEST( testVertexIterator );
     CPPUNIT_TEST( testVertexByte );
@@ -117,7 +117,7 @@ class iMeshTest : public CppUnit::TestFixture
 
     MsqIMesh* myMesh;
     iMesh_Instance myIMesh;
-    
+
     Mesh::VertexHandle vtxIndexToHandle[7];
     Mesh::ElementHandle triIndexToHandle[7];
     map<Mesh::VertexHandle,int> vtxHandleToIndex;
@@ -127,17 +127,17 @@ class iMeshTest : public CppUnit::TestFixture
    bool writeVtkFile( const char* name );
 
   public:
-  
+
     iMeshTest()
      : myMesh(0)
       {}
-  
+
     void setUp();
     void tearDown();
-    
+
     void testVertexFlag(bool fixed, iBase_TagValueType type);
     void testVertexFlagNone( bool fixed );
-    
+
     void matchVertexCoordinates();
     void matchElementConnectivity();
     void testVertexIterator();
@@ -153,25 +153,25 @@ class iMeshTest : public CppUnit::TestFixture
     void testElementTopology();
     void testIntTag();
     void testDoubleTag();
-    
+
 };
 
 bool iMeshTest::writeVtkFile( const char* filename )
 {
   int i;
-  
+
   FILE* file = fopen( filename, "w" );
   if (!file) {
     perror( filename );
     return false;
   }
-  
+
   fputs( "# vtk DataFile Version 2.0\n"
          "Mesquite Mesh\n"
          "ASCII\n"
          "DATASET UNSTRUCTURED_GRID\n",
          file );
-  
+
   const int num_pts = sizeof(vertexCoords) / (3*sizeof(double));
   fprintf( file, "POINTS %d float\n", num_pts );
   for (i = 0; i < num_pts; ++i)
@@ -179,7 +179,7 @@ bool iMeshTest::writeVtkFile( const char* filename )
                    vertexCoords[3*i    ],
                    vertexCoords[3*i + 1],
                    vertexCoords[3*i + 2] );
-  
+
   int num_tris = sizeof(triangleConnectivity) / (3*sizeof(int));
   fprintf( file, "CELLS %d %d\n", num_tris, 4*num_tris );
   for (i = 0; i < num_tris; ++i)
@@ -187,11 +187,11 @@ bool iMeshTest::writeVtkFile( const char* filename )
                    triangleConnectivity[3*i    ],
                    triangleConnectivity[3*i + 1],
                    triangleConnectivity[3*i + 2] );
-  
+
   fprintf( file, "CELL_TYPES %d\n", num_tris );
   for (i = 0; i < num_tris; ++i)
     fprintf( file, "5\n" );
-    
+
   fclose( file );
   return true;
 }
@@ -202,23 +202,23 @@ void iMeshTest::setUp()
   const char* TMP_FILE_NAME = "hexagon.vtk";
   MsqPrintError err(cout);
   int ierr;
-  
+
   CPPUNIT_ASSERT(writeVtkFile(TMP_FILE_NAME));
-  
-  iMesh_newMesh( NULL, &myIMesh, &ierr, 0 ); 
+
+  iMesh_newMesh( NULL, &myIMesh, &ierr, 0 );
   CPPUNIT_ASSERT_EQUAL( (int)iBase_SUCCESS, ierr );
-  
+
   iMesh_load( myIMesh, 0, TMP_FILE_NAME, NULL, &ierr, strlen(TMP_FILE_NAME), 0 );
   CPPUNIT_ASSERT_EQUAL( (int)iBase_SUCCESS, ierr );
-  
+
   iBase_EntitySetHandle root_set;
   iMesh_getRootSet( myIMesh, &root_set, &ierr );
   CPPUNIT_ASSERT_EQUAL( (int)iBase_SUCCESS, ierr );
-          
+
   myMesh = new MsqIMesh( myIMesh, root_set, iBase_ALL_TYPES, err );
   ASSERT_NO_ERROR( err );
-  CPPUNIT_ASSERT( myMesh != NULL );  
-  
+  CPPUNIT_ASSERT( myMesh != NULL );
+
   matchVertexCoordinates();
   matchElementConnectivity();
 }
@@ -238,20 +238,20 @@ void iMeshTest::matchVertexCoordinates()
 {
   MsqPrintError err(cout);
   const size_t num_pts = sizeof(vertexCoords) / (3*sizeof(double));
-  
+
     // check if initialized properly
   CPPUNIT_ASSERT( myMesh );
     // make sure this hasn't been called yet
   CPPUNIT_ASSERT( 0 == vtxHandleToIndex.size() );
     // initialize data
   memset( vtxIndexToHandle, 0, sizeof(vtxIndexToHandle) );
-  
+
     // Get vertex handles
   vector<Mesh::VertexHandle> vertices;
-  myMesh->get_all_vertices( vertices, err ); 
+  myMesh->get_all_vertices( vertices, err );
   CPPUNIT_ASSERT( !err );
   CPPUNIT_ASSERT_EQUAL( num_pts, vertices.size() );
-  
+
     // get vertex coordinates
   vector<MsqVertex> coordinates( num_pts );
   myMesh->vertices_get_coordinates( arrptr(vertices),
@@ -259,7 +259,7 @@ void iMeshTest::matchVertexCoordinates()
                                     num_pts,
                                     err );
   CPPUNIT_ASSERT( !err );
-  
+
     // match vertex coordiantes
   for (size_t i = 0; i < num_pts; ++i)
   {
@@ -275,18 +275,18 @@ void iMeshTest::matchVertexCoordinates()
         break;
       }
     }
-    
+
     CPPUNIT_ASSERT(j < vertices.size()); // found a match
   }
 }
 
-bool iMeshTest::match_triangles( const int* tri1, 
+bool iMeshTest::match_triangles( const int* tri1,
                                  const Mesh::VertexHandle* tri2_handles )
 {
   int tri2[3] = { vtxHandleToIndex[tri2_handles[0]],
                   vtxHandleToIndex[tri2_handles[1]],
                   vtxHandleToIndex[tri2_handles[2]] };
-  
+
   return (tri1[0] == tri2[0] && tri1[1] == tri2[1] && tri1[2] == tri2[2]) ||
          (tri1[0] == tri2[1] && tri1[1] == tri2[2] && tri1[2] == tri2[0]) ||
          (tri1[0] == tri2[2] && tri1[1] == tri2[0] && tri1[2] == tri2[1]);
@@ -296,14 +296,14 @@ void iMeshTest::matchElementConnectivity()
 {
   MsqPrintError err(cout);
   const size_t num_tri = sizeof(triangleConnectivity) / (3*sizeof(int));
-  
+
     // check if initialized properly
   CPPUNIT_ASSERT( myMesh );
     // make sure this hasn't been called yet
   CPPUNIT_ASSERT( 0 == triHandleToIndex.size() );
     // initialize data
   memset( triIndexToHandle, 0, sizeof(triIndexToHandle) );
-  
+
   vector<Mesh::VertexHandle> vertices;
   vector<Mesh::ElementHandle> elements;
   vector<size_t> offsets;
@@ -316,12 +316,12 @@ void iMeshTest::matchElementConnectivity()
                                           offsets,
                                           err );
   CPPUNIT_ASSERT(!err);
-                                          
+
     // Make sure all are triangles
   size_t i;
   for (i = 0; i < elements.size(); ++i)
     CPPUNIT_ASSERT_EQUAL( offsets[i] + 3, offsets[i+1] );
-  
+
     // Match triangles
   for (size_t i = 0; i < num_tri; ++i)
   {
@@ -332,7 +332,7 @@ void iMeshTest::matchElementConnectivity()
         vertices[offsets[j]  ],
         vertices[offsets[j]+1],
         vertices[offsets[j]+2] };
-      
+
       if (match_triangles( triangleConnectivity + 3*i, verts ))
       {
         triIndexToHandle[i] = elements[j];
@@ -341,24 +341,24 @@ void iMeshTest::matchElementConnectivity()
         break;
       }
     }
-    
+
     CPPUNIT_ASSERT(j < elements.size()); // found a match
   }
 }
 
 /*
-void iMeshTest::testVertexIterator() 
+void iMeshTest::testVertexIterator()
 {
   MsqPrintError err(cout);
   const size_t num_pts = sizeof(vertexCoords) / (3*sizeof(double));
-  
+
     // check if initialized properly
   CPPUNIT_ASSERT( myMesh );
 
     // mark each vertex as it is encountered
   std::vector<int> marks(num_pts);
   memset( arrptr(marks), 0, num_pts * sizeof(int) );
-  
+
     // iterate over vertices
   size_t count = 0;
   VertexIterator* iter = myMesh->vertex_iterator(err);
@@ -367,10 +367,10 @@ void iMeshTest::testVertexIterator()
   {
     Mesh::VertexHandle handle = iter->operator*();
     iter->operator++();
-    
+
     map<Mesh::VertexHandle,int>::iterator f = vtxHandleToIndex.find(handle);
     CPPUNIT_ASSERT( f != vtxHandleToIndex.end() );
-    
+
     unsigned index = f->second;
     CPPUNIT_ASSERT(index < num_pts);
     CPPUNIT_ASSERT(marks[index] == 0);
@@ -378,13 +378,13 @@ void iMeshTest::testVertexIterator()
     ++count;
   }
   CPPUNIT_ASSERT_EQUAL(count , num_pts);
-}  
+}
 */
 void iMeshTest::testVertexByte()
 {
   MsqPrintError err(cout);
   const size_t num_pts = sizeof(vertexCoords) / (3*sizeof(double));
-  
+
     // check if initialized properly
   CPPUNIT_ASSERT( myMesh );
 
@@ -404,7 +404,7 @@ void iMeshTest::testVertexByte()
     CPPUNIT_ASSERT( !err );
     CPPUNIT_ASSERT_EQUAL( byte , bytes[i] );
   }
-  
+
     // set all at once
   for (i = 0; i < num_pts; ++i)
     bytes[i] = (unsigned char)(rand() % 128);
@@ -414,7 +414,7 @@ void iMeshTest::testVertexByte()
   myMesh->vertices_get_byte( vtxIndexToHandle, bytes2, num_pts, err );
   CPPUNIT_ASSERT( !err );
   CPPUNIT_ASSERT( !memcmp( bytes, bytes2, num_pts ) );
-}  
+}
 
 void iMeshTest::testVertexFlagNone( bool fixed )
 {
@@ -426,7 +426,7 @@ void iMeshTest::testVertexFlagNone( bool fixed )
     myMesh->clear_slaved_tag();
     CPPUNIT_ASSERT( NULL == myMesh->get_slaved_tag() );
   }
-  
+
     // get all vertices
   MsqPrintError err(cout);
   std::vector<Mesh::VertexHandle> handles;
@@ -468,14 +468,14 @@ void iMeshTest::testVertexFlag( bool fixed, iBase_TagValueType type )
     CPPUNIT_ASSERT( NULL != myMesh->get_slaved_tag() );
     CPPUNIT_ASSERT_EQUAL( tag, *(myMesh->get_slaved_tag()) );
   }
-  
+
     // get all vertices
   std::vector<Mesh::VertexHandle> handles;
   myMesh->get_all_vertices( handles, err );
   ASSERT_NO_ERROR(err);
   CPPUNIT_ASSERT(!handles.empty());
   iBase_EntityHandle* ihandles = reinterpret_cast<iBase_EntityHandle*>(arrptr(handles));
-  
+
   if (type == iBase_INTEGER) {
       // define alternating values for flag
     std::vector<int> values(handles.size(),!fixed);
@@ -497,9 +497,9 @@ void iMeshTest::testVertexFlag( bool fixed, iBase_TagValueType type )
     CPPUNIT_ASSERT_EQUAL( (int)iBase_SUCCESS, ierr );
   }
   else {
-    CPPUNIT_ASSERT(!"Unexpected tag data type in test code"); 
+    CPPUNIT_ASSERT(!"Unexpected tag data type in test code");
   }
-  
+
     // get flag through MsqIMesh
   std::vector<bool> flags;
   if (fixed)
@@ -508,7 +508,7 @@ void iMeshTest::testVertexFlag( bool fixed, iBase_TagValueType type )
     myMesh->vertices_get_slaved_flag( arrptr(handles), flags, handles.size(), err );
   ASSERT_NO_ERROR(err);
   CPPUNIT_ASSERT_EQUAL( handles.size(), flags.size() );
-  
+
     // check flag values
   for (size_t i = 0; i < handles.size(); ++i)
     CPPUNIT_ASSERT_EQUAL( ((!(i%2)) == fixed), (bool)flags[i] );
@@ -519,7 +519,7 @@ void iMeshTest::testVertexAdjacency()
   MsqPrintError err(cout);
   const size_t num_pts = sizeof(vertexCoords) / (3*sizeof(double));
   const size_t num_tri = sizeof(triangleConnectivity) / (3*sizeof(int));
-  
+
     // check if initialized properly
   CPPUNIT_ASSERT( myMesh );
 
@@ -529,21 +529,21 @@ void iMeshTest::testVertexAdjacency()
   for (i = 0; i < num_tri; ++i)
     for (size_t j = 3*i; j < 3*i+3; ++j)
       adjset[triangleConnectivity[j]].insert(i);
-  
+
   std::vector<Mesh::ElementHandle> elements;
   std::vector<size_t> offsets;
   myMesh->vertices_get_attached_elements( vtxIndexToHandle, num_pts,
                                           elements, offsets, err );
   CPPUNIT_ASSERT(!err);
   CPPUNIT_ASSERT_EQUAL(offsets.size() , num_pts + 1);
-  
+
     // compare connectivity for each vertex
   for (i = 0; i < num_pts; ++i)
   {
     size_t count = offsets[i+1] - offsets[i];
     CPPUNIT_ASSERT_EQUAL(adjset[i].size() , count);
     Mesh::ElementHandle* elems = &elements[offsets[i]];
-    
+
     for (size_t j = 0; j < count; ++j)
     {
         // Get element index from handle
@@ -567,7 +567,7 @@ void iMeshTest::testElementConnectivity()
   MsqPrintError err(cout);
   //const size_t num_pts = sizeof(vertexCoords) / (3*sizeof(double));
   const size_t num_tri = sizeof(triangleConnectivity) / (3*sizeof(int));
-  
+
     // check if initialized properly
   CPPUNIT_ASSERT( myMesh );
 
@@ -579,14 +579,14 @@ void iMeshTest::testElementConnectivity()
   CPPUNIT_ASSERT(!err);
   CPPUNIT_ASSERT_EQUAL(offsets.size() , num_tri + 1);
   CPPUNIT_ASSERT_EQUAL(vertices.size() , 3*num_tri);
-  
+
     // check each element's connectivity
   Mesh::VertexHandle elem_vertices[3];
   for (size_t i = 0; i < num_tri; ++i)
   {
       // check that connectivity list contains three vertices
     CPPUNIT_ASSERT_EQUAL(offsets[i] + 3 , offsets[i+1]);
-    
+
       // get list of vertex indices from connectivity data
     for (size_t j = 0; j < 3; j++)
     {
@@ -594,18 +594,18 @@ void iMeshTest::testElementConnectivity()
       CPPUNIT_ASSERT( offset < vertices.size() );
       elem_vertices[j] = vertices[offset];
     }
-    
+
       // compare connectivity
     CPPUNIT_ASSERT( match_triangles( triangleConnectivity + 3*i, elem_vertices ) );
   }
 }
-    
-    
+
+
 void iMeshTest::testElementTopology()
 {
   MsqPrintError err(cout);
   const size_t num_tri = sizeof(triangleConnectivity) / (3*sizeof(int));
-  
+
     // check if initialized properly
   CPPUNIT_ASSERT( myMesh );
 
@@ -622,19 +622,19 @@ void iMeshTest::testIntTag()
   const char* tagname = "TEST_TEST_INT_TAG";
   MsqPrintError err(cout);
   const size_t num_tri = sizeof(triangleConnectivity) / (3*sizeof(int));
-  
+
     // check if initialized properly
   CPPUNIT_ASSERT( myMesh );
 
     // create a tag
   TagHandle tag = myMesh->tag_create( tagname, Mesh::INT, 2, NULL, err );
   CPPUNIT_ASSERT( !err );
-  
+
     // get the tag
   TagHandle tag2 = myMesh->tag_get( tagname, err );
   CPPUNIT_ASSERT( !err );
   CPPUNIT_ASSERT_EQUAL( tag , tag2 );
-  
+
     // check tag metadata
   string name;
   Mesh::TagType type;
@@ -644,7 +644,7 @@ void iMeshTest::testIntTag()
   CPPUNIT_ASSERT_EQUAL( name , std::string(tagname) );
   CPPUNIT_ASSERT_EQUAL( type , Mesh::INT );
   CPPUNIT_ASSERT_EQUAL( length , 2u );
-  
+
     // set the tag on all triangles
   std::vector<int> data1(2*num_tri), data2(2*num_tri);
   std::vector<int>::iterator iter1, iter2;
@@ -652,14 +652,14 @@ void iMeshTest::testIntTag()
     *iter1 = rand();
   myMesh->tag_set_element_data( tag, num_tri, triIndexToHandle, arrptr(data1), err );
   CPPUNIT_ASSERT( !err );
-  
+
     // get tag data from all triangles and compare
   myMesh->tag_get_element_data( tag, num_tri, triIndexToHandle, arrptr(data2), err );
   CPPUNIT_ASSERT( !err );
-  for (iter1 = data1.begin(), iter2 = data2.begin(); 
+  for (iter1 = data1.begin(), iter2 = data2.begin();
        iter1 != data1.end(); ++iter1, ++iter2)
     CPPUNIT_ASSERT_EQUAL( *iter1 , *iter2 );
-    
+
     // destroy the tag
   myMesh->tag_delete( tag, err );
   CPPUNIT_ASSERT(!err);
@@ -668,25 +668,25 @@ void iMeshTest::testIntTag()
   err.clear();
 }
 
-  
+
 void iMeshTest::testDoubleTag()
 {
   const char* tagname = "TEST_TEST_DOUBLE_TAG";
   MsqPrintError err(cout);
   const size_t num_pts = sizeof(vertexCoords) / (3*sizeof(double));
-  
+
     // check if initialized properly
   CPPUNIT_ASSERT( myMesh );
 
     // create a tag
   TagHandle tag = myMesh->tag_create( tagname, Mesh::DOUBLE, 1, NULL, err );
   CPPUNIT_ASSERT( !err );
-  
+
     // get the tag
   TagHandle tag2 = myMesh->tag_get( tagname, err );
   CPPUNIT_ASSERT( !err );
   CPPUNIT_ASSERT_EQUAL( tag , tag2 );
-  
+
     // check tag metadata
   string name;
   Mesh::TagType type;
@@ -696,7 +696,7 @@ void iMeshTest::testDoubleTag()
   CPPUNIT_ASSERT_EQUAL( name , std::string(tagname) );
   CPPUNIT_ASSERT_EQUAL( type , Mesh::DOUBLE );
   CPPUNIT_ASSERT_EQUAL( length , 1u );
-  
+
     // set the tag on all vertices
   std::vector<double> data1(num_pts), data2(num_pts);
   std::vector<double>::iterator iter1, iter2;
@@ -704,14 +704,14 @@ void iMeshTest::testDoubleTag()
     *iter1 = sqrt(abs(rand()));
   myMesh->tag_set_vertex_data( tag, num_pts, vtxIndexToHandle, arrptr(data1), err );
   CPPUNIT_ASSERT( !err );
-  
+
     // get tag data from all vertices and compare
   myMesh->tag_get_vertex_data( tag, num_pts, vtxIndexToHandle, arrptr(data2), err );
   CPPUNIT_ASSERT( !err );
-  for (iter1 = data1.begin(), iter2 = data2.begin(); 
+  for (iter1 = data1.begin(), iter2 = data2.begin();
        iter1 != data1.end(); ++iter1, ++iter2)
     CPPUNIT_ASSERT_EQUAL( *iter1 , *iter2 );
-    
+
     // destroy the tag
   myMesh->tag_delete( tag, err );
   CPPUNIT_ASSERT(!err);

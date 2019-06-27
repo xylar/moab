@@ -1,16 +1,16 @@
 /**
  * MOAB, a Mesh-Oriented datABase, is a software component for creating,
  * storing and accessing finite element mesh data.
- * 
+ *
  * Copyright 2004 Sandia Corporation.  Under the terms of Contract
  * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
  * retains certain rights in this software.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  */
 
 #ifndef READ_HDF5_HPP
@@ -168,7 +168,7 @@ private:
   };
   //! List of connectivity arrays for which conversion from file ID
   //! to handle was deferred until later.
-  std::vector<IDConnectivity> idConnectivityList;  
+  std::vector<IDConnectivity> idConnectivityList;
 
   //! Read/write property handle
   //! indepIO -> independent IO during true parallel read
@@ -269,7 +269,7 @@ private:
 
   //! Read poly(gons|hedra)
   ErrorCode read_poly(const mhdf_ElemDesc& elems, const Range& file_ids);
-  
+
   //! Clean up elements that were a) read because we had read all of the
   //! nodes and b) weren't actually sides of the top-dimension elements
   //! we were trying to read.
@@ -287,7 +287,7 @@ private:
   //! Create new tag or verify type matches existing tag
   ErrorCode create_tag(const mhdf_TagDesc& info, Tag& handle, hid_t& type);
 
-  //! Read dense tag for all entities 
+  //! Read dense tag for all entities
   ErrorCode read_dense_tag(Tag tag_handle,
                            const char* ent_name,
                            hid_t hdf_read_type,
@@ -343,7 +343,7 @@ private:
 
   ErrorCode read_qa(EntityHandle file_set);
 
-public:                               
+public:
   ErrorCode convert_id_to_handle(EntityHandle* in_out_array,
                                  size_t array_length);
 
@@ -381,7 +381,7 @@ public:
 private:
 
   /**\brief Search for entities with specified tag values
-   * 
+   *
    *\NOTE For parallel reads, this function does collective IO.
    *
    *\param tag_index  Index into info->tags specifying which tag to search.
@@ -395,14 +395,14 @@ private:
                               bool sets_only = false);
 
   /**\brief Search for entities with specified tag
-   * 
+   *
    *\NOTE For parallel reads, this function does collective IO.
    *
    *\param tag_index  Index into info->tags specifying which tag to search.
    *\param file_ids_out  File IDs for entities with specified tag values.
    */
   ErrorCode get_tagged_entities(int tag_index, Range& file_ids_out);
-                                 
+
   /**\brief Search a table of tag data for a specified set of values.
    *
    * Search a table of tag values, returning the indices into the table
@@ -429,7 +429,7 @@ private:
    *\param file_ids   Output: File IDs of entities contained in sets.
    */
   ErrorCode get_set_contents(const Range& sets, Range& file_ids);
- 
+
   /** Given a list of file IDs for entity sets, find all contained
    *  or child sets (at any depth) and append them to the Range
    *  of file IDs.
@@ -439,10 +439,10 @@ private:
                                    bool child_sets);
 
   /** Find all sets containing one or more entities read from the file
-   *  and added to idMap 
+   *  and added to idMap
    */
   ErrorCode find_sets_containing(Range& sets_out, bool read_set_containing_parents);
- 
+
   /**\brief Read sets from file into MOAB for partial read of file.
    *
    * Given the file IDs for entity sets (sets_in) and elements and

@@ -6,10 +6,10 @@
 
 // Hold edges in an array of vertex handles.
 struct edge {
-  MBEntityHandle v0;                                                                                                                      
+  MBEntityHandle v0;
   MBEntityHandle v1;
 };
-                                                                                                                                         
+
 // edge structure comparision function for qsort
 // If the first vertex handle is the same, compare the second.
 int compare_edge(const void *a, const void *b) {
@@ -22,12 +22,12 @@ int compare_edge(const void *a, const void *b) {
   }
 }
 
-// This skinner is fast partly because it assumes that no edges exist in the MOAB 
-// instance. Checking to see if an edge exists before creating a new one is slow. 
-MBErrorCode skin_tris( MBInterface *mb, MBRange tris, MBRange &skin_edges ) {    
-  
+// This skinner is fast partly because it assumes that no edges exist in the MOAB
+// instance. Checking to see if an edge exists before creating a new one is slow.
+MBErrorCode skin_tris( MBInterface *mb, MBRange tris, MBRange &skin_edges ) {
+
   // Empty the output range and make sure that the input range is only tris
-  skin_edges.clear(); 
+  skin_edges.clear();
   if(tris.empty()) return MB_ENTITY_NOT_FOUND;
   if(!tris.all_of_type(MBTRI)) return MB_FAILURE;
 
@@ -36,10 +36,10 @@ MBErrorCode skin_tris( MBInterface *mb, MBRange tris, MBRange &skin_edges ) {
   MBErrorCode rval = mb->get_number_entities_by_type( 0, MBEDGE, n_edges );
   if(MB_SUCCESS != rval) return rval;
   if(0 != n_edges) {
-    std::cerr << "skin_tris: failed because " << n_edges 
+    std::cerr << "skin_tris: failed because " << n_edges
               << " edges exist in the MOAB instance" << std::endl;
     return MB_FAILURE;
-  }      
+  }
 
   // Get connectivity. Do not create MBEdges.
   edge *edges = new edge[3*tris.size()];
@@ -76,7 +76,7 @@ MBErrorCode skin_tris( MBInterface *mb, MBRange tris, MBRange &skin_edges ) {
   }
 
   // Sort by first handle, then second handle.
-  qsort(edges, 3*tris.size(), sizeof(struct edge), compare_edge);    
+  qsort(edges, 3*tris.size(), sizeof(struct edge), compare_edge);
 
   // Go through array, saving edges that are not paired.
   for(unsigned int i=0; i<3*tris.size(); i++) {
@@ -88,7 +88,7 @@ MBErrorCode skin_tris( MBInterface *mb, MBRange tris, MBRange &skin_edges ) {
       rval = mb->create_element( MBEDGE, conn, 2, edge );
       if(MB_SUCCESS != rval) return rval;
       skin_edges.insert(edge);
-    
+
     // If a match exists, skip ahead
     } else if(edges[i].v0==edges[i+1].v0 && edges[i].v1==edges[i+1].v1) {
       i++;
@@ -106,7 +106,7 @@ MBErrorCode skin_tris( MBInterface *mb, MBRange tris, MBRange &skin_edges ) {
       rval = mb->create_element( MBEDGE, conn, 2, edge );
       if(MB_SUCCESS != rval) return rval;
       skin_edges.insert( edge );
-    } 
+    }
   }
   delete[] edges;
   return MB_SUCCESS;
@@ -119,9 +119,9 @@ int main(int argc, char **argv) {
   if (1 == argc) {
   std::cout << "Usage: " << argv[0] << " <filename>" << std::endl;
     return 0;
-  }     
+  }
 
-  // get MOAB instance and read the file                                                                                                  
+  // get MOAB instance and read the file
   MBCore *mb = new MBCore();
   MBErrorCode rval = mb->load_file(argv[1]);
   if(MB_SUCCESS != rval) return 0;
@@ -140,8 +140,8 @@ int main(int argc, char **argv) {
   if(MB_SUCCESS != rval) return 0;
   MBRange surf_sets;
   int two = 2;
-  void *dim[] = {&two};                                                                                   
-  rval = mb->get_entities_by_type_and_tag( 0, MBENTITYSET, &geom_tag,                                                                
+  void *dim[] = {&two};
+  rval = mb->get_entities_by_type_and_tag( 0, MBENTITYSET, &geom_tag,
                                            dim, 1, surf_sets );
   if(MB_SUCCESS != rval) return 0;
 
@@ -163,6 +163,6 @@ int main(int argc, char **argv) {
 
     // remove the edges for the optimized skinner
     rval = mb->delete_entities( skin_edges );
-    if(MB_SUCCESS != rval) return 0;    
+    if(MB_SUCCESS != rval) return 0;
   }
-}  
+}

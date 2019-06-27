@@ -9,10 +9,10 @@ MESHDIR = $(abs_top_srcdir)/MeshFiles/mesquite
 check_PROGRAMS = main
 main_SOURCES = main.cpp
 main_DEPENDENCIES = $(top_builddir)/itaps/mesquite/libmbmsqitaps.la \
-                    $(top_builddir)/src/mesquite/libmbmesquite.la 
+                    $(top_builddir)/src/mesquite/libmbmesquite.la
 
 TESTS = main
-EXTRA_DIST = CMakeLists.txt 
+EXTRA_DIST = CMakeLists.txt
 
 AM_CPPFLAGS =  -DSRCDIR=$(srcdir) \
                -DMESHDIR=$(MESHDIR) \

@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2010 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2010) kraftche@cae.wisc.edu    
+    (2010) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file ConicDomainTest.cpp
  *  \brief Unit tests for ConicDomain class
- *  \author Jason Kraftcheck 
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -53,7 +53,7 @@ public:
   void test_normal_at();
   void test_closest_point();
   void test_domain_DoF();
-   
+
 };
 
 
@@ -67,7 +67,7 @@ void ConicDomainTest::test_construct()
   Vector3D axis( 1, 2, 3 );
   Vector3D point( -1, -1, 1 );
   ConicDomain dom( rad, hei, axis, point );
-  
+
   axis /= axis.length();
   CPPUNIT_ASSERT_VECTORS_EQUAL( axis, dom.axis(), 1e-6 );
   CPPUNIT_ASSERT_VECTORS_EQUAL( point, dom.point(), 1e-18 );
@@ -80,40 +80,40 @@ void ConicDomainTest::test_snap_to()
   const double a = 3.0, b = 4.0;
   const double f = a*b/(a*a + b*b);
   ConicDomain cone( a, b );
-  
+
     // test some points
   Vector3D pt( b, 0, a );
   Vector3D close( pt );
   cone.snap_to( 0, close );
   CPPUNIT_ASSERT_VECTORS_EQUAL( pt * f, close, 1e-6 );
-  
+
   pt = Vector3D( 0, b, a );
   close = pt;
   cone.snap_to( 0, close );
   CPPUNIT_ASSERT_VECTORS_EQUAL( pt * f, close, 1e-6 );
-  
+
   pt = Vector3D( 0, -b, a );
   close = pt;
   cone.snap_to( 0, close );
   CPPUNIT_ASSERT_VECTORS_EQUAL( pt * f, close, 1e-6 );
-  
+
   pt = Vector3D( -b, 0, a );
   close = pt;
   cone.snap_to( 0, close );
   CPPUNIT_ASSERT_VECTORS_EQUAL( pt * f, close, 1e-6 );
-  
+
   // test point at apex
   pt = cone.point() + cone.height_from_point()*cone.axis();
   close = pt;
   cone.snap_to( 0, close );
-  CPPUNIT_ASSERT_VECTORS_EQUAL( pt, close, 1e-6 );  
+  CPPUNIT_ASSERT_VECTORS_EQUAL( pt, close, 1e-6 );
 }
 
 void ConicDomainTest::test_normal_at()
 {
   const double a = 3.0, b = 4.0;
   ConicDomain cone( a, b );
-  
+
   Vector3D pt( b, 0, a );
   Vector3D norm( pt );
   cone.vertex_normal_at( 0, norm );
@@ -121,7 +121,7 @@ void ConicDomainTest::test_normal_at()
   norm = pt;
   cone.element_normal_at( 0, norm );
   CPPUNIT_ASSERT_VECTORS_EQUAL( pt/pt.length(), norm, 1e-6 );
-  
+
   pt = Vector3D( 0, b, a );
   norm = pt;
   cone.vertex_normal_at( 0, norm );
@@ -129,7 +129,7 @@ void ConicDomainTest::test_normal_at()
   norm = pt;
   cone.element_normal_at( 0, norm );
   CPPUNIT_ASSERT_VECTORS_EQUAL( pt/pt.length(), norm, 1e-6 );
-  
+
   pt = Vector3D( 0, -b, a );
   norm = pt;
   cone.vertex_normal_at( 0, norm );
@@ -137,7 +137,7 @@ void ConicDomainTest::test_normal_at()
   norm = pt;
   cone.element_normal_at( 0, norm );
   CPPUNIT_ASSERT_VECTORS_EQUAL( pt/pt.length(), norm, 1e-6 );
-  
+
   pt = Vector3D( -b, 0, a );
   norm = pt;
   cone.vertex_normal_at( 0, norm );
@@ -153,25 +153,25 @@ void ConicDomainTest::test_closest_point()
   const double f = a*b/(a*a + b*b);
   ConicDomain cone( a, b );
   MsqError err;
-  
+
   Vector3D pt( b, 0, a ), close, norm;
   cone.closest_point( 0, pt, close, norm, err );
   ASSERT_NO_ERROR(err);
   CPPUNIT_ASSERT_VECTORS_EQUAL( pt * f, close, 1e-6 );
   CPPUNIT_ASSERT_VECTORS_EQUAL( pt/pt.length(), norm, 1e-6 );
-  
+
   pt = Vector3D( 0, b, a );
   cone.closest_point( 0, pt, close, norm, err );
   ASSERT_NO_ERROR(err);
   CPPUNIT_ASSERT_VECTORS_EQUAL( pt * f, close, 1e-6 );
   CPPUNIT_ASSERT_VECTORS_EQUAL( pt/pt.length(), norm, 1e-6 );
-  
+
   pt = Vector3D( 0, -b, a );
   cone.closest_point( 0, pt, close, norm, err );
   ASSERT_NO_ERROR(err);
   CPPUNIT_ASSERT_VECTORS_EQUAL( pt * f, close, 1e-6 );
   CPPUNIT_ASSERT_VECTORS_EQUAL( pt/pt.length(), norm, 1e-6 );
-  
+
   pt = Vector3D( -b, 0, a );
   cone.closest_point( 0, pt, close, norm, err );
   ASSERT_NO_ERROR(err);
@@ -188,5 +188,5 @@ void ConicDomainTest::test_domain_DoF()
   MsqPrintError err(std::cout);
   dom.domain_DoF( arrptr(junk), arrptr(dof), junk.size(), err );
   ASSERT_NO_ERROR(err);
-  CPPUNIT_ASSERT( expected == dof );  
+  CPPUNIT_ASSERT( expected == dof );
 }

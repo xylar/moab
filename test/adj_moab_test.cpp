@@ -78,7 +78,7 @@ ErrorCode ahf_test(const char* filename)
     error = mbImpl->get_entities_by_dimension( fileset, 2, faces);CHECK_ERR(error);
     error = mbImpl->get_entities_by_dimension( fileset, 3, cells);CHECK_ERR(error);
 
-    // Create an ahf instance  
+    // Create an ahf instance
 #ifdef MOAB_HAVE_MPI
     pc = ParallelComm::get_pcomm(mbImpl,0);
     if (!pc)

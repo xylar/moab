@@ -1,16 +1,16 @@
 /**
  * MOAB, a Mesh-Oriented datABase, is a software component for creating,
  * storing and accessing finite element mesh data.
- * 
+ *
  * Copyright 2004 Sandia Corporation.  Under the terms of Contract
  * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
  * retains certain rights in this software.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  */
 
 #include <memory.h>
@@ -80,7 +80,7 @@ ErrorCode SparseTag::get_data_ptr(EntityHandle entity_handle, const void*& ptr, 
     ptr = iter->second;
   else if (get_default_value() && allocate)
     ptr = const_cast<SparseTag*>(this)->allocate_data(entity_handle, iter, allocate);
-  else 
+  else
     return MB_FAILURE;
 
   return MB_SUCCESS;
@@ -357,7 +357,7 @@ ErrorCode SparseTag::tag_iterate(SequenceManager* seqman,
   // Get pointer to tag storage for entity pointed to by iter
   const void* ptr = NULL;
   rval = get_data_ptr(*iter, ptr);
-  if (MB_SUCCESS == rval) 
+  if (MB_SUCCESS == rval)
     data_ptr = const_cast<void*>(ptr);
   else if (get_default_value() && allocate) {
     ptr = allocate_data(*iter, mData.end());

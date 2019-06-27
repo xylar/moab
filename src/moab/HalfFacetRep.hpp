@@ -1,16 +1,16 @@
 /**
  * MOAB, a Mesh-Oriented datABase, is a software component for creating,
  * storing and accessing finite element mesh data.
- * 
+ *
  * Copyright 2004 Sandia Corporation.  Under the terms of Contract
  * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
  * retains certain rights in this software.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  */
 
 
@@ -24,7 +24,7 @@
 namespace moab
 {
 
-/*! 
+/*!
  *  \brief   HalfFacetRep class implements the Array-Based Half-Facet(AHF) Mesh data structure on top of MOAB.
  *  \        It is based on a generalized notion of a half-facet derived from that a half-edge/half-face data structure for 2D/3D.
  *  \        The core construct of AHF are its two maps: sibling-half-facets(SIBHFS) and vertex-to-half-facet(V2HF)
@@ -37,7 +37,7 @@ namespace moab
  *  \        2. neighborhood (same-dimensional) adjacency queries: edge -> edges, face -> faces, cell -> cells, etc.
  *  \        3. downward adjacency queries: face -> edges, cell -> edges, etc.
  *  \
- *  \        Mesh types supported: 
+ *  \        Mesh types supported:
  *  \        1D(edges), 2D(triangles, quads), 3D(tet, pyramid, prism, hex), Mixed dimensional meshes
  *  \
  *  \        CURRENTLY NOT SUPPORTED:
@@ -45,7 +45,7 @@ namespace moab
  *  \        2. create_if_missing = true
  *  \        3. Modified meshes
  *  \
- */ 
+ */
 
  typedef EntityHandle HFacet;
 
@@ -666,7 +666,7 @@ protected:
 
   };
 
-} // namespace moab 
+} // namespace moab
 
 #endif
 

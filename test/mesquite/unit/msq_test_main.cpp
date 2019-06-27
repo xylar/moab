@@ -1,9 +1,9 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2004 Sandia Corporation and Argonne National
-    Laboratory.  Under the terms of Contract DE-AC04-94AL85000 
-    with Sandia Corporation, the U.S. Government retains certain 
+    Laboratory.  Under the terms of Contract DE-AC04-94AL85000
+    with Sandia Corporation, the U.S. Government retains certain
     rights in this software.
 
     This library is free software; you can redistribute it and/or
@@ -16,13 +16,13 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
-    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov, 
-    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov      
-   
+
+    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov,
+    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov
+
   ***************************************************************** */
 #include <cppunit/extensions/TestFactoryRegistry.h>
 #include <cppunit/ui/text/TestRunner.h>
@@ -41,10 +41,10 @@ using namespace std;
 
 #include "MsqFPE.hpp"
 
-class CPPUNIT_API SummaryOutput : public CppUnit::Outputter 
+class CPPUNIT_API SummaryOutput : public CppUnit::Outputter
 {
   public:
-    SummaryOutput( FILE* file, CppUnit::TestResultCollector* result ) 
+    SummaryOutput( FILE* file, CppUnit::TestResultCollector* result )
       : file_(file), results_(result) {}
     void write();
   private:
@@ -66,7 +66,7 @@ int main(int argc, char **argv)
   if (argc > 2 && !strcmp(argv[1],"-s"))
   {
     FILE* file = fopen(argv[2],"w");
-    if (!file) 
+    if (!file)
     {
       perror( argv[2] );
       exit(1);
@@ -79,7 +79,7 @@ int main(int argc, char **argv)
     ++firsttest;
     list = true;
   }
-  
+
     // If the user requested a specific test...
   if (argc > firsttest)
   {
@@ -95,7 +95,7 @@ int main(int argc, char **argv)
       }
       test_list.push_back( test );
     }
-    
+
   }
     // Otherwise do Unit and Regression suites
   else
@@ -105,7 +105,7 @@ int main(int argc, char **argv)
      test = CppUnit::TestFactoryRegistry::getRegistry("Regression").makeTest();
      test_list.push_back( test );
   }
-  
+
     // If user just wants list of tests
   if (list) {
     for (vector<CppUnit::Test*>::iterator i = test_list.begin();
@@ -117,18 +117,18 @@ int main(int argc, char **argv)
       }
       const vector<CppUnit::Test*>& list = suite->getTests();
       for (vector<CppUnit::Test*>::const_iterator j = list.begin();
-         j != list.end(); ++j) 
+         j != list.end(); ++j)
         cout << (*j)->getName() << endl;
     }
   }
     // Otherwise run the tests
   else {
     for (vector<CppUnit::Test*>::iterator i = test_list.begin();
-         i != test_list.end(); ++i) 
+         i != test_list.end(); ++i)
       runner.addTest( *i );
     return !runner.run();
   }
-  
+
     // Return 0 if there were no errors
   return 0;
 }
@@ -137,10 +137,10 @@ void SummaryOutput::write()
 {
   CppUnit::TestResultCollector::TestFailures fails = results_->failures();
   CppUnit::TestResultCollector::Tests tests = results_->tests();
-  
+
   CppUnit::TestResultCollector::TestFailures::const_iterator f_iter = fails.begin();
   CppUnit::TestResultCollector::Tests::const_iterator t_iter;
-  
+
   fprintf(file_,"****Tests Run:\n");
   for (t_iter = tests.begin(); t_iter != tests.end(); ++t_iter)
     fprintf(file_, "%s\n", (*t_iter)->getName().c_str());
@@ -148,6 +148,6 @@ void SummaryOutput::write()
   fprintf(file_,"****Tests Failed:\n");
   for (f_iter = fails.begin(); f_iter != fails.end(); ++f_iter)
     fprintf(file_, "%s\n", (*f_iter)->failedTestName().c_str());
- 
+
 }
 

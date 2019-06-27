@@ -8,8 +8,8 @@
  * In the parallel algorithm, an extra ghost layer of cells is exchanged.  This allows us to compute the centroids
  * for boundary cells on each processor where they appear; this eliminates the need for one round of data exchange
  * (for those centroids) between processors.  New vertex positions must be sent from owning processors to processors
- * sharing those vertices.  Convergence is measured as the maximum distance moved by any vertex.  
- * 
+ * sharing those vertices.  Convergence is measured as the maximum distance moved by any vertex.
+ *
  * In this implementation, a fixed number of iterations is performed.  The final mesh is output to 'laplacianfinal.h5m'
  * in the current directory (H5M format must be used since the file is written in parallel).
  *
@@ -48,12 +48,12 @@ string test_file_name = string("input/surfrandomtris-4part.h5m");
       if (!global_rank) std::cerr << MSG << std::endl;    \
   } while(false)
 
-ErrorCode perform_laplacian_smoothing(Core *mb, Range& cells, Range &verts, int dim, Tag fixed, 
-                                   bool use_hc=false, bool use_acc=false, int acc_method=1, int num_its=10, 
+ErrorCode perform_laplacian_smoothing(Core *mb, Range& cells, Range &verts, int dim, Tag fixed,
+                                   bool use_hc=false, bool use_acc=false, int acc_method=1, int num_its=10,
                                    double rel_eps=1e-5, double alpha=0.0, double beta=0.5, int report_its=1);
 
-ErrorCode hcFilter(Core* mb, moab::ParallelComm* pcomm, moab::Range& verts, int dim, Tag fixed, 
-                    std::vector<double>& verts_o, std::vector<double>& verts_n, 
+ErrorCode hcFilter(Core* mb, moab::ParallelComm* pcomm, moab::Range& verts, int dim, Tag fixed,
+                    std::vector<double>& verts_o, std::vector<double>& verts_n,
                     double alpha, double beta);
 
 ErrorCode laplacianFilter(Core* mb, moab::ParallelComm* pcomm, moab::Range& verts, int dim, Tag fixed,
@@ -76,7 +76,7 @@ int main(int argc, char **argv)
   ErrorCode rval;
   std::stringstream sstr;
   int global_rank;
-  
+
   MPI_Init(&argc, &argv);
   MPI_Comm_rank( MPI_COMM_WORLD, &global_rank );
 
@@ -118,7 +118,7 @@ int main(int argc, char **argv)
   string roptions,woptions;
   if (global_size > 1) { // if reading in parallel, need to tell it how
     sstr.str("");
-    sstr << "PARALLEL=READ_PART;PARTITION=PARALLEL_PARTITION;PARALLEL_RESOLVE_SHARED_ENTS;PARALLEL_GHOSTS=" 
+    sstr << "PARALLEL=READ_PART;PARTITION=PARALLEL_PARTITION;PARALLEL_RESOLVE_SHARED_ENTS;PARALLEL_GHOSTS="
          << num_dim << ".0." << nghostrings
          << ";DEBUG_IO=0;DEBUG_PIO=0";
     roptions = sstr.str();
@@ -166,7 +166,7 @@ int main(int argc, char **argv)
     rval = mb->get_entities_by_type(currset, MBVERTEX, verts); RC;
     rval = mb->get_entities_by_dimension(currset, num_dim, cells); RC;
     dbgprint ( "Found " << verts.size() << " vertices and " << cells.size() << " elements" );
-    
+
     // get the skin vertices of those cells and mark them as fixed; we don't want to fix the vertices on a
     // part boundary, but since we exchanged a layer of ghost cells, those vertices aren't on the skin locally
     // ok to mark non-owned skin vertices too, I won't move those anyway
@@ -185,7 +185,7 @@ int main(int argc, char **argv)
 
     // now perform the Laplacian relaxation
     rval = perform_laplacian_smoothing(mb, cells, verts, num_dim, fixed, use_hc, use_acc, acc_method, num_its, rel_eps, alpha, beta, report_its); RC;
-    
+
     // output file, using parallel write
     sstr.str("");
     sstr << "LaplacianSmoother_" << iref << ".h5m";
@@ -198,15 +198,15 @@ int main(int argc, char **argv)
   delete pcomm;
   // delete MOAB instance
   delete mb;
-  
+
   MPI_Finalize();
   return 0;
 }
 
-ErrorCode perform_laplacian_smoothing(Core *mb, Range& cells, Range &verts, int dim, Tag fixed, 
+ErrorCode perform_laplacian_smoothing(Core *mb, Range& cells, Range &verts, int dim, Tag fixed,
                                        bool use_hc, bool use_acc, int acc_method,
-                                       int num_its, double rel_eps, 
-                                       double alpha, double beta, int report_its) 
+                                       int num_its, double rel_eps,
+                                       double alpha, double beta, int report_its)
 {
   ErrorCode rval;
   int global_rank = 0, global_size = 1;
@@ -232,7 +232,7 @@ ErrorCode perform_laplacian_smoothing(Core *mb, Range& cells, Range &verts, int 
   // perform Laplacian relaxation:
   // 1. setup: set vertex centroids from vertex coords; filter to owned verts; get fixed tags
 
-  // get all verts coords into tag; don't need to worry about filtering out fixed verts, 
+  // get all verts coords into tag; don't need to worry about filtering out fixed verts,
   // we'll just be setting to their fixed coords
   std::vector<double> verts_o, verts_n;
   verts_o.resize(3*verts.size(), 0.0);
@@ -293,7 +293,7 @@ ErrorCode perform_laplacian_smoothing(Core *mb, Range& cells, Range &verts, int 
   double mxdelta = 0.0, global_max = 0.0;
   // 2. for num_its iterations:
   for (int nit = 0; nit < num_its; nit++) {
-    
+
     mxdelta = 0.0;
 
     // 2a. Apply Laplacian Smoothing Filter to Mesh
@@ -398,7 +398,7 @@ ErrorCode perform_laplacian_smoothing(Core *mb, Range& cells, Range &verts, int 
           }
         }
         else if (acc_method == 5) { /* Minimum polynomial extrapolation of vector sequenes : https://en.wikipedia.org/wiki/Minimum_polynomial_extrapolation */
-          /* Pseudo-code 
+          /* Pseudo-code
                 U=x(:,2:end-1)-x(:,1:end-2);
                 c=-pinv(U)*(x(:,end)-x(:,end-1));
                 c(end+1,1)=1;

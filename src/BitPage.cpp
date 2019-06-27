@@ -5,7 +5,7 @@
 
 namespace moab {
 
-void BitPage::search( unsigned char value, int offset, int count, 
+void BitPage::search( unsigned char value, int offset, int count,
                       int per_ent, Range& results, EntityHandle start ) const
 {
   const int end = offset + count;
@@ -33,5 +33,5 @@ BitPage::BitPage( int per_ent, unsigned char init_val )
   memset( byteArray, init_val, BitTag::PageSize );
 }
 
-  
+
 } // namespace moab

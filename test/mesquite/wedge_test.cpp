@@ -1,9 +1,9 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2004 Sandia Corporation and Argonne National
-    Laboratory.  Under the terms of Contract DE-AC04-94AL85000 
-    with Sandia Corporation, the U.S. Government retains certain 
+    Laboratory.  Under the terms of Contract DE-AC04-94AL85000
+    with Sandia Corporation, the U.S. Government retains certain
     rights in this software.
 
     This library is free software; you can redistribute it and/or
@@ -16,14 +16,14 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
-    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov, 
-    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov   
-    kraftche@cae.wisc.edu   
-   
+
+    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov,
+    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov
+    kraftche@cae.wisc.edu
+
   ***************************************************************** */
 
 #define TOL 1e-5
@@ -96,7 +96,7 @@ using namespace MBMesquite;
 // the smoother.
 bool smooth_mesh( MeshImpl* mesh, Mesh* ref_mesh,
                   Mesh::VertexHandle vertex_8,
-                  Mesh::VertexHandle vertex_9, 
+                  Mesh::VertexHandle vertex_9,
                   Vector3D delta,
                   QualityMetric* metric );
 
@@ -111,7 +111,7 @@ int main( int argc, char* [] )
     std::cerr << "Invalid arguments.\n";
     return 2;
   }
-  
+
   std::string meshfile = TestDir + "/3D/vtk/prisms/untangled/6-wedge-prism.vtk";
   unsigned i;
 
@@ -138,7 +138,7 @@ int main( int argc, char* [] )
   std::vector<Mesh::VertexHandle> vert_array;
   std::vector<Mesh::ElementHandle> elem_array;
   std::vector<size_t> conn_offsets;
-  mesh.get_all_elements( elem_array, err ); 
+  mesh.get_all_elements( elem_array, err );
   CPPUNIT_ASSERT(!err);
   CPPUNIT_ASSERT_EQUAL( elem_array.size(), NUM_ELEM );
   mesh.elements_get_attached_vertices( arrptr(elem_array),
@@ -152,14 +152,14 @@ int main( int argc, char* [] )
   EntityTopology type_array[NUM_ELEM];
   mesh.elements_get_topologies( arrptr(elem_array), type_array, NUM_ELEM, err );
   CPPUNIT_ASSERT(!err);
-  
+
     // Verify element types and number of vertices
   for (i = 0; i < NUM_ELEM; ++i)
   {
     CPPUNIT_ASSERT_EQUAL( type_array[i] , PRISM );
     CPPUNIT_ASSERT_EQUAL( conn_offsets[i] , VERT_PER_ELEM*i );
   }
-  
+
     // All wedges should share the 9th and 10th vertices
   const unsigned INDEX_8 = 1, INDEX_9 = 4;
   Mesh::VertexHandle handle8 = vert_array[INDEX_8];
@@ -169,9 +169,9 @@ int main( int argc, char* [] )
     CPPUNIT_ASSERT_EQUAL( vert_array[VERT_PER_ELEM*i+INDEX_8] , handle8 );
     CPPUNIT_ASSERT_EQUAL( vert_array[VERT_PER_ELEM*i+INDEX_9] , handle9 );
   }
-  
+
     // The input file should be a hexagonal prism decomposed into
-    // 6 wedges such that all wedges have one quad face on the 
+    // 6 wedges such that all wedges have one quad face on the
     // boundary and all wedges share a single edge which is the axis
     // of the prism.
   MsqVertex vertices[NUM_ELEM*VERT_PER_ELEM];
@@ -181,29 +181,29 @@ int main( int argc, char* [] )
   {
     if (vert_array[i] == handle8 || vert_array[i] == handle9)
     {
-      CPPUNIT_ASSERT_DOUBLES_EQUAL( 0.0, vertices[i][1], 1e-6 ); 
-      CPPUNIT_ASSERT_DOUBLES_EQUAL( 0.0, vertices[i][2], 1e-6 ); 
+      CPPUNIT_ASSERT_DOUBLES_EQUAL( 0.0, vertices[i][1], 1e-6 );
+      CPPUNIT_ASSERT_DOUBLES_EQUAL( 0.0, vertices[i][2], 1e-6 );
     }
     else
     {
       Vector3D xproj( vertices[i] );
       xproj[0] = 0;
-      CPPUNIT_ASSERT_DOUBLES_EQUAL( 2.0, xproj.length(), 1e-6 ); 
+      CPPUNIT_ASSERT_DOUBLES_EQUAL( 2.0, xproj.length(), 1e-6 );
     }
   }
-  
+
     // Try smoothing w/out moving the free vertices and verify that
     // the smoother didn't move the vertex
   Vector3D delta(0,0,0);
   for (i = 0; metrics[i] != NULL; ++i)
     CPPUNIT_ASSERT( !smooth_mesh( &mesh, &ideal_mesh, handle8, handle9, delta, metrics[i] ) );
-  
+
     // Now try moving the vertex and see if the smoother moves it back
     // to the origin
   delta.set( 0.1, 0.0, 0.1 );
   for (i = 0; metrics[i] != NULL; ++i)
     CPPUNIT_ASSERT( !smooth_mesh( &mesh, &ideal_mesh, handle8, handle9, delta, metrics[i] ) );
-  
+
     // Now try moving the vertex further and see if the smoother moves it back
     // to the origin
   delta.set( 1.0, 0.0, 1.0 );
@@ -212,31 +212,31 @@ int main( int argc, char* [] )
 
   return 0;
 }
-  
-  
+
+
 bool smooth_mesh( MeshImpl* mesh, Mesh* ,
-                  Mesh::VertexHandle vert1, 
-                  Mesh::VertexHandle vert2, 
+                  Mesh::VertexHandle vert1,
+                  Mesh::VertexHandle vert2,
                   Vector3D delta,
                   QualityMetric* metric )
 {
   MBMesquite::MsqPrintError err(cout);
   const Vector3D origin( 0, 0, 0 );
-  
+
   // print a little output so we know when we died
-  std::cout << 
-  "**************************************************************************" 
-  << std::endl << 
+  std::cout <<
+  "**************************************************************************"
+  << std::endl <<
   "* Smoothing..."
-  << std::endl << 
+  << std::endl <<
   "* Metric: " << metric->get_name()
-  << std::endl << 
+  << std::endl <<
   "* Offset: " << delta
-  << std::endl //<< 
-  //"**************************************************************************" 
+  << std::endl //<<
+  //"**************************************************************************"
   << std::endl;
-  
-  
+
+
   // Set free vertices to specified position
   Mesh::VertexHandle handles[] = { vert1, vert2 };
   MsqVertex coordinates[2];
@@ -263,7 +263,7 @@ bool smooth_mesh( MeshImpl* mesh, Mesh* ,
   TerminationCriterion tc_inner;
   tc_inner.add_absolute_vertex_movement( 1e-7 );
   solver.set_inner_termination_criterion(&tc_inner);
-   
+
   TerminationCriterion tc_outer;
   tc_outer.add_iteration_limit( 1 );
   solver.set_outer_termination_criterion(&tc_outer);
@@ -272,39 +272,39 @@ bool smooth_mesh( MeshImpl* mesh, Mesh* ,
   QualityAssessor qa( metric, 10 );
   Q.add_quality_assessor( &qa, err ); CPPUNIT_ASSERT(!err);
 #endif
-   
+
   // Add solver to queue
-  Q.set_master_quality_improver(&solver, err); 
+  Q.set_master_quality_improver(&solver, err);
   CPPUNIT_ASSERT(!err);
 
 #ifdef DO_QUALITY_ASSESSOR
   Q.add_quality_assessor( &qa, err ); CPPUNIT_ASSERT(!err);
 #endif
- 
+
   // And smooth...
-  Q.run_instructions(mesh, err); 
+  Q.run_instructions(mesh, err);
   CPPUNIT_ASSERT(!err);
-  
+
   // Verify that vertices were moved back to origin
   MsqVertex new_coords[2];
   mesh->vertices_get_coordinates( handles, new_coords, 2, err );
   CPPUNIT_ASSERT(!err);
-  
+
   // print a little output so we know when we died
-  std::cout //<< 
-  //"**************************************************************************" 
-  << std::endl << 
+  std::cout //<<
+  //"**************************************************************************"
+  << std::endl <<
   "* Done Smoothing:"
-  << std::endl << 
+  << std::endl <<
   "* Metric: " << metric->get_name()
-  << std::endl << 
+  << std::endl <<
   "* Position1: " << new_coords[0][0] << " " << new_coords[0][1] << " " << new_coords[0][2]
-  << std::endl << 
+  << std::endl <<
   "* Position2: " << new_coords[1][0] << " " << new_coords[1][1] << " " << new_coords[1][2]
-  << std::endl <<  
-  "**************************************************************************" 
+  << std::endl <<
+  "**************************************************************************"
   << std::endl;
-  
+
   CPPUNIT_ASSERT_VECTORS_EQUAL( coordinates[0], new_coords[0], TOL );
   CPPUNIT_ASSERT_VECTORS_EQUAL( coordinates[1], new_coords[1], TOL );
   return false;

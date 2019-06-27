@@ -139,7 +139,7 @@ ErrorCode NCHelperMPAS::init_mesh_vals()
   if ((vit = std::find(dimNames.begin(), dimNames.end(), "nVertLevels")) != dimNames.end())
     idx = vit - dimNames.begin();
   else {
-    std::cerr << "Warning: dimension nVertLevels not found in header.\nThe file may contain just the mesh" << std::endl;  
+    std::cerr << "Warning: dimension nVertLevels not found in header.\nThe file may contain just the mesh" << std::endl;
   }
   levDim = idx;
   nLevels = dimLens[idx];
@@ -437,7 +437,7 @@ ErrorCode NCHelperMPAS::create_mesh(Range& faces)
     EntityHandle starth = pair_iter->first;
     EntityHandle endh = pair_iter->second;
     NCDF_SIZE read_starts[2] = {static_cast<NCDF_SIZE>(starth - 1), 0};
-    NCDF_SIZE read_counts[2] = {static_cast<NCDF_SIZE>(endh - starth + 1), 
+    NCDF_SIZE read_counts[2] = {static_cast<NCDF_SIZE>(endh - starth + 1),
                                 static_cast<NCDF_SIZE>(maxEdgesPerCell)};
 
     // Do a partial read in each subrange

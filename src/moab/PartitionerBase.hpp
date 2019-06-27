@@ -35,13 +35,13 @@ namespace moab {
 using namespace moab;
 
   template <typename T>
-  class PartitionerBase 
+  class PartitionerBase
   {
 
   public:
     PartitionerBase( Interface *impl = NULL,
                       const bool use_coords = false);
-    
+
     virtual ~PartitionerBase();
 
     virtual ErrorCode partition_mesh_and_geometry(const double part_geom_mesh_size,
@@ -61,7 +61,7 @@ using namespace moab;
 
     virtual ErrorCode partition_mesh( const T nparts,
                                       const char *method,
-                                      const int part_dim = 3, 
+                                      const int part_dim = 3,
                                       const bool write_as_sets = true,
                                       const bool write_as_tags = false,
                                       const bool partition_tagged_sets = false,
@@ -69,7 +69,7 @@ using namespace moab;
                                       const char *aggregating_tag = NULL,
                                       const bool print_time = false) = 0;
 
-    virtual ErrorCode write_partition(const T nparts, Range &elems, 
+    virtual ErrorCode write_partition(const T nparts, Range &elems,
                                 const T *assignment,
                                 const bool write_as_sets,
                                 const bool write_as_tags) = 0;
@@ -78,7 +78,7 @@ using namespace moab;
     virtual ErrorCode include_closure() = 0;
 
     Range &part_sets() {return partSets;};
-    
+
     const Range &part_sets() const {return partSets;};
 
   protected:

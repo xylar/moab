@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2010 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2010) kraftche@cae.wisc.edu    
+    (2010) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file SphericalDomainTest.cpp
  *  \brief Unit tests for SphericalDomain class
- *  \author Jason Kraftcheck 
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -59,11 +59,11 @@ public:
 
 private:
 
-  void check_closest_pt( const SphericalDomain& dom, 
+  void check_closest_pt( const SphericalDomain& dom,
                          const Vector3D& input_pt,
                          const Vector3D& output_pt );
 
-  void check_normal( const SphericalDomain& dom, 
+  void check_normal( const SphericalDomain& dom,
                      const Vector3D& point,
                      const Vector3D& normal );
 
@@ -73,7 +73,7 @@ private:
 CPPUNIT_TEST_SUITE_NAMED_REGISTRATION(SphericalDomainTest, "SphericalDomainTest");
 CPPUNIT_TEST_SUITE_NAMED_REGISTRATION(SphericalDomainTest, "Unit");
 
-void SphericalDomainTest::check_closest_pt( const SphericalDomain& dom, 
+void SphericalDomainTest::check_closest_pt( const SphericalDomain& dom,
                                             const Vector3D& input_pt,
                                             const Vector3D& output_pt )
 {
@@ -83,7 +83,7 @@ void SphericalDomainTest::check_closest_pt( const SphericalDomain& dom,
   vi *= dom.radius() / vi.length();
   CPPUNIT_ASSERT_VECTORS_EQUAL( vo, vi, 1e-6 );
 }
-void SphericalDomainTest::check_normal( const SphericalDomain& dom, 
+void SphericalDomainTest::check_normal( const SphericalDomain& dom,
                                         const Vector3D& point,
                                         const Vector3D& normal )
 {
@@ -100,7 +100,7 @@ void SphericalDomainTest::test_construct()
   SphericalDomain sph( cen, rad );
   CPPUNIT_ASSERT_VECTORS_EQUAL( cen, sph.center(), 1e-18 );
   CPPUNIT_ASSERT_DOUBLES_EQUAL( rad, sph.radius(), 1e-18 );
-  
+
   cen = Vector3D( 5, 6, 1.14 );
   rad = 1/rad;
   sph.set_sphere( cen, rad );
@@ -116,13 +116,13 @@ static void sphere_point( Vector3D cen, double rad, double theta, double phi, do
   pt[1] = rslt[1];
   pt[2] = rslt[2];
 }
-  
+
 
 void SphericalDomainTest::test_fit_vertices()
 {
   Vector3D cen( 1, 2, 3 );
   double rad = 2.5;
-  
+
     // point locations on a expected sphere
   const int num_pt = 6;
   double coords[3*num_pt];
@@ -132,13 +132,13 @@ void SphericalDomainTest::test_fit_vertices()
   sphere_point( cen, rad, 3.1,-0.5, coords + 9 );
   sphere_point( cen, rad,-1.5,-1.0, coords +12 );
   sphere_point( cen, rad, 0.2, 0.1, coords +15 );
-  
+
     // make sure our setup is valid
   for (int i = 0; i < num_pt; ++i) {
     Vector3D pt(coords + 3*i);
     CPPUNIT_ASSERT_DOUBLES_EQUAL( rad, (pt-cen).length(), 1e-6 );
   }
-  
+
   std::vector<int> fixed(num_pt, 0);
   ArrayMesh mesh( 3, num_pt, coords, arrptr(fixed), 0, TRIANGLE, 0 );
   SphericalDomain sph;
@@ -154,7 +154,7 @@ void SphericalDomainTest::test_snap_to()
   Vector3D cen( 3.14, 15, 0.91 );
   double rad = 6.02;
   SphericalDomain dom(cen, rad);
-  
+
   const int num_pts = 5;
   double points[num_pts][3] = { { 0, 0, 0 },
                                 { 10, 11, 8 },
@@ -173,7 +173,7 @@ void SphericalDomainTest::test_normal_at()
   Vector3D cen( -3.14, 0, 0.91 );
   double rad = 2;
   SphericalDomain dom(cen, rad);
-  
+
   const int num_pts = 5;
   double points[num_pts][3] = { { 0, 0, 0 },
                                 { 10, 11, 8 },
@@ -184,7 +184,7 @@ void SphericalDomainTest::test_normal_at()
     Vector3D v(points[i]);
     dom.vertex_normal_at( 0, v );
     check_normal( dom, Vector3D(points[i]), v );
-    
+
     v = Vector3D(points[i]);
     dom.element_normal_at( 0, v );
     check_normal( dom, Vector3D(points[i]), v );
@@ -197,7 +197,7 @@ void SphericalDomainTest::test_closest_point()
   double rad = 1.4;
   SphericalDomain dom(cen, rad);
   MsqPrintError err(std::cout);
-  
+
   const int num_pts = 5;
   double points[num_pts][3] = { { 0, 0, 0 },
                                 { 10, 11, 8 },
@@ -222,5 +222,5 @@ void SphericalDomainTest::test_domain_DoF()
   MsqPrintError err(std::cout);
   dom.domain_DoF( arrptr(junk), arrptr(dof), junk.size(), err );
   ASSERT_NO_ERROR(err);
-  CPPUNIT_ASSERT( expected == dof );  
+  CPPUNIT_ASSERT( expected == dof );
 }

@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2008 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2008) kraftche@cae.wisc.edu    
+    (2008) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file CLArgs.hpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #ifndef MSQ_CLARGS_HPP
@@ -47,7 +47,7 @@ class CLArgImpl;
  *
  * This class provides a mechanism for parsing and to some extend validating
  * command-line arguments.  Use of this class can be divided into three steps:
- * 
+ *
  * 1) Call *_flag and arg methods to define acceptable command line arguments
  *
  * 2) Call parse_options to parse the command line arguments according to
@@ -66,7 +66,7 @@ class CLArgImpl;
 class CLArgs
 {
   public:
-  
+
       /**\brief Base class for callback interface (type-independent functions) */
     class ArgIBase {
       private: bool wasSeen; //!< Keep track of whether or not this flag was encountered
@@ -85,7 +85,7 @@ class CLArgs
                 /**\brief Test if the user specified this flag */
               bool seen() const { return wasSeen; }
     };
-  
+
       /**\brief Interface for type-specific callback classes */
     template <typename T> class ArgTemplateI : public ArgIBase {
       public: virtual bool value( const T& val ) = 0;
@@ -96,10 +96,10 @@ class CLArgs
                bool haveDefault; //!< True if app. provided default value.
       public:  virtual ~ArgTemplate() {}
                virtual bool value( const T& val ) //!< Set value
-               { 
-                  mValue = val; 
-                  ArgTemplateI<T>::set_seen(); 
-                  return true; 
+               {
+                  mValue = val;
+                  ArgTemplateI<T>::set_seen();
+                  return true;
                }
                const T& value() const { return mValue; } //!< get value
                 /**\brief Initialize with default value */
@@ -112,8 +112,8 @@ class CLArgs
                  if (haveDefault)
                    ss << mValue;
                  return ss.str();
-               }    
-               
+               }
+
     };
 
       /**\brief Trivial implementation for type-specific classes */
@@ -122,10 +122,10 @@ class CLArgs
                bool haveDefault; //!< True if app. provided default value.
       public:  virtual ~ArgListTemplate() {}
                virtual bool value( const std::vector<T>& val ) //!< Set value
-               { 
-                  mValue = val; 
-                  ArgTemplateI< std::vector<T> >::set_seen(); 
-                  return true; 
+               {
+                  mValue = val;
+                  ArgTemplateI< std::vector<T> >::set_seen();
+                  return true;
                }
                const std::vector<T>& value() const { return mValue; } //!< get value
                 /**\brief Initialize with default value */
@@ -135,13 +135,13 @@ class CLArgs
                 /**\brief Get string representation of default value, or empty string of no default value */
                virtual std::string default_str() const {
                  std::ostringstream ss;
-                 std::copy( mValue.begin(), mValue.end(), 
+                 std::copy( mValue.begin(), mValue.end(),
                    std::ostream_iterator<T>( ss, ", " ) );
                  return ss.str();
-               }    
-               
+               }
+
     };
-    
+
       /**\brief Callback API for a string argument */
     typedef ArgTemplateI< std::string >     StringArgI;
       /**\brief Callback API for an integer argument */
@@ -196,7 +196,7 @@ class CLArgs
         virtual std::string manstr() const;
         static bool compare_no_case( const char* s1, const char* s2 );
     };
-    
+
     class IntRange
     {
       private:
@@ -206,7 +206,7 @@ class CLArgs
         bool is_valid( int val ) const;
         std::string desc_append() const;
     };
-    
+
       /**\brief Integer argument constrained to a range of valid values. */
     class IntRangeArg : public IntArg
     {
@@ -222,9 +222,9 @@ class CLArgs
         std::string desc_append() const
           { return mRange.desc_append(); }
     };
-    
+
       /**\brief Integer list argument constrained to a range of valid values. */
-    class IntListRangeArg : public IntListArg 
+    class IntListRangeArg : public IntListArg
     {
       private:
         IntRange mRange;
@@ -236,7 +236,7 @@ class CLArgs
         std::string desc_append() const
           { return mRange.desc_append(); }
     };
-    
+
     class DoubleRange
     {
       private:
@@ -247,23 +247,23 @@ class CLArgs
         bool is_valid( double value ) const;
         std::string desc_append() const;
     };
-    
+
       /**\brief Double argument constrained to a range of valid values. */
     class DoubleRangeArg : public DoubleArg
     {
       private:
         DoubleRange mRange;
       public:
-        DoubleRangeArg( const double* min = 0, 
-                        const double* max = 0, 
-                        bool inclusive = true ) 
+        DoubleRangeArg( const double* min = 0,
+                        const double* max = 0,
+                        bool inclusive = true )
                       : mRange( min, max, inclusive )
                         {}
         DoubleRangeArg( double default_val,
-                        const double* min = 0, 
-                        const double* max = 0, 
-                        bool inclusive = true ) 
-                      : DoubleArg(default_val), 
+                        const double* min = 0,
+                        const double* max = 0,
+                        bool inclusive = true )
+                      : DoubleArg(default_val),
                         mRange( min, max, inclusive )
                         {}
         bool value( const double& val );
@@ -271,16 +271,16 @@ class CLArgs
         std::string desc_append() const
           { return mRange.desc_append(); }
     };
-    
+
       /**\brief Double list argument constrained to a range of valid values. */
     class DoubleListRangeArg : public DoubleListArg
     {
       private:
         DoubleRange mRange;
       public:
-        DoubleListRangeArg( const double* min = 0, 
-                            const double* max = 0, 
-                            bool inclusive = true ) 
+        DoubleListRangeArg( const double* min = 0,
+                            const double* max = 0,
+                            bool inclusive = true )
                           : mRange( min, max, inclusive )
                             {}
         bool value( const std::vector<double>& val );
@@ -288,70 +288,70 @@ class CLArgs
         std::string desc_append() const
           { return mRange.desc_append(); }
     };
-        
+
 
 
   public:
-  
-    /**\brief Define basic program 
+
+    /**\brief Define basic program
      *
      *\param progname  The program name
      *\param brief_desc A brief description of the purpose of the program.
      *\param desc Program description for documentation.
      */
     CLArgs( const char* progname, const char* brief_desc, const char* desc );
-    
+
     ~CLArgs();
-    
+
       /**\brief Check if flag is undefined */
     bool is_flag_available( char fl ) const;
-    
+
     /**\brief Register a flag that requires a string argument.
      *
      * Define a flag of the form "-f <somestring>".
-     *\param fl       The character for the flag. 
+     *\param fl       The character for the flag.
      *\param name     The name of the flag argument
      *\param desc     A description of the purpose of the flag and argument.
      *\parma callback Object instance to which to pass the parsed argument value.
      *\return         false if flag is already in use, true otherwise.
      */
-    bool str_flag( char fl, 
-                   const char* name, 
-                   const char* desc, 
+    bool str_flag( char fl,
+                   const char* name,
+                   const char* desc,
                    StringArgI* callback );
 
     /**\brief Register a flag that requires an integer argument.
      *
      * Define a flag of the form "-f <int>".
-     *\param fl       The character for the flag. 
+     *\param fl       The character for the flag.
      *\param name     The name of the flag argument
      *\param desc     A description of the purpose of the flag and argument.
      *\parma callback Object instance to which to pass the parsed argument value.
      *\return         false if flag is already in use, true otherwise.
      */
-    bool int_flag( char fl, 
-                   const char* name, 
-                   const char* desc, 
+    bool int_flag( char fl,
+                   const char* name,
+                   const char* desc,
                    IntArgI* callback );
 
     /**\brief Register a flag that requires an integer argument.
      *
      * Define a flag of the form "-f <int>".
-     *\param fl       The character for the flag. 
+     *\param fl       The character for the flag.
      *\param name     The name of the flag argument
      *\param desc     A description of the purpose of the flag and argument.
      *\parma callback Object instance to which to pass the parsed argument value.
      *\return         false if flag is already in use, true otherwise.
      */
-    bool long_flag( char fl, 
-                    const char* name, 
-                    const char* desc, 
+    bool long_flag( char fl,
+                    const char* name,
+                    const char* desc,
                     LongArgI* callback );
 
     /**\brief Register a flag that requires a real umber argument.
      *
      * Define a flag of the form "-f <double>".
-     *\param fl        The character for the flag. 
+     *\param fl        The character for the flag.
      *\param name      The name of the flag argument
      *\param desc      A description of the purpose of the flag and argument.
      *\parma callback  Object instance to which to pass the parsed argument value.
@@ -359,11 +359,11 @@ class CLArgs
      *                 false, reject 'min' and 'max' values: (min,max).
      *\return          false if flag is already in use, true otherwise.
      */
-    bool double_flag( char fl, 
-                      const char* name, 
-                      const char* desc, 
+    bool double_flag( char fl,
+                      const char* name,
+                      const char* desc,
                       DoubleArgI* callback );
-    
+
     /**\brief Register a pair of flags that accept no arguments and have
      *        opposing affects.
      *
@@ -376,81 +376,81 @@ class CLArgs
      *\parma callback Object instance to which to pass the parsed argument value.
      *\return         false if flag is already in use, true otherwise.
      */
-    bool toggle_flag( char on_flag, 
-                      char off_flag, 
-                      const char* desc, 
+    bool toggle_flag( char on_flag,
+                      char off_flag,
+                      const char* desc,
                       ToggleArgI* callback );
-    
+
     /**\brief Register a flag with no value.
      *
      * Define a flag such that the state of the option is considered
      * to be false unless flag is specified.  If the flag is specified,
      * the option is considered to be true.
-     *\param fl       The character for the flag. 
+     *\param fl       The character for the flag.
      *\param desc     A description of the purpose of the flag and argument.
      *\parma callback Object instance to which to pass the parsed argument value.
      *\return         false if flag is already in use, true otherwise.
      */
     bool toggle_flag( char fl, const char* desc, ToggleArgI* callback );
-    
-    
+
+
     /**\brief Register a flag that accepts a list of positive integer arguments.
      *
      * Define a flag that accepts a list of ranges of positive integer values
      * separated by commas.  A zero value is rejected.  Ranges can be either
      * a single value or pair of values separated by a dash.  For example:
      * "-f 1,4-10,2,20-25".
-     * 
+     *
      * Use 'get_int_list' to query values of flag.
      *
-     *\param fl       The character for the flag. 
+     *\param fl       The character for the flag.
      *\param desc     A description of the purpose of the flag and argument.
      *\parma callback Object instance to which to pass the parsed argument value.
      *\return         false if flag is already in use, true otherwise.
      */
     bool id_list_flag( char fl, const char* desc, IntListArgI* callback );
 
-    /**\brief Register a flag that requires a comma-separated 
+    /**\brief Register a flag that requires a comma-separated
      *        list of integer values.
      *
-     * Define a flag that has an integer list for its arguments.  The 
+     * Define a flag that has an integer list for its arguments.  The
      * integers must be specified as a comma-separated list.
      *
      * Use 'limit_list_flag' to limit the number of values accepted
      * in the argument.  If 'limit_list_flag' is never called, any
      * number of argument values will be accepted.
      *
-     *\param fl       The character for the flag. 
+     *\param fl       The character for the flag.
      *\param desc     A description of the purpose of the flag and argument.
      *\parma callback Object instance to which to pass the parsed argument value.
      *\return         false if flag is already in use, true otherwise.
      */
     bool int_list_flag( char fl, const char* desc, IntListArgI* callback );
 
-    /**\brief Register a flag that requires a comma-separated 
+    /**\brief Register a flag that requires a comma-separated
      *        list of double values.
      *
-     * Define a flag that has an double list for its arguments.  The 
+     * Define a flag that has an double list for its arguments.  The
      * values must be specified as a comma-separated list.
      *
      * Use 'limit_list_flag' to limit the number of values accepted
      * in the argument.  If 'limit_list_flag' is never called, any
      * number of argument values will be accepted.
      *
-     *\param fl       The character for the flag. 
+     *\param fl       The character for the flag.
      *\param desc     A description of the purpose of the flag and argument.
      *\parma callback Object instance to which to pass the parsed argument value.
      *\return         false if flag is already in use, true otherwise.
      */
-    bool double_list_flag( char fl, 
-                           const char* desc, 
+    bool double_list_flag( char fl,
+                           const char* desc,
                            DoubleListArgI* callback );
-    
+
     /**\brief Set a limit on the number of values accepted for a list-type
      *        flag.  May be called multiple times for a flag.
      *
      * Add a limit on the number of values accepted for a list-type flag.
-     * This function may be called multiple times if the flag should 
+     * This function may be called multiple times if the flag should
      * accept a finite set of different arugment value counts.
      *
      *\param fl  The flag
@@ -474,9 +474,9 @@ class CLArgs
      */
     void add_required_arg( const char* name );
     void add_optional_arg( const char* name );
-  
+
     /**\brief Parse argument list.
-     * 
+     *
      *\param argc The argument list length passed to the main() routine.
      *            The first value is assumed to be the executable name.
      *            This this value must be at least 1.
@@ -488,37 +488,37 @@ class CLArgs
      *\param error_stream  stream to which to write error messages.
      *\return true if all arguments were accepted.  false otherwise.
      */
-    bool parse_options( int argc, 
+    bool parse_options( int argc,
                         char* argv[],
                         std::vector< std::string >& args_out,
                         std::ostream& error_stream );
-    
-    
-    
-    
+
+
+
+
     /**\brief Write help
-     * 
+     *
      * Write help text to passed stream.
      */
     void print_help( std::ostream& stream ) const;
-    
+
     /**\brief Write UNIX man page
-     * 
+     *
      * Write man page to passed stream.
      */
     void print_man_page( std::ostream& stream ) const;
-    
+
     /**\brief prinint usage (brief help)
      */
     void print_usage( std::ostream& stream ) const;
-    
+
   private:
-  
+
     CLArgImpl* impl;
 };
 
 template <typename T> std::ostream& operator<<( std::ostream& str, const std::vector<T>& list )
-{ 
+{
   typename std::vector<T>::const_iterator i = list.begin();
   if (i != list.end()) {
     str << *i;

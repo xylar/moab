@@ -1,16 +1,16 @@
 /**
  * MOAB, a Mesh-Oriented datABase, is a software component for creating,
  * storing and accessing finite element mesh data.
- * 
+ *
  * Copyright 2004 Sandia Corporation.  Under the terms of Contract
  * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
  * retains certain rights in this software.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  */
 
 #include "moab/HomXform.hpp"
@@ -33,7 +33,7 @@ int main(int /*argc*/, char** /*argv*/)
 
   // constructors
   // following shouldn't compile, since bare constructor is private
-  
+
   int errors = 0;
 
   errors += test_get_set();
@@ -46,18 +46,18 @@ int main(int /*argc*/, char** /*argv*/)
     std::cout << errors << " errors found." << std::endl;
   else
     std::cout << "All tests passed." << std::endl;
-    
+
   return errors;
 }
 
-int test_get_set() 
+int test_get_set()
 {
   int errors = 0;
-  
+
     // other constructors
   int coordsa[4] = {1, 2, 3, 1};
   int coordsb[4] = {4, 3, 2, 1};
-      
+
   HomCoord coords1(coordsa);
   HomCoord coords2(4, 3, 2, 1);
   HomCoord coords3(4, 3, 2);
@@ -65,7 +65,7 @@ int test_get_set()
 
     // set
   coords2.set(coordsb);
-  
+
     // hom_coord()
   for (int i = 0; i < 4; i++) {
     if (coords2.hom_coord()[i] != coordsb[i]) {
@@ -82,24 +82,24 @@ int test_get_set()
     std::cout << "ijkh test failed." << std::endl;
     errors++;
   }
-  
+
     // set
   coords2.set(3, 3, 3);
-  
+
     // hom_coord()
   if (coords2.hom_coord()[0] != 3 || coords2.hom_coord()[1] != 3 ||
       coords2.hom_coord()[2] != 3 || coords2.hom_coord()[3] != 1) {
     std::cout << "Set (int) test failed." << std::endl;
     errors++;
   }
-  
+
   return errors;
 }
 
-int test_coord_operators() 
+int test_coord_operators()
 {
   int errors = 0;
-  
+
   HomCoord coords1(1, 2, 3, 1);
   HomCoord coords2(4, 3, 2, 1);
   HomCoord coords3(4, 3, 2);
@@ -154,7 +154,7 @@ int test_coord_operators()
       std::cout << "Test failed for operator+." << std::endl;
       errors++;
   }
-  
+
     // operator-
   if (coords5-coords1 != coords1) {
       std::cout << "Test failed for operator-." << std::endl;
@@ -164,10 +164,10 @@ int test_coord_operators()
   return errors;
 }
 
-int test_xform_constructors() 
+int test_xform_constructors()
 {
   int errors = 0;
-  
+
     // integer constructor
   int test_int[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
   HomXform xform(test_int);
@@ -193,10 +193,10 @@ int test_xform_constructors()
   int rotate[] = {0, 1, 0, -1, 0, 0, 0, 0, 1};
   int translate[] = {4, 5, 6};
   int scale[] = {1, 1, 1};
-  
+
     // construct an xform matrix based on those
   HomXform xform2(rotate, scale, translate);
-  
+
     // test where those went in the xform
   if (!(xform2[XFORM_INDEX(0,0)] == rotate[0] &&
         xform2[XFORM_INDEX(0,1)] == rotate[1] &&
@@ -221,19 +221,19 @@ int test_xform_constructors()
   return errors;
 }
 
-int test_xform_operators() 
+int test_xform_operators()
 {
   int errors = 0;
-  
+
     // sample rotation, translation, and scaling matrices/vectors
   int rotate[] = {0, 1, 0, -1, 0, 0, 0, 0, 1};
   int translate[] = {4, 5, 6};
   int scale[] = {1, 1, 1};
-  
+
     // construct an xform matrix based on those
   HomXform xform1(rotate, scale, translate);
   HomXform xform1a(rotate, scale, translate);
-  
+
     // test operator==
   if (!(xform1 == xform1a)) {
     std::cout << "HomXform operator== failed." << std::endl;
@@ -270,7 +270,7 @@ int test_xform_operators()
   return errors;
 }
 
-int test_xform_functions() 
+int test_xform_functions()
 {
   int errors = 0;
 
@@ -292,10 +292,10 @@ int test_xform_functions()
     std::cout << "HomCoord normalize failed." << std::endl;
     errors++;
   }
-  
+
     // sample rotation, translation, and scaling matrices/vectors
   int inv_int[] = {0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1, 0, 7, 5, 0, 1};
-  
+
     // construct an xform matrix based on those
   HomXform xform1(inv_int);
 
@@ -310,13 +310,13 @@ int test_xform_functions()
   return errors;
 }
 
-int test_coord_xform_operators() 
+int test_coord_xform_operators()
 {
   int errors = 0;
-  
+
     // sample pt
   HomCoord test_pt(1, 2, 3);
-  
+
   HomCoord test_pt2 = test_pt * HomXform::IDENTITY;
   if (test_pt2 != test_pt) {
     std::cout << "Coord-xform operator* failed." << std::endl;
@@ -336,7 +336,7 @@ int test_coord_xform_operators()
     std::cout << "Coord-xform operator* failed." << std::endl;
     errors++;
   }
-    
+
     // operator/
   test_pt2 = (test_pt * xform2) / xform2;
   if (test_pt2 != test_pt) {
@@ -358,7 +358,7 @@ int test_coord_xform_operators()
     std::cout << "Three-pt transform (general) test failed." << std::endl;
     errors++;
   }
-  
+
     // now test 1d
   xform.three_pt_xform(HomCoord(0,0,0,1), HomCoord(7,5,0,1),
                        HomCoord(6,0,0,1), HomCoord(7,11,0,1),
@@ -369,8 +369,8 @@ int test_coord_xform_operators()
     std::cout << "Three-pt transform (1d) test failed." << std::endl;
     errors++;
   }
-  
-  
+
+
   return errors;
 }
 

@@ -1,9 +1,9 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2004 Sandia Corporation and Argonne National
-    Laboratory.  Under the terms of Contract DE-AC04-94AL85000 
-    with Sandia Corporation, the U.S. Government retains certain 
+    Laboratory.  Under the terms of Contract DE-AC04-94AL85000
+    with Sandia Corporation, the U.S. Government retains certain
     rights in this software.
 
     This library is free software; you can redistribute it and/or
@@ -16,13 +16,13 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
-    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov, 
-    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov      
-   
+
+    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov,
+    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov
+
   ***************************************************************** */
 #ifndef MESQUITE_TESTRUNNER_HPP
 #define MESQUITE_TESTRUNNER_HPP
@@ -58,7 +58,7 @@ namespace MBMesquite
   public:
     TestRunner();
     virtual ~TestRunner();
-    
+
     void add_test(CppUnit::Test *test);
     virtual bool run(const std::string& name_of_run,
                      std::ostream& out_stream = std::cout);
@@ -66,7 +66,7 @@ namespace MBMesquite
     void delete_all_tests();
     const std::string running_test_prefix();
     inline void indent();
-    
+
       // TestListener functions
     virtual void startSuite(CppUnit::TestSuite *suite);
     virtual void startTest(CppUnit::Test *test);
@@ -77,7 +77,7 @@ namespace MBMesquite
       // Timer functions
     inline void push_timer(Mesquite::Timer* timer);
     inline MBMesquite::Timer* pop_timer();
-    
+
   private:
     std::vector<CppUnit::Test*> mTests;
     std::stack<Mesquite::Timer*> mTimers;

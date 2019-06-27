@@ -7,7 +7,7 @@
 #include <iomanip>
 #include <iostream>
 
-namespace moab { 
+namespace moab {
 
 namespace element_utility {
 
@@ -43,7 +43,7 @@ class Quadratic_hex_map {
 	typedef _Matrix Matrix;
   private:
 	typedef Quadratic_hex_map< Matrix> Self;
-  public: 
+  public:
     //Constructor
     Quadratic_hex_map() {}
     //Copy constructor
@@ -51,12 +51,12 @@ class Quadratic_hex_map {
 
  public:
     //Natural coordinates
-    template< typename Moab, typename Entity_handle, 
+    template< typename Moab, typename Entity_handle,
 	      typename Points, typename Point>
     std::pair< bool, Point> operator()( const Moab & /* moab */,
 					const Entity_handle & /* h */,
-					const Points & v, 
-					const Point & p, 
+					const Points & v,
+					const Point & p,
 					const double tol = 1.e-6) const {
       Point result(3, 0.0);
       bool point_found = solve_inverse( p, result, v, tol) &&
@@ -111,9 +111,9 @@ class Quadratic_hex_map {
     }
 
     template< typename Point, typename Points>
-    bool solve_inverse( const Point & x, 
+    bool solve_inverse( const Point & x,
 			Point & xi,
-			const Points & points, 
+			const Points & points,
 			const double tol=1.e-6) const {
       const double error_tol_sqr = tol*tol;
       Point delta(3,0.0);
@@ -123,8 +123,8 @@ class Quadratic_hex_map {
       std::size_t num_iterations=0;
       #ifdef QUADRATIC_HEX_DEBUG
  	std::stringstream ss;
-	ss << "Point: "; 
-       ss << x[ 0 ] << ", " << x[ 1] 
+	ss << "Point: ";
+       ss << x[ 0 ] << ", " << x[ 1]
           << ", " << x [ 2] << std::endl;
 	ss << "Hex: ";
 	for(int i = 0; i < 8; ++i){
@@ -135,9 +135,9 @@ class Quadratic_hex_map {
       #endif
       while ( normsq( delta) > error_tol_sqr) {
 	#ifdef QUADRATIC_HEX_DEBUG
-	ss << "Iter #: "  << num_iterations 
+	ss << "Iter #: "  << num_iterations
 	   << " Err: " << sqrt( normsq( delta)) << " Iterate: ";
-	ss << xi[ 0 ] << ", " << xi[ 1] 
+	ss << xi[ 0 ] << ", " << xi[ 1]
 		<< ", " << xi[ 2] << std::endl;
 	#endif
 	if( ++num_iterations >= 5){ return false; }
@@ -149,7 +149,7 @@ class Quadratic_hex_map {
 			std::cerr << ss.str();
 		#endif
 		#ifndef QUADRATIC_HEX_DEBUG
-		std::cerr << x[ 0 ] << ", " << x[ 1] 
+		std::cerr << x[ 0 ] << ", " << x[ 1]
 			  << ", " << x [ 2] << std::endl;
 		#endif
 		std::cerr << "inverse solve failure: det: " << det << std::endl;
@@ -163,7 +163,7 @@ class Quadratic_hex_map {
     }
 
     template< typename Point, typename Points>
-    Point& evaluate( const Point & p, const Points & points, Point & f) const{ 
+    Point& evaluate( const Point & p, const Points & points, Point & f) const{
 	typedef typename Points::value_type Vector;
 	Vector result;
 	for(int i = 0; i < 3; ++i){ result[ i] = 0; }
@@ -177,7 +177,7 @@ class Quadratic_hex_map {
 	return f;
     }
     template< typename Point, typename Field>
-    double   evaluate_scalar_field( const Point & p, 
+    double   evaluate_scalar_field( const Point & p,
 				    const Field & field) const {
       double x=0.0;
       for (int i=0; i<27; i++){
@@ -189,10 +189,10 @@ class Quadratic_hex_map {
       return x;
     }
     template< typename Field, typename Points>
-    double   integrate_scalar_field( const Points & p, 
-				     const Field & field_values) const { 
+    double   integrate_scalar_field( const Points & p,
+				     const Field & field_values) const {
         // TODO: gaussian integration , probably 2x2x2
-	return 0.; 
+	return 0.;
     }
 
     template< typename Point, typename Points>

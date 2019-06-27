@@ -1,16 +1,16 @@
 /**
  * MOAB, a Mesh-Oriented datABase, is a software component for creating,
  * storing and accessing finite element mesh data.
- * 
+ *
  * Copyright 2004 Sandia Corporation.  Under the terms of Contract
  * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
  * retains certain rights in this software.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  */
 
 
@@ -59,7 +59,7 @@ class SparseTagSuperCollection
 public:
   //! constructor
   SparseTagSuperCollection(){}
-  
+
   //! destructor
   virtual ~SparseTagSuperCollection();
 
@@ -131,7 +131,7 @@ public:
    * with variable length tags because it does not provide a mechanism
    * to determine the length of the value for each entity.  This
    * function may be used with sparse tags, but if it is used, it
-   * will return data for a single entity at a time.  
+   * will return data for a single entity at a time.
    *
    *\param tag_handle  The handle of the tag for which to access data
    *\param iter        As input, the first entity for which to return
@@ -139,9 +139,9 @@ public:
    *                   which data was returned.
    *\param end         One past the last entity for which data is desired
    *\param data_ptr    Output: pointer to tag storage.
-   *  
+   *
    *\Note If this function is called for entities for which no tag value
-   *      has been set, but for which a default value exists, it will 
+   *      has been set, but for which a default value exists, it will
    *      force the allocation of explicit storage for each such entity
    *      even though MOAB would normally not explicitly store tag values
    *      for such entities.
@@ -151,7 +151,7 @@ public:
                          const Range::iterator& end,
                          void*& data_ptr,
                          const void* default_value );
-  
+
     /** Get fixed-length tag values for array of entities
      *\NOTE Will fail with MB_VARIABLE_DATA_LENGTH if called
      *      for variable-length tag.
@@ -161,7 +161,7 @@ public:
                         int num_handles,
                         void* data,
                         const void* default_value ) const;
-  
+
     /** Get pointers to tag data for array of entities
      *\param tag_id      The Tag.
      *\param handles     Array of entity handles.
@@ -179,7 +179,7 @@ public:
                         int* lengths,
                         const void* default_value,
                         int default_value_length ) const;
-  
+
     /** Get fixed-length tag value for an Range of entities
      *\NOTE Will fail with MB_VARIABLE_DATA_LENGTH if called
      *      for variable-length tag.
@@ -188,7 +188,7 @@ public:
                         const Range& handles,
                         void* data,
                         const void* default_value ) const;
-  
+
     /** Get pointers to tag data for an Range of entities.
      *
      *\param tag_id   The tag.
@@ -197,7 +197,7 @@ public:
      *                must be the same length as the size of 'entities'.
      *                The array will be populated with pointers to the
      *                internal storage of the tag data for each entity.
-     *\param lengths  Array of integers.  Will be populated with the 
+     *\param lengths  Array of integers.  Will be populated with the
      *                length of the tag value for each entity.  Argument
      *                is optional for fixed-length tags.
      *\param default_value The default value for the tag.
@@ -228,9 +228,9 @@ public:
   //! gets all tags on a given entity handle
   ErrorCode get_tags(const EntityHandle entity,
                        std::vector<Tag> &all_tags);
-  
+
   //! gets all entity handles that match a tag
-  ErrorCode get_entities_with_tag_value( const TagId tag_handle, 
+  ErrorCode get_entities_with_tag_value( const TagId tag_handle,
                                            const TagInfo& tag_info,
                                            const EntityType type,
                                            Range &entities,
@@ -239,7 +239,7 @@ public:
 
   //! gets all entity handles that match a tag
   ErrorCode get_entities_with_tag_value( const Range &range,
-                                           const TagId tag_handle, 
+                                           const TagId tag_handle,
                                            const TagInfo& tag_info,
                                            const EntityType type,
                                            Range &entities,
@@ -254,7 +254,7 @@ public:
   ErrorCode get_number_entities(const Range &range,
                                    const TagId tag_handle, const EntityType type, int& num_ent);
 
-  ErrorCode get_memory_use( TagId tag_id, 
+  ErrorCode get_memory_use( TagId tag_id,
                               unsigned long& total,
                               unsigned long& per_entity );
 

@@ -14,7 +14,7 @@ AM_CPPFLAGS =  -DIS_BUILDING_MB \
                $(EIGEN3_INCLUDES)
 
 lib_LTLIBRARIES = libmbcoupler.la
-libmbcoupler_la_LIBADD = $(top_builddir)/src/libMOAB.la 
+libmbcoupler_la_LIBADD = $(top_builddir)/src/libMOAB.la
 
 LDADD = libmbcoupler.la $(top_builddir)/src/libMOAB.la
 
@@ -31,7 +31,7 @@ libmbcoupler_la_include_HEADERS = \
 libmbcoupler_la_includedir = $(includedir)
 
 # Automake doesn't seem to have a directory defined for
-# platform-dependent data (or include) files. So put 
+# platform-dependent data (or include) files. So put
 # in $(libdir).  Define a $(cfgdir) to get around automake's
 # check that only libraries are going in $(libdir)
 cfgdir = $(libdir)
@@ -45,7 +45,7 @@ check_PROGRAMS = $(TESTS)
 
 noinst_PROGRAMS = addfield
 if PARALLEL
-  TESTS += mbcoupler_test 
+  TESTS += mbcoupler_test
   noinst_PROGRAMS += ssn_test parcoupler_test
   mbcoupler_test_SOURCES = mbcoupler_test.cpp
   parcoupler_test_SOURCES = mbcoupler_test.cpp

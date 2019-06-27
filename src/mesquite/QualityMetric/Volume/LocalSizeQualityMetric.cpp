@@ -1,9 +1,9 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2004 Sandia Corporation and Argonne National
-    Laboratory.  Under the terms of Contract DE-AC04-94AL85000 
-    with Sandia Corporation, the U.S. Government retains certain 
+    Laboratory.  Under the terms of Contract DE-AC04-94AL85000
+    with Sandia Corporation, the U.S. Government retains certain
     rights in this software.
 
     This library is free software; you can redistribute it and/or
@@ -16,13 +16,13 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
-    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov, 
-    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov      
-   
+
+    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov,
+    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov
+
   ***************************************************************** */
 /*! \file LocalSizeQualityMetric.cpp
   \author Michael Brewer
@@ -51,7 +51,7 @@ static inline double compute_corner_area( PatchData &pd,
   Vector3D cross_vec=vec_1*vec_2;
   return (cross_vec.length()/2.0);
 }
-   
+
    //!Calculate the volume of the tetrahedron formed by the four vertices.
 static inline double compute_corner_volume( PatchData &pd,
                                             size_t vert_1,
@@ -66,11 +66,11 @@ static inline double compute_corner_volume( PatchData &pd,
   Vector3D vec_3=verts[vert_4]-verts[vert_1];
   return fabs((vec_3%(vec_1*vec_2))/6.0);
 
-}  
+}
 
 LocalSizeQualityMetric::~LocalSizeQualityMetric()
   {}
-  
+
 std::string LocalSizeQualityMetric::get_name() const
   { return "Local Size"; }
 
@@ -101,13 +101,13 @@ bool LocalSizeQualityMetric::evaluate( PatchData &pd, size_t this_vert,
   //size_t num_elems = v_to_e_array[this_offset];
     //PRINT_INFO("\nIN LOCAL SIZE CPP, num_elements = %i",num_elems);
   size_t num_elems;
-  const size_t *v_to_e_array = pd.get_vertex_element_adjacencies( this_vert, num_elems, err ); 
+  const size_t *v_to_e_array = pd.get_vertex_element_adjacencies( this_vert, num_elems, err );
   MSQ_ERRZERO(err);
-  
+
   if(num_elems <= 0){
     return true;
   }
-  
+
     //create an array to store the local metric values before averaging
     //Can we remove this dynamic allocatio?
   double* met_vals = new double[num_elems];
@@ -124,14 +124,14 @@ bool LocalSizeQualityMetric::evaluate( PatchData &pd, size_t this_vert,
                                                               other_vertices,
                                                               err);  MSQ_ERRZERO(err);
       ////PRINT_INFO("\nINSIDE LOCAL SIZE CPP other_vertices size = %i",other_vertices.size());
-    
+
     switch(other_vertices.size()){
         //if a surface element, compute the corner area
       case 2:
         met_vals[i] = compute_corner_area(pd, this_vert, other_vertices[0],
                                           other_vertices[1], err);  MSQ_ERRZERO(err);
         break;
-          //if a volume element, compute the corner volume 
+          //if a volume element, compute the corner volume
       case 3:
         met_vals[i] = compute_corner_volume(pd, this_vert, other_vertices[0],
                                             other_vertices[1],
@@ -153,7 +153,7 @@ bool LocalSizeQualityMetric::evaluate( PatchData &pd, size_t this_vert,
       //clear the vector of other_vertices for re-use.
     other_vertices.clear();
     //PRINT_INFO("\nIN LOCAL SIZE CPP, after clean size = %f",other_vertices.size());
-    
+
   }
     //calculate the linear average... num_elems is non-zero here.
   total_val /= (double) num_elems;
@@ -173,10 +173,10 @@ bool LocalSizeQualityMetric::evaluate( PatchData &pd, size_t this_vert,
   delete []met_vals;
     //always return true... the vertex position is never invalid
   return true;
-  
+
 }
 
-     
+
 bool LocalSizeQualityMetric::evaluate_with_indices( PatchData& pd,
                                                     size_t vertex,
                                                     double& value,
@@ -185,7 +185,7 @@ bool LocalSizeQualityMetric::evaluate_with_indices( PatchData& pd,
 {
   indices.clear();
   pd.get_adjacent_vertex_indices( vertex, indices, err ); MSQ_ERRZERO(err);
-  
+
   std::vector<size_t>::iterator r, w;
   for (r = w = indices.begin(); r != indices.end(); ++r) {
     if (*r < pd.num_free_vertices()) {
@@ -196,7 +196,7 @@ bool LocalSizeQualityMetric::evaluate_with_indices( PatchData& pd,
   indices.erase( w, indices.end() );
   if (vertex < pd.num_free_vertices())
     indices.push_back( vertex );
-  
+
   bool rval = evaluate( pd, vertex, value, err );
   return !MSQ_CHKERR(err) && rval;
 }

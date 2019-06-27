@@ -1,9 +1,9 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2004 Sandia Corporation and Argonne National
-    Laboratory.  Under the terms of Contract DE-AC04-94AL85000 
-    with Sandia Corporation, the U.S. Government retains certain 
+    Laboratory.  Under the terms of Contract DE-AC04-94AL85000
+    with Sandia Corporation, the U.S. Government retains certain
     rights in this software.
 
     This library is free software; you can redistribute it and/or
@@ -16,17 +16,17 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
-    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov, 
-    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov      
-   
+
+    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov,
+    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov
+
   ***************************************************************** */
 // -*- Mode : c++; tab-width: 3; c-tab-always-indent: t; indent-tabs-mode: nil; c-basic-offset: 3 -*-
 //
-//   SUMMARY: 
+//   SUMMARY:
 //     USAGE:
 //
 //    AUTHOR: Thomas Leurent <tleurent@mcs.anl.gov>
@@ -40,7 +40,7 @@
 // ============
 /*! \file InstructionQueueTest.cpp
 
-Unit testing of various functions in the InstructionQueue class. 
+Unit testing of various functions in the InstructionQueue class.
 
  */
 // DESCRIP-END.
@@ -79,7 +79,7 @@ private:
    CPPUNIT_TEST (test_insert_quality_assessor);
    CPPUNIT_TEST (test_add_remove_vertex_slaver);
    CPPUNIT_TEST_SUITE_END();
-   
+
 private:
    QualityAssessor* mQA;
    QualityImprover* mQI;
@@ -109,11 +109,11 @@ public:
      delete mQM;
      delete mOF;
   }
-  
+
 public:
   InstructionQueueTest()
     {}
-  
+
   void test_add_preconditioner()
   {
      MsqPrintError err(cout);
@@ -127,7 +127,7 @@ public:
      mQueue.add_preconditioner(mQI, err);
      CPPUNIT_ASSERT_MESSAGE("preconditioner cannot be added after master QI"
                             , err);
-     err.clear(); 
+     err.clear();
   }
 
    void test_remove_preconditioner()
@@ -153,7 +153,7 @@ public:
       CPPUNIT_ASSERT_MESSAGE("should  remove QualityImprover", !err);
       err.clear();
       mQueue.remove_preconditioner(0, err);
-      CPPUNIT_ASSERT_MESSAGE("should not remove QualityAssessor", err);   
+      CPPUNIT_ASSERT_MESSAGE("should not remove QualityAssessor", err);
       err.clear();
    }
 
@@ -241,7 +241,7 @@ CPPUNIT_TEST_SUITE_NAMED_REGISTRATION(InstructionQueueTest, "Unit");
 class DummyVertexSlaver : public VertexSlaver
 {
   public:
-    virtual double loop_over_mesh( MeshDomainAssoc* , 
+    virtual double loop_over_mesh( MeshDomainAssoc* ,
                                    const Settings* ,
                                    MsqError&  )
       { CPPUNIT_ASSERT(false); return 0.0; }
@@ -256,7 +256,7 @@ void InstructionQueueTest::test_add_remove_vertex_slaver()
   InstructionQueue q;
   DummyVertexSlaver s1, s2;
   MsqPrintError err( std::cerr );
-  
+
   CPPUNIT_ASSERT( q.get_slaved_ho_node_mode() != Settings::SLAVE_CALCULATED );
   q.add_vertex_slaver( &s1, err );
   ASSERT_NO_ERROR(err);

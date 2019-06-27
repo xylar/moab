@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2007 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2010) kraftche@cae.wisc.edu    
+    (2010) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file ConicDomain.cpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -48,7 +48,7 @@ void ConicDomain::evaluate( Mesh::VertexHandle,
   // find the plane containing both the input point an the axis
   Vector3D n = mAxis * pt;
   double len = n.length();
-  if (len < 1e-12) { 
+  if (len < 1e-12) {
       // point on axis
       // choose any plane that does't contain the axis
     if (fabs(mAxis[0]) <= fabs(mAxis[1]) && fabs(mAxis[0]) < fabs(mAxis[2]))
@@ -119,13 +119,13 @@ void ConicDomain::element_normal_at( Mesh::ElementHandle h, Vector3D& v ) const
 
 void ConicDomain::vertex_normal_at( const Mesh::VertexHandle* h,
                                     Vector3D coords[],
-                                    unsigned count, 
+                                    unsigned count,
                                     MsqError& ) const
 {
   for (unsigned i = 0; i < count; ++i)
     vertex_normal_at( h[i], coords[i] );
 }
- 
+
 void ConicDomain::closest_point( Mesh::VertexHandle handle,
                                  const Vector3D& position,
                                  Vector3D& closest,

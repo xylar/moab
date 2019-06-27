@@ -10,28 +10,28 @@ class UnstructuredElemSeq : public ElementSequence
 {
 public:
 
-  UnstructuredElemSeq( EntityHandle start_handle, 
-                       EntityID entity_count, 
+  UnstructuredElemSeq( EntityHandle start_handle,
+                       EntityID entity_count,
                        unsigned nodes_per_entity,
                        SequenceData* data );
 
-  UnstructuredElemSeq( EntityHandle start_handle, 
-                       EntityID entity_count, 
+  UnstructuredElemSeq( EntityHandle start_handle,
+                       EntityID entity_count,
                        unsigned nodes_per_entity,
                        EntityID sequence_data_size);
 
   virtual ~UnstructuredElemSeq();
 
   int values_per_entity() const;
-  
+
   virtual EntitySequence* split( EntityHandle here );
-  
+
   SequenceData* create_data_subset( EntityHandle start, EntityHandle end ) const;
-                       
+
   virtual ErrorCode get_connectivity( EntityHandle handle,
                                         std::vector<EntityHandle>& connect,
                                         bool topological = false ) const;
-  
+
   virtual ErrorCode get_connectivity( EntityHandle handle,
                                         EntityHandle const*& connect,
                                         int &connect_length,
@@ -42,13 +42,13 @@ public:
   ErrorCode set_connectivity( EntityHandle handle,
                                 EntityHandle const* connect,
                                 int connect_length );
-  
+
   EntityHandle* get_connectivity_array();
-  
+
   ErrorCode push_front( EntityID count );
   ErrorCode push_back ( EntityID count );
-  
-  
+
+
   void get_const_memory_use( unsigned long& bytes_per_entity,
                              unsigned long& size_of_sequence ) const;
 protected:
@@ -74,4 +74,4 @@ protected:
 
 #endif
 
-  
+

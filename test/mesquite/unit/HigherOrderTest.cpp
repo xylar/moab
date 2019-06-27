@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2007 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2009) kraftche@cae.wisc.edu    
+    (2009) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file HigherOrderTest.cpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #define HAVE_HO_HEX
@@ -122,7 +122,7 @@ private:
 
 public:
 
-  HigherOrderTest() : metric( &tc, &tm ), 
+  HigherOrderTest() : metric( &tc, &tm ),
                       func( 1, &metric ),
                       solver( &func )
   {
@@ -133,17 +133,17 @@ public:
 #ifdef HAVE_HO_HEX
     q.set_mapping_function( &hex_shape );
 #endif
-    q.set_master_quality_improver( &solver, err ); 
-    
+    q.set_master_quality_improver( &solver, err );
+
     q.set_slaved_ho_node_mode( Settings::SLAVE_NONE );
-    
+
     outer.add_iteration_limit( 1 );
     crit.add_absolute_vertex_movement( 1e-6 );
     crit.add_iteration_limit( MAX_ITERATIONS );
     solver.set_outer_termination_criterion( &outer );
     solver.set_inner_termination_criterion( &crit );
   }
-  
+
   bool hit_iteration_limit() const
     { return crit.get_iteration_count() >= MAX_ITERATIONS; }
 
@@ -169,11 +169,11 @@ public:
   void test_hex_basic();
   void test_tri_open_domain();
   void test_tri_slac();
-  
+
   void test_tri_open_domain( double& x1, double& x3, double& x4,
                              double  y2, double  y5, double& y4 );
-                           
- 
+
+
   void basic_tri_test( double& x2, double& y2,
                        double& x3, double& y3,
                        double& x4, double& y4,
@@ -209,7 +209,7 @@ public:
                        Vector3D& p13,
                        Vector3D& p14,
                        Vector3D& p15,
-                       Vector3D& p16, 
+                       Vector3D& p16,
                        Vector3D& p17,
                        Vector3D& p18,
                        Vector3D& p19,
@@ -242,7 +242,7 @@ int tri_mid_edge_nodes_edge_center( double x2, double y2,
   double y01 = 0.5 * (y0 + y1);
   double y12 = 0.5 * (y1 + y2);
   double y20 = 0.5 * (y2 + y0);
-  
+
   int result = 0;
   if (dist(x3,y3,x01,y01) > epsilon)
     result |= 1;
@@ -250,7 +250,7 @@ int tri_mid_edge_nodes_edge_center( double x2, double y2,
     result |= 2;
   if (dist(x5,y5,x20,y20) > epsilon)
     result |= 4;
-  
+
   return result;
 }
 
@@ -260,7 +260,7 @@ void HigherOrderTest::test_tri_basic_ideal()
   const double eps = 1e-4;
   const double x2eq = 0.5 * IDEAL_TRI_SIDE;
   const double y2eq = IDEAL_TRI_HEIGHT;
-  
+
     // try starting with the optimal result
   double x2 = x2eq;
   double y2 = y2eq;
@@ -287,7 +287,7 @@ void HigherOrderTest::test_tri_basic_mid_spin()
   const double eps = 1e-4;
   const double x2eq = 0.5 * IDEAL_TRI_SIDE;
   const double y2eq = IDEAL_TRI_HEIGHT;
-  
+
     // try moving the mid-edge nodes along the edge away from the edge center
   double x0 = 0.0, y0 = 0.0;
   double x1 = IDEAL_TRI_SIDE, y1 = 0.0;
@@ -317,7 +317,7 @@ void HigherOrderTest::test_tri_basic_mid_convex()
   const double eps = 1e-4;
   const double x2eq = 0.5 * IDEAL_TRI_SIDE;
   const double y2eq = IDEAL_TRI_HEIGHT;
-  
+
     // try equilateral corners with all egdes convex
   double x2 = x2eq;
   double y2 = y2eq;
@@ -342,7 +342,7 @@ void HigherOrderTest::test_tri_basic_peak_up()
   const double eps = 1e-4;
   const double x2eq = 0.5 * IDEAL_TRI_SIDE;
   const double y2eq = IDEAL_TRI_HEIGHT;
-  
+
     // try moving the top vertex up, also move mid-edge nodes proportionally
   double x2 = x2eq;
   double y2 = 2.0 * y2eq;
@@ -367,7 +367,7 @@ void HigherOrderTest::test_tri_basic_peak_down()
   const double eps = 1e-4;
   const double x2eq = 0.5 * IDEAL_TRI_SIDE;
   const double y2eq = IDEAL_TRI_HEIGHT;
-  
+
     // try moving the top vertex down, also move mid-edge nodes proportionally
   double x2 = x2eq;
   double y2 = 0.5 * y2eq;
@@ -442,7 +442,7 @@ int quad_mid_edge_nodes_edge_center( const Vector3D& p2,
   const Vector3D e1 = 0.5*(p1+p2);
   const Vector3D e2 = 0.5*(p2+p3);
   const Vector3D e3 = 0.5*(p3+p0);
-  
+
   int result = 0;
   if ((p4-e0).length() > epsilon)
     result |= 1;
@@ -452,7 +452,7 @@ int quad_mid_edge_nodes_edge_center( const Vector3D& p2,
     result |= 4;
   if ((p7-e3).length() > epsilon)
     result |= 8;
-  
+
   return result;
 }
 
@@ -478,7 +478,7 @@ void HigherOrderTest::test_quad_basic_ideal()
   Vector3D p2, p3, p4, p5, p6, p7;
   const Vector3D p0(0.0, 0.0, 0.0);
   const Vector3D p1(QEL, 0.0, 0.0);
-  
+
     // try starting with the optimal result
   get_ideal_quad( p2, p3, p4, p5, p6, p7 );
   basic_quad_test( p2, p3, p4, p5, p6, p7, err );
@@ -498,7 +498,7 @@ void HigherOrderTest::test_quad_basic_mid_spin()
   Vector3D p2, p3, p4, p5, p6, p7;
   const Vector3D p0(0.0, 0.0, 0.0);
   const Vector3D p1(QEL, 0.0, 0.0);
-  
+
     // try moving the mid-edge nodes along the edge away from the edge center
   p2.set(QEL,QEL,0);
   p3.set(0  ,QEL,0);
@@ -526,7 +526,7 @@ void HigherOrderTest::test_quad_basic_mid_convex()
   Vector3D p2, p3, p4, p5, p6, p7;
   const Vector3D p0(0.0, 0.0, 0.0);
   const Vector3D p1(QEL, 0.0, 0.0);
-  
+
     // try square corners with all egdes convex
   get_ideal_quad( p2, p3, p4, p5, p6, p7 );
   p4 += Vector3D( 0.0,     -0.2*QEL, 0);
@@ -552,7 +552,7 @@ void HigherOrderTest::test_quad_basic_left_down()
   Vector3D p2, p3, p4, p5, p6, p7;
   const Vector3D p0(0.0, 0.0, 0.0);
   const Vector3D p1(QEL, 0.0, 0.0);
-  
+
     // try moving the top left vertex down, also move mid-edge nodes proportionally
   get_ideal_quad( p2, p3, p4, p5, p6, p7 );
   p3 -= Vector3D(0.0,0.0,QEL/2);
@@ -575,7 +575,7 @@ void HigherOrderTest::test_quad_basic_top_down()
   Vector3D p2, p3, p4, p5, p6, p7;
   const Vector3D p0(0.0, 0.0, 0.0);
   const Vector3D p1(QEL, 0.0, 0.0);
-  
+
     // try moving the top two vertices down, also move mid-edge nodes proportionally
   get_ideal_quad( p2, p3, p4, p5, p6, p7 );
   p2 -= Vector3D(0.0,QEL/2,0.0);
@@ -600,7 +600,7 @@ void HigherOrderTest::test_quad_basic_right_up()
   Vector3D p2, p3, p4, p5, p6, p7;
   const Vector3D p0(0.0, 0.0, 0.0);
   const Vector3D p1(QEL, 0.0, 0.0);
-  
+
     // try moving the top right vertex up, also move mid-edge nodes proportionally
   get_ideal_quad( p2, p3, p4, p5, p6, p7 );
   p2 += Vector3D(0.0,QEL*2,0.0);
@@ -623,7 +623,7 @@ void HigherOrderTest::test_quad_basic_left_over()
   Vector3D p2, p3, p4, p5, p6, p7;
   const Vector3D p0(0.0, 0.0, 0.0);
   const Vector3D p1(QEL, 0.0, 0.0);
-  
+
     // try moving the top left vertex to the right, also move mid-edge nodes proportionally
   get_ideal_quad( p2, p3, p4, p5, p6, p7 );
   p3 -= Vector3D(QEL/2, 0.0, 0.0);
@@ -664,7 +664,7 @@ int tet_mid_edge_nodes_edge_center( const Vector3D& p3,
   const Vector3D e3 = 0.5*(p0+p3);
   const Vector3D e4 = 0.5*(p1+p3);
   const Vector3D e5 = 0.5*(p2+p3);
-  
+
   int result = 0;
   if ((p4-e0).length() > epsilon)
     result |= 1;
@@ -678,7 +678,7 @@ int tet_mid_edge_nodes_edge_center( const Vector3D& p3,
     result |= 16;
   if ((p9-e5).length() > epsilon)
     result |= 32;
-  
+
   return result;
 }
 
@@ -711,7 +711,7 @@ void HigherOrderTest::test_tet_basic_ideal()
   const Vector3D p0(0.0, 0.0, 0.0);
   const Vector3D p1(IDEAL_TET_SIDE, 0.0, 0.0);
   const Vector3D p2(0.5*IDEAL_TET_SIDE, IDEAL_TET_BASE, 0.0 );
-  
+
     // try starting with the optimal result
   get_ideal_tet( p3, p4, p5, p6, p7, p8, p9 );
   basic_tet_test( p3, p4, p5, p6, p7, p8, p9, err );
@@ -731,7 +731,7 @@ void HigherOrderTest::test_tet_basic_mid_spin()
   const Vector3D p0(0.0, 0.0, 0.0);
   const Vector3D p1(IDEAL_TET_SIDE, 0.0, 0.0);
   const Vector3D p2(0.5*IDEAL_TET_SIDE, IDEAL_TET_BASE, 0.0 );
-  
+
     // try moving the mid-edge nodes along the edge away from the edge center
   p3 = p3eq;
   p4 = 0.6*p0 + 0.4*p1;
@@ -757,7 +757,7 @@ void HigherOrderTest::test_tet_basic_mid_convex()
   const Vector3D p0(0.0, 0.0, 0.0);
   const Vector3D p1(IDEAL_TET_SIDE, 0.0, 0.0);
   const Vector3D p2(0.5*IDEAL_TET_SIDE, IDEAL_TET_BASE, 0.0 );
-  
+
     // try equilateral corners with all egdes convex
   get_ideal_tet( p3, p4, p5, p6, p7, p8, p9 );
   p4 += Vector3D( 0.0, -0.2, -0.2);
@@ -783,7 +783,7 @@ void HigherOrderTest::test_tet_basic_apex_down()
   const Vector3D p0(0.0, 0.0, 0.0);
   const Vector3D p1(IDEAL_TET_SIDE, 0.0, 0.0);
   const Vector3D p2(0.5*IDEAL_TET_SIDE, IDEAL_TET_BASE, 0.0 );
-  
+
     // try moving the top vertex down, also move mid-edge nodes proportionally
   get_ideal_tet( p3, p4, p5, p6, p7, p8, p9 );
   p3 -= Vector3D(0.0,0.0,0.5);
@@ -807,7 +807,7 @@ void HigherOrderTest::test_tet_basic_apex_up()
   const Vector3D p0(0.0, 0.0, 0.0);
   const Vector3D p1(IDEAL_TET_SIDE, 0.0, 0.0);
   const Vector3D p2(0.5*IDEAL_TET_SIDE, IDEAL_TET_BASE, 0.0 );
-  
+
     // try moving the top vertex up, also move mid-edge nodes proportionally
   get_ideal_tet( p3, p4, p5, p6, p7, p8, p9 );
   p3 += Vector3D(0.0,0.0,3.0);
@@ -831,7 +831,7 @@ void HigherOrderTest::test_tet_basic_apex_over()
   const Vector3D p0(0.0, 0.0, 0.0);
   const Vector3D p1(IDEAL_TET_SIDE, 0.0, 0.0);
   const Vector3D p2(0.5*IDEAL_TET_SIDE, IDEAL_TET_BASE, 0.0 );
-  
+
     // try moving the top vertex to the right, also move mid-edge nodes proportionally
   get_ideal_tet( p3, p4, p5, p6, p7, p8, p9 );
   p3 -= Vector3D(0.3, 0.0, 0.0);
@@ -902,10 +902,10 @@ void HigherOrderTest::test_hex_basic()
   const EntityTopology type = HEXAHEDRON;
   unsigned long offsets[] = { 0, num_vtx };
   ArrayMesh one_hex( 3, num_vtx, coords, fixed, 1, &type, conn, offsets );
-  
+
     // smooth
   q.run_instructions( &one_hex, err ); ASSERT_NO_ERROR(err);
- 
+
     // test that higher-order nodes were moved to the expected locations
     // bottom mid-edge
   CPPUNIT_ASSERT_VECTORS_EQUAL( Vector3D(0.5, 0.0, 0), Vector3D(coords+3* 8), EPSILON );
@@ -936,14 +936,14 @@ void HigherOrderTest::test_hex_basic()
 
 /*
     Jason,
- 
+
         Here is a very simple test we should run.
- 
+
        A single quadratic triangle.   IMR metric with W = equilateral ideal    No geometry.
- 
+
       Nodes:
- 
-         (x,y)            Type               F/S/F            
+
+         (x,y)            Type               F/S/F
        -----------------------------------------------------------
         (0,0)           Corner               Fixed
         (1,0)           Corner               Fixed
@@ -952,13 +952,13 @@ void HigherOrderTest::test_hex_basic()
         (x4,y4)         Mid                   Free
         (x5,y5)         Mid                   Free
        --------------------------------------------------------
- 
+
        Start with sample points at each of the node.
        The optimal element should be equilateral.
        Try different initial values for x2,y2,x3, etc.
        Try only including some of the sample points to see if still get equilateral.
        Probably should add this one to the testSuite.
- 
+
    -- Pat
 */
 void HigherOrderTest::basic_tri_test( double& x2, double& y2,
@@ -982,7 +982,7 @@ void HigherOrderTest::basic_tri_test( double& x2, double& y2,
   ArrayMesh mesh( DIM, NVTX, coords, fixed,
                   NELEM, TRIANGLE, conn, false, NVTX );
   PlanarDomain xy( PlanarDomain::XY );
-  
+
     // Solve
   MeshDomainAssoc mesh_and_domain = MeshDomainAssoc(&mesh, &xy);
   q.run_instructions( &mesh_and_domain, err ); MSQ_ERRRTN(err);
@@ -1020,13 +1020,13 @@ void HigherOrderTest::basic_tet_test( Vector3D& p3,
                               p7.x(), p7.y(), p7.z(),
                               p8.x(), p8.y(), p8.z(),
                               p9.x(), p9.y(), p9.z() };
-                              
+
   const int fixed[NVTX] = { 1, 1, 1, 0, 0, 0, 0, 0, 0, 0 };
   const unsigned long conn[NVTX*NELEM] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
   ArrayMesh mesh( DIM, NVTX, coords, fixed,
                   NELEM, TETRAHEDRON, conn, false, NVTX );
 
-  
+
     // Solve
   q.run_instructions( &mesh, err ); MSQ_ERRRTN(err);
 
@@ -1060,14 +1060,14 @@ void HigherOrderTest::basic_quad_test( Vector3D& p2,
                               p5.x(), p5.y(), p5.z(),
                               p6.x(), p6.y(), p6.z(),
                               p7.x(), p7.y(), p7.z() };
-                              
+
   const int fixed[NVTX] = { 1, 1, 0, 0, 0, 0, 0, 0 };
   const unsigned long conn[NVTX*NELEM] = { 0, 1, 2, 3, 4, 5, 6, 7 };
   ArrayMesh mesh( DIM, NVTX, coords, fixed,
                   NELEM, QUADRILATERAL, conn, false, NVTX );
   PlanarDomain xy( PlanarDomain::XY );
 
-  
+
     // Solve
   MeshDomainAssoc mesh_and_domain = MeshDomainAssoc(&mesh, &xy);
   q.run_instructions( &mesh_and_domain, err ); ASSERT_NO_ERROR(err);
@@ -1094,7 +1094,7 @@ void HigherOrderTest::basic_hex_test( Vector3D& p4,
                                       Vector3D& p13,
                                       Vector3D& p14,
                                       Vector3D& p15,
-                                      Vector3D& p16, 
+                                      Vector3D& p16,
                                       Vector3D& p17,
                                       Vector3D& p18,
                                       Vector3D& p19,
@@ -1130,7 +1130,7 @@ void HigherOrderTest::basic_hex_test( Vector3D& p4,
                                           10,11,12,13,14,15,16,17,18,19 };
   ArrayMesh mesh( DIM, NVTX, coords, fixed,
                   NELEM, HEXAHEDRON, conn, false, NVTX );
-  
+
     // Solve
   q.run_instructions( &mesh, err ); MSQ_ERRRTN(err);
   CPPUNIT_ASSERT(!hit_iteration_limit());
@@ -1175,9 +1175,9 @@ void HigherOrderTest::basic_hex_test( Vector3D& p4,
       ----0*------3-----------1-----
           |<--x3->|           |
           |<-------x1-------->|
-          
+
     * Fixed vertices
-          
+
 */
 void HigherOrderTest::test_tri_open_domain( double& x1, double& x3, double& x4,
                                             double  y2, double  y5, double& y4 )
@@ -1210,13 +1210,13 @@ void HigherOrderTest::test_tri_open_domain( double& x1, double& x3, double& x4,
   LineDomain yaxis( Vector3D(0,0,0), Vector3D(0,1,0) );
   PlanarDomain xyplane( PlanarDomain::XY );
   DomainClassifier::DomainSet sets[] = { &xaxis, &yaxis, &xyplane };
-  
+
   vector<Mesh::VertexHandle> verts;
   vector<Mesh::ElementHandle> elems;
   mesh.get_all_vertices( verts, err ); ASSERT_NO_ERROR(err);
   mesh.get_all_elements( elems, err ); ASSERT_NO_ERROR(err);
   CPPUNIT_ASSERT_EQUAL( (size_t)1, elems.size() );
-  
+
     // Associate mesh with geometry
   sets[0].vertices.push_back( verts[1] );
   sets[0].vertices.push_back( verts[3] );
@@ -1227,12 +1227,12 @@ void HigherOrderTest::test_tri_open_domain( double& x1, double& x3, double& x4,
   DomainClassifier geom;
   DomainClassifier::classify_by_handle( geom, &mesh, sets, 3, err );
   ASSERT_NO_ERROR(err);
-  
+
     // Solve
   MeshDomainAssoc mesh_and_domain = MeshDomainAssoc(&mesh, &geom);
   q.run_instructions( &mesh_and_domain, err ); ASSERT_NO_ERROR(err);
   CPPUNIT_ASSERT(!hit_iteration_limit());
- 
+
     // Pass back modified coordinate values
   x1 = coords[DIM*1+0];
   x3 = coords[DIM*3+0];
@@ -1255,17 +1255,17 @@ void HigherOrderTest::test_tri_open_domain( )
   CPPUNIT_ASSERT_DOUBLES_EQUAL( 1.0, x4, 1e-3 );
   CPPUNIT_ASSERT_DOUBLES_EQUAL( 1.0, y4, 1e-3 );
 }
-  
+
 /*
    Jason,
- 
+
         Here is an interesting test we should run that's slightly more like the SLAC problem.
- 
+
        A single quadratic triangle.   IMR metric with W = equilateral ideal    No geometry.
- 
+
       Nodes:
- 
-         (x,y)            Type               F/S/F            
+
+         (x,y)            Type               F/S/F
        -----------------------------------------------------------
         (0,0)           Corner               Fixed
         (1,0)           Corner               Fixed
@@ -1274,17 +1274,17 @@ void HigherOrderTest::test_tri_open_domain( )
         (0.75,0.5)       Mid                Free
         (0.25,0.5)       Mid                Free
        --------------------------------------------------------
- 
+
        Start with sample points at each of the node.
- 
+
        The Jacobian at the fixed mid-side node is nearly zero
          and the goal is to see if this can be improved by moving the 3 free nodes.
- 
+
          The node at (0.5,1.0) should move downward\u2026. Moving it upward makes
            the mid-node Jacobian negative, and the IMR barrier should prevent that.
- 
+
        Try including only some of the sample points to see if all are needed.
- 
+
    -- Pat
 */
 void HigherOrderTest::test_tri_slac()
@@ -1306,18 +1306,18 @@ void HigherOrderTest::test_tri_slac()
   ArrayMesh mesh( DIM, NVTX, coords, fixed,
                   NELEM, TRIANGLE, conn, false, NVTX );
   PlanarDomain xy( PlanarDomain::XY );
-  
+
     // Solve
   q.run_instructions( &mesh, err ); ASSERT_NO_ERROR(err);
   CPPUNIT_ASSERT(!hit_iteration_limit());
-  
+
   const Vector3D v0(coords+0*DIM);
   const Vector3D v1(coords+1*DIM);
   const Vector3D v2(coords+2*DIM);
   const Vector3D v3(coords+3*DIM);
   const Vector3D v4(coords+4*DIM);
   const Vector3D v5(coords+5*DIM);
-  
+
     // Expect vertex 2 to have moved downwards signficantly
   CPPUNIT_ASSERT( v2.y() < 2.0 );
   CPPUNIT_ASSERT( v2.y() > 0.5 );

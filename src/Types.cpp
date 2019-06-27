@@ -1,6 +1,6 @@
 #include "moab/Types.hpp"
 
-const char* const moab::ErrorCodeStr[] = { 
+const char* const moab::ErrorCodeStr[] = {
   "MB_SUCCESS",
   "MB_INDEX_OUT_OF_RANGE",
   "MB_TYPE_OUT_OF_RANGE",
@@ -20,7 +20,7 @@ const char* const moab::ErrorCodeStr[] = {
   "MB_FAILURE"
 };
 
-const char* const moab::DataTypeStr[] = { 
+const char* const moab::DataTypeStr[] = {
   "MB_TYPE_OPAQUE",
   "MB_TYPE_INTEGER",
   "MB_TYPE_DOUBLE",
@@ -28,14 +28,14 @@ const char* const moab::DataTypeStr[] = {
   "MB_TYPE_HANDLE"
 };
 
-const char* const SenseTypeStr_private[] = { 
+const char* const SenseTypeStr_private[] = {
   "SENSE_INVALID",
   "SENSE_REVERSE",
   "SENSE_BOTH",
   "SENSE_FORWARD"
 };
 
-/* Make this point into SenseTypeStr_private such that 
+/* Make this point into SenseTypeStr_private such that
    it can be indexed with negative enumeration values.
    NOTE: If SENSE_INVALID is negative, then subtracting
          it means that we are adding abs(SENSE_INVALID). */

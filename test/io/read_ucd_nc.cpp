@@ -77,7 +77,7 @@ void test_read_all()
   CHECK_ERR(rval);
 }
 
-void test_read_onevar() 
+void test_read_onevar()
 {
   Core moab;
   Interface& mb = moab;
@@ -151,7 +151,7 @@ void test_read_onetimestep()
   CHECK_ERR(rval);
 }
 
-void test_read_nomesh() 
+void test_read_nomesh()
 {
   Core moab;
   Interface& mb = moab;

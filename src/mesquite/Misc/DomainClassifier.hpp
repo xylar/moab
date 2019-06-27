@@ -1,8 +1,8 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
-    Copyright 2008 Lawrence Livermore National Laboratory.  Under 
-    the terms of Contract B545069 with the University of Wisconsin -- 
+    Copyright 2008 Lawrence Livermore National Laboratory.  Under
+    the terms of Contract B545069 with the University of Wisconsin --
     Madison, Lawrence Livermore National Laboratory retains certain
     rights in this software.
 
@@ -16,11 +16,11 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2008) kraftche@cae.wisc.edu    
+    (2008) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
@@ -28,7 +28,7 @@
 #define MSQ_DOMAIN_CLASSIFIER_HPP
 
 /** \file DomainClassifier.hpp
- *  \brief 
+ *  \brief
  *  \author Jason Kraftcheck
  */
 
@@ -39,7 +39,7 @@ namespace MBMesquite {
 
 /**\brief Assign subsets of a mesh do different domains.
  *
- * Provide classification of mesh entities to domain(s).  For 
+ * Provide classification of mesh entities to domain(s).  For
  * example, given a domain defined by multiple surfaces and
  * curves of intersection, associate the appropriate elements
  * and vertices to the appropriate geometric entities.
@@ -47,10 +47,10 @@ namespace MBMesquite {
 class DomainClassifier : public MeshDomain
 {
   public:
-  
+
     /**\brief Check that classification maps to B-Rep topology */
     MESQUITE_EXPORT void test_valid_classification( Mesh* mesh, MsqError& err );
-  
+
     /**\brief Classify mesh entities using tag values
      *
      * Given a list of MeshDomain instances, a unique
@@ -73,7 +73,7 @@ class DomainClassifier : public MeshDomain
                           const int* id_array,
                           unsigned array_length,
                           MsqError& err );
-  
+
     /**\brief Skin mesh and classify skin entities geometrically.
      *
      * Calculate the boundary of the mesh, and classify boundary
@@ -83,7 +83,7 @@ class DomainClassifier : public MeshDomain
      * NOTE:  Mesquite's limited MeshDomain callback interface
      * is not sufficient for robust geometric classification.  If
      * the mesh is not sufficiently refined, this method may produce
-     * invalid results. 
+     * invalid results.
      *
      * NOTE:  This method should not be used for surface meshes.
      * Everything in a surface mesh should be classified to a domain.
@@ -107,13 +107,13 @@ class DomainClassifier : public MeshDomain
 
     /**\brief Classify all mesh entities geometrically.
      *
-     * Classify entities by distance from vertex coordiantes to 
+     * Classify entities by distance from vertex coordiantes to
      * mesh domain instances.
      *
      * NOTE:  Mesquite's limited MeshDomain callback interface
      * is not sufficient for robust geometric classification.  If
      * the mesh is not sufficiently refined, this method may produce
-     * invalid results. 
+     * invalid results.
      *
      * NOTE:  This method is likely to fail for many domains for
      *        volume meshes.  Use classify_skin_geometrically for
@@ -134,14 +134,14 @@ class DomainClassifier : public MeshDomain
                                 const int* dimension_array,
                                 unsigned array_length,
                                 MsqError& err );
-  
+
     struct DomainSet {
       MESQUITE_EXPORT DomainSet( MeshDomain* dom ) : domain(dom) {}
       MESQUITE_EXPORT DomainSet() : domain(0) {}
       MeshDomain* domain;
-	  MESQUITE_EXPORT void set_vertices( const std::vector<Mesh::VertexHandle>& verts ) 
+	  MESQUITE_EXPORT void set_vertices( const std::vector<Mesh::VertexHandle>& verts )
 	    { vertices = verts; }
-	  MESQUITE_EXPORT void set_elements( const std::vector<Mesh::ElementHandle>& elems ) 
+	  MESQUITE_EXPORT void set_elements( const std::vector<Mesh::ElementHandle>& elems )
 	    { elements = elems; }
 	  MESQUITE_EXPORT void get_vertices( std::vector<Mesh::VertexHandle>& verts ) const
 	    { verts = vertices; }
@@ -150,7 +150,7 @@ class DomainClassifier : public MeshDomain
       std::vector<Mesh::VertexHandle> vertices;
       std::vector<Mesh::ElementHandle> elements;
     };
-  
+
     /**\brief Specify classification explicitly for each entity.
      *
      * For each mesh element and vertex that is classified to
@@ -170,75 +170,75 @@ class DomainClassifier : public MeshDomain
                              DomainSet* domain_set_array,
                              unsigned array_length,
                              MsqError& err );
- 
+
     MESQUITE_EXPORT DomainClassifier() : deleteSubDomains(false)
       {}
-    
+
     MESQUITE_EXPORT virtual ~DomainClassifier();
-    
+
     MESQUITE_EXPORT
     virtual void snap_to( Mesh::VertexHandle entity_handle,
                           Vector3D &coordinate) const;
-    
+
     MESQUITE_EXPORT
     virtual void vertex_normal_at( Mesh::VertexHandle entity_handle,
                                    Vector3D &coordinate) const;
     MESQUITE_EXPORT
     virtual void element_normal_at( Mesh::ElementHandle entity_handle,
                                     Vector3D &coordinate) const;
-                          
+
     MESQUITE_EXPORT
     virtual void vertex_normal_at( const Mesh::VertexHandle* handles,
                                    Vector3D coordinates[],
                                    unsigned count,
                                    MsqError& err ) const;
-                            
+
     MESQUITE_EXPORT
     virtual void closest_point( Mesh::VertexHandle handle,
                                 const Vector3D& position,
                                 Vector3D& closest,
                                 Vector3D& normal,
                                 MsqError& err ) const;
-                                
+
     MESQUITE_EXPORT
     virtual void domain_DoF( const Mesh::VertexHandle* handle_array,
                              unsigned short* dof_array,
                              size_t num_handles,
                              MsqError& err ) const;
-    
+
       /**\brief Clear all data, including MeshDomain list */
     MESQUITE_EXPORT
     void clear() {
       vertexList.clear();
       elementList.clear();
     }
-  
+
     struct DomainBlock {
       Mesh::EntityHandle firstHandle;
       Mesh::EntityHandle lastHandle;
       MeshDomain* domain;
     };
-                                      
+
  	MESQUITE_EXPORT
     MeshDomain* find_vertex_domain( Mesh::VertexHandle vertex ) const
       { return find_domain( vertex, vertexList ); }
 	MESQUITE_EXPORT
     MeshDomain* find_element_domain( Mesh::ElementHandle element ) const
       { return find_domain( element, elementList ); }
-      
+
     MESQUITE_EXPORT
     void delete_sub_domains(bool yesno)
       { deleteSubDomains = yesno; }
 
     MESQUITE_EXPORT
     void delete_all_sub_domains();
-    
+
   private:
     bool deleteSubDomains;
-    
-    static MeshDomain* find_domain( Mesh::EntityHandle handle, 
+
+    static MeshDomain* find_domain( Mesh::EntityHandle handle,
                                  const std::vector<DomainBlock>& list );
-    
+
     std::vector<DomainBlock> vertexList;
     std::vector<DomainBlock> elementList;
 };

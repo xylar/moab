@@ -1,9 +1,9 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2004 Sandia Corporation and Argonne National
-    Laboratory.  Under the terms of Contract DE-AC04-94AL85000 
-    with Sandia Corporation, the U.S. Government retains certain 
+    Laboratory.  Under the terms of Contract DE-AC04-94AL85000
+    with Sandia Corporation, the U.S. Government retains certain
     rights in this software.
 
     This library is free software; you can redistribute it and/or
@@ -16,13 +16,13 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
-    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov, 
-    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov      
-   
+
+    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov,
+    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov
+
   ***************************************************************** */
 //
 //    AUTHOR: Thomas Leurent <tleurent@mcs.anl.gov>
@@ -36,7 +36,7 @@
 // ============
 /*! \file PatchDataTest.cpp
 
-Unit testing of various functions in the PatchData class. 
+Unit testing of various functions in the PatchData class.
 
  */
 // DESCRIP-END.
@@ -98,7 +98,7 @@ private:
   CPPUNIT_TEST (test_curve_verts_fixed);
   CPPUNIT_TEST (test_surf_verts_fixed);
   CPPUNIT_TEST_SUITE_END();
-   
+
 private:
 
    MsqVertex vtx_0_0;
@@ -110,21 +110,21 @@ private:
 
    MsqMeshEntity tri1;
    MsqMeshEntity tri2;
-   MsqMeshEntity quad1;   
-   
+   MsqMeshEntity quad1;
+
    PatchData mPatch2D;
-   
+
    void test_quad8_patch( bool reorder, bool ho_nodes_slaved );
    void get_quad8_mesh( Mesh*& mesh_out );
    void get_quad8_mesh_and_domain( Mesh*& mesh_out, MeshDomain*& domain_out );
-   void get_higher_order_vertices( Mesh* mesh, 
+   void get_higher_order_vertices( Mesh* mesh,
                                    std::map<Mesh::VertexHandle,bool>& ho_verts,
                                    bool initial_value = false,
                                    bool non_fixed_only = true );
    void check_higher_order_vertices_slaved( Mesh* mesh,
                    Settings::HigherOrderSlaveMode mode,
                    const std::map<Mesh::VertexHandle,bool>& expected );
-   
+
 
 public:
   void setUp()
@@ -143,36 +143,36 @@ public:
      vtx_1_1.set(1,1,0);
      vtx_2_0.set(2,0,0);
      vtx_2_1.set(2,1,0);
-     
+
      double coords[] = { 0,0,0,
                          0,1,0,
                          1,0,0,
                          1,1,0,
                          2,0,0,
                          2,1,0 };
-     
+
      EntityTopology types[] = { TRIANGLE, TRIANGLE, QUADRILATERAL };
-     
+
      size_t connectivity[] = { 0, 2, 1,
                                1, 2, 3,
                                3, 2, 4, 5 };
-     
+
      size_t counts[] = { 3, 3, 4 };
-     
+
      mPatch2D.fill( 6, coords,
                     3, types,
                     counts, connectivity,
                     0, err );
   }
-  
+
   void tearDown()
   {
   }
-  
+
 public:
   PatchDataTest()
     {}
-  
+
    void test_num_corners()
    {
      MsqPrintError err(cout);
@@ -184,7 +184,7 @@ public:
    {
 
       MsqPrintError err(cout);
-      
+
       std::vector<size_t> vtx_ind;
       std::vector<size_t> res;
 
@@ -207,17 +207,17 @@ public:
          |0\| 2 |
          0---2---4   */
      MsqPrintError err(cout);
-     
+
      std::vector<size_t> elem_ind;
      std::vector<size_t> res;
-     
+
      mPatch2D.generate_vertex_to_element_data();
-     
+
      // test we get the elements contiguous to vertex 3
      mPatch2D.get_vertex_element_indices(3, elem_ind,err); CPPUNIT_ASSERT(!err);
      res.push_back(2); res.push_back(1);
      CPPUNIT_ASSERT(res==elem_ind);
-     
+
      // test we get the elements contiguous to vertex 2
      elem_ind.clear(); res.clear();
      mPatch2D.get_vertex_element_indices(2, elem_ind,err); CPPUNIT_ASSERT(!err);
@@ -231,7 +231,7 @@ public:
 
       std::vector< Vector3D > coords;
       mPatch2D.get_element_vertex_coordinates(1, coords,err); CPPUNIT_ASSERT(!err);
-      
+
       CPPUNIT_ASSERT( coords[0]==vtx_0_1 );
       CPPUNIT_ASSERT( coords[1]==vtx_1_0 );
       CPPUNIT_ASSERT( coords[2]==vtx_1_1 );
@@ -247,7 +247,7 @@ public:
       // gets a memento of the patch coordinates.
       PatchDataVerticesMemento* coords_mem = mPatch2D.create_vertices_memento(err);
       CPPUNIT_ASSERT(!err);
-      
+
       // Move the two first vertices in direction dk by step size s;
       Vector3D dk[6];
       dk[0].set(-1,-2,0);
@@ -281,7 +281,7 @@ public:
       // gets a memento of the patch coordinates.
       PatchDataVerticesMemento* coords_mem = mPatch2D.create_vertices_memento(err);
       CPPUNIT_ASSERT(!err);
-      
+
       // Move the two first vertices in direction dk by step size s;
       Vector3D dk[6];
       dk[0].set(0,-2,0);
@@ -307,7 +307,7 @@ public:
 
       delete coords_mem;
    }
-  
+
 /*Tests the function PatchData::get_adjacent_entities_via_n_dim()
   which finds the elements adjacent to a given element.  If 'n'
   equals 0 the elements must share a vertex; if 'n' equals 1 the
@@ -338,7 +338,7 @@ public:
      CPPUNIT_ASSERT(elems_3.size() == 0);
    }
 
-  
+
    void test_get_minmax_element_area()
    {
      MsqPrintError err(cout);
@@ -347,17 +347,17 @@ public:
 
      CPPUNIT_ASSERT_DOUBLES_EQUAL( 0.5, min, 0.0001 );
      CPPUNIT_ASSERT_DOUBLES_EQUAL( 1.0, max, 0.0001 );
-   }        
-     
+   }
+
   void check_sub_patch( unsigned vtx, unsigned layers, PatchData& pd, PatchData& sub );
-  
+
   void test_sub_patch( );
-  
+
   void test_patch_contents( bool reorder );
-  
+
   void test_fill() { test_patch_contents(false); }
   void test_reorder() { test_patch_contents(true); }
-  
+
   void test_update_slave_node_coords();
   void test_patch_data_fill_slaved_ho_nodes() { test_quad8_patch(false, true ); }
   void test_patch_reorder_ho_nodes()          { test_quad8_patch(true,  true ); }
@@ -384,7 +384,7 @@ void PatchDataTest::check_sub_patch( unsigned vtx, unsigned layers, PatchData& p
   std::set<size_t> seen;
   std::vector<size_t> vtx_map, elem_map;
 
-    // test vertex list consistency 
+    // test vertex list consistency
   vtx_map.resize( sub.num_nodes() );
   for (i = 0; i < sub.num_nodes(); ++i) {
       // get index in old patch for this vertex
@@ -402,7 +402,7 @@ void PatchDataTest::check_sub_patch( unsigned vtx, unsigned layers, PatchData& p
     CPPUNIT_ASSERT_VECTORS_EQUAL( pd.vertex_by_index(idx), sub.vertex_by_index(i), 1e-12 );
   }
 
-    // test element list consistency 
+    // test element list consistency
   seen.clear();
   elem_map.resize( sub.num_elements() );
   for (i = 0; i < sub.num_elements(); ++i) {
@@ -436,7 +436,7 @@ void PatchDataTest::check_sub_patch( unsigned vtx, unsigned layers, PatchData& p
     }
   }
 
-    // test that the subpatch has the elements adjacent to the specified 
+    // test that the subpatch has the elements adjacent to the specified
     // vertex.
 
     // first get list of adjacent elements in original patch
@@ -497,13 +497,13 @@ void PatchDataTest::test_patch_contents( bool reorder )
   double coords[3*NUM_VERTEX] = { 6, 6, 3, // 0
                                   0, 0, 0,
                                   0, 6, 3,
-                                  4, 2, 2, 
+                                  4, 2, 2,
                                   2, 4, 2,
                                   4, 4, 2, // 5
                                   0, 6, 3,
-                                  2, 2, 1, 
-                                  2, 6, 3, 
-                                  4, 0, 2, 
+                                  2, 2, 1,
+                                  2, 6, 3,
+                                  4, 0, 2,
                                   6, 3, 3, // 10
                                   0, 4, 2,
                                   2, 0, 1,
@@ -513,7 +513,7 @@ void PatchDataTest::test_patch_contents( bool reorder )
                     7, 4, 11, 14,
                     5, 0, 8,
                     11, 5, 8,
-                    13, 3, 9, 6, 
+                    13, 3, 9, 6,
                     10, 5, 3, 13,
                     12, 7, 14, 1,
                     10, 0, 5,
@@ -529,7 +529,7 @@ void PatchDataTest::test_patch_contents( bool reorder )
                                         TRIANGLE,
                                         QUADRILATERAL };
     // mark vertices along X and Y axis as fixed
-  bool fixed[NUM_VERTEX] = { false, true, true, false, false, false, 
+  bool fixed[NUM_VERTEX] = { false, true, true, false, false, false,
                              true, false, false, true, false, true,
                              true, false, false };
 
@@ -538,10 +538,10 @@ void PatchDataTest::test_patch_contents( bool reorder )
   MsqPrintError err(std::cout);
   pd.fill( NUM_VERTEX, coords, NUM_ELEMENT, types, conn_len, conn, fixed, err );
   CPPUNIT_ASSERT(!MSQ_CHKERR(err));
-  
+
   if (reorder)
     pd.reorder();
-    
+
     // count free vertices
   unsigned i, j;
   size_t num_free = 0;
@@ -549,13 +549,13 @@ void PatchDataTest::test_patch_contents( bool reorder )
     if (!fixed[i])
       ++num_free;
   CPPUNIT_ASSERT_EQUAL( num_free, pd.num_free_vertices() );
-  
+
     // NOTE: PatchData will reorder contents either because reorder()
     //       was called or to group vertices by fixed/free status.
     //       We will assume that the handles arrays for vertices and
     //       elements contain the initial positions in the input
     //       arrays used to populate the patch data.
-  
+
     // Test vertex handles
   std::vector<bool> seen( NUM_VERTEX, false );
   for (i = 0; i < pd.num_nodes(); ++i) {
@@ -564,7 +564,7 @@ void PatchDataTest::test_patch_contents( bool reorder )
     CPPUNIT_ASSERT( !seen[h] );
     seen[h] = true;
   }
-  
+
     // Test vertex coordinates
   for (i = 0; i < pd.num_nodes(); ++i) {
     size_t h = (size_t)(pd.get_vertex_handles_array()[i]);
@@ -573,7 +573,7 @@ void PatchDataTest::test_patch_contents( bool reorder )
     CPPUNIT_ASSERT_DOUBLES_EQUAL( vtx[1], coords[3*h+1], DBL_EPSILON );
     CPPUNIT_ASSERT_DOUBLES_EQUAL( vtx[2], coords[3*h+2], DBL_EPSILON );
   }
-  
+
     // Test vertex fixed flags
   for (i = 0; i < pd.num_nodes(); ++i) {
     size_t h = (size_t)(pd.get_vertex_handles_array()[i]);
@@ -586,7 +586,7 @@ void PatchDataTest::test_patch_contents( bool reorder )
       CPPUNIT_ASSERT( pd.vertex_by_index(i).is_free_vertex() );
     }
   }
-  
+
     // Test element handles
   seen.clear();
   seen.resize( NUM_ELEMENT, false );
@@ -596,20 +596,20 @@ void PatchDataTest::test_patch_contents( bool reorder )
     CPPUNIT_ASSERT( !seen[h] );
     seen[h] = true;
   }
-  
-    // Test element types 
+
+    // Test element types
   for (i = 0; i < pd.num_elements(); ++i) {
     size_t h = (size_t)(pd.get_element_handles_array()[i]);
     CPPUNIT_ASSERT_EQUAL( types[h], pd.element_by_index(i).get_element_type() );
   }
-  
-    // Test element connectivity 
+
+    // Test element connectivity
   for (i = 0; i < pd.num_elements(); ++i) {
     size_t h = (size_t)(pd.get_element_handles_array()[i]);
     MsqMeshEntity& elem = pd.element_by_index(i);
     CPPUNIT_ASSERT_EQUAL( conn_len[h], elem.vertex_count() );
     CPPUNIT_ASSERT_EQUAL( conn_len[h], elem.node_count() );
-    
+
       // calculate offset in input list for element connectivity
     unsigned conn_pos = 0;
     for (j = 0; j < h; ++j)
@@ -632,7 +632,7 @@ void PatchDataTest::test_update_slave_node_coords()
     // with a) two mid-edge nodes marked as slave vertices and
     // b) with all mid-edge nodes moved away from the center
     // of their corresponding edge.
-  const double coords[] = { 0, 0, 0, 
+  const double coords[] = { 0, 0, 0,
                             1, 0, 0,
                             0, 1, 0,
                             0.5, -0.1, -0.1,
@@ -645,24 +645,24 @@ void PatchDataTest::test_update_slave_node_coords()
   size_t node_per_tri = 6;
   pd.fill( 6, coords, 1, &type, &node_per_tri, init_conn, fixed, err );
   ASSERT_NO_ERROR(err);
-  
+
     // update_slave_node_coords requires a mapping function
   Settings settings;
 //  TriLagrangeShape tri_func;
 //  settings.set_mapping_function( &tri_func );
   pd.attach_settings( &settings );
-  
+
     // call the function we're trying to test.
   pd.update_slave_node_coordinates( err );
   ASSERT_NO_ERROR(err);
-  
+
     // get vertex coordinates in the same order that we passed them in
   MsqMeshEntity elem = pd.element_by_index(0);
   const size_t* conn = elem.get_vertex_index_array();
   Vector3D vtx_coords[6];
   for (size_t i = 0; i < 6; ++i)
     vtx_coords[i] = pd.vertex_by_index(conn[i]);
-  
+
     // check that corner vertex coordinates are unchanged
   CPPUNIT_ASSERT_VECTORS_EQUAL( Vector3D( coords   ), vtx_coords[0], 1e-12 );
   CPPUNIT_ASSERT_VECTORS_EQUAL( Vector3D( coords+3 ), vtx_coords[1], 1e-12 );
@@ -753,10 +753,10 @@ void PatchDataTest::test_update_slave_node_coords()
          0.0, -3.0, 0,
          2.0, -3.0, 0 };
   const bool fixed[NUM_VTX] = {
-         true,  true,  true, true, 
+         true,  true,  true, true,
          true, false, false, true,
          true, false, false, true,
-         true,  true,  true, true, 
+         true,  true,  true, true,
          true,  true,  true,
          true, false, false, true,
         false, false, false,
@@ -777,9 +777,9 @@ void PatchDataTest::test_update_slave_node_coords()
 
   const size_t node_per_elem[NUM_ELEM] = { 8, 8, 8, 8, 8, 8, 8, 8, 8 };
   const EntityTopology elem_types[NUM_ELEM] = {  QUADRILATERAL,
-    QUADRILATERAL, QUADRILATERAL, QUADRILATERAL, QUADRILATERAL, 
+    QUADRILATERAL, QUADRILATERAL, QUADRILATERAL, QUADRILATERAL,
     QUADRILATERAL, QUADRILATERAL, QUADRILATERAL, QUADRILATERAL };
- 
+
 void PatchDataTest::test_quad8_patch( bool reorder, bool slaved )
 {
     // create PatchData
@@ -791,15 +791,15 @@ void PatchDataTest::test_quad8_patch( bool reorder, bool slaved )
     pd.attach_settings(&settings);
   pd.fill( NUM_VTX, input_coords, NUM_ELEM, elem_types, node_per_elem, input_conn, fixed, err );
   ASSERT_NO_ERROR(err);
-  
-  
+
+
     // reorder if testing that
   if (reorder)
     pd.reorder();
 
     // Check sizes.  Assume that all non-fixed HO nodes are slave vertices
     // unless 'slaved' is false.
-    
+
   CPPUNIT_ASSERT_EQUAL( NUM_VTX, (int)pd.num_nodes() );
   CPPUNIT_ASSERT_EQUAL( NUM_ELEM, (int)pd.num_elements() );
   int num_free = 0, num_slave = 0, num_fixed = 0;
@@ -816,10 +816,10 @@ void PatchDataTest::test_quad8_patch( bool reorder, bool slaved )
   CPPUNIT_ASSERT_EQUAL( num_free , (int)pd.num_free_vertices() );
   CPPUNIT_ASSERT_EQUAL( num_slave, (int)pd.num_slave_vertices() );
   CPPUNIT_ASSERT_EQUAL( num_fixed, (int)pd.num_fixed_vertices() );
-  
+
     // Check that vertex handles and vertex coords are correct.
     // Assume that handles array contains input vertex indices.
-    
+
   for (int i = 0; i < NUM_VTX; ++i) {
     const MsqVertex& vtx = pd.vertex_by_index(i);
     Mesh::VertexHandle hdl = pd.get_vertex_handles_array()[i];
@@ -831,11 +831,11 @@ void PatchDataTest::test_quad8_patch( bool reorder, bool slaved )
     }
     CPPUNIT_ASSERT_VECTORS_EQUAL( exp_coords, vtx, 1e-16 );
   }
-  
-    // Check that vertex flags are correct.  
+
+    // Check that vertex flags are correct.
     // Assume all non-fixed HO noes are slave vertices unless 'slaved' is false.
     // Assume that handles array contains input vertex indices.
-    
+
   for (int i = 0; i < NUM_VTX; ++i) {
     const MsqVertex& vtx = pd.vertex_by_index(i);
     Mesh::VertexHandle hdl = pd.get_vertex_handles_array()[i];
@@ -851,10 +851,10 @@ void PatchDataTest::test_quad8_patch( bool reorder, bool slaved )
       CPPUNIT_ASSERT( !vtx.is_flag_set( MsqVertex::MSQ_DEPENDENT  ) );
     }
   }
-  
+
     // Check that element connectivity is correct.
     // Assume that handles array contains input vertex and element indices.
-  
+
   for (int i = 0; i < NUM_ELEM; ++i) {
     MsqMeshEntity& elem = pd.element_by_index(i);
     CPPUNIT_ASSERT_EQUAL( QUADRILATERAL, elem.get_element_type() );
@@ -876,7 +876,7 @@ void PatchDataTest::get_quad8_mesh( Mesh*& mesh_out )
   static std::vector<int> fixed_flags(fixed, fixed+NUM_VTX);
   static std::vector<double> coords(input_coords, input_coords+3*NUM_VTX);
   static std::vector<unsigned long> conn( input_conn, input_conn+8*NUM_ELEM );
-  mesh_out = new ArrayMesh( 3, NUM_VTX, arrptr(coords), arrptr(fixed_flags), 
+  mesh_out = new ArrayMesh( 3, NUM_VTX, arrptr(coords), arrptr(fixed_flags),
                   NUM_ELEM, QUADRILATERAL, arrptr(conn), false,
                   8 );
 }
@@ -902,7 +902,7 @@ void PatchDataTest::get_quad8_mesh_and_domain( Mesh*& mesh_out,
                             new LineDomain( corners[3], corners[0] - corners[3] ),
                             new PlanarDomain( PlanarDomain::XY ) };
   int dimarr[] = { 0, 0, 0, 0, 1, 1, 1, 1, 2 };
-  
+
   DomainClassifier* domain;
   domain_out = domain = new DomainClassifier;
   DomainClassifier::classify_geometrically( *domain, mesh_out, 1e-6, geomarr, dimarr, 9, err );
@@ -921,30 +921,30 @@ void PatchDataTest::test_fixed_by_geom_dim( unsigned dim )
     case 2: settings.set_fixed_vertex_mode( Settings::FIXED_SURFACE ); break;
     default: CPPUNIT_ASSERT(false);
   }
-  
+
   Mesh* mesh = 0;
   MeshDomain* domain = 0;
   get_quad8_mesh_and_domain( mesh, domain );
   MeshDomainAssoc mesh_and_domain = MeshDomainAssoc(mesh, domain);
-  Instruction::initialize_vertex_byte( &mesh_and_domain, &settings, err ); 
+  Instruction::initialize_vertex_byte( &mesh_and_domain, &settings, err );
   ASSERT_NO_ERROR(err);
-  
+
   PatchData pd;
   pd.attach_settings( &settings );
   pd.set_mesh( mesh );
   pd.set_domain( domain );
-  
+
   std::vector<Mesh::ElementHandle> elems;
   std::vector<Mesh::VertexHandle> verts;
   mesh->get_all_elements( elems, err ); ASSERT_NO_ERROR(err);
   mesh->get_all_vertices( verts, err ); ASSERT_NO_ERROR(err);
   pd.set_mesh_entities( elems, verts, err ); ASSERT_NO_ERROR(err);
   CPPUNIT_ASSERT(!elems.empty());
-  
+
   std::vector<unsigned short> dims(verts.size());
   domain->domain_DoF( arrptr(verts), arrptr(dims), verts.size(), err );
   ASSERT_NO_ERROR(err);
-  
+
   for (size_t i = 0; i < pd.num_free_vertices(); ++i) {
     Mesh::VertexHandle handle = pd.get_vertex_handles_array()[i];
     unsigned short d;
@@ -958,12 +958,12 @@ void PatchDataTest::test_fixed_by_geom_dim( unsigned dim )
     domain->domain_DoF( &handle, &d, 1, err ); ASSERT_NO_ERROR(err);
     CPPUNIT_ASSERT( d <= dim );
   }
-  
+
   delete mesh;
   delete domain;
 }
 
-void PatchDataTest::get_higher_order_vertices( Mesh* mesh, 
+void PatchDataTest::get_higher_order_vertices( Mesh* mesh,
                                            std::map<Mesh::VertexHandle,bool>& ho_verts,
                                            bool initial_value,
                                            bool non_fixed_only )
@@ -983,16 +983,16 @@ void PatchDataTest::get_higher_order_vertices( Mesh* mesh,
   std::vector<EntityTopology> types(elems.size());
   mesh->elements_get_topologies( arrptr(elems), arrptr(types), elems.size(), err );
   ASSERT_NO_ERROR(err);
-  
+
     // clear initial state
   ho_verts.clear();
-  
+
     // for each element, add ho nodes
-  for (size_t i = 0; i < elems.size(); ++i) 
-    for (size_t j = offsets[i] + TopologyInfo::corners(types[i]); 
-         j < offsets[i+1]; ++j) 
+  for (size_t i = 0; i < elems.size(); ++i)
+    for (size_t j = offsets[i] + TopologyInfo::corners(types[i]);
+         j < offsets[i+1]; ++j)
       ho_verts[verts[j]] = initial_value;
-      
+
   if (non_fixed_only) {
     std::map<Mesh::VertexHandle,bool>::iterator p;
     std::sort( verts.begin(), verts.end() );
@@ -1010,30 +1010,30 @@ void PatchDataTest::get_higher_order_vertices( Mesh* mesh,
   }
 }
 
-void PatchDataTest::check_higher_order_vertices_slaved( 
+void PatchDataTest::check_higher_order_vertices_slaved(
                    Mesh* mesh,
                    Settings::HigherOrderSlaveMode mode,
                    const std::map<Mesh::VertexHandle,bool>& expected )
 {
   MsqPrintError err(std::cerr);
-  
+
   Settings settings;
   settings.set_slaved_ho_node_mode( mode );
   MeshDomainAssoc mesh_and_domain = MeshDomainAssoc(mesh, 0);
-  Instruction::initialize_vertex_byte( &mesh_and_domain, &settings, err ); 
+  Instruction::initialize_vertex_byte( &mesh_and_domain, &settings, err );
   ASSERT_NO_ERROR(err);
-  
+
   PatchData pd;
   pd.attach_settings( &settings );
   pd.set_mesh( mesh );
-  
+
   std::vector<Mesh::ElementHandle> elements;
   std::vector<Mesh::VertexHandle> vertices;
-  mesh->get_all_elements( elements, err ); 
+  mesh->get_all_elements( elements, err );
   ASSERT_NO_ERROR(err);
-  pd.set_mesh_entities( elements, vertices, err ); 
+  pd.set_mesh_entities( elements, vertices, err );
   ASSERT_NO_ERROR(err);
-  
+
   std::map<Mesh::VertexHandle,bool>::const_iterator p;
   for (size_t i = 0; i < pd.num_nodes(); ++i) {
     p = expected.find( pd.get_vertex_handles_array()[i] );
@@ -1042,16 +1042,16 @@ void PatchDataTest::check_higher_order_vertices_slaved(
     bool act = pd.vertex_by_index(i).is_flag_set(MsqVertex::MSQ_DEPENDENT);
     CPPUNIT_ASSERT_EQUAL( exp, act );
   }
-}                
+}
 
 void PatchDataTest::test_patch_data_mesh_slaved_ho_nodes()
 {
   Mesh* mesh = 0;
   get_quad8_mesh( mesh );
-  
+
   std::map<Mesh::VertexHandle,bool> ho_verts;
   get_higher_order_vertices( mesh, ho_verts, true, false );
-  
+
   check_higher_order_vertices_slaved( mesh, Settings::SLAVE_ALL, ho_verts );
   delete mesh;
 }
@@ -1060,10 +1060,10 @@ void PatchDataTest::test_patch_data_mesh_free_ho_nodes()
 {
   Mesh* mesh = 0;
   get_quad8_mesh( mesh );
-  
+
   std::map<Mesh::VertexHandle,bool> ho_verts;
   get_higher_order_vertices( mesh, ho_verts, false );
-  
+
   check_higher_order_vertices_slaved( mesh, Settings::SLAVE_NONE, ho_verts );
   delete mesh;
 }
@@ -1072,10 +1072,10 @@ void PatchDataTest::test_patch_data_mesh_calcualted_ho_nodes()
 {
   Mesh* mesh = 0;
   get_quad8_mesh( mesh );
-  
+
   std::map<Mesh::VertexHandle,bool> ho_verts;
   get_higher_order_vertices( mesh, ho_verts, false );
-  
+
     // set bit on every other higher-order vertex
   std::map<Mesh::VertexHandle,bool>::iterator i = ho_verts.end();
   std::vector<Mesh::VertexHandle> slaved;
@@ -1084,17 +1084,17 @@ void PatchDataTest::test_patch_data_mesh_calcualted_ho_nodes()
     slaved.push_back(i->first);
     bytes.push_back( MsqVertex::MSQ_DEPENDENT );
     i->second = true;
-    if (++i == ho_verts.end()); 
+    if (++i == ho_verts.end());
       break;
     ++i;
   }
-  
+
   if (!slaved.empty()) {
     MsqPrintError err(std::cerr);
     mesh->vertices_set_byte( arrptr(slaved), arrptr(bytes), slaved.size(), err );
     ASSERT_NO_ERROR(err);
   }
-  
+
   check_higher_order_vertices_slaved( mesh, Settings::SLAVE_CALCULATED, ho_verts );
   delete mesh;
 }
@@ -1105,21 +1105,21 @@ class HoSlavedMesh : public MeshDecorator
 {
   public:
     typedef std::map<Mesh::VertexHandle,bool> SMap;
-    HoSlavedMesh( Mesh* real_mesh, SMap& slaved ) 
+    HoSlavedMesh( Mesh* real_mesh, SMap& slaved )
       : MeshDecorator( real_mesh ),
         slavedVerts(slaved)
       {}
-      
-    virtual void vertices_get_slaved_flag( const VertexHandle vert_array[], 
+
+    virtual void vertices_get_slaved_flag( const VertexHandle vert_array[],
                                            std::vector<bool>& slaved_flag_array,
-                                           size_t num_vtx, 
+                                           size_t num_vtx,
                                            MsqError &err );
   private:
     SMap slavedVerts;
 };
-void HoSlavedMesh::vertices_get_slaved_flag( const VertexHandle vert_array[], 
+void HoSlavedMesh::vertices_get_slaved_flag( const VertexHandle vert_array[],
                                              std::vector<bool>& slaved_flag_array,
-                                             size_t num_vtx, 
+                                             size_t num_vtx,
                                              MsqError &err )
 {
   slaved_flag_array.resize( num_vtx );
@@ -1133,23 +1133,23 @@ void PatchDataTest::test_patch_data_mesh_flagged_ho_nodes()
 {
   Mesh* mesh = 0;
   get_quad8_mesh( mesh );
-  
+
   std::map<Mesh::VertexHandle,bool> ho_verts;
   get_higher_order_vertices( mesh, ho_verts, false );
-  
+
     // set every other higher-order vertex as slaved
   std::map<Mesh::VertexHandle,bool>::iterator i = ho_verts.end();
   while (i != ho_verts.end()) {
-    if (++i == ho_verts.end()); 
+    if (++i == ho_verts.end());
       break;
     i->second = true;
     ++i;
   }
-  
-    // create a wrapper mesh that returns what we want 
+
+    // create a wrapper mesh that returns what we want
     // from vertices_get_slaved_flag
   HoSlavedMesh wrapper( mesh, ho_verts );
-  
+
   check_higher_order_vertices_slaved( &wrapper, Settings::SLAVE_FLAG, ho_verts );
   delete mesh;
 }

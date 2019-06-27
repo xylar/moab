@@ -9,7 +9,7 @@
  * vertices are moving), this can save significant execution time in applications.
  * \verbatim
  *  ----------------------
- *  |      |      |      |       
+ *  |      |      |      |
  *  |      |      |      | ...
  *  |      |      |      |
  *  ----------------------
@@ -124,7 +124,7 @@ int main(int argc, char **argv)
       tag3_ptr[a_ind]++; // Increment the vertex count
     }
   }
-        
+
   // Normalize tag2 by vertex count (tag3); loop over elements using same approach as before
   // At the same time, compare values of tag1 and tag2
   int n_dis = 0;
@@ -146,7 +146,7 @@ int main(int argc, char **argv)
   return 0;
 }
 
-ErrorCode create_mesh_no_holes(Interface *mbImpl, int nquads) 
+ErrorCode create_mesh_no_holes(Interface *mbImpl, int nquads)
 {
   // First make the mesh, a 1d array of quads with left hand side x = elem_num; vertices are numbered in layers
   ReadUtilIface *read_iface;
@@ -167,7 +167,7 @@ ErrorCode create_mesh_no_holes(Interface *mbImpl, int nquads)
     connect[4*i + 2] = quad_v + 3;
     connect[4*i + 3] = quad_v + 1;
   }
-  
+
   // Last two vertices
   // Cppcheck warning (false positive): variable coords is assigned a value that is never used
   coords[0][2*nquads] = coords[0][2*nquads + 1] = (double) nquads;

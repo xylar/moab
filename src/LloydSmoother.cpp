@@ -12,22 +12,22 @@
 #include <iostream>
 
 namespace moab {
-  
+
 LloydSmoother::LloydSmoother(Interface *impl, ParallelComm *pc, Range &elms, Tag ctag,
-                             Tag ftag, double at, double rt) 
+                             Tag ftag, double at, double rt)
         : mbImpl(impl), myPcomm(pc), myElems(elms), coordsTag(ctag), fixedTag(ftag), absTol(at), relTol(rt),
           reportIts(0), numIts(0), iCreatedTag(false)
 {
 }
 
-LloydSmoother::~LloydSmoother() 
+LloydSmoother::~LloydSmoother()
 {
   if (iCreatedTag && fixedTag) {
     ErrorCode rval = mbImpl->tag_delete(fixedTag);MB_CHK_SET_ERR_RET(rval, "Failed to delete the fixed tag");
   }
 }
 
-ErrorCode LloydSmoother::perform_smooth() 
+ErrorCode LloydSmoother::perform_smooth()
 {
   ErrorCode rval;
 
@@ -36,10 +36,10 @@ ErrorCode LloydSmoother::perform_smooth()
   }
   else if (mbImpl->dimension_from_handle(*myElems.begin()) != mbImpl->dimension_from_handle(*myElems.rbegin())) {
     MB_SET_ERR(MB_FAILURE, "Elements of unequal dimension specified to Lloyd smoother");
-  }    
+  }
 
   int dim = mbImpl->dimension_from_handle(*myElems.begin());
-  
+
     // first figure out tolerance to use
   if (0 > absTol) {
       // no tolerance set - get one relative to bounding box around elements
@@ -54,11 +54,11 @@ ErrorCode LloydSmoother::perform_smooth()
     // get all vertices
   Range verts;
   rval = mbImpl->get_adjacencies(myElems, 0, false, verts, Interface::UNION);MB_CHK_SET_ERR(rval, "Failed to get all vertices");
-  
+
     // perform Lloyd relaxation:
     // 1. setup: set vertex centroids from vertex coords; filter to owned verts; get fixed tags
 
-    // get all verts coords into tag; don't need to worry about filtering out fixed verts, 
+    // get all verts coords into tag; don't need to worry about filtering out fixed verts,
     // we'll just be setting to their fixed coords
   std::vector<double> vcentroids(3*verts.size());
   if (!coordsTag) {
@@ -88,7 +88,7 @@ ErrorCode LloydSmoother::perform_smooth()
 #else
   owned_verts = verts;
 #endif
-  
+
   std::vector<unsigned char> fix_tag(owned_verts.size());
   rval = mbImpl->tag_get_data(fixedTag, owned_verts, &fix_tag[0]);MB_CHK_SET_ERR(rval, "Failed to get fixed tag");
 
@@ -105,14 +105,14 @@ ErrorCode LloydSmoother::perform_smooth()
   Range::iterator eit, vit;  // for iterating over elems, verts
   int e, v;  // for indexing into centroid vectors
   std::vector<EntityHandle> adj_elems;  // used in vertex iteration
-  
+
     // 2. while !converged
   double resid = DBL_MAX;
   numIts = 0;
   while (resid > absTol) {
     numIts++;
     resid = 0.0;
-    
+
     // 2a. foreach elem: centroid = sum(vertex centroids)/num_verts_in_cell
     for (eit = myElems.begin(), e = 0; eit != myElems.end(); ++eit, e++) {
         // get verts for this elem
@@ -129,7 +129,7 @@ ErrorCode LloydSmoother::perform_smooth()
     }
     rval = mbImpl->tag_set_data(centroid, myElems, &fcentroids[0]);MB_CHK_SET_ERR(rval, "Failed to set elem centroid");
 
-      // 2b. foreach owned vertex: 
+      // 2b. foreach owned vertex:
     for (vit = owned_verts.begin(), v = 0; vit != owned_verts.end(); ++vit, v++) {
         // if !fixed
       if (fix_tag[v]) continue;
@@ -166,13 +166,13 @@ ErrorCode LloydSmoother::perform_smooth()
         // global reduce for maximum delta, then report it
       if (myPcomm && myPcomm->size() > 1)
         MPI_Reduce(&resid, &global_max, 1, MPI_DOUBLE, MPI_MAX, 0, myPcomm->comm());
-      if (!myPcomm || !myPcomm->rank()) 
+      if (!myPcomm || !myPcomm->rank())
 #endif
         std::cout << "Max residual = " << global_max << std::endl;
     }
 
   } // end while
-  
+
     // write the tag back onto vertex coordinates
   if (!coordsTag) {
     rval = mbImpl->set_coords(owned_verts, &vcentroids[0]);MB_CHK_SET_ERR(rval, "Failed to set vertex coords");
@@ -187,13 +187,13 @@ ErrorCode LloydSmoother::perform_smooth()
 ErrorCode LloydSmoother::initialize()
 {
   ErrorCode rval = MB_SUCCESS;
-  
+
     // first, check for tag; if we don't have it, make one and mark skin as fixed
   if (!fixedTag) {
     unsigned char fixed = 0x0;
     rval = mbImpl->tag_get_handle("", 1, MB_TYPE_OPAQUE, fixedTag, MB_TAG_DENSE | MB_TAG_CREAT, &fixed);MB_CHK_SET_ERR(rval, "Trouble making fixed tag");
     iCreatedTag = true;
-  
+
       // get the skin; get facets, because we might need to filter on shared entities
     Skinner skinner(mbImpl);
     Range skin, skin_verts;
@@ -208,12 +208,12 @@ ErrorCode LloydSmoother::initialize()
 #endif
       // get the vertices from those entities
     rval = mbImpl->get_adjacencies(skin, 0, false, skin_verts, Interface::UNION);MB_CHK_SET_ERR(rval, "Trouble getting vertices");
-    
+
       // mark them fixed
     std::vector<unsigned char> marks(skin_verts.size(), 0x1);
     rval = mbImpl->tag_set_data(fixedTag, skin_verts, &marks[0]);MB_CHK_SET_ERR(rval, "Unable to set tag on skin");
   }
-  
+
   return MB_SUCCESS;
 }
 

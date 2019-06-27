@@ -73,7 +73,7 @@ ErrorOutput::ErrorOutput(std::ostream& str)
 }
 
 ErrorOutput::~ErrorOutput()
-{ 
+{
   if (!lineBuffer.empty()) {
     lineBuffer.push_back('\n');
     process_line_buffer();

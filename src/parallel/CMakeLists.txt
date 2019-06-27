@@ -5,7 +5,7 @@ set( moab_PARALLEL_SRCS
   ParallelMergeMesh.cpp
   ReadParallel.hpp      ReadParallel.cpp
   SharedSetData.hpp     SharedSetData.cpp
-  ParCommGraph.cpp 
+  ParCommGraph.cpp
   gs.cpp
 )
 
@@ -33,7 +33,7 @@ include_directories(
 
 if ( MOAB_HAVE_HDF5 AND MOAB_HAVE_HDF5_PARALLEL )
   set( moab_PARALLEL_SRCS ${moab_PARALLEL_SRCS}
-                          WriteHDF5Parallel.cpp 
+                          WriteHDF5Parallel.cpp
                           WriteHDF5Parallel.hpp )
 endif()
 

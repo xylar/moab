@@ -1,16 +1,16 @@
 /**
  * MOAB, a Mesh-Oriented datABase, is a software component for creating,
  * storing and accessing finite element mesh data.
- * 
+ *
  * Copyright 2004 Sandia Corporation.  Under the terms of Contract
  * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
  * retains certain rights in this software.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  */
 
 
@@ -53,7 +53,7 @@ const char *WriteGMV::gmvTypeNames[] = {
 WriterIface* WriteGMV::factory( Interface* iface )
   { return new WriteGMV( iface ); }
 
-WriteGMV::WriteGMV(Interface *impl) 
+WriteGMV::WriteGMV(Interface *impl)
     : mbImpl(impl)
 {
   assert(impl != NULL);
@@ -88,7 +88,7 @@ WriteGMV::WriteGMV(Interface *impl)
                        mHasMidNodesTag, MB_TAG_SPARSE|MB_TAG_CREAT, dum_val_array);
 }
 
-WriteGMV::~WriteGMV() 
+WriteGMV::~WriteGMV()
 {
   mbImpl->release_interface(mWriteIface);
 }
@@ -97,10 +97,10 @@ ErrorCode WriteGMV::write_file(const char *file_name,
                                  const EntityHandle output_set,
                                  const int user_dimension,
                                  const bool mesh,
-                                 const bool poly_mesh) 
+                                 const bool poly_mesh)
 {
     // general function for writing a mesh
-  
+
   ErrorCode result = MB_SUCCESS;
 
     // initialize file
@@ -109,12 +109,12 @@ ErrorCode WriteGMV::write_file(const char *file_name,
     result = local_write_mesh(file_name, output_set, user_dimension, true, false);
     if (MB_SUCCESS != result) return result;
   }
-  
+
   if (poly_mesh) {
     result = local_write_mesh(file_name, output_set, user_dimension, false, true);
     if (MB_SUCCESS != result) return result;
   }
-  
+
   return result;
 }
 
@@ -135,15 +135,15 @@ ErrorCode WriteGMV::write_file( const char* filename,
       return MB_FAILURE;
     output_set = output_sets[0];
   }
-  
+
   if (dimension == 0)
   {
     mbImpl->get_dimension( dimension );
   }
-  
+
   return write_file( filename, output_set, dimension, true, true );
 }
-  
+
 
 ErrorCode WriteGMV::local_write_mesh(const char *file_name,
                                        const EntityHandle output_set,
@@ -168,7 +168,7 @@ ErrorCode WriteGMV::local_write_mesh(const char *file_name,
   }
 
   ofile << "gmvinput ascii" << std::endl;
-  
+
     // get elements to be output
   Range dum_range, elements, all_verts;
   EntityType otype;
@@ -187,13 +187,13 @@ ErrorCode WriteGMV::local_write_mesh(const char *file_name,
       std::copy(dum_range.begin(), dum_range.end(), range_inserter(elements));
     }
   }
-  
+
     // gather the vertices in these elements
   result = mbImpl->get_adjacencies(elements, 0, false, all_verts, Interface::UNION);
   if (MB_SUCCESS != result) return result;
-  
+
   int num_verts = all_verts.size();
-  
+
     // allocate coordinate arrays and put pointers to them in a list
   double *xcoord = new double[num_verts];
   double *ycoord = new double[num_verts];
@@ -202,20 +202,20 @@ ErrorCode WriteGMV::local_write_mesh(const char *file_name,
   coord_arrays.push_back(xcoord);
   coord_arrays.push_back(ycoord);
   coord_arrays.push_back(zcoord);
-  
+
     // fill them in, writing id tags at the same time
   result = mWriteIface->get_node_coords(3, num_verts, all_verts, mGlobalIdTag, 1, coord_arrays);
   if (MB_SUCCESS != result) return result;
 
   int i, j;
-  
+
     //========================================
     // WRITE COORDINATE DATA TO FILE HERE
 
   ofile << "nodev " << num_verts << std::endl;
-  for (i = 0; i < num_verts; i++) 
+  for (i = 0; i < num_verts; i++)
     ofile << xcoord[i] << " " << ycoord[i] << " " << zcoord[i] << std::endl;
-  
+
 
     //========================================
 
@@ -230,14 +230,14 @@ ErrorCode WriteGMV::local_write_mesh(const char *file_name,
 
   if (mesh) {
     Range sub_range;
-    
+
     ofile << "cells " << elements.size() << std::endl;
-  
+
     for (otype = CN::TypeDimensionMap[user_dimension].first;
          otype <= CN::TypeDimensionMap[user_dimension].second; otype++) {
 
       if (otype == MBPOLYGON || otype == MBPOLYHEDRON) continue;
-      
+
         // get the first element of this type in the range, and one past the last
       Range::iterator lower =
         Range::lower_bound(elements.begin(),
@@ -247,9 +247,9 @@ ErrorCode WriteGMV::local_write_mesh(const char *file_name,
         Range::lower_bound(elements.begin(),
                              elements.end(),
                              CREATE_HANDLE(otype+1, MB_START_ID, i));
-      
+
       if (lower == upper) continue;
-    
+
         // copy these elements into a subrange
       sub_range.clear();
       std::copy(lower, upper, range_inserter(sub_range));
@@ -258,7 +258,7 @@ ErrorCode WriteGMV::local_write_mesh(const char *file_name,
       int verts_per = CN::VerticesPerEntity(otype);
       if (connect.size() < verts_per*sub_range.size())
         connect.resize(verts_per*sub_range.size());
-    
+
         // get the connectivity
       result = mWriteIface->get_element_connect(sub_range.size(),
                                               verts_per,
@@ -279,19 +279,19 @@ ErrorCode WriteGMV::local_write_mesh(const char *file_name,
         //========================================
     }
   }
-  
+
   else if (poly_mesh) {
-  
+
       // write polygons/hedra, if any
     Range polygons, polyhedra;
     result = mbImpl->get_entities_by_type(output_set, MBPOLYGON, polygons, true);
     if (MB_SUCCESS != result) return result;
-  
+
     result = mbImpl->get_entities_by_type(output_set, MBPOLYHEDRON, polyhedra, true);
     if (MB_SUCCESS != result) return result;
 
     if (polygons.size() == 0) return result;
-  
+
       // mark polyhedra with global ids
     result = mWriteIface->assign_ids(polyhedra, mGlobalIdTag, 1);
     if (MB_SUCCESS != result) return result;
@@ -305,32 +305,32 @@ ErrorCode WriteGMV::local_write_mesh(const char *file_name,
       if (MB_SUCCESS != result) return result;
 
       if (0 == connecth.size()) continue;
-    
+
         // get the polyhedra, if any
       if (user_dimension == 3) {
         polyhedra.clear();
         result = mbImpl->get_adjacencies(Range(*rit, *rit), 3, false, polyhedra);
         if (MB_SUCCESS != result) return result;
-    
+
           // put them in the connect array
         connecth.push_back((polyhedra.size() > 0 ? *polyhedra.begin() : 0));
         connecth.push_back((polyhedra.size() > 1 ? *polyhedra.rbegin() : 0));
       }
-    
+
         // replace handles with ids
       connect.resize(connecth.size()+2);
 
         // pre-set polyhedra ids in case there aren't any
       connect[connecth.size()] = 0;
       connect[connecth.size()+1] = 0;
-      result = mbImpl->tag_get_data(mGlobalIdTag, &connecth[0], 
+      result = mbImpl->tag_get_data(mGlobalIdTag, &connecth[0],
                                     connecth.size()-2+polyhedra.size(),
                                     &connect[0]);
       if (MB_SUCCESS != result) return result;
-    
+
         // write the data
       ofile << connecth.size()-2;
-    
+
       for (i = 0; i < (int)connecth.size(); i++)
         ofile << " " << connect[i];
 
@@ -339,9 +339,9 @@ ErrorCode WriteGMV::local_write_mesh(const char *file_name,
   }
 
   ofile << std::endl << "endgmv" << std::endl;
-  
+
   ofile.close();
-  
+
   return MB_SUCCESS;
 }
 

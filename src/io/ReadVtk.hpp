@@ -1,16 +1,16 @@
 /**
  * MOAB, a Mesh-Oriented datABase, is a software component for creating,
  * storing and accessing finite element mesh data.
- * 
+ *
  * Copyright 2004 Sandia Corporation.  Under the terms of Contract
  * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
  * retains certain rights in this software.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  */
 
 #ifndef READ_VTK_HPP
@@ -28,7 +28,7 @@ class FileTokenizer;
 
 class ReadVtk : public ReaderIface
 {
-   
+
 public:
 
   static ReaderIface* factory( Interface* );
@@ -45,7 +45,7 @@ public:
                              const FileOptions& opts,
                              std::vector<int>& tag_values_out,
                              const SubsetList* subset_list = 0 );
-  
+
     //! Constructor
   ReadVtk(Interface* impl = NULL);
 
@@ -61,7 +61,7 @@ protected:
                                  double*& z_coord_array_out );
 
   ErrorCode read_vertices( FileTokenizer& tokens,
-                             long num_verts, 
+                             long num_verts,
                              EntityHandle& start_handle_out );
 
   ErrorCode allocate_elements( long num_elements,
@@ -75,54 +75,54 @@ protected:
                                 Range& vertex_list,
                                 std::vector<Range>& element_list );
 
-  ErrorCode vtk_read_structured_points( FileTokenizer& tokens, 
+  ErrorCode vtk_read_structured_points( FileTokenizer& tokens,
                                           Range& vertex_list,
                                           std::vector<Range>& elem_list );
 
-  ErrorCode vtk_read_structured_grid( FileTokenizer& tokens, 
+  ErrorCode vtk_read_structured_grid( FileTokenizer& tokens,
                                         Range& vertex_list,
                                         std::vector<Range>& elem_list );
 
-  ErrorCode vtk_read_rectilinear_grid( FileTokenizer& tokens, 
+  ErrorCode vtk_read_rectilinear_grid( FileTokenizer& tokens,
                                          Range& vertex_list,
                                          std::vector<Range>& elem_list );
-                                         
-  ErrorCode vtk_read_polydata( FileTokenizer& tokens, 
+
+  ErrorCode vtk_read_polydata( FileTokenizer& tokens,
                                  Range& vertex_list,
                                  std::vector<Range>& elem_list );
-                                 
+
   ErrorCode vtk_read_polygons( FileTokenizer& tokens,
-                                 EntityHandle first_vtx, 
+                                 EntityHandle first_vtx,
                                  std::vector<Range>& elem_list );
 
   ErrorCode vtk_read_unstructured_grid( FileTokenizer& tokens,
                                           Range& vertex_list,
                                           std::vector<Range>& elem_list  );
 
-  ErrorCode vtk_create_structured_elems( const long* dims, 
+  ErrorCode vtk_create_structured_elems( const long* dims,
                                            EntityHandle first_vtx,
                                            std::vector<Range>& elem_list );
 
   ErrorCode vtk_read_field( FileTokenizer& tokens );
 
-  ErrorCode vtk_read_attrib_data( FileTokenizer& tokens, 
+  ErrorCode vtk_read_attrib_data( FileTokenizer& tokens,
                                     std::vector<Range>& entities );
 
-  ErrorCode vtk_read_tag_data( FileTokenizer& tokens, 
-                                 int type, 
-                                 size_t per_elem, 
+  ErrorCode vtk_read_tag_data( FileTokenizer& tokens,
+                                 int type,
+                                 size_t per_elem,
                                  std::vector<Range>& entities,
                                  const char* name );
 
-  ErrorCode vtk_read_scalar_attrib( FileTokenizer& tokens, 
+  ErrorCode vtk_read_scalar_attrib( FileTokenizer& tokens,
                                       std::vector<Range>& entities,
                                       const char* name);
 
-  ErrorCode vtk_read_color_attrib( FileTokenizer& tokens, 
+  ErrorCode vtk_read_color_attrib( FileTokenizer& tokens,
                                      std::vector<Range>& entities,
                                      const char* name);
 
-  ErrorCode vtk_read_vector_attrib( FileTokenizer& tokens, 
+  ErrorCode vtk_read_vector_attrib( FileTokenizer& tokens,
                                       std::vector<Range>& entities,
                                       const char* name);
 
@@ -134,7 +134,7 @@ protected:
                                       std::vector<Range>& entities,
                                       const char* name );
 
-  ErrorCode vtk_read_field_attrib( FileTokenizer& tokens, 
+  ErrorCode vtk_read_field_attrib( FileTokenizer& tokens,
                                      std::vector<Range>& entities,
                                      const char* name);
 

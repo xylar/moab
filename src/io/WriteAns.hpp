@@ -1,16 +1,16 @@
 /**
  * MOAB, a Mesh-Oriented datABase, is a software component for creating,
  * storing and accessing finite element mesh data.
- * 
+ *
  * Copyright 2004 Sandia Corporation.  Under the terms of Contract
  * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
  * retains certain rights in this software.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  */
 
 //-------------------------------------------------------------------------
@@ -20,11 +20,11 @@
 //
 // Special Notes : Lots of code taken from verde implementation
 //
-// Creator       : Corey Ernst 
+// Creator       : Corey Ernst
 //
 // Date          : 8/02
 //
-// Owner         : Corey Ernst 
+// Owner         : Corey Ernst
 //-------------------------------------------------------------------------
 
 #ifndef WRITEANS_HPP
@@ -47,7 +47,7 @@ class WriteUtilIface;
 
 class WriteAns : public WriterIface
 {
- 
+
 public:
 
    //! Constructor
@@ -55,7 +55,7 @@ public:
 
    //! Destructor
   virtual ~WriteAns();
-  
+
   static WriterIface* factory( Interface* );
 
     //! writes out a file
@@ -68,7 +68,7 @@ public:
                           const Tag* tag_list = NULL,
                           int num_tags = 0,
                           int export_dimension = 3);
-  
+
 //! struct used to hold data for each block to be output; used by
 //! initialize_file to initialize the file header for increased speed
   struct MaterialSetData
@@ -90,7 +90,7 @@ public:
     int number_nodes;
     std::vector< EntityHandle > nodes;
     std::vector< double > node_dist_factors;
-  
+
   };
 
 //! struct used to hold data for each sideset to be output; used by
@@ -125,19 +125,19 @@ protected:
     unsigned int num_neusets;
     Range nodes;
 
-    MeshInfo() 
-        : num_dim(0), num_nodes(0), num_elements(0), num_matsets(0), 
+    MeshInfo()
+        : num_dim(0), num_nodes(0), num_elements(0), num_matsets(0),
           num_dirsets(0), num_neusets(0)
       {}
-    
+
   };
-  
+
 private:
 
     //! interface instance
   Interface *mbImpl;
   //WriteUtilIface* mWriteIface;
-  
+
     //! file name
   std::string fileName;
 
@@ -151,10 +151,10 @@ private:
   Tag mNeumannSetTag;
   Tag mGlobalIdTag;
   Tag mMatSetIdTag;
-  
-  ErrorCode write_nodes(const int num_nodes, const Range& nodes, 
+
+  ErrorCode write_nodes(const int num_nodes, const Range& nodes,
                           const int dimension, const char *file_name );
-  
+
 };
 
 } // namespace moab

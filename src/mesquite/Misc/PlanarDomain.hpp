@@ -1,9 +1,9 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2004 Sandia Corporation and Argonne National
-    Laboratory.  Under the terms of Contract DE-AC04-94AL85000 
-    with Sandia Corporation, the U.S. Government retains certain 
+    Laboratory.  Under the terms of Contract DE-AC04-94AL85000
+    with Sandia Corporation, the U.S. Government retains certain
     rights in this software.
 
     This library is free software; you can redistribute it and/or
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
-    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov, 
+
+    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov,
     pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov,
-    kraftche@cae.wisc.edu         
-   
+    kraftche@cae.wisc.edu
+
   ***************************************************************** */
 /*!
   \file   PlanarDomain.hpp
-  \brief  
+  \brief
 
 
   \author Thomas Leurent
@@ -51,7 +51,7 @@ namespace MBMesquite
   {
   public:
     enum Plane{ XY = 2, XZ = 1, YZ = 0 };
-  
+
     inline PlanarDomain( Plane orient, double offset = 0.0 )
     {
       Vector3D normal(0,0,0), point(0,0,0);
@@ -59,19 +59,19 @@ namespace MBMesquite
       point[orient] = offset;
       set_plane( normal, point );
     }
-    
+
     PlanarDomain() {}
-  
+
     inline PlanarDomain(const Vector3D& normal, const Vector3D& point)
       { set_plane( normal, point ); }
-    
+
     virtual ~PlanarDomain();
-      
-    void fit_vertices( Mesh* mesh, 
+
+    void fit_vertices( Mesh* mesh,
                        MsqError& err,
                        double epsilon = 0.0 );
-      
-    void fit_vertices( Mesh* mesh, 
+
+    void fit_vertices( Mesh* mesh,
                        const Mesh::VertexHandle* vertex_array,
                        size_t vertex_array_length,
                        MsqError& err,
@@ -82,20 +82,20 @@ namespace MBMesquite
     void flip();
 
     const Vector3D& get_normal() const { return mNormal; }
-    
+
     double get_coeff() { return mCoeff; }
-    
+
     Vector3D get_origin() const { return -mCoeff * mNormal; }
-    
+
     virtual void snap_to(Mesh::VertexHandle entity_handle,
                          Vector3D &coordinate) const;
-    
+
     virtual void vertex_normal_at(Mesh::VertexHandle entity_handle,
                                   Vector3D &coordinate) const;
-    
+
     virtual void element_normal_at(Mesh::ElementHandle entity_handle,
                                    Vector3D &coordinate) const;
-    
+
     virtual void vertex_normal_at(const Mesh::VertexHandle* handle,
                                   Vector3D coords[],
                                   unsigned count,

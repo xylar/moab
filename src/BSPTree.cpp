@@ -1,16 +1,16 @@
 /*
  * MOAB, a Mesh-Oriented datABase, is a software component for creating,
  * storing and accessing finite element mesh data.
- * 
+ *
  * Copyright 2008 Sandia Corporation.  Under the terms of Contract
  * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
  * retains certain rights in this software.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  */
 
 /**\file BSPTree.cpp
@@ -99,12 +99,12 @@ void BSPTree::Plane::set( const double pt1[3], const double pt2[3], const double
 
 ErrorCode BSPTree::init_tags( const char* tagname )
 {
-  if (!tagname) 
+  if (!tagname)
     tagname = MB_BSP_TREE_DEFAULT_TAG_NAME;
-  
+
   std::string rootname(tagname);
   rootname += "_box";
-  
+
   ErrorCode rval = moab()->tag_get_handle( tagname, 4, MB_TYPE_DOUBLE, planeTag, MB_TAG_CREAT|MB_TAG_DENSE );
   if (MB_SUCCESS != rval)
     planeTag = 0;
@@ -115,15 +115,15 @@ ErrorCode BSPTree::init_tags( const char* tagname )
   return rval;
 }
 
-BSPTree::BSPTree( Interface* mb, 
-                      const char* tagname, 
+BSPTree::BSPTree( Interface* mb,
+                      const char* tagname,
                       unsigned set_flags )
   : mbInstance(mb), meshSetFlags(set_flags), cleanUpTrees(false)
 { init_tags( tagname ); }
 
-BSPTree::BSPTree( Interface* mb, 
+BSPTree::BSPTree( Interface* mb,
                       bool destroy_created_trees,
-                      const char* tagname, 
+                      const char* tagname,
                       unsigned set_flags )
   : mbInstance(mb), meshSetFlags(set_flags), cleanUpTrees(destroy_created_trees)
 { init_tags( tagname ); }
@@ -132,7 +132,7 @@ BSPTree::~BSPTree()
 {
   if (!cleanUpTrees)
     return;
-    
+
   while (!createdTrees.empty()) {
     EntityHandle tree = createdTrees.back();
       // make sure this is a tree (rather than some other, stale handle)
@@ -146,27 +146,27 @@ BSPTree::~BSPTree()
 }
 
 ErrorCode BSPTree::set_split_plane( EntityHandle node, const Plane& p )
-{ 
+{
     // check for unit-length normal
-  const double lensqr = p.norm[0]*p.norm[0] 
-                      + p.norm[1]*p.norm[1] 
+  const double lensqr = p.norm[0]*p.norm[0]
+                      + p.norm[1]*p.norm[1]
                       + p.norm[2]*p.norm[2];
   if (fabs(lensqr - 1.0) < std::numeric_limits<double>::epsilon())
-    return moab()->tag_set_data( planeTag, &node, 1, &p ); 
-    
+    return moab()->tag_set_data( planeTag, &node, 1, &p );
+
   const double inv_len = 1.0/sqrt(lensqr);
   Plane p2(p);
   p2.norm[0] *= inv_len;
   p2.norm[1] *= inv_len;
   p2.norm[2] *= inv_len;
   p2.coeff   *= inv_len;
-  
+
     // check for zero-length normal
   if (!Util::is_finite(p2.norm[0]+p2.norm[1]+p2.norm[2]+p2.coeff))
     return MB_FAILURE;
 
     // store plane
-  return moab()->tag_set_data( planeTag, &node, 1, &p2 ); 
+  return moab()->tag_set_data( planeTag, &node, 1, &p2 );
 }
 
 ErrorCode BSPTree::set_tree_box( EntityHandle root_handle,
@@ -209,18 +209,18 @@ ErrorCode BSPTree::create_tree( const double corners[8][3],
   ErrorCode rval = moab()->create_meshset( meshSetFlags, root_handle );
   if (MB_SUCCESS != rval)
     return rval;
-  
+
   rval = set_tree_box( root_handle, corners );
   if (MB_SUCCESS != rval) {
     moab()->delete_entities( &root_handle, 1 );
     root_handle = 0;
     return rval;
   }
-  
+
   createdTrees.push_back( root_handle );
   return MB_SUCCESS;
 }
-                                    
+
 
 ErrorCode BSPTree::create_tree( const double box_min[3],
                                     const double box_max[3],
@@ -234,7 +234,7 @@ ErrorCode BSPTree::create_tree( const double box_min[3],
 ErrorCode BSPTree::delete_tree( EntityHandle root_handle )
 {
   ErrorCode rval;
-  
+
   std::vector<EntityHandle> children, dead_sets, current_sets;
   current_sets.push_back( root_handle );
   while (!current_sets.empty()) {
@@ -247,11 +247,11 @@ ErrorCode BSPTree::delete_tree( EntityHandle root_handle )
     std::copy( children.begin(), children.end(), std::back_inserter(current_sets) );
     children.clear();
   }
-  
+
   rval = moab()->tag_delete_data( rootTag, &root_handle, 1 );
   if (MB_SUCCESS != rval)
     return rval;
-  
+
   createdTrees.erase(
     std::remove( createdTrees.begin(), createdTrees.end(), root_handle ),
     createdTrees.end() );
@@ -260,7 +260,7 @@ ErrorCode BSPTree::delete_tree( EntityHandle root_handle )
 
 ErrorCode BSPTree::find_all_trees( Range& results )
 {
-  return moab()->get_entities_by_type_and_tag( 0, MBENTITYSET, 
+  return moab()->get_entities_by_type_and_tag( 0, MBENTITYSET,
                                                &rootTag, 0, 1,
                                                results );
 }
@@ -289,17 +289,17 @@ ErrorCode BSPTree::split_leaf( BSPTreeIter& leaf,
                                    EntityHandle& right )
 {
   ErrorCode rval;
-  
+
   rval = moab()->create_meshset( meshSetFlags, left );
   if (MB_SUCCESS != rval)
     return rval;
-  
+
   rval = moab()->create_meshset( meshSetFlags, right );
   if (MB_SUCCESS != rval) {
     moab()->delete_entities( &left, 1 );
     return rval;
   }
-  
+
   if (MB_SUCCESS != set_split_plane( leaf.handle(), plane ) ||
       MB_SUCCESS != moab()->add_child_meshset( leaf.handle(), left ) ||
       MB_SUCCESS != moab()->add_child_meshset( leaf.handle(), right) ||
@@ -308,7 +308,7 @@ ErrorCode BSPTree::split_leaf( BSPTreeIter& leaf,
     moab()->delete_entities( children, 2 );
     return MB_FAILURE;
   }
-  
+
   return MB_SUCCESS;
 }
 
@@ -318,7 +318,7 @@ ErrorCode BSPTree::split_leaf( BSPTreeIter& leaf, Plane plane )
   return split_leaf( leaf, plane, left, right );
 }
 
-ErrorCode BSPTree::split_leaf( BSPTreeIter& leaf, 
+ErrorCode BSPTree::split_leaf( BSPTreeIter& leaf,
                                    Plane plane,
                                    const Range& left_entities,
                                    const Range& right_entities )
@@ -327,12 +327,12 @@ ErrorCode BSPTree::split_leaf( BSPTreeIter& leaf,
   ErrorCode rval = split_leaf( leaf, plane, left, right );
   if (MB_SUCCESS != rval)
     return rval;
-  
+
   if (MB_SUCCESS == moab()->add_entities( left, left_entities ) &&
       MB_SUCCESS == moab()->add_entities(right,right_entities ) &&
       MB_SUCCESS == moab()->clear_meshset( &parent, 1 ))
     return MB_SUCCESS;
-  
+
   moab()->remove_child_meshset( parent, left );
   moab()->remove_child_meshset( parent, right );
   EntityHandle children[] = { left, right };
@@ -348,12 +348,12 @@ ErrorCode BSPTree::split_leaf( BSPTreeIter& leaf, Plane plane,
   ErrorCode rval = split_leaf( leaf, plane, left, right );
   if (MB_SUCCESS != rval)
     return rval;
-  
+
   if (MB_SUCCESS == moab()->add_entities( left, &left_entities[0], left_entities.size() ) &&
       MB_SUCCESS == moab()->add_entities(right,&right_entities[0],right_entities.size() ) &&
       MB_SUCCESS == moab()->clear_meshset( &parent, 1 ))
     return MB_SUCCESS;
-  
+
   moab()->remove_child_meshset( parent, left );
   moab()->remove_child_meshset( parent, right );
   EntityHandle children[] = { left, right };
@@ -366,7 +366,7 @@ ErrorCode BSPTree::merge_leaf( BSPTreeIter& iter )
   ErrorCode rval;
   if (iter.depth() == 1) // at root
     return MB_FAILURE;
-  
+
     // Move iter to parent
   iter.up();
 
@@ -376,12 +376,12 @@ ErrorCode BSPTree::merge_leaf( BSPTreeIter& iter )
   rval = moab()->get_child_meshsets( parent, iter.childVect );
   if (MB_SUCCESS != rval)
     return rval;
-    
+
     // Remove child links
   moab()->remove_child_meshset( parent, iter.childVect[0] );
   moab()->remove_child_meshset( parent, iter.childVect[1] );
   std::vector<EntityHandle> stack( iter.childVect );
-  
+
     // Get all entities from children and put them in parent
   Range range;
   while (!stack.empty()) {
@@ -394,7 +394,7 @@ ErrorCode BSPTree::merge_leaf( BSPTreeIter& iter )
     rval = moab()->add_entities( parent, range );
     if (MB_SUCCESS != rval)
       return rval;
-    
+
     iter.childVect.clear();
     rval = moab()->get_child_meshsets( h, iter.childVect );MB_CHK_ERR(rval);
     if (!iter.childVect.empty()) {
@@ -403,16 +403,16 @@ ErrorCode BSPTree::merge_leaf( BSPTreeIter& iter )
      stack.push_back( iter.childVect[0] );
      stack.push_back( iter.childVect[1] );
     }
-  
+
     rval = moab()->delete_entities( &h, 1 );
     if (MB_SUCCESS != rval)
       return rval;
   }
-  
+
   return MB_SUCCESS;
 }
 
-  
+
 
 ErrorCode BSPTreeIter::initialize( BSPTree* btool,
                                        EntityHandle root,
@@ -435,7 +435,7 @@ ErrorCode BSPTreeIter::step_to_first_leaf( Direction direction )
       return rval;
     if (childVect.empty()) // leaf
       break;
-  
+
     mStack.push_back( childVect[direction] );
   }
   return MB_SUCCESS;
@@ -446,19 +446,19 @@ ErrorCode BSPTreeIter::step( Direction direction )
   EntityHandle node, parent;
   ErrorCode rval;
   const Direction opposite = static_cast<Direction>(1-direction);
-  
+
     // If stack is empty, then either this iterator is uninitialized
-    // or we reached the end of the iteration (and return 
+    // or we reached the end of the iteration (and return
     // MB_ENTITY_NOT_FOUND) already.
   if (mStack.empty())
     return MB_FAILURE;
-    
+
     // Pop the current node from the stack.
     // The stack should then contain the parent of the current node.
     // If the stack is empty after this pop, then we've reached the end.
   node = mStack.back();
   mStack.pop_back();
-  
+
   while(!mStack.empty()) {
       // Get data for parent entity
     parent = mStack.back();
@@ -466,7 +466,7 @@ ErrorCode BSPTreeIter::step( Direction direction )
     rval = tool()->moab()->get_child_meshsets( parent, childVect );
     if (MB_SUCCESS != rval)
       return rval;
-    
+
       // If we're at the left child
     if (childVect[opposite] == node) {
         // push right child on stack
@@ -474,18 +474,18 @@ ErrorCode BSPTreeIter::step( Direction direction )
         // descend to left-most leaf of the right child
       return step_to_first_leaf(opposite);
     }
-    
+
       // The current node is the right child of the parent,
       // continue up the tree.
     assert( childVect[direction] == node );
     node = parent;
     mStack.pop_back();
   }
-  
+
   return MB_ENTITY_NOT_FOUND;
 }
 
-ErrorCode BSPTreeIter::up() 
+ErrorCode BSPTreeIter::up()
 {
   if (mStack.size() < 2)
     return MB_ENTITY_NOT_FOUND;
@@ -493,7 +493,7 @@ ErrorCode BSPTreeIter::up()
   return MB_SUCCESS;
 }
 
-ErrorCode BSPTreeIter::down( const BSPTree::Plane& /*plane*/, Direction dir ) 
+ErrorCode BSPTreeIter::down( const BSPTree::Plane& /*plane*/, Direction dir )
 {
   childVect.clear();
   ErrorCode rval = tool()->moab()->get_child_meshsets( mStack.back(), childVect );
@@ -501,7 +501,7 @@ ErrorCode BSPTreeIter::down( const BSPTree::Plane& /*plane*/, Direction dir )
     return rval;
   if (childVect.empty())
     return MB_ENTITY_NOT_FOUND;
-  
+
   mStack.push_back( childVect[dir] );
   return MB_SUCCESS;
 }
@@ -510,7 +510,7 @@ ErrorCode BSPTreeIter::get_parent_split_plane( BSPTree::Plane& plane ) const
 {
   if (mStack.size() < 2) // at tree root
     return MB_ENTITY_NOT_FOUND;
-  
+
   EntityHandle parent = mStack[mStack.size()-2];
   return tool()->get_split_plane( parent, plane );
 }
@@ -556,22 +556,22 @@ bool BSPTreeIter::sibling_is_forward() const
     return false;
   }
   return childVect[0] == handle();
-}  
+}
 
 ErrorCode BSPTreeIter::calculate_polyhedron( BSPTreePoly& poly_out ) const
 {
   ErrorCode rval;
-  
+
   assert( sizeof(CartVect) == 3*sizeof(double) );
   CartVect corners[8];
   rval = treeTool->get_tree_box( mStack.front(), corners[0].array() );
   if (MB_SUCCESS != rval)
     return rval;
-  
+
   rval = poly_out.set( corners );
   if (MB_SUCCESS != rval)
     return rval;
-  
+
   BSPTree::Plane plane;
   std::vector<EntityHandle>::const_iterator i = mStack.begin();
   std::vector<EntityHandle>::const_iterator here = mStack.end() - 1;
@@ -579,22 +579,22 @@ ErrorCode BSPTreeIter::calculate_polyhedron( BSPTreePoly& poly_out ) const
     rval = treeTool->get_split_plane( *i, plane );
     if (MB_SUCCESS != rval)
       return rval;
-    
+
     childVect.clear();
     rval = treeTool->moab()->get_child_meshsets( *i, childVect );
     if (MB_SUCCESS != rval)
       return rval;
     if (childVect.size() != 2)
       return MB_FAILURE;
-      
+
     ++i;
     if (childVect[1] == *i)
       plane.flip();
-    
+
     CartVect norm( plane.norm );
     poly_out.cut_polyhedron( norm, plane.coeff );
   }
-  
+
   return MB_SUCCESS;
 }
 
@@ -605,7 +605,7 @@ ErrorCode BSPTreeBoxIter::initialize( BSPTree* tool_ptr,
   ErrorCode rval = BSPTreeIter::initialize( tool_ptr, root );
   if (MB_SUCCESS != rval)
     return rval;
-  
+
   rval = tool()->get_tree_box( root, leafCoords );
   if (MB_SUCCESS != rval)
     return rval;
@@ -622,7 +622,7 @@ BSPTreeBoxIter::side_above_plane( const double hex_coords[8][3],
                                     const BSPTree::Plane& plane )
 {
   unsigned result  = 0;
-  for (unsigned i = 0; i < 8u; ++i) 
+  for (unsigned i = 0; i < 8u; ++i)
     result |= plane.above(hex_coords[i]) << i;
   return (BSPTreeBoxIter::SideBits)result;
 }
@@ -690,7 +690,7 @@ ErrorCode BSPTreeBoxIter::face_corners( const SideBits face,
     default:
       return MB_FAILURE; // child is not a box
   }
-  
+
   return MB_SUCCESS;
 
 }
@@ -711,17 +711,17 @@ void plane_cut_edge( double old_coords_out[3],
   const CartVect start( keep_end_coords ), end( cut_end_coords );
   const CartVect norm( plane.norm );
   CartVect xsect_point;
-  
+
   const CartVect m = end - start;
   const double t = -(norm % start + plane.coeff) / (norm % m);
   assert( t > 0.0 && t < 1.0 );
   xsect_point = start + t * m;
-  
+
   end.get( old_coords_out );
   xsect_point.get( cut_end_coords );
 }
 
-/** Given the corners of a hexahedron in corners_input and a 
+/** Given the corners of a hexahedron in corners_input and a
  *  plane, cut the hex with the plane, updating corners_input
  *  and storing the original,cut-off side of the hex in cut_face_out.
  *
@@ -773,7 +773,7 @@ static ErrorCode plane_cut_box( double cut_face_out[4][3],
     default:
       return MB_FAILURE; // child is not a box
   }
-  
+
   return MB_SUCCESS;
 }
 
@@ -831,7 +831,7 @@ ErrorCode plane_uncut_box( const double cut_face_in[4][3],
     default:
       return MB_FAILURE; // child is not a box
   }
-  
+
   return MB_SUCCESS;
 }
 
@@ -840,7 +840,7 @@ ErrorCode BSPTreeBoxIter::step_to_first_leaf( Direction direction )
   ErrorCode rval;
   BSPTree::Plane plane;
   Corners clipped_corners;
-  
+
   for (;;) {
     childVect.clear();
     rval = tool()->moab()->get_child_meshsets( mStack.back(), childVect );
@@ -848,16 +848,16 @@ ErrorCode BSPTreeBoxIter::step_to_first_leaf( Direction direction )
       return rval;
     if (childVect.empty()) // leaf
       break;
-  
+
     rval = tool()->get_split_plane( mStack.back(), plane );
     if (MB_SUCCESS != rval)
       return rval;
-    
+
     if (direction == RIGHT)
       plane.flip();
     rval = plane_cut_box( clipped_corners.coords, leafCoords, plane );
     if (MB_SUCCESS != rval)
-      return rval; 
+      return rval;
     mStack.push_back( childVect[direction] );
     stackData.push_back( clipped_corners );
   }
@@ -869,12 +869,12 @@ ErrorCode BSPTreeBoxIter::up()
   ErrorCode rval;
   if (mStack.size() == 1)
     return MB_ENTITY_NOT_FOUND;
-  
+
   EntityHandle node = mStack.back();
   Corners clipped_face = stackData.back();
   mStack.pop_back();
   stackData.pop_back();
-  
+
   BSPTree::Plane plane;
   rval = tool()->get_split_plane( mStack.back(), plane );
   if (MB_SUCCESS != rval) {
@@ -882,14 +882,14 @@ ErrorCode BSPTreeBoxIter::up()
     stackData.push_back( clipped_face );
     return rval;
   }
-  
+
   rval = plane_uncut_box( clipped_face.coords, leafCoords, plane );
   if (MB_SUCCESS != rval) {
     mStack.push_back( node );
     stackData.push_back( clipped_face );
     return rval;
   }
-  
+
   return MB_SUCCESS;
 }
 
@@ -901,16 +901,16 @@ ErrorCode BSPTreeBoxIter::down( const BSPTree::Plane& plane_ref, Direction direc
     return rval;
   if (childVect.empty())
     return MB_ENTITY_NOT_FOUND;
-  
+
   BSPTree::Plane plane(plane_ref);
   if (direction == RIGHT)
     plane.flip();
-  
+
   Corners clipped_face;
   rval = plane_cut_box( clipped_face.coords, leafCoords, plane );
   if (MB_SUCCESS != rval)
     return rval;
-  
+
   mStack.push_back( childVect[direction] );
   stackData.push_back( clipped_face );
   return MB_SUCCESS;
@@ -923,13 +923,13 @@ ErrorCode BSPTreeBoxIter::step( Direction direction )
   ErrorCode rval;
   BSPTree::Plane plane;
   const Direction opposite = static_cast<Direction>(1-direction);
-  
+
     // If stack is empty, then either this iterator is uninitialized
-    // or we reached the end of the iteration (and return 
+    // or we reached the end of the iteration (and return
     // MB_ENTITY_NOT_FOUND) already.
   if (mStack.empty())
     return MB_FAILURE;
-    
+
     // Pop the current node from the stack.
     // The stack should then contain the parent of the current node.
     // If the stack is empty after this pop, then we've reached the end.
@@ -937,7 +937,7 @@ ErrorCode BSPTreeBoxIter::step( Direction direction )
   mStack.pop_back();
   clipped_face = stackData.back();
   stackData.pop_back();
-  
+
   while(!mStack.empty()) {
       // Get data for parent entity
     parent = mStack.back();
@@ -950,7 +950,7 @@ ErrorCode BSPTreeBoxIter::step( Direction direction )
       return rval;
     if (direction == LEFT)
       plane.flip();
-    
+
       // If we're at the left child
     if (childVect[opposite] == node) {
         // change from box of left child to box of parent
@@ -964,7 +964,7 @@ ErrorCode BSPTreeBoxIter::step( Direction direction )
         // descend to left-most leaf of the right child
       return step_to_first_leaf(opposite);
     }
-    
+
       // The current node is the right child of the parent,
       // continue up the tree.
     assert( childVect[direction] == node );
@@ -975,7 +975,7 @@ ErrorCode BSPTreeBoxIter::step( Direction direction )
     mStack.pop_back();
     stackData.pop_back();
   }
-  
+
   return MB_ENTITY_NOT_FOUND;
 }
 
@@ -994,8 +994,8 @@ static void subtr( double result[3], const double a[3], const double b[3] )
 }
 
 // result = a + b + c + d
-static void sum( double result[3], 
-                 const double a[3], 
+static void sum( double result[3],
+                 const double a[3],
                  const double b[3],
                  const double c[3],
                  const double d[3] )
@@ -1037,14 +1037,14 @@ double BSPTreeBoxIter::volume() const
   return (1./64) * dot( cr, v65 );
 }
 
-BSPTreeBoxIter::XSect 
+BSPTreeBoxIter::XSect
 BSPTreeBoxIter::splits( const BSPTree::Plane& plane ) const
 {
   // test each corner relative to the plane
   unsigned result  = 0;
   for (unsigned i = 0; i < 8u; ++i) {
     double d = plane.signed_distance( leafCoords[i] );
-      // if corner is on plane, than intersection 
+      // if corner is on plane, than intersection
       // will result in a degenerate hex
     if (fabs(d) < BSPTree::epsilon())
       return NONHEX;
@@ -1052,14 +1052,14 @@ BSPTreeBoxIter::splits( const BSPTree::Plane& plane ) const
     if (d > 0.0)
       result |= 1<<i;
   }
-  
+
   switch (result) {
       // if all vertices or no vertices above plane,
       // then plane doesn't intersect
     case 0:
     case 0xFF:
       return MISS;
-  
+
       // if there are four vertices above the plane
       // and they compose a single face of the hex,
       // then the cut will result in two hexes
@@ -1070,7 +1070,7 @@ BSPTreeBoxIter::splits( const BSPTree::Plane& plane ) const
     case B3210:
     case B4567:
       return SPLIT;
-      
+
       // otherwise intersects, but split would not result
       // in two hexahedrons
     default:
@@ -1082,7 +1082,7 @@ bool BSPTreeBoxIter::intersects( const BSPTree::Plane& plane ) const
 {
   // test each corner relative to the plane
   unsigned count  = 0;
-  for (unsigned i = 0; i < 8u; ++i) 
+  for (unsigned i = 0; i < 8u; ++i)
     count += plane.above( leafCoords[i] );
   return count > 0 && count < 8u;
 }
@@ -1091,18 +1091,18 @@ ErrorCode BSPTreeBoxIter::sibling_side( SideBits& side_out ) const
 {
   if (mStack.size() < 2) // at tree root
     return MB_ENTITY_NOT_FOUND;
-  
+
   EntityHandle parent = mStack[mStack.size()-2];
   BSPTree::Plane plane;
   ErrorCode rval = tool()->get_split_plane( parent, plane );
   if (MB_SUCCESS != rval)
     return MB_FAILURE;
-  
+
   side_out = side_on_plane( leafCoords, plane );
   return MB_SUCCESS;
 }
 
-ErrorCode BSPTreeBoxIter::get_neighbors( 
+ErrorCode BSPTreeBoxIter::get_neighbors(
                       SideBits side,
                       std::vector<BSPTreeBoxIter>& results,
                       double epsilon ) const
@@ -1111,28 +1111,28 @@ ErrorCode BSPTreeBoxIter::get_neighbors(
   BSPTree::Plane plane;
   ErrorCode rval;
   int n;
-   
+
   Corners face;
   rval = face_corners( side, leafCoords, face.coords );
   if (MB_SUCCESS != rval)
     return rval;
-  
+
     // Move up tree until we find the split that created the specified side.
     // Push the sibling at that level onto the iterator stack as
     // all neighbors will be rooted at that node.
   BSPTreeBoxIter iter( *this ); // temporary iterator (don't modifiy *this)
   for (;;) {
     tmp_handle = iter.handle();
-  
+
     rval = iter.up();
     if (MB_SUCCESS != rval) // reached root - no neighbors on that side
       return (rval == MB_ENTITY_NOT_FOUND) ? MB_SUCCESS : rval;
-    
+
     iter.childVect.clear();
     rval = tool()->moab()->get_child_meshsets( iter.handle(), iter.childVect );
     if (MB_SUCCESS!= rval)
       return rval;
-    
+
     rval = tool()->get_split_plane( iter.handle(), plane );
     if (MB_SUCCESS != rval)
       return rval;
@@ -1158,21 +1158,21 @@ ErrorCode BSPTreeBoxIter::get_neighbors(
   for (;;) {
       // follow a single path to a leaf, append any other potential
       // paths to neighbors to 'list'
-    for (;;) { 
+    for (;;) {
       rval = tool()->moab()->num_child_meshsets( iter.handle(), &n );
       if (MB_SUCCESS != rval)
         return rval;
-        
+
         // if leaf
       if (!n) {
         results.push_back( iter );
-        break; 
+        break;
       }
-      
+
       rval = tool()->get_split_plane( iter.handle(), plane );
       if (MB_SUCCESS != rval)
         return rval;
-     
+
       bool some_above = false, some_below = false;
       for (int i = 0; i < 4; ++i) {
         double signed_d = plane.signed_distance( face.coords[i] );
@@ -1181,7 +1181,7 @@ ErrorCode BSPTreeBoxIter::get_neighbors(
         if (signed_d < epsilon)
           some_below = true;
       }
-     
+
       if (some_above && some_below) {
         list.push_back( iter );
         list.back().down( plane, RIGHT );
@@ -1198,14 +1198,14 @@ ErrorCode BSPTreeBoxIter::get_neighbors(
         return MB_FAILURE;
       }
     }
-    
+
     if (list.empty())
       break;
-    
+
     iter = list.back();
     list.pop_back();
   }
-  
+
   return MB_SUCCESS;
 }
 
@@ -1229,7 +1229,7 @@ ErrorCode BSPTree::leaf_containing_point( EntityHandle tree_root,
     rval = get_split_plane( node, plane );
     if (MB_SUCCESS != rval)
       return rval;
-      
+
     node = children[plane.above(point)];
     children.clear();
     rval = moab()->get_child_meshsets( node, children );
@@ -1245,11 +1245,11 @@ ErrorCode BSPTree::leaf_containing_point( EntityHandle root,
                                               BSPTreeIter& iter )
 {
   ErrorCode rval;
-  
+
   rval = iter.initialize( this, root, point );
   if (MB_SUCCESS != rval)
     return rval;
-  
+
   for (;;) {
     iter.childVect.clear();
     rval = moab()->get_child_meshsets( iter.handle(), iter.childVect );
@@ -1272,9 +1272,9 @@ ErrorCode BSPTree::leaf_containing_point( EntityHandle root,
 template <typename PlaneIter> static inline
 bool ray_intersect_halfspaces( const CartVect& ray_pt,
                                const CartVect& ray_dir,
-                               const PlaneIter& begin, 
+                               const PlaneIter& begin,
                                const PlaneIter& end,
-                               double& t_enter, 
+                               double& t_enter,
                                double& t_exit )
 {
   const double epsilon = 1e-12;
@@ -1306,15 +1306,15 @@ bool ray_intersect_halfspaces( const CartVect& ray_pt,
       }
     }
   }
-  
+
   return t_exit >= t_enter;
 }
-                               
+
 class BoxPlaneIter {
       int faceNum;
       BSPTree::Plane facePlanes[6];
-  
-  public:  
+
+  public:
     BoxPlaneIter( const double coords[8][3] );
     BoxPlaneIter( ) : faceNum(6) {} // initialize to 'end'
     const BSPTree::Plane* operator->() const
@@ -1333,7 +1333,7 @@ static const int box_face_corners[6][4] = { { 0, 1, 5, 4 },
                                             { 3, 0, 4, 7 },
                                             { 3, 2, 1, 0 },
                                             { 4, 5, 6, 7 } };
- 
+
 BoxPlaneIter::BoxPlaneIter( const double coords[8][3] )
   : faceNum(0)
 {
@@ -1374,7 +1374,7 @@ class BSPTreePlaneIter {
       { operator++(); }
     BSPTreePlaneIter() // initialize to 'end'
       : toolPtr(0), pathToRoot(0), pathPos(-1) {}
-  
+
     const BSPTree::Plane* operator->() const
       { return &tmpPlane; }
     bool operator==( const BSPTreePlaneIter& other ) const
@@ -1391,14 +1391,14 @@ BSPTreePlaneIter& BSPTreePlaneIter::operator++()
 
   EntityHandle prev = pathToRoot[pathPos+1];
   EntityHandle curr = pathToRoot[pathPos];
-  
+
   ErrorCode rval = toolPtr->get_split_plane( curr, tmpPlane );
   if (MB_SUCCESS != rval) {
     assert(false);
     pathPos = 0;
     return *this;
   }
-  
+
   tmpChildren.clear();
   rval = toolPtr->moab()->get_child_meshsets( curr, tmpChildren );
   if (MB_SUCCESS != rval || tmpChildren.size() != 2) {
@@ -1406,8 +1406,8 @@ BSPTreePlaneIter& BSPTreePlaneIter::operator++()
     pathPos = 0;
     return *this;
   }
-  
-  if (tmpChildren[1] == prev) 
+
+  if (tmpChildren[1] == prev)
     tmpPlane.flip();
   return *this;
 }
@@ -1424,16 +1424,16 @@ bool BSPTreeIter::intersect_ray( const double ray_point[3],
                                  iter1, end1,
                                  t_enter, t_exit ))
     return false;
-  
+
 
     // itersect with box bounding entire tree
   double corners[8][3];
   ErrorCode rval = tool()->get_tree_box( mStack.front(), corners );
   if (MB_SUCCESS != rval) {
-    assert(false); 
+    assert(false);
     return false;
   }
-  
+
   BoxPlaneIter iter2( corners ), end2;
   double t2_enter, t2_exit;
   if (!ray_intersect_halfspaces( CartVect(ray_point),
@@ -1441,7 +1441,7 @@ bool BSPTreeIter::intersect_ray( const double ray_point[3],
                                  iter2, end2,
                                  t2_enter, t2_exit ))
     return false;
-  
+
     // if intersect both box and halfspaces, check that
     // two intersections overlap
   if (t_enter < t2_enter)
@@ -1450,5 +1450,5 @@ bool BSPTreeIter::intersect_ray( const double ray_point[3],
     t_exit = t2_exit;
   return t_enter <= t_exit;
 }
-  
+
 } // namespace moab

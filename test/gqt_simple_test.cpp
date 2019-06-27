@@ -23,7 +23,7 @@ Interface* MBI;
 
 const std::string input_file = TestDir + "/test_geom.h5m";
 
-void gqt_load_file() 
+void gqt_load_file()
 {
   MBI = new moab::Core();
   ErrorCode rval = MBI->load_file(input_file.c_str()); // open the
@@ -33,7 +33,7 @@ void gqt_load_file()
 
 }
 
-void gqt_load_file_dagmc_build_obb() 
+void gqt_load_file_dagmc_build_obb()
 {
   /* 1 - Test with external moab, load file in GTT/GQT*/
   // make new moab core
@@ -65,7 +65,7 @@ void gqt_load_file_dagmc_via_moab_build_obb() {
   rval = GQT->gttool()->setup_implicit_complement();
   CHECK_ERR(rval);
   rval = GQT->gttool()->construct_obb_trees();
-  CHECK_ERR(rval);			      
+  CHECK_ERR(rval);			
 
 
 }
@@ -83,7 +83,7 @@ void gqt_load_file_dagmc_internal_build_obb() {
   rval = GQT->gttool()->setup_implicit_complement();
   CHECK_ERR(rval);
   rval = GQT->gttool()->construct_obb_trees();
-  CHECK_ERR(rval);			      
+  CHECK_ERR(rval);			
 
 }
 
@@ -99,7 +99,7 @@ void gqt_test_obb_retreval() {
   GTT = new GeomTopoTool(MBI,true,0);
   GQT = new GeomQueryTool(GTT);
   GQT->initialize();
-  CHECK_ERR(rval);			      
+  CHECK_ERR(rval);			
 
   //write to file
   rval = MBI->write_file("fcad");
@@ -109,7 +109,7 @@ void gqt_test_obb_retreval() {
   delete GQT;
   delete GTT;
   delete MBI;
-    
+
   // re-load written file
   MBI = new moab::Core();
   rval = MBI->load_file("fcad"); // open the
@@ -117,7 +117,7 @@ void gqt_test_obb_retreval() {
   GTT = new GeomTopoTool(MBI,true,0);
   GQT = new GeomQueryTool(GTT);
   rval = GQT->initialize();
-  CHECK_ERR(rval);			      
+  CHECK_ERR(rval);			
 
   // remove file
   remove("fcad");
@@ -130,8 +130,8 @@ void gqt_create_impl_compl() {
   CHECK_ERR(rval);
 }
 
-void gqt_build_obb() 
-{  
+void gqt_build_obb()
+{
   ErrorCode rval = GQT->gttool()->construct_obb_trees();
   CHECK_ERR(rval);
 }
@@ -139,7 +139,7 @@ void gqt_build_obb()
 void gqt_num_vols()
 {
   int expect_num_vols = 2;
-  int num_vols = GQT->gttool()->num_ents_of_dim(3); 
+  int num_vols = GQT->gttool()->num_ents_of_dim(3);
   CHECK_EQUAL(expect_num_vols, num_vols);
 
 }
@@ -165,7 +165,7 @@ void gqt_point_in()
   vol_h = GQT->gttool()->entity_by_id(3,vol_idx);
   // test point in volume
   GQT->point_in_volume(vol_h, xyz, result);
-  CHECK_ERR(rval);			      
+  CHECK_ERR(rval);			
   CHECK_EQUAL(expect_result, result);
 
 }
@@ -173,7 +173,7 @@ void gqt_point_in()
 void gqt_test_obb_retreval_rayfire() {
   // make new dagmc
   std::cout << "test_obb_retreval and ray_fire" << std::endl;
-  
+
   ErrorCode rval;
 
   // load file and initialize
@@ -183,7 +183,7 @@ void gqt_test_obb_retreval_rayfire() {
   GTT = new GeomTopoTool(MBI,true,0);
   GQT = new GeomQueryTool(GTT);
   GQT->initialize();
-  CHECK_ERR(rval);			      
+  CHECK_ERR(rval);			
 
   // write to file
   rval = MBI->write_file("fcad");
@@ -201,7 +201,7 @@ void gqt_test_obb_retreval_rayfire() {
   GTT = new GeomTopoTool(MBI,true,0);
   GQT = new GeomQueryTool(GTT);
   rval = GQT->initialize();
-  CHECK_ERR(rval);			      
+  CHECK_ERR(rval);			
 
   // remove generated test file
   remove("fcad");
@@ -248,7 +248,7 @@ void gqt_rayfire()
   GTT = new GeomTopoTool(MBI,true,0);
   GQT = new GeomQueryTool(GTT);
   GQT->initialize();
-  CHECK_ERR(rval);			      
+  CHECK_ERR(rval);			
 
   vol_h = GQT->gttool()->entity_by_id(3, vol_idx);
   rval = GQT->ray_fire(vol_h, xyz, dir, next_surf, next_surf_dist);
@@ -270,14 +270,14 @@ void gqt_closest_to()
   double expect_distance = 1.0;
   EntityHandle vol_h;
   ErrorCode rval;
-  
+
   // get the volume handle
   vol_h = GQT->gttool()->entity_by_id(3, vol_idx);
 
   // test closest to location
   rval = GQT->closest_to_location(vol_h, xyz, distance);
   CHECK_ERR(rval);
-  
+
   // distance should be 1.0 cm
   CHECK_REAL_EQUAL(expect_distance, distance, eps);
 
@@ -289,12 +289,12 @@ void gqt_test_boundary()
   EntityHandle vol_h = GQT->gttool()->entity_by_id(3, vol_idx);
   int surf_idx = 1;
   EntityHandle surf_h = GQT->gttool()->entity_by_id(2, surf_idx);
-  
+
   double xyz[3] = {0.0, 0.0, 5.0};
   double dir[3] = {0.0, 0.0, 1.0};
   int result;
   int expect_result = 0;
-  
+
   // test vol boundary
   ErrorCode rval = GQT->test_volume_boundary(vol_h, surf_h, xyz, dir, result);
   CHECK_ERR(rval);
@@ -363,7 +363,7 @@ void cleanup()
   delete GQT;
   delete GTT;
   delete MBI;
-  
+
 }
 
 int main(int /* argc */, char** /* argv */)
@@ -375,30 +375,30 @@ int main(int /* argc */, char** /* argv */)
   result += RUN_TEST(gqt_create_impl_compl); // build the obb
   result += RUN_TEST(gqt_num_vols); // make sure the num of vols correct
   cleanup();
-  
+
   result += RUN_TEST(gqt_load_file_dagmc_build_obb); //
   cleanup();
-  
+
   result += RUN_TEST(gqt_load_file_dagmc_via_moab_build_obb); //
   cleanup();
 
   result += RUN_TEST(gqt_load_file_dagmc_internal_build_obb); //
   cleanup();
-  
+
   result += RUN_TEST(gqt_test_obb_retreval); // check that we are retreving loaded obbs
   cleanup();
-  
+
   result += RUN_TEST(gqt_test_obb_retreval_rayfire); // check that we can ray fire on loaded obbs
   cleanup();
-    
+
   result += RUN_TEST(gqt_point_in); // check entity by point
   cleanup();
-  
+
   result += RUN_TEST(gqt_rayfire); // ensure ray fire distance is correct
   result += RUN_TEST(gqt_closest_to); // check the distance to surface nearest point
   result += RUN_TEST(gqt_test_boundary); // check particle entering leaving
   cleanup();
-  
+
   return result;
 }
 

@@ -31,7 +31,7 @@ int main(int argc, char **argv)
   if (argc > 1) {
     // User has input a mesh file
     test_file_name = argv[1];
-  }  
+  }
 
   int nbComms = 1;
   if (argc > 2)

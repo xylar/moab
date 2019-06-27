@@ -1,8 +1,8 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
-    Copyright 2005 Lawrence Livermore National Laboratory.  Under 
-    the terms of Contract B545069 with the University of Wisconsin -- 
+    Copyright 2005 Lawrence Livermore National Laboratory.  Under
+    the terms of Contract B545069 with the University of Wisconsin --
     Madison, Lawrence Livermore National Laboratory retains certain
     rights in this software.
 
@@ -16,11 +16,11 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    kraftche@cae.wisc.edu    
+    kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
@@ -43,7 +43,7 @@ void CylinderDomain::evaluate( Mesh::VertexHandle,
   const double EPSILON = std::numeric_limits<double>::epsilon();
   double t = mAxis % (point - mCenter);
   const Vector3D axis_point = mCenter + t * mAxis;
-  
+
   normal = point - axis_point;
   const double len = normal.length();
   if (len < EPSILON)
@@ -58,7 +58,7 @@ void CylinderDomain::evaluate( Mesh::VertexHandle,
   {
     normal /= len;
   }
-  
+
   closest = axis_point + mRadius * normal;
   normal *= outwardSign;
 }
@@ -85,13 +85,13 @@ void CylinderDomain::element_normal_at( Mesh::ElementHandle h, Vector3D& v ) con
 
 void CylinderDomain::vertex_normal_at( const Mesh::VertexHandle* h,
                                        Vector3D coords[],
-                                       unsigned count, 
+                                       unsigned count,
                                        MsqError& ) const
 {
   for (unsigned i = 0; i < count; ++i)
     vertex_normal_at( h[i], coords[i] );
 }
- 
+
 void CylinderDomain::closest_point( Mesh::VertexHandle handle,
                                     const Vector3D& position,
                                     Vector3D& closest,
@@ -108,7 +108,7 @@ void CylinderDomain::domain_DoF( const Mesh::VertexHandle* ,
 {
   std::fill( dof_array, dof_array + count, (unsigned short)2 );
 }
-  
+
 
 
 } // namespace MBMesquite

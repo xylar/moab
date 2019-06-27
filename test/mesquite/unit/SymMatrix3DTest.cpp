@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2007 Sandia National Laboratories.  Developed at the
@@ -16,11 +16,11 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2008) kraftche@cae.wisc.edu    
+    (2008) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
@@ -103,15 +103,15 @@ void SymMatrix3DTest::test_init_diag()
 void SymMatrix3DTest::test_indices()
 {
   const SymMatrix3D A( 1, 2, 3, 4, 5, 6 );
-  
+
   CPPUNIT_ASSERT_DOUBLES_EQUAL( 1.0, A(0,0), DBL_EPSILON );
   CPPUNIT_ASSERT_DOUBLES_EQUAL( 2.0, A(0,1), DBL_EPSILON );
   CPPUNIT_ASSERT_DOUBLES_EQUAL( 3.0, A(0,2), DBL_EPSILON );
-  
+
   CPPUNIT_ASSERT_DOUBLES_EQUAL( 2.0, A(1,0), DBL_EPSILON );
   CPPUNIT_ASSERT_DOUBLES_EQUAL( 4.0, A(1,1), DBL_EPSILON );
   CPPUNIT_ASSERT_DOUBLES_EQUAL( 5.0, A(1,2), DBL_EPSILON );
-  
+
   CPPUNIT_ASSERT_DOUBLES_EQUAL( 3.0, A(2,0), DBL_EPSILON );
   CPPUNIT_ASSERT_DOUBLES_EQUAL( 5.0, A(2,1), DBL_EPSILON );
   CPPUNIT_ASSERT_DOUBLES_EQUAL( 6.0, A(2,2), DBL_EPSILON );
@@ -222,7 +222,7 @@ void SymMatrix3DTest::test_minus_nonsym()
                     A(1,0)-B(1,0), A(1,1)-B(1,1), A(1,2)-B(1,2),
                     A(2,0)-B(2,0), A(2,1)-B(2,1), A(2,2)-B(2,2) );
   CPPUNIT_ASSERT_MATRICES_EQUAL( E, C, DBL_EPSILON );
-  
+
   const Matrix3D D( B - A );
   const Matrix3D F( B(0,0)-A(0,0), B(0,1)-A(0,1), B(0,2)-A(0,2),
                     B(1,0)-A(1,0), B(1,1)-A(1,1), B(1,2)-A(1,2),

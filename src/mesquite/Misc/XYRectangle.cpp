@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2007 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2007) kraftche@cae.wisc.edu    
+    (2007) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file XYRectangle.cpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -53,30 +53,30 @@ XYRectangle::XYRectangle( double w, double h, double x, double y, double z, Plan
 void XYRectangle::setup( Mesh* mesh, MsqError& err )
 {
   const double epsilon = 1e-4;
-  if (maxCoords[widthDir] - minCoords[widthDir] <= epsilon || 
+  if (maxCoords[widthDir] - minCoords[widthDir] <= epsilon ||
       maxCoords[heightDir] - minCoords[heightDir] <= epsilon ||
       maxCoords[normalDir] - minCoords[normalDir] > epsilon) {
     MSQ_SETERR(err)("Invalid rectangle dimensions", MsqError::INVALID_STATE);
     return;
   }
-  
+
   mConstraints.clear();
-  
+
   std::vector<Mesh::EntityHandle> vertices;
   mesh->get_all_vertices( vertices, err ); MSQ_ERRRTN(err);
   if (vertices.empty()) {
     MSQ_SETERR(err)("Empty mesh", MsqError::INVALID_MESH );
     return;
   }
-  
+
   std::vector<MsqVertex> coords(vertices.size());
   mesh->vertices_get_coordinates( arrptr(vertices), arrptr(coords), coords.size(), err ); MSQ_ERRRTN(err);
-  
+
   for (size_t i = 0; i < vertices.size(); ++i) {
     for (int d = 0; d < 3; ++d) {
       if (d == normalDir)
         continue;
-      if (minCoords[d] - coords[i][d] > epsilon || 
+      if (minCoords[d] - coords[i][d] > epsilon ||
           coords[i][d] - maxCoords[d] > epsilon) {
         MSQ_SETERR(err)(MsqError::INVALID_MESH,
                         "Invalid vertex coordinate: (%f,%f,%f)\n",
@@ -105,13 +105,13 @@ void XYRectangle::snap_to( Mesh::VertexHandle vertex,
   for (; i != mConstraints.end() && i->first == vertex; ++i)
     coordinate[i->second.axis] = i->second.coord;
 }
-  
+
 void XYRectangle::vertex_normal_at( Mesh::VertexHandle /*handle*/, Vector3D &norm ) const
 {
   norm.set(0,0,0);
   norm[normalDir] = 1.0;
 }
-  
+
 void XYRectangle::element_normal_at( Mesh::ElementHandle /*handle*/, Vector3D &norm ) const
 {
   norm.set(0,0,0);
@@ -127,7 +127,7 @@ void XYRectangle::vertex_normal_at( const Mesh::VertexHandle* /*vertices*/,
   norm[normalDir] = 1.0;
   std::fill( normals, normals+count, norm );
 }
-    
+
 void XYRectangle::closest_point( Mesh::VertexHandle vertex,
                                  const Vector3D& position,
                                  Vector3D& closest,
@@ -139,7 +139,7 @@ void XYRectangle::closest_point( Mesh::VertexHandle vertex,
   closest = position;
   closest[2] = 0;
 }
-    
+
 void XYRectangle::domain_DoF( const Mesh::VertexHandle* vertices,
                               unsigned short* dof_array,
                               size_t num_handles,

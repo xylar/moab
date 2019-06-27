@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2010 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2010) kraftche@cae.wisc.edu    
+    (2010) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file UntangleWrapper.cpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -64,7 +64,7 @@ const bool JACOBI_DEFAULT = false;
 
 namespace MBMesquite {
 
-UntangleWrapper::UntangleWrapper() 
+UntangleWrapper::UntangleWrapper()
   : qualityMetric( SIZE ),
     maxTime(-1),
     movementFactor( DEFAULT_MOVEMENT_FACTOR ),
@@ -74,7 +74,7 @@ UntangleWrapper::UntangleWrapper()
     doJacobi(JACOBI_DEFAULT)
 {}
 
-UntangleWrapper::UntangleWrapper(UntangleMetric m) 
+UntangleWrapper::UntangleWrapper(UntangleMetric m)
   : qualityMetric( m ),
     maxTime(-1),
     movementFactor( DEFAULT_MOVEMENT_FACTOR ),
@@ -119,7 +119,7 @@ void UntangleWrapper::run_wrapper( MeshDomainAssoc* mesh_and_domain,
   tool->edge_length_distribution( edge_len, err ); MSQ_ERRRTN(err);
   tool->lambda_distribution( lambda, err ); MSQ_ERRRTN(err);
   tool.reset(0);
-  
+
     // get target metrics from user perferences
   TSizeNB1 mu_size;
   TShapeSize2DNB1 mu_shape_2d;
@@ -128,7 +128,7 @@ void UntangleWrapper::run_wrapper( MeshDomainAssoc* mesh_and_domain,
   std::auto_ptr<TMetric> mu;
   if (qualityMetric == BETA) {
     double beta = metricConstant;
-    if (beta < 0) 
+    if (beta < 0)
       beta = (lambda.average()*lambda.average())/20;
     //std::cout << "beta= " << beta << std::endl;
     mu.reset(new TUntangleBeta( beta ));
@@ -137,36 +137,36 @@ void UntangleWrapper::run_wrapper( MeshDomainAssoc* mesh_and_domain,
     TMetric* sub = 0;
     if (qualityMetric == SIZE)
       sub = &mu_size;
-    else 
+    else
       sub = &mu_shape;
-    if (metricConstant >= 0) 
+    if (metricConstant >= 0)
       mu.reset(new TUntangleMu( sub, metricConstant ));
-    else 
+    else
       mu.reset(new TUntangleMu( sub ));
   }
-    
+
     // define objective function
   IdealShapeTarget base_target;
   LambdaConstant target( lambda.average(), &base_target );
   TQualityMetric metric_0(&target, mu.get());
   ElementPMeanP metric( 1.0, &metric_0 );
   PMeanPTemplate objfunc( 1.0, &metric );
-  
+
     // define termination criterion
   double eps = movementFactor * (edge_len.average() - edge_len.standard_deviation());
-  TerminationCriterion inner("<type:untangle_inner>", TerminationCriterion::TYPE_INNER), 
+  TerminationCriterion inner("<type:untangle_inner>", TerminationCriterion::TYPE_INNER),
     outer("<type:untangle_outer>", TerminationCriterion::TYPE_OUTER);
   outer.add_untangled_mesh();
-  if (doCulling) 
+  if (doCulling)
     inner.cull_on_absolute_vertex_movement( eps );
   else
     outer.add_absolute_vertex_movement( eps );
-  if (maxTime > 0.0) 
+  if (maxTime > 0.0)
     outer.add_cpu_time( maxTime );
   inner.add_iteration_limit( NUM_INNER_ITERATIONS );
   if (maxIterations > 0)
     outer.add_iteration_limit(maxIterations);
-  
+
     // construct solver
   SteepestDescent solver( &objfunc );
   solver.use_element_on_vertex_patch();
@@ -176,8 +176,8 @@ void UntangleWrapper::run_wrapper( MeshDomainAssoc* mesh_and_domain,
     solver.do_jacobi_optimization();
   else
     solver.do_gauss_optimization();
-  
-    // Run 
+
+    // Run
   qa->add_quality_assessment( &metric );
   InstructionQueue q;
   q.add_quality_assessor( qa, err ); MSQ_ERRRTN(err);

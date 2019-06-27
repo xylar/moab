@@ -1,9 +1,9 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2004 Sandia Corporation and Argonne National
-    Laboratory.  Under the terms of Contract DE-AC04-94AL85000 
-    with Sandia Corporation, the U.S. Government retains certain 
+    Laboratory.  Under the terms of Contract DE-AC04-94AL85000
+    with Sandia Corporation, the U.S. Government retains certain
     rights in this software.
 
     This library is free software; you can redistribute it and/or
@@ -16,19 +16,19 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
-    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov, 
-    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov    
-    
-    (2006) kraftche@cae.wisc.edu  
-   
+
+    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov,
+    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov
+
+    (2006) kraftche@cae.wisc.edu
+
   ***************************************************************** */
 /*!
   \file   AveragingQM.cpp
-  \brief  
+  \brief
 
   \author Michael Brewer
   \author Thomas Leurent
@@ -45,7 +45,7 @@
 
 
 namespace MBMesquite {
-        
+
 double AveragingQM::average_corner_gradients( EntityTopology type,
                                   uint32_t fixed_vertices,
                                   unsigned num_corner,
@@ -57,10 +57,10 @@ double AveragingQM::average_corner_gradients( EntityTopology type,
   const unsigned num_vertex = TopologyInfo::corners( type );
   const unsigned dim = TopologyInfo::dimension(type);
   const unsigned per_vertex = dim+1;
-  
+
   unsigned i, j, num_adj;
   const unsigned *adj_idx, *rev_idx;
-  
+
     // NOTE: This function changes the corner_values array such that
     //       it contains the gradient coefficients.
   double avg = average_metric_and_weights( corner_values, num_corner, err );
@@ -70,7 +70,7 @@ double AveragingQM::average_corner_gradients( EntityTopology type,
   {
     if (fixed_vertices & (1<<i))  // skip fixed vertices
       continue;
-    
+
     adj_idx = TopologyInfo::adjacent_vertices( type, i, num_adj );
     rev_idx = TopologyInfo::reverse_vertex_adjacency_offsets( type, i, num_adj );
     if (i < num_corner) // not all vertices are corners (e.g. pyramid)
@@ -89,38 +89,38 @@ double AveragingQM::average_corner_gradients( EntityTopology type,
   return avg;
 }
 
-/**\brief Iterate over only diagonal blocks of element corner Hessian data 
+/**\brief Iterate over only diagonal blocks of element corner Hessian data
  *
  * Given concatenation of corner Hessian data for an element, iterate
- * over only the diagonal terms for each corner.  This class allows 
+ * over only the diagonal terms for each corner.  This class allows
  * common code to be used to generate Hessian diagonal blocks from either
- * the diagonal blocks for each corner or the full Hessian data for each 
+ * the diagonal blocks for each corner or the full Hessian data for each
  * corner, where this class is used for the latter.
  */
-class CornerHessDiagIterator 
+class CornerHessDiagIterator
 {
 private:
   const Matrix3D* cornerHess;    //!< Current location in concatenated Hessian data.
   const EntityTopology elemType; //!< Element topology for Hessian data
-  unsigned mCorner;              //!< The element corner for which cornerHess 
+  unsigned mCorner;              //!< The element corner for which cornerHess
                                  //!< is pointing into the corresponding Hessian data.
   unsigned mStep;                //!< Amount to step to reach next diagonal block.
 public:
-  CornerHessDiagIterator( const Matrix3D* corner_hessians, 
+  CornerHessDiagIterator( const Matrix3D* corner_hessians,
                           EntityTopology elem_type )
-    : cornerHess(corner_hessians), 
-      elemType(elem_type), 
+    : cornerHess(corner_hessians),
+      elemType(elem_type),
       mCorner(0)
     {
       TopologyInfo::adjacent_vertices( elemType, mCorner, mStep );
       ++mStep;
     }
-  
-  SymMatrix3D operator*() const 
+
+  SymMatrix3D operator*() const
     { return cornerHess->upper(); }
-  
+
   CornerHessDiagIterator& operator++()
-    { 
+    {
       cornerHess += mStep;
       if (!--mStep) {
         TopologyInfo::adjacent_vertices( elemType, ++mCorner, mStep );
@@ -128,13 +128,13 @@ public:
       }
       return *this;
     }
-  
+
   CornerHessDiagIterator operator++(int)
     { CornerHessDiagIterator copy(*this); operator++(); return copy; }
 };
 
 template <typename HessIter>
-static inline 
+static inline
 double sum_corner_diagonals( EntityTopology type,
                              unsigned num_corner,
                              const double corner_values[],
@@ -146,7 +146,7 @@ double sum_corner_diagonals( EntityTopology type,
   unsigned i, n, r, R, idx[4];
   const unsigned* adj_list;
   double avg = 0.0;
-  
+
     // calculate mean
   for (i = 0; i < num_corner; ++i)
     avg += corner_values[i];
@@ -161,7 +161,7 @@ double sum_corner_diagonals( EntityTopology type,
     idx[2] = adj_list[1];
     idx[3] = adj_list[2%n]; // %n so don't read off end if 2D
 
-    for (r = 0; r <= n; ++r) 
+    for (r = 0; r <= n; ++r)
     {
       R = idx[r];
       vertex_grads[R] += *grad;
@@ -174,7 +174,7 @@ double sum_corner_diagonals( EntityTopology type,
 }
 
 template <typename HessIter>
-static inline 
+static inline
 double sum_sqr_corner_diagonals( EntityTopology type,
                                  unsigned num_corner,
                                  const double corner_values[],
@@ -186,7 +186,7 @@ double sum_sqr_corner_diagonals( EntityTopology type,
   unsigned i, n, r, R, idx[4];
   const unsigned* adj_list;
   double v, avg = 0.0;
-  
+
     // calculate mean
   for (i = 0; i < num_corner; ++i)
     avg += corner_values[i]*corner_values[i];
@@ -203,7 +203,7 @@ double sum_sqr_corner_diagonals( EntityTopology type,
     ++n;
 
     v = 2.0*corner_values[i];
-    for (r = 0; r < n; ++r) 
+    for (r = 0; r < n; ++r)
     {
       R = idx[r];
       vertex_grads[R] += v * *grad;
@@ -217,7 +217,7 @@ double sum_sqr_corner_diagonals( EntityTopology type,
 }
 
 template <typename HessIter>
-static inline 
+static inline
 double pmean_corner_diagonals( EntityTopology type,
                                unsigned num_corner,
                                const double corner_values[],
@@ -234,18 +234,18 @@ double pmean_corner_diagonals( EntityTopology type,
   double gf[8], hf[8];
   double inv = 1.0/num_corner;
   assert(num_corner <= 8);
-  
+
     // calculate mean
   for (i = 0; i < num_corner; ++i)
   {
     nm = pow(corner_values[i], p);
     m += nm;
-    
+
     gf[i] = inv * p * nm / corner_values[i];
     hf[i] = (p-1) * gf[i] / corner_values[i];
   }
   nm = inv * m;
-  
+
   const Vector3D* grad = corner_grads;
   HessIter hess = corner_diag_blocks;
   for (i = 0; i < num_corner; ++i)
@@ -257,7 +257,7 @@ double pmean_corner_diagonals( EntityTopology type,
     idx[3] = adj_list[2%n]; // %n so don't read off end if 2D
     ++n;
 
-    for (r = 0; r < n; ++r) 
+    for (r = 0; r < n; ++r)
     {
       R = idx[r];
       vertex_grads[R] += gf[i] * *grad;
@@ -267,20 +267,20 @@ double pmean_corner_diagonals( EntityTopology type,
       ++hess;
     }
   }
-  
+
   m = pow( nm, 1.0/p );
   gf[0] = m / (p * nm );
   hf[0] = (1.0/p - 1) * gf[0] / nm;
-  for (r = 0; r < N; ++r) 
+  for (r = 0; r < N; ++r)
   {
     vertex_hessians[r] *= gf[0];
     vertex_hessians[r] += hf[0] * outer( vertex_grads[r] );
     vertex_grads[r] *= gf[0];
   }
-  
+
   return m;
 }
-                                          
+
 
 template <typename HessIter>
 static inline
@@ -296,24 +296,24 @@ double average_corner_diagonals( EntityTopology type,
 {
   unsigned i;
   double avg, inv;
-  
+
     // Zero gradients and Hessians
   const unsigned num_vertex = TopologyInfo::corners( type );
   for (i = 0; i < num_vertex; ++i) {
     vertex_grads[i].set(0.0);
     vertex_hessians[i] = SymMatrix3D(0.0);
   }
-  
+
   switch (method)
   {
   case QualityMetric::SUM:
-    avg = sum_corner_diagonals( type, num_corner, corner_values, 
+    avg = sum_corner_diagonals( type, num_corner, corner_values,
                                corner_grads, corner_diag_blocks,
                                vertex_grads, vertex_hessians );
     break;
-  
+
   case QualityMetric::LINEAR:
-    avg = sum_corner_diagonals( type, num_corner, corner_values, 
+    avg = sum_corner_diagonals( type, num_corner, corner_values,
                                corner_grads, corner_diag_blocks,
                                vertex_grads, vertex_hessians );
     inv = 1.0/num_corner;
@@ -325,27 +325,27 @@ double average_corner_diagonals( EntityTopology type,
     break;
 
   case QualityMetric::SUM_SQUARED:
-    avg = sum_sqr_corner_diagonals( type, num_corner, corner_values, 
+    avg = sum_sqr_corner_diagonals( type, num_corner, corner_values,
                                    corner_grads, corner_diag_blocks,
                                    vertex_grads, vertex_hessians );
     break;
 
   case QualityMetric::RMS:
-    avg = pmean_corner_diagonals( type, num_corner, corner_values, 
+    avg = pmean_corner_diagonals( type, num_corner, corner_values,
                                  corner_grads, corner_diag_blocks,
                                  vertex_grads, vertex_hessians,
                                  2.0 );
     break;
 
   case QualityMetric::HARMONIC:
-    avg = pmean_corner_diagonals( type, num_corner, corner_values, 
+    avg = pmean_corner_diagonals( type, num_corner, corner_values,
                                  corner_grads, corner_diag_blocks,
                                  vertex_grads, vertex_hessians,
                                  -1.0 );
     break;
 
   case QualityMetric::HMS:
-    avg = pmean_corner_diagonals( type, num_corner, corner_values, 
+    avg = pmean_corner_diagonals( type, num_corner, corner_values,
                                  corner_grads, corner_diag_blocks,
                                  vertex_grads, vertex_hessians,
                                  -2.0 );
@@ -355,7 +355,7 @@ double average_corner_diagonals( EntityTopology type,
     MSQ_SETERR(err)("averaging method not available.",MsqError::INVALID_STATE);
     return 0.0;
   }
-    
+
   return avg;
 }
 
@@ -403,7 +403,7 @@ static inline double sum_corner_hessians( EntityTopology type,
   unsigned i, n, r, c, R, C, idx[4];
   const unsigned* adj_list;
   double avg = 0.0;
-  
+
     // calculate mean
   for (i = 0; i < num_corner; ++i)
     avg += corner_values[i];
@@ -418,17 +418,17 @@ static inline double sum_corner_hessians( EntityTopology type,
     idx[2] = adj_list[1];
     idx[3] = adj_list[2%n]; // %n so don't read off end if 2D
 
-    for (r = 0; r <= n; ++r) 
+    for (r = 0; r <= n; ++r)
     {
       R = idx[r];
       vertex_grads[R] += *grad;
       ++grad;
-      for (c = r; c <= n; ++c) 
+      for (c = r; c <= n; ++c)
       {
         C = idx[c];
         if (R <= C)
           vertex_hessians[N*R - R*(R+1)/2 + C] += *hess;
-        else 
+        else
           vertex_hessians[N*C - C*(C+1)/2 + R].plus_transpose_equal(*hess);
         ++hess;
       }
@@ -450,7 +450,7 @@ static inline double sum_sqr_corner_hessians( EntityTopology type,
   const unsigned* adj_list;
   double v, avg = 0.0;
   Matrix3D op;
-  
+
     // calculate mean
   for (i = 0; i < num_corner; ++i)
     avg += corner_values[i]*corner_values[i];
@@ -467,18 +467,18 @@ static inline double sum_sqr_corner_hessians( EntityTopology type,
     ++n;
 
     v = 2.0*corner_values[i];
-    for (r = 0; r < n; ++r) 
+    for (r = 0; r < n; ++r)
     {
       R = idx[r];
       vertex_grads[R] += v*grad[r];
-      for (c = r; c < n; ++c) 
+      for (c = r; c < n; ++c)
       {
         C = idx[c];
         op.outer_product( 2.0*grad[r], grad[c] );
         op += v * *hess;
         if (R <= C)
           vertex_hessians[N*R - R*(R+1)/2 + C] += op;
-        else 
+        else
           vertex_hessians[N*C - C*(C+1)/2 + R].plus_transpose_equal(op);
         ++hess;
       }
@@ -505,18 +505,18 @@ static inline double pmean_corner_hessians( EntityTopology type,
   double gf[8], hf[8];
   double inv = 1.0/num_corner;
   assert(num_corner <= 8);
-  
+
     // calculate mean
   for (i = 0; i < num_corner; ++i)
   {
     nm = pow(corner_values[i], p);
     m += nm;
-    
+
     gf[i] = inv * p * nm / corner_values[i];
     hf[i] = (p-1) * gf[i] / corner_values[i];
   }
   nm = inv * m;
-  
+
   const Vector3D* grad = corner_grads;
   const Matrix3D* hess = corner_hessians;
   for (i = 0; i < num_corner; ++i)
@@ -528,11 +528,11 @@ static inline double pmean_corner_hessians( EntityTopology type,
     idx[3] = adj_list[2%n]; // %n so don't read off end if 2D
     ++n;
 
-    for (r = 0; r < n; ++r) 
+    for (r = 0; r < n; ++r)
     {
       R = idx[r];
       vertex_grads[R] += gf[i]*grad[r];
-      for (c = r; c < n; ++c) 
+      for (c = r; c < n; ++c)
       {
         C = idx[c];
         op.outer_product( grad[r], grad[c] );
@@ -540,18 +540,18 @@ static inline double pmean_corner_hessians( EntityTopology type,
         op += gf[i] * *hess;
         if (R <= C)
           vertex_hessians[N*R - R*(R+1)/2 + C] += op;
-        else 
+        else
           vertex_hessians[N*C - C*(C+1)/2 + R].plus_transpose_equal(op);
         ++hess;
       }
     }
     grad += n;
   }
-  
+
   m = pow( nm, 1.0/p );
   gf[0] = m / (p * nm );
   hf[0] = (1.0/p - 1) * gf[0] / nm;
-  for (r = 0; r < N; ++r) 
+  for (r = 0; r < N; ++r)
   {
     for (c = r; c < N; ++c)
     {
@@ -563,7 +563,7 @@ static inline double pmean_corner_hessians( EntityTopology type,
     }
     vertex_grads[r] *= gf[0];
   }
-  
+
   return m;
 }
 
@@ -580,7 +580,7 @@ double AveragingQM::average_corner_hessians( EntityTopology type,
 {
   unsigned i;
   double avg, inv;
-  
+
     // Zero gradients and Hessians
   const unsigned num_vertex = TopologyInfo::corners( type );
   for (i = 0; i < num_vertex; ++i)
@@ -588,17 +588,17 @@ double AveragingQM::average_corner_hessians( EntityTopology type,
   const unsigned num_hess = num_vertex * (num_vertex+1) / 2;
   for (i = 0; i < num_hess; ++i)
     vertex_hessians[i].zero();
-  
+
   switch (avgMethod)
   {
   case QualityMetric::SUM:
-    avg = sum_corner_hessians( type, num_corner, corner_values, 
+    avg = sum_corner_hessians( type, num_corner, corner_values,
                                corner_grads, corner_hessians,
                                vertex_grads, vertex_hessians );
     break;
-  
+
   case QualityMetric::LINEAR:
-    avg = sum_corner_hessians( type, num_corner, corner_values, 
+    avg = sum_corner_hessians( type, num_corner, corner_values,
                                corner_grads, corner_hessians,
                                vertex_grads, vertex_hessians );
     inv = 1.0/num_corner;
@@ -610,27 +610,27 @@ double AveragingQM::average_corner_hessians( EntityTopology type,
     break;
 
   case QualityMetric::SUM_SQUARED:
-    avg = sum_sqr_corner_hessians( type, num_corner, corner_values, 
+    avg = sum_sqr_corner_hessians( type, num_corner, corner_values,
                                    corner_grads, corner_hessians,
                                    vertex_grads, vertex_hessians );
     break;
 
   case QualityMetric::RMS:
-    avg = pmean_corner_hessians( type, num_corner, corner_values, 
+    avg = pmean_corner_hessians( type, num_corner, corner_values,
                                  corner_grads, corner_hessians,
                                  vertex_grads, vertex_hessians,
                                  2.0 );
     break;
 
   case QualityMetric::HARMONIC:
-    avg = pmean_corner_hessians( type, num_corner, corner_values, 
+    avg = pmean_corner_hessians( type, num_corner, corner_values,
                                  corner_grads, corner_hessians,
                                  vertex_grads, vertex_hessians,
                                  -1.0 );
     break;
 
   case QualityMetric::HMS:
-    avg = pmean_corner_hessians( type, num_corner, corner_values, 
+    avg = pmean_corner_hessians( type, num_corner, corner_values,
                                  corner_grads, corner_hessians,
                                  vertex_grads, vertex_hessians,
                                  -2.0 );
@@ -640,22 +640,22 @@ double AveragingQM::average_corner_hessians( EntityTopology type,
     MSQ_SETERR(err)("averaging method not available.",MsqError::INVALID_STATE);
     return 0.0;
   }
-    
+
   return avg;
 }
 
 double AveragingQM::average_metric_and_weights( double metrics[],
-                                                  int count, 
+                                                  int count,
                                                   MsqError& err )
 {
   static bool min_max_warning = false;
   double avg = 0.0;
   int i, tmp_count;
   double f;
-  
+
   switch (avgMethod)
   {
-  
+
   case QualityMetric::MINIMUM:
     if (!min_max_warning) {
       MSQ_DBGOUT(1) <<
@@ -668,7 +668,7 @@ double AveragingQM::average_metric_and_weights( double metrics[],
     for (i = 1; i < count; ++i)
       if (metrics[i] < avg)
         avg = metrics[i];
-    
+
     tmp_count = 0;
     for (i = 0; i < count; ++i)
     {
@@ -682,14 +682,14 @@ double AveragingQM::average_metric_and_weights( double metrics[],
         metrics[i] = 0.0;
       }
     }
-    
+
     f = 1.0 / tmp_count;
     for (i = 0; i < count; ++i)
       metrics[i] *= f;
-      
+
     break;
 
-  
+
   case QualityMetric::MAXIMUM:
     if (!min_max_warning) {
       MSQ_DBGOUT(1) <<
@@ -702,7 +702,7 @@ double AveragingQM::average_metric_and_weights( double metrics[],
     for (i = 1; i < count; ++i)
       if (metrics[i] > avg)
         avg = metrics[i];
-    
+
     tmp_count = 0;
     for (i = 0; i < count; ++i)
     {
@@ -716,34 +716,34 @@ double AveragingQM::average_metric_and_weights( double metrics[],
         metrics[i] = 0.0;
       }
     }
-    
+
     f = 1.0 / tmp_count;
     for (i = 0; i < count; ++i)
       metrics[i] *= f;
-      
+
     break;
 
-  
+
   case QualityMetric::SUM:
     for (i = 0; i < count; ++i)
     {
       avg += metrics[i];
       metrics[i] = 1.0;
     }
-      
+
     break;
 
-  
+
   case QualityMetric::SUM_SQUARED:
     for (i = 0; i < count; ++i)
     {
       avg += (metrics[i]*metrics[i]);
       metrics[i] *= 2;
     }
-      
+
     break;
 
-  
+
   case QualityMetric::LINEAR:
     f = 1.0 / count;
     for (i = 0; i < count; ++i)
@@ -752,10 +752,10 @@ double AveragingQM::average_metric_and_weights( double metrics[],
       metrics[i] = f;
     }
     avg *= f;
-      
+
     break;
 
-  
+
   case QualityMetric::GEOMETRIC:
     avg = 1.0;
     for (i = 0; i < count; ++i)
@@ -765,55 +765,55 @@ double AveragingQM::average_metric_and_weights( double metrics[],
     f = avg / count;
     for (i = 0; i < count; ++i)
       metrics[i] = f / metrics[i];
-      
+
     break;
 
-  
+
   case QualityMetric::RMS:
     for (i = 0; i < count; ++i)
       avg += metrics[i] * metrics[i];
     avg = sqrt( avg / count );
-    
+
     f = 1. / (avg*count);
     for (i = 0; i < count; ++i)
       metrics[i] *= f;
-      
+
     break;
 
-  
+
   case QualityMetric::HARMONIC:
     for (i = 0; i < count; ++i)
       avg += 1.0 / metrics[i];
     avg = count / avg;
-  
+
     for (i = 0; i < count; ++i)
       metrics[i] = (avg * avg) / (count * metrics[i] * metrics[i]);
-      
+
     break;
 
-  
+
   case QualityMetric::HMS:
     for (i = 0; i < count; ++i)
       avg += 1. / (metrics[i] * metrics[i]);
     avg = sqrt( count / avg );
-    
+
     f = avg*avg*avg / count;
     for (i = 0; i < count; ++i)
       metrics[i] = f / (metrics[i] * metrics[i] * metrics[i]);
-      
+
     break;
 
-  
+
   default:
     MSQ_SETERR(err)("averaging method not available.",MsqError::INVALID_STATE);
   }
-  
+
   return avg;
 }
 
-   
 
-   /*! 
+
+   /*!
      average_metrics takes an array of length num_value and averages the
      contents using averaging method 'method'.
    */

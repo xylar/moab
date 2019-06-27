@@ -77,7 +77,7 @@ int print_mesh_info(iMesh_Instance mesh, iBase_EntityHandle ment)
   int result;
   iBase_TagHandle *ment_tags = NULL;
   int ment_tags_size, ment_tags_alloc;
-  char **tag_names; 
+  char **tag_names;
   int i;
   const char *type_names[] = {"Vertex", "Edge", "Face", "Region"};
   int tag_type;
@@ -339,7 +339,7 @@ int relate_geom_mesh_test(iRel_Instance assoc,
   mentities_vec = (iBase_EntitySetHandle*)malloc(mentity_handles_size*sizeof(iBase_EntitySetHandle));
   mentities_vec_size = 0;
 
-  for (i = 0; i < mentity_handles_size; i++) { 
+  for (i = 0; i < mentity_handles_size; i++) {
     int dim;
     iMesh_getEntSetIntData(mesh, mentity_handles[i], dim_tag_mesh,
                            &dim, &result);

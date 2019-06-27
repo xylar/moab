@@ -114,7 +114,7 @@ inline void CartVect::normalize()
     if (tmp < DBL_MIN)
       d[0] = d[1] = d[2] = 0;
     else
-      *this /= tmp; 
+      *this /= tmp;
   }
 
 inline void CartVect::flip()

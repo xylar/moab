@@ -1,8 +1,8 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
-    Copyright 2006 Lawrence Livermore National Laboratory.  Under 
-    the terms of Contract B545069 with the University of Wisconsin -- 
+    Copyright 2006 Lawrence Livermore National Laboratory.  Under
+    the terms of Contract B545069 with the University of Wisconsin --
     Madison, Lawrence Livermore National Laboratory retains certain
     rights in this software.
 
@@ -16,11 +16,11 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2006) kraftche@cae.wisc.edu    
+    (2006) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
@@ -31,7 +31,7 @@
  *  \brief Lagrange mapping funtion for a 27-node hex.
  *  \author Nicholas Voshell
  */
- 
+
 #include "MappingFunction.hpp"
 
 namespace MBMesquite {
@@ -42,7 +42,7 @@ namespace MBMesquite {
  * a Lagrange shape function for hexahedral elements.
  *
  * \f$\vec{x}(\xi,\eta) = \sum_{i=0}^{n-1} N_i(r, s, t) \vec{x_i}\f$
- * 
+ *
  * \f$N_a = l^2_b(r) l^2_c(s) l^2_d(t)\f$
  *
  * \f$l^2_1(\xi) = (\xi - 1) (2 \xi - 1)\f$
@@ -89,13 +89,13 @@ namespace MBMesquite {
  *    /       /
  *   19  25  17
  *  /       /
- * 4 - 16- 6    
+ * 4 - 16- 6
  *
  *     15- 22- 14
  *    /       /
  *   23  26  21
  *  /       /
- * 12- 20- 13    
+ * 12- 20- 13
  *
  *     3 - 10- 2
  *    /       /
@@ -107,21 +107,21 @@ class MESQUITE_EXPORT HexLagrangeShape : public MappingFunction3D
 {
 public:
 
-  virtual 
+  virtual
   EntityTopology element_topology() const;
-  
+
   virtual
   int num_nodes() const;
 
-  virtual 
+  virtual
   void coefficients( Sample location,
                      NodeSet nodeset,
                      double* coeff_out,
                      size_t* indices_out,
                      size_t& num_coeff_out,
                      MsqError& err ) const;
-  
-  virtual 
+
+  virtual
   void derivatives( Sample location,
                     NodeSet nodeset,
                     size_t* vertex_indices_out,
@@ -130,7 +130,7 @@ public:
                     MsqError& err ) const;
 
   virtual
-  void ideal( Sample location, 
+  void ideal( Sample location,
               MsqMatrix<3,3>& jacobian_out,
               MsqError& err ) const;
 };

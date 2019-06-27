@@ -77,7 +77,7 @@ public:
 
 	///	<summary>
 	///		Generate the offline map, given the source and target mesh and discretization details.
-	///     This method generates the mapping between the two meshes based on the overlap and stores 
+	///     This method generates the mapping between the two meshes based on the overlap and stores
 	///     the result in the SparseMatrix.
 	///	</summary>
 	moab::ErrorCode GenerateOfflineMap( std::string strInputType="fv", std::string strOutputType="fv",
@@ -85,7 +85,7 @@ public:
                                         bool fBubble=false, int fMonotoneTypeID=0,
                                         bool fVolumetric=false, bool fNoConservation=false, bool fNoCheck=false,
                                         const std::string srcDofTagName="GLOBAL_ID", const std::string tgtDofTagName="GLOBAL_ID",
-                                        const std::string strVariables="", 
+                                        const std::string strVariables="",
                                         const std::string strInputData="", const std::string strOutputData="",
                                         const std::string strNColName="", const bool fOutputDouble=false,
                                         const std::string strPreserveVariables="", const bool fPreserveAll=false, const double dFillValueOverride=0.0,
@@ -157,7 +157,7 @@ private:
 	moab::ErrorCode GatherAllToRoot();
 
 	///	<summary>
-	///		Compute the remapping weights for a FV field defined on the source to a 
+	///		Compute the remapping weights for a FV field defined on the source to a
 	///     FV field defined on the target mesh.
 	///	</summary>
 	void LinearRemapFVtoFV_Tempest_MOAB( int nOrder );
@@ -261,17 +261,17 @@ private:
 	///	<summary>
 	///		Store the tag names associated with global DoF ids for source and target meshes
 	///	</summary>
-	moab::ErrorCode SetDofMapTags(const std::string srcDofTagName, 
+	moab::ErrorCode SetDofMapTags(const std::string srcDofTagName,
 								  const std::string tgtDofTagName);
 
 	///	<summary>
-	///		Compute the association between the solution tag global DoF numbering and 
+	///		Compute the association between the solution tag global DoF numbering and
 	///		the local matrix numbering so that matvec operations can be performed
 	///     consistently.
 	///	</summary>
-	moab::ErrorCode SetDofMapAssociation(DiscretizationType srcType, bool isSrcContinuous, 
+	moab::ErrorCode SetDofMapAssociation(DiscretizationType srcType, bool isSrcContinuous,
 		DataMatrix3D<int>* srcdataGLLNodes, DataMatrix3D<int>* srcdataGLLNodesSrc,
-		DiscretizationType destType, bool isDestContinuous, 
+		DiscretizationType destType, bool isDestContinuous,
 		DataMatrix3D<int>* tgtdataGLLNodes);
 
 
@@ -343,8 +343,8 @@ public:
 	int GetDestinationNDofsPerElement();
 
 	///	<summary>
-	///		Apply the weight matrix onto the source vector provided as input, and return the column vector (solution projection) after the application 
-	///     Compute:        \p tgtVals = A * \srcVals, or 
+	///		Apply the weight matrix onto the source vector provided as input, and return the column vector (solution projection) after the application
+	///     Compute:        \p tgtVals = A * \srcVals, or
 	///     if (transpose)  \p tgtVals = A^T * \srcVals
 	///	</summary>
 	moab::ErrorCode ApplyWeights (std::vector<double>& srcVals, std::vector<double>& tgtVals, bool transpose=false);

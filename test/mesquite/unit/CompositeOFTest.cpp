@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2006 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
+
     (2006) kraftche@cae.wisc.edu
-   
+
   ***************************************************************** */
 
 
 /** \file CompositeOFTest.cpp
  *  \brief Unit tests for Composite Objective Functions
- *  \author Jason Kraftcheck 
+ *  \author Jason Kraftcheck
  */
 
 
@@ -57,31 +57,31 @@ using std::cerr;
 class FauxObjectiveFunction : public ObjectiveFunction
 {
   public:
-    FauxObjectiveFunction( double value, bool invalid = false, bool error = false) 
+    FauxObjectiveFunction( double value, bool invalid = false, bool error = false)
       : mValue(value), mInvalid(invalid), mError(error)
       { ++instanceCount; }
     ~FauxObjectiveFunction() { --instanceCount; }
     bool initialize_block_coordinate_descent( MeshDomainAssoc*, const Settings*, PatchSet*, MsqError& )
       { CPPUNIT_ASSERT_MESSAGE("This shouldn't ever get called", false ); return false; }
     bool evaluate( EvalType, PatchData&, double& value_out, bool, MsqError& err )
-      { 
+      {
         if (mError)
           MSQ_SETERR(err)(MsqError::INTERNAL_ERROR);
-        value_out = mValue; 
+        value_out = mValue;
         return !mInvalid;
       }
-    ObjectiveFunction* clone() const 
-      { 
+    ObjectiveFunction* clone() const
+      {
         ++instanceCount;
-        return new FauxObjectiveFunction(*this); 
+        return new FauxObjectiveFunction(*this);
       }
     void clear() {}
     int min_patch_layers() const { return 0; }
-    
-    void initialize_queue( MeshDomainAssoc* , 
+
+    void initialize_queue( MeshDomainAssoc* ,
                            const Settings* ,
                            MsqError&  ) {}
-  
+
     double get_value() const { return mValue; }
     static int get_instance_count() { return instanceCount; }
   private:
@@ -95,7 +95,7 @@ class CompositeOFTest : public CppUnit::TestFixture, public ObjectiveFunctionTes
 {
 private:
   CPPUNIT_TEST_SUITE(CompositeOFTest);
-  
+
   CPPUNIT_TEST (test_add_value);
   CPPUNIT_TEST (test_multiply_value);
   CPPUNIT_TEST (test_scalar_add_value);
@@ -120,31 +120,31 @@ private:
   CPPUNIT_TEST (test_clone_multiply);
   CPPUNIT_TEST (test_clone_scalar_add);
   CPPUNIT_TEST (test_clone_scalar_multiply);
-  
+
   CPPUNIT_TEST (test_add_invalid);
   CPPUNIT_TEST (test_multiply_invalid);
   CPPUNIT_TEST (test_scalar_add_invalid);
   CPPUNIT_TEST (test_scalar_multiply_invalid);
-  
+
   CPPUNIT_TEST (test_add_error);
   CPPUNIT_TEST (test_multiply_error);
   CPPUNIT_TEST (test_scalar_add_error);
   CPPUNIT_TEST (test_scalar_multiply_error);
 
   CPPUNIT_TEST_SUITE_END();
-  
+
   FauxObjectiveFunction OF1, OF2, OF3, OF4, invalidOF, errorOF;
   IdealWeightInverseMeanRatio metric;
   LPtoPTemplate LP1, LP2;
-  
+
 public:
-  
-  CompositeOFTest() 
+
+  CompositeOFTest()
     : OF1(1.0), OF2(3.0), OF3(-7.0), OF4(M_PI),
       invalidOF(1.0,true,false), errorOF(1.0,false,true),
       LP1( 1, &metric ), LP2( 2, &metric )
    {}
-  
+
   void test_add_value();
   void test_multiply_value();
   void test_scalar_add_value();
@@ -164,17 +164,17 @@ public:
   void test_multiply_hessian();
   void test_scalar_add_hessian();
   void test_scalar_multiply_hessian();
-  
+
   void test_clone_add();
   void test_clone_multiply();
   void test_clone_scalar_add();
   void test_clone_scalar_multiply();
-  
+
   void test_add_invalid();
   void test_multiply_invalid();
   void test_scalar_add_invalid();
   void test_scalar_multiply_invalid();
-  
+
   void test_add_error();
   void test_multiply_error();
   void test_scalar_add_error();
@@ -246,20 +246,20 @@ void CompositeOFTest::test_scalar_add_gradient()
 void CompositeOFTest::test_scalar_multiply_gradient()
   { CompositeOFScalarMultiply OF( M_PI, &LP1 ); compare_numerical_gradient( &OF ); }
 
-void CompositeOFTest::get_hessians( MsqHessian& LP1_hess, 
+void CompositeOFTest::get_hessians( MsqHessian& LP1_hess,
                                     MsqHessian& LP2_hess,
-                                    ObjectiveFunction& OF, 
+                                    ObjectiveFunction& OF,
                                     MsqHessian& OF_hess )
 {
   MsqPrintError err(cout);
   PatchData pd;
-  create_twelve_hex_patch( pd, err ); 
+  create_twelve_hex_patch( pd, err );
   ASSERT_NO_ERROR( err );
 
   LP1_hess.initialize( pd, err ); ASSERT_NO_ERROR(err);
   LP2_hess.initialize( pd, err ); ASSERT_NO_ERROR(err);
   OF_hess .initialize( pd, err ); ASSERT_NO_ERROR(err);
-  
+
   std::vector<Vector3D> grad;
   bool rval;
   double value;
@@ -284,10 +284,10 @@ void CompositeOFTest::test_multiply_hess_diagonal()
 {
   CompositeOFMultiply OF( &LP1, &LP2 );
   std::vector<SymMatrix3D> hess1, hess2, hess;
-  
+
   MsqPrintError err(cout);
   PatchData pd;
-  create_twelve_hex_patch( pd, err ); 
+  create_twelve_hex_patch( pd, err );
   ASSERT_NO_ERROR( err );
 
   std::vector<Vector3D> grad1, grad2, grad;
@@ -310,13 +310,13 @@ void CompositeOFTest::test_multiply_hess_diagonal()
   CPPUNIT_ASSERT_EQUAL( pd.num_free_vertices(), hess1.size() );
   CPPUNIT_ASSERT_EQUAL( pd.num_free_vertices(), hess2.size() );
   CPPUNIT_ASSERT_EQUAL( pd.num_free_vertices(), hess .size() );
-  
+
   CPPUNIT_ASSERT_DOUBLES_EQUAL( value1 * value2, value, 1e-6 );
-  
+
   for (size_t i = 0; i < pd.num_free_vertices(); ++i) {
     const Vector3D expected_grad = value2 * grad1[i] + value1 * grad2[i];
     CPPUNIT_ASSERT_VECTORS_EQUAL( expected_grad, grad[i], 1e-6 );
-    
+
     Matrix3D o;
     o.outer_product( grad1[i], grad2[i] );
     Matrix3D expect = o + transpose(o);
@@ -341,10 +341,10 @@ void CompositeOFTest::test_scalar_multiply_hess_diagonal()
 
 void CompositeOFTest::test_add_hessian()
 {
-    // test value and gradient 
+    // test value and gradient
   CompositeOFAdd OF( &LP1, &LP2 );
   compare_hessian_gradient( &OF );
-  
+
     // test actual hessian values
   MsqHessian hess1, hess2, hess;
   get_hessians( hess1, hess2, OF, hess );
@@ -365,9 +365,9 @@ void CompositeOFTest::test_multiply_hessian()
 {
   MsqError err;
   PatchData pd;
-  create_twelve_hex_patch( pd, err ); 
+  create_twelve_hex_patch( pd, err );
   ASSERT_NO_ERROR( err );
-  
+
   // this should always fail because the Hessian is not sparse
   CompositeOFMultiply OF( &LP1, &LP2 );
   double value;
@@ -381,10 +381,10 @@ void CompositeOFTest::test_multiply_hessian()
 
 void CompositeOFTest::test_scalar_add_hessian()
 {
-    // test value and gradient 
+    // test value and gradient
   CompositeOFScalarAdd OF( 1111.1, &LP1 );
   compare_hessian_gradient( &OF );
-  
+
     // test actual hessian values
   MsqHessian hess1, hess2, hess;
   get_hessians( hess1, hess2, OF, hess );
@@ -402,11 +402,11 @@ void CompositeOFTest::test_scalar_add_hessian()
 
 void CompositeOFTest::test_scalar_multiply_hessian()
 {
-    // test value and gradient 
+    // test value and gradient
   const double scale = 2.5;
   CompositeOFScalarMultiply OF( scale, &LP1 );
   compare_hessian_gradient( &OF );
-  
+
     // test actual hessian values
   MsqHessian hess1, hess2, hess;
   get_hessians( hess1, hess2, OF, hess );
@@ -430,10 +430,10 @@ void CompositeOFTest::test_composite_clone( ObjectiveFunction& OF )
 
   // clone the objective function
   ObjectiveFunction* clone = OF.clone();
-  
+
   // check that the underlying OFs were also cloned
   CPPUNIT_ASSERT( init_count < FauxObjectiveFunction::get_instance_count() );
-  
+
   // check that the value is the same
   MsqPrintError err(cout);
   double orig_val, clone_val;
@@ -445,12 +445,12 @@ void CompositeOFTest::test_composite_clone( ObjectiveFunction& OF )
   ASSERT_NO_ERROR(err);
   CPPUNIT_ASSERT(rval);
   CPPUNIT_ASSERT_DOUBLES_EQUAL( orig_val, clone_val, 1e-6 );
-  
+
   // check that cloned instances of underlying OFs are deleted
   delete clone;
   CPPUNIT_ASSERT_EQUAL( init_count, FauxObjectiveFunction::get_instance_count() );
 }
-  
+
 
 void CompositeOFTest::test_clone_add()
   { CompositeOFAdd OF( &OF1, &OF2 ); test_composite_clone( OF ); }
@@ -483,7 +483,7 @@ void CompositeOFTest::test_add_invalid()
 {
   CompositeOFAdd add1( &OF1, &invalidOF );
   test_invalid_eval( add1 );
-  
+
   CompositeOFAdd add2( &invalidOF, &OF3 );
   test_invalid_eval( add2 );
 }
@@ -492,7 +492,7 @@ void CompositeOFTest::test_multiply_invalid()
 {
   CompositeOFMultiply mult1( &OF1, &invalidOF );
   test_invalid_eval( mult1 );
-  
+
   CompositeOFMultiply mult2( &invalidOF, &OF3 );
   test_invalid_eval( mult2 );
 }
@@ -508,12 +508,12 @@ void CompositeOFTest::test_scalar_multiply_invalid()
   CompositeOFScalarMultiply OF( 2.0, &invalidOF );
   test_invalid_eval( OF );
 }
-  
+
 void CompositeOFTest::test_add_error()
 {
   CompositeOFAdd add1( &OF1, &errorOF );
   test_eval_fails( add1 );
-  
+
   CompositeOFAdd add2( &errorOF, &OF3 );
   test_eval_fails( add2 );
 }
@@ -522,7 +522,7 @@ void CompositeOFTest::test_multiply_error()
 {
   CompositeOFMultiply mult1( &OF1, &errorOF );
   test_eval_fails( mult1 );
-  
+
   CompositeOFMultiply mult2( &errorOF, &OF3 );
   test_eval_fails( mult2 );
 }
@@ -538,4 +538,4 @@ void CompositeOFTest::test_scalar_multiply_error()
   CompositeOFScalarMultiply OF( 2.0, &errorOF );
   test_eval_fails( OF );
 }
-  
+

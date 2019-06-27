@@ -1,16 +1,16 @@
 /**
  * MOAB, a Mesh-Oriented datABase, is a software component for creating,
  * storing and accessing finite element mesh data.
- * 
+ *
  * Copyright 2004 Sandia Corporation.  Under the terms of Contract
  * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
  * retains certain rights in this software.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  */
 
 
@@ -34,14 +34,14 @@ class WriteUtilIface;
  *  - For blocks, geometry sets, and parallel partitions, the
  *     sets are saved but the IDs may be lost.
  *  - File format does not support general polygons or polyhedra.
- *  - File format does not support higher-order volume elements 
+ *  - File format does not support higher-order volume elements
  *     other than TET10 and HEX27.
  */
 class WriteGmsh : public WriterIface
 {
- 
+
 public:
-  
+
     //! factory method
   static WriterIface* factory( Interface* );
 
@@ -50,7 +50,7 @@ public:
 
    //! Destructor
   virtual ~WriteGmsh();
-  
+
     //! writes out a file
   ErrorCode write_file(const char *file_name,
                          const bool overwrite,
@@ -60,10 +60,10 @@ public:
                          const std::vector<std::string>& qa_list,
                          const Tag* tag_list = NULL,
                          int num_tags = 0,
-                         int export_dimension = 3);  
+                         int export_dimension = 3);
 
 private:
-                                       
+
     //! interface instance
   Interface *mbImpl;
   WriteUtilIface* mWriteIface;

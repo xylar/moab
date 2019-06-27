@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2006 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
+
     (2006) kraftche@cae.wisc.edu
-   
+
   ***************************************************************** */
 
 
 /** \file StdDevTemplate.cpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -42,7 +42,7 @@ namespace MBMesquite {
 ObjectiveFunction* StdDevTemplate::clone() const
   { return new StdDevTemplate(*this); }
 
-bool StdDevTemplate::evaluate( EvalType type, 
+bool StdDevTemplate::evaluate( EvalType type,
                                PatchData& pd,
                                double& value_out,
                                bool free,
@@ -51,13 +51,13 @@ bool StdDevTemplate::evaluate( EvalType type,
   bool result = VarianceTemplate::evaluate( type, pd, value_out, free, err );
   if (MSQ_CHKERR(err) || !result)
     return false;
-  
+
   const double neg = get_quality_metric()->get_negate_flag();
   value_out = neg * sqrt( neg * value_out );
   return true;
 }
 
-bool StdDevTemplate::evaluate_with_gradient( EvalType type, 
+bool StdDevTemplate::evaluate_with_gradient( EvalType type,
                                              PatchData& pd,
                                              double& value_out,
                                              std::vector<Vector3D>& grad_out,
@@ -66,20 +66,20 @@ bool StdDevTemplate::evaluate_with_gradient( EvalType type,
   bool result = VarianceTemplate::evaluate_with_gradient( type, pd, value_out, grad_out, err );
   if (MSQ_CHKERR(err) || !result)
     return false;
-  
+
   const double neg = get_quality_metric()->get_negate_flag();
   value_out *= neg; // undo any negation done by VarianceTemplate
   value_out = sqrt( value_out ); // standard deviation
-  const double factor = 1.0/(2.0 * value_out);  
+  const double factor = 1.0/(2.0 * value_out);
   for (std::vector<Vector3D>::iterator i = grad_out.begin(); i != grad_out.end(); ++i)
     *i *= factor;
   value_out *= neg; // redo any negation done by VariandeTemplate
-  
+
   return true;
 }
 
 
-bool StdDevTemplate::evaluate_with_Hessian_diagonal( EvalType type, 
+bool StdDevTemplate::evaluate_with_Hessian_diagonal( EvalType type,
                                         PatchData& pd,
                                         double& value_out,
                                         std::vector<Vector3D>& grad_out,
@@ -89,7 +89,7 @@ bool StdDevTemplate::evaluate_with_Hessian_diagonal( EvalType type,
   bool result = VarianceTemplate::evaluate_with_Hessian_diagonal( type, pd, value_out, grad_out, hess_diag_out, err );
   if (MSQ_CHKERR(err) || !result)
     return false;
-  
+
   const double neg = get_quality_metric()->get_negate_flag();
   value_out *= neg; // undo any negation done by VarianceTemplate
   value_out = sqrt( value_out ); // standard deviation
@@ -100,7 +100,7 @@ bool StdDevTemplate::evaluate_with_Hessian_diagonal( EvalType type,
     hess_diag_out[i] += f2 * outer( grad_out[i] );
     grad_out[i] *= f1;
   }
-  
+
   value_out *= neg; // redo any negation done by VariandeTemplate
   return true;
 }

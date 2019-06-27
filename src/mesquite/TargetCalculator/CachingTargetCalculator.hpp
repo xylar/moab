@@ -1,8 +1,8 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
-    Copyright 2006 Lawrence Livermore National Laboratory.  Under 
-    the terms of Contract B545069 with the University of Wisconsin -- 
+    Copyright 2006 Lawrence Livermore National Laboratory.  Under
+    the terms of Contract B545069 with the University of Wisconsin --
     Madison, Lawrence Livermore National Laboratory retains certain
     rights in this software.
 
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2006) kraftche@cae.wisc.edu    
+    (2006) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file CachingTargetCalculator.hpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #ifndef MSQ_CACHING_TARGET_CALCULATOR_HPP
@@ -48,12 +48,12 @@ struct CachedTargetData {
   std::vector< MsqMatrix<3,2> > targetsSurface;
   std::vector< MsqMatrix<2,2> > targets2D;
   bool has_data() const { return !elementOffsets.empty(); }
-  void clear() 
-    { 
+  void clear()
+    {
       elementOffsets.clear();
-      targets3D.clear(); 
-      targets2D.clear(); 
-      targetsSurface.clear(); 
+      targets3D.clear();
+      targets2D.clear();
+      targetsSurface.clear();
     }
 };
 
@@ -65,32 +65,32 @@ struct CachedTargetData {
  * concrete target calculator are a function of the vertex
  * positions in the active mesh.
  */
-class CachingTargetCalculator : public TargetCalculator, 
+class CachingTargetCalculator : public TargetCalculator,
                                 private ExtraDataUser<CachedTargetData>
 {
 public:
-  
+
   CachingTargetCalculator( TargetCalculator* cached )
     : cachedCalculator( cached )
       {}
-  
+
   virtual ~CachingTargetCalculator();
-  
+
   TargetCalculator* get_cached_calculator() const
     { return cachedCalculator; }
-  
-  virtual bool get_3D_target( PatchData& pd, 
+
+  virtual bool get_3D_target( PatchData& pd,
                               size_t element,
                               Sample sample,
                               MsqMatrix<3,3>& W_out,
                               MsqError& err );
-  
+
   virtual bool get_surface_target( PatchData& pd,
                               size_t element,
                               Sample sample,
                               MsqMatrix<3,2>& W_out,
                               MsqError& err );
-  
+
   virtual bool get_2D_target( PatchData& pd,
                               size_t element,
                               Sample sample,
@@ -101,7 +101,7 @@ public:
     { return cachedCalculator->have_surface_orient(); }
 
 protected:
-                            
+
   void notify_patch_destroyed( CachedTargetData& d );
 
   void notify_sub_patch( PatchData& orig_patch,
@@ -110,11 +110,11 @@ protected:
                          const size_t* vertex_index_map,
                          const size_t* element_index_map,
                          MsqError& err );
-  
+
   void notify_new_patch( PatchData& patch, CachedTargetData& data );
 
 private:
-  
+
   TargetCalculator *const cachedCalculator;
 };
 

@@ -1,8 +1,8 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
-    Copyright 2006 Lawrence Livermore National Laboratory.  Under 
-    the terms of Contract B545069 with the University of Wisconsin -- 
+    Copyright 2006 Lawrence Livermore National Laboratory.  Under
+    the terms of Contract B545069 with the University of Wisconsin --
     Madison, Lawrence Livermore National Laboratory retains certain
     rights in this software.
 
@@ -16,11 +16,11 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2006) kraftche@cae.wisc.edu    
+    (2006) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
@@ -31,7 +31,7 @@
  *  \brief Lagrange mapping funtion for a 9-node quad.
  *  \author Jason Kraftcheck
  */
- 
+
 #include "MappingFunction.hpp"
 
 namespace MBMesquite {
@@ -42,7 +42,7 @@ namespace MBMesquite {
  * a Lagrange shape function for quadrilateral elements.
  *
  * \f$\vec{x}(\xi,\eta) = \sum_{i=0}^{n-1} N_i(\xi,\eta) \vec{x_i}\f$
- * 
+ *
  * \f$N_a = l^2_b(\xi) l^2_c(\eta)\f$
  *
  * \f$l^2_1(\xi) = (\xi - 1) (2 \xi - 1)\f$
@@ -62,27 +62,27 @@ namespace MBMesquite {
  *    6 & 2 & 3 \\
  *    7 & 1 & 2 \\
  *    8 & 2 & 2 \end{array}\f$
- *    
+ *
  */
 class MESQUITE_EXPORT QuadLagrangeShape : public MappingFunction2D
 {
 public:
 
-  virtual 
+  virtual
   EntityTopology element_topology() const;
-  
+
   virtual
   int num_nodes() const;
 
-  virtual 
+  virtual
   void coefficients( Sample location,
                      NodeSet nodeset,
                      double* coeff_out,
                      size_t* indices_out,
                      size_t& num_coeff_out,
                      MsqError& err ) const;
-  
-  virtual 
+
+  virtual
   void derivatives( Sample location,
                     NodeSet nodeset,
                     size_t* vertex_indices_out,
@@ -91,7 +91,7 @@ public:
                     MsqError& err ) const;
 
   virtual
-  void ideal( Sample location, 
+  void ideal( Sample location,
               MsqMatrix<3,2>& jacobian_out,
               MsqError& err ) const;
 };

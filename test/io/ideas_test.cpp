@@ -25,13 +25,13 @@ void test_read_physical_set();
 int main()
 {
   int result = 0;
-  
+
   result += RUN_TEST(test_read_nodes);
   result += RUN_TEST(test_read_tets);
   result += RUN_TEST(test_read_hexes);
   result += RUN_TEST(test_read_material_set);
   result += RUN_TEST(test_read_physical_set);
-  
+
   return result;
 }
 
@@ -49,25 +49,25 @@ void test_read_nodes()
   Core moab;
   Interface& mb = moab;
   read_file( moab, example );
-  
+
   std::vector<EntityHandle> nodes;
   rval = mb.get_entities_by_type( 0, MBVERTEX, nodes );
   CHECK_ERR(rval);
   CHECK_EQUAL( (size_t)17, nodes.size() );
-  
+
   Tag id_tag = mb.globalId_tag();
-  
+
   std::vector<int> ids(nodes.size());
   rval = mb.tag_get_data( id_tag, &nodes[0], nodes.size(), &ids[0] );
   CHECK_ERR(rval);
-  
+
   std::vector<int> sorted_ids( ids );
   std::sort( sorted_ids.begin(), sorted_ids.end() );
-  
+
   std::vector<double> coords(3*nodes.size());
   rval = mb.get_coords( &nodes[0], nodes.size(), &coords[0] );
   CHECK_ERR(rval);
-  
+
   int idx, pos = 0;
   // shared between 2 tets and 2 prisms
   CHECK_EQUAL( pos+1, sorted_ids[pos] );
@@ -75,21 +75,21 @@ void test_read_nodes()
   CHECK_REAL_EQUAL( coords[3*idx+0], 0.0, eps );
   CHECK_REAL_EQUAL( coords[3*idx+1], 1.0, eps );
   CHECK_REAL_EQUAL( coords[3*idx+2], 0.0, eps );
-  
+
   ++pos;
   CHECK_EQUAL( pos+1, sorted_ids[pos] );
   idx = std::find( ids.begin(), ids.end(),pos+1 ) - ids.begin();
   CHECK_REAL_EQUAL( coords[3*idx+0], 0.0, eps );
   CHECK_REAL_EQUAL( coords[3*idx+1], 1.0, eps );
   CHECK_REAL_EQUAL( coords[3*idx+2], 1.0, eps );
-  
+
   ++pos;
   CHECK_EQUAL( pos+1, sorted_ids[pos] );
   idx = std::find( ids.begin(), ids.end(),pos+1 ) - ids.begin();
   CHECK_REAL_EQUAL( coords[3*idx+0], 0.0, eps );
   CHECK_REAL_EQUAL( coords[3*idx+1], 0.0, eps );
   CHECK_REAL_EQUAL( coords[3*idx+2], 1.0, eps );
-  
+
   // id=4
   ++pos;
   CHECK_EQUAL( pos+1, sorted_ids[pos] );
@@ -97,14 +97,14 @@ void test_read_nodes()
   CHECK_REAL_EQUAL( coords[3*idx+0], 0.0, eps );
   CHECK_REAL_EQUAL( coords[3*idx+1], 0.0, eps );
   CHECK_REAL_EQUAL( coords[3*idx+2], 0.0, eps );
-  
+
   ++pos;
   CHECK_EQUAL( pos+1, sorted_ids[pos] );
   idx = std::find( ids.begin(), ids.end(),pos+1 ) - ids.begin();
   CHECK_REAL_EQUAL( coords[3*idx+0], 1.0, eps );
   CHECK_REAL_EQUAL( coords[3*idx+1], 1.0, eps );
   CHECK_REAL_EQUAL( coords[3*idx+2], 0.0, eps );
-  
+
   ++pos;
   CHECK_EQUAL( pos+1, sorted_ids[pos] );
   idx = std::find( ids.begin(), ids.end(),pos+1 ) - ids.begin();
@@ -191,7 +191,7 @@ void test_read_nodes()
   CHECK_REAL_EQUAL( coords[3*idx+0], 1.0000022760448197, eps );
   CHECK_REAL_EQUAL( coords[3*idx+1], 1.0000022760448197, eps );
   CHECK_REAL_EQUAL( coords[3*idx+2], 2.0, eps );
-}  
+}
 
 
 void test_read_tets()
@@ -200,27 +200,27 @@ void test_read_tets()
   Core moab;
   Interface& mb = moab;
   read_file( moab, example );
-  
+
   std::vector<EntityHandle> tets;
   rval = mb.get_entities_by_type( 0, MBTET, tets );
   CHECK_ERR(rval);
   CHECK_EQUAL( (size_t)2, tets.size() );
-  
+
   Tag id_tag = mb.globalId_tag();
-  
+
   std::vector<int> ids(tets.size());
   rval = mb.tag_get_data( id_tag, &tets[0], tets.size(), &ids[0] );
   CHECK_ERR(rval);
-  
+
   if (ids[0] != 3) {
     std::swap( ids[0], ids[1] );
     std::swap( tets[0], tets[1] );
   }
-  
+
   int vtx_ids[4];
   const EntityHandle* conn;
   int len;
-  
+
   // The first tet has id=3
   const int conn1[] = { 13, 14, 15, 16 };
   int pos = 0, offset = 3;
@@ -231,7 +231,7 @@ void test_read_tets()
   rval = mb.tag_get_data( id_tag, conn, len, vtx_ids );
   CHECK_ERR(rval);
   CHECK_ARRAYS_EQUAL( conn1, 4, vtx_ids, len );
-  
+
   // The second tet has id=4
   const int conn2[] = { 13, 17, 14, 16 };
   ++pos;
@@ -242,7 +242,7 @@ void test_read_tets()
   rval = mb.tag_get_data( id_tag, conn, len, vtx_ids );
   CHECK_ERR(rval);
   CHECK_ARRAYS_EQUAL( conn2, 4, vtx_ids, len );
-}  
+}
 
 void test_read_hexes()
 {
@@ -250,22 +250,22 @@ void test_read_hexes()
   Core moab;
   Interface& mb = moab;
   read_file( moab, example );
-  
+
   std::vector<EntityHandle> hexes;
   rval = mb.get_entities_by_type( 0, MBHEX, hexes );
   CHECK_ERR(rval);
   CHECK_EQUAL( (size_t)2, hexes.size() );
-  
+
   Tag id_tag = mb.globalId_tag();
-  
+
   std::vector<int> ids(hexes.size());
   rval = mb.tag_get_data( id_tag, &hexes[0], hexes.size(), &ids[0] );
   CHECK_ERR(rval);
-  
+
   int vtx_ids[8];
   const EntityHandle* conn;
   int len;
-  
+
   const int conn1[] = { 1, 2, 3, 4, 5, 6, 7, 8 };
   int pos = 0, offset = 1;
   // Element id 1 is a hex
@@ -276,7 +276,7 @@ void test_read_hexes()
   rval = mb.tag_get_data( id_tag, conn, len, vtx_ids );
   CHECK_ERR(rval);
   CHECK_ARRAYS_EQUAL( conn1, 8, vtx_ids, len );
-  
+
   const int conn2[] = { 2, 9, 10, 3, 6, 11, 12, 7 };
   ++pos;
   // Element id 2 is a hex
@@ -287,7 +287,7 @@ void test_read_hexes()
   rval = mb.tag_get_data( id_tag, conn, len, vtx_ids );
   CHECK_ERR(rval);
   CHECK_ARRAYS_EQUAL( conn2, 8, vtx_ids, len );
-} 
+}
 
 // Two tets and two hexes are in material set 100.
 void test_read_material_set()
@@ -296,15 +296,15 @@ void test_read_material_set()
   Core moab;
   Interface& mb = moab;
   read_file( moab, example );
-  
+
   Tag mat_tag;
   rval = mb.tag_get_handle( MAT_PROP_TABLE_TAG, 1, MB_TYPE_INTEGER, mat_tag );
   CHECK_ERR(rval);
-  
-  Range mat_set;  
+
+  Range mat_set;
   const int mat_set_id = 100;
-  const void* const mat_set_id_val[] = {&mat_set_id};  
-  rval = mb.get_entities_by_type_and_tag( 0, MBENTITYSET, &mat_tag, mat_set_id_val, 
+  const void* const mat_set_id_val[] = {&mat_set_id};
+  rval = mb.get_entities_by_type_and_tag( 0, MBENTITYSET, &mat_tag, mat_set_id_val,
                                           1, mat_set );
   CHECK_ERR(rval);
   CHECK_EQUAL( 1, (int)mat_set.size() );
@@ -328,19 +328,19 @@ void test_read_physical_set()
   Core moab;
   Interface& mb = moab;
   read_file( moab, example );
-  
+
   Tag phys_tag;
   rval = mb.tag_get_handle( PHYS_PROP_TABLE_TAG, 1, MB_TYPE_INTEGER, phys_tag );
   CHECK_ERR(rval);
-  
-  Range phys_set;  
+
+  Range phys_set;
   const int phys_set_id = 4;
-  const void* const phys_set_id_val[] = {&phys_set_id};  
+  const void* const phys_set_id_val[] = {&phys_set_id};
   rval = mb.get_entities_by_type_and_tag( 0, MBENTITYSET, &phys_tag, phys_set_id_val,
                                           1, phys_set );
   CHECK_ERR(rval);
   CHECK_EQUAL( 1, (int)phys_set.size() );
-  
+
   std::vector<EntityHandle> tets, contents;
   rval = mb.get_entities_by_type( 0, MBTET, tets );
   CHECK_ERR(rval);

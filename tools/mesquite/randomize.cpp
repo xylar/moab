@@ -32,30 +32,30 @@ const char UNOPTIMIZE_FLAG = 'u';
 class UnOptimizer : public VertexMover
 {
 public:
-  
+
   UnOptimizer( ObjectiveFunction* of ) : objectiveFunction(of) {}
-  
+
   virtual ~UnOptimizer() {}
-  
+
   virtual std::string get_name() const;
-  
+
   virtual PatchSet* get_patch_set();
-  
+
 protected:
 
     virtual void initialize(PatchData &pd, MsqError &err);
-    
+
     virtual void optimize_vertex_positions(PatchData &pd,
                                          MsqError &err);
-                                         
+
     virtual void initialize_mesh_iteration(PatchData &pd, MsqError &err);
-    
+
     virtual void terminate_mesh_iteration(PatchData &pd, MsqError &err);
-    
+
     virtual void cleanup();
 
 private:
-  
+
     std::vector<size_t> adjVtxList;
     VertexPatches patchSet;
     ObjectiveFunction* objectiveFunction;
@@ -73,7 +73,7 @@ void UnOptimizer::optimize_vertex_positions( PatchData &pd, MsqError &err) {
   std::vector<Vector3D> grad(1);
   double val, junk, coeff;
   bool state;
-  
+
   state = objectiveFunction->evaluate_with_gradient( ObjectiveFunction::CALCULATE,
                                                      pd, val, grad, err );
   MSQ_ERRRTN(err);
@@ -82,11 +82,11 @@ void UnOptimizer::optimize_vertex_positions( PatchData &pd, MsqError &err) {
     return;
   }
   grad[0] /= grad[0].length();
-  
+
   PatchDataVerticesMemento* memento = pd.create_vertices_memento( err ); MSQ_ERRRTN(err);
   std::auto_ptr<PatchDataVerticesMemento> deleter( memento );
   pd.get_minmax_edge_length( junk, coeff );
-  
+
   for (int i = 0; i < 100; ++i) {
     pd.set_free_vertices_constrained( memento, arrptr(grad), 1, coeff, err ); MSQ_ERRRTN(err);
     state = objectiveFunction->evaluate( ObjectiveFunction::CALCULATE, pd, val, true, err );
@@ -109,7 +109,7 @@ int main( int argc, char* argv[] )
   CLArgs::ToggleArg allow_invalid( false );
   CLArgs::DoubleRangeArg rand_percent( default_fraction, &zero, 0 );
   CLArgs::IntRangeArg unoptimize( 0, &one, 0 );
-  
+
   CLArgs args( "vtkrandom",
                "Randomize mesh vertex locations.",
                "Read VTK file, randomize locations of containded vertices, and re-write file." );
@@ -127,7 +127,7 @@ int main( int argc, char* argv[] )
   }
   std::string input_file = files[0];
   std::string output_file = files[1];
-  
+
   MsqError err;
   MeshImpl mesh;
   mesh.read_vtk( input_file.c_str(), err );
@@ -171,14 +171,14 @@ int main( int argc, char* argv[] )
       return 4;
     }
   }
-  
+
   mesh.write_vtk( output_file.c_str(), err );
   if (err) {
     std::cerr << "ERROR WRITING FILE: " << output_file << std::endl
                     << err << std::endl;
     return 2;
   }
-  
+
   return 0;
 }
 

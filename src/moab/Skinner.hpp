@@ -1,16 +1,16 @@
 /**
  * MOAB, a Mesh-Oriented datABase, is a software component for creating,
  * storing and accessing finite element mesh data.
- * 
+ *
  * Copyright 2004 Sandia Corporation.  Under the terms of Contract
  * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
  * retains certain rights in this software.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  */
 
 
@@ -25,16 +25,16 @@
 namespace moab {
 
 class ScdBox;
-    
+
 /** \class Skinner
  * \brief Class for constructing and querying skin of a mesh
- * Class for constructing and querying skin of a mesh, defined as the outside lower-dimensional 
+ * Class for constructing and querying skin of a mesh, defined as the outside lower-dimensional
  * boundary of a mesh or a given set of entities.  This class provides options for finding the
  * forward- and reverse-oriented members of the skin.  Several methods are available for computing
  * the skin, e.g. using geometric topology sets, vertex-entity adjacencies, or directly from
  * (n-1)-dimensional entities.
  */
-class Skinner 
+class Skinner
 {
 
   enum direction{FORWARD=1, REVERSE=-1};
@@ -48,28 +48,28 @@ protected:
 
 public:
   //! constructor, takes mdb instance
-  Skinner(Interface* mdb) 
+  Skinner(Interface* mdb)
     : thisMB(mdb), mDeletableMBTag(0), mAdjTag(0), mTargetDim(0) {}
 
   //! destructor
   ~Skinner();
 
   ErrorCode find_geometric_skin(const EntityHandle meshset, Range &forward_target_entities);
-  
-    /**\brief will accept entities all of one dimension and 
+
+    /**\brief will accept entities all of one dimension and
      *        return entities of n-1 dimension; NOTE: get_vertices argument controls whether
      * vertices or entities of n-1 dimension are returned, and only one of these is allowed
      * (i.e. this function returns only vertices or (n-1)-dimensional entities, but not both)
      * \param entities The elements for which to find the skin
-     * \param get_vertices If true, vertices on the skin are returned 
+     * \param get_vertices If true, vertices on the skin are returned
      *        in the range, otherwise elements are returned
      * \param output_handles Range holding skin entities returned
-     * \param output_reverse_handles Range holding entities on skin which 
+     * \param output_reverse_handles Range holding entities on skin which
      *        are reversed wrt entities
-     * \param create_vert_elem_adjs If true, this function will cause 
+     * \param create_vert_elem_adjs If true, this function will cause
      *        vertex-element adjacencies to be generated
-     * \param create_skin_elements If true, this function will cause creation 
-     *        of skin entities, otherwise only skin entities already extant 
+     * \param create_skin_elements If true, this function will cause creation
+     *        of skin entities, otherwise only skin entities already extant
      *        will be returned
      */
   ErrorCode find_skin( const EntityHandle meshset,
@@ -81,21 +81,21 @@ public:
                        bool create_skin_elements = true,
                        bool look_for_scd = false);
 
-    /**\brief will accept entities all of one dimension and 
+    /**\brief will accept entities all of one dimension and
      *        return entities of n-1 dimension; NOTE: get_vertices argument controls whether
      * vertices or entities of n-1 dimension are returned, and only one of these is allowed
      * (i.e. this function returns only vertices or (n-1)-dimensional entities, but not both)
      * \param entities Pointer to elements for which to find the skin
      * \param num_entities Number of entities in vector
-     * \param get_vertices If true, vertices on the skin are returned 
+     * \param get_vertices If true, vertices on the skin are returned
      *        in the range, otherwise elements are returned
      * \param output_handles Range holding skin entities returned
-     * \param output_reverse_handles Range holding entities on skin which 
+     * \param output_reverse_handles Range holding entities on skin which
      *        are reversed wrt entities
-     * \param create_vert_elem_adjs If true, this function will cause 
+     * \param create_vert_elem_adjs If true, this function will cause
      *        vertex-element adjacencies to be generated
-     * \param create_skin_elements If true, this function will cause creation 
-     *        of skin entities, otherwise only skin entities already extant 
+     * \param create_skin_elements If true, this function will cause creation
+     *        of skin entities, otherwise only skin entities already extant
      *        will be returned
      */
   ErrorCode find_skin( const EntityHandle this_set,
@@ -112,7 +112,7 @@ public:
      * \param entities The elements for which to find the skin
      * \param dim Dimension of skin entities requested
      * \param skin_entities Range holding skin entities returned
-     * \param create_vert_elem_adjs If true, this function will cause 
+     * \param create_vert_elem_adjs If true, this function will cause
      *        vertex-element adjacencies to be generated
      */
   ErrorCode find_skin(const EntityHandle this_set,
@@ -129,7 +129,7 @@ public:
                                      EntityHandle non_manifold_edges,
                                      EntityHandle other_edges,
                                      int &number_boundary_nodes);
-  
+
   //!given a skin of dimension 2, will classify and return edges
   //! as boundary, inferred, and non-manifold, and the rest (other)
   ErrorCode classify_2d_boundary( const Range  &boundary,
@@ -141,9 +141,9 @@ public:
                                      int &number_boundary_nodes);
 
 protected:
-  
+
   ErrorCode initialize();
-  
+
   ErrorCode deinitialize();
 
   ErrorCode find_skin_noadj( const Range &source_entities,
@@ -151,7 +151,7 @@ protected:
                                Range &reverse_target_entities );
 
   ErrorCode add_adjacency(EntityHandle entity);
-  
+
   void add_adjacency(EntityHandle entity, const EntityHandle *conn,
                      const int num_nodes);
 
@@ -159,8 +159,8 @@ protected:
 
   bool entity_deletable(EntityHandle entity);
 
-  void find_match( EntityType type, 
-                   const EntityHandle *conn, 
+  void find_match( EntityType type,
+                   const EntityHandle *conn,
                    const int num_nodes,
                    EntityHandle& match,
                    Skinner::direction &direct);
@@ -185,10 +185,10 @@ protected:
      *                may NOT contain vertices, polyhedra, or entity sets.
      *                All elements in range must be of the same dimension.
      *\param skin_verts Output: the vertices on the skin.
-     *\param skin_elems Optional output: elements representing sides of entities 
+     *\param skin_elems Optional output: elements representing sides of entities
      *                    that are on the skin
-     *\param create_if_missing If skin_elemts is non-null and this is true, 
-     *                    create new elements representing the sides of 
+     *\param create_if_missing If skin_elemts is non-null and this is true,
+     *                    create new elements representing the sides of
      *                    entities on the skin.  If this is false, skin_elems
      *                    will contain only those skin elements that already
      *                    exist.
@@ -208,10 +208,10 @@ protected:
   ErrorCode find_skin_vertices_1D( Tag tag,
                                      const Range& edges,
                                      Range& skin_verts );
-                                     
+
   /**\brief Skin faces
    *
-   * For the set of face sides (logical edges), return 
+   * For the set of face sides (logical edges), return
    * vertices on such sides and/or edges equivalent to such sides.
    *\param faces  Set of toplogically 2D entities to skin.
    *\param skin_verts If non-NULL, skin vertices will be added to this container.
@@ -236,10 +236,10 @@ protected:
                                      Range* reverse_edges = 0,
                                      bool create_edges = false,
                                      bool corners_only = false );
-                                     
+
   /**\brief Skin volume mesh
    *
-   * For the set of element sides (logical faces), return 
+   * For the set of element sides (logical faces), return
    * vertices on such sides and/or faces equivalent to such sides.
    *\param entities  Set of toplogically 3D entities to skin.
    *\param skin_verts If non-NULL, skin vertices will be added to this container.
@@ -269,9 +269,9 @@ protected:
                            EntityType side_type,
                            const EntityHandle* side_corners,
                            EntityHandle& side_elem_handle_out );
-                           
+
   bool edge_reversed( EntityHandle face, const EntityHandle edge_ends[2] );
-  bool face_reversed( EntityHandle region, const EntityHandle* face_conn, 
+  bool face_reversed( EntityHandle region, const EntityHandle* face_conn,
                       EntityType face_type );
 
     //! look for structured box comprising source_entities, and if one is found use
@@ -280,9 +280,9 @@ protected:
                           bool get_vertices,
                           Range& output_handles,
                           bool create_skin_elements);
-  
+
     //! skin a structured box, taking advantage of structured information
-  ErrorCode skin_box(ScdBox *box, bool get_vertices, Range &output_handles, 
+  ErrorCode skin_box(ScdBox *box, bool get_vertices, Range &output_handles,
                      bool create_skin_elements);
 };
 
@@ -294,15 +294,15 @@ inline ErrorCode Skinner::find_skin( const EntityHandle this_set,
                                      Range *output_reverse_handles,
                                      bool create_vert_elem_adjs,
                                      bool create_skin_elements,
-                                     bool look_for_scd) 
+                                     bool look_for_scd)
 {
   Range ents;
   std::copy(entities, entities+num_entities, range_inserter(ents));
   return find_skin(this_set, ents, get_vertices, output_handles, output_reverse_handles,
                    create_vert_elem_adjs, create_skin_elements, look_for_scd);
 }
-      
-} // namespace moab 
+
+} // namespace moab
 
 #endif
 

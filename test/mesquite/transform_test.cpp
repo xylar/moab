@@ -1,9 +1,9 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2004 Sandia Corporation and Argonne National
-    Laboratory.  Under the terms of Contract DE-AC04-94AL85000 
-    with Sandia Corporation, the U.S. Government retains certain 
+    Laboratory.  Under the terms of Contract DE-AC04-94AL85000
+    with Sandia Corporation, the U.S. Government retains certain
     rights in this software.
 
     This library is free software; you can redistribute it and/or
@@ -16,16 +16,16 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
-    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov, 
-    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov      
-   
+
+    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov,
+    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov
+
   ***************************************************************** */
 //
-//   SUMMARY: 
+//   SUMMARY:
 //     USAGE:
 //
 // ORIG-DATE: 19-Feb-02 at 10:57:52
@@ -73,10 +73,10 @@ int main(int , char* [])
     //mesh->read_exodus("transformed_mesh.exo", err);
   mesh.read_vtk(default_file_name.c_str(), err);
   if (err) return 1;
-  
+
     // Get all vertex coordinates from mesh
   std::vector<MBMesquite::Mesh::VertexHandle> handles;
-  mesh.get_all_vertices( handles, err ); 
+  mesh.get_all_vertices( handles, err );
   if (err) return 1;
   if (handles.empty()) {
     std::cerr << "No verticies in mesh" << endl;
@@ -85,7 +85,7 @@ int main(int , char* [])
   std::vector<MBMesquite::MsqVertex> coords( handles.size() );
   mesh.vertices_get_coordinates( arrptr(handles), arrptr(coords), handles.size(), err );
   if (err) return 1;
-  
+
     //create the matrix for affine transformation
   double array_entries[9];
   array_entries[0]=0; array_entries[1]=1; array_entries[2]=0;
@@ -102,12 +102,12 @@ int main(int , char* [])
     //mesh->write_exodus("transformed_mesh.exo", err);
   mesh.write_vtk("transformed_mesh.vtk", err);
   if (err) return 1;
-  
+
     // Get transformed coordinates
   std::vector<MBMesquite::MsqVertex> coords2( handles.size() );
   mesh.vertices_get_coordinates( arrptr(handles), arrptr(coords2), handles.size(), err );
   if (err) return 1;
- 
+
     // Compare vertex coordinates
   size_t invalid = 0;
   std::vector<MBMesquite::MsqVertex>::iterator iter, iter2;
@@ -120,9 +120,9 @@ int main(int , char* [])
     if (d > EPSILON)
       ++invalid;
   }
-  
-  std::cerr << invalid << " vertices not within " << EPSILON 
+
+  std::cerr << invalid << " vertices not within " << EPSILON
                   << " of expected location" << std::endl;
-  
+
   return (invalid != 0);
 }

@@ -1,8 +1,8 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
-    Copyright 2006 Lawrence Livermore National Laboratory.  Under 
-    the terms of Contract B545069 with the University of Wisconsin -- 
+    Copyright 2006 Lawrence Livermore National Laboratory.  Under
+    the terms of Contract B545069 with the University of Wisconsin --
     Madison, Lawrence Livermore National Laboratory retains certain
     rights in this software.
 
@@ -16,11 +16,11 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2006) kraftche@cae.wisc.edu    
+    (2006) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
@@ -28,7 +28,7 @@
 #define MSQ_GLOBAL_PATCH_HPP
 
 /** \file GlobalPatch.hpp
- *  \brief 
+ *  \brief
  *  \author Jason Kraftcheck
  */
 
@@ -41,11 +41,11 @@ class GlobalPatch : public PatchSet
 {
 public:
     ~GlobalPatch();
-    
+
     /**\brief Get a list of handles, one for each patch */
     virtual void get_patch_handles( std::vector<PatchHandle>& patch_handles_out,
                                     MsqError& err );
-    
+
     /**\brief Get the mesh entities in a patch
      *
      * Given one of the handles returned by get_patch_handles(),
@@ -58,7 +58,7 @@ public:
                             std::vector<Mesh::ElementHandle>& elem_handles_out,
                             std::vector<Mesh::VertexHandle>& free_vertices_out,
                             MsqError& err );
-   
+
 };
 
 

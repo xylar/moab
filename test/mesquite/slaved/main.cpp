@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2010 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2010) kraftche@cae.wisc.edu    
+    (2010) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file main.cpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #include "TestUtil.hpp"
@@ -76,7 +76,7 @@ int check_no_slaved_corners( Mesh& mesh, MsqError& err );
 int check_global_patch_slaved( Mesh& mesh, MsqError& err );
 
 // tag vertices marked as slaved in the PatchData
-void tag_patch_slaved( Mesh& mesh, 
+void tag_patch_slaved( Mesh& mesh,
                        Settings::HigherOrderSlaveMode mode,
                        MsqError& err );
 
@@ -99,7 +99,7 @@ int main( int argc, char* argv[] )
   }
   if (expect_output_base)
     usage(argv[0]);
-  
+
   MsqPrintError err(std::cerr);
   SlaveBoundaryVertices slaver(1);
   TShapeNB1 tmetric;
@@ -114,27 +114,27 @@ int main( int argc, char* argv[] )
   InstructionQueue q;
   q.set_master_quality_improver( &improver, err );
   q.add_quality_assessor( &assess, err );
-  
+
   TriLagrangeShape trishape;
   QuadLagrangeShape quadshape;
   q.set_mapping_function( &trishape );
   q.set_mapping_function( &quadshape );
-  
+
   const int NUM_MODES = 4;
-  
-  Settings::HigherOrderSlaveMode modes[NUM_MODES] = 
-    { Settings::SLAVE_NONE, 
+
+  Settings::HigherOrderSlaveMode modes[NUM_MODES] =
+    { Settings::SLAVE_NONE,
       Settings::SLAVE_ALL,
       Settings::SLAVE_CALCULATED,
       Settings::SLAVE_FLAG
     };
-  
-  std::string names[NUM_MODES] = 
+
+  std::string names[NUM_MODES] =
     { "NONE",
       "ALL",
       "CALCULATED",
       "FLAG" };
-  
+
   MeshImpl meshes[NUM_MODES];
   std::vector<MeshDomainAssoc> meshes_and_domains;
 
@@ -145,10 +145,10 @@ int main( int argc, char* argv[] )
               << "-----------------------------------------------" << std::endl
               << "     Mode: " << names[i] << std::endl
               << "-----------------------------------------------" << std::endl;
-    
+
     meshes[i].read_vtk( input_file, err );
     if (err) return 1;
-  
+
     if (modes[i] == Settings::SLAVE_CALCULATED) {
         q.add_vertex_slaver( &slaver, err );
     }
@@ -165,7 +165,7 @@ int main( int argc, char* argv[] )
       }
     }
 
-  
+
     if (have_slaved_flag && modes[i] == Settings::SLAVE_FLAG) {
       if (!check_no_slaved_corners( meshes[i], err ) || err)
         return 1;
@@ -173,7 +173,7 @@ int main( int argc, char* argv[] )
         return 1;
     }
 
-  
+
     PlanarDomain plane;
     plane.fit_vertices( &meshes[i], err );
     if (err) return 1;
@@ -186,7 +186,7 @@ int main( int argc, char* argv[] )
     if (modes[i] == Settings::SLAVE_CALCULATED) {
         q.remove_vertex_slaver( &slaver, err );
     }
-    
+
     if (output_file_base) {
       tag_patch_slaved( meshes[i], modes[i], err );
       std::string name(output_file_base);
@@ -197,7 +197,7 @@ int main( int argc, char* argv[] )
       if (err) return 1;
     }
   }
-  
+
   int exit_code = 0;
   if (!DEFAULT_INPUT_FILE.compare(input_file)) {
     for (int i = 0; i < NUM_MODES; ++i) {
@@ -205,21 +205,21 @@ int main( int argc, char* argv[] )
                 << "-----------------------------------------------" << std::endl
                 << "     Mode: " << names[i] << std::endl
                 << "-----------------------------------------------" << std::endl;
-    
+
       exit_code += check_slaved_coords( meshes[i], modes[i], names[i], have_slaved_flag, err );
       if (err) return 1;
     }
-    
+
       // flags should correspond to same slaved nodes as calculated,
       // so resulting meshes should be identical.
     if (have_slaved_flag) {
       int flag_idx = std::find( modes, modes+NUM_MODES, Settings::SLAVE_FLAG ) - modes;
       int calc_idx = std::find( modes, modes+NUM_MODES, Settings::SLAVE_CALCULATED ) - modes;
       exit_code += compare_node_coords( meshes[flag_idx], meshes[calc_idx], err );
-      if (err) return 1;    
+      if (err) return 1;
     }
   }
-  
+
   return exit_code;
 }
 
@@ -229,20 +229,20 @@ Vector3D get_slaved_coords( Mesh& mesh, Mesh::VertexHandle vertex, MsqError& err
   std::vector<size_t> off;
   mesh.vertices_get_attached_elements( &vertex, 1, elem, off, err );
   if (MSQ_CHKERR(err)) return Vector3D(0.0);
-  
+
   std::vector<Mesh::VertexHandle> verts;
   mesh.elements_get_attached_vertices( arrptr(elem), 1, verts, off, err );
   if (MSQ_CHKERR(err)) return Vector3D(0.0);
-  
+
   EntityTopology type;
   mesh.elements_get_topologies( arrptr(elem), &type, 1, err );
   if (MSQ_CHKERR(err)) return Vector3D(0.0);
-  
+
   size_t idx = std::find( verts.begin(), verts.end(), vertex ) - verts.begin();
   unsigned side_dim, side_num;
   TopologyInfo::side_from_higher_order( type, verts.size(), idx, side_dim, side_num, err);
   if (MSQ_CHKERR(err)) return Vector3D(0.0);
-  
+
     // just return the mean of the corner vertices defining the side.
     // this should always be correct for mid-edge nodes but is a bit
     // dubious for mid-face or mid-region nodes.  But our default input
@@ -250,7 +250,7 @@ Vector3D get_slaved_coords( Mesh& mesh, Mesh::VertexHandle vertex, MsqError& err
     // have only mid-edge nodes.
   unsigned n;
   const unsigned* side_vtx = TopologyInfo::side_vertices( type, side_dim, side_num, n, err );
-  if (MSQ_CHKERR(err)) 
+  if (MSQ_CHKERR(err))
     return Vector3D(0.0);
 
   Vector3D sum(0.0);
@@ -264,9 +264,9 @@ Vector3D get_slaved_coords( Mesh& mesh, Mesh::VertexHandle vertex, MsqError& err
   return sum / n;
 }
 
-int check_slaved_coords( Mesh& mesh, 
+int check_slaved_coords( Mesh& mesh,
                          Settings::HigherOrderSlaveMode mode,
-                         std::string name, 
+                         std::string name,
                          bool have_slaved_flag,
                          MsqError& err )
 {
@@ -280,7 +280,7 @@ int check_slaved_coords( Mesh& mesh,
     std::cerr << "slaved flag not specified in input file. Cannot validate results." << std::endl;
     return 1;
   }
-  
+
   // Get list of all higher-order nodes
   std::vector<Mesh::ElementHandle> elems;
   std::vector<Mesh::VertexHandle> verts;
@@ -300,7 +300,7 @@ int check_slaved_coords( Mesh& mesh,
   }
   std::sort( verts.begin(), w );
   verts.erase( std::unique( verts.begin(), w ), verts.end() );
-  
+
   // Get lists of slaved and non-slaved free vertices, where 'slaved'
   // are those vertices far from the boundary that would be slaved if
   // mode == SLAVE_FLAG, not those that were actually slaved during
@@ -321,16 +321,16 @@ int check_slaved_coords( Mesh& mesh,
     else if (!fixed[i] && !slaved[i])
       free.push_back( verts[i] );
   }
-  
+
     // get all coordinates
   std::vector<MsqVertex> free_coords(free.size()), slave_coords(slave.size());
   mesh.vertices_get_coordinates( arrptr(free), arrptr(free_coords), free.size(), err );
   MSQ_ERRZERO(err);
   mesh.vertices_get_coordinates( arrptr(slave), arrptr(slave_coords), slave.size(), err );
   MSQ_ERRZERO(err);
-  
+
   int error_count = 0;
-  
+
     // Expect vertices near boundary to be at slave vertex positions
     // if mode was SLAVE_ALL
   if (mode == Settings::SLAVE_ALL) {
@@ -344,11 +344,11 @@ int check_slaved_coords( Mesh& mesh,
       }
     }
   }
-    // Otherwise, given the default input mesh, at least some of the 
+    // Otherwise, given the default input mesh, at least some of the
     // vertices should be somewhere other than the slaved position
   else {
     int not_at_slaved_count = 0;
-  
+
     for (size_t i = 0; i < free.size(); ++i) {
       Vector3D exp = get_slaved_coords( mesh, free[i], err );
       MSQ_ERRZERO(err);
@@ -357,13 +357,13 @@ int check_slaved_coords( Mesh& mesh,
         ++not_at_slaved_count;
       }
     }
-    
+
     if (0 == not_at_slaved_count) {
       std::cerr << "All non-slaved vertices at slaved vertex locations" << std::endl;
       error_count += free.size();
     }
   }
-  
+
     // expect all interior vertices to be at roughly the slaved location
   if (mode != Settings::SLAVE_NONE) {
     for (size_t i = 0; i < slave.size(); ++i) {
@@ -376,7 +376,7 @@ int check_slaved_coords( Mesh& mesh,
       }
     }
   }
-  
+
   return error_count;
 }
 
@@ -392,7 +392,7 @@ int compare_node_coords( Mesh& mesh1, Mesh& mesh2, MsqError& err )
   MSQ_ERRZERO(err);
   mesh2.vertices_get_coordinates( arrptr(verts2), arrptr(coords2), verts2.size(), err );
   MSQ_ERRZERO(err);
-  
+
   int error_count = 0;
   assert(verts1.size() == verts2.size());
   for (size_t i = 0; i < verts1.size(); ++i) {
@@ -404,7 +404,7 @@ int compare_node_coords( Mesh& mesh1, Mesh& mesh2, MsqError& err )
       ++error_count;
     }
   }
-  
+
   return error_count;
 }
 
@@ -419,11 +419,11 @@ int check_no_slaved_corners( Mesh& mesh, MsqError& err )
   mesh.elements_get_topologies( arrptr(elems), arrptr(types), elems.size(), err );  MSQ_ERRZERO(err);
   mesh.elements_get_attached_vertices( arrptr(elems), elems.size(), verts, offsets, err );
   MSQ_ERRZERO(err);
-  
+
   std::vector<bool> slaved;
   mesh.vertices_get_slaved_flag( arrptr(verts), slaved, verts.size(), err );
   MSQ_ERRZERO(err);
-  
+
   int error_count = 0;
   for (size_t i = 0; i < elems.size(); ++i) {
     unsigned n = TopologyInfo::corners( types[i] );
@@ -434,7 +434,7 @@ int check_no_slaved_corners( Mesh& mesh, MsqError& err )
       }
     }
   }
-  
+
   return error_count == 0;
 }
 
@@ -444,20 +444,20 @@ int check_global_patch_slaved( Mesh& mesh, MsqError& err )
   s.set_slaved_ho_node_mode( Settings::SLAVE_FLAG );
   MeshDomainAssoc mesh_and_domain = MeshDomainAssoc(&mesh, 0);
   Instruction::initialize_vertex_byte( &mesh_and_domain, &s, err ); MSQ_ERRZERO(err);
-  
+
   PatchData pd;
   pd.attach_settings( &s );
   pd.set_mesh( &mesh );
   pd.fill_global_patch( err ); MSQ_ERRZERO(err);
 
   std::vector<bool> fixed, slaved;
-  mesh.vertices_get_fixed_flag( pd.get_vertex_handles_array(), 
+  mesh.vertices_get_fixed_flag( pd.get_vertex_handles_array(),
                                 fixed, pd.num_nodes(), err );
   MSQ_ERRZERO(err);
-  mesh.vertices_get_slaved_flag( pd.get_vertex_handles_array(), 
+  mesh.vertices_get_slaved_flag( pd.get_vertex_handles_array(),
                                  slaved, pd.num_nodes(), err );
   MSQ_ERRZERO(err);
-  
+
   const size_t first_free = 0;
   const size_t first_slaved = pd.num_free_vertices();
   const size_t first_fixed = pd.num_free_vertices() + pd.num_slave_vertices();
@@ -496,20 +496,20 @@ int check_global_patch_slaved( Mesh& mesh, MsqError& err )
   return 0 == error_count;
 }
 
-void tag_patch_slaved( Mesh& mesh, 
+void tag_patch_slaved( Mesh& mesh,
                        Settings::HigherOrderSlaveMode mode,
                        MsqError& err )
 {
   int zero = 0;
   TagHandle tag = mesh.tag_create( "pd_slaved", Mesh::INT, 1, &zero, err );
   MSQ_ERRRTN(err);
-  
+
   Settings s;
   s.set_slaved_ho_node_mode( mode );
   PatchData pd;
   pd.attach_settings( &s );
   pd.set_mesh( &mesh );
-  pd.fill_global_patch( err ); 
+  pd.fill_global_patch( err );
   MSQ_ERRRTN(err);
 
   const Mesh::VertexHandle* verts = pd.get_vertex_handles_array() + pd.num_free_vertices();

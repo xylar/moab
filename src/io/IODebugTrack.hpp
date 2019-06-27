@@ -23,7 +23,7 @@ class IODebugTrack {
       unsigned long end;
       unsigned long rank;
     };
-  
+
     bool enableOutput;
     std::string tableName;
     std::list<DRange> dataSet;
@@ -31,38 +31,38 @@ class IODebugTrack {
     unsigned long maxSize;
     int mpiRank;
     bool haveMPI;
-    
+
     void record_io( DRange data );
 
   public:
-  
-      /**\brief Constuctor requires stream to which to log errors 
+
+      /**\brief Constuctor requires stream to which to log errors
        *\param table_name    Used to tag output
        *\param output_stream Stream to which to print error messages
-       *\param table_size Max table size.  No limit if unspecified 
+       *\param table_size Max table size.  No limit if unspecified
        */
     IODebugTrack( bool enable,
                   const std::string& table_name,
                   std::ostream& output_stream,
                   unsigned long table_size = 0 ) ;
-  
-      /**\brief Constuctor requires stream to which to log errors 
+
+      /**\brief Constuctor requires stream to which to log errors
        *\param table_name    Used to tag output
-       *\param table_size Max table size.  No limit if unspecified 
+       *\param table_size Max table size.  No limit if unspecified
        */
     IODebugTrack( bool enable,
                   const std::string& table_name,
                   unsigned long table_size = 0 ) ;
-    
+
       /**\brief Destructor prints errors about unaccessed ranges */
     ~IODebugTrack();
-    
+
       /**\brief Notify of IO request
        *\param begin  First table row being read/written
        *\param count  Num consecutive table rows being read/written
        */
     void record_io( unsigned long begin, unsigned long count );
-    
+
       /**\brief Push all data to root process
        *
        * Does nothing if MPI support is not enabled

@@ -60,7 +60,7 @@ void read_file( Interface* moab, bool curve_fatal, const char* input_file, Error
   curve_fail = RCGM->get_failed_curve_count();
   surface_fail = RCGM->get_failed_surface_count();
   //  std::cout << curve_fail << " " << surface_fail << std::endl;
-  
+
   CHECK_EQUAL(rval,check_val);
   CHECK_EQUAL(curve_fail,0);
   CHECK_EQUAL(surface_fail,0);
@@ -76,7 +76,7 @@ void test_cube_curve_facet()
   int curve_fail = 0;
   int surface_fail = 0;
   // should succeed since we are not fatal error on curves
-  read_file( mb,false,input_cube.c_str(), MB_SUCCESS,curve_fail, surface_fail );  
+  read_file( mb,false,input_cube.c_str(), MB_SUCCESS,curve_fail, surface_fail );
 }
 
 // Gets the vertex entities from a simple cube file load and checks that the
@@ -89,7 +89,7 @@ void test_cone_curve_facet()
   int curve_fail = 0;
   int surface_fail = 0;
   // should expect MB_FAILURE since we fail on curves
-  read_file( mb, true,input_cone.c_str(), MB_FAILURE, curve_fail, surface_fail );  
+  read_file( mb, true,input_cone.c_str(), MB_FAILURE, curve_fail, surface_fail );
 }
 
 
@@ -97,10 +97,10 @@ void test_cone_curve_facet()
 int main(int /* argc */, char** /* argv */)
 {
   int result = 0;
- 
-  result += RUN_TEST(test_cube_curve_facet);  
+
+  result += RUN_TEST(test_cube_curve_facet);
   #ifndef HAVE_OCC_STEP
-  result += RUN_TEST(test_cone_curve_facet);  
+  result += RUN_TEST(test_cone_curve_facet);
   #endif
   return result;
 }

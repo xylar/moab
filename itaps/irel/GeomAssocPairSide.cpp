@@ -164,7 +164,7 @@ int GeomAssocPairSide::get_relation_side(iBase_EntityHandle *entities,
   RETURNR(iBase_SUCCESS);
 }
 
-int GeomAssocPairSide::get_relation_side(iBase_EntitySetHandle *sets, 
+int GeomAssocPairSide::get_relation_side(iBase_EntitySetHandle *sets,
                                          int num_sets, void *values)
 {
   char *data = static_cast<char*>(values);

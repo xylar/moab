@@ -41,7 +41,7 @@ SimplexTemplateTagAssigner::~SimplexTemplateTagAssigner()
   */
 void SimplexTemplateTagAssigner::operator () (
   const double* c0, const void* t0, EntityHandle h0,
-  const double* cm, void* tm, 
+  const double* cm, void* tm,
   const double* c1, const void* t1, EntityHandle h1 )
 {
   double c0m_squared = 0.;
@@ -67,7 +67,7 @@ void SimplexTemplateTagAssigner::operator () (
     this->tag_manager->get_input_vertex_tag( i, tag_handle, tag_offset );
     this->tag_manager->get_input_mesh()->tag_get_data_type( tag_handle, data_type );
     this->tag_manager->get_input_mesh()->tag_get_bytes( tag_handle, tag_size );
-    
+
     switch ( data_type )
       {
       case MB_TYPE_DOUBLE:

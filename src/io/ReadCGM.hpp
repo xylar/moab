@@ -125,8 +125,8 @@ private:
 
   ErrorCode create_surface_facets( std::map<RefEntity*,EntityHandle>& surface_map,
 				   std::map<RefEntity*,EntityHandle>& vertex_map,
-                                   int norm_tol, 
-                                   double facet_tol, 
+                                   int norm_tol,
+                                   double facet_tol,
                                    double length_tol );
   /**
    * Dumps the failed faceting information to screen
@@ -152,7 +152,7 @@ private:
     //! interface instance
   Interface* mdbImpl;
 
-  Tag geom_tag, id_tag, name_tag, category_tag, faceting_tol_tag, 
+  Tag geom_tag, id_tag, name_tag, category_tag, faceting_tol_tag,
         geometry_resabs_tag;
 
   int failed_curve_count; // the number of curves that failed to facet

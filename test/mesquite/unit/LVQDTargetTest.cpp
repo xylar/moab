@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2006 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
+
     (2006) kraftche@cae.wisc.edu
-   
+
   ***************************************************************** */
 
 
 /** \file LVQDTargetTest.cpp
  *  \brief unit tests for LVQDTargetCalculator class
- *  \author Jason Kraftcheck 
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -68,18 +68,18 @@ private:
   PatchData pd2D, pd3D;
 
     // Use LVQDTargetCalculator to calculate the product of the passed values.
-  MsqMatrix<3,2> target( const double* L, 
-                         const MsqMatrix<3,2>* V, 
-                         const MsqMatrix<2,2>* Q, 
+  MsqMatrix<3,2> target( const double* L,
+                         const MsqMatrix<3,2>* V,
+                         const MsqMatrix<2,2>* Q,
                          const MsqMatrix<2,2>* D );
     // Use LVQDTargetCalculator to calculate the product of the passed values.
-  MsqMatrix<2,2> target( const double* L, 
-                         const MsqMatrix<2,2>* Q, 
+  MsqMatrix<2,2> target( const double* L,
+                         const MsqMatrix<2,2>* Q,
                          const MsqMatrix<2,2>* D );
     // Use LVQDTargetCalculator to calculate the product of the passed values.
-  MsqMatrix<3,3> target( const double* L, 
-                         const MsqMatrix<3,3>* V, 
-                         const MsqMatrix<3,3>* Q, 
+  MsqMatrix<3,3> target( const double* L,
+                         const MsqMatrix<3,3>* V,
+                         const MsqMatrix<3,3>* Q,
                          const MsqMatrix<3,3>* D );
 
 public:
@@ -108,23 +108,23 @@ public:
       bool flagError;
 
     public:
-      ConstantTarget( MsqMatrix<3,3> val3D, MsqMatrix<3,2> val2D ) 
-        : target3D(val3D), targetSurf(val2D), have3D(true), haveSurf(true), have2D(false) 
+      ConstantTarget( MsqMatrix<3,3> val3D, MsqMatrix<3,2> val2D )
+        : target3D(val3D), targetSurf(val2D), have3D(true), haveSurf(true), have2D(false)
         {}
-      ConstantTarget( MsqMatrix<3,3> val3D, MsqMatrix<2,2> val2D ) 
-        : target3D(val3D), target2D(val2D), have3D(true), haveSurf(false), have2D(true) 
+      ConstantTarget( MsqMatrix<3,3> val3D, MsqMatrix<2,2> val2D )
+        : target3D(val3D), target2D(val2D), have3D(true), haveSurf(false), have2D(true)
         { }
       ConstantTarget( double C, bool surf )
-        : target3D(C), targetSurf(C), target2D(C), have3D(true), haveSurf(surf), have2D(!surf) 
+        : target3D(C), targetSurf(C), target2D(C), have3D(true), haveSurf(surf), have2D(!surf)
         {}
-      ConstantTarget( MsqMatrix<3,3> val3D ) 
-        : target3D(val3D), target2D(0.0), have3D(true), haveSurf(false), have2D(false) 
+      ConstantTarget( MsqMatrix<3,3> val3D )
+        : target3D(val3D), target2D(0.0), have3D(true), haveSurf(false), have2D(false)
         {}
-      ConstantTarget( MsqMatrix<3,2> val2D ) 
-        : targetSurf(val2D), have3D(false), haveSurf(true), have2D(false) 
+      ConstantTarget( MsqMatrix<3,2> val2D )
+        : targetSurf(val2D), have3D(false), haveSurf(true), have2D(false)
         {}
-      ConstantTarget( MsqMatrix<2,2> val2D ) 
-        : target2D(val2D), have3D(false), haveSurf(false), have2D(true) 
+      ConstantTarget( MsqMatrix<2,2> val2D )
+        : target2D(val2D), have3D(false), haveSurf(false), have2D(true)
         { }
 
       virtual bool get_3D_target( PatchData&, size_t, Sample, MsqMatrix<3,3>& result, MsqError& err )
@@ -135,7 +135,7 @@ public:
 
       virtual bool get_2D_target( PatchData&, size_t, Sample, MsqMatrix<2,2>& result, MsqError& err )
         { CPPUNIT_ASSERT(have2D); result = target2D; return have2D; }
-        
+
       virtual bool have_surface_orient() const { return haveSurf; }
   };
 
@@ -147,7 +147,7 @@ public:
       bool surfOrient;
 
     public:
-      TargetError( bool flag_error = true, bool orient = false ) 
+      TargetError( bool flag_error = true, bool orient = false )
         : flagError(flag_error), surfOrient(orient) {}
 
       bool get_3D_target( PatchData&, size_t, Sample, MsqMatrix<3,3>&, MsqError& err)
@@ -158,7 +158,7 @@ public:
 
       bool get_surface_target( PatchData&, size_t, Sample, MsqMatrix<3,2>&, MsqError& err )
         { if (flagError) MSQ_SETERR(err)(MsqError::INVALID_MESH); return false; }
-        
+
       virtual bool have_surface_orient() const { return surfOrient; }
   };
 };
@@ -176,43 +176,43 @@ void LVQDTargetTest::setUp()
   const double rotation_2D_Z45[6] = { cos45, -cos45,
                                       cos45,  cos45,
                                           0,      0 };
-                                          
+
   const double rotation_3D_X90[9] = { 1,  0,  0,
                                       0,  0, -1,
                                       0,  1,  0 };
   const double rotation_2D_X90[6] = { 1,  0,
                                       0,  0,
                                       0,  1 };
-                                      
+
   const double rc45 = sqrt(cos45);
   const double skew_2D_45[4] = { 1/rc45, rc45,
                                  0,      rc45 };
   const double skew_3D_45[9] = { 1, cos45, cos45,
                                  0, cos45, 1 - cos45,
                                  0,     0, sqrt(MSQ_SQRT_TWO-1) };
-                                 
+
   const double aspect_2D_2x[4] = { MSQ_SQRT_TWO, 0,
                                    0,            MSQ_SQRT_TWO/2 };
   const double r6 = MBMesquite::cbrt(1.0/6.0);
   const double aspect_3D_123[9] = { r6,    0,    0,
                                      0, 2*r6,    0,
                                      0,    0, 3*r6 };
-                                     
+
   V3D_Z45 = MsqMatrix<3,3>(rotation_3D_Z45);
   V3D_X90 = MsqMatrix<3,3>(rotation_3D_X90);
   Q3D_45  = MsqMatrix<3,3>(skew_3D_45);
   Q3D_45  *= 1/Mesquite::cbrt(det(Q3D_45));
   D3D_123 = MsqMatrix<3,3>(aspect_3D_123);
-  
+
   V2D_Z45 = MsqMatrix<3,2>(rotation_2D_Z45);
   V2D_X90 = MsqMatrix<3,2>(rotation_2D_X90);
   Q2D_45  = MsqMatrix<2,2>(skew_2D_45);
   D2D_21  = MsqMatrix<2,2>(aspect_2D_2x);
-  
+
   I33 = MsqMatrix<3,3>(1.0);
   I32 = MsqMatrix<3,2>(1.0);
   I22 = MsqMatrix<2,2>(1.0);
-  
+
   MsqError err;
   create_one_tet_patch( pd3D, err );
   ASSERT_NO_ERROR(err);
@@ -220,9 +220,9 @@ void LVQDTargetTest::setUp()
   ASSERT_NO_ERROR(err);
 };
 
-MsqMatrix<3,2> LVQDTargetTest::target( const double* L, 
-                                       const MsqMatrix<3,2>* V, 
-                                       const MsqMatrix<2,2>* Q, 
+MsqMatrix<3,2> LVQDTargetTest::target( const double* L,
+                                       const MsqMatrix<3,2>* V,
+                                       const MsqMatrix<2,2>* Q,
                                        const MsqMatrix<2,2>* D )
 {
   ConstantTarget W_size  ( L ? *L : 1.0, true );
@@ -251,8 +251,8 @@ MsqMatrix<3,2> LVQDTargetTest::target( const double* L,
   return W;
 }
 
-MsqMatrix<2,2> LVQDTargetTest::target( const double* L, 
-                                       const MsqMatrix<2,2>* Q, 
+MsqMatrix<2,2> LVQDTargetTest::target( const double* L,
+                                       const MsqMatrix<2,2>* Q,
                                        const MsqMatrix<2,2>* D )
 {
   ConstantTarget W_size  ( L ? *L : 1.0, false );
@@ -270,9 +270,9 @@ MsqMatrix<2,2> LVQDTargetTest::target( const double* L,
   return W;
 }
 
-MsqMatrix<3,3> LVQDTargetTest::target( const double* L, 
-                                       const MsqMatrix<3,3>* V, 
-                                       const MsqMatrix<3,3>* Q, 
+MsqMatrix<3,3> LVQDTargetTest::target( const double* L,
+                                       const MsqMatrix<3,3>* V,
+                                       const MsqMatrix<3,3>* Q,
                                        const MsqMatrix<3,3>* D )
 {
   ConstantTarget W_size  ( L ? *L : 1.0, true );

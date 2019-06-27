@@ -1,16 +1,16 @@
 /**
  * MOAB, a Mesh-Oriented datABase, is a software component for creating,
  * storing and accessing finite element mesh data.
- * 
+ *
  * Copyright 2004 Sandia Corporation.  Under the terms of Contract
  * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
  * retains certain rights in this software.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  */
 
 #include "ScdElementData.hpp"
@@ -24,7 +24,7 @@
 namespace moab {
 
 EntityID ScdElementData::calc_num_entities(EntityHandle start_handle,
-                                           int irange, int jrange, int krange, 
+                                           int irange, int jrange, int krange,
                                            int *is_periodic)
 {
   size_t result = 1;
@@ -44,7 +44,7 @@ ScdElementData::ScdElementData(
                              const int imax, const int jmax, const int kmax,
                              int *is_p)
     : SequenceData(0, shandle,
-                   shandle + 
+                   shandle +
                    calc_num_entities( shandle, imax-imin, jmax-jmin, kmax-kmin, is_p)
                    - 1)
 {
@@ -53,11 +53,11 @@ ScdElementData::ScdElementData(
 
   isPeriodic[0] = (is_p ? is_p[0] : 0);
   isPeriodic[1] = (is_p ? is_p[1] : 0);
-  
+
   boxParams[0] = HomCoord(imin, jmin, kmin);
   boxParams[1] = HomCoord(imax, jmax, kmax);
   boxParams[2] = HomCoord(1, 1, 1);
-  
+
     // assign and compute parameter stuff
   dIJK[0] = boxParams[1][0] - boxParams[0][0] + 1;
   dIJK[1] = boxParams[1][1] - boxParams[0][1] + 1;
@@ -67,7 +67,7 @@ ScdElementData::ScdElementData(
   dIJKm1[2] = dIJK[2] - 1;
 }
 
-ScdElementData::~ScdElementData() 
+ScdElementData::~ScdElementData()
 {
 }
 
@@ -93,7 +93,7 @@ bool ScdElementData::boundary_complete() const
       for (std::vector<VertexDataRef>::const_iterator othervseq = vertexSeqRefs.begin();
            othervseq != vertexSeqRefs.end(); ++othervseq)
       {
-        if (othervseq == vseq) continue;        
+        if (othervseq == vseq) continue;
     //       if v.min-p contained in v'
         if ((*othervseq).contains((*vseq).minmax[0]-HomCoord::unitv[p])) {
     //         mincorner = false
@@ -103,7 +103,7 @@ bool ScdElementData::boundary_complete() const
       }
       if (!mincorner) break;
     }
-  
+
     bool maxcorner = true;
     //   for each p = (i-1,j,k), (i,j-1,k), (i,j,k-1):
     for (p = 0; p < 3; p++) {
@@ -112,7 +112,7 @@ bool ScdElementData::boundary_complete() const
       for (std::vector<VertexDataRef>::const_iterator othervseq = vertexSeqRefs.begin();
            othervseq != vertexSeqRefs.end(); ++othervseq)
       {
-        if (othervseq == vseq) continue;        
+        if (othervseq == vseq) continue;
     //       if v.max+p contained in v'
         if ((*othervseq).contains((*vseq).minmax[1]+HomCoord::unitv[p])) {
     //         maxcorner = false
@@ -128,12 +128,12 @@ bool ScdElementData::boundary_complete() const
     //   if maxcorner add to max corner list maxlist
     if (maxcorner) maxlist.push_back(*vseq);
   }
-  
-    // 
+
+    //
     // if minlist.size = 1 & maxlist.size = 1 & minlist[0] = esequence.min &
     //         maxlist[0] = esequence.max+(1,1,1)
   if (minlist.size() == 1 && maxlist.size() == 1 &&
-      minlist[0].minmax[0] == boxParams[0] && 
+      minlist[0].minmax[0] == boxParams[0] &&
       maxlist[0].minmax[1] == boxParams[1])
       //   complete
     return true;
@@ -143,7 +143,7 @@ bool ScdElementData::boundary_complete() const
 }
 
 
-SequenceData* ScdElementData::subset( EntityHandle /*start*/, 
+SequenceData* ScdElementData::subset( EntityHandle /*start*/,
                                       EntityHandle /*end*/,
                                       const int* /*sequence_data_sizes*/,
                                       const int* /*tag_data_sizes*/ ) const
@@ -155,5 +155,5 @@ unsigned long ScdElementData::get_memory_use() const
 {
   return sizeof(*this) + vertexSeqRefs.capacity() * sizeof(VertexDataRef);
 }
-  
+
 } // namespace moab

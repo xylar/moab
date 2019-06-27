@@ -623,7 +623,7 @@ ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius_
     // If MOAB
     //   1) Check for valid source and target meshsets (and entities)
     //   2) Build processor bounding boxes and construct a covering set
-    //   3) Perform intersection between the source (covering) and target entities 
+    //   3) Perform intersection between the source (covering) and target entities
     if ( use_tempest )
     {
         // Now let us construct the overlap mesh, by calling TempestRemap interface directly

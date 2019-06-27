@@ -14,7 +14,7 @@ AM_CPPFLAGS += -I$(top_builddir) $(IGEOM_DEFINES) $(IGEOM_INCLUDES) \
                -I$(top_srcdir)/itaps -I$(top_builddir)/itaps/fbigeom \
                -I$(top_srcdir)/itaps/imesh -I$(top_builddir)/itaps/imesh \
                -I$(top_srcdir)/itaps/irel -I$(top_builddir)/itaps/irel
-DEFS += 
+DEFS +=
 LIBS =
 
 libiRel_la_SOURCES = \
@@ -47,7 +47,7 @@ if ENABLE_imesh
 if HAVE_MPI
     AM_CPPFLAGS += -I$(top_srcdir)/src/parallel
 endif
-    TEST_DEPS += $(top_builddir)/itaps/imesh/libiMesh.la 
+    TEST_DEPS += $(top_builddir)/itaps/imesh/libiMesh.la
 endif
 
 if ENABLE_fbigeom

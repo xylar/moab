@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2006 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
+
     (2010) kraftche@cae.wisc.edu
-   
+
   ***************************************************************** */
 
 
 /** \file AWShape2DNB1.cpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -42,9 +42,9 @@ std::string AWShape2DNB1::get_name() const
 
 AWShape2DNB1::~AWShape2DNB1() {}
 
-bool AWShape2DNB1::evaluate( const MsqMatrix<2,2>& A, 
-                             const MsqMatrix<2,2>& W, 
-                             double& result, 
+bool AWShape2DNB1::evaluate( const MsqMatrix<2,2>& A,
+                             const MsqMatrix<2,2>& W,
+                             double& result,
                              MsqError& )
 {
   MsqMatrix<2,2> tmp = det(W) * transpose(A) * A;
@@ -70,7 +70,7 @@ bool AWShape2DNB1::evaluate_with_grad( const MsqMatrix<2,2>& A,
   result  =  omega*omegaAtA;
   result +=  alpha*alphaWtW;
   result -=  2*alpha*omegaAWt;
-  
+
   deriv_wrt_A =  4*omega*omega * A * transpose(A) * A;
   deriv_wrt_A -= 4*alpha*omega * AWt * W;
   deriv_wrt_A += 2*(alphaWtW - omegaAWt) * transpose_adj(A);

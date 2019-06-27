@@ -1,4 +1,4 @@
-/** MOAB Damsel file reader 
+/** MOAB Damsel file reader
  * For description of the Damsel-MOAB data model mapping, see WriteDamsel.cpp.
  *
  */
@@ -104,7 +104,7 @@ ErrorCode ReadDamsel::load_file(const char* filename,
   DMSLmodel_get_tuple_count(dU.dmslModel, &num_containers, &num_tag_infos);
   num_ent_infos = DMSLmodel_get_entity_count(dU.dmslModel);
   int num_coll_infos = DMSLmodel_get_collection_count(dU.dmslModel);CHK_DMSL_ERR(err, "DMSLmodel_get_collection_count failed");
-  if (-1 == num_containers || -1 == num_tag_infos || -1 == num_ent_infos) 
+  if (-1 == num_containers || -1 == num_tag_infos || -1 == num_ent_infos)
     MB_SET_ERR(MB_FAILURE, "Bad count for containers/tags/ents");
 
   std::vector<damsel_entity_buf_type> ent_infos(num_ent_infos);
@@ -154,7 +154,7 @@ ErrorCode ReadDamsel::load_file(const char* filename,
     // Decide the handles I am responsible using round-robin for now
     // - GET TYPE, CONTENTS OF COLLECTION CONTENTS CONTAINER
     // - Allocate moab-side container (using count from container)
-    // - MAP storage TO CONTAINER 
+    // - MAP storage TO CONTAINER
     // - EXECUTE
     // ==> have list of all handles (entities + collections) represented on this proc
 
@@ -306,7 +306,7 @@ ErrorCode ReadDamsel::process_ent_info(const damsel_entity_buf_type &einfo)
   rval = DamselUtil::container_to_range(dU.dmslModel, const_cast<damsel_container&>(einfo.entity_container),
                                         fside_handles);
   if (MB_SUCCESS != rval || fside_handles.size() != einfo.count ||
-      fside_handles.psize() != 1) 
+      fside_handles.psize() != 1)
     return MB_FAILURE;
 #endif
 
@@ -502,7 +502,7 @@ ErrorCode ReadDamsel::get_contents(damsel_model m, damsel_container c, EntityHan
 }
 
 /*
-ErrorCode ReadDamsel::process_coll_infos(std::vector<damsel_collection_buf_type> &coll_infos) 
+ErrorCode ReadDamsel::process_coll_infos(std::vector<damsel_collection_buf_type> &coll_infos)
 {
   ErrorCode rval = MB_SUCCESS, tmp_rval;
   EntityHandle seth;

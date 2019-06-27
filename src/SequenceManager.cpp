@@ -177,10 +177,10 @@ ErrorCode SequenceManager::create_vertex(const double coords[3],
     SequenceData* seq_data = 0;
     EntityID seq_data_size = 0;
     handle = typeData[MBVERTEX].find_free_sequence(DEFAULT_VERTEX_SEQUENCE_SIZE, start, end, seq_data, seq_data_size);
-    if (!handle) 
+    if (!handle)
       return MB_FAILURE;
 
-    if (seq_data) 
+    if (seq_data)
       vseq = new VertexSequence(handle, 1, seq_data);
     else
       vseq = new VertexSequence(handle, 1, DEFAULT_VERTEX_SEQUENCE_SIZE);
@@ -234,17 +234,17 @@ ErrorCode SequenceManager::create_element(EntityType type,
     }
     EntityID seq_data_size = 0;
     handle = typeData[type].find_free_sequence(size, start, end, seq_data, seq_data_size, conn_len);
-    if (!handle) 
+    if (!handle)
       return MB_FAILURE;
 
     if (MBPOLYGON == type || MBPOLYHEDRON == type) {
-      if (seq_data) 
+      if (seq_data)
         eseq = new PolyElementSeq(handle, 1, conn_len, seq_data);
       else
         eseq = new PolyElementSeq(handle, 1, conn_len, size);
     }
     else {
-      if (seq_data) 
+      if (seq_data)
         eseq = new UnstructuredElemSeq(handle, 1, conn_len, seq_data);
       else
         eseq = new UnstructuredElemSeq(handle, 1, conn_len, size);
@@ -290,14 +290,14 @@ ErrorCode SequenceManager::create_mesh_set(unsigned flags,
     SequenceData* seq_data = 0;
     EntityID seq_data_size = 0;
     handle = typeData[MBENTITYSET].find_free_sequence(DEFAULT_MESHSET_SEQUENCE_SIZE, start, end, seq_data, seq_data_size);
-    if (!handle) 
+    if (!handle)
       return MB_FAILURE;
 
-    if (seq_data) 
+    if (seq_data)
       msseq = new MeshSetSequence(handle, 1, flags, seq_data);
     else
       msseq = new MeshSetSequence(handle, 1, flags, DEFAULT_MESHSET_SEQUENCE_SIZE);
-      
+
     ErrorCode rval = typeData[MBENTITYSET].insert_sequence(msseq);
     if (MB_SUCCESS != rval) {
       SequenceData* vdata = msseq->data();
@@ -888,7 +888,7 @@ std::ostream& operator<<(std::ostream& s, const SequenceManager& seq_man)
 {
   for (EntityType t = MBVERTEX; t < MBMAXTYPE; ++t) {
     if (!seq_man.entity_map(t).empty())
-      s << std::endl 
+      s << std::endl
         << "****************** " << CN::EntityTypeName(t) << " ******************"
         << std::endl << seq_man.entity_map(t) << std::endl;
   }

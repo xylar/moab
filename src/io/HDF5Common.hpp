@@ -4,7 +4,7 @@
 #endif
 #include <H5Epublic.h>
 
-namespace moab { 
+namespace moab {
 
 extern "C" {
 #if defined(H5E_auto_t_vers) && H5E_auto_t_vers > 1

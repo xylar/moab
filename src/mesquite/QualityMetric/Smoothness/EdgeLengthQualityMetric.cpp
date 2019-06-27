@@ -1,9 +1,9 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2004 Sandia Corporation and Argonne National
-    Laboratory.  Under the terms of Contract DE-AC04-94AL85000 
-    with Sandia Corporation, the U.S. Government retains certain 
+    Laboratory.  Under the terms of Contract DE-AC04-94AL85000
+    with Sandia Corporation, the U.S. Government retains certain
     rights in this software.
 
     This library is free software; you can redistribute it and/or
@@ -16,13 +16,13 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
-    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov, 
-    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov      
-   
+
+    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov,
+    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov
+
   ***************************************************************** */
 /*! \file EdgeLengthQualityMetric.cpp
   \author Michael Brewer
@@ -49,9 +49,9 @@ std::string EdgeLengthQualityMetric::get_name() const
 int EdgeLengthQualityMetric::get_negate_flag() const
   { return 1; }
 
-bool EdgeLengthQualityMetric::evaluate_common(PatchData &pd, 
+bool EdgeLengthQualityMetric::evaluate_common(PatchData &pd,
                                               size_t this_vert,
-                                              double &fval, 
+                                              double &fval,
                                               std::vector<size_t>& adj_verts,
                                               MsqError &err)
 {
@@ -60,17 +60,17 @@ bool EdgeLengthQualityMetric::evaluate_common(PatchData &pd,
   const unsigned num_sample_points=adj_verts.size();
   double *metric_values=new double[num_sample_points];
   const MsqVertex* verts = pd.get_vertex_array(err);  MSQ_ERRZERO(err);
-  for (unsigned i = 0; i < num_sample_points; ++i) 
+  for (unsigned i = 0; i < num_sample_points; ++i)
     metric_values[i] = (verts[this_vert] - verts[adj_verts[i]]).length();
-  fval=average_metrics(metric_values,num_sample_points,err);  
+  fval=average_metrics(metric_values,num_sample_points,err);
   delete[] metric_values;
   return !MSQ_CHKERR(err);
-  
+
 }
 
-bool EdgeLengthQualityMetric::evaluate( PatchData& pd, 
-                                        size_t vertex, 
-                                        double& value, 
+bool EdgeLengthQualityMetric::evaluate( PatchData& pd,
+                                        size_t vertex,
+                                        double& value,
                                         MsqError& err )
 {
   std::vector<size_t> verts;
@@ -86,7 +86,7 @@ bool EdgeLengthQualityMetric::evaluate_with_indices( PatchData& pd,
 {
   indices.clear();
   bool rval = evaluate_common( pd, vertex, value, indices, err );
-  
+
   std::vector<size_t>::iterator r, w;
   for (r = w = indices.begin(); r != indices.end(); ++r) {
     if (*r < pd.num_free_vertices()) {
@@ -97,6 +97,6 @@ bool EdgeLengthQualityMetric::evaluate_with_indices( PatchData& pd,
   indices.erase( w, indices.end() );
   if (vertex < pd.num_free_vertices())
     indices.push_back( vertex );
-  
+
   return !MSQ_CHKERR(err) && rval;
 }

@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2006 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
+
     (2006) kraftche@cae.wisc.edu
-   
+
   ***************************************************************** */
 
 
 /** \file TargetCalculator.hpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #ifndef MSQ_TARGET_CALCULATOR_HPP
@@ -52,7 +52,7 @@ class MESQUITE_EXPORT TargetCalculator
 {
 public:
   virtual ~TargetCalculator();
-     
+
    //!\brief Called at start of instruction queue processing
    //!
    //! Do any preliminary global initialization, consistency checking,
@@ -68,7 +68,7 @@ public:
    *\param sample  The sample point in the element.
    *\param W_out   The resulting target matrix.
    */
-  virtual bool get_3D_target( PatchData& pd, 
+  virtual bool get_3D_target( PatchData& pd,
                               size_t element,
                               Sample sample,
                               MsqMatrix<3,3>& W_out,
@@ -81,7 +81,7 @@ public:
    *\param sample  The sample point in the element.
    *\param W_out   The resulting target matrix.
    */
-  virtual bool get_surface_target( PatchData& pd, 
+  virtual bool get_surface_target( PatchData& pd,
                                    size_t element,
                                    Sample sample,
                                    MsqMatrix<3,2>& W_out,
@@ -94,7 +94,7 @@ public:
    *\param sample  The sample point in the element.
    *\param W_out   The resulting target matrix.
    */
-  virtual bool get_2D_target( PatchData& pd, 
+  virtual bool get_2D_target( PatchData& pd,
                               size_t element,
                               Sample sample,
                               MsqMatrix<2,2>& W_out,
@@ -192,12 +192,12 @@ public:
   static MsqMatrix<2,2> shape( const MsqMatrix<3,2>& W );
   /**\brief Get skew component of W */
   static MsqMatrix<2,2> shape( const MsqMatrix<2,2>& W );
-  
+
 
   /**\brief Create a new orientation matrix
    *
    * Create an orientation matrix such that
-   * the first and second Jacobian columns of W are aligned to 
+   * the first and second Jacobian columns of W are aligned to
    * the passed vectors.
    */
   static MsqMatrix<3,3> new_orientation_3D( const MsqVector<3>& b1,
@@ -205,7 +205,7 @@ public:
   /**\brief Create a new orientation matrix
    *
    * Create an orientation matrix such that
-   * the first and second Jacobian columns of W are aligned to 
+   * the first and second Jacobian columns of W are aligned to
    * the passed vectors.
    */
   static MsqMatrix<3,2> new_orientation_2D( const MsqVector<3>& b1,

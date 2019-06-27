@@ -4,13 +4,13 @@
  * This example creates a 1d row of quad elements, with a user-specified number of "holes" (missing quads) in the row:
  * \verbatim
  *  ----------------------      ----------------------      --------
- *  |      |      |      |      |      |      |      |      |      |       
+ *  |      |      |      |      |      |      |      |      |      |
  *  |      |      |      |(hole)|      |      |      |(hole)|      | ...
  *  |      |      |      |      |      |      |      |      |      |
  *  ----------------------      ----------------------      --------
  * \endverbatim
  * This makes (nholes+1) contiguous runs of quad handles in the handle space
- * This example shows how to use the xxx_iterate functions in MOAB (xxx = coords, connect, tag, adjacencies) to get 
+ * This example shows how to use the xxx_iterate functions in MOAB (xxx = coords, connect, tag, adjacencies) to get
  * direct pointer access to MOAB internal storage, which can be used without calling through the MOAB API.
  *
  *    -#  Initialize MOAB \n
@@ -200,7 +200,7 @@ int main(int argc, char **argv)
   return 0;
 }
 
-ErrorCode create_mesh_with_holes(Interface *mbImpl, int nquads, int nholes) 
+ErrorCode create_mesh_with_holes(Interface *mbImpl, int nquads, int nholes)
 {
   // First make the mesh, a 1d array of quads with left hand side x = elem_num; vertices are numbered in layers
   ReadUtilIface *read_iface;

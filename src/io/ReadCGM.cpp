@@ -98,7 +98,7 @@ ReadCGM::ReadCGM(Interface *impl)
   rval = mdbImpl->tag_get_handle("FACETING_TOL", 1, MB_TYPE_DOUBLE, faceting_tol_tag,
                                  MB_TAG_SPARSE | MB_TAG_CREAT);
   assert(!rval);
-  rval = mdbImpl->tag_get_handle("GEOMETRY_RESABS", 1, MB_TYPE_DOUBLE, 
+  rval = mdbImpl->tag_get_handle("GEOMETRY_RESABS", 1, MB_TYPE_DOUBLE,
                                  geometry_resabs_tag, MB_TAG_SPARSE | MB_TAG_CREAT);
   assert(!rval);
 #ifdef NDEBUG
@@ -160,7 +160,7 @@ ErrorCode ReadCGM::set_options(const FileOptions& opts,
   const char* value = "no";
   rval = opts.match_option(name, value);
   if (MB_SUCCESS == rval)
-    act_att = false; 
+    act_att = false;
 
   return MB_SUCCESS;
 }
@@ -569,7 +569,7 @@ ErrorCode ReadCGM::create_curve_facets(std::map<RefEntity*, EntityHandle>& curve
       {
 	// if we fatal on curves
 	if(fatal_on_curves)
-	  {  
+	  {
 	    std::cout << "Failed to facet the curve " << edge->id() << std::endl;
 	    return MB_FAILURE;
 	  }
@@ -590,7 +590,7 @@ ErrorCode ReadCGM::create_curve_facets(std::map<RefEntity*, EntityHandle>& curve
                                    data.point_list()[i].z));
 
     // Need to reverse data?
-    if (curve->bridge_sense() == CUBIT_REVERSED) 
+    if (curve->bridge_sense() == CUBIT_REVERSED)
       std::reverse(points.begin(), points.end());
 
     // Check for closed curve
@@ -904,7 +904,7 @@ ErrorCode ReadCGM::load_file(const char *cgm_file_name,
 
   // print the fail information
   dump_fail_counts();
-  
+
   return MB_SUCCESS;
 }
 
@@ -947,7 +947,7 @@ void ReadCGM::dump_fail_counts()
 	  std::cout << failed_surfaces[i] << " ";
 	  if ( (i%10 == 0) & (i > 0) )
 	    std::cout << std::endl;
-	}      
+	}
     }
   std::cout << std::endl;
   std::cout << "***** End of Faceting Summary Information *****" << std::endl;

@@ -13,10 +13,10 @@ class ReadUtilIface;
 // Base class for binary and ASCII readers
 class ReadSms : public ReaderIface
 {
-   
+
 public:
 
-    //! factory method 
+    //! factory method
   static ReaderIface* factory( Interface* );
 
   ErrorCode load_file( const char* file_name,
@@ -30,7 +30,7 @@ public:
                              const FileOptions& opts,
                              std::vector<int>& tag_values_out,
                              const SubsetList* subset_list = 0 );
-  
+
     //! Constructor
   ReadSms(Interface* impl = NULL);
 
@@ -39,12 +39,12 @@ public:
 
 private:
 
-  ErrorCode add_entities( EntityHandle start, 
+  ErrorCode add_entities( EntityHandle start,
                             EntityHandle count,
                             const Tag* file_id_tag );
 
   ErrorCode load_file_impl( FILE* file, const Tag* file_id_tag );
-  
+
   ErrorCode get_set(std::vector<EntityHandle> *sets,
                       int set_type, int set_id,
                       Tag set_tag,
@@ -57,9 +57,9 @@ private:
 
     //! interface instance
   Interface* mdbImpl;
-  
+
   Tag globalId, paramCoords, geomDimension;
-  
+
   int setId;
 };
 

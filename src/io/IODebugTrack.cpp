@@ -36,7 +36,7 @@ IODebugTrack::IODebugTrack( bool enabled,
           : enableOutput(enabled),
             tableName(name),
             ostr(std::cerr),
-            maxSize(table_size) 
+            maxSize(table_size)
 {
   mpiRank = 0;
   haveMPI = false;
@@ -54,12 +54,12 @@ IODebugTrack::~IODebugTrack()
 {
   if (!enableOutput || mpiRank) // only root prints gap summary
     return;
-  
+
   if (dataSet.empty()) {
     ostr << PFX << tableName << " : No Data Written!!!!" << std::endl;
     return;
   }
-  
+
   std::list<DRange>::const_iterator i;
   if (!maxSize) {
     for (i = dataSet.begin(); i != dataSet.end(); ++i)
@@ -80,22 +80,22 @@ IODebugTrack::~IODebugTrack()
         h = processed.insert( h, i->begin+1, i->end );
     }
   }
-    
+
     // ranges cannot contain zero
   Range unprocessed;
-  if (maxSize > 1) 
+  if (maxSize > 1)
     unprocessed.insert( 1, maxSize - 1 );
   unprocessed = subtract( unprocessed, processed );
   if (unprocessed.empty())
     return;
-  
+
   Range::const_pair_iterator j;
   for (j = unprocessed.const_pair_begin(); j != unprocessed.const_pair_end(); ++j) {
     unsigned long b = j->first;
     unsigned long e = j->second;
     if (b == 1 && !wrote_zero)
       b = 0;
-    
+
     ostr << PFX << tableName << " : range not read/written: ["
          << b << "," << e << "]" << std::endl;
     ostr.flush();
@@ -121,7 +121,7 @@ void IODebugTrack::record_io( DRange ins )
 
     // test for out-of-bounds write
   if (maxSize && ins.end >= maxSize)
-    ostr << ": Out of bounds write on rank " << mpiRank 
+    ostr << ": Out of bounds write on rank " << mpiRank
          << ": [" << ins.begin << "," << ins.end << "] >= " << maxSize
          << std::endl;
 
@@ -131,14 +131,14 @@ void IODebugTrack::record_io( DRange ins )
     if (i->end >= ins.begin && i->begin <= ins.end) { // if overlap
       ostr << PFX << tableName;
       if (i->rank == ins.rank) {
-        if (mpiRank == (int)ins.rank) 
+        if (mpiRank == (int)ins.rank)
           ostr << ": Local overwrite on rank " << mpiRank;
-        
+
         // otherwise should have been logged on remote proc, do nothing here
       }
-      else 
+      else
         ostr << ": Conflicting write for ranks " << i->rank << " and " << ins.rank;
-      
+
       ostr << ": [" << i->begin << "," << i->end << "] and [" << ins.begin
            << "," << ins.end << "]" << std::endl;
       ostr.flush();
@@ -158,21 +158,21 @@ void IODebugTrack::all_reduce()
   MPI_Comm_size( MPI_COMM_WORLD, &commsize);
   int count = 3*dataSet.size();
   std::vector<int> displs(commsize), counts(commsize);
-  MPI_Gather( &count, 1, MPI_INT, 
+  MPI_Gather( &count, 1, MPI_INT,
               &counts[0], 1, MPI_INT,
               0, MPI_COMM_WORLD );
   displs[0] = 0;
-  for (int i = 1; i < commsize; ++i) 
+  for (int i = 1; i < commsize; ++i)
     displs[i] = displs[i-1] + counts[i-1];
   int total = (displs.back() + counts.back()) / 3;
   count /= 3;
-              
+
   std::vector<DRange> send(dataSet.size()), recv(total);
   std::copy( dataSet.begin(), dataSet.end(), send.begin() );
   MPI_Gatherv( (void*)&send[0], 3*send.size(), MPI_UNSIGNED_LONG,
                (void*)&recv[0], &counts[0], &displs[0], MPI_UNSIGNED_LONG,
                0, MPI_COMM_WORLD );
-  
+
   if (0 == mpiRank) {
     for (int i = count; i < total; ++i)
       record_io( recv[i] );
@@ -182,7 +182,7 @@ void IODebugTrack::all_reduce()
   }
 #endif
 }
-    
+
 
 
 } // namespace moab

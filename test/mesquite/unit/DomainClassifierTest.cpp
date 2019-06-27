@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2008 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2008) kraftche@cae.wisc.edu    
+    (2008) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file DomainClassifierTest.cpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -57,7 +57,7 @@ private:
   CPPUNIT_TEST (test_classify_skin);
   CPPUNIT_TEST (test_classify_by_geometry);
   CPPUNIT_TEST_SUITE_END();
-  
+
 public:
 
   typedef DomainClassifier::DomainSet DomSet;
@@ -65,7 +65,7 @@ public:
   MeshImpl myMesh;
   DomSetList myDomains;
   std::vector<int> domainDims;
-  
+
   void setUp();
   void tearDown();
 
@@ -83,7 +83,7 @@ CPPUNIT_TEST_SUITE_NAMED_REGISTRATION(DomainClassifierTest, "DomainClassifierTes
 
 static void print_domain( int i, DomainClassifier::DomainSet& set )
 {
-  if (PointDomain* pd = dynamic_cast<PointDomain*>(set.domain)) 
+  if (PointDomain* pd = dynamic_cast<PointDomain*>(set.domain))
     printf("%d: PointDomain( %f %f %f ) @ %p\n", i, pd->geom()[0], pd->geom()[1], pd->geom()[2], pd );
   else if (LineDomain* ld = dynamic_cast<LineDomain*>(set.domain)) {
     if (fabs(ld->geom().direction()[0]) < 1e-6 && fabs(ld->geom().direction()[1]) < 1e-6)
@@ -108,7 +108,7 @@ static void print_domain( int i, DomainClassifier::DomainSet& set )
   else {
     printf("%d: unknown domain type @ %p\n", i, set.domain );
   }
-  
+
   if (!set.vertices.empty()) {
     printf("  vertices: ");
     std::vector<Mesh::VertexHandle>::iterator vi = set.vertices.begin();
@@ -124,7 +124,7 @@ static void print_domain( int i, DomainClassifier::DomainSet& set )
     printf("\n");
   }
 }
-    
+
 
 
 void DomainClassifierTest::setUp()
@@ -157,7 +157,7 @@ void DomainClassifierTest::setUp()
   "\n";
     // quad connectivity for quads on mesh skin
   const int num_quads = 9*6; // nine per side
-  const char quad_data[] = 
+  const char quad_data[] =
   "4  1  0  4  5\n" // -z face (z == 0)
   "4  2  1  5  6\n"
   "4  3  2  6  7\n"
@@ -166,7 +166,7 @@ void DomainClassifierTest::setUp()
   "4  7  6 10 11\n"
   "4  9  8 12 13\n"
   "4 10  9 13 14\n"
-  "4 11 10 14 15\n" 
+  "4 11 10 14 15\n"
   "\n"
   "4 48 49 53 52\n" // +z face (z == 3)
   "4 49 50 54 53\n"
@@ -176,7 +176,7 @@ void DomainClassifierTest::setUp()
   "4 54 55 59 58\n"
   "4 56 57 61 60\n"
   "4 57 58 62 61\n"
-  "4 58 59 63 62\n" 
+  "4 58 59 63 62\n"
   "\n"
   "4  0  1 17 16\n" // -y face (y == 0)
   "4  1  2 18 17\n"
@@ -253,13 +253,13 @@ void DomainClassifierTest::setUp()
   "\n";
     // a few interior quads
   const int num_interior_quads = 3;
-  const char interior_quad_data[] = 
+  const char interior_quad_data[] =
   "4  1  5 25 17\n"
   "4  4  5 25 24\n"
   "4 16 17 25 24\n"
   "\n";
-  
-  
+
+
   const char filename[] = "dctest.vtk";
   FILE* file = fopen( filename, "w" );
   fputs( "# vtk DataFile Version 2.0\n", file );
@@ -267,7 +267,7 @@ void DomainClassifierTest::setUp()
   fputs( "ASCII\n", file );
   fputs( "DATASET UNSTRUCTURED_GRID\n", file );
   fputs( vertex_data, file );
-  
+
   int num_elem = num_quads + num_hexes + num_interior_quads;
   int num_elem_data = 5*num_quads + 9*num_hexes * 5*num_interior_quads;
   fprintf( file, "CELLS %d %d\n", num_elem, num_elem_data );
@@ -281,7 +281,7 @@ void DomainClassifierTest::setUp()
     fputs( "12\n", file );
   for (int i = 0; i < num_interior_quads; ++i)
     fputs( "9\n", file );
-  
+
   fclose( file );
   MsqPrintError err(std::cerr);
   myMesh.read_vtk( filename, err );
@@ -296,7 +296,7 @@ void DomainClassifierTest::setUp()
   myMesh.get_all_elements(elems, err);
   CPPUNIT_ASSERT(!err);
   CPPUNIT_ASSERT_EQUAL( (size_t)num_elem, elems.size() );
-  
+
     // define point domains
   PointDomain* pdom[8];
   pdom[0] = new PointDomain( Vector3D(0,0,0) );
@@ -320,7 +320,7 @@ void DomainClassifierTest::setUp()
     myDomains.push_back( set );
     domainDims.push_back( 0 );
   }
-  
+
     // define line domains
   LineDomain* ldom[12];
   ldom[0] = new LineDomain( Vector3D(0,0,0), Vector3D(1,0,0) ); // y=0,z=0
@@ -354,7 +354,7 @@ void DomainClassifierTest::setUp()
     myDomains.push_back( set );
     domainDims.push_back( 1 );
   }
-  
+
     // define planar domains
   PlanarDomain* sdom[6];
   sdom[0] = new PlanarDomain( Vector3D( 0, 0,-1), Vector3D(0,0,0) );
@@ -376,9 +376,9 @@ void DomainClassifierTest::setUp()
     myDomains.push_back( set );
     domainDims.push_back( 2 );
   }
-  
-  
-//  for (unsigned i = 0; i < myDomains.size(); ++i) 
+
+
+//  for (unsigned i = 0; i < myDomains.size(); ++i)
 //    print_domain( i, myDomains[i] );
 }
 
@@ -396,8 +396,8 @@ void DomainClassifierTest::check_domain( DomainClassifier& domain )
 {
   std::vector<Mesh::VertexHandle> vertices, cverts;
   std::vector<Mesh::ElementHandle> elements, celems;
-  
-    // Check that, for each entity with a domain, the 
+
+    // Check that, for each entity with a domain, the
     // DomainClassifier instance returns that domain.
     // Also, put all entities with domains into cverts and
     // celems for later.
@@ -415,7 +415,7 @@ void DomainClassifierTest::check_domain( DomainClassifier& domain )
       celems.push_back( e );
     }
   }
-  
+
     // sort cverts and celems so we can do binary_search later
   std::sort( cverts.begin(), cverts.end() );
   std::sort( celems.begin(), celems.end() );
@@ -425,13 +425,13 @@ void DomainClassifierTest::check_domain( DomainClassifier& domain )
   CPPUNIT_ASSERT(!err);
   myMesh.get_all_elements( elements, err );
   CPPUNIT_ASSERT(!err);
-  
+
     // For each vertex not in a domain (not in cverts), make sure
     // that the domain is NULL.
   for (size_t i = 0; i < vertices.size(); ++i) {
     if (std::binary_search( cverts.begin(), cverts.end(), vertices[i] ))
       continue;
-    
+
     const MeshDomain* ptr = domain.find_vertex_domain( vertices[i] );
     CPPUNIT_ASSERT( NULL == ptr );
   }
@@ -440,7 +440,7 @@ void DomainClassifierTest::check_domain( DomainClassifier& domain )
   for (size_t i = 0; i < elements.size(); ++i) {
     if (std::binary_search( celems.begin(), celems.end(), elements[i] ))
       continue;
-    
+
     const MeshDomain* ptr = domain.find_element_domain( elements[i] );
     CPPUNIT_ASSERT( NULL == ptr );
   }
@@ -454,7 +454,7 @@ void DomainClassifierTest::test_classify_by_handle()
                                         arrptr(myDomains), myDomains.size(),
                                         err );
   CPPUNIT_ASSERT(!err);
-  
+
   check_domain( domain );
 }
 
@@ -474,43 +474,43 @@ void DomainClassifierTest::test_valid_classification()
 void DomainClassifierTest::test_classify_by_tag()
 {
   CPPUNIT_ASSERT( !myDomains.empty() );
-  
+
   MsqPrintError err(std::cerr);
   int def = myDomains.size();
   TagHandle tag = myMesh.tag_create( "domain", Mesh::INT, 1, &def, err );
   CPPUNIT_ASSERT(!err);
-  
+
   std::vector<MeshDomain*> dom_list;
   std::vector<int> id_list;
   for (unsigned i = 0; i < myDomains.size(); ++i) {
     std::vector<int> vtx_data( myDomains[i].vertices.size(), i );
     std::vector<int> elm_data( myDomains[i].elements.size(), i );
     if (!vtx_data.empty()) {
-      myMesh.tag_set_vertex_data( tag, vtx_data.size(), 
+      myMesh.tag_set_vertex_data( tag, vtx_data.size(),
                                   &(myDomains[i].vertices[0]),
                                   arrptr(vtx_data), err );
       CPPUNIT_ASSERT(!err);
     }
     if (!elm_data.empty()) {
-      myMesh.tag_set_element_data( tag, elm_data.size(), 
+      myMesh.tag_set_element_data( tag, elm_data.size(),
                                    &(myDomains[i].elements[0]),
                                    arrptr(elm_data), err );
       CPPUNIT_ASSERT(!err);
     }
-    
+
     dom_list.push_back( myDomains[i].domain );
     id_list.push_back( i );
   }
 
   DomainClassifier domain;
   DomainClassifier::classify_by_tag( domain, &myMesh,
-                                     "domain", 
+                                     "domain",
                                      arrptr(dom_list),
                                      arrptr(id_list),
                                      myDomains.size(),
                                      err );
   CPPUNIT_ASSERT(!err);
-  
+
   check_domain( domain );
 }
 
@@ -522,7 +522,7 @@ void DomainClassifierTest::test_classify_skin()
   std::vector<MeshDomain*> arr( myDomains.size() );
   for (size_t i = 0; i < myDomains.size(); ++i)
     arr[i] = myDomains[i].domain;
-    
+
   DomainClassifier domain;
   DomainClassifier::classify_skin_geometrically( domain, &myMesh,
                                         1e-6,
@@ -541,7 +541,7 @@ void DomainClassifierTest::test_classify_by_geometry()
   std::vector<MeshDomain*> arr( myDomains.size() );
   for (size_t i = 0; i < myDomains.size(); ++i)
     arr[i] = myDomains[i].domain;
-    
+
   DomainClassifier domain;
   DomainClassifier::classify_geometrically( domain, &myMesh,
                                         1e-6,

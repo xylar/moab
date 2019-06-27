@@ -4,7 +4,7 @@ DEFS += -DSRCDIR=$(srcdir) \
         -DMESHDIR=$(MESHDIR)
 
 FCDEFS += $(FC_DEFINE)SRCDIR=$(srcdir) \
-          $(FC_DEFINE)MESHDIR=$(MESHDIR) 
+          $(FC_DEFINE)MESHDIR=$(MESHDIR)
 
 AM_CPPFLAGS  = -I$(srcdir)/.. \
                -I$(top_srcdir)/src \
@@ -44,12 +44,12 @@ endif
 
 if PARALLEL
   check_PROGRAMS +=  MOAB_iMeshP_unit_tests
-endif 
+endif
 #  moabtest_SOURCES = moabtest.F
 
 #  check_PROGRAMS += ftest
 #  ftest_SOURCES = ftest.F
-#  ftest_DEPENDENCIES = libiMesh.la $(top_builddir)/libMOAB.la 
+#  ftest_DEPENDENCIES = libiMesh.la $(top_builddir)/libMOAB.la
 endif
 
 TESTS = $(check_PROGRAMS)
@@ -77,7 +77,7 @@ libiMesh_la_includedir = $(includedir)
 libiMesh_la_LIBADD = $(top_builddir)/src/libMOAB.la
 
 # Automake doesn't seem to have a directory defined for
-# platform-dependent data (or include) files. So put 
+# platform-dependent data (or include) files. So put
 # in $(libdir).  Define a $(cfgdir) to get around automake's
 # check that only libraries are going in $(libdir)
 cfgdir = $(libdir)
@@ -85,7 +85,7 @@ cfg_DATA = iMesh-Defs.inc
 
 # By default, moab.make will define these to $(srcdir).  We
 # want to override that during the INSTALL of the file so
-# that the correct values are set (e.g. if someone does 
+# that the correct values are set (e.g. if someone does
 # 'make prefix=/foo install', we don't know the correct install
 # directory until we're doing the install.
 install-data-hook:
@@ -94,7 +94,7 @@ install-data-hook:
 	$(AM_V_at)echo "IMESH_LIBDIR=${libdir}" >> $(DESTDIR)$(cfgdir)/iMesh-Defs.inc
 	$(AM_V_at)echo "MOAB_LIBDIR=${libdir}" >> $(DESTDIR)$(cfgdir)/iMesh-Defs.inc
 
-FORTDEFS = $(FCDEFS) 
+FORTDEFS = $(FCDEFS)
 PPFCCOMPILE = $(FC) $(FORTDEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
     $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_FCFLAGS) $(FCFLAGS)
 LTPPFCCOMPILE = $(LIBTOOL) $(AM_V_lt) --tag=FC $(AM_LIBTOOLFLAGS) \

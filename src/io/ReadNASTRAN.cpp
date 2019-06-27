@@ -1,17 +1,17 @@
-/**                             
- * MOAB, a Mesh-Oriented datABase, is a software component for creating,    
- * storing and accessing finite element mesh data.                      
- *                                             
- * Copyright 2004 Sandia Corporation.  Under the terms of Contract    
+/**
+ * MOAB, a Mesh-Oriented datABase, is a software component for creating,
+ * storing and accessing finite element mesh data.
+ *
+ * Copyright 2004 Sandia Corporation.  Under the terms of Contract
  * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
- * retains certain rights in this software.         
- *                                             
- * This library is free software; you can redistribute it and/or         
- * modify it under the terms of the GNU Lesser General Public       
- * License as published by the Free Software Foundation; either         
- * version 2.1 of the License, or (at your option) any later version.        
- *                                                
- */                                                         
+ * retains certain rights in this software.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ */
 
 #include "ReadNASTRAN.hpp"
 
@@ -280,9 +280,9 @@ ErrorCode ReadNASTRAN::determine_entity_type(const std::string &first_token,
    7.0  .7E1  0.7+1  .70+1  7.E+0  70.-1
 
    From the test file created in SC/Tetra:
-   GRID           1       03.9804546.9052-15.6008-1    
+   GRID           1       03.9804546.9052-15.6008-1
    has the coordinates: ( 3.980454, 6.9052e-1, 5.6008e-1 )
-   GRID      200005       04.004752-3.985-15.4955-1  
+   GRID      200005       04.004752-3.985-15.4955-1
    has the coordinates: ( 4.004752, -3.985e-1, 5.4955e-1 ) */
 ErrorCode ReadNASTRAN::get_real(const std::string &token, double &real)
 {

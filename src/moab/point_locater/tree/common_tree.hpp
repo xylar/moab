@@ -1,4 +1,4 @@
-/** 
+/**
  * common_tree.hpp
  * Ryan H. Lewis
  * (C) 2012
@@ -21,7 +21,7 @@
 #define TREE_DEBUG
 namespace moab {
 namespace common_tree {
- 
+
 template< typename T, typename Stream>
 void print_vector( const T & v, Stream & out){
 	typedef typename T::const_iterator Iterator;
@@ -50,10 +50,10 @@ void print_vector( const T & begin, const T & end){
 #endif
 
 template< typename _Box, typename _Point>
-bool box_contains_point(  const _Box & box, const _Point & p, 
+bool box_contains_point(  const _Box & box, const _Point & p,
 			  const double tol){
 	for( std::size_t i = 0; i < box.min.size(); ++i){
-	     if( p[ i] < (box.min[ i]-tol) || 
+	     if( p[ i] < (box.min[ i]-tol) ||
 	         p[ i] > (box.max[ i])+tol){
 	     	return false;
 	     }
@@ -66,7 +66,7 @@ bool box_contains_box(  const _Box & a, const _Box & b, const double tol){
 	for( std::size_t i = 0; i < a.min.size(); ++i){
 	     if( b.min[ i] < (a.min[ i]-tol)){
 		return false;
-	      }  
+	      }
 	      if( b.max[ i] > (a.max[ i]+tol)){
 	     	return false;
 	     }
@@ -75,7 +75,7 @@ bool box_contains_box(  const _Box & a, const _Box & b, const double tol){
 }
 
 namespace {
-	template< typename T> 
+	template< typename T>
 	struct Compute_center: public std::binary_function< T, T, T> {
 		T operator()( const T a, const T b) const{
 			return (a+b)/2.0;
@@ -93,7 +93,7 @@ inline void compute_box_center(Vector & max, Vector & min, Vector & center){
 
 
 template< typename Box>
-inline typename Box::value_type compute_box_center( const Box & box, 
+inline typename Box::value_type compute_box_center( const Box & box,
 						    const int dim){
 	return (box.max[ dim] + box.min[ dim])/2.0;
 }
@@ -105,7 +105,7 @@ class Box{
 	typedef T value_type;
 	typedef std::vector< T> Vector;
 	Box(): max(3,0.0), min(3,0.0) {}
-	Box( const Box & from): max( from.max), 
+	Box( const Box & from): max( from.max),
 				min( from.min){}
 	template< typename Iterator>
 	Box( const Iterator begin, const Iterator end):
@@ -144,11 +144,11 @@ struct _Element_data  {
 }; //Element_data
 
 template< typename Entities, typename Iterator>
-void assign_entities( Entities & entities, 
+void assign_entities( Entities & entities,
 		      const Iterator & begin, const Iterator & end){
-	entities.reserve( std::distance( begin, end)); 
+	entities.reserve( std::distance( begin, end));
 	for( Iterator i = begin; i != end; ++i){
-		entities.push_back( std::make_pair((*i)->second.first, 
+		entities.push_back( std::make_pair((*i)->second.first,
 						    (*i)->first));
 	}
 }
@@ -185,23 +185,23 @@ template< typename Entity_map, typename Ordering>
 void construct_ordering( Entity_map & entity_map, Ordering & entity_ordering){
 	entity_ordering.reserve( entity_map.size());
 	typedef typename Entity_map::iterator Map_iterator;
-	for(Map_iterator i = entity_map.begin(); 
-			 i != entity_map.end(); 
+	for(Map_iterator i = entity_map.begin();
+			 i != entity_map.end();
 			 ++i){
-		entity_ordering.push_back( i); 
+		entity_ordering.push_back( i);
 	}
 }
 
 //Input: A bunch of entity handles
-//Output: A map from handle -> Data 
+//Output: A map from handle -> Data
 //Requirements: Data contains at least a bounding box.
 //And a non-default constructor which takes only a Box&
-template< typename Entity_handles, 
-	  typename Element_map, 
+template< typename Entity_handles,
+	  typename Element_map,
 	  typename Bounding_box,
 	  typename Moab>
-void construct_element_map( const Entity_handles & elements, 
-			    Element_map & map, 
+void construct_element_map( const Entity_handles & elements,
+			    Element_map & map,
 			    Bounding_box & bounding_box,
 			    Moab & moab){
 	typedef typename Element_map::mapped_type Box_data;
@@ -211,7 +211,7 @@ void construct_element_map( const Entity_handles & elements,
 	typedef typename std::vector< Unit> Coordinates;
 	typedef typename Coordinates::iterator Coordinate_iterator;
 		
-	for( Entity_handles_iterator i = elements.begin(); 
+	for( Entity_handles_iterator i = elements.begin();
 				     i != elements.end(); ++i){
 		//TODO: not generic enough. Why dim != 3
 		const int DIM = 3;	
@@ -223,7 +223,7 @@ void construct_element_map( const Entity_handles & elements,
 		moab.get_coords( vertex_handle, num_vertices, &coordinate[ 0]);
 		Bounding_box box( coordinate.begin(), coordinate.begin()+3);
 		if( i == elements.begin() ){ bounding_box = box;}
-		for( Coordinate_iterator j = coordinate.begin()+DIM; 
+		for( Coordinate_iterator j = coordinate.begin()+DIM;
 				         j != coordinate.end(); j+=DIM){
 			update_bounding_max( box.max, j);
 			update_bounding_min( box.min, j);

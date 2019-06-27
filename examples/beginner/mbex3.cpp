@@ -1,7 +1,7 @@
 /// \file moabuse3.cpp
-/// 
+///
 /// \author Milad Fatenejad
-/// 
+///
 /// \brief moabuse tutorial, example 3: Demonstrates
 ///        constructing/saving a simple 2x2x2 hex mesh using the
 ///        structured mesh interface
@@ -47,11 +47,11 @@ int main()
   const double vertex_coords[3*NUMVTX] = { 0, 0, 0,  1, 0, 0,  2, 0, 0,
 					   0, 1, 0,  1, 1, 0,  2, 1, 0,
 					   0, 2, 0,  1, 2, 0,  2, 2, 0,
-					   
+					
 					   0, 0, 1,  1, 0, 1,  2, 0, 1,
 					   0, 1, 1,  1, 1, 1,  2, 1, 1,
 					   0, 2, 1,  1, 2, 1,  2, 2, 1,
-					   
+					
 					   0, 0, 2,  1, 0, 2,  2, 0, 2,
 					   0, 1, 2,  1, 1, 2,  2, 1, 2,
 					   0, 2, 2,  1, 2, 2,  2, 2, 2 };
@@ -72,10 +72,10 @@ int main()
   // example, we want to create a single, 2x2x2 box. The construct_box
   // method will do this for us.
   moab::ScdBox *scdbox = NULL;
-  rval = scdint->construct_box(moab::HomCoord(0,0,0), 
-			       moab::HomCoord(2,2,2), 
-			       vertex_coords, 
-			       NUMVTX, 
+  rval = scdint->construct_box(moab::HomCoord(0,0,0),
+			       moab::HomCoord(2,2,2),
+			       vertex_coords,
+			       NUMVTX,
 			       scdbox);MB_CHK_SET_ERR(rval, "scdint->construct_box failed");
 
   // moab::HomCoord is a little class that is used to represent a
@@ -112,7 +112,7 @@ int main()
 
   // Of course, you can still use all of the functionality defined in
   // mbint to get coordinates, connectivity, etc...
-  
+
   // ***************************
   // *   Write Mesh to Files   *
   // ***************************

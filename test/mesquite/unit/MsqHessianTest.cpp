@@ -1,9 +1,9 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2004 Sandia Corporation and Argonne National
-    Laboratory.  Under the terms of Contract DE-AC04-94AL85000 
-    with Sandia Corporation, the U.S. Government retains certain 
+    Laboratory.  Under the terms of Contract DE-AC04-94AL85000
+    with Sandia Corporation, the U.S. Government retains certain
     rights in this software.
 
     This library is free software; you can redistribute it and/or
@@ -16,17 +16,17 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
-    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov, 
-    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov      
-   
+
+    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov,
+    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov
+
   ***************************************************************** */
 // -*- Mode : c++; tab-width: 3; c-tab-always-indent: t; indent-tabs-mode: nil; c-basic-offset: 3 -*-
 //
-//   SUMMARY: 
+//   SUMMARY:
 //     USAGE:
 //
 //    AUTHOR: Thomas Leurent <tleurent@mcs.anl.gov>
@@ -40,7 +40,7 @@
 // ============
 /*! \file MsqHessianTest.cpp
 
-Unit testing of the MsqHessian class. 
+Unit testing of the MsqHessian class.
 
 */
 // DESCRIP-END.
@@ -73,8 +73,8 @@ private:
   CPPUNIT_TEST_SUITE_END();
 
 private:
-   
-  PatchData twoTriangles; 
+
+  PatchData twoTriangles;
 
 public:
   void setUp()
@@ -92,25 +92,25 @@ public:
   MsqHessianTest()
   {}
 
-  void accumulate_entries( const PatchData &pd, 
+  void accumulate_entries( const PatchData &pd,
                            size_t elem_index,
-                           const Matrix3D* mat3d_array, 
+                           const Matrix3D* mat3d_array,
                            MsqError &err );
 
   void test_initialize()
   {
     MsqPrintError err(cout);
-    
+
     MsqHessian::initialize(twoTriangles, err); CPPUNIT_ASSERT(!err);
 
     // Checks values of mRowStart are correct.
     size_t i, row_start[] = {0, 4, 7, 8, 9};
-    for (i=0; i<5; ++i) 
+    for (i=0; i<5; ++i)
       CPPUNIT_ASSERT( mRowStart[i] == row_start[i] );
 
     // Checks values of mColIndex are correct.
     size_t col_index[] = {0,1,2,3,1,2,3,2,3};
-    for (i=0; i<9; ++i) 
+    for (i=0; i<9; ++i)
       CPPUNIT_ASSERT( mColIndex[i] == col_index[i] );
   }
 
@@ -118,7 +118,7 @@ public:
   {
     size_t i;
 	MsqPrintError err(cout);
-    
+
     MsqHessian::initialize(twoTriangles, err); CPPUNIT_ASSERT(!err);
 
     size_t hs = MsqHessian::size();
@@ -141,7 +141,7 @@ public:
 
     blocks[2] += blocks[5];
     blocks[5] = blocks[3];
-    
+
     accumulate_entries(twoTriangles, 1, blocks, err); CPPUNIT_ASSERT(!err);
 
     Matrix3D entries_6_ans("2 3 1   4 2 4   7 7 3");
@@ -167,7 +167,7 @@ public:
     for (i=0; i<hs; ++i)
       CPPUNIT_ASSERT( res[i] == ans[i] );
 
-    
+
     y[0].set(3, 2, 6);
     y[1].set(1, 2, 4);
     y[2].set(3, 6, 9);
@@ -189,12 +189,12 @@ public:
     delete[] ans;
   }
 
-  
+
   void test_cg_solver()
   {
     size_t i;
     MsqPrintError err(cout);
-    
+
     MsqHessian::initialize(twoTriangles, err); CPPUNIT_ASSERT(!err);
 
     size_t hs = MsqHessian::size();
@@ -217,9 +217,9 @@ public:
 
     blocks[2] -= blocks[5];
     blocks[5] = blocks[3];
-    
+
     accumulate_entries(twoTriangles, 1, blocks, err); CPPUNIT_ASSERT(!err);
-        
+
     y[0].set(3, 2, 6);
     y[1].set(1, 2, 4);
     y[2].set(3, 6, 9);
@@ -227,9 +227,9 @@ public:
 
     cg_solver(x, y, err); CPPUNIT_ASSERT(!err);
 
-//     for (int i=0; i<4; ++i) 
+//     for (int i=0; i<4; ++i)
 //       cout << x[i];
-    
+
     ans[0].set(3.2338, 7.6431, -7.0735);
     ans[1].set(-1.0068, 4.5520, -4.6628);
     ans[2].set(-0.4361, 4.7640, -8.1006);
@@ -242,8 +242,8 @@ public:
     delete[] res;
     delete[] x;
     delete[] y;
-    delete[] ans;    
-          
+    delete[] ans;
+
   }
 
     void test_cholesky_preconditioner()
@@ -279,14 +279,14 @@ public:
 
 //     cout << "block 0: \n" << block_0 << endl;
 //     cout << "correct: \n" << correct << endl;
-    
+
   }
-  
+
 };
 
-void MsqHessianTest::accumulate_entries( const PatchData &pd, 
+void MsqHessianTest::accumulate_entries( const PatchData &pd,
                                          size_t elem_index,
-                                         const Matrix3D* mat3d_array, 
+                                         const Matrix3D* mat3d_array,
                                          MsqError &err )
 {
   const MsqMeshEntity& elem = pd.element_by_index( elem_index );

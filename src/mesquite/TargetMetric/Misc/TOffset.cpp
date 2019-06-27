@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2009 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2009) kraftche@cae.wisc.edu    
+    (2009) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file TOffset.cpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -43,8 +43,8 @@ std::string TOffset::get_name() const
 
 TOffset::~TOffset() {}
 
-bool TOffset::evaluate( const MsqMatrix<2,2>& T, 
-                        double& result, 
+bool TOffset::evaluate( const MsqMatrix<2,2>& T,
+                        double& result,
                         MsqError& err )
 {
   bool rval = mMetric->evaluate( T, result, err );
@@ -76,8 +76,8 @@ bool TOffset::evaluate_with_hess( const MsqMatrix<2,2>& T,
   return rval;
 }
 
-bool TOffset::evaluate( const MsqMatrix<3,3>& T, 
-                        double& result, 
+bool TOffset::evaluate( const MsqMatrix<3,3>& T,
+                        double& result,
                         MsqError& err )
 {
   bool rval = mMetric->evaluate( T, result, err );

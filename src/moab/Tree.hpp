@@ -27,7 +27,7 @@ namespace moab {
     {
   public:
         /** \brief Constructor (bare)
-         * \param iface MOAB instance 
+         * \param iface MOAB instance
          */
       Tree(Interface* iface);
 
@@ -43,11 +43,11 @@ namespace moab {
         /** \brief Delete the entity sets associated with the tree, starting with the root and traversing children
          */
       ErrorCode delete_tree_sets();
-      
+
         /** Build the tree
-         * Build a tree with the entities input.  If a non-NULL tree_root_set pointer is input, 
-         * use the pointed-to set as the root of this tree (*tree_root_set!=0) otherwise construct 
-         * a new root set and pass its handle back in *tree_root_set.  Options vary by tree type, 
+         * Build a tree with the entities input.  If a non-NULL tree_root_set pointer is input,
+         * use the pointed-to set as the root of this tree (*tree_root_set!=0) otherwise construct
+         * a new root set and pass its handle back in *tree_root_set.  Options vary by tree type,
          * with a few common to all types of trees.  Common options:
          * MAX_PER_LEAF: max entities per leaf; default = 6
          * MAX_DEPTH: max depth of the tree; default = 30
@@ -74,7 +74,7 @@ namespace moab {
          * \return Only returns error on fatal condition
          */
       virtual ErrorCode get_bounding_box(BoundBox &box, EntityHandle *tree_node = NULL) const;
-  
+
         /** \brief Return some basic information about the tree
          * Stats are returned for tree starting from input node or tree root (root = 0)
          * \param root If non-0, give stats below and including root
@@ -83,13 +83,13 @@ namespace moab {
          * \param max_dep Maximum depth of tree below root
          */
       virtual ErrorCode get_info(EntityHandle root,
-                                 double min[3], double max[3], 
+                                 double min[3], double max[3],
                                  unsigned int &max_dep);
-  
+
         /** \brief Find all trees, by bounding box tag
          */
       ErrorCode find_all_trees( Range& results );
-      
+
         /** \brief Get leaf containing input position.
          *
          * Does not take into account global bounding box of tree.
@@ -150,30 +150,30 @@ namespace moab {
 
         /** \brief Get max depth set on tree */
       double get_max_depth() {return maxDepth;}
-      
+
         /** \brief Get max entities per leaf set on tree */
       double get_max_per_leaf() {return maxPerLeaf;}
 
         /** \brief Get tree traversal stats object */
       TreeStats &tree_stats() {return treeStats;}
-      
+
         /** \brief Get tree traversal stats object */
       const TreeStats &tree_stats() const {return treeStats;}
-      
+
         /** \brief Create tree root and tag with bounding box
          */
       ErrorCode create_root( const double box_min[3], const double box_max[3],
                              EntityHandle& root_handle);
-      
+
         //! print various things about this tree
       virtual ErrorCode print() = 0;
-      
+
         //! get/set the ElemEvaluator
       inline ElemEvaluator *get_eval() {return myEval;}
-      
+
         //! get/set the ElemEvaluator
       inline void set_eval(ElemEvaluator *eval) {myEval = eval;}
-      
+
         /** \brief Parse options for this tree, including common options for all trees
          * \param opts Options
          */
@@ -199,16 +199,16 @@ namespace moab {
 
         // bounding box for entire tree
       BoundBox boundBox;
-      
+
         // max entities per leaf
       int maxPerLeaf;
-      
+
         // max depth of tree
       int maxDepth;
-      
+
         // tree depth, set by build_tree
       int treeDepth;
-      
+
         // min width of box, handled like tolerance
       double minWidth;
 
@@ -234,15 +234,15 @@ namespace moab {
       ElemEvaluator *myEval;
     };
 
-    inline Tree::Tree(Interface* iface) 
+    inline Tree::Tree(Interface* iface)
             : mbImpl(iface), maxPerLeaf(6), maxDepth(30), treeDepth(-1), minWidth(1.0e-10),
               meshsetFlags(0), cleanUp(true), myRoot(0), boxTag(0), myEval(0)
     {}
 
-    inline Tree::~Tree() 
+    inline Tree::~Tree()
     {
     }
-    
+
     inline ErrorCode Tree::get_bounding_box(BoundBox &box, EntityHandle *tree_node) const
     {
       if ((tree_node && *tree_node == myRoot) || !tree_node) {
@@ -251,15 +251,15 @@ namespace moab {
       }
       else return MB_FAILURE;
     }
-  
+
     inline ErrorCode Tree::get_info(EntityHandle /* root */,
-                                    double * /*min[3]*/, double * /* max[3]*/, 
-                                    unsigned int &/*dep*/) 
+                                    double * /*min[3]*/, double * /* max[3]*/,
+                                    unsigned int &/*dep*/)
     {
       return MB_NOT_IMPLEMENTED;
     }
 
-    inline Tag Tree::get_box_tag(bool create_if_missing) 
+    inline Tag Tree::get_box_tag(bool create_if_missing)
     {
       if (!boxTag && create_if_missing) {
         assert(boxTagName.length() > 0);
@@ -271,13 +271,13 @@ namespace moab {
           boxTag = 0;
           return get_box_tag(true);
         }
-        
+
         if (MB_SUCCESS != rval) return 0;
       }
-      
+
       return boxTag;
     }
-    
-} // namespace moab 
+
+} // namespace moab
 
 #endif

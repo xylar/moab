@@ -303,7 +303,7 @@ ErrorCode NCHelperGCRM::create_mesh(Range& faces)
     dbgOut.tprintf(1, " cell_corners starth = %d\n", (int)starth);
     dbgOut.tprintf(1, " cell_corners   endh = %d\n", (int)endh);
     NCDF_SIZE read_starts[2] = {static_cast<NCDF_SIZE>(starth - 1), 0};
-    NCDF_SIZE read_counts[2] = {static_cast<NCDF_SIZE>(endh - starth + 1), 
+    NCDF_SIZE read_counts[2] = {static_cast<NCDF_SIZE>(endh - starth + 1),
                                 static_cast<NCDF_SIZE>(EDGES_PER_CELL)};
 
     // Do a partial read in each subrange

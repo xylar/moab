@@ -297,7 +297,7 @@ ErrorCode Coupler::locate_points(Range &targ_ents,
 }
 
 ErrorCode Coupler::locate_points(double *xyz, unsigned int num_points,
-                                 double rel_eps, 
+                                 double rel_eps,
                                  double abs_eps,
                                  TupleList *tl,
                                  bool store_local)
@@ -528,7 +528,7 @@ ErrorCode Coupler::locate_points(double *xyz, unsigned int num_points,
   return MB_SUCCESS;
 }
 
-ErrorCode Coupler::test_local_box(double *xyz, 
+ErrorCode Coupler::test_local_box(double *xyz,
                                   int from_proc, int remote_index, int /*index*/,
                                   bool &point_located,
                                   double rel_eps, double abs_eps,
@@ -587,7 +587,7 @@ ErrorCode Coupler::test_local_box(double *xyz,
     mappedPts->inc_n();
 
     // Also store local point, mapped point indices
-    if (tl->get_n() == tl->get_max()) 
+    if (tl->get_n() == tl->get_max())
       tl->resize(std::max(10.0, 1.5*tl->get_max()));
 
     // Store in tuple source_pts
@@ -730,7 +730,7 @@ ErrorCode Coupler::nat_param(double xyz[3],
                                      /*iter_tol*/ epsilon,
                                      /*inside_tol*/ 10*epsilon,
                                      &dists, NULL, &localRoot);
-    if (leaves.empty()) 
+    if (leaves.empty())
       // Not found returns success here, with empty list, just like case with no epsilon
       return MB_SUCCESS;
     // Get closest leaf
@@ -757,7 +757,7 @@ ErrorCode Coupler::nat_param(double xyz[3],
   }
 
   // Find natural coordinates of point in element(s) in that leaf
-  CartVect tmp_nat_coords; 
+  CartVect tmp_nat_coords;
   Range range_leaf;
   result = mbImpl->get_entities_by_dimension(closest_leaf, max_dim, range_leaf, false);
   if (MB_SUCCESS != result)
@@ -1100,7 +1100,7 @@ ErrorCode Coupler::normalize_subset(EntityHandle        root_set,
 {
   moab::ErrorCode err;
   std::vector<Tag> tag_handles;
-  
+
   // Lookup tag handles from tag names
   for (int t = 0; t < num_tags; t++) {
     // get tag handle & size
@@ -1241,7 +1241,7 @@ ErrorCode Coupler::get_matching_entities(EntityHandle                           
 {
   ErrorCode err;
   std::vector<Tag> tag_handles;
-  
+
   for (int t = 0; t < num_tags; t++) {
     // Get tag handle & size
     Tag th;
@@ -1261,7 +1261,7 @@ ErrorCode Coupler::get_matching_entities(EntityHandle                           
                                          int                                     num_tags,
                                          std::vector<std::vector<EntityHandle> > *entity_sets,
                                          std::vector<std::vector<EntityHandle> > *entity_groups)
-{                                        
+{
   // SLAVE START ****************************************************************
 
   // Setup data for parallel computing
@@ -1287,7 +1287,7 @@ ErrorCode Coupler::get_matching_entities(EntityHandle                           
   ent_sets.clear();
   // SLAVE END   ****************************************************************
 
-  // If we are running in a multi-proc session then send tuple list back to master 
+  // If we are running in a multi-proc session then send tuple list back to master
   // proc for consolidation. Otherwise just copy the pointer to the tuple_list.
   TupleList *cons_tuples;
   if (nprocs > 1) {
@@ -1509,7 +1509,7 @@ ErrorCode Coupler::create_tuples(Range        &ent_sets,
 }
 
 // Consolidate tuple_lists into one list with no duplicates
-ErrorCode Coupler::consolidate_tuples(TupleList     **all_tuples, 
+ErrorCode Coupler::consolidate_tuples(TupleList     **all_tuples,
                                       unsigned int  num_tuples,
                                       TupleList     **unique_tuples)
 {
@@ -1620,7 +1620,7 @@ ErrorCode Coupler::get_group_integ_vals(std::vector<std::vector<EntityHandle> > 
     for (iter_j = (*iter_i).begin(); iter_j != (*iter_i).end(); ++iter_j) {
       EntityHandle ehandle = (*iter_j);
 
-      // Check that the entity in iter_j is of the same dimension as the 
+      // Check that the entity in iter_j is of the same dimension as the
       // integ_type we are performing
       EntityType j_type;
       j_type = mbImpl->type_from_handle(ehandle);
@@ -1719,7 +1719,7 @@ ErrorCode Coupler::get_group_integ_vals(std::vector<std::vector<EntityHandle> > 
 
 // Apply a normalization factor to group of entities
 ErrorCode Coupler::apply_group_norm_factor(std::vector<std::vector<EntityHandle> > &entity_sets,
-                                           std::vector<double>                     &norm_factors, 
+                                           std::vector<double>                     &norm_factors,
                                            const char                              *norm_tag,
                                            Coupler::IntegType                      /*integ_type*/)
 {
@@ -1792,9 +1792,9 @@ int pack_tuples(TupleList* tl, void** ptr)
   uint n = tl->get_n();
 
   int sz_buf = 1 + 4*UINT_PER_UNSIGNED +
-               tl->get_n() * (mi + 
-                              ml*UINT_PER_LONG + 
-                              mul*UINT_PER_LONG + 
+               tl->get_n() * (mi +
+                              ml*UINT_PER_LONG +
+                              mul*UINT_PER_LONG +
                               mr*UINT_PER_REAL);
 
   uint *buf = (uint*) malloc(sz_buf*sizeof(uint));

@@ -1,9 +1,9 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2004 Sandia Corporation and Argonne National
-    Laboratory.  Under the terms of Contract DE-AC04-94AL85000 
-    with Sandia Corporation, the U.S. Government retains certain 
+    Laboratory.  Under the terms of Contract DE-AC04-94AL85000
+    with Sandia Corporation, the U.S. Government retains certain
     rights in this software.
 
     This library is free software; you can redistribute it and/or
@@ -16,14 +16,14 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
-    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov, 
-    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov   
-    kraftche@cae.wisc.edu   
-   
+
+    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov,
+    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov
+    kraftche@cae.wisc.edu
+
   ***************************************************************** */
 
 #define TOL 1e-5
@@ -69,10 +69,10 @@ using namespace MBMesquite;
 // and verify that the vertex was moved back to the origin by
 // the smoother.
 bool smooth_mesh( Mesh* mesh, Mesh* ref_mesh,
-                  Mesh::VertexHandle free_vertex_at_origin, 
+                  Mesh::VertexHandle free_vertex_at_origin,
                   Vector3D initial_free_vertex_position,
                   QualityMetric* metric );
-                  
+
 bool smooth_mixed_mesh( const char* filename );
 
 int main( int argc, char* argv[] )
@@ -86,8 +86,8 @@ int main( int argc, char* argv[] )
     std::cerr << "Invalid arguments.\n";
     return 2;
   }
-  
-  
+
+
   MBMesquite::MsqPrintError err(cout);
   IdealWeightMeanRatio m1;
   IdealWeightInverseMeanRatio m2(err);
@@ -113,7 +113,7 @@ int main( int argc, char* argv[] )
   std::vector<Mesh::VertexHandle> vert_array;
   std::vector<Mesh::ElementHandle> elem_array;
   std::vector<size_t> conn_offsets;
-  mesh.get_all_elements( elem_array, err ); 
+  mesh.get_all_elements( elem_array, err );
   CPPUNIT_ASSERT(!err);
   CPPUNIT_ASSERT( elem_array.size() == 12 );
   mesh.elements_get_attached_vertices( arrptr(elem_array),
@@ -127,14 +127,14 @@ int main( int argc, char* argv[] )
   EntityTopology type_array[12];
   mesh.elements_get_topologies( arrptr(elem_array), type_array, 12, err );
   CPPUNIT_ASSERT(!err);
-  
+
     // Verify element types and number of vertices
   for (i = 0; i < 12; ++i)
   {
     CPPUNIT_ASSERT( type_array[i] == PYRAMID );
     CPPUNIT_ASSERT( conn_offsets[i] == 5*i );
   }
-  
+
     // All pyramids should share a common apex, at the
     // center of the sphere
   Mesh::VertexHandle apex_handle = vert_array[4];
@@ -142,7 +142,7 @@ int main( int argc, char* argv[] )
   {
     CPPUNIT_ASSERT( vert_array[5*i+4] == apex_handle );
   }
-  
+
     // Verify that apex is at origin and all other vertices are
     // on unit sphere
   MsqVertex vertices[60];
@@ -155,19 +155,19 @@ int main( int argc, char* argv[] )
     else
       CPPUNIT_ASSERT( fabs(1.0 - vertices[i].length()) < 1e-6 );
   }
-  
+
     // Try smoothing w/out moving the free vertex and verify that
     // the smoother didn't move the vertex
   Vector3D position(0,0,0);
   for (i = 0; metrics[i] != NULL; ++i)
     CPPUNIT_ASSERT( !smooth_mesh( &mesh, &ideal_mesh, apex_handle, position, metrics[i] ) );
-  
+
     // Now try moving the vertex and see if the smoother moves it back
     // to the origin
   position.set( 0.1, 0.1, 0.1 );
   for (i = 0; metrics[i] != NULL; ++i)
     CPPUNIT_ASSERT( !smooth_mesh( &mesh, &ideal_mesh, apex_handle, position, metrics[i] ) );
-  
+
     // Now try moving the vertex further and see if the smoother moves it back
     // to the origin
   position.set( 0.3, 0.3, 0.3 );
@@ -179,32 +179,32 @@ int main( int argc, char* argv[] )
 
   return 0;
 }
-  
-  
+
+
 bool smooth_mesh( Mesh* mesh, Mesh* ,
-                  Mesh::VertexHandle free_vertex_at_origin, 
+                  Mesh::VertexHandle free_vertex_at_origin,
                   Vector3D initial_free_vertex_position,
                   QualityMetric* metric )
 {
   MBMesquite::MsqPrintError err(cout);
   const Vector3D origin( 0, 0, 0 );
-  
+
   // print a little output so we know when we died
-  std::cout << 
-  "**************************************************************************" 
-  << std::endl << 
+  std::cout <<
+  "**************************************************************************"
+  << std::endl <<
   "* Smoothing..."
-  << std::endl << 
+  << std::endl <<
   "* Metric: " << metric->get_name()
-  << std::endl << 
+  << std::endl <<
   "* Apex position: " << initial_free_vertex_position
-  << std::endl //<< 
-  //"**************************************************************************" 
+  << std::endl //<<
+  //"**************************************************************************"
   << std::endl;
 
-  
+
   // Set free vertex to specified position
-  mesh->vertex_set_coordinates( free_vertex_at_origin, 
+  mesh->vertex_set_coordinates( free_vertex_at_origin,
                                 initial_free_vertex_position,
                                 err );
   CPPUNIT_ASSERT(!err);
@@ -226,68 +226,68 @@ bool smooth_mesh( Mesh* mesh, Mesh* ,
   TerminationCriterion tc_inner;
   tc_inner.add_absolute_vertex_movement( 1e-6 );
   solver.set_inner_termination_criterion(&tc_inner);
-   
+
   TerminationCriterion tc_outer;
   tc_outer.add_iteration_limit( 1 );
   solver.set_outer_termination_criterion(&tc_outer);
-   
+
   // Add solver to queue
-  Q.set_master_quality_improver(&solver, err); 
+  Q.set_master_quality_improver(&solver, err);
   CPPUNIT_ASSERT(!err);
- 
+
   // And smooth...
-  Q.run_instructions(mesh, err); 
+  Q.run_instructions(mesh, err);
   CPPUNIT_ASSERT(!err);
-  
+
   // Verify that vertex was moved back to origin
   MsqVertex vtx;
   mesh->vertices_get_coordinates( &free_vertex_at_origin, &vtx, 1, err );
   CPPUNIT_ASSERT( !err );
   Vector3D position = vtx;
-  
+
   // print a little output so we know when we died
-  std::cout //<< 
-  //"**************************************************************************" 
-  << std::endl << 
+  std::cout //<<
+  //"**************************************************************************"
+  << std::endl <<
   "* Done Smoothing:"
-  << std::endl << 
+  << std::endl <<
   "* Metric: " << metric->get_name()
-  << std::endl << 
+  << std::endl <<
   "* Apex position: " << position
-  << std::endl <<  
-  "**************************************************************************" 
+  << std::endl <<
+  "**************************************************************************"
   << std::endl;
-  
+
   CPPUNIT_ASSERT( position.within_tolerance_box( Vector3D(0,0,0), TOL ) );
   return false;
 }
 
 
 
-  
+
 bool smooth_mixed_mesh( const char* filename )
 {
   MBMesquite::MsqPrintError err(cout);
-  
+
   // print a little output so we know when we died
-  std::cout << 
-  "**************************************************************************" 
-  << std::endl << 
+  std::cout <<
+  "**************************************************************************"
+  << std::endl <<
   "* Smoothing: " << filename
   << std::endl  <<
-  "**************************************************************************" 
+  "**************************************************************************"
   << std::endl;
-  
+
   // The instruction queue to set up
   InstructionQueue Q;
-  
+
   // Use numeric approx of derivitives until analytic solutions
   // are working for pyramids
   IdealWeightInverseMeanRatio mr_metric(err);
   //sRI_DFT dft_metric;
   UntangleBetaQualityMetric un_metric(0);
   CPPUNIT_ASSERT(!err);
-  
+
     // Create Mesh object
   MBMesquite::MeshImpl mesh;
   mesh.read_vtk(filename, err);
@@ -320,7 +320,7 @@ bool smooth_mixed_mesh( const char* filename )
   TerminationCriterion tc_inner;
   tc_inner.add_relative_quality_improvement( 0.25 );
   solver.set_inner_termination_criterion(&tc_inner);
-   
+
   TerminationCriterion tc_outer;
   tc_outer.add_iteration_limit( 1 );
   CPPUNIT_ASSERT(!err);
@@ -330,22 +330,22 @@ bool smooth_mixed_mesh( const char* filename )
   MBMesquite::QualityAssessor qa;
   qa.add_quality_assessment( &mr_metric );
   qa.add_quality_assessment( &un_metric );
-  Q.add_quality_assessor( &qa, err ); 
+  Q.add_quality_assessor( &qa, err );
   CPPUNIT_ASSERT(!err);
- 
+
   // Add untangler to queue
   Q.add_preconditioner( &precond, err ); CPPUNIT_ASSERT(!err);
-  Q.add_quality_assessor( &qa, err ); 
+  Q.add_quality_assessor( &qa, err );
   CPPUNIT_ASSERT(!err);
- 
+
   // Add solver to queue
-  Q.set_master_quality_improver(&solver, err); 
+  Q.set_master_quality_improver(&solver, err);
   CPPUNIT_ASSERT(!err);
-  Q.add_quality_assessor( &qa, err ); 
+  Q.add_quality_assessor( &qa, err );
   CPPUNIT_ASSERT(!err);
- 
+
   // And smooth...
-  Q.run_instructions(&mesh, err); 
+  Q.run_instructions(&mesh, err);
   CPPUNIT_ASSERT(!err);
 
   return false;

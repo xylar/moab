@@ -3,7 +3,7 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  */
 /**
  * \file testgeom.cc
@@ -997,7 +997,7 @@ bool geometry_evaluation_test(FBiGeom_Instance geom) {
 
    return true;
 }
-// 
+//
 //  test normals evaluations on the surface only
 bool normals_test(FBiGeom_Instance geom) {
    int i, err;

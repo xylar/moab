@@ -1,9 +1,9 @@
 #include "moab/LocalDiscretization/SpectralHex.hpp"
 #include "moab/Forward.hpp"
 
-namespace moab 
+namespace moab
 {
-    
+
   // SpectralHex
 
   // filescope for static member data that is cached
@@ -77,7 +77,7 @@ CartVect SpectralHex::evaluate( const CartVect& params ) const
                                        const CartVect &init) const
 {
   params = init;
-      
+
     //find nearest point
   double x_star[3];
   xyz.get(x_star);
@@ -180,7 +180,7 @@ void SpectralHex::integrate_vector(const double *field_values, int num_tuples, d
     //std::cout << "volume: " << volume << "\n";
 }
 
-    int SpectralHex::insideFcn(const double *params, const int ndim, const double tol) 
+    int SpectralHex::insideFcn(const double *params, const int ndim, const double tol)
     {
       return EvalSet::inside(params, ndim, tol);
     }

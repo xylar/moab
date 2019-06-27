@@ -94,7 +94,7 @@ MCNPError McnpData::read_mcnpfile(bool skip_mesh) {
       std::cout << "Reading MCNP input file..." << std::endl;
 
       // Prepare for file reading ...
-      char line[10000];  
+      char line[10000];
       int mode = 0;         // Set the file reading mode to read proper data
       int nv[3];
 
@@ -160,7 +160,7 @@ MCNPError McnpData::read_mcnpfile(bool skip_mesh) {
                   for (int k=0; k < nv[2]-1; k++) {
                         vijk = vstart + (i + j*nv[0] + k*nv[0]*nv[1]);
 
-                        //std::cout << vijk << std::endl;                        
+                        //std::cout << vijk << std::endl;
 
                         connect[0] = vijk;
                         connect[1] = vijk + 1;
@@ -185,7 +185,7 @@ MCNPError McnpData::read_mcnpfile(bool skip_mesh) {
 
 /*
                   for (MBRange::iterator rit=vert_handles.begin(); rit != vert_handles.end(); ++rit) {
-                        std::cout << *rit << std::endl; 
+                        std::cout << *rit << std::endl;
                   }
 
 
@@ -222,7 +222,7 @@ MCNPError McnpData::read_mcnpfile(bool skip_mesh) {
 
       }
 
-      std::cout <<  "SUCCESS! Read in " << elem_handles.size() 
+      std::cout <<  "SUCCESS! Read in " << elem_handles.size()
                 << " elements!" << std::endl << std::endl;
       // MCNP_vertices.clear();
       vert_handles.clear();
@@ -234,11 +234,11 @@ MCNPError McnpData::read_mcnpfile(bool skip_mesh) {
 MCNPError McnpData::read_coord_system(std::string s) {
 
       if ((s.find("Box") < 100) || (s.find("xyz") < 100))
-            coord_system = CARTESIAN;     
+            coord_system = CARTESIAN;
       else if (s.find("Cyl") < 100)
-            coord_system = CYLINDRICAL; 
+            coord_system = CYLINDRICAL;
       else if (s.find("Sph") < 100)
-            coord_system = SPHERICAL; 
+            coord_system = SPHERICAL;
       else
             return MCNP_FAILURE;
 
@@ -252,7 +252,7 @@ MCNPError McnpData::read_rotation_matrix(std::string s, int i) {
 
       for (int j = 0; j < 4; j++) {
             result = next_number(s, rotation_matrix[4*i+j], fpos);
-            if (result == MCNP_FAILURE) 
+            if (result == MCNP_FAILURE)
                   return MCNP_FAILURE;
       }
 
@@ -266,7 +266,7 @@ MCNPError McnpData::make_elements(std::vector<double> x[3], int* n) {
       // MBEntityHandle vstart, vijk;
       unsigned int num_verts = n[0]*n[1]*n[2];
       double       *coords;
-      coords = new double [ 3 * num_verts ]; 
+      coords = new double [ 3 * num_verts ];
 
 /*
       // Enter the vertices ...
@@ -303,7 +303,7 @@ MCNPError McnpData::make_elements(std::vector<double> x[3], int* n) {
       }
 
       MBI->create_vertices(coords, num_verts, vert_handles);
-      
+
 
       delete[] coords;
       return MCNP_SUCCESS;
@@ -329,19 +329,19 @@ MCNPError McnpData::extract_tally_data(std::string s, moab::EntityHandle handle)
       // Discard first three lines
       for (int i = 0; i < 3; i++) {
             result = next_number(s, d, fpos);
-            if (result == MCNP_FAILURE) return MCNP_FAILURE;           
+            if (result == MCNP_FAILURE) return MCNP_FAILURE;
       }
       // Need to read in tally entry and tag ...
       result = next_number(s, d, fpos);
       if (result == MCNP_FAILURE) return MCNP_FAILURE;
       MBresult = MBI -> tag_set_data(tally_tag, &handle, 1, &d);
-      if (MBresult != moab::MB_SUCCESS) return MCNP_FAILURE; 
+      if (MBresult != moab::MB_SUCCESS) return MCNP_FAILURE;
 
       // Need to read in relative error entry and tag ...
       result = next_number(s, d, fpos);
       if (result == MCNP_FAILURE) return MCNP_FAILURE;
       MBresult = MBI -> tag_set_data(relerr_tag, &handle, 1, &d);
-      if (MBresult != moab::MB_SUCCESS) return MCNP_FAILURE; 
+      if (MBresult != moab::MB_SUCCESS) return MCNP_FAILURE;
 
       return MCNP_SUCCESS;
 }
@@ -366,7 +366,7 @@ MCNPError next_number(std::string s, double &d, int &p) {
                   return MCNP_SUCCESS;
             }
 
-      }   
+      }
 
       return DONE;
 }

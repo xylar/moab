@@ -1,16 +1,16 @@
 /*
  * MOAB, a Mesh-Oriented datABase, is a software component for creating,
  * storing and accessing finite element mesh data.
- * 
+ *
  * Copyright 2004 Sandia Corporation.  Under the terms of Contract
  * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
  * retains certain rights in this software.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  */
 
 /**\file OrientedBox.hpp
@@ -41,7 +41,7 @@ class OrientedBox
 {
 private:
   void order_axes_by_length( double ax1_len, double ax2_len, double ax3_len ); //!< orders the box axes by the given lengths for each axis
-  
+
 public:
   CartVect center;  //!< Box center
   Matrix3 axes; //!< Box axes, unit vectors sorted by extent of box along axis
@@ -66,12 +66,12 @@ public:
   inline double area() const;                 //!< largest side area
   inline CartVect axis( int index ) const; //!< get unit vector in direction of axis
   inline CartVect scaled_axis( int index ) const; //!< get vector in direction of axis, scaled to its true length
-  
+
   /** Test if point is contained in box */
   bool contained( const CartVect& point, double tolerance ) const;
-  
+
   //bool contained( const OrientedBox& other, double tolerance ) const;
-  
+
   /**\brief get tag handle for storing oriented box
    *
    * Get the handle for the tag with the specified name and
@@ -84,14 +84,14 @@ public:
    *\param create      If true, tag will be created if it does not exist
    */
   static ErrorCode tag_handle( Tag& handle_out,
-                                 Interface* instance, 
+                                 Interface* instance,
                                  const char* name);
 
   /**\brief Calculate an oriented box from a set of vertices */
   static ErrorCode compute_from_vertices( OrientedBox& result,
                                             Interface* instance,
                                             const Range& vertices );
-                                  
+
   /**\brief Calculate an oriented box from a set of 2D elements */
   static ErrorCode compute_from_2d_cells( OrientedBox& result,
                                             Interface* instance,
@@ -110,12 +110,12 @@ public:
     CartVect center;   //!< Sum of triangle centroids weighted by 2*triangle area
     double area;         //!< 2x the sum of the triangle areas
   };
-  
+
     /** Calculate a CovarienceData struct from a list of triangles */
   static ErrorCode covariance_data_from_tris( CovarienceData& result,
                                                 Interface* moab_instance,
                                                 const Range& elements );
-  
+
     /** Calculate an OrientedBox given an array of CovarienceData and
      *  the list  of vertices the box is to bound.
      */
@@ -124,7 +124,7 @@ public:
                                           const CovarienceData* orient_array,
                                           unsigned orient_array_length,
                                           const Range& vertices );
-  
+
     /** Test for intersection of a ray (or line segment) with this box.
      *  Ray length limits are used to optimize Monte Carlo particle tracking.
      *\param ray_start_point     The base point of the ray
@@ -138,9 +138,9 @@ public:
                       const double    distance_tolerance,
                       const double*   nonnegatve_ray_len = 0,
                       const double*   negative_ray_len   = 0 ) const;
-                      
+
     /**\brief Find closest position on/within box to input position.
-     * 
+     *
      * Find the closest position in the solid box to the input position.
      * If the input position is on or within the box, then the output
      * position will be the same as the input position.  If the input
@@ -149,11 +149,11 @@ public:
      */
   void closest_location_in_box( const CartVect& input_position,
                                 CartVect& output_position ) const;
-                      
+
     //! Construct a hexahedral element with the same shape as this box.
   ErrorCode make_hex( EntityHandle& hex, Interface* instance );
-                                    
-  
+
+
     /** Calculate an OrientedBox given a CovarienceData struct and
      *  the list of points the box is to bound.
      */
@@ -243,7 +243,7 @@ CartVect OrientedBox::axis( int index ) const
 {
   return axes.col(index);
 }
-  
+
 CartVect OrientedBox::scaled_axis( int index ) const
 {
 #if MB_ORIENTED_BOX_UNIT_VECTORS
@@ -252,7 +252,7 @@ CartVect OrientedBox::scaled_axis( int index ) const
   return axes.col(index);
 #endif
 }
-  
+
 } // namespace moab
 
 #endif

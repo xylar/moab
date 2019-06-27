@@ -41,12 +41,12 @@ void match_tri_edges_w_curve( Range tri_edges, Range curves );
 int main(int /* argc */, char** /* argv */)
 {
   int result = 0;
- 
+
   result += RUN_TEST(cube_verts_connectivity_test);
   result += RUN_TEST(cube_tris_connectivity_test);
   result += RUN_TEST(cube_tri_curve_coincidence_test);
   result += RUN_TEST(cube_tri_vertex_test);
- 
+
   return result;
 }
 
@@ -87,7 +87,7 @@ void cube_verts_connectivity_test()
       int adj_size = adj_tris.size();
       CHECK( adj_size >= 4 && adj_size <= 6 );
     }
-    
+
 }
 
 // Check that each triangle in the mesh is adjacent to
@@ -115,18 +115,18 @@ void cube_tris_connectivity_test()
       rval = mu.get_bridge_adjacencies( *i, 1, 2, adj_tris );
       CHECK_ERR(rval);
       CHECK_EQUAL( expected_num_of_adj_tris, (int)adj_tris.size() );
-      
+
       //Check that the entities we found from bridge_adjacencies
       //are triangles
       Range adj_tri_test = adj_tris.subset_by_type( MBTRI );
       CHECK_EQUAL( (int)adj_tris.size(), (int) adj_tri_test.size() );
-    
+
     }
 
 }
 
 
-// Takes triangle edges and makes sure they match the EntityHandles of 
+// Takes triangle edges and makes sure they match the EntityHandles of
 // curves in the case of a cube mesh
 void cube_tri_curve_coincidence_test()
 {
@@ -181,7 +181,7 @@ void match_tri_edges_w_curve( Range tri_edges, Range curves )
   //Make sure that each edge returned from triangle edges
   //has been matched to a curve
   CHECK_EQUAL( num_of_tri_edges, match_counter );
-} 
+}
 
 // Ensures that each triangle edge is adjacent to no more than
 // two triangles.
@@ -193,7 +193,7 @@ void cube_edge_adjacencies_test()
   Interface* mb = &moab;
   read_file( mb, input_cube.c_str() );
 
-  //Get the curves 
+  //Get the curves
   Range curves;
   rval = mb->get_entities_by_type( 0, MBEDGE, curves );
   CHECK_ERR(rval);
@@ -204,7 +204,7 @@ void cube_edge_adjacencies_test()
       Range adj_tris;
       rval = mb->get_adjacencies( &(*i), 1, 2, false, adj_tris );
       CHECK_ERR(rval);
-      
+
       int num_adj_tris = adj_tris.size();
       //Ensure that no edge is adjacent to more than two triangles
       CHECK( num_adj_tris <= 2 );
@@ -220,7 +220,7 @@ void cube_tri_vertex_test()
   Core moab;
   Interface* mb = &moab;
   read_file( mb, input_cube.c_str() );
- 
+
   //Get all triangles
   Range tris;
   rval = mb->get_entities_by_type( 0, MBTRI, tris );
@@ -237,7 +237,7 @@ void cube_tri_vertex_test()
       int number_of_verts = verts.size();
       CHECK( 3 == number_of_verts );
       CHECK( verts[0]!=verts[1] );
-      CHECK( verts[1]!=verts[2] );      
+      CHECK( verts[1]!=verts[2] );
       CHECK( verts[2]!=verts[0] );
-    } 
+    }
 }

@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2006 Sandia National Laboratories.  Developed at the
@@ -16,13 +16,13 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
+
     (2006) kraftche@cae.wisc.edu
     (2010) kraftche@cae.wisc.edu
-   
+
   ***************************************************************** */
 
 /*! \file TMPQualityMetricTest.cpp
@@ -65,11 +65,11 @@ public:
   MsqMatrix<3,3> last_A_3D;
 
   FauxMetric(double v) : count(0), value(v), rval(true) {}
-  
+
   std::string get_name() const { return "Faux"; }
-  
-  bool evaluate( const MsqMatrix<2,2>& A, 
-                 const MsqMatrix<2,2>& W, 
+
+  bool evaluate( const MsqMatrix<2,2>& A,
+                 const MsqMatrix<2,2>& W,
                  double& result, MsqError&  )
   {
     last_A_2D = A;
@@ -77,9 +77,9 @@ public:
     ++count;
     return rval;
   }
-  
-  bool evaluate( const MsqMatrix<3,3>& A, 
-                 const MsqMatrix<3,3>& W, 
+
+  bool evaluate( const MsqMatrix<3,3>& A,
+                 const MsqMatrix<3,3>& W,
                  double& result, MsqError&  )
   {
     last_A_3D = A;
@@ -87,8 +87,8 @@ public:
     ++count;
     return rval;
   }
-  
-  bool evaluate( const MsqMatrix<2,2>& T, 
+
+  bool evaluate( const MsqMatrix<2,2>& T,
                  double& result, MsqError&  )
   {
     last_A_2D = T;
@@ -96,8 +96,8 @@ public:
     ++count;
     return rval;
   }
-  
-  bool evaluate( const MsqMatrix<3,3>& T, 
+
+  bool evaluate( const MsqMatrix<3,3>& T,
                  double& result, MsqError&  )
   {
     last_A_3D = T;
@@ -122,33 +122,33 @@ template <class Base>
 class NumericalMetric : public Base
 {
 public:
-  
+
   NumericalMetric( Base* real_metric ) : mMetric(real_metric) {}
 
   ~NumericalMetric() {}
 
-  std::string get_name() const 
+  std::string get_name() const
     { return "Numerical " + mMetric->get_name(); }
 
-  bool evaluate( const MsqMatrix<2,2>& A, 
-                 const MsqMatrix<2,2>& W, 
-                 double& result, 
+  bool evaluate( const MsqMatrix<2,2>& A,
+                 const MsqMatrix<2,2>& W,
+                 double& result,
                  MsqError& err )
   { return mMetric->evaluate( A, W, result, err ); }
 
-  bool evaluate( const MsqMatrix<3,3>& A, 
-                 const MsqMatrix<3,3>& W, 
-                 double& result, 
+  bool evaluate( const MsqMatrix<3,3>& A,
+                 const MsqMatrix<3,3>& W,
+                 double& result,
                  MsqError& err )
   { return mMetric->evaluate( A, W, result, err ); }
 
-  bool evaluate( const MsqMatrix<2,2>& T, 
-                 double& result, 
+  bool evaluate( const MsqMatrix<2,2>& T,
+                 double& result,
                  MsqError& err )
   { return mMetric->evaluate( T, result, err ); }
 
-  bool evaluate( const MsqMatrix<3,3>& T, 
-                 double& result, 
+  bool evaluate( const MsqMatrix<3,3>& T,
+                 double& result,
                  MsqError& err )
   { return mMetric->evaluate( T, result, err ); }
 private:
@@ -156,7 +156,7 @@ private:
 };
 
 
-/** Simple target metric for testing first partial derivatives.  
+/** Simple target metric for testing first partial derivatives.
  *  \f$\mu(A,W) = |A|^2\f$
  *  \f$\frac{\partial\mu}{\partial \A} = 2 A \f$
  */
@@ -164,18 +164,18 @@ template <class Base>
 class TestGradTargetMetric : public Base
 {
   public:
-    
+
     std::string get_name() const { return "TestGrad"; }
-  
-    bool evaluate( const MsqMatrix<2,2>& T, 
+
+    bool evaluate( const MsqMatrix<2,2>& T,
                    double& result, MsqError& err )
       { result = sqr_Frobenius(T); return true; }
-  
-    bool evaluate( const MsqMatrix<2,2>& A, 
-                   const MsqMatrix<2,2>&, 
+
+    bool evaluate( const MsqMatrix<2,2>& A,
+                   const MsqMatrix<2,2>&,
                    double& result, MsqError& err )
       { return evaluate( A, result, err ); }
-    
+
     bool evaluate_with_grad( const MsqMatrix<2,2>& T,
                              double& result,
                              MsqMatrix<2,2>& d,
@@ -185,23 +185,23 @@ class TestGradTargetMetric : public Base
       d = 2*T;
       return true;
     }
-    
-    bool evaluate_with_grad( const MsqMatrix<2,2>& A, 
+
+    bool evaluate_with_grad( const MsqMatrix<2,2>& A,
                              const MsqMatrix<2,2>&,
                              double& result,
                              MsqMatrix<2,2>& d,
                              MsqError& err )
     { return evaluate_with_grad( A, result, d, err ); }
-  
-    bool evaluate( const MsqMatrix<3,3>& T, 
+
+    bool evaluate( const MsqMatrix<3,3>& T,
                    double& result, MsqError& err )
       { result = sqr_Frobenius(T); return true; }
-  
-    bool evaluate( const MsqMatrix<3,3>& A, 
-                   const MsqMatrix<3,3>&, 
+
+    bool evaluate( const MsqMatrix<3,3>& A,
+                   const MsqMatrix<3,3>&,
                    double& result, MsqError& err )
       { return evaluate( A, result, err ); }
-    
+
     bool evaluate_with_grad( const MsqMatrix<3,3>& T,
                              double& result,
                              MsqMatrix<3,3>& d,
@@ -211,8 +211,8 @@ class TestGradTargetMetric : public Base
       d = 2*T;
       return true;
     }
-    
-    bool evaluate_with_grad( const MsqMatrix<3,3>& A, 
+
+    bool evaluate_with_grad( const MsqMatrix<3,3>& A,
                              const MsqMatrix<3,3>&,
                              double& result,
                              MsqMatrix<3,3>& d,
@@ -261,7 +261,7 @@ class CenterMF3D : public MappingFunction3D
 class IdealShapeXY : public IdealShapeTarget
 {
   public: bool have_surface_orient() const { return true; }
-          bool get_surface_target( PatchData& pd, 
+          bool get_surface_target( PatchData& pd,
                                    size_t element,
                                    Sample sample,
                                    MsqMatrix<3,2>& W_out,
@@ -342,9 +342,9 @@ protected:
   Settings centerOnly;
   CenterMF2D triCenter, quadCenter;
   CenterMF3D tetCenter, pyrCenter, priCenter, hexCenter;
-  
+
 public:
-  TMPQualityMetricTest() : 
+  TMPQualityMetricTest() :
     tester( QualityMetricTester::ALL_FE_EXCEPT_SEPTAHEDRON, &settings ),
     e_weight( 2.7182818284590451 ),
     faux_pi(3.14159), faux_zero(0.0), faux_two(2.0),
@@ -360,7 +360,7 @@ public:
     pyrCenter( centerOnly.get_mapping_function_3D(PYRAMID) ),
     priCenter( centerOnly.get_mapping_function_3D(PRISM) ),
     hexCenter( centerOnly.get_mapping_function_3D(HEXAHEDRON) )
-  {  
+  {
     centerOnly.set_mapping_function( &triCenter );
     centerOnly.set_mapping_function( &quadCenter );
     centerOnly.set_mapping_function( &tetCenter );
@@ -369,10 +369,10 @@ public:
     centerOnly.set_mapping_function( &hexCenter );
     tester.ideal_pyramid_base_equals_height( true );
   }
-  
+
   void test_negate_flag()
     { CPPUNIT_ASSERT_EQUAL( 1, zero_qm.get_negate_flag() ); }
-  void test_supported_types()     
+  void test_supported_types()
     { tester.test_supported_element_types( &zero_qm ); }
   void test_get_evaluations()
     {
@@ -386,7 +386,7 @@ public:
       tester.test_get_in_element_evaluations( &zero_qm );
       tester.test_get_in_element_evaluations( &edge_metric );
     }
-  
+
   void test_evaluate_2D();
       void test_evaluate_surface();
   void test_evaluate_3D();
@@ -421,7 +421,7 @@ public:
       CPPUNIT_ASSERT(rval);
       CPPUNIT_ASSERT_DOUBLES_EQUAL( faux_pi.value*e_weight.value, value, DBL_EPSILON );
     }
-  
+
   void test_evaluate_3D_weight()
     {
       MsqPrintError err(cout);
@@ -437,7 +437,7 @@ public:
       CPPUNIT_ASSERT(rval);
       CPPUNIT_ASSERT_DOUBLES_EQUAL( faux_two.value*e_weight.value, value, DBL_EPSILON );
     }
-  
+
   void test_2d_eval_ortho_quad()
     {
       MsqPrintError err(cout);
@@ -454,8 +454,8 @@ public:
       CPPUNIT_ASSERT(rval);
       CPPUNIT_ASSERT_EQUAL( 1, faux_zero.count );
       CPPUNIT_ASSERT_DOUBLES_EQUAL( 0.0, col_dot_prod(faux_zero.last_A_2D), DBL_EPSILON );
-    }  
-  
+    }
+
   void test_surf_eval_ortho_quad()
     {
       MsqPrintError err(cout);
@@ -472,8 +472,8 @@ public:
       CPPUNIT_ASSERT(rval);
       CPPUNIT_ASSERT_EQUAL( 1, faux_zero.count );
       CPPUNIT_ASSERT_DOUBLES_EQUAL( 0.0, col_dot_prod(faux_zero.last_A_2D), DBL_EPSILON );
-    }  
-  
+    }
+
   void test_3d_eval_ortho_hex()
     {
       MsqPrintError err(cout);
@@ -495,8 +495,8 @@ public:
       CPPUNIT_ASSERT_DOUBLES_EQUAL( 0.0, A.column(0) % A.column(1), 1e-6 );
       CPPUNIT_ASSERT_DOUBLES_EQUAL( 0.0, A.column(0) % A.column(2), 1e-6 );
       CPPUNIT_ASSERT_DOUBLES_EQUAL( 0.0, A.column(1) % A.column(2), 1e-6 );
-    }  
-  
+    }
+
   void test_gradient_common(TargetCalculator* tc);
   void test_gradient_2D() { test_gradient_common( &ideal ); }
   void test_gradient_surface() { test_gradient_common( &surf_target ); }
@@ -506,9 +506,9 @@ public:
     { tester.test_get_sample_indices( &zero_qm ); }
   void test_evaluate_with_indices()
     { tester.compare_eval_and_eval_with_indices( &zero_qm ); }
-  void test_evaluate_fixed_indices() 
+  void test_evaluate_fixed_indices()
     { tester.test_get_indices_fixed( &zero_qm ); }
-    
+
   void compare_indices_and_gradient()
     { tester.compare_eval_with_indices_and_eval_with_gradient( &test_qm );
       tester.compare_eval_with_indices_and_eval_with_gradient( &test_qm_surf ); }
@@ -530,7 +530,7 @@ public:
     { tester.compare_eval_with_grad_and_eval_with_hessian( &test_qm );
       tester.compare_eval_with_grad_and_eval_with_hessian( &test_qm_surf ); }
   void compare_analytical_and_numerical_hessians()
-    { compare_analytical_and_numerical_hessians( &test_qm ); 
+    { compare_analytical_and_numerical_hessians( &test_qm );
       compare_analytical_and_numerical_hessians( &test_qm_surf ); }
   void test_symmetric_hessian_diagonal()
     { tester.test_symmetric_Hessian_diagonal_blocks( &test_qm );
@@ -544,10 +544,10 @@ public:
     { tester.compare_eval_with_indices_and_eval_with_diagonal( &test_qm );
       tester.compare_eval_with_indices_and_eval_with_diagonal( &test_qm_surf ); }
   void compare_gradient_and_diagonal()
-    { tester.compare_eval_with_grad_and_eval_with_diagonal( &test_qm ); 
+    { tester.compare_eval_with_grad_and_eval_with_diagonal( &test_qm );
       tester.compare_eval_with_grad_and_eval_with_diagonal( &test_qm_surf ); }
   void compare_analytical_and_numerical_diagonals()
-    { compare_analytical_and_numerical_diagonals( &test_qm );  
+    { compare_analytical_and_numerical_diagonals( &test_qm );
       compare_analytical_and_numerical_diagonals( &test_qm_surf ); }
   void test_weighted_diagonals()
     { compare_analytical_and_numerical_diagonals( &weight_qm ); }
@@ -573,7 +573,7 @@ public:
         }
       }
     }
-  
+
   void compare_analytical_and_numerical_gradients( QualityMetric* qm )
     {
       PatchData pd;
@@ -589,7 +589,7 @@ public:
         compare_analytical_and_numerical_gradients( qm, pd, TopologyInfo::dimension(types[i]) );
       }
     }
-  
+
   void compare_analytical_and_numerical_hessians( QualityMetric* qm );
   void compare_analytical_and_numerical_diagonals( QualityMetric* qm );
   void compare_analytical_and_numerical_gradients( QualityMetric* qm, PatchData&, int dim );
@@ -605,9 +605,9 @@ void TMPQualityMetricTest<QMType>::test_evaluate_2D()
   PatchData pd;
   bool rval;
   double value;
-  
+
   QMType m( &ideal, &faux_pi );
-  
+
     // test with aligned elements
   faux_pi.count = 0;
   tester.get_ideal_element( QUADRILATERAL, true, pd );
@@ -616,10 +616,10 @@ void TMPQualityMetricTest<QMType>::test_evaluate_2D()
   CPPUNIT_ASSERT(rval);
   CPPUNIT_ASSERT_DOUBLES_EQUAL( faux_pi.value, value, DBL_EPSILON );
   CPPUNIT_ASSERT_EQUAL( 1, faux_pi.count );
-  
+
     // test that columns are orthogonal for ideal quad element
   CPPUNIT_ASSERT_DOUBLES_EQUAL( 0.0, col_dot_prod(faux_pi.last_A_2D), 1e-6 );
-  
+
     // test with an element rotated about X-axis
   faux_pi.count = 0;
   tester.get_ideal_element( QUADRILATERAL, true, pd );
@@ -634,7 +634,7 @@ void TMPQualityMetricTest<QMType>::test_evaluate_2D()
   CPPUNIT_ASSERT(rval);
   CPPUNIT_ASSERT_DOUBLES_EQUAL( faux_pi.value, value, DBL_EPSILON );
   CPPUNIT_ASSERT_EQUAL( 1, faux_pi.count );
-  
+
     // test with an element rotated about Y-axis
   faux_pi.count = 0;
   tester.get_ideal_element( TRIANGLE, true, pd );
@@ -649,8 +649,8 @@ void TMPQualityMetricTest<QMType>::test_evaluate_2D()
   CPPUNIT_ASSERT(rval);
   CPPUNIT_ASSERT_DOUBLES_EQUAL( faux_pi.value, value, DBL_EPSILON );
   CPPUNIT_ASSERT_EQUAL( 1, faux_pi.count );
-}  
- 
+}
+
 template <class QMType> inline
 void TMPQualityMetricTest<QMType>::test_evaluate_surface()
 {
@@ -658,9 +658,9 @@ void TMPQualityMetricTest<QMType>::test_evaluate_surface()
   PatchData pd;
   bool rval;
   double value;
-  
+
   QMType m( &surf_target, &faux_pi );
-  
+
     // test with aligned elements
   faux_pi.count = 0;
   tester.get_ideal_element( QUADRILATERAL, true, pd );
@@ -669,10 +669,10 @@ void TMPQualityMetricTest<QMType>::test_evaluate_surface()
   CPPUNIT_ASSERT(rval);
   CPPUNIT_ASSERT_DOUBLES_EQUAL( faux_pi.value, value, DBL_EPSILON );
   CPPUNIT_ASSERT_EQUAL( 1, faux_pi.count );
-  
+
     // test that columns are orthogonal for ideal quad element
   CPPUNIT_ASSERT_DOUBLES_EQUAL( 0.0, col_dot_prod(faux_pi.last_A_2D), 1e-6 );
-  
+
     // test with an element rotated about X-axis
   faux_pi.count = 0;
   tester.get_ideal_element( QUADRILATERAL, true, pd );
@@ -687,7 +687,7 @@ void TMPQualityMetricTest<QMType>::test_evaluate_surface()
   CPPUNIT_ASSERT(rval);
   CPPUNIT_ASSERT_DOUBLES_EQUAL( faux_pi.value, value, DBL_EPSILON );
   CPPUNIT_ASSERT_EQUAL( 1, faux_pi.count );
-  
+
     // test with an element rotated about Y-axis
   faux_pi.count = 0;
   tester.get_ideal_element( TRIANGLE, true, pd );
@@ -702,9 +702,9 @@ void TMPQualityMetricTest<QMType>::test_evaluate_surface()
   CPPUNIT_ASSERT(rval);
   CPPUNIT_ASSERT_DOUBLES_EQUAL( faux_pi.value, value, DBL_EPSILON );
   CPPUNIT_ASSERT_EQUAL( 1, faux_pi.count );
-}  
+}
 
-  
+
 template <class QMType> inline
 void TMPQualityMetricTest<QMType>::test_evaluate_3D()
 {
@@ -712,9 +712,9 @@ void TMPQualityMetricTest<QMType>::test_evaluate_3D()
   PatchData pd;
   bool rval;
   double value;
-  
+
   QMType m( &ideal, &faux_two );
-  
+
     // test with aligned elements
   faux_two.count = 0;
   tester.get_ideal_element( HEXAHEDRON, true, pd );
@@ -723,13 +723,13 @@ void TMPQualityMetricTest<QMType>::test_evaluate_3D()
   CPPUNIT_ASSERT(rval);
   CPPUNIT_ASSERT_DOUBLES_EQUAL( faux_two.value, value, DBL_EPSILON );
   CPPUNIT_ASSERT_EQUAL( 1, faux_two.count );
-  
+
     // test that columns are orthogonal for ideal hex element
   MsqMatrix<3,3> A = faux_two.last_A_3D;
   CPPUNIT_ASSERT_DOUBLES_EQUAL( 0.0, A.column(0) % A.column(1), 1e-6 );
   CPPUNIT_ASSERT_DOUBLES_EQUAL( 0.0, A.column(0) % A.column(2), 1e-6 );
   CPPUNIT_ASSERT_DOUBLES_EQUAL( 0.0, A.column(1) % A.column(2), 1e-6 );
-  
+
     // test with rotated element
   faux_two.count = 0;
   tester.get_ideal_element( TETRAHEDRON, true, pd );
@@ -751,9 +751,9 @@ template <class QMType> inline
 void TMPQualityMetricTest<QMType>::test_gradient_common(TargetCalculator* tc)
 {
   MsqPrintError err(std::cout);
-  
+
     // check for expected value at center of flattened hex
-  
+
     // construct flattened hex
   const double y = 0.5;
   const double vertices[] = { 0.0, 0.0, 0.0,
@@ -764,9 +764,9 @@ void TMPQualityMetricTest<QMType>::test_gradient_common(TargetCalculator* tc)
   PatchData pd;
   pd.fill( 4, vertices, 1, QUADRILATERAL, conn, 0, err );
   ASSERT_NO_ERROR(err);
-  
+
     // calculate Jacobian matrix at element center
-    
+
     // derivatives of bilinear map at quad center
   const double deriv_vals[] = { -0.5, -0.5,
                                  0.5, -0.5,
@@ -781,8 +781,8 @@ void TMPQualityMetricTest<QMType>::test_gradient_common(TargetCalculator* tc)
   MsqVector<3> expt_grad[4];
   for (int v = 0; v < 4; ++v)
     expt_grad[v] = 2 * J * transpose( coeff_derivs.row(v) );
-    
-  
+
+
     // construct metric
   pd.attach_settings( &settings );
   TestGradTargetMetric< typename TMPTypes<QMType>::MetricType > tm;
@@ -790,7 +790,7 @@ void TMPQualityMetricTest<QMType>::test_gradient_common(TargetCalculator* tc)
   QMType m( tc, &tm );
   PlanarDomain plane( PlanarDomain::XY );
   pd.set_domain( &plane );
-  
+
     // evaluate metric
   double act_val;
   std::vector<size_t> indices;
@@ -798,7 +798,7 @@ void TMPQualityMetricTest<QMType>::test_gradient_common(TargetCalculator* tc)
   size_t h = ElemSampleQM::handle( Sample(2, 0), 0 );
   m.evaluate_with_gradient( pd, h, act_val, indices, act_grad, err );
   ASSERT_NO_ERROR(err);
-  
+
     // compare values
   CPPUNIT_ASSERT_DOUBLES_EQUAL( expt_val, act_val, 1e-10 );
   CPPUNIT_ASSERT_VECTORS_EQUAL( Vector3D(expt_grad[indices[0]].data()), act_grad[0], 1e-10 );
@@ -821,9 +821,9 @@ template <class QMType> inline
 void TMPQualityMetricTest<QMType>::test_gradient_3D()
 {
   MsqPrintError err(std::cout);
-  
+
     // check for expected value at center of flattened hex
-  
+
     // construct flattened hex
   const double z = 0.5;
   const double vertices[] = { 0.0, 0.0, 0.0,
@@ -838,9 +838,9 @@ void TMPQualityMetricTest<QMType>::test_gradient_3D()
   PatchData pd;
   pd.fill( 8, vertices, 1, HEXAHEDRON, conn, 0, err );
   ASSERT_NO_ERROR(err);
-  
+
     // calculate Jacobian matrix at element center
-   
+
     // derivatives of trilinear map at hex center
   const double deriv_vals[8][3] = { { -0.25, -0.25, -0.25 },
                                     {  0.25, -0.25, -0.25 },
@@ -859,14 +859,14 @@ void TMPQualityMetricTest<QMType>::test_gradient_3D()
   MsqVector<3> expt_grad[8];
   for (int v = 0; v < 8; ++v)
     expt_grad[v] = 2 * J * transpose( coeff_derivs.row(v) );
-    
-  
+
+
     // construct metric
   pd.attach_settings( &settings );
   TestGradTargetMetric< typename TMPTypes<QMType>::MetricType > tm;
   IdealShapeTarget tc;
   QMType m( &tc, 0, &tm );
-  
+
     // evaluate metric
   double act_val;
   std::vector<size_t> indices;
@@ -874,7 +874,7 @@ void TMPQualityMetricTest<QMType>::test_gradient_3D()
   size_t h = ElemSampleQM::handle( Sample(3, 0), 0 );
   m.evaluate_with_gradient( pd, h, act_val, indices, act_grad, err );
   ASSERT_NO_ERROR(err);
-  
+
     // compare values
   CPPUNIT_ASSERT_DOUBLES_EQUAL( expt_val, act_val, 1e-10 );
   CPPUNIT_ASSERT_VECTORS_EQUAL( Vector3D(expt_grad[indices[0]].data()), act_grad[0], 1e-10 );
@@ -901,7 +901,7 @@ void TMPQualityMetricTest<QMType>::test_gradient_3D()
 }
 
 template <class QMType> inline
-void TMPQualityMetricTest<QMType>::compare_analytical_and_numerical_gradients( 
+void TMPQualityMetricTest<QMType>::compare_analytical_and_numerical_gradients(
                                                       QualityMetric* qm,
                                                       PatchData& pd,
                                                       int dim )
@@ -921,11 +921,11 @@ void TMPQualityMetricTest<QMType>::compare_analytical_and_numerical_gradients(
     CPPUNIT_ASSERT( !MSQ_CHKERR(err) );
     CPPUNIT_ASSERT( rval );
 
-      // For analytical gradient of a 2D element in the XY plane, 
+      // For analytical gradient of a 2D element in the XY plane,
       // we expect all Z terms to be zero.
     if (dim == 2)
       for (size_t k = 0; k < grad1.size(); ++k)
-        grad1[k][2] = 0.0; 
+        grad1[k][2] = 0.0;
 
     rval = qm->evaluate_with_gradient( pd, handles[j], qm_val2, indices2, grad2, err );
     CPPUNIT_ASSERT( !MSQ_CHKERR(err) );
@@ -983,13 +983,13 @@ void TMPQualityMetricTest<QMType>::compare_analytical_and_numerical_hessians( Qu
       rval = qm->QualityMetric::evaluate_with_Hessian( pd, handles[j], qm_val1, indices1, grad1, Hess1, err );
       CPPUNIT_ASSERT( !MSQ_CHKERR(err) );
       CPPUNIT_ASSERT( rval );
-       
-        // For analytical gradient of a 2D element in the XY plane, 
+
+        // For analytical gradient of a 2D element in the XY plane,
         // we expect all Z terms to be zero.
 #ifdef PLANAR_HESSIAN
       if (TopologyInfo::dimension(types[i]) == 2)
-        for (size_t k = 0; k < Hess1.size(); ++k) 
-          Hess1[k](0,2) = Hess1[k](1,2) = Hess1[k](2,0) 
+        for (size_t k = 0; k < Hess1.size(); ++k)
+          Hess1[k](0,2) = Hess1[k](1,2) = Hess1[k](2,0)
             = Hess1[k](2,1) = Hess1[k](2,2) = 0.0;
 #endif
 
@@ -1014,7 +1014,7 @@ void TMPQualityMetricTest<QMType>::compare_analytical_and_numerical_hessians( Qu
           unsigned c2 = it - indices2.begin();
 
           unsigned h2;
-          if (r2 <= c2) 
+          if (r2 <= c2)
             h2 = indices2.size()*r - r*(r+1)/2 + c;
           else
             h2 = indices2.size()*c - c*(c+1)/2 + r;
@@ -1064,13 +1064,13 @@ void TMPQualityMetricTest<QMType>::compare_analytical_and_numerical_diagonals( Q
       rval = qm->QualityMetric::evaluate_with_Hessian( pd, handles[j], qm_val1, indices1, grad1, Hess1, err );
       CPPUNIT_ASSERT( !MSQ_CHKERR(err) );
       CPPUNIT_ASSERT( rval );
-       
-        // For analytical gradient of a 2D element in the XY plane, 
+
+        // For analytical gradient of a 2D element in the XY plane,
         // we expect all Z terms to be zero.
 #ifdef PLANAR_HESSIAN
       if (TopologyInfo::dimension(types[i]) == 2)
-        for (size_t k = 0; k < Hess1.size(); ++k) 
-          Hess1[k](0,2) = Hess1[k](1,2) = Hess1[k](2,0) 
+        for (size_t k = 0; k < Hess1.size(); ++k)
+          Hess1[k](0,2) = Hess1[k](1,2) = Hess1[k](2,0)
             = Hess1[k](2,1) = Hess1[k](2,2) = 0.0;
 #endif
 

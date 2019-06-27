@@ -37,7 +37,7 @@ using namespace moab;
   public:
     MetisPartitioner( Interface *impl = NULL,
                           const bool use_coords = false);
-    
+
     virtual ~MetisPartitioner();
 
     virtual ErrorCode partition_mesh_and_geometry(const double part_geom_mesh_size,
@@ -57,7 +57,7 @@ using namespace moab;
 
     virtual ErrorCode partition_mesh( const idx_t nparts,
                                       const char *method,
-                                      const int part_dim = 3, 
+                                      const int part_dim = 3,
                                       const bool write_as_sets = true,
                                       const bool write_as_tags = false,
                                       const bool partition_tagged_sets = false,
@@ -65,12 +65,12 @@ using namespace moab;
                                       const char *aggregating_tag = NULL,
                                       const bool print_time=false);
 
-    virtual ErrorCode write_partition(const idx_t nparts, Range &elems, 
+    virtual ErrorCode write_partition(const idx_t nparts, Range &elems,
                                 const idx_t *assignment,
                                 const bool write_as_sets,
                                 const bool write_as_tags);
-    
-    ErrorCode write_aggregationtag_partition(const idx_t nparts, Range &elems, 
+
+    ErrorCode write_aggregationtag_partition(const idx_t nparts, Range &elems,
                                              const idx_t *assignment,
                                              const bool write_as_sets,
                                              const bool write_as_tags);
@@ -79,28 +79,28 @@ using namespace moab;
     virtual ErrorCode include_closure();
 
     // virtual ErrorCode write_file(const char *filename, const char *out_file);
-  
+
   private:
 
-    ErrorCode assemble_graph(const int dimension, 
+    ErrorCode assemble_graph(const int dimension,
                              std::vector<double> &coords,
                              std::vector<idx_t> &moab_ids,
-                             std::vector<idx_t> &adjacencies, 
+                             std::vector<idx_t> &adjacencies,
                              std::vector<idx_t> &length,
                              Range &elems);
-    
-    ErrorCode assemble_taggedsets_graph(const int dimension, 
+
+    ErrorCode assemble_taggedsets_graph(const int dimension,
                                         std::vector<double> &coords,
                                         std::vector<idx_t> &moab_ids,
-                                        std::vector<idx_t> &adjacencies, 
+                                        std::vector<idx_t> &adjacencies,
                                         std::vector<idx_t> &length,
                                         Range &elems,
                                         const char *aggregating_tag);
-    
-    ErrorCode assemble_taggedents_graph(const int dimension, 
+
+    ErrorCode assemble_taggedents_graph(const int dimension,
                                         std::vector<double> &coords,
                                         std::vector<idx_t> &moab_ids,
-                                        std::vector<idx_t> &adjacencies, 
+                                        std::vector<idx_t> &adjacencies,
                                         std::vector<idx_t> &length,
                                         Range &elems,
                                         const char *aggregating_tag);

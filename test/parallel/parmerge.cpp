@@ -19,7 +19,7 @@
 
 //Should we print out info on the merged mesh?
 #define PrintInfo false
-/*  
+/*
     Parmerge
     Takes multiple mesh files and merges them into a single output file.
     This is a driver for ParallelMergeMesh
@@ -37,13 +37,13 @@
     It must be of type ".h5m"
 
     <tolerance> is the merging tolerance
-    
+
     Typical usage of:
-    mpirun -n <#procs> parmerge <inputfile> <outputfile> <tolerance> 
+    mpirun -n <#procs> parmerge <inputfile> <outputfile> <tolerance>
 */
 
 //Function to print out info for testing purposes
-void print_output(moab::ParallelComm *pc, moab::Core *mb, 
+void print_output(moab::ParallelComm *pc, moab::Core *mb,
                   int numprocs, int myID, bool perform);
 
 int main(int argc, char * argv[])
@@ -72,7 +72,7 @@ int main(int argc, char * argv[])
   MPI_Init(&argc, &argv);
   MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
   MPI_Comm_rank(MPI_COMM_WORLD, &myID);
-  
+
   //Read in files from input files
   //Round robin distribution of reading meshes
   moab::Core *mb = new moab::Core();
@@ -105,7 +105,7 @@ int main(int argc, char * argv[])
   }
 
   //Get a pcomm object
-  moab::ParallelComm *pc = new moab::ParallelComm(mb, MPI_COMM_WORLD); 
+  moab::ParallelComm *pc = new moab::ParallelComm(mb, MPI_COMM_WORLD);
 
   //Call the resolve parallel function
   moab::ParallelMergeMesh pm(pc,epsilon);
@@ -132,7 +132,7 @@ int main(int argc, char * argv[])
   //The barrier may be necessary to stop items from being deleted when needed
   //But probably not necessary
   MPI_Barrier(MPI_COMM_WORLD);
-  
+
   delete pc;
   delete mb;
   MPI_Finalize();
@@ -142,7 +142,7 @@ int main(int argc, char * argv[])
 
 
 //This function doesn't normally get called, but is here for debugging
-//and verifying that merge is working.  
+//and verifying that merge is working.
 void print_output(moab::ParallelComm *pc, moab::Core *mb,
                   int myID, int /* numprocs */, bool perform){
   moab::Range ents, skin;
@@ -170,7 +170,7 @@ void print_output(moab::ParallelComm *pc, moab::Core *mb,
     ents.clear();
     mb->get_entities_by_dimension(0,3,ents);
     skinner.find_skin(0, ents, 2, skin);
-    for(moab::Range::iterator s_rit = skin.begin(); 
+    for(moab::Range::iterator s_rit = skin.begin();
         s_rit != skin.end(); ++s_rit){
       pc->get_owner(*s_rit, tmp);
       if(tmp==myID){

@@ -13,7 +13,7 @@ SequenceData* VertexSequence::create_data_subset( EntityHandle start,
   const int sizes[] = { sizeof(double), sizeof(double), sizeof(double) };
   return data()->subset(start, end, sizes );
 }
-  
+
 ErrorCode VertexSequence::push_back( EntityID count )
   { return EntitySequence::append_entities(count); }
 

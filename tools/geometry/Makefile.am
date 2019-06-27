@@ -4,13 +4,13 @@ AM_CPPFLAGS = -I$(top_srcdir)/src \
 
 AM_CXXFLAGS =
 if HAVE_CGM
-  AM_CPPFLAGS += $(CGM_INCLUDES) $(CGM_CPPFLAGS) 
+  AM_CPPFLAGS += $(CGM_INCLUDES) $(CGM_CPPFLAGS)
   AM_CXXFLAGS += $(CGM_CXXFLAGS)
 
 if HAVE_NETCDF
   netcdf_progs = cub2h5m
 else
-  netcdf_progs = 
+  netcdf_progs =
 endif
 
 endif
@@ -20,14 +20,14 @@ if PARALLEL
 endif
 
 bin_PROGRAMS = cgm2moab cub2h5m
-noinst_PROGRAMS = quads_to_tris $(netcdf_progs) 
+noinst_PROGRAMS = quads_to_tris $(netcdf_progs)
 
 CGM_CPPFLAGS = @CGM_CPPFLAGS@
 CGM_LDFLAGS = @CGM_LDFLAGS@
 CGM_LTFLAGS = @CGM_LTFLAGS@
 CGM_LIBS = @CGM_LIBS@
 
-LDADD =  $(top_builddir)/src/libMOAB.la   
+LDADD =  $(top_builddir)/src/libMOAB.la
 if HAVE_CGM
 if USING_DEV_CGM
  LDADD += $(CGM_DIR)/src/libcgm.la

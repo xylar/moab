@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2009 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2009) kraftche@cae.wisc.edu    
+    (2009) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file SizeAdaptShapeWrapper.hpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #ifndef SIZE_ADAPT_SHAPE_WRAPPER_HPP
@@ -52,12 +52,12 @@ class MESQUITE_EXPORT SizeAdaptShapeWrapper : public Wrapper
                       MsqError& err );
 
   public:
-  
+
     /**
      *\param max_vertex_movement  Termination optimization if no vertex is moved
      *                            by more than this distance in the previous solver
      *                            step.
-     *\param max_iterations       Termination optimizaiton after this many solver 
+     *\param max_iterations       Termination optimizaiton after this many solver
      *                            steps.
      */
     SizeAdaptShapeWrapper( double max_vertex_movement,

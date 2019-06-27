@@ -528,7 +528,7 @@ ErrorCode Intx2Mesh::intersect_meshes(EntityHandle mbset1, EntityHandle mbset2,
 #ifdef MOAB_HAVE_MPI
   rval = correct_intersection_points_positions();MB_CHK_SET_ERR(rval, "can't correct position, Intx2Mesh.cpp \n");
 #endif
-  
+
   this->clean();
   return MB_SUCCESS;
 }
@@ -630,13 +630,13 @@ ErrorCode Intx2Mesh::build_processor_euler_boxes(EntityHandle euler_set, Range &
 #if (MPI_VERSION >= 2)
     // use "in place" option
   mpi_err = MPI_Allgather(MPI_IN_PLACE, 0, MPI_DATATYPE_NULL,
-                          &allBoxes[0], 6, MPI_DOUBLE, 
+                          &allBoxes[0], 6, MPI_DOUBLE,
                           parcomm->proc_config().proc_comm());
 #else
   {
     std::vector<double> allBoxes_tmp(6*parcomm->proc_config().proc_size());
     mpi_err = MPI_Allgather( &allBoxes[6*my_rank], 6, MPI_DOUBLE,
-                             &allBoxes_tmp[0], 6, MPI_DOUBLE, 
+                             &allBoxes_tmp[0], 6, MPI_DOUBLE,
                              parcomm->proc_config().proc_comm());
     allBoxes = allBoxes_tmp;
   }

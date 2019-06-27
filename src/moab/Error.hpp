@@ -1,20 +1,20 @@
 /**
  * MOAB, a Mesh-Oriented datABase, is a software component for creating,
  * storing and accessing finite element mesh data.
- * 
+ *
  * Copyright 2004 Sandia Corporation.  Under the terms of Contract
  * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
  * retains certain rights in this software.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  */
 
 
-/*  
+/*
  *
  *  File:      Error.hpp
  *
@@ -61,14 +61,14 @@ public:
   Error() {}
   ~Error(){}
 
-  ErrorCode set_last_error(const std::string& error) 
-  { 
-    mLastError = error; 
-    return MB_SUCCESS; 
+  ErrorCode set_last_error(const std::string& error)
+  {
+    mLastError = error;
+    return MB_SUCCESS;
   }
 
   inline ErrorCode set_last_error(const char* fmt, ...) MB_PRINTF(1);
-  
+
   ErrorCode set_last_error( const char* fmt, va_list args )
   {
     char text[1024];
@@ -78,8 +78,8 @@ public:
   }
 
   ErrorCode get_last_error(std::string& error) const
-  { 
-    error = mLastError; 
+  {
+    error = mLastError;
     return MB_SUCCESS;
   }
 
@@ -98,7 +98,7 @@ inline ErrorCode Error::set_last_error(const char* fmt, ...)
   return result;
 }
 
-} // namespace moab 
+} // namespace moab
 
 #endif
 

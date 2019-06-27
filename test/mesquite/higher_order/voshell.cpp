@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2010 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2011) kraftche@cae.wisc.edu    
+    (2011) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file voshell.cpp
  *  \brief Implement some of the examples from N. Voshell.
- *  \author Jason Kraftcheck 
+ *  \author Jason Kraftcheck
  *  \author Nick Voshell
  */
 
@@ -97,7 +97,7 @@ void usage( const char* argv0, bool help = false )
   for (int i = 0; i < num_examples; ++i)
     std::cerr << " [-" << examples[i].flag << "]";
   std::cerr << std::endl;
-  
+
   if (!help) {
     std::cerr << "       " << argv0 << " -h" << std::endl;
     std::exit(1);
@@ -142,7 +142,7 @@ int main( int argc, char* argv[] )
       }
     }
   }
-  
+
   const Example* exlist;
   int exlistlen;
   if (list.empty()) {
@@ -153,11 +153,11 @@ int main( int argc, char* argv[] )
     exlist = &list[0];
     exlistlen = list.size();
   }
-  
+
   int result = 0;
   for (int i = 0; i < exlistlen; ++i)
     result += run_example( exlist[i], write_final_meshes );
-  
+
   return result;
 }
 
@@ -169,23 +169,23 @@ int run_example( const Example& e, bool write_output_file )
   MeshImpl mesh;
   DomainClassifier domain;
   HexLagrangeShape hex27;
-  
-  std::cout << std::endl 
+
+  std::cout << std::endl
             << "--------------------------------------------------------------------"
             << std::endl
             << e.desc << std::endl
             << "--------------------------------------------------------------------"
             << std::endl;
-   
+
   std::string name = e.func( domain, mesh, err );
   if (MSQ_CHKERR(err)) return 2;
   std::cout << "Loaded mesh from: " << name << std::endl;
-  
+
   UntangleWrapper untangler;
   untangler.set_slaved_ho_node_mode( Settings::SLAVE_NONE );
   untangler.set_mapping_function( &hex27 );
   MeshDomainAssoc mesh_and_domain = MeshDomainAssoc(&mesh, &domain, false, true);
-  untangler.run_instructions( &mesh_and_domain, err ); 
+  untangler.run_instructions( &mesh_and_domain, err );
   if (MSQ_CHKERR(err)) return 1;
   ShapeImprover smoother;
   smoother.set_slaved_ho_node_mode( Settings::SLAVE_NONE );
@@ -193,7 +193,7 @@ int run_example( const Example& e, bool write_output_file )
   smoother.set_vertex_movement_limit_factor( 0.05 );
   smoother.run_instructions( &mesh_and_domain, err );
   if (MSQ_CHKERR(err)) return 1;
-  
+
   if (write_output_file) {
     size_t idx = name.find( ".vtk" );
     if (idx != std::string::npos) {
@@ -205,11 +205,11 @@ int run_example( const Example& e, bool write_output_file )
     else {
       name += ".out";
     }
-    
+
     mesh.write_vtk( name.c_str(), err ); MSQ_CHKERR(err);
     std::cout << "Write mesh to file: " << name << std::endl;
   }
-  
+
   return smoother.quality_assessor().invalid_elements();
 }
 
@@ -341,7 +341,7 @@ std::string get_sphere_cube_example( DomainClassifier& geom, MeshImpl& mesh, Msq
   DomainClassifier::classify_skin_geometrically (geom, &mesh, 0.1, base_domains, dim_array, NDOM, err);
   MSQ_ERRZERO(err);
   mesh.set_skin_flags( false, false, true, err ); MSQ_ERRZERO(err);
-  
+
   return filename;
 }
 
@@ -435,13 +435,13 @@ std::string get_cut_cube_example( DomainClassifier& geom, MeshImpl& mesh, MsqErr
   DomainClassifier::classify_skin_geometrically (geom, &mesh, 0.1, base_domains, dim_array, NDOM, err);
   MSQ_ERRZERO(err);
   mesh.set_skin_flags( false, false, true, err ); MSQ_ERRZERO(err);
-  
+
   return filename;
 }
 
 
 std::string get_sphere_cylinder_example( DomainClassifier& geom, MeshImpl& mesh, MsqError& err )
-{  
+{
   std::string filename = std::string ( STRINGIFY(SRCDIR) ) + "/sphereCylinder_1194_inv.vtk";
 
   const Vector3D vec_k(0,0,8), vec_nk(0,0,-8);
@@ -469,7 +469,7 @@ std::string get_sphere_cylinder_example( DomainClassifier& geom, MeshImpl& mesh,
   const int NDOM = sizeof(base_domains)/sizeof(base_domains[0]);
 
   int dim_array[NDOM] = {
-    1, 1, 1, 
+    1, 1, 1,
     2, 2, 2, 2
   };
 
@@ -479,7 +479,7 @@ std::string get_sphere_cylinder_example( DomainClassifier& geom, MeshImpl& mesh,
   DomainClassifier::classify_skin_geometrically (geom, &mesh, 0.001, base_domains, dim_array, NDOM, err);
   MSQ_ERRZERO(err);
   mesh.set_skin_flags( false, false, true, err ); MSQ_ERRZERO(err);
-  
+
   return filename;
 }
 
@@ -627,12 +627,12 @@ std::string get_hex_3d_part_example( DomainClassifier& geom, MeshImpl& mesh, Msq
     &P05
   };
 
-  int dim_array[NDOM] = { 
+  int dim_array[NDOM] = {
     0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0,
-    1, 1, 1, 1, 
-    1, 1, 1, 1, 
-    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 
+    1, 1, 1, 1,
+    1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
     2, 2, 2, 2, 2, 2, 2, 2
   };
 
@@ -643,7 +643,7 @@ std::string get_hex_3d_part_example( DomainClassifier& geom, MeshImpl& mesh, Msq
   DomainClassifier::classify_skin_geometrically (geom, &mesh, 0.1, base_domains, dim_array, NDOM, err);
   MSQ_ERRZERO(err);
   mesh.set_skin_flags( false, false, true, err ); MSQ_ERRZERO(err);
-  
+
   return filename;
 }
 

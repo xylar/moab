@@ -1,16 +1,16 @@
 /**
  * MOAB, a Mesh-Oriented datABase, is a software component for creating,
  * storing and accessing finite element mesh data.
- * 
+ *
  * Copyright 2004 Sandia Corporation.  Under the terms of Contract
  * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
  * retains certain rights in this software.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  */
 
 // If Microsoft compiler, then WIN32
@@ -59,7 +59,7 @@ using namespace moab;
 
 static void print_usage( const char* name, std::ostream& stream )
 {
-  stream << "Usage: " << name << 
+  stream << "Usage: " << name <<
     " [-a <sat_file>|-A] [-t] [subset options] [-f format] <input_file> [<input_file2> ...] <output_file>" << std::endl
     << "\t-f <format>    - Specify output file format" << std::endl
     << "\t-a <acis_file> - ACIS SAT file dumped by .cub reader (same as \"-o SAT_FILE=acis_file\"" << std::endl
@@ -107,7 +107,7 @@ static void print_usage( const char* name, std::ostream& stream )
 
 static void print_help( const char* name )
 {
-  std::cout << 
+  std::cout <<
   " This program can be used to convert between mesh file\n"
   " formats, extract a subset of a mesh file to a separate\n"
   " file, or both.  The type of file to write is determined\n"
@@ -120,7 +120,7 @@ static void print_help( const char* name )
   " guarantee lossless conversion for any file formats\n"
   " other than the native HDF5 representation.\n"
   "\n";
-  
+
   print_usage( name, std::cout );
   exit(0);
 }
@@ -132,7 +132,7 @@ static void usage_error( const char* name )
   MPI_Finalize();
 #endif
   exit(USAGE_ERROR);
-} 
+}
 
 
 static void list_formats( Interface* );
@@ -165,7 +165,7 @@ int main(int argc, char* argv[])
   Range range;
 
   bool append_rank = false;
-  bool percent_rank_subst = false;      
+  bool percent_rank_subst = false;
   int i, dim;
   std::list< std::string >::iterator j;
   bool dims[4] = {false, false, false, false};
@@ -186,7 +186,7 @@ int main(int argc, char* argv[])
                                      "CURVE",
                                      "SURFACE",
                                      "VOLUME" };
-  
+
     // scan arguments
   bool do_flag = true;
   bool print_times = false;
@@ -197,12 +197,12 @@ int main(int argc, char* argv[])
   {
     if (!argv[i][0])
       usage_error(argv[0]);
-      
+
     if (do_flag && argv[i][0] == '-')
     {
       if (!argv[i][1] || (argv[i][1] != 'M' && argv[i][2]))
         usage_error(argv[0]);
-      
+
       switch ( argv[i][1] )
       {
           // do flag arguments:
@@ -210,7 +210,7 @@ int main(int argc, char* argv[])
         case 'g': verbose = true;        break;
         case 't': print_times = true;    break;
         case 'A':                        break;
-        case 'h': 
+        case 'h':
         case 'H': print_help( argv[0] ); break;
         case 'l': list_formats( gMB );   break;
 #ifdef MOAB_HAVE_MPI
@@ -227,7 +227,7 @@ int main(int argc, char* argv[])
         case '1': case '2': case '3':
           dims[argv[i][1] - '0'] = true; break;
           // do options that require additional args:
-        default: 
+        default:
           ++i;
           if (i == argc || argv[i][0] == '-') {
             std::cerr << "Expected argument following " << argv[i-1] << std::endl;
@@ -245,7 +245,7 @@ int main(int argc, char* argv[])
           pval = false;
           switch ( argv[i-1][1] )
           {
-            case 'a': 
+            case 'a':
               read_opts.push_back( std::string("SAT_FILE=") + argv[i] );
               pval = true;
               break;
@@ -266,7 +266,7 @@ int main(int argc, char* argv[])
               break;
             default: std::cerr << "Invalid option: " << argv[i] << std::endl;
           }
-          
+
           if (!pval) {
             std::cerr << "Invalid flag or flag value: " << argv[i-1] << " " << argv[i] << std::endl;
             usage_error(argv[0]);
@@ -285,19 +285,19 @@ int main(int argc, char* argv[])
     // output file name is the last one specified
   out = in.back();
   in.pop_back();
-    
+
   if (append_rank) {
     std::ostringstream mod;
     mod << out << "." << proc_id;
     out = mod.str();
   }
-  
+
   if (percent_rank_subst) {
-    for (j = in.begin(); j != in.end(); ++j) 
+    for (j = in.begin(); j != in.end(); ++j)
       *j = percent_subst( *j , proc_id );
     out = percent_subst( out, proc_id );
   }
- 
+
     // construct options string from individual options
   std::string read_options, write_options;
   if (parallel) {
@@ -308,16 +308,16 @@ int main(int argc, char* argv[])
   }
   if (resolve_shared) read_opts.push_back("PARALLEL_RESOLVE_SHARED_ENTS");
   if (exchange_ghosts) read_opts.push_back("PARALLEL_GHOSTS=3.0.1");
-  
+
   if (!make_opts_string(  read_opts,  read_options ) ||
-      !make_opts_string( write_opts, write_options )) 
+      !make_opts_string( write_opts, write_options ))
   {
 #ifdef MOAB_HAVE_MPI
     MPI_Finalize();
 #endif
     return USAGE_ERROR;
   }
-  
+
   if (!metis_partition_file.empty())
   {
     if ( (in.size()!=1) || (proc_id!=0) )
@@ -364,7 +364,7 @@ int main(int argc, char* argv[])
     result = gMB->load_file( j->c_str(), 0, read_options.c_str() );
 #endif
     if (MB_SUCCESS != result)
-    { 
+    {
       std::cerr << "Failed to load \"" << *j << "\"." << std::endl;
       std::cerr  << "Error code: " << gMB->get_error_string(result) << " (" << result << ")" << std::endl;
       std::string message;
@@ -378,7 +378,7 @@ int main(int argc, char* argv[])
     if (!proc_id) std::cerr << "Read \"" << *j << "\"" << std::endl;
     if (print_times && !proc_id) write_times( std::cout );
   }
-  
+
     // Determine if the user has specified any geometry sets to write
   bool have_geom = false;
   for (dim = 0; dim <= 3; ++dim)
@@ -388,13 +388,13 @@ int main(int argc, char* argv[])
     if (verbose)
       print_id_list( geom_names[dim], std::cout, geom[dim] );
   }
-  
+
     // True if the user has specified any sets to write
   bool have_sets = have_geom;
-  
+
     // Get geometry tags
   Tag dim_tag, id_tag;
-  if (have_geom) 
+  if (have_geom)
   {
     id_tag = gMB->globalId_tag();
     if (id_tag == 0)
@@ -403,55 +403,55 @@ int main(int argc, char* argv[])
       have_geom = false;
     }
     result = gMB->tag_get_handle( GEOM_DIMENSION_TAG_NAME, 1, MB_TYPE_INTEGER, dim_tag );
-    if (MB_SUCCESS != result) 
+    if (MB_SUCCESS != result)
     {
       std::cerr << "No geometry tag defined."  << std::endl;
       have_geom = false;
     }
   }
-  
+
     // Get geometry sets
-  if ( have_geom ) 
+  if ( have_geom )
   {
     int id_val;
     Tag tags[] = { id_tag, dim_tag };
     const void* vals[] = { &id_val, &dim };
-    for (dim = 0; dim <= 3; ++dim) 
+    for (dim = 0; dim <= 3; ++dim)
     {
       int init_count = set_list.size();
-      for (std::set<int>::iterator iter = geom[dim].begin(); iter != geom[dim].end(); ++iter) 
+      for (std::set<int>::iterator iter = geom[dim].begin(); iter != geom[dim].end(); ++iter)
       {
         id_val = *iter;
         range.clear();
         result = gMB->get_entities_by_type_and_tag( 0, MBENTITYSET, tags, vals, 2, range );
-        if (MB_SUCCESS != result || range.empty()) 
+        if (MB_SUCCESS != result || range.empty())
         {
           range.clear();
           std::cerr << geom_names[dim] << " " << id_val << " not found.\n";
         }
         std::copy( range.begin(), range.end(), std::back_inserter(set_list) );
       }
-      
+
       if (verbose)
         std::cout << "Found " << (set_list.size()-init_count) << ' '
                   << geom_names[dim] << " sets" << std::endl;
     }
   }
-  
+
     // Get mesh groupings
   for (i = 0; i < 4; ++i)
   {
     if (verbose)
       print_id_list( mesh_tag_names[i], std::cout, mesh[i] );
-    
+
     if (mesh[i].empty())
       continue;
     have_sets = true;
-    
+
       // Get tag
     Tag tag;
     result = gMB->tag_get_handle( mesh_tag_names[i], 1, MB_TYPE_INTEGER, tag );
-    if (MB_SUCCESS != result) 
+    if (MB_SUCCESS != result)
     {
       std::cerr << "Tag not found: " << mesh_tag_names[i] << std::endl;
       continue;
@@ -459,42 +459,42 @@ int main(int argc, char* argv[])
 
       // get entity sets
     int init_count = set_list.size();
-    for (std::set<int>::iterator iter = mesh[i].begin(); iter != mesh[i].end(); ++iter) 
+    for (std::set<int>::iterator iter = mesh[i].begin(); iter != mesh[i].end(); ++iter)
     {
       range.clear();
       const void* vals[] = { &*iter };
       result = gMB->get_entities_by_type_and_tag( 0, MBENTITYSET, &tag, vals, 1, range );
-      if (MB_SUCCESS != result || range.empty()) 
+      if (MB_SUCCESS != result || range.empty())
       {
         range.clear();
         std::cerr << mesh_tag_names[i] << " " << *iter << " not found.\n";
       }
       std::copy( range.begin(), range.end(), std::back_inserter(set_list) );
     }
-      
+
     if (verbose)
       std::cout << "Found " << (set_list.size()-init_count) << ' '
                 << mesh_tag_names[i] << " sets" << std::endl;
   }
-  
+
     // Check if output is limited to certain dimensions of elements
   bool bydim = false;
   for (dim = 1; dim < 4; ++dim)
     if (dims[dim])
       bydim = true;
-  
+
     // Check conflicting input
   if (bydim) {
     if (generate[1] && !dims[1]) {
       std::cerr << "Warning: Request to generate 1D internal entities but not export them." << std::endl;
       generate[1] = false;
-    } 
+    }
      if (generate[2] && !dims[2]) {
       std::cerr << "Warning: Request to generate 2D internal entities but not export them." << std::endl;
       generate[2] = false;
-    } 
+    }
   }
- 
+
     // Generate any internal entities
   if (generate[1] || generate[2]) {
     EntityHandle all_mesh = 0;
@@ -519,7 +519,7 @@ int main(int argc, char* argv[])
         gMB->add_entities( sets[i], adj );
     }
   }
-      
+
     // Delete any entities not of the dimensions to be exported
   if (bydim) {
       // Get list of dead elements
@@ -530,7 +530,7 @@ int main(int argc, char* argv[])
       gMB->get_entities_by_dimension(0, dim, tmp_range );
       dead_entities.merge( tmp_range );
     }
-      // Remove dead entities from all sets, and add all 
+      // Remove dead entities from all sets, and add all
       // empty sets to list of dead entities.
     Range empty_sets;
     remove_entities_from_sets( gMB, dead_entities, empty_sets );
@@ -545,7 +545,7 @@ int main(int argc, char* argv[])
       // Destroy dead entities
     gMB->delete_entities( dead_entities );
   }
-  
+
     // If user specified sets to write, but none were found, exit.
   if (have_sets && set_list.empty())
   {
@@ -555,7 +555,7 @@ int main(int argc, char* argv[])
 #endif
     return ENT_NOT_FOUND;
   }
-  
+
   // interpret the mpas partition file created by gpmetis
   if (!metis_partition_file.empty())
   {
@@ -572,21 +572,21 @@ int main(int argc, char* argv[])
   if (verbose)
   {
     if (have_sets)
-      std::cout << "Found " << set_list.size() 
-              << " specified sets to write (total)." << std::endl;  
+      std::cout << "Found " << set_list.size()
+              << " specified sets to write (total)." << std::endl;
     else
-      std::cout << "No sets specifed.  Writing entire mesh." << std::endl; 
-  }  
-  
+      std::cout << "No sets specifed.  Writing entire mesh." << std::endl;
+  }
+
     // Write the output file
   reset_times();
-  if (have_sets) 
+  if (have_sets)
     result = gMB->write_file( out.c_str(), format, write_options.c_str(), &set_list[0], set_list.size() );
   else
     result = gMB->write_file( out.c_str(), format, write_options.c_str() );
   if (MB_SUCCESS != result)
-  { 
-    std::cerr << "Failed to write \"" << out << "\"." << std::endl; 
+  {
+    std::cerr << "Failed to write \"" << out << "\"." << std::endl;
     std::cerr  << "Error code: " << gMB->get_error_string(result) << " (" << result << ")" << std::endl;
     std::string message;
     if (MB_SUCCESS == gMB->get_last_error(message) && !message.empty())
@@ -596,7 +596,7 @@ int main(int argc, char* argv[])
 #endif
     return WRITE_ERROR;
   }
-  
+
   if (!proc_id) std::cerr << "Wrote \"" << out << "\"" << std::endl;
   if (print_times && !proc_id) write_times( std::cout );
 
@@ -619,7 +619,7 @@ bool parse_id_list( const char* string, std::set<int>& results )
       okay = false;
       break;
     }
-    
+
     long val2 = val;
     if (*endptr == '-') {
       const char* sptr = endptr+1;
@@ -635,33 +635,33 @@ bool parse_id_list( const char* string, std::set<int>& results )
         break;
       }
     }
-    
+
     if (*endptr) {
       std::cerr << "Unexpected character: " << *endptr << std::endl;
       okay = false;
       break;
     }
-    
+
     for (; val <= val2; ++val)
-      if (!results.insert( (int)val ).second) 
+      if (!results.insert( (int)val ).second)
         std::cerr << "Warning: duplicate Id: " << val << std::endl;
 
   }
-  
+
   free( mystr );
-  return okay;    
+  return okay;
 }
 
 void print_id_list( const char* head, std::ostream& stream, const std::set<int>& list )
 {
   stream << head << ": ";
-  
+
   if (list.empty())
   {
     stream << "(none)" << std::endl;
     return;
   }
-  
+
   int start, prev;
   std::set<int>::const_iterator iter = list.begin();
   start = prev = *(iter++);
@@ -678,11 +678,11 @@ void print_id_list( const char* head, std::ostream& stream, const std::set<int>&
     }
     prev = *(iter++);
   }
-  
+
   stream << std::endl;
 }
-    
-    
+
+
 
 
 static void print_time( int clk_per_sec, const char* prefix, clock_t ticks, std::ostream& stream )
@@ -714,13 +714,13 @@ clock_t usr_time, sys_time, abs_time;
 
 #ifdef WIN32
 
-void reset_times() 
+void reset_times()
 {
   abs_time = clock();
 }
 
 
-void write_times( std::ostream& stream ) 
+void write_times( std::ostream& stream )
 {
   clock_t abs_tm = clock();
   print_time( CLOCKS_PER_SEC, "  ", abs_tm - abs_time, stream );
@@ -784,7 +784,7 @@ bool make_opts_string( std::vector<std::string> options, std::string& opts )
     opts = ";";
     opts += separator;
   }
-  
+
     // concatenate options
   i = options.begin();
   opts += *i;
@@ -804,33 +804,33 @@ void list_formats( Interface* gMB )
   ReaderWriterSet* set = 0;
   ReaderWriterSet::iterator i;
   std::ostream& str = std::cout;
-    
+
     // get ReaderWriterSet
   err = gMB->query_interface( set );
   if (err != MB_SUCCESS || !set) {
-    std::cerr << "Internal error:  Interface \"" << iface_name 
+    std::cerr << "Internal error:  Interface \"" << iface_name
               << "\" not available.\n";
     exit(OTHER_ERROR);
   }
-  
+
     // get field width for format description
   size_t w = 0;
   for (i = set->begin(); i != set->end(); ++i)
     if (i->description().length() > w)
       w = i->description().length();
-  
+
     // write table header
   str << "Format  " << std::setw(w) << std::left << "Description"
       << "  Read  Write  File Name Suffixes\n"
       << "------  " << std::setw(w) << std::setfill('-') << "" << std::setfill(' ')
       << "  ----  -----  ------------------\n";
-      
+
     // write table data
   for (i = set->begin(); i != set->end(); ++i)
   {
     std::vector<std::string> ext;
     i->get_extensions( ext );
-    str << std::setw(6) << i->name() << "  " 
+    str << std::setw(6) << i->name() << "  "
         << std::setw(w) << std::left << i->description() << "  "
         << (i->have_reader() ?  " yes" :  "  no") << "  "
         << (i->have_writer() ? "  yes" : "   no") << " ";
@@ -839,7 +839,7 @@ void list_formats( Interface* gMB )
     str << std::endl;
   }
   str << std::endl;
-  
+
   gMB->release_interface( set );
   exit(0);
 }
@@ -876,15 +876,15 @@ std::string percent_subst( const std::string& s, int val )
 {
   if (s.empty())
     return s;
-  
+
   size_t j = s.find( '%' );
-  if (j == std::string::npos) 
+  if (j == std::string::npos)
     return s;
-  
+
   std::ostringstream st;
   st << s.substr( 0, j );
   st << val;
-  
+
   size_t i;
   while ((i = s.find( '%', j+1)) != std::string::npos) {
     st << s.substr( j, i - j );

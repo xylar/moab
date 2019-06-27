@@ -12,7 +12,7 @@
 #include <sstream>
 #include <cstring>
 #include <cstdlib>
-extern "C" 
+extern "C"
 {
 #include "moab/FindPtFuncs.h"
 }
@@ -32,7 +32,7 @@ using namespace moab;
 bool debug = true;
 
 // Forward declarations
-void get_file_options(int argc, char **argv, 
+void get_file_options(int argc, char **argv,
                       std::vector<const char *> &filenames,
                       std::string &norm_tag,
                       std::vector<const char *> &tag_names,
@@ -80,7 +80,7 @@ int main(int argc, char **argv) {
     MB_CHK_SET_ERR( (ErrorCode)err, "Integrate scalar field test failed");
 
     err = MPI_Finalize();
-    
+
     return err;
   }
 
@@ -139,8 +139,8 @@ int main(int argc, char **argv) {
 
   // Read in mesh(es)
   std::cout << "Reading mesh file(s)..." << std::endl;
-  std::vector<ParallelComm *> pcs(filenames.size()); 
-  std::vector<ReadParallel *> rps(filenames.size()); 
+  std::vector<ParallelComm *> pcs(filenames.size());
+  std::vector<ReadParallel *> rps(filenames.size());
 
   // allocate root sets for each mesh for moab
   std::vector<EntityHandle> roots(filenames.size());
@@ -149,7 +149,7 @@ int main(int argc, char **argv) {
   for (unsigned int i = 0; i < filenames.size(); i++) {
     pcs[i] = new ParallelComm(mbi, MPI_COMM_WORLD);
     rps[i] = new ReadParallel(mbi, pcs[i]);
-    
+
     result = mbi->create_meshset(MESHSET_SET, roots[i]);
 
     MB_CHK_SET_ERR(result, "Creating root set failed");
@@ -262,7 +262,7 @@ int main(int argc, char **argv) {
   MB_CHK_SET_ERR((ErrorCode)err, "get_matching_entities failed");
 
   std::cout << "    get_matching_entities returned " << m1EntityGroups.size() << " entity groups" << std::endl;
-  
+
   // Print out the data in the vector of vectors
   std::vector< std::vector<EntityHandle> >::iterator iter_esi;
   std::vector< std::vector<EntityHandle> >::iterator iter_egi;
@@ -270,8 +270,8 @@ int main(int argc, char **argv) {
   std::vector<EntityHandle>::iterator iter_egj;
   Range entSetRg;
   int icnt;
-  for (iter_egi = m1EntityGroups.begin(), iter_esi = m1EntitySets.begin(), icnt = 1; 
-       (iter_egi != m1EntityGroups.end()) && (iter_esi != m1EntitySets.end()); 
+  for (iter_egi = m1EntityGroups.begin(), iter_esi = m1EntitySets.begin(), icnt = 1;
+       (iter_egi != m1EntityGroups.end()) && (iter_esi != m1EntitySets.end());
        ++iter_egi, ++iter_esi, icnt++) {
     std::cout << "      EntityGroup(" << icnt << ") = ";
     std::cout.flush();
@@ -297,8 +297,8 @@ int main(int argc, char **argv) {
   MB_CHK_SET_ERR((ErrorCode)err, "get_matching_entities failed");
 
   std::cout << "    get_matching_entities returned " << m2EntityGroups.size() << " entity groups" << std::endl;
-  for (iter_egi = m2EntityGroups.begin(), iter_esi = m2EntitySets.begin(), icnt = 1; 
-       (iter_egi != m2EntityGroups.end()) && (iter_esi != m2EntitySets.end()); 
+  for (iter_egi = m2EntityGroups.begin(), iter_esi = m2EntitySets.begin(), icnt = 1;
+       (iter_egi != m2EntityGroups.end()) && (iter_esi != m2EntitySets.end());
        ++iter_egi, ++iter_esi, icnt++) {
     std::cout << "      EntityGroup(" << icnt << ") = ";
     std::cout.flush();
@@ -345,7 +345,7 @@ int main(int argc, char **argv) {
     test_tuple.set_n( 10 );
     print_tuples(&test_tuple);
 
-    
+
     for (int i = 0; i < num_rows; i++) {
       int j;
       for (j = 0; j < num_ints; j++)
@@ -481,7 +481,7 @@ int main(int argc, char **argv) {
   std::string normFactor = normTag + "_normf";
   result = mbi->tag_get_handle( normFactor.c_str(), norm_factor_hdl);
   MB_CHK_SET_ERR( result, "Failed to get norm factor tag handle.");
-  
+
   // Mesh 1 values
   std::cout << "Mesh 1 norm factors per EntitySet...";
   for (iter_esi = m1EntitySets.begin(); iter_esi != m1EntitySets.end(); ++iter_esi) {
@@ -507,17 +507,17 @@ int main(int argc, char **argv) {
     }
   }
   std::cout << std::endl;
-  
+
   // ******************************
   std::cout << "********** Test normalize_subset **********" << std::endl;
   // Now call the Coupler::normalize_subset routine and see if we get an error.
   std::cout << "Running Coupler::normalize_subset() on mesh 1" << std::endl;
-  err = mbc.normalize_subset((EntityHandle)roots[0], 
-                             normTag.c_str(), 
-                             &tagNames[0], 
-                             numTagNames, 
-                             &tagValues[0], 
-                             Coupler::VOLUME, 
+  err = mbc.normalize_subset((EntityHandle)roots[0],
+                             normTag.c_str(),
+                             &tagNames[0],
+                             numTagNames,
+                             &tagValues[0],
+                             Coupler::VOLUME,
                              4);
   MB_CHK_SET_ERR((ErrorCode)err, "Failure in call to Coupler::normalize_subset() on mesh 1");
 
@@ -536,12 +536,12 @@ int main(int argc, char **argv) {
   std::cout << std::endl;
 
   std::cout << "Running Coupler::normalize_subset() on mesh 2" << std::endl;
-  err = mbc.normalize_subset((EntityHandle)roots[1], 
-                             normTag.c_str(), 
-                             &tagNames[0], 
-                             numTagNames, 
-                             &tagValues[0], 
-                             Coupler::VOLUME, 
+  err = mbc.normalize_subset((EntityHandle)roots[1],
+                             normTag.c_str(),
+                             &tagNames[0],
+                             numTagNames,
+                             &tagValues[0],
+                             Coupler::VOLUME,
                              4);
   MB_CHK_SET_ERR((ErrorCode)err, "Failure in call to Coupler::normalize_subset() on mesh 2");
 
@@ -646,7 +646,7 @@ ErrorCode integrate_scalar_field_test()
 }
 
 // Function to parse input parameters
-void get_file_options(int argc, char **argv, 
+void get_file_options(int argc, char **argv,
                       std::vector<const char *> &filenames,
                       std::string &normTag,
                       std::vector<const char *> &tagNames,
@@ -658,13 +658,13 @@ void get_file_options(int argc, char **argv,
 
   // get number of files
   int nfiles = atoi(argv[npos++]);
-  
+
   // get mesh filenames
   filenames.resize(nfiles);
   for (int i = 0; i < nfiles; i++) filenames[i] = argv[npos++];
 
   // get normTag
-  if (npos < argc) 
+  if (npos < argc)
     normTag = argv[npos++];
   else {
     std::cerr << "Insufficient parameters:  norm_tag missing" << std::endl;
@@ -720,7 +720,7 @@ void get_file_options(int argc, char **argv,
   }
 
   // get fileOpts
-  if (npos < argc) 
+  if (npos < argc)
     fileOpts = argv[npos++];
   else {
     std::cerr << "Insufficient parameters:  file_opts missing" << std::endl;
@@ -805,7 +805,7 @@ int print_vertex_fields(Interface* mbi,
     std::cout << "    Group - " << std::endl << "        ";
     for (iter_j = groups[i].begin(); iter_j != groups[i].end(); ++iter_j) {
       EntityHandle ehandle = (*iter_j);
-      // Check that the entity in iter_j is of the same dimension as the 
+      // Check that the entity in iter_j is of the same dimension as the
       // integ_type we are performing
       int j_type = mbi->dimension_from_handle(ehandle);
 
@@ -891,11 +891,11 @@ int pack_tuples(TupleList* tl, void **ptr)
   uint n = tl->get_n();
 
   int sz_buf = 1 + 4*UINT_PER_UNSIGNED +
-    tl->get_n() * (mi + 
-		   ml*UINT_PER_LONG + 
-		   mul*UINT_PER_LONG + 
+    tl->get_n() * (mi +
+		   ml*UINT_PER_LONG +
+		   mul*UINT_PER_LONG +
 		   mr*UINT_PER_REAL);
-  
+
   uint *buf = (uint*) malloc(sz_buf*sizeof(uint));
   *ptr = (void*) buf;
 

@@ -50,7 +50,7 @@ int main(int argc, char **argv)
   err += RUN_TEST(test_tree_delete);
   err += RUN_TEST(test_iterator_back);
   err += RUN_TEST(test_point_search);
-  
+
 #ifdef MOAB_HAVE_MPI
   fail = MPI_Finalize();
   if (fail) return fail;
@@ -66,12 +66,12 @@ EntityHandle create_tree( AdaptiveKDTree& tool, unsigned depth, int intervals, T
   EntityHandle root, leaf;
   err = tool.create_root( CartVect(0.0).array(), CartVect(intervals).array(), root );
   assert(!err);
-  
+
   // Use iterator to create tree to fixed depth of DEPTH
   AdaptiveKDTreeIter iter;
   err = tool.get_tree_iterator( root, iter );
   CHECK_ERR(err);
-  while(err == MB_SUCCESS) { 
+  while(err == MB_SUCCESS) {
     if (iter.depth() < depth) {
         // bisect leaves along alternating axes
       AdaptiveKDTree::Plane split;
@@ -86,10 +86,10 @@ EntityHandle create_tree( AdaptiveKDTree& tool, unsigned depth, int intervals, T
     }
   }
   CHECK(MB_ENTITY_NOT_FOUND == err);
-  
+
   if (!tag_handle)
     return root;
-  
+
   // define a tag to use to store integer values on tree leaves
   err = tool.moab()->tag_get_handle( TAG_NAME, 1, MB_TYPE_INTEGER, *tag_handle, MB_TAG_DENSE|MB_TAG_EXCL );
   CHECK_ERR(err);
@@ -103,7 +103,7 @@ EntityHandle create_tree( AdaptiveKDTree& tool, unsigned depth, int intervals, T
     err = tool.moab()->tag_set_data( *tag_handle, &leaf, 1, &counter );
     CHECK_ERR(err);
   }
-  
+
   return root;
 }
 
@@ -113,7 +113,7 @@ void validate_tree( AdaptiveKDTree& tool, EntityHandle root, unsigned depth, int
   const double VOL = 1.0; // all leaves should be 1x1x1 boxes
   int val;
 
-  // iterate over tree, verifying leaves 
+  // iterate over tree, verifying leaves
   AdaptiveKDTreeIter iter;
   int counter = 0;
   for (err = tool.get_tree_iterator( root, iter ); !err; err = iter.step()) {
@@ -122,17 +122,17 @@ void validate_tree( AdaptiveKDTree& tool, EntityHandle root, unsigned depth, int
     EntityHandle leaf = iter.handle();
     CHECK(leaf != 0);
     CHECK_EQUAL(MBENTITYSET, TYPE_FROM_HANDLE(leaf));
-     
+
     // check size of leaf
     const double* min = iter.box_min();
     const double* max = iter.box_max();
     double dims[] = { max[0] - min[0], max[1] - min[1], max[2] - min[2] };
     double volume = dims[0] * dims[1] * dims[2];
-    CHECK_REAL_EQUAL( VOL, volume, DBL_EPSILON );  
-   
+    CHECK_REAL_EQUAL( VOL, volume, DBL_EPSILON );
+
     // check depth of leaf
     CHECK_EQUAL( depth, iter.depth() );
-    
+
     // check tag value on leaf
     err = tool.moab()->tag_get_data( data, &leaf, 1, &val );
     CHECK_ERR(err);
@@ -159,8 +159,8 @@ void test_leaf_merge()
   AdaptiveKDTree tool(&mb);
   Tag data;
   const EntityHandle root = create_tree( tool, DEPTH, INTERVALS, &data );
-  
-  // reduce tree depth to DEPTH-1 by merging adjacent leaf pairs, 
+
+  // reduce tree depth to DEPTH-1 by merging adjacent leaf pairs,
   // make new "leaf" have smaller of two data values on original pair
   AdaptiveKDTreeIter iter;
   for (err = tool.get_tree_iterator( root, iter ); !err; err = iter.step()) {
@@ -188,7 +188,7 @@ void test_leaf_merge()
     CHECK_ERR(err);
   }
 
-  
+
   // Iterate over tree, verifying leaves and checking data
   // Initial leaves had volume of 1 : merged pairs of leaves so volume should now be 2.
   // Initial leaves were enumerated in order : merged pairs so new leaves should
@@ -202,14 +202,14 @@ void test_leaf_merge()
     CHECK_ERR(err);
     CHECK_EQUAL( counter, data1 );
     counter += 2;
-      
+
     // check size of leaf
     const double* min = iter.box_min();
     const double* max = iter.box_max();
     double dims[] = { max[0] - min[0], max[1] - min[1], max[2] - min[2] };
     double volume = dims[0] * dims[1] * dims[2];
-    CHECK_REAL_EQUAL( 2.0, volume, DBL_EPSILON );  
-    
+    CHECK_REAL_EQUAL( 2.0, volume, DBL_EPSILON );
+
     // check depth of leaf
     CHECK_EQUAL( DEPTH-1, iter.depth() );
   }
@@ -222,19 +222,19 @@ void test_tree_readwrite()
   Core mb;
   AdaptiveKDTree tool(&mb);
   create_tree( tool, DEPTH, INTERVALS, &tag );
-  
+
   // write to file
   err = mb.write_file( "tree.h5m" );
   CHECK_ERR(err);
 
   // clear everything
   mb.delete_mesh();
-  
+
   // read tree from file
   err = mb.load_file( "tree.h5m" );
   remove("tree.h5m");
   CHECK_ERR(err);
- 
+
   // get tag handle by name, because the handle may have changed
   err = mb.tag_get_handle( TAG_NAME, 1, MB_TYPE_INTEGER, tag );
   CHECK_ERR(err);
@@ -245,7 +245,7 @@ void test_tree_readwrite()
   assert(!err);
   assert(range.size() == 1);
   EntityHandle root = range.front(); // first (only) handle
-  
+
   validate_tree( tool, root, DEPTH, INTERVALS, tag );
 }
 
@@ -256,10 +256,10 @@ void test_tree_delete()
   AdaptiveKDTree tool(&mb);
   Tag data;
   create_tree( tool, DEPTH, INTERVALS, &data );
-  
+
   err = tool.reset_tree();
   CHECK_ERR(err);
-  
+
   Range ents;
   err = mb.get_entities_by_type_and_tag( 0, MBENTITYSET, &data, 0, 1, ents );
   CHECK_ERR(err);
@@ -271,21 +271,21 @@ void test_iterator_back( )
   Core mb;
   AdaptiveKDTree tool(&mb);
   const EntityHandle root = create_tree( tool, DEPTH, INTERVALS );
-  
+
   AdaptiveKDTreeIter iter;
   ErrorCode rval = tool.get_tree_iterator( root, iter );
   CHECK_ERR(rval);
-  
+
   CartVect min( iter.box_min() );
   CartVect max( iter.box_max() );
   EntityHandle leaf = iter.handle();
-  
+
     // going back from first location should fail.
   rval = iter.back();
   CHECK_EQUAL( MB_ENTITY_NOT_FOUND, rval );
   rval = tool.get_tree_iterator( root, iter );
   CHECK_ERR(rval);
-  
+
     // make sure iterator is valid
   CHECK_REAL_EQUAL( min[0], iter.box_min()[0], DBL_EPSILON );
   CHECK_REAL_EQUAL( min[1], iter.box_min()[1], DBL_EPSILON );
@@ -294,17 +294,17 @@ void test_iterator_back( )
   CHECK_REAL_EQUAL( max[1], iter.box_max()[1], DBL_EPSILON );
   CHECK_REAL_EQUAL( max[2], iter.box_max()[2], DBL_EPSILON );
   CHECK_EQUAL( leaf, iter.handle() );
-  
+
   while (MB_SUCCESS == iter.step()) {
       // Get values at current iterator location
     CartVect next_min( iter.box_min() );
     CartVect next_max( iter.box_max() );
     EntityHandle next_leaf = iter.handle();
-  
+
       // step back to previous location
     rval = iter.back();
     CHECK_ERR(rval);
-    
+
       // check expected values for previous location
     CHECK_REAL_EQUAL( min[0], iter.box_min()[0], DBL_EPSILON );
     CHECK_REAL_EQUAL( min[1], iter.box_min()[1], DBL_EPSILON );
@@ -313,11 +313,11 @@ void test_iterator_back( )
     CHECK_REAL_EQUAL( max[1], iter.box_max()[1], DBL_EPSILON );
     CHECK_REAL_EQUAL( max[2], iter.box_max()[2], DBL_EPSILON );
     CHECK_EQUAL( leaf, iter.handle() );
-    
+
       // advance iterator to 'current' location
     rval = iter.step();
     CHECK_ERR(rval);
-    
+
       // check that iterator values are correct
     CHECK_REAL_EQUAL( next_min[0], iter.box_min()[0], DBL_EPSILON );
     CHECK_REAL_EQUAL( next_min[1], iter.box_min()[1], DBL_EPSILON );
@@ -326,7 +326,7 @@ void test_iterator_back( )
     CHECK_REAL_EQUAL( next_max[1], iter.box_max()[1], DBL_EPSILON );
     CHECK_REAL_EQUAL( next_max[2], iter.box_max()[2], DBL_EPSILON );
     CHECK_EQUAL( next_leaf, iter.handle() );
-   
+
       // store values for next iteration
     min = next_min;
     max = next_max;
@@ -339,23 +339,23 @@ void test_point_search()
   Core mb;
   AdaptiveKDTree tool(&mb);
   const EntityHandle root = create_tree( tool, DEPTH, INTERVALS );
-  
+
   ErrorCode rval;
   EntityHandle leaf;
   AdaptiveKDTreeIter iter, iter2;
-  
+
     // points to test
   CartVect left( 0.5 );
   CartVect right( CartVect(INTERVALS) - left );
- 
+
     // compare leaf search to iterator search
   rval = tool.point_search(left.array(), leaf);
   CHECK_ERR(rval);
   rval = tool.point_search(left.array(), iter);
   CHECK_ERR(rval);
   CHECK_EQUAL( leaf, iter.handle() );
-  
-    // iterator should be at 'first' leaf 
+
+    // iterator should be at 'first' leaf
   rval = tool.get_tree_iterator( root, iter2 );
   CHECK_ERR(rval);
   for (;;) {
@@ -367,7 +367,7 @@ void test_point_search()
     CHECK_REAL_EQUAL( iter.box_max()[0], iter2.box_max()[0], DBL_EPSILON );
     CHECK_REAL_EQUAL( iter.box_max()[1], iter2.box_max()[1], DBL_EPSILON );
     CHECK_REAL_EQUAL( iter.box_max()[2], iter2.box_max()[2], DBL_EPSILON );
-    
+
     rval = iter2.step();
     if (MB_ENTITY_NOT_FOUND == rval)
       break;
@@ -375,15 +375,15 @@ void test_point_search()
     rval = iter.step();
     CHECK_ERR(rval);
   }
-  
+
     // compare leaf search to iterator search
   rval = tool.point_search(right.array(), leaf, 0.0, 0.0, NULL, const_cast<EntityHandle*>(&root));
   CHECK_ERR(rval);
   rval = tool.point_search(right.array(), iter, 0.0, 0.0, NULL, const_cast<EntityHandle*>(&root));
   CHECK_ERR(rval);
   assert( iter.handle() == leaf );
-  
-    // iterator should be at 'last' leaf 
+
+    // iterator should be at 'last' leaf
   rval = tool.get_last_iterator( root, iter2 );
   CHECK_ERR(rval);
   for (;;) {
@@ -395,7 +395,7 @@ void test_point_search()
     CHECK_REAL_EQUAL( iter.box_max()[0], iter2.box_max()[0], DBL_EPSILON );
     CHECK_REAL_EQUAL( iter.box_max()[1], iter2.box_max()[1], DBL_EPSILON );
     CHECK_REAL_EQUAL( iter.box_max()[2], iter2.box_max()[2], DBL_EPSILON );
-    
+
     rval = iter2.back();
     if (MB_ENTITY_NOT_FOUND == rval)
       break;
@@ -405,5 +405,5 @@ void test_point_search()
   }
 }
 
-  
+
 

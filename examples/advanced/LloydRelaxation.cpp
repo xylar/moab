@@ -8,8 +8,8 @@
  * In the parallel algorithm, an extra ghost layer of cells is exchanged.  This allows us to compute the centroids
  * for boundary cells on each processor where they appear; this eliminates the need for one round of data exchange
  * (for those centroids) between processors.  New vertex positions must be sent from owning processors to processors
- * sharing those vertices.  Convergence is measured as the maximum distance moved by any vertex.  
- * 
+ * sharing those vertices.  Convergence is measured as the maximum distance moved by any vertex.
+ *
  * In this implementation, a fixed number of iterations is performed.  The final mesh is output to 'lloydfinal.h5m'
  * in the current directory (H5M format must be used since the file is written in parallel).
  */
@@ -30,7 +30,7 @@ using namespace std;
 
 string test_file_name = string(MESH_DIR) + string("/surfrandomtris-4part.h5m");
 
-ErrorCode perform_lloyd_relaxation(Interface *mb, Range &verts, Range &cells, Tag fixed, 
+ErrorCode perform_lloyd_relaxation(Interface *mb, Range &verts, Range &cells, Tag fixed,
                                    int num_its, int report_its);
 
 int main(int argc, char **argv)
@@ -46,7 +46,7 @@ int main(int argc, char **argv)
   if (argc > 1) {
     // User has input a mesh file
     test_file_name = argv[1];
-  }  
+  }
 
   // Get MOAB instance
   Interface* mb = new (std::nothrow) Core;
@@ -112,8 +112,8 @@ int main(int argc, char **argv)
   return 0;
 }
 
-ErrorCode perform_lloyd_relaxation(Interface *mb, Range &verts, Range &faces, Tag fixed, 
-                                   int num_its, int report_its) 
+ErrorCode perform_lloyd_relaxation(Interface *mb, Range &verts, Range &faces, Tag fixed,
+                                   int num_its, int report_its)
 {
   ErrorCode rval;
 

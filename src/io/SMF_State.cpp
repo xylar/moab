@@ -53,7 +53,7 @@ void SMF_State::mmult(const AffineXform &M)
 {
     // initially, we tried this:
     // xform.accumulate(M);
-    // maybe we should do M.accumulate(xform) 
+    // maybe we should do M.accumulate(xform)
     AffineXform tmp=M;
     tmp.accumulate(xform);
     xform = tmp;

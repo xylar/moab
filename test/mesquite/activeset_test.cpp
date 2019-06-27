@@ -1,9 +1,9 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2004 Sandia Corporation and Argonne National
-    Laboratory.  Under the terms of Contract DE-AC04-94AL85000 
-    with Sandia Corporation, the U.S. Government retains certain 
+    Laboratory.  Under the terms of Contract DE-AC04-94AL85000
+    with Sandia Corporation, the U.S. Government retains certain
     rights in this software.
 
     This library is free software; you can redistribute it and/or
@@ -16,17 +16,17 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
-    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov, 
-    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov      
-   
+
+    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov,
+    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov
+
   ***************************************************************** */
 // -*- Mode : c++; tab-width: 3; c-tab-always-indent: t; indent-tabs-mode: nil; c-basic-offset: 3 -*-
 //
-//   SUMMARY: 
+//   SUMMARY:
 //     USAGE:
 //
 // ORIG-DATE: 19-Feb-02 at 10:57:52
@@ -66,9 +66,9 @@ using std::endl;
 using namespace MBMesquite;
 
 int main()
-{     
+{
     /* Reads a Mesh file */
-  std::string file_name = TestDir + 
+  std::string file_name = TestDir +
 //   "/2D/vtk/tris/untangled/equil_tri2.vtk";
 //   "/2D/vtk/tris/untangled/tri_20258.vtk";
 //   "/3D/vtk/tets/untangled/tet_1.vtk";
@@ -79,15 +79,15 @@ int main()
   MBMesquite::MeshImpl mesh;
   mesh.read_vtk(file_name.c_str(), err);
   if (err) return 1;
-  
+
     // Creates an intruction queue
     //  printf("Creating instruction queue\n");
   InstructionQueue queue1;
 
-  // Creates a condition number quality metric 
+  // Creates a condition number quality metric
   //  printf("Creating quality metric\n");
   ConditionNumberQualityMetric cond_no;
-  
+
   // Create the NonSmooth Steepest Descent procedures
   //  printf("creating optimizer\n");
   NonSmoothDescent minmax_method( &cond_no );
@@ -101,31 +101,31 @@ int main()
   QualityAssessor quality_assessor=QualityAssessor(&cond_no);
 
   // assess the quality of the initial mesh
-  queue1.add_quality_assessor(&quality_assessor, err); 
+  queue1.add_quality_assessor(&quality_assessor, err);
   if (err) return 1;
 
   // Set the max min method to be the master quality improver
-  queue1.set_master_quality_improver(&minmax_method, err); 
+  queue1.set_master_quality_improver(&minmax_method, err);
   if (err) return 1;
 
   // assess the quality of the final mesh
-  queue1.add_quality_assessor(&quality_assessor, err); 
+  queue1.add_quality_assessor(&quality_assessor, err);
   if (err) return 1;
 
   // write out the original mesh
   //  printf("Writing out the original mesh\n");
-  mesh.write_vtk("original_mesh.vtk", err); 
+  mesh.write_vtk("original_mesh.vtk", err);
   if (err) return 1;
 
   // launches optimization on mesh_set1
   //  printf("Running the instruction queue\n");
-  queue1.run_instructions(&mesh, err); 
+  queue1.run_instructions(&mesh, err);
   if (err) return 1;
 
   // write out the smoothed mesh
   //  printf("Writing out the final mesh\n");
-  mesh.write_vtk("smoothed_mesh.vtk", err); 
+  mesh.write_vtk("smoothed_mesh.vtk", err);
   if (err) return 1;
-  
+
   return 0;
 }

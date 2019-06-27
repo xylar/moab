@@ -1,7 +1,7 @@
-// 
+//
 // Usage:
 // tools/mbslavepart -d 2 -m mpas/x1.2562.grid.h5m -s mpas/x1.10242.grid.h5m -o mpas_slave.h5m -e 1e-8 -b 1e-6 -O
-// 
+//
 #include <iostream>
 #include <exception>
 #include <cmath>
@@ -113,7 +113,7 @@ int main(int argc, char* argv[])
     moab::Range msetelems;
     error = mbCore->get_entities_by_dimension(mset, dimension, msetelems);MB_CHK_ERR(error);
     melems.merge(msetelems);
-    
+
     int partID;
     error = mbCore->tag_get_data(parttag, &mset, 1, &partID);MB_CHK_ERR(error);
 

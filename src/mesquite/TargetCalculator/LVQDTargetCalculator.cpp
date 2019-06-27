@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2006 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
+
     (2006) kraftche@cae.wisc.edu
-   
+
   ***************************************************************** */
 
 
 /** \file LVQDTargetCalculator.cpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -52,13 +52,13 @@ int LVQDTargetCalculator::add_source( TargetCalculator* source )
   return idx;
 }
 
-LVQDTargetCalculator::LVQDTargetCalculator( 
+LVQDTargetCalculator::LVQDTargetCalculator(
                         TargetCalculator* lambda_source,
                         TargetCalculator* V_source,
                         TargetCalculator* Q_source,
                         TargetCalculator* delta_source )
   : numUniqueGuides(0)
-{ 
+{
   lambdaIdx = add_source( lambda_source );
   vIdx      = add_source( V_source );
   qIdx      = add_source( Q_source );
@@ -70,7 +70,7 @@ LVQDTargetCalculator::~LVQDTargetCalculator() {}
 bool LVQDTargetCalculator::have_surface_orient() const
   { return (vIdx >= 0); }
 
-bool LVQDTargetCalculator::get_3D_target( PatchData& pd, 
+bool LVQDTargetCalculator::get_3D_target( PatchData& pd,
                                           size_t element,
                                           Sample sample,
                                           MsqMatrix<3,3>& W_out,
@@ -79,7 +79,7 @@ bool LVQDTargetCalculator::get_3D_target( PatchData& pd,
   double lambda[4];
   MsqMatrix<3,3> V[4], Q[4], delta[4], W;
   bool valid;
-  
+
   for (int i = 0; i < numUniqueGuides; ++i) {
     valid = uniqueGuides[i]->get_3D_target( pd, element, sample, W, err );
     if (MSQ_CHKERR(err) || !valid)
@@ -88,7 +88,7 @@ bool LVQDTargetCalculator::get_3D_target( PatchData& pd,
     if (MSQ_CHKERR(err) || !valid)
       return false;
   }
-  
+
   if (vIdx >= 0) {
     W_out = V[vIdx];
     if (lambdaIdx >= 0)
@@ -120,12 +120,12 @@ bool LVQDTargetCalculator::get_3D_target( PatchData& pd,
   return true;
 }
 
-  
-bool LVQDTargetCalculator::evaluate_guide_2D( PatchData& pd, 
+
+bool LVQDTargetCalculator::evaluate_guide_2D( PatchData& pd,
                                               size_t element,
                                               Sample sample,
                                               int idx,
-                                              double& lambda, 
+                                              double& lambda,
                                               MsqMatrix<3,2>& V,
                                               MsqMatrix<2,2>& Q,
                                               MsqMatrix<2,2>& delta,
@@ -155,7 +155,7 @@ bool LVQDTargetCalculator::evaluate_guide_2D( PatchData& pd,
   return true;
 }
 
-bool LVQDTargetCalculator::get_2D_target( PatchData& pd, 
+bool LVQDTargetCalculator::get_2D_target( PatchData& pd,
                                           size_t element,
                                           Sample sample,
                                           MsqMatrix<2,2>& W_out,
@@ -165,19 +165,19 @@ bool LVQDTargetCalculator::get_2D_target( PatchData& pd,
   MsqMatrix<3,2> V[4];
   MsqMatrix<2,2> W, Q[4], delta[4];
   bool valid;
-  
+
   if (have_surface_orient()) {
     MSQ_SETERR(err)("Incorrect surface mesh target type", MsqError::INTERNAL_ERROR );
     return false;
   }
-  
-  
+
+
   for (int i = 0; i < numUniqueGuides; ++i) {
     valid = evaluate_guide_2D( pd, element, sample, i, lambda[i], V[i], Q[i], delta[i], err );
     if (MSQ_CHKERR(err) || !valid)
       return false;
   }
-  
+
   if (qIdx >= 0) {
     W_out = Q[qIdx];
     if (lambdaIdx >= 0)
@@ -201,7 +201,7 @@ bool LVQDTargetCalculator::get_2D_target( PatchData& pd,
 }
 
 
-bool LVQDTargetCalculator::get_surface_target( PatchData& pd, 
+bool LVQDTargetCalculator::get_surface_target( PatchData& pd,
                                           size_t element,
                                           Sample sample,
                                           MsqMatrix<3,2>& W_out,
@@ -211,19 +211,19 @@ bool LVQDTargetCalculator::get_surface_target( PatchData& pd,
   MsqMatrix<3,2> V[4], W;
   MsqMatrix<2,2> Q[4], delta[4], junk, W2;
   bool valid;
-  
+
   if (!have_surface_orient()) {
     MSQ_SETERR(err)("Incorrect surface mesh target type", MsqError::INTERNAL_ERROR );
     return false;
   }
-  
-  
+
+
   for (int i = 0; i < numUniqueGuides; ++i) {
     valid = evaluate_guide_2D( pd, element, sample, i, lambda[i], V[i], Q[i], delta[i], err );
     if (MSQ_CHKERR(err) || !valid)
       return false;
   }
-  
+
   if (vIdx >= 0) {
     W_out = V[vIdx];
     if (lambdaIdx >= 0)

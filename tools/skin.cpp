@@ -35,7 +35,7 @@ extern "C" int getrusage(int, struct rusage *);
 #endif
 #endif
 
-const char DEFAULT_FIXED_TAG[] = "fixed"; 
+const char DEFAULT_FIXED_TAG[] = "fixed";
 const int MIN_EDGE_LEN_DENOM = 4;
 
 #define CHKERROR( A ) do { if (MB_SUCCESS != (A)) { \
@@ -45,17 +45,17 @@ const int MIN_EDGE_LEN_DENOM = 4;
 static ErrorCode merge_duplicate_vertices( Interface&, double epsilon );
 static ErrorCode min_edge_length( Interface&, double& result );
 
-static void usage( const char* argv0, bool help = false ) 
+static void usage( const char* argv0, bool help = false )
 {
   std::ostream& str = help ? std::cout : std::cerr;
 
-  str << "Usage: " << argv0 
+  str << "Usage: " << argv0
       << " [-b <block_num> [-b ...] ] [-l] [-m] [-M <n>] [-p] [-s <sideset_num>] [-S] [-t|-T <name>] [-w] [-v|-V <n>]"
       << " <input_file> [<output_file>]" << std::endl;
   str << "Help : " << argv0 << " -h" << std::endl;
   if (!help)
     exit(1);
-    
+
   str << "Options: " << std::endl;
   str << "-a : Compute skin using vert-elem adjacencies (more memory, less time)." << std::endl;
   str << "-b <block_num> : Compute skin only for material set/block <block_num>." << std::endl;
@@ -87,7 +87,7 @@ int main( int argc, char* argv[] )
   bool use_scd = false;
   const char* fixed_tag = DEFAULT_FIXED_TAG;
   const char *input_file = 0, *output_file = 0;
-  
+
   bool no_more_flags = false;
   char* endptr = 0;
   long block = 0; // initialize to eliminate compiler warning
@@ -105,7 +105,7 @@ int main( int argc, char* argv[] )
           case 'h': usage( argv[0], true );    break;
           case 'l': list_skin = true;          break;
           case 'S': use_scd = true;            break;
-          case 'b': 
+          case 'b':
             if (i == argc || 0 >= (block = strtol(argv[i],&endptr,0)) || *endptr) {
               std::cerr << "Expected positive integer following '-b' flag" << std::endl;
               usage(argv[0]);
@@ -127,7 +127,7 @@ int main( int argc, char* argv[] )
             }
             fixed_tag = argv[i++];
             break;
-          case 'M':  
+          case 'M':
             if (i == argc || 0.0 > (merge_epsilon = strtod(argv[i],&endptr)) || *endptr) {
               std::cerr << "Expected positive numeric value following '-M' flag" << std::endl;
               usage(argv[0]);
@@ -159,33 +159,33 @@ int main( int argc, char* argv[] )
     usage(argv[0]);
   }
 
-  
+
   ErrorCode result;
   Core mbimpl;
   Interface* iface = &mbimpl;
-  
+
   if (print_perf) {
     double tmp_time1, tmp_mem1;
     get_time_mem(tmp_time1, tmp_mem1);
-    std::cout << "Before reading: cpu time = " << tmp_time1 << ", memory = " 
+    std::cout << "Before reading: cpu time = " << tmp_time1 << ", memory = "
               << tmp_mem1/1.0e6 << "MB." << std::endl;
   }
 
     // read input file
   result = iface->load_mesh( input_file );
   if (MB_SUCCESS != result)
-  { 
-    std::cerr << "Failed to load \"" << input_file << "\"." << std::endl; 
+  {
+    std::cerr << "Failed to load \"" << input_file << "\"." << std::endl;
     return 2;
   }
   std::cerr << "Read \"" << input_file << "\"" << std::endl;
   if (print_perf) {
     double tmp_time2, tmp_mem2;
     get_time_mem(tmp_time2, tmp_mem2);
-    std::cout << "After reading: cpu time = " << tmp_time2 << ", memory = " 
+    std::cout << "After reading: cpu time = " << tmp_time2 << ", memory = "
               << tmp_mem2/1.0e6 << "MB." << std::endl;
   }
-  
+
   if (merge_vertices) {
     if (merge_epsilon < 0.0) {
       if (MB_SUCCESS != min_edge_length( *iface, merge_epsilon )) {
@@ -199,7 +199,7 @@ int main( int argc, char* argv[] )
       return 1;
     }
   }
-  
+
     // get entities of largest dimension
   int dim = 4;
   Range entities;
@@ -224,7 +224,7 @@ int main( int argc, char* argv[] )
       std::cerr << "Couldn't find any material sets in this mesh." << std::endl;
       return 1;
     }
-    
+
     for (std::vector<int>::iterator vit = matsets.begin(); vit != matsets.end(); ++vit) {
       int this_matset = *vit;
       const void *this_matset_ptr = &this_matset;
@@ -239,13 +239,13 @@ int main( int argc, char* argv[] )
         std::cerr << "Warning: couldn't find material set " << *vit << std::endl;
         continue;
       }
-      
+
       result = iface->get_entities_by_dimension(*this_range.begin(), dim, ent_range, true);
       if (MB_SUCCESS != result) continue;
       skin_ents.merge(ent_range);
     }
   }
-  
+
   if (skin_ents.empty()) {
     std::cerr << "No entities for which to compute skin; exiting." << std::endl;
     return 1;
@@ -259,18 +259,18 @@ int main( int argc, char* argv[] )
     if (MB_SUCCESS != result)
       return 1;
   }
-  
+
   double tmp_time = 0.0, tmp_mem = 0.0;
   if (print_perf) {
     get_time_mem(tmp_time, tmp_mem);
-    std::cout << "Before skinning: cpu time = " << tmp_time << ", memory = " 
+    std::cout << "Before skinning: cpu time = " << tmp_time << ", memory = "
               << tmp_mem/1.0e6 << "MB." << std::endl;
   }
 
     // skin the mesh
   Range forward_lower, reverse_lower;
   Skinner tool( iface );
-  if (use_scd) 
+  if (use_scd)
     result = tool.find_skin( 0, skin_ents, false, forward_lower, NULL, false, true, true);
   else
     result = tool.find_skin( 0, skin_ents, false, forward_lower, &reverse_lower );
@@ -286,10 +286,10 @@ int main( int argc, char* argv[] )
   if (list_skin) {
     Range skin_verts;
     result = iface->get_adjacencies(boundary, 0, true, skin_verts, Interface::UNION);
-    std::cout << "Skin has "; 
-    if (skin_ents.num_of_dimension(3)) 
+    std::cout << "Skin has ";
+    if (skin_ents.num_of_dimension(3))
       std::cout << boundary.num_of_dimension(2) << " faces and ";
-    else if (skin_ents.num_of_dimension(2)) 
+    else if (skin_ents.num_of_dimension(2))
       std::cout << boundary.num_of_dimension(1) << " edges and ";
     std::cout << skin_verts.size() << " vertices." << std::endl;
   }
@@ -299,7 +299,7 @@ int main( int argc, char* argv[] )
     int zero = 0;
     result = iface->tag_get_handle( fixed_tag, 1, MB_TYPE_INTEGER, tag, MB_TAG_DENSE|MB_TAG_CREAT, &zero );
     CHKERROR(result);
-  
+
       // Set tags
     std::vector<int> ones;
     Range bverts;
@@ -312,7 +312,7 @@ int main( int argc, char* argv[] )
     result = iface->tag_set_data( tag, bverts, &ones[0] );
     CHKERROR(result);
   }
-  
+
   if (-1 != neuset_num) {
       // create a neumann set with these entities
     if (0 == neuset_tag) {
@@ -320,7 +320,7 @@ int main( int argc, char* argv[] )
                                        neuset_tag, MB_TAG_SPARSE|MB_TAG_CREAT );
       if (MB_SUCCESS != result || 0 == neuset_tag) return 1;
     }
-    
+
 
       // always create a forward neumann set, assuming we have something in the set
     EntityHandle forward_neuset = 0;
@@ -353,12 +353,12 @@ int main( int argc, char* argv[] )
   }
 
   if (NULL != output_file && write_whole_mesh) {
-    
+
       // write output file
     result = iface->write_mesh( output_file);
     if (MB_SUCCESS != result)
-    { 
-      std::cerr << "Failed to write \"" << output_file << "\"." << std::endl; 
+    {
+      std::cerr << "Failed to write \"" << output_file << "\"." << std::endl;
       return 2;
     }
     std::cerr << "Wrote \"" << output_file << "\"" << std::endl;
@@ -379,8 +379,8 @@ int main( int argc, char* argv[] )
 
     result = iface->write_mesh( output_file, &skin_set, 1);
     if (MB_SUCCESS != result)
-    { 
-      std::cerr << "Failed to write \"" << output_file << "\"." << std::endl; 
+    {
+      std::cerr << "Failed to write \"" << output_file << "\"." << std::endl;
       return 2;
     }
     std::cerr << "Wrote \"" << output_file << "\"" << std::endl;
@@ -396,18 +396,18 @@ int main( int argc, char* argv[] )
     std::cout << "Entities: " << std::endl;
     iface->list_entities(0, 0);
   }
-  
+
   return 0;
 }
 
 #if defined(_MSC_VER) || defined(__MINGW32__)
-void get_time_mem(double &tot_time, double &tot_mem) 
+void get_time_mem(double &tot_time, double &tot_mem)
 {
   tot_time = (double)clock() / CLOCKS_PER_SEC;
   tot_mem = 0;
 }
 #else
-void get_time_mem(double &tot_time, double &tot_mem) 
+void get_time_mem(double &tot_time, double &tot_mem)
 {
   struct rusage r_usage;
   getrusage(RUSAGE_SELF, &r_usage);
@@ -418,7 +418,7 @@ void get_time_mem(double &tot_time, double &tot_mem)
   tot_time = utime + stime;
   tot_mem = 0;
   if (0 != r_usage.ru_maxrss) {
-    tot_mem = (double)r_usage.ru_maxrss; 
+    tot_mem = (double)r_usage.ru_maxrss;
   }
   else {
       // this machine doesn't return rss - try going to /proc
@@ -436,7 +436,7 @@ void get_time_mem(double &tot_time, double &tot_mem)
       // read the preceding fields and the ones we really want...
     int dum_int;
     unsigned int dum_uint, vm_size, rss;
-    int num_fields = sscanf(file_str, 
+    int num_fields = sscanf(file_str,
                             "%d " // pid
                             "%s " // comm
                             "%c " // state
@@ -446,13 +446,13 @@ void get_time_mem(double &tot_time, double &tot_mem)
                             "%u %u " // timeout, itrealvalue
                             "%d " // starttime
                             "%u %u", // vsize, rss
-                            &dum_int, 
-                            dum_str, 
-                            dum_str, 
-                            &dum_int, &dum_int, &dum_int, &dum_int, &dum_int, 
+                            &dum_int,
+                            dum_str,
+                            dum_str,
+                            &dum_int, &dum_int, &dum_int, &dum_int, &dum_int,
                             &dum_uint, &dum_uint, &dum_uint, &dum_uint, &dum_uint,
-                            &dum_int, &dum_int, &dum_int, &dum_int, &dum_int, &dum_int, 
-                            &dum_uint, &dum_uint, 
+                            &dum_int, &dum_int, &dum_int, &dum_int, &dum_int, &dum_int,
+                            &dum_uint, &dum_uint,
                             &dum_int,
                             &vm_size, &rss);
     if (num_fields == 24)
@@ -460,13 +460,13 @@ void get_time_mem(double &tot_time, double &tot_mem)
   }
 }
 #endif
-  
-  
-  
+
+
+
 ErrorCode min_edge_length( Interface& moab, double& result )
 {
   double sqr_result = std::numeric_limits<double>::max();
-  
+
   ErrorCode rval;
   Range entities;
   rval = moab.get_entities_by_handle( 0, entities );
@@ -475,7 +475,7 @@ ErrorCode min_edge_length( Interface& moab, double& result )
   entities.erase( entities.begin(), i );
   i = entities.lower_bound( MBENTITYSET );
   entities.erase( i, entities.end() );
-  
+
   std::vector<EntityHandle> storage;
   for (i = entities.begin(); i != entities.end(); ++i) {
     EntityType t = moab.type_from_handle( *i );
@@ -483,18 +483,18 @@ ErrorCode min_edge_length( Interface& moab, double& result )
     int conn_len, indices[2];
     rval = moab.get_connectivity( *i, conn, conn_len, true, &storage );
     if (MB_SUCCESS != rval) return rval;
-    
+
     int num_edges = CN::NumSubEntities( t, 1 );
     for (int j = 0; j < num_edges; ++j) {
       CN::SubEntityVertexIndices( t, 1, j, indices );
       EntityHandle v[2] = { conn[indices[0]], conn[indices[1]] };
       if (v[0] == v[1])
         continue;
-      
+
       double c[6];
       rval = moab.get_coords( v, 2, c );
       if (MB_SUCCESS != rval) return rval;
-      
+
       c[0] -= c[3];
       c[1] -= c[4];
       c[2] -= c[5];
@@ -503,13 +503,13 @@ ErrorCode min_edge_length( Interface& moab, double& result )
         sqr_result = len_sqr;
     }
   }
-  
+
   result = sqrt(sqr_result);
   return MB_SUCCESS;
 }
-  
-  
-  
+
+
+
 ErrorCode merge_duplicate_vertices( Interface& moab, const double epsilon )
 {
   ErrorCode rval;
@@ -517,7 +517,7 @@ ErrorCode merge_duplicate_vertices( Interface& moab, const double epsilon )
   rval = moab.get_entities_by_type( 0, MBVERTEX, verts );
   if (MB_SUCCESS != rval)
     return rval;
-  
+
   AdaptiveKDTree tree( &moab );
   EntityHandle root;
   rval = tree.build_tree( verts, &root );
@@ -525,18 +525,18 @@ ErrorCode merge_duplicate_vertices( Interface& moab, const double epsilon )
     fprintf(stderr,"Failed to build kD-tree.\n");
     return rval;
   }
-  
+
   std::set<EntityHandle> dead_verts;
   std::vector<EntityHandle> leaves;
   for (Range::iterator i = verts.begin(); i != verts.end(); ++i) {
     double coords[3];
     rval = moab.get_coords( &*i, 1, coords );
     if (MB_SUCCESS != rval) return rval;
-    
+
     leaves.clear();;
     rval = tree.distance_search(coords, epsilon, leaves, epsilon, epsilon);
     if (MB_SUCCESS != rval) return rval;
-    
+
     Range near;
     for (std::vector<EntityHandle>::iterator j = leaves.begin(); j != leaves.end(); ++j) {
       Range tmp;
@@ -545,20 +545,20 @@ ErrorCode merge_duplicate_vertices( Interface& moab, const double epsilon )
         return rval;
       near.merge( tmp.begin(), tmp.end() );
     }
-    
+
     Range::iterator v = near.find( *i );
     assert( v != near.end() );
     near.erase( v );
-    
+
     EntityHandle merge = 0;
     for (Range::iterator j = near.begin(); j != near.end(); ++j) {
       if (*j < *i && dead_verts.find( *j ) != dead_verts.end())
         continue;
-      
+
       double coords2[3];
       rval = moab.get_coords( &*j, 1, coords2 );
       if (MB_SUCCESS != rval) return rval;
-      
+
       coords2[0] -= coords[0];
       coords2[1] -= coords[1];
       coords2[2] -= coords[2];
@@ -570,22 +570,22 @@ ErrorCode merge_duplicate_vertices( Interface& moab, const double epsilon )
         break;
       }
     }
-    
+
     if (merge) {
       dead_verts.insert(*i);
       rval = moab.merge_entities( merge, *i, false, true );
       if (MB_SUCCESS != rval) return rval;
     }
   }
-  
-  if (dead_verts.empty()) 
+
+  if (dead_verts.empty())
     std::cout << "No duplicate/coincident vertices." << std::endl;
   else
     std::cout << "Merged and deleted " << dead_verts.size() << " vertices "
               << "coincident within " << epsilon << std::endl;
-  
+
   return MB_SUCCESS;
 }
 
-    
+
 

@@ -26,7 +26,7 @@ const std::string input_file = TestDir + "/test_geom.h5m";
 
 double eps = 1.0e-6;
 
-void gqt_setup_test() 
+void gqt_setup_test()
 {
   MBI = new Core();
   ErrorCode rval = MBI->load_file(input_file.c_str());
@@ -105,7 +105,7 @@ void gqt_outside_face_rayfire_history_fail()
   double next_surf_dist;
   EntityHandle next_surf;
 
-  history.reset(); 
+  history.reset();
 
   // ray fired exactly along boundary shared by 2 facets on a single surface,
   // needs two ray_fires to cross, this is expected and ok
@@ -133,7 +133,7 @@ void gqt_outside_face_rayfire_history()
   double next_surf_dist;
   EntityHandle next_surf;
 
-  history.reset(); 
+  history.reset();
   // first ray fire with history
   GQT->ray_fire(vol_h, origin, dir, next_surf, next_surf_dist, &history, 0, 1);
   std::cout << next_surf << " " << history.size() << std::endl;
@@ -157,9 +157,9 @@ void gqt_outside_face_rayfire_history()
 int main(int /* argc */, char** /* argv */)
 {
   int result = 0;
-  
+
   result += RUN_TEST(gqt_setup_test); // setup problem
-  // rays fired along cardinal directions 
+  // rays fired along cardinal directions
   result += RUN_TEST(gqt_origin_face_rayfire); // point in centre
   result += RUN_TEST(gqt_outside_face_rayfire);
   result += RUN_TEST(gqt_outside_face_rayfire_orient_exit); // fire ray from point outside volume looking for exit intersections
@@ -170,6 +170,6 @@ int main(int /* argc */, char** /* argv */)
   delete GQT;
   delete GTT;
   delete MBI;
-  
+
   return result;
 }

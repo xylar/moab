@@ -56,7 +56,7 @@ ErrorCode get_group_names(Interface* MBI, const EntityHandle group_set,
   return MB_SUCCESS;
 }
 
-// For each material, sum the volume. If the coordinates were updated for 
+// For each material, sum the volume. If the coordinates were updated for
 // deformation, summarize the volume change.
 ErrorCode summarize_cell_volume_change(Interface* MBI,
     const EntityHandle cgm_file_set, const Tag categoryTag, const Tag dimTag,
@@ -254,8 +254,8 @@ ErrorCode remove_empty_cgm_surfs_and_vols(Interface *MBI,
       result = MBI->remove_entities(cgm_file_set, &(*i), 1);
       assert(MB_SUCCESS == result);
 
-      // Is the set contained anywhere else? If the surface is in a CUBIT group, 
-      // such as "unmerged_surfs" it will cause write_mesh to fail. This should 
+      // Is the set contained anywhere else? If the surface is in a CUBIT group,
+      // such as "unmerged_surfs" it will cause write_mesh to fail. This should
       // be a MOAB bug.
       Range all_sets;
       result = MBI->get_entities_by_type(0, MBENTITYSET, all_sets);
@@ -299,8 +299,8 @@ ErrorCode remove_empty_cgm_surfs_and_vols(Interface *MBI,
       int vol_id;
       result = MBI->tag_get_data(idTag, &(*i), 1, &vol_id);
       assert(MB_SUCCESS == result);
-      // Is the set contained anywhere else? If the surface is in a CUBIT group, 
-      // such as "unmerged_surfs" it will cause write_mesh to fail. This should 
+      // Is the set contained anywhere else? If the surface is in a CUBIT group,
+      // such as "unmerged_surfs" it will cause write_mesh to fail. This should
       // be a MOAB bug.
       Range all_sets;
       result = MBI->get_entities_by_type(0, MBENTITYSET, all_sets);
@@ -420,7 +420,7 @@ ErrorCode orient_faces_outward(Interface *MBI, const Range faces,
 }
 
 /* Isolate dead code in a preproc-killed block - sjackson 11/22/10 */
-#if 0 
+#if 0
 
 /* qsort int comparison function */
 int handle_compare(const void *a, const void *b)
@@ -428,7 +428,7 @@ int handle_compare(const void *a, const void *b)
   const EntityHandle *ia = (const EntityHandle *)a; // casting pointer types
   const EntityHandle *ib = (const EntityHandle *)b;
   return *ia - *ib;
-  /* integer comparison: returns negative if b > a 
+  /* integer comparison: returns negative if b > a
    and positive if a > b */
 }
 
@@ -787,7 +787,7 @@ ErrorCode fix_surface_senses(Interface *MBI, const EntityHandle cgm_file_set,
     if (MB_SUCCESS != result)
       return result;
 
-    // Add the tris to the same surface meshset as the quads are inside.            
+    // Add the tris to the same surface meshset as the quads are inside.
     result = MBI->add_entities(cub_surf.front(), cub_tris);
     if (MB_SUCCESS != result)
       return result;
@@ -932,7 +932,7 @@ ErrorCode replace_faceted_cgm_surfs(Interface *MBI,
 
 // Dead elements need removed from the simulation. This is done by removing them
 // from their volume set and adding them to the implicit complement. New surfaces
-// must be created for this. 
+// must be created for this.
 // IF MODIFYING THIS CODE, BE AWARE THAT DEAD ELEMENTS CAN BE ADJACENT TO MORE
 // THAN ONE SURFACE, MAKING THE ASSOCIATION BETWEEN NEWLY EXPOSED AND EXISTING
 // SURFACES AMBIGUOUS.
@@ -1215,7 +1215,7 @@ double DEFAULT_DISTANCE = 0.001;
 double DEFAULT_LEN = 0.0;
 int DEFAULT_NORM = 5;
 
-// load cub file 
+// load cub file
 // load cgm file
 // for each surface
 //   convert cub surf quads to tris
@@ -1349,14 +1349,14 @@ int main(int argc, char* argv[])
     }
   }
 
-  // Read the mesh from the cub file with Tqcdfr 
+  // Read the mesh from the cub file with Tqcdfr
   Core *MBI = new Core();
   ErrorCode result;
   EntityHandle cub_file_set;
   result = MBI->create_meshset(0, cub_file_set);
   if (MB_SUCCESS != result)
     return result;
-  // Do not ignore the Cubit file version. In testing, a cub file from Cubit12 
+  // Do not ignore the Cubit file version. In testing, a cub file from Cubit12
   // did not work.
   //char cub_options[256] = "120";
   //char cub_options[256] = "IGNORE_VERSION";
@@ -1412,8 +1412,8 @@ int main(int argc, char* argv[])
     return result;
 
   // Create triangles from the quads of the cub surface sets and add them to the
-  // cub surface sets. Get the signed volume of each surface for both cgm and 
-  // cub representations. Change the sense of the cgm representation to match 
+  // cub surface sets. Get the signed volume of each surface for both cgm and
+  // cub representations. Change the sense of the cgm representation to match
   // the cub representation.
   result = fix_surface_senses(MBI, cgm_file_set, cub_file_set, idTag, dimTag,
       senseTag, debug);
@@ -1509,7 +1509,7 @@ int main(int argc, char* argv[])
 
   if (determine_volume_change)
   {
-    // Dead elements have been removed by the deformation. Get the elements that 
+    // Dead elements have been removed by the deformation. Get the elements that
     // still exist.
     Range defo_elems;
     result = MBI->get_entities_by_dimension(0, 3, defo_elems);
@@ -1551,7 +1551,7 @@ int main(int argc, char* argv[])
 
   // The quads in the cub_file_set have been updated for dead elements. For each
   // cgm_surf, if there exists a cub_surf with the same id, replace the cgm tris
-  // with cub_tris (created from the quads). Note the a surface that is not 
+  // with cub_tris (created from the quads). Note the a surface that is not
   // meshed (in cub file) will not be effected.
   result = replace_faceted_cgm_surfs(MBI, cgm_file_set, cub_file_set, idTag,
       dimTag, debug);
@@ -1568,7 +1568,7 @@ int main(int argc, char* argv[])
   std::cout << "Removed surfaces and volumes that no longer have any triangles."
       << std::endl;
 
-  // For each material, sum the volume. If the coordinates were updated for 
+  // For each material, sum the volume. If the coordinates were updated for
   // deformation, summarize the volume change.
   result = summarize_cell_volume_change(MBI, cgm_file_set, categoryTag, dimTag,
       sizeTag, nameTag, idTag, conserve_mass, debug);

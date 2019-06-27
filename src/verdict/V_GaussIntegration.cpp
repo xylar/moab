@@ -46,7 +46,7 @@ double y2Area[maxNumberGaussPointsTri];
 double y1Volume[maxNumberGaussPointsTet];
 double y2Volume[maxNumberGaussPointsTet];
 double y3Volume[maxNumberGaussPointsTet];
-double y4Volume[maxNumberGaussPointsTet];  
+double y4Volume[maxNumberGaussPointsTet];
 
 void GaussIntegration::initialize(int n, int m, int dim, int tri)
 {
@@ -74,7 +74,7 @@ void GaussIntegration::initialize(int n, int m, int dim, int tri)
 }
 
 
-void GaussIntegration::get_shape_func(double shape_function[], double dndy1_at_gauss_pts[], 
+void GaussIntegration::get_shape_func(double shape_function[], double dndy1_at_gauss_pts[],
                              double dndy2_at_gauss_pts[], double gauss_weight[])
 {
    int i, j;
@@ -82,7 +82,7 @@ void GaussIntegration::get_shape_func(double shape_function[], double dndy1_at_g
    {
       for ( j =0;j<numberNodes;j++)
       {
-         shape_function[i*maxNumberNodes+j] = 
+         shape_function[i*maxNumberNodes+j] =
             shapeFunction[i][j];
          dndy1_at_gauss_pts[i*maxNumberNodes+j]  = dndy1GaussPts[i][j];
          dndy2_at_gauss_pts[i*maxNumberNodes+j]  = dndy2GaussPts[i][j];
@@ -90,11 +90,11 @@ void GaussIntegration::get_shape_func(double shape_function[], double dndy1_at_g
    }
 
    for (  i=0;i<totalNumberGaussPts; i++)
-      gauss_weight[i] = totalGaussWeight[i];     
+      gauss_weight[i] = totalGaussWeight[i];
 }
 
-void GaussIntegration::get_shape_func(double shape_function[], double dndy1_at_gauss_pts[], 
-                                      double dndy2_at_gauss_pts[], double dndy3_at_gauss_pts[], 
+void GaussIntegration::get_shape_func(double shape_function[], double dndy1_at_gauss_pts[],
+                                      double dndy2_at_gauss_pts[], double dndy3_at_gauss_pts[],
                                       double gauss_weight[])
 {
    int i, j;
@@ -102,7 +102,7 @@ void GaussIntegration::get_shape_func(double shape_function[], double dndy1_at_g
    {
       for ( j=0;j<numberNodes; j++)
       {
-         shape_function[i*maxNumberNodes+j] = 
+         shape_function[i*maxNumberNodes+j] =
             shapeFunction[i][j];
          dndy1_at_gauss_pts[i*maxNumberNodes+j] = dndy1GaussPts[i][j];
          dndy2_at_gauss_pts[i*maxNumberNodes+j] = dndy2GaussPts[i][j];
@@ -111,7 +111,7 @@ void GaussIntegration::get_shape_func(double shape_function[], double dndy1_at_g
    }
 
    for ( i=0;i<totalNumberGaussPts; i++)
-      gauss_weight[i] = totalGaussWeight[i];     
+      gauss_weight[i] = totalGaussWeight[i];
 }
 
 
@@ -243,9 +243,9 @@ void GaussIntegration::calculate_shape_function_3d_hex()
 
                 for ( node_id =0; node_id <numberNodes; node_id++)
                 {
-                   get_signs_for_node_local_coord_hex(node_id, sign_node_y1, 
+                   get_signs_for_node_local_coord_hex(node_id, sign_node_y1,
                       sign_node_y2, sign_node_y3);
-   
+
                    y1_term = 1+sign_node_y1*y1;
                    y2_term = 1+sign_node_y2*y2;
                    y3_term = 1+sign_node_y3*y3;
@@ -278,9 +278,9 @@ void GaussIntegration::calculate_shape_function_3d_hex()
 
                 for ( node_id =0; node_id <numberNodes; node_id++)
                 {
-                   get_signs_for_node_local_coord_hex(node_id, sign_node_y1, 
+                   get_signs_for_node_local_coord_hex(node_id, sign_node_y1,
                       sign_node_y2, sign_node_y3);
-                   
+
                    y1_term = 1+sign_node_y1*y1;
                    y2_term = 1+sign_node_y2*y2;
                    y3_term = 1+sign_node_y3*y3;
@@ -348,7 +348,7 @@ void GaussIntegration::calculate_shape_function_3d_hex()
                          break;
                       }
                    }
-                   
+
                 }
                 totalGaussWeight[ife] = gaussWeight[i]*gaussWeight[j]*gaussWeight[k];
                 ife++;
@@ -360,12 +360,12 @@ void GaussIntegration::calculate_shape_function_3d_hex()
    }
 }
 
-void GaussIntegration::calculate_derivative_at_nodes(double dndy1_at_nodes[][maxNumberNodes], 
+void GaussIntegration::calculate_derivative_at_nodes(double dndy1_at_nodes[][maxNumberNodes],
                                                      double dndy2_at_nodes[][maxNumberNodes])
 {
    double y1=0., y2=0.;
    int i;
-   for(i=0;i<numberNodes; i++) 
+   for(i=0;i<numberNodes; i++)
    {
       switch( i )
       {
@@ -459,10 +459,10 @@ void GaussIntegration::calculate_derivative_at_nodes_3d(double dndy1_at_nodes[][
    double y1, y2, y3,sign_node_y1,sign_node_y2,sign_node_y3 ;
    double y1_term, y2_term, y3_term, y123_temp;
    int node_id, node_id_2;
-   for(node_id=0;node_id<numberNodes; node_id++) 
+   for(node_id=0;node_id<numberNodes; node_id++)
    {
       get_signs_for_node_local_coord_hex(node_id, y1,y2,y3);
-      
+
 
       switch( numberNodes )
       {
@@ -550,7 +550,7 @@ void GaussIntegration::calculate_derivative_at_nodes_3d(double dndy1_at_nodes[][
             }
          }
          break;
-         
+
       }
    }
 }
@@ -697,7 +697,7 @@ void GaussIntegration::get_tri_rule_pts_and_weight()
          for (i=3;i<6;i++)
          {
             totalGaussWeight[i] = 0.1289694;
-         }   
+         }
          break;
    }
 }
@@ -721,12 +721,12 @@ void GaussIntegration::calculate_shape_function_2d_tri()
       shapeFunction[ife][3] = 4.*y1*y2;
       shapeFunction[ife][4] = 4.*y2*y3;
       shapeFunction[ife][5] = 4.*y1*y3;
-      
+
 
       dndy1GaussPts[ife][0] = 4*y1-1.;
       dndy1GaussPts[ife][1] = 0;
       dndy1GaussPts[ife][2] = 1-4.*y3;
-      
+
       dndy1GaussPts[ife][3] = 4.*y2;
       dndy1GaussPts[ife][4] = -4.*y2;
       dndy1GaussPts[ife][5] = 4.*(1-2*y1-y2);
@@ -734,7 +734,7 @@ void GaussIntegration::calculate_shape_function_2d_tri()
       dndy2GaussPts[ife][0] = 0.0;
       dndy2GaussPts[ife][1] = 4.*y2-1.;
       dndy2GaussPts[ife][2] = 1-4.*y3;
-      
+
       dndy2GaussPts[ife][3] = 4.*y1;
       dndy2GaussPts[ife][4] = 4.*(1-y1-2.*y2);
       dndy2GaussPts[ife][5] = -4.*y1;
@@ -747,7 +747,7 @@ void GaussIntegration::calculate_derivative_at_nodes_2d_tri(double dndy1_at_node
 {
    double y1=0., y2=0., y3;
    int i;
-   for(i=0;i<numberNodes; i++) 
+   for(i=0;i<numberNodes; i++)
    {
       switch( i )
       {
@@ -782,7 +782,7 @@ void GaussIntegration::calculate_derivative_at_nodes_2d_tri(double dndy1_at_node
       dndy1_at_nodes[i][0] = 4*y1-1.;
       dndy1_at_nodes[i][1]= 0;
       dndy1_at_nodes[i][2] = 1-4.*y3;
-      
+
       dndy1_at_nodes[i][3] = 4.*y2;
       dndy1_at_nodes[i][4] = -4.*y2;
       dndy1_at_nodes[i][5] = 4.*(1-2*y1-y2);
@@ -790,7 +790,7 @@ void GaussIntegration::calculate_derivative_at_nodes_2d_tri(double dndy1_at_node
       dndy2_at_nodes[i][0] = 0.0;
       dndy2_at_nodes[i][1] = 4.*y2-1.;
       dndy2_at_nodes[i][2] = 1-4.*y3;
-      
+
       dndy2_at_nodes[i][3] = 4.*y1;
       dndy2_at_nodes[i][4] = 4.*(1-y1-2.*y2);
       dndy2_at_nodes[i][5] = -4.*y1;
@@ -873,7 +873,7 @@ void GaussIntegration::calculate_shape_function_3d_tet()
             shapeFunction[ife][3] = y3*(2.*y3-1.);
 
             shapeFunction[ife][4] = 4.*y1*y4;
-            shapeFunction[ife][5] = 4.*y1*y2;            
+            shapeFunction[ife][5] = 4.*y1*y2;
             shapeFunction[ife][6] = 4.*y2*y4;
             shapeFunction[ife][7] = 4.*y3*y4;
             shapeFunction[ife][8] = 4.*y1*y3;
@@ -883,21 +883,21 @@ void GaussIntegration::calculate_shape_function_3d_tet()
             dndy1GaussPts[ife][1] = 4*y1-1.;
             dndy1GaussPts[ife][2] = 0;
             dndy1GaussPts[ife][3] = 0;
-            
+
             dndy1GaussPts[ife][4] = 4.*(y4-y1);
             dndy1GaussPts[ife][5] = 4.*y2;
             dndy1GaussPts[ife][6] = -4.*y2;
-            dndy1GaussPts[ife][7] = -4.*y3;    
+            dndy1GaussPts[ife][7] = -4.*y3;
             dndy1GaussPts[ife][8] = 4.*y3;
             dndy1GaussPts[ife][9] = 0;
-            
+
             dndy2GaussPts[ife][0] = 1-4*y4;
             dndy2GaussPts[ife][1] = 0;
             dndy2GaussPts[ife][2] = 4.*y2-1.;
             dndy2GaussPts[ife][3] = 0;
 
-            dndy2GaussPts[ife][4] = -4.*y1; 
-            dndy2GaussPts[ife][5] = 4.*y1;       
+            dndy2GaussPts[ife][4] = -4.*y1;
+            dndy2GaussPts[ife][5] = 4.*y1;
             dndy2GaussPts[ife][6] = 4.*(y4-y2);
             dndy2GaussPts[ife][7] = -4.*y3;
             dndy2GaussPts[ife][8] = 0.;
@@ -907,9 +907,9 @@ void GaussIntegration::calculate_shape_function_3d_tet()
             dndy3GaussPts[ife][1] = 0;
             dndy3GaussPts[ife][2] = 0;
             dndy3GaussPts[ife][3] = 4.*y3-1.;
-            
+
             dndy3GaussPts[ife][4] = -4.*y1;
-            dndy3GaussPts[ife][5] = 0;     
+            dndy3GaussPts[ife][5] = 0;
             dndy3GaussPts[ife][6] = -4.*y2;
             dndy3GaussPts[ife][7] = 4.*(y4-y3);
             dndy3GaussPts[ife][8] = 4.*y1;
@@ -945,7 +945,7 @@ void GaussIntegration::calculate_shape_function_3d_tet()
             dndy3GaussPts[ife][1] = 0;
             dndy3GaussPts[ife][2] = 0;
             dndy3GaussPts[ife][3] = 1;
-            
+
          }
          break;
       }
@@ -964,7 +964,7 @@ void GaussIntegration::calculate_derivative_at_nodes_3d_tet(double dndy1_at_node
    {
    case 10:
       {
-         for(i=0;i<numberNodes; i++) 
+         for(i=0;i<numberNodes; i++)
          {
             get_node_local_coord_tet(i, y1, y2, y3, y4);
 
@@ -1019,20 +1019,20 @@ void GaussIntegration::calculate_derivative_at_nodes_3d_tet(double dndy1_at_node
             dndy2_at_nodes[i][1] = 0;
             dndy2_at_nodes[i][2] = 1;
             dndy2_at_nodes[i][3] = 0;
- 
+
             dndy3_at_nodes[i][0] = -1.;
             dndy3_at_nodes[i][1] = 0;
             dndy3_at_nodes[i][2] = 0;
             dndy3_at_nodes[i][3] = 1;
-            
+
          }
          break;
       }
    }
 }
-      
 
-void GaussIntegration::get_node_local_coord_tet(int node_id, double &y1, double &y2, 
+
+void GaussIntegration::get_node_local_coord_tet(int node_id, double &y1, double &y2,
                                                 double &y3, double &y4)
 {
    switch( node_id )

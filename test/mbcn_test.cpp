@@ -76,7 +76,7 @@ int main()
   result += RUN_TEST(test_dimension);
   result += RUN_TEST(test_vertices_per_entity);
   result += RUN_TEST(test_num_sub_entities);
-  
+
   result += RUN_TEST(test_sub_entity_type_vtx);
   result += RUN_TEST(test_sub_entity_type_edge);
   result += RUN_TEST(test_sub_entity_type_tri);
@@ -86,7 +86,7 @@ int main()
   result += RUN_TEST(test_sub_entity_type_pri);
   result += RUN_TEST(test_sub_entity_type_knife);
   result += RUN_TEST(test_sub_entity_type_hex);
-  
+
   result += RUN_TEST(test_sub_entity_indices_vtx);
   result += RUN_TEST(test_sub_entity_indices_edge);
   result += RUN_TEST(test_sub_entity_indices_tri);
@@ -95,19 +95,19 @@ int main()
   result += RUN_TEST(test_sub_entity_indices_pyr);
   result += RUN_TEST(test_sub_entity_indices_pri);
   result += RUN_TEST(test_sub_entity_indices_hex);
-  
+
   result += RUN_TEST(test_side_number_tri);
   result += RUN_TEST(test_side_number_quad);
   result += RUN_TEST(test_side_number_tet);
   result += RUN_TEST(test_side_number_pyr);
   result += RUN_TEST(test_side_number_pri);
   result += RUN_TEST(test_side_number_hex);
-  
+
   result += RUN_TEST(test_opposite_side_tri);
   result += RUN_TEST(test_opposite_side_quad);
   result += RUN_TEST(test_opposite_side_tet);
   result += RUN_TEST(test_opposite_side_hex);
-  
+
   result += RUN_TEST(test_has_mid_nodes_edge);
   result += RUN_TEST(test_has_mid_nodes_tri);
   result += RUN_TEST(test_has_mid_nodes_quad);
@@ -115,20 +115,20 @@ int main()
   result += RUN_TEST(test_has_mid_nodes_pyr);
   result += RUN_TEST(test_has_mid_nodes_pri);
   result += RUN_TEST(test_has_mid_nodes_knife);
-  result += RUN_TEST(test_has_mid_nodes_hex);  
+  result += RUN_TEST(test_has_mid_nodes_hex);
 
-  result += RUN_TEST(test_sub_entity_nodes_tri_edges);  
-  result += RUN_TEST(test_sub_entity_nodes_quad_edges);  
-  result += RUN_TEST(test_sub_entity_nodes_tet_edges);  
-  result += RUN_TEST(test_sub_entity_nodes_tet_faces);  
-  result += RUN_TEST(test_sub_entity_nodes_pyr_edges);  
-  result += RUN_TEST(test_sub_entity_nodes_pyr_faces);  
-  result += RUN_TEST(test_sub_entity_nodes_pri_edges);  
-  result += RUN_TEST(test_sub_entity_nodes_pri_faces);  
-  result += RUN_TEST(test_sub_entity_nodes_kni_edges);  
-  result += RUN_TEST(test_sub_entity_nodes_kni_faces);  
-  result += RUN_TEST(test_sub_entity_nodes_hex_edges);  
-  result += RUN_TEST(test_sub_entity_nodes_hex_faces);  
+  result += RUN_TEST(test_sub_entity_nodes_tri_edges);
+  result += RUN_TEST(test_sub_entity_nodes_quad_edges);
+  result += RUN_TEST(test_sub_entity_nodes_tet_edges);
+  result += RUN_TEST(test_sub_entity_nodes_tet_faces);
+  result += RUN_TEST(test_sub_entity_nodes_pyr_edges);
+  result += RUN_TEST(test_sub_entity_nodes_pyr_faces);
+  result += RUN_TEST(test_sub_entity_nodes_pri_edges);
+  result += RUN_TEST(test_sub_entity_nodes_pri_faces);
+  result += RUN_TEST(test_sub_entity_nodes_kni_edges);
+  result += RUN_TEST(test_sub_entity_nodes_kni_faces);
+  result += RUN_TEST(test_sub_entity_nodes_hex_edges);
+  result += RUN_TEST(test_sub_entity_nodes_hex_faces);
 
   result += RUN_TEST(test_ho_node_parent);
   result += RUN_TEST(test_ho_node_index);
@@ -147,21 +147,21 @@ const EntityType elem_types[] = { MBTRI,
 void test_dimension_pair()
 {
   DimensionPair dp;
-  
+
   dp = CN::TypeDimensionMap[0];
-  CHECK_EQUAL( MBVERTEX, dp.first );  
+  CHECK_EQUAL( MBVERTEX, dp.first );
   CHECK_EQUAL( MBVERTEX, dp.second );
-  
+
   dp = CN::TypeDimensionMap[1];
-  CHECK_EQUAL( MBEDGE, dp.first );  
+  CHECK_EQUAL( MBEDGE, dp.first );
   CHECK_EQUAL( MBEDGE, dp.second );
-  
+
   dp = CN::TypeDimensionMap[2];
-  CHECK_EQUAL( MBTRI, dp.first );  
+  CHECK_EQUAL( MBTRI, dp.first );
   CHECK_EQUAL( MBPOLYGON, dp.second );
-  
+
   dp = CN::TypeDimensionMap[3];
-  CHECK_EQUAL( MBTET, dp.first );  
+  CHECK_EQUAL( MBTET, dp.first );
   CHECK_EQUAL( MBPOLYHEDRON, dp.second );
 }
 
@@ -332,7 +332,7 @@ void test_0d_sub_entity_indices( EntityType type, int num_vtx )
   }
 }
 
-void test_1d_sub_entity_indices( EntityType type, int num_edges, 
+void test_1d_sub_entity_indices( EntityType type, int num_edges,
                                  const int (*edge_indices)[2] )
 {
   for (int i = 0; i < num_edges; ++i) {
@@ -365,7 +365,7 @@ void test_2d_sub_entity_indices( EntityType type, int num_faces,
     const int* exp_index = face_indices[i] + 1;
     int off = std::find( indices, indices+num_vtx, exp_index[0] ) - indices;
     CHECK( off < num_vtx );
-      /* Expect faces to be ordered such that CCW normal is outwards 
+      /* Expect faces to be ordered such that CCW normal is outwards
        *
     bool reverse = indices[(off+num_vtx-1)%num_vtx] == exp_index[1];
     if (reverse) {
@@ -383,7 +383,7 @@ void test_2d_sub_entity_indices( EntityType type, int num_faces,
       /*
     }
       */
-    
+
     // check didn't write past end of array
     if (num_vtx == 3)
       CHECK_EQUAL( -99, indices[3] );
@@ -392,7 +392,7 @@ void test_2d_sub_entity_indices( EntityType type, int num_faces,
 }
 
 void test_elem_as_sub_entity( EntityType type, int dim, int num_vertices )
-{ 
+{
   int indices[9] = { -2, -2, -2, -2, -2, -2, -2, -2, -2 };
   CN::SubEntityVertexIndices( type, dim, 0, indices );
   for (int i = 0; i < num_vertices; ++i)
@@ -410,11 +410,11 @@ void test_sub_entity_indices_edge()
 {
   test_0d_sub_entity_indices( MBEDGE, 2 );
   test_elem_as_sub_entity( MBEDGE, 1, 2 );
-}    
+}
 
 void test_sub_entity_indices_tri()
 {
-  const int edges[3][2] = { { 0, 1 }, 
+  const int edges[3][2] = { { 0, 1 },
                             { 1, 2 },
                             { 2, 0 } };
   test_0d_sub_entity_indices( MBTRI, 3 );
@@ -424,7 +424,7 @@ void test_sub_entity_indices_tri()
 
 void test_sub_entity_indices_quad()
 {
-  const int edges[4][2] = { { 0, 1 }, 
+  const int edges[4][2] = { { 0, 1 },
                             { 1, 2 },
                             { 2, 3 },
                             { 3, 0 } };
@@ -540,18 +540,18 @@ static void do_test_side_number_1d( EntityType type, int idx )
   int side_conn[2] = { elem_verts[side_idx[0]], elem_verts[side_idx[1]] };
   int rev_conn[2] = { elem_verts[side_idx[1]], elem_verts[side_idx[0]] };
   int result_side = -100, result_sense = -100, result_offset = -100;
-  int err= CN::SideNumber( type, elem_verts, side_conn, 2, 1, 
+  int err= CN::SideNumber( type, elem_verts, side_conn, 2, 1,
                              result_side, result_sense, result_offset );
   CHECK_EQUAL( 0, err );
   CHECK_EQUAL( idx, result_side );
   CHECK_EQUAL( 1, result_sense );
   CHECK_EQUAL( 0, result_offset);
-  err= CN::SideNumber( type, elem_verts, rev_conn, 2, 1, 
+  err= CN::SideNumber( type, elem_verts, rev_conn, 2, 1,
                          result_side, result_sense, result_offset );
   CHECK_EQUAL( 0, err );
   CHECK_EQUAL( idx, result_side );
   CHECK(result_offset == 1 || result_sense == -1);
-}     
+}
 
 static void do_test_side_number_2d( EntityType type, int idx )
 {
@@ -568,9 +568,9 @@ static void do_test_side_number_2d( EntityType type, int idx )
       int side_conn[4]; side_conn[3] = 0;
       for (int i = 0; i < side_size; ++i)
         side_conn[(side_size+rev*i)%side_size] = elem_verts[side_idx[(i+off)%side_size]];
-      
+
       int result_side = -100, result_sense = -100, result_offset = -100;
-      int err = CN::SideNumber( type, elem_verts, side_conn, side_size, 2, 
+      int err = CN::SideNumber( type, elem_verts, side_conn, side_size, 2,
                                   result_side, result_sense, result_offset );
       CHECK_EQUAL( 0, err );
       CHECK_EQUAL( idx, result_side );
@@ -695,7 +695,7 @@ void test_opposite_side_quad()
 void test_opposite_side_tet()
 {
   int idx, dim, err;
-  
+
   err = CN::OppositeSide( MBTET, 0, 0, idx, dim );
   CHECK_EQUAL( 0, err );
   CHECK_EQUAL( 2, dim );
@@ -712,7 +712,7 @@ void test_opposite_side_tet()
   CHECK_EQUAL( 0, err );
   CHECK_EQUAL( 2, dim );
   CHECK_EQUAL( 3, idx );
-  
+
   err = CN::OppositeSide( MBTET, 0, 2, idx, dim );
   CHECK_EQUAL( 0, err );
   CHECK_EQUAL( 0, dim );
@@ -729,7 +729,7 @@ void test_opposite_side_tet()
   CHECK_EQUAL( 0, err );
   CHECK_EQUAL( 0, dim );
   CHECK_EQUAL( 3, idx );
-  
+
   err = CN::OppositeSide( MBTET, 0, 1, idx, dim );
   CHECK_EQUAL( 0, err );
   CHECK_EQUAL( 1, dim );
@@ -760,7 +760,7 @@ void test_opposite_side_tet()
 void test_opposite_side_hex()
 {
   int idx, dim, err;
-  
+
   err = CN::OppositeSide( MBHEX, 0, 0, idx, dim );
   CHECK_EQUAL( 0, err );
   CHECK_EQUAL( 0, dim );
@@ -842,7 +842,7 @@ void test_opposite_side_hex()
   CHECK_EQUAL( 0, err );
   CHECK_EQUAL( 1, dim );
   CHECK_EQUAL( 1, idx );
-  
+
   err = CN::OppositeSide( MBHEX, 0, 2, idx, dim );
   CHECK_EQUAL( 0, err );
   CHECK_EQUAL( 2, dim );
@@ -879,7 +879,7 @@ void test_has_mid_nodes(EntityType type)
                                   { 0, 1, 0, 1 },
                                   { 0, 0, 1, 1 },
                                   { 0, 1, 1, 1 } };
-  
+
     const int dim = CN::Dimension(type);
       // calculate number of valid combinations of ho node flags
     int num_comb = 1;
@@ -895,11 +895,11 @@ void test_has_mid_nodes(EntityType type)
         case 2: if (ho_nodes[1]) num_vtx += CN::NumSubEntities(type,1);
       }
       if (ho_nodes[dim]) ++num_vtx;
-      
+
       CHECK_EQUAL( ho_nodes[1], (int)CN::HasMidEdgeNodes( type, num_vtx ) );
       CHECK_EQUAL( ho_nodes[2], (int)CN::HasMidFaceNodes( type, num_vtx ) );
       CHECK_EQUAL( ho_nodes[3], (int)CN::HasMidRegionNodes( type, num_vtx ) );
-      
+
       int results[4] = { 0, -1, -1, -1 };
       CN::HasMidNodes( type, num_vtx, results );
       CHECK_EQUAL(           0, !!results[0] );
@@ -919,7 +919,7 @@ void test_ho_node_parent()
                                   { 0, 1, 0, 1 },
                                   { 0, 0, 1, 1 },
                                   { 0, 1, 1, 1 } };
-  
+
   for (const EntityType* t = elem_types; *t != MBMAXTYPE; ++t) {
     const EntityType type = *t;
     const int dim = CN::Dimension(type);
@@ -940,7 +940,7 @@ void test_ho_node_parent()
 
         // start at first higher-order node
       int pos = CN::VerticesPerEntity(type);
-      
+
         // check mid-edge
       if (dim > 1 && ho_nodes[1]) {
         for (int i = 0; i < CN::NumSubEntities(type,1); ++i) {
@@ -950,7 +950,7 @@ void test_ho_node_parent()
           CHECK_EQUAL( i, pidx );
         }
       }
-      
+
         // check mid-face
       if (dim > 2 && ho_nodes[2]) {
         for (int i = 0; i < CN::NumSubEntities(type,2); ++i) {
@@ -960,7 +960,7 @@ void test_ho_node_parent()
           CHECK_EQUAL( i, pidx );
         }
       }
-      
+
         // check mid-volume
       if (ho_nodes[dim]) {
         int pdim = -1, pidx = -1;
@@ -982,7 +982,7 @@ void test_ho_node_index()
                                   { 0, 1, 0, 1 },
                                   { 0, 0, 1, 1 },
                                   { 0, 1, 1, 1 } };
-  
+
   for (const EntityType* t = elem_types; *t != MBMAXTYPE; ++t) {
     const EntityType type = *t;
     const int dim = CN::Dimension(type);
@@ -1003,7 +1003,7 @@ void test_ho_node_index()
 
         // start at first higher-order node
       int pos = CN::VerticesPerEntity(type);
-      
+
         // check mid-edge
       if (dim > 1 && ho_nodes[1]) {
         for (int i = 0; i < CN::NumSubEntities(type,1); ++i) {
@@ -1011,7 +1011,7 @@ void test_ho_node_index()
           CHECK_EQUAL( pos++, idx );
         }
       }
-      
+
         // check mid-face
       if (dim > 2 && ho_nodes[2]) {
         for (int i = 0; i < CN::NumSubEntities(type,2); ++i) {
@@ -1019,7 +1019,7 @@ void test_ho_node_index()
           CHECK_EQUAL( pos++, idx );
         }
       }
-      
+
         // check mid-volume
       if (ho_nodes[dim]) {
         int idx = CN::HONodeIndex( type, num_vtx, dim, 0 );
@@ -1034,7 +1034,7 @@ void test_sub_entity_nodes( EntityType parent, int sub_dimension )
   const int num_corner = CN::VerticesPerEntity( parent );
   const int num_edge   = CN::NumSubEntities( parent, 1 );
   const int num_face   = CN::NumSubEntities( parent, 2 );
- 
+
   switch (CN::Dimension(parent)) {
     case 3:
       test_sub_entity_nodes( parent, num_corner+num_face, sub_dimension );
@@ -1060,7 +1060,7 @@ void test_sub_entity_nodes( EntityType parent, int num_nodes, int sub_dimension 
   int child_ho = 0;
   for (int d = 1; d <= sub_dimension; ++d)
     child_ho |= (parent_ho & (1<<d));
-   
+
     // first test the types
   for (int i = 0; i < num_sub; ++i) {
     int num, conn[moab::MAX_SUB_ENTITY_VERTICES];
@@ -1068,7 +1068,7 @@ void test_sub_entity_nodes( EntityType parent, int num_nodes, int sub_dimension 
     CN::SubEntityNodeIndices( parent, num_nodes, sub_dimension, i, type, num, conn );
     CHECK_EQUAL( CN::SubEntityType(parent, sub_dimension, i), type );
   }
- 
+
     // now test that they have the correct number of higher-order node
   for (int i = 0; i < num_sub; ++i) {
     int num, conn[moab::MAX_SUB_ENTITY_VERTICES];
@@ -1077,20 +1077,20 @@ void test_sub_entity_nodes( EntityType parent, int num_nodes, int sub_dimension 
     const int ho = CN::HasMidNodes( type, num );
     CHECK_EQUAL( child_ho, ho );
   }
-  
+
     // now test the actual indices
   for (int i = 0; i < num_sub; ++i) {
     int num, conn[moab::MAX_SUB_ENTITY_VERTICES], corners[moab::MAX_SUB_ENTITY_VERTICES];
     EntityType type;
     CN::SubEntityNodeIndices( parent, num_nodes, sub_dimension, i, type, num, conn );
-    
+
       // check corner indices against SubEntityVertexIndices
     const int num_corner = CN::VerticesPerEntity(type);
     CHECK( num >= num_corner );
     CN::SubEntityVertexIndices( parent, sub_dimension, i, corners );
     for (int j = 0; j < num_corner; ++j)
       CHECK_EQUAL( corners[j], conn[j] );
-    
+
       // check mid-edge indices, if present
     int idx = num_corner;
     if (child_ho & CN::MID_EDGE_BIT) {
@@ -1114,14 +1114,14 @@ void test_sub_entity_nodes( EntityType parent, int num_nodes, int sub_dimension 
         CHECK_EQUAL( loc, conn[idx++] );
       }
     }
-    
+
       // check mid-face indices, if present
     if (child_ho & CN::MID_FACE_BIT) {
       CHECK_EQUAL( 2, CN::Dimension(type) );
       int loc = CN::HONodeIndex( parent, num_nodes, 2, i );
       CHECK_EQUAL( loc, conn[idx++] );
     }
-    
+
       // make sure there were no extra node indices returned
     CHECK_EQUAL( idx, num );
   }

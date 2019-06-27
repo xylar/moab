@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2010 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2010) kraftche@cae.wisc.edu    
+    (2010) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file IdealShapeTarget.cpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -39,7 +39,7 @@ namespace MBMesquite {
 
 IdealShapeTarget::~IdealShapeTarget() {}
 
-bool IdealShapeTarget::get_3D_target( PatchData& pd, 
+bool IdealShapeTarget::get_3D_target( PatchData& pd,
                                       size_t element,
                                       Sample sample,
                                       MsqMatrix<3,3>& W_out,
@@ -51,7 +51,7 @@ bool IdealShapeTarget::get_3D_target( PatchData& pd,
   return !MSQ_CHKERR(err);
 }
 
-bool IdealShapeTarget::get_surface_target( PatchData& pd, 
+bool IdealShapeTarget::get_surface_target( PatchData& pd,
                                            size_t element,
                                            Sample sample,
                                            MsqMatrix<3,2>& W_out,
@@ -61,14 +61,14 @@ bool IdealShapeTarget::get_surface_target( PatchData& pd,
   bool rval = get_2D_target(pd, element, sample, W_2d, err );
   if (MSQ_CHKERR(err) || !rval)
     return false;
-  
+
   W_out(0,0) = W_2d(0,0); W_out(0,1) = W_2d(0,1);
   W_out(1,0) = W_2d(1,0); W_out(1,1) = W_2d(1,1);
   W_out(2,0) = 0.0;       W_out(2,1) = 0.0;
   return true;
 }
 
-bool IdealShapeTarget::get_2D_target( PatchData& pd, 
+bool IdealShapeTarget::get_2D_target( PatchData& pd,
                                       size_t element,
                                       Sample sample,
                                       MsqMatrix<2,2>& W_out,

@@ -20,9 +20,9 @@ void chkerr( GeomTopoTool& gtt, ErrorCode code, int line, const char* file );
 #define CHECKERR(M,C) chkerr(M,C,__LINE__,__FILE__)
 
 // features provided by obb_analysis.cpp
-/* no longer provided by dagmc 
+/* no longer provided by dagmc
 ErrorCode obbvis_create( DagMC& dag, std::vector<int> &volumes, int grid, std::string& filename );
-ErrorCode obbstat_write( DagMC& dag, std::vector<int> &volumes, 
+ErrorCode obbstat_write( DagMC& dag, std::vector<int> &volumes,
                          std::vector<std::string> &properties, std::ostream& out );
 */
 

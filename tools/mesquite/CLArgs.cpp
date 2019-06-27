@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2007 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2008) kraftche@cae.wisc.edu    
+    (2008) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file CLArgs.cpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -50,40 +50,40 @@ class CLArgImpl
     std::vector< std::string > reqArgNames, optArgNames;
     std::vector< std::string > reqArg, optArg;
     std::string progName, shortDesc, longDesc;
-    
+
   public:
-  
+
     CLArgImpl( const char* progname, const char* brief, const char* desc )
       : progName(progname), shortDesc(brief), longDesc(desc)
       {}
-  
+
     void add_req_arg( const char* name )
       { reqArgNames.push_back( name ); }
-  
+
     void add_opt_arg( const char* name )
       { optArgNames.push_back( name ); }
-  
+
     bool add_parsed_arg( const char* arg );
-  
+
     bool add_flag( CLArgFlag* flag );
-    
+
     CLArgFlag* find_flag( char flag );
     const CLArgFlag* find_flag( char flag ) const
       { return const_cast<CLArgImpl*>(this)->find_flag(flag); }
-    
+
     bool have_required_args() const
       { return reqArgNames.size() == reqArg.size(); }
-      
-    void get_args( std::vector< std::string >& result ) 
+
+    void get_args( std::vector< std::string >& result )
       { result = reqArg;
         result.resize( reqArg.size() + optArg.size() );
         std::copy( optArg.begin(), optArg.end(), result.begin()+reqArg.size() );
       }
-      
+
     void print_help( std::ostream& stream );
     void print_brief_help( std::ostream& stream );
     void print_man( std::ostream& stream );
-    
+
     void print_arg_names( std::ostream& stream );
 };
 
@@ -91,7 +91,7 @@ bool CLArgImpl::add_flag( CLArgFlag* arg )
 {
   if (find_flag(arg->flag()))
     return false;
-  
+
   mFlags.push_back( arg );
   return true;
 }
@@ -104,7 +104,7 @@ bool CLArgImpl::add_parsed_arg( const char* arg )
     optArg.push_back( arg );
   else
     return false;
-  
+
   return true;
 }
 
@@ -127,10 +127,10 @@ void CLArgImpl::print_help( std::ostream& stream )
   for (unsigned i = 0; i < mFlags.size(); ++i) {
     stream << '-' << mFlags[i]->flag() << " : " << mFlags[i]->desc();
     std::string extra = mFlags[i]->callback()->desc_append();
-    if (!extra.empty()) 
+    if (!extra.empty())
       stream << " " << extra;
     std::string defval = mFlags[i]->callback()->default_str();
-    if (!defval.empty()) 
+    if (!defval.empty())
       stream << " (default: " << defval << ")";
     stream << std::endl;
   }
@@ -146,7 +146,7 @@ void CLArgImpl::print_brief_help( std::ostream& stream )
     }
     else {
       str = mFlags[i]->brief();
-      if (!str.empty()) 
+      if (!str.empty())
         stream << " [" << str << "]";
     }
   }
@@ -159,11 +159,11 @@ void CLArgImpl::print_brief_help( std::ostream& stream )
 void CLArgImpl::print_man( std::ostream& stream )
 {
   ManPage::begin_manpage( stream, progName, 1 );
-  
+
   ManPage::begin_section( stream, "NAME" );
   ManPage::begin_paragraph( stream );
   stream << progName << " - " << shortDesc << std::endl << std::endl;
-  
+
   ManPage::begin_section( stream, "SYNOPSIS" );
   ManPage::begin_hanging_paragraph( stream );
   ManPage::bold( stream, progName );
@@ -178,7 +178,7 @@ void CLArgImpl::print_man( std::ostream& stream )
     }
     else {
       s = mFlags[i]->manstr();
-      if (!s.empty()) 
+      if (!s.empty())
         stream << " [" << s << "]";
     }
   }
@@ -188,10 +188,10 @@ void CLArgImpl::print_man( std::ostream& stream )
   ManPage::bold( stream, progName + " -h" );
   ManPage::begin_hanging_paragraph( stream );
   ManPage::bold( stream, progName + " -M" );
-  
+
   ManPage::begin_section( stream, "DESCRIPTION" );
   ManPage::write_text( stream, false, longDesc );
-  
+
   ManPage::begin_section( stream, "OPTIONS" );
   for (unsigned i = 0; i < mFlags.size(); ++i) {
     std::string s = mFlags[i]->callback()->manstr();
@@ -204,7 +204,7 @@ void CLArgImpl::print_man( std::ostream& stream )
       if (s.empty())
         continue;
     }
-    
+
     ManPage::begin_hanging_paragraph( stream );
     stream << s;
     ManPage::begin_indent( stream );
@@ -214,11 +214,11 @@ void CLArgImpl::print_man( std::ostream& stream )
     if (!s.empty())
       stream << " " << s;
     std::string defval = mFlags[i]->callback()->default_str();
-    if (!defval.empty()) 
+    if (!defval.empty())
       stream << " (default: " << defval << ")";
     ManPage::end_indent( stream );
   }
-  
+
 }
 
 void CLArgImpl::print_arg_names( std::ostream& stream )
@@ -240,20 +240,20 @@ bool CLArgs::is_flag_available( char fl ) const
 {
   return (fl != HELP_FLAG) && (fl != MAN_FLAG) && !(impl->find_flag(fl));
 }
-    
-bool CLArgs::str_flag( char fl, 
-                       const char* name, 
-                       const char* desc, 
+
+bool CLArgs::str_flag( char fl,
+                       const char* name,
+                       const char* desc,
                        CLArgs::StringArgI* callback )
 {
   if (!is_flag_available(fl))
     return false;
   return impl->add_flag( new CLArgString( fl, name, desc, callback ) );
 }
-                      
-bool CLArgs::int_flag( char fl, 
-                       const char* name, 
-                       const char* desc, 
+
+bool CLArgs::int_flag( char fl,
+                       const char* name,
+                       const char* desc,
                        CLArgs::IntArgI* callback )
 {
   if (!is_flag_available(fl))
@@ -261,9 +261,9 @@ bool CLArgs::int_flag( char fl,
   return impl->add_flag( new CLArgInt( fl, name, desc, callback ) );
 }
 
-bool CLArgs::long_flag( char fl, 
-                        const char* name, 
-                        const char* desc, 
+bool CLArgs::long_flag( char fl,
+                        const char* name,
+                        const char* desc,
                         CLArgs::LongArgI* callback )
 {
   if (!is_flag_available(fl))
@@ -271,9 +271,9 @@ bool CLArgs::long_flag( char fl,
   return impl->add_flag( new CLArgLong( fl, name, desc, callback ) );
 }
 
-bool CLArgs::double_flag( char fl, 
-                          const char* name, 
-                          const char* desc, 
+bool CLArgs::double_flag( char fl,
+                          const char* name,
+                          const char* desc,
                           CLArgs::DoubleArgI* callback )
 {
   if (!is_flag_available(fl))
@@ -281,9 +281,9 @@ bool CLArgs::double_flag( char fl,
   return impl->add_flag( new CLArgDouble( fl, name, desc, callback ) );
 }
 
-bool CLArgs::toggle_flag( char on_flag, 
-                          char off_flag, 
-                          const char* desc, 
+bool CLArgs::toggle_flag( char on_flag,
+                          char off_flag,
+                          const char* desc,
                           CLArgs::ToggleArgI* callback )
 {
   if (!(is_flag_available(on_flag) && is_flag_available(off_flag)))
@@ -302,17 +302,17 @@ bool CLArgs::toggle_flag( char fl, const char* desc, CLArgs::ToggleArgI* callbac
     return false;
   return impl->add_flag( new CLArgToggle( fl, desc, true, callback ) );
 }
-  
+
 bool CLArgs::id_list_flag( char fl, const char* desc, CLArgs::IntListArgI* callback )
 {
   if (!is_flag_available(fl))
     return false;
   return impl->add_flag( new CLArgIDList( fl, desc, callback ) );
 }
-  
 
-bool CLArgs::int_list_flag( char fl, 
-                            const char* desc, 
+
+bool CLArgs::int_list_flag( char fl,
+                            const char* desc,
                             CLArgs::IntListArgI* callback )
 {
   if (!is_flag_available(fl))
@@ -320,8 +320,8 @@ bool CLArgs::int_list_flag( char fl,
   return impl->add_flag( new CLArgIntList( fl, desc, callback ) );
 }
 
-bool CLArgs::double_list_flag( char fl, 
-                               const char* desc, 
+bool CLArgs::double_list_flag( char fl,
+                               const char* desc,
                                CLArgs::DoubleListArgI* callback )
 {
   if (!is_flag_available(fl))
@@ -347,7 +347,7 @@ void CLArgs::add_optional_arg( const char* name )
   impl->add_opt_arg( name );
 }
 
-bool CLArgs::parse_options( int argc, 
+bool CLArgs::parse_options( int argc,
                             char** argv,
                             std::vector< std::string >& args_out,
                             std::ostream& error_stream )
@@ -373,7 +373,7 @@ bool CLArgs::parse_options( int argc,
           print_man_page( std::cout );
           exit( 0 );
         }
-      
+
         CLArgFlag* flag = impl->find_flag( argv[i][j] );
         if (!flag) {
           error_stream << argv[0] << ": invalid flag: -" << argv[i][j] << std::endl;
@@ -393,9 +393,9 @@ bool CLArgs::parse_options( int argc,
       return false;
     }
   }
-  
+
   impl->get_args( args_out );
-  
+
   if (!pending.empty()) {
     error_stream << argv[0] << ": expected argument following flag: -" << pending.front()->flag() << std::endl;
     return false;
@@ -404,7 +404,7 @@ bool CLArgs::parse_options( int argc,
     error_stream << argv[0] << ": insufficient arguments" << std::endl;
     return false;
   }
-  
+
   return true;
 }
 
@@ -434,11 +434,11 @@ void CLArgs::KeyWordArg::initialize( const char* keyword_list[], int list_length
 bool CLArgs::KeyWordArg::value( const std::string& val )
 {
   std::vector< std::string >::const_iterator i;
-  for (i = mKeyWords.begin(); i != mKeyWords.end(); ++i) 
+  for (i = mKeyWords.begin(); i != mKeyWords.end(); ++i)
     if (compare_no_case( i->c_str(), val.c_str() )) {
       return value(*i);
     }
-  
+
   return false;
 }
 
@@ -448,7 +448,7 @@ std::string CLArgs::KeyWordArg::brief() const
   std::vector< std::string >::const_iterator i = mKeyWords.begin();
   if (i == mKeyWords.end())
     return std::string();
-  
+
   ss << '{' << *i;
   for (++i; i != mKeyWords.end(); ++i)
     ss << '|' << *i;
@@ -521,7 +521,7 @@ CLArgs::DoubleRange::DoubleRange( const double* min, const double* max, bool inc
 
 bool CLArgs::DoubleRange::is_valid( double val ) const
 {
-  if (mInclusive) 
+  if (mInclusive)
     return (!haveMin || val >= mMin)
         && (!haveMax || val <= mMax);
   else
@@ -534,7 +534,7 @@ std::string CLArgs::DoubleRange::desc_append()  const
   std::ostringstream ss;
   if (mInclusive && haveMin)
     ss << '[';
-  else 
+  else
     ss << '(';
   if (haveMin)
     ss << mMin;
@@ -568,4 +568,4 @@ bool CLArgs::DoubleListRangeArg::value( const std::vector<double>&  val )
 }
 
 
-  
+

@@ -1,9 +1,9 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2004 Sandia Corporation and Argonne National
-    Laboratory.  Under the terms of Contract DE-AC04-94AL85000 
-    with Sandia Corporation, the U.S. Government retains certain 
+    Laboratory.  Under the terms of Contract DE-AC04-94AL85000
+    with Sandia Corporation, the U.S. Government retains certain
     rights in this software.
 
     This library is free software; you can redistribute it and/or
@@ -16,20 +16,20 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
-    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov, 
-    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov      
-   
+
+    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov,
+    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov
+
   ***************************************************************** */
 /*!
   \file   Randomize.cpp
-  \brief  
+  \brief
 
   The Randomize Class is the concrete class that randomizes
-  the vertex positions.          
+  the vertex positions.
 
   \author Michael Brewer
   \date   2002-10-27
@@ -54,7 +54,7 @@ Randomize::Randomize() : mPercent(0.5), patchSet( 1, true )
 
 Randomize::Randomize(double percent) : mPercent(percent), patchSet( 1, true )
   { }
-  
+
 void Randomize::initialize(PatchData &/*pd*/, MsqError &)
 { }
 
@@ -63,7 +63,7 @@ void Randomize::initialize_mesh_iteration(PatchData &/*pd*/, MsqError &/*err*/)
   //  cout << "- Executing Randomize::iteration_complete()\n";
 }
 
-  
+
       /*!Function calculates a scale factor for the patch, then moves
         the incident vertex randomly in each of the three coordinate
         directions (relative to the scale factor multiplied by mPercent).
@@ -92,7 +92,7 @@ static inline void randomize_vertex(PatchData &pd,
     if(i != free_ind)
       scale_factor+=(verts[i]-verts[free_ind]).length();
   }
-  scale_factor/=( (double) num_vtx - 1.0 );    
+  scale_factor/=( (double) num_vtx - 1.0 );
   Vector3D delta;
   for (j=0;j<3;++j){
     rand_int = rand();
@@ -108,12 +108,12 @@ static inline void randomize_vertex(PatchData &pd,
 }
 
 
-void Randomize::optimize_vertex_positions(PatchData &pd, 
+void Randomize::optimize_vertex_positions(PatchData &pd,
                                                 MsqError &err)
 {
     //cout << "- Executing Randomize::optimize_vertex_position()\n";
 
-  // gets the array of coordinates for the patch and print it 
+  // gets the array of coordinates for the patch and print it
   // does the randomize smooth
   MsqFreeVertexIndexIterator free_iter(pd, err); MSQ_ERRRTN(err);
   free_iter.reset();
@@ -123,15 +123,15 @@ void Randomize::optimize_vertex_positions(PatchData &pd,
   randomize_vertex(pd, m, mPercent, err);  MSQ_ERRRTN(err);
   pd.snap_vertex_to_domain(m,err); MSQ_ERRRTN(err);
 }
-  
+
 void Randomize::terminate_mesh_iteration(PatchData &/*pd*/, MsqError &/*err*/)
 {
   //  cout << "- Executing Randomize::iteration_complete()\n";
 }
-  
+
 void Randomize::cleanup()
 {
   //  cout << "- Executing Randomize::iteration_end()\n";
 }
-  
+
 

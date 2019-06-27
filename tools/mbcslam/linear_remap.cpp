@@ -25,7 +25,7 @@ using namespace moab;
 void get_barycenters(moab::Interface * mb, moab::EntityHandle set,
     moab::Tag &planeTag, moab::Tag &barycenterTag);
 
-// computes gnomonic plane for each cell of the Eulerian mesh 
+// computes gnomonic plane for each cell of the Eulerian mesh
 void get_gnomonic_plane(moab::Interface * mb, moab::EntityHandle set,
     moab::Tag &planeTag);
 
@@ -185,7 +185,7 @@ void get_barycenters(moab::Interface * mb, moab::EntityHandle set,
   if (MB_SUCCESS != rval)
     return;
 
-  // set sphere radius to 1 
+  // set sphere radius to 1
   double R = 1.0;
 
   for (Range::iterator it = cells.begin(); it != cells.end(); ++it) {
@@ -278,7 +278,7 @@ void get_linear_reconstruction(moab::Interface * mb, moab::EntityHandle set,
   if (MB_SUCCESS != rval)
     return;
 
-  // set sphere radius to 1 
+  // set sphere radius to 1
   double R = 1;
 
   // Get coefficients of reconstruction (in cubed-sphere coordinates)
@@ -330,12 +330,12 @@ void get_linear_reconstruction(moab::Interface * mb, moab::EntityHandle set,
     rval = mb->tag_get_data(rhoTag, &icell, 1, &rhocell);
     CHECK_ERR(rval);
 
-    // get barycenters of surrounding cells 
+    // get barycenters of surrounding cells
     std::vector<double> cell_barys(3 * adjacentCells.size());
     rval = mb->tag_get_data(barycenterTag, adjacentCells, &cell_barys[0]);
     CHECK_ERR(rval);
 
-    // get density of surrounding cells 
+    // get density of surrounding cells
     std::vector<double> rho_vals(adjacentCells.size());
     rval = mb->tag_get_data(rhoTag, adjacentCells, &rho_vals[0]);
     CHECK_ERR(rval);
@@ -404,7 +404,7 @@ void test_linear_reconstruction(moab::Interface * mb, moab::EntityHandle set,
   if (MB_SUCCESS != rval)
     return;
 
-  // set sphere radius to 1 
+  // set sphere radius to 1
   double R = 1;
 
   // For get coefficients for reconstruction (in cubed-sphere coordinates)
@@ -562,7 +562,7 @@ int reverse_gnomonic_projection_test(const double & c1, const double & c2,
 void decide_gnomonic_plane_test(const CartVect & pos, int & plane) {
 
 // This is from early version of Homme vorticity calculation in parvis
-// Poles are reversed from Homme and Iulian version. 
+// Poles are reversed from Homme and Iulian version.
 
 //  Now has been changed for consistency
 

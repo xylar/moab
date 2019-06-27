@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2009 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2009) kraftche@cae.wisc.edu    
+    (2009) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file main.cpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #include "TestUtil.hpp"
@@ -62,8 +62,8 @@ void usage( const char* argv0, bool help = false ) {
   }
   exit(!help);
 }
-    
-    
+
+
 int main( int argc, char* argv[] )
 {
   const char* input_file = 0;
@@ -80,7 +80,7 @@ int main( int argc, char* argv[] )
   }
   if (!input_file)
     input_file = DEFAULT_INPUT.c_str();
-  
+
   MsqError err;
   MeshImpl mesh;
   mesh.read_vtk( input_file, err );
@@ -89,7 +89,7 @@ int main( int argc, char* argv[] )
               << input_file << ": failed to read file" << std::endl;
     return 3;
   }
-  
+
   PlanarDomain plane(PlanarDomain::XY);
 #ifdef TEST_OLD_WRAPPER
   ShapeImprovementWrapper smoother;
@@ -105,7 +105,7 @@ int main( int argc, char* argv[] )
               << input_file << ": smoother failed" << std::endl;
     return 2;
   }
-  
+
   if (output_file) {
     mesh.write_vtk( output_file, err );
     if (err) {
@@ -119,24 +119,24 @@ int main( int argc, char* argv[] )
     std::cerr << "Resulting mesh contains invalid elements: untangler did not succeed" << std::endl;
     return 4;
   }
-  
-  const QualityAssessor::Assessor* quality = 
+
+  const QualityAssessor::Assessor* quality =
     smoother.quality_assessor().get_results(&extra_metric);
   if (!quality) {
     std::cerr << "Failed to get quality stats for IMR metric" << std::endl;
     return 2;
   }
-  
+
   if (fabs(1 - quality->get_average()) > 1e-3) {
     std::cerr << "Average quality is not optimal." << std::endl;
     return 4;
   }
-  
+
   if (quality->get_stddev() > 1e-3) {
     std::cerr << "Not all elements have optimal quality." << std::endl;
     return 4;
   }
-  
+
   return 0;
 }
 

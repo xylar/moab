@@ -40,12 +40,12 @@ set( TESTS range_test.cpp
            coords_connect_iterate.cpp
            urefine_mesh_test.cpp
            adj_moab_test.cpp
-           test_boundbox.cpp 
+           test_boundbox.cpp
            spherical_area_test.cpp
            arc_intx_tests.cpp
            intx_in_plane_test.cpp
            intx_on_sphere_test.cpp )
-           
+
 if(MOAB_HAVE_HDF5)
   set( TESTS ${TESTS}
              lloyd_smoother_test.cpp
@@ -55,7 +55,7 @@ if(MOAB_HAVE_HDF5)
              mbground_test.cpp
              gttool_test.cpp
              restore_topo_geom_incl_test.cpp
-             crop_vol_test.cpp 
+             crop_vol_test.cpp
              imoab_test.cpp
 	     gqt_simple_test.cpp
 	     gqt_rayfire_test.cpp
@@ -64,7 +64,7 @@ if(MOAB_HAVE_HDF5)
 endif()
 
 if(MOAB_HAVE_NETCDF)
-  set ( TESTS ${TESTS} 
+  set ( TESTS ${TESTS}
               intx_rll_cs_sphere_test.cpp )
 endif()
 
@@ -108,7 +108,7 @@ if(ZCAT_EXE)
   add_custom_command( OUTPUT cell2.gen
                       COMMAND ${ZCAT_EXE} < ${MOAB_SOURCE_DIR}/MeshFiles/unittest/cell2.gen.gz > cell2.gen
                       DEPENDS ${MOAB_SOURCE_DIR}/MeshFiles/unittest/cell2.gen.gz)
-                    
+
   add_custom_target(moab_test_files DEPENDS mb_big_test.g cell1.gen cell2.gen)
 
   #MBTest.cpp:
@@ -129,7 +129,7 @@ add_test( var_len_test_no_template ${EXECUTABLE_OUTPUT_PATH}/var_len_test_no_tem
 add_executable( mbcn_test ${CMAKE_SOURCE_DIR}/src/moab/CN.hpp
                           ${CMAKE_SOURCE_DIR}/src/CN.cpp
                           mbcn_test.cpp )
-set_target_properties( mbcn_test PROPERTIES 
+set_target_properties( mbcn_test PROPERTIES
   COMPILE_FLAGS "-DMOAB_TEMPLATE_SPECIALIZATION ${MOAB_DEFINES} ${TEST_COMP_FLAGS}" )
 target_link_libraries( mbcn_test MOAB ${CGM_LIBRARIES} ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES} )
 add_test( mbcn_test ${EXECUTABLE_OUTPUT_PATH}/mbcn_test )
@@ -174,7 +174,7 @@ if (ENABLE_IREL AND MOAB_HAVE_CGM)
   include_directories( ${CGM_INCLUDES} ${CMAKE_SOURCE_DIR}/itaps/irel ${CMAKE_BINARY_DIR}/itaps/irel )
   set( TESTS test_entset.cpp
              test_both.cpp
-             test_status.cpp 
+             test_status.cpp
              normals.cpp)
   set(irel_deplibs iRel)
   if(MOAB_HAVE_FBIGEOM)
@@ -225,13 +225,13 @@ if ( MOAB_HAVE_MPI AND MPI_FOUND )
     add_executable( mhdf_parallel parallel/mhdf_parallel.c )
     target_link_libraries( mhdf_parallel MOAB ${HDF5_LIBRARIES} ${CGM_LIBRARIES} ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES} )
     add_test( TestMHDFParallel ${EXECUTABLE_OUTPUT_PATH}/mhdf_parallel )
-    
+
     set_source_files_properties( parallel/parmerge_test.cpp
       COMPILE_FLAGS "-DTEST ${MOAB_DEFINES} ${TEST_COMP_FLAGS}" )
     add_executable( parmerge_test parallel/parmerge_test.cpp )
     target_link_libraries( parmerge_test MOAB ${HDF5_LIBRARIES} ${CGM_LIBRARIES} ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES} )
     add_test( Testparmerge_test ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 2 ${MPIEXEC_PREFLAGS} ${EXECUTABLE_OUTPUT_PATH}/parmerge_test ${MPIEXEC_POSTFLAGS}  )
-    
+
   endif ( MOAB_HAVE_HDF5 )
 
   set_source_files_properties( parallel/parallel_unit_tests.cpp

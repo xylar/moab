@@ -1,16 +1,16 @@
 /**
  * MOAB, a Mesh-Oriented datABase, is a software component for creating,
  * storing and accessing finite element mesh data.
- * 
+ *
  * Copyright 2004 Sandia Corporation.  Under the terms of Contract
  * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
  * retains certain rights in this software.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  */
 
 #include "moab/VtkUtil.hpp"
@@ -39,7 +39,7 @@ const unsigned VtkUtil::typeSizes[] = {
 // Define node ordering for those types for which
 // the VTK and MOAB ordering doesn't match.  The values
 // contained in the array are MOAB connectivity indices,
-// and the values used to index the arrays are VTK 
+// and the values used to index the arrays are VTK
 // connectivity indices.
 const unsigned pixel[] = { 0, 1, 3, 2 };
 const unsigned voxel[] = { 0, 1, 3, 2, 4, 5, 7, 6 };
@@ -50,7 +50,7 @@ const unsigned wedge[] = { 0, 2, 1,   // bottom corners
                            9,11,10,   // lateral edges
                           17,16,15 }; // quadrilateral faces
 const unsigned  qhex[] = {  0,  1,  2,  3, // corners (same)
-                            4,  5,  6,  7, 
+                            4,  5,  6,  7,
                             8,  9, 10, 11, // mid-edge (top before lateral)
                            16, 17, 18, 19,
                            12, 13, 14, 15,
@@ -68,11 +68,11 @@ const VtkElemType VtkUtil::vtkElemTypes[] = {
       { "triangle strip",          6, MBMAXTYPE, 0, 0 },
       { "polygon",                 7, MBPOLYGON, 0, 0 },
       { "pixel",                   8, MBQUAD,    4, pixel },
-      { "quadrilateral",           9, MBQUAD,    4, 0 }, 
-      { "tetrahedron",            10, MBTET,     4, 0 }, 
-      { "voxel",                  11, MBHEX,     8, voxel }, 
-      { "hexahedron",             12, MBHEX,     8, 0 }, 
-      { "wedge",                  13, MBPRISM,   6, wedge }, 
+      { "quadrilateral",           9, MBQUAD,    4, 0 },
+      { "tetrahedron",            10, MBTET,     4, 0 },
+      { "voxel",                  11, MBHEX,     8, voxel },
+      { "hexahedron",             12, MBHEX,     8, 0 },
+      { "wedge",                  13, MBPRISM,   6, wedge },
       { "pyramid",                14, MBPYRAMID, 5, 0 },
       { "pentagonal prism",       15, MBMAXTYPE,10, 0 }, // not supported
       { "hexagonal prism",        16, MBMAXTYPE,12, 0 }, // not supported
@@ -106,7 +106,7 @@ const VtkElemType VtkUtil::vtkElemTypes[] = {
 
 const unsigned VtkUtil::numVtkElemType = sizeof(VtkUtil::vtkElemTypes) / sizeof(VtkUtil::vtkElemTypes[0]);
 
-// Define an array, indexed by EntityType containing the corresponding 
+// Define an array, indexed by EntityType containing the corresponding
 // VTK element type numbers for the linear, quadratic (mid-edge),
 // and full (mid-face & mid-region node) elements.
 // Zero is used to indicate an invalid type (not supported by VTK.)  The
@@ -146,7 +146,7 @@ const VtkElemType* VtkUtil::get_vtk_type( EntityType type, unsigned num_nodes )
     else if (k && vtkElemTypes[k].num_nodes == num_nodes)
       return vtkElemTypes + k;
   }
-  
+
   return 0;
 }
 

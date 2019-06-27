@@ -1,5 +1,5 @@
 /** \file   DenseTag.cpp
- *  \author Jason Kraftcheck 
+ *  \author Jason Kraftcheck
  *  \date   2010-12-14
  */
 
@@ -169,7 +169,7 @@ ErrorCode DenseTag::get_array_private(SequenceManager* seqman,
   ErrorCode rval = seqman->find(h, seq);
   if (MB_SUCCESS != rval) {
     if (!h) { // Root set
-      if (!meshValue && allocate) 
+      if (!meshValue && allocate)
         meshValue = new unsigned char[get_size()];
       ptr = meshValue;
       count = 1;
@@ -460,7 +460,7 @@ ErrorCode DenseTag::clear_data(bool allocate,
   unsigned char* array = NULL;
   size_t avail = 0;
 
-  for (Range::const_pair_iterator p = entities.const_pair_begin(); 
+  for (Range::const_pair_iterator p = entities.const_pair_begin();
        p != entities.const_pair_end(); ++p) {
     EntityHandle start = p->first;
     while (start <= p->second) {
@@ -567,12 +567,12 @@ ErrorCode DenseTag::get_tagged_entities(const SequenceManager* seqman,
   TypeSequenceManager::const_iterator i;
   for (EntityType t = range.first; t != range.second; ++t) {
     const TypeSequenceManager& map = seqman->entity_map(t);
-    for (i = map.begin(); i != map.end(); ++i) 
+    for (i = map.begin(); i != map.end(); ++i)
       if ((*i)->data()->get_tag_data(mySequenceArray))
         hint = entities->insert(hint, (*i)->start_handle(), (*i)->end_handle());
   }
 
-  if (intersect_list) 
+  if (intersect_list)
     entities_in = intersect(*entities, *intersect_list);
 
   return MB_SUCCESS;
@@ -657,7 +657,7 @@ bool DenseTag::is_tagged(const SequenceManager* seqman, EntityHandle h) const
   const unsigned char* ptr = NULL; // Initialize to get rid of warning
   size_t count;
   return (MB_SUCCESS == get_array(seqman, 0, h, ptr, count)) && (NULL != ptr);
-} 
+}
 
 ErrorCode DenseTag::get_memory_use(const SequenceManager* seqman,
                                    unsigned long& total,

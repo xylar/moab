@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2010 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2011) kraftche@cae.wisc.edu    
+    (2011) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file LaplaceWrapper.hpp
  *  \brief Define LaplaceWrapper class
- *  \author Jason Kraftcheck 
+ *  \author Jason Kraftcheck
  */
 
 #ifndef MSQ_LAPLACE_WRAPPER_HPP
@@ -40,21 +40,21 @@ namespace MBMesquite {
 class LaplaceWrapper : public Wrapper
 {
 public:
-  
+
   MESQUITE_EXPORT
   LaplaceWrapper();
 
-  /**\brief Specify timeout after which untangler will exit 
+  /**\brief Specify timeout after which untangler will exit
    *
    *  Specify a value less than or equal to zero for no limit
    */
   void set_cpu_time_limit( double seconds )
     { maxTime = seconds; }
-  double get_cpu_time_limit() const 
+  double get_cpu_time_limit() const
     { return maxTime; }
 
-  /**\brief Specify factor by which to minimum distance a vertex must 
-   *        move in an iteration to avoid termination of the untangler 
+  /**\brief Specify factor by which to minimum distance a vertex must
+   *        move in an iteration to avoid termination of the untangler
    *
    *  Specify a value less than or equal to zero for no limit.
    *\NOTE Culling cannot be done w/out a limit on vertex movement
@@ -64,8 +64,8 @@ public:
   double get_vertex_movement_limit_factor() const
     { return movementFactor; }
 
-  /**\brief Specify maximum number of iterations.  
-   * 
+  /**\brief Specify maximum number of iterations.
+   *
    * Specify a value less than or equal to zero for no limit
    */
   void set_iteration_limit( int limit )
@@ -78,7 +78,7 @@ public:
     { doCulling = yesno; }
   inline bool is_culling_enabled() const
     { return doCulling; }
-  
+
 
   MESQUITE_EXPORT
   ~LaplaceWrapper();
@@ -91,9 +91,9 @@ protected:
                     Settings* settings,
                     QualityAssessor* qa,
                     MsqError& err );
-  
+
 private:
-  
+
   double maxTime, movementFactor;
   int iterationLimit;
   bool doCulling;

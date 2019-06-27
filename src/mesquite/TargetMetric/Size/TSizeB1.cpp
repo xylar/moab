@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2006 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
+
     (2006) kraftche@cae.wisc.edu
-   
+
   ***************************************************************** */
 
 
 /** \file TSizeB1.cpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -44,8 +44,8 @@ std::string TSizeB1::get_name() const
 
 TSizeB1::~TSizeB1() {}
 
-bool TSizeB1::evaluate( const MsqMatrix<2,2>& T, 
-                        double& result, 
+bool TSizeB1::evaluate( const MsqMatrix<2,2>& T,
+                        double& result,
                         MsqError& err )
 {
   double d = det(T);
@@ -54,7 +54,7 @@ bool TSizeB1::evaluate( const MsqMatrix<2,2>& T,
     return false;
   }
   result = d + 1.0/d - 2.0;
-  return true;  
+  return true;
 }
 
 bool TSizeB1::evaluate_with_grad( const MsqMatrix<2,2>& T,
@@ -69,7 +69,7 @@ bool TSizeB1::evaluate_with_grad( const MsqMatrix<2,2>& T,
   }
   result = d + 1.0/d - 2.0;
   deriv_wrt_T = (1 - 1/(d*d)) * transpose_adj(T);
-  return true;  
+  return true;
 }
 
 bool TSizeB1::evaluate_with_hess( const MsqMatrix<2,2>& T,
@@ -87,14 +87,14 @@ bool TSizeB1::evaluate_with_hess( const MsqMatrix<2,2>& T,
   MsqMatrix<2,2> adjt = transpose_adj(T);
   const double f = 1 - 1/(d*d);
   deriv_wrt_T = f * adjt;
-  
+
   set_scaled_outer_product( second_wrt_T, 2/(d*d*d), adjt );
   pluseq_scaled_2nd_deriv_of_det( second_wrt_T, f, T );
-  return true;  
+  return true;
 }
 
-bool TSizeB1::evaluate( const MsqMatrix<3,3>& T, 
-                        double& result, 
+bool TSizeB1::evaluate( const MsqMatrix<3,3>& T,
+                        double& result,
                         MsqError& err )
 {
   double d = det(T);
@@ -103,7 +103,7 @@ bool TSizeB1::evaluate( const MsqMatrix<3,3>& T,
     return false;
   }
   result = d + 1.0/d - 2.0;
-  return true;  
+  return true;
 }
 
 bool TSizeB1::evaluate_with_grad( const MsqMatrix<3,3>& T,
@@ -118,7 +118,7 @@ bool TSizeB1::evaluate_with_grad( const MsqMatrix<3,3>& T,
   }
   result = d + 1.0/d - 2.0;
   deriv_wrt_T = (1 - 1/(d*d)) * transpose_adj(T);
-  return true;  
+  return true;
 }
 
 bool TSizeB1::evaluate_with_hess( const MsqMatrix<3,3>& T,
@@ -136,10 +136,10 @@ bool TSizeB1::evaluate_with_hess( const MsqMatrix<3,3>& T,
   MsqMatrix<3,3> adjt = transpose_adj(T);
   const double f = 1 - 1/(d*d);
   deriv_wrt_T = f * adjt;
-  
+
   set_scaled_outer_product( second_wrt_T, 2/(d*d*d), adjt );
   pluseq_scaled_2nd_deriv_of_det( second_wrt_T, f, T );
-  return true;  
+  return true;
 }
 
 } // namespace MBMesquite

@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2006 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
+
     (2006) kraftche@cae.wisc.edu
-   
+
   ***************************************************************** */
 
 
 /** \file VarianceTemplate.hpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #ifndef MSQ_VARIANCE_TEMPLATE_HPP
@@ -41,20 +41,20 @@ namespace MBMesquite {
 
 /**\brief (variance)^2 template
  *
- * This class implements an objective function that is the 
+ * This class implements an objective function that is the
  * variance of the quality metric evalutations.
  */
 class VarianceTemplate : public ObjectiveFunctionTemplate
 {
   public:
-  
+
 	MESQUITE_EXPORT
-    VarianceTemplate( QualityMetric* qm = 0 ) : ObjectiveFunctionTemplate(qm) 
+    VarianceTemplate( QualityMetric* qm = 0 ) : ObjectiveFunctionTemplate(qm)
       { clear(); }
-    
-      /**\brief copy constructor 
+
+      /**\brief copy constructor
        *
-       * Define a copy constructor because the compiler-provided 
+       * Define a copy constructor because the compiler-provided
        * default one would also copy the temporary arrays, which
        * would be a waste of time.
        */
@@ -68,32 +68,32 @@ class VarianceTemplate : public ObjectiveFunctionTemplate
         saveSum( copy.saveSum ),
         saveSqrSum( copy.saveSqrSum )
       {}
-    
+
 	MESQUITE_EXPORT
-    virtual ~VarianceTemplate() 
+    virtual ~VarianceTemplate()
       {}
-    
+
 	MESQUITE_EXPORT
-    virtual bool evaluate( EvalType type, 
+    virtual bool evaluate( EvalType type,
                            PatchData& pd,
                            double& value_out,
                            bool free,
-                           MsqError& err ); 
+                           MsqError& err );
 
 	MESQUITE_EXPORT
-    virtual bool evaluate_with_gradient( EvalType type, 
+    virtual bool evaluate_with_gradient( EvalType type,
                                          PatchData& pd,
                                          double& value_out,
                                          std::vector<Vector3D>& grad_out,
-                                         MsqError& err ); 
+                                         MsqError& err );
 
 	MESQUITE_EXPORT
-    virtual bool evaluate_with_Hessian_diagonal( EvalType type, 
+    virtual bool evaluate_with_Hessian_diagonal( EvalType type,
                                         PatchData& pd,
                                         double& value_out,
                                         std::vector<Vector3D>& grad_out,
                                         std::vector<SymMatrix3D>& hess_diag_out,
-                                        MsqError& err ); 
+                                        MsqError& err );
 
 	MESQUITE_EXPORT
     virtual ObjectiveFunction* clone() const;
@@ -102,11 +102,11 @@ class VarianceTemplate : public ObjectiveFunctionTemplate
     virtual void clear();
 
   private:
-  
-    /**\brief Handle EvalType for all eval functions, return OF value 
+
+    /**\brief Handle EvalType for all eval functions, return OF value
      *
      * This function implements the common handling of the EvalType
-     * argument for all forms of the 'evaluate' method.  
+     * argument for all forms of the 'evaluate' method.
      *
      * NOTE:  This function modifies accumulated values depenending
      *        on the value of EvalType.
@@ -115,20 +115,20 @@ class VarianceTemplate : public ObjectiveFunctionTemplate
      *\param count      The number of qm evaluations for the current patch
      *\param type       The evaluation type passed to 'evaluate'
      *\param global_count The total, accumulated number of QM evaluations
-     *\param result_sum The sum term of the variance 
-     *\param result_sqr The sum of squares term of the variance 
+     *\param result_sum The sum term of the variance
+     *\param result_sqr The sum of squares term of the variance
      */
-    void accumulate( double sum, double sqr_sum, size_t count, 
+    void accumulate( double sum, double sqr_sum, size_t count,
                      EvalType type,
                      double& result_sum, double& result_sqr, size_t& global_count );
-    
+
     size_t mCount;    /**< The number of accumulated entires */
     double mSum;      /**< The runnnig sum of the qualtiy metric valuse */
     double mSqrSum;   /**< The running sum of the square of QM values */
     size_t saveCount; /**< Saved count from previous patch */
     double saveSum;   /**< Saved sum from previous patch */
     double saveSqrSum;/**< Saved sum from previous patch */
-  
+
     /** Temporary storage for qm sample handles */
     mutable std::vector<size_t> qmHandles;
     /** Temporary storage for qm vertex indices */

@@ -64,7 +64,7 @@ ErrorCode TypeSequenceManager::merge_internal(iterator i, iterator j)
 ErrorCode TypeSequenceManager::check_merge_next(iterator i)
 {
   iterator j = i; ++j;
-  if (j == end() || (*j)->data() != (*i)->data() || 
+  if (j == end() || (*j)->data() != (*i)->data() ||
      (*j)->start_handle() > (*i)->end_handle() + 1)
     return MB_SUCCESS;
 
@@ -133,7 +133,7 @@ ErrorCode TypeSequenceManager::insert_sequence(EntitySequence* seq_ptr)
   // We merged adjacent sequences sharing a SequenceData, so
   // we can safely assume that unless this EntitySequence is
   // using the entire SequenceData, there are unused portions.
-  if (!seq_ptr->using_entire_data()) 
+  if (!seq_ptr->using_entire_data())
     availableList.insert(seq_ptr->data());
 
   // lastReferenced is only allowed to be NULL if there are
@@ -311,7 +311,7 @@ ErrorCode TypeSequenceManager::remove_sequence(const EntitySequence* seq_ptr,
   sequenceSet.erase(i);
 
   // Check if this is the only sequence referencing its data
-  if (seq_ptr->using_entire_data()) 
+  if (seq_ptr->using_entire_data())
     unreferenced_data = true;
   else {
     i = lower_bound(seq_ptr->data()->start_handle());
@@ -759,7 +759,7 @@ ErrorCode TypeSequenceManager::is_free_handle(EntityHandle handle,
         seq_iter_out = end();
         if (i == begin() || (*--i)->data() != data_ptr_out)
           block_start = data_ptr_out->start_handle();
-        else 
+        else
           block_start = (*i)->end_handle() + 1;
       }
       return MB_SUCCESS;
@@ -868,7 +868,7 @@ void TypeSequenceManager::append_memory_use(EntityHandle first,
   assert(entity_count > 0 && occupied_count > 0 && allocated_count > 0);
   if (std::numeric_limits<unsigned long>::max() / entity_count <= sum) {
     total_storage  += sum * (entity_count /  occupied_count) + other_ent_mem;
-    entity_storage += sum * (entity_count / allocated_count) + other_ent_mem; 
+    entity_storage += sum * (entity_count / allocated_count) + other_ent_mem;
   }
   else {
     total_storage  += sum * entity_count /  occupied_count + other_ent_mem;

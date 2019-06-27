@@ -1,9 +1,9 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2004 Sandia Corporation and Argonne National
-    Laboratory.  Under the terms of Contract DE-AC04-94AL85000 
-    with Sandia Corporation, the U.S. Government retains certain 
+    Laboratory.  Under the terms of Contract DE-AC04-94AL85000
+    with Sandia Corporation, the U.S. Government retains certain
     rights in this software.
 
     This library is free software; you can redistribute it and/or
@@ -16,15 +16,15 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
+
     (c) 2009 isenburg@cs.unc.edu   kraftche@cae.wisc.edu
-   
+
   ***************************************************************** */
 //
-//   SUMMARY: 
+//   SUMMARY:
 //     USAGE:
 //
 // ORIG-DATE: 26-March-08 at 10:26:21
@@ -53,7 +53,7 @@ namespace MBMesquite
                         MsqError& err,
 			const iBase_TagHandle* fixed_tag,
 			const iBase_TagHandle* slaved_tag )
-    : MsqIMesh(mesh, meshset, type, err, fixed_tag, slaved_tag), 
+    : MsqIMesh(mesh, meshset, type, err, fixed_tag, slaved_tag),
       partitionInstance(partition)
   {
   }
@@ -63,7 +63,7 @@ namespace MBMesquite
                         MsqError& err,
 			const iBase_TagHandle* fixed_tag,
 			const iBase_TagHandle* slaved_tag  )
-    : MsqIMesh(mesh, element_dimension, err, fixed_tag, slaved_tag), 
+    : MsqIMesh(mesh, element_dimension, err, fixed_tag, slaved_tag),
       partitionInstance(partition)
   {
   }

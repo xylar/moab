@@ -54,12 +54,12 @@ int main(int argc, char* argv[])
   for (int i = 1; i < argc; ++i) {
     if (!strcmp("-t", argv[i]))
       query_triangles = true;
-    else if (!strcmp("-d", argv[i])) {  
+    else if (!strcmp("-d", argv[i])) {
       ++i;
       if (i == argc)
         usage(argv[0]);
       result_file = argv[i];
-    }     
+    }
     else if (!tree_file)
       tree_file = argv[i];
     else if (!point_file)

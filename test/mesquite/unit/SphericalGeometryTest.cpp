@@ -1,9 +1,9 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2004 Sandia Corporation and Argonne National
-    Laboratory.  Under the terms of Contract DE-AC04-94AL85000 
-    with Sandia Corporation, the U.S. Government retains certain 
+    Laboratory.  Under the terms of Contract DE-AC04-94AL85000
+    with Sandia Corporation, the U.S. Government retains certain
     rights in this software.
 
     This library is free software; you can redistribute it and/or
@@ -16,17 +16,17 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
-    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov, 
-    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov      
-   
+
+    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov,
+    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov
+
   ***************************************************************** */
 // -*- Mode : c++; tab-width: 3; c-tab-always-indent: t; indent-tabs-mode: nil; c-basic-offset: 3 -*-
 //
-//   SUMMARY: 
+//   SUMMARY:
 //     USAGE:
 //
 //    AUTHOR: Michael Brewer
@@ -91,9 +91,9 @@ private:
   CPPUNIT_TEST (test_smart_lapl_sphere);
     //run laplacian smoothing on the geo tri mesh
   CPPUNIT_TEST (test_lapl_geo_sphere);
-  
+
   CPPUNIT_TEST_SUITE_END();
-  
+
 private:
   double qualTol;//double used for double comparisons
   int pF;//PRINT_FLAG
@@ -109,29 +109,29 @@ public:
   void tearDown()
   {
   }
-  
+
 public:
   SphericalGeometryTest()
     {}
-  
+
    void test_cg_mesh_cond_sphere()
    {
      MBMesquite::MeshImpl mesh;
      MBMesquite::MsqPrintError err(cout);
      mesh.read_vtk(MESH_FILES_DIR "2D/vtk/quads/untangled/quads_on_sphere_529.vtk", err);
      CPPUNIT_ASSERT(!err);
-     
+
        //create geometry: sphere, center (2,2,0), radius 3
      Vector3D center(2,2,0);
      SphericalDomain msq_geom(center, 3.0);
-     
+
        // creates an intruction queue
      InstructionQueue queue1;
-     
+
        // creates a mean ratio quality metric ...
      ConditionNumberQualityMetric shape;
      UntangleBetaQualityMetric untan;
-     
+
        // ... and builds an objective function with it
      LPtoPTemplate obj_func(&shape, 2, err);
        //Make sure no errors
@@ -143,7 +143,7 @@ public:
        //Make sure no errors
      CPPUNIT_ASSERT(!err);
      QualityAssessor qa=QualityAssessor( &shape );
-    
+
        //**********Set stopping criterion  5 iterates ****************
        //StoppingCriterion sc5(StoppingCriterion::NUMBER_OF_PASSES,5);
        //pass1->set_stopping_criterion(&sc5);
@@ -152,7 +152,7 @@ public:
      pass1.set_inner_termination_criterion(&sc5);
        //CG's debugging print, increase integer to get more print info
      pass1.set_debugging_level(0);
-  
+
        //  queue1.add_preconditioner(pass2, err); CPPUNIT_ASSERT(!err);
      queue1.set_master_quality_improver(&pass1, err); CPPUNIT_ASSERT(!err);
        //Make sure no errors
@@ -174,20 +174,20 @@ public:
    void test_smart_lapl_sphere()
      {
        MBMesquite::MeshImpl mesh;
-       MBMesquite::MsqPrintError err(cout); 
+       MBMesquite::MsqPrintError err(cout);
        mesh.read_vtk(MESH_FILES_DIR "2D/vtk/quads/untangled/quads_on_sphere_529.vtk", err);
-       
+
          //create geometry sphere:  ratius 1, centered at (0,0,0)
        Vector3D center(2,2,0);
        SphericalDomain msq_geom(center, 3.0);
-  
+
          // creates an intruction queue
        InstructionQueue queue1;
 
          // creates an edge length metric ...
        IdealWeightInverseMeanRatio shape_metric(err);
        LInfTemplate shape_func(&shape_metric);
-       
+
          //create the smart laplacian smoother
        SmartLaplacianSmoother s_lapl(&shape_func);
          //Make sure no errors
@@ -205,7 +205,7 @@ public:
        QualityAssessor qa=QualityAssessor( &shape_metric );
        MeshDomainAssoc mesh_and_domain = MeshDomainAssoc(&mesh, &msq_geom);
        double orig_val=qa.loop_over_mesh(&mesh_and_domain, 0, err);
-       
+
          //Make sure no errors
        CPPUNIT_ASSERT(!err);
        queue1.run_instructions(&mesh_and_domain, err); CPPUNIT_ASSERT(!err);
@@ -213,30 +213,30 @@ public:
        CPPUNIT_ASSERT(!err);
 
        double final_val= qa.loop_over_mesh(&mesh_and_domain, 0, err);
-  
+
          //Make sure no errors
        CPPUNIT_ASSERT(!err);
          //make sure 'quality' improved
        CPPUNIT_ASSERT( final_val < orig_val );
      }
-  
+
   void test_lapl_geo_sphere()
      {
        MBMesquite::MeshImpl mesh;
        MBMesquite::MsqPrintError err(cout);
-       
+
        mesh.read_vtk(MESH_FILES_DIR "2D/vtk/tris/untangled/Mesquite_geo_10242.vtk", err);
-       
+
          //create geometry sphere:  ratius 1, centered at (0,0,0)
        Vector3D center(0,0,0);
        MBMesquite::SphericalDomain msq_geom(center, 1.0);
-  
+
          // creates an intruction queue
        InstructionQueue queue1;
 
          // creates an edge length metric ...
        EdgeLengthQualityMetric edg_len;
-      
+
          //create the laplacian smoother
        LaplacianSmoother lapl;
          //Make sure no errors
@@ -252,7 +252,7 @@ public:
        sc10.add_iteration_limit( 10 );
        lapl.set_outer_termination_criterion(&sc10);
          //qa, qi, qa
-       queue1.set_master_quality_improver(&lapl, err); 
+       queue1.set_master_quality_improver(&lapl, err);
          //Make sure no errors
        CPPUNIT_ASSERT(!err);
          // launches optimization on mesh_set1
@@ -269,8 +269,8 @@ public:
          //make sure 'quality' improved
        CPPUNIT_ASSERT( fin_qa_val <= orig_qa_val );
      }
-  
-   
+
+
 };
 
 

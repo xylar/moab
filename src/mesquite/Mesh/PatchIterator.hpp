@@ -1,8 +1,8 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
-    Copyright 2006 Lawrence Livermore National Laboratory.  Under 
-    the terms of Contract B545069 with the University of Wisconsin -- 
+    Copyright 2006 Lawrence Livermore National Laboratory.  Under
+    the terms of Contract B545069 with the University of Wisconsin --
     Madison, Lawrence Livermore National Laboratory retains certain
     rights in this software.
 
@@ -16,11 +16,11 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2006) kraftche@cae.wisc.edu    
+    (2006) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
@@ -37,21 +37,21 @@ class MsqError;
 
 class PatchIterator {
 public:
-  
-  inline PatchIterator( PatchSet* set ) 
+
+  inline PatchIterator( PatchSet* set )
     : patchSet(set)
     {}
-  
+
   bool get_next_patch( PatchData&, MsqError& err );
-  
+
   PatchSet* get_patch_set() const { return patchSet; }
-  
+
   void reset(); //!< reset current position to beginning o
-  
+
 private:
 
   PatchSet* patchSet;
-  
+
   std::vector<PatchSet::PatchHandle> patches;
   std::vector<Mesh::ElementHandle> elems;
   std::vector<Mesh::VertexHandle> verts;

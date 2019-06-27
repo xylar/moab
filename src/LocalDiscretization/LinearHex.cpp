@@ -4,9 +4,9 @@
 #include <math.h>
 #include <limits>
 
-namespace moab 
+namespace moab
 {
-    
+
     const double LinearHex::corner[8][3] = { { -1, -1, -1 },
                                              {  1, -1, -1 },
                                              {  1,  1, -1 },
@@ -22,8 +22,8 @@ namespace moab
       */
     const double LinearHex::gauss[1][2] = { {  2.0,           0.0          } };
 
-    ErrorCode LinearHex::jacobianFcn(const double *params, const double *verts, const int /*nverts*/, const int ndim, 
-                                     double *, double *result) 
+    ErrorCode LinearHex::jacobianFcn(const double *params, const double *verts, const int /*nverts*/, const int ndim,
+                                     double *, double *result)
     {
       assert(params && verts);
       Matrix3 *J = reinterpret_cast<Matrix3*>(result);
@@ -49,8 +49,8 @@ namespace moab
       return MB_SUCCESS;
     }// LinearHex::jacobian()
 
-    ErrorCode LinearHex::evalFcn(const double *params, const double *field, const int /*ndim*/, const int num_tuples, 
-                                 double *, double *result) 
+    ErrorCode LinearHex::evalFcn(const double *params, const double *field, const int /*ndim*/, const int num_tuples,
+                                 double *, double *result)
     {
       assert(params && field && num_tuples != -1);
       for (int i = 0; i < num_tuples; i++) result[i] = 0.0;
@@ -65,8 +65,8 @@ namespace moab
       return MB_SUCCESS;
     }
 
-    ErrorCode LinearHex::integrateFcn(const double *field, const double *verts, const int nverts, const int ndim, 
-                                      const int num_tuples, double *work, double *result) 
+    ErrorCode LinearHex::integrateFcn(const double *field, const double *verts, const int nverts, const int ndim,
+                                      const int num_tuples, double *work, double *result)
     {
       assert(field && verts && num_tuples != -1);
       double tmp_result[8];
@@ -96,13 +96,13 @@ namespace moab
       return MB_SUCCESS;
     }// LinearHex::integrate_vector()
 
-    ErrorCode LinearHex::reverseEvalFcn(EvalFcn eval, JacobianFcn jacob, InsideFcn ins, 
+    ErrorCode LinearHex::reverseEvalFcn(EvalFcn eval, JacobianFcn jacob, InsideFcn ins,
                                         const double *posn, const double *verts, const int nverts, const int ndim,
-                                        const double iter_tol, const double inside_tol, double *work, 
+                                        const double iter_tol, const double inside_tol, double *work,
                                         double *params, int *is_inside)
     {
       assert(posn && verts);
-      return EvalSet::evaluate_reverse(eval, jacob, ins, posn, verts, nverts, ndim, iter_tol, inside_tol, work, 
+      return EvalSet::evaluate_reverse(eval, jacob, ins, posn, verts, nverts, ndim, iter_tol, inside_tol, work,
                                        params, is_inside);
     }
 
@@ -146,5 +146,5 @@ namespace moab
       return MB_SUCCESS;
     }
 
-    
+
 } // namespace moab

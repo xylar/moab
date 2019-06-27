@@ -1,16 +1,16 @@
 /**
  * MOAB, a Mesh-Oriented datABase, is a software component for creating,
  * storing and accessing finite element mesh data.
- * 
+ *
  * Copyright 2004 Sandia Corporation.  Under the terms of Contract
  * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
  * retains certain rights in this software.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  */
 
 
@@ -50,7 +50,7 @@ namespace moab {
 WriterIface* WriteAns::factory( Interface* iface )
   { return new WriteAns( iface ); }
 
-WriteAns::WriteAns(Interface *impl) 
+WriteAns::WriteAns(Interface *impl)
     : mbImpl(impl), mCurrentMeshHandle(0), mGlobalIdTag(0), mMatSetIdTag(0)
 {
   assert(impl != NULL);
@@ -62,26 +62,26 @@ WriteAns::WriteAns(Interface *impl)
   const int negone = -1;
   impl->tag_get_handle(MATERIAL_SET_TAG_NAME, 1, MB_TYPE_INTEGER,
                        mMaterialSetTag, MB_TAG_SPARSE|MB_TAG_CREAT, &negone);
-  
+
   impl->tag_get_handle(DIRICHLET_SET_TAG_NAME, 1, MB_TYPE_INTEGER,
                        mDirichletSetTag, MB_TAG_SPARSE|MB_TAG_CREAT, &negone);
-  
+
   impl->tag_get_handle(NEUMANN_SET_TAG_NAME, 1, MB_TYPE_INTEGER,
                        mNeumannSetTag, MB_TAG_SPARSE|MB_TAG_CREAT, &negone);
 }
 
-WriteAns::~WriteAns() 
+WriteAns::~WriteAns()
 {
   //mbImpl->release_interface(mWriteIface);
 
 }
 
-ErrorCode WriteAns::write_file(const char *file_name, 
+ErrorCode WriteAns::write_file(const char *file_name,
                                       const bool /* overwrite (commented out to remove warning) */,
                                       const FileOptions&,
                                       const EntityHandle *ent_handles,
                                       const int num_sets,
-                                      const std::vector<std::string>&, 
+                                      const std::vector<std::string>&,
                                       const Tag* ,
                                       int ,
                                       int )
@@ -89,7 +89,7 @@ ErrorCode WriteAns::write_file(const char *file_name,
   assert(0 != mMaterialSetTag &&
          0 != mNeumannSetTag &&
          0 != mDirichletSetTag);
-  
+
   ErrorCode result;
 
   //set SOLID45 element type to #60000, hope nobody has already...
@@ -106,13 +106,13 @@ ErrorCode WriteAns::write_file(const char *file_name,
   std::ofstream node_file;
   std::ofstream elem_file;
   std::ofstream ans_file;
- 
-  //get base filename from filename.ans 
+
+  //get base filename from filename.ans
   std::string temp_string;
   std::string base_string;
   base_string.assign(file_name);
   base_string.replace(base_string.find_last_of(".ans")-3,4,"");
-  
+
   //open node file for writing
   temp_string=base_string+".node";
   node_file.open(temp_string.c_str());
@@ -138,13 +138,13 @@ ErrorCode WriteAns::write_file(const char *file_name,
 	  if(result!=MB_SUCCESS)return result;
         }
     }
-  
+
   //search for all nodes
   Range node_range;
   result=mbImpl->get_entities_by_type(output_set, MBVERTEX, node_range, true);
   if(result !=MB_SUCCESS) return result;
-  
-  
+
+
   // Commented out until Seg Fault taken care of in gather_nodes...
   //get any missing nodes which are needed for elements
   //Range all_ent_range,missing_range;
@@ -152,17 +152,17 @@ ErrorCode WriteAns::write_file(const char *file_name,
   //if(result !=MB_SUCCESS) return result;
   //result=mWriteIface->gather_nodes_from_elements(all_ent_range,0,missing_range);
   //node_range.merge(missing_range);
-  
 
-  // write the nodes 
+
+  // write the nodes
   double coord[3];
   for(Range::iterator it = node_range.begin(); it != node_range.end(); ++it)
     {
       EntityHandle node_handle = *it;
-     
+
       result = mbImpl->get_coords(&node_handle,1, coord);
       if(result !=MB_SUCCESS) return result;
-      
+
       node_file.width(8);
       node_file << mbImpl->id_from_handle(node_handle);
       node_file.width(20);
@@ -170,9 +170,9 @@ ErrorCode WriteAns::write_file(const char *file_name,
       node_file.width(20);
       node_file << coord[1];
       node_file.width(20);
-      node_file << coord[2] << std::endl; 
+      node_file << coord[2] << std::endl;
     }
-  
+
   //update header to load nodes
   ans_file << "nread," << base_string << ",node" << std::endl;
 
@@ -201,12 +201,12 @@ ErrorCode WriteAns::write_file(const char *file_name,
 	      //append node to list
 	      ans_file << "nsel,a,node,,"<< std::setw(8) << ns_node_id << std::endl;
 	    }
-	  
+	
 	}
       //create NS(#) nodeset
       ans_file << "cm,NS" << ns_id << ",node" << std::endl;
     }
-  
+
   // ANSYS Element format:
   // I, J, K, L, M, N, O, P,etc... MAT, TYPE, REAL, SECNUM, ESYS, IEL
   // I-P are nodes of element
@@ -234,7 +234,7 @@ ErrorCode WriteAns::write_file(const char *file_name,
 	{
 	  std::cout << "Support not added for element type. \n";
 	  return MB_FAILURE;
-	}      
+	}
       //write information for 4 node tet
       if(conn.size()==4){
 	elem_file << std::setw(8) << conn[0] << std::setw(8) << conn[1];
@@ -245,25 +245,25 @@ ErrorCode WriteAns::write_file(const char *file_name,
 	elem_file << std::setw(8) << MATDefault << std::setw(8) << ETSolid45;
     	elem_file << std::setw(8) << "1" << std::setw(8) << "1";
 	elem_file << std::setw(8) << "0" << std::setw(8) << elem_id;
-	elem_file << std::endl; 
+	elem_file << std::endl;
       }
-     
+
      //write information for 10 node tet
       if(conn.size()==10){
       	elem_file << std::setw(8) << conn[0] << std::setw(8) << conn[1];
 	elem_file << std::setw(8) << conn[2] << std::setw(8) << conn[3];
 	elem_file << std::setw(8) << conn[4] << std::setw(8) << conn[5];
 	elem_file << std::setw(8) << conn[6] << std::setw(8) << conn[7];
-      
+
 	elem_file << std::setw(8) << MATDefault << std::setw(8) << ETSolid92;
     	elem_file << std::setw(8) << "1" << std::setw(8) << "1";
 	elem_file << std::setw(8) << "0" << std::setw(8) << elem_id;
-	elem_file << std::endl; 
+	elem_file << std::endl;
 
 	elem_file << std::setw(8) << conn[8] << std::setw(8) << conn[9];
 	elem_file << std::endl;
       }
-   
+
     }
 
   //Write all MBHEX elements
@@ -290,11 +290,11 @@ ErrorCode WriteAns::write_file(const char *file_name,
 	elem_file << std::setw(8) << conn[2] << std::setw(8) << conn[3];
 	elem_file << std::setw(8) << conn[4] << std::setw(8) << conn[5];
 	elem_file << std::setw(8) << conn[6] << std::setw(8) << conn[7];
-      
+
 	elem_file << std::setw(8) << MATDefault << std::setw(8) << ETSolid45;
 	elem_file << std::setw(8) << "1" << std::setw(8) << "1";
 	elem_file << std::setw(8) << "0" << std::setw(8) << elem_id;
-	elem_file << std::endl;    
+	elem_file << std::endl;
       }
 
       //write information for 20 node hex
@@ -304,11 +304,11 @@ ErrorCode WriteAns::write_file(const char *file_name,
 	elem_file << std::setw(8) << conn[1] << std::setw(8) << conn[0];
 	elem_file << std::setw(8) << conn[7] << std::setw(8) << conn[6];
 	elem_file << std::setw(8) << conn[2] << std::setw(8) << conn[3];
-     
+
 	elem_file << std::setw(8) << MATDefault << std::setw(8) << ETSolid95;
 	elem_file << std::setw(8) << "1" << std::setw(8) << "1";
 	elem_file << std::setw(8) << "0" << std::setw(8) << elem_id;
-	elem_file << std::endl;    
+	elem_file << std::endl;
 
 	elem_file << std::setw(8) << conn[16] << std::setw(8) << conn[13];
 	elem_file << std::setw(8) << conn[8] << std::setw(8) << conn[12];
@@ -318,7 +318,7 @@ ErrorCode WriteAns::write_file(const char *file_name,
 	elem_file << std::setw(8) << conn[9] << std::setw(8) << conn[11];
 	elem_file << std::endl;
       }
-      
+
     }
   //Write all MBPRISM elements
   Range prism_range;
@@ -344,15 +344,15 @@ ErrorCode WriteAns::write_file(const char *file_name,
 	elem_file << std::setw(8) << conn[4] << std::setw(8) << conn[4];
 	elem_file << std::setw(8) << conn[1] << std::setw(8) << conn[2];
 	elem_file << std::setw(8) << conn[5] << std::setw(8) << conn[5];
-      
+
 	elem_file << std::setw(8) << MATDefault << std::setw(8) << ETSolid45;
 	elem_file << std::setw(8) << "1" << std::setw(8) << "1";
 	elem_file << std::setw(8) << "0" << std::setw(8) << elem_id;
-	elem_file << std::endl;    
+	elem_file << std::endl;
       }
-      
+
     }
-  
+
   //create element types (for now writes all, even if not used)
   ans_file << "et," << ETSolid45 << ",SOLID45" << std::endl;
   ans_file << "et," << ETSolid92 << ",SOLID92" << std::endl;
@@ -376,12 +376,12 @@ ErrorCode WriteAns::write_file(const char *file_name,
       std::vector<EntityHandle> elem_vector;
       result = mbImpl->get_entities_by_handle(*ss_it,elem_vector, true);
       if(result !=MB_SUCCESS)return result;
-      
+
       //cycle through elements in current side set
       for(std::vector<EntityHandle>::iterator elem_it = elem_vector.begin(); elem_it!=elem_vector.end();++elem_it)
 	{
 	  EntityHandle elem_handle = *elem_it;
-	  	  
+	  	
 	  //instead of selecting current element in set, select its nodes...
 	  std::vector<EntityHandle> conn;
 	  result = mbImpl->get_connectivity(&elem_handle, 1, conn);
@@ -399,12 +399,12 @@ ErrorCode WriteAns::write_file(const char *file_name,
 		ans_file << "nsel,a,node,," << std::setw(8) << conn[i] << std::endl;
 	      }
 	  }
-	  
+	
 	}
       //create SS(#) node set
       ans_file << "cm,SS" << ss_id << ",node" << std::endl;
     }
-  
+
   //Gather all element blocks
   Range matset;
   int mat_id;

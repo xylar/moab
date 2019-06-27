@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2006 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
+
     (2006) kraftche@cae.wisc.edu
-   
+
   ***************************************************************** */
 
 
 /** \file VertexMaxQM.cpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -44,7 +44,7 @@ namespace MBMesquite {
 VertexMaxQM::VertexMaxQM( ElemSampleQM* metric )
     : mMetric(metric)
     {}
-  
+
 VertexMaxQM::~VertexMaxQM() {}
 
 std::string VertexMaxQM::get_name() const
@@ -58,9 +58,9 @@ std::string VertexMaxQM::get_name() const
 int VertexMaxQM::get_negate_flag() const
   { return mMetric->get_negate_flag(); }
 
-bool VertexMaxQM::evaluate( PatchData& pd, 
-                            size_t handle, 
-                            double& value, 
+bool VertexMaxQM::evaluate( PatchData& pd,
+                            size_t handle,
+                            double& value,
                             MsqError& err )
 {
   ElemSampleQM* qm = get_quality_metric();
@@ -73,19 +73,19 @@ bool VertexMaxQM::evaluate( PatchData& pd,
   value = -std::numeric_limits<double>::infinity();
   for (std::vector<size_t>::iterator h = mHandles.begin(); h != mHandles.end(); ++h) {
     tmpvalid = qm->evaluate( pd, *h, tmpval, err ); MSQ_ERRZERO(err);
-    if (!tmpvalid) 
+    if (!tmpvalid)
       valid = false;
     else if (tmpval > value)
       value = tmpval;
   }
-    
+
   return valid;
 }
 
 
-bool VertexMaxQM::evaluate_with_indices( PatchData& pd, 
-                                         size_t handle, 
-                                         double& value, 
+bool VertexMaxQM::evaluate_with_indices( PatchData& pd,
+                                         size_t handle,
+                                         double& value,
                                          std::vector<size_t>& indices,
                                          MsqError& err )
 {
@@ -102,11 +102,11 @@ bool VertexMaxQM::evaluate_with_indices( PatchData& pd,
     mIndices.clear();
     tmpvalid = qm->evaluate_with_indices( pd, *h, tmpval, mIndices, err );
     MSQ_ERRZERO(err);
-    if (!tmpvalid) 
+    if (!tmpvalid)
       valid = false;
     else if (tmpval > value)
       value = tmpval;
-      
+
     size_t size = indices.size();
     e = indices.begin() + size;
     for (i = mIndices.begin(); i != mIndices.end(); ++i) {
@@ -116,7 +116,7 @@ bool VertexMaxQM::evaluate_with_indices( PatchData& pd,
       }
     }
   }
-    
+
   return valid;
 }
 

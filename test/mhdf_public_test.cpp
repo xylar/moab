@@ -13,26 +13,26 @@ int main( int argc, char* argv[] )
   MHDF_Status status;
   unsigned long max_id;
   MHDF_FileDesc* data;
-  
+
   if (argc != 2) {
     fprintf( stderr,"Usage: %s <filename>\n", argv[0] );
     return 0;
   }
-  
+
   file = mhdf_openFile( argv[1], 0, &max_id, -1, &status );
   if (mhdf_isError( &status )) {
     fprintf( stderr,"%s: %s\n", argv[1], mhdf_message( &status ) );
     return 1;
   }
-  
+
   data = mhdf_getFileSummary( file, H5T_NATIVE_ULONG, &status, 1 );
   if (mhdf_isError( &status )) {
     fprintf( stderr,"%s: %s\n", argv[1], mhdf_message( &status ) );
     return 1;
   }
-  
+
   mhdf_closeFile( file, &status );
-  
+
   printf( "%s:\n", argv[1] );
   result = print_file_summary( data );
   free( data );
@@ -47,32 +47,32 @@ static void print_ent_desc( const char* name,
                             MHDF_FileDesc* all )
 {
   int i, len = 10;
-  
+
   if (vals_label && (int)strlen(vals_label) > len)
     len = strlen(vals_label);
   if (extra_label && (int)strlen(extra_label) > len)
     len = strlen(extra_label);
-  
-  if (subname) 
+
+  if (subname)
     printf( "    %s (%s):\n", name, subname );
   else
     printf( "    %s:\n", name );
-  
+
   if (vals_label)
     printf( "      %-*s: %d\n", len, vals_label, data->vals_per_ent );
- 
+
   printf( "      %-*s: %ld [%ld - %ld]\n", len, "entities", data->count, data->start_id, data->start_id + data->count - 1 );
-   
+
   if (extra_label)
     printf( "      %-*s\n", len, extra_label );
 
   if (!data->num_dense_tags)
     return;
-  
+
   printf( "      %-*s: \"%s\"", len, "dense tags", all->tags[data->dense_tag_indices[0]].name );
   for (i = 1; i < data->num_dense_tags; ++i)
     printf( ", \"%s\"", all->tags[data->dense_tag_indices[i]].name );
-  printf ("\n");  
+  printf ("\n");
 }
 
 static void print_elem_desc( MHDF_ElemDesc* data, MHDF_FileDesc* all )
@@ -101,7 +101,7 @@ static const char* tag_type_name( MHDF_TagDataType type )
   return unknown;
 }
 
-static const char* string_tag_value( const void* value, 
+static const char* string_tag_value( const void* value,
                                      MHDF_TagDataType type,
                                      int size )
 {
@@ -112,13 +112,13 @@ static const char* string_tag_value( const void* value,
   const int* intptr = (const int *) value;
   const double* dblptr = (const double*) value;
   const unsigned long* idptr = (const unsigned long *) value;
-  
+
 
   if (size <= 0) {
     *buffer = '\0';
     return buffer;
   }
-  
+
   switch (type) {
     case mhdf_OPAQUE:
       print = 1;
@@ -196,7 +196,7 @@ static const char* string_tag_value( const void* value,
       strcpy( buffer, "(unknown data type)" );
       break;
   }
-  
+
   return buffer;
 }
 
@@ -223,10 +223,10 @@ static void print_tag_desc( MHDF_TagDesc* data, MHDF_FileDesc* all )
     printf( "      %-*s: %d (%d bytes)\n", width, "size", data->size, data->bytes );
   printf( "      %-*s: %x\n", width, "flags", data->storage );
   if (data->default_value)
-    printf( "      %-*s: %s\n", width, "default", 
+    printf( "      %-*s: %s\n", width, "default",
       string_tag_value( data->default_value, data->type, data->default_value_size ) );
   if (data->global_value)
-    printf( "      %-*s: %s\n", width, "mesh val", 
+    printf( "      %-*s: %s\n", width, "mesh val",
       string_tag_value( data->global_value, data->type, data->global_value_size ) );
   if (data->have_sparse) {
     printf( "      %-*s: (sparse)", width, "tables" );
@@ -247,17 +247,17 @@ static void print_tag_desc( MHDF_TagDesc* data, MHDF_FileDesc* all )
 static int print_file_summary( MHDF_FileDesc* data )
 {
   int i;
-  
+
   printf( "  Entities:\n" );
   print_ent_desc( "Nodes", NULL, &data->nodes, "dimension", NULL, data );
   for (i = 0; i < data->num_elem_desc; ++i)
     print_elem_desc( data->elems + i, data );
   print_ent_desc( "Sets", NULL, &data->sets, NULL, NULL, data );
-  
+
   printf( "  Tags:\n" );
   for (i = 0; i < data->num_tag_desc; ++i)
     print_tag_desc( data->tags + i, data );
-  
+
   printf( "   Number partitions: %d\n", data->numEntSets[0]);
   for (i=0; i<data->numEntSets[0]; i++)
     printf( " set id %d value %d \n", data->defTagsEntSets[0][i],data->defTagsVals[0][i]);

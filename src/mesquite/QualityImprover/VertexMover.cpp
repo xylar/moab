@@ -1,9 +1,9 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2004 Sandia Corporation and Argonne National
-    Laboratory.  Under the terms of Contract DE-AC04-94AL85000 
-    with Sandia Corporation, the U.S. Government retains certain 
+    Laboratory.  Under the terms of Contract DE-AC04-94AL85000
+    with Sandia Corporation, the U.S. Government retains certain
     rights in this software.
 
     This library is free software; you can redistribute it and/or
@@ -16,19 +16,19 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
-    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov, 
-    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov      
-   
+
+    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov,
+    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov
+
   ***************************************************************** */
 /*!
   \file   VertexMover.cpp
-  \brief  
+  \brief
 
-  The VertexMover Class is the base class for all the smoothing algorythms 
+  The VertexMover Class is the base class for all the smoothing algorythms
 
   \author Thomas Leurent
   \date   2002-01-17
@@ -60,7 +60,7 @@ extern int get_parallel_rank();
 extern int get_parallel_size();
   extern void parallel_barrier();
 
-VertexMover::VertexMover( ObjectiveFunction* OF ) 
+VertexMover::VertexMover( ObjectiveFunction* OF )
   : QualityImprover(),
     objFuncEval( OF ) ,
     jacobiOpt(false)
@@ -70,7 +70,7 @@ VertexMover::VertexMover( ObjectiveFunction* OF )
 VertexMover::~VertexMover() {}
 
 /*
-  
+
     +-----------+
     |Reset Outer|
     |Criterion  |
@@ -83,7 +83,7 @@ VertexMover::~VertexMover() {}
 +--> <Criterion>-----> DONE
 |      \Done?/
 |       \   /
-|         + 
+|         +
 |         |NO
 |         V
 |   +-----------+
@@ -106,8 +106,8 @@ VertexMover::~VertexMover() {}
     |Criterion  |    2
     +-----------+    |
           |          |
-          V          |  
-          +          |               
+          V          |
+          +          |
         /   \        |
        /Inner\  YES  |
 +--> <Criterion>-----+    --------------+
@@ -122,8 +122,8 @@ VertexMover::~VertexMover() {}
 |   +-----------+                       |
 |         |                             |
 ----------+               --------------+
-                      
-*/        
+
+*/
 
 /*! \brief Improves the quality of the MeshSet, calling some
     methods specified in a class derived from VertexMover
@@ -138,7 +138,7 @@ double VertexMover::loop_over_mesh( MeshDomainAssoc* mesh_and_domain,
   Mesh* mesh = mesh_and_domain->get_mesh();
   MeshDomain* domain = mesh_and_domain->get_domain();
 
-  TagHandle coord_tag = 0; // store uncommitted coords for jacobi optimization 
+  TagHandle coord_tag = 0; // store uncommitted coords for jacobi optimization
   TagHandle* coord_tag_ptr = 0;
 
   TerminationCriterion* outer_crit = 0;
@@ -149,7 +149,7 @@ double VertexMover::loop_over_mesh( MeshDomainAssoc* mesh_and_domain,
 
     // Get the patch data to use for the first iteration
   OFEvaluator& obj_func = get_objective_function_evaluator();
- 
+
     // Check for impromer use of MaxTemplate
   ObjectiveFunctionTemplate* maxt_ptr = dynamic_cast<MaxTemplate*>(obj_func.get_objective_function());
   if (maxt_ptr)
@@ -170,14 +170,14 @@ double VertexMover::loop_over_mesh( MeshDomainAssoc* mesh_and_domain,
   std::vector<Mesh::VertexHandle> patch_vertices;
   std::vector<Mesh::ElementHandle> patch_elements;
   bool valid;
-  
+
   PatchSet* patch_set = get_patch_set();
   if (!patch_set) {
     MSQ_SETERR(err)("No PatchSet for QualityImprover!", MsqError::INVALID_STATE);
     return 0.0;
   }
   patch_set->set_mesh( mesh );
-  
+
   std::vector<PatchSet::PatchHandle> patch_list;
   patch_set->get_patch_handles( patch_list, err ); MSQ_ERRZERO(err);
 
@@ -213,9 +213,9 @@ double VertexMover::loop_over_mesh( MeshDomainAssoc* mesh_and_domain,
     tm_ptr =  dynamic_cast<TMetricBarrier*>(pmeanp_ptr->get_target_metric());
     awm_ptr =  dynamic_cast<AWMetricBarrier*>(pmeanp_ptr->get_target_metric());
   }
-   
+
   if (sample_qm_ptr || pmeanp_ptr)
-  { 
+  {
     if (!pmeanp_ptr)
     {
       tqm_ptr = dynamic_cast<TQualityMetric*>(sample_qm_ptr);
@@ -229,18 +229,18 @@ double VertexMover::loop_over_mesh( MeshDomainAssoc* mesh_and_domain,
     {
       tqm_ptr = dynamic_cast<TQualityMetric*>(pmeanp_ptr);
     }
-    
+
     if (tqm_ptr && (tm_ptr || awm_ptr))
     {
         // check for inverted elements
-      this->initialize(patch, err); 
+      this->initialize(patch, err);
       std::vector<size_t> handles;
- 
-        // set up patch data      
+
+        // set up patch data
       std::vector<PatchSet::PatchHandle>::iterator patch_iter = patch_list.begin();
       while( patch_iter != patch_list.end() )
       {
-        do 
+        do
           {
             patch_set->get_patch( *patch_iter, patch_elements, patch_vertices, err );
             if (MSQ_CHKERR(err)) goto ERROR;
@@ -249,9 +249,9 @@ double VertexMover::loop_over_mesh( MeshDomainAssoc* mesh_and_domain,
 
         patch.set_mesh_entities( patch_elements, patch_vertices, err );
         if (MSQ_CHKERR(err)) goto ERROR;
-    
+
         qm_ptr->get_evaluations( patch, handles, true, err ); // MSQ_ERRFALSE(err);
-  
+
           // do actual check for inverted elements
         std::vector<size_t>::const_iterator i;
         double tvalue;
@@ -284,35 +284,35 @@ double VertexMover::loop_over_mesh( MeshDomainAssoc* mesh_and_domain,
     inner_crit->add_iteration_limit(10);
 
     // If using a local patch, suppress output of inner termination criterion
-  if (patch_list.size() > 1) 
+  if (patch_list.size() > 1)
     inner_crit->set_debug_output_level(3);
   else
     one_patch = true;
-  
+
   if (jacobiOpt) {
     coord_tag = get_jacobi_coord_tag(mesh, err);
     MSQ_ERRZERO(err);
     coord_tag_ptr = &coord_tag;
   }
-  
+
     // Initialize outer loop
-    
-  this->initialize(patch, err);        
+
+  this->initialize(patch, err);
   if (MSQ_CHKERR(err)) goto ERROR;
-  
-  valid = obj_func.initialize( mesh_and_domain, settings, patch_set, err ); 
+
+  valid = obj_func.initialize( mesh_and_domain, settings, patch_set, err );
   if (MSQ_CHKERR(err)) goto ERROR;
   if (!valid) {
     MSQ_SETERR(err)("ObjectiveFunction initialization failed.  Mesh "
-                    "invalid at one or more sample points.", 
+                    "invalid at one or more sample points.",
                     MsqError::INVALID_MESH);
     goto ERROR;
   }
-  
-  outer_crit->reset_outer(mesh, domain, obj_func, settings, err); 
+
+  outer_crit->reset_outer(mesh, domain, obj_func, settings, err);
   if (MSQ_CHKERR(err)) goto ERROR;
-  
- 
+
+
     // if only one patch, get the patch now
   if (one_patch) {
     patch_set->get_patch( patch_list[0], patch_elements, patch_vertices, err );
@@ -320,7 +320,7 @@ double VertexMover::loop_over_mesh( MeshDomainAssoc* mesh_and_domain,
     patch.set_mesh_entities( patch_elements, patch_vertices, err );
     if (MSQ_CHKERR(err)) goto ERROR;
   }
-  
+
    // Loop until outer termination criterion is met
   inner_crit_terminated = false;
   while (!outer_crit->terminate())
@@ -347,13 +347,13 @@ double VertexMover::loop_over_mesh( MeshDomainAssoc* mesh_and_domain,
           if (MSQ_CHKERR(err)) goto ERROR;
           ++p_iter;
         } while (patch_elements.empty() && p_iter != patch_list.end()) ;
-        
+
         if (patch_elements.empty()) { // no more non-culled vertices
                 if (0)
                   std::cout << "P[" << get_parallel_rank() << "] tmp srk all vertices culled."  << std::endl;
           break;
         }
-      
+
         all_culled = false;
         patch.set_mesh_entities( patch_elements, patch_vertices, err );
         if (MSQ_CHKERR(err)) goto ERROR;
@@ -361,26 +361,26 @@ double VertexMover::loop_over_mesh( MeshDomainAssoc* mesh_and_domain,
         ++p_iter;
         all_culled = false;
       }
-        
+
             ++num_patches;
 
         // Initialize for inner iteration
-        
+
       this->initialize_mesh_iteration(patch, err);
       if (MSQ_CHKERR(err)) goto ERROR;
-      
+
       obj_func.reset();
-      
+
       outer_crit->reset_patch( patch, err );
       if (MSQ_CHKERR(err)) goto ERROR;
-      
+
       inner_crit->reset_inner( patch, obj_func, err );
       if (MSQ_CHKERR(err)) goto ERROR;
-      
+
       inner_crit->reset_patch( patch, err );
       if (MSQ_CHKERR(err)) goto ERROR;
-      
-        // Don't even call optimizer if inner termination 
+
+        // Don't even call optimizer if inner termination
         // criterion has already been met.
       if (!inner_crit->terminate())
       {
@@ -389,50 +389,50 @@ double VertexMover::loop_over_mesh( MeshDomainAssoc* mesh_and_domain,
           // Call optimizer - should loop on inner_crit->terminate()
         this->optimize_vertex_positions( patch, err );
         if (MSQ_CHKERR(err)) goto ERROR;
-      
-          // Update for changes during inner iteration 
+
+          // Update for changes during inner iteration
           // (during optimizer loop)
-        
+
         outer_crit->accumulate_patch( patch, err );
         if (MSQ_CHKERR(err)) goto ERROR;
-        
+
         inner_crit->cull_vertices( patch, obj_func, err );
         if (MSQ_CHKERR(err)) goto ERROR;
 
                 // FIXME
                 if (0)
                   {
-                    inner_crit->cull_vertices_global (patch, 
+                    inner_crit->cull_vertices_global (patch,
                                                       mesh, domain, settings,
                                                       obj_func, err);
                     if (MSQ_CHKERR(err)) goto ERROR;
                   }
-        
+
         patch.update_mesh( err, coord_tag_ptr );
         if (MSQ_CHKERR(err)) goto ERROR;
       }
-    } 
+    }
 
     if (jacobiOpt)
       commit_jacobi_coords( coord_tag, mesh, err );
 
-    this->terminate_mesh_iteration(patch, err); 
+    this->terminate_mesh_iteration(patch, err);
     if (MSQ_CHKERR(err)) goto ERROR;
-    
+
     outer_crit->accumulate_outer( mesh, domain, obj_func, settings, err );
     if (MSQ_CHKERR(err)) goto ERROR;
-    
+
     if (all_culled)
       break;
   }
 
 
-ERROR:  
+ERROR:
   if (jacobiOpt)
     mesh->tag_delete( coord_tag, err );
 
     //call the criteria's cleanup funtions.
-  if (outer_crit) 
+  if (outer_crit)
     outer_crit->cleanup(mesh,domain,err);
   if (inner_crit)
   inner_crit->cleanup(mesh,domain,err);
@@ -441,7 +441,7 @@ ERROR:
 
   return 0.;
 }
-  
+
 
 static void checkpoint_bytes( Mesh* mesh, std::vector<unsigned char>& saved_bytes, MsqError& err)
 {
@@ -467,7 +467,7 @@ static void restore_bytes( Mesh* mesh, std::vector<unsigned char>& saved_bytes, 
   static void save_or_restore_debug_state(bool save)
   {
     static bool debug[3] = {false,false,false};
-    if (save) 
+    if (save)
       {
         debug[0] = MsqDebug::get(1);
         debug[1] = MsqDebug::get(2);
@@ -494,7 +494,7 @@ double VertexMover::loop_over_mesh( ParallelMesh* mesh,
 {
   std::vector<size_t> junk;
   Mesh::VertexHandle vertex_handle;
-  TagHandle coord_tag = 0; // store uncommitted coords for jacobi optimization 
+  TagHandle coord_tag = 0; // store uncommitted coords for jacobi optimization
   TagHandle* coord_tag_ptr = 0;
   int outer_iter=0;
   int inner_iter=0;
@@ -506,7 +506,7 @@ double VertexMover::loop_over_mesh( ParallelMesh* mesh,
 
     // Get the patch data to use for the first iteration
   OFEvaluator& obj_func = get_objective_function_evaluator();
-  
+
   PatchData patch;
   patch.set_mesh( (Mesh*) mesh );
   patch.set_domain( domain );
@@ -525,7 +525,7 @@ double VertexMover::loop_over_mesh( ParallelMesh* mesh,
   std::vector<Mesh::ElementHandle> patch_elements;
   std::vector<Mesh::VertexHandle> fixed_vertices;
   std::vector<Mesh::VertexHandle> free_vertices;
-   
+
     // Get termination criteria
   TerminationCriterion* outer_crit=this->get_outer_termination_criterion();
   TerminationCriterion* inner_crit=this->get_inner_termination_criterion();
@@ -537,7 +537,7 @@ double VertexMover::loop_over_mesh( ParallelMesh* mesh,
     MSQ_SETERR(err)("Termination Criterion pointer for inner loop is Null", MsqError::INVALID_STATE);
     return 0.;
   }
-  
+
   PatchSet* patch_set = get_patch_set();
   if (!patch_set) {
     MSQ_SETERR(err)("No PatchSet for QualityImprover!", MsqError::INVALID_STATE);
@@ -547,8 +547,8 @@ double VertexMover::loop_over_mesh( ParallelMesh* mesh,
 
   std::vector<PatchSet::PatchHandle> patch_list;
   patch_set->get_patch_handles( patch_list, err ); MSQ_ERRZERO(err);
-  
-    if (patch_list.size() > 1) 
+
+    if (patch_list.size() > 1)
       inner_crit->set_debug_output_level(3);
     else
       one_patch = true;
@@ -558,7 +558,7 @@ double VertexMover::loop_over_mesh( ParallelMesh* mesh,
     MSQ_ERRZERO(err);
     coord_tag_ptr = &coord_tag;
   }
-  
+
   // parallel error checking
   MsqError perr;
   bool pdone=false;
@@ -566,17 +566,17 @@ double VertexMover::loop_over_mesh( ParallelMesh* mesh,
 #define PERROR_COND continue
 
     // Initialize outer loop
-    
-  this->initialize(patch, err); 
+
+  this->initialize(patch, err);
   if (MSQ_CHKERR(err)) { MSQ_SETERR(perr)("initialize patch", MsqError::INVALID_STATE); } //goto ERROR;
-  
+
   MeshDomainAssoc mesh_and_domain2 = MeshDomainAssoc((Mesh*)mesh, domain);
-  obj_func.initialize( &mesh_and_domain2, settings, patch_set, err ); 
+  obj_func.initialize( &mesh_and_domain2, settings, patch_set, err );
   if (MSQ_CHKERR(err)) { MSQ_SETERR(perr)("initialize obj_func", MsqError::INVALID_STATE);} //goto ERROR;
-  
-  outer_crit->reset_outer( (Mesh*)mesh, domain, obj_func, settings, err); 
+
+  outer_crit->reset_outer( (Mesh*)mesh, domain, obj_func, settings, err);
   if (MSQ_CHKERR(err)) { MSQ_SETERR(perr)("reset_outer", MsqError::INVALID_STATE);} //goto ERROR;
-   
+
    // Loop until outer termination criterion is met
   inner_crit_terminated = false;
   all_culled = false;
@@ -611,24 +611,24 @@ double VertexMover::loop_over_mesh( ParallelMesh* mesh,
     ///   on the values used for outer and inner termination before the iteration is stopped.
     ///   Previously, the ParallelHelper::communicate_all_true method returned true if any
     ///   proc sent it a true value, which seems to be a bug, at least in the name of the method.
-    ///   The method has been changed to return true only if all proc's values are true.  
+    ///   The method has been changed to return true only if all proc's values are true.
     ///   In the previous version, this meant that if any proc hit its inner or outer
     ///   termination criterion, the loop was exited, and thus some parts of the mesh
     ///   are potentially left unconverged.  Also, if the outer criterion was satisfied on
     ///   part of the mesh (say a uniform part), the iterations were not executed at all.
-    /// Also, changed name of "did_some" to "inner_crit_terminated", and flipped its boolean 
+    /// Also, changed name of "did_some" to "inner_crit_terminated", and flipped its boolean
     ///   value to be consistent with the name - for readability and for correctness since
     ///   we want to communicate a true value through the helper.
 
     bool outer_crit_terminated = outer_crit->terminate();
     bool outer_crit_terminated_local = outer_crit_terminated;
-    helper->communicate_all_true( outer_crit_terminated, err ); 
+    helper->communicate_all_true( outer_crit_terminated, err );
 
     bool inner_crit_terminated_local = inner_crit_terminated;
-    helper->communicate_all_true( inner_crit_terminated, err ); 
+    helper->communicate_all_true( inner_crit_terminated, err );
 
     bool all_culled_local = all_culled;
-    helper->communicate_all_true( all_culled, err ); 
+    helper->communicate_all_true( all_culled, err );
 
     bool done = all_culled || outer_crit_terminated;
     if (inner_crit_terminated) {
@@ -636,16 +636,16 @@ double VertexMover::loop_over_mesh( ParallelMesh* mesh,
                       "without meeting outer termination criterion.  This is "
                       "an infinite loop.  Aborting.", MsqError::INVALID_STATE);
       done = true;
-      helper->communicate_any_true( done, err ); 
+      helper->communicate_any_true( done, err );
     }
 
     bool local_done=done;
 
-    helper->communicate_all_true( done, err ); 
+    helper->communicate_all_true( done, err );
 
     if (0)
-      std::cout << "P[" << get_parallel_rank() << "] tmp srk done= " << done << " local_done= " << local_done 
-                << " all_culled= " << all_culled 
+      std::cout << "P[" << get_parallel_rank() << "] tmp srk done= " << done << " local_done= " << local_done
+                << " all_culled= " << all_culled
                 << " outer_crit->terminate()= " << outer_crit->terminate()
                 << " outer_term= " << outer_crit_terminated
                 << " outer_term_local= " << outer_crit_terminated_local
@@ -660,23 +660,23 @@ double VertexMover::loop_over_mesh( ParallelMesh* mesh,
 
     if (done)
       break;
-    
-    
+
+
     inner_crit_terminated = true;
     all_culled = true;
 
     ///*** smooth the interior ***////
 
     // get the fixed vertices (i.e. the ones *not* part of the first independent set)
-    helper->compute_first_independent_set(fixed_vertices); 
+    helper->compute_first_independent_set(fixed_vertices);
 
     // sort the fixed vertices
     std::sort(fixed_vertices.begin(), fixed_vertices.end());
 
       // Loop over each patch
         if (0 && MSQ_DBG(2))
-          std::cout << "P[" << get_parallel_rank() << "] tmp srk number of patches = " << patch_list.size() 
-                    << " inner_iter= " << inner_iter << " outer_iter= " << outer_iter 
+          std::cout << "P[" << get_parallel_rank() << "] tmp srk number of patches = " << patch_list.size()
+                    << " inner_iter= " << inner_iter << " outer_iter= " << outer_iter
                     << " inner.globalInvertedCount = " << inner_crit->globalInvertedCount
                     << " outer.globalInvertedCount = " << outer_crit->globalInvertedCount
                     << " inner.patchInvertedCount = " << inner_crit->patchInvertedCount
@@ -685,7 +685,7 @@ double VertexMover::loop_over_mesh( ParallelMesh* mesh,
 
         save_or_restore_debug_state(true);
         //MsqDebug::disable_all();
-      
+
         int num_patches=0;
 
     std::vector<PatchSet::PatchHandle>::iterator p_iter = patch_list.begin();
@@ -700,7 +700,7 @@ double VertexMover::loop_over_mesh( ParallelMesh* mesh,
 	if (MSQ_CHKERR(err)) { MSQ_SETERR(perr)("get_patch", MsqError::INVALID_STATE); PERROR_COND; } //goto ERROR;
 	++p_iter;
       } while (patch_elements.empty() && p_iter != patch_list.end()) ;
-        
+
       if (patch_elements.empty()) { // no more non-culled vertices
               if (0)
                 std::cout << "P[" << get_parallel_rank() << "] tmp srk all vertices culled."  << std::endl;
@@ -714,7 +714,7 @@ double VertexMover::loop_over_mesh( ParallelMesh* mesh,
 
       free_vertices.clear();
 
-      for (size_t i = 0; i < patch_vertices.size(); ++i) 
+      for (size_t i = 0; i < patch_vertices.size(); ++i)
 	if (!std::binary_search(fixed_vertices.begin(), fixed_vertices.end(), patch_vertices[i]))
 	  free_vertices.push_back(patch_vertices[i]);
 
@@ -726,24 +726,24 @@ double VertexMover::loop_over_mesh( ParallelMesh* mesh,
       all_culled = false;
       patch.set_mesh_entities( patch_elements, free_vertices, err );
       if (MSQ_CHKERR(err)) { MSQ_SETERR(perr)("set_mesh_entities", MsqError::INVALID_STATE); PERROR_COND; } //goto ERROR;
-        
+
         // Initialize for inner iteration
-        
+
       this->initialize_mesh_iteration(patch, err);
       if (MSQ_CHKERR(err)) { MSQ_SETERR(perr)("initialize_mesh_iteration", MsqError::INVALID_STATE); PERROR_COND; } //goto ERROR;
-      
+
       obj_func.reset();
-      
+
       outer_crit->reset_patch( patch, err );
       if (MSQ_CHKERR(err)) { MSQ_SETERR(perr)("reset_patch outer", MsqError::INVALID_STATE); PERROR_COND; } //goto ERROR;
-      
+
       inner_crit->reset_inner( patch, obj_func, err );
       if (MSQ_CHKERR(err)) { MSQ_SETERR(perr)("reset_inner", MsqError::INVALID_STATE); PERROR_COND; } //goto ERROR;
-      
+
       inner_crit->reset_patch( patch, err );
       if (MSQ_CHKERR(err)) { MSQ_SETERR(perr)("inner reset_patch", MsqError::INVALID_STATE); PERROR_COND; } //goto ERROR;
-      
-        // Don't even call optimizer if inner termination 
+
+        // Don't even call optimizer if inner termination
         // criterion has already been met.
       if (!inner_crit->terminate())
       {
@@ -753,28 +753,28 @@ double VertexMover::loop_over_mesh( ParallelMesh* mesh,
         // Call optimizer - should loop on inner_crit->terminate()
         // size_t num_vert=patch.num_free_vertices();
         //std::cout << "P[" << get_parallel_rank() << "] tmp srk VertexMover num_vert= " << num_vert << std::endl;
-              
+
         this->optimize_vertex_positions( patch, err );
         if (MSQ_CHKERR(err)) { MSQ_SETERR(perr)("optimize_vertex_positions", MsqError::INVALID_STATE); PERROR_COND; } //goto ERROR;
-      
-          // Update for changes during inner iteration 
+
+          // Update for changes during inner iteration
           // (during optimizer loop)
-        
+
         outer_crit->accumulate_patch( patch, err );
         if (MSQ_CHKERR(err)) { MSQ_SETERR(perr)("outer accumulate_patch", MsqError::INVALID_STATE); PERROR_COND; } //goto ERROR;
-        
+
         inner_crit->cull_vertices( patch, obj_func, err );
         if (MSQ_CHKERR(err)) { MSQ_SETERR(perr)("inner cull_vertices", MsqError::INVALID_STATE); PERROR_COND; } //goto ERROR;
 
                 // experimental...
                 if (0)
                   {
-                    inner_crit->cull_vertices_global (patch, 
+                    inner_crit->cull_vertices_global (patch,
                                                       mesh, domain, settings,
                                                       obj_func, err);
                     if (MSQ_CHKERR(err)) { MSQ_SETERR(perr)("cull_vertices_global", MsqError::INVALID_STATE); PERROR_COND; } //goto ERROR;
                   }
-        
+
         patch.update_mesh( err, coord_tag_ptr );
         if (MSQ_CHKERR(err)) { MSQ_SETERR(perr)("update_mesh", MsqError::INVALID_STATE); PERROR_COND; } //goto ERROR;
       }
@@ -808,10 +808,10 @@ double VertexMover::loop_over_mesh( ParallelMesh* mesh,
 
     /// srkenno@sandia.gov save vertex bytes since boundary smoothing changes them
     std::vector<unsigned char> saved_bytes;
-    checkpoint_bytes(mesh, saved_bytes, err); 
+    checkpoint_bytes(mesh, saved_bytes, err);
     if (MSQ_CHKERR(err)) { MSQ_SETERR(perr)("checkpoint_bytes ", MsqError::INVALID_STATE); PERROR_COND; } //goto ERROR;
 
-    helper->communicate_first_independent_set(err); 
+    helper->communicate_first_independent_set(err);
     if (MSQ_CHKERR(err)) { MSQ_SETERR(perr)("communicate_first_independent_set ", MsqError::INVALID_STATE); PERROR_COND; } //goto ERROR;
 
     ///*** smooth the boundary ***////
@@ -826,19 +826,19 @@ double VertexMover::loop_over_mesh( ParallelMesh* mesh,
 
 	patch_vertices.clear();
 	patch_vertices.push_back(vertex_handle);
-	patch_elements.clear(); 
-	mesh->vertices_get_attached_elements( &vertex_handle, 
+	patch_elements.clear();
+	mesh->vertices_get_attached_elements( &vertex_handle,
                                               1,
-                                              patch_elements, 
+                                              patch_elements,
                                               junk, err );
 
 	all_culled = false;
 	patch.set_mesh_entities( patch_elements, patch_vertices, err );
 
 	if (MSQ_CHKERR(err)) { MSQ_SETERR(perr)("set_mesh_entities 2 ", MsqError::INVALID_STATE); PERROR_COND; } //goto ERROR;
-        
+
         // Initialize for inner iteration
-        
+
 	this->initialize_mesh_iteration(patch, err);
 	if (MSQ_CHKERR(err)) { MSQ_SETERR(perr)(" initialize_mesh_iteration 2", MsqError::INVALID_STATE); PERROR_COND; } //goto ERROR;
 	
@@ -849,38 +849,38 @@ double VertexMover::loop_over_mesh( ParallelMesh* mesh,
 	
 	inner_crit->reset_inner( patch, obj_func, err );
 	if (MSQ_CHKERR(err)) { MSQ_SETERR(perr)(" inner reset_inner 2", MsqError::INVALID_STATE); PERROR_COND; } //goto ERROR;
-      
+
 	inner_crit->reset_patch( patch, err );
 	if (MSQ_CHKERR(err)) { MSQ_SETERR(perr)(" inner_crit reset_patch 2", MsqError::INVALID_STATE); PERROR_COND; } //goto ERROR;
-      
-        // Don't even call optimizer if inner termination 
+
+        // Don't even call optimizer if inner termination
         // criterion has already been met.
 	if (!inner_crit->terminate())
 	{
 	  inner_crit_terminated = false;
-	  
+	
           // Call optimizer - should loop on inner_crit->terminate()
 	  this->optimize_vertex_positions( patch, err );
 	  if (MSQ_CHKERR(err)) { MSQ_SETERR(perr)(" optimize_vertex_positions 2", MsqError::INVALID_STATE); PERROR_COND; } //goto ERROR;
-      
-          // Update for changes during inner iteration 
+
+          // Update for changes during inner iteration
           // (during optimizer loop)
-	  
+	
 	  outer_crit->accumulate_patch( patch, err );
 	  if (MSQ_CHKERR(err)) { MSQ_SETERR(perr)(" outer accumulate_patch 2", MsqError::INVALID_STATE); PERROR_COND; } //goto ERROR;
-	  
+	
 	  inner_crit->cull_vertices( patch, obj_func, err );
 	  if (MSQ_CHKERR(err)) { MSQ_SETERR(perr)(" inner cull_vertices", MsqError::INVALID_STATE); PERROR_COND; } //goto ERROR;
 
                     // FIXME
                     if (0)
                       {
-                        inner_crit->cull_vertices_global (patch, 
+                        inner_crit->cull_vertices_global (patch,
                                                           mesh, domain, settings,
                                                           obj_func, err);
                         if (MSQ_CHKERR(err)) { MSQ_SETERR(perr)(" cull_vertices_global 2 ", MsqError::INVALID_STATE); PERROR_COND; } //goto ERROR;
                       }
-        
+
           patch.update_mesh( err, coord_tag_ptr );
 	  if (MSQ_CHKERR(err)) { MSQ_SETERR(perr)(" update_mesh 2", MsqError::INVALID_STATE); PERROR_COND; } //goto ERROR;
 	}
@@ -888,9 +888,9 @@ double VertexMover::loop_over_mesh( ParallelMesh* mesh,
       helper->communicate_next_independent_set(err);
       if (MSQ_CHKERR(err)) { MSQ_SETERR(perr)(" communicate_next_independent_set 2", MsqError::INVALID_STATE); PERROR_COND; } //goto ERROR;
      } // while(helper->compute_next_independent_set())
- 
+
     save_or_restore_debug_state(false);
- 
+
     //if (!get_parallel_rank())
     //std::cout << "P[" << get_parallel_rank() << "] tmp srk num_patches= " << num_patches << std::endl;
 
@@ -901,14 +901,14 @@ double VertexMover::loop_over_mesh( ParallelMesh* mesh,
     if (jacobiOpt)
       commit_jacobi_coords( coord_tag, mesh, err );
 
-    this->terminate_mesh_iteration(patch, err); 
+    this->terminate_mesh_iteration(patch, err);
     if (MSQ_CHKERR(err)) { MSQ_SETERR(perr)(" terminate_mesh_iteration", MsqError::INVALID_STATE); PERROR_COND; } //goto ERROR;
-    
+
     outer_crit->accumulate_outer( mesh, domain, obj_func, settings, err );
     if (MSQ_CHKERR(err)) { MSQ_SETERR(perr)(" outer_crit accumulate_outer", MsqError::INVALID_STATE); PERROR_COND; } //goto ERROR;
   }
 
-//ERROR: 
+//ERROR:
 
   if (MSQ_CHKERR(err)) {
     std::cout << "P[" << get_parallel_rank() << "] VertexMover::loop_over_mesh error = " << err.error_message() << std::endl;
@@ -928,7 +928,7 @@ double VertexMover::loop_over_mesh( ParallelMesh* mesh,
   return 0.;
 }
 
-    
+
 void VertexMover::initialize_queue( MeshDomainAssoc* mesh_and_domain,
                                     const Settings* settings,
                                     MsqError& err )
@@ -953,13 +953,13 @@ TagHandle VertexMover::get_jacobi_coord_tag( Mesh* mesh, MsqError& err )
     mesh->tag_properties( tag, name, type, length, err ); MSQ_ERRZERO(err);
     if (type != Mesh::DOUBLE || length != 3) {
       MSQ_SETERR(err)(TAG_ALREADY_EXISTS,
-                     "Tag \"%s\" already exists with invalid type", 
+                     "Tag \"%s\" already exists with invalid type",
                      tagname);
       return 0;
     }
   }
     */
-  
+
     // Initialize tag value with initial vertex coordinates so that
     // vertices that never get moved end up with the correct coords.
   std::vector<Mesh::VertexHandle> vertices;
@@ -990,7 +990,7 @@ TagHandle VertexMover::get_jacobi_coord_tag( Mesh* mesh, MsqError& err )
     }
     mesh->tag_set_vertex_data( tag, count, &vertices[i], tag_data, err ); MSQ_ERRZERO(err);
   }
-  
+
   return tag;
 }
 

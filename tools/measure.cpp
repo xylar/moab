@@ -29,7 +29,7 @@ using namespace moab;
 
 inline static double tet_volume( const CartVect& v0,
                                  const CartVect& v1,
-                                 const CartVect& v2, 
+                                 const CartVect& v2,
                                  const CartVect& v3 )
 {
   return 1./6. * ( ((v1 - v0) * (v2 - v0)) % (v3 - v0) );
@@ -62,7 +62,7 @@ double measure( moab::EntityType type,
       for (int i = 0; i < num_vertices; ++i)
         mid += coords[i];
       mid /= num_vertices;
-      
+
       double sum = 0.0;
       for (int i = 0; i < num_vertices; ++i)
       {
@@ -90,4 +90,4 @@ double measure( moab::EntityType type,
       return 0.0;
   }
 }
-      
+

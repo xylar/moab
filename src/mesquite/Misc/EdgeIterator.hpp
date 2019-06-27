@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2010 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2010) kraftche@cae.wisc.edu    
+    (2010) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file EdgeIterator.hpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #ifndef MSQ_EDGE_ITERATOR_HPP
@@ -42,7 +42,7 @@ namespace MBMesquite {
 /**\brief Iterate over all edges in a patch*/
 class EdgeIterator
 {
-public: 
+public:
   EdgeIterator( PatchData* patch, MsqError& err );
   inline bool is_at_end() const;
   inline const Vector3D& start() const;
@@ -66,7 +66,7 @@ private:
 
 
 inline bool operator<( const EdgeIterator::Edge& e1, const EdgeIterator::Edge& e2 )
-  { return e1.otherVertex < e2.otherVertex || 
+  { return e1.otherVertex < e2.otherVertex ||
           (e1.otherVertex == e2.otherVertex && e1.midVertex < e2.midVertex); }
 
 inline bool operator==( const EdgeIterator::Edge& e1, const EdgeIterator::Edge& e2 )
@@ -84,7 +84,7 @@ const Vector3D& EdgeIterator::end() const
   { return patchPtr->vertex_by_index( adjIter->otherVertex ); }
 
 const Vector3D* EdgeIterator::mid() const
-  { return adjIter->midVertex < patchPtr->num_nodes() ? 
+  { return adjIter->midVertex < patchPtr->num_nodes() ?
            &patchPtr->vertex_by_index( adjIter->midVertex ) : 0; }
 
 void EdgeIterator::step( MsqError& err )
@@ -93,7 +93,7 @@ void EdgeIterator::step( MsqError& err )
   {
     ++adjIter;
   }
-  
+
   while (adjIter == adjList.end() && ++vertIdx < patchPtr->num_nodes())
   {
     get_adjacent_vertices( err );  MSQ_ERRRTN(err);

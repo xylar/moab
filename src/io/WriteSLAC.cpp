@@ -1,16 +1,16 @@
 /**
  * MOAB, a Mesh-Oriented datABase, is a software component for creating,
  * storing and accessing finite element mesh data.
- * 
+ *
  * Copyright 2004 Sandia Corporation.  Under the terms of Contract
  * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
  * retains certain rights in this software.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  */
 
 #ifdef WIN32
@@ -98,7 +98,7 @@ WriteSLAC::WriteSLAC(Interface* impl)
   impl->tag_get_handle("WriteSLAC element mark", 1, MB_TYPE_BIT, mEntityMark, MB_TAG_CREAT);
 }
 
-WriteSLAC::~WriteSLAC() 
+WriteSLAC::~WriteSLAC()
 {
   mbImpl->release_interface(mWriteIface);
   mbImpl->tag_delete(mEntityMark);
@@ -200,7 +200,7 @@ ErrorCode WriteSLAC::write_file(const char *file_name,
   }
 
   fail = nc_close(ncFile);
-  if (NC_NOERR != fail) 
+  if (NC_NOERR != fail)
     return MB_FAILURE;
 
   return MB_SUCCESS;
@@ -270,7 +270,7 @@ ErrorCode WriteSLAC::gather_mesh_information(MeshInfo &mesh_info,
       MB_SET_ERR(MB_FAILURE, "Couldn't get matset id from a tag for an element matset");
     }
 
-    matset_data.id = id; 
+    matset_data.id = id;
     matset_data.number_attributes = 0;
 
     // Iterate through all the elements in the meshset
@@ -830,7 +830,7 @@ ErrorCode WriteSLAC::initialize_file(MeshInfo &mesh_info)
   // Initialization to avoid warnings on Linux
   int hexinterior = -1, hexinteriorsize, hexexterior = -1, hexexteriorsize = -1;
   int tetinterior = -1, tetinteriorsize, tetexterior = -1, tetexteriorsize = -1;
-  
+
   if (nc_def_dim(ncFile, "coord_size", (size_t)mesh_info.num_dim, &coord_size) != NC_NOERR) {
     MB_SET_ERR(MB_FAILURE, "WriteSLAC: failed to define number of dimensions");
   }

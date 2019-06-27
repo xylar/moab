@@ -1,5 +1,5 @@
 /** TSTT Mesh Interface brick mesh performance test
- * 
+ *
  * This program tests TSTT mesh interface functions used to create a square structured
  * mesh.  Boilerplate taken from tstt mesh interface test in MOAB and performance test in MOAB
  *
@@ -52,9 +52,9 @@ int main( int argc, char *argv[] )
     std::cout << "Usage: " << argv[0] << " <ints_per_side> <A|B|C>" << std::endl;
     return 1;
   }
-  
+
   char which_test = '\0';
-  
+
   sscanf(argv[1], "%d", &nelem);
   sscanf(argv[2], "%c", &which_test);
 
@@ -62,8 +62,8 @@ int main( int argc, char *argv[] )
       std::cout << "Must indicate B or C for test." << std::endl;
       return 1;
   }
-  
-  std::cout << "number of elements: " << nelem << "; test " 
+
+  std::cout << "number of elements: " << nelem << "; test "
             << which_test << std::endl;
 
     // initialize the data in native format
@@ -93,8 +93,8 @@ int main( int argc, char *argv[] )
     iMesh_dtor(mesh, &result);
     return 1;
   }
-  
-  
+
+
   switch (which_test) {
     case 'B':
         build_connect(nelem, 1, connect);
@@ -102,7 +102,7 @@ int main( int argc, char *argv[] )
         // test B: create mesh using bulk interface
         testB(mesh, nelem, coords, connect);
         break;
-      
+
     case 'C':
     // test C: create mesh using individual interface
       testC(mesh, nelem, coords);
@@ -110,27 +110,27 @@ int main( int argc, char *argv[] )
   }
 
   free(coords);
-  
+
   return 0;
 }
 
-void testB(iMesh_Instance mesh, 
+void testB(iMesh_Instance mesh,
            const int nelem, const double *coords,
-           int *connect) 
+           int *connect)
 {
   double utime, stime, ttime0, ttime1, ttime2, ttime3, ttime4;
   long imem0, rmem0, imem1, rmem1, imem2, rmem2, imem3, rmem3, imem4, rmem4;
-  
+
   print_time(false, ttime0, utime, stime, imem0, rmem0);
   int num_verts = (nelem + 1)*(nelem + 1)*(nelem + 1);
   int num_elems = nelem*nelem*nelem;
-  
+
     // create vertices as a block; initialize to NULL so allocation is done in interface
   iBase_EntityHandle *vertices = NULL;
   int vertices_allocated = 0, vertices_size;
   int result;
-  iMesh_createVtxArr(mesh, num_verts, iBase_BLOCKED, 
-                     coords, 3*num_verts, 
+  iMesh_createVtxArr(mesh, num_verts, iBase_BLOCKED,
+                     coords, 3*num_verts,
                      &vertices, &vertices_allocated, &vertices_size, &result);
   if (iBase_SUCCESS != result) {
     cerr << "Couldn't create vertices in bulk call" << endl;
@@ -142,7 +142,7 @@ void testB(iMesh_Instance mesh,
     // the format of entity handles
   int nconnect = 8 * num_elems;
   iBase_EntityHandle *sidl_connect = (iBase_EntityHandle*) malloc(nconnect*sizeof(iBase_EntityHandle));
-  
+
   for (int i = 0; i < nconnect; i++) {
       // use connect[i]-1 because we used starting vertex index (vstart) of 1
     assert(connect[i]-1 < num_verts);
@@ -152,14 +152,14 @@ void testB(iMesh_Instance mesh,
     // no longer need vertices and connect arrays, free here to reduce overall peak memory usage
   free(vertices);
   free(connect);
-  
+
     // create the entities
   iBase_EntityHandle *new_hexes = NULL;
   int new_hexes_allocated = 0, new_hexes_size;
   int *status = NULL;
   int status_allocated = 0, status_size;
-  
-  iMesh_createEntArr(mesh, iMesh_HEXAHEDRON, sidl_connect, nconnect, 
+
+  iMesh_createEntArr(mesh, iMesh_HEXAHEDRON, sidl_connect, nconnect,
                      &new_hexes, &new_hexes_allocated, &new_hexes_size,
                      &status, &status_allocated, &status_size, &result);
   if (iBase_SUCCESS != result) {
@@ -182,26 +182,26 @@ void testB(iMesh_Instance mesh,
   print_time(false, ttime2, utime, stime, imem2, rmem2);
 
   query_vert_to_elem(mesh);
-  
+
   print_time(false, ttime3, utime, stime, imem3, rmem3);
 
   iMesh_dtor(mesh, &result);
 
   print_time(false, ttime4, utime, stime, imem4, rmem4);
 
-  std::cout << "TSTTb/MOAB_ucd_blocked: nelem, construct, e_to_v, v_to_e, after_dtor = " 
+  std::cout << "TSTTb/MOAB_ucd_blocked: nelem, construct, e_to_v, v_to_e, after_dtor = "
             << nelem << ", "
-            << ttime1-ttime0 << ", " 
-            << ttime2-ttime1 << ", " 
-            << ttime3-ttime2 << ", " 
-            << ttime4-ttime3 << " seconds" 
+            << ttime1-ttime0 << ", "
+            << ttime2-ttime1 << ", "
+            << ttime3-ttime2 << ", "
+            << ttime4-ttime3 << " seconds"
             << std::endl;
-  std::cout << "TSTTb/MOAB_ucd_blocked_memory_(rss): initial, after_construction, e-v, v-e, after_dtor:" 
+  std::cout << "TSTTb/MOAB_ucd_blocked_memory_(rss): initial, after_construction, e-v, v-e, after_dtor:"
             << rmem0 << ", " << rmem1 << ", " << rmem2 << ", " << rmem3 <<  ", " << rmem4 << " kb" << std::endl;
 
 }
 
-void testC(iMesh_Instance mesh, const int nelem, const double *coords) 
+void testC(iMesh_Instance mesh, const int nelem, const double *coords)
 {
   double utime, stime, ttime0, ttime1, ttime2, ttime3, ttime4;
   long imem0, rmem0, imem1, rmem1, imem2, rmem2, imem3, rmem3, imem4, rmem4;
@@ -227,7 +227,7 @@ void testC(iMesh_Instance mesh, const int nelem, const double *coords)
     }
 
   }
-  
+
   iBase_EntityHandle tmp_conn[8], new_hex;
 
   for (int i=0; i < nelem; i++) {
@@ -242,11 +242,11 @@ void testC(iMesh_Instance mesh, const int nelem, const double *coords)
         tmp_conn[5] = sidl_vertices[vijk+1+numv*numv];
         tmp_conn[6] = sidl_vertices[vijk+1+numv+numv*numv];
         tmp_conn[7] = sidl_vertices[vijk+numv+numv*numv];
-        
+
           // create the entity
-  
+
         int status;
-        iMesh_createEnt(mesh, iMesh_HEXAHEDRON, tmp_conn, 8, 
+        iMesh_createEnt(mesh, iMesh_HEXAHEDRON, tmp_conn, 8,
                         &new_hex, &status, &result);
         if (iBase_SUCCESS != result) {
           cerr << "Couldn't create hex element in individual call" << endl;
@@ -259,28 +259,28 @@ void testC(iMesh_Instance mesh, const int nelem, const double *coords)
   print_time(false, ttime1, utime, stime, imem1, rmem1);
 
   free(sidl_vertices);
-  
+
     // query the mesh 2 ways
   query_elem_to_vert(mesh);
 
   print_time(false, ttime2, utime, stime, imem2, rmem2);
 
   query_vert_to_elem(mesh);
-  
+
   print_time(false, ttime3, utime, stime, imem3, rmem3);
 
   iMesh_dtor(mesh, &result);
 
   print_time(false, ttime4, utime, stime, imem4, rmem4);
 
-  std::cout << "TSTTb/MOAB_ucd_indiv: nelem, construct, e_to_v, v_to_e, after_dtor = " 
+  std::cout << "TSTTb/MOAB_ucd_indiv: nelem, construct, e_to_v, v_to_e, after_dtor = "
             << nelem << ", "
-            << ttime1-ttime0 << ", " 
-            << ttime2-ttime1 << ", " 
-            << ttime3-ttime2 << ", " 
-            << ttime4-ttime3 << " seconds" 
+            << ttime1-ttime0 << ", "
+            << ttime2-ttime1 << ", "
+            << ttime3-ttime2 << ", "
+            << ttime4-ttime3 << " seconds"
             << std::endl;
-  std::cout << "TSTTb/MOAB_ucd_indiv_memory_(rss): initial, after_construction, e-v, v-e, after_dtor:" 
+  std::cout << "TSTTb/MOAB_ucd_indiv_memory_(rss): initial, after_construction, e-v, v-e, after_dtor:"
             << rmem0 << ", " << rmem1 << ", " << rmem2 << ", " << rmem3 <<  ", " << rmem4 << " kb" << std::endl;
 
 }
@@ -298,10 +298,10 @@ void query_elem_to_vert(iMesh_Instance mesh)
     cerr << "Couldn't get root set." << endl;
     return;
   }
-  
-  iMesh_getEntities(mesh, root_set, iBase_REGION, 
-                    iMesh_HEXAHEDRON, 
-                    &all_hexes, &all_hexes_allocated, 
+
+  iMesh_getEntities(mesh, root_set, iBase_REGION,
+                    iMesh_HEXAHEDRON,
+                    &all_hexes, &all_hexes_allocated,
                     &all_hexes_size, &success);
   if (iBase_SUCCESS != success) {
     cerr << "Couldn't get all hex elements in query_mesh" << endl;
@@ -321,15 +321,15 @@ void query_elem_to_vert(iMesh_Instance mesh)
       // get the connectivity of this element; will allocate space on 1st iteration,
       // but will have correct size on subsequent ones
     iMesh_getEntAdj(mesh, all_hexes[i], iBase_VERTEX,
-                    &dum_connect, &dum_connect_allocated, &dum_connect_size, 
+                    &dum_connect, &dum_connect_allocated, &dum_connect_size,
                     &success);
 
     if (iBase_SUCCESS == success) {
         // get vertex coordinates; ; will allocate space on 1st iteration,
         // but will have correct size on subsequent ones
-      iMesh_getVtxArrCoords(mesh, dum_connect, dum_connect_size, 
+      iMesh_getVtxArrCoords(mesh, dum_connect, dum_connect_size,
                             order,
-                            &dum_coords, &dum_coords_allocated, 
+                            &dum_coords, &dum_coords_allocated,
                             &dum_coords_size, &success);
 
       double centroid[3] = {0.0, 0.0, 0.0};
@@ -348,13 +348,13 @@ void query_elem_to_vert(iMesh_Instance mesh)
         }
       }
     }
-      
+
     if (iBase_SUCCESS != success) {
       cerr << "Problem getting connectivity or vertex coords." << endl;
       return;
     }
   }
-  
+
   free(all_hexes);
   free(dum_connect);
   free(dum_coords);
@@ -374,8 +374,8 @@ void query_vert_to_elem(iMesh_Instance mesh)
   }
 
     // get all the vertices elements
-  iMesh_getEntities(mesh, root_set, iBase_VERTEX, 
-                    iMesh_POINT, &all_verts, 
+  iMesh_getEntities(mesh, root_set, iBase_VERTEX,
+                    iMesh_POINT, &all_verts,
                     &all_verts_allocated, &all_verts_size, &success);
   if (iBase_SUCCESS != success) {
     cerr << "Couldn't get all vertices in query_vert_to_elem" << endl;
@@ -384,7 +384,7 @@ void query_vert_to_elem(iMesh_Instance mesh)
 
     // for this mesh, should never be more than 8 hexes connected to a vertex
   iBase_EntityHandle *dum_hexes = (iBase_EntityHandle*) calloc(8, sizeof(iBase_EntityHandle));
-  
+
   int dum_hexes_allocated = 8, dum_hexes_size;
 
     // now loop over vertices
@@ -406,7 +406,7 @@ void query_vert_to_elem(iMesh_Instance mesh)
 }
 
 void print_time(const bool print_em, double &tot_time, double &utime, double &stime,
-                long &imem, long &rmem) 
+                long &imem, long &rmem)
 {
   struct rusage r_usage;
   getrusage(RUSAGE_SELF, &r_usage);
@@ -416,7 +416,7 @@ void print_time(const bool print_em, double &tot_time, double &utime, double &st
      ((double)r_usage.ru_stime.tv_usec/1.e6);
   tot_time = utime + stime;
   if (print_em)
-    std::cout << "User, system, total time = " << utime << ", " << stime 
+    std::cout << "User, system, total time = " << utime << ", " << stime
               << ", " << tot_time << std::endl;
 
 #ifndef LINUX
@@ -426,13 +426,13 @@ void print_time(const bool print_em, double &tot_time, double &utime, double &st
   std::cout << "Int resident set size = " << r_usage.ru_idrss << " kbytes" << std::endl;
 #else
   imem = rmem = 0;
-  system("ps o args,drs,rss | grep perf | grep -v grep");  // RedHat 9.0 doesnt fill in actual memory data 
+  system("ps o args,drs,rss | grep perf | grep -v grep");  // RedHat 9.0 doesnt fill in actual memory data
 #endif
     //delete [] hex_array;
 }
 
 void compute_edge(double *start, const int nelem,  const double xint,
-                  const int stride) 
+                  const int stride)
 {
   for (int i = 1; i < nelem; i++) {
     start[i*stride] = start[0]+i*xint;
@@ -442,14 +442,14 @@ void compute_edge(double *start, const int nelem,  const double xint,
 }
 
 void compute_face(double *a, const int nelem,  const double xint,
-                  const int stride1, const int stride2) 
+                  const int stride1, const int stride2)
 {
     // 2D TFI on a face starting at a, with strides stride1 in ada and stride2 in tse
   for (int j = 1; j < nelem; j++) {
     double tse = j * xint;
     for (int i = 1; i < nelem; i++) {
       double ada = i * xint;
-      
+
       a[i*stride1+j*stride2] = (1.0 - ada)*a[i*stride1]
         + ada*a[i*stride1+nelem*stride2]
         + (1.0 - tse)*a[j*stride2]
@@ -478,7 +478,7 @@ void compute_face(double *a, const int nelem,  const double xint,
   }
 }
 
-void build_coords(const int nelem, double *&coords) 
+void build_coords(const int nelem, double *&coords)
 {
   double ttime0, ttime1, utime1, stime1;
   long imem, rmem;
@@ -543,8 +543,8 @@ void build_coords(const int nelem, double *&coords)
   int adaInts = nelem;
   int tseInts = nelem;
   int gammaInts = nelem;
-  
-  
+
+
   for (int i=1; i < nelem; i++) {
     for (int j=1; j < nelem; j++) {
       for (int k=1; k < nelem; k++) {
@@ -577,31 +577,31 @@ void build_coords(const int nelem, double *&coords)
         double *atjk = &coords[VINDEX(k,j,tseInts)];
         double *aij0 = &coords[VINDEX(0,j,i)];
         double *aijg = &coords[VINDEX(gammaInts,j,i)];
-  
-        coords[VINDEX(i,j,k)] = (   am1*ai0k[0] 
-                                    + ada*aiak[0] 
-                                    + tm1*a0jk[0] 
+
+        coords[VINDEX(i,j,k)] = (   am1*ai0k[0]
+                                    + ada*aiak[0]
+                                    + tm1*a0jk[0]
                                     + tse*atjk[0]
-                                    + gm1*aij0[0] 
+                                    + gm1*aij0[0]
                                     + gamma*aijg[0] )/2.0 - cX/2.0;
 
-        coords[nelem+1+VINDEX(i,j,k)] = (   am1*ai0k[nelem+1] 
-                                            + ada*aiak[nelem+1] 
-                                            + tm1*a0jk[nelem+1] 
+        coords[nelem+1+VINDEX(i,j,k)] = (   am1*ai0k[nelem+1]
+                                            + ada*aiak[nelem+1]
+                                            + tm1*a0jk[nelem+1]
                                             + tse*atjk[nelem+1]
-                                            + gm1*aij0[nelem+1] 
+                                            + gm1*aij0[nelem+1]
                                             + gamma*aijg[nelem+1] )/2.0 - cY/2.0;
 
-        coords[2*(nelem+1)+VINDEX(i,j,k)] = (   am1*ai0k[2*(nelem+1)] 
-                                                + ada*aiak[2*(nelem+1)] 
-                                                + tm1*a0jk[2*(nelem+1)] 
+        coords[2*(nelem+1)+VINDEX(i,j,k)] = (   am1*ai0k[2*(nelem+1)]
+                                                + ada*aiak[2*(nelem+1)]
+                                                + tm1*a0jk[2*(nelem+1)]
                                                 + tse*atjk[2*(nelem+1)]
-                                                + gm1*aij0[2*(nelem+1)] 
+                                                + gm1*aij0[2*(nelem+1)]
                                                 + gamma*aijg[2*(nelem+1)] )/2.0 - cZ/2.0;
       }
     }
   }
-  
+
 
 #else
   for (int i=0; i < numv; i++) {
@@ -618,11 +618,11 @@ void build_coords(const int nelem, double *&coords)
 #endif
 
   print_time(false, ttime1, utime1, stime1, imem, rmem);
-  std::cout << "TSTTbinding/MOAB: TFI time = " << ttime1-ttime0 << " sec" 
+  std::cout << "TSTTbinding/MOAB: TFI time = " << ttime1-ttime0 << " sec"
             << std::endl;
 }
 
-void build_connect(const int nelem, const int vstart, int *&connect) 
+void build_connect(const int nelem, const int vstart, int *&connect)
 {
     // allocate the memory
   int nume_tot = nelem*nelem*nelem;

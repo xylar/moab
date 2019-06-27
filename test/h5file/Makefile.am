@@ -8,8 +8,8 @@ AM_CPPFLAGS =  $(BGDEF)-DSRCDIR=$(srcdir) \
                -I$(top_srcdir)/src/io/mhdf/include \
                -I$(top_builddir)/src \
                -I$(top_srcdir)/src/parallel \
-	       -I$(top_builddir)/src/parallel 
-            
+	       -I$(top_builddir)/src/parallel
+
 TESTS = h5test \
         h5legacy \
         h5varlen \

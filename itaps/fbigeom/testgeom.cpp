@@ -3,7 +3,7 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  */
 /**
  * \file testgeom.cc
@@ -27,7 +27,7 @@
 #define STRINGIFY(S) XSTRINGIFY(S)
 #define XSTRINGIFY(S) #S
 
-static bool print_error( const char* desc, 
+static bool print_error( const char* desc,
                          int err,
                          FBiGeom_Instance geom,
                          const char* file,
@@ -36,13 +36,13 @@ static bool print_error( const char* desc,
   char buffer[1024];
   FBiGeom_getDescription( geom, buffer, sizeof(buffer) );
   buffer[sizeof(buffer)-1] = '\0';
-  
+
   std::cerr << "ERROR: " << desc << std::endl
             << "  Error code: " << err << std::endl
             << "  Error desc: " << buffer << std::endl
             << "  At        : " << file << ':' << line << std::endl
             ;
-  
+
   return false; // must always return false or CHECK macro will break
 }
 
@@ -57,7 +57,7 @@ template <typename T> class SimpleArray
     T* arr;
     int arrSize;
     int arrAllocated;
-     
+
   public:
     SimpleArray() : arr(0) , arrSize(0), arrAllocated(0) {}
     SimpleArray( unsigned s ) :arrSize(s), arrAllocated(s) {
@@ -65,7 +65,7 @@ template <typename T> class SimpleArray
       for (unsigned i = 0; i < s; ++i)
         new (arr+i) T();
     }
-    
+
     ~SimpleArray() {
       for (int i = 0; i < size(); ++i)
         arr[i].~T();
@@ -77,15 +77,15 @@ template <typename T> class SimpleArray
     int  size()     const { return arrSize; }
     int& capacity()       { return arrAllocated; }
     int  capacity() const { return arrAllocated; }
-    
+
     typedef T* iterator;
     typedef const T* const_iterator;
     iterator       begin()       { return arr; }
     const_iterator begin() const { return arr; }
     iterator         end()       { return arr + arrSize; }
     const_iterator   end() const { return arr + arrSize; }
-    
-    
+
+
     T& operator[]( unsigned idx )       { return arr[idx]; }
     T  operator[]( unsigned idx ) const { return arr[idx]; }
 };
@@ -119,7 +119,7 @@ void handle_error_code(const bool result,
     number_successful++;
   }
   else {
-    std::cout << "Failure";    
+    std::cout << "Failure";
     number_failed++;
   }
 }
@@ -161,7 +161,7 @@ int main( int argc, char *argv[] )
                     number_tests_successful);
   number_tests++;
   std::cout << "\n";
-  
+
     // tags test
   std::cout << "   tags: ";
   result = tags_test(geom);
@@ -206,7 +206,7 @@ int main( int argc, char *argv[] )
                     number_tests_successful);
   number_tests++;
   std::cout << "\n";
-  
+
     // primitives test
   std::cout << "   primitives: ";
   result = primitives_test(geom);
@@ -233,7 +233,7 @@ int main( int argc, char *argv[] )
                     number_tests_successful);
   number_tests++;
   std::cout << "\n";
-  
+
 #if defined(HAVE_ACIS) && !defined(FORCE_OCC)
   std::cout << "   mesh size: ";
   result = mesh_size_test(geom);
@@ -251,8 +251,8 @@ int main( int argc, char *argv[] )
                     number_tests_successful);
   number_tests++;
   std::cout << "\n";
-#endif  
-  */  
+#endif
+  */
     // shutdown test
   std::cout << "   shutdown: ";
   result = shutdown_test(geom, engine_opt);
@@ -261,7 +261,7 @@ int main( int argc, char *argv[] )
                     number_tests_successful);
   number_tests++;
   std::cout << "\n";
-  
+
 
     // summary
 
@@ -269,14 +269,14 @@ int main( int argc, char *argv[] )
             << "   Number Tests:           " << number_tests << "\n"
             << "   Number Successful:      " << number_tests_successful << "\n"
             << "   Number Not Implemented: " << number_tests_not_implemented << "\n"
-            << "   Number Failed:          " << number_tests_failed 
+            << "   Number Failed:          " << number_tests_failed
             << "\n\n" << std::endl;
-  
+
   return number_tests_failed;
 }
 
 /*!
-  @test 
+  @test
   Load Mesh
   @li Load a mesh file
 */
@@ -285,11 +285,11 @@ bool gLoad_test(const std::string &filename, FBiGeom_Instance geom)
   int err;
   FBiGeom_load( geom, &filename[0], 0, &err, filename.length(), 0 );
   CHECK( "ERROR : can not load a geometry" );
-  
+
   iBase_EntitySetHandle root_set;
   FBiGeom_getRootSet( geom, &root_set, &err );
   CHECK( "ERROR : getRootSet failed!" );
-  
+
     // print out the number of entities
   std::cout << "Model contents: " << std::endl;
   const char *gtype[] = {"vertices: ", "edges: ", "faces: ", "regions: "};
@@ -304,7 +304,7 @@ bool gLoad_test(const std::string &filename, FBiGeom_Instance geom)
 }
 
 /*!
-  @test 
+  @test
   Test tag creating, reading, writing, deleting
   @li Load a mesh file
 */
@@ -312,17 +312,17 @@ bool tags_test(FBiGeom_Instance geom)
 {
   bool success = tag_info_test(geom);
   if (!success) return success;
-  
+
   success = tag_get_set_test(geom);
   if (!success) return success;
 
   return true;
 }
 
-bool tag_info_test(FBiGeom_Instance geom) 
+bool tag_info_test(FBiGeom_Instance geom)
 {
   int err;
-  
+
   iBase_EntitySetHandle root_set;
   FBiGeom_getRootSet( geom, &root_set, &err );
   CHECK( "ERROR : getRootSet failed!" );
@@ -334,23 +334,23 @@ bool tag_info_test(FBiGeom_Instance geom)
   CHECK( "ERROR : can not create a tag." );
 
     // get information on the tag
-  
+
   char name_buffer[256];
   FBiGeom_getTagName( geom, this_tag, name_buffer, &err, sizeof(name_buffer) );
   CHECK( "ERROR : Couldn't get tag name." );
   if (tag_name != name_buffer) {
-    std::cerr << "ERROR: getTagName returned '" << name_buffer 
+    std::cerr << "ERROR: getTagName returned '" << name_buffer
               << "' for tag created as '" << tag_name << "'" << std::endl;
     return false;
   }
-  
-  
+
+
   FBiGeom_getTagHandle( geom, &tag_name[0], &tmp_handle, &err, tag_name.length() );
   CHECK( "ERROR : Couldn't get tag handle." );
   if (tmp_handle != this_tag) {
     std::cerr << "ERROR: getTagHandle didn't return consistent result." << std::endl;
     return false;
-  }  
+  }
 
   int tag_size;
   FBiGeom_getTagSizeBytes( geom, this_tag, &tag_size, &err );
@@ -371,11 +371,11 @@ bool tag_info_test(FBiGeom_Instance geom)
   FBiGeom_getTagType( geom, this_tag, &tag_type, &err );
   CHECK( "ERROR : Couldn't get tag type." );
   if (tag_type != iBase_BYTES) {
-    std::cerr << "ERROR: getTagType: expected " << iBase_BYTES 
+    std::cerr << "ERROR: getTagType: expected " << iBase_BYTES
               << ", got " << tag_type << std::endl;
     return false;
   }
-  
+
   FBiGeom_destroyTag( geom, this_tag, true, &err );
   CHECK( "ERROR : Couldn't delete a tag." );
 
@@ -383,7 +383,7 @@ bool tag_info_test(FBiGeom_Instance geom)
 
   std::set<iBase_TagHandle> tags;
   SimpleArray<iBase_EntityHandle> entities;
-  FBiGeom_getEntities( geom, root_set, iBase_ALL_TYPES, 
+  FBiGeom_getEntities( geom, root_set, iBase_ALL_TYPES,
                      ARRAY_INOUT(entities),  &err );
   CHECK( "getEntities( ..., iBase_ALL_TYPES, ... ) failed." );
   for (int i = 0; i < entities.size(); ++i) {
@@ -392,14 +392,14 @@ bool tag_info_test(FBiGeom_Instance geom)
     CHECK( "getAllTags failed." );
     std::copy( tag_arr.begin(), tag_arr.end(), std::inserter( tags, tags.begin() ) );
   }
-  
+
   std::cout << "Tags defined on model: ";
   bool first = true;
   for (std::set<iBase_TagHandle>::iterator sit = tags.begin(); sit != tags.end(); ++sit) {
     FBiGeom_getTagName( geom, *sit, name_buffer, &err, sizeof(name_buffer) );
     name_buffer[sizeof(name_buffer)-1] = '\0'; // mnake sure of NUL termination
     CHECK( "getTagName failed." );
-    
+
     if (!first) std::cout << ", ";
     std::cout << name_buffer;
     first = false;
@@ -410,20 +410,20 @@ bool tag_info_test(FBiGeom_Instance geom)
   return true;
 }
 
-bool tag_get_set_test(FBiGeom_Instance geom) 
+bool tag_get_set_test(FBiGeom_Instance geom)
 {
   int err;
-  
+
     // create an arbitrary tag, size 4
   iBase_TagHandle this_tag;
   std::string tag_name("tag_get_set tag");
   FBiGeom_createTag( geom, &tag_name[0], sizeof(int), iBase_BYTES, &this_tag, &err, tag_name.length() );
   CHECK( "ERROR : can not create a tag for get_set test." );
-  
+
   iBase_EntitySetHandle root_set;
   FBiGeom_getRootSet( geom, &root_set, &err );
   CHECK( "ERROR : getRootSet failed!" );
-  
+
     // set this tag to an integer on each entity; keep track of total sum
   int sum = 0, num = 0, dim;
   for (dim = 0; dim <= 3; dim++) {
@@ -436,36 +436,36 @@ bool tag_get_set_test(FBiGeom_Instance geom)
       sum += num;
       ++num;
     }
-    
+
     FBiGeom_setArrData( geom, ARRAY_IN( gentity_handles ),
-                      this_tag, 
+                      this_tag,
                       (char*)&tag_vals[0], tag_vals.size()*sizeof(int),
                       &err );
     CHECK( "ERROR : can't set tag on entities" );
   }
-  
+
     // check tag values for entities now
   int get_sum = 0;
   for (dim = 0; dim <= 3; dim++) {
     SimpleArray<iBase_EntityHandle> gentity_handles;
     FBiGeom_getEntities( geom, root_set, dim, ARRAY_INOUT( gentity_handles ), &err );
     int num_ents = gentity_handles.size();
-    
+
     SimpleArray<char> tag_vals;
-    FBiGeom_getArrData( geom, ARRAY_IN( gentity_handles ), this_tag, 
+    FBiGeom_getArrData( geom, ARRAY_IN( gentity_handles ), this_tag,
         (void**)tag_vals.ptr(), &tag_vals.capacity(), &tag_vals.size(), &err );
     CHECK( "ERROR : can't get tag on entities" );
-    
+
     int* tag_ptr = (int*)(&tag_vals[0]);
     for (int i = 0; i < num_ents; ++i)
       get_sum += tag_ptr[i];
   }
-  
+
   if (get_sum != sum) {
     std::cerr << "ERROR: getData didn't return consistent results." << std::endl;
     return false;
   }
-  
+
   FBiGeom_destroyTag( geom, this_tag, true, &err );
   CHECK( "ERROR : couldn't delete tag." );
 
@@ -489,7 +489,7 @@ bool gentityset_test(FBiGeom_Instance geom, bool /*multiset*/, bool /*ordered*/)
   iBase_EntitySetHandle root_set;
   FBiGeom_getRootSet( geom, &root_set, &err );
   CHECK( "ERROR : getRootSet failed!" );
-  
+
     // get the number of sets in the whole model
   int all_sets = 0;
   FBiGeom_getNumEntSets( geom, root_set, 0, &all_sets, &err );
@@ -505,11 +505,11 @@ bool gentityset_test(FBiGeom_Instance geom, bool /*multiset*/, bool /*ordered*/)
     SimpleArray<iBase_EntityHandle> gentities;
     FBiGeom_getEntities( geom, root_set, ent_type, ARRAY_INOUT(gentities), &err );
     CHECK( "Failed to get gentities by type in gentityset_test." );
-    
+
       // add gentities into gentity set
     FBiGeom_addEntArrToSet( geom, ARRAY_IN( gentities ), ges_array[ent_type], &err );
     CHECK( "Failed to add gentities in entityset_test." );
-    
+
       // Check to make sure entity set really has correct number of entities in it
     FBiGeom_getNumOfType( geom, ges_array[ent_type], ent_type, &number_array[ent_type], &err );
     CHECK( "Failed to get number of gentities by type in entityset_test." );
@@ -566,7 +566,7 @@ bool gentityset_test(FBiGeom_Instance geom, bool /*multiset*/, bool /*ordered*/)
     // subtract EDGEs
   FBiGeom_subtract( geom, temp_ges1, ges_array[iBase_EDGE], &temp_ges1, &err );
   CHECK( "Failed to subtract gentitysets in gentityset_test." );
-  
+
   FBiGeom_getEntities( geom, temp_ges1, iBase_FACE, ARRAY_INOUT(temp_gentities1), &err );
   CHECK( "Failed to get gface gentities in gentityset_test." );
 
@@ -600,7 +600,7 @@ bool gentityset_test(FBiGeom_Instance geom, bool /*multiset*/, bool /*ordered*/)
     std::cerr << "failed to remove correctly." << std::endl;
     return false;
   }
-  
+
     // add EDGEs to temp ges1
   FBiGeom_addEntArrToSet( geom, ARRAY_IN(gedges), temp_ges1, &err );
   CHECK( "Failed to add gedge gentities in gentityset_test." );
@@ -609,11 +609,11 @@ bool gentityset_test(FBiGeom_Instance geom, bool /*multiset*/, bool /*ordered*/)
   FBiGeom_addEntArrToSet( geom, ARRAY_IN(gfaces), temp_ges1, &err );
   CHECK( "Failed to add gface gentities in gentityset_test." );
 
-    // intersect temp_ges1 with gedges set 
+    // intersect temp_ges1 with gedges set
     // temp_ges1 entityset is altered
   FBiGeom_intersect( geom, temp_ges1, ges_array[iBase_EDGE], &temp_ges1, &err );
   CHECK( "Failed to intersect in gentityset_test." );
-  
+
     // try to get FACEs, but there should be nothing but EDGE
   FBiGeom_getNumOfType( geom, temp_ges1, iBase_FACE, &num_gents, &err );
   CHECK( "Failed to get gface gentities in gentityset_test." );
@@ -632,10 +632,10 @@ bool gentityset_test(FBiGeom_Instance geom, bool /*multiset*/, bool /*ordered*/)
 
   FBiGeom_createEntSet( geom, true, &temp_ges2, &err );
   CHECK( "Failed to create a temp gentityset in gentityset_test." );
-  
+
   FBiGeom_getEntities( geom, ges_array[iBase_REGION], iBase_REGION, ARRAY_INOUT(gregions), &err );
   CHECK( "Failed to get gregion gentities in gentityset_test." );
-  
+
     // add REGIONs to temp es2
   FBiGeom_addEntArrToSet( geom, ARRAY_IN(gregions), temp_ges2, &err );
   CHECK( "Failed to add gregion gentities in gentityset_test." );
@@ -648,7 +648,7 @@ bool gentityset_test(FBiGeom_Instance geom, bool /*multiset*/, bool /*ordered*/)
     // perform the check
   FBiGeom_getNumOfType( geom, temp_ges1, iBase_REGION, &num_gents, &err );
   CHECK( "Failed to get number of gregion gentities by type in gentityset_test." );
-  
+
   if (num_gents != number_array[iBase_REGION]) {
     std::cerr << "different number of gregions in gentityset_test." << std::endl;
     return false;
@@ -758,15 +758,15 @@ bool gentityset_test(FBiGeom_Instance geom, bool /*multiset*/, bool /*ordered*/)
     std::cerr << "ges_array[TSTTG::REGION] and ges_array[TSTTG::EntityType_FACE] should not be related" << std::endl;
     return false;
   }
-  
+
 
     //--------test modify and query functions-----------------------------
-  
+
     // check the number of gentity sets in whole mesh
   SimpleArray<iBase_EntitySetHandle> gentity_sets;
   FBiGeom_getEntSets( geom, root_set, 1, ARRAY_INOUT( gentity_sets ), &err );
   CHECK( "Problem to get all gentity sets in mesh." );
-  
+
   if (gentity_sets.size() != all_sets + 8) {
     std::cerr << "the number of gentity sets in whole mesh should be 8 times of num_iter."
               << std::endl;
@@ -782,7 +782,7 @@ bool gentityset_test(FBiGeom_Instance geom, bool /*multiset*/, bool /*ordered*/)
   int num_super;
   FBiGeom_getNumEntSets( geom, super_set, 1, &num_super, &err );
   CHECK( "Problem to get the number of all gentity sets in super set." );
-  
+
     // the number of gentity sets in super set should be same
   if (num_super != ges_array1.size()) {
     std::cerr << "the number of gentity sets in super set should be same." << std::endl;
@@ -793,7 +793,7 @@ bool gentityset_test(FBiGeom_Instance geom, bool /*multiset*/, bool /*ordered*/)
   SimpleArray<iBase_EntitySetHandle> all_gentities;
   FBiGeom_getEntSets( geom, super_set, 1, ARRAY_INOUT( all_gentities ), &err );
   CHECK( "Problem to get all gentities in super set." );
-  
+
     // compare the number of all gentities in super set
   // HJK : num_hops is not implemented
   //if (num_all_gentities_super != ARRAY_SIZE(all_gentities)) {
@@ -813,13 +813,13 @@ bool gentityset_test(FBiGeom_Instance geom, bool /*multiset*/, bool /*ordered*/)
       FBiGeom_addEntSet( geom, ges_array1[a], ges_k, &err );
       CHECK( "Problem to add entity set." );
     }
-    
+
       // add super set to each entity set
     //    sidl::array<GentitysetHandle> superset_array
     //= sidl::array<GentitysetHandle>::create1d(1);
     //superset_array.set(0, super_set);
     //int num_superset_array;
-    
+
     FBiGeom_addEntSet( geom, super_set, ges_k, &err );
     CHECK( "Problem to add super set to gentitysets." );
 
@@ -838,7 +838,7 @@ bool gentityset_test(FBiGeom_Instance geom, bool /*multiset*/, bool /*ordered*/)
 
   return true;
 }
-  
+
 /*!
 @test
 TSTTG topology adjacencies Test
@@ -866,7 +866,7 @@ bool topology_adjacencies_test(FBiGeom_Instance geom)
     SimpleArray<iBase_EntityHandle> gentities;
     FBiGeom_getEntities( geom, root_set, i, ARRAY_INOUT( gentities ), &err );
     CHECK("Failed to get gentities in adjacencies_test.");
-  
+
     gentity_vectors[i].resize( gentities.size() );
     std::copy( gentities.begin(), gentities.end(), gentity_vectors[i].begin() );
   }
@@ -876,9 +876,9 @@ bool topology_adjacencies_test(FBiGeom_Instance geom)
     int num_tops = 0;
     FBiGeom_getNumOfType( geom, root_set, i, &num_tops, &err );
     CHECK( "Failed to get number of gentities in adjacencies_test." );
-    
+
     if (static_cast<int>(gentity_vectors[i].size()) != num_tops) {
-      std::cerr << "Number of gentities doesn't agree with number returned for dimension " 
+      std::cerr << "Number of gentities doesn't agree with number returned for dimension "
                 << i << std::endl;
       return false;
     }
@@ -944,11 +944,11 @@ bool geometry_evaluation_test(FBiGeom_Instance geom)
     SimpleArray<iBase_EntityHandle> gentities;
     FBiGeom_getEntities( geom, root_set, i, ARRAY_INOUT( gentities ), &err );
     CHECK("Failed to get gentities in adjacencies_test.");
-  
+
     gentity_vectors[i].resize( gentities.size() );
     std::copy( gentities.begin(), gentities.end(), gentity_vectors[i].begin() );
   }
- 
+
   // check adjacencies in both directions
   double min[3], max[3], on[3];
   double near[3] = {.0, .0, .0};
@@ -986,7 +986,7 @@ bool construct_test(FBiGeom_Instance geom)
   FBiGeom_createCylinder( geom, 1.0, 1.0, 0.0, &cyl, &err );
     // Is the minor radius really supposed to be zero??? - JK
   CHECK( "Creating cylinder failed." );
-  
+
     // move it onto the y axis
   FBiGeom_moveEnt( geom, cyl, 0.0, 1.0, -0.5, &err );
   CHECK( "Problems moving surface." );
@@ -996,9 +996,9 @@ bool construct_test(FBiGeom_Instance geom)
   SimpleArray<iBase_EntityHandle> surfs;
   FBiGeom_getEntAdj( geom, cyl, iBase_FACE, ARRAY_INOUT(surfs), &err );
   CHECK( "Problems getting max surf for rotation." );
-  
+
   SimpleArray<double> max_corn, min_corn;
-  FBiGeom_getArrBoundBox( geom, ARRAY_IN(surfs), iBase_INTERLEAVED, 
+  FBiGeom_getArrBoundBox( geom, ARRAY_IN(surfs), iBase_INTERLEAVED,
                         ARRAY_INOUT( min_corn ),
                         ARRAY_INOUT( max_corn ),
                         &err );
@@ -1010,24 +1010,24 @@ bool construct_test(FBiGeom_Instance geom)
       max_surf = surfs[i];
       break;
     }
-  }  
-  
+  }
+
   if (0 == max_surf) {
     std::cerr << "Couldn't find max surf for rotation." << std::endl;
     return false;
   }
-  
+
     // sweep it around the x axis
   FBiGeom_moveEnt( geom, cyl, 0.0, 1.0, 0.0, &err );
   CHECK( "Problems moving surface." );
 
   FBiGeom_sweepEntAboutAxis( geom, max_surf, 360.0, 1.0, 0.0, 0.0, &new_body, &err );
   CHECK( "Problems sweeping surface about axis." );
-  
+
     // now delete
   FBiGeom_deleteEnt( geom, new_body, &err );
   CHECK( "Problems deleting cylinder or swept surface body." );
-  
+
     // if we got here, we were successful
   return true;
 }
@@ -1039,71 +1039,71 @@ static bool compare_box( const double* expected_min,
 {
   bool same = true;
   double dtol = 1.0e-6;
-  
+
   for (int i = 0; i < 3; ++i)
   {
-    if (expected_min[i] < actual_min[i] - dtol || 
+    if (expected_min[i] < actual_min[i] - dtol ||
         expected_min[i]*10 >  actual_min[i] ||
         expected_max[i] > actual_max[i] + dtol ||
-        expected_max[i]*10 < actual_max[i])  
+        expected_max[i]*10 < actual_max[i])
       same = false;
-  } 
+  }
   return same;
 }
 
-bool primitives_test(FBiGeom_Instance geom) 
+bool primitives_test(FBiGeom_Instance geom)
 {
   int err;
   SimpleArray<iBase_EntityHandle> prims(3);
   iBase_EntityHandle prim;
- 
+
   FBiGeom_createBrick( geom, 1.0, 2.0, 3.0, &prim, &err );
   CHECK( "createBrick failed." );
   prims[0] = prim;
-  
+
   FBiGeom_createCylinder( geom, 1.0, 4.0, 2.0, &prim, &err );
   CHECK( "createCylinder failed." );
   prims[1] = prim;
-  
+
   FBiGeom_createTorus( geom, 2.0, 1.0, &prim, &err );
   CHECK( "createTorus failed." );
   prims[2] = prim;
-  
+
     // verify the bounding boxes for Acis based entities
   SimpleArray<double> max_corn, min_corn;
-  FBiGeom_getArrBoundBox( geom, ARRAY_IN(prims), iBase_INTERLEAVED, 
+  FBiGeom_getArrBoundBox( geom, ARRAY_IN(prims), iBase_INTERLEAVED,
                         ARRAY_INOUT(min_corn), ARRAY_INOUT(max_corn), &err );
 
-  double preset_min_corn[] = 
+  double preset_min_corn[] =
       // min brick corner xyz
-    {-0.5, -1.0, -1.5, 
+    {-0.5, -1.0, -1.5,
       // min cyl corner xyz
      -4.0, -2.0, -0.5,
       // min torus corner xyz
      -3.0, -3.0, -1.0
     };
-  
-  double preset_max_corn[] = 
+
+  double preset_max_corn[] =
       // max brick corner xyz
-    {0.5, 1.0, 1.5, 
+    {0.5, 1.0, 1.5,
       // max cyl corner xyz
      4.0, 2.0, 0.5,
       // max torus corner xyz
      3.0, 3.0, 1.0
     };
-  
+
   if (!compare_box( preset_min_corn, preset_max_corn,
                     &min_corn[0], &max_corn[0] )) {
     std::cerr << "Box check failed for brick" << std::endl;
     return false;
   }
-  
+
   if (!compare_box( preset_min_corn+3, preset_max_corn+3,
                     &min_corn[3], &max_corn[3] )) {
     std::cerr << "Box check failed for cylinder" << std::endl;
     return false;
   }
-  
+
   if (!compare_box( preset_min_corn+6, preset_max_corn+6,
                     &min_corn[6], &max_corn[6] )) {
     std::cerr << "Box check failed for torus" << std::endl;
@@ -1114,30 +1114,30 @@ bool primitives_test(FBiGeom_Instance geom)
     FBiGeom_deleteEnt( geom, prims[i], &err );
     CHECK( "Problems deleting primitive after boolean check." );
   }
-  
+
   return true;
 }
-  
-bool transforms_test(FBiGeom_Instance geom) 
+
+bool transforms_test(FBiGeom_Instance geom)
 {
   int err;
-  
+
     // construct a brick
   iBase_EntityHandle brick = 0;
   FBiGeom_createBrick( geom, 1.0, 2.0, 3.0, &brick, &err );
   CHECK( "Problems creating brick for transforms test." );
-  
+
     // move it, then test bounding box
   FBiGeom_moveEnt( geom, brick, 0.5, 1.0, 1.5, &err );
   CHECK( "Problems moving brick for transforms test." );
-  
+
   double bb_min[3], bb_max[3];
   FBiGeom_getEntBoundBox( geom, brick, bb_min, bb_min+1, bb_min+2, bb_max, bb_max+1, bb_max+2, &err );
   CHECK( "Problems getting bounding box after move." );
 
   double dtol = 1.0e-6;
-  if ((bb_min[0]) >= dtol || (bb_min[0]) <= -dtol || 
-      (bb_min[1]) >= dtol || (bb_min[1]) <= -dtol || 
+  if ((bb_min[0]) >= dtol || (bb_min[0]) <= -dtol ||
+      (bb_min[1]) >= dtol || (bb_min[1]) <= -dtol ||
       (bb_min[2]) >= dtol || (bb_min[2]) <= -dtol ||
       (bb_max[0]-1) >= dtol || 1-bb_max[0] >=dtol ||
       (bb_max[1]-2) >= dtol || 2 - bb_max[1] >=dtol||
@@ -1145,11 +1145,11 @@ bool transforms_test(FBiGeom_Instance geom)
     std::cerr << "Wrong bounding box after move." << std::endl;
     return false;
   }
-  
+
     // now rotate it about +x, then test bounding box
   FBiGeom_rotateEnt( geom, brick, 90, 1.0, 0.0, 0.0, &err );
   CHECK( "Problems rotating brick for transforms test." );
-  
+
   FBiGeom_getEntBoundBox( geom, brick, bb_min, bb_min+1, bb_min+2, bb_max, bb_max+1, bb_max+2, &err );
   CHECK( "Problems getting bounding box after rotate." );
 
@@ -1162,15 +1162,15 @@ bool transforms_test(FBiGeom_Instance geom)
     std::cerr << "Wrong bounding box after rotate." << std::endl;
     return false;
   }
-  
+
     // now reflect through y plane; should recover original bb
   FBiGeom_reflectEnt( geom, brick, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, &err );
   CHECK( "Problems reflecting brick for transforms test." );
-  
+
   FBiGeom_getEntBoundBox( geom, brick, bb_min, bb_min+1, bb_min+2, bb_max, bb_max+1, bb_max+2, &err );
   CHECK( "Problems getting bounding box after reflect." );
-  
-  if ((bb_min[0]) >= dtol || -(bb_min[0]) >= dtol ||(bb_min[1]) >= dtol || 
+
+  if ((bb_min[0]) >= dtol || -(bb_min[0]) >= dtol ||(bb_min[1]) >= dtol ||
       (bb_min[2]) >= dtol || -(bb_min[1]) >= dtol || -(bb_min[2]) >= dtol ||
       (bb_max[0]-1) >= dtol || 1- bb_max[0] >= dtol ||
       (bb_max[1]-3) >= dtol || 3 - bb_max[1] >= dtol ||
@@ -1186,7 +1186,7 @@ bool transforms_test(FBiGeom_Instance geom)
 }
 
 
-bool booleans_test(FBiGeom_Instance geom) 
+bool booleans_test(FBiGeom_Instance geom)
 {
   int err;
 
@@ -1214,7 +1214,7 @@ bool booleans_test(FBiGeom_Instance geom)
   iBase_EntityHandle unite_input[] = { section_result, cyl };
   FBiGeom_uniteEnts( geom, unite_input, 2, &unite_results, &err );
   CHECK( "Problems uniting for booleans unite test." );
-  
+
   FBiGeom_deleteEnt( geom, unite_results, &err );
   CHECK( "Problems deleting for booleans unite test." );
   return true;
@@ -1227,13 +1227,13 @@ static int get_entities( FBiGeom_Instance geom, int entity_type,
 {
   int err, num;
   iBase_EntitySetHandle root;
-  FBiGeom_getRootSet( geom, &root, &err ); 
+  FBiGeom_getRootSet( geom, &root, &err );
   if (iBase_SUCCESS != err)
     return err;
-  FBiGeom_getNumOfType( geom, root, entity_type, &num, &err ); 
+  FBiGeom_getNumOfType( geom, root, entity_type, &num, &err );
   if (iBase_SUCCESS != err)
     return err;
-  
+
   entities_out.resize(num);
   int junk1 = entities_out.size(), junk2;
   iBase_EntityHandle* junk_ptr = &entities_out[0];;
@@ -1241,17 +1241,17 @@ static int get_entities( FBiGeom_Instance geom, int entity_type,
   if (iBase_SUCCESS != err)
     return err;
   assert( num == junk1 && num == junk2 );
-  
+
   if (!ids_out)
     return iBase_SUCCESS;
-  
+
   ids_out->resize(num);
   int* int_ptr = &(*ids_out)[0];
   FBiGeom_getIntArrData( geom, &entities_out[0], num, id_tag, &int_ptr, &junk1, &junk2, &err );
   if (iBase_SUCCESS != err)
     return err;
   assert( num == junk1 && num == junk2 );
-  
+
   return iBase_SUCCESS;
 }
 
@@ -1270,7 +1270,7 @@ static int check_firmness( FBiGeom_Instance geom,
   FBiGeom_getArrData( geom, &entities[0], entities.size(), firmness_tag, (void**)&byte_ptr, &junk1, &junk2, &err );
   if (iBase_SUCCESS != err)
     return err;
-  
+
   bool all_correct = true;
   for (unsigned i = 0; i < entities.size(); ++i)
     if (std::string(&firmness[firmness_size*i],firmness_size) != expected_value)
@@ -1285,7 +1285,7 @@ static int check_firmness( FBiGeom_Instance geom,
                 << std::endl;
     return iBase_FAILURE;
   }
-  
+
   return iBase_SUCCESS;
 }
 
@@ -1298,7 +1298,7 @@ static int count_num_with_tag( FBiGeom_Instance geom,
   if (iBase_SUCCESS != err)
     return -1;
   std::vector<char> data(bytes);
-  
+
   int success_count = 0;
   for (size_t i = 0; i < ents.size(); ++i) {
     char* ptr = &data[0];
@@ -1310,21 +1310,21 @@ static int count_num_with_tag( FBiGeom_Instance geom,
       return -1;
     ++success_count;
   }
-  
+
   return success_count;
 }
-  
+
 
 bool mesh_size_test(FBiGeom_Instance geom)
 {
   const char* filename = STRINGIFY(SRCDIR) "/size.sat";
   int err, junk1, junk2;
   bool result = true;
-  
+
   FBiGeom_deleteAll( geom, &err ); CHECK("");
   FBiGeom_load( geom, filename, 0, &err, strlen(filename), 0 );
   CHECK( "Failed to load input file: 'size.sat'" );
-  
+
     // get tag handles
   iBase_TagHandle interval, size, firmness, id;
   FBiGeom_getTagHandle( geom, "MESH_INTERVAL", &interval, &err, strlen("MESH_INTERVAL") );
@@ -1335,7 +1335,7 @@ bool mesh_size_test(FBiGeom_Instance geom)
   CHECK( "FBiGeom_getTagHandle(\"SIZE_FIRMNESS\")" );
   FBiGeom_getTagHandle( geom, "GLOBAL_ID", &id, &err, strlen("GLOBAL_ID") );
   CHECK( "FBiGeom_getTagHandle(\"GLOBAL_ID\")" );
-  
+
     // get entity lists
   std::vector<iBase_EntityHandle> verts, curves, surfs, vols;
   std::vector<int> vert_ids, curve_ids, surf_ids, vol_ids;
@@ -1343,12 +1343,12 @@ bool mesh_size_test(FBiGeom_Instance geom)
   err = get_entities( geom, iBase_EDGE,   curves, id, &curve_ids ); CHECK("");
   err = get_entities( geom, iBase_FACE,   surfs,  id, &surf_ids  ); CHECK("");
   err = get_entities( geom, iBase_REGION, vols,   id, &vol_ids   ); CHECK("");
-  
+
     // expect interval count to be the same as ID for every curve
   std::vector<int> intervals(curves.size());
   int *int_ptr = &intervals[0];
   junk1 = junk2 = curves.size();
-  FBiGeom_getIntArrData( geom, &curves[0], curves.size(), interval, &int_ptr, &junk1, &junk2, &err ); 
+  FBiGeom_getIntArrData( geom, &curves[0], curves.size(), interval, &int_ptr, &junk1, &junk2, &err );
   CHECK("Failed to get intervals for curves");
   if (intervals != curve_ids) {
     std::cout << "ERROR: Incorrect curve intervals for one or more curves." << std::endl;
@@ -1359,12 +1359,12 @@ bool mesh_size_test(FBiGeom_Instance geom)
                 << std::setw(6) << intervals[i] << std::endl;
     result = false;
   }
-  
+
     // expect size to be the same as ID for every surface
   std::vector<double> sizes(surfs.size());
   double* dbl_ptr = &sizes[0];
   junk1 = junk2 = surfs.size();
-  FBiGeom_getDblArrData( geom, &surfs[0], surfs.size(), size, &dbl_ptr, &junk1, &junk2, &err ); 
+  FBiGeom_getDblArrData( geom, &surfs[0], surfs.size(), size, &dbl_ptr, &junk1, &junk2, &err );
   CHECK("Failed to get sizes for surfaces");
   bool all_correct = true;
   for (unsigned i = 0; i < surfs.size(); ++i)
@@ -1379,18 +1379,18 @@ bool mesh_size_test(FBiGeom_Instance geom)
                 << std::setw(8) << sizes[i] << std::endl;
     result = false;
   }
-  
-  
+
+
   err = result ? iBase_SUCCESS : iBase_FAILURE;
   CHECK("Invalid size or interval data");
-    
+
     // expect "HARD" firmness on all curves
   err = check_firmness( geom, curves, curve_ids, firmness, "HARD", "curves" );
   CHECK("Invalid curve firmness");
     // expect "SOFT" firmness on all surfaces
   err = check_firmness( geom, surfs, surf_ids, firmness, "SOFT", "surfaces" );
   CHECK("Invalid surface firmness");
-  
+
     // expect no firmnes on other entities
   err = count_num_with_tag( geom, verts, firmness ) ? iBase_FAILURE : iBase_SUCCESS;
   CHECK("Got firmness for vertex.");
@@ -1413,24 +1413,24 @@ bool mesh_size_test(FBiGeom_Instance geom)
   return true;
 }
 
-bool shutdown_test(FBiGeom_Instance geom, std::string &engine_opt) 
+bool shutdown_test(FBiGeom_Instance geom, std::string &engine_opt)
 {
   int err;
 
     // test shutdown & startup of interface
   FBiGeom_dtor(geom, &err);
   CHECK( "Interface destruction didn't work properly." );
-  
+
   FBiGeom_newGeom(engine_opt.c_str(), &geom, &err, engine_opt.length());
   CHECK( "Interface re-construction didn't work properly." );
-  
+
   FBiGeom_dtor(geom, &err);
   CHECK( "2nd Interface destruction didn't work properly." );
-  
+
   return true;
 }
 
-bool save_entset_test(FBiGeom_Instance geom) 
+bool save_entset_test(FBiGeom_Instance geom)
 {
   int err;
 
@@ -1447,7 +1447,7 @@ bool save_entset_test(FBiGeom_Instance geom)
     // initialize number of ents and sets to compare with later
   int num_ents_bef, num_sets_bef;
   iBase_EntitySetHandle root;
-  FBiGeom_getRootSet( geom, &root, &err ); 
+  FBiGeom_getRootSet( geom, &root, &err );
   CHECK("Failed to get root set.");
   FBiGeom_getNumEntSets(geom, root, 1, &num_sets_bef, &err);
   CHECK("Failed to get number of ent sets.");
@@ -1474,7 +1474,7 @@ bool save_entset_test(FBiGeom_Instance geom)
   CHECK("Failed to destroy entity set.");
   FBiGeom_deleteEnt(geom, cyl, &err);
   CHECK("Failed to destroy entity.");
-  
+
     // read the file back in
   FBiGeom_load(geom, filename.c_str(), NULL, &err,
              filename.length(), 0);

@@ -7,8 +7,8 @@
 using namespace moab;
 
 /* Input test file: test/sample.stl
- * 
- * Example ASCII STL file from: 
+ *
+ * Example ASCII STL file from:
  *  http://people.sc.fsu.edu/~burkardt/data/stla/stla.html
  */
 #ifdef MESHDIR
@@ -29,7 +29,7 @@ void test_big_endian();
 void test_little_endian();
 void test_detect_byte_order();
 
-void read_file( Interface& moab, 
+void read_file( Interface& moab,
                 const char* input_file,
                 const char* options = "" );
 void convert_file( const char* source_file,
@@ -42,7 +42,7 @@ void check_mesh_is_tet( Interface& moab );
 int main()
 {
   int result = 0;
-  
+
   result += RUN_TEST(test_read_ascii);
   result += RUN_TEST(test_write_ascii);
   result += RUN_TEST(test_type_option);
@@ -51,7 +51,7 @@ int main()
   result += RUN_TEST(test_big_endian);
   result += RUN_TEST(test_little_endian);
   result += RUN_TEST(test_detect_byte_order);
-  
+
   remove( tmp_file );
   return result;
 }
@@ -75,7 +75,7 @@ void convert_file( const char* input_file, const char* output_file, const char* 
 
   rval = moab.load_file( input_file );
   CHECK_ERR(rval);
-  
+
   rval = moab.write_file( output_file, "STL", options );
   CHECK_ERR(rval);
 }
@@ -103,11 +103,11 @@ void test_type_option()
 
   rval = read_file_( moab, sample, "BINARY" );
   CHECK( MB_SUCCESS != rval );
-  
+
   convert_file( sample, tmp_file, "BINARY" );
   rval = read_file_( moab, tmp_file, "ASCII" );
   CHECK( MB_SUCCESS != rval );
-  
+
   remove( tmp_file );
 }
 
@@ -116,10 +116,10 @@ void test_detect_type()
   Core moab;
 
   read_file( moab, sample );
-  
+
   convert_file( sample, tmp_file, "BINARY" );
   read_file_( moab, tmp_file );
-  
+
   remove( tmp_file );
 }
 
@@ -131,11 +131,11 @@ void test_endian_option()
   convert_file( sample, tmp_file, "BINARY;BIG_ENDIAN" );
   rval = read_file_( moab, tmp_file, "BINARY;LITTLE_ENDIAN" );
   CHECK( MB_SUCCESS != rval );
-  
+
   convert_file( sample, tmp_file, "BINARY;LITTLE_ENDIAN" );
   rval = read_file_( moab, tmp_file, "BINARY;BIG_ENDIAN" );
   CHECK( MB_SUCCESS != rval );
-  
+
   remove( tmp_file );
 }
 
@@ -166,7 +166,7 @@ void test_detect_byte_order()
 
   convert_file( sample, tmp_file, "BINARY;BIG_ENDIAN" );
   read_file( moab, tmp_file, "BINARY" );
-  
+
   remove( tmp_file );
 }
 
@@ -181,13 +181,13 @@ void check_mesh_is_tet( Interface& moab )
   CHECK_ERR(rval);
   rval = moab.get_entities_by_handle( 0, other );
   CHECK_ERR(rval);
-  
+
   CHECK_EQUAL( 4, (int)verts.size() );
   CHECK_EQUAL( 4, (int)tris.size() );
   other = subtract( other, verts );
   other = subtract( other, tris );
   CHECK( other.all_of_type(MBENTITYSET) );
-  
+
   const double expt_coords[4][3] = { { 0, 0, 0 },
                                      { 1, 0, 0 },
                                      { 0, 1, 0 },
@@ -197,7 +197,7 @@ void check_mesh_is_tet( Interface& moab )
     double coords[3];
     rval = moab.get_coords( &*i, 1, coords );
     CHECK_ERR(rval);
-    
+
     bool found = false;
     for (int j = 0; j < 4; ++j) {
       double ds = 0;
@@ -205,7 +205,7 @@ void check_mesh_is_tet( Interface& moab )
         double dl = expt_coords[j][d] - coords[d];
         ds += dl*dl;
       }
-      
+
       if (ds < 1e-6) {
         CHECK_EQUAL( (EntityHandle)0, vert_handles[j] );
         vert_handles[j] = *i;
@@ -215,7 +215,7 @@ void check_mesh_is_tet( Interface& moab )
     }
     CHECK(found);
   }
-  
+
   const int expt_conn[4][3] = { { 0, 1, 3 },
                                 { 0, 2, 1 },
                                 { 0, 3, 2 },
@@ -227,22 +227,22 @@ void check_mesh_is_tet( Interface& moab )
     rval = moab.get_connectivity( *i, conn, len );
     CHECK_ERR(rval);
     CHECK_EQUAL( 3, len );
-    
-    int conn_idx[3] = { 
+
+    int conn_idx[3] = {
         static_cast<int>(std::find( vert_handles, vert_handles + 4, conn[0] ) - vert_handles),
         static_cast<int>(std::find( vert_handles, vert_handles + 4, conn[1] ) - vert_handles),
         static_cast<int>(std::find( vert_handles, vert_handles + 4, conn[2] ) - vert_handles) };
     CHECK( conn_idx[0] != 4 );
     CHECK( conn_idx[1] != 4 );
     CHECK( conn_idx[2] != 4 );
-    
+
     bool found = false;
     for (int j = 0; j < 4; ++j) {
       int k = std::find( expt_conn[j], expt_conn[j]+3, conn_idx[0] ) - expt_conn[j];
       if (k == 3)
         continue;
-      
-      if (expt_conn[j][(k+1)%3] == conn_idx[1] && 
+
+      if (expt_conn[j][(k+1)%3] == conn_idx[1] &&
           expt_conn[j][(k+2)%3] == conn_idx[2]) {
         CHECK_EQUAL( (EntityHandle)0, tri_handles[j] );
         tri_handles[j] = *i;

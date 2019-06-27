@@ -1,16 +1,16 @@
 /**
  * MOAB, a Mesh-Oriented datABase, is a software component for creating,
  * storing and accessing finite element mesh data.
- * 
+ *
  * Copyright 2004 Sandia Corporation.  Under the terms of Contract
  * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
  * retains certain rights in this software.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  */
 
 
@@ -55,12 +55,12 @@ public:
 
   ExoIIInterface(){}
   virtual ~ExoIIInterface(){}
-      
+
   //! given the element name, return the type
   virtual ExoIIElementType element_name_to_type(const char* name) = 0;
 
-  //! get the element type of the entity; this entity can either be a meshset, 
-  //! in which case it will be assumed to be a material set meshset, or an 
+  //! get the element type of the entity; this entity can either be a meshset,
+  //! in which case it will be assumed to be a material set meshset, or an
   //! individual entity.
   virtual  ExoIIElementType get_element_type(EntityHandle entity,
       Tag mid_nodes_tag, Tag geom_dimension_tag, EntityType indiv_entity_type = MBMAXTYPE) = 0;
@@ -72,7 +72,7 @@ public:
 
   //! return the geometric dimension of the specified element type
   virtual int geometric_dimension(const ExoIIElementType elem_type) = 0;
-  
+
 };
 
 } // namespace moab

@@ -1,16 +1,16 @@
 /**
  * MOAB, a Mesh-Oriented datABase, is a software component for creating,
  * storing and accessing finite element mesh data.
- * 
+ *
  * Copyright 2004 Sandia Corporation.  Under the terms of Contract
  * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
  * retains certain rights in this software.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  */
 
 #include "StructuredElementSeq.hpp"
@@ -26,25 +26,25 @@ namespace moab {
 StructuredElementSeq::StructuredElementSeq(EntityHandle shandle,
                              const int imin, const int jmin, const int kmin,
                                            const int imax, const int jmax, const int kmax,
-                                           int *is_per) 
-  : ElementSequence( shandle, 
+                                           int *is_per)
+  : ElementSequence( shandle,
                      ScdElementData::calc_num_entities( shandle,
                                                         imax-imin,
                                                         jmax-jmin,
                                                         kmax-kmin,
                                                         is_per),
                      CN::VerticesPerEntity(TYPE_FROM_HANDLE(shandle)),
-                     new ScdElementData( shandle, 
+                     new ScdElementData( shandle,
                                         imin, jmin, kmin,
                                          imax, jmax, kmax, is_per) )
 {
 }
 
-StructuredElementSeq::~StructuredElementSeq() 
+StructuredElementSeq::~StructuredElementSeq()
 {
 }
 
-ErrorCode StructuredElementSeq::get_connectivity( 
+ErrorCode StructuredElementSeq::get_connectivity(
                                         EntityHandle handle,
                                         std::vector<EntityHandle>& connect,
                                         bool /*topological*/ ) const
@@ -56,7 +56,7 @@ ErrorCode StructuredElementSeq::get_connectivity(
   return rval;
 }
 
-ErrorCode StructuredElementSeq::get_connectivity( 
+ErrorCode StructuredElementSeq::get_connectivity(
                                         EntityHandle handle,
                                         EntityHandle const*& connect,
                                         int &connect_length,
@@ -69,7 +69,7 @@ ErrorCode StructuredElementSeq::get_connectivity(
     connect_length = 0;
     return MB_STRUCTURED_MESH;
   }
-  
+
   storage->clear();
   ErrorCode rval = get_connectivity( handle, *storage, topo );
   connect = &(*storage)[0];
@@ -77,7 +77,7 @@ ErrorCode StructuredElementSeq::get_connectivity(
   return rval;
 }
 
-ErrorCode StructuredElementSeq::set_connectivity( 
+ErrorCode StructuredElementSeq::set_connectivity(
                                         EntityHandle,
                                         EntityHandle const*,
                                         int )
@@ -89,7 +89,7 @@ EntityHandle* StructuredElementSeq::get_connectivity_array()
   { return 0; }
 
 int StructuredElementSeq::values_per_entity() const
-  { return -1; } // never reuse freed handles for structured elements 
+  { return -1; } // never reuse freed handles for structured elements
 
 EntitySequence* StructuredElementSeq::split( EntityHandle here )
   { return new StructuredElementSeq( *this, here ); }

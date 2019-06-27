@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2007 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2007) kraftche@cae.wisc.edu    
+    (2007) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file main.cpp
  *  \brief Test syncronous boundary case
- *  \author Jason Kraftcheck 
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -60,8 +60,8 @@ void create_input_mesh( double mid_x, MBMesquite::MeshImpl& mesh, MBMesquite::Ms
 void usage( const char* argv0, bool brief = true )
 {
   std::ostream& str = brief ? std::cerr : std::cout;
-  
-  str << "Usage: " << argv0 
+
+  str << "Usage: " << argv0
       << " [-x <coord>]"
       << " [-j|-n|-d]"
       << " [-r|-c]"
@@ -71,14 +71,14 @@ void usage( const char* argv0, bool brief = true )
     str << "       " << argv0 << " -h" << std::endl;
     std::exit(1);
   }
-  
+
   str << "  -x  Specify X coordinate value for mesh (default is " << default_x << ")" << std::endl
       << "  -j  Use ConjugateGradient solver (default)" << std::endl
       << "  -n  Use FeasibleNewton solver" << std::endl
       << "  -r  Use IdealWeightInverseMeanRation metric" << std::endl
       << "  -c  Use ConditionNumber metric (default)" << std::endl
       << "Default output file is \"" << default_out_file << '"' << std::endl;
-  
+
   std::exit(0);
 }
 
@@ -98,44 +98,44 @@ void parse_options( char* argv[], int argc )
         usage(argv[0]);
       continue;
     }
-      
+
     if (argv[i][0] != '-') {
       if (outputFile != default_out_file)
         usage(argv[0]);
       outputFile = argv[i];
       continue;
     }
-    
+
     for (const char* p = argv[i]+1; *p; ++p) {
       switch (*p) {
-        case 'x': 
-          next_arg_is_x = true; 
+        case 'x':
+          next_arg_is_x = true;
           break;
-        
+
         case 'j':
         case 'n':
-          if (mSolver) 
+          if (mSolver)
             usage(argv[0]);
           mSolver = *p;
           break;
-        
+
         case 'r':
         case 'c':
-          if (mMetric) 
+          if (mMetric)
             usage(argv[0]);
           mMetric = *p;
           break;
- 
+
         default:
           usage( argv[0], *p != 'h' );
           break;
       }
     }
   }
-    
+
   if (next_arg_is_x)
     usage(argv[0]);
-  
+
     // default values
   if (!mMetric)
     mMetric = 'c';
@@ -146,39 +146,39 @@ void parse_options( char* argv[], int argc )
 int main( int argc, char* argv[] )
 {
   parse_options( argv, argc );
-  
+
   MeshImpl mesh;
   XYRectangle domain( max_x - min_x, max_y - min_y, min_x, min_y );
   MsqError err;
-  
+
   create_input_mesh( input_x, mesh, err );
   if (MSQ_CHKERR(err)) { std::cerr << err << std::endl; return 2; }
-  
+
   domain.setup( &mesh, err );
   if (MSQ_CHKERR(err)) { std::cerr << err << std::endl; return 2; }
-  
+
   QualityMetric* metric = 0;
   if (mMetric == 'c')
     metric = new ConditionNumberQualityMetric;
   else
     metric = new IdealWeightInverseMeanRatio;
-  
+
   LPtoPTemplate function( 1, metric );
-  
+
   VertexMover* solver = 0;
   if (mSolver == 'j')
     solver = new ConjugateGradient( &function );
   else
     solver = new FeasibleNewton( &function );
-    
-  if (PatchSetUser* psu = dynamic_cast<PatchSetUser*>(solver)) 
+
+  if (PatchSetUser* psu = dynamic_cast<PatchSetUser*>(solver))
     psu->use_global_patch();
-  
+
   TerminationCriterion inner;
   inner.add_absolute_vertex_movement( 1e-4 );
   inner.write_mesh_steps( "synchronous", TerminationCriterion::GNUPLOT );
-  solver->set_inner_termination_criterion( &inner );  
-  
+  solver->set_inner_termination_criterion( &inner );
+
   InstructionQueue q;
   QualityAssessor qa( metric, 10 );
   q.add_quality_assessor( &qa, err );
@@ -188,14 +188,14 @@ int main( int argc, char* argv[] )
   q.run_instructions( &mesh_and_domain, err );
   delete solver;
   delete metric;
-  
-  if (MSQ_CHKERR(err)) 
+
+  if (MSQ_CHKERR(err))
     { std::cerr << err << std::endl; return 3; }
-    
+
   mesh.write_vtk( outputFile, err );
-  if (MSQ_CHKERR(err)) 
+  if (MSQ_CHKERR(err))
     { std::cerr << err << std::endl; return 2; }
-  
+
   return 0;
 }
 
@@ -233,9 +233,9 @@ void create_input_mesh( double mid_x , MeshImpl& mesh, MsqError& err )
           << "1 0 1" << std::endl
           ;
   vtkfile.close();
-           
+
   mesh.read_vtk( temp_file, err );
   remove( temp_file );
 }
 
-  
+

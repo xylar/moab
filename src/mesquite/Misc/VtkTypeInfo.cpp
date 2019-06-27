@@ -1,8 +1,8 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
-    Copyright 2005 Lawrence Livermore National Laboratory.  Under 
-    the terms of Contract B545069 with the University of Wisconsin -- 
+    Copyright 2005 Lawrence Livermore National Laboratory.  Under
+    the terms of Contract B545069 with the University of Wisconsin --
     Madison, Lawrence Livermore National Laboratory retains certain
     rights in this software.
 
@@ -16,11 +16,11 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    kraftche@cae.wisc.edu    
+    kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
@@ -59,11 +59,11 @@ static const VtkTypeInfo typeInfoList[] = {
       { "triangle strip",          6, MIXED,         0, 0 },
       { "polygon",                 7, POLYGON,       0, 0 },
       { "pixel",                   8, QUADRILATERAL, 4, vtk_pixel_order },
-      { "quadrilateral",           9, QUADRILATERAL, 4, 0 }, 
-      { "tetrahedron",            10, TETRAHEDRON,   4, 0 }, 
-      { "voxel",                  11, HEXAHEDRON,    8, vtk_voxel_order }, 
-      { "hexahedron",             12, HEXAHEDRON,    8, 0 }, 
-      { "wedge",                  13, PRISM,         6, vtk_wedge_order }, 
+      { "quadrilateral",           9, QUADRILATERAL, 4, 0 },
+      { "tetrahedron",            10, TETRAHEDRON,   4, 0 },
+      { "voxel",                  11, HEXAHEDRON,    8, vtk_voxel_order },
+      { "hexahedron",             12, HEXAHEDRON,    8, 0 },
+      { "wedge",                  13, PRISM,         6, vtk_wedge_order },
       { "pyramid",                14, PYRAMID,       5, 0 },
       { "pentagonal prism",       15, MIXED,        10, 0 }, // not supported
       { "hexagonal prism",        16, MIXED,        12, 0 }, // not supported
@@ -115,7 +115,7 @@ const VtkTypeInfo* VtkTypeInfo::find_type( unsigned vtk_type, MsqError& err )
     MSQ_SETERR(err)("Type out of bounds", MsqError::INVALID_ARG);
     return 0;
   }
-  
+
   return &typeInfoList[vtk_type];
 }
 
@@ -129,7 +129,7 @@ const VtkTypeInfo* VtkTypeInfo::find_type( EntityTopology msq_type,
     return &typeInfoList[ reverseIndexList[msq_type][1] ];
   else if ( typeInfoList[ reverseIndexList[msq_type][2] ].numNodes == num_nodes )
     return &typeInfoList[ reverseIndexList[msq_type][2] ];
- 
+
   if (msq_type == POLYGON && num_nodes >= 3 && num_nodes <= 12)
     return &typeInfoList[ reverseIndexList[msq_type][0] ];
 

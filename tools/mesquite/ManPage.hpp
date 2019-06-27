@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2007 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2008) kraftche@cae.wisc.edu    
+    (2008) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file ManPage.hpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #ifndef MSQ_MAN_PAGE_HPP
@@ -53,27 +53,27 @@ public:
     { return str << std::endl; }
   static std::ostream& italic( std::ostream& str, const std::string& s )
     { return end_italic( begin_italic(str) << s ); }
-    
+
   static std::ostream& begin_section( std::ostream& str, const std::string& name )
     { return str << std::endl << ".SH " << name << std::endl; }
-    
+
   static std::ostream& begin_subsection( std::ostream& str, const std::string& name )
     { return str << std::endl << ".SS " << name << std::endl; }
-    
+
   static std::ostream& begin_paragraph( std::ostream& str )
     { return str << std::endl << ".P " << std::endl; }
-    
+
   static std::ostream& begin_hanging_paragraph( std::ostream& str )
     { return str << std::endl << ".HP " << std::endl; }
-    
+
   static std::ostream& begin_indent( std::ostream& str )
     { return str << std::endl << ".RS " << std::endl; }
   static std::ostream& end_indent( std::ostream& str )
     { return str << std::endl << ".RE " << std::endl; }
-    
+
   static std::ostream& begin_manpage( std::ostream& str, const std::string& name, int section )
     { return str << std::endl << ".TH " << name << " " << section << std::endl; }
-    
+
   static std::ostream& write_text( std::ostream& str, bool hanging_indent, const std::string& text );
 };
 

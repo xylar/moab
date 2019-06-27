@@ -1,16 +1,16 @@
 /*
  * MOAB, a Mesh-Oriented datABase, is a software component for creating,
  * storing and accessing finite element mesh data.
- * 
+ *
  * Copyright 2004 Sandia Corporation.  Under the terms of Contract
  * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
  * retains certain rights in this software.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  */
 
 #ifndef MOAB_REFINER_TAG_MANAGER_HPP
@@ -29,7 +29,7 @@ class Interface;
 /**
   * This a class that manages which tags an edge refiner should include
   * on output vertices created during mesh refinement.
-  * The 
+  * The
   *
   * \author David Thompson
   *

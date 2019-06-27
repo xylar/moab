@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2006 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
+
     (2006) kraftche@cae.wisc.edu
-   
+
   ***************************************************************** */
 
 
 /** \file AWQualityMetric.cpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #undef PRINT_INFO
@@ -74,7 +74,7 @@ bool AWQualityMetric::evaluate_internal( PatchData& pd,
   EntityTopology type = p_elem.get_element_type();
   unsigned edim = TopologyInfo::dimension( type );
   const NodeSet bits = pd.non_slave_node_set( e );
-  
+
   bool rval;
   if (edim == 3) { // 3x3 or 3x2 targets ?
     const MappingFunction3D* mf = pd.get_mapping_function_3D( type );
@@ -96,7 +96,7 @@ bool AWQualityMetric::evaluate_internal( PatchData& pd,
     MsqMatrix<2,2> W, A;
     MsqMatrix<3,2> S_a_transpose_Theta;
     rval = evaluate_surface_common( pd, s, e, bits, indices, num_indices,
-                                 mDerivs2D, W, A, S_a_transpose_Theta, err ); 
+                                 mDerivs2D, W, A, S_a_transpose_Theta, err );
     if (MSQ_CHKERR(err) || !rval)
       return false;
     rval = targetMetric->evaluate( A, W, value, err ); MSQ_ERRZERO(err);
@@ -108,7 +108,7 @@ bool AWQualityMetric::evaluate_internal( PatchData& pd,
     assert(false);
     return false;
   }
-  
+
   return rval;
 }
 
@@ -126,7 +126,7 @@ bool AWQualityMetric::evaluate_with_gradient( PatchData& pd,
   unsigned edim = TopologyInfo::dimension( type );
   size_t num_idx = 0;
   const NodeSet bits = pd.non_slave_node_set( e );
-  
+
   bool rval;
   if (edim == 3) { // 3x3 or 3x2 targets ?
     const MappingFunction3D* mf = pd.get_mapping_function_3D( type );
@@ -149,7 +149,7 @@ bool AWQualityMetric::evaluate_with_gradient( PatchData& pd,
     MsqMatrix<2,2> W, A, dmdA;
     MsqMatrix<3,2> S_a_transpose_Theta;
     rval = evaluate_surface_common( pd, s, e, bits, mIndices, num_idx,
-                             mDerivs2D, W, A, S_a_transpose_Theta, err ); 
+                             mDerivs2D, W, A, S_a_transpose_Theta, err );
     if (MSQ_CHKERR(err) || !rval)
       return false;
     rval = targetMetric->evaluate_with_grad( A, W, value, dmdA, err ); MSQ_ERRZERO(err);
@@ -162,11 +162,11 @@ bool AWQualityMetric::evaluate_with_gradient( PatchData& pd,
     assert(false);
     return false;
   }
-  
+
     // pass back index list
   indices.resize( num_idx );
   std::copy( mIndices, mIndices+num_idx, indices.begin() );
-  
+
     // apply target weight to value
   weight( pd, s, e, num_idx, value, grad.empty() ? 0 : arrptr(grad), 0, 0, err ); MSQ_ERRZERO(err);
   return rval;
@@ -188,7 +188,7 @@ bool AWQualityMetric::evaluate_with_Hessian( PatchData& pd,
   unsigned edim = TopologyInfo::dimension( type );
   size_t num_idx = 0;
   const NodeSet bits = pd.non_slave_node_set( e );
-  
+
   bool rval;
   if (edim == 3) { // 3x3 or 3x2 targets ?
     const MappingFunction3D* mf = pd.get_mapping_function_3D( type );
@@ -206,7 +206,7 @@ bool AWQualityMetric::evaluate_with_Hessian( PatchData& pd,
     Hessian.resize( num_idx*(num_idx+1)/2 );
     if (num_idx)
       hessian<3>( num_idx, mDerivs3D, d2mdA2, arrptr(Hessian) );
-    
+
 #ifdef PRINT_INFO
     print_info<3>( e, s, A, W, A * inverse(W) );
 #endif
@@ -222,7 +222,7 @@ bool AWQualityMetric::evaluate_with_Hessian( PatchData& pd,
     MsqMatrix<2,2> W, A, dmdA, d2mdA2[3];
     MsqMatrix<3,2> M;
     rval = evaluate_surface_common( pd, s, e, bits, mIndices, num_idx,
-                             mDerivs2D, W, A, M, err ); 
+                             mDerivs2D, W, A, M, err );
     if (MSQ_CHKERR(err) || !rval)
       return false;
     rval = targetMetric->evaluate_with_hess( A, W, value, dmdA, d2mdA2, err ); MSQ_ERRZERO(err);
@@ -245,22 +245,22 @@ bool AWQualityMetric::evaluate_with_Hessian( PatchData& pd,
     assert(0);
     return false;
   }
-  
+
     // pass back index list
   indices.resize( num_idx );
   std::copy( mIndices, mIndices+num_idx, indices.begin() );
-  
+
     // apply target weight to value
   if (!num_idx)
     weight( pd, s, e, num_idx, value, 0, 0, 0, err );
   else
-    weight( pd, s, e, num_idx, value, arrptr(grad), 0, arrptr(Hessian), err ); 
+    weight( pd, s, e, num_idx, value, arrptr(grad), 0, arrptr(Hessian), err );
   MSQ_ERRZERO(err);
   return rval;
 }
 
 
-bool AWQualityMetric::evaluate_with_Hessian_diagonal( 
+bool AWQualityMetric::evaluate_with_Hessian_diagonal(
                                            PatchData& pd,
                                            size_t p_handle,
                                            double& value,
@@ -276,7 +276,7 @@ bool AWQualityMetric::evaluate_with_Hessian_diagonal(
   unsigned edim = TopologyInfo::dimension( type );
   size_t num_idx = 0;
   const NodeSet bits = pd.non_slave_node_set( e );
-  
+
   bool rval;
   if (edim == 3) { // 3x3 or 3x2 targets ?
     const MappingFunction3D* mf = pd.get_mapping_function_3D( type );
@@ -291,7 +291,7 @@ bool AWQualityMetric::evaluate_with_Hessian_diagonal(
     targetCalc->get_3D_target( pd, e, s, W, err ); MSQ_ERRZERO(err);
     rval = targetMetric->evaluate_with_hess( A, W, value, dmdA, d2mdA2, err ); MSQ_ERRZERO(err);
     gradient<3>( num_idx, mDerivs3D, dmdA, grad );
-    
+
     diagonal.resize( num_idx );
     hessian_diagonal<3>(num_idx, mDerivs3D, d2mdA2, arrptr(diagonal) );
 #ifdef PRINT_INFO
@@ -308,7 +308,7 @@ bool AWQualityMetric::evaluate_with_Hessian_diagonal(
     MsqMatrix<2,2> W, A, dmdA, d2mdA2[3];
     MsqMatrix<3,2> M;
     rval = evaluate_surface_common( pd, s, e, bits, mIndices, num_idx,
-                             mDerivs2D, W, A, M, err ); 
+                             mDerivs2D, W, A, M, err );
     if (MSQ_CHKERR(err) || !rval)
       return false;
     rval = targetMetric->evaluate_with_hess( A, W, value, dmdA, d2mdA2, err ); MSQ_ERRZERO(err);
@@ -322,7 +322,7 @@ bool AWQualityMetric::evaluate_with_Hessian_diagonal(
       block2d(1,0) = block2d(0,1);
       block2d(1,1) = transpose(mDerivs2D[i]) * d2mdA2[2] * mDerivs2D[i];
       MsqMatrix<3,2> p = M * block2d;
-      
+
       SymMatrix3D& H = diagonal[i];
       H[0] = p.row(0) * transpose(M.row(0));
       H[1] = p.row(0) * transpose(M.row(1));
@@ -340,11 +340,11 @@ bool AWQualityMetric::evaluate_with_Hessian_diagonal(
     assert(0);
     return false;
   }
-  
+
     // pass back index list
   indices.resize( num_idx );
   std::copy( mIndices, mIndices+num_idx, indices.begin() );
-  
+
     // apply target weight to value
   if (!num_idx)
     weight( pd, s, e, num_idx, value, 0, 0, 0, err );

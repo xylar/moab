@@ -1,16 +1,16 @@
 /**
  * MOAB, a Mesh-Oriented datABase, is a software component for creating,
  * storing and accessing finite element mesh data.
- * 
+ *
  * Copyright 2004 Sandia Corporation.  Under the terms of Contract
  * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
  * retains certain rights in this software.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  */
 
 #ifndef READ_SMF_HPP
@@ -37,7 +37,7 @@ class AffineXform;
  */
 class ReadSmf : public ReaderIface
 {
-   
+
 public:
 
   static ReaderIface* factory( Interface* );
@@ -54,7 +54,7 @@ public:
                              const FileOptions& opts,
                              std::vector<int>& tag_values_out,
                              const SubsetList* subset_list = 0 );
-  
+
     //! Constructor
   ReadSmf(Interface* impl = NULL);
 
@@ -91,14 +91,14 @@ protected:
     ErrorCode mload(std::vector<std::string> &);
 
     ErrorCode parse_line(char *line);
-    
+
     ErrorCode parse_doubles( int count,
                              const std::vector<std::string> & argv,
                              double results[] );
     ErrorCode parse_mat( const std::vector<std::string> & argv,
                          AffineXform& mat_out );
     ErrorCode check_length( int count, const std::vector<std::string> & argv );
-    
+
 private:
 
   ReadUtilIface* readMeshIface;
@@ -115,8 +115,8 @@ private:
 
     //! A field which, if present and having a single integer for storage, should be used to partition the mesh by range. Defaults to MATERIAL_SET_TAG_NAME
   std::string mPartitionTagName;
- 
-  // these are from SMF_reader from qslim/gfx/SMF/smf.h  
+
+  // these are from SMF_reader from qslim/gfx/SMF/smf.h
   static cmd_entry read_cmds[];
   char line[SMF_MAXLINE];
   std::vector<SMF_State> state;
@@ -130,7 +130,7 @@ private:
   size_t lineNo;
   size_t commandNo;
   int versionMajor, versionMinor;
-   
+
 };
 
 } // namespace moab

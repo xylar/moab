@@ -1,9 +1,9 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2004 Sandia Corporation and Argonne National
-    Laboratory.  Under the terms of Contract DE-AC04-94AL85000 
-    with Sandia Corporation, the U.S. Government retains certain 
+    Laboratory.  Under the terms of Contract DE-AC04-94AL85000
+    with Sandia Corporation, the U.S. Government retains certain
     rights in this software.
 
     This library is free software; you can redistribute it and/or
@@ -16,13 +16,13 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
-    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov, 
-    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov      
-   
+
+    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov,
+    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov
+
   ***************************************************************** */
 //
 //    AUTHOR: Thomas Leurent <tleurent@mcs.anl.gov>
@@ -36,10 +36,10 @@
 // ============
 /*!
   \file   FeasibleNewton.cpp
-  \brief  
+  \brief
 
   Implements the FeasibleNewton class member functions.
-  
+
   \author Thomas Leurent
   \author Todd Munson
   \date   2003-01-15
@@ -55,12 +55,12 @@
 using namespace MBMesquite;
 
 std::string FeasibleNewton::get_name() const { return "FeasibleNewton"; }
-  
+
 PatchSet* FeasibleNewton::get_patch_set()
   { return PatchSetUser::get_patch_set(); }
 
 FeasibleNewton::FeasibleNewton(ObjectiveFunction* of)
-  : VertexMover(of), 
+  : VertexMover(of),
     PatchSetUser(true),
     convTol(1e-6),
     coordsMem(0),
@@ -68,8 +68,8 @@ FeasibleNewton::FeasibleNewton(ObjectiveFunction* of)
 {
   TerminationCriterion* default_crit=get_inner_termination_criterion();
   default_crit->add_absolute_gradient_L2_norm( 5e-5 );
-}  
-  
+}
+
 
 void FeasibleNewton::initialize(PatchData &pd, MsqError &err)
 {
@@ -84,20 +84,20 @@ void FeasibleNewton::initialize_mesh_iteration(PatchData &pd, MsqError &/*err*/)
   pd.reorder();
 }
 
-void FeasibleNewton::optimize_vertex_positions(PatchData &pd, 
+void FeasibleNewton::optimize_vertex_positions(PatchData &pd,
                                                MsqError &err)
 {
   MSQ_FUNCTION_TIMER( "FeasibleNewton::optimize_vertex_positions" );
   MSQ_DBGOUT(2) << "\no  Performing Feasible Newton optimization.\n";
-  
+
   //
-  // the only valid 2D meshes that FeasibleNewton works for are truly planar which 
+  // the only valid 2D meshes that FeasibleNewton works for are truly planar which
   // lie in the X-Y coordinate plane.
   //
 
   XYPlanarDomain *xyPlanarDomainPtr = dynamic_cast<XYPlanarDomain*>(pd.get_domain());
     // only optimize if input mesh is a volume or an XYPlanarDomain
-  if (!pd.domain_set() || xyPlanarDomainPtr != NULL)  
+  if (!pd.domain_set() || xyPlanarDomainPtr != NULL)
   {
     const double sigma   = 1e-4;
     const double beta0   = 0.25;
@@ -107,11 +107,11 @@ void FeasibleNewton::optimize_vertex_positions(PatchData &pd,
     const double epsilon = 1e-10;
     double original_value, new_value;
     double beta;
-  
+
     int nv = pd.num_free_vertices();
     std::vector<Vector3D> grad(nv), d(nv);
     bool fn_bool=true;// bool used for determining validity of patch
-  
+
     OFEvaluator& objFunc = get_objective_function_evaluator();
 
     int i;
@@ -120,11 +120,11 @@ void FeasibleNewton::optimize_vertex_positions(PatchData &pd,
     //         bad termination test or requesting more accuracy than is
     //	     possible.
     //
-    //         Also, 
+    //         Also,
 
     // 1.  Allocate a hessian and calculate the sparsity pattern.
     mHessian.initialize(pd, err); MSQ_ERRRTN(err);
-  
+
     // does the Feasible Newton iteration until stopping is required.
     // Terminate when inner termination criterion signals.
 
@@ -135,7 +135,7 @@ void FeasibleNewton::optimize_vertex_positions(PatchData &pd,
       MSQ_ERRRTN(err);
       if (!fn_bool) {
         MSQ_SETERR(err)("invalid patch for hessian calculation", MsqError::INTERNAL_ERROR);
-        return; 
+        return;
       }
 
       if (MSQ_DBG(3)) { // avoid expensive norm calculations if debug flag is off
@@ -143,8 +143,8 @@ void FeasibleNewton::optimize_vertex_positions(PatchData &pd,
         MSQ_DBGOUT(3) << "  o  gradient norm: " << length(grad) << std::endl;
         MSQ_DBGOUT(3) << "  o  Hessian norm: " << mHessian.norm() << std::endl;
       }
-    
-      // Prints out free vertices coordinates. 
+
+      // Prints out free vertices coordinates.
       //
       // Comment out the following because it is way to verbose for larger
       // problems.  Consider doing:
@@ -162,7 +162,7 @@ void FeasibleNewton::optimize_vertex_positions(PatchData &pd,
 //          MSQ_DBGOUT(3) << "\t\t\t" << toto1[ind1.value()];
 //        }
 //      }
-      
+
       // 4. Calculate a direction using preconditionned conjugate gradients
       //    to find a zero of the Newton system of equations (H*d = -g)
       //    (a) stop if conjugate iteration limit reached
@@ -183,9 +183,9 @@ void FeasibleNewton::optimize_vertex_positions(PatchData &pd,
       // If direction is positive, does a gradient (steepest descent) step.
 
       if (alpha > -epsilon) {
-    
+
         MSQ_DBGOUT(3) << "  o  alpha = " << alpha << " (rejected)" << std::endl;
-    
+
         if (!havePrintedDirectionMessage) {
           MSQ_PRINT(1)("Newton direction not guaranteed descent.  Ensure preconditioner is positive definite.\n");
           havePrintedDirectionMessage = true;
@@ -208,11 +208,11 @@ void FeasibleNewton::optimize_vertex_positions(PatchData &pd,
       else {
         MSQ_DBGOUT(3) << "  o  alpha = " << alpha << std::endl;
       }
-    
+
       alpha *= sigma;
       beta = 1.0;
       pd.recreate_vertices_memento(coordsMem, err); MSQ_ERRRTN(err);
-    
+
       // TODD: Unrolling the linesearch loop.  We do a function and
       // gradient evaluation when beta = 1.  Otherwise, we end up
       // in the linesearch regime.  We expect that several
@@ -237,7 +237,7 @@ void FeasibleNewton::optimize_vertex_positions(PatchData &pd,
       //         functions.
 
       pd.move_free_vertices_constrained(arrptr(d), nv, beta, err); MSQ_ERRRTN(err);
-      fn_bool = objFunc.evaluate(pd, new_value, grad, err); 
+      fn_bool = objFunc.evaluate(pd, new_value, grad, err);
       if (err.error_code() == err.BARRIER_VIOLATED)
         err.clear();  // barrier violated does not represent an actual error here
       MSQ_ERRRTN(err);
@@ -260,50 +260,50 @@ void FeasibleNewton::optimize_vertex_positions(PatchData &pd,
           MSQ_DBGOUT(3) << "  o  beta = " << beta << " (insufficient decrease)" << std::endl;
         }
         pd.set_to_vertices_memento(coordsMem, err); MSQ_ERRRTN(err);
-      
+
         // Standard Armijo linesearch rules
- 
+
         MSQ_DBGOUT(3) << "  o  Doing line search" << std::endl;
         while (beta >= tol1) {
           // 6. Search along the direction
           //    (a) trial = x + beta*d
           pd.move_free_vertices_constrained(arrptr(d), nv, beta, err); MSQ_ERRRTN(err);
           //    (b) function evaluation
-          fn_bool = objFunc.evaluate(pd, new_value, err); 
+          fn_bool = objFunc.evaluate(pd, new_value, err);
           if (err.error_code() == err.BARRIER_VIOLATED)
             err.clear();  // barrier violated does not represent an actual error here
           MSQ_ERRRTN(err);
 
           //    (c) check for sufficient decrease and stop
-          if (!fn_bool) { 
+          if (!fn_bool) {
 	    // function not defined at trial point
             beta *= beta0;
           }
           else if (original_value - new_value >= -alpha*beta - epsilon ) {
             // iterate is acceptable.
-            break; 
+            break;
           }
           else {
             // iterate is not acceptable -- shrink beta
             beta *= beta1;
           }
           pd.set_to_vertices_memento(coordsMem, err); MSQ_ERRRTN(err);
-        } 
+        }
 
         if (beta < tol1) {
           // assert(pd.set_to_vertices_memento called last)
 
-          // TODD -- Lower limit on steplength reached.  Direction does not 
-	         //         appear to make sufficient progress decreasing the 
-          //         objective function.  This can happen when you are 
-          //         very near a solution due to numerical errors in 
-	         //         computing the objective function.  It can also happen 
+          // TODD -- Lower limit on steplength reached.  Direction does not
+	         //         appear to make sufficient progress decreasing the
+          //         objective function.  This can happen when you are
+          //         very near a solution due to numerical errors in
+	         //         computing the objective function.  It can also happen
           //         when the direction is not a descent direction and when
 	         //         you are projecting the iterates onto a surface.
           //
           //         The latter cases require the use of a linesearch on
           //         a gradient step.  If this linesearch terminate with
-          //         insufficient decrease, then you are at a critical 
+          //         insufficient decrease, then you are at a critical
           //         point and should stop!
           //
           //         The numerical errors with the objective function cannot
@@ -333,28 +333,28 @@ void FeasibleNewton::optimize_vertex_positions(PatchData &pd,
             MSQ_ERRRTN(err);
 
 	    //    (c) check for sufficient decrease and stop
-	    if (!fn_bool) { 
+	    if (!fn_bool) {
 	      // function not defined at trial point
 	      beta *= beta0;
 	    }
 	    else if (original_value - new_value >= -alpha*beta - epsilon ) {
 	      // iterate is acceptable.
-	      break; 
+	      break;
 	   }
 	    else {
 	      // iterate is not acceptable -- shrink beta
 	     beta *= beta1;
 	   }
 	    pd.set_to_vertices_memento(coordsMem, err); MSQ_ERRRTN(err);
-	  } 
+	  }
 
 	  if (beta < tol2) {
 	    // assert(pd.set_to_vertices_memento called last)
-	  
-	    // TODD -- Lower limit on steplength reached.  Gradient does not 
-	    //         appear to make sufficient progress decreasing the 
-	    //         objective function.  This can happen when you are 
-	    //         very near a solution due to numerical errors in 
+	
+	    // TODD -- Lower limit on steplength reached.  Gradient does not
+	    //         appear to make sufficient progress decreasing the
+	    //         objective function.  This can happen when you are
+	    //         very near a solution due to numerical errors in
 	    //         computing the objective function.  Most likely you
 	    //         are at a critical point for the problem.
 
@@ -367,7 +367,7 @@ void FeasibleNewton::optimize_vertex_positions(PatchData &pd,
         fn_bool = objFunc.update(pd, new_value, grad, err); MSQ_ERRRTN(err);
       }
 
-      // Prints out free vertices coordinates. 
+      // Prints out free vertices coordinates.
 //    if (MSQ_DBG(3)) {
 //      MSQ_DBGOUT(3) << "  o Free vertices new coordinates: \n";
 //      const MsqVertex* toto1 = pd.get_vertex_array(err); MSQ_ERRRTN(err);
@@ -378,7 +378,7 @@ void FeasibleNewton::optimize_vertex_positions(PatchData &pd,
 //      }
 //    }
 
-      // checks stopping criterion 
+      // checks stopping criterion
       term_crit->accumulate_patch( pd, err ); MSQ_ERRRTN(err);
       term_crit->accumulate_inner( pd, new_value, arrptr(grad), err ); MSQ_ERRRTN(err);
     }
@@ -399,10 +399,10 @@ void FeasibleNewton::terminate_mesh_iteration(PatchData &/*pd*/, MsqError &/*err
     //Michael::  Should the vertices memento be delete here???
   //  cout << "- Executing FeasibleNewton::iteration_complete()\n";
 }
-  
+
 void FeasibleNewton::cleanup()
 {
   delete coordsMem; coordsMem = NULL;
 }
-  
+
 

@@ -1,8 +1,8 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
-    Copyright 2006 Lawrence Livermore National Laboratory.  Under 
-    the terms of Contract B545069 with the University of Wisconsin -- 
+    Copyright 2006 Lawrence Livermore National Laboratory.  Under
+    the terms of Contract B545069 with the University of Wisconsin --
     Madison, Lawrence Livermore National Laboratory retains certain
     rights in this software.
 
@@ -16,11 +16,11 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2006) kraftche@cae.wisc.edu    
+    (2006) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
@@ -30,12 +30,12 @@
 
 namespace MBMesquite {
 
-static const char* nonlinear_error 
+static const char* nonlinear_error
  = "Attempt to use LinearTriangle mapping function for a nonlinear element\n";
 
 EntityTopology LinearTriangle::element_topology() const
   { return TRIANGLE; }
-  
+
 int LinearTriangle::num_nodes() const
   { return 3; }
 
@@ -57,7 +57,7 @@ void LinearTriangle::coefficients( Sample loc,
     MSQ_SETERR(err)(nonlinear_error, MsqError::UNSUPPORTED_ELEMENT );
     return;
   }
-  
+
   switch (loc.dimension) {
     case 0:
       num_coeff = 1;
@@ -98,7 +98,7 @@ void LinearTriangle::derivatives( Sample ,
     vertices[0] = 0;
     vertices[1] = 1;
     vertices[2] = 2;
-    
+
     coeff_derivs[0][0] = -1.0;
     coeff_derivs[0][1] = -1.0;
     coeff_derivs[1][0] = 1.0;
@@ -108,7 +108,7 @@ void LinearTriangle::derivatives( Sample ,
   }
 }
 
-void LinearTriangle::ideal( Sample , 
+void LinearTriangle::ideal( Sample ,
                             MsqMatrix<3,2>& J,
                             MsqError&  ) const
 {

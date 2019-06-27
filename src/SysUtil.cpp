@@ -16,7 +16,7 @@ void setmem( void* mem, const void* value, unsigned value_size, size_t num_elem 
 {
   if (!num_elem)
     return;
-  
+
   char* array = reinterpret_cast<char*>(mem);
   memcpy( array, value, value_size );
   size_t count;
@@ -24,21 +24,21 @@ void setmem( void* mem, const void* value, unsigned value_size, size_t num_elem 
     memcpy( array + count * value_size, array, count * value_size );
   memcpy( array + count * value_size, array, (num_elem - count) * value_size );
 }
-    
+
 
 long filesize( FILE* filp )
 {
   long curr_pos = ftell( filp );
   if (fseek( filp, 0, SEEK_END ))
     return -1;
-  
+
   long length = ftell( filp );
   if (fseek( filp, curr_pos, SEEK_SET))
   {
-    assert(0); 
+    assert(0);
     return -2;
   }
-  
+
   return length;
 }
 
@@ -48,14 +48,14 @@ long filesize( std::ifstream& str )
   std::istream::pos_type curr_pos = str.tellg();
   if (!str.seekg( 0, std::ios_base::end ))
     return -1;
-  
+
   long length = static_cast<long>(str.tellg());
   if (!str.seekg( curr_pos, std::ios_base::beg ))
   {
     assert(0);
     return -2;
   }
-  
+
   return length;
 }
 

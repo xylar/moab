@@ -70,7 +70,7 @@ endif( MOAB_HAVE_NETCDF )
 if( MOAB_HAVE_ZOLTAN )
   include_directories(${ZOLTAN_INCLUDES})
 endif (MOAB_HAVE_ZOLTAN)
- 
+
 if ( MOAB_HAVE_CGNS )
   set( MOAB_CGNS_SRCS ReadCGNS.hpp ReadCGNS.cpp
                       WriteCGNS.hpp WriteCGNS.cpp)
@@ -91,13 +91,13 @@ if( MOAB_HAVE_HDF5 )
 endif()
 
 if( MOAB_HAVE_CCMIO )
-  set( MOAB_CCMIO_SRCS WriteCCMIO.hpp WriteCCMIO.cpp 
+  set( MOAB_CCMIO_SRCS WriteCCMIO.hpp WriteCCMIO.cpp
                        ReadCCMIO.hpp ReadCCMIO.cpp )
 endif()
 
 if( MOAD_HAVE_DAMSEL )
   set( MOAB_DAMSEL_SRCS
-          WriteDamsel.hpp WriteDamsel.cpp 
+          WriteDamsel.hpp WriteDamsel.cpp
           ReadDamsel.hpp  ReadDamsel.cpp
           DamselUtil.hpp  DamselUtil.cpp )
 endif()

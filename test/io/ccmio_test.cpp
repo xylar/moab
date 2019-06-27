@@ -16,10 +16,10 @@ void test_write();
 int main()
 {
   int result = 0;
-  
+
   result += RUN_TEST(test_write);
   result += RUN_TEST(test_read);
-  
+
   return result;
 }
 
@@ -31,11 +31,11 @@ void test_write()
   rval = mb.load_file(cubfile.c_str());
   if (MB_SUCCESS != rval) std::cerr << "Trouble reading file " << cubfile << std::endl;
   CHECK_ERR(rval);
-  
+
   rval = mb.write_file(ccmgfilew.c_str());
   if (MB_SUCCESS != rval) std::cerr << "Trouble writing file " << ccmgfilew << std::endl;
   CHECK_ERR(rval);
-}  
+}
 
 void test_read()
 {
@@ -44,5 +44,5 @@ void test_read()
   Interface& mb = moab;
   rval = mb.load_file(ccmgfiler.c_str());
   CHECK_ERR(rval);
-}  
+}
 

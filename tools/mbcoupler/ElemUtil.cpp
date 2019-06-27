@@ -420,9 +420,9 @@ bool integrate_trilinear_hex(const CartVect* hex_corners,
 
 namespace Element {
 
-    Map::~Map() 
+    Map::~Map()
     {}
-    
+
     inline const std::vector<CartVect>& Map::get_vertices() {
         return this->vertex;
       }
@@ -716,7 +716,7 @@ namespace Element {
 
   }// LinearHex::LinearHex()
 
-    LinearHex::~LinearHex() 
+    LinearHex::~LinearHex()
     {}
   /* For each point, its weight and location are stored as an array.
      Hence, the inner dimension is 2, the outer dimension is gauss_count.
@@ -840,7 +840,7 @@ namespace Element {
   QuadraticHex::QuadraticHex():Map(0) {
   }
 
-    QuadraticHex::~QuadraticHex() 
+    QuadraticHex::~QuadraticHex()
     {}
   double SH(const int i, const double xi)
   {
@@ -938,7 +938,7 @@ namespace Element {
   }// LinearTet::LinearTet()
 
 
-    LinearTet::~LinearTet() 
+    LinearTet::~LinearTet()
     {}
 
   void LinearTet::set_vertices(const std::vector<CartVect>& v) {
@@ -1200,9 +1200,9 @@ namespace Element {
 
   }// LinearQuad::LinearQuad()
 
-    LinearQuad::~LinearQuad() 
+    LinearQuad::~LinearQuad()
     {}
-    
+
   /* For each point, its weight and location are stored as an array.
      Hence, the inner dimension is 2, the outer dimension is gauss_count.
      We use a one-point Gaussian quadrature, since it integrates linear functions exactly.

@@ -1,16 +1,16 @@
 /**
  * MOAB, a Mesh-Oriented datABase, is a software component for creating,
  * storing and accessing finite element mesh data.
- * 
+ *
  * Copyright 2004 Sandia Corporation.  Under the terms of Contract
  * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
  * retains certain rights in this software.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  */
 
 #ifndef MB_WRITE_UTIL_HPP
@@ -60,7 +60,7 @@ public:
   /** Get an array of coordinate values for nodes
    *
    * Given a range of node handles, retrieve a single or multiple coordinate
-   * value(s) for each. 
+   * value(s) for each.
    *
    * Failure conditions:
    *  - invalid entity handles (not vertices, non-existent entity, etc.)
@@ -81,7 +81,7 @@ public:
                             const size_t output_size,
                             double* const output_array);
 
-  /** Get connectivity for elements 
+  /** Get connectivity for elements
    *
    * Get the connectivity list for a range of elements.
    *
@@ -266,7 +266,7 @@ public:
    *\param include_variable_length_tags If false, return only fixed-length
    *                                    tags.
    */
-  virtual ErrorCode 
+  virtual ErrorCode
   get_tag_list(std::vector<Tag>& result_list,
                const Tag* user_tag_list = 0,
                int user_tag_list_length = 0,

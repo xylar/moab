@@ -1,9 +1,9 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2004 Sandia Corporation and Argonne National
-    Laboratory.  Under the terms of Contract DE-AC04-94AL85000 
-    with Sandia Corporation, the U.S. Government retains certain 
+    Laboratory.  Under the terms of Contract DE-AC04-94AL85000
+    with Sandia Corporation, the U.S. Government retains certain
     rights in this software.
 
     This library is free software; you can redistribute it and/or
@@ -16,17 +16,17 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- 
-    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov, 
-    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov      
-   
+
+    diachin2@llnl.gov, djmelan@sandia.gov, mbrewer@sandia.gov,
+    pknupp@sandia.gov, tleurent@mcs.anl.gov, tmunson@mcs.anl.gov
+
   ***************************************************************** */
 // -*- Mode : c++; tab-width: 3; c-tab-always-indent: t; indent-tabs-mode: nil; c-basic-offset: 3 -*-
 //
-//   SUMMARY: 
+//   SUMMARY:
 //     USAGE:
 //
 //    AUTHOR: Thomas Leurent <tleurent@mcs.anl.gov>
@@ -40,7 +40,7 @@
 // ============
 /*! \file MsqFreeVertexIndexIteratorTest.cpp
 
-Unit testing of various functions in the MsqFreeVertexIndexIterator class. 
+Unit testing of various functions in the MsqFreeVertexIndexIterator class.
 
  */
 // DESCRIP-END.
@@ -85,20 +85,20 @@ public:
             | 0  |  1 | 4  |
             1----2----3----9
     */
-    create_six_quads_patch_with_domain(pd, err); 
+    create_six_quads_patch_with_domain(pd, err);
   }
 
   void tearDown()
   {
     destroy_patch_with_domain(pd);
   }
-  
+
 public:
   MsqFreeVertexIndexIteratorTest()
     {}
-  
+
   void test_hard_fixed_flags()
-  {   
+  {
      MsqPrintError err(cout);
      int indices[10];
      int i=0;
@@ -106,9 +106,9 @@ public:
      ind.reset();
      while (ind.next()) {
         indices[i] = ind.value();
-//         cout << i << "th free vertex value: " << ind.value() << endl; 
+//         cout << i << "th free vertex value: " << ind.value() << endl;
         ++i;
-     } 
+     }
 
      CPPUNIT_ASSERT(i==2); // number of free vertices.
      CPPUNIT_ASSERT(pd.vertex_by_index(indices[0]).is_free_vertex());
@@ -116,7 +116,7 @@ public:
   }
 
   void test_soft_fixed_flags()
-  {   
+  {
      MsqPrintError err(cout);
      pd.set_vertex_culled( 0 );
 
@@ -127,7 +127,7 @@ public:
      while (ind.next()) {
         indices[i] = ind.value();
         ++i;
-     } 
+     }
 
      CPPUNIT_ASSERT(i==1); // number of free vertices.
      CPPUNIT_ASSERT(pd.vertex_by_index(indices[0]).is_free_vertex());

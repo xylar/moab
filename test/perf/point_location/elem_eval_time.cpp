@@ -35,7 +35,7 @@ static void fail( ErrorCode error_code, const char *str, const char* file_name, 
 
 double mytime();
 
-ErrorCode get_ents(Interface &mbi, std::string &filename, int &dim, Range &elems, EntityType &tp, int &nv) 
+ErrorCode get_ents(Interface &mbi, std::string &filename, int &dim, Range &elems, EntityType &tp, int &nv)
 {
   ErrorCode rval = mbi.load_file(filename.c_str(), 0);
   while (elems.empty() && dim >= 1) {
@@ -49,7 +49,7 @@ ErrorCode get_ents(Interface &mbi, std::string &filename, int &dim, Range &elems
     // check to see they're all the same type & #vertices
   tp = mbi.type_from_handle(*elems.begin());
   EntityType tp2 = mbi.type_from_handle(*elems.rbegin());
-  if (tp != tp2) 
+  if (tp != tp2)
     CHK(MB_FAILURE, "Elements must have same type");
 
   int nv2;
@@ -59,7 +59,7 @@ ErrorCode get_ents(Interface &mbi, std::string &filename, int &dim, Range &elems
   if (nv != nv2) {
     CHK(MB_FAILURE, "Elements must have same #vertices");
   }
-        
+
   return MB_SUCCESS;
 }
 
@@ -70,7 +70,7 @@ void parse_options(ProgOptions &opts, int &dim, std::string &filename)
   opts.addOpt<std::string>(std::string("filename,f"), std::string("Filename containing mesh"), &filename);
 }
 
-ErrorCode get_elem_map(EntityType tp, std::vector<CartVect> &vcoords, int nconn, Element::Map *&elemmap) 
+ErrorCode get_elem_map(EntityType tp, std::vector<CartVect> &vcoords, int nconn, Element::Map *&elemmap)
 {
   switch (tp) {
     case MBHEX:
@@ -98,13 +98,13 @@ ErrorCode get_elem_map(EntityType tp, std::vector<CartVect> &vcoords, int nconn,
     default:
         return MB_FAILURE;
   }
-  
+
   return MB_SUCCESS;
 }
 
-ErrorCode time_forward_eval(Interface *mbi, int method, Range &elems, 
-                            std::vector<CartVect> &params, std::vector<CartVect> &coords, 
-                            double &evtime) 
+ErrorCode time_forward_eval(Interface *mbi, int method, Range &elems,
+                            std::vector<CartVect> &params, std::vector<CartVect> &coords,
+                            double &evtime)
 {
   evtime = mytime();
   ErrorCode rval;
@@ -116,7 +116,7 @@ ErrorCode time_forward_eval(Interface *mbi, int method, Range &elems,
     ElemEvaluator eeval(mbi);
     eeval.set_eval_set(*elems.begin());
     eeval.set_tag_handle(0, 0); // indicates coordinates as the field to evaluate
-  
+
     for (rit = elems.begin(), i = 0; rit != elems.end(); ++rit, i++) {
       eeval.set_ent_handle(*rit);
       rval = eeval.eval(params[i].array(), coords[i].array(), 3);
@@ -137,14 +137,14 @@ ErrorCode time_forward_eval(Interface *mbi, int method, Range &elems,
       coords[i] = elemmap->evaluate(params[i]);
     }
   }
-  
+
   evtime = mytime() - evtime;
   return MB_SUCCESS;
 }
 
-ErrorCode time_reverse_eval(Interface *mbi, int method, Range &elems, 
-                            std::vector<CartVect> &coords, std::vector<CartVect> &params, 
-                            double &retime) 
+ErrorCode time_reverse_eval(Interface *mbi, int method, Range &elems,
+                            std::vector<CartVect> &coords, std::vector<CartVect> &params,
+                            double &retime)
 {
   retime = mytime();
   ErrorCode rval;
@@ -154,7 +154,7 @@ ErrorCode time_reverse_eval(Interface *mbi, int method, Range &elems,
     EvalSet eset;
     ElemEvaluator eeval(mbi);
     eeval.set_eval_set(*elems.begin());
-    eeval.set_tag_handle(0, 0); // indicates coordinates as the field to evaluate    
+    eeval.set_tag_handle(0, 0); // indicates coordinates as the field to evaluate
     int ins;
     for (rit = elems.begin(), i = 0; rit != elems.end(); ++rit, i++) {
       eeval.set_ent_handle(*rit);
@@ -181,8 +181,8 @@ ErrorCode time_reverse_eval(Interface *mbi, int method, Range &elems,
   return MB_SUCCESS;
 }
 
-ErrorCode time_jacobian(Interface *mbi, int method, Range &elems, std::vector<CartVect> &params, 
-                        double &jactime) 
+ErrorCode time_jacobian(Interface *mbi, int method, Range &elems, std::vector<CartVect> &params,
+                        double &jactime)
 {
   jactime = mytime();
   ErrorCode rval;
@@ -193,7 +193,7 @@ ErrorCode time_jacobian(Interface *mbi, int method, Range &elems, std::vector<Ca
     EvalSet eset;
     ElemEvaluator eeval(mbi);
     eeval.set_eval_set(*elems.begin());
-    eeval.set_tag_handle(0, 0); // indicates coordinates as the field to evaluate    
+    eeval.set_tag_handle(0, 0); // indicates coordinates as the field to evaluate
     for (rit = elems.begin(), i = 0; rit != elems.end(); ++rit, i++) {
       eeval.set_ent_handle(*rit);
       rval = eeval.jacobian(params[i].array(), jac.array());
@@ -218,7 +218,7 @@ ErrorCode time_jacobian(Interface *mbi, int method, Range &elems, std::vector<Ca
   return MB_SUCCESS;
 }
 
-ErrorCode time_integrate(Interface *mbi, int method, Tag tag, Range &elems, double &inttime) 
+ErrorCode time_integrate(Interface *mbi, int method, Tag tag, Range &elems, double &inttime)
 {
   inttime = mytime();
   ErrorCode rval;
@@ -227,7 +227,7 @@ ErrorCode time_integrate(Interface *mbi, int method, Tag tag, Range &elems, doub
     EvalSet eset;
     ElemEvaluator eeval(mbi);
     eeval.set_eval_set(*elems.begin());
-    eeval.set_tag_handle(0, 0); // indicates coordinates as the field to evaluate    
+    eeval.set_tag_handle(0, 0); // indicates coordinates as the field to evaluate
     rval = eeval.set_tag_handle(tag, 0); CHK(rval, "set_tag_handle");
     for (Range::iterator rit = elems.begin(); rit != elems.end(); ++rit) {
       eeval.set_ent_handle(*rit);
@@ -258,7 +258,7 @@ ErrorCode time_integrate(Interface *mbi, int method, Tag tag, Range &elems, doub
   return MB_SUCCESS;
 }
 
-ErrorCode put_random_field(Interface &mbi, Tag &tag, Range &elems) 
+ErrorCode put_random_field(Interface &mbi, Tag &tag, Range &elems)
 {
   Range verts;
   ErrorCode rval = mbi.get_adjacencies(elems, 0, false, verts, Interface::UNION); CHK(rval, "get_adjacencies");
@@ -271,11 +271,11 @@ ErrorCode put_random_field(Interface &mbi, Tag &tag, Range &elems)
 }
 
 ErrorCode elem_evals(Interface *mbi, int method, Range &elems, Tag tag,
-                     std::vector<CartVect> &params, std::vector<CartVect> &coords, 
-                     double &evtime, double &retime, double &jactime, double &inttime) 
+                     std::vector<CartVect> &params, std::vector<CartVect> &coords,
+                     double &evtime, double &retime, double &jactime, double &inttime)
 {
   evtime = 0, retime = 0, jactime = 0, inttime = 0; // initializations to avoid compiler warning
-  
+
     // time/test forward evaluation, putting results into vector
   ErrorCode rval = time_forward_eval(mbi, method, elems, params, coords, evtime); CHK(rval, "time_forward_eval");
 
@@ -301,7 +301,7 @@ int main( int argc, char* argv[] )
   opts.parseCommandLine(argc, argv);
   if (filename.empty()) CHK(MB_FAILURE, "No file specified");
   else if (dim < 1 || dim > 3) CHK(MB_FAILURE, "Dimension must be > 0 and <= 3");
-  
+
     // read mesh file & gather element handles
   Core mbi;
   Range elems;
@@ -329,32 +329,32 @@ int main( int argc, char* argv[] )
   rval = elem_evals(&mbi, ELEMEVAL, elems, tag, params, coords,
                     evtime[0], retime[0], jactime[0], inttime[0]);
   CHK(rval, "new elem_evals");
-  
-  rval = elem_evals(&mbi, ELEMUTIL, elems, tag, params, coords, 
+
+  rval = elem_evals(&mbi, ELEMUTIL, elems, tag, params, coords,
                     evtime[1], retime[1], jactime[1], inttime[1]);
   CHK(rval, "old elem_evals");
-  
+
   std::cout << filename << ": " << elems.size() << " " << CN::EntityTypeName(tp)
             << " elements, " << nv << " vertices per element." << std::endl << std::endl;
   std::cout << "New, old element evaluation code:" << std::endl;
   std::cout << "Evaluation type, time, time per element:" << std::endl;
   std::cout << "                             New                   Old            (New/Old)*100" << std::endl;
   std::cout << "Forward evaluation " << evtime[0] << ", " << evtime[0] / elems.size()
-            << "    " << evtime[1] << ", " << evtime[1] / elems.size() 
+            << "    " << evtime[1] << ", " << evtime[1] / elems.size()
             << "    " << (evtime[0]/(evtime[1]?evtime[1]:1))*100.0 << std::endl;
   std::cout << "Reverse evaluation " << retime[0] << ", " << retime[0] / elems.size()
-            << "    " << retime[1] << ", " << retime[1] / elems.size() 
+            << "    " << retime[1] << ", " << retime[1] / elems.size()
             << "    " << (retime[0]/(retime[1]?retime[1]:1))*100.0 << std::endl;
   std::cout << "Jacobian           " << jactime[0] << ", " << jactime[0] / elems.size()
-            << "    " << jactime[1] << ", " << jactime[1] / elems.size() 
+            << "    " << jactime[1] << ", " << jactime[1] / elems.size()
             << "    " << (jactime[0]/(jactime[1]?jactime[1]:1))*100.0 << std::endl;
   std::cout << "Integration        " << inttime[0] << ", " << inttime[0] / elems.size()
-            << "    " << inttime[1] << ", " << inttime[1] / elems.size() 
+            << "    " << inttime[1] << ", " << inttime[1] / elems.size()
             << "    " << (inttime[0]/(inttime[1]?inttime[1]:1))*100.0 << std::endl;
 }
 
 #if defined(_MSC_VER) || defined(__MINGW32__)
-double mytime2(double &tot_time, double &utime, double &stime, long &imem, long &rmem) 
+double mytime2(double &tot_time, double &utime, double &stime, long &imem, long &rmem)
 {
   utime = (double)clock() / CLOCKS_PER_SEC;
   tot_time = stime = 0;
@@ -362,7 +362,7 @@ double mytime2(double &tot_time, double &utime, double &stime, long &imem, long 
   return tot_time;
 }
 #else
-double mytime2(double &tot_time, double &utime, double &stime, long &imem, long &rmem) 
+double mytime2(double &tot_time, double &utime, double &stime, long &imem, long &rmem)
 {
   struct rusage r_usage;
   getrusage(RUSAGE_SELF, &r_usage);
@@ -375,13 +375,13 @@ double mytime2(double &tot_time, double &utime, double &stime, long &imem, long 
   imem = r_usage.ru_idrss;
   rmem = r_usage.ru_maxrss;
 #else
-  system("ps o args,drs,rss | grep perf | grep -v grep");  // RedHat 9.0 doesnt fill in actual memory data 
+  system("ps o args,drs,rss | grep perf | grep -v grep");  // RedHat 9.0 doesnt fill in actual memory data
   imem = rmem = 0;
 #endif
   return tot_time;
 }
 #endif
-double mytime() 
+double mytime()
 {
   double ttime, utime, stime;
   long imem, rmem;

@@ -1,8 +1,8 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
-    Copyright 2008 Lawrence Livermore National Laboratory.  Under 
-    the terms of Contract B545069 with the University of Wisconsin -- 
+    Copyright 2008 Lawrence Livermore National Laboratory.  Under
+    the terms of Contract B545069 with the University of Wisconsin --
     Madison, Lawrence Livermore National Laboratory retains certain
     rights in this software.
 
@@ -16,16 +16,16 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2008) kraftche@cae.wisc.edu    
+    (2008) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 /** \file DomainClassifier.cpp
- *  \brief 
+ *  \brief
  *  \author Jason Kraftcheck
  */
 
@@ -61,7 +61,7 @@ static bool compare_sides( unsigned num_vtx,
   /**\brief Skin mesh
    *
    * Find vertices and lower-dimension elements on the boundary
-   * of a mesh.  
+   * of a mesh.
    */
  static void find_skin( Mesh* mesh,
                         std::vector<Mesh::VertexHandle>& skin_verts,
@@ -96,7 +96,7 @@ static void dimension_sort_domains( MeshDomain** domains,
    * If a vertex lies in multiple domains, it is assigned to the
    * domain with the lowest topological dimension.
    *\param mesh  The MBMesquite::Mesh instance
-   *\param dim_sorted_domains  The list of MeshDomains, sorted from lowest 
+   *\param dim_sorted_domains  The list of MeshDomains, sorted from lowest
    *             to highest dimension.
    *\param num_domain  Length of 'dim_sorted_domains' array.
    *\param vertices    Vertices to classify
@@ -120,11 +120,11 @@ static void geom_classify_vertices( Mesh* mesh,
    *  Case 3b: different dimension-2 domains -> element has no classification
    *
    *\param mesh  The MBMesquite::Mesh instance
-   *\param dim_sorted_domains  The list of MeshDomains, sorted from lowest 
+   *\param dim_sorted_domains  The list of MeshDomains, sorted from lowest
    *             to highest dimension.
    *\param num_domain  Length of 'dim_sorted_domains' array.
    *\param elems    Elements to classify
-   *\param uknown   Elements for which all vertices are classified to 
+   *\param uknown   Elements for which all vertices are classified to
    *                domains with dimension less than two.
    */
 static void vert_classify_elements( Mesh* mesh,
@@ -144,9 +144,9 @@ static void geom_classify_elements( Mesh* mesh,
                                     std::vector<Mesh::ElementHandle>& unknown_elems,
                                     double epsilon,
                                     MsqError& err );
-                                    
-                                    
-                                    
+
+
+
 static bool compare_sides( unsigned num_vtx,
                            const unsigned* idx_set_1,
                            const Mesh::VertexHandle* vtx_set_1,
@@ -160,10 +160,10 @@ static bool compare_sides( unsigned num_vtx,
     if (vtx_set_1[idx_set_1[0]] == vtx_set_2[idx_set_2[i]])
       break;
   }
-  
+
   if (num_vtx == 1)
     return true;
-  
+
   if (vtx_set_1[idx_set_1[1]] == vtx_set_2[idx_set_2[(i+1)%num_vtx]]) {
     for (unsigned j = 2; j < num_vtx; ++j)
       if (vtx_set_1[idx_set_1[j]] != vtx_set_2[idx_set_2[(i+j)%num_vtx]])
@@ -193,7 +193,7 @@ static void find_skin( Mesh* mesh,
   if (elements.empty())
     return;
   const unsigned elem_idx[] = { 0, 1, 2, 3 };
-  
+
   std::vector<unsigned> extra_side_vtx;
   for (size_t e = 0; e < elements.size(); ++e) {
     Mesh::ElementHandle elem = elements[e];
@@ -210,7 +210,7 @@ static void find_skin( Mesh* mesh,
       adj_elem.clear();
       side_elem.clear();
       mesh->vertices_get_attached_elements( &vertices[*side_vtx], 1, adj_elem, junk, err ); MSQ_ERRRTN(err);
-      
+
       bool found_adj = false;
       for (size_t a = 0; a < adj_elem.size(); ++a) {
         if (adj_elem[a] == elem)
@@ -237,7 +237,7 @@ static void find_skin( Mesh* mesh,
               side_elem.push_back( adj_elem[a] );
         }
       }
-      
+
       if (!found_adj) {
         int ho = TopologyInfo::higher_order( type, vertices.size(), err );  MSQ_ERRRTN(err);
         // mask mid-element node (because that cannot be on the skin)
@@ -267,11 +267,11 @@ static void find_skin( Mesh* mesh,
               }
             }
           }
-          
+
           num_side_vtx = extra_side_vtx.size();
           side_vtx = arrptr(extra_side_vtx);
         }
-      
+
         for (unsigned v = 0; v < num_side_vtx; ++v)
           skin_verts.push_back( vertices[side_vtx[v]] );
         for (unsigned j = 0; j < side_elem.size(); ++j)
@@ -279,7 +279,7 @@ static void find_skin( Mesh* mesh,
       }
     }
   }
-  
+
   std::sort( skin_verts.begin(), skin_verts.end() );
   skin_verts.erase( std::unique( skin_verts.begin(), skin_verts.end() ), skin_verts.end() );
   std::sort( skin_elems.begin(), skin_elems.end() );
@@ -359,7 +359,7 @@ static void vert_classify_elements( Mesh* mesh,
     // sort vertex lists for faster search
   for (unsigned i = 0; i < num_domain; ++i)
     std::sort( dim_sorted_domains[i].vertices.begin(), dim_sorted_domains[i].vertices.end() );
-  
+
   std::vector<Mesh::ElementHandle>::const_iterator iter;
   std::vector<Mesh::VertexHandle> verts;
   std::vector<size_t> junk;
@@ -376,7 +376,7 @@ static void vert_classify_elements( Mesh* mesh,
       }
         // if any vertex in element has no domain, then element has no domain
       if (i < 0) {
-        dom = -2; 
+        dom = -2;
         break;
       }
         // if vertex is in curve or point, ignore it
@@ -385,14 +385,14 @@ static void vert_classify_elements( Mesh* mesh,
         // else if we already have a vertex on a different surface,
         // element must be in volume (no domain)
       else if (dom >= 0 && dom != i) {
-        dom = -2; 
+        dom = -2;
         break;
       }
       else {
         dom = i;
       }
     }
-    
+
     if (dom >= 0)
       dim_sorted_domains[dom].elements.push_back( *iter );
     else if (dom == -1) // all verts on curves or points
@@ -433,7 +433,7 @@ static void geom_classify_elements( Mesh* mesh,
       if ((pt - coords[0]).length_squared() <= epssqr)
         doms.push_back( i );
     }
-    
+
       // of the 2D domains containing the first vertex,
       // remove any that do not contain all other corners of the element.
     for (unsigned i = 1; i < verts.size(); ++i) {
@@ -446,8 +446,8 @@ static void geom_classify_elements( Mesh* mesh,
           doms.erase( doms.begin()+j );
       }
     }
-    
-    if (doms.size() == 1) 
+
+    if (doms.size() == 1)
       dim_sorted_domains[doms.front()].elements.push_back( *iter );
     else
       unknown_elems.push_back( *iter );
@@ -469,13 +469,13 @@ void DomainClassifier::classify_geometrically( DomainClassifier& result,
   int dim_indices[4];
   dimension_sort_domains( domain_array, dimension_array, array_length, domains, dim_indices, err );
   MSQ_ERRRTN(err);
-  
+
     // classify vertices by position
   std::vector<Mesh::VertexHandle> vertices;
   mesh->get_all_vertices( vertices, err ); MSQ_ERRRTN(err);
   geom_classify_vertices( mesh, arrptr(domains), dim_indices[3], vertices, tolerance, err );
   MSQ_ERRRTN(err);
-  
+
     // get elements and types
   std::vector<Mesh::ElementHandle> elems;
   mesh->get_all_elements( elems, err ); MSQ_ERRRTN(err);
@@ -484,7 +484,7 @@ void DomainClassifier::classify_geometrically( DomainClassifier& result,
   std::vector<EntityTopology> types( elems.size() );
   mesh->elements_get_topologies( arrptr(elems), arrptr(types), elems.size(), err );
   MSQ_ERRRTN(err);
-  
+
     // get rid of elements w/ dimension other than 2
   size_t w = 0;
   for (size_t r = 0; r < elems.size(); ++r) {
@@ -494,20 +494,20 @@ void DomainClassifier::classify_geometrically( DomainClassifier& result,
     }
   }
   elems.resize( w );
- 
+
     // classify elements using vertex classification
   std::vector<Mesh::ElementHandle> unknown;
   vert_classify_elements( mesh, arrptr(domains), domains.size(), dim_indices, elems, unknown, err );
   MSQ_ERRRTN(err);
-  
+
     // classify unknown elements geometrically
   elems.swap( unknown );
   unknown.clear();
   geom_classify_elements( mesh, arrptr(domains), domains.size(), dim_indices, elems, unknown, tolerance, err );
-  
+
   classify_by_handle( result, mesh, arrptr(domains), domains.size(), err );
 }
-  
+
 
 void DomainClassifier::classify_skin_geometrically( DomainClassifier& result,
                                         Mesh* mesh,
@@ -524,20 +524,20 @@ void DomainClassifier::classify_skin_geometrically( DomainClassifier& result,
   int dim_indices[4];
   dimension_sort_domains( domain_array, dimension_array, array_length, domains, dim_indices, err );
   MSQ_ERRRTN(err);
-  
+
   std::vector<Mesh::VertexHandle> vertices;
   std::vector<Mesh::ElementHandle> elements;
   find_skin( mesh, vertices, elements, err ); MSQ_ERRRTN(err);
-  
+
     // classify vertices by position
   geom_classify_vertices( mesh, arrptr(domains), dim_indices[3], vertices, tolerance, err );
   MSQ_ERRRTN(err);
- 
+
     // classify elements using vertex classification
   std::vector<Mesh::ElementHandle> unknown;
   vert_classify_elements( mesh, arrptr(domains), domains.size(), dim_indices, elements, unknown, err );
   MSQ_ERRRTN(err);
-  
+
     // classify unknown elements geometrically
   elements.swap( unknown );
   unknown.clear();
@@ -547,10 +547,10 @@ void DomainClassifier::classify_skin_geometrically( DomainClassifier& result,
     MSQ_SETERR(err)("Count not classify all skin elements", MsqError::INVALID_MESH );
     return;
   }
-  
+
   classify_by_handle( result, mesh, arrptr(domains), domains.size(), err );
 }
-  
+
 
 
 void DomainClassifier::classify_by_tag( DomainClassifier& result,
@@ -562,7 +562,7 @@ void DomainClassifier::classify_by_tag( DomainClassifier& result,
                                         MsqError& err )
 {
   TagHandle tag = mesh->tag_get( tag_name, err ); MSQ_ERRRTN(err);
-  
+
   std::string name2;
   Mesh::TagType type;
   unsigned size;
@@ -571,21 +571,21 @@ void DomainClassifier::classify_by_tag( DomainClassifier& result,
     MSQ_SETERR(err)(MsqError::TAG_NOT_FOUND,"Tag does not contain single integer value: %s\n", tag_name );
     return;
   }
-  
+
   std::vector<DomainSet> sets(array_length);
   std::map<int,DomainSet*> idmap;
   for (unsigned i = 0; i < array_length; ++i) {
     sets[i].domain = domain_array[i];
     idmap[id_array[i]] = &sets[i];
   }
-  
+
   std::vector<Mesh::VertexHandle> vertices;
   std::vector<Mesh::ElementHandle> elements;
   mesh->get_all_vertices( vertices, err ); MSQ_ERRRTN(err);
   mesh->get_all_elements( elements, err ); MSQ_ERRRTN(err);
   if (vertices.empty())
     return;
-  
+
   std::map<int,DomainSet*>::const_iterator iter;
   std::vector<int> ids( vertices.size() );
   mesh->tag_get_vertex_data( tag, vertices.size(), arrptr(vertices), arrptr(ids), err );  MSQ_ERRRTN(err);
@@ -594,11 +594,11 @@ void DomainClassifier::classify_by_tag( DomainClassifier& result,
     if (iter != idmap.end())
       iter->second->vertices.push_back( vertices[j] );
   }
-  
+
   ids.clear();
   ids.resize( elements.size() );
   if (!elements.empty()) {
-    mesh->tag_get_element_data( tag, elements.size(), arrptr(elements), arrptr(ids), err ); 
+    mesh->tag_get_element_data( tag, elements.size(), arrptr(elements), arrptr(ids), err );
     if (err) {
       err.clear();
     }
@@ -610,11 +610,11 @@ void DomainClassifier::classify_by_tag( DomainClassifier& result,
       }
     }
   }
-  
+
   if (!sets.empty())
     classify_by_handle( result, mesh, arrptr(sets), sets.size(), err );
 }
-                              
+
 
 void DomainClassifier::classify_by_handle( DomainClassifier& result,
                                            Mesh* mesh,
@@ -637,7 +637,7 @@ void DomainClassifier::classify_by_handle( DomainClassifier& result,
     std::sort( sets[i].vertices.begin(), sets[i].vertices.end() );
     std::sort( sets[i].elements.begin(), sets[i].elements.end() );
   }
-  
+
     // build vertex block list
   std::vector<size_t> indices(array_length, 0);
   size_t idx = 0;
@@ -645,7 +645,7 @@ void DomainClassifier::classify_by_handle( DomainClassifier& result,
     DomainBlock block;
     block.firstHandle = vertices[idx];
     block.lastHandle = vertices[idx];
-    
+
       // find domain
     unsigned dom = 0;
     for (dom = 0; dom < array_length; ++dom) {
@@ -658,7 +658,7 @@ void DomainClassifier::classify_by_handle( DomainClassifier& result,
     ++idx;
     if (dom == indices.size()) // no domain
       continue;
-      
+
     block.domain = sets[dom].domain;
     while (indices[dom] < sets[dom].vertices.size() &&
            sets[dom].vertices[indices[dom]] == vertices[idx]) {
@@ -668,7 +668,7 @@ void DomainClassifier::classify_by_handle( DomainClassifier& result,
     }
     result.vertexList.push_back( block );
   }
-  
+
     // build vertex block list
   indices.clear();
   indices.resize( array_length, 0 );
@@ -677,7 +677,7 @@ void DomainClassifier::classify_by_handle( DomainClassifier& result,
     DomainBlock block;
     block.firstHandle = elements[idx];
     block.lastHandle = elements[idx];
-    
+
       // find domain
     unsigned dom = 0;
     for (dom = 0; dom < array_length; ++dom) {
@@ -690,7 +690,7 @@ void DomainClassifier::classify_by_handle( DomainClassifier& result,
     ++idx;
     if (dom == indices.size()) // no domain
       continue;
-      
+
     block.domain = sets[dom].domain;
     while (indices[dom] < sets[dom].elements.size() &&
            sets[dom].elements[indices[dom]] == elements[idx]) {
@@ -700,13 +700,13 @@ void DomainClassifier::classify_by_handle( DomainClassifier& result,
     }
     result.elementList.push_back( block );
   }
-/*  
+/*
   printf("\n");
-  for (unsigned i = 0; i < result.vertexList.size(); ++i) 
+  for (unsigned i = 0; i < result.vertexList.size(); ++i)
     printf("v %2lu-%2lu @ %p\n", (unsigned long)result.vertexList[i].firstHandle,
                                (unsigned long)result.vertexList[i].lastHandle,
                                result.vertexList[i].domain );
-  for (unsigned i = 0; i < result.elementList.size(); ++i) 
+  for (unsigned i = 0; i < result.elementList.size(); ++i)
     printf("e %2lu-%2lu @ %p\n", (unsigned long)result.elementList[i].firstHandle,
                                (unsigned long)result.elementList[i].lastHandle,
                                result.elementList[i].domain );
@@ -714,14 +714,14 @@ void DomainClassifier::classify_by_handle( DomainClassifier& result,
 */
 }
 
-static bool next_vertex( Mesh* mesh, 
+static bool next_vertex( Mesh* mesh,
                          Mesh::VertexHandle& vtx,
                          std::set<Mesh::VertexHandle>& unseen,
                          MsqError& err )
 {
   std::vector<Mesh::ElementHandle> vtx_elems;
   std::vector<size_t> junk;
-  
+
   mesh->vertices_get_attached_elements( &vtx, 1, vtx_elems, junk, err );
   MSQ_ERRZERO(err);
 
@@ -739,7 +739,7 @@ static bool next_vertex( Mesh* mesh,
 
     unsigned nedges = TopologyInfo::edges( elem_types[j] );
     unsigned vidx = std::find( corners.begin(), corners.end(), vtx ) - corners.begin();
-    
+
 
     // Check mid-edge nodes first, if present
     int ho = TopologyInfo::higher_order( elem_types[j], corners.size(), err );
@@ -780,7 +780,7 @@ static bool next_vertex( Mesh* mesh,
         }
       }
     }
-    
+
     else {
       for (unsigned e = 0; e < nedges; ++e) {
         const unsigned* edge_verts = TopologyInfo::edge_vertices( elem_types[j], e, err );
@@ -788,11 +788,11 @@ static bool next_vertex( Mesh* mesh,
         int idx;
         if (edge_verts[0] == vidx)
           idx = edge_verts[1];
-        else if (edge_verts[1] == vidx) 
+        else if (edge_verts[1] == vidx)
           idx = edge_verts[0];
         else
           continue;
-          
+
         std::set<Mesh::VertexHandle>::iterator f = unseen.find( corners[idx] );
         if (f != unseen.end()) {
           vtx = *f;
@@ -802,10 +802,10 @@ static bool next_vertex( Mesh* mesh,
       }
     }
   }
-  
+
   return false;
-} 
-  
+}
+
 
 void DomainClassifier::test_valid_classification( Mesh* mesh,
                                                   MsqError& err )
@@ -819,7 +819,7 @@ void DomainClassifier::test_valid_classification( Mesh* mesh,
   mesh->get_all_elements( elements, err ); MSQ_ERRRTN(err);
   std::sort( vertices.begin(), vertices.end() );
   std::sort( elements.begin(), elements.end() );
-  
+
   // Get contents of each domain.
   std::map<MeshDomain*,int>::iterator iter;
   std::map<MeshDomain*,int> idxmap;
@@ -863,7 +863,7 @@ void DomainClassifier::test_valid_classification( Mesh* mesh,
       dimmap[&domains[i]] = dim;
     }
   }
-  
+
   // group domains by dimension
   std::vector<DomainSet*> points, curves, surfaces;
   for (std::map<DomainSet*,int>::iterator it = dimmap.begin(); it != dimmap.end(); ++it) {
@@ -882,7 +882,7 @@ void DomainClassifier::test_valid_classification( Mesh* mesh,
         break;
     }
   }
-  
+
   // check that each point-domain has a single vertex
   for (i = 0; i < points.size(); ++i) {
     if (points[i]->vertices.size() != 1 ||
@@ -891,7 +891,7 @@ void DomainClassifier::test_valid_classification( Mesh* mesh,
       return;
     }
   }
-  
+
   // check that each curve domain has a chain of connected edges
   std::set<Mesh::VertexHandle> unseen;
   for (i = 0; i < curves.size(); ++i) {
@@ -899,15 +899,15 @@ void DomainClassifier::test_valid_classification( Mesh* mesh,
       MSQ_SETERR(err)("Elements associated with 1D domain.",MsqError::INVALID_STATE);
       return;
     }
-  
+
     unseen.clear();
     std::copy( curves[i]->vertices.begin(),
                    curves[i]->vertices.end(),
                    std::inserter(unseen,unseen.begin()) );
-    
+
     const Mesh::VertexHandle first_vtx = *unseen.begin();
     unseen.erase(unseen.begin());
-    Mesh::VertexHandle vtx = first_vtx; 
+    Mesh::VertexHandle vtx = first_vtx;
       // find chain of vertices
     while (next_vertex(mesh, vtx, unseen, err))
       MSQ_ERRRTN(err);
@@ -922,8 +922,8 @@ void DomainClassifier::test_valid_classification( Mesh* mesh,
       return;
     }
   }
-  
-  
+
+
   std::set<Mesh::VertexHandle> seen;
   std::set<Mesh::ElementHandle> remaining;
   std::vector<Mesh::VertexHandle> verts, verts2;
@@ -934,7 +934,7 @@ void DomainClassifier::test_valid_classification( Mesh* mesh,
   for (i = 0; i < surfaces.size(); ++i) {
     if (surfaces[i]->elements.empty())
       continue;
-      
+
       // Check that any vertices on surface are contained in an
       // element on the surface.
     verts.clear();
@@ -953,7 +953,7 @@ void DomainClassifier::test_valid_classification( Mesh* mesh,
         return;
       }
     }
-      
+
       // check that elements form 2D patch
     stack.clear();
     remaining.clear();
@@ -971,11 +971,11 @@ void DomainClassifier::test_valid_classification( Mesh* mesh,
       for (size_t j = 0; j < verts.size(); ++j) {
         Mesh::VertexHandle v1 = verts[j], v2 = verts[(j+1)%verts.size()];
         vert_elems.clear();
-        mesh->vertices_get_attached_elements( &v1, 1, vert_elems, junk, 
+        mesh->vertices_get_attached_elements( &v1, 1, vert_elems, junk,
                                               err ); MSQ_ERRRTN(err);
         types.resize( vert_elems.size() );
         if (!vert_elems.empty()) {
-          mesh->elements_get_topologies( arrptr(vert_elems), arrptr(types), 
+          mesh->elements_get_topologies( arrptr(vert_elems), arrptr(types),
                                  vert_elems.size(), err ); MSQ_ERRRTN(err);
         }
         while (!vert_elems.empty()) {
@@ -1002,12 +1002,12 @@ void DomainClassifier::test_valid_classification( Mesh* mesh,
     }
 
     if (!remaining.empty()) {
-      MSQ_SETERR(err)("Surface mesh not a single, simply-connected patch", 
+      MSQ_SETERR(err)("Surface mesh not a single, simply-connected patch",
                       MsqError::INVALID_STATE);
       return;
     }
   }
-    
+
       // check that sides of volume elements that are on surface
       // form simply connected patch
   for (i = 0; i < surfaces.size(); ++i) {
@@ -1017,11 +1017,11 @@ void DomainClassifier::test_valid_classification( Mesh* mesh,
     for (size_t j= 0; j < surfaces[i]->vertices.size(); ++j) {
       Mesh::VertexHandle v = surfaces[i]->vertices[j];
       vert_elems.clear();
-      mesh->vertices_get_attached_elements( &v, 1, vert_elems, junk, 
+      mesh->vertices_get_attached_elements( &v, 1, vert_elems, junk,
                                             err ); MSQ_ERRRTN(err);
       types.resize( vert_elems.size() );
       if (!vert_elems.empty()) {
-        mesh->elements_get_topologies( arrptr(vert_elems), arrptr(types), 
+        mesh->elements_get_topologies( arrptr(vert_elems), arrptr(types),
                                vert_elems.size(), err ); MSQ_ERRRTN(err);
       }
       while (!vert_elems.empty()) {
@@ -1033,7 +1033,7 @@ void DomainClassifier::test_valid_classification( Mesh* mesh,
           continue;
         verts.clear();
         mesh->elements_get_attached_vertices( &e, 1, verts, junk, err ); MSQ_ERRRTN(err);
-          
+
         for (unsigned s = 0; s < TopologyInfo::faces(type); ++s) {
           unsigned n;
           const unsigned *si = TopologyInfo::face_vertices( type, s, n );
@@ -1044,12 +1044,12 @@ void DomainClassifier::test_valid_classification( Mesh* mesh,
                                        verts[si[k]]))
               ++ns;
           }
-          if (ns >= 3) 
+          if (ns >= 3)
             sides.insert( std::pair<Mesh::ElementHandle,int>(e,s) );
         }
       }
     }
-    
+
     std::vector< std::pair<Mesh::ElementHandle,int> > sstack;
     sstack.push_back( *sides.begin() );
     sides.erase(sides.begin());
@@ -1057,23 +1057,23 @@ void DomainClassifier::test_valid_classification( Mesh* mesh,
       Mesh::ElementHandle e = sstack.back().first;
       int s = sstack.back().second;
       sstack.pop_back();
-      
+
       verts.clear();
       mesh->elements_get_attached_vertices( &e, 1, verts, junk, err ); MSQ_ERRRTN(err);
       EntityTopology type;
       mesh->elements_get_topologies( &e, &type, 1, err ); MSQ_ERRRTN(err);
       unsigned n;
       const unsigned *si = TopologyInfo::face_vertices( type, s, n );
-      
+
       // for each edge
       for (unsigned j = 0; j < n; ++j) {
         Mesh::VertexHandle v1 = verts[si[j]], v2 = verts[si[(j+1)%n]];
         vert_elems.clear();
-        mesh->vertices_get_attached_elements( &v1, 1, vert_elems, junk, 
+        mesh->vertices_get_attached_elements( &v1, 1, vert_elems, junk,
                                               err ); MSQ_ERRRTN(err);
         types.resize( vert_elems.size() );
         if (!vert_elems.empty()) {
-          mesh->elements_get_topologies( arrptr(vert_elems), arrptr(types), 
+          mesh->elements_get_topologies( arrptr(vert_elems), arrptr(types),
                                  vert_elems.size(), err ); MSQ_ERRRTN(err);
         }
         while (!vert_elems.empty()) {
@@ -1091,7 +1091,7 @@ void DomainClassifier::test_valid_classification( Mesh* mesh,
             side = sides.find( std::pair<Mesh::ElementHandle,int>(e2,s2) );
             if (side == sides.end())
               continue;
-          
+
             unsigned n2;
             const unsigned* si2 = TopologyInfo::face_vertices( type2, s2, n2 );
             unsigned jdx;
@@ -1099,7 +1099,7 @@ void DomainClassifier::test_valid_classification( Mesh* mesh,
               if (verts2[si2[jdx]] == v1)
                 break;
             assert( jdx < n2 );
-            
+
             if (verts2[si2[(jdx+1)%n2]] == v2 ||
                 verts2[si2[(jdx+n2-1)%n2]] == v2) {
               sstack.push_back( *side );
@@ -1111,17 +1111,17 @@ void DomainClassifier::test_valid_classification( Mesh* mesh,
     }
 
     if (!sides.empty()) {
-      MSQ_SETERR(err)("Surface mesh not a single, simply-connected patch", 
+      MSQ_SETERR(err)("Surface mesh not a single, simply-connected patch",
                       MsqError::INVALID_STATE);
       return;
     }
   }
 }
-    
-  
+
+
 
 static inline
-bool operator<( const Mesh::EntityHandle h, 
+bool operator<( const Mesh::EntityHandle h,
                 const DomainClassifier::DomainBlock& b )
   { return h < b.firstHandle; }
 
@@ -1147,24 +1147,24 @@ MeshDomain* DomainClassifier::find_domain(
 void DomainClassifier::snap_to( Mesh::EntityHandle entity_handle,
                                 Vector3D &coordinate ) const
 {
-  if (const MeshDomain* dom = find_vertex_domain( entity_handle )) 
+  if (const MeshDomain* dom = find_vertex_domain( entity_handle ))
     dom->snap_to( entity_handle, coordinate );
 }
 
 void DomainClassifier::vertex_normal_at(Mesh::VertexHandle entity_handle,
                                   Vector3D &coordinate) const
 {
-  if (const MeshDomain* dom = find_vertex_domain( entity_handle )) 
+  if (const MeshDomain* dom = find_vertex_domain( entity_handle ))
     dom->vertex_normal_at( entity_handle, coordinate );
 }
 
 void DomainClassifier::element_normal_at(Mesh::ElementHandle entity_handle,
                                   Vector3D &coordinate) const
 {
-  if (const MeshDomain* dom = find_element_domain( entity_handle )) 
+  if (const MeshDomain* dom = find_element_domain( entity_handle ))
     dom->element_normal_at( entity_handle, coordinate );
 }
-                                  
+
 void DomainClassifier::vertex_normal_at( const Mesh::VertexHandle* handles,
                                          Vector3D coordinates[],
                                          unsigned count,
@@ -1187,7 +1187,7 @@ void DomainClassifier::closest_point( Mesh::VertexHandle handle,
                                       Vector3D& normal,
                                       MsqError& err ) const
 {
-  if (const MeshDomain* dom = find_vertex_domain( handle )) 
+  if (const MeshDomain* dom = find_vertex_domain( handle ))
     dom->closest_point( handle, position, closest, normal, err );
 }
 
@@ -1198,7 +1198,7 @@ void DomainClassifier::domain_DoF( const Mesh::VertexHandle* handles,
 {
   for (size_t i = 0; i < num_handles; ++i) {
     const MeshDomain* dom = find_vertex_domain( handles[i] );
-    if (!dom) 
+    if (!dom)
       dof_array[i] = 3;
     else {
       dom->domain_DoF( handles + i, dof_array + i, 1, err );

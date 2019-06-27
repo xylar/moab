@@ -44,7 +44,7 @@ int main(int argc, char* argv[]){
               strlen(options));
   IMESH_ASSERT(ierr);
 
-  
+
   iMesh_getNumEntSets(imesh,
                       IMESH_NULL,
                       1,

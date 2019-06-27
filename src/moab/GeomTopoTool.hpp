@@ -1,16 +1,16 @@
 /**
  * MOAB, a Mesh-Oriented datABase, is a software component for creating,
  * storing and accessing finite element mesh data.
- * 
+ *
  * Copyright 2004 Sandia Corporation.  Under the terms of Contract
  * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
  * retains certain rights in this software.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  */
 
 
@@ -30,7 +30,7 @@ namespace moab {
 // forward declare this class to avoid the header leaking in here
 class OrientedBoxTreeTool;
 class GeomQueryTool;
-  
+
 /** \class GeomTopoTool
  * \brief Tool for interpreting geometric topology sets in MOAB database
  * Tool for interpreting geometric topology sets in MOAB database; see MOAB metadata_info
@@ -45,8 +45,8 @@ public:
    *  \param impl MOAB instance the GeomTopoTool will operate on.
    *  \param find_geoments if specified as True, geometric objects in the provided MOAB instance
                            will be searched for and added to the GTT.
-      \param modelRootSet the GTT will operate only on geometric EntitySets contained by this EntitySet. 
-                          If unprovided, the default value for the modelRootSet is the MOAB instance's 
+      \param modelRootSet the GTT will operate only on geometric EntitySets contained by this EntitySet.
+                          If unprovided, the default value for the modelRootSet is the MOAB instance's
                           root set, which contains everything in the instance.
       \param p_rootSets_vector determines the storage datastructure used to relate geometric
                         EntitySets to their OrientedBoundingBox (OBB) Tree roots. If
@@ -57,12 +57,12 @@ public:
       \param restore_rootSets determines whether or not to restore the internal index that
                               links geomSets to their corresponding OBB Root.  Only relevant if
                               find_geoments is true. (default = true)
-   */  
+   */
   GeomTopoTool(Interface *impl, bool find_geoments = false, EntityHandle modelRootSet = 0,
                bool p_rootSets_vector = true, bool restore_rootSets = true);
-  
+
   ~GeomTopoTool();
-  
+
     //! Restore parent/child links between GEOM_TOPO mesh sets
   ErrorCode restore_topology_from_adjacency();
     //! Store sense of entity relative to wrt_entity.
@@ -86,8 +86,8 @@ public:
   ErrorCode get_surface_senses(EntityHandle surface_ent,
 			       EntityHandle &forward_vol,
 			       EntityHandle &reverse_vol);
-  
-    //! Set the senses of a surface with respect to its volumes  
+
+    //! Set the senses of a surface with respect to its volumes
   ErrorCode set_surface_senses(EntityHandle surface_ent,
 			       EntityHandle forward_vol,
 			       EntityHandle reverse_vol);
@@ -95,11 +95,11 @@ public:
   ErrorCode get_senses (EntityHandle entity,
     std::vector<EntityHandle> &wrt_entities,
     std::vector<int> &senses);
-    //! Set the senses of the entity wrt multiple higher dimension entities 
+    //! Set the senses of the entity wrt multiple higher dimension entities
   ErrorCode set_senses (EntityHandle entity,
                         std::vector<EntityHandle> &wrt_entities,
                         std::vector<int> &senses);
-  
+
   /** \brief Get the volume on the other side of a surface
    *
    * @param A surface to query
@@ -110,11 +110,11 @@ public:
   ErrorCode next_vol( EntityHandle surface, EntityHandle old_volume,
                       EntityHandle& new_volume );
 
-  
+
     //! Retrieve geometry sets of desired dimension from model set
     //  0 = verts, 1 = curves, 2 = surfs, 3 = vols
   ErrorCode get_gsets_by_dimension( int dim, Range &gset);
-    
+
   /** \brief Build obb tree for the entity set given; entity can be surface or volume
    *
    * @param eh EntityHandle of the volume or surface to construct the OBB tree around
@@ -157,7 +157,7 @@ public:
     /** \brief Return the dimension of the set, or -1 if it's not a geom_dimension set
      */
   int dimension(EntityHandle this_set);
-  
+
   /** \brief Return the global ID of a given entity set
    *
    * @param this_set EntitySet for which the global ID will be returned
@@ -177,31 +177,31 @@ public:
     //  in GeomTopoTool (i.e. rootSets or mapRootSets).  This data structure
     //  needs to be populated upon file read.
   ErrorCode restore_obb_index();
-  
+
     //! Build obb trees for all surfaces and volumes in model set.
     //  If make_one_vol true, joins trees from all surfaces in model into single
     //  volume obb tree.
   ErrorCode construct_obb_trees(bool make_one_vol = false);
-  
+
     //! Delete the OBB tree of a volume or surface.
     //  If the passed entity is a volume, and the bool 'vol_only'
     //  is True, function will delete the volume OBB tree, but
     //  OBB trees of the surfaces that compose (are children of)
     //  the volume will remain in tact.  If the entity is a volume and
-    //  'vol_only' is False, function will delete the volume OBB tree 
+    //  'vol_only' is False, function will delete the volume OBB tree
     //  along with all child surface OBB trees.
   ErrorCode delete_obb_tree(EntityHandle gset, bool vol_only = false);
-  
+
   ErrorCode delete_all_obb_trees();
 
     //! Delete the root of the obb tree from the set of all roots
   ErrorCode remove_root(EntityHandle vol_or_surf);
-  
+
     //! Get the root of the obbtree for a given entity
   ErrorCode get_root(EntityHandle vol_or_surf, EntityHandle &root);
 
-    //! If constructing one volume obb tree by joining all surface trees, 
-    //  get the root of that tree 
+    //! If constructing one volume obb tree by joining all surface trees,
+    //  get the root of that tree
   EntityHandle get_one_vol_root();
 
     //! Pointer to Oriented Box Tree Tool class
@@ -218,7 +218,7 @@ public:
 
     //! Checks to see if the entity is part of the model set
   ErrorCode is_owned_set(EntityHandle eh);
-  
+
     //! This would be a deep copy, into a new geom topo tool
     //  sets will be duplicated, but entities not
     //  modelSet will be a new one;
@@ -244,8 +244,8 @@ public:
 
     //! Returns the global ID tag (gidTag) from check_gid_tag
   Tag get_gid_tag();
- 
-    //! Returns the geometry dimension tag (geomTag) from check_geom_tag 
+
+    //! Returns the geometry dimension tag (geomTag) from check_geom_tag
   Tag get_geom_tag();
 
     //! Returns true if obb trees have been added to the rootset
@@ -253,7 +253,7 @@ public:
 
     //! returns the number of entities in the modelSet with specified geometric dimension
   int num_ents_of_dim(int dim);
-  
+
     //! sets the implicit complement handle for this tool
   ErrorCode setup_implicit_complement();
 
@@ -265,28 +265,28 @@ public:
 
   /** \brief Discover and store the topological relationships among a set of volumes
    * This method may be used to discover the hierarchy that exists in a range of
-   * volumes, that have no previous sense of hierarchy, and store it according 
+   * volumes, that have no previous sense of hierarchy, and store it according
    * to the conventions of GeomTopoTool.
    * The following requirements about the range of flat_volumes must be met:
    * 1. Each volume must be represented by a single, closed surface
-   *    a. The surface meshsets have triangles and vertices as members. 
-   *    b. For each "flat volume", there must be two meshsets: one for the 
+   *    a. The surface meshsets have triangles and vertices as members.
+   *    b. For each "flat volume", there must be two meshsets: one for the
    *       volume and another for the surface that encloses it. These must be
    *	   linked by a parent-child relationship.
    *	c. The SENSE_FORWARD tag on the surface meshset must be set to be
    *	   the volume meshset it encloses.
    * 2. The surfaces must not touch or overlap
-   * 
-   * After the hierarchy is established, the topological relationships between 
+   *
+   * After the hierarchy is established, the topological relationships between
    * surfaces and the volumes that enclose them are set.  This involves:
    * 1. Setting parent-child relationship between surfaces and the volumes that
    *    enclose them.
    * 2. Setting the SENSE_REVERSE tag on the surfaces to be the volume that
    *    encloses them.
-   *      
+   *
    */
   ErrorCode restore_topology_from_geometric_inclusion(const Range &flat_volumes);
-  
+
 private:
   Interface *mdbImpl;
   Tag sense2Tag;
@@ -323,7 +323,7 @@ private:
     //! Compute vertices inclusive and put on tag on sets in geom_sets
   ErrorCode construct_vertex_ranges(const Range &geom_sets,
 				      const Tag verts_tag);
-  
+
     //! Given a range of geom topology sets, separate by dimension
   ErrorCode separate_by_dimension(const Range &geom_sets);
 
@@ -355,16 +355,16 @@ private:
     //! Used by restore_topology_from_geometric_inclusion to generate the
 	//  hierarchical tree of volumes
   ErrorCode insert_in_tree(const EntityHandle ct_root, const EntityHandle volume, GeomQueryTool* GQT);
-  
+
 };
 
 inline int GeomTopoTool::num_ents_of_dim(int dim) {
   assert(0 <= dim && 3 >= dim);
   return geomRanges[dim].size();
 }
-  
+
 // get the root of the obbtree for a given entity
-inline ErrorCode GeomTopoTool::get_root(EntityHandle vol_or_surf, EntityHandle &root) 
+inline ErrorCode GeomTopoTool::get_root(EntityHandle vol_or_surf, EntityHandle &root)
 {
    if(m_rootSets_vector)
    {
@@ -376,21 +376,21 @@ inline ErrorCode GeomTopoTool::get_root(EntityHandle vol_or_surf, EntityHandle &
    return (root ? MB_SUCCESS : MB_INDEX_OUT_OF_RANGE);
 }
 
-  
+
 inline EntityHandle GeomTopoTool::get_one_vol_root()
 {
   return oneVolRootSet;
 }
 
 inline Tag GeomTopoTool::get_sense_tag() { check_face_sense_tag(true); return sense2Tag; }
-  
+
 inline Tag GeomTopoTool::get_gid_tag() { check_gid_tag(true); return gidTag; }
 
 inline Tag GeomTopoTool::get_geom_tag() { check_geom_tag(true); return geomTag; }
 
 inline bool GeomTopoTool::is_implicit_complement(EntityHandle volume) { return volume == impl_compl_handle; }
 
-} // namespace moab 
+} // namespace moab
 
 
 

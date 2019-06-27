@@ -1,5 +1,5 @@
 /** \file   VarLenDenseTag.cpp
- *  \author Jason Kraftcheck 
+ *  \author Jason Kraftcheck
  *  \date   2010-12-14
  */
 
@@ -51,7 +51,7 @@ VarLenDenseTag* VarLenDenseTag::create_tag(SequenceManager* seqman,
                                            const void* default_value,
                                            int default_value_size)
 {
-  int index; 
+  int index;
   if (MB_SUCCESS != seqman->reserve_tag_array(error, MB_VARIABLE_LENGTH, index))
     return NULL;
 
@@ -222,7 +222,7 @@ ErrorCode VarLenDenseTag::get_data(const SequenceManager* seqman,
   size_t avail = 0;
   const VarLenTag* array = NULL;
 
-  for (Range::const_pair_iterator p = entities.const_pair_begin(); 
+  for (Range::const_pair_iterator p = entities.const_pair_begin();
        p != entities.const_pair_end(); ++p) {
     EntityHandle start = p->first;
     while (start <= p->second) {
@@ -400,7 +400,7 @@ ErrorCode VarLenDenseTag::remove_data(SequenceManager* seqman,
   for (const EntityHandle* i = entities; i != end; ++i) {
     rval = get_array(seqman, NULL, *i, array, junk, false);MB_CHK_ERR(rval);
 
-    if (array) 
+    if (array)
       array->clear();
   }
 
@@ -494,7 +494,7 @@ ErrorCode get_tagged(const SequenceManager* seqman,
 
     data += iter.get_start_handle() - iter.get_sequence()->data()->start_handle();
     size_t count = iter.get_end_handle() - iter.get_start_handle() + 1;
-    for (size_t i = 0; i < count; ++i) 
+    for (size_t i = 0; i < count; ++i)
       if (data[i].size())
         hint = entities.insert(hint, iter.get_start_handle() + i);
     rval = iter.step();
@@ -621,7 +621,7 @@ ErrorCode VarLenDenseTag::get_memory_use(const SequenceManager* seqman,
     const SequenceData* prev_data = 0;
     for (TypeSequenceManager::const_iterator i = map.begin(); i != map.end(); ++i) {
       const void* mem = (*i)->data()->get_tag_data(mySequenceArray);
-      if (!mem) 
+      if (!mem)
         continue;
 
       if ((*i)->data() != prev_data) {

@@ -11,7 +11,7 @@ namespace moab {
     class BoundBox {
   public:
       BoundBox() : bMin(DBL_MAX), bMax(-DBL_MAX) {}
-      BoundBox(const CartVect &min, const CartVect &max) : 
+      BoundBox(const CartVect &min, const CartVect &max) :
               bMin(min), bMax(max) {}
       BoundBox(const double *corners);
       // constructor used in element maps
@@ -46,21 +46,21 @@ namespace moab {
         /** \brief Return the diagonal length of this box
          */
       double diagonal_length() const;
-      
+
         /** \brief Return the square of the diagonal length of this box
          */
       double diagonal_squared() const;
-      
-        /** \brief Return square of distance from box, or zero if inside 
+
+        /** \brief Return square of distance from box, or zero if inside
          * \param from_point Point from which you want distance_sq
          */
       double distance_squared(const double *from_point) const;
 
-        /** \brief Return distance from box, or zero if inside 
+        /** \brief Return distance from box, or zero if inside
          * \param from_point Point from which you want distance
          */
       double distance(const double *from_point) const;
-      
+
       BoundBox &operator=(const BoundBox &from) {
         bMin = from.bMin;
         bMax = from.bMax;
@@ -72,8 +72,8 @@ namespace moab {
 
       CartVect bMin, bMax;
     };
-    
-    inline BoundBox::BoundBox(const double *corners) 
+
+    inline BoundBox::BoundBox(const double *corners)
     {
         // relies on CartVect being Plain Old Data, no virtual table
       double *arr = bMin.array();
@@ -92,38 +92,38 @@ namespace moab {
     inline bool BoundBox::intersects_box(const BoundBox &b, const double tol) const {
       if (b.bMax[0] < bMin[0]-tol || b.bMin[0] > bMax[0]+tol ||
           b.bMax[1] < bMin[1]-tol || b.bMin[1] > bMax[1]+tol ||
-          b.bMax[2] < bMin[2]-tol || b.bMin[2] > bMax[2]+tol) 
+          b.bMax[2] < bMin[2]-tol || b.bMin[2] > bMax[2]+tol)
         return false;
 
       else return true;
     }
 
-    inline void BoundBox::update(const BoundBox &other_box) 
+    inline void BoundBox::update(const BoundBox &other_box)
     {
       update_min(other_box);
       update_max(other_box);
     }
 
-    inline void BoundBox::update(const double *coords) 
+    inline void BoundBox::update(const double *coords)
     {
       update_min(coords);
       update_max(coords+3);
     }
 
-    inline void BoundBox::update_min(const BoundBox &other_box) 
+    inline void BoundBox::update_min(const BoundBox &other_box)
     {
       bMin[0] = std::min(bMin[0], other_box.bMin[0]);
       bMin[1] = std::min(bMin[1], other_box.bMin[1]);
       bMin[2] = std::min(bMin[2], other_box.bMin[2]);
     }
-      
-    inline void BoundBox::update_min(const double *coords) 
+
+    inline void BoundBox::update_min(const double *coords)
     {
       bMin[0] = std::min(bMin[0], coords[0]);
       bMin[1] = std::min(bMin[1], coords[1]);
       bMin[2] = std::min(bMin[2], coords[2]);
     }
-      
+
     inline void BoundBox::update_max(const BoundBox &other_box)
     {
       bMax[0] = std::max(bMax[0], other_box.bMax[0]);
@@ -169,7 +169,7 @@ namespace moab {
       for (int i = 0; i < 3; ++i) {
         if (from_point[i] < bMin[i])
           dist_sq += (bMin[i] - from_point[i]) * (bMin[i] - from_point[i]);
-        else if (from_point[i] > bMax[i]) 
+        else if (from_point[i] > bMax[i])
           dist_sq += (bMax[i] - from_point[i]) * (bMax[i] - from_point[i]);
       }
       return dist_sq;
@@ -181,14 +181,14 @@ namespace moab {
       return sqrt(dist_sq);
     }
 
-    inline double BoundBox::diagonal_length() const 
+    inline double BoundBox::diagonal_length() const
     {
       if (DBL_MAX == bMax[0] || DBL_MAX == bMax[1] || DBL_MAX == bMax[2] ||
           DBL_MAX == bMin[0] || DBL_MAX == bMin[1] || DBL_MAX == bMin[2]) return DBL_MAX;
       return (bMax - bMin).length();
     }
 
-    inline double BoundBox::diagonal_squared() const 
+    inline double BoundBox::diagonal_squared() const
     {
       if (DBL_MAX == bMax[0] || DBL_MAX == bMax[1] || DBL_MAX == bMax[2] ||
           DBL_MAX == bMin[0] || DBL_MAX == bMin[1] || DBL_MAX == bMin[2]) return DBL_MAX;

@@ -1,16 +1,16 @@
 /**
  * MOAB, a Mesh-Oriented datABase, is a software component for creating,
  * storing and accessing finite element mesh data.
- * 
+ *
  * Copyright 2004 Sandia Corporation.  Under the terms of Contract
  * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
  * retains certain rights in this software.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  */
 
 
@@ -489,7 +489,7 @@ namespace moab {
               error = get_neighbor_adjacencies(source_entity, target_entities);  MB_CHK_ERR(error);
           }
           else
-          {           
+          {
               error = get_down_adjacencies(source_entity, target_dimension, target_entities); MB_CHK_ERR(error);
           }
       }
@@ -604,7 +604,7 @@ namespace moab {
      return MB_SUCCESS;
    }
 
-  /******************************************************** 
+  /********************************************************
   * 1D: sibhvs, v2hv, incident and neighborhood queries   *
   *********************************************************/
   ErrorCode HalfFacetRep::determine_sibling_halfverts(Range &verts, Range &edges)
@@ -774,7 +774,7 @@ namespace moab {
         EntityHandle hv_eid = fid_from_halfacet(nhf,MBEDGE);
         int hv_lid = lid_from_halffacet(nhf);
 	
-	while (hv_eid != 0){	    
+	while (hv_eid != 0){	
 	  if (hv_eid != eid)
 	    adjents.push_back(hv_eid);
 
@@ -788,11 +788,11 @@ namespace moab {
 	  hv_lid = lid_from_halffacet(hf);
 	}
       }
-    } 
+    }
 
-    return MB_SUCCESS;   
+    return MB_SUCCESS;
   }
-  
+
   /*******************************************************
   * 2D: sibhes, v2he, incident and neighborhood queries  *
   ********************************************************/
@@ -931,13 +931,13 @@ namespace moab {
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   ErrorCode HalfFacetRep::determine_incident_halfedges( Range &faces)
   {
-    ErrorCode error;    
+    ErrorCode error;
     EntityType ftype = mb->type_from_handle(*faces.begin());
     int nepf = lConnMap2D[ftype-2].num_verts_in_face;
 
     std::vector<char> markEdges(nepf*faces.size(), 0);
 
-    for (Range::iterator it = faces.begin(); it != faces.end(); ++it){      
+    for (Range::iterator it = faces.begin(); it != faces.end(); ++it){
         EntityHandle fid = *it;
         const EntityHandle* conn;
         error = mb->get_connectivity(fid, conn, nepf, true);MB_CHK_ERR(error);
@@ -1148,7 +1148,7 @@ namespace moab {
 
     // Step 2: If there is a corresponding half-edge, collect all sibling half-edges and store the incident faces.
     if (found)
-      { 
+      {
         error = get_up_adjacencies_2d(he_fid, he_lid, true, adjents, leids);MB_CHK_ERR(error);
       }
 
@@ -1209,7 +1209,7 @@ namespace moab {
     HFacet hf = sibhes[nepf*fidx+leid];
     EntityHandle curfid = fid_from_halfacet(hf, ftype);
     int curlid = lid_from_halffacet(hf);
-    
+
     while ((curfid != fid)&&(curfid != 0)){//Should not go into the loop when no sibling exists
         adj_ents.push_back(curfid);
 
@@ -1339,7 +1339,7 @@ namespace moab {
                                              int *qsize,
                                              int *count
                                             )
-  {  
+  {
     ErrorCode error;
     EntityHandle he2_fid = 0; int he2_lid = 0;
 
@@ -1368,7 +1368,7 @@ namespace moab {
                                             int he_lid,
                                             EntityHandle *he2_fid,
                                             int *he2_lid)
-  {    
+  {
     ErrorCode error;
     EntityType ftype = mb->type_from_handle(he_fid);
     int nepf = lConnMap2D[ftype-2].num_verts_in_face;
@@ -1384,7 +1384,7 @@ namespace moab {
 
     return MB_SUCCESS;
   }
-  
+
   /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   bool HalfFacetRep::collect_and_compare(const EntityHandle vid, const EntityHandle *edg_vert,
                                          int *qsize,
@@ -1403,7 +1403,7 @@ namespace moab {
       {
         EntityHandle curfid = queue_fid[num_qvals];
         int curlid = queue_lid[num_qvals];
-        num_qvals += 1;       
+        num_qvals += 1;
 
         const EntityHandle* conn;
         error = mb->get_connectivity(curfid, conn, nepf, true);MB_CHK_ERR(error);
@@ -1432,12 +1432,12 @@ namespace moab {
     }
     return found;
   }
-  
+
   ///////////////////////////////////////////////////////////////////////////////////////////////////
   ErrorCode  HalfFacetRep::get_neighbor_adjacencies_2d( EntityHandle fid,
                                                         std::vector<EntityHandle> &adjents)
   {
-    ErrorCode error; 
+    ErrorCode error;
 
     if (fid != 0){
       EntityType ftype = mb->type_from_handle(fid);
@@ -1447,7 +1447,7 @@ namespace moab {
         error = get_up_adjacencies_2d(fid, lid, false, adjents);MB_CHK_ERR(error);
       }
     }
-    
+
     return MB_SUCCESS;
   }
 
@@ -1523,7 +1523,7 @@ namespace moab {
     int nfaces = faces.size();
 
     int total_edges = nepf*nfaces;
-    
+
     std::vector<int> trackF(total_edges,0);
     std::vector<EntityHandle> adj_fids;
     std::vector<int> adj_lids;
@@ -1591,7 +1591,7 @@ namespace moab {
   {
     EntityType type = mb->type_from_handle(cid);
     int index = cell_index.find(type)->second;
-    return index;   
+    return index;
   }
 
    const HalfFacetRep::LocalMaps3D HalfFacetRep::lConnMap3D[4] =
@@ -1609,7 +1609,7 @@ namespace moab {
       {8, 12, 6, {4,4,4,4,4,4}, {{0,1,5,4},{1,2,6,5},{2,3,7,6},{3,0,4,7},{0,3,2,1},{4,5,6,7}},   {3,3,3,3,3,3,3,3},   {{0,3,4},{0,1,4},{1,2,4},{2,3,4},{0,3,5},{0,1,5},{1,2,5},{2,3,5}},    {{0,1},{1,2},{2,3},{3,0},{0,4},{1,5},{2,6},{3,7},{4,5},{5,6},{6,7},{7,4}},     {{0,4},{1,4},{2,4},{3,4},{0,3},{0,1},{1,2},{2,3},{0,5},{1,5},{2,5},{3,5}},     {{0,5,8,4},{1,6,9,5},{2,7,10,6},{3,4,11,7},{3,2,1,0},{8,9,10,11}},     {{-1,0,-1,3,4,-1,-1,-1},{0,-1,1,-1,-1,5,-1,-1},{-1,1,-1,2,-1,-1,6,-1},{3,-1,2,-1,-1,-1,-1,7},{4,-1,-1,-1,-1,8,-1,11},{-1,5,-1,-1,8,-1,9,-1},{-1,-1,6,-1,-1,9,-1,10},{-1,-1,-1,7,11,-1,10,-1}}, {4,0,2,5,7}, {0,6}, {{3,1,3,4},{3,1,3,6},{3,1,4,6},{3,3,6,4}}}
     };
 
-  
+
   //////////////////////////////////////////////////////////////////////////////////
    ErrorCode HalfFacetRep::determine_sibling_halffaces( Range &cells)
   {
@@ -1804,7 +1804,7 @@ namespace moab {
       }
 
    // error = print_tags(3);
-    
+
     return MB_SUCCESS;
   }
 
@@ -2318,7 +2318,7 @@ ErrorCode HalfFacetRep::get_up_adjacencies_edg_3d( EntityHandle eid,
 
     return MB_SUCCESS;
   }
- 
+
   ErrorCode HalfFacetRep::get_up_adjacencies_edg_3d_comp( EntityHandle cid,
                                                      int leid,
                                                      std::vector<EntityHandle> &adjents,
@@ -2643,12 +2643,12 @@ ErrorCode HalfFacetRep::get_up_adjacencies_edg_3d( EntityHandle eid,
     for (int i = 0; i<qsize; i++)
         cellq[i] = 0;
 
-    
+
     return found;
  }
 
   bool HalfFacetRep::find_matching_halfface(EntityHandle fid, EntityHandle *cid, int *lid)
-  {    
+  {
     ErrorCode error;
     EntityHandle start_cell = *_cells.begin();
     EntityType ctype = mb->type_from_handle(start_cell);
@@ -2797,10 +2797,10 @@ ErrorCode HalfFacetRep::get_up_adjacencies_edg_3d( EntityHandle eid,
           EntityHandle sibcid = fid_from_halfacet(hf, ctype);
           if (sibcid != 0)
             adjents.push_back(sibcid);
-      }    
+      }
     }
 
-    return MB_SUCCESS; 
+    return MB_SUCCESS;
   }
 
   /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2845,7 +2845,7 @@ ErrorCode HalfFacetRep::get_up_adjacencies_edg_3d( EntityHandle eid,
               if (count == nle)
                 break;
             }
-      }   
+      }
       return MB_SUCCESS;
   }
 
@@ -3375,7 +3375,7 @@ ErrorCode HalfFacetRep::get_up_adjacencies_edg_3d( EntityHandle eid,
     inci_entid.clear(); inci_lid.clear();
 
     if (type == MBEDGE)
-      {   
+      {
         HFacet hf = v2hv[ ID_FROM_HANDLE(vid)-1];
         inci_entid.push_back(fid_from_halfacet(hf, type));
         inci_lid.push_back(lid_from_halffacet(hf));

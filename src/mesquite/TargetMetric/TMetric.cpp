@@ -1,4 +1,4 @@
-/* ***************************************************************** 
+/* *****************************************************************
     MESQUITE -- The Mesh Quality Improvement Toolkit
 
     Copyright 2010 Sandia National Laboratories.  Developed at the
@@ -16,18 +16,18 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public License 
+    You should have received a copy of the GNU Lesser General Public License
     (lgpl.txt) along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-    (2010) kraftche@cae.wisc.edu    
+    (2010) kraftche@cae.wisc.edu
 
   ***************************************************************** */
 
 
 /** \file TMetric.cpp
- *  \brief 
- *  \author Jason Kraftcheck 
+ *  \brief
+ *  \author Jason Kraftcheck
  */
 
 #include "Mesquite.hpp"
@@ -41,7 +41,7 @@ namespace MBMesquite {
 
 template <unsigned Dim>
 static inline double
-do_finite_difference( int r, int c, TMetric* metric, 
+do_finite_difference( int r, int c, TMetric* metric,
                       MsqMatrix<Dim, Dim> A,
                       double value, MsqError& err )
 {
@@ -56,7 +56,7 @@ do_finite_difference( int r, int c, TMetric* metric,
     if (valid)
       return (diff_value - value) / step;
   }
-  
+
     // If we couldn't find a valid step, try stepping in the other
     // direciton
   for (double step = INITIAL_STEP; step > std::numeric_limits<double>::epsilon(); step *= 0.1) {
@@ -65,7 +65,7 @@ do_finite_difference( int r, int c, TMetric* metric,
     MSQ_ERRZERO(err);
     if (valid)
       return (value - diff_value) / step;
-  }  
+  }
     // If that didn't work either, then give up.
   MSQ_SETERR(err)("No valid step size for finite difference of 2D target metric.",
                   MsqError::INTERNAL_ERROR);
@@ -86,7 +86,7 @@ do_numerical_gradient( TMetric* mu,
   MSQ_ERRZERO(err);
   if (MSQ_CHKERR(err) || !valid)
     return valid;
-  
+
   switch (Dim) {
     case 3:
   wrt_A(0,2) = do_finite_difference( 0, 2, mu, A, result, err ); MSQ_ERRZERO(err);
@@ -109,11 +109,11 @@ do_numerical_gradient( TMetric* mu,
 
 template <unsigned Dim>
 static inline bool
-do_numerical_hessian( TMetric* metric, 
+do_numerical_hessian( TMetric* metric,
                       MsqMatrix<Dim, Dim> A,
                       double& value,
-                      MsqMatrix<Dim, Dim>& grad, 
-                      MsqMatrix<Dim, Dim>* Hess, 
+                      MsqMatrix<Dim, Dim>& grad,
+                      MsqMatrix<Dim, Dim>* Hess,
                       MsqError& err )
 {
     // zero hessian data
@@ -126,7 +126,7 @@ do_numerical_hessian( TMetric* metric,
   valid = metric->evaluate_with_grad( A, value, grad, err );
   if (MSQ_CHKERR(err) || !valid)
     return false;
-  
+
     // do finite difference for each term of A
   const double INITAL_STEP = std::max( 1e-6, fabs(1e-14*value) );
   double value2;
@@ -142,7 +142,7 @@ do_numerical_hessian( TMetric* metric,
         if (valid)
           break;
       }
-      
+
         // if no valid step size, try step in other direction
       if (!valid) {
         for (step = -INITAL_STEP; step < -std::numeric_limits<double>::epsilon(); step *= 0.1) {
@@ -152,7 +152,7 @@ do_numerical_hessian( TMetric* metric,
           if (valid)
             break;
         }
-        
+
           // if still no valid step size, give up.
         if (!valid) {
           MSQ_SETERR(err)("No valid step size for finite difference of 2D target metric.",
@@ -160,10 +160,10 @@ do_numerical_hessian( TMetric* metric,
           return false;
         }
       }
-      
+
         // restore A.
       A(r,c) = in_val;
-      
+
         // add values into result matrix
         // values of grad2, in row-major order, are a single 9-value row of the Hessian
       grad2 -= grad;
@@ -178,27 +178,27 @@ do_numerical_hessian( TMetric* metric,
       }
     } // for (c)
   } // for (r)
-  
+
     // Values in non-diagonal blocks were added twice.
   for (unsigned r = 0, h = 1; r < Dim-1; ++r, ++h)
     for (unsigned c = r + 1; c < Dim; ++c, ++h)
       Hess[h] *= 0.5;
-  
+
   return true;
 }
 
 
 TMetric::~TMetric() {}
 
-bool TMetric::evaluate( const MsqMatrix<2,2>& /*T*/, 
-               double& /*result*/, 
+bool TMetric::evaluate( const MsqMatrix<2,2>& /*T*/,
+               double& /*result*/,
                MsqError& /*err*/ )
 {
   return false;
 }
 
-bool TMetric::evaluate( const MsqMatrix<3,3>& /*T*/, 
-               double& /*result*/, 
+bool TMetric::evaluate( const MsqMatrix<3,3>& /*T*/,
+               double& /*result*/,
                MsqError& /*err*/ )
 {
   return false;

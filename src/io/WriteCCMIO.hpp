@@ -1,16 +1,16 @@
 /**
  * MOAB, a Mesh-Oriented datABase, is a software component for creating,
  * storing and accessing finite element mesh data.
- * 
+ *
  * Copyright 2004 Sandia Corporation.  Under the terms of Contract
  * DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government
  * retains certain rights in this software.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  */
 
 //-------------------------------------------------------------------------
@@ -20,11 +20,11 @@
 //
 // Special Notes : Lots of code taken from verde implementation
 //
-// Creator       : Corey Ernst 
+// Creator       : Corey Ernst
 //
 // Date          : 8/02
 //
-// Owner         : Corey Ernst 
+// Owner         : Corey Ernst
 //-------------------------------------------------------------------------
 
 #ifndef WRITECCMIO_HPP
@@ -49,7 +49,7 @@ class WriteUtilIface;
 
 class WriteCCMIO : public WriterIface
 {
- 
+
 public:
 
    //! Constructor
@@ -57,7 +57,7 @@ public:
 
    //! Destructor
   virtual ~WriteCCMIO();
-  
+
   static WriterIface* factory( Interface* );
 
     //! writes out a file
@@ -70,7 +70,7 @@ public:
                           const Tag* tag_list = NULL,
                           int num_tags = 0,
                           int export_dimension = 3);
-  
+
 protected:
 
     //! number of dimensions in this file
@@ -91,11 +91,11 @@ protected:
     unsigned int num_neusets;
     Range nodes;
 
-    MeshInfo() 
-        : num_dim(0), num_nodes(0), num_elements(0), num_matsets(0), 
+    MeshInfo()
+        : num_dim(0), num_nodes(0), num_elements(0), num_matsets(0),
           num_dirsets(0), num_neusets(0)
       {}
-    
+
   };
 
     // material set information
@@ -111,13 +111,13 @@ protected:
     std::string setName; // name for this matset, if any
     std::string materialType; // material type for this matset, if any
 
-    MaterialSetData() 
+    MaterialSetData()
             : setHandle(0), entityType(MBMAXTYPE), verts_per_element(0), matsetId(-1),
               materialId(-1)
-    
+
         {}
   };
-  
+
     // neumann set information
   class NeumannSetData
   {
@@ -129,17 +129,17 @@ protected:
     int neusetId; // id of this matset, from NEUMANN_SET tag
     std::string setName; // name for this neuset, if any
 
-    NeumannSetData() 
+    NeumannSetData()
             : setHandle(0), entityType(MBMAXTYPE), verts_per_element(0), neusetId(-1)
         {}
   };
-  
+
 private:
 
     //! interface instance
   Interface *mbImpl;
   WriteUtilIface* mWriteIface;
-  
+
     //! file name
   std::string fileName;
 
@@ -170,46 +170,46 @@ private:
   ErrorCode gather_matset_info(std::vector<EntityHandle> &matsets,
                                std::vector<MaterialSetData> &matset_data,
                                Range &all_verts);
-  
+
     //! gathers elements in each neuset
   ErrorCode gather_neuset_info(std::vector<EntityHandle> &neusets,
                                std::vector<NeumannSetData> &neuset_data);
-  
+
   ErrorCode close_and_compress(const char *filename, CCMIOID rootID);
-    
+
   ErrorCode initialize_file(MeshInfo &mesh_info);
 
     //! write vertices to file
   ErrorCode write_nodes(CCMIOID rootID, const Range& nodes, const int dimension, CCMIOID &verticesID);
-  
+
     //! write cells and internal/boundary faces, using vgids and verts input
-  ErrorCode write_cells_and_faces(CCMIOID rootID, 
+  ErrorCode write_cells_and_faces(CCMIOID rootID,
                                   std::vector<WriteCCMIO::MaterialSetData> &matset_data,
                                   std::vector<WriteCCMIO::NeumannSetData> &neuset_data,
                                   Range &verts, CCMIOID &topologyID);
 
     //! write external faces, including connectivity and connected cells
   ErrorCode write_external_faces(CCMIOID rootID, CCMIOID topologyID, int set_num, Range &facets);
-  
+
     // get global ids for these entities; allocates gids and passes back,
     // caller is responsible for deleting
   ErrorCode get_gids(const Range &ents, int *&gids,
                        int &minid, int &maxid);
-  
-  ErrorCode write_meshes(MeshInfo &mesh_info, 
+
+  ErrorCode write_meshes(MeshInfo &mesh_info,
                             std::vector<MaterialSetData> &matset_data,
                             std::vector<NeumannSetData> &neuset_data,
                             Range &verts,
                             const int *vgids);
-  
+
   ErrorCode get_valid_sides(Range &elems, const int sense,
                               WriteCCMIO::NeumannSetData &neuset_data);
-  
+
   void reset_matset(std::vector<MaterialSetData> &matset_info);
-  
+
   ErrorCode get_neuset_elems(EntityHandle neuset, int current_sense,
                                Range &forward_elems, Range &reverse_elems);
-  
+
   ErrorCode transform_coords(const int dimension, const int num_nodes, double *coords);
 
   ErrorCode write_problem_description(CCMIOID rootID, CCMIOID stateID, CCMIOID &problemID,
@@ -232,7 +232,7 @@ private:
 
     //! write solution (tag) data
   ErrorCode write_solution_data();
-  
+
     //! finalize processor
   ErrorCode write_processor(CCMIOID processorID, CCMIOID verticesID, CCMIOID topologyID);
 
@@ -242,7 +242,7 @@ private:
   ErrorCode write_int_option(const char *opt_name,
                              EntityHandle seth,
                              Tag &tag, CCMIOID &node);
-  
+
   ErrorCode write_dbl_option(const char *opt_name,
                              EntityHandle seth,
                              Tag &tag, CCMIOID &node);
