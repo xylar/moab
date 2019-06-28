@@ -1299,17 +1299,18 @@ ErrorCode Intx2Mesh::resolve_intersection_sharing()
 {
   if (parcomm && parcomm->size()>1)
   {
+/*
     moab::ParallelMergeMesh pm(parcomm, epsilon_1);
-    ErrorCode rval = pm.merge(outSet, false, 1); // resolve only the output set, do not skip local merge, use dim 2
+    ErrorCode rval = pm.merge(outSet, false, 2); // resolve only the output set, do not skip local merge, use dim 2
     ERRORR(rval, "can't merge intersection ");
-
+*/
     // look at non-owned shared vertices, that could be part of original source set
     // they should be removed from intx set reference, because they might not have a correspondent
     // on the other task
     Range nonOwnedVerts;
     Range vertsInIntx;
     Range intxCells;
-    rval = mb->get_entities_by_dimension(outSet, 2, intxCells); MB_CHK_ERR(rval);
+    ErrorCode rval = mb->get_entities_by_dimension(outSet, 2, intxCells); MB_CHK_ERR(rval);
     rval = mb->get_connectivity(intxCells, vertsInIntx);MB_CHK_ERR(rval);
 
     rval = parcomm->filter_pstatus(vertsInIntx, PSTATUS_NOT_OWNED, PSTATUS_AND, -1, &nonOwnedVerts);MB_CHK_ERR(rval);

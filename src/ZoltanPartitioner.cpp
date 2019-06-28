@@ -1582,7 +1582,7 @@ void ZoltanPartitioner::SetRCB_Parameters()
 
   // RCB parameters:
 
-  myZZ->Set_Param("RCB_OUTPUT_LEVEL", "2");
+  myZZ->Set_Param("RCB_OUTPUT_LEVEL", "1");
   //myZZ->Set_Param("KEEP_CUTS", "1");              // save decomposition
   //myZZ->Set_Param("RCB_RECTILINEAR_BLOCKS", "1"); // don't split point on boundary
 }
@@ -2085,7 +2085,14 @@ ErrorCode ZoltanPartitioner::partition_owned_cells(Range & primary, ParallelComm
     }
     else if (2==met)
     {
-      rval = mtu.get_average_position(cell, avg_position); MB_CHK_ERR ( rval );
+      if (TYPE_FROM_HANDLE(cell) == MBVERTEX)
+      {
+        rval = mbImpl->get_coords(&cell, 1, avg_position); MB_CHK_ERR ( rval );
+      }
+      else
+      {
+        rval = mtu.get_average_position(cell, avg_position); MB_CHK_ERR ( rval );
+      }
       std::copy(avg_position, avg_position+3, std::back_inserter(coords));
     }
   }
@@ -2222,7 +2229,7 @@ ErrorCode ZoltanPartitioner::partition_owned_cells(Range & primary, ParallelComm
   assert (num_export == (int) primary.size());
   for (i=0; i<num_export; i++)
   {
-    EntityHandle cell=primary[i];
+    EntityHandle cell=primary[export_local_ids[i]];
     distribution[assign_parts[i]].insert(cell);
   }
 

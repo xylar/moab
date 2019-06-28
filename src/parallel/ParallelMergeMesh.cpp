@@ -44,7 +44,6 @@ namespace moab{
       rval= myMB->get_dimension(dim);MB_CHK_ERR(rval);
     }
 
-
     //Get the local skin elements
     rval = PopulateMySkinEnts(levelset,dim, skip_local_merge);
     //If there is only 1 proc, we can return now

@@ -716,18 +716,17 @@ int main(int argc, char* argv[])
     rval = get_vartag_data(mbCore, smatValsdataTag, sets, val_sizes, mat_vals);MB_CHK_SET_ERR(rval, "Getting matrix values failed");
     assert(val_sizes == NNZ);
 
+    // Print more information about what we are converting:
+    // Source elements/vertices/type (Discretization ?)
+    // Target elements/vertices/type (Discretization ?)
+    // Overlap elements/types
+    // Rmeapping weights matrix: rows/cols/NNZ
     // Output the number of sets
     printf("Primary sets: %15zu\n", sets.size());
     printf("Total NNZ: %18d\n", NNZ);
     printf("Conservative weights ? %6d\n", (bConserved > 0));
     printf("Monotone weights ? %10d\n", (bMonotonicity > 0));
-    // std::cout << "Number of primary sets: " << std::setw(10) << sets.size() << std::endl;
-    // std::cout << "Total NNZ: " << std::setw(14) << NNZ << std::endl;
-    // std::cout << "Conservative weights ? " << std::setw(5) << (bConserved > 0) << std::endl;
-    // std::cout << "Monotone weights ? " << std::setw(8) << (bMonotonicity > 0) << std::endl;
 
-    // std::cout << std::setfill('-') << std::setw(45) << std::endl;
-    // std::cout << std::setfill(' ') << std::setw(25) << "Description" << std::setw(15) << "Source" << std::setw(15) << "Target" << std::endl;
     printf("\n--------------------------------------------------------------\n");
     printf("%20s %21s %15s\n", "Description", "Source", "Target");
     printf("--------------------------------------------------------------\n");
@@ -737,19 +736,7 @@ int main(int argc, char* argv[])
     printf("%25s %15d %15d\n", "Maximum vertex/element:", nVA, nVB);
     printf("%25s %15s %15s\n", "Discretization type:", methodA.c_str(), methodB.c_str());
     printf("%25s %15d %15d\n", "Discretization order:", nOrdA, nOrdB);
-    // std::cout << std::setw(0) << "Number of elements: " << std::setw(25) << nA  << std::setw(10) << nB << std::endl;
-    // std::cout << "Number of DoFs: " << std::setw(25) << nDofA  << std::setw(10) << nDofB << std::endl;
-    // std::cout << "Maximum vertex/element: " << std::setw(20) << nVA  << std::setw(10)  << nVB << std::endl;
-    // std::cout << "Discretization type: " << std::setw(20) << methodA  << std::setw(10)  << methodB << std::endl;
-    // std::cout << "Discretization order: " << std::setw(20) << nOrdA  << std::setw(10)  << nOrdB << std::endl;
     
-    // Print more information about what we are converting:
-    // Source elements/vertices/type (Discretization ?)
-    // Target elements/vertices/type (Discretization ?)
-    // Overlap elements/types
-    // Rmeapping weights matrix: rows/cols/NNZ
-    // std::cout << "Matrix sizes = " << mat_rows.size() << ", " << mat_cols.size() << ", " << mat_vals.size() << ", " << NNZ << std::endl;
-
     // Calculate and write fractional coverage arrays
     {
       DataArray1D<double> dFracA(nDofA);

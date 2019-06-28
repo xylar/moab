@@ -3,7 +3,7 @@ include ../makefile.config
 
 default: all
 
-EXAMPLES = HelloMOAB GetEntities SetsNTags StructuredMeshSimple UniformRefinement DeleteEdges
+EXAMPLES = HelloMOAB GetEntities SetsNTags StructuredMeshSimple UniformRefinement DeleteEdges ReadPartFile
 PAREXAMPLES = HelloParMOAB ReadWriteTest
 EXOIIEXAMPLES = TestExodusII
 ifeq ("$(MOAB_DEV)","yes")
@@ -55,6 +55,10 @@ StructuredMeshSimple: StructuredMeshSimple.o ${MOAB_LIBDIR}/libMOAB.la
 
 run-StructuredMeshSimple: StructuredMeshSimple
 	${RUNSERIAL} ./StructuredMeshSimple -d 3 -n 5
+
+ReadPartFile: ReadPartFile.o ${MOAB_LIBDIR}/libMOAB.la
+	@echo "[CXXLD]  $@"
+	${VERBOSE}${MOAB_CXX} -o $@ $< ${MOAB_LIBS_LINK}
 
 HelloParMOAB: HelloParMOAB.o ${MOAB_LIBDIR}/libMOAB.la
 	@echo "[CXXLD]  $@"

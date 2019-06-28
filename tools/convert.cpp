@@ -615,7 +615,6 @@ int main(int argc, char* argv[])
 
     // Write the output file
   reset_times();
-
 #ifdef MOAB_HAVE_TEMPESTREMAP
   Range faces;
   Mesh* tempestMesh = remapper->GetMesh ( moab::Remapper::SourceMesh );

@@ -637,7 +637,10 @@ ErrCode iMOAB_UpdateMeshInfo ( iMOAB_AppID pid )
             rval = context.MBI->get_entities_by_dimension ( fileSet, 1, data.primary_elems, true );CHKERRVAL(rval); // recursive
 
             if ( data.primary_elems.empty() )
-            { return 1; } // no elements of dimension 1 or 2 or 3
+            {
+              // no elements of dimension 1 or 2 or 3; it could happen for point clouds
+              return 0;
+            }
         }
     }
 
@@ -1317,8 +1320,8 @@ ErrCode iMOAB_SetIntTagStorage ( iMOAB_AppID pid, const iMOAB_String tag_storage
 
     // restrict the range; everything is contiguous; or not?
 
-    Range contig_range ( * ( ents_to_set->begin() ), * ( ents_to_set->begin() + nents_to_be_set - 1 ) );
-    rval = context.MBI->tag_set_data ( tag, contig_range, tag_storage_data );CHKERRVAL(rval);
+    //Range contig_range ( * ( ents_to_set->begin() ), * ( ents_to_set->begin() + nents_to_be_set - 1 ) );
+    rval = context.MBI->tag_set_data ( tag, *ents_to_set, tag_storage_data );CHKERRVAL(rval);
 
     return 0; // no error
 }
@@ -1363,9 +1366,9 @@ ErrCode iMOAB_GetIntTagStorage ( iMOAB_AppID pid, const iMOAB_String tag_storage
     { return 1; } // to many entities to get, or too little
 
     // restrict the range; everything is contiguous; or not?
-    Range contig_range ( * ( ents_to_get->begin() ), * ( ents_to_get->begin() + nents_to_get - 1 ) );
+    //Range contig_range ( * ( ents_to_get->begin() ), * ( ents_to_get->begin() + nents_to_get - 1 ) );
 
-    rval = context.MBI->tag_get_data ( tag, contig_range, tag_storage_data );CHKERRVAL(rval);
+    rval = context.MBI->tag_get_data ( tag, *ents_to_get, tag_storage_data );CHKERRVAL(rval);
 
     return 0; // no error
 }
@@ -1411,9 +1414,9 @@ ErrCode iMOAB_SetDoubleTagStorage ( iMOAB_AppID pid, const iMOAB_String tag_stor
     { return 1; } // to many entities to be set
 
     // restrict the range; everything is contiguous; or not?
-    Range contig_range ( * ( ents_to_set->begin() ), * ( ents_to_set->begin() + nents_to_be_set - 1 ) );
+    //Range contig_range ( * ( ents_to_set->begin() ), * ( ents_to_set->begin() + nents_to_be_set - 1 ) );
 
-    rval = context.MBI->tag_set_data ( tag, contig_range, tag_storage_data );CHKERRVAL(rval);
+    rval = context.MBI->tag_set_data ( tag, *ents_to_set, tag_storage_data );CHKERRVAL(rval);
 
     return 0; // no error
 }
@@ -1460,8 +1463,8 @@ ErrCode iMOAB_GetDoubleTagStorage ( iMOAB_AppID pid, const iMOAB_String tag_stor
 
     // restrict the range; everything is contiguous; or not?
 
-    Range contig_range ( * ( ents_to_get->begin() ), * ( ents_to_get->begin() + nents_to_get - 1 ) );
-    rval = context.MBI->tag_get_data ( tag, contig_range, tag_storage_data );CHKERRVAL(rval);
+    //Range contig_range ( * ( ents_to_get->begin() ), * ( ents_to_get->begin() + nents_to_get - 1 ) );
+    rval = context.MBI->tag_get_data ( tag, *ents_to_get, tag_storage_data );CHKERRVAL(rval);
 
     return 0; // no error
 }
@@ -1665,30 +1668,48 @@ ErrCode iMOAB_ResolveSharedEntities (  iMOAB_AppID pid, int* num_verts, int* mar
 #ifdef MOAB_HAVE_MPI
     appData& data = context.appDatas[*pid];
     ParallelComm* pco = context.pcomms[*pid];
-
-    // create an integer tag for resolving ; maybe it can be a long tag in the future
-    // (more than 2 B vertices;)
-    int dum_id = 0;
-    Tag stag;
-    ErrorCode rval = context.MBI->tag_get_handle ( "__sharedmarker", 1,  MB_TYPE_INTEGER, stag,
-                     MB_TAG_CREAT | MB_TAG_DENSE, &dum_id );CHKERRVAL(rval);
-
-    if ( *num_verts > ( int ) data.local_verts.size() )
-    { return 1; } // we are not setting the size
-
-    rval = context.MBI->tag_set_data ( stag, data.local_verts, ( void* ) marker ); // assumes integer tag
     EntityHandle cset = data.file_set;
-    rval = pco->resolve_shared_ents ( cset, -1, -1, &stag );CHKERRVAL(rval);
+    int dum_id = 0;
+    ErrorCode rval;
+    if (data.primary_elems.empty())
+    {
+      // skip actual resolve, assume vertices are distributed already ,
+      // no need to share them
+    }
+    else
+    {
+      // create an integer tag for resolving ; maybe it can be a long tag in the future
+      // (more than 2 B vertices;)
 
-    rval = context.MBI->tag_delete(stag); CHKERRVAL(rval);
+      Tag stag;
+      rval = context.MBI->tag_get_handle ( "__sharedmarker", 1,  MB_TYPE_INTEGER, stag,
+                       MB_TAG_CREAT | MB_TAG_DENSE, &dum_id );CHKERRVAL(rval);
+
+      if ( *num_verts > ( int ) data.local_verts.size() )
+      { return 1; } // we are not setting the size
+
+      rval = context.MBI->tag_set_data ( stag, data.local_verts, ( void* ) marker ); CHKERRVAL(rval);// assumes integer tag
+
+      rval = pco->resolve_shared_ents ( cset, -1, -1, &stag );CHKERRVAL(rval);
+
+      rval = context.MBI->tag_delete(stag); CHKERRVAL(rval);
+    }
     // provide partition tag equal to rank
     Tag part_tag;
     dum_id = -1;
     rval = context.MBI->tag_get_handle ( "PARALLEL_PARTITION", 1, MB_TYPE_INTEGER,
-                                         part_tag, MB_TAG_CREAT | MB_TAG_SPARSE, &dum_id );CHKERRVAL(rval);
+                                         part_tag, MB_TAG_CREAT | MB_TAG_SPARSE, &dum_id );
+
+    if (part_tag == NULL || ( (rval!=MB_SUCCESS) && (rval!=MB_ALREADY_ALLOCATED) ) )
+    {
+      std::cout <<" can't get par part tag.\n";
+      return 1;
+    }
+
 
     int rank = pco->rank();
     rval = context.MBI->tag_set_data ( part_tag, &cset, 1, &rank );CHKERRVAL(rval);
+
 
 #endif
     return 0;
@@ -1773,7 +1794,13 @@ ErrCode iMOAB_SendMesh ( iMOAB_AppID pid, MPI_Comm* global, MPI_Group* receiving
     std::vector<int> number_elems_per_part;
     // how to distribute local elements to receiving tasks?
     // trivial partition: compute first the total number of elements need to be sent
-    Range& owned = context.appDatas[*pid].owned_elems;
+    Range owned = context.appDatas[*pid].owned_elems;
+    if (owned.size()==0)
+    {
+      // must be vertices that we want to send then
+      owned = context.appDatas[*pid].local_verts;
+      // we should have some vertices here
+    }
 
     if (*method == 0) // trivial partitioning, old method
     {
@@ -1836,119 +1863,137 @@ ErrCode iMOAB_SendMesh ( iMOAB_AppID pid, MPI_Comm* global, MPI_Group* receiving
 ErrCode iMOAB_ReceiveMesh ( iMOAB_AppID pid, MPI_Comm* global, MPI_Group* sendingGroup,
                             int* scompid )
 {
-    appData& data = context.appDatas[*pid];
-    ParallelComm* pco = context.pcomms[*pid];
-    MPI_Comm receive = pco->comm();
-    EntityHandle local_set = data.file_set;
-    ErrorCode rval;
+  appData& data = context.appDatas[*pid];
+  ParallelComm* pco = context.pcomms[*pid];
+  MPI_Comm receive = pco->comm();
+  EntityHandle local_set = data.file_set;
+  ErrorCode rval;
 
-    // first see what are the processors in each group; get the sender group too, from the sender communicator
-    MPI_Group receiverGroup;
-    int ierr = MPI_Comm_group ( receive, &receiverGroup );CHKIERRVAL(ierr);
+  // first see what are the processors in each group; get the sender group too, from the sender communicator
+  MPI_Group receiverGroup;
+  int ierr = MPI_Comm_group ( receive, &receiverGroup );CHKIERRVAL(ierr);
 
-    // instantiate the par comm graph
-    ParCommGraph* cgraph = new ParCommGraph ( *global, *sendingGroup, receiverGroup, *scompid, context.appDatas[*pid].external_id );
-    // TODO we should search if we have another pcomm with the same comp ids in the list already
-    // sort of check existing comm graphs in the list context.appDatas[*pid].pgraph
-    context.appDatas[*pid].pgraph.push_back ( cgraph );
+  // instantiate the par comm graph
+  ParCommGraph* cgraph = new ParCommGraph ( *global, *sendingGroup, receiverGroup, *scompid, context.appDatas[*pid].external_id );
+  // TODO we should search if we have another pcomm with the same comp ids in the list already
+  // sort of check existing comm graphs in the list context.appDatas[*pid].pgraph
+  context.appDatas[*pid].pgraph.push_back ( cgraph );
 
-    int receiver_rank = -1;
-    MPI_Comm_rank ( receive, &receiver_rank );
+  int receiver_rank = -1;
+  MPI_Comm_rank ( receive, &receiver_rank );
 
-    // first, receive from sender_rank 0, the communication graph (matrix), so each receiver
-    // knows what data to expect
-    std::vector<int> pack_array;
-    rval = cgraph->receive_comm_graph ( *global, pco, pack_array );CHKERRVAL(rval);
+  // first, receive from sender_rank 0, the communication graph (matrix), so each receiver
+  // knows what data to expect
+  std::vector<int> pack_array;
+  rval = cgraph->receive_comm_graph ( *global, pco, pack_array );CHKERRVAL(rval);
 
-    // senders across for the current receiver
-    int current_receiver = cgraph->receiver ( receiver_rank );
+  // senders across for the current receiver
+  int current_receiver = cgraph->receiver ( receiver_rank );
 
-    std::vector<int> senders_local;
-    size_t n = 0;
+  std::vector<int> senders_local;
+  size_t n = 0;
 
-    while ( n < pack_array.size() )
+  while ( n < pack_array.size() )
+  {
+    if ( current_receiver == pack_array[n] )
     {
-        if ( current_receiver == pack_array[n] )
-        {
-            for ( int j = 0; j < pack_array[n + 1]; j++ )
-            { senders_local.push_back ( pack_array[n + 2 + j] ); }
+      for ( int j = 0; j < pack_array[n + 1]; j++ )
+      { senders_local.push_back ( pack_array[n + 2 + j] );}
 
-            break;
-        }
-
-        n = n + 2 + pack_array[n + 1];
+      break;
     }
 
+    n = n + 2 + pack_array[n + 1];
+  }
+
 #ifdef VERBOSE
-    std:: cout << " receiver " << current_receiver << " at rank " <<
-               receiver_rank << " will receive from " << senders_local.size() << " tasks: ";
+  std:: cout << " receiver " << current_receiver << " at rank " <<
+  receiver_rank << " will receive from " << senders_local.size() << " tasks: ";
 
-    for ( int k = 0; k < ( int ) senders_local.size(); k++ )
-    { std::cout << " " << senders_local[k]; }
+  for ( int k = 0; k < ( int ) senders_local.size(); k++ )
+  { std::cout << " " << senders_local[k];}
 
-    std::cout << "\n";
+  std::cout << "\n";
 #endif
 
-    if (senders_local.empty())
+  if (senders_local.empty())
+  {
+    std::cout <<" we do not have any senders for receiver rank " << receiver_rank << "\n";
+  }
+  rval = cgraph->receive_mesh ( *global, pco, local_set, senders_local );CHKERRVAL(rval);
+
+  // after we are done, we could merge vertices that come from different senders, but
+  // have the same global id
+  Tag idtag;
+  rval = context.MBI->tag_get_handle ( "GLOBAL_ID", idtag );CHKERRVAL(rval);
+
+  bool pointCloud = false;
+  if ( ( int ) senders_local.size() >= 2 )// need to remove duplicate vertices
+  // that might come from different senders
+  {
+    Range local_ents;
+    rval = context.MBI->get_entities_by_handle ( local_set, local_ents );CHKERRVAL(rval);
+
+    Range local_verts = local_ents.subset_by_type ( MBVERTEX );
+    // do not do merge if point cloud
+    if ( !local_ents.all_of_type(MBVERTEX) )
     {
-      std::cout <<" we do not have any senders for receiver rank " << receiver_rank << "\n";
-    }
-    rval = cgraph->receive_mesh ( *global, pco, local_set, senders_local );CHKERRVAL(rval);
+      Range local_elems = subtract ( local_ents, local_verts );
 
-    // after we are done, we could merge vertices that come from different senders, but
-    // have the same global id
-    Tag idtag;
-    rval = context.MBI->tag_get_handle ( "GLOBAL_ID", idtag );CHKERRVAL(rval);
-
-    if ( ( int ) senders_local.size() >= 2 ) // need to remove duplicate vertices
-        // that might come from different senders
-    {
-        Range local_ents;
-        rval = context.MBI->get_entities_by_handle ( local_set, local_ents );CHKERRVAL(rval);
-
-        Range local_verts = local_ents.subset_by_type ( MBVERTEX );
-        Range local_elems = subtract ( local_ents, local_verts );
-
-        // remove from local set the vertices
-        rval = context.MBI->remove_entities ( local_set, local_verts );CHKERRVAL(rval);
+      // remove from local set the vertices
+      rval = context.MBI->remove_entities ( local_set, local_verts );CHKERRVAL(rval);
 
 #ifdef VERBOSE
-        std::cout << "current_receiver " << current_receiver << " local verts: " << local_verts.size() << "\n";
+      std::cout << "current_receiver " << current_receiver << " local verts: " << local_verts.size() << "\n";
 #endif
-        MergeMesh mm ( context.MBI );
+      MergeMesh mm ( context.MBI );
 
-        rval = mm.merge_using_integer_tag ( local_verts, idtag );CHKERRVAL(rval);
+      rval = mm.merge_using_integer_tag ( local_verts, idtag );CHKERRVAL(rval);
 
-        Range new_verts; // local elems are local entities without vertices
-        rval = context.MBI->get_connectivity ( local_elems, new_verts );CHKERRVAL(rval);
+      Range new_verts; // local elems are local entities without vertices
+      rval = context.MBI->get_connectivity ( local_elems, new_verts );CHKERRVAL(rval);
 
 #ifdef VERBOSE
-        std::cout << "after merging: new verts: " << new_verts.size() << "\n";
+      std::cout << "after merging: new verts: " << new_verts.size() << "\n";
 #endif
-        rval = context.MBI->add_entities ( local_set, new_verts );CHKERRVAL(rval);
-    }
+      rval = context.MBI->add_entities ( local_set, new_verts );CHKERRVAL(rval);
 
+    }
+    else
+    pointCloud = true;
+  }
+
+  if (!pointCloud)
+  {
     // still need to resolve shared entities (in this case, vertices )
     rval = pco->resolve_shared_ents ( local_set, -1, -1, &idtag );
 
-    if ( rval != MB_SUCCESS ) { return 1; }
+    if ( rval != MB_SUCCESS ) {return 1;}
+  }
 
-    // set the parallel partition tag
-    Tag part_tag;
-	int dum_id = -1;
-	rval = context.MBI->tag_get_handle ( "PARALLEL_PARTITION", 1, MB_TYPE_INTEGER,
-										 part_tag, MB_TAG_CREAT | MB_TAG_SPARSE, &dum_id );CHKERRVAL(rval);
+  // set the parallel partition tag
+  Tag part_tag;
+  int dum_id = -1;
+  rval = context.MBI->tag_get_handle ( "PARALLEL_PARTITION", 1, MB_TYPE_INTEGER,
+      part_tag, MB_TAG_CREAT | MB_TAG_SPARSE, &dum_id );
 
-	int rank = pco->rank();
-	rval = context.MBI->tag_set_data ( part_tag, &local_set, 1, &rank );CHKERRVAL(rval);
+  if (part_tag == NULL || ( (rval!=MB_SUCCESS) && (rval!=MB_ALREADY_ALLOCATED) ) )
+  {
+    std::cout <<" can't get par part tag.\n";
+    return 1;
+  }
 
-    // populate the mesh with current data info
-    ierr = iMOAB_UpdateMeshInfo ( pid );CHKIERRVAL(ierr);
 
-    // mark for deletion
-    MPI_Group_free(&receiverGroup);
+  int rank = pco->rank();
+  rval = context.MBI->tag_set_data ( part_tag, &local_set, 1, &rank );CHKERRVAL(rval);
 
-    return 0;
+  // populate the mesh with current data info
+  ierr = iMOAB_UpdateMeshInfo ( pid );CHKIERRVAL(ierr);
+
+  // mark for deletion
+  MPI_Group_free(&receiverGroup);
+
+  return 0;
 }
 
 ErrCode FindParCommGraph(iMOAB_AppID pid, int *scompid, int *rcompid, ParCommGraph *& cgraph, int * sense)
