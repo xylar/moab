@@ -1516,9 +1516,12 @@ ErrorCode range_to_id_list_templ(HandleRangeIter begin,
         continue;
       }
 
-      WriteHDF5::wid_t n = pi->second - h + 1;
-      if (n > ri->count)
-        n = ri->count;
+      // compute the last available value of the found target range (ri iterator)
+      WriteHDF5::wid_t last_valid_input_value_in_current_map_range = ri->begin + ri->count;
+      // limit the number of steps we do on top of h so we do not overflow the output range span
+      WriteHDF5::wid_t step_until = std::min(last_valid_input_value_in_current_map_range, pi->second);
+      WriteHDF5::wid_t n = step_until - h + 1;
+      assert(n > 0); // We must at least step 1
 
       WriteHDF5::wid_t id = ri->value + (h - ri->begin);
       for (WriteHDF5::wid_t j = 0; j < n; ++i, ++j)
