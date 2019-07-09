@@ -25,7 +25,7 @@ void test_correct_ghost()
   ParallelComm* pcomm = new ParallelComm(mb, MPI_COMM_WORLD);
 
 
-  char read_opts[]="PARALLEL=READ_PART;PARALLEL_RESOLVE_SHARED_ENTS;PARTITION=PARALLEL_PARTITION;PARALLEL_GHOSTS=2.0.1;DEBUG_IO=2";
+  char read_opts[]="PARALLEL=READ_PART;PARALLEL_RESOLVE_SHARED_ENTS;PARTITION=PARALLEL_PARTITION;PARALLEL_GHOSTS=2.0.1";
   rval = mb->load_file(filename.c_str() , 0, read_opts);CHECK_ERR(rval);
 
   if (nproc >= 3)
