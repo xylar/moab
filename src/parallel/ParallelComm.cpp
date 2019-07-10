@@ -9085,17 +9085,11 @@ ErrorCode ParallelComm::correct_thin_ghost_layers()
   std::vector<std::vector<SharedEntityData> > shents(buffProcs.size()),
     send_data(buffProcs.size());
 
-  // will work only on multi-shared tags
-  //  sharedps_tag();
-  //  sharedhs_tag();
+  // will work only on multi-shared tags  sharedps_tag(), sharedhs_tag();
 
-  // we will piggyback on the code from pack_shared_handles to
-  // send information about multishared ents that might not be yet available
-  // to more distant entities;
-  // this happens for thin layers when we ghost
   /*
    *   domain0 | domain1 | domain2 | domain3
-   *   vertices from domain 1 and 2 are visible form both 0 and 3, but
+   *   vertices from domain 1 and 2 are visible from both 0 and 3, but
    *   domain 0 might not have info about multi-sharing from domain 3
    *   so we will force that domain 0 vertices owned by 1 and 2 have information
    *   about the domain 3 sharing
@@ -9119,16 +9113,13 @@ ErrorCode ParallelComm::correct_thin_ghost_layers()
                 (h4, h2, a), (h4, h3, b)
    *
    */
-  //result = pack_shared_handles(send_data);
-  //MB_CHK_ERR(result);
-  //  copy from pack_shared_handles
-  // Build up send buffers
+
   ErrorCode result = MB_SUCCESS;
   int ent_procs[MAX_SHARING_PROCS];
   EntityHandle handles[MAX_SHARING_PROCS];
   int num_sharing;
   SharedEntityData tmp;
-  //send_data.resize(buffProcs.size());
+
   for (std::set<EntityHandle>::iterator i = sharedEnts.begin(); i != sharedEnts.end(); ++i) {
 
     unsigned char pstat;
@@ -9137,7 +9128,7 @@ ErrorCode ParallelComm::correct_thin_ghost_layers()
       continue;
     // we should skip the ones that are not owned locally
     // the owned ones will have the most multi-shared info, because the info comes from other
-    // remoter processors
+    // remote processors
     if ( pstat&PSTATUS_NOT_OWNED)
       continue;
     for (int j = 1; j < num_sharing; j++) {
@@ -9158,8 +9149,7 @@ ErrorCode ParallelComm::correct_thin_ghost_layers()
     }
   }
 
-  result = exchange_all_shared_handles(send_data, shents);
-  MB_CHK_ERR(result);
+  result = exchange_all_shared_handles(send_data, shents);  MB_CHK_ERR(result);
 
   // loop over all shents and add if vertex type, add if missing
   for (size_t i=0; i<shents.size(); i++)
@@ -9174,13 +9164,14 @@ ErrorCode ParallelComm::correct_thin_ghost_layers()
       unsigned char pstat;
       result = get_sharing_data(eh, ent_procs, handles, pstat, num_sharing);MB_CHK_SET_ERR(result, "can't get sharing data");
       // see if the proc tmp.owner is in the list of ent_procs; if not, we have to increase handles, and ent_procs; and set
-      // copy from usage in build_sharedhps_list
-      // std::find(tmp_procs, tmp_procs + tmp_ps, *sit) != tmp_procs + tmp_ps)
+
       int proc_remote = tmp.owner; //
       if( std::find(ent_procs, ent_procs + num_sharing, proc_remote) == ent_procs + num_sharing )
       {
         // so we did not find on proc
+#ifndef NDEBUG
         std::cout << "THIN GHOST: we did not find on proc " << rank() << " for shared ent " << eh << " the proc " << proc_remote << "\n";
+#endif
         // increase num_sharing, and set the multi-shared tags
         if (num_sharing >= MAX_SHARING_PROCS)
            return MB_FAILURE;
