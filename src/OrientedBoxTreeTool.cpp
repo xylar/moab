@@ -1090,8 +1090,8 @@ ErrorCode OrientedBoxTreeTool::ray_intersect_sets(
 {
   IntRegCtxt int_reg_ctxt;
 
-  OrientedBoxTreeTool::IntersectSearchWindow search_win(ray_length,0);
-
+  OrientedBoxTreeTool::IntersectSearchWindow search_win(ray_length,(double*)0);
+    
   RayIntersectSets op( this, ray_point, unit_ray_dir, tolerance, search_win,
                        accum ? &(accum->ray_tri_tests_count) : NULL, int_reg_ctxt);
 

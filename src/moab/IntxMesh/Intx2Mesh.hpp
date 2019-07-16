@@ -144,12 +144,18 @@ public:
 #endif
   void correct_polygon(EntityHandle * foundIds, int & nP);
 #ifdef MOAB_HAVE_MPI
-  ErrorCode correct_intersection_points_positions();
+  // share vertices between the intersection target domains
+  ErrorCode resolve_intersection_sharing();
 #endif
 #ifdef ENABLE_DEBUG
   void enable_debug()  {dbg_1 = 1;}
   void disable_debug() {dbg_1 = 0;}
 #endif
+
+#ifdef MOAB_HAVE_TEMPESTREMAP
+  friend class TempestRemapper;
+#endif
+
 protected: // so it can be accessed in derived classes, InPlane and OnSphere
   Interface * mb;
 

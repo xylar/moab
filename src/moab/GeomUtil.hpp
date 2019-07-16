@@ -234,7 +234,7 @@ bool box_point_overlap( const CartVect& box_min_corner,
 bool box_elem_overlap( const CartVect *elem_corners,
                        EntityType elem_type,
                        const CartVect& box_center,
-                       const CartVect& box_half_dims );
+                       const CartVect& box_half_dims, int nodecount=0 );
 
 /**\brief Test if the specified element intersects an axis-aligned box.
  *

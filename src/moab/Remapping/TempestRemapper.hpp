@@ -31,7 +31,7 @@ namespace moab
 {
 
 // Forward declare our friend, the mapper
-class TempestOfflineMap;
+class TempestOnlineMap;
 
 class TempestRemapper : public Remapper
 {
@@ -63,13 +63,17 @@ public:
         OVERLAP_MOAB = 6
     };
 
-    friend class TempestOfflineMap;
+    friend class TempestOnlineMap;
 
     moab::ErrorCode GenerateMesh(Remapper::IntersectionContext ctx, TempestMeshType type);
 
     moab::ErrorCode LoadMesh(Remapper::IntersectionContext ctx, std::string inputFilename, TempestMeshType type);
 
-    moab::ErrorCode ComputeOverlapMesh(double tolerance=1e-8, double radius_src=1.0, double radius_tgt=1.0, double boxeps=0.1, bool use_tempest=false);
+    moab::ErrorCode ComputeOverlapMesh(double tolerance=1e-8, 
+                                        double radius_src=1.0, double radius_tgt=1.0, 
+                                        double boxeps=0.1, 
+                                        bool use_tempest=false,
+                                        bool regional_mesh=false);
 
     // Converters between MOAB and Tempest representations
     moab::ErrorCode ConvertTempestMesh(Remapper::IntersectionContext ctx);
@@ -100,6 +104,26 @@ public:
 
     int GetLocalID(Remapper::IntersectionContext ctx, int globalID);
 
+    /// <summary>
+    ///     Gather the overlap mesh and asssociated source/target data and write it out to disk. This information can then be used
+    ///     with the "GenerateOfflineMap" tool in TempestRemap as needed.
+    /// </summary>
+    moab::ErrorCode WriteTempestIntersectionMesh (std::string strOutputFileName, 
+                                                    const bool fAllParallel, 
+                                                    const bool fInputConcave, 
+                                                    const bool fOutputConcave);
+
+    moab::ErrorCode GenerateCSMeshMetadata(  const int ntot_elements, 
+                                             moab::Range& entities, 
+                                             moab::Range* secondary_entities,
+                                             const std::string dofTagName, int nP);
+
+    moab::ErrorCode GenerateMeshMetadata( Mesh& mesh,
+                                          const int ntot_elements, 
+                                          moab::Range& entities,
+                                          moab::Range* secondary_entities,
+                                          const std::string dofTagName, int nP);
+
     // public members
     bool meshValidate;  // Validate the mesh after loading from file
 
@@ -109,29 +133,32 @@ public:
 
 private:
 
-    moab::ErrorCode AssociateSrcTargetInOverlap();
+    moab::ErrorCode associate_src_tgt_in_overlap_mesh();
 
-    moab::ErrorCode ConvertMOABMesh_WithSortedEntitiesBySource();
+    moab::ErrorCode convert_overlap_mesh_sorted_by_source();
 
     // private methods
-    moab::ErrorCode LoadTempestMesh_Private(std::string inputFilename, Mesh** tempest_mesh);
+    moab::ErrorCode load_tempest_mesh_private(std::string inputFilename, Mesh** tempest_mesh);
 
-    moab::ErrorCode ConvertMOABMeshToTempest_Private(Mesh* mesh, moab::EntityHandle meshset, moab::Range& entities);
+    moab::ErrorCode convert_mesh_to_tempest_private(Mesh* mesh, moab::EntityHandle meshset, moab::Range& entities);
 
-    moab::ErrorCode ConvertTempestMeshToMOAB_Private(TempestMeshType type, Mesh* mesh, moab::EntityHandle& meshset);
+    moab::ErrorCode convert_tempest_mesh_private(TempestMeshType type, Mesh* mesh, moab::EntityHandle& meshset);
 
     moab::ErrorCode augment_overlap_set();
+
 
     // Source, Target amd Overlap meshes
     Mesh* m_source;
     TempestMeshType m_source_type;
     moab::Range m_source_entities;
     moab::EntityHandle m_source_set;
+    int max_source_edges;
 
     Mesh* m_target;
     TempestMeshType m_target_type;
     moab::Range m_target_entities;
     moab::EntityHandle m_target_set;
+    int max_target_edges;
 
     // Overlap meshes
     Mesh* m_overlap;
@@ -149,6 +176,7 @@ private:
     std::map<int,int> gid_to_lid_src, gid_to_lid_covsrc, gid_to_lid_tgt;
     std::map<int,int> lid_to_gid_src, lid_to_gid_covsrc, lid_to_gid_tgt;
 
+    bool rrmgrids;
     bool is_parallel, is_root;
     int rank, size;
 };

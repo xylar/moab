@@ -63,6 +63,12 @@ AC_DEFUN([FATHOM_CONFIGURE_EIGEN3],
       CPPFLAGS="$EIGEN3_INCLUDES $CPPFLAGS"
       DISTCHECK_CONFIGURE_FLAGS="$DISTCHECK_CONFIGURE_FLAGS --with-eigen3=\"${EIGEN3_DIR}\""
       AC_DEFINE(HAVE_EIGEN, 1, [Flag indicating whether the library will be compiled with Eigen support])
+
+      # Let us explicitly disable -Wshadow warnings since Eigen3 does not respect shadow declarations
+      # and it results in an exorbitant amount of warnings during the build
+      case "$CXXFLAGS" in
+        *"shadow"*) CXXFLAGS="$CXXFLAGS -Wno-shadow"
+      esac
     fi
   fi
   

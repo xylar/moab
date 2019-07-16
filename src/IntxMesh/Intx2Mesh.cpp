@@ -8,6 +8,7 @@
 #ifdef MOAB_HAVE_MPI
 #include "moab/ParallelComm.hpp"
 #include "MBParallelConventions.h"
+#include "moab/ParallelMergeMesh.hpp"
 #endif /* MOAB_HAVE_MPI */
 #include "MBTagConventions.hpp"
 // this is for DBL_MAX
@@ -15,6 +16,7 @@
 #include <queue>
 #include <sstream>
 #include "moab/GeomUtil.hpp"
+#include "moab/AdaptiveKDTree.hpp"
 
 namespace moab {
 
@@ -264,22 +266,61 @@ ErrorCode Intx2Mesh::intersect_meshes(EntityHandle mbset1, EntityHandle mbset2,
 
   Range rs22=rs2; // a copy of the initial range; we will remove from it elements as we
                  // advance ; rs2 is needed for marking the polygon to the red parent
+
+  // create the local kdd tree with source elements; will use it to search
+  // more efficiently for the seeds in advancing front;
+  // some of the target cells will not be covered by source cells, and they need to be eliminated early
+  // from contention
+
+  // build a kd tree with the rs1 (source) cells
+  AdaptiveKDTree kd(mb);
+  EntityHandle tree_root = 0;
+  rval  = kd.build_tree(rs1, &tree_root);MB_CHK_ERR(rval);
+
   while (!rs22.empty())
   {
+#if defined(ENABLE_DEBUG) || defined(VERBOSE)
     if (rs22.size()<rs2.size())
     {
-#if defined(ENABLE_DEBUG) || defined(VERBOSE)
       std::cout<< " possible not connected arrival mesh; my_rank: " << my_rank << " counting: " << counting <<"\n";
       std::stringstream ffo;
       ffo << "file0" <<  counting<<"rank0"<< my_rank << ".vtk";
       rval = mb->write_mesh(ffo.str().c_str(), &outSet, 1);MB_CHK_ERR(rval);
-#endif
     }
+#endif
+    bool seedFound = false;
     for (Range::iterator it = rs22.begin(); it != rs22.end(); ++it)
     {
       startRed = *it;
       int found = 0;
-      for (Range::iterator it2 = rs1.begin(); it2 != rs1.end() && !found; ++it2)
+      // find vertex positions
+      const EntityHandle * conn = NULL;
+      int nnodes=0;
+      rval = mb->get_connectivity(startRed, conn, nnodes); MB_CHK_ERR(rval);
+      // find leaves close to those positions
+      std::vector<double> positions;
+      positions.resize(nnodes*3);
+      rval = mb->get_coords(conn, nnodes, &positions[0]); MB_CHK_ERR(rval);
+      // find leaves within a distance from each vertex of target
+      // in those leaves, collect all cells; we will try for an intx in there, instead of
+      // looping over all rs1 cells, as before
+      Range close_source_cells;
+      std::vector<EntityHandle> leaves;
+      for (int i=0; i<nnodes; i++)
+      {
+
+        leaves.clear();
+        rval = kd.distance_search(&positions[3*i], epsilon_1, leaves, epsilon_1, epsilon_1);MB_CHK_ERR(rval);
+
+        for (std::vector<EntityHandle>::iterator j = leaves.begin(); j != leaves.end(); ++j) {
+            Range tmp;
+            rval = mb->get_entities_by_dimension( *j, 2, tmp ); MB_CHK_ERR(rval);
+
+            close_source_cells.merge( tmp.begin(), tmp.end() );
+        }
+      }
+
+      for (Range::iterator it2 = close_source_cells.begin(); it2 != close_source_cells.end() && !found; ++it2)
       {
         startBlue = *it2;
         double area = 0;
@@ -294,12 +335,22 @@ ErrorCode Intx2Mesh::intersect_meshes(EntityHandle mbset1, EntityHandle mbset2,
         if (area > 0)
         {
           found = 1;
+          seedFound = true;
           break; // found 2 elements that intersect; these will be the seeds
         }
       }
       if (found)
         break;
+      else
+      {
+#if defined(VERBOSE)
+        std::cout<< " on rank " << my_rank << " target cell " << ID_FROM_HANDLE(startRed) << " not intx with any source\n";
+#endif
+        rs22.erase(startRed);
+      }
     }
+    if (!seedFound)
+      continue; // continue while(!rs22.empty())
 
     std::queue<EntityHandle> blueQueue; // these are corresponding to Ta,
     blueQueue.push(startBlue);
@@ -526,7 +577,7 @@ ErrorCode Intx2Mesh::intersect_meshes(EntityHandle mbset1, EntityHandle mbset2,
   // on the boundary edges
   // this needs to be collective, so we should maybe wait something
 #ifdef MOAB_HAVE_MPI
-  rval = correct_intersection_points_positions();MB_CHK_SET_ERR(rval, "can't correct position, Intx2Mesh.cpp \n");
+  rval = resolve_intersection_sharing();MB_CHK_SET_ERR(rval, "can't correct position, Intx2Mesh.cpp \n");
 #endif
 
   this->clean();
@@ -1244,22 +1295,75 @@ ErrorCode Intx2Mesh::create_departure_mesh_3rd_alg(EntityHandle & lagr_set,
 }
 
 
-ErrorCode Intx2Mesh::correct_intersection_points_positions()
+ErrorCode Intx2Mesh::resolve_intersection_sharing()
 {
-  if (parcomm)
+  if (parcomm && parcomm->size()>1)
   {
-    // first, find out the edges that are shared between processors, and owned by the current processor
-    Range shared_edges_owned;
-    ErrorCode rval = parcomm->get_shared_entities(-1, // all other proc
-        shared_edges_owned,
-        1,
-        true, // only on the interface
-        true); // only the edges owned by the current processor
-    ERRORR(rval, "can't get shared edges owned");
+/*
+    moab::ParallelMergeMesh pm(parcomm, epsilon_1);
+    ErrorCode rval = pm.merge(outSet, false, 2); // resolve only the output set, do not skip local merge, use dim 2
+    ERRORR(rval, "can't merge intersection ");
+*/
+    // look at non-owned shared vertices, that could be part of original source set
+    // they should be removed from intx set reference, because they might not have a correspondent
+    // on the other task
+    Range nonOwnedVerts;
+    Range vertsInIntx;
+    Range intxCells;
+    ErrorCode rval = mb->get_entities_by_dimension(outSet, 2, intxCells); MB_CHK_ERR(rval);
+    rval = mb->get_connectivity(intxCells, vertsInIntx);MB_CHK_ERR(rval);
 
-    shared_edges_owned = intersect(RedEdges, shared_edges_owned);
-    rval = parcomm->settle_intersection_points(RedEdges, shared_edges_owned, extraNodesVec, epsilon_1);
-    ERRORR(rval, "can't settle intx points");
+    rval = parcomm->filter_pstatus(vertsInIntx, PSTATUS_NOT_OWNED, PSTATUS_AND, -1, &nonOwnedVerts);MB_CHK_ERR(rval);
+
+    // some of these vertices can be in original set 1, which was covered, transported;
+    // but they should not be "shared" from the intx point of view, because they are not shared with another task
+    // they might have come from coverage as a plain vertex, so losing the sharing property ?
+
+    Range coverVerts;
+    rval = mb->get_connectivity(rs1, coverVerts); MB_CHK_ERR(rval);
+    // find out those that are on the interface
+    Range vertsCovInterface;
+    rval = parcomm->filter_pstatus(coverVerts, PSTATUS_INTERFACE, PSTATUS_AND, -1, &vertsCovInterface);MB_CHK_ERR(rval);
+    // how many of these are in
+    Range nodesToDuplicate = intersect(vertsCovInterface, nonOwnedVerts);
+    // first, get all cells connected to these vertices, from intxCells
+
+    Range connectedCells;
+    rval = mb->get_adjacencies(nodesToDuplicate, 2, false, connectedCells, Interface::UNION); MB_CHK_ERR(rval);
+    // only those in intx set:
+    connectedCells = intersect(connectedCells, intxCells);
+    // first duplicate vertices in question:
+    std::map<EntityHandle, EntityHandle>  duplicatedVerticesMap;
+    for (Range::iterator vit=nodesToDuplicate.begin(); vit!=nodesToDuplicate.end(); vit++)
+    {
+      EntityHandle vertex = *vit;
+      double coords[3];
+      rval = mb->get_coords(&vertex, 1, coords); MB_CHK_ERR(rval);
+      EntityHandle newVertex;
+      rval = mb->create_vertex(coords, newVertex);  MB_CHK_ERR(rval);
+      duplicatedVerticesMap[vertex] = newVertex;
+    }
+
+    // look now at connectedCells, and change their connectivities:
+    for (Range::iterator eit=connectedCells.begin(); eit!=connectedCells.end(); eit++)
+    {
+      EntityHandle intxCell = *eit;
+      // replace connectivity
+      std::vector<EntityHandle> connectivity;
+      rval = mb->get_connectivity(&intxCell, 1, connectivity); MB_CHK_ERR(rval);
+      for (size_t i=0; i<connectivity.size(); i++)
+      {
+        EntityHandle currentVertex = connectivity[i];
+        std::map<EntityHandle, EntityHandle>::iterator mit = duplicatedVerticesMap.find(currentVertex);
+        if (mit!=duplicatedVerticesMap.end())
+        {
+          connectivity[i]=mit->second; // replace connectivity directly
+        }
+      }
+      int nnodes = (int)connectivity.size();
+      rval = mb->set_connectivity(intxCell, &connectivity[0], nnodes); MB_CHK_ERR(rval);
+
+    }
   }
   return MB_SUCCESS;
 }

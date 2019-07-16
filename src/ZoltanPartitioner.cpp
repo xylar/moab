@@ -575,8 +575,16 @@ ErrorCode ZoltanPartitioner::partition_mesh_and_geometry(const double part_geom_
 
   std::cout << "Computing partition using " << (zmethod ? zmethod : "RCB") <<
       " method for " << nparts << " processors..." << std::endl;
+#ifndef NDEBUG
+#if 0
+  if (NULL == zmethod || !strcmp(zmethod, "RCB"))
+    Zoltan_Generate_Files(myZZ->Get_C_Handle(), (char*)zmethod, 1, 1, 0, 0);
 
-  retval = myZZ->LB_Partition(changes, numGidEntries, numLidEntries,
+  if ( !strcmp(zmethod, "PHG"))
+      Zoltan_Generate_Files(myZZ->Get_C_Handle(), (char*)zmethod, 1, 0, 1, 1);
+#endif
+#endif
+  retval = myZZ->LB_Partition(changes, numGidEntries, numLidEntries, 
                               dumnum1, dum_global, dum_local, dum1, dum2,
                               num_assign, assign_gid, assign_lid,
                               assign_procs, assign_parts);
@@ -1574,9 +1582,9 @@ void ZoltanPartitioner::SetRCB_Parameters()
 
   // RCB parameters:
 
-  myZZ->Set_Param("RCB_OUTPUT_LEVEL", "2");
-  myZZ->Set_Param("KEEP_CUTS", "1");              // save decomposition
-  myZZ->Set_Param("RCB_RECTILINEAR_BLOCKS", "1"); // don't split point on boundary
+  myZZ->Set_Param("RCB_OUTPUT_LEVEL", "1");
+  //myZZ->Set_Param("KEEP_CUTS", "1");              // save decomposition
+  //myZZ->Set_Param("RCB_RECTILINEAR_BLOCKS", "1"); // don't split point on boundary
 }
 
 void ZoltanPartitioner::SetRIB_Parameters()
@@ -2009,7 +2017,8 @@ void mbGetPart(void * /* userDefinedData */, int /* numGlobalIds */, int /* numL
 }
 
 // new methods for partition in parallel, used by migrate in iMOAB
-ErrorCode ZoltanPartitioner::partition_owned_cells(Range & primary, ParallelComm * pco, std::map<int, int> & extraAdjCellsId,
+ErrorCode ZoltanPartitioner::partition_owned_cells(Range & primary, ParallelComm * pco,
+    std::multimap<int,int> & extraGraphEdges,
     std::map<int, int> procs, int & numNewPartitions, std::map<int, Range> & distribution, int met)
 {
   // start copy
@@ -2056,13 +2065,18 @@ ErrorCode ZoltanPartitioner::partition_owned_cells(Range & primary, ParallelComm
       moab_id = ids[i] ;
       for (int k=0; k<size_adjs; k++)
         neib_proc[k]= rank; // current rank
-      if (extraAdjCellsId.find(moab_id) != extraAdjCellsId.end())
+      if (extraGraphEdges.find(moab_id) != extraGraphEdges.end())
       {
-        // it means that the current cell is adjacent to a cell in another partition
-        int otherID = extraAdjCellsId[moab_id];
-        neighbors[size_adjs] = otherID; // the id of the other cell, across partition
-        neib_proc[size_adjs] = procs[otherID]; // this is how we built this map, the cell id maps to what proc it came from
-        size_adjs++;
+        // it means that the current cell is adjacent to a cell in another partition ; maybe a few
+        std::pair <std::multimap<int,int>::iterator, std::multimap<int,int>::iterator> ret;
+        ret = extraGraphEdges.equal_range(moab_id);
+        for (std::multimap<int,int>::iterator it=ret.first; it!=ret.second; ++it)
+        {
+          int otherID = it->second;
+          neighbors[size_adjs] = otherID; // the id of the other cell, across partition
+          neib_proc[size_adjs] = procs[otherID]; // this is how we built this map, the cell id maps to what proc it came from
+          size_adjs++;
+        }
       }
         // copy those into adjacencies vector
       length.push_back(size_adjs);
@@ -2071,7 +2085,14 @@ ErrorCode ZoltanPartitioner::partition_owned_cells(Range & primary, ParallelComm
     }
     else if (2==met)
     {
-      rval = mtu.get_average_position(cell, avg_position); MB_CHK_ERR ( rval );
+      if (TYPE_FROM_HANDLE(cell) == MBVERTEX)
+      {
+        rval = mbImpl->get_coords(&cell, 1, avg_position); MB_CHK_ERR ( rval );
+      }
+      else
+      {
+        rval = mtu.get_average_position(cell, avg_position); MB_CHK_ERR ( rval );
+      }
       std::copy(avg_position, avg_position+3, std::back_inserter(coords));
     }
   }
@@ -2098,7 +2119,9 @@ ErrorCode ZoltanPartitioner::partition_owned_cells(Range & primary, ParallelComm
 #endif
 
 // these are static var in this file, and used in the callbacks
-  Points= &coords[0];
+  Points= NULL;
+  if (1!=met)
+    Points = &coords[0];
   GlobalIds=&ids[0];
   NumPoints=(int)ids.size();
   NumEdges=&length[0];
@@ -2162,6 +2185,24 @@ ErrorCode ZoltanPartitioner::partition_owned_cells(Range & primary, ParallelComm
     std::cout << "Computing partition using method (1-graph, 2-geom):" << met  <<
       " for " << numNewPartitions << " parts..." << std::endl;
 
+#ifndef NDEBUG
+#if 0
+  static int counter=0; // it may be possible to call function multiple times in a simulation
+  // give a way to not overwrite the files
+  // it should work only with a modified version of Zoltan
+  std::stringstream basename;
+  if (1==met)
+  {
+    basename << "phg_" << counter++;
+    Zoltan_Generate_Files(myZZ->Get_C_Handle(), (char*)(basename.str().c_str()), 1, 0, 1, 0);
+  }
+  else if (2==met)
+  {
+    basename << "rcb_" << counter++;
+    Zoltan_Generate_Files(myZZ->Get_C_Handle(), (char*)(basename.str().c_str()), 1, 1, 0, 0);
+  }
+#endif
+#endif
   retval = myZZ->LB_Partition(changes, numGidEntries, numLidEntries,
                               num_import, import_global_ids, import_local_ids, import_procs, import_to_part,
                               num_export, export_global_ids, export_local_ids,
@@ -2188,7 +2229,7 @@ ErrorCode ZoltanPartitioner::partition_owned_cells(Range & primary, ParallelComm
   assert (num_export == (int) primary.size());
   for (i=0; i<num_export; i++)
   {
-    EntityHandle cell=primary[i];
+    EntityHandle cell=primary[export_local_ids[i]];
     distribution[assign_parts[i]].insert(cell);
   }
 

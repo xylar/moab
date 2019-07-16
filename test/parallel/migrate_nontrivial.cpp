@@ -2,18 +2,18 @@
  * migrate_nontrivial.cpp
  *
  *  migrate_nontrivial will contain tests for migrating meshes in parallel environments, with iMOAB api,
- *  using nontrivial partitions; for starters, we will use zoltan to compute partition
- *  in parallel, and then use the result to migrate the mesh
+ *  using nontrivial partitions; for starters, we will use zoltan to compute partition in parallel,
+ *    and then use the result to migrate the mesh
  *  trivial partition gave terrible results for mpas type meshes, that were numbered
  *  like a fractal; the resulting migrations were like Swiss cheese, full of holes
- * a mesh is read on senders tasks, one layer is ghosted (to be able to compute the graph)
- * we will use graph like methods, and will modify the ZoltanPartitioner to add needed methods
+ *  a mesh is read on senders tasks
+ *  we will use graph like methods or geometry methods, and will modify the ZoltanPartitioner
+ *   to add needed methods
  *
- *  mesh will be sent to receivers tasks, with nonblocking MPI calls, and then received , parallel
- *  resolved again;
+ *  mesh will be sent to receivers tasks, with nonblocking MPI_Isend calls, and then received
+ *    with blocking MPI_Recv calls;
  *
  *  we will not modify the GLOBAL_ID tag, we assume it was set correctly before we started
- *  // after ghosting, we have to call exchange_tags on global_id tag, before building the graph
  */
 
 #include "moab/ParallelComm.hpp"
@@ -21,6 +21,7 @@
 #include "moab_mpi.h"
 #include "moab/iMOAB.h"
 #include "TestUtil.hpp"
+#include "moab/ProgOptions.hpp"
 
 #define RUN_TEST_ARG2(A, B) run_test( &A, #A, B)
 
@@ -53,15 +54,15 @@ int run_test( ErrorCode (*func)(const char*),
   return is_err;
 }
 
-ErrorCode migrate_2_3_graph( const char* filename );
-ErrorCode migrate_2_3_geom( const char* filename );
+ErrorCode migrate_graph( const char* filename );
+ErrorCode migrate_geom( const char* filename );
 
 // some global variables, used by all tests
 int rank, size, ierr;
 
 int compid1, compid2;  // component ids are unique over all pes, and established in advance;
 int nghlay; // number of ghost layers for loading the file
-int groupTasks[4]; // at most 4 tasks
+std::vector<int> groupTasks; // at most 4 tasks
 int startG1, startG2, endG1, endG2;
 
 MPI_Comm jcomm; // will be a copy of the global
@@ -73,16 +74,18 @@ ErrorCode migrate_smart(const char*filename, const char * outfile, int partMetho
 
   std::string filen(filename);
   MPI_Group group1, group2;
+  groupTasks.resize(endG1-startG1+1);
   for (int i=startG1; i<=endG1; i++)
     groupTasks [i-startG1] = i;
 
-  ierr = MPI_Group_incl(jgroup, endG1-startG1+1, groupTasks, &group1);
+  ierr = MPI_Group_incl(jgroup, endG1-startG1+1, &groupTasks[0], &group1);
   CHECKRC(ierr, "can't create group1")
 
+  groupTasks.resize(endG2-startG2+1);
   for (int i=startG2; i<=endG2; i++)
     groupTasks [i-startG2] = i;
 
-  ierr = MPI_Group_incl(jgroup, endG2-startG2+1, groupTasks, &group2);
+  ierr = MPI_Group_incl(jgroup, endG2-startG2+1, &groupTasks[0], &group2);
   CHECKRC(ierr, "can't create group2")
 
   // create 2 communicators, one for each group
@@ -143,50 +146,6 @@ ErrorCode migrate_smart(const char*filename, const char * outfile, int partMetho
   if (comm1 != MPI_COMM_NULL)
      ierr = iMOAB_FreeSenderBuffers(pid1, &jcomm, &compid2);
 
-  // exchange tag, from component to component
-  // one is receiving, one is sending the tag; the one that is sending needs to have communicator
-  // not null
-  int size_tag=1; //a double dense tag, on elements
-  int tagType = DENSE_DOUBLE;
-  int tagIndex2=0, tagIndex1=0; // these will be tag indices on each app pid
-
-  std::string fileAfterTagMigr(outfile);// has h5m
-  int sizen = fileAfterTagMigr.length();
-  fileAfterTagMigr.erase(sizen-4, 4);// erase extension .h5m
-  fileAfterTagMigr = fileAfterTagMigr + "_tag.h5m";
-
-  // now send a tag from component 2, towards component 1
-  if (comm2 != MPI_COMM_NULL ){
-     ierr = iMOAB_DefineTagStorage(pid2, "element_field", &tagType, &size_tag, &tagIndex2,  strlen("element_field") );
-     CHECKRC(ierr, "failed to get tag element_field ");
-    // this tag is already existing in the file
-
-    // first, send from compid2 to compid1, from comm2, using common joint comm
-     // as always, use nonblocking sends
-     ierr = iMOAB_SendElementTag(pid2, &compid2, &compid1, "element_field", &jcomm, strlen("element_field"));
-     CHECKRC(ierr, "cannot send tag values")
-  }
-  // receive on component 1
-  if (comm1 != MPI_COMM_NULL)
-  {
-     ierr = iMOAB_DefineTagStorage(pid1, "element_field", &tagType, &size_tag, &tagIndex1,  strlen("element_field") );
-     CHECKRC(ierr, "failed to get tag DFIELD ");
-
-     ierr = iMOAB_ReceiveElementTag(pid1, &compid2, &compid1, "element_field", &jcomm, strlen("element_field"));
-     CHECKRC(ierr, "cannot send tag values")
-     std::string wopts;
-     wopts   = "PARALLEL=WRITE_PART;";
-     ierr = iMOAB_WriteMesh(pid1, (char*)fileAfterTagMigr.c_str() , (char*)wopts.c_str(), fileAfterTagMigr.length(), strlen(wopts.c_str()) );
-     CHECKRC(ierr, "cannot write received mesh" )
-
-  }
-
-  MPI_Barrier(jcomm);
-
-    // we can now free the sender buffers
-  if (comm2 != MPI_COMM_NULL)
-     ierr = iMOAB_FreeSenderBuffers(pid2, &jcomm, &compid1);
-
   if (comm2 != MPI_COMM_NULL) {
     ierr = iMOAB_DeregisterApplication(pid2);
     CHECKRC(ierr, "cannot deregister app 2 receiver" )
@@ -210,20 +169,14 @@ ErrorCode migrate_smart(const char*filename, const char * outfile, int partMetho
   return MB_SUCCESS;
 }
 // migrate from 2 tasks to 3 tasks
-ErrorCode migrate_2_3_graph( const char* filename )
+ErrorCode migrate_graph( const char* filename )
 {
-  startG1 = startG2 = 0;
-  endG1 = 1;
-  endG2 = 2;
-  return migrate_smart(filename, "migrate23_graph.h5m", 1);
+  return migrate_smart(filename, "migrate_graph.h5m", 1);
 }
 
-ErrorCode migrate_2_3_geom( const char* filename )
+ErrorCode migrate_geom( const char* filename )
 {
-  startG1 = startG2 = 0;
-  endG1 = 1;
-  endG2 = 2;
-  return migrate_smart(filename, "migrate23_geom.h5m", 2);
+  return migrate_smart(filename, "migrate_geom.h5m", 2);
 }
 
 int main( int argc, char* argv[] )
@@ -236,19 +189,40 @@ int main( int argc, char* argv[] )
   MPI_Comm_dup(MPI_COMM_WORLD, &jcomm);
   MPI_Comm_group(jcomm, &jgroup);
 
+  ProgOptions opts;
+  int typeTest = 0;
+  //std::string inputfile, outfile("out.h5m"), netcdfFile, variable_name, sefile_name;
   std::string filename;
   filename = TestDir + "/field1.h5m";
-  if (argc>1)
+  startG1=0;
+  startG2=0;
+  endG1 = 0;
+  endG2 = 1;
+
+  opts.addOpt<std::string>("file,f","source file", &filename);
+
+  opts.addOpt<int>("startSender,a", "start task for source layout", &startG1);
+  opts.addOpt<int>("endSender,b", "end task for source layout", &endG1);
+  opts.addOpt<int>("startRecv,c", "start task for receiver layout", &startG2);
+  opts.addOpt<int>("endRecv,d", "end task for receiver layout", &endG2);
+
+  opts.addOpt<int>("typeTest,t", "test types (both=0 default, 1 graph only, 2 geom only", &typeTest);
+
+  opts.parseCommandLine(argc, argv);
+
+  if (rank == 0)
   {
-    filename = argv[1];
+    std::cout << " input file : " << filename << "\n";
+    std::cout << " sender   on tasks: " << startG1 << ":" << endG1 <<  "\n";
+    std::cout << " receiver on tasks: " << startG2 << ":" << endG2 <<  "\n";
   }
+
   int num_errors = 0;
 
-  if (size == 3)
-  {
-    num_errors += RUN_TEST_ARG2( migrate_2_3_graph, filename.c_str() );
-    num_errors += RUN_TEST_ARG2( migrate_2_3_geom, filename.c_str() );
-  }
+
+  if (0==typeTest || 1==typeTest) num_errors += RUN_TEST_ARG2( migrate_graph, filename.c_str() );
+  if (0==typeTest || 2==typeTest) num_errors += RUN_TEST_ARG2( migrate_geom, filename.c_str() );
+
   if (rank == 0) {
     if (!num_errors)
       std::cout << "All tests passed" << std::endl;
