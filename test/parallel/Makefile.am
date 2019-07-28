@@ -156,7 +156,9 @@ par_intx_sph_SOURCES = par_intx_sph.cpp
 par_intx_sph_LDADD = $(LDADD)
 
 # Other files to clean up (e.g. output from tests)
-MOSTLYCLEANFILES = mhdf_ll.h5m tmp0.h5m tmp1.h5m tmp2.h5m tmp3.h5m \
+MOSTLYCLEANFILES = mhdf_ll.h5m \
+		   tmp0.0.h5m tmp1.0.h5m tmp2.0.h5m tmp3.0.h5m \
+		   tmp0.1.h5m tmp1.1.h5m tmp2.1.h5m tmp3.1.h5m \
                    partial0.vtk \
                    partial1.vtk  \
                    partialConvex1.vtk \

@@ -54,11 +54,15 @@ void test_filter_pstatus();
 /** Test creating a new ParallelComm instance in addition to an existing one*/
 void test_new_pcomm_instance();
 
+int rank = 0;
+
 int main( int argc, char* argv[] )
 {
 #ifdef MOAB_HAVE_MPI
   MPI_Init( &argc, &argv );
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif
+
 
   int num_err = 0;
   num_err += RUN_TEST( test_pack_vertices );
@@ -422,7 +426,7 @@ ErrorCode create_shared_grid_3d(ParallelComm **pc, Range *verts, Range *hexes)
     if (MB_SUCCESS != rval) return rval;
 
     std::ostringstream fname;
-    fname << "tmp" << p << ".h5m";
+    fname << "tmp" << p <<"." << rank << ".h5m";
     rval = pc[p]->get_moab()->write_file(fname.str().c_str());
     if (MB_SUCCESS != rval) return rval;
   }
