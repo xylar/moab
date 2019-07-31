@@ -833,12 +833,19 @@ ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius_
 
     // Note: lots of communication possible, if mesh is distributed very differently
 #ifdef MOAB_HAVE_MPI
+    double current_time, new_time, delta_time;
     if ( is_parallel && size > 1 )
     {
+        current_time = MPI_Wtime();
         rval = mbintx->build_processor_euler_boxes ( m_target_set, local_verts ); MB_CHK_ERR ( rval );
 
         rval = m_interface->create_meshset ( moab::MESHSET_SET, m_covering_source_set ); MB_CHK_SET_ERR ( rval, "Can't create new set" );
         rval = mbintx->construct_covering_set ( m_source_set, m_covering_source_set ); MB_CHK_ERR ( rval );
+        new_time = MPI_Wtime() ;
+        delta_time = new_time-current_time;
+        current_time  = new_time;
+        if (0==m_pcomm->rank())
+          std::cout << "time cover: " << delta_time << "\n";
     }
     else
     {
@@ -980,6 +987,11 @@ ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius_
         rval = mbintx->intersect_meshes ( m_covering_source_set, m_target_set, m_overlap_set ); MB_CHK_SET_ERR ( rval, "Can't compute the intersection of meshes on the sphere" );
 
 #ifdef MOAB_HAVE_MPI
+        new_time = MPI_Wtime() ;
+        delta_time = new_time-current_time;
+        current_time  = new_time;
+        if (0==m_pcomm->rank())
+          std::cout << "time local intx " << delta_time << "\n";
         if (is_parallel || rrmgrids)
         {
 #ifdef VERBOSE
@@ -1030,6 +1042,11 @@ ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius_
                 std::cout << " total participating elements in the covering set: " << intxCov.size() << "\n";
                 std::cout << " remove from coverage set elements that are not intersected: " << notNeededCovCells.size() << "\n";
 #endif
+                new_time = MPI_Wtime() ;
+                delta_time = new_time-current_time;
+                current_time  = new_time;
+                if (0==m_pcomm->rank())
+                  std::cout << "remove unused coverage elems " << delta_time << "\n";
 
                 // some source elements cover multiple target partitions; the conservation logic requires to know
                 // all overlap elements for a source element; they need to be communicated from the other target partitions
@@ -1042,6 +1059,11 @@ ErrorCode TempestRemapper::ComputeOverlapMesh ( double tolerance, double radius_
                 if (size > 1) {
                     rval = augment_overlap_set(); MB_CHK_ERR ( rval );
                 }
+                new_time = MPI_Wtime() ;
+                delta_time = new_time-current_time;
+                current_time  = new_time;
+                if (0==m_pcomm->rank())
+                  std::cout << "augment overlap set " << delta_time << "\n";
             }
 
             m_covering_source = new Mesh();
