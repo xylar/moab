@@ -1104,6 +1104,8 @@ ErrorCode TempestRemapper::augment_overlap_set()
   // first, get all edges on the partition boundary, on the target mesh, then all the target elements that border the
   // partition boundary
   ErrorCode rval;
+  double current_time, new_time, delta_time;
+  current_time = MPI_Wtime();
   Skinner skinner(m_interface);
   Range targetCells, boundaryEdges;
   rval = m_interface->get_entities_by_dimension(m_target_set, 2, targetCells); MB_CHK_ERR(rval);
@@ -1245,7 +1247,11 @@ ErrorCode TempestRemapper::augment_overlap_set()
 #ifdef VERBOSE
   if ( is_root ) std::cout << "maximum number of edges for polygons to send is " << globalMaxEdges << "\n";
 #endif
-
+  new_time = MPI_Wtime() ;
+  delta_time = new_time-current_time;
+  current_time  = new_time;
+  if (0==m_pcomm->rank())
+    std::cout << "LOGINTX :prepare overlap cells to send per task " << delta_time << " max edges:" << globalMaxEdges << "\n";
 #ifdef VERBOSE
   EntityHandle tmpSet2;
   rval = m_interface->create_meshset(MESHSET_SET, tmpSet2);MB_CHK_SET_ERR(rval, "Can't create temporary set2");
@@ -1362,8 +1368,19 @@ ErrorCode TempestRemapper::augment_overlap_set()
   ffv << "TLv_"<< rank << ".txt";
   TLv.print_to_file(ffv.str().c_str());
 #endif
+  new_time = MPI_Wtime() ;
+  delta_time = new_time-current_time;
+  current_time  = new_time;
+  if (0==m_pcomm->rank())
+    std::cout << "LOGINTX :create tuples TLv TLc " << delta_time << "\n";
   (m_pcomm->proc_config().crystal_router())->gs_transfer(1, TLv, 0);
   (m_pcomm->proc_config().crystal_router())->gs_transfer(1, TLc, 0);
+  new_time = MPI_Wtime() ;
+  delta_time = new_time-current_time;
+  current_time  = new_time;
+  if (0==m_pcomm->rank())
+    std::cout << "LOGINTX :first round, overlap verts and cells per task " << delta_time << "\n";
+
 #ifdef VERBOSE
   TLc.print_to_file(ff1.str().c_str()); // will append to existing file
   TLv.print_to_file(ffv.str().c_str());
@@ -1578,11 +1595,19 @@ ErrorCode TempestRemapper::augment_overlap_set()
       TLv2.inc_n();
     }
   }
-
+  new_time = MPI_Wtime() ;
+  delta_time = new_time-current_time;
+  current_time  = new_time;
+  if (0==m_pcomm->rank())
+    std::cout << "LOGINTX :create tuples TLv2 TLc2 " << delta_time << "\n";
   // now, finally, transfer the vertices and the intx cells;
   (m_pcomm->proc_config().crystal_router())->gs_transfer(1, TLv2, 0);
   (m_pcomm->proc_config().crystal_router())->gs_transfer(1, TLc2, 0);
-
+  new_time = MPI_Wtime() ;
+  delta_time = new_time-current_time;
+  current_time  = new_time;
+  if (0==m_pcomm->rank())
+    std::cout << "LOGINTX :communication TLv2 and TLc2 " << delta_time << "\n";
   // now, look at vertices from TLv2, and create them
   // we should have in TLv2 only vertices with orgProc different from current task
 #ifdef VERBOSE
@@ -1657,7 +1682,11 @@ ErrorCode TempestRemapper::augment_overlap_set()
   // add the new polygons to the overlap set
   // these will be ghosted, so will participate in conservation only
   rval = m_interface->add_entities(m_overlap_set, newPolygons); MB_CHK_ERR(rval);
-
+  new_time = MPI_Wtime() ;
+  delta_time = new_time-current_time;
+  current_time  = new_time;
+  if (0==m_pcomm->rank())
+    std::cout << "LOGINTX : add ghost cells to overlap set (local) " << delta_time << "\n";
   return MB_SUCCESS;
 }
 
