@@ -22,15 +22,21 @@ endif
 all: $(ALLEXAMPLES)
 
 ExtrudePoly: ExtrudePoly.o ${MOAB_LIBDIR}/libMOAB.la
+LloydRelaxation: LloydRelaxation.o ${MOAB_LIBDIR}/libMOAB.la
+CrystalRouterExample: CrystalRouterExample.o ${MOAB_LIBDIR}/libMOAB.la
+VisTags: VisTags.o ${MOAB_LIBDIR}/libMOAB.la
+GenLargeMesh: GenLargeMesh.o ${MOAB_LIBDIR}/libMOAB.la
+
+ExtrudePoly LloydRelaxation CrystalRouterExample VisTags GenLargeMesh:
 	@echo "[CXXLD]  $@"
 	${VERBOSE}${MOAB_CXX} -o $@ $< ${MOAB_LIBS_LINK}
+
+CoupleMGen: CoupleMGen.o ${MOAB_LIBDIR}/libMOAB.la
+	@echo "[CXXLD]  $@"
+	${VERBOSE}${MOAB_CXX} -o $@ $< -lmbcoupler ${MOAB_LIBS_LINK}
 
 run-ExtrudePoly: ExtrudePoly
 	${RUNSERIAL} ./ExtrudePoly
-
-LloydRelaxation: LloydRelaxation.o ${MOAB_LIBDIR}/libMOAB.la
-	@echo "[CXXLD]  $@"
-	${VERBOSE}${MOAB_CXX} -o $@ $< ${MOAB_LIBS_LINK}
 
 run-LloydRelaxation: LloydRelaxation
 ifeq ("$(MOAB_MPI_ENABLED)-$(MOAB_HDF5_ENABLED)","yes-yes")
@@ -38,26 +44,14 @@ ifeq ("$(MOAB_MPI_ENABLED)-$(MOAB_HDF5_ENABLED)","yes-yes")
 	${RUNPARALLEL} ./LloydRelaxation
 endif
 
-CrystalRouterExample: CrystalRouterExample.o ${MOAB_LIBDIR}/libMOAB.la
-	@echo "[CXXLD]  $@"
-	${VERBOSE}${MOAB_CXX} -o $@ $< ${MOAB_LIBS_LINK}
-
 run-CrystalRouterExample: CrystalRouterExample
 	${RUNSERIAL} ./CrystalRouterExample
 ifeq ("$(MOAB_MPI_ENABLED)","yes")
 	${RUNPARALLEL} ./CrystalRouterExample -n 2 -t 10 -r 0
 endif
 
-VisTags: VisTags.o ${MOAB_LIBDIR}/libMOAB.la
-	@echo "[CXXLD]  $@"
-	${VERBOSE}${MOAB_CXX} -o $@ $< ${MOAB_LIBS_LINK}
-
 run-VisTags: VisTags
 	${RUNSERIAL} ./VisTags
-
-GenLargeMesh: GenLargeMesh.o ${MOAB_LIBDIR}/libMOAB.la
-	@echo "[CXXLD]  $@"
-	${VERBOSE}${MOAB_CXX} -o $@ $< ${MOAB_LIBS_LINK}
 
 run-GenLargeMesh: GenLargeMesh
 	${RUNSERIAL} ./GenLargeMesh
@@ -69,10 +63,6 @@ ifeq ("$(MOAB_MPI_ENABLED)-$(MOAB_HDF5_ENABLED)","yes-yes")
 	${RUNPARALLEL} ./GenLargeMesh -M @NP@ -N 1 -K 1 -A 1 -B 2 -C 2 -d 10.0 -b 2 -r -f
 	${RUNPARALLEL} ./GenLargeMesh -M @NP@  -b 10  -A 1 -C 1 -B 1 -r -G
 endif
-
-CoupleMGen: CoupleMGen.o ${MOAB_LIBDIR}/libMOAB.la
-	@echo "[CXXLD]  $@"
-	${VERBOSE}${MOAB_CXX} -o $@ $< -lmbcoupler ${MOAB_LIBS_LINK}
 
 run-CoupleMGen: CoupleMGen
 ifeq ("$(MOAB_MPI_ENABLED)-$(MOAB_HDF5_ENABLED)","yes-yes")
