@@ -1,13 +1,13 @@
-/// \file moabuse3.cpp
+/// \file mbex3.cpp
 ///
 /// \author Milad Fatenejad
 ///
-/// \brief moabuse tutorial, example 3: Demonstrates
+/// \brief beginner tutorial, example 3: Demonstrates
 ///        constructing/saving a simple 2x2x2 hex mesh using the
 ///        structured mesh interface
 ///
 /// In this example, we create a 2x2x2 mesh that is identical to the
-/// previous example. Howver, in this case we will use the structured
+/// previous example. However, in this case we will use the structured
 /// mesh interface since the mesh we created is logically
 /// structured. There are many advantages to using the structured mesh
 /// interface...such as memory savings, speed, ease-of-use...
@@ -83,7 +83,7 @@ int main()
   // indexes which extend from 0,0,0 to 2,2,2 for vertexes. Since the
   // i,j,k start/end indexes are all different, MOAB knows that our
   // mesh consists of hexes. If we had gone from 0,0,0 to 1,1,0 then
-  // MOAB would construct a 2x2x1 mesh of quadralaterals.
+  // MOAB would construct a 2x2x1 mesh of quadrilaterals.
 
 
   // ***************
@@ -116,7 +116,7 @@ int main()
   // ***************************
   // *   Write Mesh to Files   *
   // ***************************
-  rval = mbint.write_file("moabuse3.vtk");MB_CHK_SET_ERR(rval, "write_file(moabuse3.vtk) failed");
+  rval = mbint.write_file("mbex3.vtk");MB_CHK_SET_ERR(rval, "write_file(mbex3.vtk) failed");
 
   return 0;
 }

@@ -1,8 +1,8 @@
-/// \file moabuse4.cpp
+/// \file mbex4.cpp
 ///
 /// \author Milad Fatenejad
 ///
-/// \brief moabuse tutorial, example 3: Create a 2D structured mesh
+/// \brief beginner tutorial, example 4: Create a 2D structured mesh
 ///        and set some tag data on it
 ///
 /// In this example, we create a 2D structured mesh (actually a 3D
@@ -73,8 +73,8 @@ int main()
 
   // MOAB knows to make quads instead of hexes because the last start
   // and end indexes are the same (0). Note that it is still a "3D"
-  // mesh because each vertex coodinate is still defined using three
-  // numbers althrough every element in the mesh is a quadralateral.
+  // mesh because each vertex coordinate is still defined using three
+  // numbers although every element in the mesh is a quadrilateral.
 
   // ******************************
   // *   Set Vertex Coordinates   *
@@ -191,7 +191,7 @@ int main()
   // plot it. But you should be able to plot the temperature on top of
   // the mesh.
 
-  rval = mbint.write_file("moabuse4.vtk");MB_CHK_SET_ERR(rval, "write_file(moabuse4.vtk) failed");
+  rval = mbint.write_file("mbex4.vtk");MB_CHK_SET_ERR(rval, "write_file(mbex4.vtk) failed");
 
   return 0;
 }
