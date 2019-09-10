@@ -1115,17 +1115,7 @@ ErrorCode TempestRemapper::augment_overlap_set()
       std::cout << " incorrect id for a target cell\n";
     targetBoundaryIds.insert(tid);
   }
-  // find now all overlap cells that have as parents these boundary cells;
-  // rval = mb->tag_get_handle("sending_processor", 1, MB_TYPE_INTEGER, sendProcTag
-  // red are the target meshes; blue are the transported coverage meshes
-  // rval = mb->tag_get_handle("RedParent", 1, MB_TYPE_INTEGER, redParentTag,
 
-  // rval = mb->tag_get_handle("BlueParent", 1, MB_TYPE_INTEGER, blueParentTag
-  // now look at the overlap cells that have as red parents the cells from targetBoundaryIds
-
-  // at this moment m_overlap_entities is not filled up yet; actually, this is what we need to modify, so we need
-  // to add to this set/range
-  // we will not augment the target set! that is partitioned already!
   Range overlapCells;
   rval = m_interface->get_entities_by_dimension(m_overlap_set, 2, overlapCells); MB_CHK_ERR(rval);
 
@@ -1152,8 +1142,7 @@ ErrorCode TempestRemapper::augment_overlap_set()
   // this one came from , so to know where to send the overlap elements
 
   // use std::set<EntityHandle> instead of moab::Range for collecting cells, either on coverage or target or intx cells
-  // Range affectedCovCells; // their overlap cells will be sent to their original task, then distributed to all
-  std::set<EntityHandle> affectedCovCells;
+  std::set<EntityHandle> affectedCovCells; // their overlap cells will be sent to their original task, then distributed to all
   // other processes that might need them to compute conservation
 
   Range covCells;
@@ -1178,13 +1167,10 @@ ErrorCode TempestRemapper::augment_overlap_set()
   Tag sendProcTag;
   rval = m_interface->tag_get_handle("sending_processor", 1, MB_TYPE_INTEGER, sendProcTag);
 
-  // basically a map from original processor task to the range of overlap cells to be sent there
-  //std::map<int, Range>  overlapCellsForTask;
+  // basically a map from original processor task to the set of overlap cells to be sent there
   std::map<int, std::set<EntityHandle> >  overlapCellsForTask;
-
-  // this range will contain all intx cells that will need to be sent ( a union of above ranges , that are organized per task
-  // on the above map )
-  //Range overlapCellsToSend;
+  // this set will contain all intx cells that will need to be sent ( a union of above sets ,
+  //   that are organized per task on the above map )
   std::set<EntityHandle> overlapCellsToSend;
 
   for (Range::iterator it=overlapCells.begin(); it!=overlapCells.end(); it++)
@@ -1231,13 +1217,11 @@ ErrorCode TempestRemapper::augment_overlap_set()
   EntityHandle tmpSet2;
   rval = m_interface->create_meshset(MESHSET_SET, tmpSet2);MB_CHK_SET_ERR(rval, "Can't create temporary set2");
   // add the affected source and overlap elements
-  //rval = m_interface->add_entities(tmpSet2, overlapCellsToSend); MB_CHK_SET_ERR(rval, "Can't add entities");
   for (std::set<EntityHandle>::iterator it=overlapCellsToSend.begin(); it!=overlapCellsToSend.end(); it++)
   {
     EntityHandle intxCell=*it;
     rval = m_interface->add_entities(tmpSet2, &intxCell, 1);MB_CHK_SET_ERR(rval, "Can't add entities");
   }
-  //rval = m_interface->add_entities(tmpSet2, affectedCovCells); MB_CHK_SET_ERR(rval, "Can't add edges");
   for (std::set<EntityHandle>::iterator it=affectedCovCells.begin(); it!=affectedCovCells.end(); it++)
   {
     EntityHandle covCell=*it;
@@ -1247,7 +1231,6 @@ ErrorCode TempestRemapper::augment_overlap_set()
   // these will contain coverage cells and intx cells on the boundary
   ffs2 << "affectedCells_"<< m_pcomm->rank() << ".h5m";
   rval = m_interface->write_mesh(ffs2.str().c_str(), &tmpSet2, 1);MB_CHK_ERR(rval);
-
 #endif
   // form tuple lists to send vertices and cells;
   // the problem is that the lists of vertices will need to have other information, like the processor it comes from, and
@@ -1255,9 +1238,8 @@ ErrorCode TempestRemapper::augment_overlap_set()
   // overlap elements, just the vertices, as they may come from different cells and different processes
   // each vertex will have a local index and a processor task it is coming from
 
-  // look through the ranges to be sent to other processes, and form the vertex tuples and cell tuples
+  // look through the std::set's to be sent to other processes, and form the vertex tuples and cell tuples
   //
-  //std::map<int, Range> verticesOverlapForTask;
   std::map<int, std::set<EntityHandle> > verticesOverlapForTask;
   //Range allVerticesToSend;
   std::set<EntityHandle> allVerticesToSend;
@@ -1267,11 +1249,9 @@ ErrorCode TempestRemapper::augment_overlap_set()
   for (std::map<int, std::set<EntityHandle> >::iterator it=overlapCellsForTask.begin(); it!=overlapCellsForTask.end(); it++)
   {
     int sendToProc = it->first;
-    //Range & overlapCellsToSend2 = it->second; // organize vertices in ranges per processor
-    std::set<EntityHandle> & overlapCellsToSend2 = it->second; // organize vertices in ranges per processor
+    std::set<EntityHandle> & overlapCellsToSend2 = it->second; // organize vertices in std::set per processor
     //Range vertices;
-    std::set<EntityHandle> vertices;
-    /*rval = m_interface->get_connectivity(overlapCellsToSend2, vertices); MB_CHK_ERR(rval);*/
+    std::set<EntityHandle> vertices; // collect all vertices connected to overlapCellsToSend2
     for (std::set<EntityHandle>::iterator set_it= overlapCellsToSend2.begin(); set_it!= overlapCellsToSend2.end(); ++set_it )
     {
       int nnodes_local=0;
@@ -1283,11 +1263,9 @@ ErrorCode TempestRemapper::augment_overlap_set()
     verticesOverlapForTask[sendToProc] = vertices;
     numVerts += (int)vertices.size();
     numOverlapCells += (int)overlapCellsToSend2.size();
-    //allVerticesToSend.merge(vertices); // the index will be unique for this orig processor
     allVerticesToSend.insert(vertices.begin(), vertices.end());
   }
   // build the index map, from entity handle to index in all vert set
-  //std::map<EntityHandle, int> & reverseMapAll = verticesOverlapForTaskMap[sendToProc];
   int j=0;
   for (std::set<EntityHandle>::iterator vert_it=allVerticesToSend.begin(); vert_it!=allVerticesToSend.end(); vert_it++, j++)
   {
@@ -1301,21 +1279,16 @@ ErrorCode TempestRemapper::augment_overlap_set()
   TLv.initialize(2, 0, 0, 3, numVerts); // to proc, index in all range, DP points
   TLv.enableWriteAccess();
 
-  //for (std::map<int, Range>::iterator it=verticesOverlapForTask.begin(); it!=verticesOverlapForTask.end(); it++)
   for (std::map<int, std::set<EntityHandle> >::iterator it=verticesOverlapForTask.begin(); it!=verticesOverlapForTask.end(); it++)
   {
     int sendToProc = it->first;
     std::set<EntityHandle> & vertices = it->second;
-    /*std::vector<double> coords;
-    coords.resize(3*vertices.size());
-    rval = m_interface->get_coords(vertices, &coords[0]); MB_CHK_ERR(rval);*/
     int i=0;
     for (std::set<EntityHandle>::iterator it2=vertices.begin(); it2!=vertices.end(); it2++, i++)
     {
       int n=TLv.get_n();
       TLv.vi_wr[2*n] = sendToProc; // send to processor
       EntityHandle v = *it2;
-      //int indexInAllVert=allVerticesToSend.index(v);
       int indexInAllVert= allVerticesToSendMap[v];
       TLv.vi_wr[2*n+1] = indexInAllVert; // will be orgProc, to differentiate indices of vertices sent to "sentToProc"
       double coords[3];
@@ -1333,14 +1306,10 @@ ErrorCode TempestRemapper::augment_overlap_set()
   TLc.initialize(sizeTuple, 0, 0, 0, numOverlapCells); // to proc, blue parent ID, red parent ID, nvert, connectivity[globalMaxEdges] (global ID v), local eh)
   TLc.enableWriteAccess();
 
-
-  //for (std::map<int, Range>::iterator it=overlapCellsForTask.begin(); it!=overlapCellsForTask.end(); it++)
   for (std::map<int, std::set<EntityHandle> >::iterator it=overlapCellsForTask.begin(); it!=overlapCellsForTask.end(); it++)
   {
     int sendToProc = it->first;
     std::set<EntityHandle> & overlapCellsToSend2 = it->second;
-    //Range & vertices = verticesOverlapForTask[sendToProc];
-    // connectivity will be with respect to index in these vertices
     // send also the target and source parents for these overlap cells
     for (std::set<EntityHandle>::iterator it2= overlapCellsToSend2.begin(); it2!=overlapCellsToSend2.end(); it2++)
     {
@@ -1358,7 +1327,6 @@ ErrorCode TempestRemapper::augment_overlap_set()
       TLc.vi_wr[sizeTuple*n+3] = nnodes;
       for (int i=0; i<nnodes; i++)
       {
-        //int indexVertex = allVerticesToSend.index(conn[i]); // the vertex index will be now unique per original proc
         int indexVertex = allVerticesToSendMap[conn[i]];; // the vertex index will be now unique per original proc
         if (-1==indexVertex) MB_CHK_SET_ERR(MB_FAILURE, "Can't find vertex in range of vertices to send");
         TLc.vi_wr[sizeTuple*n+4 + i] = indexVertex;
@@ -1429,7 +1397,6 @@ ErrorCode TempestRemapper::augment_overlap_set()
   currentProcsCount[proc0]=1; //
 
   // form a map from proc to sets of vertex indices that will be sent using TLv2
-  //std::map<int , std::set<int>> usedVertexIndicesPerProcessor;//
   // will form a map between a source cell ID and tasks/targets that are partially overlapped by these sources
   std::map< int, std::set<int> > sourcesForTasks;
   int sizeOfTLc2 = 0; // only increase when we will have to send data
@@ -1515,7 +1482,6 @@ ErrorCode TempestRemapper::augment_overlap_set()
       // will need to be sent to all other procs from above set; also, need to mark the vertex indices for that proc,
       // and check that they are available to populate TLv2
       std::map<int, int> & availableVerticesFromThisProc = availVertexIndicesPerProcessor[orgProc];
-      //std::set<int> & usedVerticesOnThisProc = usedVertexIndicesPerProcessor[orgProc];
       for (std::set<int>::iterator setIt = procs.begin(); setIt!=procs.end(); setIt++)
       {
         int procID = *setIt;
@@ -1549,7 +1515,6 @@ ErrorCode TempestRemapper::augment_overlap_set()
               MB_CHK_SET_ERR(MB_FAILURE, " vertex index not available from processor");
             }
             TLc2.vi_wr[n2*sizeTuple2+5+j] = vertexIndex;
-            //usedVerticesOnThisProc.insert(vertexIndex);// these will be used to populate TLv2
             int indexInTLv = availVertexIndicesPerProcessor[orgProc][vertexIndex];
             indexVerticesInTLv.insert(indexInTLv);
           }
