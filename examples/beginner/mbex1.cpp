@@ -1,8 +1,8 @@
-/// \file moabuse1.cpp
+/// \file mbex1.cpp
 ///
 /// \author Milad Fatenejad
 ///
-/// \brief moabuse tutorial, example 1: Demonstrates
+/// \brief beginner tutorial, example 1: Demonstrates
 ///        constructing/saving a simple 2x2x2 hex mesh
 ///
 /// This example creates a 2x2x2 mesh (uniform grid) and writes it out
@@ -62,7 +62,7 @@ int main()
   // Handles (type moab::EntityHandle). An entity handle is a unique
   // integer that is used to identify/refer to specific entities (such
   // as vertexes, edges, hexahedrons, etc...) on the mesh. MOAB
-  // guarentees that when multiple entities are created at the same
+  // guarantees that when multiple entities are created at the same
   // time, as in the create_vertices call below, that those entities
   // get adjacent handles. Thus, the second of the 27 vertexes we are
   // creating will have an entity handle that is 1 greater than the
@@ -87,7 +87,7 @@ int main()
   // below adds the handle of the first vertex (stored in
   // first_vertex_handle) to conn thereby ensuring that the entries of
   // conn are actual entity handles. This only works because MOAB
-  // guarentees that entities (such as our vertexes) created at once
+  // guarantees that entities (such as our vertexes) created at once
   // have adjacent entity handles.
   moab::EntityHandle conn[NUMHEX][8] = {
            {  0,  1,  4,  3,   9, 10, 13, 12 },
@@ -107,7 +107,7 @@ int main()
 
   for (unsigned i = 0; i < NUMHEX; ++i) {
     for (unsigned j = 0; j < 8; ++j) {
-      // Add first_vertex_handle to each elment of conn. This ensures
+      // Add first_vertex_handle to each element of conn. This ensures
       // that the handles are specified properly (i.e. when
       // first_vertex_handle > 0)
       conn[i][j] = conn[i][j] + first_vertex_handle;
@@ -145,7 +145,7 @@ int main()
   // because it is text based and will work whether or not you've got
   // HDF5, NETCDF, etc... installed and is a fairly standard file
   // format so a lot of tools work with it out of the box.
-  rval = mbcore.write_file("moabuse1.vtk");MB_CHK_SET_ERR(rval, "write_file(moabuse1.vtk) failed");
+  rval = mbcore.write_file("mbex1.vtk");MB_CHK_SET_ERR(rval, "write_file(mbex1.vtk) failed");
 
   return 0;
 }

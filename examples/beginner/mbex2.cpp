@@ -1,12 +1,12 @@
-/// \file moabuse2.cpp
+/// \file mbex2.cpp
 ///
 /// \author Milad Fatenejad
 ///
-/// \brief moabuse tutorial, example 2: Demonstrates loading a mesh
+/// \brief beginner tutorial, example 2: Demonstrates loading a mesh
 ///        from a file, finding coordinate locations, connectivity
 ///        information...
 ///
-/// In this example, we read in the VTK file (moabuse1.vtk) generated
+/// In this example, we read in the VTK file (mbex1.vtk) generated
 /// in example 1, pick one of the hexahedrons, find out the vertexes
 /// that define it (connectivity), and find the coordinates of those
 /// vertexes. Finally, we will rotate the mesh a little and write it
@@ -31,8 +31,8 @@ int main()
   moab::Interface& mbint = mbcore;
 
   // First, lets load the file from the previous example. Note that
-  // you must compile and run the previous example to get moabuse1.vtk!
-  rval = mbint.load_file("moabuse1.vtk");MB_CHK_SET_ERR(rval, "load_file failed");
+  // you must compile and run the previous example to get mbex1.vtk!
+  rval = mbint.load_file("mbex1.vtk");MB_CHK_SET_ERR(rval, "load_file failed");
 
   // *********************
   // *   Introspection   *
@@ -118,10 +118,10 @@ int main()
   // *   Write Mesh to File   *
   // **************************
 
-  rval = mbint.write_file("moabuse2.vtk");MB_CHK_SET_ERR(rval, "write_file(moabuse2.vtk) failed");
+  rval = mbint.write_file("mbex2.vtk");MB_CHK_SET_ERR(rval, "write_file(mbex2.vtk) failed");
 
   // Now you can open your favorite visualization tool (VisIt or ParaView)
-  // and look at the original (moabuse1.vtk) and rotated (moabuse2.vtk) meshes.
+  // and look at the original (mbex1.vtk) and rotated (mbex2.vtk) meshes.
 
   return 0;
 }
