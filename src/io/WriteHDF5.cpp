@@ -1517,7 +1517,7 @@ ErrorCode range_to_id_list_templ(HandleRangeIter begin,
       }
 
       // compute the last available value of the found target range (ri iterator)
-      WriteHDF5::wid_t last_valid_input_value_in_current_map_range = ri->begin + ri->count;
+      WriteHDF5::wid_t last_valid_input_value_in_current_map_range = ri->begin + ri->count -1 ;
       // limit the number of steps we do on top of h so we do not overflow the output range span
       WriteHDF5::wid_t step_until = std::min(last_valid_input_value_in_current_map_range, pi->second);
       WriteHDF5::wid_t n = step_until - h + 1;
@@ -1575,7 +1575,7 @@ ErrorCode range_to_blocked_list_templ(HandleRangeIter begin,
       if (id + n > ri->value + ri->count) // we have to reduce n, because we cannot go over next subrange
       {
         if (ri->value + ri->count - id > 0)
-          n = ri->value + ri->count - id > 0;
+          n = ri->value + ri->count - id ;
       }
 
       // See if we can append it to the previous range
