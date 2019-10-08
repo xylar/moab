@@ -130,7 +130,7 @@ int main(int argc, char* argv[])
 #endif // MOAB_HAVE_ZOLTAN
 
   long num_parts;
-  opts.addOpt<std::vector<int> >("set_l,l", "Load material set(s) with specified ids (comma seperated) for partition");
+  opts.addOpt<std::vector<int> >("set_l,l", "Load material set(s) with specified ids (comma separated) for partition");
 
   opts.addRequiredArg<int>("#parts", "Number of parts in partition");
 
@@ -161,6 +161,9 @@ int main(int argc, char* argv[])
   std::vector<int> BCids;
   opts.addOpt<std::string>( "aggregatingBCids,I", " (Metis) Specify id or ids of boundaries to be aggregated before partitioning (all elements with same boundary id will be in the same partition). Comma separated e.g. -I 1,2,5 ", &boundaryIds);
 #endif // MOAB_HAVE_METIS
+
+  bool assign_global_ids = false;
+  opts.addOpt<void>( "globalIds,i", "Assign GLOBAL_ID tag to entities", &assign_global_ids);
 
   opts.parseCommandLine(argc, argv);
 
@@ -212,7 +215,9 @@ int main(int argc, char* argv[])
       return EXIT_FAILURE;
 #endif // MOAB_HAVE_CGM
     }
+    zoltan_tool->set_global_id_option(assign_global_ids);
   }
+
 
   if (zoltan_method.empty() && parm_method.empty() && oct_method.empty())
     zoltan_method = DEFAULT_ZOLTAN_METHOD;
@@ -226,6 +231,7 @@ int main(int argc, char* argv[])
   MetisPartitioner *metis_tool = NULL;
   if (moab_use_metis && !metis_tool) {
     metis_tool = new MetisPartitioner (&mb, false);
+    metis_tool->set_global_id_option(assign_global_ids);
   }
 
   if ((aggregating_tag.empty() && partition_tagged_sets) || (aggregating_tag.empty() && partition_tagged_ents))
@@ -248,6 +254,7 @@ int main(int argc, char* argv[])
   if (metis_method.empty()) {
     metis_method = METIS_DEFAULT_METHOD;
   }
+
 #endif // MOAB_HAVE_METIS
 
   if (!write_sets && !write_tags)

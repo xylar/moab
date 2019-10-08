@@ -703,7 +703,10 @@ ErrorCode ZoltanPartitioner::assemble_graph(const int dimension,
   if (MB_SUCCESS != result || elems.empty()) return result;
 
     // assign global ids
-  result = mbpc->assign_global_ids(0, dimension); RR;
+  if(assign_global_ids)
+  {
+    result = mbpc->assign_global_ids(0, dimension); RR;
+  }
 
     // now assemble the graph, calling MeshTopoUtil to get bridge adjacencies through d-1 dimensional
     // neighbors

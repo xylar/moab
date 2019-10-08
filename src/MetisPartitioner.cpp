@@ -149,7 +149,10 @@ ErrorCode MetisPartitioner::partition_mesh(const idx_t nparts,
 
 #ifdef MOAB_HAVE_MPI
     // assign global node ids, starting from one! TODO
-  result = mbpc->assign_global_ids(0, 0, 1);MB_CHK_ERR(result);
+  if (assign_global_ids)
+  {
+    result = mbpc->assign_global_ids(0, 0, 1);MB_CHK_ERR(result);
+  }
 #endif
 
   if (metis_RESULT != METIS_OK)
@@ -382,7 +385,10 @@ ErrorCode MetisPartitioner::assemble_graph(const int dimension,
 
 #ifdef MOAB_HAVE_MPI
     // assign global ids
-  result = mbpc->assign_global_ids(0, dimension, 0);
+  if (assign_global_ids)
+  {
+    result = mbpc->assign_global_ids(0, dimension, 0);MB_CHK_ERR(result);
+  }
 #endif
 
     // now assemble the graph, calling MeshTopoUtil to get bridge adjacencies through d-1 dimensional
