@@ -149,7 +149,10 @@ ErrorCode MetisPartitioner::partition_mesh(const idx_t nparts,
 
 #ifdef MOAB_HAVE_MPI
     // assign global node ids, starting from one! TODO
-  result = mbpc->assign_global_ids(0, 0, 1);MB_CHK_ERR(result);
+  if (assign_global_ids)
+  {
+    result = mbpc->assign_global_ids(0, 0, 1);MB_CHK_ERR(result);
+  }
 #endif
 
   if (metis_RESULT != METIS_OK)
@@ -382,7 +385,10 @@ ErrorCode MetisPartitioner::assemble_graph(const int dimension,
 
 #ifdef MOAB_HAVE_MPI
     // assign global ids
-  result = mbpc->assign_global_ids(0, dimension, 0);
+  if (assign_global_ids)
+  {
+    result = mbpc->assign_global_ids(0, dimension, 0);MB_CHK_ERR(result);
+  }
 #endif
 
     // now assemble the graph, calling MeshTopoUtil to get bridge adjacencies through d-1 dimensional
@@ -391,40 +397,41 @@ ErrorCode MetisPartitioner::assemble_graph(const int dimension,
   Range adjs;
     // can use a fixed-size array 'cuz the number of lower-dimensional neighbors is limited
     // by MBCN
-  int neighbors[5*MAX_SUB_ENTITIES]; // these are global ids, they will be int
+  int neighbors[5*MAX_SUB_ENTITIES]; // these will be now indices in the elems range
 
   double avg_position[3];
-  int moab_id;
+  int index_in_elems=0;
 
-    // get the global id tag handle
-  Tag gid = mbImpl->globalId_tag();
-
-  for (Range::iterator rit = elems.begin(); rit != elems.end(); rit++) {
+  for (Range::iterator rit = elems.begin(); rit != elems.end(); rit++, index_in_elems++) {
 
       // get bridge adjacencies
     adjs.clear();
     result = mtu.get_bridge_adjacencies(*rit, (dimension > 0 ? dimension-1 : 3),
                                         dimension, adjs);MB_CHK_ERR(result);
 
-      // get the graph vertex ids of those
+      // get the indices in elems range of those
     if (!adjs.empty()) {
+      int i=0;
       assert(adjs.size() < 5*MAX_SUB_ENTITIES);
-      result = mbImpl->tag_get_data(gid, adjs, neighbors);MB_CHK_ERR(result);
+      for (Range::iterator ait = adjs.begin(); ait!=adjs.end(); ait++, i++ )
+      {
+        EntityHandle adjEnt = *ait;
+        neighbors[i] = elems.index(adjEnt);
+      }
     }
 
-      // copy those idx_to adjacencies vector
+    // copy those idx_to adjacencies vector
     length.push_back(length.back()+(idx_t)adjs.size());
     // conversion made to idx_t
     std::copy(neighbors, neighbors+adjs.size(), std::back_inserter(adjacencies));
 
-      // get average position of vertices
+    // get average position of vertices
     result = mtu.get_average_position(*rit, avg_position);MB_CHK_ERR(result);
 
-      // get the graph vertex id for this element
-    result = mbImpl->tag_get_data(gid, &(*rit), 1, &moab_id);MB_CHK_ERR(result);
+    // get the graph vertex id for this element; it is now index in elems
+    moab_ids.push_back(index_in_elems); // conversion made to idx_t
 
-      // copy those idx_to coords vector
-    moab_ids.push_back(moab_id); // conversion made to idx_t
+    // copy_to coords vector
     std::copy(avg_position, avg_position+3, std::back_inserter(coords));
   }
 

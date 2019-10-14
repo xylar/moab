@@ -81,6 +81,10 @@ using namespace moab;
 
     const Range &part_sets() const {return partSets;};
 
+    void set_global_id_option(bool id_opt) {assign_global_ids=id_opt;}
+
+    bool get_global_id_option() {return assign_global_ids;}
+
   protected:
 
     Interface *mbImpl;
@@ -90,6 +94,7 @@ using namespace moab;
     bool write_output;
     bool useCoords;
     bool newComm;
+    bool assign_global_ids;
 
     Range partSets;
 
