@@ -972,6 +972,16 @@ namespace moab {
      */
     ErrorCode delete_entities(Range & to_delete);
 
+    /*
+     * \brief correct multi-sharing info for thin layers
+     *
+     * will be used for at least 3 processes, when there are thin ghost layers
+     * right now it is public, for allowing users to call it directly
+     * eventually, it should become private, and be called automatically
+     */
+
+    ErrorCode correct_thin_ghost_layers();
+
   private:
 
     ErrorCode reduce_void(int tag_data_type, const MPI_Op mpi_op, int num_ents, void *old_vals, void *new_vals);
@@ -1429,8 +1439,8 @@ namespace moab {
     Range partitionSets, interfaceSets;
 
     //! all local entities shared with others, whether ghost or ghosted
-    std::vector<EntityHandle> sharedEnts;
-
+    std::set<EntityHandle> sharedEnts;
+  
     //! tags used to save sharing procs and handles
     Tag sharedpTag, sharedpsTag, sharedhTag, sharedhsTag, pstatusTag,
       ifaceSetsTag, partitionTag;
@@ -1676,7 +1686,6 @@ namespace moab {
   {
     recvReqs.resize(n_request, MPI_REQUEST_NULL);
   }
-
 } // namespace moab
 
 #endif

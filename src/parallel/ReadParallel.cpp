@@ -31,7 +31,8 @@ const char *ReadParallel::ParallelActionsNames[] = {
     "PARALLEL RESOLVE_SHARED_SETS",
     "PARALLEL_AUGMENT_SETS_WITH_GHOSTS",
     "PARALLEL PRINT_PARALLEL",
-    "PARALLEL_CREATE_TRIVIAL_PARTITION"
+    "PARALLEL_CREATE_TRIVIAL_PARTITION",
+    "PARALLEL_CORRECT_THIN_GHOST_LAYERS"
 };
 
 const char* ReadParallel::parallelOptsNames[] = { "NONE",
@@ -164,6 +165,11 @@ ErrorCode ReadParallel::load_file(const char **file_names,
   if (MB_SUCCESS == result)
     skip_augment = true;
 
+  bool correct_thin_ghosts = false;
+  result = opts.get_null_option("PARALLEL_THIN_GHOST_LAYER");
+  if (MB_SUCCESS == result)
+    correct_thin_ghosts = true;
+
   // Get MPI IO processor rank
   int reader_rank;
   result = opts.get_int_option("MPI_IO_RANK", reader_rank);
@@ -248,6 +254,9 @@ ErrorCode ReadParallel::load_file(const char **file_names,
     pa_vec.push_back(PA_RESOLVE_SHARED_SETS);
     if (-1 != ghost_dim && !skip_augment)
       pa_vec.push_back(PA_AUGMENT_SETS_WITH_GHOSTS);
+    if (-1 != ghost_dim && correct_thin_ghosts)
+      pa_vec.push_back(PA_CORRECT_THIN_GHOSTS);
+
   }
 
   if (print_parallel)
@@ -597,6 +606,13 @@ ErrorCode ReadParallel::load_file(const char **file_names,
             tmp_result = myPcomm->augment_default_sets_with_ghosts(file_set);
           break;
 //==================
+      case PA_CORRECT_THIN_GHOSTS:
+          myDebug.tprint(1, "correcting thin ghost layers.\n");
+          if (2 >= myPcomm->size()) // it is a problem only for multi-shared entities
+            tmp_result = MB_SUCCESS;
+          else
+            tmp_result = myPcomm->correct_thin_ghost_layers();
+          break;
       case PA_PRINT_PARALLEL:
           myDebug.tprint(1, "Printing parallel information.\n");
 

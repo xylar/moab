@@ -2509,14 +2509,11 @@ ErrorCode ParallelComm::get_remote_handles(EntityHandle *local_vec, EntityHandle
 
   ErrorCode ParallelComm::list_entities(const EntityHandle *ents, int num_ents)
   {
-    if (NULL == ents && 0 == num_ents) {
+    if (NULL == ents) {
       Range shared_ents;
       std::copy(sharedEnts.begin(), sharedEnts.end(), range_inserter(shared_ents));
       shared_ents.print("Shared entities:\n");
       return MB_SUCCESS;
-    }
-    else if (NULL == ents && 0 != num_ents) {
-      return list_entities(&sharedEnts[0], sharedEnts.size());
     }
 
     unsigned char pstat;
@@ -2527,6 +2524,9 @@ ErrorCode ParallelComm::get_remote_handles(EntityHandle *local_vec, EntityHandle
 
     for (int i = 0; i < num_ents; i++) {
       result = mbImpl->list_entities(ents + i, 1);MB_CHK_ERR(result);
+      double coords[3];
+      result = mbImpl->get_coords(ents + i, 1,coords);
+      std::cout << " coords: " << coords[0] << " " << coords[1] << " " << coords[2]<< "\n";
 
       result = get_sharing_data(ents[i], tmp_procs, tmp_handles, pstat, num_ps);MB_CHK_SET_ERR(result, "Failed to get sharing data");
 
@@ -2700,7 +2700,7 @@ ErrorCode ParallelComm::get_remote_handles(EntityHandle *local_vec, EntityHandle
     result = set_sharing_data(new_h, new_pstat, num_exist, new_numps, &new_ps[0], &new_hs[0]);MB_CHK_SET_ERR(result, "Failed to set sharing data in update_remote_data");
 
     if (new_pstat & PSTATUS_SHARED)
-      sharedEnts.push_back(new_h);
+      sharedEnts.insert(new_h);
 
     return MB_SUCCESS;
   }
@@ -2878,7 +2878,7 @@ ErrorCode ParallelComm::get_remote_handles(EntityHandle *local_vec, EntityHandle
     result = mbImpl->tag_set_data(pstatus_tag(), &new_h, 1, &pstat);MB_CHK_SET_ERR(result, "Failed to set pstatus tag data");
 
     if (pstat & PSTATUS_SHARED)
-      sharedEnts.push_back(new_h);
+      sharedEnts.insert(new_h);
 
     return MB_SUCCESS;
   }
@@ -4647,7 +4647,7 @@ ErrorCode ParallelComm::get_remote_handles(EntityHandle *local_vec, EntityHandle
 
     std::set<EntityHandle> own_and_sha;
     int ir = 0, jr = 0;
-    for (std::vector<EntityHandle>::iterator vit = sharedEnts.begin();
+    for (std::set<EntityHandle>::iterator vit = sharedEnts.begin();
         vit != sharedEnts.end(); ++vit)
     {
       // ghosted eh
@@ -4792,7 +4792,7 @@ ErrorCode ParallelComm::get_remote_handles(EntityHandle *local_vec, EntityHandle
     ErrorCode result;
     int nprocs;
     unsigned char pstat;
-    for (std::vector<EntityHandle>::iterator vit = sharedEnts.begin(); vit != sharedEnts.end(); ++vit) {
+    for (std::set<EntityHandle>::iterator vit = sharedEnts.begin(); vit != sharedEnts.end(); ++vit) {
       if (shared_dim != -1 && mbImpl->dimension_from_handle(*vit) > shared_dim)
         continue;
       result = get_sharing_data(*vit, procs, handles, pstat, nprocs);MB_CHK_SET_ERR(result, "Failed to get sharing data");
@@ -5106,7 +5106,7 @@ ErrorCode ParallelComm::get_remote_handles(EntityHandle *local_vec, EntityHandle
         result = mbImpl->tag_set_data(shhs_tag, &this_ent, 1,
                                       &sharing_handles[0]);MB_CHK_SET_ERR(result, "Failed to set sharedhs tag on shared vertex");
         result = mbImpl->tag_set_data(pstat_tag, &this_ent, 1, &ms_flag);MB_CHK_SET_ERR(result, "Failed to set pstatus tag on shared vertex");
-        sharedEnts.push_back(this_ent);
+        sharedEnts.insert(this_ent);
       }
 
       // Reset sharing proc(s) tags
@@ -5120,7 +5120,8 @@ ErrorCode ParallelComm::get_remote_handles(EntityHandle *local_vec, EntityHandle
       result = mbImpl->tag_set_data(shh_tag, &tag_lhandles[0], tag_procs.size(),
                                     &tag_rhandles[0]);MB_CHK_SET_ERR(result, "Failed to set sharedh tag on shared vertex");
       result = mbImpl->tag_set_data(pstat_tag, &tag_lhandles[0], tag_procs.size(), &pstatus[0]);MB_CHK_SET_ERR(result, "Failed to set pstatus tag on shared vertex");
-      std::copy(tag_lhandles.begin(), tag_lhandles.end(), std::back_inserter(sharedEnts));
+      for (std::vector<EntityHandle>::iterator vvt=tag_lhandles.begin(); vvt!= tag_lhandles.end(); vvt++)
+        sharedEnts.insert(*vvt);
     }
 
 #ifndef NDEBUG
@@ -5197,7 +5198,7 @@ ErrorCode ParallelComm::get_remote_handles(EntityHandle *local_vec, EntityHandle
         result = mbImpl->tag_set_data(shh_tag, &this_ent, 1,
                                       &sharing_handles[0]);MB_CHK_SET_ERR(result, "Failed to set sharedh tag on shared vertex");
         result = mbImpl->tag_set_data(pstat_tag, &this_ent, 1, &share_flag);MB_CHK_SET_ERR(result, "Failed to set pstatus tag on shared vertex");
-        sharedEnts.push_back(this_ent);
+        sharedEnts.insert(this_ent);
       }
       else {
         // Pad lists
@@ -5215,7 +5216,7 @@ ErrorCode ParallelComm::get_remote_handles(EntityHandle *local_vec, EntityHandle
         result = mbImpl->tag_set_data(shhs_tag, &this_ent, 1,
                                       &sharing_handles[0]);MB_CHK_SET_ERR(result, "Failed to set sharedhs tag on shared vertex");
         result = mbImpl->tag_set_data(pstat_tag, &this_ent, 1, &ms_flag);MB_CHK_SET_ERR(result, "Failed to set pstatus tag on shared vertex");
-        sharedEnts.push_back(this_ent);
+        sharedEnts.insert(this_ent);
       }
 
       // Reset sharing proc(s) tags
@@ -5747,7 +5748,7 @@ ErrorCode ParallelComm::get_remote_handles(EntityHandle *local_vec, EntityHandle
       }
 
       myDebug->tprintf(1, "Total number of shared entities = %lu.\n", (unsigned long)sharedEnts.size());
-      myDebug->tprintf(1, "Exiting exchange_ghost_cells\n");
+      myDebug->tprintf(1, "Exiting exchange_ghost_cells for is_iface==true \n");
 
       return MB_SUCCESS;
     }
@@ -5864,7 +5865,7 @@ ErrorCode ParallelComm::get_remote_handles(EntityHandle *local_vec, EntityHandle
     }
 
     myDebug->tprintf(1, "Total number of shared entities = %lu.\n", (unsigned long)sharedEnts.size());
-    myDebug->tprintf(1, "Exiting exchange_ghost_cells\n");
+    myDebug->tprintf(1, "Exiting exchange_ghost_cells for is_iface==false \n");
 
     return MB_SUCCESS;
   }
@@ -6283,7 +6284,7 @@ ErrorCode ParallelComm::get_remote_handles(EntityHandle *local_vec, EntityHandle
     result = mbImpl->tag_set_data(pstatus_tag(), &ent, 1, &pstatus);MB_CHK_SET_ERR(result, "set_sharing_data:9");
 
     if (old_nump > 1 && new_nump < 2)
-      sharedEnts.erase(std::find(sharedEnts.begin(), sharedEnts.end(), ent));
+      sharedEnts.erase( ent);
 
     return result;
   }
@@ -6657,7 +6658,7 @@ ErrorCode ParallelComm::get_remote_handles(EntityHandle *local_vec, EntityHandle
     EntityHandle handles[MAX_SHARING_PROCS];
     int nprocs;
     unsigned char pstat;
-    for (std::vector<EntityHandle>::iterator vit = sharedEnts.begin(); vit != sharedEnts.end(); ++vit) {
+    for (std::set<EntityHandle>::iterator vit = sharedEnts.begin(); vit != sharedEnts.end(); ++vit) {
       if (mbImpl->dimension_from_handle(*vit) > 2)
         continue;
       result = get_sharing_data(*vit, procs, handles, pstat, nprocs);MB_CHK_SET_ERR(result, "Failed to get sharing data in exchange_owned_meshs");
@@ -8226,7 +8227,7 @@ ErrorCode ParallelComm::get_remote_handles(EntityHandle *local_vec, EntityHandle
     int num_sharing, tmp_int;
     SharedEntityData tmp;
     send_data.resize(buffProcs.size());
-    for (std::vector<EntityHandle>::iterator i = sharedEnts.begin(); i != sharedEnts.end(); ++i) {
+    for (std::set<EntityHandle>::iterator i = sharedEnts.begin(); i != sharedEnts.end(); ++i) {
       tmp.remote = *i; // Swap local/remote so they're correct on the remote proc.
       rval = get_owner(*i, tmp_int);
       tmp.owner = tmp_int;
@@ -8373,7 +8374,7 @@ ErrorCode ParallelComm::get_remote_handles(EntityHandle *local_vec, EntityHandle
 
   ErrorCode ParallelComm::check_local_shared()
   {
-    // Do some local checks on shared entities to make sure things look
+    // Do some checks on shared entities to make sure things look
     // consistent
 
     // Check that non-vertex shared entities are shared by same procs as all
@@ -8389,15 +8390,15 @@ ErrorCode ParallelComm::get_remote_handles(EntityHandle *local_vec, EntityHandle
     int num_ps;
     ErrorCode result;
     unsigned char pstat;
-    Range bad_ents;
+    std::vector<EntityHandle> bad_ents;
     std::vector<std::string> errors;
 
-    std::vector<EntityHandle>::const_iterator vit;
+    std::set<EntityHandle>::iterator vit;
     for (vit = sharedEnts.begin(); vit != sharedEnts.end(); ++vit) {
       // Get sharing procs for this ent
       result = get_sharing_data(*vit, tmp_procs, tmp_hs, pstat, num_ps);
       if (MB_SUCCESS != result) {
-        bad_ents.insert(*vit);
+        bad_ents.push_back(*vit);
         errors.push_back(std::string("Failure getting sharing data."));
         continue;
       }
@@ -8417,7 +8418,7 @@ ErrorCode ParallelComm::get_remote_handles(EntityHandle *local_vec, EntityHandle
         errors.push_back(std::string("Entity owned and multishared but not first proc or not first handle.")), bad = true;
 
       if (bad) {
-        bad_ents.insert(*vit);
+        bad_ents.push_back(*vit);
         continue;
       }
 
@@ -8432,7 +8433,7 @@ ErrorCode ParallelComm::get_remote_handles(EntityHandle *local_vec, EntityHandle
       // Get vertices for this ent and intersection of sharing procs
       result = mbImpl->get_connectivity(*vit, connect, num_connect, false, &dum_connect);
       if (MB_SUCCESS != result) {
-        bad_ents.insert(*vit);
+        bad_ents.push_back(*vit);
         errors.push_back(std::string("Failed to get connectivity."));
         continue;
       }
@@ -8440,7 +8441,7 @@ ErrorCode ParallelComm::get_remote_handles(EntityHandle *local_vec, EntityHandle
       for (int i = 0; i < num_connect; i++) {
         result = get_sharing_data(connect[i], tmp_procs, NULL, pstat, num_ps);
         if (MB_SUCCESS != result) {
-          bad_ents.insert(*vit);
+          bad_ents.push_back(*vit);
           continue;
         }
         if (!num_ps) {
@@ -8462,7 +8463,12 @@ ErrorCode ParallelComm::get_remote_handles(EntityHandle *local_vec, EntityHandle
                             vset.begin(), vset.end(), std::inserter(tmp_set, tmp_set.end()));
       if (orig_ps != (int)tmp_set.size()) {
         errors.push_back(std::string("Vertex proc set not same size as entity proc set."));
-        bad_ents.insert(*vit);
+        bad_ents.push_back(*vit);
+        for (int i=0; i<num_connect; i++)
+        {
+          bad_ents.push_back(connect[i]);
+          errors.push_back(std::string("vertex in connect"));
+        }
       }
     }
 
@@ -8470,7 +8476,7 @@ ErrorCode ParallelComm::get_remote_handles(EntityHandle *local_vec, EntityHandle
       std::cout << "Found bad entities in check_local_shared, proc rank "
                 << procConfig.proc_rank() << "," << std::endl;
       std::vector<std::string>::iterator sit;
-      Range::iterator rit;
+      std::vector<EntityHandle>::iterator rit;
       for (rit = bad_ents.begin(), sit = errors.begin(); rit != bad_ents.end(); ++rit, ++sit) {
         list_entities(&(*rit), 1);
         std::cout << "Reason: " << *sit << std::endl;
@@ -8548,7 +8554,7 @@ ErrorCode ParallelComm::get_remote_handles(EntityHandle *local_vec, EntityHandle
           bad_ents.insert(localh);
         result = get_pstatus(localh, tmp_pstat);
         if (MB_SUCCESS != result ||
-            (!tmp_pstat&PSTATUS_NOT_OWNED && (unsigned)vit->owner != rank()) ||
+            (!(tmp_pstat&PSTATUS_NOT_OWNED) && (unsigned)vit->owner != rank()) ||
             (tmp_pstat&PSTATUS_NOT_OWNED && (unsigned)vit->owner == rank()))
           bad_ents.insert(localh);
       }
@@ -9037,11 +9043,12 @@ ErrorCode ParallelComm::get_remote_handles(EntityHandle *local_vec, EntityHandle
     }
     rval = mbImpl->delete_entities(to_delete);MB_CHK_SET_ERR(rval, "Error in deleting actual entities");
 
-    std::vector<EntityHandle> good_ents;
-    for (size_t j = 0; j<sharedEnts.size(); j++) {
-      int index = to_delete.index(sharedEnts[j]);
+    std::set<EntityHandle> good_ents;
+    for (std::set<EntityHandle>::iterator sst = sharedEnts.begin(); sst!=sharedEnts.end(); sst++) {
+      EntityHandle eh = *sst;
+      int index = to_delete.index(eh);
       if (-1 == index)
-        good_ents.push_back(sharedEnts[j]);
+        good_ents.insert(eh);
     }
     sharedEnts = good_ents;
 
@@ -9071,4 +9078,128 @@ ErrorCode ParallelComm::get_remote_handles(EntityHandle *local_vec, EntityHandle
     std::cout << str.c_str() << std::endl;
   }
 
+ErrorCode ParallelComm::correct_thin_ghost_layers()
+{
+
+  // Get all shared ent data from other procs
+  std::vector<std::vector<SharedEntityData> > shents(buffProcs.size()),
+    send_data(buffProcs.size());
+
+  // will work only on multi-shared tags  sharedps_tag(), sharedhs_tag();
+
+  /*
+   *   domain0 | domain1 | domain2 | domain3
+   *   vertices from domain 1 and 2 are visible from both 0 and 3, but
+   *   domain 0 might not have info about multi-sharing from domain 3
+   *   so we will force that domain 0 vertices owned by 1 and 2 have information
+   *   about the domain 3 sharing
+   *
+   *   SharedEntityData will have :
+   *    struct SharedEntityData {
+          EntityHandle local;  // this is same meaning, for the proc we sent to, it is local
+          EntityHandle remote; // this will be the far away handle that will need to be added
+          EntityID owner;      // this will be the remote proc
+        };
+        // so we need to add data like this:
+         a multishared entity owned by proc x will have data like
+           multishared procs:  proc x, a, b, c
+           multishared handles:     h1, h2, h3, h4
+           we will need to send data from proc x like this:
+             to proc a we will send
+               (h2, h3, b), (h2, h4, c)
+             to proc b we will send
+                (h3, h2, a), (h3, h4, c)
+             to proc c we will send
+                (h4, h2, a), (h4, h3, b)
+   *
+   */
+
+  ErrorCode result = MB_SUCCESS;
+  int ent_procs[MAX_SHARING_PROCS];
+  EntityHandle handles[MAX_SHARING_PROCS];
+  int num_sharing;
+  SharedEntityData tmp;
+
+  for (std::set<EntityHandle>::iterator i = sharedEnts.begin(); i != sharedEnts.end(); ++i) {
+
+    unsigned char pstat;
+    result = get_sharing_data(*i, ent_procs, handles, pstat, num_sharing);MB_CHK_SET_ERR(result, "can't get sharing data");
+    if ( !(pstat&PSTATUS_MULTISHARED) || num_sharing<=2 ) // if not multishared, skip, it should have no problems
+      continue;
+    // we should skip the ones that are not owned locally
+    // the owned ones will have the most multi-shared info, because the info comes from other
+    // remote processors
+    if ( pstat&PSTATUS_NOT_OWNED)
+      continue;
+    for (int j = 1; j < num_sharing; j++) {
+      // we will send to proc
+      int send_to_proc = ent_procs[j]; //
+      tmp.local = handles[j];
+      int ind = get_buffers(send_to_proc);
+      assert(-1 != ind); // THIS SHOULD NEVER HAPPEN
+      for(int k=1; k< num_sharing; k++)
+      {
+        // do not send to self proc
+        if (j==k)
+          continue;
+        tmp.remote = handles[k]; // this will be the handle of entity on proc
+        tmp.owner = ent_procs[k];
+        send_data[ind].push_back(tmp);
+      }
+    }
+  }
+
+  result = exchange_all_shared_handles(send_data, shents);  MB_CHK_ERR(result);
+
+  // loop over all shents and add if vertex type, add if missing
+  for (size_t i=0; i<shents.size(); i++)
+  {
+    std::vector<SharedEntityData> &shEnts=shents[i];
+    for (size_t j=0; j<shEnts.size(); j++)
+    {
+      tmp = shEnts[j];
+      // basically, check the shared data for tmp.local entity
+      // it should have inside the tmp.owner and tmp.remote
+      EntityHandle eh = tmp.local;
+      unsigned char pstat;
+      result = get_sharing_data(eh, ent_procs, handles, pstat, num_sharing);MB_CHK_SET_ERR(result, "can't get sharing data");
+      // see if the proc tmp.owner is in the list of ent_procs; if not, we have to increase handles, and ent_procs; and set
+
+      int proc_remote = tmp.owner; //
+      if( std::find(ent_procs, ent_procs + num_sharing, proc_remote) == ent_procs + num_sharing )
+      {
+        // so we did not find on proc
+#ifndef NDEBUG
+        std::cout << "THIN GHOST: we did not find on proc " << rank() << " for shared ent " << eh << " the proc " << proc_remote << "\n";
+#endif
+        // increase num_sharing, and set the multi-shared tags
+        if (num_sharing >= MAX_SHARING_PROCS)
+           return MB_FAILURE;
+        handles[num_sharing] = tmp.remote;
+        handles[num_sharing+1] = 0; // end of list
+        ent_procs[num_sharing]= tmp.owner;
+        ent_procs[num_sharing+1] = -1; // this should be already set
+        result = mbImpl->tag_set_data(sharedps_tag(), &eh, 1, ent_procs);MB_CHK_SET_ERR(result, "Failed to set sharedps tag data");
+        result = mbImpl->tag_set_data(sharedhs_tag(), &eh, 1, handles);MB_CHK_SET_ERR(result, "Failed to set sharedhs tag data");
+        if (2==num_sharing) // it means the sharedp and sharedh tags were set with a value non default
+        {
+          // so entity eh was simple shared before, we need to set those dense tags back to default
+          //  values
+          EntityHandle zero=0;
+          int no_proc = -1;
+          result = mbImpl->tag_set_data(sharedp_tag(), &eh, 1, &no_proc);MB_CHK_SET_ERR(result, "Failed to set sharedp tag data");
+          result = mbImpl->tag_set_data(sharedh_tag(), &eh, 1, &zero);MB_CHK_SET_ERR(result, "Failed to set sharedh tag data");
+          // also, add multishared pstatus tag
+          //also add multishared status to pstatus
+          pstat = pstat | PSTATUS_MULTISHARED;
+          result = mbImpl->tag_set_data(pstatus_tag(), &eh, 1, &pstat);MB_CHK_SET_ERR(result, "Failed to set pstatus tag data");
+
+        }
+      }
+
+
+    }
+  }
+  return MB_SUCCESS;
+}
 } // namespace moab
