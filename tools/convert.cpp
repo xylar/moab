@@ -638,11 +638,14 @@ int main(int argc, char* argv[])
   }
 #endif
 
-  if (tempestout) {
-    if (spectral_order > 1 && globalid_tag_name.size() > 1) {
-      result = remapper->GenerateMeshMetadata(*tempestMesh, ntot_elements, faces, NULL, globalid_tag_name, spectral_order);MB_CHK_ERR(result);
-    }
+  // VSM: If user requested explicitly for some metadata, we need to generate the DoF ID tag
+  // and set the appropriate numbering based on specified discretization order
+  // Useful only for SE meshes with GLL DoFs
+  if (spectral_order > 1 && globalid_tag_name.size() > 1) {
+    result = remapper->GenerateMeshMetadata(*tempestMesh, ntot_elements, faces, NULL, globalid_tag_name, spectral_order);MB_CHK_ERR(result);
+  }
 
+  if (tempestout) {
    // Write out the mesh using TempestRemap
     tempestMesh->Write(out);
   }
