@@ -415,8 +415,8 @@ moab::ErrorCode moab::TempestOnlineMap::set_dofmap_association(DiscretizationTyp
         for (unsigned i=0; i < col_dofmap.size(); ++i) {
             col_dofmap[i] = i;
             col_ldofmap[i] = i;
-            col_gdofmap[i] = src_soln_gdofs[i];
-            if (vprint) std::cout << "Col: " << i << ", " << src_soln_gdofs[i] << "\n";
+            col_gdofmap[i] = src_soln_gdofs[i]-1;
+            if (vprint) std::cout << "Col: " << i << ", " << col_gdofmap[i] << "\n";
             m_nTotDofs_SrcCov++;
         }
     }
@@ -458,7 +458,7 @@ moab::ErrorCode moab::TempestOnlineMap::set_dofmap_association(DiscretizationTyp
         for (unsigned i=0; i < srccol_dofmap.size(); ++i) {
             srccol_dofmap[i] = i;
             srccol_ldofmap[i] = i;
-            srccol_gdofmap[i] = locsrc_soln_gdofs[i];
+            srccol_gdofmap[i] = locsrc_soln_gdofs[i]-1;
             m_nTotDofs_Src++;
         }
     }
@@ -499,8 +499,8 @@ moab::ErrorCode moab::TempestOnlineMap::set_dofmap_association(DiscretizationTyp
         for (unsigned i=0; i < row_dofmap.size(); ++i) {
             row_dofmap[i] = i;
             row_ldofmap[i] = i;
-            row_gdofmap[i] = tgt_soln_gdofs[i];
-            if (vprint) std::cout << "Row: " << m_remapper->lid_to_gid_tgt[i] << ", " <<  i << ", " << row_dofmap[i] << ", " << row_ldofmap[i] << ", " << tgt_soln_gdofs[i] << ", " << row_gdofmap[i] << "\n";
+            row_gdofmap[i] = tgt_soln_gdofs[i]-1;
+            if (vprint) std::cout << "Row: " << i << ", " << row_gdofmap[i] << "\n";
             m_nTotDofs_Dest++;
         }
     }
