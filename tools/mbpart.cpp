@@ -163,7 +163,7 @@ int main(int argc, char* argv[])
 #endif // MOAB_HAVE_METIS
 
   bool assign_global_ids = false;
-  opts.addOpt<void>( "globalIds,i", "Assign GLOBAL_ID tag to entities", &assign_global_ids);
+  opts.addOpt<void>( "globalIds,j", "Assign GLOBAL_ID tag to entities", &assign_global_ids);
 
   opts.parseCommandLine(argc, argv);
 
