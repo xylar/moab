@@ -244,6 +244,7 @@ int main( int argc, char* argv[] )
   double t11=MPI_Wtime();
     if (!rank) std::cout << "[LOG] write received ocn mesh on coupler pes: "<< t11-t10 << "\n";
 
+std::cout << "[DEBUG] got here 1: rank "<< rank << "\n";
 #ifdef MOAB_HAVE_TEMPESTREMAP
   // now compute intersection between OCNx and ATMx on coupler PEs
   ierr = iMOAB_RegisterApplication("AO", &jcomm, &intxid, pid5);
@@ -443,6 +444,7 @@ int main( int argc, char* argv[] )
 
 
 #endif
+std::cout << "[DEBUG] got here 2: rank "<< rank << "\n";
 
   if (comm2 != MPI_COMM_NULL) {
     ierr = iMOAB_DeregisterApplication(pid2);
