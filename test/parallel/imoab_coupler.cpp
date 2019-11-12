@@ -483,6 +483,7 @@ std::cout << "[DEBUG] got here 12: rank "<< rank << "\n";
   MPI_Comm_free(&jcomm);
 std::cout << "[DEBUG] got here 13: rank "<< rank << "\n";
 
+  MPI_Finalize();
   return 0;
 }
 
