@@ -450,27 +450,38 @@ std::cout << "[DEBUG] got here 2: rank "<< rank << "\n";
     ierr = iMOAB_DeregisterApplication(pid2);
     CHECKRC(ierr, "cannot deregister app OCN1" )
   }
+std::cout << "[DEBUG] got here 3: rank "<< rank << "\n";
   if (comm1 != MPI_COMM_NULL) {
     ierr = iMOAB_DeregisterApplication(pid1);
     CHECKRC(ierr, "cannot deregister app ATM1" )
   }
+std::cout << "[DEBUG] got here 4: rank "<< rank << "\n";
 
   ierr = iMOAB_DeregisterApplication(pid4);
   CHECKRC(ierr, "cannot deregister app OCNX" )
+std::cout << "[DEBUG] got here 5: rank "<< rank << "\n";
 
   ierr = iMOAB_DeregisterApplication(pid3);
   CHECKRC(ierr, "cannot deregister app OCNX" )
+std::cout << "[DEBUG] got here 6: rank "<< rank << "\n";
 
   ierr = iMOAB_Finalize();
   CHECKRC(ierr, "did not finalize iMOAB" )
+std::cout << "[DEBUG] got here 7: rank "<< rank << "\n";
 
   if (MPI_COMM_NULL != comm1) MPI_Comm_free(&comm1);
+std::cout << "[DEBUG] got here 8: rank "<< rank << "\n";
   if (MPI_COMM_NULL != comm2) MPI_Comm_free(&comm2);
+std::cout << "[DEBUG] got here 9: rank "<< rank << "\n";
 
   MPI_Group_free(&group1);
+std::cout << "[DEBUG] got here 10: rank "<< rank << "\n";
   MPI_Group_free(&group2);
+std::cout << "[DEBUG] got here 11: rank "<< rank << "\n";
   MPI_Group_free(&jgroup);
+std::cout << "[DEBUG] got here 12: rank "<< rank << "\n";
   MPI_Comm_free(&jcomm);
+std::cout << "[DEBUG] got here 13: rank "<< rank << "\n";
 
   return 0;
 }
